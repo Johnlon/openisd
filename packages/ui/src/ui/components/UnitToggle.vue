@@ -4,9 +4,9 @@
 // stays SI; only the chosen token changes, and the displayed VALUE converts with it (a toggle
 // that rotated the text without converting the value would silently misstate every reading).
 // Pass the caller's own unit-span class via `unitClass`.
-import { computed } from 'vue';
-import { unitToken, cycleUnitToken } from '../../logic/presentationState.js';
-import { unitDef, UNIT_GROUPS, type UnitGroup } from '../../logic/fields/units.js';
+import {computed} from 'vue';
+import {cycleUnitToken, unitToken} from '../../logic/presentationState.js';
+import {UNIT_GROUPS, unitDef, type UnitGroup} from '../../logic/fields/units.js';
 
 const props = defineProps<{
   /** Field id — the shared key for this field's selected unit. */

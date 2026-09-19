@@ -13,11 +13,11 @@
  * unsuspended tail once produced a second store-triggered solve), and zero means the write
  * never notified at all.
  */
-import { describe, it, beforeEach } from 'vitest';
+import {beforeEach, describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import { newProject, requireFocusedProject } from '../../src/logic/appState.js';
-import { enterVentField as enterVentFieldOn, clearVentField as clearVentFieldOn } from '../../src/logic/useVentGroup.js';
-import { enterPrField as enterPrFieldOn, clearPrField as clearPrFieldOn } from '../../src/logic/usePrGroup.js';
+import {newProject, requireFocusedProject} from '../../src/logic/appState.js';
+import {clearVentField as clearVentFieldOn, enterVentField as enterVentFieldOn} from '../../src/logic/useVentGroup.js';
+import {clearPrField as clearPrFieldOn, enterPrField as enterPrFieldOn} from '../../src/logic/usePrGroup.js';
 
 function countNotifications(fn: () => void): number {
   let count = 0;

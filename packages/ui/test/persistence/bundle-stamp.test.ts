@@ -4,9 +4,9 @@
  * their order, and any change to a path, a modification time or a size gives a different one —
  * so a stale skip cannot happen for an edit the stat list can see.
  */
-import { describe, it } from 'vitest';
+import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import { BundleInput, bundleFingerprint } from '../../../../scripts/bundleStamp.mjs';
+import {bundleFingerprint, BundleInput} from '../../../../scripts/bundleStamp.mjs';
 
 const a = new BundleInput('tang-band/w5-1138smf/openisd.yml', 1000, 2048);
 const b = new BundleInput('dayton-audio/nd140-pr/openisd.yml', 2000, 4096);

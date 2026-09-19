@@ -1,6 +1,6 @@
-import { describe, it, expect } from 'vitest';
-import { Engine } from '@openisd/design/engine';
-import { OpenISDProject, OpenISDDriver } from '../domain/index.js';
+import {describe, expect, it} from 'vitest';
+import {Engine} from '@openisd/design/engine';
+import {OpenISDDriver, OpenISDProject} from '../domain/index.js';
 
 // This test is the package's PROXY CONSUMER: it imports from `index.js` only.
 const scraped = <T,>(value: T) => ({ value });

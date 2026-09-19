@@ -56,7 +56,7 @@
  */
 
 /** Ratio of specific heats for air. */
-import type { CalculationIssue } from './consistency.js';
+import type {CalculationIssue} from './consistency.js';
 
 export const GAMMA = 1.4;
 

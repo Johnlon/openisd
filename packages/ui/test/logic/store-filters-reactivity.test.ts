@@ -8,11 +8,11 @@
  * own `RawField` fires `projectChanged`, the same signal `live`'s subscription bumps on every
  * mutation and the one the persistence hook watches.
  */
-import { describe, it } from 'vitest';
+import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import { watch, nextTick } from 'vue';
-import { projectChanged, requireFocusedProject, newProject } from '../../src/logic/appState.js';
-import type { Filter } from '@openisd/design/engine';
+import {nextTick, watch} from 'vue';
+import {newProject, projectChanged, requireFocusedProject} from '../../src/logic/appState.js';
+import type {Filter} from '@openisd/design/engine';
 
 const hp = (fc: number): Filter => ({ id: 'f-hp', type: 'highpass', enabled: true, fc, Q: 0.7071 });
 

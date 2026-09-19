@@ -6,13 +6,19 @@
  * that separates a correct decoder from a byte-for-byte substitution: the file is UTF-8, so a
  * naive replace would have to reason about `0xA4` appearing inside a multi-byte sequence.
  */
-import { describe, it } from 'vitest';
+import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
-import { dirname, join } from 'node:path';
-import { winisdBytesToText, winisdTextToBytes, WINISD_NEWLINE_SENTINEL, WinisdEncoding } from '../../winisd/winisdBytes.js';
-import { WinISDDriver, INI_ROWS } from '../../winisd/winisdDriver.js';
+import {readFileSync} from 'node:fs';
+import {fileURLToPath} from 'node:url';
+import {dirname, join} from 'node:path';
+import {
+  WINISD_NEWLINE_SENTINEL,
+  winisdBytesToText,
+  WinisdEncoding,
+  winisdTextToBytes
+} from '../../winisd/winisdBytes.js';
+import {WinISDDriver} from '../../winisd/winisdDriver.js';
+import {allEnteredCells} from './wdrFixture.js';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..', '..');
 const UNICODE_WDR = join(ROOT, 'drivers', 'myprobes', 'text', 'driver-with-unicode-text.wdr');
@@ -61,10 +67,9 @@ describe('the 0xA4 newline sentinel in a .wdr string field', () => {
   });
 
   it('appended [DQ] lines are encoded too — they are newlines in the comment like any other', () => {
-    // build() requires all 48 keys; this test is about the Comment/DQ line, so every other
-    // key is filled with an arbitrary distinct entered value.
-    const cells = new Map(INI_ROWS.map((key, i) =>
-      [key, { value: String(i), state: 'entered' as const }]));
+    // build() takes the fixed 48-row structure; this test is about the Comment/DQ line, so every
+    // other key is filled with an arbitrary distinct entered value.
+    const cells = allEnteredCells();
     const driver = WinISDDriver.build(
       { brand: 'B', model: 'M', comment: 'a driver' }, cells,
       ['[DQ] Qts=1.5: above max 0.8'],

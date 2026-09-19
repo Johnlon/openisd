@@ -1,8 +1,8 @@
-import type { InjectionKey, Ref } from 'vue';
-import { computed } from 'vue';
-import { useFocusedProject } from '../logic/focusedProjectContext.js';
-import type { OpenISDProject } from '@openisd/design';
-import type { BoxType } from '@openisd/design/engine';
+import type {InjectionKey, Ref} from 'vue';
+import {computed} from 'vue';
+import {useFocusedProject} from '../logic/focusedProjectContext.js';
+import type {OpenISDProject} from '@openisd/design';
+import type {BoxType} from '@openisd/design/engine';
 
 export interface OgEnclosureAPI {
   readonly project: Readonly<Ref<OpenISDProject>>;

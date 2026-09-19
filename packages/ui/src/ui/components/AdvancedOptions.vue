@@ -9,11 +9,11 @@
  * field registry (fields/fieldRegistry.ts, pane 'Advanced'); the tooltips below are the
  * short form of the same text. Design: PLAN_ADVANCED_SIM_OPTIONS.md.
  */
-import { computed } from 'vue';
-import { simVcInductance } from '../../logic/appState.js';
-import { useFocusedProject } from '../../logic/focusedProjectContext.js';
-import { fieldHelp } from '../../logic/fields/fieldRegistry.js';
-import { inputChecked } from '../../logic/domEvents.js';
+import {computed} from 'vue';
+import {simVcInductance} from '../../logic/appState.js';
+import {useFocusedProject} from '../../logic/focusedProjectContext.js';
+import {fieldHelp} from '../../logic/fields/fieldRegistry.js';
+import {inputChecked} from '../../logic/domEvents.js';
 
 // No per-toggle computed wrapper (`docs/design/REACTIVITY.md`): each checkbox below reads the
 // focused project's own getter directly, reactive via `project`, and writes through its own

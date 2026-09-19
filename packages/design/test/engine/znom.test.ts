@@ -1,4 +1,5 @@
-import { solveConsistencyGroup } from './testSolver.js';
+import type {TestSolverQuantities} from './testSolver.js';
+import {solveConsistencyGroup} from './testSolver.js';
 /**
  * `Znom` — WinISD's nominal impedance is CALCULATED from `Re`, not a stored label.
  *
@@ -27,10 +28,8 @@ import { solveConsistencyGroup } from './testSolver.js';
  *                             exactly 2.5 and would predict 4.
  * Both ride on the `PROBE` rows below, which the solver must reproduce exactly.
  */
-
-import { describe, it } from 'vitest';
+import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import type { TestSolverQuantities } from './testSolver.js';
 
 /** The engine's one door: every calculation below is a method on this object. */
 

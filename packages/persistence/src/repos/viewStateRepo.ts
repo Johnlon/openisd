@@ -5,9 +5,9 @@
  *  No schema-upgrade seam, no share-link door: a share link keeps carrying the whole session
  *  through `ProjectRepo`'s own `stateToUrl`/`loadFromHash` (human ruling 2026-08-14) — this
  *  repo only ever needs local persistence. */
-import type { ViewSnapshot } from './projectRepo.js';
-import type { KeyValueStorage } from '../storage/keyValueStorage.js';
-import { OPENISD_VIEW_KEY } from './storageKeys.js';
+import type {ViewSnapshot} from './projectRepo.js';
+import type {KeyValueStorage} from '../storage/keyValueStorage.js';
+import {OPENISD_VIEW_KEY} from './storageKeys.js';
 
 export const VIEW_STATE_KEY = OPENISD_VIEW_KEY;
 

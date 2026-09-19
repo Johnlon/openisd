@@ -9,9 +9,9 @@
  * one. Output is buffered per package and printed in order, so a failure reads the same as
  * before. Exit status is non-zero if any fails.
  */
-import { spawn } from 'node:child_process';
-import { join } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import {spawn} from 'node:child_process';
+import {join} from 'node:path';
+import {fileURLToPath} from 'node:url';
 
 const ROOT = join(fileURLToPath(import.meta.url), '..', '..');
 const shell = process.platform === 'win32';

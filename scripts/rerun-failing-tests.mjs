@@ -18,8 +18,8 @@
 //
 // Output: build/rerun-results.json  [{ file, grep, exitCode, report: bool,
 //           passed: [leaf], failed: [{leaf,status}], noMatch: [leaf] }]
-import { readFileSync, writeFileSync, existsSync, rmSync } from 'node:fs';
-import { execFileSync } from 'node:child_process';
+import {existsSync, readFileSync, rmSync, writeFileSync} from 'node:fs';
+import {execFileSync} from 'node:child_process';
 
 const groupsAll = JSON.parse(readFileSync('build/failing-tests.json', 'utf8'));
 const wanted = process.argv.slice(2);

@@ -1,7 +1,7 @@
-import { test, expect, openAProject } from '../fixtures.js';
-import type { Page } from '@playwright/test';
-import { join, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import {expect, openAProject, test} from '../fixtures.js';
+import type {Page} from '@playwright/test';
+import {dirname, join} from 'node:path';
+import {fileURLToPath} from 'node:url';
 
 const COMPLETE = join(dirname(fileURLToPath(import.meta.url)), '..', 'fixtures', 'complete-driver-project.owpr');
 

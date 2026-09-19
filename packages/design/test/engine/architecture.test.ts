@@ -26,11 +26,11 @@
  * Modeled on packages/ui/test/drivers-bundle.test.ts (vitest + node:assert/strict,
  * reading source files from disk — no import side effects).
  */
-import { describe, it } from 'vitest';
+import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import { readdirSync, readFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
-import { dirname, join } from 'node:path';
+import {readdirSync, readFileSync} from 'node:fs';
+import {fileURLToPath} from 'node:url';
+import {dirname, join} from 'node:path';
 
 const SRC_DIR = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'engine');
 

@@ -9,18 +9,16 @@
  * samples under `docs/samples/` but no golden fixtures here and are not simulated
  * (`packages/design/engine/types.ts` `SimulatableBoxType`) — out of scope for this bridge.
  */
-import { describe, it } from 'vitest';
+import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
-import { dirname, join } from 'node:path';
-import { Engine } from '@openisd/design/engine';
+import {readFileSync} from 'node:fs';
+import {fileURLToPath} from 'node:url';
+import {dirname, join} from 'node:path';
+import {Engine} from '@openisd/design/engine';
+import {OpenISDDriver, OpenISDPassiveRadiatorStandalone, OpenISDProject,} from '@openisd/design';
 import {
-  OpenISDProject, OpenISDDriver, OpenISDPassiveRadiatorStandalone,
-   
-} from '@openisd/design';
-import {
-  openIsdProjectToWinIsdProject, winIsdProjectToOpenIsdProject,
+    openIsdProjectToWinIsdProject,
+    winIsdProjectToOpenIsdProject,
 } from '../../domain/openIsdProjectToWinIsdProject.js';
 
 const here = dirname(fileURLToPath(import.meta.url));

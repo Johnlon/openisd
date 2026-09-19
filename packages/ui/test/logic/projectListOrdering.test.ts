@@ -7,12 +7,10 @@
  * that keeps that true of the registry `appState.ts` actually exposes (`openProjects()` /
  * `addProject()` / `removeProject()` / `focusProject()`), not just of the type comment.
  */
-import { describe, it } from 'vitest';
+import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import {
-  openProjects, removeProject, focusProject, focusedProject, newProject,
-} from '../../src/logic/appState.js';
-import type { OpenISDProject } from '@openisd/design';
+import {focusedProject, focusProject, newProject, openProjects, removeProject,} from '../../src/logic/appState.js';
+import type {OpenISDProject} from '@openisd/design';
 
 /** Two independent projects, both named identically, so any name-keyed storage would collapse
  *  them into one. */

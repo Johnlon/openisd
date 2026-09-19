@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ProvenanceInfo } from '../../logic/provenance.js';
+import type {ProvenanceInfo} from '../../logic/provenance.js';
 
 defineProps<{
   open: boolean;

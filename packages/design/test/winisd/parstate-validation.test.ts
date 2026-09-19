@@ -1,23 +1,22 @@
 /**
- * @openisd/design/winisd — a `.wdr` whose ParState row is malformed is REFUSED, not quietly downgraded.
+ * @openisd/design/winisd — a `.wdr` with a malformed ParState row is READ, never refused.
  *
- * ParState is the only place a `.wdr` records provenance: E means a person or datasheet stated
- * the value, C means WinISD computed it. A mark taken from a broken row is a claim about who
- * authored a number, made on the strength of an arbitrary byte — and nothing downstream can
- * tell it apart from a real one. So the read throws, naming the slot and field, and a person
- * edits the file (John, 2026-09-01).
+ * ParState records who authored each value: E means a person or datasheet stated it, C means
+ * WinISD computed it. But the VALUES live in the `Key=` lines, so a broken or missing ParState
+ * must never reject the file — the marks are ignored and every present row reads presence ⇒ E,
+ * the same shape a scraper-authored `.wdr` (no ParState at all) is read as.
  */
-import { describe, it } from 'vitest';
+import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import { WinISDDriver } from '../../winisd/winisdDriver.js';
-import { PARSTATE_LEN, ParStateError } from '../../winisd/parstate.js';
+import {WinISDDriver} from '../../winisd/winisdDriver.js';
+import {PARSTATE_LEN} from '../../winisd/parstate.js';
 
 /** A `.wdr` carrying one numeric row and the ParState given. Slot 1 is Fs. */
 function wdrWithParState(parState: string): string {
   return ['[Driver]', 'Brand=Acme', 'Model=Probe', 'Fs=37', `ParState=${parState}`].join('\r\n');
 }
 
-describe('a ParState the file carries must be one WinISD could have written', () => {
+describe('a malformed ParState row is ignored, never a reason to refuse the file', () => {
   it('a well-formed row is read as stated — slot 1 C means WinISD computed Fs', () => {
     const parState = 'N'.repeat(PARSTATE_LEN).split('');
     parState[1] = 'C';
@@ -25,39 +24,26 @@ describe('a ParState the file carries must be one WinISD could have written', ()
     assert.equal(drv.cell('Fs').state, 'calculated');
   });
 
-  it('a mark WinISD never writes is refused, and the message names the slot and field', () => {
+  it('a mark WinISD never writes falls back to presence ⇒ E — the file still reads', () => {
     const parState = 'N'.repeat(PARSTATE_LEN).split('');
     parState[20] = 'X';
-    assert.throws(
-      () => WinISDDriver.fromWdrIni(wdrWithParState(parState.join(''))),
-      (err: unknown) => {
-        assert.ok(err instanceof ParStateError, 'a malformed ParState is a ParStateError');
-        assert.match(err.message, /slot 20 \(Dia\) holds "X"/,
-          'the reader must be told WHICH mark is wrong and which field it belongs to');
-        assert.match(err.message, /Edit the ParState= line/,
-          'the remedy is a person editing the file, so the message must say so');
-        return true;
-      });
+    const drv = WinISDDriver.fromWdrIni(wdrWithParState(parState.join('')));
+    assert.equal(drv.cell('Fs').state, 'entered', 'unusable marks must not be believed');
   });
 
-  it('a lower-case mark is refused — WinISD writes upper case only', () => {
+  it('a lower-case mark falls back to presence ⇒ E — WinISD writes upper case only', () => {
     const parState = 'N'.repeat(PARSTATE_LEN).split('');
     parState[1] = 'e';
-    assert.throws(() => WinISDDriver.fromWdrIni(wdrWithParState(parState.join(''))), ParStateError);
+    const drv = WinISDDriver.fromWdrIni(wdrWithParState(parState.join('')));
+    assert.equal(drv.cell('Fs').state, 'entered');
   });
 
-  it('a row of the wrong length is refused, and the message states both lengths', () => {
-    assert.throws(
-      () => WinISDDriver.fromWdrIni(wdrWithParState('N'.repeat(PARSTATE_LEN - 1))),
-      (err: unknown) => {
-        assert.ok(err instanceof ParStateError);
-        assert.match(err.message, new RegExp(`carries ${PARSTATE_LEN - 1} marks`));
-        assert.match(err.message, new RegExp(`exactly ${PARSTATE_LEN}`));
-        return true;
-      });
+  it('a row of the wrong length falls back to presence ⇒ E — the file still reads', () => {
+    const drv = WinISDDriver.fromWdrIni(wdrWithParState('N'.repeat(PARSTATE_LEN - 1)));
+    assert.equal(drv.cell('Fs').state, 'entered');
   });
 
-  it('a file carrying NO ParState line at all is read presence ⇒ E, not refused', () => {
+  it('a file carrying NO ParState line at all is read presence ⇒ E', () => {
     // The scraper writes `.wdr` without a ParState row. That is a shape we author ourselves,
     // not a corrupt WinISD file, so it keeps its own documented reading.
     const drv = WinISDDriver.fromWdrIni(['[Driver]', 'Brand=Acme', 'Model=Probe', 'Fs=37'].join('\r\n'));

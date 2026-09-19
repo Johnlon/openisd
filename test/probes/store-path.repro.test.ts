@@ -1,6 +1,6 @@
-import { describe, it, expect } from 'vitest';
-import { Engine } from '@openisd/design/engine';
-import { OpenISDProject } from '@openisd/design/domain';
+import {describe, expect, it} from 'vitest';
+import {Engine} from '@openisd/design/engine';
+import {OpenISDProject} from '@openisd/design/domain';
 
 describe('store-path repro', () => {
   it('builds via OpenISDProject.empty, switches to vented, clears tuning', () => {

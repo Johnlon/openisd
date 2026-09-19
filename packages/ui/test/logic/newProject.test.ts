@@ -9,8 +9,14 @@
  * `appState.ts` caches its registry on a module-scope singleton shared across every test file in
  * a run, so these assert DELTAS from whatever the registry already holds, never absolute counts.
  */
-import { describe, it, expect } from 'vitest';
-import { newProject, openProjects, focusedProject, definePassiveRadiator, boxTypeIsSimulatable } from '../../src/logic/appState.js';
+import {describe, expect, it} from 'vitest';
+import {
+    boxTypeIsSimulatable,
+    definePassiveRadiator,
+    focusedProject,
+    newProject,
+    openProjects
+} from '../../src/logic/appState.js';
 
 describe('newProject', () => {
   it('adds one project and focuses it', () => {

@@ -13,83 +13,10 @@
  * Every number a scenario depends on is written inside that scenario, so a failure is diagnosable
  * from the one `it()` block without opening anything else.
  */
-import { describe, it, expect } from 'vitest';
-import { Engine } from '@openisd/design/engine';
-import {
-  OpenISDProject, OpenISDDriver, OpenISDPassiveRadiatorStandalone,
-  VoiceCoilWiring,
-   type FrequencyGrid,
-  Engine as RootEngine,
-} from '../domain/index.js';
-import { WDR_TO_SCHEMA_KEY } from '../domain/openisdSchema.js';
-
-const scraped = <T,>(value: T) => ({ value });
-
-/** A conforming driver record. Structural plumbing only — every meaningful value is passed in
- *  by the scenario that depends on it.
- *
- *  The spec takes `number | VoiceCoilWiring` because a driver record is not all numbers: `VCCon`
- *  carries a wiring NAME. Typing this bag as `Record<string, number>` is what let the fixtures
- *  write the numbers 1 and 2 for the wiring and still compile, which kept eight tests green while
- *  the series path was unreachable. */
-function aDriver(engine: Engine, spec: Record<string, number | VoiceCoilWiring>): OpenISDDriver {
-  // A spec entry states no value of its own: the number lives on the reading `origin` names.
-  // `VCCon` is the record's WIRING ENCODING — 1 parallel, 2 series — which is what the corpus
-  // stores and what the domain maps to the enum at the field boundary. Writing the enum's NAME
-  // here would build a record no scraper produces, and the fixture would stop being evidence.
-  const woofer: Record<string, { origin: string; readings: Record<string, { read_value: number }> }> = {};
-  for (const [k, v] of Object.entries(spec)) {
-    const read_value = typeof v === 'number' ? v : (v === VoiceCoilWiring.Series ? 2 : 1);
-    const key = WDR_TO_SCHEMA_KEY[k] ?? k;
-    woofer[key] = { origin: 'scraped', readings: { scraped: { read_value } } };
-  }
-  const result = OpenISDDriver.fromConformingRecord({
-    brand: scraped('Dayton'), model: scraped('RS225'), manufacturer: scraped('Dayton'),
-    provided_by: scraped('test'), comment: scraped(''), added: scraped('2026-01-01'),
-    // The scrape provenance every openisd.yml record carries (`model_openisd.py:55-73`). A
-    // fixture without them is not a record, and the conformance guard says so.
-    uuid: { value: '00000000-0000-4000-8000-000000000000' },
-    // `sku` is a DERIVED field: no origin, but `grounds` carrying the evidence it was
-    // derived from, at least one entry.
-    sku: { value: 'TEST-SKU', grounds: [{ origin: 'manufacturer_datasheet', reading: 'TEST-SKU' }] },
-    driver_type: scraped('woofer'),
-    data_sources: { value: { manufacturer_datasheet: 'https://example.invalid/ds.pdf' } },
-    authoritative: { value: 'manufacturer_datasheet' },
-    quality: {
-      confirmed_fields: [], fields_with_issues: [], missing: [], invalid: [],
-      parse_errors: [], cross_source_only: [],
-    },
-    specs: { woofer },
-  }, engine);
-  if (Array.isArray(result)) throw new Error(`fixture is not a valid driver: ${result.join(', ')}`);
-  return result;
-}
-
-/** A conforming passive-radiator record, same structural plumbing as `aDriver()` but under the
- *  `passive-radiator` section `conformingRecordToPassiveRadiator()` requires. */
-function aRadiator(engine: Engine, spec: Record<string, number>) {
-  const pr: Record<string, { origin: string; readings: Record<string, { read_value: number }> }> = {};
-  for (const [k, v] of Object.entries(spec)) {
-    const key = WDR_TO_SCHEMA_KEY[k] ?? k;
-    pr[key] = { origin: 'scraped', readings: { scraped: { read_value: v } } };
-  }
-  const result = OpenISDPassiveRadiatorStandalone.fromConformingRecord({
-    brand: scraped('SB Acoustics'), model: scraped('SB23PACS'), manufacturer: scraped('SB Acoustics'),
-    provided_by: scraped('test'), comment: scraped(''), added: scraped('2026-01-01'),
-    uuid: { value: '00000000-0000-4000-8000-000000000001' },
-    sku: { value: 'TEST-PR-SKU', grounds: [{ origin: 'manufacturer_datasheet', reading: 'TEST-PR-SKU' }] },
-    driver_type: scraped('passive-radiator'),
-    data_sources: { value: { manufacturer_datasheet: 'https://example.invalid/pr.pdf' } },
-    authoritative: { value: 'manufacturer_datasheet' },
-    quality: {
-      confirmed_fields: [], fields_with_issues: [], missing: [], invalid: [],
-      parse_errors: [], cross_source_only: [],
-    },
-    specs: { 'passive-radiator': pr },
-  }, engine);
-  if (Array.isArray(result)) throw new Error(`fixture is not a valid radiator: ${result.join(', ')}`);
-  return result;
-}
+import {describe, expect, it} from 'vitest';
+import {Engine} from '@openisd/design/engine';
+import {Engine as RootEngine, type FrequencyGrid, OpenISDProject,} from '../domain/index.js';
+import {driverFromSpec, radiatorFromSpec} from './fixtures/recordBuilders.js';
 
 // Block A is GONE. It tested `ebp_hz`, `referenceEfficiency` and `spl_dB` on the driver — three
 // methods that solved the whole group to pull out two or three numbers and hand them to the
@@ -100,9 +27,9 @@ function aRadiator(engine: Engine, spec: Record<string, number>) {
 
 describe('B — the project runs the engine sweep on its own driver and box', () => {
   /** A driver complete enough for `deriveEngineDriver()` to succeed. */
-  const complete = (engine: Engine) => aDriver(engine, {
-    Fs: 30, Qes: 0.4, Qms: 4, Qts: 1 / (1 / 4 + 1 / 0.4), Re: 6.4,
-    Sd: 0.02, Cms: 0.0005, Vas: 0.05, BL: 8, Mms: 0.05, Xmax: 0.008, Pe: 100,
+  const complete = (engine: Engine) => driverFromSpec(engine, {
+    Fs_hz: 30, Qes: 0.4, Qms: 4, Qts: 1 / (1 / 4 + 1 / 0.4), Re_ohm: 6.4,
+    Sd_m2: 0.02, Cms_m_per_N: 0.0005, Vas_m3: 0.05, BL_Tm: 8, Mms_kg: 0.05, Xmax_m: 0.008, Pe_W: 100,
   });
 
   /** A sealed project driven at 1 W — every scenario below states the box volume and drive power
@@ -143,7 +70,7 @@ describe('B — the project runs the engine sweep on its own driver and box', ()
 
   it('sweep() is null when the driver is too incomplete to simulate', () => {
     const engine = new Engine();
-    const project = OpenISDProject.builder(aDriver(engine, { Fs: 30 }), engine).sealed().volume_m3(0.03).build();
+    const project = OpenISDProject.builder(driverFromSpec(engine, { Fs_hz: 30 }), engine).sealed().volume_m3(0.03).build();
 
     expect(project.sweep({}).values).toBeNull();
   });
@@ -168,8 +95,8 @@ describe('B — the project runs the engine sweep on its own driver and box', ()
     const engine = new Engine();
     const project = drivenSealed(engine, 0.03);
     project.box.boxType.set('box-passive-radiator');
-    project.box.passiveRadiator.configurePR(aRadiator(engine, {
-      Fs: 12, Sd: 0.025, Cms: 0.0009, Mms: 0.09, Rms: 1.5, Xmax: 0.015,
+    project.box.passiveRadiator.configurePR(radiatorFromSpec(engine, {
+      Fs_hz: 12, Sd_m2: 0.025, Cms_m_per_N: 0.0009, Mms_kg: 0.09, Rms_kg_per_s: 1.5, Xmax_m: 0.015,
     }));
     project.box.passiveRadiator.count.set(1);
     project.box.passiveRadiator.losses.Ql.set(7);
@@ -242,7 +169,7 @@ describe('B — the project runs the engine sweep on its own driver and box', ()
 
 describe('D — the vent', () => {
   const project = (engine: Engine) => OpenISDProject.builder(
-    aDriver(engine, { Fs: 30, Qes: 0.4, Qms: 4, Sd: 0.02, Cms: 0.0005 }), engine)
+    driverFromSpec(engine, { Fs_hz: 30, Qes: 0.4, Qms: 4, Sd_m2: 0.02, Cms_m_per_N: 0.0005 }), engine)
     .vented().volume_m3(0.03).tuning_hz(30).build();
 
   it('effectiveLength_m() is longer than the port measures, by the engine\'s end correction', () => {
@@ -309,9 +236,9 @@ describe('D — the vent', () => {
 });
 
 describe('E — the signal', () => {
-  const complete = (engine: Engine) => aDriver(engine, {
-    Fs: 30, Qes: 0.4, Qms: 4, Qts: 1 / (1 / 4 + 1 / 0.4), Re: 6.4,
-    Sd: 0.02, Cms: 0.0005, Vas: 0.05, BL: 8, Mms: 0.05,
+  const complete = (engine: Engine) => driverFromSpec(engine, {
+    Fs_hz: 30, Qes: 0.4, Qms: 4, Qts: 1 / (1 / 4 + 1 / 0.4), Re_ohm: 6.4,
+    Sd_m2: 0.02, Cms_m_per_N: 0.0005, Vas_m3: 0.05, BL_Tm: 8, Mms_kg: 0.05,
   });
 
   it('a new project stores the 1 W reference as a project input; drive voltage derives from it (S5/T5)', () => {
@@ -363,7 +290,7 @@ describe('E — the signal', () => {
 
   it('powerDrive_W.set(w) requires no Re at all — power is a plain entered fact, never guarded (S5/T5)', () => {
     const engine = new Engine();
-    const project = OpenISDProject.builder(aDriver(engine, { Fs: 30 }), engine).sealed().volume_m3(0.03).build();
+    const project = OpenISDProject.builder(driverFromSpec(engine, { Fs_hz: 30 }), engine).sealed().volume_m3(0.03).build();
 
     expect(() => project.powerDrive_W.set(5)).not.toThrow();
     expect(project.powerDrive_W.value).toBe(5);
@@ -372,7 +299,7 @@ describe('E — the signal', () => {
 
   it('driveVoltage_V.set(v) still refuses to solve without a usable Re — powerDrive_W.set(w) does not (S5/T5)', () => {
     const engine = new Engine();
-    const project = OpenISDProject.builder(aDriver(engine, { Fs: 30 }), engine).sealed().volume_m3(0.03).build();
+    const project = OpenISDProject.builder(driverFromSpec(engine, { Fs_hz: 30 }), engine).sealed().volume_m3(0.03).build();
 
     expect(() => project.driveVoltage_V.set(1)).toThrow(/no usable Re_ohm/);
     expect(() => project.powerDrive_W.set(1)).not.toThrow();
@@ -380,7 +307,7 @@ describe('E — the signal', () => {
 
   it('driveVoltage_V carries the solve\'s own DQ when Re is unknown, and is calculated with no DQ once it is (S5/T5)', () => {
     const engine = new Engine();
-    const project = OpenISDProject.builder(aDriver(engine, { Fs: 30 }), engine).sealed().volume_m3(0.03).build();
+    const project = OpenISDProject.builder(driverFromSpec(engine, { Fs_hz: 30 }), engine).sealed().volume_m3(0.03).build();
     project.powerDrive_W.set(4);
 
     const blocked = project.driveVoltage_V.get();
@@ -452,7 +379,7 @@ describe('E — the signal', () => {
 
   it('sourceLoadedQts() is null when the driver\'s Q group cannot be resolved', () => {
     const engine = new Engine();
-    const project = OpenISDProject.builder(aDriver(engine, { Fs: 30 }), engine).sealed().volume_m3(0.03).build();
+    const project = OpenISDProject.builder(driverFromSpec(engine, { Fs_hz: 30 }), engine).sealed().volume_m3(0.03).build();
 
     expect(project.sourceLoadedQts(2)).toBeNull();
   });

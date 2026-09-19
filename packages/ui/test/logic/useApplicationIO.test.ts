@@ -1,14 +1,14 @@
-import { describe, it, beforeAll, vi } from 'vitest';
+import {beforeAll, describe, it, vi} from 'vitest';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
-import { dirname, join } from 'node:path';
-import { createLogging } from '../../src/logging/flash.js';
-import { createApplicationIO } from '../../src/logic/useApplicationIO.js';
-import { createFileStorage, createMemoryStorage, createProjectRepo, type FileStorage } from '@openisd/persistence';
-import { requireFocusedProject, newProject } from '../../src/logic/appState.js';
-import { Engine } from '@openisd/design/engine';
-import { SAMPLE_PROJECT_OWPR } from '../fixtures/sampleProject.js';
+import {readFileSync} from 'node:fs';
+import {fileURLToPath} from 'node:url';
+import {dirname, join} from 'node:path';
+import {createLogging} from '../../src/logging/flash.js';
+import {createApplicationIO} from '../../src/logic/useApplicationIO.js';
+import {createFileStorage, createMemoryStorage, createProjectRepo, type FileStorage} from '@openisd/persistence';
+import {newProject, requireFocusedProject} from '../../src/logic/appState.js';
+import {Engine} from '@openisd/design/engine';
+import {SAMPLE_PROJECT_OWPR} from '../fixtures/sampleProject.js';
 
 beforeAll(() => {
   // shareLink() reads location.{origin,pathname} (the project repo's stateToUrl) and writes to the

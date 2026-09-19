@@ -3,7 +3,7 @@
 // RAW field (no solve relation, no provenance), so each is a `RawField` handle — the same SHAPE
 // every other stored field in this domain has, differing only in what it can do.
 
-import type { RawField } from './cell.js';
+import type {RawField} from './cell.js';
 
 export interface SealedLosses {
   readonly Ql: RawField<number>;

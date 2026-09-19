@@ -1,4 +1,3 @@
-
 /**
  * Original (WinISD) skin — narrow-window rendering.
  *
@@ -14,8 +13,8 @@
  * Assertion is geometric, not CSS-specific — any future layout that reintroduces the class
  * fails here regardless of which property caused it.
  */
-import { test, expect, openAProject } from '../fixtures.js';
-import type { Page } from '@playwright/test';
+import {expect, openAProject, test} from '../fixtures.js';
+import type {Page} from '@playwright/test';
 
 /** Widths a browser window realistically reaches; all must clip/scroll, never overlap. */
 const WIDTHS = [1280, 1024, 900, 780];

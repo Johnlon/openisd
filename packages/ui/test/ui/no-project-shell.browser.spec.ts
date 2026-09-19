@@ -8,10 +8,10 @@
  * placeholders for everything that needs a project: the chart area, the tab pane and the
  * project list.
  */
-import { readFileSync } from 'node:fs';
-import { SAMPLE_PROJECT_OWPR } from '../fixtures/sampleProject.js';
-import { test, expect } from '../fixtures.js';
-import { fillAndBlur } from '../fixtures/numField.js';
+import {readFileSync} from 'node:fs';
+import {SAMPLE_PROJECT_OWPR} from '../fixtures/sampleProject.js';
+import {expect, test} from '../fixtures.js';
+import {fillAndBlur} from '../fixtures/numField.js';
 
 const OWPR = SAMPLE_PROJECT_OWPR;
 

@@ -1,6 +1,6 @@
-import { describe, it, expect } from 'vitest';
-import { fileURLToPath } from 'node:url';
-import { Project, SyntaxKind } from 'ts-morph';
+import {describe, expect, it} from 'vitest';
+import {fileURLToPath} from 'node:url';
+import {Project, SyntaxKind} from 'ts-morph';
 
 /**
  * `OpenISDDeviceJson` IS the openisd.yml file, declared as a type. This is the only check that

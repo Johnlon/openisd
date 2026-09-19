@@ -1,5 +1,5 @@
-import type { InjectionKey } from 'vue';
-import type { ProvenanceInfo } from '../logic/provenance.js';
+import type {InjectionKey} from 'vue';
+import type {ProvenanceInfo} from '../logic/provenance.js';
 
 export interface EquationInspectorModalProps {
   open: boolean;

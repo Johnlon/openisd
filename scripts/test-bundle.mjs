@@ -10,10 +10,10 @@
  * playwright.config.js runs this before starting its vite and points that vite at <out-dir> via
  * OPENISD_DRIVERS_BUNDLE_DIR — see vite.config.js `serveCatalogue`.
  */
-import { readFileSync, writeFileSync, mkdirSync, copyFileSync, rmSync } from 'node:fs';
-import { join, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
-import { selectCatalogue } from './testBundle.mjs';
+import {copyFileSync, mkdirSync, readFileSync, rmSync, writeFileSync} from 'node:fs';
+import {dirname, join} from 'node:path';
+import {fileURLToPath} from 'node:url';
+import {selectCatalogue} from './testBundle.mjs';
 
 const ROOT = join(fileURLToPath(import.meta.url), '..', '..');
 const PUBLIC = join(ROOT, 'packages', 'ui', 'public');

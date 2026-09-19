@@ -1,6 +1,6 @@
-import type { Page } from '@playwright/test';
-import { test, expect, openAProject } from '../fixtures.js';
-import { MY_DRIVERS_KEY, myDriversJson } from '../fixtures/seedMyDrivers.js';
+import type {Page} from '@playwright/test';
+import {expect, openAProject, test} from '../fixtures.js';
+import {MY_DRIVERS_KEY, myDriversJson} from '../fixtures/seedMyDrivers.js';
 
 // ui-todo.md "Single click opens a driver summary, not the editor" — the picker
 // (DriverBrowser.vue) previews before it selects.

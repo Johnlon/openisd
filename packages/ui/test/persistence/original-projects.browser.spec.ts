@@ -1,5 +1,5 @@
-import { test, expect, openAProject } from '../fixtures.js';
-import type { Page } from '@playwright/test';
+import {expect, openAProject, test} from '../fixtures.js';
+import type {Page} from '@playwright/test';
 
 // The store's debug handle, typed to just the parts these tests read. Avoids `any` casts
 // while keeping the test honest about what it is reaching into.

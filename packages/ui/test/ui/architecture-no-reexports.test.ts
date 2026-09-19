@@ -44,12 +44,12 @@
  *
  * Scope: every .ts file and every .vue <script> block under each packages/<pkg>/src tree.
  */
-import { describe, it, vi } from 'vitest';
+import {describe, it, vi} from 'vitest';
 import assert from 'node:assert/strict';
-import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
-import { dirname, join, relative } from 'node:path';
-import { Project as TsProject, type SourceFile } from 'ts-morph';
+import {existsSync, readdirSync, readFileSync, statSync} from 'node:fs';
+import {fileURLToPath} from 'node:url';
+import {dirname, join, relative} from 'node:path';
+import {Project as TsProject, type SourceFile} from 'ts-morph';
 
 vi.setConfig({ testTimeout: 60_000 });
 

@@ -1,7 +1,7 @@
-import type { InjectionKey, Ref } from 'vue';
-import { ref } from 'vue';
-import { useApp } from '../logic/app.js';
-import type { QuickFix } from '../diagnostics/faultLog.js';
+import type {InjectionKey, Ref} from 'vue';
+import {ref} from 'vue';
+import {useApp} from '../logic/app.js';
+import type {QuickFix} from '../diagnostics/faultLog.js';
 
 export interface DiagnosticsModalAPI {
   readonly open: Ref<boolean>;

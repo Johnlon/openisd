@@ -28,7 +28,7 @@
  * It is a TEXT search on purpose: an import specifier IS a string, and what is being tested is
  * which string was written, not which symbol it resolves to.
  */
-import { describe, it, expect } from 'vitest';
+import {describe, expect, it} from 'vitest';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as url from 'node:url';

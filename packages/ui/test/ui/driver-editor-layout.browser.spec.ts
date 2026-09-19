@@ -1,5 +1,5 @@
-import { test, expect, openAProject } from '../fixtures.js';
-import { fillAndBlur } from '../fixtures/numField.js';
+import {expect, openAProject, test} from '../fixtures.js';
+import {fillAndBlur} from '../fixtures/numField.js';
 
 test.beforeEach(async ({ page }) => {
   await page.goto('/');

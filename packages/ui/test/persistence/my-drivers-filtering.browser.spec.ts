@@ -1,6 +1,6 @@
-import type { Page } from '@playwright/test';
-import { test, expect, openAProject } from '../fixtures.js';
-import { myDriversJson, type SeedDriver } from '../fixtures/seedMyDrivers.js';
+import type {Page} from '@playwright/test';
+import {expect, openAProject, test} from '../fixtures.js';
+import {myDriversJson, type SeedDriver} from '../fixtures/seedMyDrivers.js';
 
 // EVERY control in the filter bar reaches My Drivers, not just the text box.
 //

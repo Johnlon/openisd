@@ -1,4 +1,4 @@
-import { onMounted, onBeforeUnmount } from 'vue';
+import {onBeforeUnmount, onMounted} from 'vue';
 
 /**
  * Dismiss a modal/overlay when the user presses Escape.

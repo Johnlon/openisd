@@ -14,13 +14,16 @@
  * Numbers come from WinISD 0.7.0.950 itself, Vents tab, Vb=0.02 m³ / Fb=40 Hz / k=0.6:
  * 0.154 m at d=5 cm and 0.318 m at d=7 cm (winisd_research/CALC_FINDINGS_FOR_REVIEW.md).
  */
-import { describe, it, beforeEach } from 'vitest';
+import {beforeEach, describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import { OpenISDProject, OpenISDDriver } from '@openisd/design';
-import { Engine } from '@openisd/design/engine';
+import {OpenISDDriver, OpenISDProject} from '@openisd/design';
+import {Engine} from '@openisd/design/engine';
 import {
-  notifyVentChanged, enterVentField as enterVentFieldOn, clearVentField as clearVentFieldOn,
-  ventFieldState as ventFieldStateOn, resetVentGroupState,
+    clearVentField as clearVentFieldOn,
+    enterVentField as enterVentFieldOn,
+    notifyVentChanged,
+    resetVentGroupState,
+    ventFieldState as ventFieldStateOn,
 } from '../../src/logic/useVentGroup.js';
 
 /** Vb=0.02 m³, round 5 cm vent, k=0.6 — WinISD's own Vents-tab trial. */

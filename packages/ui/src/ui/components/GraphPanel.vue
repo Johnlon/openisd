@@ -1,13 +1,12 @@
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
-import { syncedP } from '../../logic/appState.js';
-import { useFocusedProject } from '../../logic/focusedProjectContext.js';
-import { presentationState } from '../../logic/presentationState.js';
-import { rangeStatsOf } from '../../logic/series.js';
-import type { ChartTabId } from '../../types.js';
-import { drawOne } from '../canvas.js';
-import type { Geo, Design } from '../../types.js';
-import { useGraphPanel } from '../../hooks/GraphPanel-hooks.js';
+import {computed, onMounted, onUnmounted, ref, watch} from 'vue';
+import {syncedP} from '../../logic/appState.js';
+import {useFocusedProject} from '../../logic/focusedProjectContext.js';
+import {presentationState} from '../../logic/presentationState.js';
+import {rangeStatsOf} from '../../logic/series.js';
+import type {ChartTabId, Design, Geo} from '../../types.js';
+import {drawOne} from '../canvas.js';
+import {useGraphPanel} from '../../hooks/GraphPanel-hooks.js';
 
 // `bare`/`primaryColor` are the WinISD chart mode: a clean single trace with no
 // F3/F6/F10 reference lines or legend, coloured to match the shell's Color swatch.

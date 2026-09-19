@@ -1,6 +1,6 @@
-import type { Page } from '@playwright/test';
-import { test, expect, openAProject, editorTab } from '../fixtures.js';
-import { myDriversJson } from '../fixtures/seedMyDrivers.js';
+import type {Page} from '@playwright/test';
+import {editorTab, expect, openAProject, test} from '../fixtures.js';
+import {myDriversJson} from '../fixtures/seedMyDrivers.js';
 
 // My Drivers is the ONE destination for every user-created driver. Four routes reach it and
 // nothing else does: Add new Driver, Clone driver, Load File…, and saving a driver to a file

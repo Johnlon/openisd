@@ -1,6 +1,11 @@
 import {
-  driverToWdrBytes, driverToOwdrBytes, projectToWprBytes,
-  wdrTextToDriver, owdrTextToDriver, wprTextToProject, owprTextToProject,
+  driverToOwdrBytes,
+  driverToWdrBytes,
+  owdrTextToDriver,
+  owprTextToProject,
+  projectToWprBytes,
+  wdrTextToDriver,
+  wprTextToProject,
 } from './fileImportExport.js';
 /**
  * Design I/O orchestration — Save the committed project to browser storage, Save As the project
@@ -25,18 +30,31 @@ import {
  * renames the project to match, and opening a file names the project after the file it came
  * from — the name stored inside the file never contradicts the name on disk.
  */
-import { watch } from 'vue';
+import {watch} from 'vue';
 import {
-  driverName, focusedProject, requireFocusedProject,
-  markProjectSaved, addProject, currentProject, currentViewSnapshot,
+  addProject,
+  currentProject,
+  currentViewSnapshot,
+  driverName,
+  focusedProject,
+  markProjectSaved,
   newProjectDriver,
+  requireFocusedProject,
 } from './appState.js';
-import { presentationState } from './presentationState.js';
-import { createFileSave, projectNameFromFilename, projectFilename, copyOfName, type FileStorage, type ProjectRepo, type FileNaming } from '@openisd/persistence';
-import { setShareUrl } from './urlAppState.js';
-import type { Logging } from '../logging/flash.js';
-import { readDriverFileText } from './driverFileText.js';
-import { DriverFileFormat, ProjectFileFormat, formatOf, sniff } from '../fileFormat.js';
+import {presentationState} from './presentationState.js';
+import {
+  copyOfName,
+  createFileSave,
+  type FileNaming,
+  type FileStorage,
+  projectFilename,
+  projectNameFromFilename,
+  type ProjectRepo
+} from '@openisd/persistence';
+import {setShareUrl} from './urlAppState.js';
+import type {Logging} from '../logging/flash.js';
+import {readDriverFileText} from './driverFileText.js';
+import {DriverFileFormat, formatOf, ProjectFileFormat, sniff} from '../fileFormat.js';
 
 declare const __BUILD_DATETIME__: string;
 
@@ -194,6 +212,7 @@ export function createApplicationIO(deps: { logging: Logging; fileStorage: FileS
             // but a schema mismatch commonly raises several field-level issues at once (QO152),
             // and the FIRST one is rarely the most informative. Logging every one to the console
             // is what turns "the browser suite times out for 60s" into a diagnosable failure.
+            // eslint-disable-next-line no-console
             console.error(`Could not read "${f.name}":`, errors.map(e => e.message).join('\n'));
             throw new Error(errors[0]?.message ?? 'could not read the project file');
           }

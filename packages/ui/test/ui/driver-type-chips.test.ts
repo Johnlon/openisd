@@ -12,16 +12,16 @@
  * chip it yields must be one the filter bar actually renders.
  */
 
-import { describe, it } from 'vitest';
+import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import { readdirSync, readFileSync, statSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
-import { dirname, join, relative } from 'node:path';
-import { DriverType, Chip } from '@openisd/design/filter';
-import { OpenISDDriver } from '@openisd/design';
-import { Engine } from '@openisd/design/engine';
-import { chipsOf } from '../../src/logic/driverDisplay.js';
-import { DRIVER_TYPES } from '../../src/logic/driverBrowsingState.js';
+import {readdirSync, readFileSync, statSync} from 'node:fs';
+import {fileURLToPath} from 'node:url';
+import {dirname, join, relative} from 'node:path';
+import {Chip, DriverType} from '@openisd/design/filter';
+import {OpenISDDriver} from '@openisd/design';
+import {Engine} from '@openisd/design/engine';
+import {chipsOf} from '../../src/logic/driverDisplay.js';
+import {DRIVER_TYPES} from '../../src/logic/driverBrowsingState.js';
 
 const CHIP_VALUES = new Set(Chip.ALL.map(c => c.value));
 const chipValues = (dt: DriverType) => dt.chips.map(c => c.value);

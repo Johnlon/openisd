@@ -48,15 +48,20 @@
 //             "Transfer func. magn." and "EQ transfer func mag" retain WinISD's defaults in the
 //             same table order even though OpenISD does not currently render those separate chart
 //             tabs. Their values are presentation defaults, not fabricated chart data.
-import { computed, reactive, ref } from 'vue';
-import { airForEnvironment } from '../../logic/environment.js';
-import { focusedProject } from '../../logic/appState.js';
-import { presentationState, resetUnitTokens, airConstantsAppDefaults, AIR_CONSTANTS_APP_DEFAULT } from '../../logic/presentationState.js';
-import { precision as fieldDp } from '../../logic/fields/fieldRegistry.js';
-import { useEscToClose } from '../../logic/useEscToClose.js';
+import {computed, reactive, ref} from 'vue';
+import {airForEnvironment} from '../../logic/environment.js';
+import {focusedProject} from '../../logic/appState.js';
+import {
+  AIR_CONSTANTS_APP_DEFAULT,
+  airConstantsAppDefaults,
+  presentationState,
+  resetUnitTokens
+} from '../../logic/presentationState.js';
+import {precision as fieldDp} from '../../logic/fields/fieldRegistry.js';
+import {useEscToClose} from '../../logic/useEscToClose.js';
 import NumInput from './NumInput.vue';
 import UnitToggle from './UnitToggle.vue';
-import { inputValue } from '../../logic/domEvents.js';
+import {inputValue} from '../../logic/domEvents.js';
 
 const emit = defineEmits<{ close: [] }>();
 function close() { emit('close'); }

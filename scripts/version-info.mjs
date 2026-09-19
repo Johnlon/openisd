@@ -8,9 +8,9 @@
 //   → "v20260101T010203Z"
 // A build's version changes only when its timestamp second changes — rebuilds within the same
 // second produce the same stamp, which is exactly what "the build" means, no more.
-import { writeFileSync, mkdirSync } from 'node:fs';
-import { join, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import {mkdirSync, writeFileSync} from 'node:fs';
+import {dirname, join} from 'node:path';
+import {fileURLToPath} from 'node:url';
 
 const OUT = join(dirname(fileURLToPath(import.meta.url)), '..', 'packages', 'ui', 'public', 'build-info.json');
 

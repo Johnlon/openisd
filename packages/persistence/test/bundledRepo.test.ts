@@ -10,10 +10,10 @@
  * (John, 2026-09-14: "I don't want the ui caching for ever"); and every failure — unknown uuid,
  * a file not served, a seam refusal, a malformed index — throws naming its cause.
  */
-import { describe, it } from 'vitest';
+import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import { createBundledRepo } from '../src/repos/bundledRepo.js';
-import type { BundledIndexRow, IndexRead } from '../src/repos/bundledIndex.js';
+import {createBundledRepo} from '../src/repos/bundledRepo.js';
+import type {BundledIndexRow, IndexRead} from '../src/repos/bundledIndex.js';
 
 /** The row type under test — the base and nothing more; the mechanism reads only uuid and path. */
 interface Row extends BundledIndexRow { readonly Fs_hz: number | null }

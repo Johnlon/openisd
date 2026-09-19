@@ -10,7 +10,7 @@
  * `appState.ts` and asserts the STARTUP shape, so it must be the only place in its run that
  * touches the registry — it adds nothing and removes nothing.
  */
-import { describe, it, expect } from 'vitest';
+import {describe, expect, it} from 'vitest';
 import * as appState from '../../src/logic/appState.js';
 
 describe('the app starts with no project', () => {

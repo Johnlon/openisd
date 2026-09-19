@@ -1,9 +1,9 @@
-import { defineConfig } from 'vite';
+import {defineConfig} from 'vite';
 import vue from '@vitejs/plugin-vue';
-import { VitePWA } from 'vite-plugin-pwa';
-import { fileURLToPath } from 'url';
-import { join } from 'path';
-import { existsSync, createReadStream } from 'fs';
+import {VitePWA} from 'vite-plugin-pwa';
+import {fileURLToPath} from 'url';
+import {join} from 'path';
+import {createReadStream, existsSync} from 'fs';
 
 // Optional desktop target, built by `make electron`. It shares the entire UI and engine
 // with the web app and differs only in how the assets are addressed and cached:

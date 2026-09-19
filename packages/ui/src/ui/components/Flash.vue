@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useApp } from '../../logic/app.js';
+import {useApp} from '../../logic/app.js';
 
 const { logging } = useApp();
 </script>

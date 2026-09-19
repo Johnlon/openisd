@@ -1,9 +1,12 @@
-import { describe, it, expect } from 'vitest';
-import { Engine } from '../../engine/index.js';
-import type { SolverField } from '../../engine/index.js';
+import {describe, expect, it} from 'vitest';
+import type {SolverField} from '../../engine/index.js';
+import {Engine} from '../../engine/index.js';
 import {
-  fakeSolverField, solveVentConsistencyGroup, checkVentConsistency,
-  solvePrConsistencyGroup, checkPrConsistency,
+    checkPrConsistency,
+    checkVentConsistency,
+    fakeSolverField,
+    solvePrConsistencyGroup,
+    solveVentConsistencyGroup,
 } from './testSolver.js';
 
 const engine = new Engine();

@@ -5,10 +5,10 @@
  * table needs exactly one place that maps a name to a handle — and reading, writing and clearing
  * all go through it, rather than each restating the same 55-case table.
  */
-import { describe, it, expect } from 'vitest';
-import { Engine } from '@openisd/design/engine';
-import { OpenISDDriver } from '@openisd/design';
-import { specFieldHandle } from '../../src/logic/driverSpecFields.js';
+import {describe, expect, it} from 'vitest';
+import {Engine} from '@openisd/design/engine';
+import {OpenISDDriver} from '@openisd/design';
+import {specFieldHandle} from '../../src/logic/driverSpecFields.js';
 
 describe('specFieldHandle — one name-to-accessor dispatch', () => {
   it('returns the handle a write then reads back through', () => {

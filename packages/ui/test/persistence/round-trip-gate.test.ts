@@ -4,17 +4,28 @@
  * known-good real corpus record and fail loudly on a deliberately corrupted round trip, BEFORE
  * either is wired into `bundle-drivers.mjs` or `package.json`'s predev/prebuild.
  */
-import { describe, it } from 'vitest';
+import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import { existsSync, readFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
-import { dirname, join } from 'node:path';
-import { parse as parseYaml, stringify as yamlStringify } from 'yaml';
-import { OpenISDDriver } from '@openisd/design';
-import { Engine } from '@openisd/design/engine';
-import type { DriverError } from '@openisd/design/engine';
-import { driverToWdrBytes } from '../../src/logic/fileImportExport.js';
-import { PARSTATE_LEN, POS_TO_WDRKEY } from '@openisd/design/winisd';
+import {existsSync, readFileSync} from 'node:fs';
+import {fileURLToPath} from 'node:url';
+import {dirname, join} from 'node:path';
+import {parse as parseYaml, stringify as yamlStringify} from 'yaml';
+import {OpenISDDriver} from '@openisd/design';
+import type {DriverError} from '@openisd/design/engine';
+import {Engine} from '@openisd/design/engine';
+import {driverToWdrBytes} from '../../src/logic/fileImportExport.js';
+import {PARSTATE_LEN} from '@openisd/design/winisd';
+import {checkOpenisdRoundTrip, checkWdrRoundTrip} from '../../../../scripts/roundTripGate.mjs';
+
+// ParState slot -> .wdr key, in WinISD's own slot order (winisdDriver.ts #parState writes
+// exactly this sequence; slot 10 is Xlim, a mark-only field with no .wdr key).
+const POS_TO_WDRKEY = [
+  'Znom', 'Fs', 'Pe', 'SPL', 'Re', 'Le', 'fLe', 'KLe', 'BL', 'Xmax', null,
+  'Cms', 'Qms', 'Qes', 'Qts', 'Rms', 'Mms', 'Sd', 'Vd', 'Vas', 'Dia', 'Dd',
+  'no', 'numVC', 'Hc', 'Hg', 'SPLmax', 'SPLmaxLF', 'USPL', 'alfaVC', 'Rt', 'Ct',
+  'gamma', 'EBP', 'Rme', 'Mpow', 'Mcost', 'Gloss', 'Thick', 'Depth', 'MagDepth',
+  'Magnet', 'Basket', 'Outer', 'Vcd', 'DVol', 'VCCon', 'c', 'roo',
+];
 
 /**
  * A driver record as the `.wdr` text the app's own export button would write — the same
@@ -27,7 +38,6 @@ function wdrTextFor(record: unknown): { value: string | null; errors: DriverErro
   const { value, errors } = driverToWdrBytes(driver);
   return { value: value === null ? null : new TextDecoder().decode(value), errors };
 }
-import { checkOpenisdRoundTrip, checkWdrRoundTrip } from '../../../../scripts/roundTripGate.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const CORPUS_DIR = join(here, '..', '..', '..', '..', '..', 'winisd_drivers', 'db', 'datasheets', 'accuton', 'bd90-6-727');

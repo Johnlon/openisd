@@ -1,6 +1,6 @@
-import { test, expect, openAProject } from '../fixtures.js';
-import { deviceRecord } from '../fixtures/seedMyDrivers.js';
-import type { Page } from '@playwright/test';
+import {expect, openAProject, test} from '../fixtures.js';
+import {deviceRecord} from '../fixtures/seedMyDrivers.js';
+import type {Page} from '@playwright/test';
 
 const MY_DRIVERS_KEY = 'openisd_my_drivers';
 

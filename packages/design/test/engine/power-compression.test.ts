@@ -1,15 +1,14 @@
-import { solveConsistencyGroup, driverParams } from './testSolver.js';
+import {driverParams, solveConsistencyGroup} from './testSolver.js';
 /**
  * Voice-coil thermal power compression (WinISD parity, docs/research/WINISD_PARITY.md).
  * As the coil heats, Re rises: Re_hot = Re·(1 + alfaVC·ΔT). The same drive voltage then
  * pushes less current → SPL drops and the impedance floor rises. ΔT=0 (or alfaVC=0) must be
  * an exact no-op so existing goldens stay byte-identical.
  */
-import { describe, it } from 'vitest';
+import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import { Engine } from '../../engine/index.js';
-import type { SweepParams } from '../../engine/index.js';
-import type { SweepResult } from '../../engine/index.js';
+import type {SweepParams, SweepResult} from '../../engine/index.js';
+import {Engine} from '../../engine/index.js';
 
 /** Voice-coil inductance for the fixtures below. Not a solver quantity — nothing
  *  derives it — so it reaches `sweep` on its own, and only the impedance plot reads it. */

@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'vitest';
-import { errorsForChart } from '../../src/logic/series.js';
+import {describe, expect, it} from 'vitest';
+import {errorsForChart} from '../../src/logic/series.js';
 
 describe('chart error selection', () => {
   it('does not block SPL for failures in unrelated sweep outputs', () => {

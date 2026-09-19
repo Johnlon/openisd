@@ -1,6 +1,6 @@
-import type { Page } from '@playwright/test';
-import { test, expect, openAProject, editorTab } from '../fixtures.js';
-import { MY_DRIVERS_KEY, myDriversJson } from '../fixtures/seedMyDrivers.js';
+import type {Page} from '@playwright/test';
+import {editorTab, expect, openAProject, test} from '../fixtures.js';
+import {MY_DRIVERS_KEY, myDriversJson} from '../fixtures/seedMyDrivers.js';
 
 // docs/design/STATE_MODEL.md rule 1: choosing a driver EMBEDS it in the project. The pick copies the
 // driver in, closes the picker, and returns the user to the project — there is no editor in

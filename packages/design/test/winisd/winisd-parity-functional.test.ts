@@ -27,7 +27,6 @@ import { OpenISDDriver, type Cell } from '@openisd/design';
 import { winISDDriverToOpenISDDeviceJson } from '../../domain/openisdSchema.js';
 import { openIsdDriverToWinIsdDriver } from '../../domain/driverYmlToOpenisdAndWdr.js';
 import { WinISDDriver } from '../../winisd/index.js';
-import { POS_TO_WDRKEY } from '../../winisd';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const fixtures = join(here, 'fixtures', 'winisd-parity');
@@ -257,11 +256,10 @@ function findDivergence(scenario: string, field: string): KnownDivergence | unde
  * probes in `drivers/mysamples/winisd/s-*.wdr` and pinned by `wdr-round-trip.test.ts` — not by
  * anything this suite computes.
  */
-function winisdDeclined(scenario: Scenario, parState: string | undefined, key: string): boolean {
-  if (!parState) return false;
+function winisdDeclined(scenario: Scenario, goldenDriver: WinISDDriver | undefined, key: string): boolean {
+  if (!goldenDriver) return false;
   if (key in scenario.driver) return false;
-  const slot = POS_TO_WDRKEY.indexOf(key);
-  return slot >= 0 && parState[slot] === 'E';
+  return goldenDriver.cell(key).state === 'entered';
 }
 
 function close(a: number, b: number): boolean {
@@ -356,6 +354,13 @@ describe('WinISD parity (functional) — field calculations against goldens WinI
       const golden = existsSync(path)
         ? parseIni(readFileSync(path, 'utf8'))
         : ({} as Record<string, Record<string, string>>);
+      // The golden's [Driver] section, read through the same `.wdr` codec as the scenario — so the
+      // test never interprets a ParState slot itself; the codec's `cell()` already has.
+      const goldenDriver = golden.Driver
+        ? WinISDDriver.fromWdrIni(
+            ['[Driver]', ...Object.entries(golden.Driver).map(([k, v]) => `${k}=${v}`)].join('\r\n'),
+          )
+        : undefined;
       const asRead = WinISDDriver.fromWdrIni(scenarioWdr(s));
       const { record } = winISDDriverToOpenISDDeviceJson(asRead);
       const conformed = OpenISDDriver.fromConformingRecord(record, new Engine());
@@ -381,7 +386,7 @@ describe('WinISD parity (functional) — field calculations against goldens WinI
             // answer, not a number, so it is only acceptable when WinISD had no route either
             // (its ParState slot says the value was echoed, not calculated) or when the
             // difference is recorded as deliberate.
-            if (winisdDeclined(s, golden.Driver.ParState, key)) return;
+            if (winisdDeclined(s, goldenDriver, key)) return;
             assert.ok(findDivergence(s.id, key),
               `${s.id}: openisd produced no ${key} at all, but WinISD wrote ${winisd}. ` +
               'Either openisd is missing a route or this belongs in divergences.json with its cause.');
@@ -443,7 +448,7 @@ describe('WinISD parity (functional) — field calculations against goldens WinI
       it('ParState — the per-field E/C/N marks WinISD assigned', () => {
         const winisd = golden.Driver.ParState;
         assert.ok(winisd, `${s.id}: the golden carries no ParState`);
-        const written = openIsdDriverToWinIsdDriver(drv, new Engine(), []);
+        const written = openIsdDriverToWinIsdDriver(drv, []);
         const openisd = parseIni(written.toWdrIni()).Driver.ParState;
         assert.ok(openisd, `${s.id}: openisd produced no ParState`);
         assert.equal(openisd.length, winisd.length,

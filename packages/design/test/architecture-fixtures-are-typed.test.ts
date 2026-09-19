@@ -1,7 +1,7 @@
-import { describe, it, expect } from 'vitest';
-import { Project, SyntaxKind, type VariableDeclaration } from 'ts-morph';
+import {describe, expect, it} from 'vitest';
+import {Project, SyntaxKind, type VariableDeclaration} from 'ts-morph';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import {fileURLToPath} from 'node:url';
 
 /**
  * A quantity bag handed to the engine must be DECLARED as what it is.

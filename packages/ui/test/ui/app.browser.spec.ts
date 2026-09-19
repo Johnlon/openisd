@@ -1,5 +1,5 @@
-import { test, expect, openAProject, W5_1138SMF } from '../fixtures.js';
-import { fillAndCommit, setNumField, numInputByLabel } from '../fixtures/numField.js';
+import {expect, openAProject, test, W5_1138SMF} from '../fixtures.js';
+import {fillAndCommit, numInputByLabel, setNumField} from '../fixtures/numField.js';
 
 test.beforeEach(async ({ page }) => {
   await page.goto('/');

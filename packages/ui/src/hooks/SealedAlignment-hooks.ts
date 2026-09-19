@@ -1,6 +1,6 @@
-import { computed, ref, type ComputedRef, type Ref } from 'vue';
-import type { OpenISDProject } from '@openisd/design';
-import type { EbpSuitability, Engine, SealedAlignmentOption } from '@openisd/design/engine';
+import {computed, type ComputedRef, ref, type Ref} from 'vue';
+import type {OpenISDProject} from '@openisd/design';
+import type {EbpSuitability, Engine, SealedAlignmentOption} from '@openisd/design/engine';
 
 export interface SealedAlignmentEditorDeps {
   readonly project: ComputedRef<OpenISDProject>;

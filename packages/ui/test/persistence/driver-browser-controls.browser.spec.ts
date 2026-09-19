@@ -1,4 +1,4 @@
-import { test, expect, openAProject } from '../fixtures.js';
+import {expect, openAProject, test} from '../fixtures.js';
 
 // ui-todo.md "Remove UI Elements" — four controls come out of the driver picker
 // (DriverBrowser.vue).

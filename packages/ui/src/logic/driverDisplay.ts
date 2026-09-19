@@ -5,10 +5,10 @@
  * the driver itself (John, 2026-09-05: "this facade... it's not domain logic it's display and
  * search logic").
  */
-import type { OpenISDDriver, OpenISDPassiveRadiatorStandalone } from '@openisd/design';
-import type { BundledDriverIndexRow, BundledPassiveRadiatorIndexRow } from '@openisd/persistence';
-import { DriverType, Chip } from '@openisd/design/filter';
-import { toDisplay } from './fields/units.js';
+import type {OpenISDDriver, OpenISDPassiveRadiatorStandalone} from '@openisd/design';
+import type {BundledDriverIndexRow, BundledPassiveRadiatorIndexRow} from '@openisd/persistence';
+import {Chip, DriverType} from '@openisd/design/filter';
+import {toDisplay} from './fields/units.js';
 
 /** One row of the preview pane's spec table. `value` is already formatted for display. */
 export interface PreviewSpec { label: string; value: string | null; unit?: string }

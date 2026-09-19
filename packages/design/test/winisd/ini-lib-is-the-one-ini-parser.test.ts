@@ -12,11 +12,11 @@
  * The byte-parity suites (`wdr-round-trip`, `winisdProjectParse`) stay the correctness net;
  * this test pins the STRUCTURE — that the net is over one parser, not two.
  */
-import { describe, it } from 'vitest';
+import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
-import { dirname, join } from 'node:path';
+import {readFileSync} from 'node:fs';
+import {fileURLToPath} from 'node:url';
+import {dirname, join} from 'node:path';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const DRIVER_SRC = join(here, '..', '..', 'winisd', 'winisdDriver.ts');

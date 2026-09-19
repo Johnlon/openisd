@@ -10,9 +10,9 @@
  * unexpected app state is still the user's work, and wiping it also destroys the evidence
  * needed to fix the cause.
  */
-import { ref } from 'vue';
-import { useApp } from '../../logic/app.js';
-import type { QuickFix } from '../../diagnostics/faultLog.js';
+import {ref} from 'vue';
+import {useApp} from '../../logic/app.js';
+import type {QuickFix} from '../../diagnostics/faultLog.js';
 
 const { faultLog } = useApp();
 

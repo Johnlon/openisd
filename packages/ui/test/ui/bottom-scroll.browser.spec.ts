@@ -1,5 +1,5 @@
-import { test, expect, openAProject } from '../fixtures.js';
-import type { Page } from '@playwright/test';
+import {expect, openAProject, test} from '../fixtures.js';
+import type {Page} from '@playwright/test';
 
 test.beforeEach(async ({ page }) => {
   // Test at a small viewport height to verify that the bottom panel has layout priority (stays visible without scrolling)

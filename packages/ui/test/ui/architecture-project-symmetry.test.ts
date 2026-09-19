@@ -35,12 +35,12 @@
  *    below still names `projectCell` as a stand-in shape purely to exercise the detector — it is
  *    not asserting anything about real `ManagedProject`, which has no such method.
  */
-import { describe, it, vi } from 'vitest';
+import {describe, it, vi} from 'vitest';
 import assert from 'node:assert/strict';
-import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
-import { dirname, join, relative } from 'node:path';
-import { Project as TsProject, Node, type SourceFile } from 'ts-morph';
+import {existsSync, readdirSync, readFileSync, statSync} from 'node:fs';
+import {fileURLToPath} from 'node:url';
+import {dirname, join, relative} from 'node:path';
+import {Node, Project as TsProject, type SourceFile} from 'ts-morph';
 
 vi.setConfig({ testTimeout: 60_000 });
 

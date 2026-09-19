@@ -11,8 +11,8 @@
  *   https://en.wikipedia.org/wiki/Audio_equalization#Parametric_equalizer
  */
 
-import { cx, cDiv, cMul } from './complex.js';
-import type { Complex, Filter } from './types.js';
+import {cDiv, cMul, cx} from './complex.js';
+import type {Complex, Filter} from './types.js';
 
 /**
  * Evaluate 2nd-order analog biquad H(s) = (b0s²+b1s+b2)/(a0s²+a1s+a2) at s = jω.

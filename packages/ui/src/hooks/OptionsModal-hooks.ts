@@ -1,6 +1,6 @@
-import type { InjectionKey, Ref } from 'vue';
-import { ref } from 'vue';
-import { presentationState, resetUnitTokens } from '../logic/presentationState.js';
+import type {InjectionKey, Ref} from 'vue';
+import {ref} from 'vue';
+import {presentationState, resetUnitTokens} from '../logic/presentationState.js';
 
 export interface OptionsModalAPI {
   readonly activeTab: Ref<'general' | 'plot'>;

@@ -17,19 +17,19 @@
  * never the component under test.
  */
 
-import { describe, it } from 'vitest';
+import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
-import { dirname, join } from 'node:path';
-import { WinISDDriver } from '@openisd/design/winisd';
-import { OpenISDDriver } from '@openisd/design';
-import type { Field } from '@openisd/design';
-import type { CellState } from '@openisd/design/winisd';
-import { Engine } from '@openisd/design/engine';
-import { precision, fieldById } from '../../src/logic/fields/fieldRegistry.js';
-import { specFieldHandle } from '../../src/logic/driverSpecFields.js';
-import { UNIT_GROUPS, unitDef, toDisplay, nextToken, type UnitGroup } from '../../src/logic/fields/units.js';
+import {readFileSync} from 'node:fs';
+import {fileURLToPath} from 'node:url';
+import {dirname, join} from 'node:path';
+import type {CellState} from '@openisd/design/winisd';
+import {WinISDDriver} from '@openisd/design/winisd';
+import type {Field} from '@openisd/design';
+import {OpenISDDriver} from '@openisd/design';
+import {Engine} from '@openisd/design/engine';
+import {fieldById, precision} from '../../src/logic/fields/fieldRegistry.js';
+import {specFieldHandle} from '../../src/logic/driverSpecFields.js';
+import {nextToken, toDisplay, UNIT_GROUPS, unitDef, type UnitGroup} from '../../src/logic/fields/units.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const EDITOR = join(here, '..', '..', 'src', 'ui', 'components', 'DriverEditorModal.vue');

@@ -1,6 +1,6 @@
-import { test, expect, openAProject } from '../fixtures.js';
-import { join, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import {expect, openAProject, test} from '../fixtures.js';
+import {dirname, join} from 'node:path';
+import {fileURLToPath} from 'node:url';
 
 // The clean synthetic driver (no Mms/Cms/BL, consistent T/S, no sku) is the fixture these
 // wire-level assertions are written for. On the scraped W5 sample there are alternate

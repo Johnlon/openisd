@@ -1,6 +1,6 @@
-import { test, expect, openAProject } from '../fixtures.js';
-import type { Locator, Page } from '@playwright/test';
-import { fillAndBlur } from '../fixtures/numField.js';
+import {expect, openAProject, test} from '../fixtures.js';
+import type {Locator, Page} from '@playwright/test';
+import {fillAndBlur} from '../fixtures/numField.js';
 
 // Decimal places shown in a numeric-input string ("6.10" → 2, "55" → 0, "" → 0).
 function decimalsOf(s: string): number {
@@ -239,6 +239,7 @@ test('the 6th-order-bandpass Frc field persists a typed value instead of discard
     (await import(/* @vite-ignore */ modPath)).requireFocusedProject().box.bandpass6.chambers.rear.tuning_hz.value, APP_STATE);
   expect(stored).toBe(2222); // model actually holds it, not just the local input's own state
 });
+
 test('the Vented "1st port resonance" shows the vent pipe resonance c/(2·ventL), not the box tuning', async ({ page }) => {
   await page.locator('.project-nav li', { hasText: 'Box' }).click();
   await page.locator('select#og-box-type').selectOption('vented');
@@ -629,6 +630,7 @@ test('New Project starts fresh — it discards the previous design (filters, par
   expect(st.filters).toBe(0);  // fresh project — no inherited filters
   expect(st.pin).toBe(1);      // default 1 W reference — not the previous 250
 });
+
 test('Original toolbar: Share link (Export menu) writes the design into the address bar', async ({ page }) => {
   page.on('dialog', (d) => d.dismiss().catch(() => {})); // if clipboard is blocked, shareLink falls back to prompt()
   await page.locator('#btnExportMenu').click();
@@ -685,10 +687,12 @@ test('a dragged frequency band selection survives the share link', async ({ page
   await expect(page.locator('.original-root')).toBeVisible();
   await expect(page.locator('.gread')).toHaveText(readout);
 });
+
 test('the chosen skin is remembered across a reload (local preference)', async ({ page }) => {
   await page.reload();
   await expect(page.locator('.original-root')).toBeVisible();
 });
+
 test('Driver Editor decimals come from the registry (Vas 2 dp, Sd 1 dp)', async ({ page }) => {
   await page.locator('.project-nav li', { hasText: 'Driver' }).click();
   await page.locator('.driver-id-row').getByRole('button', { name: 'Edit' }).click();
@@ -702,6 +706,7 @@ test('Driver Editor decimals come from the registry (Vas 2 dp, Sd 1 dp)', async 
   await fillAndBlur(sd, '130');
   await expect(sd).toHaveValue('130.00'); // registry Sd = 2 dp (was a 4-dp literal)
 });
+
 test('R1: an open Tune panel stays open across a reload', async ({ page }) => {
   await page.evaluate(() => localStorage.clear());
   await page.reload();
@@ -715,6 +720,7 @@ test('R1: an open Tune panel stays open across a reload', async ({ page }) => {
 
   await expect(page.locator('.tune-panel')).toBeVisible();          // Tune reopened
 });
+
 // ---- Per-field display-unit conversion (fields/units.ts + <UnitToggle>) ------------
 // The store ALWAYS holds SI; clicking a field's unit label must rescale only the shown
 // value (and convert typed input back), never the stored model. This is the real

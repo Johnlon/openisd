@@ -1,11 +1,11 @@
-import { test, expect } from '../fixtures.js';
-import { fillAndBlur, fillAndCommit } from '../fixtures/numField.js';
-import type { Page } from '@playwright/test';
-import { readFileSync } from 'node:fs';
-import { SAMPLE_PROJECT_OWPR } from '../fixtures/sampleProject.js';
-import { join, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
-import { MY_DRIVERS_KEY, myDriversJson } from '../fixtures/seedMyDrivers.js';
+import {expect, test} from '../fixtures.js';
+import {fillAndBlur, fillAndCommit} from '../fixtures/numField.js';
+import type {Page} from '@playwright/test';
+import {readFileSync} from 'node:fs';
+import {SAMPLE_PROJECT_OWPR} from '../fixtures/sampleProject.js';
+import {dirname, join} from 'node:path';
+import {fileURLToPath} from 'node:url';
+import {MY_DRIVERS_KEY, myDriversJson} from '../fixtures/seedMyDrivers.js';
 
 const COMPLETE = join(dirname(fileURLToPath(import.meta.url)), '..', 'fixtures', 'complete-driver-project.owpr');
 const SAMPLE = SAMPLE_PROJECT_OWPR;

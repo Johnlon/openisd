@@ -10,12 +10,12 @@
  * visually different from every other — the exact markup that lived inline in
  * OriginalShell.vue before extraction.
  */
-import { describe, it } from 'vitest';
+import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
-import { dirname, join } from 'node:path';
-import { parse } from '@vue/compiler-sfc';
+import {readFileSync} from 'node:fs';
+import {fileURLToPath} from 'node:url';
+import {dirname, join} from 'node:path';
+import {parse} from '@vue/compiler-sfc';
 
 const UI_PKG = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const COMPONENT_PATH = join(UI_PKG, 'src', 'ui', 'components', 'BoxTypeDiagram.vue');

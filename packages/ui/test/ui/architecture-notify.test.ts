@@ -36,11 +36,11 @@
  * which is why the gate's conclusion still holds for the current tree — not because the gate
  * verified it.
  */
-import { describe, it } from 'vitest';
+import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
-import { Project as TsProject, Node, SyntaxKind } from 'ts-morph';
+import {dirname, join} from 'node:path';
+import {fileURLToPath} from 'node:url';
+import {Node, Project as TsProject, SyntaxKind} from 'ts-morph';
 
 const DESIGN = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..', 'design');
 const DOMAIN_FILE = join(DESIGN, 'domain', 'openisdDomain.ts');

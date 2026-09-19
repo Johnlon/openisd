@@ -6,11 +6,11 @@
  * continuous dev-server reloads — or committed to the repo.
  */
 
-import { describe, it } from 'vitest';
+import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import { readFileSync, existsSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
-import { join } from 'node:path';
+import {existsSync, readFileSync} from 'node:fs';
+import {fileURLToPath} from 'node:url';
+import {join} from 'node:path';
 
 const ROOT = join(fileURLToPath(import.meta.url), '..', '..', '..', '..', '..');
 

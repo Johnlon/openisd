@@ -20,12 +20,12 @@
  * WinISD offers (Allpass, DLP, Static gain, Peaking-2nd-order-HP) have no engine model, so
  * they are intentionally omitted rather than added as controls that do nothing.
  */
-import { computed, ref } from 'vue';
-import { useFocusedProject } from '../../../logic/focusedProjectContext.js';
-import { projectChanged } from '../../../logic/appState.js';
-import { limits } from '../../../logic/fields/fieldRegistry.js';
-import type { Filter, FilterType } from '@openisd/design/engine';
-import { inputValue, inputChecked } from '../../../logic/domEvents.js';
+import {computed, ref} from 'vue';
+import {useFocusedProject} from '../../../logic/focusedProjectContext.js';
+import {projectChanged} from '../../../logic/appState.js';
+import {limits} from '../../../logic/fields/fieldRegistry.js';
+import type {Filter, FilterType} from '@openisd/design/engine';
+import {inputChecked, inputValue} from '../../../logic/domEvents.js';
 
 const project = useFocusedProject();
 // Raw reads (`filters.get()`) are not Vue-tracked; `project` re-fires only on focus swap, so

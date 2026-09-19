@@ -10,7 +10,7 @@
  *  Returns null for a name the numeric table does not own, rather than asserting a type — which
  *  keeps the compiler proving the numeric reads, and is what a cast here would have switched
  *  off. */
-import type { Field, OpenISDDriver } from '@openisd/design';
+import type {Field, OpenISDDriver} from '@openisd/design';
 
 export function specFieldHandle(driver: OpenISDDriver, field: string): Field<number> | null {
   const d = driver;

@@ -1,4 +1,4 @@
-import { newUuid } from './newUuid.js';
+import {newUuid} from './newUuid.js';
 
 /**
  * The two ambient, non-deterministic system facts the domain needs: a fresh identity, and the

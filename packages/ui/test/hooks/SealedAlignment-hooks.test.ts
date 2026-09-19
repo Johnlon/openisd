@@ -1,8 +1,8 @@
-import { describe, it, expect } from 'vitest';
-import { computed, ref, shallowRef } from 'vue';
-import { Engine } from '@openisd/design/engine';
-import { OpenISDProject } from '@openisd/design';
-import { createSealedAlignmentEditor } from '../../src/hooks/SealedAlignment-hooks.js';
+import {describe, expect, it} from 'vitest';
+import {computed, ref, shallowRef} from 'vue';
+import {Engine} from '@openisd/design/engine';
+import {OpenISDProject} from '@openisd/design';
+import {createSealedAlignmentEditor} from '../../src/hooks/SealedAlignment-hooks.js';
 
 function completeProject() {
   const engine = new Engine();

@@ -1,5 +1,5 @@
-import { fileURLToPath } from 'node:url';
-import { dirname, join } from 'node:path';
+import {fileURLToPath} from 'node:url';
+import {dirname, join} from 'node:path';
 /**
  * The consistency-group DQ mark — workspace ledger QP18 and openisd ledger QO13's sibling
  * QO12, one mechanism for both rulings:
@@ -11,8 +11,8 @@ import { dirname, join } from 'node:path';
  * naming the group and the size of the disagreement, a consistent driver has none, and it
  * blocks nothing.
  */
-import { test, expect, openAProject } from '../fixtures.js';
-import type { Page } from '@playwright/test';
+import {expect, openAProject, test} from '../fixtures.js';
+import type {Page} from '@playwright/test';
 
 const COMPLETE_OWPR = join(dirname(fileURLToPath(import.meta.url)), '..', 'fixtures', 'complete-driver-project.owpr');
 

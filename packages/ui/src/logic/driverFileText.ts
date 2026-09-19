@@ -14,8 +14,8 @@
  * result there means the file is corrupt, not legacy, so `decodeDriverFileBytes` rejects it
  * rather than handing back a lossy re-decode.
  */
-import { winisdBytesToText, WinisdEncoding, winisdTextToBytes, type WinisdDecodedText } from '@openisd/design/winisd';
-import { DriverFileFormat, ProjectFileFormat, isLegacyWinisdFormat, type FileFormat } from '../fileFormat.js';
+import {winisdBytesToText, type WinisdDecodedText, WinisdEncoding, winisdTextToBytes} from '@openisd/design/winisd';
+import {DriverFileFormat, type FileFormat, isLegacyWinisdFormat, ProjectFileFormat} from '../fileFormat.js';
 
 /** `bytes` decoded to text, gated by `format`: `.wdr`/`.wpr` may legitimately fall back to
  *  CP1252 (QO62); every other format (or an unrecognised/absent one) is OpenISD's own UTF-8

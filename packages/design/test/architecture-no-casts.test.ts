@@ -63,9 +63,9 @@
  * `as const` is NOT a cast and is not counted: it makes a literal readonly, it does not tell the
  * compiler that one type is another. `satisfies` is not a cast either — it CHECKS.
  */
-import { describe, it, expect } from 'vitest';
-import { Project, SyntaxKind } from 'ts-morph';
-import { globSync, readFileSync } from 'node:fs';
+import {describe, expect, it} from 'vitest';
+import {Project, SyntaxKind} from 'ts-morph';
+import {globSync, readFileSync} from 'node:fs';
 import * as path from 'node:path';
 import * as url from 'node:url';
 

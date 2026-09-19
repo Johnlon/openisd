@@ -70,7 +70,7 @@ added:
   definition: when this record was added, ISO yyyy-mm-dd
 specs:
   woofer:
-    Fs:
+    Fs_hz:
       origin: manufacturer_datasheet
       readings:
         manufacturer_datasheet:
@@ -87,7 +87,7 @@ specs:
           read_precision: 0.5
       corroboration: MATCH
       definition: free-air resonance frequency (Hz)
-    Re:
+    Re_ohm:
       origin: manufacturer_product_page
       readings:
         manufacturer_datasheet:
@@ -105,7 +105,7 @@ specs:
           read_precision: 0.05
       corroboration: MATCH
       definition: DC voice coil resistance (Ω)
-    Le:
+    Le_H:
       origin: manufacturer_datasheet
       readings:
         manufacturer_datasheet:
@@ -114,7 +114,7 @@ specs:
           read_precision: 5.0e-06
       corroboration: UNMATCHED
       definition: voice-coil inductance (H)
-    Znom:
+    Znom_ohm:
       origin: manufacturer_datasheet
       readings:
         manufacturer_datasheet:
@@ -158,7 +158,7 @@ specs:
           read_precision: 0.005
       corroboration: UNMATCHED
       definition: mechanical Q factor at Fs (dimensionless)
-    Vas:
+    Vas_m3:
       origin: manufacturer_datasheet
       readings:
         manufacturer_datasheet:
@@ -175,7 +175,7 @@ specs:
           read_precision: 5.0e-05
       corroboration: MATCH
       definition: equivalent compliance volume — stored in m³, not litres
-    Sd:
+    Sd_m2:
       origin: manufacturer_datasheet
       readings:
         manufacturer_datasheet:
@@ -192,7 +192,7 @@ specs:
           read_precision: 5.0e-05
       corroboration: MATCH
       definition: effective piston area — stored in m², not cm²
-    BL:
+    BL_Tm:
       origin: manufacturer_datasheet
       readings:
         manufacturer_datasheet:
@@ -209,7 +209,7 @@ specs:
           read_precision: 0.05
       corroboration: MATCH
       definition: motor force factor (T·m)
-    Mms:
+    Mms_kg:
       origin: manufacturer_datasheet
       readings:
         manufacturer_datasheet:
@@ -218,7 +218,7 @@ specs:
           read_precision: 5.0e-06
       corroboration: UNMATCHED
       definition: moving mass including air load — stored in kg, not g
-    Cms:
+    Cms_m_per_N:
       origin: manufacturer_datasheet
       readings:
         manufacturer_datasheet:
@@ -227,7 +227,7 @@ specs:
           read_precision: 5.0e-06
       corroboration: UNMATCHED
       definition: suspension compliance (m/N)
-    Rms:
+    Rms_kg_per_s:
       origin: manufacturer_datasheet
       readings:
         manufacturer_datasheet:
@@ -236,7 +236,7 @@ specs:
           read_precision: 0.05
       corroboration: UNMATCHED
       definition: mechanical suspension resistance (kg/s)
-    Xmax:
+    Xmax_m:
       origin: manufacturer_datasheet
       readings:
         manufacturer_datasheet:
@@ -245,7 +245,7 @@ specs:
           read_precision: 5.0e-05
       corroboration: UNMATCHED
       definition: one-way linear excursion limit — stored in m, not mm
-    SPL:
+    SPL_dB:
       origin: manufacturer_datasheet
       readings:
         manufacturer_datasheet:
@@ -263,7 +263,7 @@ specs:
           read_precision: 0.05
       corroboration: MATCH
       definition: sensitivity (dB)
-    Vcd:
+    Vcd_m:
       origin: manufacturer_datasheet
       readings:
         manufacturer_datasheet:

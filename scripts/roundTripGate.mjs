@@ -18,8 +18,8 @@
  * imports `@openisd/design` directly rather than crossing the V8-bridge boundary the tools side
  * needs — same functions, no V8 round trip to duplicate.
  */
-import { OpenISDDriver, OpenISDPassiveRadiatorStandalone } from '@openisd/design';
-import { Engine } from '@openisd/design/engine';
+import {OpenISDDriver, OpenISDPassiveRadiatorStandalone} from '@openisd/design';
+import {Engine} from '@openisd/design/engine';
 
 /**
  * Whether `a` is a legacy `SpecEntryJson` — `{origin, readings, ...}`, no `state` key — and `b`

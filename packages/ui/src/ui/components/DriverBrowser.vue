@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue';
-import { presentationState } from '../../logic/presentationState.js';
-import { useEscToClose } from '../../logic/useEscToClose.js';
-import { useApp } from '../../logic/app.js';
-import { DriverFileFormat } from '../../fileFormat.js';
+import {ref, watch} from 'vue';
+import {presentationState} from '../../logic/presentationState.js';
+import {useEscToClose} from '../../logic/useEscToClose.js';
+import {useApp} from '../../logic/app.js';
+import {DriverFileFormat} from '../../fileFormat.js';
 
 const { driverBrowsing, selection } = useApp();
 const { openNewDriver } = selection;

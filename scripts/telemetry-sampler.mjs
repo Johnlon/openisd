@@ -20,9 +20,9 @@
  * No dependencies: /proc/meminfo, /proc/<pid>/{stat,cmdline,smaps_rollup} and os.loadavg only.
  * Runs until killed (SIGTERM/SIGINT) and flushes every sample as it takes it.
  */
-import { appendFileSync, mkdirSync, readFileSync, readdirSync } from 'node:fs';
-import { dirname } from 'node:path';
-import { loadavg, cpus } from 'node:os';
+import {appendFileSync, mkdirSync, readdirSync, readFileSync} from 'node:fs';
+import {dirname} from 'node:path';
+import {cpus, loadavg} from 'node:os';
 
 const OUT = process.argv[2] ?? 'build/ui-telemetry/memory.jsonl';
 const INTERVAL_MS = Number(process.argv[3] ?? 5) * 1000;

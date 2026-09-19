@@ -1,9 +1,9 @@
-import type { InjectionKey, Ref } from 'vue';
-import { ref, computed } from 'vue';
-import { unitToken } from '../logic/presentationState.js';
-import { toDisplay, fromDisplay, displayPrecision, type UnitGroup } from '../logic/fields/units.js';
-import { fieldById } from '../logic/fields/fieldRegistry.js';
-import { inputFrom } from '../logic/domEvents.js';
+import type {InjectionKey, Ref} from 'vue';
+import {computed, ref} from 'vue';
+import {unitToken} from '../logic/presentationState.js';
+import {displayPrecision, fromDisplay, toDisplay, type UnitGroup} from '../logic/fields/units.js';
+import {fieldById} from '../logic/fields/fieldRegistry.js';
+import {inputFrom} from '../logic/domEvents.js';
 
 export interface NumInputProps {
   modelValue: number | null | undefined;

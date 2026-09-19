@@ -84,7 +84,7 @@ description:
   definition: the manufacturer's own product blurb, page chrome stripped
 specs:
   woofer:
-    Fs:
+    Fs_hz:
       origin: manufacturer_datasheet
       readings:
         manufacturer_datasheet:
@@ -97,7 +97,7 @@ specs:
           read_precision: 0.5
       corroboration: MATCH
       definition: free-air resonance frequency (Hz)
-    Re:
+    Re_ohm:
       origin: manufacturer_datasheet
       readings:
         manufacturer_datasheet:
@@ -110,7 +110,7 @@ specs:
           read_precision: 0.005
       corroboration: MATCH
       definition: DC voice coil resistance (Ω)
-    Le:
+    Le_H:
       origin: manufacturer_datasheet
       readings:
         manufacturer_datasheet:
@@ -123,7 +123,7 @@ specs:
           read_precision: 5.0e-06
       corroboration: MATCH
       definition: voice-coil inductance (H)
-    Znom:
+    Znom_ohm:
       origin: manufacturer_datasheet
       readings:
         manufacturer_datasheet:
@@ -175,7 +175,7 @@ specs:
           read_precision: 0.005
       corroboration: MATCH
       definition: mechanical Q factor at Fs (dimensionless)
-    Vas:
+    Vas_m3:
       origin: manufacturer_datasheet
       readings:
         manufacturer_datasheet:
@@ -188,7 +188,7 @@ specs:
           read_precision: 5.0e-07
       corroboration: MATCH
       definition: equivalent compliance volume — stored in m³, not litres
-    Sd:
+    Sd_m2:
       origin: manufacturer_datasheet
       readings:
         manufacturer_datasheet:
@@ -201,7 +201,7 @@ specs:
           read_precision: 5.0e-06
       corroboration: MATCH
       definition: effective piston area — stored in m², not cm²
-    BL:
+    BL_Tm:
       origin: manufacturer_datasheet
       readings:
         manufacturer_datasheet:
@@ -214,7 +214,7 @@ specs:
           read_precision: 0.005
       corroboration: MATCH
       definition: motor force factor (T·m)
-    Mms:
+    Mms_kg:
       origin: manufacturer_product_page
       readings:
         manufacturer_datasheet:
@@ -227,7 +227,7 @@ specs:
           read_precision: 5.0e-06
       corroboration: MISMATCH
       definition: moving mass including air load — stored in kg, not g
-    Xmax:
+    Xmax_m:
       origin: manufacturer_datasheet
       readings:
         manufacturer_datasheet:
@@ -240,7 +240,7 @@ specs:
           read_precision: 5.0e-06
       corroboration: MATCH
       definition: one-way linear excursion limit — stored in m, not mm
-    SPL:
+    SPL_dB:
       origin: manufacturer_datasheet
       readings:
         manufacturer_datasheet:
@@ -255,7 +255,7 @@ specs:
           read_precision: 0.5
       corroboration: MATCH
       definition: sensitivity (dB)
-    Pe:
+    Pe_W:
       origin: manufacturer_datasheet
       readings:
         manufacturer_datasheet:
@@ -287,7 +287,7 @@ specs:
       corroboration: UNMATCHED
       definition: dual-coil wiring the published T/S was measured in (1 = parallel,
         2 = series)
-    Vcd:
+    Vcd_m:
       origin: manufacturer_product_page
       readings:
         manufacturer_product_page:

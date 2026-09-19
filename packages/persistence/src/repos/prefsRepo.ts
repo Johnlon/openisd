@@ -1,7 +1,7 @@
 /** REPO: domain access to the user's browser-local preferences. Takes a storage, returns
  *  domain values. */
-import type { KeyValueStorage } from '../storage/keyValueStorage.js';
-import { OPENISD_FAVOURITE_DRIVERS_KEY } from './storageKeys.js';
+import type {KeyValueStorage} from '../storage/keyValueStorage.js';
+import {OPENISD_FAVOURITE_DRIVERS_KEY} from './storageKeys.js';
 
 // Browser-local preferences. THE one place that knows their storage keys and their shapes.
 //

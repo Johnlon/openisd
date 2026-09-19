@@ -17,13 +17,13 @@
  * quoted per field below in the units that dialog showed, converted through units.ts.
  */
 
-import { describe, it } from 'vitest';
+import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
-import { dirname, join } from 'node:path';
-import { fieldById } from '../../src/logic/fields/fieldRegistry.js';
-import { fromDisplay } from '../../src/logic/fields/units.js';
+import {readFileSync} from 'node:fs';
+import {fileURLToPath} from 'node:url';
+import {dirname, join} from 'node:path';
+import {fieldById} from '../../src/logic/fields/fieldRegistry.js';
+import {fromDisplay} from '../../src/logic/fields/units.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const components = join(here, '..', '..', 'src', 'ui', 'components');

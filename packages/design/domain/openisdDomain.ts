@@ -1,72 +1,86 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
-import { driverSectionProblems, radiatorSectionProblems, ProjectBuilder } from './openisdTransforms.js';
+import {driverSectionProblems, ProjectBuilder, radiatorSectionProblems} from './openisdTransforms.js';
 // HUMAN RULING (2026-08-26): GEOMETRY IS IN. ACOUSTICS IS OUT.
 // IN: pure geometry (e.g., Vent.area_m2).
 // OUT: anything involving air, compliance, resonance, or frequency. Engine handles all acoustics.
 // TEST: If two implementers could disagree on the model, it belongs in the engine.
-
 import {
-    OpenISDDeviceJson,
-    type DriverSpecsSection,
-    type PassiveRadiatorSpecsSection,
-    type SpecEntryJson,
-    type VentJson,
-    type SealedLossesJson,
-    type VentedLossesJson,
+    calcNumVC,
+    calcVCCon,
     type CoupledSealedLossesJson,
-    type CoupledVentedLossesJson,
     type CoupledVentedChamberJson,
+    type CoupledVentedLossesJson,
+    type DriverSpecsSection,
+    enteredEntry,
+    enteredWiring,
     type OpenISDBoxJson,
+    OpenISDDeviceJson,
     type OpenISDEnvironmentJson,
     type OpenISDProjectJson,
     type OpenISDProjectSessionJson,
     openISDProjectSessionJsonSchema,
+    type PassiveRadiatorSpecsSection,
+    type SealedLossesJson,
+    type SpecEntryJson,
+    type VentedLossesJson,
+    type VentJson,
     VoiceCoilWiring,
-    wiringFromRecord,
-    calcVCCon,
-    calcNumVC,
-    enteredWiring,
-    enteredEntry,
     winningValue,
+    wiringFromRecord,
 } from './openisdSchema.js';
 import {
     createCell,
-    focus,
-    nullableField,
-    requiredField,
     entryField,
-    pairedField,
-    inputOf,
-    resolvingLens,
     Field,
+    focus,
     InputField,
-    ReadOnlyCalculatedField,
-    type Cell,
+    inputOf,
     type Lens,
+    nullableField,
+    pairedField,
     type RawField,
+    ReadOnlyCalculatedField,
+    requiredField,
+    resolvingLens,
 } from './cell.js';
 import {newUuid} from './newUuid.js';
-import {realAppContext, type AppContext} from './appContext.js';
-import {type Air, type AirConstantProvider, type DriverSolverParams, type SolverField, type Wiring, Engine, LossMode} from '../engine/index.js';
+import {type AppContext, realAppContext} from './appContext.js';
+import type {
+    BoxParamsIssue,
+    BoxType,
+    CalculationIssue,
+    DriverError,
+    DriverIssue,
+    DriverQuantityName,
+    EnclosureParams,
+    Filter,
+    MaxCurvesResult,
+    MaxCurvesSolveResult,
+    PrIssue,
+    SimulatableBoxType,
+    SweepIssue,
+    SweepParams,
+    SweepResult,
+    SweepSolveResult,
+    VentIssue,
+} from '../engine/index.js';
+import {
+    type Air,
+    type AirConstantProvider,
+    type DriverSolverParams,
+    Engine,
+    LossMode,
+    type SolverField,
+    type Wiring
+} from '../engine/index.js';
 // The DEFINING modules, never `../winisd/index.js`: the barrel also re-exports these two
 // converter modules, so importing it here would pull them in whichever name was asked for.
 import {openIsdDriverToWinIsdDriver, winIsdDriverTextToOpenIsdDriver} from './driverYmlToOpenisdAndWdr.js';
 import {openIsdProjectToWinIsdProject, winIsdProjectToOpenIsdProject} from './openIsdProjectToWinIsdProject.js';
-import type {
-    BoxType, SimulatableBoxType, DriverError, DriverIssue, Filter,
-    EnclosureParams, MaxCurvesResult, SweepParams, SweepResult,
-    SweepSolveResult, MaxCurvesSolveResult,
-    SweepIssue, VentIssue, PrIssue, BoxParamsIssue, CalculationIssue, DriverQuantityName,
-} from '../engine/index.js';
 
 import type {Vent, VentShape} from './vent.js';
-import type {
-    SealedLosses,
-    VentedLosses,
-    CoupledSealedLosses,
-    CoupledVentedLosses,
-} from './losses.js';
+import type {CoupledSealedLosses, CoupledVentedLosses, SealedLosses, VentedLosses,} from './losses.js';
 
 // The domain declares its state here. JSON shapes live in `openisdSchema.ts`.
 // Internal JSON types are never re-exported from `domain/index.ts`.
@@ -1487,7 +1501,7 @@ export abstract class OpenISDDriver extends OpenISDDevice {
      *  every such loss the converter reported. */
     toWdrIniText(engine: Engine): { value: string | null; errors: DriverError[] } {
         const errors: DriverError[] = [];
-        const wdr = openIsdDriverToWinIsdDriver(this, engine, errors);
+        const wdr = openIsdDriverToWinIsdDriver(this, errors);
         return {value: wdr.toWdrIni(), errors};
     }
 

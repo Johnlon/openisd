@@ -4,19 +4,19 @@
  * focused project's driver, the same slot the Driver/Box panels write, so the charts update as
  * you scrub. Cancel/Reset discard everything typed since the last save (`OpenISDProject.cancel()`).
  */
-import { computed, reactive, ref, onMounted, onUnmounted } from 'vue';
-import type { SpecField } from '../../../logic/appState.js';
-import { presentationState } from '../../../logic/presentationState.js';
-import { useFocusedProject } from '../../../logic/focusedProjectContext.js';
-import { ebpOf } from '../../../logic/environment.js';
-import { toDisplay, fromDisplay, type UnitGroup } from '../../../logic/fields/units.js';
-import { precision as fieldDp, limits } from '../../../logic/fields/fieldRegistry.js';
-import { cellClassFor, fieldIsMandatoryAndUnsatisfied } from '../../../logic/useDriverCells.js';
+import {computed, onMounted, onUnmounted, reactive, ref} from 'vue';
+import type {SpecField} from '../../../logic/appState.js';
+import {presentationState} from '../../../logic/presentationState.js';
+import {useFocusedProject} from '../../../logic/focusedProjectContext.js';
+import {ebpOf} from '../../../logic/environment.js';
+import {fromDisplay, toDisplay, type UnitGroup} from '../../../logic/fields/units.js';
+import {limits, precision as fieldDp} from '../../../logic/fields/fieldRegistry.js';
+import {cellClassFor, fieldIsMandatoryAndUnsatisfied} from '../../../logic/useDriverCells.js';
 import NumInput from '../../components/NumInput.vue';
 import UnitToggle from '../../components/UnitToggle.vue';
-import type { Cell, Field } from '@openisd/design';
-import { inputValue, listeningElement } from '../../../logic/domEvents.js';
-import { useEscToClose } from '../../../logic/useEscToClose.js';
+import type {Cell, Field} from '@openisd/design';
+import {inputValue, listeningElement} from '../../../logic/domEvents.js';
+import {useEscToClose} from '../../../logic/useEscToClose.js';
 
 const project = useFocusedProject();
 
@@ -42,6 +42,24 @@ function specField(key: NumKey): Field<number> {
     case 'Pe':   return s.Pe_W;
     case 'BL':   return s.BL_Tm;
     case 'Mms':  return s.Mms_kg;
+  }
+}
+/** The schema name for a display key — the vocabulary an engine issue names its fields in
+ *  ('Fs_hz', 'Vas_m3', …). Kept next to `specField`'s switch so the two pairings stay in step. */
+function schemaOf(key: NumKey): string {
+  switch (key) {
+    case 'Fs':   return 'Fs_hz';
+    case 'Qts':  return 'Qts';
+    case 'Qes':  return 'Qes';
+    case 'Qms':  return 'Qms';
+    case 'Vas':  return 'Vas_m3';
+    case 'Sd':   return 'Sd_m2';
+    case 'Re':   return 'Re_ohm';
+    case 'Le':   return 'Le_H';
+    case 'Xmax': return 'Xmax_m';
+    case 'Pe':   return 'Pe_W';
+    case 'BL':   return 'BL_Tm';
+    case 'Mms':  return 'Mms_kg';
   }
 }
 function fieldCell(key: NumKey): Cell<number> { return specField(key).get(); }
@@ -125,7 +143,7 @@ function isNumKey(f: string): f is NumKey {
 function fieldClasses(key: NumKey, group: UnitGroup | undefined, token: string | undefined): Record<string, boolean> {
   void project.value;
   const cellOf = (f: SpecField): Cell<number> => fieldCell(isNumKey(f) ? f : 'Fs');
-  const mandatory = fieldIsMandatoryAndUnsatisfied(project.value.driver.issues(), key);
+  const mandatory = fieldIsMandatoryAndUnsatisfied(project.value.driver.issues(), schemaOf(key));
   return {
     [cellClassFor(cellOf, key)]: true,
     'de-input-mandatory': mandatory,

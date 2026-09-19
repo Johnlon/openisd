@@ -18,9 +18,8 @@
  * evidence of a corrupt or non-WinISD file, not a field to preserve.
  */
 import {parseIni, stringifyIni} from '../ini/index.js';
-import {PARSTATE_LEN, POS_TO_WDRKEY, parseParState} from './parstate.js';
+import {markOf, parseParState} from './parstate.js';
 import {WINISD_NEWLINE_SENTINEL} from './winisdBytes.js';
-import {markOf} from './parstate.js';
 import type {CellState} from "./cellState.js";
 
 /** One `.wdr` field: the text that will be written, and its provenance mark. */
@@ -29,10 +28,10 @@ export interface WdrCell {
     state: CellState;
 }
 
-/** Every `.wdr` field WinISDDriver knows about, keyed by WinISD's OWN spelling (`Fs`, `BL`,
- *  `Znom`, `Gloss`, …) — never an internal field name, so no producer's naming choices leak
- *  into the format layer. */
-type WdrCells = ReadonlyMap<string, WdrCell>;
+/** Every `.wdr` field, in WinISD's OWN file order — the fixed 48-row structure, one entry per row
+ *  (`Fs`, `BL`, `Znom`, …), never an internal field name, so no producer's naming choices leak
+ *  into the format layer. Order is the file's order; serialization writes the array as it is. */
+type WdrCells = ReadonlyArray<readonly [string, WdrCell]>;
 
 /** The seven free-text header lines every `.wdr` carries, in file order. */
 export interface WdrHeader {
@@ -62,73 +61,6 @@ export interface WdrHeader {
  */
 const XLIM_PARSTATE_SLOT = 10;
 
-
-/**
- * The 48 numeric/text `.wdr` keys in WinISD's OWN file order, each with the value WinISD
- * writes when nothing is set. Source of truth: `drivers/mysamples/winisd/john-all-defaults.wdr`
- * (New → Save, nothing typed).
- */
-export const INI_ROWS_META = [
-    {key: 'Qts', calculable: true},
-    {key: 'Znom', calculable: true},
-    {key: 'Fs', calculable: true},
-    {key: 'Pe', calculable: true},
-    {key: 'SPL', calculable: true},
-    {key: 'Re', calculable: true},
-    {key: 'Le', calculable: false},
-    {key: 'fLe', calculable: false},
-    {key: 'KLe', calculable: true},
-    {key: 'BL', calculable: true},
-    {key: 'Xmax', calculable: false},
-    {key: 'Cms', calculable: true},
-    {key: 'Qms', calculable: true},
-    {key: 'Qes', calculable: true},
-    {key: 'Rms', calculable: true},
-    {key: 'Mms', calculable: true},
-    // Deliberately `false`, unlike Dd (below) which derives it back: real WinISD never derives
-    // either of Sd/Dd from the other (`drivers/mysamples/winisd/s-dd.wdr` states only Dd, leaves Sd
-    // at N; `s-sd.wdr` states only Sd, leaves Dd at N) — openisd derives Sd from Dd anyway,
-    // going beyond WinISD, and that derived value is written marked E, never C (John, 2026-09-05:
-    // "use E for Sd when E or C in openisd"). Whether WinISD's own file loader trusts a C-marked
-    // Sd on read was not probed; this is a recorded ruling, not a measured WinISD behavior.
-    {key: 'Sd', calculable: false},
-    {key: 'Vas', calculable: true},
-    {key: 'Dia', calculable: true},
-    {key: 'Vd', calculable: true},
-    {key: 'no', calculable: true},
-    {key: 'Dd', calculable: true},
-    {key: 'EBP', calculable: true},
-    {key: 'numVC', calculable: false},
-    {key: 'Hc', calculable: true},
-    {key: 'Hg', calculable: true},
-    {key: 'SPLmax', calculable: true},
-    {key: 'SPLmaxLF', calculable: true},
-    {key: 'USPL', calculable: true},
-    {key: 'alfaVC', calculable: false},
-    {key: 'Rt', calculable: false},
-    {key: 'Ct', calculable: false},
-    {key: 'gamma', calculable: true},
-    {key: 'Rme', calculable: true},
-    {key: 'Mpow', calculable: true},
-    {key: 'Mcost', calculable: true},
-    {key: 'Gloss', calculable: true},
-    {key: 'VCCon', calculable: false},
-    {key: 'c', calculable: true},
-    {key: 'roo', calculable: true},
-    {key: 'Thick', calculable: false},
-    {key: 'Depth', calculable: true},
-    {key: 'MagDepth', calculable: true},
-    {key: 'Magnet', calculable: true},
-    {key: 'Basket', calculable: false},
-    {key: 'Outer', calculable: false},
-    {key: 'Vcd', calculable: false},
-    {key: 'DVol', calculable: true},
-] as const;
-
-export const INI_ROWS: ReadonlyArray<string> = INI_ROWS_META.map(m => m.key);
-export const WINISD_CALCULABLE: ReadonlyArray<string> = INI_ROWS_META.filter(m => m.calculable).map(m => m.key);
-
-
 /**
  * The value WinISD writes for a key nothing has set — read off the oracle
  * `drivers/mysamples/winisd/john-all-defaults.wdr` (driver editor → New → Save, nothing typed).
@@ -146,6 +78,23 @@ const WDR_DEFAULT: Readonly<Record<string, string>> = Object.freeze({numVC: '1',
 /** What `key=` reads when no cell supplies a value. */
 function wdrDefault(key: string): string {
     return WDR_DEFAULT[key] ?? '0';
+}
+
+/** One `.wdr` row, read from the file's raw section and ParState mark. A row the file omits is
+ *  `0`/N (absent, not a value); a row present without a ParState line is E (the scraper-authored
+ *  shape, where presence itself means entered).
+ *
+ *  `slot` is the row's position in the 49-mark ParState row — named at every call site, so no
+ *  key-to-slot table exists to drift from the format. */
+function readWdrRow(
+    raw: Record<string, string>,
+    marks: readonly CellState[] | null,
+    wdrKey: string,
+    slot: number,
+): readonly [string, WdrCell] {
+    if (!(wdrKey in raw)) return [wdrKey, {value: '', state: 'not-available'}];
+    const state: CellState = marks ? marks[slot] : 'entered';
+    return [wdrKey, {value: raw[wdrKey], state}];
 }
 
 
@@ -234,23 +183,17 @@ export class WinISDDriver {
     }
 
     /**
-     * Every `.wdr` key you can answer for, keyed by WinISD's OWN spelling. Throws if a key is
-     * missing: the production caller supplies every `INI_ROWS` key via its own fill-loop, so a
-     * missing one means the caller and this class have drifted out of sync about the .wdr key
-     * set — a real incompatibility bug, not a normal absent-field case (that is
-     * `state: 'not-available'`, a PRESENT cell with no value). Thrown here, at construction,
-     * rather than reported and silently filled by `toWdrIni()` — the drift is a defect, not data.
+     * The fixed `.wdr` structure, as a caller built it: the 48 rows in file order plus Xlim's
+     * slot-10 mark (last). There is no completeness check to run — the structure IS the order
+     * and the contents; a caller that omitted a row built the wrong structure.
      */
     static build(
-        header: WdrHeader, cells: WdrCells, dqLines: readonly string[] = [], env?: WdrEnv,
+        header: WdrHeader,
+        cells: WdrCells,
+        dqLines: readonly string[] = [],
+        env?: WdrEnv,
         driverType?: string,
     ): WinISDDriver {
-        const missing = INI_ROWS.filter(key => !cells.has(key));
-        if (missing.length > 0) {
-            throw new Error(`WinISDDriver.build() is missing ${missing.length} of the 48 .wdr keys: `
-                + `${missing.join(', ')} — the caller and WinISDDriver have drifted out of sync about `
-                + 'the .wdr key set.');
-        }
         return new WinISDDriver(header, cells, dqLines, env, driverType);
     }
 
@@ -286,26 +229,74 @@ export class WinISDDriver {
             raw[key] = val;
         }
 
-        // A row the file CARRIES must be well formed or the file is refused — `parseParState`
-        // throws, naming the slot and field, because a mark read out of a broken row is a
-        // fabricated claim about who authored a number (John, 2026-09-01). A file carrying NO
-        // ParState line is the scraper-authored shape, and reads presence ⇒ E.
+        // A malformed ParState row is IGNORED, never a reason to refuse the file: the values are
+        // in the `Key=` lines, ParState only records who authored each one, and real-world files
+        // have been seen with a broken row (`s-xlim-123.wdr`). Unusable marks fall back to
+        // presence ⇒ E, exactly like a file with no ParState line at all.
         const marks = parState === undefined ? null : parseParState(parState);
 
-        const cells = new Map<string, WdrCell>();
-        for (const key of INI_ROWS) {
-            if (!(key in raw)) continue;
-            const pos = keyPos(key);
-            const state: CellState = marks && pos != null ? marks[pos] : 'entered';
-            cells.set(key, {value: raw[key], state});
-        }
-
-        // Xlim occupies ParState slot 10 but has no key, so the loop above never reaches it. The
-        // mark still has to survive: writing `N` where the file said `E` is a positive claim
-        // ("not in play") that the source contradicts. There is no value to read.
-        if (marks && marks[XLIM_PARSTATE_SLOT] !== 'not-available') {
-            cells.set('Xlim', {value: '', state: marks[XLIM_PARSTATE_SLOT]});
-        }
+        // THE FIXED 48-ROW STRUCTURE, each row read explicitly in WinISD's file order, plus Xlim's
+        // slot-10 mark last. `.wdr` is a FIXED structure — no loops, no row-order list: the
+        // sequence IS the order, and each call names the row's `.wdr` key.
+        const cells: WdrCells = [
+            readWdrRow(raw, marks, 'Qts', 14),
+            readWdrRow(raw, marks, 'Znom', 0),
+            readWdrRow(raw, marks, 'Fs', 1),
+            readWdrRow(raw, marks, 'Pe', 2),
+            readWdrRow(raw, marks, 'SPL', 3),
+            readWdrRow(raw, marks, 'Re', 4),
+            readWdrRow(raw, marks, 'Le', 5),
+            readWdrRow(raw, marks, 'fLe', 6),
+            readWdrRow(raw, marks, 'KLe', 7),
+            readWdrRow(raw, marks, 'BL', 8),
+            readWdrRow(raw, marks, 'Xmax', 9),
+            readWdrRow(raw, marks, 'Cms', 11),
+            readWdrRow(raw, marks, 'Qms', 12),
+            readWdrRow(raw, marks, 'Qes', 13),
+            readWdrRow(raw, marks, 'Rms', 15),
+            readWdrRow(raw, marks, 'Mms', 16),
+            readWdrRow(raw, marks, 'Sd', 17),
+            readWdrRow(raw, marks, 'Vas', 19),
+            readWdrRow(raw, marks, 'Dia', 20),
+            readWdrRow(raw, marks, 'Vd', 18),
+            readWdrRow(raw, marks, 'no', 22),
+            readWdrRow(raw, marks, 'Dd', 21),
+            readWdrRow(raw, marks, 'EBP', 33),
+            readWdrRow(raw, marks, 'numVC', 23),
+            readWdrRow(raw, marks, 'Hc', 24),
+            readWdrRow(raw, marks, 'Hg', 25),
+            readWdrRow(raw, marks, 'SPLmax', 26),
+            readWdrRow(raw, marks, 'SPLmaxLF', 27),
+            readWdrRow(raw, marks, 'USPL', 28),
+            readWdrRow(raw, marks, 'alfaVC', 29),
+            readWdrRow(raw, marks, 'Rt', 30),
+            readWdrRow(raw, marks, 'Ct', 31),
+            readWdrRow(raw, marks, 'gamma', 32),
+            readWdrRow(raw, marks, 'Rme', 34),
+            readWdrRow(raw, marks, 'Mpow', 35),
+            readWdrRow(raw, marks, 'Mcost', 36),
+            readWdrRow(raw, marks, 'Gloss', 37),
+            readWdrRow(raw, marks, 'VCCon', 46),
+            readWdrRow(raw, marks, 'c', 47),
+            readWdrRow(raw, marks, 'roo', 48),
+            readWdrRow(raw, marks, 'Thick', 38),
+            readWdrRow(raw, marks, 'Depth', 39),
+            readWdrRow(raw, marks, 'MagDepth', 40),
+            readWdrRow(raw, marks, 'Magnet', 41),
+            readWdrRow(raw, marks, 'Basket', 42),
+            readWdrRow(raw, marks, 'Outer', 43),
+            readWdrRow(raw, marks, 'Vcd', 44),
+            readWdrRow(raw, marks, 'DVol', 45),
+            // Xlim occupies ParState slot 10 but has no key, so the rows never reach it. The mark
+            // still has to survive: writing `N` where the file said `E` is a positive claim
+            // ("not in play") that the source contradicts. There is no value to read.
+            ['Xlim', {
+                value: '',
+                state: marks && marks[XLIM_PARSTATE_SLOT] !== 'not-available'
+                    ? marks[XLIM_PARSTATE_SLOT]
+                    : 'not-available',
+            }],
+        ];
 
         const header: WdrHeader = {
             brand: raw.Brand, model: raw.Model, manufacturer: raw.Manufacturer,
@@ -313,7 +304,7 @@ export class WinISDDriver {
             dateModified: raw.DateModified,
         };
 
-        // A key the file states that is neither an `INI_ROWS` key nor a header line is discarded
+        // A key the file states that is neither a `.wdr` row nor a header line is discarded
         // (John, 2026-09-02): `.wdr` has no extension mechanism, so a foreign key is a corrupt or
         // non-WinISD file, not a field to preserve.
         return new WinISDDriver(
@@ -347,8 +338,10 @@ export class WinISDDriver {
             DateAdded: oneLine(h.dateAdded ?? ''),
             DateModified: oneLine(h.dateModified ?? ''),
         };
-        for (const key of INI_ROWS) {
-            driver[key] = this.#cells.get(key)?.value ?? wdrDefault(key);
+        for (const [key, cell] of this.#cells) {
+            // No `Xlim=` line: WinISD writes none (XLIM_PARSTATE_SLOT) — its mark rides slot 10.
+            if (key === 'Xlim') continue;
+            driver[key] = cell.value ?? wdrDefault(key);
         }
         // No `Xlim=` line: WinISD writes none, and `.wdr` has no extension mechanism to add one
         // (XLIM_PARSTATE_SLOT). Xlim crosses as its slot-10 mark and nothing else.
@@ -356,9 +349,15 @@ export class WinISDDriver {
         return stringifyIni({Driver: driver});
     }
 
-    /** One field, by WinISD's own key spelling. Never throws — an unknown key reads N/absent. */
+    /** The fixed structure as built: the 48 rows in file order, then Xlim's slot-10 mark. */
+    rows(): ReadonlyArray<readonly [string, WdrCell]> {
+        return this.#cells;
+    }
+
+    /** One field, by WinISD's own key spelling. Never throws — an unknown key reads N/absent.
+     *  `Xlim` is the slot-10 mark carried as the structure's last entry. */
     cell(wdrKey: string): WdrCell {
-        return this.#cells.get(wdrKey) ?? {value: '', state: 'not-available'};
+        return this.#cells.find(([key]) => key === wdrKey)?.[1] ?? {value: '', state: 'not-available'};
     }
 
     /** One header field, by name. */
@@ -378,22 +377,60 @@ export class WinISDDriver {
     }
 
     #parState(): string {
-        const slots = new Array<string>(PARSTATE_LEN).fill(markOf('not-available'));
-        for (let pos = 0; pos < PARSTATE_LEN; pos++) {
-            const key = POS_TO_WDRKEY[pos];
-            if (key == null) continue;
-            slots[pos] = markOf(this.#cells.get(key)?.state ?? 'not-available');
-        }
-        // Slot 10 has no entry in POS_TO_WDRKEY, so it is filled from Xlim's own cell — which
-        // carries a mark and no value (XLIM_PARSTATE_SLOT).
-        slots[XLIM_PARSTATE_SLOT] = markOf(this.#cells.get('Xlim')?.state ?? 'not-available');
-        return slots.join('');
+        // THE FIXED 49-SLOT PARSTATE ROW, written explicitly in slot order — one mark per field,
+        // THE FIXED 49-SLOT PARSTATE ROW, written explicitly in slot order — one mark per field,
+        // in the position WinISD's own table defines. No key-to-slot lookups:
+        // the sequence IS the order, and slot 10 is Xlim, a mark-only field with no `.wdr` key.
+        return [
+            markOf(this.cell('Znom').state),    // 0
+            markOf(this.cell('Fs').state),      // 1
+            markOf(this.cell('Pe').state),      // 2
+            markOf(this.cell('SPL').state),     // 3
+            markOf(this.cell('Re').state),      // 4
+            markOf(this.cell('Le').state),      // 5
+            markOf(this.cell('fLe').state),     // 6
+            markOf(this.cell('KLe').state),     // 7
+            markOf(this.cell('BL').state),      // 8
+            markOf(this.cell('Xmax').state),    // 9
+            markOf(this.cell('Xlim').state),    // 10 — Xlim, no `.wdr` key
+            markOf(this.cell('Cms').state),     // 11
+            markOf(this.cell('Qms').state),     // 12
+            markOf(this.cell('Qes').state),     // 13
+            markOf(this.cell('Qts').state),     // 14
+            markOf(this.cell('Rms').state),     // 15
+            markOf(this.cell('Mms').state),     // 16
+            markOf(this.cell('Sd').state),      // 17
+            markOf(this.cell('Vd').state),      // 18
+            markOf(this.cell('Vas').state),     // 19
+            markOf(this.cell('Dia').state),     // 20
+            markOf(this.cell('Dd').state),      // 21
+            markOf(this.cell('no').state),      // 22
+            markOf(this.cell('numVC').state),   // 23
+            markOf(this.cell('Hc').state),      // 24
+            markOf(this.cell('Hg').state),      // 25
+            markOf(this.cell('SPLmax').state),  // 26
+            markOf(this.cell('SPLmaxLF').state), // 27
+            markOf(this.cell('USPL').state),    // 28
+            markOf(this.cell('alfaVC').state),  // 29
+            markOf(this.cell('Rt').state),      // 30
+            markOf(this.cell('Ct').state),      // 31
+            markOf(this.cell('gamma').state),   // 32
+            markOf(this.cell('EBP').state),     // 33
+            markOf(this.cell('Rme').state),     // 34
+            markOf(this.cell('Mpow').state),    // 35
+            markOf(this.cell('Mcost').state),   // 36
+            markOf(this.cell('Gloss').state),   // 37
+            markOf(this.cell('Thick').state),   // 38
+            markOf(this.cell('Depth').state),   // 39
+            markOf(this.cell('MagDepth').state), // 40
+            markOf(this.cell('Magnet').state),  // 41
+            markOf(this.cell('Basket').state),  // 42
+            markOf(this.cell('Outer').state),   // 43
+            markOf(this.cell('Vcd').state),     // 44
+            markOf(this.cell('DVol').state),    // 45
+            markOf(this.cell('VCCon').state),   // 46
+            markOf(this.cell('c').state),       // 47
+            markOf(this.cell('roo').state),     // 48
+        ].join('');
     }
-}
-
-/** WDR key → its ParState slot position, where one exists. `Dia` shares `Dd`'s slot (WinISD
- *  writes both keys but tracks one edit-state for the pair — `Driver=all-defaults.wdr`). */
-function keyPos(wdrKey: string): number | null {
-    const pos = POS_TO_WDRKEY.indexOf(wdrKey);
-    return pos >= 0 ? pos : null;
 }

@@ -20,15 +20,14 @@
  * 2026-08-31): winisd already depends on design, so the `.wdr` transformer is reachable here
  * without closing a design → winisd → design cycle.
  */
-import { describe, it } from 'vitest';
+import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
-import { dirname, join } from 'node:path';
-import { parse, stringify as stringifyYaml } from 'yaml';
+import {readFileSync} from 'node:fs';
+import {fileURLToPath} from 'node:url';
+import {dirname, join} from 'node:path';
+import {parse, stringify as stringifyYaml} from 'yaml';
 
-import { driverYmlToOpenisdAndWdr } from '../../domain/driverYmlToOpenisdAndWdr.js';
-import { WDR_TO_SCHEMA_KEY } from '../../domain/openisdSchema.js';
+import {driverYmlToOpenisdAndWdr} from '../../domain/driverYmlToOpenisdAndWdr.js';
 
 const FIXTURES = join(dirname(fileURLToPath(import.meta.url)), '..', 'fixtures', 'corpus');
 
@@ -155,7 +154,7 @@ describe('driverYmlToOpenisdAndWdr — one call, both derived files, one error a
       "added: {value: '2026-09-01', origin: entered}",
       'specs:',
       '  woofer:',
-      '    Fs:',
+      '    Fs_hz:',
       '      origin: entered',
       '      readings: {entered: {read_value: 42}}',
     ].join('\n');
@@ -190,7 +189,7 @@ describe('driverYmlToOpenisdAndWdr — one call, both derived files, one error a
       'quality: {confirmed_fields: [], fields_with_issues: [], missing: [], invalid: [], parse_errors: [], cross_source_only: []}',
       'specs:',
       '  woofer:',
-      '    Fs:',
+      '    Fs_hz:',
       '      origin: manufacturer_datasheet',
       '      definition: "resonance in free air"',
       '      readings:',
@@ -225,10 +224,10 @@ describe('driverYmlToOpenisdAndWdr — one call, both derived files, one error a
       "added: {value: '2026-09-01', origin: manufacturer_datasheet}",
       'specs:',
       '  passive-radiator:',
-      '    Fs:',
+      '    Fs_hz:',
       '      origin: manufacturer_datasheet',
       '      readings: {manufacturer_datasheet: {actual_reading: "24 Hz", read_value: 24, read_precision: 0.5}}',
-      '    Sd:',
+      '    Sd_m2:',
       '      origin: manufacturer_datasheet',
       '      readings: {manufacturer_datasheet: {actual_reading: "137 cm2", read_value: 0.0137, read_precision: 0.5}}',
     ].join('\n');
@@ -262,7 +261,7 @@ describe('driverYmlToOpenisdAndWdr — one call, both derived files, one error a
       "added: {value: '2026-09-01', origin: entered}",
       'specs:',
       '  passive-radiator:',
-      '    Sd:',
+      '    Sd_m2:',
       '      origin: entered',
       '      readings: {entered: {read_value: 9}}',
     ].join('\n');
@@ -319,28 +318,9 @@ describe('driverYmlToOpenisdAndWdr — one call, both derived files, one error a
         return [k, rest];
       }));
 
-    const canonicalizeSourceSpecs = (record: Record<string, unknown>): Record<string, unknown> => {
-      const specs = record.specs;
-      if (typeof specs !== 'object' || specs === null) return record;
-      const sections: Record<string, unknown> = {};
-      for (const [secKey, sec] of Object.entries(specs)) {
-        if (typeof sec !== 'object' || sec === null) {
-          sections[secKey] = sec;
-          continue;
-        }
-        const fields: Record<string, unknown> = {};
-        for (const [fKey, fVal] of Object.entries(sec)) {
-          const canonical = WDR_TO_SCHEMA_KEY[fKey] ?? fKey;
-          fields[canonical] = fVal;
-        }
-        sections[secKey] = fields;
-      }
-      return { ...record, specs: sections };
-    };
-
     const openisdRecord = stripDeep(parse(openisd)) as Record<string, unknown>;
-    const sourceRecord = canonicalizeSourceSpecs(stripMetadataOriginForTest(
-      stripDeep(parse(source)) as Record<string, unknown>));
+    const sourceRecord = stripMetadataOriginForTest(
+      stripDeep(parse(source)) as Record<string, unknown>);
 
     assert.deepEqual(openisdRecord, sourceRecord,
       'openisd.yml differs from driver.yml by something other than the documented drops');
@@ -394,11 +374,11 @@ describe('driverYmlToOpenisdAndWdr — one call, both derived files, one error a
       "added: {value: '2026-09-01', origin: entered}",
       'specs:',
       '  woofer:',
-      '    Sd:',
+      '    Sd_m2:',
       '      origin: entered',
       '      readings: {entered: {read_value: 0.0137}}',
       '  passive-radiator:',
-      '    Sd:',
+      '    Sd_m2:',
       '      origin: entered',
       '      readings: {entered: {read_value: 0.0137}}',
     ].join('\n');
@@ -426,7 +406,7 @@ describe('driverYmlToOpenisdAndWdr — one call, both derived files, one error a
     // assertion passes for the wrong reason (nothing ever produces that field, ever).
     assert.ok(
       readFileSync(join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'domain', 'driverYmlToOpenisdAndWdr.ts'), 'utf8')
-        .includes("'wdr-record-round-trip'"),
+        .includes('wdr-record-round-trip'),
       'the bridge source does not mention this field at all — the check does not exist yet',
     );
   });

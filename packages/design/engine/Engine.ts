@@ -3,40 +3,68 @@
  * The surface of the engine is the set of methods needed by the project.
  */
 
-import { solveEnvironment } from './air.js';
-import type { Air, AirEnvironment, EnvironmentSolveResult } from './air.js';
+import type {Air, AirEnvironment, EnvironmentSolveResult} from './air.js';
+import {solveEnvironment} from './air.js';
 import {
-  ebp, ebpSuitability, closestSealedAlignment, prTuning, findImpedancePeak, prMassForFp,
-  sealedAlignmentOptions, sealedFromQtc, sealedQtcFromVolume, tuningFromLength, ventLength,
+  closestSealedAlignment,
+  ebp,
+  ebpSuitability,
+  findImpedancePeak,
+  prMassForFp,
+  prTuning,
+  sealedAlignmentOptions,
+  sealedFromQtc,
+  sealedQtcFromVolume,
+  tuningFromLength,
+  ventLength,
 } from './boxDesign.js';
 import {
-  prCmsFromVas, prFsWithMass, prMmdFromFs, prQms, prRmsFromQms, prVas,
+  driveFromVoltage,
+  driveVoltage,
+  prCmsFromVas,
+  prFsWithMass,
+  prMmdFromFs,
+  prQms,
+  prRmsFromQms,
+  prVas,
 } from './formulas.js';
+import type {DriverIssue, PrIssue, SealedAlignmentIssue, VentIssue} from './solver.js';
+import {solveDriver, solvePr, solveSealedAlignment, solveVent, terminalBL_Tm, terminalRe_ohm,} from './solver.js';
+import type {CalculationIssue} from './consistency.js';
+import {issueFields, issueFormula, issueToText} from './consistency.js';
+import {referenceEfficiency, splFromEfficiency} from './efficiency.js';
+import type {SignalSolveResult, SignalSolverQuantities} from './signal.js';
+import {solveSignal} from './signal.js';
+import type {LossMode, SealedParams} from './lossMode.js';
+import {sealedResonance, sourceLoadedQts} from './lossMode.js';
+import type {BoxParamsSolveResult} from './params.js';
+import {solveBoxParams} from './params.js';
+import type {MaxCurvesSolveResult, SweepSolveResult} from './sweep.js';
 import {
-  solveDriver, solvePr, solveVent, solveSealedAlignment,
-  terminalRe_ohm, terminalBL_Tm,
-} from './solver.js';
-import { issueFields, issueFormula, issueToText } from './consistency.js';
-import { referenceEfficiency, splFromEfficiency } from './efficiency.js';
-import { driveVoltage, driveFromVoltage } from './formulas.js';
-import { solveSignal } from './signal.js';
-import type { SignalSolverQuantities, SignalSolveResult } from './signal.js';
-import { sealedResonance, sourceLoadedQts } from './lossMode.js';
-import { solveBoxParams } from './params.js';
-import type {  BoxParamsSolveResult } from './params.js';
-import {
-  classifyFinite, classifyFiniteIssues, classifyFlatClamp, classifyMaxFinite,
-  maxCurves, passbandRef, rolloffFreq, sweep,
+  classifyFinite,
+  classifyFiniteIssues,
+  classifyFlatClamp,
+  classifyMaxFinite,
+  maxCurves,
+  passbandRef,
+  rolloffFreq,
+  sweep,
 } from './sweep.js';
-import type { SweepSolveResult, MaxCurvesSolveResult } from './sweep.js';
 
-import type { Wiring } from './types.js';
-import type { VentSolverParams, PrSolverParams, SealedAlignmentSolverParams, DriverSolverParams } from './solverTypes.js';
-import type { VentIssue, PrIssue, SealedAlignmentIssue, DriverIssue } from './solver.js';
-import type { CalculationIssue } from './consistency.js';
-import { simulatableBoxType as narrowBoxType } from './types.js';
-import type { BoxType, SimulatableBoxType, DriverError, EbpSuitability, EnclosureParams, MaxCurvesResult, SealedAlignmentOption, SweepParams, SweepResult } from './types.js';
-import type { LossMode, SealedParams } from './lossMode.js';
+import type {
+  BoxType,
+  DriverError,
+  EbpSuitability,
+  EnclosureParams,
+  MaxCurvesResult,
+  SealedAlignmentOption,
+  SimulatableBoxType,
+  SweepParams,
+  SweepResult,
+  Wiring
+} from './types.js';
+import {simulatableBoxType as narrowBoxType} from './types.js';
+import type {DriverSolverParams, PrSolverParams, SealedAlignmentSolverParams, VentSolverParams} from './solverTypes.js';
 
 export class Engine {
   // ── AIR ───────────────────────────────────────────────────────────────────────────────────

@@ -1,6 +1,7 @@
-import { describe, it, expect } from 'vitest';
-import { OpenISDProject, OpenISDDriver, OpenISDPassiveRadiatorStandalone } from '../domain/openisdDomain.js';
-import { Engine } from '../engine/index.js';
+import {describe, expect, it} from 'vitest';
+import {OpenISDDriver, OpenISDPassiveRadiatorStandalone, OpenISDProject} from '../domain/openisdDomain.js';
+import {Engine} from '../engine/index.js';
+
 const scraped = <T,>(value: T) => ({ value });
 const spec = (read_value: number) =>
   ({ origin: 'scraped', readings: { scraped: { read_value } } });

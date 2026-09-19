@@ -1,7 +1,7 @@
-import { test, expect } from '../fixtures.js';
-import { readFileSync } from 'node:fs';
-import { join, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import {expect, test} from '../fixtures.js';
+import {readFileSync} from 'node:fs';
+import {dirname, join} from 'node:path';
+import {fileURLToPath} from 'node:url';
 
 const COMPLETE = join(dirname(fileURLToPath(import.meta.url)), '..', 'fixtures', 'complete-driver-project.owpr');
 // The build (scripts/version-info.mjs → packages/ui/public/build-info.json) is the on-disk source

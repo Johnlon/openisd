@@ -1,15 +1,14 @@
-import { solveConsistencyGroup, driverParams } from './testSolver.js';
+import {driverParams, solveConsistencyGroup} from './testSolver.js';
 /**
  * `driverAddedMass` — driver-side cone mass through the sweep (WinISD parity,
  * docs/research/WINISD_PARITY.md). Adding mass to the active driver's cone raises Mms, lowering
  * Fs and raising Q's, holding the suspension (Cms, Rms), motor (Bl), Re and Sd fixed. Madd=0
  * must be an exact no-op so every existing golden stays byte-identical.
  */
-import { describe, it } from 'vitest';
+import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import { Engine } from '../../engine/index.js';
-import type { SweepParams } from '../../engine/index.js';
-import type { SweepResult } from '../../engine/index.js';
+import type {SweepParams, SweepResult} from '../../engine/index.js';
+import {Engine} from '../../engine/index.js';
 
 /** Voice-coil inductance for the fixtures below. Not a solver quantity — nothing
  *  derives it — so it reaches `sweep` on its own, and only the impedance plot reads it. */

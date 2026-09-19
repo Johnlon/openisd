@@ -1,11 +1,12 @@
-import { describe, it, expect, vi } from 'vitest';
-import { Engine, type DriverError, type DriverIssue } from '@openisd/design/engine';
+import {describe, expect, it, vi} from 'vitest';
+import {type DriverError, type DriverIssue, Engine} from '@openisd/design/engine';
 import {
-  OpenISDProject,
-  OpenISDDriver,
-  OpenISDPassiveRadiatorStandalone,
-  VoiceCoilWiring,
-  type AppContext} from '../domain/index.js';
+    type AppContext,
+    OpenISDDriver,
+    OpenISDPassiveRadiatorStandalone,
+    OpenISDProject,
+    VoiceCoilWiring
+} from '../domain/index.js';
 
 /** A deterministic `AppContext` for tests that would otherwise depend on a random id or the
  *  real clock — e.g. a test asserting on serialized JSON content, where a random UUID could by

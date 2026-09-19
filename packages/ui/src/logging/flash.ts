@@ -1,4 +1,4 @@
-import { ref, type Ref } from 'vue';
+import {ref, type Ref} from 'vue';
 
 // The application's event surface — the one way anything below the UI says something to the
 // user. A LEAF: it depends on no other module, and nothing it does needs one.

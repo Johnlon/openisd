@@ -1,4 +1,5 @@
-import { solveConsistencyGroup, driverParams } from './testSolver.js';
+import type {TestSolverQuantities} from './testSolver.js';
+import {driverParams, solveConsistencyGroup} from './testSolver.js';
 /**
  * Unit tests for the EQ/filter chain's OWN response — the three arrays behind WinISD's
  * "Transfer function magnitude (EQ/Filter)", "Transfer function phase (EQ/Filter)" and
@@ -13,12 +14,10 @@ import { solveConsistencyGroup, driverParams } from './testSolver.js';
  *
  * Run: npm run test:unit
  */
-
-import { describe, it } from 'vitest';
+import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import { Engine } from '../../engine/index.js';
-import type { SweepParams, Filter } from '../../engine/index.js';
-import type { TestSolverQuantities } from './testSolver.js';
+import type {Filter, SweepParams} from '../../engine/index.js';
+import {Engine} from '../../engine/index.js';
 
 /** Voice-coil inductance for the fixtures below. Not a solver quantity — nothing
  *  derives it — so it reaches `sweep` on its own, and only the impedance plot reads it. */

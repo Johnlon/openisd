@@ -9,13 +9,13 @@
  * neither index is an error, not a silent omission: a spec that filters the picker for
  * `W5-1138SMF` must fail because the app is wrong, never because the fixture list drifted.
  */
-import { describe, it } from 'vitest';
+import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import { readFileSync, existsSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
-import { join } from 'node:path';
-import { selectCatalogue } from '../../../../scripts/testBundle.mjs';
-import { readBundledDriverIndex, readBundledPassiveRadiatorIndex } from '@openisd/persistence';
+import {existsSync, readFileSync} from 'node:fs';
+import {fileURLToPath} from 'node:url';
+import {join} from 'node:path';
+import {selectCatalogue} from '../../../../scripts/testBundle.mjs';
+import {readBundledDriverIndex, readBundledPassiveRadiatorIndex} from '@openisd/persistence';
 import testBundlePaths from '../fixtures/test-bundle-paths.json';
 
 const PUBLIC = join(fileURLToPath(import.meta.url), '..', '..', '..', 'public');

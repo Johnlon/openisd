@@ -4,7 +4,7 @@
 // Catches `it.skip`, `describe.skip`, `it.todo`, and `ctx.skip()` called at runtime.
 // `it.only` is caught too: vitest marks everything else skipped.
 
-import type { Reporter } from 'vitest/node';
+import type {Reporter} from 'vitest/node';
 
 interface TaskLike {
   type: string;

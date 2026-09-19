@@ -16,11 +16,10 @@
  * ParState row: 'N' everywhere except the one slot the test cares about, by that key's own
  * position in `POS_TO_WDRKEY`.
  */
-import { describe, it } from 'vitest';
+import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import { WinISDDriver } from '../../winisd/winisdDriver.js';
-import { winISDDriverToOpenISDDeviceJson, openISDDeviceJsonSchema }
-  from '../../domain/openisdSchema.js';
+import {WinISDDriver} from '../../winisd/winisdDriver.js';
+import {openISDDeviceJsonSchema, winISDDriverToOpenISDDeviceJson} from '../../domain/openisdSchema.js';
 
 /** A 49-char ParState row, 'N' everywhere except the given slot. */
 function parState(slot: number, mark: 'E' | 'C' | 'N'): string {

@@ -6,11 +6,11 @@
  * through the handle it gets back, and asks it to commit. Constructing and detaching drivers is
  * this layer's job.
  */
-import { describe, it, expect } from 'vitest';
+import {describe, expect, it} from 'vitest';
 import assert from 'node:assert/strict';
-import { OpenISDDriver } from '@openisd/design';
-import { Engine } from '@openisd/design/engine';
-import { openDriverDraft } from '../../src/logic/driverDraft.js';
+import {OpenISDDriver} from '@openisd/design';
+import {Engine} from '@openisd/design/engine';
+import {openDriverDraft} from '../../src/logic/driverDraft.js';
 
 const scraped = <T,>(value: T) => ({ value });
 const spec = (read_value: number) => ({ origin: 'manual', readings: { manual: { read_value } } });

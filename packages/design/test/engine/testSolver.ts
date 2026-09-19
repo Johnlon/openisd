@@ -1,8 +1,13 @@
-import { Engine } from '@openisd/design/engine';
 import type {
-  Air, SolverField, SolverInput,
-  DriverSolverParams, PrSolverParams, VentSolverParams, SealedAlignmentSolverParams,
+  Air,
+  DriverSolverParams,
+  PrSolverParams,
+  SealedAlignmentSolverParams,
+  SolverField,
+  SolverInput,
+  VentSolverParams,
 } from '@openisd/design/engine';
+import {Engine} from '@openisd/design/engine';
 
 // S2-10: the bag types every solve used to take/return are gone from the public engine surface
 // (`solverQuantities.ts` deleted) — every real solve now takes `SolverField` HANDLES. These bag

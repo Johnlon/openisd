@@ -1,6 +1,6 @@
-import { describe, it, expect } from 'vitest';
-import { Engine } from '../../engine/index.js';
-import type { CalculationIssue } from '../../engine/index.js';
+import {describe, expect, it} from 'vitest';
+import type {CalculationIssue} from '../../engine/index.js';
+import {Engine} from '../../engine/index.js';
 
 type Q = 'a' | 'b' | 'c' | 'd';
 

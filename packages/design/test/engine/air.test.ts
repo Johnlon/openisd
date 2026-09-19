@@ -1,4 +1,5 @@
-import { solveConsistencyGroup, driverParams } from './testSolver.js';
+import type {TestSolverQuantities} from './testSolver.js';
+import {driverParams, solveConsistencyGroup} from './testSolver.js';
 /**
  * Moist-air properties — the ONE model of ρ and c from temperature, relative humidity and
  * static pressure, and the WinISD-parity mode that swaps in WinISD's air equation set
@@ -13,12 +14,10 @@ import { solveConsistencyGroup, driverParams } from './testSolver.js';
  * Reproducing that pair from 293.15 K / 30 % RH / 101325 Pa IS the correctness test for the
  * formulation: agreement is a few parts per million, not a fit.
  */
-
-import { describe, it } from 'vitest';
+import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import { Engine, MIN_SUPPORTED_TEMP_K, MAX_SUPPORTED_TEMP_K } from '../../engine/index.js';
-import type { SweepParams } from '../../engine/index.js';
-import type { TestSolverQuantities } from './testSolver.js';
+import type {SweepParams} from '../../engine/index.js';
+import {Engine, MAX_SUPPORTED_TEMP_K, MIN_SUPPORTED_TEMP_K} from '../../engine/index.js';
 
 /** Voice-coil inductance for the fixtures below. Not a solver quantity — nothing
  *  derives it — so it reaches `sweep` on its own, and only the impedance plot reads it. */

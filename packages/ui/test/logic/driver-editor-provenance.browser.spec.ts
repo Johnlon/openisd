@@ -1,5 +1,5 @@
-import { test, expect, openAProject } from '../fixtures.js';
-import type { Page } from '@playwright/test';
+import {expect, openAProject, test} from '../fixtures.js';
+import type {Page} from '@playwright/test';
 
 /**
  * Playwright Browser Test Suite: E/C/N Provenance Class Audit across all Driver Editor Fields

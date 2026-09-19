@@ -1,4 +1,4 @@
-import { defineConfig } from 'vitest/config';
+import {defineConfig} from 'vitest/config';
 
 // Dedicated root — must NOT inherit vite.config.js's `root: packages/ui`, or the
 // engine suite silently isn't discovered. One project per workspace package.

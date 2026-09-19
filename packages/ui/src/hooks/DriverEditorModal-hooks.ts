@@ -1,14 +1,14 @@
-import type { InjectionKey, Ref } from 'vue';
-import { ref, computed } from 'vue';
-import { OpenISDDriverStandalone, createCell, type Cell, type Field } from '@openisd/design';
-import { engine, type SpecField } from '../logic/appState.js';
-import { useFocusedProject } from '../logic/focusedProjectContext.js';
-import { useApp } from '../logic/app.js';
-import { openDriverDraft } from '../logic/driverDraft.js';
-import { specFieldHandle } from '../logic/driverSpecFields.js';
-import { cellClassFor } from '../logic/useDriverCells.js';
-import { editableFrom, selectValue } from '../logic/domEvents.js';
-import { precision, fieldHelp } from '../logic/fields/fieldRegistry.js';
+import type {InjectionKey, Ref} from 'vue';
+import {computed, ref} from 'vue';
+import {type Cell, createCell, type Field, OpenISDDriverStandalone} from '@openisd/design';
+import {engine, type SpecField} from '../logic/appState.js';
+import {useFocusedProject} from '../logic/focusedProjectContext.js';
+import {useApp} from '../logic/app.js';
+import {openDriverDraft} from '../logic/driverDraft.js';
+import {specFieldHandle} from '../logic/driverSpecFields.js';
+import {cellClassFor} from '../logic/useDriverCells.js';
+import {editableFrom, selectValue} from '../logic/domEvents.js';
+import {fieldHelp, precision} from '../logic/fields/fieldRegistry.js';
 
 export type Tab = 'General' | 'Parameters' | 'Advanced parameters' | 'Dimensions';
 

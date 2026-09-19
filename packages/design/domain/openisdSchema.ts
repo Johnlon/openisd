@@ -22,12 +22,13 @@
  * of a silent loss.
  */
 import {z} from 'zod';
-import {WinISDDriver, INI_ROWS} from '../winisd/index.js';
+import {WinISDDriver} from '../winisd/index.js';
+import {OPENISD_FIELDS, type WdrFieldKey} from '../fields/index.js';
 import {newUuid} from './newUuid.js';
-import type {Field} from './cell.js';
 import type {OpenISDDriver} from './openisdDomain.js';
-import type {DriverError, BoxType, Filter, FilterType} from '../engine/index.js';
+import type {BoxType, DriverError, Filter, FilterType} from '../engine/index.js';
 import type {VentShape} from './vent.js';
+import {parse as parseYaml, stringify as stringifyYaml} from 'yaml';
 
 /** DQ marks. A function, not a shared object: a module-scoped literal would be state, and each
  *  schema gets its own. */
@@ -811,7 +812,7 @@ export type OpenISDProjectSessionJson = z.infer<typeof openISDProjectSessionJson
 function wdrVCConEntry(
     cell: { value: string },
     warnings: DriverError[],
-): z.infer<typeof specEntryJsonSchema> | undefined {
+): SpecEntryJson | undefined {
     const raw = cell.value.trim();
     if (raw.length === 0) return undefined;
     const stated = Number(raw);
@@ -844,7 +845,7 @@ function wdrVCConEntry(
 function wdrNumVCEntry(
     cell: { value: string },
     warnings: DriverError[],
-): z.infer<typeof specEntryJsonSchema> {
+): SpecEntryJson {
     const stated = Number(cell.value);
     if (Number.isInteger(stated) && stated >= 1 && stated <= 4) {
         return {
@@ -864,33 +865,36 @@ function wdrNumVCEntry(
     };
 }
 
-/** Maps each WinISD INI row name to the schema key in `DriverSpecsSection`/`PassiveRadiatorSpecsSection`.
- *  Derived from the SAME pairings as `wdrFields()` — `Fs` → `Fs_hz`, `Re` → `Re_ohm` — so a
- *  rename to either side is caught at compile time in `wdrFields()` and must be reflected here.
- *
- *  A frozen object, not a `Map`: a `Map` stays mutable behind a `ReadonlyMap` type, which the
- *  module-scope immutability gate forbids. Frozen, every value is a primitive, so it is truly
- *  immutable. */
-export const WDR_TO_SCHEMA_KEY: Readonly<Record<string, string>> = Object.freeze({
-    Fs: 'Fs_hz', Re: 'Re_ohm', Le: 'Le_H', fLe: 'fLe_hz',
-    KLe: 'KLe_H_sqrtHz', Znom: 'Znom_ohm', BL: 'BL_Tm',
-    Xmax: 'Xmax_m', Xlim: 'Xlim_m', Cms: 'Cms_m_per_N',
-    Rms: 'Rms_kg_per_s', Mms: 'Mms_kg', Sd: 'Sd_m2',
-    Vas: 'Vas_m3', Dia: 'Dia_m', Vd: 'Vd_m3',
-    Dd: 'Dd_m', EBP: 'EBP_hz', Hc: 'Hc_m', Hg: 'Hg_m',
-    Pe: 'Pe_W', SPL: 'SPL_dB', SPLmax: 'SPLmax_dB',
-    SPLmaxLF: 'SPLmaxLF_dB', USPL: 'USPL_dB',
-    alfaVC: 'alfaVC_per_K', Rt: 'Rt_K_per_W', Ct: 'Ct_J_per_K',
-    gamma: 'gamma_m_per_s2_A', Rme: 'Rme_kg_per_s',
-    Mpow: 'Mpow_N_per_sqrtW', Mcost: 'Mcost_kg_per_s',
-    c: 'c_m_per_s', roo: 'roo_kg_per_m3',
-    Thick: 'Thick_m', Depth: 'Depth_m', MagDepth: 'MagDepth_m',
-    Magnet: 'Magnet_m', Basket: 'Basket_m', Outer: 'Outer_m',
-    Vcd: 'Vcd_m', DVol: 'DVol_m3',
-    // Keys already matching the schema name (no unit suffix needed):
-    Qts: 'Qts', Qes: 'Qes', Qms: 'Qms', no: 'no',
-    Gloss: 'Gloss', numVC: 'numVC', VCCon: 'VCCon',
-});
+/** Read one `.wdr` row into the record's spec entries, under its schema key. C (derived) is
+ *  always skipped; N (blank) is skipped unless it carries a non-zero value (3rd-party writers
+ *  have broken parstate); VCCon reads strictly on presence. */
+function readSpecEntryInto(
+    entries: Record<string, SpecEntryJson>,
+    wdr: WinISDDriver,
+    schemaKey: WdrFieldKey,
+    warnings: DriverError[],
+): void {
+    const wdrKey = OPENISD_FIELDS[schemaKey].wdr;
+    const cell = wdr.cell(wdrKey);
+    const numValue = Number(cell.value);
+    const shouldImport =
+        cell.state === 'entered'
+        || (cell.state === 'not-available' && isFinite(numValue) && numValue !== 0)
+        || wdrKey === 'VCCon';
+    if (!shouldImport) return;
+    if (wdrKey === 'VCCon') {
+        const entry = wdrVCConEntry(cell, warnings);
+        if (entry) entries[schemaKey] = entry;
+    } else if (wdrKey === 'numVC') {
+        entries[schemaKey] = wdrNumVCEntry(cell, warnings);
+    } else {
+        entries[schemaKey] = {
+            state: 'E', value: numValue,
+            origin: 'manual',
+            readings: {manual: {actual_reading: cell.value, read_value: numValue}},
+        };
+    }
+}
 
 export function winISDDriverToOpenISDDeviceJson(wdr: WinISDDriver):
     { record: OpenISDDeviceJson; warnings: DriverError[] } {
@@ -902,41 +906,57 @@ export function winISDDriverToOpenISDDeviceJson(wdr: WinISDDriver):
     const manufacturer = named(wdr.headerField('manufacturer'));
 
     const specEntries: Record<string, z.infer<typeof specEntryJsonSchema>> = {};
-    for (const key of INI_ROWS) {
-        let entry: z.infer<typeof specEntryJsonSchema> | undefined;
-        const cell = wdr.cell(key);
-        const numValue = Number(cell.value);
-
-        // C (derived) is always skipped.
-        // N (blank) is skipped unless it carries a non-zero value (3rd-party writers have broken parstate).
-        // VCCon reads strictly on presence.
-        const shouldImport =
-            cell.state === 'entered'
-            || (cell.state === 'not-available' && isFinite(numValue) && numValue !== 0)
-            || key === 'VCCon';
-
-        if (shouldImport) {
-            if (key === 'VCCon') {
-                entry = wdrVCConEntry(cell, warnings);
-            } else if (key === 'numVC') {
-                entry = wdrNumVCEntry(cell, warnings);
-            } else {
-                entry = {
-                    state: 'E', value: numValue,
-                    origin: 'manual',
-                    readings: {manual: {actual_reading: cell.value, read_value: numValue}},
-                };
-            }
-        }
-
-        if (entry !== undefined) {
-            // Translate from WinISD INI key to the new unit-suffixed schema key. Keys not in the
-            // map are passed through unchanged (e.g. OuterX, OuterY, Xlim — rare rows the driver
-            // schema accepts under their own name).
-            const schemaKey = WDR_TO_SCHEMA_KEY[key] ?? key;
-            specEntries[schemaKey] = entry;
-        }
-    }
+    // THE FIXED 48-ROW STRUCTURE, each row read explicitly into its schema key — no row list, no
+    // key map: the calls below ARE the rows, and each names the vocabulary key (whose FieldDef
+    // supplies the `.wdr` row it is read from and the schema entry it is stored under).
+    readSpecEntryInto(specEntries, wdr, 'Qts', warnings);
+    readSpecEntryInto(specEntries, wdr, 'Znom_ohm', warnings);
+    readSpecEntryInto(specEntries, wdr, 'Fs_hz', warnings);
+    readSpecEntryInto(specEntries, wdr, 'Pe_W', warnings);
+    readSpecEntryInto(specEntries, wdr, 'SPL_dB', warnings);
+    readSpecEntryInto(specEntries, wdr, 'Re_ohm', warnings);
+    readSpecEntryInto(specEntries, wdr, 'Le_H', warnings);
+    readSpecEntryInto(specEntries, wdr, 'fLe_hz', warnings);
+    readSpecEntryInto(specEntries, wdr, 'KLe_H_sqrtHz', warnings);
+    readSpecEntryInto(specEntries, wdr, 'BL_Tm', warnings);
+    readSpecEntryInto(specEntries, wdr, 'Xmax_m', warnings);
+    readSpecEntryInto(specEntries, wdr, 'Cms_m_per_N', warnings);
+    readSpecEntryInto(specEntries, wdr, 'Qms', warnings);
+    readSpecEntryInto(specEntries, wdr, 'Qes', warnings);
+    readSpecEntryInto(specEntries, wdr, 'Rms_kg_per_s', warnings);
+    readSpecEntryInto(specEntries, wdr, 'Mms_kg', warnings);
+    readSpecEntryInto(specEntries, wdr, 'Sd_m2', warnings);
+    readSpecEntryInto(specEntries, wdr, 'Vas_m3', warnings);
+    readSpecEntryInto(specEntries, wdr, 'Dia_m', warnings);
+    readSpecEntryInto(specEntries, wdr, 'Vd_m3', warnings);
+    readSpecEntryInto(specEntries, wdr, 'no', warnings);
+    readSpecEntryInto(specEntries, wdr, 'Dd_m', warnings);
+    readSpecEntryInto(specEntries, wdr, 'EBP_hz', warnings);
+    readSpecEntryInto(specEntries, wdr, 'numVC', warnings);
+    readSpecEntryInto(specEntries, wdr, 'Hc_m', warnings);
+    readSpecEntryInto(specEntries, wdr, 'Hg_m', warnings);
+    readSpecEntryInto(specEntries, wdr, 'SPLmax_dB', warnings);
+    readSpecEntryInto(specEntries, wdr, 'SPLmaxLF_dB', warnings);
+    readSpecEntryInto(specEntries, wdr, 'USPL_dB', warnings);
+    readSpecEntryInto(specEntries, wdr, 'alfaVC_per_K', warnings);
+    readSpecEntryInto(specEntries, wdr, 'Rt_K_per_W', warnings);
+    readSpecEntryInto(specEntries, wdr, 'Ct_J_per_K', warnings);
+    readSpecEntryInto(specEntries, wdr, 'gamma_m_per_s2_A', warnings);
+    readSpecEntryInto(specEntries, wdr, 'Rme_kg_per_s', warnings);
+    readSpecEntryInto(specEntries, wdr, 'Mpow_N_per_sqrtW', warnings);
+    readSpecEntryInto(specEntries, wdr, 'Mcost_kg_per_s', warnings);
+    readSpecEntryInto(specEntries, wdr, 'Gloss', warnings);
+    readSpecEntryInto(specEntries, wdr, 'VCCon', warnings);
+    readSpecEntryInto(specEntries, wdr, 'c_m_per_s', warnings);
+    readSpecEntryInto(specEntries, wdr, 'roo_kg_per_m3', warnings);
+    readSpecEntryInto(specEntries, wdr, 'Thick_m', warnings);
+    readSpecEntryInto(specEntries, wdr, 'Depth_m', warnings);
+    readSpecEntryInto(specEntries, wdr, 'MagDepth_m', warnings);
+    readSpecEntryInto(specEntries, wdr, 'Magnet_m', warnings);
+    readSpecEntryInto(specEntries, wdr, 'Basket_m', warnings);
+    readSpecEntryInto(specEntries, wdr, 'Outer_m', warnings);
+    readSpecEntryInto(specEntries, wdr, 'Vcd_m', warnings);
+    readSpecEntryInto(specEntries, wdr, 'DVol_m3', warnings);
 
     // Optional: present only when the header line is non-blank, so a `.wdr` that never states
     // one produces no field — not an empty string standing in for "unstated"
@@ -984,37 +1004,6 @@ export function winISDDriverToOpenISDDeviceJson(wdr: WinISDDriver):
  */
 export type DriverSpec = OpenISDDriver['spec']['woofer'];
 
-/**
- * Each `.wdr` key paired with the `DriverSpec` field that answers it — `Fs` → `Fs_hz`,
- * `Cms` → `Cms_m_per_N`.
- *
- * WRITTEN OUT, not derived by matching member names at runtime. The name-matching version of this
- * needed `spec` cast to a string-indexed record, which erases the type: a `DriverSpec` member
- * renamed or removed then becomes a field SILENTLY missing from every generated `.wdr`, found only
- * by someone diffing the corpus. Naming both halves makes the compiler check the pairing, so the
- * same rename is a build error here instead.
- *
- * `VCCon` is not here because it is not numeric — it is `Field<VoiceCoilWiring>`, a wiring NAME.
- * `wdrVCCon()` below projects it, and it is MANDATORY in the file (John, 2026-08-31).
- */
-export function wdrFields(spec: DriverSpec): ReadonlyArray<readonly [string, Field<number>]> {
-    return [
-        ['Qts', spec.Qts], ['Znom', spec.Znom_ohm], ['Fs', spec.Fs_hz], ['Pe', spec.Pe_W],
-        ['SPL', spec.SPL_dB], ['Re', spec.Re_ohm], ['Le', spec.Le_H], ['fLe', spec.fLe_hz],
-        ['KLe', spec.KLe_H_sqrtHz], ['BL', spec.BL_Tm], ['Xmax', spec.Xmax_m],
-        ['Cms', spec.Cms_m_per_N], ['Qms', spec.Qms], ['Qes', spec.Qes], ['Rms', spec.Rms_kg_per_s],
-        ['Mms', spec.Mms_kg], ['Sd', spec.Sd_m2], ['Vas', spec.Vas_m3], ['Dia', spec.Dia_m],
-        ['Vd', spec.Vd_m3], ['no', spec.no], ['Dd', spec.Dd_m], ['EBP', spec.EBP_hz],
-        ['numVC', spec.numVC], ['Hc', spec.Hc_m], ['Hg', spec.Hg_m], ['SPLmax', spec.SPLmax_dB],
-        ['SPLmaxLF', spec.SPLmaxLF_dB], ['USPL', spec.USPL_dB], ['alfaVC', spec.alfaVC_per_K],
-        ['Rt', spec.Rt_K_per_W], ['Ct', spec.Ct_J_per_K], ['gamma', spec.gamma_m_per_s2_A],
-        ['Rme', spec.Rme_kg_per_s], ['Mpow', spec.Mpow_N_per_sqrtW], ['Mcost', spec.Mcost_kg_per_s],
-        ['Gloss', spec.Gloss], ['c', spec.c_m_per_s],
-        ['roo', spec.roo_kg_per_m3], ['Thick', spec.Thick_m], ['Depth', spec.Depth_m],
-        ['MagDepth', spec.MagDepth_m], ['Magnet', spec.Magnet_m], ['Basket', spec.Basket_m],
-        ['Outer', spec.Outer_m], ['Vcd', spec.Vcd_m], ['DVol', spec.DVol_m3],
-    ];
-}
 
 // Shared const objects, the starting values a brand-new box is built from. Values are WinISD's
 // own defaults for a freshly-created box (packages/design/winisd/winisdProject.ts TEMPLATE:
@@ -1081,14 +1070,13 @@ export function emptyBoxJson(): OpenISDBoxJson {
 }
 
 
-import { parse as parseYaml, stringify as stringifyYaml } from 'yaml';
-
 /** The keys `driver.yml` carries that an openisd record does not. `definition` sits at EVERY
  *  depth — on each metadata envelope, each `sku.grounds` entry and each spec entry — so removing
  *  them is a walk, not a top-level filter. */
 const DRIVER_YML_ONLY_KEYS: readonly string[] = Object.freeze(['definition', 'scraper', 'scraper_meta']);
 
-/** The same value with every `driver.yml`-only key removed, at any depth.
+/**
+ * The same value with every `driver.yml`-only key removed, at any depth.
  *
  *  `unknown` IN AND OUT IS APPROVED HERE, AND ONLY BECAUSE THIS FUNCTION IS PRIVATE (John,
  *  2026-09-09). It runs between the YAML parse and the strict schema, where the value genuinely
@@ -1099,7 +1087,10 @@ const DRIVER_YML_ONLY_KEYS: readonly string[] = Object.freeze(['definition', 'sc
  *  `OpenISDDeviceJson`. Export this and the approval no longer holds.
  *
  *  Rebuilt rather than deleted from: the parsed object is the caller's own reference and must not
- *  be mutated by the thing reading it. */
+ *  be mutated by the thing reading it. A clone of the structure with only `DRIVER_YML_ONLY_KEYS`
+ *  pruned — `specs` keys pass through untouched, because `driver.yml` already spells them the
+ *  openisd way (`Fs_hz`, `Vas_m3`, …), so no canonicalisation belongs here.
+ */
 function stripDriverYmlOnlyFields(value: unknown): unknown {
     if (Array.isArray(value)) return value.map(stripDriverYmlOnlyFields);
     if (typeof value !== 'object' || value === null) return value;
@@ -1107,23 +1098,6 @@ function stripDriverYmlOnlyFields(value: unknown): unknown {
     const out: Record<string, unknown> = {};
     for (const [key, v] of Object.entries(value)) {
         if (DRIVER_YML_ONLY_KEYS.includes(key)) continue;
-        if (key === 'specs' && typeof v === 'object' && v !== null && !Array.isArray(v)) {
-            const sections: Record<string, unknown> = {};
-            for (const [sKey, sVal] of Object.entries(v)) {
-                if (typeof sVal === 'object' && sVal !== null && !Array.isArray(sVal)) {
-                    const fields: Record<string, unknown> = {};
-                    for (const [fKey, fVal] of Object.entries(sVal)) {
-                        const canonical = WDR_TO_SCHEMA_KEY[fKey] ?? fKey;
-                        fields[canonical] = stripDriverYmlOnlyFields(fVal);
-                    }
-                    sections[sKey] = fields;
-                } else {
-                    sections[sKey] = stripDriverYmlOnlyFields(sVal);
-                }
-            }
-            out[key] = sections;
-            continue;
-        }
         out[key] = stripDriverYmlOnlyFields(v);
     }
     return out;

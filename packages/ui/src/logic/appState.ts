@@ -12,19 +12,26 @@
  * jobs are: hold Vue-reactive references, delegate reads/writes to the focused project/the
  * project registry, and bridge notifications into Vue's reactivity system.
  */
- 
-import { computed, ref, shallowRef, triggerRef, watch, type Ref, type ShallowRef } from 'vue';
-import { Engine } from '@openisd/design/engine';
-import type { DriverError, SweepResult, MaxCurvesResult, BoxType } from '@openisd/design/engine';
-import { sweepIssueMessage, driverPrerequisiteMessage } from './sweepIssueMessage.js';
+
+import {computed, ref, type Ref, shallowRef, type ShallowRef, triggerRef, watch} from 'vue';
+import type {BoxType, DriverError, MaxCurvesResult, SweepResult} from '@openisd/design/engine';
+import {Engine} from '@openisd/design/engine';
+import {driverPrerequisiteMessage, sweepIssueMessage} from './sweepIssueMessage.js';
 import {
-  OpenISDPassiveRadiatorStandalone,
-  OpenISDProject, type DiscardChallenge,
-  type FrequencyGrid,
-  type OpenISDDriver,
+    type DiscardChallenge,
+    type FrequencyGrid,
+    type OpenISDDriver,
+    OpenISDPassiveRadiatorStandalone,
+    OpenISDProject,
 } from '@openisd/design';
-import type { PlotParams } from '../types.js';
-import { copyOfName, uniqueName, type ViewSnapshot } from '@openisd/persistence';
+import type {PlotParams} from '../types.js';
+import {copyOfName, uniqueName, type ViewSnapshot} from '@openisd/persistence';
+import {presentationState, unitToken} from './presentationState.js';
+import {parseChartTabId} from './series.js';
+import {displayPrecision, fromDisplay, toDisplay, type UnitGroup} from './fields/units.js';
+import {getOrInit, hmrSlots} from './hmrSingleton.js';
+import {notifyVentChanged, ventSolveSuspended,} from './useVentGroup.js';
+import {notifyPrChanged} from './usePrGroup.js';
 
 /** The 53 driver spec fields the app's UI reads/writes by name — the driver editor's own field
  *  table. Matches `DriverSpec`'s field names in `@openisd/design`, without their unit suffixes. */
@@ -39,14 +46,6 @@ export type SpecField =
 /** The subset of SpecField that represent numeric quantities (all except non-numeric VCCon). */
 export type NumSpecField = Exclude<SpecField, 'VCCon'>;
 
-import { presentationState, unitToken } from './presentationState.js';
-import { parseChartTabId } from './series.js';
-import { toDisplay, fromDisplay, displayPrecision, type UnitGroup } from './fields/units.js';
-import { getOrInit, hmrSlots } from './hmrSingleton.js';
-import {
-  notifyVentChanged, ventSolveSuspended,
-} from './useVentGroup.js';
-import { notifyPrChanged } from './usePrGroup.js';
 // appState.ts does not persist — it initialises to defaults, and App.vue applies whatever a
 // load door hands over (a share link, or an opened file).
 

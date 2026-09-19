@@ -1,5 +1,5 @@
-import { test, expect, openAProject } from '../fixtures.js';
-import { fillAndCommit } from '../fixtures/numField.js';
+import {expect, openAProject, test} from '../fixtures.js';
+import {fillAndCommit} from '../fixtures/numField.js';
 
 const PW_ROW = '.field:has(label:text-is("System input power"))';
 const V_ROW = '.field:has(label:text-is("Driver input voltage (each)"))';

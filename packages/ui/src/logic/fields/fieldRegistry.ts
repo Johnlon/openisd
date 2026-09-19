@@ -1,11 +1,11 @@
-import type { CellState } from '@openisd/design/winisd';
+import type {CellState} from '@openisd/design/winisd';
 // The DOMAIN's box vocabulary, not the engine's. `appliesTo` says which enclosures a field is
 // shown for, and the UI offers six; the engine's own `BoxType` names only the four it can
 // simulate, so using it here made `bandpass6`/`abc` inexpressible — which is what stopped [Frc]
 // from being able to say where it applies.
-import type { BoxType } from '@openisd/design/engine';
-import { MIN_SUPPORTED_TEMP_K, MAX_SUPPORTED_TEMP_K } from '@openisd/design/engine';
-import type { UnitGroup } from './units.js';
+import type {BoxType} from '@openisd/design/engine';
+import {MAX_SUPPORTED_TEMP_K, MIN_SUPPORTED_TEMP_K} from '@openisd/design/engine';
+import type {UnitGroup} from './units.js';
 
 /**
  * Field registry — the single, canonical data model for every field OpenISD shows (and every

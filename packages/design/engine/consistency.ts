@@ -1,4 +1,4 @@
-import type { SweepResult, MaxCurvesResult } from './types.js';
+import type {MaxCurvesResult, SweepResult} from './types.js';
 
 /** One route to a derivable quantity: the formula, everything it needs, and whatever of that
  *  is still absent. `missing` is empty exactly when the route is usable. */

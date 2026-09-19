@@ -6,14 +6,14 @@
  * unit-level guard: it fails fast, and in the process it guards the fixtures against future
  * schema drift too.
  */
-import { describe, it } from 'vitest';
+import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
-import { dirname, join } from 'node:path';
-import { OpenISDProject } from '@openisd/design';
-import { Engine } from '@openisd/design/engine';
-import { SAMPLE_PROJECT_OWPR } from './sampleProject.js';
+import {readFileSync} from 'node:fs';
+import {fileURLToPath} from 'node:url';
+import {dirname, join} from 'node:path';
+import {OpenISDProject} from '@openisd/design';
+import {Engine} from '@openisd/design/engine';
+import {SAMPLE_PROJECT_OWPR} from './sampleProject.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
 

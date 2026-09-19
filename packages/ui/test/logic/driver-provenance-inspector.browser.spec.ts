@@ -1,4 +1,4 @@
-import { test, expect, openAProject } from '../fixtures.js';
+import {expect, openAProject, test} from '../fixtures.js';
 
 /**
  * Playwright Browser Test Suite: Driver Field Provenance Inspector & Equation Inspector

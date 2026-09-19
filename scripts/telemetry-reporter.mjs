@@ -16,8 +16,8 @@
  * worker pid to them, so workerIndex is the field that identifies the worker. runnerPid is this
  * process — what the sampler sees as the playwright runner.
  */
-import { appendFileSync, mkdirSync } from 'node:fs';
-import { dirname, relative } from 'node:path';
+import {appendFileSync, mkdirSync} from 'node:fs';
+import {dirname, relative} from 'node:path';
 
 const OUT = process.env.OPENISD_TELEMETRY_EVENTS ?? 'build/ui-telemetry/events.jsonl';
 // Playwright colours its error messages; the escape sequences would make the jsonl unreadable.

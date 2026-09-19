@@ -1,4 +1,4 @@
-import { defineConfig } from '@playwright/test';
+import {defineConfig} from '@playwright/test';
 import os from 'os';
 import fs from 'fs';
 

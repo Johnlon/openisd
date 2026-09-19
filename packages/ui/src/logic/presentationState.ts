@@ -9,10 +9,10 @@
  * this module's top-level code, and a fresh `reactive()` on every reload would orphan every
  * other module's already-captured reference to the old one.
  */
-import { reactive } from 'vue';
-import type { ChartTabId, DragRange, YRange } from '../types.js';
-import { getOrInit, hmrSlots } from './hmrSingleton.js';
-import { nextToken, type UnitGroup } from './fields/units.js';
+import {reactive} from 'vue';
+import type {ChartTabId, DragRange, YRange} from '../types.js';
+import {getOrInit, hmrSlots} from './hmrSingleton.js';
+import {nextToken, type UnitGroup} from './fields/units.js';
 
 /** A user-chosen colour override for one chart element; absent key = default colour
  *  (`OptionsModal.vue`'s "Plot Window" tab). */

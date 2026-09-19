@@ -5,10 +5,10 @@
  * unified issue shape (QO142) must not change what a user actually sees, so this pins the
  * projected text independently of the wider store wiring covered by `store-issue-channel.test.ts`.
  */
-import { describe, it } from 'vitest';
+import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import { sweepIssueMessage, driverPrerequisiteMessage } from '../../src/logic/sweepIssueMessage.js';
-import type { SweepIssue, DriverPrerequisite } from '@openisd/design/engine';
+import {driverPrerequisiteMessage, sweepIssueMessage} from '../../src/logic/sweepIssueMessage.js';
+import type {DriverPrerequisite, SweepIssue} from '@openisd/design/engine';
 
 describe('sweepIssueMessage — SweepIssue projected to a DriverError for the existing UI channel', () => {
   it('a missing-dependencies issue names its target field and what would unblock it', () => {

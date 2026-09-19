@@ -6,7 +6,7 @@
  * so tests do not scatter hardcoded numbers inline.
  */
 
-import type { SeedDriver } from './seedMyDrivers.js';
+import type {SeedDriver} from './seedMyDrivers.js';
 
 export interface DriverCharacteristics {
   brand: string;

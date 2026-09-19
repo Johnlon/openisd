@@ -8,7 +8,7 @@
   "description": "Open, community-owned Interactive Speaker Designer that runs in any browser.",
   "license": "MIT",
   "scripts": {
-    "lint": "eslint --cache --cache-location build/.eslintcache packages/",
+    "lint": "eslint --cache --cache-location build/.eslintcache --max-warnings 0 packages/",
     "typecheck": "node scripts/typecheck.mjs",
     "typecheck:persistence": "tsc -p packages/persistence --noEmit",
     "typecheck:design": "tsc -p packages/design --noEmit",

@@ -6,12 +6,12 @@
  * URLs are built on the app base the composition root hands in, the index goes through the
  * kind's own reader, and `load()` yields the kind's own domain object from a real record.
  */
-import { describe, it } from 'vitest';
+import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import { createBundledDriverRepo } from '../src/repos/bundledDriverRepo.js';
-import { createBundledPassiveRadiatorRepo } from '../src/repos/bundledPassiveRadiatorRepo.js';
-import { OpenISDDriver, OpenISDPassiveRadiatorStandalone } from '@openisd/design';
-import { Engine } from '@openisd/design/engine';
+import {createBundledDriverRepo} from '../src/repos/bundledDriverRepo.js';
+import {createBundledPassiveRadiatorRepo} from '../src/repos/bundledPassiveRadiatorRepo.js';
+import {OpenISDDriver, OpenISDPassiveRadiatorStandalone} from '@openisd/design';
+import {Engine} from '@openisd/design/engine';
 
 const engine = new Engine();
 const BASE = '/openisd/';

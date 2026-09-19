@@ -17,6 +17,10 @@
       "types": "./filter/index.ts",
       "default": "./filter/index.ts"
     },
+    "./fields": {
+      "types": "./fields/index.ts",
+      "default": "./fields/index.ts"
+    },
     "./winisd": {
       "types": "./winisd/index.ts",
       "default": "./winisd/index.ts"

@@ -18,7 +18,7 @@
  *  stored uuid is ADOPTED on read, never re-minted (the driver precedent, QO81: an id already
  *  on file is provenance).
  */
-import type { KeyValueStorage } from '../storage/keyValueStorage.js';
+import type {KeyValueStorage} from '../storage/keyValueStorage.js';
 
 /** One stored slot: the uuid this repo minted or adopted, plus the thing's own record,
  *  unopened until the library's own domain seam validates it. */

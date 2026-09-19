@@ -13,9 +13,9 @@
  * `computed`s; the component only renders), otherwise this wiring is untestable — and the
  * stale-readout bug is exactly what that untestable seam concealed.
  */
-import { test, expect, openAProject } from '../fixtures.js';
-import { numInputByLabel, fillAndCommit } from '../fixtures/numField.js';
-import type { Page } from '@playwright/test';
+import {expect, openAProject, test} from '../fixtures.js';
+import {fillAndCommit, numInputByLabel} from '../fixtures/numField.js';
+import type {Page} from '@playwright/test';
 
 interface LiveReadouts {
   fsc: number | null;

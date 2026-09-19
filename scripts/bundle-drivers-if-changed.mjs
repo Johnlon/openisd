@@ -9,10 +9,10 @@
  * missing output. predev/prebuild call this, so an unchanged corpus costs a stat walk (~0.3 s)
  * rather than loading the domain package (~1 s) to discover there is nothing to do.
  */
-import { spawnSync } from 'node:child_process';
-import { join } from 'node:path';
-import { fileURLToPath } from 'node:url';
-import { bundleFingerprintOnDisk, bundleOutputsPresent, readStamp } from './bundleStamp.mjs';
+import {spawnSync} from 'node:child_process';
+import {join} from 'node:path';
+import {fileURLToPath} from 'node:url';
+import {bundleFingerprintOnDisk, bundleOutputsPresent, readStamp} from './bundleStamp.mjs';
 
 const ROOT = join(fileURLToPath(import.meta.url), '..', '..');
 

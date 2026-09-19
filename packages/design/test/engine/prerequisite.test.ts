@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest';
-import type { DriverPrerequisite } from '../../engine/index.js';
+import {describe, expect, it} from 'vitest';
+import type {DriverPrerequisite} from '../../engine/index.js';
 
 describe('CalculationPrerequisite shape', () => {
   it('names an output and the fields missing to produce it', () => {

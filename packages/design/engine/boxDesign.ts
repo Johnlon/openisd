@@ -22,9 +22,9 @@
  *   https://aes.org/e-lib/browse.cfm?elib=2223
  */
 
-import { END_CORRECTION } from './air.js';
-import type { Air } from './air.js';
-import type { EbpSuitability, SealedAlignmentOption, SweepParams, SweepResult } from './types.js';
+import type {Air} from './air.js';
+import {END_CORRECTION} from './air.js';
+import type {EbpSuitability, SealedAlignmentOption, SweepParams, SweepResult} from './types.js';
 
 // JL: FIXME - suspect - why not the params from the DS or why specicla pr params needed for this
 /** The subset of params the PR helpers read — lets callers pass any params object

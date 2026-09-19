@@ -1,4 +1,4 @@
-import type { Field, InputField, RawField } from './cell.js';
+import type {Field, InputField, RawField} from './cell.js';
 
 export type VentShape = 'round' | 'slotted';
 

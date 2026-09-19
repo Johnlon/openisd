@@ -7,9 +7,9 @@
  * Expected values are computed independently of the implementation — a multiplicative step is
  * one multiplication, so each case states the product rather than re-invoking the function.
  */
-import { describe, it } from 'vitest';
+import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import { steppedFrequency, clampedFrequency } from '../../src/logic/cursorFrequency.js';
+import {clampedFrequency, steppedFrequency} from '../../src/logic/cursorFrequency.js';
 
 describe('steppedFrequency — one nudge of the chart cursor', () => {
   it('steps up by multiplying by the factor', () => {

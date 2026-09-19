@@ -32,8 +32,8 @@
  * holds a fact about the DESIGN the way `#saved`/`#edited`/`#whatif` do; both are cheaply
  * rebuildable from the record and hold no information a fresh resolve would not reproduce.
  */
-import { describe, it, expect } from 'vitest';
-import { Project } from 'ts-morph';
+import {describe, expect, it} from 'vitest';
+import {Project} from 'ts-morph';
 import * as path from 'node:path';
 import * as url from 'node:url';
 

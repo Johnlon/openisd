@@ -6,8 +6,8 @@
  * Does NOT import the domain layer — the bundling gate only needs schema validation
  * and section checks, not a wrapped domain object or an Engine.
  */
-import { openISDDeviceJsonSchema } from '../packages/design/domain/openisdSchema.ts';
-import { driverSectionProblems } from '../packages/design/domain/openisdTransforms.ts';
+import {openISDDeviceJsonSchema} from '../packages/design/domain/openisdSchema.ts';
+import {driverSectionProblems} from '../packages/design/domain/openisdTransforms.ts';
 
 /** Whether the record is structurally readable as a driver — schema validates and
  *  the sections are not contradictory. No Engine, no domain object creation. */

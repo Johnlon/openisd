@@ -8,9 +8,9 @@
  * through the handle, and asks to commit; it never names `OpenISDDriver` or the domain's
  * wiring enum.
  */
-import { OpenISDDriver, VoiceCoilWiring } from '@openisd/design';
-import { engine } from './appState.js';
-import type { EditorDraftSeed } from './driverSelection.js';
+import {OpenISDDriver, VoiceCoilWiring} from '@openisd/design';
+import {engine} from './appState.js';
+import type {EditorDraftSeed} from './driverSelection.js';
 
 /** How a voice coil's two windings are joined, in the UI's own words. The domain enum is
  *  `VoiceCoilWiring`; this is the string a `<select>` holds, mapped here so no component

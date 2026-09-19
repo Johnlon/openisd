@@ -1,6 +1,6 @@
-import { readFileSync } from 'node:fs';
-import { test as base, expect, type Page } from '@playwright/test';
-import { SAMPLE_PROJECT_OWPR, ensureSampleProject } from './fixtures/sampleProject.js';
+import {readFileSync} from 'node:fs';
+import {expect, type Page, test as base} from '@playwright/test';
+import {ensureSampleProject, SAMPLE_PROJECT_OWPR} from './fixtures/sampleProject.js';
 
 /**
  * Shared Playwright fixtures for all UI/browser tests.

@@ -10,13 +10,13 @@
  *
  * bugs/BUG_20260909_the_my_passive_radiators_library_stores_five_loose_numbers_instead_of_a_radiator_record.md
  */
-import { describe, it } from 'vitest';
+import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import { createMyDriverRepo, MY_DRIVERS_KEY } from '../src/repos/myDriverRepo.js';
-import { createMyPassiveRadiatorRepo, MY_PASSIVE_RADIATORS_KEY } from '../src/repos/myPassiveRadiatorRepo.js';
-import type { KeyValueStorage } from '../src/storage/keyValueStorage.js';
-import { OpenISDDriver, OpenISDPassiveRadiatorStandalone } from '@openisd/design';
-import { Engine } from '@openisd/design/engine';
+import {createMyDriverRepo, MY_DRIVERS_KEY} from '../src/repos/myDriverRepo.js';
+import {createMyPassiveRadiatorRepo, MY_PASSIVE_RADIATORS_KEY} from '../src/repos/myPassiveRadiatorRepo.js';
+import type {KeyValueStorage} from '../src/storage/keyValueStorage.js';
+import {OpenISDDriver, OpenISDPassiveRadiatorStandalone} from '@openisd/design';
+import {Engine} from '@openisd/design/engine';
 
 const engine = new Engine();
 

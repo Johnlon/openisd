@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // analyze-telemetry.mjs — turn build/ui-telemetry/{events,memory}.jsonl into a report.
 // Usage: node analyze-telemetry.mjs [events.jsonl] [memory.jsonl]
-import { readFileSync } from 'node:fs';
+import {readFileSync} from 'node:fs';
 
 const EV = process.argv[2] ?? 'build/ui-telemetry/events.jsonl';
 const MEM = process.argv[3] ?? 'build/ui-telemetry/memory.jsonl';

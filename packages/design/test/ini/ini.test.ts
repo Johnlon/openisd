@@ -13,12 +13,12 @@
  * Byte precision is the bar: parsing a real WinISD-written file and stringifying it back
  * unchanged must reproduce the file exactly, key order and section order included.
  */
-import { describe, it } from 'vitest';
+import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import { readFileSync, readdirSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
-import { dirname, join } from 'node:path';
-import { parseIni, stringifyIni } from '@openisd/design/ini';
+import {readdirSync, readFileSync} from 'node:fs';
+import {fileURLToPath} from 'node:url';
+import {dirname, join} from 'node:path';
+import {parseIni, stringifyIni} from '@openisd/design/ini';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const GOLDENS_DIR = join(here, '..', 'winisd', 'fixtures', 'winisd-parity', 'goldens');

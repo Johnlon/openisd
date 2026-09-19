@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import {z} from 'zod';
 
 /**
  * HOW A FIELD'S VALUE CAME TO BE — the ONE declaration, and the only vocabulary any caller sees.

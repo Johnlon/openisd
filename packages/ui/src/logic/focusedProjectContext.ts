@@ -1,5 +1,5 @@
-import { inject, provide, type InjectionKey, type ComputedRef } from 'vue';
-import type { OpenISDProject } from '@openisd/design';
+import {type ComputedRef, inject, type InjectionKey, provide} from 'vue';
+import type {OpenISDProject} from '@openisd/design';
 
 /**
  * The one place a gated component tree receives WHICH project is focused, reactively.

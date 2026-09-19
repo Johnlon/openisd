@@ -1,6 +1,6 @@
-import type { Page } from '@playwright/test';
-import { test, expect, openAProject } from '../fixtures.js';
-import { MY_DRIVERS_KEY, myDriversJson } from '../fixtures/seedMyDrivers.js';
+import type {Page} from '@playwright/test';
+import {expect, openAProject, test} from '../fixtures.js';
+import {MY_DRIVERS_KEY, myDriversJson} from '../fixtures/seedMyDrivers.js';
 
 // The scope control — which POOL the WinISD picker lists. All three scopes are on screen at
 // once, exactly one highlighted, and a click anywhere on the control rotates the highlight:

@@ -27,12 +27,12 @@
  * fails because a comment mentions a module name is a broken gate: it manufactures false
  * positives, and the usual "fix" is a rename that changes no behaviour and destroys the evidence.
  */
-import { describe, it, vi } from 'vitest';
+import {describe, it, vi} from 'vitest';
 import assert from 'node:assert/strict';
-import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
-import { dirname, join, relative, sep } from 'node:path';
-import { Project as TsProject, Node, SyntaxKind, type SourceFile } from 'ts-morph';
+import {existsSync, readdirSync, readFileSync, statSync} from 'node:fs';
+import {fileURLToPath} from 'node:url';
+import {dirname, join, relative, sep} from 'node:path';
+import {Node, Project as TsProject, type SourceFile, SyntaxKind} from 'ts-morph';
 
 // Every gate in this file walks the source tree and builds ASTs — parse-bound work, not the
 // function-call unit tests vitest's 5 s default budget is calibrated for. Stated explicitly so
@@ -652,7 +652,7 @@ const EXPORT_STAR_BASELINE: Record<string, Record<string, string[]>> = {
     './cellState.js': ['CellState', 'CellStateSchema'],
     './winisdBytes.js': ['WINISD_NEWLINE_SENTINEL', 'WinisdDecodedText', 'WinisdEncoding', 'winisdBytesToText', 'winisdTextToBytes'],
     './winisdProject.js': ['WinISDProject'],
-    './winisdDriver.js': ['INI_ROWS', 'INI_ROWS_META', 'WINISD_CALCULABLE', 'WdrCell', 'WdrEnv', 'WdrHeader', 'WinISDDriver'],
+    './winisdDriver.js': ['WdrCell', 'WdrEnv', 'WdrHeader', 'WinISDDriver'],
     './parstate.js': ['PARSTATE_LEN', 'POS_TO_WDRKEY', 'ParStateError', 'markOf', 'parseParState', 'provenanceOf'],
   },
 };

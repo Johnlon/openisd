@@ -8,9 +8,9 @@
  * missing `Re_ohm`.
  */
 
-import type { Wiring } from './types.js';
-import type { CalculationIssue, SolveRoute } from './consistency.js';
-import { driveVoltage } from './formulas.js';
+import type {Wiring} from './types.js';
+import type {CalculationIssue, SolveRoute} from './consistency.js';
+import {driveVoltage} from './formulas.js';
 
 /** Named long-form (`packages/design/AGENTS.md`, "Concrete types over flexi-shit"), not built
  *  from a field-name list. `driverCount`/`wiring`/`seriesResistance_ohm` describe the load the

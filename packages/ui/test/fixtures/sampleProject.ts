@@ -7,10 +7,10 @@
  * the location is single-sourced instead of a per-spec `join('..','fixtures', …)` that breaks
  * the moment the file moves.
  */
-import { readFileSync, existsSync } from 'node:fs';
-import { join, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
-import { execSync } from 'node:child_process';
+import {existsSync, readFileSync} from 'node:fs';
+import {dirname, join} from 'node:path';
+import {fileURLToPath} from 'node:url';
+import {execSync} from 'node:child_process';
 
 /** Absolute path of the generated sample project, inside the ignored `build/` dir. */
 export const SAMPLE_PROJECT_OWPR = join(

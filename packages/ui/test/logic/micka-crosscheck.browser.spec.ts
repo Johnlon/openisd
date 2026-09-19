@@ -17,8 +17,8 @@
  * Run: npx playwright test test/micka-crosscheck.browser.spec.js
  */
 
-import { test, expect } from '../fixtures.js';
-import { SCENARIOS } from '../scenarios.js';
+import {expect, test} from '../fixtures.js';
+import {SCENARIOS} from '../scenarios.js';
 
 const TEMP_C = 20; // air temperature — micka's default; matches OpenISD's c = 343.68 m/s (20 °C)
 

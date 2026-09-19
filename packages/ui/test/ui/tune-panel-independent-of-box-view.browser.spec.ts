@@ -6,7 +6,7 @@
  * changing the box type — which re-renders the Box tab and can swap the enclosure pane out
  * entirely — must not disturb it.
  */
-import { test, expect, openAProject } from '../fixtures.js';
+import {expect, openAProject, test} from '../fixtures.js';
 
 test('the Tune panel stays open when the box type changes underneath it', async ({ page }) => {
   await page.goto('/');

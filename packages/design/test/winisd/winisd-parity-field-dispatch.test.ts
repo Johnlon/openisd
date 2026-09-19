@@ -12,15 +12,15 @@
  * — a plain data file with no domain-meaningful assertion of its own, which is the one thing
  * "tests construct their own data" permits sharing.
  */
-import { describe, it } from 'vitest';
+import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
-import { dirname, join } from 'node:path';
-import { Engine } from '@openisd/design/engine';
-import { OpenISDDriver, type Cell } from '@openisd/design';
-import { winISDDriverToOpenISDDeviceJson } from '../../domain/openisdSchema.js';
-import { WinISDDriver } from '../../winisd/winisdDriver.js';
+import {readFileSync} from 'node:fs';
+import {fileURLToPath} from 'node:url';
+import {dirname, join} from 'node:path';
+import {Engine} from '@openisd/design/engine';
+import {type Cell, OpenISDDriver} from '@openisd/design';
+import {winISDDriverToOpenISDDeviceJson} from '../../domain/openisdSchema.js';
+import {WinISDDriver} from '../../winisd/winisdDriver.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
 

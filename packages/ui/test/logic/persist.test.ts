@@ -10,15 +10,14 @@
  *   3. A local autosave and a `.owpr` file carry PURE PROJECT DATA ONLY (QO90) — the view
  *      never reaches that wire; `stateToUrl` alone takes a `ViewSnapshot` alongside the project.
  */
-import { describe, it, beforeAll, afterAll, vi } from 'vitest';
+import {afterAll, beforeAll, describe, it, vi} from 'vitest';
 import assert from 'node:assert/strict';
-import { gunzipSync, gzipSync } from 'node:zlib';
-import { OpenISDDriver, OpenISDProject } from '@openisd/design';
-import { Engine } from '@openisd/design/engine';
-import { createProjectRepo, createMemoryStorage, type FileStorage, type ViewSnapshot } from '@openisd/persistence';
-import { currentViewSnapshot } from '../../src/logic/appState.js';
-
-import type { BoxType } from '@openisd/design/engine';
+import {gunzipSync, gzipSync} from 'node:zlib';
+import {OpenISDDriver, OpenISDProject} from '@openisd/design';
+import type {BoxType} from '@openisd/design/engine';
+import {Engine} from '@openisd/design/engine';
+import {createMemoryStorage, createProjectRepo, type FileStorage, type ViewSnapshot} from '@openisd/persistence';
+import {currentViewSnapshot} from '../../src/logic/appState.js';
 
 /** A picker that is never reached — these tests exercise the storage/link/text doors only. */
 const noFilePicker: FileStorage = {

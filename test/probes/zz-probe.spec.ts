@@ -1,4 +1,4 @@
-import { test, expect, openAProject } from '../fixtures.js';
+import {expect, openAProject, test} from '../fixtures.js';
 
 const APP_STATE = '/src/logic/appState.ts';
 

@@ -1,7 +1,7 @@
-import { test, expect, W5_1138SMF } from '../fixtures.js';
-import { readFileSync } from 'node:fs';
-import { SAMPLE_PROJECT_OWPR } from '../fixtures/sampleProject.js';
-import { MY_DRIVERS_KEY, myDriversJson } from '../fixtures/seedMyDrivers.js';
+import {expect, test, W5_1138SMF} from '../fixtures.js';
+import {readFileSync} from 'node:fs';
+import {SAMPLE_PROJECT_OWPR} from '../fixtures/sampleProject.js';
+import {MY_DRIVERS_KEY, myDriversJson} from '../fixtures/seedMyDrivers.js';
 
 const SAMPLE = SAMPLE_PROJECT_OWPR;
 

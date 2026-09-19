@@ -9,8 +9,8 @@
  * box-volume write for whichever box type is active, exactly as the Box tab's "Volume" field
  * does, so the write is real (it notifies) rather than a mutation on a dead object.
  */
-import { describe, it, expect } from 'vitest';
-import { newProject, requireFocusedProject } from '../../src/logic/appState.js';
+import {describe, expect, it} from 'vitest';
+import {newProject, requireFocusedProject} from '../../src/logic/appState.js';
 
 describe('globalThis.__store_context', () => {
   it('is always defined, shaped {state:{P:{Vb}}}', () => {

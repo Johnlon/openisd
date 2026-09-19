@@ -1,7 +1,7 @@
-import { describe, it, beforeEach } from 'vitest';
+import {beforeEach, describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import { requireFocusedProject, newProject } from '../../src/logic/appState.js';
-import { presentationState } from '../../src/logic/presentationState.js';
+import {newProject, requireFocusedProject} from '../../src/logic/appState.js';
+import {presentationState} from '../../src/logic/presentationState.js';
 
 describe('Cursor lock & frequency click state transitions', () => {
   beforeEach(() => {

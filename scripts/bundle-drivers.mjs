@@ -32,15 +32,22 @@
  * Runs under tsx (predev/prebuild) because the packages export TypeScript source.
  */
 
-import { readFileSync, writeFileSync, mkdirSync, rmSync, statSync } from 'fs';
-import { join, relative, dirname } from 'path';
-import { fileURLToPath } from 'url';
-import { parse as parseYaml } from 'yaml';
-import { project, isBundlable } from './bundleProjection.mjs';
-import { checkOpenisdRoundTrip } from './roundTripGate.mjs';
-import { CORPUS_RELATIVE, STAMP, walkFiles, bundleFingerprintOnDisk, bundleOutputsPresent, readStamp } from './bundleStamp.mjs';
-import { WDR_TO_SCHEMA_KEY } from '../packages/design/domain/openisdSchema.ts';
-import { bundledDriverIndexRowOf } from '../packages/ui/src/logic/bundledIndexRows.ts';
+import {mkdirSync, readFileSync, rmSync, statSync, writeFileSync} from 'fs';
+import {dirname, join, relative} from 'path';
+import {fileURLToPath} from 'url';
+import {parse as parseYaml} from 'yaml';
+import {isBundlable, project} from './bundleProjection.mjs';
+import {checkOpenisdRoundTrip} from './roundTripGate.mjs';
+import {
+    bundleFingerprintOnDisk,
+    bundleOutputsPresent,
+    CORPUS_RELATIVE,
+    readStamp,
+    STAMP,
+    walkFiles
+} from './bundleStamp.mjs';
+import {WDR_TO_SCHEMA_KEY} from '../packages/design/domain/openisdSchema.ts';
+import {bundledDriverIndexRowOf} from '../packages/ui/src/logic/bundledIndexRows.ts';
 
 const RECORD_FILE = 'openisd.yml';
 

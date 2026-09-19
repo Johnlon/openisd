@@ -8,11 +8,11 @@
  * `applyLoadedProject()` (`appState.ts`) replaces the whole focused project with a freshly
  * loaded `OpenISDProject` — there is no per-field restore to get the ordering of wrong.
  */
-import { describe, it } from 'vitest';
+import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import { requireFocusedProject, applyLoadedProject, newProject, openProjects } from '../../src/logic/appState.js';
-import { OpenISDProject, OpenISDDriver } from '@openisd/design';
-import { Engine } from '@openisd/design/engine';
+import {applyLoadedProject, newProject, openProjects, requireFocusedProject} from '../../src/logic/appState.js';
+import {OpenISDDriver, OpenISDProject} from '@openisd/design';
+import {Engine} from '@openisd/design/engine';
 
 describe('OpenISDProject.box — each box type keeps its own fields independently of which is active', () => {
   it('switching boxType does not clobber the volume left behind in the other box type', () => {

@@ -41,8 +41,16 @@
  * shape of a declaration is a fact about the syntax tree, so the tree is what gets asked.
  * (Same reasoning as the house rule on shape-based gates: test the SHAPE, never grep prose.)
  */
-import { describe, it, expect } from 'vitest';
-import { Node, Project, SyntaxKind, VariableDeclarationKind, type AsExpression, type VariableDeclaration, type VariableStatement } from 'ts-morph';
+import {describe, expect, it} from 'vitest';
+import {
+    type AsExpression,
+    Node,
+    Project,
+    SyntaxKind,
+    type VariableDeclaration,
+    VariableDeclarationKind,
+    type VariableStatement
+} from 'ts-morph';
 import * as path from 'node:path';
 import * as url from 'node:url';
 

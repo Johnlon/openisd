@@ -28,8 +28,8 @@
  * STRUCTURAL: reads `domain/index.ts`'s own export specifiers via the AST, rather than trusting a
  * hand-maintained list to stay in sync with what `openisdSchema.ts` actually declares.
  */
-import { describe, it, expect } from 'vitest';
-import { Project } from 'ts-morph';
+import {describe, expect, it} from 'vitest';
+import {Project} from 'ts-morph';
 import * as path from 'node:path';
 import * as url from 'node:url';
 

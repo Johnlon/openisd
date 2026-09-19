@@ -14,7 +14,7 @@
  *
  * This file is the authority for `dq_calculated`: adding or changing a rule is a change here.
  */
-import type { DriverIssue } from '../engine/index.js';
+import type {DriverIssue} from '../engine/index.js';
 
 /** One data-quality mark, in the shape a record stores. `severity` is `'error'` for every rule
  *  this file can produce: severity is fixed per rule, and both `calc` and `range` policies are

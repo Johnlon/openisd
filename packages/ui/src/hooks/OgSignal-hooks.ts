@@ -1,7 +1,7 @@
-import type { InjectionKey, Ref } from 'vue';
-import { computed } from 'vue';
-import { useFocusedProject } from '../logic/focusedProjectContext.js';
-import type { OpenISDProject } from '@openisd/design';
+import type {InjectionKey, Ref} from 'vue';
+import {computed} from 'vue';
+import {useFocusedProject} from '../logic/focusedProjectContext.js';
+import type {OpenISDProject} from '@openisd/design';
 
 export interface OgSignalAPI {
   readonly project: Readonly<Ref<OpenISDProject>>;

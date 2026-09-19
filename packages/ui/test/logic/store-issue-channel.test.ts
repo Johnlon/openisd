@@ -12,9 +12,9 @@
  * because nothing has chosen them (TODO(box-wizard) there). So a test that needs a design
  * which raises no precondition issue SIZES THE BOX ITSELF, inline, and says what it set.
  */
-import { describe, it } from 'vitest';
+import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import { allIssues, paramIssues, curvesData, requireFocusedProject, newProject } from '../../src/logic/appState.js';
+import {allIssues, curvesData, newProject, paramIssues, requireFocusedProject} from '../../src/logic/appState.js';
 
 /** `sweepErrors`'s re-sweep is throttled (`scheduleSweep`, `SWEEP_MS` — docs/design/
  *  REACTIVITY.md): a burst of synchronous `.set()`/`.clear()` calls lands well inside one

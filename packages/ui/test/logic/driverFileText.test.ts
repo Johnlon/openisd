@@ -4,11 +4,11 @@
  * format) are OpenISD's own UTF-8 output, so a CP1252 result there must be reported as
  * corruption, not silently decoded. Takes the FORMAT directly, never a filename.
  */
-import { describe, it } from 'vitest';
+import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import { decodeDriverFileBytes } from '../../src/logic/driverFileText.js';
-import { WinisdEncoding } from '@openisd/design/winisd';
-import { DriverFileFormat, ProjectFileFormat } from '../../src/fileFormat.js';
+import {decodeDriverFileBytes} from '../../src/logic/driverFileText.js';
+import {WinisdEncoding} from '@openisd/design/winisd';
+import {DriverFileFormat, ProjectFileFormat} from '../../src/fileFormat.js';
 
 describe('decodeDriverFileBytes format gate (QO62)', () => {
   it('a non-UTF-8 .wdr falls back to CP1252 and reports it', () => {

@@ -1,4 +1,5 @@
-import { solveConsistencyGroup } from './testSolver.js';
+import type {TestSolverQuantities} from './testSolver.js';
+import {solveConsistencyGroup} from './testSolver.js';
 /**
  * WinISD's Advanced-pane figures of merit — Rme, Mpow, gamma, SPLmax, USPL, Gloss, SPLmaxLF,
  * Mcost.
@@ -33,14 +34,12 @@ import { solveConsistencyGroup } from './testSolver.js';
  * self-consistent record, are transcribed from winisd_research/runs/advanced_formulas.jsonl by
  * probe label.
  */
-
-import { describe, it } from 'vitest';
+import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
-import { dirname, join } from 'node:path';
-import { Engine } from '../../engine/index.js';
-import type { TestSolverQuantities } from './testSolver.js';
+import {readFileSync} from 'node:fs';
+import {fileURLToPath} from 'node:url';
+import {dirname, join} from 'node:path';
+import {Engine} from '../../engine/index.js';
 
 /** The engine's one door: every calculation below is a method on this object. */
 const engine = new Engine();

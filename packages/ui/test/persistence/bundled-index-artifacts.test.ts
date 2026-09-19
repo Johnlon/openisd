@@ -15,18 +15,21 @@
  * them against the tracked index — a drift fails here, naming the record, before it reaches a
  * spec.
  */
-import { describe, it } from 'vitest';
+import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
-import { join } from 'node:path';
-import { OpenISDDriver, OpenISDPassiveRadiatorStandalone } from '@openisd/design';
-import { Engine } from '@openisd/design/engine';
+import {readFileSync} from 'node:fs';
+import {fileURLToPath} from 'node:url';
+import {join} from 'node:path';
+import {OpenISDDriver, OpenISDPassiveRadiatorStandalone} from '@openisd/design';
+import {Engine} from '@openisd/design/engine';
 import {
-  readBundledDriverIndex, readBundledPassiveRadiatorIndex,
-  type BundledDriverIndexRow, type BundledPassiveRadiatorIndexRow, type BundledIndexRow,
+    type BundledDriverIndexRow,
+    type BundledIndexRow,
+    type BundledPassiveRadiatorIndexRow,
+    readBundledDriverIndex,
+    readBundledPassiveRadiatorIndex,
 } from '@openisd/persistence';
-import { bundledDriverIndexRowOf, bundledPassiveRadiatorIndexRowOf } from '../../src/logic/bundledIndexRows.js';
+import {bundledDriverIndexRowOf, bundledPassiveRadiatorIndexRowOf} from '../../src/logic/bundledIndexRows.js';
 import testBundlePaths from '../fixtures/test-bundle-paths.json';
 
 const PUBLIC = join(fileURLToPath(import.meta.url), '..', '..', '..', 'public');

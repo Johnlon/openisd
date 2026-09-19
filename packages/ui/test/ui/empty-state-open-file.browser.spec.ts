@@ -4,9 +4,9 @@
  * The shell remains mounted without a project, including its hidden file input.
  * bugs/BUG_20260909_no_project_can_be_opened_from_a_file_when_none_is_open.md
  */
-import { readFileSync } from 'node:fs';
-import { SAMPLE_PROJECT_OWPR } from '../fixtures/sampleProject.js';
-import { test, expect } from '../fixtures.js';
+import {readFileSync} from 'node:fs';
+import {SAMPLE_PROJECT_OWPR} from '../fixtures/sampleProject.js';
+import {expect, test} from '../fixtures.js';
 
 const OWPR = SAMPLE_PROJECT_OWPR;
 

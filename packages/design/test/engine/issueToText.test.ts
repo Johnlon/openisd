@@ -1,6 +1,6 @@
-import { describe, it, expect } from 'vitest';
-import { Engine } from '../../engine/index.js';
-import { checkConsistency } from './testSolver.js';
+import {describe, expect, it} from 'vitest';
+import {Engine} from '../../engine/index.js';
+import {checkConsistency} from './testSolver.js';
 
 const engine = new Engine();
 

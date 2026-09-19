@@ -7,8 +7,8 @@
  * the app's shared CSS vars (--panel/--fg/--line/--acc), so this adapts automatically
  * without bespoke styling.
  */
-import { ref, onMounted, onUnmounted } from 'vue';
-import { useApp } from '../../logic/app.js';
+import {onMounted, onUnmounted, ref} from 'vue';
+import {useApp} from '../../logic/app.js';
 
 const props = defineProps<{ disabled?: boolean }>();
 

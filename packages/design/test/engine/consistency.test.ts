@@ -1,8 +1,8 @@
-import { describe, it, expect } from 'vitest';
-import { Engine } from '../../engine/index.js';
-import type { DriverSolverParams, SolverField } from '../../engine/index.js';
-import { fakeSolverField, checkConsistency } from './testSolver.js';
-import type { TestSolverQuantities } from './testSolver.js';
+import {describe, expect, it} from 'vitest';
+import type {DriverSolverParams, SolverField} from '../../engine/index.js';
+import {Engine} from '../../engine/index.js';
+import type {TestSolverQuantities} from './testSolver.js';
+import {checkConsistency, fakeSolverField} from './testSolver.js';
 
 const engine = new Engine();
 // Deliberately NOT the reference condition (`engine.solveEnvironment({}).values`): `solveConsistencyGroup`'s own

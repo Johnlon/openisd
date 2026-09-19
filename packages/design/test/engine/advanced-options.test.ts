@@ -1,4 +1,4 @@
-import { solveConsistencyGroup, driverParams } from './testSolver.js';
+import {driverParams, solveConsistencyGroup} from './testSolver.js';
 /**
  * Unit tests for the WinISD Advanced-pane simulation options and the absent-Le
  * defect they surfaced. See PLAN_ADVANCED_SIM_OPTIONS.md.
@@ -12,11 +12,10 @@ import { solveConsistencyGroup, driverParams } from './testSolver.js';
  *
  * Run: npm run test:unit
  */
-
-import { describe, it } from 'vitest';
+import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import { Engine } from '../../engine/index.js';
-import type { SweepParams } from '../../engine/index.js';
+import type {SweepParams} from '../../engine/index.js';
+import {Engine} from '../../engine/index.js';
 
 /** Voice-coil inductance for the fixtures below. Not a solver quantity — nothing
  *  derives it — so it reaches `sweep` on its own, and only the impedance plot reads it. */

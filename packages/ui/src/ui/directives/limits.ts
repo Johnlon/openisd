@@ -1,4 +1,4 @@
-import type { Directive } from 'vue';
+import type {Directive} from 'vue';
 
 // v-limits — hard entry constraints for RAW <input type="number"> elements (the ones not
 // built on NumInput, which enforces the same bounds itself from the field registry).

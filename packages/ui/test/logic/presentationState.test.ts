@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest';
-import { airConstantsAppDefaults } from '../../src/logic/presentationState.js';
+import {describe, expect, it} from 'vitest';
+import {airConstantsAppDefaults} from '../../src/logic/presentationState.js';
 
 describe('airConstantsAppDefaults', () => {
   it('returns the canonical Environment default values', () => {

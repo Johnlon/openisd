@@ -1,6 +1,6 @@
-import { describe, it, expect } from 'vitest';
-import type { DriverIssue } from '@openisd/design/engine';
-import { fieldIsMandatoryAndUnsatisfied } from '../../src/logic/useDriverCells.js';
+import {describe, expect, it} from 'vitest';
+import type {DriverIssue} from '@openisd/design/engine';
+import {fieldIsMandatoryAndUnsatisfied} from '../../src/logic/useDriverCells.js';
 
 describe('fieldIsMandatoryAndUnsatisfied', () => {
   it('is false when no issue mentions the field', () => {
@@ -32,12 +32,12 @@ describe('fieldIsMandatoryAndUnsatisfied', () => {
     expect(fieldIsMandatoryAndUnsatisfied(issues, 'Qts')).toBe(false);
   });
 
-  it('is true for a short WinISD key ("Fs") whose SI-suffixed field ("Fs_hz") the issue actually names (S2-12b)', () => {
+  it('is true for the SI-suffixed field name the issue actually names (S2-12b)', () => {
     const issues: readonly DriverIssue[] = [{
       kind: 'missing-dependencies', target: 'Fs_hz',
       routes: [{ formula: 'Fs = 1/(2π·√(Mms·Cms))', required: ['Mms_kg', 'Cms_m_per_N'], missing: ['Cms_m_per_N'] }],
     }];
-    expect(fieldIsMandatoryAndUnsatisfied(issues, 'Fs')).toBe(true);
+    expect(fieldIsMandatoryAndUnsatisfied(issues, 'Fs_hz')).toBe(true);
   });
 
   it('a key already spelled the same in both vocabularies ("Qts") still works after the mapping', () => {

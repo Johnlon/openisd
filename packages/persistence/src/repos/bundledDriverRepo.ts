@@ -3,10 +3,10 @@
  *  `createBundledRepo` with the driver's data: `drivers-index.json` under the app base, read by
  *  `readBundledDriverIndex`, and records opened through `OpenISDDriver.fromConformingRecord`. The
  *  list is index rows; a driver becomes a domain object only when `load()` is asked for it. */
-import { OpenISDDriver } from '@openisd/design';
-import type { Engine } from '@openisd/design/engine';
-import type { BundledDriverIndexRow, IndexRead } from './bundledIndex.js';
-import { createBundledRepo, baseOf, readIndex, type FieldReader } from './bundledRepo.js';
+import {OpenISDDriver} from '@openisd/design';
+import type {Engine} from '@openisd/design/engine';
+import type {BundledDriverIndexRow, IndexRead} from './bundledIndex.js';
+import {baseOf, createBundledRepo, type FieldReader, readIndex} from './bundledRepo.js';
 
 function driverRowOf(row: Record<string, unknown>, where: string, f: FieldReader): BundledDriverIndexRow | null {
   const base = baseOf(row, where, f);

@@ -11,7 +11,7 @@
  * primitives for this purpose. The subscribable itself (`ManagedProject`) stays
  * framework-free — it exports plain `subscribe()`, nothing Vue-shaped.
  */
-import { shallowRef, triggerRef, getCurrentScope, onScopeDispose, type ShallowRef } from 'vue';
+import {getCurrentScope, onScopeDispose, shallowRef, type ShallowRef, triggerRef} from 'vue';
 
 /** Anything that publishes a plain-JS change channel: `subscribe(fn)` registers a listener and
  *  returns the function that removes it. `ManagedProject` satisfies this without

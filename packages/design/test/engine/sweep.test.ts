@@ -1,4 +1,4 @@
-import { solveConsistencyGroup, driverParams } from './testSolver.js';
+import {driverParams, solveConsistencyGroup} from './testSolver.js';
 /**
  * Unit tests for src/core/sweep.js — targeting the branch coverage gaps
  * not covered by engine.test.mjs:
@@ -14,11 +14,10 @@ import { solveConsistencyGroup, driverParams } from './testSolver.js';
  *
  * Run: node --test test/sweep.test.mjs
  */
-
-import { describe, it } from 'vitest';
+import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import { Engine } from '../../engine/index.js';
-import type { SweepParams } from '../../engine/index.js';
+import type {SweepParams} from '../../engine/index.js';
+import {Engine} from '../../engine/index.js';
 
 /** Voice-coil inductance for the fixtures below. Not a solver quantity — nothing
  *  derives it — so it reaches `sweep` on its own, and only the impedance plot reads it. */

@@ -1,21 +1,33 @@
-import { ref, shallowRef, computed, watch, type Ref, type ComputedRef } from 'vue';
-import type { OpenISDDriver } from '@openisd/design';
-import { Chip } from '@openisd/design/filter';
-import { presentationState } from './presentationState.js';
-import { readDriverFileText } from './driverFileText.js';
-import { DriverFileFormat, sniff } from '../fileFormat.js';
-import { DriverScope } from '../driverScope.js';
-import type { Logging } from '../logging/flash.js';
+import {computed, type ComputedRef, type Ref, ref, shallowRef, watch} from 'vue';
+import type {OpenISDDriver} from '@openisd/design';
+import {Chip} from '@openisd/design/filter';
+import {presentationState} from './presentationState.js';
+import {readDriverFileText} from './driverFileText.js';
+import {DriverFileFormat, sniff} from '../fileFormat.js';
+import {DriverScope} from '../driverScope.js';
+import type {Logging} from '../logging/flash.js';
 import type {
-  BundledDriverRepo, BundledDriverIndexRow, MyDriverRepo, MyDriversRead, BrokenEntry, PrefsRepo,
+    BrokenEntry,
+    BundledDriverIndexRow,
+    BundledDriverRepo,
+    MyDriverRepo,
+    MyDriversRead,
+    PrefsRepo,
 } from '@openisd/persistence';
 import {
-  displayNameOf, matchesCriteria, searchSubjectOfDriver, searchSubjectOfIndexRow, previewSpecsOf, previewTextOf,
-  driverHasDqIssues, type PreviewSpec, type SearchCriteria,
+    displayNameOf,
+    driverHasDqIssues,
+    matchesCriteria,
+    type PreviewSpec,
+    previewSpecsOf,
+    previewTextOf,
+    type SearchCriteria,
+    searchSubjectOfDriver,
+    searchSubjectOfIndexRow,
 } from './driverDisplay.js';
-import { type DriverSelection, driverFromFileText } from './driverSelection.js';
-import { inputFrom } from './domEvents.js';
-import { focusedProject, newProjectDriver } from './appState.js';
+import {driverFromFileText, type DriverSelection} from './driverSelection.js';
+import {inputFrom} from './domEvents.js';
+import {focusedProject, newProjectDriver} from './appState.js';
 
 /** A My Drivers row: the storage uuid this repo minted (the delete/edit handle) plus the driver
  *  itself. The uuid is NOT on the driver — it is the key into the saved-driver map, assigned only

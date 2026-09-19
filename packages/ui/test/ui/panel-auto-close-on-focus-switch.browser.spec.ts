@@ -1,5 +1,5 @@
-import { test, expect, openAProject } from '../fixtures.js';
-import type { Locator, Page } from '@playwright/test';
+import {expect, openAProject, test} from '../fixtures.js';
+import type {Locator, Page} from '@playwright/test';
 
 // QO157 (human ruling 2026-09-18): the editor/library overlays are TRUE full-screen modals
 // (position:fixed inset:0), so while one is open the project rows sit UNDER it — a real user
@@ -16,10 +16,11 @@ async function assertTrueModal(page: Page, modal: Locator, open: () => Promise<v
   await expect(rows).toHaveCount(2);
 
   await open();
-  // `force` skips actionability so the click actually fires at the row's coordinates — where
-  // the overlay is. If the overlay did NOT intercept, this would switch focus and close the
-  // modal; a true modal must stay open (the row never receives the click).
-  await rows.nth(0).click({ force: true });
+  // Click at the row's coordinates with the MOUSE — Playwright's actionability check would
+  // refuse because the overlay intercepts, which is exactly the point: the overlay swallows the
+  // pointer event, the row never receives it, focus cannot change, and a true modal stays open.
+  const rowBox = (await rows.nth(0).boundingBox())!;
+  await page.mouse.click(rowBox.x + rowBox.width / 2, rowBox.y + rowBox.height / 2);
   await expect(modal).toBeVisible();
 
   await close();

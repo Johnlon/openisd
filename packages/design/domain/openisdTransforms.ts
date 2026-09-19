@@ -5,17 +5,13 @@
 import {
     emptyBoxJson,
     enteredEntry,
-    type OpenISDDeviceJson,
     type OpenISDBoxJson,
+    type OpenISDDeviceJson,
     type OpenISDProjectJson,
 } from './openisdSchema.js';
-import {
-    OpenISDDriver,
-    OpenISDPassiveRadiatorStandalone,
-    OpenISDProject,
-} from './openisdDomain.js';
+import {OpenISDDriver, OpenISDPassiveRadiatorStandalone, OpenISDProject,} from './openisdDomain.js';
 import {Engine} from '../engine/index.js';
-import {realAppContext, type AppContext} from './appContext.js';
+import {type AppContext, realAppContext} from './appContext.js';
 
 // ── VALIDATION HELPERS — private to this file ──────────────────────────────────────────────
 

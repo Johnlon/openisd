@@ -1,6 +1,6 @@
-import { test, expect } from '../fixtures.js';
-import type { Page } from '@playwright/test';
-import { fillAndBlur } from '../fixtures/numField.js';
+import {expect, test} from '../fixtures.js';
+import type {Page} from '@playwright/test';
+import {fillAndBlur} from '../fixtures/numField.js';
 
 // The app's store, reached in-browser at runtime — passed as an evaluate ARGUMENT (never as a
 // literal import), the same pattern original-skin.browser.spec.ts uses, so vue-tsc resolves nothing.

@@ -16,12 +16,12 @@
  * Run: npm run test:unit
  */
 
-import { describe, it } from 'vitest';
+import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import { Engine } from '@openisd/design/engine';
-import type { SweepParams, DriverSolverParams, SolverField } from '@openisd/design/engine';
-import { TABS, TAB_META, parseChartTabId, seriesFor } from '../../src/logic/series.js';
-import type { ChartTabId, PlotParams } from '../../src/types.js';
+import type {DriverSolverParams, SolverField, SweepParams} from '@openisd/design/engine';
+import {Engine} from '@openisd/design/engine';
+import {parseChartTabId, seriesFor, TAB_META, TABS} from '../../src/logic/series.js';
+import type {ChartTabId, PlotParams} from '../../src/types.js';
 
 const RAW: Record<string, number> = {
   Fs: 37, Qts: 0.378, Qes: 0.40, Qms: 7.0, Vas: 0.0300,

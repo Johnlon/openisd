@@ -4,14 +4,12 @@
  *  validation and reconstruction are entirely `@openisd/design`'s
  *  (`OpenISDProject.fromOwprText()` — QO116: one whole-record `.safeParse()` at the load
  *  boundary). This file supplies no shape of its own and never holds the project's record. */
-import { OpenISDProject } from '@openisd/design';
-import type { Engine } from '@openisd/design/engine';
-import type { FileStorage, SaveResult } from '../storage/fileStorage.js';
-import type { KeyValueStorage } from '../storage/keyValueStorage.js';
-import {
-  OPENISD_PROJECTS_KEY, OPENISD_OPEN_SESSIONS_KEY, OPENISD_STATE_KEY,
-} from './storageKeys.js';
-import { createProjectSchemaUpgrade } from './projectSchemaUpgrade.js';
+import {OpenISDProject} from '@openisd/design';
+import type {Engine} from '@openisd/design/engine';
+import type {FileStorage, SaveResult} from '../storage/fileStorage.js';
+import type {KeyValueStorage} from '../storage/keyValueStorage.js';
+import {OPENISD_OPEN_SESSIONS_KEY, OPENISD_PROJECTS_KEY, OPENISD_STATE_KEY,} from './storageKeys.js';
+import {createProjectSchemaUpgrade} from './projectSchemaUpgrade.js';
 
 export interface FileNaming { suggestedName: string; mime: string; label: string; ext: string }
 

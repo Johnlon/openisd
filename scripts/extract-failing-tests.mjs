@@ -8,7 +8,7 @@
 // Outputs:
 //   build/failing-tests.txt   human-readable listing
 //   build/failing-tests.json  [{ file, tests: [{ leaf, full, status }] }] for the rerun runner
-import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+import {mkdirSync, readFileSync, writeFileSync} from 'node:fs';
 
 const path = process.argv[2] ?? 'build/ui-telemetry/events.jsonl';
 const lines = readFileSync(path, 'utf8').split('\n').filter((l) => l.trim());

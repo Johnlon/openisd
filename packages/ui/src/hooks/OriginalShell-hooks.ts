@@ -12,39 +12,51 @@
  */
 declare const __PLATFORM_USER__: string | undefined;
 
-import { ref, shallowRef, reactive, computed, watch, onMounted, onUnmounted } from 'vue';
-import type { ComputedRef, Ref } from 'vue';
+import type {ComputedRef, Ref} from 'vue';
+import {computed, onMounted, onUnmounted, reactive, ref, shallowRef, watch} from 'vue';
 import {
-  driverName,
-  curvesData, maxData, allIssues,
-  isModified, resetProjectToGround, markProjectSaved,
-  openProjects, focusProject, removeProject, addProject, duplicateFocusedProject,
-  formatInUnit as fmtU,
-  copyProjectName,
-  syncedP, projectChanged, definePassiveRadiator, boxTypeIsSimulatable,
-  focusedProject,
+    addProject,
+    allIssues,
+    boxTypeIsSimulatable,
+    copyProjectName,
+    curvesData,
+    definePassiveRadiator,
+    driverName,
+    duplicateFocusedProject,
+    focusedProject,
+    focusProject,
+    formatInUnit as fmtU,
+    isModified,
+    markProjectSaved,
+    maxData,
+    openProjects,
+    projectChanged,
+    removeProject,
+    resetProjectToGround,
+    syncedP,
 } from '../logic/appState.js';
-import { presentationState } from '../logic/presentationState.js';
-import { useFocusedProject } from '../logic/focusedProjectContext.js';
+import {presentationState} from '../logic/presentationState.js';
+import {useFocusedProject} from '../logic/focusedProjectContext.js';
 import {
-  enterVentField as enterVentFieldOn, clearVentField as clearVentFieldOn,
-  ventFieldState as ventFieldStateOn, ventMaxReachableFb as ventMaxReachableFbOn,
-  ventTargetUnreachable as ventTargetUnreachableOn,
+    clearVentField as clearVentFieldOn,
+    enterVentField as enterVentFieldOn,
+    ventFieldState as ventFieldStateOn,
+    ventMaxReachableFb as ventMaxReachableFbOn,
+    ventTargetUnreachable as ventTargetUnreachableOn,
 } from '../logic/useVentGroup.js';
-import { airForEnvironment, driveVoltageFor, lossModeOptions, DEFAULT_RE_OHM } from '../logic/environment.js';
-import { TAB_META, parseChartTabId, buildPlotData } from '../logic/series.js';
-import { createToneGenerator, type ToneGenerator } from '../logic/toneGenerator.js';
-import { useApp } from '../logic/app.js';
-import { useEscToClose } from '../logic/useEscToClose.js';
-import { steppedFrequency, clampedFrequency, interpolatedY } from '../logic/cursorFrequency.js';
-import { precision as fieldDp, limits, END_CORRECTION_OPTIONS } from '../logic/fields/fieldRegistry.js';
-import { inputChecked, inputFrom, inputValue, listeningElement, selectValue } from '../logic/domEvents.js';
-import { createSealedAlignmentEditor } from './SealedAlignment-hooks.js';
-import type { OpenISDProject } from '@openisd/design';
-import type { StoredProjectListing } from '@openisd/persistence';
-import type { BoxType } from '@openisd/design/engine';
-import type { Design, PlotParams } from '../types.js';
-import type { ChartTabId } from '../types.js';
+import {airForEnvironment, DEFAULT_RE_OHM, driveVoltageFor, lossModeOptions} from '../logic/environment.js';
+import {buildPlotData, parseChartTabId, TAB_META} from '../logic/series.js';
+import {createToneGenerator, type ToneGenerator} from '../logic/toneGenerator.js';
+import {useApp} from '../logic/app.js';
+import {useEscToClose} from '../logic/useEscToClose.js';
+import {clampedFrequency, interpolatedY, steppedFrequency} from '../logic/cursorFrequency.js';
+import {END_CORRECTION_OPTIONS, limits, precision as fieldDp} from '../logic/fields/fieldRegistry.js';
+import {inputChecked, inputFrom, inputValue, listeningElement, selectValue} from '../logic/domEvents.js';
+import {createSealedAlignmentEditor} from './SealedAlignment-hooks.js';
+import type {OpenISDProject} from '@openisd/design';
+import type {StoredProjectListing} from '@openisd/persistence';
+import type {BoxType} from '@openisd/design/engine';
+import type {ChartTabId, Design, PlotParams} from '../types.js';
 
 // ---- Sealed / PR readouts (unit-testable, real domain) ------------------------
 // The fix this slice exists for: reading `project.value` ALONE does not invalidate these

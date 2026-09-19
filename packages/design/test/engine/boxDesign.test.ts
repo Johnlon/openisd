@@ -19,12 +19,12 @@
  *
  * Run: node --test test/alignments.test.mjs
  */
-import { describe, it } from 'vitest';
+import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import { Engine } from '../../engine/index.js';
-import type { SweepParams } from '../../engine/index.js';
-import { driverParams } from './testSolver.js';
-import type { TestSolverQuantities } from './testSolver.js';
+import type {SweepParams} from '../../engine/index.js';
+import {Engine} from '../../engine/index.js';
+import type {TestSolverQuantities} from './testSolver.js';
+import {driverParams} from './testSolver.js';
 
 /** Voice-coil inductance for the fixtures below. Not a solver quantity — nothing
  *  derives it — so it reaches `sweep` on its own, and only the impedance plot reads it. */

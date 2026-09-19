@@ -1,4 +1,4 @@
-import { test, openAProject } from '../fixtures.js';
+import {openAProject, test} from '../fixtures.js';
 
 const PRES = '/src/logic/presentationState.ts';
 

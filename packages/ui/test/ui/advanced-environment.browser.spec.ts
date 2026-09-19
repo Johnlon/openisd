@@ -1,4 +1,4 @@
-import { test, expect, openAProject } from '../fixtures.js';
+import {expect, openAProject, test} from '../fixtures.js';
 
 const soundVelocity = (page: import('@playwright/test').Page) =>
   page.locator('.field', { hasText: 'Sound velocity' }).locator('input');

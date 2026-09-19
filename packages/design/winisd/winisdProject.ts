@@ -25,7 +25,7 @@
  * packages/design/test/winisd/fixtures/winisd-parity/goldens/ (test/winisdProject.test.ts). The
  * defaults below match WinISD's own, so a produced file round-trips through WinISD unchanged.
  */
-import {parseIni, stringifyIni, type Ini} from '../ini/index.js';
+import {type Ini, parseIni, stringifyIni} from '../ini/index.js';
 
 /** Every key of every section, in WinISD's own order, with WinISD's own default. A `null`
  *  default means the key is written only when the builder supplies it. */

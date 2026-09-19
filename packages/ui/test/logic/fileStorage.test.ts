@@ -9,9 +9,9 @@
  * stubbed per-test: a fake `showSaveFilePicker` returning a fake handle for the retention
  * tests, absent entirely for the download-fallback tests.
  */
-import { describe, it, vi, beforeEach, afterEach } from 'vitest';
+import {afterEach, beforeEach, describe, it, vi} from 'vitest';
 import assert from 'node:assert/strict';
-import { createFileStorage } from '@openisd/persistence';
+import {createFileStorage} from '@openisd/persistence';
 
 /** Exactly the two members `fileStorage.ts`/`fileSave.ts` touch on a picked handle. Declared
  *  here rather than leaning on the DOM lib (which this node-environment suite does not have in

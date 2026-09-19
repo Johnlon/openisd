@@ -3,10 +3,10 @@
  * the vent/PR solvers, `toUiParams()`/`loadUiParams()`) reads and writes box/vent/PR fields
  * through the project's own `box` surface, direct to the domain object.
  */
-import { describe, it } from 'vitest';
+import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import { OpenISDProject, OpenISDDriver } from '@openisd/design';
-import { Engine } from '@openisd/design/engine';
+import {OpenISDDriver, OpenISDProject} from '@openisd/design';
+import {Engine} from '@openisd/design/engine';
 
 function ventedProject() {
   const engine = new Engine();

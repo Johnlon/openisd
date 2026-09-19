@@ -1,5 +1,5 @@
-import { Engine } from '@openisd/design/engine';
-import type { DriverError, SweepIssue, DriverPrerequisite } from '@openisd/design/engine';
+import type {DriverError, DriverPrerequisite, SweepIssue} from '@openisd/design/engine';
+import {Engine} from '@openisd/design/engine';
 
 /**
  * Project one `SweepIssue` (the engine's `CalculationIssue<Q>`-shaped sweep diagnostic) onto the

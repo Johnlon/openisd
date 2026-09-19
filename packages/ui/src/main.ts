@@ -1,16 +1,26 @@
-import { createApp } from 'vue';
+import {createApp} from 'vue';
 import App from './ui/App.vue';
-import { vExpoStep } from './ui/directives/expoStep.js';
-import { vLimits } from './ui/directives/limits.js';
-import { createLocalStorage, createBundledDriverRepo, createMyDriverRepo, createPrefsRepo, createMyPassiveRadiatorRepo, createBundledPassiveRadiatorRepo, createFileStorage, createProjectRepo, createViewStateRepo } from '@openisd/persistence';
-import { Engine } from '@openisd/design/engine';
-import { createLogging } from './logging/flash.js';
-import { createFaultLog } from './diagnostics/faultLog.js';
-import { createDriverSelection } from './logic/driverSelection.js';
-import { createDriverBrowsingState } from './logic/driverBrowsingState.js';
-import { createApplicationIO } from './logic/useApplicationIO.js';
-import { provideApp } from './logic/app.js';
-import { NoFocusedProjectError } from './logic/appState.js';
+import {vExpoStep} from './ui/directives/expoStep.js';
+import {vLimits} from './ui/directives/limits.js';
+import {
+    createBundledDriverRepo,
+    createBundledPassiveRadiatorRepo,
+    createFileStorage,
+    createLocalStorage,
+    createMyDriverRepo,
+    createMyPassiveRadiatorRepo,
+    createPrefsRepo,
+    createProjectRepo,
+    createViewStateRepo
+} from '@openisd/persistence';
+import {Engine} from '@openisd/design/engine';
+import {createLogging} from './logging/flash.js';
+import {createFaultLog} from './diagnostics/faultLog.js';
+import {createDriverSelection} from './logic/driverSelection.js';
+import {createDriverBrowsingState} from './logic/driverBrowsingState.js';
+import {createApplicationIO} from './logic/useApplicationIO.js';
+import {provideApp} from './logic/app.js';
+import {NoFocusedProjectError} from './logic/appState.js';
 import '@fontsource/inter/400.css';
 import '@fontsource/inter/600.css';
 import '@fontsource/inter/700.css';

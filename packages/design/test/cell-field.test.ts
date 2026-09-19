@@ -1,8 +1,8 @@
 /* eslint-disable prefer-const */
-import { describe, it, expect } from 'vitest';
-import { entryField, nullableField, resolvingLens } from '../domain/cell.js';
-import type { Lens } from '../domain/cell.js';
-import type { SpecEntryJson } from '../domain/openisdSchema.js';
+import {describe, expect, it} from 'vitest';
+import type {Lens} from '../domain/cell.js';
+import {entryField, nullableField, resolvingLens} from '../domain/cell.js';
+import type {SpecEntryJson} from '../domain/openisdSchema.js';
 
 /** A trivial in-memory `Lens` for a test-owned slot — no record, no schema, just a box a test
  *  can read back after driving a `Field` through it. */

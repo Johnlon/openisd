@@ -1,4 +1,5 @@
-import { test, expect } from '@playwright/test';
+import {test} from '@playwright/test';
+
 test('test', async ({ page }) => {
   await page.goto('http://localhost:4100/');
   const status = await page.locator('.status').textContent();

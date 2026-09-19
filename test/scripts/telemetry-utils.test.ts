@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest';
-import { computeCpuPercent, matchesProcess } from '../../scripts/telemetry-utils.mjs';
+import {describe, expect, it} from 'vitest';
+import {computeCpuPercent, matchesProcess} from '../../scripts/telemetry-utils.mjs';
 
 describe('computeCpuPercent', () => {
   const ticksPerSec = 100;

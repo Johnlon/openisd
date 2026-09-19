@@ -1,4 +1,4 @@
-import type { Directive } from 'vue';
+import type {Directive} from 'vue';
 
 // v-expo-step — proportional ("exponential") spinner stepping for LIVE-graph number
 // inputs (left-nav + Tune controls). It keeps the element's native `step` at a power

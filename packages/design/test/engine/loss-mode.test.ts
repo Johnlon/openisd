@@ -3,10 +3,10 @@
  * reverse-engineering + live gdb capture (research repo SEALED_FSC_MODEL.md §4). The reference
  * driver is Fs=40, Vas=7.47 L, with the Qts WinISD derives for it (0.395643).
  */
-import { describe, it } from 'vitest';
+import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import { Engine, LossMode } from '../../engine/index.js';
-import type { SealedParams } from '../../engine/index.js';
+import type {SealedParams} from '../../engine/index.js';
+import {Engine, LossMode} from '../../engine/index.js';
 
 /** The engine's one door: every calculation below is a method on this object. */
 const engine = new Engine();

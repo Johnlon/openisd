@@ -3,8 +3,8 @@
  * the browser renders. Both are closed sets, so both are enums, and every fact a caller needs —
  * wire value, display label, chip projection — is carried ON the member.
  */
-import { describe, it, expect } from 'vitest';
-import { DriverType, Chip } from '@openisd/design/filter';
+import {describe, expect, it} from 'vitest';
+import {Chip, DriverType} from '@openisd/design/filter';
 
 describe('DriverType — the wire value a record states', () => {
   it('parses the canonical wire string to the member itself, not a copy', () => {

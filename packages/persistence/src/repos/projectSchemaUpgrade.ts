@@ -6,8 +6,8 @@
  *  The upgrade is a TEXT→TEXT step over the wire form, never a reach into the domain's record:
  *  it rebuilds the project through `OpenISDProject`'s own builder and asks it for `.owpr` text,
  *  so this file states no record shape of its own. */
-import { OpenISDDriver, OpenISDProject } from '@openisd/design';
-import type { Engine } from '@openisd/design/engine';
+import {OpenISDDriver, OpenISDProject} from '@openisd/design';
+import type {Engine} from '@openisd/design/engine';
 
 /** A pre-session payload: the driver as a record OBJECT beside flat project meta, with no
  *  `{label, saved, edited}` wrapper. Written by builds before the session wrapper landed. */

@@ -8,13 +8,13 @@
  * Only the four engine-modelled box types are offered — you can't create a design the engine
  * can't simulate.
  */
-import { ref, computed } from 'vue';
-import { isModified, newProject, defaultPassiveRadiator, newProjectDriver } from '../../../logic/appState.js';
-import { fromDisplay } from '../../../logic/fields/units.js';
-import { useApp } from '../../../logic/app.js';
-import type { OpenISDDriver } from '@openisd/design';
-import type { BoxType } from '@openisd/design/engine';
-import { useEscToClose } from '../../../logic/useEscToClose.js';
+import {computed, ref} from 'vue';
+import {defaultPassiveRadiator, isModified, newProject, newProjectDriver} from '../../../logic/appState.js';
+import {fromDisplay} from '../../../logic/fields/units.js';
+import {useApp} from '../../../logic/app.js';
+import type {OpenISDDriver} from '@openisd/design';
+import type {BoxType} from '@openisd/design/engine';
+import {useEscToClose} from '../../../logic/useEscToClose.js';
 
 const emit = defineEmits<{ close: [] }>();
 // Cancelling the wizard must also drop any pre-loaded `.wdr`/`.owdr` driver, or it would leak

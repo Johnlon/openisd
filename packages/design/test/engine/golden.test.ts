@@ -1,17 +1,17 @@
-import { solveConsistencyGroup, driverParams } from './testSolver.js';
+import type {TestSolverQuantities} from './testSolver.js';
+import {driverParams, solveConsistencyGroup} from './testSolver.js';
 /* Golden-master regression test.  Runs under Vitest (npm run test:unit).
  * Reads committed fixtures from test/fixtures/golden/*.json and asserts the
  * engine reproduces every number exactly.  Exact === is intentional: the engine
  * is deterministic, JSON round-trips doubles losslessly, so any divergence after
  * a "pure move" is a real behaviour change.  Do not add tolerance. */
-import { describe, it } from 'vitest';
+import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
-import { dirname, join } from 'node:path';
-import { Engine } from '../../engine/index.js';
-import type { SweepResult, MaxCurvesResult } from '../../engine/index.js';
-import type { TestSolverQuantities } from './testSolver.js';
+import {readFileSync} from 'node:fs';
+import {fileURLToPath} from 'node:url';
+import {dirname, join} from 'node:path';
+import type {MaxCurvesResult, SweepResult} from '../../engine/index.js';
+import {Engine} from '../../engine/index.js';
 
 
 const here        = dirname(fileURLToPath(import.meta.url));

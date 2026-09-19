@@ -16,7 +16,7 @@
  *
  *   node scripts/verify-app-runs.mjs [url]
  */
-import { chromium } from 'playwright';
+import {chromium} from 'playwright';
 
 /** Node's global URL constructor, aliased because `URL` here is the page under test. */
 const URL_CTOR = globalThis.URL;

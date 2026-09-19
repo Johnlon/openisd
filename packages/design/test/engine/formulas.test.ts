@@ -5,9 +5,9 @@
  *
  * Air properties live in air.ts and are pinned by air.test.ts.
  */
-import { describe, it } from 'vitest';
+import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import { Engine } from '../../engine/index.js';
+import {Engine} from '../../engine/index.js';
 
 /** The engine's one door: every calculation below is a method on this object. */
 const engine = new Engine();

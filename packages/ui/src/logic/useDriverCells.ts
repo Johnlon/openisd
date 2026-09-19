@@ -1,9 +1,8 @@
-import { WDR_TO_SCHEMA_KEY } from '@openisd/design';
-import type { Cell as FieldCell } from '@openisd/design';
-import type { CellState } from '@openisd/design/winisd';
-import { Engine } from '@openisd/design/engine';
-import type { DriverIssue } from '@openisd/design/engine';
-import type { SpecField } from './appState.js';
+import type {Cell as FieldCell} from '@openisd/design';
+import type {CellState} from '@openisd/design/winisd';
+import type {DriverIssue} from '@openisd/design/engine';
+import {Engine} from '@openisd/design/engine';
+import type {SpecField} from './appState.js';
 
 /**
  * A sentinel `Cell<number>` with state `'not-available'` and a null value — the presentation
@@ -64,17 +63,15 @@ export function cellClassFor<K extends string = SpecField>(cellOf: (field: K) =>
  * issue (`engine.issueFields`, S2-13). A component asks THIS rather than re-deriving group
  * membership itself, so the composition is unit-testable without mounting anything.
  *
- * `field` arrives spelled the SHORT WinISD way ('Fs', 'Vas', …), but an issue's own fields are
- * SI-suffixed ('Fs_hz', 'Vas_m3', …) — `WDR_TO_SCHEMA_KEY` is the one table translating between
- * the two vocabularies (S2-12b); a key already spelled the same in both (Qts, Qes, …) maps to
- * itself, since it is absent from the table.
+ * `field` is the SCHEMA name ('Fs_hz', 'Vas_m3', …) — the same vocabulary an engine issue's own
+ * fields use — so there is nothing to translate: a caller holding a display name must resolve it
+ * to the schema name before asking (the driver editor's fields ARE schema names).
  */
 export function fieldIsMandatoryAndUnsatisfied(issues: readonly DriverIssue[], field: string): boolean {
   const engine = new Engine();
-  const schemaField = WDR_TO_SCHEMA_KEY[field] ?? field;
   return issues.some(i => {
     if (i.kind !== 'missing-dependencies') return false;
     const named: readonly string[] = engine.issueFields(i);
-    return named.includes(schemaField);
+    return named.includes(field);
   });
 }

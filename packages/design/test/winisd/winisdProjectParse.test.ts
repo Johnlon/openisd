@@ -5,12 +5,12 @@
  * reads, not a second driver parser (QO67). Reading keeps every key the file states, whether or
  * not this class knows the key — a foreign key survives a round trip.
  */
-import { describe, it } from 'vitest';
+import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
-import { dirname, join } from 'node:path';
-import { WinISDProject } from '@openisd/design/winisd';
+import {readFileSync} from 'node:fs';
+import {fileURLToPath} from 'node:url';
+import {dirname, join} from 'node:path';
+import {WinISDProject} from '@openisd/design/winisd';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const GOLDEN_SEALED_SMALL = join(here, 'fixtures', 'winisd-parity', 'goldens', 'sealed-small.wpr');

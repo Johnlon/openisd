@@ -1,6 +1,6 @@
-import { Engine } from '@openisd/design/engine';
-import type { DriverSolverParams, BoxType, SweepResult, MaxCurvesResult, DriverError } from '@openisd/design/engine';
-import type { Series, PlotData, Design, PlotParams, ChartTabId } from '../types.js';
+import type {BoxType, DriverError, DriverSolverParams, MaxCurvesResult, SweepResult} from '@openisd/design/engine';
+import {Engine} from '@openisd/design/engine';
+import type {ChartTabId, Design, PlotData, PlotParams, Series} from '../types.js';
 
 export const DPAL = ['#4fb0ff','#ffb454','#5ad17a','#ff6b6b','#c08bff'];
 

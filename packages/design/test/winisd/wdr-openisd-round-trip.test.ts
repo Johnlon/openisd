@@ -28,7 +28,8 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join, sep } from 'node:path';
 import { OpenISDDriver } from '@openisd/design';
 import { Engine } from '@openisd/design/engine';
-import { PARSTATE_LEN, POS_TO_WDRKEY } from '../../winisd/parstate.js';
+import { PARSTATE_LEN } from '../../winisd/parstate.js';
+import { WinISDDriver } from '../../winisd/winisdDriver.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const SAMPLES = join(here, '..', '..', '..', '..', 'drivers', 'myprobes');
@@ -131,18 +132,18 @@ function pairs(text: string): Map<string, string> {
  * would fail on WinISD's own formatting while catching no actual loss.
  */
 function lostEntered(file: string, src: string): string[] {
-  const before = pairs(src), after = pairs(cycle(src));
-  const state = parStateOf(src)!;
+  const before = WinISDDriver.fromWdrIni(src);
+  const after = WinISDDriver.fromWdrIni(cycle(src));
   const lost: string[] = [];
-  for (let pos = 0; pos < PARSTATE_LEN; pos++) {
-    const key = POS_TO_WDRKEY[pos];
-    if (key == null || state[pos] !== 'E' || !before.has(key)) continue;
+  for (const [key, cell] of before.rows()) {
+    if (cell.state !== 'entered') continue;
     // numVC outside 1..4 is coerced to 1 and flagged `numvc-coerced` — `WDR_LOGIC.md`
     // "numVC — read on mark, value checked". Not a loss: the original survives as
     // `actual_reading`, and this check only sees the two round-tripped .wdr keys.
-    if (key === 'numVC' && !['1', '2', '3', '4'].includes((before.get(key) ?? '').trim())) continue;
-    if (Number(after.get(key)) !== Number(before.get(key))) {
-      lost.push(`${file} ${key}: "${before.get(key)}" -> "${after.get(key)}"`);
+    if (key === 'numVC' && !['1', '2', '3', '4'].includes(cell.value.trim())) continue;
+    const back = after.cell(key);
+    if (Number(back.value) !== Number(cell.value)) {
+      lost.push(`${file} ${key}: "${cell.value}" -> "${back.value}"`);
     }
   }
   return lost;
@@ -173,7 +174,7 @@ describe('a .wdr survives the round trip THROUGH OpenISDDriver', () => {
     const state = parStateOf(src);
     if (!state) continue;   // no ParState: nothing states which values are E, C or N.
 
-    const before = pairs(src);
+    const before = WinISDDriver.fromWdrIni(src);
 
     it(`${file} — entered values are never touched`, () => {
       assert.deepEqual(lostEntered(file, src), [],
@@ -182,24 +183,23 @@ describe('a .wdr survives the round trip THROUGH OpenISDDriver', () => {
     });
 
     it(`${file} — computed values are recomputed and agree with WinISD`, () => {
-      const after = pairs(cycle(src));
+      const after = WinISDDriver.fromWdrIni(cycle(src));
       const env = envTagOf(src);
       const disagreed: string[] = [];
-      for (let pos = 0; pos < PARSTATE_LEN; pos++) {
-        const key = POS_TO_WDRKEY[pos];
-        if (key == null || state[pos] !== 'C' || !before.has(key)) continue;
+      for (const [key, cell] of before.rows()) {
+        if (cell.state !== 'calculated') continue;
         if (UNSOLVED.includes(key) || WRONG_BY_DESIGN.has(file)) continue;
         if (FIELD_DISAGREEMENT_EXCUSED.has(`${file}:${key}`)) continue;
-        const theirs = Number(before.get(key));
+        const theirs = Number(cell.value);
         // `c`/`roo` on a file carrying an `[ENV]` tag: our own writer always recomputes them at
         // the app default environment (nothing in a driver-only `.wdr` carries the real one), so
         // compare against WinISD's OWN air model at the recorded environment instead of `after`.
         const ours = (env && (key === 'c' || key === 'roo'))
           ? new Engine().solveEnvironment({ ...env, useWinisdAirModel: true }).values[key === 'c' ? 'c' : 'rho']
-          : Number(after.get(key));
+          : Number(after.cell(key).value);
         if (!isFinite(theirs) || theirs === 0) continue;   // 0 pins no arithmetic
         if (!isFinite(ours) || !agrees(ours, theirs)) {
-          disagreed.push(`${key}: WinISD ${before.get(key)}, ours ${ours}`);
+          disagreed.push(`${key}: WinISD ${cell.value}, ours ${ours}`);
         }
       }
       assert.deepEqual(disagreed, [],
@@ -240,26 +240,26 @@ describe('a .wdr survives the round trip THROUGH OpenISDDriver', () => {
       const out = cycle(src);
       const outState = parStateOf(out);
       assert.ok(outState, 'the projection must state a ParState');
-      const after = pairs(out);
+      const after = WinISDDriver.fromWdrIni(out);
 
       const invented: string[] = [];
-      for (let pos = 0; pos < PARSTATE_LEN; pos++) {
+      for (const [key, cell] of before.rows()) {
         // Slot 17 is Sd — see the comment above the `it` block.
-        if (pos === 17) continue;
-        if (state[pos] !== 'N' || outState[pos] === 'N') continue;
-        const key = POS_TO_WDRKEY[pos];
-        const sourceValue = key != null ? Number(before.get(key)) : NaN;
-        const derived = key != null && Number(after.get(key)) !== sourceValue;
+        if (key === 'Sd') continue;
+        const outCell = after.cell(key);
+        if (cell.state !== 'not-available' || outCell.state === 'not-available') continue;
+        const sourceValue = Number(cell.value);
+        const derived = Number(outCell.value) !== sourceValue;
         // A nonzero value already in the source is real data under a stale N mark, not
         // something openisd invented — legitimate at E or C, unchanged or not.
         if (isFinite(sourceValue) && sourceValue !== 0) continue;
-        if (outState[pos] === 'C' && derived) continue;
-        invented.push(`slot ${pos} (${key ?? 'no key'}): N -> ${outState[pos]}` +
-          (derived ? '' : `, value unchanged at "${before.get(key ?? '')}"`));
+        if (outCell.state === 'calculated' && derived) continue;
+        invented.push(`${key}: N -> ${outCell.state}` +
+          (derived ? '' : `, value unchanged at "${cell.value}"`));
       }
       assert.deepEqual(invented, [], MARK_WITHOUT_DERIVATION);
 
-      assert.deepEqual([...pairs(out).keys()], [...before.keys()],
+      assert.deepEqual([...pairs(out).keys()], [...pairs(src).keys()],
         'the projection must write WinISD\'s key set, in WinISD\'s order');
     });
   }

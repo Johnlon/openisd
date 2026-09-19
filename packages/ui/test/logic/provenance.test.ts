@@ -1,13 +1,13 @@
-import { describe, it } from 'vitest';
+import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import { getProvenanceInfo, PROVENANCE_MAP, LABEL_TO_FIELD_KEY } from '../../src/logic/provenance.js';
+import {getProvenanceInfo, PROVENANCE_MAP} from '../../src/logic/provenance.js';
 
 describe('Driver Field Provenance Inspector Engine', () => {
   it('defines provenance mapping for core T/S parameters', () => {
     assert.ok(PROVENANCE_MAP.Qts, 'Qts must have provenance information');
     assert.ok(PROVENANCE_MAP.Qes, 'Qes must have provenance information');
-    assert.ok(PROVENANCE_MAP.Fs, 'Fs must have provenance information');
-    assert.ok(PROVENANCE_MAP.Mms, 'Mms must have provenance information');
+    assert.ok(PROVENANCE_MAP.Fs_hz, 'Fs must have provenance information');
+    assert.ok(PROVENANCE_MAP.Mms_kg, 'Mms must have provenance information');
   });
 
   it('returns single formula path for single-derivation fields like Qts', () => {
@@ -23,7 +23,7 @@ describe('Driver Field Provenance Inspector Engine', () => {
     assert.ok(qesInfo, 'Qes info must exist');
     assert.ok(qesInfo.paths.length >= 2, 'Qes must have at least 2 derivation paths');
 
-    const mmsInfo = getProvenanceInfo('Mms');
+    const mmsInfo = getProvenanceInfo('Mms_kg');
     assert.ok(mmsInfo, 'Mms info must exist');
     assert.ok(mmsInfo.paths.length >= 2, 'Mms must have at least 2 derivation paths');
     assert.notEqual(mmsInfo.paths[0].color, mmsInfo.paths[1].color, 'Each path must carry a distinct color');
@@ -34,12 +34,12 @@ describe('Driver Field Provenance Inspector Engine', () => {
    * preference to Bl²/Re (engine driver.ts block 13), and Mpow is √Rme so that it cannot
    * print a number contradicting the Rme beside it. */
   it('the Advanced figures of merit name the inputs the engine really uses', () => {
-    assert.deepEqual(getProvenanceInfo('Rme')?.paths[0].inputs, ['Fs', 'Mms', 'Qes']);
-    assert.deepEqual(getProvenanceInfo('gamma')?.paths[0].inputs, ['BL', 'Mms']);
-    assert.deepEqual(getProvenanceInfo('Mpow')?.paths[0].inputs, ['Rme'],
+    assert.deepEqual(getProvenanceInfo('Rme_kg_per_s')?.paths[0].inputs, ['Fs', 'Mms', 'Qes']);
+    assert.deepEqual(getProvenanceInfo('gamma_m_per_s2_A')?.paths[0].inputs, ['BL', 'Mms']);
+    assert.deepEqual(getProvenanceInfo('Mpow_N_per_sqrtW')?.paths[0].inputs, ['Rme'],
       'Mpow is derived from Rme, not independently from Bl and Re');
-    assert.deepEqual(getProvenanceInfo('SPLmax')?.paths[0].inputs, ['SPL', 'Pe']);
-    assert.match(getProvenanceInfo('SPLmax')?.paths[0].formulaText ?? '', /Pe/);
+    assert.deepEqual(getProvenanceInfo('SPLmax_dB')?.paths[0].inputs, ['SPL', 'Pe']);
+    assert.match(getProvenanceInfo('SPLmax_dB')?.paths[0].formulaText ?? '', /Pe/);
   });
 
   it('substitutes live values into formula text', () => {
@@ -50,14 +50,10 @@ describe('Driver Field Provenance Inspector Engine', () => {
     assert.match(sub, /4/);
   });
 
-  it('LABEL_TO_FIELD_KEY maps labels to valid field keys', () => {
-    for (const [label, key] of Object.entries(LABEL_TO_FIELD_KEY)) {
+  it('every provenance-map key resolves through the direct lookup', () => {
+    for (const key of Object.keys(PROVENANCE_MAP)) {
       const info = getProvenanceInfo(key);
-      if (key in PROVENANCE_MAP) {
-        assert.ok(info, `Expected provenance info for key "${key}" (from label "${label}")`);
-      } else {
-        assert.equal(info, null, `Expected null provenance info for non-derived key "${key}"`);
-      }
+      assert.ok(info, `Expected provenance info for key "${key}"`);
     }
   });
 });

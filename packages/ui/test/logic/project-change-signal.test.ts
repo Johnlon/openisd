@@ -10,11 +10,16 @@
  * notifies its watchers only when its VALUE changes — a signal can be recomputing on every
  * edit and still never wake a watcher.
  */
-import { describe, it } from 'vitest';
+import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import { watch, nextTick } from 'vue';
+import {nextTick, watch} from 'vue';
 import {
-  projectChanged, requireFocusedProject, focusProject, removeProject, newProject, openProjects,
+    focusProject,
+    newProject,
+    openProjects,
+    projectChanged,
+    removeProject,
+    requireFocusedProject,
 } from '../../src/logic/appState.js';
 
 /** Count how many times a real watcher on the signal wakes while `body` runs. */

@@ -1,20 +1,19 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
-import { useFocusedProject } from '../../logic/focusedProjectContext.js';
-import { passiveRadiatorRows } from '../../logic/driverDisplay.js';
+import {computed, ref} from 'vue';
+import {useFocusedProject} from '../../logic/focusedProjectContext.js';
+import {passiveRadiatorRows} from '../../logic/driverDisplay.js';
 import NumInput from './NumInput.vue';
 import UnitToggle from './UnitToggle.vue';
-import { useApp } from '../../logic/app.js';
+import {useApp} from '../../logic/app.js';
+import {useEscToClose} from '../../logic/useEscToClose.js';
+import {fieldHelp} from '../../logic/fields/fieldRegistry.js';
+import {inputValue} from '../../logic/domEvents.js';
 
 const { myPassiveRadiators } = useApp();
 
 // PR "Edit" — a real popup (unlike Tune, this doesn't need the graph
 // visible while typing: WinISD ref view_3_passive_radiator.png "Passive radiator
 // parameters" box). Fields here describe the PR unit itself, not the box around it.
-
-import { useEscToClose } from '../../logic/useEscToClose.js';
-import { fieldHelp } from '../../logic/fields/fieldRegistry.js';
-import { inputValue } from '../../logic/domEvents.js';
 
 const emit = defineEmits<{ close: [] }>();
 useEscToClose(() => true, close);

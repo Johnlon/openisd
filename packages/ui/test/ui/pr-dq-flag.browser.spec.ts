@@ -1,6 +1,6 @@
-import type { Page } from '@playwright/test';
-import { test, expect, openAProject } from '../fixtures.js';
-import { PageOps } from '../fixtures/numField.js';
+import type {Page} from '@playwright/test';
+import {expect, openAProject, test} from '../fixtures.js';
+import {PageOps} from '../fixtures/numField.js';
 
 // The generic DQ rule, driven through the PR solved pair: an unreachable target tuning flags
 // EVERY field in the relation — but the ENTERED one (the Fp the user typed) is the real problem

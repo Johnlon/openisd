@@ -17,7 +17,7 @@ import PREditModal from '../../components/PREditModal.vue';
 import OptionsModal from '../../components/OptionsModal.vue';
 import AdvancedOptions from '../../components/AdvancedOptions.vue';
 import BoxTypeDiagram from '../../components/BoxTypeDiagram.vue';
-import { useOriginalShell } from '../../../hooks/OriginalShell-hooks.js';
+import {useOriginalShell} from '../../../hooks/OriginalShell-hooks.js';
 
 const {
   version, toggleDropdown, openDd, openClick, closeDropdown, presentationState, isModified,

@@ -2,10 +2,10 @@
  * `fileFormat.ts`'s classification functions — `formatOf` (by file name) and `sniff` (by
  * content): the ONE place either classification rule lives (QO67).
  */
-import { describe, it } from 'vitest';
+import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import { DriverFileFormat, ProjectFileFormat, formatOf, sniff } from '../../src/fileFormat.js';
-import { winisdTextToBytes } from '@openisd/design/winisd';
+import {DriverFileFormat, formatOf, ProjectFileFormat, sniff} from '../../src/fileFormat.js';
+import {winisdTextToBytes} from '@openisd/design/winisd';
 
 describe('formatOf — file-name classification across both format families', () => {
   it('identifies every known driver and project extension', () => {

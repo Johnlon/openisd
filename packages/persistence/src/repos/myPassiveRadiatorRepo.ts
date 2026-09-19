@@ -4,11 +4,11 @@
  *  envelope (`savedEntries.ts`): writable, held in the browser's key-value storage, and nothing
  *  to do with the read-only radiators that ship in the bundle. This file supplies only the two
  *  things specific to a radiator: which storage key, and which domain seam validates a record. */
-import { OpenISDPassiveRadiatorStandalone } from '@openisd/design';
-import type { Engine } from '@openisd/design/engine';
-import type { KeyValueStorage } from '../storage/keyValueStorage.js';
-import { createSavedEntries, type BrokenEntry, type SavedEntries } from './savedEntries.js';
-import { OPENISD_MY_PASSIVE_RADIATORS_KEY } from './storageKeys.js';
+import {OpenISDPassiveRadiatorStandalone} from '@openisd/design';
+import type {Engine} from '@openisd/design/engine';
+import type {KeyValueStorage} from '../storage/keyValueStorage.js';
+import {type BrokenEntry, createSavedEntries, type SavedEntries} from './savedEntries.js';
+import {OPENISD_MY_PASSIVE_RADIATORS_KEY} from './storageKeys.js';
 
 export const MY_PASSIVE_RADIATORS_KEY = OPENISD_MY_PASSIVE_RADIATORS_KEY;
 

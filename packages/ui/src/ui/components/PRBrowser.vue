@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
-import { useEscToClose } from '../../logic/useEscToClose.js';
-import { useApp } from '../../logic/app.js';
-import { passiveRadiatorRows, bundledPassiveRadiatorRows, type PassiveRadiatorRow } from '../../logic/driverDisplay.js';
+import {computed, ref} from 'vue';
+import {useEscToClose} from '../../logic/useEscToClose.js';
+import {useApp} from '../../logic/app.js';
+import {bundledPassiveRadiatorRows, type PassiveRadiatorRow, passiveRadiatorRows} from '../../logic/driverDisplay.js';
 
 const { myPassiveRadiators, bundledPassiveRadiators } = useApp();
 

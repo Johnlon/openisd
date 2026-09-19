@@ -4,12 +4,17 @@
  * the driver itself; this file's job is turning those facts into UI-facing strings, which is
  * not domain logic.
  */
-import { describe, it } from 'vitest';
+import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import { OpenISDDriver, OpenISDPassiveRadiatorStandalone } from '@openisd/design';
-import { Engine } from '@openisd/design/engine';
-import { displayNameOf, chipsOf, passiveRadiatorRows, bundledPassiveRadiatorRows } from '../../src/logic/driverDisplay.js';
-import type { BundledPassiveRadiatorIndexRow } from '@openisd/persistence';
+import {OpenISDDriver, OpenISDPassiveRadiatorStandalone} from '@openisd/design';
+import {Engine} from '@openisd/design/engine';
+import {
+    bundledPassiveRadiatorRows,
+    chipsOf,
+    displayNameOf,
+    passiveRadiatorRows
+} from '../../src/logic/driverDisplay.js';
+import type {BundledPassiveRadiatorIndexRow} from '@openisd/persistence';
 
 const scraped = <T,>(value: T) => ({ value });
 const spec = (read_value: number) => ({ origin: 'manual', readings: { manual: { read_value } } });

@@ -10,8 +10,8 @@
  * fields like brand and model are not this comparison's job. A field marked `N` on the as-read
  * side is skipped, because there is nothing stated to check.
  */
-import { INI_ROWS, type WinISDDriver } from '../../winisd/winisdDriver.js';
-import type { DriverError } from '@openisd/design/engine';
+import type {WinISDDriver} from '../../winisd/winisdDriver.js';
+import type {DriverError} from '@openisd/design/engine';
 
 /** Relative tolerance. WinISD writes ~15 significant digits, so anything looser hides real drift. */
 const REL_TOL = 1e-9;
@@ -23,8 +23,9 @@ export function diffWdrValues(
 ): DriverError[] {
   const out: DriverError[] = [];
 
-  for (const key of INI_ROWS) {
-    const cell = a.cell(key);
+  // The fixed 48-row structure, read off the driver's own `rows()` — no key list to drift from
+  // the format.
+  for (const [key, cell] of a.rows()) {
     if (cell.state === 'not-available') continue;
 
     const stated = Number(cell.value);

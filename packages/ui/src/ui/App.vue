@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, watch } from 'vue';
+import {computed, onMounted, onUnmounted, watch} from 'vue';
 import OriginalShell from './shells/original/OriginalShell.vue';
 import OgNewProject from './shells/original/OgNewProject.vue';
 import OgTune from './shells/original/OgTune.vue';
@@ -8,13 +8,20 @@ import DriverEditorModal from './components/DriverEditorModal.vue';
 import Flash from './components/Flash.vue';
 import DiagnosticsModal from './components/DiagnosticsModal.vue';
 import {
-  requireFocusedProject, projectChanged, openProjects, focusedProject, restoreProjects,
-  applyState, applyLoadedProject, applyViewSnapshot,
-  markProjectSaved, currentViewSnapshot,
+  applyLoadedProject,
+  applyState,
+  applyViewSnapshot,
+  currentViewSnapshot,
+  focusedProject,
+  markProjectSaved,
+  openProjects,
+  projectChanged,
+  requireFocusedProject,
+  restoreProjects,
 } from '../logic/appState.js';
-import { presentationState } from '../logic/presentationState.js';
-import { provideFocusedProject } from '../logic/focusedProjectContext.js';
-import { useApp } from '../logic/app.js';
+import {presentationState} from '../logic/presentationState.js';
+import {provideFocusedProject} from '../logic/focusedProjectContext.js';
+import {useApp} from '../logic/app.js';
 
 const { projectRepo, viewStateRepo, logging } = useApp();
 

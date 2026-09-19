@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest';
-import { specEntryJsonSchema, enteredEntry } from '../../domain/openisdSchema.js';
+import {describe, expect, it} from 'vitest';
+import {enteredEntry, specEntryJsonSchema} from '../../domain/openisdSchema.js';
 
 describe('specEntryJsonSchema — the {state, value} sum type (S2-7b / T11)', () => {
   it('parses a legacy {origin, readings} JSON string into {state:"E", value, origin, readings}', () => {

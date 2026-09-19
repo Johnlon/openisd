@@ -1,4 +1,4 @@
-import type { Locator, Page } from '@playwright/test';
+import type {Locator, Page} from '@playwright/test';
 
 /**
  * Numeric-driving helpers shared by the browser specs — one home for the "find a NumInput by its

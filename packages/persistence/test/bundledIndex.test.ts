@@ -7,10 +7,10 @@
  * bundler that drifts from the declared row is caught at the app's door — never as a picker that
  * lists `undefined` or a favourite that matches nothing.
  */
-import { describe, it } from 'vitest';
+import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import { readBundledDriverIndex } from '../src/repos/bundledDriverRepo.js';
-import { readBundledPassiveRadiatorIndex } from '../src/repos/bundledPassiveRadiatorRepo.js';
+import {readBundledDriverIndex} from '../src/repos/bundledDriverRepo.js';
+import {readBundledPassiveRadiatorIndex} from '../src/repos/bundledPassiveRadiatorRepo.js';
 
 const driverRow = {
   uuid: '04500ae1-56fb-488c-9bef-11482bafeb94',

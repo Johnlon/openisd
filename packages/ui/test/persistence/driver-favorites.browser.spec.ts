@@ -1,5 +1,5 @@
-import type { Page } from '@playwright/test';
-import { test, expect, openAProject } from '../fixtures.js';
+import type {Page} from '@playwright/test';
+import {expect, openAProject, test} from '../fixtures.js';
 
 // ui-todo.md "Favorites" — a star toggle on every row, and a Favorites button in the slot
 // the All Sources dropdown vacated, behaving as an on/off filter over the same list exactly

@@ -10,9 +10,9 @@
  * (`winisd/driverYmlToOpenisdAndWdr.ts`) MUST be inlined, not left as a runtime
  * import, because mini-racer's V8 has no module loader.
  */
-import { defineConfig } from 'vite';
-import { fileURLToPath } from 'node:url';
-import { dirname, join } from 'node:path';
+import {defineConfig} from 'vite';
+import {fileURLToPath} from 'node:url';
+import {dirname, join} from 'node:path';
 
 const ROOT = dirname(fileURLToPath(import.meta.url));
 

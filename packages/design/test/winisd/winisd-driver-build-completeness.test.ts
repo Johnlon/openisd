@@ -1,31 +1,30 @@
 /**
- * `WinISDDriver.build()` requires every one of the 48 `.wdr` keys. A caller that omits one has
- * drifted out of sync with `INI_ROWS` — a real incompatibility bug, never a normal absent-field
- * case (that is `state: 'not-available'`, a PRESENT cell with no value) — so `build()` throws
- * naming the missing keys, rather than reporting the gap via `missingKeys()` (removed) and
- * having `toWdrIni()` silently fill it later.
+ * `WinISDDriver` holds the `.wdr` rows as an ORDERED fixed structure and serializes them exactly
+ * as supplied — there is no key-list to reorder against and no completeness check, because the
+ * structure IS the order and the contents. These tests pin that contract: the rows come out in
+ * the order they were given.
  */
-import { describe, it } from 'vitest';
+import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import { WinISDDriver, INI_ROWS } from '../../winisd/winisdDriver.js';
+import {WinISDDriver} from '../../winisd/winisdDriver.js';
+import {WDR_FILE_ROWS} from './wdrFixture.js';
 
-describe('WinISDDriver.build() completeness', () => {
-  it('throws, naming the missing keys, when the cells map omits some of the 48', () => {
-    const cells = new Map([['Fs', { value: '40', state: 'entered' as const }]]);
-
-    assert.throws(() => WinISDDriver.build({}, cells), (err: unknown) => {
-      assert.ok(err instanceof Error);
-      assert.match(err.message, /47 of the 48/);
-      assert.match(err.message, /roo/);
-      assert.doesNotMatch(err.message, /\bFs\b,|\bFs\b$/);
-      return true;
+describe('WinISDDriver — the cells are an ordered fixed structure', () => {
+  it('serializes the rows in the order they were supplied, not a reordered key list', () => {
+    const cells = WDR_FILE_ROWS.map((key, i) =>
+      [key, { value: String(100 + i), state: 'entered' as const }] as const);
+    const lines = WinISDDriver.build({}, cells).toWdrIni().split(/\r\n/);
+    // The 48 rows follow the header block consecutively, in the supplied order.
+    const firstRow = lines.findIndex(l => l.startsWith(`${cells[0][0]}=`));
+    assert.ok(firstRow > 0, 'the first row line must be present after the header');
+    cells.forEach(([key, cell], i) => {
+      assert.equal(lines[firstRow + i], `${key}=${cell.value}`);
     });
   });
 
   it('succeeds when every one of the 48 keys is supplied', () => {
-    const cells = new Map(INI_ROWS.map((key, i) =>
-      [key, { value: String(100 + i), state: 'entered' as const }]));
-
+    const cells = WDR_FILE_ROWS.map((key, i) =>
+      [key, { value: String(100 + i), state: 'entered' as const }] as const);
     assert.doesNotThrow(() => WinISDDriver.build({}, cells));
   });
 });

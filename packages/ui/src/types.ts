@@ -2,7 +2,7 @@
  * Shared UI types — the view-layer shapes (plot series, designs, canvas geometry).
  * Engine shapes (Driver, SweepResult, …) are imported from @openisd/design/engine.
  */
-import type { DriverSolverParams, BoxType, SweepResult, MaxCurvesResult } from '@openisd/design/engine';
+import type {BoxType, DriverSolverParams, MaxCurvesResult, SweepResult} from '@openisd/design/engine';
 
 /**
  * The closed set of chart curves the engine can draw. Every member MUST appear in

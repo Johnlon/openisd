@@ -12,11 +12,8 @@ export interface ProvenanceInfo {
   paths: ProvenancePath[];
 }
 
-// Field keys come from the ONE vocabulary (openIsdFieldKeys.ts); a rename happens there, never
-// here. LABEL_TO_FIELD_KEY is derived from the field table there — re-exported so existing
-// readers (the editor's click detection, the drift test) keep the same import path.
-import { isFieldKey, type OpenIsdFieldKey } from './openIsdFieldKeys.js';
-export { LABEL_TO_FIELD_KEY } from './openIsdFieldKeys.js';
+// Field keys are the vocabulary's schema names (`@openisd/design/fields`); the inspector looks
+// up a clicked field's key directly, so no label→key map or runtime guard is needed here.
 
 export const PATH_COLORS = [
   { color: '#3b82f6', name: 'Primary Formula (Blue)' },
@@ -24,19 +21,19 @@ export const PATH_COLORS = [
   { color: '#10b981', name: 'Acoustic/Geometry Formula (Emerald)' },
 ];
 
-export const PROVENANCE_MAP: Partial<Record<OpenIsdFieldKey, { paths: Array<{ formulaText: string; inputs: string[] }> }>> = {
-  Qts: {
+export const PROVENANCE_MAP: Record<string, { paths: Array<{ formulaText: string; inputs: string[] }> }> = {
+Qts: {
     paths: [
       { formulaText: 'Qts = (Qes × Qms) / (Qes + Qms)', inputs: ['Qes', 'Qms'] }
     ]
   },
-  Qes: {
+Qes: {
     paths: [
       { formulaText: 'Qes = (Qts × Qms) / (Qms - Qts)', inputs: ['Qts', 'Qms'] },
       { formulaText: 'Qes = (2π × Fs × Mms × Re) / BL²', inputs: ['Fs', 'Mms', 'Re', 'BL'] }
     ]
   },
-  Qms: {
+Qms: {
     paths: [
       { formulaText: 'Qms = (Qts × Qes) / (Qes - Qts)', inputs: ['Qts', 'Qes'] },
       { formulaText: 'Qms = (2π × Fs × Mms) / Rms', inputs: ['Fs', 'Mms', 'Rms'] }
@@ -49,7 +46,7 @@ export const PROVENANCE_MAP: Partial<Record<OpenIsdFieldKey, { paths: Array<{ fo
   // bugs/BUG_20260817_engine_is_missing_two_of_winisds_fs_routes_and_has_one_winisd_does_not.md.
   // provenance-matches-engine.test.ts holds this list to the engine's site count, so a route
   // added to driver.ts fails there until it is declared here too.
-  Fs: {
+Fs_hz: {
     paths: [
       { formulaText: 'Fs = 1 / (2π × √(Cms × Mms))', inputs: ['Cms', 'Mms'] },
       { formulaText: 'Fs = (Rme × Qes) / (2π × Mms)', inputs: ['Rme', 'Qes', 'Mms'] },
@@ -58,40 +55,40 @@ export const PROVENANCE_MAP: Partial<Record<OpenIsdFieldKey, { paths: Array<{ fo
       { formulaText: 'Fs = EBP × Qes', inputs: ['EBP', 'Qes'] }
     ]
   },
-  Vas: {
+Vas_m3: {
     paths: [
       { formulaText: 'Vas = ρ × c² × Sd² × Cms', inputs: ['Sd', 'Cms'] },
       { formulaText: 'Vas = (Sd² × ρ × c²) / (4π² × Fs² × Mms)', inputs: ['Sd', 'Fs', 'Mms'] }
     ]
   },
-  Mms: {
+Mms_kg: {
     paths: [
       { formulaText: 'Mms = 1 / (4π² × Fs² × Cms)', inputs: ['Fs', 'Cms'] },
       { formulaText: 'Mms = (BL² × Qes) / (2π × Fs × Re)', inputs: ['BL', 'Qes', 'Fs', 'Re'] }
     ]
   },
-  Cms: {
+Cms_m_per_N: {
     paths: [
       { formulaText: 'Cms = 1 / (4π² × Fs² × Mms)', inputs: ['Fs', 'Mms'] },
       { formulaText: 'Cms = Vas / (ρ × c² × Sd²)', inputs: ['Vas', 'Sd'] }
     ]
   },
-  Rms: {
+Rms_kg_per_s: {
     paths: [
       { formulaText: 'Rms = (2π × Fs × Mms) / Qms', inputs: ['Fs', 'Mms', 'Qms'] }
     ]
   },
-  Re: {
+Re_ohm: {
     paths: [
       { formulaText: 'Re = (BL² × Qes) / (2π × Fs × Mms)', inputs: ['BL', 'Qes', 'Fs', 'Mms'] }
     ]
   },
-  BL: {
+BL_Tm: {
     paths: [
       { formulaText: 'BL = √(2π × Fs × Mms × Re / Qes)', inputs: ['Fs', 'Mms', 'Re', 'Qes'] }
     ]
   },
-  Znom: {
+Znom_ohm: {
     paths: [
       { formulaText: 'Znom = 2 × round_half_to_even(0.75 × Re)', inputs: ['Re'] }
     ]
@@ -99,87 +96,87 @@ export const PROVENANCE_MAP: Partial<Record<OpenIsdFieldKey, { paths: Array<{ fo
   // The DVol/Depth/MagDepth/Magnet geometry lock (WINISD_SCHEMA.md §3.10.1): with
   // S = Dd² + Dd·Vcd + Vcd², DVol = (π/4)·[ S·(Depth−MagDepth)/3 + Magnet²·MagDepth ],
   // and each sibling is that equation solved for itself (engine dvolRelation.ts).
-  DVol: {
+DVol_m3: {
     paths: [
       { formulaText: 'DVol = (π/4)·[ (Dd² + Dd·Vcd + Vcd²)·(Depth − MagDepth)/3 + Magnet²·MagDepth ]',
         inputs: ['Dd', 'Vcd', 'Depth', 'MagDepth', 'Magnet'] }
     ]
   },
-  Depth: {
+Depth_m: {
     paths: [
       { formulaText: 'Depth = MagDepth + 3·(4·DVol/π − Magnet²·MagDepth) / (Dd² + Dd·Vcd + Vcd²)',
         inputs: ['Dd', 'Vcd', 'DVol', 'MagDepth', 'Magnet'] }
     ]
   },
-  MagDepth: {
+MagDepth_m: {
     paths: [
       { formulaText: 'MagDepth = (4·DVol/π − S·Depth/3) / (Magnet² − S/3),  S = Dd² + Dd·Vcd + Vcd²',
         inputs: ['Dd', 'Vcd', 'DVol', 'Depth', 'Magnet'] }
     ]
   },
-  Magnet: {
+Magnet_m: {
     paths: [
       { formulaText: 'Magnet = √[ (4·DVol/π − S·(Depth − MagDepth)/3) / MagDepth ],  S = Dd² + Dd·Vcd + Vcd²',
         inputs: ['Dd', 'Vcd', 'DVol', 'Depth', 'MagDepth'] }
     ]
   },
-  Sd: {
+Sd_m2: {
     paths: [
       { formulaText: 'Sd = π × (Dd / 2)²', inputs: ['Dd'] },
       { formulaText: 'Sd = √(Vas / (ρ × c² × Cms))', inputs: ['Vas', 'Cms'] }
     ]
   },
-  Dd: {
+Dd_m: {
     paths: [
       { formulaText: 'Dd = 2 × √(Sd / π)', inputs: ['Sd'] }
     ]
   },
-  Xmax: {
+Xmax_m: {
     paths: [
       { formulaText: 'Xmax = |Hc - Hg| / 2', inputs: ['Hc', 'Hg'] }
     ]
   },
-  Hc: {
+Hc_m: {
     paths: [
       { formulaText: 'Hc = 2 × Xmax + Hg', inputs: ['Xmax', 'Hg'] }
     ]
   },
-  Hg: {
+Hg_m: {
     paths: [
       { formulaText: 'Hg = Hc - 2 × Xmax', inputs: ['Hc', 'Xmax'] }
     ]
   },
-  Vd: {
+Vd_m3: {
     paths: [
       { formulaText: 'Vd = Sd × Xmax', inputs: ['Sd', 'Xmax'] }
     ]
   },
-  no: {
+no: {
     paths: [
       { formulaText: 'η₀ = (4π² / c³) × (Fs³ × Vas / Qes)', inputs: ['Fs', 'Vas', 'Qes'] }
     ]
   },
-  SPL: {
+SPL_dB: {
     paths: [
       { formulaText: 'SPL = K + 10 × log₁₀(η₀),  K = 10 × log₁₀(ρ × c / (2π × p_ref²))', inputs: ['no'] }
     ]
   },
-  USPL: {
+USPL_dB: {
     paths: [
       { formulaText: 'USPL = SPL + 10 × log₁₀(2.83² / Re)', inputs: ['SPL', 'Re'] }
     ]
   },
-  EBP: {
+EBP_hz: {
     paths: [
       { formulaText: 'EBP = Fs / Qes', inputs: ['Fs', 'Qes'] }
     ]
   },
-  Rme: {
+Rme_kg_per_s: {
     paths: [
       { formulaText: 'Rme = (2π × Fs × Mms) / Qes', inputs: ['Fs', 'Mms', 'Qes'] }
     ]
   },
-  gamma: {
+gamma_m_per_s2_A: {
     paths: [
       { formulaText: 'γ = BL / Mms', inputs: ['BL', 'Mms'] }
     ]
@@ -187,34 +184,34 @@ export const PROVENANCE_MAP: Partial<Record<OpenIsdFieldKey, { paths: Array<{ fo
   // √Rme rather than BL/√Re: the two are the same quantity only on a record whose stored BL
   // agrees with its own Fs/Mms/Re/Qes, and the engine takes the Rme route (driver.ts block 13),
   // so naming BL and Re here would describe a derivation that did not happen.
-  Mpow: {
+Mpow_N_per_sqrtW: {
     paths: [
       { formulaText: 'Mpow = √Rme', inputs: ['Rme'] }
     ]
   },
-  SPLmax: {
+SPLmax_dB: {
     paths: [
       { formulaText: 'SPLmax = SPL + 10 × log₁₀(Pe) − 3', inputs: ['SPL', 'Pe'] }
     ]
   },
   // The three the solver fills in its full pass (engine driver.ts block 13). Gloss is the
   // FRACTION the .wdr carries; the editor's ×100 is display only.
-  Gloss: {
+Gloss: {
     paths: [
       { formulaText: 'Gloss = g / ((2π × Fs)² × Xmax)', inputs: ['Fs', 'Xmax'] }
     ]
   },
-  SPLmaxLF: {
+SPLmaxLF_dB: {
     paths: [
       { formulaText: 'SPLmaxLF = 20 × log₁₀(ρ × (2π × 20)² × Vd / (2π√2) / p_ref)', inputs: ['Vd'] }
     ]
   },
-  Mcost: {
+Mcost_kg_per_s: {
     paths: [
       { formulaText: 'Mcost = Rme × (1 + Xmax / min(Hc, Hg))', inputs: ['Rme', 'Xmax', 'Hc', 'Hg'] }
     ]
   },
-  numVC: {
+numVC: {
     paths: [
       { formulaText: 'numVC = 1 — the default single voice coil, applied when no count is entered', inputs: [] }
     ]
@@ -230,7 +227,7 @@ export const PROVENANCE_MAP: Partial<Record<OpenIsdFieldKey, { paths: Array<{ fo
  */
 
 export function getProvenanceInfo(targetField: string, currentValues?: Record<string, number | null>): ProvenanceInfo | null {
-  const spec = isFieldKey(targetField) ? PROVENANCE_MAP[targetField] : undefined;
+  const spec = PROVENANCE_MAP[targetField];
   if (!spec) return null;
 
   const paths: ProvenancePath[] = spec.paths.map((p, idx) => {

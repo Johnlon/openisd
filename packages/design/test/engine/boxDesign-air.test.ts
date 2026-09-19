@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest';
-import { Engine } from '../../engine/index.js';
+import {describe, expect, it} from 'vitest';
+import {Engine} from '../../engine/index.js';
 
 const engine = new Engine();
 

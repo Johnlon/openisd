@@ -4,11 +4,11 @@
  * to add, patch or remove one filter reads the current array, builds the new one, and writes it
  * back with `set()`.
  */
-import { describe, it } from 'vitest';
+import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import { OpenISDProject, OpenISDDriver } from '@openisd/design';
-import { Engine } from '@openisd/design/engine';
-import type { Filter } from '@openisd/design/engine';
+import {OpenISDDriver, OpenISDProject} from '@openisd/design';
+import type {Filter} from '@openisd/design/engine';
+import {Engine} from '@openisd/design/engine';
 
 const hp = (id: string, fc: number): Filter => ({ id, type: 'highpass', enabled: true, fc, Q: 0.7071 });
 

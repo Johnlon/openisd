@@ -1,7 +1,7 @@
-import { OpenISDDriver } from '@openisd/design';
-import { requireFocusedProject } from './appState.js';
-import { presentationState } from './presentationState.js';
-import { owdrTextToDriver, wdrTextToDriver } from './fileImportExport.js';
+import {OpenISDDriver} from '@openisd/design';
+import {requireFocusedProject} from './appState.js';
+import {presentationState} from './presentationState.js';
+import {owdrTextToDriver, wdrTextToDriver} from './fileImportExport.js';
 
 // The ONE implementation of "the user chose a driver" (ARCHITECTURE.md AD-7).
 //

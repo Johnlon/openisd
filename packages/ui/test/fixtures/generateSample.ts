@@ -1,8 +1,8 @@
-import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
-import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
-import { OpenISDProject, OpenISDDriver, OpenISDPassiveRadiatorStandalone, Engine } from '@openisd/design';
-import { SAMPLE_PROJECT_OWPR } from './sampleProject.js';
+import {mkdirSync, readFileSync, writeFileSync} from 'node:fs';
+import {dirname, join} from 'node:path';
+import {fileURLToPath} from 'node:url';
+import {Engine, OpenISDDriver, OpenISDPassiveRadiatorStandalone, OpenISDProject} from '@openisd/design';
+import {SAMPLE_PROJECT_OWPR} from './sampleProject.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);

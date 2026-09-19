@@ -1,7 +1,7 @@
-import type { InjectionKey, Ref } from 'vue';
-import { computed } from 'vue';
-import { useFocusedProject } from '../logic/focusedProjectContext.js';
-import type { Filter, FilterType } from '@openisd/design/engine';
+import type {InjectionKey, Ref} from 'vue';
+import {computed} from 'vue';
+import {useFocusedProject} from '../logic/focusedProjectContext.js';
+import type {Filter, FilterType} from '@openisd/design/engine';
 
 export interface OgFiltersAPI {
   readonly filters: Readonly<Ref<readonly Filter[]>>;

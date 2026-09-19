@@ -25,12 +25,12 @@
  * fail the rule (behavioral_instructions.md §"BAN THE CODE, NEVER THE VOCABULARY"). This file
  * is born GREEN: it exists to guard the D20 rename from rotting back, not to record a checklist.
  */
-import { describe, it, vi } from 'vitest';
+import {describe, it, vi} from 'vitest';
 import assert from 'node:assert/strict';
-import { readdirSync, readFileSync, statSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
-import { dirname, join, relative } from 'node:path';
-import { Project as TsProject, Node, SyntaxKind, type SourceFile } from 'ts-morph';
+import {readdirSync, readFileSync, statSync} from 'node:fs';
+import {fileURLToPath} from 'node:url';
+import {dirname, join, relative} from 'node:path';
+import {Node, Project as TsProject, type SourceFile, SyntaxKind} from 'ts-morph';
 
 // AST-walking over the whole tree is parse-bound work, not the function-call unit tests
 // vitest's 5s default budget is calibrated for (same reasoning as architecture.test.ts).

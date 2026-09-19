@@ -20,9 +20,9 @@
  * This is input validation only: it changes no formula and no computed number.
  */
 
-import type { BoxType, SimulatableBoxType, EnclosureParams } from './types.js';
-import { simulatableBoxType } from './types.js';
-import type { CalculationIssue, SolveRoute } from './consistency.js';
+import type {BoxType, EnclosureParams, SimulatableBoxType} from './types.js';
+import {simulatableBoxType} from './types.js';
+import type {CalculationIssue, SolveRoute} from './consistency.js';
 
 export type BoxParamsQuantityName = keyof EnclosureParams;
 export type BoxParamsIssue = CalculationIssue<BoxParamsQuantityName>;

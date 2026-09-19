@@ -6,7 +6,7 @@
  * Air properties (ρ, c) are NOT here: they belong to `air.ts`, which the UI, the sweep and
  * the circuit all call through `solveEnvironment`.
  */
-import { solveEnvironment } from './air.js';
+import {solveEnvironment} from './air.js';
 
 /**
  * Passive-radiator compliance-equivalent volume Vas, in CUBIC METRES.

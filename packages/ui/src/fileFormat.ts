@@ -9,7 +9,7 @@
  * label the save picker shows, and the MIME type, all carried ON the member. No caller compares
  * a bare `'wdr'`/`'wpr'` string, which would survive a value change and be invisible to rename.
  */
-import { parse as parseYaml } from 'yaml';
+import {parse as parseYaml} from 'yaml';
 
 export class DriverFileFormat {
   private constructor(

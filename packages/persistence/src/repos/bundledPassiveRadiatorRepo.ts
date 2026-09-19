@@ -5,10 +5,10 @@
  *  base, read by `readBundledPassiveRadiatorIndex`, and records opened through
  *  `OpenISDPassiveRadiatorStandalone.fromConformingRecord`. Records live in the same `drivers/`
  *  store as the drivers' — a radiator record is a device record. */
-import { OpenISDPassiveRadiatorStandalone } from '@openisd/design';
-import type { Engine } from '@openisd/design/engine';
-import type { BundledPassiveRadiatorIndexRow, IndexRead } from './bundledIndex.js';
-import { createBundledRepo, baseOf, readIndex, type FieldReader } from './bundledRepo.js';
+import {OpenISDPassiveRadiatorStandalone} from '@openisd/design';
+import type {Engine} from '@openisd/design/engine';
+import type {BundledPassiveRadiatorIndexRow, IndexRead} from './bundledIndex.js';
+import {baseOf, createBundledRepo, type FieldReader, readIndex} from './bundledRepo.js';
 
 function radiatorRowOf(row: Record<string, unknown>, where: string, f: FieldReader): BundledPassiveRadiatorIndexRow | null {
   const base = baseOf(row, where, f);

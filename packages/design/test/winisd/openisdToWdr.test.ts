@@ -20,16 +20,16 @@
  * honestly prove. End-to-end VALUE parity needs a driver carrying both an `openisd.yml` and a
  * johnl-prepared save of the same driver; none exists yet, so no test here claims it.
  */
-import { describe, it } from 'vitest';
+import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
-import { dirname, join } from 'node:path';
+import {readFileSync} from 'node:fs';
+import {fileURLToPath} from 'node:url';
+import {dirname, join} from 'node:path';
 
-import { parse } from 'yaml';
-import type { DriverError } from '@openisd/design/engine';
-import { WINISD_NEWLINE_SENTINEL } from '../../winisd/index.js';
-import { driverYmlToOpenisdAndWdr } from '../../domain/driverYmlToOpenisdAndWdr.js';
+import {parse} from 'yaml';
+import type {DriverError} from '@openisd/design/engine';
+import {WINISD_NEWLINE_SENTINEL} from '../../winisd/index.js';
+import {driverYmlToOpenisdAndWdr} from '../../domain/driverYmlToOpenisdAndWdr.js';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..', '..');
 const ORACLE = join(ROOT, 'drivers', 'myprobes', 'per_field_and_misc', 'john-all-defaults.wdr');

@@ -33,12 +33,12 @@
  * be read off the solver and confirmed — and a blanket assertion written without doing that work
  * would either fail on differences that are not defects or be quietly weakened until it passed.
  */
-import { describe, it, vi } from 'vitest';
+import {describe, it, vi} from 'vitest';
 import assert from 'node:assert/strict';
-import { fileURLToPath } from 'node:url';
-import { dirname, join } from 'node:path';
-import { Project as TsProject, Node } from 'ts-morph';
-import { PROVENANCE_MAP } from '../../src/logic/provenance.js';
+import {fileURLToPath} from 'node:url';
+import {dirname, join} from 'node:path';
+import {Node, Project as TsProject} from 'ts-morph';
+import {PROVENANCE_MAP} from '../../src/logic/provenance.js';
 
 vi.setConfig({ testTimeout: 60_000 });
 
@@ -131,7 +131,7 @@ describe('the provenance panel declares the routes the engine actually has', () 
 
   it('declares exactly the Fs routes the engine derives, with the inputs the engine requires', () => {
     const declared = [...new Set(
-      (PROVENANCE_MAP.Fs?.paths ?? []).map(p => [...p.inputs].sort().join('+')))].sort();
+      (PROVENANCE_MAP.Fs_hz?.paths ?? []).map(p => [...p.inputs].sort().join('+')))].sort();
 
     const expected = [
       'BL+Mms+Qes+Re',   // Fs = (Qes × BL²) / (2π × Mms × Re)

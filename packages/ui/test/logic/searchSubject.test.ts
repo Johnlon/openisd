@@ -6,14 +6,19 @@
  * is what keeps a filter from skipping a section (`openisd-ui-design.md` §"Filters apply to
  * every list").
  */
-import { describe, it } from 'vitest';
+import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import { OpenISDDriver } from '@openisd/design';
-import { Engine } from '@openisd/design/engine';
-import type { BundledDriverIndexRow } from '@openisd/persistence';
+import {OpenISDDriver} from '@openisd/design';
+import {Engine} from '@openisd/design/engine';
+import type {BundledDriverIndexRow} from '@openisd/persistence';
 import {
-  matchesCriteria, searchSubjectOfDriver, searchSubjectOfIndexRow, chipsOf, displayNameOf,
-  type SearchCriteria, type SearchSubject,
+    chipsOf,
+    displayNameOf,
+    matchesCriteria,
+    type SearchCriteria,
+    type SearchSubject,
+    searchSubjectOfDriver,
+    searchSubjectOfIndexRow,
 } from '../../src/logic/driverDisplay.js';
 
 const scraped = <T,>(value: T) => ({ value });

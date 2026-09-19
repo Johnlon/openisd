@@ -1,4 +1,4 @@
-import type { PlotData, Geo, DragRange } from '../types.js';
+import type {DragRange, Geo, PlotData} from '../types.js';
 
 export const fmtF   = (f: number): string => f >= 1000 ? (f/1000).toFixed(f < 10000 ? 2 : 1) + 'k' : f.toFixed(0);
 export const fmtY   = (v: number): string => { const a = Math.abs(v); if (a >= 1000) return (v/1000).toFixed(1)+'k'; if (a >= 10) return v.toFixed(0); if (a >= 1) return v.toFixed(1); return v.toFixed(2); };

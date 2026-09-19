@@ -1,4 +1,4 @@
-import type { Complex } from './types.js';
+import type {Complex} from './types.js';
 
 export const cx     = (re: number, im = 0): Complex => ({ re, im });
 export const cAdd   = (a: Complex, b: Complex): Complex => ({ re: a.re + b.re, im: a.im + b.im });

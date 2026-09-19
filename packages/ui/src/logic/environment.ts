@@ -4,8 +4,8 @@
  * so a component reads its number from here instead of naming the engine itself
  * (architecture.test.ts "a component imports no value from the domain").
  */
-import { Engine, LossMode } from '@openisd/design/engine';
-import type { Air, AirEnvironment } from '@openisd/design/engine';
+import type {Air, AirEnvironment} from '@openisd/design/engine';
+import {Engine, LossMode} from '@openisd/design/engine';
 
 export function airForEnvironment(env: AirEnvironment): Air {
     return new Engine().solveEnvironment(env).values;

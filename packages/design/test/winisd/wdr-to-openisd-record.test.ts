@@ -15,17 +15,17 @@
  * ParState slot 14 `C` (WinISD computed it, not the human) — its own comment records the
  * correct value as "~0.358", i.e. Qes·Qms/(Qes+Qms) = 0.38·6.2/(0.38+6.2) = 0.3580547...
  */
-import { describe, it } from 'vitest';
-import { diffWdrValues } from './wdrDiff.js';
+import {describe, it} from 'vitest';
+import {diffWdrValues} from './wdrDiff.js';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
-import { dirname, join } from 'node:path';
-import { WinISDDriver } from '@openisd/design/winisd';
-import { OpenISDDriver } from '@openisd/design';
-import { Engine } from '@openisd/design/engine';
-import { winISDDriverToOpenISDDeviceJson } from '../../domain/openisdSchema.js';
-import { openIsdDriverToWinIsdDriver } from '../../domain/driverYmlToOpenisdAndWdr.js';
+import {readFileSync} from 'node:fs';
+import {fileURLToPath} from 'node:url';
+import {dirname, join} from 'node:path';
+import {WinISDDriver} from '@openisd/design/winisd';
+import {OpenISDDriver} from '@openisd/design';
+import {Engine} from '@openisd/design/engine';
+import {winISDDriverToOpenISDDeviceJson} from '../../domain/openisdSchema.js';
+import {openIsdDriverToWinIsdDriver} from '../../domain/driverYmlToOpenisdAndWdr.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const WDR_TEXT = readFileSync(
@@ -65,7 +65,7 @@ describe('winISDDriverToOpenISDDeviceJson/conformingRecordToDriver — provenanc
   });
 
   it('the excluded C field is independently RE-DERIVED on export, matching WinISD\'s own formula', () => {
-    const wdr = openIsdDriverToWinIsdDriver(driverOf(WDR_TEXT), new Engine(), []);
+    const wdr = openIsdDriverToWinIsdDriver(driverOf(WDR_TEXT), []);
     assert.ok(wdr, 'the driver must be complete enough to export');
     const cell = wdr.cell('Qts');
     assert.equal(cell.state, 'calculated');
@@ -80,7 +80,7 @@ describe('diffWdrValues — a WinISD-stored C value that disagrees with the fres
     const sourceWdr = WinISDDriver.fromWdrIni(WDR_TEXT);
     const driver = driverOf(WDR_TEXT);
 
-    const derivedWdr = openIsdDriverToWinIsdDriver(driver, new Engine(), []);
+    const derivedWdr = openIsdDriverToWinIsdDriver(driver, []);
     assert.ok(derivedWdr, 'projection failed');
 
     const mismatches = diffWdrValues(sourceWdr, derivedWdr);

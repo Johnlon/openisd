@@ -37,12 +37,12 @@
  * domain object is a design question for the human, so it is reported as a finding and ruled on,
  * never absorbed by adding a row here.
  */
-import { describe, it, vi } from 'vitest';
+import {describe, it, vi} from 'vitest';
 import assert from 'node:assert/strict';
-import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
-import { dirname, join, relative } from 'node:path';
-import { Project as TsProject, Node, type SourceFile, type Type } from 'ts-morph';
+import {existsSync, readdirSync, readFileSync, statSync} from 'node:fs';
+import {fileURLToPath} from 'node:url';
+import {dirname, join, relative} from 'node:path';
+import {Node, Project as TsProject, type SourceFile, type Type} from 'ts-morph';
 
 vi.setConfig({ testTimeout: 120_000 });
 

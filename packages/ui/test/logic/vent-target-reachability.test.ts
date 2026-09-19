@@ -16,13 +16,15 @@
  * Trial geometry: Vb = 30 L, round vent d = 5 cm, k = 0.6 → L = 0 tunes to 80.79 Hz, so
  * 40 Hz is reachable and 90 Hz is not.
  */
-import { describe, it, beforeEach } from 'vitest';
+import {beforeEach, describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import { OpenISDProject, OpenISDDriver } from '@openisd/design';
-import { Engine } from '@openisd/design/engine';
+import {OpenISDDriver, OpenISDProject} from '@openisd/design';
+import {Engine} from '@openisd/design/engine';
 import {
-  ventAchievedFb, ventTargetUnreachable, ventMaxReachableFb,
-  enterVentField as enterVentFieldOn,
+    enterVentField as enterVentFieldOn,
+    ventAchievedFb,
+    ventMaxReachableFb,
+    ventTargetUnreachable,
 } from '../../src/logic/useVentGroup.js';
 
 /** The L = 0 ceiling for the trial geometry — the highest tuning any vent here can deliver.

@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest';
-import { hmrSlots, getOrInit } from '../../src/logic/hmrSingleton.js';
+import {describe, expect, it} from 'vitest';
+import {getOrInit, hmrSlots} from '../../src/logic/hmrSingleton.js';
 
 /**
  * The singleton mechanism, and the property the whole thing exists for: a slot is created ONCE.

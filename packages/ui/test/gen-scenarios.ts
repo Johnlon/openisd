@@ -20,11 +20,11 @@
  * DO NOT run in CI.
  */
 
-import { readFileSync, writeFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
-import { dirname, join } from 'node:path';
-import { Engine } from '@openisd/design/engine';
-import { SCENARIOS } from './scenarios.js';
+import {readFileSync, writeFileSync} from 'node:fs';
+import {fileURLToPath} from 'node:url';
+import {dirname, join} from 'node:path';
+import {Engine} from '@openisd/design/engine';
+import {SCENARIOS} from './scenarios.js';
 
 const here    = dirname(fileURLToPath(import.meta.url));
 const write   = process.argv.includes('--write');

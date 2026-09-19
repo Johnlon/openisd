@@ -17,8 +17,8 @@
  * comment and call sites in `project.ts`) — the ÷100/×100 conversion happens ONLY here, never
  * inside `WinISDProject` or `OpenISDProject` themselves.
  */
-import type { Box } from './index.js';
-import { OpenISDDriver, OpenISDProject, OpenISDPassiveRadiatorStandalone } from './index.js';
+import type {Box} from './index.js';
+import {OpenISDDriver, OpenISDPassiveRadiatorStandalone, OpenISDProject} from './index.js';
 import {type DriverError, Engine} from '../engine/index.js';
 
 import {openIsdDriverToWinIsdDriver} from './driverYmlToOpenisdAndWdr.js';
@@ -37,12 +37,12 @@ type WprValues = Record<string, Record<string, string | number>>;
  * `{value: null, errors: [...]}`.
  */
 export function openIsdProjectToWinIsdProject(
-  project: OpenISDProject, engine: Engine,
+  project: OpenISDProject, _engine: Engine,
 ): { value: WinISDProject | null; errors: DriverError[] } {
   const errors: DriverError[] = [];
 
   const driverErrors: DriverError[] = [];
-  const wdrDriver = openIsdDriverToWinIsdDriver(project.driver, engine, driverErrors);
+  const wdrDriver = openIsdDriverToWinIsdDriver(project.driver, driverErrors);
   errors.push(...driverErrors);
 
   const box = project.box;

@@ -1,9 +1,9 @@
-import { describe, it } from 'vitest';
+import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
-import { dirname, join } from 'node:path';
-import { WinISDProject } from '@openisd/design/winisd';
+import {readFileSync} from 'node:fs';
+import {fileURLToPath} from 'node:url';
+import {dirname, join} from 'node:path';
+import {WinISDProject} from '@openisd/design/winisd';
 
 const here = dirname(fileURLToPath(import.meta.url));
 /** The harness-generated PR golden — WinISD Pro wrote it under the wine harness from a scenario

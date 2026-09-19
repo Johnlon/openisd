@@ -1,10 +1,10 @@
-import type { InjectionKey, Ref } from 'vue';
-import { ref, computed, watch } from 'vue';
-import { allIssues, syncedP, curvesData, maxData } from '../logic/appState.js';
-import { useFocusedProject } from '../logic/focusedProjectContext.js';
-import { TAB_META, buildPlotData, DPAL } from '../logic/series.js';
-import type { ChartTabId, Design, PlotData } from '../types.js';
-import type { DriverError } from '@openisd/design/engine';
+import type {InjectionKey, Ref} from 'vue';
+import {computed, ref, watch} from 'vue';
+import {allIssues, curvesData, maxData, syncedP} from '../logic/appState.js';
+import {useFocusedProject} from '../logic/focusedProjectContext.js';
+import {buildPlotData, DPAL, TAB_META} from '../logic/series.js';
+import type {ChartTabId, Design, PlotData} from '../types.js';
+import type {DriverError} from '@openisd/design/engine';
 
 export interface GraphPanelProps {
   tabId: ChartTabId;

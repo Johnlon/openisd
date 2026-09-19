@@ -1,6 +1,6 @@
-import { test, expect, openAProject, editorTab } from '../fixtures.js';
-import { join, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import {editorTab, expect, openAProject, test} from '../fixtures.js';
+import {dirname, join} from 'node:path';
+import {fileURLToPath} from 'node:url';
 
 // These editor-semantics tests run on the clean synthetic driver, not the scraped W5 sample:
 // W5's scraped T/S is internally inconsistent (manufacturer-ballpark values), so its editor

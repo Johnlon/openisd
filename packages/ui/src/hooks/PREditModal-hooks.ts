@@ -1,10 +1,10 @@
-import type { InjectionKey, Ref } from 'vue';
-import { computed, ref } from 'vue';
-import { useFocusedProject } from '../logic/focusedProjectContext.js';
-import { passiveRadiatorRows } from '../logic/driverDisplay.js';
-import { useApp } from '../logic/app.js';
-import { fieldHelp } from '../logic/fields/fieldRegistry.js';
-import { inputValue } from '../logic/domEvents.js';
+import type {InjectionKey, Ref} from 'vue';
+import {computed, ref} from 'vue';
+import {useFocusedProject} from '../logic/focusedProjectContext.js';
+import {passiveRadiatorRows} from '../logic/driverDisplay.js';
+import {useApp} from '../logic/app.js';
+import {fieldHelp} from '../logic/fields/fieldRegistry.js';
+import {inputValue} from '../logic/domEvents.js';
 
 export interface PREditModalAPI {
   readonly radiator: Readonly<Ref<ReturnType<typeof useFocusedProject>['value']['box']['passiveRadiator']['radiator']>>;

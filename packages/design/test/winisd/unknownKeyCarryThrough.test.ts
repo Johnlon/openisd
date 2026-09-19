@@ -1,5 +1,5 @@
 /**
- * `WinISDDriver`'s scope is exactly the 48 `INI_ROWS` keys plus the 7 header lines — nothing
+ * `WinISDDriver`'s scope is exactly the 48 `WDR_DRIVER_INI_ROWS` keys plus the 7 header lines — nothing
  * else. A key outside that set is discarded on read (John, 2026-09-02): `.wdr` has no
  * extension mechanism, so a foreign key is evidence of a corrupt or non-WinISD file, not a
  * field to preserve. This SUPERSEDES the class's older no-drop guarantee.
@@ -8,11 +8,11 @@
  * `bugs/BUG_20260823_wpr_import_discards_vent_cross_section_provenance.md` — because `.wpr`
  * sections have no fixed key count the way a `.wdr`'s 48 numeric rows do.
  */
-import { describe, it } from 'vitest';
+import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import { WinISDDriver, WinISDProject } from '@openisd/design/winisd';
+import {WinISDDriver, WinISDProject} from '@openisd/design/winisd';
 
-describe('WinISDDriver — a key outside INI_ROWS and the header lines is discarded on read', () => {
+describe('WinISDDriver — a key outside WDR_DRIVER_INI_ROWS and the header lines is discarded on read', () => {
   it('a foreign key does not survive read -> write', () => {
     const text = [
       '[Driver]', 'Brand=x', 'Model=y', 'Manufacturer=', 'ProvidedBy=', 'Comment=',

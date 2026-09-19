@@ -26,14 +26,14 @@
  *     one call per record, with all verification embedded inside it) — alongside the two names
  *     zod keeps on globalThis, which are named in the assertion so nothing else can slip in.
  */
-import { describe, it, beforeAll, afterAll } from 'vitest';
+import {afterAll, beforeAll, describe, it} from 'vitest';
 import assert from 'node:assert/strict';
 import * as vm from 'node:vm';
-import { execFileSync } from 'node:child_process';
-import { existsSync, mkdtempSync, readFileSync, rmSync, readdirSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
-import { dirname, join } from 'node:path';
-import { tmpdir } from 'node:os';
+import {execFileSync} from 'node:child_process';
+import {existsSync, mkdtempSync, readdirSync, readFileSync, rmSync} from 'node:fs';
+import {fileURLToPath} from 'node:url';
+import {dirname, join} from 'node:path';
+import {tmpdir} from 'node:os';
 
 // This file lives at packages/design/test/winisd/, so the package root is two levels up and the
 // repo root is four.
@@ -230,7 +230,7 @@ comment: {value: '', origin: manufacturer_datasheet}
 added: {value: '2026-09-01', origin: manufacturer_datasheet}
 specs:
   woofer:
-    Re:
+    Re_ohm:
       origin: manufacturer_datasheet
       definition: DC voice coil resistance
       readings:

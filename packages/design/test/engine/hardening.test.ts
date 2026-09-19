@@ -1,5 +1,5 @@
-import { solveConsistencyGroup, driverParams } from './testSolver.js';
-import type { TestSolverQuantities } from './testSolver.js';
+import type {TestSolverQuantities} from './testSolver.js';
+import {driverParams, solveConsistencyGroup} from './testSolver.js';
 /**
  * Engine hardening — acceptance tests for CODE_REVIEW/ENGINE_HARDENING.md.
  *
@@ -15,11 +15,11 @@ import type { TestSolverQuantities } from './testSolver.js';
  *
  * Scenario names below are the acceptance criteria, one `describe` per criterion.
  */
-import { describe, it } from 'vitest';
+import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import { Engine } from '../../engine/index.js';
-import type { SimulatableBoxType, SweepParams } from '../../engine/index.js';
-import { OpenISDDriver, OpenISDProject } from '../../domain/openisdDomain.js';
+import type {SimulatableBoxType, SweepParams} from '../../engine/index.js';
+import {Engine} from '../../engine/index.js';
+import {OpenISDDriver, OpenISDProject} from '../../domain/openisdDomain.js';
 
 /** Voice-coil inductance for the fixtures below. Not a solver quantity — nothing
  *  derives it — so it reaches `sweep` on its own, and only the impedance plot reads it. */

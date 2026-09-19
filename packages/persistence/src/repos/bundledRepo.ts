@@ -12,7 +12,7 @@
  * under a long-lived tab is picked up without a reload. `now` is injected so a test can move the
  * clock.
  */
-import type { BundledIndexRow, IndexRead } from './bundledIndex.js';
+import type {BundledIndexRow, IndexRead} from './bundledIndex.js';
 
 // ── Index readers: the pieces `readBundledDriverIndex` / `readBundledPassiveRadiatorIndex` share ──
 

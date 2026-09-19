@@ -20,7 +20,7 @@
  * motor-side route ρ/(2πc)·BL²Sd²/(Re·Mms²).
  */
 
-import { P0 } from './constants.js';
+import {P0} from './constants.js';
 
 /** 4π²/c³ — the coefficient of the Fs³·Vas/Qes efficiency form, at the speed of sound `c`. */
 export function efficiencyConstant(c: number): number {

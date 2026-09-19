@@ -16,7 +16,7 @@
  * WRITE-side only: file READS reach the app through a plain `<input type="file">` element,
  * which hands `useApplicationIO.ts` a `File` directly — no picker this module drives.
  */
-import { createFileSave } from './fileSave.js';
+import {createFileSave} from './fileSave.js';
 
 export interface SaveResult {
   /** The name of the file actually written, when a handle now exists to retain. Null when

@@ -1,4 +1,5 @@
-import { driverFromFileText } from './packages/ui/src/logic/driverSelection.js';
+import {driverFromFileText} from './packages/ui/src/logic/driverSelection.js';
+
 const wdr = [
   '[Driver]', 'Brand=Twice', 'Model=Imported', 'Manufacturer=', 'ProvidedBy=', 'Comment=',
   'DateAdded=', 'DateModified=', 'Qts=0.4', 'Fs=40', 'Re=6', 'ParState=' + 'N'.repeat(49), '',

@@ -1,6 +1,9 @@
-import { test, expect, openAProject } from '../fixtures.js';
-import type { Page } from '@playwright/test';
-import { fillAndBlur } from '../fixtures/numField.js';
+import {expect, openAProject, test} from '../fixtures.js';
+import type {Page} from '@playwright/test';
+import {fillAndBlur} from '../fixtures/numField.js';
+import {PROVENANCE_MAP} from '../../src/logic/provenance.js';
+import {OPENISD_FIELDS, type FieldDef} from '@openisd/design/fields';
+import {UNIT_GROUPS} from '../../src/logic/fields/units.js';
 
 /**
  * Driver editor — provenance highlighting and per-field display units, over EVERY field on
@@ -82,11 +85,15 @@ async function forEachTab(page: Page, visit: (tab: string, labels: string[]) => 
   }
 }
 
-import { LABEL_TO_FIELD_KEY, PROVENANCE_MAP } from '../../src/logic/provenance.js';
-import { UNIT_GROUPS } from '../../src/logic/fields/units.js';
-
 function provenanceTables() {
-  return { map: LABEL_TO_FIELD_KEY, explained: Object.keys(PROVENANCE_MAP) };
+  return { explained: Object.keys(PROVENANCE_MAP) };
+}
+
+/** The vocabulary key whose `ui_label` a rendered editor label shows, or `undefined` when no
+ *  field renders that label — derived from the vocabulary, never a hand-maintained map. */
+function keyForLabel(label: string): string | undefined {
+  return (Object.entries(OPENISD_FIELDS) as Array<[string, FieldDef]>)
+    .find(([, def]) => def.ui_label === label)?.[0];
 }
 
 function unitTable() {
@@ -116,9 +123,8 @@ function unitTable() {
  *  meant to be in LABEL_TO_FIELD_KEY. Same for Connection (VCCon): a wiring-mode select, not
  *  a derivable value. Excluded by what they STRUCTURALLY are, not by name-matching a guess at
  *  which fields might drift — every field this system can ever explain stays covered. */
-test('LABEL_TO_FIELD_KEY resolves every simulation field to the key it is actually bound to', async ({ page }) => {
+test('every rendered simulation field is bound to a vocabulary key whose ui_label it renders', async ({ page }) => {
   await openEditor(page);
-  const { map } = provenanceTables();
 
   const drift: string[] = [];
   const untagged: string[] = [];
@@ -132,25 +138,26 @@ test('LABEL_TO_FIELD_KEY resolves every simulation field to the key it is actual
     for (const { label, groundTruth } of rows) {
       if (!label || groundTruth === 'VCCon') continue;
       if (groundTruth == null) { untagged.push(`${tab}/${label}`); continue; }
-      const resolved = map[label] ?? label;
-      if (resolved !== groundTruth) drift.push(`${tab}/${label}: map says "${resolved}", actually bound to "${groundTruth}"`);
+      const def = (OPENISD_FIELDS as Record<string, FieldDef>)[groundTruth];
+      if (!def) { drift.push(`${tab}/${label}: data-field-key "${groundTruth}" is not a vocabulary key`); continue; }
+      if (def.ui_label !== label) drift.push(`${tab}/${label}: ui_label "${def.ui_label}" != rendered "${label}"`);
     }
   });
   expect(untagged, 'fields with no ground-truth data-field-key to check against').toEqual([]);
-  expect(drift, 'LABEL_TO_FIELD_KEY entries that disagree with what the field is bound to').toEqual([]);
+  expect(drift, 'rendered labels that disagree with the vocabulary ui_label').toEqual([]);
 });
 
 // ── 1. Provenance highlight reaches every explainable field ─────────────────────────────
 
 test('every field the provenance map explains takes the inspected highlight', async ({ page }) => {
   await openEditor(page);
-  const { map, explained } = provenanceTables();
+  const { explained } = provenanceTables();
   await page.locator('.de-provenance-chk', { hasText: 'Inspect Provenance' }).locator('input').check();
 
   const dark: string[] = [];
   await forEachTab(page, async (tab, labels) => {
     for (const label of labels) {
-      const key = map[label] ?? label;
+      const key = keyForLabel(label) ?? label;
       if (!explained.includes(key)) continue;
       const fld = fieldByLabel(page, label);
       await fld.locator('label').click();
@@ -182,7 +189,7 @@ const NO_FORMULA = new Set(['c', 'roo']);
 test('every field the solver calculated has a provenance formula', async ({ page }) => {
   await openEditor(page);
   await seedDriver(page);
-  const { map, explained } = provenanceTables();
+  const { explained } = provenanceTables();
 
   const unexplained: string[] = [];
   await forEachTab(page, async (tab, labels) => {
@@ -191,7 +198,7 @@ test('every field the solver calculated has a provenance formula', async ({ page
       const calculated = await fld.evaluate(f =>
         f.classList.contains('value-c') || !!f.querySelector('input.value-c'));
       if (!calculated) continue;
-      const key = map[label] ?? label;
+      const key = keyForLabel(label) ?? label;
       if (!explained.includes(key) && !NO_FORMULA.has(key)) unexplained.push(`${tab}/${label} (${key})`);
     }
   });

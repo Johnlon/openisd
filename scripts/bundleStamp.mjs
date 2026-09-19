@@ -8,9 +8,9 @@
  *
  * Pure: takes the stat list, returns the fingerprint. The CLI gathers the stats.
  */
-import { createHash } from 'node:crypto';
-import { readdirSync, statSync, existsSync, readFileSync } from 'node:fs';
-import { join, relative } from 'node:path';
+import {createHash} from 'node:crypto';
+import {existsSync, readdirSync, readFileSync, statSync} from 'node:fs';
+import {join, relative} from 'node:path';
 
 /** Where the catalogue's inputs and outputs live, relative to the repo root. */
 export const CORPUS_RELATIVE = ['..', 'winisd_drivers', 'db', 'datasheets'];

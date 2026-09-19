@@ -7,14 +7,19 @@
  * these tests assert relative behaviour (deltas from whatever the registry already holds),
  * never an absolute starting count.
  */
-import { describe, it } from 'vitest';
+import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
 import {
-  openProjects, focusedProject, focusProject, removeProject, addProject, newProject,
-  engine,
+    addProject,
+    engine,
+    focusedProject,
+    focusProject,
+    newProject,
+    openProjects,
+    removeProject,
 } from '../../src/logic/appState.js';
-import { OpenISDDriver, OpenISDProject } from '@openisd/design';
-import { presentationState } from '../../src/logic/presentationState.js';
+import {OpenISDDriver, OpenISDProject} from '@openisd/design';
+import {presentationState} from '../../src/logic/presentationState.js';
 
 describe('project registry', () => {
   it('opens a project on request, and the newly opened one is focused', () => {

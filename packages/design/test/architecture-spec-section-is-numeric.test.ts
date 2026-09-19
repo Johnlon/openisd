@@ -46,8 +46,8 @@
  * STRUCTURAL, not a value assertion — it reads the declaration, so it fires when the field is
  * DECLARED rather than when some test happens to exercise it.
  */
-import { describe, it, expect } from 'vitest';
-import { Project } from 'ts-morph';
+import {describe, expect, it} from 'vitest';
+import {Project} from 'ts-morph';
 import * as path from 'node:path';
 import * as url from 'node:url';
 

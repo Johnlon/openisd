@@ -6,10 +6,10 @@
  * `{ subscribe(fn): () => void }` and turns its notifications into a Vue invalidation, so the
  * test proves the adapter's behaviour without any domain object at all.
  */
-import { describe, it } from 'vitest';
+import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import { effect, effectScope } from 'vue';
-import { createLiveRef } from '../../src/logic/liveProject.js';
+import {effect, effectScope} from 'vue';
+import {createLiveRef} from '../../src/logic/liveProject.js';
 
 /** A minimal subscribable: `subscribe(fn)` registers `fn`, `notify()` fires every registered
  *  listener, `unsubscribeCount` proves `dispose()` actually called the stored unsubscribe. */

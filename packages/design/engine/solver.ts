@@ -13,18 +13,36 @@
  * here — this module is pure physics with no file-format concern (ARCHITECTURE.md AD-6).
  */
 
-import { P0, G_STANDARD } from './constants.js';
-import type { Wiring } from './types.js';
-import { GAMMA, DEFAULT_P_REF_PA, solveEnvironment } from './air.js';
-import type { Air } from './air.js';
-import { efficiencyConstant, referenceEfficiency, motorEfficiency, splFromEfficiency, efficiencyFromSpl } from './efficiency.js';
-import { ebp, ventLength, tuningFromLength, prTuning, prMassForFp, prFsWithMass, sealedFromQtc, sealedQtcFromVolume } from './boxDesign.js';
-import { dvolFromDims, depthFromDims, magDepthFromDims, magnetFromDims } from './dvolRelation.js';
-import type { VentSolverParams } from './solverTypes.js';
-import type { PrSolverParams } from './solverTypes.js';
-import type { SealedAlignmentSolverParams } from './solverTypes.js';
-import type { DriverSolverParams, SolverField } from './solverTypes.js';
-import type { CalculationIssue, CalculationPrerequisite } from './consistency.js';
+import {G_STANDARD, P0} from './constants.js';
+import type {Wiring} from './types.js';
+import type {Air} from './air.js';
+import {DEFAULT_P_REF_PA, GAMMA, solveEnvironment} from './air.js';
+import {
+    efficiencyConstant,
+    efficiencyFromSpl,
+    motorEfficiency,
+    referenceEfficiency,
+    splFromEfficiency
+} from './efficiency.js';
+import {
+    ebp,
+    prFsWithMass,
+    prMassForFp,
+    prTuning,
+    sealedFromQtc,
+    sealedQtcFromVolume,
+    tuningFromLength,
+    ventLength
+} from './boxDesign.js';
+import {depthFromDims, dvolFromDims, magDepthFromDims, magnetFromDims} from './dvolRelation.js';
+import type {
+    DriverSolverParams,
+    PrSolverParams,
+    SealedAlignmentSolverParams,
+    SolverField,
+    VentSolverParams
+} from './solverTypes.js';
+import type {CalculationIssue, CalculationPrerequisite} from './consistency.js';
 
 // S2-10 (T10/T3-style trim): the bag types every solve used to take/return, PRIVATE now — a
 // caller reaches every one of these quantities through a `SolverField` handle

@@ -38,6 +38,44 @@ async function buildProject(page: import('@playwright/test').Page, boxType: stri
   await page.locator('.use-btn').click();
   await expect(page.locator('.original-root')).toBeVisible();
 }
+/** Ignore UUIDs, dates, and non-essential meta fields for comparison. */
+function normalize(json: unknown) {
+  const clone = JSON.parse(JSON.stringify(json));
+  if (clone.driverEmbedding?.device?.uuid) clone.driverEmbedding.device.uuid = 'normalized';
+  if (clone.driverEmbedding?.device?.added) clone.driverEmbedding.device.added = 'normalized';
+  if (clone.box?.passiveRadiator?.component?.uuid?.value) clone.box.passiveRadiator.component.uuid.value = 'normalized';
+  if (clone.meta) {
+    clone.meta.created = 'normalized';
+    clone.meta.modified = 'normalized';
+  }
+  return clone;
+}
+
+/** Mask solved (state-C) numeric values so two construction paths compare structurally. */
+function maskDerived(json: unknown): unknown {
+  const walk = (node: unknown): unknown => {
+    if (Array.isArray(node)) return node.map(walk);
+    if (node && typeof node === 'object') {
+      const o = node as Record<string, unknown>;
+      const out: Record<string, unknown> = {};
+      for (const [k, v] of Object.entries(o)) {
+        if (k === 'value' && o.state === 'C' && typeof v === 'number') { out[k] = 'derived'; continue; }
+        out[k] = walk(v);
+      }
+      return out;
+    }
+    return node;
+  };
+  return walk(JSON.parse(JSON.stringify(json)));
+}
+
+/** The vented project's solved port length — the number a user reads. */
+function ventLengthOf(json: unknown): number {
+  const len = (json as { box?: { vented?: { vent?: { length_m?: { value: number } } } } })
+    .box?.vented?.vent?.length_m?.value;
+  if (typeof len !== 'number') throw new Error('a vented project must carry a solved vent length');
+  return len;
+}
 
 test('a wizard-created project draws a chart for every simulatable box type', async ({ page }) => {
   for (const box of ['sealed', 'vented', 'box-passive-radiator', 'bandpass4']) {
@@ -108,53 +146,20 @@ test('the standard fixture sample-project.owpr is a faithful representation of a
 
   const sampleJson = JSON.parse(readFileSync(SAMPLE, 'utf-8'));
   
-  // Ignore UUIDs, dates, and non-essential meta fields for comparison
-  const normalize = (json: unknown) => {
-    const clone = JSON.parse(JSON.stringify(json));
-    if (clone.driverEmbedding?.device?.uuid) clone.driverEmbedding.device.uuid = 'normalized';
-    if (clone.driverEmbedding?.device?.added) clone.driverEmbedding.device.added = 'normalized';
-    if (clone.box?.passiveRadiator?.component?.uuid?.value) clone.box.passiveRadiator.component.uuid.value = 'normalized';
-    if (clone.meta) {
-      clone.meta.created = 'normalized';
-      clone.meta.modified = 'normalized';
-    }
-    return clone;
-  };
-
   const normWizard = normalize(wizardJson.saved);
   const normSample = normalize(sampleJson.saved);
 
-  // SOLVED values (state "C", e.g. the solved port length) are not bit-identical between the
-  // domain's two construction paths — the builder vs the wizard's live writes on an empty
-  // project solve the same entered inputs to slightly different floats. That is not an editing
-  // difference, so a strict deep-equality must mask state-C values and compare structure +
-  // ENTERED values strictly; the one number a user reads (the port length) is closeTo-checked.
-  const maskDerived = (json: unknown): unknown => {
-    const walk = (node: unknown): unknown => {
-      if (Array.isArray(node)) return node.map(walk);
-      if (node && typeof node === 'object') {
-        const o = node as Record<string, unknown>;
-        const out: Record<string, unknown> = {};
-        for (const [k, v] of Object.entries(o)) {
-          if (k === 'value' && o.state === 'C' && typeof v === 'number') { out[k] = 'derived'; continue; }
-          out[k] = walk(v);
-        }
-        return out;
-      }
-      return node;
-    };
-    return walk(JSON.parse(JSON.stringify(json)));
-  };
+  // SOLVED values (state "C") are masked below (maskDerived) so the two construction paths
+  // compare structurally; the one number a user reads (the port length) is closeTo-checked.
   const maskedWizard = maskDerived(normWizard) as { box: unknown; driverEmbedding: unknown };
   const maskedSample = maskDerived(normSample) as { box: unknown; driverEmbedding: unknown };
-  const wizardLenNum = (normWizard.box?.vented?.vent?.length_m as { value: number })?.value;
-  const sampleLenNum = (normSample.box?.vented?.vent?.length_m as { value: number })?.value;
 
   // Compare the box section, driver section, etc.
   // Using toEqual which does a deep comparison
   expect(maskedWizard.box).toEqual(maskedSample.box);
   expect(maskedWizard.driverEmbedding).toEqual(maskedSample.driverEmbedding);
-  if (wizardLenNum !== undefined && sampleLenNum !== undefined) {
-    expect(wizardLenNum).toBeCloseTo(sampleLenNum, 2);
-  }
+
+  // The port length is a solved value the two construction paths float-differ on — it must be
+  // present (never skipped) and close, not bit-identical.
+  expect(ventLengthOf(normWizard)).toBeCloseTo(ventLengthOf(normSample), 2);
 });

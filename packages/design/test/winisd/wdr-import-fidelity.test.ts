@@ -21,16 +21,16 @@
  * `test/fixtures/winisd-parity/goldens/sealed-small.wpr`.
  */
 
-import { describe, it } from 'vitest';
+import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
-import { dirname, join } from 'node:path';
-import { WinISDDriver } from '@openisd/design/winisd';
-import { OpenISDDriver } from '@openisd/design';
-import { Engine } from '@openisd/design/engine';
-import { winISDDriverToOpenISDDeviceJson } from '../../domain/openisdSchema.js';
-import { openIsdDriverToWinIsdDriver } from '../../domain/driverYmlToOpenisdAndWdr.js';
+import {readFileSync} from 'node:fs';
+import {fileURLToPath} from 'node:url';
+import {dirname, join} from 'node:path';
+import {WinISDDriver} from '@openisd/design/winisd';
+import {OpenISDDriver} from '@openisd/design';
+import {Engine} from '@openisd/design/engine';
+import {winISDDriverToOpenISDDeviceJson} from '../../domain/openisdSchema.js';
+import {openIsdDriverToWinIsdDriver} from '../../domain/driverYmlToOpenisdAndWdr.js';
 
 /** The app's view of a `.wdr`: read as-read by the serialiser, projected into the record,
  *  then asked through the driver's own accessors — the exact path the app itself takes. */
@@ -79,7 +79,7 @@ describe('a .wdr key the file does not carry is not a stated value', () => {
     // The record CAN hold a Gloss (`SpecSection.Gloss`), and this one does not state a value.
     // So the serialiser writes what the engine derived and marks slot 37 `C` — an `E` would
     // assert a human typed a value nobody typed.
-    const wdr = openIsdDriverToWinIsdDriver(driverOf(SEALED_SMALL), new Engine(), []);
+    const wdr = openIsdDriverToWinIsdDriver(driverOf(SEALED_SMALL), []);
     assert.ok(wdr, 'the driver must be complete enough to export');
     const cell = wdr.cell('Gloss');
     assert.equal(cell.state, 'calculated',
@@ -111,7 +111,7 @@ describe('a .wdr key the file does carry survives import unchanged', () => {
   it('the stated SPL reaches the exported ParState at slot 3 and the exported SPL= line', () => {
     // Out through the app's own path: the record the driver holds, projected back to a .wdr
     // by the one class that knows the format.
-    const wdr = openIsdDriverToWinIsdDriver(driverOf(SEALED_SMALL), new Engine(), []);
+    const wdr = openIsdDriverToWinIsdDriver(driverOf(SEALED_SMALL), []);
     assert.ok(wdr, 'the driver must be complete enough to export');
     const text = wdr.toWdrIni();
     const parState = text.split(/\r?\n/).find((l: string) => l.startsWith('ParState='))!.slice(9);

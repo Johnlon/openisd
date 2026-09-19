@@ -6,9 +6,9 @@
  * Tested against a fake AudioContext — we can assert node creation, frequency, and
  * start/stop, but NOT audible output (a real limitation, not a claim of sound).
  */
-import { describe, it, beforeEach } from 'vitest';
+import {beforeEach, describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import { createToneGenerator } from '../../src/logic/toneGenerator.js';
+import {createToneGenerator} from '../../src/logic/toneGenerator.js';
 
 // Minimal fakes capturing what the controller does to the graph.
 class FakeParam { value = 0; setValueAtTime(v: number) { this.value = v; } linearRampToValueAtTime(v: number) { this.value = v; } cancelScheduledValues() {} }

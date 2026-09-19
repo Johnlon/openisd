@@ -1,7 +1,7 @@
-import type { InjectionKey, Ref } from 'vue';
-import { ref, computed } from 'vue';
-import { useApp } from '../logic/app.js';
-import { passiveRadiatorRows, bundledPassiveRadiatorRows, type PassiveRadiatorRow } from '../logic/driverDisplay.js';
+import type {InjectionKey, Ref} from 'vue';
+import {computed, ref} from 'vue';
+import {useApp} from '../logic/app.js';
+import {bundledPassiveRadiatorRows, type PassiveRadiatorRow, passiveRadiatorRows} from '../logic/driverDisplay.js';
 
 export interface PRBrowserAPI {
   readonly filter: Ref<string>;

@@ -1,11 +1,11 @@
-import type { InjectionKey, Ref } from 'vue';
-import { computed } from 'vue';
-import { useFocusedProject } from '../logic/focusedProjectContext.js';
-import { ebpOf } from '../logic/environment.js';
-import { cellClassFor } from '../logic/useDriverCells.js';
-import type { Cell, Field } from '@openisd/design';
-import type { NumSpecField } from '../logic/appState.js';
-import { specFieldHandle } from '../logic/driverSpecFields.js';
+import type {InjectionKey, Ref} from 'vue';
+import {computed} from 'vue';
+import {useFocusedProject} from '../logic/focusedProjectContext.js';
+import {ebpOf} from '../logic/environment.js';
+import {cellClassFor} from '../logic/useDriverCells.js';
+import type {Cell, Field} from '@openisd/design';
+import type {NumSpecField} from '../logic/appState.js';
+import {specFieldHandle} from '../logic/driverSpecFields.js';
 
 export type NumKey = NumSpecField;
 export type { NumSpecField };

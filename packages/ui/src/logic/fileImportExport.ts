@@ -10,10 +10,10 @@
  * messages; this module owns the format conversion. Nothing here touches app state or the
  * DOM.
  */
-import { OpenISDDriver, OpenISDProject } from '@openisd/design';
-import type { DriverError } from '@openisd/design/engine';
-import type { ProjectRepo } from '@openisd/persistence';
-import { engine } from './appState.js';
+import {OpenISDDriver, OpenISDProject} from '@openisd/design';
+import type {DriverError} from '@openisd/design/engine';
+import type {ProjectRepo} from '@openisd/persistence';
+import {engine} from './appState.js';
 
 export interface Bytes {
   value: Uint8Array<ArrayBuffer> | null;

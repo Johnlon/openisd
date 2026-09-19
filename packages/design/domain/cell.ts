@@ -1,5 +1,5 @@
-import type { FieldState, SolverField, SolverInput } from '@openisd/design/engine';
-import type { SpecEntryJson } from './openisdSchema.js';
+import type {FieldState, SolverField, SolverInput} from '@openisd/design/engine';
+import type {SpecEntryJson} from './openisdSchema.js';
 
 export interface Cell<T> {
   readonly name: string;

@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { ref, watch, computed } from 'vue';
-import { unitToken } from '../../logic/presentationState.js';
-import { toDisplay, fromDisplay, displayPrecision, type UnitGroup } from '../../logic/fields/units.js';
-import { fieldById, fieldHelp } from '../../logic/fields/fieldRegistry.js';
-import { inputFrom } from '../../logic/domEvents.js';
+import {computed, ref, watch} from 'vue';
+import {unitToken} from '../../logic/presentationState.js';
+import {displayPrecision, fromDisplay, toDisplay, type UnitGroup} from '../../logic/fields/units.js';
+import {fieldById, fieldHelp} from '../../logic/fields/fieldRegistry.js';
+import {inputFrom} from '../../logic/domEvents.js';
 
 // The DQ note makes this a fragment root, so attrs (id, class, …) are not auto-inherited —
 // bind them to the INPUT explicitly (never the ⚠ note).

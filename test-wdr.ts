@@ -1,6 +1,6 @@
-import { winIsdDriverTextToOpenIsdDriver } from './packages/design/domain/driverYmlToOpenisdAndWdr.ts';
-import { OpenISDDriver } from './packages/design/domain/openisdDomain.ts';
-import { Engine } from './packages/design/engine/index.ts';
+import {winIsdDriverTextToOpenIsdDriver} from './packages/design/domain/driverYmlToOpenisdAndWdr.ts';
+import {OpenISDDriver} from './packages/design/domain/openisdDomain.ts';
+import {Engine} from './packages/design/engine/index.ts';
 
 const wdr = [
   '[Driver]', 'Brand=Twice', 'Model=Imported', 'Manufacturer=', 'ProvidedBy=', 'Comment=',

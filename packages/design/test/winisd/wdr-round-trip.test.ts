@@ -9,12 +9,12 @@
  *
  * 🔒 ORACLE: `drivers/myprobes/` — every file there was written by WinISD.
  */
-import { describe, it } from 'vitest';
+import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import { readFileSync, readdirSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
-import { dirname, join, sep } from 'node:path';
-import { WinISDDriver } from '@openisd/design/winisd';
+import {readdirSync, readFileSync} from 'node:fs';
+import {fileURLToPath} from 'node:url';
+import {dirname, join, sep} from 'node:path';
+import {WinISDDriver} from '@openisd/design/winisd';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const SAMPLES = join(here, '..', '..', '..', '..', 'drivers', 'myprobes');

@@ -1,6 +1,6 @@
-import { describe, it, expect } from 'vitest';
-import { Engine } from '../engine/index.js';
-import { OpenISDProject } from '../domain/openisdDomain.js';
+import {describe, expect, it} from 'vitest';
+import {Engine} from '../engine/index.js';
+import {OpenISDProject} from '../domain/openisdDomain.js';
 
 describe('Phase 1: Environmental Axioms (Tasks 26-33)', () => {
   it('envTempK provides Field<number> behavior with Cell state', () => {

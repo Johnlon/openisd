@@ -1,5 +1,5 @@
-import { test, expect, openAProject } from '../fixtures.js';
-import { MY_DRIVERS_KEY, myDriversJson } from '../fixtures/seedMyDrivers.js';
+import {expect, openAProject, test} from '../fixtures.js';
+import {MY_DRIVERS_KEY, myDriversJson} from '../fixtures/seedMyDrivers.js';
 
 // A saved driver need not carry a `name` — one saved from a record whose brand and model are
 // known has those instead. Its row must still read as something and still be findable, so the

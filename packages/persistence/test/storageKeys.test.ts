@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'vitest';
-import { OPENISD_STORAGE_KEYS } from '../src/repos/storageKeys.js';
+import {describe, expect, it} from 'vitest';
+import {OPENISD_STORAGE_KEYS} from '../src/repos/storageKeys.js';
 
 describe('OpenISD browser storage keys', () => {
   it('publishes one complete, stable key list', () => {

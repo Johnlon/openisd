@@ -10,10 +10,10 @@
  * reintroduce either as a bundling criterion.
  */
 
-import { describe, it } from 'vitest';
+import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import { parse as parseYaml } from 'yaml';
-import { project, isBundlable } from '../../../../scripts/bundleProjection.mjs';
+import {parse as parseYaml} from 'yaml';
+import {isBundlable, project} from '../../../../scripts/bundleProjection.mjs';
 
 describe('bundle-drivers — bundling gates on structural readability alone', () => {
   it('bundles a fully simulatable, structurally sound record', () => {

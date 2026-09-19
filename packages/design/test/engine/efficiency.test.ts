@@ -1,4 +1,4 @@
-import { solveConsistencyGroup } from './testSolver.js';
+import {solveConsistencyGroup} from './testSolver.js';
 /**
  * Reference efficiency η₀ and the 1 W/1 m sensitivity derived from it — the ONE
  * implementation, behind the engine's door.
@@ -15,13 +15,12 @@ import { solveConsistencyGroup } from './testSolver.js';
  *      of it, and openisd's ρ and c vary with temperature/pressure/humidity (ledger QO7), so
  *      K must move with them.
  */
-
-import { describe, it } from 'vitest';
+import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import { readFileSync, readdirSync, statSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
-import { dirname, join, extname } from 'node:path';
-import { Engine } from '../../engine/index.js';
+import {readdirSync, readFileSync, statSync} from 'node:fs';
+import {fileURLToPath} from 'node:url';
+import {dirname, extname, join} from 'node:path';
+import {Engine} from '../../engine/index.js';
 
 /** The engine's one door: every calculation below is a method on this object. */
 const engine = new Engine();

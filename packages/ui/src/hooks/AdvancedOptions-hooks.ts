@@ -1,10 +1,10 @@
-import type { InjectionKey, Ref } from 'vue';
-import { computed } from 'vue';
-import { simVcInductance } from '../logic/appState.js';
-import { useFocusedProject } from '../logic/focusedProjectContext.js';
-import { fieldHelp } from '../logic/fields/fieldRegistry.js';
-import { inputChecked } from '../logic/domEvents.js';
-import type { OpenISDProject } from '@openisd/design';
+import type {InjectionKey, Ref} from 'vue';
+import {computed} from 'vue';
+import {simVcInductance} from '../logic/appState.js';
+import {useFocusedProject} from '../logic/focusedProjectContext.js';
+import {fieldHelp} from '../logic/fields/fieldRegistry.js';
+import {inputChecked} from '../logic/domEvents.js';
+import type {OpenISDProject} from '@openisd/design';
 
 export interface AdvancedOptionsAPI {
   readonly hasVent: Readonly<Ref<boolean>>;

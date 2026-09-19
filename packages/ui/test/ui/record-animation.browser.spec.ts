@@ -1,8 +1,8 @@
-import { fileURLToPath } from 'node:url';
+import {fileURLToPath} from 'node:url';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import { test, expect, openAProject } from '../fixtures.js';
-import { typeInto } from '../fixtures/numField.js';
+import {expect, openAProject, test} from '../fixtures.js';
+import {typeInto} from '../fixtures/numField.js';
 
 test('record UI browser automation frames in Original WinISD skin', async ({ page }) => {
   // Repo-local build/, never an OS temp path — AGENTS.md §"Scratch files".

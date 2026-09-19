@@ -1,6 +1,6 @@
-import type { InjectionKey, Ref } from 'vue';
-import { ref } from 'vue';
-import { useApp } from '../logic/app.js';
+import type {InjectionKey, Ref} from 'vue';
+import {ref} from 'vue';
+import {useApp} from '../logic/app.js';
 
 export interface OgNewProjectAPI {
   readonly selection: ReturnType<typeof useApp>['selection'];

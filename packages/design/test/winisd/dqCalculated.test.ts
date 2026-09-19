@@ -9,11 +9,11 @@
  * The Unicode must match byte for byte — ρ, ·, ², √, π, and an EM DASH before the percentage —
  * because the record model compares `detail` against the template's own rendering.
  */
-import { describe, it, expect } from 'vitest';
+import {describe, expect, it} from 'vitest';
 
-import { stringify } from 'yaml';
+import {stringify} from 'yaml';
 
-import { calcMark, dqCalculated, rangeMark, withDqCalculated } from '../../winisd/dqCalculated.js';
+import {calcMark, dqCalculated, rangeMark, withDqCalculated} from '../../winisd/dqCalculated.js';
 
 describe('range marks', () => {
   it('renders range-below-min exactly as the Python registry renders it', () => {

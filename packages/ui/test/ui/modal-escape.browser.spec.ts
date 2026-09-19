@@ -1,4 +1,4 @@
-import { test, expect, openAProject } from '../fixtures.js';
+import {expect, openAProject, test} from '../fixtures.js';
 
 // Design rule: pressing Escape dismisses any open modal.
 // The browserLog auto-fixture also asserts a clean console + network throughout.

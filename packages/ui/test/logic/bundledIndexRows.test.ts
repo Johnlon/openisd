@@ -9,12 +9,12 @@
  * A staleness gate (packages/ui/test/persistence/bundled-index-artifacts.test.ts) holds the rows
  * the bundler wrote against these.
  */
-import { describe, it } from 'vitest';
+import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import { OpenISDDriver, OpenISDPassiveRadiatorStandalone } from '@openisd/design';
-import { Engine } from '@openisd/design/engine';
-import { bundledDriverIndexRowOf, bundledPassiveRadiatorIndexRowOf } from '../../src/logic/bundledIndexRows.js';
-import { chipsOf, driverHasDqIssues, radiatorHasDqIssues } from '../../src/logic/driverDisplay.js';
+import {OpenISDDriver, OpenISDPassiveRadiatorStandalone} from '@openisd/design';
+import {Engine} from '@openisd/design/engine';
+import {bundledDriverIndexRowOf, bundledPassiveRadiatorIndexRowOf} from '../../src/logic/bundledIndexRows.js';
+import {chipsOf, driverHasDqIssues, radiatorHasDqIssues} from '../../src/logic/driverDisplay.js';
 
 const scraped = <T,>(value: T) => ({ value });
 const spec = (read_value: number) => ({ origin: 'manual', readings: { manual: { read_value } } });

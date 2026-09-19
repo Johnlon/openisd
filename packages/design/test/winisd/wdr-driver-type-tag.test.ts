@@ -7,26 +7,20 @@
  * A file with no tag falls back to today's behaviour (`driver_type: 'woofer'`, `specs.woofer`),
  * since real WinISD will never write this tag itself.
  */
-import { describe, it } from 'vitest';
+import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import { WinISDDriver, INI_ROWS } from '../../winisd/winisdDriver.js';
-import type { WdrCell } from '../../winisd/winisdDriver.js';
-import { winISDDriverToOpenISDDeviceJson } from '../../domain/openisdSchema.js';
-import { openIsdDriverToWinIsdDriver } from '../../domain/driverYmlToOpenisdAndWdr.js';
-import { OpenISDDriver } from '../../domain/index.js';
-import { Engine } from '../../engine/index.js';
-import type { DriverError } from '@openisd/design/engine';
-
-function allZeroCells(): Map<string, WdrCell> {
-  const cells = new Map<string, WdrCell>();
-  for (const key of INI_ROWS) cells.set(key, { value: '0', state: 'not-available' });
-  return cells;
-}
+import {WinISDDriver} from '../../winisd/winisdDriver.js';
+import {allNotAvailableCells} from './wdrFixture.js';
+import {winISDDriverToOpenISDDeviceJson} from '../../domain/openisdSchema.js';
+import {openIsdDriverToWinIsdDriver} from '../../domain/driverYmlToOpenisdAndWdr.js';
+import {OpenISDDriver} from '../../domain/index.js';
+import {Engine} from '../../engine/index.js';
+import type {DriverError} from '@openisd/design/engine';
 
 describe('WinISDDriver [DRIVERTYPE] tag — read side (winISDDriverToOpenISDDeviceJson)', () => {
   it('a .wdr whose Comment= carries [DRIVERTYPE tweeter] reads back as a tweeter', () => {
     const written = WinISDDriver.build(
-      { comment: 'a note' }, allZeroCells(), [], undefined, 'tweeter',
+      { comment: 'a note' }, allNotAvailableCells(), [], undefined, 'tweeter',
     ).toWdrIni();
     const wdr = WinISDDriver.fromWdrIni(written);
     const { record } = winISDDriverToOpenISDDeviceJson(wdr);
@@ -36,7 +30,7 @@ describe('WinISDDriver [DRIVERTYPE] tag — read side (winISDDriverToOpenISDDevi
   });
 
   it('a .wdr with no [DRIVERTYPE] tag falls back to woofer', () => {
-    const wdr = WinISDDriver.build({ comment: 'an ordinary note' }, allZeroCells(), []);
+    const wdr = WinISDDriver.build({ comment: 'an ordinary note' }, allNotAvailableCells(), []);
     const { record } = winISDDriverToOpenISDDeviceJson(wdr);
     assert.equal(record.driver_type.value, 'woofer');
     assert.ok(record.specs.woofer, 'record.specs.woofer must be populated by default');
@@ -70,7 +64,7 @@ describe('full round trip: OID tweeter record -> .wdr -> OID record', () => {
     const driver = driverOrProblems;
 
     const errors: DriverError[] = [];
-    const wdr = openIsdDriverToWinIsdDriver(driver, engine, errors);
+    const wdr = openIsdDriverToWinIsdDriver(driver, errors);
     const { record } = winISDDriverToOpenISDDeviceJson(wdr);
 
     assert.equal(record.driver_type.value, 'tweeter');
@@ -82,7 +76,7 @@ describe('full round trip: OID tweeter record -> .wdr -> OID record', () => {
 describe('WinISDDriver [DRIVERTYPE] tag — no duplication on a second write', () => {
   it('a tag already present in Comment= is not duplicated by a further fromWdrIni -> toWdrIni', () => {
     const written = WinISDDriver.build(
-      { comment: 'a note' }, allZeroCells(), [], undefined, 'tweeter',
+      { comment: 'a note' }, allNotAvailableCells(), [], undefined, 'tweeter',
     ).toWdrIni();
     const readBack = WinISDDriver.fromWdrIni(written).toWdrIni();
     assert.equal(readBack, written);
