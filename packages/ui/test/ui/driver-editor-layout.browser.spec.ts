@@ -376,7 +376,7 @@ const WINISD_UNITS: Array<{ tab: string; label: string; unit: string }> = [
   { tab: 'Parameters', label: 'Le', unit: 'mH' },
   { tab: 'Parameters', label: 'KLe', unit: 'H·√Hz' },
   { tab: 'Parameters', label: 'Pe', unit: 'W' },
-  { tab: 'Parameters', label: 'no (η₀)', unit: '%' },
+  { tab: 'Parameters', label: 'η₀', unit: '%' },
   { tab: 'Parameters', label: 'Znom', unit: 'ohm' },
   { tab: 'Advanced parameters', label: 'R(t)', unit: 'K/W' },
   { tab: 'Advanced parameters', label: 'C(t)', unit: 'J/K' },

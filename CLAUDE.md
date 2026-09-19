@@ -1,5 +1,14 @@
 # ALL AGENTS !!!! — read this first
 
+## File links — serve every mention through the port-8000 HTTPD
+
+- Every doc/file/log you mention MUST be ONE clickable markdown link via the agentutils HTTPD:
+  `[name](http://localhost:8000/<mount>/<path>#L<n>)`. Never `name (http://...)`, never a bare path.
+- Server: `/home/john/work/agentutils/httpd/`, base `http://localhost:8000`. Usage spec: `/home/john/work/agentutils/specs/SPEC_HTTPD.md`.
+- Translate the file's absolute path via the mount table (this repo → `/winisd/openisd/...`).
+  For `.md` docs ALWAYS add `?html` before the anchor (`…doc.md?html#L<n>`) — without it the user gets raw markdown.
+- Full rule: `.opencode/rules/links.md`.
+
 ## HARD NON-NEGOTIABLE — commit EVERYTHING, never leave work vulnerable
 
 If you commit, you commit **everything** — including other agents' work you do not recognise,

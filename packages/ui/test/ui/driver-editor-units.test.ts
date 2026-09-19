@@ -310,7 +310,7 @@ describe('percent unit group — one unit, the ONE place a fraction becomes a pe
   });
 
   it('no and Gloss render through the group, not a hand-bound :scale', () => {
-    for (const label of ['no (η₀)', 'Gloss']) {
+    for (const label of ['η₀', 'Gloss']) {
       assert.equal(byLabel(label).toggleable, true,
         `${label} still binds a fixed :scale — the ×100 must come from the percent group`);
     }
@@ -431,7 +431,7 @@ describe('driver editor — precision comes from the field registry', () => {
 describe('driver editor — every bound cell is one the driver model answers', () => {
   it('SPL and no read cells the ADT derives from Fs/Vas/Qes', () => {
     const d = coreDriver();
-    for (const label of ['SPL', 'no (η₀)']) {
+    for (const label of ['SPL', 'η₀']) {
       const f = byLabel(label);
       const cell = driverCellOf(d, f.field as SpecField);
       assert.equal(

@@ -46,8 +46,16 @@ import {
     STAMP,
     walkFiles
 } from './bundleStamp.mjs';
-import {WDR_TO_SCHEMA_KEY} from '../packages/design/domain/openisdSchema.ts';
+import {OPENISD_FIELDS} from '../packages/design/fields/openisdFields.ts';
 import {bundledDriverIndexRowOf} from '../packages/ui/src/logic/bundledIndexRows.ts';
+
+// `.wdr` INI key -> schema key (unit-suffixed), derived from the ONE vocabulary so it cannot
+// drift: each field's `wdr` name maps back to its schema name (e.g. 'alfaVC' -> 'alfaVC_per_K').
+const WDR_TO_SCHEMA_KEY = Object.fromEntries(
+  Object.entries(OPENISD_FIELDS)
+    .filter(([, def]) => def.wdr != null)
+    .map(([schemaKey, def]) => [def.wdr, schemaKey]),
+);
 
 const RECORD_FILE = 'openisd.yml';
 
