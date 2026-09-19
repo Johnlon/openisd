@@ -35,10 +35,11 @@ import {notifyVentChanged, ventSolveSuspended,} from './useVentGroup.js';
 import {notifyPrChanged} from './usePrGroup.js';
 
 /** The driver spec fields the app's UI reads/writes by name — the vocabulary's keys (schema
- *  names), minus the identity/attribution metadata the editor renders outside the spec table.
- *  Derived, never a hand-maintained copy. */
+ *  names), minus the identity/attribution metadata and the passive-radiator tuning pair (a
+ *  different device's fields, not a driver's). Derived, never a hand-maintained copy. */
 export type SpecField = Exclude<OpenIsdFieldKey,
-  | 'manufacturer' | 'brand' | 'model' | 'providedBy' | 'added' | 'comment'>;
+  | 'manufacturer' | 'brand' | 'model' | 'providedBy' | 'added' | 'comment'
+  | 'tuning_hz' | 'addedMass_kg'>;
 
 /** The subset of SpecField that represent numeric quantities (all except non-numeric VCCon). */
 export type NumSpecField = Exclude<SpecField, 'VCCon'>;

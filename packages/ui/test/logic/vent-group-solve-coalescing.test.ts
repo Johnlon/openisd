@@ -72,7 +72,7 @@ describe('PR group writes coalesce the same way', () => {
   });
 
   it('enterPrField(prFp) — value write + provenance write + one solve write, no more', () => {
-    const count = countNotifications(() => enterPrFieldOn(requireFocusedProject(), 'prFp', 40));
+    const count = countNotifications(() => enterPrFieldOn(requireFocusedProject(), 'tuning_hz', 40));
     assert.equal(count, 1,
       `expected exactly 1 notification (one domain transaction) — got ${count}`);
   });
@@ -80,9 +80,9 @@ describe('PR group writes coalesce the same way', () => {
   it('clearPrField(prFp) — provenance write + one solve write, no more', () => {
     // Enter prMadd too first, so clearing prFp leaves prMadd as the sole entered member and
     // prFp becomes the CALCULATED one — otherwise nothing is derivable after the clear.
-    enterPrFieldOn(requireFocusedProject(), 'prFp', 40);
-    enterPrFieldOn(requireFocusedProject(), 'prMadd', 0.01);
-    const count = countNotifications(() => clearPrFieldOn(requireFocusedProject(), 'prFp'));
+    enterPrFieldOn(requireFocusedProject(), 'tuning_hz', 40);
+    enterPrFieldOn(requireFocusedProject(), 'addedMass_kg', 0.01);
+    const count = countNotifications(() => clearPrFieldOn(requireFocusedProject(), 'tuning_hz'));
     assert.equal(count, 1,
       `expected exactly 1 notification (one domain transaction) — got ${count}`);
   });

@@ -95,6 +95,10 @@ export const OPENISD_FIELDS = {
     weight_kg: {ui_label: 'Weight (weight_kg)'},
     OuterX_m: {ui_label: 'Outer dimension X (OuterX)'},
     OuterY_m: {ui_label: 'Outer dimension Y (OuterY)'},
+    // The passive-radiator tuning pair — its own schema (a PR is a different device), so no `wdr`
+    // and not a driver spec field. The UI's PR group is derived from these keys.
+    tuning_hz: {ui_label: 'Target tuning (tuning_hz)'},
+    addedMass_kg: {ui_label: 'Added mass to cone (addedMass_kg)'},
 } as const satisfies Record<string, FieldDef>;
 
 export type OpenIsdFieldKey = keyof typeof OPENISD_FIELDS;
