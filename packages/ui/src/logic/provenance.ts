@@ -12,7 +12,7 @@ export interface ProvenanceInfo {
   paths: ProvenancePath[];
 }
 
-// Field keys are the vocabulary's schema names (`@openisd/design/fields`); the inspector looks
+// Field keys are the field table's schema names (`@openisd/design/fields`); the inspector looks
 // up a clicked field's key directly, so no label→key map or runtime guard is needed here.
 
 export const PATH_COLORS = [

@@ -3,4 +3,4 @@ export {
   type OpenIsdFieldKey,
   type WdrFieldKey,
   type FieldDef,
-} from './fieldVocabulary.js';
+} from './openisdFields.js';

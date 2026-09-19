@@ -559,7 +559,7 @@ function wdrVCCon(spec: DriverSpec): WdrCell {
  */
 
 /** One `.wdr` row, built from the OID field directly. The `.wdr` is a FIXED 48-row structure, so
- *  each row is its own call naming the field, its vocabulary key (whose FieldDef supplies the
+ *  each row is its own call naming the field, its field-table key (whose FieldDef supplies the
  *  `.wdr` row name), and whether WinISD derives the value (`calculable`) — the C-vs-E mark is
  *  decided here, not looked up from a list.
  *

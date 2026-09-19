@@ -4,7 +4,7 @@
  *  2026-08-24, ENCAPSULATION_AND_LAYERING.md), so the driver editor's data-driven field table
  *  needs exactly one place that maps a name to a handle.
  *
- *  The name IS the vocabulary key, which is also the `DriverSpecsSection` field name — so there
+ *  The name IS the field-table key, which is also the `DriverSpecsSection` field name — so there
  *  is no switch: `driver.spec[section][field]` is the handle. A field renamed in the vocabulary
  *  or the schema is a compile error at this one line. `VCCon` is the non-numeric wiring select,
  *  handled by its own dropdown, never here.

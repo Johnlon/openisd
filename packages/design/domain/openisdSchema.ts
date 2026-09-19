@@ -907,7 +907,7 @@ export function winISDDriverToOpenISDDeviceJson(wdr: WinISDDriver):
 
     const specEntries: Record<string, z.infer<typeof specEntryJsonSchema>> = {};
     // THE FIXED 48-ROW STRUCTURE, each row read explicitly into its schema key — no row list, no
-    // key map: the calls below ARE the rows, and each names the vocabulary key (whose FieldDef
+    // key map: the calls below ARE the rows, and each names the field-table key (whose FieldDef
     // supplies the `.wdr` row it is read from and the schema entry it is stored under).
     readSpecEntryInto(specEntries, wdr, 'Qts', warnings);
     readSpecEntryInto(specEntries, wdr, 'Znom_ohm', warnings);

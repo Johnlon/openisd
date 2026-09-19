@@ -14,7 +14,7 @@ import {cellClassFor, fieldIsMandatoryAndUnsatisfied, notAvailableCell} from '..
 import type {Cell, Field} from '@openisd/design';
 import NumInput from './NumInput.vue';
 import UnitToggle from './UnitToggle.vue';
-import {fieldHelp, precision} from '../../logic/fields/fieldRegistry.js';
+import {fieldById, fieldHelp, precision} from '../../logic/fields/fieldRegistry.js';
 import {useEscToClose} from '../../logic/useEscToClose.js';
 import {DriverFileFormat} from '../../fileFormat.js';
 import EquationInspectorModal from './EquationInspectorModal.vue';
@@ -185,6 +185,12 @@ function setWiring(e: Event) {
  *  than a number, so it cannot be read as a numeric cell and the template binds it through
  *  `driverRaw.VCCon` instead. Returning null rather than asserting a type keeps the compiler
  *  proving the numeric reads, which is what a cast here would have switched off. */
+/** The registry's decided display label for a rendered field, or the key itself when
+ *  the registry has no entry for it. The editor renders labels from here, never hardcoded. */
+function fieldLabel(key: string): string {
+  return fieldById(key)?.label ?? key;
+}
+
 function fieldOf(field: SpecField): Field<number> | null {
   const _ = trigger.value;
   return specFieldHandle(draftDriver.value, field);
@@ -596,32 +602,32 @@ useEscToClose(() => saveMyDialogOpen.value, () => { saveMyDialogOpen.value = fal
         <div v-if="tab === 'General'" class="de-general">
           <div class="de-row2">
             <div class="de-fld" data-field-key="manufacturer" :title="fieldHelp('manufacturer')">
-              <label>Manufacturer</label>
+              <label>{{ fieldLabel('manufacturer') }}</label>
               <input type="text" :value="driverRaw.manufacturer || ''" @input="setText('manufacturer', $event)">
             </div>
             <div class="de-fld" data-field-key="brand" :title="fieldHelp('brand')">
-              <label>Brand</label>
+              <label>{{ fieldLabel('brand') }}</label>
               <input type="text" class="de-brand" :value="driverRaw.brand || ''" @input="setText('brand', $event)"
                      :class="{ 'de-input-mandatory': true, 'de-input-empty': !driverRaw.brand || !driverRaw.brand.trim() }">
             </div>
             <div class="de-fld" data-field-key="model" :title="fieldHelp('model')">
-              <label>Model</label>
+              <label>{{ fieldLabel('model') }}</label>
               <input type="text" class="de-model" :value="editorModelValue" @input="setText('model', $event)"
                      :class="{ 'de-input-mandatory': true, 'de-input-empty': !editorModelValue || !editorModelValue.trim() }">
             </div>
           </div>
           <div class="de-row2">
             <div class="de-fld" data-field-key="providedBy" :title="fieldHelp('providedBy')">
-              <label>Data provided by</label>
+              <label>{{ fieldLabel('providedBy') }}</label>
               <input type="text" :value="driverRaw.providedBy || ''" @input="setText('providedBy', $event)">
             </div>
             <div class="de-fld" data-field-key="added" :title="fieldHelp('added')">
-              <label>Date added</label>
+              <label>{{ fieldLabel('added') }}</label>
               <input type="text" :value="driverRaw.added || ''" @input="setText('added', $event)">
             </div>
           </div>
           <div class="de-fld de-comment" data-field-key="comment" :title="fieldHelp('comment')">
-            <label>Comment</label>
+            <label>{{ fieldLabel('comment') }}</label>
             <textarea :value="driverRaw.comment || ''" @input="setText('comment', $event)"></textarea>
           </div>
         </div>
@@ -632,28 +638,28 @@ useEscToClose(() => saveMyDialogOpen.value, () => { saveMyDialogOpen.value = fal
             <div class="de-hdr">Thiele/Small parameters</div>
             <div class="de-cols">
               <div class="de-fld" data-field-key="Qes" :style="getFieldStyle('Qes')" :title="fieldHelp('Qes')">
-                <label>Qes</label>
+                <label>{{ fieldLabel('Qes') }}</label>
                 <NumInput :class="cellClass('Qes')" :mandatory="mandatory('Qes')" :model-value="cellVal('Qes')" :precision="3" @update:model-value="v => setNum('Qes', v)">
                 </NumInput><span v-if="dqNote('Qes')" class="de-dq" :title="dqNote('Qes')">&#9888;</span>
               </div>
               <div class="de-fld" data-field-key="Qms" :style="getFieldStyle('Qms')" :title="fieldHelp('Qms')">
-                <label>Qms</label>
+                <label>{{ fieldLabel('Qms') }}</label>
                 <NumInput :class="cellClass('Qms')" :mandatory="mandatory('Qms')" :model-value="cellVal('Qms')" :precision="3" @update:model-value="v => setNum('Qms', v)">
                 </NumInput><span v-if="dqNote('Qms')" class="de-dq" :title="dqNote('Qms')">&#9888;</span>
               </div>
               <div class="de-fld" data-field-key="Qts" :style="getFieldStyle('Qts')" :title="fieldHelp('Qts')">
-                <label>Qts</label>
+                <label>{{ fieldLabel('Qts') }}</label>
                 <NumInput :class="cellClass('Qts')" :mandatory="mandatory('Qts')" :model-value="cellVal('Qts')" :precision="3" @update:model-value="v => setNum('Qts', v)">
                 </NumInput><span v-if="dqNote('Qts')" class="de-dq" :title="dqNote('Qts')">&#9888;</span>
               </div>
               <div class="de-fld" data-field-key="Fs_hz" :style="getFieldStyle('Fs_hz')" :title="fieldHelp('Fs_hz')">
-                <label>Fs</label>
+                <label>{{ fieldLabel('Fs_hz') }}</label>
                 <NumInput :class="cellClass('Fs_hz')" :mandatory="true" :model-value="cellVal('Fs_hz')" field="Fs_hz" group="freq" base="Hz" :precision="2" @update:model-value="v => setNum('Fs_hz', v)">
                 </NumInput><span v-if="dqNote('Fs_hz')" class="de-dq" :title="dqNote('Fs_hz')">&#9888;</span>
                 <UnitToggle field="Fs_hz" group="freq" base="Hz" unit-class="u" />
               </div>
               <div class="de-fld" data-field-key="Vas_m3" :style="getFieldStyle('Vas_m3')" :title="fieldHelp('Vas_m3')">
-                <label>Vas</label>
+                <label>{{ fieldLabel('Vas_m3') }}</label>
                 <NumInput :class="cellClass('Vas_m3')" :mandatory="true" :model-value="cellVal('Vas_m3')" field="Vas_m3" group="volume" base="L" :precision="precision('Vas_m3')" @update:model-value="v => setNum('Vas_m3', v)">
                 </NumInput><span v-if="dqNote('Vas_m3')" class="de-dq" :title="dqNote('Vas_m3')">&#9888;</span>
                 <UnitToggle field="Vas_m3" group="volume" base="L" unit-class="u" />
@@ -665,48 +671,48 @@ useEscToClose(() => saveMyDialogOpen.value, () => { saveMyDialogOpen.value = fal
             <div class="de-hdr">Electro-Mechanical parameters</div>
             <div class="de-cols">
               <div class="de-fld" data-field-key="Mms_kg" :style="getFieldStyle('Mms_kg')" :title="fieldHelp('Mms_kg')">
-                <label>Mms</label>
+                <label>{{ fieldLabel('Mms_kg') }}</label>
                 <NumInput :class="cellClass('Mms_kg')" :model-value="cellVal('Mms_kg')" field="Mms_kg" group="mass" base="g" :precision="2" @update:model-value="v => setNum('Mms_kg', v)">
                 </NumInput><span v-if="dqNote('Mms_kg')" class="de-dq" :title="dqNote('Mms_kg')">&#9888;</span>
                 <UnitToggle field="Mms_kg" group="mass" base="g" unit-class="u" />
               </div>
               <div class="de-fld" data-field-key="Cms_m_per_N" :style="getFieldStyle('Cms_m_per_N')" :title="fieldHelp('Cms_m_per_N')">
-                <label>Cms</label>
+                <label>{{ fieldLabel('Cms_m_per_N') }}</label>
                 <NumInput :class="cellClass('Cms_m_per_N')" :model-value="cellVal('Cms_m_per_N')" field="Cms_m_per_N" group="compliance" base="mmPerN" :precision="4" @update:model-value="v => setNum('Cms_m_per_N', v)">
                 </NumInput><span v-if="dqNote('Cms_m_per_N')" class="de-dq" :title="dqNote('Cms_m_per_N')">&#9888;</span>
                 <UnitToggle field="Cms_m_per_N" group="compliance" base="mmPerN" unit-class="u" />
               </div>
               <div class="de-fld" data-field-key="Rms_kg_per_s" :style="getFieldStyle('Rms_kg_per_s')" :title="fieldHelp('Rms_kg_per_s')">
-                <label>Rms</label>
+                <label>{{ fieldLabel('Rms_kg_per_s') }}</label>
                 <NumInput :class="cellClass('Rms_kg_per_s')" :model-value="cellVal('Rms_kg_per_s')" field="Rms_kg_per_s" group="resistance" base="nsPerM" :precision="4" @update:model-value="v => setNum('Rms_kg_per_s', v)">
                 </NumInput><span v-if="dqNote('Rms_kg_per_s')" class="de-dq" :title="dqNote('Rms_kg_per_s')">&#9888;</span>
                 <UnitToggle field="Rms_kg_per_s" group="resistance" base="nsPerM" unit-class="u" />
               </div>
               <div class="de-fld" data-field-key="Re_ohm" :style="getFieldStyle('Re_ohm')" :title="fieldHelp('Re_ohm')">
-                <label>Re</label>
+                <label>{{ fieldLabel('Re_ohm') }}</label>
                 <NumInput :class="cellClass('Re_ohm')" :mandatory="true" :model-value="cellVal('Re_ohm')" :precision="3" @update:model-value="v => setNum('Re_ohm', v)">
                 </NumInput><span v-if="dqNote('Re_ohm')" class="de-dq" :title="dqNote('Re_ohm')">&#9888;</span>
                 <span class="u">ohm</span>
               </div>
               <div class="de-fld" data-field-key="BL_Tm" :style="getFieldStyle('BL_Tm')" :title="fieldHelp('BL_Tm')">
-                <label>BL</label>
+                <label>{{ fieldLabel('BL_Tm') }}</label>
                 <NumInput :class="cellClass('BL_Tm')" :model-value="cellVal('BL_Tm')" :precision="3" @update:model-value="v => setNum('BL_Tm', v)">
                 </NumInput><span v-if="dqNote('BL_Tm')" class="de-dq" :title="dqNote('BL_Tm')">&#9888;</span>
                 <span class="u">Tm</span>
               </div>
               <div class="de-fld" data-field-key="Dd_m" :style="getFieldStyle('Dd_m')" :title="fieldHelp('Dd_m')">
-                <label>Dd</label>
+                <label>{{ fieldLabel('Dd_m') }}</label>
                 <NumInput :class="cellClass('Dd_m')" :model-value="cellVal('Dd_m')" field="Dd_m" group="length" base="mm" :precision="precision('Dd_m')" @update:model-value="v => setNum('Dd_m', v)"></NumInput><span v-if="dqNote('Dd_m')" class="de-dq" :title="dqNote('Dd_m')">&#9888;</span>
                 <UnitToggle field="Dd_m" group="length" base="mm" unit-class="u" />
               </div>
               <div class="de-fld" data-field-key="Le_H" :style="getFieldStyle('Le_H')" :title="fieldHelp('Le_H')">
-                <label>Le</label>
+                <label>{{ fieldLabel('Le_H') }}</label>
                 <NumInput :class="cellClass('Le_H')" :model-value="cellVal('Le_H')" field="Le_H" group="inductance" base="mH" :precision="3" @update:model-value="v => setNum('Le_H', v)">
                 </NumInput><span v-if="dqNote('Le_H')" class="de-dq" :title="dqNote('Le_H')">&#9888;</span>
                 <UnitToggle field="Le_H" group="inductance" base="mH" unit-class="u" />
               </div>
               <div class="de-fld" data-field-key="Sd_m2" :style="getFieldStyle('Sd_m2')" :title="fieldHelp('Sd_m2')">
-                <label>Sd</label>
+                <label>{{ fieldLabel('Sd_m2') }}</label>
                 <NumInput :class="cellClass('Sd_m2')" :mandatory="true" :model-value="cellVal('Sd_m2')" field="Sd_m2" group="area" base="cm2" :precision="precision('Sd_m2')" @update:model-value="v => setNum('Sd_m2', v)">
                 </NumInput><span v-if="dqNote('Sd_m2')" class="de-dq" :title="dqNote('Sd_m2')">&#9888;</span>
                 <UnitToggle field="Sd_m2" group="area" base="cm2" unit-class="u" />
@@ -715,12 +721,12 @@ useEscToClose(() => saveMyDialogOpen.value, () => { saveMyDialogOpen.value = fal
                    scale DIVIDES by 1000. NumInput renders `SI × scale`, so a ×1000 here read
                    Hz as kHz and put the field out by 1e6. -->
               <div class="de-fld" data-field-key="fLe_hz" :style="getFieldStyle('fLe_hz')" :title="fieldHelp('fLe_hz')">
-                <label>fLe</label>
+                <label>{{ fieldLabel('fLe_hz') }}</label>
                 <NumInput :class="cellClass('fLe_hz')" :model-value="cellVal('fLe_hz')" field="fLe_hz" group="freq" base="kHz" :precision="precision('fLe_hz')" @update:model-value="v => setNum('fLe_hz', v)"></NumInput><span v-if="dqNote('fLe_hz')" class="de-dq" :title="dqNote('fLe_hz')">&#9888;</span>
                 <UnitToggle field="fLe_hz" group="freq" base="kHz" unit-class="u" />
               </div>
               <div class="de-fld" data-field-key="KLe_H_sqrtHz" :style="getFieldStyle('KLe_H_sqrtHz')" :title="fieldHelp('KLe_H_sqrtHz')">
-                <label>KLe</label>
+                <label>{{ fieldLabel('KLe_H_sqrtHz') }}</label>
                 <NumInput :class="cellClass('KLe_H_sqrtHz')" :model-value="cellVal('KLe_H_sqrtHz')" @update:model-value="v => setNum('KLe_H_sqrtHz', v)"></NumInput><span v-if="dqNote('KLe_H_sqrtHz')" class="de-dq" :title="dqNote('KLe_H_sqrtHz')">&#9888;</span>
                 <span class="u">H·√Hz</span>
               </div>
@@ -731,34 +737,34 @@ useEscToClose(() => saveMyDialogOpen.value, () => { saveMyDialogOpen.value = fal
             <div class="de-hdr">Large-Signal parameters</div>
             <div class="de-cols">
               <div class="de-fld" data-field-key="Xmax_m" :style="getFieldStyle('Xmax_m')" :title="fieldHelp('Xmax_m')">
-                <label>Xmax</label>
+                <label>{{ fieldLabel('Xmax_m') }}</label>
                 <NumInput :class="cellClass('Xmax_m')" :model-value="cellVal('Xmax_m')" field="Xmax_m" group="length" base="mm" :precision="3" @update:model-value="v => setNum('Xmax_m', v)">
                 </NumInput><span v-if="dqNote('Xmax_m')" class="de-dq" :title="dqNote('Xmax_m')">&#9888;</span>
                 <UnitToggle field="Xmax_m" group="length" base="mm" unit-class="u" />
               </div>
               <div class="de-fld" data-field-key="Hc_m" :style="getFieldStyle('Hc_m')" :title="fieldHelp('Hc_m')">
-                <label>Hc</label>
+                <label>{{ fieldLabel('Hc_m') }}</label>
                 <NumInput :class="cellClass('Hc_m')" :model-value="cellVal('Hc_m')" field="Hc_m" group="length" base="mm" @update:model-value="v => setNum('Hc_m', v)"></NumInput><span v-if="dqNote('Hc_m')" class="de-dq" :title="dqNote('Hc_m')">&#9888;</span>
                 <UnitToggle field="Hc_m" group="length" base="mm" unit-class="u" />
               </div>
               <div class="de-fld" data-field-key="Hg_m" :style="getFieldStyle('Hg_m')" :title="fieldHelp('Hg_m')">
-                <label>Hg</label>
+                <label>{{ fieldLabel('Hg_m') }}</label>
                 <NumInput :class="cellClass('Hg_m')" :model-value="cellVal('Hg_m')" field="Hg_m" group="length" base="mm" @update:model-value="v => setNum('Hg_m', v)"></NumInput><span v-if="dqNote('Hg_m')" class="de-dq" :title="dqNote('Hg_m')">&#9888;</span>
                 <UnitToggle field="Hg_m" group="length" base="mm" unit-class="u" />
               </div>
 
               <div class="de-fld" data-field-key="Vd_m3" :style="getFieldStyle('Vd_m3')" :title="fieldHelp('Vd_m3')">
-                <label>Vd</label>
+                <label>{{ fieldLabel('Vd_m3') }}</label>
                 <NumInput :class="cellClass('Vd_m3')" :model-value="cellVal('Vd_m3')" field="Vd_m3" group="volume" base="cm3" @update:model-value="v => setNum('Vd_m3', v)"></NumInput><span v-if="dqNote('Vd_m3')" class="de-dq" :title="dqNote('Vd_m3')">&#9888;</span>
                 <UnitToggle field="Vd_m3" group="volume" base="cm3" unit-class="u" />
               </div>
               <div class="de-fld" data-field-key="Xlim_m" :style="getFieldStyle('Xlim_m')" :title="fieldHelp('Xlim_m')">
-                <label>Xlim</label>
+                <label>{{ fieldLabel('Xlim_m') }}</label>
                 <NumInput :class="cellClass('Xlim_m')" :model-value="cellVal('Xlim_m')" field="Xlim_m" group="length" base="mm" @update:model-value="v => setNum('Xlim_m', v)"></NumInput><span v-if="dqNote('Xlim_m')" class="de-dq" :title="dqNote('Xlim_m')">&#9888;</span>
                 <UnitToggle field="Xlim_m" group="length" base="mm" unit-class="u" />
               </div>
               <div class="de-fld" data-field-key="Pe_W" :style="getFieldStyle('Pe_W')" :title="fieldHelp('Pe_W')">
-                <label>Pe</label>
+                <label>{{ fieldLabel('Pe_W') }}</label>
                 <NumInput :class="cellClass('Pe_W')" :model-value="cellVal('Pe_W')" :precision="2" @update:model-value="v => setNum('Pe_W', v)">
                 </NumInput><span v-if="dqNote('Pe_W')" class="de-dq" :title="dqNote('Pe_W')">&#9888;</span>
                 <span class="u">W</span>
@@ -770,32 +776,32 @@ useEscToClose(() => saveMyDialogOpen.value, () => { saveMyDialogOpen.value = fal
             <div class="de-hdr">Miscellaneous parameters</div>
             <div class="de-cols">
               <div class="de-fld" data-field-key="no" :style="getFieldStyle('no')" :title="fieldHelp('no')">
-                <label>no</label>
+                <label>{{ fieldLabel('no') }}</label>
                 <NumInput :class="cellClass('no')" :model-value="cellVal('no')" field="no" group="percent" base="pct" @update:model-value="v => setNum('no', v)"></NumInput><span v-if="dqNote('no')" class="de-dq" :title="dqNote('no')">&#9888;</span>
                 <UnitToggle field="no" group="percent" base="pct" unit-class="u" />
               </div>
               <div class="de-fld" data-field-key="Znom_ohm" :style="getFieldStyle('Znom_ohm')" :title="fieldHelp('Znom_ohm')">
-                <label>Znom</label>
+                <label>{{ fieldLabel('Znom_ohm') }}</label>
                 <NumInput :class="cellClass('Znom_ohm')" :model-value="cellVal('Znom_ohm')" :precision="3" @update:model-value="v => setNum('Znom_ohm', v)">
                 </NumInput><span v-if="dqNote('Znom_ohm')" class="de-dq" :title="dqNote('Znom_ohm')">&#9888;</span>
                 <span class="u">ohm</span>
               </div>
               <div class="de-fld" data-field-key="USPL_dB" :style="getFieldStyle('USPL_dB')" :title="fieldHelp('USPL_dB')">
-                <label>USPL</label>
+                <label>{{ fieldLabel('USPL_dB') }}</label>
                 <NumInput :class="cellClass('USPL_dB')" :model-value="cellVal('USPL_dB')" @update:model-value="v => setNum('USPL_dB', v)"></NumInput><span v-if="dqNote('USPL_dB')" class="de-dq" :title="dqNote('USPL_dB')">&#9888;</span>
                 <span class="u">dB</span>
               </div>
               <div class="de-fld" data-field-key="SPL_dB" :style="getFieldStyle('SPL_dB')" :title="fieldHelp('SPL_dB')">
-                <label>SPL</label>
+                <label>{{ fieldLabel('SPL_dB') }}</label>
                 <NumInput :class="cellClass('SPL_dB')" :model-value="cellVal('SPL_dB')" @update:model-value="v => setNum('SPL_dB', v)"></NumInput><span v-if="dqNote('SPL_dB')" class="de-dq" :title="dqNote('SPL_dB')">&#9888;</span>
                 <span class="u">dB</span>
               </div>
               <div class="de-fld" data-field-key="numVC" :style="getFieldStyle('numVC')" :title="fieldHelp('numVC')">
-                <label>Voicecoils</label>
+                <label>{{ fieldLabel('numVC') }}</label>
                 <NumInput :class="cellClass('numVC')" :model-value="cellVal('numVC')" @update:model-value="v => setNum('numVC', v)"></NumInput><span v-if="dqNote('numVC')" class="de-dq" :title="dqNote('numVC')">&#9888;</span>
               </div>
               <div class="de-fld de-conn" data-field-key="VCCon" :title="fieldHelp('VCCon')">
-                <label>Connection</label>
+                <label>{{ fieldLabel('VCCon') }}</label>
                 <select class="de-conn-sel" :value="driverRaw.VCCon ?? 'parallel'" @change="setWiring"><option value="parallel">Parallel</option><option value="series">Series</option></select>
               </div>
             </div>
@@ -808,17 +814,17 @@ useEscToClose(() => saveMyDialogOpen.value, () => { saveMyDialogOpen.value = fal
             <div class="de-hdr">Thermal parameters</div>
             <div class="de-cols">
               <div class="de-fld" data-field-key="alfaVC_per_K" :style="getFieldStyle('alfaVC_per_K')" :title="fieldHelp('alfaVC_per_K')">
-                <label>AlfaVC</label>
+                <label>{{ fieldLabel('alfaVC_per_K') }}</label>
                 <NumInput :class="cellClass('alfaVC_per_K')" :model-value="cellVal('alfaVC_per_K')" field="alfaVC_per_K" group="tempCoeff" base="perMilliK" @update:model-value="v => setNum('alfaVC_per_K', v)"></NumInput><span v-if="dqNote('alfaVC_per_K')" class="de-dq" :title="dqNote('alfaVC_per_K')">&#9888;</span>
                 <UnitToggle field="alfaVC_per_K" group="tempCoeff" base="perMilliK" unit-class="u" />
               </div>
               <div class="de-fld" data-field-key="Rt_K_per_W" :style="getFieldStyle('Rt_K_per_W')" :title="fieldHelp('Rt_K_per_W')">
-                <label>R(t)</label>
+                <label>{{ fieldLabel('Rt_K_per_W') }}</label>
                 <NumInput :class="cellClass('Rt_K_per_W')" :model-value="cellVal('Rt_K_per_W')" @update:model-value="v => setNum('Rt_K_per_W', v)"></NumInput><span v-if="dqNote('Rt_K_per_W')" class="de-dq" :title="dqNote('Rt_K_per_W')">&#9888;</span>
                 <span class="u">K/W</span>
               </div>
               <div class="de-fld" data-field-key="Ct_J_per_K" :style="getFieldStyle('Ct_J_per_K')" :title="fieldHelp('Ct_J_per_K')">
-                <label>C(t)</label>
+                <label>{{ fieldLabel('Ct_J_per_K') }}</label>
                 <NumInput :class="cellClass('Ct_J_per_K')" :model-value="cellVal('Ct_J_per_K')" @update:model-value="v => setNum('Ct_J_per_K', v)"></NumInput><span v-if="dqNote('Ct_J_per_K')" class="de-dq" :title="dqNote('Ct_J_per_K')">&#9888;</span>
                 <span class="u">J/K</span>
               </div>
@@ -829,43 +835,43 @@ useEscToClose(() => saveMyDialogOpen.value, () => { saveMyDialogOpen.value = fal
             <div class="de-hdr">Figure of merits</div>
             <div class="de-cols">
               <div class="de-fld" data-field-key="SPLmaxLF_dB" :style="getFieldStyle('SPLmaxLF_dB')" :title="fieldHelp('SPLmaxLF_dB')">
-                <label>SPLmaxLF</label>
+                <label>{{ fieldLabel('SPLmaxLF_dB') }}</label>
                 <NumInput :class="cellClass('SPLmaxLF_dB')" :model-value="cellVal('SPLmaxLF_dB')" @update:model-value="v => setNum('SPLmaxLF_dB', v)"></NumInput><span v-if="dqNote('SPLmaxLF_dB')" class="de-dq" :title="dqNote('SPLmaxLF_dB')">&#9888;</span>
                 <span class="u">dB</span>
               </div>
               <div class="de-fld" data-field-key="SPLmax_dB" :style="getFieldStyle('SPLmax_dB')" :title="fieldHelp('SPLmax_dB')">
-                <label>SPLmax</label>
+                <label>{{ fieldLabel('SPLmax_dB') }}</label>
                 <NumInput :class="cellClass('SPLmax_dB')" :model-value="cellVal('SPLmax_dB')" @update:model-value="v => setNum('SPLmax_dB', v)"></NumInput><span v-if="dqNote('SPLmax_dB')" class="de-dq" :title="dqNote('SPLmax_dB')">&#9888;</span>
                 <span class="u">dB</span>
               </div>
               <div class="de-fld" data-field-key="Rme_kg_per_s" :style="getFieldStyle('Rme_kg_per_s')" :title="fieldHelp('Rme_kg_per_s')">
-                <label>Rme</label>
+                <label>{{ fieldLabel('Rme_kg_per_s') }}</label>
                 <NumInput :class="cellClass('Rme_kg_per_s')" :model-value="cellVal('Rme_kg_per_s')" field="Rme_kg_per_s" group="resistance" base="nsPerM" @update:model-value="v => setNum('Rme_kg_per_s', v)"></NumInput><span v-if="dqNote('Rme_kg_per_s')" class="de-dq" :title="dqNote('Rme_kg_per_s')">&#9888;</span>
                 <UnitToggle field="Rme_kg_per_s" group="resistance" base="nsPerM" unit-class="u" />
               </div>
               <div class="de-fld" data-field-key="gamma_m_per_s2_A" :style="getFieldStyle('gamma_m_per_s2_A')" :title="fieldHelp('gamma_m_per_s2_A')">
-                <label>gamma</label>
+                <label>{{ fieldLabel('gamma_m_per_s2_A') }}</label>
                 <NumInput :class="cellClass('gamma_m_per_s2_A')" :model-value="cellVal('gamma_m_per_s2_A')" @update:model-value="v => setNum('gamma_m_per_s2_A', v)"></NumInput><span v-if="dqNote('gamma_m_per_s2_A')" class="de-dq" :title="dqNote('gamma_m_per_s2_A')">&#9888;</span>
                 <span class="u">N/(A·kg)</span>
               </div>
               <div class="de-fld" data-field-key="Mpow_N_per_sqrtW" :style="getFieldStyle('Mpow_N_per_sqrtW')" :title="fieldHelp('Mpow_N_per_sqrtW')">
-                <label>Mpow</label>
+                <label>{{ fieldLabel('Mpow_N_per_sqrtW') }}</label>
                 <NumInput :class="cellClass('Mpow_N_per_sqrtW')" :model-value="cellVal('Mpow_N_per_sqrtW')" @update:model-value="v => setNum('Mpow_N_per_sqrtW', v)"></NumInput><span v-if="dqNote('Mpow_N_per_sqrtW')" class="de-dq" :title="dqNote('Mpow_N_per_sqrtW')">&#9888;</span>
                 <span class="u">N/√W</span>
               </div>
               <div class="de-fld" data-field-key="Mcost_kg_per_s" :style="getFieldStyle('Mcost_kg_per_s')" :title="fieldHelp('Mcost_kg_per_s')">
-                <label>Mcost</label>
+                <label>{{ fieldLabel('Mcost_kg_per_s') }}</label>
                 <NumInput :class="cellClass('Mcost_kg_per_s')" :model-value="cellVal('Mcost_kg_per_s')" field="Mcost_kg_per_s" group="resistance" base="kgPerS" @update:model-value="v => setNum('Mcost_kg_per_s', v)"></NumInput><span v-if="dqNote('Mcost_kg_per_s')" class="de-dq" :title="dqNote('Mcost_kg_per_s')">&#9888;</span>
                 <UnitToggle field="Mcost_kg_per_s" group="resistance" base="kgPerS" unit-class="u" />
               </div>
               <div class="de-fld value-c" data-field-key="EBP_hz" :style="getFieldStyle('EBP_hz')" :title="fieldHelp('EBP_hz')">
-                <label>EBP</label>
+                <label>{{ fieldLabel('EBP_hz') }}</label>
                 <input type="text" readonly :value="ebpVal() != null ? formatInUnit(ebpVal(), 'EBP_hz', 'freq', 'Hz', 1) : ''"><UnitToggle field="EBP_hz" group="freq" base="Hz" unit-class="u" />
               </div>
               <!-- The model holds the FRACTION the .wdr carries; WinISD's pane prints a
                    percentage. The `percent` unit group is the ONE place that ×100 lives. -->
               <div class="de-fld" data-field-key="Gloss" :style="getFieldStyle('Gloss')" :title="fieldHelp('Gloss')">
-                <label>Gloss</label>
+                <label>{{ fieldLabel('Gloss') }}</label>
                 <NumInput :class="cellClass('Gloss')" :model-value="cellVal('Gloss')" field="Gloss" group="percent" base="pct" :precision="precision('Gloss')" @update:model-value="v => setNum('Gloss', v)"></NumInput><span v-if="dqNote('Gloss')" class="de-dq" :title="dqNote('Gloss')">&#9888;</span>
                 <UnitToggle field="Gloss" group="percent" base="pct" unit-class="u" />
               </div>
@@ -876,11 +882,11 @@ useEscToClose(() => saveMyDialogOpen.value, () => { saveMyDialogOpen.value = fal
             <div class="de-hdr">Environment parameters</div>
             <div class="de-cols">
               <div class="de-fld value-c" data-field-key="c_m_per_s" :title="fieldHelp('c_m_per_s')">
-                <label>c</label>
+                <label>{{ fieldLabel('c_m_per_s') }}</label>
                 <input type="text" readonly :value="formatInUnit(cellVal('c_m_per_s'), 'c_m_per_s', 'velocity', 'mps', 2)"><UnitToggle field="c_m_per_s" group="velocity" base="mps" unit-class="u" />
               </div>
               <div class="de-fld value-c" data-field-key="roo_kg_per_m3" :title="fieldHelp('roo_kg_per_m3')">
-                <label>roo</label>
+                <label>{{ fieldLabel('roo_kg_per_m3') }}</label>
                 <input type="text" readonly :value="formatInUnit(cellVal('roo_kg_per_m3'), 'roo_kg_per_m3', 'density', 'kgPerM3', 5)"><UnitToggle field="roo_kg_per_m3" group="density" base="kgPerM3" unit-class="u" />
               </div>
             </div>
@@ -895,14 +901,14 @@ useEscToClose(() => saveMyDialogOpen.value, () => { saveMyDialogOpen.value = fal
                  the same unit the Parameters tab uses for Xmax/Hc/Hg/Dd, and one of the units
                  WinISD offers on each of these fields. Unscaled, a 6.5" basket read "0.17";
                  Thick read a metre value under an inches label. -->
-            <div class="de-fld" data-field-key="Thick_m" :title="fieldHelp('Thick_m')"><label>Basket Plate Thickness (Thick)</label><NumInput :class="cellClass('Thick_m')" :model-value="cellVal('Thick_m')" field="Thick_m" group="length" base="mm" :precision="precision('Thick_m')" @update:model-value="v => setNum('Thick_m', v)"></NumInput><span v-if="dqNote('Thick_m')" class="de-dq" :title="dqNote('Thick_m')">&#9888;</span><UnitToggle field="Thick_m" group="length" base="mm" unit-class="u" /></div>
-            <div class="de-fld" data-field-key="Depth_m" :style="getFieldStyle('Depth_m')" :title="fieldHelp('Depth_m')"><label>Driver Depth (Depth)</label><NumInput :class="cellClass('Depth_m')" :model-value="cellVal('Depth_m')" field="Depth_m" group="length" base="mm" :precision="precision('Depth_m')" @update:model-value="v => setNum('Depth_m', v)"></NumInput><span v-if="dqNote('Depth_m')" class="de-dq" :title="dqNote('Depth_m')">&#9888;</span><UnitToggle field="Depth_m" group="length" base="mm" unit-class="u" /></div>
-            <div class="de-fld" data-field-key="MagDepth_m" :style="getFieldStyle('MagDepth_m')" :title="fieldHelp('MagDepth_m')"><label>Magnet Depth (MagDepth)</label><NumInput :class="cellClass('MagDepth_m')" :model-value="cellVal('MagDepth_m')" field="MagDepth_m" group="length" base="mm" :precision="precision('MagDepth_m')" @update:model-value="v => setNum('MagDepth_m', v)"></NumInput><span v-if="dqNote('MagDepth_m')" class="de-dq" :title="dqNote('MagDepth_m')">&#9888;</span><UnitToggle field="MagDepth_m" group="length" base="mm" unit-class="u" /></div>
-            <div class="de-fld" data-field-key="Magnet_m" :style="getFieldStyle('Magnet_m')" :title="fieldHelp('Magnet_m')"><label>Magnet Diameter (Magnet)</label><NumInput :class="cellClass('Magnet_m')" :model-value="cellVal('Magnet_m')" field="Magnet_m" group="length" base="mm" :precision="precision('Magnet_m')" @update:model-value="v => setNum('Magnet_m', v)"></NumInput><span v-if="dqNote('Magnet_m')" class="de-dq" :title="dqNote('Magnet_m')">&#9888;</span><UnitToggle field="Magnet_m" group="length" base="mm" unit-class="u" /></div>
-            <div class="de-fld" data-field-key="Basket_m" :title="fieldHelp('Basket_m')"><label>Basket Diameter (Basket)</label><NumInput :class="cellClass('Basket_m')" :model-value="cellVal('Basket_m')" field="Basket_m" group="length" base="mm" :precision="precision('Basket_m')" @update:model-value="v => setNum('Basket_m', v)"></NumInput><span v-if="dqNote('Basket_m')" class="de-dq" :title="dqNote('Basket_m')">&#9888;</span><UnitToggle field="Basket_m" group="length" base="mm" unit-class="u" /></div>
-            <div class="de-fld" data-field-key="Outer_m" :title="fieldHelp('Outer_m')"><label>Outer Diameter (Outer)</label><NumInput :class="cellClass('Outer_m')" :model-value="cellVal('Outer_m')" field="Outer_m" group="length" base="mm" :precision="precision('Outer_m')" @update:model-value="v => setNum('Outer_m', v)"></NumInput><span v-if="dqNote('Outer_m')" class="de-dq" :title="dqNote('Outer_m')">&#9888;</span><UnitToggle field="Outer_m" group="length" base="mm" unit-class="u" /></div>
-            <div class="de-fld" data-field-key="Vcd_m" :title="fieldHelp('Vcd_m')"><label>Voice Coil Dia (Vcd)</label><NumInput :class="cellClass('Vcd_m')" :model-value="cellVal('Vcd_m')" field="Vcd_m" group="length" base="mm" :precision="precision('Vcd_m')" @update:model-value="v => setNum('Vcd_m', v)"></NumInput><span v-if="dqNote('Vcd_m')" class="de-dq" :title="dqNote('Vcd_m')">&#9888;</span><UnitToggle field="Vcd_m" group="length" base="mm" unit-class="u" /></div>
-            <div class="de-fld" data-field-key="DVol_m3" :style="getFieldStyle('DVol_m3')" :title="fieldHelp('DVol_m3')"><label>Driver Displacement Volume (DVol)</label><NumInput :class="cellClass('DVol_m3')" :model-value="cellVal('DVol_m3')" field="DVol_m3" group="volume" base="cm3" :precision="precision('DVol_m3')" @update:model-value="v => setNum('DVol_m3', v)"></NumInput><span v-if="dqNote('DVol_m3')" class="de-dq" :title="dqNote('DVol_m3')">&#9888;</span><UnitToggle field="DVol_m3" group="volume" base="cm3" unit-class="u" /></div>
+            <div class="de-fld" data-field-key="Thick_m" :title="fieldHelp('Thick_m')"><label>{{ fieldLabel('Thick_m') }}</label><NumInput :class="cellClass('Thick_m')" :model-value="cellVal('Thick_m')" field="Thick_m" group="length" base="mm" :precision="precision('Thick_m')" @update:model-value="v => setNum('Thick_m', v)"></NumInput><span v-if="dqNote('Thick_m')" class="de-dq" :title="dqNote('Thick_m')">&#9888;</span><UnitToggle field="Thick_m" group="length" base="mm" unit-class="u" /></div>
+            <div class="de-fld" data-field-key="Depth_m" :style="getFieldStyle('Depth_m')" :title="fieldHelp('Depth_m')"><label>{{ fieldLabel('Depth_m') }}</label><NumInput :class="cellClass('Depth_m')" :model-value="cellVal('Depth_m')" field="Depth_m" group="length" base="mm" :precision="precision('Depth_m')" @update:model-value="v => setNum('Depth_m', v)"></NumInput><span v-if="dqNote('Depth_m')" class="de-dq" :title="dqNote('Depth_m')">&#9888;</span><UnitToggle field="Depth_m" group="length" base="mm" unit-class="u" /></div>
+            <div class="de-fld" data-field-key="MagDepth_m" :style="getFieldStyle('MagDepth_m')" :title="fieldHelp('MagDepth_m')"><label>{{ fieldLabel('MagDepth_m') }}</label><NumInput :class="cellClass('MagDepth_m')" :model-value="cellVal('MagDepth_m')" field="MagDepth_m" group="length" base="mm" :precision="precision('MagDepth_m')" @update:model-value="v => setNum('MagDepth_m', v)"></NumInput><span v-if="dqNote('MagDepth_m')" class="de-dq" :title="dqNote('MagDepth_m')">&#9888;</span><UnitToggle field="MagDepth_m" group="length" base="mm" unit-class="u" /></div>
+            <div class="de-fld" data-field-key="Magnet_m" :style="getFieldStyle('Magnet_m')" :title="fieldHelp('Magnet_m')"><label>{{ fieldLabel('Magnet_m') }}</label><NumInput :class="cellClass('Magnet_m')" :model-value="cellVal('Magnet_m')" field="Magnet_m" group="length" base="mm" :precision="precision('Magnet_m')" @update:model-value="v => setNum('Magnet_m', v)"></NumInput><span v-if="dqNote('Magnet_m')" class="de-dq" :title="dqNote('Magnet_m')">&#9888;</span><UnitToggle field="Magnet_m" group="length" base="mm" unit-class="u" /></div>
+            <div class="de-fld" data-field-key="Basket_m" :title="fieldHelp('Basket_m')"><label>{{ fieldLabel('Basket_m') }}</label><NumInput :class="cellClass('Basket_m')" :model-value="cellVal('Basket_m')" field="Basket_m" group="length" base="mm" :precision="precision('Basket_m')" @update:model-value="v => setNum('Basket_m', v)"></NumInput><span v-if="dqNote('Basket_m')" class="de-dq" :title="dqNote('Basket_m')">&#9888;</span><UnitToggle field="Basket_m" group="length" base="mm" unit-class="u" /></div>
+            <div class="de-fld" data-field-key="Outer_m" :title="fieldHelp('Outer_m')"><label>{{ fieldLabel('Outer_m') }}</label><NumInput :class="cellClass('Outer_m')" :model-value="cellVal('Outer_m')" field="Outer_m" group="length" base="mm" :precision="precision('Outer_m')" @update:model-value="v => setNum('Outer_m', v)"></NumInput><span v-if="dqNote('Outer_m')" class="de-dq" :title="dqNote('Outer_m')">&#9888;</span><UnitToggle field="Outer_m" group="length" base="mm" unit-class="u" /></div>
+            <div class="de-fld" data-field-key="Vcd_m" :title="fieldHelp('Vcd_m')"><label>{{ fieldLabel('Vcd_m') }}</label><NumInput :class="cellClass('Vcd_m')" :model-value="cellVal('Vcd_m')" field="Vcd_m" group="length" base="mm" :precision="precision('Vcd_m')" @update:model-value="v => setNum('Vcd_m', v)"></NumInput><span v-if="dqNote('Vcd_m')" class="de-dq" :title="dqNote('Vcd_m')">&#9888;</span><UnitToggle field="Vcd_m" group="length" base="mm" unit-class="u" /></div>
+            <div class="de-fld" data-field-key="DVol_m3" :style="getFieldStyle('DVol_m3')" :title="fieldHelp('DVol_m3')"><label>{{ fieldLabel('DVol_m3') }}</label><NumInput :class="cellClass('DVol_m3')" :model-value="cellVal('DVol_m3')" field="DVol_m3" group="volume" base="cm3" :precision="precision('DVol_m3')" @update:model-value="v => setNum('DVol_m3', v)"></NumInput><span v-if="dqNote('DVol_m3')" class="de-dq" :title="dqNote('DVol_m3')">&#9888;</span><UnitToggle field="DVol_m3" group="volume" base="cm3" unit-class="u" /></div>
           </div>
 
           <div class="de-diagram" aria-hidden="true" title="Driver cross-section (reference diagram — dimensions not modelled)">

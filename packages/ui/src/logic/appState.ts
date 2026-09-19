@@ -34,7 +34,7 @@ import {getOrInit, hmrSlots} from './hmrSingleton.js';
 import {notifyVentChanged, ventSolveSuspended,} from './useVentGroup.js';
 import {notifyPrChanged} from './usePrGroup.js';
 
-/** The driver spec fields the app's UI reads/writes by name — the vocabulary's keys (schema
+/** The driver spec fields the app's UI reads/writes by name — the field table's keys (schema
  *  names), minus the identity/attribution metadata and the passive-radiator tuning pair (a
  *  different device's fields, not a driver's). Derived, never a hand-maintained copy. */
 export type SpecField = Exclude<OpenIsdFieldKey,

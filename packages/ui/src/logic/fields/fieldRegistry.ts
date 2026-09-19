@@ -33,46 +33,46 @@ export type FieldKind = 'number' | 'enum' | 'text' | 'toggle' | 'date' | 'contro
  *  narrower union of design's own `CellState`, never a second declaration of the concept. */
 type Provenance = Exclude<CellState, 'not-available'>;
 
-export interface FieldSpec {
+export interface UIFieldSpec {
   /** Stable field id — the key the UI and tests reference. */
-  id: string;
+  readonly id: string;
   /** Human label as shown in the UI (matches the WinISD screenshots). */
-  label: string;
+  readonly label: string;
   /** Which WinISD/OpenISD pane the field lives on (Box, Vents, PR, Signal, Advanced, Project,
    *  Driver: General/Parameters/Advanced/Dimensions, Filters, Options). */
-  pane: string;
+  readonly pane: string;
   /** Field kind — number / enum / text / toggle / date / control. */
-  kind: FieldKind;
+  readonly kind: FieldKind;
   /** Display unit symbol, or '' for dimensionless (e.g. Q). For a field a skin binds (via
    *  `field=`), this is OpenISD's unit (which may differ from WinISD's); for an entry no skin
    *  binds yet, it is WinISD's unit, carried as documentation. */
-  unit: string;
+  readonly unit: string;
   /** Interchangeable-unit group this field belongs to (fields/units.ts) — lets the UI offer a
    *  click-to-rotate toggle among the group's spellings. Omitted for fields with no alternate
    *  spelling. */
-  unitGroup?: UnitGroup;
+  readonly unitGroup?: UnitGroup;
   /** Fixed decimal places a numeric field always shows. Present for kind==='number' only. */
-  precision?: number;
+  readonly precision?: number;
   /** Sanity lower bound for entry, in the unit NumInput emits: for a field a skin binds (via
    *  `field=`) this is ENFORCED by the UI (NumInput / v-limits) in SI base (m³, m, m², kg, Pa,
    *  H, 1/K …); for an entry no skin binds yet, the bound is in the field's own `unit` column
    *  and unenforced. REQUIRED for every numeric field. */
-  min?: number;
+  readonly min?: number;
   /** Sanity upper bound — a plausibility ceiling, in the same unit space as `min` and enforced
    *  (or not) on the same terms. REQUIRED for every numeric field. */
-  max?: number;
+  readonly max?: number;
   /** Entered by the human, or Calculated by the app. */
-  provenance: Provenance;
+  readonly provenance: Provenance;
   /** Box types the field applies to, or 'all' when it is box-type-independent. */
-  appliesTo: BoxType[] | 'all';
+  readonly appliesTo: BoxType[] | 'all';
   /** For calculated fields: the closed form (derivation), for documentation and traceability. */
-  formula?: string;
+  readonly formula?: string;
   /** For calculated fields: the field ids this value is derived from (graph edges). */
-  dependsOn?: string[];
+  readonly dependsOn?: string[];
   /** For enum fields: the selectable options. */
-  options?: string[];
+  readonly options?: string[];
   /** One-line description of what the field is / why it matters. */
-  description: string;
+  readonly description: string;
 }
 
 /**
@@ -86,7 +86,7 @@ export const END_CORRECTION_OPTIONS = [
   { value: 0.849, label: 'Two flanged ends' },
 ] as const;
 
-const FIELDS: FieldSpec[] = [
+const UI_FIELD_SPECS: UIFieldSpec[] = [
   // ============================ BOX / ENCLOSURE ============================
   {
     id: 'Vb', label: 'Volume', pane: 'Box', kind: 'number', unit: 'l', unitGroup: 'volume', precision: 2, min: 0.0001, max: 100,
@@ -483,10 +483,10 @@ const FIELDS: FieldSpec[] = [
   { id: 'filterOrder', label: 'Order', pane: 'Filters', kind: 'number', unit: '', precision: 3, min: 1, max: 8, provenance: 'entered', appliesTo: 'all', description: 'Filter order. Semantically an integer, but WinISD literally displays it at 3 dp (e.g. "2.000") — precision 3 matches that evidence.' },
 ];
 
-const BY_ID = new Map<string, FieldSpec>(FIELDS.map((f) => [f.id, f]));
+const UI_FIELDS_BY_ID = new Map<string, UIFieldSpec>(UI_FIELD_SPECS.map((f) => [f.id, f]));
 
 /** All registered field specs (read-only view). */
-export const fieldSpecs: readonly FieldSpec[] = FIELDS;
+export const fieldSpecs: readonly UIFieldSpec[] = UI_FIELD_SPECS;
 
 /** Look up a field spec by id, or undefined if not registered. */
 /**
@@ -505,8 +505,8 @@ export function fieldHelp(id: string): string {
   return fieldById(id)?.description ?? '';
 }
 
-export function fieldById(id: string): FieldSpec | undefined {
-  return BY_ID.get(id);
+export function fieldById(id: string): UIFieldSpec | undefined {
+  return UI_FIELDS_BY_ID.get(id);
 }
 
 /**
@@ -515,7 +515,7 @@ export function fieldById(id: string): FieldSpec | undefined {
  * silently falling back to a wrong dp.
  */
 export function precision(id: string): number {
-  const spec = BY_ID.get(id);
+  const spec = UI_FIELDS_BY_ID.get(id);
   if (!spec) throw new Error(`fieldRegistry: no field "${id}" — add it to fieldRegistry.ts`);
   if (spec.precision === undefined) throw new Error(`fieldRegistry: field "${id}" is ${spec.kind}, has no precision`);
   return spec.precision;
@@ -523,7 +523,7 @@ export function precision(id: string): number {
 
 /** Sanity bounds { min, max } for a field (either may be undefined). Throws on unknown id. */
 export function limits(id: string): { min?: number; max?: number } {
-  const spec = BY_ID.get(id);
+  const spec = UI_FIELDS_BY_ID.get(id);
   if (!spec) throw new Error(`fieldRegistry: no field "${id}" — add it to fieldRegistry.ts`);
   return { min: spec.min, max: spec.max };
 }

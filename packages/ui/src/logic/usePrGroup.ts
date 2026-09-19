@@ -1,18 +1,18 @@
 /**
  * The passive-radiator tuning group's UI seam. The relation — `tuning_hz` ↔ `addedMass_kg`,
  * pinning either solves the other — lives on `OpenISDProject` (`cell()`/`enter()`/`clear()`/
- * `notifyPrChanged()`), the owner of the state. This module keeps the field vocabulary, the
+ * `notifyPrChanged()`), the owner of the state. This module keeps the field names, the
  * badge letter, and the same one-action-one-solve suspension as the vent group.
  *
- * The two members ARE the vocabulary keys, so there is no dispatch: `enterPrField`/`clearPrField`
- * reach the domain field directly, and a rename in the vocabulary or the domain is a compile
+ * The two members ARE the field-table keys, so there is no dispatch: `enterPrField`/`clearPrField`
+ * reach the domain field directly, and a rename in the field table or the domain is a compile
  * error here, not a second table to keep in step.
  */
 import type {OpenISDProject} from '@openisd/design';
 import type {CellState} from '@openisd/design/winisd';
 import {suspendVentSolve} from './useVentGroup.js';
 
-/** The two members tied by the tuning relation, named as the vocabulary keys them. */
+/** The two members tied by the tuning relation, named as the field-table keys them. */
 export const PR_GROUP = ['tuning_hz', 'addedMass_kg'] as const;
 /** One of the two names listed above. */
 export type PrField = typeof PR_GROUP[number];

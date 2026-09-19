@@ -2,7 +2,7 @@ import {expect, openAProject, test} from '../fixtures.js';
 import type {Page} from '@playwright/test';
 import {fillAndBlur} from '../fixtures/numField.js';
 import {PROVENANCE_MAP} from '../../src/logic/provenance.js';
-import {OPENISD_FIELDS, type FieldDef} from '@openisd/design/fields';
+import {fieldById, fieldSpecs} from '../../src/logic/fields/fieldRegistry.js';
 import {UNIT_GROUPS} from '../../src/logic/fields/units.js';
 
 /**
@@ -41,7 +41,7 @@ const SEED: [string, string][] = [
  *  fills it and the provenance sweep exercises a CALCULATED geometry field for real — the lock
  *  needs every other member present, so exactly one may be left absent. */
 const SEED_DIMENSIONS: [string, string][] = [
-  ['Driver Depth (Depth)', '55'], ['Magnet Depth (MagDepth)', '20'],
+  ['Driver Depth (Depth)', '55'], ['Magnet Depth', '20'],
   ['Magnet Diameter (Magnet)', '60'], ['Voice Coil Dia (Vcd)', '25'],
 ];
 
@@ -89,11 +89,10 @@ function provenanceTables() {
   return { explained: Object.keys(PROVENANCE_MAP) };
 }
 
-/** The vocabulary key whose `ui_label` a rendered editor label shows, or `undefined` when no
- *  field renders that label — derived from the vocabulary, never a hand-maintained map. */
+/** The registry id whose `label` a rendered editor label shows, or `undefined` when no field
+ *  renders that label — derived from the registry, never a hand-maintained map. */
 function keyForLabel(label: string): string | undefined {
-  return (Object.entries(OPENISD_FIELDS) as Array<[string, FieldDef]>)
-    .find(([, def]) => def.ui_label === label)?.[0];
+  return fieldSpecs.find(s => s.label === label)?.id;
 }
 
 function unitTable() {
@@ -123,7 +122,7 @@ function unitTable() {
  *  meant to be in LABEL_TO_FIELD_KEY. Same for Connection (VCCon): a wiring-mode select, not
  *  a derivable value. Excluded by what they STRUCTURALLY are, not by name-matching a guess at
  *  which fields might drift — every field this system can ever explain stays covered. */
-test('every rendered simulation field is bound to a vocabulary key whose ui_label it renders', async ({ page }) => {
+test('every rendered simulation field is bound to a registry id whose label it renders', async ({ page }) => {
   await openEditor(page);
 
   const drift: string[] = [];
@@ -138,13 +137,13 @@ test('every rendered simulation field is bound to a vocabulary key whose ui_labe
     for (const { label, groundTruth } of rows) {
       if (!label || groundTruth === 'VCCon') continue;
       if (groundTruth == null) { untagged.push(`${tab}/${label}`); continue; }
-      const def = (OPENISD_FIELDS as Record<string, FieldDef>)[groundTruth];
-      if (!def) { drift.push(`${tab}/${label}: data-field-key "${groundTruth}" is not a vocabulary key`); continue; }
-      if (def.ui_label !== label) drift.push(`${tab}/${label}: ui_label "${def.ui_label}" != rendered "${label}"`);
+      const spec = fieldById(groundTruth);
+      if (!spec) { drift.push(`${tab}/${label}: data-field-key "${groundTruth}" is not a registry id`); continue; }
+      if (spec.label !== label) drift.push(`${tab}/${label}: registry label "${spec.label}" != rendered "${label}"`);
     }
   });
   expect(untagged, 'fields with no ground-truth data-field-key to check against').toEqual([]);
-  expect(drift, 'rendered labels that disagree with the vocabulary ui_label').toEqual([]);
+  expect(drift, 'rendered labels that disagree with the field registry label').toEqual([]);
 });
 
 // ── 1. Provenance highlight reaches every explainable field ─────────────────────────────

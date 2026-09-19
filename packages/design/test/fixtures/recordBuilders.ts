@@ -2,7 +2,7 @@
  * Shared conforming-record fixtures — the structural plumbing of a driver or passive-radiator
  * record, so a scenario can hand the fields that matter to it in one line.
  *
- * `spec` is keyed by SCHEMA name (`Fs_hz`, `Vas_m3`, …) — the vocabulary `driver.yml` itself
+ * `spec` is keyed by SCHEMA name (`Fs_hz`, `Vas_m3`, …) — the field table `driver.yml` itself
  * uses — and the keys pass through UNTOUCHED into the record's spec section: no canonicalisation
  * exists here, because none is wanted (a short key would be a misspelling the strict schema
  * refuses).

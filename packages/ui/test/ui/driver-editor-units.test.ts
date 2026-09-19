@@ -72,7 +72,9 @@ function boundFields(): Bound[] {
   const out: Bound[] = [];
   // Split on the field wrapper; each chunk runs to the start of the next field.
   for (const chunk of src.split('<div class="de-fld"').slice(1)) {
-    const label = /<label>([^<]*)<\/label>/.exec(chunk)?.[1]?.trim();
+    const binding = /<label>{{ fieldLabel\('([^']+)'\) }}<\/label>/.exec(chunk);
+    const label = binding ? fieldById(binding[1])?.label ?? binding[1]
+      : /<label>([^<]*)<\/label>/.exec(chunk)?.[1]?.trim();
     const field = /<NumInput[^>]*:model-value="cellVal\('([^']+)'\)"/.exec(chunk)?.[1];
     if (!label || !field) continue;                       // read-only readout or a text input
     const numInput = /<NumInput[\s\S]*?>/.exec(chunk)![0];
@@ -207,7 +209,7 @@ describe('driver editor — unit label and scale agree', () => {
   it('the Dimensions tab shows lengths in millimetres, not raw metres under a wrong label', () => {
     // A 6.5" driver's basket is 0.165 m. Rendered under a length label it must read as that
     // length — 165 mm — never 0.17, and never a metre value printed beside "in".
-    for (const label of ['Basket Plate Thickness (Thick)', 'Driver Depth (Depth)', 'Magnet Depth (MagDepth)',
+    for (const label of ['Basket Plate Thickness (Thick)', 'Driver Depth (Depth)', 'Magnet Depth',
                          'Magnet Diameter (Magnet)', 'Basket Diameter (Basket)',
                          'Outer Diameter (Outer)', 'Voice Coil Dia (Vcd)']) {
       const f = byLabel(label);
@@ -308,7 +310,7 @@ describe('percent unit group — one unit, the ONE place a fraction becomes a pe
   });
 
   it('no and Gloss render through the group, not a hand-bound :scale', () => {
-    for (const label of ['no', 'Gloss']) {
+    for (const label of ['no (η₀)', 'Gloss']) {
       assert.equal(byLabel(label).toggleable, true,
         `${label} still binds a fixed :scale — the ×100 must come from the percent group`);
     }
@@ -396,7 +398,7 @@ describe('driver editor — precision comes from the field registry', () => {
     // (docs/winisd_helpfiles/help/thielesmall.html). Keys here are the rendered label text.
     'Basket Plate Thickness (Thick)': 'Thick_m',
     'Driver Depth (Depth)': 'Depth_m',
-    'Magnet Depth (MagDepth)': 'MagDepth_m',
+    'Magnet Depth': 'MagDepth_m',
     'Magnet Diameter (Magnet)': 'Magnet_m',
     'Basket Diameter (Basket)': 'Basket_m',
     'Outer Diameter (Outer)': 'Outer_m',
@@ -429,7 +431,7 @@ describe('driver editor — precision comes from the field registry', () => {
 describe('driver editor — every bound cell is one the driver model answers', () => {
   it('SPL and no read cells the ADT derives from Fs/Vas/Qes', () => {
     const d = coreDriver();
-    for (const label of ['SPL', 'no']) {
+    for (const label of ['SPL', 'no (η₀)']) {
       const f = byLabel(label);
       const cell = driverCellOf(d, f.field as SpecField);
       assert.equal(

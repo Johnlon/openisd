@@ -63,7 +63,7 @@ export function cellClassFor<K extends string = SpecField>(cellOf: (field: K) =>
  * issue (`engine.issueFields`, S2-13). A component asks THIS rather than re-deriving group
  * membership itself, so the composition is unit-testable without mounting anything.
  *
- * `field` is the SCHEMA name ('Fs_hz', 'Vas_m3', …) — the same vocabulary an engine issue's own
+ * `field` is the SCHEMA name ('Fs_hz', 'Vas_m3', …) — the same field-table keys an engine issue's own
  * fields use — so there is nothing to translate: a caller holding a display name must resolve it
  * to the schema name before asking (the driver editor's fields ARE schema names).
  */

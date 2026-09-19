@@ -1,5 +1,5 @@
 /**
- * Shared `.wdr` fixtures — the 48-row structure derived from the vocabulary's `wdr` property, so
+ * Shared `.wdr` fixtures — the 48-row structure derived from the field table's `wdr` property, so
  * no test hand-maintains the row list.
  *
  * The reader (`winisdDriver.ts`) and the writer (`driverYmlToOpenisdAndWdr.ts`) each spell the
@@ -10,12 +10,12 @@
 import type { WdrCell } from '../../winisd/winisdDriver.js';
 import { OPENISD_FIELDS } from '../../fields/index.js';
 
-/** The 48 `.wdr` numeric rows, in WinISD's OWN file order — the vocabulary's `wdr` values, which
+/** The 48 `.wdr` numeric rows, in WinISD's OWN file order — the field table's `wdr` values, which
  *  the table lists first, in row order. */
 /** A vocabulary entry that carries a `.wdr` row name. */
 type WdrDef = Extract<(typeof OPENISD_FIELDS)[keyof typeof OPENISD_FIELDS], { wdr: string }>;
 
-/** The 48 `.wdr` numeric rows, in WinISD's OWN file order — the vocabulary's `wdr` values, which
+/** The 48 `.wdr` numeric rows, in WinISD's OWN file order — the field table's `wdr` values, which
  *  the table lists first, in row order. */
 export const WDR_FILE_ROWS: readonly string[] = Object.values(OPENISD_FIELDS)
   .filter((def): def is WdrDef => 'wdr' in def)
