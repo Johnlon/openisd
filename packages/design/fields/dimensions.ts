@@ -69,9 +69,9 @@ export const UNIT_GROUPS: Record<UnitGroup, readonly UnitDef[]> = Object.freeze(
     { token: 'degF', label: '°F', factor: 1.8 },
   ],
   tempCoeff: [
-    { token: 'perK', label: '1000/K', factor: 1000 },
+    { token: 'perMilliK', label: '1000/K', factor: 1000 },
     { token: 'pctPerK', label: '%/K', factor: 100 },
-    { token: 'rawPerK', label: '1/K', factor: 1 },
+    { token: 'perK', label: '1/K', factor: 1 },
   ],
   inductance: [
     { token: 'mH', label: 'mH', factor: 1000 },
@@ -84,14 +84,16 @@ export const UNIT_GROUPS: Record<UnitGroup, readonly UnitDef[]> = Object.freeze(
     { token: 'umPerN', label: 'µm/N', factor: 1e6 },
   ],
   velocity: [
-    { token: 'mPerS', label: 'm/s', factor: 1 },
-    { token: 'ftPerS', label: 'ft/s', factor: 3.28084 },
+    { token: 'mps', label: 'm/s', factor: 1 },
+    { token: 'ftps', label: 'ft/s', factor: 3.280839895 },
   ],
   density: [
     { token: 'kgPerM3', label: 'kg/m³', factor: 1 },
+    { token: 'gPerCm3', label: 'g/cm³', factor: 1e-3 },
+    { token: 'lbPerFt3', label: 'lb/cu ft', factor: 0.06242796 },
   ],
   resistance: [
-    { token: 'NsPerM', label: 'Ns/m', factor: 1 },
+    { token: 'nsPerM', label: 'Ns/m', factor: 1 },
     { token: 'kgPerS', label: 'kg/s', factor: 1 },
   ],
   percent: [
