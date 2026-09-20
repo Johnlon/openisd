@@ -31,15 +31,28 @@ source "$SCRIPT_DIR/test-concurrency.sh"
 reserve_test_slot   # sets OPENISD_TEST_WORKERS, OPENISD_TEST_PORT — see that file for why this
                      # is a locked critical section rather than each run reading memory alone.
 
+# Every process in this run's group EXCEPT this shell. After the setsid re-exec above, $$ is
+# the group id, so the group is exactly this run's descendants. This shell must be excluded:
+# a group-wide `kill -- -$$` also SIGKILLs the shell itself, so `setsid --wait` reports
+# "child did not exit normally" and the wrapper exits 9 on a fully green suite — which is a
+# refused push, since the pre-push hook runs the browser gate through here.
+group_others() {
+  pgrep -g "$$" | grep -vx "$$" || true
+}
+
 cleanup() {
+  local status=$?
   release_test_slot
-  # Ignore TERM in THIS shell so the group-wide signal below doesn't cut this trap off before
-  # the follow-up KILL runs; SIGKILL can't be ignored, so that one still ends this shell too,
-  # but only as the very last thing this trap does.
+  # Ignore TERM in THIS shell so a descendant re-signalling the group can't cut this trap off
+  # before the follow-up KILL runs.
   trap '' TERM
-  kill -TERM -- -$$ 2>/dev/null || true
+  local others
+  others=$(group_others)
+  [ -n "$others" ] && kill -TERM $others 2>/dev/null || true
   sleep 0.3
-  kill -KILL -- -$$ 2>/dev/null || true
+  others=$(group_others)
+  [ -n "$others" ] && kill -KILL $others 2>/dev/null || true
+  exit "$status"
 }
 trap cleanup EXIT
 
