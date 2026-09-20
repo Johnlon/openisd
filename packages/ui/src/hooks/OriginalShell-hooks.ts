@@ -50,9 +50,9 @@ import {createToneGenerator, type ToneGenerator} from '../logic/toneGenerator.js
 import {useApp} from '../logic/app.js';
 import {useEscToClose} from '../logic/useEscToClose.js';
 import {clampedFrequency, interpolatedY, steppedFrequency} from '../logic/cursorFrequency.js';
-import {END_CORRECTION_OPTIONS} from '@openisd/design/fields';
+import {ARRAY_WIRING_OPTIONS, BOX_TYPE_OPTIONS, END_CORRECTION_OPTIONS, VENT_SHAPE_OPTIONS} from '@openisd/design/fields';
 import {limits, precision as fieldDp} from '../logic/fields/uiFields.js';
-import {inputChecked, inputFrom, inputValue, listeningElement, selectValue} from '../logic/domEvents.js';
+import {inputChecked, inputFrom, inputValue, listeningElement, selectedOption, selectValue} from '../logic/domEvents.js';
 import {createSealedAlignmentEditor} from './SealedAlignment-hooks.js';
 import type {OpenISDProject} from '@openisd/design';
 import type {StoredProjectListing} from '@openisd/persistence';
@@ -167,15 +167,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     return n != null && isFinite(n) ? n.toFixed(dp) : '—';
   }
 
-  // ---- Box types -----------------------------------------------------------------
-  const BOX_OPTIONS: { id: BoxType; label: string }[] = [
-    { id: 'sealed',    label: 'Closed' },
-    { id: 'vented',    label: 'Vented' },
-    { id: 'box-passive-radiator', label: 'Passive Radiator' },
-    { id: 'bandpass4', label: '4th Order Bandpass' },
-    { id: 'bandpass6', label: '6th Order Bandpass' },
-    { id: 'abc',       label: 'ABC' },
-  ];
+  // ---- Box types — the registry's own list (`box_Type`), not a copy ------------------
   // Whether the circuit models this type is the DOMAIN's answer, asked through logic/.
   const isSimulatable = boxTypeIsSimulatable;
   // A presentation fact with no domain counterpart: these three draw two chambers.
@@ -196,7 +188,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
 
   const pending = computed(() => !isSimulatable(selectedBox.value));
   const isDual = computed(() => DUAL_CHAMBER.has(selectedBox.value));
-  const boxLabel = computed(() => BOX_OPTIONS.find(o => o.id === selectedBox.value)?.label ?? 'Box');
+  const boxLabel = computed(() => BOX_TYPE_OPTIONS.find(o => o.value === selectedBox.value)?.label ?? 'Box');
   const enclosureNavLabel = computed(() =>
     selectedBox.value === 'box-passive-radiator' ? 'Passive Radiator'
       : selectedBox.value === 'sealed' ? 'Closed'
@@ -922,7 +914,7 @@ const overlays = computed<Design[]>(() => {
     saveProject, resetProjectToGround, confirmDiscard, about, optionsOpen,
     chartLabel, CHART_ITEMS, selectChart,
     hzInputText, inputValue, onHzInputFocus, onHzInputBlur, onHzKeydown, onHzWheel,
-    startNudge, stopNudge, cursorHz, cursorVal, chartMeta, inputChecked, selectValue,
+    startNudge, stopNudge, cursorHz, cursorVal, chartMeta, inputChecked, selectValue, selectedOption,
     WINISD_TRACE, cycleColor, resetChartView, chartMax,
     mainEl, navCollapsed, bottomCollapsed, mainStyle, onNavSplitDown, onBottomSplitDown,
     projectList, isRowVisible, setRowVisible, rowName, selectProject, project, focused, projectOpen, whatIfActive,
@@ -930,7 +922,7 @@ const overlays = computed<Design[]>(() => {
     genOn, toggleGenerate, genHz, limits,
     boxLabel, pending, chartTab, overlays, chartUnavailable, activeTab,
     showEnclosureTab, enclosureNavLabel,
-    selectedBox, BOX_OPTIONS, LOSS_MODE_OPTIONS,
+    selectedBox, BOX_TYPE_OPTIONS, LOSS_MODE_OPTIONS, ARRAY_WIRING_OPTIONS,
      boxVolume_m3, setBoxVolume_m3, fieldDp, sealedAlignmentEditor, sealedAlignmentOpen,
      sealedAlignmentOptions, sealedAlignmentSelected, sealedAlignmentVolume_L, sealedAlignmentEbp,
      sealedAlignmentSuitability, sealedAlignmentSuitabilityLabel,
@@ -939,7 +931,7 @@ const overlays = computed<Design[]>(() => {
     fbUnreachable, fbUnreachableMsg, boxLossesOpen, isDual,
     frontVolume_m3, setFrontVolume_m3, frcHz, setFrcHz, rearResonance, frontChamberTuningLabel,
     model, startEdit, startTune, placement,
-    activeVent, END_CORRECTION_OPTIONS, ventLState, portPipeResonance_hz,
+    activeVent, END_CORRECTION_OPTIONS, VENT_SHAPE_OPTIONS, ventLState, portPipeResonance_hz,
     prBrowseOpen, prEditOpen, loadPREntry, loadBundledPassiveRadiatorEntry, defineNewPREntry,
     prAddedMassCell, prTuningCell, prResonanceMass, prFsMass_hz, dqOfCell, fmt,
     driveV, rsOhm, advTemp, advHumidity, advPressure, advAir,

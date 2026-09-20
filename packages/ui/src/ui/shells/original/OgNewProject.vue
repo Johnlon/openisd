@@ -9,7 +9,7 @@
  * can't simulate.
  */
 import {computed, ref} from 'vue';
-import {defaultPassiveRadiator, isModified, newProject, newProjectDriver} from '../../../logic/appState.js';
+import {defaultPassiveRadiator, isModified, newProject, newProjectBoxTypeOptions, newProjectDriver} from '../../../logic/appState.js';
 import {fromDisplay} from '../../../logic/fields/units.js';
 import {useApp} from '../../../logic/app.js';
 import type {OpenISDDriver} from '@openisd/design';
@@ -24,12 +24,7 @@ useEscToClose(() => true, close);
 
 const { driverBrowsing } = useApp();
 
-const BOX_OPTIONS: { id: BoxType; label: string }[] = [
-  { id: 'sealed',    label: 'Closed' },
-  { id: 'vented',    label: 'Vented' },
-  { id: 'box-passive-radiator', label: 'Passive Radiator' },
-  { id: 'bandpass4', label: '4th Order Bandpass' },
-];
+const BOX_OPTIONS = newProjectBoxTypeOptions();
 
 const step = ref(1);
 const STEP_LABELS = ['Project name', 'Box type', 'Starting volume'];
@@ -121,7 +116,7 @@ function pickDriver() {
           <div class="field-row">
             <div class="field"><label>Box type</label>
               <select v-model="boxType" style="width:240px">
-                <option v-for="o in BOX_OPTIONS" :key="o.id" :value="o.id">{{ o.label }}</option>
+                <option v-for="o in BOX_OPTIONS" :key="o.value" :value="o.value">{{ o.label }}</option>
               </select>
             </div>
           </div>

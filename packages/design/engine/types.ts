@@ -56,10 +56,8 @@ export type SimulatableBoxType = 'sealed' | 'vented' | 'bandpass4' | 'box-passiv
 
 import type {SelectorOption} from '../fields/index.js';
 
-/** One of WinISD's sealed-box target-Q choices from the New Project wizard. */
-export interface SealedAlignmentOption extends SelectorOption<number> {
-  readonly qtc: number;
-}
+/** One of WinISD's sealed-box target-Q choices from the New Project wizard: `value` IS the Qtc. */
+export type SealedAlignmentOption = SelectorOption<number>;
 
 export type EbpSuitability = 'sealed' | 'either' | 'vented';
 

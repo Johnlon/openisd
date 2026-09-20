@@ -25,7 +25,7 @@ const {
   saveProject, resetProjectToGround, confirmDiscard, about, optionsOpen,
   chartLabel, CHART_ITEMS, selectChart,
   hzInputText, inputValue, onHzInputFocus, onHzInputBlur, onHzKeydown, onHzWheel,
-  startNudge, stopNudge, cursorHz, cursorVal, chartMeta, inputChecked, selectValue,
+  startNudge, stopNudge, cursorHz, cursorVal, chartMeta, inputChecked, selectValue, selectedOption,
   WINISD_TRACE, cycleColor, resetChartView, chartMax,
   mainEl, navCollapsed, bottomCollapsed, mainStyle, onNavSplitDown, onBottomSplitDown,
   projectList, isRowVisible, setRowVisible, rowName, selectProject, project, focused, projectOpen, whatIfActive,
@@ -33,7 +33,7 @@ const {
   genOn, toggleGenerate, genHz, limits,
   boxLabel, pending, chartTab, overlays, chartUnavailable, activeTab,
   showEnclosureTab, enclosureNavLabel,
-  selectedBox, BOX_OPTIONS, LOSS_MODE_OPTIONS,
+  selectedBox, BOX_TYPE_OPTIONS, LOSS_MODE_OPTIONS, ARRAY_WIRING_OPTIONS,
   boxVolume_m3, setBoxVolume_m3, fieldDp, sealedAlignmentEditor, sealedAlignmentOpen,
   sealedAlignmentOptions, sealedAlignmentSelected, sealedAlignmentVolume_L, sealedAlignmentEbp,
   sealedAlignmentSuitability, sealedAlignmentSuitabilityLabel,
@@ -42,7 +42,7 @@ const {
   fbUnreachable, fbUnreachableMsg, boxLossesOpen, isDual,
   frontVolume_m3, setFrontVolume_m3, frcHz, setFrcHz, rearResonance, frontChamberTuningLabel,
   model, startEdit, startTune, placement,
-  activeVent, END_CORRECTION_OPTIONS, ventLState, portPipeResonance_hz,
+  activeVent, END_CORRECTION_OPTIONS, VENT_SHAPE_OPTIONS, ventLState, portPipeResonance_hz,
   prBrowseOpen, prEditOpen, loadPREntry, loadBundledPassiveRadiatorEntry, defineNewPREntry,
   prAddedMassCell, prTuningCell, prResonanceMass, prFsMass_hz, dqOfCell, fmt,
   driveV, rsOhm, advTemp, advHumidity, advPressure, advAir,
@@ -242,7 +242,7 @@ const {
           <div class="field-row" style="flex-wrap: nowrap;">
             <div class="field" style="gap:8px;"><label style="width:auto;">Box Type</label>
               <select id="og-box-type" v-model="selectedBox" style="width:170px">
-                <option v-for="o in BOX_OPTIONS" :key="o.id" :value="o.id">{{ o.label }}</option>
+                <option v-for="o in BOX_TYPE_OPTIONS" :key="o.value" :value="o.value">{{ o.label }}</option>
               </select>
             </div>
             <div v-if="selectedBox === 'sealed'" class="field" style="gap:8px;"
@@ -364,7 +364,7 @@ const {
               </div>
               <div class="field-row">
                 <div class="field"><label>Voice coil connection</label>
-                  <select :value="project.wiring.get()" @change="e => project.wiring.set(selectValue(e) as 'series' | 'parallel')"><option value="parallel">Parallel</option><option value="series">Series</option></select>
+                  <select :value="project.wiring.get()" @change="e => { const w = selectedOption(e, ARRAY_WIRING_OPTIONS); if (w !== null) project.wiring.set(w); }"><option v-for="o in ARRAY_WIRING_OPTIONS" :key="o.value" :value="o.value">{{ o.label }}</option></select>
                 </div>
               </div>
             </div>
@@ -389,7 +389,7 @@ const {
           <div class="field-row" style="flex-wrap: nowrap;">
             <div class="field" style="gap:8px;"><label style="width:auto;">Box Type</label>
               <select id="og-box-type-enclosure" v-model="selectedBox" style="width:170px">
-                <option v-for="o in BOX_OPTIONS" :key="o.id" :value="o.id">{{ o.label }}</option>
+                <option v-for="o in BOX_TYPE_OPTIONS" :key="o.value" :value="o.value">{{ o.label }}</option>
               </select>
             </div>
           </div>
@@ -405,9 +405,8 @@ const {
                 <div class="field-row">
                   <div class="field">
                     <label>Shape</label>
-                    <select :value="activeVent.shape.get()" @change="e => activeVent.shape.set(selectValue(e) as 'round' | 'slotted')">
-                      <option value="round">round</option>
-                      <option value="slotted">slotted</option>
+                    <select :value="activeVent.shape.get()" @change="e => { const shape = selectedOption(e, VENT_SHAPE_OPTIONS); if (shape !== null) activeVent.shape.set(shape); }">
+                      <option v-for="o in VENT_SHAPE_OPTIONS" :key="o.value" :value="o.value">{{ o.label }}</option>
                     </select>
                   </div>
                 </div>
@@ -700,8 +699,8 @@ const {
         <div class="modal-body">
           <p class="hint">WinISD uses numeric target Qtc choices. Select one to calculate the sealed box volume for the current driver.</p>
           <div class="field-row"><div class="field alignment-field"><label>Alignment</label>
-            <select class="alignment-select" :value="sealedAlignmentSelected?.qtc ?? ''" @change="sealedAlignmentEditor.selectQtc(Number(($event.target as HTMLSelectElement).value))">
-              <option v-for="option in sealedAlignmentOptions" :key="option.qtc" :value="option.qtc">{{ option.label }}</option>
+            <select class="alignment-select" :value="sealedAlignmentSelected?.value ?? ''" @change="e => { const qtc = selectedOption(e, sealedAlignmentOptions); if (qtc !== null) sealedAlignmentEditor.selectQtc(qtc); }">
+              <option v-for="option in sealedAlignmentOptions" :key="option.value" :value="option.value">{{ option.label }}</option>
             </select>
           </div></div>
           <div class="field-row"><div class="field"><label>Volume</label><input type="number" min="0" step="0.01" :value="sealedAlignmentVolume_L == null ? '' : sealedAlignmentVolume_L.toFixed(2)" @input="sealedAlignmentVolume_L = Number(($event.target as HTMLInputElement).value)"><span class="unit">L</span></div></div>

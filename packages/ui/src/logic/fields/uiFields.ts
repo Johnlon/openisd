@@ -2,10 +2,15 @@ import {MAX_SUPPORTED_TEMP_K, MIN_SUPPORTED_TEMP_K} from '@openisd/design/engine
 import {
   type SelectorOption,
   type UnitGroup,
+  ARRAY_WIRING_OPTIONS,
+  BOX_TYPE_OPTIONS,
   END_CORRECTION_OPTIONS,
+  FILTER_TYPE_OPTIONS,
+  SEALED_ALIGNMENT_OPTIONS,
   VENT_SHAPE_OPTIONS,
   VC_CONNECTION_OPTIONS,
 } from '@openisd/design/fields';
+import {lossModeOptions} from '../environment.js';
 
 /** Kind of field — only 'number' carries a `precision`. */
 export type FieldKind = 'number' | 'enum' | 'text' | 'toggle' | 'date' | 'control';
@@ -41,6 +46,16 @@ export interface UIFieldSpec {
 
 const UI_FIELD_SPECS: UIFieldSpec[] = [
   // ============================ BOX / ENCLOSURE ============================
+  {
+    id: 'box_Type', aliases: ['boxType'], label: 'Box type', pane: 'Box', kind: 'enum', unit: '',
+    options: BOX_TYPE_OPTIONS,
+    description: 'Enclosure Type: The kind of enclosure the driver is loaded into — closed, vented, passive radiator, bandpass or ABC.',
+  },
+  {
+    id: 'box_Qtc', aliases: ['Qtc', 'sealedAlignment'], label: 'Alignment (Qtc)', pane: 'Box', kind: 'enum', unit: '',
+    options: SEALED_ALIGNMENT_OPTIONS,
+    description: 'Sealed Alignment Target: Total system Q of the closed box; 0.707 is maximally flat, lower is more damped, higher peaks before rolling off.',
+  },
   {
     id: 'box_Vb_l', aliases: ['Vb'], label: 'Volume', pane: 'Box', kind: 'number', unit: 'l', unitGroup: 'volume', precision: 2, min: 0.0001, max: 100,
     description: 'Net Enclosure Volume: Internal net air volume of the enclosure acting as the acoustic spring for the driver.',
@@ -169,6 +184,11 @@ const UI_FIELD_SPECS: UIFieldSpec[] = [
   {
     id: 'loss_Qa', aliases: ['Qa'], label: 'Absorption Qa', pane: 'Box losses', kind: 'number', unit: '', precision: 2, min: 0.1, max: 1000,
     description: 'Enclosure Damping Loss Q: Quality factor accounting for acoustic energy absorption by internal damping fill.',
+  },
+  {
+    id: 'loss_DampingMode', aliases: ['lossMode'], label: 'Loss model', pane: 'Box losses', kind: 'enum', unit: '',
+    options: lossModeOptions(),
+    description: 'Enclosure Loss Model: How box and port losses are modelled — lossless, conventional lossy, or WinISD lossy.',
   },
   {
     id: 'loss_Qp', aliases: ['Qp'], label: 'Port Qp', pane: 'Box losses', kind: 'number', unit: '', precision: 2, min: 0.1, max: 1000,
@@ -344,10 +364,12 @@ const UI_FIELD_SPECS: UIFieldSpec[] = [
     id: 'driver_nDrivers', aliases: ['nDrivers'], label: 'Num. of drivers', pane: 'Driver', kind: 'number', unit: '', precision: 0, min: 1, max: 64,
     description: 'Driver Count: Total number of active drivers operating in the enclosure system.',
   },
+  { id: 'driver_ArrayWiring', aliases: ['wiring', 'arrayWiring'], label: 'Voice coil connection', pane: 'Driver', kind: 'enum', unit: '', options: ARRAY_WIRING_OPTIONS, description: 'Driver Array Wiring: How multiple drivers are wired to the amplifier (parallel or series), setting the total load impedance.' },
   { id: 'driver_VcTempRise_K', aliases: ['vcTempRise', 'driverVcTempRise'], label: 'Voice coil temp rise', pane: 'Driver', kind: 'number', unit: 'K', precision: 2, min: 0, max: 500, description: 'Voice Coil Temp Rise: Voice coil heating caused by electrical power dissipation (I² Re), increasing coil resistance Re and inducing thermal power compression.' },
   { id: 'driver_AddedMass_g', aliases: ['driverAddedMass'], label: 'Added mass to cone', pane: 'Driver', kind: 'number', unit: 'g', precision: 5, min: 0, max: 5, description: 'Cone Added Mass: Test mass temporarily added to the cone to shift resonant frequency (Fs), allowing calculation of suspension compliance (Cms) and moving mass (Mms).' },
 
   // ============================ FILTERS ============================
+  { id: 'filter_Type', aliases: ['filterType'], label: 'Filter type', pane: 'Filters', kind: 'enum', unit: '', options: FILTER_TYPE_OPTIONS, description: 'Filter Type: The response shape of the active filter — lowpass, highpass, Linkwitz transform, peaking EQ or shelf.' },
   { id: 'filter_Fc_hz', aliases: ['filterFc'], label: 'Cutoff / Center freq', pane: 'Filters', kind: 'number', unit: 'Hz', precision: 3, min: 1, max: 20000, description: 'Cutoff / Center Frequency: Cutoff or center frequency of the active signal filter.' },
   { id: 'filter_Q', aliases: ['filterQ'], label: 'Q', pane: 'Filters', kind: 'number', unit: '', precision: 3, min: 0.1, max: 100, description: 'Filter Quality Factor: Quality factor determining resonance peak sharpness or damping of the filter.' },
   { id: 'filter_Gain_dB', aliases: ['filterGain'], label: 'Gain', pane: 'Filters', kind: 'number', unit: 'dB', precision: 3, min: -60, max: 60, description: 'Filter Gain: Boost or attenuation gain applied by the equalizer or filter in dB.' },

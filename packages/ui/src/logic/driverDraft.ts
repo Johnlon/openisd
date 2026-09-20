@@ -8,14 +8,17 @@
  * through the handle, and asks to commit; it never names `OpenISDDriver` or the domain's
  * wiring enum.
  */
-import {OpenISDDriver, VoiceCoilWiring} from '@openisd/design';
+import {OpenISDDriver, type VoiceCoilWiring} from '@openisd/design';
+import {type SelectorOption, VC_CONNECTION_OPTIONS} from '@openisd/design/fields';
 import {engine} from './appState.js';
 import type {EditorDraftSeed} from './driverSelection.js';
 
-/** How a voice coil's two windings are joined, in the UI's own words. The domain enum is
- *  `VoiceCoilWiring`; this is the string a `<select>` holds, mapped here so no component
- *  imports the enum. */
-export type WiringChoice = 'series' | 'parallel';
+/** The wiring choices the editor's select lists — the domain's list, reached through logic so no
+ *  component names `@openisd/design/fields` itself (the layering gate; same seam as
+ *  `environment.ts`'s `lossModeOptions()`). */
+export function wiringOptions(): readonly SelectorOption<VoiceCoilWiring>[] {
+  return VC_CONNECTION_OPTIONS;
+}
 
 export interface DriverDraft {
   /** The driver being edited. A detached copy: writing to it changes nothing else until the
@@ -25,8 +28,9 @@ export interface DriverDraft {
   reset(): void;
   /** Adopt a driver read from a file as the new draft, replacing what was there. */
   replace(driver: OpenISDDriver): void;
-  /** Set the coil wiring from the UI's word for it. */
-  setWiring(choice: WiringChoice): void;
+  /** Set the coil wiring. The select's option list (`VC_CONNECTION_OPTIONS`) carries the domain's
+   *  own wiring values, so the chosen option is written as-is — nothing to map. */
+  setWiring(choice: VoiceCoilWiring): void;
 }
 
 /** Open an editing session on `subject`.
@@ -54,10 +58,9 @@ export function openDriverDraft(
     get driver() { return current; },
     reset() { current = seedDraft(); },
     replace(driver: OpenISDDriver) { current = driver; },
-    setWiring(choice: WiringChoice) {
+    setWiring(choice: VoiceCoilWiring) {
       const d = current;
-      d.spec[d.section].VCCon.set(
-        choice === 'series' ? VoiceCoilWiring.Series : VoiceCoilWiring.Parallel);
+      d.spec[d.section].VCCon.set(choice);
     },
   };
 }

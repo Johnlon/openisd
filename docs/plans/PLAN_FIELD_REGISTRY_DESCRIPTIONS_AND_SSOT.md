@@ -57,7 +57,7 @@ All UI components and form controls obtain their configuration **exclusively fro
 | `box_Vf_l` | `Vf` | Box | `REWRITE` | `Front Chamber Volume: Net air volume of the front (vented) chamber in a bandpass enclosure.` |
 | `box_Fb_hz` | `tuning_hz` | Box | `REWRITE` | `Box Tuning Frequency: Helmholtz resonance frequency of the vented enclosure determined by port dimensions and box volume.` |
 | `box_Resonance_hz` | - | Box | `REWRITE` | `System Resonance Frequency: Effective total resonance frequency of the driver coupled to the enclosure.` |
-| `box_RearResonance_hz` | - | Box | `REWRITE` | `Rear Chamber Resonance (Calculated): Sealed rear-chamber resonance frequency in a 4th-order bandpass enclosure (Frc = Fs × √(1 + Vas/Vb)).` |
+| `box_RearResonance_hz` | - | Box | `REWRITE` | `Rear Chamber Resonance: Sealed rear-chamber resonance frequency in a 4th-order bandpass enclosure (Frc = Fs × √(1 + Vas/Vb)).` |
 | `box_Frc_hz` | `Frc` | Box | `REWRITE` | `Rear Chamber Tuning Frequency: Target Helmholtz tuning frequency for the vented rear chamber in 6th-order bandpass and ABC enclosures.` |
 | `vent_Shape` | - | Vents | `REWRITE` | `Vent Geometry: Selects between a circular tube (round) or rectangular duct (slotted) port.` |
 | `vent_D_cm` | - | Vents | `REWRITE` | `Port Diameter: Internal diameter of a round port tube. Larger diameters reduce port air turbulence (choking) but require longer tubes.` |
@@ -76,8 +76,8 @@ All UI components and form controls obtain their configuration **exclusively fro
 | `pr_Fs_hz` | `Fs_hz` | PassiveRadiator | `REWRITE` | `Unloaded PR Resonance: Fundamental free-air resonance frequency of the passive radiator without added mass or box coupling.` |
 | `pr_Qms` | `Qms` | PassiveRadiator | `REWRITE` | `PR Mechanical Quality Factor: Quality factor representing mechanical suspension friction losses in the passive radiator.` |
 | `pr_FsMass_hz` | - | PassiveRadiator | `REWRITE` | `Mass-Loaded PR Resonance: Free-air resonance frequency of the passive radiator including added mass Madd.` |
-| `signal_Pin_W` | - | Signal | `REWRITE` | `System Input Power: Total electrical power supplied to the loudspeaker system (Pin = V² / Re).` |
-| `signal_DriveV_V` | - | Signal | `REWRITE` | `Driver Terminal Voltage: RMS input voltage applied across the driver voice coil terminals.` |
+| `signal_Pin_W` | - | Signal | `REWRITE` | `System Input Power: Total electrical power supplied to the loudspeaker system (P = V² / Re).` |
+| `signal_DriveV_V` | - | Signal | `REWRITE` | `Driver Terminal Voltage: RMS input voltage applied across the driver voice coil terminals (V = √(P · Re)).` |
 | `signal_Rs_ohm` | - | Signal | `REWRITE` | `Series Resistance: Combined amplifier output impedance, wiring, and crossover component resistance in series with the driver.` |
 | `signal_Distance_m` | - | Signal | `REWRITE` | `Listening Distance: On-axis distance from the loudspeaker to the listener for SPL calculations.` |
 | `signal_Angle_rad` | - | Signal | `REWRITE` | `Off-Axis Angle: Angular offset from the main acoustic axis in radians.` |
@@ -153,6 +153,19 @@ The alignment algorithms across various enclosure types live across 3 distinct m
 
 ## 6. Target Symmetrical Dropdown Architecture (`SelectorOption<T>`)
 
+**Status (2026-09-20):** done for every static list. Each `<select>` in `OriginalShell.vue`,
+`OgNewProject.vue` and `DriverEditorModal.vue` iterates its option list and reads the chosen value
+back through `logic/domEvents.ts` → `selectedOption(e, options)` — the typed string→member
+boundary, so no handler asserts `as 'round' | 'slotted'`. `packages/ui/test/logic/uiFields-dropdowns.test.ts`
+pins it. Not done: the two library pickers (dynamic lists, no static spec), and the Filters tab's
+type choice (quick-add buttons, not a select).
+
+**Not adopted:** §1/§2's `domainKey` and `handle` on `UIFieldSpec` were removed on 2026-09-20 (WIP
+13ec42b) — the editor binds the schema key directly (`cellVal('Fs_hz')` → `driver.spec[section].Fs_hz`),
+which is the same typed reference with no second table. The registry stays in
+`packages/ui/src/logic/fields/uiFields.ts`, not `packages/design/fields/` as the summary says: its
+option lists and units come from `@openisd/design/fields`, the labels/descriptions are UI text.
+
 To eliminate structural drift, property name mismatches (`qtc` vs `value`), and ad-hoc string/object option handling, all dropdown options across the application are standardized onto a single unified, strongly-typed contract:
 
 ```ts
@@ -168,12 +181,12 @@ Every dropdown field in [uiFields.ts](file:///home/john/work/winisd/openisd/pack
 | :--- | :--- | :--- | :--- | :--- |
 | **Port End Correction** | `vent_EndCorrection` | `readonly SelectorOption<number>[]` | `0.613` ("Two free ends"), `0.732` ("One flanged end"), `0.849` ("Two flanged ends") | `packages/design/fields/options.ts` → `END_CORRECTION_OPTIONS` (`readonly SelectorOption<number>[]`) |
 | **Vent Geometry / Shape** | `vent_Shape` | `readonly SelectorOption<string>[]` | `'round'` ("Round Tube"), `'slotted'` ("Slotted Duct") | `packages/design/fields/options.ts` → `VENT_SHAPE_OPTIONS` (`readonly SelectorOption<string>[]`) |
-| **Voice Coil Wiring** | `driver_VCCon` | `readonly SelectorOption<string>[]` | `'Parallel'` ("Parallel"), `'Series'` ("Series") | `packages/design/fields/options.ts` → `VC_CONNECTION_OPTIONS` (`readonly SelectorOption<string>[]`) |
-| **Sealed Alignment Target ($Q_{tc}$)** | `box_Qtc` | `readonly SelectorOption<number>[]` | `0.500` ("0.500 Critically damped"), `0.577` ("0.577 Max flat delay"), `0.707` ("0.707 Max flat amplitude"), `0.800–1.500` ("Equal ripple") | `packages/design/fields/options.ts` → `SEALED_ALIGNMENT_OPTIONS` & `packages/design/engine/boxDesign.ts` → `sealedAlignmentOptions()` |
-| **Enclosure Type** | `box_Type` | `readonly SelectorOption<BoxType>[]` | `'closed'` ("Sealed"), `'vented'` ("Vented"), `'bandpass4'` ("4th-Order Bandpass"), `'box-passive-radiator'` ("Passive Radiator") | `packages/design/fields/options.ts` → `BOX_TYPE_OPTIONS` (`readonly SelectorOption<BoxType>[]`) |
-| **Filter Type** | `filter_Type` | `readonly SelectorOption<FilterType>[]` | `'highpass'` ("Highpass"), `'lowpass'` ("Lowpass"), `'peaking'` ("Peaking EQ"), `'linkwitz'` ("Linkwitz-Transform") | `packages/ui/src/logic/series.ts` → `FILTER_TYPE_OPTIONS` (`readonly SelectorOption<FilterType>[]`) |
-| **Enclosure Damping Fill** | `loss_DampingMode` | `readonly SelectorOption<LossMode>[]` | `'none'` ("None"), `'minimal'` ("Minimal"), `'normal'` ("Normal"), `'heavy'` ("Heavy") | `packages/ui/src/logic/environment.ts` → `lossModeOptions()` (`readonly SelectorOption<LossMode>[]`) |
-| **Driver Array Wiring** | `driver_ArrayWiring` | `readonly SelectorOption<Wiring>[]` | `'parallel'` ("Parallel"), `'series'` ("Series") | `packages/ui/src/logic/appState.ts` → `ARRAY_WIRING_OPTIONS` (`readonly SelectorOption<Wiring>[]`) |
+| **Voice Coil Wiring** | `driver_VCCon` | `readonly SelectorOption<VoiceCoilWiring>[]` | `'parallel'` ("Parallel"), `'series'` ("Series") — the domain's own values, written to the driver as-is | `packages/design/fields/options.ts` → `VC_CONNECTION_OPTIONS`; reached by the editor through `logic/driverDraft.ts` → `wiringOptions()` (layering gate) |
+| **Sealed Alignment Target ($Q_{tc}$)** | `box_Qtc` | `readonly SelectorOption<number>[]` | `0.500` ("0.500 Critically damped"), `0.577` ("0.577 Max flat delay response"), `0.707` ("0.707 Max flat amplitude response"), `0.800`–`1.500` ("Equal ripple response") — nine, WinISD's | `packages/design/fields/options.ts` → `SEALED_ALIGNMENT_OPTIONS`; `engine/boxDesign.ts` → `sealedAlignmentOptions()` hands out that same object (no `qtc` twin of `value`) |
+| **Enclosure Type** | `box_Type` | `readonly SelectorOption<BoxType>[]` | `'sealed'` ("Closed"), `'vented'` ("Vented"), `'box-passive-radiator'` ("Passive Radiator"), `'bandpass4'` ("4th Order Bandpass"), `'bandpass6'` ("6th Order Bandpass"), `'abc'` ("ABC") | `packages/design/fields/options.ts` → `BOX_TYPE_OPTIONS`; the wizard lists `logic/appState.ts` → `newProjectBoxTypeOptions()` (the same list filtered by `boxTypeIsSimulatable`) |
+| **Filter Type** | `filter_Type` | `readonly SelectorOption<FilterType>[]` | `'lowpass'`, `'highpass'`, `'linkwitz'` ("Linkwitz-Transform"), `'peaking'` ("Peaking EQ"), `'lowshelf'`, `'highshelf'` | `packages/design/fields/options.ts` → `FILTER_TYPE_OPTIONS`. The Filters tab still adds filters through its own quick-add buttons (`OgFilters.vue` `QUICK_ADD`) — not yet read from this list |
+| **Enclosure Loss Model** | `loss_DampingMode` | `readonly SelectorOption<string>[]` | `'lossless'` ("Lossless"), `'conventional-lossy'` ("Conventional Lossy"), `'winisd-lossy'` ("WinISD Lossy") — `LossMode.value` tokens, what the project stores | `packages/ui/src/logic/environment.ts` → `lossModeOptions()` from `LossMode.ALL` |
+| **Driver Array Wiring** | `driver_ArrayWiring` | `readonly SelectorOption<Wiring>[]` | `'parallel'` ("Parallel"), `'series'` ("Series") | `packages/design/fields/options.ts` → `ARRAY_WIRING_OPTIONS` |
 | **Passive Radiator Library** | `pr_LibrarySelect` | `readonly SelectorOption<string>[]` | Dynamic list of saved PR records (`value: uuid, label: name`) | `packages/persistence/src/repos/savedLibrary.ts` → `useSavedLibrary().passiveRadiators` (`Ref<SavedRecord[]>`, API: `getLibraryRecords('passive-radiator')`) |
 | **Driver Library** | `driver_LibrarySelect` | `readonly SelectorOption<string>[]` | Dynamic list of saved driver records (`value: uuid, label: model`) | `packages/persistence/src/repos/savedLibrary.ts` → `useSavedLibrary().drivers` (`Ref<SavedRecord[]>`, API: `getLibraryRecords('driver')`) |
 

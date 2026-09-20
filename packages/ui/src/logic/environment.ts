@@ -6,6 +6,7 @@
  */
 import type {Air, AirEnvironment} from '@openisd/design/engine';
 import {Engine, LossMode} from '@openisd/design/engine';
+import type {SelectorOption} from '@openisd/design/fields';
 
 export function airForEnvironment(env: AirEnvironment): Air {
     return new Engine().solveEnvironment(env).values;
@@ -46,6 +47,6 @@ export function parseLossMode(token: string): LossMode {
     return LossMode.parse(token);
 }
 
-export function lossModeOptions(): { value: string; label: string }[] {
+export function lossModeOptions(): readonly SelectorOption<string>[] {
     return LossMode.ALL.map(m => ({value: m.value, label: m.label}));
 }

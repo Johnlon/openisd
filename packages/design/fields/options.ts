@@ -1,4 +1,6 @@
-import type {BoxType} from '../engine/index.js';
+import type {BoxType, FilterType, Wiring} from '../engine/index.js';
+import type {VoiceCoilWiring} from '../domain/openisdSchema.js';
+import type {VentShape} from '../domain/vent.js';
 
 /**
  * SelectorOption — Symmetrical option contract for UI dropdown selectors.
@@ -16,32 +18,58 @@ export const END_CORRECTION_OPTIONS: readonly SelectorOption<number>[] = Object.
   Object.freeze({ value: 0.849, label: 'Two flanged ends' }),
 ]);
 
-/** Vent geometry / shape options. */
-export const VENT_SHAPE_OPTIONS: readonly SelectorOption<string>[] = Object.freeze([
+/** Vent geometry / shape options — values are the domain's own `VentShape` members. */
+export const VENT_SHAPE_OPTIONS: readonly SelectorOption<VentShape>[] = Object.freeze([
   Object.freeze({ value: 'round', label: 'Round Tube' }),
   Object.freeze({ value: 'slotted', label: 'Slotted Duct' }),
 ]);
 
-/** Voice coil wiring connection options. */
-export const VC_CONNECTION_OPTIONS: readonly SelectorOption<string>[] = Object.freeze([
-  Object.freeze({ value: 'Parallel', label: 'Parallel' }),
-  Object.freeze({ value: 'Series', label: 'Series' }),
+/** Voice coil wiring connection options. The VALUES are the domain's own wiring members, so a
+ *  chosen option is written to the driver as-is — the compiler checks each literal against
+ *  `VoiceCoilWiring`. */
+export const VC_CONNECTION_OPTIONS: readonly SelectorOption<VoiceCoilWiring>[] = Object.freeze([
+  Object.freeze({ value: 'parallel', label: 'Parallel' }),
+  Object.freeze({ value: 'series', label: 'Series' }),
 ]);
 
-/** Sealed alignment Q_tc preset target options. */
+/** How a multi-driver array is wired to the amplifier. */
+export const ARRAY_WIRING_OPTIONS: readonly SelectorOption<Wiring>[] = Object.freeze([
+  Object.freeze({ value: 'parallel', label: 'Parallel' }),
+  Object.freeze({ value: 'series', label: 'Series' }),
+]);
+
+/** WinISD's nine sealed-box target-Q (Qtc) choices from the New Project wizard, exact labels.
+ *  THE list — `engine/boxDesign.ts` hands this same object out, never a copy. */
 export const SEALED_ALIGNMENT_OPTIONS: readonly SelectorOption<number>[] = Object.freeze([
   Object.freeze({ value: 0.5, label: '0.500 Critically damped' }),
   Object.freeze({ value: 0.577, label: '0.577 Max flat delay response' }),
   Object.freeze({ value: 0.707, label: '0.707 Max flat amplitude response' }),
   Object.freeze({ value: 0.8, label: '0.800 Equal ripple response' }),
   Object.freeze({ value: 0.9, label: '0.900 Equal ripple response' }),
-  Object.freeze({ value: 1.0, label: '1.000 Equal ripple response' }),
+  Object.freeze({ value: 1, label: '1.000 Equal ripple response' }),
+  Object.freeze({ value: 1.1, label: '1.100 Equal ripple response' }),
+  Object.freeze({ value: 1.2, label: '1.200 Equal ripple response' }),
+  Object.freeze({ value: 1.5, label: '1.500 Equal ripple response' }),
 ]);
 
-/** Enclosure type selector options. */
+/** Enclosure type selector options — every type the Box tab lists, in WinISD's order and with
+ *  its labels. Whether the solver models a type is `boxTypeIsSimulatable`'s answer, not this
+ *  list's: a picker that offers only the simulatable ones filters this. */
 export const BOX_TYPE_OPTIONS: readonly SelectorOption<BoxType>[] = Object.freeze([
-  Object.freeze({ value: 'sealed', label: 'Sealed' }),
+  Object.freeze({ value: 'sealed', label: 'Closed' }),
   Object.freeze({ value: 'vented', label: 'Vented' }),
-  Object.freeze({ value: 'bandpass4', label: '4th-Order Bandpass' }),
   Object.freeze({ value: 'box-passive-radiator', label: 'Passive Radiator' }),
+  Object.freeze({ value: 'bandpass4', label: '4th Order Bandpass' }),
+  Object.freeze({ value: 'bandpass6', label: '6th Order Bandpass' }),
+  Object.freeze({ value: 'abc', label: 'ABC' }),
+]);
+
+/** The filter types the engine models, in the Filters tab's quick-add order. */
+export const FILTER_TYPE_OPTIONS: readonly SelectorOption<FilterType>[] = Object.freeze([
+  Object.freeze({ value: 'lowpass', label: 'Lowpass' }),
+  Object.freeze({ value: 'highpass', label: 'Highpass' }),
+  Object.freeze({ value: 'linkwitz', label: 'Linkwitz-Transform' }),
+  Object.freeze({ value: 'peaking', label: 'Peaking EQ' }),
+  Object.freeze({ value: 'lowshelf', label: 'Low Shelf' }),
+  Object.freeze({ value: 'highshelf', label: 'High Shelf' }),
 ]);

@@ -18,6 +18,8 @@
  * impossible to ignore.
  */
 
+import type {SelectorOption} from '@openisd/design/fields';
+
 /** What actually fired, for a message a reader can act on. */
 function describe(target: EventTarget | null): string {
   if (target === null) return 'null';
@@ -47,6 +49,26 @@ export function selectValue(e: Event): string {
   if (e.target instanceof HTMLSelectElement) return e.target.value;
   console.error(`selectValue: expected a <select>, got ${describe(e.target)} — handler is mis-wired.`);
   return '';
+}
+
+/**
+ * The chosen option of the `<select>` that fired, as the TYPED value the option list declares —
+ * the string→member boundary for a select whose options come from a `SelectorOption` list.
+ *
+ * A `<select>` can only hand back a string, and the option list is the one place that says which
+ * strings are legal and what each means. Matching the string back to its option is a real check,
+ * so the handler needs no `as 'round' | 'slotted'` assertion. Null when nothing matched: a
+ * template rendering options from a different list than the handler reads is a bug in the
+ * template, and it is reported the same way as a mis-wired element.
+ */
+export function selectedOption<T extends string | number>(e: Event, options: readonly SelectorOption<T>[]): T | null {
+  const token = selectValue(e);
+  const match = options.find(o => String(o.value) === token);
+  if (match === undefined) {
+    console.error(`selectedOption: "${token}" is not one of the ${options.length} options this <select> lists.`);
+    return null;
+  }
+  return match.value;
 }
 
 /**

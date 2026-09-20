@@ -6,7 +6,7 @@ import {formatInUnit} from '../../logic/appState.js';
 import {useFocusedProject} from '../../logic/focusedProjectContext.js';
 import {presentationState} from '../../logic/presentationState.js';
 import {useApp} from '../../logic/app.js';
-import {openDriverDraft} from '../../logic/driverDraft.js';
+import {openDriverDraft, wiringOptions} from '../../logic/driverDraft.js';
 import {specFieldHandle} from '../../logic/driverSpecFields.js';
 import {readDriverFileText} from '../../logic/driverFileText.js';
 import {driverToOwdrBytes, driverToWdrBytes, owdrTextToDriver, wdrTextToDriver} from '../../logic/fileImportExport.js';
@@ -19,7 +19,7 @@ import {useEscToClose} from '../../logic/useEscToClose.js';
 import {DriverFileFormat} from '../../fileFormat.js';
 import EquationInspectorModal from './EquationInspectorModal.vue';
 import {getProvenanceInfo} from '../../logic/provenance.js';
-import {editableFrom, elementFrom, inputFrom, selectValue} from '../../logic/domEvents.js';
+import {editableFrom, elementFrom, inputFrom, selectedOption} from '../../logic/domEvents.js';
 
 function cellOf(field: SpecField): Cell<number> {
   return fieldOf(field)?.get() ?? notAvailableCell;
@@ -170,8 +170,11 @@ function setNum(field: SpecField, v: number | null) {
 /** The voice-coil wiring, which is a NAME rather than a number and so has its own entry point —
  *  `setNum`'s table is numeric, and routing a wiring through it would put a 1 or a 2 where the
  *  domain expects 'parallel'/'series'. */
+const WIRING_OPTIONS = wiringOptions();
 function setWiring(e: Event) {
-  draft.setWiring(selectValue(e) === 'series' ? 'series' : 'parallel');
+  const wiring = selectedOption(e, WIRING_OPTIONS);
+  if (wiring === null) return;
+  draft.setWiring(wiring);
   forceUpdate();
 }
 
@@ -802,7 +805,7 @@ useEscToClose(() => saveMyDialogOpen.value, () => { saveMyDialogOpen.value = fal
               </div>
               <div class="de-fld de-conn" data-field-key="VCCon" :title="fieldHelp('VCCon')">
                 <label>{{ fieldLabel('VCCon') }}</label>
-                <select class="de-conn-sel" :value="driverRaw.VCCon ?? 'parallel'" @change="setWiring"><option value="parallel">Parallel</option><option value="series">Series</option></select>
+                <select class="de-conn-sel" :value="driverRaw.VCCon ?? 'parallel'" @change="setWiring"><option v-for="o in WIRING_OPTIONS" :key="o.value" :value="o.value">{{ o.label }}</option></select>
               </div>
             </div>
           </div>

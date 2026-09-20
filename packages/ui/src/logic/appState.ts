@@ -30,7 +30,7 @@ import type {OpenIsdFieldKey} from '@openisd/design/fields';
 import {presentationState, unitToken} from './presentationState.js';
 import {parseChartTabId} from './series.js';
 import {displayPrecision, fromDisplay, toDisplay} from './fields/units.js';
-import {type UnitGroup} from '@openisd/design/fields';
+import {BOX_TYPE_OPTIONS, type SelectorOption, type UnitGroup} from '@openisd/design/fields';
 import {getOrInit, hmrSlots} from './hmrSingleton.js';
 import {notifyVentChanged, ventSolveSuspended,} from './useVentGroup.js';
 import {notifyPrChanged} from './usePrGroup.js';
@@ -534,6 +534,12 @@ export function newProject(): OpenISDProject {
  *  reach the solver as an assertion. */
 export function boxTypeIsSimulatable(boxType: BoxType): boolean {
   return engine.simulatableBoxType(boxType) !== null;
+}
+
+/** The enclosure types the New Project wizard offers: the registry's list (`box_Type`),
+ *  narrowed to what the solver models, so the wizard never starts a project it cannot run. */
+export function newProjectBoxTypeOptions(): readonly SelectorOption<BoxType>[] {
+  return BOX_TYPE_OPTIONS.filter(o => boxTypeIsSimulatable(o.value));
 }
 
 /** Put a brand-new, blank passive radiator in the focused project's box — what "Define new PR"

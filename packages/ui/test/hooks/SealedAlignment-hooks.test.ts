@@ -45,7 +45,7 @@ describe('createSealedAlignmentEditor', () => {
 
     editor.openEditor();
     editor.volume_L.value = 12;
-    expect(editor.selectedOption.value?.qtc).toBeCloseTo(0.707, 2);
+    expect(editor.selectedOption.value?.value).toBeCloseTo(0.707, 2);
     editor.accept();
 
     expect(project.box.sealed.volume_m3.get()).toBeCloseTo(0.012, 9);
