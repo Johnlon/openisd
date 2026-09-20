@@ -322,7 +322,13 @@ describe('openisd.yml → winisd.wdr — DQ marks travel into Comment= (ARCHITEC
 `).replace("comment: {value: '', origin: entered}", "comment: {value: 'a driver', origin: entered}");
     const { value } = wdrOf(withDq);
     const comment = commentBlockOf(value!);
+    // Three marks: the two scraped ones, plus the one the app itself puts on Qts when it loads
+    // the record (a stated Qts with neither Qes nor Qms to check it against). The comment
+    // carries the SAME marks the openisd.yml does — the app's export, one producer (John,
+    // 2026-09-20) — in record order: each field's scraper marks, then its calculated ones.
     assert.equal(comment,
-      "a driver\n[DQ] Qts=1.5: Qts=1.5 above max 0.8\n[DQ] Vas_m3=140: Vas=140 above max 60 L");
+      "a driver\n[DQ] Qts=1.5: Qts=1.5 above max 0.8\n"
+      + "[DQ] Qts=1.5: Qts cannot be calculated yet — state Qts = Qes·Qms/(Qes+Qms) (needs Qes, Qms).\n"
+      + "[DQ] Vas_m3=140: Vas=140 above max 60 L");
   });
 });

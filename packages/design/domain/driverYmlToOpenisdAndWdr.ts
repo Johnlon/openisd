@@ -19,11 +19,10 @@
  */
 import {parse as parseYmlToJs, stringify} from "yaml";
 
-import type {Field, OpenIsdPassiveRadiatorSpec} from "./index.js";
+import type {Field} from "./index.js";
 import {OpenISDDriver, OpenISDPassiveRadiatorStandalone} from "./index.js";
 import {type DriverError, Engine} from "../engine/index.js";
 
-import {dqCalculated, withDqCalculated} from "../winisd/dqCalculated.js";
 import {type WdrCell, type WdrHeader, WinISDDriver,} from "../winisd/winisdDriver.js";
 import {OPENISD_FIELDS, type WdrFieldKey} from "../fields/index.js";
 import {
@@ -55,6 +54,15 @@ const SCRAPER_ONLY_KEY = "scraper_meta";
  *  Stripping it HERE, before the record is checked, is what lets `OpenISDDeviceJson` refuse it
  *  outright: that type states the shape of an OPENISD record, and `definition` is not part of one. */
 const DEAD_KEY = "definition";
+
+/** The app's own findings about a spec entry. `driver.yml` has no such key — it is not in that
+ *  schema, so the scraper cannot write it, and anything the bridge finds under it did not come
+ *  from the scraper (an old pipeline's range marks, a hand edit, a stale copy of a previous
+ *  openisd.yml). The app is the only producer (John, 2026-09-20): it recomputes the marks for
+ *  every driver quantity on load, but a field the solver never touches (`weight_kg`, `VCCon`,
+ *  the frequency and power limits) keeps whatever it was loaded with — so the key is dropped at
+ *  the boundary, not left for the loader. */
+const APP_ONLY_SPEC_ENTRY_KEY = "dq_calculated";
 
 /** The same value with every `definition` removed, at any depth. Rebuilt rather than deleted from,
  *  for the reason `stripDefinitionField` gives: the parsed object is the round-trip's reference and
@@ -137,6 +145,18 @@ function entryWithoutRejectedReadings(entry: unknown): unknown {
   return { ...entry, readings: Object.fromEntries(kept) };
 }
 
+/** One spec entry without the app-only key (`APP_ONLY_SPEC_ENTRY_KEY`). Rebuilt, not deleted
+ *  from, for the reason `stripDefinitionField` gives. */
+function entryWithoutAppOnlyKeys(entry: unknown): unknown {
+  if (!isKeyedObject(entry)) return entry;
+  const out: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(entry)) {
+    if (key === APP_ONLY_SPEC_ENTRY_KEY) continue;
+    out[key] = value;
+  }
+  return out;
+}
+
 function stripRejectedReadings(specs: unknown): unknown {
   if (!isKeyedObject(specs)) return specs;
   const sections: Record<string, unknown> = {};
@@ -147,7 +167,7 @@ function stripRejectedReadings(specs: unknown): unknown {
     }
     const fields: Record<string, unknown> = {};
     for (const [field, entry] of Object.entries(section)) {
-      fields[field] = entryWithoutRejectedReadings(entry);
+      fields[field] = entryWithoutAppOnlyKeys(entryWithoutRejectedReadings(entry));
     }
     sections[sectionKey] = fields;
   }
@@ -177,79 +197,7 @@ function stripScraperOnlyFieldsFromJavascriptObject(
   return stripMetadataOrigin(out);
 }
 
-/** A RADIATOR's stated values, keyed the way its record keys them.
- *
- *  Its own list rather than `wdrFields`': a radiator has no motor and no voice coil, so
- *  `PassiveRadiatorSpec` is a different type with a different field set (John, 2026-08-27:
- *  "different schema"). Naming the pairs here makes a renamed field a build error, exactly as
- *  `wdrFields` does for a driver.
- */
-function radiatorStatedValues(
-  spec: OpenIsdPassiveRadiatorSpec
-): Array<readonly [string, number]> {
-  // FIXME - kill this list too
-  const pairs: ReadonlyArray<readonly [string, Field<number>]> = [
-    ["Fs", spec.Fs_hz],
-    ["Qms", spec.Qms],
-    ["Cms", spec.Cms_m_per_N],
-    ["Mms", spec.Mms_kg],
-    ["Rms", spec.Rms_kg_per_s],
-    ["Sd", spec.Sd_m2],
-    ["Vas", spec.Vas_m3],
-    ["Vd", spec.Vd_m3],
-    ["Xmax", spec.Xmax_m],
-    ["Xlim", spec.Xlim_m],
-    ["Dia", spec.Dia_m],
-    ["Dd", spec.Dd_m],
-    ["DVol", spec.DVol_m3],
-    ["Thick", spec.Thick_m],
-    ["Depth", spec.Depth_m],
-    ["Basket", spec.Basket_m],
-    ["Outer", spec.Outer_m],
-    ["OuterX", spec.OuterX_m],
-    ["OuterY", spec.OuterY_m],
-    ["weight_kg", spec.weight_kg],
-  ];
-  const stated: Array<readonly [string, number]> = [];
-  for (const [key, field] of pairs) {
-    const cell = field.get();
-    if (
-      cell.state === "entered" &&
-      cell.value != null &&
-      isFinite(cell.value)
-    ) {
-      stated.push([key, cell.value]);
-    }
-  }
-  return stated;
-}
 
-/**
- * Every spec value the RECORD ITSELF states, paired with the record's own key for it — what the
- * range half of `dq_calculated` is asked about.
- *
- * ENTERED ONLY. A calculated cell holds a number the engine derived from other cells, so a range
- * mark on it would report the derivation rather than the record, and the field it belongs to may
- * not even have a spec entry for the mark to land on. The disagreement that produced the odd
- * derived value is what `checkConsistency()` reports, on the fields that actually caused it.
- *
- * The spec's own keys ARE the record keys (`Fs_hz`, `Vas_m3`, …), so a field renamed there is a
- * build error in one place.
- */
-function statedValues(spec: DriverSpec): Array<readonly [string, number]> {
-  const stated: Array<readonly [string, number]> = [];
-  for (const [key, field] of Object.entries(spec)) {
-    const cell = field.get();
-    if (
-      cell.state === "entered" &&
-      cell.value != null &&
-      isFinite(cell.value)
-    ) {
-      stated.push([key, cell.value]);
-    }
-  }
-  return stated;
-}
 
 /**
  * The `[DQ]` lines a record's marks become in `Comment=` (ARCHITECTURE.md §3).
@@ -800,14 +748,8 @@ export function driverYmlToOpenisdAndWdr(
       );
     if (!Array.isArray(radiatorOrErrors)) {
       // not an array so its the PR
-      const radiatorMarks = dqCalculated(
-        radiatorStatedValues(radiatorOrErrors.spec),
-        []
-      );
       return {
-        openisd: stringify(
-          withDqCalculated(openisdJson, radiatorOrErrors.section, radiatorMarks)
-        ),
+        openisd: stringify(radiatorOrErrors.toOpenIsdDeviceJson()),
         wdr: null,
         errors: [],
       };
@@ -821,22 +763,20 @@ export function driverYmlToOpenisdAndWdr(
     return { openisd: stringify(openisdJson), wdr: null, errors };
   }
 
-  const openisd = stringify(
-    withDqCalculated(
-      openisdJson,
-      driverOrErrors.section,
-      dqCalculated(
-        statedValues(driverOrErrors.spec[driverOrErrors.section]),
-        []
-      )
-    )
-  );
+  // ONE `dq_calculated` PRODUCER (John, 2026-09-20): what the pipeline writes is what the app
+  // exports for this record — the app's loader has already resolved it and marked every
+  // finding. So the record on disk carries the marks the app would write, and the bundler's
+  // round-trip gate (`scripts/roundTripGate.mjs`) passes it by construction.
+  const exported = driverOrErrors.toOpenIsdDeviceJson();
+  const openisd = stringify(exported);
 
   const errors: DriverError[] = [];
+  // The `.wdr` comment carries the SAME marks the openisd.yml does — the app's, not the parsed
+  // driver.yml's — so the two derived files never disagree about a record's quality.
   const wdrDriver = openIsdDriverToWinIsdDriver(
     driverOrErrors,
     errors,
-    dqCommentLines(openisdJson)
+    dqCommentLines(exported)
   );
 
   const wdr = wdrDriver.toWdrIni();

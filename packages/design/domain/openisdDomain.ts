@@ -1869,6 +1869,16 @@ export class OpenISDPassiveRadiatorStandalone extends OpenISDPassiveRadiator {
         return structuredClone(record);
     }
 
+    /** The record as the app holds it — the radiator's counterpart of `OpenISDDriver.toOpenIsdDeviceJson()`,
+     *  so the scraper bridge and the bundler's round-trip gate read a radiator through the same
+     *  seam a driver has. Un-cloned, like the driver's: a caller that stores it clones it
+     *  (`clonePassiveRadiator()`). */
+    toOpenIsdDeviceJson(): OpenISDDeviceJson {
+        const record = this.slot.get();
+        if (record === null) throw new Error('OpenISDPassiveRadiatorStandalone: a standalone radiator always has a record');
+        return record;
+    }
+
 }
 
 

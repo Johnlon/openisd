@@ -54,6 +54,21 @@ describe('checkOpenisdRoundTrip', () => {
     assert.ok('device' in result && result.device instanceof OpenISDDriver);
   });
 
+  it('a record the app itself exported (entries already carrying state/value, marks, C entries) round-trips clean — a fixed point', () => {
+    // Since 2026-09-20 (option A) the scraper bridge writes the app's own export, so every
+    // openisd.yml on disk is exactly what `toOpenIsdDeviceJson()` gives. The gate's legacy
+    // spec-entry upgrade (`readings` gaining `state`/`value` on load) must not fire on an entry
+    // that already HAS them: stripping them from the reload against a source that carries them
+    // reported a key-set divergence on every app-written record.
+    assert.equal(existsSync(REAL_OPENISD_YML), true, `fixture missing: ${REAL_OPENISD_YML}`);
+    const record = parseYaml(readFileSync(REAL_OPENISD_YML, 'utf8'), { logLevel: 'error' });
+    const loaded = OpenISDDriver.fromConformingRecord(record, new Engine());
+    if (Array.isArray(loaded)) throw new Error('fixture record is invalid: ' + loaded.join(', '));
+    const appWritten = JSON.parse(JSON.stringify(loaded.toOpenIsdDeviceJson()));
+    const result = checkOpenisdRoundTrip(appWritten, 'accuton/bd90-6-727/openisd.yml (app-written)');
+    assert.equal(result.ok, true, 'message' in result ? result.message : '');
+  });
+
   it('a value JSON cannot represent losslessly (YAML .nan) fails the gate, naming the divergence', () => {
     // This leg compares the record against itself through a JSON text cycle and does not
     // validate it, so the ONE real way its round trip can diverge is a value that

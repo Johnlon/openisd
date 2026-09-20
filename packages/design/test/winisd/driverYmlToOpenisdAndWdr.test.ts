@@ -28,6 +28,9 @@ import {dirname, join} from 'node:path';
 import {parse, stringify as stringifyYaml} from 'yaml';
 
 import {driverYmlToOpenisdAndWdr} from '../../domain/driverYmlToOpenisdAndWdr.js';
+import {OpenISDDriver, OpenISDPassiveRadiatorStandalone} from '../../domain/index.js';
+import {Engine} from '../../engine/index.js';
+import {checkOpenisdRoundTrip} from '../../../../scripts/roundTripGate.mjs';
 
 const FIXTURES = join(dirname(fileURLToPath(import.meta.url)), '..', 'fixtures', 'corpus');
 
@@ -240,12 +243,12 @@ describe('driverYmlToOpenisdAndWdr — one call, both derived files, one error a
     assert.equal(wdr, null, 'WinISD has no passive-radiator format');
   });
 
-  it('a PASSIVE RADIATOR gets dq_calculated too — Part C says it must', () => {
-    // `drivers.md` Part C: a radiator "returns `wdr: null` with no error … but MUST still get
-    // `dq_calculated`". The bridge conformed the record and threw the radiator away, so all 78
-    // radiators in the corpus carried no marks at all
-    // (bugs/BUG_20260902_the_bridge_derived_nothing…). Sd of 9 m² is far outside any real
-    // radiator, so a range mark is the expected finding.
+  it('a PASSIVE RADIATOR is written as the app\'s own export of it — the same seam a driver goes through', () => {
+    // `drivers.md` Part C once said a radiator "MUST still get `dq_calculated`" — the bridge's own
+    // range marks (Sd of 9 m² was the expected finding). Since 2026-09-20 (John, option A) there
+    // is ONE producer of `dq_calculated`: the app. A radiator's openisd.yml is what the app
+    // exports for it, marks included whenever the app writes any, and range marks are no longer
+    // written to the corpus at all. Fixed point: load what was written, export, nothing changes.
     const radiator = [
       'uuid: {value: 00000000-0000-4000-8000-000000000002}',
       'quality: {confirmed_fields: [], fields_with_issues: [], missing: [], invalid: [], parse_errors: [], cross_source_only: []}',
@@ -270,8 +273,63 @@ describe('driverYmlToOpenisdAndWdr — one call, both derived files, one error a
 
     assert.deepEqual(errors.filter(e => e.level === 'error'), [], 'a radiator is not an error');
     assert.equal(wdr, null, 'WinISD has no passive-radiator format');
-    assert.ok(openisd !== null && openisd.includes('dq_calculated'),
-      'the radiator was conformed and then discarded — no marks reached its openisd.yml');
+    assert.ok(openisd !== null);
+    const emitted = parse(openisd) as Record<string, unknown>;
+    assert.equal(checkOpenisdRoundTrip(emitted, 'dsa175-pr').ok, true, 'the bundler gate refuses what the bridge wrote');
+    const loaded = OpenISDPassiveRadiatorStandalone.fromConformingRecord(emitted, new Engine());
+    assert.ok(!Array.isArray(loaded), 'the app reads the radiator the bridge wrote');
+    assert.deepEqual(JSON.parse(JSON.stringify(loaded.toOpenIsdDeviceJson())), emitted,
+      'the radiator on disk is not the radiator the app exports for it');
+  });
+
+  it('ONE dq_calculated PRODUCER: the emitted openisd.yml is the app\'s own export of the record (John, 2026-09-20, option A)', () => {
+    // The scraper pipeline writes whatever this bridge returns. Until 2026-09-20 the bridge wrote
+    // its own `dq_calculated` (range marks, `dqCalculated.ts`) while the app, on loading the same
+    // record, wrote a different list (the solver's consistency findings) — so the bundler's
+    // round-trip gate (`scripts/roundTripGate.mjs`) refused every record the two disagreed on.
+    // Now the bridge loads the record exactly as the app does and emits what the app exports:
+    // the marks the app would write are the marks on disk, and every record it writes passes
+    // the gate by construction.
+    const source = daytonDriverYml();
+    const { openisd, errors } = driverYmlToOpenisdAndWdr(source);
+    assert.deepEqual(errors.filter(e => e.level === 'error'), []);
+    assert.ok(openisd !== null);
+
+    const emitted = parse(openisd) as Record<string, unknown>;
+    const gate = checkOpenisdRoundTrip(emitted, 'dayton');
+    assert.equal(gate.ok, true, `the bundler gate refuses what the bridge wrote: ${'message' in gate ? gate.message : ''}`);
+
+    // A FIXED POINT: loading what the bridge wrote and exporting it again changes nothing —
+    // marks, calculated entries, everything. That is what "the app's own export" means.
+    const loaded = OpenISDDriver.fromConformingRecord(emitted, new Engine());
+    assert.ok(!Array.isArray(loaded), 'the app reads what the bridge wrote');
+    assert.deepEqual(JSON.parse(JSON.stringify(loaded.toOpenIsdDeviceJson())), emitted,
+      'the record on disk is not the record the app exports for it');
+  });
+
+  it('a dq_calculated the SCRAPER sent in never reaches openisd.yml — the app is the only producer', () => {
+    // The scraper's driver.yml is not a producer of `dq_calculated`; anything it carries under
+    // that key (an old pipeline's range marks, a hand edit, a stale copy of a previous
+    // openisd.yml) is not the app's finding and must not be written as one — `dq_calculated`
+    // is not in the driver.yml schema at all (John, 2026-09-20). Three entries: one the app has
+    // a finding for (Qts alone — no Qes/Qms to check it against), one it has none for (Sd), and
+    // one the solver never touches (weight_kg — not a driver quantity, so loading a record does
+    // not recompute it; only the boundary can keep it out). The stale mark must vanish from all.
+    const record = parse(daytonDriverYml()) as { specs: { woofer: Record<string, Record<string, unknown>> } };
+    const stale = { kind: 'range', severity: 'error', rule: 'range-above-max', params: {}, detail: 'STALE-MARK' };
+    record.specs.woofer.Sd_m2.dq_calculated = [{ ...stale, detail: 'STALE-MARK-SD' }];
+    record.specs.woofer.Qts.dq_calculated = [{ ...stale, detail: 'STALE-MARK-QTS' }];
+    record.specs.woofer.weight_kg.dq_calculated = [{ ...stale, detail: 'STALE-MARK-WEIGHT' }];
+    const withStaleMarks = stringifyYaml(record);
+    assert.ok(
+      withStaleMarks.includes('STALE-MARK-SD') && withStaleMarks.includes('STALE-MARK-QTS') && withStaleMarks.includes('STALE-MARK-WEIGHT'),
+      'the fixture must carry the stale marks',
+    );
+    const { openisd, wdr, errors } = driverYmlToOpenisdAndWdr(withStaleMarks);
+    assert.deepEqual(errors.filter(e => e.level === 'error'), []);
+    assert.ok(openisd !== null && wdr !== null);
+    assert.equal(openisd.includes('STALE-MARK'), false, 'a scraper-supplied dq_calculated reached openisd.yml');
+    assert.equal(wdr.includes('STALE-MARK'), false, 'a scraper-supplied dq_calculated reached the .wdr comment');
   });
 
   it('the emitted openisd.yml survives its own text round trip — A1 === A2, I1 === I2', () => {
@@ -290,9 +348,11 @@ describe('driverYmlToOpenisdAndWdr — one call, both derived files, one error a
 
   it('the emitted openisd.yml differs from driver.yml ONLY by the keys we drop', () => {
     // The most basic check there is: openisd.yml IS driver.yml minus `scraper_meta`, minus every
-    // `definition`, minus `origin` on a top-level metadata field, plus `dq_calculated` (John,
-    // 2026-08-31, 2026-09-01, 2026-09-05). Anything else that changed is a silent loss, and this
-    // is the assertion that names it.
+    // `definition`, minus `origin` on a top-level metadata field, plus what the app's own export
+    // adds (John, 2026-08-31, 2026-09-01, 2026-09-05, 2026-09-20 option A): `dq_calculated`, the
+    // `state`/`value` pair on every entered spec entry, and the `state: C` entries the solver
+    // derives on load. Anything else that changed is a silent loss, and this is the assertion
+    // that names it.
     const source = daytonDriverYml();
     const { openisd } = driverYmlToOpenisdAndWdr(source);
     assert.ok(openisd !== null);
@@ -304,11 +364,14 @@ describe('driverYmlToOpenisdAndWdr — one call, both derived files, one error a
       'manufacturer', 'brand', 'model', 'driver_type', 'series', 'nominal_size_cm',
       'product_image', 'description', 'surround_material', 'provided_by', 'comment', 'added',
     ]);
+    const isCalculatedEntry = (v: unknown): boolean =>
+      v !== null && typeof v === 'object' && !Array.isArray(v) && (v as { state?: unknown }).state === 'C';
     const stripDeep = (v: unknown): unknown => {
       if (Array.isArray(v)) return v.map(stripDeep);
       if (v === null || typeof v !== 'object') return v;
       return Object.fromEntries(Object.entries(v as Record<string, unknown>)
-        .filter(([k]) => k !== 'definition' && k !== 'scraper_meta' && k !== 'dq_calculated')
+        .filter(([k, x]) => k !== 'definition' && k !== 'scraper_meta'
+          && k !== 'dq_calculated' && k !== 'state' && k !== 'value' && !isCalculatedEntry(x))
         .map(([k, x]) => [k, stripDeep(x)]));
     };
     const stripMetadataOriginForTest = (record: Record<string, unknown>): Record<string, unknown> =>

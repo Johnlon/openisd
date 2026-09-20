@@ -31,6 +31,9 @@ function isExpectedSpecEntryUpgrade(a, b) {
   if (typeof a !== 'object' || a === null || Array.isArray(a)) return false;
   if (typeof b !== 'object' || b === null || Array.isArray(b)) return false;
   if (typeof a.origin !== 'string' || typeof a.readings !== 'object' || a.readings === null) return false;
+  // An entry the app itself wrote already carries `state`/`value` (the bridge emits the app's
+  // own export since 2026-09-20): nothing to upgrade, so the plain comparison below applies.
+  if ('state' in a || 'value' in a) return false;
   if (!('state' in b) || !('value' in b)) return false;
   const winning = a.readings[a.origin];
   const expectedValue = winning && typeof winning === 'object' ? winning.read_value : undefined;
