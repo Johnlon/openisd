@@ -36,8 +36,8 @@ export interface UIFieldSpec<TEntity = any, TValue = unknown> {
   readonly min?: number;
   /** Sanity upper bound for entry. */
   readonly max?: number;
-  /** Entered by the human, or Calculated by the app. */
-  readonly provenance: Provenance;
+  /** Optional legacy static provenance default (entered/calculated). */
+  readonly provenance?: Provenance;
   /** Box types the field applies to, or 'all' when independent. */
   readonly appliesTo: BoxType[] | 'all';
   /** Closed form derivation for calculated fields. */
@@ -182,7 +182,7 @@ const UI_FIELD_SPECS: UIFieldSpec[] = [
     id: 'signal_DriveV_V', aliases: ['driveV'], label: 'Driver input voltage (each)', pane: 'Signal', kind: 'number', unit: 'V', precision: 2, min: 0, max: 1000,
     provenance: 'calculated', appliesTo: 'all',
     formula: 'driveV = √(Pin · Re)', dependsOn: ['Pin', 'Re'],
-    description: 'Driver Terminal Voltage: RMS input voltage applied across the driver voice coil terminals.',
+    description: 'Driver Terminal Voltage: RMS input voltage applied across the driver voice coil terminals (V = √(P · Re)).',
   },
   {
     id: 'signal_Rs_ohm', aliases: ['Rs'], label: 'Series resistance', pane: 'Signal', kind: 'number', unit: 'ohm', precision: 3, min: 0, max: 1000,

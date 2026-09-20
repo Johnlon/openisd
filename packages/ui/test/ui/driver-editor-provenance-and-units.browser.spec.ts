@@ -93,7 +93,13 @@ function provenanceTables() {
  *  renders that label — derived from the registry, never a hand-maintained map. */
 function keyForLabel(label: string): string | undefined {
   const spec = fieldSpecs.find(s => s.label === label);
-  return spec?.domainKey ?? spec?.aliases?.[0] ?? spec?.id;
+  if (!spec) return undefined;
+  if (spec.domainKey && spec.domainKey in PROVENANCE_MAP) return spec.domainKey;
+  if (spec.aliases) {
+    const found = spec.aliases.find(a => a in PROVENANCE_MAP);
+    if (found) return found;
+  }
+  return spec.domainKey ?? spec.aliases?.[0] ?? spec.id;
 }
 
 function unitTable() {
