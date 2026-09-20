@@ -1,5 +1,5 @@
 prefix: QO
-next: 165
+next: 166
 questions:
 - id: QO157
   title: Driver Editor is truly modal — focus-switch cannot close it by clicking another row
@@ -9542,3 +9542,17 @@ questions:
     pattern of the existing alignment editor (the sealed-alignment solver popup). Rationale: keeping the
     constraint machinery out of the main page keeps the primary tuning/geometry fields simple, and a popup
     is a natural place for an iterative "try a constraint, see if it breaks the design" interaction.'
+- id: QO165
+  title: 'opentui: Windows Terminal hyperlink recognition + force-override env (decide how to ask upstream)'
+  status: open
+  raised: '2026-09-19'
+  body: |-
+    Investigated why chat file-mentions render as "text (url)" in Windows Terminal instead of a bare clickable filename.
+
+    Root cause (verified in opentui source v0.5.11, bundled in opencode 1.18.31):
+    - opencode TUI <markdown> shows "label (url)" whenever terminal capabilities.hyperlinks !== true; conceal=true (default) doesn't help without that capability.
+    - Hyperlinks enable only when: (a) native Windows + WT_SESSION && !from_xtversion; (b) WSL (WSL_DISTRO_NAME/WSL_INTEROP) + WT_SESSION + TERM=xterm-* && !from_xtversion; or (c) terminal name in isHyperlinkTerm allow-list (ghostty/kitty/wezterm/alacritty/foot/iterm -> Windows Terminal absent).
+    - Windows Terminal answers the XTVERSION probe => from_xtversion=true => rules (a)/(b) are skipped, and WT is not in (c); net: hyperlinks=false, so the (url) suffix always shows.
+    - No hyperlink force-override env exists (only OPENTUI_FORCE_WCWIDTH/UNICODE/NOZWJ/EXPLICIT_WIDTH). TERM=xterm-256color is already correct.
+
+    Decision needed: raise an opentui feature request (add Windows Terminal to isHyperlinkTerm and/or add an OPENTUI_FORCE_HYPERLINK override env), or live with the (url) suffix / run opencode outside WSL.
