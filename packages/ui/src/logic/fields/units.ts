@@ -20,10 +20,11 @@ import {UNIT_GROUPS as DOMAIN_UNIT_GROUPS, type UnitDef, type UnitGroup} from '@
 export const UNIT_GROUPS: Record<UnitGroup, readonly UnitDef[]> = DOMAIN_UNIT_GROUPS;
 export type {UnitDef, UnitGroup};
 
-/** Never show more than this many decimals in any unit — the resolution-preserving derivation
- *  (displayPrecision) would otherwise pile up meaningless trailing zeros for a much-coarser unit
- *  (e.g. grams-to-kilograms). 5 dp is ample for every real field here. */
-const MAX_DP = 5;
+/** Never show more than this many decimals in a CONVERTED unit — the resolution-preserving
+ *  derivation (displayPrecision) would otherwise pile up meaningless trailing zeros for a
+ *  much-coarser unit (grams at 5 dp shown in kilograms = 0.00000000). The base unit is not
+ *  capped: the registry's own precision is what the field shows there (KLe 6 dp, Rme 5 dp). */
+const MAX_CONVERTED_DP = 4;
 
 /** The group's canonical default unit (first entry). */
 function defaultUnit(g: UnitGroup): UnitDef {
@@ -58,10 +59,11 @@ export function nextToken(g: UnitGroup, token: string): string {
 /** Decimal places for a target unit, derived from the field's base-unit precision so switching
  *  units preserves resolution: a ×10 coarser unit shows one fewer decimal, a ÷10 finer unit one
  *  more. Precision therefore stays single-sourced from fieldRegistry (baseDp) — not duplicated
- *  per unit. Clamped to [0, MAX_DP]: an uncapped finer unit (e.g. grams' 5 dp shown in kilograms)
+ *  per unit. Clamped to [0, MAX_CONVERTED_DP]: an uncapped finer unit (e.g. grams' 5 dp shown in kilograms)
  *  would otherwise pile up meaningless trailing zeros (0.00000000 kg). */
 export function displayPrecision(baseDp: number, g: UnitGroup, baseToken: string, token: string): number {
+  if (token === baseToken) return baseDp;
   const f = unitDef(g, token).factor;
   const f0 = unitDef(g, baseToken).factor;
-  return Math.min(MAX_DP, Math.max(0, baseDp - Math.round(Math.log10(f / f0))));
+  return Math.min(MAX_CONVERTED_DP, Math.max(0, baseDp - Math.round(Math.log10(f / f0))));
 }

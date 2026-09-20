@@ -21,6 +21,8 @@
  *     }, myDriversJson([{ brand: 'Scope Test', model: 'Alpha', specs: { Fs_hz: 40, Re_ohm: 6.2, Sd_m2: 0.02 } }]));
  */
 
+import {DriverType} from '@openisd/design/filter';
+
 export const MY_DRIVERS_KEY = 'openisd_my_drivers';
 
 /** A driver a test wants in the My Drivers list. `specs` keys are the schema's unit-suffixed
@@ -29,8 +31,10 @@ export const MY_DRIVERS_KEY = 'openisd_my_drivers';
 export interface SeedDriver {
   brand: string;
   model: string;
-  /** Defaults to `'woofer'`. */
-  driverType?: 'woofer';
+  /** The record's `driver_type` label — what the type chips classify on. Defaults to
+   *  `DriverType.Woofer`. The specs always live in the `woofer` section regardless: a
+   *  standalone driver has exactly one section, and that section is named `woofer`. */
+  driverType?: DriverType;
   /** Optional stable identity. A fresh uuid is generated when absent. */
   uuid?: string;
   specs: Record<string, number>;
@@ -47,7 +51,6 @@ function enteredField(value: number): unknown {
  *  is passed the SAME value by `myDriversJson` so a seeded row has one id, not two.
  *  Exported for tests that hand-build a bucket around it (e.g. the storage-failure specs). */
 export function deviceRecord(d: SeedDriver, recordUuid: string): unknown {
-  const section = 'woofer';
   const specEntries: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(d.specs)) specEntries[key] = enteredField(value);
 
@@ -59,9 +62,9 @@ export function deviceRecord(d: SeedDriver, recordUuid: string): unknown {
     },
     manufacturer: { value: '' },
     brand: { value: d.brand },
-    model: {value: d.model },
+    model: { value: d.model },
     sku: { value: '', grounds: [{ origin: 'manual', reading: '' }] },
-    driver_type: { value: section },
+    driver_type: { value: (d.driverType ?? DriverType.Woofer).value },
     data_sources: { value: {} },
     authoritative: { value: 'openisd' },
     specs: { woofer: specEntries },
