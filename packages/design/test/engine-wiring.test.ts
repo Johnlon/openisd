@@ -180,7 +180,7 @@ describe('D — the vent', () => {
 
     const area = Math.PI * 0.05 ** 2;
     expect(p.box.vented.vent.effectiveLength_m()).toBe(
-      engine.ventEffectiveLength(0.2, area, p.box.vented.vent.endCorrection_m.get()),
+      engine.ventEffectiveLength(0.2, area, 1, p.box.vented.vent.endCorrection_m.get()),
     );
     expect(p.box.vented.vent.effectiveLength_m()!).toBeGreaterThan(0.2);
   });

@@ -119,7 +119,7 @@ wire it into the docs graph:
 - **Fold in (stripping the history):** `TESTING_GOAL.md` (tiers, acceptance-scenario set),
   root `CLAUDE.md` (TDD-mandatory, A-skip-is-a-fail, fixtures rules), `openspec/project.md`
   §Testing Strategy, `ui-bugfix.md` creed (ensure-initial-condition, tab-switch, no deletion,
-  workers/parallelism), `plan_component_test_reorg.md` (naming + decoupling), and the
+  workers/parallelism), `docs/plans/PLAN_COMPONENT_TEST_REORG.md` (naming + decoupling), and the
   Playwright-config gates (no `test.only`, no-skips reporter, `maxFailures`, json durations).
 - **Link it into ARCH + index:**
   - `ARCHITECTURE.md` doc-table row "Dev workflow, ports, testing strategy" currently points at

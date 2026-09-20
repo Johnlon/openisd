@@ -521,6 +521,60 @@ describe('OpenISDBox — every alignment, as a window onto the project record', 
     expect(p.box.vented.vent.area_m2()).toBeCloseTo(Math.PI * 0.05 ** 2, 12);
   });
 
+  it('a vent with no stated count READS as one port, calculated — the same live default numVC has', () => {
+    const p = project();
+    expect(p.box.vented.vent.count.get().value).toBe(1);
+    expect(p.box.vented.vent.count.get().state).toBe('calculated');
+
+    // A project saved before ports had a count carries no `count` key at all.
+    const parsed = JSON.parse(p.toOwprText());
+    delete parsed.saved.box.vented.vent.count;
+    parsed.edited = null;
+    const back = OpenISDProject.fromOwprText(JSON.stringify(parsed), new Engine());
+    if (Array.isArray(back)) throw new Error('fromOwprText returned problems: ' + back.join(', '));
+    expect(back.box.vented.vent.count.get().value).toBe(1);
+    expect(back.box.vented.vent.count.get().state).toBe('calculated');
+  });
+
+  it('a stated count is entered; a count that is not a whole number of at least one is REPAIRED to the calculated 1, not refused', () => {
+    const p = project();
+    p.box.vented.vent.count.set(2);
+    expect(p.box.vented.vent.count.get().value).toBe(2);
+    expect(p.box.vented.vent.count.get().state).toBe('entered');
+    for (const bad of [0, -1, 1.5]) {
+      const parsed = JSON.parse(p.toOwprText());
+      parsed.saved.box.vented.vent.count = { state: 'E', value: bad };
+      parsed.edited = null;
+      const back = OpenISDProject.fromOwprText(JSON.stringify(parsed), new Engine());
+      if (Array.isArray(back)) throw new Error(`count ${bad}: fromOwprText returned problems: ` + back.join(', '));
+      expect(back.box.vented.vent.count.get().value, `count ${bad} reads as 1`).toBe(1);
+      expect(back.box.vented.vent.count.get().state, `count ${bad} reads as calculated`).toBe('calculated');
+    }
+  });
+
+  it('reports the TOTAL opening as count × one port\'s area — still plain geometry', () => {
+    const p = project();
+    p.box.vented.vent.diameter_m.set(0.1);
+    p.box.vented.vent.count.set(2);
+    expect(p.box.vented.vent.area_m2()).toBeCloseTo(Math.PI * 0.05 ** 2, 12);
+    expect(p.box.vented.vent.totalArea_m2()).toBeCloseTo(2 * Math.PI * 0.05 ** 2, 12);
+    p.box.vented.vent.diameter_m.clear();
+    expect(p.box.vented.vent.totalArea_m2()).toBeNull();
+  });
+
+  it('two ports of the same size need a LONGER port than one for the same tuning', () => {
+    const p = project();
+    p.box.boxType.set('vented');
+    p.box.vented.volume_m3.set(0.05);
+    p.box.vented.vent.diameter_m.set(0.1);
+    p.box.vented.tuning_hz.set(40);
+    const one = p.box.vented.vent.length_m.get().value;
+    p.box.vented.vent.count.set(2);
+    const two = p.box.vented.vent.length_m.get().value;
+    if (one === null || two === null) throw new Error('port length did not solve');
+    expect(two).toBeGreaterThan(one);
+  });
+
   it('a vent defaults to TWO FREE ENDS end correction (0.613), not a value no option matches', () => {
     // BUG_20260912 #10: the old 0.6 default matched none of the UI's END_CORRECTION_OPTIONS, so
     // the end-correction select rendered blank. The default is WinISD's "two free ends", 0.613.
@@ -536,7 +590,7 @@ describe('OpenISDBox — every alignment, as a window onto the project record', 
     const area = Math.PI * 0.05 ** 2;
     const engine = new Engine();
     expect(p.box.vented.vent.effectiveLength_m()).toBe(
-      engine.ventEffectiveLength(0.2, area, p.box.vented.vent.endCorrection_m.get()),
+      engine.ventEffectiveLength(0.2, area, 1, p.box.vented.vent.endCorrection_m.get()),
     );
     // And it is LONGER than the port measures — that is what an end correction does.
     expect(p.box.vented.vent.effectiveLength_m()!).toBeGreaterThan(0.2);
@@ -1651,6 +1705,19 @@ describe('T1 — the vent/PR sweep-level guards (PLAN_DRIVER_SOLVE_AND_SWEEP_DIA
     const result = p.sweep({ fmin: 10, fmax: 100, N: 10 });
     expect(result.values).not.toBeNull();
     expect(result.issues).toEqual([]);
+  });
+
+  it('two ports of the same size at the same tuning move the same air through twice the opening — port velocity halves', () => {
+    const p = project('vented');
+    p.box.vented.vent.shape.set('round');
+    p.box.vented.vent.diameter_m.set(0.1);
+    const one = p.sweep({ fmin: 10, fmax: 100, N: 10 });
+    p.box.vented.vent.count.set(2);
+    const two = p.sweep({ fmin: 10, fmax: 100, N: 10 });
+    if (one.values === null || two.values === null) throw new Error('sweep did not run');
+    const i = 5;
+    expect(one.values.pv[i]).toBeGreaterThan(0);
+    expect(two.values.pv[i]).toBeCloseTo(one.values.pv[i] / 2, 9);
   });
 });
 

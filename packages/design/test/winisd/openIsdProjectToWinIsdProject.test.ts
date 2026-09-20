@@ -137,6 +137,17 @@ describe('openIsdProjectToWinIsdProject — [Box]/[SignalSource] match the WinIS
     assert.ok(text.includes(`Fr=${VENTED_TUNING_HZ}`), 'rear chamber tuning matches the golden\'s own Fr');
   });
 
+  it('vented box: [VentRear] Num carries the project\'s port count, not a constant 1', () => {
+    const project = aProject((p) => p.vented().volume_m3(0.03).tuning_hz(40).build());
+    project.powerDrive_W.set(1);
+    project.box.vented.vent.count.set(2);
+
+    const { value: wpr, errors } = openIsdProjectToWinIsdProject(project, new Engine());
+    assert.equal(errors.length, 0, `expected no errors, got: ${JSON.stringify(errors)}`);
+    if (!wpr) throw new Error('expected a WinISDProject');
+    assert.equal(wpr.number('VentRear', 'Num'), 2);
+  });
+
   it('bandpass4 box: BType=2, rear (sealed) and front (vented) volumes/tuning match bandpass4.wpr', () => {
     // All three read from bandpass4.wpr's own [Box], never transcribed.
     const REAR_VOLUME_M3 = Number(goldenField(GOLDEN_BANDPASS4_WPR, 'Box', 'Vr'));
@@ -233,6 +244,18 @@ describe('winIsdProjectToOpenIsdProject — .wpr text back to a project (round t
     if (!project) throw new Error('expected a project');
     assert.equal(project.box.boxType.get(), 'sealed');
     assert.equal(project.box.sealed.volume_m3.get(), 0.02);
+  });
+
+  it('vented import reads [VentRear] Num into the port count; a file without it reads as the calculated one port', () => {
+    const base = '[ProjectInfo]\n[Driver]\nBrand=Test\nModel=Driver\n[Box]\nBType=1\nVr=0.03\nFr=40\n';
+    const engine = new Engine();
+    const two = winIsdProjectToOpenIsdProject(base + '[VentRear]\nNum=2\n', engine);
+    assert.equal(two.errors.length, 0, JSON.stringify(two.errors));
+    assert.equal(two.value?.box.vented.vent.count.get().value, 2);
+    assert.equal(two.value?.box.vented.vent.count.get().state, 'entered');
+    const none = winIsdProjectToOpenIsdProject(base, engine);
+    assert.equal(none.value?.box.vented.vent.count.get().value, 1);
+    assert.equal(none.value?.box.vented.vent.count.get().state, 'calculated');
   });
 
   it('reports a clean user-facing error when BType is missing or unsupported', () => {

@@ -6,7 +6,7 @@
  * in the field registry, so a checkbox here can never go back to being decorative.
  *
  * Each field's full semantics, WinISD cross-reference and assumption status live in the
- * field registry (fields/fieldRegistry.ts, pane 'Advanced'); the tooltips below are the
+ * field registry (fields/uiFields.ts, pane 'Advanced'); the tooltips below are the
  * short form of the same text. Design: PLAN_ADVANCED_SIM_OPTIONS.md.
  */
 import {computed} from 'vue';

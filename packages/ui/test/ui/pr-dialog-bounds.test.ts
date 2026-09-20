@@ -2,7 +2,7 @@
  * The passive-radiator dialog enforces its entry bounds, and enforces them from ONE place.
  *
  * The dialog used to declare bounds twice: a `v-limits="{ min, max }"` on the raw input AND
- * the same field's `min`/`max` in fieldRegistry. Two declarations of one rule is the state this
+ * the same field's `min`/`max` in uiFields. Two declarations of one rule is the state this
  * suite exists to prevent — when the raw inputs became <NumInput field="…">, the `v-limits`
  * went with them, and any bound the registry did not already carry was silently lost. A lost
  * lower bound is invisible: the field simply starts accepting Fs = 0 Hz, and nothing on screen
@@ -13,7 +13,7 @@
  * source (NumInput's `effMin`/`effMax` read it), so a bound can only be changed in the one
  * place that declares it.
  *
- * Oracle: fieldRegistry, and the bounds the dialogs themselves enforced before the migration —
+ * Oracle: uiFields, and the bounds the dialogs themselves enforced before the migration —
  * quoted per field below in the units that dialog showed, converted through units.ts.
  */
 
@@ -22,7 +22,7 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 import {dirname, join} from 'node:path';
-import {fieldById} from '../../src/logic/fields/fieldRegistry.js';
+import {fieldById} from '../../src/logic/fields/uiFields.js';
 import {fromDisplay} from '../../src/logic/fields/units.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -53,7 +53,7 @@ describe('PR dialogs — every numeric entry is bounded by the registry', () => 
     it(`${file}: every field it binds declares a finite min and max`, () => {
       for (const id of boundFieldIds(file)) {
         const spec = fieldById(id);
-        assert.ok(spec, `${file} binds field="${id}", which fieldRegistry does not declare`);
+        assert.ok(spec, `${file} binds field="${id}", which uiFields does not declare`);
         assert.equal(typeof spec!.min, 'number', `${id} has no registry min — entry is unbounded below`);
         assert.equal(typeof spec!.max, 'number', `${id} has no registry max — entry is unbounded above`);
         assert.ok(Number.isFinite(spec!.min!) && Number.isFinite(spec!.max!), `${id}'s bounds are not finite`);

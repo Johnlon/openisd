@@ -80,6 +80,7 @@ interface VentWorkingSet {
     length_m?: number;
     Vb_m3?: number;
     area_m2?: number;
+    count?: number;
     endCorrection_m?: number;
 }
 
@@ -747,15 +748,15 @@ function checkPrConsistency(p: PrWorkingSet): PrIssue[] {
  *  comment for why this is a parameter here, never a reference-condition default. */
 function solveVentConsistencyGroup(p: VentWorkingSet, air: Air): VentWorkingSet {
   const out: VentWorkingSet = { ...p };
-  const { tuning_hz, length_m, Vb_m3, area_m2, endCorrection_m } = p;
+  const { tuning_hz, length_m, Vb_m3, area_m2, count, endCorrection_m } = p;
 
   if (tuning_hz != null && length_m == null) {
     if (Vb_m3 != null && Vb_m3 > 0 && area_m2 != null && area_m2 > 0 && tuning_hz > 0) {
-      out.length_m = ventLength(Vb_m3, tuning_hz, area_m2, air, endCorrection_m ?? 0.732);
+      out.length_m = ventLength(Vb_m3, tuning_hz, area_m2, count ?? 1, air, endCorrection_m ?? 0.732);
     }
   } else if (length_m != null && tuning_hz == null) {
     if (Vb_m3 != null && Vb_m3 > 0 && area_m2 != null && area_m2 > 0) {
-      out.tuning_hz = tuningFromLength(Vb_m3, length_m, area_m2, air, endCorrection_m ?? 0.732);
+      out.tuning_hz = tuningFromLength(Vb_m3, length_m, area_m2, count ?? 1, air, endCorrection_m ?? 0.732);
     }
   }
   return out;
@@ -775,17 +776,18 @@ export function solveVent(params: VentSolverParams, air: Air): VentIssue[] {
   const length = params.length_m.value;
   const Vb = params.Vb_m3.value;
   const area = params.area_m2.value;
+  const count = params.count.value ?? 1;
   const endCorrection = params.endCorrection_m.value ?? 0.732;
 
   if (tuning != null && !params.length_m.entered) {
     if (Vb != null && Vb > 0 && area != null && area > 0 && tuning > 0) {
-      params.length_m.setCalculated(ventLength(Vb, tuning, area, air, endCorrection));
+      params.length_m.setCalculated(ventLength(Vb, tuning, area, count, air, endCorrection));
     } else {
       params.length_m.setNotAvailable();
     }
   } else if (length != null && !params.tuning_hz.entered) {
     if (Vb != null && Vb > 0 && area != null && area > 0) {
-      params.tuning_hz.setCalculated(tuningFromLength(Vb, length, area, air, endCorrection));
+      params.tuning_hz.setCalculated(tuningFromLength(Vb, length, area, count, air, endCorrection));
     } else {
       params.tuning_hz.setNotAvailable();
     }
@@ -796,6 +798,7 @@ export function solveVent(params: VentSolverParams, air: Air): VentIssue[] {
     length_m: params.length_m.value ?? undefined,
     Vb_m3: Vb ?? undefined,
     area_m2: area ?? undefined,
+    count,
     endCorrection_m: endCorrection,
   };
   return checkVentConsistency(solved);

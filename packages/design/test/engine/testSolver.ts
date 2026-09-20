@@ -48,6 +48,7 @@ export interface TestVentQuantities {
   length_m?: number;
   Vb_m3?: number;
   area_m2?: number;
+  count?: number;
   endCorrection_m?: number;
 }
 
@@ -187,6 +188,7 @@ function ventHandlesFrom(v: TestVentQuantities): VentSolverParams {
     length_m: fakeSolverField(v.length_m ?? null),
     Vb_m3: fakeInput(v.Vb_m3),
     area_m2: fakeInput(v.area_m2),
+    count: fakeInput(v.count),
     endCorrection_m: fakeInput(v.endCorrection_m),
   };
 }
@@ -195,7 +197,7 @@ function bagFromVentHandles(v: VentSolverParams): TestVentQuantities {
   return {
     tuning_hz: v.tuning_hz.value ?? undefined, length_m: v.length_m.value ?? undefined,
     Vb_m3: v.Vb_m3.value ?? undefined, area_m2: v.area_m2.value ?? undefined,
-    endCorrection_m: v.endCorrection_m.value ?? undefined,
+    count: v.count.value ?? undefined, endCorrection_m: v.endCorrection_m.value ?? undefined,
   };
 }
 

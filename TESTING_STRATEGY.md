@@ -5,7 +5,7 @@ and the anti-patterns to avoid. This is strategy — not minutes. Historic rulin
 logs live in their own files, not here.
 
 `CLAUDE.md` (repo root) points here; `ARCHITECTURE.md` and `README.md` link it from the docs
-graph. `plan_component_test_reorg.md` is the work plan that shaped the naming/decoupling rules.
+graph. `docs/plans/PLAN_COMPONENT_TEST_REORG.md` is the work plan that shaped the naming/decoupling rules.
 
 ## Principles
 
@@ -94,7 +94,7 @@ A browser-spec file is named after the human-recognisable component it exercises
 | New Project wizard | `new-project-wizard…` |
 | Shell structure (layout/narrow) | `shell-layout…`, `shell-narrow…` |
 
-See `plan_component_test_reorg.md` for the current→target rename map.
+See `docs/plans/PLAN_COMPONENT_TEST_REORG.md` for the current→target rename map.
 
 ## Acceptance scenarios
 

@@ -13,7 +13,7 @@
  * (length / frequency / area / mass / volume) and `tempCoeff`, whose "1000/K" label carries
  * the same obligation: the stored SI number must be the one the label promises.
  *
- * Oracle: `UNIT_GROUPS` in units.ts (the app's own SI→display factors) and `fieldRegistry`,
+ * Oracle: `UNIT_GROUPS` in units.ts (the app's own SI→display factors) and `uiFields`,
  * never the component under test.
  */
 
@@ -233,7 +233,7 @@ describe('resistance unit group — Ns/m ↔ kg/s, factor 1 (ledger QO51)', () =
   it('Rms, Rme and Mcost declare the resistance unitGroup in the field registry', () => {
     for (const id of ['Rms_kg_per_s', 'Rme_kg_per_s', 'Mcost_kg_per_s']) {
       const spec = fieldById(id);
-      assert.ok(spec, `fieldRegistry has no "${id}"`);
+      assert.ok(spec, `uiFields has no "${id}"`);
       assert.equal(spec!.unitGroup, 'resistance', `${id} does not carry unitGroup: 'resistance'`);
     }
   });
@@ -273,7 +273,7 @@ describe('resistance unit group — Ns/m ↔ kg/s, factor 1 (ledger QO51)', () =
   it('field="Rms"/"Rme"/"Mcost" wires the registry ceiling into the bound check', () => {
     for (const id of ['Rms_kg_per_s', 'Rme_kg_per_s', 'Mcost_kg_per_s']) {
       const spec = fieldById(id);
-      assert.ok(spec, `fieldRegistry has no "${id}"`);
+      assert.ok(spec, `uiFields has no "${id}"`);
       const f = byLabel(spec!.label);
       assert.equal(f.regField, id,
         `${id}'s NumInput does not bind field="${id}" — the registry's min/max never reach this cell's bound check`);
@@ -304,7 +304,7 @@ describe('percent unit group — one unit, the ONE place a fraction becomes a pe
   it('no and Gloss declare the percent unitGroup in the field registry', () => {
     for (const id of ['no', 'Gloss']) {
       const spec = fieldById(id);
-      assert.ok(spec, `fieldRegistry has no "${id}"`);
+      assert.ok(spec, `uiFields has no "${id}"`);
       assert.equal(spec!.unitGroup, 'percent', `${id} does not carry unitGroup: 'percent'`);
     }
   });
@@ -388,7 +388,7 @@ describe('Gloss — a FRACTION in the file, a PERCENT on the panel', () => {
 });
 
 describe('driver editor — precision comes from the field registry', () => {
-  // The registry is the SSOT for what a field shows (fieldRegistry.ts header). A hardcoded
+  // The registry is the SSOT for what a field shows (uiFields.ts header). A hardcoded
   // dp at the call site is a second, silent declaration: Dd at 2 dp of a metre is ±5 mm on a
   // cone diameter, and nothing connects that number back to the field's spec.
   const REGISTRY_ID: Record<string, string> = {
@@ -415,7 +415,7 @@ describe('driver editor — precision comes from the field registry', () => {
         `${label} hardcodes :precision="${f.precisionExpr || '(absent — NumInput default 2)'}" instead of reading the registry`,
       );
       const spec = fieldById(id);
-      assert.ok(spec, `fieldRegistry has no "${id}"`);
+      assert.ok(spec, `uiFields has no "${id}"`);
       assert.equal(spec.unit, f.unit, `registry says ${id} is in "${spec.unit}"; the editor labels it "${f.unit}"`);
     });
   }

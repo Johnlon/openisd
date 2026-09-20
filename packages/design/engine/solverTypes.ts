@@ -52,13 +52,15 @@ export interface PrSolverParams {
 
 /** A `SolverField` handle for every vent quantity. Pass this to `solveVent` — the solve
  *  derives whichever of `tuning_hz`/`length_m` is not entered and writes it back via
- *  `setCalculated`, never overwriting an entered value. `Vb_m3`/`area_m2`/`endCorrection_m` are
+ *  `setCalculated`, never overwriting an entered value. `Vb_m3`/`area_m2`/`count`/`endCorrection_m` are
  *  read-only inputs — nothing here ever writes back to the box volume or the vent geometry. */
 export interface VentSolverParams {
   tuning_hz: SolverField;
   length_m: SolverField;
   Vb_m3: SolverInput;
+  /** ONE port's area; `count` says how many identical ports share the chamber. */
   area_m2: SolverInput;
+  count: SolverInput;
   endCorrection_m: SolverInput;
 }
 

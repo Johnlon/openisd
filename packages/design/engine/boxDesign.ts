@@ -97,32 +97,36 @@ export function ventedAlignment(Fs_hz: number, Qts: number, Vas_m3: number): { V
  * and callers guard on `> 0`. Flooring it instead would return a buildable-looking vent that
  * tunes somewhere else entirely, which is a wrong number wearing a right one's clothes.
  *
+ * `Sp` is ONE port's area and `count` how many identical ports there are: the air-mass term sees
+ * the total opening `count·Sp`, while the end correction is a per-port effect and keeps the
+ * single port's equivalent diameter `d = 2·√(Sp/π)`.
+ *
  * `air` is the PROJECT's own resolved `{ rho, c }` — never a reference-condition default computed
  * inside this module. The caller (ultimately `OpenISDBox`, via its embedded driver's already-
  * resolved air — Driver Air Constants, `docs/plans/PLAN_DRIVER_SOLVE_AND_SWEEP_DIAGNOSTICS.md`)
  * decides what air a design runs in; this function only computes the physics for whatever air it
  * is handed.
  */
-export function ventLength(Vb: number, fb: number, Sp: number, air: Air, endCorrection: number = END_CORRECTION): number {
+export function ventLength(Vb: number, fb: number, Sp: number, count: number, air: Air, endCorrection: number = END_CORRECTION): number {
   const Cab = Vb / (air.rho * air.c * air.c);
   const wb  = 2 * Math.PI * fb;
   const Map = 1 / (wb * wb * Cab);
   const d   = 2 * Math.sqrt(Sp / Math.PI);
-  return Map * Sp / air.rho - endCorrection * d;
+  return Map * count * Sp / air.rho - endCorrection * d;
 }
 
 /**
  * Port tuning frequency from physical dimensions.
- * f = (c/2π) · √(Sp / (Vb · L_eq))  where L_eq = L + END_CORRECTION·d
+ * f = (c/2π) · √(count·Sp / (Vb · L_eq))  where L_eq = L + END_CORRECTION·d, d from ONE port
  * https://en.wikipedia.org/wiki/Helmholtz_resonance#Resonant_frequency
  *
  * `air` — see `ventLength`'s doc comment above; the same rule applies here.
  */
-export function tuningFromLength(Vb: number, L: number, Sp: number, air: Air, endCorrection: number = END_CORRECTION): number {
+export function tuningFromLength(Vb: number, L: number, Sp: number, count: number, air: Air, endCorrection: number = END_CORRECTION): number {
   const d    = 2 * Math.sqrt(Sp / Math.PI);
   const Leff = L + endCorrection * d;
   const Cab  = Vb / (air.rho * air.c * air.c);
-  const Map  = air.rho * Leff / Sp;
+  const Map  = air.rho * Leff / (count * Sp);
   return 1 / (2 * Math.PI * Math.sqrt(Map * Cab));
 }
 

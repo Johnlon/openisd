@@ -25,7 +25,7 @@ const {
   saveProject, resetProjectToGround, confirmDiscard, about, optionsOpen,
   chartLabel, CHART_ITEMS, selectChart,
   hzInputText, inputValue, onHzInputFocus, onHzInputBlur, onHzKeydown, onHzWheel,
-  startNudge, stopNudge, cursorHz, cursorVal, chartMeta, inputChecked, selectValue, selectedOption,
+  startNudge, stopNudge, cursorHz, cursorVal, chartMeta, inputChecked, selectedOption,
   WINISD_TRACE, cycleColor, resetChartView, chartMax,
   mainEl, navCollapsed, bottomCollapsed, mainStyle, onNavSplitDown, onBottomSplitDown,
   projectList, isRowVisible, setRowVisible, rowName, selectProject, project, focused, projectOpen, whatIfActive,
@@ -33,7 +33,7 @@ const {
   genOn, toggleGenerate, genHz, limits,
   boxLabel, pending, chartTab, overlays, chartUnavailable, activeTab,
   showEnclosureTab, enclosureNavLabel,
-  selectedBox, BOX_TYPE_OPTIONS, LOSS_MODE_OPTIONS, ARRAY_WIRING_OPTIONS,
+  selectedBox, BOX_TYPE_OPTIONS, LOSS_MODE_OPTIONS, ARRAY_WIRING_OPTIONS, N_DRIVERS_OPTIONS,
   boxVolume_m3, setBoxVolume_m3, fieldDp, sealedAlignmentEditor, sealedAlignmentOpen,
   sealedAlignmentOptions, sealedAlignmentSelected, sealedAlignmentVolume_L, sealedAlignmentEbp,
   sealedAlignmentSuitability, sealedAlignmentSuitabilityLabel,
@@ -42,7 +42,7 @@ const {
   fbUnreachable, fbUnreachableMsg, boxLossesOpen, isDual,
   frontVolume_m3, setFrontVolume_m3, frcHz, setFrcHz, rearResonance, frontChamberTuningLabel,
   model, startEdit, startTune, placement,
-  activeVent, END_CORRECTION_OPTIONS, VENT_SHAPE_OPTIONS, ventLState, portPipeResonance_hz,
+  activeVent, END_CORRECTION_OPTIONS, VENT_SHAPE_OPTIONS, VENT_COUNT_OPTIONS, ventLState, portPipeResonance_hz,
   prBrowseOpen, prEditOpen, loadPREntry, loadBundledPassiveRadiatorEntry, defineNewPREntry,
   prAddedMassCell, prTuningCell, prResonanceMass, prFsMass_hz, dqOfCell, fmt,
   driveV, rsOhm, advTemp, advHumidity, advPressure, advAir,
@@ -241,14 +241,14 @@ const {
           <div class="box-tab-main">
           <div class="field-row" style="flex-wrap: nowrap;">
             <div class="field" style="gap:8px;"><label style="width:auto;">Box Type</label>
-              <select id="og-box-type" v-model="selectedBox" style="width:170px">
+              <select id="og-box-type" :value="selectedBox" @change="e => { const b = selectedOption(e, BOX_TYPE_OPTIONS); if (b !== null) selectedBox = b; }" style="width:170px">
                 <option v-for="o in BOX_TYPE_OPTIONS" :key="o.value" :value="o.value">{{ o.label }}</option>
               </select>
             </div>
             <div v-if="selectedBox === 'sealed'" class="field" style="gap:8px;"
               title="Sealed resonance (Fsc) and system Q (Qtc) loss model. Lossless = fs·√(1+Vas/Vb). Conventional Lossy folds Ql/Qa into Qtc only, leaving the frequency fixed (Small/Thiele). WinISD Lossy reports the pole of the lossy 3rd-order model, so Fsc rises as Ql falls — this matches WinISD's own readout. Default: WinISD Lossy.">
               <label style="width:auto;">Model</label>
-              <select id="lossmode" v-model="presentationState.lossMode" style="width:130px">
+              <select id="lossmode" :value="presentationState.lossMode" @change="e => { const m = selectedOption(e, LOSS_MODE_OPTIONS); if (m !== null) presentationState.lossMode = m; }" style="width:130px">
                 <option v-for="m in LOSS_MODE_OPTIONS" :key="m.value" :value="m.value">{{ m.label }}</option>
               </select>
             </div>
@@ -354,7 +354,7 @@ const {
               <div class="section-header">Placement</div>
               <div class="field-row">
                 <div class="field"><label>Num. of drivers</label>
-                  <select :value="project.nDrivers.get()" @change="e => project.nDrivers.set(Number(selectValue(e)))"><option v-for="n in 8" :key="n" :value="n">{{ n }}</option></select>
+                  <select :value="project.nDrivers.get()" @change="e => { const n = selectedOption(e, N_DRIVERS_OPTIONS); if (n !== null) project.nDrivers.set(n); }"><option v-for="o in N_DRIVERS_OPTIONS" :key="o.value" :value="o.value">{{ o.label }}</option></select>
                   <span>driver(s)</span>
                 </div>
               </div>
@@ -388,7 +388,7 @@ const {
                the enclosure content changes per box type, so the selector belongs beside it. -->
           <div class="field-row" style="flex-wrap: nowrap;">
             <div class="field" style="gap:8px;"><label style="width:auto;">Box Type</label>
-              <select id="og-box-type-enclosure" v-model="selectedBox" style="width:170px">
+              <select id="og-box-type-enclosure" :value="selectedBox" @change="e => { const b = selectedOption(e, BOX_TYPE_OPTIONS); if (b !== null) selectedBox = b; }" style="width:170px">
                 <option v-for="o in BOX_TYPE_OPTIONS" :key="o.value" :value="o.value">{{ o.label }}</option>
               </select>
             </div>
@@ -400,7 +400,12 @@ const {
               <!-- Column 1: Config -->
               <div class="vent-config-col">
                 <div class="field-row">
-                  <div class="field"><label>Number of Vents</label><select><option>1</option><option>2</option></select></div>
+                  <div class="field">
+                    <label>Number of Vents</label>
+                    <select id="vent-count" :value="activeVent.count.get().value" @change="e => { const n = selectedOption(e, VENT_COUNT_OPTIONS); if (n !== null) activeVent.count.set(n); }">
+                      <option v-for="o in VENT_COUNT_OPTIONS" :key="o.value" :value="o.value">{{ o.label }}</option>
+                    </select>
+                  </div>
                 </div>
                 <div class="field-row">
                   <div class="field">
@@ -413,7 +418,7 @@ const {
                 <div class="field-row">
                   <div class="field entered">
                     <label>End Correction</label>
-                    <select :value="activeVent.endCorrection_m.get()" @change="e => activeVent.endCorrection_m.set(Number(selectValue(e)))" style="width:190px">
+                    <select :value="activeVent.endCorrection_m.get()" @change="e => { const k = selectedOption(e, END_CORRECTION_OPTIONS); if (k !== null) activeVent.endCorrection_m.set(k); }" style="width:190px">
                       <option v-for="o in END_CORRECTION_OPTIONS" :key="o.value" :value="o.value">{{ o.label }} ({{ o.value }})</option>
                     </select>
                   </div>

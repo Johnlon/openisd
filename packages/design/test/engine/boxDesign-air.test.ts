@@ -11,14 +11,14 @@ const HOT_AIR = engine.solveEnvironment({ tempK: 313.15, humidityPct: 90, pressu
 
 describe('boxDesign air-sensitivity — ventLength/tuningFromLength/prTuning/prMassForFp', () => {
   it('ventLength gives a different length at a non-reference air pair', () => {
-    const atReference = engine.ventLength(0.03, 35, 0.002, REFERENCE_AIR);
-    const atHot = engine.ventLength(0.03, 35, 0.002, HOT_AIR);
+    const atReference = engine.ventLength(0.03, 35, 0.002, 1, REFERENCE_AIR);
+    const atHot = engine.ventLength(0.03, 35, 0.002, 1, HOT_AIR);
     expect(atHot).not.toBeCloseTo(atReference, 6);
   });
 
   it('tuningFromLength gives a different tuning at a non-reference air pair', () => {
-    const atReference = engine.tuningFromLength(0.03, 0.1, 0.002, REFERENCE_AIR);
-    const atHot = engine.tuningFromLength(0.03, 0.1, 0.002, HOT_AIR);
+    const atReference = engine.tuningFromLength(0.03, 0.1, 0.002, 1, REFERENCE_AIR);
+    const atHot = engine.tuningFromLength(0.03, 0.1, 0.002, 1, HOT_AIR);
     expect(atHot).not.toBeCloseTo(atReference, 6);
   });
 
@@ -37,8 +37,8 @@ describe('boxDesign air-sensitivity — ventLength/tuningFromLength/prTuning/prM
   });
 
   it('ventLength and tuningFromLength still round-trip at a fixed, explicit air pair', () => {
-    const L = engine.ventLength(0.03, 35, 0.002, HOT_AIR);
-    const back = engine.tuningFromLength(0.03, L, 0.002, HOT_AIR);
+    const L = engine.ventLength(0.03, 35, 0.002, 1, HOT_AIR);
+    const back = engine.tuningFromLength(0.03, L, 0.002, 1, HOT_AIR);
     expect(back).toBeCloseTo(35, 6);
   });
 });

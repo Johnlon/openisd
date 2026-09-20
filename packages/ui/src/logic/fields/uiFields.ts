@@ -71,6 +71,10 @@ const UI_FIELD_SPECS: UIFieldSpec[] = [
 
   // ============================ VENTS / PORTED ============================
   {
+    id: 'vent_Count', aliases: ['Num', 'ventCount'], label: 'Number of vents', pane: 'Vents', kind: 'number', unit: '', precision: 0, min: 1, max: 4,
+    description: 'Number of Vents: How many identical ports share the chamber. The air-mass term sees the total opening, so more ports of the same size need a longer port for the same tuning; the end correction stays that of one port.',
+  },
+  {
     id: 'vent_Shape', aliases: ['ventShape'], label: 'Vent shape', pane: 'Vents', kind: 'enum', unit: '',
     options: VENT_SHAPE_OPTIONS,
     description: 'Vent Geometry: Selects between a circular tube (round) or rectangular duct (slotted) port.',
@@ -399,4 +403,19 @@ export function limits(id: string): { min?: number; max?: number } {
   const spec = fieldById(id);
   if (!spec) throw new Error(`uiFields: no field "${id}" — add it to uiFields.ts`);
   return { min: spec.min, max: spec.max };
+}
+
+/** Every integer a count field allows, as the option list its `<select>` renders — so a count
+ *  select iterates the spec's own `min..max` and reads its choice back through `selectedOption`,
+ *  the same way an enum select does. Throws on a spec without both bounds: a count select
+ *  cannot guess its range. */
+export function countOptions(id: string): readonly SelectorOption<number>[] {
+  const spec = fieldById(id);
+  if (!spec) throw new Error(`uiFields: no field "${id}" — add it to uiFields.ts`);
+  if (spec.min === undefined || spec.max === undefined) {
+    throw new Error(`uiFields: field "${id}" needs both min and max to list count options`);
+  }
+  const out: SelectorOption<number>[] = [];
+  for (let n = spec.min; n <= spec.max; n++) out.push({value: n, label: String(n)});
+  return out;
 }

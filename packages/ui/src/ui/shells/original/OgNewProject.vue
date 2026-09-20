@@ -15,6 +15,7 @@ import {useApp} from '../../../logic/app.js';
 import type {OpenISDDriver} from '@openisd/design';
 import type {BoxType} from '@openisd/design/engine';
 import {useEscToClose} from '../../../logic/useEscToClose.js';
+import {selectedOption} from '../../../logic/domEvents.js';
 
 const emit = defineEmits<{ close: [] }>();
 // Cancelling the wizard must also drop any pre-loaded `.wdr`/`.owdr` driver, or it would leak
@@ -115,7 +116,7 @@ function pickDriver() {
         <div v-else-if="step === 2">
           <div class="field-row">
             <div class="field"><label>Box type</label>
-              <select v-model="boxType" style="width:240px">
+              <select :value="boxType" @change="e => { const b = selectedOption(e, BOX_OPTIONS); if (b !== null) boxType = b; }" style="width:240px">
                 <option v-for="o in BOX_OPTIONS" :key="o.value" :value="o.value">{{ o.label }}</option>
               </select>
             </div>

@@ -24,7 +24,7 @@
 - **The only exception:** coupling is allowed when the test's **intent is to verify the
   coupling in the app itself** (e.g. "Tune↔Box sync" deliberately exercises both panels'
   wiring and lives in the file that owns that contract).
-- See `plan_component_test_reorg.md` for the rename map and the sealed/tune coverage plan.
+- See `docs/plans/PLAN_COMPONENT_TEST_REORG.md` for the rename map and the sealed/tune coverage plan.
 
 ---
 

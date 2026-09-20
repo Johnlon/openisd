@@ -58,7 +58,7 @@ export function nextToken(g: UnitGroup, token: string): string {
 
 /** Decimal places for a target unit, derived from the field's base-unit precision so switching
  *  units preserves resolution: a ×10 coarser unit shows one fewer decimal, a ÷10 finer unit one
- *  more. Precision therefore stays single-sourced from fieldRegistry (baseDp) — not duplicated
+ *  more. Precision therefore stays single-sourced from uiFields (baseDp) — not duplicated
  *  per unit. Clamped to [0, MAX_CONVERTED_DP]: an uncapped finer unit (e.g. grams' 5 dp shown in kilograms)
  *  would otherwise pile up meaningless trailing zeros (0.00000000 kg). */
 export function displayPrecision(baseDp: number, g: UnitGroup, baseToken: string, token: string): number {

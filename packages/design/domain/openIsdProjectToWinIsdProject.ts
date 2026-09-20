@@ -172,7 +172,9 @@ function ventSectionValues(
 ): Record<string, Record<string, string | number>> {
   const out: Record<string, Record<string, string | number>> = {};
   const oneVent = (vent: Box['vented']['vent'], fb_hz: number | null): Record<string, string | number> => {
-    const v: Record<string, string | number> = {Num: 1};
+    const v: Record<string, string | number> = {};
+    const count = vent.count.get().value;
+    if (count != null) v.Num = count;
     if (vent.shape.get() === 'round') v.Shape = 1; // ⚠ unverified: slotted's own code is not confirmed
     if (fb_hz != null) v.Fb = fb_hz;
     const area = vent.area_m2();
@@ -247,6 +249,8 @@ export function winIsdProjectToOpenIsdProject(
         return {value: null, errors};
       }
       project = builder.vented().volume_m3(Vr).tuning_hz(Fr).build();
+      const Num = wpr.number('VentRear', 'Num');
+      if (Num != null) project.box.vented.vent.count.set(Num);
       break;
     }
     case 2: {
@@ -261,6 +265,8 @@ export function winIsdProjectToOpenIsdProject(
         return {value: null, errors};
       }
       project = builder.bandpass4().rearVolume_m3(Vr).frontVolume_m3(Vf).frontTuning_hz(Ff).build();
+      const Num = wpr.number('VentFront', 'Num');
+      if (Num != null) project.box.bandpass4.vents.front.count.set(Num);
       break;
     }
     case 4: {

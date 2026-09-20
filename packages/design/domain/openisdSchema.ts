@@ -174,6 +174,13 @@ export function calcNumVC(): number {
     return 1;
 }
 
+/** WinISD's own default when a vented box states no port count (`[VentRear] Num`) — one port.
+ *  Read-time fallback in the same style as `calcNumVC()`: a record without a count, or with one
+ *  that is not a whole number of at least one, READS as this calculated value. */
+export function calcVentCount(): number {
+    return 1;
+}
+
 export function enteredWiring(value: VoiceCoilWiring): SpecEntryJson {
     return {state: 'E', value: value === VoiceCoilWiring.Series ? 2 : 1};
 }
@@ -553,6 +560,10 @@ const ventJsonSchema = z.strictObject({
     // A solver-set slot (S7-a): absent = not-available, `state:'E'` = entered, `state:'C'` =
     // derived — not a plain nullable number.
     length_m: specEntryJsonSchema.optional(),
+    // How many identical ports share the chamber. Same slot shape as `numVC`: absent =
+    // not-available, and the domain reads that (or a value that is not a whole number ≥ 1) as
+    // the calculated `calcVentCount()` — never refused at parse time.
+    count: specEntryJsonSchema.optional(),
     endCorrection_m: z.number(),
 });
 export type VentJson = z.infer<typeof ventJsonSchema>;

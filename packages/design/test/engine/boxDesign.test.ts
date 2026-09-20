@@ -201,12 +201,38 @@ describe('Port / vent length calculation (ventLength)', () => {
   const Sp_m2  = Math.PI * (PORT_D_M / 2) ** 2; // circular port area
 
   it('returns the exact closed form L = Map·Sp/ρ − k·d, with nothing clamped', () => {
-    const L = engine.ventLength(Vb_m3, Fb_Hz, Sp_m2, AIR);
+    const L = engine.ventLength(Vb_m3, Fb_Hz, Sp_m2, 1, AIR);
     const Cab = Vb_m3 / (refRho() * refC() * refC());
     const Map = 1 / ((2 * Math.PI * Fb_Hz) ** 2 * Cab);
     const d   = 2 * Math.sqrt(Sp_m2 / Math.PI);
     assert.ok(Math.abs(L - (Map * Sp_m2 / refRho() - END_CORRECTION * d)) < 1e-15,
       `Vent length ${(L * 1000).toFixed(3)} mm must be the raw solve`);
+  });
+
+  // N identical ports: the moving air mass sees the TOTAL opening n·Sp, but each port's own
+  // end correction is still that of ONE port's diameter — so the formula is
+  //   L = Map·(n·Sp)/ρ − k·d(Sp),  never d(n·Sp).
+  it('with two ports the mass term doubles and the end correction stays that of one port', () => {
+    const L1 = engine.ventLength(Vb_m3, Fb_Hz, Sp_m2, 1, AIR);
+    const L2 = engine.ventLength(Vb_m3, Fb_Hz, Sp_m2, 2, AIR);
+    const Cab = Vb_m3 / (refRho() * refC() * refC());
+    const Map = 1 / ((2 * Math.PI * Fb_Hz) ** 2 * Cab);
+    const d   = 2 * Math.sqrt(Sp_m2 / Math.PI);
+    assert.ok(Math.abs(L2 - (Map * 2 * Sp_m2 / refRho() - END_CORRECTION * d)) < 1e-15,
+      `two-port length ${(L2 * 1000).toFixed(3)} mm must be the raw solve on the total area`);
+    assert.ok(L2 > L1, 'two ports of the same size need a LONGER port for the same tuning');
+  });
+
+  it('tuningFromLength inverts ventLength at every port count', () => {
+    for (const n of [1, 2, 3]) {
+      const L = engine.ventLength(Vb_m3, Fb_Hz, Sp_m2, n, AIR);
+      const back = engine.tuningFromLength(Vb_m3, L, Sp_m2, n, AIR);
+      assert.ok(Math.abs(back - Fb_Hz) < 1e-9, `count ${n}: ${back} Hz must round-trip to ${Fb_Hz} Hz`);
+    }
+  });
+
+  it('ventEffectiveLength adds ONE port\'s end correction whatever the count — it is per port', () => {
+    assert.equal(engine.ventEffectiveLength(0.2, Sp_m2, 2, END_CORRECTION), engine.ventEffectiveLength(0.2, Sp_m2, 1, END_CORRECTION));
   });
 
   // A tuning above the L = 0 ceiling has no non-negative solution. The solver returns the
@@ -217,36 +243,36 @@ describe('Port / vent length calculation (ventLength)', () => {
   const CEIL_K  = 0.6;
 
   it('an impossible target returns a NEGATIVE length, not a floored one', () => {
-    const L = engine.ventLength(CEIL_Vb, 90, CEIL_Sp, AIR, CEIL_K);
+    const L = engine.ventLength(CEIL_Vb, 90, CEIL_Sp, 1, AIR, CEIL_K);
     assert.ok(L < 0,
       `90 Hz in 30 L through a 5 cm vent needs L = ${(L * 1000).toFixed(2)} mm — must stay negative`);
-    assert.ok(Math.abs(engine.tuningFromLength(CEIL_Vb, L, CEIL_Sp, AIR, CEIL_K) - 90) < 1e-9,
+    assert.ok(Math.abs(engine.tuningFromLength(CEIL_Vb, L, CEIL_Sp, 1, AIR, CEIL_K) - 90) < 1e-9,
       'the negative root is still an exact root: tuningFromLength must invert it');
   });
 
   it('the reachable boundary is L = 0 — just below it positive, just above it negative', () => {
-    const ceiling = engine.tuningFromLength(CEIL_Vb, 0, CEIL_Sp, AIR, CEIL_K); // 80.79 Hz for this geometry
+    const ceiling = engine.tuningFromLength(CEIL_Vb, 0, CEIL_Sp, 1, AIR, CEIL_K); // 80.79 Hz for this geometry
     assert.ok(Math.abs(ceiling - 80.79) < 0.01, `ceiling ${ceiling.toFixed(4)} Hz`);
-    assert.ok(engine.ventLength(CEIL_Vb, ceiling * 0.999, CEIL_Sp, AIR, CEIL_K) > 0,
+    assert.ok(engine.ventLength(CEIL_Vb, ceiling * 0.999, CEIL_Sp, 1, AIR, CEIL_K) > 0,
       'a target just BELOW the ceiling is reachable with a positive length');
-    assert.ok(engine.ventLength(CEIL_Vb, ceiling * 1.001, CEIL_Sp, AIR, CEIL_K) < 0,
+    assert.ok(engine.ventLength(CEIL_Vb, ceiling * 1.001, CEIL_Sp, 1, AIR, CEIL_K) < 0,
       'a target just ABOVE the ceiling has no non-negative length');
-    assert.ok(Math.abs(engine.ventLength(CEIL_Vb, ceiling, CEIL_Sp, AIR, CEIL_K)) < 1e-12,
+    assert.ok(Math.abs(engine.ventLength(CEIL_Vb, ceiling, CEIL_Sp, 1, AIR, CEIL_K)) < 1e-12,
       'at the ceiling exactly the length is zero');
   });
 
   it('a longer vent results in a lower tuning frequency (Fb ∝ 1/√Leff)', () => {
     // More duct length → more acoustic mass Map → lower resonance frequency.
-    const L_short = engine.ventLength(Vb_m3, 40, Sp_m2, AIR); // 40 Hz tuning
-    const L_long  = engine.ventLength(Vb_m3, 25, Sp_m2, AIR); // 25 Hz tuning (lower → longer vent)
+    const L_short = engine.ventLength(Vb_m3, 40, Sp_m2, 1, AIR); // 40 Hz tuning
+    const L_long  = engine.ventLength(Vb_m3, 25, Sp_m2, 1, AIR); // 25 Hz tuning (lower → longer vent)
     assert.ok(L_long > L_short,
       `Vent for 25 Hz (${(L_long * 1000).toFixed(0)} mm) should be longer than for 40 Hz (${(L_short * 1000).toFixed(0)} mm)`);
   });
 
   it('the computed vent length, fed back into tuningFromLength, reproduces the target Fb', () => {
     // This is the round-trip test: engine.ventLength() and engine.tuningFromLength() are inverses.
-    const L       = engine.ventLength(Vb_m3, Fb_Hz, Sp_m2, AIR);
-    const Fb_back = engine.tuningFromLength(Vb_m3, L, Sp_m2, AIR);
+    const L       = engine.ventLength(Vb_m3, Fb_Hz, Sp_m2, 1, AIR);
+    const Fb_back = engine.tuningFromLength(Vb_m3, L, Sp_m2, 1, AIR);
     assert.ok(Math.abs(Fb_back - Fb_Hz) < FREQ_TOLERANCE_HZ,
       `engine.ventLength(${Fb_Hz} Hz) → ${(L * 1000).toFixed(1)} mm → tuningFromLength → ${Fb_back.toFixed(3)} Hz`);
   });
@@ -268,16 +294,16 @@ describe('Port tuning frequency from vent dimensions (tuningFromLength)', () => 
   const Sp_m2   = Math.PI * (PORT_D_M / 2) ** 2;
 
   it('a shorter vent gives a higher tuning frequency', () => {
-    const Fb_short = engine.tuningFromLength(Vb_m3, 0.05, Sp_m2, AIR); // 50 mm vent
-    const Fb_long  = engine.tuningFromLength(Vb_m3, 0.20, Sp_m2, AIR); // 200 mm vent
+    const Fb_short = engine.tuningFromLength(Vb_m3, 0.05, Sp_m2, 1, AIR); // 50 mm vent
+    const Fb_long  = engine.tuningFromLength(Vb_m3, 0.20, Sp_m2, 1, AIR); // 200 mm vent
     assert.ok(Fb_short > Fb_long,
       `50 mm vent Fb=${Fb_short.toFixed(1)} Hz should be higher than 200 mm vent Fb=${Fb_long.toFixed(1)} Hz`);
   });
 
   it('a larger box with the same vent gives a lower tuning frequency', () => {
     // Larger box → more compliance → lower resonance.
-    const Fb_small = engine.tuningFromLength(0.010, 0.10, Sp_m2, AIR); // 10 L box
-    const Fb_large = engine.tuningFromLength(0.040, 0.10, Sp_m2, AIR); // 40 L box
+    const Fb_small = engine.tuningFromLength(0.010, 0.10, Sp_m2, 1, AIR); // 10 L box
+    const Fb_large = engine.tuningFromLength(0.040, 0.10, Sp_m2, 1, AIR); // 40 L box
     assert.ok(Fb_small > Fb_large,
       `10 L box Fb=${Fb_small.toFixed(1)} Hz should be higher than 40 L box Fb=${Fb_large.toFixed(1)} Hz`);
   });
@@ -290,7 +316,7 @@ describe('Port tuning frequency from vent dimensions (tuningFromLength)', () => 
     const Cab  = Vb_m3 / (refRho() * refC() * refC());
     const Map  = refRho() * Leff / Sp_m2;
     const EXPECTED_Fb = 1 / (2 * Math.PI * Math.sqrt(Map * Cab));
-    const actual = engine.tuningFromLength(Vb_m3, L_m, Sp_m2, AIR);
+    const actual = engine.tuningFromLength(Vb_m3, L_m, Sp_m2, 1, AIR);
     assert.ok(Math.abs(actual - EXPECTED_Fb) < EXACT,
       `actual ${actual.toFixed(6)} Hz vs expected ${EXPECTED_Fb.toFixed(6)} Hz`);
   });

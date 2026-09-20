@@ -48,16 +48,25 @@ describe('checkVentConsistency (S2-10: a test-only bag wrapper over Engine.solve
 
 describe('Engine.solveVent — handle solve, values written onto the params (T10/T11)', () => {
   function params(p: {
-    tuning_hz?: number; length_m?: number; Vb_m3?: number; area_m2?: number; endCorrection_m?: number;
-  }): { tuning_hz: SolverField; length_m: SolverField; Vb_m3: SolverField; area_m2: SolverField; endCorrection_m: SolverField } {
+    tuning_hz?: number; length_m?: number; Vb_m3?: number; area_m2?: number; count?: number; endCorrection_m?: number;
+  }): { tuning_hz: SolverField; length_m: SolverField; Vb_m3: SolverField; area_m2: SolverField; count: SolverField; endCorrection_m: SolverField } {
     return {
       tuning_hz: fakeSolverField(p.tuning_hz ?? null),
       length_m: fakeSolverField(p.length_m ?? null),
       Vb_m3: fakeSolverField(p.Vb_m3 ?? null),
       area_m2: fakeSolverField(p.area_m2 ?? null),
+      count: fakeSolverField(p.count ?? null),
       endCorrection_m: fakeSolverField(p.endCorrection_m ?? null),
     };
   }
+
+  it('two ports need a longer port than one for the same tuning — the count reaches the solve', () => {
+    const one = params({ tuning_hz: 35, Vb_m3: 0.03, area_m2: 0.002, count: 1 });
+    const two = params({ tuning_hz: 35, Vb_m3: 0.03, area_m2: 0.002, count: 2 });
+    engine.solveVent(one, AIR);
+    engine.solveVent(two, AIR);
+    expect(two.length_m.value).toBeGreaterThan(one.length_m.value ?? Infinity);
+  });
 
   it('writes the derived length onto its handle when tuning is stated and the geometry is complete', () => {
     const p = params({ tuning_hz: 35, Vb_m3: 0.03, area_m2: 0.002 });

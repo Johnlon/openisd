@@ -8,11 +8,17 @@ export interface Vent {
   readonly width_m: InputField<number>;
   readonly height_m: InputField<number>;
   readonly length_m: Field<number>;
+  /** How many identical ports share the chamber (WinISD `[VentRear] Num`). Never not-available:
+   *  a record that states none, or states one that is not a whole number of at least one, reads
+   *  as the calculated default of one port. */
+  readonly count: Field<number>;
   readonly endCorrection_m: RawField<number>;
-  /** Cross-sectional area, or null when the dimensions this vent's own shape needs are not
-   *  set. Null, not 0 and not NaN: 0 is a real (if absurd) port area, and absence is spelled
-   *  the same way everywhere in this domain — a missing number is null. */
+  /** ONE port's cross-sectional area, or null when the dimensions this vent's own shape needs
+   *  are not set. Null, not 0 and not NaN: 0 is a real (if absurd) port area, and absence is
+   *  spelled the same way everywhere in this domain — a missing number is null. */
   area_m2(): number | null;
+  /** The whole opening — `count` ports of `area_m2()` each. Null on the same terms. */
+  totalArea_m2(): number | null;
   /** Acoustic length, or null when the length or the area it depends on is unset. */
   effectiveLength_m(): number | null;
 

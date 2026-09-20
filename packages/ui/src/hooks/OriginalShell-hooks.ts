@@ -51,7 +51,7 @@ import {useApp} from '../logic/app.js';
 import {useEscToClose} from '../logic/useEscToClose.js';
 import {clampedFrequency, interpolatedY, steppedFrequency} from '../logic/cursorFrequency.js';
 import {ARRAY_WIRING_OPTIONS, BOX_TYPE_OPTIONS, END_CORRECTION_OPTIONS, VENT_SHAPE_OPTIONS} from '@openisd/design/fields';
-import {limits, precision as fieldDp} from '../logic/fields/uiFields.js';
+import {countOptions, limits, precision as fieldDp} from '../logic/fields/uiFields.js';
 import {inputChecked, inputFrom, inputValue, listeningElement, selectedOption, selectValue} from '../logic/domEvents.js';
 import {createSealedAlignmentEditor} from './SealedAlignment-hooks.js';
 import type {OpenISDProject} from '@openisd/design';
@@ -150,6 +150,8 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   // Fixed set, not per-render data — hoisted so the template doesn't allocate a fresh array
   // on every re-render.
   const LOSS_MODE_OPTIONS = lossModeOptions();
+  const N_DRIVERS_OPTIONS = countOptions('driver_nDrivers');
+  const VENT_COUNT_OPTIONS = countOptions('vent_Count');
 
   // WinISD's yellow-green plot line — the Original skin's default trace colour + Color swatch.
   const TRACE_PALETTE = ['#c9c92e', '#e34b4b', '#3a7bd5', '#2e8b57', '#c23bc2', '#2ec9c9', '#e08a2e'];
@@ -922,7 +924,7 @@ const overlays = computed<Design[]>(() => {
     genOn, toggleGenerate, genHz, limits,
     boxLabel, pending, chartTab, overlays, chartUnavailable, activeTab,
     showEnclosureTab, enclosureNavLabel,
-    selectedBox, BOX_TYPE_OPTIONS, LOSS_MODE_OPTIONS, ARRAY_WIRING_OPTIONS,
+    selectedBox, BOX_TYPE_OPTIONS, LOSS_MODE_OPTIONS, ARRAY_WIRING_OPTIONS, N_DRIVERS_OPTIONS,
      boxVolume_m3, setBoxVolume_m3, fieldDp, sealedAlignmentEditor, sealedAlignmentOpen,
      sealedAlignmentOptions, sealedAlignmentSelected, sealedAlignmentVolume_L, sealedAlignmentEbp,
      sealedAlignmentSuitability, sealedAlignmentSuitabilityLabel,
@@ -931,7 +933,7 @@ const overlays = computed<Design[]>(() => {
     fbUnreachable, fbUnreachableMsg, boxLossesOpen, isDual,
     frontVolume_m3, setFrontVolume_m3, frcHz, setFrcHz, rearResonance, frontChamberTuningLabel,
     model, startEdit, startTune, placement,
-    activeVent, END_CORRECTION_OPTIONS, VENT_SHAPE_OPTIONS, ventLState, portPipeResonance_hz,
+    activeVent, END_CORRECTION_OPTIONS, VENT_SHAPE_OPTIONS, VENT_COUNT_OPTIONS, ventLState, portPipeResonance_hz,
     prBrowseOpen, prEditOpen, loadPREntry, loadBundledPassiveRadiatorEntry, defineNewPREntry,
     prAddedMassCell, prTuningCell, prResonanceMass, prFsMass_hz, dqOfCell, fmt,
     driveV, rsOhm, advTemp, advHumidity, advPressure, advAir,

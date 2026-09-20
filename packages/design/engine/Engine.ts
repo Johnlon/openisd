@@ -232,16 +232,17 @@ export class Engine {
 
   // ── THE BOX: vents ────────────────────────────────────────────────────────────────────────
 
-  /** Port length for a target tuning, from the chamber volume and the port's area. `air` is the
-   *  project's own resolved `{ rho, c }` — see `boxDesign.ts#ventLength`'s doc comment. */
-  ventLength(Vb: number, fb: number, Sp: number, air: Air, endCorrection?: number): number {
-    return ventLength(Vb, fb, Sp, air, endCorrection);
+  /** Port length for a target tuning, from the chamber volume, ONE port's area and the number of
+   *  identical ports. `air` is the project's own resolved `{ rho, c }` — see
+   *  `boxDesign.ts#ventLength`'s doc comment. */
+  ventLength(Vb: number, fb: number, Sp: number, count: number, air: Air, endCorrection?: number): number {
+    return ventLength(Vb, fb, Sp, count, air, endCorrection);
   }
 
   /** The tuning a port of that length actually produces — the inverse of `ventLength`. Both
    *  directions exist because the user may enter either, and the other is then solved. */
-  tuningFromLength(Vb: number, L: number, Sp: number, air: Air, endCorrection?: number): number {
-    return tuningFromLength(Vb, L, Sp, air, endCorrection);
+  tuningFromLength(Vb: number, L: number, Sp: number, count: number, air: Air, endCorrection?: number): number {
+    return tuningFromLength(Vb, L, Sp, count, air, endCorrection);
   }
 
   /**
@@ -252,8 +253,12 @@ export class Engine {
    * `2·√(Sp/π)`. That is exact for a round port (`2·√(πr²/π) = 2r = d`) and is the standard
    * equivalent-diameter substitution for a slotted one, so the end correction, which is
    * inherently a round-port idea, applies to both with no branch and no shape argument.
+   *
+   * `count` is taken so every port call states the same geometry, but the end correction is a
+   * PER-PORT effect: the answer does not change with the number of identical ports.
    */
-  ventEffectiveLength(length_m: number, Sp: number, endCorrection: number): number {
+  ventEffectiveLength(length_m: number, Sp: number, count: number, endCorrection: number): number {
+    void count;
     return length_m + endCorrection * 2 * Math.sqrt(Sp / Math.PI);
   }
 

@@ -15,7 +15,7 @@ const props = withDefaults(defineProps<{
   precision?: number;
   step?: string;
   // Explicit SI-space bounds. When omitted, a `field` id pulls the registry's enforced
-  // min/max (fieldRegistry — the constraints SSOT); with neither, min falls back to 0
+  // min/max (uiFields — the constraints SSOT); with neither, min falls back to 0
   // (physical quantities are non-negative by default) and max is unbounded.
   min?: number;
   max?: number;
@@ -130,7 +130,7 @@ function onWheel() { typing.value = false; }   // wheel over the field is a step
 function onPointerDown() { typing.value = false; }
 
 // Effective SI-space bounds: explicit props win; else the bound field's registry limits
-// (fieldRegistry is the constraints SSOT — bounds there are in SI/model space); else the
+// (uiFields is the constraints SSOT — bounds there are in SI/model space); else the
 // non-negative default floor and no ceiling.
 //
 // EXACT lookup, deliberately — do not add case-tolerance here. Both the `field` bindings and the

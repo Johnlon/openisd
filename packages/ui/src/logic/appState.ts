@@ -690,7 +690,7 @@ export function applyState(o: { project: OpenISDProject; view: ViewSnapshot }): 
 /** Format a CALCULATED (read-only) value in a field's currently-selected unit — the single
  *  source every skin uses to pair a readout with a <UnitToggle>. `si` MUST be the SI value
  *  (m³/m/m²/Hz/kg); a few engine helpers return convenience units (e.g. prVas is litres → pass
- *  value/1000). `baseDp` is the field's base-unit dp from fieldRegistry. Non-finite → '—'. */
+ *  value/1000). `baseDp` is the field's base-unit dp from uiFields. Non-finite → '—'. */
 export function formatInUnit(
   si: number | null | undefined,
   field: string,

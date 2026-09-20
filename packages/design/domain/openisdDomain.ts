@@ -7,6 +7,7 @@ import {driverSectionProblems, ProjectBuilder, radiatorSectionProblems} from './
 // TEST: If two implementers could disagree on the model, it belongs in the engine.
 import {
     calcNumVC,
+    calcVentCount,
     calcVCCon,
     type CoupledSealedLossesJson,
     type CoupledVentedChamberJson,
@@ -335,6 +336,11 @@ class CoupledVentedLossesWindow implements CoupledVentedLosses {
     }
 }
 
+/** A stored port count the domain will honour: a whole number of at least one port. */
+function isPortCount(v: number | null): v is number {
+    return v !== null && Number.isInteger(v) && v >= 1;
+}
+
 /** One port. `area_m2()` follows `shape` — a round vent's area comes from its diameter, a
  *  slotted one's from width × height — so switching shape changes the answer without any stored
  *  value having to be recomputed or migrated. */
@@ -354,6 +360,8 @@ class VentWindow implements Vent {
     readonly width_m: InputField<number>;
     readonly height_m: InputField<number>;
     readonly length_m: Field<number>;
+    readonly count: Field<number>;
+    readonly #countSlot: Field<number>;
 
     constructor(
         lens: Lens<VentJson>, engine: Engine, air: () => Air,
@@ -376,6 +384,31 @@ class VentWindow implements Vent {
         this.width_m = nullableField(lens, 'width_m');
         this.height_m = nullableField(lens, 'height_m');
         this.length_m = lengthField ?? entryField(focus(lens, 'length_m'), 'length_m');
+
+        /** Same live read-time fallback `numVC` has: no solve ever derives a port count, so an
+         *  absent slot would read not-available for every project that never stated one. A stored
+         *  value that is not a whole number of at least one is REPAIRED the same way — it reads as
+         *  the calculated default rather than being refused (John 2026-09-20). */
+        const countSlot = entryField(focus(lens, 'count'), 'count');
+        this.#countSlot = countSlot;
+        this.count = new Field<number>(
+            () => {
+                const cell = countSlot.get();
+                return isPortCount(cell.value) ? cell : createCell('count', calcVentCount(), 'calculated');
+            },
+            {
+                entered: (v: number) => countSlot.set(v),
+                clear: () => countSlot.clear(),
+                calculated: (v: number) => countSlot.setCalculated(v),
+                dq: (list) => countSlot.setDq([...list]),
+            },
+        );
+    }
+
+    /** The port count as a plain number — what `count.get()` reports, after the same repair. */
+    #ports(): number {
+        const v = this.#countSlot.get().value;
+        return isPortCount(v) ? v : calcVentCount();
     }
 
     /** Cross-sectional area of the port opening.
@@ -395,6 +428,12 @@ class VentWindow implements Vent {
         return v.width_m === null || v.height_m === null ? null : v.width_m * v.height_m;
     }
 
+    /** `count` × one port's area — plain arithmetic on geometry the domain already owns. */
+    totalArea_m2(): number | null {
+        const one = this.area_m2();
+        return one === null ? null : this.#ports() * one;
+    }
+
     /** Acoustic length — the physical length plus the end correction, which is what the sweep's
      *  port model actually resonates (`SweepParams.Leff`).
      *
@@ -405,20 +444,20 @@ class VentWindow implements Vent {
         const length_m = this.length_m.get().value;
         const Sp = this.area_m2();
         if (length_m === null || Sp === null) return null;
-        return this.#engine.ventEffectiveLength(length_m, Sp, this.#lens.get().endCorrection_m);
+        return this.#engine.ventEffectiveLength(length_m, Sp, this.#ports(), this.#lens.get().endCorrection_m);
     }
 
     tuningIn_hz(volume_m3: number | null): number | null {
         const length_m = this.length_m.get().value;
         const Sp = this.area_m2();
         if (volume_m3 === null || !(volume_m3 > 0) || length_m === null || Sp === null) return null;
-        return this.#engine.tuningFromLength(volume_m3, length_m, Sp, this.#air(), this.#lens.get().endCorrection_m);
+        return this.#engine.tuningFromLength(volume_m3, length_m, Sp, this.#ports(), this.#air(), this.#lens.get().endCorrection_m);
     }
 
     lengthForTuning_m(volume_m3: number | null, fb_hz: number): number | null {
         const Sp = this.area_m2();
         if (volume_m3 === null || !(volume_m3 > 0) || !(fb_hz > 0) || Sp === null) return null;
-        return this.#engine.ventLength(volume_m3, fb_hz, Sp, this.#air(), this.#lens.get().endCorrection_m);
+        return this.#engine.ventLength(volume_m3, fb_hz, Sp, this.#ports(), this.#air(), this.#lens.get().endCorrection_m);
     }
 }
 
@@ -2335,6 +2374,7 @@ export class OpenISDProject {
                     length_m: box.vented.vent.length_m,
                     Vb_m3: inputOf(() => box.vented.volume_m3.get().value),
                     area_m2: inputOf(() => box.vented.vent.area_m2()),
+                    count: inputOf(() => box.vented.vent.count.get().value),
                     endCorrection_m: inputOf(() => box.vented.vent.endCorrection_m.get()),
                 }, air);
                 projectGroupDq([box.vented.tuning_hz, box.vented.vent.length_m], vent, this.#engine);
@@ -2344,6 +2384,7 @@ export class OpenISDProject {
                     length_m: box.bandpass4.vents.front.length_m,
                     Vb_m3: inputOf(() => box.bandpass4.chambers.front.volume_m3.get().value),
                     area_m2: inputOf(() => box.bandpass4.vents.front.area_m2()),
+                    count: inputOf(() => box.bandpass4.vents.front.count.get().value),
                     endCorrection_m: inputOf(() => box.bandpass4.vents.front.endCorrection_m.get()),
                 }, air);
                 projectGroupDq(
@@ -2667,12 +2708,12 @@ export class OpenISDProject {
         const box = this.box;
         switch (boxType) {
             case 'vented': {
-                const Sp = box.vented.vent.area_m2();
+                const Sp = box.vented.vent.totalArea_m2();
                 const Leff = box.vented.vent.effectiveLength_m();
                 return {Sp: Sp ?? undefined, Leff: Leff ?? undefined};
             }
             case 'bandpass4': {
-                const Sp = box.bandpass4.vents.front.area_m2();
+                const Sp = box.bandpass4.vents.front.totalArea_m2();
                 const Leff = box.bandpass4.vents.front.effectiveLength_m();
                 return {Vf: box.bandpass4.chambers.front.volume_m3.get().value ?? undefined, Sp: Sp ?? undefined, Leff: Leff ?? undefined};
             }
@@ -2964,7 +3005,11 @@ export class OpenISDProject {
                 return createCell<number>('ventMaxReachableFb', null, 'not-available');
             }
             const ts = this.driver.ts;
-            const v = this.#engine.tuningFromLength(Vb ?? undefined, 0, Sp,
+            const count = this.box.vented.vent.count.get().value;
+            if (count === null) {
+                return createCell<number>('ventMaxReachableFb', null, 'not-available');
+            }
+            const v = this.#engine.tuningFromLength(Vb ?? undefined, 0, Sp, count,
                 { rho: ts.roo_kg_per_m3.value!, c: ts.c_m_per_s.value! },
                 this.box.vented.vent.endCorrection_m.get());
             return v === null

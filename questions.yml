@@ -9488,7 +9488,7 @@ questions:
   status: open
   raised: '2026-09-18'
   body: |-
-    A plan for reorganising the browser-test files and the testing docs lives at plan_component_test_reorg.md. It proposes:
+    A plan for reorganising the browser-test files and the testing docs lives at docs/plans/PLAN_COMPONENT_TEST_REORG.md. It proposes:
 
     1. Rename test files after the object under test (the tab or popup: box-tab, tune-panel, alignment-popup, options-dialog, ...) and drop the "original" prefix, which names the skin rather than what is tested.
     2. Split the grab-bag files (original-skin, app, original-layout) into per-object files.
@@ -9507,7 +9507,7 @@ questions:
   status: open
   raised: '2026-09-18'
   body: |-
-    A plan is written at plan_field_key_consolidation.md. The driver-field identity is spread across parallel collections that speak different names: the domain uses name_unit (Fs_hz, Vas_m3), the UI's SpecField/data-field-key/provenance strip the suffix (Fs, Vas), and the .wdr/.wpr writers have their own literal key pools. They drift (the provenance map had stale Le2/tc/Rth/Cth entries the tests caught).
+    A plan is written at docs/plans/PLAN_FIELD_KEY_CONSOLIDATION.md. The driver-field identity is spread across parallel collections that speak different names: the domain uses name_unit (Fs_hz, Vas_m3), the UI's SpecField/data-field-key/provenance strip the suffix (Fs, Vas), and the .wdr/.wpr writers have their own literal key pools. They drift (the provenance map had stale Le2/tc/Rth/Cth entries the tests caught).
 
     The plan: one enum in packages/design carrying the domain field name, label, and WDR/WPR identity; the UI derives SpecField + data-field-key + provenance keys from it; the writers read it. A python transform script can do the mechanical bare→name_unit rename given a mapping table; the design enum + writer rewiring is structural.
 
