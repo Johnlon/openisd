@@ -57,7 +57,7 @@ import {
   presentationState,
   resetUnitTokens
 } from '../../logic/presentationState.js';
-import {precision as fieldDp} from '../../logic/fields/fieldRegistry.js';
+import {precision as fieldDp} from '../../logic/fields/uiFields.js';
 import {useEscToClose} from '../../logic/useEscToClose.js';
 import NumInput from './NumInput.vue';
 import UnitToggle from './UnitToggle.vue';

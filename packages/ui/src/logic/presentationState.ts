@@ -12,7 +12,8 @@
 import {reactive} from 'vue';
 import type {ChartTabId, DragRange, YRange} from '../types.js';
 import {getOrInit, hmrSlots} from './hmrSingleton.js';
-import {nextToken, type UnitGroup} from './fields/units.js';
+import {nextToken} from './fields/units.js';
+import {type UnitGroup} from '@openisd/design/fields';
 
 /** A user-chosen colour override for one chart element; absent key = default colour
  *  (`OptionsModal.vue`'s "Plot Window" tab). */

@@ -54,10 +54,11 @@ export type BoxType =
 /** The box types the circuit solver actually models. */
 export type SimulatableBoxType = 'sealed' | 'vented' | 'bandpass4' | 'box-passive-radiator';
 
+import type {SelectorOption} from '../fields/index.js';
+
 /** One of WinISD's sealed-box target-Q choices from the New Project wizard. */
-export interface SealedAlignmentOption {
+export interface SealedAlignmentOption extends SelectorOption<number> {
   readonly qtc: number;
-  readonly label: string;
 }
 
 export type EbpSuitability = 'sealed' | 'either' | 'vented';

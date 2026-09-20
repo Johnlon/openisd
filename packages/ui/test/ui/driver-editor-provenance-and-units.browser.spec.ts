@@ -2,7 +2,7 @@ import {expect, openAProject, test} from '../fixtures.js';
 import type {Page} from '@playwright/test';
 import {fillAndBlur} from '../fixtures/numField.js';
 import {PROVENANCE_MAP} from '../../src/logic/provenance.js';
-import {fieldById, fieldSpecs} from '../../src/logic/fields/fieldRegistry.js';
+import {fieldById, UI_FIELD_SPECS as fieldSpecs} from '../../src/logic/fields/uiFields.js';
 import {UNIT_GROUPS} from '../../src/logic/fields/units.js';
 
 /**

@@ -6,7 +6,7 @@ import NumInput from './NumInput.vue';
 import UnitToggle from './UnitToggle.vue';
 import {useApp} from '../../logic/app.js';
 import {useEscToClose} from '../../logic/useEscToClose.js';
-import {fieldHelp} from '../../logic/fields/fieldRegistry.js';
+import {fieldHelp} from '../../logic/fields/uiFields.js';
 import {inputValue} from '../../logic/domEvents.js';
 
 const { myPassiveRadiators } = useApp();

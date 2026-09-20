@@ -8,7 +8,7 @@ import {openDriverDraft} from '../logic/driverDraft.js';
 import {specFieldHandle} from '../logic/driverSpecFields.js';
 import {cellClassFor} from '../logic/useDriverCells.js';
 import {editableFrom, selectValue} from '../logic/domEvents.js';
-import {fieldHelp, precision} from '../logic/fields/fieldRegistry.js';
+import {fieldHelp, precision} from '../logic/fields/uiFields.js';
 
 export type Tab = 'General' | 'Parameters' | 'Advanced parameters' | 'Dimensions';
 

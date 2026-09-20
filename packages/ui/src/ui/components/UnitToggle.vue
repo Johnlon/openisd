@@ -6,7 +6,8 @@
 // Pass the caller's own unit-span class via `unitClass`.
 import {computed} from 'vue';
 import {cycleUnitToken, unitToken} from '../../logic/presentationState.js';
-import {UNIT_GROUPS, unitDef, type UnitGroup} from '../../logic/fields/units.js';
+import {UNIT_GROUPS, unitDef} from '../../logic/fields/units.js';
+import type {UnitGroup} from '@openisd/design/fields';
 
 const props = defineProps<{
   /** Field id — the shared key for this field's selected unit. */

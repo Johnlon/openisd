@@ -15,131 +15,15 @@
  * an offset, uses the same machinery as the purely-multiplicative units (offset defaults to 0).
  */
 
-export type UnitGroup =
-  | 'volume'
-  | 'length'
-  | 'area'
-  | 'freq'
-  | 'mass'
-  | 'temp'
-  | 'pressure'
-  | 'tempDiff'
-  | 'tempCoeff'
-  | 'inductance'
-  | 'compliance'
-  | 'velocity'
-  | 'density'
-  | 'resistance'
-  | 'percent';
+import {UNIT_GROUPS as DOMAIN_UNIT_GROUPS, type UnitDef, type UnitGroup} from '@openisd/design/fields';
+
+export const UNIT_GROUPS: Record<UnitGroup, readonly UnitDef[]> = DOMAIN_UNIT_GROUPS;
+export type {UnitDef, UnitGroup};
 
 /** Never show more than this many decimals in any unit — the resolution-preserving derivation
  *  (displayPrecision) would otherwise pile up meaningless trailing zeros for a much-coarser unit
- *  (e.g. grams-to-kilograms). 4 dp is ample for every real field here. */
-const MAX_DP = 4;
-
-export interface UnitDef {
-  /** Stable machine token stored in presentationState.ui.unitTokens. */
-  token: string;
-  /** Symbol shown next to the field. */
-  label: string;
-  /** Display value per one SI unit (the multiplicative part of display = SI × factor + offset). */
-  factor: number;
-  /** Additive part of the conversion (0 for every unit except absolute temperature). */
-  offset?: number;
-}
-
-/** Groups of interchangeable display units. First entry = canonical default for the group. */
-export const UNIT_GROUPS: Record<UnitGroup, readonly UnitDef[]> = {
-  volume: [
-    { token: 'L', label: 'L', factor: 1000 },
-    { token: 'cuft', label: 'cu ft', factor: 35.3147 },
-    { token: 'cuin', label: 'cu in', factor: 61023.7 },
-    { token: 'cm3', label: 'cm³', factor: 1e6 },
-  ],
-  length: [
-    { token: 'cm', label: 'cm', factor: 100 },
-    { token: 'mm', label: 'mm', factor: 1000 },
-    { token: 'in', label: 'in', factor: 39.3701 },
-  ],
-  area: [
-    { token: 'cm2', label: 'cm²', factor: 1e4 },
-    { token: 'm2', label: 'm²', factor: 1 },
-    { token: 'in2', label: 'in²', factor: 1550.0031 },
-  ],
-  freq: [
-    { token: 'Hz', label: 'Hz', factor: 1 },
-    { token: 'kHz', label: 'kHz', factor: 1e-3 },
-  ],
-  mass: [
-    { token: 'g', label: 'g', factor: 1000 },
-    { token: 'kg', label: 'kg', factor: 1 },
-    { token: 'oz', label: 'oz', factor: 35.27396 },
-  ],
-  // SI unit = kelvin. Absolute temperature — the only group that uses `offset`.
-  temp: [
-    { token: 'K', label: 'K', factor: 1, offset: 0 },
-    { token: 'degC', label: '°C', factor: 1, offset: -273.15 },
-    { token: 'degF', label: '°F', factor: 1.8, offset: -459.67 },
-  ],
-  // SI unit = pascal.
-  pressure: [
-    { token: 'Pa', label: 'Pa', factor: 1 },
-    { token: 'kPa', label: 'kPa', factor: 1e-3 },
-    { token: 'atm', label: 'atm', factor: 1 / 101325 },
-  ],
-  // A temperature DIFFERENCE (e.g. a coil temp rise), not an absolute temperature — so there is
-  // no offset, and °C is omitted because a difference in °C is numerically identical to K. Only
-  // Fahrenheit degrees differ (×1.8): a 40 K rise is a 72 °F rise. SI unit = kelvin.
-  tempDiff: [
-    { token: 'K', label: 'K', factor: 1 },
-    { token: 'degF', label: '°F', factor: 1.8 },
-  ],
-  // Temperature coefficient of resistance. SI unit = 1/K. WinISD shows it ×1000 ("1000/K"); the
-  // datasheet-friendly alternates are %/K and the plain 1/K. (copper ≈ 0.0039/K = 0.39 %/K = 3.9
-  // per "1000/K".)
-  tempCoeff: [
-    { token: 'perMilliK', label: '1000/K', factor: 1000 },
-    { token: 'pctPerK', label: '%/K', factor: 100 },
-    { token: 'perK', label: '1/K', factor: 1 },
-  ],
-  // SI unit = henry.
-  inductance: [
-    { token: 'mH', label: 'mH', factor: 1000 },
-    { token: 'H', label: 'H', factor: 1 },
-    { token: 'uH', label: 'µH', factor: 1e6 },
-  ],
-  // Suspension compliance. SI unit = m/N; WinISD prints µm/N, this app's default is mm/N.
-  compliance: [
-    { token: 'mmPerN', label: 'mm/N', factor: 1000 },
-    { token: 'umPerN', label: 'µm/N', factor: 1e6 },
-    { token: 'mPerN', label: 'm/N', factor: 1 },
-  ],
-  // SI unit = m/s.
-  velocity: [
-    { token: 'mps', label: 'm/s', factor: 1 },
-    { token: 'ftps', label: 'ft/s', factor: 3.280839895 },
-  ],
-  // SI unit = kg/m³.
-  density: [
-    { token: 'kgPerM3', label: 'kg/m³', factor: 1 },
-    { token: 'gPerCm3', label: 'g/cm³', factor: 1e-3 },
-    { token: 'lbPerFt3', label: 'lb/cu ft', factor: 0.06242796 },
-  ],
-  // Mechanical resistance. SI unit = N·s/m = kg/s exactly (kg·m·s⁻² / (m·s⁻¹) = kg·s⁻¹) — WinISD
-  // itself spells the same quantity both ways across its own screens (Rms/Rme "Ns/m", Mcost
-  // "kg/s"), so both tokens carry factor 1: the toggle changes only the label (ledger QO51).
-  resistance: [
-    { token: 'nsPerM', label: 'Ns/m', factor: 1 },
-    { token: 'kgPerS', label: 'kg/s', factor: 1 },
-  ],
-  // A stored FRACTION shown as a percentage (η₀, Gloss). One unit, so the toggle has nowhere to
-  // rotate: the group exists to put the ×100 in the same registry as every other conversion,
-  // not to offer a choice. Keeping it here is what stops the ×100 being re-typed per call site —
-  // the `no/100` class of bug that measured 20 dB out.
-  percent: [
-    { token: 'pct', label: '%', factor: 100 },
-  ],
-};
+ *  (e.g. grams-to-kilograms). 5 dp is ample for every real field here. */
+const MAX_DP = 5;
 
 /** The group's canonical default unit (first entry). */
 function defaultUnit(g: UnitGroup): UnitDef {

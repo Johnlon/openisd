@@ -52,15 +52,15 @@ export function sealedFromQtc(Qts: number, Vas_m3: number, Qtc: number): number 
 }
 
 const SEALED_ALIGNMENT_OPTIONS: readonly SealedAlignmentOption[] = Object.freeze([
-  Object.freeze({qtc: 0.5, label: '0.500 Critically damped'}),
-  Object.freeze({qtc: 0.577, label: '0.577 Max flat delay response'}),
-  Object.freeze({qtc: 0.707, label: '0.707 Max flat amplitude response'}),
-  Object.freeze({qtc: 0.8, label: '0.800 Equal ripple response'}),
-  Object.freeze({qtc: 0.9, label: '0.900 Equal ripple response'}),
-  Object.freeze({qtc: 1, label: '1.000 Equal ripple response'}),
-  Object.freeze({qtc: 1.1, label: '1.100 Equal ripple response'}),
-  Object.freeze({qtc: 1.2, label: '1.200 Equal ripple response'}),
-  Object.freeze({qtc: 1.5, label: '1.500 Equal ripple response'}),
+  Object.freeze({ value: 0.5, qtc: 0.5, label: '0.500 Critically damped' }),
+  Object.freeze({ value: 0.577, qtc: 0.577, label: '0.577 Max flat delay response' }),
+  Object.freeze({ value: 0.707, qtc: 0.707, label: '0.707 Max flat amplitude response' }),
+  Object.freeze({ value: 0.8, qtc: 0.8, label: '0.800 Equal ripple response' }),
+  Object.freeze({ value: 0.9, qtc: 0.9, label: '0.900 Equal ripple response' }),
+  Object.freeze({ value: 1, qtc: 1, label: '1.000 Equal ripple response' }),
+  Object.freeze({ value: 1.1, qtc: 1.1, label: '1.100 Equal ripple response' }),
+  Object.freeze({ value: 1.2, qtc: 1.2, label: '1.200 Equal ripple response' }),
+  Object.freeze({ value: 1.5, qtc: 1.5, label: '1.500 Equal ripple response' }),
 ]);
 
 export function sealedAlignmentOptions(): readonly SealedAlignmentOption[] {

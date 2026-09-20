@@ -23,7 +23,7 @@
 import {computed, ref} from 'vue';
 import {useFocusedProject} from '../../../logic/focusedProjectContext.js';
 import {projectChanged} from '../../../logic/appState.js';
-import {limits} from '../../../logic/fields/fieldRegistry.js';
+import {limits} from '../../../logic/fields/uiFields.js';
 import type {Filter, FilterType} from '@openisd/design/engine';
 import {inputChecked, inputValue} from '../../../logic/domEvents.js';
 

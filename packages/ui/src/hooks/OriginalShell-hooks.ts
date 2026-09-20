@@ -50,7 +50,8 @@ import {createToneGenerator, type ToneGenerator} from '../logic/toneGenerator.js
 import {useApp} from '../logic/app.js';
 import {useEscToClose} from '../logic/useEscToClose.js';
 import {clampedFrequency, interpolatedY, steppedFrequency} from '../logic/cursorFrequency.js';
-import {END_CORRECTION_OPTIONS, limits, precision as fieldDp} from '../logic/fields/fieldRegistry.js';
+import {END_CORRECTION_OPTIONS} from '@openisd/design/fields';
+import {limits, precision as fieldDp} from '../logic/fields/uiFields.js';
 import {inputChecked, inputFrom, inputValue, listeningElement, selectValue} from '../logic/domEvents.js';
 import {createSealedAlignmentEditor} from './SealedAlignment-hooks.js';
 import type {OpenISDProject} from '@openisd/design';

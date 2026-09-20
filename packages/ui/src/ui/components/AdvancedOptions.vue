@@ -12,7 +12,7 @@
 import {computed} from 'vue';
 import {simVcInductance} from '../../logic/appState.js';
 import {useFocusedProject} from '../../logic/focusedProjectContext.js';
-import {fieldHelp} from '../../logic/fields/fieldRegistry.js';
+import {fieldHelp} from '../../logic/fields/uiFields.js';
 import {inputChecked} from '../../logic/domEvents.js';
 
 // No per-toggle computed wrapper (`docs/design/REACTIVITY.md`): each checkbox below reads the
@@ -30,7 +30,7 @@ const hasVent = computed(() => {
 
 <template>
   <div class="adv-options">
-    <label title="Include voice-coil inductance Le in the acoustic circuit, not just the impedance plot. Off matches WinISD's own circuit (Le shapes impedance only, docs/research/WINISD_PARITY.md §9); on is the full gyrator model. WinISD: Advanced → 'Simulate voice coil inductance'.">
+    <label data-field-key="simVcInductance" :title="fieldHelp('simVcInductance')">
       <input type="checkbox" v-model="simVcInductance"> Simulate voice coil inductance
     </label>
     <label data-field-key="forceFlatResponse" :title="fieldHelp('forceFlatResponse')">

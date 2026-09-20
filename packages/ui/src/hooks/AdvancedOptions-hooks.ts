@@ -2,7 +2,7 @@ import type {InjectionKey, Ref} from 'vue';
 import {computed} from 'vue';
 import {simVcInductance} from '../logic/appState.js';
 import {useFocusedProject} from '../logic/focusedProjectContext.js';
-import {fieldHelp} from '../logic/fields/fieldRegistry.js';
+import {fieldHelp} from '../logic/fields/uiFields.js';
 import {inputChecked} from '../logic/domEvents.js';
 import type {OpenISDProject} from '@openisd/design';
 

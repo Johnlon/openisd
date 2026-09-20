@@ -3,7 +3,7 @@ import {computed, ref} from 'vue';
 import {useFocusedProject} from '../logic/focusedProjectContext.js';
 import {passiveRadiatorRows} from '../logic/driverDisplay.js';
 import {useApp} from '../logic/app.js';
-import {fieldHelp} from '../logic/fields/fieldRegistry.js';
+import {fieldHelp} from '../logic/fields/uiFields.js';
 import {inputValue} from '../logic/domEvents.js';
 
 export interface PREditModalAPI {

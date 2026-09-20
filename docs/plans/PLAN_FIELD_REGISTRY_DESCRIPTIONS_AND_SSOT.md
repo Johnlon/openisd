@@ -1,396 +1,180 @@
-# Plan: Field Definitions — SSOT, Descriptions, Targets-vs-Results, Shared-Field Layering
+# Plan: UI Field Description Cleanup & SSOT Integration
 
-> **Status:** plan — nothing in this document is implemented yet.
-> **Scope of this amendment:** (a) the SSOT moves out of the UI into a lower layer;
-> (b) every field row states whether it is a **target/goal**, a **calculated result**, or an
-> **entered/measured quantity** — a target must never be described as if it were a result;
-> (c) a single value shown on several screens reuses one abstract field with per-context
-> label/description overrides; (d) a detailed row-by-row field plan follows.
+## Executive Summary
+This plan cleans up all user-facing field descriptions and enforces [uiFields.ts](file:///home/john/work/winisd/openisd/packages/design/fields/uiFields.ts) (`UI_FIELD_SPECS`) in `@openisd/design` (sibling file to `openisdFields.ts`) as the exclusive single source of truth (SSOT) for all UI components.
 
 ---
 
-## 1. Context & Objectives
+## 1. Context Mapping: How UI Fields Map to Domain Models
 
-The single source of truth (SSOT) for every field definition must live in a **lower layer than
-the UI** — the design `fields` package (`packages/design/fields`), with the option **value**
-lists owned by the domain/engine. The UI obtains every field, every option list and every help
-text through **hooks that delegate to that layer**; it must not hold a second copy of any field
-definition (no `UI_FIELD_SPECS`, no duplicated `BOX_OPTIONS`, no hardcoded
-`<option>`/`group=`/`base=`/`:title="fieldHelp(…)"` in templates).
+UI fields in [uiFields.ts](file:///home/john/work/winisd/openisd/packages/design/fields/uiFields.ts) span 10 different UI panes. All field IDs follow a 100% symmetrical `<prefix>_<symbol>_<unit>` snake_case convention (`driver_XXXX`, `pr_XXXX`, `box_XXXX`, `vent_XXXX`, `signal_XXXX`, `loss_XXXX`, `adv_XXXX`, `filter_XXXX`). Every spec entry carries an explicit `domainKey?: OpenIsdFieldKey` linking to [openisdFields.ts](file:///home/john/work/winisd/openisd/packages/design/fields/openisdFields.ts) and a direct OO dispatch method `handle?: (entity: any) => Field<any> | null`:
 
-This plan covers:
-
-1. **A field taxonomy that must never be conflated.** A value that is a (possibly
-   unobtainable) design *target/goal* is a different kind of field from a *calculated result*.
-   The canonical example: `Fb` (box tuning you aim at) vs `boxResonance` (the resonance the
-   finished box actually produces). Each row below states its kind, and descriptions are written
-   to that kind.
-2. **SSOT layering & reuse for a single value shown on different screens.** One abstract field,
-   per-context label/description. Not a per-screen duplicate id (`prSd` is gone).
-3. **Detailed row-by-row plan** for every screen field / field-config row (section 6).
-4. **Description quality** and **interactive popovers** (sections 4–5).
-5. **UI SSOT binding** — `<NumInput field="…">` resolves everything (section 7).
-
-### 1.1 Consequences of moving the SSOT down
-
-- `packages/ui/src/logic/fields/fieldRegistry.ts` (`UI_FIELD_SPECS`, `END_CORRECTION_OPTIONS`,
-  dead props `pane`/`provenance`/`appliesTo`/`formula`/`dependsOn`/`options`/`kind`) is
-  **deleted**; its live content merges into `packages/design/fields`.
-- **This supersedes the current contract** of `packages/design/fields/openisdFields.ts`, whose
-  header currently reads "Display text (labels, units) lives in the UI's field registry
-  (…`fieldRegistry.ts`), **never here**." That boundary is exactly what this plan reverses: the
-  field definitions (labels, descriptions, units, bounds, per-context overrides) move DOWN into
-  that package; the UI keeps only a hooks layer that reads it.
-- `packages/ui/src/logic/fields/units.ts` (`UNIT_GROUPS`, `toDisplay`/`fromDisplay`/
-  `displayPrecision`) moves into the `fields` package so a field's unit metadata and the group
-  definitions are co-located in the lower layer.
-- The UI keeps only a **hooks layer** that reads the `fields` package + the domain and returns
-  resolved display info to components.
-- Field keys follow the common `<name>_<unit>` convention. **Dimensionless quantities keep bare
-  keys** (`Qts`, `η₀`/`no`, `Gloss`) — there is no unit to suffix. WinISD's own symbols (`Vb`,
-  `Fb`, `Fsc`, `Fh`, `Frc`, `Ql`, `Qa`, `Qp`, `Pin`, `Rs`) remain the **codec's** names for the
-  `.wpr`/`.wdr` format, never the UI key.
-- The dead registry `options` prop (a UI-held list) is deleted. Enum/dropdown fields reference
-  a **domain-owned options function** (`options: voiceCoilWiringOptions`, `ventShapeOptions`,
-  `endCorrectionOptions`, `boxTypeOptions`) — an imported function reference, so a renamed or
-  removed options provider is a compile error and the call is clickable, never a string that can
-  silently drift.
+1. **Driver Specification Context:**  
+   - **Fields:** `driver_Fs_hz`, `driver_Vas_l`, `driver_Re_ohm`, `driver_Qts`, `driver_Xmax_mm`, `driver_Pe_W`, `driver_BL_Tm`, `driver_Cms_mm_per_N`, `driver_Qms`, `driver_Qes`, `driver_Rms_Ns_per_m`, `driver_Mms_g`, `driver_Sd_cm2`, `driver_Eta0`, `driver_USPL_dB`, `driver_SPL_dB`, `driver_NumVC`, `driver_VCCon`, `driver_EBP_hz`, `driver_AlfaVC_per_K`, `driver_Znom_ohm`, `driver_C_m_per_s`, `driver_Roo_kg_per_m3`, `driver_Thick_mm`, `driver_Depth_mm`, `driver_MagDepth_mm`, `driver_Magnet_mm`, `driver_Basket_mm`, `driver_Outer_mm`, `driver_Vcd_mm`, `driver_Dvol_cm3`.
+   - **Schema & Dispatch:** Maps via `domainKey` to `OPENISD_FIELDS` in [openisdFields.ts](file:///home/john/work/winisd/openisd/packages/design/fields/openisdFields.ts). Dispatch is self-contained on the spec object: `handle: (driver) => driver.spec.ts.Fs_hz`.
+2. **Passive Radiator Context:**  
+   - **Fields:** `pr_Sd_cm2`, `pr_Xmax_mm`, `pr_Num`, `pr_Madd_g`, `pr_Fp_hz`, `pr_Vas_l`, `pr_Fs_hz`, `pr_Qms`, `pr_FsMass_hz`.
+   - **Schema & Dispatch:** Maps via `domainKey` (`pr_Sd_cm2` → `Sd_m2`, `pr_Xmax_mm` → `Xmax_m`, `pr_Vas_l` → `Vas_m3`). Dispatch is self-contained on the spec object: `handle: (radiator) => radiator.spec.Sd_m2`.
+3. **Enclosure & Vent Group Context:**  
+   - **Fields:** `box_Vb_l`, `box_Vf_l`, `box_Fb_hz`, `box_Resonance_hz`, `box_RearResonance_hz`, `box_Frc_hz`, `vent_Shape`, `vent_D_cm`, `vent_W_cm`, `vent_H_cm`, `vent_L_cm`, `vent_EndCorrection`, `vent_CrossArea_m2`, `vent_PortResonance_hz`.
+   - **Schema & Dispatch:** Dispatch is self-contained on the spec object: `handle: (box) => box.Vb`.
+4. **Environment & Simulator Options Context:**  
+   - **Fields:** `adv_Temp_K`, `adv_Humidity_pct`, `adv_Pressure_kPa`, `adv_SoundVelocity_m_per_s`, `adv_AirDensity_kg_per_m3`, `adv_SimVcInductance`, `adv_ForceFlatResponse`, `adv_TlPortModel`, `adv_RgAtDriverSide`, `adv_SplXmaxLimited`, `adv_UseWinisdAirModel`.
+   - **Schema & Dispatch:** Maps to `SimulatorOptions` and engine air state, resolved dynamically via `useAdvancedOptions()` in [AdvancedOptions-hooks.ts](file:///home/john/work/winisd/openisd/packages/ui/src/hooks/AdvancedOptions-hooks.ts).
 
 ---
 
-## 2. Field taxonomy: Target / Result / Entered
+## 2. Universal UI Configuration & Parameter Inheritance
 
-Three kinds — a row must say which it is. **Choice/enum fields are an Entered kind** (a stated
-selection), not a fourth category.
+All UI components and form controls obtain their configuration **exclusively from [uiFields.ts](file:///home/john/work/winisd/openisd/packages/design/fields/uiFields.ts) (`UI_FIELD_SPECS`)**:
 
-### Target (a design goal — entered by the user, possibly unobtainable)
-The value is what the design **aims at**. The model is free to report that the target cannot be
-reached. Phrasing stays natural — goal/aim language (e.g. *"design goal"*) — never boilerplate.
-
-| Field | Proposed user-facing description |
-| :--- | :--- |
-| `ventTuning_hz` (Fb) | `The design goal for the Helmholtz tuning frequency of the vented enclosure. Given one of either port length or box volume, the model solves for the other. The goal may not be achievable — then the output field (length or volume) is left blank and marked as unsolvable.` |
-| `prTuning_hz` (Fp) | `The design goal for the tuning frequency of the passive-radiator system. Given one of either added mass or tuning, the model solves for the other. Adding mass can only lower the tuning, so a goal above the radiator's own free-air resonance can't be reached — then the output field (added mass or tuning) is left blank and marked as unsolvable.` |
-| `rearTuning_hz` (Frc, entered) | `The design goal for the tuning frequency of the sealed rear chamber (bandpass6/ABC).` |
-| `filterFc_hz` (Fc) | `The filter's cutoff or centre frequency.` |
-
-### Result (calculated by the model — read-only)
-The value is derived from the entered quantities and the solve. It is displayed, never edited.
-Phrasing stays natural — *"actually produces"*, *"calculated"*.
-
-| Field | Proposed user-facing description |
-| :--- | :--- |
-| `boxResonance_hz` (Fsc / Fh) | `The resonance frequency the finished box actually produces — the built result of the tuning goal.` |
-| `rearResonance_hz` (Frc, calculated) | `The sealed rear chamber's actual resonance (Frc = Fs × √(1 + Vas/Vb)).` |
-| `portResonance_hz` (f_pipe) | `The port tube's own organ-pipe resonance (f = c/2L).` |
-| `ventCrossArea_m2` (Av) | `The port's cross-sectional area.` |
-| `prResonanceWithMass_hz` (Fpr loaded) | `The PR's free-air resonance including the added mass.` |
-| `EBP_hz` | `Fs/Qes — an enclosure-suitability indicator (EBP < 50 favours sealed, > 90 favours vented).` |
-| `soundVelocity_mps` (c) | `Speed of sound in the ambient air.` |
-| `airDensity_kg_m3` (ρ₀) | `Air density at the ambient temperature, humidity and pressure.` |
-
-### Entered / measured (a physical input, or a stated choice)
-A quantity the user states (from a datasheet or measurement) — neither aimed-at nor derived.
-Choices/enums (vent shape, wiring, end correction, box type, model toggles) are Entered.
-
-This covers the Thiele/Small set, the PR's own spec, vent/box geometry, signal parameters,
-the ambient environment, the model toggles, and the choices.
-
-> **Rule:** a row's kind is decided by **who owns the value**: entered→physical input or choice;
-> aimed-at→target; solved/read-out→result. The description reads the kind naturally — it does
-> not restate the field's symbol or title (those come from the label).
+- **ID Convention:** Symmetrical `<prefix>_<symbol>_<unit>` snake_case IDs (`driver_Fs_hz`, `pr_Sd_cm2`, `box_Vb_l`).
+- **Domain Binding (`domainKey`):** Strongly-typed link to `OpenIsdFieldKey` in `openisdFields.ts` (`domainKey?: OpenIsdFieldKey`).
+- **OO Handle Dispatch (`handle`):** Instance method on `UIFieldSpec` returning the domain reactive cell (`spec.handle(entity)`), replacing standalone helper functions.
+- **Labels & Descriptions:** `label` and `description` (`fieldHelp(id)`).
+- **Units & Display Precision:** `unit`, `unitGroup`, and default `precision` (supported up to `MAX_DP = 5` in [units.ts](file:///home/john/work/winisd/openisd/packages/ui/src/logic/fields/units.ts) to prevent silent clamping of 5-dp fields like `Rme`, `Mcost`, `advAirDensity`).
+- **Sanity Entry Bounds:** `min` and `max` bounds (`limits(id)`).
+- **Enum Options (`options?: string[]`):** Preset arrays (`vent_Shape`, `vent_EndCorrection`, `driver_VCCon`) defined centrally in `uiFields.ts`.
 
 ---
 
-## 3. SSOT layering & reuse for a shared field (plan only)
+## 3. Description Quality Standards & Decision Legend
 
-A single value appears on several screens (e.g. `Sd_m2` on the Driver editor and the PR editor;
-`Fs_hz` as `Fs` on the driver and `Fpr` on the PR). The reuse mechanism is:
+1. **Redact Technical Debt:** Remove internal decimal-place annotations (`WinISD X dp`), code file paths (`logic/useVentGroup.ts`), internal ledger codes (`QO32`), and dev rants from user-facing descriptions.
+2. **Clean Description Format:** Omit the redundant leading `[Symbol] –` prefix (since `label` carries the symbol). Format descriptions starting directly with `Title: Acoustic Function & Physical Meaning`.
 
-### Layer 1 — the abstract field (`design/fields`)
-One definition per field, holding everything **shared**:
+### Decision Codes:
+- **`REWRITE`**: Redact internal decimal place notes (`WinISD X dp`) and technical debt; reformat string directly as `Title: Acoustic Function & Physical Meaning`.
+- **`CLEANUP`**: Strip internal code file paths (`logic/useVentGroup.ts`), dev rants, unverified notes, and ledger tracking codes (`QO32`, `QO97`, `circuit.ts`).
+
+---
+
+## 4. Complete Field Decision Table
+
+| Symmetrical UI Field ID | Domain Key | Pane | Decision | Proposed New User-Facing Description |
+| :--- | :--- | :--- | :--- | :--- |
+| `box_Vb_l` | `Vb` | Box | `REWRITE` | `Net Enclosure Volume: Internal net air volume of the enclosure acting as the acoustic spring for the driver.` |
+| `box_Vf_l` | `Vf` | Box | `REWRITE` | `Front Chamber Volume: Net air volume of the front (vented) chamber in a bandpass enclosure.` |
+| `box_Fb_hz` | `tuning_hz` | Box | `REWRITE` | `Box Tuning Frequency: Helmholtz resonance frequency of the vented enclosure determined by port dimensions and box volume.` |
+| `box_Resonance_hz` | - | Box | `REWRITE` | `System Resonance Frequency: Effective total resonance frequency of the driver coupled to the enclosure.` |
+| `box_RearResonance_hz` | - | Box | `REWRITE` | `Rear Chamber Resonance (Calculated): Sealed rear-chamber resonance frequency in a 4th-order bandpass enclosure (Frc = Fs × √(1 + Vas/Vb)).` |
+| `box_Frc_hz` | `Frc` | Box | `REWRITE` | `Rear Chamber Tuning Frequency: Target Helmholtz tuning frequency for the vented rear chamber in 6th-order bandpass and ABC enclosures.` |
+| `vent_Shape` | - | Vents | `REWRITE` | `Vent Geometry: Selects between a circular tube (round) or rectangular duct (slotted) port.` |
+| `vent_D_cm` | - | Vents | `REWRITE` | `Port Diameter: Internal diameter of a round port tube. Larger diameters reduce port air turbulence (choking) but require longer tubes.` |
+| `vent_W_cm` | - | Vents | `REWRITE` | `Slot Port Width: Internal width of a rectangular slotted port.` |
+| `vent_H_cm` | - | Vents | `REWRITE` | `Slot Port Height: Internal height of a rectangular slotted port.` |
+| `vent_L_cm` | - | Vents | `REWRITE` | `Vent Length: Physical length of the port tube/duct. Longer ports lower the tuning frequency for a fixed volume.` |
+| `vent_EndCorrection` | - | Vents | `REWRITE` | `End Correction Factor: Acoustic mass loading coefficient for tube ends (0.613 for free ends, 0.732 for one flanged end, 0.849 for two flanged ends).` |
+| `vent_CrossArea_m2` | - | Vents | `REWRITE` | `Vent Cross-Sectional Area: Total internal cross-sectional area of the port.` |
+| `vent_PortResonance_hz` | - | Vents | `REWRITE` | `First Vent Pipe Resonance: Lowest organ-pipe standing wave resonance inside the port tube (f = c / 2L).` |
+| `pr_Sd_cm2` | `Sd_m2` | PassiveRadiator | `REWRITE` | `Passive Radiator Area: Effective radiating piston surface area of the passive radiator.` |
+| `pr_Xmax_mm` | `Xmax_m` | PassiveRadiator | `REWRITE` | `Passive Radiator Excursion Limit: Maximum peak linear cone displacement of the passive radiator diaphragm.` |
+| `pr_Num` | - | PassiveRadiator | `REWRITE` | `Passive Radiator Count: Number of identical passive radiators installed in the enclosure.` |
+| `pr_Madd_g` | `Madd_kg` | PassiveRadiator | `REWRITE` | `PR Added Mass: Additional ballast mass attached to the passive radiator cone to lower its tuning frequency.` |
+| `pr_Fp_hz` | - | PassiveRadiator | `REWRITE` | `Passive Radiator System Tuning: Helmholtz tuning frequency achieved by the passive radiator and enclosure volume.` |
+| `pr_Vas_l` | `Vas_m3` | PassiveRadiator | `REWRITE` | `PR Equivalent Compliance Volume: Volume of air having the same acoustic compliance as the passive radiator suspension.` |
+| `pr_Fs_hz` | `Fs_hz` | PassiveRadiator | `REWRITE` | `Unloaded PR Resonance: Fundamental free-air resonance frequency of the passive radiator without added mass or box coupling.` |
+| `pr_Qms` | `Qms` | PassiveRadiator | `REWRITE` | `PR Mechanical Quality Factor: Quality factor representing mechanical suspension friction losses in the passive radiator.` |
+| `pr_FsMass_hz` | - | PassiveRadiator | `REWRITE` | `Mass-Loaded PR Resonance: Free-air resonance frequency of the passive radiator including added mass Madd.` |
+| `signal_Pin_W` | - | Signal | `REWRITE` | `System Input Power: Total electrical power supplied to the loudspeaker system (Pin = V² / Re).` |
+| `signal_DriveV_V` | - | Signal | `REWRITE` | `Driver Terminal Voltage: RMS input voltage applied across the driver voice coil terminals.` |
+| `signal_Rs_ohm` | - | Signal | `REWRITE` | `Series Resistance: Combined amplifier output impedance, wiring, and crossover component resistance in series with the driver.` |
+| `signal_Distance_m` | - | Signal | `REWRITE` | `Listening Distance: On-axis distance from the loudspeaker to the listener for SPL calculations.` |
+| `signal_Angle_rad` | - | Signal | `REWRITE` | `Off-Axis Angle: Angular offset from the main acoustic axis in radians.` |
+| `signal_GenHz_hz` | - | Signal | `REWRITE` | `Test Tone Frequency: Target frequency evaluated by the single-tone signal generator.` |
+| `loss_Ql` | - | Box losses | `REWRITE` | `Enclosure Leakage Loss Q: Quality factor accounting for acoustic energy losses through cabinet seams and gaskets.` |
+| `loss_Qa` | - | Box losses | `REWRITE` | `Enclosure Damping Loss Q: Quality factor accounting for acoustic energy absorption by internal damping fill.` |
+| `loss_Qp` | - | Box losses | `REWRITE` | `Port Friction Loss Q: Quality factor representing air friction and viscous boundary losses inside the vent.` |
+| `adv_Temp_K` | - | Advanced | `REWRITE` | `Ambient Temperature: Atmospheric temperature used to calculate speed of sound and air density.` |
+| `adv_Humidity_pct` | - | Advanced | `CLEANUP` | `Relative Humidity: Atmospheric humidity percentage affecting sound speed and medium density.` |
+| `adv_Pressure_kPa` | - | Advanced | `CLEANUP` | `Air Pressure: Atmospheric barometric pressure influencing medium density and acoustic impedance.` |
+| `adv_SoundVelocity_m_per_s` | - | Advanced | `CLEANUP` | `Speed of Sound: Velocity of acoustic wave propagation through air under ambient conditions.` |
+| `adv_AirDensity_kg_per_m3` | - | Advanced | `CLEANUP` | `Air Density: Mass density of air derived from temperature, humidity, and barometric pressure.` |
+| `adv_SimVcInductance` | - | Advanced | `CLEANUP` | `Simulate Voice Coil Inductance: Includes voice coil inductance (Le) in acoustic output calculations instead of impedance plots alone.` |
+| `adv_ForceFlatResponse` | - | Advanced | `CLEANUP` | `Force Flat Response: Applies auto-equalization to reveal excursion and port velocity demands required for a flat passband response.` |
+| `adv_TlPortModel` | - | Advanced | `CLEANUP` | `Transmission Line Port Model: Models the vent as a distributed transmission line, incorporating internal organ-pipe resonances into response curves.` |
+| `adv_RgAtDriverSide` | - | Advanced | `CLEANUP` | `Rg Placement: Applies series resistance Rg individually to each driver rather than globally at the main amplifier output.` |
+| `adv_SplXmaxLimited` | - | Advanced | `CLEANUP` | `Xmax Limited SPL: Clamps the SPL frequency response graph whenever cone displacement exceeds maximum linear excursion Xmax.` |
+| `adv_UseWinisdAirModel` | - | Advanced | `REWRITE` | `Air Model Selection: Toggles between legacy WinISD air equations and standardized CIPM moist air calculations.` |
+| `driver_Fs_hz` | `Fs_hz` | Driver | `REWRITE` | `Driver Resonant Frequency: Free-air fundamental resonance frequency of the driver moving assembly and suspension.` |
+| `driver_Qts` | `Qts` | Driver | `REWRITE` | `Total Quality Factor: Total damping factor of the driver at Fs, combining electrical (Qes) and mechanical (Qms) damping.` |
+| `driver_Qes` | `Qes` | Driver | `REWRITE` | `Electrical Quality Factor: Quality factor measuring electrical damping generated by back-EMF in the voice coil at Fs.` |
+| `driver_Qms` | `Qms` | Driver | `REWRITE` | `Mechanical Quality Factor: Quality factor measuring mechanical friction damping losses in the surround and spider at Fs.` |
+| `driver_Vas_l` | `Vas_m3` | Driver | `REWRITE` | `Equivalent Compliance Volume: Volume of air whose acoustic compliance equals the mechanical compliance of the driver suspension.` |
+| `driver_Re_ohm` | `Re_ohm` | Driver | `REWRITE` | `DC Voice Coil Resistance: Direct-current electrical resistance measured across the driver voice coil terminals.` |
+| `driver_Le_mH` | `Le_H` | Driver | `REWRITE` | `Voice Coil Inductance: Self-inductance of the voice coil causing high-frequency electrical impedance rise.` |
+| `driver_Mms_g` | `Mms_kg` | Driver | `REWRITE` | `Moving Mass: Total mass of the driver diaphragm, voice coil, former, and air mass loading.` |
+| `driver_Sd_cm2` | `Sd_m2` | Driver | `REWRITE` | `Effective Diaphragm Area: Effective radiating piston area of the driver cone and inner surround.` |
+| `driver_Xmax_mm` | `Xmax_m` | Driver | `REWRITE` | `Peak Linear Excursion: Peak one-way linear cone displacement where voice coil coverage remains inside the magnetic gap.` |
+| `driver_Pe_W` | `Pe_W` | Driver | `REWRITE` | `Thermal Power Handling: Maximum continuous electrical power input the voice coil can dissipate without thermal failure.` |
+| `driver_BL_Tm` | `BL_Tm` | Driver | `REWRITE` | `Motor Force Factor: Product of magnetic gap flux density B and voice coil wire length L, measuring motor coupling strength.` |
+| `driver_Cms_mm_per_N` | `Cms_m_per_N` | Driver | `REWRITE` | `Mechanical Compliance: Mechanical flexibility (spring rate inverse) of the suspension system.` |
+| `driver_Rms_Ns_per_m` | `Rms_kg_per_s` | Driver | `REWRITE` | `Mechanical Resistance: Mechanical friction loss resistance of the driver suspension system.` |
+| `driver_Eta0` | `no` | Driver | `REWRITE` | `Reference Efficiency: How effectively a speaker converts electrical power into acoustic sound power in its passband (η₀ = P_acc / P_elec × 100%).` |
+| `driver_USPL_dB` | `USPL_dB` | Driver | `REWRITE` | `Voltage Sensitivity: Sound pressure level at 1 meter produced by a standard 2.83 V RMS input voltage.` |
+| `driver_SPL_dB` | `SPL_dB` | Driver | `REWRITE` | `Power Sensitivity: Sound pressure level at 1 meter produced by a 1 Watt electrical power input.` |
+| `driver_NumVC` | `numVC` | Driver | `REWRITE` | `Voice Coil Count: Number of independent voice coil windings on the driver motor assembly.` |
+| `driver_VCCon` | `VCCon` | Driver | `CLEANUP` | `Voice Coil Wiring: Wiring configuration (series or parallel) for multi-voice-coil drivers determining total terminal resistance Re and BL.` |
+| `driver_EBP_hz` | `EBP_hz` | Driver | `REWRITE` | `Efficiency Bandwidth Product: Ratio of Fs to Qes (Fs / Qes); indicates enclosure suitability (EBP < 50 favours sealed, > 90 favours vented).` |
+| `driver_SPLmaxLF_dB` | `SPLmaxLF_dB` | Driver | `CLEANUP` | `Low Frequency Excursion Limit SPL: Theoretical maximum sound pressure level at 20 Hz limited strictly by peak diaphragm excursion Xmax.` |
+| `driver_SPLmax_dB` | `SPLmax_dB` | Driver | `REWRITE` | `Thermally Limited Max SPL: Maximum acoustic sound pressure level when driven at full thermal power rating Pe.` |
+| `driver_Rme_Ns_per_m` | `Rme_kg_per_s` | Driver | `CLEANUP` | `Motional Resistance at Resonance: Electromagnetic damping resistance generated by back-EMF at resonance.` |
+| `driver_Gamma` | `gamma_m_per_s2_A` | Driver | `REWRITE` | `Acceleration Factor: Ratio of motor force BL to moving mass Mms, measuring initial cone acceleration per ampere.` |
+| `driver_Mpow` | `Mpow_N_per_sqrtW` | Driver | `CLEANUP` | `Power-Normalized Motor Force: Motor force produced per square root of input power (BL / √Re).` |
+| `driver_Mcost_kg_per_s` | `Mcost_kg_per_s` | Driver | `CLEANUP` | `Motor Figure of Merit: Dynamic electromagnetic coupling efficiency accounting for gap geometry and displacement.` |
+| `driver_Gloss_pct` | `Gloss` | Driver | `CLEANUP` | `Gravity Sag Percentage: Percentage of peak excursion Xmax consumed by cone displacement under gravity when mounted horizontally.` |
+| `driver_Znom_ohm` | `Znom_ohm` | Driver | `REWRITE` | `Nominal Impedance: Rated speaker impedance classification (e.g. 4, 8, or 16 ohms) for amplifier matching.` |
+| `driver_AlfaVC_per_K` | `alfaVC_per_K` | Driver | `CLEANUP` | `Voice Coil Temp Coefficient: Thermal resistance coefficient of voice coil wire, determining resistance rise per degree of heating.` |
+| `driver_VcTempRise_K` | - | Driver | `CLEANUP` | `Voice Coil Temp Rise: Voice coil heating caused by electrical power dissipation (I² Re), increasing coil resistance Re and inducing thermal power compression.` |
+| `driver_AddedMass_g` | - | Driver | `CLEANUP` | `Cone Added Mass: Test mass temporarily added to the cone to shift resonant frequency (Fs), allowing calculation of suspension compliance (Cms) and moving mass (Mms).` |
+| `filter_Fc_hz` | - | Filters | `REWRITE` | `Cutoff / Center Frequency: Cutoff or center frequency of the active signal filter.` |
+| `filter_Q` | - | Filters | `REWRITE` | `Filter Quality Factor: Quality factor determining resonance peak sharpness or damping of the filter.` |
+| `filter_Gain_dB` | - | Filters | `REWRITE` | `Filter Gain: Boost or attenuation gain applied by the equalizer or filter in dB.` |
+| `filter_Order` | - | Filters | `REWRITE` | `Filter Order: Filter steepness order (e.g. 1st order 6 dB/oct, 2nd order 12 dB/oct, 4th order 24 dB/oct).` |
+
+---
+
+## 5. Box Type Alignments & Location Mapping
+
+The alignment algorithms across various enclosure types live across 3 distinct module layers:
+
+1. **Domain Engine Physics & Formulas:**  
+   - [boxDesign.ts](file:///home/john/work/winisd/openisd/packages/design/engine/boxDesign.ts#L42-L96): Defines alignment calculations and presets:
+     - **Sealed Alignments:** `sealedFromQtc`, `SEALED_ALIGNMENT_OPTIONS` ($Q_{tc}$ presets: 0.500 Critically Damped, 0.577 Bessel, 0.707 Butterworth, 0.800–1.500 Equal Ripple), `sealedQtcFromVolume`.
+     - **Vented Alignments:** `ventedAlignment` (QB3 polynomial fit for $V_b$ and $F_b$), `ventLength`, `tuningFromLength`.
+     - **Passive Radiator Alignments:** `prTuning`, `prMassForFp`, `prFsWithMass`.
+     - **Enclosure Suitability:** `ebpSuitability` ($EBP = F_s / Q_{es}$).
+2. **Interactive Solver Routines:**  
+   - [solver.ts](file:///home/john/work/winisd/openisd/packages/design/engine/solver.ts#L36): Houses iterative and analytical solver routines (`solveSealedAlignment`, `solveVent`, `solvePr`).
+3. **UI Alignment Selection Controllers:**  
+   - [SealedAlignment-hooks.ts](file:///home/john/work/winisd/openisd/packages/ui/src/hooks/SealedAlignment-hooks.ts#L26): Manages `createSealedAlignmentEditor` for user preset selection and target volume dispatching.
+
+---
+
+## 6. Target Symmetrical Dropdown Architecture (`UIOption<T>`)
+
+To eliminate structural drift, property name mismatches (`qtc` vs `value`), and ad-hoc string/object option handling, all dropdown options across the application are standardized onto a single unified, strongly-typed contract:
 
 ```ts
-Fs_hz: {
-  wdr: 'Fs',
-  label: 'Fs',                        // DEFAULT display label
-  description: 'Free-air resonance of the driver's moving assembly + suspension.',
-  unit: 'Hz', unitGroup: 'freq', base: 'Hz',
-  precision: 2,
-  min: 1, max: 5000,                  // ONE bound set — no per-screen limits
-  options: undefined,                 // enum fields reference a DOMAIN OPTIONS FUNCTION
+export interface SelectorOption<T = string | number> {
+  readonly value: T;
+  readonly label: string;
 }
 ```
 
-### Layer 2 — per-context label/description overrides (`design/fields`, same file)
+Every dropdown field in [uiFields.ts](file:///home/john/work/winisd/openisd/packages/design/fields/uiFields.ts) exposes `readonly options?: readonly SelectorOption[]` directly on its spec entry, ensuring 100% template and type symmetry across all controls:
 
-A label or description override is **optional**. A field that is not customised carries one
-label used everywhere; a customised field keys its overrides by a **use-case** (a screen, a box
-type, or an object type). The `'*'` key is the explicit "use everywhere" base; a specific
-use-case key wins over it.
-
-```ts
-Fs_hz: {
-  label: 'Fs',                          // base — applies wherever no override matches
-  labels: { '*': 'Fs', 'pr-editor': 'Fpr' },
-  descriptions: { 'pr-editor': "The radiator's own free-air resonance — no box in it." },
-}
-```
-
-Resolution (`labelFor(useCase, field)` / `descriptionFor(useCase, field)`):
-
-```
-useCase in labels ? labels[useCase] : ('*' in labels ? labels['*'] : field.label)
-```
-
-`boxResonance_hz` is the box-type case: `labels: { '*': 'Fsc / Fh', sealed: 'Fsc',
-'box-passive-radiator': 'Fh' }`. Limits, units and precision are **never** overridden per
-use-case — one bound set per field.
-
-Contexts today: `'driver-editor'`, `'pr-editor'`, `'original-shell'`, `'wizard'`, and the box
-types `'sealed' | 'vented' | 'bandpass4' | 'bandpass6' | 'abc' | 'box-passive-radiator'`.
-
-### Layer 3 — the resolution seam (`design/fields` accessor + UI hooks)
-- `fieldFor(useCase, key)` in `design/fields` merges default + override → `{label, description,
-  unit, unitGroup, base, precision, min, max, options}`.
-- The UI hooks wrap it: `useFieldSpec(useCase, field)`, `useFieldOptions(field)`,
-  `useBoxTypeOptions()`, `useVentShapeOptions()`, `useWiringOptions()`,
-  `useEndCorrectionOptions()`, `useAlignmentOptions()`.
-- Components bind `field=` + use-case; `<NumInput>` resolves the rest.
-
-### What this kills
-- `prSd`/`prFs`/`prQms`/`prVas`/`prXmax`/`prMadd`/`Fp` — replaced by the abstract field key +
-  a `'pr-editor'`/`'passive-radiator'` override. The PR's free-air resonance IS the shared
-  `Fs_hz` field, labelled `Fpr` in the PR editor.
-- Per-screen limit differences (`Qms` max 100 vs 50, `Fs_hz` max 1000 vs 5000) — **removed**;
-  one bound per field (the more permissive).
-- Duplicate option lists (`BOX_OPTIONS` ×2, `END_CORRECTION_OPTIONS`) — the domain owns the
-  values; the hooks present them.
-
----
-
-## 4. Description standards
-
-1. No decimal-place notes (`WinISD X dp`), no codebase paths (`logic/useVentGroup.ts`), no
-   ledger references (`QO32`), no dev rants.
-2. **Plain, specific, human** — one or two short sentences. Never restate the field's symbol or
-   display title (they come from the label). No boilerplate like *"a target, not a result"* or
-   *"calculated from"* — the kind column says that; the wording reads it naturally
-   (goal/aim phrasing for targets, *"actually produces"* for results).
-3. A target and its result must not read like the same thing: `ventTuning_hz` (aim) and
-   `boxResonance_hz` (achieved) are a pair and each reads differently.
-
----
-
-## 5. Interactive popover & external references
-
-Replace native `title` attributes with `FieldHelpPopover.vue` (hover-bridge so the card stays
-up while moving to it; `Escape`/click-outside close; `target="_blank"` links). Optional
-`refUrl?: string` per field for a reference link. Example (η₀ reference efficiency):
-`https://speakerwizard.co.uk/%CE%B7%E2%82%80-eta-zero-reference-efficiency-how-effectively-a-speaker-converts-power-into-sound/`.
-The `refUrl` lives on the abstract field in the `fields` package, not in the UI.
-
----
-
-## 6. Detailed row-by-row field plan
-
-Columns: **planned key** (post-rename), **screen(s)**, **kind** (Target / Result / Entered),
-**shared?** (which other screens), and the **user-facing description**.
-
-### 6.1 Box
-
-| planned key | screen | kind | shared? | description |
-| :--- | :--- | :--- | :--- | :--- |
-| `boxVolume_m3` (Vb) | Box, wizard | Entered | — | Net internal enclosure volume — the air spring on the driver. |
-| `frontVolume_m3` (Vf) | Box (bandpass) | Entered | — | Net air volume of the front chamber in a bandpass. |
-| `ventTuning_hz` (Fb) | Vents | **Target** | — | The design goal for the Helmholtz tuning frequency of the vented enclosure. Given one of either port length or box volume, the model solves for the other. The goal may not be achievable — then the output field (length or volume) is left blank and marked as unsolvable. |
-| `boxResonance_hz` (Fsc/Fh) | Box | **Result** | label by box type (sealed `Fsc`, PR `Fh`) | The resonance frequency the finished box actually produces — the built result of the tuning goal. |
-| `rearTuning_hz` (Frc entered) | Box (bandpass6/ABC) | **Target** | — | The design goal for the tuning frequency of the sealed rear chamber. |
-| `rearResonance_hz` (Frc calc) | Box (bandpass4) | **Result** | — | The sealed rear chamber's actual resonance (Frc = Fs × √(1 + Vas/Vb)). |
-
-### 6.2 Vents
-
-| planned key | screen | kind | shared? | description |
-| :--- | :--- | :--- | :--- | :--- |
-| `ventShape` | Vents | Entered (choice) | domain `ventShapeOptions` | Round tube or slotted duct. |
-| `ventDiameter_m` (ventD) | Vents | Entered | — | Internal diameter of a round port. Larger diameters cut port turbulence but need longer tubes. |
-| `ventWidth_m` (ventW) | Vents | Entered | — | Internal width of a slotted port. |
-| `ventHeight_m` (ventH) | Vents | Entered | — | Internal height of a slotted port. |
-| `ventLength_m` (ventL) | Vents | Entered | — | Physical port length. Longer ports lower the tuning for a fixed volume. |
-| `endCorrection` | Vents | Entered (choice) | domain `endCorrectionOptions` | End-correction coefficient: 0.613 free ends, 0.732 one flanged end, 0.849 two flanged ends. |
-| `ventCrossArea_m2` (Av) | Vents | **Result** | — | The port's cross-sectional area. |
-| `portResonance_hz` (f_pipe) | Vents | **Result** | — | The port tube's own organ-pipe resonance (f = c/2L). |
-
-### 6.3 Passive Radiator
-
-| planned key | screen | kind | shared? | description |
-| :--- | :--- | :--- | :--- | :--- |
-| `passiveRadiatorCount` (prNum) | PR | Entered | — | Number of identical passive radiators. |
-| `addedMass_kg` (Madd PR) | PR | Entered | the **driver** concept is separate (`driverAddedMass_kg`) | Ballast mass on the PR cone to lower its tuning. |
-| `prTuning_hz` (Fp) | PR | **Target** | — | The design goal for the tuning frequency of the passive-radiator system. Given one of either added mass or tuning, the model solves for the other. Adding mass can only lower the tuning, so a goal above the radiator's own free-air resonance can't be reached — then the output field (added mass or tuning) is left blank and marked as unsolvable. |
-| `Fs_hz` (Fpr) | PR | Entered | **shared with the driver**, label overridden to `Fpr` | The radiator's own free-air resonance — no box in it. |
-| `prResonanceWithMass_hz` (Fpr loaded) | PR | **Result** | — | The PR's free-air resonance including the added mass. |
-| `Sd_m2` | PR | Entered | driver editor, same label `Sd` | The PR's effective radiating piston area. |
-| `Xmax_m` | PR | Entered | driver editor | The PR's peak linear excursion. |
-| `Qms` | PR | Entered | driver editor | The PR's mechanical quality factor. |
-| `Vas_m3` | PR | Entered | driver editor | The PR's compliance-equivalent volume. |
-
-### 6.4 Signal
-
-| planned key | screen | kind | shared? | description |
-| :--- | :--- | :--- | :--- | :--- |
-| `inputPower_W` (Pin) | Signal | Entered | — | Total electrical power into the system (Pin = V²/Re). |
-| `driveVoltage_V` (driveV) | Signal | Entered | — | RMS voltage across each driver's terminals. |
-| `seriesResistance_ohm` (Rs) | Signal | Entered | — | Amplifier output + wiring + crossover resistance in series. |
-| `listenDistance_m` | Signal | Entered | — | On-axis distance to the listener. |
-| `listenAngle_rad` | Signal | Entered | — | Off-axis listening angle. |
-| `signalGenerator_hz` (genHz) | Signal | Entered | — | Single-tone generator frequency. |
-
-### 6.5 Box losses
-
-| planned key | screen | kind | shared? | description |
-| :--- | :--- | :--- | :--- | :--- |
-| `leakageQ` (Ql) | Box losses | Entered | — | Enclosure leakage-loss Q (seams and gaskets). |
-| `absorptionQ` (Qa) | Box losses | Entered | — | Enclosure damping/absorption-loss Q (fill). |
-| `portQ` (Qp) | Box losses | Entered | — | Port friction-loss Q. |
-
-### 6.6 Advanced (environment + model toggles)
-
-| planned key | screen | kind | shared? | description |
-| :--- | :--- | :--- | :--- | :--- |
-| `temperature_K` (advTemp) | Advanced | Entered | — | Ambient temperature (drives speed of sound and air density). |
-| `humidity_pct` (advHumidity) | Advanced | Entered | — | Ambient relative humidity. |
-| `pressure_Pa` (advPressure) | Advanced | Entered | — | Ambient barometric pressure. |
-| `soundVelocity_mps` (advSoundVelocity) | Advanced | **Result** | — | Speed of sound in the ambient air. |
-| `airDensity_kg_m3` (advAirDensity) | Advanced | **Result** | — | Air density at the ambient conditions. |
-| `simVcInductance` | Advanced | Entered (choice) | — | Include voice-coil inductance in the output. |
-| `forceFlatResponse` | Advanced | Entered (choice) | — | Auto-EQ the system flat. |
-| `tlPortModel` | Advanced | Entered (choice) | — | Model the port as a transmission line. |
-| `rgAtDriverSide` | Advanced | Entered (choice) | — | Apply Rg per driver, not at the amplifier output. |
-| `splXmaxLimited` | Advanced | Entered (choice) | — | Clamp the SPL graph at Xmax. |
-| `airModel` | Advanced | Entered (choice) | domain `airModelOptions` | WinISD air vs CIPM moist air. |
-
-### 6.7 Driver: Parameters — all **Entered** unless noted
-
-| key | kind | shared? | description |
+| Target Dropdown Control | SSOT Field Spec ID | Target Option Contract | Option Value & Label Pairs |
 | :--- | :--- | :--- | :--- |
-| `Fs_hz` | Entered | PR editor as `Fpr` | Free-air resonance of the driver's moving assembly + suspension. |
-| `Qts` | Entered | — | Total quality factor at Fs (electrical + mechanical damping). |
-| `Qes` | Entered | — | Electrical quality factor (back-EMF damping). |
-| `Qms` | Entered | PR editor | Mechanical quality factor (suspension friction). |
-| `Vas_m3` | Entered | PR editor | Volume of air with the same compliance as the suspension. |
-| `Re_ohm` | Entered | — | DC voice-coil resistance. |
-| `Le_H` | Entered | — | Voice-coil inductance. |
-| `Mms_kg` | Entered | — | Moving mass (diaphragm + coil + former + air load). |
-| `Sd_m2` | Entered | PR editor | Effective radiating piston area. |
-| `Xmax_m` | Entered | PR editor | Peak linear one-way excursion. |
-| `Pe_W` | Entered | — | Thermal power handling. |
-| `BL_Tm` | Entered | — | Motor force factor. |
-| `Cms_m_per_N` | Entered | — | Mechanical compliance of the suspension. |
-| `Rms_kg_per_s` | Entered | — | Mechanical loss resistance. |
-| `Znom_ohm` | Entered | — | Nominal impedance class (4/8/16 Ω). |
-| `Dd_m` | Entered | — | Effective piston diameter (Sd ↔ Dd pair). |
-| `fLe_hz` | Entered | — | Semi-inductance reference frequency. |
-| `KLe_H_sqrtHz` | Entered | — | Semi-inductance coefficient. |
-| `numVC` | Entered | — | Number of voice coils. |
-| `VCCon` | Entered (choice) | domain `voiceCoilWiringOptions` | Series/parallel wiring of multi-coil drivers. |
-| `USPL_dB` | **Result** | — | SPL at 1 m from 2.83 V. |
-| `SPL_dB` | **Result** | — | SPL at 1 m from 1 W. |
+| **Port End Correction** | `vent_EndCorrection` | `readonly SelectorOption<number>[]` | `0.613` ("Two free ends"), `0.732` ("One flanged end"), `0.849` ("Two flanged ends") |
+| **Vent Geometry / Shape** | `vent_Shape` | `readonly SelectorOption<string>[]` | `'round'` ("Round Tube"), `'slotted'` ("Slotted Duct") |
+| **Voice Coil Wiring** | `driver_VCCon` | `readonly SelectorOption<string>[]` | `'Parallel'` ("Parallel"), `'Series'` ("Series") |
+| **Sealed Alignment Target ($Q_{tc}$)** | `box_Qtc` | `readonly SelectorOption<number>[]` | `0.500` ("0.500 Critically damped"), `0.577` ("0.577 Max flat delay"), `0.707` ("0.707 Max flat amplitude"), `0.800–1.500` ("Equal ripple") |
+| **Enclosure Type** | `box_Type` | `readonly SelectorOption<BoxType>[]` | `'closed'` ("Sealed"), `'vented'` ("Vented"), `'bandpass4'` ("4th-Order Bandpass"), `'box-passive-radiator'` ("Passive Radiator") |
+| **Filter Type** | `filter_Type` | `readonly SelectorOption<FilterType>[]` | `'highpass'` ("Highpass"), `'lowpass'` ("Lowpass"), `'peaking'` ("Peaking EQ"), `'linkwitz'` ("Linkwitz-Transform") |
+| **Enclosure Damping Fill** | `loss_DampingMode` | `readonly SelectorOption<LossMode>[]` | `'none'` ("None"), `'minimal'` ("Minimal"), `'normal'` ("Normal"), `'heavy'` ("Heavy") |
+| **Driver Array Wiring** | `driver_ArrayWiring` | `readonly SelectorOption<Wiring>[]` | `'parallel'` ("Parallel"), `'series'` ("Series") |
+| **Passive Radiator Library** | `pr_LibrarySelect` | `readonly SelectorOption<string>[]` | Dynamic list of saved PR records (`value: uuid, label: name`) |
+| **Driver Library** | `driver_LibrarySelect` | `readonly SelectorOption<string>[]` | Dynamic list of saved driver records (`value: uuid, label: model`) |
 
-### 6.8 Driver: Advanced
 
-| key | kind | description |
-| :--- | :--- | :--- |
-| `EBP_hz` | **Result** | Fs/Qes — enclosure-suitability indicator. |
-| `SPLmaxLF_dB` | **Result** | Max SPL at 20 Hz limited by Xmax. |
-| `SPLmax_dB` | **Result** | Max SPL at full thermal power. |
-| `Rme_kg_per_s` | **Result** | Motional resistance at resonance. |
-| `gamma_m_per_s2_A` | **Result** | BL/Mms — acceleration per ampere. |
-| `Mpow_N_per_sqrtW` | **Result** | BL/√Re — motor force per √W. |
-| `Mcost_kg_per_s` | **Result** | Motor figure of merit. |
-| `Gloss` | **Result** | Gravity sag as % of Xmax. |
-| `η₀` (key `no`) | **Result** | `How effectively a speaker converts electrical power into acoustic sound power in its passband (η₀ = P_acc / P_elec × 100%). Benchmarks: ≥4% Very High (compression/horn), 3–4% High (PA woofer), 2–3% Good (studio monitor), 1.5–2% Average (hi-fi), 0.75–1.5% Low, <0.75% Very Low (infra-sub). Higher η₀ raises SPL; Hoffman's Iron Law dictates deep sub bass extension requires lower η₀.` — label is **η₀**, `refUrl` = <https://speakerwizard.co.uk/%CE%B7%E2%82%80-eta-zero-reference-efficiency-how-effectively-a-speaker-converts-power-into-sound/> |
-| `alfaVC_per_K` | Entered | Voice-coil temperature coefficient. |
-
-### 6.9 Driver: Dimensions — all Entered
-
-| key | description |
-| :--- | :--- |
-| `Thick_m` | Basket plate thickness. |
-| `Depth_m` | Driver mounting depth. |
-| `MagDepth_m` | Magnet depth (labelled Magnet Depth). |
-| `Magnet_m` | Magnet diameter. |
-| `Basket_m` | Basket diameter. |
-| `Outer_m` | Outer mounting diameter. |
-| `Vcd_m` | Voice-coil diameter. |
-| `DVol_m3` | Driver displacement volume, derived from the depth and magnet dimensions. |
-| `OuterX_m` / `OuterY_m` | Outer X / Y mounting footprint. |
-
-### 6.10 Driver: General (metadata)
-
-`manufacturer`, `brand`, `model`, `providedBy`, `added`, `comment` — entered metadata, no unit,
-no limits, no options.
-
-### 6.11 Driver (project-level)
-
-| key | screen | kind | description |
-| :--- | :--- | :--- | :--- |
-| `numDrivers` (nDrivers) | Driver | Entered | Number of drivers wired in parallel. |
-| `vcTempRise_K` (vcTempRise) | Driver | Entered | Voice-coil temperature rise above ambient. |
-| `driverAddedMass_kg` (driverAddedMass) | Driver | Entered | Calibration mass on the driver's cone — distinct from the passive radiator's added mass. |
-
-### 6.12 Filters
-
-| planned key | kind | description |
-| :--- | :--- | :--- |
-| `filterFc_hz` (Fc) | **Target** | The filter's cutoff or centre frequency. |
-| `filterQ` (Q_filter) | Entered | Filter quality factor. |
-| `filterGain_dB` (Gain) | Entered | Filter gain (dB). |
-| `filterOrder` (Order) | Entered | Filter order (6/12/24 dB/oct). |
-
----
-
-## 7. UI SSOT binding & unit/group activation
-
-1. `<NumInput field="…">` resolves `precision`, `min`/`max`, `unitGroup`, `base`, `label` and
-   `description` from the fields package via the hooks; explicit props become overrides.
-2. Templates drop hardcoded `<label>` text, `:precision="…"`, `group=`/`base=`, and
-   `:title="fieldHelp(…)"`.
-3. `units.ts` `MAX_DP` rises to 5 so 5-dp fields (`Rme`, `Mcost`, `airDensity`) are not clamped.
-4. Option dropdowns bind the domain lists via hooks (box types, vent shape, wiring, end
-   correction, alignment — the last already exists as `engine.sealedAlignmentOptions()`).
-
----
-
-## 8. Migration steps & risks
-
-1. Move the field definitions + `units.ts` down into `design/fields`; delete `fieldRegistry.ts`.
-   Update `openisdFields.ts`'s header contract (it currently says display text lives in the UI).
-2. Add the per-context `labels`/`descriptions` overrides; unify bounds (remove the
-   PR/driver `Qms` 100-vs-50 and `Fs_hz` 1000-vs-5000 differences).
-3. Rename errant keys to `<name>_<unit>` (dimensionless fields keep bare keys); update
-   `data-field-key`, `field=`, tests, and the provenance/label-drift browser specs.
-4. Move option lists to the domain/engine as **functions**; rewire dropdowns through the hooks.
-5. Replace `title` tooltips with `FieldHelpPopover.vue`; add `refUrl` where a reference exists.
-6. **Corpus DQ regeneration (risk, from the S2-11/12/13 refactor — `4ad463b`).** The domain
-   driver's `projectFormulaDq` now writes `engine.issueToText` **prose** into `dq_calculated`
-   (`Qes, Fs_hz, … disagree by 1.1%: …`), and never emits the `range-above-max`/`range-below-min`
-   marks. The corpus stores the registry-template format (`dqCalculated.ts`:
-   `Qes=6.16 above max 5`, `calc-consistency`) that the bridge and the external Python mark
-   registry expect. The bundler round-trip gate therefore fails corpus records — the count
-   tracks the corpus (19 at the first report; a later full run over 2006 records found 25).
-   **This is a format divergence, not mere staleness** — the record contract
-   (`dqCalculated.ts` header, and the external scraper package's mark registry
-   `scrapers/lib/record_registries.py`, which lives in the `winisd_drivers` checkout, not this
-   repo) requires the template details. Decision needed: either the driver emits the registry
-   templates (via `calcMark`/`rangeMark`) and the tooltip reads `issueToText` only for display,
-   or the format change is accepted and the corpus + Python registry are regenerated in
-   lockstep. This plan's field-definition move must not change any DQ semantics.
-
----
-
-## 9. Non-goals
-
-- No physics/model changes — this is display/SSOT only.
-- No change to the `.wpr`/`.wdr` codec's use of WinISD's own symbols.
-- No per-screen limits (bounds are per-field, unified).

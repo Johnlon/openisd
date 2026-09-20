@@ -14,7 +14,7 @@ import {cellClassFor, fieldIsMandatoryAndUnsatisfied, notAvailableCell} from '..
 import type {Cell, Field} from '@openisd/design';
 import NumInput from './NumInput.vue';
 import UnitToggle from './UnitToggle.vue';
-import {fieldById, fieldHelp, precision} from '../../logic/fields/fieldRegistry.js';
+import {fieldById, fieldHelp, precision} from '../../logic/fields/uiFields.js';
 import {useEscToClose} from '../../logic/useEscToClose.js';
 import {DriverFileFormat} from '../../fileFormat.js';
 import EquationInspectorModal from './EquationInspectorModal.vue';

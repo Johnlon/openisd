@@ -28,7 +28,7 @@ import {WinISDDriver} from '@openisd/design/winisd';
 import type {Field} from '@openisd/design';
 import {OpenISDDriver} from '@openisd/design';
 import {Engine} from '@openisd/design/engine';
-import {fieldById, precision} from '../../src/logic/fields/fieldRegistry.js';
+import {fieldById, precision} from '../../src/logic/fields/uiFields.js';
 import {specFieldHandle} from '../../src/logic/driverSpecFields.js';
 import {nextToken, toDisplay, UNIT_GROUPS, unitDef, type UnitGroup} from '../../src/logic/fields/units.js';
 
