@@ -1,40 +1,76 @@
 # Plan: UI Field Description Cleanup & SSOT Integration
 
 ## Executive Summary
-This plan cleans up all user-facing field descriptions and enforces [uiFields.ts](file:///home/john/work/winisd/openisd/packages/design/fields/uiFields.ts) (`UI_FIELD_SPECS`) in `@openisd/design` (sibling file to `openisdFields.ts`) as the exclusive single source of truth (SSOT) for all UI components.
+This plan cleans up all user-facing field descriptions and makes
+[uiFields.ts](file:///home/john/work/winisd/openisd/packages/ui/src/logic/fields/uiFields.ts)
+(`UI_FIELD_SPECS`, in `packages/ui/src/logic/fields/`) the single source of truth (SSOT) for what a
+UI control shows about a field: its label, description, unit, display precision, entry bounds and
+— for a dropdown — its option list. It is NOT a second table of where the value lives: the value
+lives on the domain object under the schema's own field name, and the control binds that name
+directly.
+
+**Status (2026-09-20): complete.** §4 (78 rows) matches the registry text one-for-one; §6 is done
+for every static list; §1/§2 below describe the design as shipped.
 
 ---
 
 ## 1. Context Mapping: How UI Fields Map to Domain Models
 
-UI fields in [uiFields.ts](file:///home/john/work/winisd/openisd/packages/design/fields/uiFields.ts) span 10 different UI panes. All field IDs follow a 100% symmetrical `<prefix>_<symbol>_<unit>` snake_case convention (`driver_XXXX`, `pr_XXXX`, `box_XXXX`, `vent_XXXX`, `signal_XXXX`, `loss_XXXX`, `adv_XXXX`, `filter_XXXX`). Every spec entry carries an explicit `domainKey?: OpenIsdFieldKey` linking to [openisdFields.ts](file:///home/john/work/winisd/openisd/packages/design/fields/openisdFields.ts) and a direct OO dispatch method `handle?: (entity: any) => Field<any> | null`:
+`UI_FIELD_SPECS` spans 10 UI panes. IDs follow the `<prefix>_<symbol>_<unit>` snake_case
+convention (`driver_XXXX`, `pr_XXXX`, `box_XXXX`, `vent_XXXX`, `signal_XXXX`, `loss_XXXX`,
+`adv_XXXX`, `filter_XXXX`); each spec also lists the `aliases` the templates use to reach it
+(`fieldById('Fs_hz')`, `precision('driverAddedMass')`).
 
-1. **Driver Specification Context:**  
+**How a control reaches its value — no mapping table.** The registry carries display text only.
+The binding from a control to the domain is the schema field name itself:
+
+1. **Driver Specification Context:**
    - **Fields:** `driver_Fs_hz`, `driver_Vas_l`, `driver_Re_ohm`, `driver_Qts`, `driver_Xmax_mm`, `driver_Pe_W`, `driver_BL_Tm`, `driver_Cms_mm_per_N`, `driver_Qms`, `driver_Qes`, `driver_Rms_Ns_per_m`, `driver_Mms_g`, `driver_Sd_cm2`, `driver_Eta0`, `driver_USPL_dB`, `driver_SPL_dB`, `driver_NumVC`, `driver_VCCon`, `driver_EBP_hz`, `driver_AlfaVC_per_K`, `driver_Znom_ohm`, `driver_C_m_per_s`, `driver_Roo_kg_per_m3`, `driver_Thick_mm`, `driver_Depth_mm`, `driver_MagDepth_mm`, `driver_Magnet_mm`, `driver_Basket_mm`, `driver_Outer_mm`, `driver_Vcd_mm`, `driver_Dvol_cm3`.
-   - **Schema & Dispatch:** Maps via `domainKey` to `OPENISD_FIELDS` in [openisdFields.ts](file:///home/john/work/winisd/openisd/packages/design/fields/openisdFields.ts). Dispatch is self-contained on the spec object: `handle: (driver) => driver.spec.ts.Fs_hz`.
-2. **Passive Radiator Context:**  
+   - **Binding:** the Driver Editor calls `cellVal('Fs_hz')` / `setNum('Fs_hz', v)` with the schema
+     name (`SpecField`, derived from `OpenIsdFieldKey` in
+     [appState.ts](file:///home/john/work/winisd/openisd/packages/ui/src/logic/appState.ts)).
+     [driverSpecFields.ts](file:///home/john/work/winisd/openisd/packages/ui/src/logic/driverSpecFields.ts)
+     → `specFieldHandle(driver, field)` is `driver.spec[driver.section][field]` — one line, a
+     compile error if the schema renames a field. `VCCon` is the wiring select, not a numeric cell.
+   - **Record shape:** `specs` is a sum type in
+     [openisdSchema.ts](file:///home/john/work/winisd/openisd/packages/design/domain/openisdSchema.ts):
+     a driver is `{ woofer, tweeter? }`, a passive radiator is `{ 'passive-radiator' }`; both or
+     neither is refused at parse. Readers narrow with `driverSpecsOf(json)` / `radiatorSpecsOf(json)`.
+2. **Passive Radiator Context:**
    - **Fields:** `pr_Sd_cm2`, `pr_Xmax_mm`, `pr_Num`, `pr_Madd_g`, `pr_Fp_hz`, `pr_Vas_l`, `pr_Fs_hz`, `pr_Qms`, `pr_FsMass_hz`.
-   - **Schema & Dispatch:** Maps via `domainKey` (`pr_Sd_cm2` → `Sd_m2`, `pr_Xmax_mm` → `Xmax_m`, `pr_Vas_l` → `Vas_m3`). Dispatch is self-contained on the spec object: `handle: (radiator) => radiator.spec.Sd_m2`.
-3. **Enclosure & Vent Group Context:**  
+   - **Binding:** the PR section is its own, smaller schema (`passiveRadiatorSpecsSectionJsonSchema`
+     — no motor/electrical fields; a `Re_ohm` in a PR section is refused). The Tune pane reads
+     `project.box.passiveRadiator.<field>` directly (`usePrGroup`, keys `tuning_hz` / `addedMass_kg`).
+3. **Enclosure & Vent Group Context:**
    - **Fields:** `box_Vb_l`, `box_Vf_l`, `box_Fb_hz`, `box_Resonance_hz`, `box_RearResonance_hz`, `box_Frc_hz`, `vent_Shape`, `vent_D_cm`, `vent_W_cm`, `vent_H_cm`, `vent_L_cm`, `vent_EndCorrection`, `vent_CrossArea_m2`, `vent_PortResonance_hz`.
-   - **Schema & Dispatch:** Dispatch is self-contained on the spec object: `handle: (box) => box.Vb`.
-4. **Environment & Simulator Options Context:**  
+   - **Binding:** `project.box.vented.vent.diameter_m`, `project.box.Vb_m3` … — the owning domain
+     object's typed field, read in `OriginalShell-hooks.ts`.
+4. **Environment & Simulator Options Context:**
    - **Fields:** `adv_Temp_K`, `adv_Humidity_pct`, `adv_Pressure_kPa`, `adv_SoundVelocity_m_per_s`, `adv_AirDensity_kg_per_m3`, `adv_SimVcInductance`, `adv_ForceFlatResponse`, `adv_TlPortModel`, `adv_RgAtDriverSide`, `adv_SplXmaxLimited`, `adv_UseWinisdAirModel`.
-   - **Schema & Dispatch:** Maps to `SimulatorOptions` and engine air state, resolved dynamically via `useAdvancedOptions()` in [AdvancedOptions-hooks.ts](file:///home/john/work/winisd/openisd/packages/ui/src/hooks/AdvancedOptions-hooks.ts).
+   - **Binding:** `SimulatorOptions` and the engine air state via `useAdvancedOptions()` in
+     [AdvancedOptions-hooks.ts](file:///home/john/work/winisd/openisd/packages/ui/src/hooks/AdvancedOptions-hooks.ts).
+
+**Rejected (2026-09-20):** an earlier draft of this plan put `domainKey?: OpenIsdFieldKey` and
+`handle?: (entity: any) => Field<any>` on every spec. That is a second table of the same fields
+(the registry re-stating what the schema already types) and an `any`-typed dispatch; the direct
+schema-name binding above is the typed reference, so neither was adopted. Likewise a
+`LEGACY_FIELD_TO_SCHEMA` short-name → schema-name table was removed from the editor
+(questions.yml QO166).
 
 ---
 
 ## 2. Universal UI Configuration & Parameter Inheritance
 
-All UI components and form controls obtain their configuration **exclusively from [uiFields.ts](file:///home/john/work/winisd/openisd/packages/design/fields/uiFields.ts) (`UI_FIELD_SPECS`)**:
+All UI controls take their **display** configuration from `UI_FIELD_SPECS`:
 
-- **ID Convention:** Symmetrical `<prefix>_<symbol>_<unit>` snake_case IDs (`driver_Fs_hz`, `pr_Sd_cm2`, `box_Vb_l`).
-- **Domain Binding (`domainKey`):** Strongly-typed link to `OpenIsdFieldKey` in `openisdFields.ts` (`domainKey?: OpenIsdFieldKey`).
-- **OO Handle Dispatch (`handle`):** Instance method on `UIFieldSpec` returning the domain reactive cell (`spec.handle(entity)`), replacing standalone helper functions.
+- **ID Convention:** `<prefix>_<symbol>_<unit>` snake_case IDs (`driver_Fs_hz`, `pr_Sd_cm2`, `box_Vb_l`), plus `aliases` for the names templates already use.
 - **Labels & Descriptions:** `label` and `description` (`fieldHelp(id)`).
-- **Units & Display Precision:** `unit`, `unitGroup`, and default `precision` (supported up to `MAX_DP = 5` in [units.ts](file:///home/john/work/winisd/openisd/packages/ui/src/logic/fields/units.ts) to prevent silent clamping of 5-dp fields like `Rme`, `Mcost`, `advAirDensity`).
-- **Sanity Entry Bounds:** `min` and `max` bounds (`limits(id)`).
-- **Enum Options (`options?: string[]`):** Preset arrays (`vent_Shape`, `vent_EndCorrection`, `driver_VCCon`) defined centrally in `uiFields.ts`.
+- **Units & Display Precision:** `unit`, `unitGroup`, and the base-unit `precision`. Rotating the unit derives the shown decimals in
+  [units.ts](file:///home/john/work/winisd/openisd/packages/ui/src/logic/fields/units.ts) → `displayPrecision`: the base unit shows the registry precision unchanged (KLe 6 dp, Rme 5 dp); a converted unit is capped at 4 dp so 100 g never renders as `0.10000 kg`. Pinned by `packages/ui/test/logic/units-displayPrecision.test.ts`.
+- **Sanity Entry Bounds:** `min` and `max` (`limits(id)`).
+- **Enum Options:** `kind: 'enum'` specs carry `options: readonly SelectorOption<T>[]` (§6) — the same frozen list the domain exports from `packages/design/fields/options.ts`, never a hand-typed copy.
+
+What the registry does **not** carry: where the value lives (see §1 — the schema name is the binding) or any per-field behaviour (no callbacks, no `any`).
 
 ---
 
@@ -51,7 +87,7 @@ All UI components and form controls obtain their configuration **exclusively fro
 
 ## 4. Complete Field Decision Table
 
-| Symmetrical UI Field ID | Domain Key | Pane | Decision | Proposed New User-Facing Description |
+| Symmetrical UI Field ID | Domain Key (reference only — not a registry column) | Pane | Decision | User-Facing Description (verbatim, as `UI_FIELD_SPECS` carries it) |
 | :--- | :--- | :--- | :--- | :--- |
 | `box_Vb_l` | `Vb` | Box | `REWRITE` | `Net Enclosure Volume: Internal net air volume of the enclosure acting as the acoustic spring for the driver.` |
 | `box_Vf_l` | `Vf` | Box | `REWRITE` | `Front Chamber Volume: Net air volume of the front (vented) chamber in a bandpass enclosure.` |
@@ -157,14 +193,9 @@ The alignment algorithms across various enclosure types live across 3 distinct m
 `OgNewProject.vue` and `DriverEditorModal.vue` iterates its option list and reads the chosen value
 back through `logic/domEvents.ts` → `selectedOption(e, options)` — the typed string→member
 boundary, so no handler asserts `as 'round' | 'slotted'`. `packages/ui/test/logic/uiFields-dropdowns.test.ts`
-pins it. Not done: the two library pickers (dynamic lists, no static spec), and the Filters tab's
-type choice (quick-add buttons, not a select).
-
-**Not adopted:** §1/§2's `domainKey` and `handle` on `UIFieldSpec` were removed on 2026-09-20 (WIP
-13ec42b) — the editor binds the schema key directly (`cellVal('Fs_hz')` → `driver.spec[section].Fs_hz`),
-which is the same typed reference with no second table. The registry stays in
-`packages/ui/src/logic/fields/uiFields.ts`, not `packages/design/fields/` as the summary says: its
-option lists and units come from `@openisd/design/fields`, the labels/descriptions are UI text.
+pins it. Out of scope: the two library pickers are list widgets, not `<select>`s (rows below kept
+for the record), and the Filters tab's type choice is a row of quick-add buttons, not a select
+(`OgFilters.vue` `QUICK_ADD`) — `FILTER_TYPE_OPTIONS` is the list a select would use.
 
 To eliminate structural drift, property name mismatches (`qtc` vs `value`), and ad-hoc string/object option handling, all dropdown options across the application are standardized onto a single unified, strongly-typed contract:
 
@@ -187,8 +218,8 @@ Every dropdown field in [uiFields.ts](file:///home/john/work/winisd/openisd/pack
 | **Filter Type** | `filter_Type` | `readonly SelectorOption<FilterType>[]` | `'lowpass'`, `'highpass'`, `'linkwitz'` ("Linkwitz-Transform"), `'peaking'` ("Peaking EQ"), `'lowshelf'`, `'highshelf'` | `packages/design/fields/options.ts` → `FILTER_TYPE_OPTIONS`. The Filters tab still adds filters through its own quick-add buttons (`OgFilters.vue` `QUICK_ADD`) — not yet read from this list |
 | **Enclosure Loss Model** | `loss_DampingMode` | `readonly SelectorOption<string>[]` | `'lossless'` ("Lossless"), `'conventional-lossy'` ("Conventional Lossy"), `'winisd-lossy'` ("WinISD Lossy") — `LossMode.value` tokens, what the project stores | `packages/ui/src/logic/environment.ts` → `lossModeOptions()` from `LossMode.ALL` |
 | **Driver Array Wiring** | `driver_ArrayWiring` | `readonly SelectorOption<Wiring>[]` | `'parallel'` ("Parallel"), `'series'` ("Series") | `packages/design/fields/options.ts` → `ARRAY_WIRING_OPTIONS` |
-| **Passive Radiator Library** | `pr_LibrarySelect` | `readonly SelectorOption<string>[]` | Dynamic list of saved PR records (`value: uuid, label: name`) | `packages/persistence/src/repos/savedLibrary.ts` → `useSavedLibrary().passiveRadiators` (`Ref<SavedRecord[]>`, API: `getLibraryRecords('passive-radiator')`) |
-| **Driver Library** | `driver_LibrarySelect` | `readonly SelectorOption<string>[]` | Dynamic list of saved driver records (`value: uuid, label: model`) | `packages/persistence/src/repos/savedLibrary.ts` → `useSavedLibrary().drivers` (`Ref<SavedRecord[]>`, API: `getLibraryRecords('driver')`) |
+| **Passive Radiator Library** (not a select — a list widget; no registry spec) | — | — | Dynamic list of saved PR records | `packages/persistence/src/repos/savedLibrary.ts` → `useSavedLibrary().passiveRadiators` (`Ref<SavedRecord[]>`, API: `getLibraryRecords('passive-radiator')`) |
+| **Driver Library** (not a select — a list widget; no registry spec) | — | — | Dynamic list of saved driver records | `packages/persistence/src/repos/savedLibrary.ts` → `useSavedLibrary().drivers` (`Ref<SavedRecord[]>`, API: `getLibraryRecords('driver')`) |
 
 
 
