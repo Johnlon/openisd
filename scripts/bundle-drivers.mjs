@@ -19,10 +19,9 @@
  * index row is written from that domain object by the app's own row functions
  * (packages/ui/src/logic/bundledIndexRows.ts). A record the seam refuses fails the build.
  *
- * Bundling gate: structural readability (`isBundlable`, John's QO79/QO81 ruling — no record
- * is excluded for missing spec params), EXCEPT devices with no woofer spec section —
- * those are sub-box builders, not usable drivers in the main collection.
- * A record with no `specs` container is skipped and listed.
+ * Bundling gate: structural readability only (`isBundlable`, John's QO79/QO81 ruling — no record
+ * is excluded for missing spec params). A driver goes to drivers-index.json, a passive radiator
+ * to passive-radiators-index.json. A record with no `specs` container is skipped and listed.
  *
  * Skips the walk when nothing has changed: the fingerprint of every corpus record plus every
  * source file that shapes a row or record is kept in build/drivers-bundle.stamp and compared
@@ -47,7 +46,8 @@ import {
     walkFiles
 } from './bundleStamp.mjs';
 import {OPENISD_FIELDS} from '../packages/design/fields/openisdFields.ts';
-import {bundledDriverIndexRowOf} from '../packages/ui/src/logic/bundledIndexRows.ts';
+import {bundledDriverIndexRowOf, bundledPassiveRadiatorIndexRowOf} from '../packages/ui/src/logic/bundledIndexRows.ts';
+import {OpenISDPassiveRadiatorStandalone} from '@openisd/design';
 
 // `.wdr` INI key -> schema key (unit-suffixed), derived from the ONE vocabulary so it cannot
 // drift: each field's `wdr` name maps back to its schema name (e.g. 'alfaVC' -> 'alfaVC_per_K').
@@ -118,6 +118,7 @@ function main() {
   }
 
   const driverRows = [];
+  const radiatorRows = [];
   const records = [];
   const skipped = [];
   const perGroup = new Map();
@@ -126,12 +127,7 @@ function main() {
   for (const file of rawFiles) {
     const path = recordPathOf(CORPUS, file);
     const group = path.split('/')[0];
-    const text = readFileSync(file, 'utf8');
-    if (!text.includes('woofer')) {
-      skipped.push(path);
-      continue;
-    }
-    const parsed = parseYaml(text);
+    const parsed = parseYaml(readFileSync(file, 'utf8'));
     if (parsed == null) throw new Error(`${path}: empty or unparseable record`);
     const record = canonicalizeRecord(parsed);
 
@@ -145,7 +141,11 @@ function main() {
         roundTripFailures.push(gate.message);
       } else {
         const device = gate.device;
-        driverRows.push(bundledDriverIndexRowOf(device, path));
+        if (device instanceof OpenISDPassiveRadiatorStandalone) {
+          radiatorRows.push(bundledPassiveRadiatorIndexRowOf(device, path));
+        } else {
+          driverRows.push(bundledDriverIndexRowOf(device, path));
+        }
         records.push({ path, record });
         perGroup.set(group, (perGroup.get(group) ?? 0) + 1);
       }
@@ -169,7 +169,7 @@ function main() {
     console.log(`    ${group.padEnd(24)} ${String(n).padStart(4)}`);
   }
   if (skipped.length) {
-    console.log(`  ${skipped.length} records are NOT bundled (no woofer spec section), first 5:`);
+    console.log(`  ${skipped.length} records are NOT bundled (structurally unreadable — no specs container), first 5:`);
     for (const p of skipped.slice(0, 5)) console.log(`    - ${p}`);
   }
 
@@ -180,14 +180,14 @@ function main() {
     writeFileSync(out, JSON.stringify(record));
   }
   writeFileSync(DRIVER_INDEX, JSON.stringify(driverRows));
-  writeFileSync(RADIATOR_INDEX, JSON.stringify([]));
+  writeFileSync(RADIATOR_INDEX, JSON.stringify(radiatorRows));
   mkdirSync(dirname(STAMP_FILE), { recursive: true });
   writeFileSync(STAMP_FILE, `${fingerprint}\n`);
 
   const kb = n => Math.round(n / 1024);
   console.log(
     `\n  → ${driverRows.length} drivers (drivers-index.json ${kb(statSync(DRIVER_INDEX).size)} KB), ` +
-    `0 passive radiators (passive-radiators-index.json 0 KB), ` +
+    `${radiatorRows.length} passive radiators (passive-radiators-index.json ${kb(statSync(RADIATOR_INDEX).size)} KB), ` +
     `${records.length} records under packages/ui/public/drivers/`,
   );
   if (records.length === 0) console.warn('WARNING: the catalogue is EMPTY — the app will list no bundled drivers.');

@@ -7,15 +7,15 @@
  * and section checks, not a wrapped domain object or an Engine.
  */
 import {openISDDeviceJsonSchema} from '../packages/design/domain/openisdSchema.ts';
-import {driverSectionProblems} from '../packages/design/domain/openisdTransforms.ts';
+import {driverSectionProblems, radiatorSectionProblems} from '../packages/design/domain/openisdTransforms.ts';
 
-/** Whether the record is structurally readable as a driver — schema validates and
- *  the sections are not contradictory. No Engine, no domain object creation. */
+/** Whether the record is structurally readable as a device — schema validates and it has the
+ *  section of a driver or of a passive radiator (the bundle carries both kinds). No Engine, no
+ *  domain object creation. */
 function recordConforms(record) {
   const result = openISDDeviceJsonSchema.safeParse(record);
   if (!result.success) return false;
-  const problems = driverSectionProblems(result.data);
-  return problems.length === 0;
+  return driverSectionProblems(result.data).length === 0 || radiatorSectionProblems(result.data).length === 0;
 }
 
 /** A record-level `{ value, origin, definition }` wrapper's value. */
@@ -27,8 +27,7 @@ const valueOf = node => (node && typeof node === 'object' && 'value' in node ? n
  *
  *  The final rule (QO79 amended, QO81, John — the paraphrase in this codebase is not a
  *  quotation of his exact words; see `questions.yml` QO81 for those): every structurally
- *  readable record bundles, EXCEPT devices with no woofer spec section — those are
- *  sub-box builders, not usable drivers in the main collection. Neither datasheet
+ *  readable record bundles — a driver or a passive radiator. Neither datasheet
  *  completeness nor simulatability is a bundling criterion — both are settled wrong,
  *  permanently. A driver missing Fs, or every T/S field,
  *  still bundles — it degrades in the app exactly like a user-created driver with those
@@ -46,7 +45,6 @@ const valueOf = node => (node && typeof node === 'object' && 'value' in node ? n
  *  throw downstream in `readCell`/`OpenISDDriver`
  *  (open: `bugs/BUG_20260822_openisddriver_getters_throw_on_a_record_that_has_specs_but_not_the_spec_entry_shape.md`). */
 export function project(record) {
-  if (!record.specs?.woofer) return { record, driverType: undefined, name: '', structurallyReadable: false };
   if (!recordConforms(record)) return { record, driverType: undefined, name: '', structurallyReadable: false };
 
   const driverType = valueOf(record.driver_type);
@@ -69,12 +67,10 @@ export function project(record) {
 /**
  * Whether a projected record belongs in the bundle.
  *
- * Structural readability is the base bar (QO79/QO81 ruling — field completeness
- * and simulatability never exclude a record). Devices with no woofer spec
- * section are additionally excluded — they are sub-box builders, not usable
- * drivers in the main collection.
+ * Structural readability is the only bar (QO79/QO81 ruling — field completeness and
+ * simulatability never exclude a record). A passive radiator bundles like a driver: the
+ * bundler writes it to `passive-radiators-index.json`, the driver to `drivers-index.json`.
  */
-export function isBundlable({ structurallyReadable, record }) {
-  if (!structurallyReadable) return false;
-  return record.specs?.woofer !== undefined;
+export function isBundlable({ structurallyReadable }) {
+  return structurallyReadable;
 }

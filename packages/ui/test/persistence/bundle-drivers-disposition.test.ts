@@ -174,4 +174,44 @@ specs:
 `);
     assert.equal(isBundlable(project(incomplete)), true);
   });
+
+  it('a structurally sound passive-radiator record (no woofer section) bundles — it is a device the app reads', () => {
+    const radiator = parseYaml(`
+uuid:
+  value: 11111111-1111-1111-1111-111111111111
+quality:
+  confirmed_fields: []
+  fields_with_issues: []
+  missing: []
+  invalid: []
+  parse_errors: []
+  cross_source_only: []
+manufacturer:
+  value: Dayton Audio
+brand:
+  value: Dayton Audio
+model:
+  value: ND140-PR
+sku:
+  value: nd140-pr
+  grounds:
+    - origin: manufacturer_product_page
+      reading: nd140-pr
+driver_type:
+  value: passive-radiator
+data_sources:
+  value: {}
+authoritative:
+  value: openisd
+specs:
+  passive-radiator:
+    Fs_hz:
+      origin: manufacturer_product_page
+      readings:
+        manufacturer_product_page:
+          read_value: 45.0
+`);
+    assert.equal('woofer' in radiator.specs, false, 'the fixture must genuinely be a radiator, not a driver');
+    assert.equal(isBundlable(project(radiator)), true);
+  });
 });
