@@ -54,6 +54,7 @@ import {ARRAY_WIRING_OPTIONS, BOX_TYPE_OPTIONS, END_CORRECTION_OPTIONS, VENT_SHA
 import {countOptions, limits, precision as fieldDp} from '../logic/fields/uiFields.js';
 import {inputChecked, inputFrom, inputValue, listeningElement, selectedOption, selectValue} from '../logic/domEvents.js';
 import {createSealedAlignmentEditor} from './SealedAlignment-hooks.js';
+import {createOgFilters} from './OgFilters-hooks.js';
 import type {OpenISDProject} from '@openisd/design';
 import type {StoredProjectListing} from '@openisd/persistence';
 import type {BoxType} from '@openisd/design/engine';
@@ -203,6 +204,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     prAddedMassCell, prTuningCell, prSystemTuning, prResonanceMass, prFsMass_hz,
   } = sealedReadouts({ project, selectedBox, projectChanged });
   const sealedAlignmentEditor = createSealedAlignmentEditor({ project, changed: projectChanged, engine });
+  const ogFilters = createOgFilters({ project, changed: projectChanged, engine });
   const sealedAlignmentOpen = sealedAlignmentEditor.open;
   const sealedAlignmentOptions = sealedAlignmentEditor.options;
   const sealedAlignmentSelected = sealedAlignmentEditor.selectedOption;
@@ -927,7 +929,7 @@ const overlays = computed<Design[]>(() => {
     selectedBox, BOX_TYPE_OPTIONS, LOSS_MODE_OPTIONS, ARRAY_WIRING_OPTIONS, N_DRIVERS_OPTIONS,
      boxVolume_m3, setBoxVolume_m3, fieldDp, sealedAlignmentEditor, sealedAlignmentOpen,
      sealedAlignmentOptions, sealedAlignmentSelected, sealedAlignmentVolume_L, sealedAlignmentEbp,
-     sealedAlignmentSuitability, sealedAlignmentSuitabilityLabel,
+     sealedAlignmentSuitability, sealedAlignmentSuitabilityLabel, ogFilters,
     fbState, FB_TARGET_TIP, fmtU, clearVentFieldOn, enterVentFieldOn,
     boxResonance, rearQtc, prSystemTuning,
     fbUnreachable, fbUnreachableMsg, boxLossesOpen, isDual,

@@ -1,40 +1,23 @@
 <script setup lang="ts">
 /**
- * Filters tab — the `.filters-quickadd` + `.filters-list` markup, wired to the project's
- * filter chain. Presentation only: the filter logic is single-sourced in the domain object and
- * the engine.
- *
- * No live mirror array, no deep watch. Every read is `project.filters()` (a fresh copy,
- * reactive via the focused-project injection); every write is a per-filter mutator
- * (`addFilter`/`removeFilter`/`setFilter(id, patch)`) straight through to it — the
- * delegate-free pattern `docs/design/REACTIVITY.md` specifies, applied to an ARRAY of records
- * instead of one flat bag. A local mutable draft synced by a bidirectional watch (the earlier
- * shape here) replaces the array under the user's cursor on every external notification,
- * including the one its own write causes — editing field A while the pull from that write is
- * in flight could stomp field B's in-progress keystroke. Per-field patches have no such
- * window: each write names exactly the filter and field it changes, nothing else is touched,
- * and there is nothing to pull back.
+ * Filters tab — the `.filters-quickadd` + `.filters-list` markup. Presentation only: the
+ * list, add, remove and patch live in `hooks/OgFilters-hooks.ts` (`createOgFilters`), the
+ * starting values of a new filter in the engine (`Engine.defaultFilter`). This file owns
+ * which row is open for editing and how a row is summarised, nothing else.
  *
  * Honesty note: the engine models exactly four filter types (highpass, lowpass, linkwitz,
  * peaking — @openisd/design/engine FilterType). The other four quick-add buttons
  * WinISD offers (Allpass, DLP, Static gain, Peaking-2nd-order-HP) have no engine model, so
  * they are intentionally omitted rather than added as controls that do nothing.
  */
-import {computed, ref} from 'vue';
-import {useFocusedProject} from '../../../logic/focusedProjectContext.js';
-import {projectChanged} from '../../../logic/appState.js';
+import {ref} from 'vue';
 import {limits} from '../../../logic/fields/uiFields.js';
 import type {Filter, FilterType} from '@openisd/design/engine';
 import {inputChecked, inputValue} from '../../../logic/domEvents.js';
+import type {OgFiltersAPI} from '../../../hooks/OgFilters-hooks.js';
 
-const project = useFocusedProject();
-// Raw reads (`filters.get()`) are not Vue-tracked; `project` re-fires only on focus swap, so
-// the change signal must be read too, or a quick-add never re-renders the list (same pump as
-// the hooks' readout computeds).
-const filters = computed<readonly Filter[]>(() => {
-  void projectChanged.value; void project.value;
-  return project.value.filters.get();
-});
+const {api} = defineProps<{ api: OgFiltersAPI }>();
+const filters = api.filters;
 
 // Order: LP, HP, …, LT, …, PEQ, with the four engine-unsupported types (AP, Peak, DLP,
 // Gain) omitted — see honesty note above.
@@ -47,34 +30,21 @@ const QUICK_ADD: { type: FilterType; label: string }[] = [
   { type: 'highshelf', label: '+ HS' },
 ];
 const BADGE: Record<FilterType, string> = { highpass: 'HP', lowpass: 'LP', linkwitz: 'LT', peaking: 'PEQ', lowshelf: 'LS', highshelf: 'HS' };
-const DEFAULTS: Record<FilterType, Record<string, number>> = {
-  highpass: { fc: 80,  Q: 0.7071 },
-  lowpass:  { fc: 200, Q: 0.7071 },
-  linkwitz: { f0: 50,  Q0: 0.7, fp: 20, Qp: 0.5 },
-  peaking:  { fc: 300, Q: 1.0, gain: -6 },
-  lowshelf:  { fc: 150,  Q: 0.7071, gain: 6 },
-  highshelf: { fc: 2000, Q: 0.7071, gain: 6 },
-};
 
+/** Which row is open for editing — presentation state, this tab's alone. */
 const editing = ref<string | null>(null);
 
-function addFilter(type: FilterType) {
-  const flt: Filter = { id: crypto.randomUUID(), type, enabled: true, ...DEFAULTS[type] };
-  project.value.filters.set([...project.value.filters.get(), flt]);
-  editing.value = flt.id ?? null;
-}
+function addFilter(type: FilterType) { editing.value = api.addFilter(type); }
 function removeFilter(id: string | undefined) {
   if (!id) return;
-  project.value.filters.set(project.value.filters.get().filter(f => f.id !== id));
+  api.removeFilter(id);
   if (editing.value === id) editing.value = null;
 }
 function toggleEdit(id: string | undefined) { editing.value = editing.value === id ? null : (id ?? null); }
-
-/** One input's `@input`/`@change` handler: patches exactly this filter's named field. */
+/** One input's `@input`/`@change` handler; a row without an id (a stored filter that never had one) cannot be edited. */
 function patch(id: string | undefined, field: keyof Filter, value: number | boolean) {
   if (!id) return;
-  project.value.filters.set(
-    project.value.filters.get().map(f => f.id === id ? Object.assign({}, f, { [field]: value }) : f));
+  api.patchFilter(id, field, value);
 }
 function numFrom(e: Event): number { return Number(inputValue(e)); }
 

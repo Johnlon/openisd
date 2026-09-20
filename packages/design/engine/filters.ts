@@ -12,7 +12,7 @@
  */
 
 import {cDiv, cMul, cx} from './complex.js';
-import type {Complex, Filter} from './types.js';
+import type {Complex, Filter, FilterType} from './types.js';
 
 /**
  * Evaluate 2nd-order analog biquad H(s) = (b0s²+b1s+b2)/(a0s²+a1s+a2) at s = jω.
@@ -107,6 +107,27 @@ export function highShelf(f: number, fc: number, Q = Math.SQRT1_2, gainDb: numbe
     A * A, A * sqA * w0 / Q, A * w0 * w0,
     1, sqA * w0 / Q, A * w0 * w0
   );
+}
+
+/**
+ * A fresh filter of `type` with its starting values — the numbers a quick-add button puts on
+ * screen before the user touches anything. Enabled; no list id — that key is the UI's, minted
+ * where the filter is put in a list. Exhaustive over `FilterType`: a new type with no starting
+ * values fails to compile here.
+ */
+export function defaultFilter(type: FilterType): Filter {
+  switch (type) {
+    case 'highpass':  return { type, enabled: true, fc: 80, Q: Math.SQRT1_2 };
+    case 'lowpass':   return { type, enabled: true, fc: 200, Q: Math.SQRT1_2 };
+    case 'linkwitz':  return { type, enabled: true, f0: 50, Q0: 0.7, fp: 20, Qp: 0.5 };
+    case 'peaking':   return { type, enabled: true, fc: 300, Q: 1, gain: -6 };
+    case 'lowshelf':  return { type, enabled: true, fc: 150, Q: Math.SQRT1_2, gain: 6 };
+    case 'highshelf': return { type, enabled: true, fc: 2000, Q: Math.SQRT1_2, gain: 6 };
+    default: {
+      const never: never = type;
+      throw new Error(`no starting values for filter type ${String(never)}`);
+    }
+  }
 }
 
 /**

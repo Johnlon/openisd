@@ -36,7 +36,7 @@ const {
   selectedBox, BOX_TYPE_OPTIONS, LOSS_MODE_OPTIONS, ARRAY_WIRING_OPTIONS, N_DRIVERS_OPTIONS,
   boxVolume_m3, setBoxVolume_m3, fieldDp, sealedAlignmentEditor, sealedAlignmentOpen,
   sealedAlignmentOptions, sealedAlignmentSelected, sealedAlignmentVolume_L, sealedAlignmentEbp,
-  sealedAlignmentSuitability, sealedAlignmentSuitabilityLabel,
+  sealedAlignmentSuitability, sealedAlignmentSuitabilityLabel, ogFilters,
   fbState, FB_TARGET_TIP, fmtU, clearVentFieldOn, enterVentFieldOn,
   boxResonance, rearQtc, prSystemTuning,
   fbUnreachable, fbUnreachableMsg, boxLossesOpen, isDual,
@@ -579,7 +579,7 @@ const {
 
         <!-- ===== Filters tab — OgFilters, wired to the project's filter chain ===== -->
         <section v-show="activeTab === 'filters'" class="tab-section" :class="{ active: activeTab === 'filters' }">
-          <OgFilters />
+          <OgFilters :api="ogFilters" />
         </section>
 
         <!-- ===== Signal tab ===== -->

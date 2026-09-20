@@ -39,6 +39,7 @@ import type {LossMode, SealedParams} from './lossMode.js';
 import {sealedResonance, sourceLoadedQts} from './lossMode.js';
 import type {BoxParamsSolveResult} from './params.js';
 import {solveBoxParams} from './params.js';
+import {defaultFilter} from './filters.js';
 import type {MaxCurvesSolveResult, SweepSolveResult} from './sweep.js';
 import {
   classifyFinite,
@@ -56,6 +57,8 @@ import type {
   DriverError,
   EbpSuitability,
   EnclosureParams,
+  Filter,
+  FilterType,
   MaxCurvesResult,
   SealedAlignmentOption,
   SimulatableBoxType,
@@ -322,6 +325,13 @@ export class Engine {
   /** Mechanical resistance from Qms — the inverse of `prQms`. */
   prRmsFromQms(prQmsValue: number, prMmd: number, prCms: number): number {
     return prRmsFromQms(prQmsValue, prMmd, prCms);
+  }
+
+  // ── FILTERS ──────────────────────────────────────────────────────────────────────────────
+
+  /** A fresh, enabled filter of `type` with its starting values. No list id: the UI mints that. */
+  defaultFilter(type: FilterType): Filter {
+    return defaultFilter(type);
   }
 
   // ── THE SWEEP ─────────────────────────────────────────────────────────────────────────────

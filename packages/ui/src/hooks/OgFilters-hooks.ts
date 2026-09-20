@@ -1,53 +1,51 @@
-import type {InjectionKey, Ref} from 'vue';
-import {computed} from 'vue';
-import {useFocusedProject} from '../logic/focusedProjectContext.js';
-import type {Filter, FilterType} from '@openisd/design/engine';
+import {computed, type ComputedRef, type Ref} from 'vue';
+import type {OpenISDProject} from '@openisd/design';
+import type {Engine, Filter, FilterType} from '@openisd/design/engine';
 
-export interface OgFiltersAPI {
-  readonly filters: Readonly<Ref<readonly Filter[]>>;
-  addFilter(type: FilterType): void;
-  removeFilter(id: string): void;
-  patchFilter(id: string, patch: Partial<Filter>): void;
+export interface OgFiltersDeps {
+  readonly project: ComputedRef<OpenISDProject>;
+  readonly changed: Ref<number>;
+  readonly engine: Engine;
 }
 
-export const OgFiltersKey: InjectionKey<OgFiltersAPI> = Symbol('OgFiltersAPI');
+export interface OgFiltersAPI {
+  readonly filters: ComputedRef<readonly Filter[]>;
+  /** Appends the engine's default filter of `type` under a fresh list id; returns that id. */
+  addFilter(type: FilterType): string;
+  removeFilter(id: string): void;
+  /** Patches exactly this filter's named field; every other filter and field is untouched. */
+  patchFilter(id: string, field: keyof Filter, value: number | boolean): void;
+}
 
-export function useOgFilters(): OgFiltersAPI {
-  const project = useFocusedProject();
-  const filters = computed<readonly Filter[]>(() => project.value.filters.get());
+/**
+ * The Filters tab's logic: the project's filter chain read fresh on every change signal, and
+ * per-filter mutators straight through to it — no local mirror, no deep watch (the
+ * delegate-free pattern `docs/design/REACTIVITY.md` specifies). The starting values of a new
+ * filter are the engine's (`Engine.defaultFilter`); the id is this list's row key only.
+ */
+export function createOgFilters({project, changed, engine}: OgFiltersDeps): OgFiltersAPI {
+  // Raw reads (`filters.get()`) are not Vue-tracked; `project` re-fires only on focus swap, so
+  // the change signal must be read too, or a quick-add never re-renders the list.
+  const filters = computed<readonly Filter[]>(() => {
+    void changed.value;
+    return project.value.filters.get();
+  });
 
-  function addFilter(type: FilterType): void {
-    const defaults: Record<FilterType, Partial<Filter>> = {
-      highpass: { fc: 80, Q: 0.7071 },
-      lowpass: { fc: 200, Q: 0.7071 },
-      linkwitz: { f0: 50, Q0: 0.7, fp: 20, Qp: 0.5 },
-      peaking: { fc: 300, Q: 1.0, gain: -6 },
-      lowshelf: { fc: 150, Q: 0.7071, gain: 6 },
-      highshelf: { fc: 2000, Q: 0.7071, gain: 6 },
-    };
-    const filter: Filter = {
-      id: String(Date.now()),
-      type,
-      enabled: true,
-      ...defaults[type],
-    };
-    project.value.filters.set([...filters.value, filter]);
+  function addFilter(type: FilterType): string {
+    const id = crypto.randomUUID();
+    project.value.filters.set([...project.value.filters.get(), {...engine.defaultFilter(type), id}]);
+    return id;
   }
 
   function removeFilter(id: string): void {
-    project.value.filters.set(filters.value.filter(f => f.id !== id));
+    project.value.filters.set(project.value.filters.get().filter(f => f.id !== id));
   }
 
-  function patchFilter(id: string, patch: Partial<Filter>): void {
+  function patchFilter(id: string, field: keyof Filter, value: number | boolean): void {
     project.value.filters.set(
-      filters.value.map(f => (f.id === id ? { ...f, ...patch } : f)),
+      project.value.filters.get().map(f => (f.id === id ? {...f, [field]: value} : f)),
     );
   }
 
-  return {
-    filters,
-    addFilter,
-    removeFilter,
-    patchFilter,
-  };
+  return {filters, addFilter, removeFilter, patchFilter};
 }
