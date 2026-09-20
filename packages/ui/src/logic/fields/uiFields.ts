@@ -103,7 +103,7 @@ const UI_FIELD_SPECS: UIFieldSpec[] = [
     id: 'endCorrection', label: 'End Correction', pane: 'Vents', kind: 'enum', unit: '',
     provenance: 'entered', appliesTo: ['vented', 'bandpass4'],
     options: END_CORRECTION_OPTIONS,
-    description: 'End Correction Factor: Acoustic mass loading coefficient for tube ends (0.613 for free ends, 0.732 for one flanged end, 0.849 for two flanged ends).',
+    description: 'End Correction Factor: Dimensionless factor accounting for acoustic air mass oscillating beyond the physical duct ends, extending effective acoustic port length depending on termination boundary geometry (free air vs flanged baffle).',
   },
   {
     id: 'ventCrossArea', label: 'Cross area', pane: 'Vents', kind: 'number', unit: 'm²', precision: 4, min: 0, max: 10,
@@ -116,7 +116,7 @@ const UI_FIELD_SPECS: UIFieldSpec[] = [
     provenance: 'calculated', appliesTo: ['vented', 'bandpass4'],
     formula: 'c / (2·ventL)',
     dependsOn: ['ventL'],
-    description: 'First Vent Pipe Resonance: Lowest organ-pipe standing wave resonance inside the port tube (f = c / 2L).',
+    description: 'First Vent Pipe Resonance: Frequency of the lowest organ-pipe standing wave resonance inside the port duct (f = c / 2L). Standing wave peaks in the vent column cause acoustic output peaks and noise within or above the passband, limiting usable port bandwidth.',
   },
 
   // ============================ PASSIVE RADIATOR ============================

@@ -64,9 +64,9 @@ All UI components and form controls obtain their configuration **exclusively fro
 | `vent_W_cm` | - | Vents | `REWRITE` | `Slot Port Width: Internal width of a rectangular slotted port.` |
 | `vent_H_cm` | - | Vents | `REWRITE` | `Slot Port Height: Internal height of a rectangular slotted port.` |
 | `vent_L_cm` | - | Vents | `REWRITE` | `Vent Length: Physical length of the port tube/duct. Longer ports lower the tuning frequency for a fixed volume.` |
-| `vent_EndCorrection` | - | Vents | `REWRITE` | `End Correction Factor: Acoustic mass loading coefficient for tube ends (0.613 for free ends, 0.732 for one flanged end, 0.849 for two flanged ends).` |
+| `vent_EndCorrection` | - | Vents | `REWRITE` | `End Correction Factor: Dimensionless factor accounting for acoustic air mass oscillating beyond the physical duct ends, extending effective acoustic port length depending on termination boundary geometry (free air vs flanged baffle).` |
 | `vent_CrossArea_m2` | - | Vents | `REWRITE` | `Vent Cross-Sectional Area: Total internal cross-sectional area of the port.` |
-| `vent_PortResonance_hz` | - | Vents | `REWRITE` | `First Vent Pipe Resonance: Lowest organ-pipe standing wave resonance inside the port tube (f = c / 2L).` |
+| `vent_1stPortResonance_hz` | - | Vents | `REWRITE` | `First Vent Pipe Resonance: Frequency of the lowest organ-pipe standing wave resonance inside the port duct (f = c / 2L). Standing wave peaks in the vent column cause acoustic output peaks and noise within or above the passband, limiting usable port bandwidth.` |
 | `pr_Sd_cm2` | `Sd_m2` | PassiveRadiator | `REWRITE` | `Passive Radiator Area: Effective radiating piston surface area of the passive radiator.` |
 | `pr_Xmax_mm` | `Xmax_m` | PassiveRadiator | `REWRITE` | `Passive Radiator Excursion Limit: Maximum peak linear cone displacement of the passive radiator diaphragm.` |
 | `pr_Num` | - | PassiveRadiator | `REWRITE` | `Passive Radiator Count: Number of identical passive radiators installed in the enclosure.` |
@@ -151,7 +151,7 @@ The alignment algorithms across various enclosure types live across 3 distinct m
 
 ---
 
-## 6. Target Symmetrical Dropdown Architecture (`UIOption<T>`)
+## 6. Target Symmetrical Dropdown Architecture (`SelectorOption<T>`)
 
 To eliminate structural drift, property name mismatches (`qtc` vs `value`), and ad-hoc string/object option handling, all dropdown options across the application are standardized onto a single unified, strongly-typed contract:
 
@@ -162,19 +162,20 @@ export interface SelectorOption<T = string | number> {
 }
 ```
 
-Every dropdown field in [uiFields.ts](file:///home/john/work/winisd/openisd/packages/design/fields/uiFields.ts) exposes `readonly options?: readonly SelectorOption[]` directly on its spec entry, ensuring 100% template and type symmetry across all controls:
+Every dropdown field in [uiFields.ts](file:///home/john/work/winisd/openisd/packages/ui/src/logic/fields/uiFields.ts) exposes `readonly options?: readonly SelectorOption[]` directly on its spec entry, ensuring 100% template and type symmetry across all controls:
 
-| Target Dropdown Control | SSOT Field Spec ID | Target Option Contract | Option Value & Label Pairs |
-| :--- | :--- | :--- | :--- |
-| **Port End Correction** | `vent_EndCorrection` | `readonly SelectorOption<number>[]` | `0.613` ("Two free ends"), `0.732` ("One flanged end"), `0.849` ("Two flanged ends") |
-| **Vent Geometry / Shape** | `vent_Shape` | `readonly SelectorOption<string>[]` | `'round'` ("Round Tube"), `'slotted'` ("Slotted Duct") |
-| **Voice Coil Wiring** | `driver_VCCon` | `readonly SelectorOption<string>[]` | `'Parallel'` ("Parallel"), `'Series'` ("Series") |
-| **Sealed Alignment Target ($Q_{tc}$)** | `box_Qtc` | `readonly SelectorOption<number>[]` | `0.500` ("0.500 Critically damped"), `0.577` ("0.577 Max flat delay"), `0.707` ("0.707 Max flat amplitude"), `0.800–1.500` ("Equal ripple") |
-| **Enclosure Type** | `box_Type` | `readonly SelectorOption<BoxType>[]` | `'closed'` ("Sealed"), `'vented'` ("Vented"), `'bandpass4'` ("4th-Order Bandpass"), `'box-passive-radiator'` ("Passive Radiator") |
-| **Filter Type** | `filter_Type` | `readonly SelectorOption<FilterType>[]` | `'highpass'` ("Highpass"), `'lowpass'` ("Lowpass"), `'peaking'` ("Peaking EQ"), `'linkwitz'` ("Linkwitz-Transform") |
-| **Enclosure Damping Fill** | `loss_DampingMode` | `readonly SelectorOption<LossMode>[]` | `'none'` ("None"), `'minimal'` ("Minimal"), `'normal'` ("Normal"), `'heavy'` ("Heavy") |
-| **Driver Array Wiring** | `driver_ArrayWiring` | `readonly SelectorOption<Wiring>[]` | `'parallel'` ("Parallel"), `'series'` ("Series") |
-| **Passive Radiator Library** | `pr_LibrarySelect` | `readonly SelectorOption<string>[]` | Dynamic list of saved PR records (`value: uuid, label: name`) |
-| **Driver Library** | `driver_LibrarySelect` | `readonly SelectorOption<string>[]` | Dynamic list of saved driver records (`value: uuid, label: model`) |
+| Target Dropdown Control | SSOT Field Spec ID | Target Option Contract | Option Value & Label Pairs | Loaded From (File Path, Class/Func, Data Types & API) |
+| :--- | :--- | :--- | :--- | :--- |
+| **Port End Correction** | `vent_EndCorrection` | `readonly SelectorOption<number>[]` | `0.613` ("Two free ends"), `0.732` ("One flanged end"), `0.849` ("Two flanged ends") | `packages/design/fields/options.ts` → `END_CORRECTION_OPTIONS` (`readonly SelectorOption<number>[]`) |
+| **Vent Geometry / Shape** | `vent_Shape` | `readonly SelectorOption<string>[]` | `'round'` ("Round Tube"), `'slotted'` ("Slotted Duct") | `packages/design/fields/options.ts` → `VENT_SHAPE_OPTIONS` (`readonly SelectorOption<string>[]`) |
+| **Voice Coil Wiring** | `driver_VCCon` | `readonly SelectorOption<string>[]` | `'Parallel'` ("Parallel"), `'Series'` ("Series") | `packages/design/fields/options.ts` → `VC_CONNECTION_OPTIONS` (`readonly SelectorOption<string>[]`) |
+| **Sealed Alignment Target ($Q_{tc}$)** | `box_Qtc` | `readonly SelectorOption<number>[]` | `0.500` ("0.500 Critically damped"), `0.577` ("0.577 Max flat delay"), `0.707` ("0.707 Max flat amplitude"), `0.800–1.500` ("Equal ripple") | `packages/design/fields/options.ts` → `SEALED_ALIGNMENT_OPTIONS` & `packages/design/engine/boxDesign.ts` → `sealedAlignmentOptions()` |
+| **Enclosure Type** | `box_Type` | `readonly SelectorOption<BoxType>[]` | `'closed'` ("Sealed"), `'vented'` ("Vented"), `'bandpass4'` ("4th-Order Bandpass"), `'box-passive-radiator'` ("Passive Radiator") | `packages/design/fields/options.ts` → `BOX_TYPE_OPTIONS` (`readonly SelectorOption<BoxType>[]`) |
+| **Filter Type** | `filter_Type` | `readonly SelectorOption<FilterType>[]` | `'highpass'` ("Highpass"), `'lowpass'` ("Lowpass"), `'peaking'` ("Peaking EQ"), `'linkwitz'` ("Linkwitz-Transform") | `packages/ui/src/logic/series.ts` → `FILTER_TYPE_OPTIONS` (`readonly SelectorOption<FilterType>[]`) |
+| **Enclosure Damping Fill** | `loss_DampingMode` | `readonly SelectorOption<LossMode>[]` | `'none'` ("None"), `'minimal'` ("Minimal"), `'normal'` ("Normal"), `'heavy'` ("Heavy") | `packages/ui/src/logic/environment.ts` → `lossModeOptions()` (`readonly SelectorOption<LossMode>[]`) |
+| **Driver Array Wiring** | `driver_ArrayWiring` | `readonly SelectorOption<Wiring>[]` | `'parallel'` ("Parallel"), `'series'` ("Series") | `packages/ui/src/logic/appState.ts` → `ARRAY_WIRING_OPTIONS` (`readonly SelectorOption<Wiring>[]`) |
+| **Passive Radiator Library** | `pr_LibrarySelect` | `readonly SelectorOption<string>[]` | Dynamic list of saved PR records (`value: uuid, label: name`) | `packages/persistence/src/repos/savedLibrary.ts` → `useSavedLibrary().passiveRadiators` (`Ref<SavedRecord[]>`, API: `getLibraryRecords('passive-radiator')`) |
+| **Driver Library** | `driver_LibrarySelect` | `readonly SelectorOption<string>[]` | Dynamic list of saved driver records (`value: uuid, label: model`) | `packages/persistence/src/repos/savedLibrary.ts` → `useSavedLibrary().drivers` (`Ref<SavedRecord[]>`, API: `getLibraryRecords('driver')`) |
+
 
 
