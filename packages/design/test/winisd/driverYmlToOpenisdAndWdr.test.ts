@@ -326,10 +326,10 @@ describe('driverYmlToOpenisdAndWdr — one call, both derived files, one error a
       'openisd.yml differs from driver.yml by something other than the documented drops');
   });
 
-  it('a record with NO device section reports BOTH seams\' refusals, not just the driver\'s', () => {
-    // `specs: {}` is neither a driver nor a radiator, so both seams refuse it. Reporting only the
-    // driver seam's complaint tells a reader half of why the record is unusable: it names the
-    // missing woofer/tweeter and stays silent about the missing passive-radiator section.
+  it('a record with NO device section is refused ONCE, by the schema, naming both shapes it could have taken', () => {
+    // `specs: {}` is neither a driver nor a radiator. `specs` is a sum type, so the parse itself
+    // refuses the record — before either seam sees it — and its one message names the two shapes
+    // a record may take, so a reader learns the whole of why the record is unusable.
     const noSection = [
       'uuid: {value: 00000000-0000-4000-8000-000000000003}',
       'quality: {confirmed_fields: [], fields_with_issues: [], missing: [], invalid: [], parse_errors: [], cross_source_only: []}',
@@ -350,15 +350,15 @@ describe('driverYmlToOpenisdAndWdr — one call, both derived files, one error a
     const messages = errors.filter(e => e.level === 'error').map(e => e.message);
 
     assert.equal(wdr, null, 'nothing to simulate, so no .wdr');
-    assert.ok(messages.some(m => m.includes('no woofer section')),
-      'the driver seam\'s refusal reaches the caller');
-    assert.ok(messages.some(m => m.includes('not a radiator')),
-      'the radiator seam\'s refusal was thrown away');
+    const shape = messages.filter(m => m.includes("'specs'") && m.includes('woofer') && m.includes('passive-radiator'));
+    assert.equal(shape.length, 1, `one refusal on 'specs' naming both shapes, got: ${messages.join(' | ')}`);
+    assert.ok(!messages.some(m => m.includes('no woofer section') || m.includes('not a radiator')),
+      'a seam restated the schema\'s refusal second-hand');
   });
 
   it('a record that is TWO THINGS AT ONCE reports that once, not twice', () => {
-    // Both seams produce the same sentence for this shape, so concatenating them without
-    // de-duplicating would show a reader the identical complaint twice.
+    // The schema refuses a `specs` carrying both sections at the parse; neither seam then gets
+    // to restate it, so a reader sees the one complaint, not the same fact from two sides.
     const both = [
       'uuid: {value: 00000000-0000-4000-8000-000000000004}',
       'quality: {confirmed_fields: [], fields_with_issues: [], missing: [], invalid: [], parse_errors: [], cross_source_only: []}',
@@ -384,9 +384,9 @@ describe('driverYmlToOpenisdAndWdr — one call, both derived files, one error a
     ].join('\n');
 
     const { errors } = driverYmlToOpenisdAndWdr(both);
-    const twoThings = errors.filter(e => e.message.includes('two things at once'));
+    const twoThings = errors.filter(e => e.message.includes("'specs'") && e.message.includes('not both'));
 
-    assert.equal(twoThings.length, 1, 'the identical refusal was reported by both seams');
+    assert.equal(twoThings.length, 1, `the refusal was reported ${twoThings.length} times: ${errors.map(e => e.message).join(' | ')}`);
   });
 
   it('the .wdr survives text -> WinISDDriver -> record -> driver -> WinISDDriver -> text', () => {

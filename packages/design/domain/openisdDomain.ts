@@ -12,6 +12,7 @@ import {
     type CoupledVentedChamberJson,
     type CoupledVentedLossesJson,
     type DriverSpecsSection,
+    driverSpecsOf,
     enteredEntry,
     enteredWiring,
     type OpenISDBoxJson,
@@ -21,6 +22,7 @@ import {
     type OpenISDProjectSessionJson,
     openISDProjectSessionJsonSchema,
     type PassiveRadiatorSpecsSection,
+    radiatorSpecsOf,
     type SealedLossesJson,
     type SpecEntryJson,
     type VentedLossesJson,
@@ -445,30 +447,31 @@ function prSpec(
             // not-available, writes throw — the device absent-record contract.
             const record = lens.get();
             if (record === null) return createCell<number>('', null, 'not-available');
-            const spec = record.specs['passive-radiator'];
-            // A key ABSENT from the section means the radiator does not state that parameter.
-            const v = winningValue(spec?.[key]);
+            // A record that is not a radiator has no such section at all; a key ABSENT from the
+            // section means the radiator does not state that parameter. Both read not-available.
+            const v = winningValue(radiatorSpecsOf(record)?.['passive-radiator'][key]);
             return createCell('', v, v === null ? 'not-available' : 'entered');
         },
         {
             entered: (v: number) => {
                 const json = lens.get();
                 if (json === null) throw new Error('radiator slot is empty');
-                const spec = json.specs['passive-radiator'] ?? {};
+                const specs = radiatorSpecsOf(json);
+                if (specs === null) throw new Error('radiator slot holds a driver record');
                 lens.set({
                     ...json,
-                    specs: {...json.specs, 'passive-radiator': {...spec, [key]: enteredEntry(v)}},
+                    specs: {'passive-radiator': {...specs['passive-radiator'], [key]: enteredEntry(v)}},
                 });
             },
             clear: () => {
                 const json = lens.get();
                 if (json === null) throw new Error('radiator slot is empty');
-                const spec = json.specs['passive-radiator'];
-                if (!spec) return;
-                const {[key]: _removed, ...rest} = spec;
+                const specs = radiatorSpecsOf(json);
+                if (specs === null) return;
+                const {[key]: _removed, ...rest} = specs['passive-radiator'];
                 lens.set({
                     ...json,
-                    specs: {...json.specs, 'passive-radiator': rest},
+                    specs: {'passive-radiator': rest},
                 });
             },
             // S2-7c/d: entry-backed — a radiator's own T/S spec is never solver-derived, only
@@ -977,16 +980,18 @@ export class OpenIsdDriverSpec {
         /** One `SpecEntryJson` slot inside this section — creates the section object on write,
          *  deletes the key when set to `undefined` (T11: absence is 'N', not a stored null). */
         const sectionSlot = (key: keyof DriverSpecsSection): Lens<SpecEntryJson | undefined> => ({
-            get: () => record.get().specs[section]?.[key],
+            get: () => driverSpecsOf(record.get())?.[section]?.[key],
             set: (v) => {
                 const json = record.get();
-                const spec = json.specs[section] ?? {};
-                if (v === undefined) {
-                    const {[key]: _removed, ...rest} = spec;
-                    record.set({...json, specs: {...json.specs, [section]: rest}});
-                } else {
-                    record.set({...json, specs: {...json.specs, [section]: {...spec, [key]: v}}});
-                }
+                const specs = driverSpecsOf(json);
+                if (specs === null) throw new Error('OpenIsdDriverSpec: the record is a passive radiator, not a driver');
+                const spec = specs[section] ?? {};
+                const {[key]: _removed, ...rest} = spec;
+                const next: DriverSpecsSection = v === undefined ? rest : {...spec, [key]: v};
+                record.set({
+                    ...json,
+                    specs: section === 'woofer' ? {...specs, woofer: next} : {...specs, tweeter: next},
+                });
             },
         });
 
@@ -1157,7 +1162,7 @@ function blankDeviceRecord(section: 'woofer' | 'passive-radiator'): OpenISDDevic
         // No document to name — `openisd`, the pipeline's own role, exactly as the `.wdr`
         // import uses it for the same reason.
         authoritative: {value: 'openisd'},
-        specs: {[section]: {}},
+        specs: section === 'woofer' ? {woofer: {}} : {'passive-radiator': {}},
     };
 }
 
@@ -1324,7 +1329,7 @@ export abstract class OpenISDDriver extends OpenISDDevice {
         this.airProvider = airProvider;
         this.spec = {
             woofer: new OpenIsdDriverSpec(record, 'woofer', engine),
-            ...(record.get().specs.tweeter ? { tweeter: new OpenIsdDriverSpec(record, 'tweeter', engine) } : {}),
+            ...(driverSpecsOf(record.get())?.tweeter ? { tweeter: new OpenIsdDriverSpec(record, 'tweeter', engine) } : {}),
         };
     }
 
@@ -1332,12 +1337,6 @@ export abstract class OpenISDDriver extends OpenISDDevice {
      *  into the record as a `'C'` entry, cache the issues, and return them. */
     resolve(): readonly DriverIssue[] {
         return this.spec[this.section].resolve(this.engine.solveEnvironment(this.airProvider()).values);
-    }
-
-    /** Which spec section a record carries, or a refusal if it carries neither. */
-    protected static sectionOf(json: OpenISDDeviceJson): 'woofer' {
-        if (json.specs.woofer) return 'woofer';
-        throw new Error('OpenISDDriver: record has no woofer section');
     }
 
     // ── DERIVED FIGURES — every one from the injected engine, none computed here ──────────────
@@ -1374,7 +1373,7 @@ export abstract class OpenISDDriver extends OpenISDDevice {
     /** Voice-coil inductance, as the record states it. Not a solver quantity — nothing derives it
      *  — so it travels to `sweep` on its own, for the impedance plot alone. */
     Le_H(): number | undefined {
-        return winningValue(this.record.get().specs[this.section]?.Le_H ?? undefined) ?? undefined;
+        return winningValue(driverSpecsOf(this.record.get())?.[this.section]?.Le_H) ?? undefined;
     }
 
     /** An INDEPENDENT driver carrying this one's current values — and, with `update()`, the whole
@@ -1804,7 +1803,7 @@ export class OpenISDPassiveRadiatorStandalone extends OpenISDPassiveRadiator {
         set: (json: OpenISDDeviceJson) => void,
         engine: Engine,
     ): OpenISDPassiveRadiatorStandalone {
-        if (!get().specs['passive-radiator']) {
+        if (radiatorSpecsOf(get()) === null) {
             throw new Error('OpenISDPassiveRadiatorStandalone.window: record has no passive-radiator section');
         }
         return new OpenISDPassiveRadiatorStandalone(get, set, engine);

@@ -19,7 +19,7 @@
 import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
 import {WinISDDriver} from '../../winisd/winisdDriver.js';
-import {openISDDeviceJsonSchema, winISDDriverToOpenISDDeviceJson} from '../../domain/openisdSchema.js';
+import {driverSpecsOf, openISDDeviceJsonSchema, winISDDriverToOpenISDDeviceJson} from '../../domain/openisdSchema.js';
 
 /** A 49-char ParState row, 'N' everywhere except the given slot. */
 function parState(slot: number, mark: 'E' | 'C' | 'N'): string {
@@ -35,7 +35,7 @@ describe('winISDDriverFromOpenISDDeviceJson', () => {
 
     const { record } = winISDDriverToOpenISDDeviceJson(wdr);
 
-    const fs = record.specs.woofer?.Fs_hz;
+    const fs = driverSpecsOf(record)?.woofer.Fs_hz;
     assert.ok(fs, 'expected a Fs spec entry');
     if (fs.state !== 'E') throw new Error('expected an entered entry');
     assert.equal(fs.origin, 'manual');
@@ -48,7 +48,7 @@ describe('winISDDriverFromOpenISDDeviceJson', () => {
 
     const { record } = winISDDriverToOpenISDDeviceJson(wdr);
 
-    assert.equal(record.specs.woofer?.Vas_m3, undefined);
+    assert.equal(driverSpecsOf(record)?.woofer.Vas_m3, undefined);
   });
 
   it('a NOT-AVAILABLE cell with value 0 produces no spec entry', () => {
@@ -57,7 +57,7 @@ describe('winISDDriverFromOpenISDDeviceJson', () => {
 
     const { record } = winISDDriverToOpenISDDeviceJson(wdr);
 
-    assert.equal(record.specs.woofer?.Gloss, undefined);
+    assert.equal(driverSpecsOf(record)?.woofer.Gloss, undefined);
   });
 
   it('a NOT-AVAILABLE cell with a NONZERO value becomes an entered spec entry', () => {
@@ -68,7 +68,7 @@ describe('winISDDriverFromOpenISDDeviceJson', () => {
 
     const { record } = winISDDriverToOpenISDDeviceJson(wdr);
 
-    const fs = record.specs.woofer?.Fs_hz;
+    const fs = driverSpecsOf(record)?.woofer.Fs_hz;
     assert.ok(fs, 'N+nonzero must produce a spec entry — the mark is unreliable, the value is real');
     if (fs.state !== 'E') throw new Error('expected an entered entry');
     assert.equal(fs.readings?.manual?.read_value, 37.5);
@@ -80,7 +80,7 @@ describe('winISDDriverFromOpenISDDeviceJson', () => {
 
     const { record } = winISDDriverToOpenISDDeviceJson(wdr);
 
-    assert.equal(record.specs.woofer?.Xlim_m, undefined);
+    assert.equal(driverSpecsOf(record)?.woofer.Xlim_m, undefined);
   });
 
   it('header text crosses verbatim; brand/manufacturer/model fall back to n/a when blank', () => {

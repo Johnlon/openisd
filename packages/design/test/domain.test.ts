@@ -27,6 +27,14 @@ function fixedAppContext(id: string, isoDate = '2026-01-01T00:00:00.000Z'): AppC
 // that test, so an `it()` block reads top to bottom without opening anything else.
 const scraped = <T,>(value: T) => ({ value });
 
+/** A cloned record's woofer section, read the way any consumer must: `specs` is a SUM — a
+ *  driver's sections or a radiator's — so the woofer is reachable only behind the `in` check.
+ *  The record type is derived from the public method, never named. */
+function wooferOf(record: ReturnType<OpenISDDriver['cloneDriver']>) {
+  const specs = record.specs;
+  return 'woofer' in specs ? specs.woofer : undefined;
+}
+
 // A SPEC field is a different envelope from a metadata one: it states no value of its own, and
 // the number lives on the reading `origin` names. Building fixtures through this is what makes
 // them the shape a real record has.
@@ -116,7 +124,7 @@ describe('OpenISDDriver.cloneDriver() — the persistence layer\'s one seam onto
 
     const record = driver.cloneDriver();
     expect(record.brand.value).toBe('Dayton');
-    const fs = record.specs.woofer?.Fs_hz;
+    const fs = wooferOf(record)?.Fs_hz;
     if (fs?.state !== 'E') throw new Error('expected an entered Fs_hz entry');
     expect(fs.origin).toBeDefined();
   });
@@ -129,12 +137,12 @@ describe('OpenISDDriver.cloneDriver() — the persistence layer\'s one seam onto
 
     const before = driver.cloneDriver();
     driver.spec.woofer.Fs_hz.set(99);
-    const fsBeforeStr = JSON.stringify(before.specs.woofer?.Fs_hz);
+    const fsBeforeStr = JSON.stringify(wooferOf(before)?.Fs_hz);
     driver.spec.woofer.Fs_hz.set(99);
 
     // `before` is unmodified by the subsequent set.
-    expect(before.specs.woofer?.Fs_hz).toBeDefined();
-    expect(JSON.stringify(before.specs.woofer?.Fs_hz)).toBe(fsBeforeStr);
+    expect(wooferOf(before)?.Fs_hz).toBeDefined();
+    expect(JSON.stringify(wooferOf(before)?.Fs_hz)).toBe(fsBeforeStr);
   });
 });
 
@@ -252,8 +260,8 @@ describe('the driver — a window, not a copy', () => {
     // Structural, not raw string containment (S2-7d2: the fixture's Fs/Mms/Cms are jointly
     // over-determined, so the cascade now also attaches a formula dq to Fs_hz — a real, separate
     // fact this test is not about; asserting on `state`/`value` alone keeps it that way).
-    expect(session.edited?.driverEmbedding.device.specs.woofer?.Fs_hz).toMatchObject({ state: 'E', value: 35 });
-    expect(session.saved.driverEmbedding.device.specs.woofer?.Fs_hz).toMatchObject({ state: 'E', value: 30 });
+    expect(session.edited && wooferOf(session.edited.driverEmbedding.device)?.Fs_hz).toMatchObject({ state: 'E', value: 35 });
+    expect(wooferOf(session.saved.driverEmbedding.device)?.Fs_hz).toMatchObject({ state: 'E', value: 30 });
   });
 
   it('gives every field a STABLE identity across accesses', () => {
@@ -307,7 +315,7 @@ describe('the driver — a window, not a copy', () => {
     const result = OpenISDDriver.fromConformingRecord(noSection, new Engine());
 
     expect(Array.isArray(result)).toBe(true);
-    expect(result).toContain('no woofer section — nothing to simulate');
+    expect(result).toContain('no woofer section — this record is a passive radiator, nothing to simulate');
   });
 
   it('reports EVERY problem at once, not just the first', () => {
@@ -1409,7 +1417,7 @@ describe('a spec field the record does not state resolves on write (T11/S2-7c)',
     // backed by a real `'C'` entry in the record — not recomputed fresh at every read with
     // nothing persisted.
     const d = vasAndSd();
-    const entry = d.cloneDriver().specs.woofer?.Cms_m_per_N;
+    const entry = wooferOf(d.cloneDriver())?.Cms_m_per_N;
     expect(entry).toMatchObject({ state: 'C' });
     expect(entry?.value).toBeCloseTo(d.spec.woofer.Cms_m_per_N.get().value!, 12);
   });
@@ -1435,7 +1443,7 @@ describe('OpenISDDriver — resolves on every write (S2-7c)', () => {
 
   it('a derivable field is written into the record as a calculated entry right after construction', () => {
     const d = qesQms();
-    const entry = d.cloneDriver().specs.woofer?.Qts;
+    const entry = wooferOf(d.cloneDriver())?.Qts;
     expect(entry).toMatchObject({ state: 'C' });
     expect(entry?.value).toBeCloseTo((0.4 * 3.0) / (0.4 + 3.0), 12);
   });
@@ -1443,14 +1451,14 @@ describe('OpenISDDriver — resolves on every write (S2-7c)', () => {
   it('setting a field the record already resolved from changes the dependent calculated entry', () => {
     const d = qesQms();
     d.spec.woofer.Qms.set(6.0);
-    const entry = d.cloneDriver().specs.woofer?.Qts;
+    const entry = wooferOf(d.cloneDriver())?.Qts;
     expect(entry?.value).toBeCloseTo((0.4 * 6.0) / (0.4 + 6.0), 12);
   });
 
   it('an entered Qts survives a resolve untouched, even though it disagrees with Qes/Qms', () => {
     const d = qesQms();
     d.spec.woofer.Qts.set(111111);
-    const entry = d.cloneDriver().specs.woofer?.Qts;
+    const entry = wooferOf(d.cloneDriver())?.Qts;
     // Not `toEqual`: S2-7d2 also projects the group's formula dq onto every disagreeing field —
     // a real, separate fact from what this test is pinning (the VALUE is never overwritten).
     expect(entry).toMatchObject({ state: 'E', value: 111111 });
@@ -1458,9 +1466,9 @@ describe('OpenISDDriver — resolves on every write (S2-7c)', () => {
 
   it('clearing a field the resolve depended on removes the now-underivable calculated entry', () => {
     const d = qesQms();
-    expect(d.cloneDriver().specs.woofer?.Qts).toMatchObject({ state: 'C' });
+    expect(wooferOf(d.cloneDriver())?.Qts).toMatchObject({ state: 'C' });
     d.spec.woofer.Qes.clear();
-    expect(d.cloneDriver().specs.woofer?.Qts).toBeUndefined();
+    expect(wooferOf(d.cloneDriver())?.Qts).toBeUndefined();
     expect(d.spec.woofer.Qts.get().state).toBe('not-available');
   });
 
@@ -1477,7 +1485,7 @@ describe('OpenISDDriver — resolves on every write (S2-7c)', () => {
     const engine = new Engine();
     const d = OpenISDDriver.empty(engine);
     const air = engine.solveEnvironment({}).values;
-    const entry = d.cloneDriver().specs.woofer?.c_m_per_s;
+    const entry = wooferOf(d.cloneDriver())?.c_m_per_s;
     expect(entry).toMatchObject({ state: 'C', value: air.c });
   });
 });

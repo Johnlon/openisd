@@ -3,11 +3,13 @@
 // Layout: exported functions -> private helpers -> builder classes.
 
 import {
+    driverSpecsOf,
     emptyBoxJson,
     enteredEntry,
     type OpenISDBoxJson,
     type OpenISDDeviceJson,
     type OpenISDProjectJson,
+    radiatorSpecsOf,
 } from './openisdSchema.js';
 import {OpenISDDriver, OpenISDPassiveRadiatorStandalone, OpenISDProject,} from './openisdDomain.js';
 import {Engine} from '../engine/index.js';
@@ -15,33 +17,19 @@ import {type AppContext, realAppContext} from './appContext.js';
 
 // ── VALIDATION HELPERS — private to this file ──────────────────────────────────────────────
 
-/**
- * The ONE wording for the shape both seams refuse identically. A caller that asks both seams and
- * merges their findings de-duplicates by value, so two paraphrases of this one condition reach a
- * reader as two separate complaints about the same record.
- */
-const TWO_THINGS_AT_ONCE = 'both a driver section and a passive-radiator section — this record is two things at once';
-
+/** Which half of the `specs` sum a record is. A record that is BOTH or NEITHER never reaches
+ *  here — `openISDDeviceJsonSchema` refuses those at the parse — so each seam has one question
+ *  left: is this record the kind of device I wrap? */
 export function driverSectionProblems(json: OpenISDDeviceJson): string[] {
-    const specs = json.specs;
-    if (specs.woofer === undefined) {
-        return ['no woofer section — nothing to simulate'];
-    }
-    if (specs['passive-radiator'] !== undefined) {
-        return [TWO_THINGS_AT_ONCE];
-    }
-    return [];
+    return driverSpecsOf(json) === null
+        ? ['no woofer section — this record is a passive radiator, nothing to simulate']
+        : [];
 }
 
 export function radiatorSectionProblems(json: OpenISDDeviceJson): string[] {
-    const specs = json.specs;
-    if (specs['passive-radiator'] === undefined) {
-        return ['no passive-radiator section — this record is not a radiator'];
-    }
-    if (specs.woofer !== undefined) {
-        return [TWO_THINGS_AT_ONCE];
-    }
-    return [];
+    return radiatorSpecsOf(json) === null
+        ? ['no passive-radiator section — this record is a driver, not a radiator']
+        : [];
 }
 
 

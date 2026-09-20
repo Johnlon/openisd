@@ -19,7 +19,7 @@ import assert from 'node:assert/strict';
 
 import {WinISDDriver} from '../../winisd/winisdDriver.js';
 import type {SpecEntryJson} from '../../domain/openisdSchema.js';
-import {winISDDriverToOpenISDDeviceJson} from '../../domain/openisdSchema.js';
+import {driverSpecsOf, winISDDriverToOpenISDDeviceJson} from '../../domain/openisdSchema.js';
 
 /** Every entry this file imports is entered — narrows the `SpecEntryJson` union so a test can
  *  read `.readings` without repeating the guard at each call site. */
@@ -35,7 +35,7 @@ function wdrStating(vccon: string, mark: 'E' | 'C' | 'N'): WinISDDriver {
   return WinISDDriver.fromWdrIni(rows.join('\r\n') + '\r\n');
 }
 
-const vcconOf = (d: WinISDDriver) => winISDDriverToOpenISDDeviceJson(d).record.specs.woofer?.VCCon;
+const vcconOf = (d: WinISDDriver) => driverSpecsOf(winISDDriverToOpenISDDeviceJson(d).record)?.woofer.VCCon;
 const vcconWarningsOf = (d: WinISDDriver) => winISDDriverToOpenISDDeviceJson(d).warnings;
 
 describe('.wdr VCCon import', () => {
@@ -91,7 +91,7 @@ describe('.wdr numVC import', () => {
     const rows = ['[Driver]', 'Brand=Acme', 'Model=Widget', `numVC=${numVC}`, `ParState=${parState}`];
     return WinISDDriver.fromWdrIni(rows.join('\r\n') + '\r\n');
   }
-  const numVCOf = (d: WinISDDriver) => winISDDriverToOpenISDDeviceJson(d).record.specs.woofer?.numVC;
+  const numVCOf = (d: WinISDDriver) => driverSpecsOf(winISDDriverToOpenISDDeviceJson(d).record)?.woofer.numVC;
   const numVCWarningsOf = (d: WinISDDriver) => winISDDriverToOpenISDDeviceJson(d).warnings;
 
   it('numVC=2 imports untouched', () => {

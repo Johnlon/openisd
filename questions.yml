@@ -1,6 +1,32 @@
 prefix: QO
-next: 166
+next: 167
 questions:
+- id: QO166
+  title: Parallel session rolled the Driver Editor back to short field names plus a lookup table — restored to schema-name bindings
+  status: open
+  raised: '2026-09-20'
+  body: |
+    Task: finish docs/plans/PLAN_FIELD_REGISTRY_DESCRIPTIONS_AND_SSOT.md.
+
+    Found in the working tree (uncommitted, from another session): the Driver Editor
+    (DriverEditorModal.vue, DriverEditorModal-hooks.ts, driverSpecFields.ts and their two
+    unit tests) had been rewritten so every input binds a short legacy name ("Fs", "SPL",
+    "no") and a hand-written table (LEGACY_FIELD_TO_SCHEMA, ~45 rows) plus a second
+    string set (NUM_SPEC_FIELD_SET) translate those back to the schema names. Labels went
+    back to hardcoded text instead of the field registry. The commit before it (2d98126)
+    bound the schema names directly with no table.
+
+    The same session's design-package work (driver record is woofer-only, tweeter optional
+    for coaxials) is sound and matches the human's stated direction, so it was kept.
+
+    What was done: everything was first committed as-is (13ec42b, so nothing is lost), then
+    the five editor files were restored to their 2d98126 content. The human's instruction in
+    this session was "do not introduce new lookup tables of fields".
+
+    Question for the human: was the rollback to short names deliberate (some reason the
+    schema names cannot be used in the editor), or a tail-spin? If deliberate, say why and
+    the restore can be reverted from 13ec42b.
+  notes: []
 - id: QO157
   title: Driver Editor is truly modal — focus-switch cannot close it by clicking another row
   status: decided

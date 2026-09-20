@@ -11,7 +11,7 @@ import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
 import {WinISDDriver} from '../../winisd/winisdDriver.js';
 import {allNotAvailableCells} from './wdrFixture.js';
-import {winISDDriverToOpenISDDeviceJson} from '../../domain/openisdSchema.js';
+import {driverSpecsOf, winISDDriverToOpenISDDeviceJson} from '../../domain/openisdSchema.js';
 import {OpenISDDriver} from '../../domain/index.js';
 import {Engine} from '../../engine/index.js';
 
@@ -23,14 +23,14 @@ describe('WinISDDriver [DRIVERTYPE] tag — read side (winISDDriverToOpenISDDevi
     const wdr = WinISDDriver.fromWdrIni(written);
     const { record } = winISDDriverToOpenISDDeviceJson(wdr);
     assert.equal(record.driver_type.value, 'woofer');
-    assert.ok(record.specs.woofer, 'record.specs.woofer must be populated for a driver record');
+    assert.ok(driverSpecsOf(record)?.woofer, 'record.specs.woofer must be populated for a driver record');
   });
 
   it('a .wdr with no [DRIVERTYPE] tag falls back to woofer', () => {
     const wdr = WinISDDriver.build({ comment: 'an ordinary note' }, allNotAvailableCells(), []);
     const { record } = winISDDriverToOpenISDDeviceJson(wdr);
     assert.equal(record.driver_type.value, 'woofer');
-    assert.ok(record.specs.woofer, 'record.specs.woofer must be populated by default');
+    assert.ok(driverSpecsOf(record)?.woofer, 'record.specs.woofer must be populated by default');
   });
 });
 

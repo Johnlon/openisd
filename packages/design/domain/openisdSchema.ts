@@ -419,11 +419,65 @@ const passiveRadiatorSpecsSectionJsonSchema = (e: typeof specEntryJsonSchema) =>
     OuterY_m: e, weight_kg: e,
 }).partial();
 
-const specsJsonSchema = z.strictObject({
-    woofer: driverSpecsSectionJsonSchema(specEntryJsonSchema).optional(),
+/** A DRIVER's spec sections: the woofer section the app simulates — always — and, on a coaxial
+ *  only, a tweeter section beside it. */
+const driverSpecsJsonSchema = z.strictObject({
+    woofer: driverSpecsSectionJsonSchema(specEntryJsonSchema),
     tweeter: driverSpecsSectionJsonSchema(specEntryJsonSchema).optional(),
-    'passive-radiator': passiveRadiatorSpecsSectionJsonSchema(specEntryJsonSchema).optional(),
 });
+
+/** A PASSIVE RADIATOR's spec sections: exactly one, its own. */
+const radiatorSpecsJsonSchema = z.strictObject({
+    'passive-radiator': passiveRadiatorSpecsSectionJsonSchema(specEntryJsonSchema),
+});
+
+/** `specs` is a SUM TYPE — a device is a driver OR a radiator. Three optional sections would
+ *  have admitted `{}` and `{woofer, 'passive-radiator'}` as well-typed records and left every
+ *  reader to re-discover the contradiction; here both are refused AT THE PARSE.
+ *
+ *  Dispatched by hand rather than through `z.union`: a union that fails reports ONE issue on
+ *  `specs` and swallows the member's own findings, so a driver record with two bad readings
+ *  inside `Fs_hz` would have come back as "specs: invalid" instead of naming each reading
+ *  (`domain.test.ts` "names EVERY bad reading"). The key that is present says which member the
+ *  value claims to be; that member then parses it and its issues pass through, paths intact. */
+const SPECS_SHAPE = "a driver (a 'woofer' section, optionally with a 'tweeter' section) or a "
+    + "passive radiator (a 'passive-radiator' section) — not both, not neither";
+const specsJsonSchema = z.unknown().transform((value, ctx): DriverSpecsJson | RadiatorSpecsJson => {
+    const keyed = typeof value === 'object' && value !== null && !Array.isArray(value);
+    const claimsDriver = keyed && 'woofer' in value;
+    const claimsRadiator = keyed && 'passive-radiator' in value;
+    if (claimsDriver === claimsRadiator) {
+        ctx.issues.push({code: 'custom', message: SPECS_SHAPE, input: value});
+        return z.NEVER;
+    }
+    const member = claimsDriver ? driverSpecsJsonSchema.safeParse(value) : radiatorSpecsJsonSchema.safeParse(value);
+    if (!member.success) {
+        // Re-raised at the member's own path, so `specs.woofer.Fs_hz.…` survives the dispatch.
+        for (const issue of member.error.issues) {
+            ctx.issues.push({code: 'custom', message: issue.message, path: [...issue.path], input: value});
+        }
+        return z.NEVER;
+    }
+    return member.data;
+});
+
+/** The `specs` a DRIVER record carries. */
+export type DriverSpecsJson = z.infer<typeof driverSpecsJsonSchema>;
+/** The `specs` a PASSIVE RADIATOR record carries. */
+export type RadiatorSpecsJson = z.infer<typeof radiatorSpecsJsonSchema>;
+
+/** Narrow a record's `specs` to the driver member of the sum, or null when the record is a
+ *  radiator. A reader that needs the woofer section asks this ONCE and then reads typed fields;
+ *  the `in` check is the discriminator, since a strict driver object never carries the
+ *  radiator's key. */
+export function driverSpecsOf(json: OpenISDDeviceJson): DriverSpecsJson | null {
+    return 'woofer' in json.specs ? json.specs : null;
+}
+
+/** The radiator counterpart of `driverSpecsOf()`. */
+export function radiatorSpecsOf(json: OpenISDDeviceJson): RadiatorSpecsJson | null {
+    return 'passive-radiator' in json.specs ? json.specs : null;
+}
 
 export const openISDDeviceJsonSchema = z.strictObject({
     // DO NOT REORDER. Field order matches `_KEY_PRIORITY_LIST` (`model_driver.py:1509`) and `driver.yml`.
