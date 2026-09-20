@@ -1,6 +1,6 @@
 # PLAN — DRIVER SOLVE AND SWEEP DIAGNOSTICS
 
-**Status: S1–S7 landed 2026-09-17 (`6161b6c`..`713dbf3`). J1–J6 ruled → two follow-up steps S8 (strip `'C'` on save) and S10 (sealed joins the cascade). Browser-suite re-run pending.** 2026-09-16 rewrite: dropped the accreted
+**Status: S1–S7 landed 2026-09-17 (`6161b6c`..`713dbf3`). J1–J6 ruled → S8 (strip `'C'` on save) was DROPPED by QO167 (John, 2026-09-20: calculated values stay in every saved file, load recomputes); S10 (sealed joins the cascade) remains. Browser suite 289/289 green 2026-09-20.** 2026-09-16 rewrite: dropped the accreted
 design-history layers (original sketches, corrections, convergence essays — preserved in git
 history) and replaced them with the current components, the APIs the plan references by name,
 the built state, and the remaining steps. Review that prompted this:
@@ -478,7 +478,7 @@ solvePr → solveSealedAlignment` over the live `Field` handles; a standalone `O
 
 | # | Step | Work |
 |---|---|---|
-| S8 | Strip `'C'` entries on save (J1) | persistence: project save / catalogue bundle / browser store drop every `state:'C'` entry (and their `dq_calculated`); revert the three `scripts/roundTripGate.mjs` patches; RED: saved JSON contains no `'C'`. |
+| ~~S8~~ | ~~Strip `'C'` entries on save (J1)~~ | **DROPPED — QO167 (John, 2026-09-20), reverses QO147.** Calculated values and `dq_calculated` stay in every saved file (project save, catalogue bundle, browser store, bridge corpus export). Load recomputes them — that is the invariant. The `roundTripGate.mjs` patches stay. |
 | S10 | Sealed joins the cascade (J4) | `solveSealedAlignment` takes `Ql`/`Qa` (losses) as `SolverInput`s and reproduces `#sealedQtc`; WinISD parity confirmed by probe (`winisd-wine-probing`); sealed `volume_m3`/`Qtc` in `#resolve`; `q_tc` readout becomes an entry read. |
 
 **Original questions (kept for the record):**

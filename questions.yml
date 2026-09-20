@@ -1,6 +1,30 @@
 prefix: QO
-next: 167
+next: 168
 questions:
+- id: QO167
+  title: 'Calculated values stay in saved files; every load recomputes them — reverses QO147 (strip on save)'
+  status: decided
+  raised: '2026-09-20'
+  body: 'QO147 (2026-09-17) ruled that saving a project, bundling the catalogue or storing to the browser
+    strips every value the solver calculated, so a file holds only what was entered. That was plan step
+    S8 and had not been built. On 2026-09-20 the driver bridge began writing the app''s own export into
+    the scraper corpus (one producer of the calculated data-quality marks), which carries the calculated
+    values too. Asked whether stripping on save should cover that export as well.'
+  answer:
+    at: '2026-09-20'
+    text: |-
+      HUMAN RULING, verbatim (John, 2026-09-20): "I dont want to strip C on openisd saving - I DO want
+      it recalculated on reload. Can we record that as a hard decision. Having it in the file is cool.
+      Recalc is super important." — "All C is ok on openisd.yml file and (owdr/owpr) files."
+
+      DECIDED (hard):
+      - Calculated values and calculated data-quality marks are KEPT in every saved file — project
+        save, catalogue bundle, browser store, and the bridge's corpus export. Nothing strips them.
+      - Every load RECOMPUTES them. A stored calculated value is never trusted as current: reload
+        re-solves and overwrites it. This is the invariant that matters; the stored copy is a
+        convenience for readers of the file.
+      - QO147 is reversed. Plan step S8 (strip on save, revert the gate patches) is dropped.
+      - The round-trip gate patches that tolerate the stored calculated data stay.
 - id: QO166
   title: Parallel session rolled the Driver Editor back to short field names plus a lookup table — restored to schema-name bindings
   status: open
@@ -9312,8 +9336,10 @@ questions:
     them in the file?'
   answer:
     at: '2026-09-16'
-    text: Strip on save (John, 2026-09-17). Files hold only what was entered; load recomputes everything.
+    text: |-
+      Strip on save (John, 2026-09-17). Files hold only what was entered; load recomputes everything.
       The three release-gate patches can be reverted once stripping is in place.
+      SUPERSEDED by QO167 (John, 2026-09-20): calculated values stay in every saved file; load recomputes.
 - id: QO148
   title: Project object keeps a small cache of the last solve's problems - a fourth private field
   status: decided
