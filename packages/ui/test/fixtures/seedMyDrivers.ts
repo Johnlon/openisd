@@ -29,8 +29,8 @@ export const MY_DRIVERS_KEY = 'openisd_my_drivers';
 export interface SeedDriver {
   brand: string;
   model: string;
-  /** Defaults to `'woofer'` — the only section the pickers list. */
-  driverType?: 'woofer' | 'tweeter';
+  /** Defaults to `'woofer'`. */
+  driverType?: 'woofer';
   /** Optional stable identity. A fresh uuid is generated when absent. */
   uuid?: string;
   specs: Record<string, number>;
@@ -47,7 +47,7 @@ function enteredField(value: number): unknown {
  *  is passed the SAME value by `myDriversJson` so a seeded row has one id, not two.
  *  Exported for tests that hand-build a bucket around it (e.g. the storage-failure specs). */
 export function deviceRecord(d: SeedDriver, recordUuid: string): unknown {
-  const section = d.driverType ?? 'woofer';
+  const section = 'woofer';
   const specEntries: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(d.specs)) specEntries[key] = enteredField(value);
 
@@ -59,12 +59,12 @@ export function deviceRecord(d: SeedDriver, recordUuid: string): unknown {
     },
     manufacturer: { value: '' },
     brand: { value: d.brand },
-    model: { value: d.model },
+    model: {value: d.model },
     sku: { value: '', grounds: [{ origin: 'manual', reading: '' }] },
     driver_type: { value: section },
     data_sources: { value: {} },
     authoritative: { value: 'openisd' },
-    specs: { [section]: specEntries },
+    specs: { woofer: specEntries },
   };
 }
 

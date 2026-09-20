@@ -24,8 +24,8 @@ const TWO_THINGS_AT_ONCE = 'both a driver section and a passive-radiator section
 
 export function driverSectionProblems(json: OpenISDDeviceJson): string[] {
     const specs = json.specs;
-    if (specs.woofer === undefined && specs.tweeter === undefined) {
-        return ['neither a woofer nor a tweeter section — nothing to simulate'];
+    if (specs.woofer === undefined) {
+        return ['no woofer section — nothing to simulate'];
     }
     if (specs['passive-radiator'] !== undefined) {
         return [TWO_THINGS_AT_ONCE];
@@ -38,7 +38,7 @@ export function radiatorSectionProblems(json: OpenISDDeviceJson): string[] {
     if (specs['passive-radiator'] === undefined) {
         return ['no passive-radiator section — this record is not a radiator'];
     }
-    if (specs.woofer !== undefined || specs.tweeter !== undefined) {
+    if (specs.woofer !== undefined) {
         return [TWO_THINGS_AT_ONCE];
     }
     return [];

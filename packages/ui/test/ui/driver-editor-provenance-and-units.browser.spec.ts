@@ -94,12 +94,12 @@ function provenanceTables() {
 function keyForLabel(label: string): string | undefined {
   const spec = fieldSpecs.find(s => s.label === label);
   if (!spec) return undefined;
-  if (spec.domainKey && spec.domainKey in PROVENANCE_MAP) return spec.domainKey;
+  if (spec.id in PROVENANCE_MAP) return spec.id;
   if (spec.aliases) {
     const found = spec.aliases.find(a => a in PROVENANCE_MAP);
     if (found) return found;
   }
-  return spec.domainKey ?? spec.aliases?.[0] ?? spec.id;
+  return spec.aliases?.[0] ?? spec.id;
 }
 
 function unitTable() {

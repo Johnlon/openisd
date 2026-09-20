@@ -350,7 +350,7 @@ describe('driverYmlToOpenisdAndWdr — one call, both derived files, one error a
     const messages = errors.filter(e => e.level === 'error').map(e => e.message);
 
     assert.equal(wdr, null, 'nothing to simulate, so no .wdr');
-    assert.ok(messages.some(m => m.includes('neither a woofer nor a tweeter')),
+    assert.ok(messages.some(m => m.includes('no woofer section')),
       'the driver seam\'s refusal reaches the caller');
     assert.ok(messages.some(m => m.includes('not a radiator')),
       'the radiator seam\'s refusal was thrown away');

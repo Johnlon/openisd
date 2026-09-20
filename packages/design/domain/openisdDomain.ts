@@ -1138,7 +1138,7 @@ function driverSolverParamsOf(spec: OpenIsdDriverSpec, engine: Engine): DriverSo
  * `wdrToOpenIsdRecord`), which faces the same problem — a record with no source document
  * behind it.
  */
-function blankDeviceRecord(section: 'woofer' | 'tweeter' | 'passive-radiator'): OpenISDDeviceJson {
+function blankDeviceRecord(section: 'woofer' | 'passive-radiator'): OpenISDDeviceJson {
     return {
         uuid: {value: newUuid()},
         quality: {
@@ -1275,13 +1275,12 @@ export abstract class OpenISDDriver extends OpenISDDevice {
         return OpenISDDriverStandalone.wrap(parsed.json, engine);
     }
 
-    readonly section: 'woofer' | 'tweeter';
+    readonly section = 'woofer' as const;
 
-    /** The driver's spec sections. A caller that does not care which kind of driver it holds reads
-     *  `driver.spec[driver.section]`. */
+    /** The driver's spec sections. Driver math is woofer-only in OpenISD, coaxials may carry optional tweeter spec. */
     readonly spec: {
         readonly woofer: OpenIsdDriverSpec;
-        readonly tweeter: OpenIsdDriverSpec;
+        readonly tweeter?: OpenIsdDriverSpec;
     };
 
     /** The scraper-stated classification string — driver only, so it lives here rather than on
@@ -1313,7 +1312,6 @@ export abstract class OpenISDDriver extends OpenISDDevice {
 
     protected constructor(
         record: Lens<OpenISDDeviceJson>,
-        section: 'woofer' | 'tweeter',
         engine: Engine,
         airProvider: () => AirConstantProvider = () => ({}),
     ) {
@@ -1323,29 +1321,11 @@ export abstract class OpenISDDriver extends OpenISDDevice {
             }
         }, engine);
         this.record = record;
-        this.section = section;
         this.airProvider = airProvider;
-        // Both are built unconditionally, and NEITHER reads the record here. A `DriverSpec` is a
-        // WINDOW: it dereferences at call time, so a section the record does not carry reads
-        // `not-available` on every field and starts carrying values the moment one is set. Deciding
-        // in this constructor which sections "exist" would snapshot the record — and `update()`
-        // REPLACES it, so a driver updated from a tweeter record would keep reporting no tweeter.
-        // `section` already answers "which kind of driver is this"; presence is not a second answer.
         this.spec = {
             woofer: new OpenIsdDriverSpec(record, 'woofer', engine),
-            tweeter: new OpenIsdDriverSpec(record, 'tweeter', engine),
+            ...(record.get().specs.tweeter ? { tweeter: new OpenIsdDriverSpec(record, 'tweeter', engine) } : {}),
         };
-        // DELIBERATELY no `this.resolve()` here, despite S7-d's "'C' is a cache, recomputed on
-        // load": `OpenISDDriverEmbedded` shares this constructor and is rebuilt FRESH on every
-        // `project.driver` access (never held — see that class's own doc), so an unconditional
-        // resolve here would turn every mere READ into a WRITE. A project's own reactive layer
-        // reads `project.driver` from inside watchers that also react to the project's write
-        // notifications, so that write-on-read became an infinite reactive loop the moment this
-        // was tried (`packages/ui` "Maximum recursive updates exceeded", found running the full
-        // suite for S2-7c). `OpenISDDriverStandalone.wrap()` below calls `resolve()` once, itself,
-        // right after construction, for the one-shot cache-on-load S7-d actually asks for — a
-        // standalone driver is a genuine single long-lived instance, not a per-access window. An
-        // embedded driver gets no resolve at all until S2-7d wraps the project's own root lens.
     }
 
     /** T11/S2-7c: resolve this driver's active section — write every derivable quantity back
@@ -1355,10 +1335,9 @@ export abstract class OpenISDDriver extends OpenISDDevice {
     }
 
     /** Which spec section a record carries, or a refusal if it carries neither. */
-    protected static sectionOf(json: OpenISDDeviceJson): 'woofer' | 'tweeter' {
+    protected static sectionOf(json: OpenISDDeviceJson): 'woofer' {
         if (json.specs.woofer) return 'woofer';
-        if (json.specs.tweeter) return 'tweeter';
-        throw new Error('OpenISDDriver: record has neither a woofer nor a tweeter section');
+        throw new Error('OpenISDDriver: record has no woofer section');
     }
 
     // ── DERIVED FIGURES — every one from the injected engine, none computed here ──────────────
@@ -1541,7 +1520,7 @@ export class OpenISDDriverStandalone extends OpenISDDriver {
         // eslint-disable-next-line prefer-const
         let driver!: OpenISDDriverStandalone;
         const record = resolvingLens(raw, () => driver.resolve());
-        driver = new OpenISDDriverStandalone(record, OpenISDDriver.sectionOf(json), engine, airProvider);
+        driver = new OpenISDDriverStandalone(record, engine, airProvider);
         // The one-shot cache-on-load (S7-d): a standalone driver is a genuine single long-lived
         // instance, so — unlike an embedded one, rebuilt fresh on every access — resolving once
         // here is exactly the "'C' is a cache, recomputed on load" contract, not a write-on-read
@@ -1564,11 +1543,10 @@ export class OpenISDDriverStandalone extends OpenISDDriver {
 class OpenISDDriverEmbedded extends OpenISDDriver {
     private constructor(
         record: Lens<OpenISDDeviceJson>,
-        section: 'woofer' | 'tweeter',
         engine: Engine,
         airProvider: () => AirConstantProvider,
     ) {
-        super(record, section, engine, airProvider);
+        super(record, engine, airProvider);
     }
 
     /** Takes the lens onto the project's `driver` slot and the project's own environment — the
@@ -1588,7 +1566,7 @@ class OpenISDDriverEmbedded extends OpenISDDriver {
                 pressurePa: env.pressure_Pa ?? undefined,
             };
         };
-        return new OpenISDDriverEmbedded(slot, OpenISDDriver.sectionOf(slot.get()), engine, airProvider);
+        return new OpenISDDriverEmbedded(slot, engine, airProvider);
     }
 
     /** Adopt `source`'s whole record, then strip its `c`/`roo` — an embedded driver never keeps

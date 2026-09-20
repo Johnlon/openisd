@@ -81,7 +81,7 @@ function driverFrom(p: Parameters<typeof driverJson>[0]) {
 }
 
 function driverJson(p: {
-  brand: string; model: string; section: 'woofer' | 'tweeter' | 'passive-radiator';
+  brand: string; model: string; section: 'woofer' | 'passive-radiator';
   // A driver's own section (`specSection`) or a radiator's (`prSpecSection`, no `Qts`) —
   // whichever matches `section` above.
   spec: ReturnType<typeof specSection> | ReturnType<typeof prSpecSection> | ReturnType<typeof tuneSpec>;
@@ -104,7 +104,6 @@ function driverJson(p: {
     },
   };
   if (p.section === 'woofer') return { ...meta, specs: { woofer: p.spec } };
-  if (p.section === 'tweeter') return { ...meta, specs: { tweeter: p.spec } };
   return { ...meta, specs: { 'passive-radiator': p.spec } };
 }
 
@@ -308,7 +307,7 @@ describe('the driver — a window, not a copy', () => {
     const result = OpenISDDriver.fromConformingRecord(noSection, new Engine());
 
     expect(Array.isArray(result)).toBe(true);
-    expect(result).toContain('neither a woofer nor a tweeter section — nothing to simulate');
+    expect(result).toContain('no woofer section — nothing to simulate');
   });
 
   it('reports EVERY problem at once, not just the first', () => {
@@ -323,13 +322,13 @@ describe('the driver — a window, not a copy', () => {
 
   it('says nothing about SECTIONS of a record that is not a record', () => {
     // A section fault is a statement about a device's specs. This value has no specs and is not
-    // a record at all, so "neither a woofer nor a tweeter" would be a second-hand restatement of
+    // a record at all, so "no woofer section" would be a second-hand restatement of
     // "'specs' is missing" — the same fault, worded as if it were another one.
     const result = OpenISDDriver.fromConformingRecord({ brand: { value: 'Dayton', origin: 'x' } }, new Engine());
 
     expect(result).toEqual(expect.arrayContaining([expect.stringContaining("'specs'")]));
     expect(result).not.toEqual(expect.arrayContaining([
-      expect.stringContaining('neither a woofer nor a tweeter'),
+      expect.stringContaining('no woofer section'),
     ]));
   });
 

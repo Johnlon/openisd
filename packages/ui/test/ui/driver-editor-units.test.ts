@@ -23,13 +23,12 @@ import {readFileSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 import {dirname, join} from 'node:path';
 import type {CellState} from '@openisd/design/winisd';
-import type {SpecField} from '../../src/logic/appState.js';
 import {WinISDDriver} from '@openisd/design/winisd';
 import type {Field} from '@openisd/design';
 import {OpenISDDriver} from '@openisd/design';
 import {Engine} from '@openisd/design/engine';
-import {fieldById, precision} from '../../src/logic/fields/uiFields.js';
-import {specFieldHandle} from '../../src/logic/driverSpecFields.js';
+import {fieldById, precision} from '../../src/logic/fields/fieldRegistry.js';
+import {isNumSpecField, specFieldHandle} from '../../src/logic/driverSpecFields.js';
 import {nextToken, toDisplay, UNIT_GROUPS, unitDef, type UnitGroup} from '../../src/logic/fields/units.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -72,9 +71,7 @@ function boundFields(): Bound[] {
   const out: Bound[] = [];
   // Split on the field wrapper; each chunk runs to the start of the next field.
   for (const chunk of src.split('<div class="de-fld"').slice(1)) {
-    const binding = /<label>{{ fieldLabel\('([^']+)'\) }}<\/label>/.exec(chunk);
-    const label = binding ? fieldById(binding[1])?.label ?? binding[1]
-      : /<label>([^<]*)<\/label>/.exec(chunk)?.[1]?.trim();
+    const label = /<label>([^<]*)<\/label>/.exec(chunk)?.[1]?.trim();
     const field = /<NumInput[^>]*:model-value="cellVal\('([^']+)'\)"/.exec(chunk)?.[1];
     if (!label || !field) continue;                       // read-only readout or a text input
     const numInput = /<NumInput[\s\S]*?>/.exec(chunk)![0];
@@ -138,9 +135,14 @@ for (const group of ['length', 'freq', 'area', 'mass', 'volume', 'tempCoeff'] as
  *
  *  A name the numeric table does not own reads as not-available, which is what the editor
  *  renders for it. */
-function driverCellOf(d: OpenISDDriver, field: SpecField): Field<number> {
-  return specFieldHandle(d, field)
-    ?? { get: () => ({ value: null, state: 'not-available' as CellState }) } as Field<number>;
+function driverCellOf(d: OpenISDDriver, field: string): Field<number> {
+  // The editor binds the registry's SHORT names (`SPL`, `no`); the schema key is the alias the
+  // registry lists for that field. One lookup, no second name table here.
+  const key = fieldById(field)?.aliases?.find(isNumSpecField) ?? field;
+  if (!isNumSpecField(key)) {
+    return { get: () => ({ value: null, state: 'not-available' as CellState }) } as Field<number>;
+  }
+  return specFieldHandle(d, key);
 }
 
 const _engine = new Engine();
@@ -209,7 +211,7 @@ describe('driver editor — unit label and scale agree', () => {
   it('the Dimensions tab shows lengths in millimetres, not raw metres under a wrong label', () => {
     // A 6.5" driver's basket is 0.165 m. Rendered under a length label it must read as that
     // length — 165 mm — never 0.17, and never a metre value printed beside "in".
-    for (const label of ['Basket Plate Thickness (Thick)', 'Driver Depth (Depth)', 'Magnet Depth',
+    for (const label of ['Basket Plate Thickness (Thick)', 'Driver Depth (Depth)', 'Magnet Depth (MagDepth)',
                          'Magnet Diameter (Magnet)', 'Basket Diameter (Basket)',
                          'Outer Diameter (Outer)', 'Voice Coil Dia (Vcd)']) {
       const f = byLabel(label);
@@ -231,7 +233,7 @@ describe('resistance unit group — Ns/m ↔ kg/s, factor 1 (ledger QO51)', () =
   });
 
   it('Rms, Rme and Mcost declare the resistance unitGroup in the field registry', () => {
-    for (const id of ['Rms_kg_per_s', 'Rme_kg_per_s', 'Mcost_kg_per_s']) {
+    for (const id of ['Rms', 'Rme', 'Mcost']) {
       const spec = fieldById(id);
       assert.ok(spec, `fieldRegistry has no "${id}"`);
       assert.equal(spec!.unitGroup, 'resistance', `${id} does not carry unitGroup: 'resistance'`);
@@ -271,12 +273,12 @@ describe('resistance unit group — Ns/m ↔ kg/s, factor 1 (ledger QO51)', () =
   }
 
   it('field="Rms"/"Rme"/"Mcost" wires the registry ceiling into the bound check', () => {
-    for (const id of ['Rms_kg_per_s', 'Rme_kg_per_s', 'Mcost_kg_per_s']) {
-      const spec = fieldById(id);
-      assert.ok(spec, `fieldRegistry has no "${id}"`);
-      const f = byLabel(spec!.label);
+    for (const id of ['Rms', 'Rme', 'Mcost']) {
+      const f = byLabel(id);
       assert.equal(f.regField, id,
         `${id}'s NumInput does not bind field="${id}" — the registry's min/max never reach this cell's bound check`);
+      const spec = fieldById(id);
+      assert.ok(spec, `fieldRegistry has no "${id}"`);
       assert.equal(spec!.max, 1000, `${id}'s registry ceiling is no longer 1000 — update this pin`);
       assert.equal(withinRegistryBounds(id, 1000), true, `${id}: exactly at the registry ceiling must still be a valid value`);
       assert.equal(withinRegistryBounds(id, 1000.0001), false,
@@ -310,7 +312,7 @@ describe('percent unit group — one unit, the ONE place a fraction becomes a pe
   });
 
   it('no and Gloss render through the group, not a hand-bound :scale', () => {
-    for (const label of ['η₀', 'Gloss']) {
+    for (const label of ['no', 'Gloss']) {
       assert.equal(byLabel(label).toggleable, true,
         `${label} still binds a fixed :scale — the ×100 must come from the percent group`);
     }
@@ -392,18 +394,18 @@ describe('driver editor — precision comes from the field registry', () => {
   // dp at the call site is a second, silent declaration: Dd at 2 dp of a metre is ±5 mm on a
   // cone diameter, and nothing connects that number back to the field's spec.
   const REGISTRY_ID: Record<string, string> = {
-    Dd: 'Dd_m',
-    fLe: 'fLe_hz',
+    Dd: 'Dd',
+    fLe: 'fLe',
     // Mechanical fields carry "Full Name (Short)" labels, taken from WinISD's own help
     // (docs/winisd_helpfiles/help/thielesmall.html). Keys here are the rendered label text.
-    'Basket Plate Thickness (Thick)': 'Thick_m',
-    'Driver Depth (Depth)': 'Depth_m',
-    'Magnet Depth': 'MagDepth_m',
-    'Magnet Diameter (Magnet)': 'Magnet_m',
-    'Basket Diameter (Basket)': 'Basket_m',
-    'Outer Diameter (Outer)': 'Outer_m',
-    'Voice Coil Dia (Vcd)': 'Vcd_m',
-    'Driver Displacement Volume (DVol)': 'DVol_m3',
+    'Basket Plate Thickness (Thick)': 'Thick',
+    'Driver Depth (Depth)': 'Depth',
+    'Magnet Depth (MagDepth)': 'MagDepth',
+    'Magnet Diameter (Magnet)': 'Magnet',
+    'Basket Diameter (Basket)': 'Basket',
+    'Outer Diameter (Outer)': 'Outer',
+    'Voice Coil Dia (Vcd)': 'Vcd',
+    'Driver Displacement Volume (DVol)': 'DVol',
   };
 
   for (const [label, id] of Object.entries(REGISTRY_ID)) {
@@ -431,9 +433,9 @@ describe('driver editor — precision comes from the field registry', () => {
 describe('driver editor — every bound cell is one the driver model answers', () => {
   it('SPL and no read cells the ADT derives from Fs/Vas/Qes', () => {
     const d = coreDriver();
-    for (const label of ['SPL', 'η₀']) {
+    for (const label of ['SPL', 'no']) {
       const f = byLabel(label);
-      const cell = driverCellOf(d, f.field as SpecField);
+      const cell = driverCellOf(d, f.field as string);
       assert.equal(
         typeof cell.get().value,
         'number',
@@ -450,7 +452,7 @@ describe('driver editor — every bound cell is one the driver model answers', (
     // is exactly how the panel distinguishes that from a number the user typed.
     const f = byLabel('Voicecoils');
     const d = coreDriver();
-    const cell = driverCellOf(d, f.field as SpecField);
+    const cell = driverCellOf(d, f.field as string);
     assert.equal(cell.get().state, 'calculated' as CellState, `Voicecoils cell is ${cell.get().state} — an unstated coil count reads as the default, derived`);
     assert.equal(cell.get().value, 1, 'and the default is WinISD\'s 1');
     assert.equal(d.spec[d.section].numVC.get().value ?? 1, 1, 'the ENGINE-facing driver must still default numVC to 1 for simulation');

@@ -1,11 +1,11 @@
 import type {InjectionKey, Ref} from 'vue';
 import {computed, ref} from 'vue';
 import {type Cell, createCell, type Field, OpenISDDriverStandalone} from '@openisd/design';
-import {engine, type SpecField} from '../logic/appState.js';
+import {engine, type NumSpecField} from '../logic/appState.js';
 import {useFocusedProject} from '../logic/focusedProjectContext.js';
 import {useApp} from '../logic/app.js';
 import {openDriverDraft} from '../logic/driverDraft.js';
-import {specFieldHandle} from '../logic/driverSpecFields.js';
+import {isNumSpecField, specFieldHandle} from '../logic/driverSpecFields.js';
 import {cellClassFor} from '../logic/useDriverCells.js';
 import {editableFrom, selectValue} from '../logic/domEvents.js';
 import {fieldHelp, precision} from '../logic/fields/uiFields.js';
@@ -32,15 +32,15 @@ export interface DriverEditorModalAPI {
   readonly editorModelValue: Readonly<Ref<string>>;
   readonly renameQuestionOpen: Readonly<Ref<boolean>>;
 
-  cellClass(field: SpecField): string;
-  cellVal(field: SpecField): number | null;
-  dqNote(field: SpecField): string | null;
-  precisionVal(field: SpecField): number;
-  fieldHelpText(field: SpecField): string;
+  cellClass(field: string): string;
+  cellVal(field: string): number | null;
+  dqNote(field: string): string | null;
+  precisionVal(field: string): number;
+  fieldHelpText(field: string): string;
 
-  setTab(tab: Tab): void;
+  setTab(t: Tab): void;
   setText(field: 'brand' | 'model' | 'providedBy' | 'comment' | 'manufacturer' | 'added', e: Event): void;
-  setNum(field: SpecField, value: number | null): void;
+  setNum(field: string, v: number | null): void;
   setWiring(e: Event): void;
 
   save(): void;
@@ -122,34 +122,54 @@ export function useDriverEditorModal(onClose?: () => void): DriverEditorModalAPI
     }
   }
 
-  function fieldOf(field: SpecField): Field<number> | null {
+const LEGACY_FIELD_TO_SCHEMA: Record<string, NumSpecField> = {
+  Fs: 'Fs_hz', Re: 'Re_ohm', Le: 'Le_H', fLe: 'fLe_hz', KLe: 'KLe_H_sqrtHz',
+  Znom: 'Znom_ohm', Vas: 'Vas_m3', Sd: 'Sd_m2', BL: 'BL_Tm', Mms: 'Mms_kg',
+  Cms: 'Cms_m_per_N', Rms: 'Rms_kg_per_s', Xmax: 'Xmax_m', Xlim: 'Xlim_m',
+  SPL: 'SPL_dB', Pe: 'Pe_W', Dd: 'Dd_m', EBP: 'EBP_hz', Dia: 'Dia_m', Vd: 'Vd_m3',
+  SPLmax: 'SPLmax_dB', SPLmaxLF: 'SPLmaxLF_dB', USPL: 'USPL_dB', alfaVC: 'alfaVC_per_K',
+  Rt: 'Rt_K_per_W', Ct: 'Ct_J_per_K', gamma: 'gamma_m_per_s2_A', Rme: 'Rme_kg_per_s',
+  Mpow: 'Mpow_N_per_sqrtW', Mcost: 'Mcost_kg_per_s', c: 'c_m_per_s', roo: 'roo_kg_per_m3',
+  Vcd: 'Vcd_m', Hg: 'Hg_m', Hc: 'Hc_m', Thick: 'Thick_m', Depth: 'Depth_m',
+  MagDepth: 'MagDepth_m', Magnet: 'Magnet_m', Basket: 'Basket_m', Outer: 'Outer_m',
+  OuterX: 'OuterX_m', OuterY: 'OuterY_m', DVol: 'DVol_m3',
+};
+
+function parseNumSpecField(field: string): NumSpecField | null {
+  if (field === 'VCCon') return null;
+  const mapped = LEGACY_FIELD_TO_SCHEMA[field] ?? field;
+  return isNumSpecField(mapped) ? mapped : null;
+}
+
+  function fieldOf(field: string): Field<number> | null {
     const _ = trigger.value;
     if (!draftDriver.value) return null;
-    return specFieldHandle(draftDriver.value, field);
+    const parsed = parseNumSpecField(field);
+    return parsed ? specFieldHandle(draftDriver.value, parsed) : null;
   }
 
-  function cellOf(field: SpecField): Cell<number> {
+  function cellOf(field: string): Cell<number> {
     return fieldOf(field)?.get() ?? createCell<number>('', null, 'not-available');
   }
 
-  function cellClass(field: SpecField): string {
+  function cellClass(field: string): string {
     return cellClassFor(cellOf, field);
   }
 
-  function cellVal(field: SpecField): number | null {
+  function cellVal(field: string): number | null {
     const v = cellOf(field).value;
     return typeof v === 'number' ? v : null;
   }
 
-  function dqNote(_field: SpecField): string | null {
+  function dqNote(_field: string): string | null {
     return null;
   }
 
-  function precisionVal(field: SpecField): number {
+  function precisionVal(field: string): number {
     return precision(field);
   }
 
-  function fieldHelpText(field: SpecField): string {
+  function fieldHelpText(field: string): string {
     return fieldHelp(field);
   }
 
@@ -173,7 +193,7 @@ export function useDriverEditorModal(onClose?: () => void): DriverEditorModalAPI
     forceUpdate();
   }
 
-  function setNum(field: SpecField, v: number | null): void {
+  function setNum(field: string, v: number | null): void {
     const handle = fieldOf(field);
     if (!handle) return;
     if (v == null) handle.clear(); else handle.set(v);

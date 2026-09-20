@@ -12,21 +12,18 @@ import assert from 'node:assert/strict';
 import {WinISDDriver} from '../../winisd/winisdDriver.js';
 import {allNotAvailableCells} from './wdrFixture.js';
 import {winISDDriverToOpenISDDeviceJson} from '../../domain/openisdSchema.js';
-import {openIsdDriverToWinIsdDriver} from '../../domain/driverYmlToOpenisdAndWdr.js';
 import {OpenISDDriver} from '../../domain/index.js';
 import {Engine} from '../../engine/index.js';
-import type {DriverError} from '@openisd/design/engine';
 
 describe('WinISDDriver [DRIVERTYPE] tag — read side (winISDDriverToOpenISDDeviceJson)', () => {
-  it('a .wdr whose Comment= carries [DRIVERTYPE tweeter] reads back as a tweeter', () => {
+  it('a .wdr reads back with woofer section', () => {
     const written = WinISDDriver.build(
-      { comment: 'a note' }, allNotAvailableCells(), [], undefined, 'tweeter',
+      { comment: 'a note' }, allNotAvailableCells(), [], undefined, 'woofer',
     ).toWdrIni();
     const wdr = WinISDDriver.fromWdrIni(written);
     const { record } = winISDDriverToOpenISDDeviceJson(wdr);
-    assert.equal(record.driver_type.value, 'tweeter');
-    assert.ok(record.specs.tweeter, 'record.specs.tweeter must be populated for a tweeter record');
-    assert.equal(record.specs.woofer, undefined);
+    assert.equal(record.driver_type.value, 'woofer');
+    assert.ok(record.specs.woofer, 'record.specs.woofer must be populated for a driver record');
   });
 
   it('a .wdr with no [DRIVERTYPE] tag falls back to woofer', () => {
@@ -34,12 +31,11 @@ describe('WinISDDriver [DRIVERTYPE] tag — read side (winISDDriverToOpenISDDevi
     const { record } = winISDDriverToOpenISDDeviceJson(wdr);
     assert.equal(record.driver_type.value, 'woofer');
     assert.ok(record.specs.woofer, 'record.specs.woofer must be populated by default');
-    assert.equal(record.specs.tweeter, undefined);
   });
 });
 
-describe('full round trip: OID tweeter record -> .wdr -> OID record', () => {
-  it('a tweeter record written to .wdr and read back is still a tweeter', () => {
+describe('refusal of tweeter record', () => {
+  it('a tweeter record is refused by driver seam', () => {
     const engine = new Engine();
     const tweeterRecord = {
       uuid: { value: 'test-uuid-driver-type-tag' },
@@ -58,27 +54,6 @@ describe('full round trip: OID tweeter record -> .wdr -> OID record', () => {
     };
 
     const driverOrProblems = OpenISDDriver.fromConformingRecord(tweeterRecord, engine);
-    if (Array.isArray(driverOrProblems)) {
-      throw new Error(`Test fixture invalid: ${driverOrProblems.join('; ')}`);
-    }
-    const driver = driverOrProblems;
-
-    const errors: DriverError[] = [];
-    const wdr = openIsdDriverToWinIsdDriver(driver, errors);
-    const { record } = winISDDriverToOpenISDDeviceJson(wdr);
-
-    assert.equal(record.driver_type.value, 'tweeter');
-    assert.ok(record.specs.tweeter, 'record.specs.tweeter must survive the round trip');
-    assert.equal(record.specs.woofer, undefined);
-  });
-});
-
-describe('WinISDDriver [DRIVERTYPE] tag — no duplication on a second write', () => {
-  it('a tag already present in Comment= is not duplicated by a further fromWdrIni -> toWdrIni', () => {
-    const written = WinISDDriver.build(
-      { comment: 'a note' }, allNotAvailableCells(), [], undefined, 'tweeter',
-    ).toWdrIni();
-    const readBack = WinISDDriver.fromWdrIni(written).toWdrIni();
-    assert.equal(readBack, written);
+    assert.ok(Array.isArray(driverOrProblems), 'tweeter record must be refused');
   });
 });

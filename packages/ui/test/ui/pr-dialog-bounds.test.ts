@@ -69,38 +69,38 @@ describe('PR entry bounds keep the limits the dialogs enforced before the regist
   // was: a widened floor silently admits values the form used to refuse.
 
   it('Sd: at least 1 cm², at most 100000 cm²', () => {
-    const spec = fieldById('prSd')!;
+    const spec = fieldById('pr_Sd_cm2')!;
     assert.equal(spec.max, fromDisplay(100000, 'area', 'cm2'), 'Sd ceiling moved off 100000 cm²');
     assert.ok(spec.min! >= fromDisplay(0.1, 'area', 'cm2'), 'Sd floor is looser than the 0.1 cm² the form enforced');
   });
 
   it('Xmax: 0 to 500 mm', () => {
-    const spec = fieldById('prXmax')!;
+    const spec = fieldById('pr_Xmax_mm')!;
     assert.equal(spec.max, fromDisplay(500, 'length', 'mm'), 'Xmax ceiling moved off 500 mm');
     assert.equal(spec.min, 0, 'Xmax floor moved off zero — an unexcursed PR is a legal entry');
   });
 
   it('Vas: at least 0.01 L, at most 100000 L', () => {
-    const spec = fieldById('prVas')!;
+    const spec = fieldById('pr_Vas_l')!;
     assert.equal(spec.max, fromDisplay(100000, 'volume', 'L'), 'Vas ceiling moved off 100000 L');
     assert.ok(spec.min! > 0, 'Vas floor is zero — a PR with no compliance volume is unphysical');
     assert.ok(spec.min! <= fromDisplay(0.01, 'volume', 'L'), 'Vas floor is tighter than the 0.01 L the form allowed');
   });
 
   it('Fs: at least 1 Hz, at most 1000 Hz', () => {
-    const spec = fieldById('prFs')!;
+    const spec = fieldById('pr_Fs_hz')!;
     assert.equal(spec.max, 1000, 'Fs ceiling moved off 1000 Hz');
     assert.ok(spec.min! >= 1, 'Fs floor is below the 1 Hz the form enforced — 0 Hz is not a resonance');
   });
 
   it('Qms: at least 0.1, at most 100', () => {
-    const spec = fieldById('prQms')!;
+    const spec = fieldById('pr_Qms')!;
     assert.equal(spec.max, 100, 'Qms ceiling moved off 100');
     assert.ok(spec.min! >= 0.1, 'Qms floor is below the 0.1 the form enforced — a Q of 0 is unphysical');
   });
 
   it('PR count: 1 to 16 whole radiators', () => {
-    const spec = fieldById('prNum')!;
+    const spec = fieldById('pr_Num')!;
     assert.equal(spec.min, 1, 'a design with a PR has at least one');
     assert.equal(spec.max, 16, 'PR count ceiling moved off 16');
   });

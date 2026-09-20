@@ -33,7 +33,7 @@ function driverFrom(p: Parameters<typeof driverJson>[0]) {
 }
 
 function driverJson(p: {
-  brand: string; model: string; section: 'woofer' | 'tweeter' | 'passive-radiator';
+  brand: string; model: string; section: 'woofer' | 'passive-radiator';
   spec: ReturnType<typeof specSection> | ReturnType<typeof prSpecSection>;
 }) {
   const meta = {
@@ -50,7 +50,6 @@ function driverJson(p: {
     },
   };
   if (p.section === 'woofer') return { ...meta, specs: { woofer: p.spec } };
-  if (p.section === 'tweeter') return { ...meta, specs: { tweeter: p.spec } };
   return { ...meta, specs: { 'passive-radiator': p.spec } };
 }
 
