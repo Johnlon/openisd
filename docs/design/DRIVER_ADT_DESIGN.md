@@ -4,7 +4,7 @@
 > describes — "today's `Driver` class dies," replaced by `OpenISDDriver`. This document
 > remains accurate for the class as it exists *today* (it still runs the whole app), but
 > describes something being actively retired, not the target architecture. See
-> [`../plans/PLAN_OPENISD_DRIVER_MODEL.md`](../plans/PLAN_OPENISD_DRIVER_MODEL.md) for the
+> [`../plans/archive/PLAN_OPENISD_DRIVER_MODEL.md`](../plans/archive/PLAN_OPENISD_DRIVER_MODEL.md) for the
 > migration plan and the target shape.
 
 `Driver` carries no session, what-if, or edit-draft concept — it is a pure calculation/

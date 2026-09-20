@@ -33,7 +33,7 @@ Four distinct defects:
    `managedProject.ventArea_m2()`, `curvesData.value`. `buildWprInput`'s signature
    (`wprMapping.ts:33-45`) exists only because a project cannot be handed over whole. This is
    the `state.P` duplication defect in its export form — see
-   `docs/plans/PLAN_QO60_LAYERING_REMEDIATION.md` objective 2.
+   `docs/plans/archive/PLAN_QO60_LAYERING_REMEDIATION.md` objective 2.
 2. **`new Date()` called inline** (`:172`) — non-determinism injected at the call site, so the
    output cannot be reproduced by a test and `ModifyDate` cannot be asserted.
 3. **The driver is re-derived from a record** (`:169`) — `OpenISDDriver.fromJsonRecord(record)`

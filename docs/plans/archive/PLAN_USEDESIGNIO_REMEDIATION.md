@@ -1,7 +1,7 @@
 # useApplicationIO.ts remediation plan (QO61)
 
 > **This plan is one objective of a larger one.** The QO61 work below is objective 6 of
-> [`PLAN_QO60_LAYERING_REMEDIATION.md`](http://localhost:8000/openisd/docs/plans/PLAN_QO60_LAYERING_REMEDIATION.md?html),
+> [`PLAN_QO60_LAYERING_REMEDIATION.md`](http://localhost:8000/openisd/docs/plans/archive/PLAN_QO60_LAYERING_REMEDIATION.md?html),
 > which carries the access rules, the `state.P` deletion, the catalogue-index design and the
 > model→winisd dependency reversal that this file's objectives depend on. Read that first; where
 > the two disagree, that one is authoritative.

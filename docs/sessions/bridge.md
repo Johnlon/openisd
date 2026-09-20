@@ -40,10 +40,10 @@ exceptions with the one general rule from the table — not yet done, not yet ap
 
 ## Also uncommitted, not part of this session's work
 
-Per `git status` at resume: `docs/design/WDR_LOGIC.md`, `docs/plans/PLAN_OPENISD_DRIVER_MODEL.md`,
+Per `git status` at resume: `docs/design/WDR_LOGIC.md`, `docs/plans/archive/PLAN_OPENISD_DRIVER_MODEL.md`,
 `packages/design/winisd/parstate.ts`, `packages/design/winisd/winisdDriver.ts`,
 `packages/ui/src/ui/components/DriverEditorModal.vue`, `questions.yml`,
-`docs/design/WINISD_CALCULABLE.md`, `docs/plans/PLAN_PROJECT_PERSISTENCE.md` — some or all of
+`docs/design/WINISD_CALCULABLE.md`, `docs/plans/archive/PLAN_PROJECT_PERSISTENCE.md` — some or all of
 these may belong to peer sessions (`file-spec` was working `questions.yml` and
 `docs/plans/*.md`). Verify ownership with `ListAgents` before touching.
 

@@ -73,7 +73,7 @@ the data is missing; every other field (`Vb`/`Vf`/`Ql`/`Qa`/`Qp`/`Pin`/`Rs`/`ven
 absent instead of writing a literal.
 
 Interacts with the QO61 rewrite: this parse moves to `@openisd/winisd` as a raw reader
-(objective 2 of `docs/plans/PLAN_QO60_LAYERING_REMEDIATION.md`) — not yet done, but no longer
+(objective 2 of `docs/plans/archive/PLAN_QO60_LAYERING_REMEDIATION.md`) — not yet done, but no longer
 blocking, since the raw-or-absent behaviour this bug required is already in place here.
 
 ## Verification

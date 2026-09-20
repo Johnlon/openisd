@@ -206,7 +206,7 @@ Before starting work:
 - `BACKLOG.md` — P0 gates all feature work
 - `ARCHITECTURE.md` — hard decisions, component diagram, dependency rules, §3 the driver model
 - `docs/spec/SPEC_ENGINE.md`, `docs/spec/SPEC_UI.md` — engine and UI contracts
-- `docs/plans/OPENISD_MODEL_MIGRATION_READINESS.md` with `docs/plans/PLAN_OPENISD_DRIVER_MODEL.md`
+- `docs/plans/archive/OPENISD_MODEL_MIGRATION_READINESS.md` with `docs/plans/archive/PLAN_OPENISD_DRIVER_MODEL.md`
   — before any driver-model work
 
 ## Project shape

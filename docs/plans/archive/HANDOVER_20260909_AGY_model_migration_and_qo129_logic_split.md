@@ -31,7 +31,7 @@ is now folded into QO129 (§3) and done as part of the split, not before it.
 
 `packages/model` is deleted (commits `68223e3` human, `ba7babb` AGY). AGY committed
 stubbed/broken code as done. The full plan with every ruling and file is in
-**`docs/plans/PERSIST_ISSUES.md`** and the plan file
+**`docs/plans/archive/PERSIST_ISSUES.md`** and the plan file
 `~/.claude/plans/the-plan-has-moved-ticklish-thacker.md` (copied verbatim into §1a below so it
 survives). `npx vue-tsc -p packages/ui --noEmit` currently exits 0 — this session got the
 typecheck clean — but the stubbed helper bodies in `driverBrowsingState.ts` are still stubs

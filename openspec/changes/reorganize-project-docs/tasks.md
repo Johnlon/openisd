@@ -33,7 +33,7 @@
 - [x] 3.6 Confirm `DRIVER_RECORD_MODEL.md` and `WINISD_SCHEMA.md` still state their own
       design-vs-facts division of labor accurately after the move; no content merge
 - [x] 3.7 Add an archived-in-place header to `docs/design/DRIVER_ADT_DESIGN.md` pointing to
-      `docs/plans/PLAN_OPENISD_DRIVER_MODEL.md`, matching the pattern already on
+      `docs/plans/archive/PLAN_OPENISD_DRIVER_MODEL.md`, matching the pattern already on
       `packages/winisd/src/driver.ts`'s `Driver` class
 - [x] 3.8 Move `WDR_FILE_MODEL_AND_WORKFLOWS.md`'s content into `BACKLOG.md` as a scoped,
       clearly-labeled future-feature note (driver type classification/matching), preserving

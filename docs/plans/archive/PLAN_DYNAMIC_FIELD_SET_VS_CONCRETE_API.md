@@ -12,7 +12,7 @@ Refactor domain entities in `@openisd/design` (`OpenISDDriver`, `Vent`, `Passive
 > - Eliminates all caller dictionary packing/unpacking and eliminates hand-coded mapping arrays in the domain layer.
 
 ## Open Questions
-- None. Invariants are specified in [`docs/design/DYNAMIC_FIELD_SET_VS_CONCRETE_API.md`](../design/DYNAMIC_FIELD_SET_VS_CONCRETE_API.md).
+- None. Invariants are specified in [`docs/design/DYNAMIC_FIELD_SET_VS_CONCRETE_API.md`](../../design/DYNAMIC_FIELD_SET_VS_CONCRETE_API.md).
 
 ---
 

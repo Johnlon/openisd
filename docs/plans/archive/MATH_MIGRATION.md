@@ -1,6 +1,6 @@
 # Math migration — retiring `winisd_tools` calc code into `@openisd/engine`
 
-Companion to [PLAN_JS_CALC_CONSOLIDATION.md](http://localhost:8000/winisd/openisd/docs/plans/PLAN_JS_CALC_CONSOLIDATION.md#L1)
+Companion to [PLAN_JS_CALC_CONSOLIDATION.md](http://localhost:8000/winisd/openisd/docs/plans/archive/PLAN_JS_CALC_CONSOLIDATION.md#L1)
 (the internal TS collapse this plan depends on, and the CNE/provenance findings) ·
 [TODO.md QT39](http://localhost:8000/winisd/winisd_tools/TODO.md#L2405-L2447) (the ruling this
 executes, verbatim: _"100% retire calc code in python and reimpl it js. python will call js for

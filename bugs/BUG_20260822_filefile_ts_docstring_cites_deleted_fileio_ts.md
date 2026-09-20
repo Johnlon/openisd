@@ -12,7 +12,7 @@ module that is not in the tree.
 ## Evidence
 
 `find . -iname "fileIO.ts" -not -path "*/node_modules/*"` returns nothing under `packages/`.
-The only other hit is `docs/plans/PROMPT_RELEASE_HARDENING.md:782`, itself describing the
+The only other hit is `docs/plans/archive/PROMPT_RELEASE_HARDENING.md:782`, itself describing the
 module as already cleared by this in-flight rework. `formatOf`/`sniff` are both defined and
 exported in `fileFormat.ts` itself (lines 107, 115) — the comment's own file, not a separate
 `fileIO.ts`.

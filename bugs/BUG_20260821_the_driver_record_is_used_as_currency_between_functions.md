@@ -53,7 +53,7 @@ Not fixed. RECORDS cross the persistence boundary; DRIVERS cross function bounda
 That removes `_OpenISDDriverJson` from four of the six files the private-import gate currently
 names, without any allow-list entry.
 
-Part of objectives 2 and 4 of `docs/plans/PLAN_QO60_LAYERING_REMEDIATION.md`; recorded
+Part of objectives 2 and 4 of `docs/plans/archive/PLAN_QO60_LAYERING_REMEDIATION.md`; recorded
 separately because it is a distinct, testable defect from the store-globals work.
 
 ## Verification

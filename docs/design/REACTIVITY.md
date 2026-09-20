@@ -1,6 +1,6 @@
 # Reactivity without a delegate layer
 
-Unblocks objective 2 of [`PLAN_QO60_LAYERING_REMEDIATION.md`](../plans/PLAN_QO60_LAYERING_REMEDIATION.md):
+Unblocks objective 2 of [`PLAN_QO60_LAYERING_REMEDIATION.md`](../plans/archive/PLAN_QO60_LAYERING_REMEDIATION.md):
 deleting `state.P`'s 19 accessor properties removes what currently makes box, vent and PR fields
 reactive to templates, so the replacement has to exist before they go.
 

@@ -36,7 +36,7 @@ spawn (copy the relevant ones into each agent prompt — subagents inherit nothi
 ## Read first, in this order
 
 1. `ARCHITECTURE.md` (openisd) — its `FileIO` block is known-stale; see item 4.
-2. `docs/plans/PLAN_QO60_LAYERING_REMEDIATION.md` — the layering plan. Objective 5 is STRUCK
+2. `docs/plans/archive/PLAN_QO60_LAYERING_REMEDIATION.md` — the layering plan. Objective 5 is STRUCK
    (target file deleted). Task R4 strikes its "QO56 hazard" clause (single writer, ruled).
 3. `docs/design/REACTIVITY.md` — the delegate-free reactivity design (unblocks A3).
 4. `docs/design/FILEIO_API_PROPOSALS.md` — Proposal B is RULED. It is A6's interface and lists

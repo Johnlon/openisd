@@ -2,7 +2,7 @@
 
 Every ruled/landed change to the record format, gathered 2026-08-22 from the release run's
 rulings (`questions.yml` QT47/QT48/QT49/QT56/QO42/QO65), bugs, and the release plan
-(`docs/plans/PROMPT_RELEASE_HARDENING.md`). The MODEL changes are all landed in winisd_tools
+(`docs/plans/archive/PROMPT_RELEASE_HARDENING.md`). The MODEL changes are all landed in winisd_tools
 (commit `16492ffc` and earlier); the CORPUS lags until the single B10 re-emission. Hazard H1:
 the regeneration runs ONCE, after everything below is in — never per-change.
 

@@ -4,7 +4,7 @@
 `OpenISDPassiveRadiator` and the alignment types into files, so those types must exist first.
 Starting this early means writing a projection of a model that is still being reshaped.
 
-Implements [`ARCHITECTURE.md`](../../ARCHITECTURE.md) §1 — "`openisd.yml` and `.wdr` are PRODUCED
+Implements [`ARCHITECTURE.md`](../../../ARCHITECTURE.md) §1 — "`openisd.yml` and `.wdr` are PRODUCED
 exclusively by JS/TS owned by OpenISD" — and R23, the package boundary.
 
 ---

@@ -2,9 +2,9 @@
 
 Successor to `PLAN_DRIVER_ADT.md` (that plan is DONE — it built today's
 `packages/winisd/src/driver.ts` `Driver` class). This plan executes
-[ARCHITECTURE.md](../../ARCHITECTURE.md) **AD-8** (human decision, 2026-07-31), whose own text
+[ARCHITECTURE.md](../../../ARCHITECTURE.md) **AD-8** (human decision, 2026-07-31), whose own text
 says it "needs its own plan" and that "today's `Driver` class dies." Companion: this repo's
-existing [`../design/DRIVER_ADT_DESIGN.md`](../design/DRIVER_ADT_DESIGN.md) describes the
+existing [`../design/DRIVER_ADT_DESIGN.md`](../../design/DRIVER_ADT_DESIGN.md) describes the
 class AD-8 retires — not repeated here.
 
 ---

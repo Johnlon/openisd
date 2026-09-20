@@ -9,7 +9,7 @@ every `POS_TO_WDRKEY` slot and reads each cell's own state, not a 15-field hardc
 **Severity** wrong provenance written to file. A `.wdr` openisd authors tells WinISD "nothing is
 set" for every field openisd calculated.
 **Status** OPEN — not fixed here. The fix is the `WinISDDriver` writer,
-`docs/plans/OPENISD_TARGET_MIGRATION_PLAN.md` Step 8.
+`docs/plans/archive/OPENISD_TARGET_MIGRATION_PLAN.md` Step 8.
 
 ## Symptom
 

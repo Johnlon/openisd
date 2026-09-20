@@ -364,7 +364,7 @@ off the driver JSON". That module was DELETED as redundant, along with its twin
 described now belongs to objective 6's `FileIO` (see `docs/design/FILEIO_API_PROPOSALS.md`), so
 there is nothing separate to do here.
 
-**6. QO61 — `useApplicationIO.ts`.** Per `docs/plans/PLAN_USEDESIGNIO_REMEDIATION.md`, revised
+**6. QO61 — `useApplicationIO.ts`.** Per `docs/plans/archive/PLAN_USEDESIGNIO_REMEDIATION.md`, revised
 against these rules: engine gains the PR inverse formulas, reached ONLY via the objective-3 PR
 getter; `.wpr` parsing moves to `@openisd/winisd` raw-only; box-type mapping consolidates to one
 enum-typed function; the file shrinks to a `FileIO` service and is renamed.

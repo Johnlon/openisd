@@ -5,7 +5,7 @@ Status: RESOLVED
 # Status
 - fabricated defaults for absent .wdr keys: FIXED (as recorded 2026-08-13)
 - export-side toWdr() still writes Gloss=0: RESOLVED by the `WinISDDriver`/`OpenISDDriver`
-  split (docs/plans/OPENISD_TARGET_MIGRATION_PLAN.md Step 8) — `packages/winisd/src/driver.ts`
+  split (docs/plans/archive/OPENISD_TARGET_MIGRATION_PLAN.md Step 8) — `packages/winisd/src/driver.ts`
   and its `fromWdr`/`#inputs`/`STANDARD_NUMERIC_KEYS` mechanism no longer exist; superseded by
   `packages/winisd/src/winisdDriver.ts` (pure serialisation) + `packages/model/src/openisdDriver.ts`.
   `winisd-parity.test.ts`'s `Gloss` row runs clean across all 15 scenarios (436/436 passing,
@@ -99,5 +99,5 @@ test asserts that a `.wdr` with no `Gloss=` line yields `cell('loss').state === 
 `toWdr()` still writes `Gloss=0` for such a driver, because the export path echoes `#wdrRaw` and
 never substitutes a CALCULATED value. `ARCHITECTURE.md` §"The two formats carry deliberately
 different content" requires `.wdr` to carry every calculated value. That is the `WinISDDriver`
-writer's job — `docs/plans/OPENISD_TARGET_MIGRATION_PLAN.md` Step 8 — and is tracked there, not
+writer's job — `docs/plans/archive/OPENISD_TARGET_MIGRATION_PLAN.md` Step 8 — and is tracked there, not
 here.

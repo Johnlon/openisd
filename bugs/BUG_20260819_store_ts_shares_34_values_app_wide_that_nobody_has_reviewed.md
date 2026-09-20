@@ -40,7 +40,7 @@ list:
 | `loadDriverRecord` | 6 | every one resolves to `managedProject.loadDriverRecord`, never the store's |
 
 So all ten can be un-exported with no caller change, which is objective 1 of
-`docs/plans/PLAN_QO60_LAYERING_REMEDIATION.md` and shrinks the list before any human review of it.
+`docs/plans/archive/PLAN_QO60_LAYERING_REMEDIATION.md` and shrinks the list before any human review of it.
 The remaining 35 are the ones that need judgement. One (`restoreProblems`) is itself a separate,
 already-filed bug (write-with-no-reader,
 `BUG_20260819_restoreProblems_computed_but_never_read_by_the_ui.md`) — worth resolving THAT

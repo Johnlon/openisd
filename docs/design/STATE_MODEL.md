@@ -12,7 +12,7 @@ library picker). The rule that keeps skins from diverging is ARCHITECTURE.md AD-
 session/what-if/edit concept, and nothing may be added to give it one — an auto-clearing
 session layer on the driver WOULD silently evict inherited Q-group members instead of
 surfacing the contradiction to the user (see rule 10).
-See also [PLAN_OPENISD_DRIVER_MODEL.md](../plans/PLAN_OPENISD_DRIVER_MODEL.md) — the actual target
+See also [PLAN_OPENISD_DRIVER_MODEL.md](../plans/archive/PLAN_OPENISD_DRIVER_MODEL.md) — the actual target
 architecture (`ARCHITECTURE.md` AD-8) retires `Driver` entirely in favor of `OpenISDDriver`.
 
 ---

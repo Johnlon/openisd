@@ -5,7 +5,7 @@
  * Seam under test: `driverYmlToOpenisdAndWdr(driverYmlText)`, the ONE entry the V8 bridge calls
  * (`packages/design/winisd/driverYmlToOpenisdAndWdr.ts`). It returns both derived files; only the
  * `.wdr` half is the oracle's business.
- * `WinISDDriver` (docs/plans/OPENISD_TARGET_MIGRATION_PLAN.md Step 8, ARCHITECTURE.md §3
+ * `WinISDDriver` (docs/plans/archive/OPENISD_TARGET_MIGRATION_PLAN.md Step 8, ARCHITECTURE.md §3
  * "WinISDDriver is solely a serialisation device") stays internal to that composition.
  *
  * 🔒 ORACLE RULE (SPEC_ENGINE §4.7): the ONLY oracle is `drivers/mysamples/winisd/`, prepared by

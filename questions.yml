@@ -6,7 +6,7 @@ questions:
   status: open
   raised: '2026-09-20'
   body: |
-    Task: finish docs/plans/PLAN_FIELD_REGISTRY_DESCRIPTIONS_AND_SSOT.md.
+    Task: finish docs/plans/archive/PLAN_FIELD_REGISTRY_DESCRIPTIONS_AND_SSOT.md.
 
     Found in the working tree (uncommitted, from another session): the Driver Editor
     (DriverEditorModal.vue, DriverEditorModal-hooks.ts, driverSpecFields.ts and their two
@@ -2920,7 +2920,7 @@ questions:
         docs/spec/SPEC_ENGINE.md 6(b) -- Znom added to the calculated set, with the warning that a .wdr
           written with Znom copied from Re, or slot 0 marked N, disagrees with WinISD.
 
-      STILL STALE, NOT MINE TO EDIT: docs/plans/OPENISD_MODEL_MIGRATION_READINESS.md:69 blocker B1 says
+      STILL STALE, NOT MINE TO EDIT: docs/plans/archive/OPENISD_MODEL_MIGRATION_READINESS.md:69 blocker B1 says
       "nothing has been probed" and cites the slot-0 exclusion that no longer exists. Whoever owns the
       migration plan should clear B1.
   - at: '2026-08-14'
@@ -3557,7 +3557,7 @@ questions:
       tdd RETIRED — ONE NAME. Deleted openisd/.claude/skills/tdd and openisd/.gemini/skills/tdd (both
       resolved to _agent_files/skills/test-driven-development, so the one skill was listed twice in
       every session). openisd/AGENTS.md:72 now says `/test-driven-development`; verified the line said
-      "invoke the `/tdd` skill" before the edit. openisd/docs/plans/PLAN_OPENISD_DRIVER_MODEL.md:102
+      "invoke the `/tdd` skill" before the edit. openisd/docs/plans/archive/PLAN_OPENISD_DRIVER_MODEL.md:102
       updated in the same change — it instructed "red→green per `/tdd`", which would no longer resolve.
       Left alone: openisd/openspec/changes/harden-quality-gate-enforcement/proposal.md:26, prose
       recording what a past change touched, not an invocation. Live confirmation: the session's skill
@@ -3709,7 +3709,7 @@ questions:
   notes:
   - at: '2026-08-13'
     text: |-
-      DOC: docs/plans/OPENISD_MODEL_MIGRATION_READINESS.md (indexed in AGENTS.md "Before starting work").
+      DOC: docs/plans/archive/OPENISD_MODEL_MIGRATION_READINESS.md (indexed in AGENTS.md "Before starting work").
 
       1. AD-8 is UNSTARTED in the app: grep for OpenISDRecord|SpecEntry|SpecSection|ScrapedField|winningReading
          across packages/ui + packages/engine returns 0 lines. The native types, YAML I/O, derive adapter and
@@ -3761,7 +3761,7 @@ questions:
            REVISIT IF: a WinISD probe shows a datasheet-sourced field rendering as something other than E.
   - at: '2026-08-13'
     text: |-
-      2026-08-13 -- PLAN LANDED: docs/plans/OPENISD_TARGET_MIGRATION_PLAN.md, 16 steps (1 land the in-flight
+      2026-08-13 -- PLAN LANDED: docs/plans/archive/OPENISD_TARGET_MIGRATION_PLAN.md, 16 steps (1 land the in-flight
       layering move; 2 extract @openisd/model; 3 Xmax Hc==Hg guard; 4 determine the ParState slot-0 Znom rule;
       5 turn the parity suite green; 6 determine OpenISDDriver's required API from the 34 call sites; 7 complete
       OpenISDDriver; 8 build WinISDDriver one class both directions; 9 composition root + createDiagnostics;
@@ -3823,7 +3823,7 @@ questions:
       WIRING: packages/model/{package.json,tsconfig.json} added; vitest.config.ts gains a 'model'
       project and packages/model/src in coverage include; root package.json gains typecheck:model
       (chained into `typecheck`) and "@openisd/model":"*"; npm install linked the workspace.
-      Also updated the stale fixture paths in docs/plans/OPENISD_MODEL_MIGRATION_READINESS.md R5 and
+      Also updated the stale fixture paths in docs/plans/archive/OPENISD_MODEL_MIGRATION_READINESS.md R5 and
       added packages/model to the AGENTS.md project-shape list.
 
       GATES:
@@ -4002,7 +4002,7 @@ questions:
       Step 8 has not started; this is a requirement on that future work, not a completed change.
   - at: '2026-08-14'
     text: |-
-      STEPS 6-7 DONE. Step 6 table (docs/plans/OPENISD_TARGET_MIGRATION_PLAN.md, Step 6 section):
+      STEPS 6-7 DONE. Step 6 table (docs/plans/archive/OPENISD_TARGET_MIGRATION_PLAN.md, Step 6 section):
       34/34 UI call sites classified — OpenISDDriver 17, WinISDDriver 7, dies 9, logic 1. Supplementary
       member table cross-checks the 9 pinned packages/winisd/test files + 2 pinned packages/ui/test
       files: enter/clear/cell(numeric)/errors/subscribe already on OpenISDDriver; enter/clear/cell for
@@ -4115,7 +4115,7 @@ questions:
       them and ARCHITECTURE.md disagree ... ARCHITECTURE.md wins"); BACKLOG.md:356 and :560
       (re-pointed to ARCHITECTURE.md §3, one with a direct subsection anchor); docs/design/
       STATE_MODEL.md:73,76 (re-pointed, QO13/QP18 ledger citations left as STATE_MODEL's own style);
-      docs/plans/PLAN_OPENISD_DRIVER_MODEL.md:117 (re-pointed, QP18 citation left).
+      docs/plans/archive/PLAN_OPENISD_DRIVER_MODEL.md:117 (re-pointed, QP18 citation left).
 
       NOT fixed, out of scope: docs/design/WDR_SCHEMA.md:368,604 references DRIVER_RECORD_MODEL.md
       twice — WDR_SCHEMA.md is on this task's explicit file-restriction list (do not edit), so left
@@ -4949,7 +4949,7 @@ questions:
       at Hc = Hg the engine writes Xmax = 0 at driver.ts:151-152, which makes :160-161 skip (Xmax is
       no longer null), so row 20 never fires — where WinISD writes Vd/Sd. Needs a human ruling on
       whether to match WinISD's zero fall-through. Recorded as the remaining half of blocker B2 in
-      docs/plans/OPENISD_MODEL_MIGRATION_READINESS.md.
+      docs/plans/archive/OPENISD_MODEL_MIGRATION_READINESS.md.
 
       STATEMENTS CORRECTED — 6 passages across 5 files (line numbers are pre-prettier):
         openisd/docs/design/WDR_SCHEMA.md:268
@@ -4960,14 +4960,14 @@ questions:
           tie-break section: added the 7-case probe table, the four consequences, and the explicit
           statement that Xmax "is a CALCULATED field by either path - not an input-only one", plus
           the engine's Hc=Hg divergence.
-        openisd/docs/plans/PLAN_JS_CALC_CONSOLIDATION.md:53-54
+        openisd/docs/plans/archive/PLAN_JS_CALC_CONSOLIDATION.md:53-54
           row 19 "not wired - deriveDriver's .value is discarded" -> live, cited at engine
           driver.ts:151-152, evaluated ahead of row 20. Row 20's stale "cm3 (*1e6), the SI violation,
           dead path" engine cell -> the three live SI-correct sites (:171-172, :160-161, :166-167).
-        openisd/docs/plans/PLAN_JS_CALC_CONSOLIDATION.md:205-208
+        openisd/docs/plans/archive/PLAN_JS_CALC_CONSOLIDATION.md:205-208
           "the Xmax(Hc,Hg) case never reaches cell('Xmax') at all - it simply never fires, so a
           driver with Hc/Hg but no Xmax shows state:'N'" -> it reaches cell() and shows 'C'.
-        openisd/docs/plans/OPENISD_MODEL_MIGRATION_READINESS.md:70
+        openisd/docs/plans/archive/OPENISD_MODEL_MIGRATION_READINESS.md:70
           blocker B2 rewritten: precedence SETTLED with the probe evidence; only the Hc=Hg
           fall-through ruling remains.
         winisd_research/SOLVER_MODEL.md:160-164
@@ -5792,7 +5792,7 @@ questions:
       -- no clones, no second copy of the data. Verified: _OpenISDProjectJson.driver is already typed
       _OpenISDDriverJson (openisdProject.ts:203) -- identical shape to a standalone .wdr record, so
       the project's driver accessor can call OpenISDDriver.fromRecord(this.#json.driver) directly,
-      no conversion needed. Tracked in docs/plans/PLAN_USEDESIGNIO_REMEDIATION.md as its own
+      no conversion needed. Tracked in docs/plans/archive/PLAN_USEDESIGNIO_REMEDIATION.md as its own
       objective, larger than and prerequisite-adjacent to the QO61 useDesignIO.ts fix.
 - id: QO55
   title: WinISDDriver should be constructed purely by setter calls fed from OpenISDDriver getter reads
@@ -5905,7 +5905,7 @@ questions:
       openisdDriver.ts / winisdDriver.ts.
 
       CONSEQUENCE, recorded so the plan is not written defensively for nothing: the "QO56 hazard" clause
-      in docs/plans/PLAN_QO60_LAYERING_REMEDIATION.md — which tells each objective to confirm no peer
+      in docs/plans/archive/PLAN_QO60_LAYERING_REMEDIATION.md — which tells each objective to confirm no peer
       session holds those four files before starting — is now moot and should be struck from the plan.
       Objectives 2 and 7 rewrite exactly those files and can proceed without the check.
 - id: QO57
@@ -5917,7 +5917,7 @@ questions:
   answer:
     at: '2026-08-21'
     text: |-
-      NOT A RULING — a work item under docs/plans/PLAN_QO60_LAYERING_REMEDIATION.md. Re-verified
+      NOT A RULING — a work item under docs/plans/archive/PLAN_QO60_LAYERING_REMEDIATION.md. Re-verified
       2026-08-21.
 
       The entanglement the note records is GONE: it cites QO55 as the blocker, and QO55 is now fully
@@ -5982,7 +5982,7 @@ questions:
       LOGIC) never reaches store.ts, domain, or io directly — only through SERVICE.
   - at: '2026-08-20'
     text: |-
-      2026-08-21 — DESIGNED. Full plan: docs/plans/PLAN_QO60_LAYERING_REMEDIATION.md (8 objectives).
+      2026-08-21 — DESIGNED. Full plan: docs/plans/archive/PLAN_QO60_LAYERING_REMEDIATION.md (8 objectives).
       Rulings this session, all binding:
       - ManagedX may access only X's API, never _XJson. ManagedX clones X by asking X for a copy of
         itself, never by touching JSON. OID/OIP never clone FOR the layers — they know nothing of layers.
@@ -6012,7 +6012,7 @@ questions:
   answer:
     at: '2026-08-21'
     text: |-
-      SUPERSEDED — docs/plans/PLAN_QO60_LAYERING_REMEDIATION.md IS the answer to this question, carrying
+      SUPERSEDED — docs/plans/archive/PLAN_QO60_LAYERING_REMEDIATION.md IS the answer to this question, carrying
       the rulings verbatim (the ManagedX/JSON access table, "DELETE state.P ENTIRELY", default-deny).
       This ledger entry is an unclosed duplicate of the plan.
 
@@ -6050,8 +6050,8 @@ questions:
   - at: '2026-08-20'
     text: |-
       2026-08-21 — DESIGNED, and subsumed. This is objective 6 of
-      docs/plans/PLAN_QO60_LAYERING_REMEDIATION.md; the QO61-specific detail is
-      docs/plans/PLAN_USEDESIGNIO_REMEDIATION.md, now headed with a pointer saying QO60's plan is
+      docs/plans/archive/PLAN_QO60_LAYERING_REMEDIATION.md; the QO61-specific detail is
+      docs/plans/archive/PLAN_USEDESIGNIO_REMEDIATION.md, now headed with a pointer saying QO60's plan is
       authoritative where the two disagree.
 
       Verdict: NOT a wholesale delete. useDesignIO.ts (369 lines) splits three ways —
@@ -6273,7 +6273,7 @@ questions:
           wizard, >=3 distinct Qts drivers, PR parameter sweeps, matrix into winisd_research/runs/)
           pins the formulas FIRST.
 
-      Out of release scope (Lane G of docs/plans/PROMPT_RELEASE_HARDENING.md); this item is the
+      Out of release scope (Lane G of docs/plans/archive/PROMPT_RELEASE_HARDENING.md); this item is the
       standing build request so it cannot fall between the cracks.
   answer:
     at: '2026-08-21'
@@ -7148,7 +7148,7 @@ questions:
       for the two-layer collapse.'
   answer:
     at: '2026-09-04'
-    text: 'Design content moved to docs/plans/PLAN_PROJECT_PERSISTENCE.md. Settled: two-layer saved/edited
+    text: 'Design content moved to docs/plans/archive/PLAN_PROJECT_PERSISTENCE.md. Settled: two-layer saved/edited
       model, internal-only project uuid, each project writes itself via #notify, no Vue in the write path.
       Open items (storage backend, autosave layer, close/reload semantics, write-failure handling) carried
       forward in the plan doc, not the ledger.'
@@ -7438,7 +7438,7 @@ questions:
       now comes from the field registry.
   answer:
     at: '2026-09-04'
-    text: Ruling fully recorded, no remaining decision. Added as a Phase 2 sub-item in docs/plans/PLAN_OPENISD_DRIVER_MODEL.md
+    text: Ruling fully recorded, no remaining decision. Added as a Phase 2 sub-item in docs/plans/archive/PLAN_OPENISD_DRIVER_MODEL.md
       — the WinISDDriver serializer owns the per-coil/terminal conversion, per-coil fields stay entered/never
       rewritten, main-window Placement panel gets a read-only 'As wired' readout.
 - id: QO97
@@ -7495,7 +7495,7 @@ questions:
       and NOT a reason to delay the rule above.
   answer:
     at: '2026-09-04'
-    text: 'Ruling fully recorded, no remaining decision. Already captured in docs/plans/PLAN_OPENISD_DRIVER_MODEL.md
+    text: 'Ruling fully recorded, no remaining decision. Already captured in docs/plans/archive/PLAN_OPENISD_DRIVER_MODEL.md
       Phase 2''s dual-voice-coil bullet (tagged QO96/QO97): import trusts the file''s stated VCCon/numVC
       even though WinISD''s own dropdown always writes VCCon=1, because the same factor cancels on export
       -- every simulated value stays exact and the round-trip is byte-identical regardless.'

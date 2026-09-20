@@ -9,7 +9,7 @@ model, the runtime data flow and the invariants that hold across the whole appli
 disagrees with it, **this document is correct and the other is wrong**.
 
 **A conflicting document is a cleanup item, never a blocker.** Raise it as a TODO in
-[`docs/plans/OPENISD_TARGET_MIGRATION_PLAN.md`](docs/plans/OPENISD_TARGET_MIGRATION_PLAN.md) and carry on. Nobody stops
+[`docs/plans/archive/OPENISD_TARGET_MIGRATION_PLAN.md`](docs/plans/archive/OPENISD_TARGET_MIGRATION_PLAN.md) and carry on. Nobody stops
 work to reconcile a stale document, and nobody weakens this specification to match one.
 
 **Code that does not match this specification is unfinished work.** It is tracked in the migration plan and it is not an

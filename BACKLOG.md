@@ -102,13 +102,13 @@ manufacturer` for the DB's records; what changes is which field is authoritative
     the Python pipeline calls the JS lib's `ymlToWdr()` through the same embedded V8 runtime
     (`mini-racer`) used for all other Python→JS calc calls — not a subprocess, not a CLI — so
     there is exactly one implementation and one bridge.
-  - See [PLAN_JS_CALC_CONSOLIDATION.md](http://localhost:8000/winisd/openisd/docs/plans/PLAN_JS_CALC_CONSOLIDATION.md#L1)
+  - See [PLAN_JS_CALC_CONSOLIDATION.md](http://localhost:8000/winisd/openisd/docs/plans/archive/PLAN_JS_CALC_CONSOLIDATION.md#L1)
     for the calc half of this ruling (TODO.md QT39). `.owdr` and `openisd.yml` are the same
     schema per [ARCHITECTURE.md AD-8](http://localhost:8000/winisd/openisd/ARCHITECTURE.md#L400-L406) —
     line 32 above is accurate.
   - The bridge (embedded V8 via `mini-racer`, not a Node CLI) and the math API it shares with
     this call are specified in
-    [MATH_MIGRATION.md §6 / §9.2](http://localhost:8000/winisd/openisd/docs/plans/MATH_MIGRATION.md#L474-L491),
+    [MATH_MIGRATION.md §6 / §9.2](http://localhost:8000/winisd/openisd/docs/plans/archive/MATH_MIGRATION.md#L474-L491),
     which also covers precision-propagation parity and the full retirement/testing plan.
   - **Same pattern, other direction (human, 2026-07-31, `ARCHITECTURE.md` AD-8):**
     `openisd.yml` itself is read and written EXCLUSIVELY by this JS/TS code, never by Python.
@@ -602,7 +602,7 @@ full evidence table in [`docs/research/WINISD_PARITY.md`](docs/research/WINISD_P
     solver item above.
 - [ ] **P2** Share one implementation of the three physics gates between the runtime self-test and the unit suite — `packages/ui/src/diagnostics/selftest.ts:43-47` and `packages/engine/test/engine.test.ts:29-33` each declare the same driver fixture independently (Fs 37, Qts 0.38, Vas 0.030), and each reimplements the gates over it. Two declarations of one fixture drift silently. `ARCHITECTURE.md` AD-5 explains why the two test layers both exist — that stays; only the duplication goes. `[unit]`
 - [x] [x] **P2** Per-feature engine tests added alongside each new box type / curve `[unit]`
-- [x] **P1** ~~Driver as an ADT~~ — **DONE, AND NOW OBSOLESCENT: this item is WinISD-focused.** It framed the app's data model around `.wdr` — `enter`/`clear`/`state` over a flat WinISD-shaped bag, with a lossless `fromWdr`/`toWdrIni` round-trip as the goal. That shipped (`packages/winisd/src/driver.ts`) and killed the raw-vs-derived ParState heuristic and the lossy `parseWdr`. But `ARCHITECTURE.md` AD-8 then reversed the premise: `OpenISDDriver`/`openisd.yml` is the app's model and `.wdr` is a serialisation format generated on demand, so the class this item built is condemned rather than extended. Do not add work to it — successor plan: [`docs/plans/PLAN_OPENISD_DRIVER_MODEL.md`](docs/plans/PLAN_OPENISD_DRIVER_MODEL.md)
+- [x] **P1** ~~Driver as an ADT~~ — **DONE, AND NOW OBSOLESCENT: this item is WinISD-focused.** It framed the app's data model around `.wdr` — `enter`/`clear`/`state` over a flat WinISD-shaped bag, with a lossless `fromWdr`/`toWdrIni` round-trip as the goal. That shipped (`packages/winisd/src/driver.ts`) and killed the raw-vs-derived ParState heuristic and the lossy `parseWdr`. But `ARCHITECTURE.md` AD-8 then reversed the premise: `OpenISDDriver`/`openisd.yml` is the app's model and `.wdr` is a serialisation format generated on demand, so the class this item built is condemned rather than extended. Do not add work to it — successor plan: [`docs/plans/archive/PLAN_OPENISD_DRIVER_MODEL.md`](docs/plans/archive/PLAN_OPENISD_DRIVER_MODEL.md)
 
 ---
 

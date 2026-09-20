@@ -36,7 +36,7 @@ Not fixed. Rename by subject, not mechanism, and reserve `use*` for functions th
 return reactive state and must be called in setup:
 
 - `useApplicationIO.ts` → `createFileIO.ts` — already planned as objective 6 of
-  `docs/plans/PLAN_QO60_LAYERING_REMEDIATION.md`, and matches the `createFileIO` factory name
+  `docs/plans/archive/PLAN_QO60_LAYERING_REMEDIATION.md`, and matches the `createFileIO` factory name
   `ARCHITECTURE.md:517` already specifies.
 - `useDriverCells.ts` — mostly dissolves: `Q_GROUP`/`useQGroupIncomplete` leave for the engine
   (`BUG_20260821_q_group_redeclared_in_ui_against_the_engines_explicit_ban.md`); what remains is

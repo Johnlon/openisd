@@ -44,17 +44,19 @@ Mermaid diagrams.
 
 ## Plans
 
-Ten plans in [docs/plans/](http://localhost:8000/openisd/docs/plans/). The three active ones:
+Active plans in [docs/plans/](http://localhost:8000/openisd/docs/plans/). Completed or superseded
+plans live in [docs/plans/archive/](http://localhost:8000/openisd/docs/plans/archive/) — kept for
+history, never for direction.
 
-| Plan                                                                                                                 | What it is for                                                                                                                                                                                                            |
-| -------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [PLAN_DELETE_PACKAGES_MODEL.md](http://localhost:8000/openisd/docs/plans/PLAN_DELETE_PACKAGES_MODEL.md?html)         | **Phase 3 of the model→design migration.** Moves the UI onto design's Field/Cell API and deletes `packages/model`. Carries the measured API gap (258 driver calls, 0 overlap) and the 30 methods needing a decision first |
-| [PLAN_QO60_LAYERING_REMEDIATION.md](http://localhost:8000/openisd/docs/plans/PLAN_QO60_LAYERING_REMEDIATION.md?html) | **The current architecture work.** Access rules, deleting `state.P`, the catalogue index, the model↔winisd doc correction. 8 objectives. Authoritative where plans disagree                                               |
-| [PLAN_USEDESIGNIO_REMEDIATION.md](http://localhost:8000/openisd/docs/plans/PLAN_USEDESIGNIO_REMEDIATION.md?html)     | QO61 — splitting `useApplicationIO.ts`. Objective 6 of the above                                                                                                                                                               |
-
-The rest — `MATH_MIGRATION`, `OPENISD_MODEL_MIGRATION_READINESS`, `OPENISD_TARGET_MIGRATION_PLAN`,
-`PLAN_JS_CALC_CONSOLIDATION`, `PLAN_OPENISD_DRIVER_MODEL`, `PLAN_PROJECTION_PACKAGE`,
-`PLAN_SBL_CROSSCHECK` — are earlier or narrower; check their own headers for standing.
+| Plan                                                                                                                                       | What it is for                                                                                                                  |
+| ------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------- |
+| [PLAN_DRIVER_SOLVE_AND_SWEEP_DIAGNOSTICS.md](http://localhost:8000/openisd/docs/plans/PLAN_DRIVER_SOLVE_AND_SWEEP_DIAGNOSTICS.md?html)     | Sweep diagnostics name the blocking field. S1–S7 landed; S8 (strip `'C'` on save) and S10 (sealed joins the cascade) pending   |
+| [PLAN_LAYER_REORGANIZATION.md](http://localhost:8000/openisd/docs/plans/PLAN_LAYER_REORGANIZATION.md?html)                                 | DRAFT — the design→backend rename and finishing the layer split. Q1/Q3 await John                                               |
+| [PLAN_LAYER_REORGANIZATION_LOWLEVEL.md](http://localhost:8000/openisd/docs/plans/PLAN_LAYER_REORGANIZATION_LOWLEVEL.md?html)               | File-by-file execution strategy for the above; scope lock pending                                                               |
+| [PLAN_RELEASE_HARDENING.md](http://localhost:8000/openisd/docs/plans/PLAN_RELEASE_HARDENING.md?html)                                       | Production-release checklist. 15 items still open; written against `dev` on 2026-08-28, so re-verify each before working it    |
+| [PLAN_STATE_STORAGE_SPLIT.md](http://localhost:8000/openisd/docs/plans/PLAN_STATE_STORAGE_SPLIT.md?html)                                   | QO130 — view state split into project state (saved in `.owpr`) and app state. Not started                                       |
+| [PLAN_VUE_HOOK_MOCKING_AND_PARALLEL_UI.md](http://localhost:8000/openisd/docs/plans/PLAN_VUE_HOOK_MOCKING_AND_PARALLEL_UI.md?html)         | QO129 — hook layer done; hook unit coverage and the Tier-3 acceptance scenarios not                                             |
+| [PLAN_SBL_CROSSCHECK.md](http://localhost:8000/openisd/docs/plans/PLAN_SBL_CROSSCHECK.md?html)                                             | SpeakerBoxLite as a second external oracle. Not started; one open question for John                                             |
 
 ## Research
 

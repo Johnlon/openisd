@@ -70,7 +70,7 @@ only the ρ half. The c half is seven times larger.
 wherever no environment is supplied: `driver.ts:32-33,122,172,386-388`, `alignments.ts:87,102,
 103,114,127`, `consistency.ts:95`, `formulas.ts:16`. Correcting them moves every sweep, so
 `packages/engine/test/golden.test.ts` changes — and
-`docs/plans/OPENISD_TARGET_MIGRATION_PLAN.md` §"Definition of done" item 11 requires the engine
+`docs/plans/archive/OPENISD_TARGET_MIGRATION_PLAN.md` §"Definition of done" item 11 requires the engine
 golden-master tests to be byte-unchanged apart from the `Hc === Hg` row.
 
 ## The two candidate fixes, for the human to choose between

@@ -163,9 +163,9 @@ does not, because it isn't calc — it's a file-format concern symmetric with th
 
 Python reaches `@openisd/engine` through an embedded V8 runtime (`mini-racer`), in-process —
 not a subprocess, not a CLI, not a daemon. Decision and the stability comparison behind it:
-[MATH_MIGRATION.md §9.2](http://localhost:8000/winisd/openisd/docs/plans/MATH_MIGRATION.md#L1039-L1055).
+[MATH_MIGRATION.md §9.2](http://localhost:8000/winisd/openisd/docs/plans/archive/MATH_MIGRATION.md#L1039-L1055).
 The API contract and fault surface it calls through:
-[MATH_MIGRATION.md §6](http://localhost:8000/winisd/openisd/docs/plans/MATH_MIGRATION.md#L474-L491). The
+[MATH_MIGRATION.md §6](http://localhost:8000/winisd/openisd/docs/plans/archive/MATH_MIGRATION.md#L474-L491). The
 same embedded runtime is the bridge for the `.wdr`-writer call too (`ymlToWdr()`) — one process,
 one JS engine instance, not a second transport for a second function in the same codebase.
 `BACKLOG.md:39-47` still says "subprocess call to a Node CLI" for that call; corrected below.
@@ -259,7 +259,7 @@ through, no more.
    with a sync step? BACKLOG.md's current wording assumes convergence without saying so.
 3. ~~§4.3 — the Node-CLI contract~~ **CLOSED (human, 2026-08-02): not a Node CLI at all — an
    embedded JS runtime, in-process.** See
-   [MATH_MIGRATION.md §9.2](http://localhost:8000/winisd/openisd/docs/plans/MATH_MIGRATION.md#L1039-L1055):
+   [MATH_MIGRATION.md §9.2](http://localhost:8000/winisd/openisd/docs/plans/archive/MATH_MIGRATION.md#L1039-L1055):
    V8 via `mini-racer`, picked over `quickjs-ng` and `PythonMonkey` on stability grounds. §4.3's
    "Now filled in" pointer to MATH_MIGRATION.md §6 for the CLI package/entry-point/contract is
    now stale in the same way — that section describes an API contract that still holds, but the

@@ -1,6 +1,6 @@
 # Plan 1 — re-architect to `ARCHITECTURE.md`
 
-**This plan implements [`ARCHITECTURE.md`](../../ARCHITECTURE.md). Where the two disagree, the
+**This plan implements [`ARCHITECTURE.md`](../../../ARCHITECTURE.md). Where the two disagree, the
 architecture document is right and this plan is wrong.**
 
 Plan 2 — [`PLAN_PROJECTION_PACKAGE.md`](PLAN_PROJECTION_PACKAGE.md) — builds the export function
