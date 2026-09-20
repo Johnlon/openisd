@@ -92,7 +92,8 @@ function provenanceTables() {
 /** The registry id whose `label` a rendered editor label shows, or `undefined` when no field
  *  renders that label — derived from the registry, never a hand-maintained map. */
 function keyForLabel(label: string): string | undefined {
-  return fieldSpecs.find(s => s.label === label)?.id;
+  const spec = fieldSpecs.find(s => s.label === label);
+  return spec?.domainKey ?? spec?.aliases?.[0] ?? spec?.id;
 }
 
 function unitTable() {

@@ -138,7 +138,7 @@ const UI_FIELD_SPECS: UIFieldSpec[] = [
     description: 'Passive Radiator Count: Number of identical passive radiators installed in the enclosure.',
   },
   {
-    id: 'pr_Madd_g', aliases: ['prMadd'], label: 'Added mass to cone', pane: 'PassiveRadiator', kind: 'number', unit: 'g', precision: 2, min: 0, max: 5,
+    id: 'pr_Madd_g', aliases: ['prMadd'], label: 'Added mass to cone', pane: 'PassiveRadiator', kind: 'number', unit: 'g', precision: 3, min: 0, max: 5000,
     provenance: 'entered', appliesTo: ['box-passive-radiator'], domainKey: 'addedMass_kg',
     description: 'PR Added Mass: Additional ballast mass attached to the passive radiator cone to lower its tuning frequency.',
   },
@@ -176,7 +176,7 @@ const UI_FIELD_SPECS: UIFieldSpec[] = [
   {
     id: 'signal_Pin_W', aliases: ['Pin'], label: 'System input power', pane: 'Signal', kind: 'number', unit: 'W', precision: 2, min: 0, max: 100000,
     provenance: 'entered', appliesTo: 'all',
-    description: 'System Input Power: Total electrical power supplied to the loudspeaker system (Pin = V² / Re).',
+    description: 'System Input Power: Total electrical power supplied to the loudspeaker system (P = V² / Re).',
   },
   {
     id: 'signal_DriveV_V', aliases: ['driveV'], label: 'Driver input voltage (each)', pane: 'Signal', kind: 'number', unit: 'V', precision: 2, min: 0, max: 1000,
