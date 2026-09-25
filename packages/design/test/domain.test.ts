@@ -2829,11 +2829,15 @@ describe('project-level array/display settings, chart Y-range, and identity', ()
     // bugs/BUG_20260924_sweep-ignores-options-environment-setting.md
     const grid = {fmin: 20, fmax: 200, N: 8};
     const options = {tempK: 263.15, humidityPct: 90, pressurePa: 85000};
-    const sealedOn = (engine: Engine) => OpenISDProject.builder(driverFrom({
-      brand: 'Dayton', model: 'RS225', section: 'woofer',
-      spec: {...specSection({ Fs_hz: 30, Qts: 0.4, Sd_m2: 0.02, Cms_m_per_N: 0.0005, Mmd_kg: 0.05, Rms_Ns_per_m: 2, Xmax_m: 0.008 }),
-        Re_ohm: spec(6), BL_Tm: spec(7)},
-    }), engine).sealed().volume_m3(0.03).build();
+    const sealedOn = (engine: Engine) => {
+      const driver = driverFrom({
+        brand: 'Dayton', model: 'RS225', section: 'woofer',
+        spec: specSection({ Fs_hz: 30, Qts: 0.4, Sd_m2: 0.02, Cms_m_per_N: 0.0005, Mmd_kg: 0.05, Rms_Ns_per_m: 2, Xmax_m: 0.008 }),
+      });
+      driver.specs.Re_ohm.set(6);
+      driver.specs.BL_Tm.set(7);
+      return OpenISDProject.builder(driver, engine).sealed().volume_m3(0.03).build();
+    };
     const onOptions = sealedOn(new Engine({
       ventedLimits: () => DEFAULT_VENTED_DESIGN_LIMITS, envDefaults: () => options,
     }));
