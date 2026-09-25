@@ -1,5 +1,5 @@
 import {describe, expect, it, vi} from 'vitest';
-import {type DqIssue, type DriverError, type DriverIssue, Engine, LossMode} from '@openisd/design/engine';
+import {type DqIssue, type DriverError, type DriverIssue, Engine, LossMode, DEFAULT_VENTED_DESIGN_LIMITS} from '@openisd/design/engine';
 import {
     type AppContext,
     OpenISDDriver,
@@ -2824,6 +2824,29 @@ describe('project-level array/display settings, chart Y-range, and identity', ()
       spec: specSection({ Fs_hz: 30, Qts: 0.4, Sd_m2: 0.02, Cms_m_per_N: 0.0005, Mmd_kg: 0.05, Rms_Ns_per_m: 2, Xmax_m: 0.008 }),
     }), new Engine()).sealed().volume_m3(0.03).build();
   }
+
+  it('sweep() reads Options → Environment for an unstated environment — the same SPL as entering those values', () => {
+    // bugs/BUG_20260924_sweep-ignores-options-environment-setting.md
+    const grid = {fmin: 20, fmax: 200, N: 8};
+    const options = {tempK: 263.15, humidityPct: 90, pressurePa: 85000};
+    const sealedOn = (engine: Engine) => OpenISDProject.builder(driverFrom({
+      brand: 'Dayton', model: 'RS225', section: 'woofer',
+      spec: {...specSection({ Fs_hz: 30, Qts: 0.4, Sd_m2: 0.02, Cms_m_per_N: 0.0005, Mmd_kg: 0.05, Rms_Ns_per_m: 2, Xmax_m: 0.008 }),
+        Re_ohm: spec(6), BL_Tm: spec(7)},
+    }), engine).sealed().volume_m3(0.03).build();
+    const onOptions = sealedOn(new Engine({
+      ventedLimits: () => DEFAULT_VENTED_DESIGN_LIMITS, envDefaults: () => options,
+    }));
+    const entered = sealedOn(new Engine());
+    entered.envTempK.set(options.tempK);
+    entered.envHumidityPct.set(options.humidityPct);
+    entered.envPressurePa.set(options.pressurePa);
+
+    const spl = onOptions.sweep(grid).values?.spl;
+    expect(spl).toBeDefined();
+    expect(spl).toEqual(entered.sweep(grid).values?.spl);
+    expect(spl).not.toEqual(sealedOn(new Engine()).sweep(grid).values?.spl);
+  });
 
   it('loading defaults to standard, and can be set to isobaric', () => {
     const p = sealedProject();

@@ -1,6 +1,6 @@
 # BUG_20260924_model-field-cannot-be-emptied-when-sku-present
 
-**Status:** OPEN
+**Status:** RESOLVED — the Model input reads and writes `model`; its empty mark reads the same cell (`DriverEditorModal.vue`).
 
 ## Symptom
 

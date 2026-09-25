@@ -1,6 +1,6 @@
 # BUG_20260924_sweep-ignores-options-environment-setting
 
-**Status:** OPEN
+**Status:** RESOLVED (2026-09-25) — `#sweepParams` reads the air through the defaulting environment fields, whose fallback is Options → Environment. Verified by the `domain.test.ts` test "sweep() reads Options → Environment…".
 
 ## Symptom
 
