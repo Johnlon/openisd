@@ -16,6 +16,9 @@ const {open, dismiss} = injectSplashModal();
 <template>
   <div v-if="open" class="sp-backdrop" @click.self="dismiss">
     <div class="sp" role="dialog" aria-labelledby="sp-title">
+      <!-- The text runs past one screen, so the footer button is a scroll away — this one is
+           reachable the moment the splash appears. -->
+      <button class="sp-x" title="Close" aria-label="Close" @click="dismiss">&times;</button>
       <img class="sp-logo" src="/logo-wide.svg" alt="OpenISD — open loudspeaker enclosure simulator">
 
       <h2 id="sp-title">An open loudspeaker enclosure simulator that runs in any browser.</h2>
@@ -105,7 +108,17 @@ const {open, dismiss} = injectSplashModal();
   padding: 0 28px 20px;
   font-size: 13px;
   line-height: 1.55;
+  position: relative;
 }
+.sp-x {
+  position: sticky; top: 10px; float: right; z-index: 1;
+  margin: 10px -10px 0 0;
+  width: 28px; height: 28px;
+  background: #1b2230; color: #9fb3c8;
+  border: 1px solid #2b3a49; border-radius: 5px;
+  font-size: 18px; line-height: 1; cursor: pointer;
+}
+.sp-x:hover { background: #24304180; color: #e6edf3; }
 .sp-logo { display: block; width: 100%; height: auto; margin: 18px 0 14px; }
 .sp h2 { font-size: 17px; color: #e6edf3; margin: 0 0 4px; font-weight: 600; }
 .sp-motto { margin: 0 0 18px; color: #7f93a8; font-style: italic; }

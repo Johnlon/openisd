@@ -41,6 +41,16 @@ test('dismissing it keeps it shut across a reload', async ({page}) => {
   await expect(page.locator('.sp')).toHaveCount(0);
 });
 
+test('the close button at the top dismisses it too — the text is long enough that the bottom one is a scroll away', async ({page}) => {
+  await firstVisit(page);
+  await page.goto('/');
+  await page.locator('.sp-x').click();
+  await expect(page.locator('.sp')).toHaveCount(0);
+
+  await page.reload();
+  await expect(page.locator('.sp')).toHaveCount(0);
+});
+
 test('Info -> About OpenISD reopens it', async ({page}) => {
   await firstVisit(page);
   await page.goto('/');
