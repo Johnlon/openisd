@@ -77,7 +77,6 @@ export interface DesignIO {
   exportWpr(): void;
   exportOwdr(): void;
   importFile(f: File): void;
-  about(): void;
 }
 
 /**
@@ -233,9 +232,5 @@ export function createApplicationIO(deps: { logging: Logging; fileStorage: FileS
     }, (err: Error) => { alert('Could not read "' + f.name + '": ' + err.message); });
   }
 
-  function about(): void {
-    alert(`OpenISD — opensource interactive speaker designer\nA community-owned tool modelling the Thiele/Small electro-mechano-acoustical system.\n\nBox types: sealed, vented, 4th-order bandpass, passive radiator\nCurves: SPL, excursion, port velocity, group delay, impedance, max SPL/power\n\nSee docs/MATHS.md for the circuit model and equations.\n\nBuild: ${__BUILD_DATETIME__}`);
-  }
-
-  return { saveProject, saveProjectAs, shareLink, exportWdr, exportWpr, exportOwdr, importFile, about };
+  return { saveProject, saveProjectAs, shareLink, exportWdr, exportWpr, exportOwdr, importFile };
 }

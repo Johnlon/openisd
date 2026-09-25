@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 290" font-family="system-ui,-apple-system,Segoe UI,Roboto,sans-serif">
+  <!-- The OpenISD logo at banner width: the driver-cone mark, the wordmark, and the response
+       curves running out to the right. `docs/images/hero.svg` is the same artwork with the
+       README's taglines baked in; the splash writes its own, so this copy carries none. -->
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#11151c"/>
+      <stop offset="1" stop-color="#0b0e13"/>
+    </linearGradient>
+    <!-- both curves fade out to the right so the plot "runs out" past the name -->
+    <linearGradient id="spl" gradientUnits="userSpaceOnUse" x1="800" y1="0" x2="1155" y2="0">
+      <stop offset="0" stop-color="#4fb0ff" stop-opacity="0.95"/>
+      <stop offset="0.7" stop-color="#4fb0ff" stop-opacity="0.5"/>
+      <stop offset="1" stop-color="#4fb0ff" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="imp" gradientUnits="userSpaceOnUse" x1="800" y1="0" x2="1155" y2="0">
+      <stop offset="0" stop-color="#ffb454" stop-opacity="0.9"/>
+      <stop offset="0.7" stop-color="#ffb454" stop-opacity="0.45"/>
+      <stop offset="1" stop-color="#ffb454" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1200" height="290" rx="24" fill="url(#bg)"/>
+
+  <!-- driver-cone mark (the "O") -->
+  <g transform="translate(160 145)">
+    <circle r="112" fill="none" stroke="#4fb0ff" stroke-width="26"/>
+    <circle r="68"  fill="none" stroke="#4fb0ff" stroke-width="15" opacity="0.55"/>
+    <circle r="34"  fill="#4fb0ff"/>
+  </g>
+
+  <!-- wordmark -->
+  <text x="330" y="180" font-size="112" font-weight="800" fill="#e6edf3" letter-spacing="-1">
+    Open<tspan fill="#4fb0ff">ISD</tspan>
+  </text>
+
+  <!-- response curves rippling out to the right of the name -->
+  <line x1="880" y1="167" x2="1150" y2="167" stroke="#2b3a49" stroke-width="1.5"/>
+  <!-- orange: vented-box impedance, the classic twin peaks straddling Fb -->
+  <path d="M880 149 C 898 149 910 135 922 103 C 930 81 944 81 956 101
+           C 968 123 982 137 994 137 C 1008 137 1020 105 1032 85
+           C 1042 71 1058 71 1070 91 C 1086 113 1110 139 1150 145"
+        fill="none" stroke="url(#imp)" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- blue: SPL response — low-end rolloff rising into a flat passband -->
+  <path d="M880 157 C 906 157 918 137 936 109 C 952 93 970 91 988 97
+           C 1028 105 1080 100 1150 100"
+        fill="none" stroke="url(#spl)" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

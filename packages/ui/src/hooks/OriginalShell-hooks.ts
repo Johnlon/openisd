@@ -46,6 +46,7 @@ import {buildPlotData, parseChartTabId, TAB_META} from '../logic/series.js';
 import {createToneGenerator, type ToneGenerator} from '../logic/toneGenerator.js';
 import {useApp} from '../logic/app.js';
 import {useEscToClose} from '../logic/useEscToClose.js';
+import {injectSplashModal} from './SplashModal-hooks.js';
 import {clampedFrequency, interpolatedY, steppedFrequency} from '../logic/cursorFrequency.js';
 import {ARRAY_WIRING_OPTIONS, BOX_TYPE_OPTIONS, END_CORRECTION_OPTIONS, VENT_SHAPE_OPTIONS} from '@openisd/design/fields';
 import {countOptions, limits, precision as fieldDp} from '../logic/fields/uiFields.js';
@@ -352,7 +353,9 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   const project = useFocusedProject();
 
   const { engine, designIO, selection, myPassiveRadiators, bundledPassiveRadiators } = useApp();
-  const { saveProject, importFile, about } = designIO;
+  const { saveProject, importFile } = designIO;
+  // The Info menu's "About OpenISD" opens the splash — the one place that text lives.
+  const { show: about } = injectSplashModal();
   const { projectRepo } = useApp();
   const { editProjectDriver } = selection;
 

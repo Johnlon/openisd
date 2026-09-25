@@ -7,6 +7,7 @@ import DriverBrowser from './components/DriverBrowser.vue';
 import DriverEditorModal from './components/DriverEditorModal.vue';
 import Flash from './components/Flash.vue';
 import DiagnosticsModal from './components/DiagnosticsModal.vue';
+import SplashModal from './components/SplashModal.vue';
 import {
   applyLoadedProject,
   applyState,
@@ -22,6 +23,7 @@ import {
 import {presentationState} from '../logic/presentationState.js';
 import {provideFocusedProject} from '../logic/focusedProjectContext.js';
 import {useApp} from '../logic/app.js';
+import {provideSplashModal} from '../hooks/SplashModal-hooks.js';
 
 const { projectRepo, viewStateRepo, logging } = useApp();
 
@@ -35,6 +37,10 @@ const { projectRepo, viewStateRepo, logging } = useApp();
 // as the gate version did: only a descendant mounted inside the shell's `projectOpen` gate may
 // read it — that gate guarantees a project exists, so the throw can never fire there.
 provideFocusedProject(computed(() => requireFocusedProject()));
+
+// One splash for the whole app: it raises itself for a first visitor, and the toolbar's Info
+// menu reopens it. Provided here so the shell's menu and the modal share one instance.
+provideSplashModal(presentationState);
 
 async function handleHashChange() {
   const saved = await projectRepo.loadFromHash();
@@ -112,6 +118,8 @@ onUnmounted(() => {
   <Flash />
   <!-- Raises itself on the first uncaught error, rejection or console.error. -->
   <DiagnosticsModal />
+  <!-- What OpenISD is — raised for a first visitor, reopened from Info → About OpenISD. -->
+  <SplashModal />
 </template>
 
 <style scoped>

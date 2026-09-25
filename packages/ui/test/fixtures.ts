@@ -37,6 +37,19 @@ export interface BrowserLog {
 
 export const test = base.extend<{ browserLog: BrowserLog }>({
   browserLog: [async ({ page }, use, testInfo) => {
+    // Every browser test arrives with empty storage, which is exactly what makes the splash
+    // raise itself — an overlay across the whole app before any test's first click. Seed the
+    // view-state key so the suite starts past it. The splash's OWN spec
+    // (`splash.browser.spec.ts`) uses Playwright's base `test`, so it still sees the real
+    // first-visit behaviour.
+    await page.addInitScript(() => {
+      // Only when nothing is stored yet: a test that has already saved view state (unit
+      // tokens, chart colours) reloads with that state, and overwriting it here would
+      // silently undo what the test set up.
+      try { if (!localStorage.getItem('openisd_view')) localStorage.setItem('openisd_view', JSON.stringify({ ui: { splashSeen: true } })); }
+      catch { /* storage disabled — the splash then shows, and that test will say so */ }
+    });
+
     const log: BrowserLog = {
       consoleErrors: [], consoleWarnings: [], pageErrors: [], networkErrors: [],
       reset: () => {

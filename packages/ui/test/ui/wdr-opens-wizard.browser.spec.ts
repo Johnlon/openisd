@@ -6,7 +6,13 @@ import {fileURLToPath} from 'node:url';
 const WDR = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..', '..', 'drivers', 'myprobes', 'per_field_and_misc', 's-re.wdr');
 
 test('BUG: opening a .wdr with no project starts the wizard, not a default sealed project', async ({ page }) => {
-  await page.addInitScript(() => localStorage.clear());
+  // No project open is this test's precondition. The clear also takes the shared fixture's
+  // splash seed with it, so put that back — the splash is an overlay across the whole app and
+  // is not what this test is about (`splash.browser.spec.ts` covers it).
+  await page.addInitScript(() => {
+    localStorage.clear();
+    localStorage.setItem('openisd_view', JSON.stringify({ ui: { splashSeen: true } }));
+  });
   await page.goto('/');
   await expect(page.locator('.original-root')).toBeVisible();
 
