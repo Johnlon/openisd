@@ -12,11 +12,20 @@
 import {spawnSync} from 'node:child_process';
 import {join} from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {bundleFingerprintOnDisk, bundleOutputsPresent, readStamp} from './bundleStamp.mjs';
+import {bundleFingerprintOnDisk, bundleOutputsPresent, corpusPresent, readStamp} from './bundleStamp.mjs';
 
 const ROOT = join(fileURLToPath(import.meta.url), '..', '..');
 
-if (bundleOutputsPresent(ROOT) && readStamp(ROOT) === bundleFingerprintOnDisk(ROOT)) {
+if (!corpusPresent(ROOT)) {
+  // The corpus is a separate repository and CI checks out only this one. The committed
+  // catalogue is what the build ships, so an absent corpus is a normal build, not a failure —
+  // but an absent corpus AND no catalogue leaves nothing to ship, so that still stops the run.
+  if (!bundleOutputsPresent(ROOT)) {
+    console.error('drivers catalogue: neither the corpus nor a committed catalogue is present — nothing to build from');
+    process.exit(1);
+  }
+  console.log('drivers catalogue: no corpus checked out — building against the committed catalogue');
+} else if (bundleOutputsPresent(ROOT) && readStamp(ROOT) === bundleFingerprintOnDisk(ROOT)) {
   console.log('drivers catalogue: unchanged since the last run (build/drivers-bundle.stamp) — nothing to do');
 } else {
   const r = spawnSync('npx', ['tsx', 'scripts/bundle-drivers.mjs'], { cwd: ROOT, stdio: 'inherit', shell: process.platform === 'win32' });

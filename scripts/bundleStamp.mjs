@@ -85,6 +85,13 @@ export function bundleOutputsPresent(root) {
   return OUTPUTS.every(p => existsSync(join(root, p)));
 }
 
+/** Whether the driver corpus is checked out beside this repo. It is a SEPARATE repository
+ *  (`winisd_drivers`), so a CI checkout of this one alone does not have it — and does not need
+ *  it, because `OUTPUTS` are committed. */
+export function corpusPresent(root) {
+  return existsSync(join(root, ...CORPUS_RELATIVE));
+}
+
 /** The stamp of the last run, or null when there was none. */
 export function readStamp(root) {
   const p = join(root, STAMP);
