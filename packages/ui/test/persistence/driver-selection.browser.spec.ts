@@ -135,7 +135,9 @@ test('OK on the project driver updates the project — it is left edited, nothin
   // OK routed the change into the PROJECT (editor → project.update): the project is now
   // EDITED — Save arms and Revert offers to discard. It did NOT head for My Drivers.
   await expect(page.locator('.tb-btn.dirty')).toBeVisible();
-  await expect(page.locator('[title^="Revert — discard all unsaved"]')).toBeVisible();
+  // The toolbar's Revert, specifically: the save rail carries a second one with the same
+  // title, under every project tab.
+  await expect(page.locator('.tb-btn[title^="Revert — discard all unsaved"]')).toBeVisible();
   const saved = await page.evaluate(() => localStorage.getItem('openisd_my_drivers'));
   expect(saved).not.toContain('Fixture Edited');
 });

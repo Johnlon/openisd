@@ -8,7 +8,7 @@ const APP_STATE = '/src/logic/appState.ts';
 /** The focused project driver's Re, read from the app's own state (no tab switch). */
 const readRe_ohm = (page: import('@playwright/test').Page) =>
   page.evaluate(async (modPath) =>
-    (await import(/* @vite-ignore */ modPath)).requireFocusedProject().driver.ts.Re_ohm.value, APP_STATE);
+    (await import(/* @vite-ignore */ modPath)).requireFocusedProject().driver.specs.Re_ohm.value, APP_STATE);
 
 /**
  * WinISD Signal-pane coupling law, as a blur-COMMIT rule (not an animation):

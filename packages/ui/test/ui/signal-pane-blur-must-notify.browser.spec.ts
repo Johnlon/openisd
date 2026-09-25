@@ -46,7 +46,7 @@ async function driveGroup(page: Page) {
   return page.evaluate(async (modPath) => {
     const s = await import(/* @vite-ignore */ modPath);
     const p = s.requireFocusedProject();
-    return { P: p.powerDrive_W.value, V: p.driveVoltage_V.value, Re: p.driver.ts.Re_ohm.value };
+    return { P: p.powerDrive_W.value, V: p.driveVoltage_V.value, Re: p.driver.specs.Re_ohm.value };
   }, APP_STATE);
 }
 
@@ -95,7 +95,7 @@ test('entering V on a new w5-1138smf project then blurring derives a consistent 
   expect(live.P, 'the committed power must be V²/Re').toBeCloseTo((4 * 4) / live.Re!, 8);
 });
 
-test('clearing V then blurring keeps the entered P and recomputes V from P and Re — the pair is never left blank', async ({ page }) => {
+test('clearing V then blurring returns the pair to the 1 W reference — neither end is left blank', async ({ page }) => {
   await page.goto('/');
   await buildNewProject(page);
   await page.locator(SIGNAL_TAB, { hasText: 'Signal' }).click();
@@ -109,15 +109,16 @@ test('clearing V then blurring keeps the entered P and recomputes V from P and R
   // Delete V (empty the cell) and blur.
   await fillAndBlur(vol, '');
 
-  // The still-entered P must survive the delete — never cleared by its derived sibling.
+  // Clearing V empties the PAIR, and the resolve refills it from the 1 W reference: P is 1 W
+  // entered, V is √Re calculated. The same rule the hook layer pins in
+  // `OriginalShell-hooks.test.ts` ("commit blank V | post: P 1 E, V √6 C").
   const live = await driveGroup(page);
-  expect(live.P, 'clearing V must not clear the entered P').toBe(10);
-  // V must be recomputed from the still-present P and Re (√(P·Re)), never left blank.
-  expect(Number(await vol.inputValue()), 'V must be recomputed from P and Re, never blank').toBeCloseTo(Math.sqrt(10 * live.Re!), 1);
-  expect(Number(await pow.inputValue()), 'P must still be shown').toBeCloseTo(10, 1);
+  expect(live.P, 'clearing V returns the power to the 1 W reference').toBeCloseTo(1, 6);
+  expect(Number(await vol.inputValue()), 'V is √Re, never blank').toBeCloseTo(Math.sqrt(live.Re!), 1);
+  expect(Number(await pow.inputValue()), 'P shows the 1 W reference').toBeCloseTo(1, 1);
 });
 
-test('clearing P then blurring leaves no phantom voltage — V cannot exist when its entered power is gone', async ({ page }) => {
+test('clearing P then blurring keeps the voltage, which becomes the entered end of the pair', async ({ page }) => {
   await page.goto('/');
   await buildNewProject(page);
   await page.locator(SIGNAL_TAB, { hasText: 'Signal' }).click();
@@ -130,9 +131,12 @@ test('clearing P then blurring leaves no phantom voltage — V cannot exist when
   // Delete P (empty the cell) and blur.
   await fillAndBlur(pow, '');
 
-  // P is genuinely gone — and V, a pure output of P and Re, must go with it. No phantom
-  // √(1·Re) from a hidden reference power may keep V alive while its entered base is blank.
-  expect((await driveGroup(page)).P, 'clearing P must clear the entered power').toBe(null);
-  await expect(vol, 'V must not show the reference-power phantom when P is blank').toHaveValue('');
-  await expect(pow, 'P must show blank').toHaveValue('');
+  // With Re known the voltage keeps the value it reads and becomes the ENTERED end, so the
+  // power re-derives from it as V²/Re — the same number, now calculated rather than entered.
+  // Neither end of the pair is ever blank (`OpenISDProject#powerDriveOver`'s `clear`).
+  const live = await driveGroup(page);
+  expect(live.V, 'clearing P keeps the voltage').toBeCloseTo(Math.sqrt(10 * live.Re!), 6);
+  expect(live.P, 'the power re-derives from the kept voltage').toBeCloseTo(10, 6);
+  expect(Number(await vol.inputValue()), 'V is shown').toBeGreaterThan(0);
+  expect(Number(await pow.inputValue()), 'P is shown').toBeCloseTo(10, 1);
 });

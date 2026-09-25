@@ -25,7 +25,7 @@ test('complete driver stores the 1 W reference and draws a chart without a drive
   await expect(powField.locator('.dq-note')).toHaveCount(0);
 });
 
-test('upping the power moves the voltage; clearing the voltage keeps the power', async ({ page }) => {
+test('upping the power moves the voltage; clearing the voltage returns the pair to the 1 W reference', async ({ page }) => {
   await page.locator('.project-nav li', { hasText: 'Signal' }).click();
   const powField = page.locator('.field', { hasText: 'System input power' });
   const volField = page.locator('.field', { hasText: 'Driver input voltage' });
@@ -35,9 +35,12 @@ test('upping the power moves the voltage; clearing the voltage keeps the power',
   const v1 = Number(await volField.locator('input').inputValue());
   expect(v1, '10 W into the driver must show a real voltage').toBeGreaterThan(0);
 
-  // Clear the voltage — the entered power must survive (the pair's clear blanks only its own end).
+  // Clearing the voltage empties the PAIR, and the resolve refills it from the 1 W reference:
+  // P is 1 W entered, V is √Re calculated. Neither end is ever left blank. The rule and its
+  // arithmetic are pinned at the hook layer by `OriginalShell-hooks.test.ts`'s
+  // "commit blank V | post: P 1 E, V √6 C".
   await volField.locator('input').fill('');
   await volField.locator('input').blur();
-  await expect(powField.locator('input')).toHaveValue(/10/);
+  await expect(powField.locator('input')).toHaveValue(/^1(\.0+)?$/);
   expect(Number(await volField.locator('input').inputValue())).toBeGreaterThan(0);
 });

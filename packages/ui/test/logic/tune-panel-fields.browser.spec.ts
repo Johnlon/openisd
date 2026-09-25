@@ -13,15 +13,14 @@ async function readVb(page: Page): Promise<number> {
     const project = s.focusedProject();
     if (!project) throw new Error('expected a focused project');
     // The sample fixture is VENTED, the complete-driver one is sealed, so read whichever box
-    // type the project actually is. Sealed's volume is a SimpleField (get() → number); vented's is
-    // a MandatoryField (.value → number, schema-guaranteed non-null), so the two need different
-    // readouts.
-    if (project.box.boxType.get() === 'vented') {
+    // type the project actually is. Every field answers through `.value`; vented's can be null
+    // where sealed's cannot, so only that one needs the check.
+    if (project.box.boxType.value === 'vented') {
       const v = project.box.vented.volume_m3.value;
       if (v === null) throw new Error('vented volume is not available');
       return v;
     }
-    return project.box.sealed.volume_m3.get();
+    return project.box.sealed.volume_m3.value;
   });
 }
 
