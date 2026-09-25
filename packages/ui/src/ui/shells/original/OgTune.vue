@@ -8,7 +8,7 @@ import {onMounted, onUnmounted, reactive, ref} from 'vue';
 import type {SpecField} from '../../../logic/appState.js';
 import {presentationState} from '../../../logic/presentationState.js';
 import {useFocusedProject} from '../../../logic/focusedProjectContext.js';
-import {fromDisplay, toDisplay} from '../../../logic/fields/units.js';
+import {fromDisplay, statedPrecision, toDisplay} from '../../../logic/fields/units.js';
 import {limits, precision as fieldDp} from '../../../logic/fields/uiFields.js';
 import {type UnitGroup} from '@openisd/design/fields';
 import {cellClassFor, fieldIsMandatoryAndUnsatisfied} from '../../../logic/useDriverCells.js';
@@ -28,7 +28,7 @@ const tune = useOgTune();
 type NumKey = 'Fs_hz' | 'Qts' | 'Qes' | 'Qms' | 'Vas_m3' | 'Sd_m2' | 'Re_ohm' | 'Le_H' | 'Xmax_m' | 'Pe_W' | 'BL_Tm' | 'Mms_kg';
 
 function fieldCell(key: NumKey): Readable<number | null> & Entered & Calculated { return tune.fieldCell(key); }
-function enterField(key: NumKey, v: number): void { tune.enterField(key, v); }
+function enterField(key: NumKey, v: number, precision?: number): void { tune.enterField(key, v, precision); }
 function clearField(key: NumKey): void { tune.clearField(key); }
 // Raw driver values are SI (Vas m³, Sd m², Le H, Xmax m, Mms kg); a field with a `group`/
 // `token` displays and accepts input via the one units.ts conversion (`display = SI × factor`);
@@ -85,7 +85,10 @@ function onField(key: NumKey, group: UnitGroup | undefined, token: string | unde
   // Emptying a field RELEASES it back to Calculated — the override is withdrawn, not set to
   // nothing. Without this a cleared field would keep its last entered value invisibly.
   if (raw.trim() === '') clearField(key);
-  else if (isFinite(v)) enterField(key, group && token ? fromDisplay(v, group, token) : v);
+  // The typed characters state the precision, so they are what it is read off — `raw`, never the
+  // parsed number (which has already dropped "30.00"'s trailing zeros).
+  else if (isFinite(v)) enterField(key, group && token ? fromDisplay(v, group, token) : v,
+                                   statedPrecision(raw, group, token));
 }
 function onBlur(key: NumKey) { delete rawVals[key]; }
 

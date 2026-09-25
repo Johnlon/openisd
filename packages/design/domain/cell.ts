@@ -31,9 +31,11 @@ export interface Precise {
   readonly precision: number | null;
 }
 
-/** The project owner can enter a new value. */
+/** The project owner can enter a new value. `precision` is the half-width of what that value
+ *  STATES, in SI — an editor showing 2 decimals of grams passes 0.000005 — and is omitted where
+ *  the caller has nothing better to say than the number itself (D13, `entryPrecision`). */
 export interface Writable<T> {
-  set(v: T): void;
+  set(v: T, precision?: number): void;
 }
 
 /** The project owner can retract a stated value: to `null` where `V` admits it, else to the
@@ -87,9 +89,10 @@ export function absentCell<T>(name: string, dq?: readonly DqIssue[]): FieldCell<
 
 // ──────────────── Write plumbing the impls below take in their constructors ────────────────────
 
-/** `entered(v)`: the one write a solver never makes — a project fact. */
+/** `entered(v)`: the one write a solver never makes — a project fact. `precision` is what that
+ *  fact states, per `Writable`. */
 export interface Enterable<V> {
-  entered(v: V): void;
+  entered(v: V, precision?: number): void;
 }
 
 /** `calculated(v)`/`dq(list)` — the solver's writes. */
@@ -125,7 +128,7 @@ export class EnteredFieldImpl<T> extends ReadableFieldImpl<T | null> implements 
   }
 
   get entered(): boolean { return this.readCell().entered; }
-  set(v: T): void { this.writes.entered(v); }
+  set(v: T, precision?: number): void { this.writes.entered(v, precision); }
   clear(): void { this.writes.clear(); }
 }
 
@@ -149,7 +152,7 @@ export class DualWriteFieldImpl<T> extends ReadableFieldImpl<T | null>
   get entered(): boolean { return this.readCell().entered; }
   get calculated(): boolean { return this.readCell().calculated; }
   get precision(): number | null { return this.readCell().precision; }
-  set(v: T): void { this.writes.entered(v); }
+  set(v: T, precision?: number): void { this.writes.entered(v, precision); }
   clear(): void { this.writes.clear(); }
 
   /** Never removes an entered value — only the project itself retracts a stated fact; the
@@ -183,7 +186,7 @@ export class DefaultingFieldImpl<T> extends ReadableFieldImpl<T>
   get entered(): boolean { return this.readCell().entered; }
   get calculated(): boolean { return this.readCell().calculated; }
   get precision(): number | null { return this.readCell().precision; }
-  set(v: T): void { this.writes.entered(v); }
+  set(v: T, precision?: number): void { this.writes.entered(v, precision); }
   clear(): void { this.writes.clear(); }
 
   setCalculated(value: T, dq?: readonly DqIssue[]): void {
@@ -324,19 +327,26 @@ export function entryField(
       : calculatedCell<number | null>(name, entry.value, dq);
   };
   return new DualWriteFieldImpl<number>(readCell, {
-    entered: (v) => { liveDq = []; slot.set({ state: 'E', value: v }); },
+    entered: (v, precision) => { liveDq = []; slot.set({ state: 'E', value: v, precision }); },
     clear: () => { liveDq = []; slot.set(undefined); },
     calculated: (v) => { liveDq = []; slot.set({ state: 'C', value: v }); },
     dq: (list) => { liveDq = list; writeEntryDq(slot, list, issueText); },
   });
 }
 
-/** D13: an entered value's own stated precision when its winning reading carries one, else the
- *  half-width of the decimal it was typed to — the source scraper's own accuracy claim outranks
- *  a guess read off the digit count, but a hand-typed value never gets a scraper reading at all. */
+/** D13 — the STATED precision of this value, never the precision the field could support.
+ *
+ *  Three sources, in order of how directly each one knows what was stated:
+ *  1. the winning reading's `read_precision` — the scraper measured it and says so;
+ *  2. the entry's own `precision`, written when the value was entered: the entering unit's
+ *     least significant digit, in SI. A value typed into a field showing 2 decimals of grams
+ *     states 30 g to ±0.005 g, and the conversion to `0.03` kg is not allowed to lose that;
+ *  3. the printed decimals of the stored value. A record stating `0.5` kg states one decimal of
+ *     a kilogram and nothing finer — `0.5` is not `0.50000` — so this is the right answer for a
+ *     value that arrived as a number in a file and never went through a field. */
 function entryPrecision(entry: Extract<SpecEntryJson, {state: 'E'}>): number {
   const reading = entry.origin !== undefined ? entry.readings?.[entry.origin] : undefined;
-  return reading?.read_precision ?? halfUlp(entry.value);
+  return reading?.read_precision ?? entry.precision ?? halfUlp(entry.value);
 }
 
 /** One `DqIssue` as the debug-trail mark it becomes (D14/D14a) — `params` carries the finding
@@ -392,7 +402,7 @@ export function defaultingEntryField(
     if (entry === undefined) return calculatedCell(name, fallback(), liveDq);
     return entry.state === 'E' ? enteredCell(name, entry.value, liveDq) : calculatedCell(name, entry.value, liveDq);
   }, {
-    entered: (v) => { liveDq = []; slot.set({ state: 'E', value: v }); },
+    entered: (v, precision) => { liveDq = []; slot.set({ state: 'E', value: v, precision }); },
     clear: () => { liveDq = []; slot.set(undefined); },
     calculated: (v) => { liveDq = []; slot.set({ state: 'C', value: v }); },
     dq: (list) => { liveDq = list; writeEntryDq(slot, list, issueText); },

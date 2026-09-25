@@ -823,7 +823,7 @@ test('Advanced Temperature: K → °C converts via OFFSET; the model stays in ke
   await expect(sv).toHaveValue(svBefore);          // unchanged ⇒ the model stayed in kelvin
 });
 
-test('Voice coil temp rise, resistance TC, and added mass all convert (no runaway precision)', async ({ page }) => {
+test('Voice coil temp rise, resistance TC, and added mass all convert, each keeping its own resolution', async ({ page }) => {
   await page.locator('.project-nav li', { hasText: 'Driver' }).click();
 
   // Voice coil temp rise: K → °F is a DIFFERENCE conversion (×1.8, no offset — distinct from
@@ -849,7 +849,11 @@ test('Voice coil temp rise, resistance TC, and added mass all convert (no runawa
   await expect(tcUnit).toHaveText('%/K');
   expect(parseFloat(await tc.inputValue())).toBeCloseTo(0.39, 3);
 
-  // Added mass to cone: converting to kg must NOT pile up meaningless zeros (was 0.00000000).
+  // Added mass to cone: converting to kg keeps the field's own resolution. The registry states
+  // it to 5 decimals of a gram, so kilograms need 8 to say the same thing — those digits ARE the
+  // resolution, and a ceiling on them would show a coarser number than the field holds (John,
+  // 2026-09-25: "the display resolution must track the absolute precision we want to support").
+  // What must never happen is the VALUE being lost to the conversion — 0.00000000.
   const maddField = page.locator('.field', { hasText: 'Added mass to cone' });
   const madd = maddField.locator('input');
   const maddUnit = maddField.locator('.unit');
@@ -858,10 +862,8 @@ test('Voice coil temp rise, resistance TC, and added mass all convert (no runawa
   await madd.blur();
   await maddUnit.click();                       // g → kg
   await expect(maddUnit).toHaveText('kg');
-  await expect(madd).not.toHaveValue('0.00000000');
-  const shown = await madd.inputValue();
-  expect(shown.replace(/^0\./, '').length).toBeLessThanOrEqual(4); // capped decimal places
-  expect(parseFloat(shown)).toBeCloseTo(0.1, 3);
+  await expect(madd).toHaveValue('0.10000000');
+  expect(parseFloat(await madd.inputValue())).toBeCloseTo(0.1, 3);
 });
 
 test('Original skin: Options dialog → "Reset to Metric" reverts a toggled unit (kg → g) app-wide without touching the model', async ({ page }) => {

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import {computed, ref, watch} from 'vue';
 import {unitToken} from '../../logic/presentationState.js';
-import {displayPrecision, fromDisplay, toDisplay} from '../../logic/fields/units.js';
+import {displayPrecision, fromDisplay, statedPrecision, toDisplay} from '../../logic/fields/units.js';
 import {type UnitGroup} from '@openisd/design/fields';
 import {fieldById, fieldHelp} from '../../logic/fields/uiFields.js';
 import type {ProvenanceLetter} from '../../logic/fieldProvenance.js';
@@ -47,7 +47,11 @@ const props = withDefaults(defineProps<{
 });
 
 const emit = defineEmits<{
-  'update:modelValue': [value: number | null];
+  /** The SI value, and — where the entry states one — the half-width of what it STATES, in SI.
+   *  Counted off the typed characters, not off the number: "30.00" and "30" are the same number
+   *  and different statements. A consumer that records provenance passes it to the field's
+   *  `set`; one that only needs the number ignores the second argument. */
+  'update:modelValue': [value: number | null, precision?: number];
   blur: [];
   /**
    * Blur left a cell whose value changed since the cell was entered (focused). The component owns
@@ -170,6 +174,12 @@ function valid(si: number): boolean {
 const dispMin = computed(() => toDisp(effMin.value));
 const dispMax = computed<number | undefined>(() => effMax.value === undefined ? undefined : toDisp(effMax.value));
 
+/** What the characters in the field STATE, in SI — `statedPrecision` against this field's own
+ *  unit binding, or against the SI value itself when the field is not unit-bound. */
+function typedPrecision(typed: string): number | undefined {
+  return unitized.value ? statedPrecision(typed, props.group!, token.value) : statedPrecision(typed);
+}
+
 function onInput(e: Event) {
   const t = inputFrom(e);
   if (t === null) return;
@@ -201,7 +211,8 @@ function onInput(e: Event) {
   const si = fromDisp(v);          // back to SI (the model's units)
   if (typing.value || !isFinite(v)) {
     display.value = t.value;                                   // raw echo while typing (caret-safe)
-    if (valid(si)) emit('update:modelValue', si);             // reject < min (e.g. negatives)
+    // reject < min (e.g. negatives)
+    if (valid(si)) emit('update:modelValue', si, typedPrecision(t.value));
     return;
   }
   // Spinner/arrow/wheel step: format the DISPLAY to precision (screen-only) so the field never
@@ -212,7 +223,7 @@ function onInput(e: Event) {
   const s = v.toFixed(eprec.value);
   display.value = s;
   t.value = s;
-  if (valid(si)) emit('update:modelValue', si);
+  if (valid(si)) emit('update:modelValue', si, typedPrecision(s));
 }
 
 function onBlur(e: Event) {

@@ -1025,6 +1025,13 @@ export class OpenIsdDriverSpec {
         engine: Engine,
         /** The driver's air: what a not-entered `c_m_per_s`/`roo_kg_per_m3` reads as. */
         air: () => Air,
+        /** Where a field's dq is read from when THIS spec object cannot be relied on to still
+         *  exist between the resolve that produced it and the read that wants it — the project's
+         *  embedded driver, rebuilt fresh on every access, which discards `entryField`'s own
+         *  closure along with the instance. Omitted by a standalone driver, which is a single
+         *  durable instance and keeps its own. Same rule, and same reason, as the vent/PR groups
+         *  (`entryField`'s `issuesSource`). */
+        durableIssues?: () => readonly DriverIssue[],
     ) {
         this.#engine = engine;
 
@@ -1044,7 +1051,13 @@ export class OpenIsdDriverSpec {
          *  derived value once `resolve()` has run — no live recompute at read time, no
          *  `solvedNow` bag kept beside the record. `entryField` alone reports absent/entered/
          *  calculated straight off what is actually stored. */
-        const f = (key: keyof DriverSpecsSection): Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable => entryField(sectionSlot(key), key, engine);
+        /** The issues `key` is named by, out of a durable list — the same split `projectFormulaDq`
+         *  makes: a `field`-carrying issue names one field, everything else names whatever
+         *  `issueFields` says. */
+        const dqFor = (key: keyof DriverSpecsSection): (() => readonly DqIssue[]) | undefined =>
+            durableIssues === undefined ? undefined : () => durableIssues().filter(issue =>
+                'field' in issue ? issue.field === key : engine.issueFields(issue).some(f => f === key));
+        const f = (key: keyof DriverSpecsSection): Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable => entryField(sectionSlot(key), key, engine, dqFor(key));
 
         /** The wiring field — `entryField` in every respect but the value's type, which is a
          *  NAME rather than one of `DriverSpecsSection`'s numbers, so it cannot go through `f()`
@@ -1365,12 +1378,14 @@ export abstract class OpenISDDriver extends OpenISDDevice {
         record: SimpleField<DriverDeviceJson>,
         engine: Engine,
         airProvider: () => AirConstantProvider,
+        /** See `OpenIsdDriverSpec`'s own parameter — only an embedded driver supplies one. */
+        durableIssues?: () => readonly DriverIssue[],
     ) {
         super(record, engine);
         this.record = record;
         this.airProvider = airProvider;
         const air = (): Air => engine.solveEnvironment(airProvider()).values;
-        this.specs = new OpenIsdDriverSpec(record, 'woofer', engine, air);
+        this.specs = new OpenIsdDriverSpec(record, 'woofer', engine, air, durableIssues);
     }
 
     /** T11/S2-7c: resolve this driver's spec — write every derivable quantity back
@@ -1606,8 +1621,9 @@ class OpenISDDriverEmbedded extends OpenISDDriver {
         record: SimpleField<DriverDeviceJson>,
         engine: Engine,
         airProvider: () => AirConstantProvider,
+        durableIssues: () => readonly DriverIssue[],
     ) {
-        super(record, engine, airProvider);
+        super(record, engine, airProvider, durableIssues);
     }
 
     /** Takes the lens onto the project's `driver` slot and the project's air — what this driver
@@ -1617,8 +1633,12 @@ class OpenISDDriverEmbedded extends OpenISDDriver {
         slot: SimpleField<DriverDeviceJson>,
         engine: Engine,
         airProvider: () => AirConstantProvider,
+        /** The PROJECT's cached driver issues. This object does not outlive one access, so the
+         *  dq a resolve wrote into its fields is gone before anything reads it; the project's
+         *  cache is what survives. */
+        durableIssues: () => readonly DriverIssue[],
     ): OpenISDDriverEmbedded {
-        return new OpenISDDriverEmbedded(slot, engine, airProvider);
+        return new OpenISDDriverEmbedded(slot, engine, airProvider, durableIssues);
     }
 
     /** Adopt `source`'s whole record, then strip its `c`/`roo` — an embedded driver never keeps
@@ -2033,6 +2053,7 @@ export class OpenISDProject {
             focus(focus(root, 'driverEmbedding'), 'device'),
             this.#engine,
             () => this.#airOver(root),
+            () => this.#issues.driver,
         );
     }
 

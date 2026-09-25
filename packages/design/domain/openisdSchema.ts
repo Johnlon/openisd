@@ -306,6 +306,12 @@ const corroborationJsonSchema = z.enum(['MATCH', 'MISMATCH', 'NOT_MATCHABLE', 'U
 const enteredEntrySchema = z.strictObject({
     state: z.literal('E'),
     value: z.number(),
+    /** Half-width of what this value STATES, in SI — written by whatever entered it, because the
+     *  stored number cannot be read back for it: a field showing 2 decimals of grams states
+     *  30 g to ±0.005 g, and `0.03` kg no longer says so. Absent on a value that arrived as a
+     *  plain number, where its own decimals are the statement (`0.5` kg is 1 dp of a kilogram).
+     *  Never the precision the FIELD supports — that is a display question. */
+    precision: z.number().positive().optional(),
     // `_KEY_PRIORITY_LIST` order (`model_driver.py:1509`) — see the note on the record schema below.
     origin: z.string().optional(),
     readings: z.record(z.string(), readingJsonSchema).refine(

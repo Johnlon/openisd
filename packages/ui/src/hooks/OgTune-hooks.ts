@@ -4,7 +4,7 @@ import {useFocusedProject} from '../logic/focusedProjectContext.js';
 import {ebpOf} from '../logic/environment.js';
 import {cellClassFor} from '../logic/useDriverCells.js';
 import type {Calculated, Clearable, Entered, Readable, Writable} from '@openisd/design';
-import {projectChanged} from '../logic/appState.js';
+import {engine, projectChanged} from '../logic/appState.js';
 import type {NumSpecField} from '../logic/appState.js';
 import {specFieldHandle} from '../logic/driverSpecFields.js';
 
@@ -21,7 +21,8 @@ export interface OgTuneAPI {
   cellVal(key: NumSpecField): number | null;
   dqNote(key: NumSpecField): string | null;
 
-  enterField(key: NumSpecField, v: number): void;
+  /** `precision` is what the typed characters STATE, in SI — see `Writable.set`. */
+  enterField(key: NumSpecField, v: number, precision?: number): void;
   clearField(key: NumSpecField): void;
   setVb_m3(v: number): void;
   reset(): Promise<void>;
@@ -92,7 +93,11 @@ export function useOgTune(): OgTuneAPI {
   function dqNote(key: NumSpecField): string | null {
     const v = fieldCell(key).value;
     if (typeof v === 'number' && !(v > 0)) return BAD_VALUE_NOTE;
-    return fieldCell(key).dq.join('\n');
+    // Each issue rendered by the engine — the one place a `DqIssue` becomes a sentence, and the
+    // same one the driver editor reads through (`dqNoteFor`). Joining the issues themselves put
+    // "[object Object]" in the tooltip, which nothing noticed while this panel's dq was always
+    // empty (the marks were computed and then discarded with the rebuilt embedded driver).
+    return fieldCell(key).dq.map(issue => engine.dqIssueText(issue)).join('\n');
   }
 
   function cellVal(key: NumSpecField): number | null {
@@ -100,8 +105,8 @@ export function useOgTune(): OgTuneAPI {
     return typeof v === 'number' ? v : null;
   }
 
-  function enterField(key: NumSpecField, v: number): void {
-    specField(key).set(v);
+  function enterField(key: NumSpecField, v: number, precision?: number): void {
+    specField(key).set(v, precision);
   }
 
   function clearField(key: NumSpecField): void {
