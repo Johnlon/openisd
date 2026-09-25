@@ -642,7 +642,7 @@ const {
             <span><i class="legend-swatch legend-calculated"></i>App level / calculated</span>
             <span><i class="legend-swatch legend-normal"></i>Normal</span>
           </div>
-          <button v-if="projectOpen" class="edit-btn tune-btn" :title="whatIfActive ? 'What-if is active — reopen the transient tuning layer.' : 'Open a transient what-if tuning layer.'" @click="startTune">&#9835; {{ whatIfActive ? 'What-if' : 'Tune' }}</button>
+          <button v-if="projectOpen" class="edit-btn tune-btn" :class="{ 'whatif-active': whatIfActive }" :title="whatIfActive ? 'What-if is active — reopen the transient tuning layer.' : 'Open a transient what-if tuning layer.'" @click="startTune">&#9835; What-if?</button>
           <button v-if="projectOpen" class="edit-btn revert-btn" :disabled="!isModified" :title="isModified ? 'Revert — discard all unsaved changes and return to the last saved version.' : 'Revert — no unsaved changes to discard.'" @click="resetProjectToGround(confirmDiscard)">Revert</button>
         </div>
         </template>
@@ -1055,6 +1055,11 @@ textarea.comment, textarea.description { width:100%; border:1px solid #999; bord
 .radio-group label { display:flex; align-items:center; gap:4px; }
 .edit-btn, .link-btn, .action-btn { background:#f0f0f0; border:1px solid #999; border-radius:3px; padding:4px 10px; cursor:pointer; }
 .edit-btn:hover, .link-btn:hover, .action-btn:hover { background:#dbeaff; border-color:#7fb3ff; }
+/* What-if? is the way into the transient tuning layer — the one coloured button on this rail.
+   An active layer deepens it, since the label no longer changes to say so. */
+.tune-btn { background:#2f76d6; border-color:#2a68bd; color:#fff; }
+.tune-btn:hover { background:#4189e8; border-color:#2a68bd; }
+.tune-btn.whatif-active { background:#1a4f9c; border-color:#12376e; }
 .link-btn { background:none; border:none; color:#1868d1; text-decoration:underline; padding:2px 0; }
 .link-btn:disabled { color:#999; cursor:default; text-decoration:none; opacity:.6; }
 /* The tab pane's no-project placeholder — the lower-right quadrant stays in the grid and

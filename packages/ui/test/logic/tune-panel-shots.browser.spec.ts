@@ -16,7 +16,7 @@ async function original(page: Page) {
   await page.goto('/');
   await openAProject(page, COMPLETE);
   await page.locator('.project-nav li', { hasText: 'Driver' }).click();
-  await page.locator('.edit-btn', { hasText: 'Tune' }).click();
+  await page.locator('.edit-btn', { hasText: 'What-if' }).click();
   const tune = page.locator('.tune-panel');
   await tune.waitFor({ state: 'visible' });
   return tune;

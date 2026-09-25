@@ -25,7 +25,7 @@ async function openTune(page: Page) {
   await page.goto('/');
   await openAProject(page, COMPLETE_OWPR);
   await page.locator('.project-nav li', { hasText: 'Driver' }).click();
-  await page.locator('.edit-btn', { hasText: 'Tune' }).click();
+  await page.locator('.edit-btn', { hasText: 'What-if' }).click();
   await expect(page.locator('.tune-panel')).toBeVisible();
 }
 

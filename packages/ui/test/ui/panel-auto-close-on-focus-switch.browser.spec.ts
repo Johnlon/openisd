@@ -35,7 +35,7 @@ test('switching focus to a different open project closes an open Tune panel', as
   await page.locator('button.link-btn', { hasText: '＋ Copy' }).click();
 
   await page.locator('li', { hasText: 'Driver' }).click();
-  await page.locator('button.edit-btn', { hasText: 'Tune' }).click();
+  await page.locator('button.edit-btn', { hasText: 'What-if' }).click();
   const tunePanel = page.locator('.tune-panel');
   await expect(tunePanel).toBeVisible();
 

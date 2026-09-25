@@ -13,7 +13,7 @@ test('the Tune panel stays open when the box type changes underneath it', async 
   await openAProject(page);
 
   await page.locator('.project-nav li', { hasText: 'Driver' }).click();
-  await page.locator('button.edit-btn', { hasText: 'Tune' }).click();
+  await page.locator('button.edit-btn', { hasText: 'What-if' }).click();
   await expect(page.locator('.tune-panel')).toBeVisible();
 
   await page.locator('.project-nav li', { hasText: 'Box' }).click();
@@ -29,7 +29,7 @@ test('the Tune panel stays open across project tab changes', async ({ page }) =>
   await openAProject(page);
 
   await page.locator('.project-nav li', { hasText: 'Driver' }).click();
-  await page.locator('button.edit-btn', { hasText: 'Tune' }).click();
+  await page.locator('button.edit-btn', { hasText: 'What-if' }).click();
   await expect(page.locator('.tune-panel')).toBeVisible();
 
   // The panel is not a child of any one tab section.
@@ -50,7 +50,7 @@ test('Tune keeps the Vb typed into it when the field loses focus', async ({ page
   await openAProject(page);
 
   await page.locator('.project-nav li', { hasText: 'Driver' }).click();
-  await page.locator('button.edit-btn', { hasText: 'Tune' }).click();
+  await page.locator('button.edit-btn', { hasText: 'What-if' }).click();
   await expect(page.locator('.tune-panel')).toBeVisible();
 
   const vb = page.locator('.tune-panel .tune-fld', { hasText: 'Vb' }).locator('input');

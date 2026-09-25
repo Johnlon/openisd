@@ -92,7 +92,7 @@ const VENTED_FB_HZ   = '37.9'; // Target Tuning Freq (og-vent-fb-target / og-fb-
 test('sealed box: Fs=37Hz, Qts=0.38, Vas=30L driver in 20L box shows Qtc=0.611 and fc=61.4Hz in stat bar (WinISD-lossy default)', async ({ page }) => {
   // Set driver parameters — Qts and Vas drive the Qtc formula; Fs drives fc
   await page.locator('.project-nav li', { hasText: 'Driver' }).click();
-  await page.locator('button.edit-btn', { hasText: 'Tune' }).click();
+  await page.locator('button.edit-btn', { hasText: 'What-if' }).click();
   await setNumField(page, 'Fs', DRV_FS_HZ);
   await setNumField(page, 'Qts', DRV_QTS);
   await setNumField(page, 'Vas', DRV_VAS_L);   // scale=1000: 30 → stores 0.030 m³
@@ -119,7 +119,7 @@ test('sealed box: Fs=37Hz,Qts=0.38,Vas=30L — Butterworth button sets Vb so box
   // Set all driver params that the stat bar assertions depend on:
   // Qts + Vas → sealedFromQtc() → Vb → Qtc;  Fs + Vb → fc
   await page.locator('.project-nav li', { hasText: 'Driver' }).click();
-  await page.locator('button.edit-btn', { hasText: 'Tune' }).click();
+  await page.locator('button.edit-btn', { hasText: 'What-if' }).click();
   await setNumField(page, 'Fs', DRV_FS_HZ);
   await setNumField(page, 'Qts', DRV_QTS);
   await setNumField(page, 'Vas', DRV_VAS_L);
@@ -217,7 +217,7 @@ const BP4_FRONT_VF_L = 20;   // front vented chamber, litres
 test('bandpass4 box: 15L rear + 20L front chamber volumes enter and render', async ({ page }) => {
   // Set driver — peak port velocity depends on driver T/S
   await page.locator('.project-nav li', { hasText: 'Driver' }).click();
-  await page.locator('button.edit-btn', { hasText: 'Tune' }).click();
+  await page.locator('button.edit-btn', { hasText: 'What-if' }).click();
   await setNumField(page, 'Fs', BP4_DRV_FS_HZ);
   await setNumField(page, 'Qts', BP4_DRV_QTS);
   await setNumField(page, 'Vas', BP4_DRV_VAS_L);

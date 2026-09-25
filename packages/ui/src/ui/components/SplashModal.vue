@@ -50,14 +50,15 @@ const {open, dismiss} = injectSplashModal();
       <section>
         <h3>What is distinctive</h3>
         <ul>
-          <li><strong>Live everything</strong> — no <em>calculate</em> button. Change a box volume, drag a vent, swap a driver, and SPL, excursion, port velocity, impedance and group delay redraw on the keystroke.</li>
-          <li><strong>Switchable circuit model</strong> — WinISD-compatible (Le excluded from SPL) or full gyrator (Le throughout, physically correct).</li>
-          <li><strong>Design compare</strong> — pin any design and overlay its curves on the next one.</li>
-          <li><strong>A cursor that works</strong> — hover, right-click to snap to a peak or trough, lock it, or type a frequency.</li>
+          <li><strong>Alignment choice on every box type</strong>, not just the ones WinISD offers it for.</li>
+          <li><strong>Switch one box from sealed to ported and back</strong> — the same design, explored as each type, and compared.</li>
+          <li><strong>No division-by-zero results and no crashes</strong> — an incomplete design says what is missing instead of producing a NaN or a blank window.</li>
+          <li><strong>Modern cursor</strong> — hover, right-click to snap to a peak or trough, lock it, or type a frequency.</li>
           <li><strong>Data-quality marks</strong> — the app says when a driver's own stated parameters contradict each other, and which ones.</li>
-          <li><strong>What-If editor</strong> — edit a driver's Thiele/Small parameters inline as a scratchpad; nothing touches your library until you save it.</li>
-          <li><strong>Sealed, vented, 4th-order bandpass and passive radiator</strong>, with alignment helpers, a vent-length ↔ tuning solver and passive-radiator mass auto-tune.</li>
-          <li><strong>Auto-saves</strong> to browser storage; projects export as JSON or as WinISD files.</li>
+          <li><strong>What-if?</strong> — edit a driver's Thiele/Small parameters inline as a scratchpad; nothing touches your library until you save it.</li>
+          <li><strong>Solvers that run in every direction</strong> — give it what you know, and it derives the rest, whichever end you start from.</li>
+          <li><strong>Error messages that teach</strong> — what went wrong, why the physics says so, and what to change.</li>
+          <li><strong>Visible calculation provenance</strong> — trace any number back to the values and the formula it came from.</li>
         </ul>
       </section>
 
