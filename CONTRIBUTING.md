@@ -28,7 +28,7 @@ Pick work from `BACKLOG.md`; P0 gates everything else.
 | --- | --- | --- | --- |
 | What to build (`BACKLOG.md`) | Decides | Suggests | — |
 | Physics & calculation correctness | Decides | Implements | Cross-check (reference) |
-| `packages/engine/src/` formulas & constants | Approves | Proposes | Unit + oracle tests |
+| `packages/design/engine/` formulas & constants | Approves | Proposes | Unit + oracle tests |
 | Driver data (`drivers/**`) | Authorises | Reads only | winisd_tools writes |
 | `drivers/matt/` | Owns | Excludes | Excludes |
 | `reviewed_by` / "human-verified" | Only | Never sets | — |
@@ -38,7 +38,7 @@ Pick work from `BACKLOG.md`; P0 gates everything else.
 ## How the engine works
 
 A lumped-element electro-mechano-acoustical circuit solved in the acoustical impedance analogy,
-one complex value per frequency (`packages/engine/src/sweep.ts`, `circuit.ts`). `eg` is RMS, so
+one complex value per frequency (`packages/design/engine/sweep.ts`, `circuit.ts`). `eg` is RMS, so
 SPL is RMS-referenced; excursion and port velocity are peak (×√2) against Xmax and chuffing
 limits. For a vented or PR box, net radiated volume velocity is `U_0 = U_D − U_port`; that minus
 sign is what produces the 24 dB/oct rolloff.

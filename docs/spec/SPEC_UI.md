@@ -76,7 +76,7 @@ is specified at 'signal'-tab"*) — a filter chain with every entry disabled is 
 
 **Verifying Tests**:
 
-- [`packages/engine/test/sweep.test.ts`](../../packages/engine/test/sweep.test.ts)
+- [`packages/design/test/engine/sweep.test.ts`](../../packages/design/test/engine/sweep.test.ts)
 - [`packages/ui/test/ui/chart-types.test.ts`](../../packages/ui/test/ui/chart-types.test.ts)
 
 ---

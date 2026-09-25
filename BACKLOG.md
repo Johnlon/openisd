@@ -14,7 +14,7 @@ today's engine · **P2** = larger but well-defined · **P3** = big rocks (design
 **Checkbox format:** `[x]` = implemented · `[ ]` = not implemented.
 Implemented items carry a second box for test status: `[x] [x]` = implemented + tested,
 `[x] [ ]` = implemented but untested.
-**Test tags** — `[unit]` = logic in `packages/engine/src/` with tests in `test/`;
+**Test tags** — `[unit]` = logic in `packages/design/engine/` with tests in `test/`;
 `[ui]` = Playwright browser automation in `test/app.browser.spec.js`.
 
 ---
@@ -82,14 +82,14 @@ manufacturer` for the DB's records; what changes is which field is authoritative
     regenerated** once this lands — read the `regenerate-records` skill before running anything
     that writes records.
 
-- [ ] **Stop reading `.wdr` in the app; the app reads `openisd.yml` only. Reimplement the
-      yml→wdr writer as a shared JS lib, called on-demand by the UI's Save-As and, as a subprocess,
+- [ ] **Stop reading `.wdr` in the app; the app reads `openisd.json` only. Reimplement the
+      record→wdr writer as a shared JS lib, called on-demand by the UI's Save-As and, as a subprocess,
       by the Python scraper pipeline.** Design decision (human, 2026-07-31): `.wdr` is WinISD's
       format, not OpenISD's. Its only legitimate purpose is letting a design be opened in classic
       WinISD — that is a UI export concern, not something the app or its data pipeline needs to
       carry as a stored, checked-in artifact. Concretely:
   - The disk loader and the driver browser stop treating `.wdr` as a source of driver data.
-    `openisd.yml` is the only record read. (The bundler is done: it reads `openisd.yml`/
+    `openisd.json` is the only record read. (The bundler is done: it reads `openisd.json`/
     `.owdr` records only and never `.wdr`. Still outstanding here: the federated-GitHub path,
     which fetches `.wdr` from third-party repos, and a build-time `.wdr` → `.owdr` converter
     so a collection stored as `.wdr` can be bundled at all.)
@@ -97,13 +97,13 @@ manufacturer` for the DB's records; what changes is which field is authoritative
     a JS `ymlToWdr()`/equivalent lib function — not by reading a pre-baked file off disk.
   - `winisd_tools`'s scraper pipeline (`scrapers/scrapers/lib/rebuild_wdr.py`) currently
     reimplements this conversion in Python. It must NOT keep two independent implementations
-    of the same yml→wdr mapping (see the `Rme` formula divergence already found between
+    of the same record→wdr mapping (see the `Rme` formula divergence already found between
     `model_wdr.py` and `driver.ts` this session — same failure mode, different field). Instead
     the Python pipeline calls the JS lib's `ymlToWdr()` through the same embedded V8 runtime
     (`mini-racer`) used for all other Python→JS calc calls — not a subprocess, not a CLI — so
     there is exactly one implementation and one bridge.
   - See [PLAN_JS_CALC_CONSOLIDATION.md](http://localhost:8000/winisd/openisd/docs/plans/archive/PLAN_JS_CALC_CONSOLIDATION.md#L1)
-    for the calc half of this ruling (TODO.md QT39). `.owdr` and `openisd.yml` are the same
+    for the calc half of this ruling (TODO.md QT39). `.owdr` and `openisd.json` are the same
     schema per [ARCHITECTURE.md AD-8](http://localhost:8000/winisd/openisd/ARCHITECTURE.md#L400-L406) —
     line 32 above is accurate.
   - The bridge (embedded V8 via `mini-racer`, not a Node CLI) and the math API it shares with
@@ -111,11 +111,11 @@ manufacturer` for the DB's records; what changes is which field is authoritative
     [MATH_MIGRATION.md §6 / §9.2](http://localhost:8000/winisd/openisd/docs/plans/archive/MATH_MIGRATION.md#L474-L491),
     which also covers precision-propagation parity and the full retirement/testing plan.
   - **Same pattern, other direction (human, 2026-07-31, `ARCHITECTURE.md` AD-8):**
-    `openisd.yml` itself is read and written EXCLUSIVELY by this JS/TS code, never by Python.
-    When `winisd_tools` needs an `openisd.yml` produced from a `driver.yml`, it invokes the
+    `openisd.json` itself is read and written EXCLUSIVELY by this JS/TS code, never by Python.
+    When `winisd_tools` needs an `openisd.json` produced from a `driver.json`, it invokes the
     JS/TS side via an API (shape TBD, same subprocess pattern as above) taking two arguments
-    — the input `driver.yml` path and the output `openisd.yml` path — rather than writing one
-    itself. One implementation of `driver.yml → openisd.yml`, one of `openisd.yml → .wdr`,
+    — the input `driver.json` path and the output `openisd.json` path — rather than writing one
+    itself. One implementation of `driver.json → openisd.json`, one of `openisd.json → .wdr`,
     each owned by JS/TS and invoked externally by Python, not duplicated per language.
   - Scope note: this is a design/architecture task, not yet planned in detail — needs its own
     plan for the JS lib's package location, its CLI entry point, and what `rebuild_wdr.py`'s
@@ -165,7 +165,7 @@ manufacturer` for the DB's records; what changes is which field is authoritative
 
 ## P0 — Test & architecture foundation
 
-**Status: complete.** `packages/engine/src/` is fully extracted (7 modules), golden-master
+**Status: complete.** `packages/design/engine/` is fully extracted (7 modules), golden-master
 fixtures cover all box types, the engine/UI contract is specified in
 [`docs/spec/SPEC_ENGINE.md`](docs/spec/SPEC_ENGINE.md) and
 [`docs/spec/SPEC_UI.md`](docs/spec/SPEC_UI.md), per-module unit tests exist, the Vue UI
@@ -182,7 +182,7 @@ Oracles: [`docs/research/REFERENCES.md`](docs/research/REFERENCES.md).
       every box type, assert equality — the net that proves extraction preserves
       behaviour, before any code moves. `[unit]`
 - [x] [x] **P0 · Phase 1** Extract the core (`complex`, `driver`, `wdr`, `circuit`,
-      `sweep`, `alignments`, `filters`) into `packages/engine/src/*.js` — no DOM — one module
+      `sweep`, `alignments`, `filters`) into `packages/design/engine/*.js` — no DOM — one module
       at a time, **extracting not rewriting**. `[unit]`
 - [x] [x] **P0 · Phase 2** Define & version the `Design → Curves` contract
       ([`docs/spec/SPEC_ENGINE.md`](docs/spec/SPEC_ENGINE.md),
@@ -314,7 +314,7 @@ full evidence table in [`docs/research/WINISD_PARITY.md`](docs/research/WINISD_P
         alignment tool" would be wrong. See the P1 item at the top of this section.
   - [ ] **A5.** Implement `Rme`, `gamma`, `Mpow` from the pinned formulas. The rest of this item
         is **superseded**: `Mcost`, `Gloss`, `SPLmaxLF` are already correctly calculated
-        (`packages/engine/src/driver.ts:323,332,344`, confirmed 2026-08-17) — they were never
+        (`packages/design/engine/driver.ts:323,332,344`, confirmed 2026-08-17) — they were never
         pass-through. What IS still a total gap, found the same day: the `DVol`/`Depth`/
         `MagDepth`/`Magnet` geometry relation has zero implementation, see
         `bugs/BUG_20260817_dvol_relation_is_fully_documented_but_zero_percent_implemented.md`.
@@ -340,7 +340,7 @@ full evidence table in [`docs/research/WINISD_PARITY.md`](docs/research/WINISD_P
 
 - [x] [ ] **P1** Absorption / fill loss `Qa` (complete the Ql / Qa / Qp loss set)
 - [ ] **P2** 6th-order bandpass (both chambers ported) — extend the 4th-order branch. Two distinct alignments to support, as exposed by SpeakerBoxLite: **parallel** (both ports vent to the outside) and **series** (chambers coupled through a shared port).
-- [ ] **P3 — blocked on a spec.** ABC alignment. `BoxType` (`packages/engine/src/types.ts:125`) has no `'abc'` member and nothing in the repo says what fields an ABC alignment holds — this needs a human spec (what parameters, what topology) before it can be modelled at all. From QO44.
+- [ ] **P3 — blocked on a spec.** ABC alignment. `BoxType` (`packages/design/engine/types.ts:125`) has no `'abc'` member and nothing in the repo says what fields an ABC alignment holds — this needs a human spec (what parameters, what topology) before it can be modelled at all. From QO44.
 - [ ] **P2** `ManagedOpenISDProject.setFrcHz()` (`packages/ui/src/logic/managedProject.ts:391`) is a stub — its `value` parameter is discarded (`_value`), it only calls `#notify()`. Rear-chamber tuning target has no field/home on the domain model yet for bandpass6/ABC. Give it a real backing field once bandpass6 (P2 above) or ABC (P3 above) lands, then drop the `_` prefix and wire the value through.
 - [ ] **P2** Isobaric / compound loading
 - [ ] **P2** Aperiodic (resistive vent) loading
@@ -419,10 +419,10 @@ full evidence table in [`docs/research/WINISD_PARITY.md`](docs/research/WINISD_P
       for the related finding that `clear()` is currently the ONLY undo mechanism available for
       driver fields at all (the edit-draft `cancelEdit()` path is dead code, never called from
       the app).
-- [ ] **P1** **Group solver — relation groups solve in every direction, with WinISD's route precedence.** Ruled 2026-08-13: _"winisd allows that Xmax back calc so Winisd wins that decision"_. WinISD is the oracle, so a group solves in whichever direction the entered data allows — `{Vd, Sd, Xmax}` yields `Xmax = Vd / Sd` as readily as `Vd = Sd · Xmax`. `solveConsistencyGroup` ([`packages/engine/src/driver.ts:46`](packages/engine/src/driver.ts)) already runs to a fixpoint and already carries both `Xmax` routes — `abs(Hc − Hg) / 2` at line 135, `Vd / Sd` at line 144 — so the formulas are not what is missing.
+- [ ] **P1** **Group solver — relation groups solve in every direction, with WinISD's route precedence.** Ruled 2026-08-13: _"winisd allows that Xmax back calc so Winisd wins that decision"_. WinISD is the oracle, so a group solves in whichever direction the entered data allows — `{Vd, Sd, Xmax}` yields `Xmax = Vd / Sd` as readily as `Vd = Sd · Xmax`. `solveConsistencyGroup` ([`packages/design/engine/driver.ts:46`](packages/design/engine/driver.ts)) already runs to a fixpoint and already carries both `Xmax` routes — `abs(Hc − Hg) / 2` at line 135, `Vd / Sd` at line 144 — so the formulas are not what is missing.
       **Route precedence is part of the contract, and it is what the code does not yet express.** `setVal` (line 94) writes only into a still-null field, so whichever branch is reached first wins and source order silently _is_ the precedence. Two engines with identical, correct formulas disagree on any record supplying inputs for both routes, so the order must be stated and tested rather than inherited from line numbering. `Rme` is settled: `2π·Fs·Mms/Qes` beats `BL² / Re`, measured exactly against the Beyma 10BR60_V2 fixture — 18.22124 vs 18.27846 (`winisd_research/GAPS.md` §A5).
       **`Xmax`'s order is NOT settled — re-test it in WinISD before touching the branches.** [`docs/design/WINISD_SCHEMA.md`](docs/design/WINISD_SCHEMA.md) states it twice and the two statements contradict each other: the §4 group table's row 19 (line 268) says row 20 `Vd / Sd` takes precedence and `abs(Hc − Hg) / 2` fires only when `Vd` is absent, while §4.1's tie-break table (line 310) says row 19 `abs(Hc − Hg) / 2` wins and row 20 is the last-resort fallback used only when nothing else can supply the field. One session settles it: enter `Hc`, `Hg`, `Vd` and `Sd` together with `Xmax` blank, and read which value appears. Correct the losing statement in `WINISD_SCHEMA.md` in the same change.
-      **Blast radius — every record holding two members of any group's three.** Computed values move across the whole collection, so the golden fixtures move with them: expect `packages/engine/test/golden.test.ts` to go red and regenerate it with `npm run gen-golden`. A fixture diff is the expected outcome of this change, not evidence of a regression.
+      **Blast radius — every record holding two members of any group's three.** Computed values move across the whole collection, so the golden fixtures move with them: expect `packages/design/test/engine/golden.test.ts` to go red and regenerate it with `npm run gen-golden`. A fixture diff is the expected outcome of this change, not evidence of a regression.
       **A derived value carries state `C`, never `E`.** `Xmax = Vd / Sd` claims _the excursion implied by a published `Vd`_, not _the linear limit the manufacturer measured_; the mark is what keeps those two apart — see [`ARCHITECTURE.md`](ARCHITECTURE.md#relation-groups-solve-in-every-direction) §3 "Relation groups solve in every direction".
       **Related.** `winisd_research/GAPS.md` §A4 ("the driver editor cannot express WinISD's group solve") records the same gap generally and ranks it item 11 in its §F table. The side-by-side parity suite (ledger QO8) must drop its expectation of an `Xmax` divergence — openisd matches WinISD here.
 - [ ] **P1** Guided parameter entry — step-by-step flow following the WinISD-recommended order (Mms+Cms → Sd+BL+Re → Qms → Hc/Hg/Pe → numVC → Znom). Each step shows which fields to fill, why they matter, and what WinISD computes from them. Minimum viable path (Qts+Vas+Fs) clearly signposted. WinISD gives you a blank form with no guidance; this should be meaningfully better.
@@ -547,8 +547,8 @@ full evidence table in [`docs/research/WINISD_PARITY.md`](docs/research/WINISD_P
       writer (winisd_tools F4 deleted the old Python `.wdr` serialiser; today's corpus is stale
       — 0/1893 pass, a sample legacy file has 38 rows vs the app's fixed 48-row table). Once
       winisd_tools' Stage 6 projection phase (`8186e1f6`) sweeps the corpus and every `.wdr` is
-      bridge-generated, flip this leg to fatal alongside the openisd.yml leg — a fresh regression
-      should fail the build the same way a bad openisd.yml does.
+      bridge-generated, flip this leg to fatal alongside the openisd.json leg — a fresh regression
+      should fail the build the same way a bad openisd.json does.
 - [ ] **P1** driverRepo takes the domain object, not the JSON record — retire the
       `_OpenISDDriverJson` HUMAN_GRANTED pair in `packages/ui/test/ui/architecture.test.ts` by
       changing the repo's API to accept/return `OpenISDDriver`, keeping the JSON shape private
@@ -596,14 +596,14 @@ full evidence table in [`docs/research/WINISD_PARITY.md`](docs/research/WINISD_P
     slot: openisd emits `C`, WinISD pins `E`. WinISD marks that slot `E` — entered by the human —
     on a value nobody typed (`../winisd_research/KNOWLEDGE_REPORT.md:190`, `:198`); openisd
     autofills `numVC = 1` in `Driver#derive()`
-    ([`packages/winisd/src/driver.ts:432`](packages/winisd/src/driver.ts)) so the slot reads `C`.
+    ([`packages/design/winisd/driver.ts:432`](packages/design/winisd/driver.ts)) so the slot reads `C`.
     Ruled 2026-08-13: _"there was a winisd bug here - obvuously dont replicate that"_. A red row
     here is the suite being wrong, not the app. `Xmax` is NOT such a divergence — see the group
     solver item above.
-- [ ] **P2** Share one implementation of the three physics gates between the runtime self-test and the unit suite — `packages/ui/src/diagnostics/selftest.ts:43-47` and `packages/engine/test/engine.test.ts:29-33` each declare the same driver fixture independently (Fs 37, Qts 0.38, Vas 0.030), and each reimplements the gates over it. Two declarations of one fixture drift silently. `ARCHITECTURE.md` AD-5 explains why the two test layers both exist — that stays; only the duplication goes. `[unit]`
+- [ ] **P2** Share one implementation of the three physics gates between the runtime self-test and the unit suite — `packages/ui/src/diagnostics/selftest.ts:43-47` and `packages/design/test/engine/engine.test.ts:29-33` each declare the same driver fixture independently (Fs 37, Qts 0.38, Vas 0.030), and each reimplements the gates over it. Two declarations of one fixture drift silently. `ARCHITECTURE.md` AD-5 explains why the two test layers both exist — that stays; only the duplication goes. `[unit]`
 - [ ] **P2** **SpeakerBoxLite (SBL) cross-check suite.** Add speakerboxlite.com as a second external oracle alongside micka.de to cross-check alignments micka lacks (passive radiator and 4th-order bandpass; see `packages/ui/test/scenarios.ts:123`, `:140`). Scope: drive SBL UI or API, assert against `Scenario['sbl']` expectations. Successor to closed plan: [`docs/plans/archive/PLAN_SBL_CROSSCHECK.md`](docs/plans/archive/PLAN_SBL_CROSSCHECK.md)
 - [x] [x] **P2** Per-feature engine tests added alongside each new box type / curve `[unit]`
-- [x] **P1** ~~Driver as an ADT~~ — **DONE, AND NOW OBSOLESCENT: this item is WinISD-focused.** It framed the app's data model around `.wdr` — `enter`/`clear`/`state` over a flat WinISD-shaped bag, with a lossless `fromWdr`/`toWdrIni` round-trip as the goal. That shipped (`packages/winisd/src/driver.ts`) and killed the raw-vs-derived ParState heuristic and the lossy `parseWdr`. But `ARCHITECTURE.md` AD-8 then reversed the premise: `OpenISDDriver`/`openisd.yml` is the app's model and `.wdr` is a serialisation format generated on demand, so the class this item built is condemned rather than extended. Do not add work to it — successor plan: [`docs/plans/archive/PLAN_OPENISD_DRIVER_MODEL.md`](docs/plans/archive/PLAN_OPENISD_DRIVER_MODEL.md)
+- [x] **P1** ~~Driver as an ADT~~ — **DONE, AND NOW OBSOLESCENT: this item is WinISD-focused.** It framed the app's data model around `.wdr` — `enter`/`clear`/`state` over a flat WinISD-shaped bag, with a lossless `fromWdr`/`toWdrIni` round-trip as the goal. That shipped (`packages/design/winisd/driver.ts`) and killed the raw-vs-derived ParState heuristic and the lossy `parseWdr`. But `ARCHITECTURE.md` AD-8 then reversed the premise: `OpenISDDriver`/`openisd.json` is the app's model and `.wdr` is a serialisation format generated on demand, so the class this item built is condemned rather than extended. Do not add work to it — successor plan: [`docs/plans/archive/PLAN_OPENISD_DRIVER_MODEL.md`](docs/plans/archive/PLAN_OPENISD_DRIVER_MODEL.md)
 
 ---
 

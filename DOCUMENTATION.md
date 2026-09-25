@@ -1,87 +1,80 @@
 # Documentation index
 
-Every document in this repo, and what it is for. A doc not listed here is invisible to anyone
-who does not already know it exists — add new ones as they are written.
-
-Links are served: `http://localhost:8000/openisd/<path>?html` renders Markdown with live
-Mermaid diagrams.
-
 ## Start here
 
-| Doc                                                                   | What it is for                                                                                                                 |
-| --------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| [README.md](http://localhost:8000/openisd/README.md?html)             | What OpenISD is, and how to run it                                                                                             |
-| [AGENTS.md](http://localhost:8000/openisd/AGENTS.md?html)             | The rules an agent must follow in this repo. Read before changing anything                                                     |
-| [ARCHITECTURE.md](http://localhost:8000/openisd/ARCHITECTURE.md?html) | The layering (`UI -> LOGIC -> SERVICE -> domain/STORAGE/io`), module responsibilities, and the numbered Architecture Decisions |
-| [HANDOVER.md](http://localhost:8000/openisd/HANDOVER.md?html)         | Where the work stands, for the next session                                                                                    |
+| Document                                                           | What it covers                                                                   |
+|--------------------------------------------------------------------|----------------------------------------------------------------------------------|
+| [README.md](README.md)                                             | What OpenISD is, and how to run it                                               |
+| [ARCHITECTURE.md](ARCHITECTURE.md)                                 | Layers, domain model, solving, state, formats, coupling rules, testing, WinISD comparison |
+| [RESEARCH.md](RESEARCH.md)                                         | The theory, what WinISD is built on, WinISD's measured behaviour, probing and goldens |
+| [OPENISD_WINISD_GAPS_AND_BUGS.md](OPENISD_WINISD_GAPS_AND_BUGS.md) | Open behaviour differences from WinISD                                           |
+| [FEATURES.md](FEATURES.md)                                         | What ships, and what is planned                                                  |
+| [BACKLOG.md](BACKLOG.md)                                           | Agreed work not yet started                                                      |
+| [BUGS.md](BUGS.md)                                                 | Known open bugs                                                                  |
+| [TESTING_STRATEGY.md](TESTING_STRATEGY.md)                         | How the app is tested                                                            |
+| [CONTRIBUTING.md](CONTRIBUTING.md)                                 | How to contribute                                                                |
+| [AGENTS.md](AGENTS.md)                                             | Rules for agents working in this repository                                      |
 
-## Planning and tracking
-
-| Doc                                                           | What it is for                                                                               |
-| ------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
-| [BACKLOG.md](http://localhost:8000/openisd/BACKLOG.md?html)   | Work that is agreed but not started                                                          |
-| [WIP.md](http://localhost:8000/openisd/WIP.md?html)           | Work in flight                                                                               |
-| [LOG.md](http://localhost:8000/openisd/LOG.md?html)           | The VALUE a change delivered — benefit first. The one sanctioned place for history           |
-| [FEATURES.md](http://localhost:8000/openisd/FEATURES.md?html) | What the app does today                                                                      |
-| [REVIEW.md](http://localhost:8000/openisd/REVIEW.md?html)     | Review notes                                                                                 |
-| `questions.yml`                                               | The decision ledger. Read and write it ONLY through `~/.claude/bin/inbox.py` — never by hand |
+`questions.yml` is the decision ledger. Read and write it only through `~/.claude/bin/inbox.py`.
 
 ## Specifications
 
-| Doc                                                                                     | What it is for                                                                                                                                                                                                 |
-| --------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [docs/spec/SPEC_ENGINE.md](http://localhost:8000/openisd/docs/spec/SPEC_ENGINE.md?html) | What `@openisd/engine` computes, and the formulas it owns                                                                                                                                                      |
-| [docs/spec/SPEC_UI.md](http://localhost:8000/openisd/docs/spec/SPEC_UI.md?html)         | What the UI presents                                                                                                                                                                                           |
-| [docs/FIELD_REFERENCE.md](http://localhost:8000/openisd/docs/FIELD_REFERENCE.md?html)   | **The help page.** Every driver, radiator, box, loss, vent and environment field — meaning, unit, and where the definition comes from (WinISD's own help, Claus Futtrup's DPC formulas, and our decompilation) |
+| Document                                             | What it covers                                                          |
+|------------------------------------------------------|-------------------------------------------------------------------------|
+| [docs/spec/SPEC_ENGINE.md](docs/spec/SPEC_ENGINE.md) | What the engine computes, and its formulas                              |
+| [docs/spec/SPEC_UI.md](docs/spec/SPEC_UI.md)         | What the UI presents                                                    |
+| [docs/FIELD_REFERENCE.md](docs/FIELD_REFERENCE.md)   | Every field: meaning, unit, and the source of its definition            |
 
 ## Design
 
-| Doc                                                                                                     | What it is for                                                                                                |
-| ------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
-| [docs/design/WINISD_SCHEMA.md](http://localhost:8000/openisd/docs/design/WINISD_SCHEMA.md?html)         | The `.wdr` and `.wpr` file formats, reverse-engineered. §12 is the machine-verified `c`/`roo` resolution rule |
-| [docs/design/DRIVER_ADT_DESIGN.md](http://localhost:8000/openisd/docs/design/DRIVER_ADT_DESIGN.md?html) | The driver model's design                                                                                     |
-| [docs/design/STATE_MODEL.md](http://localhost:8000/openisd/docs/design/STATE_MODEL.md?html)             | Ground / committed / what-if layering, and what each means                                                    |
+| Document                                                                     | What it covers                                           |
+|------------------------------------------------------------------------------|----------------------------------------------------------|
+| [docs/design/WINISD_SCHEMA.md](docs/design/WINISD_SCHEMA.md)                 | The `.wdr` and `.wpr` formats, reverse-engineered        |
+| [docs/design/WDR_LOGIC.md](docs/design/WDR_LOGIC.md)                         | How `.wdr` files are loaded and saved                    |
+| [docs/design/STATE_MODEL.md](docs/design/STATE_MODEL.md)                     | Dialog drafts, commit and cancel rules                   |
+| [docs/design/REACTIVITY.md](docs/design/REACTIVITY.md)                       | How domain changes reach Vue                             |
+| [docs/design/BUNDLED_CATALOGUE_API.md](docs/design/BUNDLED_CATALOGUE_API.md) | The catalogue index and on-demand records                |
+| [docs/design/BROWSER_STORAGE_KEYS.md](docs/design/BROWSER_STORAGE_KEYS.md)   | Every browser storage key                                 |
+| [docs/design/NEW_PROJECT_WIZARD.md](docs/design/NEW_PROJECT_WIZARD.md)       | The New Project wizard                                   |
+| [docs/design/TESTING_FIXTURES.md](docs/design/TESTING_FIXTURES.md)           | Why fixtures are generated, not hand-written             |
 
-## Plans
-
-Active plans in [docs/plans/](http://localhost:8000/openisd/docs/plans/). Completed or superseded
-plans live in [docs/plans/archive/](http://localhost:8000/openisd/docs/plans/archive/) — kept for
-history, never for direction.
-
-| Plan                                                                                                                                       | What it is for                                                                                                                  |
-| ------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------- |
-| [PLAN_DRIVER_SOLVE_AND_SWEEP_DIAGNOSTICS.md](http://localhost:8000/winisd/openisd/docs/plans/PLAN_DRIVER_SOLVE_AND_SWEEP_DIAGNOSTICS.md?html)     | Sweep diagnostics name the blocking field. Complete (2026-09-20); S8 dropped, S10 sealed cascade landed                         |
-| [PLAN_LAYER_REORGANIZATION.md](http://localhost:8000/winisd/openisd/docs/plans/PLAN_LAYER_REORGANIZATION.md?html)                                 | DRAFT — the design→backend rename and finishing the layer split. Q1/Q3 await John                                               |
-| [PLAN_LAYER_REORGANIZATION_LOWLEVEL.md](http://localhost:8000/winisd/openisd/docs/plans/PLAN_LAYER_REORGANIZATION_LOWLEVEL.md?html)               | File-by-file execution strategy for the above; scope lock pending                                                               |
-| [PLAN_RELEASE_HARDENING.md](http://localhost:8000/winisd/openisd/docs/plans/PLAN_RELEASE_HARDENING.md?html)                                       | Production-release checklist. 15 items still open; written against `dev` on 2026-08-28, so re-verify each before working it    |
-| [PLAN_STATE_STORAGE_SPLIT.md](http://localhost:8000/winisd/openisd/docs/plans/PLAN_STATE_STORAGE_SPLIT.md?html)                                   | QO130 — view state split into project state (saved in `.owpr`) and app state. Not started                                       |
-| [PLAN_QO129_BROWSER_EVALUATION_TO_VITEST.md](http://localhost:8000/winisd/openisd/docs/plans/PLAN_QO129_BROWSER_EVALUATION_TO_VITEST.md?html)     | QO129 — migrate browser-tab arithmetic evaluations into Vitest and consolidate Tier-3 acceptance scenarios                      |
-| [PLAN_WIZARD_AND_TESTS.md](http://localhost:8000/winisd/openisd/docs/plans/PLAN_WIZARD_AND_TESTS.md?html)                                | ACTIVE — finish the sealed New-Project wizard: commit checkpoint, fix the 4 unit failures (select rule, architecture edges, DiagnosticsModal env), extract DriverEditorModal DQ functions, browser specs under the real runner, coverage raised per task. Tasks 6–8 scenarios DITCHED (John 2026-09-21); QO80 edge needs John's ruling |
+Other files in [docs/design/](docs/design/) record individual rulings and proposals.
+Superseded ones are in [docs/design/_archive/](docs/design/_archive/).
 
 ## Research
 
-| Doc                                                                                                                 | What it is for                                      |
-| ------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------- |
-| [docs/research/WINISD_PARITY.md](http://localhost:8000/openisd/docs/research/WINISD_PARITY.md?html)                 | Where OpenISD agrees and disagrees with real WinISD |
-| [docs/research/UNIT_BOUNDARY_AUDIT.md](http://localhost:8000/openisd/docs/research/UNIT_BOUNDARY_AUDIT.md?html)     | Where units convert, and where they must not        |
-| [docs/research/COMPETITIVE_LANDSCAPE.md](http://localhost:8000/openisd/docs/research/COMPETITIVE_LANDSCAPE.md?html) | Other tools in this space                           |
-| [docs/research/REFERENCES.md](http://localhost:8000/openisd/docs/research/REFERENCES.md?html)                       | The acoustics literature this project relies on     |
-| [docs/papers/](http://localhost:8000/openisd/docs/papers/)                                                          | Source papers, e.g. Portlengths                     |
+| Document                                                                           | What it covers                                            |
+|------------------------------------------------------------------------------------|-----------------------------------------------------------|
+| [docs/research/REFERENCES.md](docs/research/REFERENCES.md)                         | Literature, oracles and cross-check tools                 |
+| [docs/research/VENTED_ALIGNMENT_FORMULAS.md](docs/research/VENTED_ALIGNMENT_FORMULAS.md) | WinISD's vented alignments, recovered and validated  |
+| [docs/research/PROBE_W5_SEALED_20260924.md](docs/research/PROBE_W5_SEALED_20260924.md) | Every chart, WinISD against OpenISD, on one project   |
+| [docs/research/WINISD_PARITY.md](docs/research/WINISD_PARITY.md)                   | Field-by-field UI parity (dated 2026-08-13)               |
+| [docs/research/UNIT_BOUNDARY_AUDIT.md](docs/research/UNIT_BOUNDARY_AUDIT.md)       | Where units convert                                       |
+| [docs/research/COMPETITIVE_LANDSCAPE.md](docs/research/COMPETITIVE_LANDSCAPE.md)   | Other tools in this space                                 |
+| [docs/winisd_helpfiles/](docs/winisd_helpfiles/)                                   | WinISD's own help                                         |
+| [docs/winisd_screenshots/](docs/winisd_screenshots/)                               | WinISD's screens, and sample files it wrote               |
 
-## Bugs
+The WinISD reverse-engineering work lives in the sibling `winisd_research` repository; see
+[RESEARCH.md](RESEARCH.md#winisd-behaviour-research).
 
-[bugs/](http://localhost:8000/openisd/bugs/) — 81 records, one file per defect, named
-`BUG_YYYYMMDD_<description>.md`. Each carries Symptom / Evidence / Cause / Fix / Verification,
-and a `Status:` line (`OPEN` / `RESOLVED` / `DEFERRED` / `WONTFIX`) read by
-`~/.claude/bin/inbox.py bugs`.
+## Plans
 
-**A bug record is written BEFORE the bug is reported and BEFORE it is fixed** — a fix applied
-first destroys the evidence that makes it reviewable.
+Active plans are in [docs/plans/](docs/plans/); finished ones are in [docs/plans/archive/](docs/plans/archive/).
 
-## Reference material
+| Plan                                                                               | Purpose                                                |
+|------------------------------------------------------------------------------------|--------------------------------------------------------|
+| [PLAN_WINISD_GAPS.md](docs/plans/PLAN_WINISD_GAPS.md)                              | Close the open WinISD behaviour gaps                   |
+| [PLAN_WIZARD_AND_TESTS.md](docs/plans/PLAN_WIZARD_AND_TESTS.md)                    | Finish the sealed New Project wizard                   |
+| [FIX_WIZARD_VENTED-remains.md](docs/plans/FIX_WIZARD_VENTED-remains.md)            | What the vented wizard work left open                  |
+| [PLAN_RELEASE_HARDENING.md](docs/plans/PLAN_RELEASE_HARDENING.md)                  | Production release checklist                           |
+| [PLAN_STATE_STORAGE_SPLIT.md](docs/plans/PLAN_STATE_STORAGE_SPLIT.md)              | Split view state into project and app state            |
+| [PLAN_LAYER_REORGANIZATION.md](docs/plans/PLAN_LAYER_REORGANIZATION.md)            | Layer reorganisation (draft)                           |
+| [PLAN_FIELD_KEY_CONSOLIDATION.md](docs/plans/PLAN_FIELD_KEY_CONSOLIDATION.md)      | One domain-named field-key enum                         |
+| [PLAN_RETIRE_CALCS_FROM_SCRAPERS.md](docs/plans/PLAN_RETIRE_CALCS_FROM_SCRAPERS.md) | Move calculation and DQ out of the scrapers           |
 
-| Path                                                                               | What it is                                                                                                                                                  |
-| ---------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [docs/winisd_screenshots/](http://localhost:8000/openisd/docs/winisd_screenshots/) | Real WinISD screens, and sample `.wdr`/`.wpr` files it wrote                                                                                                |
-| [docs/winisd_helpfiles/](http://localhost:8000/openisd/docs/winisd_helpfiles/)     | WinISD's own shipped help                                                                                                                                   |
-| `packages/winisd/test/fixtures/winisd-parity/goldens/`                             | Project files WinISD itself wrote under the wine harness. The ONLY admissible oracle — `provenance.json` pins the exe hash, harness commit and capture time |
+## Records
+
+- [bugs/](bugs/): one file per defect, with symptom, evidence, cause, fix and verification.
+- [docs/LOG.md](docs/LOG.md): change log.
+- [docs/handover/](docs/handover/): session handovers.
+- [docs/_archive/](docs/_archive/): superseded documents, including the previous architecture document.

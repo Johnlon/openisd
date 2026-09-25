@@ -47,7 +47,7 @@
 | Custom fields       | Observed after `ParState=` only — not verified that WinISD ignores pre-ParState unknowns                                                                                   |
 
 WDR files contain only WinISD-native fields. Provenance and quality metadata is not
-carried in a WDR at all — it lives in the driver record (`openisd.yml`).
+carried in a WDR at all — it lives in the driver record (`openisd.json`).
 
 Source for structural claims: direct analysis of 423 `drivers/matt/` files plus 53 WinISD-generated single-field probe files from `drivers/mysamples/` (2026-06-28).
 
@@ -444,7 +444,7 @@ Five consequences, each carried by a case above:
   gap — it is the strongest available test of "an entered value is never recomputed", because
   two live routes had to be declined rather than one.
 
-**openisd's engine matches all seven cases.** `packages/engine/src/driver.ts:194-195` runs
+**openisd's engine matches all seven cases.** `packages/design/engine/driver.ts:194-195` runs
 `abs(Hc − Hg)/2` before `:203-204` runs `Vd/Sd`, reproducing `A`, `B`, `C`, `E` and `F`; the
 first route additionally requires `Hc !== Hg`, so on `G` it produces nothing, leaves `Xmax` null,
 and row 20 supplies `0.0185` — the zero fall-through WinISD performs.
@@ -1287,7 +1287,7 @@ Source: `drivers/mysamples/README.md` (single-parameter probe methodology, WinIS
 ### 8.5 Where the emit rules live
 
 How openisd decides each field's ParState character when it writes a `.wdr` — and what its
-own `driver.yml` / `openisd.yml` records do and do not store — is DESIGN, not an observation
+own `driver.json` / `openisd.json` records do and do not store — is DESIGN, not an observation
 about WinISD, so it is not in this document. See `DRIVER_RECORD_MODEL.md`.
 
 ## 9. WinISD simulation model — key facts

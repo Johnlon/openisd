@@ -44,7 +44,7 @@ actually passes it.
 | **O-B**      | `drivers/mysamples/winisd/john-all-defaults.wdr`                                                                                                                                  | New→Save with nothing typed: WinISD's own default for all 56 keys.                                                                 |
 | **O-C**      | `docs/winisd_screenshots/sample_project_Epique15_-_pr.wpr`                                                                                                                                 | A real WinISD project. `[Box]`, `[PassiveRadiator]`, `[SignalSource]`, `[VentFront/Rear/Intra]`, `[SimulatorOptions]`.             |
 | **O-D**      | `drivers/mysamples/winisd/s-<field>.wdr` (53 probes)                                                                                                                              | One field typed, one file saved — which key WinISD writes for which UI field.                                                      |
-| **O-E**      | `winisd_drivers/db/datasheets/**/openisd.yml`                                                                                                                                  | The record's own units, stated in each field's `definition:` line.                                                                 |
+| **O-E**      | `winisd_drivers/db/datasheets/**/openisd.json`                                                                                                                                  | The record's own units, stated in each field's `definition:` line.                                                                 |
 | **S-1..S-6** | `docs/winisd_screenshots/edit_driver_pg2_parameters.png`, `…pg3_advanced_parameters.png`, `…pg4_dimensions.png`, `view_3_passive_radiator.png`, `view_5_signal.png`, `view_6_advanced.png` | WinISD's own displayed unit and dp, per field.                                                                                     |
 | **DOC**      | `docs/design/WINISD_SCHEMA.md` §3, §4                                                                                                                                             | Our reverse-engineered schema. Confirms, never overrides, O-A…O-E.                                                                 |
 
@@ -414,7 +414,7 @@ triple (`group` + `field` + `base`) resolved through `units.ts`.
 
 ---
 
-## 6. The sweep — `openisd.yml` record → `.wdr` projection
+## 6. The sweep — `openisd.json` record → `.wdr` projection
 
 `packages/winisd/src/native/openisdToWdr.ts` `SPEC_TO_WDR` (lines 53-65). The record's own
 `definition:` strings are the oracle (**O-E**), read from live files under
@@ -470,7 +470,7 @@ is the token quoted beside it — a `field="…"` attribute, a `cellVal('…')` 
 - **`Mcost`** — `docs/design/WINISD_SCHEMA.md` §3.4 says `N·s/m`, WinISD's own pane says `kg/s`
   (S-2). They are dimensionally identical, so no numeric test separates them; the disagreement is
   in the naming and only the WinISD binary can settle it.
-- **`fLe` / `KLe` in `openisd.yml`** — searched the whole `winisd_drivers/db/datasheets` tree;
+- **`fLe` / `KLe` in `openisd.json`** — searched the whole `winisd_drivers/db/datasheets` tree;
   no record carries either field, so no `definition:`/`read_value` pair exists to read the scale
   from. The `1` in `SPEC_TO_WDR` is therefore an assumption, not an observation.
 

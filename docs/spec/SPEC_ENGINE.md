@@ -1,6 +1,6 @@
 # OpenISD — Core Engine Calculation Specification (`SPEC_ENGINE.md`)
 
-This specification defines the electro-acoustic calculation rules, physical formulas, and circuit solver requirements implemented by `@openisd/engine` (`packages/engine/src/`).
+This specification defines the electro-acoustic calculation rules, physical formulas, and circuit solver requirements implemented by `@openisd/engine` (`packages/design/engine/`).
 
 ---
 
@@ -19,14 +19,14 @@ This specification defines the electro-acoustic calculation rules, physical form
 
 **Verifying Tests**:
 
-- [`packages/engine/test/consistency.test.ts`](../../packages/engine/test/consistency.test.ts)
-- [`packages/engine/test/driver.test.ts`](../../packages/engine/test/driver.test.ts)
+- [`packages/design/test/engine/consistency.test.ts`](../../packages/design/test/engine/consistency.test.ts)
+- [`packages/design/test/engine/driver.test.ts`](../../packages/design/test/engine/driver.test.ts)
 
 ### 1.2 USPL / SPLmax / Mpow — the 2.83 V reference and the 3 dB derating
 
-These three fields (`solveConsistencyGroup`/`deriveDriver`, `packages/engine/src/driver.ts`)
+These three fields (`solveConsistencyGroup`/`deriveDriver`, `packages/design/engine/driver.ts`)
 were corrected 2026-08-14 against WinISD 0.7.0.0 goldens in
-`packages/winisd/test/fixtures/winisd-parity/goldens/*.wpr` — the evidence for each is a
+`packages/design/test/winisd/fixtures/winisd-parity/goldens/*.wpr` — the evidence for each is a
 prediction from the golden's OWN stated inputs that reproduces WinISD's stored output value
 to float precision, not a plausibility argument.
 
@@ -79,8 +79,8 @@ to float precision, not a plausibility argument.
 
 **Verifying Tests**:
 
-- [`packages/engine/test/advanced-figures.test.ts`](../../packages/engine/test/advanced-figures.test.ts)
-- [`packages/winisd/test/winisd-parity.test.ts`](../../packages/winisd/test/winisd-parity.test.ts) — `USPL`, `SPLmax`, `Mpow` rows
+- [`packages/design/test/engine/advanced-figures.test.ts`](../../packages/design/test/engine/advanced-figures.test.ts)
+- [`packages/design/test/winisd/winisd-parity-functional.test.ts`](../../packages/design/test/winisd/winisd-parity-functional.test.ts) — `USPL`, `SPLmax`, `Mpow` rows
 - `bugs/BUG_20260813_uspl-and-splmax-use-formulas-winisd-does-not-2p83-volts-and-a-3db-derating.md`
 - `bugs/BUG_20260813_mpow-uses-sqrt-rme-where-winisd-uses-bl-over-sqrt-re.md`
 
@@ -115,8 +115,8 @@ to float precision, not a plausibility argument.
 
 **Verifying Tests**:
 
-- [`packages/engine/test/circuit.test.ts`](../../packages/engine/test/circuit.test.ts)
-- [`packages/engine/test/alignments.test.ts`](../../packages/engine/test/alignments.test.ts)
+- [`packages/design/test/engine/circuit.test.ts`](../../packages/design/test/engine/circuit.test.ts)
+- [`packages/design/test/engine/vented-alignment.test.ts`](../../packages/design/test/engine/vented-alignment.test.ts)
 
 ---
 
@@ -134,7 +134,7 @@ to float precision, not a plausibility argument.
 
 **Verifying Tests**:
 
-- [`packages/engine/test/sweep.test.ts`](../../packages/engine/test/sweep.test.ts#L231)
+- [`packages/design/test/engine/sweep.test.ts`](../../packages/design/test/engine/sweep.test.ts#L231)
 
 ### 3.2 Cutoff Frequency Readouts ($F_3, F_6, F_{10}$)
 
@@ -142,14 +142,14 @@ to float precision, not a plausibility argument.
 
 **Verifying Tests**:
 
-- [`packages/engine/test/sweep.test.ts`](../../packages/engine/test/sweep.test.ts#L235)
+- [`packages/design/test/engine/sweep.test.ts`](../../packages/design/test/engine/sweep.test.ts#L235)
 
 ---
 
 ## 4. Data Shapes & Public API
 
-Types are defined in [`packages/engine/src/types.ts`](../../packages/engine/src/types.ts);
-physical constants in [`packages/engine/src/constants.ts`](../../packages/engine/src/constants.ts).
+Types are defined in [`packages/design/engine/types.ts`](../../packages/design/engine/types.ts);
+physical constants in [`packages/design/engine/constants.ts`](../../packages/design/engine/constants.ts).
 
 ### 4.1 Driver — `deriveDriver(raw: DriverRaw) → Result<Driver>`
 
@@ -196,12 +196,12 @@ both by the live `SweepParams.tempK` when present (§4.3).
 
 **Full precision, corrected 2026-08-14.** Previously `1.20095`/`343.68` (6/5 significant
 figures) — a truncation, not a different value: `winisd-parity` goldens (all eight, across
-every humidity leg) and `drivers/mysamples/winisd/john-all-defaults.wdr` (a WinISD-authored blank
+every humidity leg) and `drivers/myprobes/per_field_and_misc/john-all-defaults.wdr` (a WinISD-authored blank
 driver, ParState `C` on `c`/`roo`) directly carry `1.20095217714682`/`343.684120962153`. The
 truncation cost 1.8e-6 (ρ) / 1.2e-5 (c) relative, propagating into `no` (∝ 1/c³, 3.6e-5) and
 `SPLmaxLF` (2e-7) — see
 `bugs/BUG_20260813_winisd-compatibility-air-returns-truncated-rho-and-c-not-winisds-own-pair.md`.
-Fixing it moved `packages/engine/test/fixtures/golden/*.json` (rebaselined in the same commit —
+Fixing it moved `packages/design/test/engine/fixtures/golden/*.json` (rebaselined in the same commit —
 max delta 3.6e-3 relative on one near-zero impedance-phase bin, 3.2e-6 relative on `spl`; every
 delta traces to this ~1e-5-level correction propagating through the resonant circuit, not to a
 behaviour change) — see `npm run gen-golden`.
@@ -322,19 +322,19 @@ layer up, in `@openisd/winisd` (`ARCHITECTURE.md` AD-6: dependency arrows point 
 | `Driver.fromWdr(text)` | `static, string → Driver` | Parse a `.wdr` file. Reads every `[Driver]` key and replays `ParState`'s E-marks via `enter()`; C/N fields are left for the app to recompute. Best-effort — never throws; absent or unparsable fields are simply left unset |
 | `driver.toWdr()`       | `instance, () → string`   | Serialise back to `.wdr` text — echoes every carried key, overlays edited values, rebuilds `ParState` from live cell state                                                                                                  |
 
-`packages/winisd/src/classic/wdr.ts` also exports a lower-level `toWdr(raw: DriverRaw):
+`packages/design/winisd/classic/wdr.ts` also exports a lower-level `toWdr(raw: DriverRaw):
 string`, used internally by `Driver.toWdr()` for a fresh-authored driver with no carried WDR
 to echo.
 
 **Verifying Tests**:
 
-- [`packages/winisd/test/driver-class.test.ts`](../../packages/winisd/test/driver-class.test.ts)
-- [`packages/engine/test/hardening.test.ts`](../../packages/engine/test/hardening.test.ts)
+- [`packages/design/test/winisd/wdr-round-trip.test.ts`](../../packages/design/test/winisd/wdr-round-trip.test.ts)
+- [`packages/design/test/engine/hardening.test.ts`](../../packages/design/test/engine/hardening.test.ts)
 
-### 4.7 `openisd.yml` → `winisd.wdr` projection — the `winisd_tools` entry point
+### 4.7 `openisd.json` → `winisd.wdr` projection — the `winisd_tools` entry point
 
 `winisd_tools` does not write `.wdr` itself. It calls OpenISD's JS in-process (embedded V8)
-to project an `openisd.yml` record into the `winisd.wdr` it stores in `winisd_drivers`
+to project an `openisd.json` record into the `winisd.wdr` it stores in `winisd_drivers`
 (`ARCHITECTURE.md` AD-8: one implementation of each transform, never one per language).
 
 #### The requirements
@@ -346,15 +346,15 @@ after them is derived detail, and where the two ever disagree, these win.
 > file.
 >
 > **R1.** `winisd.wdr` is defined from the independent WinISD data-model research we created
-> AND exemplified by the `drivers/mysamples/winisd` files.
+> AND exemplified by the `drivers/myprobes/per_field_and_misc` files.
 >
-> **R2.** The `winisd.wdr` must be solely created from the `openisd.yml` file by mechanical
+> **R2.** The `winisd.wdr` must be solely created from the `openisd.json` file by mechanical
 > transformation.
 >
-> **R3.** `openisd.yml` does not carry calculated fields — only human-entered fields, or a calc
-> field that a human has overridden by entering. Therefore any field present in `openisd.yml`
+> **R3.** `openisd.json` does not carry calculated fields — only human-entered fields, or a calc
+> field that a human has overridden by entering. Therefore any field present in `openisd.json`
 > is an **E**; a missing calculatable field is a **C** and MUST be calculated by the extract
-> process; any field not present in `openisd.yml` that is not calculatable is an **N** and has
+> process; any field not present in `openisd.json` that is not calculatable is an **N** and has
 > the default values exemplified in the `samples/`.
 >
 > **R4.** Use the WinISD Lossy model where applicable.
@@ -365,7 +365,7 @@ alone — never by the magnitude of a value:
 **The complete rule, as a table.** Read left to right; the first three columns decide the mark.
 There is no other case.
 
-| In `openisd.yml`? | Calculatable?                | Calculated?                                 | Mark  | Value written                                     |
+| In `openisd.json`? | Calculatable?                | Calculated?                                 | Mark  | Value written                                     |
 | ----------------- | ---------------------------- | ------------------------------------------- | ----- | ------------------------------------------------- |
 | **Yes**           | — (irrelevant)               | — (irrelevant)                              | **E** | the entered value, **including `0`**              |
 | No                | **Yes**                      | **Yes** — inputs present, calc ran          | **C** | the calculated value, **including a genuine `0`** |
@@ -395,7 +395,7 @@ rule is unreadable if they blur):
 
 `C` marks a **calculated value**, not a calculatable field. So a calculatable field whose inputs
 are absent has not been calculated, and is `N` carrying its default — which is exactly what
-`drivers/mysamples/winisd/john-all-defaults.wdr` shows: nothing entered, so every calculatable
+`drivers/myprobes/per_field_and_misc/john-all-defaults.wdr` shows: nothing entered, so every calculatable
 field is `N`; only `numVC` (`E`) and `c`/`roo` (`C`, they always have a value) differ.
 
 A legitimately-calculated `0` is still a calculated value and stays **C**, never demoted to N:
@@ -436,12 +436,12 @@ slot: `C` ⇒ calculated, and the answer was genuinely zero; `N` ⇒ not calcula
 carries the default. What a `0` never means is "calculation not attempted".
 
 **(c) Where a value depends on a box model, use WinISD's lossy one** (R4) — `LossMode` /
-`sealedResonanceWinisd()` (`packages/engine/src/lossMode.ts`), never the lossless closed form
+`sealedResonanceWinisd()` (`packages/design/engine/lossMode.ts`), never the lossless closed form
 or the conventional-lossy variant. See the scope note under the requirements: no field of this
 projection is box-dependent today, so this constrains future additions rather than current
 output.
 
-> ### 🔒 THE ONLY ORACLE IS `drivers/mysamples/winisd/`
+> ### 🔒 THE ONLY ORACLE IS `drivers/myprobes/per_field_and_misc/`
 >
 > Every file in that directory was prepared by `johnl` **out of WinISD itself** — typed into
 > the real UI and saved by it. That provenance is the entire reason it is authoritative, and
@@ -462,9 +462,9 @@ output.
 >
 > A test that takes its expected value from either source is asserting a known-wrong answer.
 
-**Format authority** — [`drivers/mysamples/winisd/john-all-defaults.wdr`](../../drivers/mysamples/winisd/john-all-defaults.wdr):
+**Format authority** — [`drivers/myprobes/per_field_and_misc/john-all-defaults.wdr`](../../drivers/myprobes/per_field_and_misc/john-all-defaults.wdr):
 driver editor → New → Save with nothing typed. It fixes the field set, the order and every
-default. [`John-all-manu-populated.wdr`](../../drivers/mysamples/winisd/John-all-manu-populated.wdr)
+default. [`John-all-manu-populated.wdr`](../../drivers/myprobes/per_field_and_misc/John-all-manu-populated.wdr)
 is its fully-populated counterpart.
 
 **Per-field behaviour authority** — the `s-*.wdr` probes in the same directory each isolate ONE
@@ -478,7 +478,7 @@ is `N` except `numVC` (`E`) and `c`/`roo` (`C` — computed).
 
 **openisd writes `C` in the `numVC` slot, not `E`** — a deliberate one-character divergence.
 `Driver#derive()` autofills `numVC = 1` beside the `c`/`roo` autofills
-([`packages/winisd/src/driver.ts:432`](../../packages/winisd/src/driver.ts)), so the app supplied
+(`packages/design/winisd/winisdDriver.ts`), so the app supplied
 that value; `E` asserts a human typed it. The side-by-side parity suite ([`BACKLOG.md`](../../BACKLOG.md)
 §"Quality / infrastructure") expects this slot to differ.
 

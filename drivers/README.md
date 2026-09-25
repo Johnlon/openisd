@@ -7,7 +7,7 @@ Related docs:
 [`VENDOR-APIS.md`](VENDOR-APIS.md) — vendor API research
 
 OpenISD's driver data is an open commons. The app consumes one bundled corpus from the sibling
-`winisd_drivers/db/datasheets` checkout. A record is `<driver>/openisd.yml`, written by
+`winisd_drivers/db/datasheets` checkout. A record is `<driver>/openisd.json`, written by
 winisd_tools; it carries the T/S values, provenance and quality together.
 
 You can also paste any GitHub repo of `.wdr` files into the browser ad hoc.
@@ -39,7 +39,7 @@ watcher, so they are never served, watched, or committed.
 
 ## Add a bundled driver
 
-A driver record is `<collection>/<driver>/openisd.yml`, produced by winisd_tools from
+A driver record is `<collection>/<driver>/openisd.json`, produced by winisd_tools from
 the manufacturer's datasheet. Open a PR there, not here — this repo consumes records,
 it does not author them. Import the spec sheet in the app first and sanity-check the
 curves.

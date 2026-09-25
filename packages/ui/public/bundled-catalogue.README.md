@@ -44,12 +44,12 @@ than excluding it.
 
 SOURCE DATA
 -----------
-  ../winisd_drivers/db/datasheets/**/<driver>/openisd.yml — the driver record (ARCHITECTURE.md AD-8)
+  ../winisd_drivers/db/datasheets/**/<driver>/openisd.json — the driver record (ARCHITECTURE.md AD-8)
 
 That file, and nothing else. `.owdr` is purely a UI concern — what the app writes and
 reads when a user saves a driver to their own disk — and never appears in a collection.
 `.wdr` is WinISD's file format, which the app reads and writes in memory from an openisd
-record. A collection holding neither `openisd.yml` bundles nothing.
+record. A collection holding neither `openisd.json` bundles nothing.
 
 TO REGENERATE MANUALLY
 ----------------------

@@ -1,228 +1,90 @@
-# OpenISD — Feature List
+# OpenISD — features
 
-The full picture of what OpenISD is and where it's going. This doubles as a backlog: if a ⬜
-item appeals, claim it in an issue. For alternative tools (00 Enclosure Simulator,
-SpeakerDesign.dev, SpeakerBoxLite, Sonella, LoudspeakerLab, SoundForm, Biquad Cookbook) see
-[`docs/research/COMPETITIVE_LANDSCAPE.md`](docs/research/COMPETITIVE_LANDSCAPE.md).
+What the app does today, checked against the code on 2026-09-25, and what is planned.
+The comparison with WinISD is in [ARCHITECTURE.md §10](ARCHITECTURE.md#10-feature-comparison-with-winisd-07).
+Other tools in this space are in [docs/research/COMPETITIVE_LANDSCAPE.md](docs/research/COMPETITIVE_LANDSCAPE.md).
 
-**Legend:** ✅ done · 🔨 in progress · ⬜ planned · _“seen in X”_ = demand already
-proven by another tool.
+## Shipped
 
----
+### Enclosures
 
-## 1. Enclosure types
+- **Box types:** sealed, vented, 4th-order bandpass, passive radiator.
+- **Box losses:** leakage Ql, absorption Qa and port loss Qp, with the sealed-box loss model
+  selectable (WinISD's lossy cubic, conventional, lossless).
+- **Vents:** round or slotted, with a count and end correction; a
+  transmission-line port model is available.
+- **Drivers:** several drivers in one box, wired in series or parallel; dual voice coils.
 
-> Cross-tool support at a glance (which of these each surveyed tool models) lives in
-> [`docs/research/COMPETITIVE_LANDSCAPE.md`](docs/research/COMPETITIVE_LANDSCAPE.md) →
-> "Enclosure/box-type support at a glance".
+### Charts
 
-- ✅ Sealed (closed box)
-- ✅ Vented / ported (bass-reflex)
-- ✅ 4th-order bandpass (single-ported)
-- ✅ Passive radiator
-- ⬜ 6th-order bandpass (both chambers ported) — _seen in 00 Enc. Sim, SpeakerBoxLite_
-- ⬜ Isobaric / compound loading — _planned by 00 Sim & SpeakerDesign.dev_
-- ⬜ Aperiodic (resistive vent)
-- ⬜ Transmission line / quarter-wave — _seen in SpeakerBoxLite, 00 Sim roadmap_
-- ⬜ Horn / waveguide — _SoundForm considering; on 00 Sim roadmap; large effort_
+- SPL, transfer function magnitude and phase, group delay.
+- Cone excursion for the driver and the radiator, against Xmax.
+- Impedance magnitude and phase.
+- Port air velocity.
+- Maximum SPL (excursion or power limited) and maximum power.
+- The filter chain's magnitude, phase and group delay.
+- Several open projects overlaid on one chart.
+- A cursor that snaps to peaks and can be locked or typed.
 
-### Box-loss model
+### Design tools
 
-- ✅ Leakage loss `Ql`
-- ✅ Port/vent loss `Qp`
-- ⬜ Absorption / fill loss `Qa` — _full Ql/Qa/Qp set seen in SpeakerDesign.dev_
+- WinISD's sealed alignment picker (nine Qtc targets) and its five vented alignments
+  (QB3, BB4, EBS3, EBS6, C4).
+- Vent length from tuning, and tuning from length.
+- Radiator added mass for a target tuning.
+- EBP gauge.
+- Solvers that work in every direction across the T/S relations.
+- Data-quality marks on missing and contradictory inputs.
+- What-if tuning (the Tune panel), which never alters the saved design.
+- Equation inspector showing the formula behind a value.
 
-### Vent / port modelling
+### Signal and environment
 
-- ✅ Single round vent (diameter, length, area, Fb readout)
-- ✅ End-correction (fixed ~0.85d)
-- ⬜ Multiple vents (1–4) — _seen in SpeakerDesign.dev_
-- ⬜ Slot / rectangular vents — _seen in SpeakerDesign.dev_
-- ⬜ Selectable end-correction (free/flanged combos, custom) — _seen in SpeakerDesign.dev_
-- ⬜ Drag-to-adjust Vb / Fb with lock-one — _seen in SpeakerDesign.dev & 00 Simulator_
+- Drive voltage or input power, series resistance, Rg placement.
+- Filters: high-pass, low-pass, Linkwitz transform, parametric EQ, low shelf, high shelf.
+- Voice-coil temperature rise, and added mass on the cone.
+- Force flat response, and Xmax-limited SPL.
+- Temperature, humidity and pressure per project, with WinISD's or the CIPM-2007 air model.
+- Signal generator that plays a tone.
 
-## 2. Analysis & graphs
+### Drivers and data
 
-- ✅ SPL / frequency response (half-space, 1 m)
-- ✅ Cone excursion (driver) vs Xmax
-- ✅ Passive-radiator excursion vs PR Xmax
-- ✅ Port air velocity (peak) vs chuffing limit
-- ✅ Group delay
-- ✅ Impedance magnitude
-- ✅ Impedance phase
-- ✅ Transfer-function phase
-- ✅ Maximum SPL (excursion- and power-limited)
-- ✅ Maximum power
-- ⬜ Amplifier load — current / VA draw vs frequency — _seen in 00 Simulator_
-- ⬜ Step response (impulse / time-domain)
-- ✅ Overlay & compare multiple designs on one graph
-- ⬜ Interactive schematic / lumped-model view — _seen in 00 Simulator_
-- ⬜ Configurable graph gridlines (3/5/10 dB) and contrast
+- A bundled catalogue of 1,603 drivers and 79 passive radiators from `winisd_drivers`, with
+  source links. It is searched by name and filtered by type, Fs, Sd and impedance.
+- My Drivers and My Passive Radiators, kept in the browser, and driver favourites.
+- Driver editor with E/C/N provenance on every field.
 
-## 3. Driver & Thiele/Small handling
+### Files and platform
 
-- ✅ Manual T/S entry, self-consistent derivation of Bl/Cms/Mms/Rms
-- ✅ EBP box-type gauge
-- ✅ Driver presets
-- ✅ Multiple drivers (series / parallel)
-- ✅ **WinISD `.wdr` import**
-- ✅ **WinISD `.wdr` export** — _00 Simulator also exports WinISD-compatible files_
-- ⬜ WinISD `.wpr` project import — _00 Simulator does this; `.wpr` is plain INI text in current WinISD (sections decoded), so this is feasible_
-- ⬜ Unibox spreadsheet import — _seen in 00 Simulator_
+- WinISD `.wdr` and `.wpr`, read and write.
+- OpenISD `.owpr` projects and `.owdr` drivers.
+- Share a design as a link.
+- Several projects open at once, autosaved in the browser.
+- Installable PWA that works offline; an optional Electron desktop build.
 
-### Driver library — 2,100+ drivers, instant load
+## Planned
 
-- ✅ **Pre-bundled at build time** — every local `openisd.yml` collection is
-  baked into the app JS; no GitHub API calls, no rate limits, no spinners. The library
-  loads in the same round-trip as the page itself. `.wdr` is not a bundleable record —
-  a collection stored as `.wdr` has to be converted first.
-- ✅ **Single bundled driver corpus** — the bridge-produced `openisd.yml` corpus ships with the
-  app; `.wdr` inputs are converted at the bridge boundary before entering the corpus.
-- ✅ **In-app driver browser** — token-based multi-word search (case-insensitive,
-  every word must match), pure alphabetical list, source tags with clickable links
-- ✅ **Newer-version highlighting** — when the same driver exists in multiple
-  collections, the entry with the latest `DateModified` is highlighted in accent
-  colour; older copies are dimmed so you can see at a glance which measurement to
-  trust and where it came from
-- ✅ **Date normalisation** — dates from different scrapers and manual entries
-  are canonicalised to `YYYY-MM-DD` for consistent display regardless of origin
-- ✅ **SpeakerBoxLite opt-in** — one click loads ~6,000 community measurements
-  from speakerboxlite.com on top of the bundled library (fetched live, CORS-permitting)
-- ✅ **Paste any GitHub repo** — add a custom `owner/repo` or full GitHub URL to
-  pull `.wdr` files from any public repository in the browser
+### Simulation
 
-### Driver data supply
+- 6th-order bandpass, ABC and isobaric loading. These are already stored; they need their
+  circuits.
+- Transmission line and quarter-wave enclosures; horns.
+- Listening distance and off-axis angle (currently fixed at 1 m, on axis).
+- Amplifier load (VA) chart, port gain, and radiator transfer function charts.
+- All-pass, raised-cosine delay and static-gain filters.
+- Step response.
+- Baffle step and diffraction.
 
-- ✅ **Driver records come from winisd_tools** — the scraping pipeline is a separate
-  project; openisd consumes the records it publishes and never scrapes a vendor itself
-- ✅ **WDR schema documentation** (`WINISD_SCHEMA.md`) — canonical field names, SI units,
-  common mistakes table, date semantics; the single source of truth for the file format
-- ⬜ Filter drivers by size / params; richer metadata index — _SpeakerBoxLite has 5,000+ / 300+ brands in one DB_
-- ⬜ Paste raw datasheet text → infer T/S params — _seen in 00 Simulator_
-- ⬜ “Copy from” an existing driver — _seen in 00 Simulator_
-- ⬜ Import other formats (SPL/ZMA traces, other tools’ exports)
+### Design and construction
 
-## 4. Electronics & signal chain
+- Net and gross volume from panel thickness, with driver, port and bracing displacement.
+- Cut list and panel dimensions.
+- Crossover design and multi-way summation.
 
-- ✅ Input drive voltage / power
-- ✅ Series / source resistance (amp + cabling)
-- ⬜ Configurable listening distance (currently fixed 1 m) — _seen in SpeakerDesign.dev, 00 Sim_
-- ⬜ Frequency-range presets (sub / woofer / wide / custom) — _seen in SpeakerDesign.dev_
-- ✅ EQ: parametric (peaking)
-- ✅ EQ: Linkwitz transform
-- ⬜ EQ: high-shelf / low-shelf — _seen in 00 Simulator_
-- ✅ High-pass / low-pass filters
-- ⬜ Amplifier output impedance / damping factor effect
-- ⬜ Signal generator presets (sine / sweep reference levels)
+### Data
 
-## 5. Crossover & multi-way _(bigger arc)_
+- Datasheet text to T/S parameters.
+- Import of measured response (FRD, ZMA).
+- Impedance measurement to T/S extraction.
 
-- ⬜ Crossover network design (1st–6th order, Butterworth / Linkwitz-Riley) — _SpeakerBoxLite; SoundForm planned_
-- ⬜ L-pad / level matching — _seen in SpeakerBoxLite_
-- ⬜ Multi-driver summation / system response (2- and 3-way) — _SpeakerBoxLite, SoundForm_
-- ⬜ Driver offset / acoustic centre handling
-
-## 6. Construction & woodworking output
-
-_The clearest gap vs SoundForm and SpeakerDesign.dev — builders love this._
-
-- ⬜ Net/gross internal volume from panel thickness (+ separate baffle thickness)
-- ⬜ Driver & port displacement subtraction
-- ⬜ Bracing / lining / component (xover, plate amp) volume subtraction — _seen in SpeakerDesign.dev_
-- ⬜ Panel cut list + 6-panel dimension breakdown — _SoundForm, SpeakerDesign.dev, SpeakerBoxLite_
-- ⬜ 3D enclosure model / assembly view — _SpeakerDesign.dev, SpeakerBoxLite (“Smart 3D Builder”)_
-- ⬜ Cut-list / sheet-layout optimiser — _SpeakerDesign.dev, SpeakerBoxLite_
-- ⬜ 3D-printable port export (STL) — _seen in SpeakerBoxLite_
-
-## 7. Platform & UX
-
-- ✅ Runs anywhere with a browser (desktop, tablet, phone), no install, no login
-- ✅ Dark theme
-- ✅ Hover crosshair + value readout on every graph
-- ✅ Alignment helpers (sealed Qtc target, QB3/B4 vent, PR mass auto-tune, vent↔tuning)
-- ⬜ WinISD sealed alignment picker (nine numeric Qtc targets with WinISD labels), available in
-  New Project and the Box view with draft volume editing, closest-target feedback, and EBP
-  suitability iconography
-- ⬜ More vented alignment presets (SBB4, EBS, Bessel, Chebyshev) — _seen in SpeakerDesign.dev wizard_
-- ⬜ Guided design wizard (driver → count → box type → params) — _seen in SpeakerDesign.dev_
-- ⬜ Draggable / resizable graphs, pin/hide panels — _seen in 00 Simulator_
-- ⬜ Accessibility pass (keyboard nav, arrow-key nudge on inputs) — _arrow-key nudge in 00 Simulator_
-
-## 8. Data, sharing & community
-
-- ✅ JSON project save / load
-- ✅ **Bridge-produced driver data** — the canonical corpus is generated from scraper output and
-  carries provenance and quality alongside each record.
-- ✅ **URL-encoded shareable designs** — paste a design as a link
-- ✅ **Community contribution flow** — contribute scraper input or a bridge-produced canonical
-  record; WDR schema + metadata standards document the conversion boundary.
-- ✅ Static hosting on GitHub Pages (<https://openisd.app/>)
-
-## 9. Learning & docs
-
-- ✅ Documented engine + conventions (`CONTRIBUTING.md`)
-- ⬜ Open knowledge base — T/S params, box types, tuning, box losses — _SpeakerDesign.dev has a closed one; an **open, community-editable** one would be a first_
-- ⬜ In-app explanations / tooltips on parameters and curves
-- ⬜ Worked-example tutorial
-
-## 10. Trust & validation _(OpenISD’s differentiator — no other tool surveyed does this)_
-
-- ✅ Validated against closed-form Thiele/Small (sealed fc/Qtc < 0.03 dB)
-- ✅ Passband = driver reference sensitivity; vented 24 dB/oct + twin Z-peaks
-- ✅ In-browser self-test (console) on every load
-- ✅ Node engine test wired into CI — physics re-proven on every push
-- ✅ Open, documented model (`CONTRIBUTING.md`)
-
----
-
-## Honest competitive position
-
-The field is more advanced than “WinISD is dead” implies. **00 Simulator** is
-feature-rich and actively developed. **SpeakerDesign.dev** matches OpenISD’s
-graph set and exceeds it on vents and construction. **SpeakerBoxLite** is the
-broadest tool (transmission line, full crossover, 5,000+ drivers) but paywalled.
-On raw simulation features alone, OpenISD is mid-pack today.
-
-But the driver library story has changed materially. OpenISD now ships with
-**2,100+ bundled drivers** from SB Acoustics, Parts Express, and community
-measurement collections — loaded instantly from the app bundle, not fetched from a
-rate-limited API. A live ingestion pipeline keeps that number growing. No surveyed
-competitor offers an open, version-controlled, machine-readable driver commons with
-automated ingestion pipelines and a human-review quality framework.
-
-OpenISD’s defensible edges:
-
-- **Open source, fully and permanently.** MIT-licensed, public, and forkable
-  today. The code belongs to everyone who uses it.
-- **Open _data_, growing.** 2,100+ drivers in a version-controlled commons, fed by an
-  automated ingestion pipeline. The data carries
-  quality grades, datasheet provenance, and timestamps so you know exactly
-  where every number came from. No closed tool opens its aggregated driver data at
-  all, let alone federates it.
-- **Bridge-produced, not hand-maintained.** Scraper output is converted through the bridge into
-  canonical records; the app consumes that one reviewed corpus rather than maintaining a second
-  source registry.
-- **Provable physics.** Validated against closed-form Thiele/Small solutions,
-  re-verified on every push in CI. No competitor surveyed makes this claim.
-- **Truly ownerless longevity.** MIT + on disk in every clone = it cannot die,
-  be paywalled, or have its driver data locked away.
-
-## Where it needs to catch up
-
-Construction output (volume calc, cut list, 3D), amplifier-load graph, richer
-vents (multi/slot/selectable end-correction), 6th-order bandpass, `.wpr` import,
-and datasheet→params paste. All tractable on the existing engine.
-
-Note on EQ: OpenISD includes basic parametric, HP/LP, and Linkwitz-transform
-filters. For detailed multi-filter EQ design and optimization, Biquad Cookbook
-(open-source companion tool) provides a focused, modern UI with 15+ filter types
-and automated optimization against target curves.
-
-## Strategic framing
-
-OpenISD’s pitch is not that it out-simulates the competition today — it doesn’t,
-and we say so plainly above. The pitch is that open code _and_ open data, together,
-create something that benefits the whole speaker-building world: a permanent,
-vendor-neutral commons that anyone can build on, contribute to, and trust. As the
-driver library grows toward 5,000+ drivers with verified provenance, that shared
-foundation becomes more valuable than any single tool’s feature list.
+Work items and priorities are in [BACKLOG.md](BACKLOG.md).
