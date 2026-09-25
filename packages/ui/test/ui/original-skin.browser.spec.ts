@@ -853,7 +853,6 @@ test('Voice coil temp rise, resistance TC, and added mass all convert, each keep
   // it to 5 decimals of a gram, so kilograms need 8 to say the same thing — those digits ARE the
   // resolution, and a ceiling on them would show a coarser number than the field holds (John,
   // 2026-09-25: "the display resolution must track the absolute precision we want to support").
-  // What must never happen is the VALUE being lost to the conversion — 0.00000000.
   const maddField = page.locator('.field', { hasText: 'Added mass to cone' });
   const madd = maddField.locator('input');
   const maddUnit = maddField.locator('.unit');
