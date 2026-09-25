@@ -1,5 +1,5 @@
 import {expect, openAProject, test, W5_1138SMF} from '../fixtures.js';
-import {fillAndCommit, numInputByLabel, setNumField} from '../fixtures/numField.js';
+import {clearNumField, fillAndCommit, numInputByLabel, setNumField} from '../fixtures/numField.js';
 
 test.beforeEach(async ({ page }) => {
   await page.goto('/');
@@ -66,11 +66,13 @@ const SEALED_VB_L  = 20;                                       // box volume, li
   // superseded by that table.)
 
 // Scenario B — same driver, Butterworth (maximally-flat) alignment
-// sealedFromQtc(driver, 0.707) → Vb = Vas / ((0.707/Qts)² − 1) → Vb ≈ 12.2 L for
-// Qts=0.38, Vas=30L. The Q-group/Rg interaction (see the sealed Qtc shift above) shifts the
-// loaded Qts to 0.386, so the lossless readouts live-verify as Qtc=0.719 and fc=67.2.
-const QTC_BUTTERWORTH    = '0.719';
-const BUTTERWORTH_FC_HZ  = '67.2';
+// sealedFromQtc(driver, 0.707) → Vb = Vas / ((0.707/Qts)² − 1) = 30/2.4617 = 12.19 L for
+// Qts=0.38, Vas=30L, so fc = Fs × √(1 + Vas/Vb) = 37 × 1.8606 = 68.84 Hz.
+// Qtc is that √ against the SOURCE-LOADED Qts, not the entered one: the Signal tab's default
+// Rg=0.1 Ω over Re=3.4 Ω lifts Qes 0.4254 → 0.4379, and with Qms=3.56 that makes Qts 0.390,
+// giving Qtc = 0.726 — a real amplifier's Butterworth box reads slightly over 0.707.
+const QTC_BUTTERWORTH    = '0.726';
+const BUTTERWORTH_FC_HZ  = '68.84';
 
 // Scenario C — vented 30 L box with a 5 cm bore, 10 cm long port
 // (see Scenario D and E constants below the vented test)
@@ -113,7 +115,7 @@ test('sealed box: Fs=37Hz, Qts=0.38, Vas=30L driver in 20L box shows Qtc=0.611 a
   expect(fsc).toBeCloseTo(parseFloat(expected.fc_hz), 1);
 });
 
-test('sealed box: Fs=37Hz,Qts=0.38,Vas=30L — Butterworth button sets Vb so box shows Qtc=0.719 and fc=67.2Hz (lossless)', async ({ page }) => {
+test('sealed box: Fs=37Hz,Qts=0.38,Vas=30L — Butterworth button sets Vb so box shows Qtc=0.726 and fc=68.84Hz (lossless)', async ({ page }) => {
   // Set all driver params that the stat bar assertions depend on:
   // Qts + Vas → sealedFromQtc() → Vb → Qtc;  Fs + Vb → fc
   await page.locator('.project-nav li', { hasText: 'Driver' }).click();
@@ -121,9 +123,15 @@ test('sealed box: Fs=37Hz,Qts=0.38,Vas=30L — Butterworth button sets Vb so box
   await setNumField(page, 'Fs', DRV_FS_HZ);
   await setNumField(page, 'Qts', DRV_QTS);
   await setNumField(page, 'Vas', DRV_VAS_L);
+  // Clear Qes so the Q trio re-solves from the typed Qts against the catalogue driver's Qms.
+  // Left as it came, Qes/Qms would still describe the OTHER driver, and the loaded Qts the Qtc
+  // readout uses would have nothing to do with the Qts the alignment sized the box from.
+  await clearNumField(page, 'Qes');
 
-  // Close tune panel keeping typed changes
-  await page.locator('.tune-panel .close-btn').click();
+  // The panel STAYS OPEN: its ✕ is Cancel ("discard changes since the last save"), and since
+  // an opened project's loaded design is its saved ground state, closing it would put the
+  // catalogue driver's own Fs/Qts/Vas back and this scenario would never be under test. The
+  // panel is fixed to the bottom-right corner, so the Box tab is reachable behind it.
 
   // Switch to Box tab, sealed box, lossless model for exact formula match
   await page.locator('.project-nav li', { hasText: 'Box' }).click();

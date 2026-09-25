@@ -1,3 +1,4 @@
+import type {DqIssue} from '@openisd/design/engine';
 import {expect, openAProject, test} from '../fixtures.js';
 import {fillAndCommit, numInputByLabel, PageOps} from '../fixtures/numField.js';
 
@@ -75,23 +76,29 @@ test('§A1 — a target the port cannot reach is reported, and the length shows 
   await pageOps.setNum('#og-fb-target', '40');
   await expect(page.locator('#og-fb-unreachable')).toHaveCount(0);
 
-  // 200 Hz is not: this volume + 5 cm vent tops out at ~165.6 Hz (L = 0), so the solve is negative.
+  // 200 Hz is not: the highest this volume + 5 cm vent can tune to is the physical length
+  // zero, whose acoustic length is still the end correction — 134 Hz — so the solve is negative.
   await pageOps.setNum('#og-fb-target', '200');
   await expect(page.locator('#og-fb-unreachable')).toBeVisible();
-  await expect(page.locator('#og-fb-unreachable')).toContainText('165.62');
+  await expect(page.locator('#og-fb-unreachable')).toContainText('134 Hz');
 
   await page.locator('.project-nav li', { hasText: 'Vented' }).click();
   await expect(page.locator('#og-vent-unreachable')).toBeVisible();
-  // The failure is SHOWN, not hidden behind a buildable-looking floor: the length is negative,
-  // redlined (the `.impossible` class), and the DQ flag is genuinely set in the model.
-  const len = await page.locator('#og-vent-length-ro').inputValue();
-  expect(Number(len), `solved vent length "${len}" must read negative for an impossible target`)
-    .toBeLessThan(0);
+  // The failure is SHOWN, not hidden behind a buildable-looking floor: the solve would be a
+  // negative length, which is not a length, so the readout is left unavailable, redlined (the
+  // `.impossible` class), and the DQ flag is genuinely set in the model.
+  await expect(page.locator('#og-vent-length-ro')).toHaveValue('—');
   await expect(page.locator('#og-vent-length-ro')).toHaveClass(/impossible/);
   const dq = await page.evaluate(async () => {
     const modPath = '/src/logic/appState.ts';
     const p = (await import(/* @vite-ignore */ modPath)).requireFocusedProject();
-    return { unreachable: p.ventTargetUnreachable.value, dqCount: p.box.vented.tuning_goal_hz.dq.length };
+    // The mark sits on the field the solve FAILED to produce — the vent's own length — not on
+    // the target that was asked for (`OriginalShell-hooks.ts` reads it the same way).
+    const dq = p.box.vented.vent.length_m.dq;
+    return {
+      unreachable: dq.some((issue: DqIssue) => issue.kind === 'target-unreachable'),
+      dqCount: dq.length,
+    };
   });
   expect(dq.unreachable).toBe(true);   // the DQ aggregation is on, not just the visual
   expect(dq.dqCount).toBeGreaterThan(0);

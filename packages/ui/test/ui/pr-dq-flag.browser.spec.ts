@@ -84,11 +84,14 @@ test('an unreachable PR target flags the entered Fp as the cause and the derived
   await expect(fpInput.locator('xpath=following-sibling::*[1]')).toHaveText('⚠');
   await expect(fpInput).toHaveAttribute('title', /is the problem/);
 
-  // The DERIVED mass (calculated, negative) is the symptom: dq-flag, not dq-root.
+  // The DERIVED mass is the symptom: dq-flag, not dq-root. The solve for it would be negative,
+  // which is not a mass, so the field is left unavailable (solver.ts `target-unreachable`)
+  // rather than showing a negative number — the flag and the reason are what it carries.
   const maddInput = page.locator('#og-pr-madd');
   await expect(maddInput).toHaveClass(/dq-flag/);
   await expect(maddInput).not.toHaveClass(/dq-root/);
-  await expect(maddInput).toHaveAttribute('title', /not the issue|flagged input/);
+  await expect(maddInput).toHaveValue('');
+  await expect(maddInput).toHaveAttribute('title', /cannot reach this target/);
 
   // The readout outputs are redlined too.
   await expect(page.locator('#og-pr-fs-mass').locator('xpath=ancestor::div[contains(@class,"field")][1]'))

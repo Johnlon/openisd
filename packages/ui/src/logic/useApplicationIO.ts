@@ -204,6 +204,11 @@ export function createApplicationIO(deps: { logging: Logging; fileStorage: FileS
           // Opening a project file is opening a NEW project — it never folds into whatever is
           // already open (a project already open keeps its own tab and contents).
           project.name.set(projectNameFromFilename(f.name));
+          // Naming it after the file it came from is part of LOADING it, not a user edit: the
+          // loaded design is the ground state, so it is committed before the project is opened.
+          // Without this every opened project reads as unsaved — Revert armed, the unsaved dot
+          // lit, and closing it challenges the user over changes nobody made.
+          project.save();
           addProject(project);
         } else if (format === ProjectFileFormat.Owpr || /^\s*\{/.test(text)) {
           const { value: project, errors } = owprTextToProject(deps.projectRepo, text);
@@ -217,6 +222,7 @@ export function createApplicationIO(deps: { logging: Logging; fileStorage: FileS
             throw new Error(errors[0]?.message ?? 'could not read the project file');
           }
           project.name.set(projectNameFromFilename(f.name));
+          project.save();   // the loaded design is the ground state — see the .wpr branch above
           addProject(project);
         } else {
           throw new Error('Unsupported or unrecognized file format');

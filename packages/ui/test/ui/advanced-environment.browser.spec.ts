@@ -101,7 +101,8 @@ test('a project\'s stored humidity survives a reload — not reset to the Option
       if (!text) return null;
       const parsedProject = JSON.parse(text);
       const activeState = parsedProject.edited || parsedProject.saved;
-      return activeState?.environment?.humidity_pct ?? null;
+      // Persisted fields are cells — `{state, value}` — not bare numbers.
+      return activeState?.environment?.humidity_pct?.value ?? null;
     } catch { return null; }
   }).toBe(55);
 

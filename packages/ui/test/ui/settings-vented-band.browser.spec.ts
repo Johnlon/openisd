@@ -97,10 +97,12 @@ test('a band the user narrows marks the wizard readout — the value itself is u
   // Both designed values are called out, and each sentence names the band it failed and says
   // the number is WinISD's own rather than a bug.
   const volume = modal.locator('[data-testid="np-vented-volume-warning"]');
-  await expect(volume).toContainText('outside the plausible 1 L – 2 L band set in Settings');
+  // ASCII hyphen, not an en-dash: the same sentence goes into a .wdr comment, where WinISD's
+  // memo font draws `–` as a wrong glyph.
+  await expect(volume).toContainText('outside the plausible 1 L - 2 L band set in Settings');
   await expect(volume).toContainText('WinISD gives the same answer');
   await expect(modal.locator('[data-testid="np-vented-tuning-warning"]'))
-    .toContainText('outside the plausible 1 Hz – 2 Hz band set in Settings');
+    .toContainText('outside the plausible 1 Hz - 2 Hz band set in Settings');
 
   // The designed numbers are NEVER changed by a mark — the readout still shows a real box.
   const readout = modal.locator('.readout-box');

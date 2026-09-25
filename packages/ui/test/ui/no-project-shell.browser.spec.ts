@@ -44,8 +44,7 @@ test('no project does not wall off the toolbar’s global actions', async ({ pag
   await page.keyboard.press('Escape');
   await expect(page.locator('.wb-modal')).toBeHidden();
 
-  // Options opens fully editable (username, environment) — the per-project sweep
-  // Frequency-range row is hidden because there is no project to bind it to.
+  // Options opens fully editable (username, environment).
   await page.locator('.tb-btn[title="Options"]').click();
   const opt = page.locator('.opt-modal');
   await expect(opt).toBeVisible();
@@ -59,7 +58,12 @@ test('no project does not wall off the toolbar’s global actions', async ({ pag
     await expect(input).toHaveValue(before);
   }
   await page.locator('.opt-tab', { hasText: 'Plot Window' }).click();
-  await expect(opt).not.toContainText('Frequency range');
+  // The Frequency-range row edits `presentationState.sweepRange`, which is app-wide and shared
+  // by every open project (GraphPanel.vue) — so it is live with no project open, like the rest
+  // of the Plot Window tab.
+  const frequencyRange = opt.locator('tr', { hasText: 'Frequency range' });
+  await expect(frequencyRange.locator('input').nth(0)).toBeEnabled();
+  await expect(frequencyRange.locator('input').nth(1)).toBeEnabled();
   const transferMagnitude = opt.locator('tr', { hasText: 'Transfer func. magn.' });
   await expect(transferMagnitude.locator('input').nth(0)).toHaveValue('-30');
   await expect(transferMagnitude.locator('input').nth(1)).toHaveValue('6');
