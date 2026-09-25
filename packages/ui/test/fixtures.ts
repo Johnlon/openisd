@@ -1,4 +1,7 @@
-import { test as base, expect } from '@playwright/test';
+import {readFileSync} from 'node:fs';
+import {expect, type Page, test as base} from '@playwright/test';
+import {COMPLETE_DRIVER_PROJECT_OWPR, ensureSampleProject, SAMPLE_PROJECT_OWPR} from './fixtures/sampleProject.js';
+export {COMPLETE_DRIVER_PROJECT_OWPR, SAMPLE_PROJECT_OWPR};
 
 /**
  * Shared Playwright fixtures for all UI/browser tests.
@@ -41,14 +44,6 @@ export const test = base.extend<{ browserLog: BrowserLog }>({
       },
     };
 
-    // Cross-origin federated driver sources (github.com) may 404/be unreachable in
-    // CI/sandboxed environments — not our bug. Each such failed fetch also logs the
-    // browser's generic native "Failed to load resource" console error, which is
-    // otherwise indistinguishable from a real app-caused console error; tolerate
-    // exactly as many of those generic messages as we saw non-localhost failures.
-    const GENERIC_RESOURCE_FAIL = /^Failed to load resource: the server responded with a status of \d+/;
-    let toleratedResourceFailures = 0;
-
     page.on('console', m => {
       if (m.type() === 'error') log.consoleErrors.push(m.text());
       else if (m.type() === 'warning') log.consoleWarnings.push(m.text());
@@ -56,13 +51,15 @@ export const test = base.extend<{ browserLog: BrowserLog }>({
     page.on('pageerror', e => log.pageErrors.push(e.message));
     page.on('requestfailed', r => {
       // external federated sources (github.com) may be unreachable in CI — not our bug
-      if (r.url().includes('localhost')) log.networkErrors.push(`FAILED ${r.url()} — ${r.failure()?.errorText}`);
-      else toleratedResourceFailures++;
+      if (r.url().includes('localhost')) {
+        const err = r.failure()?.errorText;
+        if (err !== 'net::ERR_ABORTED') {
+          log.networkErrors.push(`FAILED ${r.url()} — ${err}`);
+        }
+      }
     });
     page.on('response', r => {
-      if (r.status() < 400) return;
-      if (r.url().includes('localhost')) log.networkErrors.push(`${r.status()} ${r.url()}`);
-      else toleratedResourceFailures++;
+      if (r.url().includes('localhost') && r.status() >= 400) log.networkErrors.push(`${r.status()} ${r.url()}`);
     });
 
     await use(log);
@@ -87,14 +84,26 @@ export const test = base.extend<{ browserLog: BrowserLog }>({
       console.error(`\n[browser diagnostics — "${testInfo.title}"${failed ? ' (test FAILED)' : ''}]\n${JSON.stringify(dump, null, 2)}\n`);
     }
 
-    // Drop up to `toleratedResourceFailures` generic "Failed to load resource"
-    // console messages — each one traces back to a tolerated non-localhost 4xx/5xx
-    // (see the response/requestfailed listeners above), not an app bug.
-    let remainingTolerated = toleratedResourceFailures;
-    const consoleErrors = log.consoleErrors.filter(e => {
-      if (remainingTolerated > 0 && GENERIC_RESOURCE_FAIL.test(e)) { remainingTolerated--; return false; }
-      return true;
-    });
+    // THE DEV SERVER IS GONE — not a test failure, and never to be counted as one.
+    // `playwright.config.js` sets `reuseExistingServer: true`, so if vite on 4100 dies
+    // mid-run nothing restarts it and every remaining test fails identically on
+    // ERR_CONNECTION_REFUSED. That once turned one infrastructure death into "210 failed",
+    // a number that measured how far the run got rather than anything about the code.
+    // bugs/BUG_20260909_the_playwright_vite_server_dies_mid_run_and_fakes_hundreds_of_failures.md
+    //
+    // Raised FIRST and on its own, so the message says what actually happened rather than
+    // burying it among the diagnostics categories below.
+    const serverDown = log.networkErrors.filter(e => /ERR_CONNECTION_REFUSED/.test(e));
+    if (serverDown.length) {
+      throw new Error(
+        'DEV SERVER UNREACHABLE — this is NOT a test failure.\n' +
+        `The base URL refused the connection (${serverDown.length} request(s)):\n    ` +
+        serverDown.join('\n    ') + '\n' +
+        'The vite server on 4100 has died, so every test after this point fails the same way ' +
+        'regardless of the code. TREAT THIS RUN AS VOID and restart the suite — do not read ' +
+        'its pass/fail totals as a result.',
+      );
+    }
 
     // NO opt-out, NO skip-on-failure. EVERY check runs every time — each is wrapped
     // in try/catch so an early failure never prevents the later checks from running.
@@ -102,7 +111,7 @@ export const test = base.extend<{ browserLog: BrowserLog }>({
     // single test run reports the complete picture rather than the first problem only.
     const checks: Array<[string, string[]]> = [
       ['Vue "Duplicate keys found" warnings', log.consoleWarnings.filter(w => /duplicate key/i.test(w))],
-      ['console errors', consoleErrors],
+      ['console errors', log.consoleErrors],
       ['uncaught page errors', log.pageErrors],
       ['same-origin network failures', log.networkErrors],
     ];
@@ -120,4 +129,39 @@ export const test = base.extend<{ browserLog: BrowserLog }>({
   }, { auto: true }],
 });
 
+export async function openAProject(page: Page, owprPath: string = SAMPLE_PROJECT_OWPR): Promise<void> {
+  ensureSampleProject();
+  await page.locator('.original-root input[type=file]').setInputFiles({
+    name: 'sample-project.owpr',
+    mimeType: 'application/json',
+    buffer: readFileSync(owprPath),
+  });
+  await page.locator('.original-root').waitFor({ state: 'visible' });
+}
+
+/**
+ * The driver editor's tab, ENSURED rather than assumed.
+ *
+ * The editor opens on Parameters by design, and each pane is behind `v-if="tab === ..."`, so a
+ * General-tab cell (`.de-fld` — Brand, Model, comment) NEVER MOUNTS until something switches
+ * tabs. A test that waits on one without switching does not fail, it hangs for the full 60 s
+ * timeout: ~36 of the 100 failures in the 2026-09-16 sequential run were this one mistake.
+ *
+ * Hence the creed (human's rule, ui-bugfix.md): only the test that wants to know the default tab
+ * may assert it; every other test switches to the tab it intends, whatever tab is showing.
+ *
+ * Scoped to `.de-modal` and matched by exact accessible name, because "Parameters" is a prefix
+ * of "Advanced parameters". Already-active is left alone: clicking a tab that is already on is
+ * a no-op the modal does not need, and it can be intercepted when the picker sits behind.
+ */
+export async function editorTab(page: Page, tab: EditorTab): Promise<void> {
+  const button = page.locator('.de-modal').getByRole('button', { name: tab, exact: true });
+  await button.waitFor({ state: 'visible' });
+  if (!(await button.evaluate(el => el.classList.contains('on')))) await button.click();
+  await expect(button).toHaveClass(/\bon\b/);
+}
+
+export type EditorTab = 'General' | 'Parameters' | 'Advanced parameters' | 'Dimensions';
+
 export { expect };
+export * from './fixtures/reference-drivers.js';

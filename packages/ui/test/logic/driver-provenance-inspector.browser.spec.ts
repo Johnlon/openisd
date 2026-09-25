@@ -1,0 +1,81 @@
+import {expect, openAProject, test} from '../fixtures.js';
+
+/**
+ * Playwright Browser Test Suite: Driver Field Provenance Inspector & Equation Inspector
+ *
+ * Verifies interactive field provenance highlighting and the non-modal equation inspector overlay.
+ */
+
+test.describe('Driver Field Provenance Inspector & Equation Inspector', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto('/');
+    await openAProject(page);
+
+    // Open the Driver Editor the way a user does. Services are constructed by the composition
+    // root and injected, so there is no module-level instance to import and call.
+    await page.locator('.project-nav li', { hasText: 'Driver' }).click();
+    await page.locator('.edit-btn', { hasText: 'Edit' }).click();
+
+    await page.locator('.de-body').waitFor({ state: 'visible' });
+  });
+
+  test('Inspect Provenance checkbox is present in Driver Editor header', async ({ page }) => {
+    const chk = page.getByRole('checkbox', { name: 'Inspect Provenance' });
+    await expect(chk).toBeVisible();
+  });
+
+  test('Toggling Inspect Provenance on and clicking Qts highlights feeding fields and pops up non-modal Equation Inspector', async ({ page }) => {
+    await page.getByRole('button', { name: 'Parameters', exact: true }).click();
+    await page.getByRole('checkbox', { name: 'Inspect Provenance' }).check();
+
+    // Click Qts field
+    const qtsFld = page.locator('.de-fld:has-text("Qts") input').first();
+    await qtsFld.click();
+
+    // Verify Equation Inspector non-modal card pops up
+    const inspector = page.locator('.eq-inspector-card');
+    await expect(inspector).toBeVisible();
+    await expect(inspector).toContainText('Provenance: Qts');
+    await expect(inspector).toContainText('Qts = (Qes × Qms) / (Qes + Qms)');
+    await expect(inspector).toContainText('Participating fields:');
+    await expect(inspector).toContainText('Qes');
+    await expect(inspector).toContainText('Qms');
+  });
+
+  test('Inspecting a multi-formula field (Qes) displays multiple derivation paths and distinct color swatches', async ({ page }) => {
+    await page.getByRole('button', { name: 'Parameters', exact: true }).click();
+    await page.getByRole('checkbox', { name: 'Inspect Provenance' }).check();
+
+    // Click Qes field
+    const qesFld = page.locator('.de-fld:has-text("Qes") input').first();
+    await qesFld.click();
+
+    const inspector = page.locator('.eq-inspector-card');
+    await expect(inspector).toBeVisible();
+    await expect(inspector).toContainText('Provenance: Qes');
+
+    const pathCards = inspector.locator('.eq-path-card');
+    const pathCount = await pathCards.count();
+    expect(pathCount).toBeGreaterThanOrEqual(2);
+
+    await expect(pathCards.nth(0)).toContainText('Qes = (Qts × Qms) / (Qms - Qts)');
+    await expect(pathCards.nth(1)).toContainText('Qes = (2π × Fs_hz × Mms_kg × Re_ohm) / BL²');
+  });
+
+  test('Closing Equation Inspector via ✕ button dismisses the non-modal overlay while keeping Driver Editor open', async ({ page }) => {
+    await page.getByRole('button', { name: 'Parameters', exact: true }).click();
+    await page.getByRole('checkbox', { name: 'Inspect Provenance' }).check();
+
+    const qtsFld = page.locator('.de-fld:has-text("Qts") input').first();
+    await qtsFld.click();
+
+    const inspector = page.locator('.eq-inspector-card');
+    await expect(inspector).toBeVisible();
+
+    await inspector.locator('.eq-x').click();
+    await expect(inspector).toBeHidden();
+
+    // Driver Editor stays open
+    await expect(page.locator('.de-body')).toBeVisible();
+  });
+});

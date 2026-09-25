@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "mcp-refactor-typescript": {
+      "type": "stdio",
+      "command": "mcp-refactor-typescript",
+      "args": [],
+      "env": {}
+    }
+  }
+}

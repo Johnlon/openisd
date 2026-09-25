@@ -1,12 +1,26 @@
 #!/usr/bin/env bash
-# Run all project health checks: lint, unit tests, golden tests, browser tests.
+if [ -z "$PROCEED" ]
+then
+	echo AGENT : DO NOT RUN HEALTH CHECK UNLESS ALL THE UNIT TESTS IN THIS PLAN ALREADY WORK
+	exit 1
+fi
+# Run all project health checks: lint, type check, unit tests, browser tests.
 # Exit code 0 = all passed. Non-zero = something failed.
 # Add new checks here as they are created — this is the single entry point.
-# Scraper/DQ checks live in the sibling winisd_tools repo, not here.
 set -euo pipefail
 # Must run in Git Bash on Windows (MSYSTEM set) or WSL (microsoft in /proc/version).
 # PowerShell/cmd have no /proc, so they are still rejected.
 { [ -n "${MSYSTEM:-}" ] || grep -qi microsoft /proc/version 2>/dev/null; } || { echo "ERROR: must run in Git Bash on Windows or WSL, not PowerShell/cmd" >&2; exit 1; }
+
+LOCK_DIR="build/health-check.lock"
+mkdir -p build
+if ! mkdir "$LOCK_DIR" 2>/dev/null; then
+  echo "⚠️ Another health check is already running - Exiting." >&2
+  echo "!!⚠️ AGENT INSTRUCTION - DO NOT START ANOTHER SESSION - ONE AT A TIME - IF THE EXISTING ONE IS OBSOLETE THEN STOP IT." >&2
+  echo "!!⚠️ THE LOCK FILE IS $LOCK_DIR - ONLY DELETE THIS IF THE SESSION HAS DIED AND THE LOCK IS OBSOLETE - DO NOT HACK IT!!." >&2
+  exit 0
+fi
+trap 'rm -rf "$LOCK_DIR"' EXIT INT TERM
 
 PASS=0
 FAIL=0
@@ -34,7 +48,8 @@ echo "========================================"
 run "ESLint"            npm run lint
 run "Type check"        npm run typecheck
 run "Unit tests"        npm run test:unit
-run "Browser tests"     npx playwright test
+run "Browser tests"     bash scripts/test-browser.sh
+run "Verify Preview"    bash scripts/verify-preview.sh
 
 echo ""
 echo "========================================"

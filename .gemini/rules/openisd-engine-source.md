@@ -1,0 +1,1 @@
+../.claude/rules/openisd-engine-source.md

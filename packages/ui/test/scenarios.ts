@@ -55,7 +55,7 @@ export interface Scenario {
   sbl?: Record<string, string>;
   openisd: Record<string, string>;
   /** Filled in by gen-scenarios.ts at generation time. */
-  _computed?: Record<string, string>;
+  computed?: Record<string, string>;
 }
 
 export const SCENARIOS: Scenario[] = [

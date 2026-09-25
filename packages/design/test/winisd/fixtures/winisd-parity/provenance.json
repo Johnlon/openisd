@@ -1,0 +1,128 @@
+{
+  "winisdVersion": "0.7.0.0",
+  "winisdExe": "/home/john/work/winisd/winisd_research/winisd/winisd.exe",
+  "winisdExeSha256": "a7dab23388a2ed4ab3111b59725dd6337532a0fc03cd28f9f5eb01ef6df386ae",
+  "winisdExeBytes": 2473472,
+  "wine": "wine-10.0 (Ubuntu 10.0~repack-12ubuntu1)",
+  "harnessRepo": "/home/john/work/winisd/winisd_research",
+  "harnessCommit": "78fed4904b00a1178e8c1a81ee3883fd6cb6aa75",
+  "harnessWorkingTreeDirty": true,
+  "generator": "scripts/qo8_parity_generator.py",
+  "scenariosFile": "/home/john/work/winisd/openisd/packages/design/test/winisd/fixtures/winisd-parity/scenarios.json",
+  "scenariosSha256": "75ff00c027a1ac83c06bbb94d4c932b7488b6a3da749aec75ae15b6fc2973897",
+  "scenarios": [
+    {
+      "id": "sealed-small",
+      "inputSha256": "be19888bc25b2b889831da4cfbf5c463665c6374fe2465ebb9771743389c2ebe",
+      "goldenSha256": "fe44546419b95b76647f22297958f286989bd721cf9c9a5e06e2f6870edd8cd7",
+      "seconds": 29.7,
+      "at": "2026-08-13T18:25:13+0200"
+    },
+    {
+      "id": "sealed-large",
+      "inputSha256": "c77af1ec938c704ff0333d42c3e97d4ab6a6a5d6bf33be1e8631ec526b98103d",
+      "goldenSha256": "99deed9f6ae7688784a4d28f84ce5307039e9270fe0d51af89bc44faf840f238",
+      "seconds": 27.6,
+      "at": "2026-08-13T18:25:40+0200"
+    },
+    {
+      "id": "vented-b4",
+      "inputSha256": "31da55b0803f3a2128c1d460b6f6f2bad182d2ebf5efcc93afa017555e4b9a49",
+      "goldenSha256": "b59647d32368e77c50c68f0992e3b6a154160dac68319a04b691433549510098",
+      "seconds": 19.5,
+      "at": "2026-08-13T18:26:00+0200"
+    },
+    {
+      "id": "vented-small",
+      "inputSha256": "b4ae4a63a45aacedcb425affcc463a559e60f7ab80f9b3a1b3a1f7479a0ad99e",
+      "goldenSha256": "cc026d92abd728d509070185346621f3ee12a2d32767b695fc47592892119b00",
+      "seconds": 20.3,
+      "at": "2026-08-13T18:26:20+0200"
+    },
+    {
+      "id": "bandpass4",
+      "inputSha256": "51b747bac787a2dde7b0af71a12788e5682abdd060bceedddc01d39012c5f9bd",
+      "goldenSha256": "f44fcd2ba01e21a903a93afcb76c9f18e436cf7f29987e7bae679f611c4c84c9",
+      "seconds": 22.2,
+      "at": "2026-08-13T18:26:42+0200"
+    },
+    {
+      "id": "passive-radiator",
+      "inputSha256": "2f8fd288df2e28045a0573ef37ef363c1eb4feabc27c4f8879e6606ffd9659d8",
+      "goldenSha256": "5f28ccc110ed7d9a2197e854b511832a6dbf96948088f884f57e9a0e328fc757",
+      "seconds": 20.2,
+      "at": "2026-08-13T18:27:03+0200"
+    },
+    {
+      "id": "env-rh-00",
+      "inputSha256": "a9e67c9bbfe543b2cbbf42379afba891cefb55e3f1db60667ee3c748b733d19e",
+      "goldenSha256": "28acfa2e8b5f5cf1d30780ea2c3d967f2bf8b2e6b273e09402e3b1e918d1a265",
+      "seconds": 20.3,
+      "at": "2026-08-13T18:27:23+0200"
+    },
+    {
+      "id": "env-rh-30",
+      "inputSha256": "e8bf7a0d7b8fe70b0c8c192dc89c1964eb7a69b69d21b54ba4a9934c25c5ae48",
+      "goldenSha256": "bfbaacd19757701871ab38db1637f8a1953312b6a2b0531c58091829f6ffa20e",
+      "seconds": 16.5,
+      "at": "2026-08-13T20:31:45+0200",
+      "attempts": 1
+    },
+    {
+      "id": "env-rh-90",
+      "inputSha256": "de3833a4ed0d6dae995876f0eab6355b610c10c238e69385247ba98b0a191094",
+      "goldenSha256": "bae33f1007c78572a80165dcd4e6d313d9110d613b023b3af268b9835c272d79",
+      "seconds": 17.8,
+      "at": "2026-08-13T20:32:03+0200",
+      "attempts": 1
+    },
+    {
+      "id": "env-t-303",
+      "inputSha256": "9abda1c8e80daad6cdfb393b4d7e964c74dbbfe17996a531a93f16adab424495",
+      "goldenSha256": "45ce56ec93d650dfa9ae778d072cf378ccf1342d5042719de95bd8d5667ea641",
+      "seconds": 18.4,
+      "at": "2026-08-13T20:32:22+0200",
+      "attempts": 1
+    },
+    {
+      "id": "env-p-95000",
+      "inputSha256": "a2f503dedca5fbd944d032b149238eb4ca26d088cb644ae359a137e11bb5c660",
+      "goldenSha256": "d7862d089d6ffaa785b935b9c9913905f34cbcfef49feb345b2748017f11c172",
+      "seconds": 16.6,
+      "at": "2026-08-13T20:32:38+0200",
+      "attempts": 1
+    },
+    {
+      "id": "env-p-105000",
+      "inputSha256": "acaf029a6ed0071bb6262b235c573d2d149393a1c1f6c1897e368dea6b6c489e",
+      "goldenSha256": "56376c5445ab1c4009559ce24a5a48e9bcbe8f6fddc6199cbb56cb56e659e86e",
+      "seconds": 16.0,
+      "at": "2026-08-13T20:32:54+0200",
+      "attempts": 1
+    },
+    {
+      "id": "solve-from-q-pair",
+      "inputSha256": "45f6648e7c19272f9a6da3d31ec7c1b7ba3d57a05098b04737085c71990eed26",
+      "goldenSha256": "afb42db203eaa7232a8a6c3dafd84e133b310529e2e9aa27d08dae10eaa98488",
+      "seconds": 15.4,
+      "at": "2026-08-13T20:33:10+0200",
+      "attempts": 1
+    },
+    {
+      "id": "gap-geometry",
+      "inputSha256": "851e8769b86ecaa4e1f6f8e64dee2552ce182da8b9ccc17951ec15051fd31b15",
+      "goldenSha256": "b68a704e4b6ea6330af5e17bf1268e285097c6c7e8d9826ef1c29719bb934f47",
+      "seconds": 22.6,
+      "at": "2026-08-13T20:35:35+0200",
+      "attempts": 1
+    },
+    {
+      "id": "inconsistent-fs",
+      "inputSha256": "f1069b9e7c2e77be10b49c6e70093c686541b4ac5ba8bd8fd8200bd584b716bf",
+      "goldenSha256": "265e94f0710494c4b801fabca2eff38ba81ab3da6d378c84657d380cfb29aec9",
+      "seconds": 23.3,
+      "at": "2026-08-13T20:35:58+0200",
+      "attempts": 1
+    }
+  ]
+}

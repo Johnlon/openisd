@@ -1,0 +1,23 @@
+/** The ONE dispatch from a runtime spec-field name to the driver's typed accessor.
+ *
+ *  `SpecField` never appears as a public parameter on `OpenISDDriver` itself (human ruling
+ *  2026-08-24, ENCAPSULATION_AND_LAYERING.md), so the driver editor's data-driven field table
+ *  needs exactly one place that maps a name to a handle.
+ *
+ *  The name IS the field-table key, which is also the `DriverSpecsSection` field name — so there
+ *  is no switch: `driver.specs[field]` is the handle. A field renamed in the vocabulary
+ *  or the schema is a compile error at this one line. `VCCon` is the non-numeric wiring select,
+ *  handled by its own dropdown, never here.
+ *
+ *  Returns null for `VCCon` rather than asserting a type — which keeps the compiler proving the
+ *  numeric reads. */
+import type {Calculated, Clearable, Entered, OpenISDDriver, Readable, Writable} from '@openisd/design';
+import type {SpecField} from './appState.js';
+
+export function specFieldHandle(
+  driver: OpenISDDriver,
+  field: SpecField,
+): (Readable<number | null> & Entered & Calculated & Writable<number> & Clearable) | null {
+  if (field === 'VCCon') return null;
+  return driver.specs[field];
+}

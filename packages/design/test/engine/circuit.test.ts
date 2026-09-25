@@ -1,0 +1,59 @@
+import {describe, it} from 'vitest';
+import assert from 'node:assert/strict';
+import type {BoxType, SweepParams} from '../../engine/index.js';
+import {Engine} from '../../engine/index.js';
+import {driverParams, solveConsistencyGroup} from './testSolver.js';
+
+/**
+ * `solve()` (engine/circuit.ts) branches not reached by the rest of the engine suite. Reached
+ * only through `Engine.sweep` — the engine's one door forbids importing circuit.ts directly.
+ */
+describe('circuit — acoustic circuit branches', () => {
+  const engine = new Engine();
+  const LE_H = 0.7e-3;
+  const DRV = driverParams(solveConsistencyGroup({
+    Fs_hz: 37, Qts: 0.378, Qes: 0.40, Qms: 7.0, Vas_m3: 0.0300,
+    Sd_m2: 0.0133, Re_ohm: 5.6, Xmax_m: 0.0050, Pe_W: 60, Znom_ohm: 8,
+  }));
+  const P_SEALED: SweepParams = {Vb: 0.030, eg: 2.83, Ql: 10, fmin: 10, fmax: 1000, N: 20};
+
+  it('circuitModel "gyrator" folds Le into the acoustic circuit — differs from the WinISD split when Le > 0', () => {
+    const winisd = engine.sweep(DRV, LE_H, 'sealed', P_SEALED).values!;
+    const gyrator = engine.sweep(DRV, LE_H, 'sealed', {...P_SEALED, circuitModel: 'gyrator'}).values!;
+    assert.notEqual(gyrator.spl[gyrator.spl.length - 1], winisd.spl[winisd.spl.length - 1],
+      'at the top of the sweep, Le is no longer negligible — the gyrator model must diverge from WinISD\'s Le-excluded acoustic circuit');
+  });
+
+  it('circuitModel "gyrator" matches the WinISD split exactly when Le = 0 (nothing left for the gyrator to fold in)', () => {
+    const winisd = engine.sweep(DRV, 0, 'sealed', P_SEALED).values!;
+    const gyrator = engine.sweep(DRV, 0, 'sealed', {...P_SEALED, circuitModel: 'gyrator'}).values!;
+    assert.deepEqual(gyrator.spl, winisd.spl);
+  });
+
+  it('passive radiator: an absent prRms defaults its mechanical resistance to 0, still a finite sweep', () => {
+    const P_PR: SweepParams = {...P_SEALED, prSd: 0.0133, prNum: 1, prMmd: 0.030, prMadd: 0, prCms: 0.0008};
+    const sw = engine.sweep(DRV, LE_H, 'box-passive-radiator', P_PR).values!;
+    assert.ok(sw.spl.every(Number.isFinite), 'a passive radiator with no mechanical resistance specified must still produce a finite sweep');
+  });
+
+  it('passive radiator: prNum > 1 combines n radiators in parallel — differs from a single radiator', () => {
+    const single: SweepParams = {...P_SEALED, prSd: 0.0133, prNum: 1, prMmd: 0.030, prMadd: 0, prCms: 0.0008, prRms: 1.0};
+    const pair: SweepParams = {...single, prNum: 2};
+    const swSingle = engine.sweep(DRV, LE_H, 'box-passive-radiator', single).values!;
+    const swPair = engine.sweep(DRV, LE_H, 'box-passive-radiator', pair).values!;
+    assert.notEqual(swPair.spl[swPair.spl.length - 1], swSingle.spl[swSingle.spl.length - 1],
+      'two radiators in parallel must load the box differently than one');
+  });
+
+  it('an unsimulatable box type (bandpass6, abc) is not refused by solve() itself — it throws reading an unassigned Complex', () => {
+    // types.ts documents simulatableBoxType() as the ONE place that narrows BoxType and expects
+    // every engine entry point to refuse a non-simulatable type by name. Engine.sweep/solve do
+    // not perform that check themselves (the caller is expected to via
+    // Engine.simulatableBoxType() first) — this test documents the actual, current failure mode
+    // of calling through anyway, it does not endorse it as the desired behaviour.
+    assert.throws(
+      () => engine.sweep(DRV, LE_H, 'bandpass6' as BoxType, P_SEALED),
+      /Cannot read properties of undefined/,
+    );
+  });
+});

@@ -1,0 +1,174 @@
+import {beforeAll, describe, it, vi} from 'vitest';
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {fileURLToPath} from 'node:url';
+import {dirname, join} from 'node:path';
+import {createLogging} from '../../src/logging/flash.js';
+import {createApplicationIO} from '../../src/logic/useApplicationIO.js';
+import {createFileStorage, createMemoryStorage, createProjectRepo, type FileStorage} from '@openisd/persistence';
+import {newProject, requireFocusedProject} from '../../src/logic/appState.js';
+import {Engine} from '@openisd/design/engine';
+import {SAMPLE_PROJECT_OWPR} from '../fixtures/sampleProject.js';
+
+beforeAll(() => {
+  // shareLink() reads location.{origin,pathname} (the project repo's stateToUrl) and writes to the
+  // clipboard/history — none exist in this suite's node environment. Stubbed exactly as
+  // persist.test.ts stubs `location`, plus the two calls shareLink() itself makes.
+  vi.stubGlobal('location', { origin: 'https://openisd.test', pathname: '/' });
+  vi.stubGlobal('history', { replaceState: () => {} });
+  vi.stubGlobal('navigator', { clipboard: { writeText: () => Promise.resolve() } });
+});
+
+/**
+ * bugs/BUG_20260822_wpr_import_leaves_previous_projects_meta_in_state_and_reexports_it.md —
+ * the Verification section's round-trip: import a `.wpr` with distinct creator/description/
+ * date while a differently-named project is open; `state.project.*` must adopt the FILE's
+ * values (name from the filename, per the name↔file rule); a following export must emit the
+ * file's own `[ProjectInfo]`, never the pre-import project's.
+ *
+ * The fixture is a REAL WinISD-written golden (`packages/winisd/test/fixtures/winisd-parity/
+ * goldens/sealed-small.wpr` — an independent oracle, not this codebase's own writer), with its
+ * empty `Description=` line patched to a probe value so a stale-empty field cannot pass as a
+ * synced one.
+ */
+describe('.wpr import syncs state.project from the file, and export round-trips it', () => {
+  const here = dirname(fileURLToPath(import.meta.url));
+  const GOLDEN_SEALED = join(here, '..', '..', '..', 'design', 'test', 'winisd', 'fixtures', 'winisd-parity', 'goldens', 'sealed-small.wpr');
+
+  it('meta flows file → state.project on import, and state → [ProjectInfo] on export', async () => {
+    const wprText = readFileSync(GOLDEN_SEALED, 'utf8')
+      .replace(/^Description=$/m, 'Description=probe-description-123456');
+
+    // Node has no FileReader/download DOM; stub the minimum importFile/exportWpr touch.
+    const alerts: string[] = [];
+    const downloadedBodies: (string | Uint8Array)[] = [];
+    vi.stubGlobal('alert', (msg: string) => { alerts.push(msg); });
+    vi.stubGlobal('URL', { createObjectURL: () => 'blob:x', revokeObjectURL: () => {} });
+    vi.stubGlobal('Blob', class { constructor(parts: unknown[]) { downloadedBodies.push(parts[0] as string | Uint8Array); } });
+    vi.stubGlobal('document', {
+      createElement: (_tag: string) => ({ href: '', download: '', click: () => {} }),
+    });
+    vi.stubGlobal('FileReader', class {
+      onload: null | (() => void) = null;
+      onerror: null | (() => void) = null;
+      result: ArrayBuffer | null = null;
+      // Node's global `File`/`Blob` (available since Node 20) are the real spec classes, so
+      // `readAsArrayBuffer` reads them the same way the browser's own FileReader would —
+      // through `Blob.arrayBuffer()` — rather than a bespoke fake shape `importFile` would
+      // need a cast to accept.
+      readAsArrayBuffer(file: File): void {
+        void file.arrayBuffer().then(buf => {
+          this.result = buf;
+          queueMicrotask(() => this.onload?.());
+        });
+      }
+    });
+    try {
+      const io = createApplicationIO({ logging: createLogging(), fileStorage: createFileStorage(), projectRepo: createProjectRepo(new Engine(), createFileStorage(), createMemoryStorage()) });
+
+      // A DIFFERENT project is open before the import — these exact values must all be gone
+      // after. The app starts with NO project (QO121), so this opens the one it then dirties.
+      newProject();
+      requireFocusedProject().name.set('stale-name-999999');
+      requireFocusedProject().description.set('stale-description-999999');
+      requireFocusedProject().creator.set('stale-creator-999999');
+      requireFocusedProject().created.set('stale-created-999999');
+
+      const fakeFile = new File([new TextEncoder().encode(wprText)], 'imported-design.wpr');
+      io.importFile(fakeFile);
+      await new Promise(resolve => setTimeout(resolve, 0));
+      await new Promise(resolve => setTimeout(resolve, 0));
+
+      assert.deepEqual(alerts, [], 'the import must succeed');
+      // `projectNameFromFilename` strips only OpenISD's own extensions (.owpr/.json) — a
+      // foreign `.wpr` keeps its extension in the derived name.
+      assert.equal(requireFocusedProject().name.value, 'imported-design.wpr', 'name comes from the FILE NAME');
+      assert.equal(requireFocusedProject().description.value, 'probe-description-123456');
+      assert.equal(requireFocusedProject().creator.value, 'winisd_research overnight harness');
+      assert.equal(requireFocusedProject().created.value, '20260813');
+
+      io.exportWpr();
+      assert.equal(downloadedBodies.length, 1, 'exportWpr must produce exactly one download');
+      const exported = new TextDecoder().decode(downloadedBodies[0] as Uint8Array);
+      assert.match(exported, /^Description=probe-description-123456$/m);
+      assert.match(exported, /^Creator=winisd_research overnight harness$/m);
+      assert.match(exported, /^CreateDate=20260813$/m);
+      // F4 parity: the golden's box values survive the import→export round trip.
+      assert.match(exported, /^BType=0$/m);
+      assert.match(exported, /^Vr=0\.02$/m);
+    } finally {
+      vi.unstubAllGlobals();
+      // beforeAll's own stubs are cleared by unstubAllGlobals too — restore them for any
+      // test vitest orders after this one.
+      vi.stubGlobal('location', { origin: 'https://openisd.test', pathname: '/' });
+      vi.stubGlobal('history', { replaceState: () => {} });
+      vi.stubGlobal('navigator', { clipboard: { writeText: () => Promise.resolve() } });
+    }
+  });
+
+  it('a malformed .owpr logs the FULL parse error list to the console, before the alert (QO152)', async () => {
+    const alerts: string[] = [];
+    const consoleErrors: unknown[][] = [];
+    vi.stubGlobal('alert', (msg: string) => { alerts.push(msg); });
+    vi.spyOn(console, 'error').mockImplementation((...args: unknown[]) => { consoleErrors.push(args); });
+    vi.stubGlobal('FileReader', class {
+      onload: null | (() => void) = null;
+      onerror: null | (() => void) = null;
+      result: ArrayBuffer | null = null;
+      readAsArrayBuffer(file: File): void {
+        void file.arrayBuffer().then(buf => {
+          this.result = buf;
+          queueMicrotask(() => this.onload?.());
+        });
+      }
+    });
+    try {
+      const io = createApplicationIO({ logging: createLogging(), fileStorage: createFileStorage(), projectRepo: createProjectRepo(new Engine(), createFileStorage(), createMemoryStorage()) });
+
+      // A genuinely valid project, corrupted back to the pre-S9a shape (a solver-slot entry
+      // stated as a bare `null`) at TWO distinct fields, so a fix that only logs `errors[0]` is
+      // distinguishable from one that logs all of them.
+      const FIXTURE = SAMPLE_PROJECT_OWPR;
+      const parsed = JSON.parse(readFileSync(FIXTURE, 'utf8'));
+      parsed.saved.box.vented.chamber.tuning_goal_hz = null;
+      parsed.saved.box.vented.vent.length_m = null;
+      const fakeFile = new File([new TextEncoder().encode(JSON.stringify(parsed))], 'broken.owpr');
+      io.importFile(fakeFile);
+      await new Promise(resolve => setTimeout(resolve, 0));
+      await new Promise(resolve => setTimeout(resolve, 0));
+
+      assert.equal(alerts.length, 1, 'the malformed file must still alert the user');
+      assert.equal(consoleErrors.length, 1, 'the malformed file must log to the console exactly once');
+      const [, logged] = consoleErrors[0] as [string, string];
+      assert.match(logged, /tuning_goal_hz/);
+      assert.match(logged, /length_m/, 'the full error list must name BOTH bad fields, not just the first');
+    } finally {
+      vi.unstubAllGlobals();
+      vi.restoreAllMocks();
+      vi.stubGlobal('location', { origin: 'https://openisd.test', pathname: '/' });
+      vi.stubGlobal('history', { replaceState: () => {} });
+      vi.stubGlobal('navigator', { clipboard: { writeText: () => Promise.resolve() } });
+    }
+  });
+
+  it('Save commits the project to browser storage without opening a file picker', async () => {
+    const storage = createMemoryStorage();
+    const fileStorage: FileStorage = {
+      save: async () => { throw new Error('toolbar Save must not open a file picker'); },
+      saveAs: async () => { throw new Error('toolbar Save must not open a file picker'); },
+      openFileName: () => null,
+      forget: () => {},
+    };
+    const repo = createProjectRepo(new Engine(), fileStorage, storage);
+    const io = createApplicationIO({ logging: createLogging(), fileStorage, projectRepo: repo });
+
+    newProject();
+    requireFocusedProject().name.set('Saved from toolbar');
+    const saved = await io.saveProject();
+
+    assert.equal(saved, true);
+    const restored = repo.loadFromStorage();
+    assert.ok(!Array.isArray(restored) && restored);
+    assert.equal(restored.name.value, 'Saved from toolbar');
+  });
+});

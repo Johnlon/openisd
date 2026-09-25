@@ -1,0 +1,262 @@
+import type {DragRange, Geo, PlotData} from '../types.js';
+
+export const fmtF   = (f: number): string => f >= 1000 ? (f/1000).toFixed(f < 10000 ? 2 : 1) + 'k' : f.toFixed(0);
+export const fmtY   = (v: number): string => { const a = Math.abs(v); if (a >= 1000) return (v/1000).toFixed(1)+'k'; if (a >= 10) return v.toFixed(0); if (a >= 1) return v.toFixed(1); return v.toFixed(2); };
+export const fmtVal = (v: number, u: string): string => { if (!isFinite(v)) return '—'; const a = Math.abs(v); return v.toFixed(a >= 100 ? 0 : a >= 10 ? 1 : 2) + ' ' + u; };
+
+// Nearest sample index to frequency f in a log-spaced xs grid.
+function nearestIdx(xs: number[], f: number): number {
+  let bi = 0, bd = Infinity;
+  for (let i = 0; i < xs.length; i++) {
+    const dd = Math.abs(Math.log10(xs[i]) - Math.log10(f));
+    if (dd < bd) { bd = dd; bi = i; }
+  }
+  return bi;
+}
+
+// Nearest sample index to f, or null when f falls outside the series' own plotted range.
+// The chart axis (presentationState.sweepRange) updates on every drag pixel while the throttled
+// sweep it's drawn from lags a step behind, so the cursor can sit left of xs[0] for the
+// ~32ms until the next resweep lands. Snapping to xs[0] there would paint a value at a
+// frequency the curve hasn't reached yet — QO: "Max power chart, missing below 10Hz but
+// cursor still shows a value".
+export function crosshairIndex(xs: number[], f: number): number | null {
+  if (xs.length === 0 || f < xs[0] || f > xs[xs.length - 1]) return null;
+  return nearestIdx(xs, f);
+}
+
+export function niceTicks(min: number, max: number, n = 6): number[] {
+  const span = max - min, step0 = span / n, mag = Math.pow(10, Math.floor(Math.log10(step0)));
+  const norm = step0 / mag, step = norm < 1.5 ? 1 : norm < 3 ? 2 : norm < 7 ? 5 : 10, s = step * mag;
+  const t: number[] = [];
+  for (let v = Math.ceil(min / s) * s; v <= max + 1e-9; v += s) t.push(+v.toFixed(6));
+  return t;
+}
+
+export function logTicks(min: number, max: number): number[] {
+  const t: number[] = [];
+  for (let d = Math.floor(Math.log10(min)); d <= Math.ceil(Math.log10(max)); d++)
+    for (const mul of [1, 2, 5]) { const v = mul * Math.pow(10, d); if (v >= min && v <= max) t.push(v); }
+  return t;
+}
+
+// Returns geo so the caller can map pixel → frequency for crosshair.
+export function drawOne(
+  canvas: HTMLCanvasElement | null,
+  plotData: PlotData | null,
+  cursorF: number | null,
+  readEl: HTMLElement | null,
+  dragRange: DragRange | null,
+): Geo | null {
+  if (!canvas || !plotData) return null;
+  const ctx = canvas.getContext('2d')!;
+  const dpr = window.devicePixelRatio || 1;
+  const W = canvas.clientWidth || 300, H = canvas.clientHeight || 180;
+  canvas.width = W * dpr; canvas.height = H * dpr;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, W, H);
+
+  // Chart colours are read from CSS custom properties on the canvas (inherited from the
+  // app root), so the chart follows the palette with no fork.
+  const cs = getComputedStyle(canvas);
+  const cvar = (name: string, fallback: string) => (cs.getPropertyValue(name).trim() || fallback);
+  const COL = {
+    grid:     cvar('--chart-grid', '#243040'),
+    text:     cvar('--chart-text', '#7c8a9c'),
+    cross:    cvar('--chart-cross', '#ffffff55'),
+    band:     cvar('--chart-band', 'rgba(255,255,255,0.07)'),
+    bandLine: cvar('--chart-band-line', 'rgba(255,255,255,0.35)'),
+    // A DIFFERENT custom property from the app's own `--chart-bg` (used elsewhere for the
+    // .gpanel div's background, and inherited by every canvas — reading THAT one here would
+    // make every render see a non-empty value and always fillRect, even with no user override).
+    // `--chart-bg-override` is only ever set inline on the canvas by GraphPanel.vue when the
+    // user has actually picked one in Options → Plot Window → Colors, so it stays empty (no
+    // fillRect, transparent canvas as today) until then.
+    bg:       cvar('--chart-bg-override', ''),
+    // The amber trace used for the Pe(power)-limited segment of an Xmax/Pe-split curve — the
+    // one hardcoded chart-line color left in this file, and the closest OpenISD equivalent to
+    // WinISD's "Xmax limit" Options swatch (see OptionsModal.vue header comment: WinISD's own
+    // Xmax-limited segment reuses the trace's own per-project color, not a single constant, so
+    // this override customizes the Pe-limited tint, not literally an "Xmax-limited" tint).
+    peLimit:  cvar('--chart-pelimit', '#ffb454'),
+  };
+  if (COL.bg) { ctx.fillStyle = COL.bg; ctx.fillRect(0, 0, W, H); }
+
+  const m = { l:44, r:10, t:18, b:20 };
+  const pw = W - m.l - m.r, ph = H - m.t - m.b;
+  const f0 = plotData.fmin || 10, f1 = plotData.fmax || 1000;
+  const lx0 = Math.log10(f0), lx1 = Math.log10(f1);
+  const { ymin, ymax, logy } = plotData;
+  const ly0 = logy ? Math.log10(ymin) : ymin, ly1 = logy ? Math.log10(ymax) : ymax;
+  const X = (f: number) => m.l + (Math.log10(f) - lx0) / (lx1 - lx0) * pw;
+  const Y = (v: number) => { const vv = logy ? Math.log10(v) : v; return m.t + (1 - (vv - ly0) / (ly1 - ly0)) * ph; };
+
+  // frequency grid
+  ctx.strokeStyle = COL.grid; ctx.fillStyle = COL.text; ctx.font = '9px Inter'; ctx.lineWidth = 1;
+  for (let dec = Math.floor(lx0); dec <= Math.ceil(lx1); dec++)
+    for (const mul of [1,2,3,4,5,6,7,8,9]) {
+      const f = mul * Math.pow(10, dec); if (f < f0 || f > f1) continue;
+      const x = X(f); ctx.globalAlpha = mul === 1 ? 0.85 : 0.28;
+      ctx.beginPath(); ctx.moveTo(x, m.t); ctx.lineTo(x, m.t + ph); ctx.stroke();
+      if (mul === 1 || mul === 2 || mul === 5) { ctx.globalAlpha = 1; ctx.textAlign = 'center'; ctx.fillText(fmtF(f), x, m.t + ph + 11); }
+    }
+  ctx.globalAlpha = 1;
+
+  // y grid
+  let yt_all: number[] = [];
+  let s_minor = 1;
+  let mag = 1;
+
+  if (logy) {
+    yt_all = logTicks(ymin, ymax);
+  } else {
+    const targetSpacing = 40;
+    const n_target = Math.max(4, Math.round(ph / targetSpacing));
+    const span = ymax - ymin;
+    const step0 = span / n_target;
+    mag = Math.pow(10, Math.floor(Math.log10(step0)));
+    const norm = step0 / mag;
+    const step = norm < 1.5 ? 1 : norm < 3 ? 2 : norm < 7 ? 5 : 10;
+    s_minor = step * mag;
+
+    for (let v = Math.ceil(ymin / s_minor) * s_minor; v <= ymax + 1e-9; v += s_minor) {
+      yt_all.push(+v.toFixed(9));
+    }
+  }
+
+  ctx.textAlign = 'right';
+  for (const v of yt_all) {
+    const y = Y(v); if (y < m.t - 1 || y > m.t + ph + 1) continue;
+
+    const isMajor = logy
+      ? (Math.log10(v) % 1 === 0 || Math.abs(Math.log10(v) - Math.round(Math.log10(v))) < 1e-9)
+      : (s_minor >= 10 * mag ? true : Math.abs(v / (10 * mag) - Math.round(v / (10 * mag))) < 1e-9);
+
+    if (isMajor) {
+      ctx.globalAlpha = 0.55;
+      ctx.lineWidth = 1.1;
+    } else {
+      ctx.globalAlpha = 0.18;
+      ctx.lineWidth = 0.8;
+    }
+
+    ctx.beginPath(); ctx.moveTo(m.l, y); ctx.lineTo(m.l + pw, y); ctx.stroke();
+
+    if (isMajor || !logy) {
+      ctx.globalAlpha = isMajor ? 1.0 : 0.45;
+      ctx.fillText(fmtY(v), m.l - 5, y + 3);
+    }
+  }
+  ctx.globalAlpha = 1;
+  ctx.lineWidth = 1;
+
+  // series
+  for (const s of plotData.series) {
+    if (s.phantom) continue;
+    // The focused project's own trace, drawn heavier so it reads apart from compare overlays.
+    ctx.lineWidth = s.dash ? 1.1 : (s.current ? 2.6 : 1.7);
+    if (s.dash) ctx.setLineDash([5, 4]); else ctx.setLineDash([]);
+    if (s.xlim) {
+      // Two-pass: Xmax-limited (design color) then Pe-limited (amber)
+      for (const [isXlim, passColor] of [[true, s.color], [false, COL.peLimit]] as const) {
+        ctx.strokeStyle = passColor;
+        ctx.beginPath(); let started = false;
+        for (let i = 0; i < s.xs.length; i++) {
+          if (s.xlim[i] !== isXlim) { started = false; continue; }
+          const y = Y(s.ys[i]); if (!isFinite(y)) { started = false; continue; }
+          if (!started) { ctx.moveTo(X(s.xs[i]), y); started = true; } else ctx.lineTo(X(s.xs[i]), y);
+        }
+        ctx.stroke();
+      }
+    } else {
+      ctx.strokeStyle = s.color;
+      ctx.beginPath(); let started = false;
+      for (let i = 0; i < s.xs.length; i++) {
+        const y = Y(s.ys[i]); if (!isFinite(y)) { started = false; continue; }
+        if (!started) { ctx.moveTo(X(s.xs[i]), y); started = true; } else ctx.lineTo(X(s.xs[i]), y);
+      }
+      ctx.stroke();
+    }
+  }
+  ctx.setLineDash([]);
+
+  // legend — only when there are multiple named series
+  const namedSeries = plotData.series.filter(s => s.name);
+  if (namedSeries.length > 1) {
+    ctx.font = '9px Inter'; ctx.textAlign = 'left';
+    const lh = 13, lx = m.l + 6;
+    let ly = m.t + 6;
+    for (const s of namedSeries) {
+      ctx.strokeStyle = s.color; ctx.lineWidth = s.dash ? 1.1 : (s.current ? 2.6 : 1.7);
+      if (s.dash) ctx.setLineDash([4, 3]); else ctx.setLineDash([]);
+      ctx.beginPath(); ctx.moveTo(lx, ly + 3); ctx.lineTo(lx + 14, ly + 3); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.font = s.current ? 'bold 9px Inter' : '9px Inter';
+      ctx.fillStyle = s.color; ctx.fillText(s.name, lx + 17, ly + 6);
+      ly += lh;
+    }
+  }
+
+  const geo: Geo = { m, pw, ph, X, Y, f0, f1 };
+
+  // drag range — shaded band between two frequencies with measurement readout
+  if (dragRange) {
+    const x1 = X(Math.max(dragRange.fLo, f0)), x2 = X(Math.min(dragRange.fHi, f1));
+    ctx.fillStyle = COL.band;
+    ctx.fillRect(x1, m.t, x2 - x1, ph);
+    ctx.strokeStyle = COL.bandLine; ctx.lineWidth = 1; ctx.setLineDash([3, 3]);
+    ctx.beginPath(); ctx.moveTo(x1, m.t); ctx.lineTo(x1, m.t + ph); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x2, m.t); ctx.lineTo(x2, m.t + ph); ctx.stroke();
+    // level lines — where the current design's curve crosses EACH selection cursor
+    const prim = plotData.series.find(s => s.current) ?? plotData.series.find(s => !s.dash && !s.phantom);
+    if (prim && prim.xs.length) {
+      for (const f of [dragRange.fLo, dragRange.fHi]) {
+        const y = Y(prim.ys[nearestIdx(prim.xs, f)]);
+        if (!isFinite(y) || y < m.t || y > m.t + ph) continue;
+        ctx.beginPath(); ctx.moveTo(m.l, y); ctx.lineTo(m.l + pw, y); ctx.stroke();
+      }
+    }
+    ctx.setLineDash([]);
+    if (readEl) {
+      const ff = (f: number) => f >= 100 ? f.toFixed(0) : f.toFixed(1);
+      const u = plotData.unit;
+      const st = dragRange.stats;
+      let html = `<b>${ff(dragRange.fLo)} Hz</b> – <b>${ff(dragRange.fHi)} Hz</b>`;
+      if (st) {
+        html += `  Δ <b>${st.ripple.toFixed(1)} ${u}</b>`;
+        html += `<br>peak <b>${st.peak.toFixed(1)} ${u}</b>  trough <b>${st.trough.toFixed(1)} ${u}</b>`;
+      }
+      readEl.innerHTML = html; readEl.style.display = 'block';
+    }
+  }
+
+  // crosshair
+  const s0 = plotData.series.find(s => s.current) ?? plotData.series[0];
+  const bi = cursorF && s0 ? crosshairIndex(s0.xs, cursorF) : null;
+  if (bi !== null && s0) {
+    const fx = s0.xs[bi];
+    ctx.strokeStyle = COL.cross; ctx.setLineDash([3, 3]);
+    ctx.beginPath(); ctx.moveTo(X(fx), m.t); ctx.lineTo(X(fx), m.t + ph); ctx.stroke();
+    // level line — where the current design's curve crosses the cursor frequency
+    const prim = plotData.series.find(s => s.current) ?? plotData.series.find(s => !s.dash && !s.phantom);
+    if (prim) {
+      const py = Y(prim.ys[bi]);
+      if (isFinite(py) && py >= m.t && py <= m.t + ph) {
+        ctx.beginPath(); ctx.moveTo(m.l, py); ctx.lineTo(m.l + pw, py); ctx.stroke();
+      }
+    }
+    ctx.setLineDash([]);
+    let html = `<b>${fx.toFixed(fx < 100 ? 1 : 0)}Hz</b>`;
+    for (const s of plotData.series) {
+      if (s.dash || s.phantom) continue;
+      const y = s.ys[bi];
+      ctx.fillStyle = s.color; ctx.beginPath(); ctx.arc(X(fx), Y(y), 2.6, 0, 7); ctx.fill();
+      html += ` <span style="color:${s.color}">${fmtVal(y, plotData.unit)}</span>`;
+    }
+    if (readEl) { readEl.innerHTML = html; readEl.style.display = 'block'; }
+  } else if (readEl && !dragRange) {
+    readEl.style.display = 'none';
+  }
+
+  return geo;
+}

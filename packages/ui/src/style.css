@@ -1,10 +1,12 @@
 :root {
-  --bg:#11151c; --panel:#1a2029; --panel2:#222a35; --line:#2e3a48;
-  --fg:#dfe6ee; --mut:#8a99ab; --acc:#4fb0ff; --acc2:#ffb454; --good:#5ad17a; --bad:#ff6b6b;
-  /* Chart theming — read by utils/canvas.ts and .gpanel. Defaults = the dark modern look;
-     a skin (e.g. classic) overrides these on its root for a light chart. */
-  --chart-bg:#0e1218; --chart-grid:#243040; --chart-text:#7c8a9c;
-  --chart-cross:#ffffff55; --chart-band:rgba(255,255,255,0.07); --chart-band-line:rgba(255,255,255,0.35);
+  /* WinISD-light palette. Applies to the global overlays App.vue mounts outside the shell
+     (driver library, driver editor, flash); the shell re-declares the same tokens on
+     `.original-root` for everything it draws itself. */
+  --bg: #f2f2f2; --panel: #f7f7f7; --panel2: #ececec; --line: #bbb;
+  --fg: #1a1a1a; --mut: #555; --acc: #1868d1; --acc2: #b8790f; --good: #1b7d1b; --bad: #b02a2a;
+  /* Chart theming — read by ui/canvas.ts and .gpanel. */
+  --chart-bg: #ffffff; --chart-grid: #e0e0e0; --chart-text: #555;
+  --chart-cross: #00000033; --chart-band: rgba(0,0,0,0.03); --chart-band-line: rgba(0,0,0,0.15);
 }
 * { box-sizing: border-box }
 body { margin:0; font:13px/1.45 "Inter",system-ui,sans-serif; background:var(--bg); color:var(--fg) }
@@ -42,7 +44,6 @@ canvas { display:block; width:100%; height:100% }
 .ds { white-space:nowrap; }
 .drvspecs b { color:var(--acc2) }
 .drvsource { font-size:10px; color:var(--mut); padding:2px 8px 4px; opacity:0.7; word-break:break-all }
-.whatif-hint { font-size:10.5px; color:var(--acc2); background:rgba(255,180,84,.08); border:1px solid rgba(255,180,84,.3); border-radius:4px; padding:5px 8px; margin-bottom:6px; line-height:1.4 }
 .drv-issues { background:rgba(255,180,84,.12); border:1px solid var(--acc2); border-radius:5px; padding:5px 8px; margin-bottom:6px; font-size:10.5px; line-height:1.4 }
 .drv-issues.is-error { background:rgba(255,107,107,.12); border-color:var(--bad) }
 .drv-issues-head { display:flex; align-items:flex-start; gap:6px; color:var(--acc2); font-weight:600 }
@@ -56,7 +57,7 @@ canvas { display:block; width:100%; height:100% }
 .drv-issues.is-error .drv-warn-x { border-color:var(--bad); color:var(--bad) }
 .drv-warn-x:hover { background:var(--acc2); color:var(--bg) }
 .drv-issues.is-error .drv-warn-x:hover { background:var(--bad); color:var(--bg) }
-.flash { position:fixed; bottom:16px; left:50%; transform:translateX(-50%); background:var(--acc); color:#06223a; font-weight:600; padding:8px 16px; border-radius:6px; font-size:12px; z-index:80; transition:opacity .4s; pointer-events:none }
+.flash { position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:#fff; color:var(--fg); border:2px solid var(--acc); font-weight:600; padding:14px 28px; border-radius:8px; font-size:15px; box-shadow:0 4px 20px rgba(0,0,0,.25); z-index:80; transition:opacity .4s; pointer-events:none }
 fieldset { border:1px solid var(--line); border-radius:6px; margin:0 0 10px; padding:8px 10px }
 legend { color:var(--acc); font-weight:600; font-size:11px; text-transform:uppercase; letter-spacing:.5px; padding:0 4px }
 .row { display:flex; align-items:center; gap:6px; margin:3px 0 }
@@ -65,6 +66,26 @@ legend { color:var(--acc); font-weight:600; font-size:11px; text-transform:upper
 .row input.inp-bad { border-color:var(--bad); background:rgba(255,107,107,.1); color:var(--bad) }
 .row select { text-align:left; width:auto; flex:1 }
 .row .u { width:34px; color:var(--mut); font-size:11px; text-align:left }
+/* Driver provenance marks — the CellClass values from composables/useDriverCells.ts, styled
+   ONCE so the driver editor and Tune can never disagree about what
+   Entered / Calculated / Not-entered looks like. Two selector shapes: the class lands on the
+   <input> itself (NumInput fallthrough) or on a wrapper around it. */
+input.value-e, .value-e input { color:var(--good) }
+input.value-c, .value-c input { color:var(--acc) }
+input.value-n, .value-n input { color:var(--mut) }
+/* Required-but-missing. Red is reserved for genuine alerts, and a field the simulation cannot
+   run without is one. Bold border = this field is required; red = and it is empty.
+   !important because an alert must outrank a container's own border styling: a panel that
+   sets `border: 1px solid #999` on its inputs does so from a scoped rule, which otherwise
+   wins on specificity and silently swallows the warning. */
+input.de-input-mandatory { border-width:2px !important }
+input.de-input-empty { border-color:var(--bad) !important; box-shadow:0 0 0 1px color-mix(in srgb, var(--bad) 25%, transparent) !important }
+/* Field-level DQ mark — a value that is recorded and wrong (not physical, or contradicting the
+   other members of its consistency group). Styled ONCE, like the provenance marks above, so the
+   driver editor and Tune show one driver's data quality the same way. Amber: a
+   warning about data, not an alert that stops anything. The title attribute carries the reason,
+   hence the help cursor. */
+.de-dq { font-size:11px; color:var(--acc2); flex-shrink:0; cursor:help }
 button { background:var(--panel2); border:1px solid var(--line); color:var(--fg); border-radius:5px; padding:5px 10px; cursor:pointer; font:inherit }
 button:hover { border-color:var(--acc) }
 button.pri { background:var(--acc); color:#06223a; border-color:var(--acc); font-weight:600 }
@@ -79,6 +100,9 @@ button.pri { background:var(--acc); color:#06223a; border-color:var(--acc); font
 .pmbadge-dv  { color:var(--mut);  border-color:var(--line) }
 .pr-derived { opacity:0.65 }
 .pr-roval { font-size:11px; color:var(--acc2); text-align:right; flex:0 0 96px; font-style:italic }
+/* A genuine unreachable-target warning, so --acc2 (the reserved attention colour) is correct
+   here — this is not helper text. See .claude/rules/openisd-ui-design.md, alert-colour reserve. */
+.pr-warn { color:var(--acc2); font-size:10.5px; line-height:1.45; margin:2px 0 6px }
 .btns { display:flex; gap:6px; flex-wrap:wrap; margin-top:4px }
 .btns button:disabled { opacity:.4; cursor:not-allowed }
 .save-dlg { margin-top:6px; display:flex; flex-direction:column; gap:5px; padding:8px; background:var(--panel2); border:1px solid var(--line); border-radius:5px }
@@ -182,4 +206,27 @@ a { color:var(--acc) }
 
   /* Touch-friendly tap targets */
   button { min-height: 30px }
+}
+/* Win32 modal/options chrome — the global overlays App.vue mounts outside the shell. */
+.modal,
+.opt-modal {
+  border-radius: 0 !important;
+  border: 1px solid #888 !important;
+  background: #f7f7f7 !important;
+  box-shadow: 3px 6px 18px rgba(0,0,0,.35) !important;
+}
+.modal h2,
+.opt-h2 {
+  background: #e9e9e9 !important;
+  border-bottom: 1px solid #bbb !important;
+  padding: 8px 12px !important;
+  font-size: 14px !important;
+  margin: 0 !important;
+  font-weight: bold !important;
+  font-family: inherit !important;
+  color: #1b1b1b !important;
+}
+.de-tabs,
+.opt-tabs {
+  border-bottom: none !important;
 }

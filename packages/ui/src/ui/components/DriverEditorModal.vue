@@ -1,0 +1,1462 @@
+<script setup lang="ts">
+import DriverDimensionsDiagram from './DriverDimensionsDiagram.vue'
+import {computed, nextTick, onBeforeUnmount, ref, watch} from 'vue';
+import type {SpecField} from '../../logic/appState.js';
+import {formatInUnit} from '../../logic/appState.js';
+import {useFocusedProject} from '../../logic/focusedProjectContext.js';
+import {presentationState} from '../../logic/presentationState.js';
+import {useApp} from '../../logic/app.js';
+import {openDriverDraft, wiringOptions} from '../../logic/driverDraft.js';
+import {specFieldHandle} from '../../logic/driverSpecFields.js';
+import {readDriverFileText} from '../../logic/driverFileText.js';
+import {driverToOwdrBytes, driverToWdrBytes, owdrTextToDriver, wdrTextToDriver} from '../../logic/fileImportExport.js';
+import {cellClassFor, cellClassOf, fieldIsMandatoryAndUnsatisfied, notAvailableCell} from '../../logic/useDriverCells.js';
+import {
+  chartBlockingReasonsFor,
+  dqNoteFor,
+  driverIssues,
+  ebpVal as ebpValFor,
+  inconsistentInputReasonsFor,
+  type DqReason,
+} from '../../hooks/DriverEditorModal-hooks.js';
+import type {Calculated, Clearable, Entered, Readable, Writable} from '@openisd/design';
+import NumInput from './NumInput.vue';
+import UnitToggle from './UnitToggle.vue';
+import {fieldById, fieldHelp, precision} from '../../logic/fields/uiFields.js';
+import {useEscToClose} from '../../logic/useEscToClose.js';
+import {DriverFileFormat} from '../../fileFormat.js';
+import EquationInspectorModal from './EquationInspectorModal.vue';
+import {getProvenanceInfo} from '../../logic/provenance.js';
+import {editableFrom, elementFrom, inputFrom, selectedOption} from '../../logic/domEvents.js';
+
+function cellOf(field: SpecField): Readable<number | null> & Entered & Calculated {
+  return fieldOf(field) ?? notAvailableCell;
+}
+
+const { engine, selection, myDrivers, logging, driverFileStorage } = useApp();
+
+// Driver editor — a modal. Recreates WinISD's "Driver editor" dialog (docs/winisd_screenshots/edit_driver_pg*.png):
+// 4 tabs — General / Parameters / Advanced parameters / Dimension
+//
+// Layered Memory architecture:
+// - Layer 1: Disk/File/Library (WDR, OWDR)
+// - Layer 2: App Active State / Simulation State (committed design driver in store)
+// - Layer 3: Dialog/Draft Session Layer (local draftDriver instance, isolated until OK)
+//
+// THE EDITOR OWNS ITS OWN DRAFT (D22): `selection.editSubject()` says WHICH driver is being
+// edited and hands over a SEED to build a DETACHED draft from — `selection` holds no draft of
+// its own and never receives the edited driver back. This dialog is one of the files the
+// containment gate licenses to construct `OpenISDDriver` directly (the others: managedProject.ts,
+// driverSelection.ts) — see architecture.test.ts "ManagedProject is the only holder of
+// OpenISDDriver".
+
+const emit = defineEmits<{ close: [] }>();
+
+type Tab = 'General' | 'Parameters' | 'Advanced parameters' | 'Dimensions';
+const TABS: Tab[] = ['General', 'Parameters', 'Advanced parameters', 'Dimensions'];
+
+// What subject is open, fixed for the dialog's whole lifetime (selection is not consulted
+// again until this dialog closes).
+const subject = selection.editSubject();
+const tab = ref<Tab>('Parameters');
+const project = useFocusedProject();
+
+// The title names WHICH driver is on screen, because this one dialog edits two subjects with
+// different consequences: OK on the project's driver changes the design, OK on a saved driver
+// changes that My Drivers entry and leaves the design alone.
+const editorTitle = subject.kind === 'myDriver' ? 'Edit My Driver' : "Edit Project's Driver";
+
+// The editing session lives in logic/: it constructs and detaches the driver, and this dialog
+// only reads and writes fields through the handle. `draftDriver` is the handle's current
+// driver, re-read on every redraw so a reset() or a file load is picked up.
+const draft = openDriverDraft(subject, () => project.value.driver);
+const trigger = ref(0);
+function forceUpdate() { trigger.value++; }
+const draftDriver = computed(() => { void trigger.value; return draft.driver; });
+
+/** OK on a myDriver subject: save the draft under its uuid — in place, same identity. A save
+ *  that would CHANGE the driver's brand/model first asks the ONE ruled question (rename in
+ *  place vs save as copy) via `renameQuestionOpen`; by the time this runs, that is decided. */
+function commitToMyDrivers(driver: typeof draft.driver): void {
+  if (subject.kind !== 'myDriver') throw new Error('commitToMyDrivers called on a project subject');
+  if (myDrivers.upsert(driver) == null) {
+    alert('Saved drivers are read-only until the storage problem is resolved');
+  }
+}
+
+/** The saved entry this editor session opened, as it stands in storage — the comparison base
+ *  for the rename question. Null when the subject is new or storage is not readable. */
+function savedEntryForSubject(): typeof draft.driver | null {
+  if (subject.kind !== 'myDriver' || !subject.openedAs) return null;
+  // The uuid is the REPOSITORY's key, held beside the driver rather than on it — a driver
+  // carries no identity of its own (John: "the id is not on the driver, it is the key into the
+  // open driver map").
+  return myDrivers.list().find(e => e.uuid === subject.openedAs)?.driver ?? null;
+}
+
+/** A save is a RENAME when the draft's brand/model differ from the SAVED entry's. */
+function saveWouldRename(): boolean {
+  const saved = savedEntryForSubject();
+  if (!saved) return false;
+  return saved.brand.value !== draftDriver.value.brand.value
+    || saved.model.value !== draftDriver.value.model.value;
+}
+
+// The ONE question (QO81 rename ruling, "option 3"): rename this driver in place (same uuid),
+// or save as a copy (new uuid, the original untouched). Two real actions; Clone stays the
+// explicit fork elsewhere.
+const renameQuestionOpen = ref(false);
+
+function saveRenameInPlace(): void {
+  renameQuestionOpen.value = false;
+  commitToMyDrivers(draftDriver.value);
+  logging.flash('Saved to My Drivers');
+  selection.closeEditor();
+  emit('close');
+}
+
+function saveAsCopy(): void {
+  renameQuestionOpen.value = false;
+  // A copy is a DIFFERENT driver (QO81): its own record identity, never the source's — sharing
+  // the source's uuid would make the two rows answer to one favourites entry.
+  commitToMyDrivers(draftDriver.value.copyAsNew());
+  logging.flash('Saved as a copy to My Drivers');
+  selection.closeEditor();
+  emit('close');
+}
+
+// A DISPLAY VIEW of the draft, not a second model: every value is read back out of the draft
+// through its own accessors, so the template binds to one shape while the draft stays the only
+// place a value lives.
+const driverRaw = computed(() => {
+  void trigger.value;
+  const d = draftDriver.value;
+  return {
+    brand: d.brand.value,
+    model: d.model.value,
+    manufacturer: d.manufacturer.value,
+    providedBy: d.providedBy.value,
+    comment: d.comment.value,
+    added: d.added.value,
+    sku: d.sku.value,
+    VCCon: d.specs.VCCon.value,
+  };
+});
+
+function setText(field: 'brand' | 'model' | 'providedBy' | 'comment' | 'manufacturer' | 'added' | 'sku', e: Event) {
+  // Metadata is a ScrapedField, a different envelope from a SpecEntry, so it has its own
+  // entry point. Routing a string through enter() would put it in the wrong envelope.
+  const edited = editableFrom(e);
+  if (edited === null) return;
+  const value = edited.value;
+  const d = draftDriver.value;
+  switch (field) {
+    case 'brand': d.brand.set(value); break;
+    case 'model': d.model.set(value); break;
+    case 'manufacturer': d.manufacturer.set(value); break;
+    case 'providedBy': d.providedBy.set(value); break;
+    case 'comment': d.comment.set(value); break;
+    case 'added': d.added.set(value); break;
+    case 'sku': d.sku.set(value); break;
+  }
+  forceUpdate();
+}
+
+/** Dispatch a runtime `SpecField` name to the draft's flat accessor — `SpecField` never
+ *  appears as a public parameter on `OpenISDDriver` itself (human ruling 2026-08-24,
+ *  ENCAPSULATION_AND_LAYERING.md); this is the one UI-layer dispatch point for the editor's
+ *  data-driven field table. */
+function setNum(field: SpecField, v: number | null) {
+  const handle = fieldOf(field);
+  if (!handle) return;
+  if (v == null) handle.clear(); else handle.set(v);
+  forceUpdate();
+}
+
+/** The voice-coil wiring, which is a NAME rather than a number and so has its own entry point —
+ *  `setNum`'s table is numeric, and routing a wiring through it would put a 1 or a 2 where the
+ *  domain expects 'parallel'/'series'. */
+const WIRING_OPTIONS = wiringOptions();
+/** The Connection control's provenance mark. Read off the same cell every numeric field beside
+ *  it is read off, so an unstated wiring shows calculated (the record's own 'C' parallel) and a
+ *  chosen one shows entered — it was the one control in the dialog with no mark
+ *  (BUG_20260924_defaulted-fields-are-neither-marked-nor-recorded). */
+const wiringClass = computed(() => {
+  void trigger.value;
+  const d = draftDriver.value;
+  return cellClassOf(d.specs.VCCon);
+});
+function setWiring(e: Event) {
+  const wiring = selectedOption(e, WIRING_OPTIONS);
+  if (wiring === null) return;
+  draft.setWiring(wiring);
+  forceUpdate();
+}
+
+// One reach into the DRAFT model (layer 3) — Tune passes the store's effective
+// model to the same helpers instead, so the provenance marks and the Q-group rule cannot
+// disagree between this dialog and Tune showing the same driver.
+
+
+/** The draft's HANDLE for one field, or null for a name this editor's numeric table does not
+ *  own. `VCCon` is deliberately absent: it is the one spec field holding a wiring NAME rather
+ *  than a number, so it cannot be read as a numeric cell and the template binds it through
+ *  `driverRaw.VCCon` instead. Returning null rather than asserting a type keeps the compiler
+ *  proving the numeric reads, which is what a cast here would have switched off. */
+/** The registry's decided display label for a rendered field, or the key itself when
+ *  the registry has no entry for it. The editor renders labels from here, never hardcoded. */
+function fieldLabel(key: string): string {
+  return fieldById(key)?.label ?? key;
+}
+
+function fieldOf(field: SpecField): (Readable<number | null> & Entered & Calculated & Writable<number> & Clearable) | null {
+  void trigger.value;
+  return specFieldHandle(draftDriver.value, field);
+}
+
+function cellClass(field: SpecField): string {
+  return cellClassFor(cellOf, field);
+}
+
+function cellVal(field: SpecField): number | null {
+  const v = cellOf(field).value;
+  return typeof v === 'number' ? v : null;
+}
+
+// ── Auto-calculate & Provenance Inspector ──────────────────────────────────────
+const autoCalculate = computed({
+  get: () => { void trigger.value; return draft.autoCalculate; },
+  set: (v: boolean) => { draft.setAutoCalculate(v); forceUpdate(); },
+});
+
+const inspectProvenance = ref(false);
+const inspectedField = ref<string | null>(null);
+
+// Guards the popup sitting at a fixed viewport corner (right: 20px, bottom: 20px) regardless of
+// where the editor renders — on a narrower or off-centre viewport it would land on top of the
+// very modal it explains. Anchored here to the editor's OWN measured bounding box instead:
+// beside its right edge when there is room, its left edge otherwise — so it can never cover the
+// dialog it is inspecting, at any viewport size.
+const modalRootEl = ref<HTMLElement | null>(null);
+const popupStyle = ref<Record<string, string>>({});
+function updatePopupPosition() {
+  const el = modalRootEl.value;
+  if (!el) return;
+  const r = el.getBoundingClientRect();
+  const gap = 12;
+  const popupWidth = 380;
+  // ~380px measured height of the rendered card (header + `.eq-body`'s own 320px max-height +
+  // padding). Always beside the modal's right edge — never below/above it, which on a modest
+  // window height positioned the card past the bottom of the viewport with nothing to signal
+  // it was there. Both axes are clamped into the viewport as a hard floor: on a window too
+  // narrow to clear the modal's right edge this can mean the popup brushes the modal, but a
+  // popup rendered off-screen helps nobody, and that is strictly worse than a rare overlap.
+  const popupHeight = 380;
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+
+  const width = Math.min(popupWidth, Math.max(200, vw - r.right - 2 * gap));
+  const left = Math.min(Math.max(gap, r.right + gap), vw - gap - width);
+  const top = Math.min(Math.max(gap, r.top), vh - gap - popupHeight);
+
+  popupStyle.value = { position: 'fixed', left: `${Math.round(left)}px`, top: `${Math.round(top)}px`, right: 'auto', bottom: 'auto', width: `${Math.round(width)}px` };
+}
+watch(inspectedField, (v) => { if (v) nextTick(updatePopupPosition); });
+window.addEventListener('resize', updatePopupPosition);
+onBeforeUnmount(() => window.removeEventListener('resize', updatePopupPosition));
+
+const provenanceInfo = computed(() => {
+  if (!inspectProvenance.value || !inspectedField.value) return null;
+  // `driverRaw` is metadata only (brand/model/…) — it never carried a T/S value, so every
+  // "Live:" substitution read `undefined` and printed `?` for every input, always.
+  // bugs/BUG_20260817_provenance_live_substitution_always_shows_question_marks.md
+  // The driver's own spec section, keyed by schema name — every value a formula input can name,
+  // no hand-listed inputs and no field-name casting. `cellVal` is the same accessor every
+  // NumInput on this modal reads through, and it is reactive to `trigger`.
+  const currentValues: Record<string, number | null> = {};
+  for (const [field, handle] of Object.entries(draftDriver.value.specs)) {
+    const v = handle.value;
+    if (typeof v === 'number') currentValues[field] = v;
+  }
+  return getProvenanceInfo(inspectedField.value, currentValues);
+});
+
+function getFieldStyle(fieldKey: string) {
+  if (!inspectProvenance.value || !inspectedField.value || !provenanceInfo.value) return {};
+
+  if (fieldKey === inspectedField.value) {
+    return {
+      outline: '2px solid #38bdf8',
+      outlineOffset: '1px',
+      boxShadow: '0 0 8px rgba(56, 189, 248, 0.5)',
+      backgroundColor: 'rgba(56, 189, 248, 0.15)',
+      borderRadius: '4px'
+    };
+  }
+
+  for (const path of provenanceInfo.value.paths) {
+    if (path.inputs.includes(fieldKey)) {
+      return {
+        borderColor: path.color,
+        borderWidth: '2px',
+        borderStyle: 'solid',
+        backgroundColor: `${path.color}25`,
+        boxShadow: `0 0 6px ${path.color}66`,
+        borderRadius: '4px'
+      };
+    }
+  }
+
+  return {};
+}
+
+function handleBodyClickOrFocus(e: Event) {
+  if (!inspectProvenance.value) return;
+  const target = elementFrom(e);
+  if (target === null) return;
+  const fld = target?.closest('.de-fld');
+  if (!fld) return;
+  // The field's own key, read straight off the element — no label→key lookup.
+  const key = (fld as HTMLElement).dataset.fieldKey;
+  if (key) inspectedField.value = key;
+}
+
+// ── Data quality ──────────────────────────────────────────────────────────────
+// Incompleteness NEVER blocks this dialog (human ruling 2026-08-05: "I need the save button
+// to work even when the driver is incomplete"). A half-known driver is real data — it is
+// recorded, flagged, and saved exactly as entered. The ENGINE is what declines to simulate
+// an incomplete driver, and the charts carry that message; a disabled OK button just strands
+// the human with typing they cannot keep.
+//
+// Two states that must not be merged, because the fix differs:
+//   NOT ENTERED — no value at all. Renders blank.
+//   BAD VALUE   — a number that cannot be physical (≤ 0). Renders as typed, marked .de-dq.
+// Zero is a VALUE, not an absence: someone recorded it, and a scraper mis-read or a typo is
+// worth showing rather than silently treating as "nothing here".
+//
+// The actual logic is in DriverEditorModal-hooks.ts, as plain functions parameterised on
+// `cellOf`/the draft driver — these are thin wrappers closing over this component's own
+// reactive `cellOf`/`draftDriver`/`trigger` so the template's call sites need no change.
+
+// INCONSISTENT — the field belongs to a consistency group (WINISD_SCHEMA §4) whose members
+// contradict each other beyond their own precision. The ADT decides; every member of the
+// group is marked, because none of them is more wrong than the others. Like every other DQ
+// state here it blocks nothing: the driver still simulates, saves and exports.
+const issues = computed(() => { void trigger.value; return driverIssues(draftDriver.value); });
+
+/** The one DQ mark per field: its reason, or '' when there is nothing to say. Reads the CELL's
+ *  own DQ (S2-12) — `dqNoteFor` renders it via `dqIssueText`, so this is a thin read, not a
+ *  second derivation of which issue names this field. */
+function dqNote(field: SpecField): string {
+  return dqNoteFor(engine, cellOf, field);
+}
+
+// Three lists, never merged: a missing Brand does not blank a chart, a missing Fs does not stop
+// the driver being filed, and values that disagree with each other do neither — every one of
+// them is present and every chart plots from them as stated. One strip claiming one consequence
+// for all three is a statement the human has to go and disprove.
+
+// The editor's own filing key. The engine has never heard of Brand or Model — a driver
+// without them plots perfectly and simply cannot be FILED, because `<brand>/<model>` is what
+// My Drivers, the project and the export filename all look it up by.
+const identityReasons = computed<DqReason[]>(() => {
+  void trigger.value;
+  const r = driverRaw.value;
+  const out: DqReason[] = [];
+  if (!r.brand?.trim()) out.push({subject: 'Brand', text: 'is not set'});
+  if (!r.model?.trim()) out.push({subject: 'Model', text: 'is not set'});
+  return out;
+});
+
+// Mandatory for the SIMULATION, not for saving. The rules are not restated here: the design
+// package's driver ADT owns them and exposes its verdict, so this reads that rather than
+// keeping a second copy to drift. It is also how the GROUP rules arrive
+// ("any two of Qts/Qes/Qms", "Qms must exceed Qts"), which no per-field check can express.
+//
+// Only a quantity the solver cannot derive, or a mandatory field with no value, reaches this
+// list. An `inconsistent-inputs` issue never does: its values are all present
+// (BUG_20260924_inconsistent-inputs-claims-charts-blank).
+const chartBlockingReasons = computed<DqReason[]>(() => {
+  void trigger.value;
+  return chartBlockingReasonsFor(issues.value, cellOf);
+});
+
+// The stated values contradict each other. The charts plot from the stated values regardless,
+// so this is a conflict to resolve, not a blocker — hence its own strip and its own consequence.
+const inconsistentInputReasons = computed<DqReason[]>(() => {
+  void trigger.value;
+  return inconsistentInputReasonsFor(issues.value);
+});
+
+// The domain object already answers this, through the same `issues` this component reads
+// everywhere else — see OgTune.vue.
+const mandatory = (field: string) => fieldIsMandatoryAndUnsatisfied(issues.value, field);
+
+/** The full-text tooltip for a `.de-incomplete` strip — one line per reason, subject and text
+ *  rejoined, since a native `title` attribute cannot render `<strong>`. */
+const reasonTitle = (reasons: readonly DqReason[]) => reasons.map(r => `${r.subject} ${r.text}`).join('\n');
+
+function ebpVal(): number | null {
+  void trigger.value;
+  return ebpValFor(draftDriver.value);
+}
+
+/**
+ * Copy to My Drivers — the draft as it stands becomes a saved driver, DISCONNECTED: no link
+ * back to whatever is being edited, so later edits here do not follow it. Available whichever
+ * driver the editor was opened on.
+ *
+ * A saved driver IS its `<brand>/<model>`, so this overwrites the entry already holding that
+ * identity and adds one when none does. Nothing else in the editor is disturbed — the dialog
+ * stays open and the project's driver is untouched until OK.
+ */
+const copiedMsg = ref('');
+const saveMyDialogOpen = ref(false);
+const saveBrand = ref('');
+const saveModel = ref('');
+const isCopyAction = ref(false);
+
+
+// Same-name drivers COEXIST under uuid identity (QO81): a name collision overwrites nothing,
+// so there is no overwrite warning to show.
+
+function openSaveMyDialog(forCopy: boolean = false) {
+  // A saved driver IS its <brand>/<model>. There is no separate `name` to fall back to —
+  // brand + model IS the name.
+  saveBrand.value = driverRaw.value.brand || '';
+  saveModel.value = driverRaw.value.model || '';
+  isCopyAction.value = forCopy;
+  saveMyDialogOpen.value = true;
+  nextTick(() => {
+    document.querySelector<HTMLInputElement>('.save-model-input')?.focus();
+  });
+}
+
+function confirmSaveToMyDrivers() {
+  if (!saveBrand.value.trim() || !saveModel.value.trim()) return;
+  draftDriver.value.brand.set(saveBrand.value.trim());
+  draftDriver.value.model.set(saveModel.value.trim());
+  forceUpdate();
+
+  if (isCopyAction.value) {
+    // A copy is a DIFFERENT driver: fresh identity, never an overwrite (QO81). `upsert` with no
+    // uuid mints a new REPOSITORY key regardless, but the driver's own record uuid — what
+    // favourites key off — travels with the record unless reassigned here.
+    const saved = myDrivers.upsert(draftDriver.value.copyAsNew());
+    saveMyDialogOpen.value = false;
+    copiedMsg.value = saved ? 'Copied to My Drivers' : 'Saved drivers are read-only — copy not stored';
+    logging.flash(copiedMsg.value);
+    setTimeout(() => { copiedMsg.value = ''; }, 2000);
+  } else if (saveWouldRename()) {
+    saveMyDialogOpen.value = false;
+    renameQuestionOpen.value = true;   // the ONE question; its two buttons finish the save
+  } else {
+    saveMyDialogOpen.value = false;
+    // No saved entry backs this session (e.g. Edit on a library/bundled driver's overview, or a
+    // brand-new driver) — this save FILES a new My Drivers entry, so it needs its own record
+    // identity rather than the source's (the bug: editing a library driver and saving it kept
+    // that driver's own uuid, so its favourite star stayed linked to the library original's).
+    const toSave = savedEntryForSubject() == null ? draftDriver.value.copyAsNew() : draftDriver.value;
+    commitToMyDrivers(toSave);
+    logging.flash('Saved to My Drivers');
+    selection.closeEditor();
+    emit('close');
+  }
+}
+
+function copyToMyDrivers() {
+  if (!requireIdentity()) return;
+  openSaveMyDialog(true);
+}
+
+// ── The ONE gate: Brand + Model ───────────────────────────────────────────────
+// A saved driver IS its `<brand>/<model>` — that pair is the index key every store here
+// looks it up by (My Drivers upsert, the project's driver, the export filename), so a
+// driver without one cannot be filed anywhere. Nothing else gates anything: missing T/S
+// only means the charts stay blank, which the strip above the footer says.
+//
+// The buttons stay ENABLED and answer the click (human ruling 2026-08-05: "all the buttons
+// on driver editor need to work regardless of driver"). A disabled button explains nothing;
+// this one tells the human exactly what is wrong and puts the caret in the field.
+const identityMissing = computed(() => {
+  void trigger.value;
+  const r = driverRaw.value;
+  return !r.brand?.trim() || !r.model?.trim();
+});
+const identityMsgOpen = ref(false);
+
+/** Guard for the three actions that FILE the driver somewhere. True ⇒ go ahead. */
+function requireIdentity(): boolean {
+  if (!identityMissing.value) return true;
+  identityMsgOpen.value = true;
+  return false;
+}
+
+/** Dismiss lands the human on the field to fix, not back where they were stuck. */
+function dismissIdentityMsg() {
+  identityMsgOpen.value = false;
+  tab.value = 'General';
+  const r = driverRaw.value;
+  const sel = !r.brand?.trim() ? '.de-brand' : '.de-model';
+  nextTick(() => document.querySelector<HTMLInputElement>(sel)?.focus());
+}
+
+// OK — the draft becomes the design or saves to My Drivers.
+function close() {
+  if (!requireIdentity()) return;
+  if (subject.kind === 'myDriver') {
+    openSaveMyDialog(false);
+  } else {
+    project.value.setDriver(draftDriver.value);
+    selection.closeEditor();
+    emit('close');
+  }
+}
+
+/** Save-to-file: same gate, because the filename IS `<brand> <model>`. */
+function requestExport() {
+  if (!requireIdentity()) return;
+  exportPickerOpen.value = true;
+}
+
+// Cancel — drop the draft AND any library pick. The design is exactly as it was, and the
+// picker (still open behind this dialog) is where the user lands.
+function cancel() {
+  selection.closeEditor();
+  emit('close');
+}
+
+// Reset — draft back to what it was seeded from (the picked driver, or the design).
+function reset() {
+  draft.reset();
+  forceUpdate();
+}
+
+const fileInput = ref<HTMLInputElement | null>(null);
+function triggerLoad() {
+  fileInput.value?.click();
+}
+
+function handleFileLoaded(e: Event) {
+  const input = inputFrom(e);
+  if (input === null) return;
+  const file = input.files?.[0];
+  if (!file) return;
+
+  const format = DriverFileFormat.ofFileName(file.name);
+  input.value = '';   // so re-picking the SAME file fires `change` again
+  if (format === null) { alert(`Not a driver file: ${file.name} (expected ${DriverFileFormat.ACCEPT})`); return; }
+  if (format === DriverFileFormat.Wdr) {
+    const ok = confirm("Warning: Importing a legacy WinISD (.wdr) file will trigger parameter derivations that may overwrite or change some parameters. For exact loading, OpenISD (.owdr) format is recommended.\n\nDo you want to continue?");
+    if (!ok) return;
+  }
+
+  void readDriverFileText(file).then(({ text }) => {
+    if (!text) return;
+    try {
+      // A `.wdr` is read as-read by the serialiser then projected into the app's own record;
+      // an `.owdr` IS that record already. One reader each, and no second parse invented here.
+      const { value: read, errors } = format === DriverFileFormat.Wdr
+        ? wdrTextToDriver(text)
+        : owdrTextToDriver(text);
+      if (!read) { alert('Failed to parse file: ' + (errors[0]?.message ?? 'unreadable')); return; }
+      draft.replace(read);
+      forceUpdate();
+    } catch (err) {
+      alert('Failed to parse file: ' + (err instanceof Error ? err.message : String(err)));
+    }
+  }, (err: Error) => { alert('Failed to read file: ' + err.message); });
+}
+
+// Format choice is an in-app panel, not a confirm(): OK/Cancel cannot name two formats, so
+// the old dialog had to explain that "Cancel" MEANT ".wdr" — a destructive-looking button
+// bound to an ordinary choice. The panel shows both formats with their trade-offs visible at
+// the point of decision, so the .wdr caveat needs no second dialog to carry it.
+const exportPickerOpen = ref(false);
+
+async function writeDriver(format: DriverFileFormat) {
+  exportPickerOpen.value = false;
+  // `<brand> <model>` — the same name the driver reads by everywhere else, and what WinISD's
+  // Save-Driver defaults to. It is also what makes the file load back under its own identity.
+  const base = [driverRaw.value.brand, driverRaw.value.model]
+    .filter((x): x is string => !!x && x.length > 0).join(' ').trim() || 'Driver';
+  // `.owdr` IS the record. A `.wdr` is that record projected by the serialiser — the one place
+  // that knows the format — and a driver too incomplete to project says so rather than writing
+  // a file WinISD would refuse.
+  const { value: body, errors } = format === DriverFileFormat.Owdr
+    ? { value: driverToOwdrBytes(draftDriver.value), errors: [] }
+    : driverToWdrBytes(draftDriver.value);
+  if (!body) { logging.flash(`Cannot save .${format.value}: ${errors[0]?.message ?? 'the driver is incomplete'}`); return; }
+  // Then the SYSTEM save dialog — the user picks folder and name, as a desktop app would.
+  // The MIME must be a CUSTOM type, not application/json or text/plain. The picker unions the
+  // extensions we list with every extension registered to that MIME, so `application/json`
+  // offered ".owdr, .json" and `text/plain` offered ".wdr, .txt, .text" — a save dialog
+  // inviting the user to write a driver to a filename the app will not read back.
+  const r = await driverFileStorage.saveAs(body, format.fileName(base), format.mime, format.label, '.' + format.value);
+  if (!r.cancelled) logging.flash(`Driver saved as .${format.value}`);
+}
+
+useEscToClose(() => presentationState.editDriverInfo, cancel);
+// Registered AFTER the editor on purpose: the Esc stack resolves last-registered first, so
+// this makes the format picker the innermost dismissal. Otherwise Esc aimed at a two-option
+// panel would close the whole editor and discard the session's edits.
+useEscToClose(() => exportPickerOpen.value, () => { exportPickerOpen.value = false; });
+useEscToClose(() => identityMsgOpen.value, dismissIdentityMsg);
+useEscToClose(() => saveMyDialogOpen.value, () => { saveMyDialogOpen.value = false; });
+</script>
+
+<template>
+  <div class="overlay on">
+    <div class="modal de-modal" ref="modalRootEl">
+      <h2>{{ editorTitle }}<button class="x" @click="cancel" title="Close without keeping changes">✕</button></h2>
+
+      <div class="de-tabs">
+        <button v-for="t in TABS" :key="t" class="de-tab" :class="{ on: tab === t }" @click="tab = t">{{ t }}</button>
+      </div>
+
+      <div class="body de-body" :class="{ 'labels-left': tab !== 'General' }" @click="handleBodyClickOrFocus" @focusin="handleBodyClickOrFocus">
+        <!-- ============================= General ============================= -->
+        <div v-if="tab === 'General'" class="de-general">
+          <div class="de-row2">
+            <div class="de-fld" data-field-key="manufacturer" :title="fieldHelp('manufacturer')">
+              <label>{{ fieldLabel('manufacturer') }}</label>
+              <input type="text" :value="driverRaw.manufacturer || ''" @input="setText('manufacturer', $event)">
+            </div>
+            <div class="de-fld" data-field-key="brand" :title="fieldHelp('brand')">
+              <label>{{ fieldLabel('brand') }}</label>
+              <input type="text" class="de-brand" :value="driverRaw.brand || ''" @input="setText('brand', $event)"
+                     :class="{ 'de-input-mandatory': true, 'de-input-empty': !driverRaw.brand || !driverRaw.brand.trim() }">
+            </div>
+            <div class="de-fld" data-field-key="model" :title="fieldHelp('model')">
+              <label>{{ fieldLabel('model') }}</label>
+              <input type="text" class="de-model" :value="driverRaw.model || ''" @input="setText('model', $event)"
+                     :class="{ 'de-input-mandatory': true, 'de-input-empty': !driverRaw.model || !driverRaw.model.trim() }">
+            </div>
+          </div>
+          <div class="de-row2">
+            <div class="de-fld" data-field-key="sku" :title="fieldHelp('sku')">
+              <label>{{ fieldLabel('sku') }}</label>
+              <input type="text" :value="driverRaw.sku || ''" @input="setText('sku', $event)">
+            </div>
+            <div class="de-fld" data-field-key="providedBy" :title="fieldHelp('providedBy')">
+              <label>{{ fieldLabel('providedBy') }}</label>
+              <input type="text" :value="driverRaw.providedBy || ''" @input="setText('providedBy', $event)">
+            </div>
+            <div class="de-fld" data-field-key="added" :title="fieldHelp('added')">
+              <label>{{ fieldLabel('added') }}</label>
+              <input type="text" :value="driverRaw.added || ''" @input="setText('added', $event)">
+            </div>
+          </div>
+          <div class="de-fld de-comment" data-field-key="comment" :title="fieldHelp('comment')">
+            <label>{{ fieldLabel('comment') }}</label>
+            <textarea :value="driverRaw.comment || ''" @input="setText('comment', $event)"></textarea>
+          </div>
+        </div>
+
+        <!-- ============================= Parameters ============================= -->
+        <div v-if="tab === 'Parameters'" class="de-params">
+          <div class="de-group">
+            <div class="de-hdr">Thiele/Small parameters</div>
+            <div class="de-cols">
+              <div class="de-fld" data-field-key="Qes" :style="getFieldStyle('Qes')" :title="fieldHelp('Qes')">
+                <label>{{ fieldLabel('Qes') }}</label>
+                <NumInput :class="cellClass('Qes')" :mandatory="mandatory('Qes')" :model-value="cellVal('Qes')" :precision="3" @update:model-value="v => setNum('Qes', v)">
+                </NumInput><span v-if="dqNote('Qes')" class="de-dq" :title="dqNote('Qes')">&#9888;</span>
+              </div>
+              <div class="de-fld" data-field-key="Qms" :style="getFieldStyle('Qms')" :title="fieldHelp('Qms')">
+                <label>{{ fieldLabel('Qms') }}</label>
+                <NumInput :class="cellClass('Qms')" :mandatory="mandatory('Qms')" :model-value="cellVal('Qms')" :precision="3" @update:model-value="v => setNum('Qms', v)">
+                </NumInput><span v-if="dqNote('Qms')" class="de-dq" :title="dqNote('Qms')">&#9888;</span>
+              </div>
+              <div class="de-fld" data-field-key="Qts" :style="getFieldStyle('Qts')" :title="fieldHelp('Qts')">
+                <label>{{ fieldLabel('Qts') }}</label>
+                <NumInput :class="cellClass('Qts')" :mandatory="mandatory('Qts')" :model-value="cellVal('Qts')" :precision="3" @update:model-value="v => setNum('Qts', v)">
+                </NumInput><span v-if="dqNote('Qts')" class="de-dq" :title="dqNote('Qts')">&#9888;</span>
+              </div>
+              <div class="de-fld" data-field-key="Fs_hz" :style="getFieldStyle('Fs_hz')" :title="fieldHelp('Fs_hz')">
+                <label>{{ fieldLabel('Fs_hz') }}</label>
+                <NumInput :class="cellClass('Fs_hz')" :mandatory="true" :model-value="cellVal('Fs_hz')" field="Fs_hz" group="freq" base="Hz" :precision="2" @update:model-value="v => setNum('Fs_hz', v)">
+                </NumInput><span v-if="dqNote('Fs_hz')" class="de-dq" :title="dqNote('Fs_hz')">&#9888;</span>
+                <UnitToggle field="Fs_hz" group="freq" base="Hz" unit-class="u" />
+              </div>
+              <div class="de-fld" data-field-key="Vas_m3" :style="getFieldStyle('Vas_m3')" :title="fieldHelp('Vas_m3')">
+                <label>{{ fieldLabel('Vas_m3') }}</label>
+                <NumInput :class="cellClass('Vas_m3')" :mandatory="true" :model-value="cellVal('Vas_m3')" field="Vas_m3" group="volume" base="L" :precision="precision('Vas_m3')" @update:model-value="v => setNum('Vas_m3', v)">
+                </NumInput><span v-if="dqNote('Vas_m3')" class="de-dq" :title="dqNote('Vas_m3')">&#9888;</span>
+                <UnitToggle field="Vas_m3" group="volume" base="L" unit-class="u" />
+              </div>
+            </div>
+          </div>
+
+          <div class="de-group">
+            <div class="de-hdr">Electro-Mechanical parameters</div>
+            <div class="de-cols">
+              <div class="de-fld" data-field-key="Mms_kg" :style="getFieldStyle('Mms_kg')" :title="fieldHelp('Mms_kg')">
+                <label>{{ fieldLabel('Mms_kg') }}</label>
+                <NumInput :class="cellClass('Mms_kg')" :model-value="cellVal('Mms_kg')" field="Mms_kg" group="mass" base="g" :precision="2" @update:model-value="v => setNum('Mms_kg', v)">
+                </NumInput><span v-if="dqNote('Mms_kg')" class="de-dq" :title="dqNote('Mms_kg')">&#9888;</span>
+                <UnitToggle field="Mms_kg" group="mass" base="g" unit-class="u" />
+              </div>
+              <div class="de-fld" data-field-key="Cms_m_per_N" :style="getFieldStyle('Cms_m_per_N')" :title="fieldHelp('Cms_m_per_N')">
+                <label>{{ fieldLabel('Cms_m_per_N') }}</label>
+                <NumInput :class="cellClass('Cms_m_per_N')" :model-value="cellVal('Cms_m_per_N')" field="Cms_m_per_N" group="compliance" base="mmPerN" :precision="4" @update:model-value="v => setNum('Cms_m_per_N', v)">
+                </NumInput><span v-if="dqNote('Cms_m_per_N')" class="de-dq" :title="dqNote('Cms_m_per_N')">&#9888;</span>
+                <UnitToggle field="Cms_m_per_N" group="compliance" base="mmPerN" unit-class="u" />
+              </div>
+              <div class="de-fld" data-field-key="Rms_kg_per_s" :style="getFieldStyle('Rms_kg_per_s')" :title="fieldHelp('Rms_kg_per_s')">
+                <label>{{ fieldLabel('Rms_kg_per_s') }}</label>
+                <NumInput :class="cellClass('Rms_kg_per_s')" :model-value="cellVal('Rms_kg_per_s')" field="Rms_kg_per_s" group="resistance" base="nsPerM" :precision="4" @update:model-value="v => setNum('Rms_kg_per_s', v)">
+                </NumInput><span v-if="dqNote('Rms_kg_per_s')" class="de-dq" :title="dqNote('Rms_kg_per_s')">&#9888;</span>
+                <UnitToggle field="Rms_kg_per_s" group="resistance" base="nsPerM" unit-class="u" />
+              </div>
+              <div class="de-fld" data-field-key="Re_ohm" :style="getFieldStyle('Re_ohm')" :title="fieldHelp('Re_ohm')">
+                <label>{{ fieldLabel('Re_ohm') }}</label>
+                <NumInput :class="cellClass('Re_ohm')" :mandatory="true" :model-value="cellVal('Re_ohm')" :precision="3" @update:model-value="v => setNum('Re_ohm', v)">
+                </NumInput><span v-if="dqNote('Re_ohm')" class="de-dq" :title="dqNote('Re_ohm')">&#9888;</span>
+                <span class="u">ohm</span>
+              </div>
+              <div class="de-fld" data-field-key="BL_Tm" :style="getFieldStyle('BL_Tm')" :title="fieldHelp('BL_Tm')">
+                <label>{{ fieldLabel('BL_Tm') }}</label>
+                <NumInput :class="cellClass('BL_Tm')" :model-value="cellVal('BL_Tm')" :precision="3" @update:model-value="v => setNum('BL_Tm', v)">
+                </NumInput><span v-if="dqNote('BL_Tm')" class="de-dq" :title="dqNote('BL_Tm')">&#9888;</span>
+                <span class="u">Tm</span>
+              </div>
+              <div class="de-fld" data-field-key="Dd_m" :style="getFieldStyle('Dd_m')" :title="fieldHelp('Dd_m')">
+                <label>{{ fieldLabel('Dd_m') }}</label>
+                <NumInput :class="cellClass('Dd_m')" :model-value="cellVal('Dd_m')" field="Dd_m" group="length" base="mm" :precision="precision('Dd_m')" @update:model-value="v => setNum('Dd_m', v)"></NumInput><span v-if="dqNote('Dd_m')" class="de-dq" :title="dqNote('Dd_m')">&#9888;</span>
+                <UnitToggle field="Dd_m" group="length" base="mm" unit-class="u" />
+              </div>
+              <div class="de-fld" data-field-key="Le_H" :style="getFieldStyle('Le_H')" :title="fieldHelp('Le_H')">
+                <label>{{ fieldLabel('Le_H') }}</label>
+                <NumInput :class="cellClass('Le_H')" :model-value="cellVal('Le_H')" field="Le_H" group="inductance" base="mH" :precision="3" @update:model-value="v => setNum('Le_H', v)">
+                </NumInput><span v-if="dqNote('Le_H')" class="de-dq" :title="dqNote('Le_H')">&#9888;</span>
+                <UnitToggle field="Le_H" group="inductance" base="mH" unit-class="u" />
+              </div>
+              <div class="de-fld" data-field-key="Sd_m2" :style="getFieldStyle('Sd_m2')" :title="fieldHelp('Sd_m2')">
+                <label>{{ fieldLabel('Sd_m2') }}</label>
+                <NumInput :class="cellClass('Sd_m2')" :mandatory="true" :model-value="cellVal('Sd_m2')" field="Sd_m2" group="area" base="cm2" :precision="precision('Sd_m2')" @update:model-value="v => setNum('Sd_m2', v)">
+                </NumInput><span v-if="dqNote('Sd_m2')" class="de-dq" :title="dqNote('Sd_m2')">&#9888;</span>
+                <UnitToggle field="Sd_m2" group="area" base="cm2" unit-class="u" />
+              </div>
+              <!-- fLe is STORED IN HERTZ (docs/design/WINISD_SCHEMA.md) and shown in kHz, so the
+                   scale DIVIDES by 1000. NumInput renders `SI × scale`, so a ×1000 here read
+                   Hz as kHz and put the field out by 1e6. -->
+              <div class="de-fld" data-field-key="fLe_hz" :style="getFieldStyle('fLe_hz')" :title="fieldHelp('fLe_hz')">
+                <label>{{ fieldLabel('fLe_hz') }}</label>
+                <NumInput :class="cellClass('fLe_hz')" :model-value="cellVal('fLe_hz')" field="fLe_hz" group="freq" base="kHz" :precision="precision('fLe_hz')" @update:model-value="v => setNum('fLe_hz', v)"></NumInput><span v-if="dqNote('fLe_hz')" class="de-dq" :title="dqNote('fLe_hz')">&#9888;</span>
+                <UnitToggle field="fLe_hz" group="freq" base="kHz" unit-class="u" />
+              </div>
+              <div class="de-fld" data-field-key="KLe_H_sqrtHz" :style="getFieldStyle('KLe_H_sqrtHz')" :title="fieldHelp('KLe_H_sqrtHz')">
+                <label>{{ fieldLabel('KLe_H_sqrtHz') }}</label>
+                <NumInput :class="cellClass('KLe_H_sqrtHz')" :model-value="cellVal('KLe_H_sqrtHz')" @update:model-value="v => setNum('KLe_H_sqrtHz', v)"></NumInput><span v-if="dqNote('KLe_H_sqrtHz')" class="de-dq" :title="dqNote('KLe_H_sqrtHz')">&#9888;</span>
+                <span class="u">H·√Hz</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="de-group">
+            <div class="de-hdr">Large-Signal parameters</div>
+            <div class="de-cols">
+              <div class="de-fld" data-field-key="Xmax_m" :style="getFieldStyle('Xmax_m')" :title="fieldHelp('Xmax_m')">
+                <label>{{ fieldLabel('Xmax_m') }}</label>
+                <NumInput :class="cellClass('Xmax_m')" :model-value="cellVal('Xmax_m')" field="Xmax_m" group="length" base="mm" :precision="3" @update:model-value="v => setNum('Xmax_m', v)">
+                </NumInput><span v-if="dqNote('Xmax_m')" class="de-dq" :title="dqNote('Xmax_m')">&#9888;</span>
+                <UnitToggle field="Xmax_m" group="length" base="mm" unit-class="u" />
+              </div>
+              <div class="de-fld" data-field-key="Hc_m" :style="getFieldStyle('Hc_m')" :title="fieldHelp('Hc_m')">
+                <label>{{ fieldLabel('Hc_m') }}</label>
+                <NumInput :class="cellClass('Hc_m')" :model-value="cellVal('Hc_m')" field="Hc_m" group="length" base="mm" @update:model-value="v => setNum('Hc_m', v)"></NumInput><span v-if="dqNote('Hc_m')" class="de-dq" :title="dqNote('Hc_m')">&#9888;</span>
+                <UnitToggle field="Hc_m" group="length" base="mm" unit-class="u" />
+              </div>
+              <div class="de-fld" data-field-key="Hg_m" :style="getFieldStyle('Hg_m')" :title="fieldHelp('Hg_m')">
+                <label>{{ fieldLabel('Hg_m') }}</label>
+                <NumInput :class="cellClass('Hg_m')" :model-value="cellVal('Hg_m')" field="Hg_m" group="length" base="mm" @update:model-value="v => setNum('Hg_m', v)"></NumInput><span v-if="dqNote('Hg_m')" class="de-dq" :title="dqNote('Hg_m')">&#9888;</span>
+                <UnitToggle field="Hg_m" group="length" base="mm" unit-class="u" />
+              </div>
+
+              <div class="de-fld" data-field-key="Vd_m3" :style="getFieldStyle('Vd_m3')" :title="fieldHelp('Vd_m3')">
+                <label>{{ fieldLabel('Vd_m3') }}</label>
+                <NumInput :class="cellClass('Vd_m3')" :model-value="cellVal('Vd_m3')" field="Vd_m3" group="volume" base="cm3" @update:model-value="v => setNum('Vd_m3', v)"></NumInput><span v-if="dqNote('Vd_m3')" class="de-dq" :title="dqNote('Vd_m3')">&#9888;</span>
+                <UnitToggle field="Vd_m3" group="volume" base="cm3" unit-class="u" />
+              </div>
+              <div class="de-fld" data-field-key="Xlim_m" :style="getFieldStyle('Xlim_m')" :title="fieldHelp('Xlim_m')">
+                <label>{{ fieldLabel('Xlim_m') }}</label>
+                <NumInput :class="cellClass('Xlim_m')" :model-value="cellVal('Xlim_m')" field="Xlim_m" group="length" base="mm" @update:model-value="v => setNum('Xlim_m', v)"></NumInput><span v-if="dqNote('Xlim_m')" class="de-dq" :title="dqNote('Xlim_m')">&#9888;</span>
+                <UnitToggle field="Xlim_m" group="length" base="mm" unit-class="u" />
+              </div>
+              <div class="de-fld" data-field-key="Pe_W" :style="getFieldStyle('Pe_W')" :title="fieldHelp('Pe_W')">
+                <label>{{ fieldLabel('Pe_W') }}</label>
+                <NumInput :class="cellClass('Pe_W')" :model-value="cellVal('Pe_W')" :precision="2" @update:model-value="v => setNum('Pe_W', v)">
+                </NumInput><span v-if="dqNote('Pe_W')" class="de-dq" :title="dqNote('Pe_W')">&#9888;</span>
+                <span class="u">W</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="de-group">
+            <div class="de-hdr">Miscellaneous parameters</div>
+            <div class="de-cols">
+              <div class="de-fld" data-field-key="no" :style="getFieldStyle('no')" :title="fieldHelp('no')">
+                <label>{{ fieldLabel('no') }}</label>
+                <NumInput :class="cellClass('no')" :model-value="cellVal('no')" field="no" group="percent" base="pct" @update:model-value="v => setNum('no', v)"></NumInput><span v-if="dqNote('no')" class="de-dq" :title="dqNote('no')">&#9888;</span>
+                <UnitToggle field="no" group="percent" base="pct" unit-class="u" />
+              </div>
+              <div class="de-fld" data-field-key="Znom_ohm" :style="getFieldStyle('Znom_ohm')" :title="fieldHelp('Znom_ohm')">
+                <label>{{ fieldLabel('Znom_ohm') }}</label>
+                <NumInput :class="cellClass('Znom_ohm')" :model-value="cellVal('Znom_ohm')" :precision="3" @update:model-value="v => setNum('Znom_ohm', v)">
+                </NumInput><span v-if="dqNote('Znom_ohm')" class="de-dq" :title="dqNote('Znom_ohm')">&#9888;</span>
+                <span class="u">ohm</span>
+              </div>
+              <div class="de-fld" data-field-key="USPL_dB" :style="getFieldStyle('USPL_dB')" :title="fieldHelp('USPL_dB')">
+                <label>{{ fieldLabel('USPL_dB') }}</label>
+                <NumInput :class="cellClass('USPL_dB')" :model-value="cellVal('USPL_dB')" @update:model-value="v => setNum('USPL_dB', v)"></NumInput><span v-if="dqNote('USPL_dB')" class="de-dq" :title="dqNote('USPL_dB')">&#9888;</span>
+                <span class="u">dB</span>
+              </div>
+              <div class="de-fld" data-field-key="SPL_dB" :style="getFieldStyle('SPL_dB')" :title="fieldHelp('SPL_dB')">
+                <label>{{ fieldLabel('SPL_dB') }}</label>
+                <NumInput :class="cellClass('SPL_dB')" :model-value="cellVal('SPL_dB')" @update:model-value="v => setNum('SPL_dB', v)"></NumInput><span v-if="dqNote('SPL_dB')" class="de-dq" :title="dqNote('SPL_dB')">&#9888;</span>
+                <span class="u">dB</span>
+              </div>
+              <div class="de-fld" data-field-key="numVC" :style="getFieldStyle('numVC')" :title="fieldHelp('numVC')">
+                <label>{{ fieldLabel('numVC') }}</label>
+                <NumInput :class="cellClass('numVC')" :model-value="cellVal('numVC')" @update:model-value="v => setNum('numVC', v)"></NumInput><span v-if="dqNote('numVC')" class="de-dq" :title="dqNote('numVC')">&#9888;</span>
+              </div>
+              <div class="de-fld de-conn" data-field-key="VCCon" :title="fieldHelp('VCCon')">
+                <label>{{ fieldLabel('VCCon') }}</label>
+                <select class="de-conn-sel" :class="wiringClass" :value="driverRaw.VCCon ?? 'parallel'" @change="setWiring"><option v-for="o in WIRING_OPTIONS" :key="o.value" :value="o.value">{{ o.label }}</option></select>
+              </div>
+              <div class="de-fld" data-field-key="power_peak_W" :style="getFieldStyle('power_peak_W')" :title="fieldHelp('power_peak_W')">
+                <label>{{ fieldLabel('power_peak_W') }}</label>
+                <NumInput :class="cellClass('power_peak_W')" :model-value="cellVal('power_peak_W')" :precision="2" @update:model-value="v => setNum('power_peak_W', v)">
+                </NumInput><span v-if="dqNote('power_peak_W')" class="de-dq" :title="dqNote('power_peak_W')">&#9888;</span>
+                <span class="u">W</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ============================= Advanced parameters ============================= -->
+        <div v-if="tab === 'Advanced parameters'" class="de-params">
+          <div class="de-group">
+            <div class="de-hdr">Thermal parameters</div>
+            <div class="de-cols">
+              <div class="de-fld" data-field-key="alfaVC_per_K" :style="getFieldStyle('alfaVC_per_K')" :title="fieldHelp('alfaVC_per_K')">
+                <label>{{ fieldLabel('alfaVC_per_K') }}</label>
+                <NumInput :class="cellClass('alfaVC_per_K')" :model-value="cellVal('alfaVC_per_K')" field="alfaVC_per_K" group="tempCoeff" base="perMilliK" @update:model-value="v => setNum('alfaVC_per_K', v)"></NumInput><span v-if="dqNote('alfaVC_per_K')" class="de-dq" :title="dqNote('alfaVC_per_K')">&#9888;</span>
+                <UnitToggle field="alfaVC_per_K" group="tempCoeff" base="perMilliK" unit-class="u" />
+              </div>
+              <div class="de-fld" data-field-key="Rt_K_per_W" :style="getFieldStyle('Rt_K_per_W')" :title="fieldHelp('Rt_K_per_W')">
+                <label>{{ fieldLabel('Rt_K_per_W') }}</label>
+                <NumInput :class="cellClass('Rt_K_per_W')" :model-value="cellVal('Rt_K_per_W')" @update:model-value="v => setNum('Rt_K_per_W', v)"></NumInput><span v-if="dqNote('Rt_K_per_W')" class="de-dq" :title="dqNote('Rt_K_per_W')">&#9888;</span>
+                <span class="u">K/W</span>
+              </div>
+              <div class="de-fld" data-field-key="Ct_J_per_K" :style="getFieldStyle('Ct_J_per_K')" :title="fieldHelp('Ct_J_per_K')">
+                <label>{{ fieldLabel('Ct_J_per_K') }}</label>
+                <NumInput :class="cellClass('Ct_J_per_K')" :model-value="cellVal('Ct_J_per_K')" @update:model-value="v => setNum('Ct_J_per_K', v)"></NumInput><span v-if="dqNote('Ct_J_per_K')" class="de-dq" :title="dqNote('Ct_J_per_K')">&#9888;</span>
+                <span class="u">J/K</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="de-group">
+            <div class="de-hdr">Figure of merits</div>
+            <div class="de-cols">
+              <div class="de-fld" data-field-key="SPLmaxLF_dB" :style="getFieldStyle('SPLmaxLF_dB')" :title="fieldHelp('SPLmaxLF_dB')">
+                <label>{{ fieldLabel('SPLmaxLF_dB') }}</label>
+                <NumInput :class="cellClass('SPLmaxLF_dB')" :model-value="cellVal('SPLmaxLF_dB')" @update:model-value="v => setNum('SPLmaxLF_dB', v)"></NumInput><span v-if="dqNote('SPLmaxLF_dB')" class="de-dq" :title="dqNote('SPLmaxLF_dB')">&#9888;</span>
+                <span class="u">dB</span>
+              </div>
+              <div class="de-fld" data-field-key="SPLmax_dB" :style="getFieldStyle('SPLmax_dB')" :title="fieldHelp('SPLmax_dB')">
+                <label>{{ fieldLabel('SPLmax_dB') }}</label>
+                <NumInput :class="cellClass('SPLmax_dB')" :model-value="cellVal('SPLmax_dB')" @update:model-value="v => setNum('SPLmax_dB', v)"></NumInput><span v-if="dqNote('SPLmax_dB')" class="de-dq" :title="dqNote('SPLmax_dB')">&#9888;</span>
+                <span class="u">dB</span>
+              </div>
+              <div class="de-fld" data-field-key="Rme_kg_per_s" :style="getFieldStyle('Rme_kg_per_s')" :title="fieldHelp('Rme_kg_per_s')">
+                <label>{{ fieldLabel('Rme_kg_per_s') }}</label>
+                <NumInput :class="cellClass('Rme_kg_per_s')" :model-value="cellVal('Rme_kg_per_s')" field="Rme_kg_per_s" group="resistance" base="nsPerM" @update:model-value="v => setNum('Rme_kg_per_s', v)"></NumInput><span v-if="dqNote('Rme_kg_per_s')" class="de-dq" :title="dqNote('Rme_kg_per_s')">&#9888;</span>
+                <UnitToggle field="Rme_kg_per_s" group="resistance" base="nsPerM" unit-class="u" />
+              </div>
+              <div class="de-fld" data-field-key="gamma_m_per_s2_A" :style="getFieldStyle('gamma_m_per_s2_A')" :title="fieldHelp('gamma_m_per_s2_A')">
+                <label>{{ fieldLabel('gamma_m_per_s2_A') }}</label>
+                <NumInput :class="cellClass('gamma_m_per_s2_A')" :model-value="cellVal('gamma_m_per_s2_A')" @update:model-value="v => setNum('gamma_m_per_s2_A', v)"></NumInput><span v-if="dqNote('gamma_m_per_s2_A')" class="de-dq" :title="dqNote('gamma_m_per_s2_A')">&#9888;</span>
+                <span class="u">N/(A·kg)</span>
+              </div>
+              <div class="de-fld" data-field-key="Mpow_N_per_sqrtW" :style="getFieldStyle('Mpow_N_per_sqrtW')" :title="fieldHelp('Mpow_N_per_sqrtW')">
+                <label>{{ fieldLabel('Mpow_N_per_sqrtW') }}</label>
+                <NumInput :class="cellClass('Mpow_N_per_sqrtW')" :model-value="cellVal('Mpow_N_per_sqrtW')" @update:model-value="v => setNum('Mpow_N_per_sqrtW', v)"></NumInput><span v-if="dqNote('Mpow_N_per_sqrtW')" class="de-dq" :title="dqNote('Mpow_N_per_sqrtW')">&#9888;</span>
+                <span class="u">N/√W</span>
+              </div>
+              <div class="de-fld" data-field-key="Mcost_kg_per_s" :style="getFieldStyle('Mcost_kg_per_s')" :title="fieldHelp('Mcost_kg_per_s')">
+                <label>{{ fieldLabel('Mcost_kg_per_s') }}</label>
+                <NumInput :class="cellClass('Mcost_kg_per_s')" :model-value="cellVal('Mcost_kg_per_s')" field="Mcost_kg_per_s" group="resistance" base="kgPerS" @update:model-value="v => setNum('Mcost_kg_per_s', v)"></NumInput><span v-if="dqNote('Mcost_kg_per_s')" class="de-dq" :title="dqNote('Mcost_kg_per_s')">&#9888;</span>
+                <UnitToggle field="Mcost_kg_per_s" group="resistance" base="kgPerS" unit-class="u" />
+              </div>
+              <div class="de-fld value-c" data-field-key="EBP_hz" :style="getFieldStyle('EBP_hz')" :title="fieldHelp('EBP_hz')">
+                <label>{{ fieldLabel('EBP_hz') }}</label>
+                <input type="text" readonly :value="ebpVal() != null ? formatInUnit(ebpVal(), 'EBP_hz', 'freq', 'Hz', 1) : ''"><UnitToggle field="EBP_hz" group="freq" base="Hz" unit-class="u" />
+              </div>
+              <!-- The model holds the FRACTION the .wdr carries; WinISD's pane prints a
+                   percentage. The `percent` unit group is the ONE place that ×100 lives. -->
+              <div class="de-fld" data-field-key="Gloss" :style="getFieldStyle('Gloss')" :title="fieldHelp('Gloss')">
+                <label>{{ fieldLabel('Gloss') }}</label>
+                <NumInput :class="cellClass('Gloss')" :model-value="cellVal('Gloss')" field="Gloss" group="percent" base="pct" :precision="precision('Gloss')" @update:model-value="v => setNum('Gloss', v)"></NumInput><span v-if="dqNote('Gloss')" class="de-dq" :title="dqNote('Gloss')">&#9888;</span>
+                <UnitToggle field="Gloss" group="percent" base="pct" unit-class="u" />
+              </div>
+            </div>
+          </div>
+
+          <div class="de-group">
+            <div class="de-hdr">Environment parameters</div>
+            <div class="de-cols">
+              <div class="de-fld value-c" data-field-key="c_m_per_s" :title="fieldHelp('c_m_per_s')">
+                <label>{{ fieldLabel('c_m_per_s') }}</label>
+                <input type="text" readonly :value="formatInUnit(cellVal('c_m_per_s'), 'c_m_per_s', 'velocity', 'mps', 2)"><UnitToggle field="c_m_per_s" group="velocity" base="mps" unit-class="u" />
+              </div>
+              <div class="de-fld value-c" data-field-key="roo_kg_per_m3" :title="fieldHelp('roo_kg_per_m3')">
+                <label>{{ fieldLabel('roo_kg_per_m3') }}</label>
+                <input type="text" readonly :value="formatInUnit(cellVal('roo_kg_per_m3'), 'roo_kg_per_m3', 'density', 'kgPerM3', 5)"><UnitToggle field="roo_kg_per_m3" group="density" base="kgPerM3" unit-class="u" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ============================= Dimensions ============================= -->
+        <div v-if="tab === 'Dimensions'" class="de-dims">
+          <div class="de-dimlist">
+            <div class="de-hdr">Dimensions</div>
+            <!-- Every length below is stored in METRES and shown in MILLIMETRES (the length unit group),
+                 the same unit the Parameters tab uses for Xmax/Hc/Hg/Dd, and one of the units
+                 WinISD offers on each of these fields. Unscaled, a 6.5" basket read "0.17";
+                 Thick read a metre value under an inches label. -->
+            <div class="de-fld" data-field-key="Thick_m" :title="fieldHelp('Thick_m')"><label>{{ fieldLabel('Thick_m') }}</label><NumInput :class="cellClass('Thick_m')" :model-value="cellVal('Thick_m')" field="Thick_m" group="length" base="mm" :precision="precision('Thick_m')" @update:model-value="v => setNum('Thick_m', v)"></NumInput><span v-if="dqNote('Thick_m')" class="de-dq" :title="dqNote('Thick_m')">&#9888;</span><UnitToggle field="Thick_m" group="length" base="mm" unit-class="u" /></div>
+            <div class="de-fld" data-field-key="Depth_m" :style="getFieldStyle('Depth_m')" :title="fieldHelp('Depth_m')"><label>{{ fieldLabel('Depth_m') }}</label><NumInput :class="cellClass('Depth_m')" :model-value="cellVal('Depth_m')" field="Depth_m" group="length" base="mm" :precision="precision('Depth_m')" @update:model-value="v => setNum('Depth_m', v)"></NumInput><span v-if="dqNote('Depth_m')" class="de-dq" :title="dqNote('Depth_m')">&#9888;</span><UnitToggle field="Depth_m" group="length" base="mm" unit-class="u" /></div>
+            <div class="de-fld" data-field-key="MagDepth_m" :style="getFieldStyle('MagDepth_m')" :title="fieldHelp('MagDepth_m')"><label>{{ fieldLabel('MagDepth_m') }}</label><NumInput :class="cellClass('MagDepth_m')" :model-value="cellVal('MagDepth_m')" field="MagDepth_m" group="length" base="mm" :precision="precision('MagDepth_m')" @update:model-value="v => setNum('MagDepth_m', v)"></NumInput><span v-if="dqNote('MagDepth_m')" class="de-dq" :title="dqNote('MagDepth_m')">&#9888;</span><UnitToggle field="MagDepth_m" group="length" base="mm" unit-class="u" /></div>
+            <div class="de-fld" data-field-key="Magnet_m" :style="getFieldStyle('Magnet_m')" :title="fieldHelp('Magnet_m')"><label>{{ fieldLabel('Magnet_m') }}</label><NumInput :class="cellClass('Magnet_m')" :model-value="cellVal('Magnet_m')" field="Magnet_m" group="length" base="mm" :precision="precision('Magnet_m')" @update:model-value="v => setNum('Magnet_m', v)"></NumInput><span v-if="dqNote('Magnet_m')" class="de-dq" :title="dqNote('Magnet_m')">&#9888;</span><UnitToggle field="Magnet_m" group="length" base="mm" unit-class="u" /></div>
+            <div class="de-fld" data-field-key="Basket_m" :title="fieldHelp('Basket_m')"><label>{{ fieldLabel('Basket_m') }}</label><NumInput :class="cellClass('Basket_m')" :model-value="cellVal('Basket_m')" field="Basket_m" group="length" base="mm" :precision="precision('Basket_m')" @update:model-value="v => setNum('Basket_m', v)"></NumInput><span v-if="dqNote('Basket_m')" class="de-dq" :title="dqNote('Basket_m')">&#9888;</span><UnitToggle field="Basket_m" group="length" base="mm" unit-class="u" /></div>
+            <div class="de-fld" data-field-key="Outer_m" :title="fieldHelp('Outer_m')"><label>{{ fieldLabel('Outer_m') }}</label><NumInput :class="cellClass('Outer_m')" :model-value="cellVal('Outer_m')" field="Outer_m" group="length" base="mm" :precision="precision('Outer_m')" @update:model-value="v => setNum('Outer_m', v)"></NumInput><span v-if="dqNote('Outer_m')" class="de-dq" :title="dqNote('Outer_m')">&#9888;</span><UnitToggle field="Outer_m" group="length" base="mm" unit-class="u" /></div>
+            <div class="de-fld" data-field-key="Vcd_m" :title="fieldHelp('Vcd_m')"><label>{{ fieldLabel('Vcd_m') }}</label><NumInput :class="cellClass('Vcd_m')" :model-value="cellVal('Vcd_m')" field="Vcd_m" group="length" base="mm" :precision="precision('Vcd_m')" @update:model-value="v => setNum('Vcd_m', v)"></NumInput><span v-if="dqNote('Vcd_m')" class="de-dq" :title="dqNote('Vcd_m')">&#9888;</span><UnitToggle field="Vcd_m" group="length" base="mm" unit-class="u" /></div>
+            <div class="de-fld" data-field-key="DVol_m3" :style="getFieldStyle('DVol_m3')" :title="fieldHelp('DVol_m3')"><label>{{ fieldLabel('DVol_m3') }}</label><NumInput :class="cellClass('DVol_m3')" :model-value="cellVal('DVol_m3')" field="DVol_m3" group="volume" base="cm3" :precision="precision('DVol_m3')" @update:model-value="v => setNum('DVol_m3', v)"></NumInput><span v-if="dqNote('DVol_m3')" class="de-dq" :title="dqNote('DVol_m3')">&#9888;</span><UnitToggle field="DVol_m3" group="volume" base="cm3" unit-class="u" /></div>
+          </div>
+
+          <div class="de-diagram" aria-hidden="true" title="Driver cross-section (reference diagram — dimensions not modelled)">
+            <DriverDimensionsDiagram />
+          </div>
+        </div>
+      </div>
+
+      <div class="de-toolbar">
+        <label class="de-provenance-chk" title="Auto-calculate derived/unknown T/S fields when parameters change">
+          <input type="checkbox" v-model="autoCalculate" />
+          <span>Auto calculate unknowns</span>
+        </label>
+        <label class="de-provenance-chk" title="Auto-highlight calculation feeding paths and display equations overlay">
+          <input type="checkbox" v-model="inspectProvenance" />
+          <span>Inspect Provenance</span>
+        </label>
+      </div>
+
+      <!-- What is wrong, and what it actually costs. Saving is never blocked by any of them —
+           each strip states its own consequence instead, so the human keeps their typing. Three
+           strips, not one: a missing Brand does not blank a chart, a missing Fs does not stop
+           the driver being filed, and values that merely disagree do neither — they are all
+           present, so every chart plots from them as stated. Per-field red borders stay. -->
+      <div v-if="identityReasons.length" class="de-incomplete"
+           :title="reasonTitle(identityReasons)">
+        <span class="de-incomplete-hd">⚠ Saves fine, but can’t be filed under a name because:</span>
+        <ul class="de-incomplete-list">
+          <li v-for="r in identityReasons" :key="r.subject + r.text"><strong class="de-incomplete-subject">{{ r.subject }}</strong> {{ r.text }}</li>
+        </ul>
+      </div>
+      <div v-if="chartBlockingReasons.length" class="de-incomplete"
+           :title="reasonTitle(chartBlockingReasons)">
+        <span class="de-incomplete-hd">⚠ Saves fine, but the charts stay blank because:</span>
+        <ul class="de-incomplete-list">
+          <li v-for="r in chartBlockingReasons" :key="r.subject + r.text"><strong class="de-incomplete-subject">{{ r.subject }}</strong> {{ r.text }}</li>
+        </ul>
+      </div>
+      <div v-if="inconsistentInputReasons.length" class="de-incomplete de-inconsistent"
+           :title="reasonTitle(inconsistentInputReasons)">
+        <span class="de-incomplete-hd">⚠ Saves fine and the charts plot from the values as stated, but those values disagree because:</span>
+        <ul class="de-incomplete-list">
+          <li v-for="r in inconsistentInputReasons" :key="r.subject + r.text"><strong class="de-incomplete-subject">{{ r.subject }}</strong> {{ r.text }}</li>
+        </ul>
+      </div>
+
+      <div class="de-footer">
+        <div class="de-legend2">
+          <span class="de-sw value-e"></span>Entered
+          <span class="de-sw value-c"></span>Calculated
+          <span class="de-sw value-n"></span>Not entered
+        </div>
+        <div class="de-btns">
+          <input type="file" ref="fileInput" style="display:none" @change="handleFileLoaded" :accept="DriverFileFormat.ACCEPT">
+          <button class="pri" @click="close" title="Apply changes and close the editor (updates local browser/project)">OK</button>
+          <button class="de-copy-my" @click="copyToMyDrivers"
+                  :title="copiedMsg || 'Copy this driver into My Drivers as an independent copy — no link back to it'">
+            {{ copiedMsg || 'Copy to My Drivers' }}
+          </button>
+          <button @click="requestExport" title="Save this driver to a file — choose the format, then pick where to put it">Save</button>
+          <button @click="triggerLoad" title="Load driver from a .wdr file on disk">Load</button>
+          <button @click="reset" title="Reset fields to the values when the editor was opened">Reset</button>
+          <button @click="cancel" title="Discard edits made in this session and close">Cancel</button>
+        </div>
+      </div>
+
+      <!-- Brand/Model gate. A popup rather than a disabled button, because a disabled button
+           is silent: it neither says what is wrong nor where to fix it. Dismissing lands the
+           caret in the empty field. -->
+      <div v-if="identityMsgOpen" class="fmt-scrim" @click.self="dismissIdentityMsg">
+        <div class="fmt-panel de-id-panel" role="alertdialog" aria-label="Brand and Model are required">
+          <h3>Brand and Model are both required</h3>
+          <p class="fmt-note">
+            A driver is filed under its Brand and Model — that pair is how My Drivers, the
+            project and the saved file all find it again. Every other field can stay empty.
+          </p>
+          <div class="fmt-foot">
+            <button class="pri" @click="dismissIdentityMsg">Fill them in</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Format picker. Sits INSIDE the editor rather than being a browser dialog, so both
+           formats and their trade-offs are visible together at the moment of choosing. The
+           system save dialog follows the choice. -->
+      <div v-if="exportPickerOpen" class="fmt-scrim" @click.self="exportPickerOpen = false">
+        <div class="fmt-panel" role="dialog" aria-label="Choose driver file format">
+          <h3>Save driver as</h3>
+          <button class="fmt-opt" @click="writeDriver(DriverFileFormat.Owdr)">
+            <span class="fmt-name">OpenISD driver <code>.owdr</code> <em>recommended</em></span>
+            <span class="fmt-note">Keeps everything: entered/calculated marks, dimensions and all OpenISD metadata. Reloads exactly as saved.</span>
+          </button>
+          <button class="fmt-opt" @click="writeDriver(DriverFileFormat.Wdr)">
+            <span class="fmt-name">WinISD driver <code>.wdr</code></span>
+            <span class="fmt-note">For opening in WinISD. Discards OpenISD-specific metadata and dimensions that the format has no field for.</span>
+          </button>
+          <div class="fmt-foot">
+            <button @click="exportPickerOpen = false">Cancel</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Save to My Drivers prompt dialog -->
+      <div v-if="renameQuestionOpen" class="fmt-scrim de-rename-panel">
+        <div class="fmt-panel" role="dialog" aria-label="Rename or copy">
+          <h3>This changes the driver's name</h3>
+          <p class="fmt-note">
+            You changed this saved driver's brand or model. Rename it in place, or keep the
+            original and save your changes as a copy?
+          </p>
+          <div class="fmt-foot" style="margin-top: 14px;">
+            <button class="pri rename-in-place-btn" @click="saveRenameInPlace">Rename this driver</button>
+            <button class="save-as-copy-btn" @click="saveAsCopy">Save as a copy</button>
+          </div>
+        </div>
+      </div>
+      <div v-if="saveMyDialogOpen" class="fmt-scrim de-save-my-panel" @click.self="saveMyDialogOpen = false">
+        <div class="fmt-panel" role="dialog" aria-label="Save to My Drivers">
+          <h3>Save to My Drivers</h3>
+          <p class="fmt-note">
+            Confirm or update the Brand and Model to save this driver in My Drivers:
+          </p>
+          <div class="save-fld" style="margin-top: 10px;">
+            <label>Brand</label>
+            <input type="text" class="save-brand-input" v-model="saveBrand" placeholder="Brand name">
+          </div>
+          <div class="save-fld" style="margin-top: 8px;">
+            <label>Model</label>
+            <input type="text" class="save-model-input" v-model="saveModel" placeholder="Model slug (e.g. E150HE-44)">
+          </div>
+          <div class="fmt-foot" style="margin-top: 14px;">
+            <button class="pri save-confirm-btn" :disabled="!saveBrand.trim() || !saveModel.trim()" @click="confirmSaveToMyDrivers">
+              Save to My Drivers
+            </button>
+            <button class="save-cancel-btn" @click="saveMyDialogOpen = false">Cancel</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <EquationInspectorModal
+      :open="inspectProvenance && inspectedField !== null"
+      :target-field="inspectedField"
+      :provenance-info="provenanceInfo"
+      :style="popupStyle"
+      @close="inspectedField = null"
+    />
+  </div>
+</template>
+
+<style scoped>
+.overlay {
+  position: fixed !important;
+  inset: 0 !important;
+  background: rgba(0,0,0,0.5) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  z-index: 1100 !important;
+}
+/* ONE fixed box for all four tabs — switching tab must never resize the dialog under the
+   user's cursor. Sized to the largest tab so nothing ever scrolls: Advanced parameters is
+   the widest (748px of content) and Parameters the tallest. Both measured, not guessed. The
+   vh caps are only a small-screen backstop. */
+/* position: relative anchors the format picker's scrim to the editor, not the viewport. */
+.de-modal { position: relative !important; display: flex !important; flex-direction: column !important; width: 770px !important; max-width: 96vw !important; min-height: 550px !important; max-height: 96vh !important; flex-shrink: 0 !important; overflow: hidden !important; }
+.de-tabs { display: flex; gap: 2px; padding: 6px 12px 0; border-bottom: 1px solid var(--line); }
+.de-tab { padding: 4px 10px; border: 1px solid var(--line); border-bottom: none; border-radius: 3px 3px 0 0; background: var(--panel2); color: var(--fg); cursor: pointer; font: inherit; font-size: 13px; }
+.de-tab.on { background: var(--panel); font-weight: 600; }
+.de-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 6px 14px;
+  border-top: 1px solid var(--line);
+  background: var(--panel2);
+}
+.de-provenance-chk {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--mut, #94a3b8);
+  cursor: pointer;
+  user-select: none;
+  padding: 3px 6px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--line, #2c384e);
+}
+.de-provenance-chk:hover {
+  color: #38bdf8;
+  border-color: #38bdf8;
+}
+.de-provenance-chk input {
+  accent-color: #38bdf8;
+  cursor: pointer;
+  margin: 0;
+}
+.de-body { display: flex; flex-direction: column; gap: 6px; flex: 1 !important; }
+
+.de-fld { display: flex; flex-direction: column; gap: 2px; margin-bottom: 3px; width: fit-content; justify-self: start; }
+.de-fld label { font-size: 11px; color: var(--mut); white-space: nowrap; }
+.de-fld input, .de-fld select { padding: 2px 5px; border: 1px solid var(--line); border-radius: 3px; font: inherit; background: var(--panel); color: var(--fg); width: 90px; }
+.de-fld .u, .u {
+  font-size: 11px; color: var(--mut); white-space: nowrap !important; display: inline-block;
+  /* FIXED width. A unit sized by its own text ("mm" 19px, "cm³" 21px) reflowed the whole
+     panel every time it was cycled. Wide enough for the longest unit the editor shows. */
+  width: 34px; text-align: left; box-sizing: border-box;
+}
+.de-fld.cl-dim input, .de-fld.cl-dim select { background: var(--panel2); color: var(--mut); }
+.de-row2 { display: flex; gap: 16px; }
+.de-row2 .de-fld { flex: 1; width: auto; }
+.de-row2 .de-fld input { width: 100%; }
+
+/* ── Dimensions panel only ──────────────────────────────────────────────────
+   Two corrections after the diagram was consolidated into a shared component
+   (2026-07-29):
+
+   1. LABEL LEFT OF FIELD, not above. `.de-fld` is column-flex globally, which is
+      right for the dense two-column tabs but wrong here — this panel is a short
+      labelled list and reads as one when the label sits beside its input. Scoped
+      to `.de-dims` so no other tab is touched.
+   2. The diagram is HALF SIZE. The shared component is the 540x450 drawing (the
+      good one, with dimension arrows); the inline copy it replaced was 300x260,
+      so consolidating made this panel's illustration nearly twice as wide and it
+      crowded the fields. Constrained here rather than in the component, because
+      the component is shared and the size is this panel's concern. */
+
+
+/* The shared diagram component is the 540x450 drawing; the inline copy it
+   replaced was 300x260, so consolidating made this panel's illustration nearly
+   twice as wide and it crowded the fields. Constrained HERE rather than in the
+   component, because the component is shared and the size is this panel's
+   concern. */
+.de-general {
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 1 auto !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  gap: 6px !important;
+}
+/* The Comment box is this tab's FILLER — it takes the leftover width and the leftover height,
+   being the only field on the tab with no natural size. The selector carries `.de-general` and
+   both classes deliberately: `.de-fld` is one class too and declares `width: fit-content`
+   further down the sheet, which won on cascade order and collapsed the box to 50px.
+   bugs/BUG_20260817_driver_editor_general_comment_box_renders_50px_wide.md */
+.de-general .de-fld.de-comment {
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 1 auto !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-height: 0 !important;
+  margin-top: 4px !important;
+}
+.de-general .de-fld.de-comment textarea {
+  width: 100% !important;
+  height: 100% !important;
+  flex: 1 1 auto !important;
+  min-height: 120px !important;
+  padding: 8px 10px !important;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  font: inherit;
+  background: var(--panel);
+  color: var(--fg);
+  resize: vertical;
+  box-sizing: border-box !important;
+}
+
+.de-legend, .de-legend2 { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--mut); margin-top: 6px; }
+.de-sw { width: 14px; height: 14px; border: 1px solid var(--line); border-radius: 2px; display: inline-block; margin-left: 8px; }
+.de-legend .de-sw:first-child, .de-legend2 .de-sw:first-child { margin-left: 0; }
+.de-sw.value-e { background: var(--good); }
+.de-sw.value-c { background: var(--acc); }
+.de-sw.value-n { background: #333; }
+.de-auto { display: flex; align-items: center; gap: 6px; font-size: 12px; margin-top: 6px; opacity: .8; }
+
+/* Provenance colouring — text colour on the value, matching the legend swatches.
+   Three shapes: cellClass() lands directly on NumInput's root <input> (fallthrough
+   attrs), on a wrapping .de-fld for the read-only derived fields, or on the Connection
+   <select>, whose value is a wiring name rather than a number. */
+input.value-e, .de-fld.value-e input, select.value-e { color: var(--good); }
+input.value-c, .de-fld.value-c input, select.value-c { color: var(--acc); }
+input.value-n, .de-fld.value-n input, select.value-n { color: var(--mut); }
+
+/* ONE grid for the WHOLE tab, not one per section: WinISD's editor puts Qes, Mms, Xmax and
+   `no` on the same column edge even though they live under four different headings, and a grid
+   per section can only align the rows inside it. The section wrappers dissolve into it with
+   `display: contents`, so every field on the tab sits in the same four columns and each heading
+   spans the lot. The columns need no negotiation — every field component is the same width. */
+.de-params {
+  display: grid !important;
+  /* 4 field-slots per row, 4 tracks each (label/value/unit/alert) = 16 tracks. A `.de-fld`
+     subgrids across 4 of them (one field-slot); with only 4 tracks total here, every field
+     spanned the whole row and the tab rendered as one field per line instead of four. */
+  grid-template-columns: repeat(4, minmax(0, max-content) minmax(0, max-content) auto 34px) !important;
+  gap: 3px 12px !important;
+  align-items: center !important;
+  align-content: start !important;
+  justify-content: start !important;
+}
+.de-params > .de-group,
+.de-params .de-cols { display: contents !important; }
+.de-params .de-hdr { grid-column: 1 / -1 !important; margin: 2px 0 0 !important; }
+.de-hdr { background: var(--panel2); text-align: center; font-size: 11px; padding: 1px 0; border-radius: 3px; margin-bottom: 2px; color: var(--mut); }
+.de-col { display: flex; flex-direction: column; }
+
+.de-dims { display: flex; gap: 24px; align-items: flex-start; }
+.de-dimlist {
+  /* Sized by its widest row, not a fixed 200px — the labels alone are wider than that, which
+     is what forced them over their inputs. `max-content` on the label track keeps every row
+     on one column edge. FOUR tracks: label, input, DQ marker, unit — the marker needs a track
+     of its own or the row it appears on wraps and stops matching the rows around it. */
+  display: grid;
+  grid-template-columns: max-content max-content auto 34px;
+  align-items: center;
+  /* A tight row pitch: eight fields read as ONE list, as they do in WinISD's own Dimensions
+     page. Row spacing lives HERE and nowhere else — a per-field margin on top of it stacked
+     up to a 24px band between 24px inputs. */
+  gap: 4px 6px;
+  width: max-content;
+  flex-shrink: 0;
+}
+.de-note { font-size: 11px; color: var(--mut); font-style: italic; margin-top: 4px; }
+.de-diagram { flex: 1; display: flex; justify-content: center; padding-top: 0; }
+.de-diagram :deep(.dd-dim-svg) { color: var(--fg); }
+.de-diagram :deep(text) { fill: var(--fg); }
+
+.de-footer { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 14px; border-top: 1px solid var(--line); }
+.de-btns { display: flex; gap: 6px; }
+.de-btns .pri { background: var(--acc); color: #fff; border-color: var(--acc); }
+
+/* ONE FIELD = ONE COMPONENT, four parts: [label] [value] [unit] [alerts]. A unitless field
+   keeps its unit track empty rather than collapsing it, and a field with no DQ mark keeps its
+   alert track empty — every component in a column is therefore the SAME width, and same width
+   is what makes the columns line up with no per-field negotiation. `subgrid` is how the width
+   is shared: it takes the four tracks from the parent `.de-cols`/`.de-params` grid rather than
+   sizing itself, so "same width" is enforced structurally, not by a guessed pixel number that
+   fits one tab's labels and clips another's. The provenance highlight is painted on this box,
+   so it wraps all four parts as one component. */
+.de-fld {
+  display: grid !important;
+  grid-template-columns: subgrid !important;
+  grid-column: span 4 !important;
+  align-items: center !important;
+  gap: 4px !important;
+  margin-bottom: 0 !important;
+  width: fit-content !important;
+  max-width: 100% !important;
+  padding: 1px 4px !important;
+  border-radius: 4px !important;
+  box-sizing: border-box !important;
+  justify-self: start !important;
+}
+/* Connection sits directly UNDER Voicecoils, not beside it: an explicit column-1 start pushes
+   it past Voicecoils' own column-1 slot (already taken) into column 1 of the NEXT row. */
+.de-conn { grid-column: 1 / span 4 !important; }
+/* "Parallel"/"Series" plus the native select arrow do not fit the shared 75px input track —
+   it read as "Paralle" with the last letter clipped. Widened just for this one field. */
+.de-conn-sel { width: 96px !important; }
+.de-fld label {
+  display: block !important;
+  /* Sized by the shared subgrid track, never by a fixed pixel width: the track is as wide as
+     the column's longest label — Parameters/Advanced labels are short and the track shrinks to
+     match; Dimensions labels are 3-4x longer ("Driver Displacement Volume (Dvol)") and the same
+     mechanism gives them their own wider track. A hardcoded px width fits one and clips or
+     wastes space on the other. Every field in a column is still the SAME width, because they
+     all subgrid onto the same tracks — that sameness is what makes the columns line up and the
+     provenance highlight (painted on `.de-fld`, wrapping all four parts) read as one component
+     per field. bugs/BUG_20260817_driver_editor_labels_overflow_a_fixed_62px_column.md */
+  width: auto !important;
+  text-align: left !important;
+  flex: 0 0 auto !important;
+}
+.de-fld input,
+.de-fld select {
+  width: 75px !important;
+}
+
+/* Column-flex (labels-above) override specifically for the General tab */
+.de-general .de-fld {
+  flex-direction: column !important;
+  align-items: flex-start !important;
+  gap: 2px !important;
+  margin-bottom: 3px !important;
+}
+.de-general .de-fld label {
+  display: block !important;
+  width: auto !important;
+  text-align: left !important;
+  flex: none !important;
+}
+.de-general .de-fld input,
+.de-general .de-fld select {
+  width: 90px !important;
+}
+.de-general .de-row2 .de-fld input {
+  width: 100% !important;
+}
+
+/* FOUR field columns, each of four parts: label, input, DQ marker, unit. The parts are real
+   grid tracks so `.de-fld` can subgrid onto them — that is what puts every field in a column on
+   ONE label edge, ONE input edge and ONE unit edge, the way WinISD's own editor reads
+   (docs/winisd_screenshots/edit_driver_pg2_parameters.png). A field laid out inside a single wide track
+   instead starts its input wherever its own label happens to end, which put "no" and
+   "Voicecoils" 40px apart in the same column:
+   bugs/BUG_20260817_driver_editor_columns_do_not_share_a_column_edge.md
+   minmax(0, …) on the two content tracks: a bare max-content track refuses to shrink, and four
+   columns of them overran the modal and forced a sideways scroll. */
+.de-cols {
+  display: grid !important;
+  grid-template-columns: repeat(4, minmax(0, max-content) minmax(0, max-content) auto 34px) !important;
+  gap: 6px 12px !important;
+  align-items: center !important;
+}
+/* Placement is EXPLICIT, never by document order: a field without a DQ marker would otherwise
+   slide its unit into the marker's track and break the column it shares. */
+.de-cols .de-fld > label,
+.de-dimlist .de-fld > label { grid-column: 1 !important; }
+.de-cols .de-fld > input, .de-cols .de-fld > select,
+.de-dimlist .de-fld > input, .de-dimlist .de-fld > select { grid-column: 2 !important; }
+.de-cols .de-fld > .de-dq,
+.de-dimlist .de-fld > .de-dq {
+  grid-column: 3 !important;
+  /* The DQ track sits right against the input with no padding of its own, so the triangle
+     glyph rendered flush on the input's edge. A small left margin only, so it does not also
+     widen the label→input gap the alert-marker column has nothing to do with. */
+  margin-left: 4px !important;
+}
+.de-cols .de-fld > .u,
+.de-dimlist .de-fld > .u { grid-column: 4 !important; }
+
+/* Format picker — scoped to the editor, not the page, so it reads as part of the editor. */
+.fmt-scrim {
+  position: absolute; inset: 0; z-index: 10;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(0, 0, 0, .35);
+}
+.fmt-panel {
+  background: var(--panel); border: 1px solid var(--line); box-shadow: 0 6px 22px rgba(0,0,0,.35);
+  width: 460px; max-width: 92%; padding: 14px 16px; display: flex; flex-direction: column; gap: 8px;
+}
+.fmt-panel h3 { margin: 0 0 2px 0; font-size: 14px; font-weight: 600; color: var(--fg); }
+.fmt-opt {
+  all: unset; cursor: pointer; display: flex; flex-direction: column; gap: 3px;
+  padding: 9px 11px; border: 1px solid var(--line); color: var(--fg);
+}
+.fmt-opt:hover, .fmt-opt:focus-visible { border-color: var(--acc); background: color-mix(in srgb, var(--acc) 10%, transparent); }
+.fmt-opt:focus-visible { outline: 2px solid var(--acc); outline-offset: 1px; }
+.fmt-name { font-size: 13px; font-weight: 600; }
+.fmt-name code { font-weight: 400; opacity: .85; }
+.fmt-name em { font-style: normal; font-size: 11px; font-weight: 400; color: var(--acc2, var(--acc)); margin-left: 4px; }
+.fmt-note { font-size: 11px; line-height: 1.45; color: var(--mut); }
+.fmt-foot { display: flex; justify-content: flex-end; gap: 10px; margin-top: 2px; }
+.fmt-foot .pri { background: var(--acc); color: #fff; border-color: var(--acc); }
+.de-id-panel { width: 380px; }
+.de-id-panel h3 { color: #d9381e; }
+
+.de-save-my-panel .fmt-panel {
+  width: 540px !important;
+  max-width: 95% !important;
+}
+.de-save-my-panel .save-fld {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 10px !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+.de-save-my-panel .save-fld label {
+  width: 55px !important;
+  flex: 0 0 55px !important;
+  text-align: right !important;
+  font-weight: 600 !important;
+  font-size: 12px !important;
+  color: var(--mut);
+}
+.de-save-my-panel .save-brand-input,
+.de-save-my-panel .save-model-input {
+  flex: 1 1 auto !important;
+  width: 100% !important;
+  min-width: 320px !important;
+  padding: 6px 10px !important;
+  font-size: 13px !important;
+  box-sizing: border-box !important;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: var(--panel);
+  color: var(--fg);
+}
+
+/* ── DQ indicators ──────────────────────────────────────────────────────────── */
+/* Mandatory fields have bold border always, and red outline when empty. */
+.de-input-mandatory {
+  border-width: 2px !important;
+}
+.de-input-empty {
+  border-color: #d9381e !important;
+  box-shadow: 0 0 0 1px rgba(217, 56, 30, .25) !important;
+}
+/* `.de-dq`, the field-level DQ mark, is styled in style.css — Tune wears the same
+   mark, so one driver's data quality cannot look different in two places. */
+
+/* One strip, above the footer, naming everything that stops the driver simulating. It never
+   disables a button — see the DQ block in the script for why. */
+.de-incomplete {
+  display: flex; flex-direction: column; gap: 2px;
+  padding: 5px 14px; border-top: 1px solid var(--line);
+  background: color-mix(in srgb, #d9381e 8%, transparent);
+  font-size: 11px; line-height: 1.4;
+}
+.de-incomplete-hd   { color: #d9381e; font-weight: 600; }
+/* Capped at 5 lines (5 × line-height 1.4em = 7em); a 6th reason scrolls instead of pushing the
+   footer down. */
+.de-incomplete-list {
+  color: var(--mut); margin: 0; padding-left: 1.2em;
+  max-height: 7em; overflow-y: auto;
+}
+.de-incomplete-subject { color: var(--fg); font-weight: 600; }
+</style>

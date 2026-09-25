@@ -1,0 +1,12 @@
+{
+  "no-file-urls-guard": {
+    "enabled": true,
+    "PreInvocation": [
+      {
+        "type": "command",
+        "command": "python3 /home/john/.gemini/config/no_file_urls_hook.py",
+        "timeout": 5
+      }
+    ]
+  }
+}

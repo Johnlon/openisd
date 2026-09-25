@@ -1,0 +1,79 @@
+/**
+ * UI-facing closed-form derivations — pure functions shared by every panel so the
+ * physics lives in ONE place instead of being copy-pasted per component (PR Vas/Fs/Qms, drive
+ * voltage).
+ *
+ * Air properties (ρ, c) are NOT here: they belong to `air.ts`, which the UI, the sweep and
+ * the circuit all call through `solveEnvironment`.
+ */
+import {solveEnvironment} from './air.js';
+
+/**
+ * Passive-radiator compliance-equivalent volume Vas, in CUBIC METRES.
+ * Vas = Cms · Sd² · ρ · c². No environment reaches this call site, so ρ/c are computed live at
+ * the reference environment — never a stored constant.
+ */
+export function prVas(prCms: number, prSd: number): number {
+  const {rho, c} = solveEnvironment({}).values;
+  return prCms * prSd * prSd * rho * c * c;
+}
+
+/**
+ * Passive-radiator resonance loaded with added cone mass: same form using (Mmd + Madd).
+ * Returns 0 when the total mass or compliance is non-positive.
+ */
+export function prFsWithMass(prMmd: number, prMadd: number, prCms: number): number {
+  const m = prMmd + prMadd;
+  return m > 0 && prCms > 0 ? 1 / (2 * Math.PI * Math.sqrt(m * prCms)) : 0;
+}
+
+/**
+ * Passive-radiator mechanical Q: Qms = √(Mmd/Cms) / Rms. Returns 0 when Rms is non-positive.
+ */
+export function prQms(prMmd: number, prCms: number, prRms: number): number {
+  return prRms > 0 ? Math.sqrt(prMmd / prCms) / prRms : 0;
+}
+
+/**
+ * Drive voltage from reference (system) power and voice-coil resistance: V = √(Pin · Re).
+ * Matches WinISD's reference-power convention.
+ */
+export function driveVoltage(pin: number, re: number): number {
+  return Math.sqrt(pin * re);
+}
+
+/**
+ * Reference power from drive voltage and voice-coil resistance — the inverse of `driveVoltage`:
+ * P = V² / Re.
+ */
+export function driveFromVoltage(eg: number, re: number): number {
+  return (eg * eg) / re;
+}
+
+/**
+ * Passive-radiator compliance from Vas (cubic metres) and Sd — the inverse of `prVas`:
+ * Cms = Vas / (Sd² · ρ · c²). Returns 0 when Sd is non-positive (undefined compliance).
+ */
+export function prCmsFromVas(prVas_m3: number, prSd: number): number {
+  if (!(prSd > 0)) return 0;
+  const {rho, c} = solveEnvironment({}).values;
+  return prVas_m3 / (prSd * prSd * rho * c * c);
+}
+
+/**
+ * Passive-radiator moving mass from free-air Fs and compliance — the inverse of
+ * `prFsWithMass` with no added mass: Mmd = 1 / ((2π·Fs)² · Cms). Returns 0 when Fs or Cms is
+ * non-positive.
+ */
+export function prMmdFromFs(prFsHz: number, prCms: number): number {
+  return prFsHz > 0 && prCms > 0 ? 1 / ((2 * Math.PI * prFsHz) ** 2 * prCms) : 0;
+}
+
+/**
+ * Passive-radiator mechanical resistance from Qms/Mmd/Cms — the inverse of `prQms`:
+ * Rms = √(Mmd/Cms) / Qms. Returns 0 when Qms is non-positive.
+ */
+export function prRmsFromQms(prQmsValue: number, prMmd: number, prCms: number): number {
+  return prQmsValue > 0 ? Math.sqrt(prMmd / prCms) / prQmsValue : 0;
+}
+

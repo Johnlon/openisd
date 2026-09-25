@@ -1,0 +1,67 @@
+#!/bin/sh
+# openisd pre-push gate: the agent self-attribution check, then the test suite.
+#
+# stdin carries the ref list and can only be read ONCE, so capture it up front and
+# replay it to every consumer below.
+refs=$(cat)
+
+# ── AI attribution gate ──────────────────────────────────────────────────────────────
+# Every commit being pushed must be free of AI attribution (see
+# scripts/hooks-local/no-ai-attribution.sh). commit-msg already blocks this at commit
+# time; repeating it here is what stops a `git commit --no-verify` reaching a remote.
+guard="$(git rev-parse --show-toplevel)/scripts/hooks-local/no-ai-attribution.sh"
+z40=0000000000000000000000000000000000000000
+attribution_failed=0
+while read local_ref local_oid remote_ref remote_oid; do
+  [ "$local_oid" = "$z40" ] && continue
+  if [ "$remote_oid" = "$z40" ]; then
+    # New remote ref — every commit not already on some remote is being published.
+    range=$(git rev-list "$local_oid" --not --remotes)
+  else
+    range=$(git rev-list "$remote_oid..$local_oid")
+  fi
+  for sha in $range; do
+    if ! git log -1 --format=%B "$sha" | "$guard"; then
+      echo "    ...in commit $(git log -1 --format='%h %s' "$sha")"
+      attribution_failed=1
+    fi
+  done
+done <<REFS
+$refs
+REFS
+
+if [ "$attribution_failed" = "1" ]; then
+  echo "[pre-push] BLOCKED — rewrite the offending messages (git rebase -i) and push again."
+  exit 1
+fi
+
+# Exception: if every commit being pushed touches ONLY *.md files, skip the full
+# CI run (the unit/browser suites add no signal for doc-only changes, and the
+# browser suite is the slow part) — but lint + typecheck are whole-project checks,
+# so they STILL run: a doc-only push of a branch that is already red must not ship
+# pre-existing failures. A brand-new branch/ref, or any push that includes even one
+# non-.md change, always runs the full gate. (`z40` is set by the attribution gate above.)
+doc_only=1
+while read local_ref local_oid remote_ref remote_oid; do
+  [ "$local_oid" = "$z40" ] && continue
+  if [ "$remote_oid" = "$z40" ]; then
+    doc_only=0
+    continue
+  fi
+  changed=$(git diff --name-only "$remote_oid..$local_oid" --diff-filter=ACMR)
+  if [ -n "$changed" ] && printf '%s\n' "$changed" | grep -qv '\.md$'; then
+    doc_only=0
+  fi
+done <<REFS
+$refs
+REFS
+
+if [ "$doc_only" = "1" ]; then
+  echo "[pre-push] doc-only push (*.md) — skipping unit/browser; typecheck + lint still run to block a red branch…"
+  npm run typecheck
+  npm run lint
+  echo "[pre-push] doc-only + typecheck/lint green ✓"
+  exit 0
+fi
+
+npm run ci

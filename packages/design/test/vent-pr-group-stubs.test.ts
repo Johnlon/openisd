@@ -1,0 +1,117 @@
+import {describe, expect, it} from 'vitest';
+import {Engine} from '@openisd/design/engine';
+import {OpenISDDriver, OpenISDProject} from '../domain/index.js';
+
+// This test is the package's PROXY CONSUMER: it imports from `index.js` only.
+const scraped = <T,>(value: T) => ({ value });
+const spec = (read_value: number) =>
+  ({ state: 'E' as const, value: read_value, origin: 'scraped', readings: { scraped: { read_value } } });
+
+function ventedProject() {
+  const record = {
+    uuid: { value: '00000000-0000-4000-8000-000000000000' },
+    manufacturer: scraped('Dayton'), brand: scraped('Dayton'), model: scraped('RS225'),
+    provided_by: scraped('test'), comment: scraped(''), added: scraped('2026-01-01'),
+    sku: { value: 'TEST-SKU', grounds: [{ origin: 'manufacturer_datasheet', reading: 'TEST-SKU' }] },
+    driver_type: scraped('woofer'),
+    data_sources: { value: { manufacturer_datasheet: 'https://example.invalid/ds.pdf' } },
+    authoritative: { value: 'manufacturer_datasheet' },
+    quality: {
+      confirmed_fields: [], fields_with_issues: [], missing: [], invalid: [],
+      parse_errors: [], cross_source_only: [],
+    },
+    specs: {
+      woofer: {
+        Fs_hz: spec(30), Qts: spec(0.4), Sd_m2: spec(0.02), Cms_m_per_N: spec(0.0005),
+        Mms_kg: spec(0.05), Rms_kg_per_s: spec(2), Xmax_m: spec(0.008),
+      },
+    },
+  };
+  const driver = OpenISDDriver.fromConformingRecord(record, new Engine());
+  if (Array.isArray(driver)) throw new Error(`fixture is not a valid driver: ${driver.join(', ')}`);
+  return OpenISDProject.builder(driver, new Engine()).vented().volume_m3(0.03).tuning_goal_hz(35).build();
+}
+
+/**
+ * The six vent/PR group-solve methods report "nothing solved, nothing known".
+ *
+ * They answer the tuning ↔ paired-quantity relation — vent length on a vented box, added cone mass
+ * on a passive-radiator one — which is NOT WIRED: `tuning_goal_hz` is a stored value no calculation
+ * consumes, and the forward/inverse methods that would close the loop have no callers. That
+ * feature is ruled and scoped in QO126
+ * (`bugs/BUG_20260908_tuning_and_its_paired_quantity_never_solve_each_other.md`).
+ *
+ * What is pinned here is the INTERIM contract, and specifically that these do not THROW:
+ * `notifyVentChanged()` runs on every project change (`packages/ui/src/logic/appState.ts`), so a
+ * throw means no project can be opened at all. Doing nothing is what the app did before the
+ * migration, when neither direction had a caller.
+ *
+ * These assertions are expected to CHANGE when QO126 lands — a solved pair makes
+ * `ventAchievedFb()` return a real frequency. This file pins today's behaviour so that change is
+ * deliberate and visible, not a silent drift.
+ */
+describe('vent-group solve/reachability — Helmholtz solver implementations', () => {
+  it('notifyVentChanged() runs without throwing — the store calls it on every project change', () => {
+    expect(() => ventedProject().notifyVentChanged()).not.toThrow();
+  });
+
+  it('notifyVentChanged() derives vent length when tuning_goal_hz is entered', () => {
+    const p = ventedProject();
+    p.box.vented.vent.shape.set('round');
+    p.box.vented.vent.diameter_m.set(0.05);
+    p.box.vented.vent.endCorrection_m.set(0.6);
+    p.notifyVentChanged();
+
+    const len = p.box.vented.vent.length_m.value;
+    expect(len).not.toBeNull();
+    expect(len!).toBeGreaterThan(0);
+  });
+
+  it('ventAchievedFb is a ReadonlyField reporting the actual tuning frequency', () => {
+    const p = ventedProject();
+    p.box.vented.vent.shape.set('round');
+    p.box.vented.vent.diameter_m.set(0.05);
+    p.box.vented.vent.endCorrection_m.set(0.6);
+    p.notifyVentChanged();
+
+    expect(p.ventAchievedFb.calculated).toBe(true);
+    const fb = p.ventAchievedFb.value;
+    expect(fb).not.toBeNull();
+    expect(Math.round(fb!)).toBe(35);
+  });
+
+  it('ventMaxReachableFb is a ReadonlyField reporting the L=0 tuning ceiling', () => {
+    const p = ventedProject();
+    p.box.vented.vent.shape.set('round');
+    p.box.vented.vent.diameter_m.set(0.05);
+    p.box.vented.vent.endCorrection_m.set(0.6);
+
+    expect(p.ventMaxReachableFb.calculated).toBe(true);
+    const maxFb = p.ventMaxReachableFb.value;
+    expect(maxFb).not.toBeNull();
+    expect(maxFb!).toBeGreaterThan(35);
+  });
+
+  it('an unreachable target writes null and a target-unreachable dq mark onto length_m', () => {
+    const p = ventedProject();
+    p.box.vented.vent.shape.set('round');
+    p.box.vented.vent.diameter_m.set(0.05);
+    p.box.vented.vent.endCorrection_m.set(0.6);
+    p.box.vented.tuning_goal_hz.set(500); // impossible high target
+    p.notifyVentChanged();
+
+    expect(p.box.vented.vent.length_m.value).toBeNull();
+    expect(p.box.vented.vent.length_m.dq.some(issue => issue.kind === 'target-unreachable')).toBe(true);
+  });
+});
+
+describe('PR-group solve/reachability — nothing wired, so nothing solved', () => {
+  it('notifyPrChanged() runs without throwing', () => {
+    expect(() => ventedProject().notifyPrChanged()).not.toThrow();
+  });
+
+  it('a vented project carries no target-unreachable dq on the passive-radiator group', () => {
+    const p = ventedProject();
+    expect(p.box.passiveRadiator.addedMass_kg.dq.some(issue => issue.kind === 'target-unreachable')).toBe(false);
+  });
+});

@@ -1,0 +1,129 @@
+import type {Page} from '@playwright/test';
+import {expect, openAProject, test} from '../fixtures.js';
+import {MY_DRIVERS_KEY, myDriversJson} from '../fixtures/seedMyDrivers.js';
+
+// ui-todo.md "Single click opens a driver summary, not the editor" — the picker
+// (DriverBrowser.vue) previews before it selects.
+//
+// docs/design/STATE_MODEL.md rule 1 governs what a selection DOES, and it changed under this spec: a
+// choice now EMBEDS the driver in the project and closes the picker — no editor in the way.
+// So the summary is a reading step in front of that embed, and Use is the moment of choice.
+// Editing is a separate act afterwards, from the Driver panel.
+//
+// The driver is seeded into My Drivers rather than taken from the bundled catalogue, so the
+// spec does not depend on how many records the bundler currently ships.
+
+// The row's name is the driver's own Brand + Model (displayNameOf), so the fixture's identity
+// IS "Summary Fixture" — there is no separate stored name field.
+const PICKED = 'Summary Fixture';
+const EDITOR = '.de-modal';
+const SUMMARY = '.preview';
+
+test.beforeEach(async ({ page }) => {
+  await page.goto('/');
+  await openAProject(page);
+  await page.evaluate(([key, json]) => {
+    localStorage.setItem(key, json);
+  }, [MY_DRIVERS_KEY, myDriversJson([{
+    brand: 'Summary', model: 'Fixture',
+    specs: {
+      Fs_hz: 41, Qts: 0.35, Qes: 0.38, Qms: 4.5, Vas_m3: 0.028, Sd_m2: 0.0132,
+      Re_ohm: 5.4, Le_H: 0.5e-3, Xmax_m: 0.0055, Pe_W: 70, Znom_ohm: 8,
+    },
+  }])] as const);
+  await page.goto('/');
+  await openAProject(page);
+});
+
+// The project's own driver, read off the Original shell's read-only Brand/Model pair — the
+// same pair `my-drivers.browser.spec.ts` reads. It reflects the PROJECT's embedded driver, so
+// a change here IS a change to the design; there is no separate persisted-state key to read.
+async function currentDriver(page: Page): Promise<string> {
+  const row = page.locator('.driver-id-row').first();
+  return `${await row.locator('input').nth(0).inputValue()}/${await row.locator('input').nth(1).inputValue()}`;
+}
+
+async function openSummary(page: Page): Promise<void> {
+  await page.locator('[title*="librar" i]').first().click();
+  await page.locator('.my-ditem b', { hasText: PICKED }).click();
+  await expect(page.locator(SUMMARY), 'the row click did not open the summary').toBeVisible();
+}
+
+test('a single click opens the summary and does NOT open the editor', async ({ page }) => {
+  await openSummary(page);
+  await expect(page.locator(EDITOR), 'the row click went straight into the driver editor')
+    .toBeHidden();
+});
+
+test('the summary shows what we know about the driver', async ({ page }) => {
+  await openSummary(page);
+  // Its identity, and real values off the record — not an empty shell.
+  await expect(page.locator('.wb-modal h2')).toContainText(PICKED);
+  await expect(page.locator(`${SUMMARY} .spec-row`).first()).toBeVisible();
+  await expect(page.locator(SUMMARY)).toContainText('Fs');
+  await expect(page.locator(SUMMARY)).toContainText('41');
+});
+
+test('Cancel returns to the list with nothing changed', async ({ page }) => {
+  const before = await currentDriver(page);
+  await openSummary(page);
+
+  await page.locator(`${SUMMARY} .cancel-btn`).click();
+
+  await expect(page.locator(SUMMARY), 'Cancel did not close the summary').toBeHidden();
+  await expect(page.locator('.dlist'), 'Cancel did not return to the driver list').toBeVisible();
+  await expect(page.locator(EDITOR), 'Cancel opened the editor').toBeHidden();
+  expect(await currentDriver(page),
+    'Cancel changed the design').toBe(before);
+});
+
+test('Use embeds the driver in the project and closes the picker', async ({ page }) => {
+  const before = await currentDriver(page);
+  await openSummary(page);
+
+  await page.locator(`${SUMMARY} .use-btn`).click();
+
+  // docs/design/STATE_MODEL.md rule 1: the choice IS the commit. No editor stands in the way, and the
+  // picker gets out of the way too. `.wb-modal` is this picker's own class — the broader
+  // `.modal:not(.de-modal)` matches two elements in the Original shell.
+  await expect(page.locator(EDITOR), 'Use opened the editor — choosing is not editing')
+    .toBeHidden();
+  await expect(page.locator('.wb-modal'), 'the picker stayed open after the driver was chosen')
+    .toBeHidden();
+  expect(await currentDriver(page), 'Use did not embed the chosen driver in the project')
+    .not.toBe(before);
+});
+
+// Use is the primary action and Cancel is the way out; they must not look like the same
+// button. This is the third time a rule in this component has been silently beaten by the
+// blanket `.wb-modal button` rule (see bugs/_archive for the chip case), and every previous
+// time the class was applied correctly while the paint was not — so this asserts the PAINT.
+test('Use is styled as the primary action, distinct from Cancel', async ({ page }) => {
+  await openSummary(page);
+
+  const paint = (sel: string) => page.locator(sel).evaluate((el) => {
+    const cs = getComputedStyle(el);
+    return { bg: cs.backgroundColor, fg: cs.color };
+  });
+
+  await page.mouse.move(0, 0);
+  const use = await paint(`${SUMMARY} .use-btn`);
+  const cancel = await paint(`${SUMMARY} .cancel-btn`);
+
+  expect(use.bg, 'Use and Cancel have the same fill — Use is not reading as the primary action')
+    .not.toBe(cancel.bg);
+});
+
+test('the summary carries a favourite toggle, and the star it sets shows on the row', async ({ page }) => {
+  await openSummary(page);
+
+  const star = page.locator(`${SUMMARY} .fav-btn`);
+  await expect(star, 'the summary has no favourite toggle').toHaveCount(1);
+  await expect(star, 'the summary star started out already on').not.toHaveClass(/on/);
+  await star.click();
+  await expect(star, 'the summary star did not light up').toHaveClass(/on/);
+
+  await page.locator(`${SUMMARY} .cancel-btn`).click();
+  await expect(page.locator('.my-ditem').filter({ hasText: PICKED }).locator('.fav-btn'),
+    'starring in the summary did not mark the same driver in the list').toHaveClass(/on/);
+});

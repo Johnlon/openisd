@@ -1,0 +1,9 @@
+#!/bin/sh
+# Blocks a commit whose message carries AI attribution — see
+# scripts/hooks-local/no-ai-attribution.sh for the rule and the reason.
+#
+# Why commit-msg and not pre-commit: pre-commit runs BEFORE the message exists, so it
+# cannot see one. commit-msg is the commit-time hook that can, and git passes the message
+# file as $1. pre-push carries the same check as a backstop against --no-verify.
+set -e
+"$(git rev-parse --show-toplevel)/scripts/hooks-local/no-ai-attribution.sh" < "$1"

@@ -36,7 +36,7 @@ Good failure is **near the cause, and named** — not a blank chart.
 
 ## The pattern the codebase uses: validate at the boundary, communicate with `Result`
 
-The engine's error contract (`js-patterns.md`) is Go-style: the parse/derive
+The engine's error contract is Go-style: the parse/derive
 entry points return `Result<T> = { value: T | null, errors: DriverError[] }` with
 levelled errors (`error` blocks; `warn` drops one reference line). The pure
 calculation functions (`solve`, `sweep`, `maxCurves`) take an already-validated

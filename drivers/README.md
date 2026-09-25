@@ -1,66 +1,48 @@
 # Driver library
 
 Related docs:
-[`WDR_SCHEMA.md`](../WDR_SCHEMA.md) — WDR field spec and `_meta.yml` sidecar format ·
-[`WDR_FILE_MODEL_AND_WORKFLOWS.md`](../WDR_FILE_MODEL_AND_WORKFLOWS.md) — link-field workflows, DQ check, scripts reference ·
-[`DRIVER_TYPES.md`](DRIVER_TYPES.md) — classification rules
+[`WINISD_SCHEMA.md`](../docs/design/WINISD_SCHEMA.md) — WDR field spec ·
+[`BACKLOG.md` "Driver type classification and matching"](../BACKLOG.md) — the driver file model ·
+[`DRIVER_TYPES.md`](DRIVER_TYPES.md) — classification rules ·
+[`VENDOR-APIS.md`](VENDOR-APIS.md) — vendor API research
 
-Scraper-side docs (unit conversions, Xmax/brand-name conventions, vendor API
-research) live in the sibling `winisd_tools` repo, not here.
-
-OpenISD's driver data is an open commons. Two ways drivers reach the tool:
-
-1. **Bundled** — `.wdr` files in subfolders here (`demos/`, `matt/`, `winisd/`, `sample/`).
-   Each driver has a `_meta.yml` sidecar with provenance and quality metadata.
-2. **Federated** — links to other people's driver libraries in [`sources.json`](sources.json).
-   The in-app driver browser reads those sources and fetches `.wdr` files on demand —
-   no re-hosting, no staleness, the original maintainer stays in control. The larger
-   scraped collections (dayton-audio, loudspeakerdatabase, parts-express, sb-acoustics,
-   scan-speak, soundimports, wavecor) are federated this way from the sibling
-   `winisd_drivers` repo, maintained by `winisd_tools`.
+OpenISD's driver data is an open commons. The app consumes one bundled corpus from the sibling
+`winisd_drivers/db/datasheets` checkout. A record is `<driver>/openisd.yml`, written by
+winisd_tools; it carries the T/S values, provenance and quality together.
 
 You can also paste any GitHub repo of `.wdr` files into the browser ad hoc.
 
-## Add a federated source
+The bundler reads that corpus directly. Other directories under `drivers/` are reference material
+unless a later product decision gives them an explicit consumer.
 
-Open a PR appending an entry to [`sources.json`](sources.json):
+## Directory guide
 
-```json
-{
-  "name": "Your Library Name",
-  "type": "github",
-  "repo": "owner/repo",
-  "branch": "main",
-  "path": "subfolder-or-empty-string",
-  "fileExtension": ".wdr",
-  "url": "https://github.com/owner/repo",
-  "description": "What's in it.",
-  "license": "the source's license"
-}
-```
+| Directory | What it is | Details |
+| --- | --- | --- |
+| [`myprobes/`](myprobes/README.md) | WDR files created by manually probing the WinISD app itself — dummy/sentinel values used to reverse-engineer WinISD's field and `ParState` behaviour. **Not real drivers.** | [`myprobes/README.md`](myprobes/README.md) |
+| [`winisdpro/`](winisdpro/README.md) | **Legacy.** Driver files pulled from an old WinISD distribution (circa 2006 or earlier). They do not match the modern WDR format — notably they lack `ParState`, and other fields may differ too. Historical/fallback reference only. | [`winisdpro/README.md`](winisdpro/README.md) |
+| [`matt/`](matt/README.md) | A collection of real driver files sourced from online (AVS Forum, contributor mtg90). These appear to match the format produced by the latest WinISD Pro, making this collection a better oracle for "what would a human actually produce" than the legacy `winisdpro/` archive. | [`matt/README.md`](matt/README.md) |
 
-`path` — `""` for repo root, or a subfolder like `"drivers"`. Only metadata lives here —
-driver files stay in the source repo.
+None of the three are wired into the app's bundled corpus — that's `winisd_drivers/db/datasheets`
+only (see above). Each subdirectory's own README has the full detail; do not add any of them to
+the bundled corpus without checking with the human first.
 
-## Underscore-prefix convention — excluded from the app bundle
+## No scratch space here
 
-Any directory inside `drivers/` whose name starts with `_` is **invisible to the app**.
-`scripts/bundle-drivers.mjs` skips all `_`-prefixed directories when it walks the tree,
-so their contents are never included in `drivers-bundle.json` and Vite never sees them.
+`drivers/` holds driver data and nothing else. Working files, caches and scratch output go
+in `build/` at the repo root (`AGENTS.md` §"Transient files live in `build/`"), where their
+status is obvious and git ignores them.
 
-The bundled collections here (`demos/`, `matt/`, `winisd/`, `sample/`) are hand-curated
-and have no scraper cache subdirectories today. The scraper-generated `_html/`,
-`_datasheets/`, `_ocr/`, `_problems/` subdirectories live in the sibling `winisd_drivers`
-repo, alongside the collections they belong to.
-
-**Rule:** if you need to add a working directory, cache directory, or scratch space inside
-`drivers/`, prefix its name with `_` so the bundle walker automatically ignores it.
+A collection arriving from the pipeline that produced it may carry `_`-prefixed cache
+directories (`_html/`, `_datasheets/`). Those are ignored by `.gitignore` and by Vite's
+watcher, so they are never served, watched, or committed.
 
 ## Add a bundled driver
 
-Create or use an appropriate subfolder, drop a `.wdr` file there, create a `_meta.yml`
-sidecar with provenance fields, and open a PR. Import the spec sheet in the app first
-and sanity-check the curves.
+A driver record is `<collection>/<driver>/openisd.yml`, produced by winisd_tools from
+the manufacturer's datasheet. Open a PR there, not here — this repo consumes records,
+it does not author them. Import the spec sheet in the app first and sanity-check the
+curves.
 
 Spotted a wrong number? Open a PR — the point of an open commons is that anyone can
 correct it.

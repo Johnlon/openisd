@@ -2,7 +2,7 @@
 
 ## Context
 
-A full-codebase review (Python scrapers, JS/Vue, structure/docs) produced a set of
+A full-codebase review (JS/Vue, structure/docs) produced a set of
 verified findings and 10 preventative practices. This plan tracks remediation.
 
 **Artifacts:**
@@ -16,15 +16,6 @@ verified findings and 10 preventative practices. This plan tracks remediation.
 
 ## Approach (priority order)
 
-1. **`#4` — PE scraper data-corruption bugs** (`CODE_REVIEW.md` §1-3). Highest
-   value, lowest risk; these silently corrupt scraped data.
-   - `scrape_pe.py:188` pagination truncation (missing `total` → break after page 1)
-   - `scrape_pe.py:309` freq regex mis-scales kHz (optional low-end unit)
-   - `scrape_wavecor.py:251` label gate reads wattage cell as `freq_high_hz`
-2. **`#5` — Unify `scraper_lib.py`** (§5). Collapse the two divergent copies
-   (632 vs 834 lines) into one canonical module.
-3. **`#6` — Scraper robustness** (§6-8). Replace bare `except: pass` with problem-log
-   entries; retry non-`ok` URLs; key OCR cache by content hash/mtime.
 4. **`#9` — Docs/structure + CI guards** (§13-15). Fix history-in-docs violations,
    broken links, competing canonical sources; add no-history grep + link-checker.
 
@@ -36,9 +27,8 @@ verified findings and 10 preventative practices. This plan tracks remediation.
 
 ## Verification
 
-- After each scraper fix: re-run the relevant scraper on a small sample, confirm the
-  corrected field, and check `_problems.log` (per `SDLC.md` §5 data pipeline loop).
-- Add/extend a test in the shared write path for `#5`.
+corrected field, and check `_problems.log` (per `SDLC.md` §5 data pipeline loop).
+
 - JS fixes (`#7`): `npm test` + `npm run test:visual`; `/verify` for the UI behaviour.
 - Docs/CI (`#9`): the new no-history grep and markdown link-checker must pass.
 - Each finding is deleted from `CODE_REVIEW/CODE_REVIEW.md` once its fix lands (the

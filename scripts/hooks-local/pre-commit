@@ -1,0 +1,34 @@
+#!/bin/sh
+# Fast gate on EVERY commit — lint + unit + golden tests. Blocks the commit on any
+# red so a failure cannot ride along commit-to-commit (the "an issue from hours ago
+# persisted" failure mode). These are all fast (no browser, no network, no python).
+#
+# The FULL suite — browser tests, DQ, scraper tests — runs at pre-push
+# (npm run ci) and via scripts/health-check.sh, which you MUST run before claiming
+# a change "done". A green pre-commit is necessary, not sufficient.
+#
+# Exception: a commit that touches ONLY *.md files cannot change runtime behaviour,
+# so the unit/browser suites add no diff-level signal — skip them. But typecheck and
+# lint are whole-project checks, so they STILL run: a doc-only commit on a branch
+# that is already red (pre-existing type/lint failures) must not ride those failures
+# along commit-to-commit. Any commit that touches even one non-.md file runs the
+# full gate as normal.
+set -e
+changed=$(git diff --cached --name-only --diff-filter=ACMR)
+if [ -n "$changed" ] && ! printf '%s\n' "$changed" | grep -qv '\.md$'; then
+  echo "[pre-commit] doc-only commit (*.md) — skipping unit; typecheck + lint still run to block a red branch…"
+  npm run typecheck
+  npm run lint
+  echo "[pre-commit] doc-only + typecheck/lint green ✓"
+  exit 0
+fi
+echo "[pre-commit] lint + typecheck + unit (incl. golden) — blocking commit on any red…"
+npm run lint
+npm run typecheck
+# PRECOMMIT=1: the born-red CHECKLIST gates (PrivateAllow / ALLOWED_GLOBALS / no-re-exports)
+# self-skip, loudly — their offence lists are the human's to-do list, enforced at
+# ci/health-check and A10's byte-identical allow-list check, not per commit. Every
+# behavioural test still blocks. See the checklistDescribe guards in
+# packages/ui/test/ui/architecture.test.ts and architecture-no-reexports.test.ts.
+PRECOMMIT=1 npx vitest run packages/design packages/persistence packages/ui
+echo "[pre-commit] all green ✓ (checklist gates deferred to ci/A10)"

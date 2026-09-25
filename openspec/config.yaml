@@ -1,0 +1,53 @@
+schema: spec-driven
+
+context: |
+  openisd — a TypeScript reimplementation of WinISD (loudspeaker enclosure simulator).
+  Monorepo: packages/engine (pure-TS calculation core, Vitest unit tests) and
+  packages/ui (Vue 3 + Playwright browser tests, layered @ui/@logic/@db/@diagnostics/@logging).
+  Spec capabilities: app-shell, core-engine, driver-database, driver-editor,
+  project-management, ui-presentation.
+
+  Hard project constraints (full text in AGENTS.md and ../.claude/rules/):
+  - WinISD is the parity oracle. Reverse-engineered algorithms and golden values live in
+    ../winisd_research (e.g. SEALED_FSC_MODEL.md). Cite the research doc for any algorithm.
+  - Calculation logic, physical constants, display precision and result-affecting defaults
+    are permission-gated: no change without explicit human permission in the conversation.
+  - TDD is mandatory: failing test first, watch it fail, fix, watch it pass, then the full
+    gate (bash scripts/health-check.sh). Browser suite runs with --workers=1, one full
+    suite at a time, in the background.
+  - Every test block carries a spec-traceability comment linking its
+    openspec/specs/<capability>/spec.md section; every spec section lists its verifying
+    tests (scripts/validate-openspec.py, enforced by pre-commit and health-check).
+  - Engine error contract: functions that do I/O, validation or fallible calculation return
+    { value, errors } Result objects — production code never throws. Pure math functions in
+    packages/engine/src/ taking an already-validated Driver are plain-return.
+  - Closed value sets are enums, never raw string literals.
+  - No magic numbers in packages/engine/src/ — every non-obvious constant carries its
+    physical meaning plus a verified citation.
+
+rules:
+  proposal:
+    - State explicitly whether the change touches calculation logic, physical constants,
+      display precision or result-affecting defaults, and quote the conversation permission
+      that authorises it.
+    - Name the WinISD reference behaviour and the ../winisd_research doc/section that
+      defines the expected values.
+  specs:
+    - Every requirement must be verifiable by a named test file; golden numeric values
+      state their oracle (WinISD capture, micka.de crosscheck, or research-doc derivation).
+  design:
+    - Cite the engine source files touched and the research-doc sections for any formula.
+  tasks:
+    - Order tasks red→green — the failing test lands before the fix.
+    - Include a task updating spec-traceability comments in every touched test file.
+    - Final task is the full gate — bash scripts/health-check.sh, 100% green.
+
+operations:
+  apply:
+    guidance:
+      - Run focused tests before the full suite.
+      - Never claim done until scripts/health-check.sh is fully green.
+      - Commits use the "(auto) " subject prefix and carry no AI attribution.
+  archive:
+    guidance:
+      - Keep the completion summary concise.

@@ -8,6 +8,112 @@
 
 ---
 
+## 2026-09-14 — Bundled catalogue: index + on-demand records
+
+- The app no longer ships or parses a 10 MB driver bundle on every page load: the bundler writes a search index per kind (`drivers-index.json` 811 KB, `passive-radiators-index.json` 34 KB) plus one record file per device, and the pickers list rows off the index and fetch a record only when a device is picked (`createBundledDriverRepo` / `createBundledPassiveRadiatorRepo`, `docs/design/BUNDLED_CATALOGUE_API.md`). Per-page-load transfer in dev: 49 MB → 0; the JS bundle drops the 9.5 MB of inlined JSON.
+- Nothing is cached indefinitely: a fetched index or device is trusted for an hour, then fetched again; the service worker caches catalogue files stale-while-revalidate with a 7-day expiry, and `autoUpdate` reloads open pages onto a new build.
+- The passive-radiator browser flags data quality like the driver picker (`radiatorHasDqIssues`, row `dq`), and identifies a bundled radiator by its record uuid rather than its list position.
+- The browser suite runs against six reference devices (`packages/ui/test/fixtures/test-bundle-paths.json`, cut from the tracked catalogue by `scripts/test-bundle.mjs` — no corpus needed, so CI can do it) and its vite runs no file watcher; 17 redundant clear-and-reload page loads were removed from the specs.
+- Gates run faster: `npm run lint` 17 s → 4 s (eslint cache), `npm run typecheck` 40 s → 26 s (the three packages in parallel), vue-tsc no longer types a 10 MB literal, `predev`/`prebuild` skip the bundler when the corpus and its sources are unchanged (0.4 s instead of 14 s).
+- New TypeScript rule (`.claude/rules/typescript.md`): no inline object types in new code — every object type is declared once, by name.
+
+## 2026-09-13 — Sealed reference baseline
+
+- **The sealed comparison reference is fixed.** Use the exact Tang Band W5-1138SMF driver in a 6 L sealed enclosure at 1 W input for sealed readout, chart, and golden comparisons; do not substitute another driver, enclosure volume, or drive level.
+
+## 2026-08-12 — Options modal draft isolation, wider input boxes, dynamic colors, and scrollbar optimizations
+
+- **Options modal edits are drafted and only applied when clicking 'OK'.** Implemented draft settings reactive state in `OptionsModal.vue` so that edits are discarded when closing the dialog via "Cancel" or "✕" and only committed on clicking "OK".
+- **Added a 'Defaults' button to easily restore default settings.** Included a "Defaults" button in the footer of the options modal that resets all draft values back to system defaults.
+- **Wired up options tab chart colors dynamically on the canvas.** Bound active custom chart colors to CSS custom properties on the canvas element in `GraphPanel.vue`, triggering instant chart redraws on color adjustments.
+- **Made options inputs wider and removed spinners.** Extended the widths of options tab input boxes by 50% to prevent number clipping and styled them to hide spinners.
+- **Prevented vertical scrollbars in the Box tab of the Original skin at small viewport heights.** Added a `max-height` media query to `OriginalShell.vue` to dynamically compress layout margins/paddings when the window height is small (400px), ensuring the content fits perfectly.
+- **Avoided Vite HMR class parsing errors by using TypeScript private properties.** Replaced private `#` syntax with standard TypeScript `private` keywords in `driverSession.ts` to ensure flawless hot module replacement compilation.
+
+## 2026-08-11 — Prevent bottom panels vertical scrollbars and add UI arch test
+
+- **Prevent vertical scrollbars on the bottom project panels and prioritize layout height.** Removed the `max-height: 45vh` constraint on `.content-panel` so the bottom panel maintains its full required height, letting the chart shrink instead.
+- **Enforce layout height boundaries via a browser architecture test.** Added `packages/ui/test/ui/bottom-scroll.browser.spec.ts` testing at a small viewport height (`400px`) to guarantee that bottom panels never get scrollbars while the chart/canvas scales down.
+- **Optimize developer loop by avoiding redundant driver bundle updates.** Added guidelines to `AGENTS.md` specifying that the driver bundle should only be updated if there are upstream changes in `winisd_drivers/`, keeping port 4000 up-to-date with application code only.
+- **Track application build time in the titlebar.** Added a build datetime display in the middle of the titlebar for both the Original and Classic skins, injected via Vite config's `define` block, and verified with Playwright tests.
+- **Enforce TDD exclusively for all changes.** Added a hard constraint in `AGENTS.md` requiring that every single code modification or feature addition must have a corresponding failing test written and observed first.
+- **Improve readability and accessibility of consistency warnings in What-If panels.** Replaced default browser tooltips on consistency warning icons (⚠) in both Original and Classic What-If panels with custom CSS tooltips that show immediately on hover or on click.
+
+## 2026-08-10 — Fsc/Qtc lossy calculation, auto-calculate toggle, and parameter provenance inspector
+
+- **Calculated system resonance (Fsc) and Q (Qtc) match WinISD's lossy physical models.** Implemented `findImpedancePeak` analyzing simulated electrical impedance magnitude curve to extract actual resonance frequency and Q-factor under box leakage losses (Ql).
+- **Toggle consistency solver to prevent unsolicited auto-calculations.** Added a checkbox option in the Driver Editor ("Auto calculate unknowns") that can disable automatic parameters solving, preserving exact driver records on export.
+- **Understand how driver parameters derive through interactive visual feedback.** Added a "Inspect Provenance" toggle to the Driver Editor which highlights input/derived dependency relationships on parameter fields and opens an interactive Equation Inspector popup displaying relevant calculation paths.
+- **Enforced bidirectional traceability between specs and tests.** Retrofitted OpenSpec format with `openspec/project.md` and capability specifications mapping all 72 test files, backed by an automated validator script integrated into the health check and git pre-commit hook.
+- **Stabilized and fully resolved all 11 failing browser test suites.** Restored `DEFAULT_DRIVER` to its complete demo state to enable correct validation/saving, and aligned the expected assertions of the solver, app, and visual tests with the lossy calculation model and 2-decimal-place registry precisions.
+
+## 2026-08-08 — Exact Transfer Function chart normalization parity with WinISD
+
+- **Transfer Function Magnitude chart 0 dB reference level.** Fixed Transfer Function Magnitude normalization in `packages/ui/src/utils/series.ts` to anchor 0 dB to the high-frequency passband asymptote (`sw.spl[sw.spl.length - 1]`) instead of the curve's peak, preventing vertical curve offsets on resonant alignments and matching WinISD's plot behavior.
+- **Documented Transfer Function normalization contract.** Updated `WINISD.md` to formally document high-frequency passband asymptote normalization for relative dB charts.
+
+## 2026-08-05 — My Drivers is the one destination for a driver you made
+
+- **Unified 4th-order bandpass vents horizontal layout.** Replaced the tall, single-column vertical vent layout for 4th-order bandpass with the 3-column horizontal layout (Config, Dimensions, Readouts) matching standard vented views.
+- **Editable ABC and 6th-order bandpass tuning frequencies.** Enabled editing for both tuning frequencies on the Box tab when 6th-order bandpass or ABC box type is selected, rendering them as editable `NumInput` fields labeled `Tuning freq (Frc)` (rear chamber) and `Tuning freq (Ffc)` (front chamber).
+- **Editable bandpass 4th order front chamber tuning.** Made the front chamber tuning frequency in a 4th-order bandpass box type editable (labeled `Tuning freq (Ffc)`) rather than read-only. The system now solves for the front chamber vent length using the front volume `Vf` (instead of `Vb`).
+- **Clarification of automatic vent length calculation.** Added a clear hint on the Vents page to clarify that physical port length is solved automatically to satisfy the target box/chamber tuning frequency (`Fb`) defined on the Box tab.
+- **Save incomplete drivers without lockouts.** OK, Save, and Copy buttons remain enabled for incomplete driver profiles, allowing users to preserve incomplete driver data while displaying a warning strip detailing what is missing for simulation.
+- **Brand/Model presence validation popup.** Replaced silent disabled buttons with an active dialog popup explaining that Brand and Model are required, transferring caret focus to the empty field on dismiss.
+- **Slotted vent support.** Added support for width and height dimensions of slotted vents in the original shell, adjusting the effective Helmholtz resonance and vent calculations accordingly.
+- **Type safety in Vue templates.** Shifted TypeScript type assertions from Vue template event bindings to script helpers, preventing ESLint parser misfires that caused false positive unused variable warnings.
+- **Vent group provenance stability.** Restored the non-eviction locking behavior in `enterVentField` so that entering both `Fb` and `ventL` locks both as entered rather than deleting the other.
+- **Derived parameters (Mms, Cms, Rms, Bl) are editable in the editor.** They were previously read-only text fields, which prevented overriding or recalculating them. They now use `NumInput` elements and bind to `cellVal` so they can be edited (state E) or cleared to calculate (state C) just like in the Define Driver modal.
+- **Unentered fields show as blank instead of 0.00.** Bindings to `driverRaw` optional/derived fields used to default to `?? 0`, which displayed as `0.00` and caused validation warnings/DQ alerts. All fields now bind to `cellVal` to properly show as empty/blank when not entered.
+- **Fixed Qts not calculating when Qms and Qes are set.** Pre-populating unentered fields with `0.00` caused the consistency solver to treat them as entered values of `0`, skipping total Q calculation. Removing the zero defaults allows `Qts` to automatically derive.
+- **Every way of creating a driver now ends in the same place.** Add new Driver, Clone driver, Load File… and saving a `.wdr` then loading it back all land in My Drivers, so a driver you made is somewhere you can find it again. Loading a file used to drop the driver straight into the project and store it nowhere, which meant the only copy was the design you then edited over.
+
+- **Clone driver exists in the WinISD picker.** It forked a driver in the Modern skin only; the Classic and Original skins had no way to copy a driver at all. One implementation now serves both pickers, forking as `brand` + "Copy of <model>" — a distinct identity, so the copy stands beside its source instead of replacing it.
+- **Edit is offered only where it can work.** The WinISD picker's summary carries an Edit button that is live for a driver from My Drivers and visibly disabled for a library record, which cannot be changed from there.
+- **"Add new Driver" starts genuinely blank.** It pre-filled the brand with the word `custom`, which a user then had to notice and delete. OK stays disabled until brand and model are supplied, so nothing can be saved without the identity it will be filed under.
+- **A driver file carrying no brand or model still gets an identity** — taken from the file's own name — instead of being saved as an unnameable, undeletable row.
+- **The Original skin stopped hijacking the driver editor.** Opening the editor on a new or a saved driver silently re-pointed it at the project's driver, so OK overwrote the open design instead of saving the driver. `bugs/BUG_20260805_original-shells-editor-restore-watcher-hijacks-every-editor-open.md`.
+- **One function writes My Drivers.** Six places implemented "save this driver" with their own copy of the identity-collision rule; they call `upsertMyDriver` now, so the rule cannot differ depending on which button was pressed.
+- **The driver file formats are an enum, not a pair of loose strings.** `.wdr` / `.owdr` carry their own label, MIME type and file-input `accept` list, so the save dialog, the loader and the format picker cannot drift apart.
+- **Group delay reads zero rather than negative zero** for a flat phase response — no such delay exists, and the sign leaked into equality comparisons.
+
+## 2026-08-04 — Choosing a driver embeds it; a driver IS its brand/model
+
+- **Mandatory brand, model, and core parameter input validation in the editor.** Enforces validation with visual cues (bold borders by default, turning red when empty) and disables saving/exporting on Brand, Model, Fs, Vas, Re, and Sd to prevent incomplete drivers from corrupting project state.
+- **"Add new Driver" opens the full driver editor.** The flow is streamlined by opening the full driver editor pre-seeded with `brand='custom'` and `model` blank, letting the user define a custom driver directly inside the main editor instead of hitting a secondary T/S parameters wizard.
+- **Support for loading both .wdr and .owdr formats.** The file input in the editor and file loader in the browser now accept both legacy `.wdr` and native `.owdr` files, parsing and converting WinISD parameter sets on demand.
+- **Visual DQ indicators for bad or missing data.** High-priority data quality alerts (warnings) display next to core fields when a required field is entered with a suspect value (e.g. value ≤ 0) or is missing required values like a model name on custom drivers.
+- **Quick-fix data quality buttons.** An inline "clear" button allows users to strip bad values directly from a field to instantly let the engine auto-calculate them from other parameters.
+- **Data quality warning badges in selector list.** An amber warning triangle ⚠ displays next to any driver in the library browser that is missing core simulation parameters or has faulty inputs, notifying users of issues before they embed the driver.
+- **Choosing a driver puts you back in the project.** It used to open the driver editor on a proposal and leave the picker behind it, so picking a driver meant dismissing two dialogs before seeing the result. Choosing now copies the driver into the project and closes the picker — WinISD's model, where the driver manager and the project are separate things.
+- **A project owns its driver outright.** Editing it changes the project's copy and nothing else: not the library record, not the saved driver it came from. Previously an edit could reach back into My Drivers, which made "try these numbers" quietly rewrite a stored driver.
+- **A saved driver is identified by `<brand>/<model>`** — the same scheme the driver database uses for its folders, brand first because that is what a driver is sold as. Save overwrites the driver with that identity and adds one when there is none, so editing brand or model saves a new driver and editing anything else updates it in place. Clone forks deliberately, as "Copy of …".
+- **Deleting a saved driver works for every driver.** Deletion compared display names, and an entry with no `name` compared equal to every other unnamed one — so the ✕ removed the wrong row or none at all. It keys on identity now.
+- **A saved driver with no explicit name is visible at all.** My Drivers rendered and searched the raw `name` field, so an entry carrying only brand and model — the normal shape when saved from a record — drew a blank row that no search could match.
+- **The driver editor says which driver you are editing**, and carries a "Copy to My Drivers" button that takes an independent copy of what is on screen.
+- **One place knows where saved drivers live.** The storage key and its read/write were duplicated across three components; they share `utils/myDrivers.ts`.
+- **The driver picker's source reads "OpenISD".** Shorter than "OpenISD driver database" in the source filter, where the column is narrow.
+
+## 2026-08-03 — Scraping stack removed; `_meta.yml` gone; bundle reads `openisd.yml`
+
+- **One project owns scraping again.** openisd carried a second, unused scraping pipeline — six vendor scrapers, a scraper library, a pydantic schema module and a DQ CLI, none of them reachable from any script, hook or workflow. Deleted; winisd_tools is the only scraper, as the workspace architecture says.
+- **The dead openisd.yml format is fully gone.** `_meta.yml` had been superseded by `openisd.yml` but survived in ~90 references across 20 documents plus 438 orphaned data files. All removed. A reader now finds one answer to "where does provenance live", not two.
+- **The driver bundle matches the architecture.** `bundle-drivers.mjs` reads `openisd.yml` records only — never `.wdr`, never `.owdr` — so the bundle can no longer disagree with AD-8 about what a driver record is. `.wdr` stays what it always was: a WinISD import/export format the app converts in memory.
+- **The health check is honest about what it runs.** It listed six gates including two Python steps; one scanned zero files and the other only kept deleted code importable. Four real gates now: lint, typecheck, unit, browser.
+- **Transient files have one home.** `build/` is the scratch space, enforced by tests over `.gitignore` and Vite's watcher, replacing a cache-directory convention that existed only for the deleted scrapers.
+
+## 2026-08-02 — Default skin changed to Original & unfinished skin warnings
+
+- **Original skin is now the default skin.** Swapped the default UI skin from modern to the classic WinISD-ported `original` skin for a fresh application load.
+- **Unfinished skins display warnings when active.** Added a warning banner and flash toast when switching to or displaying unfinished skins (modern/classic) to advise users of incomplete work.
+- **Playwright browser tests stabilized and pass on WSL2.** Resolved headful/headless Chromium launch crashes on WSL2 by adding GPU-disabling arguments, and avoided test breaks by dynamically defaulting to the modern skin in the test environment (port 4100).
+
+## 2026-07-29 — Complete retro skin alignment & advanced parameters
+
+- **All advanced and physical driver parameters are fully modelled and editable.** Wired all previously disabled/placeholder fields in `DriverEditorModal.vue` to active input components, enabling complete roundtrip editing of metadata, electrical figures of merit, and physical dimensions.
+- **Modals styled with classic Win32 theme in both retro skins.** Aligned all modals (Options, Catalog Browser, Editor, Box Losses, and Project Wizard) under both `Original` and `Classic` skins to render with retro blue titlebars and square gray layouts.
+- **Trace color customization wired in the Classic skin.** Clicking the **Color** button in the Classic skin now cycles the design trace color across the swatch and graph curves, matching original WinISD functionality.
+
 ## 2026-07-06 — Repo split: app, scraper tooling, and driver data now separate projects
 
 Contributing to the app no longer requires cloning 3GB of scraper cache and Python
@@ -73,7 +179,7 @@ Code-review docs show only open work. Resolved findings are deleted from `CODE_R
 - **A bad driver parameter no longer crashes the app.** Setting Fs (or any required T/S value) to 0/blank used to throw an uncaught error and blank every graph. Now each chart that can't be computed shows a plain message naming what to fix, the rest of the UI stays alive, and the state round-trips through reload so you can correct it.
 - **Charts never draw incomplete data silently.** A chart is drawn only when every value it uses is valid: a missing _required_ param blocks the whole chart (with a message); a missing _optional_ line (Pe→thermal limit, Xmax→excursion limit) draws the real curve and lists the missing line as a dismissable issue. No half-curves presented as if complete.
 - **One issue list, colour-coded by severity.** The driver panel now lists every active issue — red for "can't simulate", amber for "a reference line is missing" — each dismissable.
-- **Calculations never throw; they return `{value, errors}`.** `deriveDriver`/`parseWdr` now report field-level, human-readable problems instead of throwing or silently producing NaN. Documented as a hard rule in `js-patterns.md` (third-party throwers must be wrapped); `buildPlotData` follows the same contract so the view never inspects store internals to decide what to draw.
+- **Calculations never throw; they return `{value, errors}`.** `deriveDriver`/`parseWdr` now report field-level, human-readable problems instead of throwing or silently producing NaN. Documented as a hard rule in `CODE_REVIEW/ENGINE_HARDENING.md` (third-party throwers must be wrapped); `buildPlotData` follows the same contract so the view never inspects store internals to decide what to draw.
 
 ## 2026-07-01 — WDR field documentation, _ directory convention
 

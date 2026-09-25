@@ -1,0 +1,589 @@
+/**
+ * `OpenISDProject` <-> WinISD `.wpr` — the project-level counterpart to
+ * `driverYmlToOpenisdAndWdr.ts`. Verified against the same WinISD-Pro-written goldens
+ * `winisdProject.test.ts` uses (`packages/design/test/winisd/fixtures/winisd-parity/goldens/`),
+ * so the values asserted here are traceable to files WinISD itself produced, not invented.
+ *
+ * Scope: sealed, vented, bandpass4, box-passive-radiator — the four `SimulatableBoxType`s, and
+ * the four box types the golden corpus covers. `bandpass6`/`abc` have real WinISD-written
+ * samples under `docs/samples/` but no golden fixtures here and are not simulated
+ * (`packages/design/engine/types.ts` `SimulatableBoxType`) — out of scope for this bridge.
+ */
+import {describe, it, vi} from 'vitest';
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {fileURLToPath} from 'node:url';
+import {dirname, join} from 'node:path';
+import {Engine} from '@openisd/design/engine';
+import {OpenISDDriver, OpenISDPassiveRadiatorStandalone, OpenISDProject,} from '@openisd/design';
+import {
+    openIsdProjectToWinIsdProject,
+    winIsdProjectToOpenIsdProject,
+} from '../../domain/openIsdProjectToWinIsdProject.js';
+
+const here = dirname(fileURLToPath(import.meta.url));
+const GOLDENS_DIR = join(here, 'fixtures', 'winisd-parity', 'goldens');
+const GOLDEN_SEALED_SMALL_WPR = join(GOLDENS_DIR, 'sealed-small.wpr');
+const GOLDEN_VENTED_SMALL_WPR = join(GOLDENS_DIR, 'vented-small.wpr');
+const GOLDEN_BANDPASS4_WPR = join(GOLDENS_DIR, 'bandpass4.wpr');
+const GOLDEN_PASSIVE_RADIATOR_WPR = join(GOLDENS_DIR, 'passive-radiator.wpr');
+
+/** One `KEY=value` from a golden `.wpr`'s named section, as written by WinISD itself. The
+ *  goldens ARE the oracle for these tests: an expected value transcribed into the test by hand
+ *  is a value that can drift from the file without anything noticing. */
+function goldenField(file: string, section: string, key: string): string {
+  const text = readFileSync(file, 'utf8').replace(/\r\n/g, '\n');
+  const block = text.match(new RegExp(`\\[${section}\\]\\n([\\s\\S]*?)(?=\\n\\[|$)`));
+  if (!block) throw new Error(`golden ${file} has no [${section}] section`);
+  const line = block[1].match(new RegExp(`^${key}=(.*)$`, 'm'));
+  if (!line) throw new Error(`golden ${file}'s [${section}] has no ${key}= line`);
+  return line[1];
+}
+
+const scraped = <T,>(value: T) => ({ value });
+const num = (read_value: number) => ({ state: 'E' as const, value: read_value, origin: 'test', readings: { test: { read_value } } });
+
+/** The QO8/sealed-small etc. driver every golden's `[Driver]` block carries — same Fs/Sd/Cms/
+ *  Qms/Mms/Rms/Xmax/Re/Le/BL/Qes values across all four goldens (only Brand/Model differ, and
+ *  those are not asserted here — the bridge test compares [Box]/[PassiveRadiator]/[SignalSource]
+ *  values, matching `winisdProject.test.ts`'s own scope, which also does not byte-match
+ *  [Driver]). */
+function aDriver(engine: Engine, brand: string, model: string): OpenISDDriver {
+  const record = {
+    brand: scraped(brand), model: scraped(model), manufacturer: scraped(brand),
+    provided_by: scraped('test'), comment: scraped(''), added: scraped('2026-01-01'),
+    uuid: { value: '00000000-0000-4000-8000-000000000000' },
+    sku: { value: 'TEST-SKU', grounds: [{ origin: 'manufacturer_datasheet', reading: 'TEST-SKU' }] },
+    driver_type: scraped('woofer'),
+    data_sources: { value: { manufacturer_datasheet: 'https://example.invalid/ds.pdf' } },
+    authoritative: { value: 'manufacturer_datasheet' },
+    quality: {
+      confirmed_fields: [], fields_with_issues: [], missing: [], invalid: [],
+      parse_errors: [], cross_source_only: [],
+    },
+    specs: {
+      woofer: {
+        Fs_hz: num(37.2), Sd_m2: num(0.0132), Cms_m_per_N: num(0.00118092600256716),
+        Mms_kg: num(0.0155), Rms_kg_per_s: num(0.953390696873618), Xmax_m: num(0.006),
+        Re_ohm: num(6.4), Le_H: num(0.0005), BL_Tm: num(7.5), Qms: num(3.8),
+        Qes: num(0.412203764408292), Qts: num(0.371865748278097),
+      },
+    },
+  };
+  const driver = OpenISDDriver.fromConformingRecord(record, engine);
+  if (Array.isArray(driver)) throw new Error(`fixture is not a conforming driver: ${driver.join('; ')}`);
+  return driver;
+}
+
+function aProject(box: (p: ReturnType<typeof OpenISDProject.builder>) => OpenISDProject): OpenISDProject {
+  const engine = new Engine();
+  return box(OpenISDProject.builder(aDriver(engine, 'QO8', 'test'), engine));
+}
+
+describe('openIsdProjectToWinIsdProject — [Box]/[SignalSource] match the WinISD-written goldens', () => {
+  it('sealed box: BType=0, rear chamber volume and lossless resonance match sealed-small.wpr', () => {
+    const golden = readFileSync(GOLDEN_SEALED_SMALL_WPR, 'utf8').replace(/\r\n/g, '\n');
+    // sealed-small.wpr's own [Box]: Vr=0.02, Fr=61.2670146589858 (docs/samples ground truth,
+    // confirmed by grep above) — the volume this fixture project is built with.
+    const SEALED_VOLUME_M3 = 0.02;
+    const project = aProject((p) => p.sealed().volume_m3(SEALED_VOLUME_M3).build());
+    project.Rs_ohm.set(0.1); // golden's [SignalSource] Rg=0.1
+    project.powerDrive_W.set(1); // golden's [SignalSource] P=1
+
+    const { value: wpr, errors } = openIsdProjectToWinIsdProject(project, new Engine());
+    assert.equal(errors.length, 0, `expected no errors, got: ${JSON.stringify(errors)}`);
+    if (!wpr) throw new Error('expected a WinISDProject');
+    const text = wpr.toWpr().replace(/\r\n/g, '\n');
+
+    assert.match(text, /\[Box\]\nBType=0\n/);
+    assert.ok(text.includes('Vr=0.02'), 'rear chamber volume matches the golden');
+    assert.ok(golden.includes('Fr=61.2670146589858'), 'ground truth: sealed-small.wpr\'s own Fr');
+
+    // `#sealedResonance_hz()` (packages/design/domain/openisdDomain.ts:727-750) never passes
+    // `useWinisdAirModel` to `Engine.airFor()`, so it always uses the CIPM-2007 physical air
+    // model instead of WinISD's own parity air-property formula even though
+    // `OpenISDProject.envUseWinisdAirModel()` defaults to `true` specifically to select it. This
+    // is a genuine, pre-existing gap in `project.ts` — see
+    // bugs/BUG_20260907_sealed_resonance_ignores_envUseWinisdAirModel.md — not something this
+    // bridge can or should paper over by fudging the value it reads from `resonance_hz()`. Fixed
+    // tolerance, not exact match, documents that gap rather than hiding it.
+    const FR_TOLERANCE_HZ = 0.05; // observed discrepancy is ~0.044 Hz (~700ppm at 61 Hz)
+    const match = text.match(/\[Box\][\s\S]*?\nFr=([\d.]+)\n/);
+    assert.ok(match, 'bridge output has a [Box] Fr= line');
+    const bridgeFr = Number(match[1]);
+    const goldenFr = 61.2670146589858;
+    assert.ok(Math.abs(bridgeFr - goldenFr) < FR_TOLERANCE_HZ,
+      `bridge Fr=${bridgeFr} should be within ${FR_TOLERANCE_HZ} Hz of golden Fr=${goldenFr} `
+      + '(pre-existing air-model gap, see bugs/BUG_20260907_sealed_resonance_ignores_envUseWinisdAirModel.md)');
+
+    assert.ok(text.includes('[SignalSource]\nRg=0.1\nP=1'), 'signal source matches the golden');
+  });
+
+  it('vented box: BType=1, rear chamber volume/tuning match vented-small.wpr', () => {
+    // Both read from vented-small.wpr's own [Box], never transcribed.
+    const VENTED_VOLUME_M3 = Number(goldenField(GOLDEN_VENTED_SMALL_WPR, 'Box', 'Vr'));
+    const VENTED_TUNING_HZ = Number(goldenField(GOLDEN_VENTED_SMALL_WPR, 'Box', 'Fr'));
+    const project = aProject((p) => p.vented().volume_m3(VENTED_VOLUME_M3).tuning_goal_hz(VENTED_TUNING_HZ).build());
+    project.powerDrive_W.set(1);
+
+    const { value: wpr, errors } = openIsdProjectToWinIsdProject(project, new Engine());
+    assert.equal(errors.length, 0, `expected no errors, got: ${JSON.stringify(errors)}`);
+    if (!wpr) throw new Error('expected a WinISDProject');
+    const text = wpr.toWpr().replace(/\r\n/g, '\n');
+
+    assert.match(text, /\[Box\]\nBType=1\n/);
+    assert.equal(goldenField(GOLDEN_VENTED_SMALL_WPR, 'Box', 'BType'), '1', 'ground truth: the golden is a vented box');
+    assert.ok(text.includes(`Vr=${VENTED_VOLUME_M3}`), 'rear chamber volume matches the golden\'s own Vr');
+    assert.ok(text.includes(`Fr=${VENTED_TUNING_HZ}`), 'rear chamber tuning matches the golden\'s own Fr');
+  });
+
+  it('vented box: [VentRear] Num carries the project\'s port count, not a constant 1', () => {
+    const project = aProject((p) => p.vented().volume_m3(0.03).tuning_goal_hz(40).build());
+    project.powerDrive_W.set(1);
+    project.box.vented.vent.count.set(2);
+
+    const { value: wpr, errors } = openIsdProjectToWinIsdProject(project, new Engine());
+    assert.equal(errors.length, 0, `expected no errors, got: ${JSON.stringify(errors)}`);
+    if (!wpr) throw new Error('expected a WinISDProject');
+    assert.equal(wpr.number('VentRear', 'Num'), 2);
+  });
+
+  it('bandpass4 box: BType=2, rear (sealed) and front (vented) volumes/tuning match bandpass4.wpr', () => {
+    // All three read from bandpass4.wpr's own [Box], never transcribed.
+    const REAR_VOLUME_M3 = Number(goldenField(GOLDEN_BANDPASS4_WPR, 'Box', 'Vr'));
+    const FRONT_VOLUME_M3 = Number(goldenField(GOLDEN_BANDPASS4_WPR, 'Box', 'Vf'));
+    const FRONT_TUNING_HZ = Number(goldenField(GOLDEN_BANDPASS4_WPR, 'Box', 'Ff'));
+    const project = aProject((p) => p.bandpass4()
+      .rearVolume_m3(REAR_VOLUME_M3).frontVolume_m3(FRONT_VOLUME_M3).frontTuning_hz(FRONT_TUNING_HZ).build());
+    project.powerDrive_W.set(1);
+
+    const { value: wpr, errors } = openIsdProjectToWinIsdProject(project, new Engine());
+    assert.equal(errors.length, 0, `expected no errors, got: ${JSON.stringify(errors)}`);
+    if (!wpr) throw new Error('expected a WinISDProject');
+    const text = wpr.toWpr().replace(/\r\n/g, '\n');
+
+    assert.match(text, /\[Box\]\nBType=2\n/);
+    assert.equal(goldenField(GOLDEN_BANDPASS4_WPR, 'Box', 'BType'), '2', 'ground truth: the golden is a bandpass4 box');
+    assert.ok(text.includes(`Vr=${REAR_VOLUME_M3}`), 'rear (sealed) chamber volume matches the golden');
+    assert.ok(text.includes(`Vf=${FRONT_VOLUME_M3}`), 'front (vented) chamber volume matches the golden');
+    assert.ok(text.includes(`Ff=${FRONT_TUNING_HZ}`), 'front chamber tuning matches the golden');
+
+    // The one value in this golden WinISD COMPUTED rather than was given: the rear (sealed)
+    // chamber's resonance. Volumes and Ff are inputs echoed back, so they agree with the golden
+    // whatever the bridge does; Fr is the only field here that can disagree, which makes it the
+    // actual parity assertion. Tolerance for the same air-model gap the sealed case documents
+    // (bugs/BUG_20260907_sealed_resonance_ignores_envUseWinisdAirModel.md).
+    const FR_TOLERANCE_HZ = 0.05;
+    const goldenRearFr = Number(goldenField(GOLDEN_BANDPASS4_WPR, 'Box', 'Fr'));
+    const bridgeRearFr = Number(text.match(/\[Box\][\s\S]*?\nFr=([\d.]+)\n/)![1]);
+    assert.ok(Math.abs(bridgeRearFr - goldenRearFr) < FR_TOLERANCE_HZ,
+      `bridge rear Fr=${bridgeRearFr} should be within ${FR_TOLERANCE_HZ} Hz of WinISD's own `
+      + `Fr=${goldenRearFr}`);
+  });
+
+  it('passive-radiator box: BType=4, [PassiveRadiator] matches passive-radiator.wpr exactly', () => {
+    // Both read from passive-radiator.wpr's own [Box], never transcribed.
+    const PR_VOLUME_M3 = Number(goldenField(GOLDEN_PASSIVE_RADIATOR_WPR, 'Box', 'Vr'));
+    const PR_TUNING_HZ = Number(goldenField(GOLDEN_PASSIVE_RADIATOR_WPR, 'Box', 'Fr'));
+    const engine = new Engine();
+    const radiatorRecord = {
+      brand: scraped('SB Acoustics'), model: scraped('test-pr'), manufacturer: scraped('SB Acoustics'),
+      provided_by: scraped('test'), comment: scraped(''), added: scraped('2026-01-01'),
+      uuid: { value: '00000000-0000-4000-8000-000000000001' },
+      sku: { value: 'TEST-PR-SKU', grounds: [{ origin: 'manufacturer_datasheet', reading: 'TEST-PR-SKU' }] },
+      driver_type: scraped('passive-radiator'),
+      data_sources: { value: { manufacturer_datasheet: 'https://example.invalid/pr.pdf' } },
+      authoritative: { value: 'manufacturer_datasheet' },
+      quality: {
+        confirmed_fields: [], fields_with_issues: [], missing: [], invalid: [],
+        parse_errors: [], cross_source_only: [],
+      },
+      specs: {
+        'passive-radiator': {
+          // Read out of passive-radiator.wpr's own [PassiveRadiator] block, not transcribed.
+          Vas_m3: num(Number(goldenField(GOLDEN_PASSIVE_RADIATOR_WPR, 'PassiveRadiator', 'Vas'))),
+          Qms: num(Number(goldenField(GOLDEN_PASSIVE_RADIATOR_WPR, 'PassiveRadiator', 'Qms'))),
+          Fs_hz: num(Number(goldenField(GOLDEN_PASSIVE_RADIATOR_WPR, 'PassiveRadiator', 'Fs'))),
+          Sd_m2: num(Number(goldenField(GOLDEN_PASSIVE_RADIATOR_WPR, 'PassiveRadiator', 'Sd'))),
+          Xmax_m: num(Number(goldenField(GOLDEN_PASSIVE_RADIATOR_WPR, 'PassiveRadiator', 'Xmax'))),
+        },
+      },
+    };
+    const radiator = OpenISDPassiveRadiatorStandalone.fromConformingRecord(radiatorRecord, engine);
+    if (Array.isArray(radiator)) throw new Error(`fixture is not a conforming radiator: ${radiator.join('; ')}`);
+
+    const driver = aDriver(engine, 'QO8', 'test');
+    const project = OpenISDProject.builder(driver, engine).passiveRadiator()
+      .volume_m3(PR_VOLUME_M3).tuning_goal_hz(PR_TUNING_HZ).count(1).radiator(radiator).build();
+    project.powerDrive_W.set(1);
+
+    const { value: wpr, errors } = openIsdProjectToWinIsdProject(project, engine);
+    assert.equal(errors.length, 0, `expected no errors, got: ${JSON.stringify(errors)}`);
+    if (!wpr) throw new Error('expected a WinISDProject');
+    const text = wpr.toWpr().replace(/\r\n/g, '\n');
+
+    assert.match(text, /\[Box\]\nBType=4\n/);
+    assert.equal(goldenField(GOLDEN_PASSIVE_RADIATOR_WPR, 'Box', 'BType'), '4', 'ground truth: the golden is a PR box');
+    assert.ok(text.includes(`Vr=${PR_VOLUME_M3}`), 'rear chamber volume matches the golden\'s own Vr');
+    const goldenPr = ['Vas', 'Qms', 'Fs', 'Sd', 'Xmax']
+      .map(k => `${k}=${goldenField(GOLDEN_PASSIVE_RADIATOR_WPR, 'PassiveRadiator', k)}`).join('\n');
+    assert.ok(text.includes(`[PassiveRadiator]\n${goldenPr}\nMe=0`),
+      '[PassiveRadiator] block matches the golden byte for byte on every T/S value');
+  });
+});
+
+describe('openIsdProjectToWinIsdProject — null-fallback and unsupported-type branches', () => {
+  it('pre: Re none, P N, V 1 C | export .wpr | post: SignalSource has no P, a warning says why', () => {
+    const engine = new Engine();
+    const driver = OpenISDDriver.empty(engine);
+    driver.brand.set('Test');
+    driver.model.set('NoRe');
+    const project = OpenISDProject.builder(driver, engine).sealed().volume_m3(0.02).build();
+    assert.equal(project.powerDrive_W.value, null);
+
+    const { value: wpr, errors } = openIsdProjectToWinIsdProject(project, engine);
+    if (!wpr) throw new Error('expected a WinISDProject: ' + JSON.stringify(errors));
+    assert.equal(wpr.number('SignalSource', 'P'), undefined);
+    assert.ok(errors.some(e => e.level === 'warn' && e.field === 'SignalSource P'), JSON.stringify(errors));
+  });
+
+  it('pre: created and modified blank | export .wpr | post: CreateDate and ModifyDate are today', () => {
+    vi.useFakeTimers({now: new Date('2026-05-06T12:00:00')});
+    try {
+      const engine = new Engine();
+      const project = OpenISDProject.builder(OpenISDDriver.empty(engine), engine).sealed().volume_m3(0.02).build();
+      project.created.set('');
+      project.modified.set('');
+
+      const { value: wpr, errors } = openIsdProjectToWinIsdProject(project, engine);
+      if (!wpr) throw new Error('expected a WinISDProject: ' + JSON.stringify(errors));
+      assert.equal(wpr.value('ProjectInfo', 'CreateDate'), '20260506');
+      assert.equal(wpr.value('ProjectInfo', 'ModifyDate'), '20260506');
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('[PassiveRadiator] omits Vas/Qms/Fs/Sd/Xmax when the radiator states none of them', () => {
+    const engine = new Engine();
+    const radiator = OpenISDPassiveRadiatorStandalone.empty(engine);
+    const driver = aDriver(engine, 'QO8', 'test');
+    const project = OpenISDProject.builder(driver, engine).passiveRadiator()
+      .volume_m3(0.03).tuning_goal_hz(35).count(1).radiator(radiator).build();
+
+    const { value: wpr, errors } = openIsdProjectToWinIsdProject(project, engine);
+    assert.equal(errors.length, 0, JSON.stringify(errors));
+    if (!wpr) throw new Error('expected a WinISDProject');
+    const text = wpr.toWpr().replace(/\r\n/g, '\n');
+    const block = text.match(/\[PassiveRadiator\]\n([\s\S]*?)(?=\n\[|$)/);
+    assert.ok(block, 'has a [PassiveRadiator] block');
+    for (const key of ['Vas', 'Qms', 'Fs', 'Sd', 'Xmax']) {
+      assert.ok(!block![1].includes(`${key}=`), `block should omit ${key} when the radiator states none`);
+    }
+    assert.ok(block![1].includes('Me=0'));
+  });
+
+  it('bandpass6/abc box types are reported as unsupported, never guessed', () => {
+    const engine = new Engine();
+    const driver = aDriver(engine, 'QO8', 'test');
+    const project = OpenISDProject.builder(driver, engine).bandpass6()
+      .rearVolume_m3(0.01).rearTuning_hz(40).frontVolume_m3(0.02).frontTuning_hz(60).build();
+
+    const { value, errors } = openIsdProjectToWinIsdProject(project, engine);
+    assert.equal(value, null);
+    assert.equal(errors.length, 1);
+    assert.equal(errors[0].field, 'boxType');
+    assert.equal(
+      errors[0].message,
+      'Unsupported box type "bandpass6": WinISD export supports sealed, vented, 4th-order bandpass, and passive radiator box types.',
+    );
+  });
+
+  it('sealed [Box] Fr falls back to WinISD\'s own template default (0) when resonance is not computable', () => {
+    // `WinISDProject`'s own `TEMPLATE` (winisdProject.ts) already defaults Fr to '0', so an
+    // omitted key and an explicit 0 are indistinguishable in the rendered text — this asserts
+    // the branch's actual, observable effect: no NaN/garbage value leaks through.
+    const project = aProject((p) => p.sealed().volume_m3(0).build());
+
+    const { value: wpr, errors } = openIsdProjectToWinIsdProject(project, new Engine());
+    assert.equal(errors.length, 0, JSON.stringify(errors));
+    if (!wpr) throw new Error('expected a WinISDProject');
+    const text = wpr.toWpr().replace(/\r\n/g, '\n');
+    assert.match(text, /\[Box\][\s\S]*?\nFr=0\n/);
+  });
+
+  it('bandpass4 [Box] Fr falls back to WinISD\'s own template default (0) when the rear chamber volume is 0', () => {
+    const project = aProject((p) => p.bandpass4()
+      .rearVolume_m3(0).frontVolume_m3(0.01).frontTuning_hz(50).build());
+
+    const { value: wpr, errors } = openIsdProjectToWinIsdProject(project, new Engine());
+    assert.equal(errors.length, 0, JSON.stringify(errors));
+    if (!wpr) throw new Error('expected a WinISDProject');
+    const text = wpr.toWpr().replace(/\r\n/g, '\n');
+    assert.match(text, /\[Box\][\s\S]*?\nFr=0\n/);
+  });
+
+  it('vented [Box]/[VentRear] Fr/Fb fall back to 0 once tuning_goal_hz is cleared', () => {
+    const project = aProject((p) => p.vented().volume_m3(0.03).tuning_goal_hz(40).build());
+    project.box.vented.tuning_goal_hz.clear();
+
+    const { value: wpr, errors } = openIsdProjectToWinIsdProject(project, new Engine());
+    assert.equal(errors.length, 0, JSON.stringify(errors));
+    if (!wpr) throw new Error('expected a WinISDProject');
+    const text = wpr.toWpr().replace(/\r\n/g, '\n');
+    assert.ok(text.includes('Fr=0'), '[Box] Fr falls back to 0 once tuning_goal_hz is cleared');
+    // `WinISDProject`'s own template already defaults [VentRear] Fb to '0', so this only proves
+    // the branch does not leak a stale/garbage value once fb_hz is null.
+    const ventBlock = text.match(/\[VentRear\]\n([\s\S]*?)(?=\n\[|$)/);
+    assert.ok(ventBlock && ventBlock[1].includes('Fb=0'));
+  });
+
+  it('bandpass4 [Box]/[VentFront] Ff/Fb fall back to 0 once the front tuning is cleared', () => {
+    const project = aProject((p) => p.bandpass4()
+      .rearVolume_m3(0.01).frontVolume_m3(0.02).frontTuning_hz(60).build());
+    project.box.bandpass4.chambers.front.tuning_goal_hz.clear();
+
+    const { value: wpr, errors } = openIsdProjectToWinIsdProject(project, new Engine());
+    assert.equal(errors.length, 0, JSON.stringify(errors));
+    if (!wpr) throw new Error('expected a WinISDProject');
+    const text = wpr.toWpr().replace(/\r\n/g, '\n');
+    assert.ok(text.includes('Ff=0'), '[Box] Ff falls back to 0 once the front tuning is cleared');
+    const ventBlock = text.match(/\[VentFront\]\n([\s\S]*?)(?=\n\[|$)/);
+    assert.ok(ventBlock && ventBlock[1].includes('Fb=0'));
+  });
+
+  it('[VentFront] Sdfport carries the bandpass4 front vent\'s own area once its geometry is stated', () => {
+    const project = aProject((p) => p.bandpass4()
+      .rearVolume_m3(0.01).frontVolume_m3(0.02).frontTuning_hz(60).build());
+    project.box.bandpass4.vents.front.diameter_m.set(0.05);
+    project.box.bandpass4.vents.front.length_m.set(0.1);
+
+    const { value: wpr, errors } = openIsdProjectToWinIsdProject(project, new Engine());
+    assert.equal(errors.length, 0, JSON.stringify(errors));
+    if (!wpr) throw new Error('expected a WinISDProject');
+    const text = wpr.toWpr().replace(/\r\n/g, '\n');
+    assert.ok(text.includes('Sdfport='), '[Box] Sdfport is present once the front vent has an area');
+    assert.ok(!/Sdfport=0(\r?\n|$)/.test(text), 'Sdfport carries the vent\'s real area, not a fallback');
+  });
+
+  it('[VentRear] reports carea/len/Shape=1 once the vent geometry is stated, and slotted when shaped so', () => {
+    const project = aProject((p) => p.vented().volume_m3(0.03).tuning_goal_hz(40).build());
+    project.box.vented.vent.diameter_m.set(0.05);
+    project.box.vented.vent.length_m.set(0.15);
+
+    const { value: wpr, errors } = openIsdProjectToWinIsdProject(project, new Engine());
+    assert.equal(errors.length, 0, JSON.stringify(errors));
+    if (!wpr) throw new Error('expected a WinISDProject');
+    const text = wpr.toWpr().replace(/\r\n/g, '\n');
+    assert.ok(text.includes('Sdrport='), '[Box] Sdrport is present once the vent has an area');
+    const ventBlock = text.match(/\[VentRear\]\n([\s\S]*?)(?=\n\[|$)/);
+    assert.ok(ventBlock, 'has a [VentRear] block');
+    assert.ok(ventBlock![1].includes('Shape=1'), 'round vent reports Shape=1');
+    assert.ok(ventBlock![1].includes('carea='), '[VentRear] carea is present once the vent has an area');
+    assert.ok(ventBlock![1].includes('len=0.15'), '[VentRear] len is present once length_m is stated');
+  });
+
+  it('[VentRear] does not throw and takes WinISD\'s own template default Shape once the vent is slotted', () => {
+    // `WinISDProject`'s own template also defaults Shape to '1' (winisdProject.ts TEMPLATE), the
+    // same code this bridge writes for round — so a slotted vent's output is not distinguishable
+    // from round's here (the file's own comment at this line already flags slotted's real WinISD
+    // code as unconfirmed). This proves the branch runs cleanly, not a distinguishable output.
+    const project = aProject((p) => p.vented().volume_m3(0.03).tuning_goal_hz(40).build());
+    project.box.vented.vent.shape.set('slotted');
+
+    const { value: wpr, errors } = openIsdProjectToWinIsdProject(project, new Engine());
+    assert.equal(errors.length, 0, JSON.stringify(errors));
+    if (!wpr) throw new Error('expected a WinISDProject');
+    const text = wpr.toWpr().replace(/\r\n/g, '\n');
+    const ventBlock = text.match(/\[VentRear\]\n([\s\S]*?)(?=\n\[|$)/);
+    assert.ok(ventBlock && ventBlock[1].includes('Shape=1'));
+  });
+
+  it('passive-radiator [Box] reports Fr once the system tuning is computable', () => {
+    const engine = new Engine();
+    const radiatorRecord = {
+      brand: scraped('SB Acoustics'), model: scraped('test-pr'), manufacturer: scraped('SB Acoustics'),
+      provided_by: scraped('test'), comment: scraped(''), added: scraped('2026-01-01'),
+      uuid: { value: '00000000-0000-4000-8000-000000000001' },
+      sku: { value: 'TEST-PR-SKU', grounds: [{ origin: 'manufacturer_datasheet', reading: 'TEST-PR-SKU' }] },
+      driver_type: scraped('passive-radiator'),
+      data_sources: { value: { manufacturer_datasheet: 'https://example.invalid/pr.pdf' } },
+      authoritative: { value: 'manufacturer_datasheet' },
+      quality: {
+        confirmed_fields: [], fields_with_issues: [], missing: [], invalid: [],
+        parse_errors: [], cross_source_only: [],
+      },
+      specs: {
+        'passive-radiator': {
+          Vas_m3: num(0.02), Qms: num(3), Fs_hz: num(30), Sd_m2: num(0.02), Xmax_m: num(0.01),
+          Cms_m_per_N: num(0.001), Mms_kg: num(0.03),
+        },
+      },
+    };
+    const radiator = OpenISDPassiveRadiatorStandalone.fromConformingRecord(radiatorRecord, engine);
+    if (Array.isArray(radiator)) throw new Error(`fixture is not a conforming radiator: ${radiator.join('; ')}`);
+    const driver = aDriver(engine, 'QO8', 'test');
+    const project = OpenISDProject.builder(driver, engine).passiveRadiator()
+      .volume_m3(0.03).tuning_goal_hz(35).count(1).radiator(radiator).build();
+
+    const { value: wpr, errors } = openIsdProjectToWinIsdProject(project, engine);
+    assert.equal(errors.length, 0, JSON.stringify(errors));
+    if (!wpr) throw new Error('expected a WinISDProject');
+    const text = wpr.toWpr().replace(/\r\n/g, '\n');
+    const block = text.match(/\[Box\]\n([\s\S]*?)(?=\n\[|$)/);
+    assert.ok(block && block[1].includes('Fr='), '[Box] Fr is present once systemTuning_hz is computable');
+  });
+});
+
+describe('winIsdProjectToOpenIsdProject — .wpr text back to a project (round trip)', () => {
+  it('sealed golden imports to a project whose box volume matches the file', () => {
+    // This direction is exercised once here to prove the seam exists; the full round-trip
+    // (OIDP -> WPR -> OIDP, field-for-field) is Chain 2 of the two round-trip chains — see the
+    // gap noted in this session's report about the OWPR-native chain (Chain 1) not existing yet.
+    const text = readFileSync(GOLDEN_SEALED_SMALL_WPR, 'utf8');
+    const engine = new Engine();
+    const { value: project, errors } = winIsdProjectToOpenIsdProject(text, engine);
+    assert.equal(errors.length, 0, `expected no errors, got: ${JSON.stringify(errors)}`);
+    if (!project) throw new Error('expected a project');
+    assert.equal(project.box.boxType.value, 'sealed');
+    assert.equal(project.box.sealed.volume_m3.value, 0.02);
+  });
+
+  it('vented import reads [VentRear] Num into the port count; a file without it reads as the calculated one port', () => {
+    const base = '[ProjectInfo]\n[Driver]\nBrand=Test\nModel=Driver\n[Box]\nBType=1\nVr=0.03\nFr=40\n';
+    const engine = new Engine();
+    const two = winIsdProjectToOpenIsdProject(base + '[VentRear]\nNum=2\n', engine);
+    assert.equal(two.errors.length, 0, JSON.stringify(two.errors));
+    assert.equal(two.value?.box.vented.vent.count.value, 2);
+    assert.equal(two.value?.box.vented.vent.count.entered, true);
+    const none = winIsdProjectToOpenIsdProject(base, engine);
+    assert.equal(none.value?.box.vented.vent.count.value, 1);
+    assert.equal(none.value?.box.vented.vent.count.calculated, true);
+  });
+
+  it('reports a clean user-facing error when BType is missing or unsupported', () => {
+    const text = '[ProjectInfo]\n[Driver]\nBrand=Test\nModel=Driver\n[Box]\n';
+    const engine = new Engine();
+    const { value: project, errors } = winIsdProjectToOpenIsdProject(text, engine);
+    assert.equal(project, null);
+    assert.equal(errors.length, 1);
+    assert.equal(errors[0].field, 'BType');
+    assert.equal(
+      errors[0].message,
+      'Unsupported or missing box type (BType=undefined): WinISD import supports sealed (0), vented (1), 4th-order bandpass (2), and passive radiator (4) boxes.'
+    );
+  });
+
+  it('reports a driver error when a [Driver] spec is stated but not numeric', () => {
+    const text = '[ProjectInfo]\n[Driver]\nBrand=Test\nModel=Driver\nQts=notanumber\n[Box]\nBType=0\nVr=0.02\n';
+    const engine = new Engine();
+    const { value: project, errors } = winIsdProjectToOpenIsdProject(text, engine);
+    assert.equal(project, null);
+    assert.ok(errors.length > 0, 'expected at least one driver error');
+    assert.ok(errors.every((e) => e.field === 'driver'));
+  });
+
+  it('reports a clean error when a sealed box is missing Vr', () => {
+    const text = '[ProjectInfo]\n[Driver]\nBrand=Test\nModel=Driver\n[Box]\nBType=0\n';
+    const engine = new Engine();
+    const { value: project, errors } = winIsdProjectToOpenIsdProject(text, engine);
+    assert.equal(project, null);
+    assert.equal(errors.length, 1);
+    assert.equal(errors[0].field, 'Vr');
+    assert.equal(errors[0].message, 'sealed box: [Box] Vr is missing or not numeric');
+  });
+
+  it('reports a clean error when a vented box is missing Vr/Fr', () => {
+    const text = '[ProjectInfo]\n[Driver]\nBrand=Test\nModel=Driver\n[Box]\nBType=1\n';
+    const engine = new Engine();
+    const { value: project, errors } = winIsdProjectToOpenIsdProject(text, engine);
+    assert.equal(project, null);
+    assert.equal(errors.length, 1);
+    assert.equal(errors[0].field, 'Vr/Fr');
+    assert.equal(errors[0].message, 'vented box: [Box] Vr and/or Fr is missing or not numeric');
+  });
+
+  it('bandpass4 golden imports to a project whose chamber volumes/tuning match the file, [VentFront] Num carries the port count', () => {
+    const text = readFileSync(GOLDEN_BANDPASS4_WPR, 'utf8');
+    const engine = new Engine();
+    const { value: project, errors } = winIsdProjectToOpenIsdProject(text, engine);
+    assert.equal(errors.length, 0, JSON.stringify(errors));
+    if (!project) throw new Error('expected a project');
+    assert.equal(project.box.boxType.value, 'bandpass4');
+    assert.equal(project.box.bandpass4.chambers.rear.volume_m3.value,
+      Number(goldenField(GOLDEN_BANDPASS4_WPR, 'Box', 'Vr')));
+    assert.equal(project.box.bandpass4.chambers.front.volume_m3.value,
+      Number(goldenField(GOLDEN_BANDPASS4_WPR, 'Box', 'Vf')));
+    assert.equal(project.box.bandpass4.chambers.front.tuning_goal_hz.value,
+      Number(goldenField(GOLDEN_BANDPASS4_WPR, 'Box', 'Ff')));
+  });
+
+  it('bandpass4 import: [VentFront] Num carries the front port count; a file without it reads as the calculated one port', () => {
+    const base = '[ProjectInfo]\n[Driver]\nBrand=Test\nModel=Driver\n[Box]\nBType=2\nVr=0.01\nVf=0.02\nFf=60\n';
+    const engine = new Engine();
+    const two = winIsdProjectToOpenIsdProject(base + '[VentFront]\nNum=2\n', engine);
+    assert.equal(two.errors.length, 0, JSON.stringify(two.errors));
+    assert.equal(two.value?.box.bandpass4.vents.front.count.value, 2);
+    const none = winIsdProjectToOpenIsdProject(base, engine);
+    assert.equal(none.value?.box.bandpass4.vents.front.count.value, 1);
+    assert.equal(none.value?.box.bandpass4.vents.front.count.calculated, true);
+  });
+
+  it('reports a clean error when a bandpass4 box is missing Vr/Vf/Ff', () => {
+    const text = '[ProjectInfo]\n[Driver]\nBrand=Test\nModel=Driver\n[Box]\nBType=2\n';
+    const engine = new Engine();
+    const { value: project, errors } = winIsdProjectToOpenIsdProject(text, engine);
+    assert.equal(project, null);
+    assert.equal(errors.length, 1);
+    assert.equal(errors[0].field, 'Vr/Vf/Ff');
+    assert.equal(errors[0].message, 'bandpass4 box: [Box] Vr, Vf and/or Ff is missing or not numeric');
+  });
+
+  it('passive-radiator golden imports to a project whose radiator T/S values match the file', () => {
+    const text = readFileSync(GOLDEN_PASSIVE_RADIATOR_WPR, 'utf8');
+    const engine = new Engine();
+    const { value: project, errors } = winIsdProjectToOpenIsdProject(text, engine);
+    assert.equal(errors.length, 0, JSON.stringify(errors));
+    if (!project) throw new Error('expected a project');
+    assert.equal(project.box.boxType.value, 'box-passive-radiator');
+    assert.equal(project.box.passiveRadiator.volume_m3.value,
+      Number(goldenField(GOLDEN_PASSIVE_RADIATOR_WPR, 'Box', 'Vr')));
+    assert.equal(project.box.passiveRadiator.radiator.spec.Vas_m3.value,
+      Number(goldenField(GOLDEN_PASSIVE_RADIATOR_WPR, 'PassiveRadiator', 'Vas')));
+    assert.equal(project.box.passiveRadiator.count.value,
+      Number(goldenField(GOLDEN_PASSIVE_RADIATOR_WPR, 'Box', 'Npr')));
+  });
+
+  it('passive-radiator import: Npr defaults to 1 when absent', () => {
+    const text = '[ProjectInfo]\n[Driver]\nBrand=Test\nModel=Driver\n[Box]\nBType=4\nVr=0.03\nFr=35\n';
+    const engine = new Engine();
+    const { value: project, errors } = winIsdProjectToOpenIsdProject(text, engine);
+    assert.equal(errors.length, 0, JSON.stringify(errors));
+    assert.equal(project?.box.passiveRadiator.count.value, 1);
+  });
+
+  it('reports a clean error when a passive-radiator box is missing Vr/Fr', () => {
+    const text = '[ProjectInfo]\n[Driver]\nBrand=Test\nModel=Driver\n[Box]\nBType=4\n';
+    const engine = new Engine();
+    const { value: project, errors } = winIsdProjectToOpenIsdProject(text, engine);
+    assert.equal(project, null);
+    assert.equal(errors.length, 1);
+    assert.equal(errors[0].field, 'Vr/Fr');
+    assert.equal(errors[0].message, 'passive-radiator box: [Box] Vr and/or Fr is missing or not numeric');
+  });
+
+  it('imports [SignalSource] P and [ProjectInfo] Description/Creator/CreateDate/ModifyDate when stated', () => {
+    const text = '[ProjectInfo]\nDescription=A test project\nCreator=Test Creator\n'
+      + 'CreateDate=20260101\nModifyDate=20260102\n[Driver]\nBrand=Test\nModel=Driver\nRe=8\n'
+      + '[Box]\nBType=0\nVr=0.02\n[SignalSource]\nP=50\n';
+    const engine = new Engine();
+    const { value: project, errors } = winIsdProjectToOpenIsdProject(text, engine);
+    assert.equal(errors.length, 0, JSON.stringify(errors));
+    if (!project) throw new Error('expected a project');
+    assert.equal(project.powerDrive_W.value, 50);
+    assert.equal(project.description.value, 'A test project');
+    assert.equal(project.creator.value, 'Test Creator');
+    assert.equal(project.created.value, '20260101');
+    assert.equal(project.modified.value, '20260102');
+  });
+});

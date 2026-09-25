@@ -1,144 +1,20 @@
 # OpenISD — Feature List
 
-The full picture of what OpenISD is and where it's going. Includes notes on
-alternative tools (00 Enclosure Simulator, SpeakerDesign.dev, SpeakerBoxLite,
-SoundForm) for orientation. This doubles as a backlog: if a ⬜ item appeals,
-claim it in an issue.
+The full picture of what OpenISD is and where it's going. This doubles as a backlog: if a ⬜
+item appeals, claim it in an issue. For alternative tools (00 Enclosure Simulator,
+SpeakerDesign.dev, SpeakerBoxLite, Sonella, LoudspeakerLab, SoundForm, Biquad Cookbook) see
+[`docs/research/COMPETITIVE_LANDSCAPE.md`](docs/research/COMPETITIVE_LANDSCAPE.md).
 
 **Legend:** ✅ done · 🔨 in progress · ⬜ planned · _“seen in X”_ = demand already
 proven by another tool.
 
 ---
 
-## Alternative tools
-
-Good tools exist. Use whichever works best for you. These notes are for
-orientation, not criticism — we record them so contributors understand the
-landscape and can spot gaps worth filling.
-
----
-
-### 00 Enclosure Simulator — <https://simulator.00aud.io/>
-
-_by mbdavis · free, no login, closed source_
-
-The most fully-developed browser-based simulator in the field as of mid-2025.
-Around 65 shipped features including: amplifier-load graph, interactive
-lumped-model schematic view, on-graph parametric EQ + HP/LP + Linkwitz
-transform + shelf filters, URL-encoded shareable designs, imports **`.wdr`,
-`.wpr`, and Unibox** spreadsheets, exports WinISD-compatible files. Has a
-public voted roadmap (<https://simulator.00aud.io/roadmap>) and a WinISD
-feature comparison (<https://simulator.00aud.io/compare/winisd-vs-00-simulator>).
-
-The author has publicly pledged to open-source the code if the project ever
-goes inactive. The pledge is on record; the code is not yet public.
-
-Driver data and any design saves are not explicitly offered as open-access or
-exportable in bulk.
-
----
-
-### SpeakerDesign.dev — <https://speakerdesign.dev/>
-
-_free, no login, closed source_
-
-A broad, polished suite: guided Driver Wizard (sealed presets; vented
-QB3/SBB4/EBS), Box Simulator covering the same graph set as OpenISD plus
-full Ql/Qa/Qp losses, 1–4 vents (round or slot), selectable end-correction,
-drag-to-adjust Vb/Fb with axis locking, frequency range presets, and
-configurable listening distance. Also includes a detailed Box Calculator (six
-assembly cases, driver/port/bracing/lining displacement, cut list), a
-Cutlist Optimiser (bin-packing, kerf, rotate, fractional inches, PDF output),
-and an open knowledge base with tutorials.
-
-Sealed and vented only as of the survey date (bandpass, PR, and ABC listed as
-coming). No `.wdr` import or export noted. Broader than OpenISD on
-construction and education; roughly matched on core simulation.
-
----
-
-### SpeakerBoxLite — <https://speakerboxlite.com/>
-
-_freemium / pay-as-you-go, web + iOS + Android, closed source_
-
-The most feature-complete tool in the field: 5,000+ drivers, transmission
-line, full crossover suite, 3D enclosure builder, STL port export. A good,
-well-regarded site that covers the basics of enclosure simulation clearly.
-
-**Graph discrepancy noted:** for the same driver and box parameters, SpeakerBoxLite
-can produce noticeably different curves from OpenISD (and from WinISD) on some
-outputs — particularly SPL and excursion. The cause is not known. It may reflect
-a difference in the transfer-function model, loss assumptions, radiation
-convention, or a combination. This is an open question; anyone who diagnoses it
-is encouraged to open an issue or PR with findings.
-
-The driver database (5,000+ entries) is not made available as open-access data.
-Users can export individual designs but there is no bulk export or community
-commons equivalent to `drivers/`.
-
----
-
-### SoundForm
-
-_by u/BusyEntrepreneur9636 · closed beta, access by DM_
-<https://www.reddit.com/r/diyaudio/comments/1snqre1/new_features_for_web_based_winisd_app/>
-
-In closed beta as of the survey date. Crossover design and multi-driver
-summation appear to be a focus. No independent testing performed.
-
----
-
-### LoudspeakerLab — <https://loudspeakerlab.io/>
-
-_free, ad-free, web-based · licensing not stated_
-
-A different niche from OpenISD: a **full multiway system designer centred on passive-crossover
-synthesis**, where the enclosure is one sub-component rather than the whole product. An
-automated solver runs a multi-objective search over an ABCD-matrix circuit model, generating
-many candidate topologies per driver (HP/LP 0–4th order, asymmetric slopes, L-pad/T-pad/Zobel
-attenuation and R‖L/R‖C/L‖C compensation, LC/RLC trap networks) and combining them into
-full-system layouts, then scoring candidates on on-axis flatness, listening window,
-directivity, distortion avoidance, preference rating, simplicity, impedance and sensitivity.
-Values are snapped to E-series with real parasitics. Built on a **measurement-based, CTA-2034A**
-public community driver database — profiles are uploaded as **FRD / ZMA / distortion / off-axis**
-files (REW/ARTA/DATS), and the app computes CTA-2034A curves, Directivity Index and a Preference
-Rating with community accuracy voting. Box modelling covers **sealed and vented only** (default
-B4 vented alignment, from T/S params; merged into driver FR before the solve) — **no bandpass or
-passive radiator**. Crossovers can be **imported as a pasted SPICE netlist** and every design
-**exports a SPICE netlist**; the schematic exports as **PNG / SVG** and plots save as images.
-
-No WinISD `.wdr` import/export — its interchange is measurement-based (FRD/ZMA + SPICE netlist),
-not the lumped-T/S format OpenISD uses — so it is **not** a drop-in cross-check oracle. Full
-survey (verified by rendering the SPA with Playwright, 2026-07-05) in `OTHER_TOOLS.md §8`.
-
----
-
-### Biquad Cookbook EQ Designer — <https://loudifier.github.io/Biquad-Cookbook/>
-
-_by loudifier · free, open source, GitHub-hosted_
-
-A focused, modern web-based EQ filter designer that complements (not replaces)
-enclosure simulators. Provides 15+ filter types (1st/2nd order lowpass, highpass,
-allpass, shelves, peaking EQ, bandpass, notch, Linkwitz transform) with real-time
-visualization across four plot types: frequency response, phase, impulse response,
-and group delay. Includes a filter optimizer that matches a target curve or flattens
-a response. Saves/loads EQ configurations in YAML format. Orthogonal to OpenISD’s
-scope — Biquad focuses on signal-chain EQ filter design while OpenISD simulates
-enclosure acoustics. Users often chain both tools: design an enclosure in OpenISD,
-then use Biquad to design corrective EQ to flatten the result.
-
----
-
-> Feature notes for closed tools are taken from their own sites and authors’
-> public posts, not independent testing. Treat all claims as ⚠ unverified
-> unless a OpenISD contributor has directly compared outputs.
-
----
-
 ## 1. Enclosure types
 
 > Cross-tool support at a glance (which of these each surveyed tool models) lives in
-> `OTHER_TOOLS.md` → "Enclosure / box-type support at a glance".
+> [`docs/research/COMPETITIVE_LANDSCAPE.md`](docs/research/COMPETITIVE_LANDSCAPE.md) →
+> "Enclosure/box-type support at a glance".
 
 - ✅ Sealed (closed box)
 - ✅ Vented / ported (bass-reflex)
@@ -196,12 +72,12 @@ then use Biquad to design corrective EQ to flatten the result.
 
 ### Driver library — 2,100+ drivers, instant load
 
-- ✅ **Pre-bundled at build time** — all local `.wdr` collections are baked into
-  the app JS; no GitHub API calls, no rate limits, no spinners. The full library
-  loads in the same round-trip as the page itself.
-- ✅ **Federated driver sources** — `drivers/sources.json` links external `.wdr`
-  repos so the community can grow the library without forking OpenISD; _no other
-  surveyed tool federates its driver data_
+- ✅ **Pre-bundled at build time** — every local `openisd.yml` collection is
+  baked into the app JS; no GitHub API calls, no rate limits, no spinners. The library
+  loads in the same round-trip as the page itself. `.wdr` is not a bundleable record —
+  a collection stored as `.wdr` has to be converted first.
+- ✅ **Single bundled driver corpus** — the bridge-produced `openisd.yml` corpus ships with the
+  app; `.wdr` inputs are converted at the bridge boundary before entering the corpus.
 - ✅ **In-app driver browser** — token-based multi-word search (case-insensitive,
   every word must match), pure alphabetical list, source tags with clickable links
 - ✅ **Newer-version highlighting** — when the same driver exists in multiple
@@ -215,21 +91,12 @@ then use Biquad to design corrective EQ to flatten the result.
 - ✅ **Paste any GitHub repo** — add a custom `owner/repo` or full GitHub URL to
   pull `.wdr` files from any public repository in the browser
 
-### Vendor scrapers (automated data pipelines)
+### Driver data supply
 
-- ✅ **SB Acoustics** — 194 drivers scraped from sbacoustics.com, including
-  the full Satori and SB series, with datasheet URLs in machine-readable `_meta.json`
-- ✅ **Parts Express** — 1,509 drivers scraped from the PE woofer guide API;
-  T/S parameters taken directly from the PE datasheet fields (not keyed by hand)
-- 🔨 **SoundImports** — European multi-brand distributor; scraper live, data
-  growing (Accuton, HiVi, Faital, Morel, ScanSpeak, Seas, Satori, Wavecor, …)
-- ⬜ **Wavecor**, **Dayton Audio** — scrapers written, pending full run
-- ✅ **Meta file standard** — every scraped `.wdr` gets a `_meta.json` with
-  quality grade (`M` = machine-scraped, unverified), datasheet URL, and scrape
-  provenance so human reviewers know exactly where each number came from
-- ✅ **WDR schema documentation** (`drivers/README.md`) — canonical field names,
-  SI units, common mistakes table, date semantics, quality review workflow; the
-  single source of truth for scraper authors and human contributors
+- ✅ **Driver records come from winisd_tools** — the scraping pipeline is a separate
+  project; openisd consumes the records it publishes and never scrapes a vendor itself
+- ✅ **WDR schema documentation** (`WINISD_SCHEMA.md`) — canonical field names, SI units,
+  common mistakes table, date semantics; the single source of truth for the file format
 - ⬜ Filter drivers by size / params; richer metadata index — _SpeakerBoxLite has 5,000+ / 300+ brands in one DB_
 - ⬜ Paste raw datasheet text → infer T/S params — _seen in 00 Simulator_
 - ⬜ “Copy from” an existing driver — _seen in 00 Simulator_
@@ -272,7 +139,10 @@ _The clearest gap vs SoundForm and SpeakerDesign.dev — builders love this._
 - ✅ Runs anywhere with a browser (desktop, tablet, phone), no install, no login
 - ✅ Dark theme
 - ✅ Hover crosshair + value readout on every graph
-- ✅ Alignment helpers (Qtc target, QB3/B4 vent, PR mass auto-tune, vent↔tuning)
+- ✅ Alignment helpers (sealed Qtc target, QB3/B4 vent, PR mass auto-tune, vent↔tuning)
+- ⬜ WinISD sealed alignment picker (nine numeric Qtc targets with WinISD labels), available in
+  New Project and the Box view with draft volume editing, closest-target feedback, and EBP
+  suitability iconography
 - ⬜ More vented alignment presets (SBB4, EBS, Bessel, Chebyshev) — _seen in SpeakerDesign.dev wizard_
 - ⬜ Guided design wizard (driver → count → box type → params) — _seen in SpeakerDesign.dev_
 - ⬜ Draggable / resizable graphs, pin/hide panels — _seen in 00 Simulator_
@@ -281,11 +151,11 @@ _The clearest gap vs SoundForm and SpeakerDesign.dev — builders love this._
 ## 8. Data, sharing & community
 
 - ✅ JSON project save / load
-- ✅ **Federated driver data** — `drivers/sources.json` links external `.wdr`
-  repos; add one via PR, no re-hosting
+- ✅ **Bridge-produced driver data** — the canonical corpus is generated from scraper output and
+  carries provenance and quality alongside each record.
 - ✅ **URL-encoded shareable designs** — paste a design as a link
-- ✅ **Community contribution flow** — PR a `.wdr` file or a new source URL;
-  WDR schema + meta standard documented so contributors know exactly what's expected
+- ✅ **Community contribution flow** — contribute scraper input or a bridge-produced canonical
+  record; WDR schema + metadata standards document the conversion boundary.
 - ✅ Static hosting on GitHub Pages (<https://openisd.app/>)
 
 ## 9. Learning & docs
@@ -316,7 +186,7 @@ On raw simulation features alone, OpenISD is mid-pack today.
 But the driver library story has changed materially. OpenISD now ships with
 **2,100+ bundled drivers** from SB Acoustics, Parts Express, and community
 measurement collections — loaded instantly from the app bundle, not fetched from a
-rate-limited API. A live scraper pipeline keeps that number growing. No surveyed
+rate-limited API. A live ingestion pipeline keeps that number growing. No surveyed
 competitor offers an open, version-controlled, machine-readable driver commons with
 automated ingestion pipelines and a human-review quality framework.
 
@@ -324,14 +194,14 @@ OpenISD’s defensible edges:
 
 - **Open source, fully and permanently.** MIT-licensed, public, and forkable
   today. The code belongs to everyone who uses it.
-- **Open _data_, growing.** 2,100+ drivers in a version-controlled commons, with
-  vendor scraper pipelines adding new measurements automatically. The data carries
-  quality grades, datasheet provenance, and scrape timestamps so you know exactly
+- **Open _data_, growing.** 2,100+ drivers in a version-controlled commons, fed by an
+  automated ingestion pipeline. The data carries
+  quality grades, datasheet provenance, and timestamps so you know exactly
   where every number came from. No closed tool opens its aggregated driver data at
   all, let alone federates it.
-- **Federated, not hoarded.** Any `.wdr` repo on GitHub can be linked into
-  OpenISD’s browser with one PR to `sources.json` — no re-hosting, no import
-  queue. The commons grows without a central gatekeeper.
+- **Bridge-produced, not hand-maintained.** Scraper output is converted through the bridge into
+  canonical records; the app consumes that one reviewed corpus rather than maintaining a second
+  source registry.
 - **Provable physics.** Validated against closed-form Thiele/Small solutions,
   re-verified on every push in CI. No competitor surveyed makes this claim.
 - **Truly ownerless longevity.** MIT + on disk in every clone = it cannot die,

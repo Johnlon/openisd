@@ -1,0 +1,361 @@
+import {expect, openAProject, test} from '../fixtures.js';
+import type {Page} from '@playwright/test';
+import {fillAndBlur} from '../fixtures/numField.js';
+import {PROVENANCE_MAP} from '../../src/logic/provenance.js';
+import {fieldById, UI_FIELD_SPECS as fieldSpecs} from '../../src/logic/fields/uiFields.js';
+import {UNIT_GROUPS} from '../../src/logic/fields/units.js';
+
+/**
+ * Driver editor — provenance highlighting and per-field display units, over EVERY field on
+ * EVERY tab. Nothing here names a field it expects to find: each test enumerates what the
+ * editor actually renders and asserts a property of all of it, so a new field is covered the
+ * day it is added and a deleted one cannot leave a stale assertion behind.
+ *
+ *  1. A field the provenance map can explain lights up when inspected, and its inputs light
+ *     up in the path colour.
+ *  2. A field the solver CALCULATED can be explained at all — a calculated value with no
+ *     recorded formula is a hole in the inspector.
+ *  3. The highlight box encloses the whole control: label, input AND unit.
+ *  4. A field whose quantity has more than one unit carries a real toggle that rotates the
+ *     label and converts the value; a field whose quantity has exactly one unit does not.
+ */
+
+interface Rect { x: number; y: number; width: number; height: number }
+
+/** True when two bounding boxes share any area — they overlap on BOTH axes at once. */
+function overlaps(a: Rect, b: Rect): boolean {
+  return a.x < b.x + b.width && a.x + a.width > b.x
+    && a.y < b.y + b.height && a.y + a.height > b.y;
+}
+
+/** Every value the seed enters, in the unit the field displays. One solvable driver, so the
+ *  solver marks a realistic set of fields CALCULATED for tests 1 and 2. */
+const SEED: [string, string][] = [
+  ['Fs', '35'], ['Qts', '0.38'], ['Qes', '0.42'], ['Re', '6.4'],
+  ['Vas', '32'], ['Sd', '220'], ['Xmax', '6.5'], ['Pe', '150'],
+  ['Hc', '18'], ['Hg', '8'],
+];
+
+/** Dimensions-tab geometry (mm, the tab's display unit). DVol is deliberately the ONE unseeded
+ *  member of the DVol/Depth/MagDepth/Magnet lock (WINISD_SCHEMA.md §3.10.1), so the solver
+ *  fills it and the provenance sweep exercises a CALCULATED geometry field for real — the lock
+ *  needs every other member present, so exactly one may be left absent. */
+const SEED_DIMENSIONS: [string, string][] = [
+  ['Driver Depth (Depth)', '55'], ['Magnet Depth', '20'],
+  ['Magnet Diameter (Magnet)', '60'], ['Voice Coil Dia (Vcd)', '25'],
+];
+
+async function openEditor(page: Page) {
+  await page.goto('/');
+  await openAProject(page);
+  await page.locator('.project-nav li', { hasText: 'Driver' }).click();
+  await page.locator('.edit-btn', { hasText: 'Edit' }).click();
+  await page.locator('.de-body').waitFor({ state: 'visible' });
+}
+
+/** Enter a solvable driver with "Auto calculate unknowns" on, so the derived fields carry the
+ *  CALCULATED mark the provenance tests are about. */
+async function seedDriver(page: Page) {
+  await page.getByRole('button', { name: 'Parameters', exact: true }).click();
+  for (const [label, value] of SEED) {
+    const input = fieldByLabel(page, label).locator('input').first();
+    await fillAndBlur(input, value);
+  }
+  await page.getByRole('button', { name: 'Dimensions', exact: true }).click();
+  for (const [label, value] of SEED_DIMENSIONS) {
+    const input = fieldByLabel(page, label).locator('input').first();
+    await fillAndBlur(input, value);
+  }
+  await page.getByRole('button', { name: 'Parameters', exact: true }).click();
+}
+
+function fieldByLabel(page: Page, label: string) {
+  return page.locator('.de-body .de-fld', { has: page.locator(`label:text-is("${label}")`) }).first();
+}
+
+/** Walk every tab, and hand the visitor that tab's own field labels WHILE it is on screen.
+ *  Collecting the labels up front and iterating afterwards would run every assertion against
+ *  whichever tab happened to be open last. */
+async function forEachTab(page: Page, visit: (tab: string, labels: string[]) => Promise<void>) {
+  const tabs = (await page.locator('.de-tab').allInnerTexts()).map(s => s.trim());
+  for (const tab of tabs) {
+    await page.getByRole('button', { name: tab, exact: true }).click();
+    const labels = (await page.locator('.de-body .de-fld label').allInnerTexts()).map(s => s.trim());
+    await visit(tab, labels);
+  }
+}
+
+function provenanceTables() {
+  return { explained: Object.keys(PROVENANCE_MAP) };
+}
+
+/** The registry id whose `label` a rendered editor label shows, or `undefined` when no field
+ *  renders that label — derived from the registry, never a hand-maintained map. */
+function keyForLabel(label: string): string | undefined {
+  const spec = fieldSpecs.find(s => s.label === label);
+  if (!spec) return undefined;
+  if (spec.id in PROVENANCE_MAP) return spec.id;
+  if (spec.aliases) {
+    const found = spec.aliases.find(a => a in PROVENANCE_MAP);
+    if (found) return found;
+  }
+  return spec.aliases?.[0] ?? spec.id;
+}
+
+function unitTable() {
+  const byLabel: Record<string, { group: string; token: string; next: string; ratio: number }> = {};
+  for (const [group, units] of Object.entries(UNIT_GROUPS)) {
+    if (units.length < 2) continue;
+    units.forEach((def, i) => {
+      const next = units[(i + 1) % units.length];
+      byLabel[def.label] ??= { group, token: def.token, next: next.label, ratio: next.factor / def.factor };
+    });
+  }
+  return byLabel;
+}
+
+// ── 0. The label→key map cannot silently drift from what the editor actually renders ────
+//
+// Tests 1-2 below only exercise a field that HAS a provenance formula, so a label edit that
+// orphans LABEL_TO_FIELD_KEY for any field WITHOUT one passes every other test in this file —
+// exactly how "Magnet Depth" lost its "(MagDepth)" suffix unnoticed. `data-field-key` on each
+// `.de-fld` (DriverEditorModal.vue) is the ground truth — the key the field is ACTUALLY bound
+// to (cellClass/cellVal/setNum's argument, or the metadata field for General) — independent of
+// the label map. This test needs no field list of its own: it reads every `.de-fld` the editor
+// renders, on every tab, and requires the map to agree with the ground truth for all of them.
+
+/** The General tab is identity/attribution metadata (Manufacturer, Brand, Model, Comment, …)
+ *  — never a Thiele/Small quantity, so it can never gain a provenance formula and was never
+ *  meant to be in LABEL_TO_FIELD_KEY. Same for Connection (VCCon): a wiring-mode select, not
+ *  a derivable value. Excluded by what they STRUCTURALLY are, not by name-matching a guess at
+ *  which fields might drift — every field this system can ever explain stays covered. */
+test('every rendered simulation field is bound to a registry id whose label it renders', async ({ page }) => {
+  await openEditor(page);
+
+  const drift: string[] = [];
+  const untagged: string[] = [];
+  await forEachTab(page, async (tab) => {
+    if (tab === 'General') return;
+    const rows = await page.evaluate(() =>
+      [...document.querySelectorAll('.de-body .de-fld')].map(f => ({
+        label: f.querySelector('label')?.textContent?.trim() ?? '',
+        groundTruth: f.getAttribute('data-field-key'),
+      })));
+    for (const { label, groundTruth } of rows) {
+      if (!label || groundTruth === 'VCCon') continue;
+      if (groundTruth == null) { untagged.push(`${tab}/${label}`); continue; }
+      const spec = fieldById(groundTruth);
+      if (!spec) { drift.push(`${tab}/${label}: data-field-key "${groundTruth}" is not a registry id`); continue; }
+      if (spec.label !== label) drift.push(`${tab}/${label}: registry label "${spec.label}" != rendered "${label}"`);
+    }
+  });
+  expect(untagged, 'fields with no ground-truth data-field-key to check against').toEqual([]);
+  expect(drift, 'rendered labels that disagree with the field registry label').toEqual([]);
+});
+
+// ── 1. Provenance highlight reaches every explainable field ─────────────────────────────
+
+test('every field the provenance map explains takes the inspected highlight', async ({ page }) => {
+  await openEditor(page);
+  const { explained } = provenanceTables();
+  await page.locator('.de-provenance-chk', { hasText: 'Inspect Provenance' }).locator('input').check();
+
+  const dark: string[] = [];
+  await forEachTab(page, async (tab, labels) => {
+    for (const label of labels) {
+      const key = keyForLabel(label) ?? label;
+      if (!explained.includes(key)) continue;
+      const fld = fieldByLabel(page, label);
+      await fld.locator('label').click();
+      if (!((await fld.getAttribute('style')) ?? '').includes('outline')) dark.push(`${tab}/${label} (${key})`);
+    }
+  });
+  expect(dark, 'fields with a provenance formula that never light up').toEqual([]);
+});
+
+test('inspecting a field also colours the inputs its formula names', async ({ page }) => {
+  await openEditor(page);
+  await seedDriver(page);
+  await page.locator('.de-provenance-chk', { hasText: 'Inspect Provenance' }).locator('input').check();
+
+  // Qts = (Qes × Qms) / (Qes + Qms) — one path, two inputs, all three on this tab.
+  await fieldByLabel(page, 'Qts').locator('label').click();
+  await expect(fieldByLabel(page, 'Qts')).toHaveAttribute('style', /outline/);
+  for (const input of ['Qes', 'Qms']) {
+    await expect(fieldByLabel(page, input), `${input} feeds Qts`).toHaveAttribute('style', /border-color/);
+  }
+});
+
+// ── 2. A calculated value can always be explained ───────────────────────────────────────
+
+/** Fields that carry the CALCULATED mark with no formula behind them.
+ *  `c` and `roo` are the engine's air constants — nothing about the driver derives them. */
+const NO_FORMULA = new Set(['c_m_per_s', 'roo_kg_per_m3']);
+
+test('every field the solver calculated has a provenance formula', async ({ page }) => {
+  await openEditor(page);
+  await seedDriver(page);
+  const { explained } = provenanceTables();
+
+  const unexplained: string[] = [];
+  await forEachTab(page, async (tab, labels) => {
+    for (const label of labels) {
+      const fld = fieldByLabel(page, label);
+      const calculated = await fld.evaluate(f =>
+        f.classList.contains('value-c') || !!f.querySelector('input.value-c'));
+      if (!calculated) continue;
+      const key = keyForLabel(label) ?? label;
+      if (!explained.includes(key) && !NO_FORMULA.has(key)) unexplained.push(`${tab}/${label} (${key})`);
+    }
+  });
+  expect(unexplained, 'calculated values the inspector cannot explain').toEqual([]);
+});
+
+// ── 3. The highlight box encloses the whole control ─────────────────────────────────────
+
+test('every field box encloses its own label, input and unit', async ({ page }) => {
+  await openEditor(page);
+  const escapes: string[] = [];
+  await forEachTab(page, async (tab) => {
+    const rows = await page.evaluate(() => {
+      const out: { label: string; part: string; over: number }[] = [];
+      for (const f of document.querySelectorAll('.de-body .de-fld')) {
+        const box = f.getBoundingClientRect();
+        const label = f.querySelector('label')?.textContent?.trim() ?? '?';
+        for (const [part, el] of [['label', f.querySelector('label')],
+                                  ['input', f.querySelector('input, select, textarea')],
+                                  ['unit', f.querySelector('.u')]] as const) {
+          if (!el) continue;
+          const r = el.getBoundingClientRect();
+          // 1 px of sub-pixel rounding is not an escape; more than that is outside the box.
+          const over = Math.max(box.left - r.left, r.right - box.right, box.top - r.top, r.bottom - box.bottom);
+          if (over > 1) out.push({ label, part, over: Math.round(over) });
+        }
+      }
+      return out;
+    });
+    escapes.push(...rows.map(r => `${tab}/${r.label} ${r.part} outside by ${r.over}px`));
+  });
+  expect(escapes, 'parts of a field painted outside the field box').toEqual([]);
+});
+
+// ── 4. Unit toggling, over every unit the editor shows ──────────────────────────────────
+
+/** Quantities the app shows in ONE unit, so their label is text and not a toggle. Each is a
+ *  quantity with no second unit in `fields/units.ts` — a field landing here that DOES have a
+ *  group is a missing toggle, and the test says so rather than passing quietly. */
+const SINGLE_UNIT = new Set([
+  'ohm', 'Tm', 'W', 'dB', '%', 'H·√Hz', 'K/W', 'J/K', 'N/(A·kg)', 'N/√W',
+]);
+
+test('every unit with alternates is a working toggle, and every other unit is a plain label', async ({ page }) => {
+  await openEditor(page);
+  await seedDriver(page);
+  const convertible = unitTable();
+
+  const problems: string[] = [];
+  await forEachTab(page, async (tab, labels) => {
+    for (const label of labels) {
+      const fld = fieldByLabel(page, label);
+      const unitEl = fld.locator('.u').first();
+      if (!(await unitEl.count())) continue;                       // no unit — nothing to rotate
+      const shownUnit = (await unitEl.innerText()).trim();
+      const spec = convertible[shownUnit];
+
+      if (!spec) {
+        if (!SINGLE_UNIT.has(shownUnit)) problems.push(`${tab}/${label}: unit "${shownUnit}" is in no unit group and is not declared single-unit`);
+        else if ((await unitEl.getAttribute('role')) === 'button') problems.push(`${tab}/${label}: "${shownUnit}" is declared single-unit but is clickable`);
+        continue;
+      }
+
+      if ((await unitEl.getAttribute('role')) !== 'button') {
+        problems.push(`${tab}/${label}: "${shownUnit}" has alternates but is not a toggle`);
+        continue;
+      }
+
+      const input = fld.locator('input').first();
+      if (!(await input.inputValue())) { await input.fill('1'); await input.blur(); }
+      const before = await input.inputValue();
+      await unitEl.click();
+      const after = (await unitEl.innerText()).trim();
+      if (after !== spec.next) { problems.push(`${tab}/${label}: ${shownUnit} → ${after}, expected ${spec.next}`); continue; }
+
+      // Both readings are rounded to their own unit's decimals, and a FINER target unit
+      // magnifies the source's rounding by the conversion ratio — Cms 0.4661 mm/N is really
+      // anything in ±0.00005, i.e. ±0.05 µm/N. Allow both roundings, nothing more.
+      const dpBefore = (before.split('.')[1] ?? '').length;
+      const shownText = await input.inputValue();
+      const dpAfter = (shownText.split('.')[1] ?? '').length;
+      const expected = parseFloat(before) * spec.ratio;
+      const tolerance = 0.5 * 10 ** -dpAfter + 0.5 * 10 ** -dpBefore * Math.abs(spec.ratio);
+      const shown = parseFloat(shownText);
+      if (Math.abs(shown - expected) > tolerance) {
+        problems.push(`${tab}/${label}: ${before} ${shownUnit} shown as ${shown} ${after}, expected ${expected}`);
+      }
+    }
+  });
+  expect(problems, 'unit-toggle faults').toEqual([]);
+});
+
+test('rotating a unit changes the display only — the stored value round-trips', async ({ page }) => {
+  await openEditor(page);
+  await page.getByRole('button', { name: 'Dimensions', exact: true }).click();
+  const fld = fieldByLabel(page, 'Basket Diameter (Basket)');
+  const input = fld.locator('input').first();
+  const unit = fld.locator('.u').first();
+
+  await fillAndBlur(input, '165');            // 165 mm
+  await unit.click();                 // mm → in
+  await expect(unit).toHaveText('in');
+  expect(parseFloat(await input.inputValue())).toBeCloseTo(165 * 39.3701 / 1000, 2);
+
+  await unit.click();                 // in → cm
+  await unit.click();                 // cm → mm
+  await expect(unit).toHaveText('mm');
+  expect(parseFloat(await input.inputValue()), 'the value survives a full rotation').toBeCloseTo(165, 2);
+});
+
+// ── 5. The equation-inspector popup never covers the dialog it explains ─────────────────
+
+/** Guards the popup sitting at a fixed viewport corner regardless of where the editor
+ *  renders — on a viewport too narrow to clear it on either side it would land on top of
+ *  the very panel it explains (bugs/BUG_20260817_equation_inspector_popup_overlaps_the_editor.md). */
+test('the equation-inspector popup never overlaps the editor, even on a narrow viewport', async ({ page }) => {
+  await page.setViewportSize({ width: 1200, height: 900 }); // 770px modal, ~215px free per side
+  await openEditor(page);
+  await page.getByRole('button', { name: 'Parameters', exact: true }).click();
+  await page.getByRole('checkbox', { name: 'Inspect Provenance' }).check();
+  await fieldByLabel(page, 'Fs').locator('label').click();
+
+  const card = page.locator('.eq-inspector-card');
+  await expect(card).toBeVisible();
+  const modalBox = await page.locator('.de-modal').boundingBox();
+  const cardBox = await card.boundingBox();
+  expect(overlaps(cardBox!, modalBox!), `popup ${JSON.stringify(cardBox)} overlaps modal ${JSON.stringify(modalBox)}`)
+    .toBe(false);
+});
+
+test('the equation-inspector popup is visible on screen at a normal window height', async ({ page }) => {
+  // bugs/BUG_20260817_equation_inspector_popup_overlaps_the_editor.md — the "below the modal"
+  // fallback picked a vertical band without checking the popup's own height fit in it, so at an
+  // ordinary (not maximized) window height the popup rendered past the bottom of the viewport —
+  // present in the DOM, entirely invisible.
+  await openEditor(page);
+  await page.getByRole('button', { name: 'Parameters', exact: true }).click();
+  await page.getByRole('checkbox', { name: 'Inspect Provenance' }).check();
+  await fieldByLabel(page, 'Fs').locator('label').click();
+  const vh = await page.evaluate(() => window.innerHeight);
+  const box = await page.locator('.eq-inspector-card').boundingBox();
+  expect(box!.y, 'popup top is above the viewport').toBeGreaterThanOrEqual(0);
+  expect(box!.y + box!.height, `popup bottom (${box!.y + box!.height}) exceeds the window height (${vh})`)
+    .toBeLessThanOrEqual(vh + 1);
+});
+
+test('the equation-inspector popup shows no "Live:" substitution line', async ({ page }) => {
+  await openEditor(page);
+  await page.getByRole('button', { name: 'Parameters', exact: true }).click();
+  await page.getByRole('checkbox', { name: 'Inspect Provenance' }).check();
+  await fieldByLabel(page, 'Fs').locator('label').click();
+  await expect(page.locator('.eq-inspector-card')).toBeVisible();
+  await expect(page.locator('.eq-inspector-card').getByText('Live:')).toHaveCount(0);
+});

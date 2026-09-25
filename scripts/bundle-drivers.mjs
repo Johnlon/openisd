@@ -1,103 +1,159 @@
 #!/usr/bin/env node
 /**
- * bundle-drivers.mjs
+ * bundle-drivers.mjs — writes the bundled driver catalogue the app serves and fetches.
  *
- * Pre-bundles all WDR files from bundled driver collections into
- * src/drivers-bundle.json so the app can load them instantly without
- * hitting the GitHub API.
+ *   npx tsx scripts/bundle-drivers.mjs [--force]
  *
- * "Bundled" = sources whose URL points at this repo
- * (github.com/Johnlon/openisd). Federated third-party sources are
- * still fetched live from GitHub at runtime.
+ * Design: docs/design/BUNDLED_CATALOGUE_API.md. The corpus is the sibling
+ * `winisd_drivers/db/datasheets` checkout; each `<brand>/<sku>/openisd.json` is the canonical
+ * driver record (ARCHITECTURE.md AD-8), written by winisd_tools. Nothing else is read.
  *
- * Run automatically via `npm run build` → prebuild script.
- * Can also be run manually: node scripts/bundle-drivers.mjs
+ * Outputs, all under packages/ui/public/ and all tracked in git (CI has no corpus checkout):
+ *
+ *   drivers-index.json               BundledDriverIndexRow[]          — what the driver picker lists
+ *   passive-radiators-index.json     BundledPassiveRadiatorIndexRow[] — what the PR browser lists
+ *   drivers/<brand>/<sku>.json       the canonical record, verbatim   — fetched when a device is picked
+ *
+ * Each record is opened through the domain's own seam (`OpenISDDriver.fromConformingRecord` /
+ * `OpenISDPassiveRadiatorStandalone.fromConformingRecord`, inside the round-trip gate) and its
+ * index row is written from that domain object by the app's own row functions
+ * (packages/ui/src/logic/bundledIndexRows.ts). A record the seam refuses fails the build.
+ *
+ * Bundling gate: structural readability only (`isBundlable`, John's QO79/QO81 ruling — no record
+ * is excluded for missing spec params). A driver goes to drivers-index.json, a passive radiator
+ * to passive-radiators-index.json. A record with no `specs` container is skipped and listed.
+ *
+ * Skips the walk when nothing has changed: the fingerprint of every corpus record plus every
+ * source file that shapes a row or record is kept in build/drivers-bundle.stamp and compared
+ * first (scripts/bundleStamp.mjs; scripts/bundle-drivers-if-changed.mjs does the same check
+ * under plain node, which is what predev/prebuild call). `--force` rebuilds regardless.
+ *
+ * Runs under tsx (predev/prebuild) because the packages export TypeScript source.
  */
 
-import { readFileSync, readdirSync, writeFileSync, existsSync } from 'fs';
-import { join, extname, relative } from 'path';
-import { fileURLToPath } from 'url';
+import {mkdirSync, readFileSync, rmSync, statSync, writeFileSync} from 'fs';
+import {dirname, join, relative} from 'path';
+import {fileURLToPath} from 'url';
+import {isBundlable, project} from './bundleProjection.mjs';
+import {checkOpenisdRoundTrip} from './roundTripGate.mjs';
+import {
+    bundleFingerprintOnDisk,
+    bundleOutputsPresent,
+    CORPUS_RELATIVE,
+    readStamp,
+    STAMP,
+    walkFiles
+} from './bundleStamp.mjs';
+import {bundledDriverIndexRowOf, bundledPassiveRadiatorIndexRowOf} from '../packages/ui/src/logic/bundledIndexRows.ts';
+import {OpenISDPassiveRadiatorStandalone} from '@openisd/design';
+
+const RECORD_FILE = 'openisd.json';
 
 const ROOT = join(fileURLToPath(import.meta.url), '..', '..');
-const sources = JSON.parse(
-  readFileSync(join(ROOT, 'drivers/sources.json'), 'utf8')
-).sources;
+const CORPUS = join(ROOT, ...CORPUS_RELATIVE);
+const PUBLIC = join(ROOT, 'packages', 'ui', 'public');
+const DRIVER_INDEX = join(PUBLIC, 'drivers-index.json');
+const RADIATOR_INDEX = join(PUBLIC, 'passive-radiators-index.json');
+const RECORDS_DIR = join(PUBLIC, 'drivers');
+const STAMP_FILE = join(ROOT, STAMP);
 
-// Sources whose URLs match this repo are bundled locally.
-// Accepts both repo names so bundling keeps working across the GitHub rename.
-const REPO_RE = /github\.com\/Johnlon\/(?:resonate|openisd)\/tree\/[^/]+\/(.+)/i;
+function walkRecords(dir) {
+  return walkFiles(dir, name => name.toLowerCase() === RECORD_FILE);
+}
 
-function walkWdr(dir) {
-  const files = [];
-  for (const entry of readdirSync(dir, { withFileTypes: true })) {
-    if (entry.isDirectory()) {
-      if (entry.name.startsWith('_')) continue;   // _ dirs are cache/scratch — excluded from bundle
-      files.push(...walkWdr(join(dir, entry.name)));
-    } else if (extname(entry.name).toLowerCase() === '.wdr') {
-      files.push(join(dir, entry.name));
+/** The record's identity and locator: `<brand>/<sku>` — the directory holding its openisd.json. */
+function recordPathOf(corpusRoot, file) {
+  return relative(corpusRoot, dirname(file)).replace(/\\/g, '/');
+}
+
+function main() {
+  const force = process.argv.includes('--force');
+
+  console.log(`\nOpenISD\n  reading ${CORPUS}`);
+  let rawFiles;
+  try { rawFiles = walkRecords(CORPUS); }
+  catch { throw new Error(`driver source path is not checked out: ${CORPUS}`); }
+  console.log(`  found ${rawFiles.length} ${RECORD_FILE} files`);
+
+  const fingerprint = bundleFingerprintOnDisk(ROOT);
+  if (!force && bundleOutputsPresent(ROOT) && readStamp(ROOT) === fingerprint) {
+    console.log(`  unchanged since the last run (build/drivers-bundle.stamp) — nothing rewritten; --force to rebuild`);
+    return;
+  }
+
+  const driverRows = [];
+  const radiatorRows = [];
+  const records = [];
+  const skipped = [];
+  const perGroup = new Map();
+  const roundTripFailures = [];
+
+  for (const file of rawFiles) {
+    const path = recordPathOf(CORPUS, file);
+    const group = path.split('/')[0];
+    const record = JSON.parse(readFileSync(file, 'utf8'));
+    if (record == null) throw new Error(`${path}: empty or unparseable record`);
+
+    const projected = project(record);
+
+    if (!isBundlable(projected)) {
+      skipped.push(path);
+    } else {
+      const gate = checkOpenisdRoundTrip(record, path);
+      if (!gate.ok) {
+        roundTripFailures.push(gate.message);
+      } else {
+        const device = gate.device;
+        if (device instanceof OpenISDPassiveRadiatorStandalone) {
+          radiatorRows.push(bundledPassiveRadiatorIndexRowOf(device, path));
+        } else {
+          driverRows.push(bundledDriverIndexRowOf(device, path));
+        }
+        records.push({ path, record });
+        perGroup.set(group, (perGroup.get(group) ?? 0) + 1);
+      }
+    }
+
+    if (records.length % 250 === 0 || records.length === rawFiles.length - skipped.length) {
+      console.log(`  ${String(records.length).padStart(5)}/${rawFiles.length} opened — ${records.length} usable, ${skipped.length} unusable`);
     }
   }
-  return files;
+
+  if (roundTripFailures.length > 0) {
+    throw new Error(
+      `${roundTripFailures.length} openisd.json round-trip failure(s) — ` +
+      `the app's own loader/export path does not reproduce these records:\n` +
+      roundTripFailures.map(m => `  - ${m}`).join('\n'),
+    );
+  }
+  console.log(`  round-trip gate: ${records.length}/${records.length} records clean`);
+
+  for (const [group, n] of [...perGroup].sort((a, b) => b[1] - a[1])) {
+    console.log(`    ${group.padEnd(24)} ${String(n).padStart(4)}`);
+  }
+  if (skipped.length) {
+    console.log(`  ${skipped.length} records are NOT bundled (structurally unreadable — no specs container), first 5:`);
+    for (const p of skipped.slice(0, 5)) console.log(`    - ${p}`);
+  }
+
+  rmSync(RECORDS_DIR, { recursive: true, force: true });
+  for (const { path, record } of records) {
+    const out = join(RECORDS_DIR, `${path}.json`);
+    mkdirSync(dirname(out), { recursive: true });
+    writeFileSync(out, JSON.stringify(record));
+  }
+  writeFileSync(DRIVER_INDEX, JSON.stringify(driverRows));
+  writeFileSync(RADIATOR_INDEX, JSON.stringify(radiatorRows));
+  mkdirSync(dirname(STAMP_FILE), { recursive: true });
+  writeFileSync(STAMP_FILE, `${fingerprint}\n`);
+
+  const kb = n => Math.round(n / 1024);
+  console.log(
+    `\n  → ${driverRows.length} drivers (drivers-index.json ${kb(statSync(DRIVER_INDEX).size)} KB), ` +
+    `${radiatorRows.length} passive radiators (passive-radiators-index.json ${kb(statSync(RADIATOR_INDEX).size)} KB), ` +
+    `${records.length} records under packages/ui/public/drivers/`,
+  );
+  if (records.length === 0) console.warn('WARNING: the catalogue is EMPTY — the app will list no bundled drivers.');
 }
 
-const bundle = {
-  _generated: 'AUTO-GENERATED by scripts/bundle-drivers.mjs — DO NOT EDIT MANUALLY. ' +
-    'See packages/ui/src/drivers-bundle.README.md for full details.',
-  sources: [],
-};
-
-for (const [key, src] of Object.entries(sources)) {
-  const m = src.url?.match(REPO_RE);
-  if (!m) continue;
-
-  const localPath = join(ROOT, m[1]);
-  let wdrPaths;
-  try { wdrPaths = walkWdr(localPath); }
-  catch { console.warn(`  SKIP ${src.name} — path not found: ${localPath}`); continue; }
-
-  const files = wdrPaths.map(p => {
-    const content = readFileSync(p, 'utf8');
-    // Extract DateModified or DateAdded for UI sorting (prefer Modified)
-    const dm = content.match(/^DateModified=(.+)$/m);
-    const da = content.match(/^DateAdded=(.+)$/m);
-    const date = (dm?.[1] || da?.[1] || '').trim();
-    // Extract link fields from _meta.yml sidecar
-    const sidecarPath = p.replace(/\.wdr$/i, '_meta.yml');
-    const sidecar = existsSync(sidecarPath) ? readFileSync(sidecarPath, 'utf8') : '';
-    const ymlVal = key => { const m = sidecar.match(new RegExp(`^${key}:\\s*(.+)$`, 'm')); if (!m) return ''; const v = m[1].trim(); return (v === 'null' || v === '~') ? '' : v; };
-    const datasheet    = ymlVal('datasheet_url');
-    const manupage     = ymlVal('manu_page_url');
-    const vendorpage   = ymlVal('vendor_page_url');
-    const frd          = ymlVal('frd_url');
-    const impedance    = ymlVal('zma_url');
-    const driver_type  = ymlVal('driver_type');
-    const freq_low_hz  = ymlVal('freq_low_hz');
-    const freq_high_hz = ymlVal('freq_high_hz');
-    return {
-      // path within the source (forward-slashed) — the unique id together with the
-      // source key; never rely on the display name, which can repeat across files.
-      path: relative(localPath, p).replace(/\\/g, '/'),
-      name: p.split(/[\\/]/).pop().replace(/\.wdr$/i, ''),
-      date,
-      content,
-      ...(datasheet    ? { datasheet }    : {}),
-      ...(manupage     ? { manupage }     : {}),
-      ...(vendorpage   ? { vendorpage }   : {}),
-      ...(frd          ? { frd }          : {}),
-      ...(impedance    ? { impedance }    : {}),
-      ...(driver_type  ? { driver_type }  : {}),
-      ...(freq_low_hz  ? { freq_low_hz }  : {}),
-      ...(freq_high_hz ? { freq_high_hz } : {}),
-    };
-  });
-
-  bundle.sources.push({ key, name: src.name, files });
-  console.log(`  ${key} (${src.name}): ${files.length} drivers`);
-}
-
-const total = bundle.sources.reduce((n, s) => n + s.files.length, 0);
-const outPath = join(ROOT, 'packages', 'ui', 'src', 'drivers-bundle.json');
-writeFileSync(outPath, JSON.stringify(bundle));
-
-const kb = Math.round(JSON.stringify(bundle).length / 1024);
-console.log(`\nBundled ${total} WDR files → packages/ui/src/drivers-bundle.json (${kb} KB raw)`);
+main();

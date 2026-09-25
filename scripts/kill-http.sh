@@ -22,13 +22,25 @@ ports=("$@")
 # (tskill/taskkill/ps -W) cannot see it. Use POSIX lsof + kill and exit early.
 if [ -z "${MSYSTEM:-}" ]; then
   for port in "${ports[@]}"; do
-    pids=$(lsof -ti :"$port" 2>/dev/null || true)
-    [ -z "$pids" ] && continue
-    echo "port $port: killing PID(s) $pids"
-    kill $pids 2>/dev/null || true
-    sleep 1
-    pids=$(lsof -ti :"$port" 2>/dev/null || true)
-    [ -n "$pids" ] && kill -9 $pids 2>/dev/null || true
+    # Loop until the port is genuinely free, exactly as the Windows branch below does.
+    # Killing once and assuming it worked is what let an orphan survive into the next
+    # run: `lsof` reporting a PID is not proof the socket is released a moment later.
+    for attempt in $(seq 1 10); do
+      pids=$(lsof -ti :"$port" 2>/dev/null || true)
+      [ -z "$pids" ] && break
+      echo "port $port: [attempt $attempt] killing PID(s) $pids"
+      # SIGTERM once so a server can close its sockets; SIGKILL from then on, because a
+      # process that ignored TERM will not honour a second one.
+      if [ "$attempt" -eq 1 ]; then
+        kill $pids 2>/dev/null || true
+      else
+        kill -9 $pids 2>/dev/null || true
+      fi
+      sleep 1
+    done
+    if [ -n "$(lsof -ti :"$port" 2>/dev/null || true)" ]; then
+      echo "port $port: ERROR — still occupied after 10 attempts, aborting" >&2; exit 1
+    fi
   done
   echo "done"
   exit 0
@@ -117,7 +129,7 @@ for port in "${ports[@]}"; do
 
     if [ "$attempt" = "10" ]; then
       _diagnose_port "$port"
-      echo "port $port: WARNING — still occupied, proceeding anyway"
+      echo "port $port: ERROR — still occupied, aborting" >&2; exit 1
     fi
   done
 done
