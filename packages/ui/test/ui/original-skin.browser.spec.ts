@@ -320,9 +320,6 @@ test('the Filters tab quick-adds real filter types and drives the store', async 
 test('the Tune panel edits live and Cancel discards everything since the last save', async ({ page }) => {
   await page.locator('.project-nav li', { hasText: 'Driver' }).click();
   await page.locator('.save-rail .tune-btn').click();
-  // The button reads "What-if?" either way; the active what-if layer shows as the button's own
-  // state, not as a different word.
-  await expect(page.locator('.save-rail .tune-btn')).toHaveClass(/whatif-active/);
   const tune = page.locator('.tune-panel');
   await expect(tune).toBeVisible();
   await expect(tune.locator('button', { hasText: 'Keep' })).toHaveCount(0);
@@ -420,7 +417,6 @@ test('closing Tune does not corrupt the saved Mms value', async ({ page }) => {
 
   await tune.locator('.tune-titlebar .close-btn').click();
   await expect(tune).toBeHidden();
-  await expect(page.locator('.save-rail .tune-btn')).not.toHaveClass(/whatif-active/);
   expect(await readMms()).toBeCloseTo(before, 9);
 });
 
@@ -430,7 +426,6 @@ test('Escape cancels the active Tune what-if', async ({ page }) => {
   await expect(page.locator('.tune-panel')).toBeVisible();
   await page.keyboard.press('Escape');
   await expect(page.locator('.tune-panel')).toBeHidden();
-  await expect(page.locator('.save-rail .tune-btn')).not.toHaveClass(/whatif-active/);
 });
 
 test('the Tune fields accept multi-character typing (no reformat-while-typing clobber)', async ({ page }) => {

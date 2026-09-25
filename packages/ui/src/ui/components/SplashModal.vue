@@ -50,12 +50,12 @@ const {open, dismiss} = injectSplashModal();
       <section>
         <h3>What is distinctive</h3>
         <ul>
-          <li><strong>Alignment choice on every box type</strong>, not just the ones WinISD offers it for.</li>
+          <li><strong>Alignment lives on the Box page</strong>, for every box type — WinISD offers the choice once, in the new-project wizard, and never again.</li>
           <li><strong>Switch one box from sealed to ported and back</strong> — the same design, explored as each type, and compared.</li>
           <li><strong>No division-by-zero results and no crashes</strong> — an incomplete design says what is missing instead of producing a NaN or a blank window.</li>
           <li><strong>Modern cursor</strong> — hover, right-click to snap to a peak or trough, lock it, or type a frequency.</li>
           <li><strong>Data-quality marks</strong> — the app says when a driver's own stated parameters contradict each other, and which ones.</li>
-          <li><strong>What-if?</strong> — edit a driver's Thiele/Small parameters inline as a scratchpad; nothing touches your library until you save it.</li>
+          <li><strong>What-if?</strong> — push a driver's Thiele/Small parameters around and watch the curves answer. It saves nothing, ever: close it and the design is exactly as you left it. It is there to be learned from.</li>
           <li><strong>Solvers that run in every direction</strong> — give it what you know, and it derives the rest, whichever end you start from.</li>
           <li><strong>Error messages that teach</strong> — what went wrong, why the physics says so, and what to change.</li>
           <li><strong>Visible calculation provenance</strong> — trace any number back to the values and the formula it came from.</li>
