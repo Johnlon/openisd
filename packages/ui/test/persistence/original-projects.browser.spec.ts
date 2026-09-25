@@ -59,8 +59,15 @@ test('hiding a project removes its trace from the chart, and showing it brings i
   const shown = await inkColours(page);
   await overlayCheckbox.click();
   await expect.poll(() => inkColours(page)).toBeLessThan(shown);
+  const hidden = await inkColours(page);
+
+  // Back to the two-trace level. NOT an exact match: this census counts every distinct
+  // antialiased shade, and a curve repainted after a hide lands a shade or two apart from its
+  // first paint (156 vs 157 out of ~156) — a difference that says nothing about whether the
+  // trace is there.
   await overlayCheckbox.click();
-  await expect.poll(() => inkColours(page)).toBe(shown);
+  await expect.poll(() => inkColours(page)).toBeGreaterThan(hidden);
+  await expect.poll(() => inkColours(page)).toBeGreaterThanOrEqual(shown - 2);
 });
 
 test('open projects are never written into the active design (nothing to leak into its file)', async ({ page }) => {
