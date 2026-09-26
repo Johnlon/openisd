@@ -42,6 +42,10 @@ provideFocusedProject(computed(() => requireFocusedProject()));
 // menu reopens it. Provided here so the shell's menu and the modal share one instance.
 provideSplashModal(presentationState);
 
+/** Whether a project is focused right now. The overlays below are project-bound: the shell
+ *  renders without one, they must not. */
+const projectOpen = computed(() => { void projectChanged.value; return focusedProject() !== null; });
+
 async function handleHashChange() {
   const saved = await projectRepo.loadFromHash();
   if (Array.isArray(saved)) logging.flash('Could not load shared link: ' + saved.join('; '));
@@ -111,8 +115,10 @@ onUnmounted(() => {
   <OriginalShell />
   <!-- Global overlays — each self-gates internally and is safe with no project open. -->
   <OgNewProject v-if="presentationState.newProjectOpen" @close="presentationState.newProjectOpen = false" />
-  <DriverEditorModal v-if="presentationState.editDriverInfo" @close="presentationState.editDriverInfo = false" />
-  <OgTune v-if="presentationState.editDriver" />
+  <!-- Both read the focused project, so neither may mount without one — whatever set the
+       flag. The shell itself renders with no project; these do not. -->
+  <DriverEditorModal v-if="presentationState.editDriverInfo && projectOpen" @close="presentationState.editDriverInfo = false" />
+  <OgTune v-if="presentationState.editDriver && projectOpen" />
   <!-- The wizard's step-1 driver picker sits ON TOP of the wizard modal (both z-index 100). -->
   <DriverBrowser />
   <Flash />

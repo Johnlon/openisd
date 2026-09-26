@@ -56,6 +56,10 @@ function normalize(json: unknown) {
   if (clone.driverEmbedding?.device?.uuid) clone.driverEmbedding.device.uuid = 'normalized';
   if (clone.driverEmbedding?.device?.added) clone.driverEmbedding.device.added = 'normalized';
   if (clone.box?.passiveRadiator?.component?.uuid?.value) clone.box.passiveRadiator.component.uuid.value = 'normalized';
+  // The passive radiator's own added-date, stamped when the record was built. The fixture is
+  // generated once and cached, so this differs from the wizard's whenever the two happen on
+  // different days — the same volatility as `device.added` above.
+  if (clone.box?.passiveRadiator?.component?.added?.value) clone.box.passiveRadiator.component.added.value = 'normalized';
   if (clone.meta) {
     clone.meta.created = 'normalized';
     clone.meta.modified = 'normalized';

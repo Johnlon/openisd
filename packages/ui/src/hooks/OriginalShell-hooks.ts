@@ -1029,8 +1029,11 @@ const overlays = computed<Design[]>(() => {
   watch(() => presentationState.editDriver, (active) => {
     presentationState.ui.originalTuneOpen = active;
   });
+  // Only with a project to tune: a stored view outlives the project it was stored with, and
+  // both panels read the focused project, so reopening one on a project-less boot threw
+  // `no project is focused` out of the top-level gate (reported from openisd.app 2026-09-25).
   watch(() => presentationState.ui.originalTuneOpen, (open) => {
-    if (open) presentationState.editDriver = true;
+    if (open && focusedProject() !== null) presentationState.editDriver = true;
   }, { immediate: true });
 
   watch(isModified, (val) => {
@@ -1043,7 +1046,7 @@ const overlays = computed<Design[]>(() => {
   // guard, the same shape the Tune watcher above uses.
   watch(() => presentationState.editDriverInfo, (open) => { presentationState.ui.originalEditorOpen = open; });
   watch(() => presentationState.ui.originalEditorOpen, (open) => {
-    if (open && !presentationState.editDriverInfo) editProjectDriver();
+    if (open && !presentationState.editDriverInfo && focusedProject() !== null) editProjectDriver();
   }, { immediate: true });
 
   /** The shell renders without a project now: true tells the toolbar to grey the project-only
