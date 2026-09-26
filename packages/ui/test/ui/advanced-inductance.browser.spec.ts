@@ -16,7 +16,7 @@ test('WinISD\'s inductance model has no switch of its own — "WinISD driver mod
 test('WinISD Compatibility labels are unclipped and drop the "Use" prefix', async ({ page }) => {
   const panel = page.locator('.sim-options-box', { hasText: 'WinISD Compatibility' });
   const labels = panel.locator('label[data-field-key]');
-  await expect(labels).toHaveText(['WinISD driver model', 'WinISD air model']);
+  await expect(labels).toHaveText(['WinISD driver model', 'WinISD air model', 'WinISD VA model']);
   const panelBox = (await panel.boundingBox())!;
   const clipRight = await panel.evaluate(el => {
     // The visible right edge: the panel's own, or an ancestor's that clips it first.
@@ -57,4 +57,14 @@ test('Advanced layout: the air readout column sits 16 px from the air-constant c
   })));
   const rightLeft = (await rows.nth(3).boundingBox())!.x;
   expect(Math.round(rightLeft - leftRight)).toBe(16);
+});
+
+test('"WinISD VA model" switches the VA chart between WinISD\'s Re and the amplifier\'s Re + Rg (BUG_20260927)', async ({ page }) => {
+  const va = page.locator('[data-field-key="winisdVaModel"]');
+  await expect(va).toHaveAttribute('title', /Re \+ Rg/);
+  await expect(va.locator('input')).toBeChecked();
+  await va.locator('input').uncheck();
+  await expect(va.locator('input')).not.toBeChecked();
+  await page.locator('.sim-options-header').getByRole('button', { name: 'Reset' }).click();
+  await expect(va.locator('input')).toBeChecked();
 });

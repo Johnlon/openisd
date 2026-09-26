@@ -2329,12 +2329,25 @@ export class OpenISDProject {
         };
     }
 
+    /** WinISD Compatibility "WinISD VA model": the amplifier apparent load power chart as WinISD
+     *  computes it, P·Re·|Hf|²/|Z + Rg| (BUG_20260927_winisd-va-uses-re-not-re-plus-rg). Off: the
+     *  apparent power the amplifier delivers, P·(Re + Rg)·|Hf|²/|Z_amp|. On where a project does
+     *  not say. */
+    get winisdVaModel(): SimpleField<boolean> {
+        const lens = focus(this.#slot('advanced'), 'winisdVaModel');
+        return {
+            get value() { return lens.value ?? true; },
+            set: (on: boolean) => lens.set(on),
+        };
+    }
+
     /** Sets every WinISD-vs-conventional compat switch to WinISD. Native WinISD controls (voice
      *  coil inductance on/off, "Rg is at driver side") and project data keep their values. */
     applyWinisdSettings(): void {
         this.lossMode.set(LossMode.parse('winisd-lossy'));
         this.envUseWinisdAirModel.set(true);
         this.winisdDriverModel.set(true);
+        this.winisdVaModel.set(true);
     }
 
     /** Which charts are open (S10/QO130) — PROJECT-scoped, reversing QO90 for this field.
@@ -2989,6 +3002,7 @@ export class OpenISDProject {
             wiring: this.wiring.value,
             Rs: this.Rs_ohm.value,
             circuitModel: engineCircuitModel(this.circuitModel.value, this.winisdDriverModel.value),
+            winisdVaModel: this.winisdVaModel.value,
             lossMode: this.lossMode.value.value,
             Ql: losses.Ql, Qa: losses.Qa, Qp: losses.Qp,
             ...this.#boxSpecificParams(boxType),

@@ -150,6 +150,9 @@ export interface SweepParams {
   wiring?: Wiring;
   Rs?: number;
   circuitModel?: CircuitModel;
+  /** WinISD's VA, P·Re·|Hf|²/|Z + Rg| (true/absent), or the amplifier's apparent power,
+   *  P·(Re + Rg)·|Hf|²/|Z_amp| (false). */
+  winisdVaModel?: boolean;
   // Box losses
   lossMode?: LossModeValue;
   Ql?: number;

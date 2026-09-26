@@ -169,6 +169,7 @@ export abstract class BoxProjectBuilder {
                 circuitModel: 'winisd',
                 splGraphIsXmaxLimited: false,
                 winisdDriverModel: true,
+                winisdVaModel: true,
             },
             charts: {},
         };

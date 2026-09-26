@@ -635,6 +635,11 @@ WinISD Lossy (default): reports the lossy 3rd-order model's pole, so Fsc rises a
                   <input type="checkbox" :checked="project.envUseWinisdAirModel.value" @change="e => project.envUseWinisdAirModel.set(inputChecked(e))"> WinISD air model
                 </label>
               </div>
+              <div style="margin-bottom: 8px;">
+                <label data-field-key="winisdVaModel" style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 13px;" :title="`WinISD VA Model\nTicked (WinISD, the default): the amplifier apparent load power chart is P·Re/|Z + Rg|, as WinISD computes it. We judge this a WinISD bug: it reads Re/(Re + Rg) of the real value.\nUnticked (conventional): P·(Re + Rg)/|Z + Rg|, the apparent power the amplifier delivers.\nThe two differ only when Rg is not 0.`">
+                  <input type="checkbox" :checked="project.winisdVaModel.value" @change="e => project.winisdVaModel.set(inputChecked(e))"> WinISD VA model
+                </label>
+              </div>
             </div>
           </div>
         </section>

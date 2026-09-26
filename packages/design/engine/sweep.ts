@@ -263,10 +263,14 @@ export function sweep(drv: DriverSolverParams, Le_H: number | undefined, box: Bo
   const f0 = P.fmin || 10, f1 = P.fmax || 1000, N = P.N || 400, r = 1;
   const fs: number[] = [], H = [], spl = [], exc = [], excPR = [], pv = [], zmag = [], zph = [], phase = [];
   const va: number[] = [];
-  // Amplifier apparent load power, as WinISD computes it: P·Re·|Hf|²/|Z + Rg|, Rg added whatever
-  // its placement (f_46bd30 case 0x14).
+  // Amplifier apparent load power. WinISD's (`winisdVaModel`, the default): P·Re·|Hf|²/|Z + Rg|,
+  // Rg added whatever its placement (f_46bd30 case 0x14). Conventional: P·(Re + Rg)·|Hf|²/|Z_amp|,
+  // the load the amplifier sees — Zel already holds Rg when Rg is at the driver side.
   const Rg = P.Rs && P.Rs > 0 ? P.Rs : 0;
   const powerIn = driveFromVoltage(P.eg, cq.Re_terminal_ohm, Rg);
+  const winisdVa = P.winisdVaModel !== false;
+  const vaNumerator = powerIn * (winisdVa ? cq.Re_terminal_ohm : cq.Re_terminal_ohm + Rg);
+  const vaRg = winisdVa || P.rgAtDriverSide === false ? Rg : 0;
   // Filter-chain response, sampled on the same grid. Magnitude in dB, phase wrapped for now
   // (unwrapped after the loop, like `phase`).
   const fltMag: number[] = [], fltPhaseWrapped: number[] = [];
@@ -298,7 +302,7 @@ export function sweep(drv: DriverSolverParams, Le_H: number | undefined, box: Bo
     // UP is total volume velocity from all PRs; divide by prNum for per-PR excursion
     excPR.push(box === 'box-passive-radiator' ? Math.SQRT2 * cAbs(UP) / (w * P.prSd! * (P.prNum || 1)) * 1000 : 0);
     zmag.push(cAbs(s.Zel));
-    va.push(powerIn * cq.Re_terminal_ohm * fltAbs * fltAbs / cAbs(cx(s.Zel.re + Rg, s.Zel.im)));
+    va.push(vaNumerator * fltAbs * fltAbs / cAbs(cx(s.Zel.re + vaRg, s.Zel.im)));
     zph.push(cArg(s.Zel) * 180 / Math.PI);
   }
   const ph = unwrap(phase);

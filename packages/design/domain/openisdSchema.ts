@@ -818,6 +818,9 @@ const openISDAdvancedJsonSchema = z.preprocess(renameLegacyWinisdDriverModel, z.
     // instead of using entered datasheet values directly. Optional: absent parses to ON, WinISD's
     // own behaviour, matching every project saved before the default was corrected.
     winisdDriverModel: z.boolean().optional(),
+    // "WinISD VA model": the amplifier apparent load power chart as WinISD computes it,
+    // P·Re·|Hf|²/|Z + Rg|. Optional: absent parses to ON, WinISD's own behaviour.
+    winisdVaModel: z.boolean().optional(),
 }));
 export type OpenISDAdvancedJson = z.infer<typeof openISDAdvancedJsonSchema>;
 

@@ -1,6 +1,6 @@
 # BUG_20260927_winisd-va-uses-re-not-re-plus-rg
 
-**Status:** OPEN
+**Status:** RESOLVED
 
 ## Symptom
 
@@ -25,8 +25,14 @@ the VA numerator uses Re alone.
 
 ## Fix
 
-OpenISD: `sweep.ts` `va` follows WinISD. A conventional P·(Re + Rg)·|Hf|²/|Z + Rg| would go
-behind its own WinISD Compatibility control — John to decide whether to add one.
+Ruling, John 2026-09-27: keep WinISD's by default, with a compat switch for the corrected value.
+
+`sweep.ts` `va`: "WinISD VA model" on (default) gives WinISD's P·Re·|Hf|²/|Z + Rg|; off gives
+P·(Re + Rg)·|Hf|²/|Z_amp|, Z_amp = Z + Rg at the amplifier, Z alone at the driver side (Zel
+already holds Rg). Reset to WinISD turns it on.
+
+Size of the bug: a flat factor Re/(Re + Rg), 10·log10 of it in dB. W5 (Re 3.4 Ω): Rg 0.1 Ω
+−2.9 % (−0.13 dB), Rg 1 Ω −22.7 % (−1.12 dB), Rg 0 none.
 
 ⚠ Unverified: WinISD adds Rg to Z even with "Rg is at driver side" on, where Z already carries
 Rg (code path is unconditional; not captured). Dual voice coil and multi-driver arrays not
@@ -36,3 +42,6 @@ captured.
 
 `winisdDriverModel.test.ts`: VA at 1, 65.36 and 20000 Hz, Rg 1 Ω, equals WinISD's to 1e-9.
 `va-chart.browser.spec.ts`: the chart reads out in VA.
+`winisdVaModel.test.ts`: off is (Re + Rg)/Re × WinISD's; Rg counted once whatever its placement;
+Reset turns it on; saved and read back. `advanced-inductance.browser.spec.ts`: the checkbox, its
+tooltip, and Reset.
