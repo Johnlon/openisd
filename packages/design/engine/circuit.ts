@@ -154,6 +154,11 @@ export function solve(f: number, drv: CircuitQuantities, box: BoxType, P: SweepP
   const ZcoilAC = arrayCoil(0);
   const Zcoil   = arrayCoil(Le);
   const Bl = wiring === 'series' ? drv.BL_terminal_Tm * n : drv.BL_terminal_Tm;
+  // The motor's push uses the ENTERED BL; the damping (ZaE) uses `BL_terminal_Tm`. The two differ
+  // only under "Use WinISD driver calculations", where WinISD takes its level from the entered BL
+  // and its damping from Qes (debugger: entered BL 7.17 → 5.0 moves every SPL point by
+  // 20·log10(5/7.17), BUG_20260926_winisd-spl-level-uses-entered-bl).
+  const BlPush = wiring === 'series' ? drv.BL_entered_Tm * n : drv.BL_entered_Tm;
 
   // Acoustic pressure source and electrical damping.
   // 'winisd': Le excluded from the acoustic circuit — constant Rae/Uad (Le only for impedance).
@@ -170,7 +175,7 @@ export function solve(f: number, drv: CircuitQuantities, box: BoxType, P: SweepP
     case 'gyrator':       ZcoilForAC = Zcoil;   ZcoilForZel = arrayTerminals(Le); break;
     case 'winisdGyrator': ZcoilForAC = arrayCoil(Le * winisdLeScale(drv)); ZcoilForZel = arrayTerminals(Le); break;
   }
-  const pg  = cDiv(cx(eg * Bl, 0), cMul(cx(Sdt, 0), ZcoilForAC));
+  const pg  = cDiv(cx(eg * BlPush, 0), cMul(cx(Sdt, 0), ZcoilForAC));
   const ZaE = cDiv(cx(Bl * Bl, 0), cMul(cx(Sdt * Sdt, 0), ZcoilForAC));
 
   // Driver acoustic elements derived from T/S parameters:

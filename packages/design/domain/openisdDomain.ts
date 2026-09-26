@@ -1177,6 +1177,15 @@ function computedSlot<T>(value: T | null): SolverField<T> {
     };
 }
 
+/** The engine's circuit model from the project's two switches: "Simulate voice coil inductance"
+ *  (the stored `circuitModel`, 'winisd' = off) and "Use WinISD driver calculations", which picks
+ *  WinISD's inductance model over the textbook one (John, 2026-09-26: one switch for WinISD's
+ *  two-BL handling). A stored 'winisdGyrator' (projects saved before that ruling) reads as on. */
+function engineCircuitModel(stored: 'winisd' | 'gyrator' | 'winisdGyrator', useWinisdDriverModel: boolean): 'winisd' | 'gyrator' | 'winisdGyrator' {
+    if (stored === 'winisd') return 'winisd';
+    return useWinisdDriverModel ? 'winisdGyrator' : 'gyrator';
+}
+
 /** `spec`'s 44 handles, shaped as `DriverSolverParams` for `Engine.sweep()`/`maxCurves()`
  *  (S2-10 ruling: "`OpenIsdDriverSpec` structurally satisfies `DriverSolverParams`") — true for
  *  40 of the 44 by name; the other four are ADAPTED, not merely reused: `SPLref_dB`/
@@ -2323,7 +2332,6 @@ export class OpenISDProject {
     /** Sets every WinISD-vs-conventional compat switch to WinISD. Native WinISD controls (voice
      *  coil inductance on/off, "Rg is at driver side") and project data keep their values. */
     applyWinisdSettings(): void {
-        if (this.circuitModel.value !== 'winisd') this.circuitModel.set('winisdGyrator');
         this.lossMode.set(LossMode.parse('winisd-lossy'));
         this.envUseWinisdAirModel.set(true);
         this.useWinisdDriverModel.set(true);
@@ -2980,7 +2988,7 @@ export class OpenISDProject {
             nDrivers: this.nDrivers.value,
             wiring: this.wiring.value,
             Rs: this.Rs_ohm.value,
-            circuitModel: this.circuitModel.value,
+            circuitModel: engineCircuitModel(this.circuitModel.value, this.useWinisdDriverModel.value),
             lossMode: this.lossMode.value.value,
             Ql: losses.Ql, Qa: losses.Qa, Qp: losses.Qp,
             ...this.#boxSpecificParams(boxType),

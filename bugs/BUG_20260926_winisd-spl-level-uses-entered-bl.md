@@ -61,15 +61,31 @@ Qes-implied BL everywhere except `CLe`.
 
 ## Fix
 
-With "WinISD driver calculations" on, scale the acoustic drive by `BL_entered / BL_derived`: the
-level follows the entered BL, the damping stays Qes-derived. Unticked (conventional) keeps the
-entered values throughout. ⚠ Unverified: whether WinISD's excursion, port velocity and max-SPL
-charts scale the same way. They share the drive, so they should; check against a debugger run.
+Ruling, John 2026-09-26: the two-BL mix is one WinISD bug under one switch, "WinISD driver
+calculations"; the separate "WinISD inductance model" checkbox is removed.
+
+Level part fixed 2026-09-26:
+- `circuit.ts`: the motor's push (`pg`) uses the typed BL (`BL_entered_Tm`); the damping (`ZaE`)
+  keeps `BL_terminal_Tm`, which the switch makes Qes-derived. With the switch off both are the
+  typed BL, so conventional results are unchanged.
+- `sweep.ts`: `BL_entered_Tm` is the typed BL only. A calculated BL falls back to the damping BL,
+  since WinISD's own calculated BL is the Qes-derived one.
+- `openisdDomain.ts` `engineCircuitModel`: inductance on + switch on → WinISD's inductance model,
+  switch off → textbook.
+
+Still open:
+- ⚠ The impedance peak (above): not covered by the push BL; unexplained 1.9 % beyond BL².
+- ⚠ The 0.016 dB residual in the passband level.
+- ⚠ Unverified against WinISD: excursion, port velocity and max-SPL following the typed BL. They
+  share the push, so they should.
 
 ## Verification
 
 - The impedance peak is a separate check: the drive-scaling fix must not be declared done on
   the SPL charts alone.
-- Unit test: the W5 at BL 7.17 vs 5.0 with the flag on, SPL differs by 20·log10(5/7.17) at
-  every frequency.
-- Unit test: W5 SPL at 1 kHz matches WinISD's 80.5315 dB to within the unexplained 0.016 dB.
+- `winisdDriverModel.test.ts` (red before the fix): typed BL 7.17 → 5.0 moves every SPL point
+  by 20·log10(5/7.17) and leaves impedance alone; the W5 at 998.56 Hz is within 0.02 dB of
+  WinISD's 80.5315 dB; inductance on with the switch on gives WinISD's −22.266 dB on−off at
+  20 kHz, and with it off the textbook roll-off.
+- `advanced-inductance.browser.spec.ts`: no separate inductance-model switch; the driver
+  calculations tooltip names the inductance and the WinISD bug.

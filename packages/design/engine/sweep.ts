@@ -217,7 +217,7 @@ function driverValues(drv: DriverSolverParams) {
   };
 }
 
-function circuitQuantities(q: ReturnType<typeof withAddedMass>, Le_H: number | undefined): { value: CircuitQuantities | null; issues: DriverIssue[] } {
+function circuitQuantities(q: ReturnType<typeof withAddedMass>, Le_H: number | undefined, BL_typed_Tm: number | null): { value: CircuitQuantities | null; issues: DriverIssue[] } {
   const issues: DriverIssue[] = [];
   for (const field of CIRCUIT_REQUIRED_FIELDS) {
     const v = q[field];
@@ -234,19 +234,20 @@ function circuitQuantities(q: ReturnType<typeof withAddedMass>, Le_H: number | u
       Sd_m2: q.Sd_m2!, Re_terminal_ohm: q.Re_terminal_ohm!, BL_terminal_Tm: q.BL_terminal_Tm!,
       Cms_m_per_N: q.Cms_m_per_N!, Mms_kg: q.Mms_kg!, Rms_kg_per_s: q.Rms_kg_per_s!, Le_H,
       BL_Qes_Tm: blFromQes(q.Re_terminal_ohm!, q.Cms_m_per_N!, q.Fs_hz, q.Qes),
-      BL_entered_Tm: enteredTerminalBL_Tm(q),
+      BL_entered_Tm: enteredTerminalBL_Tm(q, BL_typed_Tm),
     },
     issues: [],
   };
 }
 
-/** The BL the driver STATES, at the terminals. `BL_terminal_Tm` is the BL the circuit's motor term
- *  runs on, which "Use WinISD driver calculations" replaces with the Qes-derived one; this is the
- *  entered figure that WinISD keeps reading in `CLe` whatever the motor term uses. Falls back to
- *  `BL_terminal_Tm` where the per-coil `BL_Tm` is not stated. */
-function enteredTerminalBL_Tm(q: ReturnType<typeof withAddedMass>): number {
-  if (q.BL_Tm === undefined || !(q.BL_Tm > 0)) return q.BL_terminal_Tm!;
-  return terminalBL_Tm(q.BL_Tm, q.numVC, q.wiring);
+/** The BL the driver STATES (typed, not calculated), at the terminals. `BL_terminal_Tm` is the BL
+ *  the circuit's damping runs on, which "Use WinISD driver calculations" replaces with the
+ *  Qes-derived one; WinISD keeps reading the typed figure for the motor's push and in `CLe`.
+ *  Falls back to `BL_terminal_Tm` where no BL is typed: WinISD's own calculated BL is the
+ *  Qes-derived one, so there is no second BL to disagree with. */
+function enteredTerminalBL_Tm(q: ReturnType<typeof withAddedMass>, BL_typed_Tm: number | null): number {
+  if (BL_typed_Tm === null || !(BL_typed_Tm > 0)) return q.BL_terminal_Tm!;
+  return terminalBL_Tm(BL_typed_Tm, q.numVC, q.wiring);
 }
 
 /** The BL a driver's Fs/Qes/Cms/Re imply: BL² = Re/(ωs·Qes·Cms). Absent when Fs or Qes is. */
@@ -259,7 +260,7 @@ export function sweep(drv: DriverSolverParams, Le_H: number | undefined, box: Bo
   // Driver-side added mass (docs/research/WINISD_PARITY.md) shifts Mms/Fs/Q's before the circuit sees it.
   // 0/absent → withAddedMass returns the driver unchanged, so goldens are byte-identical.
   const d = withAddedMass(driverValues(drv), P.driverAddedMass ?? 0);
-  const circuit = circuitQuantities(d, Le_H);
+  const circuit = circuitQuantities(d, Le_H, drv.BL_Tm.entered ? drv.BL_Tm.value : null);
   if (circuit.value === null) return { values: null, issues: circuit.issues };
   const cq = circuit.value;
   const env = solveEnvironment(P);

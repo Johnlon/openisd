@@ -34,7 +34,7 @@ const {
   boxLabel, pending, chartTab, overlays, chartUnavailable, activeTab,
   showEnclosureTab, enclosureNavLabel,
   selectedBox, BOX_TYPE_OPTIONS, LOSS_MODE_OPTIONS, lossMode, ARRAY_WIRING_OPTIONS, N_DRIVERS_OPTIONS, applyWinisdSettings,
-  inductanceOn, winisdInductance, fieldHelp,
+  fieldHelp,
   boxVolume_m3, boxVolumeDqNote, setBoxVolume_m3, fieldDp, sealedAlignmentEditor, sealedAlignmentOpen,
   sealedAlignmentOptions, sealedAlignmentSelected, sealedAlignmentVolume_L, sealedAlignmentEbp,
   sealedAlignmentSuitability, sealedAlignmentSuitabilityLabel, ogFilters,
@@ -626,18 +626,13 @@ WinISD Lossy (default): reports the lossy 3rd-order model's pole, so Fsc rises a
                 </div>
               </div>
               <div style="margin-bottom: 6px;">
-                <label data-field-key="useWinisdDriverModel" style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 13px;" :title="`WinISD Driver Calculations\nTicked (WinISD, the default): the simulation uses the driver WinISD acts on. Cms comes from Vas, then Mms, Rms and BL from Fs, Qms and Qes. Entered values that disagree are not used by the simulation. The entered BL still sets the inductance roll-off, as in WinISD.\nUnticked (conventional): the simulation uses the entered datasheet values directly.`">
+                <label data-field-key="useWinisdDriverModel" style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 13px;" :title="`WinISD Driver Calculations\nTicked (WinISD, the default): the simulation uses two BLs, as WinISD does. The damping comes from the driver WinISD acts on: Cms from Vas, then Mms, Rms and BL from Fs, Qms and Qes. The entered BL sets the loudness and, with voice coil inductance on, the inductance roll-off. We judge the two-BL mix a WinISD bug.\nUnticked (conventional): the simulation uses the entered datasheet values, one BL throughout.\nThe two differ only when the entered values disagree with Fs, Vas, Qes and Qms.`">
                   <input type="checkbox" :checked="project.useWinisdDriverModel.value" @change="e => project.useWinisdDriverModel.set(inputChecked(e))"> WinISD driver calculations
                 </label>
               </div>
               <div style="margin-bottom: 8px;">
                 <label data-field-key="useWinisdAirModel" style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 13px;" :title="fieldHelp('useWinisdAirModel')">
                   <input type="checkbox" :checked="project.envUseWinisdAirModel.value" @change="e => project.envUseWinisdAirModel.set(inputChecked(e))"> WinISD air model
-                </label>
-              </div>
-              <div style="margin-bottom: 8px;">
-                <label data-field-key="winisdInductance" style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 13px;" :class="{ 'na': !inductanceOn }" :title="fieldHelp('winisdInductance')">
-                  <input type="checkbox" v-model="winisdInductance" :disabled="!inductanceOn"> WinISD inductance model
                 </label>
               </div>
             </div>

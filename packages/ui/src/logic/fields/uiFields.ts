@@ -234,10 +234,6 @@ const UI_FIELD_SPECS: UIFieldSpec[] = [
     description: 'Simulate Voice Coil Inductance\nApplies Le to the acoustic output too, not just the impedance plot.',
   },
   {
-    id: 'adv_WinisdInductance', aliases: ['winisdInductance'], label: 'WinISD inductance model', pane: 'Advanced', kind: 'toggle', unit: '',
-    description: 'WinISD Inductance Model\nTicked (WinISD): the inductance\'s acoustic element uses the entered BL, while the damping uses the BL implied by Fs, Qes, Vas and Re. We judge this a WinISD bug.\nUnticked (conventional): the textbook voice coil, Re + Rg + jωLe, drives the motor with one BL throughout.\nThe two differ only when the entered BL disagrees with the BL that Fs, Qes, Vas and Re imply.',
-  },
-  {
     id: 'adv_ForceFlatResponse', aliases: ['forceFlatResponse'], label: 'Force flat response', pane: 'Advanced', kind: 'toggle', unit: '',
     description: 'Force Flat Response\nApplies auto-equalization, revealing the excursion and port velocity a flat passband would demand.',
   },

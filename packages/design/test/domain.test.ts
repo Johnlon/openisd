@@ -2975,7 +2975,7 @@ describe('project-level array/display settings, chart Y-range, and identity', ()
     }
   });
 
-  it('applyWinisdSettings keeps voice coil inductance on or off, and on selects WinISD\'s inductance model', () => {
+  it('applyWinisdSettings keeps voice coil inductance on or off — the driver-calculations switch picks WinISD\'s inductance model', () => {
     const off = sealedProject();
     off.circuitModel.set('winisd');
     off.applyWinisdSettings();
@@ -2983,8 +2983,10 @@ describe('project-level array/display settings, chart Y-range, and identity', ()
 
     const on = sealedProject();
     on.circuitModel.set('gyrator');
+    on.useWinisdDriverModel.set(false);
     on.applyWinisdSettings();
-    expect(on.circuitModel.value).toBe('winisdGyrator');
+    expect(on.circuitModel.value).toBe('gyrator');
+    expect(on.useWinisdDriverModel.value).toBe(true);
   });
 
   it('driveVoltage_V and powerDrive_W each carry both the owner\'s and the solver\'s writes', () => {

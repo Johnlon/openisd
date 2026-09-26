@@ -31,7 +31,7 @@ describe('useWinisdDriverModel — the whole WinISD parameter set, not Mms alone
     return project;
   };
 
-  it('set: the inconsistent driver sweeps as the consistent one its Fs/Cms/Qes/Qms/Re imply', () => {
+  it('set: the inconsistent driver has the consistent one\'s impedance and SPL shape; its entered BL sets only the SPL level', () => {
     const engine = new Engine();
     const entered = projectOn(engine, {...SHARED, ...CONTRADICTORY});
     entered.useWinisdDriverModel.set(true);
@@ -41,8 +41,20 @@ describe('useWinisdDriverModel — the whole WinISD parameter set, not Mms alone
     const theirs = winisd.sweep(P).values;
     expect(mine).not.toBeNull();
     expect(theirs).not.toBeNull();
-    mine!.spl.forEach((db, i) => expect(db).toBeCloseTo(theirs!.spl[i], 6));
+    const offset = mine!.spl[0] - theirs!.spl[0];
+    mine!.spl.forEach((db, i) => expect(db - theirs!.spl[i]).toBeCloseTo(offset, 6));
     mine!.zmag.forEach((z, i) => expect(z).toBeCloseTo(theirs!.zmag[i], 6));
+  });
+
+  it('set: the entered BL sets the SPL level — WinISD, BL 7.17 → 5.0, moves every point by −3.1310 dB (BUG_20260926_winisd-spl-level-uses-entered-bl)', () => {
+    // WinISD 0.7.0.950 by debugger, W5-1138SMF sealed, only the entered BL changed
+    // (winisd_research runs/sweep-w5-sealed-bl5-spl vs sweep-w5-sealed-baseline-charts).
+    const engine = new Engine();
+    const a = projectOn(engine, {...SHARED, BL_Tm: 7.17});
+    const b = projectOn(engine, {...SHARED, BL_Tm: 5.0});
+    const sa = a.sweep(P).values!, sb = b.sweep(P).values!;
+    sa.spl.forEach((db, i) => expect(sb.spl[i] - db).toBeCloseTo(20 * Math.log10(5 / 7.17), 9));
+    sa.zmag.forEach((z, i) => expect(sb.zmag[i]).toBeCloseTo(z, 9));
   });
 
   it('clear: the entered Mms, BL and Rms are what the sweep uses', () => {
@@ -96,5 +108,47 @@ describe('useWinisdDriverModel — the whole WinISD parameter set, not Mms alone
     const a = off.sweep(P).values!;
     const b = on.sweep(P).values!;
     b.spl.forEach((db, i) => expect(db).toBeCloseTo(a.spl[i], 9));
+  });
+
+  describe('the W5-1138SMF against WinISD\'s debugger values (winisd_research runs/sweep-w5-sealed-*)', () => {
+    const W5 = {
+      Fs_hz: 45, Qes: 0.57, Qms: 3.56, Qts: 0.49, Vas_m3: 0.00485, Sd_m2: 0.0094, Re_ohm: 3.4,
+      BL_Tm: 7.17, Le_H: 0.00034, Cms_m_per_N: 0.00036872, Mms_kg: 0.02881, Rms_kg_per_s: 2.2881560650261163,
+      Xmax_m: 0.00925, Pe_W: 40,
+    };
+    const w5 = (engine: Engine): OpenISDProject => {
+      const project = OpenISDProject.builder(driverFromSpec(engine, W5), engine)
+        .sealed().volume_m3(0.00448).build();
+      project.powerDrive_W.set(1);
+      project.Rs_ohm.set(0.1);
+      project.rgAtDriverSide.set(false);
+      return project;
+    };
+    const at = (f: number): FrequencyGrid => ({fmin: f, fmax: f * 1.0001, N: 1});
+
+    it('SPL at 998.56 Hz is WinISD\'s 80.5315 dB, within the 0.02 dB not yet explained', () => {
+      const spl = w5(new Engine()).sweep(at(998.5627339581864)).values!.spl[0];
+      expect(Math.abs(spl - 80.53153351704296)).toBeLessThan(0.02);
+    });
+
+    it('with voice coil inductance on, the flag selects WinISD\'s inductance model: on − off is −22.266 dB at 20 kHz', () => {
+      const engine = new Engine();
+      const off = w5(engine).sweep(at(20000)).values!.spl[0];
+      const project = w5(engine);
+      project.circuitModel.set('gyrator');
+      const on = project.sweep(at(20000)).values!.spl[0];
+      expect(Math.abs((on - off) - -22.266)).toBeLessThan(0.01);
+    });
+
+    it('with voice coil inductance on and the flag clear, the inductance is the textbook one', () => {
+      const engine = new Engine();
+      const winisd = w5(engine);
+      winisd.circuitModel.set('gyrator');
+      const conventional = w5(engine);
+      conventional.circuitModel.set('gyrator');
+      conventional.useWinisdDriverModel.set(false);
+      const a = winisd.sweep(at(20000)).values!.spl[0], b = conventional.sweep(at(20000)).values!.spl[0];
+      expect(Math.abs(a - b)).toBeGreaterThan(0.1);
+    });
   });
 });
