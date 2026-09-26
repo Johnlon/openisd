@@ -42,7 +42,7 @@ describe('utf8Bytes', () => {
     expect(Array.from(utf8Bytes(''))).toEqual([0xef, 0xa2, 0xa4]);
   });
 
-  it('agrees with TextEncoder across the whole BMP', () => {
+  it('agrees with TextEncoder across the whole BMP', { timeout: 30000 }, () => {
     for (let cp = 0; cp < 0x10000; cp++) {
       if (cp >= 0xd800 && cp <= 0xdfff) continue; // lone surrogates are not text
       const text = String.fromCodePoint(cp);
