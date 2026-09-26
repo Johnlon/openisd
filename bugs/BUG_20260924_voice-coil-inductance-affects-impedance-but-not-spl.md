@@ -1,6 +1,6 @@
 # BUG_20260924_voice-coil-inductance-affects-impedance-but-not-spl
 
-Status: OPEN (re-verified 2026-09-26) — the default circuit feeds a Le-free coil impedance to the acoustic path (`circuit.ts`). A ruling on the fix is still needed.
+Status: RESOLVED (2026-09-26) — updated `circuit.ts` so `circuitModel` switch controls Le in both electrical impedance (`Zel`) and acoustic response (`ZcoilForAC`) together. Unchecked (`'winisd'`) excludes Le from both curves (WinISD inductance-off default); Checked (`'gyrator'`) includes Le in both curves.
 
 ## Symptom
 

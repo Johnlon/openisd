@@ -24,6 +24,15 @@ describe('circuit — acoustic circuit branches', () => {
       'at the top of the sweep, Le is no longer negligible — the gyrator model must diverge from WinISD\'s Le-excluded acoustic circuit');
   });
 
+  it('circuitModel "winisd" excludes Le from both SPL and impedance (zmag); "gyrator" includes Le in both (BUG_20260924)', () => {
+    const P_HI: SweepParams = {...P_SEALED, fmax: 20000};
+    const winisd = engine.sweep(DRV, LE_H, 'sealed', P_HI).values!;
+    const gyrator = engine.sweep(DRV, LE_H, 'sealed', {...P_HI, circuitModel: 'gyrator'}).values!;
+    const topIdx = winisd.zmag.length - 1;
+    assert.ok(gyrator.zmag[topIdx] > winisd.zmag[topIdx] + 10.0, 'gyrator zmag at 20kHz reflects Le reactance');
+    assert.ok(winisd.zmag[topIdx] < (DRV.Re_ohm.value ?? 5.6) + 2.0, 'winisd zmag at 20kHz excludes Le reactance');
+  });
+
   it('circuitModel "gyrator" matches the WinISD split exactly when Le = 0 (nothing left for the gyrator to fold in)', () => {
     const winisd = engine.sweep(DRV, 0, 'sealed', P_SEALED).values!;
     const gyrator = engine.sweep(DRV, 0, 'sealed', {...P_SEALED, circuitModel: 'gyrator'}).values!;

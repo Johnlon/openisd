@@ -30,7 +30,7 @@ Third-party competitor tools (00 Simulator, SpeakerDesign.dev, SpeakerBoxLite, S
 
 # Part 1 — Feature comparison
 
-## Key Calculation Axes & Discrepancy Summary
+## WinISD Compatibility Modes
 
 | Calculation Axis | WinISD 0.7.0.950 Behavior | OpenISD Standard Behavior | How to match WinISD |
 | :--- | :--- | :--- | :--- |

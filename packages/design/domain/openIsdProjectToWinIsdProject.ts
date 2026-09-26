@@ -68,7 +68,12 @@ export function openIsdProjectToWinIsdProject(
       CreateDate: project.created.value || nowStamp,
       ModifyDate: project.modified.value || nowStamp,
     },
-    Box: boxValues,
+    Box: {
+      ...boxValues,
+      T: project.envTempK.value,
+      p: project.envPressurePa.value,
+      phi: project.envHumidityPct.value / 100,
+    },
     SignalSource: {
       Rg: project.Rs_ohm.value,
       ...(power_W === null ? {} : {P: power_W}),
@@ -318,6 +323,13 @@ export function winIsdProjectToOpenIsdProject(
       return {value: null, errors};
     }
   }
+
+  const T = wpr.number('Box', 'T');
+  const p = wpr.number('Box', 'p');
+  const phi = wpr.number('Box', 'phi');
+  if (T != null) project.envTempK.set(T);
+  if (p != null) project.envPressurePa.set(p);
+  if (phi != null) project.envHumidityPct.set(phi * 100); // phi is a FRACTION in the file
 
   const P = wpr.number('SignalSource', 'P');
   // P can be stated only against a usable Re; without one the voltage stands alone.

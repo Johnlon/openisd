@@ -119,6 +119,22 @@ describe('openIsdProjectToWinIsdProject — [Box]/[SignalSource] match the WinIS
     assert.ok(text.includes('[SignalSource]\nRg=0.1\nP=1'), 'signal source matches the golden');
   });
 
+  it('[Box] T/p/phi carry the project\'s own environment, not WinISD\'s template default', () => {
+    const project = aProject((p) => p.sealed().volume_m3(0.02).build());
+    project.envTempK.set(300);
+    project.envPressurePa.set(99000);
+    project.envHumidityPct.set(50); // phi is a FRACTION in the file: 50% -> 0.5
+
+    const { value: wpr, errors } = openIsdProjectToWinIsdProject(project, new Engine());
+    assert.equal(errors.length, 0, JSON.stringify(errors));
+    if (!wpr) throw new Error('expected a WinISDProject');
+    const text = wpr.toWpr().replace(/\r\n/g, '\n');
+
+    assert.ok(text.includes('T=300'), '[Box] T carries the project\'s entered temperature');
+    assert.ok(text.includes('p=99000'), '[Box] p carries the project\'s entered pressure');
+    assert.ok(text.includes('phi=0.5'), '[Box] phi carries the project\'s entered humidity, as a fraction');
+  });
+
   it('vented box: BType=1, rear chamber volume/tuning match vented-small.wpr', () => {
     // Both read from vented-small.wpr's own [Box], never transcribed.
     const VENTED_VOLUME_M3 = Number(goldenField(GOLDEN_VENTED_SMALL_WPR, 'Box', 'Vr'));
@@ -570,6 +586,28 @@ describe('winIsdProjectToOpenIsdProject — .wpr text back to a project (round t
     assert.equal(errors.length, 1);
     assert.equal(errors[0].field, 'Vr/Fr');
     assert.equal(errors[0].message, 'passive-radiator box: [Box] Vr and/or Fr is missing or not numeric');
+  });
+
+  it('imports [Box] T/p/phi into the project\'s environment, entered', () => {
+    const text = '[ProjectInfo]\n[Driver]\nBrand=Test\nModel=Driver\n'
+      + '[Box]\nBType=0\nVr=0.02\nT=300\np=99000\nphi=0.5\n';
+    const engine = new Engine();
+    const { value: project, errors } = winIsdProjectToOpenIsdProject(text, engine);
+    assert.equal(errors.length, 0, JSON.stringify(errors));
+    if (!project) throw new Error('expected a project');
+    assert.equal(project.envTempK.value, 300);
+    assert.equal(project.envTempK.entered, true);
+    assert.equal(project.envPressurePa.value, 99000);
+    assert.equal(project.envHumidityPct.value, 50); // phi is a fraction in the file: 0.5 -> 50%
+  });
+
+  it('a file with no [Box] T/p/phi leaves the project\'s environment calculated, at the app default', () => {
+    const text = '[ProjectInfo]\n[Driver]\nBrand=Test\nModel=Driver\n[Box]\nBType=0\nVr=0.02\n';
+    const engine = new Engine();
+    const { value: project, errors } = winIsdProjectToOpenIsdProject(text, engine);
+    assert.equal(errors.length, 0, JSON.stringify(errors));
+    if (!project) throw new Error('expected a project');
+    assert.equal(project.envTempK.calculated, true);
   });
 
   it('imports [SignalSource] P and [ProjectInfo] Description/Creator/CreateDate/ModifyDate when stated', () => {

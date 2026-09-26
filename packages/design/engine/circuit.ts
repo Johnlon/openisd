@@ -113,12 +113,12 @@ export function solve(f: number, drv: CircuitQuantities, box: BoxType, P: SweepP
 
   const { rho, c } = solveEnvironment(P).values;
 
-  // Voice coil impedance — two variants matching WinISD's model split:
-  //   ZcoilAC: resistive only (Le excluded) — used for acoustic circuit (SPL, GD, excursion)
-  //   Zcoil:   full Re+Rs+jωLe            — used only for electrical impedance plot
-  // Source: docs/winisd_helpfiles/help/aboutequivalentcircuits.html
-  //   "Ze = Re + jω·Le + Zem" — Le added back only for impedance, not for acoustic simulation
-  // https://en.wikipedia.org/wiki/Electrical_characteristics_of_a_dynamic_loudspeaker
+  // Voice coil impedance:
+  //   ZcoilAC: resistive only (Re+Rs, Le excluded)
+  //   Zcoil:   full Re+Rs+jωLe
+  // P.circuitModel switch ('winisd' vs 'gyrator') controls whether Le is included in BOTH Zel and SPL:
+  //   'winisd' (Simulate voice coil inductance unchecked): Le excluded from both Zel and acoustic circuit.
+  //   'gyrator' (Simulate voice coil inductance checked): Le included in both Zel and acoustic circuit.
   // Thermal power compression (docs/research/WINISD_PARITY.md): the coil's DC resistance rises with temperature.
   // vcTempRise=0/absent → hotRe returns drv.Re_terminal_ohm exactly, so the circuit is unchanged (golden-safe).
   // Le is optional on a Driver (many datasheets omit it). Absent means "no inductor
@@ -238,6 +238,6 @@ export function solve(f: number, drv: CircuitQuantities, box: BoxType, P: SweepP
 
   // Electrical input impedance Zel = Ze + Bl²/(Sd²·(ZaD+Zbox))
   // https://en.wikipedia.org/wiki/Electrical_characteristics_of_a_dynamic_loudspeaker
-  const Zel = cAdd(Zcoil, cDiv(cx(Bl * Bl, 0), cMul(cx(Sdt * Sdt, 0), cAdd(ZaD, Zbox))));
+  const Zel = cAdd(ZcoilForAC, cDiv(cx(Bl * Bl, 0), cMul(cx(Sdt * Sdt, 0), cAdd(ZaD, Zbox))));
   return { U0, UD, UP, Zbox, Zel, ZaD };
 }
