@@ -2207,8 +2207,9 @@ export class OpenISDProject {
     }
 
     /** WinISD Advanced "Simulate voice coil inductance" — includes Le in the acoustic circuit
-     *  model (gyrator) rather than just the impedance plot (winisd). */
-    get circuitModel(): SimpleField<'winisd' | 'gyrator'> {
+     *  model (gyrator) rather than just the impedance plot (winisd). 'winisdGyrator' is WinISD's
+     *  own inductance-on model. */
+    get circuitModel(): SimpleField<'winisd' | 'gyrator' | 'winisdGyrator'> {
         return focus(this.#slot('advanced'), 'circuitModel');
     }
 

@@ -101,8 +101,10 @@ export function simulatableBoxType(box: BoxType): SimulatableBoxType | null {
 /** Driver wiring for multi-driver setups. */
 export type Wiring = 'series' | 'parallel';
 
-/** Circuit model variant — WinISD-compatible (Le excluded from acoustic path) or full gyrator. */
-export type CircuitModel = 'winisd' | 'gyrator';
+/** Circuit model variant: 'winisd' — Le excluded from the acoustic path (WinISD, inductance off);
+ *  'gyrator' — textbook, Le in the acoustic path through one BL; 'winisdGyrator' — WinISD's
+ *  inductance-on model, Le's acoustic element built from the entered BL (BUG_20260926). */
+export type CircuitModel = 'winisd' | 'gyrator' | 'winisdGyrator';
 
 /** Signal-chain filter descriptor. Which optional fields apply depends on `type`. */
 export type FilterType = 'highpass' | 'lowpass' | 'linkwitz' | 'peaking' | 'lowshelf' | 'highshelf';

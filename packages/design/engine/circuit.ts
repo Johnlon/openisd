@@ -102,6 +102,15 @@ export interface CircuitQuantities {
      *  i.e. 0 H, never unknown. It affects the impedance plot alone (`Zcoil` below), which is
      *  why a driver without it still sweeps. */
     Le_H?: number;
+    /** The BL the driver's Fs/Qes/Cms/Re imply, BL² = Re/(ωs·Qes·Cms) — read only by the
+     *  'winisdGyrator' model. Absent means no second BL to disagree with `BL_terminal_Tm`. */
+    BL_Qes_Tm?: number;
+}
+
+/** (BL_Qes/BL)²: the factor WinISD's VCInd=1 model puts on Le. */
+function winisdLeScale(drv: CircuitQuantities): number {
+  if (drv.BL_Qes_Tm === undefined) return 1;
+  return (drv.BL_Qes_Tm / drv.BL_terminal_Tm) ** 2;
 }
 
 export function solve(f: number, drv: CircuitQuantities, box: BoxType, P: SweepParams): Solution {
@@ -130,18 +139,30 @@ export function solve(f: number, drv: CircuitQuantities, box: BoxType, P: SweepP
   const Rg  = P.Rs || 0;
   const rgAtDriver = P.rgAtDriverSide !== false;
   const Rdc1 = hotRe(drv.Re_terminal_ohm, P.alfaVC ?? 0, P.vcTempRise ?? 0) + (rgAtDriver ? Rg : 0);
-  const Zcoil1AC = cx(Rdc1, 0);
-  const Zcoil1   = cAdd(cx(Rdc1, 0), cx(0, w * Le));
-  let ZcoilAC: Complex, Zcoil: Complex, Bl: number;
-  if (wiring === 'series') { ZcoilAC = cScale(Zcoil1AC, n); Zcoil = cScale(Zcoil1, n);     Bl = drv.BL_terminal_Tm * n; }
-  else                     { ZcoilAC = cScale(Zcoil1AC, 1/n); Zcoil = cScale(Zcoil1, 1/n); Bl = drv.BL_terminal_Tm; }
-  if (!rgAtDriver) { ZcoilAC = cAdd(ZcoilAC, cx(Rg, 0)); Zcoil = cAdd(Zcoil, cx(Rg, 0)); }
+  const arrayCoil = (Le_H: number): Complex => {
+    const z1 = cx(Rdc1, w * Le_H);
+    const z = wiring === 'series' ? cScale(z1, n) : cScale(z1, 1/n);
+    return rgAtDriver ? z : cAdd(z, cx(Rg, 0));
+  };
+  const ZcoilAC = arrayCoil(0);
+  const Zcoil   = arrayCoil(Le);
+  const Bl = wiring === 'series' ? drv.BL_terminal_Tm * n : drv.BL_terminal_Tm;
 
   // Acoustic pressure source and electrical damping.
-  // WinISD mode: Le excluded from acoustic circuit — constant Rae/Uad (Le only for impedance).
+  // 'winisd': Le excluded from the acoustic circuit — constant Rae/Uad (Le only for impedance).
   //   Source: docs/winisd_helpfiles/help/aboutequivalentcircuits.html
-  // Full gyrator: Le included — physically more complete but diverges from WinISD.
-  const ZcoilForAC = (P.circuitModel === 'gyrator') ? Zcoil : ZcoilAC;
+  // 'gyrator': textbook — the coil Re+Rs+jωLe drives the gyrator, one BL throughout.
+  // 'winisdGyrator': WinISD's VCInd=1 model (winisd_research/GHIDRA_FINDINGS.md §"VCInd").
+  //   WinISD builds the damping resistance Rae from Qes/Fs/Vas (the BL those imply) but the
+  //   inductance's acoustic compliance CLe = Sd²·Le/BL² from the ENTERED BL. Through this
+  //   circuit's single Bl that is an electrical inductance Le·(BL_Qes/BL)²; the two BLs agree,
+  //   and the model reduces to 'gyrator', whenever the driver's BL is consistent with its Qes.
+  let ZcoilForAC: Complex, ZcoilForZel: Complex;
+  switch (P.circuitModel ?? 'winisd') {
+    case 'winisd':        ZcoilForAC = ZcoilAC; ZcoilForZel = ZcoilAC; break;
+    case 'gyrator':       ZcoilForAC = Zcoil;   ZcoilForZel = Zcoil;   break;
+    case 'winisdGyrator': ZcoilForAC = arrayCoil(Le * winisdLeScale(drv)); ZcoilForZel = Zcoil; break;
+  }
   const pg  = cDiv(cx(eg * Bl, 0), cMul(cx(Sdt, 0), ZcoilForAC));
   const ZaE = cDiv(cx(Bl * Bl, 0), cMul(cx(Sdt * Sdt, 0), ZcoilForAC));
 
@@ -238,6 +259,6 @@ export function solve(f: number, drv: CircuitQuantities, box: BoxType, P: SweepP
 
   // Electrical input impedance Zel = Ze + Bl²/(Sd²·(ZaD+Zbox))
   // https://en.wikipedia.org/wiki/Electrical_characteristics_of_a_dynamic_loudspeaker
-  const Zel = cAdd(ZcoilForAC, cDiv(cx(Bl * Bl, 0), cMul(cx(Sdt * Sdt, 0), cAdd(ZaD, Zbox))));
+  const Zel = cAdd(ZcoilForZel, cDiv(cx(Bl * Bl, 0), cMul(cx(Sdt * Sdt, 0), cAdd(ZaD, Zbox))));
   return { U0, UD, UP, Zbox, Zel, ZaD };
 }

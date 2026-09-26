@@ -786,7 +786,7 @@ export function formatInUnit(
  * current behaviour). Every `.wpr` in the corpus has VCInd=0, so no observation settles it.
  */
 export const simVcInductance = computed<boolean>({
-  get: () => { void live.value; return live.value?.circuitModel.value === 'gyrator'; },
+  get: () => { void live.value; const m = live.value?.circuitModel.value; return m !== undefined && m !== 'winisd'; },
   set: (on) => { focusedProject()?.circuitModel.set(on ? 'gyrator' : 'winisd'); },
 });
 

@@ -39,6 +39,24 @@ describe('circuit — acoustic circuit branches', () => {
     assert.deepEqual(gyrator.spl, winisd.spl);
   });
 
+  it('circuitModel "winisdGyrator" reproduces WinISD\'s traced inductance roll-off on the W5-1138SMF (BUG_20260926)', () => {
+    // WinISD 0.7.0.950, VCInd on − off, transfer-function chart traced from pixels
+    // (winisd_research/runs/vcind_default). Driver as entered in the .wdr: BL 7.17 disagrees with
+    // the 7.38 its Fs/Qes/Vas/Re imply — the disagreement WinISD's model turns into extra roll-off.
+    const w5 = driverParams(solveConsistencyGroup({
+      Fs_hz: 45, Qes: 0.57, Qms: 3.56, Vas_m3: 0.00485, Sd_m2: 0.0094, Re_ohm: 3.4, BL_Tm: 7.17,
+    }));
+    const P: SweepParams = {Vb: 0.00448, eg: 2.83, Rs: 0.1, N: 1};
+    const winisdTraced: ReadonlyArray<readonly [number, number]> =
+      [[1000, -1.212], [2000, -4.152], [5000, -10.617], [10000, -16.373], [20000, -22.314]];
+    for (const [f, traced] of winisdTraced) {
+      const at: SweepParams = {...P, fmin: f, fmax: f * 1.0001};
+      const off = engine.sweep(w5, 0.34e-3, 'sealed', at).values!.spl[0];
+      const on = engine.sweep(w5, 0.34e-3, 'sealed', {...at, circuitModel: 'winisdGyrator'}).values!.spl[0];
+      assert.ok(Math.abs((on - off) - traced) < 0.1, `${f} Hz: on − off ${(on - off).toFixed(3)} dB vs WinISD ${traced} dB`);
+    }
+  });
+
   it('passive radiator: an absent prRms defaults its mechanical resistance to 0, still a finite sweep', () => {
     const P_PR: SweepParams = {...P_SEALED, prSd: 0.0133, prNum: 1, prMmd: 0.030, prMadd: 0, prCms: 0.0008};
     const sw = engine.sweep(DRV, LE_H, 'box-passive-radiator', P_PR).values!;

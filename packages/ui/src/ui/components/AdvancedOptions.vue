@@ -11,13 +11,17 @@
  */
 import {useAdvancedOptions} from '../../hooks/AdvancedOptions-hooks.js';
 
-const {project, hasVent, simVcInductance, fieldHelp, inputChecked} = useAdvancedOptions();
+const {project, hasVent, simVcInductance, inductanceOn, winisdInductance, fieldHelp, inputChecked} = useAdvancedOptions();
 </script>
 
 <template>
   <div class="adv-options">
     <label data-field-key="simVcInductance" :title="fieldHelp('simVcInductance')">
       <input type="checkbox" v-model="simVcInductance"> Simulate voice coil inductance
+    </label>
+    <label data-field-key="winisdInductance" :title="fieldHelp('winisdInductance')"
+      :class="{ 'na': !inductanceOn }">
+      <input type="checkbox" v-model="winisdInductance" :disabled="!inductanceOn"> WinISD-compatible inductance
     </label>
     <label data-field-key="forceFlatResponse" :title="fieldHelp('forceFlatResponse')">
       <input type="checkbox" :checked="project.forceFlatResponse.value" @change="e => project.forceFlatResponse.set(inputChecked(e))"> Force flat response

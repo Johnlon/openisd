@@ -2903,6 +2903,16 @@ describe('project-level array/display settings, chart Y-range, and identity', ()
     expect(p.driveVoltage_V.value).toBeCloseTo(Math.sqrt(4 * 6.1), 6);
   });
 
+  it('circuitModel "winisdGyrator" (WinISD-compatible inductance) survives a save and reload through .owpr text', () => {
+    const p = sealedProject();
+    p.circuitModel.set('winisdGyrator');
+    p.save();
+
+    const back = OpenISDProject.fromOwprText(p.toOwprText(), new Engine());
+    if (Array.isArray(back)) throw new Error('fromOwprText returned problems: ' + back.join(', '));
+    expect(back.circuitModel.value).toBe('winisdGyrator');
+  });
+
   it('applyWinisdSettings resets toggles and clears entered Mms for WinISD parity', () => {
     const p = sealedProject();
     p.circuitModel.set('gyrator');

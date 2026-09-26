@@ -792,8 +792,9 @@ const openISDAdvancedJsonSchema = z.strictObject({
     // (`OpenISDDriverEmbeddingJson.Rs_ohm`) is applied per driver or once across the whole array.
     rgAtDriverSide: z.boolean(),
     // WinISD Advanced tab: "Simulate voice coil inductance" — includes Le in the acoustic circuit
-    // model (gyrator) rather than just the impedance plot (winisd).
-    circuitModel: z.enum(['winisd', 'gyrator']),
+    // model (gyrator) rather than just the impedance plot (winisd). 'winisdGyrator' is the
+    // inductance-on model WinISD itself uses (BUG_20260926).
+    circuitModel: z.enum(['winisd', 'gyrator', 'winisdGyrator']),
     // WinISD Advanced tab: "SPL graph is Xmax limited" — whether the SPL chart shows the drive
     // backed off wherever peak excursion exceeds Xmax (`splXlimCurve`) instead of the unclamped
     // `spl` curve. Display only: the unclamped curve still feeds the transfer-function chart, the

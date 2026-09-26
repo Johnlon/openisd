@@ -234,6 +234,10 @@ const UI_FIELD_SPECS: UIFieldSpec[] = [
     description: 'Simulate Voice Coil Inductance\nApplies Le to the acoustic output too, not just the impedance plot.',
   },
   {
+    id: 'adv_WinisdInductance', aliases: ['winisdInductance'], label: 'WinISD-compatible inductance', pane: 'Advanced', kind: 'toggle', unit: '',
+    description: 'WinISD-Compatible Inductance\nReproduces WinISD\'s inductance roll-off, which we judge a WinISD bug: Le\'s acoustic element uses the entered BL, the damping uses the BL implied by Fs/Qes/Vas/Re. Differs from the textbook roll-off only when those two BLs disagree.',
+  },
+  {
     id: 'adv_ForceFlatResponse', aliases: ['forceFlatResponse'], label: 'Force flat response', pane: 'Advanced', kind: 'toggle', unit: '',
     description: 'Force Flat Response\nApplies auto-equalization, revealing the excursion and port velocity a flat passband would demand.',
   },

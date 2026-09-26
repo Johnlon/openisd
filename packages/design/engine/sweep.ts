@@ -233,9 +233,16 @@ function circuitQuantities(q: ReturnType<typeof withAddedMass>, Le_H: number | u
     value: {
       Sd_m2: q.Sd_m2!, Re_terminal_ohm: q.Re_terminal_ohm!, BL_terminal_Tm: q.BL_terminal_Tm!,
       Cms_m_per_N: q.Cms_m_per_N!, Mms_kg: q.Mms_kg!, Rms_kg_per_s: q.Rms_kg_per_s!, Le_H,
+      BL_Qes_Tm: blFromQes(q.Re_terminal_ohm!, q.Cms_m_per_N!, q.Fs_hz, q.Qes),
     },
     issues: [],
   };
+}
+
+/** The BL a driver's Fs/Qes/Cms/Re imply: BL² = Re/(ωs·Qes·Cms). Absent when Fs or Qes is. */
+function blFromQes(Re_ohm: number, Cms_m_per_N: number, Fs_hz: number | undefined, Qes: number | undefined): number | undefined {
+  if (Fs_hz === undefined || Qes === undefined) return undefined;
+  return Math.sqrt(Re_ohm / (2 * Math.PI * Fs_hz * Qes * Cms_m_per_N));
 }
 
 export function sweep(drv: DriverSolverParams, Le_H: number | undefined, box: BoxType, P: SweepParams): SweepSolveResult {
