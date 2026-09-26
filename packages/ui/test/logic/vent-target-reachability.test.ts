@@ -26,9 +26,13 @@ import {
 } from '../../src/logic/useVentGroup.js';
 
 /** The L = 0 ceiling for the trial geometry — the highest tuning any vent here can deliver.
- *  Rebaselined against the live CIPM-2007 c/roo computed at the reference environment
- *  (packages/engine/src/air.ts), after deletion of the frozen RHO/C constants. */
-const CEILING_HZ = 80.79258261843188;
+ *  OpenISD's own computed output, not a WinISD golden — it scales with c² via
+ *  L = c²·Sp/(4π²·Fb²·V) − k·d, so it shifts by a few ppm whenever the project's air model
+ *  or reference conditions change. Rebaselined 2026-09-26 at the project's default air
+ *  (WinISD model, reference environment; `packages/design/engine/air.ts`), after
+ *  BUG_20260924_driver-solve-and-sweep-use-different-air-models moved the vent's air off the
+ *  embedded driver's own (CIPM-2007-defaulted) field and onto the project's canonical air. */
+const CEILING_HZ = 80.79291711567225;
 
 function blankDriverRecord(): unknown {
   return {

@@ -371,11 +371,11 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   const N_DRIVERS_OPTIONS = countOptions('driver_nDrivers');
   const VENT_COUNT_OPTIONS = countOptions('vent_Count');
 
-  // The focused project's own trace/legend colour — a project attribute (`presentationState.ts`,
-  // keyed by uuid), not a page-level index: it must follow the project across focus switches,
-  // not reshuffle when the sidebar's focus target changes.
-  const WINISD_TRACE = computed(() => traceColor(project.value.uuid()));
-  function cycleColor() { cycleTraceColor(project.value.uuid()); }
+  // The focused project's own trace/legend colour — a project attribute saved in its project
+  // file (`OpenISDProject.traceColor`), not a page-level index: it must follow the project
+  // across focus switches, not reshuffle when the sidebar's focus target changes.
+  const WINISD_TRACE = computed(() => { void projectChanged.value; return traceColor(project.value); });
+  function cycleColor() { cycleTraceColor(project.value); }
 
   // Chart top bar's Reset button — clears the shared sweep range and every chart's Y-axis zoom.
   // Both are global view state (`presentationState.ts`), not project data.
@@ -875,7 +875,7 @@ const overlays = computed<Design[]>(() => {
       curves: sw.values,
       maxCurves: mx.values,
       name: rowName(p),
-      color: traceColor(p.uuid()),
+      color: traceColor(p),
       visible: isRowVisible(p),
       // Legend/draw order follows the sidebar's project list order, not "current first"
       // (John, 2026-09-24: "Dont change the legend project order - keep it the same as the

@@ -81,6 +81,22 @@ function aProject(box: (p: ReturnType<typeof OpenISDProject.builder>) => OpenISD
 }
 
 describe('openIsdProjectToWinIsdProject — [Box]/[SignalSource] match the WinISD-written goldens', () => {
+  it('[Box] alfaVC and dTVC carry the project\'s own thermal values, not the template defaults', () => {
+    // BUG_20260817 F3: both were emitted as WinISD's defaults (alfaVC=0.0039, dTVC=0), so a
+    // design exported and reopened came back with someone else's coil temperature behaviour.
+    const project = aProject((p) => p.sealed().volume_m3(0.02).build());
+    project.alfaVC_per_K.set(0.0041);
+    project.vcTempRise_K.set(75);
+
+    const {value: wpr, errors} = openIsdProjectToWinIsdProject(project, new Engine());
+    assert.equal(errors.length, 0, `expected no errors, got: ${JSON.stringify(errors)}`);
+    if (!wpr) throw new Error('expected a WinISDProject');
+    const text = wpr.toWpr().replace(/\r\n/g, '\n');
+
+    assert.ok(text.includes('alfaVC=0.0041'), `alfaVC must be the project's, got: ${/alfaVC=.*/.exec(text)?.[0]}`);
+    assert.ok(text.includes('dTVC=75'), `dTVC must be the project's, got: ${/dTVC=.*/.exec(text)?.[0]}`);
+  });
+
   it('sealed box: BType=0, rear chamber volume and lossless resonance match sealed-small.wpr', () => {
     const golden = readFileSync(GOLDEN_SEALED_SMALL_WPR, 'utf8').replace(/\r\n/g, '\n');
     // sealed-small.wpr's own [Box]: Vr=0.02, Fr=61.2670146589858 (docs/samples ground truth,

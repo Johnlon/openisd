@@ -128,4 +128,23 @@ describe('Phase 1: Environmental Axioms (Tasks 26-33)', () => {
     project.setEnvUseWinisdAirModel(true);
     expect(project.envUseWinisdAirModel.value).toBe(true);
   });
+
+  it('the embedded driver resolves air the same way the project/sweep does, with useWinisdAirModel unset (BUG_20260924)', () => {
+    const engine = new Engine();
+    const project = OpenISDProject.empty(engine);
+
+    // Away from reference conditions, so the physical and WinISD air models diverge visibly —
+    // and envUseWinisdAirModel is left UNSET (defaults to true, QO95), so both sides must apply
+    // the same default.
+    project.envTempK.set(250);
+    project.envHumidityPct.set(80);
+    project.envPressurePa.set(90000);
+
+    const expected = engine.solveEnvironment({
+      tempK: 250, humidityPct: 80, pressurePa: 90000, useWinisdAirModel: true,
+    }).values;
+
+    expect(project.driver.specs.c_m_per_s.value).toBeCloseTo(expected.c, 9);
+    expect(project.driver.specs.roo_kg_per_m3.value).toBeCloseTo(expected.rho, 9);
+  });
 });

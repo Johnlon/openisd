@@ -825,6 +825,8 @@ export type OpenISDAdvancedJson = z.infer<typeof openISDAdvancedJsonSchema>;
 const openISDChartsJsonSchema = z.strictObject({
     N: z.number().optional(),
     graphs: z.array(z.string()).optional(),
+    /** The project's trace/legend colour, a CSS colour; absent until the project is first opened. */
+    traceColor: z.string().optional(),
 });
 export type OpenISDChartsJson = z.infer<typeof openISDChartsJsonSchema>;
 

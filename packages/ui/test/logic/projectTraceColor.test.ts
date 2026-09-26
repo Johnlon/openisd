@@ -8,7 +8,7 @@
  */
 import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import {focusProject, newProject, openProjects, removeProject} from '../../src/logic/appState.js';
+import {addProject, focusProject, newProject, openProjects, removeProject} from '../../src/logic/appState.js';
 import {cycleTraceColor, traceColor} from '../../src/logic/presentationState.js';
 
 describe('project trace colour is per-project, not per-position', () => {
@@ -19,7 +19,7 @@ describe('project trace colour is per-project, not per-position', () => {
     newProject();
     const b = openProjects()[openProjects().length - 1];
 
-    assert.notEqual(traceColor(a.uuid()), traceColor(b.uuid()));
+    assert.notEqual(traceColor(a), traceColor(b));
 
     removeProject(openProjects().indexOf(b));
     removeProject(openProjects().indexOf(a));
@@ -31,13 +31,13 @@ describe('project trace colour is per-project, not per-position', () => {
     const a = openProjects()[openProjects().length - 1];
     newProject();
     const b = openProjects()[openProjects().length - 1];
-    const colorA = traceColor(a.uuid());
+    const colorA = traceColor(a);
 
     focusProject(openProjects().indexOf(a));
     focusProject(openProjects().indexOf(b));
     focusProject(openProjects().indexOf(a));
 
-    assert.equal(traceColor(a.uuid()), colorA);
+    assert.equal(traceColor(a), colorA);
 
     removeProject(openProjects().indexOf(b));
     removeProject(openProjects().indexOf(a));
@@ -48,13 +48,35 @@ describe('project trace colour is per-project, not per-position', () => {
     const a = openProjects()[openProjects().length - 1];
     newProject();
     const b = openProjects()[openProjects().length - 1];
-    const colorB = traceColor(b.uuid());
+    const colorB = traceColor(b);
 
-    cycleTraceColor(a.uuid());
+    cycleTraceColor(a);
 
-    assert.equal(traceColor(b.uuid()), colorB);
+    assert.equal(traceColor(b), colorB);
 
     removeProject(openProjects().indexOf(b));
+    removeProject(openProjects().indexOf(a));
+  });
+
+  it('cycleTraceColor saves the new colour in the project itself (BUG_20260926_trace-colour-not-persisted)', () => {
+    newProject();
+    const a = openProjects()[openProjects().length - 1];
+
+    cycleTraceColor(a);
+
+    assert.equal(a.traceColor.value, traceColor(a));
+    removeProject(openProjects().indexOf(a));
+  });
+
+  it('a project that carries a saved colour keeps it when it is opened', () => {
+    newProject();
+    const a = openProjects()[openProjects().length - 1];
+    a.traceColor.set('#123456');
+    removeProject(openProjects().indexOf(a));
+
+    addProject(a);
+
+    assert.equal(traceColor(a), '#123456');
     removeProject(openProjects().indexOf(a));
   });
 });

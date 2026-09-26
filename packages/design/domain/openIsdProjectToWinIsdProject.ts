@@ -73,6 +73,10 @@ export function openIsdProjectToWinIsdProject(
       T: project.envTempK.value,
       p: project.envPressurePa.value,
       phi: project.envHumidityPct.value / 100,
+      // The coil's temperature coefficient and its modelled rise. Left out, the template writes
+      // WinISD's own defaults over whatever the design states (BUG_20260817 F3).
+      alfaVC: project.alfaVC_per_K.value,
+      dTVC: project.vcTempRise_K.value,
     },
     SignalSource: {
       Rg: project.Rs_ohm.value,

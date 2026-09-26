@@ -807,6 +807,42 @@ describe('OpenISDBox — every alignment, as a window onto the project record', 
     expect(p.box.vented.vent.totalArea_m2()).toBeNull();
   });
 
+  it('a driver\'s own c_m_per_s/roo_kg_per_m3 has no effect on box calculations — display only (BUG_20260924)', () => {
+    const engine = new Engine();
+    const p = OpenISDProject.builder(driverFrom({
+      brand: 'Dayton', model: 'RS225', section: 'woofer',
+      spec: specSection({ Fs_hz: 30, Qts: 0.4, Sd_m2: 0.02, Cms_m_per_N: 0.0005, Mmd_kg: 0.05, Rms_Ns_per_m: 2, Xmax_m: 0.008 }),
+    }), engine).sealed().volume_m3(0.03).build();
+    p.box.boxType.set('vented');
+    p.box.vented.volume_m3.set(0.05);
+    p.box.vented.vent.diameter_m.set(0.1);
+    p.box.vented.tuning_goal_hz.set(40);
+
+    // An embedded driver never keeps an entered air of its own — an attempt to set one is
+    // always overwritten back to the project's air on the next resolve.
+    p.driver.specs.c_m_per_s.set(999);
+    p.driver.specs.roo_kg_per_m3.set(999);
+    expect(p.driver.specs.c_m_per_s.value).not.toBe(999);
+    expect(p.driver.specs.c_m_per_s.entered).toBe(false);
+    expect(p.driver.specs.roo_kg_per_m3.value).not.toBe(999);
+    expect(p.driver.specs.roo_kg_per_m3.entered).toBe(false);
+
+    // The box's own calculation reaches the project's air directly, not through the driver —
+    // flipping the project's air model changes the port length, and matches the engine's own
+    // resolve for that model exactly.
+    p.envUseWinisdAirModel.set(false);
+    const physical = engine.solveEnvironment({ useWinisdAirModel: false }).values;
+    const lengthPhysical = p.box.vented.vent.length_m.value;
+    p.envUseWinisdAirModel.set(true);
+    const winisd = engine.solveEnvironment({ useWinisdAirModel: true }).values;
+    const lengthWinisd = p.box.vented.vent.length_m.value;
+
+    expect(physical).not.toEqual(winisd);
+    expect(lengthPhysical).not.toBeCloseTo(lengthWinisd!, 12);
+    expect(p.driver.specs.c_m_per_s.value).toBeCloseTo(winisd.c, 9);
+    expect(p.driver.specs.roo_kg_per_m3.value).toBeCloseTo(winisd.rho, 9);
+  });
+
   it('two ports of the same size need a LONGER port than one for the same tuning', () => {
     const p = project();
     p.box.boxType.set('vented');
@@ -1688,7 +1724,7 @@ describe('editing a driver — copy, then update or drop', () => {
 
     expect(project.driver.specs.c_m_per_s.calculated).toBe(true);
     expect(project.driver.specs.roo_kg_per_m3.calculated).toBe(true);
-    const projectAir = new Engine().solveEnvironment({ tempK: 250, humidityPct: 80, pressurePa: 90000 }).values;
+    const projectAir = new Engine().solveEnvironment({ tempK: 250, humidityPct: 80, pressurePa: 90000, useWinisdAirModel: true }).values;
     expect(project.driver.specs.c_m_per_s.value).toBeCloseTo(projectAir.c, 6);
     expect(project.driver.specs.roo_kg_per_m3.value).toBeCloseTo(projectAir.rho, 6);
     // Never 999/5 — the driver's own stated pair must not survive embedding.
@@ -1716,7 +1752,7 @@ describe('editing a driver — copy, then update or drop', () => {
     project.driver.specs.c_m_per_s.set(999);
     project.driver.specs.roo_kg_per_m3.set(5);
 
-    const projectAir = new Engine().solveEnvironment({ tempK: 250, humidityPct: 80, pressurePa: 90000 }).values;
+    const projectAir = new Engine().solveEnvironment({ tempK: 250, humidityPct: 80, pressurePa: 90000, useWinisdAirModel: true }).values;
     const ts = project.driver.specs;
     expect(ts.c_m_per_s.value).toBeCloseTo(projectAir.c, 6);
     expect(ts.roo_kg_per_m3.value).toBeCloseTo(projectAir.rho, 6);

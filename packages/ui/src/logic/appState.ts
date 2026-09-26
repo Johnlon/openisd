@@ -216,15 +216,14 @@ export function removeProject(index: number): void {
 
 /** Add a newly-created or re-imported project to the registry and focus it. */
 export function addProject(project: OpenISDProject): void {
-  assignTraceColor(project.uuid(), projects.value.map(p => p.uuid()));
+  assignTraceColor(project, projects.value);
   projects.value = [...projects.value, project];
   focusedIndex.value = projects.value.length - 1;
 }
 
 /** Replace the open-project registry with a refresh-restored session. */
 export function restoreProjects(restored: OpenISDProject[], requestedFocus: number): void {
-  const uuids = restored.map(p => p.uuid());
-  for (const p of restored) assignTraceColor(p.uuid(), uuids);
+  for (const p of restored) assignTraceColor(p, restored);
   projects.value = restored.slice();
   focusedIndex.value = restored.length === 0 ? 0 : Math.min(Math.max(requestedFocus, 0), restored.length - 1);
 }

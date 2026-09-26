@@ -1,6 +1,8 @@
 # BUG_20260924_driver-solve-and-sweep-use-different-air-models
 
-Status: OPEN (re-verified 2026-09-26) — the embedded driver's air provider omits `useWinisdAirModel`; the sweep passes it.
+Status: RESOLVED 2026-09-26 — `#airOver` now includes `useWinisdAirModel`, and the driver's own
+`c_m_per_s`/`roo_kg_per_m3` feed nothing: every calculation (box, vent, PR, resolve, sweep,
+`driverSolverParamsOf`) reads `OpenISDProject#air(root)` directly.
 
 ## Symptom
 
@@ -54,3 +56,16 @@ the reference conditions, and the inconsistency is independent of its present si
 A unit test that sets the project environment away from the defaults with
 `useWinisdAirModel` unset, then asserts the ρ/c written onto the driver's `c_m_per_s` /
 `roo_kg_per_m3` equals the ρ/c the sweep resolves.
+
+## What the driver's own air field is for (speculation, John, 2026-09-26)
+
+We don't actually know. Two possibilities:
+
+- It just records the condition the driver was measured at. If so, no calculation should ever
+  read it — display only.
+- It's meant to let a calculation adapt the driver's measured readings to the project's own air.
+  If so, some calculation legitimately needs it.
+
+Undecided. Until it's decided, the fix treats it as display only: every calculation (box, vent,
+PR, sweep) reads the project's own air; `c_m_per_s`/`roo_kg_per_m3` show on the driver's
+properties tab and feed nothing.

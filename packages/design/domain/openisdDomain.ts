@@ -96,7 +96,7 @@ import type {
 } from '../engine/index.js';
 import {
     type Air,
-    type AirConstantProvider,
+    type AirEnvironment,
     type DriverSolverParams,
     Engine,
     LossMode,
@@ -589,6 +589,7 @@ class OpenISDBox implements Box {
         lossMode: () => LossMode,
         issues: () => ProjectIssues,
         ventTuningExtra: () => DqIssue | null,
+        air: () => Air,
     ) {
         this.#driver = driver;
         this.#engine = engine;
@@ -596,15 +597,10 @@ class OpenISDBox implements Box {
         this.#lossMode = lossMode;
         this.boxType = focus(lens, 'boxType');
 
-        // The project's own resolved air, read at CALL time from the embedded driver — which
-        // already resolves `c_m_per_s`/`roo_kg_per_m3` to the project's live environment
-        // unconditionally (Driver Air Constants, `docs/plans/PLAN_DRIVER_SOLVE_AND_SWEEP_DIAGNOSTICS.md`).
-        // No second air-provider plumbing needed: every vent/PR window below reads this same
-        // closure rather than each computing its own reference-condition fallback.
-        const air = (): Air => {
-            const ts = driver.specs;
-            return { rho: ts.roo_kg_per_m3.value!, c: ts.c_m_per_s.value! };
-        };
+        // The project's own resolved air, injected — the driver's OWN c_m_per_s/roo_kg_per_m3
+        // are display-only and feed nothing (BUG_20260924_driver-solve-and-sweep-use-different-
+        // air-models.md). Every vent/PR window below reads this same closure rather than each
+        // computing its own reference-condition fallback.
 
         const sealedLens = focus(lens, 'sealed');
         const sealedVolume = focus(sealedLens, 'volume_m3');
@@ -809,8 +805,9 @@ class OpenISDBox implements Box {
         lossMode: () => LossMode,
         issues: () => ProjectIssues,
         ventTuningExtra: () => DqIssue | null,
+        air: () => Air,
     ): OpenISDBox {
-        return new OpenISDBox(slot, driver, engine, rs, lossMode, issues, ventTuningExtra);
+        return new OpenISDBox(slot, driver, engine, rs, lossMode, issues, ventTuningExtra, air);
     }
 
     /**
@@ -1107,6 +1104,13 @@ export class OpenIsdDriverSpec {
         // working set defaults it to the driver's `air` and writes the default back as `'C'`
         // (engine `consistency.ts#solveDriver`), so the record always carries a real value by
         // the time anything outside this constructor can read it.
+        //
+        // Purpose unconfirmed (John, 2026-09-26, speculation): this may just record the
+        // condition the driver was measured at, in which case no calculation should ever read
+        // it — or it may be meant to let a calculation adapt the driver's measured readings to
+        // the project's own air. Until decided, treat it as display-only: every real
+        // calculation (box, vent, PR, sweep) reads the project's air, never this field
+        // (BUG_20260924_driver-solve-and-sweep-use-different-air-models.md).
         this.c_m_per_s = f('c_m_per_s'); this.roo_kg_per_m3 = f('roo_kg_per_m3');
         this.Vcd_m = f('Vcd_m'); this.Hg_m = f('Hg_m'); this.Hc_m = f('Hc_m');
         this.freq_low_hz = f('freq_low_hz'); this.freq_high_hz = f('freq_high_hz');
@@ -1212,6 +1216,12 @@ function driverSolverParamsOf(spec: OpenIsdDriverSpec, engine: Engine, useWinisd
         Re_terminal_ohm: computedSlot(Re_terminal_ohm),
         BL_terminal_Tm: computedSlot(blTerminal),
         wiring: wiringInput,
+        // The circuit's air is the PROJECT's, when one is given — the driver's own
+        // c_m_per_s/roo_kg_per_m3 are display-only and feed no calculation
+        // (BUG_20260924_driver-solve-and-sweep-use-different-air-models.md). A caller with no
+        // project (a standalone driver's own chart) passes no `air`, and the spread above already
+        // carries the driver's own stated pair.
+        ...(air !== null ? { c_m_per_s: computedSlot(air.c), roo_kg_per_m3: computedSlot(air.rho) } : {}),
     };
 }
 
@@ -1431,12 +1441,12 @@ export abstract class OpenISDDriver extends OpenISDDevice {
      *  driver's is the project's own live environment (`OpenISDDriverEmbedded.wrap()`); a
      *  standalone driver's defaults to the reference condition. `resolve()` reads it fresh on
      *  every call, so a project's environment changing is picked up the next time it runs. */
-    protected readonly airProvider: () => AirConstantProvider;
+    protected readonly airProvider: () => AirEnvironment;
 
     protected constructor(
         record: SimpleField<DriverDeviceJson>,
         engine: Engine,
-        airProvider: () => AirConstantProvider,
+        airProvider: () => AirEnvironment,
         /** See `OpenIsdDriverSpec`'s own parameter — only an embedded driver supplies one. */
         durableIssues?: () => readonly DriverIssue[],
     ) {
@@ -1638,7 +1648,7 @@ export class OpenISDDriverStandalone extends OpenISDDriver {
     static wrap(
         json: DriverDeviceJson,
         engine: Engine,
-        airProvider: () => AirConstantProvider = () => ({}),
+        airProvider: () => AirEnvironment = () => ({}),
     ): OpenISDDriverStandalone {
         let current = json;
         const raw: SimpleField<DriverDeviceJson> = {
@@ -1679,7 +1689,7 @@ class OpenISDDriverEmbedded extends OpenISDDriver {
     private constructor(
         record: SimpleField<DriverDeviceJson>,
         engine: Engine,
-        airProvider: () => AirConstantProvider,
+        airProvider: () => AirEnvironment,
         durableIssues: () => readonly DriverIssue[],
     ) {
         super(record, engine, airProvider, durableIssues);
@@ -1691,7 +1701,7 @@ class OpenISDDriverEmbedded extends OpenISDDriver {
     static wrap(
         slot: SimpleField<DriverDeviceJson>,
         engine: Engine,
-        airProvider: () => AirConstantProvider,
+        airProvider: () => AirEnvironment,
         /** The PROJECT's cached driver issues. This object does not outlive one access, so the
          *  dq a resolve wrote into its fields is gone before anything reads it; the project's
          *  cache is what survives. */
@@ -2116,19 +2126,21 @@ export class OpenISDProject {
         );
     }
 
-    /** The project's own resolved `{rho, c}` — the same air the sweep runs in, which is what
-     *  "Use WinISD driver calculations" needs to take Cms from Vas the way WinISD does. */
-    #projectAir(): Air {
-        return this.#engine.solveEnvironment({
-            ...this.#airOver(this.#root()),
-            useWinisdAirModel: this.#current().environment.useWinisdAirModel ?? true,
-        }).values;
+    /** The project's own resolved `{rho, c}` — the ONE air every calculation uses: box, vent, PR,
+     *  resolve, sweep, "Use WinISD driver calculations" taking Cms from Vas. The embedded
+     *  driver's own `c_m_per_s`/`roo_kg_per_m3` are never a source for this — see the field
+     *  comment on `OpenIsdDriverSpec`'s constructor. */
+    #air(root: SimpleField<OpenISDProjectJson>): Air {
+        return this.#engine.solveEnvironment(this.#airOver(root)).values;
     }
 
-    /** The three air conditions `root` reads as — each E or C, never absent. */
-    #airOver(root: SimpleField<OpenISDProjectJson>): AirConstantProvider {
+    /** The four air conditions `root` reads as — each E or C, never absent. */
+    #airOver(root: SimpleField<OpenISDProjectJson>): AirEnvironment {
         const env = this.#envFieldsOver(focus(root, 'environment'));
-        return { tempK: env.tempK.value, humidityPct: env.humidityPct.value, pressurePa: env.pressurePa.value };
+        return {
+            tempK: env.tempK.value, humidityPct: env.humidityPct.value, pressurePa: env.pressurePa.value,
+            useWinisdAirModel: root.value.environment.useWinisdAirModel ?? true,
+        };
     }
 
     /** The embedded driver — built fresh from the current record on every access, never held: the
@@ -2150,6 +2162,7 @@ export class OpenISDProject {
             () => LossMode.parse(root.value.advanced.lossMode),
             () => this.#issues,
             () => this.#issues.ventTuningExtra,
+            () => this.#air(root),
         );
     }
 
@@ -2360,6 +2373,16 @@ export class OpenISDProject {
         return simpleField(() => this.#dragRange, (v) => { this.#dragRange = v; this.#notify(); });
     }
 
+    /** The project's trace/legend colour (a CSS colour), saved in the project file; null until
+     *  first assigned. Chart view state, so `isModified()` ignores it. */
+    get traceColor(): SimpleField<string | null> {
+        const charts = this.#slot('charts');
+        return {
+            get value() { return charts.value.traceColor ?? null; },
+            set: (v) => charts.set({...charts.value, traceColor: v ?? undefined}),
+        };
+    }
+
     get sweepN(): SimpleField<number | null> {
         const charts = this.#slot('charts');
         return {
@@ -2490,9 +2513,9 @@ export class OpenISDProject {
             Rs_ohm: inputOf(() => this.Rs_ohm.value),
         });
 
-        const spec = driver.specs;
-        // `driver.resolve()` above writes both back as 'C' entries, so the record states them.
-        const air: Air = { rho: spec.roo_kg_per_m3.value!, c: spec.c_m_per_s.value! };
+        // The project's own air — the driver's OWN c_m_per_s/roo_kg_per_m3 are display-only and
+        // feed nothing (BUG_20260924_driver-solve-and-sweep-use-different-air-models.md).
+        const air: Air = this.#air(directRoot);
 
         const box = this.#boxOver(directRoot);
         // GEOMETRY IS IN, ACOUSTICS IS OUT (John, 2026-08-26): every port's area ↔ dims
@@ -3039,7 +3062,7 @@ export class OpenISDProject {
         const boxIssues = this.#boxSweepIssues(box);
         if (boxIssues.length) return {values: null, issues: boxIssues};
         const params = this.#sweepParams(P, this.driveVoltage_V.value, box);
-        return this.#engine.sweep(driverSolverParamsOf(this.driver.specs, this.#engine, this.useWinisdDriverModel.value, this.#projectAir()), this.driver.Le_H() ?? undefined, box, params);
+        return this.#engine.sweep(driverSolverParamsOf(this.driver.specs, this.#engine, this.useWinisdDriverModel.value, this.#air(this.#root())), this.driver.Le_H() ?? undefined, box, params);
     }
 
     /** The excursion- and power-limited maximum SPL curves. Reports on the same terms as `sweep`,
@@ -3050,7 +3073,7 @@ export class OpenISDProject {
         if (!box) return {values: null, issues: [], driverPrerequisites: []};
         const boxIssues = this.#boxSweepIssues(box);
         if (boxIssues.length) return {values: null, issues: boxIssues, driverPrerequisites: []};
-        return this.#engine.maxCurves(driverSolverParamsOf(this.driver.specs, this.#engine, this.useWinisdDriverModel.value, this.#projectAir()), this.driver.Le_H() ?? undefined, box, this.#sweepParams(P, 2.83, box));
+        return this.#engine.maxCurves(driverSolverParamsOf(this.driver.specs, this.#engine, this.useWinisdDriverModel.value, this.#air(this.#root())), this.driver.Le_H() ?? undefined, box, this.#sweepParams(P, 2.83, box));
     }
 
     /** The active box's own sweep-level blockers, beyond what `solveBoxParams()` already reports:
@@ -3283,10 +3306,9 @@ export class OpenISDProject {
             if (!(Vb > 0) || Sp === null) {
                 return absentCell<number>('ventMaxReachableFb');
             }
-            const ts = this.driver.specs;
             const count = this.box.vented.vent.count.value;
             const v = this.#engine.tuningFromLength(Vb, 0, Sp, count,
-                { rho: ts.roo_kg_per_m3.value!, c: ts.c_m_per_s.value! },
+                this.#air(this.#root()),
                 this.box.vented.vent.endCorrection_m.value);
             return calculatedCell<number | null>('ventMaxReachableFb', v);
         });

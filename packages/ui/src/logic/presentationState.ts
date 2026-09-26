@@ -21,6 +21,7 @@ import type {ChartTabId, YRange} from '../types.js';
 import {getOrInit, hmrSlots} from './hmrSingleton.js';
 import {nextToken} from './fields/units.js';
 import {type UnitGroup} from '@openisd/design/fields';
+import type {OpenISDProject} from '@openisd/design';
 
 /** The palette `assignTraceColor`/`cycleTraceColor` draw from — one project's own
  *  legend/line colour, distinct from `ChartColors`' background/axis overrides below. */
@@ -70,11 +71,6 @@ export interface PresentationState {
    *  sweep's own frequency grid (`syncedP` → `p.sweep`). Saved with the view state
    *  (`currentViewSnapshot`), like `yRanges`. */
   sweepRange: {min: number; max: number};
-  /** Each open project's own legend/line colour, keyed by `OpenISDProject#uuid()` — a
-   *  project attribute, assigned once when the project opens (`assignTraceColor`) and from
-   *  then on independent of the project's position in the open-project list. Position-based
-   *  colour picking was the bug: switching focus reshuffled every open project's colour. */
-  traceColors: Record<string, string>;
   ui: UiState;
 }
 
@@ -86,7 +82,6 @@ function buildPresentationState(): PresentationState {
     editDriverInfo: false,
     yRanges: {},
     sweepRange: {min: 10, max: 20000},
-    traceColors: {},
     ui: {
       unitTokens: {},
     },
@@ -109,30 +104,27 @@ const slots = hmrSlots<PresentationSingletons>(
 export const presentationState: PresentationState =
   getOrInit(slots, 'state', () => reactive(buildPresentationState()));
 
-/** `uuid`'s own trace/legend colour, or the palette's first entry if `assignTraceColor` has
- *  never run for it (defensive default only — every project entering the open-project
- *  registry gets one assigned). */
-export function traceColor(uuid: string): string {
-  return presentationState.traceColors[uuid] ?? TRACE_PALETTE[0];
+/** The project's own trace/legend colour, saved in its project file (`OpenISDProject.traceColor`),
+ *  or the palette's first entry if `assignTraceColor` has never run for it (defensive default
+ *  only — every project entering the open-project registry gets one assigned). */
+export function traceColor(project: OpenISDProject): string {
+  return project.traceColor.value ?? TRACE_PALETTE[0];
 }
 
-/** Give `uuid` its own trace colour: the first palette entry not already taken by one of
- *  `openUuids`. Called once, when a project enters the open-project registry
+/** Give `project` its own trace colour if it has none saved: the first palette entry not already
+ *  taken by one of `open`. Called once, when a project enters the open-project registry
  *  (`appState.ts`'s `addProject`/`restoreProjects`) — never recomputed from list position
- *  after that. A no-op if `uuid` already has one. */
-export function assignTraceColor(uuid: string, openUuids: readonly string[]): void {
-  if (presentationState.traceColors[uuid]) return;
-  const taken = new Set(
-    openUuids.map(id => presentationState.traceColors[id]).filter((c): c is string => !!c)
-  );
-  presentationState.traceColors[uuid] =
-    TRACE_PALETTE.find(c => !taken.has(c)) ?? TRACE_PALETTE[openUuids.length % TRACE_PALETTE.length];
+ *  after that. A no-op if the project already carries one. */
+export function assignTraceColor(project: OpenISDProject, open: readonly OpenISDProject[]): void {
+  if (project.traceColor.value !== null) return;
+  const taken = new Set(open.map(p => p.traceColor.value).filter((c): c is string => c !== null));
+  project.traceColor.set(TRACE_PALETTE.find(c => !taken.has(c)) ?? TRACE_PALETTE[open.length % TRACE_PALETTE.length]);
 }
 
-/** Advance `uuid`'s own trace colour to the next palette entry — the toolbar's "Color" button. */
-export function cycleTraceColor(uuid: string): void {
-  const idx = TRACE_PALETTE.indexOf(traceColor(uuid));
-  presentationState.traceColors[uuid] = TRACE_PALETTE[(idx + 1) % TRACE_PALETTE.length];
+/** Advance `project`'s own trace colour to the next palette entry — the toolbar's "Color" button. */
+export function cycleTraceColor(project: OpenISDProject): void {
+  const idx = TRACE_PALETTE.indexOf(traceColor(project));
+  project.traceColor.set(TRACE_PALETTE[(idx + 1) % TRACE_PALETTE.length]);
 }
 
 // ---- Per-field display units (fields/units.ts) ------------------------------------
