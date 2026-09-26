@@ -35,8 +35,9 @@ Third-party competitor tools (00 Simulator, SpeakerDesign.dev, SpeakerBoxLite, S
 | Calculation Axis | WinISD 0.7.0.950 Behavior | OpenISD Standard Behavior | How to match WinISD |
 | :--- | :--- | :--- | :--- |
 | **$M_{ms}$, $BL$, $R_{ms}$ vs. the simulation** | Keeps the entered values and never rewrites them — measured 2026-09-26: a driver whose $M_{ms}$, $BL$ and $R_{ms}$ contradict its own $F_s$/$C_{ms}$/$Q_{es}$/$Q_{ms}$ loads, saves back byte-identical and stays marked Entered, with no consistency warning. The simulation does not use them: the sealed-box $F_{sc}$ and $Q_{tc}$ readouts track $F_s$, $V_{as}$, $Q_{es}$, $Q_{ms}$, $S_d$, so the moving mass actually in play is $M_{ms} = 1/((2\pi F_s)^2 C_{ms})$ (equivalently $\rho_0 c^2 S_d^2/((2\pi F_s)^2 V_{as})$). Evidence: [`toys/probe_entered_mms_overwrite.py`](http://localhost:8000/winisd/winisd_research/toys/probe_entered_mms_overwrite.py), [`toys/probe_sim_uses_which_mms.py`](http://localhost:8000/winisd/winisd_research/toys/probe_sim_uses_which_mms.py). | Builds the acoustic branch straight from the entered $M_{ms}$, $C_{ms}$, $R_{ms}$ and $BL$ (`circuit.ts` `Mas`/`Ras`/`ZaE`), so an internally inconsistent record diverges from WinISD; conflicts are flagged via Data Quality (DQ). | Check **Use WinISD driver calculations** (`useWinisdDriverModel`) inside the WinISD Compatibility box on the Advanced tab, or click **Reset to WinISD**. ⚠️ The flag currently substitutes $M_{ms}$ only — $BL$ and $R_{ms}$ are still the entered ones, so parity on an inconsistent driver is partial. |
-| **Acoustic Inductance ($L_e$)** | Excludes $L_e$ from acoustic volume velocity ($Z_{\text{coil,AC}} = R_e + R_s$). $L_e$ is only plotted on $Z_{\text{el}}$. | Supports full gyrator impedance model ($Z_{\text{coil,AC}} = R_e + R_s + j\omega L_e$) or WinISD model. | Uncheck **Simulate voice coil inductance** (`circuitModel: 'winisd'`) in the middle options column of the Advanced tab (default in OpenISD). |
+| **Acoustic Inductance ($L_e$)** | Has the same option: **Simulate voice coil inductance** on the Advanced pane (`view_6_advanced.png`), stored as `[SimulatorOptions] VCInd` in the `.wpr`, **default off**. Off, $L_e$ is excluded from the acoustic circuit ($Z_{\text{coil,AC}} = R_e + R_s$) and the response is flat above the passband; on, it rolls off — measured 2026-09-26 on the W5-1138SMF ($L_e = 0.34$ mH, $R_e = 3.4\,\Omega$): −1.21 dB at 1 kHz, −10.62 dB at 5 kHz, −22.31 dB at 20 kHz. | Same option, same default: **Simulate voice coil inductance** (`circuitModel`, `'winisd'` off / `'gyrator'` on) in the middle options column of the Advanced tab. | Nothing to match — leave it as it is. ⚠️ The two inductance-**on** models are not identical: OpenISD's roll-off is textbook first-order and sits **0.56 dB shallower than WinISD's at 5–20 kHz** (0.17 dB at 1 kHz, 0.37 dB at 2 kHz). Evidence: [`toys/probe_vcind_default_chart.py`](http://localhost:8000/winisd/winisd_research/toys/probe_vcind_default_chart.py), `runs/vcind_default/`. |
 | **Sealed Box Losses** | Subtracts leak volume velocity $U_{\text{leak}}$ evaluated at $F_{sc}$ ($R_{al}$ constant). | Supports `'winisd-lossy'`, `'conventional-lossy'`, and `'lossless'`. | Set **Loss model** (`lossMode`) to `WinISD default` (`'winisd-lossy'`) inside the WinISD Compatibility box on the Advanced tab (default in OpenISD). |
+| **Air model** | No option — always derives $c$ and $\rho$ from the Advanced pane's temperature, humidity and pressure with its own 0.7 formulas ($c = 343.68$ m/s, $\rho = 1.20095$ kg/m³ at 293.15 K / 30% / 101325 Pa). | Defaults to the CIPM-2007 real-gas equations, which disagree with WinISD's at the same conditions. | Check **Use WinISD air model** (`envUseWinisdAirModel`) inside the WinISD Compatibility box on the Advanced tab, or click **Reset to WinISD**. OpenISD-only switch — WinISD has no counterpart. |
 
 ## Platform & access
 
@@ -66,7 +67,7 @@ Third-party competitor tools (00 Simulator, SpeakerDesign.dev, SpeakerBoxLite, S
 | Multiple drivers (series / parallel wiring)           | ✅                                                                                                                                                                                                     | ✅ confirmed                                                                         |
 | Box loss model (Ql leakage, Qa absorption)            | ✅ default Ql=10, Qa=100                                                                                                                                                                               | ✅ confirmed — same defaults (WinISD help file + direct observation)                 |
 | WinISD-compatible circuit model                       | ✅ (default mode)                                                                                                                                                                                      | ✅ confirmed                                                                         |
-| Full gyrator (frequency-dependent Le)                 | ✅ switchable                                                                                                                                                                                          | ❌ confirmed — Le excluded from WinISD's acoustic circuit (Part 3 §9)                |
+| Full gyrator (frequency-dependent Le)                 | ✅ switchable                                                                    | ✅ confirmed — Advanced "Simulate voice coil inductance", default off (`[SimulatorOptions] VCInd`); the two on-models differ by ~0.6 dB at 5–20 kHz (Part 3 §9) |
 | Transmission-line port model                          | ✅ branches port impedance at `engine/src/circuit.ts:69`; tested `advanced-options.test.ts` → "transmission-line port model"                                                                           | ✅ confirmed — Advanced "Use transmission line-model for port" (view_6_advanced.png) |
 | Environment model (temp / humidity / pressure → c, ρ) | ⚠ temperature only: `tempK` consumed at `engine/src/circuit.ts:64-66`; `humidityPct`/`pressurePa` appear only in `ui/src/types.ts:225` and `OriginalShell.vue:536-537` — grep finds no engine consumer | ✅ confirmed — Advanced pane derives c=343.68 m/s, ρ=1.20095 (view_6_advanced.png)   |
 | Force-flat response                                   | ✅ consumed at `engine/src/sweep.ts:118`                                                                                                                                                               | ✅ confirmed — Advanced "Force flat response" toggle (view_6_advanced.png)           |
@@ -314,7 +315,7 @@ Vas, Fs, Qms, Sd, Xmax, Num. of PRs, Added mass, Fs-with-added-mass. OpenISD's P
 | WinISD field / toggle                                                                   | OpenISD                                                                                   |
 | --------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
 | **Temperature, Relative humidity, Air pressure** → derived Sound velocity + Air density | ⚠️ temperature drives c/ρ; humidity and pressure are collected but never reach the engine |
-| Simulate voice coil inductance                                                          | ⚠️ equivalent via WinISD/gyrator circuit-model switch (`fieldRegistry.ts:281-283`)        |
+| Simulate voice coil inductance                                                          | ✅ same checkbox, same default (off) — the WinISD/gyrator circuit-model switch; on-models differ by ~0.6 dB at 5–20 kHz |
 | **Force flat response**                                                                 | ✅                                                                                        |
 | **Use "transmission line" model for port**                                              | ✅                                                                                        |
 | **Rg is at driver side** (source-resistance placement)                                  | ✅                                                                                        |
@@ -710,7 +711,7 @@ The UI should make this explicit. The Vb label tooltip should note "net acoustic
 WinISD's acoustic simulation works entirely in the **acoustical domain** using a simplified
 constant-element model. OpenISD implements both this model and a physically more complete one.
 
-### WinISD model (default in OpenISD — "WinISD" mode)
+### WinISD model — "Simulate voice coil inductance" OFF (the default in both)
 
 Driver acoustic elements are **constants** derived from T/S parameters at resonance:
 
@@ -737,7 +738,7 @@ Group delay is computed by WinISD as a centred finite difference on phase:
 gd(ω) = −(arg H(f+δ) − arg H(f−δ)) / (2δ)
 ```
 
-### Full gyrator model (OpenISD "Full gyrator" mode)
+### Full gyrator model — "Simulate voice coil inductance" ON
 
 The electrical domain is fully modelled and coupled to the acoustic circuit via a gyrator:
 
@@ -767,7 +768,7 @@ effective electrical Q and coupled system resonance by ~1.9 Hz in the full gyrat
 
 | Feature                   | WinISD                                                                                         | OpenISD                        |
 | ------------------------- | ---------------------------------------------------------------------------------------------- | ------------------------------ |
-| Le in acoustic circuit    | No (constant Rae)                                                                              | Yes (full gyrator, switchable) |
+| Le in acoustic circuit    | Switchable — "Simulate voice coil inductance", default off                                    | Switchable, same default       |
 | Box losses (Ql, Qa)       | Ql + Qa via UI                                                                                 | Ql + Qa via UI                 |
 | Series resistance Rs      | Yes (Signal tab)                                                                               | Yes                            |
 | Filter / EQ chain         | Yes                                                                                            | Yes                            |
@@ -781,11 +782,31 @@ effective electrical Q and coupled system resonance by ~1.9 Hz in the full gyrat
 | Cursor peak snap          | No                                                                                             | Right-click on graph           |
 | Export                    | Print / project file                                                                           | (planned)                      |
 
+### Measured against the real checkbox (2026-09-26)
+
+Both products expose this as one checkbox and both default it off, so the comparison that
+matters is on-vs-on. W5-1138SMF, sealed 4.48 L, Le = 0.34 mH, Re = 3.4 Ω, Rg = 0.1 Ω;
+WinISD's transfer-function chart traced from pixels at `[SimulatorOptions] VCInd` 0 and 1
+(`winisd_research/runs/vcind_default/`), OpenISD's from `Engine.sweep` in both circuit models:
+
+| f (Hz) | WinISD, on − off (dB) | OpenISD, gyrator − winisd (dB) | residual |
+| -----: | --------------------: | -----------------------------: | -------: |
+|    200 |                +0.366 |                         +0.343 |   −0.023 |
+|   1000 |                −1.212 |                         −1.040 |   +0.172 |
+|   2000 |                −4.152 |                         −3.780 |   +0.372 |
+|   5000 |               −10.617 |                        −10.091 |   +0.526 |
+|  10000 |               −16.373 |                        −15.815 |   +0.558 |
+|  20000 |               −22.314 |                        −21.758 |   +0.556 |
+
+OpenISD's roll-off is exactly first-order — at 20 kHz, `20·log10(|Re+Rs+jωLe| / (Re+Rs))`
+= 21.76 dB — and WinISD's is 0.56 dB steeper, flat in that residual from 5 kHz up.
+Recorded as `bugs/BUG_20260926_gyrator-rolloff-shallower-than-winisd.md`.
+
 ### Recommendation
 
-Use **WinISD mode** (default) when cross-checking designs against WinISD.
-Use **Full gyrator** when Le is large (>1 mH) or at higher frequencies where Le effects
-are significant, accepting that results will differ slightly from WinISD.
+Leave the checkbox off (both defaults) when cross-checking designs against WinISD.
+Turn it on when Le is large (>1 mH) or at higher frequencies where Le effects
+are significant, accepting the ~0.6 dB residual above.
 
 ## 10. WDR file format — consistency rules and parameter entry
 
