@@ -613,6 +613,20 @@ const {
             </div>
             <div class="checkbox-col">
               <AdvancedOptions />
+              <div class="sim-options-box">
+                <div class="sim-options-header">OpenISD Simulation & Alignment</div>
+                <div class="field-row" style="flex-wrap: nowrap; margin-bottom: 6px;">
+                  <div class="field" style="gap:8px;" title="Sealed resonance (Fsc) and system Q (Qtc) loss model.">
+                    <label style="width:auto;">Loss model</label>
+                    <select id="adv-lossmode" :value="lossMode" @change="e => { const m = selectedOption(e, LOSS_MODE_OPTIONS); if (m !== null) lossMode = m; }" style="width:170px">
+                      <option v-for="m in LOSS_MODE_OPTIONS" :key="m.value" :value="m.value">{{ m.label }}</option>
+                    </select>
+                  </div>
+                </div>
+                <div>
+                  <button class="action-btn apply-winisd-btn" title="Align simulation toggles and clear entered Mms to match WinISD calculations" @click="applyWinisdSettings">Apply WinISD Settings</button>
+                </div>
+              </div>
             </div>
           </div>
         </section>
@@ -625,20 +639,6 @@ const {
               <div class="field-row"><div class="field"><label>Creator</label><input type="text" style="width:200px" v-model="projectCreator"></div></div>
               <div class="field-row"><div class="field"><label>Created</label><input type="text" style="width:120px" v-model="projectCreated"></div></div>
               <div class="field-row"><div class="field"><label>Modified</label><input type="text" style="width:120px" v-model="projectModified"></div></div>
-              <div class="sim-options-box">
-                <div class="sim-options-header">OpenISD Simulation & Alignment</div>
-                <div class="field-row" style="flex-wrap: nowrap; margin-bottom: 6px;">
-                  <div class="field" style="gap:8px;" title="Sealed resonance (Fsc) and system Q (Qtc) loss model.">
-                    <label style="width:auto;">Loss model</label>
-                    <select id="proj-lossmode" :value="lossMode" @change="e => { const m = selectedOption(e, LOSS_MODE_OPTIONS); if (m !== null) lossMode = m; }" style="width:170px">
-                      <option v-for="m in LOSS_MODE_OPTIONS" :key="m.value" :value="m.value">{{ m.label }}</option>
-                    </select>
-                  </div>
-                </div>
-                <div>
-                  <button class="action-btn apply-winisd-btn" title="Align simulation toggles and clear entered Mms to match WinISD calculations" @click="applyWinisdSettings">Apply WinISD Settings</button>
-                </div>
-              </div>
             </div>
             <div class="description-col">
               <label>Description</label>
