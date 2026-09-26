@@ -14,6 +14,14 @@ RECORD is not.
 The test: could someone find this defect next week without reading this conversation?
 If not, it was flagged, not recorded.
 
+**No record without repro steps.** A record that only states the symptom is half a
+bug file — the next reader (human or agent) has to redo the investigation from
+scratch to even see it. `## Steps to reproduce` is mandatory: exact inputs, the
+command or UI path, and the observed-vs-expected result, concrete enough that
+someone with no context can run it and see the same thing. If reproducing it costs
+real setup (a specific project file, a driver, a build), name or attach it, not just
+describe it.
+
 ## Before writing the file — verify what kind of claim this is
 
 There are two kinds of claims in a bug record:
@@ -39,6 +47,11 @@ Structure:
 
 ## Symptom
 What breaks, in plain terms — not the file's jargon, not a formula dump.
+
+## Steps to reproduce
+Numbered, concrete: exact inputs/values, the command or UI path taken, what you
+see vs. what you expect. Someone with no context runs these steps and sees the
+same defect. Name any fixture/file/driver needed, don't just describe it.
 
 ## Evidence
 What you re-checked right now — file:line / test name+result / grep output.
