@@ -1,6 +1,6 @@
 # BUG_20260926_winisd-spl-level-uses-entered-bl
 
-**Status:** OPEN
+**Status:** RESOLVED
 
 ## Symptom
 
@@ -73,11 +73,13 @@ Level part fixed 2026-09-26:
 - `openisdDomain.ts` `engineCircuitModel`: inductance on + switch on → WinISD's inductance model,
   switch off → textbook.
 
-Still open:
-- ⚠ The impedance peak (above): not covered by the push BL; unexplained 1.9 % beyond BL².
-- ⚠ The 0.016 dB residual in the passband level.
-- ⚠ Unverified against WinISD: excursion, port velocity and max-SPL following the typed BL. They
-  share the push, so they should.
+Residuals explained 2026-09-26 against the fresh capture `runs/sweep-w5-sealed-fresh-20260926`
+(`winisd_research/toys/w5_fresh_model_check.py`, every chart to ≤ 1e-13):
+- The passband 0.016 dB and the near-resonance 0.04 dB: box absorption,
+  BUG_20260926_winisd-box-absorption-is-series.
+- The impedance peak: BUG_20260926_winisd-impedance-uses-entered-bl.
+- Excursion, max power and max SPL follow the typed BL in WinISD, confirmed; their residuals are
+  the box absorption. Port velocity: sealed box, no port.
 
 ## Verification
 
