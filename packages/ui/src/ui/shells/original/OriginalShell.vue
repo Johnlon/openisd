@@ -246,13 +246,6 @@ const {
                 <option v-for="o in BOX_TYPE_OPTIONS" :key="o.value" :value="o.value">{{ o.label }}</option>
               </select>
             </div>
-            <div v-if="selectedBox === 'sealed'" class="field" style="gap:8px;"
-              title="Sealed resonance (Fsc) and system Q (Qtc) loss model. Lossless = fs·√(1+Vas/Vb). Conventional Lossy folds Ql/Qa into Qtc only, leaving the frequency fixed (Small/Thiele). WinISD Lossy reports the pole of the lossy 3rd-order model, so Fsc rises as Ql falls — this matches WinISD's own readout. Default: WinISD Lossy.">
-              <label style="width:auto;">Model</label>
-              <select id="lossmode" :value="lossMode" @change="e => { const m = selectedOption(e, LOSS_MODE_OPTIONS); if (m !== null) lossMode = m; }" style="width:170px">
-                <option v-for="m in LOSS_MODE_OPTIONS" :key="m.value" :value="m.value">{{ m.label }}</option>
-              </select>
-            </div>
           </div>
 
           <div class="box-layout">
@@ -1046,7 +1039,7 @@ const {
 .field input.greyed { background:#e9e9e9; color:#777; }
 .field input.calculated { color:#1868d1; border-color:#1868d1; }
  .adv-air-field :deep(input) { width:94px; }
-.adv-air-fields { display:grid; grid-template-columns:max-content max-content; column-gap:18px; align-items:start; }
+.adv-air-fields { display:grid; grid-template-columns:max-content max-content; column-gap:8px; align-items:start; }
 .adv-air-fields .field-row:nth-child(-n+3) { grid-column:1; }
 .adv-air-fields .field-row:nth-child(4),
 .adv-air-fields .field-row:nth-child(5) { grid-column:2; }
