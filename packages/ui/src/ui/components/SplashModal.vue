@@ -25,14 +25,13 @@ const {open, dismiss} = injectSplashModal();
       <p class="sp-motto">Speaker design belongs to everyone who builds.</p>
 
       <section>
-        <h3>Credit where it is due</h3>
+        <h3>WinISD</h3>
         <p>
-          WinISD, by Linearteam, is the tool this hobby was built on — a generation of builders
-          learned enclosure design from it. It stopped at version 0.7, is Windows-only, has had
-          no release since 2016, and its source was never opened, so nobody can carry it
-          forward. OpenISD is not a reaction against it; it is the continuation it never got.
-          The default circuit model reproduces WinISD's simulation output, and OpenISD reads and
-          writes WinISD <code>.wdr</code> driver files and <code>.wpr</code> projects.
+          Most of us learned enclosure design on WinISD, by Linearteam. It stopped at version
+          0.7, runs on Windows only, has had no release since 2016, and its source was never
+          opened, so nobody can carry it forward. OpenISD picks it up: the default circuit model
+          reproduces WinISD's output, and it reads and writes WinISD <code>.wdr</code> driver
+          files and <code>.wpr</code> projects.
         </p>
       </section>
 
@@ -41,7 +40,7 @@ const {open, dismiss} = injectSplashModal();
         <ul>
           <li><strong>Match WinISD, then go past it</strong> — the same numbers by default, so a WinISD user can trust the move.</li>
           <li><strong>No install, no licence, no platform</strong> — a browser is the whole requirement, and it installs for offline use as a PWA.</li>
-          <li><strong>Correct, and provably so</strong> — every model is checked against the closed-form solutions, in CI and in public.</li>
+          <li><strong>Checked, in public</strong> — every model is tested against the closed-form maths, in CI, on every commit.</li>
           <li><strong>Community-owned</strong> — MIT licensed, open repository, open backlog. It has to survive its author losing interest.</li>
           <li><strong>Open data</strong> — a shared driver library anyone can contribute a spec sheet to.</li>
         </ul>
@@ -51,13 +50,13 @@ const {open, dismiss} = injectSplashModal();
         <h3>What is distinctive</h3>
         <ul>
           <li><strong>Alignment lives on the Box page</strong>, for every box type — WinISD offers the choice once, in the new-project wizard, and never again.</li>
-          <li><strong>Switch one box from sealed to ported and back</strong> — the same design, explored as each type, and compared.</li>
+          <li><strong>Switch one box from sealed to ported and back</strong> — same design, both ways, compared side by side.</li>
           <li><strong>No division-by-zero results and no crashes</strong> — an incomplete design says what is missing instead of producing a NaN or a blank window.</li>
           <li><strong>Modern cursor</strong> — hover, right-click to snap to a peak or trough, lock it, or type a frequency.</li>
           <li><strong>Data-quality marks</strong> — the app says when a driver's own stated parameters contradict each other, and which ones.</li>
-          <li><strong>What-if?</strong> — push a driver's Thiele/Small parameters around and watch the curves answer. It saves nothing, ever: close it and the design is exactly as you left it. It is there to be learned from.</li>
-          <li><strong>Solvers that run in every direction</strong> — give it what you know, and it derives the rest, whichever end you start from.</li>
-          <li><strong>Error messages that teach</strong> — what went wrong, why the physics says so, and what to change.</li>
+          <li><strong>What-if?</strong> — change a driver's Thiele/Small parameters and see what each one does to the curves. It never saves: close it and your design is untouched.</li>
+          <li><strong>Solvers that run in every direction</strong> — enter what you know, at either end, and it works out the rest.</li>
+          <li><strong>Error messages that teach</strong> — what is wrong, which physics says so, and what to change.</li>
           <li><strong>Visible calculation provenance</strong> — trace any number back to the values and the formula it came from.</li>
         </ul>
       </section>
@@ -77,7 +76,7 @@ const {open, dismiss} = injectSplashModal();
           — issues, pull requests and the backlog are public.
           The
           <a :href="`${REPO}/blob/main/ARCHITECTURE.md`" target="_blank" rel="noopener">architecture specification</a>
-          states the layers, boundaries and invariants the code is held to.
+          sets the rules the code is held to.
         </p>
         <p><strong>I am looking for a band of the willing.</strong> Ideas, feedback and pull requests all welcome.</p>
       </section>

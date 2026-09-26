@@ -228,6 +228,7 @@ Only these modules may hold state, and the architecture test enforces it:
 | My Drivers, My Passive Radiators       | localStorage, as `.owdr` text                   | `myDriverRepo`, `myPassiveRadiatorRepo` |
 | Options (air defaults, vented limits)  | localStorage                                    | `appSettingsRepo`            |
 | Favourites, layout, view state         | localStorage                                    | `prefsRepo`, `viewStateRepo` |
+| A record refused at load               | localStorage, under its own quarantine key      | `projectRepo` (see Startup)  |
 
 - **The domain serialises itself.**
   - Record JSON exists only inside `@openisd/design`.
@@ -238,6 +239,29 @@ Only these modules may hold state, and the architecture test enforces it:
 - **Every boundary validates.**
   - A zod parse at the load boundary returns problems, never an exception.
   - One bad record costs that record, not the session.
+
+### Startup
+
+`ui/logic/boot.ts` holds the order the application restores itself in. A phase runs only once
+the phase before it has returned, and it is the only place that order is stated.
+
+| # | Phase          | Does                                                                     |
+|---|----------------|--------------------------------------------------------------------------|
+| 1 | Share link     | A URL hash carries the whole session; when there is one it replaces every other restore and the sequence ends. |
+| 2 | Session        | Every project open at the last refresh.                                  |
+| 3 | Legacy project | The single stored project older sessions saved, when phase 2 found none. |
+| 4 | View           | Unit choices, chart colours, which panels were open.                     |
+| 5 | Panels         | Reopens those panels — and does nothing without a focused project.       |
+
+- **Persistence is armed after the sequence resolves, never during it.** Nothing writes a
+  storage key while the boot is still reading it.
+- **A panel is restored by the sequence, not by a watcher.** A component may RECORD that it is
+  open; reopening it is phase 5's job, because only the sequence knows a project exists by then.
+- **A stored view outlives the project it describes.** Every phase-5 restore is conditional on
+  the project phases having produced one.
+- **A record that cannot be read is copied to a quarantine key before persistence is armed.**
+  The live key is then usable again, so a bad record costs one load rather than every future
+  one, and its bytes stay recoverable.
 
 ## 6. Files and formats
 
