@@ -615,7 +615,7 @@ const {
               <AdvancedOptions />
             </div>
             <div class="sim-options-box">
-              <div class="sim-options-header">OpenISD Simulation & Alignment</div>
+              <div class="sim-options-header">WinISD Compatibility</div>
               <div class="field-row" style="flex-wrap: nowrap; margin-bottom: 6px;">
                 <div class="field" style="gap:6px;" title="Sealed resonance (Fsc) and system Q (Qtc) loss model.">
                   <label style="width:auto;">Loss model</label>
