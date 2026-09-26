@@ -33,7 +33,7 @@ const {
   genOn, toggleGenerate, genHz, limits,
   boxLabel, pending, chartTab, overlays, chartUnavailable, activeTab,
   showEnclosureTab, enclosureNavLabel,
-  selectedBox, BOX_TYPE_OPTIONS, LOSS_MODE_OPTIONS, lossMode, ARRAY_WIRING_OPTIONS, N_DRIVERS_OPTIONS,
+  selectedBox, BOX_TYPE_OPTIONS, LOSS_MODE_OPTIONS, lossMode, ARRAY_WIRING_OPTIONS, N_DRIVERS_OPTIONS, applyWinisdSettings,
   boxVolume_m3, boxVolumeDqNote, setBoxVolume_m3, fieldDp, sealedAlignmentEditor, sealedAlignmentOpen,
   sealedAlignmentOptions, sealedAlignmentSelected, sealedAlignmentVolume_L, sealedAlignmentEbp,
   sealedAlignmentSuitability, sealedAlignmentSuitabilityLabel, ogFilters,
@@ -603,7 +603,7 @@ const {
         <!-- ===== Advanced tab ===== -->
         <section v-show="activeTab === 'advanced'" class="tab-section" :class="{ active: activeTab === 'advanced' }">
           <div class="two-col adv-two-col">
-            <div class="adv-air-fields" style="--label-w:118px;">
+            <div class="adv-air-fields" style="--label-w:92px;">
               <div class="field-row"><div :class="['field', 'adv-air-field', envTempStored ? 'entered' : '', { 'dq-flag': envTempDq.dq.length > 0 }]" :title="envTempDq.dq.join('; ')"><label>Temperature</label><NumInput v-model="advTemp" :class="{ calculated: !envTempStored }" field="advTemp" group="temp" base="K" :precision="2" :allow-out-of-range="true" v-bind="envTempDq" @blur="commitAirTemp" /><UnitToggle field="advTemp" group="temp" base="K" unit-class="unit unit-cyc" /></div></div>
               <div class="field-row"><div :class="['field', 'adv-air-field', envHumidityStored ? 'entered' : '', { 'dq-flag': envHumidityDq.dq.length > 0 }]" :title="envHumidityDq.dq.join('; ')"><label>Relative humidity</label><NumInput v-model="advHumidity" :class="{ calculated: !envHumidityStored }" field="advHumidity" :precision="2" :allow-out-of-range="true" v-bind="envHumidityDq" @blur="commitAirHumidity" /><span class="unit">%</span></div></div>
               <div class="field-row"><div :class="['field', 'adv-air-field', envPressureStored ? 'entered' : '', { 'dq-flag': envPressureDq.dq.length > 0 }]" :title="envPressureDq.dq.join('; ')"><label>Air pressure</label><NumInput v-model="advPressure" :class="{ calculated: !envPressureStored }" field="advPressure" group="pressure" base="Pa" :precision="1" :allow-out-of-range="true" v-bind="envPressureDq" @blur="commitAirPressure" /><UnitToggle field="advPressure" group="pressure" base="Pa" unit-class="unit unit-cyc" /></div></div>
@@ -613,6 +613,25 @@ const {
             </div>
             <div class="checkbox-col">
               <AdvancedOptions />
+            </div>
+            <div class="sim-options-box">
+              <div class="sim-options-header">OpenISD Simulation & Alignment</div>
+              <div class="field-row" style="flex-wrap: nowrap; margin-bottom: 6px;">
+                <div class="field" style="gap:6px;" title="Sealed resonance (Fsc) and system Q (Qtc) loss model.">
+                  <label style="width:auto;">Loss model</label>
+                  <select id="adv-lossmode" :value="lossMode" @change="e => { const m = selectedOption(e, LOSS_MODE_OPTIONS); if (m !== null) lossMode = m; }" style="width:140px">
+                    <option v-for="m in LOSS_MODE_OPTIONS" :key="m.value" :value="m.value">{{ m.label }}</option>
+                  </select>
+                </div>
+              </div>
+              <div style="margin-bottom: 8px;">
+                <label data-field-key="useWinisdAirModel" style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 13px;" title="Use WinISD air properties model">
+                  <input type="checkbox" :checked="project.envUseWinisdAirModel.value" @change="e => project.envUseWinisdAirModel.set(inputChecked(e))"> Use WinISD air model
+                </label>
+              </div>
+              <div>
+                <button class="action-btn apply-winisd-btn" title="Align simulation toggles and clear entered Mms to match WinISD calculations" @click="applyWinisdSettings">Apply WinISD Settings</button>
+              </div>
             </div>
           </div>
         </section>
@@ -1026,16 +1045,16 @@ const {
 .driver-id-row { align-items:center; gap:10px; }
 .field input.greyed { background:#e9e9e9; color:#777; }
 .field input.calculated { color:#1868d1; border-color:#1868d1; }
- .adv-air-field :deep(input) { width:94px; }
-.adv-air-fields { display:grid; grid-template-columns:max-content max-content; column-gap:18px; align-items:start; }
+ .adv-air-field :deep(input) { width:90px; }
+.adv-air-fields { display:grid; grid-template-columns:max-content max-content; column-gap:8px; align-items:start; }
+.adv-air-fields .field-row { margin-bottom: 4px; }
 .adv-air-fields .field-row:nth-child(-n+3) { grid-column:1; }
 .adv-air-fields .field-row:nth-child(4),
 .adv-air-fields .field-row:nth-child(5) { grid-column:2; }
 .adv-air-fields .field-row:nth-child(4) { grid-row:1; }
 .adv-air-fields .field-row:nth-child(5) { grid-row:2; }
- .adv-air-fields .reset-air-btn { grid-column:2; grid-row:3; justify-self:start; }
+.adv-air-fields .reset-air-btn { grid-column:2; grid-row:3; justify-self:start; }
 .reset-air-btn { border:1px solid #999; background:#f0f0f0; border-radius:3px; padding:4px 8px; cursor:pointer; color:#333; }
-.reset-air-btn:hover { background:#dbeaff; border-color:#7fb3ff; }
 /* A solved length of zero or less is not a port that can be built — it reads as the failure it
    is, matching the red unreachable notice below the pane rather than looking like a dimension. */
 .field input.calculated.impossible { color:#a11; border-color:#a11; }
@@ -1086,9 +1105,25 @@ textarea.comment, textarea.description { width:100%; border:1px solid #999; bord
 .checkbox-col label { display:flex; align-items:center; gap:6px; }
 .checkbox-col label input[type=checkbox] { flex:none; }
 
-.adv-two-col { gap: 10px; }
-.adv-two-col .checkbox-col { margin-left: 0; width: 285px; }
+.adv-two-col { gap: 12px; align-items: flex-start; }
+.adv-two-col .checkbox-col { margin-left: 0; width: 235px; }
 .adv-two-col .side-hint { width: 190px; }
+.adv-two-col .sim-options-box {
+  border: 1px solid #c8c8c8;
+  background: #f4f6f9;
+  border-radius: 4px;
+  padding: 8px 10px;
+  width: 245px;
+  flex: none;
+}
+.sim-options-header {
+  font-weight: 600;
+  font-size: 12px;
+  color: #333;
+  margin-bottom: 6px;
+  border-bottom: 1px solid #d0d0d0;
+  padding-bottom: 4px;
+}
 
 /* filters tab fills the panel */
 .tab-section.active :deep(.fpanel), .tab-section.active :deep(.filters) { min-height:0; }
