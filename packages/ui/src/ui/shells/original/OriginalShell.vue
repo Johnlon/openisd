@@ -1045,8 +1045,9 @@ const {
 .driver-id-row { align-items:center; gap:10px; }
 .field input.greyed { background:#e9e9e9; color:#777; }
 .field input.calculated { color:#1868d1; border-color:#1868d1; }
-.adv-air-field :deep(input) { width:90px; }
-.adv-air-fields { display:grid; grid-template-columns:max-content max-content; column-gap:10px; align-items:start; }
+.adv-air-fields { display:grid; grid-template-columns:max-content max-content; column-gap:4px; align-items:start; }
+.adv-air-fields .field { gap: 4px; }
+.adv-air-fields .field input, .adv-air-field :deep(input) { width:76px; padding:4px 4px; }
 .adv-air-fields .field-row { margin-bottom: 4px; }
 .adv-air-fields .field-row:nth-child(-n+3) { grid-column:1; }
 .adv-air-fields .field-row:nth-child(4),
@@ -1054,7 +1055,7 @@ const {
 .adv-air-fields .field-row:nth-child(4) { grid-row:1; }
 .adv-air-fields .field-row:nth-child(5) { grid-row:2; }
 .adv-air-fields .field-row:nth-child(4) label,
-.adv-air-fields .field-row:nth-child(5) label { width:86px; }
+.adv-air-fields .field-row:nth-child(5) label { width:82px; }
 .adv-air-fields .reset-air-btn { grid-column:2; grid-row:3; justify-self:start; margin-top:2px; }
 .reset-air-btn { border:1px solid #999; background:#f0f0f0; border-radius:3px; padding:4px 8px; cursor:pointer; color:#333; }
 /* A solved length of zero or less is not a port that can be built — it reads as the failure it
