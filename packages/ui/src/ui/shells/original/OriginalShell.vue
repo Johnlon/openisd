@@ -617,7 +617,7 @@ const {
             <div class="sim-options-box">
               <div class="sim-options-header">WinISD Compatibility</div>
               <div class="field-row" style="flex-wrap: nowrap; margin-bottom: 6px;">
-                <div class="field" style="gap:6px;" title="Sealed resonance (Fsc) and system Q (Qtc) loss model.">
+                <div class="field" style="gap:6px;" title="Enclosure Loss Model: How box losses (leakage Ql, absorption Qa, port Qp) shape sealed resonance (Fsc) and system Q (Qtc) — lossless (Q=inf), WinISD default lossy cubic (Q=10), or custom Q.">
                   <label style="width:auto;">Loss model</label>
                   <select id="adv-lossmode" :value="lossMode" @change="e => { const m = selectedOption(e, LOSS_MODE_OPTIONS); if (m !== null) lossMode = m; }" style="width:140px">
                     <option v-for="m in LOSS_MODE_OPTIONS" :key="m.value" :value="m.value">{{ m.label }}</option>
