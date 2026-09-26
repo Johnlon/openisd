@@ -28,7 +28,7 @@ left:
 
 - the +0.1 Ω in OpenISD's Z is Rg
   ([BUG_20260926_impedance-includes-rg-when-rg-is-not-at-driver-side](BUG_20260926_impedance-includes-rg-when-rg-is-not-at-driver-side.md));
-- the ~0.40 dB SPL offset is the driver parameter set (`docs/research/PROBE_W5_SEALED_20260924.md` §4.2);
+- the ~0.40 dB SPL offset is the driver parameter set (`docs/research/CHART_REVIEW_WINISD_VS_OPENISD.md` §4.2);
 - the 20 kHz roll-off (on − off) is −22.266 dB in WinISD and −22.683 dB in OpenISD, a 0.42 dB
   gap. ⚠ unverified: that this is the same driver-parameter gap rather than the inductance
   element.

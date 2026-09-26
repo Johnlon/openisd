@@ -28,7 +28,7 @@ Re-checked 2026-09-24.
 `envDefaults()` never reaches `#sweepParams`. Two sources for the same three numbers: the cells
 read the app setting, the sweep reads the `air.ts` constants.
 
-Not visible in the W5 probe (`docs/research/PROBE_W5_SEALED_20260924.md`) only because the app
+Not visible in the W5 probe (`docs/research/CHART_REVIEW_WINISD_VS_OPENISD.md`) only because the app
 setting was left at its defaults, which happen to equal the `air.ts` constants.
 
 ## Cause

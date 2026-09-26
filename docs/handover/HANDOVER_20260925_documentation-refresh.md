@@ -117,7 +117,7 @@ Distils the theory and the WinISD research from all three repos (`openisd`, `win
   gdb), and — per John's explicit ask — how golden `.wpr` files are built (parameterised
   scenarios that never name a catalogue driver, the two-retype recalc trick, the generator's
   refusal to substitute a computed value) and how both apps are probed side by side on one case
-  (`PROBE_W5_SEALED_20260924.md`, exact-pixel-colour trace of WinISD's plot against
+  (`CHART_REVIEW_WINISD_VS_OPENISD.md`, exact-pixel-colour trace of WinISD's plot against
   `Engine.sweep`'s own output).
 - A method-rules section: never tune a model until it matches WinISD (find DPC's formula
   first), and OpenISD's own TypeScript is never evidence for WinISD's behaviour.

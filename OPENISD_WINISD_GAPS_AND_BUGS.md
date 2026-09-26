@@ -4,7 +4,7 @@ How OpenISD behaves differently from WinISD 0.7, and what each difference costs.
 to the bug doc that tracks it. Work order: [`docs/plans/PLAN_WINISD_GAPS.md`](docs/plans/PLAN_WINISD_GAPS.md).
 
 Sources:
-- [`docs/research/PROBE_W5_SEALED_20260924.md`](docs/research/PROBE_W5_SEALED_20260924.md) — WinISD 0.7 under wine vs `Engine.sweep`, every chart, Tang Band W5-1138SMF in a 4.48 L sealed box.
+- [`docs/research/CHART_REVIEW_WINISD_VS_OPENISD.md`](docs/research/CHART_REVIEW_WINISD_VS_OPENISD.md) — WinISD 0.7 under wine vs `Engine.sweep`, every chart, Tang Band W5-1138SMF in a 4.48 L sealed box.
 - [`docs/research/WINISD_PARITY.md`](docs/research/WINISD_PARITY.md) — Feature comparison matrix, field-by-field evidence ledger, and calculation axis discrepancy analysis.
 
 ## Open

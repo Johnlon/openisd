@@ -46,7 +46,7 @@ Superseded ones are in [docs/design/_archive/](docs/design/_archive/).
 |------------------------------------------------------------------------------------|-------------------------------------------------------------|
 | [docs/research/REFERENCES.md](docs/research/REFERENCES.md)                         | Literature, oracles and cross-check tools                 |
 | [docs/research/VENTED_ALIGNMENT_FORMULAS.md](docs/research/VENTED_ALIGNMENT_FORMULAS.md) | WinISD's vented alignments, recovered and validated  |
-| [docs/research/PROBE_W5_SEALED_20260924.md](docs/research/PROBE_W5_SEALED_20260924.md) | Every chart, WinISD against OpenISD, on one project   |
+| [docs/research/CHART_REVIEW_WINISD_VS_OPENISD.md](docs/research/CHART_REVIEW_WINISD_VS_OPENISD.md) | The chart review: every chart, WinISD against OpenISD. Refresh it after every calculation change |
 | [docs/research/WINISD_PARITY.md](docs/research/WINISD_PARITY.md)                   | Field-by-field UI parity, part 2 verified 2026-08-13; superseded by the gap list |
 | [docs/research/COMPETITIVE_LANDSCAPE.md](docs/research/COMPETITIVE_LANDSCAPE.md)   | Other tools in this space                                 |
 | [docs/winisd_helpfiles/](docs/winisd_helpfiles/)                                   | WinISD's own help                                         |

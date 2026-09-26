@@ -52,7 +52,7 @@ The full list, with oracles and cross-check implementations, is in
 | [`winisd_research/GHIDRA_METHOD.md`](../winisd_research/GHIDRA_METHOD.md)        | The Ghidra environment and the live gdb technique.                                |
 | [`docs/design/WINISD_SCHEMA.md`](docs/design/WINISD_SCHEMA.md)                   | `.wdr`/`.wpr` byte format and the 27 consistency relations.                        |
 | [`docs/research/WINISD_PARITY.md`](docs/research/WINISD_PARITY.md)               | Field-by-field UI parity against the WinISD screenshots. Part 2 verified 2026-08-13; the gap list supersedes its status marks. |
-| [`docs/research/PROBE_W5_SEALED_20260924.md`](docs/research/PROBE_W5_SEALED_20260924.md) | Every chart, WinISD against OpenISD, one sealed project.                          |
+| [`docs/research/CHART_REVIEW_WINISD_VS_OPENISD.md`](docs/research/CHART_REVIEW_WINISD_VS_OPENISD.md) | The chart review: every chart, WinISD against OpenISD, one sealed project. Refresh it after every calculation change. |
 
 `winisd_research/` is a separate git repository; its history is there, not here. Its entry point
 is [`winisd_research/README.md`](../winisd_research/README.md).
@@ -176,7 +176,7 @@ Paths are in `winisd_research/`.
   - Feed WinISD and OpenISD the same inputs and compare every output.
   - WinISD curves are traced from plot pixels.
   - OpenISD's are dumped from `Engine.sweep` with the parameters the app passes.
-  - Example: `PROBE_W5_SEALED_20260924.md`: both apps fed the W5-1138SMF values from
+  - Example: `CHART_REVIEW_WINISD_VS_OPENISD.md`: both apps fed the W5-1138SMF values from
     `winisd_research/toys/w5_sealed_baseline.py`.
 
 Source: `PROBE_METHOD.md`.

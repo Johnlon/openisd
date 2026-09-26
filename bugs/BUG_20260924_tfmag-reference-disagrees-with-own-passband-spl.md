@@ -46,7 +46,7 @@ own passband level or the efficiency formula, not one each.
 
 Note this does not close the 0.9 dB gap to WinISD's SPL curve — that is a separate consequence
 of the same inconsistent record and is not an openisd defect (see
-`docs/research/PROBE_W5_SEALED_20260924.md` section 4.3).
+`docs/research/CHART_REVIEW_WINISD_VS_OPENISD.md` section 4.3).
 
 ## Verification
 

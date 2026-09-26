@@ -42,7 +42,7 @@ Records (`winisd_research/runs/`, validated):
 [sweep-w5-sealed-impedance-rg10-vcind1-driverside-off](http://localhost:8000/winisd/winisd_research/runs/sweep-w5-sealed-impedance-rg10-vcind1-driverside-off.json),
 [sweep-w5-sealed-impedance-rg10-vcind1-driverside-on](http://localhost:8000/winisd/winisd_research/runs/sweep-w5-sealed-impedance-rg10-vcind1-driverside-on.json).
 Write-up:
-[PROBE_W5_SEALED_20260924.md §3.1](http://localhost:8000/winisd/openisd/docs/research/PROBE_W5_SEALED_20260924.md?html).
+[CHART_REVIEW_WINISD_VS_OPENISD.md §3.1](http://localhost:8000/winisd/openisd/docs/research/CHART_REVIEW_WINISD_VS_OPENISD.md?html).
 
 ## Cause
 

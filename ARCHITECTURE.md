@@ -345,7 +345,7 @@ The full strategy is in [TESTING_STRATEGY.md](TESTING_STRATEGY.md).
   - For a chart-level question, one case goes into real WinISD (under wine) and into
     `Engine.sweep` with the same inputs.
   - WinISD's curves are traced from its plot pixels.
-  - Example: [`docs/research/PROBE_W5_SEALED_20260924.md`](docs/research/PROBE_W5_SEALED_20260924.md).
+  - Example: [`docs/research/CHART_REVIEW_WINISD_VS_OPENISD.md`](docs/research/CHART_REVIEW_WINISD_VS_OPENISD.md).
 - **Gates:**
   - pre-commit runs lint, typecheck and unit tests;
   - pre-push adds the browser suite;
