@@ -5,6 +5,8 @@
  * these types describe existing behaviour, they do not change it.
  */
 
+import type { LossModeValue } from './lossMode.js';
+
 /** A complex number in rectangular form. */
 export interface Complex {
   re: number;
@@ -147,6 +149,7 @@ export interface SweepParams {
   Rs?: number;
   circuitModel?: CircuitModel;
   // Box losses
+  lossMode?: LossModeValue;
   Ql?: number;
   Qa?: number;
   Qp?: number;

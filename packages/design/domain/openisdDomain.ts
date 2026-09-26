@@ -2865,6 +2865,7 @@ export class OpenISDProject {
             wiring: this.wiring.value,
             Rs: this.Rs_ohm.value,
             circuitModel: this.circuitModel.value,
+            lossMode: this.lossMode.value.value,
             Ql: losses.Ql, Qa: losses.Qa, Qp: losses.Qp,
             ...this.#boxSpecificParams(boxType),
             ...this.#airOver(this.#root()),

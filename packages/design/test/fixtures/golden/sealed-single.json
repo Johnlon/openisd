@@ -19,6 +19,7 @@
       "humidityPct": 30,
       "pressurePa": 101325,
       "useWinisdAirModel": false,
+      "lossMode": "conventional-lossy",
       "Vb": 0.02,
       "Ql": 7,
       "eg": 2.83,

@@ -1,16 +1,16 @@
 /**
- * Sealed-box resonance under three loss models — the value the Box tab reports as `Fsc`.
+ * Sealed-box loss models — controls both the Box tab single-number readout (Fsc/Qtc)
+ * AND the frequency-sweep acoustic circuit calculations in `circuit.ts`.
  *
  * Spec: openspec/specs/core-engine/spec.md "Sealed-Box Resonance Loss Models".
  *
- * - Lossless          Fsc = Fs·√(1+Vas/Vb),  Qtc = Qts·√(1+Vas/Vb)      (textbook, no losses)
- * - ConventionalLossy Fsc = Lossless (unchanged); box losses fold into Q only:
- *                     1/Qtc_total = 1/Qtc + 1/QL + 1/QA                   (Small/Thiele)
- * - WinisdLossy       Fsc = pole frequency of WinISD's lossy 3rd-order model — the leak adds a
- *                     third pole; WinISD builds the characteristic cubic and reports |pole|/2π.
- *                     Bit-exact to WinISD's own `[Box] Fr` readout. Reverse-engineered from
- *                     winisd.exe (prod_462480) and confirmed by live capture; full derivation in
- *                     the research repo's SEALED_FSC_MODEL.md.
+ * - Lossless          Box tab: Fsc = Fs·√(1+Vas/Vb), Qtc = Qts·√(1+Vas/Vb) (textbook, no losses)
+ *                     Sweep: Zbox = Zc (no Ql/Qa damping or leak subtraction)
+ * - ConventionalLossy Box tab: Fsc = Lossless (unchanged); box losses fold into Q only (Small/Thiele):
+ *                     1/Qtc_total = 1/Qtc + 1/QL + 1/QA
+ *                     Sweep: Zbox = parallel(Zc, Ral, Raa), U0 = UD (frequency-dependent damping)
+ * - WinisdLossy       Box tab: Fsc = pole frequency of WinISD's lossy 3rd-order model (SEALED_FSC_MODEL.md)
+ *                     Sweep: Zbox = parallel(Zc, Ral_const, Raa), U0 = UD - Uleak (leak volume velocity subtraction)
  *
  * The WinISD pole is INVARIANT to ρ and c (ρc² cancels in the cubic), so this module needs no
  * air constants — it uses acoustic compliances with ρc²=1 (Cas=Vas, Ccab=Vb), which gives the

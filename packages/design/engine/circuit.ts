@@ -165,10 +165,37 @@ export function solve(f: number, drv: CircuitQuantities, box: BoxType, P: SweepP
   let Zbox!: Complex, U0!: Complex, UD!: Complex;
   let UP: Complex = cx(0, 0);
 
+  const lossMode: LossModeValue = (Ql >= 1e6 && Qa >= 1e6) ? 'lossless' : (P.lossMode ?? 'winisd-lossy');
+
   if (box === 'sealed') {
-    Zbox = cPar(Zc, Ral, Raa);
-    UD = cDiv(pg, cAdd(cAdd(ZaE, ZaD), Zbox));
-    U0 = UD;
+    switch (lossMode) {
+      case 'lossless': {
+        Zbox = Zc;
+        UD = cDiv(pg, cAdd(cAdd(ZaE, ZaD), Zbox));
+        U0 = UD;
+        break;
+      }
+      case 'conventional-lossy': {
+        Zbox = cPar(Zc, Ral, Raa);
+        UD = cDiv(pg, cAdd(cAdd(ZaE, ZaD), Zbox));
+        U0 = UD;
+        break;
+      }
+      case 'winisd-lossy': {
+        const Cat = (Cas * Cab) / (Cas + Cab);
+        const wsc = 1 / Math.sqrt(Cat * Mas);
+        const RalConst = cx(Ql / (wsc * Cab), 0);
+        Zbox = cPar(Zc, RalConst, Raa);
+        UD = cDiv(pg, cAdd(cAdd(ZaE, ZaD), Zbox));
+        const Uleak = cMul(UD, cDiv(Zbox, RalConst));
+        U0 = cSub(UD, Uleak);
+        break;
+      }
+      default: {
+        const _exhaustiveCheck: never = lossMode;
+        throw new Error(`Unhandled LossModeValue: ${_exhaustiveCheck}`);
+      }
+    }
 
   } else if (box === 'vented') {
     // Port branch — lumped mass Map = ρ·Leff/Sp (Leff = L + END_CORRECTION·d), or a
