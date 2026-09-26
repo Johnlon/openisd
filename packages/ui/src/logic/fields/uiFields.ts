@@ -234,7 +234,7 @@ const UI_FIELD_SPECS: UIFieldSpec[] = [
     description: 'Simulate Voice Coil Inductance\nApplies Le to the acoustic output too, not just the impedance plot.',
   },
   {
-    id: 'adv_WinisdInductance', aliases: ['winisdInductance'], label: 'WinISD-compatible inductance', pane: 'Advanced', kind: 'toggle', unit: '',
+    id: 'adv_WinisdInductance', aliases: ['winisdInductance'], label: 'WinISD inductance model', pane: 'Advanced', kind: 'toggle', unit: '',
     description: 'WinISD-Compatible Inductance\nReproduces WinISD\'s inductance roll-off, which we judge a WinISD bug: Le\'s acoustic element uses the entered BL, the damping uses the BL implied by Fs/Qes/Vas/Re. Differs from the textbook roll-off only when those two BLs disagree.',
   },
   {
@@ -254,7 +254,7 @@ const UI_FIELD_SPECS: UIFieldSpec[] = [
     description: 'Xmax Limited SPL\nClamps the SPL curve wherever cone excursion would exceed Xmax.',
   },
   {
-    id: 'adv_UseWinisdAirModel', aliases: ['useWinisdAirModel'], label: 'Use WinISD air model', pane: 'Advanced', kind: 'toggle', unit: '',
+    id: 'adv_UseWinisdAirModel', aliases: ['useWinisdAirModel'], label: 'WinISD air model', pane: 'Advanced', kind: 'toggle', unit: '',
     description: 'Air Model Selection\nWinISD\'s own air equations, or the CIPM moist-air standard.',
   },
 

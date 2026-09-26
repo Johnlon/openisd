@@ -133,7 +133,7 @@ test('wizard-built project: air constants move with pressure and the WinISD-mode
   const vel = envField(page, 'Sound velocity');
   const density = envField(page, 'Air density');
   const hum = envField(page, 'Relative humidity');
-  const useWinisd = page.locator('label', { hasText: 'Use WinISD air model' }).locator('input[type=checkbox]');
+  const useWinisd = page.locator('label', { hasText: 'WinISD air model' }).locator('input[type=checkbox]');
 
   // QO95: a fresh wizard project matches WinISD out of the box — parity model ON (checked),
   // ρ/c at WinISD's own 1.20095 / 343.68. (The SAMPLE-project template instead keeps openisd's

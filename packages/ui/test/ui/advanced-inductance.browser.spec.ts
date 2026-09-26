@@ -35,3 +35,24 @@ test('WinISD-compatible inductance sits in the WinISD Compatibility panel', asyn
   const panel = page.locator('.sim-options-box', { hasText: 'WinISD Compatibility' });
   await expect(panel.locator('[data-field-key="winisdInductance"] input')).toBeVisible();
 });
+
+test('WinISD Compatibility labels are unclipped and drop the "Use" prefix', async ({ page }) => {
+  const panel = page.locator('.sim-options-box', { hasText: 'WinISD Compatibility' });
+  const labels = panel.locator('label[data-field-key]');
+  await expect(labels).toHaveText(['WinISD driver calculations', 'WinISD air model', 'WinISD inductance model']);
+  const panelBox = (await panel.boundingBox())!;
+  const clipRight = await panel.evaluate(el => {
+    // The visible right edge: the panel's own, or an ancestor's that clips it first.
+    let right = el.getBoundingClientRect().right;
+    for (let a = el.parentElement; a; a = a.parentElement) {
+      if (getComputedStyle(a).overflowX !== 'visible') right = Math.min(right, a.getBoundingClientRect().right);
+    }
+    return right;
+  });
+  for (const label of await labels.all()) {
+    const textRight = await label.evaluate(el => {
+      const r = document.createRange(); r.selectNodeContents(el); return r.getBoundingClientRect().right;
+    });
+    expect(textRight, await label.innerText()).toBeLessThanOrEqual(Math.min(panelBox.x + panelBox.width, clipRight));
+  }
+});

@@ -59,8 +59,8 @@ test('relative humidity moves both readouts — the input is not inert', async (
   await expect(soundVelocity(page)).not.toHaveValue('343.99');
 });
 
-test('unticking "Use WinISD air model" switches the readouts to the moist-air physics model', async ({ page }) => {
-  const useWinisd = page.locator('label', { hasText: 'Use WinISD air model' }).locator('input[type=checkbox]');
+test('unticking "WinISD air model" switches the readouts to the moist-air physics model', async ({ page }) => {
+  const useWinisd = page.locator('label', { hasText: 'WinISD air model' }).locator('input[type=checkbox]');
   await expect(useWinisd).toBeChecked();   // WinISD parity by default (QO95)
 
   // The sample project stores 20 °C / RH 50 / 101325 Pa, where the two models agree at
@@ -70,7 +70,7 @@ test('unticking "Use WinISD air model" switches the readouts to the moist-air ph
   await humidity(page).blur();
   await expect(airDensity(page)).toHaveValue('1.19360');
 
-  await page.locator('label', { hasText: 'Use WinISD air model' }).click();
+  await page.locator('label', { hasText: 'WinISD air model' }).click();
 
   await expect(airDensity(page)).toHaveValue('1.19358');
   await expect(soundVelocity(page)).toHaveValue('344.74');

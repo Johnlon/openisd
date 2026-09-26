@@ -624,17 +624,17 @@ WinISD Lossy (default): reports the lossy 3rd-order model's pole, so Fsc rises a
               </div>
               <div style="margin-bottom: 6px;">
                 <label data-field-key="useWinisdDriverModel" style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 13px;" :title="`WinISD Driver Calculation Mode Toggle:\n• Checked: Engine sweep uses Mms = 1/((2π·Fs)²·Cms) — the moving mass WinISD's own simulation acts on — in place of a conflicting entered Mms. BL and Rms are left as entered.\n• Unchecked: Engine sweep uses entered datasheet values directly.`">
-                  <input type="checkbox" :checked="project.useWinisdDriverModel.value" @change="e => project.useWinisdDriverModel.set(inputChecked(e))"> Use WinISD driver calculations
+                  <input type="checkbox" :checked="project.useWinisdDriverModel.value" @change="e => project.useWinisdDriverModel.set(inputChecked(e))"> WinISD driver calculations
                 </label>
               </div>
               <div style="margin-bottom: 8px;">
                 <label data-field-key="useWinisdAirModel" style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 13px;" :title="`WinISD Air Model Parity Toggle:\n• Checked: Uses WinISD 0.7 legacy air formulas (c = 343.20 m/s, ρ = 1.1960 kg/m³ at 20°C).\n• Unchecked: Uses modern CIPM-2007 thermodynamic real-gas equations (temperature, humidity, pressure).`">
-                  <input type="checkbox" :checked="project.envUseWinisdAirModel.value" @change="e => project.envUseWinisdAirModel.set(inputChecked(e))"> Use WinISD air model
+                  <input type="checkbox" :checked="project.envUseWinisdAirModel.value" @change="e => project.envUseWinisdAirModel.set(inputChecked(e))"> WinISD air model
                 </label>
               </div>
               <div style="margin-bottom: 8px;">
                 <label data-field-key="winisdInductance" style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 13px;" :class="{ 'na': !inductanceOn }" :title="fieldHelp('winisdInductance')">
-                  <input type="checkbox" v-model="winisdInductance" :disabled="!inductanceOn"> WinISD-compatible inductance
+                  <input type="checkbox" v-model="winisdInductance" :disabled="!inductanceOn"> WinISD inductance model
                 </label>
               </div>
               <div>
