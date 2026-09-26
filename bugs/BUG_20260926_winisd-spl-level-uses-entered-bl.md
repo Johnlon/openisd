@@ -35,6 +35,24 @@ Inductance roll-off, same date: OpenISD's `winisdGyrator` on−off delta matches
 0.001 dB from 20 Hz to 20 kHz. The earlier 0.42 dB came from the Cms-from-Vas gap, fixed in
 ece3d3b6.
 
+Two more charts carry the same ratio, from the refreshed chart review
+([CHART_REVIEW_WINISD_VS_OPENISD.md](http://localhost:8000/winisd/openisd/docs/research/CHART_REVIEW_WINISD_VS_OPENISD.md?html) §4.1,
+baseline record against `88e30dd6`):
+
+| Observable             | WinISD  | OpenISD | OpenISD − WinISD | BL ratio predicts |
+|------------------------|--------:|--------:|-----------------:|-------------------|
+| Cone excursion at 1 Hz | 2.00638 | 2.06646 | +2.99 %          | +2.99 %           |
+| Impedance peak         | 18.631  | 19.856  | +1.225 Ω         | (see below)       |
+
+Excursion shares the drive, so the Fix below covers it. **Impedance does not.** Its peak height
+is motional, ∝ BL²/Rms: peak − Re is 15.209 Ω for WinISD against 16.433 for OpenISD, a ratio of
+1.0805 where BL² alone predicts 1.0605. Scaling the acoustic drive leaves this chart exactly
+where it is, and the residual 1.9 % on top of BL² is unexplained.
+
+Forcing OpenISD's derived BL to 7.17, by entering the Qes that implies it (0.604534), moves the
+passband from +0.272 dB to +0.017…+0.057 dB and the Z peak from 19.856 to 18.916 Ω. That run
+also moves the damping, so it is not WinISD's experiment — it only shows BL is the term.
+
 ## Cause
 
 WinISD drives its circuit with the entered BL (level) while building the damping from Qes (shape),
@@ -50,6 +68,8 @@ charts scale the same way. They share the drive, so they should; check against a
 
 ## Verification
 
+- The impedance peak is a separate check: the drive-scaling fix must not be declared done on
+  the SPL charts alone.
 - Unit test: the W5 at BL 7.17 vs 5.0 with the flag on, SPL differs by 20·log10(5/7.17) at
   every frequency.
 - Unit test: W5 SPL at 1 kHz matches WinISD's 80.5315 dB to within the unexplained 0.016 dB.

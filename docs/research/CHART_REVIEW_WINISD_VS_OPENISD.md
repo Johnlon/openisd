@@ -675,12 +675,17 @@ Evidence, baseline record, all three independent of each other:
 | Cone excursion at 1 Hz | +2.99 %      | +2.99 %           |
 | Z peak height     | +1.225 Ω          | higher            |
 
-⚠ unverified: read off the curves, not out of WinISD's memory. Forcing OpenISD's derived BL to
-7.17 (by entering the Qes that implies it, 0.604534) moves the passband from +0.272 dB to
-+0.017…+0.057 dB and the Z peak from 19.856 to 18.916 Ω against WinISD's 18.631 — but it also
-moves the electrical damping, so it is not the same experiment as WinISD's. What WinISD does
-with entered BL and entered Qes together needs a debugger read.
-[BUG_20260926_winisd-driver-model-derives-bl-from-qes.md](http://localhost:8000/winisd/openisd/bugs/BUG_20260926_winisd-driver-model-derives-bl-from-qes.md?html).
+Verified on WinISD's side the same day: the W5 run at entered BL 5.0
+(`winisd_research/runs/sweep-w5-sealed-bl5-spl`, SPL logged under the debugger) sits −3.1310 dB
+below the BL 7.17 baseline at every frequency, which is 20·log10(5/7.17). WinISD's level follows
+the entered BL and its shape does not change.
+
+The impedance peak is not covered by that: its height is motional, ∝ BL²/Rms, so a fix that
+scales the acoustic drive leaves this chart where it is. Peak − Re is 15.209 Ω for WinISD
+against 16.433 for OpenISD, a ratio of 1.0805 where BL² predicts 1.0605; the extra 1.9 % is
+unexplained.
+[BUG_20260926_winisd-spl-level-uses-entered-bl](http://localhost:8000/winisd/openisd/bugs/BUG_20260926_winisd-spl-level-uses-entered-bl.md?html)
+carries both.
 
 ### 4.2 TF magnitude reference — OpenISD defect, open
 
@@ -708,8 +713,8 @@ third order, OpenISD second order, the leak acting as damping. It is not borne o
 
 - The VA chart's value: the chart-point routine returns Z for it, and the transform from Z to
   VA was not read out of WinISD.
-- Whether WinISD's motor really uses the entered BL, read from memory rather than inferred from
-  three curves (§4.1).
+- Why the impedance peak is 1.9 % further out than BL² accounts for, once the entered-BL level
+  is taken out (§4.1).
 - WinISD's Cms-from-Vas is inferred from the passband level and has not been read from memory.
 - The max-power gap, 1.31 W at 3.89 Hz, where both curves are Xmax-limited: §4.1 in size, not
   separately checked.
