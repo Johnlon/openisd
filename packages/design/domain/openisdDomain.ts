@@ -2396,6 +2396,7 @@ export class OpenISDProject {
             power_W: this.#powerDriveOver(directRoot),
             Re_ohm: inputOf(() => Re_ohm),
             voltage_V: this.#driveVoltageOver(directRoot),
+            Rs_ohm: inputOf(() => this.Rs_ohm.value),
         });
 
         const spec = driver.specs;
@@ -2658,7 +2659,8 @@ export class OpenISDProject {
                     if (Re_ohm === null) {
                         throw new Error('powerDrive_W cannot be entered: the driver has no usable Re_ohm yet.');
                     }
-                    if (!(v > 0 && this.#engine.driveVoltage(v, Re_ohm) >= MIN_DRIVE_VOLTAGE_V)) {
+                    const Rs_ohm = this.Rs_ohm.value ?? 0;
+                    if (!(v > 0 && this.#engine.driveVoltage(v, Re_ohm, Rs_ohm) >= MIN_DRIVE_VOLTAGE_V)) {
                         throw new RangeError(`powerDrive_W ${v} W drives below the 10 mV minimum voltage.`);
                     }
                     signal.set({...signal.value, power_W: enteredEntry(v), voltage_V: undefined});

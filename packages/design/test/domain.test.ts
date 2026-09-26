@@ -2900,7 +2900,7 @@ describe('project-level array/display settings, chart Y-range, and identity', ()
     p.powerDrive_W.set(4);
     expect(p.powerDrive_W.entered).toBe(true);
     expect(p.driveVoltage_V.calculated).toBe(true);
-    expect(p.driveVoltage_V.value).toBeCloseTo(Math.sqrt(4 * 6), 6);
+    expect(p.driveVoltage_V.value).toBeCloseTo(Math.sqrt(4 * 6.1), 6);
   });
 
   it('driveVoltage_V and powerDrive_W each carry both the owner\'s and the solver\'s writes', () => {

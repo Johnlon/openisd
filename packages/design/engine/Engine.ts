@@ -176,9 +176,9 @@ export class Engine {
     return sourceLoadedQts(...args);
   }
 
-  /** The voltage that delivers `pin` watts into `re` ohms. */
-  driveVoltage(pin: number, re: number): number {
-    return driveVoltage(pin, re);
+  /** The voltage that delivers `pin` watts into `re` (+ `rs`) ohms. */
+  driveVoltage(pin: number, re: number, rs?: number): number {
+    return driveVoltage(pin, re, rs);
   }
 
   /** With a usable Re: an entered V writes P = V²/Re as calculated, otherwise P writes

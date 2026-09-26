@@ -15,9 +15,10 @@ const engine = new Engine();
 /** Free-air resonance with no added mass — the zero-Madd case of `prFsWithMass`. */
 const prFs = (prMmd: number, prCms: number) => engine.prFsWithMass(prMmd, 0, prCms);
 
-describe('formulas — drive voltage V = √(Pin·Re)', () => {
-  it('√(100·4) = 20 V', () => assert.equal(engine.driveVoltage(100, 4), 20));
-  it('√(1·8) = 2√2 V', () => assert.ok(Math.abs(engine.driveVoltage(1, 8) - Math.sqrt(8)) < 1e-12));
+describe('formulas — drive voltage V = √(Pin·(Re+Rs))', () => {
+  it('√(100·4) = 20 V with Rs=0', () => assert.equal(engine.driveVoltage(100, 4), 20));
+  it('√(1·8) = 2√2 V with Rs=0', () => assert.ok(Math.abs(engine.driveVoltage(1, 8) - Math.sqrt(8)) < 1e-12));
+  it('√(1·(3.4+0.1)) = √3.5 V with Rs=0.1 (WinISD convention)', () => assert.equal(engine.driveVoltage(1, 3.4, 0.1), Math.sqrt(3.5)));
 });
 
 describe('formulas — passive radiator derivations', () => {

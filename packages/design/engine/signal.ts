@@ -21,14 +21,15 @@ const POWER_INPUTS: readonly SignalQuantityName[] = Object.freeze(['voltage_V', 
 
 export function solveSignal(p: SignalSolverParams): readonly SignalIssue[] {
   const Re_ohm = p.Re_ohm.value;
+  const Rs_ohm = p.Rs_ohm?.value ?? 0;
   if (usable(Re_ohm)) {
     if (p.voltage_V.entered) {
-      p.power_W.setCalculated(driveFromVoltage(p.voltage_V.value, Re_ohm));
+      p.power_W.setCalculated(driveFromVoltage(p.voltage_V.value, Re_ohm, Rs_ohm));
       return [];
     }
     const power_W = p.power_W.value;
     if (usable(power_W)) {
-      p.voltage_V.setCalculated(driveVoltage(power_W, Re_ohm));
+      p.voltage_V.setCalculated(driveVoltage(power_W, Re_ohm, Rs_ohm));
       return [];
     }
   }

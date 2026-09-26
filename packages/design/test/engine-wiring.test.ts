@@ -266,7 +266,7 @@ describe('E — the signal', () => {
     const p = projectOf(engine, withRe(engine));
     expect(p.powerDrive_W.value).toBe(1);
     expect(p.powerDrive_W.entered).toBe(true);
-    expect(p.driveVoltage_V.value).toBeCloseTo(Math.sqrt(8), 12);
+    expect(p.driveVoltage_V.value).toBeCloseTo(Math.sqrt(8.1), 12);
     expect(p.driveVoltage_V.calculated).toBe(true);
   });
 
@@ -304,11 +304,11 @@ describe('E — the signal', () => {
     const engine = new Engine();
     const p = projectOf(engine, withRe(engine));
     p.powerDrive_W.set(2);
-    expect(p.driveVoltage_V.value).toBeCloseTo(4, 12);
+    expect(p.driveVoltage_V.value).toBeCloseTo(Math.sqrt(16.2), 12);
     p.driveVoltage_V.clear();
     expect(p.powerDrive_W.value).toBe(1);
     expect(p.powerDrive_W.entered).toBe(true);
-    expect(p.driveVoltage_V.value).toBeCloseTo(Math.sqrt(8), 12);
+    expect(p.driveVoltage_V.value).toBeCloseTo(Math.sqrt(8.1), 12);
     expect(p.driveVoltage_V.calculated).toBe(true);
   });
 
@@ -317,7 +317,7 @@ describe('E — the signal', () => {
     const p = projectOf(engine, withRe(engine));
     p.powerDrive_W.set(2);
     p.powerDrive_W.clear();
-    expect(p.driveVoltage_V.value).toBeCloseTo(4, 12);
+    expect(p.driveVoltage_V.value).toBeCloseTo(Math.sqrt(16.2), 12);
     expect(p.driveVoltage_V.entered).toBe(true);
     expect(p.powerDrive_W.value).toBeCloseTo(2, 12);
     expect(p.powerDrive_W.calculated).toBe(true);
@@ -329,11 +329,11 @@ describe('E — the signal', () => {
     p.powerDrive_W.set(5);
     p.driver.specs.Re_ohm.clear();
     expect(p.powerDrive_W.value).toBe(null);
-    expect(p.driveVoltage_V.value).toBeCloseTo(Math.sqrt(40), 12);
+    expect(p.driveVoltage_V.value).toBeCloseTo(Math.sqrt(40.5), 12);
     expect(p.driveVoltage_V.entered).toBe(true);
 
     p.driver.specs.Re_ohm.set(8);
-    expect(p.driveVoltage_V.value).toBeCloseTo(Math.sqrt(40), 12);
+    expect(p.driveVoltage_V.value).toBeCloseTo(Math.sqrt(40.5), 12);
     expect(p.driveVoltage_V.entered).toBe(true);
     expect(p.powerDrive_W.value).toBeCloseTo(5, 12);
     expect(p.powerDrive_W.calculated).toBe(true);
@@ -343,7 +343,7 @@ describe('E — the signal', () => {
     const engine = new Engine();
     const p = projectOf(engine, withRe(engine));
     p.driveVoltage_V.set(4);
-    expect(p.powerDrive_W.value).toBeCloseTo(2, 12);
+    expect(p.powerDrive_W.value).toBeCloseTo(16 / 8.1, 12);
     expect(p.powerDrive_W.calculated).toBe(true);
     p.driver.specs.Re_ohm.clear();
     expect(p.driveVoltage_V.value).toBe(4);
@@ -358,7 +358,7 @@ describe('E — the signal', () => {
     p.powerDrive_W.set(8);
     expect(p.powerDrive_W.entered).toBe(true);
     expect(p.driveVoltage_V.calculated).toBe(true);
-    expect(p.driveVoltage_V.value).toBeCloseTo(8, 12);
+    expect(p.driveVoltage_V.value).toBeCloseTo(Math.sqrt(64.8), 12);
   });
 
   it('pre: Re none, P N, V 4 E | trigger: clear V | post: P N, V 1 C', () => {
@@ -376,7 +376,7 @@ describe('E — the signal', () => {
     p.driver.specs.Re_ohm.set(8);
     expect(p.powerDrive_W.value).toBe(1);
     expect(p.powerDrive_W.entered).toBe(true);
-    expect(p.driveVoltage_V.value).toBeCloseTo(Math.sqrt(8), 12);
+    expect(p.driveVoltage_V.value).toBeCloseTo(Math.sqrt(8.1), 12);
   });
 
   it('pre: Re 8, P 1 E, V 2.83 C | trigger: type V 0.005 or a P driving below 10 mV | post: refused, unchanged', () => {
@@ -387,7 +387,7 @@ describe('E — the signal', () => {
     expect(() => p.powerDrive_W.set(0)).toThrow(/10 mV/);
     expect(() => p.powerDrive_W.set(0.00001)).toThrow(/10 mV/);
     expect(p.powerDrive_W.value).toBe(1);
-    expect(p.driveVoltage_V.value).toBeCloseTo(Math.sqrt(8), 12);
+    expect(p.driveVoltage_V.value).toBeCloseTo(Math.sqrt(8.1), 12);
     p.driveVoltage_V.set(0.01);
     expect(p.driveVoltage_V.value).toBe(0.01);
   });
@@ -399,7 +399,7 @@ describe('E — the signal', () => {
     project.powerDrive_W.clear();
     expect(project.powerDrive_W.value).toBeCloseTo(1, 12);
     expect(project.powerDrive_W.calculated).toBe(true);
-    expect(project.driveVoltage_V.value).toBeCloseTo(Math.sqrt(6.4), 12);
+    expect(project.driveVoltage_V.value).toBeCloseTo(Math.sqrt(6.5), 12);
     expect(project.driveVoltage_V.entered).toBe(true);
     expect(project.sweep(grid).values).not.toBeNull();
   });
@@ -413,7 +413,7 @@ describe('E — the signal', () => {
     project.setDriver(replacement);
 
     expect(project.powerDrive_W.value).toBe(1);
-    expect(project.driveVoltage_V.value).toBeCloseTo(Math.sqrt(8), 12);
+    expect(project.driveVoltage_V.value).toBeCloseTo(Math.sqrt(8.1), 12);
     expect(project.powerDrive_W.dq).toEqual([]);
     expect(project.driveVoltage_V.dq).toEqual([]);
   });

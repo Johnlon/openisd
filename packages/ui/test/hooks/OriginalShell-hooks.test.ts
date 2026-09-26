@@ -208,7 +208,7 @@ describe('OriginalShell-hooks', () => {
   });
 
   describe('createDriveSignal', () => {
-    it('derives V = sqrt(P * Re) from the driver Re', () => {
+    it('derives V = sqrt(P * (Re + Rs)) from the driver Re', () => {
       const {project} = createCompleteProject();
       project.driver.specs.Re_ohm.set(6);
       project.powerDrive_W.set(50);
@@ -220,7 +220,7 @@ describe('OriginalShell-hooks', () => {
         projectChanged,
       });
 
-      expect(driveV.value).toBeCloseTo(Math.sqrt(50 * 6), 6);
+      expect(driveV.value).toBeCloseTo(Math.sqrt(50 * 6.1), 6);
     });
 
     it('pre: Re none, new project — P N, V 1 C | read | post: driveV 1, P locked, P dq names Re_ohm', () => {
@@ -278,7 +278,7 @@ describe('OriginalShell-hooks', () => {
       expect(powerLocked.value).toBe(false);
     });
 
-    it('setting V commits P = V^2/Re', () => {
+    it('setting V commits P = V^2/(Re + Rs)', () => {
       const {project} = createCompleteProject();
       project.driver.specs.Re_ohm.set(6);
       const projectRef = shallowRef(project);
@@ -290,10 +290,10 @@ describe('OriginalShell-hooks', () => {
       });
 
       driveV.value = 12;
-      expect(project.powerDrive_W.value).toBeCloseTo((12 * 12) / 6, 6);
+      expect(project.powerDrive_W.value).toBeCloseTo((12 * 12) / 6.1, 6);
     });
 
-    it('pre: Re 6, P 10 E, V √60 C | trigger: commit V 9, then commit blank V | post: P 81/6 C, V 9 E; then P 1 E, V √6 C', () => {
+    it('pre: Re 6, P 10 E, V √61 C | trigger: commit V 9, then commit blank V | post: P 81/6.1 C, V 9 E; then P 1 E, V √6.1 C', () => {
       const {project} = createCompleteProject();
       project.driver.specs.Re_ohm.set(6);
       project.powerDrive_W.set(10);
@@ -306,14 +306,14 @@ describe('OriginalShell-hooks', () => {
       });
 
       reconcileDriveV(9);
-      expect(project.powerDrive_W.value).toBeCloseTo((9 * 9) / 6, 6);
+      expect(project.powerDrive_W.value).toBeCloseTo((9 * 9) / 6.1, 6);
       expect(project.powerDrive_W.calculated).toBe(true);
       expect(project.driveVoltage_V.entered).toBe(true);
 
       reconcileDriveV(null);
       expect(project.powerDrive_W.value).toBe(1);
       expect(project.powerDrive_W.entered).toBe(true);
-      expect(project.driveVoltage_V.value).toBeCloseTo(Math.sqrt(6), 6);
+      expect(project.driveVoltage_V.value).toBeCloseTo(Math.sqrt(6.1), 6);
       expect(project.driveVoltage_V.calculated).toBe(true);
     });
   });

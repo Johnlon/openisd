@@ -35,19 +35,21 @@ export function prQms(prMmd: number, prCms: number, prRms: number): number {
 }
 
 /**
- * Drive voltage from reference (system) power and voice-coil resistance: V = √(Pin · Re).
- * Matches WinISD's reference-power convention.
+ * Drive voltage from reference (system) power, voice-coil resistance, and series resistance:
+ * V = √(Pin · (Re + Rs)).
+ * Matches WinISD's reference-power convention where input power is total power into (Re + Rs).
  */
-export function driveVoltage(pin: number, re: number): number {
-  return Math.sqrt(pin * re);
+export function driveVoltage(pin: number, re: number, rs: number = 0): number {
+  return Math.sqrt(pin * (re + (rs > 0 ? rs : 0)));
 }
 
 /**
- * Reference power from drive voltage and voice-coil resistance — the inverse of `driveVoltage`:
- * P = V² / Re.
+ * Reference power from drive voltage, voice-coil resistance, and series resistance — the inverse of `driveVoltage`:
+ * P = V² / (Re + Rs).
  */
-export function driveFromVoltage(eg: number, re: number): number {
-  return (eg * eg) / re;
+export function driveFromVoltage(eg: number, re: number, rs: number = 0): number {
+  const r = re + (rs > 0 ? rs : 0);
+  return r > 0 ? (eg * eg) / r : 0;
 }
 
 /**
