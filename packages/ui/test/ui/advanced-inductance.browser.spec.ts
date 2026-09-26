@@ -62,6 +62,7 @@ test('Advanced layout: the air readout column sits 16 px from the air-constant c
 test('"WinISD VA model" switches the VA chart between WinISD\'s Re and the amplifier\'s Re + Rg (BUG_20260927)', async ({ page }) => {
   const va = page.locator('[data-field-key="winisdVaModel"]');
   await expect(va).toHaveAttribute('title', /Re \+ Rg/);
+  await expect(va).toHaveAttribute('title', /driver side.*Rg twice/);
   await expect(va.locator('input')).toBeChecked();
   await va.locator('input').uncheck();
   await expect(va.locator('input')).not.toBeChecked();
