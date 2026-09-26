@@ -1,5 +1,8 @@
 import {describe, expect, it} from 'vitest';
-import {reactive} from 'vue';
+import {nextTick, reactive} from 'vue';
+
+/** Let the watcher run and the catalogue's promises settle. */
+const flush = async () => { await nextTick(); await Promise.resolve(); await Promise.resolve(); };
 import {useSplashModal, type SplashState} from '../../src/hooks/SplashModal-hooks.js';
 
 function state(seen?: boolean): SplashState {
@@ -29,5 +32,55 @@ describe('useSplashModal', () => {
     const api = useSplashModal(s);
     api.show();
     expect(api.open.value).toBe(true);
+  });
+});
+
+describe('useSplashModal — catalogue counts', () => {
+  /** A catalogue whose answers are controlled, and which records that it was asked. */
+  function catalogue(drivers: number, passiveRadiators: number) {
+    const asked = {drivers: 0, passiveRadiators: 0};
+    return {
+      asked,
+      api: {
+        driverCount: async () => { asked.drivers++; return drivers; },
+        passiveRadiatorCount: async () => { asked.passiveRadiators++; return passiveRadiators; },
+      },
+    };
+  }
+
+  it('reads the counts when the splash is open', async () => {
+    const c = catalogue(1234, 56);
+    const api = useSplashModal(state(), c.api);
+    await flush();
+    expect(api.driverCount.value).toBe(1234);
+    expect(api.passiveRadiatorCount.value).toBe(56);
+  });
+
+  it('asks the catalogue nothing while the splash stays shut', async () => {
+    const c = catalogue(1234, 56);
+    useSplashModal(state(true), c.api);
+    await flush();
+    expect(c.asked).toEqual({drivers: 0, passiveRadiators: 0});
+  });
+
+  it('asks once, however often it is reopened', async () => {
+    const c = catalogue(1234, 56);
+    const api = useSplashModal(state(true), c.api);
+    api.show();
+    await flush();
+    api.dismiss();
+    api.show();
+    await flush();
+    expect(c.asked).toEqual({drivers: 1, passiveRadiators: 1});
+  });
+
+  it('leaves a count absent when the catalogue cannot answer — the splash is not a fault', async () => {
+    const api = useSplashModal(state(), {
+      driverCount: () => Promise.reject(new Error('not served')),
+      passiveRadiatorCount: () => Promise.reject(new Error('not served')),
+    });
+    await flush();
+    expect(api.driverCount.value).toBeNull();
+    expect(api.passiveRadiatorCount.value).toBeNull();
   });
 });

@@ -81,7 +81,7 @@ const app = createApp(App)
 
 provideApp(app, {
   engine, logging, driverBrowsing, selection, designIO, myPassiveRadiators,
-  bundledPassiveRadiators: bundledPRs, myDrivers: myDriverRepo,
+  bundledPassiveRadiators: bundledPRs, bundledDrivers: driverRepo, myDrivers: myDriverRepo,
   driverFileStorage, faultLog, projectRepo, viewStateRepo,
 });
 

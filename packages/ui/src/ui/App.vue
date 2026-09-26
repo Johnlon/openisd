@@ -22,7 +22,7 @@ import {provideFocusedProject} from '../logic/focusedProjectContext.js';
 import {useApp} from '../logic/app.js';
 import {provideSplashModal} from '../hooks/SplashModal-hooks.js';
 
-const { projectRepo, viewStateRepo, logging, selection } = useApp();
+const { projectRepo, viewStateRepo, logging, selection, bundledDrivers, bundledPassiveRadiators } = useApp();
 
 // App.vue is the shell-agnostic root: it owns app lifecycle (persist / hash) and the global
 // overlays. The shell renders WITH or WITHOUT a project — with none it shows the toolbar plus
@@ -36,8 +36,13 @@ const { projectRepo, viewStateRepo, logging, selection } = useApp();
 provideFocusedProject(computed(() => requireFocusedProject()));
 
 // One splash for the whole app: it raises itself for a first visitor, and the toolbar's Info
-// menu reopens it. Provided here so the shell's menu and the modal share one instance.
-provideSplashModal(presentationState);
+// menu reopens it. Provided here so the shell's menu and the modal share one instance. The
+// catalogue counts it shows are the bundled indexes' own lengths, fetched only once the splash
+// is actually on screen.
+provideSplashModal(presentationState, {
+  driverCount: async () => (await bundledDrivers.index()).length,
+  passiveRadiatorCount: async () => (await bundledPassiveRadiators.index()).length,
+});
 
 /** Whether a project is focused right now. The overlays below are project-bound: the shell
  *  renders without one, they must not. */

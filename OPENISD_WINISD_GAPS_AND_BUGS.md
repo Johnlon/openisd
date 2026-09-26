@@ -17,15 +17,6 @@ every chart, Tang Band W5-1138SMF in a 4.48 L sealed box.
 | The source EMF is sized from Re alone. WinISD sizes it from Re+Rg. The effect is 0.1 dB. This is a choice of convention; John has not ruled on it. | Matches WinISD's convention, if chosen.                     | —                                                                                                            |
 | Terminal Re/BL are in the model but no driver-editor field shows them.                                       | Users can see the voice-coil values WinISD writes back.     | —                                                                                                            |
 
-## Closed
-
-| Behaviour                                                                                          | Tracked in                                                                                          |
-|----------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------|
-| `numVC`, vent count and the environment trio showed a default that was never saved.                 | [defaulted-fields](bugs/BUG_20260924_defaulted-fields-are-neither-marked-nor-recorded.md)           |
-| The sweep ignored Options → Environment.                                                           | [sweep-env](bugs/BUG_20260924_sweep-ignores-options-environment-setting.md)                         |
-| The Model field showed and cleared the sku, not `model`.                                           | [model-field](bugs/BUG_20260924_model-field-cannot-be-emptied-when-sku-present.md)                  |
-| The chart-blocking strip mixed inconsistent inputs (not blocking) with missing inputs (blocking). | [inconsistent-inputs](bugs/BUG_20260924_inconsistent-inputs-claims-charts-blank.md)                 |
-
 ## Not a gap
 
 - **Max power and max SPL:** the difference came from the inputs, Pe 80 W vs 40 W. At matched Pe the two agree to 0.03% and 0.95%.

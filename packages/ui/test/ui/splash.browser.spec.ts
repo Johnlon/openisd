@@ -31,6 +31,14 @@ test('a first visitor gets the splash, and it credits WinISD and links to the pr
   await expect(splash.locator('a[href$="OPENISD_WINISD_GAPS_AND_BUGS.md"]')).toBeVisible();
 });
 
+test('it states how many devices the bundled catalogue holds', async ({page}) => {
+  await firstVisit(page);
+  await page.goto('/');
+  // The suite's vite serves the small test catalogue, so the numbers are that catalogue's —
+  // what matters is that they are the index's own count and not a figure typed into the page.
+  await expect(page.locator('.sp-stat')).toContainText(/\d+ drivers and \d+ passive radiators/);
+});
+
 test('dismissing it keeps it shut across a reload', async ({page}) => {
   await firstVisit(page);
   await page.goto('/');

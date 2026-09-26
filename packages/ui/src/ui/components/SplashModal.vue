@@ -7,10 +7,19 @@
  * comparison all link out to the repository documents that own them, so the splash never
  * becomes a second copy of a fact.
  */
+import {computed} from 'vue';
 import {injectSplashModal} from '../../hooks/SplashModal-hooks.js';
 
 const REPO = 'https://github.com/Johnlon/openisd';
-const {open, dismiss} = injectSplashModal();
+const {open, dismiss, driverCount, passiveRadiatorCount} = injectSplashModal();
+
+/** What the bundled library holds, stated only for the counts the catalogue actually gave us. */
+const libraryLine = computed(() => {
+  const parts: string[] = [];
+  if (driverCount.value !== null) parts.push(`${driverCount.value.toLocaleString()} drivers`);
+  if (passiveRadiatorCount.value !== null) parts.push(`${passiveRadiatorCount.value.toLocaleString()} passive radiators`);
+  return parts.length === 0 ? '' : `${parts.join(' and ')} are bundled with the app, ready to load.`;
+});
 </script>
 
 <template>
@@ -23,6 +32,7 @@ const {open, dismiss} = injectSplashModal();
 
       <h2 id="sp-title">An open loudspeaker enclosure simulator that runs in any browser.</h2>
       <p class="sp-motto">Speaker design belongs to everyone who builds.</p>
+      <p v-if="libraryLine" class="sp-stat">{{ libraryLine }}</p>
 
       <section>
         <h3>WinISD</h3>
@@ -42,7 +52,7 @@ const {open, dismiss} = injectSplashModal();
           <li><strong>No install, no licence, no platform</strong> — a browser is the whole requirement, and it installs for offline use as a PWA.</li>
           <li><strong>Checked, in public</strong> — every model is tested against the closed-form maths, in CI, on every commit.</li>
           <li><strong>Community-owned</strong> — MIT licensed, open repository, open backlog. It has to survive its author losing interest.</li>
-          <li><strong>Open data</strong> — a shared driver library anyone can contribute a spec sheet to.</li>
+          <li><strong>Open data</strong> — a shared driver library anyone can contribute a spec sheet to.<template v-if="driverCount !== null"> It holds {{ driverCount.toLocaleString() }} drivers today.</template></li>
         </ul>
       </section>
 
@@ -120,7 +130,8 @@ const {open, dismiss} = injectSplashModal();
 .sp-x:hover { background: #24304180; color: #e6edf3; }
 .sp-logo { display: block; width: 100%; height: auto; margin: 18px 0 14px; }
 .sp h2 { font-size: 17px; color: #e6edf3; margin: 0 0 4px; font-weight: 600; }
-.sp-motto { margin: 0 0 18px; color: #7f93a8; font-style: italic; }
+.sp-motto { margin: 0 0 8px; color: #7f93a8; font-style: italic; }
+.sp-stat { margin: 0 0 18px; color: #4fb0ff; font-weight: 600; }
 .sp h3 { font-size: 13px; color: #4fb0ff; margin: 18px 0 6px; text-transform: uppercase; letter-spacing: 0.06em; }
 .sp p { margin: 0 0 8px; }
 .sp ul { margin: 0; padding-left: 18px; }
