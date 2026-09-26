@@ -36,3 +36,5 @@ rounding (2.2e-16 rad over 4π·1e-10) is the 1.77e-4 ms staircase. `sweep.ts` `
 takes the slope over f·(1 ± 1e-6): worst 0.00049 ms against WinISD, within its rounding.
 Copying the 1e-10 step in double gives 0.0018 ms. `winisdDriverModel.test.ts`: 1 Hz within
 1e-3 ms of 52.29644 (red before: 0.0247).
+
+Ruling, John 2026-09-26: accepted. WinISD's rounding noise (x87 80-bit intermediates, `f_45e660`'s operation order) is not emulated.
