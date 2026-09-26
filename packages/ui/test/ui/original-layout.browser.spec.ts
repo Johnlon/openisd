@@ -50,7 +50,10 @@ async function levelLineClusters(page: Page): Promise<number> {
         const i = (y * W + x) * 4;
         if (img[i + 3] > 35 && img[i] < 140 && img[i + 1] < 140 && img[i + 2] < 140) n++;
       }
-      if (n > (x1 - x0) * 0.2) rows.push(y);
+      // 10%, not a majority: where the response is flat the curve is drawn ON TOP of its own
+      // level line for most of the plot width, leaving only the dashed pixels either side of
+      // the band. At 20% that line went uncounted and a two-cursor selection read as one.
+      if (n > (x1 - x0) * 0.1) rows.push(y);
     }
     let clusters = 0, prev = -10;
     for (const y of rows) { if (y > prev + 2) clusters++; prev = y; }
@@ -155,12 +158,17 @@ test('hovering the chart draws ONE horizontal level line where the cursor crosse
 test('a drag-select draws a horizontal level line for BOTH selection cursors', async ({ page }) => {
   const box = (await page.locator('.graph-wrap canvas').boundingBox())!;
   const y = box.y + box.height * 0.5;
-  // Drag across the bass rolloff (≈10.7–53.2 Hz) — in a flat region of the response both
-  // level lines land on the same pixels and read as ONE line, which would not prove the
-  // second cursor's line exists at all.
-  await page.mouse.move(box.x + box.width * 0.05, y);
+  // Double-click the X-axis strip: resets the frequency window to 1 Hz – 20 kHz, so the
+  // fractions below mean the same frequencies whatever window the view state was restored with.
+  await page.mouse.dblclick(box.x + box.width * 0.5, box.y + box.height - 6);
+  // Drag across the bass knee (≈22–120 Hz). Two constraints on where: it must START inside the
+  // plot, because the strip left of it is the Y-axis pan/zoom control and a drag there is a
+  // level gesture, not a band; and it must SPAN the knee, because in a flat region both level
+  // lines land on the same pixels and read as one, which would not prove the second cursor's
+  // line exists at all.
+  await page.mouse.move(box.x + box.width * 0.34, y);
   await page.mouse.down();
-  await page.mouse.move(box.x + box.width * 0.25, y, { steps: 6 });
+  await page.mouse.move(box.x + box.width * 0.50, y, { steps: 6 });
   await page.mouse.up();
   await expect.poll(() => levelLineClusters(page)).toBe(2);
 });
