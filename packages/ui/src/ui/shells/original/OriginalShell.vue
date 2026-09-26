@@ -617,7 +617,7 @@ const {
             <div class="sim-options-box">
               <div class="sim-options-header">WinISD Compatibility</div>
               <div class="field-row" style="flex-wrap: nowrap; margin-bottom: 6px;">
-                <div class="field" style="gap:6px;" title="Controls sealed resonance (Fsc) and system Q (Qtc) loss calculations: None (ideal lossless Q=inf), WinISD default (lossy cubic Ql=10, Qa=100, Qp=100), or Custom Q.">
+                <div class="field" style="gap:6px;" :title="`Controls sealed resonance (Fsc) and system Q (Qtc) loss calculations:\n• None: Ideal lossless enclosure (Q = ∞)\n• WinISD default: Lossy cubic model (Ql=10, Qa=100, Qp=100)\n• Custom Q: User-defined damping parameters`">
                   <label style="width:auto;">Loss model</label>
                   <select id="adv-lossmode" :value="lossMode" @change="e => { const m = selectedOption(e, LOSS_MODE_OPTIONS); if (m !== null) lossMode = m; }" style="width:140px">
                     <option v-for="m in LOSS_MODE_OPTIONS" :key="m.value" :value="m.value">{{ m.label }}</option>
@@ -625,7 +625,7 @@ const {
                 </div>
               </div>
               <div style="margin-bottom: 8px;">
-                <label data-field-key="useWinisdAirModel" style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 13px;" title="Use WinISD air properties model">
+                <label data-field-key="useWinisdAirModel" style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 13px;" :title="`WinISD Air Model Parity Toggle:\n• Checked: Uses WinISD 0.7 legacy air formulas (c = 343.20 m/s, ρ = 1.1960 kg/m³ at 20°C).\n• Unchecked: Uses modern CIPM-2007 thermodynamic real-gas equations (temperature, humidity, pressure).`">
                   <input type="checkbox" :checked="project.envUseWinisdAirModel.value" @change="e => project.envUseWinisdAirModel.set(inputChecked(e))"> Use WinISD air model
                 </label>
               </div>
