@@ -11,6 +11,45 @@ The closed-form check is
 Scope of the evidence: **sealed box only**. Vented, bandpass and passive-radiator charts share the
 same driver side but their box side has not been checked against WinISD.
 
+## 0. Checklist — WinISD charts to check
+
+Every chart in WinISD's chart menu, per box type OpenISD has. 50 to check: **9 done** (8 exact
+match, 1 close), 41 to do.
+
+Key: ✅ exact match (≤ 1e-12 at all 2086 points) · ≈ within tolerance, residual explained ·
+☐ to check · ✗ OpenISD has no such chart · — does not apply to that box.
+
+| Chart                                   | Sealed | Vented | Bandpass 4th | Passive radiator |
+|-----------------------------------------|--------|--------|--------------|------------------|
+| Transfer function magnitude             | ✅     | ☐      | ☐            | ☐                |
+| Transfer function phase                 | ✅     | ☐      | ☐            | ☐                |
+| Group delay                             | ≈      | ☐      | ☐            | ☐                |
+| Maximum power                           | ✅     | ☐      | ☐            | ☐                |
+| Maximum SPL                             | ✅     | ☐      | ☐            | ☐                |
+| Amplifier apparent load power (VA)      | ✗      | ✗      | ✗            | ✗                |
+| SPL                                     | ✅     | ☐      | ☐            | ☐                |
+| Cone excursion                          | ✅     | ☐      | ☐            | ☐                |
+| Impedance                               | ✅     | ☐      | ☐            | ☐                |
+| Impedance phase                         | ✅     | ☐      | ☐            | ☐                |
+| Transfer function magnitude (PR)        | —      | —      | —            | ✗                |
+| Transfer function phase (PR)            | —      | —      | —            | ✗                |
+| Cone excursion (PR)                     | —      | —      | —            | ☐                |
+| Rear port - Air velocity                | —      | ☐      | —            | —                |
+| Rear port - Gain                        | —      | ✗      | —            | —                |
+| Front port - Air velocity               | —      | —      | ☐            | —                |
+| Front port - Gain                       | —      | —      | ✗            | —                |
+| Intrachamber port - Air velocity        | —      | —      | —            | —                |
+
+| EQ/Filter chart (box-independent)       | Status |
+|-----------------------------------------|--------|
+| Transfer function magnitude (EQ/Filter) | ☐      |
+| Transfer function phase (EQ/Filter)     | ☐      |
+| Group delay (EQ/Filter)                 | ☐      |
+
+Sealed variants also checked, all ✅: inductance on (SPL, impedance, TF magnitude); impedance at
+Rg 0 and 10 Ω with "Rg is at driver side" on and off. Not in OpenISD at all: bandpass 6th and
+ABC boxes (the only boxes with an intrachamber port).
+
 ---
 
 ## 1. The shared circuit
