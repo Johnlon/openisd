@@ -1,6 +1,6 @@
 # BUG_20260926_impedance-includes-rg-when-rg-is-not-at-driver-side
 
-**Status:** OPEN
+**Status:** RESOLVED
 
 ## Symptom
 
@@ -64,3 +64,9 @@ switch.
 
 A unit test on a one-driver sealed case at Rg 10 Ω: `zmag` at 20 kHz equals |Re + jωLe| with
 the flag off and |Re + Rg + jωLe| with it on.
+
+Fixed 2026-09-26: `packages/design/engine/circuit.ts` builds `Zel` from the array's own
+terminals; amplifier-side Rg stays in the acoustic drive only. Proved by
+`advanced-options.test.ts` "impedance includes Rg only at the driver side": driver-side Z equals
+amp-side Z + Rg as a complex sum at every point, red before the fix. No browser test reads chart
+values yet, so the checkbox → impedance chart path has no functional test.

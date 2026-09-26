@@ -140,14 +140,17 @@ export function solve(f: number, drv: CircuitQuantities, box: BoxType, P: SweepP
   // Source resistance placement (WinISD Advanced: "Rg is at driver side"). At the driver
   // side Rg belongs to each voice coil, so it scales with the array alongside Re; at the
   // amplifier a single Rg sits in series with the whole array. Identical when n = 1.
+  // The impedance chart shows the array's own terminals: amplifier-side Rg drives the acoustic
+  // circuit but is not part of Zel (WinISD, debugger capture, BUG_20260926).
   const Rg  = P.Rs || 0;
   const rgAtDriver = P.rgAtDriverSide !== false;
   const Rdc1 = hotRe(drv.Re_terminal_ohm, P.alfaVC ?? 0, P.vcTempRise ?? 0) + (rgAtDriver ? Rg : 0);
-  const arrayCoil = (Le_H: number): Complex => {
+  const arrayTerminals = (Le_H: number): Complex => {
     const z1 = cx(Rdc1, w * Le_H);
-    const z = wiring === 'series' ? cScale(z1, n) : cScale(z1, 1/n);
-    return rgAtDriver ? z : cAdd(z, cx(Rg, 0));
+    return wiring === 'series' ? cScale(z1, n) : cScale(z1, 1/n);
   };
+  const arrayCoil = (Le_H: number): Complex =>
+    rgAtDriver ? arrayTerminals(Le_H) : cAdd(arrayTerminals(Le_H), cx(Rg, 0));
   const ZcoilAC = arrayCoil(0);
   const Zcoil   = arrayCoil(Le);
   const Bl = wiring === 'series' ? drv.BL_terminal_Tm * n : drv.BL_terminal_Tm;
@@ -163,9 +166,9 @@ export function solve(f: number, drv: CircuitQuantities, box: BoxType, P: SweepP
   //   and the model reduces to 'gyrator', whenever the driver's BL is consistent with its Qes.
   let ZcoilForAC: Complex, ZcoilForZel: Complex;
   switch (P.circuitModel ?? 'winisd') {
-    case 'winisd':        ZcoilForAC = ZcoilAC; ZcoilForZel = ZcoilAC; break;
-    case 'gyrator':       ZcoilForAC = Zcoil;   ZcoilForZel = Zcoil;   break;
-    case 'winisdGyrator': ZcoilForAC = arrayCoil(Le * winisdLeScale(drv)); ZcoilForZel = Zcoil; break;
+    case 'winisd':        ZcoilForAC = ZcoilAC; ZcoilForZel = arrayTerminals(0);  break;
+    case 'gyrator':       ZcoilForAC = Zcoil;   ZcoilForZel = arrayTerminals(Le); break;
+    case 'winisdGyrator': ZcoilForAC = arrayCoil(Le * winisdLeScale(drv)); ZcoilForZel = arrayTerminals(Le); break;
   }
   const pg  = cDiv(cx(eg * Bl, 0), cMul(cx(Sdt, 0), ZcoilForAC));
   const ZaE = cDiv(cx(Bl * Bl, 0), cMul(cx(Sdt * Sdt, 0), ZcoilForAC));

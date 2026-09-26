@@ -34,10 +34,12 @@ protection applies to them as to your own.
 
 ## WinISD controls behave as native WinISD
 
-Every control OpenISD shares with WinISD behaves exactly as WinISD does, on its own and by
-default (e.g. "Rg is at driver side"). Only a separate WinISD-vs-conventional switch may change
-that behaviour: its own compat checkbox, or an n-way drop-down like the loss model. Never bake a
-conventional variant into the shared control itself. (John, 2026-09-26.)
+OpenISD's goal: by default, behave 100% like WinISD, warts and bugs included. Every control
+OpenISD shares with WinISD behaves exactly as WinISD does, on its own and by default (e.g. "Rg
+is at driver side"). Conventional behaviour is extra, for interest and education, and sits only
+behind a separate WinISD-vs-conventional switch: its own compat checkbox, or an n-way drop-down
+like the loss model. Never bake a conventional variant into the shared control itself.
+(John, 2026-09-26.)
 
 ## Communication — plain bug statements
 

@@ -82,12 +82,24 @@ describe("Rg placement — 'Rg is at driver side' (WinISD Advanced)", () => {
   const base = (over: Partial<SweepParams>): SweepParams =>
     ({ Vb: 0.030, eg: 2.83, Rs: 1.0, fmin: 20, fmax: 200, N: 16, ...over });
 
-  it('is an exact no-op for a single driver — one Rg in series is one Rg in series', () => {
+  it('leaves SPL unchanged for a single driver — one Rg in series is one Rg in series', () => {
     const atDriver = engine.sweep(DRV, LE_H, 'sealed', base({ nDrivers: 1, rgAtDriverSide: true })).values!;
     const atAmp    = engine.sweep(DRV, LE_H, 'sealed', base({ nDrivers: 1, rgAtDriverSide: false })).values!;
+    for (let i = 0; i < atDriver.fs.length; i++)
+      assert.equal(atDriver.spl[i], atAmp.spl[i], `spl[${i}] must be bit-identical at nDrivers=1`);
+  });
+
+  it('impedance includes Rg only at the driver side: driver-side Z = amp-side Z + Rg (BUG_20260926)', () => {
+    // WinISD 0.7.0.950, debugger capture over 2086 points: with "Rg is at driver side" off, Rg
+    // does not appear in the impedance; with it on, Z = Z(off) + Rg exactly, as a complex sum.
+    const atDriver = engine.sweep(DRV, LE_H, 'sealed', base({ nDrivers: 1, rgAtDriverSide: true })).values!;
+    const atAmp    = engine.sweep(DRV, LE_H, 'sealed', base({ nDrivers: 1, rgAtDriverSide: false })).values!;
+    const Rg = 1.0;
     for (let i = 0; i < atDriver.fs.length; i++) {
-      assert.equal(atDriver.spl[i],  atAmp.spl[i],  `spl[${i}] must be bit-identical at nDrivers=1`);
-      assert.equal(atDriver.zmag[i], atAmp.zmag[i], `zmag[${i}] must be bit-identical at nDrivers=1`);
+      const ph = atAmp.zph[i] * Math.PI / 180;
+      const re = atAmp.zmag[i] * Math.cos(ph) + Rg, im = atAmp.zmag[i] * Math.sin(ph);
+      assert.ok(Math.abs(Math.hypot(re, im) - atDriver.zmag[i]) < 1e-9,
+        `at ${atDriver.fs[i].toFixed(1)} Hz: amp-side |Z|+Rg ${Math.hypot(re, im)} vs driver-side ${atDriver.zmag[i]}`);
     }
   });
 
