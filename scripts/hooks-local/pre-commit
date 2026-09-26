@@ -17,21 +17,29 @@ set -e
 . "$(git rev-parse --show-toplevel)/scripts/hooks-local/heavy-gate-concurrency.sh"
 reserve_heavy_gate_slot
 trap release_heavy_gate_slot EXIT
+# heavy.sh runs a command inside heavy.slice (systemd, MemoryMax'd, CPU-weighted): the kernel
+# reclaims/throttles inside that slice under pressure instead of the box's own memory budget
+# running out and SIGKILLing whatever process it likes, ours included — this is a DIFFERENT
+# protection from reserve_heavy_gate_slot above (that shares CPU/timeout fairly among gate runs;
+# this stops an unrelated process elsewhere on the box from taking this one down). Falls back to
+# running directly if heavy.sh isn't installed, so this hook still works on a box without it.
+HEAVY="$HOME/.claude/bin/heavy.sh"
+[ -x "$HEAVY" ] || HEAVY=""
 changed=$(git diff --cached --name-only --diff-filter=ACMR)
 if [ -n "$changed" ] && ! printf '%s\n' "$changed" | grep -qv '\.md$'; then
   echo "[pre-commit] doc-only commit (*.md) — skipping unit; typecheck + lint still run to block a red branch…"
-  npm run typecheck
+  $HEAVY npm run typecheck
   npm run lint
   echo "[pre-commit] doc-only + typecheck/lint green ✓"
   exit 0
 fi
 echo "[pre-commit] lint + typecheck + unit (incl. golden) — blocking commit on any red…"
 npm run lint
-npm run typecheck
+$HEAVY npm run typecheck
 # PRECOMMIT=1: the born-red CHECKLIST gates (PrivateAllow / ALLOWED_GLOBALS / no-re-exports)
 # self-skip, loudly — their offence lists are the human's to-do list, enforced at
 # ci/health-check and A10's byte-identical allow-list check, not per commit. Every
 # behavioural test still blocks. See the checklistDescribe guards in
 # packages/ui/test/ui/architecture.test.ts and architecture-no-reexports.test.ts.
-PRECOMMIT=1 npx vitest run packages/design packages/persistence packages/ui --maxWorkers="$OPENISD_HEAVY_GATE_WORKERS"
+PRECOMMIT=1 $HEAVY npx vitest run packages/design packages/persistence packages/ui --maxWorkers="$OPENISD_HEAVY_GATE_WORKERS" --testTimeout="$OPENISD_HEAVY_GATE_TEST_TIMEOUT"
 echo "[pre-commit] all green ✓ (checklist gates deferred to ci/A10)"

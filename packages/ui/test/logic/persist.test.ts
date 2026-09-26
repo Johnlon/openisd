@@ -238,9 +238,10 @@ describe('file save carries PURE PROJECT DATA — no view (QO90)', () => {
 describe('ViewSnapshot carries only ui — cursor/graphs/lossMode moved onto the project (QO130/QO168)', () => {
   it('currentViewSnapshot() carries no cursor, graphs, or lossMode key', () => {
     const snapshot = currentViewSnapshot();
-    assert.deepEqual(Object.keys(snapshot), ['ui'],
+    assert.deepEqual(Object.keys(snapshot), ['ui', 'chart'],
       'cursor is QO168-exempt from every saved record; graphs/lossMode are now project data ' +
-      '(QO130), already carried inside the project text');
+      '(QO130), already carried inside the project text; chart is the app-level sweep/Y ranges ' +
+      '(BUG_20260926_sweep-range-and-y-ranges-not-persisted)');
   });
 });
 

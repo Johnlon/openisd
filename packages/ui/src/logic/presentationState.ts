@@ -66,8 +66,9 @@ export interface PresentationState {
   yRanges: Partial<Record<ChartTabId, YRange>>;
   /** The swept frequency range every chart panel draws over — global, shared across every open
    *  project (John 2026-09-24: was per-project via `sweepFmin_hz`/`sweepFmax_hz`, but a
-   *  project's chart zoom has no business surviving a switch to another project). View-only:
-   *  crops/rescales the already-computed curve, triggers no re-sweep. */
+   *  project's chart zoom has no business surviving a switch to another project). It is also the
+   *  sweep's own frequency grid (`syncedP` → `p.sweep`). Saved with the view state
+   *  (`currentViewSnapshot`), like `yRanges`. */
   sweepRange: {min: number; max: number};
   /** Each open project's own legend/line colour, keyed by `OpenISDProject#uuid()` — a
    *  project attribute, assigned once when the project opens (`assignTraceColor`) and from

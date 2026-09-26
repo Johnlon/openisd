@@ -5,7 +5,7 @@
  *  No schema-upgrade seam, no share-link door: a share link keeps carrying the whole session
  *  through `ProjectRepo`'s own `stateToUrl`/`loadFromHash` (human ruling 2026-08-14) — this
  *  repo only ever needs local persistence. */
-import type {ViewSnapshot} from './projectRepo.js';
+import type {ChartView, ViewRange, ViewSnapshot} from './projectRepo.js';
 import type {KeyValueStorage} from '../storage/keyValueStorage.js';
 import {OPENISD_VIEW_KEY} from './storageKeys.js';
 
@@ -24,6 +24,30 @@ export interface ViewStateRepo {
 
 function isViewSnapshot(obj: unknown): obj is ViewSnapshot {
   return typeof obj === 'object' && obj !== null && 'ui' in obj && typeof obj.ui === 'object' && obj.ui !== null;
+}
+
+/** Parse at the boundary: a finite range with `min` below `max`, or nothing. */
+function parseRange(raw: unknown): ViewRange | null {
+  if (typeof raw !== 'object' || raw === null || !('min' in raw) || !('max' in raw)) return null;
+  const {min, max} = raw;
+  if (typeof min !== 'number' || typeof max !== 'number') return null;
+  if (!Number.isFinite(min) || !Number.isFinite(max) || min >= max) return null;
+  return {min, max};
+}
+
+/** Parse at the boundary: the chart view, or nothing when its sweep range is bad. A bad Y
+ *  range (the Options dialog can hold one with only one end set) is dropped alone, so that
+ *  chart auto-scales. */
+function parseChartView(raw: unknown): ChartView | null {
+  if (typeof raw !== 'object' || raw === null || !('sweepRange' in raw) || !('yRanges' in raw)) return null;
+  const sweepRange = parseRange(raw.sweepRange);
+  if (sweepRange === null || typeof raw.yRanges !== 'object' || raw.yRanges === null) return null;
+  const yRanges: Record<string, ViewRange> = {};
+  for (const [chart, r] of Object.entries(raw.yRanges)) {
+    const range = parseRange(r);
+    if (range !== null) yRanges[chart] = range;
+  }
+  return {sweepRange, yRanges};
 }
 
 /** `value` as JSON with every object's keys sorted, so the same view always writes the same
@@ -50,7 +74,8 @@ export function createViewStateRepo(storage: KeyValueStorage): ViewStateRepo {
           console.error('[restore] saved view state carries no ui object — refused');
           return null;
         }
-        return parsed;
+        const chart = 'chart' in parsed ? parseChartView(parsed.chart) : null;
+        return chart === null ? {ui: parsed.ui} : {ui: parsed.ui, chart};
       } catch {
         console.error('[restore] saved view state is not valid JSON — ignored');
         return null;

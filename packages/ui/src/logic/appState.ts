@@ -29,7 +29,8 @@ import {
     OpenISDProject,
     realAppContext,
 } from '@openisd/design';
-import type {PlotParams} from '../types.js';
+import type {ChartTabId, PlotParams, YRange} from '../types.js';
+import {TABS} from './series.js';
 import {
     type AppSettingsRepo, copyOfName, createAppSettingsRepo, createMemoryStorage, uniqueName,
     type ViewSnapshot,
@@ -697,8 +698,11 @@ export const projectChanged = computed<number>(() => changeTicks.value);
  *  project (QO130) and travel inside its own `.owpr` text instead; the cursor moved there too,
  *  but QO168 keeps it out of every saved record, this snapshot included. */
 export function currentViewSnapshot(): ViewSnapshot {
+  const yRanges: Record<string, YRange> = {};
+  for (const [chart, r] of Object.entries(presentationState.yRanges)) if (r) yRanges[chart] = {min: r.min, max: r.max};
   return {
     ui: presentationState.ui,
+    chart: {sweepRange: {min: presentationState.sweepRange.min, max: presentationState.sweepRange.max}, yRanges},
   };
 }
 
@@ -740,6 +744,16 @@ export function applyLoadedProject(project: OpenISDProject): void {
  *  text, not through this door. */
 export function applyViewSnapshot(v: ViewSnapshot): void {
   if (v.ui) Object.assign(presentationState.ui, v.ui);   // the whole view context is carried by a share link (stateToUrl, human ruling 2026-08-14) — nothing in it is stripped
+  if (v.chart) {
+    presentationState.sweepRange = {min: v.chart.sweepRange.min, max: v.chart.sweepRange.max};
+    const yRanges: Partial<Record<ChartTabId, YRange>> = {};
+    // A stored id the chart set no longer declares is dropped, not mapped to a default chart.
+    for (const [key, r] of Object.entries(v.chart.yRanges)) {
+      const id = TABS.find(t => t.id === key)?.id;
+      if (id !== undefined) yRanges[id] = {min: r.min, max: r.max};
+    }
+    presentationState.yRanges = yRanges;
+  }
 }
 
 /** Restore a FULL session — project and view together — for the share-link doors

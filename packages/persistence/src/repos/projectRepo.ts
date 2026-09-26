@@ -28,6 +28,22 @@ export interface FileNaming { suggestedName: string; mime: string; label: string
  *  state, reset on every (re)wrap, never serialized anywhere. */
 export interface ViewSnapshot {
   ui: Record<string, unknown>;
+  /** The chart view: app-level, shared across every open project. Absent in a view saved
+   *  before it was persisted. */
+  chart?: ChartView;
+}
+
+/** A frequency or value range, `min` below `max`. */
+export interface ViewRange {
+  min: number;
+  max: number;
+}
+
+/** The swept frequency range every chart draws over, and each chart's Y-axis override keyed by
+ *  chart id (absent = auto-scale). */
+export interface ChartView {
+  sweepRange: ViewRange;
+  yRanges: Record<string, ViewRange>;
 }
 
 export interface ProjectRepo {
