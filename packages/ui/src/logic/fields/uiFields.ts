@@ -192,7 +192,7 @@ const UI_FIELD_SPECS: UIFieldSpec[] = [
   {
     id: 'loss_DampingMode', aliases: ['lossMode'], label: 'Loss model', pane: 'Box losses', kind: 'enum', unit: '',
     options: lossModeOptions(),
-    description: 'Enclosure Loss Model: How box losses (leakage Ql, absorption Qa, port Qp) shape sealed resonance (Fsc) and system Q (Qtc) — lossless (Q=inf), WinISD default lossy cubic (Q=10), or custom Q.',
+    description: 'Controls sealed resonance (Fsc) and system Q (Qtc) loss calculations: None (ideal lossless Q=inf), WinISD default (lossy cubic Ql=10, Qa=100, Qp=100), or Custom Q.',
   },
   {
     id: 'loss_Qp', aliases: ['Qp'], label: 'Port Qp', pane: 'Box losses', kind: 'number', unit: '', precision: 2, min: 0.1, max: 1000,
