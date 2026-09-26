@@ -1,5 +1,5 @@
 /**
- * "Use WinISD driver calculations" (`useWinisdDriverModel`) on a driver whose entered `Mms`, `BL`
+ * "Use WinISD driver calculations" (`winisdDriverModel`) on a driver whose entered `Mms`, `BL`
  * and `Rms` disagree with its own `Fs`, `Cms`, `Qes` and `Qms`.
  *
  * WinISD 0.7.0.950, probed under wine 2026-09-26 (`winisd_research/PROBE_FINDINGS.md`), keeps all
@@ -12,7 +12,7 @@ import {describe, expect, it} from 'vitest';
 import {Engine, type FrequencyGrid, OpenISDProject} from '../../domain/index.js';
 import {driverFromSpec} from '../fixtures/recordBuilders.js';
 
-describe('useWinisdDriverModel — the whole WinISD parameter set, not Mms alone', () => {
+describe('winisdDriverModel — the whole WinISD parameter set, not Mms alone', () => {
   // The probe driver. Fs/Cms imply Mms = 0.04346 kg, not the 0.060 entered; Fs/Qms/Mms imply
   // Rms = 2.399 kg/s, not 1.5; Re/Fs/Qes/Cms imply BL = 6.62 Tm, not 8.0.
   const SHARED = {
@@ -34,7 +34,7 @@ describe('useWinisdDriverModel — the whole WinISD parameter set, not Mms alone
   it('set: the inconsistent driver has the consistent one\'s impedance and SPL shape; its entered BL sets only the SPL level', () => {
     const engine = new Engine();
     const entered = projectOn(engine, {...SHARED, ...CONTRADICTORY});
-    entered.useWinisdDriverModel.set(true);
+    entered.winisdDriverModel.set(true);
     const winisd = projectOn(engine, {...SHARED});
 
     const mine = entered.sweep(P).values;
@@ -60,9 +60,9 @@ describe('useWinisdDriverModel — the whole WinISD parameter set, not Mms alone
   it('clear: the entered Mms, BL and Rms are what the sweep uses', () => {
     const engine = new Engine();
     const entered = projectOn(engine, {...SHARED, ...CONTRADICTORY});
-    entered.useWinisdDriverModel.set(false);
+    entered.winisdDriverModel.set(false);
     const winisd = projectOn(engine, {...SHARED});
-    winisd.useWinisdDriverModel.set(false);
+    winisd.winisdDriverModel.set(false);
 
     const mine = entered.sweep(P).values!;
     const theirs = winisd.sweep(P).values!;
@@ -88,22 +88,22 @@ describe('useWinisdDriverModel — the whole WinISD parameter set, not Mms alone
     mine.spl.forEach((db, i) => expect(db).toBeCloseTo(theirs.spl[i], 6));
 
     // ...and the two drivers really are different drivers: cleared, they sweep apart.
-    byVas.useWinisdDriverModel.set(false);
-    byCms.useWinisdDriverModel.set(false);
+    byVas.winisdDriverModel.set(false);
+    byCms.winisdDriverModel.set(false);
     const a = byVas.sweep(P).values!, b = byCms.sweep(P).values!;
     expect(a.spl.some((db, i) => Math.abs(db - b.spl[i]) > 0.01)).toBe(true);
   });
 
   it('defaults on — README: "by default, OpenISD behaves 100% like WinISD"', () => {
     const engine = new Engine();
-    expect(projectOn(engine, {...SHARED}).useWinisdDriverModel.value).toBe(true);
+    expect(projectOn(engine, {...SHARED}).winisdDriverModel.value).toBe(true);
   });
 
   it('a self-consistent driver is unmoved by the flag — every substitution is an identity there', () => {
     const engine = new Engine();
     const off = projectOn(engine, {...SHARED});
     const on = projectOn(engine, {...SHARED});
-    on.useWinisdDriverModel.set(true);
+    on.winisdDriverModel.set(true);
 
     const a = off.sweep(P).values!;
     const b = on.sweep(P).values!;
@@ -146,9 +146,33 @@ describe('useWinisdDriverModel — the whole WinISD parameter set, not Mms alone
       winisd.circuitModel.set('gyrator');
       const conventional = w5(engine);
       conventional.circuitModel.set('gyrator');
-      conventional.useWinisdDriverModel.set(false);
+      conventional.winisdDriverModel.set(false);
       const a = winisd.sweep(at(20000)).values!.spl[0], b = conventional.sweep(at(20000)).values!.spl[0];
       expect(Math.abs(a - b)).toBeGreaterThan(0.1);
     });
+  });
+});
+
+describe('the saved field is winisdDriverModel (renamed 2026-09-26 from useWinisdDriverModel)', () => {
+  const engine = new Engine();
+  const project = (): OpenISDProject => OpenISDProject.builder(driverFromSpec(engine, {
+    Fs_hz: 29, Vas_m3: 0.142, Sd_m2: 0.038, Re_ohm: 6.5, Qes: 0.44, Qms: 3.3,
+  }), engine).sealed().volume_m3(0.021).build();
+
+  it('a project saves it as winisdDriverModel', () => {
+    const p = project();
+    p.winisdDriverModel.set(false);
+    const text = p.toOwprText();
+    expect(text).toContain('"winisdDriverModel": false');
+    expect(text).not.toContain('useWinisdDriverModel');
+  });
+
+  it('a project saved under the old name still opens with its value', () => {
+    const p = project();
+    p.winisdDriverModel.set(false);
+    const legacy = p.toOwprText().replaceAll('"winisdDriverModel"', '"useWinisdDriverModel"');
+    const back = OpenISDProject.fromOwprText(legacy, engine);
+    if (Array.isArray(back)) throw new Error('fromOwprText returned problems: ' + back.join(', '));
+    expect(back.winisdDriverModel.value).toBe(false);
   });
 });

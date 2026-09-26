@@ -781,9 +781,17 @@ const filtersJsonSchema = z.strictObject({
 });
 export type FiltersJson = z.infer<typeof filtersJsonSchema>;
 
+/** Projects saved on 2026-09-26 before the rename carry `useWinisdDriverModel`; read it as
+ *  `winisdDriverModel`. Every save writes the new name. */
+function renameLegacyWinisdDriverModel(value: unknown): unknown {
+    if (typeof value !== 'object' || value === null || !('useWinisdDriverModel' in value)) return value;
+    const {useWinisdDriverModel, ...rest} = value;
+    return {...rest, winisdDriverModel: useWinisdDriverModel};
+}
+
 /** WinISD's top-level Advanced pane settings that are not project-array facts about the driver:
  *  force-flat auto-EQ, and the port simulation model. */
-const openISDAdvancedJsonSchema = z.strictObject({
+const openISDAdvancedJsonSchema = z.preprocess(renameLegacyWinisdDriverModel, z.strictObject({
     // WinISD Advanced tab: "Force flat response".
     forceFlatResponse: z.boolean(),
     // WinISD Advanced tab: "Use transmission line-model for port simulation".
@@ -809,8 +817,8 @@ const openISDAdvancedJsonSchema = z.strictObject({
     // WinISD driver derivation toggle: whether engine sweeps calculate Mms/BL/Rms via WinISD formulas
     // instead of using entered datasheet values directly. Optional: absent parses to ON, WinISD's
     // own behaviour, matching every project saved before the default was corrected.
-    useWinisdDriverModel: z.boolean().optional(),
-});
+    winisdDriverModel: z.boolean().optional(),
+}));
 export type OpenISDAdvancedJson = z.infer<typeof openISDAdvancedJsonSchema>;
 
 

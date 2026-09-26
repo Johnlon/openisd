@@ -2953,13 +2953,13 @@ describe('project-level array/display settings, chart Y-range, and identity', ()
     const p = sealedProject();
     p.lossMode.set(LossMode.parse('conventional-lossy'));
     p.envUseWinisdAirModel.set(false);
-    p.useWinisdDriverModel.set(false);
+    p.winisdDriverModel.set(false);
 
     p.applyWinisdSettings();
 
     expect(p.lossMode.value.value).toBe('winisd-lossy');
     expect(p.envUseWinisdAirModel.value).toBe(true);
-    expect(p.useWinisdDriverModel.value).toBe(true);
+    expect(p.winisdDriverModel.value).toBe(true);
   });
 
   it('applyWinisdSettings leaves native WinISD controls and project data as they were (John, 2026-09-26)', () => {
@@ -2983,10 +2983,10 @@ describe('project-level array/display settings, chart Y-range, and identity', ()
 
     const on = sealedProject();
     on.circuitModel.set('gyrator');
-    on.useWinisdDriverModel.set(false);
+    on.winisdDriverModel.set(false);
     on.applyWinisdSettings();
     expect(on.circuitModel.value).toBe('gyrator');
-    expect(on.useWinisdDriverModel.value).toBe(true);
+    expect(on.winisdDriverModel.value).toBe(true);
   });
 
   it('driveVoltage_V and powerDrive_W each carry both the owner\'s and the solver\'s writes', () => {

@@ -8,7 +8,7 @@ test.beforeEach(async ({ page }) => {
 
 test('WinISD\'s inductance model has no switch of its own — "WinISD driver model" covers it (John, 2026-09-26)', async ({ page }) => {
   await expect(page.locator('[data-field-key="winisdInductance"]')).toHaveCount(0);
-  const driverCalcs = page.locator('[data-field-key="useWinisdDriverModel"]');
+  const driverCalcs = page.locator('[data-field-key="winisdDriverModel"]');
   await expect(driverCalcs).toHaveAttribute('title', /inductance/);
   await expect(driverCalcs).toHaveAttribute('title', /WinISD bug/);
 });

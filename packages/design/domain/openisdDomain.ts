@@ -1181,9 +1181,9 @@ function computedSlot<T>(value: T | null): SolverField<T> {
  *  (the stored `circuitModel`, 'winisd' = off) and "Use WinISD driver calculations", which picks
  *  WinISD's inductance model over the textbook one (John, 2026-09-26: one switch for WinISD's
  *  two-BL handling). A stored 'winisdGyrator' (projects saved before that ruling) reads as on. */
-function engineCircuitModel(stored: 'winisd' | 'gyrator' | 'winisdGyrator', useWinisdDriverModel: boolean): 'winisd' | 'gyrator' | 'winisdGyrator' {
+function engineCircuitModel(stored: 'winisd' | 'gyrator' | 'winisdGyrator', winisdDriverModel: boolean): 'winisd' | 'gyrator' | 'winisdGyrator' {
     if (stored === 'winisd') return 'winisd';
-    return useWinisdDriverModel ? 'winisdGyrator' : 'gyrator';
+    return winisdDriverModel ? 'winisdGyrator' : 'gyrator';
 }
 
 /** `spec`'s 44 handles, shaped as `DriverSolverParams` for `Engine.sweep()`/`maxCurves()`
@@ -1192,7 +1192,7 @@ function engineCircuitModel(stored: 'winisd' | 'gyrator' | 'winisdGyrator', useW
  *  `Re_terminal_ohm`/`BL_terminal_Tm` have no domain storage slot (matching `NO_SLOT`'s own doc
  *  above), and `wiring` is spelled `VCCon` here and carries a `VoiceCoilWiring` enum member, not
  *  the bare `'series'|'parallel'` union `DriverSolverParams` names. */
-function driverSolverParamsOf(spec: OpenIsdDriverSpec, engine: Engine, useWinisdDriverModel: boolean = false, air: Air | null = null): DriverSolverParams {
+function driverSolverParamsOf(spec: OpenIsdDriverSpec, engine: Engine, winisdDriverModel: boolean = false, air: Air | null = null): DriverSolverParams {
     const wiring: Wiring = spec.VCCon.value === VoiceCoilWiring.Series ? 'series' : 'parallel';
     const Re_ohm = spec.Re_ohm.value;
     const BL_Tm = spec.BL_Tm.value;
@@ -1209,10 +1209,10 @@ function driverSolverParamsOf(spec: OpenIsdDriverSpec, engine: Engine, useWinisd
     // substituted Cms — every one an identity on a self-consistent driver. The entered BL still
     // reaches the engine as `BL_Tm`, which is what the 'winisdGyrator' inductance model scales Le
     // by; WinISD reads the entered BL there too.
-    const cmsField = useWinisdDriverModel ? winisdCms_m_per_N(spec, air) : spec.Cms_m_per_N;
-    const mmsField = useWinisdDriverModel ? winisdMms_kg(spec, cmsField.value) : spec.Mms_kg;
-    const rmsField = useWinisdDriverModel ? winisdRms_kg_per_s(spec, mmsField) : spec.Rms_kg_per_s;
-    const blTerminal = useWinisdDriverModel
+    const cmsField = winisdDriverModel ? winisdCms_m_per_N(spec, air) : spec.Cms_m_per_N;
+    const mmsField = winisdDriverModel ? winisdMms_kg(spec, cmsField.value) : spec.Mms_kg;
+    const rmsField = winisdDriverModel ? winisdRms_kg_per_s(spec, mmsField) : spec.Rms_kg_per_s;
+    const blTerminal = winisdDriverModel
         ? winisdBLterminal_Tm(spec, Re_terminal_ohm, cmsField.value, BL_terminal_entered_Tm)
         : BL_terminal_entered_Tm;
 
@@ -2321,8 +2321,8 @@ export class OpenISDProject {
      *  `Rms = 2π·Fs·Mms/Qms` and `BL = √(Re/(2π·Fs·Qes·Cms))`, for entered values that conflict
      *  with them (measured 2026-09-26, docs/research/WINISD_PARITY.md). On where a project does
      *  not say, per the README: untouched, OpenISD gives WinISD's answer. */
-    get useWinisdDriverModel(): SimpleField<boolean> {
-        const lens = focus(this.#slot('advanced'), 'useWinisdDriverModel');
+    get winisdDriverModel(): SimpleField<boolean> {
+        const lens = focus(this.#slot('advanced'), 'winisdDriverModel');
         return {
             get value() { return lens.value ?? true; },
             set: (on: boolean) => lens.set(on),
@@ -2334,7 +2334,7 @@ export class OpenISDProject {
     applyWinisdSettings(): void {
         this.lossMode.set(LossMode.parse('winisd-lossy'));
         this.envUseWinisdAirModel.set(true);
-        this.useWinisdDriverModel.set(true);
+        this.winisdDriverModel.set(true);
     }
 
     /** Which charts are open (S10/QO130) — PROJECT-scoped, reversing QO90 for this field.
@@ -2988,7 +2988,7 @@ export class OpenISDProject {
             nDrivers: this.nDrivers.value,
             wiring: this.wiring.value,
             Rs: this.Rs_ohm.value,
-            circuitModel: engineCircuitModel(this.circuitModel.value, this.useWinisdDriverModel.value),
+            circuitModel: engineCircuitModel(this.circuitModel.value, this.winisdDriverModel.value),
             lossMode: this.lossMode.value.value,
             Ql: losses.Ql, Qa: losses.Qa, Qp: losses.Qp,
             ...this.#boxSpecificParams(boxType),
@@ -3070,7 +3070,7 @@ export class OpenISDProject {
         const boxIssues = this.#boxSweepIssues(box);
         if (boxIssues.length) return {values: null, issues: boxIssues};
         const params = this.#sweepParams(P, this.driveVoltage_V.value, box);
-        return this.#engine.sweep(driverSolverParamsOf(this.driver.specs, this.#engine, this.useWinisdDriverModel.value, this.#air(this.#root())), this.driver.Le_H() ?? undefined, box, params);
+        return this.#engine.sweep(driverSolverParamsOf(this.driver.specs, this.#engine, this.winisdDriverModel.value, this.#air(this.#root())), this.driver.Le_H() ?? undefined, box, params);
     }
 
     /** The excursion- and power-limited maximum SPL curves. Reports on the same terms as `sweep`,
@@ -3081,7 +3081,7 @@ export class OpenISDProject {
         if (!box) return {values: null, issues: [], driverPrerequisites: []};
         const boxIssues = this.#boxSweepIssues(box);
         if (boxIssues.length) return {values: null, issues: boxIssues, driverPrerequisites: []};
-        return this.#engine.maxCurves(driverSolverParamsOf(this.driver.specs, this.#engine, this.useWinisdDriverModel.value, this.#air(this.#root())), this.driver.Le_H() ?? undefined, box, this.#sweepParams(P, 2.83, box));
+        return this.#engine.maxCurves(driverSolverParamsOf(this.driver.specs, this.#engine, this.winisdDriverModel.value, this.#air(this.#root())), this.driver.Le_H() ?? undefined, box, this.#sweepParams(P, 2.83, box));
     }
 
     /** The active box's own sweep-level blockers, beyond what `solveBoxParams()` already reports:

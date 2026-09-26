@@ -40,7 +40,7 @@ describe('B — the project runs the engine sweep on its own driver and box', ()
     // Off, so `project.driver.solverParams` — which knows nothing of the flag — is the same driver
     // the project sweeps. On (the default) the project substitutes the WinISD parameter set and
     // this scenario would be comparing two different drivers, not two paths to one answer.
-    project.useWinisdDriverModel.set(false);
+    project.winisdDriverModel.set(false);
     return project;
   };
 
