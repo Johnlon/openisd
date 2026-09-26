@@ -30,6 +30,15 @@ Third-party competitor tools (00 Simulator, SpeakerDesign.dev, SpeakerBoxLite, S
 
 # Part 1 — Feature comparison
 
+## Key Calculation Axes & Discrepancy Summary
+
+| Calculation Axis | WinISD 0.7.0.950 Behavior | OpenISD Standard Behavior | How to match WinISD |
+| :--- | :--- | :--- | :--- |
+| **$M_{ms}$ Derivation** | Overwrites entered $M_{ms}$ using $M_{ms} = \frac{\rho_0 c^2 S_d^2}{(2\pi F_s)^2 V_{as}}$. | Uses entered datasheet $M_{ms}$ directly; flags parameter conflicts via Data Quality (DQ). | Clear entered $M_{ms}$ in Driver Editor so OpenISD derives $M_{ms}$ from $F_s$, $V_{as}$, $S_d$. |
+| **Drive Voltage ($e_g$)** | Includes series resistance $R_s$: $e_g = \sqrt{P(R_e + R_s)}$. | Previously used voice-coil power $e_g = \sqrt{PR_e}$. | Now updated in engine to match WinISD's $e_g = \sqrt{P(R_e + R_s)}$. |
+| **Acoustic Inductance ($L_e$)** | Excludes $L_e$ from acoustic volume velocity ($Z_{\text{coil,AC}} = R_e + R_s$). $L_e$ is only plotted on $Z_{\text{el}}$. | Supports full gyrator impedance model ($Z_{\text{coil,AC}} = R_e + R_s + j\omega L_e$) or WinISD model. | Set `circuitModel` to `'winisd'` (default in OpenISD). |
+| **Sealed Box Losses** | Subtracts leak volume velocity $U_{\text{leak}}$ evaluated at $F_{sc}$ ($R_{al}$ constant). | Supports `'winisd-lossy'`, `'conventional-lossy'`, and `'lossless'`. | Set `lossMode` to `'winisd-lossy'` (default in OpenISD). |
+
 ## Platform & access
 
 | Feature                           | OpenISD                             | WinISD                                     |
