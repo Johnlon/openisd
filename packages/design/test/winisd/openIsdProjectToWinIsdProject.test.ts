@@ -115,22 +115,18 @@ describe('openIsdProjectToWinIsdProject — [Box]/[SignalSource] match the WinIS
     assert.ok(text.includes('Vr=0.02'), 'rear chamber volume matches the golden');
     assert.ok(golden.includes('Fr=61.2670146589858'), 'ground truth: sealed-small.wpr\'s own Fr');
 
-    // `#sealedResonance_hz()` (packages/design/domain/openisdDomain.ts:727-750) never passes
-    // `useWinisdAirModel` to `Engine.airFor()`, so it always uses the CIPM-2007 physical air
-    // model instead of WinISD's own parity air-property formula even though
-    // `OpenISDProject.envUseWinisdAirModel()` defaults to `true` specifically to select it. This
-    // is a genuine, pre-existing gap in `project.ts` — see
-    // bugs/BUG_20260907_sealed_resonance_ignores_envUseWinisdAirModel.md — not something this
-    // bridge can or should paper over by fudging the value it reads from `resonance_hz()`. Fixed
-    // tolerance, not exact match, documents that gap rather than hiding it.
-    const FR_TOLERANCE_HZ = 0.05; // observed discrepancy is ~0.044 Hz (~700ppm at 61 Hz)
+    // Fr is WinISD's own computed resonance, so this is the parity assertion of the sealed case
+    // and it matches to floating point: 6e-14 Hz. The tolerance is tight on purpose — a loose one
+    // here hid a 0.044 Hz error for weeks, the resonance being computed in CIPM-2007 air while
+    // the project asked for WinISD's.
+    const FR_TOLERANCE_HZ = 1e-9;
     const match = text.match(/\[Box\][\s\S]*?\nFr=([\d.]+)\n/);
     assert.ok(match, 'bridge output has a [Box] Fr= line');
     const bridgeFr = Number(match[1]);
     const goldenFr = 61.2670146589858;
     assert.ok(Math.abs(bridgeFr - goldenFr) < FR_TOLERANCE_HZ,
       `bridge Fr=${bridgeFr} should be within ${FR_TOLERANCE_HZ} Hz of golden Fr=${goldenFr} `
-      + '(pre-existing air-model gap, see bugs/BUG_20260907_sealed_resonance_ignores_envUseWinisdAirModel.md)');
+      + '(the project\'s own air must be what the resonance is computed in)');
 
     assert.ok(text.includes('[SignalSource]\nRg=0.1\nP=1'), 'signal source matches the golden');
   });
@@ -203,9 +199,8 @@ describe('openIsdProjectToWinIsdProject — [Box]/[SignalSource] match the WinIS
     // The one value in this golden WinISD COMPUTED rather than was given: the rear (sealed)
     // chamber's resonance. Volumes and Ff are inputs echoed back, so they agree with the golden
     // whatever the bridge does; Fr is the only field here that can disagree, which makes it the
-    // actual parity assertion. Tolerance for the same air-model gap the sealed case documents
-    // (bugs/BUG_20260907_sealed_resonance_ignores_envUseWinisdAirModel.md).
-    const FR_TOLERANCE_HZ = 0.05;
+    // actual parity assertion. Matches to 6e-14 Hz; tight for the same reason as the sealed case.
+    const FR_TOLERANCE_HZ = 1e-9;
     const goldenRearFr = Number(goldenField(GOLDEN_BANDPASS4_WPR, 'Box', 'Fr'));
     const bridgeRearFr = Number(text.match(/\[Box\][\s\S]*?\nFr=([\d.]+)\n/)![1]);
     assert.ok(Math.abs(bridgeRearFr - goldenRearFr) < FR_TOLERANCE_HZ,

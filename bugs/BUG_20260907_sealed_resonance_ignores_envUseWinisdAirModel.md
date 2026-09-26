@@ -1,6 +1,8 @@
 # `#sealedResonance_hz()` never selects WinISD's own air model, even when `envUseWinisdAirModel()` says to
 
-Status: OPEN (re-verified 2026-09-26) — moved: the embedded driver's air provider (`#airOver` in `openisdDomain.ts`) omits `useWinisdAirModel`, so a derived Vas uses the physical air model. Same cause as `BUG_20260924_driver-solve-and-sweep-use-different-air-models.md`.
+Status: RESOLVED (2026-09-26) — 638ba6dc made the project's air the sole source for every
+calculation, so the sealed resonance is now computed in the air the project asks for. The bridge
+test's Fr matches WinISD's golden to 6e-14 Hz, against 0.044 Hz before.
 
 ## Symptom
 
@@ -37,13 +39,21 @@ read it.
 
 ## Scope
 
-Checked only the sealed-box path (`#sealedResonance_hz()`). Not checked: whether the vented,
-bandpass4-rear, or passive-radiator resonance/tuning calculations that also call
-`this.#engine.airFor(...)` have the same omission — a repo-wide grep for other `airFor(` call
-sites inside `project.ts` that omit `useWinisdAirModel` would confirm the blast radius.
+Recorded against the sealed path; the vented, bandpass4-rear and passive-radiator calculations
+called `airFor(...)` the same way. All of them are covered by the single-source fix — the
+bandpass4 rear chamber's resonance now matches its golden to 5.7e-14 Hz, measured the same way as
+the sealed case below.
 
-## Fix (not applied)
+## Fix
 
-Pass `useWinisdAirModel: this.envUseWinisdAirModel()` into the `airFor()` call at
-`project.ts:735-739` (and any sibling call site the scope check above finds). Needs a human
-ruling before being made — this is calculation logic under `.claude/rules/engine.md`.
+Applied in 638ba6dc, and not where this record predicted: the driver's own `c_m_per_s`/
+`roo_kg_per_m3` became display-only and every calculation now reads the project's air through one
+`OpenISDProject#air(root)`, which passes `useWinisdAirModel`. Patching the single `airFor()` call
+this record named would have left every sibling call site with the same omission.
+
+## Verification (2026-09-26)
+
+`packages/design/test/winisd/openIsdProjectToWinIsdProject.test.ts` asserted this within 0.05 Hz
+and said in its own comment that the slack tolerance existed to document the gap rather than hide
+it. Measured after the fix: `bridgeFr - goldenFr = -6.39e-14` Hz. The tolerance is now 1e-9 Hz,
+so the gap cannot reopen without the test failing. 34 passed in that file.
