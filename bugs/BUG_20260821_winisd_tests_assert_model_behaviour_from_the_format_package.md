@@ -1,5 +1,4 @@
-Status: OBSOLETE/SUPERSEDED — the cited package layout was replaced by the current integrated
-`packages/design` domain/format boundary.
+Status: CLOSED (re-verified 2026-09-26) — obsolete, confirmed: domain and format tests both live under `packages/design/test/winisd/`; there is no separate format package to mix responsibilities with.
 
 # Two `packages/winisd/test` files assert `@openisd/model` behaviour, mixing both objects per file
 

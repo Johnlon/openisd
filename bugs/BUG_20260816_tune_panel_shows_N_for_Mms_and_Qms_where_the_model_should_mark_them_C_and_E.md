@@ -1,7 +1,7 @@
 # Tune panel test asserts C/E marks against a page with no driver loaded
 
 ## Status
-OBSOLETE/SUPERSEDED — the cited test and the replaced Tune-panel architecture no longer exist.
+CLOSED (re-verified 2026-09-26) — obsolete, confirmed: the cited test and Tune-panel architecture are gone.
 
 ## Symptom
 

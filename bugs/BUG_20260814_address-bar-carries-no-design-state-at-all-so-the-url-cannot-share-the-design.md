@@ -1,7 +1,7 @@
 # BUG — the visible URL stops updating, so the address bar no longer reflects the design
 
 # Status
-OPEN 2026-08-14 — deliberately deferred to the OpenISDDriver migration
+RESOLVED (re-verified 2026-09-26) — Share writes the URL (`setShareUrl` in `packages/ui/src/logic/urlAppState.ts`) and `App.vue` restores it on `hashchange`. Whether it should also update live is a separate BACKLOG item.
 
 ## Symptom
 

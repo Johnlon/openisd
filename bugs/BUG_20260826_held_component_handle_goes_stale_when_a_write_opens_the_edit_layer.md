@@ -3,9 +3,7 @@
 **Where:** `packages/design/domain/project.ts` — `ManagedProject.driver` (getter, ~line 1220),
 `writeProjectRecord()` / `editLayerFor()` (~lines 1066–1089).
 
-**Status:** FIXED 2026-08-26. Found by `packages/design/test/domain.test.ts` → "the driver — a
-window, not a copy > reads and writes through to the record it was given" (1 failing, 22 passing);
-now 24/24 with a second test covering the what-if transition.
+Status: RESOLVED (re-verified 2026-09-26) — confirmed on `OpenISDProject` (`packages/design/domain/openisdDomain.ts`): `packages/design/test/domain.test.ts` "the driver — a window, not a copy" passes.
 
 ## Symptom
 

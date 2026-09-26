@@ -9,7 +9,7 @@
 **Where:** `packages/model/src/openisdProject.ts:734`, used at `:780` (sealed) and `:789`
 (bandpass4 rear).
 
-**Status:** RESOLVED — current WPR export uses the domain's loss-aware sealed resonance value.
+Status: RESOLVED (re-verified 2026-09-26) — confirmed: `packages/design/domain/openIsdProjectToWinIsdProject.ts` writes the loss-aware sealed resonance into `[Box] Fr`.
 
 Reported by John ("seems a bug if not used anywhere except creating wpr"). The question that was
 open when this file was first written — what WinISD itself writes into `[Box] Fr` — is now

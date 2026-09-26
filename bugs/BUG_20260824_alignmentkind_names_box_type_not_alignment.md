@@ -1,10 +1,6 @@
 # BUG_20260824 — `AlignmentKind` names the wrong concept: it's box type, not alignment
 
-Status: SUPERSEDED by the `packages/design` rebuild (2026-08-26) — not fixed in place, and
-deliberately so. `packages/model` is being REPLACED by `packages/design`, not repaired, so
-patching this defect in the old model would be work thrown away. The replacement does not carry
-the defect: `packages/design`'s `BoxType` names the concept correctly from the start (`'sealed' | 'vented' | 'bandpass4' | 'bandpass6' | 'passive-radiator' | 'abc'`), and no
-`AlignmentKind` exists there at all.
+Status: CLOSED (re-verified 2026-09-26) — confirmed: `packages/design/engine/types.ts`'s `BoxType` names the concept correctly; no `AlignmentKind` exists.
 
 It did carry it briefly: the first cut of `packages/design` named the six box-type interfaces
 `SealedAlignment`/`VentedAlignment`/`Bandpass4Alignment`/… — the same defect, reintroduced in the

@@ -2,9 +2,7 @@
 
 **Where:** `packages/design/domain/project.ts`, `OpenISDBox.#sealedResonance_hz()`.
 
-**Status:** FIXED 2026-08-27. INTRODUCED BY ME, 2026-08-27, in commit 4ee14af while wiring the domain to the
-engine. John caught it immediately: *"record a bug that you have introduced that its lossless - it
-must be lossy"*.
+Status: CLOSED (re-verified 2026-09-26) — confirmed: sealed resonance is loss-mode-aware in `packages/design/domain/openisdDomain.ts`.
 
 ## The defect
 

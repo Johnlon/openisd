@@ -3,7 +3,7 @@
 **Where:** `packages/ui/src/ui/components/AdvancedOptions.vue:47`, the `title` on the
 `envIgnoreHumidityAndPressure` checkbox.
 
-**Status:** RESOLVED 2026-08-27.
+Status: CLOSED (re-verified 2026-09-26) — obsolete: the "Ignore humidity and air pressure" checkbox no longer exists; air-model choice is the `useWinisdAirModel` toggle in `OriginalShell.vue`, with its own tooltip.
 
 ## Symptom
 

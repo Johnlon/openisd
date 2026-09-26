@@ -1,4 +1,4 @@
-Status: OPEN — docs fixed 2026-08-21; CellState question remains
+Status: RESOLVED (re-verified 2026-09-26) — `packages/model` is gone. `CellState` is defined once in `packages/design/winisd/cellState.ts` and imported by name, not re-exported under another type.
 
 # `openisdDriver.ts` and `ARCHITECTURE.md` both state the model↔winisd dependency BACKWARDS
 

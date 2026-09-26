@@ -2,8 +2,7 @@
 
 **Where:** `vitest.config.ts`, the `coverage.include` list and (until this change) `test.projects`.
 
-**Status:** PARTLY FIXED 2026-08-28 — the missing test project is fixed; the coverage `include`
-list and its thresholds need John's call, because changing them moves a build gate.
+Status: RESOLVED (re-verified 2026-09-26) — `packages/design/vitest.coverage.config.ts` covers `engine/**` and `domain/**` at 100% per-file thresholds.
 
 ## Symptom
 

@@ -1,5 +1,4 @@
-Status: OBSOLETE/SUPERSEDED — the cited driver-selection test and flat storage seam were replaced
-by the current persistence/domain model.
+Status: RESOLVED (re-verified 2026-09-26) — the spec is now `packages/ui/test/persistence/driver-selection.browser.spec.ts`, seeding through `seedMyDrivers.ts`'s typed helper.
 
 # `driver-selection.browser.spec.ts` seeds a flat legacy shape `myDrivers.ts` explicitly refuses to tolerate
 

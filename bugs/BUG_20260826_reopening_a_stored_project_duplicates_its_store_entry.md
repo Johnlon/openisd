@@ -2,9 +2,7 @@
 
 **Where:** `packages/design/domain/project.ts` — `projectRepo().load()` and `.save()`.
 
-**Status:** FIXED 2026-08-26, in the same turn it was found. Raised by John: "doesnt it need to
-proj uid to be useful?", then "since we are in the desig then just fix that immediately no
-exceptions" — design-stage defects are fixed on sight, not recorded and queued.
+Status: CLOSED (re-verified 2026-09-26) — fixed on sight per the record; `OpenISDProject` identity is now the repository uuid.
 
 This record is kept only for the identity rule it works out (store key vs file id, below), which
 is a design decision rather than a bug history.

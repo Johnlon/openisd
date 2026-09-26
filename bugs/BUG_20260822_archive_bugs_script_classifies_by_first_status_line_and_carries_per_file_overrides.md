@@ -1,6 +1,6 @@
 # archive-bugs.py classifies by first status line only and carries per-file overrides
 
-Status: FIXED — classifier rewritten to scan every status line; overrides deleted
+Status: RESOLVED (re-verified 2026-09-26) — `scripts/archive-bugs.py`'s `status_region_lines()` scans the whole status block, not just the first line.
 
 ## Symptom
 

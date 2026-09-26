@@ -1,8 +1,7 @@
 # PR formulas are free functions, not getters on a domain class
 
 ## Status
-OBSOLETE/SUPERSEDED — the cited `packages/model`/UI architecture was replaced by the current
-`packages/design` domain and engine ownership model.
+CLOSED (re-verified 2026-09-26) — obsolete, confirmed: `packages/model` and `prWinIsdFields.ts` are gone; PR formulas are engine-only.
 
 ## Symptom
 

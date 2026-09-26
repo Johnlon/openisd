@@ -1,7 +1,6 @@
 # `name?: _DerivedField<string>` is declared on the record but has no producer and no consumer
 
-Status: OBSOLETE/SUPERSEDED — the old driver-record `name` field was removed by the current
-domain schema; project naming is now owned by the project domain object.
+Status: CLOSED (re-verified 2026-09-26) — obsolete, confirmed: `packages/model` and the inert `name` field are gone.
 
 ## Symptom
 

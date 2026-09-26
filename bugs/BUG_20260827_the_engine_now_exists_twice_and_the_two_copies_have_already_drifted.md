@@ -2,10 +2,7 @@
 
 **Where:** `packages/engine/src/*.ts` and `packages/design/engine/*.ts`.
 
-**Status:** RESOLVED — the duplicate `packages/engine` tree no longer exists; the current engine
-is owned under `packages/design/engine`. The duplication was deliberate and was ordered (copy,
-explicitly NOT a move). The
-DRIFT is not, and it happened the same day the copy was made.
+Status: CLOSED (re-verified 2026-09-26) — confirmed: `packages/engine` is gone; one engine tree under `packages/design/engine`.
 
 ## The duplication
 

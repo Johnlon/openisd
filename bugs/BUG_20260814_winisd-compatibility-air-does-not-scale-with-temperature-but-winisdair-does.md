@@ -1,19 +1,7 @@
 # The WinISD-compatibility air mode SCALES with temperature; WinISD's own frozen air does not
 
 # Status
-BLOCKED — ruling received 2026-08-21 (see below): mimic WinISD unless it is measurably buggy,
-but only after a probe against the real WinISD binary establishes ground truth beyond the
-existing two-sample evidence. Probe not yet run; `winisdAir()` still scales `rho`/`c` with
-`tempK` (`packages/engine/src/air.ts:135-137`).
-
-
-**Found** 2026-08-14, while re-running `packages/winisd/test/winisd-parity.test.ts` after fixing
-the air-constant truncation (`bugs/BUG_20260813_winisd-compatibility-air-returns-truncated-rho-and-c-not-winisds-own-pair.md`).
-**Severity** wrong number, large — 1.69e-2 relative on `c`, 3.36e-2 on `roo` (both far bigger
-than the ~1e-5 truncation the sibling bug fixed).
-**Status** ⛔ **NOT FIXED — blocked on the human.** `packages/engine/src/air.ts`'s `winisdAir()`,
-which `AGENTS.md` §"Calculation logic — permission gate" reserves to an explicit human decision.
-This file is that document.
+NEEDS HUMAN (re-verified 2026-09-26) — still true: `winisdAir()` in `packages/design/engine/air.ts` scales rho/c with temperature; ruling to mimic WinISD unless a probe shows it is buggy was never carried out.
 
 ## Symptom
 
