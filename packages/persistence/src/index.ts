@@ -25,7 +25,7 @@ export { FAVORITES_KEY, type PrefsRepo, createPrefsRepo } from './repos/prefsRep
 export { APP_SETTINGS_KEY, type AppSettingsRepo, createAppSettingsRepo } from './repos/appSettingsRepo.js';
 
 export {
-  type KeyValueStorage, createLocalStorage, createMemoryStorage,
+  type KeyValueStorage, type SharedMemoryStorage, createLocalStorage, createMemoryStorage, createSharedMemoryStorage,
 } from './storage/keyValueStorage.js';
 
 export { createFileSave, type FileSave } from './storage/fileSave.js';

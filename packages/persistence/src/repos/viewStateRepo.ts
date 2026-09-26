@@ -18,16 +18,28 @@ export interface ViewStateRepo {
   save(v: ViewSnapshot): void;
   /** The saved view, or null when none/unreadable. */
   load(): ViewSnapshot | null;
+  /** Call `onChange` whenever another tab saves the view. Returns the call that stops it. */
+  watch(onChange: () => void): () => void;
 }
 
 function isViewSnapshot(obj: unknown): obj is ViewSnapshot {
   return typeof obj === 'object' && obj !== null && 'ui' in obj && typeof obj.ui === 'object' && obj.ui !== null;
 }
 
+/** `value` as JSON with every object's keys sorted, so the same view always writes the same
+ *  text. A tab rebuilds the view in its own key order; without this, two tabs would each hear
+ *  the other's rewrite of an unchanged view as a change and echo it back forever. */
+function canonicalJson(value: unknown): string {
+  return JSON.stringify(value, (_key, v: unknown) => {
+    if (v === null || typeof v !== 'object' || Array.isArray(v)) return v;
+    return Object.fromEntries(Object.entries(v).sort(([a], [b]) => a.localeCompare(b)));
+  });
+}
+
 export function createViewStateRepo(storage: KeyValueStorage): ViewStateRepo {
   return {
     save(v: ViewSnapshot): void {
-      storage.set(VIEW_STATE_KEY, JSON.stringify(v));
+      storage.set(VIEW_STATE_KEY, canonicalJson(v));
     },
     load(): ViewSnapshot | null {
       const raw = storage.get(VIEW_STATE_KEY);
@@ -43,6 +55,9 @@ export function createViewStateRepo(storage: KeyValueStorage): ViewStateRepo {
         console.error('[restore] saved view state is not valid JSON — ignored');
         return null;
       }
+    },
+    watch(onChange: () => void): () => void {
+      return storage.watch(VIEW_STATE_KEY, onChange);
     },
   };
 }

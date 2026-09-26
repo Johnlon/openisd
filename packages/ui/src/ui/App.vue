@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {computed, onMounted, onUnmounted, watch} from 'vue';
+import {computed, onMounted, onUnmounted} from 'vue';
 import OriginalShell from './shells/original/OriginalShell.vue';
 import OgNewProject from './shells/original/OgNewProject.vue';
 import OgTune from './shells/original/OgTune.vue';
@@ -17,6 +17,7 @@ import {
   requireFocusedProject,
 } from '../logic/appState.js';
 import {bootApplication} from '../logic/boot.js';
+import {startSessionSync} from '../logic/sessionSync.js';
 import {presentationState} from '../logic/presentationState.js';
 import {provideFocusedProject} from '../logic/focusedProjectContext.js';
 import {useApp} from '../logic/app.js';
@@ -54,19 +55,7 @@ async function handleHashChange() {
   else if (saved) applyState(saved);
 }
 
-let saveReady = false;
-let viewSaveReady = false;
-watch(projectChanged, () => {
-  if (!saveReady) return;
-  projectRepo.saveOpenProjects(openProjects(), focusedProject());
-});
-watch(
-  () => [openProjects().length, focusedProject()?.uuid() ?? null],
-  () => { if (saveReady) projectRepo.saveOpenProjects(openProjects(), focusedProject()); },
-);
-watch(currentViewSnapshot, snapshot => {
-  if (viewSaveReady) viewStateRepo.save(snapshot);
-}, { deep: true });
+let stopSessionSync: () => void = () => {};
 
 onMounted(async () => {
   // ONE ordered restore (`logic/boot.ts`), then persistence. Nothing writes storage while the
@@ -77,14 +66,14 @@ onMounted(async () => {
     logging,
     editProjectDriver: () => selection.editProjectDriver(),
   });
-  viewSaveReady = true;
-  saveReady = true;
   viewStateRepo.save(currentViewSnapshot());
   projectRepo.saveOpenProjects(openProjects(), focusedProject());
+  stopSessionSync = startSessionSync({ projectRepo, viewStateRepo });
   window.addEventListener('hashchange', handleHashChange);
 });
 
 onUnmounted(() => {
+  stopSessionSync();
   window.removeEventListener('hashchange', handleHashChange);
 });
 </script>

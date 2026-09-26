@@ -59,6 +59,8 @@ export interface ProjectRepo {
    *  is nothing to restore from it. An entry that will not read is reported in the session's
    *  own `refused`, not here. */
   loadOpenProjects(): OpenProjectSession | string[] | null;
+  /** Call `onChange` whenever another tab saves its open projects. Returns the call that stops it. */
+  watchOpenProjects(onChange: () => void): () => void;
   /** Copy the stored session record to the quarantine key, leaving the original in place.
    *  Called when a record holds entries that would not read, so the next save cannot take
    *  them with it. A no-op when there is no stored record. */
@@ -293,6 +295,9 @@ export function createProjectRepo(
         projects.push(project);
       }
       return { projects, focusedIndex, refused };
+    },
+    watchOpenProjects(onChange: () => void): () => void {
+      return storage.watch(OPEN_SESSION_STORAGE_KEY, onChange);
     },
     quarantineOpenSession(): void {
       const text = storage.get(OPEN_SESSION_STORAGE_KEY);

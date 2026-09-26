@@ -28,6 +28,7 @@ function memoryStorage(): KeyValueStorage & { raw(key: string): string | null } 
     set: (k, v) => { held.set(k, v); },
     remove: (k) => { held.delete(k); },
     raw: (k) => held.get(k) ?? null,
+    watch: () => () => {},
   };
 }
 
