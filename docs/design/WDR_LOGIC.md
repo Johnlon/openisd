@@ -7,10 +7,10 @@ OpenISD never stores a calculated value.
 
 ## Background — `VCCon` and `numVC`
 
-The solver READS both and never produces either — they are `NotAQuantity` in
-`packages/design/engine/solverQuantities.ts` — so nothing derives one from the others. `numVC`
-still has a calculated value: a record stating no coil count gets 1, supplied by OpenISD.
-`VCCon` has no such default in the record; the engine applies parallel where it is used.
+The solver READS both and never produces either, so nothing derives one from the other. A record
+stating neither gets both filled as a calculated `C` entry — one coil, parallel — by
+`calcVCCon()` in `packages/design/domain/openisdSchema.ts`, the same source WinISD itself
+defaults to.
 
 A record stating neither leaves both absent. The engine then simulates with WinISD's own screen
 defaults, parallel and one coil, applied where they are used (`circuit.ts`, and
