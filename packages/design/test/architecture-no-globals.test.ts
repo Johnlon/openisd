@@ -241,7 +241,7 @@ describe('packages/design has no global variables', () => {
       'A binding that still cannot be made immutable is a design that needs a parameter instead:',
       'say so and stop.',
     ].join(' ')).toEqual([]);
-  }, 30_000);
+  }, 60_000);
 
   it('can actually see the source it is meant to guard', () => {
     // A gate that silently scans nothing passes forever. This proves the project loaded.

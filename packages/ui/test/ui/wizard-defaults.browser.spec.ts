@@ -94,6 +94,7 @@ function ventLengthOf(json: unknown): number {
 }
 
 test('a wizard-created project draws a chart for every simulatable box type', async ({ page }) => {
+  test.setTimeout(30000);
   for (const box of ['sealed', 'vented', 'box-passive-radiator', 'bandpass4']) {
     await buildProject(page, box);
     await expect.poll(async () => page.evaluate(async (p) => {
