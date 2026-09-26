@@ -1,4 +1,4 @@
-Status: OPEN
+Status: OPEN (re-verified 2026-09-26) — `.wpr` export still formats numbers with `String(v)`, not WinISD's 15 digits.
 
 # `.wpr` writer's `num()` formats floats to JS's ~17 significant digits; WinISD (Delphi) writes ~15
 

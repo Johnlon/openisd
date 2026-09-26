@@ -1,6 +1,6 @@
 # Compare overlays hand `seriesFor` a persisted-driver TEXT string where it requires an `EngineDriver` object
 
-Status: OPEN
+Status: CLOSED (re-verified 2026-09-26) — obsolete: `overlays` calls each project's own `sweep()` and `maxCurves()`.
 
 ## Symptom
 

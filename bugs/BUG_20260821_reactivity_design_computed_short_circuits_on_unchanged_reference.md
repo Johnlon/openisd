@@ -1,4 +1,4 @@
-Status: OPEN
+Status: OPEN (re-verified 2026-09-26) — documentation only: `docs/design/REACTIVITY.md` still shows the broken sample.
 
 # `docs/design/REACTIVITY.md`'s `createLiveRef` code sample never invalidates a real consumer
 

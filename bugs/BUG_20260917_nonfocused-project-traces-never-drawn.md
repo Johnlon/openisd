@@ -1,6 +1,6 @@
 # BUG_20260917_nonfocused-project-traces-never-drawn — only the focused project is ever swept/drawn
 
-**Status:** OPEN
+Status: RESOLVED (re-verified 2026-09-26) — `overlays` in `OriginalShell-hooks.ts` sweeps every visible non-focused project.
 
 Human ruling 2026-09-17 (verbatim): "yes multiple traces should be shown simultanwiudsly for all selected projiect" — the multi-trace behaviour is REQUIRED, not deferred. This bug also blocks the skipped test `original-projects.browser.spec.ts:43` ("hiding a project removes its trace…", skipped with a SKIP note citing this gap).
 

@@ -1,7 +1,7 @@
 # The `openisd.yml` record stores 10 dimension fields in mm/litres, not SI — human ruling: this is a bug
 
 # Status
-RESOLVED (2026-08-23)
+RESOLVED (re-verified 2026-09-26) — the record's dimension fields carry SI names and units (`packages/design/domain/openisdSchema.ts`).
 
 ## Symptom
 

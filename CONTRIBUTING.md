@@ -5,47 +5,31 @@ can contribute.
 
 ## Quick start
 
-Read `ARCHITECTURE.md` and the Quality gates section of `AGENTS.md`, then:
+Read [ARCHITECTURE.md](ARCHITECTURE.md) and [TESTING_STRATEGY.md](TESTING_STRATEGY.md), then:
 
 ```bash
-npm install && bash scripts/health-check.sh
+npm install && npm run ci
 ```
 
-Pick work from `BACKLOG.md`; P0 gates everything else.
+Pick work from [BACKLOG.md](BACKLOG.md).
 
 ## Rules that catch people out
 
-- Never hand-edit driver data under `drivers/` — it is produced by `winisd_tools` and lands here
-  as records. A wrong value is fixed at the source.
+- The bundled driver catalogue is built from the sibling `winisd_drivers` repository, which only
+  `winisd_tools` writes. Fix a wrong value there, never in the app. `drivers/` here holds
+  reference `.wdr` collections only.
 - `drivers/matt/` is human-curated and off-limits to any script or agent.
-- Only a human sets `reviewed_by` or any "human-verified" field.
-- Calculation logic — formulas, physical constants, display precision, defaults affecting a
-  result — changes only with explicit maintainer approval.
+- Formulas, physical constants, display precision and defaults that affect a result change only
+  with maintainer approval.
+- Tests come first: write the failing test, watch it fail, then fix. A skipped test is a failure.
 
-## Who owns what
+## Where to start reading
 
-| Concern | Human | Agent | Tooling |
-| --- | --- | --- | --- |
-| What to build (`BACKLOG.md`) | Decides | Suggests | — |
-| Physics & calculation correctness | Decides | Implements | Cross-check (reference) |
-| `packages/design/engine/` formulas & constants | Approves | Proposes | Unit + oracle tests |
-| Driver data (`drivers/**`) | Authorises | Reads only | winisd_tools writes |
-| `drivers/matt/` | Owns | Excludes | Excludes |
-| `reviewed_by` / "human-verified" | Only | Never sets | — |
-| Tests | Reviews | Writes | Runs (CI) |
-| Commits & merges | Authorises | Drafts message | — |
-
-## How the engine works
-
-A lumped-element electro-mechano-acoustical circuit solved in the acoustical impedance analogy,
-one complex value per frequency (`packages/design/engine/sweep.ts`, `circuit.ts`). `eg` is RMS, so
-SPL is RMS-referenced; excursion and port velocity are peak (×√2) against Xmax and chuffing
-limits. For a vented or PR box, net radiated volume velocity is `U_0 = U_D − U_port`; that minus
-sign is what produces the 24 dB/oct rolloff.
-
-Layer diagram: `ARCHITECTURE.md` AD-6. Formulas with test citations: `docs/spec/SPEC_ENGINE.md`.
+- Layers and the domain model: [ARCHITECTURE.md §2–3](ARCHITECTURE.md#2-packages-and-layers).
+- Solving and the circuit: [ARCHITECTURE.md §4](ARCHITECTURE.md#4-solving).
+- Formulas with test citations: [docs/spec/SPEC_ENGINE.md](docs/spec/SPEC_ENGINE.md).
 
 ## Pull requests
 
 Keep changes focused; describe what and why. If it touches the engine, paste the test output. By
-contributing you agree your work is released under the project's MIT license.
+contributing you agree your work is released under the project's MIT licence.

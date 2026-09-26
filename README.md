@@ -32,8 +32,8 @@ Every curve redraws as you type. There is no Calculate button.
   - impedance magnitude and phase;
   - port air velocity;
   - maximum SPL and maximum power;
-  - the filter chain's response.
-  - Designs can be overlaid for comparison.
+  - the filter chain's response;
+  - several designs overlaid for comparison.
 - **Design tools:**
   - WinISD's sealed and vented alignments (QB3, BB4, EBS3, EBS6, C4);
   - vent length from tuning, and tuning from length;
@@ -46,10 +46,10 @@ Every curve redraws as you type. There is no Calculate button.
   - when a driver's own figures contradict each other, the app says which ones.
 - **What-if tuning.** Adjust a driver's parameters and the box, and watch the curves respond.
   Nothing is saved; cancel and the design is exactly as it was.
-- **Driver library.** About 1,600 drivers and 80 passive radiators come bundled, with source
-  links, alongside your own saved drivers.
-- **Air per project.** Temperature, humidity and pressure set the speed of sound and the air
-  density. They are set for each project, with WinISD's air model as the default.
+- **Driver library.** 1,603 drivers and 79 passive radiators come bundled, with source links,
+  alongside your own saved drivers.
+- **Air per project.** Each project has its own temperature, humidity and pressure, which set
+  the speed of sound and the air density. WinISD's air model is the default.
 - **Files and sharing:**
   - WinISD `.wdr` and `.wpr`, and OpenISD's own `.owpr` and `.owdr`;
   - share a design as a link;
@@ -67,11 +67,14 @@ only on Windows, and its source was never released. OpenISD carries the idea for
 - **Compatible:**
   - it opens and writes WinISD's files;
   - by default its numbers match WinISD's.
-- **Different where WinISD is wrong:**
+- **Different on purpose:**
   - contradictory inputs are marked, not silently discarded;
   - a typed value is never rewritten behind the user's back;
   - each project keeps its own air conditions.
-- **Not there yet:** 6th-order bandpass, ABC and isobaric loading, some charts, and some filter types.
+- **Not there yet:**
+  - 6th-order bandpass, ABC and isobaric loading;
+  - amplifier load, port gain and radiator transfer function charts;
+  - all-pass, delay and static-gain filters.
 
 Details:
 
@@ -83,7 +86,7 @@ Details:
 ```bash
 npm install
 npm run dev        # development server
-npm run build      # production build in dist/
+npm run build      # production build in packages/ui/dist/
 npm test           # the full test gate
 ```
 
@@ -102,9 +105,8 @@ npm test           # the full test gate
 
 ## Get involved
 
-Contributions are welcome, and you do not need to be an acoustician. A new box type or filter
-is a contained piece of work in `packages/design/engine`. Start with
-[CONTRIBUTING.md](CONTRIBUTING.md) and the [backlog](BACKLOG.md).
+Contributions are welcome. Start with [CONTRIBUTING.md](CONTRIBUTING.md) and the
+[backlog](BACKLOG.md).
 
 Maintainer: [John Lonergan](https://johnlon.github.io/).
 

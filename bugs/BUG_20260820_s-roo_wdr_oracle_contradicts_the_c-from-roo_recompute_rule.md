@@ -1,4 +1,4 @@
-Status: OPEN
+Status: OPEN (re-verified 2026-09-26) — `packages/design/engine/solver.ts` still recomputes c from Roo; `wdr-openisd-round-trip.test.ts` excuses the difference.
 
 # BUG: `drivers/mysamples/winisd/s-roo.wdr` contradicts the researched c-from-roo recompute rule
 

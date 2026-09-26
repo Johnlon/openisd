@@ -1,7 +1,7 @@
 # `OpenISDDriver` getters throw on a record that HAS `specs` but not the `_SpecEntry` shape
 
 # Status
-OPEN
+RESOLVED (re-verified 2026-09-26) — covered by `packages/design/test/winisd/openisdToWdr.test.ts`.
 
 ## Symptom
 

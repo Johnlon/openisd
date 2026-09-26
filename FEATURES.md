@@ -1,6 +1,6 @@
 # OpenISD — features
 
-What the app does today, checked against the code on 2026-09-25, and what is planned.
+What the app does today, and what is planned.
 The comparison with WinISD is in [ARCHITECTURE.md §10](ARCHITECTURE.md#10-feature-comparison-with-winisd-07).
 Other tools in this space are in [docs/research/COMPETITIVE_LANDSCAPE.md](docs/research/COMPETITIVE_LANDSCAPE.md).
 
@@ -49,8 +49,9 @@ Other tools in this space are in [docs/research/COMPETITIVE_LANDSCAPE.md](docs/r
 
 ### Drivers and data
 
-- A bundled catalogue of 1,603 drivers and 79 passive radiators from `winisd_drivers`, with
-  source links. It is searched by name and filtered by type, Fs, Sd and impedance.
+- A bundled catalogue of 1,603 drivers and 79 passive radiators, built from the sibling
+  `winisd_drivers` repository, with source links. It is searched by name and filtered by type,
+  Fs, Sd and impedance.
 - My Drivers and My Passive Radiators, kept in the browser, and driver favourites.
 - Driver editor with E/C/N provenance on every field.
 

@@ -1,6 +1,6 @@
 # BUG_20260917_unsaved-marker-only-on-focused-row — yellow unsaved-changes bar driven by focus, not by dirtiness
 
-**Status:** OPEN
+Status: RESOLVED (re-verified 2026-09-26) — each row's class uses `rowUnsaved(p)`, which reads `p.isModified()`.
 
 Human ruling 2026-09-17 (verbatim): "there is a yello side bar on th eproject list that is
 meant to indicate unsave dchanges but it only show up when the project row has focus - this

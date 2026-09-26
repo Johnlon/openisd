@@ -1,4 +1,4 @@
-Status: OPEN
+Status: OPEN (re-verified 2026-09-26) — modules named `use*` that are not composables still exist.
 
 # The `use` prefix names four modules that are mostly not composables
 

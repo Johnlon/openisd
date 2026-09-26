@@ -1,6 +1,6 @@
 # The drive-voltage → input-power inverse is computed inline in the shell, with a no-driver Re default that disagrees with the forward path
 
-Status: OPEN
+Status: RESOLVED (re-verified 2026-09-26) — the P/V relation lives in `packages/design/engine/formulas.ts` and `signal.ts`, not the shell.
 
 ## Symptom
 

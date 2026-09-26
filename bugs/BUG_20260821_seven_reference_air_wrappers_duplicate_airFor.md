@@ -1,5 +1,4 @@
-Status: PARTIAL — most duplicate wrappers were removed, but the UI still exposes reference-air
-wrappers in `logic/environment.ts`.
+Status: OPEN (re-verified 2026-09-26) — most wrappers are gone; `referenceC` and `referenceRho` in `packages/design/engine/environment.ts` have no callers and should be deleted.
 
 # Seven local reference-air wrappers duplicate `airFor({})`
 

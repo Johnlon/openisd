@@ -1,7 +1,7 @@
 # `sample_project_Epique15_-_pr.wpr` is not WinISD-generated but is treated as if it were
 
 # Status
-OPEN
+RESOLVED (re-verified 2026-09-26) — the hand-authored file was deleted in ade563bb.
 
 ## Symptom
 

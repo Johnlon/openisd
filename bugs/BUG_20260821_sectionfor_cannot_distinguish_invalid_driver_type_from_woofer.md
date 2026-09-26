@@ -1,6 +1,6 @@
 # `sectionFor` maps an undeclared `driver_type` to `woofer`, indistinguishable from valid data — and the model cannot see the enum that defines its own discriminator
 
-Status: OPEN
+Status: CLOSED (re-verified 2026-09-26) — duplicate of `BUG_20260907_driver_type_has_no_closed_set_shared_with_python.md`.
 
 ## Symptom
 

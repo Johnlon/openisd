@@ -1,7 +1,7 @@
 # `archive-bugs.py` reads a `# Status` header inside a code block as a real status header
 
 ## Status
-OPEN
+OPEN (re-verified 2026-09-26) — `scripts/archive-bugs.py` still reads Status lines inside code blocks.
 
 ## Symptom
 

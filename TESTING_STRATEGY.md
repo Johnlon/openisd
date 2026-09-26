@@ -1,115 +1,101 @@
-# Testing Strategy
+# Testing strategy
 
-The single authority on how OpenISD is tested. Decisions, rules, patterns, layers, coupling
-and the anti-patterns to avoid. This is strategy — not minutes. Historic rulings and handover
-logs live in their own files, not here.
-
-`.claude/rules/testing.md` (path-scoped to code/test files) points here; `ARCHITECTURE.md` and `README.md` link it from the docs
-graph. `docs/plans/PLAN_COMPONENT_TEST_REORG.md` is the work plan that shaped the naming/decoupling rules.
+How OpenISD is tested: the rules, the tiers, the patterns, and what runs when.
+`.claude/rules/testing.md` points here.
 
 ## Principles
 
 1. **TDD is mandatory for every code change.** Write the failing test first, watch it fail
    for the right reason, implement, watch it pass, then run the domain suite. A failing test
-   is information — the code and the spec disagree.
+   is information: the code and the spec disagree.
 2. **A skip is a fail.** Never delete, skip, weaken or corrupt a test to make the suite green.
-   The only legitimate removals: a human ruling in `questions.yml`/spec, a duplicate test, or
-   deliberately-unwanted behaviour confirmed by a human. When the UI changed, fix the test to
-   match the current UI.
+   The only legitimate removals: a human ruling in `questions.yml` or a spec, a duplicate test,
+   or behaviour a human has confirmed is unwanted. When the UI changed, fix the test to match
+   the current UI.
 3. **No silent narrowing.** `test.only` is forbidden; an empty run must fail; a
    `--pass-with-no-tests` outcome is a broken gate, not success.
 4. **Name files by the object under test** (see Naming). A file named after a skin or a layer
-   is an anachronism.
+   is wrong.
 5. **Features are decoupled at the test level.** A test of one component never drives another
    component's UI to reach its assertion. Setup reaches state through the **domain seam**
-   (`appState`), not through a sibling feature. The only exception: a test whose intent is to
+   (`appState`), not through a sibling feature. The exception is a test whose intent is to
    verify the coupling in the app itself.
-6. **A test ensures its own initial condition.** It switches to the tab/popup it intends.
+6. **A test ensures its own initial condition.** It switches to the tab or popup it intends.
    Only the test whose purpose is the default may assert the default; nothing assumes what the
-   app "happened to load".
-7. **Hardcoded expected numbers are live-verified against the running app** — never hand-derived.
+   app happened to load.
+7. **Hardcoded expected numbers are verified against the running app**, never hand-derived.
 8. **UI tests are the expensive tier.** Keep them fast and focused: waits sized to real
-   interactions (tens of ms), no bloated timeouts, run in parallel where the box allows, and
-   while fixing the failing set never re-run the passing tests. The json reporter persists
-   per-test durations so every speed claim is answerable.
+   interactions (tens of ms), no inflated timeouts, parallel where the machine allows. While
+   fixing a failing set, do not re-run the passing tests. The json reporter records per-test
+   durations, so every speed claim can be checked.
 
-## Layers
+## Tiers
 
-Three tiers keep the slow, browser-bound surface as small as the connected acceptance story
-allows.
+| Tier | What                                             | Runner        | Where                                     |
+|------|--------------------------------------------------|---------------|-------------------------------------------|
+| 1    | Physics, solvers, domain, serialisation          | Vitest (node) | `packages/design`, `packages/persistence` |
+| 2    | Hooks and logic                                  | Vitest (node) | `packages/ui` (`*.test.ts`)               |
+| 3    | The app in a real browser (DOM, hooks, engine)   | Playwright    | `packages/ui` (`*.browser.spec.ts`)       |
 
-| Tier | What | Runner | Where |
-|---|---|---|---|
-| 1 | Core physics, solvers, serialization | Vitest (node) | `packages/design`, `packages/persistence` |
-| 2 | Hooks/composables + component unit tests | Vitest (node) | `packages/ui` (`.test.ts`) |
-| 3 | End-to-end acceptance scenarios (real DOM + hooks + engine) | Playwright | `packages/ui` (`.browser.spec.ts`) |
+Decisions belong in hooks (`*-hooks.ts`), not in `.vue` files, so most coverage runs at Tier 2
+speed. The architecture tests enforce the layering that makes this possible:
 
-- Decisions belong in composables/hooks, not `.vue` — that keeps most coverage at Tier 2 speed.
-  The architecture test enforces "a line in a `.vue` that makes a decision belongs in a composable".
-- All UI tests are retained; the Tier-3 acceptance set is a curated subset of them (see below).
+- `packages/ui/test/ui/architecture.test.ts`: every import points down the layers; a component
+  imports no value from the domain; services export factories, not instances or mutable
+  bindings; only the approved stores hold state; only licensed logic modules construct an
+  `OpenISDDriver`.
+- `packages/design/test/architecture-*.test.ts`: no casts, no globals, the engine boundary,
+  `OpenISDProject` holds exactly three record fields, and records match `openisd.json`.
+
+## Goldens and coverage
+
+- `packages/design/test/engine/golden.test.ts` compares engine output with committed fixtures
+  in `packages/design/test/fixtures/golden/`.
+- `packages/design/test/winisd/` compares OpenISD with projects WinISD itself saved (`.wpr`);
+  see [RESEARCH.md](RESEARCH.md#methods) for how those files were captured by driving WinISD
+  under wine.
+- `npm run coverage:design` reports coverage for `packages/design`. The target is 100% for the
+  engine and domain.
 
 ## Patterns
 
 - **Domain-seam setup:** `page.evaluate` → `/src/logic/appState.ts` →
-  `requireFocusedProject()...set()`, then drive only the object under test via the UI. This is
-  how a component test sets up state without coupling to a sibling feature's UI.
-- **Tune is its own feature.** Never open the Tune panel to enter driver params for a Box
-  test (that couples every Box test to Tune). `tune-panel` owns its own contract: live-edit
-  lands immediately, Cancel/✕/Reset semantics, the Q-group completion (Qts → Qes/Qms), the
-  Rg / source-loaded Qts interaction, and two-way sync with the project.
-- **Runtime-generated fixtures.** `sample-project.owpr` is generated at test time by
-  `generateSample.ts` — never edit the JSON by hand; fix the generator. Reference drivers and
-  their expected values live in `packages/ui/test/fixtures/reference-drivers.ts`.
-- **Wiring tests are physics-agnostic.** Where a test proves "the readout re-renders when the
-  domain moves" it compares the rendered number to the live domain cell at the field's display
+  `requireFocusedProject()...set()`, then drive only the object under test through the UI.
+- **Tune is its own feature.** Never open the Tune panel to enter driver parameters for a Box
+  test. `tune-panel` specs own the panel's contract: live edits, Cancel/✕/Reset, the Q-group
+  completion and two-way sync with the project.
+- **Generated fixtures.** `sample-project.owpr` is generated at test time by
+  `packages/ui/test/fixtures/generateSample.ts`; fix the generator, never the JSON. Reference
+  drivers and their expected values are in `packages/ui/test/fixtures/reference-drivers.ts`.
+- **Wiring tests are physics-agnostic.** A test that proves "the readout re-renders when the
+  domain moves" compares the rendered number with the live domain value at the field's display
   precision, rather than pinning a value that drifts when the engine changes.
 
-## Coupling & architecture anti-patterns
+## Anti-patterns
 
-Avoid these; each has a gate test where it is enforceable:
+Each has a gate test where it can be enforced:
 
-- A component that makes a decision instead of delegating to a composable.
+- A component that makes a decision instead of delegating to a hook.
 - A domain value crossing the component boundary.
-- A module with two responsibilities; a global / mutable module scope; casts and `any`.
-- A test file that is a grab-bag spanning many objects — split it by object.
-- Sibling-feature UI used as setup (see Decoupling).
-- Coupling that *is* intended is fine only when tested explicitly as its own contract.
+- A module with two responsibilities; mutable module scope; casts and `any`.
+- A test file that spans many objects: split it by object.
+- Sibling-feature UI used as setup.
+- Intended coupling is fine only when it is tested as its own contract.
 
 ## Naming
 
-A browser-spec file is named after the human-recognisable component it exercises.
+A browser spec is named after the component a user would recognise: `box-tab…`,
+`signal-tab…`, `tune-panel…`, `options-dialog…`, `driver-editor…`, `new-project-wizard…` and
+so on. The rename of older files is tracked in
+[docs/plans/PLAN_COMPONENT_TEST_REORG.md](docs/plans/PLAN_COMPONENT_TEST_REORG.md).
 
-| Component (tab/popup) | File |
-|---|---|
-| Box tab | `box-tab…` |
-| Enclosure/Vents tab | `enclosure-tab…` |
-| Signal tab | `signal-tab…` |
-| Advanced tab | `advanced-tab…` |
-| Project tab | `project-tab…` |
-| Filters tab | `filters-tab…` |
-| Tune panel | `tune-panel…` |
-| Options dialog | `options-dialog…` |
-| Alignment popup | `alignment-popup…` |
-| Driver browser / editor | `driver-browser…`, `driver-editor…` |
-| New Project wizard | `new-project-wizard…` |
-| Shell structure (layout/narrow) | `shell-layout…`, `shell-narrow…` |
+## What runs when
 
-See `docs/plans/PLAN_COMPONENT_TEST_REORG.md` for the current→target rename map.
+| When        | Runs                                                                                  |
+|-------------|---------------------------------------------------------------------------------------|
+| Pre-commit  | Lint, typecheck, Tier 1 and 2. A commit of `.md` files only runs lint and typecheck.  |
+| Pre-push    | `npm run ci`: lint, typecheck, then every Tier 1, 2 and 3 test. Doc-only pushes run lint and typecheck. |
+| `npm test`  | Every Vitest test, then every browser spec.                                           |
 
-## Acceptance scenarios
-
-The Tier-3 acceptance set is a curated subset of the UI suite covering the connected journeys:
-
-1. Project creation & driver selection (wizard → browser → pick → project).
-2. Driver editor & storage persistence (edit T/S → save → reload → persisted).
-3. Enclosure tuning & real-time graph (box type switch → Vb/Fb edits → canvas redraw).
-4. File import/export & share link (`.wdr`/`.owdr`/`.wpr`/`.owpr` → share URL → fidelity).
-5. Multi-project tab session (focus switch → edit → state isolation).
-
-## Execution
-
-- **Pre-commit:** lint + typecheck + Tier 1/2 unit tests.
-- **Pre-push / health check:** the above + Tier-3 acceptance scenarios in parallel.
-- Guards: workers are memory-capped (OOM history); `maxFailures` stops a collapsed run from
-  manufacturing a total; the no-skips reporter turns a skip into a fail; the json reporter
-  records durations on every run.
+Guards: Playwright workers are memory-capped; `maxFailures` stops a collapsed run early; the
+no-skips reporter turns a skip into a failure; the json reporter records durations on every run.

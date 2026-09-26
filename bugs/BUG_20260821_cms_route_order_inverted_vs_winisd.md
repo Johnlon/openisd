@@ -1,8 +1,7 @@
 # The engine's `Cms` route order is inverted against WinISD's address order
 
 # Status
-RESOLVED — the current solver evaluates the `Vas/Sd` route before the `Fs/Mms` route, matching
-the WinISD relation order.
+RESOLVED (re-verified 2026-09-26) — the Cms routes are in WinISD's order in `packages/design/engine/solver.ts`.
 
 ## Symptom
 

@@ -1,9 +1,7 @@
 # The consistency detector never checks `EBP` against `Fs`/`Qes`
 
 # Status
-FIXED 2026-08-22 — `EBP = Fs/Qes` added to RELATIONS (red-first: EBP=120 against
-Fs/Qes implying 70 passed silently, now marked); engine suite green; the header's
-row-12 exclusion note removed.
+RESOLVED (re-verified 2026-09-26) — `packages/design/engine/solver.ts` has the EBP route to Fs.
 
 ## Symptom
 

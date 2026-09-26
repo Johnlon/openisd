@@ -1,7 +1,7 @@
 # No parity golden for `solve-from-mms-cms` — WinISD crashes capturing it
 
 ## Status
-OPEN — blocked by a WinISD-side crash under wine, not by a harness gap.
+OPEN (re-verified 2026-09-26) — WinISD still crashes capturing this scenario; the parity test excuses it in `packages/design/test/winisd/winisd-parity-functional.test.ts`.
 
 ## Symptom
 

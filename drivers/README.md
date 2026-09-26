@@ -3,8 +3,8 @@
 Related docs:
 [`WINISD_SCHEMA.md`](../docs/design/WINISD_SCHEMA.md) — WDR field spec ·
 [`BACKLOG.md` "Driver type classification and matching"](../BACKLOG.md) — the driver file model ·
-[`DRIVER_TYPES.md`](DRIVER_TYPES.md) — classification rules ·
-[`VENDOR-APIS.md`](VENDOR-APIS.md) — vendor API research
+[`DRIVER_TYPES.md`](../../winisd_tools/DRIVER_TYPES.md) — classification rules ·
+[`VENDOR-APIS.md`](../../winisd_tools/VENDOR-APIS.md) — vendor API research
 
 OpenISD's driver data is an open commons. The app consumes one bundled corpus from the sibling
 `winisd_drivers/db/datasheets` checkout. A record is `<driver>/openisd.json`, written by

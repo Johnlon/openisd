@@ -1,8 +1,7 @@
 # `restoreProblems` is written by store.ts but read by nothing — a restore failure is silently dropped
 
 # Status
-OBSOLETE/SUPERSEDED — the cited store and `restoreProblems` path were removed by the current
-application-state and persistence architecture.
+CLOSED (re-verified 2026-09-26) — obsolete: `store.ts` is gone; `App.vue` shows restore failures.
 
 ## Symptom
 

@@ -1,7 +1,7 @@
 # Driver-editor fields and project values are silently dropped on file write
 
 ## Status
-OPEN — two findings, both tracked in `BACKLOG.md` as F2 and F3.
+OPEN (re-verified 2026-09-26) — PR Vas and F2 are fixed. F3 remains: `alfaVC` and `dTVC` are written to `.wpr` as literals (`packages/design/winisd/winisdProject.ts`).
 
 ## Symptom
 

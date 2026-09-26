@@ -1,7 +1,7 @@
 # A record with no `specs` key reaches `OpenISDDriver` and throws
 
 ## Status
-OPEN — producer not identified.
+RESOLVED (re-verified 2026-09-26) — `scripts/verify-app-runs.mjs` checks the deployed app runs, and `fromConformingRecord` validates a record before `OpenISDDriver` reads it (`packages/design/domain/openisdSchema.ts`).
 
 ## Symptom
 

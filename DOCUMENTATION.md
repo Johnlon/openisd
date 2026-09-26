@@ -13,9 +13,8 @@
 | [BUGS.md](BUGS.md)                                                 | Known open bugs                                                                  |
 | [TESTING_STRATEGY.md](TESTING_STRATEGY.md)                         | How the app is tested                                                            |
 | [CONTRIBUTING.md](CONTRIBUTING.md)                                 | How to contribute                                                                |
-| [AGENTS.md](AGENTS.md)                                             | Rules for agents working in this repository                                      |
 
-`questions.yml` is the decision ledger. Read and write it only through `~/.claude/bin/inbox.py`.
+`questions.yml` is the decision ledger.
 
 ## Specifications
 

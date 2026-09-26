@@ -1,4 +1,4 @@
-Status: OPEN
+Status: CLOSED (re-verified 2026-09-26) — obsolete: `mutate` is gone; metadata fields are `SetOnlyFieldImpl` on the driver.
 
 # A metadata override becomes permanently unclearable after any unrelated box/vent/PR edit
 

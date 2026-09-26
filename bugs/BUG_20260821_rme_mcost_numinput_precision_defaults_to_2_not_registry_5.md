@@ -1,6 +1,6 @@
 # Rme and Mcost NumInputs default to 2 dp while the registry declares precision 5
 
-Status: OPEN
+Status: OPEN (re-verified 2026-09-26) — `DriverEditorModal.vue` still passes no `:precision` for Rme and Mcost.
 
 ## Symptom
 

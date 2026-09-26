@@ -1,7 +1,7 @@
 # `questions.yml` has two entries both titled `id: QO56` — `inbox.py get QO56` silently returns the wrong one
 
 # Status
-RESOLVED (2026-08-22, per main-exec)
+RESOLVED (re-verified 2026-09-26) — `questions.yml` has one QO56.
 
 ## Symptom
 
