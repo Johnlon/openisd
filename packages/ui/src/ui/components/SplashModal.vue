@@ -63,11 +63,10 @@ const {open, dismiss} = injectSplashModal();
       </section>
 
       <section>
-        <h3>Honesty about where the two tools differ</h3>
+        <h3>Where we differ from WinISD</h3>
         <p>
-          Where OpenISD and WinISD disagree, the disagreement is written down rather than hidden
-          — which tool is right, why, and what we chose:
-          <a :href="`${REPO}/blob/main/OPENISD_WINISD_GAPS_AND_BUGS.md`" target="_blank" rel="noopener">WinISD gaps and bugs</a>.
+          Some numbers do not match WinISD's. Each one is written up — which tool is right, and
+          why: <a :href="`${REPO}/blob/main/OPENISD_WINISD_GAPS_AND_BUGS.md`" target="_blank" rel="noopener">WinISD gaps and bugs</a>.
         </p>
       </section>
 
