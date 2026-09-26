@@ -34,7 +34,9 @@ protection applies to them as to your own.
 
 ## WinISD controls behave as native WinISD
 
-OpenISD's goal: by default, behave 100% like WinISD, warts and bugs included. Every control
+Goal: by default OpenISD behaves 100% like WinISD, warts and calculation bugs included (not
+crashes, hangs or data loss). Stretch goal:
+other conventions, behind switches (below). Every control
 OpenISD shares with WinISD behaves exactly as WinISD does, on its own and by default (e.g. "Rg
 is at driver side"). Conventional behaviour is extra, for interest and education, and sits only
 behind a separate WinISD-vs-conventional switch: its own compat checkbox, or an n-way drop-down

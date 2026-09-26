@@ -64,6 +64,13 @@ Every curve redraws as you type. There is no Calculate button.
 WinISD, by Linearteam, is the tool this project grew from. It stopped at version 0.7, runs
 only on Windows, and its source was never released. OpenISD carries the idea forward.
 
+- **Goal:** by default, OpenISD behaves 100% like WinISD, warts and calculation bugs included
+  (not crashes, hangs or data loss). Every
+  control the two share does what it does in WinISD.
+- **Stretch goal:** for interest and education, offer other conventions, such as the textbook
+  models, where WinISD departs from them. Each one sits behind its own switch or drop-down in
+  the WinISD Compatibility panel. Left untouched, those switches give WinISD's answer.
+
 - **Compatible:**
   - it opens and writes WinISD's files;
   - by default its numbers match WinISD's.
