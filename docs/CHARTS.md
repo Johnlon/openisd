@@ -244,13 +244,14 @@ not implemented in OpenISD.
 
     VA = P · Re · |Hf|² / |Z + Rg|,   P = eg²/(Re + Rg)
 
-- Source: `sweep.ts` `va`. Z is the impedance chart's value; Rg is added whatever its placement.
+- Source: `sweep.ts` `va`. Z is the impedance chart's value; Rg is added whatever its placement,
+  so with "Rg is at driver side" on Rg is counted twice, as WinISD does.
 - WinISD (`f_46bd30` case 0x14): the chart routine returns Z, and the plot code applies this
   formula. WinISD bug, kept by default: Re where the amplifier's apparent power has Re + Rg, so it
   reads Re/(Re + Rg) low ([bug](../bugs/BUG_20260927_winisd-va-uses-re-not-re-plus-rg.md)).
   "WinISD VA model" off: P·(Re + Rg)·|Hf|²/|Z_amp|.
-- Evidence: `winisd_research/runs/sweep-w5-sealed-va-rg1` (Rg 1 Ω, driver side off), all 2087
-  points to 3e-16.
+- Evidence: `winisd_research/runs/sweep-w5-sealed-va-rg1` (Rg 1 Ω, driver side off) and
+  `sweep-w5-sealed-va-rg1-driverside` (driver side on), all 2087 points each to 3e-16.
 
 ### 3.14 Not implemented — absent
 

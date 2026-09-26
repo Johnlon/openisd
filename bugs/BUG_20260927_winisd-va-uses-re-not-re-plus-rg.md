@@ -34,13 +34,15 @@ already holds Rg). Reset to WinISD turns it on.
 Size of the bug: a flat factor Re/(Re + Rg), 10·log10 of it in dB. W5 (Re 3.4 Ω): Rg 0.1 Ω
 −2.9 % (−0.13 dB), Rg 1 Ω −22.7 % (−1.12 dB), Rg 0 none.
 
-⚠ Unverified: WinISD adds Rg to Z even with "Rg is at driver side" on, where Z already carries
-Rg (code path is unconditional; not captured). Dual voice coil and multi-driver arrays not
-captured.
+With "Rg is at driver side" on, WinISD counts Rg twice: Z already holds Rg and the VA formula adds
+it again (capture `winisd_research/runs/sweep-w5-sealed-va-rg1-driverside`: Z 4.4 Ω at 20 kHz,
+VA 0.6296 = 1 W·3.4/|4.4 + 1|, formula fits all 2087 points to 3e-16). OpenISD's default does the
+same. ⚠ Unverified: dual voice coil and multi-driver arrays, not captured.
 
 ## Verification
 
-`winisdDriverModel.test.ts`: VA at 1, 65.36 and 20000 Hz, Rg 1 Ω, equals WinISD's to 1e-9.
+`winisdDriverModel.test.ts`: VA at 1, 65.36 and 20000 Hz, Rg 1 Ω, equals WinISD's to 1e-9, with
+Rg at the amplifier and at the driver side.
 `va-chart.browser.spec.ts`: the chart reads out in VA.
 `winisdVaModel.test.ts`: off is (Re + Rg)/Re × WinISD's; Rg counted once whatever its placement;
 Reset turns it on; saved and read back. `advanced-inductance.browser.spec.ts`: the checkbox, its

@@ -200,6 +200,20 @@ describe('winisdDriverModel — the whole WinISD parameter set, not Mms alone', 
       expect(Math.abs(got / va - 1)).toBeLessThan(1e-9);
     });
 
+    // winisd_research runs/sweep-w5-sealed-va-rg1-driverside: Rg at driver side, so Z already holds
+    // Rg (4.4 Ω at 20 kHz) and WinISD adds Rg again: VA = P·Re·|Hf|²/|Z + Rg|.
+    it.each([
+      [1.0, 0.6272023727533522],
+      [65.35861309217313, 0.16491643940526038],
+      [20000, 0.6296269202788077],
+    ])('amplifier apparent load power at %s Hz, Rg 1 Ω at driver side, is WinISD\'s %s VA: Rg counted twice', (f, va) => {
+      const project = w5(new Engine());
+      project.Rs_ohm.set(1);
+      project.rgAtDriverSide.set(true);
+      const got = project.sweep(at(f)).values!.va[0];
+      expect(Math.abs(got / va - 1)).toBeLessThan(1e-9);
+    });
+
     it('with voice coil inductance on, the flag selects WinISD\'s inductance model: on − off is −22.266 dB at 20 kHz', () => {
       const engine = new Engine();
       const off = w5(engine).sweep(at(20000)).values!.spl[0];

@@ -686,6 +686,11 @@ VA = P·Re·|Hf|²/|Z + Rg| reproduces all 2087 points to 3e-16, and OpenISD's `
 to 1e-9 at 1, 65.36 and 20000 Hz (`winisdDriverModel.test.ts`). WinISD uses Re where the apparent
 power has Re + Rg: [BUG_20260927_winisd-va-uses-re-not-re-plus-rg](http://localhost:8000/winisd/openisd/bugs/BUG_20260927_winisd-va-uses-re-not-re-plus-rg.md?html).
 
+Record
+[sweep-w5-sealed-va-rg1-driverside](http://localhost:8000/winisd/winisd_research/runs/sweep-w5-sealed-va-rg1-driverside/gdb.log)
+(Rg 1 Ω, driver side on): Z already holds Rg (4.4 Ω at 20 kHz) and WinISD adds Rg again, so VA =
+1 W·3.4/|4.4 + 1| = 0.6296 there. Same formula, all 2087 points to 3e-16; OpenISD matches to 1e-9.
+
 ---
 
 ## 4. Causes, all fixed on 2026-09-26
