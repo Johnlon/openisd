@@ -235,7 +235,7 @@ const UI_FIELD_SPECS: UIFieldSpec[] = [
   },
   {
     id: 'adv_WinisdInductance', aliases: ['winisdInductance'], label: 'WinISD inductance model', pane: 'Advanced', kind: 'toggle', unit: '',
-    description: 'WinISD-Compatible Inductance\nReproduces WinISD\'s inductance roll-off, which we judge a WinISD bug: Le\'s acoustic element uses the entered BL, the damping uses the BL implied by Fs/Qes/Vas/Re. Differs from the textbook roll-off only when those two BLs disagree.',
+    description: 'WinISD Inductance Model\nTicked (WinISD): the inductance\'s acoustic element uses the entered BL, while the damping uses the BL implied by Fs, Qes, Vas and Re. We judge this a WinISD bug.\nUnticked (conventional): the textbook voice coil, Re + Rg + jωLe, drives the motor with one BL throughout.\nThe two differ only when the entered BL disagrees with the BL that Fs, Qes, Vas and Re imply.',
   },
   {
     id: 'adv_ForceFlatResponse', aliases: ['forceFlatResponse'], label: 'Force flat response', pane: 'Advanced', kind: 'toggle', unit: '',
@@ -255,7 +255,7 @@ const UI_FIELD_SPECS: UIFieldSpec[] = [
   },
   {
     id: 'adv_UseWinisdAirModel', aliases: ['useWinisdAirModel'], label: 'WinISD air model', pane: 'Advanced', kind: 'toggle', unit: '',
-    description: 'Air Model Selection\nWinISD\'s own air equations, or the CIPM moist-air standard.',
+    description: 'WinISD Air Model\nTicked (WinISD): WinISD\'s own air equations: Hyland-Wexler vapour pressure with no enhancement factor, density from γ·p/c², at this project\'s temperature, humidity and pressure.\nUnticked (conventional): the CIPM-2007 moist-air standard (BIPM), with the speed of sound from Laplace\'s adiabatic relation.',
   },
 
   // ============================ DRIVER EDITOR — T/S (Parameters tab) ============================

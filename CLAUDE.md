@@ -39,10 +39,11 @@ crashes, hangs or data loss). Stretch goal: other conventions, for interest and 
 
 - Every control OpenISD shares with WinISD behaves exactly as WinISD does, by default (e.g. "Rg
   is at driver side").
-- A conventional variant sits behind a WinISD-vs-conventional choice, in one of two forms:
-  - its own compat checkbox or drop-down (e.g. the loss model);
-  - or the native control becomes a drop-down that splits its "on" state: "Rg is at driver side:
-    off / on – WinISD / on – Conventional". Its default is WinISD's default.
+- A conventional variant sits behind its own WinISD-vs-conventional control in the WinISD
+  Compatibility panel: a checkbox ("WinISD inductance model") or a drop-down (the loss model).
+  The native control stays as WinISD has it. (Splitting the native control's "on" state into a
+  drop-down, "off / on – WinISD / on – Conventional", is also permitted, but separate controls
+  are the pattern in use.)
 - "Reset to WinISD" changes only the WinISD-vs-conventional choice. It never changes whether a
   native control is on or off, and never changes project data.
 

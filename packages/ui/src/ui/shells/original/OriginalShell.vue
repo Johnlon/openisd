@@ -626,12 +626,12 @@ WinISD Lossy (default): reports the lossy 3rd-order model's pole, so Fsc rises a
                 </div>
               </div>
               <div style="margin-bottom: 6px;">
-                <label data-field-key="useWinisdDriverModel" style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 13px;" :title="`WinISD Driver Calculation Mode Toggle:\n• Checked (the default): Engine sweep uses the driver WinISD's own simulation acts on — Cms = Vas/(ρ·c²·Sd²), then Mms = 1/((2π·Fs)²·Cms), Rms = 2π·Fs·Mms/Qms and BL = √(Re/(2π·Fs·Qes·Cms)) — in place of entered values that conflict with them. The entered BL still sets the voice-coil inductance roll-off, as it does in WinISD.\n• Unchecked: Engine sweep uses entered datasheet values directly.`">
+                <label data-field-key="useWinisdDriverModel" style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 13px;" :title="`WinISD Driver Calculations\nTicked (WinISD, the default): the simulation uses the driver WinISD acts on. Cms comes from Vas, then Mms, Rms and BL from Fs, Qms and Qes. Entered values that disagree are not used by the simulation. The entered BL still sets the inductance roll-off, as in WinISD.\nUnticked (conventional): the simulation uses the entered datasheet values directly.`">
                   <input type="checkbox" :checked="project.useWinisdDriverModel.value" @change="e => project.useWinisdDriverModel.set(inputChecked(e))"> WinISD driver calculations
                 </label>
               </div>
               <div style="margin-bottom: 8px;">
-                <label data-field-key="useWinisdAirModel" style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 13px;" :title="`WinISD Air Model Parity Toggle:\n• Checked: Uses WinISD 0.7 legacy air formulas (c = 343.20 m/s, ρ = 1.1960 kg/m³ at 20°C).\n• Unchecked: Uses modern CIPM-2007 thermodynamic real-gas equations (temperature, humidity, pressure).`">
+                <label data-field-key="useWinisdAirModel" style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 13px;" :title="fieldHelp('useWinisdAirModel')">
                   <input type="checkbox" :checked="project.envUseWinisdAirModel.value" @change="e => project.envUseWinisdAirModel.set(inputChecked(e))"> WinISD air model
                 </label>
               </div>
