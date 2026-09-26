@@ -7,10 +7,16 @@
  * holding the user's open projects. One refusal by the record validator therefore destroyed
  * every open project instead of failing one boot. Reported from https://openisd.app/ on
  * 2026-09-25 with exactly those 31 bytes in storage.
+ *
+ * The boot copies such a record to `openisd_quarantine_session` before anything can write over
+ * it — the same move the driver doors make with a record they refuse. The app then carries on
+ * with a working session key instead of failing the same way on every future load, and the
+ * bytes stay recoverable.
  */
 import {expect, openAProject, test} from '../fixtures.js';
 
-/** A session record whose entries are well-formed JSON but not loadable projects. */
+/** A session record of the right shape whose entries are not loadable projects — every entry
+ *  is refused, so the boot restores nothing and quarantines the record. */
 const UNREADABLE = '{"entries":[{"id":"a","text":"{}","modified":""},{"id":"b","text":"{}","modified":""}],"focusedId":"b"}';
 
 async function bootWithUnreadableSession(page: import('@playwright/test').Page): Promise<void> {
@@ -25,13 +31,18 @@ async function bootWithUnreadableSession(page: import('@playwright/test').Page):
 const storedSession = (page: import('@playwright/test').Page) =>
   page.evaluate(() => localStorage.getItem('openisd_open_sessions'));
 
-test('the unreadable record is left exactly as it was found', async ({page, browserLog}) => {
+const quarantined = (page: import('@playwright/test').Page) =>
+  page.evaluate(() => localStorage.getItem('openisd_quarantine_session'));
+
+test('the unreadable record is kept, byte for byte, where the next save cannot reach it', async ({page, browserLog}) => {
   await bootWithUnreadableSession(page);
   // The boot reports the refusal to the user, which is how we know it has run far enough to
   // have written the record had it been going to.
-  await expect(page.locator('.flash')).toContainText('Could not restore open projects');
+  await expect(page.locator('.flash')).toContainText('of your open projects');
   browserLog.reset();   // that message is expected; this test is about the record
-  expect(await storedSession(page)).toBe(UNREADABLE);
+
+  expect(await quarantined(page)).toBe(UNREADABLE);
+  expect(await storedSession(page)).not.toBe(UNREADABLE);   // the live key is usable again
 });
 
 test('saving resumes once a project is open again', async ({page, browserLog}) => {

@@ -8,7 +8,7 @@ import {OpenISDProject} from '@openisd/design';
 import type {Engine} from '@openisd/design/engine';
 import type {FileStorage, SaveResult} from '../storage/fileStorage.js';
 import type {KeyValueStorage} from '../storage/keyValueStorage.js';
-import {OPENISD_OPEN_SESSIONS_KEY, OPENISD_PROJECTS_KEY, OPENISD_STATE_KEY,} from './storageKeys.js';
+import {OPENISD_OPEN_SESSIONS_KEY, OPENISD_PROJECTS_KEY, OPENISD_QUARANTINE_SESSION_KEY, OPENISD_STATE_KEY,} from './storageKeys.js';
 import {createProjectSchemaUpgrade} from './projectSchemaUpgrade.js';
 
 export interface FileNaming { suggestedName: string; mime: string; label: string; ext: string }
@@ -54,8 +54,15 @@ export interface ProjectRepo {
   loadStoredProject(id: string): OpenISDProject | string[];
   /** Persist the current open-project session for refresh recovery. */
   saveOpenProjects(projects: readonly OpenISDProject[], focused: OpenISDProject | null): void;
-  /** Restore the open-project session, or null when no refresh session exists. */
+  /** Restore the open-project session, or null when no refresh session exists. A `string[]`
+   *  means the record itself is unusable — bad JSON, or not the shape of a session — so there
+   *  is nothing to restore from it. An entry that will not read is reported in the session's
+   *  own `refused`, not here. */
   loadOpenProjects(): OpenProjectSession | string[] | null;
+  /** Copy the stored session record to the quarantine key, leaving the original in place.
+   *  Called when a record holds entries that would not read, so the next save cannot take
+   *  them with it. A no-op when there is no stored record. */
+  quarantineOpenSession(): void;
 }
 
 export interface StoredProjectListing {
@@ -67,11 +74,16 @@ export interface StoredProjectListing {
 export interface OpenProjectSession {
   readonly projects: OpenISDProject[];
   readonly focusedIndex: number;
+  /** One message per entry the record held that could not be read. The entries that did read
+   *  are in `projects` — a refusal costs its own project, never the others. The record itself
+   *  is untouched; `quarantineOpenSession()` copies it aside before anything overwrites it. */
+  readonly refused: readonly string[];
 }
 
 const PROJECT_STORAGE_KEY = OPENISD_STATE_KEY;
 const PROJECTS_STORAGE_KEY = OPENISD_PROJECTS_KEY;
 const OPEN_SESSION_STORAGE_KEY = OPENISD_OPEN_SESSIONS_KEY;
+const QUARANTINE_SESSION_STORAGE_KEY = OPENISD_QUARANTINE_SESSION_KEY;
 const LEGACY_PROJECT_STORAGE_KEY = 'openisd.project';
 const LEGACY_PROJECTS_STORAGE_KEY = 'openisd.projects';
 
@@ -268,14 +280,23 @@ export function createProjectRepo(
       const payload = openSessionPayload(parsed);
       if (!payload) return ['open project session has an invalid shape'];
       const projects: OpenISDProject[] = [];
+      const refused: string[] = [];
+      let focusedIndex = 0;
       for (const entry of payload.entries) {
         const project = this.readProjectText(entry.text);
-        if (Array.isArray(project)) return project;
+        if (Array.isArray(project)) {
+          refused.push(`entry ${entry.id}: ${project.join('; ')}`);
+          continue;
+        }
         storedIdentity.set(project, entry.id);
+        if (entry.id === payload.focusedId) focusedIndex = projects.length;
         projects.push(project);
       }
-      const focusedIndex = payload.focusedId === null ? 0 : payload.entries.findIndex(entry => entry.id === payload.focusedId);
-      return { projects, focusedIndex: focusedIndex < 0 ? 0 : focusedIndex };
+      return { projects, focusedIndex, refused };
+    },
+    quarantineOpenSession(): void {
+      const text = storage.get(OPEN_SESSION_STORAGE_KEY);
+      if (text !== null) storage.set(QUARANTINE_SESSION_STORAGE_KEY, text);
     },
   };
 }

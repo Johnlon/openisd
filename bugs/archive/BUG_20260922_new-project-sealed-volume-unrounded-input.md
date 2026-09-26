@@ -1,6 +1,6 @@
 # BUG_20260922_new-project-sealed-volume-unrounded-input
 
-**Status:** RESOLVED
+Status: RESOLVED (re-verified 2026-09-26) — confirmed against `OgNewProject.vue`'s current sealed-volume input.
 
 ## Symptom
 On the New Project wizard's sealed-box step, the "Box volume" input field shows the

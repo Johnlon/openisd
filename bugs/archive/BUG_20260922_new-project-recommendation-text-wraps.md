@@ -1,6 +1,6 @@
 # BUG_20260922_new-project-recommendation-text-wraps
 
-**Status:** RESOLVED
+Status: RESOLVED (re-verified 2026-09-26) — confirmed against `OgNewProject.vue`'s current readout markup.
 
 ## Symptom
 On the New Project wizard's sealed-box and vented-box readout panels, the

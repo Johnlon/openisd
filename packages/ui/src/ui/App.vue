@@ -9,23 +9,20 @@ import Flash from './components/Flash.vue';
 import DiagnosticsModal from './components/DiagnosticsModal.vue';
 import SplashModal from './components/SplashModal.vue';
 import {
-  applyLoadedProject,
   applyState,
-  applyViewSnapshot,
   currentViewSnapshot,
   focusedProject,
-  markProjectSaved,
   openProjects,
   projectChanged,
   requireFocusedProject,
-  restoreProjects,
 } from '../logic/appState.js';
+import {bootApplication} from '../logic/boot.js';
 import {presentationState} from '../logic/presentationState.js';
 import {provideFocusedProject} from '../logic/focusedProjectContext.js';
 import {useApp} from '../logic/app.js';
 import {provideSplashModal} from '../hooks/SplashModal-hooks.js';
 
-const { projectRepo, viewStateRepo, logging } = useApp();
+const { projectRepo, viewStateRepo, logging, selection } = useApp();
 
 // App.vue is the shell-agnostic root: it owns app lifecycle (persist / hash) and the global
 // overlays. The shell renders WITH or WITHOUT a project — with none it shows the toolbar plus
@@ -54,8 +51,6 @@ async function handleHashChange() {
 
 let saveReady = false;
 let viewSaveReady = false;
-/** The stored session refused to load. Nothing may overwrite that record this boot. */
-let sessionUnreadable = false;
 watch(projectChanged, () => {
   if (!saveReady) return;
   projectRepo.saveOpenProjects(openProjects(), focusedProject());
@@ -69,54 +64,18 @@ watch(currentViewSnapshot, snapshot => {
 }, { deep: true });
 
 onMounted(async () => {
-  const fromUrl = await projectRepo.loadFromHash();
-  if (Array.isArray(fromUrl)) {
-    logging.flash('Could not load shared link: ' + fromUrl.join('; '));
-  } else if (fromUrl) {
-    // A share link still carries the WHOLE session (human ruling 2026-08-14).
-    applyState(fromUrl);
-  } else {
-    // No share link: restore every project that was open at refresh, preserving focus. Fall back
-    // to the last project SAVED to browser storage for older sessions.
-    const session = projectRepo.loadOpenProjects();
-    if (Array.isArray(session)) {
-      logging.flash('Could not restore open projects: ' + session.join('; '));
-      sessionUnreadable = true;
-    } else if (session) {
-      restoreProjects(session.projects, session.focusedIndex);
-    } else {
-    // Fall back to the last project saved to browser storage for older sessions, else boot with
-    // no-project placeholders. View/UI preferences are a SEPARATE feature under their own
-    // storage key (QO90) and are restored either way.
-    const stored = projectRepo.loadFromStorage();
-    if (Array.isArray(stored)) {
-      logging.flash('Could not restore the saved project: ' + stored.join('; '));
-    } else if (stored) {
-      applyLoadedProject(stored);
-    }
-    }
-    const view = viewStateRepo.load();
-    if (view) applyViewSnapshot(view);
-  }
+  // ONE ordered restore (`logic/boot.ts`), then persistence. Nothing writes storage while the
+  // boot is still reading it, and no phase runs before the one it depends on has returned.
+  await bootApplication({
+    projectRepo,
+    viewStateRepo,
+    logging,
+    editProjectDriver: () => selection.editProjectDriver(),
+  });
   viewSaveReady = true;
+  saveReady = true;
   viewStateRepo.save(currentViewSnapshot());
-  markProjectSaved();   // the just-loaded design is the ground state (clean, not modified)
-  // A session record we could not read stays exactly as it is. Saving the empty state this
-  // boot ended in would write `{"entries":[],"focusedId":null}` over the user's open projects,
-  // which is how one refusal by the record validator destroyed a whole session instead of
-  // failing one boot. Saving arms again the moment a project is open, so the work the user
-  // does from here is persisted as usual.
-  if (sessionUnreadable) {
-    const armOnFirstProject = watch(() => openProjects().length, count => {
-      if (count === 0) return;
-      saveReady = true;
-      armOnFirstProject();
-      projectRepo.saveOpenProjects(openProjects(), focusedProject());
-    });
-  } else {
-    saveReady = true;
-    projectRepo.saveOpenProjects(openProjects(), focusedProject());
-  }
+  projectRepo.saveOpenProjects(openProjects(), focusedProject());
   window.addEventListener('hashchange', handleHashChange);
 });
 

@@ -1,6 +1,6 @@
 # BUG_20260918_app-browser-three-tests-drifted-off-the-current-driver-editor-UI
 
-**Status:** RESOLVED 2026-09-18 — spec strengthened to the current UI, 9/9 green (see below).
+Status: RESOLVED (re-verified 2026-09-26) — confirmed: the spec matches the current tune-panel/driver-editor split.
 
 ## Symptom
 Three `packages/ui/test/ui/app.browser.spec.ts` tests fail on the current app, independently of

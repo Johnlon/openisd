@@ -1,6 +1,6 @@
 # BUG_20260922_new-project-driver-use-does-not-advance-wizard
 
-**Status:** RESOLVED
+Status: RESOLVED (re-verified 2026-09-26) — confirmed: `embedLibrary`'s callback drives the wizard's own `selectDriver` step advance.
 
 ## Symptom
 On the New Project wizard's driver-picker step, clicking "Use" on a driver row picks

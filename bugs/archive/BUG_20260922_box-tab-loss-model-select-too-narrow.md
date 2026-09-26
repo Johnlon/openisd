@@ -1,6 +1,6 @@
 # BUG_20260922_box-tab-loss-model-select-too-narrow
 
-**Status:** RESOLVED
+Status: RESOLVED (re-verified 2026-09-26) — confirmed: the select is 170px wide (`OriginalShell.vue`).
 
 ## Symptom
 On the Box tab, the sealed-box "Model" (loss model) dropdown is too narrow for its

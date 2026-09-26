@@ -1,6 +1,6 @@
 # BUG_20260922_favoriting-copied-driver-also-highlights-original
 
-**Status:** RESOLVED
+Status: RESOLVED (re-verified 2026-09-26) — confirmed: favourites key on the record uuid (`driverDisplay.ts`), which a clone changes.
 
 Same defect class as [BUG_20260909_a_saved_copy_of_a_bundled_driver_shares_its_favourite_key_so_one_star_stars_both.md](http://localhost:8000/winisd/openisd/bugs/BUG_20260909_a_saved_copy_of_a_bundled_driver_shares_its_favourite_key_so_one_star_stars_both.md?html) — that file's Cause/Evidence are now stale (it predates `driverId()` moving to uuid-based identity) and has been updated alongside this one.
 

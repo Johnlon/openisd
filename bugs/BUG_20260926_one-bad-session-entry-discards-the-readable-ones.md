@@ -1,6 +1,6 @@
 # BUG_20260926_one-bad-session-entry-discards-the-readable-ones
 
-**Status:** OPEN
+**Status:** RESOLVED
 
 ## Symptom
 
@@ -20,11 +20,19 @@ as unloadable.
 
 ## Fix
 
-Restore every entry that reads, report the ones that do not, and say which. The stored record
-is already preserved on failure
-(`BUG_20260926_unreadable-session-overwritten-with-an-empty-one`), so the refused entries stay
-recoverable.
+`loadOpenProjects()` restores every entry that reads and returns the refusals in the session's
+own `refused` list; only a record that is not a session at all (bad JSON, wrong shape) is still
+reported as unusable. The focused entry is tracked by id, so focus follows the project the
+record named rather than an index into a list that lost members.
+
+`ProjectRepo.quarantineOpenSession()` copies the record to `openisd_quarantine_session` before
+the boot arms saving, so the refused entries survive the next write. The boot
+(`packages/ui/src/logic/boot.ts`) calls it whenever anything was refused.
 
 ## Verification
 
-A session record with one bad entry and two good ones restores the two and reports the one.
+`packages/persistence/test/openSessionPartialRestore.test.ts` — two good entries and one bad
+one restore the two, name the one, and keep focus on the entry the record named; an unusable
+record is still reported as a whole; the quarantine copy is byte-identical.
+`packages/ui/test/persistence/unreadable-session-is-not-destroyed.browser.spec.ts` — the
+quarantine holds the record after a boot that could read none of it.

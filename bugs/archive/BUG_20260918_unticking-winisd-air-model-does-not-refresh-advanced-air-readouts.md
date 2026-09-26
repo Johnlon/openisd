@@ -1,7 +1,6 @@
 # BUG_20260918_unticking-winisd-air-model-does-not-refresh-advanced-air-readouts
 
-**Status:** WONTFIX — not an app defect. The app honours the toggle; the failing test's
-expected values were stale for the fixture's stored environment. Test fixed 2026-09-18.
+Status: CLOSED (re-verified 2026-09-26) — confirmed not a defect: the toggle is honoured; the record's own appendix shows the test's expectation was stale.
 
 Appendix (what the investigation actually showed, for the record):
 

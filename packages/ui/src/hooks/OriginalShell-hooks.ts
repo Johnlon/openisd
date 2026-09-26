@@ -1025,16 +1025,13 @@ const overlays = computed<Design[]>(() => {
   }
   function startEdit() { editProjectDriver(); }
 
-  // R1 refresh fidelity — preserve an open Tune / Driver Editor across a reload.
+  // R1 refresh fidelity — RECORD an open Tune / Driver Editor so a reload can restore it.
+  // Restoring is the boot's own phase (`logic/boot.ts`), which runs it after the project and
+  // the view are in place; a watcher here would fire on whatever order the flags happened to
+  // arrive in, which is how a panel came to mount with no project (openisd.app 2026-09-25).
   watch(() => presentationState.editDriver, (active) => {
     presentationState.ui.originalTuneOpen = active;
   });
-  // Only with a project to tune: a stored view outlives the project it was stored with, and
-  // both panels read the focused project, so reopening one on a project-less boot threw
-  // `no project is focused` out of the top-level gate (reported from openisd.app 2026-09-25).
-  watch(() => presentationState.ui.originalTuneOpen, (open) => {
-    if (open && focusedProject() !== null) presentationState.editDriver = true;
-  }, { immediate: true });
 
   watch(isModified, (val) => {
     if (val) {
@@ -1042,12 +1039,8 @@ const overlays = computed<Design[]>(() => {
     }
   });
 
-  // Same for the Driver Editor modal — RESTORE ONLY, hence the `!presentationState.editDriverInfo`
-  // guard, the same shape the Tune watcher above uses.
+  // Same for the Driver Editor modal — recorded here, restored by the boot.
   watch(() => presentationState.editDriverInfo, (open) => { presentationState.ui.originalEditorOpen = open; });
-  watch(() => presentationState.ui.originalEditorOpen, (open) => {
-    if (open && !presentationState.editDriverInfo && focusedProject() !== null) editProjectDriver();
-  }, { immediate: true });
 
   /** The shell renders without a project now: true tells the toolbar to grey the project-only
    *  buttons and the placeholders to stand in for the chart, tab pane and project list. */
