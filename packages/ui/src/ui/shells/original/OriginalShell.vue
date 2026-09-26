@@ -1119,7 +1119,7 @@ textarea.comment, textarea.description { width:100%; border:1px solid #999; bord
 .checkbox-col label input[type=checkbox] { flex:none; }
 
 .adv-two-col { gap: 10px; }
-.adv-two-col .checkbox-col { margin-left: 0; width: 285px; }
+.adv-two-col .checkbox-col { margin-left: 0; width: auto; max-width: 100%; flex: 1 1 auto; }
 .adv-two-col .side-hint { width: 190px; }
 
 /* filters tab fills the panel */
