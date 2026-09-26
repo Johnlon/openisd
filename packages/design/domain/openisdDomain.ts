@@ -1179,19 +1179,24 @@ function computedSlot<T>(value: T | null): SolverField<T> {
  *  `Re_terminal_ohm`/`BL_terminal_Tm` have no domain storage slot (matching `NO_SLOT`'s own doc
  *  above), and `wiring` is spelled `VCCon` here and carries a `VoiceCoilWiring` enum member, not
  *  the bare `'series'|'parallel'` union `DriverSolverParams` names. */
-function driverSolverParamsOf(spec: OpenIsdDriverSpec, engine: Engine): DriverSolverParams {
+function driverSolverParamsOf(spec: OpenIsdDriverSpec, engine: Engine, useWinisdDriverModel: boolean = true): DriverSolverParams {
     const wiring: Wiring = spec.VCCon.value === VoiceCoilWiring.Series ? 'series' : 'parallel';
     const Re_ohm = spec.Re_ohm.value;
     const BL_Tm = spec.BL_Tm.value;
-    // A resolved record always states a coil count — `resolve()` stores `calcNumVC()`'s default
-    // as a 'C' entry — so null reaches here only from an unresolved one, and
-    // `terminalRe_ohm`/`terminalBL_Tm` apply the same default to `undefined` themselves.
     const numVC = spec.numVC.value ?? undefined;
-    // `wiring` is a `SolverInput`: the solve reads it and never writes it, so the slot carries
-    // no write members at all — not even discarding ones.
     const wiringInput: SolverInput<Wiring> = { value: wiring, entered: spec.VCCon.entered };
+
+    let mmsField: SolverField<number> = spec.Mms_kg;
+    if (useWinisdDriverModel && spec.Fs_hz.value && spec.Cms_m_per_N.value && spec.Fs_hz.value > 0 && spec.Cms_m_per_N.value > 0) {
+        const winisdMms = 1 / (4 * Math.PI * Math.PI * Math.pow(spec.Fs_hz.value, 2) * spec.Cms_m_per_N.value);
+        if (Number.isFinite(winisdMms) && winisdMms > 0) {
+            mmsField = computedSlot(winisdMms);
+        }
+    }
+
     return {
         ...spec,
+        Mms_kg: mmsField,
         SPLref_dB: NO_SLOT,
         Re_terminal_ohm: computedSlot(Re_ohm == null ? null : engine.terminalRe_ohm(Re_ohm, numVC, wiring)),
         BL_terminal_Tm: computedSlot(BL_Tm == null ? null : engine.terminalBL_Tm(BL_Tm, numVC, wiring)),
@@ -2225,12 +2230,23 @@ export class OpenISDProject {
         };
     }
 
+    /** WinISD Advanced / Compatibility "Use WinISD driver calculations" — whether engine sweeps
+     *  calculate Mms, BL, and Rms via WinISD formulas, ignoring conflicting entered values. */
+    get useWinisdDriverModel(): SimpleField<boolean> {
+        const lens = focus(this.#slot('advanced'), 'useWinisdDriverModel');
+        return {
+            get value() { return lens.value ?? true; },
+            set: (on: boolean) => lens.set(on),
+        };
+    }
+
     /** Resets all simulation switches and driver derivation rules to WinISD 0.7 defaults. */
     applyWinisdSettings(): void {
         this.circuitModel.set('winisd');
         this.lossMode.set(LossMode.parse('winisd-lossy'));
         this.rgAtDriverSide.set(true);
         this.envUseWinisdAirModel.set(true);
+        this.useWinisdDriverModel.set(true);
         if (this.driver.specs.Mms_kg.entered) {
             this.driver.specs.Mms_kg.clear();
         }
@@ -2959,7 +2975,7 @@ export class OpenISDProject {
         const boxIssues = this.#boxSweepIssues(box);
         if (boxIssues.length) return {values: null, issues: boxIssues};
         const params = this.#sweepParams(P, this.driveVoltage_V.value, box);
-        return this.#engine.sweep(driverSolverParamsOf(this.driver.specs, this.#engine), this.driver.Le_H() ?? undefined, box, params);
+        return this.#engine.sweep(driverSolverParamsOf(this.driver.specs, this.#engine, this.useWinisdDriverModel.value), this.driver.Le_H() ?? undefined, box, params);
     }
 
     /** The excursion- and power-limited maximum SPL curves. Reports on the same terms as `sweep`,
@@ -2970,7 +2986,7 @@ export class OpenISDProject {
         if (!box) return {values: null, issues: [], driverPrerequisites: []};
         const boxIssues = this.#boxSweepIssues(box);
         if (boxIssues.length) return {values: null, issues: boxIssues, driverPrerequisites: []};
-        return this.#engine.maxCurves(driverSolverParamsOf(this.driver.specs, this.#engine), this.driver.Le_H() ?? undefined, box, this.#sweepParams(P, 2.83, box));
+        return this.#engine.maxCurves(driverSolverParamsOf(this.driver.specs, this.#engine, this.useWinisdDriverModel.value), this.driver.Le_H() ?? undefined, box, this.#sweepParams(P, 2.83, box));
     }
 
     /** The active box's own sweep-level blockers, beyond what `solveBoxParams()` already reports:

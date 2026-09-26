@@ -805,6 +805,9 @@ const openISDAdvancedJsonSchema = z.strictObject({
     // translates via `LossMode.parse`/`.value` at this boundary. Optional: absent parses to
     // `LossMode.Default` (winisd-lossy), matching every project saved before S10.
     lossMode: z.enum(['lossless', 'conventional-lossy', 'winisd-lossy']).optional(),
+    // WinISD driver derivation toggle: whether engine sweeps calculate Mms/BL/Rms via WinISD formulas
+    // instead of using entered datasheet values directly.
+    useWinisdDriverModel: z.boolean().optional(),
 });
 export type OpenISDAdvancedJson = z.infer<typeof openISDAdvancedJsonSchema>;
 
