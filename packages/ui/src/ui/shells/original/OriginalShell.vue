@@ -613,7 +613,10 @@ WinISD Lossy (default): reports the lossy 3rd-order model's pole, so Fsc rises a
               <AdvancedOptions />
             </div>
             <div class="sim-options-box">
-              <div class="sim-options-header">WinISD Compatibility</div>
+              <div class="sim-options-header">
+                <span>WinISD Compatibility</span>
+                <button class="action-btn apply-winisd-btn" title="Reset to WinISD: align simulation toggles and clear entered Mms to match WinISD calculations" @click="applyWinisdSettings">Reset</button>
+              </div>
               <div class="field-row" style="flex-wrap: nowrap; margin-bottom: 6px;">
                 <div class="field" style="gap:6px;" :title="`Controls sealed resonance (Fsc) and system Q (Qtc) loss calculations:\n• None: Ideal lossless enclosure (Q = ∞)\n• WinISD default: Lossy cubic model (Ql=10, Qa=100, Qp=100)\n• Custom Q: User-defined damping parameters`">
                   <label style="width:auto;">Loss model</label>
@@ -636,9 +639,6 @@ WinISD Lossy (default): reports the lossy 3rd-order model's pole, so Fsc rises a
                 <label data-field-key="winisdInductance" style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 13px;" :class="{ 'na': !inductanceOn }" :title="fieldHelp('winisdInductance')">
                   <input type="checkbox" v-model="winisdInductance" :disabled="!inductanceOn"> WinISD inductance model
                 </label>
-              </div>
-              <div>
-                <button class="action-btn apply-winisd-btn" title="Align simulation toggles and clear entered Mms to match WinISD calculations" @click="applyWinisdSettings">Reset to WinISD</button>
               </div>
             </div>
           </div>
@@ -1053,11 +1053,11 @@ WinISD Lossy (default): reports the lossy 3rd-order model's pole, so Fsc rises a
 .driver-id-row { align-items:center; gap:10px; }
 .field input.greyed { background:#e9e9e9; color:#777; }
 .field input.calculated { color:#1868d1; border-color:#1868d1; }
-.adv-air-fields { display:grid; grid-template-columns:max-content max-content; column-gap:8px; align-items:start; }
+.adv-air-fields { display:grid; grid-template-columns:max-content max-content; column-gap:16px; align-items:start; }
 .adv-air-fields .field { gap:4px; }
 .adv-air-fields .field label { width:108px; white-space:nowrap; }
 .adv-air-fields .field input, .adv-air-field :deep(input) { width:78px; padding:4px 4px; }
-.adv-air-fields .unit { min-width:auto; }
+.adv-air-fields .field .unit { min-width:auto; }
 .adv-air-fields .field-row { margin-bottom: 4px; }
 .adv-air-fields .field-row:nth-child(-n+3) { grid-column:1; }
 .adv-air-fields .field-row:nth-child(4),
@@ -1119,7 +1119,7 @@ textarea.comment, textarea.description { width:100%; border:1px solid #999; bord
 .checkbox-col label input[type=checkbox] { flex:none; }
 
 .adv-two-col { gap: 12px; align-items: flex-start; }
-.adv-two-col .checkbox-col { margin-left: 0; width: 235px; }
+.adv-two-col .checkbox-col { margin-left: 0; width: 215px; }
 .adv-two-col .side-hint { width: 190px; }
 .adv-two-col .sim-options-box {
   border: 1px solid #c8c8c8;
@@ -1136,7 +1136,11 @@ textarea.comment, textarea.description { width:100%; border:1px solid #999; bord
   margin-bottom: 6px;
   border-bottom: 1px solid #d0d0d0;
   padding-bottom: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
+.sim-options-header .apply-winisd-btn { padding: 1px 8px; font-size: 12px; font-weight: normal; }
 
 /* filters tab fills the panel */
 .tab-section.active :deep(.fpanel), .tab-section.active :deep(.filters) { min-height:0; }
