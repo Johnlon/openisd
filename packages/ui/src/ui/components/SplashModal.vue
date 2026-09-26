@@ -37,7 +37,7 @@ const libraryLine = computed(() => {
       <section>
         <h3>WinISD</h3>
         <p>
-          Most of us learned enclosure design on WinISD, by Linearteam. It stopped at version
+          Many of us learned enclosure design on WinISD, by Linearteam. It stopped at version
           0.7, runs on Windows only, has had no release since 2016, and its source was never
           opened, so nobody can carry it forward. OpenISD picks it up: the default circuit model
           reproduces WinISD's output, and it reads and writes WinISD <code>.wdr</code> driver
