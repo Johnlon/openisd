@@ -14,7 +14,7 @@
 // not known to test anything. See AGENTS.md "Every architecture test exists to catch the AI".
 
 /**
- * Mechanical architecture guard — AD-3 "core has no DOM" (see ARCHITECTURE.md AD-3).
+ * Mechanical architecture guard — the engine has no DOM (see ARCHITECTURE.md §2).
  *
  * The engine (`packages/design/engine`) is pure audio physics + file I/O: it must never
  * reach into the browser/UI layer. If this test goes red, some engine file grew a

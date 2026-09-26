@@ -9,7 +9,7 @@
  *   https://aes.org/e-lib/browse.cfm?elib=2008
  *
  * WinISD .wdr parse/serialise and ParState provenance live in @openisd/winisd, not
- * here — this module is pure physics with no file-format concern (ARCHITECTURE.md AD-6).
+ * here — this module is pure physics with no file-format concern (ARCHITECTURE.md §2).
  */
 
 import {G_STANDARD, P0} from './constants.js';

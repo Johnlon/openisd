@@ -3,7 +3,7 @@ import {requireFocusedProject} from './appState.js';
 import {presentationState} from './presentationState.js';
 import {owdrTextToDriver, wdrTextToDriver} from './fileImportExport.js';
 
-// The ONE implementation of "the user chose a driver" (ARCHITECTURE.md AD-7).
+// The ONE implementation of "the user chose a driver" (ARCHITECTURE.md §7, "Components decide nothing").
 //
 // WORKFLOW, so it lives in `logic`: choosing a driver decides what the app does next — it
 // embeds the driver in the project, closes the picker and moves the baseline. A repository

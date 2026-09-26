@@ -19,13 +19,13 @@ So the answer cannot be "wrap each value", "make the model reactive", or "expose
 
 ## The mechanism already exists and the UI does not use it
 
-`ManagedOpenISDProject` carries `#listeners`, `subscribe(fn): () => void` and a private `#notify()`
+`OpenISDProject` carries `#listeners`, `subscribe(fn): () => void` and a private `#notify()`
 called, unconditionally, at the end of every public mutator — the four driver methods
 (`enter`/`clear`/`enterMeta`/`clearMeta`), `mutate()` (box/vent/PR/environment/signal/sim-option/
 sweep/filter writes), and the what-if lifecycle methods when they actually change which layer is
 effective. `OpenISDDriver` itself carries no channel of its own (QO71, 2026-08-21: its `subscribe`/
 `#listeners`/`#notify` had zero consumers and were deleted) — a driver-field edit reaches
-`ManagedOpenISDProject`'s `#notify()` directly, by call, not by subscription, precisely so
+`OpenISDProject`'s `#notify()` directly, by call, not by subscription, precisely so
 re-materialising the effective layer's `OpenISDDriver` on every `mutate()` can never orphan a
 bridge subscribed to the old instance.
 
@@ -44,7 +44,7 @@ into a Vue invalidation — see `Subscribable`/`createLiveRef()` below.
  * The focused project, as a value whose IDENTITY changes whenever the project changes.
  *
  * The domain object is framework-free and stays that way: this subscribes to the change
- * channel `ManagedOpenISDProject` already publishes and turns each notification into a Vue
+ * channel `OpenISDProject` already publishes and turns each notification into a Vue
  * invalidation. Anything that reads `liveProject` — a template, a computed — re-evaluates on
  * the next change, so a caller can invoke the domain object's methods DIRECTLY and still be
  * reactive. That is what makes the 19 `state.P` accessors and the five `_version` delegates
@@ -104,9 +104,9 @@ If a hot path is ever measured to suffer, the fix is a second counter for that s
 
 ## What must be true before objective 2 lands
 
-1. `ManagedOpenISDProject.subscribe` is public and exported on the public surface rather than
+1. `OpenISDProject.subscribe` is public and exported on the public surface rather than
    used only internally.
-2. Every mutating method on `ManagedOpenISDProject` calls `#notify()`. The ones that change which
+2. Every mutating method on `OpenISDProject` calls `#notify()`. The ones that change which
    LAYER is effective (`beginWhatIf`/`cancelWhatIf`) already do. A mutator that forgets is a
    silently stale UI, and it is the one failure mode this design has — worth an architecture gate
    asserting that every public mutator notifies.

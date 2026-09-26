@@ -4,7 +4,8 @@ import {useApp} from '../../logic/app.js';
 import {DriverFileFormat} from '../../fileFormat.js';
 
 // The WinISD-style driver library body: search, filters, list, one-driver summary and the
-// footer actions. Markup and CSS only (ARCHITECTURE.md AD-7) — every behaviour is
+// footer actions. Markup and CSS only (ARCHITECTURE.md §7, "Components decide nothing") —
+// every behaviour is
 // logic/driverBrowsingState.ts. Two hosts render it: the DriverBrowser overlay, and step 1 of
 // the New Project wizard (FIX_WIZARD_SEALED Q1), which differ only in what "Use" does — the
 // composable decides that, not this component.
@@ -16,9 +17,9 @@ const props = defineProps<{ showName?: boolean }>();
 const { driverBrowsing, selection } = useApp();
 const { openNewDriver } = selection;
 
-// Source filtering, the custom-GitHub-URL loader and the reset-to-demo action are NOT
-// destructured here: ui-todo.md removed their controls from this picker. They remain live
-// on the composable because DriverBrowserMd.vue still offers all three.
+// Source filtering and the reset-to-demo action are not destructured here: this picker has
+// no controls for them. The custom-GitHub-URL loader they were grouped with has no
+// implementation anywhere in the codebase — dead, not merely hidden.
 const {
   DRIVER_TYPES, DRIVER_SCOPES,
   allDrivers, statusMsg, statusErr,

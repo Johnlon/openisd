@@ -10,8 +10,6 @@ OpenISD's driver data is an open commons. The app consumes one bundled corpus fr
 `winisd_drivers/db/datasheets` checkout. A record is `<driver>/openisd.json`, written by
 winisd_tools; it carries the T/S values, provenance and quality together.
 
-You can also paste any GitHub repo of `.wdr` files into the browser ad hoc.
-
 The bundler reads that corpus directly. Other directories under `drivers/` are reference material
 unless a later product decision gives them an explicit consumer.
 

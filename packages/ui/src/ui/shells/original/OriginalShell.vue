@@ -385,15 +385,9 @@ const {
 
         <!-- ===== Enclosure / Vents tab ===== -->
         <section v-show="activeTab === 'enclosure'" class="tab-section" :class="{ active: activeTab === 'enclosure' }">
-          <!-- The alignment (box type) stays selectable here, not just on the wizard / Box tab:
-               the enclosure content changes per box type, so the selector belongs beside it. -->
-          <div class="field-row" style="flex-wrap: nowrap;">
-            <div class="field" style="gap:8px;"><label style="width:auto;">Box Type</label>
-              <select id="og-box-type-enclosure" :value="selectedBox" @change="e => { const b = selectedOption(e, BOX_TYPE_OPTIONS); if (b !== null) selectedBox = b; }" style="width:170px">
-                <option v-for="o in BOX_TYPE_OPTIONS" :key="o.value" :value="o.value">{{ o.label }}</option>
-              </select>
-            </div>
-          </div>
+          <!-- No Box Type selector here. It lives on the Box tab, which is the one place the
+               box type is chosen; a second copy of it on this tab put the passive radiator's
+               own [Select PR] [Edit] row underneath a control that is not about the PR. -->
           <!-- vented / bandpass4 -->
           <div v-if="selectedBox === 'vented' || selectedBox === 'bandpass4'">
             <div class="section-header">Vents</div>
@@ -522,8 +516,8 @@ const {
               <div style="--label-w:44px;">
                 <div class="section-header">Passive radiator parameters</div>
                 <div class="field-row">
-                  <div class="field"><label>Vas</label><input class="calculated greyed" :value="fmtU(project.box.passiveRadiator.radiator.spec.Vas_m3.value, 'prVas', 'volume', 'L', fieldDp('prVas'))" readonly><UnitToggle field="prVas" group="volume" base="L" unit-class="unit unit-cyc" /></div>
-                  <div class="field"><label>Qms</label><input class="calculated greyed" :value="fmt(project.box.passiveRadiator.radiator.spec.Qms.value, fieldDp('prQms'))" readonly></div>
+                  <div class="field entered"><label>Vas</label><NumInput id="og-pr-vas" :model-value="project.box.passiveRadiator.radiator.spec.Vas_m3.value" @update:model-value="(v: number | null) => project.box.passiveRadiator.radiator.spec.Vas_m3.set(v ?? 0)" field="prVas" group="volume" base="L" :precision="fieldDp('prVas')" /><UnitToggle field="prVas" group="volume" base="L" unit-class="unit unit-cyc" /></div>
+                  <div class="field entered"><label>Qms</label><NumInput id="og-pr-qms" :model-value="project.box.passiveRadiator.radiator.spec.Qms.value" @update:model-value="(v: number | null) => project.box.passiveRadiator.radiator.spec.Qms.set(v ?? 0)" field="prQms" :precision="fieldDp('prQms')" /></div>
                 </div>
                 <div class="field-row">
                   <!-- The RADIATOR's own free-air resonance, 1/(2π√(Mmd·Cms)) — no box in it.

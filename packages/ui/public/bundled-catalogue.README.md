@@ -44,7 +44,7 @@ than excluding it.
 
 SOURCE DATA
 -----------
-  ../winisd_drivers/db/datasheets/**/<driver>/openisd.json — the driver record (ARCHITECTURE.md AD-8)
+  ../winisd_drivers/db/datasheets/**/<driver>/openisd.json — the driver record
 
 That file, and nothing else. `.owdr` is purely a UI concern — what the app writes and
 reads when a user saves a driver to their own disk — and never appears in a collection.

@@ -76,8 +76,8 @@ function previewVMOf(d: OpenISDDriver): PreviewVM {
 
 
 // The driver library, as the picker experiences it — the ONE implementation of the picker's
-// behaviour, shared by every component (ARCHITECTURE.md AD-7). The picker components own
-// markup and CSS only.
+// behaviour, shared by every component (ARCHITECTURE.md §7, "Components decide nothing"). The
+// picker components own markup and CSS only.
 //
 // APPLICATION state, so it lives in `logic`: the search box, the chips, the scope, which row
 // is being summarised and what a click does are all decisions about what the app is showing

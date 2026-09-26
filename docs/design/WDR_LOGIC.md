@@ -8,13 +8,9 @@ OpenISD never stores a calculated value.
 ## Background — `VCCon` and `numVC`
 
 The solver READS both and never produces either, so nothing derives one from the other. A record
-stating neither gets both filled as a calculated `C` entry — one coil, parallel — by
-`calcVCCon()` in `packages/design/domain/openisdSchema.ts`, the same source WinISD itself
-defaults to.
-
-A record stating neither leaves both absent. The engine then simulates with WinISD's own screen
-defaults, parallel and one coil, applied where they are used (`circuit.ts`, and
-`terminalRe_ohm`/`terminalBL_Tm` in `solver.ts`) and never written back into the record.
+stating neither reads as WinISD's own default — one coil, parallel — via `calcVCCon()` and
+`calcNumVC()` in `packages/design/domain/openisdSchema.ts`, stored as a real `C` entry (John,
+2026-09-24: no exception for these two fields to the calculated-entry rule).
 
 WinISD has no calculated state for either. No instruction in its code writes ParState slot 46, so
 `VCCon` is `N` in every file WinISD authors from a blank driver and keeps whatever mark a loaded

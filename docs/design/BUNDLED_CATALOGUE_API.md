@@ -1,6 +1,6 @@
 # Bundled catalogue API — index + on-demand records
 
-Status: built. Open points are marked PROPOSED.
+Status: built.
 
 The bundled driver catalogue stops being one 10 MB JSON module. The bundler writes a small
 search index per kind and one record file per device; the app fetches an index when a picker
@@ -207,8 +207,8 @@ export function bundledPassiveRadiatorIndexRowOf(
   path: string,
 ): BundledPassiveRadiatorIndexRow;
 
-// packages/ui/src/logic/driverDisplay.ts — new, beside driverHasDqIssues
-/** PROPOSED rule: Fs_hz or Sd_m2 missing or ≤ 0, or neither Mms_kg nor Cms_m_per_N usable. */
+// packages/ui/src/logic/driverDisplay.ts — beside driverHasDqIssues
+/** Fs_hz or Sd_m2 missing or ≤ 0, or neither Mms_kg nor Cms_m_per_N usable. */
 export function radiatorHasDqIssues(
   radiator: OpenISDPassiveRadiatorStandalone,
 ): boolean;
@@ -235,20 +235,19 @@ const passiveRadiatorRepo = createBundledPassiveRadiatorRepo({
 // nothing awaited — the app mounts; each picker awaits index() when it opens
 ```
 
-## Browsing state — `packages/ui/src/logic/driverBrowsingState.ts`, what changes
+## Browsing state — `packages/ui/src/logic/driverBrowsingState.ts`
 
-| Today                                                             | After                                                                                                                                                |
-| ----------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `allDrivers: ShallowRef<OpenISDDriver[]>`                         | `ShallowRef<readonly BundledDriverIndexRow[]>`                                                                                                       |
-| `init()`: `driverRepo.bundledDrivers()` (constructs 1928 objects) | `await driverRepo.index()`; `statusErr`/`statusMsg` on throw                                                                                         |
-| `pickDriver(d)`                                                   | `pickDriver(d \| null)` keeps previewing a domain object (My Drivers, clear); `pickBundledDriver(row)` loads through the repo, then previews         |
-| `chooseDriver(d)` embeds `d.detach()`                             | unchanged — it takes the previewed (loaded) driver                                                                                                   |
-| `cloneDriver(d)`                                                  | unchanged — it takes the previewed (loaded) driver                                                                                                   |
-| `isFavorite(d)` / `toggleFavorite(d)` on `d.uuid()`               | `isFavorite(uuid)` / `toggleFavorite(uuid)` — `row.uuid` for a bundled row, `driverId(d)` for a domain object; favourites stay `string[]`, same keys |
-| `matchesCriteria(driver, c)` reads the domain object              | `matchesCriteria(subject, c)` over a `SearchSubject` — `searchSubjectOfIndexRow(row)` for the pool, `searchSubjectOfDriver(d)` for My Drivers        |
-| `DriverBrowser.vue` bundled row reads `d`                         | reads `row.name`, `row.dq`, `row.datasheet/productPage/listingPage`, `row.uuid`                                                                      |
-| My Drivers rows                                                   | unchanged — local objects                                                                                                                            |
-| PR browser lists `list()`-everything objects, id = list position  | lists `BundledPassiveRadiatorIndexRow`, shows `row.dq`, id = `row.uuid`, `load()`s on pick                                                           |
+| Surface                                              | Shape                                                                                                                                        |
+| ----------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| `allDrivers`                                          | `ShallowRef<readonly BundledDriverIndexRow[]>`                                                                                               |
+| `init()`                                              | `await driverRepo.index()`; `statusErr`/`statusMsg` on throw                                                                                  |
+| `pickDriver(d \| null)`                               | previews a domain object (My Drivers, clear); `pickBundledDriver(row)` loads a bundled row through the repo, then previews                    |
+| `chooseDriver(d)` / `cloneDriver(d)`                  | take the previewed (loaded) driver                                                                                                            |
+| `isFavorite(uuid)` / `toggleFavorite(uuid)`           | `row.uuid` for a bundled row, `driverId(d)` for a domain object; favourites are `string[]`, keyed the same way                                |
+| `matchesCriteria(subject, c)`                         | over a `SearchSubject` — `searchSubjectOfIndexRow(row)` for the bundled pool, `searchSubjectOfDriver(d)` for My Drivers                        |
+| `DriverBrowser.vue` bundled row                       | reads `row.name`, `row.dq`, `row.datasheet/productPage/listingPage`, `row.uuid`                                                                |
+| My Drivers rows                                       | local objects                                                                                                                                  |
+| PR browser                                            | lists `BundledPassiveRadiatorIndexRow`, shows `row.dq`, id = `row.uuid`, `load()`s on pick                                                    |
 
 ## Bundler and test bundle
 
@@ -271,10 +270,4 @@ const passiveRadiatorRepo = createBundledPassiveRadiatorRepo({
 | staleness test                                    | the tracked index rows for the six test records equal `bundledDriverIndexRowOf` / `bundledPassiveRadiatorIndexRowOf` recomputed from the tracked record files |
 | identity test (replaces `drivers-bundle.test.ts`) | every `uuid` and every `path` in each index is unique                                                                                                         |
 | `config.test.ts`                                  | `main.ts` imports no JSON module and builds both repos; the bundler writes under `public/`                                                                    |
-
-## Open
-
-| Point                                        | Owner |
-| -------------------------------------------- | ----- |
-| `radiatorHasDqIssues` rule (PROPOSED above)  | John  |
 | `Vd_m3` on the driver row — kept, say if not | John  |
