@@ -31,7 +31,13 @@ describe('winisdDriverModel — the whole WinISD parameter set, not Mms alone', 
     return project;
   };
 
-  it('set: the inconsistent driver has the consistent one\'s impedance and SPL shape; its entered BL sets only the SPL level', () => {
+  /** Z − Re as a complex number, from the sweep's magnitude and phase (deg). */
+  const motional = (zmag: number, zphDeg: number, Re: number): {re: number; im: number} => {
+    const ph = zphDeg * Math.PI / 180;
+    return {re: zmag * Math.cos(ph) - Re, im: zmag * Math.sin(ph)};
+  };
+
+  it('set: the inconsistent driver has the consistent one\'s impedance and SPL shape; its entered BL sets the SPL level and the motional impedance\'s scale', () => {
     const engine = new Engine();
     const entered = projectOn(engine, {...SHARED, ...CONTRADICTORY});
     entered.winisdDriverModel.set(true);
@@ -43,10 +49,21 @@ describe('winisdDriverModel — the whole WinISD parameter set, not Mms alone', 
     expect(theirs).not.toBeNull();
     const offset = mine!.spl[0] - theirs!.spl[0];
     mine!.spl.forEach((db, i) => expect(db - theirs!.spl[i]).toBeCloseTo(offset, 6));
-    mine!.zmag.forEach((z, i) => expect(z).toBeCloseTo(theirs!.zmag[i], 6));
+    // BUG_20260926_winisd-impedance-uses-entered-bl: Z − Re scales by one real factor.
+    const ratio = (i: number): {re: number; im: number} => {
+      const a = motional(mine!.zmag[i], mine!.zph[i], SHARED.Re_ohm);
+      const b = motional(theirs!.zmag[i], theirs!.zph[i], SHARED.Re_ohm);
+      const d = b.re * b.re + b.im * b.im;
+      return {re: (a.re * b.re + a.im * b.im) / d, im: (a.im * b.re - a.re * b.im) / d};
+    };
+    const k = ratio(0).re;
+    mine!.zmag.forEach((_, i) => {
+      expect(ratio(i).re).toBeCloseTo(k, 6);
+      expect(ratio(i).im).toBeCloseTo(0, 6);
+    });
   });
 
-  it('set: the entered BL sets the SPL level — WinISD, BL 7.17 → 5.0, moves every point by −3.1310 dB (BUG_20260926_winisd-spl-level-uses-entered-bl)', () => {
+  it('set: the entered BL sets the SPL level and the motional impedance — WinISD, BL 7.17 → 5.0, moves every SPL point by −3.1310 dB (BUG_20260926_winisd-spl-level-uses-entered-bl)', () => {
     // WinISD 0.7.0.950 by debugger, W5-1138SMF sealed, only the entered BL changed
     // (winisd_research runs/sweep-w5-sealed-bl5-spl vs sweep-w5-sealed-baseline-charts).
     const engine = new Engine();
@@ -54,7 +71,12 @@ describe('winisdDriverModel — the whole WinISD parameter set, not Mms alone', 
     const b = projectOn(engine, {...SHARED, BL_Tm: 5.0});
     const sa = a.sweep(P).values!, sb = b.sweep(P).values!;
     sa.spl.forEach((db, i) => expect(sb.spl[i] - db).toBeCloseTo(20 * Math.log10(5 / 7.17), 9));
-    sa.zmag.forEach((z, i) => expect(sb.zmag[i]).toBeCloseTo(z, 9));
+    // WinISD's impedance is Re + (BL²/Sd²)/Za with the entered BL (fresh capture,
+    // BUG_20260926_winisd-impedance-uses-entered-bl), so Z − Re scales by (5/7.17)².
+    sa.zmag.forEach((z, i) => {
+      const ma = motional(z, sa.zph[i], SHARED.Re_ohm), mb = motional(sb.zmag[i], sb.zph[i], SHARED.Re_ohm);
+      expect(mb.re / ma.re).toBeCloseTo((5 / 7.17) ** 2, 9);
+    });
   });
 
   it('clear: the entered Mms, BL and Rms are what the sweep uses', () => {
@@ -126,9 +148,36 @@ describe('winisdDriverModel — the whole WinISD parameter set, not Mms alone', 
     };
     const at = (f: number): FrequencyGrid => ({fmin: f, fmax: f * 1.0001, N: 1});
 
-    it('SPL at 998.56 Hz is WinISD\'s 80.5315 dB, within the 0.02 dB not yet explained', () => {
+    // Fresh capture winisd_research/runs/sweep-w5-sealed-fresh-20260926 (BUG_20260926_winisd-box-absorption-is-series).
+    it('SPL at 998.56 Hz is WinISD\'s 80.531534 dB', () => {
       const spl = w5(new Engine()).sweep(at(998.5627339581864)).values!.spl[0];
-      expect(Math.abs(spl - 80.53153351704296)).toBeLessThan(0.02);
+      expect(Math.abs(spl - 80.53153351704296)).toBeLessThan(1e-4);
+    });
+
+    it('SPL at 86.50 Hz, near the box resonance, is WinISD\'s 79.298205 dB', () => {
+      const spl = w5(new Engine()).sweep(at(86.49890926764193)).values!.spl[0];
+      expect(Math.abs(spl - 79.29820533868933)).toBeLessThan(1e-4);
+    });
+
+    it('max SPL at 3.909 Hz is WinISD\'s 45.221447 dB', () => {
+      const project = w5(new Engine());
+      const maxspl = project.maxCurves(at(3.9087353201234074)).values!.maxspl[0];
+      expect(Math.abs(maxspl - 45.2214471072186)).toBeLessThan(1e-4);
+    });
+
+    it('max power at 1 Hz is WinISD\'s 21.254886 W: power is into Re + Rg, as the 1 W drive is', () => {
+      const maxpwr = w5(new Engine()).maxCurves(at(1)).values!.maxpwr[0];
+      expect(Math.abs(maxpwr / 21.25488626455778 - 1)).toBeLessThan(1e-6);
+    });
+
+    it('|Z| at 65.36 Hz, the impedance peak, is WinISD\'s 18.620133 Ω: the motional term uses the entered BL', () => {
+      const zmag = w5(new Engine()).sweep(at(65.35861309217313)).values!.zmag[0];
+      expect(Math.abs(zmag - 18.620133017798484)).toBeLessThan(1e-5);
+    });
+
+    it('transfer function at 998.56 Hz is WinISD\'s −0.015566 dB: 0 dB is the circuit\'s own HF asymptote', () => {
+      const tf = w5(new Engine()).sweep(at(998.5627339581864)).values!.tfMag[0];
+      expect(Math.abs(tf - -0.015566171957418983)).toBeLessThan(1e-4);
     });
 
     it('with voice coil inductance on, the flag selects WinISD\'s inductance model: on − off is −22.266 dB at 20 kHz', () => {

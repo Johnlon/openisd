@@ -1,6 +1,6 @@
 # BUG_20260926_winisd-tf-reference
 
-**Status:** OPEN
+**Status:** RESOLVED
 
 ## Symptom
 
@@ -25,9 +25,15 @@ model".
 
 ## Fix
 
-`sweep.ts`: with the switch on, the reference is 20·log10(ρ·Pg/(2π·Mas·r)/20 µPa) from the
-circuit's own push; switch off keeps η₀.
+`circuit.ts` `hfAsymptotePressure_Pa`: ρ·|pg|/(2π·r·Mas), the lossless circuit's HF asymptote with
+the entered BL and the circuit's own coil resistance (Re + Rg). `sweep.ts` uses it as the TF
+0 dB for every driver, switch on or off: it is the asymptote the chart is defined against, and
+equals η₀'s level whenever the driver is consistent and Rg is 0. The `hfPassbandRef` fallback
+(for drivers without Fs/Vas/Qes) is gone: the asymptote always exists.
 
 ## Verification
 
-Unit test: the W5 project's TF at 998.56 Hz is WinISD's −0.0155662 dB to 1e-6.
+- `winisdDriverModel.test.ts`: the W5 TF at 998.56 Hz is WinISD's −0.015566 dB (red before:
+  +0.507 dB off).
+- `sweep.test.ts`: a lossless sealed sweep without Le reaches 0 dB at 20 kHz.
+- Fresh-capture compare after the fix: TF magnitude within 3e-14 dB at all 2086 points.

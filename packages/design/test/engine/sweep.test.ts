@@ -397,22 +397,18 @@ describe('rolloffFreq — Encapsulated Engine Physics Calculations', () => {
 });
 
 /**
- * hfPassbandRef (sweep.ts) — the high-frequency asymptote fallback tfMag() uses when the
- * caller cannot supply a first-principles reference (splRefLimit requires Fs_hz/Vas_m3/Qes
- * ALL stated). Reached only when a driver satisfies the circuit's 6 required fields directly
- * (bypassing solveConsistencyGroup, via driverParams) without also carrying the T/S triple.
+ * The transfer function's 0 dB is the lossless circuit's high-frequency asymptote
+ * (BUG_20260926_winisd-tf-reference), so a driver with no Fs/Vas/Qes still has one.
  */
-describe('hfPassbandRef — high-frequency passband fallback when no first-principles reference exists', () => {
-  it('an audible high-frequency asymptote becomes 0 dB tfMag at that same point (ref = itself)', () => {
+describe('tfMag — 0 dB is the lossless circuit\'s high-frequency asymptote', () => {
+  it('a lossless sealed sweep without Le approaches 0 dB at 20 kHz', () => {
     const circuitOnly = driverParams({
       Sd_m2: 0.0133, Re_terminal_ohm: 5.6, BL_terminal_Tm: 7.0,
       Cms_m_per_N: 0.0008, Mms_kg: 0.012, Rms_kg_per_s: 1.5,
       Xmax_m: 0.005, Pe_W: 60,
     });
-    const sw = engine.sweep(circuitOnly, LE_H, BOX, { Vb: VB_M3, Ql: QL_LOSSLESS, eg: EG_STANDARD, fmin: 10, fmax: 1000, N: 50 }).values!;
-    assert.ok(Number.isFinite(sw.spl[sw.spl.length - 1]) && sw.spl[sw.spl.length - 1] > -190,
-      'fixture must produce an audible top-of-sweep point for hfPassbandRef to use as the reference');
-    assert.equal(sw.tfMag[sw.tfMag.length - 1], 0, 'the reference point itself must read as 0 dB tfMag');
+    const sw = engine.sweep(circuitOnly, undefined, BOX, { Vb: VB_M3, Ql: QL_LOSSLESS, eg: EG_STANDARD, fmin: 10, fmax: 20000, N: 50 }).values!;
+    assert.ok(Math.abs(sw.tfMag[sw.tfMag.length - 1]) < 1e-3, `tfMag at 20 kHz is ${sw.tfMag[sw.tfMag.length - 1]} dB`);
   });
 });
 

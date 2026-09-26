@@ -1,6 +1,6 @@
 # BUG_20260926_winisd-box-absorption-is-series
 
-**Status:** OPEN
+**Status:** RESOLVED
 
 ## Symptom
 
@@ -40,3 +40,5 @@ with the box compliance, OpenISD's is Qa/(ωCab) in parallel with it. We need Wi
 
 Unit test: the W5 project's SPL, max SPL and complex impedance match the fresh capture's values
 at resonance to 1e-6.
+
+Fixed 2026-09-26: `circuit.ts` 'winisd-lossy' sealed `Zbox = Ral ∥ (ωsc·Mas/Qa + Zc)`. `winisdDriverModel.test.ts`: SPL at 998.56 and 86.50 Hz match WinISD to 1e-4 dB (red before: 0.0167 and 0.0434 dB). Fresh-capture compare after the fix: SPL, excursion, max SPL, max power, impedance and phases within 1e-12.

@@ -17,10 +17,9 @@ import type {EnvironmentIssue} from './air.js';
 import {solveEnvironment} from './air.js';
 import {cAbs, cArg, cMul, cScale, cx} from './complex.js';
 import type {CircuitQuantities} from './circuit.js';
-import {solve} from './circuit.js';
+import {hfAsymptotePressure_Pa, solve} from './circuit.js';
 import type {DriverIssue, DriverPrerequisite, DriverQuantityName, PrIssue, VentIssue} from './solver.js';
 import {terminalBL_Tm, withAddedMass} from './solver.js';
-import {referenceEfficiency, splFromEfficiency} from './efficiency.js';
 import {applyFilters} from './filters.js';
 import type {BoxType, DriverError, MaxCurvesResult, SweepParams, SweepResult} from './types.js';
 import type {DriverSolverParams} from './solverTypes.js';
@@ -79,22 +78,11 @@ export function passbandRef(spl: number[]): number {
 }
 
 /**
- * The high-frequency passband reference level of an SPL curve, in dB — the level at the top end
- * of the sweep grid (asymptote), matching WinISD's Transfer Function Magnitude reference level.
+ * Transfer Function Magnitude in dB relative to `ref`, the lossless circuit's high-frequency
+ * asymptote (0 dB).
  */
-export function hfPassbandRef(spl: number[]): number {
-  if (spl.length > 0 && Number.isFinite(spl[spl.length - 1]) && spl[spl.length - 1] > SILENCE_DB) {
-    return spl[spl.length - 1];
-  }
-  return passbandRef(spl);
-}
-
-/**
- * Transfer Function Magnitude in dB relative to the high-frequency passband asymptote (0 dB).
- */
-export function tfMag(spl: number[], ref?: number): number[] {
-  const r = ref ?? hfPassbandRef(spl);
-  return spl.map(v => (Number.isFinite(v) && v > SILENCE_DB) ? v - r : v);
+export function tfMag(spl: number[], ref: number): number[] {
+  return spl.map(v => (Number.isFinite(v) && v > SILENCE_DB) ? v - ref : v);
 }
 
 /**
@@ -265,7 +253,7 @@ export function sweep(drv: DriverSolverParams, Le_H: number | undefined, box: Bo
   const cq = circuit.value;
   const env = solveEnvironment(P);
   if (env.issues.length > 0) return { values: null, issues: env.issues };
-  const { rho, c } = env.values;
+  const { rho } = env.values;
   const f0 = P.fmin || 10, f1 = P.fmax || 1000, N = P.N || 400, r = 1;
   const fs: number[] = [], H = [], spl = [], exc = [], excPR = [], pv = [], zmag = [], zph = [], phase = [];
   // Filter-chain response, sampled on the same grid. Magnitude in dB, phase wrapped for now
@@ -344,19 +332,8 @@ export function sweep(drv: DriverSolverParams, Le_H: number | undefined, box: Bo
     splXlimCurve.push(over ? spl[i] + 20 * Math.log10(Xmax / xPeak) : spl[i]);
   }
 
-  // Reference SPL limit from first principles (high-frequency asymptote)
-  let splRefLimit: number | undefined = undefined;
-  if (d.Fs_hz != null && d.Vas_m3 != null && d.Qes != null
-      && d.Fs_hz > 0 && d.Vas_m3 > 0 && d.Qes > 0 && cq.Re_terminal_ohm > 0 && P.eg > 0) {
-    const np = (P.wiring || 'parallel') === 'parallel' ? (P.nDrivers || 1) : 1;
-    // η₀ and the SPL constant come from the ONE implementation (efficiency.ts), evaluated at
-    // the ρ and c this sweep is actually running on — the eg²/Re and n² terms are this
-    // caller's own drive conditions, not part of the reference formula.
-    const eta0 = referenceEfficiency(d.Fs_hz, d.Vas_m3, d.Qes, c);
-    splRefLimit = splFromEfficiency(eta0, rho, c)
-                + 10 * Math.log10(P.eg * P.eg / cq.Re_terminal_ohm)
-                + 20 * Math.log10(np);
-  }
+  // Transfer-function 0 dB: the lossless circuit's own HF asymptote (BUG_20260926_winisd-tf-reference).
+  const splRefLimit = 20 * Math.log10(hfAsymptotePressure_Pa(cq, P, r) / P0);
 
   return { values: { fs, H, spl, phase: ph, exc, excPR, pv, zmag, zph, gd, tfMag: tfMag(spl, splRefLimit), splXlimCurve, xlimited, flatClamped,
                     fltMag, fltPhase, fltGd }, issues: [] };
@@ -395,7 +372,8 @@ export function maxCurves(drv: DriverSolverParams, Le_H: number | undefined, box
   // coils as they are wired. `sweep` above already succeeded, and its circuit-required-fields
   // check (CIRCUIT_REQUIRED_FIELDS includes Re_terminal_ohm) demands this exact field be a
   // positive finite number before `swept.values` can be non-null — Re cannot be absent here.
-  const Re = drv.Re_terminal_ohm.value!;
+  // Power is into Re + Rs, the same load the power → voltage drive solve uses (`driveVoltage`).
+  const Re = drv.Re_terminal_ohm.value! + (P.Rs != null && P.Rs > 0 ? P.Rs : 0);
   const drvXmax_m = drv.Xmax_m.value;
   const xmaxUsable = drvXmax_m != null && drvXmax_m > 0;
   const maxspl: number[] = [], maxpwr: number[] = [], xlim: boolean[] = [];

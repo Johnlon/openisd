@@ -1,6 +1,6 @@
 # BUG_20260926_winisd-impedance-uses-entered-bl
 
-**Status:** OPEN
+**Status:** RESOLVED
 
 ## Symptom
 
@@ -34,3 +34,5 @@ keeps `BL_terminal_Tm`. Switch off: both are the entered BL, unchanged.
 
 Unit test: entered BL 7.17 → 5.0 scales (|Z| − Re) at every frequency by (5/7.17)² when the
 electrical term is excluded; the W5 peak matches the fresh capture.
+
+Fixed 2026-09-26: `circuit.ts` `Zel` uses `BlPush` (the entered BL). `winisdDriverModel.test.ts`: the W5 |Z| at 65.36 Hz is WinISD's 18.620133 Ω (red before: +0.922 Ω); the two older tests that expected the entered BL to leave impedance alone now expect Z − Re to scale by BL². Fresh-capture compare after the fix: |Z| within 3e-14 Ω.

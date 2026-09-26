@@ -117,6 +117,25 @@ function winisdLeScale(drv: CircuitQuantities): number {
   return (drv.BL_Qes_Tm / drv.BL_entered_Tm) ** 2;
 }
 
+/** One voice coil's DC resistance as the circuit sees it: hot Re, plus Rg when Rg is at the driver side. */
+function coilRdc(drv: CircuitQuantities, P: SweepParams): number {
+  return hotRe(drv.Re_terminal_ohm, P.alfaVC ?? 0, P.vcTempRise ?? 0) + (P.rgAtDriverSide !== false ? (P.Rs || 0) : 0);
+}
+
+/** The lossless circuit's high-frequency SPL asymptote at `r_m`, Le excluded: |p| = ρ·|pg|/(2π·r·Mas)
+ *  with the push `pg` from the entered BL. The transfer function's 0 dB (WinISD: fresh capture,
+ *  BUG_20260926_winisd-tf-reference). */
+export function hfAsymptotePressure_Pa(drv: CircuitQuantities, P: SweepParams, r_m: number): number {
+  const n = P.nDrivers || 1;
+  const series = (P.wiring || 'parallel') === 'series';
+  const Rac = (series ? coilRdc(drv, P) * n : coilRdc(drv, P) / n) + (P.rgAtDriverSide !== false ? 0 : (P.Rs || 0));
+  const BlPush = series ? drv.BL_entered_Tm * n : drv.BL_entered_Tm;
+  const pg = P.eg * BlPush / (drv.Sd_m2 * n * Rac);
+  const Mas = drv.Mms_kg / (drv.Sd_m2 * drv.Sd_m2) / n;
+  const {rho} = solveEnvironment(P).values;
+  return rho * pg / (2 * Math.PI * r_m * Mas);
+}
+
 export function solve(f: number, drv: CircuitQuantities, box: BoxType, P: SweepParams): Solution {
   const w      = 2 * Math.PI * f;
   const n      = P.nDrivers || 1;
@@ -144,7 +163,7 @@ export function solve(f: number, drv: CircuitQuantities, box: BoxType, P: SweepP
   // circuit but is not part of Zel (WinISD, debugger capture, BUG_20260926).
   const Rg  = P.Rs || 0;
   const rgAtDriver = P.rgAtDriverSide !== false;
-  const Rdc1 = hotRe(drv.Re_terminal_ohm, P.alfaVC ?? 0, P.vcTempRise ?? 0) + (rgAtDriver ? Rg : 0);
+  const Rdc1 = coilRdc(drv, P);
   const arrayTerminals = (Le_H: number): Complex => {
     const z1 = cx(Rdc1, w * Le_H);
     return wiring === 'series' ? cScale(z1, n) : cScale(z1, 1/n);
@@ -219,7 +238,9 @@ export function solve(f: number, drv: CircuitQuantities, box: BoxType, P: SweepP
         const Cat = (Cas * Cab) / (Cas + Cab);
         const wsc = 1 / Math.sqrt(Cat * Mas);
         const RalConst = cx(Ql / (wsc * Cab), 0);
-        Zbox = cPar(Zc, RalConst, Raa);
+        // WinISD's absorption: ωsc·Mas/Qa in series with Cab (BUG_20260926_winisd-box-absorption-is-series).
+        const RaaSeries = cx(wsc * Mas / Qa, 0);
+        Zbox = cPar(RalConst, cAdd(RaaSeries, Zc));
         UD = cDiv(pg, cAdd(cAdd(ZaE, ZaD), Zbox));
         const Uleak = cMul(UD, cDiv(Zbox, RalConst));
         U0 = cSub(UD, Uleak);
@@ -269,8 +290,9 @@ export function solve(f: number, drv: CircuitQuantities, box: BoxType, P: SweepP
     U0 = UP;
   }
 
-  // Electrical input impedance Zel = Ze + Bl²/(Sd²·(ZaD+Zbox))
+  // Electrical input impedance Zel = Ze + Bl²/(Sd²·(ZaD+Zbox)), with the ENTERED BL as WinISD
+  // uses it (BUG_20260926_winisd-impedance-uses-entered-bl).
   // https://en.wikipedia.org/wiki/Electrical_characteristics_of_a_dynamic_loudspeaker
-  const Zel = cAdd(ZcoilForZel, cDiv(cx(Bl * Bl, 0), cMul(cx(Sdt * Sdt, 0), cAdd(ZaD, Zbox))));
+  const Zel = cAdd(ZcoilForZel, cDiv(cx(BlPush * BlPush, 0), cMul(cx(Sdt * Sdt, 0), cAdd(ZaD, Zbox))));
   return { U0, UD, UP, Zbox, Zel, ZaD };
 }
