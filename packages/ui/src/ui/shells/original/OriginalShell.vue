@@ -626,8 +626,8 @@ WinISD Lossy (default): reports the lossy 3rd-order model's pole, so Fsc rises a
                 </div>
               </div>
               <div style="margin-bottom: 6px;">
-                <label data-field-key="useWinisdDriverModel" style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 13px;" :title="`WinISD Driver Calculations\nTicked (WinISD, the default): the simulation uses two BLs, as WinISD does. The damping comes from the driver WinISD acts on: Cms from Vas, then Mms, Rms and BL from Fs, Qms and Qes. The entered BL sets the loudness and, with voice coil inductance on, the inductance roll-off. We judge the two-BL mix a WinISD bug.\nUnticked (conventional): the simulation uses the entered datasheet values, one BL throughout.\nThe two differ only when the entered values disagree with Fs, Vas, Qes and Qms.`">
-                  <input type="checkbox" :checked="project.useWinisdDriverModel.value" @change="e => project.useWinisdDriverModel.set(inputChecked(e))"> WinISD driver calculations
+                <label data-field-key="useWinisdDriverModel" style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 13px;" :title="`WinISD Driver Model\nTicked (WinISD, the default): the simulation uses two BLs, as WinISD does. The damping comes from the driver WinISD acts on: Cms from Vas, then Mms, Rms and BL from Fs, Qms and Qes. The entered BL sets the loudness and, with voice coil inductance on, the inductance roll-off. We judge the two-BL mix a WinISD bug.\nUnticked (conventional): the simulation uses the entered datasheet values, one BL throughout.\nThe two differ only when the entered values disagree with Fs, Vas, Qes and Qms.`">
+                  <input type="checkbox" :checked="project.useWinisdDriverModel.value" @change="e => project.useWinisdDriverModel.set(inputChecked(e))"> WinISD driver model
                 </label>
               </div>
               <div style="margin-bottom: 8px;">

@@ -6,7 +6,7 @@ test.beforeEach(async ({ page }) => {
   await page.locator('li', { hasText: /^Advanced$/ }).click();
 });
 
-test('WinISD\'s inductance model has no switch of its own — "WinISD driver calculations" covers it (John, 2026-09-26)', async ({ page }) => {
+test('WinISD\'s inductance model has no switch of its own — "WinISD driver model" covers it (John, 2026-09-26)', async ({ page }) => {
   await expect(page.locator('[data-field-key="winisdInductance"]')).toHaveCount(0);
   const driverCalcs = page.locator('[data-field-key="useWinisdDriverModel"]');
   await expect(driverCalcs).toHaveAttribute('title', /inductance/);
@@ -16,7 +16,7 @@ test('WinISD\'s inductance model has no switch of its own — "WinISD driver cal
 test('WinISD Compatibility labels are unclipped and drop the "Use" prefix', async ({ page }) => {
   const panel = page.locator('.sim-options-box', { hasText: 'WinISD Compatibility' });
   const labels = panel.locator('label[data-field-key]');
-  await expect(labels).toHaveText(['WinISD driver calculations', 'WinISD air model']);
+  await expect(labels).toHaveText(['WinISD driver model', 'WinISD air model']);
   const panelBox = (await panel.boundingBox())!;
   const clipRight = await panel.evaluate(el => {
     // The visible right edge: the panel's own, or an ancestor's that clips it first.
