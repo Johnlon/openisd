@@ -43,6 +43,10 @@ const libraryLine = computed(() => {
           reproduces WinISD's output, and it reads and writes WinISD <code>.wdr</code> driver
           files and <code>.wpr</code> projects.
         </p>
+        <p>
+          Bigger tools exist and do more. WinISD is simple, familiar and trusted — so OpenISD
+          takes it as the golden source, and is not afraid to improve on it where it is wrong.
+        </p>
       </section>
 
       <section>
