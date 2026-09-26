@@ -603,7 +603,7 @@ const {
         <!-- ===== Advanced tab ===== -->
         <section v-show="activeTab === 'advanced'" class="tab-section" :class="{ active: activeTab === 'advanced' }">
           <div class="two-col adv-two-col">
-            <div class="adv-air-fields" style="--label-w:92px;">
+            <div class="adv-air-fields" style="--label-w:108px;">
               <div class="field-row"><div :class="['field', 'adv-air-field', envTempStored ? 'entered' : '', { 'dq-flag': envTempDq.dq.length > 0 }]" :title="envTempDq.dq.join('; ')"><label>Temperature</label><NumInput v-model="advTemp" :class="{ calculated: !envTempStored }" field="advTemp" group="temp" base="K" :precision="2" :allow-out-of-range="true" v-bind="envTempDq" @blur="commitAirTemp" /><UnitToggle field="advTemp" group="temp" base="K" unit-class="unit unit-cyc" /></div></div>
               <div class="field-row"><div :class="['field', 'adv-air-field', envHumidityStored ? 'entered' : '', { 'dq-flag': envHumidityDq.dq.length > 0 }]" :title="envHumidityDq.dq.join('; ')"><label>Relative humidity</label><NumInput v-model="advHumidity" :class="{ calculated: !envHumidityStored }" field="advHumidity" :precision="2" :allow-out-of-range="true" v-bind="envHumidityDq" @blur="commitAirHumidity" /><span class="unit">%</span></div></div>
               <div class="field-row"><div :class="['field', 'adv-air-field', envPressureStored ? 'entered' : '', { 'dq-flag': envPressureDq.dq.length > 0 }]" :title="envPressureDq.dq.join('; ')"><label>Air pressure</label><NumInput v-model="advPressure" :class="{ calculated: !envPressureStored }" field="advPressure" group="pressure" base="Pa" :precision="1" :allow-out-of-range="true" v-bind="envPressureDq" @blur="commitAirPressure" /><UnitToggle field="advPressure" group="pressure" base="Pa" unit-class="unit unit-cyc" /></div></div>
@@ -1045,15 +1045,17 @@ const {
 .driver-id-row { align-items:center; gap:10px; }
 .field input.greyed { background:#e9e9e9; color:#777; }
 .field input.calculated { color:#1868d1; border-color:#1868d1; }
- .adv-air-field :deep(input) { width:90px; }
-.adv-air-fields { display:grid; grid-template-columns:max-content max-content; column-gap:8px; align-items:start; }
+.adv-air-field :deep(input) { width:90px; }
+.adv-air-fields { display:grid; grid-template-columns:max-content max-content; column-gap:10px; align-items:start; }
 .adv-air-fields .field-row { margin-bottom: 4px; }
 .adv-air-fields .field-row:nth-child(-n+3) { grid-column:1; }
 .adv-air-fields .field-row:nth-child(4),
 .adv-air-fields .field-row:nth-child(5) { grid-column:2; }
 .adv-air-fields .field-row:nth-child(4) { grid-row:1; }
 .adv-air-fields .field-row:nth-child(5) { grid-row:2; }
-.adv-air-fields .reset-air-btn { grid-column:2; grid-row:3; justify-self:start; }
+.adv-air-fields .field-row:nth-child(4) label,
+.adv-air-fields .field-row:nth-child(5) label { width:86px; }
+.adv-air-fields .reset-air-btn { grid-column:2; grid-row:3; justify-self:start; margin-top:2px; }
 .reset-air-btn { border:1px solid #999; background:#f0f0f0; border-radius:3px; padding:4px 8px; cursor:pointer; color:#333; }
 /* A solved length of zero or less is not a port that can be built — it reads as the failure it
    is, matching the red unreachable notice below the pane rather than looking like a dimension. */
