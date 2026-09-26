@@ -1,7 +1,6 @@
 # The bridge derived nothing, so every generated .wdr lost its calculated fields
 
-**Status:** PARTIAL (derivation fixed), one field remains outstanding (`Dia`)
-**Found:** 2026-09-02 by John, on seeing a regenerated ParState row with no `C` marks.
+Status: RESOLVED (re-verified 2026-09-26) — `Dia` is now written calculable (`wdrRow(errors, spec.Dia_m, true, "Dia")`, `driverYmlToOpenisdAndWdr.ts`); no field remains outstanding.
 
 ## Symptom
 

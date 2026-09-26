@@ -1,7 +1,6 @@
 # A `.wdr`'s `c`/`roo` cannot be verified on round trip when the environment isn't the app default
 
-**Status:** RESOLVED.
-**Found:** 2026-09-07, John.
+Status: RESOLVED (re-verified 2026-09-26) — the round-trip test compares against WinISD's own air model at the environment recorded in the fixture's `Comment=` (`drivers/myprobes/text/driver-with-semicolons-and-hash.wdr`).
 
 ## Symptom
 

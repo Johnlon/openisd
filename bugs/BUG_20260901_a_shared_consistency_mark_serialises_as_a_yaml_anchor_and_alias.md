@@ -1,7 +1,6 @@
 # A shared consistency mark serialises as a YAML anchor and alias
 
-**Status:** FIXED
-**Found:** 2026-09-01, running the bridge over 400 real corpus records.
+Status: CLOSED (re-verified 2026-09-26) — obsolete: the bridge writes `openisd.json` with `JSON.stringify`, not a YAML serialiser, so no anchor/alias can appear.
 
 ## Symptom
 

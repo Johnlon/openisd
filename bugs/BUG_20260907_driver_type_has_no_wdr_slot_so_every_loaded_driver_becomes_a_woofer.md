@@ -1,7 +1,6 @@
 # A driver's `driverType` has no `.wdr` slot, so loading any `.wdr` always yields `woofer`
 
-**Status:** RESOLVED.
-**Found:** 2026-09-07, John.
+Status: RESOLVED (re-verified 2026-09-26) — `packages/design/winisd/winisdDriver.ts` stashes the type as a `[DRIVERTYPE ...]` tag in the `.wdr` Comment field.
 
 ## Symptom
 

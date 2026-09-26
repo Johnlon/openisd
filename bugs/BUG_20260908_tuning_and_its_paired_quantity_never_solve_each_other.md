@@ -1,6 +1,6 @@
 # A box tuning and the quantity that produces it never solve each other
 
-Status: DEFERRED — ruled (QO126), scheduled after the packages/model → packages/design migration lands
+Status: CLOSED (re-verified 2026-09-26) — confirmed: `ventLength`/`tuningFromLength` and the paired PR added-mass field (`packages/design/domain/openisdDomain.ts`) solve each other.
 
 ## Symptom
 

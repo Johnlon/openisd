@@ -1,4 +1,4 @@
-Status: DEFERRED
+Status: RESOLVED (re-verified 2026-09-26) — superseded ruling: `DriverType` in `packages/design/filter/driverType.ts` is a closed set whose wire values are enforced against winisd_tools' Python enum by `test_driver_type_enum_parity.py`.
 
 John, 2026-09-07: "park the shared python entirely". The scraper/domain shared `driver_type`
 enum is not being built. Any future closed-set work on this field is TypeScript-domain-only;

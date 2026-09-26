@@ -1,6 +1,6 @@
 # BUG_20260917_signal-panel-power-and-voltage-blank-on-new-project.md
 
-**Status:** RESOLVED
+Status: RESOLVED (re-verified 2026-09-26) — confirmed for the common case: with Re known, power defaults to 1 W entered. The 2026-09-24 drive-voltage/power ruling supersedes "always 1 W": with Re unknown, power is deliberately N and voltage defaults to 1 V instead (`openisdDomain.ts` `#powerDriveOver`).
 
 ## Symptom
 When opening a new project from scratch (e.g. sealed w51138 and 6l), the Signal panel shows both P (system input power) and V (driver input voltage) blank.

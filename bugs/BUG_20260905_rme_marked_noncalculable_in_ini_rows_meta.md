@@ -1,6 +1,6 @@
 # `Rme` marked `calculable: false` in `INI_ROWS_META` — every derived `Rme` exports as `E`, never `C`
 
-**Status:** RESOLVED — `Rme` is now marked calculable in the INI metadata.
+Status: RESOLVED (re-verified 2026-09-26) — the old `INI_ROWS_META`/`calculable: false` shape is gone; the `.wdr` writer's per-field `calculable` argument is set correctly for Rme.
 
 ## Symptom
 

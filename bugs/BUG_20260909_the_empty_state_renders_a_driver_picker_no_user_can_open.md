@@ -1,6 +1,6 @@
 # The empty state renders a driver picker no user can open
 
-Status: RESOLVED — the global shell exposes Manage Drivers while no project is open.
+Status: RESOLVED (re-verified 2026-09-26) — confirmed: `DriverBrowser` (renamed from `DriverBrowserWinisd`) is always mounted and self-gates.
 
 ## Symptom
 

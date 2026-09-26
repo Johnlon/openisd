@@ -1,7 +1,6 @@
 # No project can be opened from a file when none is open
 
-Status: RESOLVED — the empty state exposes the same file-open/import path without requiring an
-existing project.
+Status: RESOLVED (re-verified 2026-09-26) — confirmed: `App.vue` renders `DriverBrowser` unconditionally, self-gated on `presentationState.browseOpen`.
 
 ## Symptom
 

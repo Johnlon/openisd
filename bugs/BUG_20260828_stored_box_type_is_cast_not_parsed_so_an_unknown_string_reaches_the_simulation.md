@@ -2,9 +2,7 @@
 
 **Where:** `packages/persistence/src/repos/projectRepo.ts`, `boxTypeOfWireBox()`.
 
-**Status:** RESOLVED — persisted box types are parsed and rejected at the project load boundary.
-Found 2026-08-28 by the api-design session reviewing the BoxType collapse.
-Introduced by me in the same collapse. Fix below.
+Status: CLOSED (re-verified 2026-09-26) — obsolete: `boxTypeOfWireBox` and the intermediate wire-box shape are gone; `packages/persistence` passes `.owpr` text straight to the domain's zod parse.
 
 ## Symptom
 

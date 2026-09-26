@@ -3,7 +3,7 @@
 **Where:** `packages/model/src/openisdProject.ts:1159`, re-declared on the managed facade at
 `packages/ui/src/logic/managedProject.ts:561`.
 
-**Status:** OPEN — recorded 2026-08-28, not fixed. Changing a domain API signature is John's call.
+Status: CLOSED (re-verified 2026-09-26) — obsolete: `enterPrDatasheet` and `packages/model` are gone; no such entry point exists.
 
 ## Symptom
 

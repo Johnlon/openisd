@@ -1,7 +1,7 @@
 # Bug: `npm run test:visual` and `.claude/rules/openisd-ui-tests.md` reference nonexistent `visual.browser.spec.ts`
 
 **Date:** 2026-09-09  
-**Status:** RESOLVED (Deleted `test:visual` script from `package.json` and deleted section from `.claude/rules/openisd-ui-tests.md` per John's ruling)
+Status: RESOLVED (re-verified 2026-09-26) — confirmed: no `test:visual` script in `package.json`.
 
 ## Summary
 `npm run test:visual` pointed to `packages/ui/test/ui/visual.browser.spec.ts`, which did not exist on disk. `.claude/rules/openisd-ui-tests.md` documented this spec as live coverage.

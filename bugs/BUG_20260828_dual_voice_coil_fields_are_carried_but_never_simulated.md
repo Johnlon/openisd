@@ -1,7 +1,6 @@
 # `numVC` / `VCCon` are carried through the whole system and reach no calculation
 
-**Status:** RESOLVED 2026-08-28 — but NOT as a simulation gap. The mechanism is decompiled and
-was already in this repo.
+Status: CLOSED (re-verified 2026-09-26) — confirmed: `terminalRe_ohm`/`terminalBL_Tm` (`packages/design/engine/solver.ts`) derive the terminal quantities from `numVC`/wiring.
 
 ## THE MECHANISM — from the binary, `winisd_research/GHIDRA_FINDINGS.md`
 

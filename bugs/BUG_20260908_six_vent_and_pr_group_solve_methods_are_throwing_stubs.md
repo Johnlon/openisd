@@ -1,6 +1,6 @@
 # Six vent/PR group-solve methods on OpenISDProject throw, so no project can be opened
 
-Status: DECIDED (John, 2026-09-12) — implement fully as precomputed domain fields / methods.
+Status: RESOLVED (re-verified 2026-09-26) — `solveVent`/`solvePr` (`packages/design/engine/solver.ts`) are implemented; no stub throws remain, and the app opens projects normally.
 
 ## Symptom
 

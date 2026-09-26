@@ -1,6 +1,6 @@
 # `OpenISDBoxJson` and `OpenISDProjectJson` have no zod schema — only `OpenISDDeviceJson` is runtime-validated
 
-**Status:** RESOLVED — runtime schemas now cover both `OpenISDBoxJson` and `OpenISDProjectJson`.
+Status: RESOLVED (re-verified 2026-09-26) — confirmed: `openISDBoxJsonSchema` and `openISDProjectJsonSchema` in `packages/design/domain/openisdSchema.ts` validate both.
 
 **Found:** 2026-09-05, scoping a split of `packages/design/domain/project.ts` (2750+ lines) into
 driver/passiveRadiator/box/project/projectRepo files. The split was blocked by
