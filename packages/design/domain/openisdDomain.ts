@@ -1186,22 +1186,62 @@ function driverSolverParamsOf(spec: OpenIsdDriverSpec, engine: Engine, useWinisd
     const numVC = spec.numVC.value ?? undefined;
     const wiringInput: SolverInput<Wiring> = { value: wiring, entered: spec.VCCon.entered };
 
-    let mmsField: SolverField<number> = spec.Mms_kg;
-    if (useWinisdDriverModel && spec.Fs_hz.value && spec.Cms_m_per_N.value && spec.Fs_hz.value > 0 && spec.Cms_m_per_N.value > 0) {
-        const winisdMms = 1 / (4 * Math.PI * Math.PI * Math.pow(spec.Fs_hz.value, 2) * spec.Cms_m_per_N.value);
-        if (Number.isFinite(winisdMms) && winisdMms > 0) {
-            mmsField = computedSlot(winisdMms);
-        }
-    }
+    const Re_terminal_ohm = Re_ohm == null ? null : engine.terminalRe_ohm(Re_ohm, numVC, wiring);
+    const BL_terminal_entered_Tm = BL_Tm == null ? null : engine.terminalBL_Tm(BL_Tm, numVC, wiring);
+
+    // WinISD's simulation reads Fs, Vas, Qes, Qms, Sd and Re; its circuit names neither Mms, BL
+    // nor Rms outside CLe, and it leaves all three entered values untouched (measured against
+    // 0.7.0.950, winisd_research/PROBE_FINDINGS.md). So the flag substitutes all three, each only
+    // where its own inputs are present and positive. Every substitution is an identity on a
+    // self-consistent driver. The entered BL still reaches the engine as `BL_Tm`, which is what
+    // the 'winisdGyrator' inductance model scales Le by.
+    const mmsField = useWinisdDriverModel ? winisdMms_kg(spec) : spec.Mms_kg;
+    const rmsField = useWinisdDriverModel ? winisdRms_kg_per_s(spec, mmsField) : spec.Rms_kg_per_s;
+    const blTerminal = useWinisdDriverModel
+        ? winisdBLterminal_Tm(spec, Re_terminal_ohm, BL_terminal_entered_Tm)
+        : BL_terminal_entered_Tm;
 
     return {
         ...spec,
         Mms_kg: mmsField,
+        Rms_kg_per_s: rmsField,
         SPLref_dB: NO_SLOT,
-        Re_terminal_ohm: computedSlot(Re_ohm == null ? null : engine.terminalRe_ohm(Re_ohm, numVC, wiring)),
-        BL_terminal_Tm: computedSlot(BL_Tm == null ? null : engine.terminalBL_Tm(BL_Tm, numVC, wiring)),
+        Re_terminal_ohm: computedSlot(Re_terminal_ohm),
+        BL_terminal_Tm: computedSlot(blTerminal),
         wiring: wiringInput,
     };
+}
+
+/** A quantity usable as a substitution input: stated, finite and positive. */
+function positive(value: number | null | undefined): value is number {
+    return typeof value === 'number' && Number.isFinite(value) && value > 0;
+}
+
+/** `Mms = 1/((2π·Fs)²·Cms)` — the moving mass WinISD's own circuit acts on. `spec`'s entered field
+ *  where Fs or Cms is not a positive number. */
+function winisdMms_kg(spec: OpenIsdDriverSpec): SolverField<number> {
+    const Fs = spec.Fs_hz.value, Cms = spec.Cms_m_per_N.value;
+    if (!positive(Fs) || !positive(Cms)) return spec.Mms_kg;
+    const Mms = 1 / (4 * Math.PI * Math.PI * Fs * Fs * Cms);
+    return positive(Mms) ? computedSlot(Mms) : spec.Mms_kg;
+}
+
+/** `Rms = 2π·Fs·Mms/Qms` — the mechanical loss WinISD's `Ram = 1/(2π·Fs·Qms·Ccas)` implies, off the
+ *  same moving mass. `spec`'s entered field where Fs, Qms or that mass is not positive. */
+function winisdRms_kg_per_s(spec: OpenIsdDriverSpec, mms: SolverField<number>): SolverField<number> {
+    const Fs = spec.Fs_hz.value, Qms = spec.Qms.value, Mms = mms.value;
+    if (!positive(Fs) || !positive(Qms) || !positive(Mms)) return spec.Rms_kg_per_s;
+    const Rms = 2 * Math.PI * Fs * Mms / Qms;
+    return positive(Rms) ? computedSlot(Rms) : spec.Rms_kg_per_s;
+}
+
+/** `BL² = Re/(2π·Fs·Qes·Cms)` at the terminals — the motor strength WinISD's
+ *  `Rae = 1/(2π·Fs·Qes'·Ccas)` implies. `entered` where Re, Fs, Qes or Cms is not positive. */
+function winisdBLterminal_Tm(spec: OpenIsdDriverSpec, Re_terminal_ohm: number | null, entered: number | null): number | null {
+    const Fs = spec.Fs_hz.value, Qes = spec.Qes.value, Cms = spec.Cms_m_per_N.value;
+    if (!positive(Re_terminal_ohm) || !positive(Fs) || !positive(Qes) || !positive(Cms)) return entered;
+    const BL = Math.sqrt(Re_terminal_ohm / (2 * Math.PI * Fs * Qes * Cms));
+    return positive(BL) ? BL : entered;
 }
 
 /**

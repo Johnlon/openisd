@@ -32,6 +32,13 @@ first, a tail spin means stop and raise an inbox item): several agent sessions w
 at once, so uncommitted changes you did not make are another session's live work — the same
 protection applies to them as to your own.
 
+## WinISD controls behave as native WinISD
+
+Every control OpenISD shares with WinISD behaves exactly as WinISD does, on its own and by
+default (e.g. "Rg is at driver side"). Only a separate WinISD-vs-conventional switch may change
+that behaviour: its own compat checkbox, or an n-way drop-down like the loss model. Never bake a
+conventional variant into the shared control itself. (John, 2026-09-26.)
+
 ## Communication — plain bug statements
 
 Report a bug or a split as one plain sentence: "There are two things, X and Y. X does A, Y does

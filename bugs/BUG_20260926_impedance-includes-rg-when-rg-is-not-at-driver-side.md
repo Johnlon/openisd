@@ -56,6 +56,10 @@ contains Rg. WinISD's impedance routine (0x45e740) adds Rg (project+0x38) only w
 The impedance chart (`Zel`) excludes Rg when `rgAtDriverSide` is false. This probe does not
 test the acoustic curves (SPL etc.), so this fix leaves them as they are.
 
+Ruling, John 2026-09-26: fix to WinISD, no switch on the flag itself. Shared WinISD controls
+behave as native WinISD by default. A conventional variant would need its own separate compat
+switch.
+
 ## Verification
 
 A unit test on a one-driver sealed case at Rg 10 Ω: `zmag` at 20 kHz equals |Re + jωLe| with

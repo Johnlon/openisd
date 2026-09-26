@@ -1,6 +1,6 @@
 # BUG_20260926_winisd-driver-mode-substitutes-mms-only
 
-**Status:** OPEN
+**Status:** RESOLVED 2026-09-26 — the flag substitutes Mms, Rms and BL; the entered BL still feeds CLe.
 
 ## Symptom
 
@@ -53,9 +53,31 @@ Each substitution applies only where its inputs are present and positive, as the
 `Mms` one does. `Re` here is the per-coil `Re` the rest of `driverSolverParamsOf` already
 uses, so the terminal `BL` keeps coming from `engine.terminalBL_Tm`.
 
+## Scope of the substitution
+
+The derived BL goes into the motor term only. WinISD's `CLe = S_d^2 L_e/BL^2` reads the ENTERED
+BL (`fr_45e090` at 0x45e3ab, `winisd_research/GHIDRA_FINDINGS.md`), which is what makes the
+W5-1138SMF's inductance roll-off deeper than a consistent driver's. `CircuitQuantities` therefore
+carries both: `BL_terminal_Tm`, the motor term's BL, which this flag replaces, and
+`BL_entered_Tm`, the stated one, which `winisdLeScale` divides by. Before this change the two
+were always equal and `winisdLeScale` read `BL_terminal_Tm`.
+
 ## Verification
 
 - A unit test over the probe's driver: with the flag set, the sealed sweep's resonance and
   Q match the WinISD-parameterised set, and with it clear they match the entered set.
 - Golden fixtures must not move: every golden driver is self-consistent, so all three
   substitutions are identities there. Regenerate and diff to confirm.
+
+Done 2026-09-26: `packages/design/test/domain/winisdDriverModel.test.ts` — with the flag set, the
+probe's inconsistent driver sweeps identically to the consistent driver its Fs/Cms/Qes/Qms/Re
+imply; with it clear the two differ; a self-consistent driver is unmoved by the flag. The W5
+`winisdGyrator` case in `packages/design/test/engine/circuit.test.ts` still matches the traced
+WinISD roll-off. Whole design suite: 2043 passed.
+
+## Still open, raised by calc-bug 2026-09-26
+
+WinISD takes `Cms` from `Vas`, while this flag uses the entered `Cms`. On the W5 that accounts
+for 0.40 dB of passband SPL and a 0.9 Hz resonance shift (debugger capture, `winisd_research`
+4d818e2). Deriving `Cms` from `Vas` as well is a separate change, for John's decision — it
+changes which quantity is authoritative, not just which formula is used.

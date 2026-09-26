@@ -103,14 +103,18 @@ export interface CircuitQuantities {
      *  why a driver without it still sweeps. */
     Le_H?: number;
     /** The BL the driver's Fs/Qes/Cms/Re imply, BL² = Re/(ωs·Qes·Cms) — read only by the
-     *  'winisdGyrator' model. Absent means no second BL to disagree with `BL_terminal_Tm`. */
+     *  'winisdGyrator' model. Absent means no second BL to disagree with `BL_entered_Tm`. */
     BL_Qes_Tm?: number;
+    /** The BL the driver STATES, at the terminals. Equals `BL_terminal_Tm` unless "Use WinISD
+     *  driver calculations" replaced the motor term's BL with the Qes-derived one; WinISD's `CLe`
+     *  reads the entered figure either way (`fr_45e090` at 0x45e3ab, GHIDRA_FINDINGS.md). */
+    BL_entered_Tm: number;
 }
 
-/** (BL_Qes/BL)²: the factor WinISD's VCInd=1 model puts on Le. */
+/** (BL_Qes/BL_entered)²: the factor WinISD's VCInd=1 model puts on Le. */
 function winisdLeScale(drv: CircuitQuantities): number {
   if (drv.BL_Qes_Tm === undefined) return 1;
-  return (drv.BL_Qes_Tm / drv.BL_terminal_Tm) ** 2;
+  return (drv.BL_Qes_Tm / drv.BL_entered_Tm) ** 2;
 }
 
 export function solve(f: number, drv: CircuitQuantities, box: BoxType, P: SweepParams): Solution {

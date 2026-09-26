@@ -19,7 +19,7 @@ import {cAbs, cArg, cMul, cScale, cx} from './complex.js';
 import type {CircuitQuantities} from './circuit.js';
 import {solve} from './circuit.js';
 import type {DriverIssue, DriverPrerequisite, DriverQuantityName, PrIssue, VentIssue} from './solver.js';
-import {withAddedMass} from './solver.js';
+import {terminalBL_Tm, withAddedMass} from './solver.js';
 import {referenceEfficiency, splFromEfficiency} from './efficiency.js';
 import {applyFilters} from './filters.js';
 import type {BoxType, DriverError, MaxCurvesResult, SweepParams, SweepResult} from './types.js';
@@ -234,9 +234,19 @@ function circuitQuantities(q: ReturnType<typeof withAddedMass>, Le_H: number | u
       Sd_m2: q.Sd_m2!, Re_terminal_ohm: q.Re_terminal_ohm!, BL_terminal_Tm: q.BL_terminal_Tm!,
       Cms_m_per_N: q.Cms_m_per_N!, Mms_kg: q.Mms_kg!, Rms_kg_per_s: q.Rms_kg_per_s!, Le_H,
       BL_Qes_Tm: blFromQes(q.Re_terminal_ohm!, q.Cms_m_per_N!, q.Fs_hz, q.Qes),
+      BL_entered_Tm: enteredTerminalBL_Tm(q),
     },
     issues: [],
   };
+}
+
+/** The BL the driver STATES, at the terminals. `BL_terminal_Tm` is the BL the circuit's motor term
+ *  runs on, which "Use WinISD driver calculations" replaces with the Qes-derived one; this is the
+ *  entered figure that WinISD keeps reading in `CLe` whatever the motor term uses. Falls back to
+ *  `BL_terminal_Tm` where the per-coil `BL_Tm` is not stated. */
+function enteredTerminalBL_Tm(q: ReturnType<typeof withAddedMass>): number {
+  if (q.BL_Tm === undefined || !(q.BL_Tm > 0)) return q.BL_terminal_Tm!;
+  return terminalBL_Tm(q.BL_Tm, q.numVC, q.wiring);
 }
 
 /** The BL a driver's Fs/Qes/Cms/Re imply: BL² = Re/(ωs·Qes·Cms). Absent when Fs or Qes is. */
