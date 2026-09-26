@@ -1058,10 +1058,6 @@ const overlays = computed<Design[]>(() => {
     return project.value.isWhatIfActive();
   });
 
-  const applyWinisdSettings = () => {
-    project.value.applyWinisdSettings();
-  };
-
   return {
     version, toggleDropdown, openDd, openClick, closeDropdown, presentationState, isModified,
     openDialogOpen, storedProjects, openFromDisk, openStoredProject,
@@ -1076,7 +1072,7 @@ const overlays = computed<Design[]>(() => {
     genOn, toggleGenerate, genHz, limits,
     boxLabel, pending, chartTab, overlays, chartUnavailable, activeTab,
     showEnclosureTab, enclosureNavLabel,
-    selectedBox, BOX_TYPE_OPTIONS, LOSS_MODE_OPTIONS, lossMode, ARRAY_WIRING_OPTIONS, N_DRIVERS_OPTIONS, applyWinisdSettings,
+    selectedBox, BOX_TYPE_OPTIONS, LOSS_MODE_OPTIONS, lossMode, ARRAY_WIRING_OPTIONS, N_DRIVERS_OPTIONS,
      boxVolume_m3, boxVolumeDqNote, setBoxVolume_m3, fieldDp, sealedAlignmentEditor, sealedAlignmentOpen,
      sealedAlignmentOptions, sealedAlignmentSelected, sealedAlignmentVolume_L, sealedAlignmentEbp,
      sealedAlignmentSuitability, sealedAlignmentSuitabilityLabel, ogFilters,
