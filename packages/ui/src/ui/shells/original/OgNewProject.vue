@@ -240,9 +240,9 @@ function handleCreate() {
       <div class="modal-footer">
         <div class="footer-buttons">
           <button v-if="canBack" class="cancel-btn" title="Back to the previous step" @click="back">&lt; Back</button>
-          <button v-if="canNext" class="ok-btn" title="Next step" @click="next">Next &gt;</button>
-          <button v-if="step === 5" class="ok-btn" :disabled="!canCreate" title="Create project" @click="handleCreate">Create</button>
-          <button class="cancel-btn" title="Cancel" @click="handleCancel">Cancel</button>
+          <button v-if="canNext" class="ok-btn" @click="next">Next &gt;</button>
+          <button v-if="step === 5" class="ok-btn" :disabled="!canCreate" @click="handleCreate">Create</button>
+          <button class="cancel-btn" @click="handleCancel">Cancel</button>
         </div>
       </div>
     </div>

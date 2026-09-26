@@ -46,7 +46,7 @@ useEscToClose(() => true, close);
           </div>
         </div>
 
-        <div class="row" title="Name for this passive radiator">
+        <div class="row">
           <label>PR name</label>
           <input style="flex:1" type="text" :value="radiator.model.value" @input="e => radiator.model.set(inputValue(e))" placeholder="e.g. Dayton SD270A-88">
         </div>

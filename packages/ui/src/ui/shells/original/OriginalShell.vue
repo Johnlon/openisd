@@ -247,7 +247,10 @@ const {
               </select>
             </div>
             <div v-if="selectedBox === 'sealed'" class="field" style="gap:8px;"
-              title="Sealed resonance (Fsc) and system Q (Qtc) loss model. Lossless = fs·√(1+Vas/Vb). Conventional Lossy folds Ql/Qa into Qtc only, leaving the frequency fixed (Small/Thiele). WinISD Lossy reports the pole of the lossy 3rd-order model, so Fsc rises as Ql falls — this matches WinISD's own readout. Default: WinISD Lossy.">
+              title="Sealed resonance (Fsc) / system Q (Qtc) loss model.
+Lossless: Fsc = fs·√(1+Vas/Vb).
+Conventional Lossy: folds Ql/Qa into Qtc only; frequency stays fixed (Small/Thiele).
+WinISD Lossy (default): reports the lossy 3rd-order model's pole, so Fsc rises as Ql falls — matches WinISD's own readout.">
               <label style="width:auto;">Model</label>
               <select id="lossmode" :value="lossMode" @change="e => { const m = selectedOption(e, LOSS_MODE_OPTIONS); if (m !== null) lossMode = m; }" style="width:170px">
                 <option v-for="m in LOSS_MODE_OPTIONS" :key="m.value" :value="m.value">{{ m.label }}</option>
