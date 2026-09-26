@@ -1,7 +1,6 @@
 # Two untyped browser-wide lookups: one hidden by switching lint off for the file, one a test backdoor that ships to users
 
-Status: PARTIAL — the test backdoor was removed and HMR access was typed, but application state
-still uses a browser-wide HMR binding.
+Status: OPEN (re-verified 2026-09-26) — the untyped registry is gone, but `appState.ts` still installs `globalThis.__store_context`, read only by tests.
 
 ## Symptom
 

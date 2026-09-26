@@ -1,8 +1,6 @@
 # Browser suite: dozens of specs fail on a console.error logged for a state blob that never had project data
 
-Status: OPEN — current closure evidence is insufficient; the original report explicitly recorded
-that the restore-path error was not diagnosed. Found incidentally during the duplicate-accessor cleanup task; NOT caused by
-that task's changes (bisected below).
+Status: CLOSED (re-verified 2026-09-26) — obsolete: no fixture seeds `openisd.state`, and `projectRepo.ts` no longer logs an error on a shapeless blob.
 
 ## Symptom
 

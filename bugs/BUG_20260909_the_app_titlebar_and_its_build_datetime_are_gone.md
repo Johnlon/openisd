@@ -1,6 +1,6 @@
 # The app titlebar and its build datetime are gone
 
-Status: OPEN
+Status: OPEN (re-verified 2026-09-26) — the build date is defined at build time but shown nowhere.
 
 ## Symptom
 

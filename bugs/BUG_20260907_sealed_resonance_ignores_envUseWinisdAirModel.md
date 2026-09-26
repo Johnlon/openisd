@@ -1,11 +1,6 @@
 # `#sealedResonance_hz()` never selects WinISD's own air model, even when `envUseWinisdAirModel()` says to
 
-**Status:** OPEN — finding, not a fix. `.claude/rules/engine.md` forbids changing calculation
-logic without explicit human permission in the current conversation; none given yet.
-**Found:** 2026-09-07, building the `.wpr` project bridge
-(`packages/design/winisd/projectYmlToOpenisdAndWpr.ts`) and its test
-(`packages/design/test/winisd/projectYmlToOpenisdAndWpr.test.ts`), comparing the sealed-box
-resonance this bridge produces against `sealed-small.wpr`'s own `Fr`.
+Status: OPEN (re-verified 2026-09-26) — moved: the embedded driver's air provider (`#airOver` in `openisdDomain.ts`) omits `useWinisdAirModel`, so a derived Vas uses the physical air model. Same cause as `BUG_20260924_driver-solve-and-sweep-use-different-air-models.md`.
 
 ## Symptom
 

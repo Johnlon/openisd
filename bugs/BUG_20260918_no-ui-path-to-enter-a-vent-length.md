@@ -1,6 +1,6 @@
 # BUG_20260918_no-ui-path-to-enter-a-vent-length
 
-**Status:** OPEN
+Status: OPEN (re-verified 2026-09-26) — the vent length input is editable only when the length is already entered.
 
 ## Symptom / gap
 The UI offers no way to *type* a port length. A vent is defined by bore (`Vent diameter`) and

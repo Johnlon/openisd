@@ -1,7 +1,6 @@
 # outer_x_mm/outer_y_mm carry mm names and values — the SI-everywhere rule has no exceptions
 
-Status: OPEN — winisd_tools half IN PROGRESS (rides the one-shot migration); openisd half
-scheduled (this record gates the _SpecSection edit)
+Status: RESOLVED (re-verified 2026-09-26) — the fields are `OuterX_m` and `OuterY_m`; no `outer_x_mm` remains.
 
 ## The rule (John, 2026-08-22, verbatim)
 

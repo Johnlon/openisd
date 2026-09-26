@@ -1,6 +1,6 @@
 # BUG_20260924_sealed-box-leakage-modelled-as-damping-not-a-leak
 
-**Status:** OPEN
+Status: OPEN (re-verified 2026-09-26) — sealed leakage is still `Ral = Ql/(ω·Cab)` in `packages/design/engine/circuit.ts`.
 
 ## Symptom
 

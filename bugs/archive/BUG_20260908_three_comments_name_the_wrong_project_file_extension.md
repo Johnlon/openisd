@@ -1,6 +1,6 @@
 # Three comments name the project file `.openisd.json` when it is saved as `.owpr`
 
-Status: OPEN
+Status: RESOLVED (re-verified 2026-09-26) — all three comments say `.owpr`.
 
 ## Symptom
 

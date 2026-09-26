@@ -1,6 +1,6 @@
 # Open project list is lost on page refresh
 
-Status: OPEN
+Status: RESOLVED (re-verified 2026-09-26) — `saveOpenProjects`/`loadOpenProjects` in `projectRepo.ts`, called from `App.vue`.
 
 ## Symptom
 

@@ -1,9 +1,6 @@
 # `.wdr` round-trip test proves one lossy cycle, never that a second cycle is stable
 
-**Status:** OPEN
-**Found:** 2026-09-07, specifying the `.wpr` bridge round-trip tests for the
-`OpenISDProject`↔`WinISDProject` work (`file_io.ts`/`useApplicationIO.ts` migration) and comparing
-the requested `.wpr` test shape against the existing `.wdr` one.
+Status: OPEN (re-verified 2026-09-26) — `wdr-openisd-round-trip.test.ts` still cycles each file once.
 
 ## Symptom
 

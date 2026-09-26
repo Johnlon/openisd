@@ -1,6 +1,6 @@
 # BUG_20260918_signal-commits-spec-never-navigates-so-de-modal-can-never-exist
 
-**Status:** OPEN
+Status: RESOLVED (re-verified 2026-09-26) — both tests open a project and assert on the Signal pane.
 
 ## Symptom
 Both tests in `packages/ui/test/ui/signal-commits-as-blur-notification.browser.spec.ts` fail on

@@ -1,12 +1,6 @@
 # BUG 20260916 — project wizard does not follow the WinISD wizard's sealed-alignment flow; and it ships a typed default volume instead of deriving one from the alignment
 
-Status: OPEN (recorded only, per human "record the bug for now — no fix")
-Raised: 2026-09-16
-Ledger: QO154
-Real files (path-verified, the only ones this bug concerns):
-  - packages/ui/src/ui/shells/original/OgNewProject.vue   — the project wizard (Original skin)
-  - packages/ui/test/ui/wizard-defaults.browser.spec.ts   — today's wizard spec (58 lines)
-  - docs/debugging/vue-runtime-debugging.md                — the Signal-pane case history
+Status: RESOLVED (re-verified 2026-09-26) — same fix as the Type of design record.
 
 ## What the human observed in real WinISD (verbatim intent, 2026-09-16)
 

@@ -1,6 +1,6 @@
 # Tune-panel tests call appState APIs that no longer exist
 
-Status: OPEN
+Status: RESOLVED (re-verified 2026-09-26) — the spec reads through `focusedProject()` and passes.
 
 ## Symptom
 

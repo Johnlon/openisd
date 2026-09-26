@@ -1,7 +1,6 @@
 # `original-skin.browser.spec.ts` bandpass4 Frc/Ffc readout test fails on a fresh default project — pre-existing, not caused by the frcHz fix
 
-Status: OPEN — found incidentally while verifying BUG_20260823's frcHz persistence fix; confirmed
-NOT caused by that fix (bisected below). Not investigated further — out of scope for that task.
+Status: OPEN (re-verified 2026-09-26) — the bandpass4 Frc readout reads `box.sealed.resonance_hz`, while the volume the user edits is `box.bandpass4.chambers.rear.volume_m3` (`OriginalShell-hooks.ts` `rearResonance`).
 
 ## Symptom
 

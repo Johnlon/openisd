@@ -1,7 +1,6 @@
 # `OpenISDDriver` cannot stay internally consistent with its own stated `c`/`roo`
 
-**Status:** OPEN — idea, not a fix. Not to be implemented without a separate decision.
-**Found:** 2026-09-07, John.
+Status: OPEN (re-verified 2026-09-26) — needs a ruling: a feature idea, not a defect. Build a per-driver stored environment, or close the idea.
 
 ## Symptom
 

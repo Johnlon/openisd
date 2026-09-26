@@ -3,8 +3,7 @@
 **Where:** `packages/ui/test/ui/driver-type-chips.test.ts`, the
 `no raw driver_type string literals in comparisons` gate.
 
-**Status:** PARTIAL — the gate is narrowed (below) so it stops firing on box types. The proper
-type-aware gate is not built; that needs John's call on cost.
+Status: CLOSED (re-verified 2026-09-26) — obsolete: the box type is `box-passive-radiator` and the driver type is `passive-radiator`, so they no longer collide.
 
 ## Symptom
 

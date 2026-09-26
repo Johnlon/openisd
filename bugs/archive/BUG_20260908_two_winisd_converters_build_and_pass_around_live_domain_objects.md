@@ -1,6 +1,6 @@
 # Two WinISD converters build domain objects and pass live ones in and out
 
-Status: OPEN
+Status: RESOLVED (re-verified 2026-09-26) — both converters live in `packages/design/domain`; `packages/design/winisd` has no domain or engine imports beyond the allowed bridge.
 
 ## Symptom
 

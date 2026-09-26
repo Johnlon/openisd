@@ -1,6 +1,6 @@
 # One shared `.owpr` fixture cannot satisfy tests with opposite driver needs
 
-Status: OPEN
+Status: RESOLVED (re-verified 2026-09-26) — two generated fixtures, `SAMPLE_PROJECT_OWPR` and `COMPLETE_DRIVER_PROJECT_OWPR`.
 
 ## Symptom
 

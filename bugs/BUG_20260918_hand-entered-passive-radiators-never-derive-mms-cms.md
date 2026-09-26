@@ -1,6 +1,6 @@
 # BUG_20260918_hand-entered-passive-radiators-never-derive-mms-cms
 
-**Status:** OPEN
+Status: OPEN (re-verified 2026-09-26) — PR fields are entry-only; `prCmsFromVas` and `prMmdFromFs` are called only from engine tests.
 
 ## Symptom
 A passive radiator entered through the UI can never reach a solvable `Fp` → `addedMass` state.

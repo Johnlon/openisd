@@ -1,6 +1,6 @@
 # Box type has three enumerations across three packages, and two spellings of the PR member
 
-Status: OPEN
+Status: OPEN (re-verified 2026-09-26) — `BoxType` is one union in `packages/design/engine/types.ts`; `BoxTypeDiagram.vue` still declares a second literal union of the same six members.
 
 ## Symptom
 

@@ -1,13 +1,6 @@
 # BUG_20260824 — box losses (Ql/Qa/Qp) are one shared triple, not per-chamber like WinISD
 
-Status: PARTIAL — the `packages/design` rebuild stores chamber-specific loss variants, but the
-connecting port's own loss shape remains unverified. The old shared-triple implementation was
-superseded by the rebuild.
-deliberately so. `packages/model` is being REPLACED by `packages/design`, not repaired, so
-patching this defect in the old model would be work thrown away. The replacement does not carry
-the defect: `packages/design` stores a `LossesJson` PER CHAMBER, and each chamber exposes only the
-loss factors its own shape allows — `SealedLosses`/`VentedLosses`/`CoupledSealedLosses`/
-`CoupledVentedLosses`, exactly the four live-confirmed sets below. `Qicl` has a real home.
+Status: RESOLVED (re-verified 2026-09-26) — each chamber carries its own losses (`packages/design/domain/losses.ts`) and export writes them per chamber.
 
 The record below is kept for its EVIDENCE, which is not superseded — it is the only account of
 what those field shapes actually are, gathered by live probe. ABC's connecting-port losses were never evidenced at all, and `packages/design` no longer

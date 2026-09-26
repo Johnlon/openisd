@@ -1,6 +1,6 @@
 # Two solver tests assume a blank driver and fail against a real one
 
-Status: OPEN
+Status: RESOLVED (re-verified 2026-09-26) — both tests run against the complete-driver fixture and pass.
 
 ## Symptom
 

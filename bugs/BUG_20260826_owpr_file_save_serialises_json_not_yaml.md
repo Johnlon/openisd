@@ -1,7 +1,7 @@
 # BUG_20260826 — `.owpr` project file save/load serialises JSON, not YAML
 
 ## Status
-OPEN — 2026-08-26
+OPEN (re-verified 2026-09-26) — needs a ruling: `.owpr` is written as JSON (`toOwprText`), and driver records have since moved to `openisd.json`. Does the "YAML only on disk" ruling still stand?
 
 ## Symptom
 

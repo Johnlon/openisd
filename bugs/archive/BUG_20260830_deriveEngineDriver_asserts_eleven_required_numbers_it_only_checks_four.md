@@ -1,6 +1,6 @@
 # `deriveEngineDriver` asserts eleven required numbers after checking four
 
-Status: OPEN
+Status: CLOSED (re-verified 2026-09-26) — obsolete: `deriveEngineDriver` and its cast are gone; the engine takes typed `DriverSolverParams`.
 
 ## Symptom
 

@@ -1,6 +1,6 @@
 # BUG_20260918_bandpass4-front-chamber-tuning-writes-vented-cell
 
-**Status:** OPEN
+Status: OPEN (re-verified 2026-09-26) — the tuning targets and vent diameter write `box.vented.*` for every box type; the bandpass4 solve reads `box.bandpass4.chambers.front`.
 
 ## Symptom
 For a `bandpass4` box, the front-chamber's vent can never be solved through the UI. The

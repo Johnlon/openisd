@@ -1,7 +1,6 @@
 # The JS emitter writes YAML 1.2 and PyYAML reads YAML 1.1, so bare scalars change type
 
-**Status:** OPEN — needs a ruling on the fix
-**Found:** 2026-09-01, validating the regenerated corpus against the Python models.
+Status: CLOSED (re-verified 2026-09-26) — obsolete: the bridge emits JSON, not YAML.
 
 ## Symptom
 

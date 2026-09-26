@@ -1,6 +1,6 @@
 # BUG_20260924_tfmag-reference-disagrees-with-own-passband-spl
 
-**Status:** OPEN
+Status: OPEN (re-verified 2026-09-26) — `tfMag` still subtracts an Fs/Vas/Qes reference from an SPL computed from Bl/Mms/Sd/Re (`sweep.ts`).
 
 ## Symptom
 

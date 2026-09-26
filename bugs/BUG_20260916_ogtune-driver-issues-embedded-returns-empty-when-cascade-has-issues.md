@@ -1,9 +1,6 @@
 # BUG 20260916 — OgTune mandatory trio reads `driver.issues()` which is claimed to return `[]` for EMBEDDED drivers even when the cascade has issues (worker2 E)
 
-Status: OPEN, record-only (human creed: "just record the bug for now" — no source touch, no fix, until verified)
-Raised: 2026-09-16
-Source of the report: worker2, before its token budget died ("Queuing as E").
-Wiki/WinISD-agnostic; this is the openisd Tune-pane mandatory gate.
+Status: OPEN (re-verified 2026-09-26) — `project.driver.issues()` returns `[]` while `specs.Qts.dq` holds `inconsistent-inputs`; `OgTune.vue` reads `issues()`.
 
 ## What worker2 actually said (verbatim, pasted by the human)
 

@@ -1,6 +1,6 @@
 # Passive radiators cannot be favourited at all
 
-Status: OPEN
+Status: OPEN (re-verified 2026-09-26) — one favourites key; `PRBrowser.vue` has no star.
 
 ## Symptom
 

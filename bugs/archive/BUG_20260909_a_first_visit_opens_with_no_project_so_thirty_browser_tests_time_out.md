@@ -1,6 +1,6 @@
 # A first visit opens with no project, so thirty browser tests time out
 
-Status: OPEN
+Status: RESOLVED (re-verified 2026-09-26) — the affected specs call `openAProject()` after loading the page.
 
 ## Symptom
 

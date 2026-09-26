@@ -1,6 +1,6 @@
 # BUG_20260924_driver-solve-and-sweep-use-different-air-models
 
-**Status:** OPEN
+Status: OPEN (re-verified 2026-09-26) — the embedded driver's air provider omits `useWinisdAirModel`; the sweep passes it.
 
 ## Symptom
 

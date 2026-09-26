@@ -1,7 +1,7 @@
 # The box model has one loss triple; WinISD's bandpass4 has one per chamber
 
 ## Status
-OPEN — model gap, folded into Lane P's box-model work (docs/design/PROJECT_DOMAIN_SYMMETRY.md).
+OPEN (re-verified 2026-09-26) — losses are stored and exported per chamber, but `.wpr` import reads no loss keys, so every imported project gets default losses (`packages/design/domain/openIsdProjectToWinIsdProject.ts`).
 
 ## Symptom
 

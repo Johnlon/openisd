@@ -1,9 +1,6 @@
 # BUG 20260916 — Signal pane: blank P with a phantom 1 W, and delete-V leaves P blank
 
-Status: OPEN — fix not yet landed, ruling below is the solution spec.
-Raised: 2026-09-16
-Area: packages/ui — Signal pane V/P/Re drive rows (NumInput-winisdeditor → DriverEditorModal Signal tab)
-Ledger: QO153
+Status: RESOLVED (re-verified 2026-09-26) — `NumInput` emits `blur-notify`; covered by `signal-pane-blur-must-notify.browser.spec.ts`.
 
 ## Symptom (reported by the human, two observed states)
 

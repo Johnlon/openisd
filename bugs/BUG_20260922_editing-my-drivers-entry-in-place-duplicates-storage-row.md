@@ -1,6 +1,6 @@
 # BUG_20260922_editing-my-drivers-entry-in-place-duplicates-storage-row
 
-**Status:** OPEN
+Status: OPEN (re-verified 2026-09-26) — `commitToMyDrivers()` calls `upsert` with no id, so a new row is appended (`DriverEditorModal.vue`, `savedEntries.ts`).
 
 ## Symptom
 Editing an existing My Drivers entry (pencil-edit on a My Drivers row) and clicking OK

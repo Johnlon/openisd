@@ -1,6 +1,6 @@
 # cursor-lock.test.ts asserts against logic and CSS it declares itself, so 7 of its 8 tests prove nothing
 
-Status: OPEN
+Status: OPEN (re-verified 2026-09-26) — `packages/ui/test/logic/cursor-lock.test.ts` still tests logic and CSS copied into the test.
 
 ## Symptom
 

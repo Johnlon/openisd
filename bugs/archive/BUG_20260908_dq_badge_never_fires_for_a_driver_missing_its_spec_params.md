@@ -1,6 +1,6 @@
 # The ⚠ data-quality badge never fires for a driver missing its spec parameters
 
-Status: OPEN — interim applied, no behaviour restored
+Status: RESOLVED (re-verified 2026-09-26) — `driverHasDqIssues` fires when Fs, Qts or Vas is missing (`packages/ui/src/logic/driverDisplay.ts`).
 
 ## Symptom
 

@@ -1,6 +1,6 @@
 # BUG_20260924_voice-coil-inductance-affects-impedance-but-not-spl
 
-**Status:** OPEN
+Status: OPEN (re-verified 2026-09-26) — the default circuit feeds a Le-free coil impedance to the acoustic path (`circuit.ts`). A ruling on the fix is still needed.
 
 ## Symptom
 

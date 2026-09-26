@@ -1,11 +1,6 @@
 # BUG 20260916 — project wizard does not walk the WinISD "Type of Design" flow (nor ask driver count/EBP vs isobaric); and it ships a typed default volume instead of deriving one for sealed
 
-Status: OPEN — record only, no fix this pass (human: "just record the bug for now")
-Raised: 2026-09-16
-Human term correction applied: WinISD calls the step **"Type of Design"**, NOT "alignment".
-WinISD's "Type of Design" step shows (verbatim human observation): the **box type dropdown**,
-the **EBP recommendation bar graph** — **Vented/BP6th at top → Closed/BP4th at the bottom** — and
-a bar graph on the right. Use "Type of Design" and "EBP bar" in every future test/locator.
+Status: RESOLVED (re-verified 2026-09-26) — the wizard has the Type of design step and derives the sealed volume from the alignment (`OgNewProject-hooks.ts`).
 
 ## The WinISD wizard walk (human verbatim intent, the parity target)
 

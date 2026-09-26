@@ -1,5 +1,9 @@
 # sectionFor sends `amt` records to the empty woofer section — every T/S read silently zero
 
+## Status
+CLOSED (re-verified 2026-09-26) — obsolete: `sectionFor` is gone; a record with no `woofer` section is refused with an error (`driverSpecsOf` in `packages/design/domain/openisdSchema.ts`). The error text wrongly says the record is a passive radiator.
+
+
 ## Symptom
 
 The V8 bridge (and any `OpenISDDriver` read) returns zero/absent for EVERY spec field of

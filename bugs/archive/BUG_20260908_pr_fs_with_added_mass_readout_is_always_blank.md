@@ -1,6 +1,6 @@
 # BUG: the passive radiator's "Fs (with added mass)" readout is always blank
 
-Status: OPEN
+Status: RESOLVED (re-verified 2026-09-26) — the shell reads `resonanceWithAddedMass_hz`, which the solver computes.
 
 ## Symptom
 

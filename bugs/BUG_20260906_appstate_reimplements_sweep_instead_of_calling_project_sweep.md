@@ -1,4 +1,4 @@
-Status: OPEN
+Status: OPEN (re-verified 2026-09-26) — `appState` now calls `p.sweep()`, but the sweep returns `issues: []` and `appState` still runs the classify checks itself through a fresh `new Engine()`.
 
 ## Symptom
 

@@ -1,6 +1,6 @@
 # Loss mode is app-wide, so the Fsc/Qtc readout is wrong for every project but the last one touched
 
-Status: OPEN
+Status: RESOLVED (re-verified 2026-09-26) — loss mode is the project field `advanced.lossMode`.
 
 ## Symptom
 
