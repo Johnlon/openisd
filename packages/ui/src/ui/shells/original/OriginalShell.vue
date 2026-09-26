@@ -611,17 +611,22 @@ const {
               <div class="field-row"><div class="field"><label>Air density</label><input class="calculated greyed" :value="advAir.rho.toFixed(fieldDp('advAirDensity'))" readonly><span class="unit">kg/m³</span></div></div>
               <button class="reset-air-btn" @click="resetAirToAppDefaults">Reset to app levels</button>
             </div>
-            <div class="checkbox-col">
+            <div class="checkbox-col" style="display: flex; flex-direction: row; gap: 20px; align-items: flex-start;">
               <AdvancedOptions />
-              <div class="sim-options-box">
+              <div class="sim-options-box" style="margin-top: 0;">
                 <div class="sim-options-header">OpenISD Simulation & Alignment</div>
                 <div class="field-row" style="flex-wrap: nowrap; margin-bottom: 6px;">
                   <div class="field" style="gap:8px;" title="Sealed resonance (Fsc) and system Q (Qtc) loss model.">
                     <label style="width:auto;">Loss model</label>
-                    <select id="adv-lossmode" :value="lossMode" @change="e => { const m = selectedOption(e, LOSS_MODE_OPTIONS); if (m !== null) lossMode = m; }" style="width:170px">
+                    <select id="adv-lossmode" :value="lossMode" @change="e => { const m = selectedOption(e, LOSS_MODE_OPTIONS); if (m !== null) lossMode = m; }" style="width:160px">
                       <option v-for="m in LOSS_MODE_OPTIONS" :key="m.value" :value="m.value">{{ m.label }}</option>
                     </select>
                   </div>
+                </div>
+                <div style="margin-bottom: 8px;">
+                  <label data-field-key="useWinisdAirModel" style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 13px;" title="Use WinISD air properties model">
+                    <input type="checkbox" :checked="project.envUseWinisdAirModel.value" @change="e => project.envUseWinisdAirModel.set(inputChecked(e))"> Use WinISD air model
+                  </label>
                 </div>
                 <div>
                   <button class="action-btn apply-winisd-btn" title="Align simulation toggles and clear entered Mms to match WinISD calculations" @click="applyWinisdSettings">Apply WinISD Settings</button>

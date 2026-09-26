@@ -32,9 +32,6 @@ const {project, hasVent, simVcInductance, fieldHelp, inputChecked} = useAdvanced
     <label data-field-key="splXmaxLimited" :title="fieldHelp('splXmaxLimited')">
       <input type="checkbox" :checked="project.splGraphIsXmaxLimited.value" @change="e => project.splGraphIsXmaxLimited.set(inputChecked(e))"> SPL graph is Xmax limited
     </label>
-    <label data-field-key="useWinisdAirModel" :title="fieldHelp('useWinisdAirModel')">
-      <input type="checkbox" :checked="project.envUseWinisdAirModel.value" @change="e => project.envUseWinisdAirModel.set(inputChecked(e))"> Use WinISD air model
-    </label>
   </div>
 </template>
 
