@@ -10,6 +10,7 @@ export interface AdvancedOptionsAPI {
   readonly hasVent: Readonly<Ref<boolean>>;
   readonly simVcInductance: Ref<boolean>;
   readonly project: Readonly<Ref<OpenISDProject>>;
+  applyWinisdSettings(): void;
   fieldHelp(key: string): string;
   inputChecked(e: Event): boolean;
 }
@@ -24,10 +25,15 @@ export function useAdvancedOptions(): AdvancedOptionsAPI {
     return b === 'vented' || b === 'bandpass4';
   });
 
+  const applyWinisdSettings = () => {
+    project.value.applyWinisdSettings();
+  };
+
   return {
     hasVent,
     simVcInductance,
     project,
+    applyWinisdSettings,
     fieldHelp,
     inputChecked,
   };

@@ -2903,6 +2903,22 @@ describe('project-level array/display settings, chart Y-range, and identity', ()
     expect(p.driveVoltage_V.value).toBeCloseTo(Math.sqrt(4 * 6.1), 6);
   });
 
+  it('applyWinisdSettings resets toggles and clears entered Mms for WinISD parity', () => {
+    const p = sealedProject();
+    p.circuitModel.set('gyrator');
+    p.rgAtDriverSide.set(false);
+    p.driver.specs.Mms_kg.set(0.04);
+    expect(p.driver.specs.Mms_kg.entered).toBe(true);
+
+    p.applyWinisdSettings();
+
+    expect(p.circuitModel.value).toBe('winisd');
+    expect(p.lossMode.value.value).toBe('winisd-lossy');
+    expect(p.rgAtDriverSide.value).toBe(true);
+    expect(p.envUseWinisdAirModel.value).toBe(true);
+    expect(p.driver.specs.Mms_kg.entered).toBe(false);
+  });
+
   it('driveVoltage_V and powerDrive_W each carry both the owner\'s and the solver\'s writes', () => {
     const p = sealedProject();
     for (const f of [p.driveVoltage_V, p.powerDrive_W]) {

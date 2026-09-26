@@ -11,7 +11,7 @@
  */
 import {useAdvancedOptions} from '../../hooks/AdvancedOptions-hooks.js';
 
-const {project, hasVent, simVcInductance, fieldHelp, inputChecked} = useAdvancedOptions();
+const {project, hasVent, simVcInductance, applyWinisdSettings, fieldHelp, inputChecked} = useAdvancedOptions();
 </script>
 
 <template>
@@ -35,6 +35,9 @@ const {project, hasVent, simVcInductance, fieldHelp, inputChecked} = useAdvanced
     <label data-field-key="useWinisdAirModel" :title="fieldHelp('useWinisdAirModel')">
       <input type="checkbox" :checked="project.envUseWinisdAirModel.value" @change="e => project.envUseWinisdAirModel.set(inputChecked(e))"> Use WinISD air model
     </label>
+    <div style="margin-top: 8px;">
+      <button class="apply-winisd-btn" @click="applyWinisdSettings">Apply WinISD Settings</button>
+    </div>
   </div>
 </template>
 

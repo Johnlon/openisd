@@ -2225,6 +2225,17 @@ export class OpenISDProject {
         };
     }
 
+    /** Resets all simulation switches and driver derivation rules to WinISD 0.7 defaults. */
+    applyWinisdSettings(): void {
+        this.circuitModel.set('winisd');
+        this.lossMode.set(LossMode.parse('winisd-lossy'));
+        this.rgAtDriverSide.set(true);
+        this.envUseWinisdAirModel.set(true);
+        if (this.driver.specs.Mms_kg.entered) {
+            this.driver.specs.Mms_kg.clear();
+        }
+    }
+
     /** Which charts are open (S10/QO130) — PROJECT-scoped, reversing QO90 for this field.
      *  Empty when absent (a project saved before S10, or a fresh one). Plain strings: the UI's
      *  `ChartTabId` is `packages/ui`'s own type (`domain/index.ts`'s "no packages/ui types"
