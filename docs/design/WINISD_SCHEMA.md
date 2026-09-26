@@ -309,10 +309,10 @@ Ambient air properties, present in all 423 `drivers/matt/` files — WinISD stor
 
 ## 4. Consistency-check groups
 
-26 relations. Relations 1–22 come from `winisd.exe` ASCII strings at offset ~8894, immediately
-preceding the `TfrmParErrors` form definition — 15 confirmed there, the rest inferred from the
-dependency structure and observed behaviour, with 18 explicitly ⚠ inferred. Relations 23–26
-were read out of the calculation engine itself. §4.3 carries the per-relation detail: canonical
+27 relations. Relations 1–22 come from `winisd.exe` ASCII strings at offset ~8894, immediately
+preceding the `TfrmParErrors` form definition — 15 confirmed there, 7 inferred from the
+dependency structure and observed behaviour. Relations 23–27 were read out of the calculation
+engine itself. §4.3 carries the per-relation detail: canonical
 form, every field it writes, and the exact expression for each.
 
 Note: the binary uses field name variants that differ from WDR keys — `Bl` vs `BL`,
@@ -444,8 +444,8 @@ Five consequences, each carried by a case above:
   gap — it is the strongest available test of "an entered value is never recomputed", because
   two live routes had to be declined rather than one.
 
-**openisd's engine matches all seven cases.** `packages/design/engine/driver.ts:194-195` runs
-`abs(Hc − Hg)/2` before `:203-204` runs `Vd/Sd`, reproducing `A`, `B`, `C`, `E` and `F`; the
+**openisd's engine matches all seven cases.** `packages/design/engine/solver.ts` runs
+`abs(Hc − Hg)/2` before `Vd/Sd`, reproducing `A`, `B`, `C`, `E` and `F`; the
 first route additionally requires `Hc !== Hg`, so on `G` it produces nothing, leaves `Xmax` null,
 and row 20 supplies `0.0185` — the zero fall-through WinISD performs.
 
@@ -1335,10 +1335,9 @@ a full field enumeration yet.
 | `phi` | fraction, 0.0–1.0 | Relative humidity, stored as a FRACTION, not a percentage. `phi=0.3` is 30%. Confirmed 2026-08-19: writing `phi=30.0` (percent) into the file made the Project tab's RH field display `3000.0000` — WinISD's own reader multiplies the stored fraction by 100 for display, so a percent value written raw reads back 100× too large. `lib/wdr.py`'s `DEFAULT_BOX` already has this right (`phi=0.3`); the bug was in ad-hoc probe scripts passing `phi=30.0`, not the library. |
 | `p`   | Pa      | Static air pressure. |
 
-openisd's own `.wpr` writer already gets this right — `packages/ui/src/logic/wprMapping.ts:69`:
-"a PERCENTAGE here; `toWpr` does the single conversion to WinISD's `phi` fraction." UI-side
-humidity is a percentage throughout; the percent→fraction conversion happens once, at the
-`.wpr` write boundary.
+openisd's own `.wpr` writer already gets this right — `packages/design/domain/openIsdProjectToWinIsdProject.ts`:
+`OpenISDProject`'s own humidity field is a percentage; the percent→fraction conversion happens
+once, at the `.wpr` write boundary.
 
 ## 12. How a driver's `c`/`roo` resolve — the complete rule
 

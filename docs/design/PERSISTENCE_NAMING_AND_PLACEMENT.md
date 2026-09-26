@@ -1,18 +1,8 @@
 # Persistence vocabulary: STORAGE, REPO, STATE — the one naming and placement rule
 
-> RULING UPDATE (orchestrator, 2026-08-22, under delegated authority — pending John's review):
-> the word **"store" is eliminated from the codebase entirely**. The port is **STORAGE**
-> (`KeyValueStorage`, `FileStorage` — the web platform's own word: `localStorage` IS a
-> `Storage`), the app state is **`appState`**, and nothing is called a store. Rationale:
-> keeping `Store` beside `Storage` leaves two near-identical words meaning different things —
-> the same class of misdirection this rule exists to remove, and John called that a fudge by
-> implication ("dont fudge it"). His open question ("do we need a different term for our
-> 'store' like 'browser_storage'?") pointed here; this adopts it. Every STORE reference below
-> reads as STORAGE; the rename map gains: `KeyValueStore`→`KeyValueStorage`,
-> `FileStore`→`FileStorage`, `createFileStore`→`createFileStorage`,
-> `createLocalStorageStore`→`createLocalStorage`… (final spellings at implementation).
-
-Ruled 2026-08-22. Three concepts, three words, three homes. A module is exactly one of them.
+Ruled 2026-08-22. The word "store" is eliminated from the codebase: the port is **STORAGE**
+(`KeyValueStorage`, `FileStorage` — `localStorage` IS a `Storage`), the app state is
+**`appState`**, and nothing is called a store. Three concepts, three words, three homes. A module is exactly one of them.
 No module may be two. If a name and a role disagree, the NAME changes — never the definition.
 
 ## The three concepts
@@ -68,41 +58,29 @@ by itself; a repo or a store persists it.
 ## Placement
 
 ```
-packages/ui/src/persistence/
+packages/persistence/src/
   storage/                 ports only — no domain vocabulary anywhere in this directory
     keyValueStorage.ts     KeyValueStorage + createLocalStorage + createMemoryStorage
     fileStorage.ts         FileStorage + createFileStorage
   repos/                   one file per collection, each taking a storage
-    driverRepo.ts
+    bundledDriverRepo.ts
+    bundledPassiveRadiatorRepo.ts
     myDriverRepo.ts
-    prRepo.ts
+    myPassiveRadiatorRepo.ts
     prefsRepo.ts
+    projectRepo.ts
+    viewStateRepo.ts
+    appSettingsRepo.ts
 packages/ui/src/logic/
   appState.ts              the reactive app state
-  presentationState.ts     view state (already correct)
-  driverBrowsingState.ts   reactive browsing surface (from driverLibrary.ts)
+  presentationState.ts     view state
+  driverBrowsingState.ts   reactive browsing surface
 ```
 
 The `storage/` ↔ `repos/` split is the enforceable form of the rule: a file under `storage/`
 that names a domain type is a violation a gate can SEE, and so is a file under `repos/` that
-touches `window`/`localStorage` directly instead of taking a storage.
-
-## The rename map
-
-| today | becomes | why |
-|---|---|---|
-| `db/kv.ts` | `persistence/storage/keyValueStorage.ts` | name the concept, not an abbreviation |
-| `logic/fileStore.ts` | `persistence/storage/fileStorage.ts` | it IS storage; it was never logic |
-| `db/driverRepo.ts` | `persistence/repos/driverRepo.ts` | move only |
-| `db/myDrivers.ts` | `persistence/repos/myDriverRepo.ts` | file now matches `MyDriverRepo` |
-| `db/prLibrary.ts` → `PrRepo` | `persistence/repos/prRepo.ts` | file matched neither role nor type |
-| `db/prefs.ts` → `PrefsStore` | `persistence/repos/prefsRepo.ts` → `PrefsRepo` | it takes a store and returns domain values: it is a REPO |
-| `logic/store.ts` | `logic/appState.ts` | frees the word "store" for the port |
-| `logic/driverLibrary.ts` | `logic/driverBrowsingState.ts` | reactive (`ref()`), so STATE, not persistence |
-
-Symbols follow the files: `createPrefsStore` → `createPrefsRepo`, `PrefsStore` → `PrefsRepo`.
-Comments and docstrings using the old vocabulary are corrected in the same pass — a rename that
-leaves the prose behind rebuilds the confusion it was meant to remove.
+touches `window`/`localStorage` directly instead of taking a storage. The rename this rule
+called for is done; there is no remaining map.
 
 ## Every module of these three kinds carries a one-line gloss
 

@@ -1,14 +1,11 @@
 # My Drivers — storage-failure handling (human rulings 2026-08-22, QO81 thread)
 
 How the app behaves when the `openisd_my_drivers` browser-storage bucket, or an entry in
-it, cannot be read. The seam is `packages/ui/src/persistence/repos/myDriverRepo.ts` — the
-one read/write path for the bucket. Implemented (D21 + D21-R): the bucket's chain lives on
-the app's ONE upgrade seam (`logic/schemaUpgrade.ts`, the 2026-08-17 policy) as its own
-payload family — the seam's "stop and ask the human" is, for this bucket, the Export/Delete
-decision modal, the browser form of the same stop. uuid identity with the rename question,
-the BLOCKING corruption modal, and every failure surface below are in;
-`packages/ui/test/persistence/myDriverRepo.test.ts` pins each ruling and
-`my-drivers-failures.browser.spec.ts` exercises the surfaces (endgame Playwright batch).
+it, cannot be read. The seam is `packages/persistence/src/repos/myDriverRepo.ts` — the
+one read/write path for the bucket. uuid identity with the rename question, the blocking
+corruption modal, and every failure surface below are pinned by
+`packages/ui/test/persistence/savedLibrary.test.ts` and exercised by
+`my-drivers-failures.browser.spec.ts`.
 
 ## The governing principle
 
@@ -70,9 +67,9 @@ in a design. Nothing anywhere may hide a driver for missing spec parameters — 
 
 ## Ideas recorded for follow-up (not yet designed)
 
-- **Identity — RULED (human 2026-08-22)**: My Drivers keys on the record `uuid`
-  (`openisdDriver.ts:87`), minted at save when absent (`empty()` and `fromWdr()` seed
-  `uuid: ''`). `<brand>/<model>` becomes display naming; same-name drivers coexist.
+- **Identity — RULED (human 2026-08-22)**: My Drivers keys on a repository-minted `uuid`
+  (`myDriverRepo.ts` `upsert(d, uuid?)`). `<brand>/<model>` is display naming only; same-name
+  drivers coexist.
 - **Rename — RULED (human 2026-08-22, "option 3")**: when a save would change a
   driver's brand/model, the app asks ONE question — rename this driver (same uuid,
   edited in place) or save as a copy (new uuid, original untouched). Nothing silent;
