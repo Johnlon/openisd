@@ -168,7 +168,7 @@ export abstract class BoxProjectBuilder {
                 rgAtDriverSide: false,
                 circuitModel: 'winisd',
                 splGraphIsXmaxLimited: false,
-                useWinisdDriverModel: true,
+                useWinisdDriverModel: false,
             },
             charts: {},
         };

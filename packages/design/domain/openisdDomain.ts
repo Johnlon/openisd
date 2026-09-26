@@ -1179,7 +1179,7 @@ function computedSlot<T>(value: T | null): SolverField<T> {
  *  `Re_terminal_ohm`/`BL_terminal_Tm` have no domain storage slot (matching `NO_SLOT`'s own doc
  *  above), and `wiring` is spelled `VCCon` here and carries a `VoiceCoilWiring` enum member, not
  *  the bare `'series'|'parallel'` union `DriverSolverParams` names. */
-function driverSolverParamsOf(spec: OpenIsdDriverSpec, engine: Engine, useWinisdDriverModel: boolean = true): DriverSolverParams {
+function driverSolverParamsOf(spec: OpenIsdDriverSpec, engine: Engine, useWinisdDriverModel: boolean = false): DriverSolverParams {
     const wiring: Wiring = spec.VCCon.value === VoiceCoilWiring.Series ? 'series' : 'parallel';
     const Re_ohm = spec.Re_ohm.value;
     const BL_Tm = spec.BL_Tm.value;
@@ -2235,7 +2235,7 @@ export class OpenISDProject {
     get useWinisdDriverModel(): SimpleField<boolean> {
         const lens = focus(this.#slot('advanced'), 'useWinisdDriverModel');
         return {
-            get value() { return lens.value ?? true; },
+            get value() { return lens.value ?? false; },
             set: (on: boolean) => lens.set(on),
         };
     }
