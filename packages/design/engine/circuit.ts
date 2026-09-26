@@ -31,6 +31,7 @@ import {solveEnvironment} from './air.js';
 import {hotRe} from './solver.js';
 import {cAdd, cDiv, cInv, cMul, cPar, cScale, cSub, cTanh, cx} from './complex.js';
 import type {BoxType, Complex, Solution, SweepParams} from './types.js';
+import type {LossModeValue} from './lossMode.js';
 
 export function portLoss(w: number, Map: number, P: Pick<SweepParams, 'Qp'>): number {
   return w * Map / (P.Qp || 100);
