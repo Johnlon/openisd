@@ -34,6 +34,26 @@ Source: `packages/design/engine/circuit.ts:115-142` — `ZcoilAC` (Re + Rs, no L
 openisd side: variants `app` (Le present) and `noLe` produce identical SPL, phase, group delay
 and excursion and differ only in `zmag`.
 
+## ⚠ Evidence re-check (2026-09-26)
+
+The measured table above was traced from `winisd_research/runs/w5_sealed/charts_base/` and
+`charts_vcind/`. `charts_base/` has since been regenerated and is now contaminated — its
+`08_impedance.png` is a picture of the SPL chart, so its traced impedance curve is an SPL
+curve scaled against the 0–50 Ω range and reads a flat ~31 Ω. **The "WinISD Z, VCInd off"
+column is not reproducible from the files now on disk.** See `winisd_research/PROBE_FINDINGS.md`
+§"`runs/w5_sealed/charts_base/` is CONTAMINATED".
+
+The conclusion survives on better evidence: the decompile of WinISD's electrical-impedance
+routine `0x45e740` shows it using the plain `Re + ΔRe + jωLe` when `VCInd` is set
+(`winisd_research/GHIDRA_FINDINGS.md` §VCInd). The one checkbox does govern both curves, which
+is what this fix implements. The numeric table should be re-measured from a fresh capture
+before it is quoted again.
+
+**Open, not measured:** that routine uses `Re + ΔRe` with no `Rg`, while openisd's `Zel` adds
+`Rs` into `Rdc1` whenever `rgAtDriverSide` is set — which `applyWinisdSettings()` turns on. If
+WinISD really excludes `Rg` from the impedance plot, openisd's curve sits `Rs` (0.1 Ω in the
+W5 case) high. Needs a probe: sweep `Rg` under `VCInd=1` and read the impedance chart.
+
 ## Cause
 
 `circuit.ts` builds two coil impedances and feeds the Le-free one to the acoustic circuit
