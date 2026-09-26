@@ -4,6 +4,9 @@ Last refreshed 2026-09-26 against `0f18d76e`. **Refresh this whenever a calculat
 the WinISD side is a debugger capture and does not move, so a refresh is the OpenISD side plus
 the compare — §6. The name is stable; do not date it.
 
+This is the evidence for [CHARTS.md](../CHARTS.md), which describes each chart's calculation and
+the WinISD compatibility controls.
+
 Case: Tang Band W5-1138SMF in a 4.48 L sealed box, 1 W, Rg 0.1 Ω, no filters, 1 Hz – 20 kHz.
 
 WinISD side: unmodified `WinISD.exe` 0.7.0.950 under wine/Xvfb, with gdb breakpoints on the

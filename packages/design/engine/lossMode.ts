@@ -10,7 +10,8 @@
  *                     1/Qtc_total = 1/Qtc + 1/QL + 1/QA
  *                     Sweep: Zbox = parallel(Zc, Ral, Raa), U0 = UD (frequency-dependent damping)
  * - WinisdLossy       Box tab: Fsc = pole frequency of WinISD's lossy 3rd-order model (SEALED_FSC_MODEL.md)
- *                     Sweep: Zbox = parallel(Zc, Ral_const, Raa), U0 = UD - Uleak (leak volume velocity subtraction)
+ *                     Sweep: Zbox = Ral_const ∥ (Raa_series + Zc), Raa_series = ωsc·Mas/Qa,
+ *                     U0 = UD - Uleak (leak volume velocity subtraction); docs/CHARTS.md §1.2
  *
  * The WinISD pole is INVARIANT to ρ and c (ρc² cancels in the cubic), so this module needs no
  * air constants — it uses acoustic compliances with ρc²=1 (Cas=Vas, Ccab=Vb), which gives the

@@ -1,0 +1,204 @@
+# Charts — what each one calculates
+
+Every chart in the chart selector: the formula, where OpenISD computes it, what WinISD does
+differently from the textbook, and the evidence that OpenISD matches WinISD.
+
+Evidence: [CHART_REVIEW_WINISD_VS_OPENISD.md](research/CHART_REVIEW_WINISD_VS_OPENISD.md) (W5-1138SMF,
+4.48 L sealed, 2086 points 1 Hz–20 kHz, WinISD values logged by debugger from the unmodified exe).
+The closed-form check is
+[`winisd_research/toys/w5_fresh_model_check.py`](http://localhost:8000/winisd/winisd_research/toys/w5_fresh_model_check.py).
+
+Scope of the evidence: **sealed box only**. Vented, bandpass and passive-radiator charts share the
+same driver side but their box side has not been checked against WinISD.
+
+---
+
+## 1. The shared circuit
+
+Every chart except the three EQ/Filter ones comes from one equivalent circuit, solved per
+frequency: `packages/design/engine/circuit.ts` `solve()`, sampled by `sweep.ts` `sweep()` and
+`maxCurves()`.
+
+### 1.1 Driver side (acoustic units)
+
+| Element | Formula | Notes |
+|---|---|---|
+| Cas | Cms·Sd² | Cms = Vas/(ρc²·Sd²) under "WinISD driver model" |
+| Mas | Mms/Sd² | Mms = 1/((2πFs)²·Cms) under the switch |
+| Ras | Rms/Sd² | Rms = 2πFs·Mms/Qms under the switch |
+| Rae (damping) | BL_d²/(Sd²·(Re+Rg)) | BL_d² = Re/(2πFs·Qes·Cms) under the switch, so Rae = 1/(2πFs·Qes'·Cas), Qes' = Qes·(Re+Rg)/Re |
+| Pg (push) | eg·BL/(Sd·(Re+Rg)) | BL = the **entered** BL, switch on or off |
+| eg | √(P·(Re+Rg)) | drive voltage for the Signal tab's power |
+
+n drivers: parallel divides Z by n, series multiplies BL and Re by n.
+
+### 1.2 Sealed box, "WinISD Lossy" loss model (the default)
+
+    Zbox = Ral ∥ (Raa + 1/(jωCab))
+    Cab  = Vb/(ρc²)
+    Cat  = Cas·Cab/(Cas+Cab)          ωsc = 1/√(Mas·Cat)
+    Ral  = Ql/(ωsc·Cab)               leak, constant
+    Raa  = ωsc·Mas/Qa                 absorption, in series with Cab
+
+    UD = Pg / (Rae + Ras + jωMas + 1/(jωCas) + Zbox)      cone volume velocity
+    U0 = UD − UD·Zbox/Ral                                  radiated: cone minus leak
+
+Solved exactly from WinISD's own complex impedance output (chart review §4).
+
+### 1.3 Radiation
+
+    p = jω·ρ·U0/(2π·r),  r = 1 m         (half space)
+
+---
+
+## 2. WinISD compatibility controls
+
+The default is WinISD's behaviour, bugs included. Each conventional variant sits behind its own
+control in the WinISD Compatibility panel (Advanced tab) or the Box losses pane.
+
+| Control | WinISD (default) | Conventional | Charts it moves |
+|---|---|---|---|
+| WinISD driver model | Cms from Vas; Mms, Rms from Fs, Qms; damping BL from Qes; **entered** BL for push, impedance, TF reference and CLe | entered Cms, Mms, Rms, BL, one BL throughout | all driver charts |
+| WinISD air model | WinISD's air equations: Hyland-Wexler vapour pressure, no enhancement factor, ρ from γ·p/c² | CIPM-2007 moist air | all (ppm level) |
+| Loss model | WinISD Lossy: §1.2 | Conventional Lossy: Zc ∥ Ql/(ωCab) ∥ Qa/(ωCab), U0 = UD. Lossless: Zbox = Zc | sealed charts |
+
+Native WinISD controls behave as WinISD has them, with no conventional variant:
+
+| Control | Effect |
+|---|---|
+| Rg is at driver side | on: Rg belongs to each coil and shows in the impedance. Off: one Rg at the amplifier, in the drive but not in the impedance |
+| Simulate voice coil inductance | off: Le is left out of both the circuit and the impedance. On: Le in the circuit and impedance; with "WinISD driver model" on, the acoustic side uses Le·(BL_d/BL)², WinISD's CLe = Sd²·Le/BL² from the entered BL |
+| SPL graph is Xmax limited | SPL chart shows the Xmax-clamped curve |
+| Force flat response | inverse gain lifts SPL to the passband, capped at the max boost |
+
+### 2.1 The two-BL behaviour, in one place
+
+The driver has two BLs when its entered BL disagrees with Fs, Vas, Qes and Re. WinISD uses:
+
+| Job | BL | Charts |
+|---|---|---|
+| Damping (Rae) | Qes-derived | curve shape: SPL, phase, group delay, excursion shape |
+| Push (Pg) | entered | SPL level, excursion level, max curves |
+| Motional impedance | entered | impedance, impedance phase |
+| TF 0 dB reference | entered | TF magnitude |
+| Inductance CLe | entered | all, with inductance on |
+
+We judge the two-BL mix a WinISD bug; "WinISD driver model" off gives one BL throughout.
+Bugs: [spl-level](../bugs/BUG_20260926_winisd-spl-level-uses-entered-bl.md),
+[impedance](../bugs/BUG_20260926_winisd-impedance-uses-entered-bl.md),
+[tf-reference](../bugs/BUG_20260926_winisd-tf-reference.md).
+
+---
+
+## 3. Charts
+
+Status key: **match** = OpenISD equals WinISD to ≤ 1e-12 on every point of the chart review;
+**close** = within tolerance, residual explained; **unverified** = no WinISD capture; **absent** =
+not implemented in OpenISD.
+
+### 3.1 SPL — match
+
+    SPL = 20·log10(|p·Hf|/20 µPa)
+
+- Source: `sweep.ts` `spl`. Hf = the EQ/filter chain's response (line level, ahead of the amp).
+- WinISD specifics: level from the entered BL; leak volume velocity subtracted (§1.2); series
+  absorption.
+- "SPL graph is Xmax limited": where peak excursion > Xmax, SPL + 20·log10(Xmax/x) (`splXlimCurve`);
+  the raw curve is drawn dashed alongside.
+- Evidence: chart review §3 "SPL", worst 2.8e-14 dB; §3.2 with inductance on, 2.8e-14 dB.
+
+### 3.2 Transfer function magnitude — match
+
+    TF = SPL − 20·log10(ρ·Pg/(2π·r·Mas)/20 µPa)
+
+- Source: `sweep.ts` `tfMag`, reference from `circuit.ts` `hfAsymptotePressure_Pa`.
+- The reference is the lossless circuit's high-frequency level: entered BL, Re + Rg, Le excluded.
+  It is 0 dB for every driver, switch on or off.
+- Evidence: chart review §3, worst 3.3e-14 dB. Before the fix OpenISD used η₀ from Qes and Re,
+  0.507 dB off ([bug](../bugs/BUG_20260926_winisd-tf-reference.md)).
+
+### 3.3 Transfer function phase — match
+
+    φ = arg(p·Hf), unwrapped
+
+- Source: `sweep.ts` `phase`.
+- Evidence: chart review §3, worst 9.1e-13°.
+
+### 3.4 Group delay — close
+
+    τg = −dφ/dω
+
+- Source: `sweep.ts` `groupDelayMs`: difference between grid neighbours, central inside the grid,
+  one-sided at both ends.
+- WinISD takes the derivative at the point.
+- Evidence: chart review §3, worst 0.025 ms at 1 Hz (the one-sided end), ≤ 0.0004 ms inside.
+  Open: [group-delay-grid-difference](../bugs/BUG_20260926_group-delay-grid-difference.md).
+
+### 3.5 Cone excursion — match
+
+    x_peak = √2·|UD·Hf|/(ω·Sd)
+
+- Source: `sweep.ts` `exc` (mm). Xmax drawn dashed.
+- WinISD specifics: level from the entered BL (via Pg).
+- Evidence: chart review §3, worst 2.7e-15 mm.
+
+### 3.6 Maximum power — match
+
+    Pmax = min(Pe, (Vx)²/(Re+Rg)),   Vx = 2.83 V · Xmax/x(2.83 V)
+
+- Source: `sweep.ts` `maxCurves` `maxpwr`: the drive at which the cone reaches Xmax, capped at Pe.
+- Power is into Re + Rg, the same load the Signal tab's power → voltage uses.
+- Evidence: chart review §3, worst 8.9e-14 W. Before the fix OpenISD used Re alone, +2.94 %
+  ([bug](../bugs/BUG_20260926_max-power-ignores-rg.md)).
+
+### 3.7 Maximum SPL — match
+
+    SPLmax = SPL(2.83 V) + 20·log10(V/2.83),   V = min(Vx, √(Pe·(Re+Rg)))
+
+- Source: `sweep.ts` `maxCurves` `maxspl`. The legend names the Xmax and Pe limits where both apply.
+- Evidence: chart review §3, worst 2.8e-14 dB.
+
+### 3.8 Impedance — match
+
+    Z = Zcoil + (BL²/Sd²) / (Ras + jωMas + 1/(jωCas) + Zbox)
+
+- Source: `circuit.ts` `Zel`, `sweep.ts` `zmag`.
+- Zcoil = Re (+ jωLe with inductance on) (+ Rg when Rg is at driver side). Amplifier-side Rg is not
+  in the impedance.
+- WinISD specifics: BL is the **entered** one; Rae is not in the impedance (Re is in series instead).
+- Evidence: chart review §3, worst 2.8e-14 Ω; §3.1, Rg 0 and 10 Ω, driver side on and off, 3.6e-14 Ω.
+
+### 3.9 Impedance phase — match
+
+    arg(Z)
+
+- Source: `sweep.ts` `zph` (degrees).
+- Evidence: chart review §3, worst 1.4e-13°.
+
+### 3.10 Rear / front port air velocity — unverified
+
+    v = √2·|UP·Hf|/Sp
+
+- Source: `sweep.ts` `pv`. Vented and bandpass only; 5 % of c drawn as the 17 m/s line.
+- The vented box uses Zc ∥ Ql/(ωCab) ∥ Qa/(ωCab) ∥ Zport, not the §1.2 WinISD form: no WinISD
+  capture of a vented box has been compared.
+
+### 3.11 Cone excursion (PR) — unverified
+
+    x_PR = √2·|UP·Hf|/(ω·Sd_PR·n_PR)
+
+- Source: `sweep.ts` `excPR`, drawn on the Cone excursion chart with PR Xmax.
+
+### 3.12 EQ/Filter charts — magnitude, phase, group delay — unverified
+
+    |Hf|, arg(Hf), −d arg(Hf)/dω
+
+- Source: `sweep.ts` `fltMag`, `fltPhase`, `fltGd`; `filters.ts` `applyFilters`. The filter chain
+  alone: driver and box do not enter. 0 dB means the driver terminals see the Signal tab's voltage
+  (WinISD help, "Filter/equalizer behavioral simulator").
+
+### 3.13 Not implemented — absent
+
+- Amplifier apparent load power (VA): WinISD's chart routine returns Z for it; the transform to VA
+  has not been read out of WinISD.
+- Transfer function magnitude/phase (PR), rear/front port gain, intrachamber port air velocity.
