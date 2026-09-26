@@ -28,6 +28,7 @@ export const TAB_META: Record<ChartTabId, TabMeta> = {
   Phase:     { id:'Phase',     name:'Transfer phase',  unit:'°',   color:'#7fd4ff' },
   MaxSPL:    { id:'MaxSPL',    name:'Maximum SPL',     unit:'dB',  color:'#5ad17a' },
   MaxPwr:    { id:'MaxPwr',    name:'Maximum power',   unit:'W',   color:'#ffd05a' },
+  VA:        { id:'VA',        name:'Amplifier apparent load power', unit:'VA', color:'#ff9f6b' },
   FltMag:    { id:'FltMag',    name:'Filter magnitude', unit:'dB', color:'#4fb0ff' },
   FltPhase:  { id:'FltPhase',  name:'Filter phase',    unit:'°',   color:'#7fd4ff' },
   FltGD:     { id:'FltGD',     name:'Filter group delay', unit:'ms', color:'#c08bff' },
@@ -209,6 +210,13 @@ const CURVE_BUILDERS: Record<ChartTabId, (c: CurveCtx) => CurveBuild> = {
       ymax: Math.max(...mx.maxpwr) * 1.2,
     },
 
+  // WinISD's P·Re·|Hf|²/|Z + Rg| (engine `va`, docs/CHARTS.md) — linear, from 0 like WinISD's axis.
+  VA: ({ meta, sw, pick }) => ({
+    series: [{ ...pick(sw.va), color: meta.color, name: 'VA' }],
+    ymin: 0,
+    ymax: Math.max(...sw.va.filter(Number.isFinite)) * 1.2,
+  }),
+
   // ---- The EQ/filter chain's own response (WinISD's three "(EQ/Filter)" charts) --------
   // The chain is an ELECTRICAL block ahead of the driver, so all three are properties of
   // the filter list alone — the driver and box do not appear in any of them. WinISD Pro
@@ -283,6 +291,7 @@ export function errorsForChart(chartId: ChartTabId, errors: DriverError[]): Driv
       case 'Phase': return 'phase';
       case 'MaxSPL': return 'maximum SPL';
       case 'MaxPwr': return 'maximum power';
+      case 'VA': return 'amplifier apparent load power';
       case 'FltMag': return 'filter magnitude';
       case 'FltPhase': return 'filter phase';
       case 'FltGD': return 'filter group delay';

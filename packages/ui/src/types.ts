@@ -19,7 +19,7 @@ import type {BoxType, DriverSolverParams, MaxCurvesResult, SweepResult} from '@o
  */
 export type ChartTabId =
   | 'SPL' | 'TFMag' | 'Excursion' | 'Port' | 'GD' | 'Zmag' | 'Zph' | 'Phase'
-  | 'MaxSPL' | 'MaxPwr' | 'FltMag' | 'FltPhase' | 'FltGD';
+  | 'MaxSPL' | 'MaxPwr' | 'VA' | 'FltMag' | 'FltPhase' | 'FltGD';
 
 /** One plotted line. Optional fields are set only by the series that need them. */
 export interface Series {

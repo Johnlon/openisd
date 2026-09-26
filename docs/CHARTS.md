@@ -13,8 +13,8 @@ same driver side but their box side has not been checked against WinISD.
 
 ## 0. Checklist — WinISD charts to check
 
-Every chart in WinISD's chart menu, per box type OpenISD has. 50 to check: **9 done** (8 exact
-match, 1 within WinISD's own rounding), 41 to do.
+Every chart in WinISD's chart menu, per box type OpenISD has. 50 to check: **10 done** (9 exact
+match, 1 within WinISD's own rounding), 40 to do.
 
 Key: ✅ exact match (≤ 1e-12 at all 2086 points) · ≈ matches to WinISD's own rounding noise ·
 ☐ to check · ✗ OpenISD has no such chart · — does not apply to that box.
@@ -26,7 +26,7 @@ Key: ✅ exact match (≤ 1e-12 at all 2086 points) · ≈ matches to WinISD's o
 | Group delay                             | ≈      | ☐      | ☐            | ☐                |
 | Maximum power                           | ✅     | ☐      | ☐            | ☐                |
 | Maximum SPL                             | ✅     | ☐      | ☐            | ☐                |
-| Amplifier apparent load power (VA)      | ✗      | ✗      | ✗            | ✗                |
+| Amplifier apparent load power (VA)      | ✅     | ☐      | ☐            | ☐                |
 | SPL                                     | ✅     | ☐      | ☐            | ☐                |
 | Cone excursion                          | ✅     | ☐      | ☐            | ☐                |
 | Impedance                               | ✅     | ☐      | ☐            | ☐                |
@@ -239,8 +239,17 @@ not implemented in OpenISD.
   alone: driver and box do not enter. 0 dB means the driver terminals see the Signal tab's voltage
   (WinISD help, "Filter/equalizer behavioral simulator").
 
-### 3.13 Not implemented — absent
+### 3.13 Amplifier apparent load power (VA) — match
 
-- Amplifier apparent load power (VA): WinISD's chart routine returns Z for it; the transform to VA
-  has not been read out of WinISD.
+    VA = P · Re · |Hf|² / |Z + Rg|,   P = eg²/(Re + Rg)
+
+- Source: `sweep.ts` `va`. Z is the impedance chart's value; Rg is added whatever its placement.
+- WinISD (`f_46bd30` case 0x14): the chart routine returns Z, and the plot code applies this
+  formula. WinISD bug, kept by default: Re where the amplifier's apparent power has Re + Rg, so it
+  reads Re/(Re + Rg) low ([bug](../bugs/BUG_20260927_winisd-va-uses-re-not-re-plus-rg.md)).
+- Evidence: `winisd_research/runs/sweep-w5-sealed-va-rg1` (Rg 1 Ω, driver side off), all 2087
+  points to 3e-16.
+
+### 3.14 Not implemented — absent
+
 - Transfer function magnitude/phase (PR), rear/front port gain, intrachamber port air velocity.

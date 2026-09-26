@@ -591,7 +591,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     { label: 'Group Delay', tab: 'GD' },
     { label: 'Maximum Power', tab: 'MaxPwr' },
     { label: 'Maximum SPL', tab: 'MaxSPL' },
-    { label: 'Amplifier apparent load power (VA)', tab: null },
+    { label: 'Amplifier apparent load power (VA)', tab: 'VA' },
     { label: 'SPL', tab: 'SPL' },
     { label: 'Cone excursion', tab: 'Excursion', sep: true },
     { label: 'Impedance', tab: 'Zmag' },

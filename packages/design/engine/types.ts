@@ -274,6 +274,10 @@ export interface SweepResult {
   fltPhase: number[];
   /** Filter-chain group delay in ms, derived from `fltPhase` by the same τg as `gd`. */
   fltGd: number[];
+  /** Amplifier apparent load power (VA), WinISD's: P·Re·|Hf|²/|Z + Rg| with P the drive power
+   *  into Re + Rg. WinISD writes Re where the apparent power has Re + Rg (f_46bd30 case 0x14,
+   *  BUG_20260927_winisd-va-uses-re-not-re-plus-rg). */
+  va: number[];
 }
 
 /** Max-SPL / max-power output. `xlim[i]` = Xmax is the limiting factor at point i. */

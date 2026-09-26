@@ -187,6 +187,19 @@ describe('winisdDriverModel — the whole WinISD parameter set, not Mms alone', 
       expect(Math.abs(gd - 52.29644272041911)).toBeLessThan(1e-3);
     });
 
+    // winisd_research runs/sweep-w5-sealed-va-rg1: WinISD's plotted VA by debugger, Rg 1 Ω.
+    // WinISD: VA = P·Re·|Hf|²/|Z + Rg| (f_46bd30 case 0x14), Re where Re + Rg belongs.
+    it.each([
+      [1.0, 0.7690233575004378],
+      [65.35861309217313, 0.17330824006319065],
+      [20000, 0.7727226000686561],
+    ])('amplifier apparent load power at %s Hz, Rg 1 Ω, is WinISD\'s %s VA', (f, va) => {
+      const project = w5(new Engine());
+      project.Rs_ohm.set(1);
+      const got = project.sweep(at(f)).values!.va[0];
+      expect(Math.abs(got / va - 1)).toBeLessThan(1e-9);
+    });
+
     it('with voice coil inductance on, the flag selects WinISD\'s inductance model: on − off is −22.266 dB at 20 kHz', () => {
       const engine = new Engine();
       const off = w5(engine).sweep(at(20000)).values!.spl[0];

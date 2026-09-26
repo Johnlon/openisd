@@ -22,6 +22,7 @@ import {hfAsymptotePressure_Pa, solve} from './circuit.js';
 import type {DriverIssue, DriverPrerequisite, DriverQuantityName, PrIssue, VentIssue} from './solver.js';
 import {terminalBL_Tm, withAddedMass} from './solver.js';
 import {applyFilters} from './filters.js';
+import {driveFromVoltage} from './formulas.js';
 import type {BoxType, DriverError, MaxCurvesResult, SweepParams, SweepResult} from './types.js';
 import type {DriverSolverParams} from './solverTypes.js';
 import type {BoxParamsIssue} from './params.js';
@@ -261,6 +262,11 @@ export function sweep(drv: DriverSolverParams, Le_H: number | undefined, box: Bo
   const { rho } = env.values;
   const f0 = P.fmin || 10, f1 = P.fmax || 1000, N = P.N || 400, r = 1;
   const fs: number[] = [], H = [], spl = [], exc = [], excPR = [], pv = [], zmag = [], zph = [], phase = [];
+  const va: number[] = [];
+  // Amplifier apparent load power, as WinISD computes it: P·Re·|Hf|²/|Z + Rg|, Rg added whatever
+  // its placement (f_46bd30 case 0x14).
+  const Rg = P.Rs && P.Rs > 0 ? P.Rs : 0;
+  const powerIn = driveFromVoltage(P.eg, cq.Re_terminal_ohm, Rg);
   // Filter-chain response, sampled on the same grid. Magnitude in dB, phase wrapped for now
   // (unwrapped after the loop, like `phase`).
   const fltMag: number[] = [], fltPhaseWrapped: number[] = [];
@@ -292,6 +298,7 @@ export function sweep(drv: DriverSolverParams, Le_H: number | undefined, box: Bo
     // UP is total volume velocity from all PRs; divide by prNum for per-PR excursion
     excPR.push(box === 'box-passive-radiator' ? Math.SQRT2 * cAbs(UP) / (w * P.prSd! * (P.prNum || 1)) * 1000 : 0);
     zmag.push(cAbs(s.Zel));
+    va.push(powerIn * cq.Re_terminal_ohm * fltAbs * fltAbs / cAbs(cx(s.Zel.re + Rg, s.Zel.im)));
     zph.push(cArg(s.Zel) * 180 / Math.PI);
   }
   const ph = unwrap(phase);
@@ -345,7 +352,7 @@ export function sweep(drv: DriverSolverParams, Le_H: number | undefined, box: Bo
   const splRefLimit = 20 * Math.log10(hfAsymptotePressure_Pa(cq, P, r) / P0);
 
   return { values: { fs, H, spl, phase: ph, exc, excPR, pv, zmag, zph, gd, tfMag: tfMag(spl, splRefLimit), splXlimCurve, xlimited, flatClamped,
-                    fltMag, fltPhase, fltGd }, issues: [] };
+                    fltMag, fltPhase, fltGd, va }, issues: [] };
 }
 
 /**
@@ -424,7 +431,7 @@ export function classifyFinite(sw: SweepResult): DriverError | null {
     { label: 'port velocity', values: sw.pv }, { label: 'impedance magnitude', values: sw.zmag },
     { label: 'impedance phase', values: sw.zph }, { label: 'group delay', values: sw.gd },
     { label: 'filter magnitude', values: sw.fltMag }, { label: 'filter phase', values: sw.fltPhase },
-    { label: 'filter group delay', values: sw.fltGd },
+    { label: 'filter group delay', values: sw.fltGd }, { label: 'amplifier apparent load power', values: sw.va },
   ];
   return classifyArrays(sw.fs, arrays, 'sweep');
 }
@@ -438,7 +445,7 @@ export function classifyFiniteIssues(sw: SweepResult): DriverError[] {
     { label: 'port velocity', values: sw.pv }, { label: 'impedance magnitude', values: sw.zmag },
     { label: 'impedance phase', values: sw.zph }, { label: 'group delay', values: sw.gd },
     { label: 'filter magnitude', values: sw.fltMag }, { label: 'filter phase', values: sw.fltPhase },
-    { label: 'filter group delay', values: sw.fltGd },
+    { label: 'filter group delay', values: sw.fltGd }, { label: 'amplifier apparent load power', values: sw.va },
   ];
   return arrays.flatMap((array): DriverError[] => {
     const bad = array.values.filter(value => !Number.isFinite(value)).length;

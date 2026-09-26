@@ -39,8 +39,8 @@ Records (format `winisd-run-record/1`, all validated):
 
 ## 0. Checklist — WinISD charts to check
 
-Every chart in WinISD's chart menu, per box type OpenISD has. 50 to check: **9 done** (8 exact
-match, 1 within WinISD's own rounding), 41 to do.
+Every chart in WinISD's chart menu, per box type OpenISD has. 50 to check: **10 done** (9 exact
+match, 1 within WinISD's own rounding), 40 to do.
 
 Key: ✅ exact match (≤ 1e-12 at all 2086 points) · ≈ matches to WinISD's own rounding noise ·
 ☐ to check · ✗ OpenISD has no such chart · — does not apply to that box.
@@ -52,7 +52,7 @@ Key: ✅ exact match (≤ 1e-12 at all 2086 points) · ≈ matches to WinISD's o
 | Group delay                             | ≈      | ☐      | ☐            | ☐                |
 | Maximum power                           | ✅     | ☐      | ☐            | ☐                |
 | Maximum SPL                             | ✅     | ☐      | ☐            | ☐                |
-| Amplifier apparent load power (VA)      | ✗      | ✗      | ✗            | ✗                |
+| Amplifier apparent load power (VA)      | ✅     | ☐      | ☐            | ☐                |
 | SPL                                     | ✅     | ☐      | ☐            | ☐                |
 | Cone excursion                          | ✅     | ☐      | ☐            | ☐                |
 | Impedance                               | ✅     | ☐      | ☐            | ☐                |
@@ -165,7 +165,7 @@ above.
 | Cone excursion                     | mm   | 2.665e-15                   | 1.1809  | 0.01      | PASS    | 0.06008                  |
 | Impedance                          | ohm  | 2.842e-14                   | 69.853  | 0.05      | PASS    | 1.228                    |
 | Impedance phase                    | deg  | 1.421e-13                   | 64.434  | 1.0       | PASS    | 1.599                    |
-| Amplifier apparent load power (VA) | VA   | values not captured         | —       | —         | —       | —                        |
+| Amplifier apparent load power (VA) | VA   | see §3.3                    | —       | —         | PASS    | not captured             |
 
 How each WinISD value is read from the logged complex `out` (chart byte in brackets). Each
 mapping is checked against the curve drawn in the screenshot:
@@ -644,7 +644,7 @@ Worst |OpenISD − WinISD| = 1.421e-13 deg at 64.434 Hz; tolerance 1.0 deg.
 
 #### Amplifier apparent load power (VA)
 
-Values not captured: the routine returns the impedance for this chart and the VA it draws from it is not established. OpenISD has no VA curve.
+See §3.3: the chart routine returns Z for this chart; the VA is applied in the plot code.
 
 ### 3.1 Impedance vs Rg and "Rg is at driver side"
 
@@ -677,6 +677,15 @@ has SPL, impedance and TF magnitude, with OpenISD on `winisdGyrator`. All three 
 | 4996.7 |         80.530 |        69.977 |         −10.553 |          80.530 |         69.977 |          −10.553 |
 | 20000  |         80.530 |        58.264 |         −22.266 |          80.530 |         58.264 |          −22.266 |
 
+### 3.3 Amplifier apparent load power (VA)
+
+Record
+[sweep-w5-sealed-va-rg1](http://localhost:8000/winisd/winisd_research/runs/sweep-w5-sealed-va-rg1/gdb.log)
+(Rg 1 Ω, driver side off): the plotted value, logged at 0x46c05c in `f_46bd30` with its inputs.
+VA = P·Re·|Hf|²/|Z + Rg| reproduces all 2087 points to 3e-16, and OpenISD's `va` matches WinISD's
+to 1e-9 at 1, 65.36 and 20000 Hz (`winisdDriverModel.test.ts`). WinISD uses Re where the apparent
+power has Re + Rg: [BUG_20260927_winisd-va-uses-re-not-re-plus-rg](http://localhost:8000/winisd/openisd/bugs/BUG_20260927_winisd-va-uses-re-not-re-plus-rg.md?html).
+
 ---
 
 ## 4. Causes, all fixed on 2026-09-26
@@ -703,11 +712,6 @@ the staircase in its curve. OpenISD takes the slope at f·(1 ± 1e-6), which agr
 (0.0018 ms, 207/2086 points bit-exact): the rounding noise cannot be reproduced.
 
 ---
-
-## 5. Not established
-
-- The VA chart's value: the chart-point routine returns Z for it, and the transform from Z to
-  VA was not read out of WinISD.
 
 ## 6. Reproducing
 
