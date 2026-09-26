@@ -48,12 +48,43 @@ describe('useWinisdDriverModel — the whole WinISD parameter set, not Mms alone
   it('clear: the entered Mms, BL and Rms are what the sweep uses', () => {
     const engine = new Engine();
     const entered = projectOn(engine, {...SHARED, ...CONTRADICTORY});
+    entered.useWinisdDriverModel.set(false);
     const winisd = projectOn(engine, {...SHARED});
+    winisd.useWinisdDriverModel.set(false);
 
     const mine = entered.sweep(P).values!;
     const theirs = winisd.sweep(P).values!;
     const differs = mine.spl.some((db, i) => Math.abs(db - theirs.spl[i]) > 0.01);
     expect(differs).toBe(true);
+  });
+
+  it('set: Vas, not the entered Cms, is what the compliance comes from', () => {
+    // WinISD takes Cms from Vas (debugger capture, winisd_research 4d818e2). This driver's Vas is
+    // 20% larger than its entered Cms implies, so the two disagree and only one can drive the
+    // sweep. Driver B states the Cms that Vas implies at the project's own air, reached here by
+    // asking the engine for it rather than by writing a number this test would have to maintain.
+    const engine = new Engine();
+    const air = engine.solveEnvironment({useWinisdAirModel: true}).values;
+    const Vas_m3 = SHARED.Vas_m3 * 1.2;
+    const cmsFromVas = Vas_m3 / (air.rho * air.c * air.c * SHARED.Sd_m2 * SHARED.Sd_m2);
+
+    const byVas = projectOn(engine, {...SHARED, Vas_m3});
+    const byCms = projectOn(engine, {...SHARED, Vas_m3, Cms_m_per_N: cmsFromVas});
+
+    const mine = byVas.sweep(P).values!;
+    const theirs = byCms.sweep(P).values!;
+    mine.spl.forEach((db, i) => expect(db).toBeCloseTo(theirs.spl[i], 6));
+
+    // ...and the two drivers really are different drivers: cleared, they sweep apart.
+    byVas.useWinisdDriverModel.set(false);
+    byCms.useWinisdDriverModel.set(false);
+    const a = byVas.sweep(P).values!, b = byCms.sweep(P).values!;
+    expect(a.spl.some((db, i) => Math.abs(db - b.spl[i]) > 0.01)).toBe(true);
+  });
+
+  it('defaults on — README: "by default, OpenISD behaves 100% like WinISD"', () => {
+    const engine = new Engine();
+    expect(projectOn(engine, {...SHARED}).useWinisdDriverModel.value).toBe(true);
   });
 
   it('a self-consistent driver is unmoved by the flag — every substitution is an identity there', () => {

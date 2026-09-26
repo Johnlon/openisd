@@ -75,9 +75,10 @@ imply; with it clear the two differ; a self-consistent driver is unmoved by the 
 `winisdGyrator` case in `packages/design/test/engine/circuit.test.ts` still matches the traced
 WinISD roll-off. Whole design suite: 2043 passed.
 
-## Still open, raised by calc-bug 2026-09-26
+## Cms from Vas, and the flag's default
 
-WinISD takes `Cms` from `Vas`, while this flag uses the entered `Cms`. On the W5 that accounts
-for 0.40 dB of passband SPL and a 0.9 Hz resonance shift (debugger capture, `winisd_research`
-4d818e2). Deriving `Cms` from `Vas` as well is a separate change, for John's decision — it
-changes which quantity is authoritative, not just which formula is used.
+Raised by calc-bug 2026-09-26: WinISD takes `Cms` from `Vas`, worth 0.40 dB of passband SPL and a
+0.9 Hz resonance shift on the W5 (debugger capture, `winisd_research` 4d818e2). Settled by the
+README goal — by default OpenISD behaves 100% like WinISD — so `Cms = Vas/(ρ·c²·Sd²)` joined the
+substitution set, ahead of the other three, which now derive off it. The same goal makes the flag
+itself default ON; a project that does not state it reads as on.

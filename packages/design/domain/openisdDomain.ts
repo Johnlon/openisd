@@ -1179,7 +1179,7 @@ function computedSlot<T>(value: T | null): SolverField<T> {
  *  `Re_terminal_ohm`/`BL_terminal_Tm` have no domain storage slot (matching `NO_SLOT`'s own doc
  *  above), and `wiring` is spelled `VCCon` here and carries a `VoiceCoilWiring` enum member, not
  *  the bare `'series'|'parallel'` union `DriverSolverParams` names. */
-function driverSolverParamsOf(spec: OpenIsdDriverSpec, engine: Engine, useWinisdDriverModel: boolean = false): DriverSolverParams {
+function driverSolverParamsOf(spec: OpenIsdDriverSpec, engine: Engine, useWinisdDriverModel: boolean = false, air: Air | null = null): DriverSolverParams {
     const wiring: Wiring = spec.VCCon.value === VoiceCoilWiring.Series ? 'series' : 'parallel';
     const Re_ohm = spec.Re_ohm.value;
     const BL_Tm = spec.BL_Tm.value;
@@ -1189,20 +1189,23 @@ function driverSolverParamsOf(spec: OpenIsdDriverSpec, engine: Engine, useWinisd
     const Re_terminal_ohm = Re_ohm == null ? null : engine.terminalRe_ohm(Re_ohm, numVC, wiring);
     const BL_terminal_entered_Tm = BL_Tm == null ? null : engine.terminalBL_Tm(BL_Tm, numVC, wiring);
 
-    // WinISD's simulation reads Fs, Vas, Qes, Qms, Sd and Re; its circuit names neither Mms, BL
-    // nor Rms outside CLe, and it leaves all three entered values untouched (measured against
-    // 0.7.0.950, winisd_research/PROBE_FINDINGS.md). So the flag substitutes all three, each only
-    // where its own inputs are present and positive. Every substitution is an identity on a
-    // self-consistent driver. The entered BL still reaches the engine as `BL_Tm`, which is what
-    // the 'winisdGyrator' inductance model scales Le by.
-    const mmsField = useWinisdDriverModel ? winisdMms_kg(spec) : spec.Mms_kg;
+    // WinISD's simulation reads Fs, Vas, Qes, Qms, Sd and Re, and nothing else: it keeps entered
+    // Cms, Mms, BL and Rms untouched and its circuit names none of them outside CLe (measured
+    // against 0.7.0.950, winisd_research/PROBE_FINDINGS.md). So the flag substitutes the four,
+    // each only where its own inputs are present and positive, and each downstream one off the
+    // substituted Cms — every one an identity on a self-consistent driver. The entered BL still
+    // reaches the engine as `BL_Tm`, which is what the 'winisdGyrator' inductance model scales Le
+    // by; WinISD reads the entered BL there too.
+    const cmsField = useWinisdDriverModel ? winisdCms_m_per_N(spec, air) : spec.Cms_m_per_N;
+    const mmsField = useWinisdDriverModel ? winisdMms_kg(spec, cmsField.value) : spec.Mms_kg;
     const rmsField = useWinisdDriverModel ? winisdRms_kg_per_s(spec, mmsField) : spec.Rms_kg_per_s;
     const blTerminal = useWinisdDriverModel
-        ? winisdBLterminal_Tm(spec, Re_terminal_ohm, BL_terminal_entered_Tm)
+        ? winisdBLterminal_Tm(spec, Re_terminal_ohm, cmsField.value, BL_terminal_entered_Tm)
         : BL_terminal_entered_Tm;
 
     return {
         ...spec,
+        Cms_m_per_N: cmsField,
         Mms_kg: mmsField,
         Rms_kg_per_s: rmsField,
         SPLref_dB: NO_SLOT,
@@ -1217,10 +1220,20 @@ function positive(value: number | null | undefined): value is number {
     return typeof value === 'number' && Number.isFinite(value) && value > 0;
 }
 
-/** `Mms = 1/((2π·Fs)²·Cms)` — the moving mass WinISD's own circuit acts on. `spec`'s entered field
- *  where Fs or Cms is not a positive number. */
-function winisdMms_kg(spec: OpenIsdDriverSpec): SolverField<number> {
-    const Fs = spec.Fs_hz.value, Cms = spec.Cms_m_per_N.value;
+/** `Cms = Vas/(ρ·c²·Sd²)` — the compliance WinISD's own circuit acts on, which it takes from Vas
+ *  rather than from an entered Cms (debugger capture, winisd_research 4d818e2). `spec`'s entered
+ *  field where the air is unresolved, or Vas or Sd is not a positive number. */
+function winisdCms_m_per_N(spec: OpenIsdDriverSpec, air: Air | null): SolverField<number> {
+    const Vas = spec.Vas_m3.value, Sd = spec.Sd_m2.value;
+    if (air === null || !positive(Vas) || !positive(Sd)) return spec.Cms_m_per_N;
+    const Cms = Vas / (air.rho * air.c * air.c * Sd * Sd);
+    return positive(Cms) ? computedSlot(Cms) : spec.Cms_m_per_N;
+}
+
+/** `Mms = 1/((2π·Fs)²·Cms)` — the moving mass WinISD's own circuit acts on, off the compliance
+ *  WinISD itself uses. `spec`'s entered field where Fs or that compliance is not positive. */
+function winisdMms_kg(spec: OpenIsdDriverSpec, Cms: number | null): SolverField<number> {
+    const Fs = spec.Fs_hz.value;
     if (!positive(Fs) || !positive(Cms)) return spec.Mms_kg;
     const Mms = 1 / (4 * Math.PI * Math.PI * Fs * Fs * Cms);
     return positive(Mms) ? computedSlot(Mms) : spec.Mms_kg;
@@ -1236,9 +1249,10 @@ function winisdRms_kg_per_s(spec: OpenIsdDriverSpec, mms: SolverField<number>): 
 }
 
 /** `BL² = Re/(2π·Fs·Qes·Cms)` at the terminals — the motor strength WinISD's
- *  `Rae = 1/(2π·Fs·Qes'·Ccas)` implies. `entered` where Re, Fs, Qes or Cms is not positive. */
-function winisdBLterminal_Tm(spec: OpenIsdDriverSpec, Re_terminal_ohm: number | null, entered: number | null): number | null {
-    const Fs = spec.Fs_hz.value, Qes = spec.Qes.value, Cms = spec.Cms_m_per_N.value;
+ *  `Rae = 1/(2π·Fs·Qes'·Ccas)` implies, off the compliance WinISD itself uses. `entered` where Re,
+ *  Fs, Qes or that compliance is not positive. */
+function winisdBLterminal_Tm(spec: OpenIsdDriverSpec, Re_terminal_ohm: number | null, Cms: number | null, entered: number | null): number | null {
+    const Fs = spec.Fs_hz.value, Qes = spec.Qes.value;
     if (!positive(Re_terminal_ohm) || !positive(Fs) || !positive(Qes) || !positive(Cms)) return entered;
     const BL = Math.sqrt(Re_terminal_ohm / (2 * Math.PI * Fs * Qes * Cms));
     return positive(BL) ? BL : entered;
@@ -2102,6 +2116,15 @@ export class OpenISDProject {
         );
     }
 
+    /** The project's own resolved `{rho, c}` — the same air the sweep runs in, which is what
+     *  "Use WinISD driver calculations" needs to take Cms from Vas the way WinISD does. */
+    #projectAir(): Air {
+        return this.#engine.solveEnvironment({
+            ...this.#airOver(this.#root()),
+            useWinisdAirModel: this.#current().environment.useWinisdAirModel ?? true,
+        }).values;
+    }
+
     /** The three air conditions `root` reads as — each E or C, never absent. */
     #airOver(root: SimpleField<OpenISDProjectJson>): AirConstantProvider {
         const env = this.#envFieldsOver(focus(root, 'environment'));
@@ -2272,13 +2295,14 @@ export class OpenISDProject {
     }
 
     /** WinISD Advanced / Compatibility "Use WinISD driver calculations" — whether engine sweeps
-     *  substitute `Mms = 1/((2π·Fs)²·Cms)` for a conflicting entered Mms, which is the mass real
-     *  WinISD's own simulation acts on (measured 2026-09-26, docs/research/WINISD_PARITY.md).
-     *  BL and Rms are NOT substituted, so parity on an inconsistent driver is partial. */
+     *  substitute the driver WinISD's own simulation acts on, `Mms = 1/((2π·Fs)²·Cms)`,
+     *  `Rms = 2π·Fs·Mms/Qms` and `BL = √(Re/(2π·Fs·Qes·Cms))`, for entered values that conflict
+     *  with them (measured 2026-09-26, docs/research/WINISD_PARITY.md). On where a project does
+     *  not say, per the README: untouched, OpenISD gives WinISD's answer. */
     get useWinisdDriverModel(): SimpleField<boolean> {
         const lens = focus(this.#slot('advanced'), 'useWinisdDriverModel');
         return {
-            get value() { return lens.value ?? false; },
+            get value() { return lens.value ?? true; },
             set: (on: boolean) => lens.set(on),
         };
     }
@@ -3018,7 +3042,7 @@ export class OpenISDProject {
         const boxIssues = this.#boxSweepIssues(box);
         if (boxIssues.length) return {values: null, issues: boxIssues};
         const params = this.#sweepParams(P, this.driveVoltage_V.value, box);
-        return this.#engine.sweep(driverSolverParamsOf(this.driver.specs, this.#engine, this.useWinisdDriverModel.value), this.driver.Le_H() ?? undefined, box, params);
+        return this.#engine.sweep(driverSolverParamsOf(this.driver.specs, this.#engine, this.useWinisdDriverModel.value, this.#projectAir()), this.driver.Le_H() ?? undefined, box, params);
     }
 
     /** The excursion- and power-limited maximum SPL curves. Reports on the same terms as `sweep`,
@@ -3029,7 +3053,7 @@ export class OpenISDProject {
         if (!box) return {values: null, issues: [], driverPrerequisites: []};
         const boxIssues = this.#boxSweepIssues(box);
         if (boxIssues.length) return {values: null, issues: boxIssues, driverPrerequisites: []};
-        return this.#engine.maxCurves(driverSolverParamsOf(this.driver.specs, this.#engine, this.useWinisdDriverModel.value), this.driver.Le_H() ?? undefined, box, this.#sweepParams(P, 2.83, box));
+        return this.#engine.maxCurves(driverSolverParamsOf(this.driver.specs, this.#engine, this.useWinisdDriverModel.value, this.#projectAir()), this.driver.Le_H() ?? undefined, box, this.#sweepParams(P, 2.83, box));
     }
 
     /** The active box's own sweep-level blockers, beyond what `solveBoxParams()` already reports:

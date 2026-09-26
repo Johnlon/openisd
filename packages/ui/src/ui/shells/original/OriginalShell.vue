@@ -626,7 +626,7 @@ WinISD Lossy (default): reports the lossy 3rd-order model's pole, so Fsc rises a
                 </div>
               </div>
               <div style="margin-bottom: 6px;">
-                <label data-field-key="useWinisdDriverModel" style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 13px;" :title="`WinISD Driver Calculation Mode Toggle:\n• Checked: Engine sweep uses the driver WinISD's own simulation acts on — Mms = 1/((2π·Fs)²·Cms), Rms = 2π·Fs·Mms/Qms and BL = √(Re/(2π·Fs·Qes·Cms)) — in place of entered values that conflict with them. The entered BL still sets the voice-coil inductance roll-off, as it does in WinISD.\n• Unchecked: Engine sweep uses entered datasheet values directly.`">
+                <label data-field-key="useWinisdDriverModel" style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 13px;" :title="`WinISD Driver Calculation Mode Toggle:\n• Checked (the default): Engine sweep uses the driver WinISD's own simulation acts on — Cms = Vas/(ρ·c²·Sd²), then Mms = 1/((2π·Fs)²·Cms), Rms = 2π·Fs·Mms/Qms and BL = √(Re/(2π·Fs·Qes·Cms)) — in place of entered values that conflict with them. The entered BL still sets the voice-coil inductance roll-off, as it does in WinISD.\n• Unchecked: Engine sweep uses entered datasheet values directly.`">
                   <input type="checkbox" :checked="project.useWinisdDriverModel.value" @change="e => project.useWinisdDriverModel.set(inputChecked(e))"> WinISD driver calculations
                 </label>
               </div>
