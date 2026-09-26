@@ -622,7 +622,7 @@ WinISD Lossy (default): reports the lossy 3rd-order model's pole, so Fsc rises a
                 </div>
               </div>
               <div style="margin-bottom: 6px;">
-                <label data-field-key="useWinisdDriverModel" style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 13px;" :title="`WinISD Driver Calculation Mode Toggle:\n• Checked: Engine sweep calculates Mms, BL, and Rms via WinISD formulas, overriding entered Mms contradictions.\n• Unchecked: Engine sweep uses entered datasheet values directly.`">
+                <label data-field-key="useWinisdDriverModel" style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 13px;" :title="`WinISD Driver Calculation Mode Toggle:\n• Checked: Engine sweep uses Mms = 1/((2π·Fs)²·Cms) — the moving mass WinISD's own simulation acts on — in place of a conflicting entered Mms. BL and Rms are left as entered.\n• Unchecked: Engine sweep uses entered datasheet values directly.`">
                   <input type="checkbox" :checked="project.useWinisdDriverModel.value" @change="e => project.useWinisdDriverModel.set(inputChecked(e))"> Use WinISD driver calculations
                 </label>
               </div>

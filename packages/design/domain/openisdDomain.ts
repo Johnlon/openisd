@@ -2231,7 +2231,9 @@ export class OpenISDProject {
     }
 
     /** WinISD Advanced / Compatibility "Use WinISD driver calculations" — whether engine sweeps
-     *  calculate Mms, BL, and Rms via WinISD formulas, ignoring conflicting entered values. */
+     *  substitute `Mms = 1/((2π·Fs)²·Cms)` for a conflicting entered Mms, which is the mass real
+     *  WinISD's own simulation acts on (measured 2026-09-26, docs/research/WINISD_PARITY.md).
+     *  BL and Rms are NOT substituted, so parity on an inconsistent driver is partial. */
     get useWinisdDriverModel(): SimpleField<boolean> {
         const lens = focus(this.#slot('advanced'), 'useWinisdDriverModel');
         return {
