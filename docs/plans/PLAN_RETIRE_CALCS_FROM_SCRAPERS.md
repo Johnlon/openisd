@@ -4,7 +4,7 @@ Implements [TODO.md QT39](http://localhost:8000/winisd/winisd_tools/TODO.md?html
 retire calc code in python"), [QT41](http://localhost:8000/winisd/winisd_tools/TODO.md?html#L2483)
 ("the dq rules need to be moved entirely into the openisd app") and the QO84 small fix
 (`openisd/questions.yml` QO84, ruled 2026-08-23: seed consistency tolerance from `read_precision`,
-`halfUlp` fallback — never landed; evidence `docs/design/QO84_PRECISION_NECESSITY.md`). QO87 (full
+`halfUlp` fallback — never landed; evidence `docs/design/_archive/QO84_PRECISION_NECESSITY.md`). QO87 (full
 interval-algebra port) stays "not now" — this plan does NOT do it. John lifted the QT41 "future
 work" hold on 2026-09-24 and approved this scope: *scraper presents scraped facts only — readings from
 reads and OCR — no decisions and no DQ; origin selection, corroboration, calc and range DQ are the

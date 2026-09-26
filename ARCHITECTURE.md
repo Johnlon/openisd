@@ -47,11 +47,13 @@ flowchart LR
 
 | Package                 | Responsibility                                                      | Depends on                 |
 |-------------------------|---------------------------------------------------------------------|----------------------------|
-| `@openisd/design`       | The domain, the engine and WinISD file formats. No DOM, no browser. | `zod`                      |
+| `@openisd/design`       | The domain, the engine and WinISD file formats. No DOM, no browser. | `zod`, `yaml`              |
 | `@openisd/persistence`  | Repositories over browser storage, files and the catalogue.         | `design`                   |
 | `@openisd/ui`           | The Vue 3 app.                                                      | `design`, `persistence`    |
 
-Inside the packages the layers are:
+Inside the packages the main layers are below. The full matrix of legal import edges is
+`ALLOWED_EDGES` in `packages/ui/test/ui/architecture.test.ts`; it also allows hooks, logic and
+persistence to import engine types, and logic to import `design/winisd`.
 
 ```mermaid
 flowchart TD
@@ -73,7 +75,7 @@ flowchart TD
 | `ui/components`  | Markup and bindings.                                                 | Make decisions, or import a domain value.                  |
 | `ui/hooks`       | The behaviour behind one component, as a composable tested without a DOM. | Hold module-level state.                              |
 | `ui/logic`       | The open projects, presentation state, file I/O orchestration, driver browsing. | Calculate anything a domain object can answer.  |
-| `persistence`    | Storage keys, payload upgrades, catalogue fetch and caching.         | Know a record's shape. It passes `.owpr`/`.owdr` text to and from the domain. |
+| `persistence`    | Storage keys, payload upgrades, catalogue fetch and caching.         | Validate a record; the domain does that. It passes `.owpr`/`.owdr` text to and from the domain. `projectSchemaUpgrade.ts` knows retired payload shapes only. |
 | `design/domain`  | The project aggregate, its fields, its solve cascade, file text.     | Do acoustics; that belongs to the engine.                  |
 | `design/engine`  | Air, T/S solving, box design, the circuit, sweeps.                   | Throw, or know about files.                                |
 | `design/winisd`  | `.wdr`/`.wpr` parsing and writing, ParState, WinISD text encoding.   | Model the physics.                                          |
@@ -102,7 +104,8 @@ Enforcement, as tests that fail the build:
 | `box.radiator`                              | An embedded passive radiator. Every project has one, blank until one is chosen.               |
 | `box`                                       | Every box type's section at once: sealed, vented, bandpass 4 and 6, ABC, passive radiator.    |
 | vents                                       | Seven vent slots across the box types, each with shape, count, dimensions and tuning.          |
-| `signal`                                    | Drive voltage and input power, series resistance.                                             |
+| `signal`                                    | Drive voltage and input power.                                                                |
+| `driverEmbedding`                           | Driver count, wiring, series resistance, voice-coil temperature rise.                         |
 | environment                                 | Temperature, humidity, pressure, and the choice of air model.                                  |
 | filters, charts, metadata                   | The filter chain, open charts and loss model, and name and description.                        |
 
@@ -126,7 +129,9 @@ Every value is a field built from small capability interfaces (`domain/cell.ts`)
 | `Calculated`     | `.calculated`: the solve produced it                         |
 | `Writable<T>`    | `.set(v)` records an entered value                           |
 | `Clearable`      | `.clear()` withdraws an entered value                        |
-| `Calculatable<T>`| The solver may write C, a DQ issue, or N                     |
+| `Calculatable<T>`| `setCalculated(v, dq)`, `setDq(dq)`: the solver writes C or a DQ issue |
+| `Unsolvable`     | `setNotAvailable()`: the solver writes N                     |
+| `Precise`        | `.precision`                                                 |
 
 - **The declared type states what the field can do.** A field's type is the intersection of the
   capabilities it has; there is no god class. For example, drive voltage is
@@ -135,11 +140,12 @@ Every value is a field built from small capability interfaces (`domain/cell.ts`)
   - **E** entered;
   - **C** calculated;
   - **N** not available.
-- **The state of a stored value is part of the record.** A value is held as
-  `{state, value, dq}`; its state is not worked out afresh on each read.
+- **The state of a stored value is part of the record.** A value is held as `{state, value}`,
+  with DQ lists split by producer (`dq_scraper`, `dq_calculated`). N is the absence of an
+  entry. The state is not worked out afresh on each read.
 - **Defaulting fields are never null.** The three environment conditions, vent count, the
-  voice-coil count and wiring, and the driver's `c`/`roo` read their default as C until someone
-  enters a value. `clear()` returns them to C.
+  voice-coil count and wiring, the driver's `c`/`roo` and the drive voltage read their default as
+  C until someone enters a value. `clear()` returns them to C.
 - **Absence is `null`**, spelled one way. There are no sentinel objects.
 
 ## 4. Solving
@@ -177,18 +183,18 @@ sequenceDiagram
 - **The split between domain and engine: geometry is in the domain, acoustics are not.**
   - The domain may compute pure geometry, such as a vent's area from its dimensions.
   - Anything involving air, compliance or frequency is the engine's.
-  - The test: if two implementers could disagree on the model, it belongs in the engine.
-- **The sweep** is `Engine.sweep(driver, Le, boxType, params)`. It is cheap enough to run on
-  every edit, and nothing caches a curve. The UI maps its arrays onto chart series and does no
-  maths of its own.
+  - Rule of thumb: if two implementers could disagree on the model, it belongs in the engine.
+- **The sweep** is `Engine.sweep(driver, Le, boxType, params)`. The UI re-runs it on every
+  change, throttled to about 30 per second, and holds the last result in `appState`. The UI
+  maps its arrays onto chart series and does only axis ranges and unit scaling.
 
 ## 5. State
 
 ### Inside a project
 
-`OpenISDProject` holds three stored fields: `#saved`, `#edited` and `#engine`. It also holds
-one transient field, `#whatif`, and nothing else. `architecture-project-has-three-fields.test.ts`
-enforces this.
+`OpenISDProject` holds three record layers (`#saved`, `#edited`, `#whatif`) and the engine. Its
+other private fields (identity, listeners, a derived issue cache, the chart cursor) never enter a
+record. `architecture-project-has-three-fields.test.ts` pins the allowed set.
 
 | Record layer | Holds                                         | Ends by                           |
 |--------------|-----------------------------------------------|-----------------------------------|
@@ -210,7 +216,7 @@ Only these modules may hold state, and the architecture test enforces it:
 |------------------------|----------------------------------------------------------------------------------|
 | `logic/appState.ts`    | The open projects in order, the focused project, the engine, app settings.       |
 | `logic/presentationState.ts` | Open dialogs, chart zoom, unit choices, chart colours.                     |
-| `logic/urlAppState.ts` | Builds and restores the share URL from the other two; holds nothing itself.      |
+| `logic/urlAppState.ts` | Writes the share URL to the address bar; holds nothing. `persistence/projectRepo` builds and reads it. |
 
 ### What persists
 
@@ -244,14 +250,16 @@ Only these modules may hold state, and the architecture test enforces it:
 | `openisd.json` | Catalogue record from `winisd_drivers` | yes (bundled)           | bridge only           |
 
 - **OpenISD's model is a superset of WinISD's.**
-  - Every `.wdr`/`.wpr` key has a place in the model; `wdr-model-coverage.test.ts` enforces this.
+  - Every `.wdr` key has a place in the model (`wdr-model-coverage.test.ts`); `.wpr` sections
+    are covered by `winisdProject.test.ts`.
   - Import never silently drops a key.
   - Export trims to what WinISD can express, and reports what it left out.
 - **WinISD files are Windows INI.** `design/ini` is the only INI parser.
   - `design/winisd` owns ParState and WinISD's text encoding.
-  - WinISD writes UTF-8, but its own reader cannot read non-ASCII back.
+  - WinISD writes UTF-8 and stores a newline as the byte `A4`, so its reader destroys any
+    character whose UTF-8 contains `A4`.
 - **File I/O belongs to the domain object it reads or writes.** For example,
-  `project.exportWpr()` and `OpenISDProject.fromOwprText()`. `ui/logic/useApplicationIO.ts`
+  `project.toWprText()` and `OpenISDProject.fromOwprText()`. `ui/logic/useApplicationIO.ts`
   only chooses file names, calls those methods and shows messages.
 
 ## 7. Patterns and coupling rules
@@ -264,16 +272,17 @@ Only these modules may hold state, and the architecture test enforces it:
 - **Dependencies are injected.** A service exports a `create*()` factory, never an instance.
   - Real I/O sits behind narrow ports: `KeyValueStorage`, `FileStorage`, `fetch`.
 - **No mutable module state.** No `let` at module scope, no unfrozen containers, no registries.
-  - `appState.ts` is the one sanctioned holder of app state.
-- **Components decide nothing.** Each `X.vue` has an `X-hooks.ts` composable holding its
-  behaviour:
+  - The three approved stores (§5) are the only holders of app state.
+  - `hooks/useEscToClose.ts` keeps a module-level dialog stack that the test does not catch.
+- **Components decide nothing.** A component with behaviour has an `X-hooks.ts` composable
+  holding it (13 of 23 components today):
   - this keeps most UI coverage in fast node tests;
   - it keeps the markup a thin binding.
 - **Types carry the facts:**
   - closed sets are sum types or Java-style enum classes, such as `LossMode` and `DriverType`;
   - matches over them are exhaustive;
   - semantic primitives are branded;
-  - there are no casts and no `any`;
+  - there are no casts and no `any` in `design` (tested); `ui` has two DOM-event casts;
   - external data is parsed at the boundary.
 - **One name per field.** Each external vocabulary is mapped once, at its own boundary.
   Examples are a datasheet's `Resonance frequency` and WinISD's `Bl`.
@@ -322,11 +331,11 @@ The full strategy is in [TESTING_STRATEGY.md](TESTING_STRATEGY.md).
 
 | Topic                         | WinISD                                                                                      | OpenISD                                                                                                                | Why |
 |-------------------------------|---------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------|-----|
-| Where air comes from          | App-level Options only, read once per launch. A project's own T/RH/p are ignored.           | Each project has its own air. Unentered conditions are C, from Options, and follow later Options changes. Entered ones stay. The driver's `c`/`roo` are recalculated from the project's air on every solve. | Two projects with the same inputs must simulate the same. An Options change must not leave open projects stale. |
+| Where air comes from          | App-level Options only, read once per launch. A project's own T/RH/p are ignored.           | Each project has its own air. Unentered conditions are C, from Options, and follow later Options changes. Entered ones stay. Unentered driver `c`/`roo` follow the project's air on every solve; entered ones stay. | Two projects with the same inputs must simulate the same. An Options change must not leave open projects stale. |
 | Air formula                   | DPC's constants: Hyland–Wexler vapour pressure, `ρ = γp/c²`.                                | Both formulas available. `useWinisdAirModel` (on by default) reproduces WinISD's; off gives CIPM-2007.                  | Matching WinISD by default, with a physical model available. |
 | Contradictory inputs          | The losing route is dropped without notice; disagreeing entered values are never compared.  | Every member of an inconsistent group is marked with a DQ issue. Entered values are never changed.                      | The disagreement is information. |
 | Voice-coil wiring             | A wiring change rewrites `Re` and `BL` and leaves them marked Entered.                      | Per-coil `Re`/`BL` stay as entered. Terminal `Re`/`BL` are separate calculated fields.                                  | A typed value must not change under the user. |
-| Derived fields on load        | Read `0` until any field is edited.                                                         | Solved on load.                                                                                                        | A `0` meaning "not computed" cannot be told apart from a real zero. |
+| Derived fields on load        | Figure-of-merit fields (EBP, Rme, γ, Mpow, SPLmax, SPLmaxLF, Gloss) read `0` until any field is edited. | Solved on load.                                                                                                        | A `0` meaning "not computed" cannot be told apart from a real zero. |
 | Sealed-box loss model         | One model: the lossy cubic.                                                                 | Three to choose from: WinISD's lossy cubic (default), conventional, lossless.                                           | Comparison with textbook results. |
 | Voice-coil inductance         | One switch: Le in both SPL and impedance, or in neither.                                    | `circuitModel`: `winisd` or `gyrator`. Currently inconsistent; see the gap list.                                         | Open. |
 | Tuning (what-if)              | Not present.                                                                                | The Tune panel explores changes on the whole project, and always discards them.                                          | Explore without corrupting real driver data. |
@@ -334,8 +343,7 @@ The full strategy is in [TESTING_STRATEGY.md](TESTING_STRATEGY.md).
 
 ## 10. Feature comparison with WinISD 0.7
 
-Checked against OpenISD's code on 2026-09-25. WinISD's side comes from its screenshots and help
-files. For calculation differences and bugs, see the [gap list](OPENISD_WINISD_GAPS_AND_BUGS.md).
+WinISD's side comes from its screenshots, its help files and the probes in `winisd_research`. For calculation differences and bugs, see the [gap list](OPENISD_WINISD_GAPS_AND_BUGS.md).
 
 ### Box types
 
@@ -363,7 +371,7 @@ files. For calculation differences and bugs, see the [gap list](OPENISD_WINISD_G
 | Filter magnitude, phase and group delay  | yes    | yes     |
 | Amplifier apparent load power (VA)       | yes    | no      |
 | Port gain                                | yes    | no      |
-| Intrachamber port velocity               | yes    | no (needs 6th-order bandpass) |
+| Intrachamber port velocity               | yes    | no (needs ABC) |
 | Radiator transfer function and phase     | yes    | no      |
 | Overlay of several projects              | yes    | yes     |
 

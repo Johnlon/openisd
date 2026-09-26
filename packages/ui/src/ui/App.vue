@@ -54,6 +54,8 @@ async function handleHashChange() {
 
 let saveReady = false;
 let viewSaveReady = false;
+/** The stored session refused to load. Nothing may overwrite that record this boot. */
+let sessionUnreadable = false;
 watch(projectChanged, () => {
   if (!saveReady) return;
   projectRepo.saveOpenProjects(openProjects(), focusedProject());
@@ -79,6 +81,7 @@ onMounted(async () => {
     const session = projectRepo.loadOpenProjects();
     if (Array.isArray(session)) {
       logging.flash('Could not restore open projects: ' + session.join('; '));
+      sessionUnreadable = true;
     } else if (session) {
       restoreProjects(session.projects, session.focusedIndex);
     } else {
@@ -98,8 +101,22 @@ onMounted(async () => {
   viewSaveReady = true;
   viewStateRepo.save(currentViewSnapshot());
   markProjectSaved();   // the just-loaded design is the ground state (clean, not modified)
-  saveReady = true;
-  projectRepo.saveOpenProjects(openProjects(), focusedProject());
+  // A session record we could not read stays exactly as it is. Saving the empty state this
+  // boot ended in would write `{"entries":[],"focusedId":null}` over the user's open projects,
+  // which is how one refusal by the record validator destroyed a whole session instead of
+  // failing one boot. Saving arms again the moment a project is open, so the work the user
+  // does from here is persisted as usual.
+  if (sessionUnreadable) {
+    const armOnFirstProject = watch(() => openProjects().length, count => {
+      if (count === 0) return;
+      saveReady = true;
+      armOnFirstProject();
+      projectRepo.saveOpenProjects(openProjects(), focusedProject());
+    });
+  } else {
+    saveReady = true;
+    projectRepo.saveOpenProjects(openProjects(), focusedProject());
+  }
   window.addEventListener('hashchange', handleHashChange);
 });
 

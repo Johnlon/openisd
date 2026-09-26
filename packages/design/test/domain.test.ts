@@ -6,6 +6,7 @@ import {
     OpenISDDriverStandalone,
     OpenISDPassiveRadiatorStandalone,
     OpenISDProject,
+    type FrequencyGrid,
     VoiceCoilWiring
 } from '../domain/index.js';
 
@@ -2827,7 +2828,7 @@ describe('project-level array/display settings, chart Y-range, and identity', ()
 
   it('sweep() reads Options → Environment for an unstated environment — the same SPL as entering those values', () => {
     // bugs/BUG_20260924_sweep-ignores-options-environment-setting.md
-    const grid = {fmin: 20, fmax: 200, N: 8};
+    const grid: FrequencyGrid = {fmin: 20, fmax: 200, N: 8};
     const options = {tempK: 263.15, humidityPct: 90, pressurePa: 85000};
     const sealedOn = (engine: Engine) => {
       const driver = driverFrom({
