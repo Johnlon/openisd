@@ -94,31 +94,20 @@ describe('sweep — zero-excitation (eg=0) produces -200 dB SPL for all frequenc
   });
 });
 
-// ── Line 85: dw = 0 → group delay fallback to 0 ──────────────────────────────
+// ── Group delay is the slope AT each frequency, not across grid neighbours ──────
 
-describe('sweep — fmin=fmax produces constant-frequency sweep where dw=0', () => {
-  it('when fmin equals fmax all frequencies are identical so dw=0 and group delay defaults to 0 ms '
-   + 'for every sample — exercises the dw!==0 false branch', () => {
-    // P.N || 400: 0 is falsy so N=0 would use default 400.  Instead, trigger dw=0 by
-    // making fmin = fmax so that f = fmin·(fmax/fmin)^(i/N) = fmin for all i.
-    // Then fs[b] - fs[a] = 0 → dw = 0 → gd.push(0) for every sample.
-    const FREQ_HZ = 100;      // arbitrary passband frequency
-    const N_STEPS = 5;        // need >1 so the loop has multiple iterations
-    const GD_ZERO_MS = 0;     // fallback group delay when dw=0
-
-    const { fs, gd } = engine.sweep(driverParams(DRV), LE_H, BOX, {
-      Vb: VB_M3, Ql: QL_LOSSLESS, eg: EG_STANDARD,
-      fmin: FREQ_HZ, fmax: FREQ_HZ, N: N_STEPS,
+describe('sweep — fmin=fmax: every sample is the group delay at that one frequency', () => {
+  it('a sweep collapsed onto 100 Hz reports the same, non-zero group delay as a normal sweep does at 100 Hz', () => {
+    const FREQ_HZ = 100;
+    const collapsed = engine.sweep(driverParams(DRV), LE_H, BOX, {
+      Vb: VB_M3, Ql: QL_LOSSLESS, eg: EG_STANDARD, fmin: FREQ_HZ, fmax: FREQ_HZ, N: 5,
     }).values!;
-
-    // All frequencies must be identical (fmin = fmax collapse to one point)
-    assert(fs.every(f => f === FREQ_HZ),
-      `all frequencies must equal ${FREQ_HZ} Hz when fmin=fmax`);
-
-    // All group delay values must be the dw=0 fallback
-    for (let i = 0; i < gd.length; i++) {
-      assert.equal(gd[i], GD_ZERO_MS,
-        `gd[${i}] must be ${GD_ZERO_MS} ms when dw=0, got ${gd[i]}`);
+    const single = engine.sweep(driverParams(DRV), LE_H, BOX, {
+      Vb: VB_M3, Ql: QL_LOSSLESS, eg: EG_STANDARD, fmin: FREQ_HZ, fmax: FREQ_HZ * 1.5, N: 1,
+    }).values!;
+    assert.ok(single.gd[0] > 0, `group delay at ${FREQ_HZ} Hz must be positive, got ${single.gd[0]}`);
+    for (let i = 0; i < collapsed.gd.length; i++) {
+      assert.equal(collapsed.gd[i], single.gd[0], `gd[${i}] must be the group delay at ${FREQ_HZ} Hz`);
     }
   });
 });

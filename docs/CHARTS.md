@@ -14,9 +14,9 @@ same driver side but their box side has not been checked against WinISD.
 ## 0. Checklist — WinISD charts to check
 
 Every chart in WinISD's chart menu, per box type OpenISD has. 50 to check: **9 done** (8 exact
-match, 1 close), 41 to do.
+match, 1 within WinISD's own rounding), 41 to do.
 
-Key: ✅ exact match (≤ 1e-12 at all 2086 points) · ≈ within tolerance, residual explained ·
+Key: ✅ exact match (≤ 1e-12 at all 2086 points) · ≈ matches to WinISD's own rounding noise ·
 ☐ to check · ✗ OpenISD has no such chart · — does not apply to that box.
 
 | Chart                                   | Sealed | Vented | Bandpass 4th | Passive radiator |
@@ -163,15 +163,18 @@ not implemented in OpenISD.
 - Source: `sweep.ts` `phase`.
 - Evidence: chart review §3, worst 9.1e-13°.
 
-### 3.4 Group delay — close
+### 3.4 Group delay — match to WinISD's rounding
 
-    τg = −dφ/dω
+    τg = −dφ/dω at f, central difference over f·(1 ± 1e-6)
 
-- Source: `sweep.ts` `groupDelayMs`: difference between grid neighbours, central inside the grid,
-  one-sided at both ends.
-- WinISD takes the derivative at the point.
-- Evidence: chart review §3, worst 0.025 ms at 1 Hz (the one-sided end), ≤ 0.0004 ms inside.
-  Open: [group-delay-grid-difference](../bugs/BUG_20260926_group-delay-grid-difference.md).
+- Source: `sweep.ts` `groupDelayAtMs`, for the system and the EQ/filter chain alike.
+- WinISD (chart 12 of `f_4618f0`): (φ(f−δ) − φ(f+δ))/(2π·2δ), δ = (f + 1e-10) − f. Its 1e-10 Hz
+  step turns each rounding step of the phase into 1.77e-4 ms: the staircase in its curve.
+- Evidence: chart review §3, worst 0.00049 ms, about 3 of WinISD's rounding steps. Copying WinISD's
+  step in double arithmetic agrees worse (0.0018 ms). Before the fix OpenISD differenced grid
+  neighbours: 0.025 ms off at 1 Hz ([bug](../bugs/BUG_20260926_group-delay-grid-difference.md)).
+- ⚠ Unverified: WinISD's group-delay path calls the circuit routine directly, not the wrapper the
+  phase chart uses, so it may exclude the EQ/filter chain. OpenISD includes it.
 
 ### 3.5 Cone excursion — match
 

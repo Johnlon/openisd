@@ -180,6 +180,13 @@ describe('winisdDriverModel — the whole WinISD parameter set, not Mms alone', 
       expect(Math.abs(tf - -0.015566171957418983)).toBeLessThan(1e-4);
     });
 
+    it('group delay at 1 Hz is WinISD\'s 52.29644 ms: the phase slope at the point, not across grid neighbours', () => {
+      // WinISD differentiates at f ± ((f + 1e-10) − f) (chart 12 in f_4618f0); its values carry
+      // ±1.77e-4 ms of phase rounding, so 1e-3 ms is the closest a double-precision derivative gets.
+      const gd = w5(new Engine()).sweep({fmin: 1, fmax: 20000, N: 2085}).values!.gd[0];
+      expect(Math.abs(gd - 52.29644272041911)).toBeLessThan(1e-3);
+    });
+
     it('with voice coil inductance on, the flag selects WinISD\'s inductance model: on − off is −22.266 dB at 20 kHz', () => {
       const engine = new Engine();
       const off = w5(engine).sweep(at(20000)).values!.spl[0];

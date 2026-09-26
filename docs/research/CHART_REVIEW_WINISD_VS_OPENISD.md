@@ -1,6 +1,6 @@
 # Chart review: WinISD vs OpenISD — W5-1138SMF sealed
 
-Last refreshed 2026-09-26 against `0f18d76e`. **Refresh this whenever a calculation changes**:
+Last refreshed 2026-09-26 against the group-delay fix. **Refresh this whenever a calculation changes**:
 the WinISD side is a debugger capture and does not move, so a refresh is the OpenISD side plus
 the compare — §6. The name is stable; do not date it.
 
@@ -40,9 +40,9 @@ Records (format `winisd-run-record/1`, all validated):
 ## 0. Checklist — WinISD charts to check
 
 Every chart in WinISD's chart menu, per box type OpenISD has. 50 to check: **9 done** (8 exact
-match, 1 close), 41 to do.
+match, 1 within WinISD's own rounding), 41 to do.
 
-Key: ✅ exact match (≤ 1e-12 at all 2086 points) · ≈ within tolerance, residual explained ·
+Key: ✅ exact match (≤ 1e-12 at all 2086 points) · ≈ matches to WinISD's own rounding noise ·
 ☐ to check · ✗ OpenISD has no such chart · — does not apply to that box.
 
 | Chart                                   | Sealed | Vented | Bandpass 4th | Passive radiator |
@@ -158,7 +158,7 @@ above.
 |------------------------------------|------|-----------------------------|---------|-----------|---------|--------------------------|
 | Transfer function magnitude        | dB   | 3.34e-14                    | 259.14  | 0.1       | PASS    | 0.2704                   |
 | Transfer function phase            | deg  | 9.095e-13                   | 269.17  | 1.0       | PASS    | 0.5314                   |
-| Group delay                        | ms   | 0.02474                     | 1       | 0.05      | PASS    | 0.1917                   |
+| Group delay                        | ms   | 0.0004881                   | 2.1382  | 0.05      | PASS    | 0.1917                   |
 | Maximum power                      | W    | 8.882e-14                   | 2.7373  | 0.4       | PASS    | 1.31                     |
 | Maximum SPL                        | dB   | 2.842e-14                   | 13.062  | 0.1       | PASS    | 0.1729                   |
 | SPL                                | dB   | 2.842e-14                   | 55.876  | 0.1       | PASS    | 0.2988                   |
@@ -287,46 +287,46 @@ Worst |OpenISD − WinISD| = 9.095e-13 deg at 269.17 Hz; tolerance 1.0 deg.
 
 #### Group delay (ms) — PASS
 
-Worst |OpenISD − WinISD| = 0.02474 ms at 1 Hz; tolerance 0.05 ms.
+Worst |OpenISD − WinISD| = 0.0004881 ms at 2.1382 Hz; tolerance 0.05 ms.
 
 WinISD: 189 extrema/steps each smaller than 0.5 % of the chart's range between 34.1 and 1.981e+04 Hz (a staircase in the curve), not listed row by row.
 
 | f (Hz)   | WinISD       | OpenISD      | OpenISD − WinISD | row           |
 |----------|--------------|--------------|------------------|---------------|
-| 1        | 52.2964      | 52.2717      | -0.0247429       | worst         |
-| 1.2324   | 49.741       | 49.741       | 5.52596e-06      | 1/3 oct       |
-| 1.548    | 45.9774      | 45.9773      | -0.000112492     | 1/3 oct       |
-| 1.9537   | 41.0281      | 41.0278      | -0.00031806      | 1/3 oct       |
-| 2.4657   | 35.1458      | 35.1459      | 4.14087e-05      | 1/3 oct       |
-| 3.0971   | 28.9423      | 28.9419      | -0.000417357     | 1/3 oct       |
-| 3.9087   | 22.7972      | 22.7969      | -0.000228625     | 1/3 oct       |
-| 4.9331   | 17.4164      | 17.4163      | -2.2947e-05      | 1/3 oct       |
-| 6.1963   | 13.1926      | 13.1925      | -5.73646e-05     | 1/3 oct       |
-| 7.8201   | 9.98199      | 9.98188      | -0.00010991      | 1/3 oct       |
-| 9.8226   | 7.77204      | 7.77202      | -2.27565e-05     | 1/3 oct       |
-| 12.397   | 6.25986      | 6.26006      | 0.000200295      | 1/3 oct       |
-| 15.645   | 5.29916      | 5.2992       | 4.55472e-05      | 1/3 oct       |
-| 19.652   | 4.73982      | 4.73982      | -1.12202e-06     | 1/3 oct       |
-| 24.802   | 4.44685      | 4.44683      | -1.84876e-05     | 1/3 oct       |
-| 31.301   | 4.34683      | 4.34688      | 4.15858e-05      | 1/3 oct       |
-| 39.317   | 4.33361      | 4.3336       | -8.11943e-06     | 1/3 oct       |
-| 49.62    | 4.21889      | 4.21881      | -7.4662e-05      | 1/3 oct       |
-| 62.623   | 3.74179      | 3.74164      | -0.000145516     | 1/3 oct       |
-| 78.66    | 2.87495      | 2.87481      | -0.000136107     | 1/3 oct       |
-| 99.273   | 1.91254      | 1.91267      | 0.000130745      | 1/3 oct       |
-| 125.29   | 1.17714      | 1.17704      | -0.00010036      | 1/3 oct       |
-| 157.37   | 0.714565     | 0.714528     | -3.70577e-05     | 1/3 oct       |
-| 198.61   | 0.429958     | 0.429999     | 4.08099e-05      | 1/3 oct       |
-| 249.47   | 0.264019     | 0.263885     | -0.000134335     | 1/3 oct       |
-| 314.85   | 0.161698     | 0.161849     | 0.000150338      | 1/3 oct       |
-| 397.36   | 0.100023     | 0.100029     | 5.79021e-06      | 1/3 oct       |
-| 499.11   | 0.0627354    | 0.0627625    | 2.71229e-05      | 1/3 oct       |
-| 629.91   | 0.0392094    | 0.0391417    | -6.76861e-05     | 1/3 oct       |
-| 794.98   | 0.02455      | 0.0244698    | -8.02245e-05     | 1/3 oct       |
-| 998.56   | 0.0155425    | 0.0154683    | -7.41446e-05     | 1/3 oct       |
+| 1.2324   | 49.741       | 49.7412      | 0.000186234      | 1/3 oct       |
+| 1.548    | 45.9774      | 45.9775      | 0.000108738      | 1/3 oct       |
+| 1.9537   | 41.0281      | 41.028       | -7.46449e-05     | 1/3 oct       |
+| 2.1382   | 38.8381      | 38.8376      | -0.000488068     | worst         |
+| 2.4657   | 35.1458      | 35.1461      | 0.000274475      | 1/3 oct       |
+| 3.0971   | 28.9423      | 28.9421      | -0.00022554      | 1/3 oct       |
+| 3.9087   | 22.7972      | 22.7971      | -9.46299e-05     | 1/3 oct       |
+| 4.9331   | 17.4164      | 17.4164      | 5.757e-05        | 1/3 oct       |
+| 6.1963   | 13.1926      | 13.1926      | -1.44106e-05     | 1/3 oct       |
+| 7.8201   | 9.98199      | 9.9819       | -9.00123e-05     | 1/3 oct       |
+| 9.8226   | 7.77204      | 7.77202      | -1.50829e-05     | 1/3 oct       |
+| 12.397   | 6.25986      | 6.26006      | 0.000201285      | 1/3 oct       |
+| 15.645   | 5.29916      | 5.2992       | 4.25176e-05      | 1/3 oct       |
+| 19.652   | 4.73982      | 4.73981      | -7.00331e-06     | 1/3 oct       |
+| 24.802   | 4.44685      | 4.44682      | -2.60785e-05     | 1/3 oct       |
+| 31.301   | 4.34683      | 4.34687      | 3.61882e-05      | 1/3 oct       |
+| 39.317   | 4.33361      | 4.3336       | -1.09219e-06     | 1/3 oct       |
+| 49.62    | 4.21889      | 4.21885      | -4.0043e-05      | 1/3 oct       |
+| 62.623   | 3.74179      | 3.7417       | -9.09786e-05     | 1/3 oct       |
+| 78.66    | 2.87495      | 2.87485      | -9.88929e-05     | 1/3 oct       |
+| 99.273   | 1.91254      | 1.91268      | 0.000141384      | 1/3 oct       |
+| 125.29   | 1.17714      | 1.17704      | -0.000100198     | 1/3 oct       |
+| 157.37   | 0.714565     | 0.714527     | -3.83655e-05     | 1/3 oct       |
+| 198.61   | 0.429958     | 0.429998     | 3.99379e-05      | 1/3 oct       |
+| 249.47   | 0.264019     | 0.263884     | -0.000134768     | 1/3 oct       |
+| 314.85   | 0.161698     | 0.161848     | 0.000150147      | 1/3 oct       |
+| 397.36   | 0.100023     | 0.100029     | 5.71076e-06      | 1/3 oct       |
+| 499.11   | 0.0627354    | 0.0627625    | 2.70899e-05      | 1/3 oct       |
+| 629.91   | 0.0392094    | 0.0391417    | -6.76994e-05     | 1/3 oct       |
+| 794.98   | 0.02455      | 0.0244698    | -8.02298e-05     | 1/3 oct       |
+| 998.56   | 0.0155425    | 0.0154683    | -7.41467e-05     | 1/3 oct       |
 | 1260.2   | 0.00989067   | 0.00969475   | -0.000195917     | 1/3 oct       |
-| 1590.5   | 0.00600505   | 0.00608004   | 7.49917e-05      | 1/3 oct       |
-| 1997.8   | 0.00388562   | 0.00385107   | -3.45492e-05     | 1/3 oct       |
+| 1590.5   | 0.00600505   | 0.00608004   | 7.49913e-05      | 1/3 oct       |
+| 1997.8   | 0.00388562   | 0.00385107   | -3.45494e-05     | 1/3 oct       |
 | 2521.3   | 0.00229605   | 0.00241676   | 0.000120717      | 1/3 oct       |
 | 3182.1   | 0.00176619   | 0.0015169    | -0.00024929      | 1/3 oct       |
 | 3996.9   | 0.00105971   | 0.000961282  | -9.84318e-05     | 1/3 oct       |
@@ -679,7 +679,7 @@ has SPL, impedance and TF magnitude, with OpenISD on `winisdGyrator`. All three 
 
 ---
 
-## 4. Causes, all fixed on 2026-09-26 except group delay
+## 4. Causes, all fixed on 2026-09-26
 
 Each gap in the earlier refresh was one of these, found by solving WinISD's own complex output
 for its circuit (`toys/w5_fresh_model_check.py`):
@@ -691,13 +691,16 @@ for its circuit (`toys/w5_fresh_model_check.py`):
 | Impedance peak                        | motional term from the entered BL               | Qes-derived BL                  | [winisd-impedance-uses-entered-bl](http://localhost:8000/winisd/openisd/bugs/BUG_20260926_winisd-impedance-uses-entered-bl.md?html) |
 | TF magnitude, flat 0.507 dB           | 0 dB = ρ·Pg/(2π·Mas), entered BL, Re + Rg       | η₀ from Qes, Re                 | [winisd-tf-reference](http://localhost:8000/winisd/openisd/bugs/BUG_20260926_winisd-tf-reference.md?html) |
 | Max power +2.94 %, max SPL −0.126 dB  | power into Re + Rg                              | power into Re                   | [max-power-ignores-rg](http://localhost:8000/winisd/openisd/bugs/BUG_20260926_max-power-ignores-rg.md?html) |
-| Group delay 0.025 ms at 1 Hz          | derivative at the point                         | grid difference, one-sided at the ends | [group-delay-grid-difference](http://localhost:8000/winisd/openisd/bugs/BUG_20260926_group-delay-grid-difference.md?html) (open) |
+| Group delay 0.025 ms at 1 Hz          | slope at the point, f ± ((f + 1e-10) − f)       | grid difference, one-sided at the ends | [group-delay-grid-difference](http://localhost:8000/winisd/openisd/bugs/BUG_20260926_group-delay-grid-difference.md?html) |
 
 WinISD's box, exactly: Zbox = Ral ∥ (Raa + 1/(jωCab)), Ral = Ql/(ωsc·Cab), Raa = ωsc·Mas/Qa,
 ωsc = 1/√(Mas·Cat); the radiated volume velocity is the cone's minus the leak's.
 
-WinISD's group-delay curve is a staircase above 34 Hz (steps of 1.77e-4 ms): its own numeric
-resolution.
+WinISD's group delay (chart 12 of `f_4618f0`, decompiled): gd = (φ(f−δ) − φ(f+δ))/(2π·2δ),
+δ = (f + 1e-10) − f. One rounding step of a double phase, 2.2e-16 rad, over 4π·1e-10 is 1.77e-4 ms:
+the staircase in its curve. OpenISD takes the slope at f·(1 ± 1e-6), which agrees with WinISD to
+0.0005 ms, about 3 of those steps. Copying WinISD's 1e-10 step in double arithmetic agrees worse
+(0.0018 ms, 207/2086 points bit-exact): the rounding noise cannot be reproduced.
 
 ---
 

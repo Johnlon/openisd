@@ -15,7 +15,8 @@
 import {FLAT_MAX_BOOST_DB, P0} from './constants.js';
 import type {EnvironmentIssue} from './air.js';
 import {solveEnvironment} from './air.js';
-import {cAbs, cArg, cMul, cScale, cx} from './complex.js';
+import type {Complex} from './types.js';
+import {cAbs, cArg, cDiv, cMul, cScale, cx} from './complex.js';
 import type {CircuitQuantities} from './circuit.js';
 import {hfAsymptotePressure_Pa, solve} from './circuit.js';
 import type {DriverIssue, DriverPrerequisite, DriverQuantityName, PrIssue, VentIssue} from './solver.js';
@@ -111,26 +112,30 @@ export function unwrap(p: number[]): number[] {
   return o;
 }
 
+/** Relative frequency step of `groupDelayAtMs`: small enough that the central difference's
+ *  truncation error is far below WinISD's own phase rounding (±1.77e-4 ms), large enough that
+ *  double rounding in the phase stays below it too. */
+const GROUP_DELAY_STEP = 1e-6;
+
 /**
- * Group delay in ms from an UNWRAPPED phase array (radians) on grid `fs` (Hz).
- *
- * τg = −dφ/dω, by central difference on the log-spaced grid.
+ * Group delay in ms of the response `h` at `f` (Hz): τg = −dφ/dω, as the phase slope AT `f`,
+ * by central difference over f·(1 ± GROUP_DELAY_STEP). WinISD takes the slope at the point too
+ * (f ± 1e-10 Hz, chart 12 of `f_4618f0`), not across chart-grid neighbours
+ * (BUG_20260926_group-delay-grid-difference).
  *   https://en.wikipedia.org/wiki/Group_delay_and_phase_delay
  *
  * ONE definition, shared by the system group delay (`gd`) and the filter-chain group
  * delay (`fltGd`) — the two charts must not be able to disagree about what τg means.
  */
-export function groupDelayMs(fs: number[], phaseUnwrapped: number[]): number[] {
-  const gd: number[] = [];
-  for (let i = 0; i < fs.length; i++) {
-    const a = Math.max(0, i - 1), b = Math.min(fs.length - 1, i + 1);
-    const dw = 2 * Math.PI * (fs[b] - fs[a]);
-    const tau = dw !== 0 ? -(phaseUnwrapped[b] - phaseUnwrapped[a]) / dw * 1000 : 0;
-    // A flat phase gives `-(0)`, which is NEGATIVE zero. There is no such delay, and
-    // `Object.is` — hence `assert.strict.equal` and any `1 / τ` — treats it as its own value.
-    gd.push(tau === 0 ? 0 : tau);
-  }
-  return gd;
+export function groupDelayAtMs(h: (f: number) => Complex, f: number): number {
+  const above = h(f * (1 + GROUP_DELAY_STEP)), below = h(f * (1 - GROUP_DELAY_STEP));
+  // No signal, no phase: a silent response (eg = 0) has no delay, as its phase reads 0.
+  if (cAbs(above) === 0 || cAbs(below) === 0) return 0;
+  const dphi = cArg(cDiv(above, below));
+  const tau = -dphi / (2 * Math.PI * 2 * f * GROUP_DELAY_STEP) * 1000;
+  // A flat phase gives `-(0)`, which is NEGATIVE zero. There is no such delay, and
+  // `Object.is` — hence `assert.strict.equal` and any `1 / τ` — treats it as its own value.
+  return tau === 0 ? 0 : tau;
 }
 
 /**
@@ -290,9 +295,13 @@ export function sweep(drv: DriverSolverParams, Le_H: number | undefined, box: Bo
     zph.push(cArg(s.Zel) * 180 / Math.PI);
   }
   const ph = unwrap(phase);
-  const gd = groupDelayMs(fs, ph);
   const fltPhase = unwrap(fltPhaseWrapped);
-  const fltGd = groupDelayMs(fs, fltPhase);
+  // Radiated pressure up to a real scale factor, which the phase slope does not see.
+  const pressure = (f: number): Complex =>
+    cMul(cMul(cx(0, 2 * Math.PI * f), solve(f, cq, box, P).U0), applyFilters(f, P.filters));
+  const filterChain = (f: number): Complex => applyFilters(f, P.filters);
+  const gd = fs.map(f => groupDelayAtMs(pressure, f));
+  const fltGd = fs.map(f => groupDelayAtMs(filterChain, f));
 
   // Force flat response (WinISD Advanced) — the inverse filter that lifts every point to the
   // passband reference, applied as a REAL line-level gain: SPL flattens and the excursion /
