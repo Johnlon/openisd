@@ -636,7 +636,7 @@ WinISD Lossy (default): reports the lossy 3rd-order model's pole, so Fsc rises a
                 </label>
               </div>
               <div style="margin-bottom: 8px;">
-                <label data-field-key="winisdVaModel" style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 13px;" :title="`WinISD VA Model\nTicked (WinISD, the default): the amplifier apparent load power chart is P·Re/|Z + Rg|, as WinISD computes it. We judge this a WinISD bug: it reads Re/(Re + Rg) of the real value, and with Rg is at driver side on, Z already holds Rg, so it counts Rg twice.\nUnticked (conventional): P·(Re + Rg)/|Z_amp|, Rg counted once: the apparent power the amplifier delivers.\nThe two differ only when Rg is not 0.`">
+                <label data-field-key="winisdVaModel" style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 13px;" :title="`WinISD VA model: affects the Amplifier apparent load power (VA) chart only.\nTicked (default, as WinISD): VA = P·Re/|Z + Rg|. A WinISD bug: it uses Re where the amplifier sees Re + Rg, so it reads low by Re/(Re + Rg). With 'Rg is at driver side' on, Z already includes Rg and WinISD adds it again.\nUnticked (corrected): VA = P·(Re + Rg)/|Z seen by the amplifier|, Rg counted once.\nBoth give the same result when Rg is 0.\nP: input power. Z: the impedance chart. Rg: the series resistance.`">
                   <input type="checkbox" :checked="project.winisdVaModel.value" @change="e => project.winisdVaModel.set(inputChecked(e))"> WinISD VA model
                 </label>
               </div>
