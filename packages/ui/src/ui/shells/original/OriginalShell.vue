@@ -604,9 +604,9 @@ const {
               <div class="field-row"><div class="field"><label>Air density</label><input class="calculated greyed" :value="advAir.rho.toFixed(fieldDp('advAirDensity'))" readonly><span class="unit">kg/m³</span></div></div>
               <button class="reset-air-btn" @click="resetAirToAppDefaults">Reset to app levels</button>
             </div>
-            <div class="checkbox-col" style="display: flex; flex-direction: row; gap: 20px; align-items: flex-start;">
+            <div class="checkbox-col">
               <AdvancedOptions />
-              <div class="sim-options-box" style="margin-top: 0;">
+              <div class="sim-options-box">
                 <div class="sim-options-header">OpenISD Simulation & Alignment</div>
                 <div class="field-row" style="flex-wrap: nowrap; margin-bottom: 6px;">
                   <div class="field" style="gap:8px;" title="Sealed resonance (Fsc) and system Q (Qtc) loss model.">
@@ -1112,7 +1112,7 @@ textarea.comment, textarea.description { width:100%; border:1px solid #999; bord
 .checkbox-col label input[type=checkbox] { flex:none; }
 
 .adv-two-col { gap: 10px; }
-.adv-two-col .checkbox-col { margin-left: 0; width: auto; max-width: 100%; flex: 1 1 auto; }
+.adv-two-col .checkbox-col { margin-left: 0; width: 280px; flex: none; }
 .adv-two-col .side-hint { width: 190px; }
 
 /* filters tab fills the panel */
