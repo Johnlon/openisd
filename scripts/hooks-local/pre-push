@@ -35,6 +35,10 @@ if [ "$attribution_failed" = "1" ]; then
   exit 1
 fi
 
+. "$(git rev-parse --show-toplevel)/scripts/hooks-local/heavy-gate-concurrency.sh"
+reserve_heavy_gate_slot
+trap release_heavy_gate_slot EXIT
+
 # Exception: if every commit being pushed touches ONLY *.md files, skip the full
 # CI run (the unit/browser suites add no signal for doc-only changes, and the
 # browser suite is the slow part) — but lint + typecheck are whole-project checks,

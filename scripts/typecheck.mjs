@@ -8,6 +8,11 @@
  * their sum (~40 s); the box has the cores to run them together, so the gate costs the longest
  * one. Output is buffered per package and printed in order, so a failure reads the same as
  * before. Exit status is non-zero if any fails.
+ *
+ * OPENISD_TYPECHECK_CONCURRENCY caps how many of the three run at once (default: all of them).
+ * scripts/hooks-local/heavy-gate-concurrency.sh sets it down from 3 when several sessions are
+ * running the gate at the same time, so N sessions' tsc/vue-tsc trees fair-share the box's cores
+ * instead of each assuming they own every core.
  */
 import {spawn} from 'node:child_process';
 import {join} from 'node:path';
@@ -42,7 +47,23 @@ function run(check) {
   });
 }
 
-const results = await Promise.all(CHECKS.map(run));
+/** Runs `checks` with at most `limit` in flight at once, preserving each check's own result. */
+async function runWithConcurrency(checks, limit) {
+  const results = new Array(checks.length);
+  let next = 0;
+  async function worker() {
+    for (;;) {
+      const i = next++;
+      if (i >= checks.length) return;
+      results[i] = await run(checks[i]);
+    }
+  }
+  await Promise.all(Array.from({ length: Math.min(limit, checks.length) }, worker));
+  return results;
+}
+
+const concurrency = Number(process.env.OPENISD_TYPECHECK_CONCURRENCY) || CHECKS.length;
+const results = await runWithConcurrency(CHECKS, concurrency);
 let failed = 0;
 for (const r of results) {
   const verdict = r.status === 0 ? 'ok' : 'FAILED';

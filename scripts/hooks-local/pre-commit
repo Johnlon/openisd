@@ -14,6 +14,9 @@
 # along commit-to-commit. Any commit that touches even one non-.md file runs the
 # full gate as normal.
 set -e
+. "$(git rev-parse --show-toplevel)/scripts/hooks-local/heavy-gate-concurrency.sh"
+reserve_heavy_gate_slot
+trap release_heavy_gate_slot EXIT
 changed=$(git diff --cached --name-only --diff-filter=ACMR)
 if [ -n "$changed" ] && ! printf '%s\n' "$changed" | grep -qv '\.md$'; then
   echo "[pre-commit] doc-only commit (*.md) — skipping unit; typecheck + lint still run to block a red branch…"
@@ -30,5 +33,5 @@ npm run typecheck
 # ci/health-check and A10's byte-identical allow-list check, not per commit. Every
 # behavioural test still blocks. See the checklistDescribe guards in
 # packages/ui/test/ui/architecture.test.ts and architecture-no-reexports.test.ts.
-PRECOMMIT=1 npx vitest run packages/design packages/persistence packages/ui
+PRECOMMIT=1 npx vitest run packages/design packages/persistence packages/ui --maxWorkers="$OPENISD_HEAVY_GATE_WORKERS"
 echo "[pre-commit] all green ✓ (checklist gates deferred to ci/A10)"
