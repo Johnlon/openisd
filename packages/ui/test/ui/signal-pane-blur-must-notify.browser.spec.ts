@@ -46,7 +46,7 @@ async function driveGroup(page: Page) {
   return page.evaluate(async (modPath) => {
     const s = await import(/* @vite-ignore */ modPath);
     const p = s.requireFocusedProject();
-    return { P: p.powerDrive_W.value, V: p.driveVoltage_V.value, Re: p.driver.specs.Re_ohm.value };
+    return { P: p.powerDrive_W.value, V: p.driveVoltage_V.value, Re: p.driver.specs.Re_ohm.value, Rs: p.Rs_ohm.value };
   }, APP_STATE);
 }
 
@@ -71,11 +71,11 @@ test('entering P on a new w5-1138smf project then blurring does not blank the P 
   expect(live.P, 'the entered P must be the committed power').toBe(10);
   expect(live.Re, 'the creed driver must carry a Re').toBeGreaterThan(0);
   const renderedV = Number(await vol.inputValue());
-  expect(renderedV, 'the shown V must be √(P·Re)').toBeCloseTo(Math.sqrt(10 * live.Re!), 1);
+  expect(renderedV, 'the shown V must be √(P·(Re+Rs))').toBeCloseTo(Math.sqrt(10 * (live.Re! + (live.Rs ?? 0))), 1);
   expect(Number(await pow.inputValue()), 'the shown P must equal the entered P').toBeCloseTo(10, 1);
 });
 
-test('entering V on a new w5-1138smf project then blurring derives a consistent P (V²/Re) and keeps it', async ({ page }) => {
+test('entering V on a new w5-1138smf project then blurring derives a consistent P (V²/(Re+Rs)) and keeps it', async ({ page }) => {
   await page.goto('/');
   await buildNewProject(page);
   await page.locator(SIGNAL_TAB, { hasText: 'Signal' }).click();
@@ -84,15 +84,16 @@ test('entering V on a new w5-1138smf project then blurring derives a consistent 
 
   await fillAndBlur(vol, '4');
 
-  // The derived P must be present — never blank — and equal V²/Re at the pane's precision.
+  // The derived P must be present — never blank — and equal V²/(Re+Rs) at the pane's precision.
   const renderedP = Number(await pow.inputValue());
+  const g = await driveGroup(page);
   expect(renderedP, 'P must be derived, not blank').toBeGreaterThan(0);
-  expect(renderedP, 'B1 P must equal V²/Re').toBeCloseTo((4 * 4) / (await driveGroup(page)).Re!, 1);
+  expect(renderedP, 'B1 P must equal V²/(Re+Rs)').toBeCloseTo((4 * 4) / (g.Re! + (g.Rs ?? 0)), 1);
   expect(Number(await vol.inputValue()), 'the entered V must hold').toBeCloseTo(4, 1);
 
   // And the committed power in the domain is the same law.
   const live = await driveGroup(page);
-  expect(live.P, 'the committed power must be V²/Re').toBeCloseTo((4 * 4) / live.Re!, 8);
+  expect(live.P, 'the committed power must be V²/(Re+Rs)').toBeCloseTo((4 * 4) / (live.Re! + (live.Rs ?? 0)), 8);
 });
 
 test('clearing V then blurring returns the pair to the 1 W reference — neither end is left blank', async ({ page }) => {
@@ -110,11 +111,11 @@ test('clearing V then blurring returns the pair to the 1 W reference — neither
   await fillAndBlur(vol, '');
 
   // Clearing V empties the PAIR, and the resolve refills it from the 1 W reference: P is 1 W
-  // entered, V is √Re calculated. The same rule the hook layer pins in
+  // entered, V is √(Re+Rs) calculated. The same rule the hook layer pins in
   // `OriginalShell-hooks.test.ts` ("commit blank V | post: P 1 E, V √6 C").
   const live = await driveGroup(page);
   expect(live.P, 'clearing V returns the power to the 1 W reference').toBeCloseTo(1, 6);
-  expect(Number(await vol.inputValue()), 'V is √Re, never blank').toBeCloseTo(Math.sqrt(live.Re!), 1);
+  expect(Number(await vol.inputValue()), 'V is √(Re+Rs), never blank').toBeCloseTo(Math.sqrt(live.Re! + (live.Rs ?? 0)), 1);
   expect(Number(await pow.inputValue()), 'P shows the 1 W reference').toBeCloseTo(1, 1);
 });
 
@@ -132,10 +133,10 @@ test('clearing P then blurring keeps the voltage, which becomes the entered end 
   await fillAndBlur(pow, '');
 
   // With Re known the voltage keeps the value it reads and becomes the ENTERED end, so the
-  // power re-derives from it as V²/Re — the same number, now calculated rather than entered.
+  // power re-derives from it as V²/(Re+Rs) — the same number, now calculated rather than entered.
   // Neither end of the pair is ever blank (`OpenISDProject#powerDriveOver`'s `clear`).
   const live = await driveGroup(page);
-  expect(live.V, 'clearing P keeps the voltage').toBeCloseTo(Math.sqrt(10 * live.Re!), 6);
+  expect(live.V, 'clearing P keeps the voltage').toBeCloseTo(Math.sqrt(10 * (live.Re! + (live.Rs ?? 0))), 6);
   expect(live.P, 'the power re-derives from the kept voltage').toBeCloseTo(10, 6);
   expect(Number(await vol.inputValue()), 'V is shown').toBeGreaterThan(0);
   expect(Number(await pow.inputValue()), 'P is shown').toBeCloseTo(10, 1);

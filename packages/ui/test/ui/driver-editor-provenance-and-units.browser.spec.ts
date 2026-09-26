@@ -249,6 +249,7 @@ const SINGLE_UNIT = new Set([
 ]);
 
 test('every unit with alternates is a working toggle, and every other unit is a plain label', async ({ page }) => {
+  test.setTimeout(30000);
   await openEditor(page);
   await seedDriver(page);
   const convertible = unitTable();

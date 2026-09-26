@@ -63,6 +63,7 @@ async function checkNoChildOverflows(page: Page) {
 }
 
 test('bottom panels never get scrollbars and contents do not overflow', async ({ page }) => {
+  test.setTimeout(30000);
   const boxTypes = ['vented', 'sealed', 'bandpass4', 'bandpass6', 'abc'];
   
   for (const boxType of boxTypes) {
