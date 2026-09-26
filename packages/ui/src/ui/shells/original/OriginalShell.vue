@@ -635,7 +635,7 @@ const {
                 </label>
               </div>
               <div>
-                <button class="action-btn apply-winisd-btn" title="Align simulation toggles and clear entered Mms to match WinISD calculations" @click="applyWinisdSettings">Apply WinISD Settings</button>
+                <button class="action-btn apply-winisd-btn" title="Align simulation toggles and clear entered Mms to match WinISD calculations" @click="applyWinisdSettings">Reset to WinISD</button>
               </div>
             </div>
           </div>
