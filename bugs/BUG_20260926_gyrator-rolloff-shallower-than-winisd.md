@@ -57,6 +57,12 @@ WinISD captures (`winisd_research/runs/vcind_bl/`), 20 kHz on−off:
 The WinISD model above has no free parameters. It reproduces all three BL values from 200 Hz to
 20 kHz within ≤0.067 dB, which is about 1.5 trace pixels.
 
+That ≤0.067 dB is a trace error, not a model difference:
+- WinISD's own transfer coefficients, read from live memory, give the model's numbers to 4 decimals.
+- The residual follows the slope of the curve, and it drops to ≤0.024 dB when the chart's x-axis is
+  zoomed to 1–20 kHz.
+- See `winisd_research/GHIDRA_FINDINGS.md` §"Live values and the leftover offset".
+
 ## WinISD vs conventional
 
 | Model                  | Damping resistance Rae                     | Le's acoustic element CLe      | Roll-off corner          |

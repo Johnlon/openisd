@@ -34,6 +34,7 @@ const {
   boxLabel, pending, chartTab, overlays, chartUnavailable, activeTab,
   showEnclosureTab, enclosureNavLabel,
   selectedBox, BOX_TYPE_OPTIONS, LOSS_MODE_OPTIONS, lossMode, ARRAY_WIRING_OPTIONS, N_DRIVERS_OPTIONS, applyWinisdSettings,
+  inductanceOn, winisdInductance, fieldHelp,
   boxVolume_m3, boxVolumeDqNote, setBoxVolume_m3, fieldDp, sealedAlignmentEditor, sealedAlignmentOpen,
   sealedAlignmentOptions, sealedAlignmentSelected, sealedAlignmentVolume_L, sealedAlignmentEbp,
   sealedAlignmentSuitability, sealedAlignmentSuitabilityLabel, ogFilters,
@@ -629,6 +630,11 @@ WinISD Lossy (default): reports the lossy 3rd-order model's pole, so Fsc rises a
               <div style="margin-bottom: 8px;">
                 <label data-field-key="useWinisdAirModel" style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 13px;" :title="`WinISD Air Model Parity Toggle:\n• Checked: Uses WinISD 0.7 legacy air formulas (c = 343.20 m/s, ρ = 1.1960 kg/m³ at 20°C).\n• Unchecked: Uses modern CIPM-2007 thermodynamic real-gas equations (temperature, humidity, pressure).`">
                   <input type="checkbox" :checked="project.envUseWinisdAirModel.value" @change="e => project.envUseWinisdAirModel.set(inputChecked(e))"> Use WinISD air model
+                </label>
+              </div>
+              <div style="margin-bottom: 8px;">
+                <label data-field-key="winisdInductance" style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 13px;" :class="{ 'na': !inductanceOn }" :title="fieldHelp('winisdInductance')">
+                  <input type="checkbox" v-model="winisdInductance" :disabled="!inductanceOn"> WinISD-compatible inductance
                 </label>
               </div>
               <div>

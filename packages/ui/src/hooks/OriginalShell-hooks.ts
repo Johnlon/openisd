@@ -10,6 +10,7 @@
  * `createSealedReadouts` is the unit-testable core of the Box-tab readouts: JIT-composed here
  * with the shell's own `project` / `selectedBox` / `projectChanged`.
  */
+import {fieldHelp} from '../logic/fields/uiFields.js';
 import type {ComputedRef, Ref} from 'vue';
 import {computed, onMounted, onUnmounted, reactive, ref, shallowRef, watch} from 'vue';
 import {
@@ -1055,6 +1056,14 @@ const overlays = computed<Design[]>(() => {
     project.value.applyWinisdSettings();
   };
 
+  /** Le is in the acoustic circuit — any model but 'winisd'. */
+  const inductanceOn = computed(() => { void projectChanged.value; return project.value.circuitModel.value !== 'winisd'; });
+  /** WinISD-compatible inductance: 'winisdGyrator' when on, textbook 'gyrator' when off. */
+  const winisdInductance = computed<boolean>({
+    get: () => { void projectChanged.value; return project.value.circuitModel.value === 'winisdGyrator'; },
+    set: (on) => { project.value.circuitModel.set(on ? 'winisdGyrator' : 'gyrator'); },
+  });
+
   return {
     version, toggleDropdown, openDd, openClick, closeDropdown, presentationState, isModified,
     openDialogOpen, storedProjects, openFromDisk, openStoredProject,
@@ -1070,6 +1079,7 @@ const overlays = computed<Design[]>(() => {
     boxLabel, pending, chartTab, overlays, chartUnavailable, activeTab,
     showEnclosureTab, enclosureNavLabel,
     selectedBox, BOX_TYPE_OPTIONS, LOSS_MODE_OPTIONS, lossMode, ARRAY_WIRING_OPTIONS, N_DRIVERS_OPTIONS, applyWinisdSettings,
+    inductanceOn, winisdInductance, fieldHelp,
      boxVolume_m3, boxVolumeDqNote, setBoxVolume_m3, fieldDp, sealedAlignmentEditor, sealedAlignmentOpen,
      sealedAlignmentOptions, sealedAlignmentSelected, sealedAlignmentVolume_L, sealedAlignmentEbp,
      sealedAlignmentSuitability, sealedAlignmentSuitabilityLabel, ogFilters,

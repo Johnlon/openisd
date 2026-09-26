@@ -30,3 +30,8 @@ test('checking WinISD-compatible inductance keeps voice coil inductance on', asy
   await expect(winisdCompatible(page)).not.toBeChecked();
   await expect(winisdCompatible(page)).toBeDisabled();
 });
+
+test('WinISD-compatible inductance sits in the WinISD Compatibility panel', async ({ page }) => {
+  const panel = page.locator('.sim-options-box', { hasText: 'WinISD Compatibility' });
+  await expect(panel.locator('[data-field-key="winisdInductance"] input')).toBeVisible();
+});

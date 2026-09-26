@@ -43,29 +43,6 @@ describe('AdvancedOptions-hooks', () => {
     expect(bp4Api.hasVent.value).toBe(true);
   });
 
-  it('winisdInductance switches the project between the textbook and WinISD-compatible inductance models', async () => {
-    const project = createProject();
-    project.circuitModel.set('gyrator');
-    const api = await renderHook(project);
-    expect(api.winisdInductance.value).toBe(false);
-
-    api.winisdInductance.value = true;
-    expect(project.circuitModel.value).toBe('winisdGyrator');
-
-    api.winisdInductance.value = false;
-    expect(project.circuitModel.value).toBe('gyrator');
-  });
-
-  it('inductanceOn is false only for the Le-excluded model, so the WinISD-compatible option can be disabled', async () => {
-    const off = createProject();
-    off.circuitModel.set('winisd');
-    expect((await renderHook(off)).inductanceOn.value).toBe(false);
-
-    const compat = createProject();
-    compat.circuitModel.set('winisdGyrator');
-    expect((await renderHook(compat)).inductanceOn.value).toBe(true);
-  });
-
   it('exposes inputChecked and fieldHelp helpers', async () => {
     const api = await renderHook();
     expect(typeof api.fieldHelp).toBe('function');
