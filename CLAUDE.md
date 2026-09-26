@@ -35,12 +35,17 @@ protection applies to them as to your own.
 ## WinISD controls behave as native WinISD
 
 Goal: by default OpenISD behaves 100% like WinISD, warts and calculation bugs included (not
-crashes, hangs or data loss). Stretch goal:
-other conventions, behind switches (below). Every control
-OpenISD shares with WinISD behaves exactly as WinISD does, on its own and by default (e.g. "Rg
-is at driver side"). Conventional behaviour is extra, for interest and education, and sits only
-behind a separate WinISD-vs-conventional switch: its own compat checkbox, or an n-way drop-down
-like the loss model. Never bake a conventional variant into the shared control itself.
+crashes, hangs or data loss). Stretch goal: other conventions, for interest and education.
+
+- Every control OpenISD shares with WinISD behaves exactly as WinISD does, by default (e.g. "Rg
+  is at driver side").
+- A conventional variant sits behind a WinISD-vs-conventional choice, in one of two forms:
+  - its own compat checkbox or drop-down (e.g. the loss model);
+  - or the native control becomes a drop-down that splits its "on" state: "Rg is at driver side:
+    off / on – WinISD / on – Conventional". Its default is WinISD's default.
+- "Reset to WinISD" changes only the WinISD-vs-conventional choice. It never changes whether a
+  native control is on or off, and never changes project data.
+
 (John, 2026-09-26.)
 
 ## Communication — plain bug statements

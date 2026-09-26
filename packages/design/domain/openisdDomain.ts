@@ -2307,16 +2307,13 @@ export class OpenISDProject {
         };
     }
 
-    /** Resets all simulation switches and driver derivation rules to WinISD 0.7 defaults. */
+    /** Sets every WinISD-vs-conventional compat switch to WinISD. Native WinISD controls (voice
+     *  coil inductance on/off, "Rg is at driver side") and project data keep their values. */
     applyWinisdSettings(): void {
-        this.circuitModel.set('winisd');
+        if (this.circuitModel.value !== 'winisd') this.circuitModel.set('winisdGyrator');
         this.lossMode.set(LossMode.parse('winisd-lossy'));
-        this.rgAtDriverSide.set(true);
         this.envUseWinisdAirModel.set(true);
         this.useWinisdDriverModel.set(true);
-        if (this.driver.specs.Mms_kg.entered) {
-            this.driver.specs.Mms_kg.clear();
-        }
     }
 
     /** Which charts are open (S10/QO130) — PROJECT-scoped, reversing QO90 for this field.

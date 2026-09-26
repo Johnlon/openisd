@@ -2913,20 +2913,42 @@ describe('project-level array/display settings, chart Y-range, and identity', ()
     expect(back.circuitModel.value).toBe('winisdGyrator');
   });
 
-  it('applyWinisdSettings resets toggles and clears entered Mms for WinISD parity', () => {
+  it('applyWinisdSettings sets the compat switches to WinISD', () => {
     const p = sealedProject();
-    p.circuitModel.set('gyrator');
-    p.rgAtDriverSide.set(false);
-    p.driver.specs.Mms_kg.set(0.04);
-    expect(p.driver.specs.Mms_kg.entered).toBe(true);
+    p.lossMode.set(LossMode.parse('conventional-lossy'));
+    p.envUseWinisdAirModel.set(false);
+    p.useWinisdDriverModel.set(false);
 
     p.applyWinisdSettings();
 
-    expect(p.circuitModel.value).toBe('winisd');
     expect(p.lossMode.value.value).toBe('winisd-lossy');
-    expect(p.rgAtDriverSide.value).toBe(true);
     expect(p.envUseWinisdAirModel.value).toBe(true);
-    expect(p.driver.specs.Mms_kg.entered).toBe(false);
+    expect(p.useWinisdDriverModel.value).toBe(true);
+  });
+
+  it('applyWinisdSettings leaves native WinISD controls and project data as they were (John, 2026-09-26)', () => {
+    for (const rgAtDriverSide of [true, false]) {
+      const p = sealedProject();
+      p.rgAtDriverSide.set(rgAtDriverSide);
+      p.driver.specs.Mms_kg.set(0.04);
+
+      p.applyWinisdSettings();
+
+      expect(p.rgAtDriverSide.value).toBe(rgAtDriverSide);
+      expect(p.driver.specs.Mms_kg.entered).toBe(true);
+    }
+  });
+
+  it('applyWinisdSettings keeps voice coil inductance on or off, and on selects WinISD\'s inductance model', () => {
+    const off = sealedProject();
+    off.circuitModel.set('winisd');
+    off.applyWinisdSettings();
+    expect(off.circuitModel.value).toBe('winisd');
+
+    const on = sealedProject();
+    on.circuitModel.set('gyrator');
+    on.applyWinisdSettings();
+    expect(on.circuitModel.value).toBe('winisdGyrator');
   });
 
   it('driveVoltage_V and powerDrive_W each carry both the owner\'s and the solver\'s writes', () => {

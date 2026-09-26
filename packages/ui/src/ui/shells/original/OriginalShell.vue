@@ -615,7 +615,7 @@ WinISD Lossy (default): reports the lossy 3rd-order model's pole, so Fsc rises a
             <div class="sim-options-box">
               <div class="sim-options-header">
                 <span>WinISD Compatibility</span>
-                <button class="action-btn apply-winisd-btn" title="Reset to WinISD: align simulation toggles and clear entered Mms to match WinISD calculations" @click="applyWinisdSettings">Reset</button>
+                <button class="action-btn apply-winisd-btn" title="Reset to WinISD: set every WinISD-vs-conventional switch to WinISD" @click="applyWinisdSettings">Reset</button>
               </div>
               <div class="field-row" style="flex-wrap: nowrap; margin-bottom: 6px;">
                 <div class="field" style="gap:6px;" :title="`Controls sealed resonance (Fsc) and system Q (Qtc) loss calculations:\n• None: Ideal lossless enclosure (Q = ∞)\n• WinISD default: Lossy cubic model (Ql=10, Qa=100, Qp=100)\n• Custom Q: User-defined damping parameters`">
