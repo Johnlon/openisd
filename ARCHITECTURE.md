@@ -451,3 +451,22 @@ WinISD's side comes from its screenshots, its help files and the probes in `wini
 - **Desktop:** `make electron` builds the same UI as an Electron app.
 - **Hosting:** the web build is published to GitHub Pages.
 - **Bridge:** `npm run build:bridge` builds `packages/design/dist/openisd-bridge.js` for `winisd_tools`.
+
+## 12. Transparency and learning
+
+WinISD tells you a number. OpenISD tells you where it came from — that's a design goal, not a
+side effect of the field model in §3.
+
+- **The equation inspector shows how a field relates to others.** Click a value, see the
+  formula that can derive it and the fields that feed it
+  (`packages/ui/src/logic/provenance.ts`, `EquationInspectorModal.vue`). It answers "what does
+  this depend on and what depends on it", not just "what is this number".
+- **DQ issues explain a dependency, not just flag a problem.** A DQ mark names which fields
+  disagree or which one is missing (§4), so the message itself teaches the relationship instead
+  of just failing silently the way WinISD does.
+- **Terminology is kept to a minimum.** One name per external vocabulary, mapped once at its
+  boundary (§7). Fewer names to learn means the provenance graph and the DQ messages stay
+  readable instead of turning into a glossary lookup.
+- **Tooltips are short facts, not restated labels.** A tooltip earns its place by adding
+  something the label doesn't already say — what the field measures, its formula, or a
+  consequence of changing it (`packages/ui/src/logic/fields/uiFields.ts`).
