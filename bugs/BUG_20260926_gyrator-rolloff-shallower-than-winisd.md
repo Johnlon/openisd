@@ -31,18 +31,42 @@ points at a constant factor in the coil impedance.
 
 ## Cause
 
-⚠ unverified for WinISD's side. OpenISD's roll-off is exactly first-order: at 20 kHz,
-`20·log10(|Re + Rs + jωLe| / (Re + Rs))` = 21.758 dB, which is what `circuit.ts` produces
-via `pg` and `ZaE` sharing one `Zcoil`. WinISD needs `|Z_on|/|Z_off|` about 6.6% larger to
-reach 22.314 dB — consistent with it using a slightly different coil impedance in the
-acoustic path (a different `Rs` placement, or an inductance term that is not the plain
-`jωLe`), but which of those is not established.
+Confirmed 2026-09-26 by decompile plus a BL sweep. Details are in `winisd_research/GHIDRA_FINDINGS.md`
+§"VCInd".
+
+- WinISD turns Le into an acoustic compliance `CLe = Sd²·Le/BL²` (`0x45e3ea`) using the
+  **entered BL**.
+- The source resistance it sits across, `Rae = 1/(2πFs·Qes'·Cas)`, uses **no BL**. It comes from
+  Qes, Fs and Vas, with `Qes' = Qes·(Re+Rg)/Re`.
+- The corner is `Rae·CLe = Le·(BL_Qes/BL)²/(Re+Rg)`, where `BL_Qes` is the BL implied by
+  Fs/Qes/Vas/Re.
+- The W5-1138SMF's entered BL is 7.17, but its Fs/Qes/Vas/Re imply 7.3838. That makes the
+  factor ×1.0605, which is the 0.56 dB.
+
+OpenISD uses one BL for both, so it gives the textbook `|Re+Rs+jωLe|/(Re+Rs)`. The two agree
+whenever the driver's BL is consistent with its Qes/Fs/Vas/Re.
+
+WinISD captures (`winisd_research/runs/vcind_bl/`), 20 kHz on−off:
+
+| BL | WinISD observed | textbook |
+| --: | --: | --: |
+| 5.0 | −28.55 dB | −21.76 dB |
+| 7.17 | −22.31 dB | −21.76 dB |
+| 7.3838 | −21.80 dB | −21.76 dB |
+
+The WinISD model above has no free parameters. It reproduces all three BL values from 200 Hz to
+20 kHz within ≤0.067 dB, which is about 1.5 trace pixels.
 
 ## Fix
 
-Not yet determined — the WinISD side has to be pinned down first. Next probe: sweep `Rg`
-and `Le` independently under `VCInd=1` and see which one moves the residual, which
-separates an `Rs`-placement difference from a different inductance term.
+This is a modelling choice, not an arithmetic slip in OpenISD. WinISD uses two different BLs
+for one driver: the entered BL for the Le element, and the Qes-implied BL for everything else.
+The ruling is John's:
+- (a) match WinISD by building the Le element from the entered BL and the source resistance
+  from Qes, or
+- (b) keep the textbook model and record the gap as a WinISD quirk.
+
+It only shows on drivers whose entered BL disagrees with their Qes/Fs/Vas/Re.
 
 ## Verification
 
