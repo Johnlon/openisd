@@ -33,7 +33,7 @@ const {
   genOn, toggleGenerate, genHz, limits,
   boxLabel, pending, chartTab, overlays, chartUnavailable, activeTab,
   showEnclosureTab, enclosureNavLabel,
-  selectedBox, BOX_TYPE_OPTIONS, LOSS_MODE_OPTIONS, lossMode, ARRAY_WIRING_OPTIONS, N_DRIVERS_OPTIONS,
+  selectedBox, BOX_TYPE_OPTIONS, LOSS_MODE_OPTIONS, lossMode, ARRAY_WIRING_OPTIONS, N_DRIVERS_OPTIONS, applyWinisdSettings,
   boxVolume_m3, boxVolumeDqNote, setBoxVolume_m3, fieldDp, sealedAlignmentEditor, sealedAlignmentOpen,
   sealedAlignmentOptions, sealedAlignmentSelected, sealedAlignmentVolume_L, sealedAlignmentEbp,
   sealedAlignmentSuitability, sealedAlignmentSuitabilityLabel, ogFilters,
@@ -625,6 +625,20 @@ const {
               <div class="field-row"><div class="field"><label>Creator</label><input type="text" style="width:200px" v-model="projectCreator"></div></div>
               <div class="field-row"><div class="field"><label>Created</label><input type="text" style="width:120px" v-model="projectCreated"></div></div>
               <div class="field-row"><div class="field"><label>Modified</label><input type="text" style="width:120px" v-model="projectModified"></div></div>
+              <div class="sim-options-box">
+                <div class="sim-options-header">OpenISD Simulation & Alignment</div>
+                <div class="field-row" style="flex-wrap: nowrap; margin-bottom: 6px;">
+                  <div class="field" style="gap:8px;" title="Sealed resonance (Fsc) and system Q (Qtc) loss model.">
+                    <label style="width:auto;">Loss model</label>
+                    <select id="proj-lossmode" :value="lossMode" @change="e => { const m = selectedOption(e, LOSS_MODE_OPTIONS); if (m !== null) lossMode = m; }" style="width:170px">
+                      <option v-for="m in LOSS_MODE_OPTIONS" :key="m.value" :value="m.value">{{ m.label }}</option>
+                    </select>
+                  </div>
+                </div>
+                <div>
+                  <button class="action-btn apply-winisd-btn" title="Align simulation toggles and clear entered Mms to match WinISD calculations" @click="applyWinisdSettings">Apply WinISD Settings</button>
+                </div>
+              </div>
             </div>
             <div class="description-col">
               <label>Description</label>
@@ -1051,6 +1065,19 @@ const {
 .field.dq-flag :deep(.dq-note) { margin-left: 2px; }
 .field .unit { color:#555; min-width:3.5em; }
 textarea.comment, textarea.description { width:100%; border:1px solid #999; border-radius:2px; padding:6px; resize:vertical; }
+.sim-options-box {
+  margin-top: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 8px 12px;
+  background: #fdfdfd;
+}
+.sim-options-header {
+  font-weight: 600;
+  font-size: 11.5px;
+  color: #444;
+  margin-bottom: 6px;
+}
 .radio-group { display:flex; align-items:center; gap:14px; }
 .radio-group label { display:flex; align-items:center; gap:4px; }
 .edit-btn, .link-btn, .action-btn { background:#f0f0f0; border:1px solid #999; border-radius:3px; padding:4px 10px; cursor:pointer; }
