@@ -43,7 +43,53 @@ function computeWorkerCount() {
 // `npx playwright test` invocation (bypassing that wrapper) has neither var set and falls back
 // to this process's own single-run numbers, uncoordinated with anything else running.
 const WORKERS = process.env.OPENISD_TEST_WORKERS ? Number(process.env.OPENISD_TEST_WORKERS) : computeWorkerCount();
-const PORT = process.env.OPENISD_TEST_PORT || '4100';
+
+// Ports 4100-4107 belong to scripts/test-concurrency.sh, which hands one out under a lock so
+// concurrent gate runs never share a vite. An uncoordinated `npx playwright test` used to
+// default to 4100 — the first pooled port — and its webServer command opens with
+// `kill-http.sh <PORT>`, so it SHOT DOWN a coordinated run's server and that run failed in a
+// scattered, irreproducible way (bugs/BUG_20260926_browser-specs-fail-in-company-pass-alone.md).
+// An uncoordinated run now takes a free port well above the pool and cannot touch anyone else.
+const COORDINATED_POOL_END = 4107;
+const ADHOC_POOL_START = 4200;
+const ADHOC_POOL_END = 4399;
+
+/** Every TCP port something is listening on, from the kernel's own tables. Empty where those
+ *  tables cannot be read, which only costs this a collision check it never had before. */
+function listeningPorts() {
+  const ports = new Set();
+  for (const table of ['/proc/net/tcp', '/proc/net/tcp6']) {
+    let text;
+    try {
+      text = fs.readFileSync(table, 'utf8');
+    } catch {
+      continue;
+    }
+    for (const line of text.split('\n').slice(1)) {
+      const cols = line.trim().split(/\s+/);
+      // local_address is host:port in hex; state 0A is LISTEN.
+      if (cols.length > 3 && cols[3] === '0A' && cols[1]?.includes(':')) {
+        ports.add(parseInt(cols[1].split(':')[1], 16));
+      }
+    }
+  }
+  return ports;
+}
+
+function adhocPort() {
+  const busy = listeningPorts();
+  for (let p = ADHOC_POOL_START; p <= ADHOC_POOL_END; p++) {
+    if (!busy.has(p)) return String(p);
+  }
+  return String(COORDINATED_POOL_END + 1);
+}
+
+// Written back into the environment, not just held here: the runner re-imports this config in
+// every worker it forks, and a second call to adhocPort() would skip the port the webServer is
+// now listening on and hand the workers a port nothing is serving. Workers inherit the runner's
+// environment, so the first choice is the only choice.
+if (!process.env.OPENISD_TEST_PORT) process.env.OPENISD_TEST_PORT = adhocPort();
+const PORT = process.env.OPENISD_TEST_PORT;
 
 // Specs that reach a third-party site. The default gate must depend on THIS repo only:
 // combined with "A SKIP IS A FAIL" below, an outage at micka.de would otherwise turn

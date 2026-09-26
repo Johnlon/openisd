@@ -44,9 +44,12 @@
 # not an in-process worker thread, and 3 of them running together is memory-heavy regardless of
 # CPU headroom — a real pre-push run was OOM-killed running all 3 in parallel under one other
 # active gate, even though `my_workers` (5) never dropped low enough to throttle them (the
-# formula only forces serial typecheck once workers fall below 3, which peer-count/load alone
-# rarely does). So typecheck gets its own binary rule: any real contention at all forces it fully
-# serial (1 at a time); only a genuinely idle box runs all 3 together.
+# formula only forces reduced typecheck concurrency once workers fall below 3, which peer-count/
+# load alone rarely does). So typecheck gets its own rule: any real contention drops it from 3 to
+# 2 at a time. Not all the way to 1 — the goal is steady, safe progress under load, not a stall;
+# dropping straight to fully serial the instant anything else is running was tried and rejected
+# (John, 2026-09-26): "we really don't want to kill stuff, we just want to keep it under control
+# and making efficient progress."
 
 OPENISD_HEAVY_GATE_DIR="${OPENISD_HEAVY_GATE_DIR:-/tmp/openisd-heavy-gate-reservations}"
 OPENISD_HEAVY_GATE_ACCOUNTING_LOCK="${OPENISD_HEAVY_GATE_DIR}.lock"
@@ -108,7 +111,7 @@ reserve_heavy_gate_slot() {
 
   my_typecheck_concurrency=3
   if [ "$active" -gt 0 ] || [ "$load_centi" -gt "$IDLE_LOAD_CENTI" ]; then
-    my_typecheck_concurrency=1
+    my_typecheck_concurrency=2
   fi
 
   export OPENISD_HEAVY_GATE_WORKERS="$my_workers"
