@@ -86,6 +86,18 @@ Box-type dispatcher 0x566850: 0 sealed 0x4618f0, 1 vented 0x456800, 2 bp4 0x457a
 - **Box readouts.** Fb, F3 and vent length/area readouts on the Box tab, not only the charts.
 - **EQ/Filter charts.** The 3 box-independent filter charts are unchecked for every box type,
   sealed included.
+- **WinISD Compatibility switches, reach into vented/PR/bandpass:**
+
+  | Switch               | Acts on                                                   | Reaches vented/PR/bandpass? |
+  |----------------------|-----------------------------------------------------------|-----------------------------|
+  | Loss model           | sealed box impedance only (`circuit.ts` sealed branch)    | **No** — they ignore it     |
+  | WinISD driver model  | driver Cms/Mms/Rms/BL and the inductance model            | Yes (shared driver side)    |
+  | WinISD air model     | ρ and c from temperature/pressure/humidity                | Yes (port mass, box Cab)    |
+  | WinISD VA model      | VA chart formula (`sweep.ts`)                             | Yes (formula uses Z only)   |
+
+  The loss model needs a vented/PR/bandpass WinISD form behind the same switch once WinISD's
+  routines are read (see Box losses above). Each switch's default must still give WinISD's
+  numbers for the new box type — verify by capture, not by assumption.
 - Open: [BUG_20260918_no-ui-path-to-enter-a-vent-length](../../bugs/BUG_20260918_no-ui-path-to-enter-a-vent-length.md).
 
 ## Open items
