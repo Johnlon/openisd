@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import {computed, ref, shallowRef} from 'vue';
+import {computed, nextTick, ref, shallowRef} from 'vue';
 import {Engine, type BoxType} from '@openisd/design/engine';
 import {OpenISDProject} from '@openisd/design';
 import {
@@ -8,6 +8,7 @@ import {
   createDriveSignal,
   createEnvironmentAir,
   createSealedReadouts,
+  createSelectedBox,
   dqOfCell,
   dqOfEntry,
   dqOfSolved,
@@ -194,6 +195,81 @@ describe('OriginalShell-hooks', () => {
     });
   });
 
+  describe('createSelectedBox', () => {
+    /** `createSelectedBox` doesn't care WHICH types simulate, only that it asks — a stub keeps
+     *  this test isolated from `appState.ts`'s own registry. */
+    const isSimulatable = (b: BoxType) => b !== 'bandpass6' && b !== 'abc';
+
+    it('initializes from the focused project\'s own box type', () => {
+      const {project} = createCompleteProject();
+      project.box.boxType.set('vented');
+      const projectChanged = ref(0);
+
+      const {selectedBox} = createSelectedBox({ focusedProject: () => project, projectChanged, isSimulatable });
+
+      expect(selectedBox.value).toBe('vented');
+    });
+
+    it('defaults to sealed when no project is focused', () => {
+      const projectChanged = ref(0);
+      const {selectedBox} = createSelectedBox({ focusedProject: () => null, projectChanged, isSimulatable });
+
+      expect(selectedBox.value).toBe('sealed');
+    });
+
+    it('setting selectedBox to a simulatable type writes it to the project', async () => {
+      const {project} = createCompleteProject();
+      const projectChanged = ref(0);
+      const {selectedBox} = createSelectedBox({ focusedProject: () => project, projectChanged, isSimulatable });
+
+      selectedBox.value = 'vented';
+      await nextTick();
+      expect(project.box.boxType.value).toBe('vented');
+    });
+
+    it('setting selectedBox to a NON-simulatable (pending) type does NOT write the project — pending is UI-only', async () => {
+      const {project} = createCompleteProject();
+      const projectChanged = ref(0);
+      const {selectedBox, pending} = createSelectedBox({ focusedProject: () => project, projectChanged, isSimulatable });
+
+      selectedBox.value = 'bandpass6';
+      await nextTick();
+      expect(project.box.boxType.value).not.toBe('bandpass6');
+      expect(pending.value).toBe(true);
+    });
+
+    it('an external change to the project\'s box type (e.g. a loaded file) syncs selectedBox back', async () => {
+      const {project} = createCompleteProject();
+      const projectChanged = ref(0);
+      const {selectedBox} = createSelectedBox({ focusedProject: () => project, projectChanged, isSimulatable });
+
+      project.box.boxType.set('vented');
+      projectChanged.value++;
+      await nextTick();
+      expect(selectedBox.value).toBe('vented');
+    });
+
+    it('isDual is true only for the two-chamber types', () => {
+      const {project} = createCompleteProject();
+      const projectChanged = ref(0);
+      const {selectedBox, isDual} = createSelectedBox({ focusedProject: () => project, projectChanged, isSimulatable });
+
+      expect(isDual.value).toBe(false);
+      selectedBox.value = 'bandpass4';
+      expect(isDual.value).toBe(true);
+    });
+
+    it('showEnclosureTab is false only for sealed', () => {
+      const {project} = createCompleteProject();
+      const projectChanged = ref(0);
+      const {selectedBox, showEnclosureTab} = createSelectedBox({ focusedProject: () => project, projectChanged, isSimulatable });
+
+      expect(showEnclosureTab.value).toBe(false);
+      selectedBox.value = 'vented';
+      expect(showEnclosureTab.value).toBe(true);
+    });
+  });
+
   describe('createDriveSignal', () => {
     it('derives V = sqrt(P * (Re + Rs)) from the driver Re', () => {
       const {project} = createCompleteProject();
@@ -302,6 +378,23 @@ describe('OriginalShell-hooks', () => {
       expect(project.powerDrive_W.entered).toBe(true);
       expect(project.driveVoltage_V.value).toBeCloseTo(Math.sqrt(6.1), 6);
       expect(project.driveVoltage_V.calculated).toBe(true);
+    });
+
+    it('rsOhm reads and writes Rs_ohm directly, defaulting a null write to 0', () => {
+      const {project} = createCompleteProject();
+      const projectRef = shallowRef(project);
+      const projectChanged = ref(0);
+
+      const {rsOhm} = createDriveSignal({
+        project: computed(() => projectRef.value),
+        projectChanged,
+      });
+
+      expect(rsOhm.value).toBe(project.Rs_ohm.value);
+      rsOhm.value = 0.5;
+      expect(project.Rs_ohm.value).toBe(0.5);
+      rsOhm.value = null as unknown as number;
+      expect(project.Rs_ohm.value).toBe(0);
     });
   });
 
