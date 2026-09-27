@@ -24,7 +24,7 @@
 import {z} from 'zod';
 import {WinISDDriver} from '../winisd/index.js';
 import {newUuid} from './newUuid.js';
-import type {OpenISDDriver} from './openisdDomain.js';
+import type {OpenISDDriver} from './driver/openISDDriver.js';
 import type {BoxType, DriverError, Filter, PassFamily} from '../engine/index.js';
 import type {VentShape} from './vent.js';
 

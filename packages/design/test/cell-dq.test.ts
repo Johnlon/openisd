@@ -1,5 +1,7 @@
 import {describe, expect, it} from 'vitest';
-import {OpenISDDriver, OpenISDPassiveRadiatorStandalone, OpenISDProject} from '../domain/openisdDomain.js';
+import {OpenISDDriver} from '../domain/driver/openISDDriver.js';
+import {OpenISDPassiveRadiatorStandalone} from '../domain/passiveRadiator/openISDPassiveRadiatorStandalone.js';
+import {OpenISDProject} from '../domain/project/openISDProject.js';
 import {Engine} from '../engine/index.js';
 
 const scraped = <T,>(value: T) => ({ value });

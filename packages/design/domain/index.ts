@@ -22,20 +22,18 @@ export type {
   CoupledSealedLosses,
   CoupledVentedLosses,
 } from './losses.js';
-export type {
-  Box,
-  SealedBox,
-  VentedBox,
-  Bandpass4Box,
-  Bandpass6Box,
-  AbcBox,
-  PassiveRadiatorBox,
-  OpenIsdPassiveRadiatorSpec,
-  VentedChamber,
-  FrequencyGrid,
-} from './openisdDomain.js';
+export type { Box } from './box/box.js';
+export type { SealedBox } from './box/sealedBox.js';
+export type { VentedBox } from './box/ventedBox.js';
+export type { Bandpass4Box } from './box/bandpass4Box.js';
+export type { Bandpass6Box } from './box/bandpass6Box.js';
+export type { AbcBox } from './box/abcBox.js';
+export type { PassiveRadiatorBox } from './box/passiveRadiatorBox.js';
+export type { OpenIsdPassiveRadiatorSpec } from './passiveRadiator/openIsdPassiveRadiatorSpec.js';
+export type { VentedChamber } from './box/ventedChamber.js';
+export type { FrequencyGrid } from './box/frequencyGrid.js';
 // We export these strictly as types to ensure encapsulation. Consumers can annotate variables with these types, but must construct them via factory functions instead of calling the class constructors directly.
-export { OpenISDDriver, OpenISDDriverStandalone } from './openisdDomain.js';
+export { OpenISDDriver, OpenISDDriverStandalone } from './driver/openISDDriver.js';
 
 // Also NOT exported (consumers cannot construct these directly):
 //   `DualWriteFieldImpl` — use the capability atoms (`Readable & Entered & …`) / `SimpleField`.
@@ -58,7 +56,8 @@ export { OpenISDDriver, OpenISDDriverStandalone } from './openisdDomain.js';
 // constructor is private, and `OpenISDProject.builder()` is the way one comes into existence.
 //
 // `projectJson` is NOT exported: it takes and returns package-private record types.
-export { OpenISDProject, OpenISDPassiveRadiatorStandalone } from './openisdDomain.js';
+export { OpenISDProject } from './project/openISDProject.js';
+export { OpenISDPassiveRadiatorStandalone } from './passiveRadiator/openISDPassiveRadiatorStandalone.js';
 // The engine class, named here as well as at its own door (`@openisd/design/engine`): the domain
 // takes an `Engine` as the collaborator that does the physics, so a consumer assembling a project
 // that RUNS the engine reaches for ONE import specifier (`@openisd/design`) instead of crossing
@@ -71,7 +70,5 @@ export { Engine } from '../engine/index.js';
 // into a second one for the class the project already depends on. The engine's other symbols
 // keep their dedicated door; only `Engine` appears on both.
 
-export type {
-  DiscardChallenge,
-  DriverSpecFieldName,
-} from './openisdDomain.js';
+export type { DiscardChallenge } from './project/discardChallenge.js';
+export type { DriverSpecFieldName } from './driver/driverSpecFieldName.js';

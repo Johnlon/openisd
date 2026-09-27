@@ -19,7 +19,8 @@ import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
 import type {SimulatableBoxType, SweepParams} from '../../engine/index.js';
 import {Engine} from '../../engine/index.js';
-import {OpenISDDriver, OpenISDProject} from '../../domain/openisdDomain.js';
+import {OpenISDDriver} from '../../domain/driver/openISDDriver.js';
+import {OpenISDProject} from '../../domain/project/openISDProject.js';
 
 /** Voice-coil inductance for the fixtures below. Not a solver quantity — nothing
  *  derives it — so it reaches `sweep` on its own, and only the impedance plot reads it. */

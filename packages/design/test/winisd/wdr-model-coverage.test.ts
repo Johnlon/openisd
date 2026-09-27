@@ -8,7 +8,7 @@
  */
 import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import {OpenISDDriver} from '../../domain/openisdDomain.js';
+import {OpenISDDriver} from '../../domain/driver/openISDDriver.js';
 import {WinISDDriver} from '../../winisd/winisdDriver.js';
 import {Engine} from '@openisd/design/engine';
 import {openIsdDriverToWinIsdDriver} from '../../domain/driverYmlToOpenisdAndWdr.js';
