@@ -47,3 +47,9 @@ Rg at the amplifier and at the driver side.
 `winisdVaModel.test.ts`: off is (Re + Rg)/Re × WinISD's; Rg counted once whatever its placement;
 Reset turns it on; saved and read back. `advanced-inductance.browser.spec.ts`: the checkbox, its
 tooltip, and Reset.
+
+## ⚠ Human re-verification pending (QO170)
+
+Found by debugger, disassembly and scripted runs only. Not yet reproduced by hand in WinISD's own
+window. Treat as unconfirmed until John and an agent check it together (QO170); record the result
+here.

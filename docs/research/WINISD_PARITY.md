@@ -1381,3 +1381,18 @@ Part 2 field-by-field claims independently re-verified 2026-08-13 against live O
 code. WinISD confirmation sources: official help files extracted from the 0.7 installer,
 direct UI observation, community reports, and the annotated 0.7.0.950 screenshots in
 [`docs/winisd_screenshots/`](../winisd_screenshots/)._
+
+## 21. EQ/Filter chain — WinISD bugs (verified 2026-09-27)
+
+Every filter type's formula, measured by debugger: winisd_research `GHIDRA_FINDINGS.md` "EQ/Filter
+chain"; `.wpr` `[Filters]` format: `PROBE_FINDINGS.md`. The bugs, one file each:
+
+| WinISD bug | OpenISD | File |
+|---|---|---|
+| Save loses an Allpass and every filter after it | not copied (no data loss); import to follow WinISD | [bugs/BUG_20260927_winisd-save-drops-allpass-and-later-filters.md](../../bugs/BUG_20260927_winisd-save-drops-allpass-and-later-filters.md) |
+| Bessel high-pass is not the mirror of its low-pass | copied | [bugs/BUG_20260927_winisd-bessel-highpass-not-mirror-of-lowpass.md](../../bugs/BUG_20260927_winisd-bessel-highpass-not-mirror-of-lowpass.md) |
+| Allpass: t is not the delay for order ≥ 2; order > 2 ignored | copied | [bugs/BUG_20260927_winisd-allpass-t-not-delay-order-above-2-ignored.md](../../bugs/BUG_20260927_winisd-allpass-t-not-delay-order-above-2-ignored.md) |
+| Linkwitz-Riley and SOS ignore Order | copied | [bugs/BUG_20260927_winisd-linkwitz-riley-and-sos-ignore-order.md](../../bugs/BUG_20260927_winisd-linkwitz-riley-and-sos-ignore-order.md) |
+| Filter group delay unwraps one direction only | not copied (never triggers) | [bugs/BUG_20260927_winisd-filter-group-delay-unwrap-one-direction.md](../../bugs/BUG_20260927_winisd-filter-group-delay-unwrap-one-direction.md) |
+| `.wpr` with filter order 12 stops WinISD loading | not copied; order limited to 10 | [bugs/BUG_20260927_winisd-wpr-filter-order-12-stops-load.md](../../bugs/BUG_20260927_winisd-wpr-filter-order-12-stops-load.md) |
+| Points where the box value is exactly 0 are skipped, EQ/Filter charts included | open | [bugs/BUG_20260927_winisd-filter-charts-skip-zero-box-points.md](../../bugs/BUG_20260927_winisd-filter-charts-skip-zero-box-points.md) |

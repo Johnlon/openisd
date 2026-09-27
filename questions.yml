@@ -1,5 +1,5 @@
 prefix: QO
-next: 170
+next: 171
 questions:
 - id: QO168
   title: graph cursor/drag-selection exempted from the OpenISDProject three-field architecture gate (S10/QO130)
@@ -9692,3 +9692,24 @@ questions:
   answer:
     at: '2026-09-27'
     text: No migration
+- id: QO170
+  title: Re-check every claimed WinISD filter bug by hand with John
+  status: open
+  raised: '2026-09-27'
+  body: |-
+    On 2026-09-27 an agent recorded seven WinISD bugs in the EQ/Filter chain, from debugger logs, disassembly and scripted runs of WinISD. None has been checked by a person in WinISD's own window. Each must be reproduced by hand with John before it is treated as fact, and before OpenISD's copy (or refusal to copy) of it is final.
+
+    The seven, each with a bug file in openisd/bugs and winisd_research/bugs (dated 20260927):
+    1. Saving a project with an Allpass filter loses it and every filter after it; reopened, they are default low-pass filters.
+    2. The Bessel high-pass is not the mirror image of the Bessel low-pass.
+    3. Allpass: for order 2 and up, the delay is t divided by Q, not t; orders above 2 behave like 2.
+    4. Linkwitz-Riley and "user second-order section" low/high-pass ignore the Order box.
+    5. The filter group delay only corrects a phase jump in one direction.
+    6. A project file with a Butterworth order 12 filter stops WinISD opening.
+    7. Chart points where the box value is exactly zero are skipped, filter charts included.
+
+    For each: John and an agent sit at WinISD, do the steps in the bug file, and record seen / not seen in that bug file.
+  notes:
+  - at: '2026-09-27'
+    text: 'Also: bugs/BUG_20260927_winisd-va-uses-re-not-re-plus-rg.md (WinISD''s VA chart uses Re, not
+      Re + Rg; Rg counted twice with ''Rg is at driver side'') — same kind of claim, same check.'
