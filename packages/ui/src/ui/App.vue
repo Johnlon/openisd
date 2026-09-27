@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import {computed, onMounted, onUnmounted} from 'vue';
+import {computed, onMounted, onUnmounted, watch} from 'vue';
 import OriginalShell from './shells/original/OriginalShell.vue';
+import MobileShell from './shells/mobile/MobileShell.vue';
 import OgNewProject from './shells/original/OgNewProject.vue';
 import OgTune from './shells/original/OgTune.vue';
 import DriverBrowser from './components/DriverBrowser.vue';
@@ -22,8 +23,25 @@ import {presentationState} from '../logic/presentationState.js';
 import {provideFocusedProject} from '../logic/focusedProjectContext.js';
 import {useApp} from '../logic/app.js';
 import {provideSplashModal} from '../hooks/SplashModal-hooks.js';
+import {createViewportWatch} from '../logic/viewport.js';
 
 const { projectRepo, viewStateRepo, logging, selection, bundledDrivers, bundledPassiveRadiators } = useApp();
+
+// The automatic half of the skin switch. Read `matchMedia` SYNCHRONOUSLY here — before this
+// component's first render — so a phone loads straight into the mobile shell with no
+// desktop-then-swap flash, and so the 19 browser specs gated on `.original-root` never race a
+// deferred switch. `createViewportWatch()` seeds `narrow.value` synchronously from the current
+// `matchMedia().matches`, which is what makes this safe to read immediately rather than waiting
+// for `onMounted`. The manual, persisted override (`presentationState.ui.skinOverride`, restored
+// by `boot.ts` phase 4) is applied afterward as a correction, in `onMounted` below — it can only
+// be known once `viewStateRepo` has been read.
+const viewportWatch = createViewportWatch();
+presentationState.narrowViewport = viewportWatch.narrow.value;
+watch(viewportWatch.narrow, v => { presentationState.narrowViewport = v; });
+
+/** Which shell to render: the manual override wins when set; otherwise follow the viewport. */
+const activeSkin = computed(() =>
+  presentationState.ui.skinOverride ?? (presentationState.narrowViewport ? 'mobile' : 'original'));
 
 // App.vue is the shell-agnostic root: it owns app lifecycle (persist / hash) and the global
 // overlays. The shell renders WITH or WITHOUT a project — with none it shows the toolbar plus
@@ -75,14 +93,17 @@ onMounted(async () => {
 onUnmounted(() => {
   stopSessionSync();
   window.removeEventListener('hashchange', handleHashChange);
+  viewportWatch.stop();
 });
 </script>
 
 <template>
   <!-- The shell renders WITH or WITHOUT a project — with none it shows the toolbar plus the
        empty placeholders, and the toolbar's global actions stay reachable. All overlays
-       self-gate on their own presentationState booleans. -->
-  <OriginalShell />
+       self-gate on their own presentationState booleans. Which shell mounts is `activeSkin`:
+       the manual override when set, else the live viewport. -->
+  <MobileShell v-if="activeSkin === 'mobile'" />
+  <OriginalShell v-else />
   <!-- Global overlays — each self-gates internally and is safe with no project open. -->
   <OgNewProject v-if="presentationState.newProjectOpen" @close="presentationState.newProjectOpen = false" />
   <!-- Both read the focused project, so neither may mount without one — whatever set the

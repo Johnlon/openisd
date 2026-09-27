@@ -1,4 +1,4 @@
-Status: OPEN (re-verified 2026-09-26) — `appState` now calls `p.sweep()`, but the sweep returns `issues: []` and `appState` still runs the classify checks itself through a fresh `new Engine()`.
+Status: FIXED (2026-09-27)
 
 ## Symptom
 
@@ -37,7 +37,26 @@ going through the project.
 
 ## Fix
 
-Not yet applied.
+Applied, narrower than the numbered plan below. `appState.ts`'s `doSweep` already called
+`p.sweep()`/`p.maxCurves()` by the 2026-09-26 re-verification — the one violation left was
+`curveIssues` constructing `const eng = new Engine()` to call `classifyFiniteIssues`, because
+`OpenISDProject` had delegates for its three siblings (`classifyFinite`/`classifyFlatClamp`/
+`classifyMaxFinite`) but not for the per-output variant `curveIssues` actually needed. Fixed by
+adding the missing delegate — `OpenISDProject.classifyFiniteIssues(sw)`, mirroring the other
+three exactly (`domain/openisdDomain.ts`, class is no longer at `project.ts` — moved since this
+was written) — and routing `curveIssues` through `live.value` (the focused project) instead of a
+throwaway `Engine`.
+
+NOT applied, and no longer this bug's scope — the broader restructure in the numbered plan below.
+It does not type-check cleanly as written: `SweepSolveResult.issues` is typed `SweepIssue[]`
+(`DriverIssue | EnvironmentIssue | BoxParamsIssue | VentIssue | PrIssue | SignalIssue` —
+structured domain shapes), not `DriverError[]` (`{level, field, message}`, the flat shape the
+classify functions return) — folding one into the other needs a real type unification, not
+attempted here. `validateParams`'s redundancy against the postconditions is real but is not a
+"UI layer decides a domain question" violation, so it does not block this bug; left as optional
+separate cleanup.
+
+Original proposal (superseded by the above; kept for context):
 
 1. `sweep()` calls `classifyFinite`/`classifyFlatClamp` on its own result before returning, and
    folds any hit into its `Result.errors` — no caller calls them separately afterward.
@@ -64,4 +83,11 @@ classify calls into `sweep()`/`maxCurves()` in `sweep.ts` IS folding them into t
 
 ## Verification
 
-Not yet done.
+`packages/design/test/engine-wiring.test.ts` — new case pins `project.classifyFiniteIssues(sw)`
+equal to `engine.classifyFiniteIssues(sw)`, alongside the three siblings' pre-existing equivalent
+assertions. `grep -n "new Engine(" packages/ui/src/logic/appState.ts` leaves one hit — the
+approved store's own canonical engine instance (`ARCHITECTURE.md`: "logic/appState.ts holds...
+the engine"), not a throwaway construction. Full suite clean under WSL: every `packages/design` +
+`persistence` + `ui` unit test, and the full Playwright browser suite —
+`packages/ui/test/logic/store-issue-channel.test.ts`'s 11 cases (the `allIssues` wiring tests,
+unchanged) still pass, proving the swap changed no observable behaviour.

@@ -423,12 +423,16 @@ canvas { touch-action: none; }
 .gmsg-foot  { font-size: 11px; color: var(--mut); margin-top: 4px; font-style: italic; }
 
 /* Non-blocking warning pill in the chart header: sits cleanly beside the title
-   without obscuring graph curves, axis tick labels, or cursor readouts. */
+   without obscuring graph curves, axis tick labels, or cursor readouts.
+   `min(120px, 30%)` matches the old flat 120px on any container ≥400px wide (every desktop
+   width `original-narrow.browser.spec.ts` tests, down to 780px, and every use before the mobile
+   shell existed), and shrinks proportionally instead of eating a fixed 240px budget on a
+   narrow phone-width container, where the flat value left little or no room for the pill. */
 .gwarn-pill {
   position: absolute;
-  left: 120px;
+  left: min(120px, 30%);
   top: 3px;
-  max-width: calc(100% - 240px);
+  max-width: calc(100% - 2 * min(120px, 30%) - 8px);
   display: inline-flex;
   align-items: center;
   gap: 4px;
