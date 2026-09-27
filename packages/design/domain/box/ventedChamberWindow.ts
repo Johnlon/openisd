@@ -13,7 +13,7 @@ export class VentedChamberWindow {
     readonly losses: CoupledVentedLosses;
 
     constructor(lens: SimpleField<CoupledVentedChamberJson>, engine: Engine) {
-        this.volume_m3 = requiredField(lens, 'volume_m3');
+        this.volume_m3 = requiredField(lens, 'volume_m3', (v) => engine.boxVolumeIssue(v));
         this.tuning_goal_hz = entryField(focus(lens, 'tuning_goal_hz'), 'tuning_goal_hz', engine);
         this.losses = new CoupledVentedLossesWindow(focus(lens, 'losses'));
     }

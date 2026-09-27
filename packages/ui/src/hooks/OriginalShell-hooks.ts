@@ -174,13 +174,7 @@ export interface BoxVolumeDeps {
   project: ComputedRef<OpenISDProject>;
   selectedBox: Ref<BoxType>;
   projectChanged: Ref<number>;
-}
-
-export const BAD_VOLUME_NOTE = 'Bad data: zero or less is not a physical volume. It is kept and saved exactly as entered — clear the field to fix it.';
-
-/** BAD VALUE: a volume that cannot be physical (≤ 0). Zero is a value, not an absence. */
-export function isBadVolume(v: number): boolean {
-  return !(v > 0);
+  engine: Engine;
 }
 
 /** WinISD's own `YYYYMMDD` date format — duplicated from the domain's `dateStamp` rather than
@@ -204,40 +198,36 @@ export function fillBlankMeta(p: OpenISDProject, username: string | null, today:
   return changed;
 }
 
-/** The one DQ note a box volume shows: its reason, or '' when there is nothing to say. */
-export function volumeDqNote(v: number): string {
-  return isBadVolume(v) ? BAD_VOLUME_NOTE : '';
+/** The active box type's own volume FIELD — never just its `.value`, so both the number and its
+ *  `.dq` (BUG_20260927_box-volume-validity-decided-in-ui.md: the domain judges validity for
+ *  every box type, this dispatches to whichever one is showing) come from the one field. */
+function activeVolumeField(project: OpenISDProject, selectedBox: BoxType): (Readable<number> & Entered & Writable<number>) | null {
+  const box = project.box;
+  switch (selectedBox) {
+    case 'sealed': return box.sealed.volume_m3;
+    case 'vented': return box.vented.volume_m3;
+    case 'bandpass4': return box.bandpass4.chambers.rear.volume_m3;
+    case 'bandpass6': return box.bandpass6.chambers.rear.volume_m3;
+    case 'abc': return box.abc.chambers.rear.volume_m3;
+    case 'box-passive-radiator': return box.passiveRadiator.volume_m3;
+    default: return null;
+  }
 }
 
-export function createBoxVolume({ project, selectedBox, projectChanged: changed }: BoxVolumeDeps) {
+export function createBoxVolume({ project, selectedBox, projectChanged: changed, engine }: BoxVolumeDeps) {
   const boxVolume_m3 = computed<number | null>(() => {
     void changed.value;
     void project.value;
-    const box = project.value.box;
-    switch (selectedBox.value) {
-      case 'sealed': return box.sealed.volume_m3.value;
-      case 'vented': return box.vented.volume_m3.value;
-      case 'bandpass4': return box.bandpass4.chambers.rear.volume_m3.value;
-      case 'bandpass6': return box.bandpass6.chambers.rear.volume_m3.value;
-      case 'abc': return box.abc.chambers.rear.volume_m3.value;
-      case 'box-passive-radiator': return box.passiveRadiator.volume_m3.value;
-      default: return null;
-    }
+    return activeVolumeField(project.value, selectedBox.value)?.value ?? null;
   });
   const boxVolumeDqNote = computed<string>(() => {
-    const v = boxVolume_m3.value;
-    return v == null ? '' : volumeDqNote(v);
+    void changed.value;
+    void project.value;
+    const field = activeVolumeField(project.value, selectedBox.value);
+    return field ? field.dq.map((issue) => engine.dqIssueText(issue)).join(' ') : '';
   });
   function setBoxVolume_m3(v: number): void {
-    const box = project.value.box;
-    switch (selectedBox.value) {
-      case 'sealed': box.sealed.volume_m3.set(v); break;
-      case 'vented': box.vented.volume_m3.set(v); break;
-      case 'bandpass4': box.bandpass4.chambers.rear.volume_m3.set(v); break;
-      case 'bandpass6': box.bandpass6.chambers.rear.volume_m3.set(v); break;
-      case 'abc': box.abc.chambers.rear.volume_m3.set(v); break;
-      case 'box-passive-radiator': box.passiveRadiator.volume_m3.set(v); break;
-    }
+    activeVolumeField(project.value, selectedBox.value)?.set(v);
   }
   return { boxVolume_m3, boxVolumeDqNote, setBoxVolume_m3 };
 }
@@ -436,7 +426,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
 
   // Box-type-generic rear-chamber volume (WinISD "Vb") — the Box tab's single "Volume" field
   // dispatches through the unit-tested `createBoxVolume` above.
-  const { boxVolume_m3, boxVolumeDqNote, setBoxVolume_m3 } = createBoxVolume({ project, selectedBox, projectChanged });
+  const { boxVolume_m3, boxVolumeDqNote, setBoxVolume_m3 } = createBoxVolume({ project, selectedBox, projectChanged, engine });
   // Front-chamber volume (WinISD "Vf") — dual-chamber types only (bandpass4/6, abc).
   const frontVolume_m3 = computed<number | null>(() => {
     void projectChanged.value;

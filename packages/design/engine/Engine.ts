@@ -38,8 +38,11 @@ import {
 import type {VentedPlausibilityIssue} from './plausibility.js';
 import type {DriverIssue, PrIssue, SealedAlignmentIssue, VentIssue} from './solver.js';
 import {solveDriver, solvePr, solveSealedAlignment, solveVent, terminalBL_Tm, terminalRe_ohm,} from './solver.js';
-import type {CalculationIssue, DqIssue, OutOfRangeIssue, TargetUnreachableIssue} from './consistency.js';
-import {dqIssueText, issueFields, issueFormula, issueToText, outOfRangeToText, plausibilityToText, targetUnreachableToText} from './consistency.js';
+import type {CalculationIssue, DqIssue, InvalidVolumeIssue, OutOfRangeIssue, TargetUnreachableIssue} from './consistency.js';
+import {
+  boxVolumeValidity, dqIssueText, invalidVolumeToText, issueFields, issueFormula, issueToText,
+  outOfRangeToText, plausibilityToText, targetUnreachableToText,
+} from './consistency.js';
 import {isPhysicallyPlausible} from './physicalRange.js';
 import {referenceEfficiency, splFromEfficiency} from './efficiency.js';
 import type {SignalIssue} from './signal.js';
@@ -230,6 +233,12 @@ export class Engine {
     return outOfRangeToText(issue);
   }
 
+  /** One sentence for an `invalid-volume` mark — zero, negative or non-finite, whatever box it
+   *  is (BUG_20260927_box-volume-validity-decided-in-ui.md). */
+  invalidVolumeToText(issue: InvalidVolumeIssue): string {
+    return invalidVolumeToText(issue);
+  }
+
   /** Whether a single RAW value would sit inside `PHYSICAL_RANGE`'s band for `field` (D9 tier 1)
    *  — the domain layer's one door into that table, since nothing outside the engine may import
    *  `physicalRange.ts` directly. */
@@ -249,6 +258,14 @@ export class Engine {
   /** Sealed resonance and Qtc under a chosen loss model. Takes `Vas` directly. */
   sealedResonance(mode: LossMode, p: SealedParams): { Fsc: number; Qtc: number } {
     return sealedResonance(mode, p);
+  }
+
+  /** The one floor every box type's volume field shares: zero, negative or non-finite is not a
+   *  volume, whatever box it is (sealed, bandpass 4th/6th rear+front, ABC, passive radiator —
+   *  BUG_20260927_box-volume-validity-decided-in-ui.md). Vented's own volume additionally judges
+   *  a plausible design band on top of this floor — see `ventedVolumeIssue`, which is not this. */
+  boxVolumeIssue(value: number): InvalidVolumeIssue | null {
+    return boxVolumeValidity(value);
   }
 
   /**

@@ -1,8 +1,11 @@
-import type { Calculatable, Calculated, Clearable, Entered, Precise, Readable, SimpleField, Unsolvable, Writable } from '../cell.js';
+import type { Calculatable, Calculated, Clearable, Entered, Precise, Readable, Unsolvable, Writable } from '../cell.js';
 import type { SealedLosses } from '../losses.js';
 
 export interface SealedBox {
-    readonly volume_m3: SimpleField<number>;
+    /** Mandatory: judged by `Engine.boxVolumeIssue` on read, box-agnostic
+     *  (BUG_20260927_box-volume-validity-decided-in-ui.md) — zero, negative or non-finite marks
+     *  the field's own `.dq` rather than being coerced. */
+    readonly volume_m3: Readable<number> & Entered & Writable<number>;
 
     /** The resulting system Fc, calculated from the volume and the driver — null when either is
      *  not yet known. A CALCULATION, not a stored field, so a readout, not a handle. */
