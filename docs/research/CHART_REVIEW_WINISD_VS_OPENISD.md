@@ -62,7 +62,7 @@ Key: ✅ exact match (≤ 1e-12 at all 2086 points) · ≈ matches to WinISD's o
 | Cone excursion (PR)                     | —      | —      | —            | ✅               |
 | Rear port - Air velocity                | —      | ✅     | —            | —                |
 | Rear port - Gain                        | —      | ✅     | —            | —                |
-| Front port - Air velocity               | —      | —      | ✅            | —                |
+| Front port - Air velocity               | —      | —      | ✅           | —                |
 | Front port - Gain                       | —      | —      | ✅           | —                |
 | Intrachamber port - Air velocity        | —      | —      | —            | —                |
 
