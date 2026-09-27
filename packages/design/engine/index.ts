@@ -40,10 +40,10 @@ export type { ChartId } from './charts.js';
 export type { BoxParamsQuantityName, BoxParamsIssue, BoxParamsSolveResult } from './params.js';
 export type { SignalQuantityName, SignalIssue } from './signal.js';
 export type { SweepIssue, SweepSolveResult, MaxCurvesSolveResult } from './sweep.js';
-export type {
-  DriverQuantityName, DriverIssue, DriverPrerequisite,
-  VentQuantityName, VentIssue, PrQuantityName, PrIssue, SealedAlignmentQuantityName, SealedAlignmentIssue,
-} from './solver.js';
+export type {DriverQuantityName, DriverIssue, DriverPrerequisite} from './solvers/solveDriver.js';
+export type {VentQuantityName, VentIssue} from './solvers/solveVent.js';
+export type {PrQuantityName, PrIssue} from './solvers/solvePr.js';
+export type {SealedAlignmentQuantityName, SealedAlignmentIssue} from './solvers/solveSealedAlignment.js';
 // `SolverField` is the interface a domain field implements for the solver; `SolverInput` its
 // read-only half. The domain imports these through the door, never a solverTypes subpath.
 export type { SolverField, SolverInput } from './solverTypes.js';

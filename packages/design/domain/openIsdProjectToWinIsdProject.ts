@@ -27,7 +27,8 @@ import {type DriverError, Engine, type Filter} from '../engine/index.js';
 import {openIsdDriverToWinIsdDriver} from './driverYmlToOpenisdAndWdr.js';
 import {WinISDDriver} from '../winisd/winisdDriver.js';
 import {WinISDProject} from '../winisd/winisdProject.js';
-import {type RadiatorDeviceJson, type SpecEntryJson, winISDDriverToOpenISDDeviceJson} from './openisdSchema.js';
+import {type RadiatorDeviceJson, type SpecEntryJson} from './openisdSchema.js';
+import {winISDDriverToOpenISDDeviceJson} from './winIsdDriverImport.js';
 import {dateStamp} from './appContext.js';
 
 /** `WinISDProject.build()`'s value shape: section name -> key -> value. */

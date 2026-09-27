@@ -11,7 +11,8 @@ import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
 import {WinISDDriver} from '../../winisd/winisdDriver.js';
 import {allNotAvailableCells} from './wdrFixture.js';
-import {driverSpecsOf, winISDDriverToOpenISDDeviceJson} from '../../domain/openisdSchema.js';
+import {driverSpecsOf} from '../../domain/openisdSchema.js';
+import {winISDDriverToOpenISDDeviceJson} from '../../domain/winIsdDriverImport.js';
 import {OpenISDDriver} from '../../domain/index.js';
 import {Engine} from '../../engine/index.js';
 

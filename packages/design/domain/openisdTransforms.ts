@@ -4,11 +4,11 @@
 
 import {
     type DriverDeviceJson,
-    emptyBoxJson,
-    enteredEntry,
     type OpenISDBoxJson,
     type OpenISDProjectJson,
 } from './openisdSchema.js';
+import {emptyBoxJson} from './boxDefaults.js';
+import {enteredEntry} from './specEntry.js';
 import {OpenISDDriver} from './driver/openISDDriver.js';
 import {OpenISDPassiveRadiatorStandalone} from './passiveRadiator/openISDPassiveRadiatorStandalone.js';
 import {OpenISDProject} from './project/openISDProject.js';

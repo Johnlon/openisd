@@ -26,7 +26,7 @@ import {dirname, join} from 'node:path';
 import {WinISDDriver} from '@openisd/design/winisd';
 import {OpenISDDriver} from '@openisd/design';
 import {Engine} from '@openisd/design/engine';
-import {winISDDriverToOpenISDDeviceJson} from '../../domain/openisdSchema.js';
+import {winISDDriverToOpenISDDeviceJson} from '../../domain/winIsdDriverImport.js';
 import {openIsdDriverToWinIsdDriver} from '../../domain/driverYmlToOpenisdAndWdr.js';
 
 /** The field reads `value` and carries the `.wdr` provenance `state`. */

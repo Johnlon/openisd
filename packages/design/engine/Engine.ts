@@ -36,8 +36,15 @@ import {
   ventedPlausibility, ventedTuningPlausibility, ventedVolumePlausibility,
 } from './plausibility.js';
 import type {VentedPlausibilityIssue} from './plausibility.js';
-import type {DriverIssue, PrIssue, SealedAlignmentIssue, VentIssue} from './solver.js';
-import {solveDriver, solvePr, solveSealedAlignment, solveVent, terminalBL_Tm, terminalRe_ohm,} from './solver.js';
+import type {DriverIssue} from './solvers/solveDriver.js';
+import {solveDriver} from './solvers/solveDriver.js';
+import type {PrIssue} from './solvers/solvePr.js';
+import {solvePr} from './solvers/solvePr.js';
+import type {VentIssue} from './solvers/solveVent.js';
+import {solveVent} from './solvers/solveVent.js';
+import type {SealedAlignmentIssue} from './solvers/solveSealedAlignment.js';
+import {solveSealedAlignment} from './solvers/solveSealedAlignment.js';
+import {terminalBL_Tm, terminalRe_ohm} from './solvers/driverQuantities.js';
 import type {CalculationIssue, DqIssue, InvalidVolumeIssue, OutOfRangeIssue, TargetUnreachableIssue} from './consistency.js';
 import {
   boxVolumeValidity, dqIssueText, invalidVolumeToText, issueFields, issueFormula, issueToText,

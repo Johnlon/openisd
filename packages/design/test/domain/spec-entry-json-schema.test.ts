@@ -1,8 +1,10 @@
 import {describe, expect, it} from 'vitest';
 import {
-  calculatedEntry, enteredEntry, specEntryJsonSchema, sortKeysDeep,
-  wiringFromRecord, VoiceCoilWiring, openISDProjectJsonSchema,
+  specEntryJsonSchema, openISDProjectJsonSchema,
 } from '../../domain/openisdSchema.js';
+import {calculatedEntry, enteredEntry} from '../../domain/specEntry.js';
+import {sortKeysDeep} from '../../domain/openIsdDeviceJsonIo.js';
+import {wiringFromRecord, VoiceCoilWiring} from '../../domain/voiceCoilWiring.js';
 
 describe('specEntryJsonSchema — the {state, value} sum type (S2-7b / T11)', () => {
   it('rejects a bare {origin, readings} shape with no state key (D15 — no legacy upgrade; the bridge builds the entry)', () => {

@@ -37,12 +37,14 @@ import {parse, stringify as stringifyYaml} from 'yaml';
 import {
   driverYmlToOpenisdAndWdr,
   winIsdDriverTextToOpenIsdDriver,
+} from '../../domain/driverYmlToOpenisdAndWdr.js';
+import {
   wdrDriverDiffs,
   oidDriverDiffs,
   textRoundTripDiff,
   wdrRecordRoundTripDiffs,
   jsonRoundTripDiffs,
-} from '../../domain/driverYmlToOpenisdAndWdr.js';
+} from '../../domain/driverRoundTripDiffs.js';
 import {OpenISDDriver, OpenISDPassiveRadiatorStandalone} from '../../domain/index.js';
 import {Engine} from '../../engine/index.js';
 import {WinISDDriver} from '../../winisd/winisdDriver.js';
@@ -472,11 +474,13 @@ describe('driverYmlToOpenisdAndWdr — one call, both derived files, one error a
     const rtErrors = errors.filter(e => e.field === 'wdr-record-round-trip');
     assert.deepEqual(rtErrors, [], `unexpected: ${JSON.stringify(rtErrors)}`);
     // Non-vacuity: the field name itself must be one the bridge actually emits somewhere, or this
-    // assertion passes for the wrong reason (nothing ever produces that field, ever).
+    // assertion passes for the wrong reason (nothing ever produces that field, ever). It is
+    // `wdrRecordRoundTripDiffs`'s own literal, in `driverRoundTripDiffs.ts` (split out of the
+    // bridge file this test names — moves only, no behaviour change).
     assert.ok(
-      readFileSync(join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'domain', 'driverYmlToOpenisdAndWdr.ts'), 'utf8')
+      readFileSync(join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'domain', 'driverRoundTripDiffs.ts'), 'utf8')
         .includes('wdr-record-round-trip'),
-      'the bridge source does not mention this field at all — the check does not exist yet',
+      'the round-trip module does not mention this field at all — the check does not exist yet',
     );
   });
 

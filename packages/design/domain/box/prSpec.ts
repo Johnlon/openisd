@@ -1,6 +1,6 @@
 import { DualWriteFieldImpl, absentCell, enteredCell } from '../cell.js';
 import type { Calculatable, Calculated, Clearable, Entered, Precise, Readable, SimpleField, Unsolvable, Writable } from '../cell.js';
-import { enteredEntry, winningValue } from '../openisdSchema.js';
+import { enteredEntry, winningValue } from '../specEntry.js';
 import type { PassiveRadiatorSpecsSection } from '../openisdSchema.js';
 
 /** The names of `PassiveRadiatorSpecsSection`'s spec-entry fields. */

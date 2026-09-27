@@ -7,8 +7,10 @@ import { ReadableFieldImpl, SetOnlyFieldImpl, absentCell, enteredCell, resolving
 import type { Entered, Readable, SimpleField, Writable } from '../cell.js';
 import { openIsdDriverToWinIsdDriver, winIsdDriverTextToOpenIsdDriver } from '../driverYmlToOpenisdAndWdr.js';
 import { newUuid } from '../newUuid.js';
-import { OpenISDDeviceJson, asDriverDevice, driverSpecsOf, winningValue } from '../openisdSchema.js';
+import { asDriverDevice, driverSpecsOf } from '../openisdSchema.js';
 import type { DriverDeviceJson } from '../openisdSchema.js';
+import { OpenISDDeviceJson } from '../openIsdDeviceJsonIo.js';
+import { winningValue } from '../specEntry.js';
 import { blankDeviceRecord } from './blankDeviceRecord.js';
 import { driverSolverParamsOf } from './driverSolverParamsOf.js';
 import { OpenISDDevice } from './openISDDevice.js';
