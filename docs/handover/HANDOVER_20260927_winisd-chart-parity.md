@@ -70,6 +70,22 @@ Box-type dispatcher 0x566850: 0 sealed 0x4618f0, 1 vented 0x456800, 2 bp4 0x457a
   Rap = ω·Map/Qp (`portLoss`, per-frequency). ⚠ Unverified what WinISD's vented routine 0x456800
   does for Ql, Qa and Qp: read its disassembly first (as done for sealed f_4618f0), then capture
   with non-default Ql/Qa/Qp to separate them. Expect this to be the first vented gap.
+- **End correction default differs.** OpenISD `END_CORRECTION = 0.732` (`engine/air.ts`, the
+  default argument of `ventLength`/`tuningFromLength`); WinISD's default is 0.6 per vent
+  (`[VentRear] endcorrection`). Check which value each caller passes.
+- **Vent shape and count.** WinISD: round or rectangular (`Shape`, `dia1`, `dia2`, `carea`,
+  `crosscalc`), `Num` vents. OpenISD import reads `Num` only.
+- **Port model.** OpenISD has an optional transmission-line port (`useTransmissionLinePortModel`);
+  WinISD is lumped. Make sure it is off for the comparison.
+- **Port air velocity definition.** Peak or RMS, at which input power, one vent or all — take it
+  from the capture, as excursion's √2 was for sealed.
+- **Vented design limits.** OpenISD app settings carry `ventedLimits` (Options dialog). Check
+  whether any WinISD chart or readout uses a port-velocity limit.
+- **Variants.** Once default vented matches: VC inductance on, Rg 0/10 Ω with driver side on/off
+  (as done for sealed), and more than one vent.
+- **Box readouts.** Fb, F3 and vent length/area readouts on the Box tab, not only the charts.
+- **EQ/Filter charts.** The 3 box-independent filter charts are unchecked for every box type,
+  sealed included.
 - Open: [BUG_20260918_no-ui-path-to-enter-a-vent-length](../../bugs/BUG_20260918_no-ui-path-to-enter-a-vent-length.md).
 
 ## Open items
