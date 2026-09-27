@@ -105,7 +105,12 @@ Still open for vented:
 2. Domain file split: `openisdDomain.ts` by area, one class per file, no behaviour change.
 3. Bandpass 4th fix ([bug](../../bugs/BUG_20260927_bandpass4-box-not-winisd-form.md)).
 4. Box-volume validity into the domain ([bug](../../bugs/BUG_20260927_box-volume-validity-decided-in-ui.md)).
-5. `OpenISDProject` split by responsibility — plan first.
+5. Design-package file splits, no behaviour change: `engine/solver.ts` (one file per solver),
+   `domain/openisdSchema.ts` (data shapes vs the logic in it), `domain/driverYmlToOpenisdAndWdr.ts`
+   (conversion vs diff tools).
+6. `OpenISDProject` split by responsibility — plan first.
+7. UI splits (`OriginalShell-hooks.ts` per tab, `appState.ts`, big `.vue` files) — after mobile
+   Phase 1 is pushed.
 
 ## Next: passive radiator, then bandpass 4th
 
