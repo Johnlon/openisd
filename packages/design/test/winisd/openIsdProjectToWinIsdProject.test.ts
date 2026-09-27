@@ -31,6 +31,9 @@ const GOLDEN_PASSIVE_RADIATOR_WPR = join(GOLDENS_DIR, 'passive-radiator.wpr');
 // A real WinISD-written `.wpr` with a [Filters] section (2 entries): the sample this bridge's
 // own doc points at.
 const SAMPLE_PASSIVE_RADIATOR_WPR = join(here, '..', '..', '..', '..', 'docs', 'samples', 'sample_project_passive-radiator.wpr');
+// A real WinISD-written vented `.wpr`: dia1=0.102, endcorrection=0.732, Rg=0.1, Qlr=10/Qar=100/
+// Qpr=100 — this task's own ground truth for the box-losses/vent-geometry/Rg import.
+const SAMPLE_VENTED_WPR = join(here, '..', '..', '..', '..', 'docs', 'samples', 'sample_project_vented.wpr');
 // 20 filters, every WinISD type and every low/highpass subtype, none missing/malformed
 // (winisd_research/runs/filt-all-1/w5.wpr — copied per this task's own brief).
 const MANY_FILTERS_WPR = join(here, 'fixtures', 'filters', 'many-filters.wpr');
@@ -645,6 +648,116 @@ describe('winIsdProjectToOpenIsdProject — .wpr text back to a project (round t
     assert.equal(project.creator.value, 'Test Creator');
     assert.equal(project.created.value, '20260101');
     assert.equal(project.modified.value, '20260102');
+  });
+});
+
+describe('winIsdProjectToOpenIsdProject — box losses, vent geometry and Rg', () => {
+  it('sealed box: [Box] Qlr/Qar and [SignalSource] Rg import into losses.Ql/Qa and Rs_ohm', () => {
+    const text = '[ProjectInfo]\n[Driver]\nBrand=Test\nModel=Driver\n'
+      + '[Box]\nBType=0\nVr=0.02\nQlr=7\nQar=55\n[SignalSource]\nRg=0.25\n';
+    const engine = new Engine();
+    const {value: project, errors} = winIsdProjectToOpenIsdProject(text, engine);
+    assert.equal(errors.length, 0, JSON.stringify(errors));
+    if (!project) throw new Error('expected a project');
+    assert.equal(project.box.sealed.losses.Ql.value, 7);
+    assert.equal(project.box.sealed.losses.Qa.value, 55);
+    assert.equal(project.Rs_ohm.value, 0.25);
+  });
+
+  it('vented box: sample_project_vented.wpr\'s own losses, [VentRear] dia1/endcorrection and Rg import exactly', () => {
+    const text = readFileSync(SAMPLE_VENTED_WPR, 'utf8');
+    const engine = new Engine();
+    const {value: project, errors} = winIsdProjectToOpenIsdProject(text, engine);
+    assert.equal(errors.length, 0, JSON.stringify(errors));
+    if (!project) throw new Error('expected a project');
+    assert.equal(project.box.vented.losses.Ql.value, 10);
+    assert.equal(project.box.vented.losses.Qa.value, 100);
+    assert.equal(project.box.vented.losses.Qp.value, 100);
+    assert.equal(project.box.vented.vent.diameter_m.value, 0.102);
+    assert.equal(project.box.vented.vent.endCorrection_m.value, 0.732);
+    assert.equal(project.Rs_ohm.value, 0.1);
+  });
+
+  it('bandpass4 box: rear/front losses, [VentFront] dia1/endcorrection and Rg import exactly', () => {
+    const text = '[ProjectInfo]\n[Driver]\nBrand=Test\nModel=Driver\n'
+      + '[Box]\nBType=2\nVr=0.01\nVf=0.02\nFf=60\nQlr=6\nQar=66\nQiclfr=44\nQlf=9\nQaf=88\nQpf=77\n'
+      + '[VentFront]\nShape=1\ndia1=0.06\nendcorrection=0.55\n[SignalSource]\nRg=0.33\n';
+    const engine = new Engine();
+    const {value: project, errors} = winIsdProjectToOpenIsdProject(text, engine);
+    assert.equal(errors.length, 0, JSON.stringify(errors));
+    if (!project) throw new Error('expected a project');
+    const rear = project.box.bandpass4.chambers.rear.losses;
+    const front = project.box.bandpass4.chambers.front.losses;
+    assert.equal(rear.Ql.value, 6);
+    assert.equal(rear.Qa.value, 66);
+    assert.equal(rear.Qicl.value, 44);
+    assert.equal(front.Ql.value, 9);
+    assert.equal(front.Qa.value, 88);
+    assert.equal(front.Qp.value, 77);
+    assert.equal(project.box.bandpass4.vents.front.diameter_m.value, 0.06);
+    assert.equal(project.box.bandpass4.vents.front.endCorrection_m.value, 0.55);
+    assert.equal(project.Rs_ohm.value, 0.33);
+  });
+
+  it('passive-radiator box: [Box] Qlr/Qar and Rg import into losses.Ql/Qa and Rs_ohm', () => {
+    const text = '[ProjectInfo]\n[Driver]\nBrand=Test\nModel=Driver\n'
+      + '[Box]\nBType=4\nVr=0.03\nFr=35\nQlr=8\nQar=44\n[SignalSource]\nRg=0.5\n';
+    const engine = new Engine();
+    const {value: project, errors} = winIsdProjectToOpenIsdProject(text, engine);
+    assert.equal(errors.length, 0, JSON.stringify(errors));
+    if (!project) throw new Error('expected a project');
+    assert.equal(project.box.passiveRadiator.losses.Ql.value, 8);
+    assert.equal(project.box.passiveRadiator.losses.Qa.value, 44);
+    assert.equal(project.Rs_ohm.value, 0.5);
+  });
+
+  it('a missing or non-numeric key leaves OpenISD\'s own default in place, no error', () => {
+    const text = '[ProjectInfo]\n[Driver]\nBrand=Test\nModel=Driver\n'
+      + '[Box]\nBType=1\nVr=0.03\nFr=40\nQar=notanumber\n[VentRear]\nendcorrection=bogus\n';
+    const engine = new Engine();
+    const {value: project, errors} = winIsdProjectToOpenIsdProject(text, engine);
+    assert.equal(errors.length, 0, JSON.stringify(errors));
+    if (!project) throw new Error('expected a project');
+    assert.equal(project.box.vented.losses.Ql.value, 10); // default, Qlr key absent
+    assert.equal(project.box.vented.losses.Qa.value, 100); // default, Qar not numeric
+    assert.equal(project.box.vented.vent.endCorrection_m.value, 0.613); // default, endcorrection not numeric
+    assert.equal(project.Rs_ohm.value, 0.1); // default, Rg absent
+  });
+
+  it('[VentRear] Shape other than round: diameter is skipped with a warn, endcorrection still imports', () => {
+    const text = '[ProjectInfo]\n[Driver]\nBrand=Test\nModel=Driver\n'
+      + '[Box]\nBType=1\nVr=0.03\nFr=40\n[VentRear]\nShape=2\ndia1=0.09\nendcorrection=0.4\n';
+    const engine = new Engine();
+    const {value: project, errors} = winIsdProjectToOpenIsdProject(text, engine);
+    if (!project) throw new Error('expected a project: ' + JSON.stringify(errors));
+    assert.equal(project.box.vented.vent.endCorrection_m.value, 0.4);
+    assert.ok(errors.some((e) => e.level === 'warn' && e.field === 'VentRear Shape'
+      && e.message === 'vent shape 2 not imported: only round vents are read'));
+  });
+
+  it('round-trips a vented project\'s losses, vent diameter/end correction and Rs through .wpr text', () => {
+    const project = aProject((p) => p.vented().volume_m3(0.03).tuning_goal_hz(40).build());
+    project.box.vented.losses.Ql.set(12);
+    project.box.vented.losses.Qa.set(120);
+    project.box.vented.losses.Qp.set(90);
+    project.box.vented.vent.diameter_m.set(0.08);
+    project.box.vented.vent.endCorrection_m.set(0.7);
+    project.Rs_ohm.set(0.2);
+
+    const {value: wpr, errors} = openIsdProjectToWinIsdProject(project, new Engine());
+    assert.equal(errors.length, 0, JSON.stringify(errors));
+    if (!wpr) throw new Error('expected a WinISDProject');
+
+    const {value: reimported, errors: importErrors} = winIsdProjectToOpenIsdProject(wpr.toWpr(), new Engine());
+    assert.equal(importErrors.length, 0, JSON.stringify(importErrors));
+    if (!reimported) throw new Error('expected a project');
+
+    assert.equal(reimported.box.vented.losses.Ql.value, 12);
+    assert.equal(reimported.box.vented.losses.Qa.value, 120);
+    assert.equal(reimported.box.vented.losses.Qp.value, 90);
+    assert.equal(reimported.box.vented.vent.diameter_m.value, 0.08);
+    assert.equal(reimported.box.vented.vent.endCorrection_m.value, 0.7);
+    assert.equal(reimported.Rs_ohm.value, 0.2);
   });
 });
 

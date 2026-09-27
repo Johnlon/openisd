@@ -17,7 +17,7 @@
  * comment and call sites in `project.ts`) — the ÷100/×100 conversion happens ONLY here, never
  * inside `WinISDProject` or `OpenISDProject` themselves.
  */
-import type {Box} from './index.js';
+import type {Box, Vent} from './index.js';
 import {OpenISDDriver, OpenISDPassiveRadiatorStandalone, OpenISDProject} from './index.js';
 import {type DriverError, Engine, type Filter} from '../engine/index.js';
 
@@ -243,7 +243,11 @@ function ventSectionValues(
     // A resolved project always states a port count — its resolve stores the default as a 'C'
     // entry — so null reaches here only from an unresolved one, and writes the same default.
     v.Num = vent.count.value;
-    if (vent.shape.value === 'round') v.Shape = 1; // ⚠ unverified: slotted's own code is not confirmed
+    if (vent.shape.value === 'round') {
+      v.Shape = 1; // ⚠ unverified: slotted's own code is not confirmed
+      const diameter = vent.diameter_m.value;
+      if (diameter != null) v.dia1 = diameter;
+    }
     if (fb_hz != null) v.Fb = fb_hz;
     const area = vent.area_m2.value;
     if (area != null) v.carea = area;
@@ -259,6 +263,32 @@ function ventSectionValues(
     out.VentFront = oneVent(box.bandpass4.vents.front, box.bandpass4.chambers.front.tuning_goal_hz.value);
   }
   return out;
+}
+
+/** One `[VentRear]`/`[VentFront]` block's `dia1`/`endcorrection` -> a `VentWindow`'s
+ *  `diameter_m`/`endCorrection_m`. `endcorrection` is a coefficient (×D) in the file and in
+ *  `endCorrection_m` alike, so it carries over unchanged whatever the shape. `dia1` only applies
+ *  to a round vent (`Shape=1`) — WinISD's own non-round codes are not confirmed anywhere in this
+ *  repo (`ventSectionValues`'s own doc comment), so any other stated `Shape` skips the diameter
+ *  with a warn rather than guessing what its geometry keys mean. A missing or non-numeric key
+ *  leaves the vent's own default in place (older files omit keys) — never an error. Called
+ *  BEFORE `vent.count.set(Num)`: `diameter_m`'s write is what the vent's own length ends up
+ *  computed from, so it must land first. */
+function importVentGeometry(
+  wpr: WinISDProject, section: string, vent: Vent, errors: DriverError[],
+): void {
+  const shapeRaw = wpr.number(section, 'Shape');
+  if (shapeRaw != null && shapeRaw !== 1) {
+    errors.push({
+      level: 'warn', field: `${section} Shape`,
+      message: `vent shape ${shapeRaw} not imported: only round vents are read`,
+    });
+  } else {
+    const dia1 = wpr.number(section, 'dia1');
+    if (dia1 != null) vent.diameter_m.set(dia1);
+  }
+  const endcorrection = wpr.number(section, 'endcorrection');
+  if (endcorrection != null) vent.endCorrection_m.set(endcorrection);
 }
 
 /**
@@ -297,6 +327,10 @@ export function winIsdProjectToOpenIsdProject(
         return {value: null, errors};
       }
       project = builder.sealed().volume_m3(Vr).build();
+      const Qlr = wpr.number('Box', 'Qlr');
+      if (Qlr != null) project.box.sealed.losses.Ql.set(Qlr);
+      const Qar = wpr.number('Box', 'Qar');
+      if (Qar != null) project.box.sealed.losses.Qa.set(Qar);
       break;
     }
     case 1: {
@@ -310,6 +344,15 @@ export function winIsdProjectToOpenIsdProject(
         return {value: null, errors};
       }
       project = builder.vented().volume_m3(Vr).tuning_goal_hz(Fr).build();
+      const Qlr = wpr.number('Box', 'Qlr');
+      if (Qlr != null) project.box.vented.losses.Ql.set(Qlr);
+      const Qar = wpr.number('Box', 'Qar');
+      if (Qar != null) project.box.vented.losses.Qa.set(Qar);
+      const Qpr = wpr.number('Box', 'Qpr');
+      if (Qpr != null) project.box.vented.losses.Qp.set(Qpr);
+      // Diameter must land before the port count: the count write is what triggers the vent's
+      // own length to be read next, and that has to see the real area, not the default one.
+      importVentGeometry(wpr, 'VentRear', project.box.vented.vent, errors);
       const Num = wpr.number('VentRear', 'Num');
       if (Num != null) project.box.vented.vent.count.set(Num);
       break;
@@ -326,6 +369,22 @@ export function winIsdProjectToOpenIsdProject(
         return {value: null, errors};
       }
       project = builder.bandpass4().rearVolume_m3(Vr).frontVolume_m3(Vf).frontTuning_hz(Ff).build();
+      const rearLosses = project.box.bandpass4.chambers.rear.losses;
+      const Qlr = wpr.number('Box', 'Qlr');
+      if (Qlr != null) rearLosses.Ql.set(Qlr);
+      const Qar = wpr.number('Box', 'Qar');
+      if (Qar != null) rearLosses.Qa.set(Qar);
+      const Qiclfr = wpr.number('Box', 'Qiclfr');
+      if (Qiclfr != null) rearLosses.Qicl.set(Qiclfr);
+      const frontLosses = project.box.bandpass4.chambers.front.losses;
+      const Qlf = wpr.number('Box', 'Qlf');
+      if (Qlf != null) frontLosses.Ql.set(Qlf);
+      const Qaf = wpr.number('Box', 'Qaf');
+      if (Qaf != null) frontLosses.Qa.set(Qaf);
+      const Qpf = wpr.number('Box', 'Qpf');
+      if (Qpf != null) frontLosses.Qp.set(Qpf);
+      // Diameter must land before the port count — see the vented case's own comment.
+      importVentGeometry(wpr, 'VentFront', project.box.bandpass4.vents.front, errors);
       const Num = wpr.number('VentFront', 'Num');
       if (Num != null) project.box.bandpass4.vents.front.count.set(Num);
       break;
@@ -369,6 +428,10 @@ export function winIsdProjectToOpenIsdProject(
       };
       const radiator = OpenISDPassiveRadiatorStandalone.wrap(radiatorRecord, engine);
       project = builder.passiveRadiator().volume_m3(Vr).tuning_goal_hz(Fr).count(Npr).radiator(radiator).build();
+      const Qlr = wpr.number('Box', 'Qlr');
+      if (Qlr != null) project.box.passiveRadiator.losses.Ql.set(Qlr);
+      const Qar = wpr.number('Box', 'Qar');
+      if (Qar != null) project.box.passiveRadiator.losses.Qa.set(Qar);
       break;
     }
     default: {
@@ -386,6 +449,9 @@ export function winIsdProjectToOpenIsdProject(
   if (T != null) project.envTempK.set(T);
   if (p != null) project.envPressurePa.set(p);
   if (phi != null) project.envHumidityPct.set(phi * 100); // phi is a FRACTION in the file
+
+  const Rg = wpr.number('SignalSource', 'Rg');
+  if (Rg != null) project.Rs_ohm.set(Rg);
 
   const P = wpr.number('SignalSource', 'P');
   // P can be stated only against a usable Re; without one the voltage stands alone.
