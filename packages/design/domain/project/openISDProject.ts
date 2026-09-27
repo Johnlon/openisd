@@ -1021,7 +1021,17 @@ export class OpenISDProject {
             case 'bandpass4': {
                 const Sp = box.bandpass4.vents.front.totalArea_m2();
                 const Leff = box.bandpass4.vents.front.effectiveLength_m();
-                return {Vf: box.bandpass4.chambers.front.volume_m3.value, Sp: Sp ?? undefined, Leff: Leff ?? undefined};
+                const rear = box.bandpass4.chambers.rear.losses;
+                const front = box.bandpass4.chambers.front;
+                // circuit.ts's bandpass4 `winisd-lossy` branch reads each chamber's OWN losses
+                // and the front's own tuning — never the shared Ql/Qa/Qp above (engine/types.ts
+                // `SweepParams.Qlr` doc, bugs/BUG_20260927_bandpass4-box-not-winisd-form.md).
+                return {
+                    Vf: front.volume_m3.value, Sp: Sp ?? undefined, Leff: Leff ?? undefined,
+                    Qlr: rear.Ql.value, Qar: rear.Qa.value, Qiclfr: rear.Qicl.value,
+                    Qlf: front.losses.Ql.value, Qaf: front.losses.Qa.value, Qpf: front.losses.Qp.value,
+                    Ff: front.tuning_goal_hz.value ?? undefined,
+                };
             }
             case 'box-passive-radiator': {
                 const r = box.passiveRadiator.radiator.spec;
