@@ -1,5 +1,5 @@
 import type {BoxType, FilterType, PassFamily, VentedAlignment, Wiring} from '../engine/index.js';
-import type {VoiceCoilWiring} from '../domain/openisdSchema.js';
+import type {VoiceCoilWiring} from '../domain/voiceCoilWiring.js';
 import type {VentShape} from '../domain/vent.js';
 
 /**

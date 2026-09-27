@@ -2,7 +2,7 @@ import { Engine } from '../../engine/index.js';
 import type { Air } from '../../engine/index.js';
 import { defaultingEntryField, entryField, focus, nullableField, pairedField } from '../cell.js';
 import type { Calculatable, Calculated, Clearable, Entered, Precise, Readable, SimpleField, Unsolvable, Writable } from '../cell.js';
-import { calcVentCount } from '../openisdSchema.js';
+import { calcVentCount } from '../specEntry.js';
 import type { VentJson } from '../openisdSchema.js';
 import type { Vent, VentShape } from '../vent.js';
 

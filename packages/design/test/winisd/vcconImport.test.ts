@@ -19,7 +19,8 @@ import assert from 'node:assert/strict';
 
 import {WinISDDriver} from '../../winisd/winisdDriver.js';
 import type {SpecEntryJson} from '../../domain/openisdSchema.js';
-import {driverSpecsOf, winISDDriverToOpenISDDeviceJson} from '../../domain/openisdSchema.js';
+import {driverSpecsOf} from '../../domain/openisdSchema.js';
+import {winISDDriverToOpenISDDeviceJson} from '../../domain/winIsdDriverImport.js';
 
 /** Every entry this file imports is entered — narrows the `SpecEntryJson` union so a test can
  *  read `.readings` without repeating the guard at each call site. */

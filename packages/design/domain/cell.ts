@@ -1,5 +1,6 @@
 import type {DqIssue, SolverField, SolverInput} from '@openisd/design/engine';
-import type {DqMark, SpecEntryJson} from './openisdSchema.js';
+import type {SpecEntryJson} from './openisdSchema.js';
+import type {DqMark} from './specEntry.js';
 import {halfUlp} from './precision.js';
 
 // ───────────────────────────────── Capability atoms ─────────────────────────────────────────────

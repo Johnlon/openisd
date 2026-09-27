@@ -24,7 +24,7 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { Engine, LossMode } from '@openisd/design/engine';
 import { OpenISDDriver, type Readable } from '@openisd/design';
-import { winISDDriverToOpenISDDeviceJson } from '../../domain/openisdSchema.js';
+import { winISDDriverToOpenISDDeviceJson } from '../../domain/winIsdDriverImport.js';
 import { openIsdDriverToWinIsdDriver } from '../../domain/driverYmlToOpenisdAndWdr.js';
 import { WinISDDriver } from '../../winisd/index.js';
 

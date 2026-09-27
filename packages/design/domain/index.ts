@@ -15,7 +15,7 @@ export { realAppContext } from './appContext.js';
 export type { VentShape, Vent } from './vent.js';
 // A VALUE export, not a type-only one: `VoiceCoilWiring.Series` must be usable at runtime, which
 // is the whole point of it being an enum rather than a bare string literal.
-export { VoiceCoilWiring } from './openisdSchema.js';
+export { VoiceCoilWiring } from './voiceCoilWiring.js';
 export type {
   SealedLosses,
   VentedLosses,

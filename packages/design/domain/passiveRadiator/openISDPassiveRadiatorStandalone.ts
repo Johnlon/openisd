@@ -1,7 +1,8 @@
 import { Engine } from '../../engine/index.js';
 import { realAppContext } from '../appContext.js';
 import type { AppContext } from '../appContext.js';
-import { OpenISDDeviceJson, asRadiatorDevice } from '../openisdSchema.js';
+import { asRadiatorDevice } from '../openisdSchema.js';
+import { OpenISDDeviceJson } from '../openIsdDeviceJsonIo.js';
 import type { RadiatorDeviceJson } from '../openisdSchema.js';
 import { blankDeviceRecord } from '../driver/blankDeviceRecord.js';
 import { OpenISDPassiveRadiator } from './openISDPassiveRadiator.js';

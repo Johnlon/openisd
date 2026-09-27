@@ -18,15 +18,17 @@
  *
  * `packages/design/AGENTS.md` "INTERNAL JSON RECORD TYPES — NEVER RE-EXPORTED FROM
  * domain/index.ts" (John Lonergan, 2026-09-05): `OpenISDDeviceJson`, `OpenISDBoxJson`,
- * `OpenISDProjectJson` and every JSON-shape type declared alongside them in
- * `domain/openisdSchema.ts` may be exported FROM THAT FILE so other files inside
- * `packages/design/domain/` can import them — that is what makes colocating them there useful
- * instead of leaving them locked inside `openisdDomain.ts`. But `domain/index.ts` must never re-export
- * any of them: a consumer outside `domain/` gets the class/interface surface those files already
- * publish (`OpenISDDriver`, `OpenISDProject`, `Box`, and so on), never the raw record shape.
+ * `OpenISDProjectJson` and every JSON-shape type declared alongside them in `domain/openisdSchema.ts`
+ * (`DqMark` alone lives in `domain/specEntry.ts`, since the openisdSchema.ts split by
+ * responsibility moved it there — it is still a record shape, just declared in a sibling file
+ * now) may be exported from their OWN file so other files inside `packages/design/domain/` can
+ * import them — that is what makes colocating them there useful instead of leaving them locked
+ * inside `openisdDomain.ts`. But `domain/index.ts` must never re-export any of them: a consumer
+ * outside `domain/` gets the class/interface surface those files already publish
+ * (`OpenISDDriver`, `OpenISDProject`, `Box`, and so on), never the raw record shape.
  *
  * STRUCTURAL: reads `domain/index.ts`'s own export specifiers via the AST, rather than trusting a
- * hand-maintained list to stay in sync with what `openisdSchema.ts` actually declares.
+ * hand-maintained list to stay in sync with what its source files actually declare.
  */
 import {describe, expect, it} from 'vitest';
 import {Project} from 'ts-morph';
@@ -49,20 +51,21 @@ const RECORD_SHAPE_NAMES = [
   'OpenISDSignalJson', 'OpenISDProjectMetaJson', 'OpenISDProjectJson', 'OpenISDDeviceJson',
 ] as const;
 
-/** Every one of `RECORD_SHAPE_NAMES` is actually declared in `openisdSchema.ts` — a name
- *  in the list that no longer exists there would hide a real rename instead of catching it. */
+/** Every one of `RECORD_SHAPE_NAMES` is actually declared in `openisdSchema.ts` or one of its
+ *  split-out siblings (`specEntry.ts` holds `DqMark`) — a name in the list that no longer exists
+ *  in any of them would hide a real rename instead of catching it. */
 function recordShapeNames(): string[] {
   const project = new Project({ skipAddingFilesFromTsConfig: true });
-  const file = project.addSourceFileAtPath(
-    path.join(packageRoot, 'domain', 'openisdSchema.ts'));
+  const files = ['openisdSchema.ts', 'specEntry.ts'].map((name) =>
+    project.addSourceFileAtPath(path.join(packageRoot, 'domain', name)));
 
-  const declared = new Set([
+  const declared = new Set(files.flatMap((file) => [
     ...file.getInterfaces().map((d) => d.getName()),
     ...file.getTypeAliases().map((d) => d.getName()),
-  ]);
+  ]));
   for (const name of RECORD_SHAPE_NAMES) {
     expect(declared.has(name), `${name} is listed as a record shape but is no longer declared ` +
-      'in domain/openisdSchema.ts — update RECORD_SHAPE_NAMES').toBe(true);
+      'in domain/openisdSchema.ts or domain/specEntry.ts — update RECORD_SHAPE_NAMES').toBe(true);
   }
   return [...RECORD_SHAPE_NAMES];
 }

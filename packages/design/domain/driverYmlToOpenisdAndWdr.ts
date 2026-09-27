@@ -30,11 +30,11 @@ import type {CellState} from "../winisd/cellState.js";
 import {
   type DriverSpec,
   type DriverDeviceJson,
-  winISDDriverToOpenISDDeviceJson,
-  sortKeysDeep,
   readingJsonSchema,
-  dqMarks,
 } from "./openisdSchema.js";
+import {winISDDriverToOpenISDDeviceJson} from "./winIsdDriverImport.js";
+import {sortKeysDeep} from "./openIsdDeviceJsonIo.js";
+import {dqMarks} from "./specEntry.js";
 import {selectOrigin} from "./selectOrigin.js";
 import {Corroboration, corroborate, type Reading} from "./corroboration.js";
 

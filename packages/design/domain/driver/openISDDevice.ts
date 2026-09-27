@@ -1,7 +1,7 @@
 import { Engine } from '../../engine/index.js';
 import { SetOnlyFieldImpl, absentCell, enteredCell } from '../cell.js';
 import type { Entered, Readable, SimpleField, Writable } from '../cell.js';
-import { OpenISDDeviceJson } from '../openisdSchema.js';
+import { OpenISDDeviceJson } from '../openIsdDeviceJsonIo.js';
 
 /** Schema-mandatory identity fields: always stated. */
 type MandatoryMetaFieldName = 'brand' | 'model' | 'manufacturer';

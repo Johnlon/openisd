@@ -1,7 +1,7 @@
 import { dateStamp } from '../appContext.js';
 import type { AppContext } from '../appContext.js';
 import { newUuid } from '../newUuid.js';
-import { OpenISDDeviceJson } from '../openisdSchema.js';
+import { OpenISDDeviceJson } from '../openIsdDeviceJsonIo.js';
 import type { DriverSpecsJson, RadiatorSpecsJson } from '../openisdSchema.js';
 
 /**

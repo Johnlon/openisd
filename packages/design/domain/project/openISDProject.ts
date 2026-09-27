@@ -6,7 +6,8 @@ import { CalculatedFieldImpl, DefaultingFieldImpl, DualWriteFieldImpl, SetOnlyFi
 import type { Calculatable, Calculated, Clearable, Entered, Readable, SimpleField, Unsolvable, Writable } from '../cell.js';
 import { newUuid } from '../newUuid.js';
 import { openIsdProjectToWinIsdProject, winIsdProjectToOpenIsdProject } from '../openIsdProjectToWinIsdProject.js';
-import { calcVentCount, calculatedEntry, enteredEntry, openISDProjectSessionJsonSchema } from '../openisdSchema.js';
+import { openISDProjectSessionJsonSchema } from '../openisdSchema.js';
+import { calcVentCount, calculatedEntry, enteredEntry } from '../specEntry.js';
 import type { EnvironmentCondition, OpenISDEnvironmentJson, OpenISDProjectJson, OpenISDProjectSessionJson } from '../openisdSchema.js';
 import { ProjectBuilder } from '../openisdTransforms.js';
 import type { Vent } from '../vent.js';

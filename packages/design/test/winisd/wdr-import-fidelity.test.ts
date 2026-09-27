@@ -29,7 +29,7 @@ import {dirname, join} from 'node:path';
 import {WinISDDriver} from '@openisd/design/winisd';
 import {OpenISDDriver} from '@openisd/design';
 import {Engine} from '@openisd/design/engine';
-import {winISDDriverToOpenISDDeviceJson} from '../../domain/openisdSchema.js';
+import {winISDDriverToOpenISDDeviceJson} from '../../domain/winIsdDriverImport.js';
 import {openIsdDriverToWinIsdDriver} from '../../domain/driverYmlToOpenisdAndWdr.js';
 
 /** The app's view of a `.wdr`: read as-read by the serialiser, projected into the record,
