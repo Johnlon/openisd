@@ -131,6 +131,15 @@ export type FilterSpec =
 export type Filter = { id?: string; enabled: boolean } & FilterSpec;
 export type FilterType = FilterSpec['type'];
 
+/** One filter's `.wpr` `[Filters]` on-disk shape: `filter<i>type`/`filter<i>params`
+ *  (winisd_research/PROBE_FINDINGS.md "`.wpr` `[Filters]` format"). `type` is WinISD's own
+ *  Filter Editor type number (0-7); `params` is the `;`-separated field list for that type,
+ *  enabled included. */
+export interface WprFilter {
+  type: number;
+  params: string;
+}
+
 /**
  * Sweep/solve parameters. `Vb` and `eg` are required (every call site — the
  * store and every test — supplies them). Box-specific fields (Vf, Sp, Leff,

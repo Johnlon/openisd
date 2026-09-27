@@ -1,9 +1,9 @@
 import {biquad} from './biquad.js';
 import {cDiv, cx} from '../complex.js';
-import type {Complex, FilterSpec} from '../types.js';
+import type {Complex, Filter, FilterSpec, WprFilter} from '../types.js';
 import type {FilterModel} from './FilterModel.js';
 
-type Spec = Extract<FilterSpec, {type: 'allpass'}>;
+type Spec = Extract<Filter, {type: 'allpass'}>;
 
 /**
  * Allpass. Order 1: (1 − jωt/2)/(1 + jωt/2), DC group delay t. Order ≥ 2: the 2nd-order allpass
@@ -25,5 +25,20 @@ export class AllpassFilter implements FilterModel {
     const {order, t, Q} = this.spec;
     const q = order >= 2 ? `, Q=${Q.toFixed(2)}` : '';
     return `Allpass (n=${order}, t=${t.toFixed(3)} s${q})`;
+  }
+
+  wpr(): WprFilter {
+    const {order, t, Q, enabled} = this.spec;
+    return {type: 2, params: `0;${enabled ? 1 : 0};${order};${t};${Q}`};
+  }
+
+  /** `.wpr` params: `0;enabled;order;t;Q` — 5 fields, WinISD's own always-`0` first field. */
+  static fromWpr(fields: readonly string[]): FilterSpec | 'malformed' {
+    if (fields.length !== 5) return 'malformed';
+    const order = Number(fields[2]);
+    const t = Number(fields[3]);
+    const Q = Number(fields[4]);
+    if (!Number.isFinite(order) || !Number.isFinite(t) || !Number.isFinite(Q)) return 'malformed';
+    return {type: 'allpass', order, t, Q};
   }
 }

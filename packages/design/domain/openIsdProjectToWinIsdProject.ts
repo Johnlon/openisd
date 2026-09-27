@@ -19,7 +19,7 @@
  */
 import type {Box} from './index.js';
 import {OpenISDDriver, OpenISDPassiveRadiatorStandalone, OpenISDProject} from './index.js';
-import {type DriverError, Engine} from '../engine/index.js';
+import {type DriverError, Engine, type Filter} from '../engine/index.js';
 
 import {openIsdDriverToWinIsdDriver} from './driverYmlToOpenisdAndWdr.js';
 import {WinISDDriver} from '../winisd/winisdDriver.js';
@@ -38,7 +38,7 @@ type WprValues = Record<string, Record<string, string | number>>;
  * `{value: null, errors: [...]}`.
  */
 export function openIsdProjectToWinIsdProject(
-  project: OpenISDProject, _engine: Engine,
+  project: OpenISDProject, engine: Engine,
 ): { value: WinISDProject | null; errors: DriverError[] } {
   const errors: DriverError[] = [];
 
@@ -104,8 +104,60 @@ export function openIsdProjectToWinIsdProject(
     values.PassiveRadiator = prValues;
   }
 
+  values.Filters = filtersSectionValues(project.filters.value, engine, errors);
+
   const wpr = WinISDProject.build(wdrDriver.toWdrIni(), values);
   return {value: wpr, errors};
+}
+
+/** `[Filters]` values: `Count`, plus `filter<i>type`/`filter<i>params` renumbered sequentially
+ *  over the exportable filters — a low/high shelf has no WinISD type, so it is left out (with a
+ *  warn) rather than gapping the numbering `WinISDProject`'s own load would then misread. */
+function filtersSectionValues(
+  filters: readonly Filter[], engine: Engine, errors: DriverError[],
+): Record<string, string | number> {
+  const out: Record<string, string | number> = {};
+  let n = 0;
+  for (const filter of filters) {
+    const w = engine.filterWpr(filter);
+    if (w == null) {
+      const label = filter.type === 'lowshelf' ? 'low shelf' : 'high shelf';
+      errors.push({level: 'warn', field: 'Filters', message: `${label} not written: WinISD has no shelf filter`});
+      continue;
+    }
+    out[`filter${n}type`] = w.type;
+    out[`filter${n}params`] = w.params;
+    n++;
+  }
+  out.Count = n;
+  return out;
+}
+
+/**
+ * `[Filters]` entries `0..Count-1` -> `Filter[]`. An entry whose `filter<i>type`/
+ * `filter<i>params` keys are BOTH missing loads as WinISD's own default filter — measured
+ * (`winisd_research/runs/filter-trunc-1`): WinISD's own save stops writing entries after an
+ * Allpass, and on reload each missing entry becomes Lowpass/Butterworth/n=2/fc=50/Q=0.707,
+ * enabled. A present-but-malformed params line, an unknown type number, or (low/highpass only)
+ * a subtype above 3 is `Engine.filterFromWpr`'s own call (`filters.ts` "`.wpr` `[Filters]`
+ * import/export dispatch").
+ */
+function importFilters(wpr: WinISDProject, engine: Engine, errors: DriverError[]): Filter[] {
+  const count = wpr.number('Filters', 'Count') ?? 0;
+  const filters: Filter[] = [];
+  for (let i = 0; i < count; i++) {
+    const typeRaw = wpr.value('Filters', `filter${i}type`);
+    const paramsRaw = wpr.value('Filters', `filter${i}params`);
+    if (typeRaw == null || paramsRaw == null) {
+      errors.push({level: 'warn', field: 'Filters', message: `filter ${i} missing — WinISD loads it as its default lowpass`});
+      filters.push(engine.defaultFilter('lowpass'));
+      continue;
+    }
+    const {filter, warning} = engine.filterFromWpr(Number(typeRaw), paramsRaw.split(';'));
+    if (warning != null) errors.push({level: 'warn', field: 'Filters', message: `filter ${i}: ${warning}`});
+    if (filter != null) filters.push(filter);
+  }
+  return filters;
 }
 
 /** `[Box]`'s own values, per box type. `null` (with an error pushed) for a box type this bridge
@@ -349,6 +401,8 @@ export function winIsdProjectToOpenIsdProject(
   if (creator != null) project.creator.set(creator);
   if (created != null) project.created.set(created);
   if (modified != null) project.modified.set(modified);
+
+  project.filters.set(importFilters(wpr, engine, errors));
 
   return {value: project, errors};
 }

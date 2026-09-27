@@ -46,7 +46,7 @@ import type {LossMode, SealedParams} from './lossMode.js';
 import {sealedResonance, sourceLoadedQts} from './lossMode.js';
 import type {BoxParamsSolveResult} from './params.js';
 import {solveBoxParams} from './params.js';
-import {defaultFilter, filterCaption} from './filters.js';
+import {defaultFilter, filterCaption, filterFromWpr, filterWpr} from './filters.js';
 import type {MaxCurvesSolveResult, SweepSolveResult} from './sweep.js';
 import {
   classifyFinite,
@@ -73,7 +73,8 @@ import type {
   SweepResult,
   VentedAlignment,
   VentedDesign,
-  Wiring
+  Wiring,
+  WprFilter
 } from './types.js';
 import {simulatableBoxType as narrowBoxType} from './types.js';
 import type {DriverSolverParams, PrSolverParams, SealedAlignmentSolverParams, SignalSolverParams, VentSolverParams} from './solverTypes.js';
@@ -411,6 +412,21 @@ export class Engine {
   /** WinISD's Filters-list caption for one filter, exact wording. */
   filterCaption(f: Filter): string {
     return filterCaption(f);
+  }
+
+  /** This filter's `.wpr` `[Filters]` `filter<i>type`/`filter<i>params` shape, or `null` for a
+   *  type WinISD has no `.wpr` representation for (the OpenISD-only shelves). */
+  filterWpr(f: Filter): WprFilter | null {
+    return filterWpr(f);
+  }
+
+  /** One `.wpr` `[Filters]` entry, decoded — WinISD's own type number (`filter<i>type`, 0-7)
+   *  and its already-split `filter<i>params` fields. `filter` is `null` when WinISD skips the
+   *  entry outright (unknown type, or a low/highpass subtype above 3); `warning` is set
+   *  whenever the entry did not import as its own stated values (skipped, or params malformed
+   *  and WinISD's own default filter of that type was substituted). */
+  filterFromWpr(typeNum: number, fields: readonly string[]): {filter: Filter | null; warning: string | null} {
+    return filterFromWpr(typeNum, fields);
   }
 
   // ── THE SWEEP ─────────────────────────────────────────────────────────────────────────────

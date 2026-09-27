@@ -1,8 +1,8 @@
 import {biquad} from './biquad.js';
-import type {Complex, FilterSpec} from '../types.js';
+import type {Complex, Filter} from '../types.js';
 import type {FilterModel} from './FilterModel.js';
 
-type Spec = Extract<FilterSpec, {type: 'lowshelf' | 'highshelf'}>;
+type Spec = Extract<Filter, {type: 'lowshelf' | 'highshelf'}>;
 
 /**
  * OpenISD-only low/high shelves (not a WinISD type) — one class for both, since they differ
@@ -28,5 +28,11 @@ export class ShelfFilter implements FilterModel {
     const label = this.spec.type === 'lowshelf' ? 'Low shelf' : 'High shelf';
     const {fc, Q, gain} = this.spec;
     return `${label} (fc ${fc.toFixed(0)} Hz · Q ${Q.toFixed(2)} · ${gain.toFixed(1)} dB)`;
+  }
+
+  /** WinISD has no shelf filter type — nothing to write, and (unlike every WinISD type) no
+   *  `.wpr` type number to parse from either. */
+  wpr(): null {
+    return null;
   }
 }

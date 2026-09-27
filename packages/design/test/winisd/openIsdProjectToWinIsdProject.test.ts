@@ -15,6 +15,7 @@ import {readFileSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 import {dirname, join} from 'node:path';
 import {Engine} from '@openisd/design/engine';
+import type {Filter} from '@openisd/design/engine';
 import {OpenISDDriver, OpenISDPassiveRadiatorStandalone, OpenISDProject,} from '@openisd/design';
 import {
     openIsdProjectToWinIsdProject,
@@ -27,6 +28,16 @@ const GOLDEN_SEALED_SMALL_WPR = join(GOLDENS_DIR, 'sealed-small.wpr');
 const GOLDEN_VENTED_SMALL_WPR = join(GOLDENS_DIR, 'vented-small.wpr');
 const GOLDEN_BANDPASS4_WPR = join(GOLDENS_DIR, 'bandpass4.wpr');
 const GOLDEN_PASSIVE_RADIATOR_WPR = join(GOLDENS_DIR, 'passive-radiator.wpr');
+// A real WinISD-written `.wpr` with a [Filters] section (2 entries): the sample this bridge's
+// own doc points at.
+const SAMPLE_PASSIVE_RADIATOR_WPR = join(here, '..', '..', '..', '..', 'docs', 'samples', 'sample_project_passive-radiator.wpr');
+// 20 filters, every WinISD type and every low/highpass subtype, none missing/malformed
+// (winisd_research/runs/filt-all-1/w5.wpr — copied per this task's own brief).
+const MANY_FILTERS_WPR = join(here, 'fixtures', 'filters', 'many-filters.wpr');
+
+/** `[ProjectInfo]`/`[Driver]`/`[Box]` boilerplate for a filter-import test that only cares about
+ *  `[Filters]` — a minimal sealed box, matching the other inline-text tests in this file. */
+const FILTERS_TEST_BASE = '[ProjectInfo]\n[Driver]\nBrand=Test\nModel=Driver\n[Box]\nBType=0\nVr=0.02\n';
 
 /** One `KEY=value` from a golden `.wpr`'s named section, as written by WinISD itself. The
  *  goldens ARE the oracle for these tests: an expected value transcribed into the test by hand
@@ -634,5 +645,183 @@ describe('winIsdProjectToOpenIsdProject — .wpr text back to a project (round t
     assert.equal(project.creator.value, 'Test Creator');
     assert.equal(project.created.value, '20260101');
     assert.equal(project.modified.value, '20260102');
+  });
+});
+
+describe('openIsdProjectToWinIsdProject — [Filters] export', () => {
+  const ONE_OF_EVERY_EXPORTABLE_TYPE: Filter[] = [
+    {type: 'lowpass', enabled: true, family: 'butterworth', order: 2, fc: 50, Q: 0.707},
+    {type: 'highpass', enabled: false, family: 'bessel', order: 3, fc: 20, Q: 0.6},
+    {type: 'allpass', enabled: true, order: 1, t: 0.001, Q: 0.707},
+    {type: 'linkwitz', enabled: true, f0: 67.234, Q0: 0.49, fp: 20, Qp: 0.707},
+    {type: 'peaking', enabled: true, fc: 30, Q: 2, gain: 6},
+    {type: 'peakHighpass', enabled: true, fpk: 20, gainPk: 6},
+    {type: 'staticGain', enabled: true, gain: -3},
+    {type: 'raisedCosine', enabled: true, fc: 100, bwOct: 0.333, gain: 6},
+  ];
+
+  it('writes Count and filter<i>type/params for every filter, in order', () => {
+    const project = aProject((p) => p.sealed().volume_m3(0.02).build());
+    project.filters.set(ONE_OF_EVERY_EXPORTABLE_TYPE);
+
+    const {value: wpr, errors} = openIsdProjectToWinIsdProject(project, new Engine());
+    assert.equal(errors.length, 0, `expected no errors, got: ${JSON.stringify(errors)}`);
+    if (!wpr) throw new Error('expected a WinISDProject');
+
+    assert.equal(wpr.number('Filters', 'Count'), 8);
+    assert.equal(wpr.value('Filters', 'filter0type'), '0');
+    assert.equal(wpr.value('Filters', 'filter0params'), '0;1;2;50;0.707');
+    assert.equal(wpr.value('Filters', 'filter1type'), '1');
+    assert.equal(wpr.value('Filters', 'filter1params'), '2;0;3;20;0.6'); // enabled=false -> 0
+    assert.equal(wpr.value('Filters', 'filter7type'), '7');
+    assert.equal(wpr.value('Filters', 'filter7params'), '0;1;100;0.333;6');
+  });
+
+  it('round-trips one of every exportable type through .wpr text back to the same Filter values', () => {
+    const project = aProject((p) => p.sealed().volume_m3(0.02).build());
+    project.filters.set(ONE_OF_EVERY_EXPORTABLE_TYPE);
+
+    const {value: wpr, errors} = openIsdProjectToWinIsdProject(project, new Engine());
+    assert.equal(errors.length, 0, `expected no errors, got: ${JSON.stringify(errors)}`);
+    if (!wpr) throw new Error('expected a WinISDProject');
+
+    const {value: reimported, errors: importErrors} = winIsdProjectToOpenIsdProject(wpr.toWpr(), new Engine());
+    const filterWarnings = importErrors.filter((e) => e.field === 'Filters');
+    assert.equal(filterWarnings.length, 0, `expected no [Filters] warnings, got: ${JSON.stringify(filterWarnings)}`);
+    if (!reimported) throw new Error('expected a project');
+
+    assert.deepEqual(reimported.filters.value, ONE_OF_EVERY_EXPORTABLE_TYPE);
+  });
+
+  it('low/high shelf are skipped, each with its own warn, and do not gap Count\'s numbering', () => {
+    const project = aProject((p) => p.sealed().volume_m3(0.02).build());
+    project.filters.set([
+      {type: 'lowpass', enabled: true, family: 'butterworth', order: 2, fc: 50, Q: 0.707},
+      {type: 'lowshelf', enabled: true, fc: 150, Q: Math.SQRT1_2, gain: 6},
+      {type: 'highpass', enabled: true, family: 'butterworth', order: 2, fc: 20, Q: 0.707},
+      {type: 'highshelf', enabled: true, fc: 2000, Q: Math.SQRT1_2, gain: 6},
+    ]);
+
+    const {value: wpr, errors} = openIsdProjectToWinIsdProject(project, new Engine());
+    if (!wpr) throw new Error('expected a WinISDProject');
+
+    assert.equal(wpr.number('Filters', 'Count'), 2);
+    assert.equal(wpr.value('Filters', 'filter0type'), '0');
+    assert.equal(wpr.value('Filters', 'filter1type'), '1');
+    assert.equal(wpr.value('Filters', 'filter2type'), undefined);
+    assert.ok(errors.some((e) => e.level === 'warn' && e.message === 'low shelf not written: WinISD has no shelf filter'));
+    assert.ok(errors.some((e) => e.level === 'warn' && e.message === 'high shelf not written: WinISD has no shelf filter'));
+  });
+
+  it('an empty filter chain writes Count=0 and no filter<i> keys', () => {
+    const project = aProject((p) => p.sealed().volume_m3(0.02).build());
+
+    const {value: wpr, errors} = openIsdProjectToWinIsdProject(project, new Engine());
+    assert.equal(errors.length, 0, JSON.stringify(errors));
+    if (!wpr) throw new Error('expected a WinISDProject');
+    assert.equal(wpr.number('Filters', 'Count'), 0);
+    assert.equal(wpr.value('Filters', 'filter0type'), undefined);
+  });
+});
+
+describe('winIsdProjectToOpenIsdProject — [Filters] import', () => {
+  it('the real passive-radiator sample imports its own two filters exactly', () => {
+    const text = readFileSync(SAMPLE_PASSIVE_RADIATOR_WPR, 'utf8');
+    const engine = new Engine();
+    const {value: project, errors} = winIsdProjectToOpenIsdProject(text, engine);
+    const filterWarnings = errors.filter((e) => e.field === 'Filters');
+    assert.equal(filterWarnings.length, 0, `expected no [Filters] warnings, got: ${JSON.stringify(filterWarnings)}`);
+    if (!project) throw new Error('expected a project');
+
+    assert.deepEqual(project.filters.value, [
+      {type: 'lowpass', enabled: true, family: 'butterworth', order: 2, fc: 50, Q: 0.707},
+      {type: 'raisedCosine', enabled: true, fc: 100, bwOct: 0.333, gain: 6},
+    ]);
+  });
+
+  it('a WinISD-written many-filter file imports every type and every low/highpass subtype', () => {
+    const text = readFileSync(MANY_FILTERS_WPR, 'utf8');
+    const engine = new Engine();
+    const {value: project, errors} = winIsdProjectToOpenIsdProject(text, engine);
+    const filterWarnings = errors.filter((e) => e.field === 'Filters');
+    assert.equal(filterWarnings.length, 0, `expected no [Filters] warnings, got: ${JSON.stringify(filterWarnings)}`);
+    if (!project) throw new Error('expected a project');
+
+    assert.deepEqual(project.filters.value, [
+      {type: 'lowpass', enabled: true, family: 'butterworth', order: 4, fc: 80, Q: 0.707},
+      {type: 'lowpass', enabled: true, family: 'linkwitzRiley', order: 4, fc: 80, Q: 0.707},
+      {type: 'lowpass', enabled: true, family: 'bessel', order: 3, fc: 80, Q: 0.707},
+      {type: 'lowpass', enabled: true, family: 'sos', order: 2, fc: 80, Q: 1.2},
+      {type: 'highpass', enabled: true, family: 'butterworth', order: 5, fc: 25, Q: 0.707},
+      {type: 'highpass', enabled: true, family: 'linkwitzRiley', order: 4, fc: 25, Q: 0.707},
+      {type: 'highpass', enabled: true, family: 'bessel', order: 4, fc: 25, Q: 0.707},
+      {type: 'highpass', enabled: true, family: 'sos', order: 2, fc: 25, Q: 0.9},
+      {type: 'allpass', enabled: true, order: 1, t: 0.002, Q: 0.707},
+      {type: 'allpass', enabled: true, order: 2, t: 0.003, Q: 0.6},
+      {type: 'linkwitz', enabled: true, f0: 67.234, Q0: 0.49, fp: 25, Qp: 0.6},
+      {type: 'peaking', enabled: true, fc: 45, Q: 3, gain: -4},
+      {type: 'peakHighpass', enabled: true, fpk: 22, gainPk: 4},
+      {type: 'staticGain', enabled: true, gain: -3},
+      {type: 'raisedCosine', enabled: true, fc: 120, bwOct: 0.5, gain: 5},
+      {type: 'lowpass', enabled: true, family: 'butterworth', order: 1, fc: 200, Q: 0.707},
+      {type: 'lowpass', enabled: true, family: 'butterworth', order: 10, fc: 300, Q: 0.707},
+      {type: 'lowpass', enabled: true, family: 'bessel', order: 10, fc: 300, Q: 0.707},
+      {type: 'highpass', enabled: true, family: 'bessel', order: 1, fc: 15, Q: 0.707},
+      {type: 'lowpass', enabled: true, family: 'sos', order: 4, fc: 150, Q: 0.8},
+    ]);
+  });
+
+  it('an entry whose filter<i>type/params keys are both missing loads as WinISD\'s own default lowpass, with a warn', () => {
+    const text = FILTERS_TEST_BASE
+      + '[Filters]\nCount=2\nfilter0type=0\nfilter0params=0;1;2;50;0.707\n';
+    const engine = new Engine();
+    const {value: project, errors} = winIsdProjectToOpenIsdProject(text, engine);
+    if (!project) throw new Error('expected a project: ' + JSON.stringify(errors));
+
+    assert.deepEqual(project.filters.value, [
+      {type: 'lowpass', enabled: true, family: 'butterworth', order: 2, fc: 50, Q: 0.707},
+      {type: 'lowpass', enabled: true, family: 'butterworth', order: 2, fc: 50, Q: 0.707},
+    ]);
+    assert.ok(errors.some((e) => e.level === 'warn' && e.field === 'Filters'
+      && e.message === 'filter 1 missing — WinISD loads it as its default lowpass'));
+  });
+
+  it('a params line with the wrong field count loads as that type\'s own default, enabled kept from the line, with a warn', () => {
+    // Measured: runs/filter-allpass-1 — a 4-field allpass (missing Q) loads as n=1, t=0.001.
+    const text = FILTERS_TEST_BASE
+      + '[Filters]\nCount=1\nfilter0type=2\nfilter0params=0;1;3;2.0E-003\n';
+    const engine = new Engine();
+    const {value: project, errors} = winIsdProjectToOpenIsdProject(text, engine);
+    if (!project) throw new Error('expected a project: ' + JSON.stringify(errors));
+
+    assert.deepEqual(project.filters.value, [
+      {type: 'allpass', enabled: true, order: 1, t: 0.001, Q: 0.707},
+    ]);
+    assert.ok(errors.some((e) => e.level === 'warn' && e.field === 'Filters'
+      && e.message === 'filter 0: allpass params malformed — WinISD loads it as its default allpass'));
+  });
+
+  it('an unknown filter type number is skipped outright, with a warn', () => {
+    const text = FILTERS_TEST_BASE
+      + '[Filters]\nCount=1\nfilter0type=9\nfilter0params=0;1;2;50;0.707\n';
+    const engine = new Engine();
+    const {value: project, errors} = winIsdProjectToOpenIsdProject(text, engine);
+    if (!project) throw new Error('expected a project: ' + JSON.stringify(errors));
+
+    assert.deepEqual(project.filters.value, []);
+    assert.ok(errors.some((e) => e.level === 'warn' && e.field === 'Filters'
+      && e.message === 'filter 0: unknown filter type 9 — skipped'));
+  });
+
+  it('a low/highpass subtype above 3 is skipped outright, with a warn', () => {
+    const text = FILTERS_TEST_BASE
+      + '[Filters]\nCount=1\nfilter0type=0\nfilter0params=4;1;2;50;0.707\n';
+    const engine = new Engine();
+    const {value: project, errors} = winIsdProjectToOpenIsdProject(text, engine);
+    if (!project) throw new Error('expected a project: ' + JSON.stringify(errors));
+
+    assert.deepEqual(project.filters.value, []);
+    assert.ok(errors.some((e) => e.level === 'warn' && e.field === 'Filters'
+      && e.message === 'filter 0: unsupported lowpass subtype — skipped'));
   });
 });

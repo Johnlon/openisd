@@ -1,12 +1,16 @@
 /**
- * The signal-chain filter door: `Engine.defaultFilter`/`Engine.sweep`/`Engine.filterCaption`
- * reach every WinISD filter type and the two OpenISD-only shelves through here. The formulas,
- * one class per type, live in `./filters/` — this file is the cascade (`applyFilters`) and the
- * data-only defaults (`defaultFilter`), not the maths itself.
+ * The signal-chain filter door: `Engine.defaultFilter`/`Engine.sweep`/`Engine.filterCaption`/
+ * `Engine.filterWpr`/`Engine.filterFromWpr` reach every WinISD filter type and the two
+ * OpenISD-only shelves through here. The formulas, one class per type, live in `./filters/` —
+ * this file is the cascade (`applyFilters`), the data-only defaults (`defaultFilter`), and the
+ * `.wpr` `[Filters]` import/export dispatch (`filterWpr`/`filterFromWpr`), not the maths itself.
  */
 import {cMul, cx} from './complex.js';
-import type {Complex, Filter, FilterType} from './types.js';
-import {filterModel} from './filters/index.js';
+import type {Complex, Filter, FilterSpec, FilterType, WprFilter} from './types.js';
+import {
+  AllpassFilter, LinkwitzTransformFilter, ParametricEqFilter, PassFilter, PeakHighpassFilter,
+  RaisedCosineFilter, StaticGainFilter, filterModel,
+} from './filters/index.js';
 
 /**
  * A fresh filter of `type` with its starting values — the numbers a quick-add button puts on
@@ -63,4 +67,66 @@ export function applyFilters(f: number, filters?: Filter[]): Complex {
  *  (winisd_research: `filter-add-all-1`, `filter-editor-3`/`filter-editor-4`). */
 export function filterCaption(f: Filter): string {
   return filterModel(f).caption();
+}
+
+/** This filter's `.wpr` `[Filters]` shape, or `null` for a type WinISD has no `.wpr`
+ *  representation for (the OpenISD-only shelves) — each class writes its own. */
+export function filterWpr(f: Filter): WprFilter | null {
+  return filterModel(f).wpr();
+}
+
+/** `fields[1]` is every WinISD `.wpr` filter type's own `enabled` bit — parse it once here;
+ *  `fallback` (the type default's own `enabled`, always `true`) covers an absent/non-numeric
+ *  line (winisd_research/PROBE_FINDINGS.md "`.wpr` `[Filters]` format"). */
+function enabledFromWprFields(fields: readonly string[], fallback: boolean): boolean {
+  const n = Number(fields[1]);
+  return Number.isFinite(n) ? n === 1 : fallback;
+}
+
+/** `type`'s own WinISD Add default, with `enabled` taken from the params line when it states
+ *  one — the load behaviour WinISD itself shows for a malformed/wrong-field-count params line
+ *  (measured: `runs/filter-allpass-1`, a 4-field allpass loads as n=1, t=0.001). */
+function defaultedWprFilter(type: FilterType, fields: readonly string[]): {filter: Filter; warning: string} {
+  const def = defaultFilter(type);
+  return {
+    filter: {...def, enabled: enabledFromWprFields(fields, def.enabled)},
+    warning: `${type} params malformed — WinISD loads it as its default ${type}`,
+  };
+}
+
+/**
+ * One `.wpr` `[Filters]` entry, decoded — `typeNum` is WinISD's own Filter Editor type number
+ * (`filter<i>type`), `fields` its already-`;`-split `filter<i>params`. One exhaustive switch on
+ * `typeNum`, each branch handing `fields` to that type's own class's static parser — no
+ * string-keyed lookup table. `filter` is `null` when WinISD skips the entry outright: an
+ * unknown type number, or (low/highpass only) a subtype above 3
+ * (winisd_research/PROBE_FINDINGS.md "`.wpr` `[Filters]` format"; not measured for a
+ * negative/non-integer subtype — those fall through to the malformed-params branch instead of
+ * guessing a response). `warning` is set whenever the entry did not come back as its own
+ * stated values.
+ */
+export function filterFromWpr(typeNum: number, fields: readonly string[]): {filter: Filter | null; warning: string | null} {
+  const parsed = (kind: FilterType, result: FilterSpec | 'malformed'): {filter: Filter | null; warning: string | null} => {
+    if (result === 'malformed') return defaultedWprFilter(kind, fields);
+    return {filter: {...result, enabled: enabledFromWprFields(fields, true)}, warning: null};
+  };
+  switch (typeNum) {
+    case 0:
+    case 1: {
+      const kind = typeNum === 0 ? 'lowpass' : 'highpass';
+      const result = PassFilter.fromWpr(kind, fields);
+      if (result === 'unsupportedSubtype') {
+        return {filter: null, warning: `unsupported ${kind} subtype — skipped`};
+      }
+      return parsed(kind, result);
+    }
+    case 2: return parsed('allpass', AllpassFilter.fromWpr(fields));
+    case 3: return parsed('linkwitz', LinkwitzTransformFilter.fromWpr(fields));
+    case 4: return parsed('peaking', ParametricEqFilter.fromWpr(fields));
+    case 5: return parsed('peakHighpass', PeakHighpassFilter.fromWpr(fields));
+    case 6: return parsed('staticGain', StaticGainFilter.fromWpr(fields));
+    case 7: return parsed('raisedCosine', RaisedCosineFilter.fromWpr(fields));
+    default:
+      return {filter: null, warning: `unknown filter type ${typeNum} — skipped`};
+  }
 }

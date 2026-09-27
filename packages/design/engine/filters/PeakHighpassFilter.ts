@@ -1,8 +1,8 @@
 import {biquad} from './biquad.js';
-import type {Complex, FilterSpec} from '../types.js';
+import type {Complex, Filter, FilterSpec, WprFilter} from '../types.js';
 import type {FilterModel} from './FilterModel.js';
 
-type Spec = Extract<FilterSpec, {type: 'peakHighpass'}>;
+type Spec = Extract<Filter, {type: 'peakHighpass'}>;
 
 /**
  * The HP2 whose peak is Gpk at fpk: s²/(s²+(ω0/Q)s+ω0²), P = 10^(Gpk/20),
@@ -23,5 +23,19 @@ export class PeakHighpassFilter implements FilterModel {
   caption(): string {
     const {fpk, gainPk} = this.spec;
     return `Peaking 2nd order highpass (Gpk=${gainPk.toFixed(2)} dB fpk=${fpk.toFixed(2)} Hz)`;
+  }
+
+  wpr(): WprFilter {
+    const {fpk, gainPk, enabled} = this.spec;
+    return {type: 5, params: `0;${enabled ? 1 : 0};${fpk};${gainPk}`};
+  }
+
+  /** `.wpr` params: `0;enabled;fpk;Gpk` — 4 fields. */
+  static fromWpr(fields: readonly string[]): FilterSpec | 'malformed' {
+    if (fields.length !== 4) return 'malformed';
+    const fpk = Number(fields[2]);
+    const gainPk = Number(fields[3]);
+    if (!Number.isFinite(fpk) || !Number.isFinite(gainPk)) return 'malformed';
+    return {type: 'peakHighpass', fpk, gainPk};
   }
 }

@@ -7,7 +7,7 @@
  * chain — every filter type's response and group delay". `.wpr` field names and Add defaults:
  * winisd_research/PROBE_FINDINGS.md "`.wpr` `[Filters]` format".
  */
-import type {FilterSpec} from '../types.js';
+import type {Filter} from '../types.js';
 import type {FilterModel} from './FilterModel.js';
 import {PassFilter} from './PassFilter.js';
 import {AllpassFilter} from './AllpassFilter.js';
@@ -19,24 +19,35 @@ import {RaisedCosineFilter} from './RaisedCosineFilter.js';
 import {ShelfFilter} from './ShelfFilter.js';
 
 export type {FilterModel} from './FilterModel.js';
+// Re-exported so the `.wpr` import boundary (openIsdProjectToWinIsdProject.ts) can hand a WinISD
+// type number's split params straight to the owning class's own static parser, with no
+// string-keyed lookup table in between.
+export {PassFilter} from './PassFilter.js';
+export {AllpassFilter} from './AllpassFilter.js';
+export {LinkwitzTransformFilter} from './LinkwitzTransformFilter.js';
+export {ParametricEqFilter} from './ParametricEqFilter.js';
+export {PeakHighpassFilter} from './PeakHighpassFilter.js';
+export {StaticGainFilter} from './StaticGainFilter.js';
+export {RaisedCosineFilter} from './RaisedCosineFilter.js';
 
 /**
- * The one place a `FilterSpec` becomes behaviour — an exhaustive switch on `type`, no default
+ * The one place a `Filter` becomes behaviour — an exhaustive switch on `type`, no default
  * arm: `FilterSpec['type']` is a closed 10-member union, so an unhandled new variant fails to
  * COMPILE here ("not all code paths return a value") rather than falling through to a generic
- * model nobody asked for.
+ * model nobody asked for. Takes the whole `Filter` (spec + `enabled`), not just the spec, so a
+ * model can write its own `enabled` bit into its `.wpr()` shape.
  */
-export function filterModel(spec: FilterSpec): FilterModel {
-  switch (spec.type) {
+export function filterModel(f: Filter): FilterModel {
+  switch (f.type) {
     case 'lowpass':
-    case 'highpass':     return new PassFilter(spec);
-    case 'allpass':       return new AllpassFilter(spec);
-    case 'linkwitz':      return new LinkwitzTransformFilter(spec);
-    case 'peaking':       return new ParametricEqFilter(spec);
-    case 'peakHighpass':  return new PeakHighpassFilter(spec);
-    case 'staticGain':    return new StaticGainFilter(spec);
-    case 'raisedCosine':  return new RaisedCosineFilter(spec);
+    case 'highpass':     return new PassFilter(f);
+    case 'allpass':       return new AllpassFilter(f);
+    case 'linkwitz':      return new LinkwitzTransformFilter(f);
+    case 'peaking':       return new ParametricEqFilter(f);
+    case 'peakHighpass':  return new PeakHighpassFilter(f);
+    case 'staticGain':    return new StaticGainFilter(f);
+    case 'raisedCosine':  return new RaisedCosineFilter(f);
     case 'lowshelf':
-    case 'highshelf':     return new ShelfFilter(spec);
+    case 'highshelf':     return new ShelfFilter(f);
   }
 }

@@ -34,7 +34,7 @@ export type {
   BoxType, SimulatableBoxType, DriverError, EbpSuitability, Filter, FilterSpec, FilterType,
   PassFamily, MaxCurvesResult,
   SealedAlignmentOption, VentedAlignment, VentedDesign, Wiring,
-  EnclosureParams, SweepParams, SweepResult,
+  EnclosureParams, SweepParams, SweepResult, WprFilter,
 } from './types.js';
 export type { BoxParamsQuantityName, BoxParamsIssue, BoxParamsSolveResult } from './params.js';
 export type { SignalQuantityName, SignalIssue } from './signal.js';
