@@ -1,24 +1,24 @@
 prefix: QO
-next: 169
+next: 170
 questions:
 - id: QO168
-  title: 'graph cursor/drag-selection exempted from the OpenISDProject three-field architecture gate (S10/QO130)'
+  title: graph cursor/drag-selection exempted from the OpenISDProject three-field architecture gate (S10/QO130)
   status: decided
   raised: '2026-09-21'
   body: 'S10/QO130 moved lossMode, graphs, and the graph cursor (crosshair f, pinnedF, locked, drag-band
     range) from the UI-only presentationState singleton onto the project, since two open projects must
-    not share one cursor. lossMode and graphs fit cleanly as normal persisted OpenISDProject fields
-    (advanced.lossMode, charts.graphs). The cursor cannot: it writes on every mousemove/drag, and
-    OpenISDProject''s only field-write path (#slot()) clones the record into #edited and re-runs the
-    full #resolve() solve cascade on every write — wrong for a value with nothing for the solver to
-    recompute, and John ruled 2026-09-20/21 these four should not be part of the saved record at all
-    ("ui stuff shouldnt trigger edited... Saving the charts doesnt need to include these fast chaning
-    values at all"). The natural fix (four private instance fields on OpenISDProject, written directly
-    with a bare #notify(), no clone, no resolve) is blocked by architecture-project-has-three-fields.test.ts,
-    a deliberately guarded gate restricting OpenISDProject to #saved/#edited/#whatif/#engine plus three
-    named exceptions (#uuid, #issues, #resolving) — built specifically to stop an agent from adding
-    ad-hoc state like this. Asked John directly whether to (a) move the cursor into presentationState
-    keyed by project uuid instead (no exemption needed), or (b) rule an exemption into the gate.'
+    not share one cursor. lossMode and graphs fit cleanly as normal persisted OpenISDProject fields (advanced.lossMode,
+    charts.graphs). The cursor cannot: it writes on every mousemove/drag, and OpenISDProject''s only field-write
+    path (#slot()) clones the record into #edited and re-runs the full #resolve() solve cascade on every
+    write — wrong for a value with nothing for the solver to recompute, and John ruled 2026-09-20/21 these
+    four should not be part of the saved record at all ("ui stuff shouldnt trigger edited... Saving the
+    charts doesnt need to include these fast chaning values at all"). The natural fix (four private instance
+    fields on OpenISDProject, written directly with a bare #notify(), no clone, no resolve) is blocked
+    by architecture-project-has-three-fields.test.ts, a deliberately guarded gate restricting OpenISDProject
+    to #saved/#edited/#whatif/#engine plus three named exceptions (#uuid, #issues, #resolving) — built
+    specifically to stop an agent from adding ad-hoc state like this. Asked John directly whether to (a)
+    move the cursor into presentationState keyed by project uuid instead (no exemption needed), or (b)
+    rule an exemption into the gate.'
   answer:
     at: '2026-09-21'
     text: |-
@@ -37,14 +37,15 @@ questions:
       - graphs (which charts are open) is NOT part of this exemption — it changes only per click, so
         it stays a normal persisted charts.graphs field going through the ordinary #slot() path.
 - id: QO167
-  title: 'Calculated values stay in saved files; every load recomputes them — reverses QO147 (strip on save)'
+  title: Calculated values stay in saved files; every load recomputes them — reverses QO147 (strip on
+    save)
   status: decided
   raised: '2026-09-20'
-  body: 'QO147 (2026-09-17) ruled that saving a project, bundling the catalogue or storing to the browser
+  body: QO147 (2026-09-17) ruled that saving a project, bundling the catalogue or storing to the browser
     strips every value the solver calculated, so a file holds only what was entered. That was plan step
-    S8 and had not been built. On 2026-09-20 the driver bridge began writing the app''s own export into
+    S8 and had not been built. On 2026-09-20 the driver bridge began writing the app's own export into
     the scraper corpus (one producer of the calculated data-quality marks), which carries the calculated
-    values too. Asked whether stripping on save should cover that export as well.'
+    values too. Asked whether stripping on save should cover that export as well.
   answer:
     at: '2026-09-20'
     text: |-
@@ -63,7 +64,8 @@ questions:
         anyway — they stay, matching this ruling.
       - The round-trip gate patches that tolerate the stored calculated data stay.
 - id: QO166
-  title: Parallel session rolled the Driver Editor back to short field names plus a lookup table — restored to schema-name bindings
+  title: Parallel session rolled the Driver Editor back to short field names plus a lookup table — restored
+    to schema-name bindings
   status: open
   raised: '2026-09-20'
   body: |
@@ -7220,10 +7222,10 @@ questions:
       for the two-layer collapse.'
   answer:
     at: '2026-09-04'
-    text: 'Design content moved to docs/plans/archive/PLAN_PROJECT_PERSISTENCE.md. Settled: two-layer saved/edited
-      model, internal-only project uuid, each project writes itself via #notify, no Vue in the write path.
-      Open items (storage backend, autosave layer, close/reload semantics, write-failure handling) carried
-      forward in the plan doc, not the ledger.'
+    text: 'Design content moved to docs/plans/archive/PLAN_PROJECT_PERSISTENCE.md. Settled: two-layer
+      saved/edited model, internal-only project uuid, each project writes itself via #notify, no Vue in
+      the write path. Open items (storage backend, autosave layer, close/reload semantics, write-failure
+      handling) carried forward in the plan doc, not the ledger.'
 - id: QO93
   title: Settle c/roo provenance by controlled probe + debug, not by reading found files
   status: decided
@@ -8606,8 +8608,8 @@ questions:
        4. exportDriverWdr / exportDriverOwdr error contract (Result vs throw) - owdr "always succeeds"
           per DRIVER_NON_NULL_INVARIANT.md; wdr returns {value,errors}. Consistent?
   - at: '2026-09-20'
-    text: |-
-      Decided / closed: The implementation in packages/ui/src/logic/fileImportExport.ts is complete and verified by existing tests.
+    text: 'Decided / closed: The implementation in packages/ui/src/logic/fileImportExport.ts is complete
+      and verified by existing tests.'
 - id: QO120
   title: 'Manual review: driver display/summary/search helpers moved from driverRepo.ts into logic/driverDisplay.ts
     during model decommission'
@@ -8644,8 +8646,8 @@ questions:
        5. classifyTypes (was in model) - where did it land? myDriverEntry and matchesCriteria both
           used it.
   - at: '2026-09-20'
-    text: |-
-      Decided / closed: The implementation in packages/ui/src/logic/driverDisplay.ts is complete and verified by existing tests.
+    text: 'Decided / closed: The implementation in packages/ui/src/logic/driverDisplay.ts is complete
+      and verified by existing tests.'
 - id: QO121
   title: Delete appState.ts state/state.box/state.project — app is project-or-no-project
   status: open
@@ -9677,3 +9679,16 @@ questions:
     - No hyperlink force-override env exists (only OPENTUI_FORCE_WCWIDTH/UNICODE/NOZWJ/EXPLICIT_WIDTH). TERM=xterm-256color is already correct.
 
     Decision needed: raise an opentui feature request (add Windows Terminal to isHyperlinkTerm and/or add an OPENTUI_FORCE_HYPERLINK override env), or live with the (url) suffix / run opencode outside WSL.
+- id: QO169
+  title: Saved OpenISD high/low-pass filters after the WinISD filter rework
+  status: decided
+  raised: '2026-09-27'
+  body: 'OpenISD''s filters are being rebuilt to match every WinISD filter type (Butterworth, Linkwitz-Riley,
+    Bessel, user second-order section, allpass, Linkwitz transform, parametric EQ, peaking high-pass,
+    static gain, raised cosine). Today OpenISD saves a high-pass or low-pass as a second-order filter
+    with a cutoff and a Q only. WinISD''s high-pass and low-pass carry a subtype and an order. Question:
+    how should projects saved with the old high-pass/low-pass shape load after the change — as WinISD''s
+    "user second-order section" (same curve), as Butterworth order 2, or not at all?'
+  answer:
+    at: '2026-09-27'
+    text: No migration
