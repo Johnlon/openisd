@@ -144,6 +144,18 @@ describe('B — the project runs the engine sweep on its own driver and box', ()
     expect(project.classifyFlatClamp(sw)).toBe(engine.classifyFlatClamp(sw));
   });
 
+  it('classifyFiniteIssues() — the per-output finiteness check — also comes from the engine', () => {
+    // BUG_20260906: a UI-layer caller wanting the per-output variant (one chart needs one
+    // specific cause) had no project delegate to ask, so it reached around the project and
+    // constructed its own `new Engine()` — the exact "a UI layer decides a domain question for
+    // itself" shape the project's other three classify delegates already exist to prevent.
+    const engine = new Engine();
+    const project = drivenSealed(engine, 0.03);
+    const sw = project.sweep({ fmin: 10, fmax: 1000, N: 200 }).values!;
+
+    expect(project.classifyFiniteIssues(sw)).toEqual(engine.classifyFiniteIssues(sw));
+  });
+
   it('boxParamsIssues() reports a bad parameter set BEFORE a sweep is attempted', () => {
     const engine = new Engine();
     const project = drivenSealed(engine, 0.03);

@@ -518,14 +518,17 @@ export const maxData    = max;
 // or the sweep is clean.
 const curveIssues = computed<DriverError[]>(() => {
   const sw = curves.value, mx = max.value;
-  if (!sw) return [];
+  const p = live.value;
+  // BUG_20260906: this used to construct its own `new Engine()` to answer a question the
+  // focused project can already answer about its own sweep — the project is asked here instead,
+  // through the three classify delegates it already exposes (`openisdDomain.ts`).
+  if (!sw || !p) return [];
   // classifyFinite: a singularity made the curve undrawable. classifyMaxFinite: the same
   // question asked of the Max-SPL/Max-power pair, which is computed after the sweep and can
   // be non-finite while every sweep array is fine. classifyFlatClamp: force-flat ran out of
   // allowed boost, so the "flat" response is not flat below some frequency — a truncated
   // inverse filter must never look like a design that flattens for free.
-  const eng = new Engine();
-  return [...eng.classifyFiniteIssues(sw), mx ? eng.classifyMaxFinite(mx) : null, eng.classifyFlatClamp(sw)]
+  return [...p.classifyFiniteIssues(sw), mx ? p.classifyMaxFinite(mx) : null, p.classifyFlatClamp(sw)]
     .filter((e): e is DriverError => e !== null);
 });
 

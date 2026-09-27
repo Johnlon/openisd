@@ -3178,6 +3178,13 @@ export class OpenISDProject {
         return this.#engine.classifyFinite(sw);
     }
 
+    /** Finiteness issues split by plotted output, for a caller that renders one chart at a time
+     *  and needs one specific cause (BUG_20260906: without this delegate, that caller had no way
+     *  to ask the project and reached around it to construct its own `Engine`). */
+    classifyFiniteIssues(sw: SweepResult): DriverError[] {
+        return this.#engine.classifyFiniteIssues(sw);
+    }
+
     /** A response clamped flat against a limit, or null — a shape that looks like a valid answer
      *  and is not. */
     classifyFlatClamp(sw: SweepResult): DriverError | null {
