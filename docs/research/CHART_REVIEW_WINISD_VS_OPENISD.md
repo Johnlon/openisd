@@ -39,30 +39,30 @@ Records (format `winisd-run-record/1`, all validated):
 
 ## 0. Checklist — WinISD charts to check
 
-Every chart in WinISD's chart menu, per box type OpenISD has. 50 to check: **39 done** (35 exact
-match, 4 within WinISD's own rounding), 11 to do.
+Every chart in WinISD's chart menu, per box type OpenISD has. 50 to check: **all 50 done** (45 exact
+match, 5 within WinISD's own rounding).
 
 Key: ✅ exact match (≤ 1e-12 at all 2086 points) · ≈ matches to WinISD's own rounding noise ·
 ☐ to check · ✗ OpenISD has no such chart · — does not apply to that box.
 
 | Chart                                   | Sealed | Vented | Bandpass 4th | Passive radiator |
 |-----------------------------------------|--------|--------|--------------|------------------|
-| Transfer function magnitude             | ✅     | ✅     | ☐            | ✅               |
-| Transfer function phase                 | ✅     | ✅     | ☐            | ✅               |
-| Group delay                             | ≈      | ≈      | ☐            | ≈                |
-| Maximum power                           | ✅     | ✅     | ☐            | ✅               |
-| Maximum SPL                             | ✅     | ✅     | ☐            | ✅               |
-| Amplifier apparent load power (VA)      | ✅     | ✅     | ☐            | ✅               |
-| SPL                                     | ✅     | ✅     | ☐            | ✅               |
-| Cone excursion                          | ✅     | ✅     | ☐            | ✅               |
-| Impedance                               | ✅     | ✅     | ☐            | ✅               |
-| Impedance phase                         | ✅     | ✅     | ☐            | ✅               |
+| Transfer function magnitude             | ✅     | ✅     | ✅           | ✅               |
+| Transfer function phase                 | ✅     | ✅     | ✅           | ✅               |
+| Group delay                             | ≈      | ≈      | ≈            | ≈                |
+| Maximum power                           | ✅     | ✅     | ✅           | ✅               |
+| Maximum SPL                             | ✅     | ✅     | ✅           | ✅               |
+| Amplifier apparent load power (VA)      | ✅     | ✅     | ✅           | ✅               |
+| SPL                                     | ✅     | ✅     | ✅           | ✅               |
+| Cone excursion                          | ✅     | ✅     | ✅           | ✅               |
+| Impedance                               | ✅     | ✅     | ✅           | ✅               |
+| Impedance phase                         | ✅     | ✅     | ✅           | ✅               |
 | Transfer function magnitude (PR)        | —      | —      | —            | ✅               |
 | Transfer function phase (PR)            | —      | —      | —            | ✅               |
 | Cone excursion (PR)                     | —      | —      | —            | ✅               |
 | Rear port - Air velocity                | —      | ✅     | —            | —                |
 | Rear port - Gain                        | —      | ✅     | —            | —                |
-| Front port - Air velocity               | —      | —      | ☐            | —                |
+| Front port - Air velocity               | —      | —      | ✅            | —                |
 | Front port - Gain                       | —      | —      | ✅           | —                |
 | Intrachamber port - Air velocity        | —      | —      | —            | —                |
 
@@ -827,6 +827,38 @@ Same computation as `rearPortGain` (§3.8) — WinISD's own formula keeps the j 
 (`portGainSpl`) and splits the result into `rearPortGain`/`frontPortGain` only at the return,
 gated to the box type that has each port. WinISD's model: winisd_research
 GHIDRA_FINDINGS.md "4th-order bandpass — `0x457a30`", "Front port gain" bullet.
+
+### 3.10 4th-order bandpass with a 4-filter chain
+
+Record
+[bp4-w5-chain-1](http://localhost:8000/winisd/winisd_research/runs/bp4-w5-chain-1/gdb.log) (it stalled
+after the EQ/Filter phase; filter group delay and TF magnitude re-captured in
+[bp4-w5-chain-2](http://localhost:8000/winisd/winisd_research/runs/bp4-w5-chain-2/gdb.log)): W5, rear
+10 L sealed, front 5 L tuned to 60 Hz by one 5 cm port, Qlr 7, Qar 30, Qiclfr 20, Qlf 9, Qaf 40,
+Qpf 15, Rg 0.1, the §3.4 filter chain. OpenISD after
+[bandpass4-box-not-winisd-form](http://localhost:8000/winisd/openisd/bugs/BUG_20260927_bandpass4-box-not-winisd-form.md?html).
+
+| Chart                     | Max difference |
+|---------------------------|----------------|
+| Transfer function mag     | 4.5e-13        |
+| Transfer function phase   | 2.3e-12        |
+| Group delay               | 0.015 ms (rounding noise, mean ≈ 0, grows with f) |
+| Maximum power             | 9.2e-14        |
+| Maximum SPL               | 4.3e-13        |
+| VA                        | 7.3e-14        |
+| SPL                       | 4.3e-13        |
+| Cone excursion            | 1.4e-14        |
+| Impedance                 | 1.8e-14        |
+| Impedance phase           | 1.1e-13        |
+| Front port air velocity   | 1.2e-11 (2e-12 relative) |
+| Front port gain           | 4.6e-14        |
+| EQ/Filter magnitude       | 2.8e-14        |
+| EQ/Filter phase           | 8e-13          |
+| EQ/Filter group delay     | 0.00066 ms     |
+
+Group delay is WinISD's own finite difference (f ± ((f+1e-10)−f)); the bandpass output subtracts
+two nearly equal leak flows at high frequency, so its rounding noise is larger than the other boxes'
+(0.001 ms). Invisible at chart scale.
 
 ---
 

@@ -102,7 +102,6 @@ Still open for vented:
 ## Queue (John, 2026-09-27)
 
 1. Box-volume validity into the domain ([bug](../../bugs/BUG_20260927_box-volume-validity-decided-in-ui.md)) — worker running.
-2. Front port gain (bandpass 4th) and the bandpass 4th full chart pass (capture runs/bp4-w5-chain-1).
 3. 6th-order bandpass and ABC boxes (John: "openisd needs the 6th and ABC models"): openisd-e4
    decodes WinISD 0x5668c0 / 0x4591b0 and prepares captures; then engine classes, simulatable box
    types, their charts including the intrachamber port.
@@ -118,10 +117,12 @@ Still open for vented:
 
 All 14 PR charts match WinISD (pr-w5-chain-1, chart review §3.6). Me ≠ 0 and Npr > 1 not checked.
 
-## Next: bandpass 4th
+## Done: bandpass 4th, and every WinISD chart for the four box types
 
-WinISD model decoded (GHIDRA_FINDINGS "4th-order bandpass — `0x457a30`"); OpenISD fix in progress
-(BUG_20260927_bandpass4-box-not-winisd-form), then a full capture `box=bp4` with the filter chain.
+All 50 checklist charts match WinISD (45 exact, 5 group-delay charts within WinISD's own rounding):
+chart review §3.10 (bandpass 4th), §3.7–3.9 (PR transfer, rear and front port gain, built
+2026-09-27). Chart menu lists only the charts that apply to the box (design's `chartsFor`).
+
 
 ## Open items
 
