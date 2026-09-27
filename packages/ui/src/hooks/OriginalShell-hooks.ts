@@ -35,7 +35,7 @@ import {
     resetProjectToGround,
     syncedP,
 } from '../logic/appState.js';
-import {cycleTraceColor, presentationState, traceColor} from '../logic/presentationState.js';
+import {cycleTraceColor, presentationState, setSkinOverride, traceColor} from '../logic/presentationState.js';
 import {useFocusedProject} from '../logic/focusedProjectContext.js';
 import {
     clearVentField as clearVentFieldOn,
@@ -357,6 +357,9 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   const { saveProject, importFile } = designIO;
   // The Info menu's "About OpenISD" opens the splash — the one place that text lives.
   const { show: about } = injectSplashModal();
+  // The Info menu's manual, persisted skin switch — the auto-by-viewport half lives in
+  // `App.vue`'s `activeSkin` (`presentationState.narrowViewport`), which this override beats.
+  function switchToMobile(): void { setSkinOverride('mobile'); }
   const { projectRepo } = useApp();
   const { editProjectDriver } = selection;
 
@@ -1058,7 +1061,7 @@ const overlays = computed<Design[]>(() => {
 
   return {
     version, toggleDropdown, openDd, openClick, closeDropdown, presentationState, isModified,
-    openDialogOpen, storedProjects, openFromDisk, openStoredProject,
+    openDialogOpen, storedProjects, openFromDisk, openStoredProject, switchToMobile,
     saveProject, resetProjectToGround, confirmDiscard, about, optionsOpen,
     chartLabel, CHART_ITEMS, selectChart,
     hzInputText, inputValue, onHzInputFocus, onHzInputBlur, onHzKeydown, onHzWheel,

@@ -50,6 +50,9 @@ interface UiState {
   /** The splash has been shown and dismissed once — it opens itself only for a visitor whose
    *  stored view carries nothing (`SplashModal-hooks.ts`). */
   splashSeen?: boolean;
+  /** Manual, persisted skin choice from the Info menu. Absent means "follow the viewport" —
+   *  `App.vue`'s `activeSkin` falls back to `narrowViewport` below. */
+  skinOverride?: 'original' | 'mobile';
 }
 
 export interface PresentationState {
@@ -71,6 +74,12 @@ export interface PresentationState {
    *  sweep's own frequency grid (`syncedP` → `p.sweep`). Saved with the view state
    *  (`currentViewSnapshot`), like `yRanges`. */
   sweepRange: {min: number; max: number};
+  /** Live `matchMedia` read of the mobile-skin breakpoint (`logic/viewport.ts`), seeded
+   *  synchronously by `App.vue` before its first render and kept live thereafter. NOT part of
+   *  `ui` and never persisted: it is an observation of the current device, not a choice — a
+   *  device that used to be narrow must not stay "mobile" after `viewStateRepo` replays an old
+   *  session on a different, wider screen. */
+  narrowViewport: boolean;
   ui: UiState;
 }
 
@@ -82,6 +91,7 @@ function buildPresentationState(): PresentationState {
     editDriverInfo: false,
     yRanges: {},
     sweepRange: {min: 10, max: 20000},
+    narrowViewport: false,
     ui: {
       unitTokens: {},
     },
@@ -147,4 +157,13 @@ export function cycleUnitToken(field: string, group: UnitGroup, baseToken: strin
  *  the design itself — this only affects how values are DISPLAYED, never the stored (SI) design. */
 export function resetUnitTokens(): void {
   presentationState.ui.unitTokens = {};
+}
+
+// ---- Skin choice (manual, persisted half — see `narrowViewport` above for the automatic half) ----
+/** Set (or, with `null`, clear) the manual skin override. `null` deletes the key rather than
+ *  storing a literal `null`, so a cleared override round-trips through `viewStateRepo` as
+ *  "absent" — the same state a visitor who never touched the toggle is in. */
+export function setSkinOverride(skin: 'original' | 'mobile' | null): void {
+  if (skin === null) delete presentationState.ui.skinOverride;
+  else presentationState.ui.skinOverride = skin;
 }

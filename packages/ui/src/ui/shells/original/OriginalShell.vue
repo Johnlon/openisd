@@ -21,7 +21,7 @@ import {useOriginalShell} from '../../../hooks/OriginalShell-hooks.js';
 
 const {
   version, toggleDropdown, openDd, openClick, closeDropdown, presentationState, isModified,
-  openDialogOpen, storedProjects, openFromDisk, openStoredProject,
+  openDialogOpen, storedProjects, openFromDisk, openStoredProject, switchToMobile,
   saveProject, resetProjectToGround, confirmDiscard, about, optionsOpen,
   chartLabel, CHART_ITEMS, selectChart,
   hzInputText, inputValue, onHzInputFocus, onHzInputBlur, onHzKeydown, onHzWheel,
@@ -89,6 +89,7 @@ const {
           <span class="caret" style="position:absolute;bottom:2px;right:2px;">&#9662;</span>
           <div class="dropdown-menu" :class="{ open: openDd === 'info-dropdown' }" @click.stop>
             <div class="menu-item" @click="about(); closeDropdown()">About OpenISD</div>
+            <div class="menu-item" title="Switch to a phone-friendly layout. Remembered on this device — use the same menu there to switch back." @click="switchToMobile(); closeDropdown()">Switch to Mobile view</div>
           </div>
         </div>
         <div class="tb-sep"></div>
