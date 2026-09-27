@@ -213,6 +213,61 @@ function activeVolumeField(project: OpenISDProject, selectedBox: BoxType): (Read
   }
 }
 
+// A presentation fact with no domain counterpart: these three draw two chambers.
+const DUAL_CHAMBER = new Set<BoxType>(['bandpass4', 'bandpass6', 'abc']);
+
+// WinISD's own caption for each chart id, exactly as its menu prints it — shared by every
+// shell's chart dropdown, so a caption never drifts between skins.
+export const CHART_LABELS: Record<ChartId, string> = {
+  TFMag: 'Transfer function magnitude',
+  Phase: 'Transfer function phase',
+  GD: 'Group Delay',
+  MaxPwr: 'Maximum Power',
+  MaxSPL: 'Maximum SPL',
+  VA: 'Amplifier apparent load power (VA)',
+  SPL: 'SPL',
+  Excursion: 'Cone excursion',
+  Zmag: 'Impedance',
+  Zph: 'Impedance phase',
+  PRTFMag: 'Transfer function magnitude (PR)',
+  PRTFPhase: 'Transfer function phase (PR)',
+  PRExcursion: 'Cone excursion (PR)',
+  RearPort: 'Rear port - Air velocity',
+  RearPortGain: 'Rear port - Gain',
+  FrontPort: 'Front port - Air velocity',
+  FrontPortGain: 'Front port - Gain',
+  FltMag: 'Transfer function magnitude (EQ/Filter)',
+  FltPhase: 'Transfer function phase (EQ/Filter)',
+  FltGD: 'Group Delay (EQ/Filter)',
+};
+
+export interface SelectedBoxDeps {
+  focusedProject: () => OpenISDProject | null;
+  projectChanged: Ref<number>;
+  isSimulatable: (b: BoxType) => boolean;
+}
+
+// selectedBox is the Box tab's source of truth: it can hold types the solver refuses. Its
+// initial value comes from the focused project when one is open — the shell renders, with
+// empty placeholders, without one, and `useFocusedProject()` must not be evaluated then.
+export function createSelectedBox({ focusedProject, projectChanged: changed, isSimulatable }: SelectedBoxDeps) {
+  const selectedBox = ref<BoxType>(focusedProject()?.box.boxType.value ?? 'sealed');
+  watch(selectedBox, (b) => {
+    const p = focusedProject();
+    if (isSimulatable(b) && p && p.box.boxType.value !== b) p.box.boxType.set(b);
+  });
+  watch(
+    () => { void changed.value; return focusedProject()?.box.boxType.value; },
+    (b) => { if (b != null && selectedBox.value !== b) selectedBox.value = b; },
+  );
+
+  const pending = computed(() => !isSimulatable(selectedBox.value));
+  const isDual = computed(() => DUAL_CHAMBER.has(selectedBox.value));
+  const boxLabel = computed(() => BOX_TYPE_OPTIONS.find(o => o.value === selectedBox.value)?.label ?? 'Box');
+  const showEnclosureTab = computed(() => selectedBox.value !== 'sealed');
+  return { selectedBox, pending, isDual, boxLabel, showEnclosureTab };
+}
+
 export function createBoxVolume({ project, selectedBox, projectChanged: changed, engine }: BoxVolumeDeps) {
   const boxVolume_m3 = computed<number | null>(() => {
     void changed.value;
@@ -262,7 +317,12 @@ export function createDriveSignal({ project, projectChanged: changed }: DriveSig
     void changed.value;
     return project.value.powerDrive_W.value === null;
   });
-  return { driveV, reconcileDriveV, powerLocked };
+  // Series resistance — read through `projectChanged` so a typed value sticks.
+  const rsOhm = computed<number>({
+    get: () => { void changed.value; void project.value; return project.value.Rs_ohm.value; },
+    set: (v) => { project.value.Rs_ohm.set(v ?? 0); },
+  });
+  return { driveV, reconcileDriveV, powerLocked, rsOhm };
 }
 
 // ---- Advanced tab: environment ------------------------------------------------
@@ -382,31 +442,13 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
 
   // ---- Box types — the registry's own list (`box_Type`), not a copy ------------------
   // Whether the circuit models this type is the DOMAIN's answer, asked through logic/.
-  const isSimulatable = boxTypeIsSimulatable;
-  // A presentation fact with no domain counterpart: these three draw two chambers.
-  const DUAL_CHAMBER = new Set<BoxType>(['bandpass4', 'bandpass6', 'abc']);
-
-  // selectedBox is the Box tab's source of truth: it can hold types the solver refuses. Its
-  // initial value comes from the focused project when one is open — the shell renders, with
-  // empty placeholders, without one, and `useFocusedProject()` must not be evaluated then.
-  const selectedBox = ref<BoxType>(focusedProject()?.box.boxType.value ?? 'sealed');
-  watch(selectedBox, (b) => {
-    const p = focusedProject();
-    if (isSimulatable(b) && p && p.box.boxType.value !== b) p.box.boxType.set(b);
-  });
-  watch(
-    () => { void projectChanged.value; return focusedProject()?.box.boxType.value; },
-    (b) => { if (b != null && selectedBox.value !== b) selectedBox.value = b; },
-  );
-
-  const pending = computed(() => !isSimulatable(selectedBox.value));
-  const isDual = computed(() => DUAL_CHAMBER.has(selectedBox.value));
-  const boxLabel = computed(() => BOX_TYPE_OPTIONS.find(o => o.value === selectedBox.value)?.label ?? 'Box');
+  // Delegated to the unit-tested `createSelectedBox` above.
+  const { selectedBox, pending, isDual, boxLabel, showEnclosureTab } =
+    createSelectedBox({ focusedProject, projectChanged, isSimulatable: boxTypeIsSimulatable });
   const enclosureNavLabel = computed(() =>
     selectedBox.value === 'box-passive-radiator' ? 'Passive Radiator'
       : selectedBox.value === 'sealed' ? 'Closed'
         : boxLabel.value);
-  const showEnclosureTab = computed(() => selectedBox.value !== 'sealed');
 
   // ---- Live engine-derived readouts (never faked literals) -----------------------
   const {
@@ -611,29 +653,6 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     + 'either the dimension or the area and the other is calculated from it.';
 
   // ---- Chart selector ------------------------------------------------------------
-  // WinISD's own caption for each chart id, exactly as its menu prints it.
-  const CHART_LABELS: Record<ChartId, string> = {
-    TFMag: 'Transfer function magnitude',
-    Phase: 'Transfer function phase',
-    GD: 'Group Delay',
-    MaxPwr: 'Maximum Power',
-    MaxSPL: 'Maximum SPL',
-    VA: 'Amplifier apparent load power (VA)',
-    SPL: 'SPL',
-    Excursion: 'Cone excursion',
-    Zmag: 'Impedance',
-    Zph: 'Impedance phase',
-    PRTFMag: 'Transfer function magnitude (PR)',
-    PRTFPhase: 'Transfer function phase (PR)',
-    PRExcursion: 'Cone excursion (PR)',
-    RearPort: 'Rear port - Air velocity',
-    RearPortGain: 'Rear port - Gain',
-    FrontPort: 'Front port - Air velocity',
-    FrontPortGain: 'Front port - Gain',
-    FltMag: 'Transfer function magnitude (EQ/Filter)',
-    FltPhase: 'Transfer function phase (EQ/Filter)',
-    FltGD: 'Group Delay (EQ/Filter)',
-  };
   // A separator goes before the first item of each of WinISD's own visual groupings — never
   // before a group that this box has nothing in (Port/PR are absent from most boxes).
   const CHART_GROUP_START = new Set<ChartId>(['Excursion', 'PRTFMag', 'RearPort', 'FrontPort', 'FltMag']);
@@ -1017,14 +1036,9 @@ const overlays = computed<Design[]>(() => {
   watch(genHz, v => { if (genOn.value) tone?.setFrequency(v); });
   onUnmounted(() => tone?.stop());
 
-  // ---- Signal tab: drive voltage = √(Pin × Re) per driver ------------------------
+  // ---- Signal tab: drive voltage = √(Pin × Re) per driver, plus series resistance ------------
   // Delegated to the unit-tested `createDriveSignal` above.
-  const { driveV, reconcileDriveV, powerLocked } = createDriveSignal({ project, projectChanged });
-  // Series resistance — read through `projectChanged` so a typed value sticks.
-  const rsOhm = computed<number>({
-    get: () => { void projectChanged.value; void project.value; return project.value.Rs_ohm.value; },
-    set: (v) => { project.value.Rs_ohm.set(v ?? 0); },
-  });
+  const { driveV, reconcileDriveV, powerLocked, rsOhm } = createDriveSignal({ project, projectChanged });
 
   // ---- Advanced tab: environment ------------------------------------------------
   // Delegated to the unit-tested `createEnvironmentAir` above.
