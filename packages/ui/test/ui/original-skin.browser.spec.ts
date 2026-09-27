@@ -158,6 +158,17 @@ test('the chart menu lists only the charts that apply to the current box '
   await expect(menuItems().filter({ hasText: 'Cone excursion (PR)' })).toBeVisible();
   await expect(menuItems().filter({ hasText: /port - Air velocity$/i })).toHaveCount(0);
   await expect(menuItems().filter({ hasText: 'Rear port - Gain' })).toHaveCount(0);
+  await expect(menuItems().filter({ hasText: 'Front port - Gain' })).toHaveCount(0);
+  await page.locator('.chart-select').click();
+
+  // Switch to 4th-order bandpass: front port charts join, no rear port, no PR.
+  await page.locator('#og-box-type').selectOption('bandpass4');
+  await page.locator('.chart-select').click();
+  await expect(menuItems().filter({ hasText: 'Front port - Air velocity' })).toBeVisible();
+  await expect(menuItems().filter({ hasText: 'Front port - Gain' })).toBeVisible();
+  await expect(menuItems().filter({ hasText: 'Rear port - Air velocity' })).toHaveCount(0);
+  await expect(menuItems().filter({ hasText: 'Rear port - Gain' })).toHaveCount(0);
+  await expect(menuItems().filter({ hasText: 'Transfer function magnitude (PR)' })).toHaveCount(0);
 });
 
 test('all seven project tabs render their ported content', async ({ page }) => {

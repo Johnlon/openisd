@@ -267,9 +267,13 @@ export function sweep(drv: DriverSolverParams, Le_H: number | undefined, box: Bo
   // is the zero complex for a non-PR box), gated to `null` below only `box-passive-radiator`
   // has this chart at all.
   const prSpl: number[] = [], prPhase: number[] = [];
-  // WinISD's "Rear port - Gain" — same shape as `prSpl` above (cheap for every box; `s.UP` is
-  // the zero complex where there is no port), gated to `null` below only `vented` has it.
-  const rearPortGainSpl: number[] = [];
+  // WinISD's "Rear port - Gain" (vented) and "Front port - Gain" (bandpass4) — same shape as
+  // `prSpl` above (cheap for every box; `UP` is the zero complex where there is no port), one
+  // shared array gated to each chart's own `null` below: `UP` is already whichever port this
+  // box has (Bandpass4Box.solve returns the FRONT port flow as `UP`; VentedBox returns the
+  // REAR port flow), so the identical formula is the identical computation for both charts —
+  // never two copies.
+  const portGainSpl: number[] = [];
   // Amplifier apparent load power. WinISD's (`winisdVaModel`, the default): P·Re·|Hf|²/|Z + Rg|,
   // Rg added whatever its placement (f_46bd30 case 0x14). Conventional: P·(Re + Rg)·|Hf|²/|Z_amp|,
   // the load the amplifier sees — Zel already holds Rg when Rg is at the driver side.
@@ -323,14 +327,14 @@ export function sweep(drv: DriverSolverParams, Le_H: number | undefined, box: Bo
     // multiplying by the real, positive K·ω rotates nothing, so WinISD's phase chart omits
     // the j entirely rather than dropping a rotation from a complex product.
     prPhase.push(cArg(s.UP));
-    // WinISD's "Rear port - Gain" (vented): Z = K·ω·Up·Hf, same K and the same real-ω wart as
-    // the PR transfer charts above — but `Up` here is the FILTERED `UP` local (with `Hf`
-    // already multiplied in, unlike `Hpr` above), and this chart is magnitude only, so the
-    // real-vs-jω distinction never shows: |jω| = ω for real ω > 0, so reusing the jω product
-    // gives the identical magnitude WinISD's own real-ω formula does.
+    // WinISD's "Rear port - Gain" (vented, Z = K·ω·Up·Hf, ω real — no j) and "Front port -
+    // Gain" (bandpass4, Z = K·jω·Up·Hf — j kept): same K as the PR transfer charts above, and
+    // `Up` here is the FILTERED `UP` local (with `Hf` already multiplied in, unlike `Hpr`
+    // above). Both charts plot magnitude only, so the real-vs-jω distinction never shows:
+    // |jω| = ω for real ω > 0 — one computation, `portGainSpl`, feeds both.
     const Hgain = cScale(cMul(cx(0, w), UP), rho / (2 * Math.PI * r));
     const gainPm = cAbs(Hgain);
-    rearPortGainSpl.push(gainPm === 0 ? -200 : 20 * Math.log10(gainPm / P0));
+    portGainSpl.push(gainPm === 0 ? -200 : 20 * Math.log10(gainPm / P0));
     // x_peak = √2·|UD|/(ω·Sd)  https://en.wikipedia.org/wiki/Thiele/Small_parameters#Small_signal_parameters
     exc.push(Math.SQRT2 * cAbs(UD) / (w * Sdt) * 1000);
     pv.push(area ? Math.SQRT2 * cAbs(UP) / area : 0);
@@ -371,7 +375,7 @@ export function sweep(drv: DriverSolverParams, Le_H: number | undefined, box: Bo
       excPR[i] *= a;
       pv[i]    *= a;
       prSpl[i] += gDb; // the same real upstream gain reaches the radiator branch too
-      rearPortGainSpl[i] += gDb; // ...and the vented port branch, same reasoning
+      portGainSpl[i] += gDb; // ...and the vented/bandpass4 port branch, same reasoning
       H[i] = cScale(H[i], a);
     }
   }
@@ -395,12 +399,15 @@ export function sweep(drv: DriverSolverParams, Le_H: number | undefined, box: Bo
   // WinISD has no "Transfer function (PR)" chart for a box with no radiator — null there,
   // never the -200 dB / 0 rad a fake radiator would sweep to.
   const isPr = box === 'box-passive-radiator';
-  // Same reasoning: WinISD has no "Rear port - Gain" chart for a box with no rear port.
+  // Same reasoning: WinISD has no "Rear port - Gain"/"Front port - Gain" chart for a box with
+  // no rear/front port.
   const isVented = box === 'vented';
+  const isBandpass4 = box === 'bandpass4';
 
   return { values: { fs, H, spl, phase: ph, exc, excPR, pv, zmag, zph, gd, tfMag: tfMag(spl, splRefLimit),
                     prTfMag: isPr ? tfMag(prSpl, splRefLimit) : null, prTfPhase: isPr ? prPh : null,
-                    rearPortGain: isVented ? tfMag(rearPortGainSpl, splRefLimit) : null,
+                    rearPortGain: isVented ? tfMag(portGainSpl, splRefLimit) : null,
+                    frontPortGain: isBandpass4 ? tfMag(portGainSpl, splRefLimit) : null,
                     splXlimCurve, xlimited, flatClamped,
                     fltMag, fltPhase, fltGd, va }, issues: [] };
 }
@@ -483,11 +490,13 @@ function prTransferArrays(sw: SweepResult): readonly PlottedArray[] {
   ];
 }
 
-/** `rearPortGain` joins the plotted set only where it exists (`vented`) — same reasoning as
- *  `prTransferArrays` above. */
-function rearPortGainArrays(sw: SweepResult): readonly PlottedArray[] {
-  return sw.rearPortGain === null ? [] : [
-    { label: 'rear port gain', values: sw.rearPortGain },
+/** `rearPortGain` (`vented`) and `frontPortGain` (`bandpass4`) each join the plotted set only
+ *  where they exist — same reasoning as `prTransferArrays` above; exactly one of the two is
+ *  ever non-null for a given box. */
+function portGainArrays(sw: SweepResult): readonly PlottedArray[] {
+  return [
+    ...(sw.rearPortGain === null ? [] : [{ label: 'rear port gain', values: sw.rearPortGain }]),
+    ...(sw.frontPortGain === null ? [] : [{ label: 'front port gain', values: sw.frontPortGain }]),
   ];
 }
 
@@ -502,7 +511,7 @@ export function classifyFinite(sw: SweepResult): DriverError | null {
     { label: 'impedance phase', values: sw.zph }, { label: 'group delay', values: sw.gd },
     { label: 'filter magnitude', values: sw.fltMag }, { label: 'filter phase', values: sw.fltPhase },
     { label: 'filter group delay', values: sw.fltGd }, { label: 'amplifier apparent load power', values: sw.va },
-    ...prTransferArrays(sw), ...rearPortGainArrays(sw),
+    ...prTransferArrays(sw), ...portGainArrays(sw),
   ];
   return classifyArrays(sw.fs, arrays, 'sweep');
 }
@@ -517,7 +526,7 @@ export function classifyFiniteIssues(sw: SweepResult): DriverError[] {
     { label: 'impedance phase', values: sw.zph }, { label: 'group delay', values: sw.gd },
     { label: 'filter magnitude', values: sw.fltMag }, { label: 'filter phase', values: sw.fltPhase },
     { label: 'filter group delay', values: sw.fltGd }, { label: 'amplifier apparent load power', values: sw.va },
-    ...prTransferArrays(sw), ...rearPortGainArrays(sw),
+    ...prTransferArrays(sw), ...portGainArrays(sw),
   ];
   return arrays.flatMap((array): DriverError[] => {
     const bad = array.values.filter(value => !Number.isFinite(value)).length;

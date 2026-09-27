@@ -33,6 +33,9 @@ export const TAB_META: Record<ChartId, TabMeta> = {
   // rearPortGain) — unlike PRTFMag, this one IS run through the filter chain.
   RearPortGain: { id:'RearPortGain', name:'Rear port - Gain', unit:'dB', color:'#4fb0ff' },
   FrontPort: { id:'FrontPort', name:'Front port - Air velocity', unit:'m/s', color:'#5ad17a' },
+  // Same 0 dB / -3 dB passband-asymptote convention as RearPortGain (packages/design/engine/sweep.ts
+  // frontPortGain, the SAME computation as rearPortGain reused) — run through the filter chain.
+  FrontPortGain: { id:'FrontPortGain', name:'Front port - Gain', unit:'dB', color:'#4fb0ff' },
   GD:        { id:'GD',        name:'Group delay',     unit:'ms',  color:'#c08bff' },
   Zmag:      { id:'Zmag',      name:'Impedance',       unit:'Ω',   color:'#ff6b6b' },
   Zph:       { id:'Zph',       name:'Impedance phase', unit:'°',   color:'#ff9bb0' },
@@ -96,6 +99,21 @@ function portVelocityBuild({ meta, sw, pick }: CurveCtx): CurveBuild {
   const machLimit = 0.05 * new Engine().solveEnvironment({}).values.c;
   series.push({ xs: sw.fs, ys: sw.fs.map(() => machLimit), color:'#ffb454', name:'17 m/s', dash:true });
   return { series, ymin: 0, ymax: Math.max(20, Math.max(...sw.pv) * 1.1) };
+}
+
+/** Port gain — shared by `RearPortGain` (vented) and `FrontPortGain` (bandpass4): same
+ *  0 dB / -3 dB passband-asymptote convention as TFMag, only the underlying array (`sw.rearPortGain`
+ *  vs `sw.frontPortGain`, packages/design/engine/sweep.ts) and its legend name differ. Unlike
+ *  PRTFMag, both ARE run through the filter chain. */
+function portGainBuild(rel: number[] | null, name: string, meta: TabMeta, sw: SweepResult): CurveBuild {
+  const ys = rel ?? sw.fs.map(() => -200);
+  const series: Series[] = [{ xs: sw.fs, ys, color: meta.color, name }];
+  series.push({ xs: sw.fs, ys: sw.fs.map(() => 0), color: '#8a99ab', name: '0 dB', dash: true });
+  series.push({ xs: sw.fs, ys: sw.fs.map(() => -3), color: '#ffb454', name: '−3 dB', dash: true });
+  const relReal = realDb(ys);
+  const loRel = relReal.length ? Math.min(...relReal) : -45;
+  const ymax = 5;
+  return { series, ymin: Math.min(ymax - 45, Math.floor((loRel - 3) / 5) * 5), ymax };
 }
 
 const CURVE_BUILDERS: Record<ChartId, (c: CurveCtx) => CurveBuild> = {
@@ -189,20 +207,12 @@ const CURVE_BUILDERS: Record<ChartId, (c: CurveCtx) => CurveBuild> = {
     return { series, ymin: 0, ymax: top };
   },
 
-  // Applicable only to vented — design's `chartsFor` gates the menu; a compare overlay of a
-  // different box type draws the -200 dB silence fallback here, same as PRTFMag. Unlike
-  // PRTFMag, this one IS run through the filter chain (packages/design/engine/sweep.ts
-  // rearPortGain).
-  RearPortGain: ({ meta, sw }) => {
-    const rel = sw.rearPortGain ?? sw.fs.map(() => -200);
-    const series: Series[] = [{ xs: sw.fs, ys: rel, color: meta.color, name: 'Rear port gain' }];
-    series.push({ xs: sw.fs, ys: sw.fs.map(() => 0), color: '#8a99ab', name: '0 dB', dash: true });
-    series.push({ xs: sw.fs, ys: sw.fs.map(() => -3), color: '#ffb454', name: '−3 dB', dash: true });
-    const relReal = realDb(rel);
-    const loRel = relReal.length ? Math.min(...relReal) : -45;
-    const ymax = 5;
-    return { series, ymin: Math.min(ymax - 45, Math.floor((loRel - 3) / 5) * 5), ymax };
-  },
+  // Applicable only to vented (RearPortGain) or bandpass4 (FrontPortGain) — design's
+  // `chartsFor` gates the menu; a compare overlay of a different box type draws the -200 dB
+  // silence fallback here, same as PRTFMag. Unlike PRTFMag, both ARE run through the filter
+  // chain (packages/design/engine/sweep.ts rearPortGain/frontPortGain — one shared computation).
+  RearPortGain: ({ meta, sw }) => portGainBuild(sw.rearPortGain, 'Rear port gain', meta, sw),
+  FrontPortGain: ({ meta, sw }) => portGainBuild(sw.frontPortGain, 'Front port gain', meta, sw),
 
   // Applicable only to vented (rear) or bandpass4 (front) — design's `chartsFor` gates the
   // menu; a compare overlay of a different box type draws `pv`'s own 0 curve here, same as
@@ -353,6 +363,7 @@ export function errorsForChart(chartId: ChartId, errors: DriverError[]): DriverE
       case 'RearPort': return 'port velocity';
       case 'RearPortGain': return 'rear port gain';
       case 'FrontPort': return 'port velocity';
+      case 'FrontPortGain': return 'front port gain';
       case 'GD': return 'group delay';
       case 'Zmag': return 'impedance magnitude';
       case 'Zph': return 'impedance phase';

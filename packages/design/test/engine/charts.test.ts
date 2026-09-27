@@ -32,18 +32,24 @@ describe('Engine.chartsFor', () => {
     assert.ok(charts.indexOf('RearPortGain') < charts.indexOf('FltMag'));
   });
 
-  it('a 4th-order bandpass box adds FrontPort instead, no RearPort, no RearPortGain, no PR', () => {
+  it('a 4th-order bandpass box adds FrontPort and FrontPortGain, in WinISD chart-menu position, no RearPort, no RearPortGain, no PR', () => {
     const charts = engine.chartsFor('bandpass4');
     assert.ok(charts.includes('FrontPort'));
+    assert.ok(charts.includes('FrontPortGain'));
     assert.ok(!charts.includes('RearPort'));
     assert.ok(!charts.includes('RearPortGain'));
-    assert.deepEqual([...charts].sort(), [...engine.chartsFor('sealed'), 'FrontPort'].sort());
+    assert.deepEqual([...charts].sort(), [...engine.chartsFor('sealed'), 'FrontPort', 'FrontPortGain'].sort());
+    // WinISD row order: the port chart sits after Zph, before the filter trio, gain right after it.
+    assert.ok(charts.indexOf('FrontPort') > charts.indexOf('Zph'));
+    assert.equal(charts.indexOf('FrontPortGain'), charts.indexOf('FrontPort') + 1);
+    assert.ok(charts.indexOf('FrontPortGain') < charts.indexOf('FltMag'));
   });
 
   it('a passive-radiator box adds the three PR charts, no port chart', () => {
     const charts = engine.chartsFor('box-passive-radiator');
     assert.ok(charts.includes('PRTFMag') && charts.includes('PRTFPhase') && charts.includes('PRExcursion'));
-    assert.ok(!charts.includes('RearPort') && !charts.includes('RearPortGain') && !charts.includes('FrontPort'));
+    assert.ok(!charts.includes('RearPort') && !charts.includes('RearPortGain')
+      && !charts.includes('FrontPort') && !charts.includes('FrontPortGain'));
     assert.deepEqual([...charts].sort(), [...engine.chartsFor('sealed'), 'PRTFMag', 'PRTFPhase', 'PRExcursion'].sort());
     // WinISD row order: TFMag, Phase, ... Zph, PRTFMag, PRTFPhase, PRExcursion, then the filter trio.
     assert.ok(charts.indexOf('PRTFMag') > charts.indexOf('Zph'));

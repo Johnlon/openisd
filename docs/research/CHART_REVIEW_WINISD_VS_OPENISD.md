@@ -39,8 +39,8 @@ Records (format `winisd-run-record/1`, all validated):
 
 ## 0. Checklist — WinISD charts to check
 
-Every chart in WinISD's chart menu, per box type OpenISD has. 50 to check: **38 done** (34 exact
-match, 4 within WinISD's own rounding), 12 to do.
+Every chart in WinISD's chart menu, per box type OpenISD has. 50 to check: **39 done** (35 exact
+match, 4 within WinISD's own rounding), 11 to do.
 
 Key: ✅ exact match (≤ 1e-12 at all 2086 points) · ≈ matches to WinISD's own rounding noise ·
 ☐ to check · ✗ OpenISD has no such chart · — does not apply to that box.
@@ -63,7 +63,7 @@ Key: ✅ exact match (≤ 1e-12 at all 2086 points) · ≈ matches to WinISD's o
 | Rear port - Air velocity                | —      | ✅     | —            | —                |
 | Rear port - Gain                        | —      | ✅     | —            | —                |
 | Front port - Air velocity               | —      | —      | ☐            | —                |
-| Front port - Gain                       | —      | —      | ✗            | —                |
+| Front port - Gain                       | —      | —      | ✅           | —                |
 | Intrachamber port - Air velocity        | —      | —      | —            | —                |
 
 | EQ/Filter chart (box-independent)       | Status |
@@ -809,6 +809,24 @@ reference — but, unlike the PR transfer charts, `Up` here is multiplied by the
 just the port's raw resonance. WinISD's model: winisd_research GHIDRA_FINDINGS.md "Passive
 radiator box — `0x45a960`", "Rear port gain" bullet (the formula is box-agnostic; found by
 fitting `toys/w5_port_gain_shape.py` against this vented capture).
+
+### 3.9 4th-order bandpass: "Front port - Gain"
+
+Record [bp4-w5-chain-1](http://localhost:8000/winisd/winisd_research/runs/bp4-w5-chain-1/gdb.log)
+(kind 12, 2087 points), W5 in a rear-sealed/front-vented 4th-order bandpass, Fr 42 Hz / Ff 60 Hz,
+4-filter chain. `v` is the plotted dB itself — same as §3.7/§3.8, not a complex re/im pair. After
+BUG_20260927_winisd-charts-missing.md.
+
+| Chart               | Max difference |
+|----------------------|-----------------|
+| Front port - Gain    | 4.2e-14 dB      |
+
+Same computation as `rearPortGain` (§3.8) — WinISD's own formula keeps the j here
+(Z = K·jω·Up·Hf, vs the rear port's Z = K·ω·Up·Hf), but the chart plots magnitude only, so
+|jω| = ω makes the two formulas the identical computation; `sweep.ts` runs it once
+(`portGainSpl`) and splits the result into `rearPortGain`/`frontPortGain` only at the return,
+gated to the box type that has each port. WinISD's model: winisd_research
+GHIDRA_FINDINGS.md "4th-order bandpass — `0x457a30`", "Front port gain" bullet.
 
 ---
 

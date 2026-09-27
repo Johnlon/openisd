@@ -1,6 +1,6 @@
 # BUG_20260927_winisd-charts-missing
 
-**Status:** OPEN
+**Status:** RESOLVED
 
 ## Symptom
 WinISD has four charts OpenISD lacks: "Transfer function magnitude (PR)" and "Transfer function
@@ -56,4 +56,12 @@ type) — matched to WinISD's own plotted values (winisd_research runs/vented-ga
 `prTfMag`, but — unlike `prTfMag` — run through the filter chain, same as `tfMag` itself.
 New `RearPortGain` chart id, right after `RearPort` in WinISD's row order, vented only.
 
-Pending: "Front port - Gain" (bandpass 4th) — not in this task; its capture is still running.
+Also done: "Front port - Gain" (bandpass 4th box, `sweep.ts` `frontPortGain`, null for every
+other box type) — matched to WinISD's own plotted values (winisd_research
+runs/bp4-w5-chain-1) to 4.2e-14 dB, well inside the ≤1e-10 tier. Same computation as
+`rearPortGain` — WinISD's own formula keeps the j (Z = K·jω·Up·Hf, vs the rear port's
+Z = K·ω·Up·Hf) but the chart plots magnitude only, so the two are one shared array in
+`sweep.ts` (`portGainSpl`), split into `rearPortGain`/`frontPortGain` only at the return. New
+`FrontPortGain` chart id, right after `FrontPort` in WinISD's row order, bandpass4 only.
+
+All four missing WinISD charts from this bug are now built. RESOLVED.
