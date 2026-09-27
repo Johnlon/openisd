@@ -23,8 +23,10 @@ engine sweep, show each chart for its box type only.
 
 Chart menu lists only the charts that apply to the box (John, 2026-09-27: "a nice improvement over
 WinIsd is to only show the applicable charts in the drop-down - no pr excursion if no pr and no air
-speed if no port"). WinISD lists every chart for every box. The per-box chart list is a decision, so
-it lives in packages/design (one function of the box type, exhaustive over box types); both skins
+speed if no port" … "etc"). General rule: a chart is listed only when the quantity it plots exists in
+the project: port charts need a port, PR charts a radiator, EQ/Filter charts an enabled filter.
+WinISD lists every chart for every box. The chart list is a decision, so it lives in packages/design
+(one function of the project, exhaustive over box types); both skins
 read it and display only. Replaces today's "n/a" Air velocity chart on unported boxes
 (packages/ui/src/logic/series.ts Port builder).
 
