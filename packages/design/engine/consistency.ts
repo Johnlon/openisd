@@ -54,11 +54,26 @@ export interface OutOfRangeIssue {
   readonly side: 'below' | 'above';
 }
 
+/**
+ * A stated box volume that cannot be physical: zero, negative, or not a finite number —
+ * absolute, box-agnostic, and shared by EVERY box type's volume field (sealed, vented,
+ * bandpass 4th/6th rear and front, ABC, passive radiator; BUG_20260927_box-volume-validity-
+ * decided-in-ui.md — this was a UI-only `v > 0` check before, duplicated per box type instead
+ * of reaching the domain at all). Vented's OWN volume ALSO judges a plausible design BAND on
+ * top of this floor (`VentedPlausibilityIssue`'s `non-physical`/`out-of-range`, a setting the
+ * user owns) — this is the one check every OTHER box type shares, not a replacement for that
+ * richer one.
+ */
+export interface InvalidVolumeIssue {
+  readonly kind: 'invalid-volume';
+  readonly value: number;
+}
+
 /** Every dq-carrying issue a field can hold, whichever domain produced it. `target`/`fields` are
  *  plain `string` here, not a domain's own quantity-name union — `Readable<V>.dq` is shared
  *  across every domain and carries no quantity-name type parameter of its own, and a
  *  `CalculationIssue<Q>` for any `Q extends string` widens to this without a cast. */
-export type DqIssue = CalculationIssue<string> | VentedPlausibilityIssue | TargetUnreachableIssue | OutOfRangeIssue;
+export type DqIssue = CalculationIssue<string> | VentedPlausibilityIssue | TargetUnreachableIssue | OutOfRangeIssue | InvalidVolumeIssue;
 
 /** Every field one `CalculationIssue` names — the target, plus (for `missing-dependencies`)
  *  every field any of its routes requires or is still missing. One generic answer for any
@@ -88,6 +103,13 @@ export function issueToText<Q extends string>(issue: CalculationIssue<Q>): strin
   }
   const routes = issue.routes.map(r => `${r.formula} (needs ${r.missing.join(', ')})`).join('; or ');
   return `${issue.target} cannot be calculated yet - state ${routes}.`;
+}
+
+/** The one absolute floor every box type's volume field shares: zero, negative or not a finite
+ *  number is not a volume, whatever box it is (BUG_20260927_box-volume-validity-decided-in-ui.md).
+ *  `null` is a valid answer to "any issue?" — the value passing this check. */
+export function boxVolumeValidity(value: number): InvalidVolumeIssue | null {
+  return Number.isFinite(value) && value > 0 ? null : { kind: 'invalid-volume', value };
 }
 
 /** A near-miss needs its decimal to be readable; a gross one is quoted whole. */
@@ -148,6 +170,14 @@ export function outOfRangeToText(issue: OutOfRangeIssue): string {
     + `${decimal(issue.limit)}.`;
 }
 
+/** Zero, negative or not a finite number is not a volume — kept and saved exactly as entered
+ *  (never silently coerced), so this only marks the field. Box-agnostic: no alignment, no
+ *  extrapolation, no design-band opinion, unlike `VentedPlausibilityIssue`'s own richer check. */
+export function invalidVolumeToText(_issue: InvalidVolumeIssue): string {
+  return 'Bad data: zero or less is not a physical volume. It is kept and saved exactly as '
+    + 'entered - clear the field to fix it.';
+}
+
 /** One sentence for any `DqIssue`, whichever shape it is — the single dispatch a caller uses
  *  instead of checking `kind` itself. `'out-of-range'` is narrowed further by `'field' in
  *  issue`: the literal is shared by `OutOfRangeIssue` and `VentedPlausibilityIssue`'s own
@@ -161,6 +191,8 @@ export function dqIssueText(issue: DqIssue): string {
       return plausibilityToText(issue);
     case 'out-of-range':
       return 'field' in issue ? outOfRangeToText(issue) : plausibilityToText(issue);
+    case 'invalid-volume':
+      return invalidVolumeToText(issue);
     case 'target-unreachable':
       return targetUnreachableToText(issue);
   }

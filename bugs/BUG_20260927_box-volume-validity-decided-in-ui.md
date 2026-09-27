@@ -1,6 +1,6 @@
 # BUG_20260927_box-volume-validity-decided-in-ui
 
-**Status:** OPEN
+**Status:** RESOLVED
 
 ## Symptom
 There are two judges of "is this box volume bad", the UI's `v > 0` check and the domain's
@@ -20,9 +20,39 @@ Pre-existing UI-layer decision; breaks the rule that nothing but display lives o
 packages/design.
 
 ## Fix
-Domain-side volume validity for every box type, surfaced on each volume field's `.dq`; delete
-`isBadVolume`/`volumeDqNote` from the UI and render `.dq` in both skins.
+New `InvalidVolumeIssue` DqIssue kind (`packages/design/engine/consistency.ts`) — zero, negative
+or non-finite, box-agnostic — with its own text (`invalidVolumeToText`, the old UI wording,
+unchanged) and an `Engine.boxVolumeIssue(value)` wrapper, following the same
+type-function-Engine-method-dqIssueText-dispatch pattern every other `DqIssue` kind already uses.
+Kept separate from `VentedPlausibilityIssue`'s own `non-physical`/`out-of-range`: vented's text
+ends in the alignment-extrapolation PARITY sentence, which is wrong for a directly-entered
+volume, so vented keeps `ventedVolumeIssue`/`VentedPlausibilityIssue` exactly as before.
+
+Wired onto every OTHER box type's volume field the same way `ventedChamber.volume_m3` already
+reached `ventedVolumeIssue` (`requiredField(..., (v) => engine.boxVolumeIssue(v))`):
+sealed and passive-radiator moved from a bare `SimpleField<number>` (no `.dq` at all) to
+`Readable<number> & Entered & Writable<number>`; bandpass4 rear/front and `VentedChamberWindow`
+(shared by bandpass6 and ABC, both rear and front) gained the `getDq` callback they already had
+the field type for.
+
+`packages/ui/src/hooks/OriginalShell-hooks.ts`: deleted `isBadVolume`/`volumeDqNote`/
+`BAD_VOLUME_NOTE`. `createBoxVolume` now resolves the active box's volume FIELD (not just its
+value) and reads `boxVolumeDqNote` from `field.dq.map(engine.dqIssueText)` — the same `.dq`
+surface vented's own field already exposed, so the not-yet-merged mobile skin needs no
+special-casing. `BoxVolumeDeps` gained an `engine: Engine` field.
 
 ## Verification
-Domain tests per box type (0, negative, NaN volume → issue); UI shows the domain's note; no
-`v > 0` left under packages/ui.
+New domain test `packages/design/test/domain/box-volume-validity.test.ts`: one test per box type
+(sealed, bandpass4 rear/front, bandpass6 rear/front, ABC rear/front, passive-radiator), each
+setting 0 / negative / NaN and asserting `{kind: 'invalid-volume', value}` on the field's `.dq`,
+plus one test pinning that vented's own field still reports `VentedPlausibilityIssue`
+(`non-physical`), untouched. `packages/design` full suite: 2220/2220 passed, no regressions.
+
+`packages/ui/test/hooks/OriginalShell-hooks.test.ts`: removed the `isBadVolume`/`volumeDqNote`
+describe block; the zero-or-less-volume test now compares `boxVolumeDqNote` against
+`engine.invalidVolumeToText(...)` rather than the deleted `BAD_VOLUME_NOTE` constant.
+`packages/ui` unit suite: 585/585 passed.
+
+`grep -rn "v > 0" packages/ui/src` still finds six hits, none a volume check (a `NumInput`/
+`expoStep` decimal-step helper, `OgTune`/driver-editor/options-modal field checks, and a
+driver-display usability predicate) — no volume check remains under `packages/ui`.

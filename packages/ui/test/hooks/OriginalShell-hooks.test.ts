@@ -4,7 +4,6 @@ import {Engine, type BoxType} from '@openisd/design/engine';
 import {OpenISDProject} from '@openisd/design';
 import {
   airFieldDataQuality,
-  BAD_VOLUME_NOTE,
   createBoxVolume,
   createDriveSignal,
   createEnvironmentAir,
@@ -13,9 +12,7 @@ import {
   dqOfEntry,
   dqOfSolved,
   fillBlankMeta,
-  isBadVolume,
   isTabId,
-  volumeDqNote,
 } from '../../src/hooks/OriginalShell-hooks.js';
 
 function createCompleteProject() {
@@ -133,7 +130,7 @@ describe('OriginalShell-hooks', () => {
     const boxTypes: BoxType[] = ['sealed', 'vented', 'bandpass4', 'bandpass6', 'abc', 'box-passive-radiator'];
 
     it.each(boxTypes)('writes and reads back the %s box volume', (boxType) => {
-      const {project} = createCompleteProject();
+      const {engine, project} = createCompleteProject();
       project.box.boxType.set(boxType);
       const projectRef = shallowRef(project);
       const selectedBox = ref<BoxType>(boxType);
@@ -143,6 +140,7 @@ describe('OriginalShell-hooks', () => {
         project: computed(() => projectRef.value),
         selectedBox,
         projectChanged,
+        engine,
       });
 
       setBoxVolume_m3(0.02);
@@ -150,7 +148,7 @@ describe('OriginalShell-hooks', () => {
     });
 
     it('keeps full precision across write and read', () => {
-      const {project} = createCompleteProject();
+      const {engine, project} = createCompleteProject();
       const projectRef = shallowRef(project);
       const selectedBox = ref<BoxType>('sealed');
       const projectChanged = ref(0);
@@ -159,51 +157,40 @@ describe('OriginalShell-hooks', () => {
         project: computed(() => projectRef.value),
         selectedBox,
         projectChanged,
+        engine,
       });
 
       setBoxVolume_m3(0.012345678);
       expect(boxVolume_m3.value).toBeCloseTo(0.012345678, 12);
     });
 
-    it('keeps a zero-or-less volume as entered and reports it via boxVolumeDqNote, never coerced', () => {
-      const {project} = createCompleteProject();
+    it('keeps a zero-or-less volume as entered and reports the domain\'s own note via boxVolumeDqNote, never coerced', () => {
+      const {engine, project} = createCompleteProject();
       const projectRef = shallowRef(project);
       const selectedBox = ref<BoxType>('sealed');
       const projectChanged = ref(0);
+      const expectedNote = engine.invalidVolumeToText({kind: 'invalid-volume', value: 0});
 
       const {boxVolume_m3, setBoxVolume_m3, boxVolumeDqNote} = createBoxVolume({
         project: computed(() => projectRef.value),
         selectedBox,
         projectChanged,
+        engine,
       });
 
       setBoxVolume_m3(0);
       projectChanged.value++;
       expect(boxVolume_m3.value).toBe(0);
-      expect(boxVolumeDqNote.value).toBe(BAD_VOLUME_NOTE);
+      expect(boxVolumeDqNote.value).toBe(expectedNote);
 
       setBoxVolume_m3(-1);
       projectChanged.value++;
       expect(boxVolume_m3.value).toBe(-1);
-      expect(boxVolumeDqNote.value).toBe(BAD_VOLUME_NOTE);
+      expect(boxVolumeDqNote.value).toBe(expectedNote);
 
       setBoxVolume_m3(0.02);
       projectChanged.value++;
       expect(boxVolumeDqNote.value).toBe('');
-    });
-  });
-
-  describe('isBadVolume / volumeDqNote', () => {
-    it('is false/empty for a positive volume', () => {
-      expect(isBadVolume(0.02)).toBe(false);
-      expect(volumeDqNote(0.02)).toBe('');
-    });
-
-    it('is true/the note for zero or a negative volume', () => {
-      expect(isBadVolume(0)).toBe(true);
-      expect(isBadVolume(-1)).toBe(true);
-      expect(volumeDqNote(0)).toBe(BAD_VOLUME_NOTE);
-      expect(volumeDqNote(-1)).toBe(BAD_VOLUME_NOTE);
     });
   });
 
