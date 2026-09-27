@@ -17,6 +17,11 @@ test('the WinISD Compatibility loss model selector defaults to WinISD, unlabelle
   await expect(sel).toHaveValue('winisd-lossy');
   await expect(sel.locator('option')).toHaveText(['WinISD lossy model', 'Lossless model', 'Conventional lossy model']);
   await expect(page.locator('.sim-options-box label', { hasText: 'Loss model' })).toHaveCount(0);
+  const help = page.locator('.sim-options-box .field', { has: sel });
+  for (const name of ['WinISD lossy model', 'Lossless model', 'Conventional lossy model']) {
+    await expect(help).toHaveAttribute('title', new RegExp(name));
+  }
+  await expect(help).not.toHaveAttribute('title', /Custom Q|None/);
 });
 
 test('the WinISD Compatibility panel ends just below its last switch', async ({ page }) => {

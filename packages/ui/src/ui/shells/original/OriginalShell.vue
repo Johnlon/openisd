@@ -608,7 +608,7 @@ const {
                 <button class="action-btn apply-winisd-btn" title="Reset to WinISD: set every WinISD-vs-conventional switch to WinISD" @click="applyWinisdSettings">Reset</button>
               </div>
               <div class="field-row" style="flex-wrap: nowrap; margin-bottom: 6px;">
-                <div class="field" style="gap:6px;" :title="`Controls sealed resonance (Fsc) and system Q (Qtc) loss calculations:\n• None: Ideal lossless enclosure (Q = ∞)\n• WinISD default: Lossy cubic model (Ql=10, Qa=100, Qp=100)\n• Custom Q: User-defined damping parameters`">
+                <div class="field" style="gap:6px;" :title="`Sealed box loss model: sets the box resonance (Fsc) and system Q (Qtc).\nWinISD lossy model (default): WinISD's own lossy model; Fsc rises as Ql falls, matching WinISD's readout.\nLossless model: no box losses; Fsc = Fs·√(1 + Vas/Vb).\nConventional lossy model: Ql and Qa lower Qtc only; Fsc stays put (Small/Thiele).`">
                   <select id="adv-lossmode" :value="lossMode" @change="e => { const m = selectedOption(e, LOSS_MODE_OPTIONS); if (m !== null) lossMode = m; }" style="width:200px">
                     <option v-for="m in LOSS_MODE_OPTIONS" :key="m.value" :value="m.value">{{ m.label }}</option>
                   </select>
