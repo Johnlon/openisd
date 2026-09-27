@@ -387,7 +387,9 @@ const UI_FIELD_SPECS: UIFieldSpec[] = [
   { id: 'filter_Fc_hz', aliases: ['filterFc'], label: 'Cutoff / Center freq', pane: 'Filters', kind: 'number', unit: 'Hz', precision: 3, min: 1, max: 20000, description: 'Cutoff / Center Frequency\nCutoff or center frequency of the active filter.' },
   { id: 'filter_Q', aliases: ['filterQ'], label: 'Q', pane: 'Filters', kind: 'number', unit: '', precision: 3, min: 0.1, max: 100, description: 'Filter Quality Factor (Q)\nHow sharp the filter\'s resonance peak or its damping is.' },
   { id: 'filter_Gain_dB', aliases: ['filterGain'], label: 'Gain', pane: 'Filters', kind: 'number', unit: 'dB', precision: 3, min: -60, max: 60, description: 'Filter Gain\nBoost or cut applied by the filter or equalizer, in dB.' },
-  { id: 'filter_Order', aliases: ['filterOrder'], label: 'Order', pane: 'Filters', kind: 'number', unit: '', precision: 3, min: 1, max: 8, description: 'Filter Order\nFilter steepness: 1st order = 6 dB/oct, 2nd = 12 dB/oct, 4th = 24 dB/oct.' },
+  { id: 'filter_Order', aliases: ['filterOrder'], label: 'Order', pane: 'Filters', kind: 'number', unit: '', precision: 3, min: 1, max: 10, description: 'Filter Order\nFilter steepness: 1st order = 6 dB/oct, 2nd = 12 dB/oct, 4th = 24 dB/oct.\nWinISD itself loads up to order 10; a saved .wpr above that hangs WinISD\'s own load.' },
+  { id: 'filter_T_s', aliases: ['filterT'], label: 't', pane: 'Filters', kind: 'number', unit: 's', precision: 4, min: 0, max: 10, description: 'Allpass Delay Time\nGroup-delay time constant of an allpass filter section.' },
+  { id: 'filter_BW_oct', aliases: ['filterBw'], label: 'BW', pane: 'Filters', kind: 'number', unit: 'oct', precision: 3, min: 0.01, max: 10, description: 'DLP Raised-Cosine Bandwidth\nWidth of the raised-cosine transition band, in octaves.' },
 ];
 
 /** All registered field specs (read-only view). */

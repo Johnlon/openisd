@@ -304,8 +304,8 @@ test('a project is closed by selecting its row then Close (WinISD right-click De
 test('the Filters tab quick-adds real filter types and drives the store', async ({ page }) => {
   await page.locator('.project-nav li', { hasText: 'Filters' }).click();
   const panel = page.locator('.content-panel');
-  // Only the six engine-supported types (highpass, lowpass, linkwitz, peaking, lowshelf, highshelf).
-  await expect(panel.locator('.filters-quickadd .action-btn')).toHaveCount(6);
+  // Every WinISD Filter Editor type (8) plus the two OpenISD-only shelves.
+  await expect(panel.locator('.filters-quickadd .action-btn')).toHaveCount(10);
 
   await panel.locator('.action-btn', { hasText: '+ HP' }).click();
   await expect(panel.locator('.filters-list .filter-row-inline')).toHaveCount(1);

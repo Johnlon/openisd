@@ -2,39 +2,54 @@
 /**
  * Filters tab — the `.filters-quickadd` + `.filters-list` markup. Presentation only: the
  * list, add, remove and patch live in `hooks/OgFilters-hooks.ts` (`createOgFilters`), the
- * starting values of a new filter in the engine (`Engine.defaultFilter`). This file owns
- * which row is open for editing and how a row is summarised, nothing else.
+ * starting values of a new filter in the engine (`Engine.defaultFilter`), and the row caption
+ * in `logic/filterCaption.ts`. This file owns which row is open for editing and the per-type
+ * field layout, nothing else.
  *
- * Honesty note: the engine now models every WinISD Filter Editor type (highpass, lowpass —
- * each with WinISD's Butterworth/Linkwitz-Riley/Bessel/SOS subtypes — allpass, linkwitz
- * transform, parametric EQ, peaking 2nd-order highpass, static gain, DLP raised cosine),
- * plus the two OpenISD-only shelves. This tab still only quick-adds and edits the six types
- * it always has (fc/Q rows, linkwitz's four fields); a family/order control and editors for
- * allpass/peakHighpass/staticGain/raisedCosine are chunk 2.
+ * Editing builds the next value of the SAME variant, then hands the WHOLE filter to
+ * `api.replaceFilter` — never a per-field string route. Each `*Next` function below narrows
+ * `f.type` itself (a template `v-if` narrows `f` for a direct member read inside its own
+ * block, but that narrowing does not survive being passed as an argument across a function
+ * call), and returns null when `f` is not that family — `replace` then no-ops, so a stray call
+ * from the wrong block is inert rather than a crash.
  */
 import {ref} from 'vue';
 import {limits} from '../../../logic/fields/uiFields.js';
-import type {Filter, FilterType} from '@openisd/design/engine';
-import {inputChecked, inputValue} from '../../../logic/domEvents.js';
+import type {Filter, FilterType, PassFamily} from '@openisd/design/engine';
+import type {SelectorOption} from '@openisd/design/fields';
+import {inputChecked, inputValue, selectedOption} from '../../../logic/domEvents.js';
 import type {OgFiltersAPI} from '../../../hooks/OgFilters-hooks.js';
+import {filterCaption} from '../../../logic/filterCaption.js';
 
 const {api} = defineProps<{ api: OgFiltersAPI }>();
 const filters = api.filters;
 
-// Order: LP, HP, …, LT, …, PEQ, with the four types this tab does not yet edit (Allpass,
-// Peaking-2nd-order-HP, DLP, Static gain) omitted — see honesty note above.
+/** One quick-add button per type, WinISD's Filter Editor "Filter type" order, then the two
+ *  OpenISD-only shelves. */
 const QUICK_ADD: { type: FilterType; label: string }[] = [
-  { type: 'lowpass',  label: '+ LP' },
-  { type: 'highpass', label: '+ HP' },
-  { type: 'linkwitz', label: '+ LT' },
-  { type: 'peaking',  label: '+ PEQ' },
-  { type: 'lowshelf',  label: '+ LS' },
-  { type: 'highshelf', label: '+ HS' },
+  { type: 'lowpass',      label: '+ LP' },
+  { type: 'highpass',     label: '+ HP' },
+  { type: 'allpass',      label: '+ AP' },
+  { type: 'linkwitz',     label: '+ LT' },
+  { type: 'peaking',      label: '+ PEQ' },
+  { type: 'peakHighpass', label: '+ Peak HP' },
+  { type: 'staticGain',   label: '+ Gain' },
+  { type: 'raisedCosine', label: '+ DLP' },
+  { type: 'lowshelf',     label: '+ LS' },
+  { type: 'highshelf',    label: '+ HS' },
 ];
 const BADGE: Record<FilterType, string> = {
   lowpass: 'LP', highpass: 'HP', allpass: 'AP', linkwitz: 'LT', peaking: 'PEQ',
   peakHighpass: 'PHP', staticGain: 'GAIN', raisedCosine: 'DLP', lowshelf: 'LS', highshelf: 'HS',
 };
+
+/** Lowpass/highpass "Subtype" choices, WinISD's Filter Editor order and wording. */
+const PASS_FAMILY_OPTIONS: readonly SelectorOption<PassFamily>[] = [
+  { value: 'butterworth',   label: 'Butterworth' },
+  { value: 'linkwitzRiley', label: 'Linkwitz-Riley (4th order only)' },
+  { value: 'bessel',        label: 'Bessel' },
+  { value: 'sos',           label: 'SOS, User specified fc and Q' },
+];
 
 /** Which row is open for editing — presentation state, this tab's alone. */
 const editing = ref<string | null>(null);
@@ -47,66 +62,51 @@ function removeFilter(id: string | undefined) {
 }
 function toggleEdit(id: string | undefined) { editing.value = editing.value === id ? null : (id ?? null); }
 function numFrom(e: Event): number { return Number(inputValue(e)); }
+function intFrom(e: Event): number { return Math.round(numFrom(e)); }
 
-/** `enabled` is common to every filter type, so this needs no per-type narrowing. A row
- *  without an id (a stored filter that never had one) cannot be edited. */
-function patchEnabled(f: Filter, value: boolean): void {
-  if (f.id === undefined) return;
-  api.replaceFilter(f.id, {...f, enabled: value});
-}
-
-/** `fc` and `Q` name-clash across five variants; each helper narrows `f.type` itself rather
- *  than trusting the template to have narrowed it (Vue template narrowing across a multi-type
- *  `v-if` is not something to depend on for a sum type this wide). */
-function patchFc(f: Filter, value: number): void {
-  if (f.id === undefined) return;
-  if (f.type === 'lowpass' || f.type === 'highpass' || f.type === 'peaking' || f.type === 'lowshelf' || f.type === 'highshelf') {
-    api.replaceFilter(f.id, {...f, fc: value});
-  }
-}
-function patchQ(f: Filter, value: number): void {
-  if (f.id === undefined) return;
-  if (f.type === 'lowpass' || f.type === 'highpass' || f.type === 'peaking' || f.type === 'lowshelf' || f.type === 'highshelf') {
-    api.replaceFilter(f.id, {...f, Q: value});
-  }
-}
-function patchGain(f: Filter, value: number): void {
-  if (f.id === undefined) return;
-  if (f.type === 'peaking' || f.type === 'lowshelf' || f.type === 'highshelf') {
-    api.replaceFilter(f.id, {...f, gain: value});
-  }
-}
-function patchF0(f: Filter, value: number): void {
-  if (f.id === undefined || f.type !== 'linkwitz') return;
-  api.replaceFilter(f.id, {...f, f0: value});
-}
-function patchQ0(f: Filter, value: number): void {
-  if (f.id === undefined || f.type !== 'linkwitz') return;
-  api.replaceFilter(f.id, {...f, Q0: value});
-}
-function patchFp(f: Filter, value: number): void {
-  if (f.id === undefined || f.type !== 'linkwitz') return;
-  api.replaceFilter(f.id, {...f, fp: value});
-}
-function patchQp(f: Filter, value: number): void {
-  if (f.id === undefined || f.type !== 'linkwitz') return;
-  api.replaceFilter(f.id, {...f, Qp: value});
+/** The one place that calls into the API — every editor below builds `next`, this sends it. */
+function replace(f: Filter, next: Filter | null): void {
+  if (f.id === undefined || next === null) return;
+  api.replaceFilter(f.id, next);
 }
 
-function fnum(v: number | undefined, dp: number): string { return v != null && isFinite(v) ? v.toFixed(dp) : '—'; }
-function summary(f: Filter): string {
-  switch (f.type) {
-    case 'lowpass':
-    case 'highpass':      return `fc ${fnum(f.fc, 0)} Hz · Q ${fnum(f.Q, 3)}`;
-    case 'peaking':
-    case 'lowshelf':
-    case 'highshelf':     return `fc ${fnum(f.fc, 0)} Hz · Q ${fnum(f.Q, 2)} · ${fnum(f.gain, 1)} dB`;
-    case 'linkwitz':      return `f0 ${fnum(f.f0, 0)} / fp ${fnum(f.fp, 0)} Hz`;
-    case 'allpass':       return `n ${f.order} · t ${fnum(f.t, 4)} s`;
-    case 'peakHighpass':  return `fpk ${fnum(f.fpk, 0)} Hz · ${fnum(f.gainPk, 1)} dB`;
-    case 'staticGain':    return `${fnum(f.gain, 1)} dB`;
-    case 'raisedCosine':  return `fc ${fnum(f.fc, 0)} Hz · BW ${fnum(f.bwOct, 2)} oct · ${fnum(f.gain, 1)} dB`;
-  }
+// ---- Per-family "next value" builders — one per WinISD Filter Editor family. ------------------
+function passFamilyNext(f: Filter, e: Event): Filter | null {
+  if (f.type !== 'lowpass' && f.type !== 'highpass') return null;
+  const family = selectedOption(e, PASS_FAMILY_OPTIONS);
+  return family === null ? null : {...f, family};
+}
+function passFilterNext(f: Filter, patch: Partial<Pick<Filter & { type: 'lowpass' | 'highpass' }, 'order' | 'fc' | 'Q'>>): Filter | null {
+  if (f.type !== 'lowpass' && f.type !== 'highpass') return null;
+  return {...f, ...patch};
+}
+function allpassNext(f: Filter, patch: Partial<Pick<Filter & { type: 'allpass' }, 'order' | 't' | 'Q'>>): Filter | null {
+  if (f.type !== 'allpass') return null;
+  return {...f, ...patch};
+}
+function linkwitzNext(f: Filter, patch: Partial<Pick<Filter & { type: 'linkwitz' }, 'f0' | 'Q0' | 'fp' | 'Qp'>>): Filter | null {
+  if (f.type !== 'linkwitz') return null;
+  return {...f, ...patch};
+}
+function peakingNext(f: Filter, patch: Partial<Pick<Filter & { type: 'peaking' }, 'fc' | 'Q' | 'gain'>>): Filter | null {
+  if (f.type !== 'peaking') return null;
+  return {...f, ...patch};
+}
+function peakHighpassNext(f: Filter, patch: Partial<Pick<Filter & { type: 'peakHighpass' }, 'fpk' | 'gainPk'>>): Filter | null {
+  if (f.type !== 'peakHighpass') return null;
+  return {...f, ...patch};
+}
+function staticGainNext(f: Filter, gain: number): Filter | null {
+  if (f.type !== 'staticGain') return null;
+  return {...f, gain};
+}
+function raisedCosineNext(f: Filter, patch: Partial<Pick<Filter & { type: 'raisedCosine' }, 'fc' | 'bwOct' | 'gain'>>): Filter | null {
+  if (f.type !== 'raisedCosine') return null;
+  return {...f, ...patch};
+}
+function shelfNext(f: Filter, patch: Partial<Pick<Filter & { type: 'lowshelf' | 'highshelf' }, 'fc' | 'Q' | 'gain'>>): Filter | null {
+  if (f.type !== 'lowshelf' && f.type !== 'highshelf') return null;
+  return {...f, ...patch};
 }
 </script>
 
@@ -122,26 +122,63 @@ function summary(f: Filter): string {
            class="filter-row-inline" :class="{ editing: editing === f.id, 'filter-disabled': !f.enabled }">
         <div class="filter-row-head">
           <input type="checkbox" :checked="f.enabled" title="Bypass / enable this filter" @click.stop
-                 @change="patchEnabled(f, inputChecked($event))">
+                 @change="replace(f, {...f, enabled: inputChecked($event)})">
           <span class="filter-type-badge">{{ BADGE[f.type] }}</span>
-          <span class="filter-summary" @click="toggleEdit(f.id)">{{ summary(f) }}</span>
+          <span class="filter-summary" @click="toggleEdit(f.id)">{{ filterCaption(f) }}</span>
           <span class="filter-edit-hint" @click="toggleEdit(f.id)">✎ edit</span>
           <button class="filter-del" title="Remove this filter" @click.stop="removeFilter(f.id)">×</button>
         </div>
 
         <div v-if="editing === f.id" class="filter-edit-body">
-          <template v-if="f.type === 'highpass' || f.type === 'lowpass' || f.type === 'peaking' || f.type === 'lowshelf' || f.type === 'highshelf'">
-            <label>fc <input v-expo-step type="number" step="1" v-limits="limits('filterFc')" :value="f.fc" @change="patchFc(f, numFrom($event))"> Hz</label>
-            <label>Q <input v-expo-step type="number" step="0.01" v-limits="limits('filterQ')" :value="f.Q" @change="patchQ(f, numFrom($event))"></label>
+          <template v-if="f.type === 'lowpass' || f.type === 'highpass'">
+            <label>Subtype
+              <select :value="f.family" @change="replace(f, passFamilyNext(f, $event))">
+                <option v-for="o in PASS_FAMILY_OPTIONS" :key="o.value" :value="o.value">{{ o.label }}</option>
+              </select>
+            </label>
+            <label>Order <input type="number" step="1" v-limits="limits('filterOrder')" :value="f.order" @change="replace(f, passFilterNext(f, {order: intFrom($event)}))"></label>
+            <label>Q <input v-expo-step type="number" step="0.01" v-limits="limits('filterQ')" :value="f.Q" @change="replace(f, passFilterNext(f, {Q: numFrom($event)}))"></label>
+            <label>Cutoff <input v-expo-step type="number" step="1" v-limits="limits('filterFc')" :value="f.fc" @change="replace(f, passFilterNext(f, {fc: numFrom($event)}))"> Hz</label>
           </template>
-          <template v-if="f.type === 'peaking' || f.type === 'lowshelf' || f.type === 'highshelf'">
-            <label>Gain <input v-expo-step type="number" step="0.5" v-limits="limits('filterGain')" :value="f.gain" @change="patchGain(f, numFrom($event))"> dB</label>
+
+          <template v-if="f.type === 'allpass'">
+            <label>Order <input type="number" step="1" v-limits="limits('filterOrder')" :value="f.order" @change="replace(f, allpassNext(f, {order: intFrom($event)}))"></label>
+            <label>Q <input v-expo-step type="number" step="0.01" v-limits="limits('filterQ')" :value="f.Q" @change="replace(f, allpassNext(f, {Q: numFrom($event)}))"></label>
+            <label>t <input v-expo-step type="number" step="0.001" v-limits="limits('filterT')" :value="f.t" @change="replace(f, allpassNext(f, {t: numFrom($event)}))"> s</label>
           </template>
+
           <template v-if="f.type === 'linkwitz'">
-            <label>f0 <input v-expo-step type="number" step="1" v-limits="limits('filterFc')" :value="f.f0" @change="patchF0(f, numFrom($event))"> Hz</label>
-            <label>Q0 <input v-expo-step type="number" step="0.01" v-limits="limits('filterQ')" :value="f.Q0" @change="patchQ0(f, numFrom($event))"></label>
-            <label>fp <input v-expo-step type="number" step="1" v-limits="limits('filterFc')" :value="f.fp" @change="patchFp(f, numFrom($event))"> Hz</label>
-            <label>Qp <input v-expo-step type="number" step="0.01" v-limits="limits('filterQ')" :value="f.Qp" @change="patchQp(f, numFrom($event))"></label>
+            <label>f0 <input v-expo-step type="number" step="1" v-limits="limits('filterFc')" :value="f.f0" @change="replace(f, linkwitzNext(f, {f0: numFrom($event)}))"> Hz</label>
+            <label>Q0 <input v-expo-step type="number" step="0.01" v-limits="limits('filterQ')" :value="f.Q0" @change="replace(f, linkwitzNext(f, {Q0: numFrom($event)}))"></label>
+            <label>fp <input v-expo-step type="number" step="1" v-limits="limits('filterFc')" :value="f.fp" @change="replace(f, linkwitzNext(f, {fp: numFrom($event)}))"> Hz</label>
+            <label>Qp <input v-expo-step type="number" step="0.01" v-limits="limits('filterQ')" :value="f.Qp" @change="replace(f, linkwitzNext(f, {Qp: numFrom($event)}))"></label>
+          </template>
+
+          <template v-if="f.type === 'peaking'">
+            <label>fc <input v-expo-step type="number" step="1" v-limits="limits('filterFc')" :value="f.fc" @change="replace(f, peakingNext(f, {fc: numFrom($event)}))"> Hz</label>
+            <label>Gain <input v-expo-step type="number" step="0.5" v-limits="limits('filterGain')" :value="f.gain" @change="replace(f, peakingNext(f, {gain: numFrom($event)}))"> dB</label>
+            <label>Q <input v-expo-step type="number" step="0.01" v-limits="limits('filterQ')" :value="f.Q" @change="replace(f, peakingNext(f, {Q: numFrom($event)}))"></label>
+          </template>
+
+          <template v-if="f.type === 'peakHighpass'">
+            <label>Gpk <input v-expo-step type="number" step="0.5" v-limits="limits('filterGain')" :value="f.gainPk" @change="replace(f, peakHighpassNext(f, {gainPk: numFrom($event)}))"> dB</label>
+            <label>fpk <input v-expo-step type="number" step="1" v-limits="limits('filterFc')" :value="f.fpk" @change="replace(f, peakHighpassNext(f, {fpk: numFrom($event)}))"> Hz</label>
+          </template>
+
+          <template v-if="f.type === 'staticGain'">
+            <label>Gain <input v-expo-step type="number" step="0.5" v-limits="limits('filterGain')" :value="f.gain" @change="replace(f, staticGainNext(f, numFrom($event)))"> dB</label>
+          </template>
+
+          <template v-if="f.type === 'raisedCosine'">
+            <label>fc <input v-expo-step type="number" step="1" v-limits="limits('filterFc')" :value="f.fc" @change="replace(f, raisedCosineNext(f, {fc: numFrom($event)}))"> Hz</label>
+            <label>Gain <input v-expo-step type="number" step="0.5" v-limits="limits('filterGain')" :value="f.gain" @change="replace(f, raisedCosineNext(f, {gain: numFrom($event)}))"> dB</label>
+            <label>BW <input v-expo-step type="number" step="0.01" v-limits="limits('filterBw')" :value="f.bwOct" @change="replace(f, raisedCosineNext(f, {bwOct: numFrom($event)}))"> oct</label>
+          </template>
+
+          <template v-if="f.type === 'lowshelf' || f.type === 'highshelf'">
+            <label>fc <input v-expo-step type="number" step="1" v-limits="limits('filterFc')" :value="f.fc" @change="replace(f, shelfNext(f, {fc: numFrom($event)}))"> Hz</label>
+            <label>Q <input v-expo-step type="number" step="0.01" v-limits="limits('filterQ')" :value="f.Q" @change="replace(f, shelfNext(f, {Q: numFrom($event)}))"></label>
+            <label>Gain <input v-expo-step type="number" step="0.5" v-limits="limits('filterGain')" :value="f.gain" @change="replace(f, shelfNext(f, {gain: numFrom($event)}))"> dB</label>
           </template>
         </div>
       </div>
@@ -169,5 +206,6 @@ function summary(f: Filter): string {
 .filter-del:hover { background:#fbdada; border-radius:3px; }
 .filter-edit-body { display:flex; flex-wrap:wrap; gap:10px 16px; padding:6px 12px 10px 30px; font-size:12px; }
 .filter-edit-body label { display:flex; align-items:center; gap:5px; color:#333; }
-.filter-edit-body input { width:70px; border:1px solid #999; border-radius:2px; padding:3px 5px; font:inherit; }
+.filter-edit-body input, .filter-edit-body select { border:1px solid #999; border-radius:2px; padding:3px 5px; font:inherit; }
+.filter-edit-body input { width:70px; }
 </style>
