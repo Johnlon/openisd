@@ -1,11 +1,18 @@
-import {MAX_SUPPORTED_TEMP_K, MIN_SUPPORTED_TEMP_K} from '@openisd/design/engine';
+import {MAX_SUPPORTED_TEMP_K, MIN_SUPPORTED_TEMP_K, type PassFamily} from '@openisd/design/engine';
 import {
   type SelectorOption,
   type UnitGroup,
   ARRAY_WIRING_OPTIONS,
   BOX_TYPE_OPTIONS,
   END_CORRECTION_OPTIONS,
+  FILTER_BW_LIMITS,
+  FILTER_FC_LIMITS,
+  FILTER_GAIN_LIMITS,
+  FILTER_ORDER_LIMITS,
+  FILTER_Q_LIMITS,
+  FILTER_T_LIMITS,
   FILTER_TYPE_OPTIONS,
+  PASS_FAMILY_OPTIONS,
   SEALED_ALIGNMENT_OPTIONS,
   VENT_SHAPE_OPTIONS,
   VC_CONNECTION_OPTIONS,
@@ -384,12 +391,12 @@ const UI_FIELD_SPECS: UIFieldSpec[] = [
 
   // ============================ FILTERS ============================
   { id: 'filter_Type', aliases: ['filterType'], label: 'Filter type', pane: 'Filters', kind: 'enum', unit: '', options: FILTER_TYPE_OPTIONS, description: 'Filter Type\nThe active filter\'s response shape — lowpass, highpass, Linkwitz transform, peaking EQ or shelf.' },
-  { id: 'filter_Fc_hz', aliases: ['filterFc'], label: 'Cutoff / Center freq', pane: 'Filters', kind: 'number', unit: 'Hz', precision: 3, min: 1, max: 20000, description: 'Cutoff / Center Frequency\nCutoff or center frequency of the active filter.' },
-  { id: 'filter_Q', aliases: ['filterQ'], label: 'Q', pane: 'Filters', kind: 'number', unit: '', precision: 3, min: 0.1, max: 100, description: 'Filter Quality Factor (Q)\nHow sharp the filter\'s resonance peak or its damping is.' },
-  { id: 'filter_Gain_dB', aliases: ['filterGain'], label: 'Gain', pane: 'Filters', kind: 'number', unit: 'dB', precision: 3, min: -60, max: 60, description: 'Filter Gain\nBoost or cut applied by the filter or equalizer, in dB.' },
-  { id: 'filter_Order', aliases: ['filterOrder'], label: 'Order', pane: 'Filters', kind: 'number', unit: '', precision: 3, min: 1, max: 10, description: 'Filter Order\nFilter steepness: 1st order = 6 dB/oct, 2nd = 12 dB/oct, 4th = 24 dB/oct.\nWinISD itself loads up to order 10; a saved .wpr above that hangs WinISD\'s own load.' },
-  { id: 'filter_T_s', aliases: ['filterT'], label: 't', pane: 'Filters', kind: 'number', unit: 's', precision: 4, min: 0, max: 10, description: 'Allpass Delay Time\nGroup-delay time constant of an allpass filter section.' },
-  { id: 'filter_BW_oct', aliases: ['filterBw'], label: 'BW', pane: 'Filters', kind: 'number', unit: 'oct', precision: 3, min: 0.01, max: 10, description: 'DLP Raised-Cosine Bandwidth\nWidth of the raised-cosine transition band, in octaves.' },
+  { id: 'filter_Fc_hz', aliases: ['filterFc'], label: 'Cutoff / Center freq', pane: 'Filters', kind: 'number', unit: 'Hz', precision: 3, min: FILTER_FC_LIMITS.min, max: FILTER_FC_LIMITS.max, description: 'Cutoff / Center Frequency\nCutoff or center frequency of the active filter.' },
+  { id: 'filter_Q', aliases: ['filterQ'], label: 'Q', pane: 'Filters', kind: 'number', unit: '', precision: 3, min: FILTER_Q_LIMITS.min, max: FILTER_Q_LIMITS.max, description: 'Filter Quality Factor (Q)\nHow sharp the filter\'s resonance peak or its damping is.' },
+  { id: 'filter_Gain_dB', aliases: ['filterGain'], label: 'Gain', pane: 'Filters', kind: 'number', unit: 'dB', precision: 3, min: FILTER_GAIN_LIMITS.min, max: FILTER_GAIN_LIMITS.max, description: 'Filter Gain\nBoost or cut applied by the filter or equalizer, in dB.' },
+  { id: 'filter_Order', aliases: ['filterOrder'], label: 'Order', pane: 'Filters', kind: 'number', unit: '', precision: 3, min: FILTER_ORDER_LIMITS.min, max: FILTER_ORDER_LIMITS.max, description: 'Filter Order\nFilter steepness: 1st order = 6 dB/oct, 2nd = 12 dB/oct, 4th = 24 dB/oct.\nWinISD itself loads up to order 10; a saved .wpr above that hangs WinISD\'s own load.' },
+  { id: 'filter_T_s', aliases: ['filterT'], label: 't', pane: 'Filters', kind: 'number', unit: 's', precision: 4, min: FILTER_T_LIMITS.min, max: FILTER_T_LIMITS.max, description: 'Allpass Delay Time\nGroup-delay time constant of an allpass filter section.' },
+  { id: 'filter_BW_oct', aliases: ['filterBw'], label: 'BW', pane: 'Filters', kind: 'number', unit: 'oct', precision: 3, min: FILTER_BW_LIMITS.min, max: FILTER_BW_LIMITS.max, description: 'DLP Raised-Cosine Bandwidth\nWidth of the raised-cosine transition band, in octaves.' },
 ];
 
 /** All registered field specs (read-only view). */
@@ -430,4 +437,11 @@ export function countOptions(id: string): readonly SelectorOption<number>[] {
   const out: SelectorOption<number>[] = [];
   for (let n = spec.min; n <= spec.max; n++) out.push({value: n, label: String(n)});
   return out;
+}
+
+/** The Lowpass/Highpass Filter Editor's "Subtype" choices — the domain's list, reached through
+ *  logic so no component names `@openisd/design/fields` itself (the layering gate; same seam as
+ *  `driverDraft.ts`'s `wiringOptions()`). */
+export function passFamilyOptions(): readonly SelectorOption<PassFamily>[] {
+  return PASS_FAMILY_OPTIONS;
 }

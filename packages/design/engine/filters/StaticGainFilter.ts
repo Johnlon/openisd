@@ -1,6 +1,7 @@
 import {cx} from '../complex.js';
 import type {Complex, Filter, FilterSpec, WprFilter} from '../types.js';
 import type {FilterModel} from './FilterModel.js';
+import {FILTER_GAIN_LIMITS, clamp} from './limits.js';
 
 type Spec = Extract<Filter, {type: 'staticGain'}>;
 
@@ -27,5 +28,11 @@ export class StaticGainFilter implements FilterModel {
     const gain = Number(fields[2]);
     if (!Number.isFinite(gain)) return 'malformed';
     return {type: 'staticGain', gain};
+  }
+
+  /** Typed edit — `gain` clamped to its entry range. */
+  static with(f: Spec, patch: Partial<Pick<Spec, 'gain'>>): Spec {
+    const next = {...f, ...patch};
+    return {...next, gain: clamp(next.gain, FILTER_GAIN_LIMITS)};
   }
 }

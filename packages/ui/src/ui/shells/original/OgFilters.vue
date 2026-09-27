@@ -84,14 +84,14 @@ function replace(f: Filter, next: Filter): void {
         </div>
 
         <template v-if="editing === f.id">
-          <PassFilterEditor          v-if="f.type === 'lowpass' || f.type === 'highpass'" :f="f" @replace="next => replace(f, next)" />
-          <AllpassEditor             v-else-if="f.type === 'allpass'" :f="f" @replace="next => replace(f, next)" />
-          <LinkwitzTransformEditor   v-else-if="f.type === 'linkwitz'" :f="f" @replace="next => replace(f, next)" />
-          <ParametricEqEditor        v-else-if="f.type === 'peaking'" :f="f" @replace="next => replace(f, next)" />
-          <PeakHighpassEditor        v-else-if="f.type === 'peakHighpass'" :f="f" @replace="next => replace(f, next)" />
-          <StaticGainEditor          v-else-if="f.type === 'staticGain'" :f="f" @replace="next => replace(f, next)" />
-          <RaisedCosineEditor        v-else-if="f.type === 'raisedCosine'" :f="f" @replace="next => replace(f, next)" />
-          <ShelfEditor               v-else-if="f.type === 'lowshelf' || f.type === 'highshelf'" :f="f" @replace="next => replace(f, next)" />
+          <PassFilterEditor          v-if="f.type === 'lowpass' || f.type === 'highpass'" :f="f" :api="api" @replace="next => replace(f, next)" />
+          <AllpassEditor             v-else-if="f.type === 'allpass'" :f="f" :api="api" @replace="next => replace(f, next)" />
+          <LinkwitzTransformEditor   v-else-if="f.type === 'linkwitz'" :f="f" :api="api" @replace="next => replace(f, next)" />
+          <ParametricEqEditor        v-else-if="f.type === 'peaking'" :f="f" :api="api" @replace="next => replace(f, next)" />
+          <PeakHighpassEditor        v-else-if="f.type === 'peakHighpass'" :f="f" :api="api" @replace="next => replace(f, next)" />
+          <StaticGainEditor          v-else-if="f.type === 'staticGain'" :f="f" :api="api" @replace="next => replace(f, next)" />
+          <RaisedCosineEditor        v-else-if="f.type === 'raisedCosine'" :f="f" :api="api" @replace="next => replace(f, next)" />
+          <ShelfEditor               v-else-if="f.type === 'lowshelf' || f.type === 'highshelf'" :f="f" :api="api" @replace="next => replace(f, next)" />
         </template>
       </div>
     </div>

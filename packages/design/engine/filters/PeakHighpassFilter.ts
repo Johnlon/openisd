@@ -1,6 +1,7 @@
 import {biquad} from './biquad.js';
 import type {Complex, Filter, FilterSpec, WprFilter} from '../types.js';
 import type {FilterModel} from './FilterModel.js';
+import {FILTER_FC_LIMITS, FILTER_GAIN_LIMITS, clamp} from './limits.js';
 
 type Spec = Extract<Filter, {type: 'peakHighpass'}>;
 
@@ -37,5 +38,16 @@ export class PeakHighpassFilter implements FilterModel {
     const gainPk = Number(fields[3]);
     if (!Number.isFinite(fpk) || !Number.isFinite(gainPk)) return 'malformed';
     return {type: 'peakHighpass', fpk, gainPk};
+  }
+
+  /** Typed edit — `fpk`/`gainPk` each clamped to their own entry ranges; any field left out of
+   *  `patch` passes through unchanged. */
+  static with(f: Spec, patch: Partial<Pick<Spec, 'fpk' | 'gainPk'>>): Spec {
+    const next = {...f, ...patch};
+    return {
+      ...next,
+      fpk: clamp(next.fpk, FILTER_FC_LIMITS),
+      gainPk: clamp(next.gainPk, FILTER_GAIN_LIMITS),
+    };
   }
 }

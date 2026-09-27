@@ -1,4 +1,4 @@
-import type {BoxType, FilterType, VentedAlignment, Wiring} from '../engine/index.js';
+import type {BoxType, FilterType, PassFamily, VentedAlignment, Wiring} from '../engine/index.js';
 import type {VoiceCoilWiring} from '../domain/openisdSchema.js';
 import type {VentShape} from '../domain/vent.js';
 
@@ -90,4 +90,12 @@ export const FILTER_TYPE_OPTIONS: readonly SelectorOption<FilterType>[] = Object
   Object.freeze({ value: 'raisedCosine', label: 'DLP Raised Cosine' }),
   Object.freeze({ value: 'lowshelf', label: 'Low Shelf' }),
   Object.freeze({ value: 'highshelf', label: 'High Shelf' }),
+]);
+
+/** WinISD's Lowpass/Highpass Filter Editor "Subtype" choices, its order and wording. */
+export const PASS_FAMILY_OPTIONS: readonly SelectorOption<PassFamily>[] = Object.freeze([
+  Object.freeze({ value: 'butterworth',   label: 'Butterworth' }),
+  Object.freeze({ value: 'linkwitzRiley', label: 'Linkwitz-Riley (4th order only)' }),
+  Object.freeze({ value: 'bessel',        label: 'Bessel' }),
+  Object.freeze({ value: 'sos',           label: 'SOS, User specified fc and Q' }),
 ]);

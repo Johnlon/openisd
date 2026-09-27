@@ -9,6 +9,7 @@ export {
   DEFAULT_VENTED_ALIGNMENT,
   BOX_TYPE_OPTIONS,
   FILTER_TYPE_OPTIONS,
+  PASS_FAMILY_OPTIONS,
 } from './options.js';
 
 export { DEFAULT_SOURCE_RESISTANCE_OHM } from './defaults.js';
@@ -18,3 +19,13 @@ export {
   type UnitDef,
   UNIT_GROUPS,
 } from './dimensions.js';
+
+export {
+  type FieldLimits,
+  FILTER_ORDER_LIMITS,
+  FILTER_FC_LIMITS,
+  FILTER_Q_LIMITS,
+  FILTER_GAIN_LIMITS,
+  FILTER_T_LIMITS,
+  FILTER_BW_LIMITS,
+} from './filterLimits.js';
