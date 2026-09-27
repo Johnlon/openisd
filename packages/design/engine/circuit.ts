@@ -28,7 +28,7 @@
 
 
 import {solveEnvironment} from './air.js';
-import {hotRe} from './solver.js';
+import {hotRe} from './solvers/driverQuantities.js';
 import {cAdd, cDiv, cInv, cMul, cScale, cx} from './complex.js';
 import type {BoxType, Complex, Solution, SweepParams} from './types.js';
 import {simulatableBoxType} from './types.js';
