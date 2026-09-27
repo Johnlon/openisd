@@ -19,13 +19,16 @@ export interface OgFiltersAPI {
    *  (typically `{...current, someField: value}` inside its own narrowed branch) and hands it
    *  over complete. */
   replaceFilter(id: string, next: Filter): void;
+  /** WinISD's Filters-list caption for one filter, exact wording (`Engine.filterCaption`). */
+  caption(f: Filter): string;
 }
 
 /**
  * The Filters tab's logic: the project's filter chain read fresh on every change signal, and
  * per-filter mutators straight through to it — no local mirror, no deep watch (the
  * delegate-free pattern `docs/design/REACTIVITY.md` specifies). The starting values of a new
- * filter are the engine's (`Engine.defaultFilter`); the id is this list's row key only.
+ * filter and its row caption are both the engine's (`Engine.defaultFilter`, `Engine.filterCaption`);
+ * the id is this list's row key only.
  */
 export function createOgFilters({project, changed, engine}: OgFiltersDeps): OgFiltersAPI {
   // Raw reads (`filters.value`) are not Vue-tracked; `project` re-fires only on focus swap, so
@@ -51,5 +54,7 @@ export function createOgFilters({project, changed, engine}: OgFiltersDeps): OgFi
     );
   }
 
-  return {filters, addFilter, removeFilter, replaceFilter};
+  function caption(f: Filter): string { return engine.filterCaption(f); }
+
+  return {filters, addFilter, removeFilter, replaceFilter, caption};
 }

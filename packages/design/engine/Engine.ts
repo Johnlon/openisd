@@ -46,7 +46,7 @@ import type {LossMode, SealedParams} from './lossMode.js';
 import {sealedResonance, sourceLoadedQts} from './lossMode.js';
 import type {BoxParamsSolveResult} from './params.js';
 import {solveBoxParams} from './params.js';
-import {defaultFilter} from './filters.js';
+import {defaultFilter, filterCaption} from './filters.js';
 import type {MaxCurvesSolveResult, SweepSolveResult} from './sweep.js';
 import {
   classifyFinite,
@@ -406,6 +406,11 @@ export class Engine {
   /** A fresh, enabled filter of `type` with its starting values. No list id: the UI mints that. */
   defaultFilter(type: FilterType): Filter {
     return defaultFilter(type);
+  }
+
+  /** WinISD's Filters-list caption for one filter, exact wording. */
+  filterCaption(f: Filter): string {
+    return filterCaption(f);
   }
 
   // ── THE SWEEP ─────────────────────────────────────────────────────────────────────────────
