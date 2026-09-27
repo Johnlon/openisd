@@ -282,9 +282,12 @@ export function sweep(drv: DriverSolverParams, Le_H: number | undefined, box: Bo
     // Filters are line-level (upstream of amp) — multiply Hc, UD, UP; Zel is unaffected.
     const Hf  = applyFilters(f, P.filters);
     // The chain's own electrical response — the "(EQ/Filter)" charts. Same -200 dB silence
-    // sentinel as `spl`, for the pathological |H| = 0 (e.g. a notch landing on a grid point).
+    // sentinel as `spl`, for the pathological |H| = 0 exactly (e.g. a notch landing on a grid
+    // point) — `cAbs` never returns a negative number, so testing `=== 0` catches only that
+    // case and lets a NaN |H| (a breakdown) pass through for `classifyFinite` to report,
+    // instead of being hidden as silence (BUG_20260927_spl-maps-nan-to-silence).
     const fltAbs = cAbs(Hf);
-    fltMag.push(fltAbs > 0 ? 20 * Math.log10(fltAbs) : -200);
+    fltMag.push(fltAbs === 0 ? -200 : 20 * Math.log10(fltAbs));
     fltPhaseWrapped.push(cArg(Hf));
     const Hc  = cMul(cScale(cMul(cx(0, w), s.U0), rho / (2 * Math.PI * r)), Hf);
     const UD  = cMul(s.UD, Hf);
@@ -294,7 +297,10 @@ export function sweep(drv: DriverSolverParams, Le_H: number | undefined, box: Bo
     const area = box === 'box-passive-radiator' ? P.prSd! : P.Sp!;
     fs.push(f); H.push(Hc);
     // SPL = 20·log10(|p|/P0)  https://en.wikipedia.org/wiki/Sound_pressure#Sound_pressure_level
-    spl.push(pm > 0 ? 20 * Math.log10(pm / P0) : -200);
+    // -200 dB is the silence sentinel for |p| = 0 exactly — `pm === 0`, not `pm > 0`, so a NaN
+    // pressure (a breakdown) passes through for `classifyFinite` to report instead of being
+    // drawn as silence (BUG_20260927_spl-maps-nan-to-silence).
+    spl.push(pm === 0 ? -200 : 20 * Math.log10(pm / P0));
     phase.push(cArg(Hc));
     // x_peak = √2·|UD|/(ω·Sd)  https://en.wikipedia.org/wiki/Thiele/Small_parameters#Small_signal_parameters
     exc.push(Math.SQRT2 * cAbs(UD) / (w * Sdt) * 1000);

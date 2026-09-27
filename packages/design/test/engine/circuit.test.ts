@@ -58,7 +58,14 @@ describe('circuit — acoustic circuit branches', () => {
   });
 
   it('passive radiator: an absent prRms defaults its mechanical resistance to 0, still a finite sweep', () => {
-    const P_PR: SweepParams = {...P_SEALED, prSd: 0.0133, prNum: 1, prMmd: 0.030, prMadd: 0, prCms: 0.0008};
+    // Fr is the box's own tuning — an absent Fr poisons Ral/Raa with NaN regardless of prRms
+    // (BUG_20260927_spl-maps-nan-to-silence's own origin case), so it must be stated here to
+    // isolate what this test actually checks: prRms's absence alone, not Fr's.
+    const PR_BOX = {Vb: P_SEALED.Vb, prSd: 0.0133, prMmd: 0.030, prMadd: 0, prCms: 0.0008};
+    const P_PR: SweepParams = {
+      ...P_SEALED, ...PR_BOX, prNum: 1,
+      Fr: engine.prTuning(PR_BOX, engine.solveEnvironment({}).values),
+    };
     const sw = engine.sweep(DRV, LE_H, 'box-passive-radiator', P_PR).values!;
     assert.ok(sw.spl.every(Number.isFinite), 'a passive radiator with no mechanical resistance specified must still produce a finite sweep');
   });
