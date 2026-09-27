@@ -34,10 +34,6 @@ export class SealedBox implements BoxModel {
         const U0 = cSub(UD, Uleak);
         return {Zbox, UD, UP: zero, U0};
       }
-      default: {
-        const _exhaustiveCheck: never = lossMode;
-        throw new Error(`Unhandled LossModeValue: ${_exhaustiveCheck}`);
-      }
     }
   }
 }

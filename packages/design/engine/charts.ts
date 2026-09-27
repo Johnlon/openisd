@@ -68,10 +68,6 @@ export function chartsFor(box: BoxType): readonly ChartId[] {
       set.add('PRTFPhase');
       set.add('PRExcursion');
       break;
-    default: {
-      const _exhaustiveCheck: never = box;
-      throw new Error(`Unhandled BoxType: ${_exhaustiveCheck}`);
-    }
   }
   return CHART_ORDER.filter(id => set.has(id));
 }

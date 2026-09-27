@@ -121,8 +121,14 @@ interface OpenSessionPayload {
   focusedId: string | null;
 }
 
+/** `Array.isArray` on an `unknown` narrows it to `any[]`, and every read off an element is then
+ *  unchecked. This says what is actually known: a list, of things not yet identified. */
+function isUnknownArray(value: unknown): value is readonly unknown[] {
+  return Array.isArray(value);
+}
+
 function storedProjectsPayload(value: unknown): StoredProjectsPayload | null {
-  if (!value || typeof value !== 'object' || !('entries' in value) || !Array.isArray(value.entries)) return null;
+  if (!value || typeof value !== 'object' || !('entries' in value) || !isUnknownArray(value.entries)) return null;
   const entries: StoredProjectEntry[] = [];
   for (const entry of value.entries) {
     if (!entry || typeof entry !== 'object') return null;
@@ -135,7 +141,7 @@ function storedProjectsPayload(value: unknown): StoredProjectsPayload | null {
 }
 
 function openSessionPayload(value: unknown): OpenSessionPayload | null {
-  if (!value || typeof value !== 'object' || !('entries' in value) || !Array.isArray(value.entries)) return null;
+  if (!value || typeof value !== 'object' || !('entries' in value) || !isUnknownArray(value.entries)) return null;
   if (!('focusedId' in value) || (value.focusedId !== null && typeof value.focusedId !== 'string')) return null;
   const entries: StoredProjectEntry[] = [];
   for (const entry of value.entries) {
@@ -217,9 +223,9 @@ export function createProjectRepo(
       // schema_upgrade.md). A payload already at the current schema passes through unchanged,
       // so `sharePayload()` below stays the one validator for the current shape.
       const current = upgrade.sharePayload(parsed);
-      if (Array.isArray(current)) return current;
+      if (current.kind === 'errors') return [...current.errors];
 
-      const payload = sharePayload(current);
+      const payload = sharePayload(current.payload);
       if (!payload) return ['share link is not a recognised session payload'];
 
       const result = OpenISDProject.fromOwprText(payload.project, engine);

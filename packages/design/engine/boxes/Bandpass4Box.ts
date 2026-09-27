@@ -84,10 +84,6 @@ export class Bandpass4Box implements BoxModel {
         const U0 = cSub(cAdd(UP, frontLeak), rearLeak);
         return {Zbox, UD, UP, U0};
       }
-      default: {
-        const _exhaustiveCheck: never = lossMode;
-        throw new Error(`Unhandled LossModeValue: ${_exhaustiveCheck}`);
-      }
     }
   }
 }

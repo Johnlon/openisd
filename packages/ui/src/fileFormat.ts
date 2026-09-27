@@ -125,7 +125,7 @@ export function sniff(bytes: Uint8Array): FileFormat | undefined {
   if (/\[Box\]/.test(trimmed)) return ProjectFileFormat.Wpr;
   if (trimmed.startsWith('{')) {
     try {
-      const parsed = JSON.parse(trimmed);
+      const parsed: unknown = JSON.parse(trimmed);
       if (parsed && typeof parsed === 'object' && 'specs' in parsed && !('box' in parsed)) {
         return DriverFileFormat.Owdr;
       }

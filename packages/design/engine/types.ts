@@ -93,7 +93,8 @@ export function simulatableBoxType(box: BoxType): SimulatableBoxType | null {
     case 'bandpass4':
     case 'box-passive-radiator':
       return box;
-    default:
+    case 'bandpass6':
+    case 'abc':
       return null;
   }
 }

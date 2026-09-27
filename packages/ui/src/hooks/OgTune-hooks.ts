@@ -64,7 +64,6 @@ export function useOgTune(): OgTuneAPI {
       case 'bandpass6': return box.bandpass6.chambers.rear.volume_m3.value;
       case 'abc': return box.abc.chambers.rear.volume_m3.value;
       case 'box-passive-radiator': return box.passiveRadiator.volume_m3.value;
-      default: return null;
     }
   });
 

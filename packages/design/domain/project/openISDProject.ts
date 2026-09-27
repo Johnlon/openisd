@@ -1060,7 +1060,12 @@ export class OpenISDProject {
                     Fr: Fr ?? undefined,
                 };
             }
-            default: return {};
+            // No box-specific geometry: sealed has no vent or radiator, and the engine has no
+            // circuit for bandpass6 or abc at all (`simulatableBoxType`).
+            case 'sealed':
+            case 'bandpass6':
+            case 'abc':
+                return {};
         }
     }
 

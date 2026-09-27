@@ -277,6 +277,12 @@ function ventSectionValues(
  *  leaves the vent's own default in place (older files omit keys) — never an error. Called
  *  BEFORE `vent.count.set(Num)`: `diameter_m`'s write is what the vent's own length ends up
  *  computed from, so it must land first. */
+/** The one message for a `BType` this importer does not read — absent, or a code WinISD writes
+ *  that has no OpenISD topology yet. */
+function unsupportedBType(bType: number | null | undefined): string {
+  return `Unsupported or missing box type (BType=${String(bType)}): WinISD import supports sealed (0), vented (1), 4th-order bandpass (2), and passive radiator (4) boxes.`;
+}
+
 function importVentGeometry(
   wpr: WinISDProject, section: string, vent: Vent, errors: DriverError[],
 ): void {
@@ -322,6 +328,14 @@ export function winIsdProjectToOpenIsdProject(
   const bTypeRaw = wpr.number('Box', 'BType');
   const builder = OpenISDProject.builder(driver, engine);
   let project: OpenISDProject;
+  // `BType` arrives from a file, so it is `number | null` before this point and the switch below
+  // cannot be exhaustive over it. Absence is rejected here; the switch then decides over a plain
+  // number, where its `default` is the boundary's answer to a code WinISD writes and we do not
+  // read yet.
+  if (bTypeRaw == null) {
+    errors.push({level: 'error', field: 'BType', message: unsupportedBType(bTypeRaw)});
+    return {value: null, errors};
+  }
   switch (bTypeRaw) {
     case 0: {
       const Vr = wpr.number('Box', 'Vr');
@@ -461,10 +475,7 @@ export function winIsdProjectToOpenIsdProject(
       break;
     }
     default: {
-      errors.push({
-        level: 'error', field: 'BType',
-        message: `Unsupported or missing box type (BType=${String(bTypeRaw)}): WinISD import supports sealed (0), vented (1), 4th-order bandpass (2), and passive radiator (4) boxes.`,
-      });
+      errors.push({level: 'error', field: 'BType', message: unsupportedBType(bTypeRaw)});
       return {value: null, errors};
     }
   }

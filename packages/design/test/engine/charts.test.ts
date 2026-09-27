@@ -6,7 +6,7 @@
 import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
 import {Engine} from '../../engine/index.js';
-import type {BoxType} from '../../engine/index.js';
+import {openISDProjectJsonSchema} from '../../domain/openisdSchema.js';
 
 const engine = new Engine();
 
@@ -63,7 +63,16 @@ describe('Engine.chartsFor', () => {
     assert.deepEqual(engine.chartsFor('abc'), engine.chartsFor('sealed'));
   });
 
-  it('every box type is handled — an unknown value throws rather than silently narrowing', () => {
-    assert.throws(() => engine.chartsFor('nonsense' as BoxType), /Unhandled BoxType/);
+  // `chartsFor` used to end in a `default` arm that threw on an unhandled box type, and this
+  // test reached it by casting a nonsense string to `BoxType`. Two things retired that: the
+  // switch-exhaustiveness lint rule fails the build when a topology is added without an arm, and
+  // a cast is no longer permitted anywhere. What remains worth asserting is the boundary the
+  // value actually crosses — a stored project cannot carry a box type the engine does not know.
+  it('a stored project cannot carry a box type the engine does not know', () => {
+    const boxType = openISDProjectJsonSchema.shape.box.shape.boxType;
+    for (const known of ['sealed', 'vented', 'bandpass4', 'bandpass6', 'abc', 'box-passive-radiator']) {
+      assert.equal(boxType.safeParse(known).success, true, known);
+    }
+    assert.equal(boxType.safeParse('nonsense').success, false);
   });
 });

@@ -212,7 +212,7 @@ export function useOgNewProject(deps?: OgNewProjectDeps): OgNewProjectAPI {
         return 'Vented preferred';
       case 'either':
         return 'Either sealed or vented';
-      default:
+      case null:
         return 'Suitability unavailable';
     }
   });
@@ -404,6 +404,12 @@ export function useOgNewProject(deps?: OgNewProjectDeps): OgNewProjectAPI {
         p.box.bandpass4.chambers.front.volume_m3.set(frontVolume_m3);
         p.box.bandpass4.vents.front.diameter_m.set(0.05);
         p.box.bandpass4.chambers.front.tuning_goal_hz.set(35);
+        break;
+      // The form offers four topologies. bandpass6 and abc have no starting geometry to write
+      // because the engine has no circuit for them (`simulatableBoxType`) — the project is
+      // created with the type set and nothing else.
+      case 'bandpass6':
+      case 'abc':
         break;
     }
 

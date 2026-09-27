@@ -56,7 +56,7 @@ export function createSealedAlignmentEditor({project, changed, engine}: SealedAl
       case 'sealed': return 'Sealed preferred';
       case 'vented': return 'Vented preferred';
       case 'either': return 'Either sealed or vented';
-      default: return 'Suitability unavailable';
+      case null: return 'Suitability unavailable';
     }
   });
 

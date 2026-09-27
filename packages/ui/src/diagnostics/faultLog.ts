@@ -248,7 +248,10 @@ export function createFaultLog(): FaultLog {
       installed = true;
 
       window.addEventListener('error', e => {
-        record('exception', e.message || String(e.error), e.error?.stack);
+        // `ErrorEvent.error` is typed `any` by the DOM lib — it is whatever was thrown. Only an
+        // Error carries a stack worth recording.
+        const thrown: unknown = e.error;
+        record('exception', e.message || String(thrown), thrown instanceof Error ? thrown.stack : undefined);
       });
       window.addEventListener('unhandledrejection', e => {
         const r: unknown = e.reason;
