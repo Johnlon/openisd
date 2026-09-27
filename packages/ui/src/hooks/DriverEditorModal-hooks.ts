@@ -1,6 +1,6 @@
 import type {Calculated, Entered, OpenISDDriver, Readable} from '@openisd/design';
 import type {DriverIssue, Engine} from '@openisd/design/engine';
-import type {SpecField} from '../logic/appState.js';
+import type {NumSpecField} from '../logic/appState.js';
 
 /**
  * Data-quality pure functions for the driver editor (DriverEditorModal.vue). Each one is
@@ -21,13 +21,13 @@ export interface DqReason {
 }
 
 /** BAD VALUE: a number that cannot be physical (≤ 0). Zero is a value, not an absence. */
-export function isBadValue(cellOf: (field: SpecField) => Readable<number | null> & Entered & Calculated, field: SpecField): boolean {
+export function isBadValue(cellOf: (field: NumSpecField) => Readable<number | null> & Entered & Calculated, field: NumSpecField): boolean {
   const v = cellOf(field).value;
   return typeof v === 'number' && !(v > 0);
 }
 
 /** The one DQ mark per field: its reason, or '' when there is nothing to say. */
-export function dqNoteFor(engine: Engine, cellOf: (field: SpecField) => Readable<number | null> & Entered & Calculated, field: SpecField): string {
+export function dqNoteFor(engine: Engine, cellOf: (field: NumSpecField) => Readable<number | null> & Entered & Calculated, field: NumSpecField): string {
   if (isBadValue(cellOf, field)) return BAD_VALUE_NOTE;
   return cellOf(field).dq.map(issue => engine.dqIssueText(issue)).join('\n');
 }
@@ -70,10 +70,10 @@ function inconsistentInputReason(issue: DriverIssue): readonly DqReason[] {
  *  `inconsistentInputReasonsFor` carries those. */
 export function chartBlockingReasonsFor(
   issues: readonly DriverIssue[],
-  cellOf: (field: SpecField) => Readable<number | null> & Entered & Calculated,
+  cellOf: (field: NumSpecField) => Readable<number | null> & Entered & Calculated,
 ): DqReason[] {
   const reasons = issues.flatMap(i => [...chartBlockingReason(i)]);
-  const mandatoryFields: SpecField[] = ['Fs_hz', 'Vas_m3', 'Re_ohm', 'Sd_m2'];
+  const mandatoryFields: NumSpecField[] = ['Fs_hz', 'Vas_m3', 'Re_ohm', 'Sd_m2'];
   for (const field of mandatoryFields) {
     if (cellOf(field).value === null) reasons.push({subject: field, text: 'is not set'});
   }

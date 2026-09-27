@@ -1,25 +1,9 @@
 import type {Calculated, Entered, Readable} from '@openisd/design';
-import type {DqIssue, DriverIssue} from '@openisd/design/engine';
+import type {DriverIssue} from '@openisd/design/engine';
 import {Engine} from '@openisd/design/engine';
 import type {SpecField} from './appState.js';
 import type {ProvenanceLetter} from './fieldProvenance.js';
 import {provenanceOf} from './fieldProvenance.js';
-
-/**
- * The presentation layer's "field not present" fallback: a field that reads no value, neither
- * entered nor calculated, with no DQ. Lives here (logic) so a component never constructs a
- * field itself — that would be a runtime dependency on the domain from the view, which the
- * layering gate forbids.
- *
- * Frozen so it is safely shareable — every read is the same object.
- */
-export const notAvailableCell: Readable<number | null> & Entered & Calculated = Object.freeze({
-  name: '',
-  value: null,
-  entered: false,
-  calculated: false,
-  dq: Object.freeze<DqIssue[]>([]),
-});
 
 /**
  * Driver provenance PRESENTATION — how a field's provenance letter becomes a CSS class, and how a

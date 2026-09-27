@@ -35,11 +35,7 @@ export function useOgTune(): OgTuneAPI {
   const project = useFocusedProject();
 
   function specField(key: NumSpecField): Readable<number | null> & Entered & Calculated & Writable<number> & Clearable {
-    const handle = specFieldHandle(project.value.driver, key);
-    if (!handle) {
-      throw new Error(`specFieldHandle returned null for numeric field ${key}`);
-    }
-    return handle;
+    return specFieldHandle(project.value.driver, key);
   }
 
   function fieldCell(key: NumSpecField): Readable<number | null> & Entered & Calculated {

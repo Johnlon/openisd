@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import DriverDimensionsDiagram from './DriverDimensionsDiagram.vue'
 import {computed, nextTick, onBeforeUnmount, ref, watch} from 'vue';
-import type {SpecField} from '../../logic/appState.js';
+import type {NumSpecField} from '../../logic/appState.js';
 import {formatInUnit} from '../../logic/appState.js';
 import {useFocusedProject} from '../../logic/focusedProjectContext.js';
 import {presentationState} from '../../logic/presentationState.js';
@@ -10,7 +10,7 @@ import {openDriverDraft, wiringOptions} from '../../logic/driverDraft.js';
 import {specFieldHandle} from '../../logic/driverSpecFields.js';
 import {readDriverFileText} from '../../logic/driverFileText.js';
 import {driverToOwdrBytes, driverToWdrBytes, owdrTextToDriver, wdrTextToDriver} from '../../logic/fileImportExport.js';
-import {cellClassFor, cellClassOf, fieldIsMandatoryAndUnsatisfied, notAvailableCell} from '../../logic/useDriverCells.js';
+import {cellClassFor, cellClassOf, fieldIsMandatoryAndUnsatisfied} from '../../logic/useDriverCells.js';
 import {
   chartBlockingReasonsFor,
   dqNoteFor,
@@ -29,8 +29,8 @@ import EquationInspectorModal from './EquationInspectorModal.vue';
 import {getProvenanceInfo} from '../../logic/provenance.js';
 import {editableFrom, elementFrom, inputFrom, selectedOption} from '../../logic/domEvents.js';
 
-function cellOf(field: SpecField): Readable<number | null> & Entered & Calculated {
-  return fieldOf(field) ?? notAvailableCell;
+function cellOf(field: NumSpecField): Readable<number | null> & Entered & Calculated {
+  return fieldOf(field);
 }
 
 const { engine, selection, myDrivers, logging, driverFileStorage } = useApp();
@@ -169,7 +169,7 @@ function setText(field: 'brand' | 'model' | 'providedBy' | 'comment' | 'manufact
 /** `precision` is what the typed characters STATE, in SI (NumInput's own second emit argument) —
  *  carried into the record so the consistency check widens this input by what the human wrote,
  *  not by the decimals the SI number happens to print with. */
-function setNum(field: SpecField, v: number | null, precision?: number) {
+function setNum(field: NumSpecField, v: number | null, precision?: number) {
   const handle = fieldOf(field);
   if (!handle) return;
   if (v == null) handle.clear(); else handle.set(v, precision);
@@ -201,27 +201,27 @@ function setWiring(e: Event) {
 // disagree between this dialog and Tune showing the same driver.
 
 
-/** The draft's HANDLE for one field, or null for a name this editor's numeric table does not
- *  own. `VCCon` is deliberately absent: it is the one spec field holding a wiring NAME rather
- *  than a number, so it cannot be read as a numeric cell and the template binds it through
- *  `driverRaw.VCCon` instead. Returning null rather than asserting a type keeps the compiler
- *  proving the numeric reads, which is what a cast here would have switched off. */
 /** The registry's decided display label for a rendered field, or the key itself when
  *  the registry has no entry for it. The editor renders labels from here, never hardcoded. */
 function fieldLabel(key: string): string {
   return fieldById(key)?.label ?? key;
 }
 
-function fieldOf(field: SpecField): (Readable<number | null> & Entered & Calculated & Writable<number> & Clearable) | null {
+/** The draft's HANDLE for one field — total over `NumSpecField`, never null
+ *  (BUG_20260927_ui-fakes-driver-cells.md). `VCCon` is deliberately excluded from the
+ *  PARAMETER TYPE: it is the one spec field holding a wiring NAME rather than a number, so it
+ *  cannot be read as a numeric cell, and the template binds it through `driverRaw.VCCon`
+ *  instead — no cast, no runtime check, no fake cell standing in for it here. */
+function fieldOf(field: NumSpecField): Readable<number | null> & Entered & Calculated & Writable<number> & Clearable {
   void trigger.value;
   return specFieldHandle(draftDriver.value, field);
 }
 
-function cellClass(field: SpecField): string {
+function cellClass(field: NumSpecField): string {
   return cellClassFor(cellOf, field);
 }
 
-function cellVal(field: SpecField): number | null {
+function cellVal(field: NumSpecField): number | null {
   const v = cellOf(field).value;
   return typeof v === 'number' ? v : null;
 }
@@ -350,7 +350,7 @@ const issues = computed(() => { void trigger.value; return driverIssues(draftDri
 /** The one DQ mark per field: its reason, or '' when there is nothing to say. Reads the CELL's
  *  own DQ (S2-12) — `dqNoteFor` renders it via `dqIssueText`, so this is a thin read, not a
  *  second derivation of which issue names this field. */
-function dqNote(field: SpecField): string {
+function dqNote(field: NumSpecField): string {
   return dqNoteFor(engine, cellOf, field);
 }
 
