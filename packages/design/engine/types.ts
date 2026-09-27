@@ -193,6 +193,13 @@ export interface SweepParams {
   prCms?: number;
   prRms?: number;
   prXmax?: number;
+  /** The box's own tuning, Hz — WinISD's "Fr" for a passive-radiator box (`PassiveRadiatorBox.
+   *  systemTuning_hz`, the resonance this box and this radiator actually produce together, NOT
+   *  the radiator's own free-air Fs) — read ONLY by `circuit.ts`'s passive-radiator `winisd-lossy`
+   *  branch, whose Ral/Raa (leak/absorption) are fixed at `Fr` rather than per-frequency
+   *  (winisd_research/GHIDRA_FINDINGS.md "Passive radiator box — `0x45a960`"). Absent for any
+   *  other box/lossMode combination, which never reads it. */
+  Fr?: number;
   // Signal chain
   filters?: Filter[];
   // ---- Environment (per project — WinISD keeps T/p/phi in the .wpr [Box] section) --------

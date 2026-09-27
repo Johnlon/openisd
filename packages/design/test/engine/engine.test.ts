@@ -242,17 +242,19 @@ describe('Vented (bass-reflex) box simulation', () => {
 
 describe('Passive radiator box simulation', () => {
 
+  // Fr is the box's own tuning (winisd-lossy's Ral/Raa, BUG_20260927_passive-radiator-losses-
+  // not-winisd-form.md) — computed by the same `prTuning` formula the test below already used
+  // for Fp, or an absent Fr poisons Ral/Raa with NaN and every chart collapses to the -200 dB
+  // silence sentinel.
+  const PR_BOX = {Vb: 0.02, prMmd: 0.010, prMadd: 0.020, prSd: 0.0133, prCms: 0.0008};
   const PR_PARAMS: SweepParams = {
-    Vb:     0.02,   // m³ — 20 L enclosure
+    ...PR_BOX,
     Ql:     7,      // —  — box leakage Q (same as vented default)
     eg:     2.83,   // V  — IEC 60268-5 reference voltage
-    prSd:   0.0133, // m² — PR piston area (same as driver)
-    prMmd:  0.010,  // kg — PR moving mass (no added weight)
-    prMadd: 0.020,  // kg — 20 g added mass (shifts Fp down)
-    prCms:  0.0008, // m/N — PR compliance
     prRms:  1.0,    // kg/s — PR mechanical damping
     prXmax: 0.012,  // m  — PR linear excursion limit (12 mm)
     fmin: 10, fmax: 1000, N: 300,
+    Fr: engine.prTuning(PR_BOX, engine.solveEnvironment({}).values),
   };
   const d = solveConsistencyGroup(REF_DRIVER);
   const sw = engine.sweep(driverParams(d), LE_H, 'box-passive-radiator', PR_PARAMS).values!;

@@ -3052,6 +3052,11 @@ export class OpenISDProject {
             }
             case 'box-passive-radiator': {
                 const r = box.passiveRadiator.radiator.spec;
+                // Fr for circuit.ts's winisd-lossy Ral/Raa (fixed at the box's own tuning, never
+                // per-frequency). Null only when the volume/radiator/tuning-pair is itself
+                // unsolved, which #prSweepIssues already refuses the sweep over before this is
+                // read.
+                const Fr = box.passiveRadiator.systemTuning_hz.value;
                 return {
                     prSd: r.Sd_m2.value ?? undefined,
                     prNum: box.passiveRadiator.count.value,
@@ -3059,6 +3064,7 @@ export class OpenISDProject {
                     prMadd: box.passiveRadiator.addedMass_kg.value ?? undefined,
                     prCms: r.Cms_m_per_N.value ?? undefined,
                     prRms: r.Rms_kg_per_s.value ?? undefined,
+                    Fr: Fr ?? undefined,
                 };
             }
             default: return {};
