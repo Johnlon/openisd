@@ -279,7 +279,7 @@ function ventSectionValues(
  *  computed from, so it must land first. */
 /** The one message for a `BType` this importer does not read — absent, or a code WinISD writes
  *  that has no OpenISD topology yet. */
-function unsupportedBType(bType: number | null): string {
+function unsupportedBType(bType: number | null | undefined): string {
   return `Unsupported or missing box type (BType=${String(bType)}): WinISD import supports sealed (0), vented (1), 4th-order bandpass (2), and passive radiator (4) boxes.`;
 }
 

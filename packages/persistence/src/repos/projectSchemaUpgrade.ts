@@ -46,8 +46,17 @@ export interface ProjectSchemaUpgrade {
    * A payload already at the current schema is returned unchanged, so the repo's own
    * `sharePayload()` remains the one validator for the current shape.
    */
-  sharePayload(parsed: unknown): unknown | string[];
+  sharePayload(parsed: unknown): UpgradedShare;
 }
+
+/** The outcome of upgrading a share-link payload: the payload at the current schema, or the
+ *  problems that stopped it. `payload` is `unknown` because it is still unvalidated here — the
+ *  repo's own `sharePayload()` is the validator, and this type says so instead of pretending the
+ *  shape is known. (`unknown | string[]` said nothing at all: that union collapses to `unknown`,
+ *  so the caller had to ask `Array.isArray` and got an `any[]` back for its trouble.) */
+export type UpgradedShare =
+  | {readonly kind: 'payload'; readonly payload: unknown}
+  | {readonly kind: 'errors'; readonly errors: readonly string[]};
 
 export function createProjectSchemaUpgrade(engine: Engine): ProjectSchemaUpgrade {
   return { projectPayload, sharePayload };
@@ -78,21 +87,24 @@ export function createProjectSchemaUpgrade(engine: Engine): ProjectSchemaUpgrade
   return project.toOwprText();
 }
 
-  function sharePayload(parsed: unknown): unknown | string[] {
-  if (!isV1(parsed)) return parsed;
+  function sharePayload(parsed: unknown): UpgradedShare {
+  if (!isV1(parsed)) return {kind: 'payload', payload: parsed};
 
   const text = projectPayload(parsed);
-  if (Array.isArray(text)) return text;
+  if (Array.isArray(text)) return {kind: 'errors', errors: text};
 
   // V1 carried the open charts and nothing else of the view; the rest takes the same
   // all-unset values a fresh session has, rather than inventing preferences the sender never
   // expressed.
   return {
-    project: text,
-    view: {
-      graphs: Array.isArray(parsed.graphs) ? parsed.graphs : [],
-      ui: {},
-      cursor: { f: null, pinnedF: null, locked: false, range: null },
+    kind: 'payload',
+    payload: {
+      project: text,
+      view: {
+        graphs: Array.isArray(parsed.graphs) ? parsed.graphs : [],
+        ui: {},
+        cursor: { f: null, pinnedF: null, locked: false, range: null },
+      },
     },
   };
 }

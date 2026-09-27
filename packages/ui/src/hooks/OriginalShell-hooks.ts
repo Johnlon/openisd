@@ -210,7 +210,6 @@ function activeVolumeField(project: OpenISDProject, selectedBox: BoxType): (Read
     case 'bandpass6': return box.bandpass6.chambers.rear.volume_m3;
     case 'abc': return box.abc.chambers.rear.volume_m3;
     case 'box-passive-radiator': return box.passiveRadiator.volume_m3;
-    default: return null;
   }
 }
 
@@ -437,7 +436,10 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
       case 'bandpass4': return box.bandpass4.chambers.front.volume_m3.value;
       case 'bandpass6': return box.bandpass6.chambers.front.volume_m3.value;
       case 'abc': return box.abc.chambers.front.volume_m3.value;
-      default: return null;
+      case 'sealed':
+      case 'vented':
+      case 'box-passive-radiator':
+        return null;
     }
   });
   function setFrontVolume_m3(v: number): void {
@@ -446,6 +448,10 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
       case 'bandpass4': box.bandpass4.chambers.front.volume_m3.set(v); break;
       case 'bandpass6': box.bandpass6.chambers.front.volume_m3.set(v); break;
       case 'abc': box.abc.chambers.front.volume_m3.set(v); break;
+      case 'sealed':
+      case 'vented':
+      case 'box-passive-radiator':
+        break;
     }
   }
   // Rear-chamber tuning (WinISD "Frc") — bandpass6/abc only.
@@ -457,7 +463,11 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     switch (selectedBox.value) {
       case 'bandpass6': return box.bandpass6.chambers.rear.tuning_goal_hz.value;
       case 'abc': return box.abc.chambers.rear.tuning_goal_hz.value;
-      default: return null;
+      case 'sealed':
+      case 'vented':
+      case 'bandpass4':
+      case 'box-passive-radiator':
+        return null;
     }
   });
   function setFrcHz(v: number): void {
@@ -465,6 +475,11 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     switch (selectedBox.value) {
       case 'bandpass6': box.bandpass6.chambers.rear.tuning_goal_hz.set(v); break;
       case 'abc': box.abc.chambers.rear.tuning_goal_hz.set(v); break;
+      case 'sealed':
+      case 'vented':
+      case 'bandpass4':
+      case 'box-passive-radiator':
+        break;
     }
   }
   // Box-level Ql/Qa/Qp (WinISD's Box losses modal) — each box type keeps its own losses window.
@@ -477,7 +492,9 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
       case 'vented': return box.vented.losses.Ql.value;
       case 'bandpass4': return box.bandpass4.chambers.rear.losses.Ql.value;
       case 'box-passive-radiator': return box.passiveRadiator.losses.Ql.value;
-      default: return null;
+      case 'bandpass6':
+      case 'abc':
+        return null;
     }
   });
   function setBoxQl(v: number): void {
@@ -487,6 +504,9 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
       case 'vented': box.vented.losses.Ql.set(v); break;
       case 'bandpass4': box.bandpass4.chambers.rear.losses.Ql.set(v); break;
       case 'box-passive-radiator': box.passiveRadiator.losses.Ql.set(v); break;
+      case 'bandpass6':
+      case 'abc':
+        break;
     }
   }
   const boxQa = computed<number | null>(() => {
@@ -498,7 +518,9 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
       case 'vented': return box.vented.losses.Qa.value;
       case 'bandpass4': return box.bandpass4.chambers.rear.losses.Qa.value;
       case 'box-passive-radiator': return box.passiveRadiator.losses.Qa.value;
-      default: return null;
+      case 'bandpass6':
+      case 'abc':
+        return null;
     }
   });
   function setBoxQa(v: number): void {
@@ -508,6 +530,9 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
       case 'vented': box.vented.losses.Qa.set(v); break;
       case 'bandpass4': box.bandpass4.chambers.rear.losses.Qa.set(v); break;
       case 'box-passive-radiator': box.passiveRadiator.losses.Qa.set(v); break;
+      case 'bandpass6':
+      case 'abc':
+        break;
     }
   }
   const boxQp = computed<number | null>(() => {
@@ -517,7 +542,11 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     switch (selectedBox.value) {
       case 'vented': return box.vented.losses.Qp.value;
       case 'bandpass4': return box.bandpass4.chambers.front.losses.Qp.value;
-      default: return null;
+      case 'sealed':
+      case 'bandpass6':
+      case 'abc':
+      case 'box-passive-radiator':
+        return null;
     }
   });
   function setBoxQp(v: number): void {
@@ -525,6 +554,11 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     switch (selectedBox.value) {
       case 'vented': box.vented.losses.Qp.set(v); break;
       case 'bandpass4': box.bandpass4.chambers.front.losses.Qp.set(v); break;
+      case 'sealed':
+      case 'bandpass6':
+      case 'abc':
+      case 'box-passive-radiator':
+        break;
     }
   }
   async function confirmDiscard(): Promise<boolean> {
@@ -651,9 +685,12 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     try {
       const r = await fetch(`${import.meta.env.BASE_URL}build-info.json`, { cache: 'no-store' });
       if (!r.ok) return;
-      // Narrow via the `in` operator, never a cast — the repository bans casts.
-      const info: object = await r.json();
-      if ('version' in info && typeof info.version === 'string') version.value = info.version;
+      // Narrow via the `in` operator, never a cast — the repository bans casts. `r.json()` is
+      // typed `any`, so it is taken as `unknown` and proved to be an object here.
+      const info: unknown = await r.json();
+      if (info && typeof info === 'object' && 'version' in info && typeof info.version === 'string') {
+        version.value = info.version;
+      }
     } catch { /* network offline — show no version rather than fail the app */ }
   }
   onMounted(() => { void fetchVersion(); });
