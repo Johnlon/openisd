@@ -3039,7 +3039,11 @@ export class OpenISDProject {
             case 'vented': {
                 const Sp = box.vented.vent.totalArea_m2();
                 const Leff = box.vented.vent.effectiveLength_m();
-                return {Sp: Sp ?? undefined, Leff: Leff ?? undefined};
+                // Fb for circuit.ts's winisd-lossy port mass (Map = 1/(ωb²·Cab), never from
+                // Leff). Null only when the vent's tuning ↔ length pair is itself unsolved,
+                // which #ventSweepIssues already refuses the sweep over before this is read.
+                const Fb = box.vented.tuning_goal_hz.value;
+                return {Sp: Sp ?? undefined, Leff: Leff ?? undefined, Fb: Fb ?? undefined};
             }
             case 'bandpass4': {
                 const Sp = box.bandpass4.vents.front.totalArea_m2();

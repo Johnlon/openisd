@@ -42,7 +42,13 @@ const DRV = derive(RAW);
 // resonance c/(2·Leff) lands inside the sweep range and the TL model has something to show.
 const SP   = Math.PI * (0.05 / 2) ** 2;          // 50 mm round port
 const LEFF = 0.30 + 0.732 * 0.05;                // 300 mm cut length + one-flanged end correction
-const VENTED: SweepParams = { Vb: 0.030, eg: 2.83, Sp: SP, Leff: LEFF, fmin: 10, fmax: 2000, N: 400 };
+// The tuning this Sp/Leff/Vb already amounts to (Helmholtz, inverted) — winisd-lossy's own Map
+// comes from Fb directly (circuit.ts), so it must agree with the geometry the tests below reason
+// about, rather than being left absent (BUG_20260927_vented-box-losses-not-winisd-form.md).
+const VB = 0.030;
+const {c: refC} = engine.solveEnvironment({}).values;
+const FB = refC * Math.sqrt(SP / (LEFF * VB)) / (2 * Math.PI);
+const VENTED: SweepParams = { Vb: VB, eg: 2.83, Sp: SP, Leff: LEFF, Fb: FB, fmin: 10, fmax: 2000, N: 400 };
 
 describe('absent Le — the impedance plot must stay finite (BUG)', () => {
   // Before the fix: circuit.ts evaluated `w * drv.Le!` with Le === undefined, so Zcoil
@@ -130,8 +136,11 @@ describe('transmission-line port model (WinISD Advanced: TLPorts)', () => {
     // The collapsed port impedance dumps volume velocity through the duct, so the port air
     // velocity is where the difference is unmistakable; the far-field SPL effect is smaller
     // because the driver dominates the total output that far above the passband.
-    const lumped = engine.sweep(DRV, LE_H, 'vented', { ...VENTED, tlPortModel: false }).values!;
-    const tl     = engine.sweep(DRV, LE_H, 'vented', { ...VENTED, tlPortModel: true  }).values!;
+    // `tlPortModel` only applies under conventional-lossy — winisd-lossy (the default) is
+    // always lumped (circuit.ts, BUG_20260927_vented-box-losses-not-winisd-form.md).
+    const CONV = { ...VENTED, lossMode: 'conventional-lossy' as const };
+    const lumped = engine.sweep(DRV, LE_H, 'vented', { ...CONV, tlPortModel: false }).values!;
+    const tl     = engine.sweep(DRV, LE_H, 'vented', { ...CONV, tlPortModel: true  }).values!;
     let worstSpl = 0, worstPv = 0;
     for (let i = 0; i < lumped.fs.length; i++)
       if (lumped.fs[i] > F_PIPE * 0.6 && lumped.fs[i] < F_PIPE * 1.6) {

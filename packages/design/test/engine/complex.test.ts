@@ -24,8 +24,13 @@ describe('transmission-line port model — tanh saturation guard', () => {
   // Qp far below any realistic port loss (typically ~10-100) — chosen only to push
   // k·Leff/Qp past the guard's threshold at every frequency in the sweep, not as a
   // physically meaningful port.
-  const HEAVILY_DAMPED: SweepParams =
-    { Vb: 0.030, eg: 2.83, Sp: SP, Leff: LEFF, Qp: 0.001, tlPortModel: true, fmin: 10, fmax: 1000, N: 20 };
+  // `tlPortModel` is a conventional-lossy-only option (winisd-lossy is always lumped —
+  // circuit.ts, BUG_20260927_vented-box-losses-not-winisd-form.md) — this test is about the TL
+  // model itself, so it must ask for the branch that has one.
+  const HEAVILY_DAMPED: SweepParams = {
+    Vb: 0.030, eg: 2.83, Sp: SP, Leff: LEFF, Qp: 0.001, tlPortModel: true,
+    lossMode: 'conventional-lossy', fmin: 10, fmax: 1000, N: 20,
+  };
 
   it('stays finite across the whole sweep once the line is heavily damped enough to saturate tanh', () => {
     const sw = engine.sweep(DRV, LE_H, 'vented', HEAVILY_DAMPED).values!;

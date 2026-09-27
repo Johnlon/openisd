@@ -74,8 +74,12 @@ new Engine().solveDriver(driverParams, new Engine().solveEnvironment({}).values)
 const DRV = driverParams;
 const LE_H = 0.70e-3;
 
+// Fb: the tuning this Vb/Sp/Leff already amounts to (Helmholtz, inverted) — winisd-lossy's own
+// Map comes from Fb directly (circuit.ts, BUG_20260927_vented-box-losses-not-winisd-form.md).
+const SP_VB = 0.030, SP_SP = Math.PI * (0.05 / 2) ** 2, SP_LEFF = 0.30 + 0.732 * 0.05;
+const {c: SP_C} = new Engine().solveEnvironment({}).values;
 const SP: SweepParams = {
-  Vb: 0.030, eg: 2.83, Sp: Math.PI * (0.05 / 2) ** 2, Leff: 0.30 + 0.732 * 0.05,
+  Vb: SP_VB, eg: 2.83, Sp: SP_SP, Leff: SP_LEFF, Fb: SP_C * Math.sqrt(SP_SP / (SP_LEFF * SP_VB)) / (2 * Math.PI),
   fmin: 10, fmax: 2000, N: 200,
   filters: [{ type: 'peaking', fc: 60, Q: 3, gain: 6, enabled: true }],
 };

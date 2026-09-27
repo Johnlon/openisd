@@ -179,6 +179,12 @@ export interface SweepParams {
   Vf?: number;
   Sp?: number;
   Leff?: number;
+  /** The vent's tuning target, Hz (WinISD `[VentRear]`/`[VentFront]` `Fb`, `VentedBox.tuning_goal_hz`
+   *  / `Bandpass4Box.chambers.front.tuning_goal_hz`) — read ONLY by `circuit.ts`'s vented
+   *  `winisd-lossy` branch, whose port mass Map = 1/(ωb²·Cab) comes from `Fb` and never from
+   *  `Leff` (winisd_research/GHIDRA_FINDINGS.md "Vented box — `0x456800`"). Absent for any other
+   *  box/lossMode combination, which never reads it. */
+  Fb?: number;
   // Passive radiator
   prSd?: number;
   prNum?: number;

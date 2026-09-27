@@ -199,7 +199,7 @@ describe('Vented (bass-reflex) box simulation', () => {
   const Leff   = Map * Sp_m2 / refRho();  // effective duct length (including end correction)
   const d = solveConsistencyGroup(REF_DRIVER);
   const { fs, spl, zmag } = engine.sweep(driverParams(d), LE_H, 'vented', {
-    Vb: Vb_m3, Ql: 7, Sp: Sp_m2, Leff, eg: 2.83, fmin: 10, fmax: 1000, N: 300,
+    Vb: Vb_m3, Ql: 7, Sp: Sp_m2, Leff, Fb: Fb_Hz, eg: 2.83, fmin: 10, fmax: 1000, N: 300,
   }).values!;
 
   it('rolls off at approximately 24 dB/octave below tuning — the 4th-order Butterworth slope', () => {
