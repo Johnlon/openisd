@@ -1,6 +1,6 @@
 # BUG_20260924_tfmag-reference-disagrees-with-own-passband-spl
 
-Status: OPEN (re-verified 2026-09-26) — `tfMag` still subtracts an Fs/Vas/Qes reference from an SPL computed from Bl/Mms/Sd/Re (`sweep.ts`).
+Status: RESOLVED 2026-09-26 by [winisd-tf-reference](BUG_20260926_winisd-tf-reference.md): 0 dB is the circuit's own HF asymptote ρ·Pg/(2π·r·Mas), from the same BL/Mms/Sd/Re as the SPL.
 
 ## Symptom
 

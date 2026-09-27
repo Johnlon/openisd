@@ -1,6 +1,6 @@
 # BUG_20260924_sealed-box-leakage-modelled-as-damping-not-a-leak
 
-Status: OPEN (re-verified 2026-09-26) — sealed leakage is still `Ral = Ql/(ω·Cab)` in `packages/design/engine/circuit.ts`.
+Status: RESOLVED 2026-09-26 by [winisd-box-absorption-is-series](BUG_20260926_winisd-box-absorption-is-series.md): the leak is now WinISD's fixed Ral = Ql/(ωsc·Cab), not a per-frequency Ql/(ω·Cab).
 
 ## Symptom
 
@@ -65,3 +65,17 @@ Unit test on `Engine.sweep` for this case: with Ql = 10 the transfer-function ph
 must exceed 180° and the group delay must be near 7.6 ms; with Ql = 1e5 both must fall back to
 ≈ 168° / ≈ 3.2 ms. Then re-trace `toys/w5_charts.py base charts=1,2` and the four loss variants
 and check the openisd curves move in the same direction as WinISD's across all of them.
+
+## Verification (2026-09-27)
+
+OpenISD now, same W5 box, phase at 10 Hz against WinISD's pixel-read values above:
+
+| Box losses       | WinISD  | OpenISD |
+|------------------|--------:|--------:|
+| Ql 3, Qa 100     | 207.84° | 208.28° |
+| Ql 10, Qa 100    | 183.90° | 184.24° |
+| Ql 1e5, Qa 1e5   | 167.94° | 167.76° |
+
+Raising Ql now moves phase the same way as WinISD's. Ql 10 is exact against WinISD's debugger
+values (`winisdDriverModel.test.ts`, run sweep-w5-sealed-fresh-20260926). ⚠ Ql 3 is checked only
+against pixel-read values.
