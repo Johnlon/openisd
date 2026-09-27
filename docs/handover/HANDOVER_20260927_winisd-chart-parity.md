@@ -99,6 +99,14 @@ Still open for vented:
 - **Box readouts.** Fb, F3, vent area on the Box tab.
 - Open: [BUG_20260918_no-ui-path-to-enter-a-vent-length](../../bugs/BUG_20260918_no-ui-path-to-enter-a-vent-length.md).
 
+## Queue (John, 2026-09-27)
+
+1. Circuit split: one class per box type (`engine/boxes/`), no behaviour change.
+2. Domain file split: `openisdDomain.ts` by area, one class per file, no behaviour change.
+3. Bandpass 4th fix ([bug](../../bugs/BUG_20260927_bandpass4-box-not-winisd-form.md)).
+4. Box-volume validity into the domain ([bug](../../bugs/BUG_20260927_box-volume-validity-decided-in-ui.md)).
+5. `OpenISDProject` split by responsibility — plan first.
+
 ## Next: passive radiator, then bandpass 4th
 
 Capture code prepared by session openisd-e4 (winisd_research 0ba4342, 8f06913):
