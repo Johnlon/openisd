@@ -11,6 +11,49 @@ const noUnusedVars = {
   '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
 };
 
+// Type-aware rules need the type checker, which needs a project. `projectService` hands each
+// file to the tsconfig that owns it, so the three packages' own tsconfigs are the source of
+// truth here as they are for `npm run typecheck` — there is no second list of files to keep in
+// step. It costs lint time; the rules below cannot be written any other way.
+const typeAware = {
+  files: ['packages/*/src/**/*.ts', 'packages/design/{domain,engine,fields,browser}/**/*.ts', 'packages/*/test/**/*.ts'],
+  languageOptions: {
+    parser: tseslint.parser,
+    parserOptions: { projectService: true, tsconfigRootDir: import.meta.dirname },
+  },
+  plugins: { '@typescript-eslint': tseslint.plugin },
+  rules: {
+    // ── A switch over a sum type handles every variant, and the compiler proves it ──────────
+    // The rule the codebase's own guardrail asks for: "matches on sum types must be exhaustive;
+    // the compiler should fail when a new variant goes unhandled". A missing arm is the bug
+    // that reads as `undefined` at runtime and as `any` in an editor that cannot resolve the
+    // union. `allowDefaultCaseForExhaustiveSwitch: false` stops a `default:` being used to
+    // silence it — a default arm answers for a variant nobody has thought about, which is the
+    // thing being banned.
+    '@typescript-eslint/switch-exhaustiveness-check': ['error', {
+      allowDefaultCaseForExhaustiveSwitch: false,
+      considerDefaultExhaustiveForUnions: false,
+      requireDefaultForNonUnion: true,
+    }],
+    // ── No casts ───────────────────────────────────────────────────────────────────────────
+    // `as` asserts what the checker could not prove. packages/design has an architecture test
+    // for this; the rule extends it to every package and reports it in the editor instead of at
+    // suite time. `as const` is not an assertion and stays allowed.
+    '@typescript-eslint/consistent-type-assertions': ['error', {
+      assertionStyle: 'never',
+    }],
+    // ── An `any` that leaks is an `any` that spreads ────────────────────────────────────────
+    // `no-explicit-any` (already on, from recommended) only catches the word. These catch the
+    // value: an `any` arriving from an untyped import or a loose generic, then being called,
+    // read, passed or returned. That is how a type hole travels without anyone writing `any`.
+    '@typescript-eslint/no-unsafe-argument': 'error',
+    '@typescript-eslint/no-unsafe-assignment': 'error',
+    '@typescript-eslint/no-unsafe-call': 'error',
+    '@typescript-eslint/no-unsafe-member-access': 'error',
+    '@typescript-eslint/no-unsafe-return': 'error',
+  },
+};
+
 export default [
   // ── Ignore generated and dependency directories ──────────────────────────
   // dist-electron/ is the optional desktop shell's build output — same minified bundle as
@@ -239,4 +282,6 @@ export default [
       }],
     },
   },
+
+  typeAware,
 ];

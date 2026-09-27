@@ -64,10 +64,6 @@ export class VentedBox implements BoxModel {
         const U0 = cMul(UD, cDiv(Zbox, CabBranch));
         return {Zbox, UD, UP, U0};
       }
-      default: {
-        const _exhaustiveCheck: never = lossMode;
-        throw new Error(`Unhandled LossModeValue: ${_exhaustiveCheck}`);
-      }
     }
   }
 }
