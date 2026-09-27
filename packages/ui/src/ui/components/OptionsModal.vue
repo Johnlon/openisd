@@ -42,13 +42,13 @@
 //             chart's own drag-to-zoom already uses (GraphPanel.vue) — so editing a row here is
 //             literally "set this chart's persisted default view", not a parallel concept, and
 //             an untouched row still auto-scales exactly as it does today. The rows are
-//             `LIMIT_ROWS` in OptionsModal-hooks.ts, keyed by `ChartTabId`.
+//             `LIMIT_ROWS` in OptionsModal-hooks.ts, keyed by `ChartId`.
 import {reactive, ref} from 'vue';
 import {presentationState, resetUnitTokens} from '../../logic/presentationState.js';
 import {precision as fieldDp} from '../../logic/fields/uiFields.js';
 import {useEscToClose} from '../../logic/useEscToClose.js';
 import {LIMIT_ROWS, useOptionsModal} from '../../hooks/OptionsModal-hooks.js';
-import type {ChartTabId} from '../../types.js';
+import type {ChartId} from '@openisd/design/engine';
 import NumInput from './NumInput.vue';
 import UnitToggle from './UnitToggle.vue';
 import {inputValue} from '../../logic/domEvents.js';
@@ -142,17 +142,17 @@ function clearColor(key: ColorKey) {
   delete draft.chartColors[key];
 }
 
-function setLimit(chartId: ChartTabId, key: 'min' | 'max', e: Event) {
+function setLimit(chartId: ChartId, key: 'min' | 'max', e: Event) {
   const v = parseFloat(inputValue(e));
   const cur = draft.yRanges[chartId] ?? { min: NaN, max: NaN };
   draft.yRanges[chartId] = { ...cur, [key]: v };
 }
-function resetLimit(chartId: ChartTabId) { delete draft.yRanges[chartId]; }
+function resetLimit(chartId: ChartId) { delete draft.yRanges[chartId]; }
 function resetFreqRange() { draft.P = { fmin: 10, fmax: 20000 }; }
 // A number input's `:value` must never be literally NaN (an unset half of a partial edit) —
 // the DOM emits a console warning ("value 'NaN' cannot be parsed") for that. undefined renders
 // as an empty field instead, so the placeholder (WinISD's default) shows through as intended.
-function limitVal(chartId: ChartTabId, key: 'min' | 'max'): number | undefined {
+function limitVal(chartId: ChartId, key: 'min' | 'max'): number | undefined {
   const v = draft.yRanges[chartId]?.[key];
   return v != null && isFinite(v) ? v : undefined;
 }

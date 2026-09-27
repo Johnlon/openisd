@@ -34,3 +34,22 @@ read it and display only. Replaces today's "n/a" Air velocity chart on unported 
 
 ## Verification
 Engine test against the captured values (≤ 1e-12); chart review rows turn ✅.
+
+## Progress (2026-09-27)
+Done: PR transfer function magnitude/phase (passive-radiator box, `sweep.ts` `prTfMag`/
+`prTfPhase`, null for every other box type) — matched to WinISD's own plotted values
+(winisd_research runs/pr-w5-tf-1/-2) to 2.8e-14 dB / 4.5e-13°, well inside the ≤1e-12 tier;
+WinISD's own phase-chart wart reproduced exactly (both PR charts come off Z = K·ω·Upr with ω
+taken as a real scalar, so |Z| matches the magnitude chart's |jω·Upr| but arg(Z) = arg(Upr) —
+WinISD's phase chart omits the j rather than dropping a rotation). Cone excursion (PR) moved
+out of the Excursion chart into its own `PRExcursion` id.
+
+The chart menu (`ChartId`/`Engine.chartsFor`, `packages/design/engine/charts.ts`) now lists
+only the charts that apply to the project's box, in WinISD's own row order; both skins read
+it. `Port` split into two design-owned ids, `RearPort` (vented) and `FrontPort` (bandpass4) —
+which port is itself a design decision, not a UI ternary. Chart review checklist rows for
+both PR transfer charts turn ✅.
+
+Pending: "Rear port - Gain" (vented) and "Front port - Gain" (bandpass 4th) — not in this
+task. A vented port-gain capture (`winisd_research/runs/vented-gain-1`) already exists from
+another session's work on that half.

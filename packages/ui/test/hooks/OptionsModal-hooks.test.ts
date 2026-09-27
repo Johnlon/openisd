@@ -15,7 +15,7 @@ import {
   DEFAULT_ENV_DEFAULTS, DEFAULT_VENTED_DESIGN_LIMITS, type EnvDefaults, type VentedDesignLimits,
 } from '@openisd/design/engine';
 import {LIMIT_ROWS, type OptionsModalDeps, useOptionsModal} from '../../src/hooks/OptionsModal-hooks.js';
-import {parseChartTabId} from '../../src/logic/series.js';
+import {parseChartId} from '../../src/logic/series.js';
 
 /** A stand-in for appState's settings seam — records what the dialog writes. */
 function fakeSettings(
@@ -222,9 +222,9 @@ describe('useOptionsModal — environment defaults', () => {
 describe('the Plot Window Y-limit rows target charts that exist', () => {
   // John, 2026-09-24: "The selection of the Y axis limits of the TFM chart seem not to do
   // anything" — the row was keyed 'TFmag' while the chart is 'TFMag', so the override landed
-  // under a key no chart reads. The rows are typed `ChartTabId` now; this pins the runtime side.
+  // under a key no chart reads. The rows are typed `ChartId` now; this pins the runtime side.
   it('every row is a chart tab the graph panel renders', () => {
-    for (const row of LIMIT_ROWS) assert.equal(parseChartTabId(row.tab), row.tab, row.label);
+    for (const row of LIMIT_ROWS) assert.equal(parseChartId(row.tab), row.tab, row.label);
   });
 
   it('has a row for the transfer function magnitude chart', () => {

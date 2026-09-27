@@ -3,18 +3,18 @@ import {computed, ref, watch} from 'vue';
 import {allIssues, curvesData, driverName, maxData, openProjects, syncedP} from '../logic/appState.js';
 import {useFocusedProject} from '../logic/focusedProjectContext.js';
 import {buildPlotData, DPAL, TAB_META} from '../logic/series.js';
-import type {ChartTabId, Design, PlotData} from '../types.js';
-import type {DriverError} from '@openisd/design/engine';
+import type {Design, PlotData} from '../types.js';
+import type {ChartId, DriverError} from '@openisd/design/engine';
 
 export interface GraphPanelProps {
-  chartId: ChartTabId;
+  chartId: ChartId;
   bare?: boolean;
   primaryColor?: string;
   overlays?: Design[];
 }
 
 export interface GraphPanelAPI {
-  readonly meta: Readonly<Ref<(typeof TAB_META)[ChartTabId]>>;
+  readonly meta: Readonly<Ref<(typeof TAB_META)[ChartId]>>;
   readonly currentDesign: Readonly<Ref<Design>>;
   readonly plotData: Readonly<Ref<PlotData | null>>;
   readonly blockErrors: Readonly<Ref<DriverError[]>>;

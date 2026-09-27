@@ -263,6 +263,10 @@ export function sweep(drv: DriverSolverParams, Le_H: number | undefined, box: Bo
   const f0 = P.fmin || 10, f1 = P.fmax || 1000, N = P.N || 400, r = 1;
   const fs: number[] = [], H = [], spl = [], exc = [], excPR = [], pv = [], zmag = [], zph = [], phase = [];
   const va: number[] = [];
+  // WinISD's "Transfer function magnitude/phase (PR)" — computed for every box (cheap; `s.UP`
+  // is the zero complex for a non-PR box), gated to `null` below only `box-passive-radiator`
+  // has this chart at all.
+  const prSpl: number[] = [], prPhase: number[] = [];
   // Amplifier apparent load power. WinISD's (`winisdVaModel`, the default): P·Re·|Hf|²/|Z + Rg|,
   // Rg added whatever its placement (f_46bd30 case 0x14). Conventional: P·(Re + Rg)·|Hf|²/|Z_amp|,
   // the load the amplifier sees — Zel already holds Rg when Rg is at the driver side.
@@ -302,6 +306,20 @@ export function sweep(drv: DriverSolverParams, Le_H: number | undefined, box: Bo
     // drawn as silence (BUG_20260927_spl-maps-nan-to-silence).
     spl.push(pm === 0 ? -200 : 20 * Math.log10(pm / P0));
     phase.push(cArg(Hc));
+    // The radiator's OWN pressure, jω·Upr, on the same 0 dB reference as `Hc` above — but,
+    // unlike `Hc`, NOT multiplied by `Hf` (winisd_research/GHIDRA_FINDINGS.md "Passive
+    // radiator box", "Radiator transfer function" bullet). `s.UP` here is the raw box-solve
+    // output, before the loop's own filtered `UP` local shadows it.
+    const Hpr = cScale(cMul(cx(0, w), s.UP), rho / (2 * Math.PI * r));
+    const prPm = cAbs(Hpr);
+    prSpl.push(prPm === 0 ? -200 : 20 * Math.log10(prPm / P0));
+    // WinISD's own wart, reproduced exactly (validated against winisd_research
+    // runs/pr-w5-tf-1/-2 to <5e-13°): both PR charts come off Z = K·ω·Upr with ω taken as a
+    // REAL scalar, not the complex jω·Upr the box solve actually produces. |Z| = |K·ω·Upr| =
+    // |jω·Upr| — same as the magnitude chart above, since |j| = 1 — but arg(Z) = arg(Upr):
+    // multiplying by the real, positive K·ω rotates nothing, so WinISD's phase chart omits
+    // the j entirely rather than dropping a rotation from a complex product.
+    prPhase.push(cArg(s.UP));
     // x_peak = √2·|UD|/(ω·Sd)  https://en.wikipedia.org/wiki/Thiele/Small_parameters#Small_signal_parameters
     exc.push(Math.SQRT2 * cAbs(UD) / (w * Sdt) * 1000);
     pv.push(area ? Math.SQRT2 * cAbs(UP) / area : 0);
@@ -312,6 +330,7 @@ export function sweep(drv: DriverSolverParams, Le_H: number | undefined, box: Bo
     zph.push(cArg(s.Zel) * 180 / Math.PI);
   }
   const ph = unwrap(phase);
+  const prPh = unwrap(prPhase);
   const fltPhase = unwrap(fltPhaseWrapped);
   // Radiated pressure up to a real scale factor, which the phase slope does not see.
   const pressure = (f: number): Complex =>
@@ -340,6 +359,7 @@ export function sweep(drv: DriverSolverParams, Le_H: number | undefined, box: Bo
       exc[i]   *= a;
       excPR[i] *= a;
       pv[i]    *= a;
+      prSpl[i] += gDb; // the same real upstream gain reaches the radiator branch too
       H[i] = cScale(H[i], a);
     }
   }
@@ -360,8 +380,13 @@ export function sweep(drv: DriverSolverParams, Le_H: number | undefined, box: Bo
 
   // Transfer-function 0 dB: the lossless circuit's own HF asymptote (BUG_20260926_winisd-tf-reference).
   const splRefLimit = 20 * Math.log10(hfAsymptotePressure_Pa(cq, P, r) / P0);
+  // WinISD has no "Transfer function (PR)" chart for a box with no radiator — null there,
+  // never the -200 dB / 0 rad a fake radiator would sweep to.
+  const isPr = box === 'box-passive-radiator';
 
-  return { values: { fs, H, spl, phase: ph, exc, excPR, pv, zmag, zph, gd, tfMag: tfMag(spl, splRefLimit), splXlimCurve, xlimited, flatClamped,
+  return { values: { fs, H, spl, phase: ph, exc, excPR, pv, zmag, zph, gd, tfMag: tfMag(spl, splRefLimit),
+                    prTfMag: isPr ? tfMag(prSpl, splRefLimit) : null, prTfPhase: isPr ? prPh : null,
+                    splXlimCurve, xlimited, flatClamped,
                     fltMag, fltPhase, fltGd, va }, issues: [] };
 }
 
@@ -434,6 +459,15 @@ export function maxCurves(drv: DriverSolverParams, Le_H: number | undefined, box
  * Returns a DriverError-shaped issue (the same channel `sweep` itself reports on), or null — see
  * `classifyArrays` below for the three-way rule the two postconditions share.
  */
+/** `prTfMag`/`prTfPhase` join the plotted set only where they exist (`box-passive-radiator`) —
+ *  `null` elsewhere is WinISD having no such chart for that box, not a gap to report. */
+function prTransferArrays(sw: SweepResult): readonly PlottedArray[] {
+  return sw.prTfMag === null || sw.prTfPhase === null ? [] : [
+    { label: 'PR transfer magnitude', values: sw.prTfMag },
+    { label: 'PR transfer phase', values: sw.prTfPhase },
+  ];
+}
+
 export function classifyFinite(sw: SweepResult): DriverError | null {
   // Every array that reaches a chart. The filter-chain trio is included for the same
   // reason as the rest: it is plotted, so a non-finite point in it must not be silent.
@@ -445,6 +479,7 @@ export function classifyFinite(sw: SweepResult): DriverError | null {
     { label: 'impedance phase', values: sw.zph }, { label: 'group delay', values: sw.gd },
     { label: 'filter magnitude', values: sw.fltMag }, { label: 'filter phase', values: sw.fltPhase },
     { label: 'filter group delay', values: sw.fltGd }, { label: 'amplifier apparent load power', values: sw.va },
+    ...prTransferArrays(sw),
   ];
   return classifyArrays(sw.fs, arrays, 'sweep');
 }
@@ -459,6 +494,7 @@ export function classifyFiniteIssues(sw: SweepResult): DriverError[] {
     { label: 'impedance phase', values: sw.zph }, { label: 'group delay', values: sw.gd },
     { label: 'filter magnitude', values: sw.fltMag }, { label: 'filter phase', values: sw.fltPhase },
     { label: 'filter group delay', values: sw.fltGd }, { label: 'amplifier apparent load power', values: sw.va },
+    ...prTransferArrays(sw),
   ];
   return arrays.flatMap((array): DriverError[] => {
     const bad = array.values.filter(value => !Number.isFinite(value)).length;

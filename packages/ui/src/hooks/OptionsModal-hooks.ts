@@ -12,7 +12,7 @@
  * repo stores m³ and hertz. This hook is that boundary.
  */
 import {computed, type ComputedRef, ref, type Ref} from 'vue';
-import type {Air, EnvDefaults, VentedDesignLimits} from '@openisd/design/engine';
+import type {Air, ChartId, EnvDefaults, VentedDesignLimits} from '@openisd/design/engine';
 import {
   envDefaults as appEnvDefaults,
   FACTORY_ENV_DEFAULTS,
@@ -22,7 +22,6 @@ import {
   ventedLimits as appVentedLimits,
 } from '../logic/appState.js';
 import {airForEnvironment} from '../logic/environment.js';
-import type {ChartTabId} from '../types.js';
 
 /** The settings seam this dialog edits through — `appState`'s by default, a substitute in a test. */
 export interface OptionsModalDeps {
@@ -34,7 +33,7 @@ export interface OptionsModalDeps {
 
 /** One row of the Plot Window "Limits" table: a chart and WinISD's default Y range for it. */
 export interface LimitRow {
-  readonly tab: ChartTabId;
+  readonly tab: ChartId;
   readonly label: string;
   readonly start: number;
   readonly end: number;
@@ -46,7 +45,7 @@ export interface LimitRow {
  * row's placeholder until the user sets an override; an untouched row keeps auto-scaling —
  * no default is ever written to `presentationState.yRanges`.
  *
- * `tab` is a `ChartTabId`, not a string: the row was keyed `'TFmag'` while the chart is
+ * `tab` is a `ChartId`, not a string: the row was keyed `'TFmag'` while the chart is
  * `'TFMag'`, so the override landed under a key no chart read (John, 2026-09-24: "The
  * selection of the Y axis limits of the TFM chart seem not to do anything"). WinISD's "EQ
  * transfer func mag" is OpenISD's filter-magnitude chart, `FltMag`.
@@ -61,7 +60,8 @@ export const LIMIT_ROWS: readonly LimitRow[] = [
   { tab: 'Zph',       label: 'Impedance phase',       start: -90,  end: 90,   unit: 'deg' },
   { tab: 'GD',        label: 'Group delay',           start: 0,    end: 40,   unit: 'ms' },
   { tab: 'MaxPwr',    label: 'Maximum power',         start: 0,    end: 500,  unit: 'W' },
-  { tab: 'Port',      label: 'Air velocity',          start: 0.00, end: 40.00, unit: 'm/s peak' },
+  { tab: 'RearPort',  label: 'Rear port - Air velocity',  start: 0.00, end: 40.00, unit: 'm/s peak' },
+  { tab: 'FrontPort', label: 'Front port - Air velocity', start: 0.00, end: 40.00, unit: 'm/s peak' },
 ];
 
 export interface OptionsModalAPI {

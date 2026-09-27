@@ -1,7 +1,7 @@
 /**
  * The chart-type set is CLOSED, and every member must actually draw.
  *
- * `TAB_META` and `CURVE_BUILDERS` are both `Record<ChartTabId, …>`, so a member with no
+ * `TAB_META` and `CURVE_BUILDERS` are both `Record<ChartId, …>`, so a member with no
  * implementation is already a COMPILE error. What the compiler cannot check, and what is
  * checked here, is that each builder RUNS and returns a drawable bundle — a member can be
  * present in both maps and still hand back an empty series.
@@ -18,10 +18,10 @@
 
 import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import type {DqIssue, DriverSolverParams, SolverField, SweepParams} from '@openisd/design/engine';
+import type {ChartId, DqIssue, DriverSolverParams, SolverField, SweepParams} from '@openisd/design/engine';
 import {Engine} from '@openisd/design/engine';
-import {parseChartTabId, seriesFor, TAB_META, TABS} from '../../src/logic/series.js';
-import type {ChartTabId, PlotParams} from '../../src/types.js';
+import {parseChartId, seriesFor, TAB_META, TABS} from '../../src/logic/series.js';
+import type {PlotParams} from '../../src/types.js';
 
 const RAW: Record<string, number> = {
   Fs: 37, Qts: 0.378, Qes: 0.40, Qms: 7.0, Vas: 0.0300,
@@ -88,9 +88,34 @@ const SW = new Engine().sweep(DRV, LE_H, 'vented', SP).values;
 assert.ok(SW, 'reference sweep produced nothing');
 const MX = new Engine().maxCurves(DRV, LE_H, 'vented', SP).values;
 assert.ok(MX, 'reference max curves produced nothing');
-const build = (id: ChartTabId) => seriesFor(id, DRV, 'vented', PP, SW, MX);
 
-const ALL_IDS = Object.keys(TAB_META) as ChartTabId[];
+// The three "(PR)" chart ids are `null` for a vented design (SW above) — that is the correct,
+// designed answer (bugs/BUG_20260927_winisd-charts-missing.md: no fake zero, unlike `excPR`),
+// not a gap this suite should paper over. They get their OWN reference design, a real
+// passive-radiator box, so "every declared member draws" is checked against data that
+// actually exists for them.
+const PR_ENGINE = new Engine();
+const PR_VB = 0.010;
+const PR_BOX = { prSd: 0.0095, prNum: 1, prMmd: 0.010, prMadd: 0, prCms: 0.0018, prRms: 1.0 };
+const PR_FR = PR_ENGINE.prTuning({ Vb: PR_VB, prMmd: PR_BOX.prMmd, prMadd: PR_BOX.prMadd, prSd: PR_BOX.prSd, prCms: PR_BOX.prCms },
+  PR_ENGINE.solveEnvironment({}).values);
+const SP_PR: SweepParams = {
+  Vb: PR_VB, eg: 2.83, ...PR_BOX, Fr: PR_FR, Ql: 7, Qa: 30,
+  fmin: 10, fmax: 2000, N: 200,
+  filters: [{ type: 'peaking', fc: 60, Q: 3, gain: 6, enabled: true }],
+};
+const PP_PR = SP_PR as unknown as PlotParams;
+const SW_PR = PR_ENGINE.sweep(DRV, LE_H, 'box-passive-radiator', SP_PR).values;
+assert.ok(SW_PR, 'reference PR sweep produced nothing');
+const MX_PR = PR_ENGINE.maxCurves(DRV, LE_H, 'box-passive-radiator', SP_PR).values;
+assert.ok(MX_PR, 'reference PR max curves produced nothing');
+
+const PR_IDS = new Set<ChartId>(['PRTFMag', 'PRTFPhase', 'PRExcursion']);
+const build = (id: ChartId) => PR_IDS.has(id)
+  ? seriesFor(id, DRV, 'box-passive-radiator', PP_PR, SW_PR, MX_PR)
+  : seriesFor(id, DRV, 'vented', PP, SW, MX);
+
+const ALL_IDS = Object.keys(TAB_META) as ChartId[];
 
 describe('chart-type set — every declared member draws', () => {
   it('TABS exposes exactly the declared members, in declaration order', () => {
@@ -143,19 +168,19 @@ describe('chart-type set — every declared member draws', () => {
 
 describe('chart-type set — the one string→member boundary', () => {
   it('accepts every declared id unchanged', () => {
-    for (const id of ALL_IDS) assert.equal(parseChartTabId(id), id);
+    for (const id of ALL_IDS) assert.equal(parseChartId(id), id);
   });
 
   it('treats an undeclared id as missing, not as a second spelling', () => {
     // A stale id from localStorage, a hand-edited share link, and a typo are all just
     // invalid data — none of them selects a chart nothing can draw.
     for (const bad of ['Excursion(PR)', 'spl', 'banana', '', null, undefined])
-      assert.equal(parseChartTabId(bad), 'SPL', `parseChartTabId(${JSON.stringify(bad)})`);
+      assert.equal(parseChartId(bad), 'SPL', `parseChartId(${JSON.stringify(bad)})`);
   });
 
   it('does not admit inherited Object properties as chart ids', () => {
     for (const bad of ['toString', 'constructor', 'hasOwnProperty'])
-      assert.equal(parseChartTabId(bad), 'SPL', `parseChartTabId(${JSON.stringify(bad)})`);
+      assert.equal(parseChartId(bad), 'SPL', `parseChartId(${JSON.stringify(bad)})`);
   });
 });
 

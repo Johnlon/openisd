@@ -31,7 +31,7 @@ const {
   projectList, isRowVisible, setRowVisible, rowName, rowUnsaved, selectProject, project, focused, projectOpen, whatIfActive,
   copyCurrentProject, requestCloseProject, closeChallenge, saveThenClose, closeProject,
   genOn, toggleGenerate, genHz, limits,
-  boxLabel, pending, chartTab, overlays, chartUnavailable, activeTab,
+  boxLabel, pending, chartTab, overlays, activeTab,
   showEnclosureTab, enclosureNavLabel,
   selectedBox, BOX_TYPE_OPTIONS, LOSS_MODE_OPTIONS, lossMode, ARRAY_WIRING_OPTIONS, N_DRIVERS_OPTIONS, applyWinisdSettings,
   fieldHelp,
@@ -191,7 +191,7 @@ const {
       <!-- top-right quadrant: graph -->
       <div class="graph-area">
         <div class="graph-wrap">
-          <GraphPanel v-if="projectOpen && !pending && !chartUnavailable" :chartId="chartTab" :bare="true" :primaryColor="WINISD_TRACE" :overlays="overlays" />
+          <GraphPanel v-if="projectOpen && !pending" :chartId="chartTab" :bare="true" :primaryColor="WINISD_TRACE" :overlays="overlays" />
           <div v-else-if="projectOpen" class="graph-empty">
             <template v-if="pending">
               <div class="graph-empty-h">{{ boxLabel }}</div>

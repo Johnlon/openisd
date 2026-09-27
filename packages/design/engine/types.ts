@@ -298,6 +298,18 @@ export interface SweepResult {
   /** Transfer function magnitude in dB relative to the high-frequency passband asymptote (0 dB). */
   tfMag: number[];
   /**
+   * WinISD's "Transfer function magnitude (PR)" — the radiator's own pressure (jω·Upr), on the
+   * SAME 0 dB reference as `tfMag`, but — unlike `tfMag` and every other system chart — NOT
+   * multiplied by the filter chain (winisd_research/GHIDRA_FINDINGS.md "Passive radiator box",
+   * "Radiator transfer function" bullet). `null` for every box type but
+   * `box-passive-radiator`: WinISD itself has no such chart for them, so this is absence, never
+   * a fake zero (unlike `excPR` above, which WinISD computes as 0 for every other box).
+   */
+  prTfMag: number[] | null;
+  /** `prTfMag`'s phase, in RADIANS, unwrapped — same convention as `phase`. `null` exactly
+   *  where `prTfMag` is. */
+  prTfPhase: number[] | null;
+  /**
    * SPL with the drive backed off wherever peak excursion would exceed Xmax
    * (WinISD Advanced: "SPL graph is Xmax limited"). Always computed, never substituted
    * for `spl`: the plain curve still feeds the transfer-function chart, the F3/F6/F10

@@ -31,7 +31,7 @@ export function referenceRho(): number {
 
 /** The string→member boundary for the sealed-box loss model, and the picker's option list —
  *  logic owns both so no component names `@openisd/design/engine` itself (the layering gate) and no
- *  re-export exists (QO80). Same pattern as `series.ts`'s `parseChartTabId`. */
+ *  re-export exists (QO80). Same pattern as `series.ts`'s `parseChartId`. */
 export function parseLossMode(token: string): LossMode {
     return LossMode.parse(token);
 }

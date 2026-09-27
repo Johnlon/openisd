@@ -5,21 +5,18 @@
 import type {BoxType, DriverSolverParams, MaxCurvesResult, SweepResult} from '@openisd/design/engine';
 
 /**
- * The closed set of chart curves the engine can draw. Every member MUST appear in
- * `TAB_META` and in `CURVE_BUILDERS` in `utils/series.ts` — both are
- * `Record<ChartTabId, …>`, so declaring a member without implementing it is a COMPILE
- * ERROR, not a chart that silently draws nothing. Adding a curve is therefore: add the
- * member here, then fix the two build errors.
+ * `ChartId` (`@openisd/design`'s `Engine.chartsFor`, bugs/BUG_20260927_winisd-charts-missing.md)
+ * is the closed set of chart curves the engine can draw, and which apply to a given box type —
+ * a design decision, not a UI one.
  *
- * `parseChartTabId()` in `utils/series.ts` is the one string→member boundary; persisted
- * and shared blobs carry plain strings and go through it.
+ * Every member MUST appear in `TAB_META` and in `CURVE_BUILDERS` in `logic/series.ts` — both
+ * are `Record<ChartId, …>`, so declaring a member without implementing it is a COMPILE
+ * ERROR, not a chart that silently draws nothing. Design adding a curve is therefore: fix the
+ * two build errors here with its name/colour/unit and its series builder.
  *
- * The `Flt*` members are the filter chain's own response (WinISD's "(EQ/Filter)" charts);
- * every other member is a property of the driver+box system.
+ * `parseChartId()` in `logic/series.ts` is the one string→member boundary; persisted and
+ * shared blobs carry plain strings and go through it.
  */
-export type ChartTabId =
-  | 'SPL' | 'TFMag' | 'Excursion' | 'Port' | 'GD' | 'Zmag' | 'Zph' | 'Phase'
-  | 'MaxSPL' | 'MaxPwr' | 'VA' | 'FltMag' | 'FltPhase' | 'FltGD';
 
 /** One plotted line. Optional fields are set only by the series that need them. */
 export interface Series {

@@ -39,8 +39,8 @@ Records (format `winisd-run-record/1`, all validated):
 
 ## 0. Checklist — WinISD charts to check
 
-Every chart in WinISD's chart menu, per box type OpenISD has. 50 to check: **35 done** (31 exact
-match, 4 within WinISD's own rounding), 15 to do.
+Every chart in WinISD's chart menu, per box type OpenISD has. 50 to check: **37 done** (33 exact
+match, 4 within WinISD's own rounding), 13 to do.
 
 Key: ✅ exact match (≤ 1e-12 at all 2086 points) · ≈ matches to WinISD's own rounding noise ·
 ☐ to check · ✗ OpenISD has no such chart · — does not apply to that box.
@@ -57,8 +57,8 @@ Key: ✅ exact match (≤ 1e-12 at all 2086 points) · ≈ matches to WinISD's o
 | Cone excursion                          | ✅     | ✅     | ☐            | ✅               |
 | Impedance                               | ✅     | ✅     | ☐            | ✅               |
 | Impedance phase                         | ✅     | ✅     | ☐            | ✅               |
-| Transfer function magnitude (PR)        | —      | —      | —            | ✗                |
-| Transfer function phase (PR)            | —      | —      | —            | ✗                |
+| Transfer function magnitude (PR)        | —      | —      | —            | ✅               |
+| Transfer function phase (PR)            | —      | —      | —            | ✅               |
 | Cone excursion (PR)                     | —      | —      | —            | ✅               |
 | Rear port - Air velocity                | —      | ✅     | —            | —                |
 | Rear port - Gain                        | —      | ✗      | —            | —                |
@@ -772,6 +772,25 @@ Qp 15 (unused by WinISD), Rg 0.1, the §3.4 filter chain. OpenISD after
 
 Not checked: Me ≠ 0, more than one radiator. WinISD's model: winisd_research GHIDRA_FINDINGS.md
 "Passive radiator — `0x45a960`".
+
+### 3.7 Passive radiator: "Transfer function magnitude/phase (PR)"
+
+Records
+[pr-w5-tf-1](http://localhost:8000/winisd/winisd_research/runs/pr-w5-tf-1/gdb.log) (magnitude,
+kind 13, 1712 points) and
+[pr-w5-tf-2](http://localhost:8000/winisd/winisd_research/runs/pr-w5-tf-2/gdb.log) (phase,
+kind 14, 2087 points), same W5/one-radiator/4-filter project as §3.6. These two charts are
+`v` itself (dB / degrees) already logged, not a complex re/im pair — the routine's own
+plotted value. After BUG_20260927_winisd-charts-missing.md.
+
+| Chart                              | Max difference          |
+|-------------------------------------|--------------------------|
+| Transfer function mag (PR)         | 2.8e-14 dB               |
+| Transfer function phase (PR)       | 4.5e-13 deg              |
+
+WinISD wart, reproduced exactly: the phase chart plots `arg(Upr)`, NOT `arg(jω·Upr)` — it drops
+the 90° rotation its own magnitude chart carries. WinISD's model: winisd_research
+GHIDRA_FINDINGS.md "Passive radiator — `0x45a960`", "Radiator transfer function" bullet.
 
 ---
 

@@ -43,7 +43,7 @@ import {
     ventFieldState as ventFieldStateOn,
 } from '../logic/useVentGroup.js';
 import {airForEnvironment, lossModeOptions, parseLossMode} from '../logic/environment.js';
-import {buildPlotData, parseChartTabId, TAB_META} from '../logic/series.js';
+import {buildPlotData, parseChartId, TAB_META} from '../logic/series.js';
 import {createToneGenerator, type ToneGenerator} from '../logic/toneGenerator.js';
 import {useApp} from '../logic/app.js';
 import {useEscToClose} from '../logic/useEscToClose.js';
@@ -58,8 +58,8 @@ import type {Calculated, Clearable, Entered, OpenISDProject, Readable, Writable}
 import type {ProvenanceLetter} from '../logic/fieldProvenance.js';
 import {provenanceOf, provenanceOfEntry, provenanceOfSolved} from '../logic/fieldProvenance.js';
 import type {StoredProjectListing} from '@openisd/persistence';
-import type {BoxType, Engine, EnvDefaults} from '@openisd/design/engine';
-import type {ChartTabId, Design, PlotParams} from '../types.js';
+import type {BoxType, ChartId, Engine, EnvDefaults} from '@openisd/design/engine';
+import type {Design, PlotParams} from '../types.js';
 
 // ---- Sealed / PR readouts (unit-testable, real domain) ------------------------
 // The fix this slice exists for: reading `project.value` ALONE does not invalidate these
@@ -587,48 +587,62 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     + 'either the dimension or the area and the other is calculated from it.';
 
   // ---- Chart selector ------------------------------------------------------------
-  type ChartItem = { label: string; tab: ChartTabId | null; sep?: boolean };
-  const CHART_ITEMS: ChartItem[] = [
-    { label: 'Transfer function magnitude', tab: 'TFMag' },
-    { label: 'Transfer function phase', tab: 'Phase' },
-    { label: 'Group Delay', tab: 'GD' },
-    { label: 'Maximum Power', tab: 'MaxPwr' },
-    { label: 'Maximum SPL', tab: 'MaxSPL' },
-    { label: 'Amplifier apparent load power (VA)', tab: 'VA' },
-    { label: 'SPL', tab: 'SPL' },
-    { label: 'Cone excursion', tab: 'Excursion', sep: true },
-    { label: 'Impedance', tab: 'Zmag' },
-    { label: 'Impedance phase', tab: 'Zph' },
-    { label: 'Transfer function magnitude (PR)', tab: null, sep: true },
-    { label: 'Transfer function phase (PR)', tab: null },
-    { label: 'Cone excursion (PR)', tab: 'Excursion' },
-    { label: 'Rear port - Air velocity', tab: 'Port', sep: true },
-    { label: 'Rear port - Gain', tab: null },
-    { label: 'Front port - Air velocity', tab: 'Port' },
-    { label: 'Front port - Gain', tab: null },
-    { label: 'Intrachamber Port - Air velocity', tab: null },
-    { label: 'Transfer function magnitude (EQ/Filter)', tab: 'FltMag', sep: true },
-    { label: 'Transfer function phase (EQ/Filter)', tab: 'FltPhase' },
-    { label: 'Group Delay (EQ/Filter)', tab: 'FltGD' },
-  ];
-  const chartTab = computed<ChartTabId>({
-    get: () => parseChartTabId(presentationState.ui.originalChartTab),
-    set: (v: ChartTabId) => { presentationState.ui.originalChartTab = v; },
+  // WinISD's own caption for each chart id, exactly as its menu prints it.
+  const CHART_LABELS: Record<ChartId, string> = {
+    TFMag: 'Transfer function magnitude',
+    Phase: 'Transfer function phase',
+    GD: 'Group Delay',
+    MaxPwr: 'Maximum Power',
+    MaxSPL: 'Maximum SPL',
+    VA: 'Amplifier apparent load power (VA)',
+    SPL: 'SPL',
+    Excursion: 'Cone excursion',
+    Zmag: 'Impedance',
+    Zph: 'Impedance phase',
+    PRTFMag: 'Transfer function magnitude (PR)',
+    PRTFPhase: 'Transfer function phase (PR)',
+    PRExcursion: 'Cone excursion (PR)',
+    RearPort: 'Rear port - Air velocity',
+    FrontPort: 'Front port - Air velocity',
+    FltMag: 'Transfer function magnitude (EQ/Filter)',
+    FltPhase: 'Transfer function phase (EQ/Filter)',
+    FltGD: 'Group Delay (EQ/Filter)',
+  };
+  // A separator goes before the first item of each of WinISD's own visual groupings — never
+  // before a group that this box has nothing in (Port/PR are absent from most boxes).
+  const CHART_GROUP_START = new Set<ChartId>(['Excursion', 'PRTFMag', 'RearPort', 'FrontPort', 'FltMag']);
+  type ChartItem = { label: string; tab: ChartId; sep?: boolean };
+  // The design's own answer for which charts apply to THIS project's box — never a second,
+  // UI-maintained list of "which charts apply" (bugs/BUG_20260927_winisd-charts-missing.md).
+  const CHART_ITEMS = computed<ChartItem[]>(() => {
+    void projectChanged.value;
+    // The toolbar (and this dropdown) renders with no project open — fall back to the
+    // engine's own default box, rather than reading `project.value`, which throws with
+    // nothing focused.
+    const p = focusedProject();
+    const box = p?.box.boxType.value ?? engine.defaultBoxType;
+    const ids = p ? p.charts : engine.chartsFor(box);
+    return ids.map(tab => ({ tab, label: CHART_LABELS[tab], sep: CHART_GROUP_START.has(tab) }));
+  });
+  const chartTab = computed<ChartId>({
+    // A remembered chart id that no longer applies to this box (a saved tab that was PR, the
+    // box is now sealed) falls back to the default chart, never to a stale/inapplicable one.
+    get: () => {
+      const id = parseChartId(presentationState.ui.originalChartTab);
+      return CHART_ITEMS.value.some(i => i.tab === id) ? id : engine.defaultChart;
+    },
+    set: (v: ChartId) => { presentationState.ui.originalChartTab = v; },
   });
   const chartLabel = computed({
-    get: () => presentationState.ui.originalChartLabel ?? 'SPL',
+    get: () => presentationState.ui.originalChartLabel ?? CHART_LABELS[engine.defaultChart],
     set: (v: string) => { presentationState.ui.originalChartLabel = v; },
   });
   const chartMeta = computed(() => TAB_META[chartTab.value]);
-  const chartUnavailable = computed(() => {
-    const item = CHART_ITEMS.find(i => i.label === chartLabel.value);
-    return item != null && item.tab == null;
-  });
   function selectChart(item: ChartItem) {
     // Chart buttons are a no-op with no project open — there is no curve to choose for.
     if (!focusedProject()) return;
     chartLabel.value = item.label;
-    if (item.tab) chartTab.value = item.tab;
+    chartTab.value = item.tab;
     closeDropdown();
   }
 
@@ -790,7 +804,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     // rather than try to build plot data from a project that does not exist.
     if (!focusedProject()) return null;
     const f = cursorHz.value;
-    if (pending.value || chartUnavailable.value || f == null) return null;
+    if (pending.value || f == null) return null;
     const p = buildPlotData(chartTab.value, syncedP.value.fmin, syncedP.value.fmax, currentDesign.value, overlays.value, allIssues.value,
       { bare: true, primaryColor: WINISD_TRACE.value }).value;
     if (!p) return null;
@@ -1071,7 +1085,7 @@ const overlays = computed<Design[]>(() => {
     projectList, isRowVisible, setRowVisible, rowName, rowUnsaved, selectProject, project, focused, projectOpen, whatIfActive,
     copyCurrentProject, requestCloseProject, closeChallenge, saveThenClose, closeProject,
     genOn, toggleGenerate, genHz, limits,
-    boxLabel, pending, chartTab, overlays, chartUnavailable, activeTab,
+    boxLabel, pending, chartTab, overlays, activeTab,
     showEnclosureTab, enclosureNavLabel,
     selectedBox, BOX_TYPE_OPTIONS, LOSS_MODE_OPTIONS, lossMode, ARRAY_WIRING_OPTIONS, N_DRIVERS_OPTIONS, applyWinisdSettings,
     fieldHelp,

@@ -28,6 +28,8 @@ import {
   prRmsFromQms,
   prVas,
 } from './formulas.js';
+import {chartsFor as chartIdsFor, DEFAULT_BOX_TYPE, DEFAULT_CHART} from './charts.js';
+import type {ChartId} from './charts.js';
 import {defaultAppSettings} from './appSettings.js';
 import type {AppSettings, EnvDefaults} from './appSettings.js';
 import {
@@ -382,6 +384,26 @@ export class Engine {
    *  the caller's cue to report a design it cannot simulate rather than draw a wrong curve. */
   simulatableBoxType(box: BoxType): SimulatableBoxType | null {
     return narrowBoxType(box);
+  }
+
+  /** The charts a project with this box type shows, in WinISD's own chart-menu order — port
+   *  charts only for a ported box, PR charts only for a radiator, the ten system charts and the
+   *  three EQ/filter charts always (bugs/BUG_20260927_winisd-charts-missing.md). A design
+   *  decision, not a UI one — the UI shows exactly the ids this returns. */
+  chartsFor(box: BoxType): readonly ChartId[] {
+    return chartIdsFor(box);
+  }
+
+  /** The chart a fresh project, or an invalid/inapplicable remembered chart id, falls back to —
+   *  a design decision, not a UI literal. */
+  get defaultChart(): ChartId {
+    return DEFAULT_CHART;
+  }
+
+  /** The box type the chart menu (and any other box-shaped display) assumes when no project is
+   *  focused at all. */
+  get defaultBoxType(): BoxType {
+    return DEFAULT_BOX_TYPE;
   }
 
   /** Compliance-equivalent volume, in cubic metres. */

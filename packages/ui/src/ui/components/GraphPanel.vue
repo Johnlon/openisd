@@ -4,7 +4,8 @@ import {projectChanged, syncedP} from '../../logic/appState.js';
 import {useFocusedProject} from '../../logic/focusedProjectContext.js';
 import {presentationState} from '../../logic/presentationState.js';
 import {rangeStatsOf} from '../../logic/series.js';
-import type {ChartTabId, Design, Geo} from '../../types.js';
+import type {Design, Geo} from '../../types.js';
+import type {ChartId} from '@openisd/design/engine';
 import {drawOne} from '../canvas.js';
 import {useGraphPanel} from '../../hooks/GraphPanel-hooks.js';
 
@@ -14,7 +15,7 @@ import {useGraphPanel} from '../../hooks/GraphPanel-hooks.js';
 // caller wants seen alongside this one (the Original skin's open project rows). A design
 // never holds another design to get it drawn, so there is no default set to fall back to:
 // no overlays passed means this project is drawn alone.
-const props = defineProps<{ chartId: ChartTabId; bare?: boolean; primaryColor?: string; overlays?: Design[] }>();
+const props = defineProps<{ chartId: ChartId; bare?: boolean; primaryColor?: string; overlays?: Design[] }>();
 
 const project = useFocusedProject();
 const graph = useGraphPanel(props);

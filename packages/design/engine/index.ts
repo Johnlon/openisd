@@ -36,6 +36,7 @@ export type {
   SealedAlignmentOption, VentedAlignment, VentedDesign, Wiring,
   EnclosureParams, SweepParams, SweepResult, WprFilter,
 } from './types.js';
+export type { ChartId } from './charts.js';
 export type { BoxParamsQuantityName, BoxParamsIssue, BoxParamsSolveResult } from './params.js';
 export type { SignalQuantityName, SignalIssue } from './signal.js';
 export type { SweepIssue, SweepSolveResult, MaxCurvesSolveResult } from './sweep.js';

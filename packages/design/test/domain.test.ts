@@ -2641,6 +2641,24 @@ describe('T1 — the vent/PR sweep-level guards (PLAN_DRIVER_SOLVE_AND_SWEEP_DIA
     expect(one.values.pv[i]).toBeGreaterThan(0);
     expect(two.values.pv[i]).toBeCloseTo(one.values.pv[i] / 2, 9);
   });
+
+  it('project.charts is the engine\'s own answer for this project\'s box type (BUG_20260927_winisd-charts-missing)', () => {
+    const engine = new Engine();
+    for (const box of ['vented', 'bp4', 'pr'] as const) {
+      const p = project(box);
+      expect(p.charts).toEqual(engine.chartsFor(p.box.boxType.value));
+    }
+  });
+
+  it('project.charts follows a box-type change — port/PR charts are not stuck from a previous box', () => {
+    const p = project('vented');
+    expect(p.charts).toContain('RearPort');
+    expect(p.charts).not.toContain('PRTFMag');
+
+    p.box.boxType.set('sealed');
+    expect(p.charts).not.toContain('RearPort');
+    expect(p.charts).not.toContain('PRTFMag');
+  });
 });
 
 describe('S2-7d2 — vent + PR join the cascade', () => {

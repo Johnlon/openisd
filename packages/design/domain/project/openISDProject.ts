@@ -1,5 +1,5 @@
 import { Engine, LossMode } from '../../engine/index.js';
-import type { Air, AirEnvironment, BoxParamsIssue, BoxType, DqIssue, DriverError, EnclosureParams, Filter, MaxCurvesResult, MaxCurvesSolveResult, PrIssue, SealedAlignmentIssue, SimulatableBoxType, SweepIssue, SweepParams, SweepResult, SweepSolveResult, VentIssue } from '../../engine/index.js';
+import type { Air, AirEnvironment, BoxParamsIssue, BoxType, ChartId, DqIssue, DriverError, EnclosureParams, Filter, MaxCurvesResult, MaxCurvesSolveResult, PrIssue, SealedAlignmentIssue, SimulatableBoxType, SweepIssue, SweepParams, SweepResult, SweepSolveResult, VentIssue } from '../../engine/index.js';
 import { realAppContext } from '../appContext.js';
 import type { AppContext } from '../appContext.js';
 import { CalculatedFieldImpl, DefaultingFieldImpl, DualWriteFieldImpl, SetOnlyFieldImpl, absentCell, calculatedCell, defaultingEntryField, enteredCell, focus, inputOf, simpleField, writeEntryDq } from '../cell.js';
@@ -324,15 +324,25 @@ export class OpenISDProject {
     }
 
     /** Which charts are open (S10/QO130) — PROJECT-scoped, reversing QO90 for this field.
-     *  Empty when absent (a project saved before S10, or a fresh one). Plain strings: the UI's
-     *  `ChartTabId` is `packages/ui`'s own type (`domain/index.ts`'s "no packages/ui types"
-     *  rule), so `parseChartTabId` does the string↔member conversion at the UI boundary. */
+     *  Empty when absent (a project saved before S10, or a fresh one). Plain strings, not
+     *  `ChartId`: this is PERSISTED project data (`.owpr`), so it must stay readable across a
+     *  version skew that adds/removes chart ids — `parseChartId` (packages/ui `logic/series.ts`)
+     *  does the string↔member conversion at the UI boundary. */
     get graphs(): SimpleField<readonly string[]> {
         const lens = focus(this.#slot('charts'), 'graphs');
         return {
             get value() { return lens.value ?? []; },
             set: (ids) => lens.set([...ids]),
         };
+    }
+
+    /** Which charts this project's box type shows, in WinISD's own chart-menu order — a design
+     *  decision, not a UI one (bugs/BUG_20260927_winisd-charts-missing.md): port charts only
+     *  for a ported box, PR charts only for a radiator, the ten system charts and the three
+     *  EQ/filter charts always. The UI shows exactly the ids this returns, never a second list
+     *  of "which charts apply". */
+    get charts(): readonly ChartId[] {
+        return this.#engine.chartsFor(this.box.boxType.value);
     }
 
     /** The graph cursor/selection (S10/QO130) — PROJECT-scoped, reversing QO90: two open

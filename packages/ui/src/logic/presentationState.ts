@@ -17,7 +17,8 @@
  * other module's already-captured reference to the old one.
  */
 import {reactive} from 'vue';
-import type {ChartTabId, YRange} from '../types.js';
+import type {YRange} from '../types.js';
+import type {ChartId} from '@openisd/design/engine';
 import {getOrInit, hmrSlots} from './hmrSingleton.js';
 import {nextToken} from './fields/units.js';
 import {type UnitGroup} from '@openisd/design/fields';
@@ -67,7 +68,7 @@ export interface PresentationState {
   editDriverInfo: boolean;
   /** Per-chart Y-axis override; absent entry = auto-scale. Keyed by the chart, so a row in
    *  the Options dialog cannot write under a key no chart reads. */
-  yRanges: Partial<Record<ChartTabId, YRange>>;
+  yRanges: Partial<Record<ChartId, YRange>>;
   /** The swept frequency range every chart panel draws over — global, shared across every open
    *  project (John 2026-09-24: was per-project via `sweepFmin_hz`/`sweepFmax_hz`, but a
    *  project's chart zoom has no business surviving a switch to another project). It is also the

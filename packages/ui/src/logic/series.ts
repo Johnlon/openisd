@@ -1,11 +1,11 @@
-import type {BoxType, DriverError, DriverSolverParams, MaxCurvesResult, SweepResult} from '@openisd/design/engine';
+import type {BoxType, ChartId, DriverError, DriverSolverParams, MaxCurvesResult, SweepResult} from '@openisd/design/engine';
 import {Engine} from '@openisd/design/engine';
-import type {ChartTabId, Design, PlotData, PlotParams, Series} from '../types.js';
+import type {Design, PlotData, PlotParams, Series} from '../types.js';
 
 export const DPAL = ['#4fb0ff','#ffb454','#5ad17a','#ff6b6b','#c08bff'];
 
 
-interface TabMeta { id: ChartTabId; name: string; unit: string; color: string }
+interface TabMeta { id: ChartId; name: string; unit: string; color: string }
 
 /**
  * Hue follows the QUANTITY, not the chart: the three filter-chain charts reuse the hue of
@@ -13,15 +13,23 @@ interface TabMeta { id: ChartTabId; name: string; unit: string; color: string }
  * reader's colour→quantity mapping holds across the whole chart menu. Declaration order
  * here is the order `TABS` presents.
  */
-export const TAB_META: Record<ChartTabId, TabMeta> = {
+export const TAB_META: Record<ChartId, TabMeta> = {
   SPL:       { id:'SPL',       name:'SPL response',    unit:'dB',  color:'#4fb0ff' },
   // Same underlying response as SPL (docs/research/WINISD_PARITY.md §17, verified from real WinISD screenshots:
   // identical cursor value in both charts) — renormalized so 0 dB = passband output, with a
   // dashed -3 dB reference line. A DISPLAY MODE derived from the same sweep, not a new engine
   // computation; see the 'TFMag' builder below.
   TFMag:     { id:'TFMag',     name:'Transfer function magnitude', unit:'dB', color:'#4fb0ff' },
+  // WinISD's own radiator-only transfer function (packages/design/engine/sweep.ts prTfMag/
+  // prTfPhase) — the driver's cone is not in it, so it gets its own hue rather than TFMag's.
+  PRTFMag:   { id:'PRTFMag',   name:'Transfer function magnitude (PR)', unit:'dB', color:'#c08bff' },
+  PRTFPhase: { id:'PRTFPhase', name:'Transfer function phase (PR)', unit:'°', color:'#c08bff' },
   Excursion: { id:'Excursion', name:'Cone excursion',  unit:'mm', color:'#ffb454' },
-  Port:      { id:'Port',      name:'Air velocity',    unit:'m/s', color:'#5ad17a' },
+  // WinISD draws the radiator's own excursion as its own chart, not inside 'Excursion'
+  // (BUG_20260927_winisd-charts-missing.md) — `sw.excPR` moved here.
+  PRExcursion: { id:'PRExcursion', name:'Cone excursion (PR)', unit:'mm', color:'#5ad17a' },
+  RearPort:  { id:'RearPort',  name:'Rear port - Air velocity', unit:'m/s', color:'#5ad17a' },
+  FrontPort: { id:'FrontPort', name:'Front port - Air velocity', unit:'m/s', color:'#5ad17a' },
   GD:        { id:'GD',        name:'Group delay',     unit:'ms',  color:'#c08bff' },
   Zmag:      { id:'Zmag',      name:'Impedance',       unit:'Ω',   color:'#ff6b6b' },
   Zph:       { id:'Zph',       name:'Impedance phase', unit:'°',   color:'#ff9bb0' },
@@ -44,11 +52,11 @@ export const TABS: TabMeta[] = Object.values(TAB_META);
  * a stale chart id restored from `localStorage`, say — and is handled as missing, i.e.
  * the default chart, never as a second spelling to tolerate.
  */
-export function parseChartTabId(v: string | null | undefined): ChartTabId {
-  // The id comes back off the MEMBER that matched, so it is a `ChartTabId` because `TabMeta.id`
+export function parseChartId(v: string | null | undefined): ChartId {
+  // The id comes back off the MEMBER that matched, so it is a `ChartId` because `TabMeta.id`
   // is one — nothing asserts it. `hasOwnProperty` answered the same question correctly but
   // returns a boolean, which cannot narrow a `string`, so using its answer needed a cast.
-  return TABS.find(t => t.id === v)?.id ?? 'SPL';
+  return TABS.find(t => t.id === v)?.id ?? new Engine().defaultChart;
 }
 
 /** SPL/filter-magnitude values at or below this are the engine's "no output" sentinel. */
@@ -77,7 +85,17 @@ interface CurveCtx {
 /** A builder's output. `logy` defaults to false; `unit` always comes from the tab's meta. */
 type CurveBuild = { series: Series[]; ymin: number; ymax: number; logy?: boolean };
 
-const CURVE_BUILDERS: Record<ChartTabId, (c: CurveCtx) => CurveBuild> = {
+/** Port air velocity — shared by `RearPort` (vented) and `FrontPort` (bandpass4): same
+ *  quantity (`sw.pv`), same Mach-limit reference line, only the port itself differs. */
+function portVelocityBuild({ meta, sw, pick }: CurveCtx): CurveBuild {
+  const series: Series[] = [{ ...pick(sw.pv), color: meta.color, name: 'Port vel' }];
+  // FIXME - magic number - what is 0.05 representing?
+  const machLimit = 0.05 * new Engine().solveEnvironment({}).values.c;
+  series.push({ xs: sw.fs, ys: sw.fs.map(() => machLimit), color:'#ffb454', name:'17 m/s', dash:true });
+  return { series, ymin: 0, ymax: Math.max(20, Math.max(...sw.pv) * 1.1) };
+}
+
+const CURVE_BUILDERS: Record<ChartId, (c: CurveCtx) => CurveBuild> = {
   SPL: ({ meta, P, sw, bare, pick }) => {
     // "SPL graph is Xmax limited" (WinISD Advanced) swaps in the curve the design can
     // actually reach before the cone runs out of travel. The raw curve is drawn alongside
@@ -121,32 +139,59 @@ const CURVE_BUILDERS: Record<ChartTabId, (c: CurveCtx) => CurveBuild> = {
     return { series, ymin: Math.min(ymax - 45, Math.floor((loRel - 3) / 5) * 5), ymax };
   },
 
-  Excursion: ({ meta, drv, box, P, sw, pick }) => {
+  // WinISD's own radiator-only transfer function (packages/design/engine/sweep.ts prTfMag) —
+  // `null` for a design whose box has no radiator (a compare overlay, say, while the focused
+  // design is a passive-radiator box); that design then draws silence, exactly as a design
+  // with no max curves draws nothing on MaxSPL.
+  PRTFMag: ({ meta, sw }) => {
+    const rel = sw.prTfMag ?? sw.fs.map(() => -200);
+    const series: Series[] = [{ xs: sw.fs, ys: rel, color: meta.color, name: 'Transfer function (PR)' }];
+    series.push({ xs: sw.fs, ys: sw.fs.map(() => 0), color: '#8a99ab', name: '0 dB', dash: true });
+    series.push({ xs: sw.fs, ys: sw.fs.map(() => -3), color: '#ffb454', name: '−3 dB', dash: true });
+    const relReal = realDb(rel);
+    const loRel = relReal.length ? Math.min(...relReal) : -45;
+    const ymax = 5;
+    return { series, ymin: Math.min(ymax - 45, Math.floor((loRel - 3) / 5) * 5), ymax };
+  },
+
+  PRTFPhase: ({ meta, sw }) => {
+    const ys = (sw.prTfPhase ?? sw.fs.map(() => 0)).map(p => p * 180 / Math.PI);
+    return {
+      series: [{ xs: sw.fs, ys, color: meta.color, name: 'Transfer phase (PR)' }],
+      ymin: Math.floor(Math.min(...ys) / 90) * 90,
+      ymax: Math.ceil(Math.max(...ys) / 90) * 90,
+    };
+  },
+
+  Excursion: ({ meta, drv, sw, pick }) => {
     const series: Series[] = [{ ...pick(sw.exc), color: meta.color, name: 'Cone' }];
     // Xmax limit line — omitted when Xmax is absent (the cone curve stays reliable;
     // the missing line is surfaced to the user as a dismissable issue elsewhere).
     const drvXmax_m = drv.Xmax_m.value;
     const xm = drvXmax_m != null && drvXmax_m > 0 ? drvXmax_m * 1000 : null;
     if (xm != null) series.push({ xs: sw.fs, ys: sw.fs.map(() => xm), color:'#ff6b6b', name:'Xmax', dash:true });
-    let top = Math.max((xm || 0) * 1.4, Math.max(...sw.exc.slice(0, 20)) * 1.1);
-    if (box === 'box-passive-radiator') {
-      series.push({ xs: sw.fs, ys: sw.excPR, color:'#5ad17a', name:'PR' });
-      const xmp = (P.prXmax || 0.01) * 1000;
-      series.push({ xs: sw.fs, ys: sw.fs.map(() => xmp), color:'#9ad17a', name:'PR Xmax', dash:true });
-      top = Math.max(top, xmp * 1.3, Math.max(...sw.excPR.slice(0, 30)) * 1.1);
-    }
+    const top = Math.max((xm || 0) * 1.4, Math.max(...sw.exc.slice(0, 20)) * 1.1);
     return { series, ymin: 0, ymax: top };
   },
 
-  Port: ({ meta, box, sw, pick }) => {
-    if (box !== 'vented' && box !== 'bandpass4')
-      return { series: [{ xs: sw.fs, ys: sw.fs.map(() => 0), color: meta.color, name: 'n/a' }], ymin: 0, ymax: 1 };
-    const series: Series[] = [{ ...pick(sw.pv), color: meta.color, name: 'Port vel' }];
-    // FIXME - magic number - what is 0.05 representing?
-    const machLimit = 0.05 * new Engine().solveEnvironment({}).values.c;
-    series.push({ xs: sw.fs, ys: sw.fs.map(() => machLimit), color:'#ffb454', name:'17 m/s', dash:true });
-    return { series, ymin: 0, ymax: Math.max(20, Math.max(...sw.pv) * 1.1) };
+  // WinISD draws the radiator's own excursion as its own chart, not inside 'Excursion'
+  // (BUG_20260927_winisd-charts-missing.md).
+  PRExcursion: ({ meta, P, sw }) => {
+    const xmp = (P.prXmax || 0.01) * 1000;
+    const series: Series[] = [
+      { xs: sw.fs, ys: sw.excPR, color: meta.color, name: 'PR' },
+      { xs: sw.fs, ys: sw.fs.map(() => xmp), color: '#9ad17a', name: 'PR Xmax', dash: true },
+    ];
+    const top = Math.max(xmp * 1.3, Math.max(...sw.excPR.slice(0, 30)) * 1.1);
+    return { series, ymin: 0, ymax: top };
   },
+
+  // Applicable only to vented (rear) or bandpass4 (front) — design's `chartsFor` gates the
+  // menu; a compare overlay of a different box type draws `pv`'s own 0 curve here, same as
+  // any other chart. One builder, shared by both ids: the port is different, the quantity
+  // and its chart are not.
+  RearPort: (c) => portVelocityBuild(c),
+  FrontPort: (c) => portVelocityBuild(c),
 
   GD: ({ meta, sw, pick }) => {
     const series: Series[] = [{ ...pick(sw.gd), color: meta.color, name: 'Group delay' }];
@@ -262,7 +307,7 @@ const CURVE_BUILDERS: Record<ChartTabId, (c: CurveCtx) => CurveBuild> = {
   },
 };
 
-export function seriesFor(chartId: ChartTabId,
+export function seriesFor(chartId: ChartId,
                           drv: DriverSolverParams,
                           box: BoxType,
                           P: PlotParams,
@@ -278,13 +323,17 @@ export function seriesFor(chartId: ChartTabId,
 }
 
 /** Keep only failures in data this chart actually paints; shared input failures stay visible. */
-export function errorsForChart(chartId: ChartTabId, errors: DriverError[]): DriverError[] {
+export function errorsForChart(chartId: ChartId, errors: DriverError[]): DriverError[] {
   const output = (() => {
     switch (chartId) {
       case 'SPL': return 'SPL';
       case 'TFMag': return 'transfer magnitude';
+      case 'PRTFMag': return 'PR transfer magnitude';
+      case 'PRTFPhase': return 'PR transfer phase';
       case 'Excursion': return 'cone excursion';
-      case 'Port': return 'port velocity';
+      case 'PRExcursion': return 'PR excursion';
+      case 'RearPort': return 'port velocity';
+      case 'FrontPort': return 'port velocity';
       case 'GD': return 'group delay';
       case 'Zmag': return 'impedance magnitude';
       case 'Zph': return 'impedance phase';
@@ -311,7 +360,7 @@ export function errorsForChart(chartId: ChartTabId, errors: DriverError[]): Driv
 // the driver last changed). Both collapse to value:null here; the caller distinguishes
 // "blocked" (errors present) from "not ready yet" (errors empty) via the errors array.
 export function buildPlotData(
-  chartId: ChartTabId,
+  chartId: ChartId,
   fmin: number,
   fmax: number,
   currentDesign: Design,
