@@ -383,7 +383,10 @@ export function classifyFlatClamp(sw: SweepResult): DriverError | null {
  *   https://en.wikipedia.org/wiki/Thiele/Small_parameters#Other_parameters
  */
 export function maxCurves(drv: DriverSolverParams, Le_H: number | undefined, box: BoxType, P: SweepParams): MaxCurvesSolveResult {
-  const swept = sweep(drv, Le_H, box, Object.assign({}, P, { eg: 2.83 }));
+  // The driver in its box alone: WinISD leaves the filter chain out of Maximum SPL and Maximum
+  // power (f_46bd30 never multiplies Hf into kinds 7 and 16; winisd_research/runs/
+  // filt-chain-sealed-1). BUG_20260927_max-spl-and-max-power-include-the-filter-chain.
+  const swept = sweep(drv, Le_H, box, Object.assign({}, P, { eg: 2.83, filters: [] }));
   if (swept.values === null) return { values: null, issues: swept.issues, driverPrerequisites: [] };
   const base = swept.values;
   const drvPe_W = drv.Pe_W.value;

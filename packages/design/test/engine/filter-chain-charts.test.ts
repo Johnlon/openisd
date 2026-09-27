@@ -194,3 +194,21 @@ describe('EQ/filter chain charts — phase and group delay', () => {
     assert.ok(deg > 90, `expected a large phase lead well below fc, got ${deg.toFixed(1)}° at ${sw.fs[i].toFixed(2)} Hz`);
   });
 });
+
+describe('maximum SPL and maximum power leave the filter chain out, as WinISD does', () => {
+  // WinISD's plot code (f_46bd30) multiplies the chain's response into every chart except
+  // Maximum power (kind 7) and Maximum SPL (kind 16); capture winisd_research/runs/
+  // filt-chain-sealed-1. BUG_20260927_max-spl-and-max-power-include-the-filter-chain.
+  it('max SPL and max power are identical with and without a filter chain', () => {
+    const filters: Filter[] = [
+      {type: 'highpass', enabled: true, family: 'butterworth', order: 4, fc: 18, Q: 0.707},
+      {type: 'linkwitz', enabled: true, f0: 67.234, Q0: 0.49, fp: 25, Qp: 0.6},
+      {type: 'peaking', enabled: true, fc: 45, Q: 3, gain: -4},
+    ];
+    const bare = engine.maxCurves(driverParams(DRV), LE_H, 'sealed', SEALED).values!;
+    const filtered = engine.maxCurves(driverParams(DRV), LE_H, 'sealed', {...SEALED, filters}).values!;
+    assert.deepEqual(filtered.maxspl, bare.maxspl);
+    assert.deepEqual(filtered.maxpwr, bare.maxpwr);
+    assert.deepEqual(filtered.xlim, bare.xlim);
+  });
+});
