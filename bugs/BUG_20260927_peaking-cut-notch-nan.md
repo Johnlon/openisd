@@ -1,6 +1,9 @@
 # BUG_20260927_peaking-cut-notch-nan
 
-**Status:** OPEN
+Status: RESOLVED (2026-09-28) — the load schema's plain `z.number()` already refuses
+`NaN`/`Infinity`/`-Infinity` for every filter numeric field, in this codebase's zod (v4.5.4).
+Leader ruling's fix (`.finite()` at that boundary) would be a no-op; no production code changed.
+Added an exhaustive regression test covering all ten filter variants' numeric fields instead.
 
 ## Symptom
 A peaking (parametric EQ) filter with `gain = -Infinity`, evaluated exactly at its own `fc`,
@@ -33,12 +36,40 @@ division whose cross terms hit `0·Infinity` in `cDiv`. The transfer function it
 genuine zero here (Q of the pole pushed to 0 bandwidth); the numeric path to it divides by an
 infinite coefficient instead of taking a limit.
 
+## Leader ruling (2026-09-28)
+`gain = -Infinity` is unreachable through the app: every filter's own `.update()` clamps to
+`FILTER_GAIN_LIMITS` (±60 dB, confirmed in `ParametricEqFilter.ts`/`StaticGainFilter.ts`/
+`PeakHighpassFilter.ts`/`RaisedCosineFilter.ts`), and JSON text cannot carry `Infinity`/`NaN` at
+all. The one door in is the LOAD schema (`openisdSchema.ts`'s filter shapes, `filterJsonSchema`,
+~line 663) validating a JS object handed to it directly (bypassing JSON text) — e.g. a value
+parsed from a `.wpr` INI field. Ruled: fix at that boundary, every filter numeric finite on load,
+`.finite()` or an existing finite-number helper, verified by a test that a non-finite filter
+value is rejected at load.
+
+## Investigation (2026-09-28)
+Checked the boundary directly: this codebase's zod (`zod@4.5.4`) makes plain `z.number()` refuse
+`NaN`/`Infinity`/`-Infinity` already — reported as `invalid_type`, not a passed-through number.
+This differs from zod v3 (where `z.number()` accepted `Infinity` and needed an explicit
+`.finite()`); the schema file's `z.number()` calls are already correct for the installed version.
+
+Verified exhaustively, not just for `gain`: built a real project through the public domain
+surface (`OpenISDProject.builder`), set one filter of each of the ten variants, saved and cloned
+the session to a plain object, then fed `openISDProjectSessionJsonSchema.safeParse()` — the exact
+schema `OpenISDProject.fromOwprText()` calls at load — a copy with each numeric field in turn set
+to `NaN`/`Infinity`/`-Infinity`. Every one of the ten variants' every numeric field (`fc`, `Q`,
+`gain`, `gainPk`, `fpk`, `bwOct`, `order`, `t`, `f0`, `Q0`, `fp`, `Qp`) was rejected, in every
+one of the three non-finite forms. A control case (same mutation path, a normal finite
+replacement value) parses successfully, so the rejections are real, not an artefact of the test
+harness.
+
 ## Fix
-Not attempted here — out of scope for the sweep.ts sentinel fix this was found under. A fix
-would special-case `V === 0` (or clamp/limit before the divide) in `ParametricEqFilter.response`
-so the cut branch's infinitely-deep-notch limit is taken analytically instead of falling into
-`Infinity` denominator coefficients.
+None needed — adding `.finite()` would be a no-op against the currently installed zod. The
+`ParametricEqFilter.response` NaN this ticket ORIGINALLY reported (evaluating the cut branch's
+own `0·Infinity` cross term at `fc`) is a separate, still-open concern in the filter MATH itself —
+out of scope here per the leader ruling ("don't change the filter math"), and moot in practice
+since a `gain = -Infinity` value can never reach that code: it is refused at the schema before
+any filter object carrying it can be constructed from a load.
 
 ## Verification
-Not yet — would re-run the numeric reproduction above and assert `response(fc)` is `cx(0, 0)`
-(or its `cAbs` is exactly `0`) for `gain = -Infinity` at `f = fc`.
+`packages/design/test/domain/filter-json-schema.test.ts` — 14 tests, all passing against
+unmodified code.
