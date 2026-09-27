@@ -798,7 +798,7 @@ WinISD Lossy (default): reports the lossy 3rd-order model's pole, so Fsc rises a
 
 /* ---------- Toolbar ---------- */
 .toolbar { display:flex; align-items:center; gap:12px; background:#eee; border-bottom:1px solid #bbb; padding:4px 12px; }
-.tb-icons { display:flex; align-items:center; gap:6px; min-width:0; flex:0 1 auto; }
+.tb-icons { display:flex; align-items:center; gap:6px; flex:none; }
 .tb-btn { display:flex; align-items:center; justify-content:center; flex:none; width:34px; height:30px; background:#f7f7f7; border:1px solid #bbb; border-radius:3px; cursor:pointer; position:relative; }
 .tb-btn:hover { background:#dbeaff; border-color:#7fb3ff; }
 .tb-btn.disabled { opacity:.4; cursor:default; pointer-events:none; }
@@ -808,10 +808,10 @@ WinISD Lossy (default): reports the lossy 3rd-order model's pole, so Fsc rises a
 .tb-sep { width:1px; flex:none; align-self:stretch; background:#ccc; margin:0 4px; }
 .tb-btn svg { display:block; }
 .caret { font-size:10px; margin-left:2px; color:#555; }
-.chart-select { display:flex; align-items:center; gap:6px; min-width:0; border:1px solid #bbb; border-radius:3px; background:#fff; padding:4px 8px; cursor:pointer; position:relative; user-select:none; }
+.chart-select { display:flex; align-items:center; gap:6px; flex:none; width:360px; box-sizing:border-box; border:1px solid #bbb; border-radius:3px; background:#fff; padding:4px 8px; cursor:pointer; position:relative; user-select:none; }
 .chart-select:hover { border-color:#7fb3ff; }
-.chart-select .chart-name { font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0; }
-.cursor-readout { line-height:1; color:#222; font-size:14px; cursor:default; display:flex; flex-direction:row; align-items:center; justify-content:flex-end; gap:12px; white-space:nowrap; flex:1 0 auto; }
+.chart-select .chart-name { font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0; flex:1; }
+.cursor-readout { line-height:1; color:#222; font-size:14px; cursor:default; display:flex; flex-direction:row; align-items:center; justify-content:flex-end; gap:12px; white-space:nowrap; min-width:0; flex:1 1 0; }
 .version-chip { font-size:12px; color:#555; line-height:1.1; font-weight:400; }
 .cursor-readout .ro-hz, .cursor-readout .ro-val { font-variant-numeric:tabular-nums; display:inline-flex; align-items:center; }
 .ro-hz-input {
