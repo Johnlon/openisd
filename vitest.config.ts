@@ -1,4 +1,10 @@
-import {defineConfig} from 'vitest/config';
+import {configDefaults, defineConfig} from 'vitest/config';
+
+// Architecture tests are synchronous AST scans of the source tree: nothing in them awaits, so a
+// timeout can only fire because the machine is busy, and it then reports no offence at all. They
+// run with no timeout (John, 2026-09-27: "arch tests shouldn't have timeouts").
+const DESIGN_ARCHITECTURE = ['test/architecture*.test.ts', 'test/engine/architecture.test.ts'];
+const UI_ARCHITECTURE = ['test/ui/architecture*.test.ts', 'test/ui/import-from-declarer-only.test.ts'];
 
 // Dedicated root — must NOT inherit vite.config.js's `root: packages/ui`, or the
 // engine suite silently isn't discovered. One project per workspace package.
@@ -42,6 +48,16 @@ export default defineConfig({
           root: './packages/design',
           environment: 'node',
           include: ['test/**/*.test.{mjs,ts}'],
+          exclude: [...configDefaults.exclude, ...DESIGN_ARCHITECTURE],
+        },
+      },
+      {
+        test: {
+          name: 'design-architecture',
+          root: './packages/design',
+          environment: 'node',
+          include: DESIGN_ARCHITECTURE,
+          testTimeout: 0,
         },
       },
       {
@@ -50,6 +66,16 @@ export default defineConfig({
           root: './packages/ui',
           environment: 'node',
           include: ['test/**/*.test.{mjs,ts}'],
+          exclude: [...configDefaults.exclude, ...UI_ARCHITECTURE],
+        },
+      },
+      {
+        test: {
+          name: 'ui-architecture',
+          root: './packages/ui',
+          environment: 'node',
+          include: UI_ARCHITECTURE,
+          testTimeout: 0,
         },
       },
     ],

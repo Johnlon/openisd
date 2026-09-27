@@ -93,7 +93,7 @@ describe('a fixture handed to the engine says what it is', () => {
   // 30s, not the 5s default: resolving each argument to its DECLARATION is a real type-checker
   // query, and that is exactly what makes this a gate rather than a name-matching heuristic —
   // it follows the identifier to the `const` that defines it, wherever that is.
-  it('every quantity bag passed to the engine is a declared DriverSolverQuantities', { timeout: 30_000 }, () => {
+  it('every quantity bag passed to the engine is a declared DriverSolverQuantities', () => {
     expect(unannotatedFixtures(), [
       'Each of these is an object literal in an un-annotated `const`, handed to the engine.',
       'TypeScript will not check its keys, and every field it is meant to have is optional, so',
