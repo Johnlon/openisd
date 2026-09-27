@@ -61,3 +61,35 @@ of 56 assertions failing) before the `entryField`/`f(key)` wiring landed, then p
 `grep -rn "BAD_VALUE_NOTE\|isBadValue" packages/ui/src` → nothing. `npm run typecheck` clean
 (design/persistence/ui). Full suites: packages/design 2278 tests, packages/ui 581 tests, both
 passing.
+
+## Follow-up (2026-09-27): one floor was wrong for several fields
+Review caught it: applying `positiveValueIssue` to EVERY numeric field was wrong. A decibel
+LEVEL (`SPL_dB`, `SPLmax_dB`, `SPLmaxLF_dB`, `USPL_dB`) is relative to a reference, not a
+magnitude — it can be zero or negative. `Le_H` (no measurable inductance), `KLe_H_sqrtHz`
+(inherits the zero case through `Le`), `Znom_ohm` (genuinely 0 in real `.wdr` files,
+`docs/FIELD_REFERENCE.md`) and `alfaVC_per_K` (an idealised zero-drift coil) are legitimately
+zero but never negative.
+
+Fix: the floor is now a per-field decision, not one rule for every field.
+`openIsdDriverSpec.ts`'s `FIELD_FLOOR` is an exhaustive `Record<DriverSpecFieldName, ValueFloor>`
+(`'positive' | 'non-negative' | 'none'`, `Object.freeze`d — module-scope mutable-state guard) —
+missing or misspelling a field fails to compile, no `default` arm anywhere in the dispatch.
+Added `NegativeValueIssue` (`kind: 'negative-value'`) alongside `InvalidValueIssue` in
+`consistency.ts`, with its own `nonNegativeValueIssue`/`negativeValueToText`, both wired through
+`Engine` and `dqIssueText` exactly like the existing ones — no special case in any hook, `.dq`
+renders through `dqIssueText` either way.
+
+46 fields keep `'positive'` (every magnitude: frequencies, masses, resistances, physical
+dimensions, Q factors, ratios of two positive quantities such as `EBP_hz = Fs/Qes` and
+`gamma_m_per_s2_A = BL/Mms`; `Rms_kg_per_s` included because `Qms = 2π·Fs·Mms/Rms` divides by
+it). 4 fields get `'non-negative'` (`Le_H`, `KLe_H_sqrtHz`, `Znom_ohm`, `alfaVC_per_K`). 4 fields
+get `'none'` (the four dB levels above; `Gloss` LOOKS like a percentage but is the fraction
+`g/((2π·Fs)²·Xmax)`, strictly positive, not decibel — checked, kept `'positive'`).
+
+### Verification (follow-up)
+`driver-value-validity.test.ts` rewritten into three groups matching the three floors: the
+46 `'positive'` fields still mark `invalid-value` at 0/-1/NaN; the 4 `'non-negative'` fields
+mark nothing at 0 and `negative-value` at -1/NaN; the 4 `'none'` fields mark nothing at 0 or -3.
+56 tests, all passing. `npm run typecheck` and `npm run lint` clean (the new type-aware rules
+included — the dispatch has no default arm). Full suites: packages/design 2278 tests,
+packages/ui 581 tests, both passing.

@@ -38,10 +38,11 @@ import {
 import type {VentedPlausibilityIssue} from './plausibility.js';
 import type {DriverIssue, PrIssue, SealedAlignmentIssue, VentIssue} from './solver.js';
 import {solveDriver, solvePr, solveSealedAlignment, solveVent, terminalBL_Tm, terminalRe_ohm,} from './solver.js';
-import type {CalculationIssue, DqIssue, InvalidValueIssue, OutOfRangeIssue, TargetUnreachableIssue} from './consistency.js';
+import type {CalculationIssue, DqIssue, InvalidValueIssue, NegativeValueIssue, OutOfRangeIssue, TargetUnreachableIssue} from './consistency.js';
 import {
   dqIssueText, invalidValueToText, issueFields, issueFormula, issueToText,
-  outOfRangeToText, plausibilityToText, positiveValueIssue, targetUnreachableToText,
+  negativeValueToText, nonNegativeValueIssue, outOfRangeToText, plausibilityToText,
+  positiveValueIssue, targetUnreachableToText,
 } from './consistency.js';
 import {isPhysicallyPlausible} from './physicalRange.js';
 import {referenceEfficiency, splFromEfficiency} from './efficiency.js';
@@ -240,6 +241,13 @@ export class Engine {
     return invalidValueToText(issue);
   }
 
+  /** One sentence for a `negative-value` mark — negative or non-finite, but zero is fine
+   *  (BUG_20260927_driver-bad-value-decided-in-ui.md: `Le_H`, `KLe_H_sqrtHz`, `Znom_ohm`,
+   *  `alfaVC_per_K`). */
+  negativeValueToText(issue: NegativeValueIssue): string {
+    return negativeValueToText(issue);
+  }
+
   /** Whether a single RAW value would sit inside `PHYSICAL_RANGE`'s band for `field` (D9 tier 1)
    *  — the domain layer's one door into that table, since nothing outside the engine may import
    *  `physicalRange.ts` directly. */
@@ -269,6 +277,14 @@ export class Engine {
    *  band on top of this floor — see `ventedVolumeIssue`, which is not this. */
   positiveValueIssue(value: number): InvalidValueIssue | null {
     return positiveValueIssue(value);
+  }
+
+  /** The weaker floor some driver fields carry instead: negative or non-finite is not physical,
+   *  but zero is a legitimate stated value (BUG_20260927_driver-bad-value-decided-in-ui.md).
+   *  Which floor applies to which field is `openIsdDriverSpec.ts`'s `FIELD_FLOOR`, not this
+   *  method's business. */
+  nonNegativeValueIssue(value: number): NegativeValueIssue | null {
+    return nonNegativeValueIssue(value);
   }
 
   /**

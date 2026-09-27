@@ -360,8 +360,8 @@ function entryPrecision(entry: Extract<SpecEntryJson, {state: 'E'}>): number {
 
 /** One `DqIssue` as the debug-trail mark it becomes (D14/D14a) — `params` carries the finding
  *  itself (numbers/strings/string arrays only), not just prose. `non-physical`, plausibility's
- *  own `out-of-range` (vent/PR `Vb`/`Fb`), `target-unreachable` and `invalid-value` keep the
- *  generic shape this function always wrote before D14 — only `inconsistent-inputs`,
+ *  own `out-of-range` (vent/PR `Vb`/`Fb`), `target-unreachable`, `invalid-value` and
+ *  `negative-value` keep the generic shape this function always wrote before D14 — only `inconsistent-inputs`,
  *  `missing-dependencies` and the driver-field `out-of-range` (D14, `OutOfRangeIssue`, told apart
  *  from plausibility's by `'field' in issue`) get a mark that names what it found. */
 function issueMark(issue: DqIssue, detail: string): DqMark {
@@ -394,6 +394,7 @@ function issueMark(issue: DqIssue, detail: string): DqMark {
     case 'non-physical':
     case 'target-unreachable':
     case 'invalid-value':
+    case 'negative-value':
       return { kind: 'calc', severity: 'error', rule: 'issue', params: {}, detail };
   }
 }
