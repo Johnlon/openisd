@@ -4,13 +4,11 @@ import type {ProvenanceLetter} from '../../src/logic/fieldProvenance.js';
 import {type DqIssue, Engine} from '@openisd/design/engine';
 import type {SpecField} from '../../src/logic/appState.js';
 import {
-  BAD_VALUE_NOTE,
   chartBlockingReasonsFor,
   dqNoteFor,
   driverIssues,
   ebpVal,
   inconsistentInputReasonsFor,
-  isBadValue,
 } from '../../src/hooks/DriverEditorModal-hooks.js';
 
 const engine = new Engine();
@@ -48,28 +46,14 @@ function completeDriver(): OpenISDDriver {
 }
 
 describe('DriverEditorModal-hooks', () => {
-  describe('isBadValue', () => {
-    it('is false for a positive value', () => {
-      const cellOf = cellMap({Fs_hz: fakeCell(40, 'E')});
-      expect(isBadValue(cellOf, 'Fs_hz')).toBe(false);
-    });
-
-    it('is true for zero or a negative value, never a false "not set"', () => {
-      const cellOf = cellMap({Fs_hz: fakeCell(0, 'E'), Vas_m3: fakeCell(-1, 'E')});
-      expect(isBadValue(cellOf, 'Fs_hz')).toBe(true);
-      expect(isBadValue(cellOf, 'Vas_m3')).toBe(true);
-    });
-
-    it('is false when the field is simply not-available (no value to judge)', () => {
-      const cellOf = cellMap({});
-      expect(isBadValue(cellOf, 'Fs_hz')).toBe(false);
-    });
-  });
-
   describe('dqNoteFor', () => {
-    it('returns the bad-value note for a zero-or-less field', () => {
-      const cellOf = cellMap({Fs_hz: fakeCell(0, 'E')});
-      expect(dqNoteFor(engine, cellOf, 'Fs_hz')).toBe(BAD_VALUE_NOTE);
+    // BUG_20260927_driver-bad-value-decided-in-ui.md: a bad value (≤ 0, non-finite) is now the
+    // DOMAIN's own mark on the field's `.dq` (`Engine.positiveValueIssue`,
+    // driver-value-validity.test.ts) — `dqNoteFor` no longer judges the value itself, it only
+    // renders whatever `.dq` the cell already carries, same as any other issue.
+    it("renders the domain's own invalid-value mark for a zero-or-less field", () => {
+      const cellOf = cellMap({Fs_hz: fakeCell(0, 'E', [{kind: 'invalid-value', value: 0}])});
+      expect(dqNoteFor(engine, cellOf, 'Fs_hz')).toBe(engine.invalidValueToText({kind: 'invalid-value', value: 0}));
     });
 
     it("reads the cell's own dq() when the value is not bad, rendered to text", () => {

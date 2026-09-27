@@ -154,7 +154,13 @@ export class OpenIsdDriverSpec {
         const dqFor = (key: keyof DriverSpecsSection): (() => readonly DqIssue[]) | undefined =>
             durableIssues === undefined ? undefined : () => durableIssues().filter(issue =>
                 'field' in issue ? issue.field === key : engine.issueFields(issue).some(f => f === key));
-        const f = (key: keyof DriverSpecsSection): Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable => entryField(sectionSlot(key), key, engine, dqFor(key));
+        /** Every numeric spec field's floor: zero, negative or non-finite is not a physical
+         *  value, whatever field it is (BUG_20260927_driver-bad-value-decided-in-ui.md) — the
+         *  SAME `Engine.positiveValueIssue` a box volume field carries
+         *  (BUG_20260927_box-volume-validity-decided-in-ui.md), computed fresh from the CURRENT
+         *  value on every read so it shows up immediately on `.set()`, not only after the next
+         *  `resolve()`. */
+        const f = (key: keyof DriverSpecsSection): Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable => entryField(sectionSlot(key), key, engine, dqFor(key), (v) => engine.positiveValueIssue(v));
 
         /** The wiring field — `entryField` in every respect but the value's type, which is a
          *  NAME rather than one of `DriverSpecsSection`'s numbers, so it cannot go through `f()`

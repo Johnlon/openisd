@@ -4,7 +4,7 @@ import { OpenISDPassiveRadiatorEmbedded } from '../passiveRadiator/openISDPassiv
 import { OpenISDPassiveRadiatorStandalone } from '../passiveRadiator/openISDPassiveRadiatorStandalone.js';
 
 export interface PassiveRadiatorBox {
-    /** Mandatory: judged by `Engine.boxVolumeIssue` on read, box-agnostic
+    /** Mandatory: judged by `Engine.positiveValueIssue` on read, box-agnostic
      *  (BUG_20260927_box-volume-validity-decided-in-ui.md) — zero, negative or non-finite marks
      *  the field's own `.dq` rather than being coerced. No solve relation otherwise. */
     readonly volume_m3: Readable<number> & Entered & Writable<number>;

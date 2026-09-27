@@ -84,15 +84,14 @@ export function useOgTune(): OgTuneAPI {
     return cellClassFor(fieldCell, key);
   }
 
-  const BAD_VALUE_NOTE = 'Bad data: zero or less is not a physical value here. It is kept and saved exactly as entered — clear the field to let it be calculated instead.';
-
+  /** A bad value (≤ 0, non-finite) is marked by the DOMAIN, on the field's own `.dq`
+   *  (`Engine.positiveValueIssue`, BUG_20260927_driver-bad-value-decided-in-ui.md) — this reads
+   *  that mark, never judges the value itself, same as the driver editor's own `dqNoteFor`.
+   *  Each issue is rendered by the engine — the one place a `DqIssue` becomes a sentence. Joining
+   *  the issues themselves put "[object Object]" in the tooltip, which nothing noticed while
+   *  this panel's dq was always empty (the marks were computed and then discarded with the
+   *  rebuilt embedded driver). */
   function dqNote(key: NumSpecField): string | null {
-    const v = fieldCell(key).value;
-    if (typeof v === 'number' && !(v > 0)) return BAD_VALUE_NOTE;
-    // Each issue rendered by the engine — the one place a `DqIssue` becomes a sentence, and the
-    // same one the driver editor reads through (`dqNoteFor`). Joining the issues themselves put
-    // "[object Object]" in the tooltip, which nothing noticed while this panel's dq was always
-    // empty (the marks were computed and then discarded with the rebuilt embedded driver).
     return fieldCell(key).dq.map(issue => engine.dqIssueText(issue)).join('\n');
   }
 

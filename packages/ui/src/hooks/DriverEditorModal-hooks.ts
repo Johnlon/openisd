@@ -10,8 +10,6 @@ import type {NumSpecField} from '../logic/appState.js';
  * rationale (NOT ENTERED vs BAD VALUE) this logic implements.
  */
 
-export const BAD_VALUE_NOTE = 'Bad data: zero or less is not a physical value here. It is kept and saved exactly as entered — clear the field to let it be calculated instead.';
-
 /** One data-quality reason: `subject` is the field name to highlight, `text` the rest of the
  *  sentence. Kept apart so the template can render the subject distinctly without scraping it
  *  back out of an assembled string. */
@@ -20,15 +18,11 @@ export interface DqReason {
   readonly text: string;
 }
 
-/** BAD VALUE: a number that cannot be physical (≤ 0). Zero is a value, not an absence. */
-export function isBadValue(cellOf: (field: NumSpecField) => Readable<number | null> & Entered & Calculated, field: NumSpecField): boolean {
-  const v = cellOf(field).value;
-  return typeof v === 'number' && !(v > 0);
-}
-
-/** The one DQ mark per field: its reason, or '' when there is nothing to say. */
+/** The one DQ mark per field: its reason, or '' when there is nothing to say. A bad value (≤ 0,
+ *  non-finite) is marked by the DOMAIN, on the field's own `.dq` (`Engine.positiveValueIssue`,
+ *  BUG_20260927_driver-bad-value-decided-in-ui.md) — this reads that mark, never judges the
+ *  value itself. */
 export function dqNoteFor(engine: Engine, cellOf: (field: NumSpecField) => Readable<number | null> & Entered & Calculated, field: NumSpecField): string {
-  if (isBadValue(cellOf, field)) return BAD_VALUE_NOTE;
   return cellOf(field).dq.map(issue => engine.dqIssueText(issue)).join('\n');
 }
 

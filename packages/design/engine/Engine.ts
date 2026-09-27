@@ -38,10 +38,10 @@ import {
 import type {VentedPlausibilityIssue} from './plausibility.js';
 import type {DriverIssue, PrIssue, SealedAlignmentIssue, VentIssue} from './solver.js';
 import {solveDriver, solvePr, solveSealedAlignment, solveVent, terminalBL_Tm, terminalRe_ohm,} from './solver.js';
-import type {CalculationIssue, DqIssue, InvalidVolumeIssue, OutOfRangeIssue, TargetUnreachableIssue} from './consistency.js';
+import type {CalculationIssue, DqIssue, InvalidValueIssue, OutOfRangeIssue, TargetUnreachableIssue} from './consistency.js';
 import {
-  boxVolumeValidity, dqIssueText, invalidVolumeToText, issueFields, issueFormula, issueToText,
-  outOfRangeToText, plausibilityToText, targetUnreachableToText,
+  dqIssueText, invalidValueToText, issueFields, issueFormula, issueToText,
+  outOfRangeToText, plausibilityToText, positiveValueIssue, targetUnreachableToText,
 } from './consistency.js';
 import {isPhysicallyPlausible} from './physicalRange.js';
 import {referenceEfficiency, splFromEfficiency} from './efficiency.js';
@@ -233,10 +233,11 @@ export class Engine {
     return outOfRangeToText(issue);
   }
 
-  /** One sentence for an `invalid-volume` mark — zero, negative or non-finite, whatever box it
-   *  is (BUG_20260927_box-volume-validity-decided-in-ui.md). */
-  invalidVolumeToText(issue: InvalidVolumeIssue): string {
-    return invalidVolumeToText(issue);
+  /** One sentence for an `invalid-value` mark — zero, negative or non-finite, whatever field it
+   *  is: a box volume (BUG_20260927_box-volume-validity-decided-in-ui.md) or a driver spec value
+   *  (BUG_20260927_driver-bad-value-decided-in-ui.md). */
+  invalidValueToText(issue: InvalidValueIssue): string {
+    return invalidValueToText(issue);
   }
 
   /** Whether a single RAW value would sit inside `PHYSICAL_RANGE`'s band for `field` (D9 tier 1)
@@ -260,12 +261,14 @@ export class Engine {
     return sealedResonance(mode, p);
   }
 
-  /** The one floor every box type's volume field shares: zero, negative or non-finite is not a
-   *  volume, whatever box it is (sealed, bandpass 4th/6th rear+front, ABC, passive radiator —
-   *  BUG_20260927_box-volume-validity-decided-in-ui.md). Vented's own volume additionally judges
-   *  a plausible design band on top of this floor — see `ventedVolumeIssue`, which is not this. */
-  boxVolumeIssue(value: number): InvalidVolumeIssue | null {
-    return boxVolumeValidity(value);
+  /** The one floor every positive physical quantity shares: zero, negative or non-finite is not
+   *  physical, whatever field it is — every box type's volume field (sealed, bandpass 4th/6th
+   *  rear+front, ABC, passive radiator — BUG_20260927_box-volume-validity-decided-in-ui.md) AND
+   *  every driver spec field (BUG_20260927_driver-bad-value-decided-in-ui.md) share this ONE
+   *  method, not two near-duplicates. Vented's own volume additionally judges a plausible design
+   *  band on top of this floor — see `ventedVolumeIssue`, which is not this. */
+  positiveValueIssue(value: number): InvalidValueIssue | null {
+    return positiveValueIssue(value);
   }
 
   /**

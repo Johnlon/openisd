@@ -90,7 +90,7 @@ export class OpenISDBox implements Box {
         // computing its own reference-condition fallback.
 
         const sealedLens = focus(lens, 'sealed');
-        const sealedVolume = requiredField(sealedLens, 'volume_m3', (v) => engine.boxVolumeIssue(v));
+        const sealedVolume = requiredField(sealedLens, 'volume_m3', (v) => engine.positiveValueIssue(v));
         const sealedLosses = new SealedLossesWindow(focus(sealedLens, 'losses'));
         this.sealed = {
             volume_m3: sealedVolume,
@@ -165,7 +165,7 @@ export class OpenISDBox implements Box {
                 // rear is SEALED — no port, so no `vents.rear`, and a read-only calculated
                 // `resonance_hz()` (WinISD's "Frc") stands in for the tuning it cannot be given.
                 rear: {
-                    volume_m3: requiredField(bp4Rear, 'volume_m3', (v) => engine.boxVolumeIssue(v)),
+                    volume_m3: requiredField(bp4Rear, 'volume_m3', (v) => engine.positiveValueIssue(v)),
                     // LOSSLESS here, unlike the plain sealed box above, because that is what
                     // WinISD itself writes for a bandpass4 rear chamber. Two goldens written by
                     // the same winisd.exe 89 seconds apart with the identical driver, identical
@@ -184,7 +184,7 @@ export class OpenISDBox implements Box {
                 },
                 // front's volume is a Field, consistent with the rear chamber.
                 front: {
-                    volume_m3: requiredField(bp4Front, 'volume_m3', (v) => engine.boxVolumeIssue(v)),
+                    volume_m3: requiredField(bp4Front, 'volume_m3', (v) => engine.positiveValueIssue(v)),
                     tuning_goal_hz: bp4FrontTuningField,
                     losses: new CoupledVentedLossesWindow(focus(bp4Front, 'losses')),
                 },
@@ -225,7 +225,7 @@ export class OpenISDBox implements Box {
         const getRadiator = (): OpenISDPassiveRadiatorEmbedded => {
             return new OpenISDPassiveRadiatorEmbedded(prSlot, engine);
         };
-        const prVolume = requiredField(pr, 'volume_m3', (v) => engine.boxVolumeIssue(v));
+        const prVolume = requiredField(pr, 'volume_m3', (v) => engine.positiveValueIssue(v));
         const prAddedMassEntry = entryField(focus(pr, 'addedMass_kg'), 'addedMass_kg', engine, () => groupDq(issues().pr));
         const prTuningEntry = entryField(focus(pr, 'tuning_goal_hz'), 'tuning_goal_hz', engine, () => groupDq(issues().pr));
         const prTuningField = pairedField(
