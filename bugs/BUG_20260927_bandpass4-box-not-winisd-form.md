@@ -1,6 +1,6 @@
 # BUG_20260927_bandpass4-box-not-winisd-form
 
-**Status:** OPEN
+**Status:** RESOLVED
 
 ## Symptom
 4th-order bandpass charts differ from WinISD: impedance, SPL, transfer and port velocity.
@@ -27,4 +27,20 @@ OpenISD's bandpass branch differs from WinISD's:
 `conventional-lossy` keeps today's form.
 
 ## Verification
-Engine test pinning bp4-w5-1 impedance, transfer and front port velocity to WinISD ≤ 1e-12.
+`packages/design/test/engine/bandpass4-winisd.test.ts` — imports `bp4-w5-1.wpr`, sweeps at the
+fixture's own frequencies, compares against `WINISD_BANDPASS4_CAPTURE`:
+- impedance |Z|/phase: ≤1e-12 rel, ≤1e-10 deg — worst case at the tolerance floor (no looser).
+- transfer tfMag/phase: ≤1e-10 dB, ≤1e-9 deg.
+- front port velocity (pv vs √2·|Up|): ≤1e-12 rel.
+- import: Vr 0.01, Vf 0.005, Ff 60, Qlr 7, Qar 30, Qiclfr 20, Qlf 9, Qaf 40, Qpf 15, dia 0.05,
+  Rs 0.1 all land unchanged — the import already carried every one, no fix needed there.
+
+Implementation: `Bandpass4Box.ts` gained a `lossMode` switch (`lossless`/`conventional-lossy`
+unchanged; `winisd-lossy`, the new default, is the form in the Cause table). `SweepParams`
+gained `Qlr`/`Qar`/`Qiclfr`/`Qlf`/`Qaf`/`Qpf`/`Ff`, fed from `openISDProject.ts`
+`#boxSpecificParams`'s `bandpass4` case.
+
+Regression: `bandpass4-single` golden fixture had no `lossMode`, so the engine's changed default
+(`winisd-lossy`) silently swapped its formula and broke it. Fixed by pinning the mode it always
+exercised — added `"lossMode": "conventional-lossy"` to its `design.P`; the sweep/maxCurves
+numbers are unchanged (same code path, same formula).

@@ -200,6 +200,30 @@ export interface SweepParams {
    *  (winisd_research/GHIDRA_FINDINGS.md "Passive radiator box — `0x45a960`"). Absent for any
    *  other box/lossMode combination, which never reads it. */
   Fr?: number;
+  // 4th-order bandpass — read ONLY by `Bandpass4Box`'s `winisd-lossy` branch (never
+  // `conventional-lossy`/`lossless`, which keep the shared `Ql`/`Qa`/`Qp` above for the rear
+  // chamber and never read the front chamber's own losses at all). Each is a FIXED resistance
+  // at that chamber's own frequency, never per-sweep-frequency, and never shared between
+  // chambers (winisd_research/GHIDRA_FINDINGS.md "4th-order bandpass — `0x457a30`",
+  // bugs/BUG_20260927_bandpass4-box-not-winisd-form.md). Absent for any other box/lossMode
+  // combination, which never reads them.
+  /** Rear (sealed) chamber leakage Q, WinISD `.wpr` `Qlr` — `Bandpass4Box.chambers.rear.losses.Ql`. */
+  Qlr?: number;
+  /** Rear chamber absorption Q, WinISD `.wpr` `Qar` — `chambers.rear.losses.Qa`. */
+  Qar?: number;
+  /** Inter-chamber leak Q, WinISD `.wpr` `Qiclfr` — `chambers.rear.losses.Qicl`. Read at the
+   *  DRIVER's own ωs = 1/√(Mas·Cas), never at ωsc/ωf. */
+  Qiclfr?: number;
+  /** Front (vented) chamber leakage Q, WinISD `.wpr` `Qlf` — `chambers.front.losses.Ql`. */
+  Qlf?: number;
+  /** Front chamber absorption Q, WinISD `.wpr` `Qaf` — `chambers.front.losses.Qa`. */
+  Qaf?: number;
+  /** Front chamber port loss Q, WinISD `.wpr` `Qpf` — `chambers.front.losses.Qp`. */
+  Qpf?: number;
+  /** Front chamber tuning, Hz, WinISD `.wpr` `Ff` — `chambers.front.tuning_goal_hz`. The front
+   *  port mass Mapf = 1/(ωf²·Cabf) comes from THIS, never from the front vent's own
+   *  length/area (`Leff`/`Sp`, which the front vent's chart-facing geometry still uses). */
+  Ff?: number;
   // Signal chain
   filters?: Filter[];
   // ---- Environment (per project — WinISD keeps T/p/phi in the .wpr [Box] section) --------
