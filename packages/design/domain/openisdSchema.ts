@@ -25,7 +25,7 @@ import {z} from 'zod';
 import {WinISDDriver} from '../winisd/index.js';
 import {newUuid} from './newUuid.js';
 import type {OpenISDDriver} from './openisdDomain.js';
-import type {BoxType, DriverError, Filter, FilterType} from '../engine/index.js';
+import type {BoxType, DriverError, Filter, PassFamily} from '../engine/index.js';
 import type {VentShape} from './vent.js';
 
 /** DQ marks. A function, not a shared object: a module-scoped literal would be state, and each
@@ -757,23 +757,39 @@ const openISDProjectMetaJsonSchema = z.strictObject({
 });
 export type OpenISDProjectMetaJson = z.infer<typeof openISDProjectMetaJsonSchema>;
 
-/** One signal-chain filter. `id` and the per-type fields are all optional on the engine's own
- *  `Filter` type, so the schema follows suit rather than asserting a shape the engine does not
- *  require. */
-const filterJsonSchema = z.strictObject({
-    id: z.string().optional(),
-    type: z.enum([
-        'highpass', 'lowpass', 'linkwitz', 'peaking', 'lowshelf', 'highshelf',
-    ] satisfies readonly FilterType[]),
-    enabled: z.boolean(),
-    fc: z.number().optional(),
-    Q: z.number().optional(),
-    f0: z.number().optional(),
-    Q0: z.number().optional(),
-    fp: z.number().optional(),
-    Qp: z.number().optional(),
-    gain: z.number().optional(),
-}) satisfies z.ZodType<Filter>;
+/** WinISD's low/high-pass "Subtype" choices, plus the pass filters' Q/order — see the engine's
+ *  `PassFamily`. */
+const passFamilyJsonSchema = z.enum([
+    'butterworth', 'linkwitzRiley', 'bessel', 'sos',
+] satisfies readonly PassFamily[]);
+
+/** One signal-chain filter — one of WinISD's 8 Filter Editor types, plus the two OpenISD-only
+ *  shelves, each its own strict shape (engine's `FilterSpec`, a discriminated union, not a bag
+ *  of optional fields). `id` is optional (the UI's list key); `enabled` is required on every
+ *  variant. QO169: an old `{type:'lowpass', fc, Q}`-shaped saved filter has no `family`/`order`
+ *  and simply fails this schema — no migration. */
+const filterJsonSchema = z.discriminatedUnion('type', [
+    z.strictObject({id: z.string().optional(), type: z.literal('lowpass'), enabled: z.boolean(),
+        family: passFamilyJsonSchema, order: z.number(), fc: z.number(), Q: z.number()}),
+    z.strictObject({id: z.string().optional(), type: z.literal('highpass'), enabled: z.boolean(),
+        family: passFamilyJsonSchema, order: z.number(), fc: z.number(), Q: z.number()}),
+    z.strictObject({id: z.string().optional(), type: z.literal('allpass'), enabled: z.boolean(),
+        order: z.number(), t: z.number(), Q: z.number()}),
+    z.strictObject({id: z.string().optional(), type: z.literal('linkwitz'), enabled: z.boolean(),
+        f0: z.number(), Q0: z.number(), fp: z.number(), Qp: z.number()}),
+    z.strictObject({id: z.string().optional(), type: z.literal('peaking'), enabled: z.boolean(),
+        fc: z.number(), Q: z.number(), gain: z.number()}),
+    z.strictObject({id: z.string().optional(), type: z.literal('peakHighpass'), enabled: z.boolean(),
+        fpk: z.number(), gainPk: z.number()}),
+    z.strictObject({id: z.string().optional(), type: z.literal('staticGain'), enabled: z.boolean(),
+        gain: z.number()}),
+    z.strictObject({id: z.string().optional(), type: z.literal('raisedCosine'), enabled: z.boolean(),
+        fc: z.number(), bwOct: z.number(), gain: z.number()}),
+    z.strictObject({id: z.string().optional(), type: z.literal('lowshelf'), enabled: z.boolean(),
+        fc: z.number(), Q: z.number(), gain: z.number()}),
+    z.strictObject({id: z.string().optional(), type: z.literal('highshelf'), enabled: z.boolean(),
+        fc: z.number(), Q: z.number(), gain: z.number()}),
+]) satisfies z.ZodType<Filter>;
 
 /** The signal-chain filter list. */
 const filtersJsonSchema = z.strictObject({

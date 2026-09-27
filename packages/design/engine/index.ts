@@ -31,7 +31,8 @@ export type { AppSettings, EnvDefaults } from './appSettings.js';
 export type { VentedDesignLimits, VentedDesignQuantity, VentedPlausibilityIssue } from './plausibility.js';
 export type { SweepOutputName, CalculationPrerequisite } from './consistency.js';
 export type {
-  BoxType, SimulatableBoxType, DriverError, EbpSuitability, Filter, FilterType, MaxCurvesResult,
+  BoxType, SimulatableBoxType, DriverError, EbpSuitability, Filter, FilterSpec, FilterType,
+  PassFamily, MaxCurvesResult,
   SealedAlignmentOption, VentedAlignment, VentedDesign, Wiring,
   EnclosureParams, SweepParams, SweepResult,
 } from './types.js';

@@ -13,8 +13,12 @@ export interface OgFiltersAPI {
   /** Appends the engine's default filter of `type` under a fresh list id; returns that id. */
   addFilter(type: FilterType): string;
   removeFilter(id: string): void;
-  /** Patches exactly this filter's named field; every other filter and field is untouched. */
-  patchFilter(id: string, field: keyof Filter, value: number | boolean): void;
+  /** Replaces exactly the filter with this id with `next`; every other filter is untouched.
+   *  Whole-filter, not a per-field patch: `Filter` is a sum type, so `keyof Filter` is only its
+   *  common keys and cannot name a family-specific field — the caller builds the new filter
+   *  (typically `{...current, someField: value}` inside its own narrowed branch) and hands it
+   *  over complete. */
+  replaceFilter(id: string, next: Filter): void;
 }
 
 /**
@@ -41,11 +45,11 @@ export function createOgFilters({project, changed, engine}: OgFiltersDeps): OgFi
     project.value.filters.set(project.value.filters.value.filter(f => f.id !== id));
   }
 
-  function patchFilter(id: string, field: keyof Filter, value: number | boolean): void {
+  function replaceFilter(id: string, next: Filter): void {
     project.value.filters.set(
-      project.value.filters.value.map(f => (f.id === id ? {...f, [field]: value} : f)),
+      project.value.filters.value.map(f => (f.id === id ? next : f)),
     );
   }
 
-  return {filters, addFilter, removeFilter, patchFilter};
+  return {filters, addFilter, removeFilter, replaceFilter};
 }

@@ -61,9 +61,9 @@ describe('uiFields — every dropdown is an enum spec carrying SelectorOption[]'
     assert.ok(optionsOf('loss_DampingMode').some(o => o.value === 'winisd-lossy'));
   });
 
-  it('filter_Type lists the six filter types the engine models', () => {
+  it('filter_Type lists every WinISD filter type plus the two OpenISD-only shelves', () => {
     assert.deepEqual(optionsOf('filter_Type').map(o => o.value),
-      ['lowpass', 'highpass', 'linkwitz', 'peaking', 'lowshelf', 'highshelf']);
+      ['lowpass', 'highpass', 'allpass', 'linkwitz', 'peaking', 'peakHighpass', 'staticGain', 'raisedCosine', 'lowshelf', 'highshelf']);
   });
 });
 

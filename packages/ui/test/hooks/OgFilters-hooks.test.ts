@@ -29,7 +29,7 @@ describe('createOgFilters', () => {
   it('the filters readout re-reads the project when the change signal fires', () => {
     const {project, changed, api} = setup();
     expect(api.filters.value).toHaveLength(0);
-    project.filters.set([{id: 'x', type: 'highpass', enabled: true, fc: 30, Q: 0.7}]);
+    project.filters.set([{id: 'x', type: 'highpass', family: 'sos', order: 2, enabled: true, fc: 30, Q: 0.7}]);
     changed.value++;
     expect(api.filters.value).toHaveLength(1);
   });
@@ -42,14 +42,19 @@ describe('createOgFilters', () => {
     expect(project.filters.value.map(f => f.id)).toEqual([b]);
   });
 
-  it('patch changes one field of one filter and nothing else', () => {
+  it('replaceFilter swaps exactly the named filter and leaves the others alone', () => {
     const {project, api} = setup();
     const a = api.addFilter('highpass');
     const b = api.addFilter('highpass');
-    api.patchFilter(a, 'fc', 120);
-    api.patchFilter(b, 'enabled', false);
+    const [fa0, fb0] = project.filters.value;
+    // Narrow before spreading: `Filter` is a sum type, so `{...f, fc: value}` on an
+    // un-narrowed `f: Filter` would admit combinations (e.g. an allpass with `fc`) that are
+    // not valid filters — exactly the shape `replaceFilter` exists to rule out.
+    if (fa0.type !== 'highpass' || fb0.type !== 'highpass') throw new Error('expected highpass');
+    api.replaceFilter(a, {...fa0, fc: 120});
+    api.replaceFilter(b, {...fb0, enabled: false});
     const [fa, fb] = project.filters.value;
-    expect(fa).toMatchObject({id: a, fc: 120, enabled: true, Q: Math.SQRT1_2});
-    expect(fb).toMatchObject({id: b, fc: 80, enabled: false});
+    expect(fa).toMatchObject({id: a, fc: 120, enabled: true, Q: 0.707});
+    expect(fb).toMatchObject({id: b, fc: 20, enabled: false});
   });
 });

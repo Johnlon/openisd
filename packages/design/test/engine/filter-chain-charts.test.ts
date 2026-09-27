@@ -64,7 +64,7 @@ describe('EQ/filter chain charts — no filters means unity, exactly', () => {
 describe('EQ/filter chain charts — the magnitude is the chain\'s own gain in dB', () => {
   it('a 2nd-order Butterworth low-pass is −3.01 dB at its own fc', () => {
     // |H(fc)| = 1/√2 for Q = 1/√2, independent of everything else in the model.
-    const filters: Filter[] = [{ type: 'lowpass', fc: 100, Q: Math.SQRT1_2, enabled: true }];
+    const filters: Filter[] = [{ type: 'lowpass', family: 'sos', order: 2, fc: 100, Q: Math.SQRT1_2, enabled: true }];
     const sw = engine.sweep(driverParams(DRV), LE_H, 'sealed', { ...SEALED, filters }).values!;
     const i = nearest(sw.fs, 100);
     assert.ok(Math.abs(sw.fltMag[i] - 20 * Math.log10(Math.SQRT1_2)) < 0.05,
@@ -93,7 +93,7 @@ describe('EQ/filter chain charts — the magnitude is the chain\'s own gain in d
 });
 
 describe('EQ/filter chain charts — the chain is electrical, so driver and box do not enter it', () => {
-  const filters: Filter[] = [{ type: 'highpass', fc: 30, Q: Math.SQRT1_2, enabled: true }];
+  const filters: Filter[] = [{ type: 'highpass', family: 'sos', order: 2, fc: 30, Q: Math.SQRT1_2, enabled: true }];
 
   it('the same filters give the same chain response in a sealed and a vented box', () => {
     const s = engine.sweep(driverParams(DRV), LE_H, 'sealed', { ...SEALED, filters }).values!;
@@ -155,19 +155,20 @@ describe('EQ/filter chain charts — Linkwitz transform, low-shelf, high-shelf',
       `expected ≈ 6 dB at ${sw.fs[i].toFixed(2)} Hz (fc=500 Hz), got ${sw.fltMag[i].toFixed(3)} dB`);
   });
 
-  it('a low-shelf boost has faded back to unity well above fc (default Q)', () => {
-    // H(∞) = A·s²/(A·s²) = 1 → 0 dB, the shelf's flat region above fc. `Q` is left unset to
-    // exercise the same default (1/√2) evalFilter falls back to for every other filter type.
-    const filters: Filter[] = [{ type: 'lowshelf', fc: 20, gain: 6, enabled: true }];
+  it('a low-shelf boost has faded back to unity well above fc, whatever Q is', () => {
+    // H(∞) = A·s²/(A·s²) = 1 → 0 dB, the shelf's flat region above fc — the asymptote does
+    // not depend on Q (Q only shapes the transition near fc).
+    const filters: Filter[] = [{ type: 'lowshelf', fc: 20, Q: Math.SQRT1_2, gain: 6, enabled: true }];
     const sw = engine.sweep(driverParams(DRV), LE_H, 'sealed', { ...SEALED, filters }).values!;
     const i = nearest(sw.fs, 2000);
     assert.ok(Math.abs(sw.fltMag[i]) < 0.05,
       `expected ≈ 0 dB at ${sw.fs[i].toFixed(0)} Hz (fc=20 Hz), got ${sw.fltMag[i].toFixed(3)} dB`);
   });
 
-  it('a high-shelf boost is flat (unity) well below fc (default Q)', () => {
-    // H(0) = A·1/A = 1 → 0 dB, the shelf's flat region below fc.
-    const filters: Filter[] = [{ type: 'highshelf', fc: 500, gain: 6, enabled: true }];
+  it('a high-shelf boost is flat (unity) well below fc, whatever Q is', () => {
+    // H(0) = A·1/A = 1 → 0 dB, the shelf's flat region below fc — the asymptote does not
+    // depend on Q (Q only shapes the transition near fc).
+    const filters: Filter[] = [{ type: 'highshelf', fc: 500, Q: Math.SQRT1_2, gain: 6, enabled: true }];
     const sw = engine.sweep(driverParams(DRV), LE_H, 'sealed', { ...SEALED, fmin: 1, filters }).values!;
     const i = nearest(sw.fs, 1);
     assert.ok(Math.abs(sw.fltMag[i]) < 0.05,
@@ -186,7 +187,7 @@ describe('EQ/filter chain charts — Linkwitz transform, low-shelf, high-shelf',
 
 describe('EQ/filter chain charts — phase and group delay', () => {
   it('a 2nd-order high-pass leads in phase (positive) below its corner', () => {
-    const filters: Filter[] = [{ type: 'highpass', fc: 40, Q: Math.SQRT1_2, enabled: true }];
+    const filters: Filter[] = [{ type: 'highpass', family: 'sos', order: 2, fc: 40, Q: Math.SQRT1_2, enabled: true }];
     const sw = engine.sweep(driverParams(DRV), LE_H, 'sealed', { ...SEALED, filters }).values!;
     const i = nearest(sw.fs, 12);
     const deg = sw.fltPhase[i] * 180 / Math.PI;

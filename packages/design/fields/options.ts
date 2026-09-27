@@ -82,8 +82,12 @@ export const BOX_TYPE_OPTIONS: readonly SelectorOption<BoxType>[] = Object.freez
 export const FILTER_TYPE_OPTIONS: readonly SelectorOption<FilterType>[] = Object.freeze([
   Object.freeze({ value: 'lowpass', label: 'Lowpass' }),
   Object.freeze({ value: 'highpass', label: 'Highpass' }),
-  Object.freeze({ value: 'linkwitz', label: 'Linkwitz-Transform' }),
-  Object.freeze({ value: 'peaking', label: 'Peaking EQ' }),
+  Object.freeze({ value: 'allpass', label: 'Allpass' }),
+  Object.freeze({ value: 'linkwitz', label: 'Linkwitz transform' }),
+  Object.freeze({ value: 'peaking', label: 'Parametric EQ' }),
+  Object.freeze({ value: 'peakHighpass', label: 'Peaking 2nd order highpass' }),
+  Object.freeze({ value: 'staticGain', label: 'Static gain' }),
+  Object.freeze({ value: 'raisedCosine', label: 'DLP Raised Cosine' }),
   Object.freeze({ value: 'lowshelf', label: 'Low Shelf' }),
   Object.freeze({ value: 'highshelf', label: 'High Shelf' }),
 ]);

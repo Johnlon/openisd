@@ -10,7 +10,14 @@ import {OpenISDDriver, OpenISDProject} from '@openisd/design';
 import type {Filter} from '@openisd/design/engine';
 import {Engine} from '@openisd/design/engine';
 
-const hp = (id: string, fc: number): Filter => ({ id, type: 'highpass', enabled: true, fc, Q: 0.7071 });
+const hp = (id: string, fc: number): Filter => ({ id, type: 'highpass', family: 'sos', order: 2, enabled: true, fc, Q: 0.7071 });
+
+/** Every filter this test builds is a highpass from `hp()` above; narrows the whole-array read
+ *  back to that one variant so `.fc` is a known field, not a Filter-union guess. */
+function fcOf(f: Filter): number {
+  if (f.type !== 'highpass') throw new Error('expected a highpass filter');
+  return f.fc;
+}
 
 function sealedProject() {
   const engine = new Engine();
@@ -26,17 +33,21 @@ describe('OpenISDProject.filters — whole-array read/write', () => {
     p.filters.set([...p.filters.value, hp('a', 80)]);
     p.filters.set([...p.filters.value, hp('b', 200)]);
     assert.deepEqual(p.filters.value.map(f => f.id), ['a', 'b']);
-    assert.equal(p.filters.value[0].fc, 80);
-    assert.equal(p.filters.value[1].fc, 200);
+    assert.equal(fcOf(p.filters.value[0]), 80);
+    assert.equal(fcOf(p.filters.value[1]), 200);
   });
 
   it('patching one field of one filter leaves its other fields and every other filter alone', () => {
     const p = sealedProject();
     p.filters.set([hp('a', 80), hp('b', 200)]);
-    p.filters.set(p.filters.value.map(f => f.id === 'a' ? { ...f, fc: 120 } : f));
-    assert.equal(p.filters.value.find(f => f.id === 'a')!.fc, 120, 'the patched field must land');
-    assert.equal(p.filters.value.find(f => f.id === 'a')!.Q, 0.7071, 'an unpatched field must survive');
-    assert.equal(p.filters.value.find(f => f.id === 'b')!.fc, 200, 'another filter must be untouched');
+    p.filters.set(p.filters.value.map(f => (f.id === 'a' && f.type === 'highpass') ? { ...f, fc: 120 } : f));
+    const a = p.filters.value.find(f => f.id === 'a');
+    const b = p.filters.value.find(f => f.id === 'b');
+    assert.ok(a && a.type === 'highpass');
+    assert.ok(b && b.type === 'highpass');
+    assert.equal(a.fc, 120, 'the patched field must land');
+    assert.equal(a.Q, 0.7071, 'an unpatched field must survive');
+    assert.equal(b.fc, 200, 'another filter must be untouched');
   });
 
   it('removing one filter drops exactly the named filter', () => {

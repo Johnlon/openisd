@@ -1,12 +1,19 @@
 /**
  * `Engine.defaultFilter(type)` — the one place a fresh filter's starting values live. The Filters
  * tab's quick-add buttons ask the engine; no UI file carries a defaults table of its own.
+ *
+ * WinISD's own Filter Editor "Add" defaults for its 8 types:
+ * winisd_research/PROBE_FINDINGS.md "`.wpr` `[Filters]` format", Add defaults column.
+ * Linkwitz transform and the two OpenISD-only shelves keep the values OpenISD already shipped.
  */
 import {describe, expect, it} from 'vitest';
 import {Engine} from '../../engine/index.js';
 import type {FilterType} from '../../engine/index.js';
 
-const ALL: readonly FilterType[] = ['highpass', 'lowpass', 'linkwitz', 'peaking', 'lowshelf', 'highshelf'];
+const ALL: readonly FilterType[] = [
+  'lowpass', 'highpass', 'allpass', 'linkwitz', 'peaking',
+  'peakHighpass', 'staticGain', 'raisedCosine', 'lowshelf', 'highshelf',
+];
 
 describe('Engine.defaultFilter', () => {
   it('a fresh filter of every type is enabled, carries its type, and has no list id (the UI mints that)', () => {
@@ -19,23 +26,48 @@ describe('Engine.defaultFilter', () => {
     }
   });
 
-  it('a high-pass starts at 80 Hz Butterworth and a Linkwitz transform at f0 50 / fp 20', () => {
-    const engine = new Engine();
-    const hp = engine.defaultFilter('highpass');
-    expect(hp.fc).toBe(80);
-    expect(hp.Q).toBeCloseTo(Math.SQRT1_2, 3);
-    const lt = engine.defaultFilter('linkwitz');
-    expect(lt.f0).toBe(50);
-    expect(lt.Q0).toBe(0.7);
-    expect(lt.fp).toBe(20);
-    expect(lt.Qp).toBe(0.5);
+  it('lowpass starts Butterworth order 2 at 50 Hz, Q 0.707', () => {
+    const lp = new Engine().defaultFilter('lowpass');
+    expect(lp).toMatchObject({family: 'butterworth', order: 2, fc: 50, Q: 0.707});
   });
 
-  it('a peaking EQ starts as a 6 dB cut at 300 Hz; shelves as 6 dB boosts', () => {
-    const engine = new Engine();
-    expect(engine.defaultFilter('peaking')).toMatchObject({fc: 300, Q: 1, gain: -6});
-    expect(engine.defaultFilter('lowshelf')).toMatchObject({fc: 150, gain: 6});
-    expect(engine.defaultFilter('highshelf')).toMatchObject({fc: 2000, gain: 6});
-    expect(engine.defaultFilter('lowpass')).toMatchObject({fc: 200});
+  it('highpass starts Butterworth order 2 at 20 Hz, Q 0.707', () => {
+    const hp = new Engine().defaultFilter('highpass');
+    expect(hp).toMatchObject({family: 'butterworth', order: 2, fc: 20, Q: 0.707});
+  });
+
+  it('allpass starts order 1, t 1 ms, Q 0.707', () => {
+    const ap = new Engine().defaultFilter('allpass');
+    expect(ap).toMatchObject({order: 1, t: 0.001, Q: 0.707});
+  });
+
+  it('a Linkwitz transform starts at f0 50 / Q0 0.7, fp 20 / Qp 0.5', () => {
+    const lt = new Engine().defaultFilter('linkwitz');
+    expect(lt).toMatchObject({f0: 50, Q0: 0.7, fp: 20, Qp: 0.5});
+  });
+
+  it('a parametric EQ starts fc 30, Q 2, +6 dB', () => {
+    const peq = new Engine().defaultFilter('peaking');
+    expect(peq).toMatchObject({fc: 30, Q: 2, gain: 6});
+  });
+
+  it('a peaking 2nd-order highpass starts fpk 20, +6 dB', () => {
+    const php = new Engine().defaultFilter('peakHighpass');
+    expect(php).toMatchObject({fpk: 20, gainPk: 6});
+  });
+
+  it('a static gain starts at 0 dB', () => {
+    const gain = new Engine().defaultFilter('staticGain');
+    expect(gain).toMatchObject({gain: 0});
+  });
+
+  it('a DLP Raised Cosine starts fc 100, BW 0.333 oct, +6 dB', () => {
+    const rc = new Engine().defaultFilter('raisedCosine');
+    expect(rc).toMatchObject({fc: 100, bwOct: 0.333, gain: 6});
+  });
+
+  it('the shelves keep OpenISD\'s own defaults: low-shelf 150 Hz, high-shelf 2000 Hz, both +6 dB', () => {
+    expect(new Engine().defaultFilter('lowshelf')).toMatchObject({fc: 150, gain: 6});
+    expect(new Engine().defaultFilter('highshelf')).toMatchObject({fc: 2000, gain: 6});
   });
 });

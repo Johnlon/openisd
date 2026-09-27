@@ -14,7 +14,7 @@ import {nextTick, watch} from 'vue';
 import {newProject, projectChanged, requireFocusedProject} from '../../src/logic/appState.js';
 import type {Filter} from '@openisd/design/engine';
 
-const hp = (fc: number): Filter => ({ id: 'f-hp', type: 'highpass', enabled: true, fc, Q: 0.7071 });
+const hp = (fc: number): Filter => ({ id: 'f-hp', type: 'highpass', family: 'sos', order: 2, enabled: true, fc, Q: 0.7071 });
 
 /** Count how many times a real watcher on the signal wakes while `body` runs. */
 async function firingsDuring(body: () => void): Promise<number> {

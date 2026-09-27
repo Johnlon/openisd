@@ -106,22 +106,30 @@ export type Wiring = 'series' | 'parallel';
  *  inductance-on model, Le's acoustic element built from the entered BL (BUG_20260926). */
 export type CircuitModel = 'winisd' | 'gyrator' | 'winisdGyrator';
 
-/** Signal-chain filter descriptor. Which optional fields apply depends on `type`. */
-export type FilterType = 'highpass' | 'lowpass' | 'linkwitz' | 'peaking' | 'lowshelf' | 'highshelf';
-
-export interface Filter {
-  /** UI list key (crypto.randomUUID). Carried through state; ignored by the engine. */
-  id?: string;
-  type: FilterType;
-  enabled: boolean;
-  fc?: number;
-  Q?: number;
-  f0?: number;
-  Q0?: number;
-  fp?: number;
-  Qp?: number;
-  gain?: number;
-}
+/**
+ * Signal-chain filter descriptor — one of WinISD's 8 Filter Editor types, plus the two
+ * OpenISD-only shelves. A sum type, not a bag of optional fields: each variant carries
+ * exactly the parameters WinISD's own `[Filters]` `.wpr` format stores for that type
+ * (winisd_research/PROBE_FINDINGS.md "`.wpr` `[Filters]` format"). Formulas and quirks:
+ * winisd_research/GHIDRA_FINDINGS.md "EQ/Filter chain — every filter type's response and
+ * group delay".
+ */
+/** WinISD's low/high-pass subtypes, in its Filter Editor "Subtype" order. */
+export type PassFamily = 'butterworth' | 'linkwitzRiley' | 'bessel' | 'sos';
+export type FilterSpec =
+  | { type: 'lowpass';  family: PassFamily; order: number; fc: number; Q: number }
+  | { type: 'highpass'; family: PassFamily; order: number; fc: number; Q: number }
+  | { type: 'allpass'; order: number; t: number; Q: number }
+  | { type: 'linkwitz'; f0: number; Q0: number; fp: number; Qp: number }
+  | { type: 'peaking'; fc: number; Q: number; gain: number }
+  | { type: 'peakHighpass'; fpk: number; gainPk: number }
+  | { type: 'staticGain'; gain: number }
+  | { type: 'raisedCosine'; fc: number; bwOct: number; gain: number }
+  | { type: 'lowshelf'; fc: number; Q: number; gain: number }
+  | { type: 'highshelf'; fc: number; Q: number; gain: number };
+/** One signal-chain filter. `id` is the UI list key (crypto.randomUUID), ignored by the engine. */
+export type Filter = { id?: string; enabled: boolean } & FilterSpec;
+export type FilterType = FilterSpec['type'];
 
 /**
  * Sweep/solve parameters. `Vb` and `eg` are required (every call site — the

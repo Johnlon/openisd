@@ -604,7 +604,7 @@ test('New Project starts fresh — it discards the previous design (filters, par
   // Dirty the current design: a filter and a non-default power.
   await page.evaluate(async (modPath) => {
     const project = (await import(/* @vite-ignore */ modPath)).requireFocusedProject();
-    project.filters.set([...project.filters.value, { type: 'highpass', enabled: true, fc: 30, Q: 0.7, gain: 0 }]);
+    project.filters.set([...project.filters.value, { type: 'highpass', family: 'sos', order: 2, enabled: true, fc: 30, Q: 0.7 }]);
     project.powerDrive_W.set(250);
   }, APP_STATE);
 
