@@ -19,7 +19,7 @@ OpenISD's radiator branch differs from WinISD's:
 | Leak             | Ral = Ql·ωr·Map, fixed (ωr = box tuning Fr)          | Ql/(ω·Cab), per frequency        |
 | Absorption       | Raa = ωr·Map/Qa, in series with Cab                  | Qa/(ω·Cab), in parallel          |
 | Radiator loss    | ωp·Map/Qms_pr (its own), box Qp unused               | Rms/Sd² (same when Me = 0)       |
-| Radiated output  | ⚠ pending capture pr-w5-2 (tfmag)                    | cone − radiator                  |
+| Radiated output  | cone − leak − radiator (runs/pr-w5-2, 1.6e-15)       | cone − radiator                  |
 
 ## Fix
 In the `winisd-lossy` loss mode, the radiator branch uses WinISD's form above. `conventional-lossy`
