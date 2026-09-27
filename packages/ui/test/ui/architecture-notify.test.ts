@@ -43,7 +43,7 @@ import {fileURLToPath} from 'node:url';
 import {Node, Project as TsProject, SyntaxKind} from 'ts-morph';
 
 const DESIGN = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..', 'design');
-const DOMAIN_FILE = join(DESIGN, 'domain', 'openisdDomain.ts');
+const DOMAIN_FILE = join(DESIGN, 'domain', 'project', 'openISDProject.ts');
 
 const project = new TsProject({
   tsConfigFilePath: join(DESIGN, 'tsconfig.json'),

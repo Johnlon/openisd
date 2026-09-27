@@ -19,8 +19,9 @@
 import { parse as parseYmlToJs } from "yaml"; // driver.yml input; openisd/.wdr output is JSON/INI
 import {z} from "zod";
 
-import type {Calculated, Entered, Readable} from "./index.js";
-import {OpenISDDriver, OpenISDPassiveRadiatorStandalone} from "./index.js";
+import type {Calculated, Entered, Readable} from "./cell.js";
+import {OpenISDDriver} from "./driver/openISDDriver.js";
+import {OpenISDPassiveRadiatorStandalone} from "./passiveRadiator/openISDPassiveRadiatorStandalone.js";
 import {type DriverError, Engine} from "../engine/index.js";
 
 import {type WdrCell, type WdrHeader, WinISDDriver,} from "../winisd/winisdDriver.js";

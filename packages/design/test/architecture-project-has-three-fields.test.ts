@@ -62,7 +62,7 @@ describe('OpenISDProject holds only #saved/#edited/#whatif/#engine as stored fie
       tsConfigFilePath: path.join(packageRoot, 'tsconfig.json'),
       skipAddingFilesFromTsConfig: true,
     });
-    const sourceFile = project.addSourceFileAtPath(path.join(packageRoot, 'domain', 'openisdDomain.ts'));
+    const sourceFile = project.addSourceFileAtPath(path.join(packageRoot, 'domain', 'project', 'openISDProject.ts'));
     const classDecl = sourceFile.getClassOrThrow('OpenISDProject');
 
     const propertyNames = classDecl

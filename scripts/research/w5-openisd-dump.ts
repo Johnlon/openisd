@@ -7,7 +7,7 @@
 import {readFileSync, writeFileSync} from 'node:fs';
 import {Engine} from '../../packages/design/engine/index.ts';
 import {defaultAppSettings} from '../../packages/design/engine/appSettings.ts';
-import {OpenISDProject} from '../../packages/design/domain/openisdDomain.ts';
+import {OpenISDProject} from '../../packages/design/domain/project/openISDProject.ts';
 
 type CircuitModel = 'winisd' | 'gyrator' | 'winisdGyrator';
 const CIRCUIT_MODELS: readonly CircuitModel[] = ['winisd', 'gyrator', 'winisdGyrator'];

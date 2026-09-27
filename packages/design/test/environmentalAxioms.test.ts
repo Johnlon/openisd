@@ -2,7 +2,7 @@ import {describe, expect, it} from 'vitest';
 import {
   Engine, DEFAULT_T_REF_K, DEFAULT_RH_REF_PCT, DEFAULT_P_REF_PA, DEFAULT_VENTED_DESIGN_LIMITS,
 } from '../engine/index.js';
-import {OpenISDProject} from '../domain/openisdDomain.js';
+import {OpenISDProject} from '../domain/project/openISDProject.js';
 
 describe('Phase 1: Environmental Axioms (Tasks 26-33)', () => {
   it('envTempK provides the brand pattern: calculated default, entered, cleared', () => {
