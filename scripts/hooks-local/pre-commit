@@ -41,5 +41,7 @@ $HEAVY npm run typecheck
 # ci/health-check and A10's byte-identical allow-list check, not per commit. Every
 # behavioural test still blocks. See the checklistDescribe guards in
 # packages/ui/test/ui/architecture.test.ts and architecture-no-reexports.test.ts.
-PRECOMMIT=1 $HEAVY npx vitest run packages/design packages/persistence packages/ui --maxWorkers="$OPENISD_HEAVY_GATE_WORKERS" --testTimeout="$OPENISD_HEAVY_GATE_TEST_TIMEOUT"
+# The load-scaled timeout reaches vitest as OPENISD_HEAVY_GATE_TEST_TIMEOUT (read in vitest.config.ts),
+# not --testTimeout, which would also time out the architecture tests.
+PRECOMMIT=1 $HEAVY npx vitest run packages/design packages/persistence packages/ui --maxWorkers="$OPENISD_HEAVY_GATE_WORKERS"
 echo "[pre-commit] all green ✓ (checklist gates deferred to ci/A10)"

@@ -4,6 +4,11 @@ import {configDefaults, defineConfig} from 'vitest/config';
 // timeout can only fire because the machine is busy, and it then reports no offence at all. They
 // run with no timeout (John, 2026-09-27: "arch tests shouldn't have timeouts").
 const DESIGN_ARCHITECTURE = ['test/architecture*.test.ts', 'test/engine/architecture.test.ts'];
+// Every other test gets the heavy gate's load-scaled timeout (scripts/hooks-local/heavy-gate-concurrency.sh
+// exports it for the pre-commit run), else vitest's 5 s. Set here per project, never as a
+// --testTimeout flag: the flag overrides every project, the architecture ones included.
+const heavyGateTimeout = Number(process.env.OPENISD_HEAVY_GATE_TEST_TIMEOUT);
+const TEST_TIMEOUT = Number.isFinite(heavyGateTimeout) && heavyGateTimeout > 0 ? heavyGateTimeout : 5000;
 const UI_ARCHITECTURE = ['test/ui/architecture*.test.ts', 'test/ui/import-from-declarer-only.test.ts'];
 
 // Dedicated root — must NOT inherit vite.config.js's `root: packages/ui`, or the
@@ -37,6 +42,7 @@ export default defineConfig({
       {
         test: {
           name: 'persistence',
+          testTimeout: TEST_TIMEOUT,
           root: './packages/persistence',
           environment: 'node',
           include: ['test/**/*.test.{mjs,ts}'],
@@ -45,6 +51,7 @@ export default defineConfig({
       {
         test: {
           name: 'design',
+          testTimeout: TEST_TIMEOUT,
           root: './packages/design',
           environment: 'node',
           include: ['test/**/*.test.{mjs,ts}'],
@@ -63,6 +70,7 @@ export default defineConfig({
       {
         test: {
           name: 'ui',
+          testTimeout: TEST_TIMEOUT,
           root: './packages/ui',
           environment: 'node',
           include: ['test/**/*.test.{mjs,ts}'],
