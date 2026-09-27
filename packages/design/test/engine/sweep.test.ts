@@ -94,6 +94,54 @@ describe('sweep — zero-excitation (eg=0) produces -200 dB SPL for all frequenc
   });
 });
 
+/**
+ * BUG_20260927_spl-maps-nan-to-silence: `pm > 0 ? … : -200` sent NaN pressure down the
+ * same branch as |p| = 0, so a genuinely broken sweep drew as silence instead of reaching
+ * `classifyFinite`. The guard must distinguish "exactly zero" (a real silence sentinel) from
+ * "not a number" (a breakdown that must be reported) — the fix is `pm === 0`, not `pm > 0`.
+ */
+describe('sweep — a NaN pressure is reported, never drawn as -200 dB silence', () => {
+  it('eg=NaN poisons the acoustic pressure; spl carries NaN, not the -200 dB sentinel', () => {
+    const { spl } = engine.sweep(driverParams(DRV), LE_H, BOX, { Vb: VB_M3, Ql: QL_LOSSLESS, eg: NaN }).values!;
+    assert.ok(spl.length > 0, 'spl array must be non-empty');
+    for (let i = 0; i < spl.length; i++) {
+      assert.ok(Number.isNaN(spl[i]), `spl[${i}] must be NaN (not -200) when the drive voltage is NaN, got ${spl[i]}`);
+    }
+  });
+
+  it('classifyFinite names SPL specifically — before the fix only the OTHER poisoned arrays named it', () => {
+    const sw = engine.sweep(driverParams(DRV), LE_H, BOX, { Vb: VB_M3, Ql: QL_LOSSLESS, eg: NaN }).values!;
+    const issue = engine.classifyFinite(sw);
+    assert.ok(issue, 'a NaN pressure must never pass classifyFinite silently');
+    assert.match(issue.message, /SPL/, `classifyFinite's message must name SPL; got: ${issue.message}`);
+  });
+
+  it('exact zero pressure (eg=0) is unaffected by the NaN fix — still the -200 dB sentinel', () => {
+    const { spl } = engine.sweep(driverParams(DRV), LE_H, BOX, { Vb: VB_M3, Ql: QL_LOSSLESS, eg: 0 }).values!;
+    assert.ok(spl.every(v => v === -200), 'pm === 0 exactly must still take the -200 dB branch');
+  });
+});
+
+/**
+ * Same guard, same bug, on the filter chain's own magnitude (sweep.ts fltMag). A staticGain
+ * filter with gain=NaN poisons Hf uniformly, so fltAbs is NaN at every grid point.
+ */
+describe('fltMag — a NaN filter-chain magnitude is reported, never drawn as -200 dB silence', () => {
+  it('a NaN filter gain poisons |H|; fltMag carries NaN, not the -200 dB sentinel', () => {
+    const P: SweepParams = {
+      Vb: VB_M3, Ql: QL_LOSSLESS, eg: EG_STANDARD, fmin: 10, fmax: 1000, N: 2,
+      filters: [{ type: 'staticGain', enabled: true, gain: NaN }],
+    };
+    const { fltMag } = engine.sweep(driverParams(DRV), LE_H, BOX, P).values!;
+    for (let i = 0; i < fltMag.length; i++) {
+      assert.ok(Number.isNaN(fltMag[i]), `fltMag[${i}] must be NaN, got ${fltMag[i]}`);
+    }
+  });
+  // The exact-|H|=0 counterpart lives in the "fltMag — an exact spectral null" describe
+  // block below (a staticGain fixture — see BUG_20260927_peaking-cut-notch-nan for why the
+  // peaking filter's own cut branch cannot stand in for "exact zero").
+});
+
 // ── Group delay is the slope AT each frequency, not across grid neighbours ──────
 
 describe('sweep — fmin=fmax: every sample is the group delay at that one frequency', () => {
@@ -446,15 +494,18 @@ describe('force-flat response — silent (-200 dB) points are never resurrected 
  * that centre frequency lands exactly on a sweep grid point, |H| is exactly 0, not merely small.
  */
 describe('fltMag — an exact spectral null lands the -200 dB silence sentinel, not a huge negative number', () => {
-  it('a peaking-EQ notch (gain=-Infinity) centred exactly on a grid point reads -200 dB there', () => {
-    // fmin=10, fmax=1000, N=2 → grid points 10, 100, 1000 (log-spaced); fc=100 lands on i=1.
+  it('a static-gain filter at -Infinity dB (|H|=0 exactly) reads -200 dB at every frequency', () => {
+    // staticGain: V = 10^(gain/20) = 10^(-Infinity/20) = 0 exactly → Hf = cx(0,0), a genuine
+    // |H| = 0, not a NaN dressed up as one (see BUG_20260927_peaking-cut-notch-nan: a peaking
+    // filter's cut branch at gain=-Infinity computes 0·Infinity inside cDiv and lands on NaN,
+    // not 0 — that filter can no longer stand in for "exact zero" once the sentinel guard
+    // distinguishes NaN from zero, BUG_20260927_spl-maps-nan-to-silence).
     const P: SweepParams = {
       Vb: VB_M3, Ql: QL_LOSSLESS, eg: EG_STANDARD, fmin: 10, fmax: 1000, N: 2,
-      filters: [{ type: 'peaking', enabled: true, fc: 100, Q: 1, gain: -Infinity }],
+      filters: [{ type: 'staticGain', enabled: true, gain: -Infinity }],
     };
     const sw = engine.sweep(driverParams(DRV), LE_H, BOX, P).values!;
-    assert.equal(sw.fs[1], 100, 'grid point must land exactly on the notch centre frequency');
-    assert.equal(sw.fltMag[1], -200, 'an exact |H|=0 null reads the same -200 dB silence sentinel as spl');
+    assert.ok(sw.fltMag.every(v => v === -200), 'an exact |H|=0 must read the -200 dB silence sentinel at every point');
   });
 });
 
