@@ -1,5 +1,5 @@
 prefix: QO
-next: 171
+next: 172
 questions:
 - id: QO168
   title: graph cursor/drag-selection exempted from the OpenISDProject three-field architecture gate (S10/QO130)
@@ -9713,3 +9713,15 @@ questions:
   - at: '2026-09-27'
     text: 'Also: bugs/BUG_20260927_winisd-va-uses-re-not-re-plus-rg.md (WinISD''s VA chart uses Re, not
       Re + Rg; Rg counted twice with ''Rg is at driver side'') — same kind of claim, same check.'
+- id: QO171
+  title: Filter edit rework started then abandoned after a wrong review
+  status: open
+  raised: '2026-09-27'
+  body: |-
+    Task: moving the Filters tab's editing rules (order rounding, value limits, the subtype list) out of the screen code and into the core, so the new mobile skin can reuse them. A worker did this and it was good.
+
+    What went wrong: the lead agent (me) reviewed it and wrongly called the chain "screen -> tab helper -> engine -> filter" a banned forwarding pattern, and told the worker to strip those steps. John corrected this: passing through the app's real layers is right. The worker had already started the strip-down.
+
+    What was set aside: the worker's half-finished strip-down (4 files, never used). It is kept on its own branch "wip-filter-edit-rework" in the openisd-filter-classes worktree, not deleted. The good version goes to main.
+
+    Decided with: John (the correction), the worker (stopped on request, discarded nothing). Nothing needs doing unless you want the set-aside branch deleted.
