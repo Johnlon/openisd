@@ -48,7 +48,7 @@ Box-type dispatcher 0x566850: 0 sealed 0x4618f0, 1 vented 0x456800, 2 bp4 0x457a
 
 1. ✅ **Filters on sealed, full** — every WinISD filter type, non-default settings: the 3 EQ/Filter
    charts plus SPL, excursion, VA, max SPL/power. Sealed is exact, so any gap is the filter's.
-2. **Vented** — full chart pass, then one capture with a filter.
+2. ✅ **Vented** — full chart pass, then one capture with a filter.
 3. **Passive radiator**, then **bandpass 4th** — the same.
 4. **Human re-verification (QO170)** — every WinISD bug claimed from debugger/disassembly/scripted
    runs is reproduced by hand in WinISD with John before it counts as fact. Filter bugs: the seven
@@ -81,61 +81,31 @@ each result before commit (check expected values come from WinISD, not from the 
 | Captures with filters + comparison tables | Sonnet |
 | Review before commit | leader |
 
-## Then: vented
+## Done: vented (2026-09-27)
 
-- `w5_chart_refresh.py` is sealed-only: `BOX` comes from `w5_sealed_baseline.py`, and `CHARTS`
-  holds the 10 sealed popup rows. Needed: a `box=vented` option passing `BType=1`, `Vr`, `Fr`
-  and `vent_rear` (Num, dia1, len, endcorrection) to `lib/wdr.write_wpr`, and the vented popup
-  rows (adds Rear port - Air velocity, Rear port - Gain; row order unverified).
-- ⚠ OpenISD's .wpr import (`openIsdProjectToWinIsdProject.ts` case 1) reads only `Vr`, `Fr`,
-  `VentRear Num`. Port diameter, length and end correction are ignored, so port air velocity
-  cannot match until the import reads them.
-- Chart value mapping for vented charts (which complex → which plotted value, esp. port air
-  velocity) must be established from the capture, as was done for sealed.
-- Vented alignment maths already validated 35/35 (memory: vented-alignment decompile).
-- **Port length calc: not checked exactly.** WinISD's vent length is the Helmholtz inverse
-  L = c²·Sp/((2π·Fb)²·Vb) − k·D, k = end correction (0.6), D = diameter. Matched only to WinISD's
-  3 displayed digits: 5 cm → 0.154 m, 7 cm → 0.318 m at Vb 20 L, Fb 40 Hz
-  ([PROBE_FINDINGS.md](http://localhost:8000/winisd/winisd_research/PROBE_FINDINGS.md?html) ~L1422).
-  Unverified: which c WinISD uses (air model), whether k·D uses diameter or an area-equivalent
-  for non-round vents, and how Num > 1 splits the area. OpenISD's solve is `ventLength(Vb, fb, Sp)`
-  (engine `alignments.ts`). Next: log WinISD's computed length by debugger and pin OpenISD to it.
-- **Box losses (Ql, Qa, Qp): not WinISD's form for vented, PR or bandpass.** Sealed now uses
-  WinISD's leak Ral = Ql/(ωsc·Cab), fixed, in parallel with a series absorption Raa = ωsc·Mas/Qa
-  ('winisd-lossy', `circuit.ts`). Vented, PR and bandpass 4th still use the old per-frequency
-  form Ql/(ω·Cab) ∥ Qa/(ω·Cab) — the form that was wrong for sealed. Port loss is
-  Rap = ω·Map/Qp (`portLoss`, per-frequency). ⚠ Unverified what WinISD's vented routine 0x456800
-  does for Ql, Qa and Qp: read its disassembly first (as done for sealed f_4618f0), then capture
-  with non-default Ql/Qa/Qp to separate them. Expect this to be the first vented gap.
-- **End correction default differs.** OpenISD `END_CORRECTION = 0.732` (`engine/air.ts`, the
-  default argument of `ventLength`/`tuningFromLength`); WinISD's default is 0.6 per vent
-  (`[VentRear] endcorrection`). Check which value each caller passes.
-- **Vent shape and count.** WinISD: round or rectangular (`Shape`, `dia1`, `dia2`, `carea`,
-  `crosscalc`), `Num` vents. OpenISD import reads `Num` only.
-- **Port model.** OpenISD has an optional transmission-line port (`useTransmissionLinePortModel`);
-  WinISD is lumped. Make sure it is off for the comparison.
-- **Port air velocity definition.** Peak or RMS, at which input power, one vent or all — take it
-  from the capture, as excursion's √2 was for sealed.
-- **Vented design limits.** OpenISD app settings carry `ventedLimits` (Options dialog). Check
-  whether any WinISD chart or readout uses a port-velocity limit.
-- **Variants.** Once default vented matches: VC inductance on, Rg 0/10 Ω with driver side on/off
-  (as done for sealed), and more than one vent.
-- **Box readouts.** Fb, F3 and vent length/area readouts on the Box tab, not only the charts.
-- **Filter capture.** One vented capture with the `chain_sealed.txt` filter set
-  (`w5_chart_refresh.py filters=`).
-- **WinISD Compatibility switches, reach into vented/PR/bandpass:**
+WinISD's vented box decoded by debugger (winisd_research GHIDRA_FINDINGS.md "Vented box —
+`0x456800`"): every loss fixed at ωb, port mass from Fb (vent length ignored), output cone − leak
+− port, port air velocity peak √2·|Up|/Sp. OpenISD's `winisd-lossy` vented branch now uses it; the
+`.wpr` import reads losses, vent diameter, end correction and Rg. All 11 vented charts plus the
+filter chain match ([chart review §3.5](http://localhost:8000/winisd/openisd/docs/research/CHART_REVIEW_WINISD_VS_OPENISD.md?html)).
 
-  | Switch               | Acts on                                                   | Reaches vented/PR/bandpass? |
-  |----------------------|-----------------------------------------------------------|-----------------------------|
-  | Loss model           | sealed box impedance only (`circuit.ts` sealed branch)    | **No** — they ignore it     |
-  | WinISD driver model  | driver Cms/Mms/Rms/BL and the inductance model            | Yes (shared driver side)    |
-  | WinISD air model     | ρ and c from temperature/pressure/humidity                | Yes (port mass, box Cab)    |
-  | WinISD VA model      | VA chart formula (`sweep.ts`)                             | Yes (formula uses Z only)   |
-
-  The loss model needs a vented/PR/bandpass WinISD form behind the same switch once WinISD's
-  routines are read (see Box losses above). Each switch's default must still give WinISD's
-  numbers for the new box type — verify by capture, not by assumption.
+Still open for vented:
+- **Vent length readout.** WinISD's charts ignore the length; its Box-tab length readout is
+  unchecked against OpenISD's `ventLength` (c used, k·D for non-round, Num > 1).
+- **End correction default.** OpenISD 0.732 (`engine/air.ts`) vs WinISD's 0.6 in a new project.
+  Affects the length readout only (charts use Fb).
+- **Vent shape.** Import reads round vents only; WinISD's non-round `Shape` codes are unverified.
+- **Variants.** VC inductance on, Rg at driver side, more than one vent.
+- **Box readouts.** Fb, F3, vent area on the Box tab.
 - Open: [BUG_20260918_no-ui-path-to-enter-a-vent-length](../../bugs/BUG_20260918_no-ui-path-to-enter-a-vent-length.md).
+
+## Next: passive radiator, then bandpass 4th
+
+Capture code prepared by session openisd-e4 (winisd_research 0ba4342, 8f06913):
+`w5_chart_refresh.py box=pr` / `box=bp4`, fit checks `toys/w5_pr_model_check.py`,
+`toys/w5_bp4_model_check.py`. Expect the vented pattern (losses fixed at the chamber tuning).
+The loss-model switch reaches sealed and vented today; PR and bandpass 4th still use the old
+per-frequency form.
 
 ## Open items
 

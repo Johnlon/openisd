@@ -39,28 +39,28 @@ Records (format `winisd-run-record/1`, all validated):
 
 ## 0. Checklist — WinISD charts to check
 
-Every chart in WinISD's chart menu, per box type OpenISD has. 50 to check: **13 done** (11 exact
-match, 2 within WinISD's own rounding), 37 to do.
+Every chart in WinISD's chart menu, per box type OpenISD has. 50 to check: **24 done** (21 exact
+match, 3 within WinISD's own rounding), 26 to do.
 
 Key: ✅ exact match (≤ 1e-12 at all 2086 points) · ≈ matches to WinISD's own rounding noise ·
 ☐ to check · ✗ OpenISD has no such chart · — does not apply to that box.
 
 | Chart                                   | Sealed | Vented | Bandpass 4th | Passive radiator |
 |-----------------------------------------|--------|--------|--------------|------------------|
-| Transfer function magnitude             | ✅     | ☐      | ☐            | ☐                |
-| Transfer function phase                 | ✅     | ☐      | ☐            | ☐                |
-| Group delay                             | ≈      | ☐      | ☐            | ☐                |
-| Maximum power                           | ✅     | ☐      | ☐            | ☐                |
-| Maximum SPL                             | ✅     | ☐      | ☐            | ☐                |
-| Amplifier apparent load power (VA)      | ✅     | ☐      | ☐            | ☐                |
-| SPL                                     | ✅     | ☐      | ☐            | ☐                |
-| Cone excursion                          | ✅     | ☐      | ☐            | ☐                |
-| Impedance                               | ✅     | ☐      | ☐            | ☐                |
-| Impedance phase                         | ✅     | ☐      | ☐            | ☐                |
+| Transfer function magnitude             | ✅     | ✅     | ☐            | ☐                |
+| Transfer function phase                 | ✅     | ✅     | ☐            | ☐                |
+| Group delay                             | ≈      | ≈      | ☐            | ☐                |
+| Maximum power                           | ✅     | ✅     | ☐            | ☐                |
+| Maximum SPL                             | ✅     | ✅     | ☐            | ☐                |
+| Amplifier apparent load power (VA)      | ✅     | ✅     | ☐            | ☐                |
+| SPL                                     | ✅     | ✅     | ☐            | ☐                |
+| Cone excursion                          | ✅     | ✅     | ☐            | ☐                |
+| Impedance                               | ✅     | ✅     | ☐            | ☐                |
+| Impedance phase                         | ✅     | ✅     | ☐            | ☐                |
 | Transfer function magnitude (PR)        | —      | —      | —            | ✗                |
 | Transfer function phase (PR)            | —      | —      | —            | ✗                |
 | Cone excursion (PR)                     | —      | —      | —            | ☐                |
-| Rear port - Air velocity                | —      | ☐      | —            | —                |
+| Rear port - Air velocity                | —      | ✅     | —            | —                |
 | Rear port - Gain                        | —      | ✗      | —            | —                |
 | Front port - Air velocity               | —      | —      | ☐            | —                |
 | Front port - Gain                       | —      | —      | ✗            | —                |
@@ -717,6 +717,33 @@ EQ 45 Hz Q 3 −4 dB, raised cosine 120 Hz 0.5 oct +5 dB. Plotted values logged 
 Maximum SPL and Maximum power leave the filter chain out in WinISD; OpenISD included it until
 [max-spl-and-max-power-include-the-filter-chain](http://localhost:8000/winisd/openisd/bugs/BUG_20260927_max-spl-and-max-power-include-the-filter-chain.md?html).
 Each filter type alone: 33 captures, `packages/design/test/engine/filters-winisd.test.ts`.
+
+### 3.5 Vented with a 4-filter chain
+
+Record
+[vented-w5-chain-1](http://localhost:8000/winisd/winisd_research/runs/vented-w5-chain-1/gdb.log):
+W5 in 10 L tuned to 38 Hz, 5 cm port with a 0.2 m length that WinISD ignores, Ql 7, Qa 30, Qp 15,
+Rg 0.1, the §3.4 filter chain. OpenISD after
+[vented-box-losses-not-winisd-form](http://localhost:8000/winisd/openisd/bugs/BUG_20260927_vented-box-losses-not-winisd-form.md?html).
+
+| Chart                     | Max difference |
+|---------------------------|----------------|
+| Transfer function mag     | 5.7e-14        |
+| Transfer function phase   | 1.3e-12        |
+| Group delay               | 0.00104 ms     |
+| Maximum power             | 9.6e-14        |
+| Maximum SPL               | 2.8e-14        |
+| VA                        | 5.5e-14        |
+| SPL                       | 4.3e-14        |
+| Cone excursion            | 1.9e-14        |
+| Impedance                 | 2.1e-14        |
+| Impedance phase           | 8.5e-14        |
+| Rear port air velocity    | 2.2e-11 (2e-12 relative) |
+| EQ/Filter magnitude       | 2.8e-14        |
+| EQ/Filter phase           | 8e-13          |
+| EQ/Filter group delay     | 0.00066 ms     |
+
+WinISD's vented model: winisd_research GHIDRA_FINDINGS.md "Vented box — `0x456800`".
 
 ---
 

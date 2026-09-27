@@ -8,33 +8,33 @@ Evidence: [CHART_REVIEW_WINISD_VS_OPENISD.md](research/CHART_REVIEW_WINISD_VS_OP
 The closed-form check is
 [`winisd_research/toys/w5_fresh_model_check.py`](http://localhost:8000/winisd/winisd_research/toys/w5_fresh_model_check.py).
 
-Scope of the evidence: **sealed box only**. Vented, bandpass and passive-radiator charts share the
-same driver side but their box side has not been checked against WinISD.
+Scope of the evidence: **sealed and vented**. Bandpass and passive-radiator charts share the same
+driver side but their box side has not been checked against WinISD.
 
 ## 0. Checklist — WinISD charts to check
 
-Every chart in WinISD's chart menu, per box type OpenISD has. 50 to check: **13 done** (11 exact
-match, 2 within WinISD's own rounding), 37 to do.
+Every chart in WinISD's chart menu, per box type OpenISD has. 50 to check: **24 done** (21 exact
+match, 3 within WinISD's own rounding), 26 to do.
 
 Key: ✅ exact match (≤ 1e-12 at all 2086 points) · ≈ matches to WinISD's own rounding noise ·
 ☐ to check · ✗ OpenISD has no such chart · — does not apply to that box.
 
 | Chart                                   | Sealed | Vented | Bandpass 4th | Passive radiator |
 |-----------------------------------------|--------|--------|--------------|------------------|
-| Transfer function magnitude             | ✅     | ☐      | ☐            | ☐                |
-| Transfer function phase                 | ✅     | ☐      | ☐            | ☐                |
-| Group delay                             | ≈      | ☐      | ☐            | ☐                |
-| Maximum power                           | ✅     | ☐      | ☐            | ☐                |
-| Maximum SPL                             | ✅     | ☐      | ☐            | ☐                |
-| Amplifier apparent load power (VA)      | ✅     | ☐      | ☐            | ☐                |
-| SPL                                     | ✅     | ☐      | ☐            | ☐                |
-| Cone excursion                          | ✅     | ☐      | ☐            | ☐                |
-| Impedance                               | ✅     | ☐      | ☐            | ☐                |
-| Impedance phase                         | ✅     | ☐      | ☐            | ☐                |
+| Transfer function magnitude             | ✅     | ✅     | ☐            | ☐                |
+| Transfer function phase                 | ✅     | ✅     | ☐            | ☐                |
+| Group delay                             | ≈      | ≈      | ☐            | ☐                |
+| Maximum power                           | ✅     | ✅     | ☐            | ☐                |
+| Maximum SPL                             | ✅     | ✅     | ☐            | ☐                |
+| Amplifier apparent load power (VA)      | ✅     | ✅     | ☐            | ☐                |
+| SPL                                     | ✅     | ✅     | ☐            | ☐                |
+| Cone excursion                          | ✅     | ✅     | ☐            | ☐                |
+| Impedance                               | ✅     | ✅     | ☐            | ☐                |
+| Impedance phase                         | ✅     | ✅     | ☐            | ☐                |
 | Transfer function magnitude (PR)        | —      | —      | —            | ✗                |
 | Transfer function phase (PR)            | —      | —      | —            | ✗                |
 | Cone excursion (PR)                     | —      | —      | —            | ☐                |
-| Rear port - Air velocity                | —      | ☐      | —            | —                |
+| Rear port - Air velocity                | —      | ✅     | —            | —                |
 | Rear port - Gain                        | —      | ✗      | —            | —                |
 | Front port - Air velocity               | —      | —      | ☐            | —                |
 | Front port - Gain                       | —      | —      | ✗            | —                |
@@ -47,7 +47,7 @@ Key: ✅ exact match (≤ 1e-12 at all 2086 points) · ≈ matches to WinISD's o
 | Group delay (EQ/Filter)                 | ≈      |
 
 Sealed variants also checked, all ✅: inductance on (SPL, impedance, TF magnitude); impedance at
-Rg 0 and 10 Ω with "Rg is at driver side" on and off; every sealed chart with a 4-filter chain
+Rg 0 and 10 Ω with "Rg is at driver side" on and off; every sealed and vented chart with a 4-filter chain
 (Linkwitz transform, Butterworth-4 highpass, parametric EQ, raised cosine — group delay ≈).
 Every WinISD filter type and subtype, alone: response ≤ 1e-12, group delay ≈ (33 captures,
 `filters-winisd.test.ts`). Not in OpenISD at all: bandpass 6th and
