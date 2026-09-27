@@ -29,53 +29,16 @@
 
 import {solveEnvironment} from './air.js';
 import {hotRe} from './solver.js';
-import {cAdd, cDiv, cInv, cMul, cPar, cScale, cSub, cTanh, cx} from './complex.js';
+import {cAdd, cDiv, cInv, cMul, cScale, cx} from './complex.js';
 import type {BoxType, Complex, Solution, SweepParams} from './types.js';
+import {simulatableBoxType} from './types.js';
 import type {LossModeValue} from './lossMode.js';
+import {boxModel} from './boxes/index.js';
+import type {DriverSideQuantities} from './boxes/index.js';
 
-export function portLoss(w: number, Map: number, P: Pick<SweepParams, 'Qp'>): number {
-  return w * Map / (P.Qp || 100);
-}
-
-/**
- * Port acoustic impedance — lumped mass, or a transmission line when `tlPortModel` is set
- * (WinISD Advanced: `Use "transmission line"-model for port simulation`).
- *
- * Lumped: Zp = Rap + jω·Map, with Map = ρ·Leff/Sp. Valid while the duct is short against a
- * wavelength; being monotonic in ω it has no pipe resonance, so it over-predicts port output
- * above the duct's own fundamental.
- *
- * Transmission line: the input impedance of a uniform lossy duct of length Leff and area Sp,
- * terminated by the mouth's radiation load.
- *   https://en.wikipedia.org/wiki/Acoustic_transmission_line
- *   Z0    = ρc/Sp                       characteristic acoustic impedance
- *   γ     = k/Qp + jk,  k = ω/c         propagation constant; the real part is chosen so the
- *                                       ω→0 limit reproduces the lumped Rap = ω·Map/Qp exactly,
- *                                       which keeps Qp's meaning identical in both models
- *   Zrad  = Z0·(ka)²/4,  a = √(Sp/π)    RESISTIVE part only of the piston radiation load
- *                                       (https://en.wikipedia.org/wiki/Acoustic_impedance#Radiation_impedance)
- *   Zp    = Z0·(Zrad + Z0·tanh γL)/(Z0 + Zrad·tanh γL)
- *
- * Only the resistive part of the radiation load is added because the REACTIVE part is exactly
- * what the end correction already folded into Leff (Leff = L + endCorrection·d). Adding it
- * again would double-count the mouth mass and drop the tuning. With that split, tanh(γL) → γL
- * as ω→0 gives Zp → Rap + jω·Map — the lumped model, to the last bit.
- */
-export function portImpedance(w: number, P: SweepParams): Complex {
-  const Sp = P.Sp!, Leff = P.Leff!;
-  const { rho, c } = solveEnvironment(P).values;
-
-  const Map = rho * Leff / Sp, Rap = portLoss(w, Map, P);
-  if (!P.tlPortModel) return cAdd(cx(Rap, 0), cx(0, w * Map));
-  const k    = w / c;
-  const Z0   = rho * c / Sp;
-  const a    = Math.sqrt(Sp / Math.PI);              // equivalent piston radius
-  const Zrad = cx(Z0 * 0.25 * (k * a) * (k * a), 0); // resistive radiation load at the mouth
-  const th   = cTanh(cx(k * Leff / (P.Qp || 100), k * Leff));
-  const num  = cAdd(Zrad, cScale(th, Z0));
-  const den  = cAdd(cx(Z0, 0), cMul(Zrad, th));
-  return cScale(cDiv(num, den), Z0);
-}
+// Re-exported unchanged: the box-specific box models (`./boxes/`) now own the port branch, but
+// an existing import of `portImpedance`/`portLoss` from `circuit.js` still resolves.
+export {portImpedance, portLoss} from './boxes/index.js';
 
 /**
  * Solve the acoustic circuit at frequency f (Hz).
@@ -220,164 +183,20 @@ export function solve(f: number, drv: CircuitQuantities, box: BoxType, P: SweepP
 
   const lossMode: LossModeValue = (Ql >= 1e6 && Qa >= 1e6) ? 'lossless' : (P.lossMode ?? 'winisd-lossy');
 
-  if (box === 'sealed') {
-    switch (lossMode) {
-      case 'lossless': {
-        Zbox = Zc;
-        UD = cDiv(pg, cAdd(cAdd(ZaE, ZaD), Zbox));
-        U0 = UD;
-        break;
-      }
-      case 'conventional-lossy': {
-        Zbox = cPar(Zc, Ral, Raa);
-        UD = cDiv(pg, cAdd(cAdd(ZaE, ZaD), Zbox));
-        U0 = UD;
-        break;
-      }
-      case 'winisd-lossy': {
-        const Cat = (Cas * Cab) / (Cas + Cab);
-        const wsc = 1 / Math.sqrt(Cat * Mas);
-        const RalConst = cx(Ql / (wsc * Cab), 0);
-        // WinISD's absorption: ωsc·Mas/Qa in series with Cab (BUG_20260926_winisd-box-absorption-is-series).
-        const RaaSeries = cx(wsc * Mas / Qa, 0);
-        Zbox = cPar(RalConst, cAdd(RaaSeries, Zc));
-        UD = cDiv(pg, cAdd(cAdd(ZaE, ZaD), Zbox));
-        const Uleak = cMul(UD, cDiv(Zbox, RalConst));
-        U0 = cSub(UD, Uleak);
-        break;
-      }
-      default: {
-        const _exhaustiveCheck: never = lossMode;
-        throw new Error(`Unhandled LossModeValue: ${_exhaustiveCheck}`);
-      }
-    }
-
-  } else if (box === 'vented') {
-    switch (lossMode) {
-      case 'lossless':
-      case 'conventional-lossy': {
-        // Port branch — lumped mass Map = ρ·Leff/Sp (Leff = L + END_CORRECTION·d), or a
-        // transmission line when P.tlPortModel is set. See portImpedance(). Ral/Raa are the
-        // same per-frequency Ql/Qa/(ω·Cab) the sealed box's own conventional-lossy branch uses;
-        // for 'lossless' they are effectively absent because Ql/Qa are then ≥1e6.
-        // https://en.wikipedia.org/wiki/Helmholtz_resonance#Resonant_frequency
-        const Zport = portImpedance(w, P);
-        Zbox = cPar(Zc, Ral, Raa, Zport);
-        UD = cDiv(pg, cAdd(cAdd(ZaE, ZaD), Zbox));
-        UP = cMul(UD, cDiv(Zbox, Zport));
-        U0 = cSub(UD, UP);
-        break;
-      }
-      case 'winisd-lossy': {
-        // WinISD's vented box (winisd_research/GHIDRA_FINDINGS.md "Vented box — `0x456800`",
-        // bugs/BUG_20260927_vented-box-losses-not-winisd-form.md). Every loss is a FIXED
-        // resistance taken at ωb = 2π·Fb — the box's TUNING, never the vent's own length or
-        // area — unlike the branch above, whose Map/Rap are per-frequency and length-derived:
-        //   Map = 1/(ωb²·Cab)                 the vent's geometry is not read at all
-        //   Ral = Ql/(ωb·Cab)                  leak, parallel to the box (fixed)
-        //   Raa = ωb·Map/Qa                    absorption, in series with Cab (fixed)
-        //   Rap = ωb·Map/Qp                    port loss, in series with Map (fixed)
-        //   Zbox = Ral ∥ (Raa + 1/(jωCab)) ∥ (Rap + jωMap)
-        // Radiated output is the Cab branch's own current — cone MINUS leak MINUS port, not
-        // cone minus port alone. `P.tlPortModel` is a conventional-branch-only option: WinISD's
-        // own port here is always this lumped Map, never a transmission line.
-        //
-        // `P.Fb` absent poisons every value below with NaN, exactly like an absent `Leff`/`Sp`
-        // does in the branch above (engine/params.ts's own doc: this solve divides by its inputs
-        // unguarded, and `classifyFinite` is the net that catches it) — never a throw, so the
-        // engine keeps its no-throw contract whether or not a domain guard ran in front of it
-        // (test/engine/hardening.test.ts "the engine's own net still classifies...").
-        const Fb = P.Fb ?? NaN;
-        const wb = 2 * Math.PI * Fb;
-        const Map = 1 / (wb * wb * Cab);
-        const Qp = P.Qp || 100;
-        const RalConst = cx(Ql / (wb * Cab), 0);
-        const RaaSeries = cx(wb * Map / Qa, 0);
-        const RapSeries = cx(wb * Map / Qp, 0);
-        const CabBranch = cAdd(RaaSeries, Zc);
-        const PortBranch = cAdd(RapSeries, cx(0, w * Map));
-        Zbox = cPar(RalConst, CabBranch, PortBranch);
-        UD = cDiv(pg, cAdd(cAdd(ZaE, ZaD), Zbox));
-        UP = cMul(UD, cDiv(Zbox, PortBranch));
-        U0 = cMul(UD, cDiv(Zbox, CabBranch));
-        break;
-      }
-      default: {
-        const _exhaustiveCheck: never = lossMode;
-        throw new Error(`Unhandled LossModeValue: ${_exhaustiveCheck}`);
-      }
-    }
-
-  } else if (box === 'box-passive-radiator') {
-    // Passive radiator: mechanical elements referred to acoustical domain
-    // https://en.wikipedia.org/wiki/Thiele/Small_parameters#Small_signal_parameters
-    // n_pr PRs in parallel → combined acoustic impedance = Zpr_single / n_pr. Map/Cap/Rap are the
-    // radiator's own mass/compliance/loss — the same in every lossMode; only the BOX's leak and
-    // absorption (Ral/Raa) and how the output is read off Zbox differ below.
-    const n_pr = P.prNum || 1;
-    const Map = (P.prMmd! + P.prMadd!) / (P.prSd! * P.prSd!);
-    const Cap = P.prCms! * P.prSd! * P.prSd!;
-    const Rap = (P.prRms || 0) / (P.prSd! * P.prSd!);
-    const Zpr_single = cAdd(cAdd(cx(Rap, 0), cx(0, w * Map)), cInv(cx(0, w * Cap)));
-    const Zpr = n_pr > 1 ? cScale(Zpr_single, 1 / n_pr) : Zpr_single;
-    switch (lossMode) {
-      case 'lossless':
-      case 'conventional-lossy': {
-        // Ral/Raa here are the same per-frequency Ql/Qa/(ω·Cab) the sealed box's own
-        // conventional-lossy branch uses; for 'lossless' they are effectively absent because
-        // Ql/Qa are then ≥1e6. Output is cone minus radiator (leak not split out).
-        Zbox = cPar(Zc, Ral, Raa, Zpr);
-        UD = cDiv(pg, cAdd(cAdd(ZaE, ZaD), Zbox));
-        UP = cMul(UD, cDiv(Zbox, Zpr));
-        U0 = cSub(UD, UP);
-        break;
-      }
-      case 'winisd-lossy': {
-        // WinISD's passive-radiator box (winisd_research/GHIDRA_FINDINGS.md "Passive radiator
-        // box — `0x45a960`", bugs/BUG_20260927_passive-radiator-losses-not-winisd-form.md).
-        // Leak and absorption are FIXED resistances taken at ωr = 2π·Fr — the box's OWN tuning
-        // (the resonance this box and this radiator actually produce together,
-        // `PassiveRadiatorBox.systemTuning_hz`), never the radiator's free-air Fs and never
-        // per-frequency:
-        //   Ral = Ql·ωr·Map          leak, parallel to the box (fixed)
-        //   Raa = ωr·Map/Qa          absorption, in series with Cab (fixed)
-        //   Zbox = Ral ∥ (Raa + 1/(jωCab)) ∥ Zpr
-        // Radiated output is the Cab branch's own current — cone MINUS leak MINUS radiator, not
-        // cone minus radiator alone. The box's own Qp is never used for a passive radiator (the
-        // radiator's own loss Rap above already carries it, as ωp·Map/Qms_pr when the radiator's
-        // own added mass Me = 0 — unverified for Me ≠ 0 or n_pr > 1, GHIDRA_FINDINGS.md same
-        // section).
-        //
-        // `P.Fr` absent poisons every value below with NaN, exactly like an absent `Fb` does in
-        // the vented branch above — never a throw (classifyFinite is the net that catches it).
-        const Fr = P.Fr ?? NaN;
-        const wr = 2 * Math.PI * Fr;
-        const RalConst = cx(Ql * wr * Map, 0);
-        const RaaSeries = cx(wr * Map / Qa, 0);
-        const CabBranch = cAdd(RaaSeries, Zc);
-        Zbox = cPar(RalConst, CabBranch, Zpr);
-        UD = cDiv(pg, cAdd(cAdd(ZaE, ZaD), Zbox));
-        UP = cMul(UD, cDiv(Zbox, Zpr));
-        U0 = cMul(UD, cDiv(Zbox, CabBranch));
-        break;
-      }
-      default: {
-        const _exhaustiveCheck: never = lossMode;
-        throw new Error(`Unhandled LossModeValue: ${_exhaustiveCheck}`);
-      }
-    }
-
-  } else if (box === 'bandpass4') {
-    // 4th-order bandpass: rear sealed chamber + front vented chamber
-    const Cabr   = P.Vb / (rho * c * c);
-    const Zr     = cPar(cInv(cx(0, w * Cabr)), cx(Ql / (w * Cabr), 0), cx(Qa / (w * Cabr), 0));
-    const Cabf   = P.Vf! / (rho * c * c);
-    const Zportf = portImpedance(w, P);
-    const Zf     = cPar(cInv(cx(0, w * Cabf)), cx(Ql / (w * Cabf), 0), cx(Qa / (w * Cabf), 0), Zportf);
-    Zbox = cAdd(Zr, Zf);
-    UD = cDiv(pg, cAdd(cAdd(ZaE, ZaD), Zbox));
-    UP = cMul(UD, cDiv(Zf, Zportf));
-    U0 = UP;
+  // The one place a `BoxType` becomes a topology's own circuit (`./boxes/`, mirroring
+  // `../filters/index.ts`'s `filterModel()`). `simulatableBoxType` narrows to the four types the
+  // circuit has a model for; `bandpass6`/`abc` fall through with `Zbox`/`UD`/`U0` left
+  // unassigned, reproducing the same "Cannot read properties of undefined" failure calling
+  // through with one of those types already produces today (test/engine/circuit.test.ts "an
+  // unsimulatable box type (bandpass6, abc) is not refused by solve() itself").
+  const simulatable = simulatableBoxType(box);
+  if (simulatable !== null) {
+    const shared: DriverSideQuantities = {w, pg, ZaE, ZaD, Cab, Zc, Ral, Raa, Ql, Qa, Cas, Mas, rho, c, lossMode};
+    const result = boxModel(simulatable, P).solve(shared);
+    Zbox = result.Zbox;
+    UD = result.UD;
+    UP = result.UP;
+    U0 = result.U0;
   }
 
   // Electrical input impedance Zel = Ze + Bl²/(Sd²·(ZaD+Zbox)), with the ENTERED BL as WinISD
