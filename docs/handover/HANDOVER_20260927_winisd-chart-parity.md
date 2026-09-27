@@ -73,8 +73,22 @@ once, on sealed; the other boxes need one filter capture each, not the full set.
 - The filter charts' value mapping (which complex WinISD logs for FltMag/FltPhase/FltGD) must be
   taken from the capture. Sealed notes say WinISD's group delay may exclude the filter chain —
   unverified.
-- Scope decision for John: WinISD filter types OpenISD lacks (orders 1–10, Bessel, LR, allpass,
-  static gain, peak-gain HP) — build them, or check only the types both have.
+- **Ruling, John 2026-09-27: build them all — parity and beyond.** Every WinISD filter type and
+  order in OpenISD, matched to WinISD; OpenISD-only types (shelves) stay.
+
+## Delegation (John, 2026-09-27)
+
+Leader + one Sonnet worker at a time, serial. Leader writes a tight brief per chunk and reviews
+each result before commit (check expected values come from WinISD, not from the worker's code).
+
+| Work | Who |
+|---|---|
+| Decode WinISD filter type numbers and params | leader, or Sonnet with a tight brief |
+| Reading WinISD disassembly (what a chart plots) | leader |
+| Each filter type TDD from its formula | Sonnet |
+| `.wpr` `[Filters]` import | Sonnet |
+| Captures with filters + comparison tables | Sonnet |
+| Review before commit | leader |
 
 ## Then: vented
 
