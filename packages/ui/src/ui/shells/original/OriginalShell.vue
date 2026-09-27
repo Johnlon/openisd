@@ -94,7 +94,7 @@ const {
         <div class="tb-sep"></div>
         <div class="chart-select" @click.stop="toggleDropdown('chart-dropdown')" title="Choose which curve the graph shows">
           <ToolbarIcon name="chart" />
-          <span class="chart-name">{{ chartLabel }}</span>
+          <span class="chart-name" :title="chartLabel">{{ chartLabel }}</span>
           <span class="caret">&#9662;</span>
           <div class="dropdown-menu" :class="{ open: openDd === 'chart-dropdown' }" @click.stop>
             <template v-for="item in CHART_ITEMS" :key="item.label">
@@ -798,20 +798,20 @@ WinISD Lossy (default): reports the lossy 3rd-order model's pole, so Fsc rises a
 
 /* ---------- Toolbar ---------- */
 .toolbar { display:flex; align-items:center; gap:12px; background:#eee; border-bottom:1px solid #bbb; padding:4px 12px; }
-.tb-icons { display:flex; align-items:center; gap:6px; min-width:0; flex:1 1 0; }
-.tb-btn { display:flex; align-items:center; justify-content:center; width:34px; height:30px; background:#f7f7f7; border:1px solid #bbb; border-radius:3px; cursor:pointer; position:relative; }
+.tb-icons { display:flex; align-items:center; gap:6px; min-width:0; flex:0 1 auto; }
+.tb-btn { display:flex; align-items:center; justify-content:center; flex:none; width:34px; height:30px; background:#f7f7f7; border:1px solid #bbb; border-radius:3px; cursor:pointer; position:relative; }
 .tb-btn:hover { background:#dbeaff; border-color:#7fb3ff; }
 .tb-btn.disabled { opacity:.4; cursor:default; pointer-events:none; }
 .tb-btn.disabled:hover { background:#f7f7f7; border-color:#bbb; }
 .tb-btn.dirty { border-color:#d9a441; background:#fff3e0; }
 .tb-btn.dirty:hover { background:#ffe4b0; border-color:#c9971b; }
-.tb-sep { width:1px; align-self:stretch; background:#ccc; margin:0 4px; }
+.tb-sep { width:1px; flex:none; align-self:stretch; background:#ccc; margin:0 4px; }
 .tb-btn svg { display:block; }
 .caret { font-size:10px; margin-left:2px; color:#555; }
-.chart-select { display:flex; align-items:center; gap:6px; border:1px solid #bbb; border-radius:3px; background:#fff; padding:4px 8px; cursor:pointer; position:relative; user-select:none; }
+.chart-select { display:flex; align-items:center; gap:6px; min-width:0; border:1px solid #bbb; border-radius:3px; background:#fff; padding:4px 8px; cursor:pointer; position:relative; user-select:none; }
 .chart-select:hover { border-color:#7fb3ff; }
-.chart-select .chart-name { font-weight:600; }
-.cursor-readout { line-height:1; color:#222; font-size:14px; cursor:default; display:flex; flex-direction:row; align-items:center; justify-content:flex-end; gap:12px; white-space:nowrap; min-width:0; flex:1 1 0; }
+.chart-select .chart-name { font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0; }
+.cursor-readout { line-height:1; color:#222; font-size:14px; cursor:default; display:flex; flex-direction:row; align-items:center; justify-content:flex-end; gap:12px; white-space:nowrap; flex:1 0 auto; }
 .version-chip { font-size:12px; color:#555; line-height:1.1; font-weight:400; }
 .cursor-readout .ro-hz, .cursor-readout .ro-val { font-variant-numeric:tabular-nums; display:inline-flex; align-items:center; }
 .ro-hz-input {
