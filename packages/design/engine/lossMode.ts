@@ -28,15 +28,15 @@ export type LossModeValue = 'lossless' | 'conventional-lossy' | 'winisd-lossy';
 export class LossMode {
   private constructor(readonly value: LossModeValue, readonly label: string) {}
 
-  static readonly Lossless = new LossMode('lossless', 'Lossless');
-  static readonly ConventionalLossy = new LossMode('conventional-lossy', 'Conventional Lossy');
-  static readonly WinisdLossy = new LossMode('winisd-lossy', 'WinISD Lossy');
+  static readonly Lossless = new LossMode('lossless', 'Lossless model');
+  static readonly ConventionalLossy = new LossMode('conventional-lossy', 'Conventional lossy model');
+  static readonly WinisdLossy = new LossMode('winisd-lossy', 'WinISD lossy model');
 
   /** Declaration order is the selector order. Keep WinisdLossy present — it is the default. */
   static readonly ALL: readonly LossMode[] = [
+    LossMode.WinisdLossy,
     LossMode.Lossless,
     LossMode.ConventionalLossy,
-    LossMode.WinisdLossy,
   ];
 
   static readonly Default = LossMode.WinisdLossy;

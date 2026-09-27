@@ -247,16 +247,6 @@ const {
                 <option v-for="o in BOX_TYPE_OPTIONS" :key="o.value" :value="o.value">{{ o.label }}</option>
               </select>
             </div>
-            <div v-if="selectedBox === 'sealed'" class="field" style="gap:8px;"
-              title="Sealed resonance (Fsc) / system Q (Qtc) loss model.
-Lossless: Fsc = fs·√(1+Vas/Vb).
-Conventional Lossy: folds Ql/Qa into Qtc only; frequency stays fixed (Small/Thiele).
-WinISD Lossy (default): reports the lossy 3rd-order model's pole, so Fsc rises as Ql falls — matches WinISD's own readout.">
-              <label style="width:auto;">Model</label>
-              <select id="lossmode" :value="lossMode" @change="e => { const m = selectedOption(e, LOSS_MODE_OPTIONS); if (m !== null) lossMode = m; }" style="width:170px">
-                <option v-for="m in LOSS_MODE_OPTIONS" :key="m.value" :value="m.value">{{ m.label }}</option>
-              </select>
-            </div>
           </div>
 
           <div class="box-layout">
@@ -619,8 +609,7 @@ WinISD Lossy (default): reports the lossy 3rd-order model's pole, so Fsc rises a
               </div>
               <div class="field-row" style="flex-wrap: nowrap; margin-bottom: 6px;">
                 <div class="field" style="gap:6px;" :title="`Controls sealed resonance (Fsc) and system Q (Qtc) loss calculations:\n• None: Ideal lossless enclosure (Q = ∞)\n• WinISD default: Lossy cubic model (Ql=10, Qa=100, Qp=100)\n• Custom Q: User-defined damping parameters`">
-                  <label style="width:auto;">Loss model</label>
-                  <select id="adv-lossmode" :value="lossMode" @change="e => { const m = selectedOption(e, LOSS_MODE_OPTIONS); if (m !== null) lossMode = m; }" style="width:140px">
+                  <select id="adv-lossmode" :value="lossMode" @change="e => { const m = selectedOption(e, LOSS_MODE_OPTIONS); if (m !== null) lossMode = m; }" style="width:200px">
                     <option v-for="m in LOSS_MODE_OPTIONS" :key="m.value" :value="m.value">{{ m.label }}</option>
                   </select>
                 </div>
@@ -635,7 +624,7 @@ WinISD Lossy (default): reports the lossy 3rd-order model's pole, so Fsc rises a
                   <input type="checkbox" :checked="project.envUseWinisdAirModel.value" @change="e => project.envUseWinisdAirModel.set(inputChecked(e))"> WinISD air model
                 </label>
               </div>
-              <div style="margin-bottom: 8px;">
+              <div>
                 <label data-field-key="winisdVaModel" style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 13px;" :title="`WinISD VA model: affects the Amplifier apparent load power (VA) chart only.\nTicked (default, as WinISD): VA = P·Re/|Z + Rg|. A WinISD bug: it uses Re where the amplifier sees Re + Rg, so it reads low by Re/(Re + Rg). With 'Rg is at driver side' on, Z already includes Rg and WinISD adds it again.\nUnticked (corrected): VA = P·(Re + Rg)/|Z seen by the amplifier|, Rg counted once.\nBoth give the same result when Rg is 0.\nP: input power. Z: the impedance chart. Rg: the series resistance.`">
                   <input type="checkbox" :checked="project.winisdVaModel.value" @change="e => project.winisdVaModel.set(inputChecked(e))"> WinISD VA model
                 </label>
@@ -798,7 +787,7 @@ WinISD Lossy (default): reports the lossy 3rd-order model's pole, so Fsc rises a
 
 /* ---------- Toolbar ---------- */
 .toolbar { display:flex; align-items:center; gap:12px; background:#eee; border-bottom:1px solid #bbb; padding:4px 12px; }
-.tb-icons { display:flex; align-items:center; gap:6px; flex:none; }
+.tb-icons { display:flex; align-items:center; gap:6px; min-width:0; flex:1 1 0; }
 .tb-btn { display:flex; align-items:center; justify-content:center; flex:none; width:34px; height:30px; background:#f7f7f7; border:1px solid #bbb; border-radius:3px; cursor:pointer; position:relative; }
 .tb-btn:hover { background:#dbeaff; border-color:#7fb3ff; }
 .tb-btn.disabled { opacity:.4; cursor:default; pointer-events:none; }
@@ -808,7 +797,7 @@ WinISD Lossy (default): reports the lossy 3rd-order model's pole, so Fsc rises a
 .tb-sep { width:1px; flex:none; align-self:stretch; background:#ccc; margin:0 4px; }
 .tb-btn svg { display:block; }
 .caret { font-size:10px; margin-left:2px; color:#555; }
-.chart-select { display:flex; align-items:center; gap:6px; flex:none; width:360px; box-sizing:border-box; border:1px solid #bbb; border-radius:3px; background:#fff; padding:4px 8px; cursor:pointer; position:relative; user-select:none; }
+.chart-select { display:flex; align-items:center; gap:6px; flex:none; width:324px; box-sizing:border-box; border:1px solid #bbb; border-radius:3px; background:#fff; padding:4px 8px; cursor:pointer; position:relative; user-select:none; }
 .chart-select:hover { border-color:#7fb3ff; }
 .chart-select .chart-name { font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0; flex:1; }
 .cursor-readout { line-height:1; color:#222; font-size:14px; cursor:default; display:flex; flex-direction:row; align-items:center; justify-content:flex-end; gap:12px; white-space:nowrap; min-width:0; flex:1 1 0; }
@@ -1128,6 +1117,7 @@ textarea.comment, textarea.description { width:100%; border:1px solid #999; bord
   padding: 8px 10px;
   width: 245px;
   flex: none;
+  align-self: flex-start;
 }
 .sim-options-header {
   font-weight: 600;

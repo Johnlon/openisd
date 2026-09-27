@@ -133,10 +133,11 @@ test('sealed box: Fs=37Hz,Qts=0.38,Vas=30L — Butterworth button sets Vb so box
   // catalogue driver's own Fs/Qts/Vas back and this scenario would never be under test. The
   // panel is fixed to the bottom-right corner, so the Box tab is reachable behind it.
 
-  // Switch to Box tab, sealed box, lossless model for exact formula match
+  // Lossless model (WinISD Compatibility panel) for exact formula match, then Box tab, sealed box
+  await page.locator('.project-nav li', { hasText: /^Advanced$/ }).click();
+  await page.locator('#adv-lossmode').selectOption('lossless');
   await page.locator('.project-nav li', { hasText: 'Box' }).click();
   await page.locator('#og-box-type').selectOption('sealed');
-  await page.locator('#lossmode').selectOption('lossless');
 
   // Open Alignment modal and choose Butterworth 0.707
   await page.getByRole('button', { name: 'Alignment', exact: true }).click();

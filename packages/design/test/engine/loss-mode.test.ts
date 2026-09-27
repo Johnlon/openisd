@@ -152,7 +152,7 @@ describe('Sealed-Box Resonance Loss Models', () => {
   describe('LossMode enum', () => {
     it('has exactly three members with WinISD as default', () => {
       assert.deepEqual(LossMode.ALL.map(m => m.value),
-        ['lossless', 'conventional-lossy', 'winisd-lossy']);
+        ['winisd-lossy', 'lossless', 'conventional-lossy']);
       assert.equal(LossMode.Default, LossMode.WinisdLossy);
     });
     it('parses wire values and falls back to the default', () => {
