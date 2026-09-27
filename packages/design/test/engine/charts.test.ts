@@ -19,28 +19,31 @@ describe('Engine.chartsFor', () => {
     ]);
   });
 
-  it('a vented box adds RearPort, in WinISD chart-menu position, no FrontPort, no PR', () => {
+  it('a vented box adds RearPort and RearPortGain, in WinISD chart-menu position, no FrontPort, no PR', () => {
     const charts = engine.chartsFor('vented');
     assert.ok(charts.includes('RearPort'));
+    assert.ok(charts.includes('RearPortGain'));
     assert.ok(!charts.includes('FrontPort'));
     assert.ok(!charts.includes('PRTFMag') && !charts.includes('PRTFPhase') && !charts.includes('PRExcursion'));
-    assert.deepEqual([...charts].sort(), [...engine.chartsFor('sealed'), 'RearPort'].sort());
-    // WinISD row order: the port chart sits after Zph, before the filter trio.
+    assert.deepEqual([...charts].sort(), [...engine.chartsFor('sealed'), 'RearPort', 'RearPortGain'].sort());
+    // WinISD row order: the port chart sits after Zph, before the filter trio, gain right after it.
     assert.ok(charts.indexOf('RearPort') > charts.indexOf('Zph'));
-    assert.ok(charts.indexOf('RearPort') < charts.indexOf('FltMag'));
+    assert.equal(charts.indexOf('RearPortGain'), charts.indexOf('RearPort') + 1);
+    assert.ok(charts.indexOf('RearPortGain') < charts.indexOf('FltMag'));
   });
 
-  it('a 4th-order bandpass box adds FrontPort instead, no RearPort, no PR', () => {
+  it('a 4th-order bandpass box adds FrontPort instead, no RearPort, no RearPortGain, no PR', () => {
     const charts = engine.chartsFor('bandpass4');
     assert.ok(charts.includes('FrontPort'));
     assert.ok(!charts.includes('RearPort'));
+    assert.ok(!charts.includes('RearPortGain'));
     assert.deepEqual([...charts].sort(), [...engine.chartsFor('sealed'), 'FrontPort'].sort());
   });
 
   it('a passive-radiator box adds the three PR charts, no port chart', () => {
     const charts = engine.chartsFor('box-passive-radiator');
     assert.ok(charts.includes('PRTFMag') && charts.includes('PRTFPhase') && charts.includes('PRExcursion'));
-    assert.ok(!charts.includes('RearPort') && !charts.includes('FrontPort'));
+    assert.ok(!charts.includes('RearPort') && !charts.includes('RearPortGain') && !charts.includes('FrontPort'));
     assert.deepEqual([...charts].sort(), [...engine.chartsFor('sealed'), 'PRTFMag', 'PRTFPhase', 'PRExcursion'].sort());
     // WinISD row order: TFMag, Phase, ... Zph, PRTFMag, PRTFPhase, PRExcursion, then the filter trio.
     assert.ok(charts.indexOf('PRTFMag') > charts.indexOf('Zph'));

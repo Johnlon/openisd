@@ -50,6 +50,10 @@ it. `Port` split into two design-owned ids, `RearPort` (vented) and `FrontPort` 
 which port is itself a design decision, not a UI ternary. Chart review checklist rows for
 both PR transfer charts turn ✅.
 
-Pending: "Rear port - Gain" (vented) and "Front port - Gain" (bandpass 4th) — not in this
-task. A vented port-gain capture (`winisd_research/runs/vented-gain-1`) already exists from
-another session's work on that half.
+Also done: "Rear port - Gain" (vented box, `sweep.ts` `rearPortGain`, null for every other box
+type) — matched to WinISD's own plotted values (winisd_research runs/vented-gain-1) to
+5.0e-14 dB, well inside the ≤1e-10 tier. Same `tfMag`/`splRefLimit` 0 dB reference as
+`prTfMag`, but — unlike `prTfMag` — run through the filter chain, same as `tfMag` itself.
+New `RearPortGain` chart id, right after `RearPort` in WinISD's row order, vented only.
+
+Pending: "Front port - Gain" (bandpass 4th) — not in this task; its capture is still running.

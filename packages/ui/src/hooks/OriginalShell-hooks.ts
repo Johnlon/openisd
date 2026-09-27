@@ -603,6 +603,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     PRTFPhase: 'Transfer function phase (PR)',
     PRExcursion: 'Cone excursion (PR)',
     RearPort: 'Rear port - Air velocity',
+    RearPortGain: 'Rear port - Gain',
     FrontPort: 'Front port - Air velocity',
     FltMag: 'Transfer function magnitude (EQ/Filter)',
     FltPhase: 'Transfer function phase (EQ/Filter)',

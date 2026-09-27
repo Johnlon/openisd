@@ -29,6 +29,9 @@ export const TAB_META: Record<ChartId, TabMeta> = {
   // (BUG_20260927_winisd-charts-missing.md) — `sw.excPR` moved here.
   PRExcursion: { id:'PRExcursion', name:'Cone excursion (PR)', unit:'mm', color:'#5ad17a' },
   RearPort:  { id:'RearPort',  name:'Rear port - Air velocity', unit:'m/s', color:'#5ad17a' },
+  // Same 0 dB / -3 dB passband-asymptote convention as TFMag (packages/design/engine/sweep.ts
+  // rearPortGain) — unlike PRTFMag, this one IS run through the filter chain.
+  RearPortGain: { id:'RearPortGain', name:'Rear port - Gain', unit:'dB', color:'#4fb0ff' },
   FrontPort: { id:'FrontPort', name:'Front port - Air velocity', unit:'m/s', color:'#5ad17a' },
   GD:        { id:'GD',        name:'Group delay',     unit:'ms',  color:'#c08bff' },
   Zmag:      { id:'Zmag',      name:'Impedance',       unit:'Ω',   color:'#ff6b6b' },
@@ -186,6 +189,21 @@ const CURVE_BUILDERS: Record<ChartId, (c: CurveCtx) => CurveBuild> = {
     return { series, ymin: 0, ymax: top };
   },
 
+  // Applicable only to vented — design's `chartsFor` gates the menu; a compare overlay of a
+  // different box type draws the -200 dB silence fallback here, same as PRTFMag. Unlike
+  // PRTFMag, this one IS run through the filter chain (packages/design/engine/sweep.ts
+  // rearPortGain).
+  RearPortGain: ({ meta, sw }) => {
+    const rel = sw.rearPortGain ?? sw.fs.map(() => -200);
+    const series: Series[] = [{ xs: sw.fs, ys: rel, color: meta.color, name: 'Rear port gain' }];
+    series.push({ xs: sw.fs, ys: sw.fs.map(() => 0), color: '#8a99ab', name: '0 dB', dash: true });
+    series.push({ xs: sw.fs, ys: sw.fs.map(() => -3), color: '#ffb454', name: '−3 dB', dash: true });
+    const relReal = realDb(rel);
+    const loRel = relReal.length ? Math.min(...relReal) : -45;
+    const ymax = 5;
+    return { series, ymin: Math.min(ymax - 45, Math.floor((loRel - 3) / 5) * 5), ymax };
+  },
+
   // Applicable only to vented (rear) or bandpass4 (front) — design's `chartsFor` gates the
   // menu; a compare overlay of a different box type draws `pv`'s own 0 curve here, same as
   // any other chart. One builder, shared by both ids: the port is different, the quantity
@@ -333,6 +351,7 @@ export function errorsForChart(chartId: ChartId, errors: DriverError[]): DriverE
       case 'Excursion': return 'cone excursion';
       case 'PRExcursion': return 'PR excursion';
       case 'RearPort': return 'port velocity';
+      case 'RearPortGain': return 'rear port gain';
       case 'FrontPort': return 'port velocity';
       case 'GD': return 'group delay';
       case 'Zmag': return 'impedance magnitude';

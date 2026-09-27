@@ -133,18 +133,20 @@ test('the chart menu lists only the charts that apply to the current box '
    + '(BUG_20260927_winisd-charts-missing)', async ({ page }) => {
   const menuItems = () => page.locator('.chart-select .menu-item');
 
-  // The sample project opens vented: its own port chart is in the menu, no PR chart.
+  // The sample project opens vented: its own port charts are in the menu, no PR chart.
   await page.locator('.chart-select').click();
   await expect(menuItems().filter({ hasText: 'Rear port - Air velocity' })).toBeVisible();
+  await expect(menuItems().filter({ hasText: 'Rear port - Gain' })).toBeVisible();
   await expect(menuItems().filter({ hasText: 'Transfer function magnitude (PR)' })).toHaveCount(0);
   await expect(menuItems().filter({ hasText: 'Cone excursion (PR)' })).toHaveCount(0);
   await page.locator('.chart-select').click(); // close
 
-  // Switch to sealed: the port chart drops out, still no PR chart.
+  // Switch to sealed: the port charts drop out, still no PR chart.
   await page.locator('.project-nav li', { hasText: 'Box' }).click();
   await page.locator('#og-box-type').selectOption('sealed');
   await page.locator('.chart-select').click();
   await expect(menuItems().filter({ hasText: /port - Air velocity$/i })).toHaveCount(0);
+  await expect(menuItems().filter({ hasText: 'Rear port - Gain' })).toHaveCount(0);
   await expect(menuItems().filter({ hasText: 'Transfer function magnitude (PR)' })).toHaveCount(0);
   await page.locator('.chart-select').click();
 
@@ -155,6 +157,7 @@ test('the chart menu lists only the charts that apply to the current box '
   await expect(menuItems().filter({ hasText: 'Transfer function phase (PR)' })).toBeVisible();
   await expect(menuItems().filter({ hasText: 'Cone excursion (PR)' })).toBeVisible();
   await expect(menuItems().filter({ hasText: /port - Air velocity$/i })).toHaveCount(0);
+  await expect(menuItems().filter({ hasText: 'Rear port - Gain' })).toHaveCount(0);
 });
 
 test('all seven project tabs render their ported content', async ({ page }) => {

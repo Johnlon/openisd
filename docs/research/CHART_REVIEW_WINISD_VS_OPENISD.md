@@ -39,8 +39,8 @@ Records (format `winisd-run-record/1`, all validated):
 
 ## 0. Checklist — WinISD charts to check
 
-Every chart in WinISD's chart menu, per box type OpenISD has. 50 to check: **37 done** (33 exact
-match, 4 within WinISD's own rounding), 13 to do.
+Every chart in WinISD's chart menu, per box type OpenISD has. 50 to check: **38 done** (34 exact
+match, 4 within WinISD's own rounding), 12 to do.
 
 Key: ✅ exact match (≤ 1e-12 at all 2086 points) · ≈ matches to WinISD's own rounding noise ·
 ☐ to check · ✗ OpenISD has no such chart · — does not apply to that box.
@@ -61,7 +61,7 @@ Key: ✅ exact match (≤ 1e-12 at all 2086 points) · ≈ matches to WinISD's o
 | Transfer function phase (PR)            | —      | —      | —            | ✅               |
 | Cone excursion (PR)                     | —      | —      | —            | ✅               |
 | Rear port - Air velocity                | —      | ✅     | —            | —                |
-| Rear port - Gain                        | —      | ✗      | —            | —                |
+| Rear port - Gain                        | —      | ✅     | —            | —                |
 | Front port - Air velocity               | —      | —      | ☐            | —                |
 | Front port - Gain                       | —      | —      | ✗            | —                |
 | Intrachamber port - Air velocity        | —      | —      | —            | —                |
@@ -791,6 +791,24 @@ plotted value. After BUG_20260927_winisd-charts-missing.md.
 WinISD wart, reproduced exactly: the phase chart plots `arg(Upr)`, NOT `arg(jω·Upr)` — it drops
 the 90° rotation its own magnitude chart carries. WinISD's model: winisd_research
 GHIDRA_FINDINGS.md "Passive radiator — `0x45a960`", "Radiator transfer function" bullet.
+
+### 3.8 Vented: "Rear port - Gain"
+
+Record [vented-gain-1](http://localhost:8000/winisd/winisd_research/runs/vented-gain-1/gdb.log)
+(kind 11, 2087 points), W5 in a 10 L vented box, Fb 38 Hz, 4-filter chain. `v` is the plotted
+dB itself — same as the PR transfer charts in §3.7, not a complex re/im pair. After
+BUG_20260927_winisd-charts-missing.md.
+
+| Chart              | Max difference |
+|---------------------|-----------------|
+| Rear port - Gain    | 5.0e-14 dB      |
+
+Same `K·ω·Up` formula and real-ω wart as `prTfMag`/`prTfPhase` (§3.7), on the SAME `tfMag` 0 dB
+reference — but, unlike the PR transfer charts, `Up` here is multiplied by the filter chain
+`Hf`, same as `tfMag` itself: the filter's own +6 dB peaking band shows through this chart, not
+just the port's raw resonance. WinISD's model: winisd_research GHIDRA_FINDINGS.md "Passive
+radiator box — `0x45a960`", "Rear port gain" bullet (the formula is box-agnostic; found by
+fitting `toys/w5_port_gain_shape.py` against this vented capture).
 
 ---
 

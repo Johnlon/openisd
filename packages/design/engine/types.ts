@@ -310,6 +310,15 @@ export interface SweepResult {
    *  where `prTfMag` is. */
   prTfPhase: number[] | null;
   /**
+   * WinISD's "Rear port - Gain" (vented box only) — the port's own pressure (K·ω·Up, ω taken
+   * as a REAL scalar, same wart as `prTfPhase`), on the SAME `tfMag` 0 dB reference as
+   * `prTfMag` — but, unlike `prTfMag`, MULTIPLIED by the filter chain, same as `tfMag` itself
+   * (winisd_research/GHIDRA_FINDINGS.md "Passive radiator box", "Rear port gain" bullet — the
+   * formula is box-agnostic, found against a vented capture). `null` for every box type but
+   * `vented`: WinISD itself has no such chart for them, so this is absence, never a fake zero.
+   */
+  rearPortGain: number[] | null;
+  /**
    * SPL with the drive backed off wherever peak excursion would exceed Xmax
    * (WinISD Advanced: "SPL graph is Xmax limited"). Always computed, never substituted
    * for `spl`: the plain curve still feeds the transfer-function chart, the F3/F6/F10

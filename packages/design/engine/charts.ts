@@ -6,9 +6,9 @@
  * and the three EQ/filter charts always. NEVER "when the data exists" — a chart WinISD draws
  * for every box of that shape stays listed even on the day its own OpenISD data is still a bug.
  *
- * Port gain and the intrachamber port chart are simply absent from `ChartId` — they are not
- * yet built at all, so there is nothing here to gate; each joins this set, in its own WinISD
- * row position, the day it is.
+ * Front port gain and the intrachamber port chart are simply absent from `ChartId` — they are
+ * not yet built at all, so there is nothing here to gate; each joins this set, in its own
+ * WinISD row position, the day it is.
  */
 import type {BoxType} from './types.js';
 
@@ -18,14 +18,14 @@ import type {BoxType} from './types.js';
  */
 export type ChartId =
   | 'TFMag' | 'Phase' | 'GD' | 'MaxPwr' | 'MaxSPL' | 'VA' | 'SPL' | 'Excursion'
-  | 'Zmag' | 'Zph' | 'PRTFMag' | 'PRTFPhase' | 'PRExcursion' | 'RearPort' | 'FrontPort'
+  | 'Zmag' | 'Zph' | 'PRTFMag' | 'PRTFPhase' | 'PRExcursion' | 'RearPort' | 'RearPortGain' | 'FrontPort'
   | 'FltMag' | 'FltPhase' | 'FltGD';
 
 /** Every `ChartId`, in WinISD's own chart-menu row order — the ordered superset `chartsFor`
  *  filters down to what a box actually has. */
 const CHART_ORDER: readonly ChartId[] = Object.freeze([
   'TFMag', 'Phase', 'GD', 'MaxPwr', 'MaxSPL', 'VA', 'SPL', 'Excursion',
-  'Zmag', 'Zph', 'PRTFMag', 'PRTFPhase', 'PRExcursion', 'RearPort', 'FrontPort',
+  'Zmag', 'Zph', 'PRTFMag', 'PRTFPhase', 'PRExcursion', 'RearPort', 'RearPortGain', 'FrontPort',
   'FltMag', 'FltPhase', 'FltGD',
 ]);
 
@@ -57,6 +57,7 @@ export function chartsFor(box: BoxType): readonly ChartId[] {
       break;
     case 'vented':
       set.add('RearPort');
+      set.add('RearPortGain');
       break;
     case 'bandpass4':
       set.add('FrontPort');
