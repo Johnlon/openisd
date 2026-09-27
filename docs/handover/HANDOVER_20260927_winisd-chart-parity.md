@@ -101,16 +101,18 @@ Still open for vented:
 
 ## Queue (John, 2026-09-27)
 
-1. Circuit split: one class per box type (`engine/boxes/`), no behaviour change.
-2. Domain file split: `openisdDomain.ts` by area, one class per file, no behaviour change.
-3. Bandpass 4th fix ([bug](../../bugs/BUG_20260927_bandpass4-box-not-winisd-form.md)).
-4. Box-volume validity into the domain ([bug](../../bugs/BUG_20260927_box-volume-validity-decided-in-ui.md)).
+1. Box-volume validity into the domain ([bug](../../bugs/BUG_20260927_box-volume-validity-decided-in-ui.md)) — worker running.
+2. Front port gain (bandpass 4th) and the bandpass 4th full chart pass (capture runs/bp4-w5-chain-1).
+3. 6th-order bandpass and ABC boxes (John: "openisd needs the 6th and ABC models"): openisd-e4
+   decodes WinISD 0x5668c0 / 0x4591b0 and prepares captures; then engine classes, simulatable box
+   types, their charts including the intrachamber port.
+4. Port entered by length ([bug](../../bugs/BUG_20260927_tuning-absent-when-port-length-entered.md)).
 5. Design-package file splits, no behaviour change: `engine/solver.ts` (one file per solver),
    `domain/openisdSchema.ts` (data shapes vs the logic in it), `domain/driverYmlToOpenisdAndWdr.ts`
    (conversion vs diff tools).
 6. `OpenISDProject` split by responsibility — plan first.
-7. UI splits (`OriginalShell-hooks.ts` per tab, `appState.ts`, big `.vue` files) — after mobile
-   Phase 1 is pushed.
+7. UI splits (`OriginalShell-hooks.ts` per tab, `appState.ts`, big `.vue` files) and Og* → Original*
+   — after mobile Phase 1 is pushed.
 
 ## Done: passive radiator
 
