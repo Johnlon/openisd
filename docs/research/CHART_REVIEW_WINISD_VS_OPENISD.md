@@ -39,27 +39,27 @@ Records (format `winisd-run-record/1`, all validated):
 
 ## 0. Checklist — WinISD charts to check
 
-Every chart in WinISD's chart menu, per box type OpenISD has. 50 to check: **24 done** (21 exact
-match, 3 within WinISD's own rounding), 26 to do.
+Every chart in WinISD's chart menu, per box type OpenISD has. 50 to check: **35 done** (31 exact
+match, 4 within WinISD's own rounding), 15 to do.
 
 Key: ✅ exact match (≤ 1e-12 at all 2086 points) · ≈ matches to WinISD's own rounding noise ·
 ☐ to check · ✗ OpenISD has no such chart · — does not apply to that box.
 
 | Chart                                   | Sealed | Vented | Bandpass 4th | Passive radiator |
 |-----------------------------------------|--------|--------|--------------|------------------|
-| Transfer function magnitude             | ✅     | ✅     | ☐            | ☐                |
-| Transfer function phase                 | ✅     | ✅     | ☐            | ☐                |
-| Group delay                             | ≈      | ≈      | ☐            | ☐                |
-| Maximum power                           | ✅     | ✅     | ☐            | ☐                |
-| Maximum SPL                             | ✅     | ✅     | ☐            | ☐                |
-| Amplifier apparent load power (VA)      | ✅     | ✅     | ☐            | ☐                |
-| SPL                                     | ✅     | ✅     | ☐            | ☐                |
-| Cone excursion                          | ✅     | ✅     | ☐            | ☐                |
-| Impedance                               | ✅     | ✅     | ☐            | ☐                |
-| Impedance phase                         | ✅     | ✅     | ☐            | ☐                |
+| Transfer function magnitude             | ✅     | ✅     | ☐            | ✅               |
+| Transfer function phase                 | ✅     | ✅     | ☐            | ✅               |
+| Group delay                             | ≈      | ≈      | ☐            | ≈                |
+| Maximum power                           | ✅     | ✅     | ☐            | ✅               |
+| Maximum SPL                             | ✅     | ✅     | ☐            | ✅               |
+| Amplifier apparent load power (VA)      | ✅     | ✅     | ☐            | ✅               |
+| SPL                                     | ✅     | ✅     | ☐            | ✅               |
+| Cone excursion                          | ✅     | ✅     | ☐            | ✅               |
+| Impedance                               | ✅     | ✅     | ☐            | ✅               |
+| Impedance phase                         | ✅     | ✅     | ☐            | ✅               |
 | Transfer function magnitude (PR)        | —      | —      | —            | ✗                |
 | Transfer function phase (PR)            | —      | —      | —            | ✗                |
-| Cone excursion (PR)                     | —      | —      | —            | ☐                |
+| Cone excursion (PR)                     | —      | —      | —            | ✅               |
 | Rear port - Air velocity                | —      | ✅     | —            | —                |
 | Rear port - Gain                        | —      | ✗      | —            | —                |
 | Front port - Air velocity               | —      | —      | ☐            | —                |
@@ -97,7 +97,7 @@ every point. OpenISD paths are the `.owpr` `edited` block, which is the one the 
 | Force flat response            | `wpr SimulatorOptions.FlatResponse` = "0"      | `advanced.forceFlatResponse` = false                  | matched        |                                                                                                                                                                                                                                                                                                          |
 | Transmission-line ports        | `wpr SimulatorOptions.TLPorts` = "0"           | `advanced.useTransmissionLinePortModel` = false       | matched        |                                                                                                                                                                                                                                                                                                          |
 | Rg is at driver side           | `memory options_project_0x50` = ["0000000000"] | `advanced.rgAtDriverSide` = false                     | matched        | not saved in .wpr; set by the Advanced-tab checkbox and read back from WinISD memory (project+0x53, 4th byte) by the logger                                                                                                                                                                              |
-| SPL graph is Xmax limited      | `memory options_project_0x50` = ["0000000000"] | `advanced.splGraphIsXmaxLimited` = false              | matched        | not saved in .wpr; project+0x54 (5th byte) read back from WinISD memory                                                                                                                                                                                                                                  |
+| SPL graph is Xmax limited      | `memory options_project_0x50` = ["0000000000"] | `advanced.splGraphIsXmaxLimited` = false              | matched        | ✅               |
 | Box volume                     | `wpr Box.Vr` = "0.00448"                       | `box.sealed.volume_m3` = 0.00448                      | matched        |                                                                                                                                                                                                                                                                                                          |
 | Leakage Ql                     | `wpr Box.Qlr` = "10"                           | `box.sealed.losses.Ql` = 10                           | matched        |                                                                                                                                                                                                                                                                                                          |
 | Absorption Qa                  | `wpr Box.Qar` = "100"                          | `box.sealed.losses.Qa` = 100                          | matched        |                                                                                                                                                                                                                                                                                                          |
@@ -744,6 +744,34 @@ Rg 0.1, the §3.4 filter chain. OpenISD after
 | EQ/Filter group delay     | 0.00066 ms     |
 
 WinISD's vented model: winisd_research GHIDRA_FINDINGS.md "Vented box — `0x456800`".
+
+### 3.6 Passive radiator with a 4-filter chain
+
+Record
+[pr-w5-chain-1](http://localhost:8000/winisd/winisd_research/runs/pr-w5-chain-1/gdb.log):
+W5 in 10 L with one radiator (Fs 30 Hz, Vas 4.8 L, Qms 3.3, Sd 95 cm², Me 0), Ql 7, Qa 30,
+Qp 15 (unused by WinISD), Rg 0.1, the §3.4 filter chain. OpenISD after
+[passive-radiator-losses-not-winisd-form](http://localhost:8000/winisd/openisd/bugs/BUG_20260927_passive-radiator-losses-not-winisd-form.md?html).
+
+| Chart                     | Max difference |
+|---------------------------|----------------|
+| Transfer function mag     | 5.7e-14        |
+| Transfer function phase   | 1.4e-12        |
+| Group delay               | 0.0008 ms      |
+| Maximum power             | 8.5e-14        |
+| Maximum SPL               | 2.8e-14        |
+| VA                        | 7.8e-14        |
+| SPL                       | 4.3e-14        |
+| Cone excursion            | 1.5e-14        |
+| Impedance                 | 2.3e-14        |
+| Impedance phase           | 1.1e-13        |
+| PR cone excursion         | 8.3e-15        |
+| EQ/Filter magnitude       | 2.8e-14        |
+| EQ/Filter phase           | 8e-13          |
+| EQ/Filter group delay     | 0.00066 ms     |
+
+Not checked: Me ≠ 0, more than one radiator. WinISD's model: winisd_research GHIDRA_FINDINGS.md
+"Passive radiator — `0x45a960`".
 
 ---
 

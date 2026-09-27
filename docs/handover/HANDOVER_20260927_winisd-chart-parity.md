@@ -112,13 +112,14 @@ Still open for vented:
 7. UI splits (`OriginalShell-hooks.ts` per tab, `appState.ts`, big `.vue` files) — after mobile
    Phase 1 is pushed.
 
-## Next: passive radiator, then bandpass 4th
+## Done: passive radiator
 
-Capture code prepared by session openisd-e4 (winisd_research 0ba4342, 8f06913):
-`w5_chart_refresh.py box=pr` / `box=bp4`, fit checks `toys/w5_pr_model_check.py`,
-`toys/w5_bp4_model_check.py`. Expect the vented pattern (losses fixed at the chamber tuning).
-The loss-model switch reaches sealed and vented today; PR and bandpass 4th still use the old
-per-frequency form.
+All 14 PR charts match WinISD (pr-w5-chain-1, chart review §3.6). Me ≠ 0 and Npr > 1 not checked.
+
+## Next: bandpass 4th
+
+WinISD model decoded (GHIDRA_FINDINGS "4th-order bandpass — `0x457a30`"); OpenISD fix in progress
+(BUG_20260927_bandpass4-box-not-winisd-form), then a full capture `box=bp4` with the filter chain.
 
 ## Open items
 
