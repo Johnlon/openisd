@@ -320,6 +320,14 @@ export interface SweepResult {
    */
   rearPortGain: number[] | null;
   /**
+   * WinISD's "Front port - Gain" (bandpass4 box only) — the SAME computation as `rearPortGain`
+   * above (K·jω·Up·Hf, magnitude only, so keeping or dropping the j never shows), against the
+   * front port's own `Up` rather than the rear port's (winisd_research/GHIDRA_FINDINGS.md
+   * "4th-order bandpass", "Front port gain" bullet). `null` for every box type but `bandpass4`,
+   * same reasoning as `rearPortGain`.
+   */
+  frontPortGain: number[] | null;
+  /**
    * SPL with the drive backed off wherever peak excursion would exceed Xmax
    * (WinISD Advanced: "SPL graph is Xmax limited"). Always computed, never substituted
    * for `spl`: the plain curve still feeds the transfer-function chart, the F3/F6/F10

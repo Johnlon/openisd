@@ -595,6 +595,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     RearPort: 'Rear port - Air velocity',
     RearPortGain: 'Rear port - Gain',
     FrontPort: 'Front port - Air velocity',
+    FrontPortGain: 'Front port - Gain',
     FltMag: 'Transfer function magnitude (EQ/Filter)',
     FltPhase: 'Transfer function phase (EQ/Filter)',
     FltGD: 'Group Delay (EQ/Filter)',

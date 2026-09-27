@@ -110,9 +110,26 @@ assert.ok(SW_PR, 'reference PR sweep produced nothing');
 const MX_PR = PR_ENGINE.maxCurves(DRV, LE_H, 'box-passive-radiator', SP_PR).values;
 assert.ok(MX_PR, 'reference PR max curves produced nothing');
 
+// `FrontPortGain` is `null` for a vented design (SW above), same reasoning as the PR trio —
+// its own reference design is a real bandpass4 box.
+const BP4_ENGINE = new Engine();
+const SP_BP4: SweepParams = {
+  Vb: 0.010, Vf: 0.005, Ff: 60, Qlr: 7, Qar: 30, Qiclfr: 20, Qlf: 9, Qaf: 40, Qpf: 15,
+  eg: 2.83, fmin: 10, fmax: 2000, N: 200,
+  filters: [{ type: 'peaking', fc: 60, Q: 3, gain: 6, enabled: true }],
+};
+const PP_BP4 = SP_BP4 as unknown as PlotParams;
+const SW_BP4 = BP4_ENGINE.sweep(DRV, LE_H, 'bandpass4', SP_BP4).values;
+assert.ok(SW_BP4, 'reference bandpass4 sweep produced nothing');
+const MX_BP4 = BP4_ENGINE.maxCurves(DRV, LE_H, 'bandpass4', SP_BP4).values;
+assert.ok(MX_BP4, 'reference bandpass4 max curves produced nothing');
+
 const PR_IDS = new Set<ChartId>(['PRTFMag', 'PRTFPhase', 'PRExcursion']);
+const BP4_IDS = new Set<ChartId>(['FrontPortGain']);
 const build = (id: ChartId) => PR_IDS.has(id)
   ? seriesFor(id, DRV, 'box-passive-radiator', PP_PR, SW_PR, MX_PR)
+  : BP4_IDS.has(id)
+  ? seriesFor(id, DRV, 'bandpass4', PP_BP4, SW_BP4, MX_BP4)
   : seriesFor(id, DRV, 'vented', PP, SW, MX);
 
 const ALL_IDS = Object.keys(TAB_META) as ChartId[];
