@@ -21,6 +21,18 @@ export interface OgFiltersAPI {
   replaceFilter(id: string, next: Filter): void;
   /** WinISD's Filters-list caption for one filter, exact wording (`Engine.filterCaption`). */
   caption(f: Filter): string;
+  /** Typed edit per filter class — order rounded/clamped, every other field clamped to its own
+   *  entry range; each editor calls the one method matching its own narrowed `Filter` variant
+   *  and emits the result straight through to `replaceFilter`
+   *  (bugs/BUG_20260927_filter-editors-hold-domain-logic.md). Straight forwards to `Engine`. */
+  updatePassFilter: Engine['updatePassFilter'];
+  updateAllpassFilter: Engine['updateAllpassFilter'];
+  updateLinkwitzFilter: Engine['updateLinkwitzFilter'];
+  updateParametricEqFilter: Engine['updateParametricEqFilter'];
+  updatePeakHighpassFilter: Engine['updatePeakHighpassFilter'];
+  updateStaticGainFilter: Engine['updateStaticGainFilter'];
+  updateRaisedCosineFilter: Engine['updateRaisedCosineFilter'];
+  updateShelfFilter: Engine['updateShelfFilter'];
 }
 
 /**
@@ -56,5 +68,15 @@ export function createOgFilters({project, changed, engine}: OgFiltersDeps): OgFi
 
   function caption(f: Filter): string { return engine.filterCaption(f); }
 
-  return {filters, addFilter, removeFilter, replaceFilter, caption};
+  return {
+    filters, addFilter, removeFilter, replaceFilter, caption,
+    updatePassFilter: engine.updatePassFilter.bind(engine),
+    updateAllpassFilter: engine.updateAllpassFilter.bind(engine),
+    updateLinkwitzFilter: engine.updateLinkwitzFilter.bind(engine),
+    updateParametricEqFilter: engine.updateParametricEqFilter.bind(engine),
+    updatePeakHighpassFilter: engine.updatePeakHighpassFilter.bind(engine),
+    updateStaticGainFilter: engine.updateStaticGainFilter.bind(engine),
+    updateRaisedCosineFilter: engine.updateRaisedCosineFilter.bind(engine),
+    updateShelfFilter: engine.updateShelfFilter.bind(engine),
+  };
 }

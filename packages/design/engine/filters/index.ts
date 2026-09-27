@@ -29,6 +29,7 @@ export {ParametricEqFilter} from './ParametricEqFilter.js';
 export {PeakHighpassFilter} from './PeakHighpassFilter.js';
 export {StaticGainFilter} from './StaticGainFilter.js';
 export {RaisedCosineFilter} from './RaisedCosineFilter.js';
+export {ShelfFilter} from './ShelfFilter.js';
 
 /**
  * The one place a `Filter` becomes behaviour — an exhaustive switch on `type`, no default

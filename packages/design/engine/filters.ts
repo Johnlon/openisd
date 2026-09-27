@@ -1,16 +1,26 @@
 /**
  * The signal-chain filter door: `Engine.defaultFilter`/`Engine.sweep`/`Engine.filterCaption`/
- * `Engine.filterWpr`/`Engine.filterFromWpr` reach every WinISD filter type and the two
- * OpenISD-only shelves through here. The formulas, one class per type, live in `./filters/` —
- * this file is the cascade (`applyFilters`), the data-only defaults (`defaultFilter`), and the
- * `.wpr` `[Filters]` import/export dispatch (`filterWpr`/`filterFromWpr`), not the maths itself.
+ * `Engine.filterWpr`/`Engine.filterFromWpr`/`Engine.updateXFilter` reach every WinISD filter
+ * type and the two OpenISD-only shelves through here. The formulas, one class per type, live in
+ * `./filters/` — this file is the cascade (`applyFilters`), the data-only defaults
+ * (`defaultFilter`), the `.wpr` `[Filters]` import/export dispatch (`filterWpr`/`filterFromWpr`)
+ * and the typed-edit dispatch (`updateXFilter`), not the maths itself.
  */
 import {cMul, cx} from './complex.js';
 import type {Complex, Filter, FilterSpec, FilterType, WprFilter} from './types.js';
 import {
   AllpassFilter, LinkwitzTransformFilter, ParametricEqFilter, PassFilter, PeakHighpassFilter,
-  RaisedCosineFilter, StaticGainFilter, filterModel,
+  RaisedCosineFilter, ShelfFilter, StaticGainFilter, filterModel,
 } from './filters/index.js';
+
+type PassSpec = Extract<Filter, {type: 'lowpass' | 'highpass'}>;
+type AllpassSpec = Extract<Filter, {type: 'allpass'}>;
+type LinkwitzSpec = Extract<Filter, {type: 'linkwitz'}>;
+type PeakingSpec = Extract<Filter, {type: 'peaking'}>;
+type PeakHighpassSpec = Extract<Filter, {type: 'peakHighpass'}>;
+type StaticGainSpec = Extract<Filter, {type: 'staticGain'}>;
+type RaisedCosineSpec = Extract<Filter, {type: 'raisedCosine'}>;
+type ShelfSpec = Extract<Filter, {type: 'lowshelf' | 'highshelf'}>;
 
 /**
  * A fresh filter of `type` with its starting values — the numbers a quick-add button puts on
@@ -129,4 +139,50 @@ export function filterFromWpr(typeNum: number, fields: readonly string[]): {filt
     default:
       return {filter: null, warning: `unknown filter type ${typeNum} — skipped`};
   }
+}
+
+// ── TYPED EDITS ────────────────────────────────────────────────────────────────────────────
+// One function per filter class, each a straight typed forward to that class's own `with()` —
+// the core's decision on what a filter editor may write (rounding, clamping to the Filter
+// Editor's own entry range). No string-keyed dispatch: each editor calls the one `Engine`
+// method matching its own narrowed `Filter` variant (BUG_20260927_filter-editors-hold-domain-logic.md).
+
+/** Typed edit for a Lowpass/Highpass filter. */
+export function updatePassFilter(f: PassSpec, patch: Partial<Pick<PassSpec, 'family' | 'order' | 'fc' | 'Q'>>): PassSpec {
+  return PassFilter.with(f, patch);
+}
+
+/** Typed edit for an Allpass filter. */
+export function updateAllpassFilter(f: AllpassSpec, patch: Partial<Pick<AllpassSpec, 'order' | 't' | 'Q'>>): AllpassSpec {
+  return AllpassFilter.with(f, patch);
+}
+
+/** Typed edit for a Linkwitz transform. */
+export function updateLinkwitzFilter(f: LinkwitzSpec, patch: Partial<Pick<LinkwitzSpec, 'f0' | 'Q0' | 'fp' | 'Qp'>>): LinkwitzSpec {
+  return LinkwitzTransformFilter.with(f, patch);
+}
+
+/** Typed edit for a Parametric EQ (peaking) filter. */
+export function updateParametricEqFilter(f: PeakingSpec, patch: Partial<Pick<PeakingSpec, 'fc' | 'Q' | 'gain'>>): PeakingSpec {
+  return ParametricEqFilter.with(f, patch);
+}
+
+/** Typed edit for a Peaking 2nd-order highpass filter. */
+export function updatePeakHighpassFilter(f: PeakHighpassSpec, patch: Partial<Pick<PeakHighpassSpec, 'fpk' | 'gainPk'>>): PeakHighpassSpec {
+  return PeakHighpassFilter.with(f, patch);
+}
+
+/** Typed edit for a Static gain filter. */
+export function updateStaticGainFilter(f: StaticGainSpec, patch: Partial<Pick<StaticGainSpec, 'gain'>>): StaticGainSpec {
+  return StaticGainFilter.with(f, patch);
+}
+
+/** Typed edit for a DLP Raised Cosine filter. */
+export function updateRaisedCosineFilter(f: RaisedCosineSpec, patch: Partial<Pick<RaisedCosineSpec, 'fc' | 'bwOct' | 'gain'>>): RaisedCosineSpec {
+  return RaisedCosineFilter.with(f, patch);
+}
+
+/** Typed edit for a Low/High shelf filter. */
+export function updateShelfFilter(f: ShelfSpec, patch: Partial<Pick<ShelfSpec, 'fc' | 'Q' | 'gain'>>): ShelfSpec {
+  return ShelfFilter.with(f, patch);
 }

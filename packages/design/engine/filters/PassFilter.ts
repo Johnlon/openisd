@@ -5,6 +5,7 @@ import {ButterworthFamily} from './passFamilies/ButterworthFamily.js';
 import {LinkwitzRileyFamily} from './passFamilies/LinkwitzRileyFamily.js';
 import {BesselFamily} from './passFamilies/BesselFamily.js';
 import {SosFamily} from './passFamilies/SosFamily.js';
+import {FILTER_FC_LIMITS, FILTER_ORDER_LIMITS, FILTER_Q_LIMITS, clamp, roundClamp} from './limits.js';
 
 type Spec = Extract<Filter, {type: 'lowpass' | 'highpass'}>;
 
@@ -95,5 +96,18 @@ export class PassFilter implements FilterModel {
     const family = passFamilyOf(subtype);
     if (family == null) return 'malformed';
     return {type: kind, family, order, fc, Q};
+  }
+
+  /** Typed edit — `order` rounded to the nearest integer then clamped to 1..10, `fc`/`Q` clamped
+   *  to their own entry ranges; `family` and any field left out of `patch` pass through
+   *  unchanged. Same variant in, same variant out. */
+  static with(f: Spec, patch: Partial<Pick<Spec, 'family' | 'order' | 'fc' | 'Q'>>): Spec {
+    const next = {...f, ...patch};
+    return {
+      ...next,
+      order: roundClamp(next.order, FILTER_ORDER_LIMITS),
+      fc: clamp(next.fc, FILTER_FC_LIMITS),
+      Q: clamp(next.Q, FILTER_Q_LIMITS),
+    };
   }
 }
