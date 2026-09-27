@@ -46,7 +46,7 @@ Box-type dispatcher 0x566850: 0 sealed 0x4618f0, 1 vented 0x456800, 2 bp4 0x457a
 
 ## Order of work (John, 2026-09-27)
 
-1. **Filters on sealed, full** — every WinISD filter type, non-default settings: the 3 EQ/Filter
+1. ✅ **Filters on sealed, full** — every WinISD filter type, non-default settings: the 3 EQ/Filter
    charts plus SPL, excursion, VA, max SPL/power. Sealed is exact, so any gap is the filter's.
 2. **Vented** — full chart pass, then one capture with a filter.
 3. **Passive radiator**, then **bandpass 4th** — the same.
@@ -57,27 +57,15 @@ Box-type dispatcher 0x566850: 0 sealed 0x4618f0, 1 vented 0x456800, 2 bp4 0x457a
 The filter response Hf multiplies into every box type the same way, so filter types are proven
 once, on sealed; the other boxes need one filter capture each, not the full set.
 
-## Next: filters on sealed
+## Done: filters on sealed (2026-09-27)
 
-- WinISD filter types (help `filtersimulator.html`): Butterworth low/high-pass orders 1–10,
-  Linkwitz-Riley (4th order only), Bessel orders 1–10, second-order section (fc, Q), allpass,
-  Linkwitz transform, parametric EQ, second-order high-pass by peak gain and peak frequency,
-  static gain. Filter chain sits on the electrical side: 0 dB = the Signal tab voltage.
-- OpenISD (`engine/filters.ts`): high-pass and low-pass are **second-order sections only**
-  (fc, Q) — no order, no Butterworth/LR/Bessel families. Plus Linkwitz transform, peaking EQ,
-  and low/high shelf (**OpenISD-only**, not in WinISD). Missing: allpass, DLP raised-cosine,
-  static gain, peak-gain high-pass, orders ≠ 2.
-- **.wpr import ignores `[Filters]`.** Format (sample `docs/samples/sample_project_passive-radiator.wpr`):
-  `Count=N`, `filter<i>type=<int>`, `filter<i>params=<;-separated>`, e.g. type 0 params
-  `0;1;2;50;0.707`, type 7 params `0;1;100;0.333;6`. ⚠ Unverified: the type-number → filter map
-  and each params field's meaning. Decode first (WinISD Filter editor by debugger, or saved
-  projects with one filter each), then add the import.
-- Capture tool: `lib/wdr.write_wpr` writes `[Filters] Count=0`; needs a filters argument.
-- The filter charts' value mapping (which complex WinISD logs for FltMag/FltPhase/FltGD) must be
-  taken from the capture. Sealed notes say WinISD's group delay may exclude the filter chain —
-  unverified.
-- **Ruling, John 2026-09-27: build them all — parity and beyond.** Every WinISD filter type and
-  order in OpenISD, matched to WinISD; OpenISD-only types (shelves) stay.
+Every WinISD filter type and subtype is in OpenISD (one class per type, `engine/filters/`),
+matched to WinISD by debugger: response ≤ 1e-12, group delay to WinISD's rounding. `.wpr`
+`[Filters]` imports and exports. The Filters tab adds and edits every type. All 11 sealed charts
+match WinISD with a 4-filter chain
+([chart review §3.4](http://localhost:8000/winisd/openisd/docs/research/CHART_REVIEW_WINISD_VS_OPENISD.md?html)).
+Left open: WinISD's Linkwitz-transform Add default (the project's closed-box fc/Qtc); what WinISD
+draws where the box impedance is 0; the WinISD filter bugs pending QO170.
 
 ## Delegation (John, 2026-09-27)
 
@@ -133,8 +121,8 @@ each result before commit (check expected values come from WinISD, not from the 
 - **Variants.** Once default vented matches: VC inductance on, Rg 0/10 Ω with driver side on/off
   (as done for sealed), and more than one vent.
 - **Box readouts.** Fb, F3 and vent length/area readouts on the Box tab, not only the charts.
-- **EQ/Filter charts.** The 3 box-independent filter charts are unchecked for every box type,
-  sealed included.
+- **Filter capture.** One vented capture with the `chain_sealed.txt` filter set
+  (`w5_chart_refresh.py filters=`).
 - **WinISD Compatibility switches, reach into vented/PR/bandpass:**
 
   | Switch               | Acts on                                                   | Reaches vented/PR/bandpass? |

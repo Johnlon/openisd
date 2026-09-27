@@ -13,8 +13,8 @@ same driver side but their box side has not been checked against WinISD.
 
 ## 0. Checklist — WinISD charts to check
 
-Every chart in WinISD's chart menu, per box type OpenISD has. 50 to check: **10 done** (9 exact
-match, 1 within WinISD's own rounding), 40 to do.
+Every chart in WinISD's chart menu, per box type OpenISD has. 50 to check: **13 done** (11 exact
+match, 2 within WinISD's own rounding), 37 to do.
 
 Key: ✅ exact match (≤ 1e-12 at all 2086 points) · ≈ matches to WinISD's own rounding noise ·
 ☐ to check · ✗ OpenISD has no such chart · — does not apply to that box.
@@ -42,12 +42,15 @@ Key: ✅ exact match (≤ 1e-12 at all 2086 points) · ≈ matches to WinISD's o
 
 | EQ/Filter chart (box-independent)       | Status |
 |-----------------------------------------|--------|
-| Transfer function magnitude (EQ/Filter) | ☐      |
-| Transfer function phase (EQ/Filter)     | ☐      |
-| Group delay (EQ/Filter)                 | ☐      |
+| Transfer function magnitude (EQ/Filter) | ✅     |
+| Transfer function phase (EQ/Filter)     | ✅     |
+| Group delay (EQ/Filter)                 | ≈      |
 
 Sealed variants also checked, all ✅: inductance on (SPL, impedance, TF magnitude); impedance at
-Rg 0 and 10 Ω with "Rg is at driver side" on and off. Not in OpenISD at all: bandpass 6th and
+Rg 0 and 10 Ω with "Rg is at driver side" on and off; every sealed chart with a 4-filter chain
+(Linkwitz transform, Butterworth-4 highpass, parametric EQ, raised cosine — group delay ≈).
+Every WinISD filter type and subtype, alone: response ≤ 1e-12, group delay ≈ (33 captures,
+`filters-winisd.test.ts`). Not in OpenISD at all: bandpass 6th and
 ABC boxes (the only boxes with an intrachamber port).
 
 ---
@@ -174,8 +177,8 @@ not implemented in OpenISD.
 - Evidence: chart review §3, worst 0.00049 ms, about 3 of WinISD's rounding steps. Copying WinISD's
   step in double arithmetic agrees worse (0.0018 ms). Before the fix OpenISD differenced grid
   neighbours: 0.025 ms off at 1 Hz ([bug](../bugs/BUG_20260926_group-delay-grid-difference.md)).
-- ⚠ Unverified: WinISD's group-delay path calls the circuit routine directly, not the wrapper the
-  phase chart uses, so it may exclude the EQ/filter chain. OpenISD includes it.
+- The EQ/filter chain is included: WinISD adds each enabled filter's own group delay (`f_46bd30`,
+  kind 3). Checked with a 4-filter chain, worst 0.00069 ms (capture `filt-chain-sealed-1`).
 
 ### 3.5 Cone excursion — match
 
@@ -232,13 +235,22 @@ not implemented in OpenISD.
 
 - Source: `sweep.ts` `excPR`, drawn on the Cone excursion chart with PR Xmax.
 
-### 3.12 EQ/Filter charts — magnitude, phase, group delay — unverified
+### 3.12 EQ/Filter charts — magnitude, phase, group delay — match
 
     |Hf|, arg(Hf), −d arg(Hf)/dω
 
 - Source: `sweep.ts` `fltMag`, `fltPhase`, `fltGd`; `filters.ts` `applyFilters`. The filter chain
   alone: driver and box do not enter. 0 dB means the driver terminals see the Signal tab's voltage
   (WinISD help, "Filter/equalizer behavioral simulator").
+- WinISD (`f_46bd30` kinds 17/18/19): product of each enabled filter's response; group delay is
+  the sum of each filter's own 1e-10 Hz central difference. Formulas per type: winisd_research
+  GHIDRA_FINDINGS.md "EQ/Filter chain".
+- Evidence: `filters-winisd.test.ts` (33 single-filter captures, ≤ 1e-12); capture
+  `filt-chain-sealed-1`: magnitude 2.8e-14, phase 8e-13, group delay 0.00066 ms.
+- The filter chain multiplies every chart except Maximum SPL and Maximum power, which WinISD
+  draws for the driver alone ([bug](../bugs/BUG_20260927_max-spl-and-max-power-include-the-filter-chain.md)).
+- ⚠ Unverified: WinISD skips points where the box impedance is 0; what it draws there
+  ([bug](../bugs/BUG_20260927_winisd-filter-charts-skip-zero-box-points.md)).
 
 ### 3.13 Amplifier apparent load power (VA) — match
 

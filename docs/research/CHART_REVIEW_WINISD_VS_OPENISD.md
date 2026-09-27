@@ -39,8 +39,8 @@ Records (format `winisd-run-record/1`, all validated):
 
 ## 0. Checklist — WinISD charts to check
 
-Every chart in WinISD's chart menu, per box type OpenISD has. 50 to check: **10 done** (9 exact
-match, 1 within WinISD's own rounding), 40 to do.
+Every chart in WinISD's chart menu, per box type OpenISD has. 50 to check: **13 done** (11 exact
+match, 2 within WinISD's own rounding), 37 to do.
 
 Key: ✅ exact match (≤ 1e-12 at all 2086 points) · ≈ matches to WinISD's own rounding noise ·
 ☐ to check · ✗ OpenISD has no such chart · — does not apply to that box.
@@ -68,12 +68,13 @@ Key: ✅ exact match (≤ 1e-12 at all 2086 points) · ≈ matches to WinISD's o
 
 | EQ/Filter chart (box-independent)       | Status |
 |-----------------------------------------|--------|
-| Transfer function magnitude (EQ/Filter) | ☐      |
-| Transfer function phase (EQ/Filter)     | ☐      |
-| Group delay (EQ/Filter)                 | ☐      |
+| Transfer function magnitude (EQ/Filter) | ✅     |
+| Transfer function phase (EQ/Filter)     | ✅     |
+| Group delay (EQ/Filter)                 | ≈      |
 
 Sealed variants also checked, all ✅: inductance on (SPL, impedance, TF magnitude); impedance at
-Rg 0 and 10 Ω with "Rg is at driver side" on and off. Not in OpenISD at all: bandpass 6th and
+Rg 0 and 10 Ω with "Rg is at driver side" on and off; every sealed chart with a 4-filter chain
+(§3.4). Not in OpenISD at all: bandpass 6th and
 ABC boxes (the only boxes with an intrachamber port).
 
 ---
@@ -690,6 +691,32 @@ Record
 [sweep-w5-sealed-va-rg1-driverside](http://localhost:8000/winisd/winisd_research/runs/sweep-w5-sealed-va-rg1-driverside/gdb.log)
 (Rg 1 Ω, driver side on): Z already holds Rg (4.4 Ω at 20 kHz) and WinISD adds Rg again, so VA =
 1 W·3.4/|4.4 + 1| = 0.6296 there. Same formula, all 2087 points to 3e-16; OpenISD matches to 1e-9.
+
+### 3.4 Sealed with a 4-filter chain
+
+Record
+[filt-chain-sealed-1](http://localhost:8000/winisd/winisd_research/runs/filt-chain-sealed-1/gdb.log):
+W5 sealed with Linkwitz transform 67.234/0.49 → 25/0.6, Butterworth-4 highpass 18 Hz, parametric
+EQ 45 Hz Q 3 −4 dB, raised cosine 120 Hz 0.5 oct +5 dB. Plotted values logged at 0x46c0f5 in
+`f_46bd30`. Compared with `toys/chart_plot_compare.py`.
+
+| Chart                     | Max difference |
+|---------------------------|----------------|
+| Transfer function mag     | 4.8e-14        |
+| Transfer function phase   | 8e-13          |
+| Group delay               | 0.00069 ms     |
+| Maximum power             | 8.9e-14        |
+| Maximum SPL               | 2.8e-14        |
+| VA                        | 8.9e-14        |
+| SPL                       | 4.3e-14        |
+| Cone excursion            | 1e-14          |
+| EQ/Filter magnitude       | 2.8e-14        |
+| EQ/Filter phase           | 8e-13          |
+| EQ/Filter group delay     | 0.00066 ms     |
+
+Maximum SPL and Maximum power leave the filter chain out in WinISD; OpenISD included it until
+[max-spl-and-max-power-include-the-filter-chain](http://localhost:8000/winisd/openisd/bugs/BUG_20260927_max-spl-and-max-power-include-the-filter-chain.md?html).
+Each filter type alone: 33 captures, `packages/design/test/engine/filters-winisd.test.ts`.
 
 ---
 
