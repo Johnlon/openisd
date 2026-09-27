@@ -63,6 +63,13 @@ Box-type dispatcher 0x566850: 0 sealed 0x4618f0, 1 vented 0x456800, 2 bp4 0x457a
   Unverified: which c WinISD uses (air model), whether k·D uses diameter or an area-equivalent
   for non-round vents, and how Num > 1 splits the area. OpenISD's solve is `ventLength(Vb, fb, Sp)`
   (engine `alignments.ts`). Next: log WinISD's computed length by debugger and pin OpenISD to it.
+- **Box losses (Ql, Qa, Qp): not WinISD's form for vented, PR or bandpass.** Sealed now uses
+  WinISD's leak Ral = Ql/(ωsc·Cab), fixed, in parallel with a series absorption Raa = ωsc·Mas/Qa
+  ('winisd-lossy', `circuit.ts`). Vented, PR and bandpass 4th still use the old per-frequency
+  form Ql/(ω·Cab) ∥ Qa/(ω·Cab) — the form that was wrong for sealed. Port loss is
+  Rap = ω·Map/Qp (`portLoss`, per-frequency). ⚠ Unverified what WinISD's vented routine 0x456800
+  does for Ql, Qa and Qp: read its disassembly first (as done for sealed f_4618f0), then capture
+  with non-default Ql/Qa/Qp to separate them. Expect this to be the first vented gap.
 - Open: [BUG_20260918_no-ui-path-to-enter-a-vent-length](../../bugs/BUG_20260918_no-ui-path-to-enter-a-vent-length.md).
 
 ## Open items
