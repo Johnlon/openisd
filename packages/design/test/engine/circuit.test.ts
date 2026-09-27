@@ -64,7 +64,13 @@ describe('circuit — acoustic circuit branches', () => {
   });
 
   it('passive radiator: prNum > 1 combines n radiators in parallel — differs from a single radiator', () => {
-    const single: SweepParams = {...P_SEALED, prSd: 0.0133, prNum: 1, prMmd: 0.030, prMadd: 0, prCms: 0.0008, prRms: 1.0};
+    // Fr is the box's own tuning (winisd-lossy's Ral/Raa, BUG_20260927_passive-radiator-losses-
+    // not-winisd-form.md) — computed here, not left absent, or it poisons Ral/Raa with NaN and
+    // both sweeps below fall to the same -200 dB silence sentinel, masking the very difference
+    // this test checks for.
+    const {rho, c} = engine.solveEnvironment({}).values;
+    const Fr = engine.prTuning({Vb: 0.030, prMmd: 0.030, prMadd: 0, prSd: 0.0133, prCms: 0.0008}, {rho, c});
+    const single: SweepParams = {...P_SEALED, prSd: 0.0133, prNum: 1, prMmd: 0.030, prMadd: 0, prCms: 0.0008, prRms: 1.0, Fr};
     const pair: SweepParams = {...single, prNum: 2};
     const swSingle = engine.sweep(DRV, LE_H, 'box-passive-radiator', single).values!;
     const swPair = engine.sweep(DRV, LE_H, 'box-passive-radiator', pair).values!;

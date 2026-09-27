@@ -406,6 +406,16 @@ export function winIsdProjectToOpenIsdProject(
         return {value: null, errors};
       }
       const manual = (v: number): SpecEntryJson => ({state: 'E', value: v, origin: 'manual', readings: {manual: {actual_reading: String(v), read_value: v}}});
+      // The .wpr's [PassiveRadiator] section states only Vas/Qms/Fs/Sd/Xmax — never Cms/Mms/Rms
+      // directly. `PassiveRadiatorSpecsSection`'s fields are entry-backed, never solver-derived
+      // (openisdDomain.ts's own `prSpec()` doc comment), so unlike a driver's T/S set there is no
+      // later consistency pass to fill them in: the circuit's `prMmd`/`prCms`/`prRms`
+      // (engine/circuit.ts, box-passive-radiator) come from HERE or not at all. Same closed forms
+      // `engine/formulas.ts` publishes for the PR editor: Cms = Vas/(ρc²Sd²), Mmd = 1/((2πFs)²Cms),
+      // Rms = √(Mmd/Cms)/Qms.
+      const cms = vas != null && sd != null ? engine.prCmsFromVas(vas, sd) : null;
+      const mmd = cms != null && fs != null ? engine.prMmdFromFs(fs, cms) : null;
+      const rms = mmd != null && cms != null && qms != null ? engine.prRmsFromQms(qms, mmd, cms) : null;
       const radiatorRecord: RadiatorDeviceJson = {
         brand: {value: 'WinISD import'}, model: {value: 'passive-radiator'},
         manufacturer: {value: 'WinISD import'}, driver_type: {value: 'passive-radiator'},
@@ -423,11 +433,24 @@ export function winIsdProjectToOpenIsdProject(
             ...(fs != null ? {Fs_hz: manual(fs)} : {}),
             ...(sd != null ? {Sd_m2: manual(sd)} : {}),
             ...(xmax != null ? {Xmax_m: manual(xmax)} : {}),
+            ...(cms != null ? {Cms_m_per_N: manual(cms)} : {}),
+            ...(mmd != null ? {Mms_kg: manual(mmd)} : {}),
+            ...(rms != null ? {Rms_kg_per_s: manual(rms)} : {}),
           },
         },
       };
       const radiator = OpenISDPassiveRadiatorStandalone.wrap(radiatorRecord, engine);
+      // The builder needs a starting tuning_goal_hz, but the .wpr's real stated input is the
+      // radiator's OWN added mass ([PassiveRadiator] Me) — Box.Fr is its readout, computed by
+      // WinISD from Me + the radiator's bare-cone Fs/Vas/Vb, and re-deriving Me from Fr through
+      // the solved pair's `addedMass_kg` route risks a spurious `target-unreachable` at the exact
+      // ceiling (float rounding can put the reconstructed mass a shade below zero even when the
+      // true answer is exactly Me = 0). Entering `Me` directly — never negative, no boundary
+      // check involved — lets `systemTuning_hz` recompute Fr as the OUTPUT it already is, self-
+      // consistently, instead of fighting the pair the other way.
       project = builder.passiveRadiator().volume_m3(Vr).tuning_goal_hz(Fr).count(Npr).radiator(radiator).build();
+      const me = wpr.number('PassiveRadiator', 'Me');
+      if (me != null) project.box.passiveRadiator.addedMass_kg.set(me);
       const Qlr = wpr.number('Box', 'Qlr');
       if (Qlr != null) project.box.passiveRadiator.losses.Ql.set(Qlr);
       const Qar = wpr.number('Box', 'Qar');
