@@ -56,6 +56,14 @@ Box-type dispatcher 0x566850: 0 sealed 0x4618f0, 1 vented 0x456800, 2 bp4 0x457a
 - Chart value mapping for vented charts (which complex → which plotted value, esp. port air
   velocity) must be established from the capture, as was done for sealed.
 - Vented alignment maths already validated 35/35 (memory: vented-alignment decompile).
+- **Port length calc: not checked exactly.** WinISD's vent length is the Helmholtz inverse
+  L = c²·Sp/((2π·Fb)²·Vb) − k·D, k = end correction (0.6), D = diameter. Matched only to WinISD's
+  3 displayed digits: 5 cm → 0.154 m, 7 cm → 0.318 m at Vb 20 L, Fb 40 Hz
+  ([PROBE_FINDINGS.md](http://localhost:8000/winisd/winisd_research/PROBE_FINDINGS.md?html) ~L1422).
+  Unverified: which c WinISD uses (air model), whether k·D uses diameter or an area-equivalent
+  for non-round vents, and how Num > 1 splits the area. OpenISD's solve is `ventLength(Vb, fb, Sp)`
+  (engine `alignments.ts`). Next: log WinISD's computed length by debugger and pin OpenISD to it.
+- Open: [BUG_20260918_no-ui-path-to-enter-a-vent-length](../../bugs/BUG_20260918_no-ui-path-to-enter-a-vent-length.md).
 
 ## Open items
 
