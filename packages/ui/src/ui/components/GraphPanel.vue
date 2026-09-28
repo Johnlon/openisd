@@ -476,12 +476,12 @@ canvas { touch-action: none; }
 .ctx-menu {
   position: fixed;
   z-index: 9999;
-  background: #1a2030;
-  border: 1px solid #334;
+  background: var(--panel);
+  border: 1px solid var(--line);
   border-radius: 5px;
   padding: 3px 0;
   min-width: 160px;
-  box-shadow: 0 4px 16px #0008;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
   font-size: 12px;
   user-select: none;
 }
@@ -490,10 +490,10 @@ canvas { touch-action: none; }
   color: var(--fg);
   cursor: pointer;
 }
-.ctx-item:hover { background: #2a3a54; }
+.ctx-item:hover { background: var(--panel2); }
 .ctx-sep {
   height: 1px;
-  background: #334;
+  background: var(--line);
   margin: 3px 0;
 }
 </style>

@@ -153,6 +153,22 @@ export async function openAProject(page: Page, owprPath: string = SAMPLE_PROJECT
 }
 
 /**
+ * `openAProject`'s mobile-shell twin — never reuse `openAProject` for a mobile spec: it
+ * hardcodes `.original-root input[type=file]`, which is not present when the mobile shell is
+ * showing. Waits for `.mob-tabbar` specifically (not just `.mobile-root`, which is also the
+ * empty-state root) — that's the readiness signal a project has actually loaded.
+ */
+export async function openAMobileProject(page: Page, owprPath: string = SAMPLE_PROJECT_OWPR): Promise<void> {
+  ensureSampleProject();
+  await page.locator('.mobile-root input[type=file]').setInputFiles({
+    name: 'sample-project.owpr',
+    mimeType: 'application/json',
+    buffer: readFileSync(owprPath),
+  });
+  await page.locator('.mob-tabbar').waitFor({ state: 'visible' });
+}
+
+/**
  * The driver editor's tab, ENSURED rather than assumed.
  *
  * The editor opens on Parameters by design, and each pane is behind `v-if="tab === ..."`, so a
