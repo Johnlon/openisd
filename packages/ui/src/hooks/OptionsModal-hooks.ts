@@ -22,7 +22,6 @@ import {
   setVentedLimits as setAppVentedLimits,
   ventedLimits as appVentedLimits,
 } from '../logic/appState.js';
-import {airForEnvironment} from '../logic/environment.js';
 
 /** The settings seam this dialog edits through — `appState`'s by default, a substitute in a test. */
 export interface OptionsModalDeps {
@@ -167,7 +166,7 @@ export function useOptionsModal(deps?: OptionsModalDeps): OptionsModalAPI {
       && e.pressurePa === FACTORY_ENV_DEFAULTS.pressurePa;
   });
 
-  const defaultAir = computed<Air>(() => airForEnvironment(engine, editedEnv.value));
+  const defaultAir = computed<Air>(() => engine.solveEnvironment(editedEnv.value).values);
 
   function resetLimits(): void {
     minVolume_L.value = FACTORY_VENTED_LIMITS.minVb_m3 * LITRES_PER_M3;
