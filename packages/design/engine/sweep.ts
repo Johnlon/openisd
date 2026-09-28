@@ -263,6 +263,12 @@ export function sweep(drv: DriverSolverParams, Le_H: number | undefined, box: Bo
   const f0 = P.fmin || 10, f1 = P.fmax || 1000, N = P.N || 400, r = 1;
   const fs: number[] = [], H = [], spl = [], exc = [], excPR = [], pv = [], zmag = [], zph = [], phase = [];
   const va: number[] = [];
+  // `bandpass6`/`abc`'s own rear-port and (ABC only) intra-port velocities — `null` unless the
+  // box actually has that port (`SweepResult.pvRear`/`pvIntra` doc), decided once after the loop
+  // from whether `s.UPr`/`s.UPi` came back defined (box/lossMode are fixed for the whole sweep,
+  // so every point agrees).
+  const pvRear: number[] = [], pvIntra: number[] = [];
+  let hasUPr = false, hasUPi = false;
   // WinISD's "Transfer function magnitude/phase (PR)" — computed for every box (cheap; `s.UP`
   // is the zero complex for a non-PR box), gated to `null` below only `box-passive-radiator`
   // has this chart at all.
@@ -338,6 +344,23 @@ export function sweep(drv: DriverSolverParams, Le_H: number | undefined, box: Bo
     // x_peak = √2·|UD|/(ω·Sd)  https://en.wikipedia.org/wiki/Thiele/Small_parameters#Small_signal_parameters
     exc.push(Math.SQRT2 * cAbs(UD) / (w * Sdt) * 1000);
     pv.push(area ? Math.SQRT2 * cAbs(UP) / area : 0);
+    // Rear-port (`bandpass6`/`abc`) and ABC intra-port velocities — same filtered-flow/area
+    // convention as `pv` above, off `Spr`/`SpIntra` respectively. `s.UPr`/`s.UPi` are undefined
+    // wherever `Solution`'s own doc says so; `hasUPr`/`hasUPi` remember that once, after the loop.
+    if (s.UPr !== undefined) {
+      hasUPr = true;
+      const UPrF = cMul(s.UPr, Hf);
+      pvRear.push(P.Spr ? Math.SQRT2 * cAbs(UPrF) / P.Spr : 0);
+    } else {
+      pvRear.push(0);
+    }
+    if (s.UPi !== undefined) {
+      hasUPi = true;
+      const UPiF = cMul(s.UPi, Hf);
+      pvIntra.push(P.SpIntra ? Math.SQRT2 * cAbs(UPiF) / P.SpIntra : 0);
+    } else {
+      pvIntra.push(0);
+    }
     // UP is total volume velocity from all PRs; divide by prNum for per-PR excursion
     excPR.push(box === 'box-passive-radiator' ? Math.SQRT2 * cAbs(UP) / (w * P.prSd! * (P.prNum || 1)) * 1000 : 0);
     zmag.push(cAbs(s.Zel));
@@ -374,6 +397,8 @@ export function sweep(drv: DriverSolverParams, Le_H: number | undefined, box: Bo
       exc[i]   *= a;
       excPR[i] *= a;
       pv[i]    *= a;
+      pvRear[i] *= a; // 0 where there is no rear port, so the gain is a no-op there
+      pvIntra[i] *= a; // same, for ABC's intra port
       prSpl[i] += gDb; // the same real upstream gain reaches the radiator branch too
       portGainSpl[i] += gDb; // ...and the vented/bandpass4 port branch, same reasoning
       H[i] = cScale(H[i], a);
@@ -404,7 +429,8 @@ export function sweep(drv: DriverSolverParams, Le_H: number | undefined, box: Bo
   const isVented = box === 'vented';
   const isBandpass4 = box === 'bandpass4';
 
-  return { values: { fs, H, spl, phase: ph, exc, excPR, pv, zmag, zph, gd, tfMag: tfMag(spl, splRefLimit),
+  return { values: { fs, H, spl, phase: ph, exc, excPR, pv, pvRear: hasUPr ? pvRear : null,
+                    pvIntra: hasUPi ? pvIntra : null, zmag, zph, gd, tfMag: tfMag(spl, splRefLimit),
                     prTfMag: isPr ? tfMag(prSpl, splRefLimit) : null, prTfPhase: isPr ? prPh : null,
                     rearPortGain: isVented ? tfMag(portGainSpl, splRefLimit) : null,
                     frontPortGain: isBandpass4 ? tfMag(portGainSpl, splRefLimit) : null,

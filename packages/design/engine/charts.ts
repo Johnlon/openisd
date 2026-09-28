@@ -6,27 +6,31 @@
  * and the three EQ/filter charts always. NEVER "when the data exists" — a chart WinISD draws
  * for every box of that shape stays listed even on the day its own OpenISD data is still a bug.
  *
- * The intrachamber port chart is simply absent from `ChartId` — it is not yet built at all, so
- * there is nothing here to gate; it joins this set, in its own WinISD row position, the day it
- * is.
+ * `bandpass6`/`abc` add `RearPort`/`FrontPort` the same way: by WinISD's own menu shape
+ * (`SweepResult.pvRear` fills the rear one, `BoxModel.ts`'s `BoxOutput.UPr` doc). WinISD's ABC
+ * menu also has an intra-chamber-port-velocity row (`IntraPort` below, `SweepResult.pvIntra`,
+ * `UPi` — `BoxModel.ts`'s own doc, `boxes/AbcBox.ts`).
  */
 import type {BoxType} from './types.js';
 
 /**
  * WinISD's own chart-menu row order (winisd_research runs/*\/charts.json `popup_row` 0..20;
- * GHIDRA_FINDINGS.md "Passive radiator", "Vented box", "4th-order bandpass" sections).
+ * GHIDRA_FINDINGS.md "Passive radiator", "Vented box", "4th-order bandpass", "6th-order
+ * bandpass", "ABC (Aperiodic Bi-Chamber)" sections).
  */
 export type ChartId =
   | 'TFMag' | 'Phase' | 'GD' | 'MaxPwr' | 'MaxSPL' | 'VA' | 'SPL' | 'Excursion'
   | 'Zmag' | 'Zph' | 'PRTFMag' | 'PRTFPhase' | 'PRExcursion' | 'RearPort' | 'RearPortGain' | 'FrontPort'
-  | 'FrontPortGain' | 'FltMag' | 'FltPhase' | 'FltGD';
+  | 'FrontPortGain' | 'IntraPort' | 'FltMag' | 'FltPhase' | 'FltGD';
 
 /** Every `ChartId`, in WinISD's own chart-menu row order — the ordered superset `chartsFor`
- *  filters down to what a box actually has. */
+ *  filters down to what a box actually has. `IntraPort` is ABC's own chart-21 row
+ *  (winisd_research/GHIDRA_FINDINGS.md "ABC (Aperiodic Bi-Chamber)" "Charts" bullet), grouped
+ *  here with the other port charts rather than at its own high row number. */
 const CHART_ORDER: readonly ChartId[] = Object.freeze([
   'TFMag', 'Phase', 'GD', 'MaxPwr', 'MaxSPL', 'VA', 'SPL', 'Excursion',
   'Zmag', 'Zph', 'PRTFMag', 'PRTFPhase', 'PRExcursion', 'RearPort', 'RearPortGain', 'FrontPort',
-  'FrontPortGain', 'FltMag', 'FltPhase', 'FltGD',
+  'FrontPortGain', 'IntraPort', 'FltMag', 'FltPhase', 'FltGD',
 ]);
 
 /** The chart a fresh project, or an invalid/inapplicable remembered chart id, falls back to. */
@@ -52,8 +56,6 @@ export function chartsFor(box: BoxType): readonly ChartId[] {
   const set = new Set<ChartId>(UNIVERSAL);
   switch (box) {
     case 'sealed':
-    case 'bandpass6':
-    case 'abc':
       break;
     case 'vented':
       set.add('RearPort');
@@ -62,6 +64,15 @@ export function chartsFor(box: BoxType): readonly ChartId[] {
     case 'bandpass4':
       set.add('FrontPort');
       set.add('FrontPortGain');
+      break;
+    case 'bandpass6':
+      set.add('RearPort');
+      set.add('FrontPort');
+      break;
+    case 'abc':
+      set.add('RearPort');
+      set.add('FrontPort');
+      set.add('IntraPort');
       break;
     case 'box-passive-radiator':
       set.add('PRTFMag');

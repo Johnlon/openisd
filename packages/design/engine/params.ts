@@ -100,6 +100,12 @@ function requiredParamsFor(simulatable: SimulatableBoxType): readonly RequiredPa
     vented:                 [VB, SP],
     'box-passive-radiator': [VB, PR_SD, PR_CMS, PR_MMD],
     bandpass4:              [VB, VF, SP],
+    // `Bandpass6Box`/`AbcBox` never call `port.ts`'s `portImpedance()` (their port masses come
+    // from `Fr`/`Ff`, not from `Sp`/`Leff` geometry — `SweepParams.Spr`'s own doc), so unlike
+    // `bandpass4`'s front chamber neither needs `Sp` here: only the two chamber volumes are a
+    // genuine divide-by-zero (`Cabr = Vb/(ρc²)`, `Cabf = Vf/(ρc²)`, both denominators elsewhere).
+    bandpass6:              [VB, VF],
+    abc:                    [VB, VF],
   };
 
   return REQUIRED_BY_BOX[simulatable];
