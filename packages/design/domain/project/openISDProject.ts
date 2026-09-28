@@ -3,13 +3,13 @@ import {Engine} from '../../engine/index.js';
 import type { Air, AirEnvironment, BoxParamsIssue, BoxType, ChartId, DriverError, EnclosureParams, Filter, MaxCurvesResult, MaxCurvesSolveResult, PrIssue, SimulatableBoxType, SweepIssue, SweepParams, SweepResult, SweepSolveResult, VentIssue } from '../../engine/index.js';
 import { realAppContext } from '../appContext.js';
 import type { AppContext } from '../appContext.js';
-import { CalculatedFieldImpl, DefaultingFieldImpl, DualWriteFieldImpl, absentCell, calculatedCell, defaultingEntryField, enteredCell, focus, simpleField, writeEntryDq } from '../cell.js';
+import { CalculatedFieldImpl, DefaultingFieldImpl, DualWriteFieldImpl, absentCell, calculatedCell, enteredCell, focus, simpleField, writeEntryDq } from '../cell.js';
 import type { Calculatable, Calculated, Clearable, Entered, Readable, SimpleField, Unsolvable, Writable } from '../cell.js';
 import { newUuid } from '../newUuid.js';
 import { openIsdProjectToWinIsdProject, winIsdProjectToOpenIsdProject } from '../openIsdProjectToWinIsdProject.js';
 import { openISDProjectSessionJsonSchema } from '../openisdSchema.js';
 import { calculatedEntry, enteredEntry } from '../specEntry.js';
-import type { EnvironmentCondition, OpenISDEnvironmentJson, OpenISDProjectJson, OpenISDProjectSessionJson } from '../openisdSchema.js';
+import type { OpenISDProjectJson, OpenISDProjectSessionJson } from '../openisdSchema.js';
 import { ProjectBuilder } from '../openisdTransforms.js';
 import type { Box } from '../box/box.js';
 import type { FrequencyGrid } from '../box/frequencyGrid.js';
@@ -20,7 +20,7 @@ import { OpenISDDriver } from '../driver/openISDDriver.js';
 import { OpenISDDriverEmbedded } from '../driver/openISDDriverEmbedded.js';
 import type { DiscardChallenge } from './discardChallenge.js';
 import type { DragRange } from './dragRange.js';
-import type { EnvironmentField, EnvironmentFields } from './environmentFields.js';
+import { ProjectEnvironment, envFieldsOver } from './projectEnvironment.js';
 import { freshEmbeddedDriver } from './freshEmbeddedDriver.js';
 import type { ProjectIssues } from './projectIssues.js';
 import { ProjectMeta } from './projectMeta.js';
@@ -118,7 +118,7 @@ export class OpenISDProject {
 
     /** The four air conditions `root` reads as — each E or C, never absent. */
     #airOver(root: SimpleField<OpenISDProjectJson>): AirEnvironment {
-        const env = this.#envFieldsOver(focus(root, 'environment'));
+        const env = envFieldsOver(focus(root, 'environment'), this.#engine);
         return {
             tempK: env.tempK.value, humidityPct: env.humidityPct.value, pressurePa: env.pressurePa.value,
             useWinisdAirModel: root.value.environment.useWinisdAirModel ?? true,
@@ -507,7 +507,7 @@ export class OpenISDProject {
             driverOver: (root) => this.#driverOver(root),
             boxOver: (root) => this.#boxOver(root),
             air: (root) => this.#air(root),
-            envFieldsOver: (environment) => this.#envFieldsOver(environment),
+            envFieldsOver: (environment) => envFieldsOver(environment, this.#engine),
             powerDriveOver: (root) => this.#powerDriveOver(root),
             driveVoltageOver: (root) => this.#driveVoltageOver(root),
         });
@@ -687,7 +687,7 @@ export class OpenISDProject {
     /** This project's air temperature, WinISD Advanced "Temperature". E when typed, else C: the
      *  app's Options → Environment value (`Engine.envDefaults()`), which the resolve also stores. */
     get envTempK(): Readable<number> & Entered & Calculated & Writable<number> & Clearable & Calculatable<number> {
-        return this.#envFieldsOver(this.#slot('environment')).tempK;
+        return ProjectEnvironment.wrap(this.#slot('environment'), this.#engine).tempK;
     }
 
     /** @deprecated Use `project.envTempK.set(tempK)` instead. */
@@ -698,7 +698,7 @@ export class OpenISDProject {
     /** This project's relative humidity, WinISD Advanced "Humidity". Stored the same way as
      *  `envTempK`. */
     get envHumidityPct(): Readable<number> & Entered & Calculated & Writable<number> & Clearable & Calculatable<number> {
-        return this.#envFieldsOver(this.#slot('environment')).humidityPct;
+        return ProjectEnvironment.wrap(this.#slot('environment'), this.#engine).humidityPct;
     }
 
     /** @deprecated Use `project.envHumidityPct.set(humidityPct)` instead. */
@@ -709,21 +709,7 @@ export class OpenISDProject {
     /** This project's atmospheric pressure, WinISD Advanced "Pressure". Stored the same way as
      *  `envTempK`. */
     get envPressurePa(): Readable<number> & Entered & Calculated & Writable<number> & Clearable & Calculatable<number> {
-        return this.#envFieldsOver(this.#slot('environment')).pressurePa;
-    }
-
-    /** The three environment conditions over the environment given, each reading the app's
-     *  Options → Environment value as C when not entered. The getters above pass the notifying
-     *  `#slot('environment')`; `#resolve()` passes a DIRECT environment of its own, the same split
-     *  `#driverOver`/`#boxOver` have. */
-    #envFieldsOver(environment: SimpleField<OpenISDEnvironmentJson>): EnvironmentFields {
-        const field = (key: EnvironmentCondition, fallback: () => number): EnvironmentField =>
-            defaultingEntryField(focus(environment, key), key, fallback);
-        return {
-            tempK: field('temperature_K', () => this.#engine.envDefaults().tempK),
-            humidityPct: field('humidity_pct', () => this.#engine.envDefaults().humidityPct),
-            pressurePa: field('pressure_Pa', () => this.#engine.envDefaults().pressurePa),
-        };
+        return ProjectEnvironment.wrap(this.#slot('environment'), this.#engine).pressurePa;
     }
 
     /** @deprecated Use `project.envPressurePa.set(pressurePa)` instead. */
@@ -735,13 +721,7 @@ export class OpenISDProject {
      *  physical CIPM-2007 model when false. Null reads as true (QO95): a new project matches
      *  WinISD out of the box. See `engine/air.ts` for the two models. */
     get envUseWinisdAirModel(): SimpleField<boolean> {
-        const slot = this.#slot('environment');
-        return {
-            get value() { return slot.value.useWinisdAirModel ?? true; },
-            set: (useWinisdAirModel: boolean) => {
-                slot.set({ ...slot.value, useWinisdAirModel });
-            },
-        };
+        return ProjectEnvironment.wrap(this.#slot('environment'), this.#engine).useWinisdAirModel;
     }
 
     /** @deprecated Use `project.envUseWinisdAirModel.set(useWinisdAirModel)` instead. */
