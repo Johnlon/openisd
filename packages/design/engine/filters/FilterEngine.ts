@@ -16,8 +16,9 @@ import {
 } from './index.js';
 import {
   FILTER_BW_LIMITS, FILTER_FC_LIMITS, FILTER_GAIN_LIMITS, FILTER_ORDER_LIMITS, FILTER_Q_LIMITS,
-  FILTER_T_LIMITS, clamp, roundClamp,
-} from './limits.js';
+  FILTER_T_LIMITS,
+} from '../../fields/filterLimits.js';
+import {clamp, roundClamp} from './limits.js';
 
 export interface FilterEngine {
   /** A fresh, enabled filter of `type` with its starting values — WinISD's own Filter Editor

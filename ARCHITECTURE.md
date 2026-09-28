@@ -288,13 +288,30 @@ the phase before it has returned, and it is the only place that order is stated.
 
 ## 7. Patterns and coupling rules
 
-- **One composition root.** `ui/main.ts` is the only place that constructs services:
-  - it builds each repository with its collaborators passed in;
-  - it hands one facade (`logic/app.ts`) to the component tree through `provide`/`inject`;
-  - nothing below it reaches for a ready-made instance, so every part can run in a test with
-    substitutes.
-- **Dependencies are injected.** A service exports a `create*()` factory, never an instance.
+- **Application contexts and composition roots.** The repo builds two programs, and each has
+  exactly one composition root — the only place in that program that constructs the engine
+  and wires collaborators together (John, 2026-09-28):
+  | Program | Root | What it builds |
+  |---|---|---|
+  | The browser app | `packages/ui/src/logic/appState.ts` (via `ui/main.ts`) | the engine from the user's settings, each repository with its collaborators, the one facade (`logic/app.ts`) the component tree gets through `provide`/`inject` |
+  | The Python bridge (`winisd_tools` calls it in V8) | `packages/design/winisd/bridge.ts` | one engine with factory settings, handed to the projection it exposes |
+  - A root may reach every layer; that is its job. Nothing below a root constructs an engine or
+    reaches for a ready-made instance, so every part can run in a test with substitutes.
+    `architecture-engine-boundary.test.ts` names the two roots and fails on a `new Engine`
+    anywhere else.
+- **Dependencies are injected.** A component is a class constructed with its collaborators —
+  the engine area it uses, the project, a change signal — held as private members. A service
+  exports a `create*()` factory, never an instance. The engine is never threaded through a
+  function parameter to reach a callee that should have been handed it
+  (`architecture-engine-parameter-ratchet.test.ts`).
   - Real I/O sits behind narrow ports: `KeyValueStorage`, `FileStorage`, `fetch`.
+- **No forwarding functions.** A function whose whole body passes its own parameters to one
+  other call adds a name and nothing else; a wrapper earns its place by reshaping the call. The
+  hooks are the one exemption — a `.vue` holds no logic and reaches the domain only through
+  its hook (`architecture-no-forwards.test.ts`).
+- **The engine is a package of areas.** `@openisd/design/engine` publishes cohesive areas
+  (`FilterEngine`, …), each an interface with one private implementation; `Engine` holds them
+  as members (`engine.filters`). A consumer is constructed with the one area it uses.
 - **No mutable module state.** No `let` at module scope, no unfrozen containers, no registries.
   - The three approved stores (§5) are the only holders of app state.
   - `hooks/useEscToClose.ts` keeps a module-level dialog stack that the test does not catch.
