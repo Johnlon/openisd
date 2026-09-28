@@ -52,7 +52,7 @@
  * field-for-field shape of `errors` is passed through unchanged.
  */
 import {createEngine} from '../engine/index.js';
-import {driverYmlToOpenisdAndWdr} from '../domain/driverYmlToOpenisdAndWdr.js';
+import {DriverFileConverter} from '../domain/driverYmlToOpenisdAndWdr.js';
 import {bytesToBase64} from './base64.js';
 import {utf8Bytes} from './utf8.js';
 import {winisdTextToBytes} from './winisdBytes.js';
@@ -60,9 +60,10 @@ import {winisdTextToBytes} from './winisdBytes.js';
 /** The bridge's composition root: the one engine this process builds, with factory settings —
  *  a scraper projection has no user settings to honour. */
 const engine = createEngine();
+const driverFiles = new DriverFileConverter(engine);
 
 function driverYmlToOpenisdAndWdrBridge(driverYmlText: string): string {
-  const { openisd, wdr, errors } = driverYmlToOpenisdAndWdr(driverYmlText, engine);
+  const { openisd, wdr, errors } = driverFiles.driverYmlToOpenisdAndWdr(driverYmlText);
   return JSON.stringify({
     openisd: openisd === null ? null : bytesToBase64(utf8Bytes(openisd)),
     wdr: wdr === null ? null : bytesToBase64(winisdTextToBytes(wdr)),

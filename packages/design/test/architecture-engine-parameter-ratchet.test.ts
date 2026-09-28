@@ -39,21 +39,6 @@ const ENGINE_PARAMETER_BASELINE: ReadonlySet<string> = new Set([
   "packages/design/domain/driver/openISDDriver.ts#OpenISDDriver.toWdrIniText",
   "packages/design/domain/driver/openISDDriver.ts#OpenISDDriverStandalone.wrap",
   "packages/design/domain/driver/openISDDriverEmbedded.ts#OpenISDDriverEmbedded.wrap",
-  "packages/design/domain/driverRoundTripDiffs.ts#roundTripProblems",
-  "packages/design/domain/driverRoundTripDiffs.ts#wdrRecordRoundTripDiffs",
-  // `driverYmlToOpenisdAndWdr` joined the list the day the gate landed: it had been building
-  // its own engine, and receiving one from the bridge's root is the smaller wrong. The class
-  // it belongs on (plan: D) strikes all five of this file's rows together.
-  "packages/design/domain/driverYmlToOpenisdAndWdr.ts#driverYmlToOpenisdAndWdr",
-  "packages/design/domain/driverYmlToOpenisdAndWdr.ts#driverYmlToOpenisdRecord",
-  "packages/design/domain/driverYmlToOpenisdAndWdr.ts#projectScraperEntry",
-  "packages/design/domain/driverYmlToOpenisdAndWdr.ts#projectSpecs",
-  "packages/design/domain/driverYmlToOpenisdAndWdr.ts#stripScraperOnlyFieldsFromJavascriptObject",
-  "packages/design/domain/driverYmlToOpenisdAndWdr.ts#winIsdDriverTextToOpenIsdDriver",
-  "packages/design/domain/openIsdProjectToWinIsdProject.ts#filtersSectionValues",
-  "packages/design/domain/openIsdProjectToWinIsdProject.ts#importFilters",
-  "packages/design/domain/openIsdProjectToWinIsdProject.ts#openIsdProjectToWinIsdProject",
-  "packages/design/domain/openIsdProjectToWinIsdProject.ts#winIsdProjectToOpenIsdProject",
   "packages/design/domain/passiveRadiator/openISDPassiveRadiatorStandalone.ts#OpenISDPassiveRadiatorStandalone.empty",
   "packages/design/domain/passiveRadiator/openISDPassiveRadiatorStandalone.ts#OpenISDPassiveRadiatorStandalone.fromConformingRecord",
   "packages/design/domain/passiveRadiator/openISDPassiveRadiatorStandalone.ts#OpenISDPassiveRadiatorStandalone.wrap",

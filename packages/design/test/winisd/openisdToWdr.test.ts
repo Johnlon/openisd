@@ -2,7 +2,7 @@
  * `openisd.json` → `winisd.wdr` projection — the entry point `winisd_tools` calls in-process
  * (embedded V8) to generate the `.wdr` it stores in `winisd_drivers`.
  *
- * Seam under test: `driverYmlToOpenisdAndWdr(driverYmlText, engine)`, the ONE entry the V8 bridge calls
+ * Seam under test: `new DriverFileConverter(engine).driverYmlToOpenisdAndWdr(driverYmlText)`, the ONE entry the V8 bridge calls
  * (`packages/design/winisd/driverYmlToOpenisdAndWdr.ts`). It returns both derived files; only the
  * `.wdr` half is the oracle's business.
  * `WinISDDriver` (docs/plans/archive/OPENISD_TARGET_MIGRATION_PLAN.md Step 8, ARCHITECTURE.md §3
@@ -29,7 +29,7 @@ import {createEngine} from '../../engine/index.js';
 
 import type {DriverError} from '@openisd/design/engine';
 import {WINISD_NEWLINE_SENTINEL} from '../../winisd/index.js';
-import {driverYmlToOpenisdAndWdr} from '../../domain/driverYmlToOpenisdAndWdr.js';
+import {DriverFileConverter} from '../../domain/driverYmlToOpenisdAndWdr.js';
 import {OpenISDDriver} from '../../domain/index.js';
 
 const engine = createEngine();
@@ -111,7 +111,7 @@ specs: {woofer: {}}
  *  returns BOTH derived files; the oracle only concerns the `.wdr`, so the yaml half is dropped
  *  here rather than in every assertion below. */
 const wdrOf = (text: string) => {
-  const { wdr, errors } = driverYmlToOpenisdAndWdr(text, engine);
+  const { wdr, errors } = new DriverFileConverter(engine).driverYmlToOpenisdAndWdr(text);
   return { value: wdr, errors };
 };
 

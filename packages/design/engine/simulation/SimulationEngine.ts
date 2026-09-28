@@ -194,6 +194,16 @@ function driverValues(drv: DriverSolverParams) {
   };
 }
 
+/** WinISD's driver-count model applies: more than one driver, the model on, a sealed box. */
+function winisdCountsDrivers(box: BoxType, P: SweepParams): boolean {
+  return (P.nDrivers || 1) > 1 && P.winisdDriverCountModel !== false && box === 'sealed';
+}
+
+/** One of `n` drivers as WinISD simulates it: alone, in Vb/n, driven at P/n. */
+function oneOfN(P: SweepParams, n: number): SweepParams {
+  return { ...P, nDrivers: 1, Vb: P.Vb / n, eg: P.eg / Math.sqrt(n) };
+}
+
 function circuitQuantities(q: ReturnType<typeof withAddedMass>, Le_H: number | undefined, BL_typed_Tm: number | null): { value: CircuitQuantities | null; issues: DriverIssue[] } {
   const issues: DriverIssue[] = [];
   for (const field of CIRCUIT_REQUIRED_FIELDS) {
@@ -382,6 +392,14 @@ export class SimulationEngineImpl implements SimulationEngine {
   }
 
   sweep(drv: DriverSolverParams, Le_H: number | undefined, box: BoxType, P: SweepParams): SweepSolveResult {
+    const n = P.nDrivers || 1;
+    if (winisdCountsDrivers(box, P)) {
+      // WinISD: one driver in Vb/N fed P/N (eg/√N); N of them sum to +20·log10(N) on its SPL.
+      const one = this.sweep(drv, Le_H, box, oneOfN(P, n));
+      if (one.values === null) return one;
+      const gain = 20 * Math.log10(n);
+      return { ...one, values: { ...one.values, spl: one.values.spl.map((v) => v === -200 ? v : v + gain) } };
+    }
     // Driver-side added mass (docs/research/WINISD_PARITY.md) shifts Mms/Fs/Q's before the circuit sees it.
     // 0/absent → withAddedMass returns the driver unchanged, so goldens are byte-identical.
     const single = withAddedMass(driverValues(drv), P.driverAddedMass ?? 0);
@@ -594,6 +612,14 @@ export class SimulationEngineImpl implements SimulationEngine {
    *   https://en.wikipedia.org/wiki/Thiele/Small_parameters#Other_parameters
    */
   maxCurves(drv: DriverSolverParams, Le_H: number | undefined, box: BoxType, P: SweepParams): MaxCurvesSolveResult {
+    const n = P.nDrivers || 1;
+    if (winisdCountsDrivers(box, P)) {
+      // WinISD: N times one driver's limits in Vb/N — max power ×N; max SPL +20·log10(N) (⚠ unverified).
+      const one = this.maxCurves(drv, Le_H, box, { ...P, nDrivers: 1, Vb: P.Vb / n });
+      if (one.values === null) return one;
+      const gain = 20 * Math.log10(n);
+      return { ...one, values: { ...one.values, maxpwr: one.values.maxpwr.map((v) => v * n), maxspl: one.values.maxspl.map((v) => v + gain) } };
+    }
     // The driver in its box alone: WinISD leaves the filter chain out of Maximum SPL and Maximum
     // power (f_46bd30 never multiplies Hf into kinds 7 and 16; winisd_research/runs/
     // filt-chain-sealed-1). BUG_20260927_max-spl-and-max-power-include-the-filter-chain.

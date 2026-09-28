@@ -191,51 +191,6 @@ export function textRoundTripDiff(
   return a === b ? [] : [{ level: "error", field, message }];
 }
 
-/**
- * THE EXTENDED CHAIN (`drivers.md` Part C step 6), all four artefacts (John, 2026-09-22: "oid -
- * wdr - oid - wdr", "4 steps!!!"): `driver1` -> `w2` -> `i3`/`driver3` -> `w3`. `driver1` is the
- * OpenISD driver this whole pipeline built from `driver.yml`; `w2` is the `.wdr` reader's own
- * opinion of what we wrote; `i3`/`driver3` is that opinion projected into a record and then a
- * domain driver; `w3` is what OUR record -> `.wdr` writer makes of `driver3`. If either pair
- * disagrees, two of our own seams disagree about what the SAME record means — a defect the
- * text-only `.wdr` check cannot see, because it stays on one side of the record boundary.
- *
- * Two comparisons, always the SAME representation on each side — comparing an OID to a `.wdr` is
- * not a round trip: `driver1` vs `driver3` (`oidDriverDiffs`) and `w2` vs `w3` (`wdrDriverDiffs`).
- *
- * `oidDriverDiffs` already normalises every documented one-directional promotion `WDR_LOGIC.md`
- * describes (VCCon's presence read, a non-calculable field's derived-value-marked-E write, `c`/
- * `roo`'s air model) — none of them changes a VALUE, only which of `entered`/`calculated` labels
- * it. `Xlim_m`, and every OID field with no `.wdr` row at all, are out of scope for that
- * comparison: nothing in a `.wdr` can carry them, so `driver1` and `driver3` disagreeing there is
- * the format's own limit, not a defect in this code.
- */
-export function wdrRecordRoundTripDiffs(
-  driver1: OpenISDDriver,
-  w2: WinISDDriver,
-  engine: Engine
-): DriverError[] {
-  const { record: i3 } = winISDDriverToOpenISDDeviceJson(w2);
-  const driver3 = OpenISDDriver.fromConformingRecord(i3, engine);
-  if (Array.isArray(driver3)) {
-    return [{
-      level: "error",
-      field: "wdr-record-round-trip",
-      message:
-        "the .wdr we wrote reads back as a record the driver seam refuses: " +
-        driver3.join("; "),
-    }];
-  }
-  const w3 = openIsdDriverToWinIsdDriver(driver3, []);
-  return [
-    ...oidDriverDiffs(driver1, driver3),
-    ...wdrDriverDiffs(w2, w3),
-  ].map((diff) => ({
-    level: "error" as const,
-    field: "wdr-record-round-trip",
-    message: diff,
-  }));
-}
 
 /**
  * openisd.json: text -> record -> text. The record is what a reader gets; the text is what we
@@ -260,36 +215,86 @@ export function jsonRoundTripDiffs(openisd: string): DriverError[] {
   }
 }
 
-/**
- * THE ROUND TRIPS (`drivers.md` Part C step 6). Both texts this function is about to return on
- * are read back and re-written; a difference means our own writer and reader disagree, and the
- * file on disk is then a lossy copy of a record nobody can reconstruct.
- *
- * Reported through `errors`, not thrown: the bridge's contract with its Python caller is
- * never-throws across the V8 boundary, and an exception there is unreadable to it (`openisd_js.py`
- * raises `BridgeFault` and aborts the whole run). A `level:'error'` entry reaches the caller,
- * names the file that failed, and stops that record being written — which is what a coding error
- * on this path deserves. NONE OF THESE IS EXPECTED TO FIRE (John, 2026-09-02: "we do not expect
- * any issues, issues are a coding error").
- */
-export function roundTripProblems(
-  driver1: OpenISDDriver,
-  openisd: string,
-  wdr: string,
-  engine: Engine
-): DriverError[] {
-  const jsonDiffs = jsonRoundTripDiffs(openisd);
+/** The bundler's round-trip gate: reads back what the converter wrote, with the same engine the
+ *  converter used, and reports every difference as a `DriverError`. */
+export class DriverRoundTripCheck {
+  constructor(private readonly engine: Engine) {}
 
-  const w2 = WinISDDriver.fromWdrIni(wdr);
+  /**
+   * THE ROUND TRIPS (`drivers.md` Part C step 6). Both texts this function is about to return on
+   * are read back and re-written; a difference means our own writer and reader disagree, and the
+   * file on disk is then a lossy copy of a record nobody can reconstruct.
+   *
+   * Reported through `errors`, not thrown: the bridge's contract with its Python caller is
+   * never-throws across the V8 boundary, and an exception there is unreadable to it (`openisd_js.py`
+   * raises `BridgeFault` and aborts the whole run). A `level:'error'` entry reaches the caller,
+   * names the file that failed, and stops that record being written — which is what a coding error
+   * on this path deserves. NONE OF THESE IS EXPECTED TO FIRE (John, 2026-09-02: "we do not expect
+   * any issues, issues are a coding error").
+   */
+  roundTripProblems(
+    driver1: OpenISDDriver,
+    openisd: string,
+    wdr: string
+  ): DriverError[] {
+    const jsonDiffs = jsonRoundTripDiffs(openisd);
 
-  return [
-    ...jsonDiffs,
-    ...textRoundTripDiff(
-      "wdr-round-trip",
-      "the .wdr we wrote does not survive being read back and rewritten",
-      w2.toWdrIni(),
-      wdr
-    ),
-    ...wdrRecordRoundTripDiffs(driver1, w2, engine),
-  ];
+    const w2 = WinISDDriver.fromWdrIni(wdr);
+
+    return [
+      ...jsonDiffs,
+      ...textRoundTripDiff(
+        "wdr-round-trip",
+        "the .wdr we wrote does not survive being read back and rewritten",
+        w2.toWdrIni(),
+        wdr
+      ),
+      ...this.wdrRecordRoundTripDiffs(driver1, w2),
+    ];
+  }
+
+  /**
+   * THE EXTENDED CHAIN (`drivers.md` Part C step 6), all four artefacts (John, 2026-09-22: "oid -
+   * wdr - oid - wdr", "4 steps!!!"): `driver1` -> `w2` -> `i3`/`driver3` -> `w3`. `driver1` is the
+   * OpenISD driver this whole pipeline built from `driver.yml`; `w2` is the `.wdr` reader's own
+   * opinion of what we wrote; `i3`/`driver3` is that opinion projected into a record and then a
+   * domain driver; `w3` is what OUR record -> `.wdr` writer makes of `driver3`. If either pair
+   * disagrees, two of our own seams disagree about what the SAME record means — a defect the
+   * text-only `.wdr` check cannot see, because it stays on one side of the record boundary.
+   *
+   * Two comparisons, always the SAME representation on each side — comparing an OID to a `.wdr` is
+   * not a round trip: `driver1` vs `driver3` (`oidDriverDiffs`) and `w2` vs `w3` (`wdrDriverDiffs`).
+   *
+   * `oidDriverDiffs` already normalises every documented one-directional promotion `WDR_LOGIC.md`
+   * describes (VCCon's presence read, a non-calculable field's derived-value-marked-E write, `c`/
+   * `roo`'s air model) — none of them changes a VALUE, only which of `entered`/`calculated` labels
+   * it. `Xlim_m`, and every OID field with no `.wdr` row at all, are out of scope for that
+   * comparison: nothing in a `.wdr` can carry them, so `driver1` and `driver3` disagreeing there is
+   * the format's own limit, not a defect in this code.
+   */
+  wdrRecordRoundTripDiffs(
+    driver1: OpenISDDriver,
+    w2: WinISDDriver
+  ): DriverError[] {
+    const { record: i3 } = winISDDriverToOpenISDDeviceJson(w2);
+    const driver3 = OpenISDDriver.fromConformingRecord(i3, this.engine);
+    if (Array.isArray(driver3)) {
+      return [{
+        level: "error",
+        field: "wdr-record-round-trip",
+        message:
+          "the .wdr we wrote reads back as a record the driver seam refuses: " +
+          driver3.join("; "),
+      }];
+    }
+    const w3 = openIsdDriverToWinIsdDriver(driver3, []);
+    return [
+      ...oidDriverDiffs(driver1, driver3),
+      ...wdrDriverDiffs(w2, w3),
+    ].map((diff) => ({
+      level: "error" as const,
+      field: "wdr-record-round-trip",
+      message: diff,
+    }));
+  }
 }

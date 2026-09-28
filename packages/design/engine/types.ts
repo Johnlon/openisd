@@ -181,6 +181,10 @@ export interface SweepParams {
   // Multi-driver
   nDrivers?: number;
   wiring?: Wiring;
+  /** WinISD's driver count (true/absent): N copies of one driver, each in Vb/N fed P/N — sealed box
+   *  only so far (bugs/BUG_20260928_driver-count-not-winisd.md). false: the N coils wired by
+   *  `wiring` into one terminal impedance. */
+  winisdDriverCountModel?: boolean;
   Rs?: number;
   circuitModel?: CircuitModel;
   /** WinISD's VA, P·Re·|Hf|²/|Z + Rg| (true/absent), or the amplifier's apparent power,
