@@ -245,7 +245,9 @@ const calculatedEntrySchema = z.strictObject({
  * this schema ever parses it — so a bare scraper shape reaching this union IS a parse error, not
  * a shape to be silently upgraded.
  */
-export const specEntryJsonSchema = z.discriminatedUnion('state', [enteredEntrySchema, calculatedEntrySchema]);
+export const specEntryJsonSchema =
+    z.discriminatedUnion('state', [enteredEntrySchema, calculatedEntrySchema]);
+
 export type SpecEntryJson = z.infer<typeof specEntryJsonSchema>;
 
 // ── THE THREE FIELD ENVELOPES ─────────────────────────────────────────────────────────────────

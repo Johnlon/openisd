@@ -96,9 +96,9 @@ function onBlur(key: NumKey) { delete rawVals[key]; }
 // the same conversion (e.g. Vas max 100 m³ → 100000 L).
 function scaledLimits(key: NumKey, group: UnitGroup | undefined, token: string | undefined): { min?: number; max?: number } {
   const lim = limits(key);
-  if (!group || !token) return lim;
-  return { min: lim.min === undefined ? undefined : toDisplay(lim.min, group, token),
-           max: lim.max === undefined ? undefined : toDisplay(lim.max, group, token) };
+  if (lim === undefined) return {};
+  if (!group || !token) return { min: lim.min, max: lim.max };
+  return { min: toDisplay(lim.min, group, token), max: toDisplay(lim.max, group, token) };
 }
 
 // Any two of the Q trio solve the third, so all three are flagged together while fewer than

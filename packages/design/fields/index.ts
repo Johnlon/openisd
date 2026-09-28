@@ -29,3 +29,6 @@ export {
   FILTER_T_LIMITS,
   FILTER_BW_LIMITS,
 } from './filterLimits.js';
+
+/** The field registry — every field OpenISD has, with its own limits and precision. */
+export { Field } from './field.js';

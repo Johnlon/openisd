@@ -54,10 +54,10 @@ describe('PR dialogs — every numeric entry is bounded by the registry', () => 
       for (const id of boundFieldIds(file)) {
         const spec = fieldById(id);
         assert.ok(spec, `${file} binds field="${id}", which uiFields does not declare`);
-        assert.equal(typeof spec!.min, 'number', `${id} has no registry min — entry is unbounded below`);
-        assert.equal(typeof spec!.max, 'number', `${id} has no registry max — entry is unbounded above`);
-        assert.ok(Number.isFinite(spec!.min!) && Number.isFinite(spec!.max!), `${id}'s bounds are not finite`);
-        assert.ok(spec!.min! < spec!.max!, `${id}'s min (${spec!.min}) is not below its max (${spec!.max})`);
+        const band = spec!.def?.limits;
+        assert.ok(band, `${id} has no field def — entry is unbounded`);
+        assert.ok(Number.isFinite(band!.min) && Number.isFinite(band!.max), `${id}'s bounds are not finite`);
+        assert.ok(band!.min < band!.max, `${id}'s min (${band!.min}) is not below its max (${band!.max})`);
       }
     });
   }
@@ -69,39 +69,39 @@ describe('PR entry bounds keep the limits the dialogs enforced before the regist
   // was: a widened floor silently admits values the form used to refuse.
 
   it('Sd: at least 1 cm², at most 100000 cm²', () => {
-    const spec = fieldById('pr_Sd_cm2')!;
-    assert.equal(spec.max, fromDisplay(100000, 'area', 'cm2'), 'Sd ceiling moved off 100000 cm²');
-    assert.ok(spec.min! >= fromDisplay(0.1, 'area', 'cm2'), 'Sd floor is looser than the 0.1 cm² the form enforced');
+    const band = fieldById('pr_Sd_cm2')!.def!.limits;
+    assert.equal(band.max, fromDisplay(100000, 'area', 'cm2'), 'Sd ceiling moved off 100000 cm²');
+    assert.ok(band.min >= fromDisplay(0.1, 'area', 'cm2'), 'Sd floor is looser than the 0.1 cm² the form enforced');
   });
 
   it('Xmax: 0 to 500 mm', () => {
-    const spec = fieldById('pr_Xmax_mm')!;
-    assert.equal(spec.max, fromDisplay(500, 'length', 'mm'), 'Xmax ceiling moved off 500 mm');
-    assert.equal(spec.min, 0, 'Xmax floor moved off zero — an unexcursed PR is a legal entry');
+    const band = fieldById('pr_Xmax_mm')!.def!.limits;
+    assert.equal(band.max, fromDisplay(500, 'length', 'mm'), 'Xmax ceiling moved off 500 mm');
+    assert.equal(band.min, 0, 'Xmax floor moved off zero — an unexcursed PR is a legal entry');
   });
 
   it('Vas: at least 0.01 L, at most 100000 L', () => {
-    const spec = fieldById('pr_Vas_l')!;
-    assert.equal(spec.max, fromDisplay(100000, 'volume', 'L'), 'Vas ceiling moved off 100000 L');
-    assert.ok(spec.min! > 0, 'Vas floor is zero — a PR with no compliance volume is unphysical');
-    assert.ok(spec.min! <= fromDisplay(0.01, 'volume', 'L'), 'Vas floor is tighter than the 0.01 L the form allowed');
+    const band = fieldById('pr_Vas_l')!.def!.limits;
+    assert.equal(band.max, fromDisplay(100000, 'volume', 'L'), 'Vas ceiling moved off 100000 L');
+    assert.ok(band.min > 0, 'Vas floor is zero — a PR with no compliance volume is unphysical');
+    assert.ok(band.min <= fromDisplay(0.01, 'volume', 'L'), 'Vas floor is tighter than the 0.01 L the form allowed');
   });
 
   it('Fs: at least 1 Hz, at most 1000 Hz', () => {
-    const spec = fieldById('pr_Fs_hz')!;
-    assert.equal(spec.max, 1000, 'Fs ceiling moved off 1000 Hz');
-    assert.ok(spec.min! >= 1, 'Fs floor is below the 1 Hz the form enforced — 0 Hz is not a resonance');
+    const band = fieldById('pr_Fs_hz')!.def!.limits;
+    assert.equal(band.max, 1000, 'Fs ceiling moved off 1000 Hz');
+    assert.ok(band.min >= 1, 'Fs floor is below the 1 Hz the form enforced — 0 Hz is not a resonance');
   });
 
   it('Qms: at least 0.1, at most 100', () => {
-    const spec = fieldById('pr_Qms')!;
-    assert.equal(spec.max, 100, 'Qms ceiling moved off 100');
-    assert.ok(spec.min! >= 0.1, 'Qms floor is below the 0.1 the form enforced — a Q of 0 is unphysical');
+    const band = fieldById('pr_Qms')!.def!.limits;
+    assert.equal(band.max, 100, 'Qms ceiling moved off 100');
+    assert.ok(band.min >= 0.1, 'Qms floor is below the 0.1 the form enforced — a Q of 0 is unphysical');
   });
 
   it('PR count: 1 to 16 whole radiators', () => {
-    const spec = fieldById('pr_Num')!;
-    assert.equal(spec.min, 1, 'a design with a PR has at least one');
-    assert.equal(spec.max, 16, 'PR count ceiling moved off 16');
+    const band = fieldById('pr_Num')!.def!.limits;
+    assert.equal(band.min, 1, 'a design with a PR has at least one');
+    assert.equal(band.max, 16, 'PR count ceiling moved off 16');
   });
 });

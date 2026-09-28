@@ -135,7 +135,7 @@ function onWheel() { typing.value = false; }   // wheel over the field is a step
 function onPointerDown() { typing.value = false; }
 
 // Effective SI-space bounds: explicit props win; else the bound field's registry limits
-// (uiFields is the constraints SSOT — bounds there are in SI/model space); else the
+// (the row's own field def in packages/design — bounds there are in SI/model space); else the
 // non-negative default floor and no ceiling.
 //
 // EXACT lookup, deliberately — do not add case-tolerance here. Both the `field` bindings and the
@@ -158,8 +158,8 @@ const helpText = computed<string | undefined>(() => {
   return t === '' ? undefined : t;
 });
 
-const effMin = computed<number>(() => props.min ?? regSpec.value?.min ?? 0);
-const effMax = computed<number | undefined>(() => props.max ?? regSpec.value?.max);
+const effMin = computed<number>(() => props.min ?? regSpec.value?.def?.limits.min ?? 0);
+const effMax = computed<number | undefined>(() => props.max ?? regSpec.value?.def?.limits.max);
 
 // Bounds are SI-space (default floor 0 — physical quantities are non-negative; for absolute
 // temperature 0 K is the floor). Validation therefore always tests the SI value, NOT the display
