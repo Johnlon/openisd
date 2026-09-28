@@ -265,8 +265,8 @@ describe('resistance unit group — Ns/m ↔ kg/s, factor 1 (ledger QO51)', () =
   // `valid(si)` in SI space, the same registry/`byLabel` seam every other test in this file uses.
   function withinRegistryBounds(id: string, si: number): boolean {
     const spec = fieldById(id);
-    const min = spec?.min ?? 0;
-    const max = spec?.max;
+    const min = spec?.def?.limits.min ?? 0;
+    const max = spec?.def?.limits.max;
     return isFinite(si) && si >= min && (max === undefined || si <= max);
   }
 
@@ -277,7 +277,7 @@ describe('resistance unit group — Ns/m ↔ kg/s, factor 1 (ledger QO51)', () =
       const f = byLabel(spec!.label);
       assert.equal(f.regField, id,
         `${id}'s NumInput does not bind field="${id}" — the registry's min/max never reach this cell's bound check`);
-      assert.equal(spec!.max, 1000, `${id}'s registry ceiling is no longer 1000 — update this pin`);
+      assert.equal(spec!.def?.limits.max, 1000, `${id}'s ceiling is no longer 1000 — update this pin`);
       assert.equal(withinRegistryBounds(id, 1000), true, `${id}: exactly at the registry ceiling must still be a valid value`);
       assert.equal(withinRegistryBounds(id, 1000.0001), false,
         `${id}: binding field="${id}" switches the bound check onto the registry's max=1000 — 1000.0001 must be rejected`);

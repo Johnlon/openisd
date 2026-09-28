@@ -1,14 +1,31 @@
-import { Engine } from '../../engine/index.js';
-import type { Air, DqIssue, DriverIssue, DriverQuantityName, DriverSolverParams } from '../../engine/index.js';
-import { DualWriteFieldImpl, absentCell, calculatedCell, enteredCell, entryField, writeEntryDq } from '../cell.js';
-import type { Calculatable, Calculated, Clearable, Entered, Precise, Readable, SimpleField, Unsolvable, Writable } from '../cell.js';
-import type { DriverDeviceJson, DriverSpecsSection, SpecEntryJson } from '../openisdSchema.js';
-import { VoiceCoilWiring, calcNumVC, calcVCCon, calculatedWiring, enteredWiring, wiringFromRecord } from '../voiceCoilWiring.js';
-import { winningValue } from '../specEntry.js';
-import { projectFormulaDq } from '../project/projectFormulaDq.js';
-import { driverSection } from './driverSection.js';
-import type { DriverSpecFieldName } from './driverSpecFieldName.js';
-import { NO_SLOT } from './noSlot.js';
+import type {Air, DqIssue, DriverIssue, DriverQuantityName, DriverSolverParams} from '../../engine/index.js';
+import {Engine} from '../../engine/index.js';
+import type {
+    Calculatable,
+    Calculated,
+    Clearable,
+    Entered,
+    Precise,
+    Readable,
+    SimpleField,
+    Unsolvable,
+    Writable
+} from '../cell.js';
+import {absentCell, calculatedCell, DualWriteFieldImpl, enteredCell, entryField, writeEntryDq} from '../cell.js';
+import type {DriverDeviceJson, DriverSpecsSection, SpecEntryJson} from '../openisdSchema.js';
+import {
+    calcNumVC,
+    calculatedWiring,
+    calcVCCon,
+    enteredWiring,
+    VoiceCoilWiring,
+    wiringFromRecord
+} from '../voiceCoilWiring.js';
+import {winningValue} from '../specEntry.js';
+import {projectFormulaDq} from '../project/projectFormulaDq.js';
+import {driverSection} from './driverSection.js';
+import type {DriverSpecFieldName} from './driverSpecFieldName.js';
+import {NO_SLOT} from './noSlot.js';
 
 /**
  * The floor a driver spec field's value must clear, per BUG_20260927_driver-bad-value-decided-
@@ -66,9 +83,12 @@ const FIELD_FLOOR: Record<DriverSpecFieldName, ValueFloor> = Object.freeze({
  *  case here fails to compile. */
 function floorIssue(key: DriverSpecFieldName, v: number, engine: Engine): DqIssue | null {
     switch (FIELD_FLOOR[key]) {
-        case 'positive': return engine.positiveValueIssue(v);
-        case 'non-negative': return engine.nonNegativeValueIssue(v);
-        case 'none': return null;
+        case 'positive':
+            return engine.positiveValueIssue(v);
+        case 'non-negative':
+            return engine.nonNegativeValueIssue(v);
+        case 'none':
+            return null;
     }
 }
 
@@ -200,7 +220,9 @@ export class OpenIsdDriverSpec {
          *  (T11: absence is 'N', not a stored null). */
         const sectionLens = driverSection(record, section);
         const sectionSlot = (key: keyof DriverSpecsSection): SimpleField<SpecEntryJson | undefined> => ({
-            get value() { return sectionLens.value[key]; },
+            get value() {
+                return sectionLens.value[key];
+            },
             set: (v) => {
                 const spec = sectionLens.value;
                 const {[key]: _removed, ...rest} = spec;
@@ -222,7 +244,22 @@ export class OpenIsdDriverSpec {
          *  BUG_20260927_driver-bad-value-decided-in-ui.md's follow-up), computed fresh from the
          *  CURRENT value on every read so it shows up immediately on `.set()`, not only after
          *  the next `resolve()`. */
-        const f = (key: DriverSpecFieldName): Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable => entryField(sectionSlot(key), key, dqFor(key), (v) => floorIssue(key, v, engine));
+        const f =
+            (key: DriverSpecFieldName):
+                Readable<number | null> &
+                Entered & Calculated &
+                Precise &
+                Writable<number> &
+                Clearable &
+                Calculatable<number> &
+                Unsolvable =>
+
+                entryField(
+                    sectionSlot(key),
+                    key,
+                    dqFor(key),
+                    (v) => floorIssue(key, v, engine)
+                );
 
         /** The wiring field — `entryField` in every respect but the value's type, which is a
          *  NAME rather than one of `DriverSpecsSection`'s numbers, so it cannot go through `f()`
@@ -247,25 +284,60 @@ export class OpenIsdDriverSpec {
                     : calculatedCell<VoiceCoilWiring | null>('VCCon', wiring, wiringDq);
             },
             {
-                entered: (v: VoiceCoilWiring) => { wiringDq = []; wiringSlot.set(enteredWiring(v)); },
-                calculated: (v: VoiceCoilWiring) => { wiringDq = []; wiringSlot.set(calculatedWiring(v)); },
-                clear: () => { wiringDq = []; wiringSlot.set(undefined); },
-                dq: (list) => { wiringDq = list; writeEntryDq(wiringSlot, list); },
+                entered: (v: VoiceCoilWiring) => {
+                    wiringDq = [];
+                    wiringSlot.set(enteredWiring(v));
+                },
+                calculated: (v: VoiceCoilWiring) => {
+                    wiringDq = [];
+                    wiringSlot.set(calculatedWiring(v));
+                },
+                clear: () => {
+                    wiringDq = [];
+                    wiringSlot.set(undefined);
+                },
+                dq: (list) => {
+                    wiringDq = list;
+                    writeEntryDq(wiringSlot, list);
+                },
             },
         );
 
         this.numVC = f('numVC');
-        this.Fs_hz = f('Fs_hz'); this.Re_ohm = f('Re_ohm'); this.Le_H = f('Le_H'); this.fLe_hz = f('fLe_hz');
-        this.KLe_H_sqrtHz = f('KLe_H_sqrtHz'); this.Znom_ohm = f('Znom_ohm'); this.Qts = f('Qts');
-        this.Qes = f('Qes'); this.Qms = f('Qms'); this.Vas_m3 = f('Vas_m3'); this.Sd_m2 = f('Sd_m2');
-        this.BL_Tm = f('BL_Tm'); this.Mms_kg = f('Mms_kg'); this.Cms_m_per_N = f('Cms_m_per_N');
-        this.Rms_kg_per_s = f('Rms_kg_per_s'); this.Xmax_m = f('Xmax_m'); this.Xlim_m = f('Xlim_m');
-        this.SPL_dB = f('SPL_dB'); this.Pe_W = f('Pe_W'); this.Dd_m = f('Dd_m'); this.EBP_hz = f('EBP_hz');
-        this.Dia_m = f('Dia_m'); this.Vd_m3 = f('Vd_m3'); this.no = f('no'); this.SPLmax_dB = f('SPLmax_dB');
-        this.SPLmaxLF_dB = f('SPLmaxLF_dB'); this.USPL_dB = f('USPL_dB'); this.alfaVC_per_K = f('alfaVC_per_K');
-        this.Rt_K_per_W = f('Rt_K_per_W'); this.Ct_J_per_K = f('Ct_J_per_K');
-        this.gamma_m_per_s2_A = f('gamma_m_per_s2_A'); this.Rme_kg_per_s = f('Rme_kg_per_s');
-        this.Mpow_N_per_sqrtW = f('Mpow_N_per_sqrtW'); this.Mcost_kg_per_s = f('Mcost_kg_per_s');
+        this.Fs_hz = f('Fs_hz');
+        this.Re_ohm = f('Re_ohm');
+        this.Le_H = f('Le_H');
+        this.fLe_hz = f('fLe_hz');
+        this.KLe_H_sqrtHz = f('KLe_H_sqrtHz');
+        this.Znom_ohm = f('Znom_ohm');
+        this.Qts = f('Qts');
+        this.Qes = f('Qes');
+        this.Qms = f('Qms');
+        this.Vas_m3 = f('Vas_m3');
+        this.Sd_m2 = f('Sd_m2');
+        this.BL_Tm = f('BL_Tm');
+        this.Mms_kg = f('Mms_kg');
+        this.Cms_m_per_N = f('Cms_m_per_N');
+        this.Rms_kg_per_s = f('Rms_kg_per_s');
+        this.Xmax_m = f('Xmax_m');
+        this.Xlim_m = f('Xlim_m');
+        this.SPL_dB = f('SPL_dB');
+        this.Pe_W = f('Pe_W');
+        this.Dd_m = f('Dd_m');
+        this.EBP_hz = f('EBP_hz');
+        this.Dia_m = f('Dia_m');
+        this.Vd_m3 = f('Vd_m3');
+        this.no = f('no');
+        this.SPLmax_dB = f('SPLmax_dB');
+        this.SPLmaxLF_dB = f('SPLmaxLF_dB');
+        this.USPL_dB = f('USPL_dB');
+        this.alfaVC_per_K = f('alfaVC_per_K');
+        this.Rt_K_per_W = f('Rt_K_per_W');
+        this.Ct_J_per_K = f('Ct_J_per_K');
+        this.gamma_m_per_s2_A = f('gamma_m_per_s2_A');
+        this.Rme_kg_per_s = f('Rme_kg_per_s');
+        this.Mpow_N_per_sqrtW = f('Mpow_N_per_sqrtW');
+        this.Mcost_kg_per_s = f('Mcost_kg_per_s');
         this.Gloss = f('Gloss');
         // The air THIS DRIVER states, entry-backed like every other quantity: a not-entered
         // c_m_per_s/roo_kg_per_m3 no longer needs a live read-time fallback — `resolve()`'s own
@@ -279,13 +351,24 @@ export class OpenIsdDriverSpec {
         // the project's own air. Until decided, treat it as display-only: every real
         // calculation (box, vent, PR, sweep) reads the project's air, never this field
         // (BUG_20260924_driver-solve-and-sweep-use-different-air-models.md).
-        this.c_m_per_s = f('c_m_per_s'); this.roo_kg_per_m3 = f('roo_kg_per_m3');
-        this.Vcd_m = f('Vcd_m'); this.Hg_m = f('Hg_m'); this.Hc_m = f('Hc_m');
-        this.freq_low_hz = f('freq_low_hz'); this.freq_high_hz = f('freq_high_hz');
-        this.power_peak_W = f('power_peak_W'); this.weight_kg = f('weight_kg'); this.Thick_m = f('Thick_m');
-        this.Depth_m = f('Depth_m'); this.MagDepth_m = f('MagDepth_m'); this.Magnet_m = f('Magnet_m');
-        this.Basket_m = f('Basket_m'); this.Outer_m = f('Outer_m'); this.OuterX_m = f('OuterX_m');
-        this.OuterY_m = f('OuterY_m'); this.DVol_m3 = f('DVol_m3');
+        this.c_m_per_s = f('c_m_per_s');
+        this.roo_kg_per_m3 = f('roo_kg_per_m3');
+        this.Vcd_m = f('Vcd_m');
+        this.Hg_m = f('Hg_m');
+        this.Hc_m = f('Hc_m');
+        this.freq_low_hz = f('freq_low_hz');
+        this.freq_high_hz = f('freq_high_hz');
+        this.power_peak_W = f('power_peak_W');
+        this.weight_kg = f('weight_kg');
+        this.Thick_m = f('Thick_m');
+        this.Depth_m = f('Depth_m');
+        this.MagDepth_m = f('MagDepth_m');
+        this.Magnet_m = f('Magnet_m');
+        this.Basket_m = f('Basket_m');
+        this.Outer_m = f('Outer_m');
+        this.OuterX_m = f('OuterX_m');
+        this.OuterY_m = f('OuterY_m');
+        this.DVol_m3 = f('DVol_m3');
     }
 
     /** T11: every driver quantity `solveDriver` can derive is written back into the record as a

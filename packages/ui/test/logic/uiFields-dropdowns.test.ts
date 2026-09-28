@@ -82,12 +82,12 @@ describe('uiFields — a count select lists every integer the spec allows, as Se
     if (!spec) throw new Error('vent_Count missing');
     assert.ok(spec.aliases?.includes('Num'));
     assert.equal(spec.pane, 'Vents');
-    assert.equal(spec.precision, 0);
+    assert.equal(spec.def?.precision, 0);
     assert.ok(spec.description.length > 20);
   });
 
-  it('refuses a spec without both bounds — a count select cannot guess its range', () => {
-    assert.throws(() => countOptions('driver_brand'), /min and max/);
+  it('refuses a row with no field def — a count select cannot guess its range', () => {
+    assert.throws(() => countOptions('driver_brand'), /no field def/);
   });
 });
 
