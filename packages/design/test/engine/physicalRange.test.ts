@@ -27,8 +27,11 @@ describe('checkRange (D5/O4)', () => {
     expect(rangeIssues({ Qts: 0.4, Fs_hz: 45 })).toEqual([]);
   });
 
-  it('reports nothing for a field PHYSICAL_RANGE has no band for', () => {
-    expect(rangeIssues({ Gloss: -50 })).toEqual([]);
+  // Every field states a band now: where nothing narrower than the entry band is known, the
+  // entry band IS the plausible band, so there is no "checked against nothing" case left. A
+  // field the scraper never researched is still held to what the input would accept.
+  it('holds a field with no researched band to the one its input enforces', () => {
+    expect(rangeIssues({ Gloss: -50 })).toEqual([engine.outOfRange('Gloss', -50, 0, 'below')]);
   });
 
   it('skips zero — the .wdr not-present sentinel, never a real physical value', () => {

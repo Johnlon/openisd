@@ -1,5 +1,6 @@
+import {LossMode} from '../../fields/lossMode.js';
 import {sealedFromQtc, sealedQtcFromVolume} from '../boxDesign.js';
-import {LossMode, sealedResonance} from '../lossMode.js';
+import {sealedResonance} from '../lossMode.js';
 import type {SealedAlignmentSolverParams} from '../solverTypes.js';
 import {missingDependencies} from '../consistency.js';
 import type {CalculationIssue} from '../consistency.js';

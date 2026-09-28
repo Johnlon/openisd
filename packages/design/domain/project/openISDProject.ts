@@ -1,4 +1,5 @@
-import { Engine, LossMode } from '../../engine/index.js';
+import {LossMode} from '../../fields/lossMode.js';
+import {Engine} from '../../engine/index.js';
 import type { Air, AirEnvironment, BoxParamsIssue, BoxType, ChartId, DqIssue, DriverError, EnclosureParams, Filter, MaxCurvesResult, MaxCurvesSolveResult, PrIssue, SealedAlignmentIssue, SimulatableBoxType, SweepIssue, SweepParams, SweepResult, SweepSolveResult, VentIssue } from '../../engine/index.js';
 import { realAppContext } from '../appContext.js';
 import type { AppContext } from '../appContext.js';

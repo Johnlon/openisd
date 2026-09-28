@@ -59,7 +59,7 @@ interface Bound {
   regField: Field | null;
 }
 
-/** The registry member a template names, e.g. `NumberField.DRIVER_DD_MM`. */
+/** The registry member a template names, e.g. `NumberField.DD_M`. */
 function memberNamed(cls: string, name: string): Field {
   const classes: Record<string, object> = {NumberField, EnumField, TextField, ToggleField, DateField};
   const holder = classes[cls];
@@ -80,7 +80,7 @@ function evalNum(expr: string, fallback: number): number {
 }
 
 const RESISTANCE_FIELDS = [
-  NumberField.DRIVER_RMS_NS_PER_M, NumberField.DRIVER_RME_NS_PER_M, NumberField.DRIVER_MCOST_KG_PER_S,
+  NumberField.RMS_KG_PER_S, NumberField.RME_KG_PER_S, NumberField.MCOST_KG_PER_S,
 ] as const;
 
 /** Every `.de-fld` block in the editor template that binds a NumInput to a driver cell. */
@@ -311,7 +311,7 @@ describe('percent unit group — one unit, the ONE place a fraction becomes a pe
   });
 
   it('no and Gloss declare the percent unitGroup in the field registry', () => {
-    for (const f of [NumberField.DRIVER_ETA0, NumberField.DRIVER_GLOSS_PCT]) {
+    for (const f of [NumberField.NO, NumberField.GLOSS]) {
       assert.equal(f.unitGroup, 'percent', `${f.value} does not carry unitGroup: 'percent'`);
     }
   });
@@ -399,18 +399,18 @@ describe('driver editor — precision comes from the field registry', () => {
   // dp at the call site is a second, silent declaration: Dd at 2 dp of a metre is ±5 mm on a
   // cone diameter, and nothing connects that number back to the field's spec.
   const REGISTRY_FIELD: ReadonlyMap<string, NumberField> = new Map([
-    ['Dd', NumberField.DRIVER_DD_MM],
-    ['fLe', NumberField.DRIVER_FLE_HZ],
+    ['Dd', NumberField.DD_M],
+    ['fLe', NumberField.FLE_HZ],
     // Mechanical fields carry "Full Name (Short)" labels, taken from WinISD's own help
     // (docs/winisd_helpfiles/help/thielesmall.html). Keys here are the rendered label text.
-    ['Basket Plate Thickness (Thick)', NumberField.DRIVER_THICK_MM],
-    ['Driver Depth (Depth)', NumberField.DRIVER_DEPTH_MM],
-    ['Magnet Depth', NumberField.DRIVER_MAGDEPTH_MM],
-    ['Magnet Diameter (Magnet)', NumberField.DRIVER_MAGNET_MM],
-    ['Basket Diameter (Basket)', NumberField.DRIVER_BASKET_MM],
-    ['Outer Diameter (Outer)', NumberField.DRIVER_OUTER_MM],
-    ['Voice Coil Dia (Vcd)', NumberField.DRIVER_VCD_MM],
-    ['Driver Displacement Volume (DVol)', NumberField.DRIVER_DVOL_CM3],
+    ['Basket Plate Thickness (Thick)', NumberField.THICK_M],
+    ['Driver Depth (Depth)', NumberField.DEPTH_M],
+    ['Magnet Depth', NumberField.MAGDEPTH_M],
+    ['Magnet Diameter (Magnet)', NumberField.MAGNET_M],
+    ['Basket Diameter (Basket)', NumberField.BASKET_M],
+    ['Outer Diameter (Outer)', NumberField.OUTER_M],
+    ['Voice Coil Dia (Vcd)', NumberField.VCD_M],
+    ['Driver Displacement Volume (DVol)', NumberField.DVOL_M3],
   ]);
 
   for (const [label, spec] of REGISTRY_FIELD) {
@@ -437,7 +437,7 @@ describe('driver editor — precision comes from the field registry', () => {
 
 describe('driver editor — peak power in the Miscellaneous parameters group', () => {
   it('power_peak_W has a registry label and a bound field row, in watts', () => {
-    const f = byLabel(NumberField.DRIVER_POWER_PEAK_W.label);
+    const f = byLabel(NumberField.POWER_PEAK_W.label);
     assert.equal(f.field, 'power_peak_W');
     assert.equal(f.unit, 'W');
   });

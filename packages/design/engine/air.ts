@@ -56,6 +56,7 @@
  */
 
 /** Ratio of specific heats for air. */
+import {NumberField} from '../fields/field.js';
 import {missingDependencies} from './consistency.js';
 import type {CalculationIssue} from './consistency.js';
 
@@ -71,8 +72,10 @@ export const END_CORRECTION = 0.732;
 export const DEFAULT_T_REF_K   = 293.15;
 export const DEFAULT_RH_REF_PCT = 30;
 export const DEFAULT_P_REF_PA  = 101325;
-export const MIN_SUPPORTED_TEMP_K = 173.15;
-export const MAX_SUPPORTED_TEMP_K = 373.15;
+/** The band an entered temperature may fall in — the field's own, so the engine and the input
+ *  cannot disagree about what temperature is enterable. */
+export const MIN_SUPPORTED_TEMP_K = NumberField.ADV_TEMP_K.limits.min;
+export const MAX_SUPPORTED_TEMP_K = NumberField.ADV_TEMP_K.limits.max;
 export const ZERO_C_IN_K = 273.15;
 
 /** Molar gas constant, J/(mol·K) — CIPM-2007. */

@@ -1,6 +1,7 @@
+import {LossMode} from '../../fields/lossMode.js';
 import {describe, expect, it} from 'vitest';
 import type {SolverField, SolverInput} from '../../engine/index.js';
-import {Engine, LossMode} from '../../engine/index.js';
+import {Engine} from '../../engine/index.js';
 import {checkSealedAlignment, fakeSolverField, solveSealedAlignmentGroup} from './testSolver.js';
 
 const engine = new Engine();

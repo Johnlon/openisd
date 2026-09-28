@@ -14,8 +14,7 @@ import {fileURLToPath} from 'node:url';
 import {dirname, join} from 'node:path';
 import {Engine} from '@openisd/design/engine';
 import {VoiceCoilWiring} from '@openisd/design';
-import {EnumField, NumberField} from '@openisd/design/fields';
-import {LossMode} from '@openisd/design/engine';
+import {EnumField, LossMode, NumberField} from '@openisd/design/fields';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const shellSrc = readFileSync(join(here, '../../src/ui/shells/original/OriginalShell.vue'), 'utf8');
@@ -36,7 +35,7 @@ describe('every dropdown is an EnumField carrying SelectorOption[]', () => {
   });
 
   it('driver_VCCon values ARE the domain wiring values, so a chosen option can be written straight to the driver', () => {
-    assert.deepEqual(optionsOf(EnumField.DRIVER_VCCON).map(o => o.value), [VoiceCoilWiring.Parallel, VoiceCoilWiring.Series]);
+    assert.deepEqual(optionsOf(EnumField.VCCON).map(o => o.value), [VoiceCoilWiring.Parallel, VoiceCoilWiring.Series]);
   });
 
   it('driver_ArrayWiring lists parallel and series', () => {

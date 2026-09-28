@@ -10,7 +10,6 @@
  * `createSealedReadouts` is the unit-testable core of the Box-tab readouts: JIT-composed here
  * with the shell's own `project` / `selectedBox` / `projectChanged`.
  */
-import {LossMode} from '@openisd/design/engine';
 import type {ComputedRef, Ref} from 'vue';
 import {computed, onMounted, onUnmounted, reactive, ref, shallowRef, watch} from 'vue';
 import {
@@ -49,7 +48,7 @@ import {useApp} from '../logic/app.js';
 import {useEscToClose} from '../logic/useEscToClose.js';
 import {injectSplashModal} from './SplashModal-hooks.js';
 import {clampedFrequency, interpolatedY, steppedFrequency} from '../logic/cursorFrequency.js';
-import {ARRAY_WIRING_OPTIONS, BOX_TYPE_OPTIONS, END_CORRECTION_OPTIONS, NumberField, VENT_SHAPE_OPTIONS} from '@openisd/design/fields';
+import {ARRAY_WIRING_OPTIONS, BOX_TYPE_OPTIONS, END_CORRECTION_OPTIONS, LossMode, NumberField, VENT_SHAPE_OPTIONS} from '@openisd/design/fields';
 import {inputChecked, inputFrom, inputValue, listeningElement, selectedOption, selectValue} from '../logic/domEvents.js';
 import {createSealedAlignmentEditor} from './SealedAlignment-hooks.js';
 import {createOgFilters} from './OgFilters-hooks.js';

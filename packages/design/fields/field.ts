@@ -13,20 +13,24 @@
  * option list is the reverse. The class IS the kind, so `NumberField.BOX_VB_L.limits` needs no
  * null check and `ToggleField.X.limits` does not compile.
  *
- * No `parse()`: a field NAME is never stored and never arrives from outside — a caller names
- * the member, and the compiler checks it.
+ * A caller names the member and the compiler checks it. `NumberField.named()` is the one
+ * exception, for the one case where a field name genuinely arrives from outside: a scraper
+ * reading names its field by the record key before anything has resolved it.
  *
  * Bounds are in SI/model space, never display space, matching how `NumInput.vue` validates: a
  * field labelled °C or mm still states its band in K or m.
  *
- * NOT yet folded in: `PHYSICAL_RANGE` (`engine/physicalRange.ts`) and `FIELD_FLOOR`
- * (`domain/driver/openIsdDriverSpec.ts`) state bands for these same quantities a second and
- * third time, and contradict the numbers below for nine fields. Every value here is carried
- * over from the UI's old field table VERBATIM, so building this registry changed no behaviour;
- * each contradiction is a separate decision, recorded in
+ * Two bands, not one. `limits` is what the input accepts; `plausible` is what a real driver's
+ * value looks like, and a value between them is enterable but carries a data-quality warning.
+ * `plausible` absorbed `PHYSICAL_RANGE` (`engine/physicalRange.ts`), which stated the same fact
+ * for 22 driver quantities in its own table.
+ *
+ * NOT yet folded in: `FIELD_FLOOR` (`domain/driver/openIsdDriverSpec.ts`) says per field whether
+ * zero and negatives are admissible at all, which neither band answers — `Qts` has a `limits`
+ * floor of 0 and a `FIELD_FLOOR` of 'positive'. Recorded in
  * bugs/BUG_20260928_three_tables_disagree_on_field_validity.md.
  */
-import {LossMode, MAX_SUPPORTED_TEMP_K, MIN_SUPPORTED_TEMP_K} from '../engine/index.js';
+import {LossMode} from './lossMode.js';
 import type {UnitGroup} from './dimensions.js';
 import type {FieldLimits} from './filterLimits.js';
 import {
@@ -78,6 +82,7 @@ interface NumberFieldSpec extends FieldSpec {
   readonly limits: FieldLimits;
   readonly precision: number;
   readonly formula?: string;
+  readonly plausible?: FieldLimits;
 }
 
 /** A field holding a quantity: it has a band, a precision, and a unit. */
@@ -93,6 +98,13 @@ export class NumberField extends Field {
   readonly precision: number;
   /** Closed form derivation, for a quantity the engine calculates. */
   readonly formula: string | undefined;
+  /**
+   * The band a REAL driver's value falls in — narrower than `limits`, which is only what the
+   * input will accept. A value inside `limits` but outside this is enterable and gets a
+   * data-quality warning; `Engine.isPhysicallyPlausible` reads it to throw out a failed scrape.
+   * Where nothing narrower is known it IS `limits`, so there is no absent case to handle.
+   */
+  readonly plausible: FieldLimits;
 
   private constructor(spec: NumberFieldSpec) {
     super(spec);
@@ -101,6 +113,7 @@ export class NumberField extends Field {
     this.limits = Object.freeze(spec.limits);
     this.precision = spec.precision;
     this.formula = spec.formula;
+    this.plausible = Object.freeze(spec.plausible ?? spec.limits);
   }
 
   /**
@@ -364,7 +377,7 @@ export class NumberField extends Field {
     value: "adv_Temp_K",
     label: "Temperature",
     unit: "K",
-    limits: {min: MIN_SUPPORTED_TEMP_K, max: MAX_SUPPORTED_TEMP_K},
+    limits: {min: 173.15, max: 373.15},
     precision: 2,
     description: "Ambient Temperature\nUsed to calculate the speed of sound and the density of air.",
   });
@@ -404,190 +417,209 @@ export class NumberField extends Field {
   });
 
   // ── Driver ────────────────────────────────────────────────────────────────────────────────
-  static readonly DRIVER_FS_HZ = new NumberField({
-    value: "driver_Fs_hz",
+  static readonly FS_HZ = new NumberField({
+    value: "Fs_hz",
     label: "Fs",
     unit: "Hz",
     limits: {min: 1, max: 5000},
     precision: 2,
+    plausible: {min: 1.0, max: 5000.0},
     description: "Driver Resonant Frequency (Fs)\nFree-air resonance of the driver's moving assembly and suspension.",
   });
-  static readonly DRIVER_QTS = new NumberField({
-    value: "driver_Qts",
+  static readonly QTS = new NumberField({
+    value: "Qts",
     label: "Qts",
     unit: "",
     limits: {min: 0, max: 5},
     precision: 3,
+    plausible: {min: 0.01, max: 5.0},
     formula: "Qts = Qes·Qms/(Qes+Qms)",
     description: "Total Quality Factor (Qts)\nOverall damping at Fs — electrical (Qes) and mechanical (Qms) combined.",
   });
-  static readonly DRIVER_QES = new NumberField({
-    value: "driver_Qes",
+  static readonly QES = new NumberField({
+    value: "Qes",
     label: "Qes",
     unit: "",
     limits: {min: 0, max: 5},
     precision: 3,
+    plausible: {min: 0.01, max: 5.0},
     description: "Electrical Quality Factor (Qes)\nDamping at Fs from back-EMF in the voice coil.",
   });
-  static readonly DRIVER_QMS = new NumberField({
-    value: "driver_Qms",
+  static readonly QMS = new NumberField({
+    value: "Qms",
     label: "Qms",
     unit: "",
     limits: {min: 0, max: 50},
     precision: 3,
+    plausible: {min: 0.1, max: 50.0},
     description: "Mechanical Quality Factor (Qms)\nDamping at Fs from friction in the surround and spider.",
   });
-  static readonly DRIVER_VAS_L = new NumberField({
-    value: "driver_Vas_l",
+  static readonly VAS_M3 = new NumberField({
+    value: "Vas_m3",
     label: "Vas",
     unit: "l",
     limits: {min: 0, max: 100},
     precision: 2,
+    plausible: {min: 1e-06, max: 1.0},
     description: "Equivalent Compliance Volume (Vas)\nVolume of air whose compliance equals the driver suspension's own.",
   });
-  static readonly DRIVER_RE_OHM = new NumberField({
-    value: "driver_Re_ohm",
+  static readonly RE_OHM = new NumberField({
+    value: "Re_ohm",
     label: "Re",
     unit: "ohm",
     limits: {min: 0.01, max: 1000},
     precision: 3,
+    plausible: {min: 0.1, max: 64.0},
     description: "DC Voice Coil Resistance (Re)\nResistance across the voice coil terminals, measured with DC.",
   });
-  static readonly DRIVER_LE_MH = new NumberField({
-    value: "driver_Le_mH",
+  static readonly LE_H = new NumberField({
+    value: "Le_H",
     label: "Le",
     unit: "mH",
     limits: {min: 0, max: 0.1},
     precision: 3,
+    plausible: {min: 0.0, max: 0.1},
     description: "Voice Coil Inductance (Le)\nSelf-inductance of the coil — raises electrical impedance at high frequency.",
   });
-  static readonly DRIVER_MMS_G = new NumberField({
-    value: "driver_Mms_g",
+  static readonly MMS_KG = new NumberField({
+    value: "Mms_kg",
     label: "Mms",
     unit: "g",
     limits: {min: 0, max: 10},
     precision: 2,
+    plausible: {min: 1e-05, max: 2.0},
     formula: "Mms = 1/((2π·Fs)²·Cms)",
     description: "Moving Mass (Mms)\nTotal mass of the diaphragm, voice coil, former and the air it loads.",
   });
-  static readonly DRIVER_SD_CM2 = new NumberField({
-    value: "driver_Sd_cm2",
+  static readonly SD_M2 = new NumberField({
+    value: "Sd_m2",
     label: "Sd",
     unit: "cm²",
     limits: {min: 0.0001, max: 10},
     precision: 2,
+    plausible: {min: 1e-05, max: 0.3},
     description: "Effective Diaphragm Area (Sd)\nEffective radiating piston area of the cone and inner surround.",
   });
-  static readonly DRIVER_XMAX_MM = new NumberField({
-    value: "driver_Xmax_mm",
+  static readonly XMAX_M = new NumberField({
+    value: "Xmax_m",
     label: "Xmax",
     unit: "mm",
     limits: {min: 0, max: 0.5},
     precision: 2,
+    plausible: {min: 0.0001, max: 0.15},
     description: "Peak Linear Excursion (Xmax)\nThe furthest the coil can move one way while still fully inside the magnetic gap.",
   });
-  static readonly DRIVER_PE_W = new NumberField({
-    value: "driver_Pe_W",
+  static readonly PE_W = new NumberField({
+    value: "Pe_W",
     label: "Pe",
     unit: "W",
     limits: {min: 0, max: 100000},
     precision: 2,
+    plausible: {min: 1.0, max: 20000.0},
     description: "Continuous Power Handling (Pe)\nThermal/RMS rating: the power the coil dissipates indefinitely without failing.\nNot the datasheet's peak/short-term figure — see \"Peak power\".",
   });
-  static readonly DRIVER_POWER_PEAK_W = new NumberField({
-    value: "driver_power_peak_W",
+  static readonly POWER_PEAK_W = new NumberField({
+    value: "power_peak_W",
     label: "Peak power",
     unit: "W",
     limits: {min: 0, max: 100000},
     precision: 2,
     description: "Peak Power (short-term)\nNon-continuous power handling, above Pe.\nOpenISD-only: WinISD's .wdr format has no slot for it, so it never round-trips through a .wdr/.wpr file.",
   });
-  static readonly DRIVER_BL_TM = new NumberField({
-    value: "driver_BL_Tm",
+  static readonly BL_TM = new NumberField({
+    value: "BL_Tm",
     label: "BL",
     unit: "Tm",
     limits: {min: 0, max: 1000},
     precision: 3,
+    plausible: {min: 0.1, max: 50.0},
     formula: "Bl = √(2π·Fs·Mms·Re/Qes)",
     description: "Motor Force Factor (BL)\nGap flux density (B) times coil wire length (L) — the motor's coupling strength.",
   });
-  static readonly DRIVER_CMS_MM_PER_N = new NumberField({
-    value: "driver_Cms_mm_per_N",
+  static readonly CMS_M_PER_N = new NumberField({
+    value: "Cms_m_per_N",
     label: "Cms",
     unit: "mm/N",
     limits: {min: 0, max: 0.1},
     precision: 4,
+    plausible: {min: 1e-06, max: 0.1},
     formula: "Cms = Vas/(ρ·c²·Sd²)",
     description: "Mechanical Compliance (Cms)\nHow flexible the suspension is — the inverse of its spring rate.",
   });
-  static readonly DRIVER_RMS_NS_PER_M = new NumberField({
-    value: "driver_Rms_Ns_per_m",
+  static readonly RMS_KG_PER_S = new NumberField({
+    value: "Rms_kg_per_s",
     label: "Rms",
     unit: "Ns/m",
     unitGroup: "resistance",
     limits: {min: 0, max: 1000},
     precision: 4,
+    plausible: {min: 0.0, max: 200.0},
     formula: "Rms = 2π·Fs·Mms/Qms",
     description: "Mechanical Resistance (Rms)\nFriction loss in the driver's suspension.",
   });
-  static readonly DRIVER_DD_MM = new NumberField({
-    value: "driver_Dd_mm",
+  static readonly DD_M = new NumberField({
+    value: "Dd_m",
     label: "Dd",
     unit: "mm",
     limits: {min: 0, max: 2},
     precision: 2,
+    plausible: {min: 0.0, max: 2.0},
     description: "Effective Diaphragm Diameter (Dd)\nEffective piston diameter of the cone.\nInterchangeable with Sd (Sd = π·(Dd/2)²).",
   });
-  static readonly DRIVER_FLE_HZ = new NumberField({
-    value: "driver_fLe_hz",
+  static readonly FLE_HZ = new NumberField({
+    value: "fLe_hz",
     label: "fLe",
     unit: "kHz",
     limits: {min: 0, max: 100000},
     precision: 5,
+    plausible: {min: 0.0, max: 100000},
     description: "Semi-Inductance Reference Frequency (fLe)\nThe frequency at which Le and KLe were measured.",
   });
-  static readonly DRIVER_KLE_H_SQRTHZ = new NumberField({
-    value: "driver_KLe_H_sqrtHz",
+  static readonly KLE_H_SQRTHZ = new NumberField({
+    value: "KLe_H_sqrtHz",
     label: "KLe",
     unit: "H·√Hz",
     limits: {min: 0, max: 10},
     precision: 6,
+    plausible: {min: 0.0, max: 10},
     description: "Semi-Inductance Coefficient (KLe)\nLoss factor for eddy currents and other high-frequency coil losses.",
   });
-  static readonly DRIVER_HC_MM = new NumberField({
-    value: "driver_Hc_mm",
+  static readonly HC_M = new NumberField({
+    value: "Hc_m",
     label: "Hc",
     unit: "m",
     limits: {min: 0, max: 1},
     precision: 3,
+    plausible: {min: 0.0, max: 1},
     description: "Voice Coil Height (Hc)\nWinding height of the coil wire on the former.",
   });
-  static readonly DRIVER_HG_MM = new NumberField({
-    value: "driver_Hg_mm",
+  static readonly HG_M = new NumberField({
+    value: "Hg_m",
     label: "Hg",
     unit: "m",
     limits: {min: 0, max: 1},
     precision: 3,
+    plausible: {min: 0.0, max: 1},
     description: "Magnetic Gap Height (Hg)\nThickness of the top plate — defines the magnetic gap.",
   });
-  static readonly DRIVER_VD_CM3 = new NumberField({
-    value: "driver_Vd_cm3",
+  static readonly VD_M3 = new NumberField({
+    value: "Vd_m3",
     label: "Vd",
     unit: "cm³",
     limits: {min: 0, max: 100000},
     precision: 0,
     description: "Peak Displacement Volume (Vd)\nAir displaced by the cone at full excursion (Vd = Sd × Xmax).",
   });
-  static readonly DRIVER_XLIM_MM = new NumberField({
-    value: "driver_Xlim_mm",
+  static readonly XLIM_M = new NumberField({
+    value: "Xlim_m",
     label: "Xlim",
     unit: "m",
     limits: {min: 0, max: 1},
     precision: 3,
     description: "Mechanical Excursion Limit (Xlim)\nAbsolute travel limit before mechanical damage or bottoming.",
   });
-  static readonly DRIVER_ETA0 = new NumberField({
-    value: "driver_Eta0",
+  static readonly NO = new NumberField({
+    value: "no",
     label: "η₀",
     unit: "%",
     unitGroup: "percent",
@@ -595,8 +627,8 @@ export class NumberField extends Field {
     precision: 4,
     description: "Reference Efficiency (η₀)\nHow much of the electrical power reaching the driver becomes acoustic power (η₀ = P_acc / P_elec × 100%).",
   });
-  static readonly DRIVER_USPL_DB = new NumberField({
-    value: "driver_USPL_dB",
+  static readonly USPL_DB = new NumberField({
+    value: "USPL_dB",
     label: "USPL",
     unit: "dB",
     limits: {min: 0, max: 200},
@@ -604,57 +636,59 @@ export class NumberField extends Field {
     formula: "USPL = SPL + 10·log₁₀(8/Re)",
     description: "Voltage Sensitivity (USPL)\nSPL at 1 m for a standard 2.83 V RMS input.",
   });
-  static readonly DRIVER_SPL_DB = new NumberField({
-    value: "driver_SPL_dB",
+  static readonly SPL_DB = new NumberField({
+    value: "SPL_dB",
     label: "SPL",
     unit: "dB",
     limits: {min: 0, max: 200},
     precision: 2,
+    plausible: {min: 50.0, max: 150.0},
     description: "Power Sensitivity (SPL)\nSPL at 1 m for a 1 W electrical input.",
   });
-  static readonly DRIVER_NUMVC = new NumberField({
-    value: "driver_NumVC",
+  static readonly NUMVC = new NumberField({
+    value: "numVC",
     label: "Voicecoils",
     unit: "",
     limits: {min: 1, max: 4},
     precision: 0,
     description: "Voice Coil Count\nNumber of independent coil windings on the motor.",
   });
-  static readonly DRIVER_ALFAVC_PER_K = new NumberField({
-    value: "driver_AlfaVC_per_K",
+  static readonly ALFAVC_PER_K = new NumberField({
+    value: "alfaVC_per_K",
     label: "AlfaVC",
     unit: "1000/K",
     limits: {min: 0, max: 0.1},
     precision: 4,
     description: "Voice Coil Temperature Coefficient (AlfaVC)\nHow much the coil's resistance rises per degree of heating.",
   });
-  static readonly DRIVER_RT_K_PER_W = new NumberField({
-    value: "driver_Rt_K_per_W",
+  static readonly RT_K_PER_W = new NumberField({
+    value: "Rt_K_per_W",
     label: "R(t)",
     unit: "K/W",
     limits: {min: 0, max: 1000},
     precision: 5,
     description: "Thermal Resistance (Rt)\nResistance to heat flow from the voice coil to the magnet and ambient air.",
   });
-  static readonly DRIVER_CT_J_PER_K = new NumberField({
-    value: "driver_Ct_J_per_K",
+  static readonly CT_J_PER_K = new NumberField({
+    value: "Ct_J_per_K",
     label: "C(t)",
     unit: "J/K",
     limits: {min: 0, max: 10000},
     precision: 5,
     description: "Thermal Capacitance (Ct)\nHeat storage capacity of the coil and motor structure.",
   });
-  static readonly DRIVER_EBP_HZ = new NumberField({
-    value: "driver_EBP_hz",
+  static readonly EBP_HZ = new NumberField({
+    value: "EBP_hz",
     label: "EBP",
     unit: "Hz",
     limits: {min: 0, max: 1000},
     precision: 2,
+    plausible: {min: 0.0, max: 1000},
     formula: "EBP = Fs/Qes",
     description: "Efficiency Bandwidth Product (EBP)\nFs / Qes.\nBelow ~50 favours a sealed box; above ~90 favours vented.",
   });
-  static readonly DRIVER_SPLMAXLF_DB = new NumberField({
-    value: "driver_SPLmaxLF_dB",
+  static readonly SPLMAXLF_DB = new NumberField({
+    value: "SPLmaxLF_dB",
     label: "SPLmaxLF",
     unit: "dB",
     limits: {min: 0, max: 200},
@@ -662,8 +696,8 @@ export class NumberField extends Field {
     formula: "SPLmaxLF = 20·log₁₀(ρ₀·(2π·20)²·Vd / (2π√2) / P0)",
     description: "Low-Frequency Excursion-Limited SPL\nMax SPL at 20 Hz, limited purely by peak excursion (Xmax).",
   });
-  static readonly DRIVER_SPLMAX_DB = new NumberField({
-    value: "driver_SPLmax_dB",
+  static readonly SPLMAX_DB = new NumberField({
+    value: "SPLmax_dB",
     label: "SPLmax",
     unit: "dB",
     limits: {min: 0, max: 200},
@@ -671,8 +705,8 @@ export class NumberField extends Field {
     formula: "SPLmax = SPL + 10·log₁₀(Pe) − 3",
     description: "Thermally Limited Max SPL\nMax SPL when driven at the full thermal power rating (Pe).",
   });
-  static readonly DRIVER_RME_NS_PER_M = new NumberField({
-    value: "driver_Rme_Ns_per_m",
+  static readonly RME_KG_PER_S = new NumberField({
+    value: "Rme_kg_per_s",
     label: "Rme",
     unit: "Ns/m",
     unitGroup: "resistance",
@@ -681,8 +715,8 @@ export class NumberField extends Field {
     formula: "Rme = 2π·Fs·Mms/Qes (= Bl²/Re)",
     description: "Motional Resistance at Resonance (Rme)\nElectromagnetic damping from back-EMF at Fs (= Bl²/Re).",
   });
-  static readonly DRIVER_GAMMA = new NumberField({
-    value: "driver_Gamma",
+  static readonly GAMMA_M_PER_S2_A = new NumberField({
+    value: "gamma_m_per_s2_A",
     label: "gamma",
     unit: "N/(A·kg)",
     limits: {min: 0, max: 100000},
@@ -690,8 +724,8 @@ export class NumberField extends Field {
     formula: "gamma = Bl/Mms",
     description: "Acceleration Factor (gamma)\nMotor force per unit moving mass (Bl/Mms) — initial cone acceleration per amp.",
   });
-  static readonly DRIVER_MPOW = new NumberField({
-    value: "driver_Mpow",
+  static readonly MPOW_N_PER_SQRTW = new NumberField({
+    value: "Mpow_N_per_sqrtW",
     label: "Mpow",
     unit: "N/√W",
     limits: {min: 0, max: 1000},
@@ -699,8 +733,8 @@ export class NumberField extends Field {
     formula: "Mpow = √Rme (= Bl/√Re)",
     description: "Power-Normalized Motor Force (Mpow)\nMotor force per √W of input power (Bl/√Re).",
   });
-  static readonly DRIVER_MCOST_KG_PER_S = new NumberField({
-    value: "driver_Mcost_kg_per_s",
+  static readonly MCOST_KG_PER_S = new NumberField({
+    value: "Mcost_kg_per_s",
     label: "Mcost",
     unit: "kg/s",
     unitGroup: "resistance",
@@ -709,8 +743,8 @@ export class NumberField extends Field {
     formula: "Mcost = Rme·(1 + Xmax/min(Hc, Hg))",
     description: "Motor Figure of Merit (Mcost)\nElectromagnetic coupling efficiency, accounting for gap geometry and excursion.",
   });
-  static readonly DRIVER_GLOSS_PCT = new NumberField({
-    value: "driver_Gloss_pct",
+  static readonly GLOSS = new NumberField({
+    value: "Gloss",
     label: "Gloss",
     unit: "%",
     unitGroup: "percent",
@@ -719,80 +753,81 @@ export class NumberField extends Field {
     formula: "Gloss = g/((2π·Fs)²·Xmax), g = 9.80665",
     description: "Gravity Sag (Gloss)\nHow much of peak excursion (Xmax) gravity consumes when the driver is mounted horizontally.",
   });
-  static readonly DRIVER_THICK_MM = new NumberField({
-    value: "driver_Thick_mm",
+  static readonly THICK_M = new NumberField({
+    value: "Thick_m",
     label: "Basket Plate Thickness (Thick)",
     unit: "mm",
     limits: {min: 0, max: 0.3},
     precision: 2,
     description: "Basket Flange Thickness\nFrame flange thickness at the mounting boundary.",
   });
-  static readonly DRIVER_DEPTH_MM = new NumberField({
-    value: "driver_Depth_mm",
+  static readonly DEPTH_M = new NumberField({
+    value: "Depth_m",
     label: "Driver Depth (Depth)",
     unit: "mm",
     limits: {min: 0, max: 5},
     precision: 2,
     description: "Overall Driver Depth\nFull depth from mounting flange to rear magnet pole plate.",
   });
-  static readonly DRIVER_MAGDEPTH_MM = new NumberField({
-    value: "driver_MagDepth_mm",
+  static readonly MAGDEPTH_M = new NumberField({
+    value: "MagDepth_m",
     label: "Magnet Depth",
     unit: "mm",
     limits: {min: 0, max: 5},
     precision: 2,
     description: "Magnet Assembly Depth\nThickness of the rear magnet assembly.",
   });
-  static readonly DRIVER_MAGNET_MM = new NumberField({
-    value: "driver_Magnet_mm",
+  static readonly MAGNET_M = new NumberField({
+    value: "Magnet_m",
     label: "Magnet Diameter (Magnet)",
     unit: "mm",
     limits: {min: 0, max: 5},
     precision: 2,
     description: "Magnet Diameter\nOuter diameter of the motor magnet.",
   });
-  static readonly DRIVER_BASKET_MM = new NumberField({
-    value: "driver_Basket_mm",
+  static readonly BASKET_M = new NumberField({
+    value: "Basket_m",
     label: "Basket Diameter (Basket)",
     unit: "mm",
     limits: {min: 0, max: 5},
     precision: 2,
     description: "Basket Diameter\nOuter diameter of the frame/chassis.",
   });
-  static readonly DRIVER_OUTER_MM = new NumberField({
-    value: "driver_Outer_mm",
+  static readonly OUTER_M = new NumberField({
+    value: "Outer_m",
     label: "Outer Diameter (Outer)",
     unit: "mm",
     limits: {min: 0, max: 5},
     precision: 2,
     description: "Outer Mounting Diameter\nOverall diameter of the front mounting flange.",
   });
-  static readonly DRIVER_VCD_MM = new NumberField({
-    value: "driver_Vcd_mm",
+  static readonly VCD_M = new NumberField({
+    value: "Vcd_m",
     label: "Voice Coil Dia (Vcd)",
     unit: "mm",
     limits: {min: 0, max: 1},
     precision: 2,
     description: "Voice Coil Diameter\nFormer diameter of the coil winding.",
   });
-  static readonly DRIVER_DVOL_CM3 = new NumberField({
-    value: "driver_Dvol_cm3",
+  static readonly DVOL_M3 = new NumberField({
+    value: "DVol_m3",
     label: "Driver Displacement Volume (DVol)",
     unit: "cm³",
     limits: {min: 0, max: 1},
     precision: 2,
     description: "Driver Displacement Volume\nVolume the motor and basket occupy inside the enclosure.",
   });
-  static readonly DRIVER_ZNOM_OHM = new NumberField({
-    value: "driver_Znom_ohm",
+  static readonly ZNOM_OHM = new NumberField({
+    value: "Znom_ohm",
     label: "Znom",
     unit: "ohm",
     limits: {min: 0, max: 64},
     precision: 0,
+    plausible: {min: 1.0, max: 64.0},
     description: "Nominal Impedance (Znom)\nRated impedance class for amplifier matching — e.g. 4, 8 or 16 Ω.",
   });
-  static readonly DRIVER_C_M_PER_S = new NumberField({
-    value: "driver_c_m_per_s",
+  static readonly C_M_PER_S = new NumberField({
+    value: "c_m_per_s",
     label: "c",
     unit: "m/s",
     unitGroup: "velocity",
@@ -800,8 +835,8 @@ export class NumberField extends Field {
     precision: 2,
     description: "Reference Speed of Sound (c)\nSpeed of sound at this driver record's reference conditions. Display only — no calculation reads this field; the project's own air is used everywhere. Purpose unconfirmed: may just record the condition the driver was measured at, or may be meant to adapt the driver's readings to the project's air. Speculation, 2026-09-26.",
   });
-  static readonly DRIVER_ROO_KG_PER_M3 = new NumberField({
-    value: "driver_roo_kg_per_m3",
+  static readonly ROO_KG_PER_M3 = new NumberField({
+    value: "roo_kg_per_m3",
     label: "roo",
     unit: "kg/m³",
     unitGroup: "density",
@@ -917,6 +952,12 @@ export class NumberField extends Field {
 
   static readonly ALL: readonly NumberField[] =
     Object.freeze(Object.values(NumberField).filter((v): v is NumberField => v instanceof NumberField));
+
+  /** The member a record key names, or `undefined` for a key no field claims. A field's `value`
+   *  IS its record key, so this is the same string either way. */
+  static named(value: string): NumberField | undefined {
+    return NumberField.ALL.find(f => f.value === value);
+  }
 }
 
 interface EnumFieldSpec extends FieldSpec {
@@ -971,8 +1012,8 @@ export class EnumField extends Field {
   });
 
   // ── Driver ────────────────────────────────────────────────────────────────────────────────
-  static readonly DRIVER_VCCON = new EnumField({
-    value: "driver_VCCon",
+  static readonly VCCON = new EnumField({
+    value: "VCCon",
     label: "Connection",
     options: VC_CONNECTION_OPTIONS,
     description: "Voice Coil Wiring\nSeries or parallel — sets the driver's total terminal Re and BL for a multi-coil driver.",

@@ -36,26 +36,26 @@ function clearField(key: NumKey): void { tune.clearField(key); }
 // the units here MUST match the registry's unit.
 interface TuneField { key: NumKey; def: NumberField; label: string; group?: UnitGroup; token?: string; unit: string }
 const MAIN: TuneField[] = [
-  { key: 'Fs_hz', def: NumberField.DRIVER_FS_HZ,  label: 'Fs',  unit: 'Hz' },
-  { key: 'Qts', def: NumberField.DRIVER_QTS, label: 'Qts', unit: '' },
-  { key: 'Qes', def: NumberField.DRIVER_QES, label: 'Qes', unit: '' },
-  { key: 'Qms', def: NumberField.DRIVER_QMS, label: 'Qms', unit: '' },
-  { key: 'Vas_m3', def: NumberField.DRIVER_VAS_L, label: 'Vas', group: 'volume', token: 'L',   unit: 'l' },
-  { key: 'Sd_m2', def: NumberField.DRIVER_SD_CM2,  label: 'Sd',  group: 'area',   token: 'cm2', unit: 'cm²' },
-  { key: 'Re_ohm', def: NumberField.DRIVER_RE_OHM,  label: 'Re',  unit: 'Ω' },
+  { key: 'Fs_hz', def: NumberField.FS_HZ,  label: 'Fs',  unit: 'Hz' },
+  { key: 'Qts', def: NumberField.QTS, label: 'Qts', unit: '' },
+  { key: 'Qes', def: NumberField.QES, label: 'Qes', unit: '' },
+  { key: 'Qms', def: NumberField.QMS, label: 'Qms', unit: '' },
+  { key: 'Vas_m3', def: NumberField.VAS_M3, label: 'Vas', group: 'volume', token: 'L',   unit: 'l' },
+  { key: 'Sd_m2', def: NumberField.SD_M2,  label: 'Sd',  group: 'area',   token: 'cm2', unit: 'cm²' },
+  { key: 'Re_ohm', def: NumberField.RE_OHM,  label: 'Re',  unit: 'Ω' },
 ];
 const OPTIONAL: TuneField[] = [
-  { key: 'Le_H', def: NumberField.DRIVER_LE_MH,   label: 'Le',   group: 'inductance', token: 'mH', unit: 'mH' },
-  { key: 'Xmax_m', def: NumberField.DRIVER_XMAX_MM, label: 'Xmax', group: 'length',      token: 'mm', unit: 'mm' },
-  { key: 'Pe_W', def: NumberField.DRIVER_PE_W,   label: 'Pe',   unit: 'W' },
+  { key: 'Le_H', def: NumberField.LE_H,   label: 'Le',   group: 'inductance', token: 'mH', unit: 'mH' },
+  { key: 'Xmax_m', def: NumberField.XMAX_M, label: 'Xmax', group: 'length',      token: 'mm', unit: 'mm' },
+  { key: 'Pe_W', def: NumberField.PE_W,   label: 'Pe',   unit: 'W' },
 ];
 // Bl and Mms are ordinary driver fields, not outputs: the ADT derives them when they are not
 // entered and honours them when they are (Driver.enter → state E → fixed-E override), exactly
 // as the driver editor already treats them. So they are edited here like any other field, and
 // the E/C colour says which of the two is happening.
 const DERIVED: TuneField[] = [
-  { key: 'BL_Tm', def: NumberField.DRIVER_BL_TM,  label: 'Bl',  unit: 'T·m' },
-  { key: 'Mms_kg', def: NumberField.DRIVER_MMS_G, label: 'Mms', group: 'mass', token: 'g', unit: 'g' },
+  { key: 'BL_Tm', def: NumberField.BL_TM,  label: 'Bl',  unit: 'T·m' },
+  { key: 'Mms_kg', def: NumberField.MMS_KG, label: 'Mms', group: 'mass', token: 'g', unit: 'g' },
 ];
 
 // While a field is focused, echo the RAW typed string (so mid-typing values like

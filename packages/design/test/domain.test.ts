@@ -1,5 +1,6 @@
+import {LossMode} from '@openisd/design/fields';
 import {describe, expect, it, vi} from 'vitest';
-import {type DqIssue, type DriverError, type DriverIssue, Engine, LossMode, DEFAULT_VENTED_DESIGN_LIMITS} from '@openisd/design/engine';
+import {type DqIssue, type DriverError, type DriverIssue, Engine, DEFAULT_VENTED_DESIGN_LIMITS} from '@openisd/design/engine';
 import {
     type AppContext,
     OpenISDDriver,

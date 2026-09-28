@@ -14,7 +14,6 @@
 export { Engine } from './Engine.js';
 // A VALUE, not just a type: `LossMode` is a class whose static members ARE the modes
 // (`LossMode.WinisdLossy`, `LossMode.Default`), so a caller cannot pass one without it.
-export { LossMode } from './lossMode.js';
 export type { SealedParams } from './lossMode.js';
 export {
   DEFAULT_T_REF_K, DEFAULT_RH_REF_PCT, DEFAULT_P_REF_PA,
