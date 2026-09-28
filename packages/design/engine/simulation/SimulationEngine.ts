@@ -24,7 +24,7 @@ import {missingDependencies} from '../consistency.js';
 import type {DriverIssue, DriverPrerequisite, DriverQuantityName} from '../driver/DriverEngine.js';
 import type {PrIssue} from '../pr/PrEngine.js';
 import type {VentIssue} from '../vent/VentEngine.js';
-import {terminalBL_Tm, withAddedMass} from '../solvers/driverQuantities.js';
+import {hotRe, terminalBL_Tm, withAddedMass} from '../solvers/driverQuantities.js';
 import {applyFilters} from '../filters.js';
 import {driveFromVoltage} from '../signal/SignalEngine.js';
 import type {BoxType, DriverError, EnclosureParams, MaxCurvesResult, SweepParams, SweepResult} from '../types.js';
@@ -605,8 +605,10 @@ export class SimulationEngineImpl implements SimulationEngine {
     // coils as they are wired. `sweep` above already succeeded, and its circuit-required-fields
     // check (CIRCUIT_REQUIRED_FIELDS includes Re_terminal_ohm) demands this exact field be a
     // positive finite number before `swept.values` can be non-null — Re cannot be absent here.
-    // Power is into Re + Rs, the same load the power → voltage drive solve uses (`driveVoltage`).
-    const Re = drv.Re_terminal_ohm.value! + (P.Rs != null && P.Rs > 0 ? P.Rs : 0);
+    // Power is into Re + Rs, the same load the power → voltage drive solve uses (`driveVoltage`),
+    // with Re at the coil's temperature rise as WinISD states it
+    // (bugs/BUG_20260928_vc-temperature-drive-uses-hot-re.md).
+    const Re = hotRe(drv.Re_terminal_ohm.value!, P.alfaVC ?? 0, P.vcTempRise ?? 0) + (P.Rs != null && P.Rs > 0 ? P.Rs : 0);
     const drvXmax_m = drv.Xmax_m.value;
     const xmaxUsable = drvXmax_m != null && drvXmax_m > 0;
     const maxspl: number[] = [], maxpwr: number[] = [], xlim: boolean[] = [];

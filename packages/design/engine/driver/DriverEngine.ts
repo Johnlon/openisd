@@ -32,7 +32,7 @@ import {inconsistentInputs, missingDependencies} from '../consistency.js';
 import type {CalculationIssue, CalculationPrerequisite, OutOfRangeIssue} from '../consistency.js';
 import {checkRange, isPhysicallyPlausible} from '../physicalRange.js';
 import type {DriverWorkingSet} from '../solvers/driverQuantities.js';
-import {nominalImpedance, terminalBL_Tm, terminalRe_ohm} from '../solvers/driverQuantities.js';
+import {hotRe, nominalImpedance, terminalBL_Tm, terminalRe_ohm} from '../solvers/driverQuantities.js';
 import type {EbpSuitability, SweepResult, Wiring} from '../types.js';
 
 export type DriverQuantityName = keyof DriverSolverParams;
@@ -680,6 +680,9 @@ export interface DriverEngine {
   terminalRe_ohm(Re_ohm: number, numVC: number | undefined, wiring: Wiring | undefined): number;
   /** BL as the amplifier sees it — `bl` per coil, `N·bl` in series, unchanged in parallel. */
   terminalBL_Tm(BL_Tm: number, numVC: number | undefined, wiring: Wiring | undefined): number;
+  /** Re at a voice-coil temperature rise: `Re·(1 + alfaVC·ΔT)`. WinISD drives from it and
+   *  states maximum power into it. */
+  hotRe(Re_ohm: number, alfaVC_per_K: number, dT_K: number): number;
   /** Whether a single RAW value would sit inside `PHYSICAL_RANGE`'s band for `field` (D9
    *  tier 1) — the domain's one door into that table. */
   isPhysicallyPlausible(field: string, value: number): boolean;
@@ -692,6 +695,7 @@ export class DriverEngineImpl implements DriverEngine {
    *  area publishes them as-is. */
   readonly ebp = ebp;
   readonly terminalRe_ohm = terminalRe_ohm;
+  readonly hotRe = hotRe;
   readonly terminalBL_Tm = terminalBL_Tm;
   readonly isPhysicallyPlausible = isPhysicallyPlausible;
 
