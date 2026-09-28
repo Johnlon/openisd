@@ -20,7 +20,7 @@ Key:
 | ≈      | matches to WinISD's own rounding noise (group delay: WinISD's 1e-10 Hz finite difference) |
 | ✗      | known deviation, bug linked                                                               |
 | ❔     | never compared against a WinISD capture                                                   |
-| ⛔     | OpenISD does not have it yet                                                              |
+| ⛔     | gap: WinISD has it, OpenISD does not yet — OpenISD must be a superset                     |
 | —      | does not exist in WinISD for that box                                                     |
 
 Deviation is multi-dimensional: chart × box × settings × driver. The captures so far use **one
@@ -30,11 +30,11 @@ driver** (Tang Band W5-1138SMF) — every number below is for that driver only.
 
 ## Aggregate
 
-| Scope                                | Cells | Matched (✅/≈) | Deviation (✗) | Never compared (❔) | Not in OpenISD (⛔) |
-| ------------------------------------ | ----: | -------------: | ------------: | ------------------: | ------------------: |
-| Table 1 — chart × box, base settings | 76    | 47             | 0             | 2                   | 27                  |
-| Table 2 — setting × box              | 100   | 18             | 0             | 48                  | 34                  |
-| Table 3 — readouts and tools         | 8     | 2              | 1             | 5                   | 0                   |
+| Scope                                | Cells | Matched (✅/≈) | Deviation (✗) | Never compared (❔) | Gap — missing from OpenISD (⛔) |
+| ------------------------------------ | ----: | -------------: | ------------: | ------------------: | ------------------------------: |
+| Table 1 — chart × box, base settings | 76    | 47             | 0             | 2                   | 27                              |
+| Table 2 — setting × box              | 100   | 18             | 0             | 48                  | 34                              |
+| Table 3 — readouts and tools         | 8     | 2              | 1             | 5                   | 0                               |
 
 Worst matched deviation anywhere, excluding group delay: 2e-12 relative (port air velocity). Group
 delay: 0.015 ms (4th-order bandpass, rounding noise).
@@ -45,7 +45,7 @@ delay: 0.015 ms (4th-order bandpass, rounding noise).
 
 Base settings: W5-1138SMF, 1 W, Rg 0.1 Ω not at driver side, VCInd off, winisd-lossy losses, the
 4-filter chain of CHART_REVIEW §3.4 (sealed also without filters: the larger of the two is shown).
-BP6 and ABC: OpenISD has no such box yet; the bracket gives WinISD's decoded formula against its own
+BP6 and ABC: gap — OpenISD has no such box yet (being built); the bracket gives WinISD's decoded formula against its own
 capture (relative), which is what the engine class must reproduce.
 
 | Chart                            | Unit | Sealed   | Vented    | Bandpass 4th | Passive radiator | Bandpass 6th               | ABC                        |
