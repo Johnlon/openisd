@@ -1,6 +1,6 @@
 /**
  * The mobile Box tab. The FIELD WIRING itself (what a box-type change or a volume edit means)
- * is proven once, in `packages/ui/test/hooks/OriginalShell-hooks.test.ts`'s `createSelectedBox`/
+ * is proven once, in `packages/ui/test/hooks/boxFields.test.ts`'s `createSelectedBox`/
  * `createBoxVolume` suites — the same functions this tab calls. These specs prove the UI is
  * correctly WIRED to that shared logic, not that the logic itself is correct.
  *

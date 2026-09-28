@@ -37,7 +37,7 @@ test('upping the power moves the voltage; clearing the voltage returns the pair 
 
   // Clearing the voltage empties the PAIR, and the resolve refills it from the 1 W reference:
   // P is 1 W entered, V is √Re calculated. Neither end is ever left blank. The rule and its
-  // arithmetic are pinned at the hook layer by `OriginalShell-hooks.test.ts`'s
+  // arithmetic are pinned at the hook layer by `driveSignal.test.ts`'s
   // "commit blank V | post: P 1 E, V √6 C".
   await volField.locator('input').fill('');
   await volField.locator('input').blur();

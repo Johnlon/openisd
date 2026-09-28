@@ -52,6 +52,31 @@ export const TAB_META: Record<ChartId, TabMeta> = {
 // ARE `TabMeta` by the declared type of `TAB_META`, and both preserve declaration order.
 export const TABS: TabMeta[] = Object.values(TAB_META);
 
+// WinISD's own caption for each chart id, exactly as its menu prints it — shared by every
+// shell's chart dropdown, so a caption never drifts between skins.
+export const CHART_LABELS: Record<ChartId, string> = {
+  TFMag: 'Transfer function magnitude',
+  Phase: 'Transfer function phase',
+  GD: 'Group Delay',
+  MaxPwr: 'Maximum Power',
+  MaxSPL: 'Maximum SPL',
+  VA: 'Amplifier apparent load power (VA)',
+  SPL: 'SPL',
+  Excursion: 'Cone excursion',
+  Zmag: 'Impedance',
+  Zph: 'Impedance phase',
+  PRTFMag: 'Transfer function magnitude (PR)',
+  PRTFPhase: 'Transfer function phase (PR)',
+  PRExcursion: 'Cone excursion (PR)',
+  RearPort: 'Rear port - Air velocity',
+  RearPortGain: 'Rear port - Gain',
+  FrontPort: 'Front port - Air velocity',
+  FrontPortGain: 'Front port - Gain',
+  FltMag: 'Transfer function magnitude (EQ/Filter)',
+  FltPhase: 'Transfer function phase (EQ/Filter)',
+  FltGD: 'Group Delay (EQ/Filter)',
+};
+
 /**
  * The one string→member boundary. Anything the set does not declare is invalid data —
  * a stale chart id restored from `localStorage`, say — and is handled as missing, i.e.

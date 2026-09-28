@@ -247,9 +247,9 @@ export function requireFocusedProject(): OpenISDProject {
 }
 
 /** Box-type-generic rear-chamber volume ("Vb") write — every box type keeps its own volume
- *  field under its own `box.<type>` slice (mirrors `OriginalShell-hooks.ts`'s own
- *  `setBoxVolume_m3`, which is closed over that hook's own project ref and so cannot be
- *  reused here). Used only by the debug handle below. */
+ *  field under its own `box.<type>` slice (mirrors `boxFields.ts`'s own `setBoxVolume_m3`,
+ *  which is closed over that hook's own project ref and so cannot be reused here). Used only by
+ *  the debug handle below. */
 function setFocusedBoxVolume_m3(v: number): void {
   const box = requireFocusedProject().box;
   switch (box.boxType.value) {

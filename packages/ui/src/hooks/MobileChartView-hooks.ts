@@ -10,8 +10,7 @@ import {computed} from 'vue';
 import {projectChanged} from '../logic/appState.js';
 import {presentationState, traceColor} from '../logic/presentationState.js';
 import {useFocusedProject} from '../logic/focusedProjectContext.js';
-import {parseChartId} from '../logic/series.js';
-import {CHART_LABELS} from './OriginalShell-hooks.js';
+import {CHART_LABELS, parseChartId} from '../logic/series.js';
 import {useApp} from '../logic/app.js';
 import type {ChartId} from '@openisd/design/engine';
 

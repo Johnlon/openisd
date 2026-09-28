@@ -1,6 +1,6 @@
 /**
  * The mobile Signal tab. The V/P coupling itself is proven once in `createDriveSignal`'s unit
- * tests (`OriginalShell-hooks.test.ts`) — the same factory this tab calls. These specs prove the
+ * tests (`driveSignal.test.ts`) — the same factory this tab calls. These specs prove the
  * UI is wired to it, not that the coupling formula is correct.
  */
 import {expect, openAMobileProject, test} from '../fixtures.js';

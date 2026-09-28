@@ -149,7 +149,7 @@ describe('OgTune-hooks', () => {
    * one that's a problem". `vb_m3` and `ebp` are CACHED computeds, and reading `project.value`
    * alone does not invalidate them: the registry hands out the same instance for the project's
    * whole life, so a write leaves their caches untouched. They must read `projectChanged` too —
-   * the same rule `createBoxVolume` in `OriginalShell-hooks.ts` already carries. The panel's
+   * the same rule `createBoxVolume` in `boxFields.ts` already carries. The panel's
    * driver fields are plain render-time functions and never had the problem; Vb kept answering
    * the volume it held when the panel opened, and NumInput's blur reformat put that stale number
    * back on screen.

@@ -112,7 +112,7 @@ test('clearing V then blurring returns the pair to the 1 W reference — neither
 
   // Clearing V empties the PAIR, and the resolve refills it from the 1 W reference: P is 1 W
   // entered, V is √(Re+Rs) calculated. The same rule the hook layer pins in
-  // `OriginalShell-hooks.test.ts` ("commit blank V | post: P 1 E, V √6 C").
+  // `driveSignal.test.ts` ("commit blank V | post: P 1 E, V √6 C").
   const live = await driveGroup(page);
   expect(live.P, 'clearing V returns the power to the 1 W reference').toBeCloseTo(1, 6);
   expect(Number(await vol.inputValue()), 'V is √(Re+Rs), never blank').toBeCloseTo(Math.sqrt(live.Re! + (live.Rs ?? 0)), 1);

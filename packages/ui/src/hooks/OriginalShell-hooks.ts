@@ -7,8 +7,12 @@
  * without a DOM. The component's `<script setup>` is a hook call plus its child-component
  * imports — nothing else touches `appState`, `presentationState` or the domain.
  *
- * `createSealedReadouts` is the unit-testable core of the Box-tab readouts: JIT-composed here
- * with the shell's own `project` / `selectedBox` / `projectChanged`.
+ * The Box-tab and Signal-tab field wiring (`createSealedReadouts`/`createBoxVolume`/
+ * `createSelectedBox`/`createDriveSignal`), the cell dq readouts, the chart labels and the tab
+ * rail's `TabId` are shared with `MobileShell.vue` and live in their own skin-neutral modules —
+ * see `boxFields.ts`, `driveSignal.ts`, `../logic/cellDataQuality.ts`, `../logic/series.ts` and
+ * `../logic/tabId.ts`. This file JIT-composes them here with the shell's own `project` /
+ * `selectedBox` / `projectChanged`.
  */
 import type {ComputedRef, Ref} from 'vue';
 import {computed, onMounted, onUnmounted, reactive, ref, shallowRef, watch} from 'vue';
@@ -41,7 +45,7 @@ import {
     enterVentField as enterVentFieldOn,
     ventFieldState as ventFieldStateOn,
 } from '../logic/useVentGroup.js';
-import {buildPlotData, parseChartId, TAB_META} from '../logic/series.js';
+import {buildPlotData, CHART_LABELS, parseChartId, TAB_META} from '../logic/series.js';
 import {createToneGenerator, type ToneGenerator} from '../logic/toneGenerator.js';
 import {useApp} from '../logic/app.js';
 import {useEscToClose} from '../logic/useEscToClose.js';
@@ -52,23 +56,14 @@ import {inputChecked, inputFrom, inputValue, listeningElement, selectedOption, s
 import {createSealedAlignmentEditor} from './SealedAlignment-hooks.js';
 import {OgFilters} from './OgFilters-hooks.js';
 import type {Calculated, Clearable, Entered, OpenISDProject, Readable, Writable} from '@openisd/design';
-import type {ProvenanceLetter} from '../logic/fieldProvenance.js';
-import {provenanceOf, provenanceOfEntry, provenanceOfSolved} from '../logic/fieldProvenance.js';
+import {provenanceOf} from '../logic/fieldProvenance.js';
+import {dqOfCell, dqOfEntry, dqOfSolved, type DqReadout} from '../logic/cellDataQuality.js';
+import {isTabId, type TabId} from '../logic/tabId.js';
+import {createBoxVolume, createSealedReadouts, createSelectedBox, DUAL_CHAMBER} from './boxFields.js';
+import {createDriveSignal} from './driveSignal.js';
 import type {StoredProjectListing} from '@openisd/persistence';
-import type {BoxType, ChartId, EnvDefaults, Engine} from '@openisd/design/engine';
+import type {ChartId, EnvDefaults, Engine} from '@openisd/design/engine';
 import type {Design, PlotParams} from '../types.js';
-
-// ---- Sealed / PR readouts (unit-testable, real domain) ------------------------
-// The fix this slice exists for: reading `project.value` ALONE does not invalidate these
-// computeds on every project mutation — `changeTicks`-driven `projectChanged` MUST be read too,
-// or the readout freezes at the value it had when the shell first mounted (the live-wire spec
-// proved 54.81 stale while the domain computed 61.878). Every member below therefore reads
-// BOTH `projectChanged` and `project`.
-export interface SealedReadoutsDeps {
-  project: ComputedRef<OpenISDProject>;
-  selectedBox: Ref<BoxType>;
-  projectChanged: Ref<number>;
-}
 
 export type AirField = 'temperature' | 'humidity' | 'pressure';
 
@@ -78,98 +73,12 @@ const AIR_FIELD_LIMITS: Readonly<Record<AirField, { min: number; max: number; la
   pressure: { min: 1000, max: 200000, label: 'Air pressure' },
 };
 
-/** What `NumInput` binds for a field's data-quality flags. */
-export interface DqReadout {
-  readonly dq: readonly string[];
-  readonly dqState: ProvenanceLetter;
-}
-
-/** The tab rail's closed set — every tab reads a project. Application settings live in the
- *  Options dialog. */
-export type TabId = 'box' | 'driver' | 'enclosure' | 'filters' | 'signal' | 'advanced' | 'project';
-
-/** Parse a persisted tab id — the one string→`TabId` boundary. A stored id the app no longer has
- *  must not come back as an active tab. */
-export function isTabId(v: unknown): v is TabId {
-  return v === 'box' || v === 'driver' || v === 'enclosure' || v === 'filters'
-    || v === 'signal' || v === 'advanced' || v === 'project';
-}
-
-export function dqOfCell(field: Readable<unknown> & Entered & Calculated): DqReadout {
-  return { dq: field.dq.map(issue => issue.text), dqState: provenanceOf(field) };
-}
-
-/** `dqOfCell` for a field that is entered or absent and has no `Calculated`. */
-export function dqOfEntry(field: Readable<unknown> & Entered): DqReadout {
-  return { dq: field.dq.map(issue => issue.text), dqState: provenanceOfEntry(field) };
-}
-
-/** `dqOfCell` for a field only a solver writes — calculated or absent, no `Entered`. */
-export function dqOfSolved(field: Readable<unknown> & Calculated): DqReadout {
-  return { dq: field.dq.map(issue => issue.text), dqState: provenanceOfSolved(field) };
-}
-
 export function airFieldDataQuality(field: AirField, value: number | null): readonly string[] {
   if (value == null) return [];
   const limit = AIR_FIELD_LIMITS[field];
   return Number.isFinite(value) && value >= limit.min && value <= limit.max
     ? []
     : [`${limit.label} is outside the sane range (${limit.min}–${limit.max})`];
-}
-
-export function createSealedReadouts({ project, selectedBox, projectChanged: changed }: SealedReadoutsDeps) {
-  // Sealed-box (and PR rear-chamber) resonance + system Q via the selected loss model — the
-  // WinISD lossy cubic by default. NOT the impedance-magnitude peak: that scan returns the
-  // high-frequency voice-coil-inductance rise (≈20 kHz) as the GLOBAL |Z| maximum for any driver
-  // with Le, which is not the system resonance (and yields Qtc=0).
-  //
-  // These computeds are only read from the Box tab, which the shell gates with `projectOpen`.
-  // They require a real project — there is no box and no readout without one.
-  const rearResonance = computed<number | null>(() => {
-    void changed.value; void project.value;
-    return project.value.box.sealed.resonance_hz.value;
-  });
-  const prFsMass_hz = computed<number | null>(() => {
-    void changed.value;
-    return project.value.box.passiveRadiator.resonanceWithAddedMass_hz.value;
-  });
-  // PR solved-pair DQ readouts, live: the editable added mass and target tuning (Fp), and the
-  // two read-only outputs (system tuning, free-air resonance with mass). Each is a fresh
-  // `DqReadout` per recompute — the field object itself never changes identity, so a computed
-  // returning the field would not re-render its dependents.
-  const prAddedMassDq = computed(() => { void changed.value; return dqOfCell(project.value.box.passiveRadiator.addedMass_kg); });
-  const prTuningDq = computed(() => { void changed.value; return dqOfCell(project.value.box.passiveRadiator.tuning_goal_hz); });
-  const prSystemTuningDq = computed(() => { void changed.value; return dqOfCell(project.value.box.passiveRadiator.systemTuning_hz); });
-  const prResonanceMassDq = computed(() => { void changed.value; return dqOfCell(project.value.box.passiveRadiator.resonanceWithAddedMass_hz); });
-  // box.sealed.resonance_hz / q_tc are the domain's own readouts under the selected loss mode:
-  // engine.sealedResonance returns {Fsc, Qtc} together, fed the driver's SOLVED Vas and Qts as
-  // sourceLoadedQts(Rs) loads it (winisd-parity-functional.test.ts "Box.Fr" pins that feed) —
-  // never an inline Cms·Sd²·ρc² reconstruction and never bare Qts.
-  const rearQtc = computed<number | null>(() => {
-    void changed.value;
-    void project.value;
-    if (selectedBox.value !== 'sealed') return null;
-    return project.value.box.sealed.q_tc.value;
-  });
-  // WinISD's "Fh" for a PR box is the PASSIVE RADIATOR system tuning — the box compliance in
-  // series with the PR's own, against the PR's moving mass — NOT the sealed Fc above, which
-  // ignores the PR entirely. winisd_research/GAPS.md §A3.
-  /** The Box pane's rear-chamber readout: the PR system tuning for a PR box, else sealed Fc. */
-  const boxResonance = computed<number | null>(() => {
-    void changed.value; void project.value;
-    return selectedBox.value === 'box-passive-radiator' ? project.value.box.passiveRadiator.systemTuning_hz.value : rearResonance.value;
-  });
-
-  return { rearResonance, rearQtc, boxResonance, prAddedMassDq, prTuningDq, prSystemTuningDq, prResonanceMassDq, prFsMass_hz };
-}
-
-// ---- Box-type-generic rear-chamber volume (unit-testable, real domain) --------
-// WinISD's single "Vb" field — every box type keeps its own volume field under its own
-// `box.<type>` slice, so this dispatches on `selectedBox` to the type currently shown.
-export interface BoxVolumeDeps {
-  project: ComputedRef<OpenISDProject>;
-  selectedBox: Ref<BoxType>;
-  projectChanged: Ref<number>;
 }
 
 /** WinISD's own `YYYYMMDD` date format — duplicated from the domain's `dateStamp` rather than
@@ -191,133 +100,6 @@ export function fillBlankMeta(p: OpenISDProject, username: string | null, today:
   if (!p.modified.value) { p.modified.set(today); changed = true; }
   if (!p.creator.value && username) { p.creator.set(username); changed = true; }
   return changed;
-}
-
-/** The active box type's own volume FIELD — never just its `.value`, so both the number and its
- *  `.dq` (BUG_20260927_box-volume-validity-decided-in-ui.md: the domain judges validity for
- *  every box type, this dispatches to whichever one is showing) come from the one field. */
-function activeVolumeField(project: OpenISDProject, selectedBox: BoxType): (Readable<number> & Entered & Writable<number>) | null {
-  const box = project.box;
-  switch (selectedBox) {
-    case 'sealed': return box.sealed.volume_m3;
-    case 'vented': return box.vented.volume_m3;
-    case 'bandpass4': return box.bandpass4.chambers.rear.volume_m3;
-    case 'bandpass6': return box.bandpass6.chambers.rear.volume_m3;
-    case 'abc': return box.abc.chambers.rear.volume_m3;
-    case 'box-passive-radiator': return box.passiveRadiator.volume_m3;
-  }
-}
-
-// A presentation fact with no domain counterpart: these three draw two chambers.
-const DUAL_CHAMBER = new Set<BoxType>(['bandpass4', 'bandpass6', 'abc']);
-
-// WinISD's own caption for each chart id, exactly as its menu prints it — shared by every
-// shell's chart dropdown, so a caption never drifts between skins.
-export const CHART_LABELS: Record<ChartId, string> = {
-  TFMag: 'Transfer function magnitude',
-  Phase: 'Transfer function phase',
-  GD: 'Group Delay',
-  MaxPwr: 'Maximum Power',
-  MaxSPL: 'Maximum SPL',
-  VA: 'Amplifier apparent load power (VA)',
-  SPL: 'SPL',
-  Excursion: 'Cone excursion',
-  Zmag: 'Impedance',
-  Zph: 'Impedance phase',
-  PRTFMag: 'Transfer function magnitude (PR)',
-  PRTFPhase: 'Transfer function phase (PR)',
-  PRExcursion: 'Cone excursion (PR)',
-  RearPort: 'Rear port - Air velocity',
-  RearPortGain: 'Rear port - Gain',
-  FrontPort: 'Front port - Air velocity',
-  FrontPortGain: 'Front port - Gain',
-  FltMag: 'Transfer function magnitude (EQ/Filter)',
-  FltPhase: 'Transfer function phase (EQ/Filter)',
-  FltGD: 'Group Delay (EQ/Filter)',
-};
-
-export interface SelectedBoxDeps {
-  focusedProject: () => OpenISDProject | null;
-  projectChanged: Ref<number>;
-  isSimulatable: (b: BoxType) => boolean;
-}
-
-// selectedBox is the Box tab's source of truth: it can hold types the solver refuses. Its
-// initial value comes from the focused project when one is open — the shell renders, with
-// empty placeholders, without one, and `useFocusedProject()` must not be evaluated then.
-export function createSelectedBox({ focusedProject, projectChanged: changed, isSimulatable }: SelectedBoxDeps) {
-  const selectedBox = ref<BoxType>(focusedProject()?.box.boxType.value ?? 'sealed');
-  watch(selectedBox, (b) => {
-    const p = focusedProject();
-    if (isSimulatable(b) && p && p.box.boxType.value !== b) p.box.boxType.set(b);
-  });
-  watch(
-    () => { void changed.value; return focusedProject()?.box.boxType.value; },
-    (b) => { if (b != null && selectedBox.value !== b) selectedBox.value = b; },
-  );
-
-  const pending = computed(() => !isSimulatable(selectedBox.value));
-  const isDual = computed(() => DUAL_CHAMBER.has(selectedBox.value));
-  const boxLabel = computed(() => BOX_TYPE_OPTIONS.find(o => o.value === selectedBox.value)?.label ?? 'Box');
-  const showEnclosureTab = computed(() => selectedBox.value !== 'sealed');
-  return { selectedBox, pending, isDual, boxLabel, showEnclosureTab };
-}
-
-export function createBoxVolume({ project, selectedBox, projectChanged: changed }: BoxVolumeDeps) {
-  const boxVolume_m3 = computed<number | null>(() => {
-    void changed.value;
-    void project.value;
-    return activeVolumeField(project.value, selectedBox.value)?.value ?? null;
-  });
-  const boxVolumeDqNote = computed<string>(() => {
-    void changed.value;
-    void project.value;
-    const field = activeVolumeField(project.value, selectedBox.value);
-    return field ? field.dq.map((issue) => issue.text).join(' ') : '';
-  });
-  function setBoxVolume_m3(v: number): void {
-    activeVolumeField(project.value, selectedBox.value)?.set(v);
-  }
-  return { boxVolume_m3, boxVolumeDqNote, setBoxVolume_m3 };
-}
-
-// ---- Signal tab: drive power P and drive voltage V -------------------------------
-// V is never absent. While Re is known, P = V²/Re and the one typed last is entered. Without Re,
-// P is blank and locked; its dq says why.
-export interface DriveSignalDeps {
-  project: ComputedRef<OpenISDProject>;
-  projectChanged: Ref<number>;
-}
-
-export function createDriveSignal({ project, projectChanged: changed }: DriveSignalDeps) {
-  // A deleted V goes back to its default through the domain's clear.
-  function commitDriveV(v: number | null): void {
-    if (v == null) project.value.driveVoltage_V.clear();
-    else project.value.driveVoltage_V.set(v);
-  }
-  const driveV = computed<number | null>({
-    get: () => {
-      void changed.value; void project.value;
-      return project.value.driveVoltage_V.value;
-    },
-    set: commitDriveV,
-  });
-  /** The blur-notify consumer for the drive trio's V cell: NumInput only reports "the cell was
-   *  modified since entry", so the commit rule above runs again here. */
-  function reconcileDriveV(committed: number | null): void {
-    commitDriveV(committed);
-  }
-  /** P is blank exactly when the driver has no usable Re, and cannot be typed then. */
-  const powerLocked = computed<boolean>(() => {
-    void changed.value;
-    return project.value.powerDrive_W.value === null;
-  });
-  // Series resistance — read through `projectChanged` so a typed value sticks.
-  const rsOhm = computed<number>({
-    get: () => { void changed.value; void project.value; return project.value.Rs_ohm.value; },
-    set: (v) => { project.value.Rs_ohm.set(v ?? 0); },
-  });
-  return { driveV, reconcileDriveV, powerLocked, rsOhm };
 }
 
 // ---- Advanced tab: environment ------------------------------------------------
@@ -437,7 +219,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
 
   // ---- Box types — the registry's own list (`box_Type`), not a copy ------------------
   // Whether the circuit models this type is the DOMAIN's answer, asked through logic/.
-  // Delegated to the unit-tested `createSelectedBox` above.
+  // Delegated to the unit-tested `createSelectedBox` (`boxFields.ts`).
   const { selectedBox, pending, isDual, boxLabel, showEnclosureTab } =
     createSelectedBox({ focusedProject, projectChanged, isSimulatable: boxTypeIsSimulatable });
   const enclosureNavLabel = computed(() =>
@@ -461,7 +243,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   const sealedAlignmentSuitabilityLabel = sealedAlignmentEditor.ebpSuitabilityLabel;
 
   // Box-type-generic rear-chamber volume (WinISD "Vb") — the Box tab's single "Volume" field
-  // dispatches through the unit-tested `createBoxVolume` above.
+  // dispatches through the unit-tested `createBoxVolume` (`boxFields.ts`).
   const { boxVolume_m3, boxVolumeDqNote, setBoxVolume_m3 } = createBoxVolume({ project, selectedBox, projectChanged });
   // Front-chamber volume (WinISD "Vf") — dual-chamber types only (bandpass4/6, abc).
   const frontVolume_m3 = computed<number | null>(() => {
@@ -759,7 +541,8 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
 
   // ---- Cursor readout (top-right) — real interpolation of the selected curve ------
   // Cursor fields are PROJECT-scoped (QO130/QO168) — read through `project.value.*`, and
-  // `projectChanged` must be read too or the readout freezes (see `createSealedReadouts` above).
+  // `projectChanged` must be read too or the readout freezes (see `createSealedReadouts`,
+  // `boxFields.ts`).
   const cursorHz = computed(() => {
     void projectChanged.value;
     // The readout is part of the toolbar, which renders without a project — no project means
@@ -1032,7 +815,7 @@ const overlays = computed<Design[]>(() => {
   onUnmounted(() => tone?.stop());
 
   // ---- Signal tab: drive voltage = √(Pin × Re) per driver, plus series resistance ------------
-  // Delegated to the unit-tested `createDriveSignal` above.
+  // Delegated to the unit-tested `createDriveSignal` (`driveSignal.ts`).
   const { driveV, reconcileDriveV, powerLocked, rsOhm } = createDriveSignal({ project, projectChanged });
 
   // ---- Advanced tab: environment ------------------------------------------------
