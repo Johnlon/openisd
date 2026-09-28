@@ -22,7 +22,6 @@ import {
     referenceEfficiency,
     splFromEfficiency
 } from '../efficiency.js';
-import {ebp} from '../boxDesign.js';
 import {depthFromDims, dvolFromDims, magDepthFromDims, magnetFromDims} from '../dvolRelation.js';
 import type {
     DriverSolverParams,
@@ -31,9 +30,10 @@ import type {
 } from '../solverTypes.js';
 import {inconsistentInputs, missingDependencies} from '../consistency.js';
 import type {CalculationIssue, CalculationPrerequisite, OutOfRangeIssue} from '../consistency.js';
-import {checkRange} from '../physicalRange.js';
-import type {DriverWorkingSet} from './driverQuantities.js';
-import {nominalImpedance, terminalBL_Tm, terminalRe_ohm} from './driverQuantities.js';
+import {checkRange, isPhysicallyPlausible} from '../physicalRange.js';
+import type {DriverWorkingSet} from '../solvers/driverQuantities.js';
+import {nominalImpedance, terminalBL_Tm, terminalRe_ohm} from '../solvers/driverQuantities.js';
+import type {EbpSuitability, SweepResult, Wiring} from '../types.js';
 
 export type DriverQuantityName = keyof DriverSolverParams;
 export type DriverIssue = CalculationIssue<DriverQuantityName> | OutOfRangeIssue;
@@ -423,7 +423,7 @@ function solveConsistencyGroup(p: DriverWorkingSet): DriverWorkingSet {
   r.roo_kg_per_m3 = driverRho(r);
 
   // EBP (Fs/Qes) likewise: a real derivable field, computed once every input it needs is
-  // available, through the SAME formula `boxDesign.ts` exports for every other caller —
+  // available, through the SAME `ebp` formula the area publishes for every other caller —
   // never recomputed ad hoc downstream.
   if (r.EBP_hz == null && r.Fs_hz != null && r.Qes != null && r.Qes > 0) {
     r.EBP_hz = ebp(r.Fs_hz, r.Qes);
@@ -641,60 +641,214 @@ function writeDriverBack(field: SolverField, value: number | undefined): void {
   if (value != null) field.setCalculated(value); else field.setNotAvailable();
 }
 
-/** The driver handle solve (T10/T11): build a private, entered-only `DriverWorkingSet` working
- *  set from the handles, run `solveConsistencyGroup`/`checkConsistency` on it unchanged, write
- *  every derived (non-entered) value back via `setCalculated` (or `setNotAvailable` when it
- *  cannot solve), and return the issues. `wiring` is a discrete entered input, never derived, so
- *  it is read but never written back. `air` is the project's own resolved `{ rho, c }` — a
- *  not-entered `c_m_per_s`/`roo_kg_per_m3` defaults to it (matching `VentEngine.solve`/`PrEngine.solve`'s own
- *  `air` parameter), and the default then writes back as `'C'`. */
-export function solveDriver(params: DriverSolverParams, air: Air): DriverIssue[] {
-  const working: DriverWorkingSet = {
-    Fs_hz: enteredDriverValue(params.Fs_hz), Re_ohm: enteredDriverValue(params.Re_ohm),
-    Znom_ohm: enteredDriverValue(params.Znom_ohm), Le_H: enteredDriverValue(params.Le_H),
-    fLe_hz: enteredDriverValue(params.fLe_hz), KLe_H_sqrtHz: enteredDriverValue(params.KLe_H_sqrtHz),
-    Qes: enteredDriverValue(params.Qes), Qms: enteredDriverValue(params.Qms), Qts: enteredDriverValue(params.Qts),
-    Vas_m3: enteredDriverValue(params.Vas_m3), Sd_m2: enteredDriverValue(params.Sd_m2), Dd_m: enteredDriverValue(params.Dd_m),
-    BL_Tm: enteredDriverValue(params.BL_Tm), Mms_kg: enteredDriverValue(params.Mms_kg),
-    Cms_m_per_N: enteredDriverValue(params.Cms_m_per_N), Rms_kg_per_s: enteredDriverValue(params.Rms_kg_per_s),
-    EBP_hz: enteredDriverValue(params.EBP_hz), Xmax_m: enteredDriverValue(params.Xmax_m), Vd_m3: enteredDriverValue(params.Vd_m3),
-    Hc_m: enteredDriverValue(params.Hc_m), Hg_m: enteredDriverValue(params.Hg_m), Pe_W: enteredDriverValue(params.Pe_W),
-    no: enteredDriverValue(params.no), SPLref_dB: enteredDriverValue(params.SPLref_dB), SPL_dB: enteredDriverValue(params.SPL_dB),
-    USPL_dB: enteredDriverValue(params.USPL_dB), SPLmax_dB: enteredDriverValue(params.SPLmax_dB),
-    SPLmaxLF_dB: enteredDriverValue(params.SPLmaxLF_dB), Rme_kg_per_s: enteredDriverValue(params.Rme_kg_per_s),
-    Mpow_N_per_sqrtW: enteredDriverValue(params.Mpow_N_per_sqrtW), Mcost_kg_per_s: enteredDriverValue(params.Mcost_kg_per_s),
-    gamma_m_per_s2_A: enteredDriverValue(params.gamma_m_per_s2_A), Gloss: enteredDriverValue(params.Gloss),
-    Vcd_m: enteredDriverValue(params.Vcd_m), Depth_m: enteredDriverValue(params.Depth_m), MagDepth_m: enteredDriverValue(params.MagDepth_m),
-    Magnet_m: enteredDriverValue(params.Magnet_m), DVol_m3: enteredDriverValue(params.DVol_m3),
-    c_m_per_s: enteredDriverValue(params.c_m_per_s) ?? air.c,
-    roo_kg_per_m3: enteredDriverValue(params.roo_kg_per_m3) ?? air.rho,
-    Re_terminal_ohm: enteredDriverValue(params.Re_terminal_ohm),
-    BL_terminal_Tm: enteredDriverValue(params.BL_terminal_Tm), numVC: enteredDriverValue(params.numVC),
-    wiring: params.wiring.value ?? undefined,
-  };
+/**
+ * Efficiency Bandwidth Product — criterion for enclosure type selection.
+ * EBP = Fs / Qes.  EBP < 50 → sealed preferred; EBP > 100 → vented preferred.
+ * https://en.wikipedia.org/wiki/Thiele/Small_parameters#Other_parameters
+ */
+function ebp(Fs_hz: number, Qes: number): number { return Fs_hz / Qes; }
 
-  const solved = solveConsistencyGroup(working);
-  const issues: DriverIssue[] = [...checkConsistency(working, params), ...checkRange(params)];
+/** The driver area of the engine: the T/S consistency solve over a driver's own handles, the
+ *  derived indicators a picker shows (EBP and its verdict, reference efficiency and SPL, the
+ *  source-loaded Qts), the terminal quantities of a multi-coil driver, and the physical-range
+ *  check on one raw value. */
+export interface DriverEngine {
+  /** The one driver call to reach for (T10/T11): every entered T/S value's own handle, read
+   *  into a private working set, solved and checked by the consistency group, with every derived
+   *  value written back onto its handle via `setCalculated` (or `setNotAvailable`). Entered
+   *  values — including `wiring` — are never overwritten. `air` is the project's own resolved
+   *  `{ rho, c }`; a not-entered `c_m_per_s`/`roo_kg_per_m3` defaults to it and writes back as
+   *  `'C'`. */
+  solve(params: DriverSolverParams, air: Air): DriverIssue[];
+  /** Efficiency bandwidth product — Fs/Qes, the sealed-vs-vented indicator. */
+  ebp(Fs_hz: number, Qes: number): number;
+  /** The enclosure type an EBP points at: below 50 sealed, above 100 vented, else either. */
+  ebpSuitability(EBP_hz: number): EbpSuitability;
+  /** Reference efficiency, in the stated air. Takes `Air` — the DERIVED pair — because a driver
+   *  record can state its own ρ and c directly (`.wdr` allows arbitrary values), and no
+   *  temperature/humidity/pressure triple reproduces an arbitrary pair. */
+  referenceEfficiency(Fs: number, Vas: number, Qes: number, air: Air): number;
+  /** SPL for a given efficiency, in the stated air. */
+  splFromEfficiency(no: number, air: Air): number;
+  /** Qts as the amplifier's source impedance loads it: WinISD folds Rg into Qes before
+   *  designing — Qes' = Qes·(Re+Rg)/Re, Qts = 1/(1/Qms + 1/Qes'). Falls back to `fallbackQts`
+   *  when Qms/Qes/Re are unavailable (a driver carrying only Qts).
+   *  winisd_research/SEALED_FSC_MODEL.md §5. */
+  sourceLoadedQts(qms: number, qes: number, re: number, rg: number, fallbackQts: number): number;
+  /** Re as the amplifier sees it: N coils of resistance r are r/N in parallel, N·r in series.
+   *  A separate answer from `Re_ohm`, never a replacement for it. */
+  terminalRe_ohm(Re_ohm: number, numVC: number | undefined, wiring: Wiring | undefined): number;
+  /** BL as the amplifier sees it — `bl` per coil, `N·bl` in series, unchanged in parallel. */
+  terminalBL_Tm(BL_Tm: number, numVC: number | undefined, wiring: Wiring | undefined): number;
+  /** Whether a single RAW value would sit inside `PHYSICAL_RANGE`'s band for `field` (D9
+   *  tier 1) — the domain's one door into that table. */
+  isPhysicallyPlausible(field: string, value: number): boolean;
+  /** Sealed resonance and Qtc read off a swept impedance curve, rather than computed. */
+  findImpedancePeak(result: SweepResult | null, Re: number): { Fsc: number; Qtc: number } | null;
+}
 
-  writeDriverBack(params.Fs_hz, solved.Fs_hz); writeDriverBack(params.Re_ohm, solved.Re_ohm);
-  writeDriverBack(params.Znom_ohm, solved.Znom_ohm); writeDriverBack(params.Le_H, solved.Le_H);
-  writeDriverBack(params.fLe_hz, solved.fLe_hz); writeDriverBack(params.KLe_H_sqrtHz, solved.KLe_H_sqrtHz);
-  writeDriverBack(params.Qes, solved.Qes); writeDriverBack(params.Qms, solved.Qms); writeDriverBack(params.Qts, solved.Qts);
-  writeDriverBack(params.Vas_m3, solved.Vas_m3); writeDriverBack(params.Sd_m2, solved.Sd_m2); writeDriverBack(params.Dd_m, solved.Dd_m);
-  writeDriverBack(params.BL_Tm, solved.BL_Tm); writeDriverBack(params.Mms_kg, solved.Mms_kg);
-  writeDriverBack(params.Cms_m_per_N, solved.Cms_m_per_N); writeDriverBack(params.Rms_kg_per_s, solved.Rms_kg_per_s);
-  writeDriverBack(params.EBP_hz, solved.EBP_hz); writeDriverBack(params.Xmax_m, solved.Xmax_m); writeDriverBack(params.Vd_m3, solved.Vd_m3);
-  writeDriverBack(params.Hc_m, solved.Hc_m); writeDriverBack(params.Hg_m, solved.Hg_m); writeDriverBack(params.Pe_W, solved.Pe_W);
-  writeDriverBack(params.no, solved.no); writeDriverBack(params.SPLref_dB, solved.SPLref_dB); writeDriverBack(params.SPL_dB, solved.SPL_dB);
-  writeDriverBack(params.USPL_dB, solved.USPL_dB); writeDriverBack(params.SPLmax_dB, solved.SPLmax_dB);
-  writeDriverBack(params.SPLmaxLF_dB, solved.SPLmaxLF_dB); writeDriverBack(params.Rme_kg_per_s, solved.Rme_kg_per_s);
-  writeDriverBack(params.Mpow_N_per_sqrtW, solved.Mpow_N_per_sqrtW); writeDriverBack(params.Mcost_kg_per_s, solved.Mcost_kg_per_s);
-  writeDriverBack(params.gamma_m_per_s2_A, solved.gamma_m_per_s2_A); writeDriverBack(params.Gloss, solved.Gloss);
-  writeDriverBack(params.Vcd_m, solved.Vcd_m); writeDriverBack(params.Depth_m, solved.Depth_m); writeDriverBack(params.MagDepth_m, solved.MagDepth_m);
-  writeDriverBack(params.Magnet_m, solved.Magnet_m); writeDriverBack(params.DVol_m3, solved.DVol_m3); writeDriverBack(params.Re_terminal_ohm, solved.Re_terminal_ohm);
-  writeDriverBack(params.BL_terminal_Tm, solved.BL_terminal_Tm);
-  if (!params.c_m_per_s.entered) params.c_m_per_s.setCalculated(air.c);
-  if (!params.roo_kg_per_m3.entered) params.roo_kg_per_m3.setCalculated(air.rho);
+export class DriverEngineImpl implements DriverEngine {
+  /** Shared with the consistency group and the sweep, so these stay free functions and the
+   *  area publishes them as-is. */
+  readonly ebp = ebp;
+  readonly terminalRe_ohm = terminalRe_ohm;
+  readonly terminalBL_Tm = terminalBL_Tm;
+  readonly isPhysicallyPlausible = isPhysicallyPlausible;
 
-  return issues;
+  /** The driver handle solve (T10/T11): build a private, entered-only `DriverWorkingSet` working
+   *  set from the handles, run `solveConsistencyGroup`/`checkConsistency` on it unchanged, write
+   *  every derived (non-entered) value back via `setCalculated` (or `setNotAvailable` when it
+   *  cannot solve), and return the issues. `wiring` is a discrete entered input, never derived, so
+   *  it is read but never written back. `air` is the project's own resolved `{ rho, c }` — a
+   *  not-entered `c_m_per_s`/`roo_kg_per_m3` defaults to it (matching `VentEngine.solve`/`PrEngine.solve`'s own
+   *  `air` parameter), and the default then writes back as `'C'`. */
+  solve(params: DriverSolverParams, air: Air): DriverIssue[] {
+    const working: DriverWorkingSet = {
+      Fs_hz: enteredDriverValue(params.Fs_hz), Re_ohm: enteredDriverValue(params.Re_ohm),
+      Znom_ohm: enteredDriverValue(params.Znom_ohm), Le_H: enteredDriverValue(params.Le_H),
+      fLe_hz: enteredDriverValue(params.fLe_hz), KLe_H_sqrtHz: enteredDriverValue(params.KLe_H_sqrtHz),
+      Qes: enteredDriverValue(params.Qes), Qms: enteredDriverValue(params.Qms), Qts: enteredDriverValue(params.Qts),
+      Vas_m3: enteredDriverValue(params.Vas_m3), Sd_m2: enteredDriverValue(params.Sd_m2), Dd_m: enteredDriverValue(params.Dd_m),
+      BL_Tm: enteredDriverValue(params.BL_Tm), Mms_kg: enteredDriverValue(params.Mms_kg),
+      Cms_m_per_N: enteredDriverValue(params.Cms_m_per_N), Rms_kg_per_s: enteredDriverValue(params.Rms_kg_per_s),
+      EBP_hz: enteredDriverValue(params.EBP_hz), Xmax_m: enteredDriverValue(params.Xmax_m), Vd_m3: enteredDriverValue(params.Vd_m3),
+      Hc_m: enteredDriverValue(params.Hc_m), Hg_m: enteredDriverValue(params.Hg_m), Pe_W: enteredDriverValue(params.Pe_W),
+      no: enteredDriverValue(params.no), SPLref_dB: enteredDriverValue(params.SPLref_dB), SPL_dB: enteredDriverValue(params.SPL_dB),
+      USPL_dB: enteredDriverValue(params.USPL_dB), SPLmax_dB: enteredDriverValue(params.SPLmax_dB),
+      SPLmaxLF_dB: enteredDriverValue(params.SPLmaxLF_dB), Rme_kg_per_s: enteredDriverValue(params.Rme_kg_per_s),
+      Mpow_N_per_sqrtW: enteredDriverValue(params.Mpow_N_per_sqrtW), Mcost_kg_per_s: enteredDriverValue(params.Mcost_kg_per_s),
+      gamma_m_per_s2_A: enteredDriverValue(params.gamma_m_per_s2_A), Gloss: enteredDriverValue(params.Gloss),
+      Vcd_m: enteredDriverValue(params.Vcd_m), Depth_m: enteredDriverValue(params.Depth_m), MagDepth_m: enteredDriverValue(params.MagDepth_m),
+      Magnet_m: enteredDriverValue(params.Magnet_m), DVol_m3: enteredDriverValue(params.DVol_m3),
+      c_m_per_s: enteredDriverValue(params.c_m_per_s) ?? air.c,
+      roo_kg_per_m3: enteredDriverValue(params.roo_kg_per_m3) ?? air.rho,
+      Re_terminal_ohm: enteredDriverValue(params.Re_terminal_ohm),
+      BL_terminal_Tm: enteredDriverValue(params.BL_terminal_Tm), numVC: enteredDriverValue(params.numVC),
+      wiring: params.wiring.value ?? undefined,
+    };
+
+    const solved = solveConsistencyGroup(working);
+    const issues: DriverIssue[] = [...checkConsistency(working, params), ...checkRange(params)];
+
+    writeDriverBack(params.Fs_hz, solved.Fs_hz); writeDriverBack(params.Re_ohm, solved.Re_ohm);
+    writeDriverBack(params.Znom_ohm, solved.Znom_ohm); writeDriverBack(params.Le_H, solved.Le_H);
+    writeDriverBack(params.fLe_hz, solved.fLe_hz); writeDriverBack(params.KLe_H_sqrtHz, solved.KLe_H_sqrtHz);
+    writeDriverBack(params.Qes, solved.Qes); writeDriverBack(params.Qms, solved.Qms); writeDriverBack(params.Qts, solved.Qts);
+    writeDriverBack(params.Vas_m3, solved.Vas_m3); writeDriverBack(params.Sd_m2, solved.Sd_m2); writeDriverBack(params.Dd_m, solved.Dd_m);
+    writeDriverBack(params.BL_Tm, solved.BL_Tm); writeDriverBack(params.Mms_kg, solved.Mms_kg);
+    writeDriverBack(params.Cms_m_per_N, solved.Cms_m_per_N); writeDriverBack(params.Rms_kg_per_s, solved.Rms_kg_per_s);
+    writeDriverBack(params.EBP_hz, solved.EBP_hz); writeDriverBack(params.Xmax_m, solved.Xmax_m); writeDriverBack(params.Vd_m3, solved.Vd_m3);
+    writeDriverBack(params.Hc_m, solved.Hc_m); writeDriverBack(params.Hg_m, solved.Hg_m); writeDriverBack(params.Pe_W, solved.Pe_W);
+    writeDriverBack(params.no, solved.no); writeDriverBack(params.SPLref_dB, solved.SPLref_dB); writeDriverBack(params.SPL_dB, solved.SPL_dB);
+    writeDriverBack(params.USPL_dB, solved.USPL_dB); writeDriverBack(params.SPLmax_dB, solved.SPLmax_dB);
+    writeDriverBack(params.SPLmaxLF_dB, solved.SPLmaxLF_dB); writeDriverBack(params.Rme_kg_per_s, solved.Rme_kg_per_s);
+    writeDriverBack(params.Mpow_N_per_sqrtW, solved.Mpow_N_per_sqrtW); writeDriverBack(params.Mcost_kg_per_s, solved.Mcost_kg_per_s);
+    writeDriverBack(params.gamma_m_per_s2_A, solved.gamma_m_per_s2_A); writeDriverBack(params.Gloss, solved.Gloss);
+    writeDriverBack(params.Vcd_m, solved.Vcd_m); writeDriverBack(params.Depth_m, solved.Depth_m); writeDriverBack(params.MagDepth_m, solved.MagDepth_m);
+    writeDriverBack(params.Magnet_m, solved.Magnet_m); writeDriverBack(params.DVol_m3, solved.DVol_m3); writeDriverBack(params.Re_terminal_ohm, solved.Re_terminal_ohm);
+    writeDriverBack(params.BL_terminal_Tm, solved.BL_terminal_Tm);
+    if (!params.c_m_per_s.entered) params.c_m_per_s.setCalculated(air.c);
+    if (!params.roo_kg_per_m3.entered) params.roo_kg_per_m3.setCalculated(air.rho);
+
+    return issues;
+  }
+
+  ebpSuitability(EBP_hz: number): EbpSuitability {
+    if (EBP_hz < 50) return 'sealed';
+    if (EBP_hz > 100) return 'vented';
+    return 'either';
+  }
+
+  referenceEfficiency(Fs: number, Vas: number, Qes: number, air: Air): number {
+    return referenceEfficiency(Fs, Vas, Qes, air.c);
+  }
+
+  splFromEfficiency(no: number, air: Air): number {
+    return splFromEfficiency(no, air.rho, air.c);
+  }
+
+  /**
+   * Driver total Q loaded by a series source resistance Rg (amplifier output impedance + wiring +
+   * crossover DCR — the Signal tab's "Series resistance", state.P.Rs). Rg adds to the voice-coil
+   * Re in the electrical-loss branch, so it RAISES the electrical Q: Qes' = Qes·(Re+Rg)/Re, and
+   * hence the total Q Qts = 1/(1/Qms + 1/Qes'). WinISD folds this into the sealed Fsc/Qtc it
+   * reports; ignoring Rg gives a visibly wrong resonance and Qtc (e.g. the Dayton E150HE-44 in a
+   * 6 L box at Ql=10/Qa=100/Rg=0.1 reads 63.22 Hz/0.592 instead of WinISD's 63.18 Hz/0.599).
+   *
+   * Falls back to `fallbackQts` when Qms/Qes/Re are unavailable (a driver carrying only Qts).
+   * Reference: winisd_research/SEALED_FSC_MODEL.md §5.
+   */
+  sourceLoadedQts(
+    qms: number, qes: number, re: number, rg: number, fallbackQts: number,
+  ): number {
+    if (!(qms > 0) || !(qes > 0) || !(re > 0)) return fallbackQts;
+    const qesLoaded = (qes * (re + Math.max(0, rg))) / re;
+    return 1 / (1 / qms + 1 / qesLoaded);
+  }
+
+  /**
+   * Finds the actual system resonance (Fsc) and Q (Qtc) from the simulated impedance curve
+   * of a sealed/closed box, taking box leakage/absorption losses into account (TS method).
+   */
+  findImpedancePeak(result: SweepResult | null, Re: number): { Fsc: number; Qtc: number } | null {
+    if (!result || result.fs.length === 0 || !Re || Re <= 0) return null;
+
+    let maxZ = -1;
+    let peakIdx = -1;
+    for (let i = 0; i < result.fs.length; i++) {
+      if (result.zmag[i] > maxZ) {
+        maxZ = result.zmag[i];
+        peakIdx = i;
+      }
+    }
+
+    if (peakIdx === -1 || maxZ <= Re) return null;
+
+    const peakFreq = result.fs[peakIdx];
+    // r0 = maxZ/Re is always > 1 here: the guard above already refused maxZ <= Re, and Re > 0
+    // was refused earlier still, so a "r0 <= 1" guard here could never fire — removed rather
+    // than left as dead defensive code.
+    const r0 = maxZ / Re;
+    const Z_target = Re * Math.sqrt(r0);
+
+    // Find f1 (below peakIdx)
+    let f1 = -1;
+    for (let i = peakIdx; i >= 0; i--) {
+      if (result.zmag[i] <= Z_target) {
+        const fA = result.fs[i];
+        const fB = result.fs[i + 1];
+        const zA = result.zmag[i];
+        const zB = result.zmag[i + 1];
+        // zB is the previous loop iteration's point (one step towards the peak): it failed this
+        // same "<= Z_target" test, so zB > Z_target >= zA strictly — zA and zB can never be
+        // equal, so the interpolation denominator is never zero.
+        f1 = fA + (Z_target - zA) * (fB - fA) / (zB - zA);
+        break;
+      }
+    }
+
+    // Find f2 (above peakIdx)
+    let f2 = -1;
+    for (let i = peakIdx; i < result.fs.length; i++) {
+      if (result.zmag[i] <= Z_target) {
+        const fA = result.fs[i - 1];
+        const fB = result.fs[i];
+        const zA = result.zmag[i - 1];
+        const zB = result.zmag[i];
+        // zA is the previous loop iteration's point (one step towards the peak): it failed this
+        // same "<= Z_target" test, so zA > Z_target >= zB strictly — never equal to zB.
+        f2 = fA + (Z_target - zA) * (fB - fA) / (zB - zA);
+        break;
+      }
+    }
+
+    if (f1 === -1 || f2 === -1 || f2 <= f1) {
+      return { Fsc: peakFreq, Qtc: 0 };
+    }
+
+    const Qmc = (peakFreq * Math.sqrt(r0)) / (f2 - f1);
+    const Qtc = Qmc / r0;
+
+    return { Fsc: peakFreq, Qtc };
+  }
 }

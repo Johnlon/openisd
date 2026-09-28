@@ -46,7 +46,7 @@ const LEFF = 0.30 + 0.732 * 0.05;                // 300 mm cut length + one-flan
 // comes from Fb directly (circuit.ts), so it must agree with the geometry the tests below reason
 // about, rather than being left absent (BUG_20260927_vented-box-losses-not-winisd-form.md).
 const VB = 0.030;
-const {c: refC} = engine.solveEnvironment({}).values;
+const {c: refC} = engine.environment.solve({}).values;
 const FB = refC * Math.sqrt(SP / (LEFF * VB)) / (2 * Math.PI);
 const VENTED: SweepParams = { Vb: VB, eg: 2.83, Sp: SP, Leff: LEFF, Fb: FB, fmin: 10, fmax: 2000, N: 400 };
 
@@ -129,7 +129,7 @@ describe("Rg placement — 'Rg is at driver side' (WinISD Advanced)", () => {
 });
 
 describe('transmission-line port model (WinISD Advanced: TLPorts)', () => {
-  const F_PIPE = engine.solveEnvironment({}).values.c / (2 * LEFF);   // half-wave fundamental of the duct — the same figure the
+  const F_PIPE = engine.environment.solve({}).values.c / (2 * LEFF);   // half-wave fundamental of the duct — the same figure the
                                    // the UI already reports as "1st port resonance"
 
   it('changes the system output around the pipe resonance — the toggle is not cosmetic', () => {

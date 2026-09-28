@@ -105,7 +105,7 @@ type CurveBuild = { series: Series[]; ymin: number; ymax: number; logy?: boolean
 function portVelocityBuild({ engine, meta, sw, pick }: CurveCtx, vel: number[]): CurveBuild {
   const series: Series[] = [{ ...pick(vel), color: meta.color, name: 'Port vel' }];
   // FIXME - magic number - what is 0.05 representing?
-  const machLimit = 0.05 * engine.solveEnvironment({}).values.c;
+  const machLimit = 0.05 * engine.environment.solve({}).values.c;
   series.push({ xs: sw.fs, ys: sw.fs.map(() => machLimit), color:'#ffb454', name:'17 m/s', dash:true });
   return { series, ymin: 0, ymax: Math.max(20, Math.max(...vel) * 1.1) };
 }

@@ -12,9 +12,9 @@ export function envFieldsOver(environment: SimpleField<OpenISDEnvironmentJson>, 
     const field = (key: EnvironmentCondition, fallback: () => number): EnvironmentField =>
         defaultingEntryField(focus(environment, key), key, fallback);
     return {
-        tempK: field('temperature_K', () => engine.envDefaults().tempK),
-        humidityPct: field('humidity_pct', () => engine.envDefaults().humidityPct),
-        pressurePa: field('pressure_Pa', () => engine.envDefaults().pressurePa),
+        tempK: field('temperature_K', () => engine.environment.defaults().tempK),
+        humidityPct: field('humidity_pct', () => engine.environment.defaults().humidityPct),
+        pressurePa: field('pressure_Pa', () => engine.environment.defaults().pressurePa),
     };
 }
 

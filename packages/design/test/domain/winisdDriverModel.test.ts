@@ -98,7 +98,7 @@ describe('winisdDriverModel — the whole WinISD parameter set, not Mms alone', 
     // sweep. Driver B states the Cms that Vas implies at the project's own air, reached here by
     // asking the engine for it rather than by writing a number this test would have to maintain.
     const engine = new Engine();
-    const air = engine.solveEnvironment({useWinisdAirModel: true}).values;
+    const air = engine.environment.solve({useWinisdAirModel: true}).values;
     const Vas_m3 = SHARED.Vas_m3 * 1.2;
     const cmsFromVas = Vas_m3 / (air.rho * air.c * air.c * SHARED.Sd_m2 * SHARED.Sd_m2);
 

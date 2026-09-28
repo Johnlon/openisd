@@ -113,7 +113,7 @@ test('wizard-created vented project has a vent diameter and a tuning; the PR pro
   const { specs } = DRIVER;
   const engine = new Engine();
   const Qes = specs.Qts * specs.Qms / (specs.Qms - specs.Qts);
-  const qtsLoaded = engine.sourceLoadedQts(specs.Qms, Qes, specs.Re_ohm, DEFAULT_SOURCE_RESISTANCE_OHM, specs.Qts);
+  const qtsLoaded = engine.driver.sourceLoadedQts(specs.Qms, Qes, specs.Re_ohm, DEFAULT_SOURCE_RESISTANCE_OHM, specs.Qts);
   const { Fb } = engine.vented.alignment('c4', specs.Fs_hz, qtsLoaded, specs.Vas_m3, 10);
   await expect(page.locator('#og-fb-target')).toHaveValue(new RegExp(Fb.toFixed(1).replace('.', '\\.')));
 

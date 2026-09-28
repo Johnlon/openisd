@@ -405,7 +405,7 @@ describe('WinISD parity (functional) — field calculations against goldens WinI
         const winisd = parseFloat(raw);
         const fs = num(drv, 'Fs'), qes = num(drv, 'Qes');
         assert.ok(fs !== null && qes !== null, `${s.id}: openisd has no Fs/Qes to form EBP from`);
-        compare(s.id, 'EBP', winisd, new Engine().ebp(fs, qes));
+        compare(s.id, 'EBP', winisd, new Engine().driver.ebp(fs, qes));
       });
 
       it('air — openisd in WinISD-compatibility mode against the pair WinISD stored', () => {
@@ -416,7 +416,7 @@ describe('WinISD parity (functional) — field calculations against goldens WinI
         // The goldens were captured with the environment at factory defaults, so the harness
         // feeds the reference values directly into the engine. The project's temperature stays
         // its own — the env-t-303 divergence entry bounds that leg.
-        const air = new Engine().solveEnvironment({
+        const air = new Engine().environment.solve({
           tempK: s.environment.T,
           useWinisdAirModel: true,
         }).values;
@@ -440,7 +440,7 @@ describe('WinISD parity (functional) — field calculations against goldens WinI
           const openisd = engine.sealed.resonance(LossMode.WinisdLossy, {
             Fs: fs, Vas: vas, Vb: s.box.Vr, Ql: s.box.Qlr, Qa: s.box.Qar,
             // WinISD's readout is Qts recomputed with Re+Rg, not bare Qts (WINE_HARNESS.md).
-            Qts: engine.sourceLoadedQts(qms ?? NaN, qes ?? NaN, re, s.signal.Rg, qts),
+            Qts: engine.driver.sourceLoadedQts(qms ?? NaN, qes ?? NaN, re, s.signal.Rg, qts),
           }).Fsc;
           compare(s.id, 'Box.Fr', winisd, openisd);
         });

@@ -96,7 +96,7 @@ describe('PR and Vent Solver Groups', () => {
     expect(massCell.calculated).toBe(false);
     expect(tuningCell.entered).toBe(true);
     expect(massCell.value).toBeNull();
-    const DQ = [new Engine().targetUnreachable('addedMass_kg', ceiling)];
+    const DQ = [new Engine().issues.targetUnreachable('addedMass_kg', ceiling)];
     expect(massCell.dq).toEqual(DQ);
     expect(tuningCell.dq).toEqual(DQ);
   });

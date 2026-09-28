@@ -165,7 +165,7 @@ describe('OriginalShell-hooks', () => {
       const projectRef = shallowRef(project);
       const selectedBox = ref<BoxType>('sealed');
       const projectChanged = ref(0);
-      const zeroVolumeMark = engine.positiveValueIssue(0);
+      const zeroVolumeMark = engine.issues.positiveValueIssue(0);
       if (zeroVolumeMark === null) throw new Error('0 must carry the positive-value mark');
       const expectedNote = zeroVolumeMark.text;
 

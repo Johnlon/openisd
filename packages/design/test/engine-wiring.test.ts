@@ -521,7 +521,7 @@ describe('E — the signal', () => {
 
     // A perfect voltage source (Rs = 0) leaves Qts alone.
     expect(project.sourceLoadedQts(0)!).toBeCloseTo(Qts, 10);
-    expect(project.sourceLoadedQts(2)!).toBe(engine.sourceLoadedQts(4, 0.4, 6.4, 2, Qts));
+    expect(project.sourceLoadedQts(2)!).toBe(engine.driver.sourceLoadedQts(4, 0.4, 6.4, 2, Qts));
     expect(project.sourceLoadedQts(2)!).toBeGreaterThan(project.sourceLoadedQts(0)!);
   });
 

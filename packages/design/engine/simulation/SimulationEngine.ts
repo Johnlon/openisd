@@ -21,18 +21,18 @@ import {cAbs, cArg, cDiv, cMul, cScale, cx} from '../complex.js';
 import type {CircuitQuantities} from '../circuit.js';
 import {hfAsymptotePressure_Pa, solve} from '../circuit.js';
 import {missingDependencies} from '../consistency.js';
-import type {DriverIssue, DriverPrerequisite, DriverQuantityName} from '../solvers/solveDriver.js';
+import type {DriverIssue, DriverPrerequisite, DriverQuantityName} from '../driver/DriverEngine.js';
 import type {PrIssue} from '../pr/PrEngine.js';
 import type {VentIssue} from '../vent/VentEngine.js';
 import {terminalBL_Tm, withAddedMass} from '../solvers/driverQuantities.js';
 import {applyFilters} from '../filters.js';
-import {driveFromVoltage} from '../formulas.js';
+import {driveFromVoltage} from '../signal/SignalEngine.js';
 import type {BoxType, DriverError, EnclosureParams, MaxCurvesResult, SweepParams, SweepResult} from '../types.js';
 import type {DriverSolverParams} from '../solverTypes.js';
 import type {BoxParamsIssue, BoxParamsQuantityName, BoxParamsSolveResult} from '../params.js';
 import {requiredParamsFor} from '../params.js';
 import type {SolveRoute} from '../consistency.js';
-import type {SignalIssue} from '../signal.js';
+import type {SignalIssue} from '../signal/SignalEngine.js';
 
 /** Every issue channel a sweep can surface: the driver's own missing circuit fields (a
  *  `missing-dependencies` issue per absent field, never a combined message or a cross-field

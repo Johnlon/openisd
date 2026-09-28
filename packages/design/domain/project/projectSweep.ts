@@ -223,7 +223,7 @@ function portTuningIssuesOf(
     const values: Readonly<Record<typeof required[number], number | null>> =
         { tuning_goal_hz: null, Vb_m3: Vb, area_m2: area };
     const missing = required.filter((f) => !(typeof values[f] === 'number' && values[f]! > 0));
-    return [engine.missingDependencies('length_m',
+    return [engine.issues.missingDependencies('length_m',
         [{formula: 'length_m from tuning_goal_hz + Vb_m3 + area_m2 (Helmholtz)', required, missing}])];
 }
 

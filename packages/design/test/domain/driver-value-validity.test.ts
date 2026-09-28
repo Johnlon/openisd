@@ -42,7 +42,7 @@ describe('driver spec-field value validity — every field has its OWN floor (BU
       for (const value of [0, -1, NaN]) {
         const f = field(engine, name);
         f.set(value);
-        expect(f.dq).toContainEqual(engine.positiveValueIssue(value));
+        expect(f.dq).toContainEqual(engine.issues.positiveValueIssue(value));
       }
     });
   });
@@ -60,7 +60,7 @@ describe('driver spec-field value validity — every field has its OWN floor (BU
       for (const value of [-1, NaN]) {
         const f = field(engine, name);
         f.set(value);
-        expect(f.dq).toContainEqual(engine.nonNegativeValueIssue(value));
+        expect(f.dq).toContainEqual(engine.issues.nonNegativeValueIssue(value));
       }
     });
   });

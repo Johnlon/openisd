@@ -91,7 +91,7 @@ export class OpenISDBox implements Box {
         // computing its own reference-condition fallback.
 
         const sealedLens = focus(lens, 'sealed');
-        const sealedVolume = requiredField(sealedLens, 'volume_m3', (v) => engine.positiveValueIssue(v));
+        const sealedVolume = requiredField(sealedLens, 'volume_m3', (v) => engine.issues.positiveValueIssue(v));
         const sealedLosses = new SealedLossesWindow(focus(sealedLens, 'losses'));
         this.sealed = {
             volume_m3: sealedVolume,
@@ -166,7 +166,7 @@ export class OpenISDBox implements Box {
                 // rear is SEALED — no port, so no `vents.rear`, and a read-only calculated
                 // `resonance_hz()` (WinISD's "Frc") stands in for the tuning it cannot be given.
                 rear: {
-                    volume_m3: requiredField(bp4Rear, 'volume_m3', (v) => engine.positiveValueIssue(v)),
+                    volume_m3: requiredField(bp4Rear, 'volume_m3', (v) => engine.issues.positiveValueIssue(v)),
                     // LOSSLESS here, unlike the plain sealed box above, because that is what
                     // WinISD itself writes for a bandpass4 rear chamber. Two goldens written by
                     // the same winisd.exe 89 seconds apart with the identical driver, identical
@@ -185,7 +185,7 @@ export class OpenISDBox implements Box {
                 },
                 // front's volume is a Field, consistent with the rear chamber.
                 front: {
-                    volume_m3: requiredField(bp4Front, 'volume_m3', (v) => engine.positiveValueIssue(v)),
+                    volume_m3: requiredField(bp4Front, 'volume_m3', (v) => engine.issues.positiveValueIssue(v)),
                     tuning_goal_hz: bp4FrontTuningField,
                     losses: new CoupledVentedLossesWindow(focus(bp4Front, 'losses')),
                 },
@@ -226,7 +226,7 @@ export class OpenISDBox implements Box {
         const getRadiator = (): OpenISDPassiveRadiatorEmbedded => {
             return new OpenISDPassiveRadiatorEmbedded(prSlot, engine);
         };
-        const prVolume = requiredField(pr, 'volume_m3', (v) => engine.positiveValueIssue(v));
+        const prVolume = requiredField(pr, 'volume_m3', (v) => engine.issues.positiveValueIssue(v));
         const prAddedMassEntry = entryField(focus(pr, 'addedMass_kg'), 'addedMass_kg', () => groupDq(issues().pr));
         const prTuningEntry = entryField(focus(pr, 'tuning_goal_hz'), 'tuning_goal_hz', () => groupDq(issues().pr));
         const prTuningField = pairedField(
@@ -274,7 +274,7 @@ export class OpenISDBox implements Box {
                 }
                 const totalMass = this.#engine.pr.massForFp({ Vb, prMmd, prMadd: 0, prSd, prCms, prNum }, fp_hz, air());
                 const addedMass = totalMass - prMmd;
-                const dq: DqIssue[] | undefined = addedMass < 0 ? [this.#engine.targetUnreachable(
+                const dq: DqIssue[] | undefined = addedMass < 0 ? [this.#engine.issues.targetUnreachable(
                     'addedMassForTuning_kg',
                     this.#engine.pr.tuning({ Vb, prMmd, prMadd: 0, prSd, prCms, prNum }, air()),
                 )] : undefined;
@@ -322,7 +322,7 @@ export class OpenISDBox implements Box {
         const Vas = ts.Vas_m3.value;
         const Qts = ts.Qts.value;
         if (Fs_hz === null || Vas === null || Qts === null) return null;
-        const QtsLoaded = this.#engine.sourceLoadedQts(
+        const QtsLoaded = this.#engine.driver.sourceLoadedQts(
             ts.Qms.value ?? NaN, ts.Qes.value ?? NaN, ts.Re_ohm.value ?? NaN, this.#rs(), Qts);
         // The project's own chosen mode (S10/QO130) by default. WinISD displays and saves the
         // LOSSY figure by default (John 2026-08-27: "default is winisd = Lossy") and it MOVES

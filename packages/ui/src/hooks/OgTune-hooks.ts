@@ -45,7 +45,7 @@ export function useOgTune(): OgTuneAPI {
     void projectChanged.value; void project.value;
     const ts = project.value.driver.specs;
     const Fs_hz = ts.Fs_hz.value, Qes = ts.Qes.value;
-    return Fs_hz != null && Qes != null && Qes !== 0 ? engine.ebp(Fs_hz, Qes) : null;
+    return Fs_hz != null && Qes != null && Qes !== 0 ? engine.driver.ebp(Fs_hz, Qes) : null;
   });
 
   const vb_m3 = computed<number | null>(() => {

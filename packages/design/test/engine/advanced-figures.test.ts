@@ -261,7 +261,7 @@ describe('SPLmaxLF — the excursion-limited 20 Hz SPL, at the record\'s own air
 
   it('falls back to the live reference-environment density when the record carries none', () => {
     const noAir = solve({ Fs_hz: 40, Xmax_m: 0.0067, Sd_m2: 0.022 });
-    const withRho = solve({ Fs_hz: 40, Xmax_m: 0.0067, Sd_m2: 0.022, roo_kg_per_m3: engine.solveEnvironment({}).values.rho });
+    const withRho = solve({ Fs_hz: 40, Xmax_m: 0.0067, Sd_m2: 0.022, roo_kg_per_m3: engine.environment.solve({}).values.rho });
     assert.equal(noAir.SPLmaxLF_dB, withRho.SPLmaxLF_dB);
   });
 

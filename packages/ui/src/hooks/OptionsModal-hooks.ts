@@ -166,7 +166,7 @@ export function useOptionsModal(deps?: OptionsModalDeps): OptionsModalAPI {
       && e.pressurePa === FACTORY_ENV_DEFAULTS.pressurePa;
   });
 
-  const defaultAir = computed<Air>(() => engine.solveEnvironment(editedEnv.value).values);
+  const defaultAir = computed<Air>(() => engine.environment.solve(editedEnv.value).values);
 
   function resetLimits(): void {
     minVolume_L.value = FACTORY_VENTED_LIMITS.minVb_m3 * LITRES_PER_M3;

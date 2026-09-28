@@ -48,9 +48,9 @@ export function createSealedAlignmentEditor({project, changed, engine}: SealedAl
   });
   const ebp = computed(() => {
     const {Fs_hz, Qes} = driverValues.value;
-    return Fs_hz == null || Qes == null ? null : engine.ebp(Fs_hz, Qes);
+    return Fs_hz == null || Qes == null ? null : engine.driver.ebp(Fs_hz, Qes);
   });
-  const suitability = computed(() => ebp.value == null ? null : engine.ebpSuitability(ebp.value));
+  const suitability = computed(() => ebp.value == null ? null : engine.driver.ebpSuitability(ebp.value));
   const suitabilityLabel = computed(() => {
     switch (suitability.value) {
       case 'sealed': return 'Sealed preferred';

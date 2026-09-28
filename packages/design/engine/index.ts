@@ -44,9 +44,11 @@ export type {
 } from './types.js';
 export type { BoxEngine, ChartId } from './box/BoxEngine.js';
 export type { BoxParamsQuantityName, BoxParamsIssue, BoxParamsSolveResult } from './params.js';
-export type { SignalQuantityName, SignalIssue } from './signal.js';
+export type { SignalEngine, SignalQuantityName, SignalIssue } from './signal/SignalEngine.js';
 export type { SimulationEngine, SweepIssue, SweepSolveResult, MaxCurvesSolveResult } from './simulation/SimulationEngine.js';
-export type {DriverQuantityName, DriverIssue, DriverPrerequisite} from './solvers/solveDriver.js';
+export type {DriverEngine, DriverQuantityName, DriverIssue, DriverPrerequisite} from './driver/DriverEngine.js';
+export type {EnvironmentEngine} from './environment/EnvironmentEngine.js';
+export type {IssueEngine} from './issues/IssueEngine.js';
 export type {VentEngine, VentQuantityName, VentIssue} from './vent/VentEngine.js';
 export type {PrEngine, PrQuantityName, PrIssue} from './pr/PrEngine.js';
 export type {VentedEngine} from './vented/VentedEngine.js';

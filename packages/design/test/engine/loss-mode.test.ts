@@ -214,18 +214,18 @@ describe('Sealed-Box Resonance Loss Models', () => {
     const qtsNominal = 1 / (1 / Qms + 1 / Qes); // what openisd used to compute, ignoring Rg
 
     it('Rg=0 leaves Qts at the nominal (no-source-resistance) value', () => {
-      closeTo(engine.sourceLoadedQts(Qms, Qes, Re, 0, qtsNominal), qtsNominal, 9, 'Qts at Rg=0');
+      closeTo(engine.driver.sourceLoadedQts(Qms, Qes, Re, 0, qtsNominal), qtsNominal, 9, 'Qts at Rg=0');
     });
 
     it('--fs 40 --vas 7.65 --qes 0.450 --qms 2.940 --re 6.6 --rg 0.1 --vb 6 --ql 10 --qa 100 → Fsc=63.1762Hz Qtc=0.5995', () => {
-      const qts = engine.sourceLoadedQts(Qms, Qes, Re, Rg, qtsNominal);
+      const qts = engine.driver.sourceLoadedQts(Qms, Qes, Re, Rg, qtsNominal);
       const r = engine.sealed.resonance(LossMode.WinisdLossy, { Fs, Vas, Qts: qts, Vb, Ql, Qa });
       closeTo(r.Fsc, 63.1762, 3, 'Fsc');
       closeTo(r.Qtc, 0.5995, 3, 'Qtc');
     });
 
     it('falls back to the nominal Qts when Qms/Qes/Re are unavailable', () => {
-      assert.equal(engine.sourceLoadedQts(0, 0, 0, Rg, 0.42), 0.42);
+      assert.equal(engine.driver.sourceLoadedQts(0, 0, 0, Rg, 0.42), 0.42);
     });
   });
 });

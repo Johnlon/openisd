@@ -54,9 +54,9 @@ export function driverSpecFloor(key: DriverSpecFieldName): ValueFloor {
 function floorIssue(key: DriverSpecFieldName, v: number, engine: Engine): DqIssue | null {
     switch (driverSpecFloor(key)) {
         case 'positive':
-            return engine.positiveValueIssue(v);
+            return engine.issues.positiveValueIssue(v);
         case 'non-negative':
-            return engine.nonNegativeValueIssue(v);
+            return engine.issues.nonNegativeValueIssue(v);
         case 'none':
             return null;
     }
@@ -371,7 +371,7 @@ export class OpenIsdDriverSpec {
             Re_terminal_ohm: NO_SLOT, BL_terminal_Tm: NO_SLOT, numVC: this.numVC,
             wiring: this.VCCon,
         } satisfies DriverSolverParams;
-        this.#issues = this.#engine.solveDriver(params, air);
+        this.#issues = this.#engine.driver.solve(params, air);
         projectFormulaDq<DriverQuantityName>(DRIVER_QUANTITY_NAMES, params, this.#issues);
         return this.#issues;
     }

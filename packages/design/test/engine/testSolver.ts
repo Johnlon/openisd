@@ -67,7 +67,7 @@ export interface TestSealedAlignmentQuantities {
 }
 
 const engine = new Engine();
-const REFERENCE_AIR = (): Air => engine.solveEnvironment({}).values;
+const REFERENCE_AIR = (): Air => engine.environment.solve({}).values;
 
 /** A test seam for the engine's `SolverField` handle contracts (T10): the value is "entered"
  *  when seeded, and records whatever the solve writes (`calculated`/`not-available`). `precision`
@@ -152,7 +152,7 @@ function bagFromDriverHandles(p: DriverSolverParams): TestSolverQuantities {
  *  air being a parameter at all. */
 export function solveConsistencyGroup(d: TestSolverQuantities, air: Air = REFERENCE_AIR()): TestSolverQuantities {
   const handles = driverHandlesFrom(d);
-  engine.solveDriver(handles, air);
+  engine.driver.solve(handles, air);
   return bagFromDriverHandles(handles);
 }
 
@@ -160,7 +160,7 @@ export function solveConsistencyGroup(d: TestSolverQuantities, air: Air = REFERE
  *  the ONE place this check now runs (co-located with the solve it validates, S2-10). `d` is
  *  entered-only, matching the deleted `checkConsistency()`'s own contract. */
 export function checkConsistency(d: TestSolverQuantities, air: Air = REFERENCE_AIR()) {
-  return engine.solveDriver(driverHandlesFrom(d), air);
+  return engine.driver.solve(driverHandlesFrom(d), air);
 }
 
 function prHandlesFrom(p: TestPrQuantities): PrSolverParams {

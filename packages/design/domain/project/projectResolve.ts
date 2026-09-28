@@ -60,7 +60,7 @@ export function resolveProject(ctx: ProjectResolveContext): ProjectIssues {
     // `#issues.signal` at read time, so no `projectGroupDq` here.
     const Re_ohm = usableRe(directRoot, driverOver);
     settleSignal(focus(directRoot, 'signal'), Re_ohm);
-    const signal = engine.solveSignal({
+    const signal = engine.signal.solve({
         power_W: powerDriveOver(directRoot),
         Re_ohm: inputOf(() => Re_ohm),
         voltage_V: driveVoltageOver(directRoot),
@@ -138,7 +138,7 @@ export function resolveProject(ctx: ProjectResolveContext): ProjectIssues {
         const rgLoadedQts = (): number | null => {
             const Qts = ts.Qts.value;
             if (Qts === null) return null;
-            return engine.sourceLoadedQts(
+            return engine.driver.sourceLoadedQts(
                 ts.Qms.value ?? NaN, ts.Qes.value ?? NaN, ts.Re_ohm.value ?? NaN,
                 directRoot.value.driverEmbedding.Rs_ohm, Qts);
         };

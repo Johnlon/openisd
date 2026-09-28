@@ -236,7 +236,7 @@ function projectScraperEntry(
   if (!parsed.success) return entry;
 
   const { readings, dq_scraper } = parsed.data;
-  const origin = selectOrigin(readings, field, (f, v) => engine.isPhysicallyPlausible(f, v));
+  const origin = selectOrigin(readings, field, (f, v) => engine.driver.isPhysicallyPlausible(f, v));
   const corroboration = corroborate(readings);
   // `origin` always names one of `readings`' own keys — `selectOrigin` picks it FROM this same
   // object — so this lookup can never miss.

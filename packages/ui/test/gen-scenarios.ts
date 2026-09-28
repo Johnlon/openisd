@@ -50,7 +50,7 @@ for (const S of SCENARIOS) {
     const L   = S.box.ventL / 100;        // cm → m (physical length)
     const Sp  = Math.PI * (S.box.ventD / 200) ** 2;  // cm bore diameter → m² area
     const engine = new Engine();
-    const fb  = engine.vent.tuningFromLength(Vb, L, Sp, 1, engine.solveEnvironment({}).values);
+    const fb  = engine.vent.tuningFromLength(Vb, L, Sp, 1, engine.environment.solve({}).values);
     S.computed = {
       // StatBar.vue: fb.toFixed(1)
       Fb: fb.toFixed(1),
@@ -70,7 +70,7 @@ for (const S of SCENARIOS) {
       prRms:  pr.Rms,                   // kg/s   (direct)
       prNum:  1,
     };
-    const fp = new Engine().pr.tuning(P, new Engine().solveEnvironment({}).values);
+    const fp = new Engine().pr.tuning(P, new Engine().environment.solve({}).values);
     S.computed = {
       // StatBar.vue: fp.toFixed(1)
       Fp: fp.toFixed(1),
