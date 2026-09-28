@@ -2,7 +2,7 @@ import {expect, openAProject, test} from '../fixtures.js';
 import type {Page} from '@playwright/test';
 import {fillAndBlur} from '../fixtures/numField.js';
 import {PROVENANCE_MAP} from '../../src/logic/provenance.js';
-import {fieldById, UI_FIELD_SPECS as fieldSpecs} from '../../src/logic/fields/uiFields.js';
+import {ALL_FIELDS} from '@openisd/design/fields';
 import {UNIT_GROUPS} from '../../src/logic/fields/units.js';
 
 /**
@@ -89,17 +89,24 @@ function provenanceTables() {
   return { explained: Object.keys(PROVENANCE_MAP) };
 }
 
-/** The registry id whose `label` a rendered editor label shows, or `undefined` when no field
- *  renders that label — derived from the registry, never a hand-maintained map. */
+/** The registry field a rendered `data-field-key` names, bridging the same `driver_` prefix
+ *  `keyForLabel` does. */
+function fieldForKey(key: string) {
+  return ALL_FIELDS.find(f => f.value === key || f.value === `driver_${key}`);
+}
+
+/** The driver-spec key whose field renders the given editor label, or `undefined` when no
+ *  field does — derived from the registry, never a hand-maintained map.
+ *
+ *  The registry names a driver field `driver_Fs_hz` while the driver record, `FIELD_FLOOR` and
+ *  `PROVENANCE_MAP` all call it `Fs_hz`; the prefix is the registry's own decoration, and
+ *  dropping it is the follow-up recorded in
+ *  bugs/BUG_20260928_three_tables_disagree_on_field_validity.md. Until then this strips it. */
 function keyForLabel(label: string): string | undefined {
-  const spec = fieldSpecs.find(s => s.label === label);
-  if (!spec) return undefined;
-  if (spec.id in PROVENANCE_MAP) return spec.id;
-  if (spec.aliases) {
-    const found = spec.aliases.find(a => a in PROVENANCE_MAP);
-    if (found) return found;
-  }
-  return spec.aliases?.[0] ?? spec.id;
+  const field = ALL_FIELDS.find(f => f.label === label);
+  if (!field) return undefined;
+  const bare = field.value.replace(/^driver_/, '');
+  return bare in PROVENANCE_MAP ? bare : field.value in PROVENANCE_MAP ? field.value : bare;
 }
 
 function unitTable() {
@@ -144,8 +151,8 @@ test('every rendered simulation field is bound to a registry id whose label it r
     for (const { label, groundTruth } of rows) {
       if (!label || groundTruth === 'VCCon') continue;
       if (groundTruth == null) { untagged.push(`${tab}/${label}`); continue; }
-      const spec = fieldById(groundTruth);
-      if (!spec) { drift.push(`${tab}/${label}: data-field-key "${groundTruth}" is not a registry id`); continue; }
+      const spec = fieldForKey(groundTruth);
+      if (!spec) { drift.push(`${tab}/${label}: data-field-key "${groundTruth}" is not a registry field`); continue; }
       if (spec.label !== label) drift.push(`${tab}/${label}: registry label "${spec.label}" != rendered "${label}"`);
     }
   });

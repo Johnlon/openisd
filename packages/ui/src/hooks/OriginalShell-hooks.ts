@@ -10,7 +10,7 @@
  * `createSealedReadouts` is the unit-testable core of the Box-tab readouts: JIT-composed here
  * with the shell's own `project` / `selectedBox` / `projectChanged`.
  */
-import {fieldHelp} from '../logic/fields/uiFields.js';
+import {LossMode} from '@openisd/design/engine';
 import type {ComputedRef, Ref} from 'vue';
 import {computed, onMounted, onUnmounted, reactive, ref, shallowRef, watch} from 'vue';
 import {
@@ -42,15 +42,14 @@ import {
     enterVentField as enterVentFieldOn,
     ventFieldState as ventFieldStateOn,
 } from '../logic/useVentGroup.js';
-import {airForEnvironment, lossModeOptions, parseLossMode} from '../logic/environment.js';
+import {airForEnvironment} from '../logic/environment.js';
 import {buildPlotData, parseChartId, TAB_META} from '../logic/series.js';
 import {createToneGenerator, type ToneGenerator} from '../logic/toneGenerator.js';
 import {useApp} from '../logic/app.js';
 import {useEscToClose} from '../logic/useEscToClose.js';
 import {injectSplashModal} from './SplashModal-hooks.js';
 import {clampedFrequency, interpolatedY, steppedFrequency} from '../logic/cursorFrequency.js';
-import {ARRAY_WIRING_OPTIONS, BOX_TYPE_OPTIONS, END_CORRECTION_OPTIONS, VENT_SHAPE_OPTIONS} from '@openisd/design/fields';
-import {countOptions, limits, precision as fieldDp} from '../logic/fields/uiFields.js';
+import {ARRAY_WIRING_OPTIONS, BOX_TYPE_OPTIONS, END_CORRECTION_OPTIONS, NumberField, VENT_SHAPE_OPTIONS} from '@openisd/design/fields';
 import {inputChecked, inputFrom, inputValue, listeningElement, selectedOption, selectValue} from '../logic/domEvents.js';
 import {createSealedAlignmentEditor} from './SealedAlignment-hooks.js';
 import {createOgFilters} from './OgFilters-hooks.js';
@@ -411,16 +410,15 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   const { projectRepo } = useApp();
   const { editProjectDriver } = selection;
 
-  // Fixed set, not per-render data — hoisted so the template doesn't allocate a fresh array
-  // on every re-render.
-  const LOSS_MODE_OPTIONS = lossModeOptions();
-  // Sealed loss model (S10/QO130) — PROJECT-scoped, reversing QO90.
+  // Sealed loss model (S10/QO130) — PROJECT-scoped, reversing QO90. The picker's list comes
+  // from the enum the setter parses into, so the two cannot disagree.
+  const LOSS_MODE_OPTIONS = LossMode.OPTIONS;
   const lossMode = computed<string>({
     get: () => { void projectChanged.value; return project.value.lossMode.value.value; },
-    set: (v: string) => { project.value.lossMode.set(parseLossMode(v)); },
+    set: (v: string) => { project.value.lossMode.set(LossMode.parse(v)); },
   });
-  const N_DRIVERS_OPTIONS = countOptions('driver_nDrivers');
-  const VENT_COUNT_OPTIONS = countOptions('vent_Count');
+  const N_DRIVERS_OPTIONS = NumberField.DRIVER_NDRIVERS.countOptions();
+  const VENT_COUNT_OPTIONS = NumberField.VENT_COUNT.countOptions();
 
   // The focused project's own trace/legend colour — a project attribute saved in its project
   // file (`OpenISDProject.traceColor`), not a page-level index: it must follow the project
@@ -1126,12 +1124,11 @@ const overlays = computed<Design[]>(() => {
     mainEl, navCollapsed, bottomCollapsed, mainStyle, onNavSplitDown, onBottomSplitDown,
     projectList, isRowVisible, setRowVisible, rowName, rowUnsaved, selectProject, project, focused, projectOpen, whatIfActive,
     copyCurrentProject, requestCloseProject, closeChallenge, saveThenClose, closeProject,
-    genOn, toggleGenerate, genHz, limits,
+    genOn, toggleGenerate, genHz,
     boxLabel, pending, chartTab, overlays, activeTab,
     showEnclosureTab, enclosureNavLabel,
     selectedBox, BOX_TYPE_OPTIONS, LOSS_MODE_OPTIONS, lossMode, ARRAY_WIRING_OPTIONS, N_DRIVERS_OPTIONS, applyWinisdSettings,
-    fieldHelp,
-     boxVolume_m3, boxVolumeDqNote, setBoxVolume_m3, fieldDp, sealedAlignmentEditor, sealedAlignmentOpen,
+     boxVolume_m3, boxVolumeDqNote, setBoxVolume_m3, sealedAlignmentEditor, sealedAlignmentOpen,
      sealedAlignmentOptions, sealedAlignmentSelected, sealedAlignmentVolume_L, sealedAlignmentEbp,
      sealedAlignmentSuitability, sealedAlignmentSuitabilityLabel, ogFilters,
     fbState, FB_TARGET_TIP, VENT_GEOMETRY_TIP, fmtU, clearVentFieldOn, enterVentFieldOn,

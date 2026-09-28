@@ -2,7 +2,6 @@ import type {InjectionKey, Ref} from 'vue';
 import {computed} from 'vue';
 import {simVcInductance} from '../logic/appState.js';
 import {useFocusedProject} from '../logic/focusedProjectContext.js';
-import {fieldHelp} from '../logic/fields/uiFields.js';
 import {inputChecked} from '../logic/domEvents.js';
 import type {OpenISDProject} from '@openisd/design';
 
@@ -11,7 +10,6 @@ export interface AdvancedOptionsAPI {
   readonly simVcInductance: Ref<boolean>;
   readonly project: Readonly<Ref<OpenISDProject>>;
   applyWinisdSettings(): void;
-  fieldHelp(key: string): string;
   inputChecked(e: Event): boolean;
 }
 
@@ -34,7 +32,6 @@ export function useAdvancedOptions(): AdvancedOptionsAPI {
     simVcInductance,
     project,
     applyWinisdSettings,
-    fieldHelp,
     inputChecked,
   };
 }

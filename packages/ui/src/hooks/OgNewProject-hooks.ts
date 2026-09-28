@@ -3,14 +3,7 @@ import { computed, type ComputedRef, ref, type Ref, shallowRef } from 'vue';
 // hook only names their shapes, so neither import is a layering edge (QO80).
 import type { OpenISDDriver, OpenISDProject } from '@openisd/design';
 import type { BoxType, EbpSuitability, Engine, VentedAlignment, VentedDesign, Wiring } from '@openisd/design/engine';
-import {
-  ARRAY_WIRING_OPTIONS,
-  DEFAULT_SOURCE_RESISTANCE_OHM,
-  DEFAULT_VENTED_ALIGNMENT,
-  SEALED_ALIGNMENT_OPTIONS,
-  type SelectorOption,
-  VENTED_ALIGNMENT_OPTIONS,
-} from '@openisd/design/fields';
+import {ARRAY_WIRING_OPTIONS, DEFAULT_SOURCE_RESISTANCE_OHM, DEFAULT_VENTED_ALIGNMENT, NumberField, SEALED_ALIGNMENT_OPTIONS, VENTED_ALIGNMENT_OPTIONS, type SelectorOption} from '@openisd/design/fields';
 import {
   defaultPassiveRadiator,
   engine as appEngine,
@@ -20,7 +13,6 @@ import {
   newProjectDriver,
 } from '../logic/appState.js';
 import { selectedOption } from '../logic/domEvents.js';
-import { countOptions } from '../logic/fields/uiFields.js';
 import { fromDisplay } from '../logic/fields/units.js';
 
 export interface OgNewProjectDeps {
@@ -95,7 +87,7 @@ export interface OgNewProjectAPI {
   readonly projDescription: Ref<string>;
 
   /** Every `<select>` in the wizard resolves its choice against its option list through this —
-   *  the template never parses a select's string itself (see `uiFields-dropdowns.test.ts`). */
+   *  the template never parses a select's string itself (see `field-dropdowns.test.ts`). */
   readonly selectedOption: typeof selectedOption;
 
   // Controls & Actions
@@ -145,7 +137,7 @@ export function useOgNewProject(deps?: OgNewProjectDeps): OgNewProjectAPI {
   const projName = ref('');
   const projDescription = ref('');
 
-  const N_DRIVERS_OPTIONS = countOptions('driver_nDrivers');
+  const N_DRIVERS_OPTIONS = NumberField.DRIVER_NDRIVERS.countOptions();
 
   const hadUnsaved = computed(() => isModified.value);
 

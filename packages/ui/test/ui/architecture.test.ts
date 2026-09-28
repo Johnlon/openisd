@@ -101,6 +101,17 @@ function importsOf(file: string): string[] {
 }
 
 /** Which layer a specifier resolves into, judged from the path it names. */
+/**
+ * The field registry (`@openisd/design/fields`) is the one exception a component may name: it
+ * is a data dictionary — each field's label, unit, band and decimals — and holds no formula, so
+ * reading `NumberField.FILTER_FC_HZ.limits` in a template puts no physics in the view. The
+ * alternative is a per-component table restating the registry, which is the drift these gates
+ * exist to prevent (John, 2026-09-28).
+ */
+function isFieldRegistry(spec: string): boolean {
+  return spec === '@openisd/design/fields';
+}
+
 function layerOf(spec: string): 'ui' | 'logic' | 'service' | 'domain' | 'external' {
   if (spec === '@openisd/persistence' || /(^|\/)(persistence)\//.test(spec) || /(^|\/)(diagnostics|logging)\//.test(spec)) return 'service';
   if (/(^|\/)logic\//.test(spec)) return 'logic';
@@ -182,6 +193,7 @@ describe('layering — every arrow points downward', () => {
   it('the presentation layer depends on logic and nothing below it', () => {
     const offences = filesUnder(join(UI_SRC, 'ui')).flatMap(f =>
       importsOf(f)
+        .filter(s => !isFieldRegistry(s))
         .filter(s => layerOf(s) === 'service' || layerOf(s) === 'domain')
         .map(s => `${rel(f)} imports ${s}`));
 
@@ -194,6 +206,7 @@ describe('layering — every arrow points downward', () => {
   it('a component imports no value from the domain — a type-only import is not a dependency', () => {
     const offences = filesUnder(join(UI_SRC, 'ui')).flatMap(f =>
       importsOf(f)
+        .filter(s => !isFieldRegistry(s))
         .filter(s => layerOf(s) === 'domain')
         .map(s => `${rel(f)} imports ${s}`));
 

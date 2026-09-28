@@ -15,7 +15,7 @@ import type {EditorDraftSeed} from './driverSelection.js';
 
 /** The wiring choices the editor's select lists — the domain's list, reached through logic so no
  *  component names `@openisd/design/fields` itself (the layering gate; same seam as
- *  `environment.ts`'s `lossModeOptions()`). */
+ *  `LossMode.OPTIONS`). */
 export function wiringOptions(): readonly SelectorOption<VoiceCoilWiring>[] {
   return VC_CONNECTION_OPTIONS;
 }

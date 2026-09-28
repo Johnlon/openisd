@@ -52,3 +52,28 @@ be done mechanically.
 An architecture test that no per-field lookup table keyed by `DriverSpecFieldName` exists
 outside the field definition, plus the existing `driver-value-validity.test.ts` and
 `physicalRange.test.ts` green against the merged bands.
+
+## Follow-ups found while building the registry (2026-09-28)
+
+These are separate defects of the same shape, found while merging the UI's field table into
+`packages/design/fields/field.ts`. Each is still OPEN.
+
+**The registry decorates driver field names with a `driver_` prefix.** `Fs_hz` is the schema
+key, the `OpenISDDriver.specs` property name, the `FIELD_FLOOR` key and the `PROVENANCE_MAP`
+key. The registry calls the same field `driver_Fs_hz` and used to keep `Fs_hz` as an "alias".
+Aliases are now deleted, so two test helpers bridge the two spellings by stripping the prefix
+(`keyForLabel` and `fieldForKey` in `driver-editor-provenance-and-units.browser.spec.ts`).
+Fix: rename the `driver_*` members to the schema key and delete both bridges. Safe to do now
+that no lookup is by string — the compiler names every site.
+
+**`NumInput`'s `group` and `base` props are a fourth table.** A call site passes
+`group="mass"` and `group="compliance"`, and `UnitGroup` — which the registry's `unitGroup`
+is typed as — has neither. `base="L"` and the registry's `unit: 'l'` are also two spellings of
+one fact. Fix: derive both from the field, once `unitGroup` covers every unit-bearing field.
+
+**A field's unit and its cell's unit disagree.** The registry calls the driver's inductance
+`driver_Le_mH` and states its precision in millihenries; the cell it edits is `Le_H`, in
+henries. Same for `Vas_m3`/`driver_Vas_l`, `Sd_m2`/`driver_Sd_cm2`, `Xmax_m`/`driver_Xmax_mm`,
+`Mms_kg`/`driver_Mms_g`. Behaviour is unchanged by the merge — the same numbers reached the
+same call sites before — but the registry's `unit` is display-space while its `limits` are
+documented as SI/model space, and for these fields they are not both true.

@@ -1,7 +1,7 @@
 /**
- * `uiFields.ts` — every dropdown the shell renders lists its choices from ONE option list on
- * its field spec, in the one `SelectorOption` shape (`value`/`label`), and that list is the
- * domain's own (PLAN_FIELD_REGISTRY_DESCRIPTIONS_AND_SSOT.md §6).
+ * Every dropdown the shell renders lists its choices from ONE option list on its `EnumField`,
+ * in the one `SelectorOption` shape (`value`/`label`), and that list is the domain's own
+ * (PLAN_FIELD_REGISTRY_DESCRIPTIONS_AND_SSOT.md §6).
  *
  * Also a SOURCE check on `OriginalShell.vue` / `OgNewProject.vue`: a `<select>` whose options
  * are written by hand in the template is a second copy of the list that the registry cannot
@@ -14,80 +14,70 @@ import {fileURLToPath} from 'node:url';
 import {dirname, join} from 'node:path';
 import {Engine} from '@openisd/design/engine';
 import {VoiceCoilWiring} from '@openisd/design';
-import {countOptions, fieldById} from '../../src/logic/fields/uiFields.js';
-import {lossModeOptions} from '../../src/logic/environment.js';
+import {EnumField, NumberField} from '@openisd/design/fields';
+import {LossMode} from '@openisd/design/engine';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const shellSrc = readFileSync(join(here, '../../src/ui/shells/original/OriginalShell.vue'), 'utf8');
 const wizardSrc = readFileSync(join(here, '../../src/ui/shells/original/OgNewProject.vue'), 'utf8');
 
-function optionsOf(id: string) {
-  const spec = fieldById(id);
-  assert.ok(spec, `uiFields has no "${id}"`);
-  assert.equal(spec.kind, 'enum', `${id} is not an enum field`);
-  assert.ok(spec.options && spec.options.length > 0, `${id} carries no options`);
-  for (const o of spec.options) {
-    assert.deepEqual(Object.keys(o).sort(), ['label', 'value'], `${id} option is not a SelectorOption: ${JSON.stringify(o)}`);
+function optionsOf(field: EnumField) {
+  assert.ok(field.options.length > 0, `${field.value} carries no options`);
+  for (const o of field.options) {
+    assert.deepEqual(Object.keys(o).sort(), ['label', 'value'],
+      `${field.value} option is not a SelectorOption: ${JSON.stringify(o)}`);
   }
-  return spec.options;
+  return field.options;
 }
 
-describe('uiFields — every dropdown is an enum spec carrying SelectorOption[]', () => {
+describe('every dropdown is an EnumField carrying SelectorOption[]', () => {
   it('vent_Shape lists round and slotted', () => {
-    assert.deepEqual(optionsOf('vent_Shape').map(o => o.value), ['round', 'slotted']);
+    assert.deepEqual(optionsOf(EnumField.VENT_SHAPE).map(o => o.value), ['round', 'slotted']);
   });
 
   it('driver_VCCon values ARE the domain wiring values, so a chosen option can be written straight to the driver', () => {
-    assert.deepEqual(optionsOf('driver_VCCon').map(o => o.value), [VoiceCoilWiring.Parallel, VoiceCoilWiring.Series]);
+    assert.deepEqual(optionsOf(EnumField.DRIVER_VCCON).map(o => o.value), [VoiceCoilWiring.Parallel, VoiceCoilWiring.Series]);
   });
 
   it('driver_ArrayWiring lists parallel and series', () => {
-    assert.deepEqual(optionsOf('driver_ArrayWiring').map(o => o.value), ['parallel', 'series']);
+    assert.deepEqual(optionsOf(EnumField.DRIVER_ARRAYWIRING).map(o => o.value), ['parallel', 'series']);
   });
 
   it('box_Type lists every enclosure type the Box tab offers, simulatable or not', () => {
-    assert.deepEqual(optionsOf('box_Type').map(o => o.value),
+    assert.deepEqual(optionsOf(EnumField.BOX_TYPE).map(o => o.value),
       ['sealed', 'vented', 'box-passive-radiator', 'bandpass4', 'bandpass6', 'abc']);
   });
 
   it('box_Qtc lists the nine WinISD sealed alignments and is the SAME list the engine hands out', () => {
-    const options = optionsOf('box_Qtc');
+    const options = optionsOf(EnumField.BOX_QTC);
     assert.equal(options.length, 9);
     assert.deepEqual(options, new Engine().sealedAlignmentOptions());
   });
 
   it('loss_DampingMode lists the engine loss modes, values being the tokens the project stores', () => {
-    assert.deepEqual(optionsOf('loss_DampingMode'), lossModeOptions());
-    assert.ok(optionsOf('loss_DampingMode').some(o => o.value === 'winisd-lossy'));
+    assert.deepEqual(optionsOf(EnumField.LOSS_DAMPINGMODE), LossMode.OPTIONS);
+    assert.ok(optionsOf(EnumField.LOSS_DAMPINGMODE).some(o => o.value === 'winisd-lossy'));
   });
 
   it('filter_Type lists every WinISD filter type plus the two OpenISD-only shelves', () => {
-    assert.deepEqual(optionsOf('filter_Type').map(o => o.value),
+    assert.deepEqual(optionsOf(EnumField.FILTER_TYPE).map(o => o.value),
       ['lowpass', 'highpass', 'allpass', 'linkwitz', 'peaking', 'peakHighpass', 'staticGain', 'raisedCosine', 'lowshelf', 'highshelf']);
   });
 });
 
-describe('uiFields — a count select lists every integer the spec allows, as SelectorOption[]', () => {
+describe('a count select lists every integer the field allows, as SelectorOption[]', () => {
   it('driver_nDrivers offers 1..64, the spec\'s own min..max', () => {
-    const options = countOptions('driver_nDrivers');
+    const options = NumberField.DRIVER_NDRIVERS.countOptions();
     assert.equal(options.length, 64);
     assert.deepEqual(options[0], {value: 1, label: '1'});
     assert.deepEqual(options[63], {value: 64, label: '64'});
   });
 
   it('vent_Count offers 1..4 ports, carries WinISD\'s Num alias and a description', () => {
-    const options = countOptions('vent_Count');
+    const options = NumberField.VENT_COUNT.countOptions();
     assert.deepEqual(options.map(o => o.value), [1, 2, 3, 4]);
-    const spec = fieldById('vent_Count');
-    if (!spec) throw new Error('vent_Count missing');
-    assert.ok(spec.aliases?.includes('Num'));
-    assert.equal(spec.pane, 'Vents');
-    assert.equal(spec.def?.precision, 0);
-    assert.ok(spec.description.length > 20);
-  });
-
-  it('refuses a row with no field def — a count select cannot guess its range', () => {
-    assert.throws(() => countOptions('driver_brand'), /no field def/);
+    assert.equal(NumberField.VENT_COUNT.precision, 0);
+    assert.ok(NumberField.VENT_COUNT.description.length > 20);
   });
 });
 

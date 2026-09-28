@@ -43,9 +43,9 @@
 //             literally "set this chart's persisted default view", not a parallel concept, and
 //             an untouched row still auto-scales exactly as it does today. The rows are
 //             `LIMIT_ROWS` in OptionsModal-hooks.ts, keyed by `ChartId`.
+import {NumberField} from '@openisd/design/fields';
 import {reactive, ref} from 'vue';
 import {presentationState, resetUnitTokens} from '../../logic/presentationState.js';
-import {precision as fieldDp} from '../../logic/fields/uiFields.js';
 import {useEscToClose} from '../../logic/useEscToClose.js';
 import {LIMIT_ROWS, useOptionsModal} from '../../hooks/OptionsModal-hooks.js';
 import type {ChartId} from '@openisd/design/engine';
@@ -182,29 +182,29 @@ function limitVal(chartId: ChartId, key: 'min' | 'max'): number | undefined {
               <div class="opt-env-col">
                 <div class="opt-fld">
                   <label>Temperature</label>
-                  <NumInput class="opt-num" :model-value="tempK" @update:model-value="(v: number | null) => { if (v !== null) tempK = v; }" field="advTemp" group="temp" base="K" :precision="2" />
+                  <NumInput class="opt-num" :model-value="tempK" @update:model-value="(v: number | null) => { if (v !== null) tempK = v; }" :field="NumberField.ADV_TEMP_K" unit-key="advTemp" group="temp" base="K" :precision="2" />
                   <UnitToggle field="advTemp" group="temp" base="K" unit-class="opt-unit" />
                 </div>
                 <div class="opt-fld">
                   <label>Relative humidity</label>
-                  <NumInput class="opt-num" :model-value="humidityPct" @update:model-value="(v: number | null) => { if (v !== null) humidityPct = v; }" field="advHumidity" :precision="2" />
+                  <NumInput class="opt-num" :model-value="humidityPct" @update:model-value="(v: number | null) => { if (v !== null) humidityPct = v; }" :field="NumberField.ADV_HUMIDITY_PCT" :precision="2" />
                   <span class="opt-unit">%</span>
                 </div>
                 <div class="opt-fld">
                   <label>Air pressure</label>
-                  <NumInput class="opt-num" :model-value="pressurePa" @update:model-value="(v: number | null) => { if (v !== null) pressurePa = v; }" field="advPressure" group="pressure" base="Pa" :precision="1" />
+                  <NumInput class="opt-num" :model-value="pressurePa" @update:model-value="(v: number | null) => { if (v !== null) pressurePa = v; }" :field="NumberField.ADV_PRESSURE_KPA" unit-key="advPressure" group="pressure" base="Pa" :precision="1" />
                   <UnitToggle field="advPressure" group="pressure" base="Pa" unit-class="opt-unit" />
                 </div>
               </div>
               <div class="opt-env-col opt-env-calculated-col">
                 <div class="opt-fld">
                   <label>Sound velocity</label>
-                  <input class="opt-num opt-greyed" type="text" :value="fmt(defaultAir.c, fieldDp('advSoundVelocity'))" readonly disabled aria-label="Sound velocity, calculated" />
+                  <input class="opt-num opt-greyed" type="text" :value="fmt(defaultAir.c, NumberField.ADV_SOUNDVELOCITY_M_PER_S.precision)" readonly disabled aria-label="Sound velocity, calculated" />
                   <span class="opt-unit">m/s</span>
                 </div>
                 <div class="opt-fld">
                   <label>Air density</label>
-                  <input class="opt-num opt-greyed" type="text" :value="fmt(defaultAir.rho, fieldDp('advAirDensity'))" readonly disabled aria-label="Air density, calculated" />
+                  <input class="opt-num opt-greyed" type="text" :value="fmt(defaultAir.rho, NumberField.ADV_AIRDENSITY_KG_PER_M3.precision)" readonly disabled aria-label="Air density, calculated" />
                   <span class="opt-unit">kg/m³</span>
                 </div>
               </div>

@@ -22,16 +22,21 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 import {dirname, join} from 'node:path';
-import {fieldById} from '../../src/logic/fields/uiFields.js';
+import {Field, NumberField} from '@openisd/design/fields';
 import {fromDisplay} from '../../src/logic/fields/units.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const components = join(here, '..', '..', 'src', 'ui', 'components');
 
-/** Every `field="…"` bound on a NumInput in the given dialog. */
-function boundFieldIds(file: string): string[] {
+/** Every registry member bound as `:field` on a NumInput in the given dialog. */
+function boundFields(file: string): Field[] {
   const src = readFileSync(join(components, file), 'utf8');
-  return [...src.matchAll(/<NumInput[^>]*?\bfield="([^"]+)"/g)].map((m) => m[1]);
+  const members = new Map(Object.entries(NumberField).filter((e): e is [string, Field] => e[1] instanceof Field));
+  return [...src.matchAll(/<NumInput[^>]*?:field="NumberField\.([A-Z0-9_]+)"/g)].map((m) => {
+    const f = members.get(m[1]);
+    assert.ok(f, `${file} binds NumberField.${m[1]}, which is not a registry member`);
+    return f!;
+  });
 }
 
 describe('PR dialogs — every numeric entry is bounded by the registry', () => {
@@ -43,21 +48,21 @@ describe('PR dialogs — every numeric entry is bounded by the registry', () => 
       for (const tag of inputs) {
         assert.match(
           tag,
-          /\bfield="[^"]+"/,
-          `${file} has a NumInput with no field="…" binding, so the registry's min/max never reach ` +
+          /:field="\w+Field\.[A-Z0-9_]+"/,
+          `${file} has a NumInput bound to no registry field, so its min/max never reach ` +
             `it and the entry is unbounded:\n  ${tag.replace(/\s+/g, ' ').slice(0, 160)}`,
         );
       }
     });
 
     it(`${file}: every field it binds declares a finite min and max`, () => {
-      for (const id of boundFieldIds(file)) {
-        const spec = fieldById(id);
-        assert.ok(spec, `${file} binds field="${id}", which uiFields does not declare`);
-        const band = spec!.def?.limits;
-        assert.ok(band, `${id} has no field def — entry is unbounded`);
-        assert.ok(Number.isFinite(band!.min) && Number.isFinite(band!.max), `${id}'s bounds are not finite`);
-        assert.ok(band!.min < band!.max, `${id}'s min (${band!.min}) is not below its max (${band!.max})`);
+      const bound = boundFields(file);
+      assert.ok(bound.length > 0, `${file} binds no registry field`);
+      for (const f of bound) {
+        assert.ok(f instanceof NumberField, `${f.value} is not a numeric field`);
+        const band = (f as NumberField).limits;
+        assert.ok(Number.isFinite(band.min) && Number.isFinite(band.max), `${f.value}'s bounds are not finite`);
+        assert.ok(band.min < band.max, `${f.value}'s min (${band.min}) is not below its max (${band.max})`);
       }
     });
   }
@@ -69,38 +74,38 @@ describe('PR entry bounds keep the limits the dialogs enforced before the regist
   // was: a widened floor silently admits values the form used to refuse.
 
   it('Sd: at least 1 cm², at most 100000 cm²', () => {
-    const band = fieldById('pr_Sd_cm2')!.def!.limits;
+    const band = NumberField.PR_SD_CM2.limits;
     assert.equal(band.max, fromDisplay(100000, 'area', 'cm2'), 'Sd ceiling moved off 100000 cm²');
     assert.ok(band.min >= fromDisplay(0.1, 'area', 'cm2'), 'Sd floor is looser than the 0.1 cm² the form enforced');
   });
 
   it('Xmax: 0 to 500 mm', () => {
-    const band = fieldById('pr_Xmax_mm')!.def!.limits;
+    const band = NumberField.PR_XMAX_MM.limits;
     assert.equal(band.max, fromDisplay(500, 'length', 'mm'), 'Xmax ceiling moved off 500 mm');
     assert.equal(band.min, 0, 'Xmax floor moved off zero — an unexcursed PR is a legal entry');
   });
 
   it('Vas: at least 0.01 L, at most 100000 L', () => {
-    const band = fieldById('pr_Vas_l')!.def!.limits;
+    const band = NumberField.PR_VAS_L.limits;
     assert.equal(band.max, fromDisplay(100000, 'volume', 'L'), 'Vas ceiling moved off 100000 L');
     assert.ok(band.min > 0, 'Vas floor is zero — a PR with no compliance volume is unphysical');
     assert.ok(band.min <= fromDisplay(0.01, 'volume', 'L'), 'Vas floor is tighter than the 0.01 L the form allowed');
   });
 
   it('Fs: at least 1 Hz, at most 1000 Hz', () => {
-    const band = fieldById('pr_Fs_hz')!.def!.limits;
+    const band = NumberField.PR_FS_HZ.limits;
     assert.equal(band.max, 1000, 'Fs ceiling moved off 1000 Hz');
     assert.ok(band.min >= 1, 'Fs floor is below the 1 Hz the form enforced — 0 Hz is not a resonance');
   });
 
   it('Qms: at least 0.1, at most 100', () => {
-    const band = fieldById('pr_Qms')!.def!.limits;
+    const band = NumberField.PR_QMS.limits;
     assert.equal(band.max, 100, 'Qms ceiling moved off 100');
     assert.ok(band.min >= 0.1, 'Qms floor is below the 0.1 the form enforced — a Q of 0 is unphysical');
   });
 
   it('PR count: 1 to 16 whole radiators', () => {
-    const band = fieldById('pr_Num')!.def!.limits;
+    const band = NumberField.PR_NUM.limits;
     assert.equal(band.min, 1, 'a design with a PR has at least one');
     assert.equal(band.max, 16, 'PR count ceiling moved off 16');
   });
