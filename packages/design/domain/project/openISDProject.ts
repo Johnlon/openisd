@@ -20,6 +20,7 @@ import { OpenISDDriverEmbedded } from '../driver/openISDDriverEmbedded.js';
 import type { DiscardChallenge } from './discardChallenge.js';
 import type { DragRange } from './dragRange.js';
 import { ProjectAdvanced } from './projectAdvanced.js';
+import { ProjectChartsView } from './projectChartsView.js';
 import { ProjectEnvironment, envFieldsOver } from './projectEnvironment.js';
 import { freshEmbeddedDriver } from './freshEmbeddedDriver.js';
 import type { ProjectIssues } from './projectIssues.js';
@@ -313,11 +314,7 @@ export class OpenISDProject {
      *  version skew that adds/removes chart ids — `parseChartId` (packages/ui `logic/series.ts`)
      *  does the string↔member conversion at the UI boundary. */
     get graphs(): SimpleField<readonly string[]> {
-        const lens = focus(this.#slot('charts'), 'graphs');
-        return {
-            get value() { return lens.value ?? []; },
-            set: (ids) => lens.set([...ids]),
-        };
+        return ProjectChartsView.wrap(this.#slot('charts'), this.#engine, () => this.box.boxType.value).graphs;
     }
 
     /** Which charts this project's box type shows, in WinISD's own chart-menu order — a design
@@ -326,7 +323,7 @@ export class OpenISDProject {
      *  EQ/filter charts always. The UI shows exactly the ids this returns, never a second list
      *  of "which charts apply". */
     get charts(): readonly ChartId[] {
-        return this.#engine.chartsFor(this.box.boxType.value);
+        return ProjectChartsView.wrap(this.#slot('charts'), this.#engine, () => this.box.boxType.value).charts;
     }
 
     /** The graph cursor/selection (S10/QO130) — PROJECT-scoped, reversing QO90: two open
@@ -364,19 +361,11 @@ export class OpenISDProject {
     /** The project's trace/legend colour (a CSS colour), saved in the project file; null until
      *  first assigned. Chart view state, so `isModified()` ignores it. */
     get traceColor(): SimpleField<string | null> {
-        const charts = this.#slot('charts');
-        return {
-            get value() { return charts.value.traceColor ?? null; },
-            set: (v) => charts.set({...charts.value, traceColor: v ?? undefined}),
-        };
+        return ProjectChartsView.wrap(this.#slot('charts'), this.#engine, () => this.box.boxType.value).traceColor;
     }
 
     get sweepN(): SimpleField<number | null> {
-        const charts = this.#slot('charts');
-        return {
-            get value() { return charts.value.N ?? null; },
-            set: (v) => charts.set({...charts.value, N: v ?? undefined}),
-        };
+        return ProjectChartsView.wrap(this.#slot('charts'), this.#engine, () => this.box.boxType.value).sweepN;
     }
 
     /** A record ENTERS the process here. A record carries no identity, so one is minted — two
