@@ -6,8 +6,7 @@ import type { AppContext } from '../appContext.js';
 import { CalculatedFieldImpl, absentCell, calculatedCell, focus, simpleField } from '../cell.js';
 import type { Calculatable, Calculated, Clearable, Entered, Readable, SimpleField, Unsolvable, Writable } from '../cell.js';
 import { newUuid } from '../newUuid.js';
-import { openIsdProjectToWinIsdProject, winIsdProjectToOpenIsdProject } from '../openIsdProjectToWinIsdProject.js';
-import { openISDProjectSessionJsonSchema } from '../openisdSchema.js';
+import { winIsdProjectToOpenIsdProject } from '../openIsdProjectToWinIsdProject.js';
 import type { OpenISDProjectJson, OpenISDProjectSessionJson } from '../openisdSchema.js';
 import { ProjectBuilder } from '../openisdTransforms.js';
 import type { Box } from '../box/box.js';
@@ -22,6 +21,7 @@ import type { DragRange } from './dragRange.js';
 import { ProjectAdvanced } from './projectAdvanced.js';
 import { ProjectChartsView } from './projectChartsView.js';
 import { ProjectEnvironment, envFieldsOver } from './projectEnvironment.js';
+import { owprTextOf, parseOwprSession, sessionOf, wprTextOf } from './projectSerialization.js';
 import { freshEmbeddedDriver } from './freshEmbeddedDriver.js';
 import type { ProjectIssues } from './projectIssues.js';
 import { ProjectMeta } from './projectMeta.js';
@@ -509,8 +509,7 @@ export class OpenISDProject {
      *  `errors` carries the reason and every field dropped along the way. */
     toWprText(engine: Engine): { value: string | null; errors: DriverError[] } {
         const committed = OpenISDProject.wrapWithIdentity(structuredClone(this.#committed()), this.#uuid, this.#engine);
-        const {value: wpr, errors} = openIsdProjectToWinIsdProject(committed, engine);
-        return {value: wpr ? wpr.toWpr() : null, errors};
+        return wprTextOf(committed, engine);
     }
 
     /** WinISD `.wpr` text back to a project. The inverse of `toWprText()`, as far as a format
@@ -526,7 +525,7 @@ export class OpenISDProject {
      *  Lossless, unlike `toWprText()`: this is openisd's own format, so there is nothing to drop
      *  and no error to report. */
     toOwprText(): string {
-        return JSON.stringify(this.cloneSession(), null, 2);
+        return owprTextOf(this.cloneSession());
     }
 
     /** `.owpr` text back to a project, or everything wrong with the text. The inverse of
@@ -535,28 +534,14 @@ export class OpenISDProject {
      *  The project takes a FRESH identity: a file's contents are provenance, not a store key
      *  (QO81), so opening the same file twice yields two independently addressable projects. */
     static fromOwprText(text: string, engine: Engine): OpenISDProject | string[] {
-        let parsed: unknown;
-        try {
-            parsed = JSON.parse(text);
-        } catch {
-            return ['not valid JSON'];
-        }
-        const result = openISDProjectSessionJsonSchema.safeParse(parsed);
-        if (!result.success) {
-            return result.error.issues.map(issue => issue.path.length === 0
-                ? issue.message
-                : `'${issue.path.join('.')}': ${issue.message}`);
-        }
-        return OpenISDProject.wrapSession(result.data, newUuid(), engine);
+        const parsed = parseOwprSession(text);
+        if ('errors' in parsed) return parsed.errors;
+        return OpenISDProject.wrapSession(parsed.session, newUuid(), engine);
     }
 
     /** Serialises saved and ordinary edited states for persistence. The transient what-if is absent. */
     cloneSession(): OpenISDProjectSessionJson {
-        return {
-            label: this.#committed().meta.name,
-            saved: structuredClone(this.#saved),
-            edited: this.#edited ? structuredClone(this.#edited) : null,
-        };
+        return sessionOf(this.#committed().meta.name, this.#saved, this.#edited);
     }
 
 
