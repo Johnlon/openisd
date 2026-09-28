@@ -2,10 +2,9 @@
 /** Display only: every edit is decided by `api.updateLinkwitzFilter` (`Engine`), not here. */
 import {NumberField} from '@openisd/design/fields';
 import {numFrom} from './numericInput.js';
-import type {Filter} from '@openisd/design/engine';
+import type {LinkwitzFilter} from '@openisd/design/engine';
 import type {OgFiltersAPI} from '../../../../hooks/OgFilters-hooks.js';
 
-type LinkwitzFilter = Extract<Filter, { type: 'linkwitz' }>;
 const {f, api} = defineProps<{ f: LinkwitzFilter; api: OgFiltersAPI }>();
 const emit = defineEmits<{ replace: [next: LinkwitzFilter] }>();
 </script>

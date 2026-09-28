@@ -1,16 +1,15 @@
 import {cx} from '../complex.js';
-import type {Complex, Filter, FilterSpec, WprFilter} from '../types.js';
+import type {Complex, FilterSpec, RaisedCosineFilter, RaisedCosinePatch, WprFilter} from '../types.js';
 import type {FilterModel} from './FilterModel.js';
 import {FILTER_BW_LIMITS, FILTER_FC_LIMITS, FILTER_GAIN_LIMITS, clamp} from './limits.js';
 
-type Spec = Extract<Filter, {type: 'raisedCosine'}>;
 
 /**
  * DLP Raised Cosine. Real, zero phase: x = log10(f/fc)/(log10(2)·BW); for −1 ≤ x ≤ 1,
  * 10^((1+cos(πx))·(G/20)·0.5), else 1. fc or BW ≤ 0 is replaced by 1e-6.
  */
-export class RaisedCosineFilter implements FilterModel {
-  constructor(private readonly spec: Spec) {}
+export class RaisedCosineFilterModel implements FilterModel {
+  constructor(private readonly spec: RaisedCosineFilter) {}
 
   response(f: number): Complex {
     const fc = this.spec.fc <= 0 ? 1e-6 : this.spec.fc;
@@ -42,7 +41,7 @@ export class RaisedCosineFilter implements FilterModel {
 
   /** Typed edit — `fc`/`bwOct`/`gain` each clamped to their own entry ranges; any field left out
    *  of `patch` passes through unchanged. */
-  static with(f: Spec, patch: Partial<Pick<Spec, 'fc' | 'bwOct' | 'gain'>>): Spec {
+  static with(f: RaisedCosineFilter, patch: RaisedCosinePatch): RaisedCosineFilter {
     const next = {...f, ...patch};
     return {
       ...next,

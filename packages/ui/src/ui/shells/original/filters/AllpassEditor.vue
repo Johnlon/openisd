@@ -2,10 +2,9 @@
 /** Display only: every edit is decided by `api.updateAllpassFilter` (`Engine`), not here. */
 import {NumberField} from '@openisd/design/fields';
 import {numFrom} from './numericInput.js';
-import type {Filter} from '@openisd/design/engine';
+import type {AllpassFilter} from '@openisd/design/engine';
 import type {OgFiltersAPI} from '../../../../hooks/OgFilters-hooks.js';
 
-type AllpassFilter = Extract<Filter, { type: 'allpass' }>;
 const {f, api} = defineProps<{ f: AllpassFilter; api: OgFiltersAPI }>();
 const emit = defineEmits<{ replace: [next: AllpassFilter] }>();
 </script>

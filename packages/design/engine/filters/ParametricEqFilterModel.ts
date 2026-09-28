@@ -1,17 +1,16 @@
 import {biquad} from './biquad.js';
-import type {Complex, Filter, FilterSpec, WprFilter} from '../types.js';
+import type {Complex, FilterSpec, ParametricEqFilter, ParametricEqPatch, WprFilter} from '../types.js';
 import type {FilterModel} from './FilterModel.js';
 import {FILTER_FC_LIMITS, FILTER_GAIN_LIMITS, FILTER_Q_LIMITS, clamp} from './limits.js';
 
-type Spec = Extract<Filter, {type: 'peaking'}>;
 
 /**
  * Parametric EQ (peaking). V = 10^(G/20). Boost (V ≥ 1): (s²+V·(ω0/Q)s+ω0²)/(s²+(ω0/Q)s+ω0²).
  * Cut (V < 1): (s²+(ω0/Q)s+ω0²)/(s²+(ω0/(V·Q))s+ω0²) — symmetric boost/cut, not the same curve
  * run backwards.
  */
-export class ParametricEqFilter implements FilterModel {
-  constructor(private readonly spec: Spec) {}
+export class ParametricEqFilterModel implements FilterModel {
+  constructor(private readonly spec: ParametricEqFilter) {}
 
   response(f: number): Complex {
     const {fc, Q, gain} = this.spec;
@@ -43,7 +42,7 @@ export class ParametricEqFilter implements FilterModel {
 
   /** Typed edit — `fc`/`Q`/`gain` each clamped to their own entry ranges; any field left out of
    *  `patch` passes through unchanged. */
-  static with(f: Spec, patch: Partial<Pick<Spec, 'fc' | 'Q' | 'gain'>>): Spec {
+  static with(f: ParametricEqFilter, patch: ParametricEqPatch): ParametricEqFilter {
     const next = {...f, ...patch};
     return {
       ...next,

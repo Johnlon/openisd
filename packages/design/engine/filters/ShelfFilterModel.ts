@@ -1,9 +1,8 @@
 import {biquad} from './biquad.js';
-import type {Complex, Filter} from '../types.js';
+import type {Complex, ShelfFilter, ShelfPatch} from '../types.js';
 import type {FilterModel} from './FilterModel.js';
 import {FILTER_FC_LIMITS, FILTER_GAIN_LIMITS, FILTER_Q_LIMITS, clamp} from './limits.js';
 
-type Spec = Extract<Filter, {type: 'lowshelf' | 'highshelf'}>;
 
 /**
  * OpenISD-only low/high shelves (not a WinISD type) — one class for both, since they differ
@@ -11,8 +10,8 @@ type Spec = Extract<Filter, {type: 'lowshelf' | 'highshelf'}>;
  *   Low:  H(s) = A · (s² + (√A/Q)·s + A) / (A·s² + (√A/Q)·s + 1)
  *   High: H(s) = A · (A·s² + (√A/Q)·s + 1) / (s² + (√A/Q)·s + A)
  */
-export class ShelfFilter implements FilterModel {
-  constructor(private readonly spec: Spec) {}
+export class ShelfFilterModel implements FilterModel {
+  constructor(private readonly spec: ShelfFilter) {}
 
   response(f: number): Complex {
     const {fc, Q, gain} = this.spec;
@@ -39,7 +38,7 @@ export class ShelfFilter implements FilterModel {
 
   /** Typed edit — `fc`/`Q`/`gain` each clamped to their own entry ranges; any field left out of
    *  `patch` passes through unchanged. Same variant (low/high shelf) in, same variant out. */
-  static with(f: Spec, patch: Partial<Pick<Spec, 'fc' | 'Q' | 'gain'>>): Spec {
+  static with(f: ShelfFilter, patch: ShelfPatch): ShelfFilter {
     const next = {...f, ...patch};
     return {
       ...next,

@@ -247,6 +247,22 @@ export default [
     },
   },
 
+  // ── A Filter variant has one name ──────────────────────────────────────────────────────
+  // `packages/design/engine/types.ts` names every filter variant (`PassFilter`, `ShelfFilter`,
+  // …) and every editor patch (`PassPatch`, …). `Extract<Filter, {type: 'lowpass' | …}>` is
+  // that same type spelled out again at the call site — the third name for it, found in 24
+  // Engine signatures, 8 private aliases and 8 editors (John, 2026-09-28: "the return types
+  // aren't even consistent"). Name it once; use the name.
+  {
+    files: ['packages/**/*.{ts,vue}'],
+    rules: {
+      'no-restricted-syntax': ['error', {
+        selector: 'TSTypeReference[typeName.name="Extract"] > TSTypeParameterInstantiation > TSTypeReference:first-child[typeName.name="Filter"]',
+        message: 'A Filter variant already has a name in packages/design/engine/types.ts (PassFilter, ShelfFilter, …). Use it.',
+      }],
+    },
+  },
+
   // ── Playwright tests: packages/ui/test/*.browser.spec.ts ─────────────────
   {
     ...pluginPlaywright.configs['flat/recommended'],

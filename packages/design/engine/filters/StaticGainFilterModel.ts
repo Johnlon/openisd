@@ -1,13 +1,12 @@
 import {cx} from '../complex.js';
-import type {Complex, Filter, FilterSpec, WprFilter} from '../types.js';
+import type {Complex, FilterSpec, StaticGainFilter, StaticGainPatch, WprFilter} from '../types.js';
 import type {FilterModel} from './FilterModel.js';
 import {FILTER_GAIN_LIMITS, clamp} from './limits.js';
 
-type Spec = Extract<Filter, {type: 'staticGain'}>;
 
 /** A flat gain, no frequency dependence. */
-export class StaticGainFilter implements FilterModel {
-  constructor(private readonly spec: Spec) {}
+export class StaticGainFilterModel implements FilterModel {
+  constructor(private readonly spec: StaticGainFilter) {}
 
   response(): Complex {
     return cx(Math.pow(10, this.spec.gain / 20), 0);
@@ -31,7 +30,7 @@ export class StaticGainFilter implements FilterModel {
   }
 
   /** Typed edit — `gain` clamped to its entry range. */
-  static with(f: Spec, patch: Partial<Pick<Spec, 'gain'>>): Spec {
+  static with(f: StaticGainFilter, patch: StaticGainPatch): StaticGainFilter {
     const next = {...f, ...patch};
     return {...next, gain: clamp(next.gain, FILTER_GAIN_LIMITS)};
   }
