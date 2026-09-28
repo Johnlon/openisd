@@ -437,7 +437,7 @@ describe('WinISD parity (functional) — field calculations against goldens WinI
           assert.ok(fs !== null && vas !== null && qts !== null && re !== null,
             `${s.id}: openisd cannot form Fsc — Fs/Vas/Qts/Re missing`);
           const engine = new Engine();
-          const openisd = engine.sealedResonance(LossMode.WinisdLossy, {
+          const openisd = engine.sealed.resonance(LossMode.WinisdLossy, {
             Fs: fs, Vas: vas, Vb: s.box.Vr, Ql: s.box.Qlr, Qa: s.box.Qar,
             // WinISD's readout is Qts recomputed with Re+Rg, not bare Qts (WINE_HARNESS.md).
             Qts: engine.sourceLoadedQts(qms ?? NaN, qes ?? NaN, re, s.signal.Rg, qts),

@@ -252,10 +252,10 @@ function bagFromSealedAlignmentHandles(s: SealedAlignmentSolverParams): TestSeal
 
 export function solveSealedAlignmentGroup(s: TestSealedAlignmentQuantities): TestSealedAlignmentQuantities {
   const handles = sealedAlignmentHandlesFrom(s);
-  engine.solveSealedAlignment(handles);
+  engine.sealed.solve(handles);
   return bagFromSealedAlignmentHandles(handles);
 }
 
 export function checkSealedAlignment(s: TestSealedAlignmentQuantities) {
-  return engine.solveSealedAlignment(sealedAlignmentHandlesFrom(s));
+  return engine.sealed.solve(sealedAlignmentHandlesFrom(s));
 }

@@ -72,7 +72,7 @@ describe('Engine.solveSealedAlignment — handle solve, values written onto the 
 
   it('writes the derived Vb onto its handle when Qtc is stated and Qts/Vas are complete', () => {
     const p = params({ Qts: 0.4, Vas_m3: 0.03, Qtc: 0.707 });
-    const issues = engine.solveSealedAlignment(p);
+    const issues = engine.sealed.solve(p);
     expect(p.Vb_m3.value).toBeGreaterThan(0);
     expect(p.Vb_m3.calculated).toBe(true);
     expect(issues).toEqual([]);
@@ -80,7 +80,7 @@ describe('Engine.solveSealedAlignment — handle solve, values written onto the 
 
   it('writes the derived Qtc onto its handle when Vb is stated', () => {
     const p = params({ Qts: 0.4, Vas_m3: 0.03, Vb_m3: 0.02 });
-    const issues = engine.solveSealedAlignment(p);
+    const issues = engine.sealed.solve(p);
     expect(p.Qtc.value).toBeGreaterThan(0.4);
     expect(p.Qtc.calculated).toBe(true);
     expect(issues).toEqual([]);
@@ -88,7 +88,7 @@ describe('Engine.solveSealedAlignment — handle solve, values written onto the 
 
   it('never overwrites a stated value, even when the other member is also stated', () => {
     const p = params({ Qts: 0.4, Vas_m3: 0.03, Qtc: 0.707, Vb_m3: 0.099 });
-    const issues = engine.solveSealedAlignment(p);
+    const issues = engine.sealed.solve(p);
     expect(p.Vb_m3.value).toBe(0.099);
     expect(p.Vb_m3.entered).toBe(true);
     expect(issues).toEqual([]);
@@ -96,7 +96,7 @@ describe('Engine.solveSealedAlignment — handle solve, values written onto the 
 
   it('leaves the blocked target not-available and reports the missing driver quantities', () => {
     const p = params({ Qtc: 0.707 });
-    const issues = engine.solveSealedAlignment(p);
+    const issues = engine.sealed.solve(p);
     expect(p.Vb_m3.value).toBeNull();
     expect(issues).toHaveLength(1);
     expect(issues[0]).toMatchObject({ kind: 'missing-dependencies', target: 'Vb_m3' });
@@ -104,7 +104,7 @@ describe('Engine.solveSealedAlignment — handle solve, values written onto the 
 
   it('reports no issue when no target is stated — no target chosen yet', () => {
     const p = params({ Qts: 0.4, Vas_m3: 0.03 });
-    const issues = engine.solveSealedAlignment(p);
+    const issues = engine.sealed.solve(p);
     expect(p.Qtc.value).toBeNull();
     expect(p.Vb_m3.value).toBeNull();
     expect(issues).toEqual([]);
@@ -112,14 +112,14 @@ describe('Engine.solveSealedAlignment — handle solve, values written onto the 
 
   it('leaves Vb not-available when the stated Qtc is not reachable from Qts (Qtc <= Qts)', () => {
     const p = params({ Qts: 0.4, Vas_m3: 0.03, Qtc: 0.35 });
-    const issues = engine.solveSealedAlignment(p);
+    const issues = engine.sealed.solve(p);
     expect(p.Vb_m3.value).toBeNull();
     expect(issues).toEqual([]);
   });
 
   it('leaves Qtc not-available when the stated Vb is non-positive (lossless route)', () => {
     const p = params({ Qts: 0.4, Vas_m3: 0.03, Vb_m3: 0 });
-    const issues = engine.solveSealedAlignment(p);
+    const issues = engine.sealed.solve(p);
     expect(p.Qtc.value).toBeNull();
     expect(issues).toEqual([]);
   });
@@ -136,8 +136,8 @@ describe('Engine.solveSealedAlignment — loss-aware Vb→Qtc route (S10)', () =
       Qa: { value: Qa, entered: true }, lossMode: { value: LossMode.WinisdLossy.value, entered: true },
       Qtc: fakeSolverField<number>(null), Vb_m3: fakeSolverField(Vb_m3),
     };
-    engine.solveSealedAlignment(p);
-    const want = engine.sealedResonance(LossMode.WinisdLossy, { Fs: Fs_hz, Vas: Vas_m3, Qts, Vb: Vb_m3, Ql, Qa }).Qtc;
+    engine.sealed.solve(p);
+    const want = engine.sealed.resonance(LossMode.WinisdLossy, { Fs: Fs_hz, Vas: Vas_m3, Qts, Vb: Vb_m3, Ql, Qa }).Qtc;
     expect(p.Qtc.value).toBeCloseTo(want, 12);
     expect(p.Qtc.calculated).toBe(true);
   });
@@ -149,7 +149,7 @@ describe('Engine.solveSealedAlignment — loss-aware Vb→Qtc route (S10)', () =
       lossMode: NO_STRING_INPUT,
       Qtc: fakeSolverField<number>(null), Vb_m3: fakeSolverField(Vb_m3),
     };
-    engine.solveSealedAlignment(p);
+    engine.sealed.solve(p);
     const lossless = Qts * Math.sqrt(1 + Vas_m3 / Vb_m3);
     expect(p.Qtc.value).toBeCloseTo(lossless, 12);
   });
@@ -161,8 +161,8 @@ describe('Engine.solveSealedAlignment — loss-aware Vb→Qtc route (S10)', () =
       Qa: { value: Qa, entered: true }, lossMode: NO_STRING_INPUT,
       Qtc: fakeSolverField<number>(null), Vb_m3: fakeSolverField(Vb_m3),
     };
-    engine.solveSealedAlignment(p);
-    const want = engine.sealedResonance(LossMode.Default, { Fs: Fs_hz, Vas: Vas_m3, Qts, Vb: Vb_m3, Ql, Qa }).Qtc;
+    engine.sealed.solve(p);
+    const want = engine.sealed.resonance(LossMode.Default, { Fs: Fs_hz, Vas: Vas_m3, Qts, Vb: Vb_m3, Ql, Qa }).Qtc;
     expect(p.Qtc.value).toBeCloseTo(want, 12);
   });
 
@@ -173,8 +173,8 @@ describe('Engine.solveSealedAlignment — loss-aware Vb→Qtc route (S10)', () =
       lossMode: { value: LossMode.WinisdLossy.value, entered: true },
       Qtc: fakeSolverField<number>(null), Vb_m3: fakeSolverField(Vb_m3),
     };
-    engine.solveSealedAlignment(p);
-    const want = engine.sealedResonance(LossMode.WinisdLossy,
+    engine.sealed.solve(p);
+    const want = engine.sealed.resonance(LossMode.WinisdLossy,
       { Fs: Fs_hz, Vas: Vas_m3, Qts, Vb: Vb_m3, Ql: Infinity, Qa: Infinity }).Qtc;
     expect(p.Qtc.value).toBeCloseTo(want, 12);
   });

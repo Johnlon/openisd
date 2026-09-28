@@ -136,7 +136,7 @@ export class OpenISDBox implements Box {
                 // not an implausible design — it is no design. The resolve cascade draws the
                 // same line, solving the vent only for the box type in play.
                 if (lens.value.boxType !== 'vented') return null;
-                return engine.ventedVolumeIssue(v);
+                return engine.vented.volumeIssue(v);
             }),
             tuning_goal_hz: ventedTuningField,
             vent: ventWindow,
@@ -329,7 +329,7 @@ export class OpenISDBox implements Box {
         // volume (winisd_research FINDING-007). A caller (bandpass4's rear chamber) may still
         // override `mode` — that is WinISD's own fixed behaviour for that chamber, not the
         // project's chosen mode; see that call site's own note.
-        return this.#engine.sealedResonance(mode, {
+        return this.#engine.sealed.resonance(mode, {
             Fs: Fs_hz, Vas, Qts: QtsLoaded, Vb: volume_m3, Ql: losses.Ql.value, Qa: losses.Qa.value,
         }).Fsc;
     }

@@ -49,7 +49,8 @@ export type { SweepIssue, SweepSolveResult, MaxCurvesSolveResult } from './sweep
 export type {DriverQuantityName, DriverIssue, DriverPrerequisite} from './solvers/solveDriver.js';
 export type {VentEngine, VentQuantityName, VentIssue} from './vent/VentEngine.js';
 export type {PrEngine, PrQuantityName, PrIssue} from './pr/PrEngine.js';
-export type {SealedAlignmentQuantityName, SealedAlignmentIssue} from './solvers/solveSealedAlignment.js';
+export type {VentedEngine} from './vented/VentedEngine.js';
+export type {SealedEngine, SealedAlignmentQuantityName, SealedAlignmentIssue} from './sealed/SealedEngine.js';
 // `SolverField` is the interface a domain field implements for the solver; `SolverInput` its
 // read-only half. The domain imports these through the door, never a solverTypes subpath.
 export type { SolverField, SolverInput } from './solverTypes.js';

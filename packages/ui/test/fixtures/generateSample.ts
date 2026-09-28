@@ -25,7 +25,7 @@ const builder = OpenISDProject.builder(driver, engine);
 const qtsLoaded = engine.sourceLoadedQts(
   driver.specs.Qms.value!, driver.specs.Qes.value!, driver.specs.Re_ohm.value!, DEFAULT_SOURCE_RESISTANCE_OHM, driver.specs.Qts.value!,
 );
-const c4 = engine.ventedAlignment('c4', driver.specs.Fs_hz.value!, qtsLoaded, driver.specs.Vas_m3.value!, 10);
+const c4 = engine.vented.alignment('c4', driver.specs.Fs_hz.value!, qtsLoaded, driver.specs.Vas_m3.value!, 10);
 const project = builder.vented().volume_m3(c4.Vb).tuning_goal_hz(c4.Fb).build();
 project.name.set("W5-1138SMF Fixture");
 project.box.vented.vent.diameter_m.set(0.05);

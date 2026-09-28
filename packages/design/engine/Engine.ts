@@ -3,33 +3,22 @@
  * The surface of the engine is the set of methods needed by the project.
  */
 
-import {LossMode} from '../fields/lossMode.js';
 import type {Air, AirEnvironment, EnvironmentSolveResult} from './air.js';
 import {solveEnvironment} from './air.js';
 import {
-  closestSealedAlignment,
   ebp,
   ebpSuitability,
   findImpedancePeak,
-  sealedAlignmentOptions,
-  sealedFromQtc,
-  sealedQtcFromVolume,
-  ventedAlignment,
 } from './boxDesign.js';
 import {driveVoltage} from './formulas.js';
 import {chartsFor as chartIdsFor, DEFAULT_BOX_TYPE, DEFAULT_CHART} from './charts.js';
 import type {ChartId} from './charts.js';
 import {defaultAppSettings} from './appSettings.js';
 import type {AppSettings, EnvDefaults} from './appSettings.js';
-import {
-  nonPhysicalQuantity, quantityOutOfBand,
-  ventedPlausibility, ventedTuningPlausibility, ventedVolumePlausibility,
-} from './plausibility.js';
+import {nonPhysicalQuantity, quantityOutOfBand} from './plausibility.js';
 import type {VentedDesignQuantity, VentedPlausibilityIssue} from './plausibility.js';
 import type {DriverIssue} from './solvers/solveDriver.js';
 import {solveDriver} from './solvers/solveDriver.js';
-import type {SealedAlignmentIssue} from './solvers/solveSealedAlignment.js';
-import {solveSealedAlignment} from './solvers/solveSealedAlignment.js';
 import {terminalBL_Tm, terminalRe_ohm} from './solvers/driverQuantities.js';
 import type {
   CalculationIssue, InvalidValueIssue, NegativeValueIssue, OutOfRangeIssue, SolveRoute,
@@ -43,11 +32,14 @@ import {isPhysicallyPlausible} from './physicalRange.js';
 import {referenceEfficiency, splFromEfficiency} from './efficiency.js';
 import type {SignalIssue} from './signal.js';
 import {solveSignal} from './signal.js';
-import type {SealedParams} from './lossMode.js';
-import {sealedResonance, sourceLoadedQts} from './lossMode.js';
+import {sourceLoadedQts} from './lossMode.js';
 import type {BoxParamsSolveResult} from './params.js';
 import {solveBoxParams} from './params.js';
 import {FilterEngineImpl} from './filters/index.js';
+import type {VentedEngine} from './vented/VentedEngine.js';
+import {VentedEngineImpl} from './vented/VentedEngine.js';
+import type {SealedEngine} from './sealed/SealedEngine.js';
+import {SealedEngineImpl} from './sealed/SealedEngine.js';
 import type {PrEngine} from './pr/PrEngine.js';
 import {PrEngineImpl} from './pr/PrEngine.js';
 import type {VentEngine} from './vent/VentEngine.js';
@@ -71,16 +63,13 @@ import type {
   EbpSuitability,
   EnclosureParams,
   MaxCurvesResult,
-  SealedAlignmentOption,
   SimulatableBoxType,
   SweepParams,
   SweepResult,
-  VentedAlignment,
-  VentedDesign,
   Wiring,
 } from './types.js';
 import {simulatableBoxType as narrowBoxType} from './types.js';
-import type {DriverSolverParams, SealedAlignmentSolverParams, SignalSolverParams} from './solverTypes.js';
+import type {DriverSolverParams, SignalSolverParams} from './solverTypes.js';
 
 export class Engine {
   /** The application's own settings, read at CALL time — see `AppSettings`. Defaulted, so every
@@ -90,6 +79,7 @@ export class Engine {
 
   constructor(settings: AppSettings = defaultAppSettings) {
     this.#settings = settings;
+    this.vented = new VentedEngineImpl(settings);
   }
 
   // ── AIR ───────────────────────────────────────────────────────────────────────────────────
@@ -127,15 +117,6 @@ export class Engine {
     return solveDriver(params, air);
   }
 
-
-
-  /** The one sealed-alignment call to reach for (T10/T11): whichever of target-`Qtc`/`Vb_m3`
-   *  is not entered is derived from the driver's own `Qts`/`Vas_m3` and written onto its
-   *  `SolverField` handle, and the issues follow right back. Entered values are never
-   *  overwritten. */
-  solveSealedAlignment(params: SealedAlignmentSolverParams): SealedAlignmentIssue[] {
-    return solveSealedAlignment(params);
-  }
 
   /** Efficiency bandwidth product — Fs/Qes, the sealed-vs-vented indicator. */
   ebp(Fs_hz: number, Qes: number): number {
@@ -188,13 +169,6 @@ export class Engine {
    *  `physicalRange.ts` directly. */
   isPhysicallyPlausible(field: string, value: number): boolean {
     return isPhysicallyPlausible(field, value);
-  }
-
-  // ── THE BOX ───────────────────────────────────────────────────────────────────────────────
-
-  /** Sealed resonance and Qtc under a chosen loss model. Takes `Vas` directly. */
-  sealedResonance(mode: LossMode, p: SealedParams): { Fsc: number; Qtc: number } {
-    return sealedResonance(mode, p);
   }
 
   // ── CONSTRUCTING A DQ ISSUE ───────────────────────────────────────────────────────────────
@@ -257,78 +231,13 @@ export class Engine {
     return nonNegativeValueIssue(value);
   }
 
-  /**
-   * Sealed-chamber resonance from the driver's STORED values, in the stated air.
-   *
-   * The domain stores compliance and cone area, never `Vas` — Vas is derived, and deriving it
-   * needs air, which is the engine's business. So a caller that holds a driver record passes
-   * what it has and this works out the rest.
-   *
-   * Null when the volume is not positive — absence is `null` in this system, never NaN or 0.
-   */
-  sealedResonanceFromCompliance(
-    mode: LossMode,
-    input: {
-      Fs_hz: number; Qts: number; Sd_m2: number; Cms_m_per_N: number;
-      volume_m3: number; Ql: number; Qa: number;
-    },
-    air: Air,
-  ): number | null {
-    if (!(input.volume_m3 > 0)) return null;
-    const Vas = input.Cms_m_per_N * input.Sd_m2 ** 2 * air.rho * air.c ** 2;
-    return sealedResonance(mode, {
-      Fs: input.Fs_hz, Qts: input.Qts, Vas, Vb: input.volume_m3, Ql: input.Ql, Qa: input.Qa,
-    }).Fsc;
-  }
 
 
   /** The chamber volume that reaches a target system Q — the alignment picker's solve. */
-  sealedFromQtc(Qts: number, Vas_m3: number, Qtc: number): number | null {
-    return sealedFromQtc(Qts, Vas_m3, Qtc);
-  }
-
-  sealedAlignmentOptions(): readonly SealedAlignmentOption[] {
-    return sealedAlignmentOptions();
-  }
-
-  sealedQtcFromVolume(Qts: number, Vas_m3: number, Vb_m3: number): number | null {
-    return sealedQtcFromVolume(Qts, Vas_m3, Vb_m3);
-  }
-
-  closestSealedAlignment(Qtc: number): SealedAlignmentOption {
-    return closestSealedAlignment(Qtc);
-  }
-
   ebpSuitability(EBP_hz: number): EbpSuitability {
     return ebpSuitability(EBP_hz);
   }
 
-  /** WinISD's five wizard vented alignments, bit-for-bit (`boxDesign.ts#ventedAlignment`).
-   *  `QtsLoaded` is `sourceLoadedQts()`'s answer, not the bare driver Qts; `Ql` is read by
-   *  BB4/SBB4 only. */
-  ventedAlignment(alignment: VentedAlignment, Fs_hz: number, QtsLoaded: number, Vas_m3: number, Ql: number): VentedDesign {
-    return ventedAlignment(alignment, Fs_hz, QtsLoaded, Vas_m3, Ql);
-  }
-
-  /** Which of a designed vented box's two answers a person should not trust — outside the
-   *  alignment's design range WinISD extrapolates, `ventedAlignment()` matches it, and this is
-   *  what marks the result instead of changing it. Judged against THIS engine's `AppSettings`,
-   *  read now, so a Settings edit lands without anything being rebuilt. */
-  ventedPlausibility(design: VentedDesign): readonly VentedPlausibilityIssue[] {
-    return ventedPlausibility(design, this.#settings.ventedLimits());
-  }
-
-  /** A designed box volume alone. A project CELL holds one quantity, so it can only be marked
-   *  for that quantity's own issue; `ventedPlausibility` answers for the wizard readout, which
-   *  shows both at once. */
-  ventedVolumeIssue(Vb_m3: number): VentedPlausibilityIssue | null {
-    return ventedVolumePlausibility(Vb_m3, this.#settings.ventedLimits());
-  }
-
-  /** A designed tuning alone — `ventedVolumeIssue`'s counterpart. */
-  ventedTuningIssue(Fb_hz: number): VentedPlausibilityIssue | null {
-    return ventedTuningPlausibility(Fb_hz, this.#settings.ventedLimits());
-  }
 
   /** The app's configured environment defaults (Options → Environment), or the reference
    *  values when nothing has been configured — see `AppSettings.envDefaults()`. */
@@ -366,6 +275,17 @@ export class Engine {
   get defaultBoxType(): BoxType {
     return DEFAULT_BOX_TYPE;
   }
+
+  // ── THE BOX: vented ───────────────────────────────────────────────────────────────────────
+
+  /** The vented-box area — the wizard alignments and the plausibility of what they design. */
+  readonly vented: VentedEngine;
+
+  // ── THE BOX: sealed ───────────────────────────────────────────────────────────────────────
+
+  /** The sealed-box area — resonance under a loss model, volume↔Qtc, alignment options, and
+   *  the handle solve. */
+  readonly sealed: SealedEngine = new SealedEngineImpl();
 
   // ── THE PASSIVE RADIATOR ──────────────────────────────────────────────────────────────────
 

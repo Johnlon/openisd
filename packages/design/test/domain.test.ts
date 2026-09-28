@@ -712,7 +712,7 @@ describe('OpenISDBox — every alignment, as a window onto the project record', 
 
   it('the sealed volume refuses a solver write — Vb is always the entered side of the alignment', () => {
     const engine = new Engine();
-    const solve = vi.spyOn(engine, 'solveSealedAlignment').mockImplementation((params) => {
+    const solve = vi.spyOn(engine.sealed, 'solve').mockImplementation((params) => {
       params.Vb_m3.setCalculated(0.01);
       return [];
     });
@@ -1158,13 +1158,13 @@ describe('S10 — sealed joins the cascade: box.sealed.q_tc is an entry the reso
       spec: specSection({ Fs_hz: 30, Qts: 0.4, Sd_m2: 0.02, Cms_m_per_N: 0.0005, Mmd_kg: 0.05, Rms_Ns_per_m: 2, Xmax_m: 0.008 }),
     }), engine).sealed().volume_m3(0.03).build();
 
-    const readSpy = vi.spyOn(engine, 'solveSealedAlignment');
+    const readSpy = vi.spyOn(engine.sealed, 'solve');
     void p.box;
     void p.box.sealed.q_tc.value;
     expect(readSpy).toHaveBeenCalledTimes(0);
     readSpy.mockRestore();
 
-    const writeSpy = vi.spyOn(engine, 'solveSealedAlignment');
+    const writeSpy = vi.spyOn(engine.sealed, 'solve');
     p.box.sealed.losses.Ql.set(12);
     expect(writeSpy).toHaveBeenCalledTimes(1);
   });

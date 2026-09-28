@@ -119,11 +119,9 @@ describe('definePassiveRadiator', () => {
 });
 
 describe('boxTypeIsSimulatable', () => {
-  it('accepts a box type the circuit models', () => {
-    expect(boxTypeIsSimulatable('sealed')).toBe(true);
-  });
-
-  it('refuses one it does not, which is what puts the Box tab in its pending state', () => {
-    expect(boxTypeIsSimulatable('bandpass6')).toBe(false);
+  it('accepts every box type — bandpass6 and ABC gained circuits in df81902c, so none is pending', () => {
+    for (const box of ['sealed', 'vented', 'bandpass4', 'bandpass6', 'abc', 'box-passive-radiator'] as const) {
+      expect(boxTypeIsSimulatable(box), box).toBe(true);
+    }
   });
 });
