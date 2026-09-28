@@ -187,19 +187,19 @@ describe('chart-type set — every declared member draws', () => {
 
 describe('chart-type set — the one string→member boundary', () => {
   it('accepts every declared id unchanged', () => {
-    for (const id of ALL_IDS) assert.equal(parseChartId(engine, id), id);
+    for (const id of ALL_IDS) assert.equal(parseChartId(engine.box, id), id);
   });
 
   it('treats an undeclared id as missing, not as a second spelling', () => {
     // A stale id from localStorage, a hand-edited share link, and a typo are all just
     // invalid data — none of them selects a chart nothing can draw.
     for (const bad of ['Excursion(PR)', 'spl', 'banana', '', null, undefined])
-      assert.equal(parseChartId(engine, bad), 'SPL', `parseChartId(${JSON.stringify(bad)})`);
+      assert.equal(parseChartId(engine.box, bad), 'SPL', `parseChartId(${JSON.stringify(bad)})`);
   });
 
   it('does not admit inherited Object properties as chart ids', () => {
     for (const bad of ['toString', 'constructor', 'hasOwnProperty'])
-      assert.equal(parseChartId(engine, bad), 'SPL', `parseChartId(${JSON.stringify(bad)})`);
+      assert.equal(parseChartId(engine.box, bad), 'SPL', `parseChartId(${JSON.stringify(bad)})`);
   });
 });
 

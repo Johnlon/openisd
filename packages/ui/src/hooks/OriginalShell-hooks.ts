@@ -54,7 +54,7 @@ import {OgFilters} from './OgFilters-hooks.js';
 import type {Calculated, Clearable, Entered, OpenISDProject, Readable, Writable} from '@openisd/design';
 import type {ProvenanceLetter} from '@openisd/design';
 import type {StoredProjectListing} from '@openisd/persistence';
-import type {BoxType, ChartId, EnvDefaults, Engine} from '@openisd/design/engine';
+import type {BoxType, ChartId, EnvDefaults, EnvironmentEngine} from '@openisd/design/engine';
 import type {Design, PlotParams} from '../types.js';
 
 // ---- Sealed / PR readouts (unit-testable, real domain) ------------------------
@@ -319,12 +319,12 @@ export interface EnvironmentAirDeps {
   project: ComputedRef<OpenISDProject>;
   projectChanged: Ref<number>;
   envDefaults: () => EnvDefaults;
-  engine: Engine;
+  environment: EnvironmentEngine;
 }
 
 type EnvField = Readable<number | null> & Entered & Calculated & Writable<number> & Clearable;
 
-export function createEnvironmentAir({ project, projectChanged: changed, envDefaults, engine }: EnvironmentAirDeps) {
+export function createEnvironmentAir({ project, projectChanged: changed, envDefaults, environment }: EnvironmentAirDeps) {
   function storedOf(field: () => EnvField) {
     return computed<boolean>(() => { void changed.value; void project.value; return field().entered; });
   }
@@ -364,7 +364,7 @@ export function createEnvironmentAir({ project, projectChanged: changed, envDefa
   const advAir = computed(() => {
     void project.value;
     void changed.value;
-    return engine.environment.solve({
+    return environment.solve({
       tempK: advTemp.value ?? undefined, humidityPct: advHumidity.value ?? undefined, pressurePa: advPressure.value ?? undefined,
       useWinisdAirModel: project.value.envUseWinisdAirModel.value,
     }).values;
@@ -658,7 +658,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     // A remembered chart id that no longer applies to this box (a saved tab that was PR, the
     // box is now sealed) falls back to the default chart, never to a stale/inapplicable one.
     get: () => {
-      const id = parseChartId(engine, presentationState.ui.originalChartTab);
+      const id = parseChartId(engine.box, presentationState.ui.originalChartTab);
       return CHART_ITEMS.value.some(i => i.tab === id) ? id : engine.box.defaultChart;
     },
     set: (v: ChartId) => { presentationState.ui.originalChartTab = v; },
@@ -1031,7 +1031,7 @@ const overlays = computed<Design[]>(() => {
     envTempStored, envHumidityStored, envPressureStored, envTempDq, envHumidityDq, envPressureDq,
     advTemp, advHumidity, advPressure, commitAirTemp, commitAirHumidity, commitAirPressure,
     resetAirToAppDefaults, advAir,
-  } = createEnvironmentAir({ project, projectChanged, envDefaults, engine });
+  } = createEnvironmentAir({ project, projectChanged, envDefaults, environment: engine.environment });
 
   const placement = ref<'standard' | 'iso'>('standard');
 

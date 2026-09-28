@@ -33,7 +33,7 @@ function captureDriver(engine: Engine) {
 describe('useOgNewProject', () => {
   it('initializes at step 1 and requires a driver selection before advancing', () => {
     const engine = createEngine();
-    const wizard = useOgNewProject({ engine });
+    const wizard = useOgNewProject({ areas: engine });
 
     expect(wizard.step.value).toBe(1);
     expect(wizard.canBack.value).toBe(false);
@@ -48,7 +48,7 @@ describe('useOgNewProject', () => {
 
   it('step 1 previews the chosen driver as Fs / Qts / Vas display strings, empty when nothing is chosen', () => {
     const engine = createEngine();
-    const wizard = useOgNewProject({ engine });
+    const wizard = useOgNewProject({ areas: engine });
     expect(wizard.selectedDriverSpecs.value).toEqual([]);
 
     wizard.selectDriver(createTestDriver(engine, { Fs: 40, Qts: 0.38, Vas_m3: 0.03 }));
@@ -58,7 +58,7 @@ describe('useOgNewProject', () => {
   it('initializes with pre-loaded driver if provided', () => {
     const engine = createEngine();
     const driver = createTestDriver(engine);
-    const wizard = useOgNewProject({ engine, initialDriver: driver });
+    const wizard = useOgNewProject({ areas: engine, initialDriver: driver });
 
     expect(wizard.selectedDriver.value).toBe(driver);
     expect(wizard.canNext.value).toBe(true);
@@ -67,7 +67,7 @@ describe('useOgNewProject', () => {
   it('navigates through all 5 steps when box type is sealed', () => {
     const engine = createEngine();
     const driver = createTestDriver(engine);
-    const wizard = useOgNewProject({ engine, initialDriver: driver });
+    const wizard = useOgNewProject({ areas: engine, initialDriver: driver });
 
     // Step 1 -> 2
     expect(wizard.step.value).toBe(1);
@@ -105,7 +105,7 @@ describe('useOgNewProject', () => {
   it('skips step 4 when box type is passive-radiator or bandpass4 (no alignment step built yet)', () => {
     const engine = createEngine();
     const driver = createTestDriver(engine);
-    const wizard = useOgNewProject({ engine, initialDriver: driver });
+    const wizard = useOgNewProject({ areas: engine, initialDriver: driver });
 
     // Go to step 3
     wizard.next();
@@ -128,7 +128,7 @@ describe('useOgNewProject', () => {
   it('gives vented a step 4 (alignment), same slot sealed uses', () => {
     const engine = createEngine();
     const driver = createTestDriver(engine);
-    const wizard = useOgNewProject({ engine, initialDriver: driver });
+    const wizard = useOgNewProject({ areas: engine, initialDriver: driver });
 
     wizard.next();
     wizard.next();
@@ -156,7 +156,7 @@ describe('useOgNewProject', () => {
 
   it('offers WinISD\'s five vented alignments and opens on C4/SC4', () => {
     const engine = createEngine();
-    const wizard = useOgNewProject({ engine, initialDriver: captureDriver(engine) });
+    const wizard = useOgNewProject({ areas: engine, initialDriver: captureDriver(engine) });
     wizard.boxType.value = 'vented';
 
     expect(wizard.VENTED_ALIGNMENT_OPTIONS.map(o => o.value)).toEqual(['qb3', 'bb4', 'c4', 'ebs3', 'ebs6']);
@@ -165,7 +165,7 @@ describe('useOgNewProject', () => {
 
   it('designs the vented box as WinISD does: source-loaded Qts at the project\'s Rg, box Ql, chosen alignment', () => {
     const engine = createEngine();
-    const wizard = useOgNewProject({ engine, initialDriver: captureDriver(engine) });
+    const wizard = useOgNewProject({ areas: engine, initialDriver: captureDriver(engine) });
     wizard.boxType.value = 'vented';
 
     // WinISD capture, C4 at Qts 0.39 with Rg 0.1 Ω, Ql 10: Vb 17.2885792662035 L, Fb 40.6761517251006 Hz.
@@ -185,7 +185,7 @@ describe('useOgNewProject', () => {
 
   it('the preview uses the same Rg and Ql the created project carries', () => {
     const engine = createEngine();
-    const wizard = useOgNewProject({ engine, initialDriver: captureDriver(engine) });
+    const wizard = useOgNewProject({ areas: engine, initialDriver: captureDriver(engine) });
     wizard.boxType.value = 'vented';
     wizard.selectVentedAlignment('bb4');
     const previewVb_m3 = wizard.ventedVolume_L.value / 1000;
@@ -204,7 +204,7 @@ describe('useOgNewProject', () => {
     const engine = createEngine();
     // Driver with Fs=35, Qes=0.8 -> EBP = 43.75 < 50 -> Sealed preferred
     const sealedDriver = createTestDriver(engine, { Fs: 35, Qes: 0.8 });
-    const wizardSealed = useOgNewProject({ engine, initialDriver: sealedDriver });
+    const wizardSealed = useOgNewProject({ areas: engine, initialDriver: sealedDriver });
 
     expect(wizardSealed.ebp.value).toBeCloseTo(43.75, 1);
     expect(wizardSealed.ebpSuitability.value).toBe('sealed');
@@ -212,7 +212,7 @@ describe('useOgNewProject', () => {
 
     // Driver with Fs=30, Qes=0.2 -> EBP = 150 -> Vented preferred
     const ventedDriver = createTestDriver(engine, { Fs: 30, Qes: 0.2 });
-    const wizardVented = useOgNewProject({ engine, initialDriver: ventedDriver });
+    const wizardVented = useOgNewProject({ areas: engine, initialDriver: ventedDriver });
 
     expect(wizardVented.ebp.value).toBeCloseTo(150, 1);
     expect(wizardVented.ebpSuitability.value).toBe('vented');
@@ -223,7 +223,7 @@ describe('useOgNewProject', () => {
     const engine = createEngine();
     // Qts = 0.38, Vas = 0.03 m3 (30 L)
     const driver = createTestDriver(engine, { Qts: 0.38, Vas_m3: 0.03 });
-    const wizard = useOgNewProject({ engine, initialDriver: driver });
+    const wizard = useOgNewProject({ areas: engine, initialDriver: driver });
 
     wizard.selectSealedAlignment(0.707);
     expect(wizard.sealedVolume_L.value).toBeGreaterThan(0);
@@ -239,7 +239,7 @@ describe('useOgNewProject', () => {
 
   it('a passive-radiator project keeps the starting volume — the sealed alignment volume never leaks into it', () => {
     const engine = createEngine();
-    const wizard = useOgNewProject({ engine });
+    const wizard = useOgNewProject({ areas: engine });
     wizard.selectDriver(createTestDriver(engine, { Qts: 0.38, Vas_m3: 0.03 }));
     wizard.boxType.value = 'box-passive-radiator';
     wizard.projName.value = 'PR';
@@ -255,7 +255,7 @@ describe('useOgNewProject', () => {
   it('rounds the derived sealed volume to 2dp instead of showing the raw calculation', () => {
     const engine = createEngine();
     const driver = createTestDriver(engine, { Qts: 0.38, Vas_m3: 0.03 });
-    const wizard = useOgNewProject({ engine, initialDriver: driver });
+    const wizard = useOgNewProject({ areas: engine, initialDriver: driver });
 
     wizard.selectSealedAlignment(0.6);
 
@@ -264,7 +264,7 @@ describe('useOgNewProject', () => {
 
   it('picking a driver on step 1 moves the wizard on to step 2 — "Use" advances, it does not just arm Next', () => {
     const engine = createEngine();
-    const wizard = useOgNewProject({ engine });
+    const wizard = useOgNewProject({ areas: engine });
 
     expect(wizard.step.value).toBe(1);
     wizard.selectDriver(createTestDriver(engine));
@@ -275,7 +275,7 @@ describe('useOgNewProject', () => {
   it('preserves state when navigating Back and Next', () => {
     const engine = createEngine();
     const driver = createTestDriver(engine);
-    const wizard = useOgNewProject({ engine, initialDriver: driver });
+    const wizard = useOgNewProject({ areas: engine, initialDriver: driver });
 
     // Step 2: edit nDrivers & wiring
     wizard.next();
@@ -311,7 +311,7 @@ describe('useOgNewProject', () => {
   it('creates a project with all configured parameters on completion', () => {
     const engine = createEngine();
     const driver = createTestDriver(engine);
-    const wizard = useOgNewProject({ engine, initialDriver: driver });
+    const wizard = useOgNewProject({ areas: engine, initialDriver: driver });
 
     wizard.nDrivers.value = 2;
     wizard.wiring.value = 'parallel';
@@ -350,7 +350,7 @@ describe('useOgNewProject — vented plausibility readout', () => {
 
   /** A wizard sitting on step 4 with a vented box and the capture driver chosen. */
   function ventedWizard(engine: Engine) {
-    const wizard = useOgNewProject({ engine, initialDriver: captureDriver(engine) });
+    const wizard = useOgNewProject({ areas: engine, initialDriver: captureDriver(engine) });
     wizard.boxType.value = 'vented';
     return wizard;
   }
@@ -392,7 +392,7 @@ describe('useOgNewProject — vented plausibility readout', () => {
 
   it('says nothing for a sealed design — there is no vented box to judge', () => {
     const wizard = useOgNewProject({
-      engine: engineWithBand({ ...WIDE, maxVb_m3: 0.000001, minFb_hz: 10000 }),
+      areas: engineWithBand({ ...WIDE, maxVb_m3: 0.000001, minFb_hz: 10000 }),
       initialDriver: captureDriver(engineWithBand(WIDE)),
     });
     wizard.boxType.value = 'sealed';
