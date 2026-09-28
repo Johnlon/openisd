@@ -19,6 +19,7 @@ import { OpenISDDriver } from '../driver/openISDDriver.js';
 import { OpenISDDriverEmbedded } from '../driver/openISDDriverEmbedded.js';
 import type { DiscardChallenge } from './discardChallenge.js';
 import type { DragRange } from './dragRange.js';
+import { ProjectAdvanced } from './projectAdvanced.js';
 import { ProjectEnvironment, envFieldsOver } from './projectEnvironment.js';
 import { freshEmbeddedDriver } from './freshEmbeddedDriver.js';
 import type { ProjectIssues } from './projectIssues.js';
@@ -239,37 +240,37 @@ export class OpenISDProject {
 
     /** The signal-chain filter list. */
     get filters(): SimpleField<readonly Filter[]> {
-        return focus(this.#slot('filters'), 'filters');
+        return ProjectAdvanced.wrap(this.#slot('advanced'), this.#slot('filters')).filters;
     }
 
     /** Force-flat auto-EQ — WinISD Advanced "Force flat response". */
     get forceFlatResponse(): SimpleField<boolean> {
-        return focus(this.#slot('advanced'), 'forceFlatResponse');
+        return ProjectAdvanced.wrap(this.#slot('advanced'), this.#slot('filters')).forceFlatResponse;
     }
 
     /** Model ports as a lossy transmission line instead of a lumped mass — WinISD Advanced
      *  "Use transmission line-model for port simulation". */
     get useTransmissionLinePortModel(): SimpleField<boolean> {
-        return focus(this.#slot('advanced'), 'useTransmissionLinePortModel');
+        return ProjectAdvanced.wrap(this.#slot('advanced'), this.#slot('filters')).useTransmissionLinePortModel;
     }
 
     /** WinISD Advanced "Rg is at driver side" — whether the amplifier's source resistance
      *  (`Rs_ohm`) is applied per driver or once across the whole array. */
     get rgAtDriverSide(): SimpleField<boolean> {
-        return focus(this.#slot('advanced'), 'rgAtDriverSide');
+        return ProjectAdvanced.wrap(this.#slot('advanced'), this.#slot('filters')).rgAtDriverSide;
     }
 
     /** WinISD Advanced "Simulate voice coil inductance" — includes Le in the acoustic circuit
      *  model (gyrator) rather than just the impedance plot (winisd). 'winisdGyrator' is WinISD's
      *  own inductance-on model. */
     get circuitModel(): SimpleField<'winisd' | 'gyrator' | 'winisdGyrator'> {
-        return focus(this.#slot('advanced'), 'circuitModel');
+        return ProjectAdvanced.wrap(this.#slot('advanced'), this.#slot('filters')).circuitModel;
     }
 
     /** WinISD Advanced "SPL graph is Xmax limited" — whether the SPL chart shows the
      *  Xmax-backed-off curve instead of the unclamped one. Display only. */
     get splGraphIsXmaxLimited(): SimpleField<boolean> {
-        return focus(this.#slot('advanced'), 'splGraphIsXmaxLimited');
+        return ProjectAdvanced.wrap(this.#slot('advanced'), this.#slot('filters')).splGraphIsXmaxLimited;
     }
 
     /** Sealed-box resonance loss model (S10/QO130) — which physics model `box.sealed`'s Fsc/Qtc
@@ -277,11 +278,7 @@ export class OpenISDProject {
      *  loss mode. `advanced.lossMode` stores the wire string; this is the one boundary that
      *  translates it via `LossMode.parse`/`.value`, matching the `circuitModel` accessor above. */
     get lossMode(): SimpleField<LossMode> {
-        const lens = focus(this.#slot('advanced'), 'lossMode');
-        return {
-            get value() { return LossMode.parse(lens.value); },
-            set: (mode: LossMode) => lens.set(mode.value),
-        };
+        return ProjectAdvanced.wrap(this.#slot('advanced'), this.#slot('filters')).lossMode;
     }
 
     /** WinISD Advanced / Compatibility "Use WinISD driver calculations" — whether engine sweeps
@@ -290,11 +287,7 @@ export class OpenISDProject {
      *  with them (measured 2026-09-26, docs/research/WINISD_PARITY.md). On where a project does
      *  not say, per the README: untouched, OpenISD gives WinISD's answer. */
     get winisdDriverModel(): SimpleField<boolean> {
-        const lens = focus(this.#slot('advanced'), 'winisdDriverModel');
-        return {
-            get value() { return lens.value ?? true; },
-            set: (on: boolean) => lens.set(on),
-        };
+        return ProjectAdvanced.wrap(this.#slot('advanced'), this.#slot('filters')).winisdDriverModel;
     }
 
     /** WinISD Compatibility "WinISD VA model": the amplifier apparent load power chart as WinISD
@@ -302,11 +295,7 @@ export class OpenISDProject {
      *  apparent power the amplifier delivers, P·(Re + Rg)·|Hf|²/|Z_amp|. On where a project does
      *  not say. */
     get winisdVaModel(): SimpleField<boolean> {
-        const lens = focus(this.#slot('advanced'), 'winisdVaModel');
-        return {
-            get value() { return lens.value ?? true; },
-            set: (on: boolean) => lens.set(on),
-        };
+        return ProjectAdvanced.wrap(this.#slot('advanced'), this.#slot('filters')).winisdVaModel;
     }
 
     /** Sets every WinISD-vs-conventional compat switch to WinISD. Native WinISD controls (voice
