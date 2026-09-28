@@ -11,7 +11,7 @@ import {openDriverDraft, wiringOptions} from '../../logic/driverDraft.js';
 import {specFieldHandle} from '../../logic/driverSpecFields.js';
 import {readDriverFileText} from '../../logic/driverFileText.js';
 import {driverToOwdrBytes, driverToWdrBytes, owdrTextToDriver, wdrTextToDriver} from '../../logic/fileImportExport.js';
-import {cellClassFor, cellClassOf, fieldIsMandatoryAndUnsatisfied} from '../../logic/useDriverCells.js';
+import {cellClassFor, cellClassOf} from '../../logic/useDriverCells.js';
 import {
   chartBlockingReasonsFor,
   dqNoteFor,
@@ -385,9 +385,8 @@ const inconsistentInputReasons = computed<DqReason[]>(() => {
   return inconsistentInputReasonsFor(issues.value);
 });
 
-// The domain object already answers this, through the same `issues` this component reads
-// everywhere else — see OgTune.vue.
-const mandatory = (field: string) => fieldIsMandatoryAndUnsatisfied(issues.value, field);
+// The domain object answers this, off the same draft the rest of the dialog edits.
+const mandatory = (field: string) => { void trigger.value; return draftDriver.value.fieldIsMandatoryAndUnsatisfied(field); };
 
 /** The full-text tooltip for a `.de-incomplete` strip — one line per reason, subject and text
  *  rejoined, since a native `title` attribute cannot render `<strong>`. */

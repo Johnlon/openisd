@@ -143,11 +143,6 @@ describe('DriverEditorModal-hooks', () => {
     });
   });
 
-  // `mandatory` stays declared in logic/useDriverCells.ts (fieldIsMandatoryAndUnsatisfied) —
-  // DriverEditorModal.vue imports it from there directly, never through a re-export here
-  // (import-from-declarer-only.test.ts A9). Its own behaviour is covered by
-  // test/logic/useDriverCells.test.ts.
-
   describe('ebpVal', () => {
     it('reads the driver EBP once Fs and Qes are both known', () => {
       const driver = completeDriver();

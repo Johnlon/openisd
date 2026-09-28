@@ -239,7 +239,7 @@ export class OpenIsdDriverSpec {
          *  `issueFields` says. */
         const dqFor = (key: keyof DriverSpecsSection): (() => readonly DqIssue[]) | undefined =>
             durableIssues === undefined ? undefined : () => durableIssues().filter(issue =>
-                'field' in issue ? issue.field === key : engine.issueFields(issue).some(f => f === key));
+                'field' in issue ? issue.field === key : issue.fields.some(f => f === key));
         /** Every numeric spec field's OWN floor (`FIELD_FLOOR`, not one floor for every field —
          *  BUG_20260927_driver-bad-value-decided-in-ui.md's follow-up), computed fresh from the
          *  CURRENT value on every read so it shows up immediately on `.set()`, not only after
@@ -402,7 +402,7 @@ export class OpenIsdDriverSpec {
             wiring: this.VCCon,
         } satisfies DriverSolverParams;
         this.#issues = this.#engine.solveDriver(params, air);
-        projectFormulaDq<DriverQuantityName>(DRIVER_QUANTITY_NAMES, params, this.#issues, this.#engine);
+        projectFormulaDq<DriverQuantityName>(DRIVER_QUANTITY_NAMES, params, this.#issues);
         return this.#issues;
     }
 

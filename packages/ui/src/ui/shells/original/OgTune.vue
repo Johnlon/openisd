@@ -10,7 +10,7 @@ import {presentationState} from '../../../logic/presentationState.js';
 import {useFocusedProject} from '../../../logic/focusedProjectContext.js';
 import {fromDisplay, statedPrecision, toDisplay} from '../../../logic/fields/units.js';
 import {NumberField, type UnitGroup} from '@openisd/design/fields';
-import {cellClassFor, fieldIsMandatoryAndUnsatisfied} from '../../../logic/useDriverCells.js';
+import {cellClassFor} from '../../../logic/useDriverCells.js';
 import NumInput from '../../components/NumInput.vue';
 import UnitToggle from '../../components/UnitToggle.vue';
 import type {Calculated, Entered, Readable} from '@openisd/design';
@@ -109,7 +109,7 @@ function isNumKey(f: string): f is NumKey {
 function fieldClasses(f: TuneField): Record<string, boolean> {
   void project.value;
   const cellOf = (s: SpecField): Readable<number | null> & Entered & Calculated => fieldCell(isNumKey(s) ? s : 'Fs_hz');
-  const mandatory = fieldIsMandatoryAndUnsatisfied(project.value.driver.issues(), f.key);
+  const mandatory = project.value.driver.fieldIsMandatoryAndUnsatisfied(f.key);
   return {
     [cellClassFor(cellOf, f.key)]: true,
     'de-input-mandatory': mandatory,

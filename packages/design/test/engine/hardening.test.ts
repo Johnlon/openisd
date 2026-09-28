@@ -365,8 +365,8 @@ describe('T1\'s domain guard fires before classifyFinite ever sees the sweep', (
     // `classifyFinite`'s generic postcondition, which never ran here.
     assert.equal(issue.kind, 'missing-dependencies', 'expected the guard\'s own unreachable-target diagnosis');
     if (issue.kind !== 'missing-dependencies') throw new Error('unreachable');
-    assert.ok(engine.issueFields(issue).includes('length_m'),
-      `issueFields must name length_m; got: ${engine.issueFields(issue).join(', ')}`);
+    const named: readonly string[] = issue.fields;
+    assert.ok(named.includes('length_m'), `the issue must name length_m; got: ${named.join(', ')}`);
   });
 
   // (b) ENGINE-level net. The domain guard above only exists in `OpenISDProject.sweep()` — the
