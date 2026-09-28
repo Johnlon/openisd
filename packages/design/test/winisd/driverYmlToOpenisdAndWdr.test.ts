@@ -50,6 +50,9 @@ import {Engine} from '../../engine/index.js';
 import {WinISDDriver} from '../../winisd/winisdDriver.js';
 import {checkOpenisdRoundTrip} from '../../../../scripts/roundTripGate.mjs';
 
+/** The engine every projection in this file uses — factory settings, as the bridge's own. */
+const engine = new Engine();
+
 const FIXTURES = join(dirname(fileURLToPath(import.meta.url)), '..', 'fixtures', 'corpus');
 
 /** A real `driver.yml`: Dayton CE28N-4, a woofer-section record carrying `scraper_meta`. */
@@ -65,7 +68,7 @@ function scanspeakDriverYml(): string {
 
 describe('driverYmlToOpenisdAndWdr — one call, both derived files, one error array', () => {
   it('returns openisd.yml text, wdr text, and an errors array', () => {
-    const result = driverYmlToOpenisdAndWdr(daytonDriverYml());
+    const result = driverYmlToOpenisdAndWdr(daytonDriverYml(), engine);
 
     assert.equal(typeof result.openisd, 'string', 'openisd.yml text');
     assert.equal(typeof result.wdr, 'string', '.wdr text');
@@ -76,7 +79,7 @@ describe('driverYmlToOpenisdAndWdr — one call, both derived files, one error a
     const source = daytonDriverYml();
     assert.ok(source.includes('scraper_meta'), 'the fixture must carry scraper_meta, or this proves nothing');
 
-    const { openisd } = driverYmlToOpenisdAndWdr(source);
+    const { openisd } = driverYmlToOpenisdAndWdr(source, engine);
 
     assert.ok(openisd !== null, 'a readable record produces openisd.yml');
     assert.ok(!openisd.includes('scraper_meta'), 'scraper_meta must not survive into openisd.yml');
@@ -88,7 +91,7 @@ describe('driverYmlToOpenisdAndWdr — one call, both derived files, one error a
     // files, and `JSON.parse(text)` → `JSON.stringify` reproduces the very bytes. The old
     // invariant (openisd followed driver.yml's order, per 2026-08-31) is replaced by sorted order.
     const source = daytonDriverYml();
-    const { openisd } = driverYmlToOpenisdAndWdr(source);
+    const { openisd } = driverYmlToOpenisdAndWdr(source, engine);
     assert.ok(openisd !== null, 'a readable record produces openisd.json');
 
     const emitted = Object.keys(parse(openisd) as Record<string, unknown>);
@@ -107,7 +110,7 @@ describe('driverYmlToOpenisdAndWdr — one call, both derived files, one error a
     assert.ok(source.includes('rejected: ohm-glyph-merged-as-digit'),
       'the fixture must carry a rejected reading, or this proves nothing');
 
-    const { openisd } = driverYmlToOpenisdAndWdr(source);
+    const { openisd } = driverYmlToOpenisdAndWdr(source, engine);
     assert.ok(openisd !== null, 'a readable record produces openisd.yml');
 
     assert.ok(!openisd.includes('rejected'),
@@ -127,7 +130,7 @@ describe('driverYmlToOpenisdAndWdr — one call, both derived files, one error a
     const source = daytonDriverYml();
     const record = parse(source) as { brand: { value: string }; model: { value: string } };
 
-    const { wdr } = driverYmlToOpenisdAndWdr(source);
+    const { wdr } = driverYmlToOpenisdAndWdr(source, engine);
 
     assert.ok(wdr!.startsWith('[Driver]'), '.wdr opens its [Driver] section');
     assert.ok(wdr!.includes('Brand=' + record.brand.value), 'Brand row carries the record brand');
@@ -150,7 +153,7 @@ describe('driverYmlToOpenisdAndWdr — one call, both derived files, one error a
       else record.specs.woofer.VCCon = {
         readings: { manufacturer_datasheet: { read_value: vccon } },
       };
-      const { wdr } = driverYmlToOpenisdAndWdr(stringifyYaml(record));
+      const { wdr } = driverYmlToOpenisdAndWdr(stringifyYaml(record), engine);
       return wdr!.split(/\r?\n/).find(l => l.startsWith('VCCon='));
     };
 
@@ -185,7 +188,7 @@ describe('driverYmlToOpenisdAndWdr — one call, both derived files, one error a
       '      readings: {entered: {read_value: 42}}',
     ].join('\n');
 
-    const { openisd, wdr, errors } = driverYmlToOpenisdAndWdr(appAuthored);
+    const { openisd, wdr, errors } = driverYmlToOpenisdAndWdr(appAuthored, engine);
 
     assert.deepEqual(errors.filter(e => e.level === 'error'), [], 'nothing blocking');
     assert.ok(openisd !== null, 'openisd.yml is produced');
@@ -221,7 +224,7 @@ describe('driverYmlToOpenisdAndWdr — one call, both derived files, one error a
       '        manufacturer_datasheet: {actual_reading: "42 Hz", read_value: 42, read_precision: 1}',
     ].join('\n');
 
-    const { openisd, errors } = driverYmlToOpenisdAndWdr(withDefinitions);
+    const { openisd, errors } = driverYmlToOpenisdAndWdr(withDefinitions, engine);
 
     assert.deepEqual(errors.filter(e => e.level === 'error'), [], 'nothing blocking');
     assert.ok(openisd !== null, 'openisd.yml is produced');
@@ -255,7 +258,7 @@ describe('driverYmlToOpenisdAndWdr — one call, both derived files, one error a
       '      readings: {manufacturer_datasheet: {actual_reading: "137 cm2", read_value: 0.0137, read_precision: 0.5}}',
     ].join('\n');
 
-    const { openisd, wdr, errors } = driverYmlToOpenisdAndWdr(radiator);
+    const { openisd, wdr, errors } = driverYmlToOpenisdAndWdr(radiator, engine);
 
     assert.deepEqual(errors.filter(e => e.level === 'error'), [],
       'a radiator having no .wdr is the CONTRACT, not a failure');
@@ -288,7 +291,7 @@ describe('driverYmlToOpenisdAndWdr — one call, both derived files, one error a
       '      readings: {entered: {read_value: 9}}',
     ].join('\n');
 
-    const { openisd, wdr, errors } = driverYmlToOpenisdAndWdr(radiator);
+    const { openisd, wdr, errors } = driverYmlToOpenisdAndWdr(radiator, engine);
 
     assert.deepEqual(errors.filter(e => e.level === 'error'), [], 'a radiator is not an error');
     assert.equal(wdr, null, 'WinISD has no passive-radiator format');
@@ -310,7 +313,7 @@ describe('driverYmlToOpenisdAndWdr — one call, both derived files, one error a
     // the marks the app would write are the marks on disk, and every record it writes passes
     // the gate by construction.
     const source = daytonDriverYml();
-    const { openisd, errors } = driverYmlToOpenisdAndWdr(source);
+    const { openisd, errors } = driverYmlToOpenisdAndWdr(source, engine);
     assert.deepEqual(errors.filter(e => e.level === 'error'), []);
     assert.ok(openisd !== null);
 
@@ -344,7 +347,7 @@ describe('driverYmlToOpenisdAndWdr — one call, both derived files, one error a
       withStaleMarks.includes('STALE-MARK-SD') && withStaleMarks.includes('STALE-MARK-QTS') && withStaleMarks.includes('STALE-MARK-WEIGHT'),
       'the fixture must carry the stale marks',
     );
-    const { openisd, wdr, errors } = driverYmlToOpenisdAndWdr(withStaleMarks);
+    const { openisd, wdr, errors } = driverYmlToOpenisdAndWdr(withStaleMarks, engine);
     assert.deepEqual(errors.filter(e => e.level === 'error'), []);
     assert.ok(openisd !== null && wdr !== null);
     assert.equal(openisd.includes('STALE-MARK'), false, 'a scraper-supplied dq_calculated reached openisd.yml');
@@ -356,7 +359,7 @@ describe('driverYmlToOpenisdAndWdr — one call, both derived files, one error a
     // what the bridge held. Parse the emitted JSON and re-serialise it: any difference means the
     // writer and the reader disagree, and every openisd.json on disk is then a lossy copy of a
     // record nobody can reconstruct.
-    const { openisd } = driverYmlToOpenisdAndWdr(daytonDriverYml());
+    const { openisd } = driverYmlToOpenisdAndWdr(daytonDriverYml(), engine);
     assert.ok(openisd !== null);
 
     const I2 = JSON.parse(openisd);            // text A1 -> record I2
@@ -375,7 +378,7 @@ describe('driverYmlToOpenisdAndWdr — one call, both derived files, one error a
     // `corroboration` a spec entry now gets computed for it here rather than supplied. Anything
     // else that changed is a silent loss, and this is the assertion that names it.
     const source = daytonDriverYml();
-    const { openisd } = driverYmlToOpenisdAndWdr(source);
+    const { openisd } = driverYmlToOpenisdAndWdr(source, engine);
     assert.ok(openisd !== null);
 
     const isCalculatedEntry = (v: unknown): boolean =>
@@ -417,7 +420,7 @@ describe('driverYmlToOpenisdAndWdr — one call, both derived files, one error a
       'specs: {}',
     ].join('\n');
 
-    const { wdr, errors } = driverYmlToOpenisdAndWdr(noSection);
+    const { wdr, errors } = driverYmlToOpenisdAndWdr(noSection, engine);
     const messages = errors.filter(e => e.level === 'error').map(e => e.message);
 
     assert.equal(wdr, null, 'nothing to simulate, so no .wdr');
@@ -454,7 +457,7 @@ describe('driverYmlToOpenisdAndWdr — one call, both derived files, one error a
       '      readings: {entered: {read_value: 0.0137}}',
     ].join('\n');
 
-    const { errors } = driverYmlToOpenisdAndWdr(both);
+    const { errors } = driverYmlToOpenisdAndWdr(both, engine);
     const twoThings = errors.filter(e => e.message.includes("'specs'") && e.message.includes('not both'));
 
     assert.equal(twoThings.length, 1, `the refusal was reported ${twoThings.length} times: ${errors.map(e => e.message).join(' | ')}`);
@@ -469,7 +472,7 @@ describe('driverYmlToOpenisdAndWdr — one call, both derived files, one error a
     // Asserted here on the ERROR the bridge itself must raise on this path — a field named
     // `wdr-record-round-trip`, distinct from the simpler text-only `wdr-round-trip` check, so a
     // reader of the errors array can tell which leg of the round trip broke.
-    const { wdr, errors } = driverYmlToOpenisdAndWdr(daytonDriverYml());
+    const { wdr, errors } = driverYmlToOpenisdAndWdr(daytonDriverYml(), engine);
     assert.ok(wdr !== null);
     const rtErrors = errors.filter(e => e.field === 'wdr-record-round-trip');
     assert.deepEqual(rtErrors, [], `unexpected: ${JSON.stringify(rtErrors)}`);
@@ -485,7 +488,7 @@ describe('driverYmlToOpenisdAndWdr — one call, both derived files, one error a
   });
 
   it('reports a parse failure as ONE clean error rather than a garbled fallback-validation list', () => {
-    const result = driverYmlToOpenisdAndWdr(': : : not yaml : :');
+    const result = driverYmlToOpenisdAndWdr(': : : not yaml : :', engine);
 
     assert.equal(result.openisd, null, 'no openisd.yml from a record that could not be read');
     assert.equal(result.wdr, null, 'no .wdr from a record that could not be read');
@@ -500,7 +503,7 @@ describe('driverYmlToOpenisdAndWdr — one call, both derived files, one error a
   });
 
   it('a driver.yml that parses to null is refused, naming "null" rather than crashing on .specs', () => {
-    const result = driverYmlToOpenisdAndWdr('');
+    const result = driverYmlToOpenisdAndWdr('', engine);
 
     assert.equal(result.openisd, null);
     assert.equal(result.errors.length, 1);
@@ -508,7 +511,7 @@ describe('driverYmlToOpenisdAndWdr — one call, both derived files, one error a
   });
 
   it('a driver.yml that parses to a scalar is refused, naming its typeof', () => {
-    const result = driverYmlToOpenisdAndWdr('42');
+    const result = driverYmlToOpenisdAndWdr('42', engine);
 
     assert.equal(result.openisd, null);
     assert.equal(result.errors.length, 1);
@@ -516,7 +519,7 @@ describe('driverYmlToOpenisdAndWdr — one call, both derived files, one error a
   });
 
   it('a non-object `specs` passes through unchanged rather than crashing the reject-readings walk', () => {
-    const result = driverYmlToOpenisdAndWdr('specs: 5\n');
+    const result = driverYmlToOpenisdAndWdr('specs: 5\n', engine);
 
     // Not a valid record either way — this is about surviving the walk, not about `specs: 5`
     // becoming a usable driver.
@@ -525,7 +528,7 @@ describe('driverYmlToOpenisdAndWdr — one call, both derived files, one error a
   });
 
   it('a non-object spec SECTION passes through unchanged rather than crashing the reject-readings walk', () => {
-    const result = driverYmlToOpenisdAndWdr('specs:\n  woofer: 5\n');
+    const result = driverYmlToOpenisdAndWdr('specs:\n  woofer: 5\n', engine);
 
     assert.ok(Array.isArray(result.errors));
     assert.ok(result.errors.length > 0, 'a record with no mandatory fields is refused');
@@ -535,7 +538,7 @@ describe('driverYmlToOpenisdAndWdr — one call, both derived files, one error a
 describe('winIsdDriverTextToOpenIsdDriver — the reverse direction, for .wdr/.owdr import', () => {
   it('a .wdr with a stated field the driver schema rejects reads back as errors, not a driver', () => {
     const engine = new Engine();
-    const { wdr } = driverYmlToOpenisdAndWdr(daytonDriverYml());
+    const { wdr } = driverYmlToOpenisdAndWdr(daytonDriverYml(), engine);
     assert.ok(wdr !== null);
     // Corrupt a mandatory, ParState-E ("Q") row so the record this text reads back as fails the
     // same schema that accepted the untouched fixture — a real .wdr's own reader disagreeing with
@@ -551,8 +554,8 @@ describe('winIsdDriverTextToOpenIsdDriver — the reverse direction, for .wdr/.o
 
 describe('the diff primitives — each mismatch arm exercised directly, per their own doc comments', () => {
   it('wdrDriverDiffs reports a snapshot mismatch between two different real .wdr outputs', () => {
-    const a = driverYmlToOpenisdAndWdr(daytonDriverYml());
-    const b = driverYmlToOpenisdAndWdr(scanspeakDriverYml());
+    const a = driverYmlToOpenisdAndWdr(daytonDriverYml(), engine);
+    const b = driverYmlToOpenisdAndWdr(scanspeakDriverYml(), engine);
     assert.ok(a.wdr !== null && b.wdr !== null, 'both fixtures must produce a .wdr, or this proves nothing');
 
     const wa = WinISDDriver.fromWdrIni(a.wdr);
@@ -566,8 +569,8 @@ describe('the diff primitives — each mismatch arm exercised directly, per thei
 
   it('oidDriverDiffs reports a snapshot mismatch between two different real OpenISD drivers', () => {
     const engine = new Engine();
-    const daytonParsed = driverYmlToOpenisdAndWdr(daytonDriverYml());
-    const scanspeakParsed = driverYmlToOpenisdAndWdr(scanspeakDriverYml());
+    const daytonParsed = driverYmlToOpenisdAndWdr(daytonDriverYml(), engine);
+    const scanspeakParsed = driverYmlToOpenisdAndWdr(scanspeakDriverYml(), engine);
     assert.ok(daytonParsed.openisd !== null && scanspeakParsed.openisd !== null);
 
     const daytonRecord = JSON.parse(daytonParsed.openisd);
@@ -594,7 +597,7 @@ describe('the diff primitives — each mismatch arm exercised directly, per thei
     // A real .wdr's rows, but built with an empty header object — `headerField()` then returns
     // `undefined` for brand/model/manufacturer/providedBy/comment/dateAdded, forcing the `?? ""`
     // fallback in `wdrDriverSnapshotJson` rather than a hand-built header disagreeing by design.
-    const { wdr } = driverYmlToOpenisdAndWdr(daytonDriverYml());
+    const { wdr } = driverYmlToOpenisdAndWdr(daytonDriverYml(), engine);
     assert.ok(wdr !== null);
     const real = WinISDDriver.fromWdrIni(wdr);
     const noHeader = WinISDDriver.build({}, real.rows(), []);
@@ -618,7 +621,7 @@ describe('the diff primitives — each mismatch arm exercised directly, per thei
 describe('wdrRecordRoundTripDiffs — the .wdr -> record leg refusing to read back', () => {
   it('reports wdr-record-round-trip when the .wdr we hold reads back as a record the driver seam refuses', () => {
     const engine = new Engine();
-    const { openisd, wdr } = driverYmlToOpenisdAndWdr(daytonDriverYml());
+    const { openisd, wdr } = driverYmlToOpenisdAndWdr(daytonDriverYml(), engine);
     assert.ok(openisd !== null && wdr !== null);
 
     const driver1 = OpenISDDriver.fromConformingRecord(JSON.parse(openisd), engine);
@@ -651,8 +654,8 @@ describe('wdrRecordRoundTripDiffs — the .wdr -> record leg refusing to read ba
     // `oidDriverDiffs`/`wdrDriverDiffs` on the success path, past the `Array.isArray(driver3)` guard
     // the test above covers.
     const engine = new Engine();
-    const daytonParsed = driverYmlToOpenisdAndWdr(daytonDriverYml());
-    const scanspeakParsed = driverYmlToOpenisdAndWdr(scanspeakDriverYml());
+    const daytonParsed = driverYmlToOpenisdAndWdr(daytonDriverYml(), engine);
+    const scanspeakParsed = driverYmlToOpenisdAndWdr(scanspeakDriverYml(), engine);
     assert.ok(daytonParsed.openisd !== null && scanspeakParsed.wdr !== null);
 
     const driver1 = OpenISDDriver.fromConformingRecord(JSON.parse(daytonParsed.openisd), engine);
@@ -679,7 +682,7 @@ describe('driverYmlToOpenisdAndWdr — WinISD-safe text', () => {
   }
 
   it('translates the characters WinISD cannot draw out of openisd.json', () => {
-    const { openisd } = driverYmlToOpenisdAndWdr(daytonWithUnsafeText());
+    const { openisd } = driverYmlToOpenisdAndWdr(daytonWithUnsafeText(), engine);
     assert.ok(openisd !== null, 'the fixture must still project');
 
     for (const bad of ['™', '–', '“', '”', '″', '…', ' ']) {
@@ -690,7 +693,7 @@ describe('driverYmlToOpenisdAndWdr — WinISD-safe text', () => {
   });
 
   it('removes the 0xA4-carrying characters that would corrupt the .wdr', () => {
-    const { openisd } = driverYmlToOpenisdAndWdr(daytonWithUnsafeText());
+    const { openisd } = driverYmlToOpenisdAndWdr(daytonWithUnsafeText(), engine);
     assert.ok(openisd !== null);
 
     assert.ok(!openisd.includes('ä'), 'a-with-diaeresis is C3 A4 and tears a .wdr value in half');
@@ -700,7 +703,7 @@ describe('driverYmlToOpenisdAndWdr — WinISD-safe text', () => {
   });
 
   it('leaves the .wdr free of them too, because it is built from the cleaned record', () => {
-    const { wdr } = driverYmlToOpenisdAndWdr(daytonWithUnsafeText());
+    const { wdr } = driverYmlToOpenisdAndWdr(daytonWithUnsafeText(), engine);
     assert.ok(wdr !== null, 'a woofer record must produce a .wdr');
 
     for (const bad of ['™', '–', '“', '”', '″', '…', ' ', 'ä', '≤']) {
@@ -709,7 +712,7 @@ describe('driverYmlToOpenisdAndWdr — WinISD-safe text', () => {
   });
 
   it('reports every rewrite as a warn naming the field and both characters', () => {
-    const { errors } = driverYmlToOpenisdAndWdr(daytonWithUnsafeText());
+    const { errors } = driverYmlToOpenisdAndWdr(daytonWithUnsafeText(), engine);
     const rewrites = errors.filter((e) => e.field.startsWith('winisd-safe-text'));
 
     assert.ok(rewrites.length > 0, 'a rewrite nobody is told about is a silent edit');
@@ -721,7 +724,7 @@ describe('driverYmlToOpenisdAndWdr — WinISD-safe text', () => {
   });
 
   it('says nothing about a record that needed no rewrite', () => {
-    const { errors } = driverYmlToOpenisdAndWdr(daytonDriverYml());
+    const { errors } = driverYmlToOpenisdAndWdr(daytonDriverYml(), engine);
     assert.deepEqual(errors.filter((e) => e.field.startsWith('winisd-safe-text')), []);
   });
 });

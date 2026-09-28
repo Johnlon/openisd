@@ -247,6 +247,50 @@ export default [
     },
   },
 
+  // ── A hook's interface is the panel's vocabulary, not a window onto the engine ─────────
+  // `updatePassFilter: Engine['updatePassFilter']` borrows an engine method's type into a hook's
+  // API, and `engine.updatePassFilter.bind(engine)` hands the method itself through. Both make
+  // the hook a proxy for the engine instead of a component that HOLDS it (John, 2026-09-28:
+  // "there is no need for the hooks to refer to the engine that way at all — define your own
+  // interface"). The engine is a constructor argument, kept private; each method says what the
+  // panel does and calls the engine inside.
+  {
+    files: ['packages/ui/src/**/*.{ts,vue}'],
+    rules: {
+      'no-restricted-syntax': ['error',
+        {
+          selector: 'TSIndexedAccessType > TSTypeReference[typeName.name="Engine"]',
+          message: "A hook declares its own method, in the panel's words, and calls the engine inside it. `Engine['x']` makes the hook a window onto the engine.",
+        },
+        {
+          selector: 'CallExpression[callee.property.name="bind"][arguments.0.name="engine"]',
+          message: 'Hand out a method of your own that calls the engine, not the engine\'s method itself.',
+        },
+      ],
+    },
+  },
+
+  // ── No re-exports outside a package entry point ────────────────────────────────────────
+  // QO86 (2026-08-23): "never a re-exported symbol"; John, 2026-09-28: "re-exporting generally
+  // is an evil I'd like the linters to stop". A module exports what it declares. The barrels
+  // that ARE a package's door (`index.ts`) are the one place a re-export is the point.
+  {
+    files: ['packages/**/*.ts'],
+    ignores: ['**/index.ts'],
+    rules: {
+      'no-restricted-syntax': ['error',
+        {
+          selector: 'ExportAllDeclaration',
+          message: 'No `export * from`: a module exports what it declares. Import from the declaring module.',
+        },
+        {
+          selector: 'ExportNamedDeclaration[source]',
+          message: 'No `export {x} from`: a module exports what it declares. Import from the declaring module.',
+        },
+      ],
+    },
+  },
+
   // ── A Filter variant has one name ──────────────────────────────────────────────────────
   // `packages/design/engine/types.ts` names every filter variant (`PassFilter`, `ShelfFilter`,
   // …) and every editor patch (`PassPatch`, …). `Extract<Filter, {type: 'lowpass' | …}>` is

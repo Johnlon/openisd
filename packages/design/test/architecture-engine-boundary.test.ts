@@ -116,6 +116,28 @@ describe('the engine is reachable only through its door', () => {
     ].join(' ')).toEqual([]);
   });
 
+  it('the engine is constructed in a composition root, nowhere else', () => {
+    // One `new Engine` per process: the app's (`appState.ts`) and the Python bridge's
+    // (`winisd/bridge.ts`). Anything else building its own engine is a component that should
+    // have been handed one (John, 2026-09-28: "composition in one place"). Tests build what
+    // they need.
+    const roots = new Set(['packages/ui/src/logic/appState.ts', 'packages/design/winisd/bridge.ts']);
+    const offences: string[] = [];
+    for (const file of sourceFiles()) {
+      const rel = path.relative(repoRoot, file).split(path.sep).join('/');
+      if (/\/test\/|\.test\.|\.spec\./.test(rel) || roots.has(rel)) continue;
+      const text = fs.readFileSync(file, 'utf8');
+      for (const m of text.matchAll(/new Engine\(/g)) {
+        const line = text.slice(0, m.index).split('\n').length;
+        // A mention in a comment is prose, not construction.
+        const lineText = text.split('\n')[line - 1] ?? '';
+        if (/^\s*(\/\/|\*|\/\*)/.test(lineText)) continue;
+        offences.push(`${rel}:${line}`);
+      }
+    }
+    expect(offences, 'Only a composition root constructs the engine; a component receives it.').toEqual([]);
+  });
+
   it('the door exports Engine, and no loose functions', () => {
     const door = fs.readFileSync(engineDoor, 'utf8');
 
