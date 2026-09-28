@@ -1,6 +1,6 @@
 import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import type {BoxType, SweepParams} from '../../engine/index.js';
+import type {SweepParams} from '../../engine/index.js';
 import {Engine} from '../../engine/index.js';
 import {driverParams, solveConsistencyGroup} from './testSolver.js';
 
@@ -85,16 +85,15 @@ describe('circuit — acoustic circuit branches', () => {
       'two radiators in parallel must load the box differently than one');
   });
 
-  it('an unsimulatable box type (bandpass6, abc) is not refused by solve() itself — it throws reading an unassigned Complex', () => {
-    // types.ts documents simulatableBoxType() as the ONE place that narrows BoxType and expects
-    // every engine entry point to refuse a non-simulatable type by name. Engine.sweep/solve do
-    // not perform that check themselves (the caller is expected to via
-    // Engine.simulatableBoxType() first) — this test documents the actual, current failure mode
-    // of calling through anyway, it does not endorse it as the desired behaviour.
-    assert.throws(
-      () => engine.sweep(DRV, LE_H, 'bandpass6' as BoxType, P_SEALED),
-      /Cannot read properties of undefined/,
-    );
+  it('bandpass6/abc are simulatable, but still refuse to draw a curve missing Fr/Ff — NaN, caught by the postcondition, never a throw', () => {
+    // `Bandpass6Box`/`AbcBox` read Fr/Ff off `SweepParams` with `?? NaN` (their own doc), never
+    // a `!`/throw — the standard "poison, don't crash" contract every box class follows. `P_SEALED`
+    // states neither, so the sweep runs to completion (no exception) but every value is NaN, which
+    // `classifyFinite` names as a postcondition issue rather than a false "clean" result.
+    const result = engine.sweep(DRV, LE_H, 'bandpass6', P_SEALED);
+    assert.ok(result.values, 'sweep itself must not refuse — the precondition layer is solveBoxParams, not this');
+    assert.notEqual(engine.classifyFinite(result.values!), null,
+      'a design missing Fr/Ff must be classified as non-finite, not silently drawn');
   });
 
   it('sealed box lossMode: "winisd-lossy" produces higher low-frequency group delay than "conventional-lossy"', () => {

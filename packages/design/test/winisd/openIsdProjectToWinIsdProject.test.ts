@@ -5,9 +5,8 @@
  * so the values asserted here are traceable to files WinISD itself produced, not invented.
  *
  * Scope: sealed, vented, bandpass4, box-passive-radiator — the four `SimulatableBoxType`s, and
- * the four box types the golden corpus covers. `bandpass6`/`abc` have real WinISD-written
- * samples under `docs/samples/` but no golden fixtures here and are not simulated
- * (`packages/design/engine/types.ts` `SimulatableBoxType`) — out of scope for this bridge.
+ * the four box types the golden corpus covers. `bandpass6`/`abc` (`BType` 3/5) are covered
+ * separately, in `bp6-abc-wpr.test.ts`, against two real WinISD-written `.wpr` files each.
  */
 import {describe, it, vi} from 'vitest';
 import assert from 'node:assert/strict';
@@ -324,20 +323,16 @@ describe('openIsdProjectToWinIsdProject — null-fallback and unsupported-type b
     assert.ok(block![1].includes('Me=0'));
   });
 
-  it('bandpass6/abc box types are reported as unsupported, never guessed', () => {
+  it('bandpass6/abc box types export with BType 3/5 — see bp6-abc-wpr.test.ts for the full coverage', () => {
     const engine = new Engine();
     const driver = aDriver(engine, 'QO8', 'test');
     const project = OpenISDProject.builder(driver, engine).bandpass6()
       .rearVolume_m3(0.01).rearTuning_hz(40).frontVolume_m3(0.02).frontTuning_hz(60).build();
 
-    const { value, errors } = openIsdProjectToWinIsdProject(project, engine);
-    assert.equal(value, null);
-    assert.equal(errors.length, 1);
-    assert.equal(errors[0].field, 'boxType');
-    assert.equal(
-      errors[0].message,
-      'Unsupported box type "bandpass6": WinISD export supports sealed, vented, 4th-order bandpass, and passive radiator box types.',
-    );
+    const { value: wpr, errors } = openIsdProjectToWinIsdProject(project, engine);
+    assert.equal(errors.length, 0, JSON.stringify(errors));
+    if (!wpr) throw new Error('expected a WinISDProject');
+    assert.match(wpr.toWpr(), /\[Box\]\r?\nBType=3\r?\n/);
   });
 
   it('sealed [Box] Fr falls back to WinISD\'s own template default (0) when resonance is not computable', () => {
@@ -511,7 +506,7 @@ describe('winIsdProjectToOpenIsdProject — .wpr text back to a project (round t
     assert.equal(errors[0].field, 'BType');
     assert.equal(
       errors[0].message,
-      'Unsupported or missing box type (BType=undefined): WinISD import supports sealed (0), vented (1), 4th-order bandpass (2), and passive radiator (4) boxes.'
+      'Unsupported or missing box type (BType=undefined): WinISD import supports sealed (0), vented (1), 4th-order bandpass (2), passive radiator (4), 6th-order bandpass (3) and ABC (5) boxes.'
     );
   });
 

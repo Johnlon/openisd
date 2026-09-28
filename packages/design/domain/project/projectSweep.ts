@@ -69,6 +69,12 @@ function sweepParamsOf(source: ProjectSweepSource, P: FrequencyGrid, eg: number,
         case 'vented': losses = {Ql: box.vented.losses.Ql.value, Qa: box.vented.losses.Qa.value, Qp: box.vented.losses.Qp.value}; break;
         case 'bandpass4': losses = {Ql: box.bandpass4.chambers.rear.losses.Ql.value, Qa: box.bandpass4.chambers.rear.losses.Qa.value}; break;
         case 'box-passive-radiator': losses = {Ql: box.passiveRadiator.losses.Ql.value, Qa: box.passiveRadiator.losses.Qa.value}; break;
+        // Same "rear chamber feeds the shared slot" convention as `bandpass4` above — the
+        // `winisd-lossy` branch never reads this shared `Ql`/`Qa` at all (it reads each
+        // chamber's own `Qlr`/`Qar`/`Qlf`/`Qaf` off `boxSpecificParamsOf` below); this only
+        // backstops `lossless`/`conventional-lossy`.
+        case 'bandpass6': losses = {Ql: box.bandpass6.chambers.rear.losses.Ql.value, Qa: box.bandpass6.chambers.rear.losses.Qa.value}; break;
+        case 'abc': losses = {Ql: box.abc.chambers.rear.losses.Ql.value, Qa: box.abc.chambers.rear.losses.Qa.value}; break;
     }
 
     return {
@@ -105,13 +111,15 @@ function boxVolume_m3Of(source: ProjectSweepSource, boxType: SimulatableBoxType)
         case 'vented': return box.vented.volume_m3.value;
         case 'bandpass4': return box.bandpass4.chambers.rear.volume_m3.value;
         case 'box-passive-radiator': return box.passiveRadiator.volume_m3.value;
+        case 'bandpass6': return box.bandpass6.chambers.rear.volume_m3.value;
+        case 'abc': return box.abc.chambers.rear.volume_m3.value;
     }
 }
 
 /** The fields only one box topology reads — the vent's `Sp`/`Leff` for `vented`/`bandpass4`, the
  *  passive radiator's five for `box-passive-radiator`. Geometry only (`area_m2()`,
  *  `effectiveLength_m()`), never acoustics, per the original file's header ruling. */
-function boxSpecificParamsOf(source: ProjectSweepSource, boxType: SimulatableBoxType | 'sealed' | 'bandpass6' | 'abc'): Partial<SweepParams> {
+function boxSpecificParamsOf(source: ProjectSweepSource, boxType: SimulatableBoxType): Partial<SweepParams> {
     const box = source.box;
     switch (boxType) {
         case 'vented': {
@@ -154,11 +162,40 @@ function boxSpecificParamsOf(source: ProjectSweepSource, boxType: SimulatableBox
                 Fr: Fr ?? undefined,
             };
         }
-        // No box-specific geometry: sealed has no vent or radiator, and the engine has no circuit
-        // for bandpass6 or abc at all (`simulatableBoxType`).
+        case 'bandpass6': {
+            const rear = box.bandpass6.chambers.rear;
+            const front = box.bandpass6.chambers.front;
+            const Sp = box.bandpass6.vents.front.totalArea_m2();
+            const Spr = box.bandpass6.vents.rear.totalArea_m2();
+            // Same "each chamber's own losses, never the shared Ql/Qa/Qp" reasoning as
+            // `bandpass4` above — `Bandpass6Box`'s `winisd-lossy` branch reads these directly
+            // (`SweepParams.Qpr`'s own doc).
+            return {
+                Vf: front.volume_m3.value, Sp: Sp ?? undefined, Spr: Spr ?? undefined,
+                Qlr: rear.losses.Ql.value, Qar: rear.losses.Qa.value, Qpr: rear.losses.Qp.value,
+                Qiclfr: rear.losses.Qicl.value,
+                Qlf: front.losses.Ql.value, Qaf: front.losses.Qa.value, Qpf: front.losses.Qp.value,
+                Fr: rear.tuning_goal_hz.value ?? undefined, Ff: front.tuning_goal_hz.value ?? undefined,
+            };
+        }
+        case 'abc': {
+            const rear = box.abc.chambers.rear;
+            const front = box.abc.chambers.front;
+            const Sp = box.abc.vents.front.totalArea_m2();
+            const Spr = box.abc.vents.rear.totalArea_m2();
+            const SpIntra = box.abc.vents.intra.totalArea_m2();
+            const LeffIntra = box.abc.vents.intra.effectiveLength_m();
+            return {
+                Vf: front.volume_m3.value, Sp: Sp ?? undefined, Spr: Spr ?? undefined,
+                Qlr: rear.losses.Ql.value, Qar: rear.losses.Qa.value, Qpr: rear.losses.Qp.value,
+                Qiclfr: rear.losses.Qicl.value,
+                Qlf: front.losses.Ql.value, Qaf: front.losses.Qa.value, Qpf: front.losses.Qp.value,
+                Fr: rear.tuning_goal_hz.value ?? undefined, Ff: front.tuning_goal_hz.value ?? undefined,
+                SpIntra: SpIntra ?? undefined, LeffIntra: LeffIntra ?? undefined,
+            };
+        }
+        // sealed has no vent or radiator.
         case 'sealed':
-        case 'bandpass6':
-        case 'abc':
             return {};
     }
 }
@@ -169,33 +206,51 @@ function engineBoxTypeOf(source: ProjectSweepSource): SimulatableBoxType | null 
     return source.engine.simulatableBoxType(source.box.boxType.value);
 }
 
-/** The ACTIVE vent's cached issues (`vented`'s or `bandpass4`'s front — S2-7d2: `#resolve()`
- *  already ran `solveVent` for whichever is active, so this is a thin read, not a second solve).
- *  `solveVent`'s issues deliberately stay empty when NO target is stated at all (pinned by
- *  `engine/vent-pr-consistency.test.ts`: "no target chosen yet" is not a per-field error), so
- *  this guard adds the no-resonance case on top: a port that still has neither `tuning_goal_hz`
- *  nor `length_m` blocks the whole sweep, in the terms the sweep's `Leff` actually runs by. */
-function ventSweepIssuesOf(source: ProjectSweepSource, box: 'vented' | 'bandpass4'): readonly VentIssue[] {
+/** One port's own "neither tuning nor length stated" check — the body `ventSweepIssuesOf` used
+ *  to run inline for `vented`'s single port, generalised so `bandpass6`/`abc` can run it once per
+ *  chamber (each of their two ports is a `VentedChamber`/`Vent` pair on the SAME terms as
+ *  `vented`'s own). `solveVent`'s issues deliberately stay empty when NO target is stated at all
+ *  (pinned by `engine/vent-pr-consistency.test.ts`: "no target chosen yet" is not a per-field
+ *  error), so this guard adds the no-resonance case on top: a port that still has neither
+ *  `tuning_goal_hz` nor `length_m` blocks the whole sweep, in the terms the sweep's `Leff`
+ *  actually runs by. */
+function portTuningIssuesOf(
+    engine: ProjectSweepSource['engine'], tuningCell: {value: number | null}, vent: Box['vented']['vent'], Vb: number | null,
+): readonly VentIssue[] {
+    if (tuningCell.value != null || vent.length_m.value != null) return [];
+    const area = vent.area_m2.value;
+    const required = ['tuning_goal_hz', 'Vb_m3', 'area_m2'] as const;
+    const values: Readonly<Record<typeof required[number], number | null>> =
+        { tuning_goal_hz: null, Vb_m3: Vb, area_m2: area };
+    const missing = required.filter((f) => !(typeof values[f] === 'number' && values[f]! > 0));
+    return [engine.missingDependencies('length_m',
+        [{formula: 'length_m from tuning_goal_hz + Vb_m3 + area_m2 (Helmholtz)', required, missing}])];
+}
+
+/** The ACTIVE vent(s)' cached issues (S2-7d2: `#resolve()` already ran `solveVent` for whichever
+ *  is active, so this is a thin read, not a second solve) plus `portTuningIssuesOf`'s own guard —
+ *  `vented`'s single port, `bandpass4`'s front, or BOTH of `bandpass6`/`abc`'s (their rear port is
+ *  vented too, unlike `bandpass4`'s sealed rear chamber). */
+function ventSweepIssuesOf(source: ProjectSweepSource, box: 'vented' | 'bandpass4' | 'bandpass6' | 'abc'): readonly VentIssue[] {
     if (source.ventIssues.length) return source.ventIssues;
     const b = source.box;
-    const tuningCell = box === 'vented'
-        ? b.vented.tuning_goal_hz
-        : b.bandpass4.chambers.front.tuning_goal_hz;
-    const vent = box === 'vented' ? b.vented.vent : b.bandpass4.vents.front;
-    const Vb = box === 'vented'
-        ? b.vented.volume_m3.value
-        : b.bandpass4.chambers.front.volume_m3.value;
-    const lengthCell = vent.length_m;
-    if (tuningCell.value == null && lengthCell.value == null) {
-        const area = vent.area_m2.value;
-        const required = ['tuning_goal_hz', 'Vb_m3', 'area_m2'] as const;
-        const values: Readonly<Record<typeof required[number], number | null>> =
-            { tuning_goal_hz: null, Vb_m3: Vb, area_m2: area };
-        const missing = required.filter((f) => !(typeof values[f] === 'number' && values[f]! > 0));
-        return [source.engine.missingDependencies('length_m',
-            [{formula: 'length_m from tuning_goal_hz + Vb_m3 + area_m2 (Helmholtz)', required, missing}])];
+    switch (box) {
+        case 'vented':
+            return portTuningIssuesOf(source.engine, b.vented.tuning_goal_hz, b.vented.vent, b.vented.volume_m3.value);
+        case 'bandpass4':
+            return portTuningIssuesOf(source.engine, b.bandpass4.chambers.front.tuning_goal_hz,
+                b.bandpass4.vents.front, b.bandpass4.chambers.front.volume_m3.value);
+        case 'bandpass6':
+        case 'abc': {
+            const twoChamber = box === 'bandpass6' ? b.bandpass6 : b.abc;
+            return [
+                ...portTuningIssuesOf(source.engine, twoChamber.chambers.rear.tuning_goal_hz,
+                    twoChamber.vents.rear, twoChamber.chambers.rear.volume_m3.value),
+                ...portTuningIssuesOf(source.engine, twoChamber.chambers.front.tuning_goal_hz,
+                    twoChamber.vents.front, twoChamber.chambers.front.volume_m3.value),
+            ];
+        }
     }
-    return [];
 }
 
 /** The PR equivalent of `ventSweepIssuesOf` — the cached issues from `#resolve()`'s own
@@ -211,7 +266,9 @@ function prSweepIssuesOf(source: ProjectSweepSource): readonly PrIssue[] {
  *  vented/bandpass4 port with neither a stated tuning nor a stated port length, or a
  *  passive-radiator mismatch target with neither a stated added mass nor a stated tuning. */
 function boxSweepIssuesOf(source: ProjectSweepSource, box: SimulatableBoxType): readonly SweepIssue[] {
-    if (box === 'vented' || box === 'bandpass4') return ventSweepIssuesOf(source, box);
+    if (box === 'vented' || box === 'bandpass4' || box === 'bandpass6' || box === 'abc') {
+        return ventSweepIssuesOf(source, box);
+    }
     if (box === 'box-passive-radiator') return prSweepIssuesOf(source);
     return [];
 }

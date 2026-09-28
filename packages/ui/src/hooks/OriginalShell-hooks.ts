@@ -231,6 +231,7 @@ export const CHART_LABELS: Record<ChartId, string> = {
   RearPortGain: 'Rear port - Gain',
   FrontPort: 'Front port - Air velocity',
   FrontPortGain: 'Front port - Gain',
+  IntraPort: 'Intra-chamber port - Air velocity',
   FltMag: 'Transfer function magnitude (EQ/Filter)',
   FltPhase: 'Transfer function phase (EQ/Filter)',
   FltGD: 'Group Delay (EQ/Filter)',

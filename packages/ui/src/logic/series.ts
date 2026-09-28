@@ -35,6 +35,9 @@ export const TAB_META: Record<ChartId, TabMeta> = {
   // Same 0 dB / -3 dB passband-asymptote convention as RearPortGain (packages/design/engine/sweep.ts
   // frontPortGain, the SAME computation as rearPortGain reused) — run through the filter chain.
   FrontPortGain: { id:'FrontPortGain', name:'Front port - Gain', unit:'dB', color:'#4fb0ff' },
+  // ABC only (WinISD chart-21, GHIDRA_FINDINGS.md "ABC (Aperiodic Bi-Chamber)" "Charts" bullet) —
+  // same air-velocity quantity/hue as RearPort/FrontPort, off `sw.pvIntra`.
+  IntraPort: { id:'IntraPort', name:'Intra-chamber port - Air velocity', unit:'m/s', color:'#5ad17a' },
   GD:        { id:'GD',        name:'Group delay',     unit:'ms',  color:'#c08bff' },
   Zmag:      { id:'Zmag',      name:'Impedance',       unit:'Ω',   color:'#ff6b6b' },
   Zph:       { id:'Zph',       name:'Impedance phase', unit:'°',   color:'#ff9bb0' },
@@ -92,14 +95,19 @@ interface CurveCtx {
 /** A builder's output. `logy` defaults to false; `unit` always comes from the tab's meta. */
 type CurveBuild = { series: Series[]; ymin: number; ymax: number; logy?: boolean };
 
-/** Port air velocity — shared by `RearPort` (vented) and `FrontPort` (bandpass4): same
- *  quantity (`sw.pv`), same Mach-limit reference line, only the port itself differs. */
-function portVelocityBuild({ engine, meta, sw, pick }: CurveCtx): CurveBuild {
-  const series: Series[] = [{ ...pick(sw.pv), color: meta.color, name: 'Port vel' }];
+/** Port air velocity — shared by `RearPort` (vented, `bandpass6`, `abc`), `FrontPort`
+ *  (`bandpass4`, `bandpass6`, `abc`) and `IntraPort` (`abc`): same quantity, same Mach-limit
+ *  reference line, only the array differs. `vel` is `sw.pv` for `FrontPort` (`Solution.UP`'s own
+ *  doc: `pv` is already the FRONT port for the two-port boxes); `RearPort` reads `sw.pvRear` when
+ *  present (`bandpass6`/`abc`) and falls back to `sw.pv` otherwise (`vented`, whose one port IS
+ *  the rear one — `SweepResult.pvRear`'s own doc); `IntraPort` reads `sw.pvIntra` (`null` outside
+ *  `abc`'s own `winisd-lossy` branch, drawn as a flat zero rather than hiding the chart). */
+function portVelocityBuild({ engine, meta, sw, pick }: CurveCtx, vel: number[]): CurveBuild {
+  const series: Series[] = [{ ...pick(vel), color: meta.color, name: 'Port vel' }];
   // FIXME - magic number - what is 0.05 representing?
   const machLimit = 0.05 * engine.solveEnvironment({}).values.c;
   series.push({ xs: sw.fs, ys: sw.fs.map(() => machLimit), color:'#ffb454', name:'17 m/s', dash:true });
-  return { series, ymin: 0, ymax: Math.max(20, Math.max(...sw.pv) * 1.1) };
+  return { series, ymin: 0, ymax: Math.max(20, Math.max(...vel) * 1.1) };
 }
 
 /** Port gain — shared by `RearPortGain` (vented) and `FrontPortGain` (bandpass4): same
@@ -214,12 +222,13 @@ const CURVE_BUILDERS: Record<ChartId, (c: CurveCtx) => CurveBuild> = {
   RearPortGain: ({ meta, sw }) => portGainBuild(sw.rearPortGain, 'Rear port gain', meta, sw),
   FrontPortGain: ({ meta, sw }) => portGainBuild(sw.frontPortGain, 'Front port gain', meta, sw),
 
-  // Applicable only to vented (rear) or bandpass4 (front) — design's `chartsFor` gates the
-  // menu; a compare overlay of a different box type draws `pv`'s own 0 curve here, same as
-  // any other chart. One builder, shared by both ids: the port is different, the quantity
-  // and its chart are not.
-  RearPort: (c) => portVelocityBuild(c),
-  FrontPort: (c) => portVelocityBuild(c),
+  // Applicable to vented/bandpass4/bandpass6/abc (rear) or bandpass4/bandpass6/abc (front) —
+  // design's `chartsFor` gates the menu; a compare overlay of a different box type draws `pv`'s
+  // own 0 curve here, same as any other chart. `portVelocityBuild`'s own doc says which array
+  // each id reads.
+  RearPort: (c) => portVelocityBuild(c, c.sw.pvRear ?? c.sw.pv),
+  FrontPort: (c) => portVelocityBuild(c, c.sw.pv),
+  IntraPort: (c) => portVelocityBuild(c, c.sw.pvIntra ?? c.sw.fs.map(() => 0)),
 
   GD: ({ meta, sw, pick }) => {
     const series: Series[] = [{ ...pick(sw.gd), color: meta.color, name: 'Group delay' }];
@@ -365,6 +374,7 @@ export function errorsForChart(chartId: ChartId, errors: DriverError[]): DriverE
       case 'RearPortGain': return 'rear port gain';
       case 'FrontPort': return 'port velocity';
       case 'FrontPortGain': return 'front port gain';
+      case 'IntraPort': return 'port velocity';
       case 'GD': return 'group delay';
       case 'Zmag': return 'impedance magnitude';
       case 'Zph': return 'impedance phase';
