@@ -9,7 +9,7 @@ import {presentationState, setSkinOverride} from '../logic/presentationState.js'
 import {useApp} from '../logic/app.js';
 import {inputFrom} from '../logic/domEvents.js';
 import {injectSplashModal} from './SplashModal-hooks.js';
-import type {TabId} from './OriginalShell-hooks.js';
+import type {TabId} from '../logic/tabId.js';
 
 /** The mobile shell's own destinations: the same tab ids the desktop shell's content panel
  *  uses (so a shared field-wiring caller never has to ask "which shell is this"), plus `graph`

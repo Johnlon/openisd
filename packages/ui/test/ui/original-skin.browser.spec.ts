@@ -73,7 +73,7 @@ test.beforeEach(async ({ page }) => {
 // ---------------------------------------------------------------------------------------------
 const APP_STATE = '/src/logic/appState.ts';
 
-/** The active box's volume in m³, whichever box type is selected — mirrors OriginalShell-hooks. */
+/** The active box's volume in m³, whichever box type is selected — mirrors boxFields.ts. */
 const readVb = (page: Page) =>
   page.evaluate(async (modPath) => {
     const box = (await import(/* @vite-ignore */ modPath)).requireFocusedProject().box;
@@ -592,7 +592,7 @@ test('Signal tab: Series resistance shows WinISD 3-dp precision (0.100 ohm)', as
   await expect(rs).toHaveValue(/^\d+\.\d{3}$/); // WinISD shows series resistance to 3 dp
 });
 
-// P=V²/Re itself is covered by OriginalShell-hooks.test.ts ("setting V commits P = V^2/Re");
+// P=V²/Re itself is covered by driveSignal.test.ts ("setting V commits P = V^2/Re");
 // this proves only that the DOM's voltage field is wired to the visible power readout.
 test('Signal tab: Driver input voltage is editable and drives System input power (W↔V, P=V²/Re)', async ({ page }) => {
   await page.locator('.project-nav li', { hasText: 'Signal' }).click();

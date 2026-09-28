@@ -1,11 +1,12 @@
 /**
  * `MobileSignalTab.vue`'s hook — input power, drive voltage, series resistance. Calls the SAME
- * `createDriveSignal` factory `OriginalShell-hooks.ts` exports.
+ * `createDriveSignal` factory `driveSignal.ts` exports.
  */
 import {computed} from 'vue';
 import {projectChanged} from '../logic/appState.js';
 import {useFocusedProject} from '../logic/focusedProjectContext.js';
-import {createDriveSignal, dqOfCell} from './OriginalShell-hooks.js';
+import {createDriveSignal} from './driveSignal.js';
+import {dqOfCell} from '../logic/cellDataQuality.js';
 
 export function useMobileSignalTab() {
   const project = useFocusedProject();

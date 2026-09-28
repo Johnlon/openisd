@@ -1,11 +1,11 @@
 /**
  * `MobileBoxTab.vue`'s hook — box type, volume, and the calculated resonance/Qtc readout. Calls
- * the SAME field-wiring factories `OriginalShell-hooks.ts` exports — one implementation of
+ * the SAME field-wiring factories `boxFields.ts` exports — one implementation of
  * "what does the Box tab's Volume field do", asked by both shells.
  */
 import {boxTypeIsSimulatable, focusedProject, projectChanged} from '../logic/appState.js';
 import {useFocusedProject} from '../logic/focusedProjectContext.js';
-import {createBoxVolume, createSealedReadouts, createSelectedBox} from './OriginalShell-hooks.js';
+import {createBoxVolume, createSealedReadouts, createSelectedBox} from './boxFields.js';
 import {BOX_TYPE_OPTIONS} from '@openisd/design/fields';
 
 export function useMobileBoxTab() {

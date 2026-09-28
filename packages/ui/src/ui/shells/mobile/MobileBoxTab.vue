@@ -1,7 +1,7 @@
 <script setup lang="ts">
 // The mobile Box tab — box type, volume, and the calculated resonance/Qtc readout. Thin: all
 // state and domain reads/writes live in useMobileBoxTab() (src/hooks/MobileBoxTab-hooks.ts), which
-// calls the SAME field-wiring factories OriginalShell-hooks.ts exports.
+// calls the SAME field-wiring factories src/hooks/boxFields.ts exports.
 import {NumberField} from '@openisd/design/fields';
 import BoxTypeDiagram from '../../components/BoxTypeDiagram.vue';
 import NumInput from '../../components/NumInput.vue';

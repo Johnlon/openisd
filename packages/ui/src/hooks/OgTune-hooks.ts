@@ -40,7 +40,7 @@ export function useOgTune(): OgTuneAPI {
   // its whole life, so `project.value` never invalidates a cached computed after a write. Reading
   // only it froze `vb_m3` at the volume the panel opened with, which NumInput's blur reformat then
   // put back on screen (John, 2026-09-25: "Vb is the only one that's a problem"). Same rule as
-  // `createBoxVolume` in `OriginalShell-hooks.ts`.
+  // `createBoxVolume` in `boxFields.ts`.
   const ebp = computed(() => {
     void projectChanged.value; void project.value;
     const ts = project.value.driver.specs;
