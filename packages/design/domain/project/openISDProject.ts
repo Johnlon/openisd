@@ -3,7 +3,7 @@ import {Engine} from '../../engine/index.js';
 import type { Air, AirEnvironment, BoxParamsIssue, BoxType, ChartId, DriverError, EnclosureParams, Filter, MaxCurvesResult, MaxCurvesSolveResult, PrIssue, SimulatableBoxType, SweepIssue, SweepParams, SweepResult, SweepSolveResult, VentIssue } from '../../engine/index.js';
 import { realAppContext } from '../appContext.js';
 import type { AppContext } from '../appContext.js';
-import { CalculatedFieldImpl, DefaultingFieldImpl, DualWriteFieldImpl, SetOnlyFieldImpl, absentCell, calculatedCell, defaultingEntryField, enteredCell, focus, simpleField, writeEntryDq } from '../cell.js';
+import { CalculatedFieldImpl, DefaultingFieldImpl, DualWriteFieldImpl, absentCell, calculatedCell, defaultingEntryField, enteredCell, focus, simpleField, writeEntryDq } from '../cell.js';
 import type { Calculatable, Calculated, Clearable, Entered, Readable, SimpleField, Unsolvable, Writable } from '../cell.js';
 import { newUuid } from '../newUuid.js';
 import { openIsdProjectToWinIsdProject, winIsdProjectToOpenIsdProject } from '../openIsdProjectToWinIsdProject.js';
@@ -23,6 +23,7 @@ import type { DragRange } from './dragRange.js';
 import type { EnvironmentField, EnvironmentFields } from './environmentFields.js';
 import { freshEmbeddedDriver } from './freshEmbeddedDriver.js';
 import type { ProjectIssues } from './projectIssues.js';
+import { ProjectMeta } from './projectMeta.js';
 import { ProjectListeners } from './projectListeners.js';
 import { resolveProject } from './projectResolve.js';
 
@@ -211,34 +212,34 @@ export class OpenISDProject {
         return this.#boxOver(this.#root());
     }
 
+    /** This project's metadata window, built fresh on every access — same reasoning as
+     *  `driver`/`box` above. */
+    #meta(): ProjectMeta {
+        return ProjectMeta.wrap(this.#slot('meta'));
+    }
+
     /** What the user calls this project. A LABEL, not an identity — two projects may share one,
      *  which is exactly why `uuid()` exists. */
     get name(): SimpleField<string> {
-        return focus(this.#slot('meta'), 'name');
+        return this.#meta().name;
     }
 
     /** WinISD Project tab: who made this project, and when. */
     get creator(): SimpleField<string> {
-        return focus(this.#slot('meta'), 'creator');
+        return this.#meta().creator;
     }
 
     get created(): SimpleField<string> {
-        return focus(this.#slot('meta'), 'created');
+        return this.#meta().created;
     }
 
     get modified(): SimpleField<string> {
-        return focus(this.#slot('meta'), 'modified');
+        return this.#meta().modified;
     }
 
     /** WinISD Project tab: the user's own note about this project. Stored, never interpreted. */
     get description(): Readable<string> & Entered & Writable<string> {
-        const lens = this.#slot('meta');
-        return new SetOnlyFieldImpl<string>(
-            () => enteredCell('description', lens.value.description),
-            {
-                entered: (v: string) => lens.set({...lens.value, description: v}),
-            },
-        );
+        return this.#meta().description;
     }
 
     /** The signal-chain filter list. */
