@@ -89,10 +89,7 @@ const slots = hmrSlots<AppStateSingletons>(
 
 // ---- Application settings: what the user set for the APP, not for a project ---------------
 // The band that decides which designed values get a DQ mark is one of these (John 2026-09-22:
-// "we can make the limits application level limit settings in a new settings tab"). It reaches
-// a calculation through the collaborator `new Engine(...)` is constructed with, generalised to
-// `AppSettings` so every future app-level setting is a member on that interface rather than a
-// parameter threaded down to whatever needed it.
+// "we can make the limits application level limit settings in a new settings tab").
 //
 // Memory-backed until the composition root installs the browser-backed repo: nothing above
 // `main.ts` may open `localStorage`, and an uninstalled app reads the factory band, which is
@@ -519,9 +516,6 @@ export const maxData    = max;
 const curveIssues = computed<DriverError[]>(() => {
   const sw = curves.value, mx = max.value;
   const p = live.value;
-  // BUG_20260906: this used to construct its own `new Engine()` to answer a question the
-  // focused project can already answer about its own sweep — the project is asked here instead,
-  // through the three classify delegates it already exposes (`openisdDomain.ts`).
   if (!sw || !p) return [];
   // classifyFinite: a singularity made the curve undrawable. classifyMaxFinite: the same
   // question asked of the Max-SPL/Max-power pair, which is computed after the sweep and can

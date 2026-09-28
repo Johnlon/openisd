@@ -52,7 +52,7 @@ import type {
   TargetUnreachableIssue,
 } from './consistency.js';
 import {
-  inconsistentInputs, issueFields, issueFormula, missingDependencies, nonNegativeValueIssue,
+  inconsistentInputs, issueFormula, missingDependencies, nonNegativeValueIssue,
   outOfRange, positiveValueIssue, targetUnreachable,
 } from './consistency.js';
 import {isPhysicallyPlausible} from './physicalRange.js';
@@ -207,14 +207,6 @@ export class Engine {
    *  V = √(P·Re) as calculated. Without Re: P not available, with the issue naming Re. */
   solveSignal(p: SignalSolverParams): readonly SignalIssue[] {
     return solveSignal(p);
-  }
-
-  /** Every field one `CalculationIssue` names, whichever domain it comes from — the target,
-   *  plus (for `missing-dependencies`) every field any of its routes requires or is still
-   *  missing. One generic answer so a caller never re-derives "does this issue name that
-   *  field" per channel. */
-  issueFields<Q extends string>(issue: CalculationIssue<Q>): readonly Q[] {
-    return issueFields(issue);
   }
 
   /** The formula text for one issue — the single formula for `inconsistent-inputs`, or every

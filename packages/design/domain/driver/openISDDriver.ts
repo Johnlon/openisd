@@ -148,6 +148,17 @@ export abstract class OpenISDDriver extends OpenISDDevice {
         return this.specs.issues();
     }
 
+    /** Whether `field` is one the driver still needs and cannot derive — it is named by a
+     *  `missing-dependencies` issue, so something depending on it is blocked until it is stated.
+     *  The editor and Tune both mark such a cell; asking here is what stops them disagreeing. */
+    fieldIsMandatoryAndUnsatisfied(field: string): boolean {
+        return this.issues().some(issue => {
+            if (issue.kind !== 'missing-dependencies') return false;
+            const named: readonly string[] = issue.fields;
+            return named.includes(field);
+        });
+    }
+
     /** Voice-coil inductance, as the record states it. Not a solver quantity — nothing derives it
      *  — so it travels to `sweep` on its own, for the impedance plot alone. */
     Le_H(): number | null {

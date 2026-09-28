@@ -1,6 +1,4 @@
 import type {Calculated, Entered, Readable} from '@openisd/design';
-import type {DriverIssue} from '@openisd/design/engine';
-import {Engine} from '@openisd/design/engine';
 import type {SpecField} from './appState.js';
 import type {ProvenanceLetter} from './fieldProvenance.js';
 import {provenanceOf} from './fieldProvenance.js';
@@ -52,24 +50,3 @@ export function cellClassFor<K extends string = SpecField>(
   return cellClassOf(cellOf(field));
 }
 
-/**
- * Is this field REQUIRED-BUT-UNSATISFIED — named by a `missing-dependencies` issue, either as
- * the target that could not be solved or as one of the fields a blocked route still needs?
- *
- * One question, one answer, over the driver's OWN solve result — not a locally re-derived
- * notion of which fields form a group, which the engine already decided when it returned this
- * issue (`engine.issueFields`, S2-13). A component asks THIS rather than re-deriving group
- * membership itself, so the composition is unit-testable without mounting anything.
- *
- * `field` is the SCHEMA name ('Fs_hz', 'Vas_m3', …) — the same field-table keys an engine issue's own
- * fields use — so there is nothing to translate: a caller holding a display name must resolve it
- * to the schema name before asking (the driver editor's fields ARE schema names).
- */
-export function fieldIsMandatoryAndUnsatisfied(issues: readonly DriverIssue[], field: string): boolean {
-  const engine = new Engine();
-  return issues.some(i => {
-    if (i.kind !== 'missing-dependencies') return false;
-    const named: readonly string[] = engine.issueFields(i);
-    return named.includes(field);
-  });
-}

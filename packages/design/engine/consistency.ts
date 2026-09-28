@@ -20,6 +20,9 @@ export type CalculationIssue<Q extends string> =
       readonly kind: 'missing-dependencies';
       readonly target: Q;
       readonly routes: readonly SolveRoute<Q>[];
+      /** Every field this issue names — the target, plus whatever any blocked route requires or
+       *  is still missing. Stated by the issue so no caller re-derives it. */
+      readonly fields: readonly Q[];
       readonly text: string;
     }
   | {
@@ -117,6 +120,7 @@ export function missingDependencies<Q extends string>(
     kind: 'missing-dependencies',
     target,
     routes,
+    fields: [target, ...routes.flatMap(r => [...r.required, ...r.missing])],
     text: `${target} cannot be calculated yet - state ${blocked}.`,
   };
 }
@@ -174,11 +178,6 @@ export function negativeValue(value: number): NegativeValueIssue {
  *  every field any of its routes requires or is still missing. One generic answer for any
  *  domain's issue union, so a UI or domain caller never re-derives "does this issue name that
  *  field" per channel. */
-export function issueFields<Q extends string>(issue: CalculationIssue<Q>): readonly Q[] {
-  if (issue.kind === 'inconsistent-inputs') return issue.fields;
-  return [issue.target, ...issue.routes.flatMap(r => [...r.required, ...r.missing])];
-}
-
 /** The formula text for one issue — the single formula for `inconsistent-inputs`, or every
  *  blocked route's formula joined for `missing-dependencies`, since more than one route can be
  *  the reason a target is unavailable. */

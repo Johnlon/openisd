@@ -6,16 +6,16 @@ type Q = 'a' | 'b' | 'c' | 'd';
 
 const engine = new Engine();
 
-describe('Engine.issueFields', () => {
-  it('returns fields directly for an inconsistent-inputs issue', () => {
+describe('a calculation issue names its own fields', () => {
+  it('an inconsistent-inputs issue names the group it marks', () => {
     const issue: CalculationIssue<Q> = engine.inconsistentInputs<Q>('a', ['a', 'b'], 'a = b', 1, 2, 1);
-    expect(engine.issueFields(issue)).toEqual(['a', 'b']);
+    expect(issue.fields).toEqual(['a', 'b']);
   });
 
-  it('returns the target plus every route field for a missing-dependencies issue', () => {
+  it('a missing-dependencies issue names its target plus every route field', () => {
     const issue: CalculationIssue<Q> = engine.missingDependencies<Q>('a',
       [{ formula: 'a = b + c', required: ['b', 'c'], missing: ['c'] }]);
-    expect(engine.issueFields(issue)).toEqual(['a', 'b', 'c', 'c']);
+    expect(issue.fields).toEqual(['a', 'b', 'c', 'c']);
   });
 });
 
