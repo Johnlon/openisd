@@ -69,7 +69,7 @@ for (const S of SCENARIOS) {
       prCms:  pr.Cms   / 1000,          // mm/N   → m/N
       prRms:  pr.Rms,                   // kg/s   (direct)
     };
-    const fp = new Engine().prTuning(P, new Engine().solveEnvironment({}).values);
+    const fp = new Engine().pr.tuning(P, new Engine().solveEnvironment({}).values);
     S.computed = {
       // StatBar.vue: fp.toFixed(1)
       Fp: fp.toFixed(1),

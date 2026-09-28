@@ -22,15 +22,12 @@
  *   https://aes.org/e-lib/browse.cfm?elib=2223
  */
 
-import type {Air} from './air.js';
-import type {EbpSuitability, SealedAlignmentOption, SweepParams, SweepResult, VentedAlignment, VentedDesign} from './types.js';
+import type {EbpSuitability, SealedAlignmentOption, SweepResult, VentedAlignment, VentedDesign} from './types.js';
 import {SEALED_ALIGNMENT_OPTIONS} from '../fields/options.js';
 
 // JL: FIXME - suspect - why not the params from the DS or why specicla pr params needed for this
 /** The subset of params the PR helpers read — lets callers pass any params object
  *  (engine SweepParams, or the UI's UiParams/SyncedParams) that carries these fields. */
-type PRParams = Pick<SweepParams, 'Vb' | 'prMmd' | 'prMadd' | 'prSd' | 'prCms'>;
-
 // Each alignment helper takes exactly the T/S fields it reads (a full Driver or a
 // bare T/S fixture both satisfy the Pick — they never touch the derived Cms/Mms/Bl).
 
@@ -175,48 +172,6 @@ function ventedAlphaAndH(alignment: VentedAlignment, Qts: number, Ql: number): A
     case 'ebs3': return polynomialAlignment(EBS3_POLY, Qts);
     case 'ebs6': return polynomialAlignment(EBS6_POLY, Qts);
   }
-}
-
-/**
- * Passive radiator system resonance frequency.
- * PR compliance Cap = prCms·prSd² combines with box compliance Cab in series:
- * Cpar = Cab·Cap/(Cab+Cap);  fp = 1/(2π·√(Map·Cpar))
- * https://en.wikipedia.org/wiki/Helmholtz_resonance#Resonant_frequency
- *
- * `air` — the project's own resolved `{ rho, c }`; see `vent/VentEngine.ts`.
- */
-export function prTuning(P: PRParams, air: Air): number {
-  const Cab  = P.Vb / (air.rho * air.c * air.c);
-  const Map  = (P.prMmd! + P.prMadd!) / (P.prSd! * P.prSd!);
-  const Cap  = P.prCms! * P.prSd! * P.prSd!;
-  const Cpar = (Cab * Cap) / (Cab + Cap);
-  return 1 / (2 * Math.PI * Math.sqrt(Map * Cpar));
-}
-
-/**
- * PR moving mass required to achieve a target fp.
- * Inverts prTuning(): Map = 1/((2π·fp)²·Cpar),  Mmp = Map·prSd²
- * https://en.wikipedia.org/wiki/Helmholtz_resonance#Resonant_frequency
- *
- * `air` — the project's own resolved `{ rho, c }`; see `vent/VentEngine.ts`.
- */
-export function prMassForFp(P: PRParams, fp: number, air: Air): number {
-  const Cab  = P.Vb / (air.rho * air.c * air.c);
-  const Cap  = P.prCms! * P.prSd! * P.prSd!;
-  const Cpar = (Cab * Cap) / (Cab + Cap);
-  const Map  = 1 / ((2 * Math.PI * fp) ** 2 * Cpar);
-  return Map * P.prSd! * P.prSd!;
-}
-
-/**
- * Passive radiator free-air resonance with added mass.
- * Analogous to a driver's Fs but for the PR cone with mass loading:
- *   Fs_pr = 1 / (2π · √((Mmd + Madd) · Cms))
- * This is a mechanical resonance of the radiator alone — no box, no air compliance —
- * used to display the PR's effective resonant frequency as a function of added weight.
- */
-export function prFsWithMass(Mmd_kg: number, Madd_kg: number, Cms_m_per_N: number): number {
-  return 1 / (2 * Math.PI * Math.sqrt((Mmd_kg + Madd_kg) * Cms_m_per_N));
 }
 
 /**

@@ -128,7 +128,7 @@ describe('Engine.solvePr — handle solve, values written onto the params (T10/T
 
   it('writes the derived added mass onto its handle when tuning is stated and the geometry is complete', () => {
     const p = params({ tuning_goal_hz: 30, Vb_m3: 0.03, prMmd_kg: 0.02, prSd_m2: 0.02, prCms_m_per_N: 0.0008 });
-    const issues = engine.solvePr(p, AIR);
+    const issues = engine.pr.solve(p, AIR);
     expect(p.addedMass_kg.value).toBeGreaterThan(0);
     expect(p.addedMass_kg.calculated).toBe(true);
     expect(issues).toEqual([]);
@@ -136,7 +136,7 @@ describe('Engine.solvePr — handle solve, values written onto the params (T10/T
 
   it('writes the derived tuning onto its handle when added mass is stated and the geometry is complete', () => {
     const p = params({ addedMass_kg: 0.01, Vb_m3: 0.03, prMmd_kg: 0.02, prSd_m2: 0.02, prCms_m_per_N: 0.0008 });
-    const issues = engine.solvePr(p, AIR);
+    const issues = engine.pr.solve(p, AIR);
     expect(p.tuning_goal_hz.value).toBeGreaterThan(0);
     expect(p.tuning_goal_hz.calculated).toBe(true);
     expect(issues).toEqual([]);
@@ -144,7 +144,7 @@ describe('Engine.solvePr — handle solve, values written onto the params (T10/T
 
   it('never overwrites a stated value, even when both targets are stated', () => {
     const p = params({ tuning_goal_hz: 30, addedMass_kg: 111111, Vb_m3: 0.03, prMmd_kg: 0.02, prSd_m2: 0.02, prCms_m_per_N: 0.0008 });
-    const issues = engine.solvePr(p, AIR);
+    const issues = engine.pr.solve(p, AIR);
     expect(p.addedMass_kg.value).toBe(111111);
     expect(p.addedMass_kg.entered).toBe(true);
     expect(p.tuning_goal_hz.entered).toBe(true);
@@ -153,7 +153,7 @@ describe('Engine.solvePr — handle solve, values written onto the params (T10/T
 
   it('leaves the blocked target not-available and reports the missing geometry', () => {
     const p = params({ tuning_goal_hz: 30 });
-    const issues = engine.solvePr(p, AIR);
+    const issues = engine.pr.solve(p, AIR);
     expect(p.addedMass_kg.value).toBeNull();
     expect(issues).toHaveLength(1);
     expect(issues[0]).toMatchObject({ kind: 'missing-dependencies', target: 'addedMass_kg' });

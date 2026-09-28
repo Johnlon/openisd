@@ -646,7 +646,7 @@ function writeDriverBack(field: SolverField, value: number | undefined): void {
  *  every derived (non-entered) value back via `setCalculated` (or `setNotAvailable` when it
  *  cannot solve), and return the issues. `wiring` is a discrete entered input, never derived, so
  *  it is read but never written back. `air` is the project's own resolved `{ rho, c }` — a
- *  not-entered `c_m_per_s`/`roo_kg_per_m3` defaults to it (matching `VentEngine.solve`/`solvePr`'s own
+ *  not-entered `c_m_per_s`/`roo_kg_per_m3` defaults to it (matching `VentEngine.solve`/`PrEngine.solve`'s own
  *  `air` parameter), and the default then writes back as `'C'`. */
 export function solveDriver(params: DriverSolverParams, air: Air): DriverIssue[] {
   const working: DriverWorkingSet = {

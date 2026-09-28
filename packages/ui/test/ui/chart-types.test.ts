@@ -99,7 +99,7 @@ assert.ok(MX, 'reference max curves produced nothing');
 const PR_ENGINE = new Engine();
 const PR_VB = 0.010;
 const PR_BOX = { prSd: 0.0095, prNum: 1, prMmd: 0.010, prMadd: 0, prCms: 0.0018, prRms: 1.0 };
-const PR_FR = PR_ENGINE.prTuning({ Vb: PR_VB, prMmd: PR_BOX.prMmd, prMadd: PR_BOX.prMadd, prSd: PR_BOX.prSd, prCms: PR_BOX.prCms },
+const PR_FR = PR_ENGINE.pr.tuning({ Vb: PR_VB, prMmd: PR_BOX.prMmd, prMadd: PR_BOX.prMadd, prSd: PR_BOX.prSd, prCms: PR_BOX.prCms },
   PR_ENGINE.solveEnvironment({}).values);
 const SP_PR: SweepParams = {
   Vb: PR_VB, eg: 2.83, ...PR_BOX, Fr: PR_FR, Ql: 7, Qa: 30,

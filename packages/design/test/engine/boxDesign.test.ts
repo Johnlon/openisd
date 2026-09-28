@@ -361,7 +361,7 @@ describe('Passive radiator tuning frequency (prTuning)', () => {
     // 1000 m³ is many orders of magnitude above any real enclosure.
     const VERY_LARGE_BOX = { ...BASE_PR, Vb: 1000 }; // 1000 m³ ≈ acoustically infinite
     const Fs_pr = 1 / (2 * Math.PI * Math.sqrt(BASE_PR.prMmd * BASE_PR.prCms));
-    const Fp    = engine.prTuning(VERY_LARGE_BOX, AIR);
+    const Fp    = engine.pr.tuning(VERY_LARGE_BOX, AIR);
     assert.ok(Fp > Fs_pr,
       `Even in a huge box, Fp=${Fp.toFixed(4)} Hz should still be ≥ Fs_pr=${Fs_pr.toFixed(4)} Hz`);
     assert.ok(Math.abs(Fp - Fs_pr) < FREQ_TOLERANCE_HZ,
@@ -374,7 +374,7 @@ describe('Passive radiator tuning frequency (prTuning)', () => {
     // Less total compliance → higher stiffness → higher resonance frequency.
     // So Fp > Fs_pr for any finite enclosure.
     const Fs_pr = 1 / (2 * Math.PI * Math.sqrt(BASE_PR.prMmd * BASE_PR.prCms));
-    const Fp    = engine.prTuning(BASE_PR, AIR);
+    const Fp    = engine.pr.tuning(BASE_PR, AIR);
     assert.ok(Fp > Fs_pr,
       `In-box Fp=${Fp.toFixed(1)} Hz should be above free-air Fs=${Fs_pr.toFixed(1)} Hz ` +
       `(box stiffness raises resonance)`);
@@ -382,8 +382,8 @@ describe('Passive radiator tuning frequency (prTuning)', () => {
 
   it('adding mass to the PR reduces Fp (more mass → lower resonance)', () => {
     // Map = (Mmd + Madd) / Sd²; more mass → higher Map → lower Fp.
-    const Fp_no_mass  = engine.prTuning({ ...BASE_PR, prMadd: 0 }, AIR);
-    const Fp_20g_mass = engine.prTuning({ ...BASE_PR, prMadd: 0.020 }, AIR); // add 20 g
+    const Fp_no_mass  = engine.pr.tuning({ ...BASE_PR, prMadd: 0 }, AIR);
+    const Fp_20g_mass = engine.pr.tuning({ ...BASE_PR, prMadd: 0.020 }, AIR); // add 20 g
     assert.ok(Fp_20g_mass < Fp_no_mass,
       `Adding 20 g lowers Fp from ${Fp_no_mass.toFixed(1)} Hz to ${Fp_20g_mass.toFixed(1)} Hz`);
   });
@@ -407,23 +407,23 @@ describe('PR added-mass auto-tune (prMassForFp)', () => {
 
   it('prMassForFp and prTuning are exact inverses — hitting 30 Hz target', () => {
     const TARGET_FP = 30; // Hz
-    const total     = engine.prMassForFp(PR_PARAMS, TARGET_FP, AIR);
-    const achieved  = engine.prTuning({ ...PR_PARAMS, prMadd: total - PR_PARAMS.prMmd }, AIR);
+    const total     = engine.pr.massForFp(PR_PARAMS, TARGET_FP, AIR);
+    const achieved  = engine.pr.tuning({ ...PR_PARAMS, prMadd: total - PR_PARAMS.prMmd }, AIR);
     assert.ok(Math.abs(achieved - TARGET_FP) < 1e-6,
-      `engine.prMassForFp(30 Hz) → Madd=${((total - PR_PARAMS.prMmd) * 1000).toFixed(2)} g → prTuning → ${achieved.toFixed(6)} Hz`);
+      `engine.pr.massForFp(30 Hz) → Madd=${((total - PR_PARAMS.prMmd) * 1000).toFixed(2)} g → prTuning → ${achieved.toFixed(6)} Hz`);
   });
 
   it('prMassForFp and prTuning are exact inverses — hitting 50 Hz target', () => {
     const TARGET_FP = 50; // Hz — higher target → less mass needed
-    const total     = engine.prMassForFp(PR_PARAMS, TARGET_FP, AIR);
-    const achieved  = engine.prTuning({ ...PR_PARAMS, prMadd: total - PR_PARAMS.prMmd }, AIR);
+    const total     = engine.pr.massForFp(PR_PARAMS, TARGET_FP, AIR);
+    const achieved  = engine.pr.tuning({ ...PR_PARAMS, prMadd: total - PR_PARAMS.prMmd }, AIR);
     assert.ok(Math.abs(achieved - TARGET_FP) < 1e-6,
-      `engine.prMassForFp(50 Hz) → prTuning → ${achieved.toFixed(6)} Hz`);
+      `engine.pr.massForFp(50 Hz) → prTuning → ${achieved.toFixed(6)} Hz`);
   });
 
   it('a higher target Fp requires less added mass (less mass → higher resonance)', () => {
-    const mass_30Hz = engine.prMassForFp(PR_PARAMS, 30, AIR) - PR_PARAMS.prMmd;
-    const mass_50Hz = engine.prMassForFp(PR_PARAMS, 50, AIR) - PR_PARAMS.prMmd;
+    const mass_30Hz = engine.pr.massForFp(PR_PARAMS, 30, AIR) - PR_PARAMS.prMmd;
+    const mass_50Hz = engine.pr.massForFp(PR_PARAMS, 50, AIR) - PR_PARAMS.prMmd;
     assert.ok(mass_30Hz > mass_50Hz,
       `30 Hz needs ${(mass_30Hz * 1000).toFixed(1)} g > 50 Hz needs ${(mass_50Hz * 1000).toFixed(1)} g`);
   });

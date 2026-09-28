@@ -254,7 +254,7 @@ describe('Passive radiator box simulation', () => {
     prRms:  1.0,    // kg/s — PR mechanical damping
     prXmax: 0.012,  // m  — PR linear excursion limit (12 mm)
     fmin: 10, fmax: 1000, N: 300,
-    Fr: engine.prTuning(PR_BOX, engine.solveEnvironment({}).values),
+    Fr: engine.pr.tuning(PR_BOX, engine.solveEnvironment({}).values),
   };
   const d = solveConsistencyGroup(REF_DRIVER);
   const sw = engine.sweep(driverParams(d), LE_H, 'box-passive-radiator', PR_PARAMS).values!;
@@ -278,7 +278,7 @@ describe('Passive radiator box simulation', () => {
         peaks.push(sw.fs[i]);
       }
     }
-    const Fp = engine.prTuning(PR_PARAMS, engine.solveEnvironment({}).values);
+    const Fp = engine.pr.tuning(PR_BOX, engine.solveEnvironment({}).values);
     assert.equal(peaks.length, 2,
       `expected 2 impedance peaks, found ${peaks.length}`);
     assert.ok(Fp > peaks[0] && Fp < peaks[1],
@@ -286,11 +286,11 @@ describe('Passive radiator box simulation', () => {
   });
 
   it('auto-tune computes added mass that achieves the target Fp to within 0.5 Hz', () => {
-    // engine.prMassForFp() inverts the Fp formula.  We verify the inversion is accurate.
+    // engine.pr.massForFp() inverts the Fp formula.  We verify the inversion is accurate.
     const TARGET_FP_HZ = 42; // Hz — a typical low bass tuning
-    const totalMass    = engine.prMassForFp(PR_PARAMS, TARGET_FP_HZ, engine.solveEnvironment({}).values);
-    const addedMass    = totalMass - PR_PARAMS.prMmd!;
-    const achievedFp   = engine.prTuning({ ...PR_PARAMS, prMadd: addedMass }, engine.solveEnvironment({}).values);
+    const totalMass    = engine.pr.massForFp(PR_BOX, TARGET_FP_HZ, engine.solveEnvironment({}).values);
+    const addedMass    = totalMass - PR_BOX.prMmd;
+    const achievedFp   = engine.pr.tuning({ ...PR_BOX, prMadd: addedMass }, engine.solveEnvironment({}).values);
     assert.ok(Math.abs(achievedFp - TARGET_FP_HZ) < TUNING_FREQ_TOLERANCE_HZ,
       `target ${TARGET_FP_HZ} Hz → added ${(addedMass * 1000).toFixed(1)} g → Fp ${achievedFp.toFixed(2)} Hz ` +
       `(limit ±${TUNING_FREQ_TOLERANCE_HZ} Hz)`);

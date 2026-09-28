@@ -405,3 +405,13 @@ export interface MaxCurvesResult {
   xlim: boolean[];
   peAbsent: boolean;
 }
+
+/** What a passive-radiator tuning solve reads: the box volume and the radiator's own mass,
+ *  added mass, area and compliance — all present. */
+export interface PrParams {
+  readonly Vb: number;
+  readonly prMmd: number;
+  readonly prMadd: number;
+  readonly prSd: number;
+  readonly prCms: number;
+}

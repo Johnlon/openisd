@@ -40,7 +40,7 @@ export type {
   ParametricEqFilter, ParametricEqPatch, PeakHighpassFilter, PeakHighpassPatch,
   StaticGainFilter, StaticGainPatch, RaisedCosineFilter, RaisedCosinePatch, ShelfFilter, ShelfPatch,
   SealedAlignmentOption, VentedAlignment, VentedDesign, Wiring,
-  EnclosureParams, SweepParams, SweepResult, WprFilter, WprFilterImport,
+  EnclosureParams, PrParams, SweepParams, SweepResult, WprFilter, WprFilterImport,
 } from './types.js';
 export type { ChartId } from './charts.js';
 export type { BoxParamsQuantityName, BoxParamsIssue, BoxParamsSolveResult } from './params.js';
@@ -48,7 +48,7 @@ export type { SignalQuantityName, SignalIssue } from './signal.js';
 export type { SweepIssue, SweepSolveResult, MaxCurvesSolveResult } from './sweep.js';
 export type {DriverQuantityName, DriverIssue, DriverPrerequisite} from './solvers/solveDriver.js';
 export type {VentEngine, VentQuantityName, VentIssue} from './vent/VentEngine.js';
-export type {PrQuantityName, PrIssue} from './solvers/solvePr.js';
+export type {PrEngine, PrQuantityName, PrIssue} from './pr/PrEngine.js';
 export type {SealedAlignmentQuantityName, SealedAlignmentIssue} from './solvers/solveSealedAlignment.js';
 // `SolverField` is the interface a domain field implements for the solver; `SolverInput` its
 // read-only half. The domain imports these through the door, never a solverTypes subpath.

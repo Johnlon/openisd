@@ -431,9 +431,9 @@ export function winIsdProjectToOpenIsdProject(
       // (engine/circuit.ts, box-passive-radiator) come from HERE or not at all. Same closed forms
       // `engine/formulas.ts` publishes for the PR editor: Cms = Vas/(ρc²Sd²), Mmd = 1/((2πFs)²Cms),
       // Rms = √(Mmd/Cms)/Qms.
-      const cms = vas != null && sd != null ? engine.prCmsFromVas(vas, sd) : null;
-      const mmd = cms != null && fs != null ? engine.prMmdFromFs(fs, cms) : null;
-      const rms = mmd != null && cms != null && qms != null ? engine.prRmsFromQms(qms, mmd, cms) : null;
+      const cms = vas != null && sd != null ? engine.pr.cmsFromVas(vas, sd) : null;
+      const mmd = cms != null && fs != null ? engine.pr.mmdFromFs(fs, cms) : null;
+      const rms = mmd != null && cms != null && qms != null ? engine.pr.rmsFromQms(qms, mmd, cms) : null;
       const radiatorRecord: RadiatorDeviceJson = {
         brand: {value: 'WinISD import'}, model: {value: 'passive-radiator'},
         manufacturer: {value: 'WinISD import'}, driver_type: {value: 'passive-radiator'},
