@@ -8,7 +8,7 @@ import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
 import {OpenISDDriver, OpenISDProject} from '@openisd/design';
 import type {Filter} from '@openisd/design/engine';
-import {Engine} from '@openisd/design/engine';
+import {createEngine} from '@openisd/design/engine';
 
 const hp = (id: string, fc: number): Filter => ({ id, type: 'highpass', family: 'sos', order: 2, enabled: true, fc, Q: 0.7071 });
 
@@ -20,7 +20,7 @@ function fcOf(f: Filter): number {
 }
 
 function sealedProject() {
-  const engine = new Engine();
+  const engine = createEngine();
   // This test is about box/vent/filter fields, not about any driver's contents, so the driver
   // states nothing — the domain's own blank rather than a record assembled here.
   const driver = OpenISDDriver.empty(engine);

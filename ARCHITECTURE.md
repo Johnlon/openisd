@@ -297,7 +297,7 @@ the phase before it has returned, and it is the only place that order is stated.
   | The Python bridge (`winisd_tools` calls it in V8) | `packages/design/winisd/bridge.ts` | one engine with factory settings, handed to the projection it exposes |
   - A root may reach every layer; that is its job. Nothing below a root constructs an engine or
     reaches for a ready-made instance, so every part can run in a test with substitutes.
-    `architecture-engine-boundary.test.ts` names the two roots and fails on a `new Engine`
+    `architecture-engine-boundary.test.ts` names the two roots and fails on a `createEngine(`
     anywhere else.
 - **Dependencies are injected.** A component is a class constructed with its collaborators —
   the engine area it uses, the project, a change signal — held as private members. A service

@@ -1,5 +1,5 @@
 import type {Air, DqIssue, DriverIssue, DriverQuantityName, DriverSolverParams} from '../../engine/index.js';
-import {Engine} from '../../engine/index.js';
+import {type Engine} from '../../engine/index.js';
 import {NumberField} from '../../fields/field.js';
 import type {ValueFloor} from '../../fields/field.js';
 import type {

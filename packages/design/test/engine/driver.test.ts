@@ -15,10 +15,10 @@ import {describe, it} from 'vitest';
 import type {TestSolverQuantities} from './testSolver.js';
 import {solveConsistencyGroup} from './testSolver.js';
 import assert from 'node:assert/strict';
-import {Engine} from "../../engine/index.js";
+import {createEngine} from "../../engine/index.js";
 
 /** The engine's one door: every calculation below is a method on this object. */
-const engine = new Engine();
+const engine = createEngine();
 
 // A driver record stating no `c`/`roo` of its own takes the live physical model at the
 // reference environment — the same air `airFor({})` reports.

@@ -1,4 +1,4 @@
-import { Engine } from '../../engine/index.js';
+import {type Engine} from '../../engine/index.js';
 import type { SimpleField } from '../cell.js';
 import type { RadiatorDeviceJson } from '../openisdSchema.js';
 import { OpenISDPassiveRadiator } from './openISDPassiveRadiator.js';

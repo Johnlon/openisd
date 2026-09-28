@@ -13,13 +13,13 @@
  */
 import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import {Engine} from '../../engine/index.js';
+import {createEngine} from '../../engine/index.js';
 import {VENTED_ALIGNMENT_OPTIONS} from '../../fields/index.js';
 import {
   WINISD_VENTED_ALIGNMENT_CAPTURES, WINISD_VENTED_CAPTURE_DRIVER,
 } from '../fixtures/winisdVentedAlignmentCaptures.js';
 
-const engine = new Engine();
+const engine = createEngine();
 
 /** Double-precision noise budget. The Python validator's worst case over the same 60 runs was
  *  2.3e-14; anything above 1e-12 is a formula or input error. */

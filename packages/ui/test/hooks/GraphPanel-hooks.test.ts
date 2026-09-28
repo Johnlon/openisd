@@ -1,7 +1,7 @@
 import {describe, expect, it} from 'vitest';
 import {computed, defineComponent, h} from 'vue';
 import {renderToString} from 'vue/server-renderer';
-import {Engine} from '@openisd/design/engine';
+import {createEngine} from '@openisd/design/engine';
 import {OpenISDProject} from '@openisd/design';
 import {provideFocusedProject} from '../../src/logic/focusedProjectContext.js';
 import {
@@ -13,7 +13,7 @@ import {
 import {DPAL, TAB_META} from '../../src/logic/series.js';
 
 function createTestProject(): OpenISDProject {
-  const engine = new Engine();
+  const engine = createEngine();
   const project = OpenISDProject.empty(engine);
   project.driver.specs.Fs_hz.set(40);
   project.driver.specs.Qts.set(0.38);

@@ -6,10 +6,10 @@
 import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
 import {OpenISDDriver, OpenISDProject} from '@openisd/design';
-import {Engine} from '@openisd/design/engine';
+import {createEngine} from '@openisd/design/engine';
 
 function ventedProject() {
-  const engine = new Engine();
+  const engine = createEngine();
   // This test is about box/vent/filter fields, not about any driver's contents, so the driver
   // states nothing — the domain's own blank rather than a record assembled here.
   const driver = OpenISDDriver.empty(engine);
@@ -17,7 +17,7 @@ function ventedProject() {
 }
 
 function sealedProject() {
-  const engine = new Engine();
+  const engine = createEngine();
   // This test is about box/vent/filter fields, not about any driver's contents, so the driver
   // states nothing — the domain's own blank rather than a record assembled here.
   const driver = OpenISDDriver.empty(engine);

@@ -8,10 +8,10 @@
  * logic, and now live on the filter classes in `../../engine/filters/` behind `Engine`'s door.
  */
 import {describe, expect, it} from 'vitest';
-import {Engine} from '../../engine/index.js';
+import {createEngine} from '../../engine/index.js';
 import type {Filter} from '../../engine/index.js';
 
-const engine = new Engine();
+const engine = createEngine();
 
 describe('FilterEngine.caption', () => {
   it('lowpass Butterworth', () => {

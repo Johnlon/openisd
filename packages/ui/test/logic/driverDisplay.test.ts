@@ -7,7 +7,7 @@
 import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
 import {OpenISDDriver, OpenISDPassiveRadiatorStandalone} from '@openisd/design';
-import {Engine} from '@openisd/design/engine';
+import {createEngine} from '@openisd/design/engine';
 import {
     bundledPassiveRadiatorRows,
     chipsOf,
@@ -43,7 +43,7 @@ function driverOf(p: {
       },
     },
   };
-  const driver = OpenISDDriver.fromConformingRecord(record, new Engine());
+  const driver = OpenISDDriver.fromConformingRecord(record, createEngine());
   if (Array.isArray(driver)) throw new Error(`fixture is not a valid driver: ${driver.join(', ')}`);
   return driver;
 }
@@ -109,7 +109,7 @@ describe('passiveRadiatorRows — the PR browser row view model', () => {
   });
 
   const radiatorOf = (p: { brand: string; model: string; Sd_m2?: number; Mms_kg?: number; Cms_m_per_N?: number }) => {
-    const pr = OpenISDPassiveRadiatorStandalone.fromConformingRecord(prRecord(p), new Engine());
+    const pr = OpenISDPassiveRadiatorStandalone.fromConformingRecord(prRecord(p), createEngine());
     if (Array.isArray(pr)) throw new Error(`fixture is not a valid radiator: ${pr.join(', ')}`);
     return pr;
   };

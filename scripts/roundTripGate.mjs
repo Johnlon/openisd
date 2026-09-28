@@ -19,7 +19,7 @@
  * needs — same functions, no V8 round trip to duplicate.
  */
 import {OpenISDDriver, OpenISDPassiveRadiatorStandalone} from '@openisd/design';
-import {Engine} from '@openisd/design/engine';
+import {createEngine} from '@openisd/design/engine';
 
 /** Whether `v` is a `state:'C'` `SpecEntryJson` — a quantity the driver's own `resolve()`
  *  (S2-7c) derived, never a fact materialising from nowhere. `{state, value}` is a shape
@@ -134,7 +134,7 @@ export function checkOpenisdRoundTrip(record, relPath) {
   // Through the DOMAIN's own seam, which is the app's one reader of a record. What comes back is
   // the schema's OUTPUT — an object rebuilt key by key from what the schema declares — so any key
   // the app cannot model shows up here as a divergence rather than being lost in silence.
-  const engine = new Engine();
+  const engine = createEngine();
   const device = OpenISDDriver.fromConformingRecord(record, engine);
   const radiator = Array.isArray(device) ? OpenISDPassiveRadiatorStandalone.fromConformingRecord(record, engine) : null;
   const read = Array.isArray(device) ? radiator : device;
@@ -212,7 +212,7 @@ export function checkWdrRoundTrip(wdrText, relPath) {
   // and writing back out re-derives the computed fields from the entered ones, which is the
   // divergence this gate exists to catch — and is the exact pair the app's own import/export runs
   // (`packages/ui/src/logic/fileImportExport.ts`).
-  const engine = new Engine();
+  const engine = createEngine();
   const { value: driver, errors: readErrors } = OpenISDDriver.fromWdrIniText(wdrText, engine);
   if (driver === null) {
     return { ok: false, message: `${relPath}: could not read .wdr: ${readErrors.map(e => e.message).join('; ') || 'no driver returned'}` };

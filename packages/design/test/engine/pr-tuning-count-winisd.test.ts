@@ -8,9 +8,9 @@
  */
 import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import {Engine} from '../../engine/index.js';
+import {createEngine} from '../../engine/index.js';
 
-const engine = new Engine();
+const engine = createEngine();
 const WINISD_AIR = {rho: 1.2009521771468228, c: 343.68412096215235};
 const prCms = 0.0048 / (WINISD_AIR.rho * WINISD_AIR.c ** 2 * 0.0095 ** 2);
 const prMmd = 1 / ((2 * Math.PI * 30) ** 2 * prCms);

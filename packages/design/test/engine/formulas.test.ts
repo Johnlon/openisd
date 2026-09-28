@@ -7,10 +7,10 @@
  */
 import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import {Engine} from '../../engine/index.js';
+import {createEngine} from '../../engine/index.js';
 
 /** The engine's one door: every calculation below is a method on this object. */
-const engine = new Engine();
+const engine = createEngine();
 
 /** Free-air resonance with no added mass — the zero-Madd case of `prFsWithMass`. */
 const prFs = (prMmd: number, prCms: number) => engine.pr.fsWithMass(prMmd, 0, prCms);

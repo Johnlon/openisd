@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { Engine } from '../../engine/index.js';
+import {type Engine} from '../../engine/index.js';
 import type { Air, AirEnvironment, DriverError, DriverIssue, DriverSolverParams } from '../../engine/index.js';
 import { realAppContext } from '../appContext.js';
 import type { AppContext } from '../appContext.js';

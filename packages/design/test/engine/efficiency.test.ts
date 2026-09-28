@@ -20,10 +20,10 @@ import assert from 'node:assert/strict';
 import {readdirSync, readFileSync, statSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 import {dirname, extname, join} from 'node:path';
-import {Engine} from '../../engine/index.js';
+import {createEngine} from '../../engine/index.js';
 
 /** The engine's one door: every calculation below is a method on this object. */
-const engine = new Engine();
+const engine = createEngine();
 
 /** Reference sound pressure, 20 µPa — the denominator of every dB SPL. */
 const P0 = 20e-6;

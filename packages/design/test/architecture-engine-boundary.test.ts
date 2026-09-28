@@ -117,17 +117,19 @@ describe('the engine is reachable only through its door', () => {
   });
 
   it('the engine is constructed in a composition root, nowhere else', () => {
-    // One `new Engine` per process: the app's (`appState.ts`) and the Python bridge's
+    // One `createEngine(` per process: the app's (`appState.ts`) and the Python bridge's
     // (`winisd/bridge.ts`). Anything else building its own engine is a component that should
     // have been handed one (John, 2026-09-28: "composition in one place"). Tests build what
     // they need.
     const roots = new Set(['packages/ui/src/logic/appState.ts', 'packages/design/winisd/bridge.ts']);
+    // The factory's own definition is not a construction site.
+    roots.add('packages/design/engine/Engine.ts');
     const offences: string[] = [];
     for (const file of sourceFiles()) {
       const rel = path.relative(repoRoot, file).split(path.sep).join('/');
       if (/\/test\/|\.test\.|\.spec\./.test(rel) || roots.has(rel)) continue;
       const text = fs.readFileSync(file, 'utf8');
-      for (const m of text.matchAll(/new Engine\(/g)) {
+      for (const m of text.matchAll(/createEngine\(/g)) {
         const line = text.slice(0, m.index).split('\n').length;
         // A mention in a comment is prose, not construction.
         const lineText = text.split('\n')[line - 1] ?? '';
@@ -138,17 +140,18 @@ describe('the engine is reachable only through its door', () => {
     expect(offences, 'Only a composition root constructs the engine; a component receives it.').toEqual([]);
   });
 
-  it('the door exports Engine, and no loose functions', () => {
+  it('the door exports createEngine, and no loose calculation functions', () => {
     const door = fs.readFileSync(engineDoor, 'utf8');
 
-    expect(door).toMatch(/export\s*\{\s*Engine\s*\}/);
+    expect(door).toMatch(/export type \{ Engine \}/);
+    expect(door).toMatch(/export \{ createEngine \}/);
     // `export *` would re-open everything the door exists to close — and is banned outright
     // anyway (QO86).
     expect(door).not.toMatch(/export\s*\*/);
 
-    // Value exports are the Engine door, its LossMode class, the named air constants that
+    // Value exports are the engine factory, the named air constants that
     // define the engine's supported reference/validation range, and the factory value of each
-    // application setting `new Engine(settings)` is given (the Settings tab shows the user what
+    // application setting `createEngine(settings)` is given (the Settings tab shows the user what
     // their setting starts at). Loose calculation functions still do not escape.
     const valueExports = [...door.matchAll(/^export \{([^}]*)\}/gm)]
       .flatMap(m => m[1]!.split(',').map(s => s.trim()))
@@ -156,8 +159,19 @@ describe('the engine is reachable only through its door', () => {
     expect(valueExports.sort()).toEqual([
       'DEFAULT_ENV_DEFAULTS', 'DEFAULT_P_REF_PA', 'DEFAULT_RH_REF_PCT', 'DEFAULT_T_REF_K',
       'DEFAULT_VENTED_DESIGN_LIMITS',
-      'Engine', 'MAX_SUPPORTED_TEMP_K', 'MIN_SUPPORTED_TEMP_K',
+      'MAX_SUPPORTED_TEMP_K', 'MIN_SUPPORTED_TEMP_K', 'createEngine',
     ]);
+  });
+
+  it('Engine is an aggregate of areas — no method of its own', () => {
+    // John, 2026-09-28: "engine as a component" is the PACKAGE, its unit of reuse a cohesive
+    // area. The aggregate exists for the composition root; a new calculation goes on an area,
+    // never on Engine itself, so a consumer can still be handed the one area it uses.
+    const text = fs.readFileSync(path.join(repoRoot, 'packages/design/engine/Engine.ts'), 'utf8');
+    const body = /export interface Engine \{\n([\s\S]*?)\n\}/.exec(text)?.[1] ?? '';
+    const members = body.split('\n').map(l => l.trim()).filter(l => l && !l.startsWith('/**') && !l.startsWith('*'));
+    expect(members.length).toBeGreaterThan(0);
+    expect(members.filter(l => !/^readonly \w+: \w+Engine;$/.test(l))).toEqual([]);
   });
 
   it('can actually see the repo it is meant to guard', () => {

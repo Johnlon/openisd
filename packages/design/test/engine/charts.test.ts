@@ -5,10 +5,10 @@
  */
 import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import {Engine} from '../../engine/index.js';
+import {createEngine} from '../../engine/index.js';
 import {openISDProjectJsonSchema} from '../../domain/openisdSchema.js';
 
-const engine = new Engine();
+const engine = createEngine();
 
 describe('Engine.chartsFor', () => {
   it('a sealed box: the ten system charts and the three filter charts, no port, no PR', () => {

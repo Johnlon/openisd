@@ -16,14 +16,14 @@
 import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
 import {
-  DEFAULT_ENV_DEFAULTS, DEFAULT_VENTED_DESIGN_LIMITS, Engine, type AppSettings, type VentedDesignLimits,
+  DEFAULT_ENV_DEFAULTS, DEFAULT_VENTED_DESIGN_LIMITS, createEngine, type AppSettings, type Engine, type VentedDesignLimits,
 } from '../../engine/index.js';
 
 /** The band is an application SETTING, so an engine is constructed with the settings under
- *  test — the same seam the composition root uses (`new Engine(appSettingsRepo)`). */
+ *  test — the same seam the composition root uses (`createEngine(appSettingsRepo)`). */
 function engineWith(ventedLimits: VentedDesignLimits): Engine {
   const settings: AppSettings = {ventedLimits: () => ventedLimits, envDefaults: () => DEFAULT_ENV_DEFAULTS};
-  return new Engine(settings);
+  return createEngine(settings);
 }
 
 /** A band wide enough that nothing in these tests is out of range by accident. */
@@ -110,7 +110,7 @@ describe('Engine.ventedPlausibility', () => {
       {minVb_m3: 0.001, maxVb_m3: 2.0, minFb_hz: 5, maxFb_hz: 150},
     ];
     let current = 0;
-    const live = new Engine({ventedLimits: () => bands[current]!, envDefaults: () => DEFAULT_ENV_DEFAULTS});
+    const live = createEngine({ventedLimits: () => bands[current]!, envDefaults: () => DEFAULT_ENV_DEFAULTS});
     const design = {Vb: 1.684, Fb: 5.4};
     assert.equal(live.vented.plausibility(design).length, 2);
     current = 1;

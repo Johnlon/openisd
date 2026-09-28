@@ -51,7 +51,7 @@
  * docstring. This bridge only serialises the result to JSON at the V8 boundary; the
  * field-for-field shape of `errors` is passed through unchanged.
  */
-import {Engine} from '../engine/index.js';
+import {createEngine} from '../engine/index.js';
 import {driverYmlToOpenisdAndWdr} from '../domain/driverYmlToOpenisdAndWdr.js';
 import {bytesToBase64} from './base64.js';
 import {utf8Bytes} from './utf8.js';
@@ -59,7 +59,7 @@ import {winisdTextToBytes} from './winisdBytes.js';
 
 /** The bridge's composition root: the one engine this process builds, with factory settings —
  *  a scraper projection has no user settings to honour. */
-const engine = new Engine();
+const engine = createEngine();
 
 function driverYmlToOpenisdAndWdrBridge(driverYmlText: string): string {
   const { openisd, wdr, errors } = driverYmlToOpenisdAndWdr(driverYmlText, engine);

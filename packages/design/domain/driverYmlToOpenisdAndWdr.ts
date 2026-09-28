@@ -27,7 +27,7 @@ import {z} from "zod";
 import type {Calculated, Entered, Readable} from "./cell.js";
 import {OpenISDDriver} from "./driver/openISDDriver.js";
 import {OpenISDPassiveRadiatorStandalone} from "./passiveRadiator/openISDPassiveRadiatorStandalone.js";
-import {type DriverError, Engine} from "../engine/index.js";
+import {type DriverError, type Engine} from "../engine/index.js";
 
 import {type WdrCell, type WdrHeader, WinISDDriver,} from "../winisd/winisdDriver.js";
 import {winisdSafeText} from "../winisd/winisdSafeText.js";

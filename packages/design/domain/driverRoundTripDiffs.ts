@@ -16,7 +16,7 @@ import {WinISDDriver} from "../winisd/winisdDriver.js";
 import type {Readable} from "./cell.js";
 import {OpenISDDriver} from "./driver/openISDDriver.js";
 import type {DriverSpec} from "./openisdSchema.js";
-import {type DriverError, Engine} from "../engine/index.js";
+import {type DriverError, type Engine} from "../engine/index.js";
 import {winISDDriverToOpenISDDeviceJson} from "./winIsdDriverImport.js";
 import {openIsdDriverToWinIsdDriver} from "./driverYmlToOpenisdAndWdr.js";
 

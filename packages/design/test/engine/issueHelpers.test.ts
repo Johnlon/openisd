@@ -1,10 +1,10 @@
 import {describe, expect, it} from 'vitest';
 import type {CalculationIssue} from '../../engine/index.js';
-import {Engine} from '../../engine/index.js';
+import {createEngine} from '../../engine/index.js';
 
 type Q = 'a' | 'b' | 'c' | 'd';
 
-const engine = new Engine();
+const engine = createEngine();
 
 describe('a calculation issue names its own fields', () => {
   it('an inconsistent-inputs issue names the group it marks', () => {

@@ -1,9 +1,9 @@
 import {describe, expect, it} from 'vitest';
 import type {DriverIssue, OutOfRangeIssue} from '../../engine/index.js';
-import {Engine} from '../../engine/index.js';
+import {createEngine} from '../../engine/index.js';
 import {checkConsistency, driverParams} from './testSolver.js';
 
-const engine = new Engine();
+const engine = createEngine();
 
 /** `checkRange` (D5/O4) is private to `solver.ts`'s door — `Engine.solveDriver` is the one public
  *  path that runs it, alongside `checkConsistency` (S2-10: both checks are co-located inside

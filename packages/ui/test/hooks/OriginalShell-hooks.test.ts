@@ -1,6 +1,6 @@
 import {describe, expect, it} from 'vitest';
 import {computed, nextTick, ref, shallowRef} from 'vue';
-import {Engine, type BoxType} from '@openisd/design/engine';
+import {createEngine, type BoxType} from '@openisd/design/engine';
 import {OpenISDProject} from '@openisd/design';
 import {
   airFieldDataQuality,
@@ -17,7 +17,7 @@ import {
 } from '../../src/hooks/OriginalShell-hooks.js';
 
 function createCompleteProject() {
-  const engine = new Engine();
+  const engine = createEngine();
   const project = OpenISDProject.empty(engine);
   project.driver.specs.Fs_hz.set(40);
   project.driver.specs.Qts.set(0.38);
@@ -408,7 +408,7 @@ describe('OriginalShell-hooks', () => {
           project: computed(() => projectRef.value),
           projectChanged,
           envDefaults: () => STUB_DEFAULTS,
-          engine: new Engine(),
+          engine: createEngine(),
         }),
       };
     }
@@ -556,7 +556,7 @@ describe('OriginalShell-hooks', () => {
 
   describe('dqOfSolved — the readout for a field only a solver writes, never entered', () => {
     it('N while an input is missing, C once solved', () => {
-      const engine = new Engine();
+      const engine = createEngine();
       const blank = OpenISDProject.empty(engine);
       expect(dqOfSolved(blank.box.sealed.resonance_hz)).toEqual({dq: [], dqState: 'N'});
 

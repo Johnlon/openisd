@@ -1,6 +1,6 @@
 import { test, expect } from '../fixtures.js';
 import { readFileSync } from 'node:fs';
-import { Engine } from '@openisd/design/engine';
+import {createEngine} from '@openisd/design/engine';
 import { DEFAULT_SOURCE_RESISTANCE_OHM } from '@openisd/design/fields';
 import { SAMPLE_PROJECT_OWPR } from '../fixtures/sampleProject.js';
 import { MY_DRIVERS_KEY, myDriversJson } from '../fixtures/seedMyDrivers.js';
@@ -111,7 +111,7 @@ test('wizard-created vented project has a vent diameter and a tuning; the PR pro
   // wizard derives the tuning from (docs/research/VENTED_ALIGNMENT_FORMULAS.md). Qes is what the
   // driver solver derives from Qts/Qms.
   const { specs } = DRIVER;
-  const engine = new Engine();
+  const engine = createEngine();
   const Qes = specs.Qts * specs.Qms / (specs.Qms - specs.Qts);
   const qtsLoaded = engine.driver.sourceLoadedQts(specs.Qms, Qes, specs.Re_ohm, DEFAULT_SOURCE_RESISTANCE_OHM, specs.Qts);
   const { Fb } = engine.vented.alignment('c4', specs.Fs_hz, qtsLoaded, specs.Vas_m3, 10);

@@ -13,7 +13,7 @@ import {diffWdrValues} from './wdrDiff.js';
 import assert from 'node:assert/strict';
 import {WinISDDriver} from '@openisd/design/winisd';
 import {OpenISDDriver} from '@openisd/design';
-import {Engine} from '@openisd/design/engine';
+import {createEngine} from '@openisd/design/engine';
 import {openIsdDriverToWinIsdDriver} from '../../domain/driverYmlToOpenisdAndWdr.js';
 
 const scraped = <T,>(value: T) => ({ value });
@@ -39,7 +39,7 @@ function recordDriver() {
       },
     },
   };
-  const driver = OpenISDDriver.fromConformingRecord(record, new Engine());
+  const driver = OpenISDDriver.fromConformingRecord(record, createEngine());
   if (Array.isArray(driver)) throw new Error(`fixture is not a valid driver: ${driver.join(', ')}`);
   return openIsdDriverToWinIsdDriver(driver, []);
 }

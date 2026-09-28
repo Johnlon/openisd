@@ -1,6 +1,6 @@
 import {describe, expect, it} from 'vitest';
 import type {SolverField} from '../../engine/index.js';
-import {Engine} from '../../engine/index.js';
+import {createEngine} from '../../engine/index.js';
 import {
     checkPrConsistency,
     checkVentConsistency,
@@ -9,7 +9,7 @@ import {
     solveVentConsistencyGroup,
 } from './testSolver.js';
 
-const engine = new Engine();
+const engine = createEngine();
 const AIR = engine.environment.solve({}).values;
 
 describe('checkVentConsistency (S2-10: a test-only bag wrapper over Engine.solveVent) — missing-dependencies', () => {

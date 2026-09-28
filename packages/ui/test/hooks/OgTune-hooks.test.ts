@@ -1,14 +1,14 @@
 import {describe, expect, it} from 'vitest';
 import {computed, defineComponent, h} from 'vue';
 import {renderToString} from 'vue/server-renderer';
-import {Engine} from '@openisd/design/engine';
+import {createEngine} from '@openisd/design/engine';
 import {OpenISDProject} from '@openisd/design';
 import {addProject, removeProject, openProjects} from '../../src/logic/appState.js';
 import {provideFocusedProject} from '../../src/logic/focusedProjectContext.js';
 import {useOgTune, type OgTuneAPI} from '../../src/hooks/OgTune-hooks.js';
 
 function createProject() {
-  const engine = new Engine();
+  const engine = createEngine();
   const project = OpenISDProject.empty(engine);
   project.driver.specs.Fs_hz.set(40);
   project.driver.specs.Qts.set(0.38);

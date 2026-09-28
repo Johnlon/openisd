@@ -1,10 +1,10 @@
 import {describe, expect, it, vi} from 'vitest';
 import type {CalculationIssue, DqIssue, DriverIssue, DriverSolverParams, SolverField} from '../../engine/index.js';
-import {DEFAULT_P_REF_PA, Engine} from '../../engine/index.js';
+import {DEFAULT_P_REF_PA, createEngine} from '../../engine/index.js';
 import type {TestSolverQuantities} from './testSolver.js';
 import {checkConsistency, fakeSolverField} from './testSolver.js';
 
-const engine = new Engine();
+const engine = createEngine();
 // Deliberately NOT the reference condition (`engine.environment.solve({}).values`): `solveConsistencyGroup`'s own
 // internal driverC/driverRho fallback already defaults to reference air on its own, so a test
 // using reference air here would pass even if `solveDriver` never threaded `air` through at all.

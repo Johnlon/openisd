@@ -19,7 +19,7 @@ import {fileURLToPath} from 'node:url';
 import {dirname, join, relative} from 'node:path';
 import {Chip, DriverType} from '@openisd/design/filter';
 import {OpenISDDriver} from '@openisd/design';
-import {Engine} from '@openisd/design/engine';
+import {createEngine} from '@openisd/design/engine';
 import {chipsOf} from '../../src/logic/driverDisplay.js';
 import {DRIVER_TYPES} from '../../src/logic/driverBrowsingState.js';
 
@@ -97,7 +97,7 @@ function driverOf(name: string, driverType: string): import('@openisd/design').O
     },
     specs: { woofer: {} },
   };
-  const driver = OpenISDDriver.fromConformingRecord(record, new Engine());
+  const driver = OpenISDDriver.fromConformingRecord(record, createEngine());
   if (Array.isArray(driver)) throw new Error(`fixture is not a valid driver: ${driver.join(', ')}`);
   return driver;
 }

@@ -29,7 +29,7 @@ import type {Calculated, Entered, Readable} from '@openisd/design';
 import {CellClass, cellClassOf} from '../../src/logic/useDriverCells.js';
 import {provenanceOf} from '../../src/logic/fieldProvenance.js';
 import {OpenISDDriver, VoiceCoilWiring} from '@openisd/design';
-import {Engine} from '@openisd/design/engine';
+import {createEngine} from '@openisd/design/engine';
 import {DateField, EnumField, Field, NumberField, TextField, ToggleField} from '@openisd/design/fields';
 import {nextToken, toDisplay, UNIT_GROUPS, unitDef, type UnitGroup} from '../../src/logic/fields/units.js';
 
@@ -157,7 +157,7 @@ function driverCellOf(d: OpenISDDriver, field: NumSpecField): Readable<number | 
   return d.specField(field);
 }
 
-const _engine = new Engine();
+const _engine = createEngine();
 /** A driver stating nothing — the domain's own blank, not a record assembled here. These tests
  *  are about which cells the editor binds, not about any driver's contents. */
 function blankDriver(): OpenISDDriver {

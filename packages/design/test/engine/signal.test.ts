@@ -1,9 +1,9 @@
 import {describe, expect, it} from 'vitest';
 import type {PresentSolverField, SignalSolverParams} from '../../engine/index.js';
-import {Engine} from '../../engine/index.js';
+import {createEngine} from '../../engine/index.js';
 import {fakeSolverField} from './testSolver.js';
 
-const engine = new Engine();
+const engine = createEngine();
 
 interface FakeVoltage extends PresentSolverField { readonly calculated: boolean }
 

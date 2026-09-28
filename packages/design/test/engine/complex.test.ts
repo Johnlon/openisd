@@ -1,7 +1,7 @@
 import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
 import type {SweepParams} from '../../engine/index.js';
-import {Engine} from '../../engine/index.js';
+import {createEngine} from '../../engine/index.js';
 import {driverParams, solveConsistencyGroup} from './testSolver.js';
 
 /**
@@ -13,7 +13,7 @@ import {driverParams, solveConsistencyGroup} from './testSolver.js';
  * swept frequency — this proves the guard keeps the sweep finite instead of NaN.
  */
 describe('transmission-line port model — tanh saturation guard', () => {
-  const engine = new Engine();
+  const engine = createEngine();
   const DRV = driverParams(solveConsistencyGroup({
     Fs_hz: 37, Qts: 0.378, Qes: 0.40, Qms: 7.0, Vas_m3: 0.0300,
     Sd_m2: 0.0133, Re_ohm: 5.6, Xmax_m: 0.0050, Pe_W: 60, Znom_ohm: 8,

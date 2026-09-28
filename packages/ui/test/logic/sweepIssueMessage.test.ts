@@ -9,9 +9,9 @@ import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
 import {driverPrerequisiteMessage, sweepIssueMessage} from '../../src/logic/sweepIssueMessage.js';
 import type {DriverPrerequisite, SweepIssue} from '@openisd/design/engine';
-import {Engine} from '@openisd/design/engine';
+import {createEngine} from '@openisd/design/engine';
 
-const engine = new Engine();
+const engine = createEngine();
 
 describe('sweepIssueMessage — SweepIssue projected to a DriverError for the existing UI channel', () => {
   it('a missing-dependencies issue names its target field and what would unblock it', () => {

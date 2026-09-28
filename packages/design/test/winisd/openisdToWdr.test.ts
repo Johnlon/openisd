@@ -25,14 +25,14 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 import {dirname, join} from 'node:path';
-import {Engine} from '../../engine/index.js';
+import {createEngine} from '../../engine/index.js';
 
 import type {DriverError} from '@openisd/design/engine';
 import {WINISD_NEWLINE_SENTINEL} from '../../winisd/index.js';
 import {driverYmlToOpenisdAndWdr} from '../../domain/driverYmlToOpenisdAndWdr.js';
 import {OpenISDDriver} from '../../domain/index.js';
 
-const engine = new Engine();
+const engine = createEngine();
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..', '..');
 const ORACLE = join(ROOT, 'drivers', 'myprobes', 'per_field_and_misc', 'john-all-defaults.wdr');

@@ -1,9 +1,9 @@
 import {describe, expect, it} from 'vitest';
 import {type Calculated, type Entered, type Readable, OpenISDDriver} from '@openisd/design';
 import type {ProvenanceLetter} from '../../src/logic/fieldProvenance.js';
-import {type DqIssue, Engine} from '@openisd/design/engine';
+import {type DqIssue, createEngine} from '@openisd/design/engine';
 
-const engine = new Engine();
+const engine = createEngine();
 
 /** The domain's own "zero or less is not physical" mark, narrowed — `positiveValueIssue` answers
  *  `null` for a value that passes, which a fixture value never does. */
@@ -45,7 +45,7 @@ function allMandatorySet() {
 }
 
 function completeDriver(): OpenISDDriver {
-  const engine = new Engine();
+  const engine = createEngine();
   const driver = OpenISDDriver.empty(engine);
   driver.specs.Fs_hz.set(40);
   driver.specs.Qes.set(0.45);
@@ -84,7 +84,7 @@ describe('DriverEditorModal-hooks', () => {
     });
 
     it('reports missing-dependencies for an incomplete driver', () => {
-      const driver = OpenISDDriver.empty(new Engine());
+      const driver = OpenISDDriver.empty(createEngine());
       const issues = driverIssues(driver);
       expect(issues.length).toBeGreaterThan(0);
       expect(issues.some(i => i.kind === 'missing-dependencies')).toBe(true);
@@ -153,7 +153,7 @@ describe('DriverEditorModal-hooks', () => {
     });
 
     it('is null before the driver can derive it', () => {
-      const driver = OpenISDDriver.empty(new Engine());
+      const driver = OpenISDDriver.empty(createEngine());
       expect(ebpVal(driver)).toBeNull();
     });
   });

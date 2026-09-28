@@ -18,7 +18,7 @@
 import {beforeEach, describe, it} from 'vitest';
 import assert from 'node:assert/strict';
 import {OpenISDDriver, OpenISDProject} from '@openisd/design';
-import {Engine} from '@openisd/design/engine';
+import {createEngine} from '@openisd/design/engine';
 import {
     enterVentField as enterVentFieldOn,
     ventAchievedFb,
@@ -52,7 +52,7 @@ function blankDriverRecord(): unknown {
 
 /** Vb = 30 L, round 5 cm vent, k = 0.6, tuning entered. */
 function trial(targetFb: number) {
-  const engine = new Engine();
+  const engine = createEngine();
   const driver = OpenISDDriver.fromConformingRecord(blankDriverRecord(), engine);
   if (Array.isArray(driver)) throw new Error(`blankDriverRecord() does not conform: ${driver.join('; ')}`);
   const p = OpenISDProject.builder(driver, engine).vented().volume_m3(0.03).tuning_goal_hz(targetFb).build();
@@ -102,7 +102,7 @@ describe('vent target reachability — an unreachable tuning must surface, not h
   });
 
   it('the bandpass front chamber is judged on its OWN volume, not the whole box', () => {
-    const engine = new Engine();
+    const engine = createEngine();
     const driver = OpenISDDriver.fromConformingRecord(blankDriverRecord(), engine);
     if (Array.isArray(driver)) throw new Error(`blankDriverRecord() does not conform: ${driver.join('; ')}`);
     const p = OpenISDProject.builder(driver, engine).bandpass4().rearVolume_m3(0.03).frontVolume_m3(0.002)

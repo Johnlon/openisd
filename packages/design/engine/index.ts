@@ -1,17 +1,18 @@
 // Public API surface for the engine
-// One class, and the types its own method signatures name. Nothing else — no loose functions, no
-// constants, no lookup tables (John Lonergan, 2026-08-27: "you will export from engine nothing
+// One aggregate interface, its factory, the area interfaces it holds, and the types their
+// signatures name. Nothing else — no loose calculation functions, no constants, no lookup tables (John Lonergan, 2026-08-27: "you will export from engine nothing
 // but a single class Engine and the things that are required to be public on its api so that the
 // production code works (tests are not an exception)").
 //
-// A calculation the system needs and `Engine` does not offer shows up as a MISSING METHOD. That
-// is the whole point of the class: with loose functions it shows up as nothing, and the formula
-// gets written inline in the caller instead.
+// A calculation the system needs and no area offers shows up as a MISSING METHOD on that area.
+// That is the whole point: with loose functions it shows up as nothing, and the formula gets
+// written inline in the caller instead.
 //
-// THE TYPES BELOW ARE NOT A SECOND SURFACE. Each one appears in an `Engine` method signature, so
-// a caller cannot use the class without being able to name it. A type that stops appearing in a
+// THE TYPES BELOW ARE NOT A SECOND SURFACE. Each one appears in an area's method signature, so
+// a caller cannot use the area without being able to name it. A type that stops appearing in a
 // signature comes off this list.
-export { Engine } from './Engine.js';
+export type { Engine } from './Engine.js';
+export { createEngine } from './Engine.js';
 // The engine's areas: an interface each, held by `Engine` as a member (`engine.filters`).
 export type { FilterEngine } from './filters/index.js';
 // A VALUE, not just a type: `LossMode` is a class whose static members ARE the modes
@@ -23,7 +24,7 @@ export {
 } from './air.js';
 export type { Air, AirEnvironment, AirConstantProvider, EnvironmentQuantityName, EnvironmentIssue } from './air.js';
 export type { CalculationIssue, SolveRoute, DqIssue, TargetUnreachableIssue, OutOfRangeIssue } from './consistency.js';
-// APPLICATION SETTINGS reach a calculation through the collaborator `new Engine(settings)`
+// APPLICATION SETTINGS reach a calculation through the collaborator `createEngine(settings)`
 // takes, never a module constant read behind the caller's back. The factory band crosses as a
 // VALUE for the same reason the air reference constants do: the Settings tab has to show the
 // user what their setting starts at, and what Reset puts back.

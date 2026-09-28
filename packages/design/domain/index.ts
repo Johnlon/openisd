@@ -58,17 +58,13 @@ export { OpenISDDriver, OpenISDDriverStandalone } from './driver/openISDDriver.j
 // `projectJson` is NOT exported: it takes and returns package-private record types.
 export { OpenISDProject } from './project/openISDProject.js';
 export { OpenISDPassiveRadiatorStandalone } from './passiveRadiator/openISDPassiveRadiatorStandalone.js';
-// The engine class, named here as well as at its own door (`@openisd/design/engine`): the domain
+// The engine, named here as well as at its own door (`@openisd/design/engine`): the domain
 // takes an `Engine` as the collaborator that does the physics, so a consumer assembling a project
 // that RUNS the engine reaches for ONE import specifier (`@openisd/design`) instead of crossing
-// into a second one for the class the project already depends on. The engine's other symbols
-// keep their dedicated door; only `Engine` appears on both.
-export { Engine } from '../engine/index.js';
-// The engine class, named here as well as at its own door (`@openisd/design/engine`): the domain
-// takes an `Engine` as the collaborator that does the physics, so a consumer assembling a project
-// that RUNS the engine reaches for ONE import specifier (`@openisd/design`) instead of crossing
-// into a second one for the class the project already depends on. The engine's other symbols
-// keep their dedicated door; only `Engine` appears on both.
+// into a second one. The engine's other symbols keep their dedicated door; only the aggregate
+// type and its factory appear on both.
+export type { Engine } from '../engine/index.js';
+export { createEngine } from '../engine/index.js';
 
 export type { DiscardChallenge } from './project/discardChallenge.js';
 export type { DriverSpecFieldName, NumericDriverSpecFieldName } from './driver/driverSpecFieldName.js';

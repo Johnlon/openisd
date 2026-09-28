@@ -9,7 +9,7 @@ import {OPENISD_APP_SETTINGS_KEY} from './storageKeys.js';
 // designed values get a DQ mark, and the environment defaults a project falls back to when it
 // has none of its own. Browser-local, so it follows the person and never a project file. THE
 // one place that knows this setting's storage key and its stored shape; the same object is
-// what the composition root hands `new Engine(...)`.
+// what the composition root hands `createEngine(...)`.
 //
 // Nothing read back is trusted. A stored band that is absent, unparseable, incomplete,
 // non-numeric, not positive or inside out (min above max) reads as the factory band: a corrupt

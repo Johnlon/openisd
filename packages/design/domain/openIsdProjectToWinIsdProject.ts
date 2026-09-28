@@ -26,7 +26,7 @@ import {OpenISDDriver} from './driver/openISDDriver.js';
 import {OpenISDPassiveRadiatorStandalone} from './passiveRadiator/openISDPassiveRadiatorStandalone.js';
 import {OpenISDProject} from './project/openISDProject.js';
 import type {EnvironmentField} from './project/environmentFields.js';
-import {type DriverError, Engine, type Filter} from '../engine/index.js';
+import {type DriverError, type Engine, type Filter} from '../engine/index.js';
 
 import {openIsdDriverToWinIsdDriver} from './driverYmlToOpenisdAndWdr.js';
 import {WinISDDriver} from '../winisd/winisdDriver.js';

@@ -9,7 +9,7 @@
 import {describe, expect, it} from 'vitest';
 import assert from 'node:assert/strict';
 import {OpenISDDriver} from '@openisd/design';
-import {Engine} from '@openisd/design/engine';
+import {createEngine} from '@openisd/design/engine';
 import {openDriverDraft} from '../../src/logic/driverDraft.js';
 import {presentationState} from '../../src/logic/presentationState.js';
 
@@ -34,7 +34,7 @@ function aDriver(brand: string, model: string): OpenISDDriver {
     },
     specs: { woofer: { Fs_hz: spec(30), Qts: spec(0.4), Sd_m2: spec(0.02) } },
   };
-  const driver = OpenISDDriver.fromConformingRecord(record, new Engine());
+  const driver = OpenISDDriver.fromConformingRecord(record, createEngine());
   if (Array.isArray(driver)) throw new Error(`fixture is not a valid driver: ${driver.join(', ')}`);
   return driver;
 }

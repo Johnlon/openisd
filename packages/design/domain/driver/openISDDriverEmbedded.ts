@@ -1,4 +1,4 @@
-import { Engine } from '../../engine/index.js';
+import {type Engine} from '../../engine/index.js';
 import type { AirEnvironment, DriverIssue } from '../../engine/index.js';
 import type { SimpleField } from '../cell.js';
 import type { DriverDeviceJson } from '../openisdSchema.js';

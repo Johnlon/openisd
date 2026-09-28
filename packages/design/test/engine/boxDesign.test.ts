@@ -22,7 +22,7 @@
 import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
 import type {SweepParams} from '../../engine/index.js';
-import {Engine} from '../../engine/index.js';
+import {createEngine} from '../../engine/index.js';
 import type {TestSolverQuantities} from './testSolver.js';
 import {driverParams} from './testSolver.js';
 
@@ -31,7 +31,7 @@ import {driverParams} from './testSolver.js';
 const LE_H = undefined;
 
 /** The engine's one door: every calculation below is a method on this object. */
-const engine = new Engine();
+const engine = createEngine();
 
 // Port end correction for a vent flanged at one end (baffle) and free at the other — WinISD's
 // own default (Vents tab "End Correction"; docs/winisd_screenshots/view_3_ported.png), and the

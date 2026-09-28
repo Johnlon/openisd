@@ -1,4 +1,4 @@
-import { Engine } from '../../engine/index.js';
+import {type Engine} from '../../engine/index.js';
 import { entryField, focus, requiredField } from '../cell.js';
 import type { Calculatable, Calculated, Clearable, Entered, Precise, Readable, SimpleField, Unsolvable, Writable } from '../cell.js';
 import type { CoupledVentedLosses } from '../losses.js';

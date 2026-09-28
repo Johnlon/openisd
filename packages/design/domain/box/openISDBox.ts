@@ -1,5 +1,5 @@
 import {LossMode} from '../../fields/lossMode.js';
-import {Engine} from '../../engine/index.js';
+import {type Engine} from '../../engine/index.js';
 import type { Air, BoxType, DqIssue } from '../../engine/index.js';
 import { CalculatedFieldImpl, absentCell, calculatedCell, entryField, focus, pairedField, requiredField } from '../cell.js';
 import type { SimpleField } from '../cell.js';

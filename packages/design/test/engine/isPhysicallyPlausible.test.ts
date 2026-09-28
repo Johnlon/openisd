@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import {Engine} from '../../engine/index.js';
+import {createEngine} from '../../engine/index.js';
 
 /**
  * `Engine.isPhysicallyPlausible` — D9 tier 1's one door into D5's `PHYSICAL_RANGE` table. The
@@ -9,7 +9,7 @@ import {Engine} from '../../engine/index.js';
  * instead, matching every other calculation this class exposes.
  */
 describe('Engine.isPhysicallyPlausible (D9 tier 1)', () => {
-  const engine = new Engine();
+  const engine = createEngine();
 
   it('is true for a value inside the field band', () => {
     expect(engine.driver.isPhysicallyPlausible('Fs_hz', 45)).toBe(true);
