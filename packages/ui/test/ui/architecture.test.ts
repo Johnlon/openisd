@@ -581,6 +581,7 @@ describe('layer-edge legality — the ruled dependency matrix (QO80 closure, 202
     'persistence-repos->model', 'persistence-repos->engine', 'persistence-storage->model',
     'model->winisd', // human-approved 2026-08-23: toWinISDDriver/toWinISDProject/fromWinISDProject
     'winisd->model', // the correct-direction bridge (winisd/src/bridge.ts)
+    'winisd->engine', // human-approved 2026-09-28: `winisd/bridge.ts` is the Python bridge's own main — "an independent program and application context" — and a composition root constructs the engine (ARCHITECTURE.md §7, "Application contexts and composition roots")
     'winisd->ini', // human-approved 2026-09-09 ("wdr may import ini"): .wdr/.wpr ARE Windows INI files
 
     'ui/diagnostics->ui/root', 'ui/logging->ui/root',

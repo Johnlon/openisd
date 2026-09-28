@@ -220,12 +220,12 @@ function bagFromVentHandles(v: VentSolverParams): TestVentQuantities {
 
 export function solveVentConsistencyGroup(d: TestVentQuantities, air: Air = REFERENCE_AIR()): TestVentQuantities {
   const handles = ventHandlesFrom(d);
-  engine.solveVent(handles, air);
+  engine.vent.solve(handles, air);
   return bagFromVentHandles(handles);
 }
 
 export function checkVentConsistency(d: TestVentQuantities, air: Air = REFERENCE_AIR()) {
-  return engine.solveVent(ventHandlesFrom(d), air);
+  return engine.vent.solve(ventHandlesFrom(d), air);
 }
 
 function sealedAlignmentHandlesFrom(s: TestSealedAlignmentQuantities): SealedAlignmentSolverParams {

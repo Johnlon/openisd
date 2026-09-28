@@ -32,13 +32,12 @@ import {hotRe} from './solvers/driverQuantities.js';
 import {cAdd, cDiv, cInv, cMul, cScale, cx} from './complex.js';
 import type {BoxType, Complex, Solution, SweepParams} from './types.js';
 import {simulatableBoxType} from './types.js';
-import type {LossModeValue} from './lossMode.js';
+import type {LossModeValue} from '../fields/lossMode.js';
 import {boxModel} from './boxes/index.js';
 import type {DriverSideQuantities} from './boxes/index.js';
 
 // Re-exported unchanged: the box-specific box models (`./boxes/`) now own the port branch, but
 // an existing import of `portImpedance`/`portLoss` from `circuit.js` still resolves.
-export {portImpedance, portLoss} from './boxes/index.js';
 
 /**
  * Solve the acoustic circuit at frequency f (Hz).

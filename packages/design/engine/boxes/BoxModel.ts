@@ -12,7 +12,7 @@
  * `SimulatableBoxType`.
  */
 import type {Complex, Solution} from '../types.js';
-import type {LossModeValue} from '../lossMode.js';
+import type {LossModeValue} from '../../fields/lossMode.js';
 
 /** The driver-side circuit quantities every box topology is handed, for one frequency — computed
  *  once by `solve()` and shared across topologies. Not every field is read by every topology:
