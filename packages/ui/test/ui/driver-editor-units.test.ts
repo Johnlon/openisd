@@ -30,7 +30,7 @@ import {CellClass, cellClassOf} from '../../src/logic/useDriverCells.js';
 import {provenanceOf} from '../../src/logic/fieldProvenance.js';
 import {OpenISDDriver, VoiceCoilWiring} from '@openisd/design';
 import {Engine} from '@openisd/design/engine';
-import {fieldById, precision} from '../../src/logic/fields/uiFields.js';
+import {DateField, EnumField, Field, NumberField, TextField, ToggleField} from '@openisd/design/fields';
 import {specFieldHandle} from '../../src/logic/driverSpecFields.js';
 import {nextToken, toDisplay, UNIT_GROUPS, unitDef, type UnitGroup} from '../../src/logic/fields/units.js';
 
@@ -54,34 +54,49 @@ interface Bound {
   /** True when the field binds `group`/`field`/`base` (a click-to-rotate <UnitToggle>) rather
    *  than a fixed `:scale` + static `<span class="u">` label. */
   toggleable: boolean;
-  /** The literal `field="…"` attribute on the NumInput (the registry id it looks up for
-   *  min/max bounds), or null when the cell binds no such attribute. */
-  regField: string | null;
+  /** The registry member the NumInput binds as `:field` (the one it takes min/max from), or
+   *  null when the cell binds no such attribute. */
+  regField: Field | null;
 }
 
-/** Evaluate a template numeric expression: a literal, or `precision('<id>')`. */
+/** The registry member a template names, e.g. `NumberField.DRIVER_DD_MM`. */
+function memberNamed(cls: string, name: string): Field {
+  const classes: Record<string, object> = {NumberField, EnumField, TextField, ToggleField, DateField};
+  const holder = classes[cls];
+  assert.ok(holder, `the template names ${cls}, which this test does not know`);
+  const found = Object.entries(holder).find(([n, v]) => n === name && v instanceof Field);
+  assert.ok(found, `${cls}.${name} is not a registry member`);
+  return found![1] as Field;
+}
+
+/** Evaluate a template numeric expression: a literal, or `<Class>.<MEMBER>.precision`. */
 function evalNum(expr: string, fallback: number): number {
   if (expr === '') return fallback;
-  const reg = /^precision\('([A-Za-z0-9_]+)'\)$/.exec(expr);
-  if (reg) return precision(reg[1]);
+  const reg = /^(\w+Field)\.([A-Z0-9_]+)\.precision$/.exec(expr);
+  if (reg) return (memberNamed(reg[1], reg[2]) as NumberField).precision;
   const n = Number(expr);
   assert.ok(Number.isFinite(n), `unparseable numeric binding: ${expr}`);
   return n;
 }
+
+const RESISTANCE_FIELDS = [
+  NumberField.DRIVER_RMS_NS_PER_M, NumberField.DRIVER_RME_NS_PER_M, NumberField.DRIVER_MCOST_KG_PER_S,
+] as const;
 
 /** Every `.de-fld` block in the editor template that binds a NumInput to a driver cell. */
 function boundFields(): Bound[] {
   const out: Bound[] = [];
   // Split on the field wrapper; each chunk runs to the start of the next field.
   for (const chunk of src.split('<div class="de-fld"').slice(1)) {
-    const binding = /<label>{{ fieldLabel\('([^']+)'\) }}<\/label>/.exec(chunk);
-    const label = binding ? fieldById(binding[1])?.label ?? binding[1]
+    const binding = /<label>\{\{ (\w+Field)\.([A-Z0-9_]+)\.label \}\}<\/label>/.exec(chunk);
+    const label = binding ? memberNamed(binding[1], binding[2]).label
       : /<label>([^<]*)<\/label>/.exec(chunk)?.[1]?.trim();
     const field = /<NumInput[^>]*:model-value="cellVal\('([^']+)'\)"/.exec(chunk)?.[1];
     if (!label || !field) continue;                       // read-only readout or a text input
     const numInput = /<NumInput[\s\S]*?>/.exec(chunk)![0];
     const precisionExpr = /:precision="([^"]+)"/.exec(numInput)?.[1] ?? '';
-    const regField = /\bfield="([^"]+)"/.exec(numInput)?.[1] ?? null;
+    const regMatch = /:field="(\w+Field)\.([A-Z0-9_]+)"/.exec(numInput);
+    const regField = regMatch ? memberNamed(regMatch[1], regMatch[2]) : null;
 
     // A field with a click-to-rotate unit binds `field`/`group`/`base` on the NumInput itself
     // and renders its unit label through `<UnitToggle .../>`, a COMPONENT — the text "mm" or
@@ -231,10 +246,8 @@ describe('resistance unit group — Ns/m ↔ kg/s, factor 1 (ledger QO51)', () =
   });
 
   it('Rms, Rme and Mcost declare the resistance unitGroup in the field registry', () => {
-    for (const id of ['Rms_kg_per_s', 'Rme_kg_per_s', 'Mcost_kg_per_s']) {
-      const spec = fieldById(id);
-      assert.ok(spec, `uiFields has no "${id}"`);
-      assert.equal(spec!.unitGroup, 'resistance', `${id} does not carry unitGroup: 'resistance'`);
+    for (const f of RESISTANCE_FIELDS) {
+      assert.equal(f.unitGroup, 'resistance', `${f.value} does not carry unitGroup: 'resistance'`);
     }
   });
 
@@ -263,24 +276,20 @@ describe('resistance unit group — Ns/m ↔ kg/s, factor 1 (ledger QO51)', () =
   // `regSpec` (NumInput.vue), so `effMax` switches from unbounded to the registry's ceiling —
   // a real behaviour change, not just a label. Pinned here by replicating NumInput's own
   // `valid(si)` in SI space, the same registry/`byLabel` seam every other test in this file uses.
-  function withinRegistryBounds(id: string, si: number): boolean {
-    const spec = fieldById(id);
-    const min = spec?.def?.limits.min ?? 0;
-    const max = spec?.def?.limits.max;
-    return isFinite(si) && si >= min && (max === undefined || si <= max);
+  function withinRegistryBounds(f: NumberField, si: number): boolean {
+    return isFinite(si) && si >= f.limits.min && si <= f.limits.max;
   }
 
-  it('field="Rms"/"Rme"/"Mcost" wires the registry ceiling into the bound check', () => {
-    for (const id of ['Rms_kg_per_s', 'Rme_kg_per_s', 'Mcost_kg_per_s']) {
-      const spec = fieldById(id);
-      assert.ok(spec, `uiFields has no "${id}"`);
-      const f = byLabel(spec!.label);
-      assert.equal(f.regField, id,
-        `${id}'s NumInput does not bind field="${id}" — the registry's min/max never reach this cell's bound check`);
-      assert.equal(spec!.def?.limits.max, 1000, `${id}'s ceiling is no longer 1000 — update this pin`);
-      assert.equal(withinRegistryBounds(id, 1000), true, `${id}: exactly at the registry ceiling must still be a valid value`);
-      assert.equal(withinRegistryBounds(id, 1000.0001), false,
-        `${id}: binding field="${id}" switches the bound check onto the registry's max=1000 — 1000.0001 must be rejected`);
+  it('Rms/Rme/Mcost wire the registry ceiling into the bound check', () => {
+    for (const spec of RESISTANCE_FIELDS) {
+      const f = byLabel(spec.label);
+      assert.equal(f.regField, spec,
+        `${spec.value}'s NumInput does not bind it — its min/max never reach this cell's bound check`);
+      assert.equal(spec.limits.max, 1000, `${spec.value}'s ceiling is no longer 1000 — update this pin`);
+      assert.equal(withinRegistryBounds(spec, 1000), true,
+        `${spec.value}: exactly at the registry ceiling must still be a valid value`);
+      assert.equal(withinRegistryBounds(spec, 1000.0001), false,
+        `${spec.value}: binding the field switches the bound check onto max=1000 — 1000.0001 must be rejected`);
     }
   });
 });
@@ -302,10 +311,8 @@ describe('percent unit group — one unit, the ONE place a fraction becomes a pe
   });
 
   it('no and Gloss declare the percent unitGroup in the field registry', () => {
-    for (const id of ['no', 'Gloss']) {
-      const spec = fieldById(id);
-      assert.ok(spec, `uiFields has no "${id}"`);
-      assert.equal(spec!.unitGroup, 'percent', `${id} does not carry unitGroup: 'percent'`);
+    for (const f of [NumberField.DRIVER_ETA0, NumberField.DRIVER_GLOSS_PCT]) {
+      assert.equal(f.unitGroup, 'percent', `${f.value} does not carry unitGroup: 'percent'`);
     }
   });
 
@@ -388,35 +395,35 @@ describe('Gloss — a FRACTION in the file, a PERCENT on the panel', () => {
 });
 
 describe('driver editor — precision comes from the field registry', () => {
-  // The registry is the SSOT for what a field shows (uiFields.ts header). A hardcoded
+  // The registry is the SSOT for what a field shows. A hardcoded
   // dp at the call site is a second, silent declaration: Dd at 2 dp of a metre is ±5 mm on a
   // cone diameter, and nothing connects that number back to the field's spec.
-  const REGISTRY_ID: Record<string, string> = {
-    Dd: 'Dd_m',
-    fLe: 'fLe_hz',
+  const REGISTRY_FIELD: ReadonlyMap<string, NumberField> = new Map([
+    ['Dd', NumberField.DRIVER_DD_MM],
+    ['fLe', NumberField.DRIVER_FLE_HZ],
     // Mechanical fields carry "Full Name (Short)" labels, taken from WinISD's own help
     // (docs/winisd_helpfiles/help/thielesmall.html). Keys here are the rendered label text.
-    'Basket Plate Thickness (Thick)': 'Thick_m',
-    'Driver Depth (Depth)': 'Depth_m',
-    'Magnet Depth': 'MagDepth_m',
-    'Magnet Diameter (Magnet)': 'Magnet_m',
-    'Basket Diameter (Basket)': 'Basket_m',
-    'Outer Diameter (Outer)': 'Outer_m',
-    'Voice Coil Dia (Vcd)': 'Vcd_m',
-    'Driver Displacement Volume (DVol)': 'DVol_m3',
-  };
+    ['Basket Plate Thickness (Thick)', NumberField.DRIVER_THICK_MM],
+    ['Driver Depth (Depth)', NumberField.DRIVER_DEPTH_MM],
+    ['Magnet Depth', NumberField.DRIVER_MAGDEPTH_MM],
+    ['Magnet Diameter (Magnet)', NumberField.DRIVER_MAGNET_MM],
+    ['Basket Diameter (Basket)', NumberField.DRIVER_BASKET_MM],
+    ['Outer Diameter (Outer)', NumberField.DRIVER_OUTER_MM],
+    ['Voice Coil Dia (Vcd)', NumberField.DRIVER_VCD_MM],
+    ['Driver Displacement Volume (DVol)', NumberField.DRIVER_DVOL_CM3],
+  ]);
 
-  for (const [label, id] of Object.entries(REGISTRY_ID)) {
-    it(`${label} binds precision('${id}') and renders that field's declared unit`, () => {
+  for (const [label, spec] of REGISTRY_FIELD) {
+    const member = [...Object.entries(NumberField)].find(([, v]) => v === spec)![0];
+    it(`${label} reads its precision off ${member} and renders that field's declared unit`, () => {
       const f = byLabel(label);
       assert.equal(
         f.precisionExpr,
-        `precision('${id}')`,
+        `NumberField.${member}.precision`,
         `${label} hardcodes :precision="${f.precisionExpr || '(absent — NumInput default 2)'}" instead of reading the registry`,
       );
-      const spec = fieldById(id);
-      assert.ok(spec, `uiFields has no "${id}"`);
-      assert.equal(spec.unit, f.unit, `registry says ${id} is in "${spec.unit}"; the editor labels it "${f.unit}"`);
+      assert.equal(spec.unit, f.unit,
+        `the registry says ${spec.value} is in "${spec.unit}"; the editor labels it "${f.unit}"`);
     });
   }
 
@@ -430,9 +437,7 @@ describe('driver editor — precision comes from the field registry', () => {
 
 describe('driver editor — peak power in the Miscellaneous parameters group', () => {
   it('power_peak_W has a registry label and a bound field row, in watts', () => {
-    const spec = fieldById('power_peak_W');
-    assert.ok(spec, 'uiFields has no "power_peak_W"');
-    const f = byLabel(spec!.label);
+    const f = byLabel(NumberField.DRIVER_POWER_PEAK_W.label);
     assert.equal(f.field, 'power_peak_W');
     assert.equal(f.unit, 'W');
   });

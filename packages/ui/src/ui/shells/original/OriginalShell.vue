@@ -6,6 +6,7 @@
 // src/hooks/OriginalShell-hooks.ts (`useOriginalShell`), where it is a plain composable that
 // gets unit-tested without a DOM. This `<script setup>` is nothing but a hook call plus the
 // child-component imports; the template reads the destructured API surface only.
+import {NumberField, ToggleField} from '@openisd/design/fields';
 import UnitToggle from '../../components/UnitToggle.vue';
 import NumInput from '../../components/NumInput.vue';
 import GraphPanel from '../../components/GraphPanel.vue';
@@ -30,12 +31,11 @@ const {
   mainEl, navCollapsed, bottomCollapsed, mainStyle, onNavSplitDown, onBottomSplitDown,
   projectList, isRowVisible, setRowVisible, rowName, rowUnsaved, selectProject, project, focused, projectOpen, whatIfActive,
   copyCurrentProject, requestCloseProject, closeChallenge, saveThenClose, closeProject,
-  genOn, toggleGenerate, genHz, limits,
+  genOn, toggleGenerate, genHz,
   boxLabel, pending, chartTab, overlays, activeTab,
   showEnclosureTab, enclosureNavLabel,
   selectedBox, BOX_TYPE_OPTIONS, LOSS_MODE_OPTIONS, lossMode, ARRAY_WIRING_OPTIONS, N_DRIVERS_OPTIONS, applyWinisdSettings,
-  fieldHelp,
-  boxVolume_m3, boxVolumeDqNote, setBoxVolume_m3, fieldDp, sealedAlignmentEditor, sealedAlignmentOpen,
+  boxVolume_m3, boxVolumeDqNote, setBoxVolume_m3, sealedAlignmentEditor, sealedAlignmentOpen,
   sealedAlignmentOptions, sealedAlignmentSelected, sealedAlignmentVolume_L, sealedAlignmentEbp,
   sealedAlignmentSuitability, sealedAlignmentSuitabilityLabel, ogFilters,
   fbState, FB_TARGET_TIP, VENT_GEOMETRY_TIP, fmtU, clearVentFieldOn, enterVentFieldOn,
@@ -177,7 +177,7 @@ const {
           <div class="panel-title">Signal Generator</div>
           <div class="signal-gen-row" title="Play a real sine tone out of the audio output for testing speakers.">
             <label><input type="checkbox" v-model="genOn" @change="toggleGenerate"> Generate</label>
-            <input v-expo-step type="number" step="1" v-limits="limits('genHz')" v-model.number="genHz"> <span class="unit">Hz</span>
+            <input v-expo-step type="number" step="1" v-limits="NumberField.SIGNAL_GENHZ_HZ.limits" v-model.number="genHz"> <span class="unit">Hz</span>
           </div>
         </div>
       </div>
@@ -254,7 +254,7 @@ const {
             <div v-if="!isDual" class="box-fields-col" style="width: 412px;">
               <div class="section-header">Rear chamber</div>
               <div class="field-row">
-                <div class="field entered"><label>Volume</label><NumInput :model-value="boxVolume_m3" @update:model-value="(v: number | null) => setBoxVolume_m3(v ?? 0)" field="Vb" group="volume" base="L" :precision="fieldDp('Vb')" /><span v-if="boxVolumeDqNote" class="de-dq" :title="boxVolumeDqNote">&#9888;</span><UnitToggle field="Vb" group="volume" base="L" unit-class="unit unit-cyc" /></div>
+                <div class="field entered"><label>Volume</label><NumInput :model-value="boxVolume_m3" @update:model-value="(v: number | null) => setBoxVolume_m3(v ?? 0)" :field="NumberField.BOX_VB_L" unit-key="Vb" group="volume" base="L" :precision="NumberField.BOX_VB_L.precision" /><span v-if="boxVolumeDqNote" class="de-dq" :title="boxVolumeDqNote">&#9888;</span><UnitToggle field="Vb" group="volume" base="L" unit-class="unit unit-cyc" /></div>
                 <button v-if="selectedBox === 'sealed'" class="link-btn" title="Choose a sealed-box alignment and calculate its volume" @click="sealedAlignmentEditor.openEditor">Alignment</button>
               </div>
               <div class="field-row" style="flex-wrap: nowrap;">
@@ -263,14 +263,14 @@ const {
                      from it. A sealed chamber has no port, so Fsc is fully determined by Vb
                      and the driver — calculated, nothing to type. Per-chamber, not per-box. -->
                 <template v-if="selectedBox === 'vented'">
-                  <div v-if="fbState === 'E'" id="og-fb-target-field" class="field entered" :title="FB_TARGET_TIP"><label>Target Tuning Freq</label><NumInput id="og-fb-target" :model-value="project.box.vented.tuning_goal_hz.value" @update:model-value="(v: number | null) => { if (v == null || isNaN(v) || v <= 0) clearVentFieldOn(project, 'Fb'); else enterVentFieldOn(project, 'Fb', v); }" field="Fb" group="freq" base="Hz" :precision="fieldDp('Fb')" /><UnitToggle field="Fb" group="freq" base="Hz" unit-class="unit unit-cyc" /></div>
-                  <div v-else id="og-fb-target-field" class="field" :title="FB_TARGET_TIP"><label>Target Tuning Freq</label><input class="calculated greyed" :value="fmtU(project.box.vented.tuning_goal_hz.value, 'Fb', 'freq', 'Hz', fieldDp('Fb'))" readonly><UnitToggle field="Fb" group="freq" base="Hz" unit-class="unit unit-cyc" /></div>
+                  <div v-if="fbState === 'E'" id="og-fb-target-field" class="field entered" :title="FB_TARGET_TIP"><label>Target Tuning Freq</label><NumInput id="og-fb-target" :model-value="project.box.vented.tuning_goal_hz.value" @update:model-value="(v: number | null) => { if (v == null || isNaN(v) || v <= 0) clearVentFieldOn(project, 'Fb'); else enterVentFieldOn(project, 'Fb', v); }" :field="NumberField.BOX_FB_HZ" unit-key="Fb" group="freq" base="Hz" :precision="NumberField.BOX_FB_HZ.precision" /><UnitToggle field="Fb" group="freq" base="Hz" unit-class="unit unit-cyc" /></div>
+                  <div v-else id="og-fb-target-field" class="field" :title="FB_TARGET_TIP"><label>Target Tuning Freq</label><input class="calculated greyed" :value="fmtU(project.box.vented.tuning_goal_hz.value, 'Fb', 'freq', 'Hz', NumberField.BOX_FB_HZ.precision)" readonly><UnitToggle field="Fb" group="freq" base="Hz" unit-class="unit unit-cyc" /></div>
                 </template>
                 <template v-else-if="selectedBox === 'sealed'">
-                  <div class="field"><label>Fsc</label><input id="og-box-resonance" class="calculated greyed" :value="fmtU(boxResonance, 'boxResonance', 'freq', 'Hz', fieldDp('Fb'))" readonly><UnitToggle field="boxResonance" group="freq" base="Hz" unit-class="unit unit-cyc" style="min-width: auto;" /></div>
+                  <div class="field"><label>Fsc</label><input id="og-box-resonance" class="calculated greyed" :value="fmtU(boxResonance, 'boxResonance', 'freq', 'Hz', NumberField.BOX_FB_HZ.precision)" readonly><UnitToggle field="boxResonance" group="freq" base="Hz" unit-class="unit unit-cyc" style="min-width: auto;" /></div>
                   <div class="field" style="margin-left: 4px; gap: 4px;"><label style="width: auto; margin-right: 4px;">Qtc</label><input class="calculated greyed" :value="rearQtc != null ? rearQtc.toFixed(3) : ''" readonly></div>
                 </template>
-                <div v-else :class="['field', { 'dq-flag': selectedBox === 'box-passive-radiator' && prSystemTuningDq.dq.length > 0 }]" :title="selectedBox === 'box-passive-radiator' && prSystemTuningDq.dq.length > 0 ? prSystemTuningDq.dq.join('; ') : ''"><label>Fh</label><input id="og-box-resonance" class="calculated greyed" :value="fmtU(boxResonance, 'boxResonance', 'freq', 'Hz', fieldDp('Fb'))" readonly><UnitToggle field="boxResonance" group="freq" base="Hz" unit-class="unit unit-cyc" /></div>
+                <div v-else :class="['field', { 'dq-flag': selectedBox === 'box-passive-radiator' && prSystemTuningDq.dq.length > 0 }]" :title="selectedBox === 'box-passive-radiator' && prSystemTuningDq.dq.length > 0 ? prSystemTuningDq.dq.join('; ') : ''"><label>Fh</label><input id="og-box-resonance" class="calculated greyed" :value="fmtU(boxResonance, 'boxResonance', 'freq', 'Hz', NumberField.BOX_FB_HZ.precision)" readonly><UnitToggle field="boxResonance" group="freq" base="Hz" unit-class="unit unit-cyc" /></div>
               </div>
               <p v-if="selectedBox === 'vented' && fbUnreachable" id="og-fb-unreachable" class="hint" style="color:#a11;">{{ fbUnreachableMsg }}</p>
               <button class="link-btn" @click="boxLossesOpen = true">Advanced-&gt;</button>
@@ -279,16 +279,16 @@ const {
             <template v-else>
               <div class="box-fields-col">
                 <div class="section-header">Rear chamber</div>
-                <div class="field-row"><div class="field entered"><label>Volume</label><NumInput :model-value="boxVolume_m3" @update:model-value="(v: number | null) => setBoxVolume_m3(v ?? 0)" field="Vb" group="volume" base="L" :precision="fieldDp('Vb')" /><span v-if="boxVolumeDqNote" class="de-dq" :title="boxVolumeDqNote">&#9888;</span><UnitToggle field="Vb" group="volume" base="L" unit-class="unit unit-cyc" /></div></div>
+                <div class="field-row"><div class="field entered"><label>Volume</label><NumInput :model-value="boxVolume_m3" @update:model-value="(v: number | null) => setBoxVolume_m3(v ?? 0)" :field="NumberField.BOX_VB_L" unit-key="Vb" group="volume" base="L" :precision="NumberField.BOX_VB_L.precision" /><span v-if="boxVolumeDqNote" class="de-dq" :title="boxVolumeDqNote">&#9888;</span><UnitToggle field="Vb" group="volume" base="L" unit-class="unit unit-cyc" /></div></div>
                 <div class="field-row">
                   <div v-if="selectedBox === 'bandpass6' || selectedBox === 'abc'" class="field entered">
                     <label>Tuning freq (Frc)</label>
-                    <NumInput :model-value="frcHz" @update:model-value="(v: number | null) => setFrcHz(v ?? 0)" field="Frc" group="freq" base="Hz" :precision="fieldDp('Fb')" />
+                    <NumInput :model-value="frcHz" @update:model-value="(v: number | null) => setFrcHz(v ?? 0)" :field="NumberField.BOX_FRC_HZ" unit-key="Frc" group="freq" base="Hz" :precision="NumberField.BOX_FB_HZ.precision" />
                     <UnitToggle field="Frc" group="freq" base="Hz" unit-class="unit unit-cyc" />
                   </div>
                   <div v-else class="field">
                     <label>{{ selectedBox === 'bandpass4' ? 'Frc' : 'Tuning freq' }}</label>
-                    <input class="calculated greyed" :value="fmtU(rearResonance, 'rearResonance', 'freq', 'Hz', fieldDp('Fb'))" readonly>
+                    <input class="calculated greyed" :value="fmtU(rearResonance, 'rearResonance', 'freq', 'Hz', NumberField.BOX_FB_HZ.precision)" readonly>
                     <UnitToggle field="rearResonance" group="freq" base="Hz" unit-class="unit unit-cyc" />
                   </div>
                 </div>
@@ -299,16 +299,16 @@ const {
               </div>
               <div class="box-fields-col">
                 <div class="section-header">Front chamber</div>
-                <div class="field-row"><div class="field entered"><label>Volume</label><NumInput :model-value="frontVolume_m3" @update:model-value="(v: number | null) => setFrontVolume_m3(v ?? 0)" field="Vf" group="volume" base="L" :precision="fieldDp('Vf')" /><UnitToggle field="Vf" group="volume" base="L" unit-class="unit unit-cyc" /></div></div>
+                <div class="field-row"><div class="field entered"><label>Volume</label><NumInput :model-value="frontVolume_m3" @update:model-value="(v: number | null) => setFrontVolume_m3(v ?? 0)" :field="NumberField.BOX_VF_L" unit-key="Vf" group="volume" base="L" :precision="NumberField.BOX_VF_L.precision" /><UnitToggle field="Vf" group="volume" base="L" unit-class="unit unit-cyc" /></div></div>
                 <div class="field-row">
                   <div v-if="fbState === 'E'" id="og-ffc-target-field" class="field entered" :title="FB_TARGET_TIP">
                     <label>{{ frontChamberTuningLabel }}</label>
-                    <NumInput id="og-ffc-target" :model-value="project.box.vented.tuning_goal_hz.value" @update:model-value="(v: number | null) => { if (v == null || isNaN(v) || v <= 0) clearVentFieldOn(project, 'Fb'); else enterVentFieldOn(project, 'Fb', v); }" field="Fb" group="freq" base="Hz" :precision="fieldDp('Fb')" />
+                    <NumInput id="og-ffc-target" :model-value="project.box.vented.tuning_goal_hz.value" @update:model-value="(v: number | null) => { if (v == null || isNaN(v) || v <= 0) clearVentFieldOn(project, 'Fb'); else enterVentFieldOn(project, 'Fb', v); }" :field="NumberField.BOX_FB_HZ" unit-key="Fb" group="freq" base="Hz" :precision="NumberField.BOX_FB_HZ.precision" />
                     <UnitToggle field="Fb" group="freq" base="Hz" unit-class="unit unit-cyc" />
                   </div>
                   <div v-else id="og-ffc-target-field" class="field" :title="FB_TARGET_TIP">
                     <label>{{ frontChamberTuningLabel }}</label>
-                    <input class="calculated greyed" :value="fmtU(project.box.vented.tuning_goal_hz.value, 'Fb', 'freq', 'Hz', fieldDp('Fb'))" readonly>
+                    <input class="calculated greyed" :value="fmtU(project.box.vented.tuning_goal_hz.value, 'Fb', 'freq', 'Hz', NumberField.BOX_FB_HZ.precision)" readonly>
                     <UnitToggle field="Fb" group="freq" base="Hz" unit-class="unit unit-cyc" />
                   </div>
                 </div>
@@ -368,9 +368,9 @@ const {
               <div class="section-header">Advanced options</div>
               <div class="beside-hint">
                 <div>
-                  <div class="field-row"><div class="field entered"><label>Voice coil temp rise</label><NumInput :model-value="project.vcTempRise_K.value" @update:model-value="(v: number | null) => project.vcTempRise_K.set(v ?? 0)" field="vcTempRise" group="tempDiff" base="K" :precision="fieldDp('vcTempRise')" /><UnitToggle field="vcTempRise" group="tempDiff" base="K" unit-class="unit" /></div></div>
-                  <div class="field-row"><div class="field entered"><label>Voice coil resistance TC</label><NumInput :model-value="project.alfaVC_per_K.value" @update:model-value="(v: number | null) => project.alfaVC_per_K.set(v ?? 0)" field="alfaVC_per_K" group="tempCoeff" base="perMilliK" :precision="fieldDp('alfaVC_per_K')" /><UnitToggle field="alfaVC_per_K" group="tempCoeff" base="perMilliK" unit-class="unit" /></div></div>
-                  <div class="field-row"><div class="field entered"><label>Added mass to cone</label><NumInput :model-value="project.driverAddedMass_kg.value" @update:model-value="(v: number | null) => project.driverAddedMass_kg.set(v ?? 0)" field="driverAddedMass" group="mass" base="g" :precision="fieldDp('driverAddedMass')" /><UnitToggle field="driverAddedMass" group="mass" base="g" unit-class="unit" /></div></div>
+                  <div class="field-row"><div class="field entered"><label>Voice coil temp rise</label><NumInput :model-value="project.vcTempRise_K.value" @update:model-value="(v: number | null) => project.vcTempRise_K.set(v ?? 0)" :field="NumberField.DRIVER_VCTEMPRISE_K" unit-key="vcTempRise" group="tempDiff" base="K" :precision="NumberField.DRIVER_VCTEMPRISE_K.precision" /><UnitToggle field="vcTempRise" group="tempDiff" base="K" unit-class="unit" /></div></div>
+                  <div class="field-row"><div class="field entered"><label>Voice coil resistance TC</label><NumInput :model-value="project.alfaVC_per_K.value" @update:model-value="(v: number | null) => project.alfaVC_per_K.set(v ?? 0)" :field="NumberField.DRIVER_ALFAVC_PER_K" unit-key="alfaVC_per_K" group="tempCoeff" base="perMilliK" :precision="NumberField.DRIVER_ALFAVC_PER_K.precision" /><UnitToggle field="alfaVC_per_K" group="tempCoeff" base="perMilliK" unit-class="unit" /></div></div>
+                  <div class="field-row"><div class="field entered"><label>Added mass to cone</label><NumInput :model-value="project.driverAddedMass_kg.value" @update:model-value="(v: number | null) => project.driverAddedMass_kg.set(v ?? 0)" :field="NumberField.DRIVER_ADDEDMASS_G" unit-key="driverAddedMass" group="mass" base="g" :precision="NumberField.DRIVER_ADDEDMASS_G.precision" /><UnitToggle field="driverAddedMass" group="mass" base="g" unit-class="unit" /></div></div>
                 </div>
                 <p class="hint side-hint">Temp rise × resistance TC model voice-coil power compression; added mass raises Mms (lowers Fs). WinISD parity.</p>
               </div>
@@ -421,14 +421,14 @@ const {
                   <div class="field-row">
                     <div class="field entered" :title="VENT_GEOMETRY_TIP">
                       <label>Slot width</label>
-                      <NumInput :model-value="activeVent.width_m.value" @update:model-value="(v: number | null) => enterVentFieldOn(project, 'ventW', v ?? 0)" field="ventW" group="length" base="cm" :precision="fieldDp('ventW')" />
+                      <NumInput :model-value="activeVent.width_m.value" @update:model-value="(v: number | null) => enterVentFieldOn(project, 'ventW', v ?? 0)" :field="NumberField.VENT_W_CM" unit-key="ventW" group="length" base="cm" :precision="NumberField.VENT_W_CM.precision" />
                       <UnitToggle field="ventW" group="length" base="cm" unit-class="unit unit-cyc" />
                     </div>
                   </div>
                   <div class="field-row">
                     <div class="field entered" :title="VENT_GEOMETRY_TIP">
                       <label>Slot height</label>
-                      <NumInput :model-value="activeVent.height_m.value" @update:model-value="(v: number | null) => enterVentFieldOn(project, 'ventH', v ?? 0)" field="ventH" group="length" base="cm" :precision="fieldDp('ventH')" />
+                      <NumInput :model-value="activeVent.height_m.value" @update:model-value="(v: number | null) => enterVentFieldOn(project, 'ventH', v ?? 0)" :field="NumberField.VENT_H_CM" unit-key="ventH" group="length" base="cm" :precision="NumberField.VENT_H_CM.precision" />
                       <UnitToggle field="ventH" group="length" base="cm" unit-class="unit unit-cyc" />
                     </div>
                   </div>
@@ -437,7 +437,7 @@ const {
                   <div class="field-row">
                     <div class="field entered" :title="VENT_GEOMETRY_TIP">
                       <label>Vent diameter</label>
-                      <NumInput :model-value="activeVent.diameter_m.value" @update:model-value="(v: number | null) => enterVentFieldOn(project, 'ventD', v ?? 0)" field="ventD" group="length" base="cm" :precision="fieldDp('ventD')" />
+                      <NumInput :model-value="activeVent.diameter_m.value" @update:model-value="(v: number | null) => enterVentFieldOn(project, 'ventD', v ?? 0)" :field="NumberField.VENT_D_CM" unit-key="ventD" group="length" base="cm" :precision="NumberField.VENT_D_CM.precision" />
                       <UnitToggle field="ventD" group="length" base="cm" unit-class="unit unit-cyc" />
                     </div>
                   </div>
@@ -446,14 +446,14 @@ const {
                 <div class="field-row">
                   <div v-if="ventLState === 'E'" class="field entered">
                     <label>Vent length</label>
-                    <NumInput :model-value="activeVent.length_m.value" @update:model-value="(v: number | null) => { if (v == null || isNaN(v) || v <= 0) clearVentFieldOn(project, 'ventL'); else enterVentFieldOn(project, 'ventL', v); }" field="ventL" group="length" base="cm" :precision="fieldDp('ventL')" />
+                    <NumInput :model-value="activeVent.length_m.value" @update:model-value="(v: number | null) => { if (v == null || isNaN(v) || v <= 0) clearVentFieldOn(project, 'ventL'); else enterVentFieldOn(project, 'ventL', v); }" :field="NumberField.VENT_L_CM" unit-key="ventL" group="length" base="cm" :precision="NumberField.VENT_L_CM.precision" />
                     <UnitToggle field="ventL" group="length" base="cm" unit-class="unit unit-cyc" />
                   </div>
                   <div v-else class="field">
                     <label>Vent length</label>
                     <!-- Blank when the target tuning is beyond what this vent can reach: the
                          solver writes no length, and the dq message beside it names the ceiling. -->
-                    <input id="og-vent-length-ro" class="calculated greyed" :class="{ impossible: activeVent.length_m.value === null }" :value="fmtU(activeVent.length_m.value, 'ventL', 'length', 'cm', fieldDp('ventL'))" readonly>
+                    <input id="og-vent-length-ro" class="calculated greyed" :class="{ impossible: activeVent.length_m.value === null }" :value="fmtU(activeVent.length_m.value, 'ventL', 'length', 'cm', NumberField.VENT_L_CM.precision)" readonly>
                     <UnitToggle field="ventL" group="length" base="cm" unit-class="unit unit-cyc" />
                   </div>
                 </div>
@@ -474,20 +474,20 @@ const {
                 <div class="field-row">
                   <div v-if="fbState === 'E'" id="og-vent-fb-target-field" class="field entered" :title="FB_TARGET_TIP">
                     <label>Target Tuning Freq</label>
-                    <NumInput id="og-vent-fb-target" :model-value="project.box.vented.tuning_goal_hz.value" @update:model-value="(v: number | null) => { if (v == null || isNaN(v) || v <= 0) clearVentFieldOn(project, 'Fb'); else enterVentFieldOn(project, 'Fb', v); }" field="Fb" group="freq" base="Hz" :precision="fieldDp('Fb')" />
+                    <NumInput id="og-vent-fb-target" :model-value="project.box.vented.tuning_goal_hz.value" @update:model-value="(v: number | null) => { if (v == null || isNaN(v) || v <= 0) clearVentFieldOn(project, 'Fb'); else enterVentFieldOn(project, 'Fb', v); }" :field="NumberField.BOX_FB_HZ" unit-key="Fb" group="freq" base="Hz" :precision="NumberField.BOX_FB_HZ.precision" />
                     <UnitToggle field="Fb" group="freq" base="Hz" unit-class="unit unit-cyc" />
                   </div>
                   <div v-else id="og-vent-fb-target-field" class="field" :title="FB_TARGET_TIP">
                     <label>Target Tuning Freq</label>
-                    <input id="og-vent-fb-target" class="calculated greyed" :value="fmtU(project.box.vented.tuning_goal_hz.value, 'Fb', 'freq', 'Hz', fieldDp('Fb'))" readonly>
+                    <input id="og-vent-fb-target" class="calculated greyed" :value="fmtU(project.box.vented.tuning_goal_hz.value, 'Fb', 'freq', 'Hz', NumberField.BOX_FB_HZ.precision)" readonly>
                     <UnitToggle field="Fb" group="freq" base="Hz" unit-class="unit unit-cyc" />
                   </div>
                 </div>
                 <div class="field-row">
-                  <div class="field" :title="VENT_GEOMETRY_TIP"><label>Cross area</label><input class="calculated greyed" :value="fmtU(activeVent.area_m2.value, 'ventArea', 'area', 'm2', fieldDp('ventCrossArea'))" readonly><UnitToggle field="ventCrossArea" group="area" base="m2" unit-class="unit" /></div>
+                  <div class="field" :title="VENT_GEOMETRY_TIP"><label>Cross area</label><input class="calculated greyed" :value="fmtU(activeVent.area_m2.value, 'ventArea', 'area', 'm2', NumberField.VENT_CROSSAREA_M2.precision)" readonly><UnitToggle field="ventCrossArea" group="area" base="m2" unit-class="unit" /></div>
                 </div>
                 <div class="field-row">
-                  <div class="field"><label>1st port resonance</label><input class="calculated greyed" :value="fmtU(portPipeResonance_hz, 'portResonance', 'freq', 'Hz', fieldDp('portResonance'))" readonly><UnitToggle field="portResonance" group="freq" base="Hz" unit-class="unit unit-cyc" /></div>
+                  <div class="field"><label>1st port resonance</label><input class="calculated greyed" :value="fmtU(portPipeResonance_hz, 'portResonance', 'freq', 'Hz', NumberField.VENT_1STPORTRESONANCE_HZ.precision)" readonly><UnitToggle field="portResonance" group="freq" base="Hz" unit-class="unit unit-cyc" /></div>
                 </div>
               </div>
             </div>
@@ -511,8 +511,8 @@ const {
               <div style="--label-w:44px;">
                 <div class="section-header">Passive radiator parameters</div>
                 <div class="field-row">
-                  <div class="field entered"><label>Vas</label><NumInput id="og-pr-vas" :model-value="project.box.passiveRadiator.radiator.spec.Vas_m3.value" @update:model-value="(v: number | null) => project.box.passiveRadiator.radiator.spec.Vas_m3.set(v ?? 0)" field="prVas" group="volume" base="L" :precision="fieldDp('prVas')" /><UnitToggle field="prVas" group="volume" base="L" unit-class="unit unit-cyc" /></div>
-                  <div class="field entered"><label>Qms</label><NumInput id="og-pr-qms" :model-value="project.box.passiveRadiator.radiator.spec.Qms.value" @update:model-value="(v: number | null) => project.box.passiveRadiator.radiator.spec.Qms.set(v ?? 0)" field="prQms" :precision="fieldDp('prQms')" /></div>
+                  <div class="field entered"><label>Vas</label><NumInput id="og-pr-vas" :model-value="project.box.passiveRadiator.radiator.spec.Vas_m3.value" @update:model-value="(v: number | null) => project.box.passiveRadiator.radiator.spec.Vas_m3.set(v ?? 0)" :field="NumberField.PR_VAS_L" unit-key="prVas" group="volume" base="L" :precision="NumberField.PR_VAS_L.precision" /><UnitToggle field="prVas" group="volume" base="L" unit-class="unit unit-cyc" /></div>
+                  <div class="field entered"><label>Qms</label><NumInput id="og-pr-qms" :model-value="project.box.passiveRadiator.radiator.spec.Qms.value" @update:model-value="(v: number | null) => project.box.passiveRadiator.radiator.spec.Qms.set(v ?? 0)" :field="NumberField.PR_QMS" :precision="NumberField.PR_QMS.precision" /></div>
                 </div>
                 <div class="field-row">
                   <!-- The RADIATOR's own free-air resonance, 1/(2π√(Mmd·Cms)) — no box in it.
@@ -521,23 +521,23 @@ const {
                        this app's symbol for it. Distinct from the SYSTEM tuning on the Box tab
                        (view_2_box.png "Fh": 40.25 Hz on that same project), which is the box
                        compliance in series with the PR's own — two quantities, two readouts. -->
-                  <div class="field entered"><label>Fpr</label><NumInput id="og-pr-fs" :model-value="project.box.passiveRadiator.radiator.spec.Fs_hz.value" @update:model-value="(v: number | null) => project.box.passiveRadiator.radiator.spec.Fs_hz.set(v ?? 0)" field="prFs" group="freq" base="Hz" :precision="fieldDp('prFs')" /><UnitToggle field="prFs" group="freq" base="Hz" unit-class="unit unit-cyc" /></div>
-                  <div class="field entered"><label>Sd</label><NumInput :model-value="project.box.passiveRadiator.radiator.spec.Sd_m2.value" @update:model-value="(v: number | null) => project.box.passiveRadiator.radiator.spec.Sd_m2.set(v ?? 0)" field="prSd" group="area" base="cm2" :precision="fieldDp('prSd')" /><UnitToggle field="prSd" group="area" base="cm2" unit-class="unit unit-cyc" /></div>
+                  <div class="field entered"><label>Fpr</label><NumInput id="og-pr-fs" :model-value="project.box.passiveRadiator.radiator.spec.Fs_hz.value" @update:model-value="(v: number | null) => project.box.passiveRadiator.radiator.spec.Fs_hz.set(v ?? 0)" :field="NumberField.PR_FS_HZ" unit-key="prFs" group="freq" base="Hz" :precision="NumberField.PR_FS_HZ.precision" /><UnitToggle field="prFs" group="freq" base="Hz" unit-class="unit unit-cyc" /></div>
+                  <div class="field entered"><label>Sd</label><NumInput :model-value="project.box.passiveRadiator.radiator.spec.Sd_m2.value" @update:model-value="(v: number | null) => project.box.passiveRadiator.radiator.spec.Sd_m2.set(v ?? 0)" :field="NumberField.PR_SD_CM2" unit-key="prSd" group="area" base="cm2" :precision="NumberField.PR_SD_CM2.precision" /><UnitToggle field="prSd" group="area" base="cm2" unit-class="unit unit-cyc" /></div>
                 </div>
                 <div class="field-row">
-                  <div class="field entered"><label>Xmax</label><NumInput :model-value="project.box.passiveRadiator.radiator.spec.Xmax_m.value" @update:model-value="(v: number | null) => project.box.passiveRadiator.radiator.spec.Xmax_m.set(v ?? 0)" field="prXmax" group="length" base="mm" :precision="fieldDp('prXmax')" /><UnitToggle field="prXmax" group="length" base="mm" unit-class="unit unit-cyc" /></div>
+                  <div class="field entered"><label>Xmax</label><NumInput :model-value="project.box.passiveRadiator.radiator.spec.Xmax_m.value" @update:model-value="(v: number | null) => project.box.passiveRadiator.radiator.spec.Xmax_m.set(v ?? 0)" :field="NumberField.PR_XMAX_MM" unit-key="prXmax" group="length" base="mm" :precision="NumberField.PR_XMAX_MM.precision" /><UnitToggle field="prXmax" group="length" base="mm" unit-class="unit unit-cyc" /></div>
                 </div>
               </div>
               <div style="--label-w:150px;">
                 <div class="section-header">User options</div>
-                <div class="field-row"><div class="field entered"><label>Num. of PRs:</label><NumInput :model-value="project.box.passiveRadiator.count.value" @update:model-value="(v: number | null) => project.box.passiveRadiator.count.set(v ?? 0)" field="prNum" :precision="fieldDp('prNum')" /></div></div>
+                <div class="field-row"><div class="field entered"><label>Num. of PRs:</label><NumInput :model-value="project.box.passiveRadiator.count.value" @update:model-value="(v: number | null) => project.box.passiveRadiator.count.set(v ?? 0)" :field="NumberField.PR_NUM" :precision="NumberField.PR_NUM.precision" /></div></div>
                 <div class="field-row">
-                  <div :class="['field', 'entered', { 'dq-flag': prAddedMassDq.dq.length > 0 }]"><label>Added mass to cone:</label><NumInput id="og-pr-madd" :model-value="project.box.passiveRadiator.addedMass_kg.value" @update:model-value="(v: number | null) => project.box.passiveRadiator.addedMass_kg.set(v ?? 0)" field="prMadd" group="mass" base="g" :precision="fieldDp('prMadd')" v-bind="prAddedMassDq" /><UnitToggle field="prMadd" group="mass" base="g" unit-class="unit" /></div>
+                  <div :class="['field', 'entered', { 'dq-flag': prAddedMassDq.dq.length > 0 }]"><label>Added mass to cone:</label><NumInput id="og-pr-madd" :model-value="project.box.passiveRadiator.addedMass_kg.value" @update:model-value="(v: number | null) => project.box.passiveRadiator.addedMass_kg.set(v ?? 0)" :field="NumberField.PR_MADD_G" unit-key="prMadd" group="mass" base="g" :precision="NumberField.PR_MADD_G.precision" v-bind="prAddedMassDq" /><UnitToggle field="prMadd" group="mass" base="g" unit-class="unit" /></div>
                 </div>
                 <div class="field-row">
-                  <div :class="['field', 'entered', { 'dq-flag': prTuningDq.dq.length > 0 }]"><label>Target tuning freq (Fp):</label><NumInput id="og-pr-fp" :model-value="project.box.passiveRadiator.tuning_goal_hz.value" @update:model-value="(v: number | null) => project.box.passiveRadiator.tuning_goal_hz.set(v ?? 0)" field="Fp" group="freq" base="Hz" :precision="fieldDp('Fp')" v-bind="prTuningDq" /><UnitToggle field="Fp" group="freq" base="Hz" unit-class="unit" /></div>
+                  <div :class="['field', 'entered', { 'dq-flag': prTuningDq.dq.length > 0 }]"><label>Target tuning freq (Fp):</label><NumInput id="og-pr-fp" :model-value="project.box.passiveRadiator.tuning_goal_hz.value" @update:model-value="(v: number | null) => project.box.passiveRadiator.tuning_goal_hz.set(v ?? 0)" :field="NumberField.PR_FP_HZ" unit-key="Fp" group="freq" base="Hz" :precision="NumberField.PR_FP_HZ.precision" v-bind="prTuningDq" /><UnitToggle field="Fp" group="freq" base="Hz" unit-class="unit" /></div>
                 </div>
-                <div class="field-row"><div :class="['field', { 'dq-flag': prResonanceMassDq.dq.length > 0 }]" :title="prResonanceMassDq.dq.length > 0 ? prResonanceMassDq.dq.join('; ') : ''"><label>Fpr (with added mass):</label><input id="og-pr-fs-mass" class="calculated greyed" :value="fmtU(prFsMass_hz, 'prFsMass', 'freq', 'Hz', fieldDp('prFsMass'))" readonly><UnitToggle field="prFsMass" group="freq" base="Hz" unit-class="unit" /></div></div>
+                <div class="field-row"><div :class="['field', { 'dq-flag': prResonanceMassDq.dq.length > 0 }]" :title="prResonanceMassDq.dq.length > 0 ? prResonanceMassDq.dq.join('; ') : ''"><label>Fpr (with added mass):</label><input id="og-pr-fs-mass" class="calculated greyed" :value="fmtU(prFsMass_hz, 'prFsMass', 'freq', 'Hz', NumberField.PR_FSMASS_HZ.precision)" readonly><UnitToggle field="prFsMass" group="freq" base="Hz" unit-class="unit" /></div></div>
               </div>
             </div>
           </div>
@@ -582,9 +582,9 @@ const {
             </div>
             <div style="--label-w:186px;">
               <div class="section-header">Signal source</div>
-              <div class="field-row"><div :class="['field', 'entered', { 'dq-flag': project.powerDrive_W.dq.length > 0 }]"><label>System input power</label><NumInput field="Pin" :readonly="powerLocked" :model-value="project.powerDrive_W.value" @update:model-value="(v: number | null) => v == null ? project.powerDrive_W.clear() : project.powerDrive_W.set(v)" :precision="fieldDp('Pin')" v-bind="dqOfCell(project.powerDrive_W)" /><span class="unit">W</span></div></div>
-              <div class="field-row"><div :class="['field', 'entered', { 'dq-flag': project.driveVoltage_V.dq.length > 0 }]"><label>Driver input voltage (each)</label><NumInput field="driveV" v-model="driveV" :precision="fieldDp('driveV')" v-bind="dqOfCell(project.driveVoltage_V)" @blur-notify="reconcileDriveV" /><span class="unit">V</span></div></div>
-              <div class="field-row"><div class="field entered"><label>Series resistance</label><NumInput v-model="rsOhm" :precision="fieldDp('Rs')" /><span class="unit">ohm</span></div></div>
+              <div class="field-row"><div :class="['field', 'entered', { 'dq-flag': project.powerDrive_W.dq.length > 0 }]"><label>System input power</label><NumInput :field="NumberField.SIGNAL_PIN_W" :readonly="powerLocked" :model-value="project.powerDrive_W.value" @update:model-value="(v: number | null) => v == null ? project.powerDrive_W.clear() : project.powerDrive_W.set(v)" :precision="NumberField.SIGNAL_PIN_W.precision" v-bind="dqOfCell(project.powerDrive_W)" /><span class="unit">W</span></div></div>
+              <div class="field-row"><div :class="['field', 'entered', { 'dq-flag': project.driveVoltage_V.dq.length > 0 }]"><label>Driver input voltage (each)</label><NumInput :field="NumberField.SIGNAL_DRIVEV_V" v-model="driveV" :precision="NumberField.SIGNAL_DRIVEV_V.precision" v-bind="dqOfCell(project.driveVoltage_V)" @blur-notify="reconcileDriveV" /><span class="unit">V</span></div></div>
+              <div class="field-row"><div class="field entered"><label>Series resistance</label><NumInput v-model="rsOhm" :precision="NumberField.SIGNAL_RS_OHM.precision" /><span class="unit">ohm</span></div></div>
             </div>
           </div>
         </section>
@@ -593,11 +593,11 @@ const {
         <section v-show="activeTab === 'advanced'" class="tab-section" :class="{ active: activeTab === 'advanced' }">
           <div class="two-col adv-two-col">
             <div class="adv-air-fields" style="--label-w:108px;">
-              <div class="field-row"><div :class="['field', 'adv-air-field', envTempStored ? 'entered' : '', { 'dq-flag': envTempDq.dq.length > 0 }]" :title="envTempDq.dq.join('; ')"><label>Temperature</label><NumInput v-model="advTemp" :class="{ calculated: !envTempStored }" field="advTemp" group="temp" base="K" :precision="2" :allow-out-of-range="true" v-bind="envTempDq" @blur="commitAirTemp" /><UnitToggle field="advTemp" group="temp" base="K" unit-class="unit unit-cyc" /></div></div>
-              <div class="field-row"><div :class="['field', 'adv-air-field', envHumidityStored ? 'entered' : '', { 'dq-flag': envHumidityDq.dq.length > 0 }]" :title="envHumidityDq.dq.join('; ')"><label>Relative humidity</label><NumInput v-model="advHumidity" :class="{ calculated: !envHumidityStored }" field="advHumidity" :precision="2" :allow-out-of-range="true" v-bind="envHumidityDq" @blur="commitAirHumidity" /><span class="unit">%</span></div></div>
-              <div class="field-row"><div :class="['field', 'adv-air-field', envPressureStored ? 'entered' : '', { 'dq-flag': envPressureDq.dq.length > 0 }]" :title="envPressureDq.dq.join('; ')"><label>Air pressure</label><NumInput v-model="advPressure" :class="{ calculated: !envPressureStored }" field="advPressure" group="pressure" base="Pa" :precision="1" :allow-out-of-range="true" v-bind="envPressureDq" @blur="commitAirPressure" /><UnitToggle field="advPressure" group="pressure" base="Pa" unit-class="unit unit-cyc" /></div></div>
-              <div class="field-row"><div class="field"><label>Sound velocity</label><input class="calculated greyed" :value="fmt(advAir.c, fieldDp('advSoundVelocity'))" readonly><span class="unit">m/s</span></div></div>
-              <div class="field-row"><div class="field"><label>Air density</label><input class="calculated greyed" :value="advAir.rho.toFixed(fieldDp('advAirDensity'))" readonly><span class="unit">kg/m³</span></div></div>
+              <div class="field-row"><div :class="['field', 'adv-air-field', envTempStored ? 'entered' : '', { 'dq-flag': envTempDq.dq.length > 0 }]" :title="envTempDq.dq.join('; ')"><label>Temperature</label><NumInput v-model="advTemp" :class="{ calculated: !envTempStored }" :field="NumberField.ADV_TEMP_K" unit-key="advTemp" group="temp" base="K" :precision="2" :allow-out-of-range="true" v-bind="envTempDq" @blur="commitAirTemp" /><UnitToggle field="advTemp" group="temp" base="K" unit-class="unit unit-cyc" /></div></div>
+              <div class="field-row"><div :class="['field', 'adv-air-field', envHumidityStored ? 'entered' : '', { 'dq-flag': envHumidityDq.dq.length > 0 }]" :title="envHumidityDq.dq.join('; ')"><label>Relative humidity</label><NumInput v-model="advHumidity" :class="{ calculated: !envHumidityStored }" :field="NumberField.ADV_HUMIDITY_PCT" :precision="2" :allow-out-of-range="true" v-bind="envHumidityDq" @blur="commitAirHumidity" /><span class="unit">%</span></div></div>
+              <div class="field-row"><div :class="['field', 'adv-air-field', envPressureStored ? 'entered' : '', { 'dq-flag': envPressureDq.dq.length > 0 }]" :title="envPressureDq.dq.join('; ')"><label>Air pressure</label><NumInput v-model="advPressure" :class="{ calculated: !envPressureStored }" :field="NumberField.ADV_PRESSURE_KPA" unit-key="advPressure" group="pressure" base="Pa" :precision="1" :allow-out-of-range="true" v-bind="envPressureDq" @blur="commitAirPressure" /><UnitToggle field="advPressure" group="pressure" base="Pa" unit-class="unit unit-cyc" /></div></div>
+              <div class="field-row"><div class="field"><label>Sound velocity</label><input class="calculated greyed" :value="fmt(advAir.c, NumberField.ADV_SOUNDVELOCITY_M_PER_S.precision)" readonly><span class="unit">m/s</span></div></div>
+              <div class="field-row"><div class="field"><label>Air density</label><input class="calculated greyed" :value="advAir.rho.toFixed(NumberField.ADV_AIRDENSITY_KG_PER_M3.precision)" readonly><span class="unit">kg/m³</span></div></div>
               <button class="reset-air-btn" @click="resetAirToAppDefaults">Reset to app levels</button>
             </div>
             <div class="checkbox-col">
@@ -621,7 +621,7 @@ const {
                 </label>
               </div>
               <div style="margin-bottom: 8px;">
-                <label data-field-key="useWinisdAirModel" style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 13px;" :title="fieldHelp('useWinisdAirModel')">
+                <label data-field-key="useWinisdAirModel" style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 13px;" :title="ToggleField.ADV_USEWINISDAIRMODEL.description">
                   <input type="checkbox" :checked="project.envUseWinisdAirModel.value" @change="e => project.envUseWinisdAirModel.set(inputChecked(e))"> WinISD air model
                 </label>
               </div>
@@ -678,9 +678,9 @@ const {
           <div class="win-controls"><span class="close-btn" @click="boxLossesOpen = false">&#10005;</span></div>
         </div>
         <div class="modal-body">
-          <div class="field-row"><div class="field entered" style="--label-w:130px"><label>Leakage Ql</label><NumInput :model-value="boxQl" @update:model-value="(v: number | null) => setBoxQl(v ?? 0)" :precision="fieldDp('Ql')" /></div></div>
-          <div class="field-row"><div class="field entered" style="--label-w:130px"><label>Absorption Qa</label><NumInput :model-value="boxQa" @update:model-value="(v: number | null) => setBoxQa(v ?? 0)" :precision="fieldDp('Qa')" /></div></div>
-          <div class="field-row" v-if="selectedBox === 'vented' || selectedBox === 'bandpass4'"><div class="field entered" style="--label-w:130px"><label>Port Qp</label><NumInput :model-value="boxQp" @update:model-value="(v: number | null) => setBoxQp(v ?? 0)" :precision="fieldDp('Qp')" /></div></div>
+          <div class="field-row"><div class="field entered" style="--label-w:130px"><label>Leakage Ql</label><NumInput :model-value="boxQl" @update:model-value="(v: number | null) => setBoxQl(v ?? 0)" :precision="NumberField.LOSS_QL.precision" /></div></div>
+          <div class="field-row"><div class="field entered" style="--label-w:130px"><label>Absorption Qa</label><NumInput :model-value="boxQa" @update:model-value="(v: number | null) => setBoxQa(v ?? 0)" :precision="NumberField.LOSS_QA.precision" /></div></div>
+          <div class="field-row" v-if="selectedBox === 'vented' || selectedBox === 'bandpass4'"><div class="field entered" style="--label-w:130px"><label>Port Qp</label><NumInput :model-value="boxQp" @update:model-value="(v: number | null) => setBoxQp(v ?? 0)" :precision="NumberField.LOSS_QP.precision" /></div></div>
           <p class="hint">100 = no stuffing · 20–50 = light · 5–10 = heavy. WinISD defaults: Ql=10, Qa=100, Qp=100.</p>
         </div>
         <div class="modal-footer">

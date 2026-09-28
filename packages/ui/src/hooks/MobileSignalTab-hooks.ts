@@ -6,7 +6,6 @@ import {computed} from 'vue';
 import {projectChanged} from '../logic/appState.js';
 import {useFocusedProject} from '../logic/focusedProjectContext.js';
 import {createDriveSignal, dqOfCell} from './OriginalShell-hooks.js';
-import {precision as fieldDp} from '../logic/fields/uiFields.js';
 
 export function useMobileSignalTab() {
   const project = useFocusedProject();
@@ -20,5 +19,5 @@ export function useMobileSignalTab() {
     else project.value.powerDrive_W.set(v);
   }
 
-  return { driveV, reconcileDriveV, powerLocked, rsOhm, powerDq, voltageDq, power_W, setPower, fieldDp };
+  return { driveV, reconcileDriveV, powerLocked, rsOhm, powerDq, voltageDq, power_W, setPower };
 }

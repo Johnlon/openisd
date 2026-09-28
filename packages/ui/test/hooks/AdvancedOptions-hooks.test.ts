@@ -43,10 +43,8 @@ describe('AdvancedOptions-hooks', () => {
     expect(bp4Api.hasVent.value).toBe(true);
   });
 
-  it('exposes inputChecked and fieldHelp helpers', async () => {
+  it('exposes the inputChecked helper', async () => {
     const api = await renderHook();
-    expect(typeof api.fieldHelp).toBe('function');
-    expect(api.fieldHelp('simVcInductance')).toBeTruthy();
 
     class FakeHTMLInputElement {
       checked = true;

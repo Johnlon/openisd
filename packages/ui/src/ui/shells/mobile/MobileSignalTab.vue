@@ -1,10 +1,11 @@
 <script setup lang="ts">
 // The mobile Signal tab — input power, drive voltage, series resistance. Thin: all state and
 // domain reads/writes live in useMobileSignalTab() (src/hooks/MobileSignalTab-hooks.ts).
+import {NumberField} from '@openisd/design/fields';
 import NumInput from '../../components/NumInput.vue';
 import { useMobileSignalTab } from '../../../hooks/MobileSignalTab-hooks.js';
 
-const { driveV, reconcileDriveV, powerLocked, rsOhm, powerDq, voltageDq, power_W, setPower, fieldDp } = useMobileSignalTab();
+const { driveV, reconcileDriveV, powerLocked, rsOhm, powerDq, voltageDq, power_W, setPower } = useMobileSignalTab();
 </script>
 
 <template>
@@ -14,7 +15,7 @@ const { driveV, reconcileDriveV, powerLocked, rsOhm, powerDq, voltageDq, power_W
       <div class="mob-field-main">
         <span class="mob-field-label">System input power</span>
         <span class="mob-field-value">
-          <NumInput field="Pin" :readonly="powerLocked" :model-value="power_W" @update:model-value="setPower" :precision="fieldDp('Pin')" />
+          <NumInput :field="NumberField.SIGNAL_PIN_W" :readonly="powerLocked" :model-value="power_W" @update:model-value="setPower" :precision="NumberField.SIGNAL_PIN_W.precision" />
         </span>
         <span v-if="powerDq.dq.length" class="mob-field-dq-note">{{ powerDq.dq[0] }}</span>
       </div>
@@ -25,7 +26,7 @@ const { driveV, reconcileDriveV, powerLocked, rsOhm, powerDq, voltageDq, power_W
       <div class="mob-field-main">
         <span class="mob-field-label">Driver input voltage (each)</span>
         <span class="mob-field-value">
-          <NumInput field="driveV" v-model="driveV" :precision="fieldDp('driveV')" @blur-notify="reconcileDriveV" />
+          <NumInput :field="NumberField.SIGNAL_DRIVEV_V" v-model="driveV" :precision="NumberField.SIGNAL_DRIVEV_V.precision" @blur-notify="reconcileDriveV" />
         </span>
       </div>
       <span class="mob-unit">V</span>
@@ -34,7 +35,7 @@ const { driveV, reconcileDriveV, powerLocked, rsOhm, powerDq, voltageDq, power_W
     <div class="mob-field-row mob-field-entered">
       <div class="mob-field-main">
         <span class="mob-field-label">Series resistance</span>
-        <span class="mob-field-value"><NumInput v-model="rsOhm" :precision="fieldDp('Rs')" /></span>
+        <span class="mob-field-value"><NumInput v-model="rsOhm" :precision="NumberField.SIGNAL_RS_OHM.precision" /></span>
       </div>
       <span class="mob-unit">ohm</span>
     </div>

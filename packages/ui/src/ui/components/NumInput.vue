@@ -2,8 +2,7 @@
 import {computed, ref, watch} from 'vue';
 import {unitToken} from '../../logic/presentationState.js';
 import {displayPrecision, fromDisplay, statedPrecision, toDisplay} from '../../logic/fields/units.js';
-import {type UnitGroup} from '@openisd/design/fields';
-import {fieldById, fieldHelp} from '../../logic/fields/uiFields.js';
+import {type NumberField, type UnitGroup} from '@openisd/design/fields';
 import type {ProvenanceLetter} from '../../logic/fieldProvenance.js';
 import {inputFrom} from '../../logic/domEvents.js';
 
@@ -15,9 +14,9 @@ const props = withDefaults(defineProps<{
   modelValue: number | null | undefined;
   precision?: number;
   step?: string;
-  // Explicit SI-space bounds. When omitted, a `field` id pulls the registry's enforced
-  // min/max (uiFields — the constraints SSOT); with neither, min falls back to 0
-  // (physical quantities are non-negative by default) and max is unbounded.
+  // Explicit SI-space bounds. When omitted, a bound `field` states its own min/max; with
+  // neither, min falls back to 0 (physical quantities are non-negative by default) and max is
+  // unbounded.
   min?: number;
   max?: number;
   // Unit binding: when group + field + base are all given, the display factor and precision
@@ -25,10 +24,13 @@ const props = withDefaults(defineProps<{
   // this field live. `precision` is then the BASE-unit dp; the shown dp is derived per unit.
   // Omit all three and the field shows its SI value unconverted — there is no other way to
   // scale a number here, so a display unit can only ever come from the unit registry.
-  // `field` MAY also be given alone (no group/base) purely to bind the registry constraints.
+  // `field` MAY also be given alone (no group/base) purely to bind the field's own facts.
   group?: UnitGroup;
-  field?: string;
+  field?: NumberField;
   base?: string;        // the field's default unit token
+  /** The key this field's SELECTED unit is stored under (`presentationState.unitTokens`), which
+   *  is its own namespace — `Vb`, not `box_Vb_l` — shared with the paired `<UnitToggle>`. */
+  unitKey?: string;
   mandatory?: boolean;
   /** Allow values outside the registry's sanity range so the caller can show a DQ warning. */
   allowOutOfRange?: boolean;
@@ -63,8 +65,8 @@ const emit = defineEmits<{
 }>();
 
 // Unit-bound mode is active only when the caller supplies the full triple.
-const unitized = computed(() => props.group != null && props.field != null && props.base != null);
-const token = computed(() => (unitized.value ? unitToken(props.field!, props.base!) : ''));
+const unitized = computed(() => props.group != null && props.unitKey != null && props.base != null);
+const token = computed(() => (unitized.value ? unitToken(props.unitKey!, props.base!) : ''));
 // SI ↔ display. Unit-bound mode uses the affine registry conversion (handles temperature's
 // offset); unbound, the field IS its SI value. The model holds SI either way.
 function toDisp(si: number | null): number {
@@ -138,10 +140,7 @@ function onPointerDown() { typing.value = false; }
 // (the row's own field def in packages/design — bounds there are in SI/model space); else the
 // non-negative default floor and no ceiling.
 //
-// EXACT lookup, deliberately — do not add case-tolerance here. Both the `field` bindings and the
-// registry ids carry WinISD's own spelling, so a lookup that misses is a real drift between the
-// two, and it must surface as a missing help text rather than resolve quietly to the wrong entry.
-const regSpec = computed(() => props.field ? fieldById(props.field) : undefined);
+
 /**
  * The field's help text, from the ONE registry, on every NumInput that names a field.
  *
@@ -153,13 +152,11 @@ const regSpec = computed(() => props.field ? fieldById(props.field) : undefined)
  *
  * Undefined, not '', when there is nothing to say: an empty `title` renders an empty tooltip.
  */
-const helpText = computed<string | undefined>(() => {
-  const t = props.field ? fieldHelp(props.field) : '';
-  return t === '' ? undefined : t;
-});
+const helpText = computed<string | undefined>(() =>
+  props.field === undefined || props.field.description === '' ? undefined : props.field.description);
 
-const effMin = computed<number>(() => props.min ?? regSpec.value?.def?.limits.min ?? 0);
-const effMax = computed<number | undefined>(() => props.max ?? regSpec.value?.def?.limits.max);
+const effMin = computed<number>(() => props.min ?? props.field?.limits.min ?? 0);
+const effMax = computed<number | undefined>(() => props.max ?? props.field?.limits.max);
 
 // Bounds are SI-space (default floor 0 — physical quantities are non-negative; for absolute
 // temperature 0 K is the floor). Validation therefore always tests the SI value, NOT the display

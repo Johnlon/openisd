@@ -9,11 +9,10 @@ import {driverName, projectChanged} from '../logic/appState.js';
 import {useFocusedProject} from '../logic/focusedProjectContext.js';
 import {presentationState} from '../logic/presentationState.js';
 import {useApp} from '../logic/app.js';
-import {ARRAY_WIRING_OPTIONS} from '@openisd/design/fields';
-import {countOptions} from '../logic/fields/uiFields.js';
+import {ARRAY_WIRING_OPTIONS, NumberField} from '@openisd/design/fields';
 import {selectedOption} from '../logic/domEvents.js';
 
-const N_DRIVERS_OPTIONS = countOptions('driver_nDrivers');
+const N_DRIVERS_OPTIONS = NumberField.DRIVER_NDRIVERS.countOptions();
 
 export function useMobileDriverTab() {
   const project = useFocusedProject();

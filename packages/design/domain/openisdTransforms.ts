@@ -13,7 +13,7 @@ import {OpenISDDriver} from './driver/openISDDriver.js';
 import {OpenISDPassiveRadiatorStandalone} from './passiveRadiator/openISDPassiveRadiatorStandalone.js';
 import {OpenISDProject} from './project/openISDProject.js';
 import {Engine} from '../engine/index.js';
-import {DEFAULT_SOURCE_RESISTANCE_OHM} from '../fields/index.js';
+import {DEFAULT_SOURCE_RESISTANCE_OHM} from '../fields/defaults.js';
 import {type AppContext, dateStamp, realAppContext} from './appContext.js';
 
 // ── BUILDING A PROJECT — the wizard's path in, and the only way to make an `OpenISDProject` ──

@@ -30,5 +30,14 @@ export {
   FILTER_BW_LIMITS,
 } from './filterLimits.js';
 
-/** The field registry — every field OpenISD has, with its own limits and precision. */
-export { Field } from './field.js';
+/** The field registry — every field OpenISD has, one class per kind. */
+export {
+  type FieldKind,
+  Field,
+  NumberField,
+  EnumField,
+  TextField,
+  ToggleField,
+  DateField,
+  ALL_FIELDS,
+} from './field.js';

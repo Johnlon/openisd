@@ -2,6 +2,7 @@
 // The mobile Box tab — box type, volume, and the calculated resonance/Qtc readout. Thin: all
 // state and domain reads/writes live in useMobileBoxTab() (src/hooks/MobileBoxTab-hooks.ts), which
 // calls the SAME field-wiring factories OriginalShell-hooks.ts exports.
+import {NumberField} from '@openisd/design/fields';
 import BoxTypeDiagram from '../../components/BoxTypeDiagram.vue';
 import NumInput from '../../components/NumInput.vue';
 import UnitToggle from '../../components/UnitToggle.vue';
@@ -10,7 +11,7 @@ import { useMobileBoxTab } from '../../../hooks/MobileBoxTab-hooks.js';
 const {
   selectedBox, pending, boxLabel, showEnclosureTab,
   boxResonance, rearQtc, boxVolume_m3, boxVolumeDqNote, setBoxVolume_m3,
-  selectBoxType, fieldDp, BOX_TYPE_OPTIONS,
+  selectBoxType, BOX_TYPE_OPTIONS,
 } = useMobileBoxTab();
 </script>
 
@@ -37,7 +38,7 @@ const {
         <span class="mob-field-label">Volume</span>
         <span class="mob-field-value">
           <NumInput :model-value="boxVolume_m3" @update:model-value="(v: number | null) => setBoxVolume_m3(v ?? 0)"
-                    field="Vb" group="volume" base="L" :precision="fieldDp('Vb')" />
+                    :field="NumberField.BOX_VB_L" unit-key="Vb" group="volume" base="L" :precision="NumberField.BOX_VB_L.precision" />
         </span>
       </div>
       <UnitToggle field="Vb" group="volume" base="L" unit-class="mob-unit" />
@@ -47,7 +48,7 @@ const {
     <div class="mob-field-row mob-field-calculated">
       <div class="mob-field-main">
         <span class="mob-field-label">{{ selectedBox === 'box-passive-radiator' ? 'Fh' : 'Fsc' }}</span>
-        <span class="mob-field-value mob-readonly">{{ boxResonance != null ? boxResonance.toFixed(fieldDp('boxResonance')) + ' Hz' : '—' }}</span>
+        <span class="mob-field-value mob-readonly">{{ boxResonance != null ? boxResonance.toFixed(NumberField.BOX_RESONANCE_HZ.precision) + ' Hz' : '—' }}</span>
       </div>
     </div>
     <div v-if="selectedBox === 'sealed'" class="mob-field-row mob-field-calculated">

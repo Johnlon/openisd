@@ -3,7 +3,6 @@ import {computed, ref} from 'vue';
 import {useFocusedProject} from '../logic/focusedProjectContext.js';
 import {passiveRadiatorRows} from '../logic/driverDisplay.js';
 import {useApp} from '../logic/app.js';
-import {fieldHelp} from '../logic/fields/uiFields.js';
 import {inputValue} from '../logic/domEvents.js';
 
 export interface PREditModalAPI {
@@ -18,7 +17,6 @@ export interface PREditModalAPI {
   removePR(uuid: string): void;
   choosePRFromLib(uuid: string): void;
   close(): void;
-  fieldHelp(key: string): string;
   inputValue(e: Event): string;
 }
 
@@ -78,7 +76,6 @@ export function usePREditModal(emit: (event: 'close') => void): PREditModalAPI {
     removePR,
     choosePRFromLib,
     close,
-    fieldHelp,
     inputValue,
   };
 }

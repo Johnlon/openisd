@@ -1,3 +1,4 @@
+import type {SelectorOption} from '../fields/options.js';
 /**
  * Sealed-box loss models — controls both the Box tab single-number readout (Fsc/Qtc)
  * AND the frequency-sweep acoustic circuit calculations in `circuit.ts`.
@@ -40,6 +41,11 @@ export class LossMode {
   ];
 
   static readonly Default = LossMode.WinisdLossy;
+
+  /** The members as picker options, in declaration order, so a selector cannot offer a value
+   *  the engine does not accept. */
+  static readonly OPTIONS: readonly SelectorOption<string>[] =
+    Object.freeze(LossMode.ALL.map(m => Object.freeze({value: m.value, label: m.label})));
 
   /** Parse a wire value to a member, or the default when it is absent/unknown. */
   static parse(value: string | null | undefined): LossMode {

@@ -3,10 +3,10 @@ import type {Directive} from 'vue';
 // v-limits — hard entry constraints for RAW <input type="number"> elements (the ones not
 // built on NumInput, which enforces the same bounds itself from the field registry).
 //
-//   <input type="number" v-model.number="advHumidity" v-limits="limits('advHumidity')">
+//   <input type="number" v-model.number="advHumidity" v-limits="NumberField.ADV_HUMIDITY_PCT.limits">
 //
 // The binding value is { min?, max? } in the INPUT's own display space — pass the registry's
-// `limits(id)` when the input edits the model unit directly, or explicit numbers where the
+// `NumberField.X.limits` when the input edits the model unit directly, or explicit numbers where the
 // input works in a scaled display unit. The directive:
 //   1. stamps native min/max attributes (so the spinner/arrow keys can never leave the range);
 //   2. clamps any typed out-of-range value on 'input' and re-dispatches the corrected value,

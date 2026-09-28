@@ -9,8 +9,7 @@ import type {SpecField} from '../../../logic/appState.js';
 import {presentationState} from '../../../logic/presentationState.js';
 import {useFocusedProject} from '../../../logic/focusedProjectContext.js';
 import {fromDisplay, statedPrecision, toDisplay} from '../../../logic/fields/units.js';
-import {limits, precision as fieldDp} from '../../../logic/fields/uiFields.js';
-import {type UnitGroup} from '@openisd/design/fields';
+import {NumberField, type UnitGroup} from '@openisd/design/fields';
 import {cellClassFor, fieldIsMandatoryAndUnsatisfied} from '../../../logic/useDriverCells.js';
 import NumInput from '../../components/NumInput.vue';
 import UnitToggle from '../../components/UnitToggle.vue';
@@ -35,28 +34,28 @@ function clearField(key: NumKey): void { tune.clearField(key); }
 // a field with neither is already shown in its SI unit (Hz, Ω, W, T·m, dimensionless Q).
 // Decimal places come from the field registry (fieldDp) — the single source of truth — so
 // the units here MUST match the registry's unit.
-interface TuneField { key: NumKey; label: string; group?: UnitGroup; token?: string; unit: string }
+interface TuneField { key: NumKey; def: NumberField; label: string; group?: UnitGroup; token?: string; unit: string }
 const MAIN: TuneField[] = [
-  { key: 'Fs_hz',  label: 'Fs',  unit: 'Hz' },
-  { key: 'Qts', label: 'Qts', unit: '' },
-  { key: 'Qes', label: 'Qes', unit: '' },
-  { key: 'Qms', label: 'Qms', unit: '' },
-  { key: 'Vas_m3', label: 'Vas', group: 'volume', token: 'L',   unit: 'l' },
-  { key: 'Sd_m2',  label: 'Sd',  group: 'area',   token: 'cm2', unit: 'cm²' },
-  { key: 'Re_ohm',  label: 'Re',  unit: 'Ω' },
+  { key: 'Fs_hz', def: NumberField.DRIVER_FS_HZ,  label: 'Fs',  unit: 'Hz' },
+  { key: 'Qts', def: NumberField.DRIVER_QTS, label: 'Qts', unit: '' },
+  { key: 'Qes', def: NumberField.DRIVER_QES, label: 'Qes', unit: '' },
+  { key: 'Qms', def: NumberField.DRIVER_QMS, label: 'Qms', unit: '' },
+  { key: 'Vas_m3', def: NumberField.DRIVER_VAS_L, label: 'Vas', group: 'volume', token: 'L',   unit: 'l' },
+  { key: 'Sd_m2', def: NumberField.DRIVER_SD_CM2,  label: 'Sd',  group: 'area',   token: 'cm2', unit: 'cm²' },
+  { key: 'Re_ohm', def: NumberField.DRIVER_RE_OHM,  label: 'Re',  unit: 'Ω' },
 ];
 const OPTIONAL: TuneField[] = [
-  { key: 'Le_H',   label: 'Le',   group: 'inductance', token: 'mH', unit: 'mH' },
-  { key: 'Xmax_m', label: 'Xmax', group: 'length',      token: 'mm', unit: 'mm' },
-  { key: 'Pe_W',   label: 'Pe',   unit: 'W' },
+  { key: 'Le_H', def: NumberField.DRIVER_LE_MH,   label: 'Le',   group: 'inductance', token: 'mH', unit: 'mH' },
+  { key: 'Xmax_m', def: NumberField.DRIVER_XMAX_MM, label: 'Xmax', group: 'length',      token: 'mm', unit: 'mm' },
+  { key: 'Pe_W', def: NumberField.DRIVER_PE_W,   label: 'Pe',   unit: 'W' },
 ];
 // Bl and Mms are ordinary driver fields, not outputs: the ADT derives them when they are not
 // entered and honours them when they are (Driver.enter → state E → fixed-E override), exactly
 // as the driver editor already treats them. So they are edited here like any other field, and
 // the E/C colour says which of the two is happening.
 const DERIVED: TuneField[] = [
-  { key: 'BL_Tm',  label: 'Bl',  unit: 'T·m' },
-  { key: 'Mms_kg', label: 'Mms', group: 'mass', token: 'g', unit: 'g' },
+  { key: 'BL_Tm', def: NumberField.DRIVER_BL_TM,  label: 'Bl',  unit: 'T·m' },
+  { key: 'Mms_kg', def: NumberField.DRIVER_MMS_G, label: 'Mms', group: 'mass', token: 'g', unit: 'g' },
 ];
 
 // While a field is focused, echo the RAW typed string (so mid-typing values like
@@ -67,38 +66,37 @@ const resetRevision = ref(0);
 // the other two read as blank here. cell() carries the solved value with its C mark, which is
 // what makes the third Q fill itself in as the other two change.
 
-function disp(key: NumKey, group: UnitGroup | undefined, token: string | undefined): string {
+function disp(f: TuneField): string {
   void project.value;
-  const v = fieldCell(key).value;
+  const v = fieldCell(f.key).value;
   if (typeof v !== 'number' || !isFinite(v)) return '';
-  const d = group && token ? toDisplay(v, group, token) : v;
-  return d.toFixed(fieldDp(key));
+  const d = f.group && f.token ? toDisplay(v, f.group, f.token) : v;
+  return d.toFixed(f.def.precision);
 }
-function fieldVal(key: NumKey, group: UnitGroup | undefined, token: string | undefined): string {
+function fieldVal(f: TuneField): string {
   void resetRevision.value;
-  return key in rawVals ? rawVals[key] : disp(key, group, token);
+  return f.key in rawVals ? rawVals[f.key] : disp(f);
 }
-function onField(key: NumKey, group: UnitGroup | undefined, token: string | undefined, e: Event) {
+function onField(f: TuneField, e: Event) {
   const raw = inputValue(e);
-  rawVals[key] = raw;
+  rawVals[f.key] = raw;
   const v = parseFloat(raw);
   // Emptying a field RELEASES it back to Calculated — the override is withdrawn, not set to
   // nothing. Without this a cleared field would keep its last entered value invisibly.
-  if (raw.trim() === '') clearField(key);
+  if (raw.trim() === '') clearField(f.key);
   // The typed characters state the precision, so they are what it is read off — `raw`, never the
   // parsed number (which has already dropped "30.00"'s trailing zeros).
-  else if (isFinite(v)) enterField(key, group && token ? fromDisplay(v, group, token) : v,
-                                   statedPrecision(raw, group, token));
+  else if (isFinite(v)) enterField(f.key, f.group && f.token ? fromDisplay(v, f.group, f.token) : v,
+                                   statedPrecision(raw, f.group, f.token));
 }
-function onBlur(key: NumKey) { delete rawVals[key]; }
+function onBlur(f: TuneField) { delete rawVals[f.key]; }
 
 // Registry bounds are SI-space; the input shows the display unit, so the v-limits clamp needs
 // the same conversion (e.g. Vas max 100 m³ → 100000 L).
-function scaledLimits(key: NumKey, group: UnitGroup | undefined, token: string | undefined): { min?: number; max?: number } {
-  const lim = limits(key);
-  if (lim === undefined) return {};
-  if (!group || !token) return { min: lim.min, max: lim.max };
-  return { min: toDisplay(lim.min, group, token), max: toDisplay(lim.max, group, token) };
+function scaledLimits(f: TuneField): { min?: number; max?: number } {
+  const lim = f.def.limits;
+  if (!f.group || !f.token) return { min: lim.min, max: lim.max };
+  return { min: toDisplay(lim.min, f.group, f.token), max: toDisplay(lim.max, f.group, f.token) };
 }
 
 // Any two of the Q trio solve the third, so all three are flagged together while fewer than
@@ -108,14 +106,14 @@ function isNumKey(f: string): f is NumKey {
   return ['Fs_hz', 'Qts', 'Qes', 'Qms', 'Vas_m3', 'Sd_m2', 'Re_ohm', 'Le_H', 'Xmax_m', 'Pe_W', 'BL_Tm', 'Mms_kg'].includes(f);
 }
 /** Provenance mark + the required-but-missing alert, in the editor's own class vocabulary. */
-function fieldClasses(key: NumKey, group: UnitGroup | undefined, token: string | undefined): Record<string, boolean> {
+function fieldClasses(f: TuneField): Record<string, boolean> {
   void project.value;
-  const cellOf = (f: SpecField): Readable<number | null> & Entered & Calculated => fieldCell(isNumKey(f) ? f : 'Fs_hz');
-  const mandatory = fieldIsMandatoryAndUnsatisfied(project.value.driver.issues(), key);
+  const cellOf = (s: SpecField): Readable<number | null> & Entered & Calculated => fieldCell(isNumKey(s) ? s : 'Fs_hz');
+  const mandatory = fieldIsMandatoryAndUnsatisfied(project.value.driver.issues(), f.key);
   return {
-    [cellClassFor(cellOf, key)]: true,
+    [cellClassFor(cellOf, f.key)]: true,
     'de-input-mandatory': mandatory,
-    'de-input-empty': mandatory && fieldVal(key, group, token) === '',
+    'de-input-empty': mandatory && fieldVal(f) === '',
   };
 }
 
@@ -194,7 +192,7 @@ useEscToClose(() => presentationState.editDriver, cancel);
       <div v-for="f in MAIN" :key="f.key" class="tune-fld">
         <label>{{ f.label }}</label>
         <div class="tune-unit">
-          <input v-expo-step type="number" v-limits="scaledLimits(f.key, f.group, f.token)" :class="fieldClasses(f.key, f.group, f.token)" :value="fieldVal(f.key, f.group, f.token)" @input="onField(f.key, f.group, f.token, $event)" @blur="onBlur(f.key)">
+          <input v-expo-step type="number" v-limits="scaledLimits(f)" :class="fieldClasses(f)" :value="fieldVal(f)" @input="onField(f, $event)" @blur="onBlur(f)">
           <div v-if="dqNote(f.key)" class="dq-tooltip-container">
             <span class="de-dq" role="button" tabindex="0" @mouseenter="showTooltip(f.key, $event)" @mouseleave="hideTooltip(f.key)" @click.stop="togglePin(f.key, $event)" @keydown.enter.stop="togglePin(f.key, $event)">&#9888;</span>
             <Teleport to="body">
@@ -213,7 +211,7 @@ useEscToClose(() => presentationState.editDriver, cancel);
       <div class="tune-fld" title="Net acoustic internal volume — excludes driver displacement, port tube volume and bracing. The same box volume the Box tab edits; Cancel puts it back. WinISD: Vb.">
         <label>Vb</label>
         <div class="tune-unit">
-          <NumInput :model-value="vb_m3" @update:model-value="v => setVb_m3(v ?? 0)" field="Vb" group="volume" base="L" :precision="4" />
+          <NumInput :model-value="vb_m3" @update:model-value="v => setVb_m3(v ?? 0)" :field="NumberField.BOX_VB_L" unit-key="Vb" group="volume" base="L" :precision="4" />
           <UnitToggle field="Vb" group="volume" base="L" />
         </div>
       </div>
@@ -224,7 +222,7 @@ useEscToClose(() => presentationState.editDriver, cancel);
       <div v-for="f in OPTIONAL" :key="f.key" class="tune-fld">
         <label class="opt-lbl">{{ f.label }}</label>
         <div class="tune-unit">
-          <input v-expo-step type="number" v-limits="scaledLimits(f.key, f.group, f.token)" :class="fieldClasses(f.key, f.group, f.token)" :value="fieldVal(f.key, f.group, f.token)" @input="onField(f.key, f.group, f.token, $event)" @blur="onBlur(f.key)">
+          <input v-expo-step type="number" v-limits="scaledLimits(f)" :class="fieldClasses(f)" :value="fieldVal(f)" @input="onField(f, $event)" @blur="onBlur(f)">
           <div v-if="dqNote(f.key)" class="dq-tooltip-container">
             <span class="de-dq" role="button" tabindex="0" @mouseenter="showTooltip(f.key, $event)" @mouseleave="hideTooltip(f.key)" @click.stop="togglePin(f.key, $event)" @keydown.enter.stop="togglePin(f.key, $event)">&#9888;</span>
             <Teleport to="body">
@@ -243,7 +241,7 @@ useEscToClose(() => presentationState.editDriver, cancel);
       <div v-for="f in DERIVED" :key="f.key" class="tune-fld" :title="`${f.label} is calculated from the parameters above until you type one — then it overrides them. Clear the field to hand it back to the calculation.`">
         <label>{{ f.label }}</label>
         <div class="tune-unit">
-          <input v-expo-step type="number" v-limits="scaledLimits(f.key, f.group, f.token)" :class="fieldClasses(f.key, f.group, f.token)" :value="fieldVal(f.key, f.group, f.token)" @input="onField(f.key, f.group, f.token, $event)" @blur="onBlur(f.key)">
+          <input v-expo-step type="number" v-limits="scaledLimits(f)" :class="fieldClasses(f)" :value="fieldVal(f)" @input="onField(f, $event)" @blur="onBlur(f)">
           <div v-if="dqNote(f.key)" class="dq-tooltip-container">
             <span class="de-dq" role="button" tabindex="0" @mouseenter="showTooltip(f.key, $event)" @mouseleave="hideTooltip(f.key)" @click.stop="togglePin(f.key, $event)" @keydown.enter.stop="togglePin(f.key, $event)">&#9888;</span>
             <Teleport to="body">

@@ -7,7 +7,6 @@ import {boxTypeIsSimulatable, focusedProject, projectChanged} from '../logic/app
 import {useFocusedProject} from '../logic/focusedProjectContext.js';
 import {createBoxVolume, createSealedReadouts, createSelectedBox} from './OriginalShell-hooks.js';
 import {BOX_TYPE_OPTIONS} from '@openisd/design/fields';
-import {precision as fieldDp} from '../logic/fields/uiFields.js';
 
 export function useMobileBoxTab() {
   const project = useFocusedProject();
@@ -26,6 +25,6 @@ export function useMobileBoxTab() {
   return {
     project, selectedBox, pending, boxLabel, showEnclosureTab,
     boxResonance, rearQtc, boxVolume_m3, boxVolumeDqNote, setBoxVolume_m3,
-    selectBoxType, fieldDp, BOX_TYPE_OPTIONS,
+    selectBoxType, BOX_TYPE_OPTIONS,
   };
 }
