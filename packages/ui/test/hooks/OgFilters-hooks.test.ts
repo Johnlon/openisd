@@ -2,26 +2,26 @@ import {describe, expect, it} from 'vitest';
 import {computed, ref, shallowRef} from 'vue';
 import {Engine} from '@openisd/design/engine';
 import {OpenISDProject} from '@openisd/design';
-import {createOgFilters} from '../../src/hooks/OgFilters-hooks.js';
+import {OgFilters} from '../../src/hooks/OgFilters-hooks.js';
 
 function setup() {
   const engine = new Engine();
   const project = OpenISDProject.empty(engine);
   const changed = ref(0);
-  const api = createOgFilters({project: computed(() => shallowRef(project).value), changed, engine});
+  const api = new OgFilters(computed(() => shallowRef(project).value), changed, engine.filters);
   return {engine, project, changed, api};
 }
 
-describe('createOgFilters', () => {
+describe('OgFilters', () => {
   it('quick-add appends the engine-owned default for that type, enabled, with a fresh id, and returns the id', () => {
     const {engine, project, api} = setup();
-    const id = api.addFilter('peaking');
+    const id = api.add('peaking');
     const stored = project.filters.value;
     expect(stored).toHaveLength(1);
-    expect(stored[0]).toEqual({...engine.defaultFilter('peaking'), id});
+    expect(stored[0]).toEqual({...engine.filters.default('peaking'), id});
     expect(stored[0]?.enabled).toBe(true);
 
-    const second = api.addFilter('peaking');
+    const second = api.add('peaking');
     expect(second).not.toBe(id);
     expect(project.filters.value).toHaveLength(2);
   });
@@ -36,25 +36,28 @@ describe('createOgFilters', () => {
 
   it('remove drops exactly the named filter', () => {
     const {project, api} = setup();
-    const a = api.addFilter('highpass');
-    const b = api.addFilter('lowpass');
-    api.removeFilter(a);
+    const a = api.add('highpass');
+    const b = api.add('lowpass');
+    api.remove(a);
     expect(project.filters.value.map(f => f.id)).toEqual([b]);
   });
 
-  it('replaceFilter swaps exactly the named filter and leaves the others alone', () => {
+  it('an edit decides the new values through the engine and replaces exactly that filter', () => {
     const {project, api} = setup();
-    const a = api.addFilter('highpass');
-    const b = api.addFilter('highpass');
+    const a = api.add('highpass');
+    const b = api.add('highpass');
     const [fa0, fb0] = project.filters.value;
-    // Narrow before spreading: `Filter` is a sum type, so `{...f, fc: value}` on an
-    // un-narrowed `f: Filter` would admit combinations (e.g. an allpass with `fc`) that are
-    // not valid filters — exactly the shape `replaceFilter` exists to rule out.
-    if (fa0.type !== 'highpass' || fb0.type !== 'highpass') throw new Error('expected highpass');
-    api.replaceFilter(a, {...fa0, fc: 120});
-    api.replaceFilter(b, {...fb0, enabled: false});
+    if (fa0?.type !== 'highpass' || fb0?.type !== 'highpass') throw new Error('expected highpass');
+    api.editPass(fa0, {fc: 120, order: 2.6});
+    api.setEnabled(fb0, false);
     const [fa, fb] = project.filters.value;
-    expect(fa).toMatchObject({id: a, fc: 120, enabled: true, Q: 0.707});
+    expect(fa).toMatchObject({id: a, fc: 120, order: 3, enabled: true, Q: 0.707});
     expect(fb).toMatchObject({id: b, fc: 20, enabled: false});
+  });
+
+  it('caption is the engine\'s wording', () => {
+    const {api} = setup();
+    api.add('staticGain');
+    expect(api.caption(api.filters.value[0]!)).toBe('Static gain (Gain=0.00 dB)');
   });
 });

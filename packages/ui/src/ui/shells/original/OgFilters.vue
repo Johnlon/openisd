@@ -1,18 +1,15 @@
 <script setup lang="ts">
 /**
  * Filters tab — the `.filters-quickadd` + `.filters-list` markup. Presentation only: the
- * list, add, remove and patch live in `hooks/OgFilters-hooks.ts` (`createOgFilters`), the
- * starting values of a new filter and its row caption are both the engine's
- * (`Engine.defaultFilter`, `Engine.filterCaption`, both reached via `api`). This file owns
- * which row is open for editing and dispatches to one editor component per filter type
+ * list, add, remove and every edit live in `hooks/OgFilters-hooks.ts` (`OgFilters`). This file
+ * owns which row is open for editing and dispatches to one editor component per filter type
  * (`./filters/*Editor.vue`), nothing else.
  *
- * Each editor takes its own narrowed `Filter` variant as a typed prop and emits `replace` with
- * a value of that SAME variant; `replace` below hands the whole filter to `api.replaceFilter` —
- * never a per-field string route.
+ * Each editor takes its own `Filter` variant as a typed prop and calls the `api.editX` for that
+ * variant — never a per-field string route.
  */
 import {ref} from 'vue';
-import type {Filter, FilterType} from '@openisd/design/engine';
+import type {FilterType} from '@openisd/design/engine';
 import {inputChecked} from '../../../logic/domEvents.js';
 import type {OgFiltersAPI} from '../../../hooks/OgFilters-hooks.js';
 import PassFilterEditor from './filters/PassFilterEditor.vue';
@@ -49,19 +46,13 @@ const BADGE: Record<FilterType, string> = {
 /** Which row is open for editing — presentation state, this tab's alone. */
 const editing = ref<string | null>(null);
 
-function addFilter(type: FilterType) { editing.value = api.addFilter(type); }
+function addFilter(type: FilterType) { editing.value = api.add(type); }
 function removeFilter(id: string | undefined) {
   if (!id) return;
-  api.removeFilter(id);
+  api.remove(id);
   if (editing.value === id) editing.value = null;
 }
 function toggleEdit(id: string | undefined) { editing.value = editing.value === id ? null : (id ?? null); }
-
-/** The one place that calls into the API — every editor emits `next`, this sends it. */
-function replace(f: Filter, next: Filter): void {
-  if (f.id === undefined) return;
-  api.replaceFilter(f.id, next);
-}
 </script>
 
 <template>
@@ -76,7 +67,7 @@ function replace(f: Filter, next: Filter): void {
            class="filter-row-inline" :class="{ editing: editing === f.id, 'filter-disabled': !f.enabled }">
         <div class="filter-row-head">
           <input type="checkbox" :checked="f.enabled" title="Bypass / enable this filter" @click.stop
-                 @change="replace(f, {...f, enabled: inputChecked($event)})">
+                 @change="api.setEnabled(f, inputChecked($event))">
           <span class="filter-type-badge">{{ BADGE[f.type] }}</span>
           <span class="filter-summary" @click="toggleEdit(f.id)">{{ api.caption(f) }}</span>
           <span class="filter-edit-hint" @click="toggleEdit(f.id)">✎ edit</span>
@@ -84,14 +75,14 @@ function replace(f: Filter, next: Filter): void {
         </div>
 
         <template v-if="editing === f.id">
-          <PassFilterEditor          v-if="f.type === 'lowpass' || f.type === 'highpass'" :f="f" :api="api" @replace="next => replace(f, next)" />
-          <AllpassEditor             v-else-if="f.type === 'allpass'" :f="f" :api="api" @replace="next => replace(f, next)" />
-          <LinkwitzTransformEditor   v-else-if="f.type === 'linkwitz'" :f="f" :api="api" @replace="next => replace(f, next)" />
-          <ParametricEqEditor        v-else-if="f.type === 'peaking'" :f="f" :api="api" @replace="next => replace(f, next)" />
-          <PeakHighpassEditor        v-else-if="f.type === 'peakHighpass'" :f="f" :api="api" @replace="next => replace(f, next)" />
-          <StaticGainEditor          v-else-if="f.type === 'staticGain'" :f="f" :api="api" @replace="next => replace(f, next)" />
-          <RaisedCosineEditor        v-else-if="f.type === 'raisedCosine'" :f="f" :api="api" @replace="next => replace(f, next)" />
-          <ShelfEditor               v-else-if="f.type === 'lowshelf' || f.type === 'highshelf'" :f="f" :api="api" @replace="next => replace(f, next)" />
+          <PassFilterEditor          v-if="f.type === 'lowpass' || f.type === 'highpass'" :f="f" :api="api" />
+          <AllpassEditor             v-else-if="f.type === 'allpass'" :f="f" :api="api" />
+          <LinkwitzTransformEditor   v-else-if="f.type === 'linkwitz'" :f="f" :api="api" />
+          <ParametricEqEditor        v-else-if="f.type === 'peaking'" :f="f" :api="api" />
+          <PeakHighpassEditor        v-else-if="f.type === 'peakHighpass'" :f="f" :api="api" />
+          <StaticGainEditor          v-else-if="f.type === 'staticGain'" :f="f" :api="api" />
+          <RaisedCosineEditor        v-else-if="f.type === 'raisedCosine'" :f="f" :api="api" />
+          <ShelfEditor               v-else-if="f.type === 'lowshelf' || f.type === 'highshelf'" :f="f" :api="api" />
         </template>
       </div>
     </div>

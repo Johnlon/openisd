@@ -63,11 +63,8 @@ import type {SealedParams} from './lossMode.js';
 import {sealedResonance, sourceLoadedQts} from './lossMode.js';
 import type {BoxParamsSolveResult} from './params.js';
 import {solveBoxParams} from './params.js';
-import {
-  defaultFilter, filterCaption, filterFromWpr, filterWpr,
-  updateAllpassFilter, updateLinkwitzFilter, updateParametricEqFilter, updatePassFilter,
-  updatePeakHighpassFilter, updateRaisedCosineFilter, updateShelfFilter, updateStaticGainFilter,
-} from './filters.js';
+import {FilterEngineImpl} from './filters/index.js';
+import type {FilterEngine} from './filters/index.js';
 import type {MaxCurvesSolveResult, SweepSolveResult} from './sweep.js';
 import {
   classifyFinite,
@@ -85,12 +82,7 @@ import type {
   DriverError,
   EbpSuitability,
   EnclosureParams,
-  Filter,
-  FilterType,
   MaxCurvesResult,
-  PassFilter, PassPatch, AllpassFilter, AllpassPatch, LinkwitzFilter, LinkwitzPatch,
-  ParametricEqFilter, ParametricEqPatch, PeakHighpassFilter, PeakHighpassPatch,
-  StaticGainFilter, StaticGainPatch, RaisedCosineFilter, RaisedCosinePatch, ShelfFilter, ShelfPatch,
   SealedAlignmentOption,
   SimulatableBoxType,
   SweepParams,
@@ -98,7 +90,6 @@ import type {
   VentedAlignment,
   VentedDesign,
   Wiring,
-  WprFilter
 } from './types.js';
 import {simulatableBoxType as narrowBoxType} from './types.js';
 import type {DriverSolverParams, PrSolverParams, SealedAlignmentSolverParams, SignalSolverParams, VentSolverParams} from './solverTypes.js';
@@ -471,78 +462,9 @@ export class Engine {
 
   // ── FILTERS ──────────────────────────────────────────────────────────────────────────────
 
-  /** A fresh, enabled filter of `type` with its starting values. No list id: the UI mints that. */
-  defaultFilter(type: FilterType): Filter {
-    return defaultFilter(type);
-  }
-
-  /** WinISD's Filters-list caption for one filter, exact wording. */
-  filterCaption(f: Filter): string {
-    return filterCaption(f);
-  }
-
-  /** This filter's `.wpr` `[Filters]` `filter<i>type`/`filter<i>params` shape, or `null` for a
-   *  type WinISD has no `.wpr` representation for (the OpenISD-only shelves). */
-  filterWpr(f: Filter): WprFilter | null {
-    return filterWpr(f);
-  }
-
-  /** One `.wpr` `[Filters]` entry, decoded — WinISD's own type number (`filter<i>type`, 0-7)
-   *  and its already-split `filter<i>params` fields. `filter` is `null` when WinISD skips the
-   *  entry outright (unknown type, or a low/highpass subtype above 3); `warning` is set
-   *  whenever the entry did not import as its own stated values (skipped, or params malformed
-   *  and WinISD's own default filter of that type was substituted). */
-  filterFromWpr(typeNum: number, fields: readonly string[]): {filter: Filter | null; warning: string | null} {
-    return filterFromWpr(typeNum, fields);
-  }
-
-  /** Typed edit for a Lowpass/Highpass filter — `order` rounded to an integer and clamped to
-   *  1..10, `fc`/`Q` clamped to their own entry ranges; `family` and any field left out of
-   *  `patch` pass through unchanged. Same variant in, same variant out. */
-  updatePassFilter(f: PassFilter, patch: PassPatch): PassFilter {
-    return updatePassFilter(f, patch);
-  }
-
-  /** Typed edit for an Allpass filter — `order` rounded to an integer and clamped to 1..10,
-   *  `t`/`Q` clamped to their own entry ranges. */
-  updateAllpassFilter(f: AllpassFilter, patch: AllpassPatch): AllpassFilter {
-    return updateAllpassFilter(f, patch);
-  }
-
-  /** Typed edit for a Linkwitz transform — `f0`/`fp`/`Q0`/`Qp` clamped to the shared fc/Q entry
-   *  ranges. */
-  updateLinkwitzFilter(f: LinkwitzFilter, patch: LinkwitzPatch): LinkwitzFilter {
-    return updateLinkwitzFilter(f, patch);
-  }
-
-  /** Typed edit for a Parametric EQ (peaking) filter — `fc`/`Q`/`gain` clamped to their own
-   *  entry ranges. */
-  updateParametricEqFilter(f: ParametricEqFilter, patch: ParametricEqPatch): ParametricEqFilter {
-    return updateParametricEqFilter(f, patch);
-  }
-
-  /** Typed edit for a Peaking 2nd-order highpass filter — `fpk`/`gainPk` clamped to their own
-   *  entry ranges. */
-  updatePeakHighpassFilter(f: PeakHighpassFilter, patch: PeakHighpassPatch): PeakHighpassFilter {
-    return updatePeakHighpassFilter(f, patch);
-  }
-
-  /** Typed edit for a Static gain filter — `gain` clamped to its entry range. */
-  updateStaticGainFilter(f: StaticGainFilter, patch: StaticGainPatch): StaticGainFilter {
-    return updateStaticGainFilter(f, patch);
-  }
-
-  /** Typed edit for a DLP Raised Cosine filter — `fc`/`bwOct`/`gain` clamped to their own entry
-   *  ranges. */
-  updateRaisedCosineFilter(f: RaisedCosineFilter, patch: RaisedCosinePatch): RaisedCosineFilter {
-    return updateRaisedCosineFilter(f, patch);
-  }
-
-  /** Typed edit for a Low/High shelf filter — `fc`/`Q`/`gain` clamped to their own entry
-   *  ranges. Same variant (low/high shelf) in, same variant out. */
-  updateShelfFilter(f: ShelfFilter, patch: ShelfPatch): ShelfFilter {
-    return updateShelfFilter(f, patch);
-  }
+  /** The filters area — defaults, captions, `.wpr` in and out, and the typed edits an editor
+   *  may make. One member, not twelve forwarding methods. */
+  readonly filters: FilterEngine = new FilterEngineImpl();
 
   // ── THE SWEEP ─────────────────────────────────────────────────────────────────────────────
 

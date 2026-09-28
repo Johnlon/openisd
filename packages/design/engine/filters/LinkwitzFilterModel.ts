@@ -1,7 +1,6 @@
 import {biquad} from './biquad.js';
-import type {Complex, FilterSpec, LinkwitzFilter, LinkwitzPatch, WprFilter} from '../types.js';
+import type {Complex, FilterSpec, LinkwitzFilter, WprFilter} from '../types.js';
 import type {FilterModel} from './FilterModel.js';
-import {FILTER_FC_LIMITS, FILTER_Q_LIMITS, clamp} from './limits.js';
 
 
 /**
@@ -41,18 +40,5 @@ export class LinkwitzFilterModel implements FilterModel {
     const Qp = Number(fields[5]);
     if (![f0, Q0, fp, Qp].every(Number.isFinite)) return 'malformed';
     return {type: 'linkwitz', f0, Q0, fp, Qp};
-  }
-
-  /** Typed edit — `f0`/`fp` and `Q0`/`Qp` each clamped to the shared Filter Editor fc/Q entry
-   *  ranges; any field left out of `patch` passes through unchanged. */
-  static with(f: LinkwitzFilter, patch: LinkwitzPatch): LinkwitzFilter {
-    const next = {...f, ...patch};
-    return {
-      ...next,
-      f0: clamp(next.f0, FILTER_FC_LIMITS),
-      Q0: clamp(next.Q0, FILTER_Q_LIMITS),
-      fp: clamp(next.fp, FILTER_FC_LIMITS),
-      Qp: clamp(next.Qp, FILTER_Q_LIMITS),
-    };
   }
 }

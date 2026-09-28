@@ -12,6 +12,8 @@
 // a caller cannot use the class without being able to name it. A type that stops appearing in a
 // signature comes off this list.
 export { Engine } from './Engine.js';
+// The engine's areas: an interface each, held by `Engine` as a member (`engine.filters`).
+export type { FilterEngine } from './filters/index.js';
 // A VALUE, not just a type: `LossMode` is a class whose static members ARE the modes
 // (`LossMode.WinisdLossy`, `LossMode.Default`), so a caller cannot pass one without it.
 export type { SealedParams } from './lossMode.js';
@@ -32,13 +34,13 @@ export type { SweepOutputName, CalculationPrerequisite } from './consistency.js'
 export type {
   BoxType, SimulatableBoxType, DriverError, EbpSuitability, Filter, FilterSpec, FilterType,
   PassFamily, MaxCurvesResult,
-  // Each filter class's chain filter and editor patch — named once, in `Engine.updateXFilter`'s
+  // Each filter class's chain filter and editor patch — named once, in `FilterEngine.editX`'s
   // signature and its editor's props alike.
   PassFilter, PassPatch, AllpassFilter, AllpassPatch, LinkwitzFilter, LinkwitzPatch,
   ParametricEqFilter, ParametricEqPatch, PeakHighpassFilter, PeakHighpassPatch,
   StaticGainFilter, StaticGainPatch, RaisedCosineFilter, RaisedCosinePatch, ShelfFilter, ShelfPatch,
   SealedAlignmentOption, VentedAlignment, VentedDesign, Wiring,
-  EnclosureParams, SweepParams, SweepResult, WprFilter,
+  EnclosureParams, SweepParams, SweepResult, WprFilter, WprFilterImport,
 } from './types.js';
 export type { ChartId } from './charts.js';
 export type { BoxParamsQuantityName, BoxParamsIssue, BoxParamsSolveResult } from './params.js';
