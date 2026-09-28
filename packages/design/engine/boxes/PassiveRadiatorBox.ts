@@ -12,7 +12,7 @@ export class PassiveRadiatorBox implements BoxModel {
   constructor(private readonly P: SweepParams) {}
 
   solve(q: DriverSideQuantities): BoxOutput {
-    const {w, pg, ZaE, ZaD, Zc, Ral, Raa, Ql, Qa, lossMode} = q;
+    const {w, pg, ZaE, ZaD, Cab, Zc, Ral, Raa, Ql, Qa, lossMode} = q;
     const P = this.P;
 
     // n_pr PRs in parallel → combined acoustic impedance = Zpr_single / n_pr. Map/Cap/Rap are
@@ -43,23 +43,26 @@ export class PassiveRadiatorBox implements BoxModel {
       case 'winisd-lossy': {
         // WinISD's passive-radiator box (winisd_research/GHIDRA_FINDINGS.md "Passive radiator
         // box — `0x45a960`", bugs/BUG_20260927_passive-radiator-losses-not-winisd-form.md).
-        // Leak and absorption are FIXED resistances taken at ωr = 2π·Fr — the box's OWN tuning
-        // (the resonance this box and this radiator actually produce together,
-        // `PassiveRadiatorBox.systemTuning_hz`), never the radiator's free-air Fs and never
-        // per-frequency:
+        // Leak and absorption are FIXED resistances taken at ωr — never the radiator's free-air
+        // Fs and never per-frequency:
         //   Ral = Ql·ωr·Map          leak, parallel to the box (fixed)
         //   Raa = ωr·Map/Qa          absorption, in series with Cab (fixed)
         //   Zbox = Ral ∥ (Raa + 1/(jωCab)) ∥ Zpr
         // Radiated output is the Cab branch's own current — cone MINUS leak MINUS radiator, not
         // cone minus radiator alone. The box's own Qp is never used for a passive radiator (the
-        // radiator's own loss Rap above already carries it, as ωp·Map/Qms_pr when the radiator's
-        // own added mass Me = 0 — unverified for Me ≠ 0 or n_pr > 1, GHIDRA_FINDINGS.md same
-        // section).
+        // radiator's own loss Rap above already carries it, as ωp·Map_free/Qms per radiator,
+        // WITHOUT Me — verified for Me ≠ 0 and n_pr > 1, GHIDRA_FINDINGS.md same section).
         //
-        // `P.Fr` absent poisons every value below with NaN, exactly like an absent `Fb` does in
-        // the vented box — never a throw (classifyFinite is the net that catches it).
-        const Fr = P.Fr ?? NaN;
-        const wr = 2 * Math.PI * Fr;
+        // ωr is WinISD's OWN fixed-loss frequency, `1/√(Npr·Map·(Cab ∥ Npr·Cap))`
+        // (winisd_research/GHIDRA_FINDINGS.md "4th-order bandpass" § "Added mass and radiator
+        // count" — WinISD's calc bug: the branch mass is multiplied by Npr where the true tuning
+        // divides by it, so this ωr is Npr times too low; invisible at Npr = 1, where it equals
+        // the domain's own `systemTuning_hz`). Reproduced here deliberately, matching WinISD's
+        // own bug rather than the physical tuning — never derived from `P.Fr` (the domain's
+        // `systemTuning_hz`, a separate, correctly-computed reading; BUG_20260928_pr-added-mass-or-
+        // count-not-winisd.md), which stays untouched and unused in this branch.
+        const CabParNCap = (Cab * n_pr * Cap) / (Cab + n_pr * Cap);
+        const wr = 1 / Math.sqrt(n_pr * Map * CabParNCap);
         const RalConst = cx(Ql * wr * Map, 0);
         const RaaSeries = cx(wr * Map / Qa, 0);
         const CabBranch = cAdd(RaaSeries, Zc);
