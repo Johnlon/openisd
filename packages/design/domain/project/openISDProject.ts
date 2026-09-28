@@ -6,7 +6,7 @@ import type { AppContext } from '../appContext.js';
 import { focus, simpleField } from '../cell.js';
 import type { Calculatable, Calculated, Clearable, Entered, Readable, SimpleField, Unsolvable, Writable } from '../cell.js';
 import { newUuid } from '../newUuid.js';
-import { winIsdProjectToOpenIsdProject } from '../openIsdProjectToWinIsdProject.js';
+import { WinIsdProjectConverter } from '../openIsdProjectToWinIsdProject.js';
 import type { OpenISDProjectJson, OpenISDProjectSessionJson } from '../openisdSchema.js';
 import { ProjectBuilder } from '../openisdTransforms.js';
 import type { Box } from '../box/box.js';
@@ -527,7 +527,7 @@ export class OpenISDProject {
     /** WinISD `.wpr` text back to a project. The inverse of `toWprText()`, as far as a format
      *  carrying fewer box types and fields allows. */
     static fromWprText(text: string, engine: Engine): { value: OpenISDProject | null; errors: DriverError[] } {
-        return winIsdProjectToOpenIsdProject(text, engine);
+        return new WinIsdProjectConverter(engine).winIsdProjectToOpenIsdProject(text);
     }
 
     /** This project as `.owpr` text — openisd project JSON, the form

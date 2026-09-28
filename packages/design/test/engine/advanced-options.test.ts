@@ -112,7 +112,8 @@ describe("Rg placement — 'Rg is at driver side' (WinISD Advanced)", () => {
   it('two drivers in parallel: Rg at the amplifier is the heavier loss, so SPL is lower', () => {
     // At the driver side each driver carries its own Rg, so the array's series resistance
     // is Rg/2. At the amplifier one Rg carries the whole current — 2× the series resistance.
-    const P = { nDrivers: 2, wiring: 'parallel' as const };
+    // OpenISD's wiring model: WinISD's own driver count has no array resistance to share.
+    const P = { nDrivers: 2, wiring: 'parallel' as const, winisdDriverCountModel: false };
     const atDriver = engine.simulation.sweep(DRV, LE_H, 'sealed', base({ ...P, rgAtDriverSide: true })).values!;
     const atAmp    = engine.simulation.sweep(DRV, LE_H, 'sealed', base({ ...P, rgAtDriverSide: false })).values!;
     for (let i = 0; i < atDriver.fs.length; i++)

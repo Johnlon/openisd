@@ -24,6 +24,7 @@
       "Ql": 7,
       "nDrivers": 2,
       "wiring": "parallel",
+      "winisdDriverCountModel": false,
       "eg": 2.83,
       "fmin": 10,
       "fmax": 1000,

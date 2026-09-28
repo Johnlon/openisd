@@ -12,10 +12,7 @@ import {fileURLToPath} from 'node:url';
 import {dirname, join} from 'node:path';
 import {type Engine, createEngine} from '@openisd/design/engine';
 import {OpenISDDriver, OpenISDProject} from '@openisd/design';
-import {
-  openIsdProjectToWinIsdProject,
-  winIsdProjectToOpenIsdProject,
-} from '../../domain/openIsdProjectToWinIsdProject.js';
+import {WinIsdProjectConverter} from '../../domain/openIsdProjectToWinIsdProject.js';
 import {WinISDDriver} from '../../winisd/winisdDriver.js';
 import {WinISDProject} from '../../winisd/winisdProject.js';
 import {winISDDriverToOpenISDDeviceJson} from '../../domain/winIsdDriverImport.js';
@@ -70,7 +67,7 @@ for (const [label, kind, boxType, bType, captureWpr, sampleWpr] of [
       it(`${sampleLabel}: rear/front volume/tuning/losses and vent geometry match the file's own [Box]/[VentRear]/[VentFront]`, () => {
         const text = readFileSync(file, 'utf8');
         const engine = createEngine();
-        const {value: project, errors} = winIsdProjectToOpenIsdProject(text, engine);
+        const {value: project, errors} = new WinIsdProjectConverter(engine).winIsdProjectToOpenIsdProject(text);
         assert.equal(errors.length, 0, JSON.stringify(errors));
         if (!project) throw new Error('expected a project');
         assert.equal(project.box.boxType.value, boxType);
@@ -99,7 +96,7 @@ for (const [label, kind, boxType, bType, captureWpr, sampleWpr] of [
     it(`reports a clean error when a ${label} box is missing Vr/Fr/Vf/Ff`, () => {
       const text = `[ProjectInfo]\n[Driver]\nBrand=Test\nModel=Driver\n[Box]\nBType=${bType}\n`;
       const engine = createEngine();
-      const {value: project, errors} = winIsdProjectToOpenIsdProject(text, engine);
+      const {value: project, errors} = new WinIsdProjectConverter(engine).winIsdProjectToOpenIsdProject(text);
       assert.equal(project, null);
       assert.equal(errors.length, 1);
       assert.equal(errors[0]!.field, 'Vr/Fr/Vf/Ff');
@@ -110,7 +107,7 @@ for (const [label, kind, boxType, bType, captureWpr, sampleWpr] of [
     if (kind !== 'abc') return;
     const text = readFileSync(captureWpr, 'utf8');
     const engine = createEngine();
-    const {value: project, errors} = winIsdProjectToOpenIsdProject(text, engine);
+    const {value: project, errors} = new WinIsdProjectConverter(engine).winIsdProjectToOpenIsdProject(text);
     assert.equal(errors.length, 0, JSON.stringify(errors));
     if (!project) throw new Error('expected a project');
     assert.equal(project.box.abc.vents.intra.diameter_m.value, Number(goldenField(captureWpr, 'VentIntra', 'dia1')));
@@ -127,7 +124,7 @@ for (const [label, kind, boxType, bType, captureWpr, sampleWpr] of [
         .rearVolume_m3(REAR_VOLUME_M3).rearTuning_hz(REAR_TUNING_HZ)
         .frontVolume_m3(FRONT_VOLUME_M3).frontTuning_hz(FRONT_TUNING_HZ).build());
 
-      const {value: wpr, errors} = openIsdProjectToWinIsdProject(project, createEngine());
+      const {value: wpr, errors} = new WinIsdProjectConverter(createEngine()).openIsdProjectToWinIsdProject(project);
       assert.equal(errors.length, 0, `expected no errors, got: ${JSON.stringify(errors)}`);
       if (!wpr) throw new Error('expected a WinISDProject');
       const text = wpr.toWpr().replace(/\r\n/g, '\n');
@@ -167,11 +164,11 @@ for (const [label, kind, boxType, bType, captureWpr, sampleWpr] of [
       b.vents.front.diameter_m.set(0.052);
       b.vents.front.endCorrection_m.set(0.71);
 
-      const {value: wpr, errors} = openIsdProjectToWinIsdProject(project, createEngine());
+      const {value: wpr, errors} = new WinIsdProjectConverter(createEngine()).openIsdProjectToWinIsdProject(project);
       assert.equal(errors.length, 0, JSON.stringify(errors));
       if (!wpr) throw new Error('expected a WinISDProject');
 
-      const {value: reimported, errors: importErrors} = winIsdProjectToOpenIsdProject(wpr.toWpr(), createEngine());
+      const {value: reimported, errors: importErrors} = new WinIsdProjectConverter(createEngine()).winIsdProjectToOpenIsdProject(wpr.toWpr());
       assert.equal(importErrors.length, 0, JSON.stringify(importErrors));
       if (!reimported) throw new Error('expected a project');
       const rb = reimported.box[kind];
@@ -202,7 +199,7 @@ describe('winIsdProjectToOpenIsdProject/openIsdProjectToWinIsdProject — ABC in
     project.box.abc.vents.intra.diameter_m.set(0.045);
     project.box.abc.vents.intra.endCorrection_m.set(0.72);
 
-    const {value: wpr, errors} = openIsdProjectToWinIsdProject(project, createEngine());
+    const {value: wpr, errors} = new WinIsdProjectConverter(createEngine()).openIsdProjectToWinIsdProject(project);
     assert.equal(errors.length, 0, JSON.stringify(errors));
     if (!wpr) throw new Error('expected a WinISDProject');
     const text = wpr.toWpr().replace(/\r\n/g, '\n');
@@ -210,7 +207,7 @@ describe('winIsdProjectToOpenIsdProject/openIsdProjectToWinIsdProject — ABC in
     assert.ok(text.includes('dia1=0.045'));
     assert.ok(text.includes('endcorrection=0.72'));
 
-    const {value: reimported, errors: importErrors} = winIsdProjectToOpenIsdProject(wpr.toWpr(), createEngine());
+    const {value: reimported, errors: importErrors} = new WinIsdProjectConverter(createEngine()).winIsdProjectToOpenIsdProject(wpr.toWpr());
     assert.equal(importErrors.length, 0, JSON.stringify(importErrors));
     if (!reimported) throw new Error('expected a project');
     assert.equal(reimported.box.abc.vents.intra.diameter_m.value, 0.045);
@@ -220,7 +217,7 @@ describe('winIsdProjectToOpenIsdProject/openIsdProjectToWinIsdProject — ABC in
   it('a bandpass6 export writes [VentIntra] at the template default (no intra port on that box)', () => {
     const project = aProject((p) => p.bandpass6()
       .rearVolume_m3(0.011).rearTuning_hz(41).frontVolume_m3(0.0051).frontTuning_hz(59).build());
-    const {value: wpr, errors} = openIsdProjectToWinIsdProject(project, createEngine());
+    const {value: wpr, errors} = new WinIsdProjectConverter(createEngine()).openIsdProjectToWinIsdProject(project);
     assert.equal(errors.length, 0, JSON.stringify(errors));
     if (!wpr) throw new Error('expected a WinISDProject');
     // `WinISDProject.build()`'s own accessors only see keys this bridge explicitly supplied;

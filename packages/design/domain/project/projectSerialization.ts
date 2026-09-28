@@ -1,5 +1,5 @@
 import type { DriverError, Engine } from '../../engine/index.js';
-import { openIsdProjectToWinIsdProject } from '../openIsdProjectToWinIsdProject.js';
+import { WinIsdProjectConverter } from '../openIsdProjectToWinIsdProject.js';
 import { openISDProjectSessionJsonSchema } from '../openisdSchema.js';
 import type { OpenISDProjectJson, OpenISDProjectSessionJson } from '../openisdSchema.js';
 import type { OpenISDProject } from './openISDProject.js';
@@ -9,7 +9,7 @@ import type { OpenISDProject } from './openISDProject.js';
  *  business wrapping one itself, the same reasoning `ProjectSignal`/`ProjectChartsView` give for
  *  not reaching for their own driver/box window. */
 export function wprTextOf(committed: OpenISDProject, engine: Engine): { value: string | null; errors: DriverError[] } {
-    const {value: wpr, errors} = openIsdProjectToWinIsdProject(committed, engine);
+    const {value: wpr, errors} = new WinIsdProjectConverter(engine).openIsdProjectToWinIsdProject(committed);
     return {value: wpr ? wpr.toWpr() : null, errors};
 }
 

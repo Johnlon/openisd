@@ -39,5 +39,11 @@ WinISD's model by default. OpenISD's wiring model moves behind its own WinISD Co
 switch ("WinISD driver-count model"), per the native-by-default rule. Not captured yet: maximum
 SPL, amplifier VA, ported boxes.
 
+Done for the sealed box: `SimulationEngine.sweep`/`maxCurves` run one driver in Vb/N at eg/√N
+when `SweepParams.winisdDriverCountModel` is not false. Open: the project/Compatibility-panel
+switch for the wiring model, ported boxes (need captures), maximum SPL and VA.
+
 ## Verification
-Fixture from runs/sealed-w5-nd2; engine test ≤ 1e-12 on impedance, SPL, TF, max power.
+`test/domain/driver-count-winisd.test.ts` against `test/fixtures/winisdTwoDriversCapture.ts`:
+SPL, impedance, max power ≤ 1e-12 relative, TF ≤ 1e-12 dB, excursion ≤ 1e-11. Red before (Z 1.72
+vs 3.43 Ω at 1 Hz), green after.

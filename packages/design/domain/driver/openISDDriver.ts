@@ -5,7 +5,7 @@ import { realAppContext } from '../appContext.js';
 import type { AppContext } from '../appContext.js';
 import { ReadableFieldImpl, SetOnlyFieldImpl, absentCell, enteredCell, resolvingField } from '../cell.js';
 import type { Calculated, Clearable, Entered, Readable, SimpleField, Writable } from '../cell.js';
-import { openIsdDriverToWinIsdDriver, winIsdDriverTextToOpenIsdDriver } from '../driverYmlToOpenisdAndWdr.js';
+import { DriverFileConverter, openIsdDriverToWinIsdDriver } from '../driverYmlToOpenisdAndWdr.js';
 import { newUuid } from '../newUuid.js';
 import { asDriverDevice } from '../openisdSchema.js';
 import type { DriverDeviceJson } from '../openisdSchema.js';
@@ -304,7 +304,7 @@ export abstract class OpenISDDriver extends OpenISDDevice {
     /** WinISD `.wdr` text back to a driver. The inverse of `toWdrIniText()`, as far as a format
      *  carrying fewer fields allows. */
     static fromWdrIniText(text: string, engine: Engine): { value: OpenISDDriver | null; errors: DriverError[] } {
-        return winIsdDriverTextToOpenIsdDriver(text, engine);
+        return new DriverFileConverter(engine).winIsdDriverTextToOpenIsdDriver(text);
     }
 }
 
