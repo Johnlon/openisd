@@ -1,20 +1,18 @@
 import {LossMode} from '../../fields/lossMode.js';
 import {Engine} from '../../engine/index.js';
-import type { Air, AirEnvironment, BoxParamsIssue, BoxType, ChartId, DqIssue, DriverError, EnclosureParams, Filter, MaxCurvesResult, MaxCurvesSolveResult, PrIssue, SealedAlignmentIssue, SimulatableBoxType, SweepIssue, SweepParams, SweepResult, SweepSolveResult, VentIssue } from '../../engine/index.js';
+import type { Air, AirEnvironment, BoxParamsIssue, BoxType, ChartId, DriverError, EnclosureParams, Filter, MaxCurvesResult, MaxCurvesSolveResult, PrIssue, SimulatableBoxType, SweepIssue, SweepParams, SweepResult, SweepSolveResult, VentIssue } from '../../engine/index.js';
 import { realAppContext } from '../appContext.js';
 import type { AppContext } from '../appContext.js';
-import { CalculatedFieldImpl, DefaultingFieldImpl, DualWriteFieldImpl, SetOnlyFieldImpl, absentCell, calculatedCell, defaultingEntryField, enteredCell, focus, inputOf, simpleField, writeEntryDq } from '../cell.js';
+import { CalculatedFieldImpl, DefaultingFieldImpl, DualWriteFieldImpl, SetOnlyFieldImpl, absentCell, calculatedCell, defaultingEntryField, enteredCell, focus, simpleField, writeEntryDq } from '../cell.js';
 import type { Calculatable, Calculated, Clearable, Entered, Readable, SimpleField, Unsolvable, Writable } from '../cell.js';
 import { newUuid } from '../newUuid.js';
 import { openIsdProjectToWinIsdProject, winIsdProjectToOpenIsdProject } from '../openIsdProjectToWinIsdProject.js';
 import { openISDProjectSessionJsonSchema } from '../openisdSchema.js';
-import { calcVentCount, calculatedEntry, enteredEntry } from '../specEntry.js';
+import { calculatedEntry, enteredEntry } from '../specEntry.js';
 import type { EnvironmentCondition, OpenISDEnvironmentJson, OpenISDProjectJson, OpenISDProjectSessionJson } from '../openisdSchema.js';
 import { ProjectBuilder } from '../openisdTransforms.js';
-import type { Vent } from '../vent.js';
 import type { Box } from '../box/box.js';
 import type { FrequencyGrid } from '../box/frequencyGrid.js';
-import { isPortCount } from '../box/isPortCount.js';
 import { OpenISDBox } from '../box/openISDBox.js';
 import { driverSolverParamsOf } from '../driver/driverSolverParamsOf.js';
 import { engineCircuitModel } from '../driver/engineCircuitModel.js';
@@ -26,7 +24,7 @@ import type { EnvironmentField, EnvironmentFields } from './environmentFields.js
 import { freshEmbeddedDriver } from './freshEmbeddedDriver.js';
 import type { ProjectIssues } from './projectIssues.js';
 import { ProjectListeners } from './projectListeners.js';
-import { sealedVolumeAsSolverField } from './sealedVolumeAsSolverField.js';
+import { resolveProject } from './projectResolve.js';
 
 // The domain declares its state here. JSON shapes live in `openisdSchema.ts`.
 // Internal JSON types are never re-exported from `domain/index.ts`.
@@ -35,8 +33,7 @@ import { sealedVolumeAsSolverField } from './sealedVolumeAsSolverField.js';
 // `ManagedProject` observe internal `OpenISDProject` changes without exposing
 // state publicly.
 
-/** WinISD's reference drive: 1 W, and the voltage a sweep runs at before anything is known. */
-const DEFAULT_DRIVE_POWER_W = 1;
+/** The voltage a sweep runs at before anything is known. */
 const DEFAULT_DRIVE_VOLTAGE_V = 1;
 /** The lowest drive voltage a project may hold: 10 mV, the smallest the UI's 2 dp shows. */
 const MIN_DRIVE_VOLTAGE_V = 0.01;
@@ -484,15 +481,16 @@ export class OpenISDProject {
     }
 
     /**
-     * T11/S2-7d: resolve the CURRENT layer's driver — write every quantity `solveDriver` can
-     * derive back into THAT layer as a `'C'` entry, and cache the result in `#issues`.
-     *
-     * Reads and writes go DIRECTLY to the layer object below, never through `#slot`/`#root`:
-     * those always promote to `#edited` and notify, which would make simply LOADING a project
-     * (`wrap()`) register as "modified", and would make a solve's OWN writes notify a SECOND
-     * time for one user action — the exact write-on-read/write-on-solve loop that broke
-     * `OpenISDDriverEmbedded` in S2-7c before its own auto-resolve was pulled out of the shared
-     * driver constructor (see that class's own note).
+     * T11/S2-7d: resolve the CURRENT layer and cache the result in `#issues`. The actual solve
+     * lives in `resolveProject` (`./projectResolve.js`) — reads and writes go DIRECTLY to the
+     * layer object below, never through `#slot`/`#root`: those always promote to `#edited` and
+     * notify, which would make simply LOADING a project (`wrap()`) register as "modified", and
+     * would make a solve's OWN writes notify a SECOND time for one user action — the exact
+     * write-on-read/write-on-solve loop that broke `OpenISDDriverEmbedded` in S2-7c before its
+     * own auto-resolve was pulled out of the shared driver constructor (see that class's own
+     * note). `driverOver`/`boxOver`/`air`/`envFieldsOver`/`powerDriveOver`/`driveVoltageOver` are
+     * passed in as closures rather than let `resolveProject` reach `this`: they are this
+     * project's own window-builders, shared with the live getters below (S2-7d2).
      */
     #resolve(): void {
         const directRoot = simpleField<OpenISDProjectJson>(
@@ -502,169 +500,16 @@ export class OpenISDProject {
                 else if (this.#edited) this.#edited = json;
                 else this.#saved = json;
             });
-        // Before the driver: its own air falls back to these three conditions, so they must
-        // state the app's default by the time `driver.resolve()` reads them.
-        this.#resolveEnvironment(focus(directRoot, 'environment'));
-        const driver = this.#driverOver(directRoot);
-        const driverIssues = driver.resolve();
-
-        // The drive power/voltage pair, against the driver's just-resolved Re. Its dq is read
-        // from `#issues.signal` at read time, so no `projectGroupDq` here.
-        const Re_ohm = this.#usableReOver(directRoot);
-        this.#settleSignal(focus(directRoot, 'signal'), Re_ohm);
-        const signal = this.#engine.solveSignal({
-            power_W: this.#powerDriveOver(directRoot),
-            Re_ohm: inputOf(() => Re_ohm),
-            voltage_V: this.#driveVoltageOver(directRoot),
-            Rs_ohm: inputOf(() => this.Rs_ohm.value),
+        this.#issues = resolveProject({
+            directRoot,
+            engine: this.#engine,
+            driverOver: (root) => this.#driverOver(root),
+            boxOver: (root) => this.#boxOver(root),
+            air: (root) => this.#air(root),
+            envFieldsOver: (environment) => this.#envFieldsOver(environment),
+            powerDriveOver: (root) => this.#powerDriveOver(root),
+            driveVoltageOver: (root) => this.#driveVoltageOver(root),
         });
-
-        // The project's own air — the driver's OWN c_m_per_s/roo_kg_per_m3 are display-only and
-        // feed nothing (BUG_20260924_driver-solve-and-sweep-use-different-air-models.md).
-        const air: Air = this.#air(directRoot);
-
-        const box = this.#boxOver(directRoot);
-        // GEOMETRY IS IN, ACOUSTICS IS OUT (John, 2026-08-26): every port's area ↔ dims
-        // relation solves here, unconditionally, for all 7 vents regardless of which box
-        // type is active — geometry does not depend on that. Must run BEFORE the acoustic
-        // `solveVent` calls below, which read `area_m2` as a plain input.
-        const vents: readonly Vent[] = [
-            box.vented.vent, box.bandpass4.vents.front,
-            box.bandpass6.vents.rear, box.bandpass6.vents.front,
-            box.abc.vents.rear, box.abc.vents.front, box.abc.vents.intra,
-        ];
-        for (const v of vents) {
-            this.#resolveVentGeometry(v);
-            this.#resolveVentCount(v);
-        }
-        const boxType = directRoot.value.box.boxType;
-        let vent: readonly VentIssue[] = [];
-        let pr: readonly PrIssue[] = [];
-        let sealed: readonly SealedAlignmentIssue[] = [];
-        let ventTuningExtra: DqIssue | null = null;
-
-        if (boxType === 'vented') {
-            vent = this.#engine.solveVent({
-                tuning_goal_hz: box.vented.tuning_goal_hz,
-                length_m: box.vented.vent.length_m,
-                Vb_m3: inputOf(() => box.vented.volume_m3.value),
-                area_m2: inputOf(() => box.vented.vent.area_m2.value),
-                count: inputOf(() => box.vented.vent.count.value),
-                endCorrection_m: inputOf(() => box.vented.vent.endCorrection_m.value),
-            }, air);
-            // The designed tuning is WinISD's own answer and is not changed — it is marked.
-            // Read live off `#issues.ventTuningExtra`, appended to `#issues.vent`'s own mark,
-            // never over it: the two say different things (this geometry does not solve /
-            // nobody would build this).
-            const Fb = box.vented.tuning_goal_hz.value;
-            ventTuningExtra = Fb === null ? null : this.#engine.ventedTuningIssue(Fb);
-        } else if (boxType === 'bandpass4') {
-            vent = this.#engine.solveVent({
-                tuning_goal_hz: box.bandpass4.chambers.front.tuning_goal_hz,
-                length_m: box.bandpass4.vents.front.length_m,
-                Vb_m3: inputOf(() => box.bandpass4.chambers.front.volume_m3.value),
-                area_m2: inputOf(() => box.bandpass4.vents.front.area_m2.value),
-                count: inputOf(() => box.bandpass4.vents.front.count.value),
-                endCorrection_m: inputOf(() => box.bandpass4.vents.front.endCorrection_m.value),
-            }, air);
-        } else if (boxType === 'box-passive-radiator') {
-            const p = box.passiveRadiator;
-            const r = p.radiator;
-            pr = this.#engine.solvePr({
-                addedMass_kg: p.addedMass_kg,
-                tuning_goal_hz: p.tuning_goal_hz,
-                resonanceWithAddedMass_hz: p.resonanceWithAddedMass_hz,
-                systemTuning_hz: p.systemTuning_hz,
-                Vb_m3: inputOf(() => p.volume_m3.value || box.vented.volume_m3.value),
-                prMmd_kg: inputOf(() => r.spec.Mms_kg.value),
-                prSd_m2: inputOf(() => r.spec.Sd_m2.value),
-                prCms_m_per_N: inputOf(() => r.spec.Cms_m_per_N.value),
-            }, air);
-        } else if (boxType === 'sealed') {
-            const ts = driver.specs;
-            // The Rg-loaded Qts, inlined rather than `sourceLoadedQts(Rs)` (that method reads
-            // the NOTIFYING `this.driver.ts` — calling it from inside a resolve would re-enter
-            // the write-on-read loop `#resolve()`'s own doc comment warns against). Mirrors
-            // `#sealedResonance_hz`'s pre-S10 feed exactly (golden Fsc 63.1762 Hz/Qtc 0.5995).
-            const rgLoadedQts = (): number | null => {
-                const Qts = ts.Qts.value;
-                if (Qts === null) return null;
-                return this.#engine.sourceLoadedQts(
-                    ts.Qms.value ?? NaN, ts.Qes.value ?? NaN, ts.Re_ohm.value ?? NaN,
-                    directRoot.value.driverEmbedding.Rs_ohm, Qts);
-            };
-            sealed = this.#engine.solveSealedAlignment({
-                Qts: inputOf(rgLoadedQts),
-                Vas_m3: inputOf(() => ts.Vas_m3.value),
-                Fs_hz: inputOf(() => ts.Fs_hz.value),
-                Ql: inputOf(() => box.sealed.losses.Ql.value),
-                Qa: inputOf(() => box.sealed.losses.Qa.value),
-                lossMode: inputOf(() => directRoot.value.advanced.lossMode ?? null),
-                Qtc: box.sealed.q_tc,
-                Vb_m3: sealedVolumeAsSolverField(box.sealed.volume_m3),
-            });
-        }
-
-        this.#issues = { driver: driverIssues, signal, vent, pr, sealed, ventTuningExtra };
-    }
-
-    /** Solves `vent.area_m2` against whichever dimension its own `shape` uses: `diameter_m`
-     *  round, `height_m` (times the live `width_m`) slotted. PLAIN GEOMETRY — πr² and width ×
-     *  height involve no air, compliance, resonance or end correction, so this belongs in the
-     *  domain, not the engine (John 2026-08-26: "simple geometric calc like pi r squared are ok
-     *  in the domain").
-     *
-     *  Entering either side of a pair already atomically clears the other (`pairedField`'s own
-     *  `commitPair`), so this only ever has one side entered, or neither. `setNotAvailable()` on
-     *  the "neither" branch wipes a stale calculated echo left over from a shape the vent has
-     *  since switched away from — a plain `shape.set()` does not itself touch `area_m2`. */
-    #resolveVentGeometry(vent: Vent): void {
-        if (vent.shape.value === 'round') {
-            if (vent.diameter_m.entered) {
-                vent.area_m2.setCalculated(Math.PI * (vent.diameter_m.value! / 2) ** 2);
-            } else if (vent.area_m2.entered) {
-                vent.diameter_m.setCalculated(2 * Math.sqrt(vent.area_m2.value! / Math.PI));
-            } else {
-                vent.area_m2.setNotAvailable();
-                vent.diameter_m.setNotAvailable();
-            }
-            return;
-        }
-        const width = vent.width_m.value;
-        if (vent.height_m.entered) {
-            if (width === null) vent.area_m2.setNotAvailable();
-            else vent.area_m2.setCalculated(width * vent.height_m.value!);
-        } else if (vent.area_m2.entered) {
-            if (width === null || width === 0) vent.height_m.setNotAvailable();
-            else vent.height_m.setCalculated(vent.area_m2.value! / width);
-        } else {
-            vent.area_m2.setNotAvailable();
-            vent.height_m.setNotAvailable();
-        }
-    }
-
-    /** Stores the port count's default (one port) as a 'C' entry wherever the record states no
-     *  count, or states one that is not a whole number of at least one — the repair John ruled on
-     *  2026-09-20, written into the record rather than applied at read time (John, 2026-09-24:
-     *  "simply no reason for these exceptions to the rule"). No solve derives a port count, so
-     *  this is the only write that ever makes one calculated. */
-    #resolveVentCount(vent: Vent): void {
-        const v = vent.count.value;
-        if (!isPortCount(v)) vent.count.setCalculated(calcVentCount());
-        else if (!vent.count.entered) vent.count.setCalculated(v);
-    }
-
-    /** Stores the app's Options → Environment value as a 'C' entry for every condition the
-     *  project does not state itself: clear, then store what the empty slot reads. Re-stamped on
-     *  every resolve, so changing Options reaches an unstated project (`appSettingsChanged`); an
-     *  entered condition is never touched. */
-    #resolveEnvironment(environment: SimpleField<OpenISDEnvironmentJson>): void {
-        const env = this.#envFieldsOver(environment);
-        for (const condition of [env.tempK, env.humidityPct, env.pressurePa]) {
-            if (condition.entered) continue;
-            condition.clear();
-            condition.setCalculated(condition.value);
-        }
     }
 
     /** @internal The record a save writes, deep-cloned — the persisted payload's one route to
@@ -834,24 +679,6 @@ export class OpenISDProject {
     #usableReOver(root: SimpleField<OpenISDProjectJson>): number | null {
         const Re_ohm = this.#driverOver(root).specs.Re_ohm.value;
         return Re_ohm !== null && Number.isFinite(Re_ohm) && Re_ohm > 0 ? Re_ohm : null;
-    }
-
-    /**
-     * The signal pair's entered-value rules the solve does not make. Re lost (a power is still
-     * stored, which only a known Re allows): the voltage keeps its value as entered and the power
-     * goes. Re known with nothing entered: the power is the 1 W reference, entered.
-     */
-    #settleSignal(signal: SimpleField<OpenISDProjectJson['signal']>, Re_ohm: number | null): void {
-        const {power_W, voltage_V} = signal.value;
-        if (Re_ohm === null) {
-            if (power_W !== undefined) {
-                signal.set({...signal.value, power_W: undefined, voltage_V: voltage_V && enteredEntry(voltage_V.value)});
-            }
-            return;
-        }
-        if (power_W?.state !== 'E' && voltage_V?.state !== 'E') {
-            signal.set({...signal.value, power_W: enteredEntry(DEFAULT_DRIVE_POWER_W)});
-        }
     }
 
     // ── ENVIRONMENT ───────────────────────────────────────────────────────────────────────────
