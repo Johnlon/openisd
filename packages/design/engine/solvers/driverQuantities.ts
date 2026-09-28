@@ -97,6 +97,22 @@ export function withAddedMass(drv: Readonly<DriverWorkingSet>, MaddKg: number): 
 }
 
 /**
+ * The iso-barik pair as WinISD models it: two drivers acting as one, Mms×2, Cms/2, Rms×2, Vas/2
+ * and the circuit's terminal BL ×√2, so Fs and the Q's are unchanged. The typed BL (the motor's
+ * push) stays one driver's. Fitted to winisd_research runs/sealed-w5-isobarik (SPL, excursion,
+ * TF to 3e-14); bugs/BUG_20260928_isobarik-loading-not-simulated.md.
+ */
+export function isobarikPair(drv: Readonly<DriverWorkingSet>): DriverWorkingSet {
+  const out: DriverWorkingSet = Object.assign({}, drv);
+  if (drv.Mms_kg != null) out.Mms_kg = drv.Mms_kg * 2;
+  if (drv.Cms_m_per_N != null) out.Cms_m_per_N = drv.Cms_m_per_N / 2;
+  if (drv.Rms_kg_per_s != null) out.Rms_kg_per_s = drv.Rms_kg_per_s * 2;
+  if (drv.Vas_m3 != null) out.Vas_m3 = drv.Vas_m3 / 2;
+  if (drv.BL_terminal_Tm != null) out.BL_terminal_Tm = drv.BL_terminal_Tm * Math.SQRT2;
+  return out;
+}
+
+/**
  * Re AS THE AMPLIFIER SEES IT. N coils of resistance r are r/N in parallel and N·r in series.
  *
  * Its own function, beside the solver rather than inside it: this is not a consistency relation —

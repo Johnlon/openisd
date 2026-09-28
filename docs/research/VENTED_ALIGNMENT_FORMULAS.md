@@ -47,7 +47,7 @@ Fb = h · Fs
 | `Rg`   | project `Rs_ohm` (Signal tab "Series resistance"; `.wpr` `[SignalSource] Rg`), 0.1 default  | via Qts' |
 | `Ql`   | box losses `box.vented.losses.Ql`, default 10 (§4)                                          | BB4 only |
 
-The wizard hook (`OgNewProject-hooks.ts`) previews with the new-project defaults (0.1 Ω, 10)
+The wizard hook (`OriginalNewProject-hooks.ts`) previews with the new-project defaults (0.1 Ω, 10)
 and designs the created project against its own `Rs_ohm`/`Ql`; the hook test pins the two
 equal.
 

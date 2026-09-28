@@ -49,7 +49,7 @@ wiring. It holds no rule, no predicate, no derivation, and no domain value — t
 `logic/`, where a test can call them without mounting a component.
 
 Violated by this agent the same day and corrected: `isQ` — a domain predicate asking whether a
-field is one of the Qts/Qes/Qms trio — was written as a local `const` inside `OgTune.vue`. It
+field is one of the Qts/Qes/Qms trio — was written as a local `const` inside `OriginalTune.vue`. It
 now lives in `logic/` as `isQGroupField()`. The lesson is the test: **if a rule can only be
 exercised by rendering a component, it is in the wrong file.**
 

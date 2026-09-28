@@ -50,7 +50,7 @@ import {clampedFrequency, interpolatedY, steppedFrequency} from '../logic/cursor
 import {ARRAY_WIRING_OPTIONS, BOX_TYPE_OPTIONS, END_CORRECTION_OPTIONS, LossMode, NumberField, VENT_SHAPE_OPTIONS} from '@openisd/design/fields';
 import {inputChecked, inputFrom, inputValue, listeningElement, selectedOption, selectValue} from '../logic/domEvents.js';
 import {SealedAlignmentEditor} from './SealedAlignment-hooks.js';
-import {OgFilters} from './OgFilters-hooks.js';
+import {OriginalFilters} from './OriginalFilters-hooks.js';
 import type {Calculated, Clearable, Entered, OpenISDProject, Readable, Writable} from '@openisd/design';
 import type {ProvenanceLetter} from '@openisd/design';
 import type {StoredProjectListing} from '@openisd/persistence';
@@ -441,7 +441,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     prAddedMassDq, prTuningDq, prSystemTuningDq, prResonanceMassDq, prFsMass_hz,
   } = sealedReadouts({ project, selectedBox, projectChanged });
   const sealedAlignmentEditor = new SealedAlignmentEditor(project, projectChanged, engine.sealed, engine.driver);
-  const ogFilters = new OgFilters(project, projectChanged, engine.filters);
+  const originalFilters = new OriginalFilters(project, projectChanged, engine.filters);
   const sealedAlignmentOpen = sealedAlignmentEditor.open;
   const sealedAlignmentOptions = sealedAlignmentEditor.options;
   const sealedAlignmentSelected = sealedAlignmentEditor.selectedOption;
@@ -1118,7 +1118,7 @@ const overlays = computed<Design[]>(() => {
     selectedBox, BOX_TYPE_OPTIONS, LOSS_MODE_OPTIONS, lossMode, ARRAY_WIRING_OPTIONS, N_DRIVERS_OPTIONS, applyWinisdSettings,
      boxVolume_m3, boxVolumeDqNote, setBoxVolume_m3, sealedAlignmentEditor, sealedAlignmentOpen,
      sealedAlignmentOptions, sealedAlignmentSelected, sealedAlignmentVolume_L, sealedAlignmentEbp,
-     sealedAlignmentSuitability, sealedAlignmentSuitabilityLabel, ogFilters,
+     sealedAlignmentSuitability, sealedAlignmentSuitabilityLabel, originalFilters,
     fbState, FB_TARGET_TIP, VENT_GEOMETRY_TIP, fmtU, clearVentFieldOn, enterVentFieldOn,
     boxResonance, rearQtc, prSystemTuningDq,
     fbUnreachable, fbUnreachableMsg, boxLossesOpen, isDual,

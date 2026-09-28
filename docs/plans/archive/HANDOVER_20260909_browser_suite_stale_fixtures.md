@@ -106,10 +106,10 @@ the bundled-row identity survive a reload?). One test, distinct from the 46.
 John's ruling: "make this popup a child of a higher component so that it is independent of the
 box view from which it was opened."
 
-**Done:** moved `<OgTune v-if="presentationState.editDriver" />` out of
+**Done:** moved `<OriginalTune v-if="presentationState.editDriver" />` out of
 `OriginalShell.vue:1410` and into `App.vue`, inside the `v-if="project"` block beside
-`DriverEditorModal` (both global driver overlays). Removed the now-unused `OgTune` import from
-`OriginalShell.vue`; left a comment there pointing to the new location. `OgTune` takes no props
+`DriverEditorModal` (both global driver overlays). Removed the now-unused `OriginalTune` import from
+`OriginalShell.vue`; left a comment there pointing to the new location. `OriginalTune` takes no props
 and reads `useFocusedProject()`, which `App.vue` provides, so the move is clean. The
 `presentationState.editDriver` state and its refresh-persistence watchers stay in
 `OriginalShell` (they sync global state, location-independent). `vue-tsc` + `eslint` clean.
@@ -172,9 +172,9 @@ deleted `packages/ui/src/logic/schemaUpgrade.ts`, `packages/ui/src/driverName.ts
 - `packages/ui/test/fixtures/complete-driver-project.owpr` (new)
 - `packages/ui/test/logic/consistency-dq.browser.spec.ts`
 - `packages/ui/test/persistence/{driver-scope-chip,my-drivers-filtering,my-drivers,driver-search-interactive,driver-summary-winisd,driver-selection,my-drivers-failures}.browser.spec.ts`
-- `packages/ui/src/ui/App.vue` (QO134 hoist — my hunk is the `<OgTune>` add + import; the
+- `packages/ui/src/ui/App.vue` (QO134 hoist — my hunk is the `<OriginalTune>` add + import; the
   file also carries earlier empty-state-file-open work from this session)
-- `packages/ui/src/ui/shells/original/OriginalShell.vue` (QO134 — `<OgTune>` removal + import
+- `packages/ui/src/ui/shells/original/OriginalShell.vue` (QO134 — `<OriginalTune>` removal + import
   removal; **the diff also shows peer/other changes — inspect before staging**)
 - `bugs/BUG_20260909_one_shared_owpr_fixture_cannot_satisfy_tests_with_opposite_driver_needs.md` (new)
 - `bugs/BUG_20260909_my_drivers_specs_seed_the_pre_migration_localstorage_shape.md` (new)

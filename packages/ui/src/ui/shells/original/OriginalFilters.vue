@@ -1,7 +1,7 @@
 <script setup lang="ts">
 /**
  * Filters tab — the `.filters-quickadd` + `.filters-list` markup. Presentation only: the
- * list, add, remove and every edit live in `hooks/OgFilters-hooks.ts` (`OgFilters`). This file
+ * list, add, remove and every edit live in `hooks/OriginalFilters-hooks.ts` (`OriginalFilters`). This file
  * owns which row is open for editing and dispatches to one editor component per filter type
  * (`./filters/*Editor.vue`), nothing else.
  *
@@ -11,7 +11,7 @@
 import {ref} from 'vue';
 import type {FilterType} from '@openisd/design/engine';
 import {inputChecked} from '../../../logic/domEvents.js';
-import type {OgFiltersAPI} from '../../../hooks/OgFilters-hooks.js';
+import type {OriginalFiltersAPI} from '../../../hooks/OriginalFilters-hooks.js';
 import PassFilterEditor from './filters/PassFilterEditor.vue';
 import AllpassEditor from './filters/AllpassEditor.vue';
 import LinkwitzTransformEditor from './filters/LinkwitzTransformEditor.vue';
@@ -21,7 +21,7 @@ import StaticGainEditor from './filters/StaticGainEditor.vue';
 import RaisedCosineEditor from './filters/RaisedCosineEditor.vue';
 import ShelfEditor from './filters/ShelfEditor.vue';
 
-const {api} = defineProps<{ api: OgFiltersAPI }>();
+const {api} = defineProps<{ api: OriginalFiltersAPI }>();
 const filters = api.filters;
 
 /** One quick-add button per type, WinISD's Filter Editor "Filter type" order, then the two

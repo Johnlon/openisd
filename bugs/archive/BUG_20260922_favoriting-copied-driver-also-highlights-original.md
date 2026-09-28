@@ -90,5 +90,5 @@ TDD, RED→GREEN:
   passed, including the pre-existing Clone-driver and Edit-flow tests (no regression).
 - `npm run typecheck` — `ui` package clean (the `design` package's pre-existing, unrelated
   typecheck failure in `domain.test.ts` predates this session — see git status).
-- `npx vitest run packages/design packages/persistence packages/ui/test/hooks/OgNewProject-hooks.test.ts`
+- `npx vitest run packages/design packages/persistence packages/ui/test/hooks/OriginalNewProject-hooks.test.ts`
   — 1728/1728 passed.

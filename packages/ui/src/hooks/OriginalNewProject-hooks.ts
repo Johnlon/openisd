@@ -16,18 +16,18 @@ import { selectedOption } from '../logic/domEvents.js';
 import { fromDisplay } from '../logic/fields/units.js';
 
 /** The three engine areas the wizard consults; `appState`'s by default, substitutes in a test. */
-export interface OgNewProjectEngineAreas {
+export interface OriginalNewProjectEngineAreas {
   readonly driver: DriverEngine;
   readonly sealed: SealedEngine;
   readonly vented: VentedEngine;
 }
 
-export interface OgNewProjectDeps {
-  areas?: OgNewProjectEngineAreas;
+export interface OriginalNewProjectDeps {
+  areas?: OriginalNewProjectEngineAreas;
   initialDriver?: OpenISDDriver | null;
 }
 
-export interface OgNewProjectAPI {
+export interface OriginalNewProjectAPI {
   // Navigation & Step state
   readonly step: Ref<number>;
   readonly totalSteps: ComputedRef<number>;
@@ -108,7 +108,7 @@ export interface OgNewProjectAPI {
 }
 
 /** The vented `Ql` a new project is born with (`NO_VENTED_LOSSES` in the schema). The preview
- *  runs before the project exists, so it is read here; `OgNewProject-hooks.test.ts` pins it to
+ *  runs before the project exists, so it is read here; `OriginalNewProject-hooks.test.ts` pins it to
  *  the created project's own value. */
 const NEW_PROJECT_VENTED_QL = 10;
 
@@ -120,8 +120,8 @@ const STEP_LABELS = Object.freeze([
   'Project Information',
 ]);
 
-export function useOgNewProject(deps?: OgNewProjectDeps): OgNewProjectAPI {
-  const eng: OgNewProjectEngineAreas = deps?.areas ?? appEngine;
+export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProjectAPI {
+  const eng: OriginalNewProjectEngineAreas = deps?.areas ?? appEngine;
   const initialDriver = deps?.initialDriver ?? newProjectDriver.value ?? null;
 
   const step = ref(1);

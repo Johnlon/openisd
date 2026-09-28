@@ -286,6 +286,8 @@ export interface SweepParams {
   driverAddedMass?: number;
   // Thermal power compression: coil temp rise ΔT (K) × alfaVC (SI /K) → hot Re. 0/absent = no-op.
   vcTempRise?: number;
+  // Iso-barik loading: the driver is a compound pair (`isobarikPair`). Absent = standard.
+  loading?: 'standard' | 'isobaric';
   alfaVC?: number;
   // ---- WinISD Advanced-pane simulation options (PLAN_ADVANCED_SIM_OPTIONS.md) ----------
   /**

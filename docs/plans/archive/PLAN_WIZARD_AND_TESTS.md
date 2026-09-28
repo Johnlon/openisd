@@ -16,9 +16,9 @@ The wizard implementation is ALREADY IN THE WORKING TREE (staged, uncommitted):
 
 | File | State |
 |---|---|
-| `packages/ui/src/hooks/OgNewProject-hooks.ts` | NEW hook: 5 steps in WinISD order, EBP/suitability readout, sealed-alignment step skipped for non-sealed box types, wizard-local Qtc/volume computeds |
-| `packages/ui/src/ui/shells/original/OgNewProject.vue` | Rewritten thin shell over the hook |
-| `packages/ui/test/hooks/OgNewProject-hooks.test.ts` | 8/8 passing (`npx vitest run test/hooks/OgNewProject-hooks.test.ts`) |
+| `packages/ui/src/hooks/OriginalNewProject-hooks.ts` | NEW hook: 5 steps in WinISD order, EBP/suitability readout, sealed-alignment step skipped for non-sealed box types, wizard-local Qtc/volume computeds |
+| `packages/ui/src/ui/shells/original/OriginalNewProject.vue` | Rewritten thin shell over the hook |
+| `packages/ui/test/hooks/OriginalNewProject-hooks.test.ts` | 8/8 passing (`npx vitest run test/hooks/OriginalNewProject-hooks.test.ts`) |
 
 Full vitest suite (`npm run test:unit`): **1,995 passed / 4 failed** of 1,999. Playwright
 browser specs are NOT runnable from vitest by design — they need
@@ -30,16 +30,16 @@ The 4 unit failures, with their nature:
 
 | # | Test | Nature | In scope here? |
 |---|---|---|---|
-| F1 | `test/logic/uiFields-dropdowns.test.ts` — OgNewProject.vue binds `<select v-model.number="nDrivers">` | REAL DEFECT in the staged wizard code: violates the "every select reads through `selectedOption`" rule | YES (Task 2) |
+| F1 | `test/logic/uiFields-dropdowns.test.ts` — OriginalNewProject.vue binds `<select v-model.number="nDrivers">` | REAL DEFECT in the staged wizard code: violates the "every select reads through `selectedOption`" rule | YES (Task 2) |
 | F2 | `test/ui/architecture.test.ts` — hook imports the `OpenISDProject` CLASS | REAL DEFECT: the store must be the only holder of the project registry; hook must receive a project factory via deps or call the store's factory | YES (Task 3) |
-| F3 | `test/ui/architecture.test.ts` — `hooks/OgNewProject-hooks.ts imports @openisd/design/engine` edge not on the QO80 matrix | Needs a HUMAN RULING: add the edge to `ALLOWED_EDGES` or relocate the engine access | YES (Task 4 — ruling required) |
+| F3 | `test/ui/architecture.test.ts` — `hooks/OriginalNewProject-hooks.ts imports @openisd/design/engine` edge not on the QO80 matrix | Needs a HUMAN RULING: add the edge to `ALLOWED_EDGES` or relocate the engine access | YES (Task 4 — ruling required) |
 | F4 | `test/hooks/DiagnosticsModal-hooks.test.ts` — `window is not defined` (`faultLog.install()` in a node-env test) | PRE-EXISTING, unrelated to the wizard | Separate fix, same plan (Task 3b) |
 
 Fix_WIZARD_SEALED's §8 task 2/5 extraction findings (plan-agent pass, verified against code):
 - `useDriverEditorModal()` is DEAD CODE (DriverEditorModal.vue never imports it); the 6 DQ
   functions (`isBadValue`, `dqNote`, `issues`, `chartBlockingReasons`, `mandatory`, `ebpVal`)
   live inline in the `.vue` — extract to the hooks file, modal calls them (LOW risk)
-- `OgNewProject.vue`'s remaining inline logic moves into the hook (already mostly done)
+- `OriginalNewProject.vue`'s remaining inline logic moves into the hook (already mostly done)
 - `@vite-ignore` census: 10 files / 33 sites touching the same boundary as Task 3's
   `original-layout`, `original-tuning-target`, `sealed-readout-wire`
 
@@ -71,10 +71,10 @@ inline. Re-run the dropdown test + hook tests.
 
 ### Task 3 — Fix F2 + F4: architecture violations in the hook
 
-F2: `OgNewProject-hooks.ts` imports the `OpenISDProject` class. The store is the only
+F2: `OriginalNewProject-hooks.ts` imports the `OpenISDProject` class. The store is the only
 holder of the project registry. RED: `test/ui/architecture.test.ts` containment test.
 GREEN: the hook never constructs a project — it either (a) takes a
-`createProject: () => OpenISDProject` factory in `OgNewProjectDeps` injected by the shell
+`createProject: () => OpenISDProject` factory in `OriginalNewProjectDeps` injected by the shell
 from the store, or (b) the `createProject()` API returns a plain descriptor the SHELL turns
 into a project via the store. Prefer (a): the hook keeps its logic, the store keeps its
 monopoly. Update the hook tests to inject a fake factory.
@@ -86,7 +86,7 @@ F4 (separate commit): `DiagnosticsModal-hooks.test.ts` `window is not defined` �
 
 ### Task 4 — F3: the QO80 engine edge — HUMAN RULING REQUIRED
 
-`hooks/OgNewProject-hooks.ts → @openisd/design/engine` is not on `ALLOWED_EDGES`.
+`hooks/OriginalNewProject-hooks.ts → @openisd/design/engine` is not on `ALLOWED_EDGES`.
 The hook genuinely needs `ebp`/`ebpSuitability`/`sealedQtcFromVolume`/`sealedFromQtc`/
 `closestSealedAlignment` — pure functions. Options, in preference order:
 
@@ -139,7 +139,7 @@ it is not a pure ratchet-up.
 | `make openisd-test` | full openisd gate: unit suite then browser suite |
 | `make openisd-test-unit` | vitest suite only |
 | `make openisd-test-browser` | Playwright suite only (`scripts/test-browser.sh`) |
-| `make openisd-test-one F=packages/ui/test/hooks/OgNewProject-hooks.test.ts` | ONE file, correct runner chosen by suffix |
+| `make openisd-test-one F=packages/ui/test/hooks/OriginalNewProject-hooks.test.ts` | ONE file, correct runner chosen by suffix |
 | `make openisd-typecheck` | openisd TypeScript typecheck |
 | `make openisd-build` | build the packages |
 

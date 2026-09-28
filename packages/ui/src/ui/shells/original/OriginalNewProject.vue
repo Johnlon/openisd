@@ -4,7 +4,7 @@
  * State management delegated to useOgNewProject() hook per ui.md.
  */
 import { onBeforeUnmount } from 'vue';
-import { useOgNewProject } from '../../../hooks/OgNewProject-hooks.js';
+import { useOgNewProject } from '../../../hooks/OriginalNewProject-hooks.js';
 import { useEscToClose } from '../../../logic/useEscToClose.js';
 import { useApp } from '../../../logic/app.js';
 import BoxTypeDiagram from '../../components/BoxTypeDiagram.vue';

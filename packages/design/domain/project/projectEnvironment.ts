@@ -1,4 +1,4 @@
-import type { Engine } from '../../engine/index.js';
+import type { EnvironmentEngine } from '../../engine/index.js';
 import { defaultingEntryField, focus } from '../cell.js';
 import type { SimpleField } from '../cell.js';
 import type { EnvironmentCondition, OpenISDEnvironmentJson } from '../openisdSchema.js';
@@ -8,27 +8,23 @@ import type { EnvironmentField, EnvironmentFields } from './environmentFields.js
  *  Environment value as C when not entered. Shared by `ProjectEnvironment`'s notifying getters
  *  below and, directly, by `OpenISDProject#resolve()`/`#airOver` — the same split `driverOver`/
  *  `boxOver` have between a notifying `#root()` and a direct one (S2-7d2). */
-export function envFieldsOver(environment: SimpleField<OpenISDEnvironmentJson>, engine: Engine): EnvironmentFields {
+export function envFieldsOver(environment: SimpleField<OpenISDEnvironmentJson>, engine: EnvironmentEngine): EnvironmentFields {
     const field = (key: EnvironmentCondition, fallback: () => number): EnvironmentField =>
         defaultingEntryField(focus(environment, key), key, fallback);
     return {
-        tempK: field('temperature_K', () => engine.environment.defaults().tempK),
-        humidityPct: field('humidity_pct', () => engine.environment.defaults().humidityPct),
-        pressurePa: field('pressure_Pa', () => engine.environment.defaults().pressurePa),
+        tempK: field('temperature_K', () => engine.defaults().tempK),
+        humidityPct: field('humidity_pct', () => engine.defaults().humidityPct),
+        pressurePa: field('pressure_Pa', () => engine.defaults().pressurePa),
     };
 }
 
 /** A project's own environment window, built fresh on every access — same reasoning as
  *  `driver`/`box`/`ProjectMeta` (PLAN_openisdproject_split.md). */
 export class ProjectEnvironment {
-    static wrap(lens: SimpleField<OpenISDEnvironmentJson>, engine: Engine): ProjectEnvironment {
-        return new ProjectEnvironment(lens, engine);
-    }
-
     readonly #lens: SimpleField<OpenISDEnvironmentJson>;
-    readonly #engine: Engine;
+    readonly #engine: EnvironmentEngine;
 
-    private constructor(lens: SimpleField<OpenISDEnvironmentJson>, engine: Engine) {
+    constructor(lens: SimpleField<OpenISDEnvironmentJson>, engine: EnvironmentEngine) {
         this.#lens = lens;
         this.#engine = engine;
     }

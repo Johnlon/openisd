@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {DEFAULT_ENV_DEFAULTS, type Engine, createEngine, type VentedDesignLimits} from '@openisd/design/engine';
 import { OpenISDDriver } from '@openisd/design';
-import { useOgNewProject } from '../../src/hooks/OgNewProject-hooks.js';
+import { useOgNewProject } from '../../src/hooks/OriginalNewProject-hooks.js';
 
 /** An engine judging designed vented boxes against `band` — the shape the Settings tab writes. */
 const engineWithBand = (band: VentedDesignLimits) =>

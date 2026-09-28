@@ -127,7 +127,7 @@ export class OpenISDProject {
 
     /** The four air conditions `root` reads as — each E or C, never absent. */
     #airOver(root: SimpleField<OpenISDProjectJson>): AirEnvironment {
-        const env = envFieldsOver(focus(root, 'environment'), this.#engine);
+        const env = envFieldsOver(focus(root, 'environment'), this.#engine.environment);
         return {
             tempK: env.tempK.value, humidityPct: env.humidityPct.value, pressurePa: env.pressurePa.value,
             useWinisdAirModel: root.value.environment.useWinisdAirModel ?? true,
@@ -326,7 +326,7 @@ export class OpenISDProject {
      *  version skew that adds/removes chart ids — `parseChartId` (packages/ui `logic/series.ts`)
      *  does the string↔member conversion at the UI boundary. */
     get graphs(): SimpleField<readonly string[]> {
-        return ProjectChartsView.wrap(this.#slot('charts'), this.#engine, () => this.box.boxType.value).graphs;
+        return new ProjectChartsView(this.#slot('charts'), this.#engine.box, () => this.box.boxType.value).graphs;
     }
 
     /** Which charts this project's box type shows, in WinISD's own chart-menu order — a design
@@ -335,7 +335,7 @@ export class OpenISDProject {
      *  EQ/filter charts always. The UI shows exactly the ids this returns, never a second list
      *  of "which charts apply". */
     get charts(): readonly ChartId[] {
-        return ProjectChartsView.wrap(this.#slot('charts'), this.#engine, () => this.box.boxType.value).charts;
+        return new ProjectChartsView(this.#slot('charts'), this.#engine.box, () => this.box.boxType.value).charts;
     }
 
     /** The graph cursor/selection (S10/QO130) — PROJECT-scoped, reversing QO90: two open
@@ -373,11 +373,11 @@ export class OpenISDProject {
     /** The project's trace/legend colour (a CSS colour), saved in the project file; null until
      *  first assigned. Chart view state, so `isModified()` ignores it. */
     get traceColor(): SimpleField<string | null> {
-        return ProjectChartsView.wrap(this.#slot('charts'), this.#engine, () => this.box.boxType.value).traceColor;
+        return new ProjectChartsView(this.#slot('charts'), this.#engine.box, () => this.box.boxType.value).traceColor;
     }
 
     get sweepN(): SimpleField<number | null> {
-        return ProjectChartsView.wrap(this.#slot('charts'), this.#engine, () => this.box.boxType.value).sweepN;
+        return new ProjectChartsView(this.#slot('charts'), this.#engine.box, () => this.box.boxType.value).sweepN;
     }
 
     /** A record ENTERS the process here. A record carries no identity, so one is minted — two
@@ -492,7 +492,7 @@ export class OpenISDProject {
             driverOver: (root) => this.#driverOver(root),
             boxOver: (root) => this.#boxOver(root),
             air: (root) => this.#air(root),
-            envFieldsOver: (environment) => envFieldsOver(environment, this.#engine),
+            envFieldsOver: (environment) => envFieldsOver(environment, this.#engine.environment),
             powerDriveOver: (root) => this.#signalOver(root).powerDrive_W,
             driveVoltageOver: (root) => this.#signalOver(root).driveVoltage_V,
         });
@@ -574,9 +574,9 @@ export class OpenISDProject {
      *  root, same split `driverOver`/`boxOver` have (S2-7d2). `usableRe`/`Rs_ohm`/`#issues.signal`
      *  are this project's own facts, passed in rather than let `ProjectSignal` reach for them. */
     #signalOver(root: SimpleField<OpenISDProjectJson>): ProjectSignal {
-        return ProjectSignal.wrap(
+        return new ProjectSignal(
             focus(root, 'signal'),
-            this.#engine,
+            this.#engine.signal,
             () => usableRe(root, (r) => this.#driverOver(r)),
             () => this.Rs_ohm.value ?? 0,
             () => this.#issues.signal,
@@ -606,7 +606,7 @@ export class OpenISDProject {
     /** This project's air temperature, WinISD Advanced "Temperature". E when typed, else C: the
      *  app's Options → Environment value (`Engine.envDefaults()`), which the resolve also stores. */
     get envTempK(): Readable<number> & Entered & Calculated & Writable<number> & Clearable & Calculatable<number> {
-        return ProjectEnvironment.wrap(this.#slot('environment'), this.#engine).tempK;
+        return new ProjectEnvironment(this.#slot('environment'), this.#engine.environment).tempK;
     }
 
     /** @deprecated Use `project.envTempK.set(tempK)` instead. */
@@ -617,7 +617,7 @@ export class OpenISDProject {
     /** This project's relative humidity, WinISD Advanced "Humidity". Stored the same way as
      *  `envTempK`. */
     get envHumidityPct(): Readable<number> & Entered & Calculated & Writable<number> & Clearable & Calculatable<number> {
-        return ProjectEnvironment.wrap(this.#slot('environment'), this.#engine).humidityPct;
+        return new ProjectEnvironment(this.#slot('environment'), this.#engine.environment).humidityPct;
     }
 
     /** @deprecated Use `project.envHumidityPct.set(humidityPct)` instead. */
@@ -628,7 +628,7 @@ export class OpenISDProject {
     /** This project's atmospheric pressure, WinISD Advanced "Pressure". Stored the same way as
      *  `envTempK`. */
     get envPressurePa(): Readable<number> & Entered & Calculated & Writable<number> & Clearable & Calculatable<number> {
-        return ProjectEnvironment.wrap(this.#slot('environment'), this.#engine).pressurePa;
+        return new ProjectEnvironment(this.#slot('environment'), this.#engine.environment).pressurePa;
     }
 
     /** @deprecated Use `project.envPressurePa.set(pressurePa)` instead. */
@@ -640,7 +640,7 @@ export class OpenISDProject {
      *  physical CIPM-2007 model when false. Null reads as true (QO95): a new project matches
      *  WinISD out of the box. See `engine/air.ts` for the two models. */
     get envUseWinisdAirModel(): SimpleField<boolean> {
-        return ProjectEnvironment.wrap(this.#slot('environment'), this.#engine).useWinisdAirModel;
+        return new ProjectEnvironment(this.#slot('environment'), this.#engine.environment).useWinisdAirModel;
     }
 
     /** @deprecated Use `project.envUseWinisdAirModel.set(useWinisdAirModel)` instead. */
@@ -695,6 +695,7 @@ export class OpenISDProject {
             filters: this.filters,
             driverAddedMass_kg: this.driverAddedMass_kg,
             vcTempRise_K: this.vcTempRise_K,
+            loading: this.loading,
             alfaVC_per_K: this.alfaVC_per_K,
             sweepN: this.sweepN,
             driveVoltage_V: this.driveVoltage_V.value,

@@ -1,4 +1,4 @@
-import type {Air, CalculationIssue, DqIssue, DriverIssue, DriverQuantityName, DriverSolverParams, OutOfRangeIssue, SolverInput, Wiring} from '../../engine/index.js';
+import type {Air, CalculationIssue, DqIssue, DriverIssue, DriverQuantityName, DriverSolverParams, IssueEngine, OutOfRangeIssue, SolverInput, Wiring} from '../../engine/index.js';
 import {type Engine} from '../../engine/index.js';
 import {NumberField} from '../../fields/field.js';
 import type {ValueFloor} from '../../fields/field.js';
@@ -54,12 +54,12 @@ export function driverSpecFloor(key: DriverSpecFieldName): ValueFloor {
 
 /** `key`'s own floor, applied to `v` — no default arm: a `ValueFloor` variant added without a
  *  case here fails to compile. */
-function floorIssue(key: DriverSpecFieldName, v: number, engine: Engine): DqIssue | null {
+function floorIssue(key: DriverSpecFieldName, v: number, issues: IssueEngine): DqIssue | null {
     switch (driverSpecFloor(key)) {
         case 'positive':
-            return engine.issues.positiveValueIssue(v);
+            return issues.positiveValueIssue(v);
         case 'non-negative':
-            return engine.issues.nonNegativeValueIssue(v);
+            return issues.nonNegativeValueIssue(v);
         case 'none':
             return null;
     }
@@ -231,7 +231,7 @@ export class OpenIsdDriverSpec {
                     sectionSlot(key),
                     key,
                     dqFor(key),
-                    (v) => floorIssue(key, v, engine)
+                    (v) => floorIssue(key, v, engine.issues)
                 );
 
         /** The wiring field — `entryField` in every respect but the value's type, which is a

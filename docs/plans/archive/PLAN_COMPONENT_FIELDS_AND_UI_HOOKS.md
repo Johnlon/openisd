@@ -30,7 +30,7 @@
 - `DriverEditorModal-hooks.ts`
 - `GraphPanel-hooks.ts`
 - `NumInput-hooks.ts`
-- `OgTune-hooks.ts`
+- `OriginalTune-hooks.ts`
 
 ### New Hook Modules to Create in `packages/ui/src/hooks/`
 - `AdvancedOptions-hooks.ts`: Manages Ql/Qa/Qp loss overrides and environment air parameters for `AdvancedOptions.vue`.
@@ -40,11 +40,11 @@
 - `OptionsModal-hooks.ts`: Manages app settings, unit preferences, and color scheme for `OptionsModal.vue`.
 - `PRBrowser-hooks.ts`: Manages passive radiator library browsing and selection for `PRBrowser.vue`.
 - `PREditModal-hooks.ts`: Manages passive radiator specification editing for `PREditModal.vue`.
-- `OgEnclosure-hooks.ts`: Manages box volume, alignment buttons, and box type selection for `OgEnclosure.vue`.
-- `OgFilters-hooks.ts`: Manages active filter additions, filter types, Q, and gain for `OgFilters.vue`.
-- `OgNewProject-hooks.ts`: Manages new project wizard selections and template initialization for `OgNewProject.vue`.
-- `OgProjectList-hooks.ts`: Manages project tabs, show/hide visibility, and project closing for `OgProjectList.vue`.
-- `OgSignal-hooks.ts`: Manages drive level (voltage/power), impedance loading, and SPL target for `OgSignal.vue`.
+- `OriginalEnclosure-hooks.ts`: Manages box volume, alignment buttons, and box type selection for `OriginalEnclosure.vue`.
+- `OriginalFilters-hooks.ts`: Manages active filter additions, filter types, Q, and gain for `OriginalFilters.vue`.
+- `OriginalNewProject-hooks.ts`: Manages new project wizard selections and template initialization for `OriginalNewProject.vue`.
+- `OriginalProjectList-hooks.ts`: Manages project tabs, show/hide visibility, and project closing for `OriginalProjectList.vue`.
+- `OriginalSignal-hooks.ts`: Manages drive level (voltage/power), impedance loading, and SPL target for `OriginalSignal.vue`.
 
 ---
 

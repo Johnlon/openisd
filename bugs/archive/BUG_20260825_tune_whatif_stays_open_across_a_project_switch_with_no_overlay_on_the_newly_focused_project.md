@@ -16,7 +16,7 @@ the `PROMPT_RELEASE_HARDENING` plan (item 1, the tab UI wired onto the real regi
 
 ## Cause
 
-`OgTune.vue`'s what-if lifecycle watcher:
+`OriginalTune.vue`'s what-if lifecycle watcher:
 ```ts
 watch(() => presentationState.editDriver, (open) => {
   if (open) { vbSnapshot = project.value.boxVolume_m3(); project.value.beginWhatIf(); }

@@ -48,7 +48,7 @@ Previous / Next / Cancel on every step; Next becomes "Create" on the last step.
 
 | Fact | Where |
 |---|---|
-| Wizard is Project name → Box type → Volume → **Pick Driver (popup, last)** — reverse of WinISD's order | [OgNewProject.vue](http://localhost:8000/winisd/openisd/packages/ui/src/ui/shells/original/OgNewProject.vue) |
+| Wizard is Project name → Box type → Volume → **Pick Driver (popup, last)** — reverse of WinISD's order | [OriginalNewProject.vue](http://localhost:8000/winisd/openisd/packages/ui/src/ui/shells/original/OriginalNewProject.vue) |
 | No EBP / suitability readout anywhere in the wizard | same file |
 | The wizard has **no hook file** — all logic (`pickDriver`, project construction, step state) lives inline in the `.vue`, against the [ui.md](http://localhost:8000/winisd/openisd/.claude/rules/ui.md?html) rule (one hook per component) | same file |
 | `ebp()` / `ebpSuitability()` are pure engine functions, already used by an existing dialog | [boxDesign.ts:43,70](http://localhost:8000/winisd/openisd/packages/design/engine/boxDesign.ts#L43) |
@@ -105,12 +105,12 @@ DEFERRED - Single route only as per WinIsd model
 
 | File | Change |
 |---|---|
-| [OgNewProject.vue](http://localhost:8000/winisd/openisd/packages/ui/src/ui/shells/original/OgNewProject.vue) | Rewritten: 5 steps in new order, template/wiring only |
-| `packages/ui/src/hooks/OgNewProject-hooks.ts` (new) | All step state, gating, EBP/suitability computeds, sealed-alignment computeds, project construction — extracted per [ui.md](http://localhost:8000/winisd/openisd/.claude/rules/ui.md?html) |
+| [OriginalNewProject.vue](http://localhost:8000/winisd/openisd/packages/ui/src/ui/shells/original/OriginalNewProject.vue) | Rewritten: 5 steps in new order, template/wiring only |
+| `packages/ui/src/hooks/OriginalNewProject-hooks.ts` (new) | All step state, gating, EBP/suitability computeds, sealed-alignment computeds, project construction — extracted per [ui.md](http://localhost:8000/winisd/openisd/.claude/rules/ui.md?html) |
 | [BoxTypeDiagram.vue](http://localhost:8000/winisd/openisd/packages/ui/src/ui/components/BoxTypeDiagram.vue) | Reused as-is on steps 2 and 3 |
 | [DriverBrowser.vue](http://localhost:8000/winisd/openisd/packages/ui/src/ui/components/DriverBrowser.vue) / [driverBrowsingState.ts](http://localhost:8000/winisd/openisd/packages/ui/src/logic/driverBrowsingState.ts) | Reused for step 1, per Q1's answer |
 | [boxDesign.ts](http://localhost:8000/winisd/openisd/packages/design/engine/boxDesign.ts), [Engine.ts](http://localhost:8000/winisd/openisd/packages/design/engine/Engine.ts) | No change expected — `ebp`/`ebpSuitability`/`sealedQtcFromVolume`/`sealedFromQtc`/`closestSealedAlignment`/`sealedAlignmentOptions` already public on `Engine` |
-| `packages/ui/test/hooks/OgNewProject-hooks.test.ts` (new) | Layer-2 tests |
+| `packages/ui/test/hooks/OriginalNewProject-hooks.test.ts` (new) | Layer-2 tests |
 | [wizard-defaults.browser.spec.ts](http://localhost:8000/winisd/openisd/packages/ui/test/ui/wizard-defaults.browser.spec.ts), [wdr-opens-wizard.browser.spec.ts](http://localhost:8000/winisd/openisd/packages/ui/test/ui/wdr-opens-wizard.browser.spec.ts) | Rewritten for new step order |
 | [newProject.test.ts](http://localhost:8000/winisd/openisd/packages/ui/test/logic/newProject.test.ts) | Checked/updated if it asserts old step order |
 
@@ -130,7 +130,7 @@ DEFERRED - Single route only as per WinIsd model
 
 1. **Layer 1 (unit, `packages/design`)** — no new engine behaviour; existing `ebp`/`ebpSuitability`/
    sealed-alignment tests keep passing unchanged. Confirm before starting: run the design suite.
-2. **Layer 2 (hook)** — new `OgNewProject-hooks.test.ts`: step index transitions and gating; EBP/
+2. **Layer 2 (hook)** — new `OriginalNewProject-hooks.test.ts`: step index transitions and gating; EBP/
    suitability computed correctly from a fixture driver; sealed-alignment volume/EBP computed
    wizard-locally (no project) matches the same formula the Box-tab dialog uses; step 4 is absent
    from the step sequence for every non-sealed box type.

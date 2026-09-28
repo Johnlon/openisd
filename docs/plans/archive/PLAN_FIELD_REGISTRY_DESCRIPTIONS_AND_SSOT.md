@@ -62,7 +62,7 @@ The binding from a control to the domain is the schema field name itself:
 5. **Signal, Box losses, Filters, Driver panes:**
    - **Signal** (`signal_*`): `project.powerDrive_W`, `project.rs_ohm`, … in `OriginalShell-hooks.ts`.
    - **Box losses** (`loss_*`): `loss_DampingMode` binds `presentationState.lossMode`; `loss_Ql`/`Qa`/`Qp` bind the active box's `losses`.
-   - **Filters** (`filter_*`): the filter row's own fields in `OgFilters.vue`.
+   - **Filters** (`filter_*`): the filter row's own fields in `OriginalFilters.vue`.
    - **Driver** (`driver_nDrivers`, `driver_ArrayWiring`): `project.nDrivers`, `project.wiring`.
    - **Driver: General / Parameters / Advanced / Dimensions** (`driver_*`): the Driver Editor's
      `cellVal`/`setNum` on the schema name, as in item 1.
@@ -245,7 +245,7 @@ The alignment algorithms across various enclosure types live across 3 distinct m
 ## 6. Target Symmetrical Dropdown Architecture (`SelectorOption<T>`)
 
 **Status (2026-09-20):** done for every `<select>` in the app. Each one in
-`ui/shells/original/OriginalShell.vue`, `ui/shells/original/OgNewProject.vue` and
+`ui/shells/original/OriginalShell.vue`, `ui/shells/original/OriginalNewProject.vue` and
 `ui/components/DriverEditorModal.vue` iterates a `SelectorOption` list and reads the chosen value
 back through `logic/domEvents.ts` → `selectedOption(e, options)` — the typed string→member
 boundary: no `v-model`, no `Number(selectValue(e))`, no `as 'round' | 'slotted'`.
@@ -256,7 +256,7 @@ enumerates the spec's own `min..max` — no hand-typed `v-for="n in 8"`.
 | `<select>` | Where | Options | Reads back via |
 | :--- | :--- | :--- | :--- |
 | Box type (Box tab, Enclosure tab) | `OriginalShell.vue` `#og-box-type`, `#og-box-type-enclosure` | `BOX_TYPE_OPTIONS` | `selectedOption` |
-| Box type (new-project wizard) | `OgNewProject.vue` | `newProjectBoxTypeOptions()` | `selectedOption` |
+| Box type (new-project wizard) | `OriginalNewProject.vue` | `newProjectBoxTypeOptions()` | `selectedOption` |
 | Loss model | `OriginalShell.vue` `#lossmode` | `LOSS_MODE_OPTIONS` (`lossModeOptions()`) | `selectedOption` |
 | Number of drivers | `OriginalShell.vue` | `N_DRIVERS_OPTIONS = countOptions('driver_nDrivers')` (1..64) | `selectedOption` |
 | Array wiring | `OriginalShell.vue` | `ARRAY_WIRING_OPTIONS` | `selectedOption` |
@@ -268,7 +268,7 @@ enumerates the spec's own `min..max` — no hand-typed `v-for="n in 8"`.
 
 Not selects: the two library pickers are list widgets (`ui/components/DriverBrowser.vue`,
 `ui/components/PRBrowser.vue`), and the Filters tab's type choice is a row of quick-add buttons
-(`OgFilters.vue` `QUICK_ADD`) — `FILTER_TYPE_OPTIONS` is the list a select would use.
+(`OriginalFilters.vue` `QUICK_ADD`) — `FILTER_TYPE_OPTIONS` is the list a select would use.
 
 To eliminate structural drift, property name mismatches (`qtc` vs `value`), and ad-hoc string/object option handling, all dropdown options across the application are standardized onto a single unified, strongly-typed contract:
 
@@ -290,7 +290,7 @@ Every `kind: 'enum'` field in [uiFields.ts](file:///home/john/work/winisd/openis
 | **Voice Coil Wiring** | `driver_VCCon` | `readonly SelectorOption<VoiceCoilWiring>[]` | `'parallel'` ("Parallel"), `'series'` ("Series") — the domain's own values, written to the driver as-is | `packages/design/fields/options.ts` → `VC_CONNECTION_OPTIONS`; reached by the editor through `logic/driverDraft.ts` → `wiringOptions()` (layering gate) |
 | **Sealed Alignment Target ($Q_{tc}$)** | `box_Qtc` | `readonly SelectorOption<number>[]` | `0.500` ("0.500 Critically damped"), `0.577` ("0.577 Max flat delay response"), `0.707` ("0.707 Max flat amplitude response"), `0.800`–`1.500` ("Equal ripple response") — nine, WinISD's | `packages/design/fields/options.ts` → `SEALED_ALIGNMENT_OPTIONS`; `engine/boxDesign.ts` → `sealedAlignmentOptions()` hands out that same object (no `qtc` twin of `value`) |
 | **Enclosure Type** | `box_Type` | `readonly SelectorOption<BoxType>[]` | `'sealed'` ("Closed"), `'vented'` ("Vented"), `'box-passive-radiator'` ("Passive Radiator"), `'bandpass4'` ("4th Order Bandpass"), `'bandpass6'` ("6th Order Bandpass"), `'abc'` ("ABC") | `packages/design/fields/options.ts` → `BOX_TYPE_OPTIONS`; the wizard lists `logic/appState.ts` → `newProjectBoxTypeOptions()` (the same list filtered by `boxTypeIsSimulatable`) |
-| **Filter Type** | `filter_Type` | `readonly SelectorOption<FilterType>[]` | `'lowpass'`, `'highpass'`, `'linkwitz'` ("Linkwitz-Transform"), `'peaking'` ("Peaking EQ"), `'lowshelf'`, `'highshelf'` | `packages/design/fields/options.ts` → `FILTER_TYPE_OPTIONS`. The Filters tab still adds filters through its own quick-add buttons (`OgFilters.vue` `QUICK_ADD`) — not yet read from this list |
+| **Filter Type** | `filter_Type` | `readonly SelectorOption<FilterType>[]` | `'lowpass'`, `'highpass'`, `'linkwitz'` ("Linkwitz-Transform"), `'peaking'` ("Peaking EQ"), `'lowshelf'`, `'highshelf'` | `packages/design/fields/options.ts` → `FILTER_TYPE_OPTIONS`. The Filters tab still adds filters through its own quick-add buttons (`OriginalFilters.vue` `QUICK_ADD`) — not yet read from this list |
 | **Enclosure Loss Model** | `loss_DampingMode` | `readonly SelectorOption<string>[]` | `'lossless'` ("Lossless"), `'conventional-lossy'` ("Conventional Lossy"), `'winisd-lossy'` ("WinISD Lossy") — `LossMode.value` tokens, what the project stores | `packages/ui/src/logic/environment.ts` → `lossModeOptions()` from `LossMode.ALL` |
 | **Driver Array Wiring** | `driver_ArrayWiring` | `readonly SelectorOption<Wiring>[]` | `'parallel'` ("Parallel"), `'series'` ("Series") | `packages/design/fields/options.ts` → `ARRAY_WIRING_OPTIONS` |
 | **Passive Radiator Library** (not a select — a list widget; no registry spec) | — | — | Dynamic list of saved + bundled PR records | `packages/persistence/src/repos/myPassiveRadiatorRepo.ts` / `bundledPassiveRadiatorRepo.ts`; rows shaped by `logic/driverDisplay.ts` → `passiveRadiatorRows()` / `bundledPassiveRadiatorRows()`; rendered by `ui/components/PRBrowser.vue` |

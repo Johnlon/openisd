@@ -38,6 +38,7 @@ export interface ProjectSweepSource {
     readonly filters: SimpleField<readonly Filter[]>;
     readonly driverAddedMass_kg: SimpleField<number>;
     readonly vcTempRise_K: SimpleField<number>;
+    readonly loading: SimpleField<'standard' | 'isobaric'>;
     readonly alfaVC_per_K: SimpleField<number>;
     readonly sweepN: SimpleField<number | null>;
     readonly driveVoltage_V: number;
@@ -93,6 +94,7 @@ function sweepParamsOf(source: ProjectSweepSource, P: FrequencyGrid, eg: number,
         useWinisdAirModel: source.useWinisdAirModel,
         driverAddedMass: source.driverAddedMass_kg.value,
         vcTempRise: source.vcTempRise_K.value,
+        loading: source.loading.value,
         alfaVC: source.alfaVC_per_K.value,
         rgAtDriverSide: source.rgAtDriverSide.value,
         tlPortModel: source.useTransmissionLinePortModel.value,

@@ -14,7 +14,7 @@ import NumInput from '../../components/NumInput.vue';
 import UnitToggle from '../../components/UnitToggle.vue';
 import {inputValue, listeningElement} from '../../../logic/domEvents.js';
 import {useEscToClose} from '../../../logic/useEscToClose.js';
-import {useOgTune} from '../../../hooks/OgTune-hooks.js';
+import {useOgTune} from '../../../hooks/OriginalTune-hooks.js';
 
 const project = useFocusedProject();
 const tune = useOgTune();

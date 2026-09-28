@@ -17,7 +17,7 @@ Clicking **Tune** on the Driver tab renders nothing. The page throws:
 
       { id: 'Bl', label: 'BL', pane: 'Driver: Parameters', kind: 'number', unit: 'Tm', precision: 3, ... }
 
-- `packages/ui/src/ui/shells/original/OgTune.vue:45` builds its row with key **`BL`**:
+- `packages/ui/src/ui/shells/original/OriginalTune.vue:45` builds its row with key **`BL`**:
 
       { key: 'BL',  label: 'Bl',  scale: 1,    unit: 'T·m' },
 
@@ -38,7 +38,7 @@ Clicking **Tune** on the Driver tab renders nothing. The page throws:
 ## Cause
 
 Two spellings for one quantity across a module boundary. The driver record's field is `BL`
-(`OpenISDDriver`); the field registry's id for the same quantity is `Bl`. `OgTune` indexes
+(`OpenISDDriver`); the field registry's id for the same quantity is `Bl`. `OriginalTune` indexes
 the record with `BL` and hands that same string to the registry, which does not have it and
 throws by design rather than silently defaulting.
 
@@ -51,7 +51,7 @@ Fixing that exposed this.
 
 ## Fix
 
-Make the two names one. Either the registry id becomes `BL` to match the record, or `OgTune`
+Make the two names one. Either the registry id becomes `BL` to match the record, or `OriginalTune`
 translates at the single point where it crosses into the registry. The first is preferable —
 one name for one quantity — but it requires checking every consumer of the id string `'Bl'`,
 including `dependsOn: ['Bl', 'Mms']` on the `gamma` entry.
@@ -61,7 +61,7 @@ including `dependsOn: ['Bl', 'Mms']` on the `gamma` entry.
 `whatif-panel-fields.browser.spec.ts` QO11.1–QO11.4 pass, and no uncaught page error is
 reported by the diagnostics fixture.
 
-Re-verified 2026-08-19: `OgTune.vue:58` now has `const regId = (key: NumKey): string => (key
+Re-verified 2026-08-19: `OriginalTune.vue:58` now has `const regId = (key: NumKey): string => (key
 === 'BL' ? 'Bl' : key);`, applied at both registry lookup call sites (`:62`, `:81`) — the
 translation this bug's Fix section called for. `npx playwright test
 packages/ui/test/logic/whatif-panel-fields.browser.spec.ts --workers=1`: the panel renders, no

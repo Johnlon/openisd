@@ -5,7 +5,7 @@ import {createEngine} from '@openisd/design/engine';
 import {OpenISDProject} from '@openisd/design';
 import {addProject, removeProject, openProjects} from '../../src/logic/appState.js';
 import {provideFocusedProject} from '../../src/logic/focusedProjectContext.js';
-import {useOgTune, type OgTuneAPI} from '../../src/hooks/OgTune-hooks.js';
+import {useOgTune, type OriginalTuneAPI} from '../../src/hooks/OriginalTune-hooks.js';
 
 function createProject() {
   const engine = createEngine();
@@ -19,8 +19,8 @@ function createProject() {
   return project;
 }
 
-async function renderHook(project = createProject()): Promise<OgTuneAPI> {
-  let api!: OgTuneAPI;
+async function renderHook(project = createProject()): Promise<OriginalTuneAPI> {
+  let api!: OriginalTuneAPI;
   const Child = defineComponent({
     setup() {
       api = useOgTune();
@@ -37,7 +37,7 @@ async function renderHook(project = createProject()): Promise<OgTuneAPI> {
   return api;
 }
 
-describe('OgTune-hooks', () => {
+describe('OriginalTune-hooks', () => {
   it('reads numeric driver fields and calculates ebp', async () => {
     const api = await renderHook();
     expect(api.cellVal('Fs_hz')).toBe(40);

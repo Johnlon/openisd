@@ -12,7 +12,7 @@ a broken panel over the empty shell.
 
 - Probe (2026-09-26): boot with `openisd_view` = `{"ui":{"originalTuneOpen":true}}` and no
   project → `NoFocusedProjectError: no project is focused` at `requireFocusedProject`, through
-  `App.vue`'s gate computed, from `OgTune.vue` `fieldClasses`. With `originalEditorOpen` the
+  `App.vue`'s gate computed, from `OriginalTune.vue` `fieldClasses`. With `originalEditorOpen` the
   same error arrives through `DriverEditorModal.vue` → `seedDraft`.
 - `packages/ui/test/ui/restored-panels-need-a-project.browser.spec.ts` failed on both before
   the fix.

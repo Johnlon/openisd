@@ -196,8 +196,8 @@ export class OpenISDBox implements Box {
         const bp6 = focus(lens, 'bandpass6');
         this.bandpass6 = {
             chambers: {
-                rear: new VentedChamberWindow(focus(bp6, 'rear'), engine),
-                front: new VentedChamberWindow(focus(bp6, 'front'), engine),
+                rear: new VentedChamberWindow(focus(bp6, 'rear'), engine.issues),
+                front: new VentedChamberWindow(focus(bp6, 'front'), engine.issues),
             },
             vents: {
                 rear: new VentWindow(focus(bp6, 'rearVent'), engine.vent, air),
@@ -208,8 +208,8 @@ export class OpenISDBox implements Box {
         const abc = focus(lens, 'abc');
         this.abc = {
             chambers: {
-                rear: new VentedChamberWindow(focus(abc, 'rear'), engine),
-                front: new VentedChamberWindow(focus(abc, 'front'), engine),
+                rear: new VentedChamberWindow(focus(abc, 'rear'), engine.issues),
+                front: new VentedChamberWindow(focus(abc, 'front'), engine.issues),
             },
             // Three ports, flat siblings: rear's and front's own ports to outside air, plus the
             // connecting port between the chambers — owned by neither, which is why it sits here and
