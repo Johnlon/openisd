@@ -385,8 +385,8 @@ const inconsistentInputReasons = computed<DqReason[]>(() => {
   return inconsistentInputReasonsFor(issues.value);
 });
 
-// The domain object answers this, off the same draft the rest of the dialog edits.
-const mandatory = (field: string) => { void trigger.value; return draftDriver.value.fieldIsMandatoryAndUnsatisfied(field); };
+// The field answers this itself, off the same draft the rest of the dialog edits.
+const mandatory = (field: NumSpecField) => { void trigger.value; return cellOf(field).mandatoryAndUnsatisfied; };
 
 /** The full-text tooltip for a `.de-incomplete` strip — one line per reason, subject and text
  *  rejoined, since a native `title` attribute cannot render `<strong>`. */

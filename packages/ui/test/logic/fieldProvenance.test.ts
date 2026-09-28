@@ -4,11 +4,11 @@ import type {Calculated, Entered, Readable} from '@openisd/design';
 import {provenanceOf, provenanceOfEntry} from '../../src/logic/fieldProvenance.js';
 
 function cell(entered: boolean, calculated: boolean): Readable<number | null> & Entered & Calculated {
-  return {name: 'x', value: entered || calculated ? 1 : null, dq: [], entered, calculated};
+  return {name: 'x', value: entered || calculated ? 1 : null, dq: [], mandatoryAndUnsatisfied: false, entered, calculated};
 }
 
 function entry(entered: boolean): Readable<number | null> & Entered {
-  return {name: 'x', value: entered ? 1 : null, dq: [], entered};
+  return {name: 'x', value: entered ? 1 : null, dq: [], mandatoryAndUnsatisfied: false, entered};
 }
 
 describe('provenanceOf — a field that can be entered or calculated', () => {

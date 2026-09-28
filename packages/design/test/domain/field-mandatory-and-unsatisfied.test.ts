@@ -1,12 +1,12 @@
 /**
- * `OpenISDDriver.fieldIsMandatoryAndUnsatisfied` — whether a field is one the driver still needs
- * and cannot derive. The driver editor and Tune both mark such a cell, and both ask the driver,
- * so neither can decide it differently from the other.
+ * `Readable.mandatoryAndUnsatisfied` — whether the driver still needs this field and cannot
+ * derive it. The driver editor and Tune both mark such a cell, and both ask the cell, so neither
+ * can decide it differently from the other.
  *
- * It reads the `missing-dependencies` issues the driver already carries, and those name every
- * field they involve: the target, and whatever each blocked route requires or is still missing.
- * An `inconsistent-inputs` issue is NOT this — that is a contradiction between stated values,
- * not an absent one.
+ * It reads the `missing-dependencies` issues already on the field's own `dq`, which
+ * `projectFormulaDq` put there: an issue names every field it involves — the target, and
+ * whatever each blocked route requires or is still missing. An `inconsistent-inputs` issue is
+ * NOT this — that is a contradiction between stated values, not an absent one.
  */
 import {describe, expect, it} from 'vitest';
 import {Engine} from '@openisd/design/engine';
@@ -27,20 +27,20 @@ function onlyQes(): OpenISDDriver {
   return driver;
 }
 
-describe('OpenISDDriver.fieldIsMandatoryAndUnsatisfied', () => {
-  it('is false for a name no issue mentions', () => {
-    expect(emptyDriver().fieldIsMandatoryAndUnsatisfied('not_a_field')).toBe(false);
+describe('a field says whether it is mandatory and unsatisfied', () => {
+  it('is false for a field no issue mentions', () => {
+    expect(emptyDriver().specs.Fs_hz.mandatoryAndUnsatisfied).toBe(false);
   });
 
   it('is true for a target no route can reach', () => {
-    expect(onlyQes().fieldIsMandatoryAndUnsatisfied('Qts')).toBe(true);
+    expect(onlyQes().specs.Qts.mandatoryAndUnsatisfied).toBe(true);
   });
 
   it('is true for the field a blocked route is still missing, not only the target', () => {
-    expect(onlyQes().fieldIsMandatoryAndUnsatisfied('Qms')).toBe(true);
+    expect(onlyQes().specs.Qms.mandatoryAndUnsatisfied).toBe(true);
   });
 
-  it('answers true for every field its own issues name, by the record key they use', () => {
+  it('agrees with the issues the driver carries, field for field', () => {
     const blocked = emptyDriver();
     const named = new Set(blocked.issues()
       .filter(i => i.kind === 'missing-dependencies')
@@ -48,9 +48,9 @@ describe('OpenISDDriver.fieldIsMandatoryAndUnsatisfied', () => {
     // An empty driver blocks only the Q trio: any two of Qes/Qms/Qts give the third, so with
     // none stated all three are unreachable and each names the other two.
     expect([...named].sort()).toEqual(['Qes', 'Qms', 'Qts']);
-    for (const name of named) {
-      expect(blocked.fieldIsMandatoryAndUnsatisfied(name)).toBe(true);
-    }
+    expect(blocked.specs.Qes.mandatoryAndUnsatisfied).toBe(true);
+    expect(blocked.specs.Qms.mandatoryAndUnsatisfied).toBe(true);
+    expect(blocked.specs.Qts.mandatoryAndUnsatisfied).toBe(true);
   });
 
   it('is false for a contradiction — inconsistent inputs are stated, not missing', () => {
@@ -61,6 +61,6 @@ describe('OpenISDDriver.fieldIsMandatoryAndUnsatisfied', () => {
     driver.resolve();
     const kinds = new Set(driver.issues().map(i => i.kind));
     expect(kinds.has('inconsistent-inputs')).toBe(true);
-    expect(driver.fieldIsMandatoryAndUnsatisfied('Qts')).toBe(false);
+    expect(driver.specs.Qts.mandatoryAndUnsatisfied).toBe(false);
   });
 });
