@@ -1,6 +1,6 @@
 # BUG_20260928_three_tables_disagree_on_field_validity
 
-**Status:** OPEN
+**Status:** OPEN — `PHYSICAL_RANGE` folded in 2026-09-28; `FIELD_FLOOR` remains
 
 ## Symptom
 
@@ -77,3 +77,24 @@ henries. Same for `Vas_m3`/`driver_Vas_l`, `Sd_m2`/`driver_Sd_cm2`, `Xmax_m`/`dr
 `Mms_kg`/`driver_Mms_g`. Behaviour is unchanged by the merge — the same numbers reached the
 same call sites before — but the registry's `unit` is display-space while its `limits` are
 documented as SI/model space, and for these fields they are not both true.
+
+## Progress, 2026-09-28
+
+**Resolved.** The UI's own field table is gone; `NumberField` in `packages/design/fields` holds
+every field fact. `PHYSICAL_RANGE`'s 22 bands are now `NumberField.plausible`, and
+`engine/physicalRange.ts` keeps only the two checks that read them.
+
+The nine "contradictions" were not contradictions: `plausible` sits strictly inside `limits` in
+all 14 cases where the two differ, because they answer different questions — what a real driver
+has, versus what the input will accept. Both are kept.
+
+A field the scraper never researched now carries its entry band as its plausible band, so
+`checkRange` and `isPhysicallyPlausible` no longer have a "no band, no check" case. One
+behaviour change: `Gloss: -50` used to pass both silently and now reports out-of-range below 0.
+
+**Also fixed:** the registry's `driver_` prefix and its false unit suffixes. 49 fields took the
+driver record's own name (`driver_Vas_l` → `Vas_m3`, `driver_Le_mH` → `Le_H`), which is what
+their bands were always in. The 11 with no schema key (`driver_manufacturer`, `driver_nDrivers`,
+`driver_AddedMass_g`, `driver_VcTempRise_K`, …) keep the prefix.
+
+**Still open:** `FIELD_FLOOR`, and `NumInput`'s `group`/`base` props (see above).

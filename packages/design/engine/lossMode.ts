@@ -1,6 +1,8 @@
-import type {SelectorOption} from '../fields/options.js';
+import {LossMode} from '../fields/lossMode.js';
+export type {LossModeValue} from '../fields/lossMode.js';
+
 /**
- * Sealed-box loss models — controls both the Box tab single-number readout (Fsc/Qtc)
+ * Sealed-box resonance under each loss model — controls both the Box tab single-number readout (Fsc/Qtc)
  * AND the frequency-sweep acoustic circuit calculations in `circuit.ts`.
  *
  * Spec: openspec/specs/core-engine/spec.md "Sealed-Box Resonance Loss Models".
@@ -18,44 +20,6 @@ import type {SelectorOption} from '../fields/options.js';
  * air constants — it uses acoustic compliances with ρc²=1 (Cas=Vas, Ccab=Vb), which gives the
  * identical pole frequency.
  */
-
-/** The wire value of a `LossMode` member — the only thing that crosses a boundary (storage,
- *  the `advanced.lossMode` schema slot, `SolverInput<string>`). Kept in its own named type so a
- *  consumer that needs the literal union (a schema `z.enum`, a domain field storing one) can name
- *  it without widening back to a bare `string`. */
-export type LossModeValue = 'lossless' | 'conventional-lossy' | 'winisd-lossy';
-
-/** The closed set of sealed-box loss models — a Java-style enum carrying its wire value + label. */
-export class LossMode {
-  private constructor(readonly value: LossModeValue, readonly label: string) {}
-
-  static readonly Lossless = new LossMode('lossless', 'Lossless model');
-  static readonly ConventionalLossy = new LossMode('conventional-lossy', 'Conventional lossy model');
-  static readonly WinisdLossy = new LossMode('winisd-lossy', 'WinISD lossy model');
-
-  /** Declaration order is the selector order. Keep WinisdLossy present — it is the default. */
-  static readonly ALL: readonly LossMode[] = [
-    LossMode.WinisdLossy,
-    LossMode.Lossless,
-    LossMode.ConventionalLossy,
-  ];
-
-  static readonly Default = LossMode.WinisdLossy;
-
-  /** The members as picker options, in declaration order, so a selector cannot offer a value
-   *  the engine does not accept. */
-  static readonly OPTIONS: readonly SelectorOption<string>[] =
-    Object.freeze(LossMode.ALL.map(m => Object.freeze({value: m.value, label: m.label})));
-
-  /** Parse a wire value to a member, or the default when it is absent/unknown. */
-  static parse(value: string | null | undefined): LossMode {
-    return LossMode.ALL.find(m => m.value === value) ?? LossMode.Default;
-  }
-
-  toString(): string {
-    return this.value;
-  }
-}
 
 export interface SealedParams {
   Fs: number;

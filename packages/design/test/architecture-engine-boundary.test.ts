@@ -134,7 +134,7 @@ describe('the engine is reachable only through its door', () => {
     expect(valueExports.sort()).toEqual([
       'DEFAULT_ENV_DEFAULTS', 'DEFAULT_P_REF_PA', 'DEFAULT_RH_REF_PCT', 'DEFAULT_T_REF_K',
       'DEFAULT_VENTED_DESIGN_LIMITS',
-      'Engine', 'LossMode', 'MAX_SUPPORTED_TEMP_K', 'MIN_SUPPORTED_TEMP_K',
+      'Engine', 'MAX_SUPPORTED_TEMP_K', 'MIN_SUPPORTED_TEMP_K',
     ]);
   });
 

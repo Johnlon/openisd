@@ -23,8 +23,8 @@ describe('Engine.isPhysicallyPlausible (D9 tier 1)', () => {
     expect(engine.isPhysicallyPlausible('Fs_hz', 9000)).toBe(false);
   });
 
-  it('is true for a field PHYSICAL_RANGE has no band for', () => {
-    expect(engine.isPhysicallyPlausible('Gloss', -50)).toBe(true);
+  it('is false for a field with no researched band but an entry band that rejects it', () => {
+    expect(engine.isPhysicallyPlausible('Gloss', -50)).toBe(false);
   });
 
   it('is true for a field name it does not recognise at all', () => {

@@ -3,6 +3,7 @@
  * The surface of the engine is the set of methods needed by the project.
  */
 
+import {LossMode} from '../fields/lossMode.js';
 import type {Air, AirEnvironment, EnvironmentSolveResult} from './air.js';
 import {solveEnvironment} from './air.js';
 import {
@@ -58,7 +59,7 @@ import {isPhysicallyPlausible} from './physicalRange.js';
 import {referenceEfficiency, splFromEfficiency} from './efficiency.js';
 import type {SignalIssue} from './signal.js';
 import {solveSignal} from './signal.js';
-import type {LossMode, SealedParams} from './lossMode.js';
+import type {SealedParams} from './lossMode.js';
 import {sealedResonance, sourceLoadedQts} from './lossMode.js';
 import type {BoxParamsSolveResult} from './params.js';
 import {solveBoxParams} from './params.js';

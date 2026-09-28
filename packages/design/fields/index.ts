@@ -41,3 +41,6 @@ export {
   DateField,
   ALL_FIELDS,
 } from './field.js';
+
+/** The sealed-box loss model — a field's closed value set. */
+export { type LossModeValue, LossMode } from './lossMode.js';

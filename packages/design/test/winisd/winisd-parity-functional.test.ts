@@ -17,12 +17,13 @@
  * re-assembly of the formulas here. A test that reimplemented the derivation would prove
  * only that the test agrees with itself.
  */
+import {LossMode} from '@openisd/design/fields';
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
 import { readFileSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import { Engine, LossMode } from '@openisd/design/engine';
+import {Engine} from '@openisd/design/engine';
 import { OpenISDDriver, type Readable } from '@openisd/design';
 import { winISDDriverToOpenISDDeviceJson } from '../../domain/winIsdDriverImport.js';
 import { openIsdDriverToWinIsdDriver } from '../../domain/driverYmlToOpenisdAndWdr.js';
