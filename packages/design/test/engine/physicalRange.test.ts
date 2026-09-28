@@ -1,6 +1,9 @@
 import {describe, expect, it} from 'vitest';
 import type {DriverIssue, OutOfRangeIssue} from '../../engine/index.js';
+import {Engine} from '../../engine/index.js';
 import {checkConsistency, driverParams} from './testSolver.js';
+
+const engine = new Engine();
 
 /** `checkRange` (D5/O4) is private to `solver.ts`'s door — `Engine.solveDriver` is the one public
  *  path that runs it, alongside `checkConsistency` (S2-10: both checks are co-located inside
@@ -13,11 +16,11 @@ function rangeIssues(d: Parameters<typeof driverParams>[0]): readonly OutOfRange
 
 describe('checkRange (D5/O4)', () => {
   it('reports below when an entered field falls under its band', () => {
-    expect(rangeIssues({ Qts: 0.001 })).toEqual([{ kind: 'out-of-range', field: 'Qts', value: 0.001, limit: 0.01, side: 'below' }]);
+    expect(rangeIssues({ Qts: 0.001 })).toEqual([engine.outOfRange('Qts', 0.001, 0.01, 'below')]);
   });
 
   it('reports above when an entered field rises over its band', () => {
-    expect(rangeIssues({ Fs_hz: 9000 })).toEqual([{ kind: 'out-of-range', field: 'Fs_hz', value: 9000, limit: 5000, side: 'above' }]);
+    expect(rangeIssues({ Fs_hz: 9000 })).toEqual([engine.outOfRange('Fs_hz', 9000, 5000, 'above')]);
   });
 
   it('reports nothing for a value inside its band', () => {

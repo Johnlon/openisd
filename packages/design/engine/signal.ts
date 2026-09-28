@@ -7,6 +7,7 @@
  * holds — a voltage is always present, so a sweep always has one.
  */
 
+import {missingDependencies} from './consistency.js';
 import type {CalculationIssue} from './consistency.js';
 import {driveFromVoltage, driveVoltage} from './formulas.js';
 import type {SignalSolverParams} from './solverTypes.js';
@@ -34,9 +35,6 @@ export function solveSignal(p: SignalSolverParams): readonly SignalIssue[] {
     }
   }
   p.power_W.setNotAvailable();
-  return [{
-    kind: 'missing-dependencies',
-    target: 'power_W',
-    routes: [{ formula: POWER_FORMULA, required: POWER_INPUTS, missing: usable(Re_ohm) ? ['voltage_V'] : ['Re_ohm'] }],
-  }];
+  return [missingDependencies('power_W',
+    [{ formula: POWER_FORMULA, required: POWER_INPUTS, missing: usable(Re_ohm) ? ['voltage_V'] : ['Re_ohm'] }])];
 }

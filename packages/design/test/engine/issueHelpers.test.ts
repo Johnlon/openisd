@@ -8,64 +8,54 @@ const engine = new Engine();
 
 describe('Engine.issueFields', () => {
   it('returns fields directly for an inconsistent-inputs issue', () => {
-    const issue: CalculationIssue<Q> = {
-      kind: 'inconsistent-inputs', target: 'a', fields: ['a', 'b'],
-      formula: 'a = b', expected: 1, actual: 2, relative: 1,
-    };
+    const issue: CalculationIssue<Q> = engine.inconsistentInputs<Q>('a', ['a', 'b'], 'a = b', 1, 2, 1);
     expect(engine.issueFields(issue)).toEqual(['a', 'b']);
   });
 
   it('returns the target plus every route field for a missing-dependencies issue', () => {
-    const issue: CalculationIssue<Q> = {
-      kind: 'missing-dependencies', target: 'a',
-      routes: [{ formula: 'a = b + c', required: ['b', 'c'], missing: ['c'] }],
-    };
+    const issue: CalculationIssue<Q> = engine.missingDependencies<Q>('a',
+      [{ formula: 'a = b + c', required: ['b', 'c'], missing: ['c'] }]);
     expect(engine.issueFields(issue)).toEqual(['a', 'b', 'c', 'c']);
   });
 });
 
 describe('Engine.issueFormula', () => {
   it('returns the formula directly for an inconsistent-inputs issue', () => {
-    const issue: CalculationIssue<Q> = {
-      kind: 'inconsistent-inputs', target: 'a', fields: ['a', 'b'],
-      formula: 'a = b', expected: 1, actual: 2, relative: 1,
-    };
+    const issue: CalculationIssue<Q> = engine.inconsistentInputs<Q>('a', ['a', 'b'], 'a = b', 1, 2, 1);
     expect(engine.issueFormula(issue)).toBe('a = b');
   });
 
   it('joins every route formula for a missing-dependencies issue', () => {
-    const issue: CalculationIssue<Q> = {
-      kind: 'missing-dependencies', target: 'a',
-      routes: [
-        { formula: 'a = b + c', required: ['b', 'c'], missing: ['c'] },
-        { formula: 'a = d', required: ['d'], missing: ['d'] },
-      ],
-    };
+    const issue: CalculationIssue<Q> = engine.missingDependencies<Q>('a', [
+      { formula: 'a = b + c', required: ['b', 'c'], missing: ['c'] },
+      { formula: 'a = d', required: ['d'], missing: ['d'] },
+    ]);
     expect(engine.issueFormula(issue)).toBe('a = b + c; or a = d');
   });
 });
 
-describe('Engine.outOfRangeToText (D14)', () => {
+describe('outOfRange (D14)', () => {
   it('names the field, its value, and the limit it fell below', () => {
-    const text = engine.outOfRangeToText({ kind: 'out-of-range', field: 'Qts', value: 0.02, limit: 0.1, side: 'below' });
     // decimal()'s own rule: below 0.1 in magnitude renders to 2 significant figures.
-    expect(text).toBe('Qts 0.020 is below the physical limit 0.1.');
+    expect(engine.outOfRange('Qts', 0.02, 0.1, 'below').text)
+      .toBe('Qts 0.020 is below the physical limit 0.1.');
   });
 
   it('names the field, its value, and the limit it rose above', () => {
-    const text = engine.outOfRangeToText({ kind: 'out-of-range', field: 'Qts', value: 12, limit: 2, side: 'above' });
-    expect(text).toBe('Qts 12 is above the physical limit 2.');
+    expect(engine.outOfRange('Qts', 12, 2, 'above').text).toBe('Qts 12 is above the physical limit 2.');
   });
 });
 
-describe('Engine.dqIssueText — the shared \'out-of-range\' literal (D14)', () => {
-  it('routes a driver-field out-of-range mark (named field/limit/side) to outOfRangeToText', () => {
-    const text = engine.dqIssueText({ kind: 'out-of-range', field: 'Qts', value: 0.02, limit: 0.1, side: 'below' });
-    expect(text).toBe('Qts 0.020 is below the physical limit 0.1.');
+// `out-of-range` is one kind name over two shapes — a driver field's band (field/limit/side) and
+// a vented-alignment band (quantity/min/max). Each is built by its own factory, so the sentence
+// is decided where the shape is known and no reader ever has to tell the two apart afterwards.
+describe('the shared \'out-of-range\' kind, two shapes (D14)', () => {
+  it('a driver-field breach names the field and the physical limit', () => {
+    expect(engine.outOfRange('Qts', 0.02, 0.1, 'below').text)
+      .toBe('Qts 0.020 is below the physical limit 0.1.');
   });
 
-  it('routes a vented-plausibility out-of-range mark (named quantity/min/max) to plausibilityToText', () => {
-    const text = engine.dqIssueText({ kind: 'out-of-range', quantity: 'Fb', value: 400, min: 10, max: 150 });
-    expect(text).toMatch(/plausible/);
+  it('a vented-alignment breach names the design band instead', () => {
+    expect(engine.quantityOutOfBand('Fb', 400, 10, 150).text).toMatch(/plausible/);
   });
 });

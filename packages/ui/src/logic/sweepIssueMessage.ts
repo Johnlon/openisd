@@ -1,21 +1,20 @@
-import type {DriverError, DriverPrerequisite, Engine, SweepIssue} from '@openisd/design/engine';
+import type {DriverError, DriverPrerequisite, SweepIssue} from '@openisd/design/engine';
 
 /**
  * Project one `SweepIssue` (the engine's `CalculationIssue<Q>`-shaped sweep diagnostic) onto the
  * `DriverError` shape `allIssues`/`GraphPanel-hooks.ts`/`series.ts` already render — converting
  * `sweep()`'s return type (QO142) must not change what a user sees, only how the engine reports
- * it internally. `dqIssueText` is the ONE place that turns an issue into a sentence (S2-11), so
- * a driver issue reads identically whether it reached the user through the driver editor's cell
- * DQ or a chart.
+ * it internally. The issue carries its own sentence (S2-11), so a driver issue reads
+ * identically whether it reached the user through the driver editor's cell DQ or a chart.
  */
-export function sweepIssueMessage(engine: Engine, issue: SweepIssue): DriverError {
+export function sweepIssueMessage(issue: SweepIssue): DriverError {
   return {
     level: 'error',
     // Every `SweepIssue` variant but one names its field `target`; `OutOfRangeIssue` (D14) names
     // it `field` instead, since a range breach describes ONE entered value, never a computed
     // target several fields feed.
     field: 'field' in issue ? issue.field : issue.target,
-    message: engine.dqIssueText(issue),
+    message: issue.text,
   };
 }
 

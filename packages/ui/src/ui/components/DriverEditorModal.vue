@@ -33,7 +33,7 @@ function cellOf(field: NumSpecField): Readable<number | null> & Entered & Calcul
   return fieldOf(field);
 }
 
-const { engine, selection, myDrivers, logging, driverFileStorage } = useApp();
+const { selection, myDrivers, logging, driverFileStorage } = useApp();
 
 // Driver editor — a modal. Recreates WinISD's "Driver editor" dialog (docs/winisd_screenshots/edit_driver_pg*.png):
 // 4 tabs — General / Parameters / Advanced parameters / Dimension
@@ -348,10 +348,10 @@ function handleBodyClickOrFocus(e: Event) {
 const issues = computed(() => { void trigger.value; return driverIssues(draftDriver.value); });
 
 /** The one DQ mark per field: its reason, or '' when there is nothing to say. Reads the CELL's
- *  own DQ (S2-12) — `dqNoteFor` renders it via `dqIssueText`, so this is a thin read, not a
- *  second derivation of which issue names this field. */
+ *  own DQ (S2-12) — each issue carries its own sentence, so this is a thin read, not a second
+ *  derivation of which issue names this field. */
 function dqNote(field: NumSpecField): string {
-  return dqNoteFor(engine, cellOf, field);
+  return dqNoteFor(cellOf, field);
 }
 
 // Three lists, never merged: a missing Brand does not blank a chart, a missing Fs does not stop

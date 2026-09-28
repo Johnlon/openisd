@@ -7,6 +7,7 @@
  * is what both programs answer. Nothing here changes a designed value; this only says which of
  * them a person should not trust, so the caller can mark the cell.
  */
+import {PARITY, quantified, subject} from './issueText.js';
 import type {VentedDesign} from './types.js';
 
 /** Which of a vented design's two answers an issue is about — `VentedDesign`'s own member
@@ -33,14 +34,41 @@ export interface VentedDesignLimits {
  * falls outside the band they set.
  */
 export type VentedPlausibilityIssue =
-  | { readonly kind: 'non-physical'; readonly quantity: VentedDesignQuantity; readonly value: number }
+  | {
+      readonly kind: 'non-physical';
+      readonly quantity: VentedDesignQuantity;
+      readonly value: number;
+      readonly text: string;
+    }
   | {
       readonly kind: 'out-of-range';
       readonly quantity: VentedDesignQuantity;
       readonly value: number;
       readonly min: number;
       readonly max: number;
+      readonly text: string;
     };
+
+/** A quantity that cannot be physical at all. The sentence is built here, with the issue, so a
+ *  reader of `DqIssue.text` never needs the engine to render it. */
+export function nonPhysicalQuantity(quantity: VentedDesignQuantity, value: number): VentedPlausibilityIssue {
+  return {
+    kind: 'non-physical', quantity, value,
+    text: `${subject(quantity)} is ${quantified(quantity, value)} - not a physical value. ${PARITY}`,
+  };
+}
+
+/** A quantity outside the plausible band the user set in Settings. */
+export function quantityOutOfBand(
+  quantity: VentedDesignQuantity, value: number, min: number, max: number,
+): VentedPlausibilityIssue {
+  const band = `${quantified(quantity, min)} - ${quantified(quantity, max)}`;
+  return {
+    kind: 'out-of-range', quantity, value, min, max,
+    text: `${subject(quantity)} is ${quantified(quantity, value)}, outside the plausible ${band} `
+      + `band set in Settings. ${PARITY}`,
+  };
+}
 
 /** One quantity paired with the band it is judged against — the judgement itself never asks
  *  WHICH quantity it is looking at, so both checks are the same three lines. */
@@ -53,10 +81,10 @@ interface JudgedQuantity {
 
 function judge(q: JudgedQuantity): VentedPlausibilityIssue | null {
   if (!Number.isFinite(q.value) || q.value <= 0) {
-    return { kind: 'non-physical', quantity: q.quantity, value: q.value };
+    return nonPhysicalQuantity(q.quantity, q.value);
   }
   if (q.value < q.min || q.value > q.max) {
-    return { kind: 'out-of-range', quantity: q.quantity, value: q.value, min: q.min, max: q.max };
+    return quantityOutOfBand(q.quantity, q.value, q.min, q.max);
   }
   return null;
 }

@@ -1,6 +1,7 @@
 import type {Air} from '../air.js';
 import {prFsWithMass, prMassForFp, prTuning} from '../boxDesign.js';
 import type {PrSolverParams} from '../solverTypes.js';
+import {inconsistentInputs, missingDependencies, targetUnreachable} from '../consistency.js';
 import type {CalculationIssue, TargetUnreachableIssue} from '../consistency.js';
 
 export type PrQuantityName = keyof PrSolverParams;
@@ -31,15 +32,8 @@ export function solvePr(params: PrSolverParams, air: Air): PrIssue[] {
   const issues: PrIssue[] = [];
 
   if (tuning != null && tuning <= 0) {
-    issues.push({
-      kind: 'inconsistent-inputs',
-      formula: 'Tuning frequency must be greater than zero',
-      fields: ['tuning_goal_hz'],
-      target: 'tuning_goal_hz',
-      expected: 0,
-      actual: tuning,
-      relative: 1,
-    });
+    issues.push(inconsistentInputs('tuning_goal_hz', ['tuning_goal_hz'],
+      'Tuning frequency must be greater than zero', 0, tuning, 1));
   }
 
   const geometryComplete = Vb != null && Vb > 0 && prMmd != null && prSd != null && prCms != null;
@@ -53,11 +47,9 @@ export function solvePr(params: PrSolverParams, air: Air): PrIssue[] {
       // geometryComplete is false here, and every way it can be false — Vb null/≤0, or prMmd/
       // prSd/prCms null — is also a way PR_GEOMETRY's own >0 filter counts that same field, so
       // missingGeometry is never empty in this branch.
-      issues.push({
-        kind: 'missing-dependencies', target: 'tuning_goal_hz',
-        routes: [{ formula: 'tuning_goal_hz from addedMass_kg + Vb_m3 + prMmd_kg + prSd_m2 + prCms_m_per_N',
-          required: ['addedMass_kg', ...PR_GEOMETRY], missing: missingGeometry }],
-      });
+      issues.push(missingDependencies('tuning_goal_hz',
+        [{ formula: 'tuning_goal_hz from addedMass_kg + Vb_m3 + prMmd_kg + prSd_m2 + prCms_m_per_N',
+          required: ['addedMass_kg', ...PR_GEOMETRY], missing: missingGeometry }]));
     }
   } else if (tuning != null && !params.addedMass_kg.entered) {
     if (geometryComplete && tuning > 0) {
@@ -67,19 +59,14 @@ export function solvePr(params: PrSolverParams, air: Air): PrIssue[] {
         params.addedMass_kg.setCalculated(addedMassResult);
       } else {
         params.addedMass_kg.setNotAvailable();
-        issues.push({
-          kind: 'target-unreachable',
-          target: 'addedMass_kg',
-          maxReachable_hz: prTuning({ Vb, prMmd, prMadd: 0, prSd, prCms }, air),
-        });
+        issues.push(targetUnreachable('addedMass_kg',
+          prTuning({ Vb, prMmd, prMadd: 0, prSd, prCms }, air)));
       }
     } else {
       params.addedMass_kg.setNotAvailable();
-      issues.push({
-        kind: 'missing-dependencies', target: 'addedMass_kg',
-        routes: [{ formula: 'addedMass_kg from tuning_goal_hz + Vb_m3 + prMmd_kg + prSd_m2 + prCms_m_per_N',
-          required: ['tuning_goal_hz', ...PR_GEOMETRY], missing: missingGeometry }],
-      });
+      issues.push(missingDependencies('addedMass_kg',
+        [{ formula: 'addedMass_kg from tuning_goal_hz + Vb_m3 + prMmd_kg + prSd_m2 + prCms_m_per_N',
+          required: ['tuning_goal_hz', ...PR_GEOMETRY], missing: missingGeometry }]));
     }
   }
 

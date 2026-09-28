@@ -19,6 +19,7 @@ import type {Complex} from './types.js';
 import {cAbs, cArg, cDiv, cMul, cScale, cx} from './complex.js';
 import type {CircuitQuantities} from './circuit.js';
 import {hfAsymptotePressure_Pa, solve} from './circuit.js';
+import {missingDependencies} from './consistency.js';
 import type {DriverIssue, DriverPrerequisite, DriverQuantityName, PrIssue, VentIssue} from './solver.js';
 import {terminalBL_Tm, withAddedMass} from './solver.js';
 import {applyFilters} from './filters.js';
@@ -216,11 +217,8 @@ function circuitQuantities(q: ReturnType<typeof withAddedMass>, Le_H: number | u
   for (const field of CIRCUIT_REQUIRED_FIELDS) {
     const v = q[field];
     if (typeof v === 'number' && Number.isFinite(v) && v > 0) continue;
-    issues.push({
-      kind: 'missing-dependencies',
-      target: field,
-      routes: [{ formula: `${field} is a directly entered or derived driver quantity`, required: [field], missing: [field] }],
-    });
+    issues.push(missingDependencies(field,
+      [{ formula: `${field} is a directly entered or derived driver quantity`, required: [field], missing: [field] }]));
   }
   if (issues.length > 0) return { value: null, issues };
   return {

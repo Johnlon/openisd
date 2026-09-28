@@ -73,7 +73,7 @@ describe('vented project cells — plausibility marks', () => {
     const p = ventedProject(engineWith(NARROW), 1.684, 35);
     const dq = p.box.vented.volume_m3.dq;
     assert.equal(dq.length, 1);
-    expect(dq[0]).toEqual({kind: 'out-of-range', quantity: 'Vb', value: 1.684, min: NARROW.minVb_m3, max: NARROW.maxVb_m3});
+    expect(dq[0]).toEqual(engineWith(NARROW).quantityOutOfBand('Vb', 1.684, NARROW.minVb_m3, NARROW.maxVb_m3));
   });
 
   it('does not change the designed volume, only marks it', () => {
@@ -84,7 +84,7 @@ describe('vented project cells — plausibility marks', () => {
   it('marks the tuning cell when the designed tuning is outside the band', () => {
     const p = ventedProject(engineWith(NARROW), 0.05, 5.4);
     const dq = p.box.vented.tuning_goal_hz.dq;
-    expect(dq.at(-1)).toEqual({kind: 'out-of-range', quantity: 'Fb', value: 5.4, min: NARROW.minFb_hz, max: NARROW.maxFb_hz});
+    expect(dq.at(-1)).toEqual(engineWith(NARROW).quantityOutOfBand('Fb', 5.4, NARROW.minFb_hz, NARROW.maxFb_hz));
     assert.equal(p.box.vented.tuning_goal_hz.value, 5.4);
   });
 

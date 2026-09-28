@@ -1,6 +1,7 @@
 import {sealedFromQtc, sealedQtcFromVolume} from '../boxDesign.js';
 import {LossMode, sealedResonance} from '../lossMode.js';
 import type {SealedAlignmentSolverParams} from '../solverTypes.js';
+import {missingDependencies} from '../consistency.js';
 import type {CalculationIssue} from '../consistency.js';
 
 interface SealedAlignmentWorkingSet {
@@ -39,17 +40,13 @@ function checkSealedAlignment(p: SealedAlignmentWorkingSet): SealedAlignmentIssu
   if (missingDriverQuantities.length === 0) return issues;
 
   if (p.Qtc != null && p.Vb_m3 == null) {
-    issues.push({
-      kind: 'missing-dependencies', target: 'Vb_m3',
-      routes: [{ formula: 'Vb_m3 = Vas_m3 / ((Qtc/Qts)² − 1)',
-        required: ['Qtc', ...SEALED_ALIGNMENT_DRIVER_QUANTITIES], missing: missingDriverQuantities }],
-    });
+    issues.push(missingDependencies('Vb_m3',
+      [{ formula: 'Vb_m3 = Vas_m3 / ((Qtc/Qts)² − 1)',
+        required: ['Qtc', ...SEALED_ALIGNMENT_DRIVER_QUANTITIES], missing: missingDriverQuantities }]));
   } else if (p.Vb_m3 != null && p.Qtc == null) {
-    issues.push({
-      kind: 'missing-dependencies', target: 'Qtc',
-      routes: [{ formula: 'Qtc = Qts · √(1 + Vas_m3/Vb_m3)',
-        required: ['Vb_m3', ...SEALED_ALIGNMENT_DRIVER_QUANTITIES], missing: missingDriverQuantities }],
-    });
+    issues.push(missingDependencies('Qtc',
+      [{ formula: 'Qtc = Qts · √(1 + Vas_m3/Vb_m3)',
+        required: ['Vb_m3', ...SEALED_ALIGNMENT_DRIVER_QUANTITIES], missing: missingDriverQuantities }]));
   }
 
   return issues;

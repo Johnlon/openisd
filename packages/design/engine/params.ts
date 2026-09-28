@@ -22,6 +22,7 @@
 
 import type {BoxType, EnclosureParams, SimulatableBoxType} from './types.js';
 import {simulatableBoxType} from './types.js';
+import {missingDependencies} from './consistency.js';
 import type {CalculationIssue, SolveRoute} from './consistency.js';
 
 export type BoxParamsQuantityName = keyof EnclosureParams;
@@ -130,7 +131,7 @@ export function solveBoxParams(box: BoxType, P: EnclosureParams): BoxParamsSolve
       formula: `${p.label} must be greater than zero — ${p.consequence}.`,
       required: [p.field], missing: [p.field],
     };
-    issues.push({ kind: 'missing-dependencies', target: p.field, routes: [route] });
+    issues.push(missingDependencies(p.field, [route]));
   }
   return { values: issues.length === 0 ? P : null, issues };
 }

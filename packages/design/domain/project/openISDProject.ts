@@ -791,7 +791,7 @@ export class OpenISDProject {
                     signal.set({...signal.value, power_W: undefined, voltage_V: keepVoltage ? enteredEntry(voltage_V.value) : voltage_V});
                 },
                 calculated: (v: number) => signal.set({...signal.value, power_W: calculatedEntry(v)}),
-                dq: (list) => writeEntryDq(focus(signal, 'power_W'), list, this.#engine),
+                dq: (list) => writeEntryDq(focus(signal, 'power_W'), list),
             },
         );
     }
@@ -824,7 +824,7 @@ export class OpenISDProject {
                 },
                 clear: () => signal.set({...signal.value, voltage_V: undefined, power_W: undefined}),
                 calculated: (v: number) => signal.set({...signal.value, voltage_V: calculatedEntry(v)}),
-                dq: (list) => writeEntryDq(focus(signal, 'voltage_V'), list, this.#engine),
+                dq: (list) => writeEntryDq(focus(signal, 'voltage_V'), list),
             },
         );
     }
@@ -889,7 +889,7 @@ export class OpenISDProject {
      *  `#driverOver`/`#boxOver` have. */
     #envFieldsOver(environment: SimpleField<OpenISDEnvironmentJson>): EnvironmentFields {
         const field = (key: EnvironmentCondition, fallback: () => number): EnvironmentField =>
-            defaultingEntryField(focus(environment, key), key, this.#engine, fallback);
+            defaultingEntryField(focus(environment, key), key, fallback);
         return {
             tempK: field('temperature_K', () => this.#engine.envDefaults().tempK),
             humidityPct: field('humidity_pct', () => this.#engine.envDefaults().humidityPct),
@@ -1140,10 +1140,8 @@ export class OpenISDProject {
             const values: Readonly<Record<typeof required[number], number | null>> =
                 { tuning_goal_hz: null, Vb_m3: Vb, area_m2: area };
             const missing = required.filter((f) => !(typeof values[f] === 'number' && values[f]! > 0));
-            return [{
-                kind: 'missing-dependencies', target: 'length_m',
-                routes: [{formula: 'length_m from tuning_goal_hz + Vb_m3 + area_m2 (Helmholtz)', required, missing}],
-            }];
+            return [this.#engine.missingDependencies('length_m',
+                [{formula: 'length_m from tuning_goal_hz + Vb_m3 + area_m2 (Helmholtz)', required, missing}])];
         }
         return [];
     }

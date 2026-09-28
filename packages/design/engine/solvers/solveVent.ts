@@ -1,6 +1,7 @@
 import type {Air} from '../air.js';
 import {tuningFromLength, ventLength} from '../boxDesign.js';
 import type {VentSolverParams} from '../solverTypes.js';
+import {inconsistentInputs, missingDependencies, targetUnreachable} from '../consistency.js';
 import type {CalculationIssue, TargetUnreachableIssue} from '../consistency.js';
 
 export type VentQuantityName = keyof VentSolverParams;
@@ -32,15 +33,8 @@ export function solveVent(params: VentSolverParams, air: Air): VentIssue[] {
   const issues: VentIssue[] = [];
 
   if (tuning != null && tuning <= 0) {
-    issues.push({
-      kind: 'inconsistent-inputs',
-      formula: 'Tuning frequency must be greater than zero',
-      fields: ['tuning_goal_hz'],
-      target: 'tuning_goal_hz',
-      expected: 0,
-      actual: tuning,
-      relative: 1,
-    });
+    issues.push(inconsistentInputs('tuning_goal_hz', ['tuning_goal_hz'],
+      'Tuning frequency must be greater than zero', 0, tuning, 1));
   }
 
   const geometryComplete = Vb != null && Vb > 0 && area != null && area > 0;
@@ -53,33 +47,26 @@ export function solveVent(params: VentSolverParams, air: Air): VentIssue[] {
         params.length_m.setCalculated(L);
       } else {
         params.length_m.setNotAvailable();
-        issues.push({
-          kind: 'target-unreachable',
-          target: 'length_m',
-          maxReachable_hz: tuningFromLength(Vb, 0, area, count, air, endCorrection),
-        });
+        issues.push(targetUnreachable('length_m',
+          tuningFromLength(Vb, 0, area, count, air, endCorrection)));
       }
     } else {
       params.length_m.setNotAvailable();
       // geometryComplete is false here, and every way it can be false — Vb or area null/≤0 —
       // is also a way VENT_GEOMETRY's own >0 filter counts that same field, so missingGeometry
       // is never empty in this branch.
-      issues.push({
-        kind: 'missing-dependencies', target: 'length_m',
-        routes: [{ formula: 'length_m from tuning_goal_hz + Vb_m3 + area_m2 (Helmholtz)',
-          required: ['tuning_goal_hz', ...VENT_GEOMETRY], missing: missingGeometry }],
-      });
+      issues.push(missingDependencies('length_m',
+        [{ formula: 'length_m from tuning_goal_hz + Vb_m3 + area_m2 (Helmholtz)',
+          required: ['tuning_goal_hz', ...VENT_GEOMETRY], missing: missingGeometry }]));
     }
   } else if (length != null && !params.tuning_goal_hz.entered) {
     if (geometryComplete) {
       params.tuning_goal_hz.setCalculated(tuningFromLength(Vb, length, area, count, air, endCorrection));
     } else {
       params.tuning_goal_hz.setNotAvailable();
-      issues.push({
-        kind: 'missing-dependencies', target: 'tuning_goal_hz',
-        routes: [{ formula: 'tuning_goal_hz from length_m + Vb_m3 + area_m2 (Helmholtz)',
-          required: ['length_m', ...VENT_GEOMETRY], missing: missingGeometry }],
-      });
+      issues.push(missingDependencies('tuning_goal_hz',
+        [{ formula: 'tuning_goal_hz from length_m + Vb_m3 + area_m2 (Helmholtz)',
+          required: ['length_m', ...VENT_GEOMETRY], missing: missingGeometry }]));
     }
   }
 

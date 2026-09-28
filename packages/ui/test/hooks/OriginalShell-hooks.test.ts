@@ -67,7 +67,7 @@ describe('OriginalShell-hooks', () => {
 
   describe('createSealedReadouts', () => {
     it('computes positive rearResonance and rearQtc when box is sealed', () => {
-      const {engine, project} = createCompleteProject();
+      const {project} = createCompleteProject();
       const projectRef = shallowRef(project);
       const selectedBox = ref<BoxType>('sealed');
       const projectChanged = ref(0);
@@ -76,7 +76,6 @@ describe('OriginalShell-hooks', () => {
         project: computed(() => projectRef.value),
         selectedBox,
         projectChanged,
-        engine,
       });
 
       expect(readouts.rearResonance.value).toBeGreaterThan(0);
@@ -85,7 +84,7 @@ describe('OriginalShell-hooks', () => {
     });
 
     it('returns null for rearQtc when box is vented', () => {
-      const {engine, project} = createCompleteProject();
+      const {project} = createCompleteProject();
       const projectRef = shallowRef(project);
       const selectedBox = ref<BoxType>('vented');
       const projectChanged = ref(0);
@@ -94,7 +93,6 @@ describe('OriginalShell-hooks', () => {
         project: computed(() => projectRef.value),
         selectedBox,
         projectChanged,
-        engine,
       });
 
       expect(readouts.rearQtc.value).toBeNull();
@@ -102,7 +100,7 @@ describe('OriginalShell-hooks', () => {
     });
 
     it('recomputes rearResonance when volume changes and projectChanged fires', () => {
-      const {engine, project} = createCompleteProject();
+      const {project} = createCompleteProject();
       const projectRef = shallowRef(project);
       const selectedBox = ref<BoxType>('sealed');
       const projectChanged = ref(0);
@@ -111,7 +109,6 @@ describe('OriginalShell-hooks', () => {
         project: computed(() => projectRef.value),
         selectedBox,
         projectChanged,
-        engine,
       });
 
       const initialResonance = readouts.rearResonance.value;
@@ -130,7 +127,7 @@ describe('OriginalShell-hooks', () => {
     const boxTypes: BoxType[] = ['sealed', 'vented', 'bandpass4', 'bandpass6', 'abc', 'box-passive-radiator'];
 
     it.each(boxTypes)('writes and reads back the %s box volume', (boxType) => {
-      const {engine, project} = createCompleteProject();
+      const {project} = createCompleteProject();
       project.box.boxType.set(boxType);
       const projectRef = shallowRef(project);
       const selectedBox = ref<BoxType>(boxType);
@@ -140,7 +137,6 @@ describe('OriginalShell-hooks', () => {
         project: computed(() => projectRef.value),
         selectedBox,
         projectChanged,
-        engine,
       });
 
       setBoxVolume_m3(0.02);
@@ -148,7 +144,7 @@ describe('OriginalShell-hooks', () => {
     });
 
     it('keeps full precision across write and read', () => {
-      const {engine, project} = createCompleteProject();
+      const {project} = createCompleteProject();
       const projectRef = shallowRef(project);
       const selectedBox = ref<BoxType>('sealed');
       const projectChanged = ref(0);
@@ -157,7 +153,6 @@ describe('OriginalShell-hooks', () => {
         project: computed(() => projectRef.value),
         selectedBox,
         projectChanged,
-        engine,
       });
 
       setBoxVolume_m3(0.012345678);
@@ -169,13 +164,14 @@ describe('OriginalShell-hooks', () => {
       const projectRef = shallowRef(project);
       const selectedBox = ref<BoxType>('sealed');
       const projectChanged = ref(0);
-      const expectedNote = engine.invalidValueToText({kind: 'invalid-value', value: 0});
+      const zeroVolumeMark = engine.positiveValueIssue(0);
+      if (zeroVolumeMark === null) throw new Error('0 must carry the positive-value mark');
+      const expectedNote = zeroVolumeMark.text;
 
       const {boxVolume_m3, setBoxVolume_m3, boxVolumeDqNote} = createBoxVolume({
         project: computed(() => projectRef.value),
         selectedBox,
         projectChanged,
-        engine,
       });
 
       setBoxVolume_m3(0);
@@ -454,13 +450,13 @@ describe('OriginalShell-hooks', () => {
    */
   describe('dqOfEntry — the readout for a field that is entered or absent, never calculated', () => {
     it('E while a value is entered, N once cleared; dq passes through', () => {
-      const {engine, project} = createCompleteProject();
+      const {project} = createCompleteProject();
       const width = project.box.vented.vent.width_m;
       width.set(0.05);
-      expect(dqOfEntry(engine, width)).toEqual({dq: [], dqState: 'E'});
+      expect(dqOfEntry(width)).toEqual({dq: [], dqState: 'E'});
 
       width.clear();
-      expect(dqOfEntry(engine, width)).toEqual({dq: [], dqState: 'N'});
+      expect(dqOfEntry(width)).toEqual({dq: [], dqState: 'N'});
     });
   });
 
@@ -468,23 +464,23 @@ describe('OriginalShell-hooks', () => {
     it('N while an input is missing, C once solved', () => {
       const engine = new Engine();
       const blank = OpenISDProject.empty(engine);
-      expect(dqOfSolved(engine, blank.box.sealed.resonance_hz)).toEqual({dq: [], dqState: 'N'});
+      expect(dqOfSolved(blank.box.sealed.resonance_hz)).toEqual({dq: [], dqState: 'N'});
 
       const {project} = createCompleteProject();
-      expect(dqOfSolved(engine, project.box.sealed.resonance_hz)).toEqual({dq: [], dqState: 'C'});
+      expect(dqOfSolved(project.box.sealed.resonance_hz)).toEqual({dq: [], dqState: 'C'});
     });
   });
 
   describe('dqOfCell — the readout for drive power P and drive voltage V', () => {
     it('pre: Re none — P N, V 1 C | trigger: Re 8 | post: P 1 E, V √8 C', () => {
-      const {engine, project} = createCompleteProject();
-      expect(dqOfCell(engine, project.powerDrive_W).dqState).toBe('N');
-      expect(dqOfCell(engine, project.powerDrive_W).dq[0]).toMatch(/Re_ohm/);
-      expect(dqOfCell(engine, project.driveVoltage_V)).toEqual({dq: [], dqState: 'C'});
+      const {project} = createCompleteProject();
+      expect(dqOfCell(project.powerDrive_W).dqState).toBe('N');
+      expect(dqOfCell(project.powerDrive_W).dq[0]).toMatch(/Re_ohm/);
+      expect(dqOfCell(project.driveVoltage_V)).toEqual({dq: [], dqState: 'C'});
 
       project.driver.specs.Re_ohm.set(8);
-      expect(dqOfCell(engine, project.powerDrive_W)).toEqual({dq: [], dqState: 'E'});
-      expect(dqOfCell(engine, project.driveVoltage_V)).toEqual({dq: [], dqState: 'C'});
+      expect(dqOfCell(project.powerDrive_W)).toEqual({dq: [], dqState: 'E'});
+      expect(dqOfCell(project.driveVoltage_V)).toEqual({dq: [], dqState: 'C'});
     });
   });
 

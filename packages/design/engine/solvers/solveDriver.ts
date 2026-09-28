@@ -29,6 +29,7 @@ import type {
     SolverField,
     SolverInput,
 } from '../solverTypes.js';
+import {inconsistentInputs, missingDependencies} from '../consistency.js';
 import type {CalculationIssue, CalculationPrerequisite, OutOfRangeIssue} from '../consistency.js';
 import {checkRange} from '../physicalRange.js';
 import type {DriverWorkingSet} from './driverQuantities.js';
@@ -605,10 +606,8 @@ function checkConsistency(entered: DriverWorkingSet, params: DriverSolverParams)
       // that gap their own half-widths already close. What is left over — the gap between the
       // two intervals' NEAREST EDGES — is the genuine, unexplained disagreement.
       const shortfall = residual - tolerance;
-      issues.push({
-        kind: 'inconsistent-inputs', formula: rel.formula, fields: rel.fields,
-        target: rel.target, expected, actual, relative: shortfall / Math.max(Math.abs(actual), Math.abs(expected)),
-      });
+      issues.push(inconsistentInputs(rel.target, rel.fields, rel.formula, expected, actual,
+        shortfall / Math.max(Math.abs(actual), Math.abs(expected))));
     }
   }
 
@@ -622,11 +621,8 @@ function checkConsistency(entered: DriverWorkingSet, params: DriverSolverParams)
   const enteredTrioCount = (['Qts', 'Qes', 'Qms'] as const).filter(f => entered[f] != null).length;
   if (enteredTrioCount < 2) {
     const missing: NumericDriverQuantityName[] = (['Qes', 'Qms'] as const).filter(f => entered[f] == null);
-    issues.push({
-      kind: 'missing-dependencies',
-      target: 'Qts',
-      routes: [{ formula: 'Qts = Qes·Qms/(Qes+Qms)', required: ['Qes', 'Qms'], missing }],
-    });
+    issues.push(missingDependencies('Qts',
+      [{ formula: 'Qts = Qes·Qms/(Qes+Qms)', required: ['Qes', 'Qms'], missing }]));
   }
 
   return issues;

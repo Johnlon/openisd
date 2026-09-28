@@ -321,7 +321,6 @@ export function requiredField<K extends PropertyKey, T extends Record<K, number>
 export function entryField(
   slot: SimpleField<SpecEntryJson | undefined>,
   name: string,
-  issueText: IssueRenderer,
   issuesSource?: () => readonly DqIssue[],
   getDq?: (value: number) => DqIssue | null,
 ): Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable {
@@ -340,7 +339,7 @@ export function entryField(
     entered: (v, precision) => { liveDq = []; slot.set({ state: 'E', value: v, precision }); },
     clear: () => { liveDq = []; slot.set(undefined); },
     calculated: (v) => { liveDq = []; slot.set({ state: 'C', value: v }); },
-    dq: (list) => { liveDq = list; writeEntryDq(slot, list, issueText); },
+    dq: (list) => { liveDq = list; writeEntryDq(slot, list); },
   });
 }
 
@@ -405,7 +404,6 @@ function issueMark(issue: DqIssue, detail: string): DqMark {
 export function defaultingEntryField(
   slot: SimpleField<SpecEntryJson | undefined>,
   name: string,
-  issueText: IssueRenderer,
   fallback: () => number,
 ): Readable<number> & Entered & Calculated & Writable<number> & Clearable & Calculatable<number> {
   let liveDq: readonly DqIssue[] = [];
@@ -417,14 +415,8 @@ export function defaultingEntryField(
     entered: (v, precision) => { liveDq = []; slot.set({ state: 'E', value: v, precision }); },
     clear: () => { liveDq = []; slot.set(undefined); },
     calculated: (v) => { liveDq = []; slot.set({ state: 'C', value: v }); },
-    dq: (list) => { liveDq = list; writeEntryDq(slot, list, issueText); },
+    dq: (list) => { liveDq = list; writeEntryDq(slot, list); },
   });
-}
-
-/** Renders one live issue to the sentence the on-disk debug trail stores. `Engine` implements
- *  it; cell.ts never imports the engine's door, so it never stringifies an issue itself. */
-export interface IssueRenderer {
-  dqIssueText(issue: DqIssue): string;
 }
 
 /** Records that `list` of live issues happened, for the on-disk debug trail only — never read
@@ -433,13 +425,12 @@ export interface IssueRenderer {
 export function writeEntryDq(
   slot: SimpleField<SpecEntryJson | undefined>,
   list: readonly DqIssue[],
-  issueText: IssueRenderer,
 ): void {
   const current = slot.value;
   if (current === undefined) return;
   slot.set({
     ...current,
-    dq_calculated: list.map(issue => issueMark(issue, issueText.dqIssueText(issue))),
+    dq_calculated: list.map(issue => issueMark(issue, issue.text)),
   });
 }
 

@@ -33,9 +33,10 @@ import type {ChartId} from './charts.js';
 import {defaultAppSettings} from './appSettings.js';
 import type {AppSettings, EnvDefaults} from './appSettings.js';
 import {
+  nonPhysicalQuantity, quantityOutOfBand,
   ventedPlausibility, ventedTuningPlausibility, ventedVolumePlausibility,
 } from './plausibility.js';
-import type {VentedPlausibilityIssue} from './plausibility.js';
+import type {VentedDesignQuantity, VentedPlausibilityIssue} from './plausibility.js';
 import type {DriverIssue} from './solvers/solveDriver.js';
 import {solveDriver} from './solvers/solveDriver.js';
 import type {PrIssue} from './solvers/solvePr.js';
@@ -45,11 +46,13 @@ import {solveVent} from './solvers/solveVent.js';
 import type {SealedAlignmentIssue} from './solvers/solveSealedAlignment.js';
 import {solveSealedAlignment} from './solvers/solveSealedAlignment.js';
 import {terminalBL_Tm, terminalRe_ohm} from './solvers/driverQuantities.js';
-import type {CalculationIssue, DqIssue, InvalidValueIssue, NegativeValueIssue, OutOfRangeIssue, TargetUnreachableIssue} from './consistency.js';
+import type {
+  CalculationIssue, InvalidValueIssue, NegativeValueIssue, OutOfRangeIssue, SolveRoute,
+  TargetUnreachableIssue,
+} from './consistency.js';
 import {
-  dqIssueText, invalidValueToText, issueFields, issueFormula, issueToText,
-  negativeValueToText, nonNegativeValueIssue, outOfRangeToText, plausibilityToText,
-  positiveValueIssue, targetUnreachableToText,
+  inconsistentInputs, issueFields, issueFormula, missingDependencies, nonNegativeValueIssue,
+  outOfRange, positiveValueIssue, targetUnreachable,
 } from './consistency.js';
 import {isPhysicallyPlausible} from './physicalRange.js';
 import {referenceEfficiency, splFromEfficiency} from './efficiency.js';
@@ -219,42 +222,6 @@ export class Engine {
     return issueFormula(issue);
   }
 
-  /** One sentence for a `CalculationIssue`, whichever domain it comes from. */
-  issueToText<Q extends string>(issue: CalculationIssue<Q>): string {
-    return issueToText(issue);
-  }
-
-  /** One sentence for a vented-alignment plausibility mark (`Vb`/`Fb` non-physical or
-   *  out-of-range). */
-  plausibilityToText(issue: VentedPlausibilityIssue): string {
-    return plausibilityToText(issue);
-  }
-
-  /** One sentence for a `target-unreachable` mark, naming the maximum this geometry can reach. */
-  targetUnreachableToText(issue: TargetUnreachableIssue): string {
-    return targetUnreachableToText(issue);
-  }
-
-  /** One sentence for an `out-of-range` driver field mark (D14), naming the physical limit it
-   *  crossed. */
-  outOfRangeToText(issue: OutOfRangeIssue): string {
-    return outOfRangeToText(issue);
-  }
-
-  /** One sentence for an `invalid-value` mark — zero, negative or non-finite, whatever field it
-   *  is: a box volume (BUG_20260927_box-volume-validity-decided-in-ui.md) or a driver spec value
-   *  (BUG_20260927_driver-bad-value-decided-in-ui.md). */
-  invalidValueToText(issue: InvalidValueIssue): string {
-    return invalidValueToText(issue);
-  }
-
-  /** One sentence for a `negative-value` mark — negative or non-finite, but zero is fine
-   *  (BUG_20260927_driver-bad-value-decided-in-ui.md: `Le_H`, `KLe_H_sqrtHz`, `Znom_ohm`,
-   *  `alfaVC_per_K`). */
-  negativeValueToText(issue: NegativeValueIssue): string {
-    return negativeValueToText(issue);
-  }
-
   /** Whether a single RAW value would sit inside `PHYSICAL_RANGE`'s band for `field` (D9 tier 1)
    *  — the domain layer's one door into that table, since nothing outside the engine may import
    *  `physicalRange.ts` directly. */
@@ -262,18 +229,53 @@ export class Engine {
     return isPhysicallyPlausible(field, value);
   }
 
-  /** One sentence for any `DqIssue`, whichever kind it is — the single place that turns an issue
-   *  into human-facing text, so the cascade DQ, the sweep error channel, the driver editor
-   *  tooltip and the persisted debug trail all say the same thing (S2-11). */
-  dqIssueText(issue: DqIssue): string {
-    return dqIssueText(issue);
-  }
-
   // ── THE BOX ───────────────────────────────────────────────────────────────────────────────
 
   /** Sealed resonance and Qtc under a chosen loss model. Takes `Vas` directly. */
   sealedResonance(mode: LossMode, p: SealedParams): { Fsc: number; Qtc: number } {
     return sealedResonance(mode, p);
+  }
+
+  // ── CONSTRUCTING A DQ ISSUE ───────────────────────────────────────────────────────────────
+  //
+  // Each of these builds one `DqIssue` with its own sentence already in it, so a caller holding
+  // the issue can say what is wrong without an engine. They sit here for the same reason
+  // `positiveValueIssue` does: the engine has one door, and a caller outside it constructs an
+  // issue by asking the engine for one.
+
+  /** A target no route can reach yet, naming every blocked route and what it still needs. */
+  missingDependencies<Q extends string>(target: Q, routes: readonly SolveRoute<Q>[]): CalculationIssue<Q> {
+    return missingDependencies(target, routes);
+  }
+
+  /** Stated values that contradict the formula relating them — every field in the group is marked. */
+  inconsistentInputs<Q extends string>(
+    target: Q, fields: readonly Q[], formula: string, expected: number, actual: number,
+    relative: number,
+  ): CalculationIssue<Q> {
+    return inconsistentInputs(target, fields, formula, expected, actual, relative);
+  }
+
+  /** A driver field outside its physically possible band (D14). */
+  outOfRange(field: string, value: number, limit: number, side: 'below' | 'above'): OutOfRangeIssue {
+    return outOfRange(field, value, limit, side);
+  }
+
+  /** A stated target past the maximum this geometry can produce. */
+  targetUnreachable(target: string, maxReachable_hz: number): TargetUnreachableIssue {
+    return targetUnreachable(target, maxReachable_hz);
+  }
+
+  /** A vented-alignment quantity that is zero, negative or not finite. */
+  nonPhysicalQuantity(quantity: VentedDesignQuantity, value: number): VentedPlausibilityIssue {
+    return nonPhysicalQuantity(quantity, value);
+  }
+
+  /** A vented-alignment quantity outside the design band the user owns in Settings. */
+  quantityOutOfBand(
+    quantity: VentedDesignQuantity, value: number, min: number, max: number,
+  ): VentedPlausibilityIssue {
+    return quantityOutOfBand(quantity, value, min, max);
   }
 
   /** The one floor every positive physical quantity shares: zero, negative or non-finite is not

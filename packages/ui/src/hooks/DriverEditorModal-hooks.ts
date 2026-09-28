@@ -1,5 +1,5 @@
 import type {Calculated, Entered, OpenISDDriver, Readable} from '@openisd/design';
-import type {DriverIssue, Engine} from '@openisd/design/engine';
+import type {DriverIssue} from '@openisd/design/engine';
 import type {NumSpecField} from '../logic/appState.js';
 
 /**
@@ -22,8 +22,8 @@ export interface DqReason {
  *  non-finite) is marked by the DOMAIN, on the field's own `.dq` (`Engine.positiveValueIssue`,
  *  BUG_20260927_driver-bad-value-decided-in-ui.md) — this reads that mark, never judges the
  *  value itself. */
-export function dqNoteFor(engine: Engine, cellOf: (field: NumSpecField) => Readable<number | null> & Entered & Calculated, field: NumSpecField): string {
-  return cellOf(field).dq.map(issue => engine.dqIssueText(issue)).join('\n');
+export function dqNoteFor(cellOf: (field: NumSpecField) => Readable<number | null> & Entered & Calculated, field: NumSpecField): string {
+  return cellOf(field).dq.map(issue => issue.text).join('\n');
 }
 
 /** The driver's own consistency-solve verdict — every DQ read here traces back to this. */

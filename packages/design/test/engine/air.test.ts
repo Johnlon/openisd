@@ -222,14 +222,10 @@ describe('environmentIssues — out-of-range entered air inputs', () => {
     const engine = new Engine();
     const issues = engine.solveEnvironment({ tempK: 100 }).issues;
     assert.equal(issues.length, 1);
-    assert.deepEqual(issues[0], {
-      kind: 'missing-dependencies',
-      target: 'tempK',
-      routes: [{
-        formula: `tempK must be between ${MIN_SUPPORTED_TEMP_K} K and ${MAX_SUPPORTED_TEMP_K} K`,
-        required: ['tempK'], missing: ['tempK'],
-      }],
-    });
+    assert.deepEqual(issues[0], engine.missingDependencies('tempK', [{
+      formula: `tempK must be between ${MIN_SUPPORTED_TEMP_K} K and ${MAX_SUPPORTED_TEMP_K} K`,
+      required: ['tempK'], missing: ['tempK'],
+    }]));
   });
 
   it('reports the same shape for an entered temperature above the supported range', () => {

@@ -29,10 +29,13 @@ function fixedAppContext(id: string, isoDate = '2026-01-01T00:00:00.000Z', platf
 // that test, so an `it()` block reads top to bottom without opening anything else.
 const scraped = <T,>(value: T) => ({ value });
 
+/** One engine for the fixtures below — issue construction goes through the engine's door. */
+const fixtureEngine = new Engine();
+
 /** A distinct, hand-constructible `DqIssue` for fixtures — a target-unreachable issue is the
  *  simplest closed-union member to write out by hand. */
 function ignoredIssue(target: string): DqIssue {
-  return { kind: 'target-unreachable', target, maxReachable_hz: 0 };
+  return fixtureEngine.targetUnreachable(target, 0);
 }
 
 /** A cloned record's woofer section, read the way any consumer must: `specs` is a SUM — a
@@ -727,9 +730,8 @@ describe('OpenISDBox — every alignment, as a window onto the project record', 
     expect(p.sweepN.value).toBeNull();
   });
 
-  it('P and V dq writes are rendered by the engine into the record trail', () => {
+  it('P and V dq writes carry the issue\'s own sentence into the record trail', () => {
     const engine = new Engine();
-    const text = vi.spyOn(engine, 'dqIssueText').mockReturnValue('mocked');
     const p = OpenISDProject.builder(driverFrom({
       brand: 'Dayton', model: 'RS225', section: 'woofer',
       spec: tuneSpec({Fs_hz: 40, Vas_m3: 0.00765, Qes: 0.45, Qms: 2.94, Re_ohm: 8}),
@@ -739,9 +741,8 @@ describe('OpenISDBox — every alignment, as a window onto the project record', 
     p.powerDrive_W.setDq([mark]);
     p.driveVoltage_V.setDq([mark]);
 
-    expect(text.mock.calls).toEqual([[mark], [mark]]);
     const owpr = JSON.parse(p.toOwprText());
-    expect((owpr.edited ?? owpr.saved).signal.power_W.dq_calculated[0].detail).toBe('mocked');
+    expect((owpr.edited ?? owpr.saved).signal.power_W.dq_calculated[0].detail).toBe(mark.text);
   });
 
   it('a vent with no stated count STORES one port as a calculated entry — the same route numVC takes', () => {
@@ -1421,7 +1422,7 @@ describe('the passive radiator a box holds', () => {
     p.box.passiveRadiator.tuning_goal_hz.set(ceiling * 1.5);
     p.notifyPrChanged();
 
-    const DQ = [{ kind: 'target-unreachable', target: 'addedMass_kg', maxReachable_hz: ceiling }];
+    const DQ = [fixtureEngine.targetUnreachable('addedMass_kg', ceiling)];
     expect(p.box.passiveRadiator.tuning_goal_hz.entered).toBe(true);                 // the input
     expect(p.box.passiveRadiator.tuning_goal_hz.dq).toEqual(DQ);
     expect(p.box.passiveRadiator.addedMass_kg.dq).toEqual(DQ);
@@ -2723,7 +2724,7 @@ describe('S2-7d2 — vent + PR join the cascade', () => {
 
     p.box.passiveRadiator.tuning_goal_hz.set(ceiling * 1.5);
 
-    const DQ = [{ kind: 'target-unreachable', target: 'addedMass_kg', maxReachable_hz: ceiling }];
+    const DQ = [fixtureEngine.targetUnreachable('addedMass_kg', ceiling)];
     expect(p.box.passiveRadiator.tuning_goal_hz.dq).toEqual(DQ);
     expect(p.box.passiveRadiator.addedMass_kg.dq).toEqual(DQ);
     expect(p.box.passiveRadiator.systemTuning_hz.dq).toEqual(DQ);

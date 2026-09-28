@@ -100,19 +100,19 @@ export class OpenISDBox implements Box {
                     ? absentCell<number>('resonance_hz')
                     : calculatedCell<number | null>('resonance_hz', v);
             }),
-            q_tc: entryField(focus(sealedLens, 'Qtc'), 'q_tc', engine, () => groupDq(issues().sealed)),
+            q_tc: entryField(focus(sealedLens, 'Qtc'), 'q_tc', () => groupDq(issues().sealed)),
             losses: sealedLosses,
         };
 
         const ventedLens = focus(lens, 'vented');
         const ventedChamber = focus(ventedLens, 'chamber');
         const ventedVentLens = focus(ventedLens, 'vent');
-        const ventedTuningEntry = entryField(focus(ventedChamber, 'tuning_goal_hz'), 'tuning_goal_hz', engine, () => {
+        const ventedTuningEntry = entryField(focus(ventedChamber, 'tuning_goal_hz'), 'tuning_goal_hz', () => {
             const dq = groupDq(issues().vent);
             const extra = ventTuningExtra();
             return extra === null ? dq : [...dq, extra];
         });
-        const ventedLengthEntry = entryField(focus(ventedVentLens, 'length_m'), 'length_m', engine, () => groupDq(issues().vent));
+        const ventedLengthEntry = entryField(focus(ventedVentLens, 'length_m'), 'length_m', () => groupDq(issues().vent));
         const commitVentedPair = (tuning: SpecEntryJson | undefined, length: SpecEntryJson | undefined): void => {
             const cur = ventedLens.value;
             ventedLens.set({
@@ -146,9 +146,9 @@ export class OpenISDBox implements Box {
         const bp4Rear = focus(bp4, 'rear');
         const bp4RearLosses = new CoupledSealedLossesWindow(focus(bp4Rear, 'losses'));
         const bp4Front = focus(bp4, 'front');
-        const bp4FrontTuningEntry = entryField(focus(bp4Front, 'tuning_goal_hz'), 'tuning_goal_hz', engine, () => groupDq(issues().vent));
+        const bp4FrontTuningEntry = entryField(focus(bp4Front, 'tuning_goal_hz'), 'tuning_goal_hz', () => groupDq(issues().vent));
         const bp4FrontVentLens = focus(bp4, 'frontVent');
-        const bp4FrontLengthEntry = entryField(focus(bp4FrontVentLens, 'length_m'), 'length_m', engine, () => groupDq(issues().vent));
+        const bp4FrontLengthEntry = entryField(focus(bp4FrontVentLens, 'length_m'), 'length_m', () => groupDq(issues().vent));
         const commitBp4FrontPair = (tuning: SpecEntryJson | undefined, length: SpecEntryJson | undefined): void => {
             const cur = bp4.value;
             bp4.set({
@@ -226,8 +226,8 @@ export class OpenISDBox implements Box {
             return new OpenISDPassiveRadiatorEmbedded(prSlot, engine);
         };
         const prVolume = requiredField(pr, 'volume_m3', (v) => engine.positiveValueIssue(v));
-        const prAddedMassEntry = entryField(focus(pr, 'addedMass_kg'), 'addedMass_kg', engine, () => groupDq(issues().pr));
-        const prTuningEntry = entryField(focus(pr, 'tuning_goal_hz'), 'tuning_goal_hz', engine, () => groupDq(issues().pr));
+        const prAddedMassEntry = entryField(focus(pr, 'addedMass_kg'), 'addedMass_kg', () => groupDq(issues().pr));
+        const prTuningEntry = entryField(focus(pr, 'tuning_goal_hz'), 'tuning_goal_hz', () => groupDq(issues().pr));
         const prTuningField = pairedField(
             (entry) => pr.set({ ...pr.value, tuning_goal_hz: entry, addedMass_kg: undefined }),
             prTuningEntry,
@@ -253,8 +253,8 @@ export class OpenISDBox implements Box {
             // OUTPUTS of the solved pair (S2-7d2): plain entry-backed slots the `solvePr` cascade
             // in `OpenISDProject#resolve()` writes as 'C' entries — never entered by a user, never
             // recomputed at read time here.
-            systemTuning_hz: entryField(focus(pr, 'systemTuning_hz'), 'systemTuning_hz', engine, () => groupDq(issues().pr)),
-            resonanceWithAddedMass_hz: entryField(focus(pr, 'resonanceWithAddedMass_hz'), 'resonanceWithAddedMass_hz', engine, () => groupDq(issues().pr)),
+            systemTuning_hz: entryField(focus(pr, 'systemTuning_hz'), 'systemTuning_hz', () => groupDq(issues().pr)),
+            resonanceWithAddedMass_hz: entryField(focus(pr, 'resonanceWithAddedMass_hz'), 'resonanceWithAddedMass_hz', () => groupDq(issues().pr)),
             /** A read-only WHAT-IF query, independent of the stored pair and its cascade — never
              *  writes back, so it stays a pure computation over `Engine.prMassForFp` rather than a
              *  route through the (now-deleted) bag solver. The DQ text matches
@@ -272,11 +272,10 @@ export class OpenISDBox implements Box {
                 }
                 const totalMass = this.#engine.prMassForFp({ Vb, prMmd, prMadd: 0, prSd, prCms }, fp_hz, air());
                 const addedMass = totalMass - prMmd;
-                const dq: DqIssue[] | undefined = addedMass < 0 ? [{
-                    kind: 'target-unreachable',
-                    target: 'addedMassForTuning_kg',
-                    maxReachable_hz: this.#engine.prTuning({ Vb, prMmd, prMadd: 0, prSd, prCms }, air()),
-                }] : undefined;
+                const dq: DqIssue[] | undefined = addedMass < 0 ? [this.#engine.targetUnreachable(
+                    'addedMassForTuning_kg',
+                    this.#engine.prTuning({ Vb, prMmd, prMadd: 0, prSd, prCms }, air()),
+                )] : undefined;
                 return calculatedCell<number | null>('addedMassForTuning_kg', addedMass, dq);
             }),
         };

@@ -4,7 +4,7 @@ import {useFocusedProject} from '../logic/focusedProjectContext.js';
 import {ebpOf} from '../logic/environment.js';
 import {cellClassFor} from '../logic/useDriverCells.js';
 import type {Calculated, Clearable, Entered, Readable, Writable} from '@openisd/design';
-import {engine, projectChanged} from '../logic/appState.js';
+import {projectChanged} from '../logic/appState.js';
 import type {NumSpecField} from '../logic/appState.js';
 import {specFieldHandle} from '../logic/driverSpecFields.js';
 
@@ -86,12 +86,11 @@ export function useOgTune(): OgTuneAPI {
   /** A bad value (≤ 0, non-finite) is marked by the DOMAIN, on the field's own `.dq`
    *  (`Engine.positiveValueIssue`, BUG_20260927_driver-bad-value-decided-in-ui.md) — this reads
    *  that mark, never judges the value itself, same as the driver editor's own `dqNoteFor`.
-   *  Each issue is rendered by the engine — the one place a `DqIssue` becomes a sentence. Joining
-   *  the issues themselves put "[object Object]" in the tooltip, which nothing noticed while
-   *  this panel's dq was always empty (the marks were computed and then discarded with the
-   *  rebuilt embedded driver). */
+   *  Each issue carries its own sentence. Joining the issues themselves put "[object Object]"
+   *  in the tooltip, which nothing noticed while this panel's dq was always empty (the marks
+   *  were computed and then discarded with the rebuilt embedded driver). */
   function dqNote(key: NumSpecField): string | null {
-    return fieldCell(key).dq.map(issue => engine.dqIssueText(issue)).join('\n');
+    return fieldCell(key).dq.map(issue => issue.text).join('\n');
   }
 
   function cellVal(key: NumSpecField): number | null {

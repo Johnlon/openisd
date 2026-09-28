@@ -58,7 +58,7 @@ import type {Calculated, Clearable, Entered, OpenISDProject, Readable, Writable}
 import type {ProvenanceLetter} from '../logic/fieldProvenance.js';
 import {provenanceOf, provenanceOfEntry, provenanceOfSolved} from '../logic/fieldProvenance.js';
 import type {StoredProjectListing} from '@openisd/persistence';
-import type {BoxType, ChartId, Engine, EnvDefaults} from '@openisd/design/engine';
+import type {BoxType, ChartId, EnvDefaults} from '@openisd/design/engine';
 import type {Design, PlotParams} from '../types.js';
 
 // ---- Sealed / PR readouts (unit-testable, real domain) ------------------------
@@ -71,7 +71,6 @@ export interface SealedReadoutsDeps {
   project: ComputedRef<OpenISDProject>;
   selectedBox: Ref<BoxType>;
   projectChanged: Ref<number>;
-  engine: Engine;
 }
 
 export type AirField = 'temperature' | 'humidity' | 'pressure';
@@ -99,18 +98,18 @@ export function isTabId(v: unknown): v is TabId {
     || v === 'signal' || v === 'advanced' || v === 'project';
 }
 
-export function dqOfCell(engine: Engine, field: Readable<unknown> & Entered & Calculated): DqReadout {
-  return { dq: field.dq.map(issue => engine.dqIssueText(issue)), dqState: provenanceOf(field) };
+export function dqOfCell(field: Readable<unknown> & Entered & Calculated): DqReadout {
+  return { dq: field.dq.map(issue => issue.text), dqState: provenanceOf(field) };
 }
 
 /** `dqOfCell` for a field that is entered or absent and has no `Calculated`. */
-export function dqOfEntry(engine: Engine, field: Readable<unknown> & Entered): DqReadout {
-  return { dq: field.dq.map(issue => engine.dqIssueText(issue)), dqState: provenanceOfEntry(field) };
+export function dqOfEntry(field: Readable<unknown> & Entered): DqReadout {
+  return { dq: field.dq.map(issue => issue.text), dqState: provenanceOfEntry(field) };
 }
 
 /** `dqOfCell` for a field only a solver writes — calculated or absent, no `Entered`. */
-export function dqOfSolved(engine: Engine, field: Readable<unknown> & Calculated): DqReadout {
-  return { dq: field.dq.map(issue => engine.dqIssueText(issue)), dqState: provenanceOfSolved(field) };
+export function dqOfSolved(field: Readable<unknown> & Calculated): DqReadout {
+  return { dq: field.dq.map(issue => issue.text), dqState: provenanceOfSolved(field) };
 }
 
 export function airFieldDataQuality(field: AirField, value: number | null): readonly string[] {
@@ -121,7 +120,7 @@ export function airFieldDataQuality(field: AirField, value: number | null): read
     : [`${limit.label} is outside the sane range (${limit.min}–${limit.max})`];
 }
 
-export function createSealedReadouts({ project, selectedBox, projectChanged: changed, engine }: SealedReadoutsDeps) {
+export function createSealedReadouts({ project, selectedBox, projectChanged: changed }: SealedReadoutsDeps) {
   // Sealed-box (and PR rear-chamber) resonance + system Q via the selected loss model — the
   // WinISD lossy cubic by default. NOT the impedance-magnitude peak: that scan returns the
   // high-frequency voice-coil-inductance rise (≈20 kHz) as the GLOBAL |Z| maximum for any driver
@@ -141,10 +140,10 @@ export function createSealedReadouts({ project, selectedBox, projectChanged: cha
   // two read-only outputs (system tuning, free-air resonance with mass). Each is a fresh
   // `DqReadout` per recompute — the field object itself never changes identity, so a computed
   // returning the field would not re-render its dependents.
-  const prAddedMassDq = computed(() => { void changed.value; return dqOfCell(engine, project.value.box.passiveRadiator.addedMass_kg); });
-  const prTuningDq = computed(() => { void changed.value; return dqOfCell(engine, project.value.box.passiveRadiator.tuning_goal_hz); });
-  const prSystemTuningDq = computed(() => { void changed.value; return dqOfCell(engine, project.value.box.passiveRadiator.systemTuning_hz); });
-  const prResonanceMassDq = computed(() => { void changed.value; return dqOfCell(engine, project.value.box.passiveRadiator.resonanceWithAddedMass_hz); });
+  const prAddedMassDq = computed(() => { void changed.value; return dqOfCell(project.value.box.passiveRadiator.addedMass_kg); });
+  const prTuningDq = computed(() => { void changed.value; return dqOfCell(project.value.box.passiveRadiator.tuning_goal_hz); });
+  const prSystemTuningDq = computed(() => { void changed.value; return dqOfCell(project.value.box.passiveRadiator.systemTuning_hz); });
+  const prResonanceMassDq = computed(() => { void changed.value; return dqOfCell(project.value.box.passiveRadiator.resonanceWithAddedMass_hz); });
   // box.sealed.resonance_hz / q_tc are the domain's own readouts under the selected loss mode:
   // engine.sealedResonance returns {Fsc, Qtc} together, fed the driver's SOLVED Vas and Qts as
   // sourceLoadedQts(Rs) loads it (winisd-parity-functional.test.ts "Box.Fr" pins that feed) —
@@ -174,7 +173,6 @@ export interface BoxVolumeDeps {
   project: ComputedRef<OpenISDProject>;
   selectedBox: Ref<BoxType>;
   projectChanged: Ref<number>;
-  engine: Engine;
 }
 
 /** WinISD's own `YYYYMMDD` date format — duplicated from the domain's `dateStamp` rather than
@@ -213,7 +211,7 @@ function activeVolumeField(project: OpenISDProject, selectedBox: BoxType): (Read
   }
 }
 
-export function createBoxVolume({ project, selectedBox, projectChanged: changed, engine }: BoxVolumeDeps) {
+export function createBoxVolume({ project, selectedBox, projectChanged: changed }: BoxVolumeDeps) {
   const boxVolume_m3 = computed<number | null>(() => {
     void changed.value;
     void project.value;
@@ -223,7 +221,7 @@ export function createBoxVolume({ project, selectedBox, projectChanged: changed,
     void changed.value;
     void project.value;
     const field = activeVolumeField(project.value, selectedBox.value);
-    return field ? field.dq.map((issue) => engine.dqIssueText(issue)).join(' ') : '';
+    return field ? field.dq.map((issue) => issue.text).join(' ') : '';
   });
   function setBoxVolume_m3(v: number): void {
     activeVolumeField(project.value, selectedBox.value)?.set(v);
@@ -412,7 +410,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   const {
     rearResonance, rearQtc, boxResonance,
     prAddedMassDq, prTuningDq, prSystemTuningDq, prResonanceMassDq, prFsMass_hz,
-  } = sealedReadouts({ project, selectedBox, projectChanged, engine });
+  } = sealedReadouts({ project, selectedBox, projectChanged });
   const sealedAlignmentEditor = createSealedAlignmentEditor({ project, changed: projectChanged, engine });
   const ogFilters = createOgFilters({ project, changed: projectChanged, engine });
   const sealedAlignmentOpen = sealedAlignmentEditor.open;
@@ -425,7 +423,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
 
   // Box-type-generic rear-chamber volume (WinISD "Vb") — the Box tab's single "Volume" field
   // dispatches through the unit-tested `createBoxVolume` above.
-  const { boxVolume_m3, boxVolumeDqNote, setBoxVolume_m3 } = createBoxVolume({ project, selectedBox, projectChanged, engine });
+  const { boxVolume_m3, boxVolumeDqNote, setBoxVolume_m3 } = createBoxVolume({ project, selectedBox, projectChanged });
   // Front-chamber volume (WinISD "Vf") — dual-chamber types only (bandpass4/6, abc).
   const frontVolume_m3 = computed<number | null>(() => {
     void projectChanged.value;
@@ -591,11 +589,11 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     return activeVent.value.length_m.dq.find(issue => issue.kind === 'target-unreachable') ?? null;
   });
   const fbUnreachable = computed(() => fbUnreachableIssue.value !== null);
-  /** The vent's own dq sentence — the engine's `dqIssueText` is the one place that turns an
-   *  issue into text, so the Box tab and the Vents tab say the same thing. */
+  /** The vent's own dq sentence — the issue carries it, so the Box tab and the Vents tab say
+   *  the same thing. */
   const fbUnreachableMsg = computed(() => {
     const issue = fbUnreachableIssue.value;
-    return issue === null ? '' : engine.dqIssueText(issue);
+    return issue === null ? '' : issue.text;
   });
   /** The front chamber of a bandpass is vented on its OWN volume, so it carries its own symbol. */
   const frontChamberTuningLabel = computed(() =>
@@ -1129,9 +1127,9 @@ const overlays = computed<Design[]>(() => {
     activeVent, END_CORRECTION_OPTIONS, VENT_SHAPE_OPTIONS, VENT_COUNT_OPTIONS, ventLState, portPipeResonance_hz,
     prBrowseOpen, prEditOpen, loadPREntry, loadBundledPassiveRadiatorEntry, defineNewPREntry,
     prAddedMassDq, prTuningDq, prResonanceMassDq, prFsMass_hz,
-    dqOfCell: (field: Readable<unknown> & Entered & Calculated) => dqOfCell(engine, field),
-    dqOfEntry: (field: Readable<unknown> & Entered) => dqOfEntry(engine, field),
-    dqOfSolved: (field: Readable<unknown> & Calculated) => dqOfSolved(engine, field),
+    dqOfCell: (field: Readable<unknown> & Entered & Calculated) => dqOfCell(field),
+    dqOfEntry: (field: Readable<unknown> & Entered) => dqOfEntry(field),
+    dqOfSolved: (field: Readable<unknown> & Calculated) => dqOfSolved(field),
     fmt,
     driveV, rsOhm, advTemp, advHumidity, advPressure, advAir,
     envTempDq, envHumidityDq, envPressureDq, commitAirTemp, commitAirHumidity, commitAirPressure, resetAirToAppDefaults,

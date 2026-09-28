@@ -1,3 +1,4 @@
+import {decimal, pct} from './issueText.js';
 import type {MaxCurvesResult, SweepResult} from './types.js';
 import type {VentedPlausibilityIssue} from './plausibility.js';
 
@@ -19,6 +20,7 @@ export type CalculationIssue<Q extends string> =
       readonly kind: 'missing-dependencies';
       readonly target: Q;
       readonly routes: readonly SolveRoute<Q>[];
+      readonly text: string;
     }
   | {
       readonly kind: 'inconsistent-inputs';
@@ -28,6 +30,7 @@ export type CalculationIssue<Q extends string> =
       readonly expected: number;
       readonly actual: number;
       readonly relative: number;
+      readonly text: string;
     };
 
 /** A stated target (a vent's `length_m`, a passive radiator's `addedMass_kg`) whose geometry is
@@ -38,6 +41,7 @@ export interface TargetUnreachableIssue {
   readonly kind: 'target-unreachable';
   readonly target: string;
   readonly maxReachable_hz: number;
+  readonly text: string;
 }
 
 /** An entered driver field outside its physically possible band (D5/D14) — `PHYSICAL_RANGE`'s
@@ -52,6 +56,7 @@ export interface OutOfRangeIssue {
   readonly value: number;
   readonly limit: number;
   readonly side: 'below' | 'above';
+  readonly text: string;
 }
 
 /**
@@ -73,6 +78,7 @@ export interface OutOfRangeIssue {
 export interface InvalidValueIssue {
   readonly kind: 'invalid-value';
   readonly value: number;
+  readonly text: string;
 }
 
 /**
@@ -86,6 +92,7 @@ export interface InvalidValueIssue {
 export interface NegativeValueIssue {
   readonly kind: 'negative-value';
   readonly value: number;
+  readonly text: string;
 }
 
 /** Every dq-carrying issue a field can hold, whichever domain produced it. `target`/`fields` are
@@ -93,6 +100,73 @@ export interface NegativeValueIssue {
  *  across every domain and carries no quantity-name type parameter of its own, and a
  *  `CalculationIssue<Q>` for any `Q extends string` widens to this without a cast. */
 export type DqIssue = CalculationIssue<string> | VentedPlausibilityIssue | TargetUnreachableIssue | OutOfRangeIssue | InvalidValueIssue | NegativeValueIssue;
+
+// ───────────────────────────── Issues, each carrying its own sentence ───────────────────────────
+//
+// An issue is constructed here, never as a bare literal, because the sentence is part of what it
+// IS: a caller holding a `DqIssue` can say what is wrong without an `Engine` to render it. That
+// is what lets the UI read `field.dq.map(i => i.text)` and hold no engine at all
+// (John, 2026-09-27).
+
+/** A target no route can reach yet, with every blocked route's formula and what it still needs. */
+export function missingDependencies<Q extends string>(
+  target: Q, routes: readonly SolveRoute<Q>[],
+): CalculationIssue<Q> {
+  const blocked = routes.map(r => `${r.formula} (needs ${r.missing.join(', ')})`).join('; or ');
+  return {
+    kind: 'missing-dependencies', target, routes,
+    text: `${target} cannot be calculated yet - state ${blocked}.`,
+  };
+}
+
+/** Stated values that contradict the formula relating them — every field in the group is marked. */
+export function inconsistentInputs<Q extends string>(
+  target: Q, fields: readonly Q[], formula: string, expected: number, actual: number,
+  relative: number,
+): CalculationIssue<Q> {
+  return {
+    kind: 'inconsistent-inputs', target, fields, formula, expected, actual, relative,
+    text: `${fields.join(', ')} disagree by ${pct(relative)}: ${formula}. Every field in the `
+      + 'group is marked - correct one of them, or clear one to let it be calculated.',
+  };
+}
+
+/** A driver field outside its physically possible band (D14). */
+export function outOfRange(
+  field: string, value: number, limit: number, side: 'below' | 'above',
+): OutOfRangeIssue {
+  return {
+    kind: 'out-of-range', field, value, limit, side,
+    text: `${field} ${decimal(value)} is ${side} the physical limit ${decimal(limit)}.`,
+  };
+}
+
+/** A stated target past the maximum this geometry can produce. */
+export function targetUnreachable(target: string, maxReachable_hz: number): TargetUnreachableIssue {
+  return {
+    kind: 'target-unreachable', target, maxReachable_hz,
+    text: `${target} cannot reach this target - the maximum this geometry can reach is `
+      + `${decimal(maxReachable_hz)} Hz.`,
+  };
+}
+
+/** Zero, negative or not finite where the physics requires strictly positive. */
+export function invalidValue(value: number): InvalidValueIssue {
+  return {
+    kind: 'invalid-value', value,
+    text: 'Bad data: zero or less is not a physical value here. It is kept and saved exactly as '
+      + 'entered - clear the field to fix it.',
+  };
+}
+
+/** Negative or not finite where zero is a legitimate stated value. */
+export function negativeValue(value: number): NegativeValueIssue {
+  return {
+    kind: 'negative-value', value,
+    text: 'Bad data: less than zero is not a physical value here. It is kept and saved exactly as '
+      + 'entered - clear the field to fix it.',
+  };
+}
 
 /** Every field one `CalculationIssue` names — the target, plus (for `missing-dependencies`)
  *  every field any of its routes requires or is still missing. One generic answer for any
@@ -111,26 +185,13 @@ export function issueFormula<Q extends string>(issue: CalculationIssue<Q>): stri
   return issue.routes.map(r => r.formula).join('; or ');
 }
 
-/** One sentence for one calculation issue, whichever domain it comes from — the single place
- *  that turns a `CalculationIssue` into human-facing text, so the cascade DQ, the sweep error
- *  channel, the driver editor tooltip and the persisted debug trail (`cell.ts#writeEntryDq`)
- *  all say the same thing (S2-11). */
-export function issueToText<Q extends string>(issue: CalculationIssue<Q>): string {
-  if (issue.kind === 'inconsistent-inputs') {
-    return `${issue.fields.join(', ')} disagree by ${pct(issue.relative)}: ${issue.formula}. `
-      + `Every field in the group is marked - correct one of them, or clear one to let it be calculated.`;
-  }
-  const routes = issue.routes.map(r => `${r.formula} (needs ${r.missing.join(', ')})`).join('; or ');
-  return `${issue.target} cannot be calculated yet - state ${routes}.`;
-}
-
 /** The one absolute floor every positive physical quantity shares — a box volume
  *  (BUG_20260927_box-volume-validity-decided-in-ui.md) or a driver spec value
  *  (BUG_20260927_driver-bad-value-decided-in-ui.md): zero, negative or not a finite number is
  *  not physical, whatever field it is. `null` is a valid answer to "any issue?" — the value
  *  passing this check. */
 export function positiveValueIssue(value: number): InvalidValueIssue | null {
-  return Number.isFinite(value) && value > 0 ? null : { kind: 'invalid-value', value };
+  return Number.isFinite(value) && value > 0 ? null : invalidValue(value);
 }
 
 /** The weaker floor: negative or not a finite number is not physical, but zero is a legitimate
@@ -138,102 +199,7 @@ export function positiveValueIssue(value: number): InvalidValueIssue | null {
  *  `Znom_ohm`, `alfaVC_per_K`). `null` is a valid answer to "any issue?" — the value passing
  *  this check. */
 export function nonNegativeValueIssue(value: number): NegativeValueIssue | null {
-  return Number.isFinite(value) && value >= 0 ? null : { kind: 'negative-value', value };
-}
-
-/** A near-miss needs its decimal to be readable; a gross one is quoted whole. */
-function pct(relative: number): string {
-  const p = relative * 100;
-  return p >= 100 ? `${Math.round(p)}%` : `${p.toFixed(1)}%`;
-}
-
-/** Readable at a glance: one decimal for anything a person would read as a number, two
- *  significant figures for the very small values an extrapolated alignment produces. */
-function decimal(v: number): string {
-  if (!Number.isFinite(v)) return String(v);
-  return Math.abs(v) < 0.1 && v !== 0 ? v.toPrecision(2) : String(Math.round(v * 10) / 10);
-}
-
-/** The value as the user reads it on screen: volumes in litres, tunings in hertz. */
-function quantified(quantity: VentedPlausibilityIssue['quantity'], value: number): string {
-  switch (quantity) {
-    case 'Vb': return `${decimal(value * 1000)} L`;
-    case 'Fb': return `${decimal(value)} Hz`;
-  }
-}
-
-function subject(quantity: VentedPlausibilityIssue['quantity']): string {
-  switch (quantity) {
-    case 'Vb': return 'Box volume';
-    case 'Fb': return 'Tuning';
-  }
-}
-
-/** Every one of these sentences ends in the same fact, because it is the fact that decides what
- *  a reader does next: the number is not a bug, it is WinISD's own answer, kept deliberately. */
-const PARITY = 'The alignment formula was extrapolated outside its design range; WinISD gives '
-  + 'the same answer, and OpenISD keeps it rather than quietly changing it.';
-
-/** One sentence for one plausibility issue — the wizard readout and the project cell say the
- *  same thing. */
-export function plausibilityToText(issue: VentedPlausibilityIssue): string {
-  const value = quantified(issue.quantity, issue.value);
-  if (issue.kind === 'non-physical') {
-    return `${subject(issue.quantity)} is ${value} - not a physical value. ${PARITY}`;
-  }
-  const band = `${quantified(issue.quantity, issue.min)} - ${quantified(issue.quantity, issue.max)}`;
-  return `${subject(issue.quantity)} is ${value}, outside the plausible ${band} band set in `
-    + `Settings. ${PARITY}`;
-}
-
-/** One sentence for a target the solver could not reach — the geometry is complete and
- *  consistent, but the stated target sits past the maximum this geometry can produce. */
-export function targetUnreachableToText(issue: TargetUnreachableIssue): string {
-  return `${issue.target} cannot reach this target - the maximum this geometry can reach is `
-    + `${decimal(issue.maxReachable_hz)} Hz.`;
-}
-
-/** One sentence for a driver field outside its physically possible band (D14). */
-export function outOfRangeToText(issue: OutOfRangeIssue): string {
-  return `${issue.field} ${decimal(issue.value)} is ${issue.side} the physical limit `
-    + `${decimal(issue.limit)}.`;
-}
-
-/** Zero, negative or not a finite number is not physical — kept and saved exactly as entered
- *  (never silently coerced), so this only marks the field. Field-agnostic: no alignment, no
- *  extrapolation, no design-band opinion, unlike `VentedPlausibilityIssue`'s own richer check. */
-export function invalidValueToText(_issue: InvalidValueIssue): string {
-  return 'Bad data: zero or less is not a physical value here. It is kept and saved exactly as '
-    + 'entered - clear the field to fix it.';
-}
-
-/** Negative or not a finite number is not physical, but zero is fine — kept and saved exactly as
- *  entered (never silently coerced), so this only marks the field. */
-export function negativeValueToText(_issue: NegativeValueIssue): string {
-  return 'Bad data: less than zero is not a physical value here. It is kept and saved exactly as '
-    + 'entered - clear the field to fix it.';
-}
-
-/** One sentence for any `DqIssue`, whichever shape it is — the single dispatch a caller uses
- *  instead of checking `kind` itself. `'out-of-range'` is narrowed further by `'field' in
- *  issue`: the literal is shared by `OutOfRangeIssue` and `VentedPlausibilityIssue`'s own
- *  out-of-range variant (see `OutOfRangeIssue`'s own doc comment). */
-export function dqIssueText(issue: DqIssue): string {
-  switch (issue.kind) {
-    case 'missing-dependencies':
-    case 'inconsistent-inputs':
-      return issueToText(issue);
-    case 'non-physical':
-      return plausibilityToText(issue);
-    case 'out-of-range':
-      return 'field' in issue ? outOfRangeToText(issue) : plausibilityToText(issue);
-    case 'invalid-value':
-      return invalidValueToText(issue);
-    case 'negative-value':
-      return negativeValueToText(issue);
-    case 'target-unreachable':
-      return targetUnreachableToText(issue);
-  }
+  return Number.isFinite(value) && value >= 0 ? null : negativeValue(value);
 }
 
 /**

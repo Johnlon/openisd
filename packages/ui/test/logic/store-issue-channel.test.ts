@@ -14,7 +14,7 @@
  */
 import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import {allIssues, curvesData, engine, newProject, paramIssues, requireFocusedProject} from '../../src/logic/appState.js';
+import {allIssues, curvesData, newProject, paramIssues, requireFocusedProject} from '../../src/logic/appState.js';
 
 /** `sweepErrors`'s re-sweep is throttled (`scheduleSweep`, `SWEEP_MS` — docs/design/
  *  REACTIVITY.md): a burst of synchronous `.set()`/`.clear()` calls lands well inside one
@@ -236,7 +236,7 @@ it('an unsized vent port surfaces a tuning_goal_hz/length_m error through allIss
     assert.ok(swept, `allIssues must carry the tuning_goal_hz error; got: ${allIssues.value.map(e => e.field).join(', ')}`);
     // The cell may carry further marks of its own (a plausibility mark is appended after the
     // solver's); the sweep channel's sentence must be one of them, verbatim.
-    const tuningCellMessages = tuningCell.dq.map(issue => engine.dqIssueText(issue));
+    const tuningCellMessages = tuningCell.dq.map(issue => issue.text);
     assert.ok(tuningCellMessages.includes(swept.message),
       `the sweep channel message must be one of the vent cell's own DQ sentences; cell has: ${tuningCellMessages.join(' | ')}`);
   });

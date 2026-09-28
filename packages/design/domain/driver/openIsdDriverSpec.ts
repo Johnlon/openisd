@@ -222,7 +222,7 @@ export class OpenIsdDriverSpec {
          *  BUG_20260927_driver-bad-value-decided-in-ui.md's follow-up), computed fresh from the
          *  CURRENT value on every read so it shows up immediately on `.set()`, not only after
          *  the next `resolve()`. */
-        const f = (key: DriverSpecFieldName): Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable => entryField(sectionSlot(key), key, engine, dqFor(key), (v) => floorIssue(key, v, engine));
+        const f = (key: DriverSpecFieldName): Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable => entryField(sectionSlot(key), key, dqFor(key), (v) => floorIssue(key, v, engine));
 
         /** The wiring field — `entryField` in every respect but the value's type, which is a
          *  NAME rather than one of `DriverSpecsSection`'s numbers, so it cannot go through `f()`
@@ -250,7 +250,7 @@ export class OpenIsdDriverSpec {
                 entered: (v: VoiceCoilWiring) => { wiringDq = []; wiringSlot.set(enteredWiring(v)); },
                 calculated: (v: VoiceCoilWiring) => { wiringDq = []; wiringSlot.set(calculatedWiring(v)); },
                 clear: () => { wiringDq = []; wiringSlot.set(undefined); },
-                dq: (list) => { wiringDq = list; writeEntryDq(wiringSlot, list, engine); },
+                dq: (list) => { wiringDq = list; writeEntryDq(wiringSlot, list); },
             },
         );
 

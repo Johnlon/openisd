@@ -375,46 +375,35 @@ describe('Engine.checkConsistency — RELATIONS loop non-finite guards', () => {
   });
 });
 
-describe('issueToText', () => {
+describe('a calculation issue\'s own sentence', () => {
   it('renders a missing-dependencies issue as "<target> cannot be calculated yet - state <routes>."', () => {
-    const issue: CalculationIssue<string> = {
-      kind: 'missing-dependencies',
-      target: 'Qts',
-      routes: [{formula: 'Qts = Qes·Qms/(Qes+Qms)', required: ['Qes', 'Qms'], missing: ['Qms']}],
-    };
-    expect(engine.issueToText(issue)).toBe(
+    const issue: CalculationIssue<string> = engine.missingDependencies<string>('Qts',
+      [{formula: 'Qts = Qes·Qms/(Qes+Qms)', required: ['Qes', 'Qms'], missing: ['Qms']}]);
+    expect(issue.text).toBe(
       'Qts cannot be calculated yet - state Qts = Qes·Qms/(Qes+Qms) (needs Qms).',
     );
   });
 
   it('renders an inconsistent-inputs issue as "<fields> disagree by <pct>: <formula>. Every field..."', () => {
-    const issue: CalculationIssue<string> = {
-      kind: 'inconsistent-inputs',
-      target: 'Qts',
-      fields: ['Qts', 'Qes', 'Qms'],
-      formula: 'Qts = Qes·Qms/(Qes+Qms)',
-      expected: 1,
-      actual: 1.953,
-      relative: 0.953,
-    };
-    expect(engine.issueToText(issue)).toBe(
+    const issue: CalculationIssue<string> = engine.inconsistentInputs<string>(
+      'Qts', ['Qts', 'Qes', 'Qms'], 'Qts = Qes·Qms/(Qes+Qms)', 1, 1.953, 0.953);
+    expect(issue.text).toBe(
       'Qts, Qes, Qms disagree by 95.3%: Qts = Qes·Qms/(Qes+Qms). Every field in the group is marked '
       + '- correct one of them, or clear one to let it be calculated.',
     );
   });
 });
 
-describe('plausibilityToText', () => {
+describe('a vented-plausibility issue\'s own sentence', () => {
   it('states the value, its unit and that WinISD agrees, for a non-physical answer', () => {
-    const text = engine.plausibilityToText({kind: 'non-physical', quantity: 'Vb', value: -0.02});
+    const text = engine.nonPhysicalQuantity('Vb', -0.02).text;
     expect(text).toMatch(/-20 L/);
     expect(text).toMatch(/not a physical/i);
     expect(text).toMatch(/WinISD/);
   });
 
   it('states the band a value fell outside', () => {
-    const text = engine.plausibilityToText(
-      {kind: 'out-of-range', quantity: 'Vb', value: 1.684, min: 0.001, max: 1.0});
+    const text = engine.quantityOutOfBand('Vb', 1.684, 0.001, 1.0).text;
     expect(text).toMatch(/1684 L/);
     expect(text).toMatch(/1 L/);
     expect(text).toMatch(/1000 L/);
@@ -422,45 +411,39 @@ describe('plausibilityToText', () => {
   });
 
   it('prints tuning in Hz', () => {
-    const text = engine.plausibilityToText(
-      {kind: 'out-of-range', quantity: 'Fb', value: 5.4, min: 10, max: 150});
+    const text = engine.quantityOutOfBand('Fb', 5.4, 10, 150).text;
     expect(text).toMatch(/5\.4 Hz/);
     expect(text).toMatch(/10 Hz/);
     expect(text).toMatch(/150 Hz/);
   });
 
   it('renders a sub-0.1 value to two significant figures instead of rounding it to zero', () => {
-    const text = engine.plausibilityToText({kind: 'non-physical', quantity: 'Vb', value: 0.00005});
-    expect(text).toMatch(/0\.050 L/);
+    expect(engine.nonPhysicalQuantity('Vb', 0.00005).text).toMatch(/0\.050 L/);
   });
 
   it('renders exactly zero as 0, not -0 or a precision string', () => {
-    const text = engine.plausibilityToText({kind: 'non-physical', quantity: 'Vb', value: 0});
-    expect(text).toMatch(/\bis 0 L\b/);
+    expect(engine.nonPhysicalQuantity('Vb', 0).text).toMatch(/\bis 0 L\b/);
   });
 });
 
-describe('targetUnreachableToText', () => {
+describe('a target-unreachable issue\'s own sentence', () => {
   it('names the target and the geometry\'s reachable ceiling', () => {
-    const text = engine.targetUnreachableToText({kind: 'target-unreachable', target: 'length_m', maxReachable_hz: 42});
+    const text = engine.targetUnreachable('length_m', 42).text;
     expect(text).toMatch(/length_m/);
     expect(text).toMatch(/42 Hz/);
   });
 
   it('prints a non-finite ceiling as the literal string, not a formatted number', () => {
-    const text = engine.targetUnreachableToText({kind: 'target-unreachable', target: 'length_m', maxReachable_hz: Infinity});
-    expect(text).toMatch(/Infinity Hz/);
+    expect(engine.targetUnreachable('length_m', Infinity).text).toMatch(/Infinity Hz/);
   });
 });
 
-describe('dqIssueText', () => {
-  it('dispatches every DqIssue kind to its own renderer', () => {
-    expect(engine.dqIssueText({kind: 'missing-dependencies', target: 'Qts', routes: []})).toMatch(/Qts/);
-    expect(engine.dqIssueText({
-      kind: 'inconsistent-inputs', target: 'Qts', fields: ['Qts'], formula: 'f', expected: 1, actual: 2, relative: 1,
-    })).toMatch(/disagree/);
-    expect(engine.dqIssueText({kind: 'non-physical', quantity: 'Vb', value: -1})).toMatch(/not a physical/i);
-    expect(engine.dqIssueText({kind: 'out-of-range', quantity: 'Fb', value: 1, min: 10, max: 20})).toMatch(/plausible/);
-    expect(engine.dqIssueText({kind: 'target-unreachable', target: 'length_m', maxReachable_hz: 42})).toMatch(/length_m/);
+describe('every DqIssue kind carries its own sentence', () => {
+  it('each factory decides the text at construction, so no reader has to dispatch on kind', () => {
+    expect(engine.missingDependencies<string>('Qts', []).text).toMatch(/Qts/);
+    expect(engine.inconsistentInputs<string>('Qts', ['Qts'], 'f', 1, 2, 1).text).toMatch(/disagree/);
+    expect(engine.nonPhysicalQuantity('Vb', -1).text).toMatch(/not a physical/i);
+    expect(engine.quantityOutOfBand('Fb', 1, 10, 20).text).toMatch(/plausible/);
+    expect(engine.targetUnreachable('length_m', 42).text).toMatch(/length_m/);
   });
 });

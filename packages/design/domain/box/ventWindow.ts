@@ -46,16 +46,16 @@ export class VentWindow implements Vent {
         this.shape = focus(lens, 'shape');
         this.endCorrection_m = focus(lens, 'endCorrection_m');
         this.width_m = nullableField(lens, 'width_m');
-        this.length_m = lengthField ?? entryField(focus(lens, 'length_m'), 'length_m', engine);
+        this.length_m = lengthField ?? entryField(focus(lens, 'length_m'), 'length_m');
 
         // Two solved pairs sharing this one record: `diameter_m` ↔ `area_m2` (round), `height_m`
         // ↔ `area_m2` (slotted, against the live `width_m`) — `#resolveVentGeometry` runs the
         // actual Math. `area_m2`'s own commit picks its sibling by the CURRENT shape; entering
         // `diameter_m`/`height_m` always clears `area_m2` unconditionally — harmless when that
         // dimension is not the active one, since geometry never consults it either.
-        const diameterEntry = entryField(focus(lens, 'diameter_m'), 'diameter_m', engine);
-        const heightEntry = entryField(focus(lens, 'height_m'), 'height_m', engine);
-        const areaEntry = entryField(focus(lens, 'area_m2'), 'area_m2', engine);
+        const diameterEntry = entryField(focus(lens, 'diameter_m'), 'diameter_m');
+        const heightEntry = entryField(focus(lens, 'height_m'), 'height_m');
+        const areaEntry = entryField(focus(lens, 'area_m2'), 'area_m2');
         this.diameter_m = pairedField(
             (entry) => lens.set({ ...lens.value, diameter_m: entry, area_m2: undefined }),
             diameterEntry,
@@ -74,7 +74,7 @@ export class VentWindow implements Vent {
 
         /** Never N: an empty slot reads `calcVentCount()` as C; `OpenISDProject#resolveVentCount`
          *  stores it. */
-        this.count = defaultingEntryField(focus(lens, 'count'), 'count', engine, calcVentCount);
+        this.count = defaultingEntryField(focus(lens, 'count'), 'count', calcVentCount);
     }
 
     /** The port count as a plain number. A record the resolve has not reached, or one stating a

@@ -474,7 +474,7 @@ const doSweep = () => {
   // structured (`CalculationIssue<Q>`), not the `DriverError` shape this channel already renders.
   sweepErrors.value = [...new Map(
     [
-      ...[...sw.issues, ...mx.issues].map(issue => sweepIssueMessage(engine, issue)),
+      ...[...sw.issues, ...mx.issues].map(issue => sweepIssueMessage(issue)),
       ...mx.driverPrerequisites.map(driverPrerequisiteMessage),
     ].map(e => [`${e.field ?? ''}|${e.message}`, e]),
   ).values()];
@@ -538,7 +538,7 @@ const curveIssues = computed<DriverError[]>(() => {
 // Validated at the same boundary, on the same project the sweep is actually run on.
 export const paramIssues = computed<DriverError[]>(() => {
   void live.value;
-  return live.value ? live.value.boxParamsIssues().map(issue => sweepIssueMessage(engine, issue)) : [];
+  return live.value ? live.value.boxParamsIssues().map(issue => sweepIssueMessage(issue)) : [];
 });
 
 // The full issue list the UI shows: box-parameter issues + sweep/max-curve finiteness issues.

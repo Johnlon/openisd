@@ -13,6 +13,7 @@
  * dropped.
  */
 import type {DriverSolverParams} from './solverTypes.js';
+import {outOfRange} from './consistency.js';
 import type {OutOfRangeIssue} from './consistency.js';
 
 /** Mirrors `solver.ts`'s own (private) `NumericDriverQuantityName`: every driver quantity this
@@ -61,9 +62,9 @@ export function checkRange(params: DriverSolverParams): readonly OutOfRangeIssue
     if (!field.entered || field.value == null || field.value === 0) continue;
     const value = field.value;
     if (band.lo != null && value < band.lo) {
-      issues.push({ kind: 'out-of-range', field: band.field, value, limit: band.lo, side: 'below' });
+      issues.push(outOfRange(band.field, value, band.lo, 'below'));
     } else if (band.hi != null && value > band.hi) {
-      issues.push({ kind: 'out-of-range', field: band.field, value, limit: band.hi, side: 'above' });
+      issues.push(outOfRange(band.field, value, band.hi, 'above'));
     }
   }
   return issues;

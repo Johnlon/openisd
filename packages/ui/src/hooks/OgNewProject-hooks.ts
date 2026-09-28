@@ -297,7 +297,7 @@ export function useOgNewProject(deps?: OgNewProjectDeps): OgNewProjectAPI {
     const design = ventedAlignmentResult.value;
     if (!design) return null;
     const issue = eng.ventedVolumeIssue(design.Vb);
-    return issue === null ? null : eng.plausibilityToText(issue);
+    return issue === null ? null : issue.text;
   });
 
   const ventedTuningWarning = computed<string | null>(() => {
@@ -305,7 +305,7 @@ export function useOgNewProject(deps?: OgNewProjectDeps): OgNewProjectAPI {
     const design = ventedAlignmentResult.value;
     if (!design) return null;
     const issue = eng.ventedTuningIssue(design.Fb);
-    return issue === null ? null : eng.plausibilityToText(issue);
+    return issue === null ? null : issue.text;
   });
 
   if (initialDriver) recomputeSealedVolume(initialDriver, targetQtc.value);

@@ -56,6 +56,7 @@
  */
 
 /** Ratio of specific heats for air. */
+import {missingDependencies} from './consistency.js';
 import type {CalculationIssue} from './consistency.js';
 
 export const GAMMA = 1.4;
@@ -129,14 +130,10 @@ export type EnvironmentIssue = CalculationIssue<EnvironmentQuantityName>;
 function environmentIssues(env: AirEnvironment): readonly EnvironmentIssue[] {
   const { tempK } = env;
   if (tempK == null || (tempK >= MIN_SUPPORTED_TEMP_K && tempK <= MAX_SUPPORTED_TEMP_K)) return [];
-  return [{
-    kind: 'missing-dependencies',
-    target: 'tempK',
-    routes: [{
-      formula: `tempK must be between ${MIN_SUPPORTED_TEMP_K} K and ${MAX_SUPPORTED_TEMP_K} K`,
-      required: ['tempK'], missing: ['tempK'],
-    }],
-  }];
+  return [missingDependencies('tempK', [{
+    formula: `tempK must be between ${MIN_SUPPORTED_TEMP_K} K and ${MAX_SUPPORTED_TEMP_K} K`,
+    required: ['tempK'], missing: ['tempK'],
+  }])];
 }
 
 export interface EnvironmentSolveResult {

@@ -39,19 +39,19 @@ describe('Engine.ventedPlausibility', () => {
 
   it('marks a zero or negative volume non-physical however wide the band', () => {
     const issues = wide.ventedPlausibility({Vb: 0, Fb: 35});
-    assert.deepEqual(issues, [{kind: 'non-physical', quantity: 'Vb', value: 0}]);
+    assert.deepEqual(issues, [wide.nonPhysicalQuantity('Vb', 0)]);
     assert.deepEqual(
       wide.ventedPlausibility({Vb: -0.02, Fb: 35}),
-      [{kind: 'non-physical', quantity: 'Vb', value: -0.02}]);
+      [wide.nonPhysicalQuantity('Vb', -0.02)]);
   });
 
   it('marks a zero or negative tuning non-physical however wide the band', () => {
     assert.deepEqual(
       wide.ventedPlausibility({Vb: 0.05, Fb: 0}),
-      [{kind: 'non-physical', quantity: 'Fb', value: 0}]);
+      [wide.nonPhysicalQuantity('Fb', 0)]);
     assert.deepEqual(
       wide.ventedPlausibility({Vb: 0.05, Fb: -3}),
-      [{kind: 'non-physical', quantity: 'Fb', value: -3}]);
+      [wide.nonPhysicalQuantity('Fb', -3)]);
   });
 
   it('marks NaN and Infinity non-physical', () => {
@@ -60,34 +60,34 @@ describe('Engine.ventedPlausibility', () => {
     assert.equal(nan[0].kind, 'non-physical');
     assert.deepEqual(
       wide.ventedPlausibility({Vb: 0.05, Fb: Number.POSITIVE_INFINITY}),
-      [{kind: 'non-physical', quantity: 'Fb', value: Number.POSITIVE_INFINITY}]);
+      [wide.nonPhysicalQuantity('Fb', Number.POSITIVE_INFINITY)]);
   });
 
   it('reports both quantities when both are wrong', () => {
     assert.deepEqual(wide.ventedPlausibility({Vb: 0, Fb: -1}), [
-      {kind: 'non-physical', quantity: 'Vb', value: 0},
-      {kind: 'non-physical', quantity: 'Fb', value: -1},
+      wide.nonPhysicalQuantity('Vb', 0),
+      wide.nonPhysicalQuantity('Fb', -1),
     ]);
   });
 
   it('marks a volume above the band, naming the limit it broke', () => {
     assert.deepEqual(narrow.ventedPlausibility({Vb: 1.684, Fb: 35}), [
-      {kind: 'out-of-range', quantity: 'Vb', value: 1.684, min: 0.001, max: 1.0},
+      narrow.quantityOutOfBand('Vb', 1.684, 0.001, 1.0),
     ]);
   });
 
   it('marks a volume below the band', () => {
     assert.deepEqual(narrow.ventedPlausibility({Vb: 0.0000027, Fb: 35}), [
-      {kind: 'out-of-range', quantity: 'Vb', value: 0.0000027, min: 0.001, max: 1.0},
+      narrow.quantityOutOfBand('Vb', 0.0000027, 0.001, 1.0),
     ]);
   });
 
   it('marks a tuning below and above the band', () => {
     assert.deepEqual(narrow.ventedPlausibility({Vb: 0.05, Fb: 5.4}), [
-      {kind: 'out-of-range', quantity: 'Fb', value: 5.4, min: 10, max: 150},
+      narrow.quantityOutOfBand('Fb', 5.4, 10, 150),
     ]);
     assert.deepEqual(narrow.ventedPlausibility({Vb: 0.05, Fb: 400}), [
-      {kind: 'out-of-range', quantity: 'Fb', value: 400, min: 10, max: 150},
+      narrow.quantityOutOfBand('Fb', 400, 10, 150),
     ]);
   });
 
@@ -132,17 +132,17 @@ describe('Engine.ventedVolumeIssue / Engine.ventedTuningIssue', () => {
   it('judges a volume without being told a tuning', () => {
     assert.equal(narrow.ventedVolumeIssue(0.05), null);
     assert.deepEqual(narrow.ventedVolumeIssue(1.684),
-      {kind: 'out-of-range', quantity: 'Vb', value: 1.684, min: 0.001, max: 1.0});
+      narrow.quantityOutOfBand('Vb', 1.684, 0.001, 1.0));
     assert.deepEqual(wide.ventedVolumeIssue(-0.02),
-      {kind: 'non-physical', quantity: 'Vb', value: -0.02});
+      wide.nonPhysicalQuantity('Vb', -0.02));
   });
 
   it('judges a tuning without being told a volume', () => {
     assert.equal(narrow.ventedTuningIssue(35), null);
     assert.deepEqual(narrow.ventedTuningIssue(5.4),
-      {kind: 'out-of-range', quantity: 'Fb', value: 5.4, min: 10, max: 150});
+      narrow.quantityOutOfBand('Fb', 5.4, 10, 150));
     assert.deepEqual(wide.ventedTuningIssue(0),
-      {kind: 'non-physical', quantity: 'Fb', value: 0});
+      wide.nonPhysicalQuantity('Fb', 0));
   });
 
   it('agrees with the whole-design judgement', () => {
