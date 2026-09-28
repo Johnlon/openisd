@@ -67,19 +67,19 @@ const driverParams: DriverSolverParams = {
   Rme_kg_per_s: fakeField<number>(null), Mpow_N_per_sqrtW: fakeField<number>(null), Mcost_kg_per_s: fakeField<number>(null),
   gamma_m_per_s2_A: fakeField<number>(null), Gloss: fakeField<number>(null), Vcd_m: fakeField<number>(null), Depth_m: fakeField<number>(null),
   MagDepth_m: fakeField<number>(null), Magnet_m: fakeField<number>(null), DVol_m3: fakeField<number>(null),
-  c_m_per_s: fakeField(engine.solveEnvironment({}).values.c),
-  roo_kg_per_m3: fakeField(engine.solveEnvironment({}).values.rho),
+  c_m_per_s: fakeField(engine.environment.solve({}).values.c),
+  roo_kg_per_m3: fakeField(engine.environment.solve({}).values.rho),
   Re_terminal_ohm: fakeField<number>(null), BL_terminal_Tm: fakeField<number>(null), numVC: fakeField<number>(null),
   wiring: fakeField('parallel'),
 };
-engine.solveDriver(driverParams, engine.solveEnvironment({}).values);
+engine.driver.solve(driverParams, engine.environment.solve({}).values);
 const DRV = driverParams;
 const LE_H = 0.70e-3;
 
 // Fb: the tuning this Vb/Sp/Leff already amounts to (Helmholtz, inverted) — winisd-lossy's own
 // Map comes from Fb directly (circuit.ts, BUG_20260927_vented-box-losses-not-winisd-form.md).
 const SP_VB = 0.030, SP_SP = Math.PI * (0.05 / 2) ** 2, SP_LEFF = 0.30 + 0.732 * 0.05;
-const {c: SP_C} = engine.solveEnvironment({}).values;
+const {c: SP_C} = engine.environment.solve({}).values;
 const SP: SweepParams = {
   Vb: SP_VB, eg: 2.83, Sp: SP_SP, Leff: SP_LEFF, Fb: SP_C * Math.sqrt(SP_SP / (SP_LEFF * SP_VB)) / (2 * Math.PI),
   fmin: 10, fmax: 2000, N: 200,
@@ -100,7 +100,7 @@ const PR_ENGINE = new Engine();
 const PR_VB = 0.010;
 const PR_BOX = { prSd: 0.0095, prNum: 1, prMmd: 0.010, prMadd: 0, prCms: 0.0018, prRms: 1.0 };
 const PR_FR = PR_ENGINE.pr.tuning({ Vb: PR_VB, prMmd: PR_BOX.prMmd, prMadd: PR_BOX.prMadd, prSd: PR_BOX.prSd, prCms: PR_BOX.prCms, prNum: PR_BOX.prNum },
-  PR_ENGINE.solveEnvironment({}).values);
+  PR_ENGINE.environment.solve({}).values);
 const SP_PR: SweepParams = {
   Vb: PR_VB, eg: 2.83, ...PR_BOX, Fr: PR_FR, Ql: 7, Qa: 30,
   fmin: 10, fmax: 2000, N: 200,

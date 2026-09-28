@@ -22,7 +22,7 @@ const builder = OpenISDProject.builder(driver, engine);
 // WinISD's default vented alignment (C4/SC4), designed as the New Project wizard does it
 // (docs/research/VENTED_ALIGNMENT_FORMULAS.md); a hardcoded volume/tuning here would drift from
 // what the wizard actually builds for this driver. Ql 10 is the new-project vented default.
-const qtsLoaded = engine.sourceLoadedQts(
+const qtsLoaded = engine.driver.sourceLoadedQts(
   driver.specs.Qms.value!, driver.specs.Qes.value!, driver.specs.Re_ohm.value!, DEFAULT_SOURCE_RESISTANCE_OHM, driver.specs.Qts.value!,
 );
 const c4 = engine.vented.alignment('c4', driver.specs.Fs_hz.value!, qtsLoaded, driver.specs.Vas_m3.value!, 10);

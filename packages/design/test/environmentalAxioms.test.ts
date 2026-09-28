@@ -140,7 +140,7 @@ describe('Phase 1: Environmental Axioms (Tasks 26-33)', () => {
     project.envHumidityPct.set(80);
     project.envPressurePa.set(90000);
 
-    const expected = engine.solveEnvironment({
+    const expected = engine.environment.solve({
       tempK: 250, humidityPct: 80, pressurePa: 90000, useWinisdAirModel: true,
     }).values;
 

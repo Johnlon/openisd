@@ -40,13 +40,13 @@ const END_CORRECTION = 0.732;
 
 // No environment reaches these test's own reimplementation of the formula under test, so ρ/c
 // are computed live at the reference environment — matching production (no stored constant).
-const refRho = (): number => engine.solveEnvironment({}).values.rho;
-const refC = (): number => engine.solveEnvironment({}).values.c;
+const refRho = (): number => engine.environment.solve({}).values.rho;
+const refC = (): number => engine.environment.solve({}).values.c;
 // The reference air pair, passed explicitly to every ventLength/tuningFromLength/prTuning/
 // prMassForFp call below — these tests are about the Helmholtz/PR formulas, not air-sensitivity
 // (see boxDesign-air.test.ts for that), so every one of them runs at the same reference
 // condition `refRho()`/`refC()` above already assume.
-const AIR = engine.solveEnvironment({}).values;
+const AIR = engine.environment.solve({}).values;
 
 // ---------------------------------------------------------------------------
 // Test driver: a typical 6.5" mid-woofer — same parameters used throughout
@@ -88,13 +88,13 @@ describe('Efficiency Bandwidth Product (EBP = Fs / Qes)', () => {
     // Ref: [Wiki-TS]
     // For our test driver: Fs=37 Hz, Qes=0.40 → EBP = 92.5
     const EXPECTED_EBP = 37 / 0.40; // = 92.5
-    assert.ok(Math.abs(engine.ebp(DRIVER.Fs, DRIVER.Qes) - EXPECTED_EBP) < EXACT,
-      `EBP should be Fs/Qes = ${EXPECTED_EBP}, got ${engine.ebp(DRIVER.Fs, DRIVER.Qes)}`);
+    assert.ok(Math.abs(engine.driver.ebp(DRIVER.Fs, DRIVER.Qes) - EXPECTED_EBP) < EXACT,
+      `EBP should be Fs/Qes = ${EXPECTED_EBP}, got ${engine.driver.ebp(DRIVER.Fs, DRIVER.Qes)}`);
   });
 
   it('a driver with EBP = 37/0.40 = 92.5 sits in the borderline zone (50 < EBP < 100)', () => {
     // This is a sanity check that the result is physically meaningful.
-    const result = engine.ebp(DRIVER.Fs, DRIVER.Qes);
+    const result = engine.driver.ebp(DRIVER.Fs, DRIVER.Qes);
     assert.ok(result > 50 && result < 100,
       `EBP ${result.toFixed(1)} should be in the 50–100 borderline zone for this driver`);
   });
@@ -102,7 +102,7 @@ describe('Efficiency Bandwidth Product (EBP = Fs / Qes)', () => {
   it('a woofer with very low Qes (high Bl) has a high EBP — strongly vented-preferred', () => {
     // Very high Bl → very low Qes → very high EBP → strong vented preference.
     const highBlDriver = { ...DRIVER, Qes: 0.10 }; // Qes=0.10 is very high Bl
-    const result = engine.ebp(highBlDriver.Fs, highBlDriver.Qes);
+    const result = engine.driver.ebp(highBlDriver.Fs, highBlDriver.Qes);
     assert.ok(result > 100,
       `High-Bl driver EBP ${result.toFixed(1)} should exceed 100 (vented preferred)`);
   });
@@ -135,9 +135,9 @@ describe('Sealed box volume for a target system Q (sealedFromQtc)', () => {
     assert.ok(volume !== null);
     assert.equal(engine.sealed.qtcFromVolume(DRIVER.Qts, DRIVER.Vas, volume), 0.707);
     assert.equal(engine.sealed.closestAlignment(0.707).value, 0.707);
-    assert.equal(engine.ebpSuitability(engine.ebp(40, 0.45)), 'either');
-    assert.equal(engine.ebpSuitability(40), 'sealed');
-    assert.equal(engine.ebpSuitability(120), 'vented');
+    assert.equal(engine.driver.ebpSuitability(engine.driver.ebp(40, 0.45)), 'either');
+    assert.equal(engine.driver.ebpSuitability(40), 'sealed');
+    assert.equal(engine.driver.ebpSuitability(120), 'vented');
   });
 
   // Formula: Qtc = Qts·√(1 + Vas/Vb)  →  Vb = Vas / ((Qtc/Qts)² − 1)
@@ -454,8 +454,8 @@ describe('Lossy sealed box resonance and Q from sweep (findImpedancePeak)', () =
       Rms_kg_per_s: 1.5,
       BL_Tm: 10.0,
       Pe_W: 100,
-      Re_terminal_ohm: engine.terminalRe_ohm(6.0, 1, undefined),
-      BL_terminal_Tm: engine.terminalBL_Tm(10.0, 1, undefined),
+      Re_terminal_ohm: engine.driver.terminalRe_ohm(6.0, 1, undefined),
+      BL_terminal_Tm: engine.driver.terminalBL_Tm(10.0, 1, undefined),
     };
     const P: SweepParams = {
       Vb: 0.010,
@@ -471,7 +471,7 @@ describe('Lossy sealed box resonance and Q from sweep (findImpedancePeak)', () =
       N: 2000,
     };
     const result = engine.simulation.sweep(driverParams(drv), LE_H, 'sealed', P).values!;
-    const peak = engine.findImpedancePeak(result, drv.Re_ohm!);
+    const peak = engine.driver.findImpedancePeak(result, drv.Re_ohm!);
     assert.ok(peak !== null);
     // Assert peak frequency is near 54.81 Hz
     assert.ok(Math.abs(peak.Fsc - 54.81) < 0.1, `Expected Fsc near 54.81 Hz, got ${peak.Fsc}`);
@@ -480,7 +480,7 @@ describe('Lossy sealed box resonance and Q from sweep (findImpedancePeak)', () =
   });
 
   it('returns null when there is no sweep result to search', () => {
-    assert.equal(engine.findImpedancePeak(null, DRIVER.Re), null);
+    assert.equal(engine.driver.findImpedancePeak(null, DRIVER.Re), null);
   });
 
   it('returns null when the sweep never rises above Re — no resonance peak to find', () => {
@@ -497,8 +497,8 @@ describe('Lossy sealed box resonance and Q from sweep (findImpedancePeak)', () =
       Rms_kg_per_s: 1.5,
       BL_Tm: 10.0,
       Pe_W: 100,
-      Re_terminal_ohm: engine.terminalRe_ohm(6.0, 1, undefined),
-      BL_terminal_Tm: engine.terminalBL_Tm(10.0, 1, undefined),
+      Re_terminal_ohm: engine.driver.terminalRe_ohm(6.0, 1, undefined),
+      BL_terminal_Tm: engine.driver.terminalBL_Tm(10.0, 1, undefined),
     };
     const result = engine.simulation.sweep(driverParams(drv), LE_H, 'sealed', {
       Vb: 0.010, Ql: 10, Qa: 100, Qp: 100, eg: 2.83, Rs: 0,
@@ -507,7 +507,7 @@ describe('Lossy sealed box resonance and Q from sweep (findImpedancePeak)', () =
     // Every real impedance sample sits above 0 Ω — a Re past the actual peak means the sweep
     // "never rises above Re", so there is no resonance bump for this function to characterise.
     const hugeRe = Math.max(...result.zmag) + 1;
-    assert.equal(engine.findImpedancePeak(result, hugeRe), null,
+    assert.equal(engine.driver.findImpedancePeak(result, hugeRe), null,
       'when nothing in the sweep exceeds Re there is no peak to report');
   });
 
@@ -530,8 +530,8 @@ describe('Lossy sealed box resonance and Q from sweep (findImpedancePeak)', () =
       Rms_kg_per_s: 1.5,
       BL_Tm: 10.0,
       Pe_W: 100,
-      Re_terminal_ohm: engine.terminalRe_ohm(6.0, 1, undefined),
-      BL_terminal_Tm: engine.terminalBL_Tm(10.0, 1, undefined),
+      Re_terminal_ohm: engine.driver.terminalRe_ohm(6.0, 1, undefined),
+      BL_terminal_Tm: engine.driver.terminalBL_Tm(10.0, 1, undefined),
     };
     const result = engine.simulation.sweep(driverParams(drv), LE_H, 'sealed', {
       Vb: 0.010, Ql: 10, Qa: 100, Qp: 100, eg: 2.83, Rs: 0,
@@ -540,7 +540,7 @@ describe('Lossy sealed box resonance and Q from sweep (findImpedancePeak)', () =
     // Force the peak to be the curve's first sample by making it artificially the largest.
     const rigged = { ...result, zmag: [...result.zmag] };
     rigged.zmag[0] = Math.max(...result.zmag) + 1;
-    const peak = engine.findImpedancePeak(rigged, drv.Re_ohm!);
+    const peak = engine.driver.findImpedancePeak(rigged, drv.Re_ohm!);
     assert.ok(peak !== null);
     assert.equal(peak.Fsc, rigged.fs[0], 'Fsc must be the frequency of the rigged edge peak');
     assert.equal(peak.Qtc, 0, 'with no half-power point below the peak, Qtc must fall back to 0');

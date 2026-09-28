@@ -189,11 +189,11 @@ export function useOgNewProject(deps?: OgNewProjectDeps): OgNewProjectAPI {
     if (!driver) return null;
     const Fs_hz = driver.specs.Fs_hz.value;
     const Qes = driver.specs.Qes.value;
-    return Fs_hz != null && Qes != null && Qes !== 0 ? eng.ebp(Fs_hz, Qes) : null;
+    return Fs_hz != null && Qes != null && Qes !== 0 ? eng.driver.ebp(Fs_hz, Qes) : null;
   });
 
   const ebpSuitability = computed(() => {
-    return ebp.value != null ? eng.ebpSuitability(ebp.value) : null;
+    return ebp.value != null ? eng.driver.ebpSuitability(ebp.value) : null;
   });
 
   const ebpSuitabilityLabel = computed(() => {
@@ -267,7 +267,7 @@ export function useOgNewProject(deps?: OgNewProjectDeps): OgNewProjectAPI {
     const Qes = driver.specs.Qes.value;
     const Re_ohm = driver.specs.Re_ohm.value;
     const QtsLoaded = Qms != null && Qes != null && Re_ohm != null
-      ? eng.sourceLoadedQts(Qms, Qes, Re_ohm, Rs_ohm, Qts)
+      ? eng.driver.sourceLoadedQts(Qms, Qes, Re_ohm, Rs_ohm, Qts)
       : Qts;
     return eng.vented.alignment(alignment, Fs_hz, QtsLoaded, Vas_m3, Ql);
   }

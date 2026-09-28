@@ -35,9 +35,9 @@ for (const name of NAMES) {
   const drv: TestSolverQuantities = {
     ...solved,
     Re_terminal_ohm: solved.Re_ohm === undefined ? undefined
-      : engine.terminalRe_ohm(solved.Re_ohm!, solved.numVC, solved.wiring),
+      : engine.driver.terminalRe_ohm(solved.Re_ohm!, solved.numVC, solved.wiring),
     BL_terminal_Tm: solved.BL_Tm === undefined ? undefined
-      : engine.terminalBL_Tm(solved.BL_Tm!, solved.numVC, solved.wiring),
+      : engine.driver.terminalBL_Tm(solved.BL_Tm!, solved.numVC, solved.wiring),
   };
   const sw = engine.simulation.sweep(driverParams(drv), driverRaw.Le, box, P).values;
   const mx = engine.simulation.maxCurves(driverParams(drv), driverRaw.Le, box, P).values;

@@ -630,6 +630,20 @@ describe('winIsdProjectToOpenIsdProject — .wpr text back to a project (round t
     assert.equal(project.envTempK.calculated, true);
   });
 
+  it('a [Box] T/p/phi equal to the app default stays calculated; a differing one is entered', () => {
+    const engine = new Engine();
+    const {tempK, pressurePa, humidityPct} = engine.environment.defaults();
+    const text = '[ProjectInfo]\n[Driver]\nBrand=Test\nModel=Driver\n'
+      + `[Box]\nBType=0\nVr=0.02\nT=${tempK}\np=${pressurePa + 100}\nphi=${humidityPct / 100}\n`;
+    const {value: project, errors} = winIsdProjectToOpenIsdProject(text, engine);
+    assert.equal(errors.length, 0, JSON.stringify(errors));
+    if (!project) throw new Error('expected a project');
+    assert.equal(project.envTempK.calculated, true);
+    assert.equal(project.envHumidityPct.calculated, true);
+    assert.equal(project.envPressurePa.entered, true);
+    assert.equal(project.envPressurePa.value, pressurePa + 100);
+  });
+
   it('imports [SignalSource] P and [ProjectInfo] Description/Creator/CreateDate/ModifyDate when stated', () => {
     const text = '[ProjectInfo]\nDescription=A test project\nCreator=Test Creator\n'
       + 'CreateDate=20260101\nModifyDate=20260102\n[Driver]\nBrand=Test\nModel=Driver\nRe=8\n'

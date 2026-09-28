@@ -50,7 +50,7 @@ function expectInvalidVolumeAtEachBadValue(
 ) {
   for (const value of [0, -1, NaN]) {
     field.set(value);
-    expect(field.dq).toEqual([engine.positiveValueIssue(value)]);
+    expect(field.dq).toEqual([engine.issues.positiveValueIssue(value)]);
   }
 }
 
@@ -115,6 +115,6 @@ describe('box volume validity — every box type shares one floor (BUG_20260927)
     const engine = new Engine();
     const p = OpenISDProject.builder(driverFor(engine), engine).vented().volume_m3(0.05).tuning_goal_hz(35).build();
     p.box.vented.volume_m3.set(0);
-    expect(p.box.vented.volume_m3.dq).toEqual([engine.nonPhysicalQuantity('Vb', 0)]);
+    expect(p.box.vented.volume_m3.dq).toEqual([engine.issues.nonPhysicalQuantity('Vb', 0)]);
   });
 });

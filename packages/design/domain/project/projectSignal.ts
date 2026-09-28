@@ -66,7 +66,7 @@ export class ProjectSignal {
                         throw new Error('powerDrive_W cannot be entered: the driver has no usable Re_ohm yet.');
                     }
                     const Rs_ohm = this.#rsOhm();
-                    if (!(v > 0 && this.#engine.driveVoltage(v, Re_ohm, Rs_ohm) >= MIN_DRIVE_VOLTAGE_V)) {
+                    if (!(v > 0 && this.#engine.signal.driveVoltage(v, Re_ohm, Rs_ohm) >= MIN_DRIVE_VOLTAGE_V)) {
                         throw new RangeError(`powerDrive_W ${v} W drives below the 10 mV minimum voltage.`);
                     }
                     signal.set({...signal.value, power_W: enteredEntry(v), voltage_V: undefined});

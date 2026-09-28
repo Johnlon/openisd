@@ -36,7 +36,7 @@ const fixtureEngine = new Engine();
 /** A distinct, hand-constructible `DqIssue` for fixtures — a target-unreachable issue is the
  *  simplest closed-union member to write out by hand. */
 function ignoredIssue(target: string): DqIssue {
-  return fixtureEngine.targetUnreachable(target, 0);
+  return fixtureEngine.issues.targetUnreachable(target, 0);
 }
 
 /** A cloned record's woofer section, read the way any consumer must: `specs` is a SUM — a
@@ -833,10 +833,10 @@ describe('OpenISDBox — every alignment, as a window onto the project record', 
     // flipping the project's air model changes the port length, and matches the engine's own
     // resolve for that model exactly.
     p.envUseWinisdAirModel.set(false);
-    const physical = engine.solveEnvironment({ useWinisdAirModel: false }).values;
+    const physical = engine.environment.solve({ useWinisdAirModel: false }).values;
     const lengthPhysical = p.box.vented.vent.length_m.value;
     p.envUseWinisdAirModel.set(true);
-    const winisd = engine.solveEnvironment({ useWinisdAirModel: true }).values;
+    const winisd = engine.environment.solve({ useWinisdAirModel: true }).values;
     const lengthWinisd = p.box.vented.vent.length_m.value;
 
     expect(physical).not.toEqual(winisd);
@@ -1430,7 +1430,7 @@ describe('the passive radiator a box holds', () => {
     p.box.passiveRadiator.tuning_goal_hz.set(ceiling * 1.5);
     p.notifyPrChanged();
 
-    const DQ = [fixtureEngine.targetUnreachable('addedMass_kg', ceiling)];
+    const DQ = [fixtureEngine.issues.targetUnreachable('addedMass_kg', ceiling)];
     expect(p.box.passiveRadiator.tuning_goal_hz.entered).toBe(true);                 // the input
     expect(p.box.passiveRadiator.tuning_goal_hz.dq).toEqual(DQ);
     expect(p.box.passiveRadiator.addedMass_kg.dq).toEqual(DQ);
@@ -1733,7 +1733,7 @@ describe('editing a driver — copy, then update or drop', () => {
 
     expect(project.driver.specs.c_m_per_s.calculated).toBe(true);
     expect(project.driver.specs.roo_kg_per_m3.calculated).toBe(true);
-    const projectAir = new Engine().solveEnvironment({ tempK: 250, humidityPct: 80, pressurePa: 90000, useWinisdAirModel: true }).values;
+    const projectAir = new Engine().environment.solve({ tempK: 250, humidityPct: 80, pressurePa: 90000, useWinisdAirModel: true }).values;
     expect(project.driver.specs.c_m_per_s.value).toBeCloseTo(projectAir.c, 6);
     expect(project.driver.specs.roo_kg_per_m3.value).toBeCloseTo(projectAir.rho, 6);
     // Never 999/5 — the driver's own stated pair must not survive embedding.
@@ -1761,7 +1761,7 @@ describe('editing a driver — copy, then update or drop', () => {
     project.driver.specs.c_m_per_s.set(999);
     project.driver.specs.roo_kg_per_m3.set(5);
 
-    const projectAir = new Engine().solveEnvironment({ tempK: 250, humidityPct: 80, pressurePa: 90000, useWinisdAirModel: true }).values;
+    const projectAir = new Engine().environment.solve({ tempK: 250, humidityPct: 80, pressurePa: 90000, useWinisdAirModel: true }).values;
     const ts = project.driver.specs;
     expect(ts.c_m_per_s.value).toBeCloseTo(projectAir.c, 6);
     expect(ts.roo_kg_per_m3.value).toBeCloseTo(projectAir.rho, 6);
@@ -2310,7 +2310,7 @@ describe('OpenISDDriver — resolves on every write (S2-7c)', () => {
     const engine = new Engine();
     const d = OpenISDDriver.empty(engine);
     d.specs.Qes.set(0.4);
-    const spy = vi.spyOn(engine, 'solveDriver');
+    const spy = vi.spyOn(engine.driver, 'solve');
     d.specs.Qms.set(3.0);
     expect(spy).toHaveBeenCalledTimes(1);
   });
@@ -2318,7 +2318,7 @@ describe('OpenISDDriver — resolves on every write (S2-7c)', () => {
   it('a not-entered c_m_per_s lands in the record as a calculated entry equal to the driver\'s own air', () => {
     const engine = new Engine();
     const d = OpenISDDriver.empty(engine);
-    const air = engine.solveEnvironment({}).values;
+    const air = engine.environment.solve({}).values;
     const entry = wooferOf(d.cloneDriver())?.c_m_per_s;
     expect(entry).toMatchObject({ state: 'C', value: air.c });
   });
@@ -2435,13 +2435,13 @@ describe('OpenISDProject — the driver cascade resolves on every write (S2-7d1)
   it('exactly one engine.solveDriver call per field set(), and zero for a bare project.driver read', () => {
     const engine = new Engine();
     const project = qesQmsProject(engine);
-    const readSpy = vi.spyOn(engine, 'solveDriver');
+    const readSpy = vi.spyOn(engine.driver, 'solve');
     void project.driver;
     void project.driver.specs.Fs_hz;
     expect(readSpy).toHaveBeenCalledTimes(0);
     readSpy.mockRestore();
 
-    const writeSpy = vi.spyOn(engine, 'solveDriver');
+    const writeSpy = vi.spyOn(engine.driver, 'solve');
     project.driver.specs.Qms.set(6.0);
     expect(writeSpy).toHaveBeenCalledTimes(1);
   });
@@ -2736,7 +2736,7 @@ describe('S2-7d2 — vent + PR join the cascade', () => {
 
     p.box.passiveRadiator.tuning_goal_hz.set(ceiling * 1.5);
 
-    const DQ = [fixtureEngine.targetUnreachable('addedMass_kg', ceiling)];
+    const DQ = [fixtureEngine.issues.targetUnreachable('addedMass_kg', ceiling)];
     expect(p.box.passiveRadiator.tuning_goal_hz.dq).toEqual(DQ);
     expect(p.box.passiveRadiator.addedMass_kg.dq).toEqual(DQ);
     expect(p.box.passiveRadiator.systemTuning_hz.dq).toEqual(DQ);

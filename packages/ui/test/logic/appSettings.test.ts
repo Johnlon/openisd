@@ -133,7 +133,7 @@ describe('appState — the application settings seam', () => {
 
     const dq = project.box.vented.volume_m3.dq;
     assert.equal(dq.length, 1);
-    expect(dq[0]).toEqual(engine.quantityOutOfBand('Vb', 1.684, NARROW.minVb_m3, NARROW.maxVb_m3));
+    expect(dq[0]).toEqual(engine.issues.quantityOutOfBand('Vb', 1.684, NARROW.minVb_m3, NARROW.maxVb_m3));
   });
 
   it('unmarks again when the band widens — the recall is not one-way', () => {

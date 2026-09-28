@@ -121,7 +121,7 @@ describe('every .wdr field has a home in the OpenISD model', () => {
     it('c and roo, unentered, read as the reference-environment values', () => {
         // The engine's `solveConsistencyGroup` fills c/roo from the air model when unset, marked
         // `calculated` — no stored constant anywhere.
-        const {c: refC, rho: refRho} = new Engine().solveEnvironment({}).values;
+        const {c: refC, rho: refRho} = new Engine().environment.solve({}).values;
         const record = {
             uuid: {value: '00000000-0000-4000-8000-000000000000'},
             manufacturer: scraped('Acme'), brand: scraped('Acme'), model: scraped('Widget'),
@@ -147,7 +147,7 @@ describe('every .wdr field has a home in the OpenISD model', () => {
     });
 
     it('entered then cleared c/roo: entered reads back, cleared reverts to the reference value', () => {
-        const {c: refC, rho: refRho} = new Engine().solveEnvironment({}).values;
+        const {c: refC, rho: refRho} = new Engine().environment.solve({}).values;
         const record = {
             uuid: {value: '00000000-0000-4000-8000-000000000000'},
             manufacturer: scraped(''), brand: scraped(''), model: scraped(''),
@@ -276,7 +276,7 @@ describe('every spec field supports get/set/get/clear/get — clear() actually c
 
     it('c_m_per_s: get=calculated air-model default, set=allowed, get=new value, clear=allowed, get=calculated default again', () => {
         const section = freshSection();
-        const referenceC = new Engine().solveEnvironment({}).values.c;
+        const referenceC = new Engine().environment.solve({}).values.c;
 
         assertReads(section.c_m_per_s, referenceC, 'calculated',
             'c_m_per_s must start at the live reference-air speed of sound on a fresh section, not absent');
@@ -292,7 +292,7 @@ describe('every spec field supports get/set/get/clear/get — clear() actually c
 
     it('roo_kg_per_m3: get=calculated air-model default, set=allowed, get=new value, clear=allowed, get=calculated default again', () => {
         const section = freshSection();
-        const referenceRho = new Engine().solveEnvironment({}).values.rho;
+        const referenceRho = new Engine().environment.solve({}).values.rho;
 
         assertReads(section.roo_kg_per_m3, referenceRho, 'calculated',
             'roo_kg_per_m3 must start at the live reference-air density on a fresh section, not absent');

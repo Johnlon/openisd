@@ -35,7 +35,7 @@ describe('ventedAlignment — reproduces WinISD wizard captures', () => {
   for (const c of WINISD_VENTED_ALIGNMENT_CAPTURES) {
     const qtsNominal = 1 / (1 / c.Qes + 1 / d.Qms);
     it(`${c.alignment} at Qts ${qtsNominal.toFixed(2)} → Vb ${(c.Vb_m3 * 1000).toFixed(2)} L, Fb ${c.Fb_hz.toFixed(2)} Hz`, () => {
-      const qtsLoaded = engine.sourceLoadedQts(d.Qms, c.Qes, d.Re_ohm, d.Rg_ohm, qtsNominal);
+      const qtsLoaded = engine.driver.sourceLoadedQts(d.Qms, c.Qes, d.Re_ohm, d.Rg_ohm, qtsNominal);
       const {Vb, Fb} = engine.vented.alignment(c.alignment, d.Fs_hz, qtsLoaded, d.Vas_m3, d.Ql);
       assert.ok(relErr(Vb, c.Vb_m3) < REL_TOL, `Vb ${Vb} vs WinISD ${c.Vb_m3} (rel ${relErr(Vb, c.Vb_m3)})`);
       assert.ok(relErr(Fb, c.Fb_hz) < REL_TOL, `Fb ${Fb} vs WinISD ${c.Fb_hz} (rel ${relErr(Fb, c.Fb_hz)})`);

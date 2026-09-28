@@ -122,7 +122,7 @@ export class OpenISDProject {
      *  driver's own `c_m_per_s`/`roo_kg_per_m3` are never a source for this — see the field
      *  comment on `OpenIsdDriverSpec`'s constructor. */
     #air(root: SimpleField<OpenISDProjectJson>): Air {
-        return this.#engine.solveEnvironment(this.#airOver(root)).values;
+        return this.#engine.environment.solve(this.#airOver(root)).values;
     }
 
     /** The four air conditions `root` reads as — each E or C, never absent. */
@@ -661,7 +661,7 @@ export class OpenISDProject {
         const ts = this.driver.specs;
         const Qms = ts.Qms.value, Qes = ts.Qes.value, Re_ohm = ts.Re_ohm.value, Qts = ts.Qts.value;
         if (Qms === null || Qes === null || Re_ohm === null || Qts === null) return null;
-        return this.#engine.sourceLoadedQts(Qms, Qes, Re_ohm, Rs, Qts);
+        return this.#engine.driver.sourceLoadedQts(Qms, Qes, Re_ohm, Rs, Qts);
     }
 
     // ── SIMULATION — the engine's sweep, run on THIS project's driver and box ──────────────────
@@ -775,7 +775,7 @@ export class OpenISDProject {
      */
     impedancePeak(sw: SweepResult | null): { Fsc: number; Qtc: number } | null {
         const Re_ohm = this.driver.specs.Re_ohm.value;
-        return Re_ohm === null ? null : this.#engine.findImpedancePeak(sw, Re_ohm);
+        return Re_ohm === null ? null : this.#engine.driver.findImpedancePeak(sw, Re_ohm);
     }
 
     /** Start a transient what-if session from the current committed design. */

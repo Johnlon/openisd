@@ -16,11 +16,11 @@ function rangeIssues(d: Parameters<typeof driverParams>[0]): readonly OutOfRange
 
 describe('checkRange (D5/O4)', () => {
   it('reports below when an entered field falls under its band', () => {
-    expect(rangeIssues({ Qts: 0.001 })).toEqual([engine.outOfRange('Qts', 0.001, 0.01, 'below')]);
+    expect(rangeIssues({ Qts: 0.001 })).toEqual([engine.issues.outOfRange('Qts', 0.001, 0.01, 'below')]);
   });
 
   it('reports above when an entered field rises over its band', () => {
-    expect(rangeIssues({ Fs_hz: 9000 })).toEqual([engine.outOfRange('Fs_hz', 9000, 5000, 'above')]);
+    expect(rangeIssues({ Fs_hz: 9000 })).toEqual([engine.issues.outOfRange('Fs_hz', 9000, 5000, 'above')]);
   });
 
   it('reports nothing for a value inside its band', () => {
@@ -31,7 +31,7 @@ describe('checkRange (D5/O4)', () => {
   // entry band IS the plausible band, so there is no "checked against nothing" case left. A
   // field the scraper never researched is still held to what the input would accept.
   it('holds a field with no researched band to the one its input enforces', () => {
-    expect(rangeIssues({ Gloss: -50 })).toEqual([engine.outOfRange('Gloss', -50, 0, 'below')]);
+    expect(rangeIssues({ Gloss: -50 })).toEqual([engine.issues.outOfRange('Gloss', -50, 0, 'below')]);
   });
 
   it('skips zero — the .wdr not-present sentinel, never a real physical value', () => {

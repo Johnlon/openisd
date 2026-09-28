@@ -5,10 +5,10 @@ import type {TestSolverQuantities} from './testSolver.js';
 import {checkConsistency, fakeSolverField} from './testSolver.js';
 
 const engine = new Engine();
-// Deliberately NOT the reference condition (`engine.solveEnvironment({}).values`): `solveConsistencyGroup`'s own
+// Deliberately NOT the reference condition (`engine.environment.solve({}).values`): `solveConsistencyGroup`'s own
 // internal driverC/driverRho fallback already defaults to reference air on its own, so a test
 // using reference air here would pass even if `solveDriver` never threaded `air` through at all.
-const AIR = engine.solveEnvironment({ tempK: 350 }).values;
+const AIR = engine.environment.solve({ tempK: 350 }).values;
 
 function fakeWiringField(value: 'series' | 'parallel' | null): SolverField<'series' | 'parallel'> {
   let current = value;
@@ -123,7 +123,7 @@ describe('Engine.checkConsistency', () => {
 // precision — not an auto-derived one — decides the outcome.
 describe('Engine.checkConsistency — precision-derived tolerance, not a fixed allowance (D12/D13)', () => {
   function inconsistentInputIssues(p: DriverSolverParams): readonly DriverIssue[] {
-    return engine.solveDriver(p, AIR).filter((i): i is DriverIssue => i.kind === 'inconsistent-inputs');
+    return engine.driver.solve(p, AIR).filter((i): i is DriverIssue => i.kind === 'inconsistent-inputs');
   }
 
   it('a coarse-precision stated Vas is absorbed by Sd/Cms rounding — no issue', () => {
@@ -182,7 +182,7 @@ describe('Engine.solveDriver — handle solve, values written onto the params (T
   it('writes the derived Qts onto its handle when Qes and Qms are entered', () => {
     const Qes = 0.4, Qms = 3.0;
     const p = driverParams({ Qes, Qms });
-    const issues = engine.solveDriver(p, AIR);
+    const issues = engine.driver.solve(p, AIR);
     expect(p.Qts.value).toBeCloseTo((Qes * Qms) / (Qes + Qms), 12);
     expect(p.Qts.calculated).toBe(true);
     expect(issues).toEqual([]);
@@ -191,7 +191,7 @@ describe('Engine.solveDriver — handle solve, values written onto the params (T
   it('never overwrites an entered value even when it disagrees with the derived value', () => {
     const Qes = 0.4, Qms = 3.0;
     const p = driverParams({ Qes, Qms, Qts: 7.5 });
-    const issues = engine.solveDriver(p, AIR);
+    const issues = engine.driver.solve(p, AIR);
     expect(p.Qts.value).toBe(7.5);
     expect(p.Qts.entered).toBe(true);
     expect(issues).toEqual(checkConsistency({ Qts: 7.5, Qes, Qms }));
@@ -199,21 +199,21 @@ describe('Engine.solveDriver — handle solve, values written onto the params (T
 
   it('leaves an underivable non-entered field not-available', () => {
     const p = driverParams({ Qes: 0.4 });
-    engine.solveDriver(p, AIR);
+    engine.driver.solve(p, AIR);
     expect(p.Qts.value).toBeNull();
   });
 
   it('returns the same issues checkConsistency would for the same entered numbers', () => {
     const input: TestSolverQuantities = { Qes: 0.4 };
     const p = driverParams({ Qes: 0.4 });
-    const issues = engine.solveDriver(p, AIR);
+    const issues = engine.driver.solve(p, AIR);
     expect(issues).toEqual(checkConsistency(input));
   });
 
   it('a not-entered c_m_per_s defaults to the given air and is written back as calculated', () => {
     const p = driverParams({});
     const write = vi.spyOn(p.c_m_per_s, 'setCalculated');
-    engine.solveDriver(p, AIR);
+    engine.driver.solve(p, AIR);
     expect(write).toHaveBeenCalledWith(AIR.c);
     expect(p.c_m_per_s.value).toBe(AIR.c);
   });
@@ -221,14 +221,14 @@ describe('Engine.solveDriver — handle solve, values written onto the params (T
   it('a not-entered roo_kg_per_m3 defaults to the given air and is written back as calculated', () => {
     const p = driverParams({});
     const write = vi.spyOn(p.roo_kg_per_m3, 'setCalculated');
-    engine.solveDriver(p, AIR);
+    engine.driver.solve(p, AIR);
     expect(write).toHaveBeenCalledWith(AIR.rho);
     expect(p.roo_kg_per_m3.value).toBe(AIR.rho);
   });
 
   it('an entered c_m_per_s is never overwritten by the given air', () => {
     const p = driverParams({ c_m_per_s: 111111 });
-    engine.solveDriver(p, AIR);
+    engine.driver.solve(p, AIR);
     expect(p.c_m_per_s.value).toBe(111111);
     expect(p.c_m_per_s.entered).toBe(true);
   });
@@ -242,17 +242,17 @@ describe('Engine.solveDriver — driverC/driverRho reference-air fallback', () =
     const GAMMA = 1.4; // local oracle — engine/index.ts never re-exports the private air constant (air.test.ts precedent).
     const roo = 1.1, Vas_m3 = 0.05, Cms_m_per_N = 0.0009;
     const p = driverParams({ c_m_per_s: 0, roo_kg_per_m3: roo, Vas_m3, Cms_m_per_N });
-    engine.solveDriver(p, AIR);
+    engine.driver.solve(p, AIR);
     // roo·c² collapses to γ·Pref regardless of roo once c = √(γ·Pref/roo), so Sd is predictable
     // without importing the private GAMMA/efficiency formulas.
     expect(p.Sd_m2.value).toBeCloseTo(Math.sqrt(Vas_m3 / (GAMMA * DEFAULT_P_REF_PA * Cms_m_per_N)), 9);
   });
 
   it('falls back to the reference environment when both c_m_per_s and roo_kg_per_m3 are entered non-positive', () => {
-    const ref = engine.solveEnvironment({}).values;
+    const ref = engine.environment.solve({}).values;
     const Vas_m3 = 0.05, Cms_m_per_N = 0.0009;
     const p = driverParams({ c_m_per_s: 0, roo_kg_per_m3: 0, Vas_m3, Cms_m_per_N });
-    engine.solveDriver(p, AIR);
+    engine.driver.solve(p, AIR);
     expect(p.Sd_m2.value).toBeCloseTo(Math.sqrt(Vas_m3 / (ref.rho * ref.c * ref.c * Cms_m_per_N)), 9);
   });
 });
@@ -261,40 +261,40 @@ describe('Engine.solveDriver — Thiele/Small routes not otherwise exercised', (
   it('derives Mms from Fs/Qms/Rms', () => {
     const Fs_hz = 40, Qms = 3.0, Rms_kg_per_s = 0.5;
     const p = driverParams({ Fs_hz, Qms, Rms_kg_per_s });
-    engine.solveDriver(p, AIR);
+    engine.driver.solve(p, AIR);
     expect(p.Mms_kg.value).toBeCloseTo((Rms_kg_per_s * Qms) / (2 * Math.PI * Fs_hz), 12);
   });
 
   it('derives Mms from Qes/Bl/Fs/Re', () => {
     const Qes = 0.4, BL_Tm = 6, Fs_hz = 40, Re_ohm = 6;
     const p = driverParams({ Qes, BL_Tm, Fs_hz, Re_ohm });
-    engine.solveDriver(p, AIR);
+    engine.driver.solve(p, AIR);
     expect(p.Mms_kg.value).toBeCloseTo((Qes * BL_Tm * BL_Tm) / (2 * Math.PI * Fs_hz * Re_ohm), 12);
   });
 
   it('derives Hg from Hc/Xmax on the equal-or-under overhang arm (Hc <= 2·Xmax)', () => {
     const Xmax_m = 0.005, Hc_m = 0.005;
     const p = driverParams({ Xmax_m, Hc_m });
-    engine.solveDriver(p, AIR);
+    engine.driver.solve(p, AIR);
     expect(p.Hg_m.value).toBeCloseTo(Hc_m + 2 * Xmax_m, 12);
   });
 
   it('falls back to deriving Sd from Vd/Xmax when Sd is not otherwise derivable', () => {
     const Vd_m3 = 0.0002, Xmax_m = 0.005;
     const p = driverParams({ Vd_m3, Xmax_m });
-    engine.solveDriver(p, AIR);
+    engine.driver.solve(p, AIR);
     expect(p.Sd_m2.value).toBeCloseTo(Vd_m3 / Xmax_m, 12);
   });
 
   it('recovers Qes from η₀/Fs/Vas — round trip through the same relation the forward η₀ route uses', () => {
     const Fs_hz = 40, Vas_m3 = 0.05, Qes0 = 0.4;
     const p1 = driverParams({ Fs_hz, Vas_m3, Qes: Qes0 });
-    engine.solveDriver(p1, AIR);
+    engine.driver.solve(p1, AIR);
     const no0 = p1.no.value!;
     expect(no0).not.toBeNull();
 
     const p2 = driverParams({ Fs_hz, Vas_m3, no: no0 });
-    engine.solveDriver(p2, AIR);
+    engine.driver.solve(p2, AIR);
     expect(p2.Qes.value).toBeCloseTo(Qes0, 9);
   });
 });
@@ -306,7 +306,7 @@ describe('Engine.solveDriver — USPL/SPLref/Re routes', () => {
     const Re_ohm = 6.4, SPL_dB = 90;
     const USPL_dB = SPL_dB + 10 * Math.log10(V283_SQ / Re_ohm);
     const p = driverParams({ SPL_dB, USPL_dB });
-    engine.solveDriver(p, AIR);
+    engine.driver.solve(p, AIR);
     expect(p.Re_ohm.value).toBeCloseTo(Re_ohm, 9);
   });
 
@@ -314,7 +314,7 @@ describe('Engine.solveDriver — USPL/SPLref/Re routes', () => {
     const Re_ohm = 6.4, SPLref_dB = 90;
     const USPL_dB = SPLref_dB + 10 * Math.log10(V283_SQ / Re_ohm);
     const p = driverParams({ Re_ohm, USPL_dB });
-    engine.solveDriver(p, AIR);
+    engine.driver.solve(p, AIR);
     expect(p.SPLref_dB.value).toBeCloseTo(SPLref_dB, 9);
   });
 });
@@ -335,7 +335,7 @@ describe('Engine.solveDriver — enteredDriverValue null handling', () => {
     const Qes = 0.4, Qms = 3.0;
     const p = driverParams({ Qes, Qms });
     p.Qts = enteredButNull;
-    const issues = engine.solveDriver(p, AIR);
+    const issues = engine.driver.solve(p, AIR);
     // `entered: true` with `value: null` cannot arise from `fakeSolverField`'s own invariant, but
     // `enteredDriverValue`'s `?? undefined` must still treat it as absent for solving — the group
     // still resolves Qts from Qes/Qms internally — while `writeDriverBack`'s `if (field.entered)
@@ -348,7 +348,7 @@ describe('Engine.solveDriver — enteredDriverValue null handling', () => {
 describe('Engine.solveDriver — nominalImpedance guards a non-finite Re', () => {
   it('yields a calculated NaN Znom when Re_ohm is entered as Infinity (Infinity > 0 but not isFinite)', () => {
     const p = driverParams({ Re_ohm: Infinity });
-    engine.solveDriver(p, AIR);
+    engine.driver.solve(p, AIR);
     // The Znom-from-Re block guards only `Re_ohm > 0` (true for Infinity) and assigns
     // `nominalImpedance(Re_ohm)` directly, bypassing `setVal`'s own isFinite check — so
     // `nominalImpedance`'s own `!isFinite(Re)` guard is what actually stops this at NaN.
@@ -377,7 +377,7 @@ describe('Engine.checkConsistency — RELATIONS loop non-finite guards', () => {
 
 describe('a calculation issue\'s own sentence', () => {
   it('renders a missing-dependencies issue as "<target> cannot be calculated yet - state <routes>."', () => {
-    const issue: CalculationIssue<string> = engine.missingDependencies<string>('Qts',
+    const issue: CalculationIssue<string> = engine.issues.missingDependencies<string>('Qts',
       [{formula: 'Qts = Qes·Qms/(Qes+Qms)', required: ['Qes', 'Qms'], missing: ['Qms']}]);
     expect(issue.text).toBe(
       'Qts cannot be calculated yet - state Qts = Qes·Qms/(Qes+Qms) (needs Qms).',
@@ -385,7 +385,7 @@ describe('a calculation issue\'s own sentence', () => {
   });
 
   it('renders an inconsistent-inputs issue as "<fields> disagree by <pct>: <formula>. Every field..."', () => {
-    const issue: CalculationIssue<string> = engine.inconsistentInputs<string>(
+    const issue: CalculationIssue<string> = engine.issues.inconsistentInputs<string>(
       'Qts', ['Qts', 'Qes', 'Qms'], 'Qts = Qes·Qms/(Qes+Qms)', 1, 1.953, 0.953);
     expect(issue.text).toBe(
       'Qts, Qes, Qms disagree by 95.3%: Qts = Qes·Qms/(Qes+Qms). Every field in the group is marked '
@@ -396,14 +396,14 @@ describe('a calculation issue\'s own sentence', () => {
 
 describe('a vented-plausibility issue\'s own sentence', () => {
   it('states the value, its unit and that WinISD agrees, for a non-physical answer', () => {
-    const text = engine.nonPhysicalQuantity('Vb', -0.02).text;
+    const text = engine.issues.nonPhysicalQuantity('Vb', -0.02).text;
     expect(text).toMatch(/-20 L/);
     expect(text).toMatch(/not a physical/i);
     expect(text).toMatch(/WinISD/);
   });
 
   it('states the band a value fell outside', () => {
-    const text = engine.quantityOutOfBand('Vb', 1.684, 0.001, 1.0).text;
+    const text = engine.issues.quantityOutOfBand('Vb', 1.684, 0.001, 1.0).text;
     expect(text).toMatch(/1684 L/);
     expect(text).toMatch(/1 L/);
     expect(text).toMatch(/1000 L/);
@@ -411,39 +411,39 @@ describe('a vented-plausibility issue\'s own sentence', () => {
   });
 
   it('prints tuning in Hz', () => {
-    const text = engine.quantityOutOfBand('Fb', 5.4, 10, 150).text;
+    const text = engine.issues.quantityOutOfBand('Fb', 5.4, 10, 150).text;
     expect(text).toMatch(/5\.4 Hz/);
     expect(text).toMatch(/10 Hz/);
     expect(text).toMatch(/150 Hz/);
   });
 
   it('renders a sub-0.1 value to two significant figures instead of rounding it to zero', () => {
-    expect(engine.nonPhysicalQuantity('Vb', 0.00005).text).toMatch(/0\.050 L/);
+    expect(engine.issues.nonPhysicalQuantity('Vb', 0.00005).text).toMatch(/0\.050 L/);
   });
 
   it('renders exactly zero as 0, not -0 or a precision string', () => {
-    expect(engine.nonPhysicalQuantity('Vb', 0).text).toMatch(/\bis 0 L\b/);
+    expect(engine.issues.nonPhysicalQuantity('Vb', 0).text).toMatch(/\bis 0 L\b/);
   });
 });
 
 describe('a target-unreachable issue\'s own sentence', () => {
   it('names the target and the geometry\'s reachable ceiling', () => {
-    const text = engine.targetUnreachable('length_m', 42).text;
+    const text = engine.issues.targetUnreachable('length_m', 42).text;
     expect(text).toMatch(/length_m/);
     expect(text).toMatch(/42 Hz/);
   });
 
   it('prints a non-finite ceiling as the literal string, not a formatted number', () => {
-    expect(engine.targetUnreachable('length_m', Infinity).text).toMatch(/Infinity Hz/);
+    expect(engine.issues.targetUnreachable('length_m', Infinity).text).toMatch(/Infinity Hz/);
   });
 });
 
 describe('every DqIssue kind carries its own sentence', () => {
   it('each factory decides the text at construction, so no reader has to dispatch on kind', () => {
-    expect(engine.missingDependencies<string>('Qts', []).text).toMatch(/Qts/);
-    expect(engine.inconsistentInputs<string>('Qts', ['Qts'], 'f', 1, 2, 1).text).toMatch(/disagree/);
-    expect(engine.nonPhysicalQuantity('Vb', -1).text).toMatch(/not a physical/i);
-    expect(engine.quantityOutOfBand('Fb', 1, 10, 20).text).toMatch(/plausible/);
-    expect(engine.targetUnreachable('length_m', 42).text).toMatch(/length_m/);
+    expect(engine.issues.missingDependencies<string>('Qts', []).text).toMatch(/Qts/);
+    expect(engine.issues.inconsistentInputs<string>('Qts', ['Qts'], 'f', 1, 2, 1).text).toMatch(/disagree/);
+    expect(engine.issues.nonPhysicalQuantity('Vb', -1).text).toMatch(/not a physical/i);
+    expect(engine.issues.quantityOutOfBand('Fb', 1, 10, 20).text).toMatch(/plausible/);
+    expect(engine.issues.targetUnreachable('length_m', 42).text).toMatch(/length_m/);
   });
 });

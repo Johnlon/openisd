@@ -25,6 +25,7 @@ import type {Vent} from './vent.js';
 import {OpenISDDriver} from './driver/openISDDriver.js';
 import {OpenISDPassiveRadiatorStandalone} from './passiveRadiator/openISDPassiveRadiatorStandalone.js';
 import {OpenISDProject} from './project/openISDProject.js';
+import type {EnvironmentField} from './project/environmentFields.js';
 import {type DriverError, Engine, type Filter} from '../engine/index.js';
 
 import {openIsdDriverToWinIsdDriver} from './driverYmlToOpenisdAndWdr.js';
@@ -594,9 +595,14 @@ export function winIsdProjectToOpenIsdProject(
   const T = wpr.number('Box', 'T');
   const p = wpr.number('Box', 'p');
   const phi = wpr.number('Box', 'phi');
-  if (T != null) project.envTempK.set(T);
-  if (p != null) project.envPressurePa.set(p);
-  if (phi != null) project.envHumidityPct.set(phi * 100); // phi is a FRACTION in the file
+  // A file value equal to the project's current default (the app's Options → Environment C) was
+  // most likely never typed; leave it unset so it stays C rather than becoming an E.
+  const enterUnlessDefault = (field: EnvironmentField, value: number): void => {
+    if (!(field.calculated && Math.abs(field.value - value) < 1e-9)) field.set(value);
+  };
+  if (T != null) enterUnlessDefault(project.envTempK, T);
+  if (p != null) enterUnlessDefault(project.envPressurePa, p);
+  if (phi != null) enterUnlessDefault(project.envHumidityPct, phi * 100); // phi is a FRACTION in the file
 
   const Rg = wpr.number('SignalSource', 'Rg');
   if (Rg != null) project.Rs_ohm.set(Rg);

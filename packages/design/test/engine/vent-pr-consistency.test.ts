@@ -10,7 +10,7 @@ import {
 } from './testSolver.js';
 
 const engine = new Engine();
-const AIR = engine.solveEnvironment({}).values;
+const AIR = engine.environment.solve({}).values;
 
 describe('checkVentConsistency (S2-10: a test-only bag wrapper over Engine.solveVent) — missing-dependencies', () => {
   it('returns no issues once tuning_goal_hz solves from a complete vent geometry', () => {

@@ -116,14 +116,14 @@ export abstract class OpenISDDriver extends OpenISDDevice {
         super(record, engine);
         this.record = record;
         this.airProvider = airProvider;
-        const air = (): Air => engine.solveEnvironment(airProvider()).values;
+        const air = (): Air => engine.environment.solve(airProvider()).values;
         this.specs = new OpenIsdDriverSpec(record, 'woofer', engine, air, durableIssues);
     }
 
     /** T11/S2-7c: resolve this driver's spec — write every derivable quantity back
      *  into the record as a `'C'` entry, cache the issues, and return them. */
     resolve(): readonly DriverIssue[] {
-        return this.specs.resolve(this.engine.solveEnvironment(this.airProvider()).values);
+        return this.specs.resolve(this.engine.environment.solve(this.airProvider()).values);
     }
 
     // ── DERIVED FIGURES — every one from the injected engine, none computed here ──────────────

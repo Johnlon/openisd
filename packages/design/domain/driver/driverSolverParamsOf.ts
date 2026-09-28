@@ -22,8 +22,8 @@ export function driverSolverParamsOf(spec: OpenIsdDriverSpec, engine: Engine, wi
     const numVC = spec.numVC.value ?? undefined;
     const wiringInput: SolverInput<Wiring> = { value: wiring, entered: spec.VCCon.entered };
 
-    const Re_terminal_ohm = Re_ohm == null ? null : engine.terminalRe_ohm(Re_ohm, numVC, wiring);
-    const BL_terminal_entered_Tm = BL_Tm == null ? null : engine.terminalBL_Tm(BL_Tm, numVC, wiring);
+    const Re_terminal_ohm = Re_ohm == null ? null : engine.driver.terminalRe_ohm(Re_ohm, numVC, wiring);
+    const BL_terminal_entered_Tm = BL_Tm == null ? null : engine.driver.terminalBL_Tm(BL_Tm, numVC, wiring);
 
     // WinISD's simulation reads Fs, Vas, Qes, Qms, Sd and Re, and nothing else: it keeps entered
     // Cms, Mms, BL and Rms untouched and its circuit names none of them outside CLe (measured

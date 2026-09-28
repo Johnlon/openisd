@@ -8,7 +8,7 @@ const engine = new Engine();
 /** The domain's own "zero or less is not physical" mark, narrowed — `positiveValueIssue` answers
  *  `null` for a value that passes, which a fixture value never does. */
 function badValueMark(value: number): DqIssue {
-  const issue = engine.positiveValueIssue(value);
+  const issue = engine.issues.positiveValueIssue(value);
   if (issue === null) throw new Error(`${value} is a valid value, so there is no mark to read`);
   return issue;
 }
@@ -68,7 +68,7 @@ describe('DriverEditorModal-hooks', () => {
     });
 
     it("reads the cell's own dq() when the value is not bad, rendered to text", () => {
-      const cellOf = cellMap({Fs_hz: fakeCell(40, 'C', [engine.targetUnreachable('Fs_hz', 35)])});
+      const cellOf = cellMap({Fs_hz: fakeCell(40, 'C', [engine.issues.targetUnreachable('Fs_hz', 35)])});
       expect(dqNoteFor(cellOf, 'Fs_hz')).toBe('Fs_hz cannot reach this target - the maximum this geometry can reach is 35 Hz.');
     });
 
@@ -106,7 +106,7 @@ describe('DriverEditorModal-hooks', () => {
     });
 
     it('describes a missing-dependencies issue by its blocked routes', () => {
-      const reasons = chartBlockingReasonsFor([engine.missingDependencies('Mms_kg',
+      const reasons = chartBlockingReasonsFor([engine.issues.missingDependencies('Mms_kg',
         [{formula: 'Mms = Cms·Fs²', required: ['Cms_m_per_N', 'Fs_hz'], missing: ['Cms_m_per_N']}])], allMandatorySet());
       expect(reasons).toEqual([{subject: 'Mms_kg', text: 'cannot be calculated yet — needs Cms_m_per_N'}]);
     });
@@ -115,14 +115,14 @@ describe('DriverEditorModal-hooks', () => {
     // disagree with what the others imply. Nothing is absent, so no chart goes blank, and this
     // list must not claim one does.
     it('ignores inconsistent-inputs issues — every value they name exists, so no chart is blank', () => {
-      const reasons = chartBlockingReasonsFor([engine.inconsistentInputs('Qts', ['Qts', 'Qes', 'Qms'], 'Qts = Qes·Qms/(Qes+Qms)', 0.4, 0.9, 1.25)], allMandatorySet());
+      const reasons = chartBlockingReasonsFor([engine.issues.inconsistentInputs('Qts', ['Qts', 'Qes', 'Qms'], 'Qts = Qes·Qms/(Qes+Qms)', 0.4, 0.9, 1.25)], allMandatorySet());
       expect(reasons).toEqual([]);
     });
 
     it('keeps the missing-dependencies reason when both kinds are present', () => {
       const reasons = chartBlockingReasonsFor([
-        engine.inconsistentInputs('Qts', ['Qts', 'Qes', 'Qms'], 'Qts = Qes·Qms/(Qes+Qms)', 0.4, 0.9, 1.25),
-        engine.missingDependencies('Mms_kg',
+        engine.issues.inconsistentInputs('Qts', ['Qts', 'Qes', 'Qms'], 'Qts = Qes·Qms/(Qes+Qms)', 0.4, 0.9, 1.25),
+        engine.issues.missingDependencies('Mms_kg',
         [{formula: 'Mms = Cms·Fs²', required: ['Cms_m_per_N', 'Fs_hz'], missing: ['Cms_m_per_N']}]),
       ], allMandatorySet());
       expect(reasons).toEqual([{subject: 'Mms_kg', text: 'cannot be calculated yet — needs Cms_m_per_N'}]);
@@ -135,12 +135,12 @@ describe('DriverEditorModal-hooks', () => {
     });
 
     it('describes an inconsistent-inputs issue with its formula and disagreement', () => {
-      const reasons = inconsistentInputReasonsFor([engine.inconsistentInputs('Qts', ['Qts', 'Qes', 'Qms'], 'Qts = Qes·Qms/(Qes+Qms)', 0.4, 0.9, 1.25)]);
+      const reasons = inconsistentInputReasonsFor([engine.issues.inconsistentInputs('Qts', ['Qts', 'Qes', 'Qms'], 'Qts = Qes·Qms/(Qes+Qms)', 0.4, 0.9, 1.25)]);
       expect(reasons).toEqual([{subject: 'Qts', text: 'Qts = Qes·Qms/(Qes+Qms) — stated as 0.9, the others imply 0.4'}]);
     });
 
     it('ignores missing-dependencies issues — an absent value is the chart list\'s business', () => {
-      const reasons = inconsistentInputReasonsFor([engine.missingDependencies('Mms_kg',
+      const reasons = inconsistentInputReasonsFor([engine.issues.missingDependencies('Mms_kg',
         [{formula: 'Mms = Cms·Fs²', required: ['Cms_m_per_N', 'Fs_hz'], missing: ['Cms_m_per_N']}])]);
       expect(reasons).toEqual([]);
     });

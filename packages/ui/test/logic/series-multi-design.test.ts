@@ -43,12 +43,12 @@ const driverParams: DriverSolverParams = {
   Rme_kg_per_s: fakeField<number>(null), Mpow_N_per_sqrtW: fakeField<number>(null), Mcost_kg_per_s: fakeField<number>(null),
   gamma_m_per_s2_A: fakeField<number>(null), Gloss: fakeField<number>(null), Vcd_m: fakeField<number>(null), Depth_m: fakeField<number>(null),
   MagDepth_m: fakeField<number>(null), Magnet_m: fakeField<number>(null), DVol_m3: fakeField<number>(null),
-  c_m_per_s: fakeField(engine.solveEnvironment({}).values.c),
-  roo_kg_per_m3: fakeField(engine.solveEnvironment({}).values.rho),
+  c_m_per_s: fakeField(engine.environment.solve({}).values.c),
+  roo_kg_per_m3: fakeField(engine.environment.solve({}).values.rho),
   Re_terminal_ohm: fakeField<number>(null), BL_terminal_Tm: fakeField<number>(null), numVC: fakeField<number>(null),
   wiring: fakeField('parallel'),
 };
-engine.solveDriver(driverParams, engine.solveEnvironment({}).values);
+engine.driver.solve(driverParams, engine.environment.solve({}).values);
 const LE_H = 0.70e-3;
 const SP: SweepParams = { Vb: 0.030, eg: 2.83, fmin: 10, fmax: 2000, N: 200, filters: [] };
 const PP = SP as unknown as PlotParams;

@@ -375,7 +375,7 @@ export function createEnvironmentAir({ project, projectChanged: changed, envDefa
   const advAir = computed(() => {
     void project.value;
     void changed.value;
-    return engine.solveEnvironment({
+    return engine.environment.solve({
       tempK: advTemp.value ?? undefined, humidityPct: advHumidity.value ?? undefined, pressurePa: advPressure.value ?? undefined,
       useWinisdAirModel: project.value.envUseWinisdAirModel.value,
     }).values;
