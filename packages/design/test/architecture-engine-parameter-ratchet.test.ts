@@ -36,23 +36,18 @@ const ENGINE_PARAMETER_BASELINE: ReadonlySet<string> = new Set([
   "packages/design/domain/driver/openISDDriver.ts#OpenISDDriver.fromConformingRecord",
   "packages/design/domain/driver/openISDDriver.ts#OpenISDDriver.fromOwdrText",
   "packages/design/domain/driver/openISDDriver.ts#OpenISDDriver.fromWdrIniText",
-  "packages/design/domain/driver/openISDDriver.ts#OpenISDDriver.toWdrIniText",
   "packages/design/domain/driver/openISDDriver.ts#OpenISDDriverStandalone.wrap",
   "packages/design/domain/driver/openISDDriverEmbedded.ts#OpenISDDriverEmbedded.wrap",
   "packages/design/domain/passiveRadiator/openISDPassiveRadiatorStandalone.ts#OpenISDPassiveRadiatorStandalone.empty",
   "packages/design/domain/passiveRadiator/openISDPassiveRadiatorStandalone.ts#OpenISDPassiveRadiatorStandalone.fromConformingRecord",
   "packages/design/domain/passiveRadiator/openISDPassiveRadiatorStandalone.ts#OpenISDPassiveRadiatorStandalone.wrap",
-  "packages/design/domain/project/projectSerialization.ts#wprTextOf",
   "packages/design/domain/project/openISDProject.ts#OpenISDProject.builder",
   "packages/design/domain/project/openISDProject.ts#OpenISDProject.empty",
   "packages/design/domain/project/openISDProject.ts#OpenISDProject.fromOwprText",
   "packages/design/domain/project/openISDProject.ts#OpenISDProject.fromWprText",
-  "packages/design/domain/project/openISDProject.ts#OpenISDProject.toWprText",
   "packages/design/domain/project/openISDProject.ts#OpenISDProject.wrap",
   "packages/design/domain/project/openISDProject.ts#OpenISDProject.wrapSession",
   "packages/design/domain/project/openISDProject.ts#OpenISDProject.wrapWithIdentity",
-  "packages/ui/src/logic/series.ts#buildPlotData",
-  "packages/ui/src/logic/series.ts#seriesFor",
 ]);
 
 /** Every non-constructor function or method with a parameter typed `Engine`. */

@@ -25,7 +25,7 @@ const utf8 = (text: string): Uint8Array<ArrayBuffer> => new TextEncoder().encode
 /** The current driver as WinISD `.wdr` bytes. `value` is null when the driver is too
  *  incomplete for WinISD's format — the first `errors` entry says which field. */
 export function driverToWdrBytes(driver: OpenISDDriver): Bytes {
-  const { value, errors } = driver.toWdrIniText(engine);
+  const { value, errors } = driver.toWdrIniText();
   return { value: value === null ? null : utf8(value), errors };
 }
 
@@ -38,7 +38,7 @@ export function driverToOwdrBytes(driver: OpenISDDriver): Uint8Array<ArrayBuffer
 /** The whole project as WinISD `.wpr` bytes. `value` is null when the project cannot be
  *  expressed in WinISD's format. */
 export function projectToWprBytes(project: OpenISDProject): Bytes {
-  const { value, errors } = project.toWprText(engine);
+  const { value, errors } = project.toWprText();
   return { value: value === null ? null : utf8(value), errors };
 }
 

@@ -315,7 +315,11 @@ export interface SweepParams {
    * reference, so the excursion/velocity/max-SPL curves show what flattening costs.
    */
   forceFlatResponse?: boolean;
-  /** Ceiling on the force-flat boost, dB. Absent → FLAT_MAX_BOOST_DB. */
+  /** WinISD's force-flat (true/absent): every point to the transfer function's 0 dB, boosted or
+   *  cut, uncapped (bugs/BUG_20260928_force-flat-response-not-winisd.md). false: boost only, up to
+   *  the passband reference, capped at `flatMaxBoostDb`. */
+  winisdFlatModel?: boolean;
+  /** Ceiling on the conventional force-flat boost, dB. Absent → FLAT_MAX_BOOST_DB. */
   flatMaxBoostDb?: number;
 }
 

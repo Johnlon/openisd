@@ -162,8 +162,8 @@ describe('transmission-line port model (WinISD Advanced: TLPorts)', () => {
   });
 });
 
-describe('force flat response (WinISD Advanced: FlatResponse)', () => {
-  const FLAT: SweepParams = { ...VENTED, forceFlatResponse: true, flatMaxBoostDb: 60 };
+describe('force flat response, conventional capped variant (winisdFlatModel false)', () => {
+  const FLAT: SweepParams = { ...VENTED, forceFlatResponse: true, winisdFlatModel: false, flatMaxBoostDb: 60 };
 
   it('flattens the SPL curve to the passband reference wherever the clamp does not bind', () => {
     const flat = engine.simulation.sweep(DRV, LE_H, 'vented', FLAT).values!;
@@ -193,7 +193,7 @@ describe('force flat response (WinISD Advanced: FlatResponse)', () => {
   });
 
   it('clamps the boost and reports the frequency where the clamp binds', () => {
-    const clamped = engine.simulation.sweep(DRV, LE_H, 'vented', { ...VENTED, forceFlatResponse: true, flatMaxBoostDb: 6 }).values!;
+    const clamped = engine.simulation.sweep(DRV, LE_H, 'vented', { ...VENTED, forceFlatResponse: true, winisdFlatModel: false, flatMaxBoostDb: 6 }).values!;
     const plain   = engine.simulation.sweep(DRV, LE_H, 'vented', VENTED).values!;
     const ref     = engine.simulation.passbandRef(plain.spl);
     for (let i = 0; i < clamped.fs.length; i++)

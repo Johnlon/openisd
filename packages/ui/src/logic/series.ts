@@ -1,4 +1,11 @@
-import type {BoxEngine, BoxType, ChartId, DriverError, DriverSolverParams, Engine, MaxCurvesResult, SweepResult} from '@openisd/design/engine';
+import type {BoxEngine, BoxType, ChartId, DriverError, DriverSolverParams, EnvironmentEngine, MaxCurvesResult, SimulationEngine, SweepResult} from '@openisd/design/engine';
+
+/** The two engine areas a curve builder reads: the sweep's own classifiers and the air the port
+ *  velocity's Mach limit is measured in. The composition root's engine satisfies it. */
+export interface ChartEngineAreas {
+  readonly simulation: SimulationEngine;
+  readonly environment: EnvironmentEngine;
+}
 import type {Design, PlotData, PlotParams, Series} from '../types.js';
 
 export const DPAL = ['#4fb0ff','#ffb454','#5ad17a','#ff6b6b','#c08bff'];
@@ -75,8 +82,8 @@ interface SeriesBundle { series: Series[]; ymin: number; ymax: number; logy: boo
 
 /** Everything a curve builder may read. */
 interface CurveCtx {
-  /** The one engine the composition root built — a curve builder never makes its own. */
-  engine: Engine;
+  /** The composition root's engine areas — a curve builder never makes its own. */
+  engine: ChartEngineAreas;
   meta: TabMeta;
   drv: DriverSolverParams;
   box: BoxType;
@@ -344,7 +351,7 @@ const CURVE_BUILDERS: Record<ChartId, (c: CurveCtx) => CurveBuild> = {
   },
 };
 
-export function seriesFor(engine: Engine,
+export function seriesFor(engine: ChartEngineAreas,
                           chartId: ChartId,
                           drv: DriverSolverParams,
                           box: BoxType,
@@ -401,7 +408,7 @@ export function errorsForChart(chartId: ChartId, errors: DriverError[]): DriverE
 // the driver last changed). Both collapse to value:null here; the caller distinguishes
 // "blocked" (errors present) from "not ready yet" (errors empty) via the errors array.
 export function buildPlotData(
-  engine: Engine,
+  engine: ChartEngineAreas,
   chartId: ChartId,
   fmin: number,
   fmax: number,

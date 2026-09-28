@@ -532,14 +532,19 @@ export class SimulationEngineImpl implements SimulationEngine {
     // port-velocity / max-SPL curves show what that costs. Real gain ⇒ phase and group delay
     // are untouched, and Zel never sees it (the EQ is upstream of the amplifier), exactly as
     // applyFilters treats the filter chain.
+    // Transfer-function 0 dB: the lossless circuit's own HF asymptote (BUG_20260926_winisd-tf-reference).
+    const splRefLimit = 20 * Math.log10(hfAsymptotePressure_Pa(cq, P, r) / P0);
     let flatClamped: number | null = null;
     if (P.forceFlatResponse) {
-      const ref      = this.passbandRef(spl);
-      const maxBoost = P.flatMaxBoostDb ?? FLAT_MAX_BOOST_DB;
+      // WinISD: every point to the TF's 0 dB, cut as well as boosted, no ceiling
+      // (runs/sealed-w5-flatresponse; bugs/BUG_20260928_force-flat-response-not-winisd.md).
+      const winisd   = P.winisdFlatModel !== false;
+      const ref      = winisd ? splRefLimit : this.passbandRef(spl);
+      const maxBoost = winisd ? Infinity : P.flatMaxBoostDb ?? FLAT_MAX_BOOST_DB;
       for (let i = 0; i < fs.length; i++) {
         if (!Number.isFinite(spl[i]) || spl[i] <= SILENCE_DB) continue;  // no gain resurrects silence
         const want = ref - spl[i];
-        if (want <= 0) continue;
+        if (want <= 0 && !winisd) continue;
         const gDb = Math.min(want, maxBoost);
         if (want > maxBoost && flatClamped === null) flatClamped = fs[i];
         const a = Math.pow(10, gDb / 20);
@@ -569,8 +574,6 @@ export class SimulationEngineImpl implements SimulationEngine {
       splXlimCurve.push(over ? spl[i] + 20 * Math.log10(Xmax / xPeak) : spl[i]);
     }
 
-    // Transfer-function 0 dB: the lossless circuit's own HF asymptote (BUG_20260926_winisd-tf-reference).
-    const splRefLimit = 20 * Math.log10(hfAsymptotePressure_Pa(cq, P, r) / P0);
     // WinISD has no "Transfer function (PR)" chart for a box with no radiator — null there,
     // never the -200 dB / 0 rad a fake radiator would sweep to.
     const isPr = box === 'box-passive-radiator';

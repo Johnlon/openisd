@@ -1,6 +1,6 @@
 # BUG_20260928_force-flat-response-not-winisd
 
-**Status:** OPEN
+**Status:** RESOLVED
 
 ## Symptom
 With "Force flat response" on, WinISD's transfer function is 0 dB at every frequency and its SPL
@@ -15,14 +15,17 @@ excursion is 27.9 at 1 Hz in WinISD vs 0.020 in OpenISD (the compare's units). I
 `FLAT_MAX_BOOST_DB = 20` in `engine/constants.ts`, and tfMag is untouched.
 
 ## Cause
-OpenISD's force-flat is its own design (capped boost, applied to SPL only). WinISD applies an
-unlimited inverse of the box response, so the TF is exactly 0 dB (⚠ the exact WinISD form is not
-decoded; the TF value −9.6e-16 dB says TF/itself).
+Decoded 2026-09-29 from runs/sealed-w5-flatresponse. WinISD sets every point to the transfer
+function's 0 dB (the HF asymptote, 80.547 dB here): SPL = that level, cut as well as boosted,
+no ceiling; excursion scales by the same gain (×13 908 at 1 Hz); impedance is untouched. OpenISD
+boosted only, up to its own passband reference, capped at 20 dB.
 
 ## Fix
-Match WinISD by default: an uncapped inverse applied to TF as well as SPL, excursion and port
-velocity. The capped variant can sit behind a WinISD-vs-conventional switch (see
-docs/research/ACCURACY_IMPROVEMENTS.md).
+`SweepParams.winisdFlatModel` (absent = WinISD): reference = the TF's 0 dB, gain = ref − SPL at
+every point, uncapped. `false` keeps OpenISD's capped boost-only variant (`flatMaxBoostDb`), which
+the older engine tests now state. Open: the project/Compatibility-panel switch for it.
 
 ## Verification
-Fixture from runs/sealed-w5-flatresponse; engine test ≤ 1e-12 on TF, SPL, excursion.
+`test/domain/force-flat-response-winisd.test.ts` against `test/fixtures/winisdFlatResponseCapture.ts`:
+SPL ≤ 1e-12 relative, TF ≤ 1e-12 dB, excursion ≤ 1e-11. Red before (SPL 17.7 vs 80.5 dB at
+1 Hz), green after; design suite 2383/2383.

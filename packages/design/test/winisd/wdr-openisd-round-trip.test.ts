@@ -156,7 +156,7 @@ function cycle(src: string): string {
   if (imported.value === null) {
     assert.fail(`driver text rejected: ${imported.errors.map(error => error.message).join('; ')}`);
   }
-  const exported = imported.value.toWdrIniText(engine);
+  const exported = imported.value.toWdrIniText();
   if (exported.value === null) {
     assert.fail(`driver text could not be exported: ${exported.errors.map(error => error.message).join('; ')}`);
   }

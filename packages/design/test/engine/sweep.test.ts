@@ -461,7 +461,7 @@ describe('classifyFlatClamp — clamp-bound frequency formatting at/above 100 Hz
     // so the very first (lowest, and only >=100 Hz) point needs far more than the 6 dB clamp.
     const P: SweepParams = {
       Vb: VB_M3, Ql: QL_LOSSLESS, eg: EG_STANDARD, fmin: 100, fmax: 2000, N: 50,
-      forceFlatResponse: true, flatMaxBoostDb: 6,
+      forceFlatResponse: true, winisdFlatModel: false, flatMaxBoostDb: 6,
       filters: [{ type: 'highpass', family: 'sos', order: 2, enabled: true, fc: 300, Q: Math.SQRT1_2 }],
     };
     const sw = engine.simulation.sweep(driverParams(DRV), LE_H, BOX, P).values!;
