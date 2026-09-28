@@ -11,30 +11,32 @@ formulas: winisd_research [GHIDRA_FINDINGS.md](http://localhost:8000/winisd/wini
 
 Last updated 2026-09-28.
 
-Key:
+Every cell is either **matched** or a **gap to close**. There are three kinds of gap, and all
+three count against equivalence:
 
 | Mark   | Meaning                                                                                   |
 | ------ | ----------------------------------------------------------------------------------------- |
-| number | worst \|OpenISD − WinISD\| in the chart's unit (rel = relative)                           |
+| number | matched: worst \|OpenISD − WinISD\| in the chart's unit (rel = relative)                  |
 | ✅     | matched, number in the cited test/record                                                  |
-| ≈      | matches to WinISD's own rounding noise (group delay: WinISD's 1e-10 Hz finite difference) |
-| ✗      | known deviation, bug linked                                                               |
-| ❔     | never compared against a WinISD capture                                                   |
-| ⛔     | gap: WinISD has it, OpenISD does not yet — OpenISD must be a superset                     |
-| —      | does not exist in WinISD for that box                                                     |
+| ≈      | matched to WinISD's own rounding noise (group delay: WinISD's 1e-10 Hz finite difference) |
+| ✗      | gap — deviation: OpenISD differs from WinISD, bug linked                                  |
+| ❔     | gap — unverified: never compared against a WinISD capture                                 |
+| ⛔     | gap — missing: WinISD has it, OpenISD does not yet (OpenISD must be a superset)           |
+| —      | not a cell: does not exist in WinISD for that box                                         |
 
-Deviation is multi-dimensional: chart × box × settings × driver. The captures so far use **one
+Equivalence is multi-dimensional: chart × box × settings × driver. The captures so far use **one
 driver** (Tang Band W5-1138SMF) — every number below is for that driver only.
 
 ---
 
 ## Aggregate
 
-| Scope                                | Cells | Matched (✅/≈) | Deviation (✗) | Never compared (❔) | Gap — missing from OpenISD (⛔) |
-| ------------------------------------ | ----: | -------------: | ------------: | ------------------: | ------------------------------: |
-| Table 1 — chart × box, base settings | 76    | 47             | 0             | 2                   | 27                              |
-| Table 2 — setting × box              | 100   | 18             | 0             | 48                  | 34                              |
-| Table 3 — readouts and tools         | 8     | 2              | 1             | 5                   | 0                               |
+| Scope                                | Cells | Matched | Gaps | Deviation (✗) | Unverified (❔) | Missing (⛔) |
+| ------------------------------------ | ----: | ------: | ---: | ------------: | -------------: | -----------: |
+| Table 1 — chart × box, base settings | 76    | 47      | 29   | 0             | 2              | 27           |
+| Table 2 — setting × box              | 100   | 18      | 82   | 0             | 48             | 34           |
+| Table 3 — readouts and tools         | 8     | 2       | 6    | 1             | 5              | 0            |
+| Total                                | 184   | 67      | 117  | 1             | 55             | 61           |
 
 Worst matched deviation anywhere, excluding group delay: 2e-12 relative (port air velocity). Group
 delay: 0.015 ms (4th-order bandpass, rounding noise).
