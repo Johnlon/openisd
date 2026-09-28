@@ -31,7 +31,6 @@ import {solveEnvironment} from './air.js';
 import {hotRe} from './solvers/driverQuantities.js';
 import {cAdd, cDiv, cInv, cMul, cScale, cx} from './complex.js';
 import type {BoxType, Complex, Solution, SweepParams} from './types.js';
-import {simulatableBoxType} from './types.js';
 import type {LossModeValue} from '../fields/lossMode.js';
 import {boxModel} from './boxes/index.js';
 import type {DriverSideQuantities} from './boxes/index.js';
@@ -177,26 +176,12 @@ export function solve(f: number, drv: CircuitQuantities, box: BoxType, P: SweepP
   const Ral = cx(Ql / (w * Cab), 0);
   const Raa = cx(Qa / (w * Cab), 0);
 
-  let Zbox!: Complex, U0!: Complex, UD!: Complex;
-  let UP: Complex = cx(0, 0);
-  let UPr: Complex | undefined, UPi: Complex | undefined;
-
   const lossMode: LossModeValue = (Ql >= 1e6 && Qa >= 1e6) ? 'lossless' : (P.lossMode ?? 'winisd-lossy');
 
   // The one place a `BoxType` becomes a topology's own circuit (`./boxes/`, mirroring
-  // `../filters/index.ts`'s `filterModel()`). `simulatableBoxType` narrows to every box type the
-  // circuit has a model for — today, every `BoxType`.
-  const simulatable = simulatableBoxType(box);
-  if (simulatable !== null) {
-    const shared: DriverSideQuantities = {w, pg, ZaE, ZaD, Cab, Zc, Ral, Raa, Ql, Qa, Cas, Mas, rho, c, lossMode};
-    const result = boxModel(simulatable, P).solve(shared);
-    Zbox = result.Zbox;
-    UD = result.UD;
-    UP = result.UP;
-    U0 = result.U0;
-    UPr = result.UPr;
-    UPi = result.UPi;
-  }
+  // `../filters/index.ts`'s `filterModel()`).
+  const shared: DriverSideQuantities = {w, pg, ZaE, ZaD, Cab, Zc, Ral, Raa, Ql, Qa, Cas, Mas, rho, c, lossMode};
+  const {Zbox, UD, UP, U0, UPr, UPi} = boxModel(box, P).solve(shared);
 
   // Electrical input impedance Zel = Ze + Bl²/(Sd²·(ZaD+Zbox)), with the ENTERED BL as WinISD
   // uses it (BUG_20260926_winisd-impedance-uses-entered-bl).

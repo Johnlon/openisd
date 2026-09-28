@@ -268,14 +268,15 @@ export class OpenISDBox implements Box {
                 const prMmd = r.spec.Mms_kg.value;
                 const prSd = r.spec.Sd_m2.value;
                 const prCms = r.spec.Cms_m_per_N.value;
+                const prNum = this.passiveRadiator.count.value || 1;
                 if (!(Vb != null && Vb > 0 && prMmd != null && prSd != null && prCms != null && fp_hz > 0)) {
                     return absentCell<number>('addedMassForTuning_kg');
                 }
-                const totalMass = this.#engine.pr.massForFp({ Vb, prMmd, prMadd: 0, prSd, prCms }, fp_hz, air());
+                const totalMass = this.#engine.pr.massForFp({ Vb, prMmd, prMadd: 0, prSd, prCms, prNum }, fp_hz, air());
                 const addedMass = totalMass - prMmd;
                 const dq: DqIssue[] | undefined = addedMass < 0 ? [this.#engine.targetUnreachable(
                     'addedMassForTuning_kg',
-                    this.#engine.pr.tuning({ Vb, prMmd, prMadd: 0, prSd, prCms }, air()),
+                    this.#engine.pr.tuning({ Vb, prMmd, prMadd: 0, prSd, prCms, prNum }, air()),
                 )] : undefined;
                 return calculatedCell<number | null>('addedMassForTuning_kg', addedMass, dq);
             }),

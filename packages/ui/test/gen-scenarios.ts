@@ -68,6 +68,7 @@ for (const S of SCENARIOS) {
       prMadd: (pr.Madd ?? 0) / 1000,    // g      → kg
       prCms:  pr.Cms   / 1000,          // mm/N   → m/N
       prRms:  pr.Rms,                   // kg/s   (direct)
+      prNum:  1,
     };
     const fp = new Engine().pr.tuning(P, new Engine().solveEnvironment({}).values);
     S.computed = {

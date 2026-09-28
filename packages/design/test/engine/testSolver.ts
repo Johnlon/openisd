@@ -171,6 +171,7 @@ function prHandlesFrom(p: TestPrQuantities): PrSolverParams {
     prMmd_kg: fakeInput(p.prMmd_kg),
     prSd_m2: fakeInput(p.prSd_m2),
     prCms_m_per_N: fakeInput(p.prCms_m_per_N),
+    prNum: fakeInput(1),
     resonanceWithAddedMass_hz: fakeSolverField(p.resonanceWithAddedMass_hz ?? null),
     systemTuning_hz: fakeSolverField(p.systemTuning_hz ?? null),
   };

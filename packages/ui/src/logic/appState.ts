@@ -616,7 +616,7 @@ export function newProject(): OpenISDProject {
  *  re-enumerated in a view: a second list of "types that work" is what let a UI-only box type
  *  reach the solver as an assertion. */
 export function boxTypeIsSimulatable(boxType: BoxType): boolean {
-  return engine.simulatableBoxType(boxType) !== null;
+  return engine.box.simulatableBoxType(boxType) !== null;
 }
 
 /** The enclosure types the New Project wizard offers: the registry's list (`box_Type`),

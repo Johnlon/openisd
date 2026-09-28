@@ -113,7 +113,7 @@ describe('Engine.solvePr — handle solve, values written onto the params (T10/T
   function params(p: {
     addedMass_kg?: number; tuning_goal_hz?: number; Vb_m3?: number; prMmd_kg?: number;
     prSd_m2?: number; prCms_m_per_N?: number;
-  }): { addedMass_kg: SolverField; tuning_goal_hz: SolverField; Vb_m3: SolverField; prMmd_kg: SolverField; prSd_m2: SolverField; prCms_m_per_N: SolverField; resonanceWithAddedMass_hz: SolverField; systemTuning_hz: SolverField } {
+  }): { addedMass_kg: SolverField; tuning_goal_hz: SolverField; Vb_m3: SolverField; prMmd_kg: SolverField; prSd_m2: SolverField; prCms_m_per_N: SolverField; prNum: SolverField; resonanceWithAddedMass_hz: SolverField; systemTuning_hz: SolverField } {
     return {
       addedMass_kg: fakeSolverField(p.addedMass_kg ?? null),
       tuning_goal_hz: fakeSolverField(p.tuning_goal_hz ?? null),
@@ -121,6 +121,7 @@ describe('Engine.solvePr — handle solve, values written onto the params (T10/T
       prMmd_kg: fakeSolverField(p.prMmd_kg ?? null),
       prSd_m2: fakeSolverField(p.prSd_m2 ?? null),
       prCms_m_per_N: fakeSolverField(p.prCms_m_per_N ?? null),
+      prNum: fakeSolverField(1),
       resonanceWithAddedMass_hz: fakeSolverField<number>(null),
       systemTuning_hz: fakeSolverField<number>(null),
     };

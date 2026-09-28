@@ -18,12 +18,12 @@ export type PrIssue = CalculationIssue<PrQuantityName> | TargetUnreachableIssue;
  *  `vas`/`cmsFromVas` take none: no environment reaches their call sites, so ρ/c are the
  *  reference environment's, computed live — never a stored constant. */
 export interface PrEngine {
-  /** System resonance: PR compliance `Cap = prCms·prSd²` in series with box compliance `Cab`,
-   *  `Cpar = Cab·Cap/(Cab+Cap)`, `fp = 1/(2π·√(Map·Cpar))`.
+  /** System resonance with `prNum` radiators in parallel: PR compliance `Cap = prCms·prSd²`,
+   *  `Cpar = Cab·N·Cap/(Cab+N·Cap)`, `fp = 1/(2π·√((Map/N)·Cpar))` — the Fb WinISD displays.
    *  https://en.wikipedia.org/wiki/Helmholtz_resonance#Resonant_frequency */
   tuning(p: PrParams, air: Air): number;
-  /** Total moving mass that tunes the radiator to `fp` — the inverse of `tuning`:
-   *  `Map = 1/((2π·fp)²·Cpar)`, `Mmp = Map·prSd²`. */
+  /** Moving mass per radiator that tunes the box to `fp` — the inverse of `tuning`:
+   *  `Map = N/((2π·fp)²·Cpar)`, `Mmp = Map·prSd²`. */
   massForFp(p: PrParams, fp: number, air: Air): number;
   /** Compliance-equivalent volume, cubic metres: `Vas = Cms·Sd²·ρ·c²`. */
   vas(prCms: number, prSd: number): number;
@@ -54,16 +54,16 @@ export class PrEngineImpl implements PrEngine {
   tuning(p: PrParams, air: Air): number {
     const Cab  = p.Vb / (air.rho * air.c * air.c);
     const Map  = (p.prMmd + p.prMadd) / (p.prSd * p.prSd);
-    const Cap  = p.prCms * p.prSd * p.prSd;
+    const Cap  = p.prNum * p.prCms * p.prSd * p.prSd;
     const Cpar = (Cab * Cap) / (Cab + Cap);
-    return 1 / (2 * Math.PI * Math.sqrt(Map * Cpar));
+    return 1 / (2 * Math.PI * Math.sqrt(Map / p.prNum * Cpar));
   }
 
   massForFp(p: PrParams, fp: number, air: Air): number {
     const Cab  = p.Vb / (air.rho * air.c * air.c);
-    const Cap  = p.prCms * p.prSd * p.prSd;
+    const Cap  = p.prNum * p.prCms * p.prSd * p.prSd;
     const Cpar = (Cab * Cap) / (Cab + Cap);
-    const Map  = 1 / ((2 * Math.PI * fp) ** 2 * Cpar);
+    const Map  = p.prNum / ((2 * Math.PI * fp) ** 2 * Cpar);
     return Map * p.prSd * p.prSd;
   }
 
@@ -102,6 +102,7 @@ export class PrEngineImpl implements PrEngine {
     const prMmd = params.prMmd_kg.value;
     const prSd = params.prSd_m2.value;
     const prCms = params.prCms_m_per_N.value;
+    const prNum = params.prNum.value || 1;
 
     const issues: PrIssue[] = [];
 
@@ -115,7 +116,7 @@ export class PrEngineImpl implements PrEngine {
 
     if (addedMass != null && !params.tuning_goal_hz.entered) {
       if (geometryComplete) {
-        params.tuning_goal_hz.setCalculated(this.tuning({ Vb, prMmd, prMadd: addedMass, prSd, prCms }, air));
+        params.tuning_goal_hz.setCalculated(this.tuning({ Vb, prMmd, prMadd: addedMass, prSd, prCms, prNum }, air));
       } else {
         params.tuning_goal_hz.setNotAvailable();
         // geometryComplete is false here, and every way it can be false — Vb null/≤0, or prMmd/
@@ -127,14 +128,14 @@ export class PrEngineImpl implements PrEngine {
       }
     } else if (tuning != null && !params.addedMass_kg.entered) {
       if (geometryComplete && tuning > 0) {
-        const totalMass = this.massForFp({ Vb, prMmd, prMadd: 0, prSd, prCms }, tuning, air);
+        const totalMass = this.massForFp({ Vb, prMmd, prMadd: 0, prSd, prCms, prNum }, tuning, air);
         const addedMassResult = totalMass - prMmd;
         if (addedMassResult >= 0) {
           params.addedMass_kg.setCalculated(addedMassResult);
         } else {
           params.addedMass_kg.setNotAvailable();
           issues.push(targetUnreachable('addedMass_kg',
-            this.tuning({ Vb, prMmd, prMadd: 0, prSd, prCms }, air)));
+            this.tuning({ Vb, prMmd, prMadd: 0, prSd, prCms, prNum }, air)));
         }
       } else {
         params.addedMass_kg.setNotAvailable();
@@ -151,7 +152,7 @@ export class PrEngineImpl implements PrEngine {
       params.resonanceWithAddedMass_hz.setNotAvailable();
     }
     if (resolvedMass != null && Vb != null && Vb > 0 && prMmd != null && prSd != null && prCms != null) {
-      params.systemTuning_hz.setCalculated(this.tuning({ Vb, prMmd, prMadd: resolvedMass, prSd, prCms }, air));
+      params.systemTuning_hz.setCalculated(this.tuning({ Vb, prMmd, prMadd: resolvedMass, prSd, prCms, prNum }, air));
     } else {
       params.systemTuning_hz.setNotAvailable();
     }

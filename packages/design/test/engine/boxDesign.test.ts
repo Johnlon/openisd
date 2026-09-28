@@ -353,6 +353,7 @@ describe('Passive radiator tuning frequency (prTuning)', () => {
     prMmd:  0.010,  // kg — PR moving mass without added weight
     prMadd: 0,      // kg — no added mass initially
     prCms:  0.0008, // m/N
+    prNum:  1,
   };
 
   it('in a very large box Fp approaches the PR free-air resonance Fs (lower bound)', () => {
@@ -403,6 +404,7 @@ describe('PR added-mass auto-tune (prMassForFp)', () => {
     prMmd: 0.010,
     prCms: 0.0008,
     prMadd: 0, // will be ignored — prMassForFp computes total mass
+    prNum: 1,
   };
 
   it('prMassForFp and prTuning are exact inverses — hitting 30 Hz target', () => {
@@ -468,7 +470,7 @@ describe('Lossy sealed box resonance and Q from sweep (findImpedancePeak)', () =
       fmax: 200,
       N: 2000,
     };
-    const result = engine.sweep(driverParams(drv), LE_H, 'sealed', P).values!;
+    const result = engine.simulation.sweep(driverParams(drv), LE_H, 'sealed', P).values!;
     const peak = engine.findImpedancePeak(result, drv.Re_ohm!);
     assert.ok(peak !== null);
     // Assert peak frequency is near 54.81 Hz
@@ -498,7 +500,7 @@ describe('Lossy sealed box resonance and Q from sweep (findImpedancePeak)', () =
       Re_terminal_ohm: engine.terminalRe_ohm(6.0, 1, undefined),
       BL_terminal_Tm: engine.terminalBL_Tm(10.0, 1, undefined),
     };
-    const result = engine.sweep(driverParams(drv), LE_H, 'sealed', {
+    const result = engine.simulation.sweep(driverParams(drv), LE_H, 'sealed', {
       Vb: 0.010, Ql: 10, Qa: 100, Qp: 100, eg: 2.83, Rs: 0,
       wiring: 'parallel' as const, nDrivers: 1, fmin: 10, fmax: 200, N: 200,
     }).values!;
@@ -531,7 +533,7 @@ describe('Lossy sealed box resonance and Q from sweep (findImpedancePeak)', () =
       Re_terminal_ohm: engine.terminalRe_ohm(6.0, 1, undefined),
       BL_terminal_Tm: engine.terminalBL_Tm(10.0, 1, undefined),
     };
-    const result = engine.sweep(driverParams(drv), LE_H, 'sealed', {
+    const result = engine.simulation.sweep(driverParams(drv), LE_H, 'sealed', {
       Vb: 0.010, Ql: 10, Qa: 100, Qp: 100, eg: 2.83, Rs: 0,
       wiring: 'parallel' as const, nDrivers: 1, fmin: 10, fmax: 200, N: 200,
     }).values!;

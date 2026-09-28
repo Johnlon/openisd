@@ -9,7 +9,7 @@ import { winisdCms_m_per_N } from './winisdCms.js';
 import { winisdMms_kg } from './winisdMms.js';
 import { winisdRms_kg_per_s } from './winisdRms.js';
 
-/** `spec`'s 44 handles, shaped as `DriverSolverParams` for `Engine.sweep()`/`maxCurves()`
+/** `spec`'s 44 handles, shaped as `DriverSolverParams` for `SimulationEngine.sweep()`/`maxCurves()`
  *  (S2-10 ruling: "`OpenIsdDriverSpec` structurally satisfies `DriverSolverParams`") — true for
  *  40 of the 44 by name; the other four are ADAPTED, not merely reused: `SPLref_dB`/
  *  `Re_terminal_ohm`/`BL_terminal_Tm` have no domain storage slot (matching `NO_SLOT`'s own doc

@@ -43,7 +43,7 @@ export interface Result<T> {
  *
  * `bandpass6` and `abc` have circuit CLASSES (`boxes/Bandpass6Box.ts`, `boxes/AbcBox.ts`,
  * reachable through `boxes/index.ts`'s `boxModel()`) and are full `SimulatableBoxType` members:
- * `circuit.ts`'s `solve()` (the `Engine.sweep()` production path) and
+ * `circuit.ts`'s `solve()` (the `SimulationEngine.sweep()` production path) and
  * `domain/project/projectSweep.ts` both switch over every `SimulatableBoxType` including these
  * two — see `Bandpass6Box.ts`'s doc for the WinISD-captured formulas either box solves.
  */
@@ -56,7 +56,7 @@ export type BoxType =
   | 'abc';
 
 /** The box types the circuit solver's PRODUCTION path (`circuit.ts`'s `solve()`, reached through
- *  `Engine.sweep()`) actually models — every `BoxType` today (`Bandpass6Box.ts`/`AbcBox.ts` cover
+ *  `SimulationEngine.sweep()`) actually models — every `BoxType` today (`Bandpass6Box.ts`/`AbcBox.ts` cover
  *  the last two, `boxes/index.ts`'s `boxModel()`). Spelled out as its OWN union rather than
  *  `= BoxType`: the two sets happen to match now, but a future `BoxType` with no circuit yet must
  *  widen `BoxType` without silently claiming it here too. */
@@ -82,37 +82,6 @@ export type VentedAlignment = 'qb3' | 'bb4' | 'c4' | 'ebs3' | 'ebs6';
 export interface VentedDesign {
   readonly Vb: number;
   readonly Fb: number;
-}
-
-/**
- * Narrow a box type to one the circuit models, or null when it has none. The ONE place that
- * distinction is made, so a caller gets either a simulatable type or an explicit refusal — never
- * a silent fall-through into another topology's maths.
- *
- * INTERNAL to this package: `Engine.simulatableBoxType()` is the public way to ask, and the
- * engine door exports no loose functions (`test/architecture-engine-boundary.test.ts`).
- *
- * A SWITCH, not a list. The case labels NARROW `box` to exactly those six literals, which is
- * `SimulatableBoxType`, so `return box` needs no assertion — where `array.includes(box)` cannot
- * narrow at all and took one cast to ask the question and a second to answer it. It also leaves
- * no array to be mutable state, which is what `packages/design/AGENTS.md` and
- * `test/architecture-no-globals.test.ts` are about.
- *
- * Every `BoxType` is simulatable today, so this never actually returns null — the return type
- * stays `| null` (and every caller still handles it) because the two sets are declared
- * separately on purpose (`SimulatableBoxType`'s own doc): a future `BoxType` with no circuit yet
- * must fail here, not fall through.
- */
-export function simulatableBoxType(box: BoxType): SimulatableBoxType | null {
-  switch (box) {
-    case 'sealed':
-    case 'vented':
-    case 'bandpass4':
-    case 'box-passive-radiator':
-    case 'bandpass6':
-    case 'abc':
-      return box;
-  }
 }
 
 /** Driver wiring for multi-driver setups. */
@@ -227,7 +196,7 @@ export interface SweepParams {
   Sp?: number;
   Leff?: number;
   /** The REAR port's own cross-sectional area, m² — `bandpass6`/`abc` only, WinISD `.wpr`
-   *  `Sdrport`. Read ONLY by `sweep.ts`'s own `pvRear` chart computation (rear-port velocity =
+   *  `Sdrport`. Read ONLY by `simulation/SimulationEngine.ts`'s own `pvRear` chart computation (rear-port velocity =
    *  volume flow / area, the same divide `Sp` above does for the front/only port); never by the
    *  circuit itself, which gets the rear port's acoustic MASS from `Fr` (the chamber's tuning),
    *  not from this geometry — the same reason `Bandpass6Box.ts`/`AbcBox.ts` never call
@@ -474,4 +443,6 @@ export interface PrParams {
   readonly prMadd: number;
   readonly prSd: number;
   readonly prCms: number;
+  /** Radiator count; each radiator carries prMmd + prMadd. */
+  readonly prNum: number;
 }

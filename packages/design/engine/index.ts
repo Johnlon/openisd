@@ -42,10 +42,10 @@ export type {
   SealedAlignmentOption, VentedAlignment, VentedDesign, Wiring,
   EnclosureParams, PrParams, SweepParams, SweepResult, WprFilter, WprFilterImport,
 } from './types.js';
-export type { ChartId } from './charts.js';
+export type { BoxEngine, ChartId } from './box/BoxEngine.js';
 export type { BoxParamsQuantityName, BoxParamsIssue, BoxParamsSolveResult } from './params.js';
 export type { SignalQuantityName, SignalIssue } from './signal.js';
-export type { SweepIssue, SweepSolveResult, MaxCurvesSolveResult } from './sweep.js';
+export type { SimulationEngine, SweepIssue, SweepSolveResult, MaxCurvesSolveResult } from './simulation/SimulationEngine.js';
 export type {DriverQuantityName, DriverIssue, DriverPrerequisite} from './solvers/solveDriver.js';
 export type {VentEngine, VentQuantityName, VentIssue} from './vent/VentEngine.js';
 export type {PrEngine, PrQuantityName, PrIssue} from './pr/PrEngine.js';

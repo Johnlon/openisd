@@ -39,8 +39,8 @@ for (const name of NAMES) {
     BL_terminal_Tm: solved.BL_Tm === undefined ? undefined
       : engine.terminalBL_Tm(solved.BL_Tm!, solved.numVC, solved.wiring),
   };
-  const sw = engine.sweep(driverParams(drv), driverRaw.Le, box, P).values;
-  const mx = engine.maxCurves(driverParams(drv), driverRaw.Le, box, P).values;
+  const sw = engine.simulation.sweep(driverParams(drv), driverRaw.Le, box, P).values;
+  const mx = engine.simulation.maxCurves(driverParams(drv), driverRaw.Le, box, P).values;
 
   if (!sw || !mx) {
     throw new Error(`Engine refused fixture ${name}`);

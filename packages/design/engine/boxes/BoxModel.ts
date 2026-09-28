@@ -57,7 +57,7 @@ export interface BoxOutput extends Pick<Solution, 'Zbox' | 'UD' | 'UP' | 'U0'> {
   /** The REAR port's own volume velocity, for a two-port topology (`Bandpass6Box`, `AbcBox`) —
    *  `UP` above is that topology's FRONT port, the same "one port" convention every other box
    *  type already returns. `circuit.ts`'s `solve()` forwards this into `Solution.UPr`, and
-   *  `sweep.ts` turns it into `SweepResult.pvRear` for the `RearPort` chart. */
+   *  `SimulationEngine.ts` turns it into `SweepResult.pvRear` for the `RearPort` chart. */
   readonly UPr?: Complex;
   /** ABC's intra-chamber port volume velocity, WinISD's own chart-21 form (Ricl left out of the
    *  load impedance it divides by — winisd_research/GHIDRA_FINDINGS.md "ABC (Aperiodic

@@ -100,7 +100,7 @@ describe('Sealed box simulation', () => {
     assert.ok(d);
     const fc  = d.Fs_hz!  * Math.sqrt(1 + d.Vas_m3! / Vb_m3);
     const Qtc = d.Qts! * Math.sqrt(1 + d.Vas_m3! / Vb_m3);
-    const { fs, spl } = engine.sweep(driverParams(d), LE_H, 'sealed', {
+    const { fs, spl } = engine.simulation.sweep(driverParams(d), LE_H, 'sealed', {
       Vb: Vb_m3, Ql: 1e6, // Ql -> ∞ = lossless box (isolates acoustic response)
       eg: 2.83, fmin: 10, fmax: 1000, N: 300}).values!;
     const passbandRef = spl.at(-1)!; // HF asymptote — reference level
@@ -124,14 +124,14 @@ describe('Sealed box simulation', () => {
     //
     // The reference side uses the engine's own efficiency functions — the project's single
     // definition of that level — so what this gate actually tests is the CIRCUIT solution
-    // in engine.sweep().value! against the closed form, not one copy of a constant against another.
+    // in engine.simulation.sweep().value! against the closed form, not one copy of a constant against another.
     const Vb_m3 = 0.020;
     const EG    = 2.83; // V — IEC 60268-5 sensitivity reference voltage
     const d = solveConsistencyGroup({ ...REF_DRIVER});
     assert.ok(d);
     const eta0  = engine.referenceEfficiency(d.Fs_hz!, d.Vas_m3!, d.Qes!, engine.solveEnvironment({}).values);
     const predicted = engine.splFromEfficiency(eta0, engine.solveEnvironment({}).values) + 10 * Math.log10(EG ** 2 / d.Re_ohm!);
-    const { fs, spl } = engine.sweep(driverParams(d), LE_H, 'sealed', { Vb: Vb_m3, Ql: 1e6, eg: EG, fmin: 10, fmax: 1000, N: 300 }).values!;
+    const { fs, spl } = engine.simulation.sweep(driverParams(d), LE_H, 'sealed', { Vb: Vb_m3, Ql: 1e6, eg: EG, fmin: 10, fmax: 1000, N: 300 }).values!;
     const passbandSPL = spl[idxGe(fs, 300)]; // 300 Hz — well above Fs, in the flat passband
     assert.ok(Math.abs(passbandSPL - predicted) < SPL_FORMULA_TOLERANCE_DB,
       `passband ${passbandSPL.toFixed(2)} dB vs predicted ${predicted.toFixed(2)} dB ` +
@@ -155,7 +155,7 @@ describe('Sealed box simulation', () => {
     const Vb_m3 = 0.020;
     const d = solveConsistencyGroup({ ...REF_DRIVER});
     assert.ok(d);
-    const { fs, spl } = engine.sweep(driverParams(d), LE_H, 'sealed', {
+    const { fs, spl } = engine.simulation.sweep(driverParams(d), LE_H, 'sealed', {
       Vb: Vb_m3, Ql: 1e6,  // Ql → ∞: lossless (matches QSpeakers formula)
       eg: 2.83, fmin: 10, fmax: 1000, N: 300,
     }).values!;
@@ -198,7 +198,7 @@ describe('Vented (bass-reflex) box simulation', () => {
   const Map    = 1 / (wb * wb * Cab); // acoustic mass for Fb
   const Leff   = Map * Sp_m2 / refRho();  // effective duct length (including end correction)
   const d = solveConsistencyGroup(REF_DRIVER);
-  const { fs, spl, zmag } = engine.sweep(driverParams(d), LE_H, 'vented', {
+  const { fs, spl, zmag } = engine.simulation.sweep(driverParams(d), LE_H, 'vented', {
     Vb: Vb_m3, Ql: 7, Sp: Sp_m2, Leff, Fb: Fb_Hz, eg: 2.83, fmin: 10, fmax: 1000, N: 300,
   }).values!;
 
@@ -246,7 +246,7 @@ describe('Passive radiator box simulation', () => {
   // not-winisd-form.md) — computed by the same `prTuning` formula the test below already used
   // for Fp, or an absent Fr poisons Ral/Raa with NaN and every chart collapses to the -200 dB
   // silence sentinel.
-  const PR_BOX = {Vb: 0.02, prMmd: 0.010, prMadd: 0.020, prSd: 0.0133, prCms: 0.0008};
+  const PR_BOX = {Vb: 0.02, prMmd: 0.010, prMadd: 0.020, prSd: 0.0133, prCms: 0.0008, prNum: 1};
   const PR_PARAMS: SweepParams = {
     ...PR_BOX,
     Ql:     7,      // —  — box leakage Q (same as vented default)
@@ -257,7 +257,7 @@ describe('Passive radiator box simulation', () => {
     Fr: engine.pr.tuning(PR_BOX, engine.solveEnvironment({}).values),
   };
   const d = solveConsistencyGroup(REF_DRIVER);
-  const sw = engine.sweep(driverParams(d), LE_H, 'box-passive-radiator', PR_PARAMS).values!;
+  const sw = engine.simulation.sweep(driverParams(d), LE_H, 'box-passive-radiator', PR_PARAMS).values!;
 
   it('produces a non-zero excursion curve for the PR cone alongside the main driver curve', () => {
     // The PR is acoustically coupled to the box; at resonance it moves significantly.

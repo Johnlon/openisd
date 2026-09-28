@@ -23,14 +23,14 @@ describe('boxDesign air-sensitivity — ventLength/tuningFromLength/prTuning/prM
   });
 
   it('prTuning gives a different tuning at a non-reference air pair', () => {
-    const P = { Vb: 0.03, prMmd: 0.02, prMadd: 0, prSd: 0.02, prCms: 0.0008 };
+    const P = { Vb: 0.03, prMmd: 0.02, prMadd: 0, prSd: 0.02, prCms: 0.0008, prNum: 1 };
     const atReference = engine.pr.tuning(P, REFERENCE_AIR);
     const atHot = engine.pr.tuning(P, HOT_AIR);
     expect(atHot).not.toBeCloseTo(atReference, 6);
   });
 
   it('prMassForFp gives a different mass at a non-reference air pair', () => {
-    const P = { Vb: 0.03, prMmd: 0.02, prMadd: 0, prSd: 0.02, prCms: 0.0008 };
+    const P = { Vb: 0.03, prMmd: 0.02, prMadd: 0, prSd: 0.02, prCms: 0.0008, prNum: 1 };
     const atReference = engine.pr.massForFp(P, 30, REFERENCE_AIR);
     const atHot = engine.pr.massForFp(P, 30, HOT_AIR);
     expect(atHot).not.toBeCloseTo(atReference, 6);

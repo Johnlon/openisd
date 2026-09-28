@@ -736,7 +736,7 @@ export type OpenISDAdvancedJson = z.infer<typeof openISDAdvancedJsonSchema>;
 
 
 /** The chart panels' own project-scoped view state: which charts are open. `N` (sweep point
- *  count) absent means the engine's own default (`sweep.ts`: 400 points). `graphs` (which
+ *  count) absent means the engine's own default (`SimulationEngine.sweep`: 400 points). `graphs` (which
  *  charts are open) is PROJECT-scoped per S10/QO130 (reverses QO90 for this); optional, absent
  *  meaning a project saved before S10. The cursor/selection (crosshair, pinned frequency,
  *  drag-band) is ALSO project-scoped per QO130, but John 2026-09-20/21 ruled those four
