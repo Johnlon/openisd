@@ -157,13 +157,13 @@ export function resolveProject(ctx: ProjectResolveContext): ProjectIssues {
     return { driver: driverIssues, signal, vent, pr, sealed, ventTuningExtra };
 }
 
-/** The driver's Re when it is a positive finite number, else null — read off `driverOver`, the
- *  permanent facade collaborator every caller of `resolveProject` already supplies. Exported: also
+/** The driver's Re at the project's coil temperature rise, or null when Re is unusable — read
+ *  off `driverOver`, the permanent facade collaborator every caller of `resolveProject` already supplies. Exported: also
  *  used by the facade's own `#signalOver` to build the `usableRe` callback `ProjectSignal` needs
  *  (PLAN_openisdproject_split.md). */
 export function usableRe(root: SimpleField<OpenISDProjectJson>, driverOver: ProjectResolveContext['driverOver']): number | null {
-    const Re_ohm = driverOver(root).specs.Re_ohm.value;
-    return Re_ohm !== null && Number.isFinite(Re_ohm) && Re_ohm > 0 ? Re_ohm : null;
+    const {alfaVC_per_K, vcTempRise_K} = root.value.driverEmbedding;
+    return driverOver(root).hotRe_ohm(alfaVC_per_K, vcTempRise_K);
 }
 
 /**
