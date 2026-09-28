@@ -35,6 +35,18 @@ import { ProjectSignal } from './projectSignal.js';
 // A module-scoped WeakMap bridge (`notifyProject`/`subscribeToProject`) lets
 // `ManagedProject` observe internal `OpenISDProject` changes without exposing
 // state publicly.
+//
+// This class holds the record (`#saved`/`#edited`/`#whatif`/`#engine` — see
+// `architecture-project-has-three-fields.test.ts`) and the public surface built fresh from it on
+// every access, same as `driver`/`box` always have. Responsibility split across sibling modules
+// by area (PLAN_openisdproject_split.md): `projectResolve.ts` (the solve cascade),
+// `projectMeta.ts` (name/creator/description), `projectEnvironment.ts` (temp/humidity/pressure),
+// `projectSignal.ts` (drive power/voltage), `projectAdvanced.ts` (filters and the WinISD
+// compatibility switches), `projectChartsView.ts` (which charts, trace colour, sweep N),
+// `projectSerialization.ts` (.wpr/.owpr text), `projectSweep.ts` (the engine sweep/max-curves
+// call and its enclosure/box-specific parameter building). Each is built fresh over a lens/source
+// this class hands it, never held as a stored collaborator — `cursorF`/`pinnedF`/`cursorLocked`/
+// `dragRange` are the one documented exception, staying as this class's own private fields.
 
 export class OpenISDProject {
     static builder(driver: OpenISDDriver, engine: Engine, appContext: AppContext = realAppContext): ProjectBuilder {
