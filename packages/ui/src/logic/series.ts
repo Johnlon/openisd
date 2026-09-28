@@ -1,4 +1,4 @@
-import type {BoxType, ChartId, DriverError, DriverSolverParams, Engine, MaxCurvesResult, SweepResult} from '@openisd/design/engine';
+import type {BoxEngine, BoxType, ChartId, DriverError, DriverSolverParams, Engine, MaxCurvesResult, SweepResult} from '@openisd/design/engine';
 import type {Design, PlotData, PlotParams, Series} from '../types.js';
 
 export const DPAL = ['#4fb0ff','#ffb454','#5ad17a','#ff6b6b','#c08bff'];
@@ -60,11 +60,11 @@ export const TABS: TabMeta[] = Object.values(TAB_META);
  * a stale chart id restored from `localStorage`, say — and is handled as missing, i.e.
  * the default chart, never as a second spelling to tolerate.
  */
-export function parseChartId(engine: Engine, v: string | null | undefined): ChartId {
+export function parseChartId(box: BoxEngine, v: string | null | undefined): ChartId {
   // The id comes back off the MEMBER that matched, so it is a `ChartId` because `TabMeta.id`
   // is one — nothing asserts it. `hasOwnProperty` answered the same question correctly but
   // returns a boolean, which cannot narrow a `string`, so using its answer needed a cast.
-  return TABS.find(t => t.id === v)?.id ?? engine.box.defaultChart;
+  return TABS.find(t => t.id === v)?.id ?? box.defaultChart;
 }
 
 /** SPL/filter-magnitude values at or below this are the engine's "no output" sentinel. */

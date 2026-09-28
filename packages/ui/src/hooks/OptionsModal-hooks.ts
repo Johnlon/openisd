@@ -12,7 +12,7 @@
  * repo stores m³ and hertz. This hook is that boundary.
  */
 import {computed, type ComputedRef, ref, type Ref} from 'vue';
-import type {Air, ChartId, EnvDefaults, VentedDesignLimits} from '@openisd/design/engine';
+import type {Air, ChartId, EnvDefaults, EnvironmentEngine, VentedDesignLimits} from '@openisd/design/engine';
 import {
   envDefaults as appEnvDefaults,
   engine,
@@ -29,6 +29,8 @@ export interface OptionsModalDeps {
   setVentedLimits(limits: VentedDesignLimits): void;
   envDefaults(): EnvDefaults;
   setEnvDefaults(defaults: EnvDefaults): void;
+  /** The air readout's calculator — the environment area, not the whole engine. */
+  environment: EnvironmentEngine;
 }
 
 /** One row of the Plot Window "Limits" table: a chart and WinISD's default Y range for it. */
@@ -105,6 +107,7 @@ export function useOptionsModal(deps?: OptionsModalDeps): OptionsModalAPI {
     setVentedLimits: setAppVentedLimits,
     envDefaults: appEnvDefaults,
     setEnvDefaults: setAppEnvDefaults,
+    environment: engine.environment,
   };
 
   const band = settings.ventedLimits();
@@ -166,7 +169,7 @@ export function useOptionsModal(deps?: OptionsModalDeps): OptionsModalAPI {
       && e.pressurePa === FACTORY_ENV_DEFAULTS.pressurePa;
   });
 
-  const defaultAir = computed<Air>(() => engine.environment.solve(editedEnv.value).values);
+  const defaultAir = computed<Air>(() => settings.environment.solve(editedEnv.value).values);
 
   function resetLimits(): void {
     minVolume_L.value = FACTORY_VENTED_LIMITS.minVb_m3 * LITRES_PER_M3;

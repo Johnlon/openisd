@@ -72,7 +72,6 @@ const ENGINE_PARAMETER_BASELINE: ReadonlySet<string> = new Set([
   "packages/design/domain/project/openISDProject.ts#OpenISDProject.wrapSession",
   "packages/design/domain/project/openISDProject.ts#OpenISDProject.wrapWithIdentity",
   "packages/ui/src/logic/series.ts#buildPlotData",
-  "packages/ui/src/logic/series.ts#parseChartId",
   "packages/ui/src/logic/series.ts#seriesFor",
 ]);
 

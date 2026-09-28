@@ -2,7 +2,7 @@ import { computed, type ComputedRef, ref, type Ref, shallowRef } from 'vue';
 // Type-only: the store constructs projects (`newProject()`) and owns the engine instance; this
 // hook only names their shapes, so neither import is a layering edge (QO80).
 import type { OpenISDDriver, OpenISDProject } from '@openisd/design';
-import type { BoxType, EbpSuitability, Engine, VentedAlignment, VentedDesign, Wiring } from '@openisd/design/engine';
+import type { BoxType, DriverEngine, EbpSuitability, SealedEngine, VentedAlignment, VentedDesign, VentedEngine, Wiring } from '@openisd/design/engine';
 import {ARRAY_WIRING_OPTIONS, DEFAULT_SOURCE_RESISTANCE_OHM, DEFAULT_VENTED_ALIGNMENT, NumberField, SEALED_ALIGNMENT_OPTIONS, VENTED_ALIGNMENT_OPTIONS, type SelectorOption} from '@openisd/design/fields';
 import {
   defaultPassiveRadiator,
@@ -15,8 +15,15 @@ import {
 import { selectedOption } from '../logic/domEvents.js';
 import { fromDisplay } from '../logic/fields/units.js';
 
+/** The three engine areas the wizard consults; `appState`'s by default, substitutes in a test. */
+export interface OgNewProjectEngineAreas {
+  readonly driver: DriverEngine;
+  readonly sealed: SealedEngine;
+  readonly vented: VentedEngine;
+}
+
 export interface OgNewProjectDeps {
-  engine?: Engine;
+  areas?: OgNewProjectEngineAreas;
   initialDriver?: OpenISDDriver | null;
 }
 
@@ -114,7 +121,7 @@ const STEP_LABELS = Object.freeze([
 ]);
 
 export function useOgNewProject(deps?: OgNewProjectDeps): OgNewProjectAPI {
-  const eng = deps?.engine ?? appEngine;
+  const eng: OgNewProjectEngineAreas = deps?.areas ?? appEngine;
   const initialDriver = deps?.initialDriver ?? newProjectDriver.value ?? null;
 
   const step = ref(1);

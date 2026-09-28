@@ -30,6 +30,7 @@ function fakeSettings(
     setVentedLimits: (limits) => { band = limits; bandWrites.push(limits); },
     envDefaults: () => env,
     setEnvDefaults: (defaults) => { env = defaults; envWrites.push(defaults); },
+    environment: createEngine().environment,
   };
   return {...deps, bandWrites, envWrites};
 }
@@ -225,7 +226,7 @@ describe('the Plot Window Y-limit rows target charts that exist', () => {
   // anything" — the row was keyed 'TFmag' while the chart is 'TFMag', so the override landed
   // under a key no chart reads. The rows are typed `ChartId` now; this pins the runtime side.
   it('every row is a chart tab the graph panel renders', () => {
-    for (const row of LIMIT_ROWS) assert.equal(parseChartId(createEngine(), row.tab), row.tab, row.label);
+    for (const row of LIMIT_ROWS) assert.equal(parseChartId(createEngine().box, row.tab), row.tab, row.label);
   });
 
   it('has a row for the transfer function magnitude chart', () => {

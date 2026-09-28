@@ -19,7 +19,7 @@ export interface MobileChartItem { label: string; tab: ChartId }
 
 export function useMobileChartView() {
   const project = useFocusedProject();
-  const { engine } = useApp();
+  const { box } = useApp().engine;
 
   const CHART_ITEMS = computed<MobileChartItem[]>(() => {
     void projectChanged.value;
@@ -28,13 +28,13 @@ export function useMobileChartView() {
 
   const chartTab = computed<ChartId>({
     get: () => {
-      const id = parseChartId(engine, presentationState.ui.mobileChartTab);
-      return CHART_ITEMS.value.some(i => i.tab === id) ? id : engine.box.defaultChart;
+      const id = parseChartId(box, presentationState.ui.mobileChartTab);
+      return CHART_ITEMS.value.some(i => i.tab === id) ? id : box.defaultChart;
     },
     set: (v: ChartId) => { presentationState.ui.mobileChartTab = v; },
   });
   const chartLabel = computed<string>({
-    get: () => presentationState.ui.mobileChartLabel ?? CHART_LABELS[engine.box.defaultChart],
+    get: () => presentationState.ui.mobileChartLabel ?? CHART_LABELS[box.defaultChart],
     set: (v: string) => { presentationState.ui.mobileChartLabel = v; },
   });
   function selectChart(item: MobileChartItem): void {

@@ -406,7 +406,7 @@ describe('OriginalShell-hooks', () => {
           project: computed(() => projectRef.value),
           projectChanged,
           envDefaults: () => STUB_DEFAULTS,
-          engine: createEngine(),
+          environment: createEngine().environment,
         }),
       };
     }
