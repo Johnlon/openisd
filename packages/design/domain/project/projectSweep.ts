@@ -130,7 +130,9 @@ function boxSpecificParamsOf(source: ProjectSweepSource, boxType: SimulatableBox
             // Null only when the vent's tuning ↔ length pair is itself unsolved, which
             // ventSweepIssuesOf already refuses the sweep over before this is read.
             const Fb = box.vented.tuning_goal_hz.value;
-            return {Sp: Sp ?? undefined, Leff: Leff ?? undefined, Fb: Fb ?? undefined};
+            const length = box.vented.vent.length_m.value;
+            const portEndCorrection_m = Leff !== null && length !== null ? Leff - length : undefined;
+            return {Sp: Sp ?? undefined, Leff: Leff ?? undefined, Fb: Fb ?? undefined, portEndCorrection_m};
         }
         case 'bandpass4': {
             const Sp = box.bandpass4.vents.front.totalArea_m2();
