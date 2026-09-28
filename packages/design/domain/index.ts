@@ -71,4 +71,4 @@ export { Engine } from '../engine/index.js';
 // keep their dedicated door; only `Engine` appears on both.
 
 export type { DiscardChallenge } from './project/discardChallenge.js';
-export type { DriverSpecFieldName } from './driver/driverSpecFieldName.js';
+export type { DriverSpecFieldName, NumericDriverSpecFieldName } from './driver/driverSpecFieldName.js';

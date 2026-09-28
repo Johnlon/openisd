@@ -3,9 +3,8 @@ import {computed} from 'vue';
 import {useFocusedProject} from '../logic/focusedProjectContext.js';
 import {cellClassFor} from '../logic/useDriverCells.js';
 import type {Calculated, Clearable, Entered, Readable, Writable} from '@openisd/design';
-import {engine, projectChanged} from '../logic/appState.js';
 import type {NumSpecField} from '../logic/appState.js';
-import {specFieldHandle} from '../logic/driverSpecFields.js';
+import {engine, projectChanged} from '../logic/appState.js';
 
 export type NumKey = NumSpecField;
 export type { NumSpecField };
@@ -33,12 +32,8 @@ export const OgTuneKey: InjectionKey<OgTuneAPI> = Symbol('OgTuneAPI');
 export function useOgTune(): OgTuneAPI {
   const project = useFocusedProject();
 
-  function specField(key: NumSpecField): Readable<number | null> & Entered & Calculated & Writable<number> & Clearable {
-    return specFieldHandle(project.value.driver, key);
-  }
-
   function fieldCell(key: NumSpecField): Readable<number | null> & Entered & Calculated {
-    return specField(key);
+    return project.value.driver.specField(key);
   }
 
   // `projectChanged` as well as `project`: the registry hands out the SAME project instance for
@@ -98,11 +93,11 @@ export function useOgTune(): OgTuneAPI {
   }
 
   function enterField(key: NumSpecField, v: number, precision?: number): void {
-    specField(key).set(v, precision);
+    project.value.driver.specField(key).set(v, precision);
   }
 
   function clearField(key: NumSpecField): void {
-    specField(key).clear();
+    project.value.driver.specField(key).clear();
   }
 
   function cancel() {
@@ -116,7 +111,9 @@ export function useOgTune(): OgTuneAPI {
   return {
     ebp,
     vb_m3,
-    specField,
+    specField: function (key: NumSpecField): Readable<number | null> & Entered & Calculated & Writable<number> & Clearable {
+      return project.value.driver.specField(key);
+    },
     fieldCell,
     cellClass,
     cellVal,
