@@ -12,7 +12,7 @@ export class VentedBox implements BoxModel {
   constructor(private readonly P: SweepParams) {}
 
   solve(q: DriverSideQuantities): BoxOutput {
-    const {w, pg, ZaE, ZaD, Zc, Cab, Ral, Raa, Ql, Qa, lossMode} = q;
+    const {w, pg, ZaE, ZaD, Zc, Cab, Ral, Raa, Ql, Qa, lossMode, rho, c} = q;
     const P = this.P;
 
     switch (lossMode) {
@@ -41,8 +41,8 @@ export class VentedBox implements BoxModel {
         //   Rap = ωb·Map/Qp                    port loss, in series with Map (fixed)
         //   Zbox = Ral ∥ (Raa + 1/(jωCab)) ∥ (Rap + jωMap)
         // Radiated output is the Cab branch's own current — cone MINUS leak MINUS port, not
-        // cone minus port alone. `P.tlPortModel` is a conventional-branch-only option: WinISD's
-        // own port here is always this lumped Map, never a transmission line.
+        // cone minus port alone. With `P.tlPortModel` the port's jωMap becomes a lossless line,
+        // `winisdLinePortReactance` below.
         //
         // `P.Fb` absent poisons every value below with NaN, exactly like an absent `Leff`/`Sp`
         // does in the branch above (engine/params.ts's own doc: this solve divides by its inputs
@@ -57,7 +57,7 @@ export class VentedBox implements BoxModel {
         const RaaSeries = cx(wb * Map / Qa, 0);
         const RapSeries = cx(wb * Map / Qp, 0);
         const CabBranch = cAdd(RaaSeries, Zc);
-        const PortBranch = cAdd(RapSeries, cx(0, w * Map));
+        const PortBranch = cAdd(RapSeries, cx(0, P.tlPortModel ? winisdLinePortReactance(w, Map, rho, c, P) : w * Map));
         const Zbox = cPar(RalConst, CabBranch, PortBranch);
         const UD = cDiv(pg, cAdd(cAdd(ZaE, ZaD), Zbox));
         const UP = cMul(UD, cDiv(Zbox, PortBranch));
@@ -66,4 +66,16 @@ export class VentedBox implements BoxModel {
       }
     }
   }
+}
+
+/**
+ * WinISD's transmission-line port reactance, (ρc/S)·tan(ωL/c): S the port area, L the physical
+ * length that tunes to Fb — the Fb mass's own length ρ·L/S = Map, less the end correction.
+ * Fitted to winisd_research runs/vented-w5-tlports (impedance 2e-15;
+ * toys/w5_tl_port_model_check.py); bugs/BUG_20260928_tl-port-model-not-winisd.md.
+ */
+function winisdLinePortReactance(w: number, Map: number, rho: number, c: number, P: SweepParams): number {
+  const Sp = P.Sp ?? NaN;
+  const L = Map * Sp / rho - (P.portEndCorrection_m ?? NaN);
+  return rho * c / Sp * Math.tan(w * L / c);
 }

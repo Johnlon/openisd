@@ -199,6 +199,9 @@ export interface SweepParams {
   Vf?: number;
   Sp?: number;
   Leff?: number;
+  /** The vent's end correction as a length, m (`Leff` less the physical length). Read only by
+   *  WinISD's transmission-line port (`VentedBox`, `tlPortModel`). */
+  portEndCorrection_m?: number;
   /** The REAR port's own cross-sectional area, m² — `bandpass6`/`abc` only, WinISD `.wpr`
    *  `Sdrport`. Read ONLY by `simulation/SimulationEngine.ts`'s own `pvRear` chart computation (rear-port velocity =
    *  volume flow / area, the same divide `Sp` above does for the front/only port); never by the
