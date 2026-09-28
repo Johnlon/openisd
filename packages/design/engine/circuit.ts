@@ -180,15 +180,13 @@ export function solve(f: number, drv: CircuitQuantities, box: BoxType, P: SweepP
 
   let Zbox!: Complex, U0!: Complex, UD!: Complex;
   let UP: Complex = cx(0, 0);
+  let UPr: Complex | undefined, UPi: Complex | undefined;
 
   const lossMode: LossModeValue = (Ql >= 1e6 && Qa >= 1e6) ? 'lossless' : (P.lossMode ?? 'winisd-lossy');
 
   // The one place a `BoxType` becomes a topology's own circuit (`./boxes/`, mirroring
-  // `../filters/index.ts`'s `filterModel()`). `simulatableBoxType` narrows to the four types the
-  // circuit has a model for; `bandpass6`/`abc` fall through with `Zbox`/`UD`/`U0` left
-  // unassigned, reproducing the same "Cannot read properties of undefined" failure calling
-  // through with one of those types already produces today (test/engine/circuit.test.ts "an
-  // unsimulatable box type (bandpass6, abc) is not refused by solve() itself").
+  // `../filters/index.ts`'s `filterModel()`). `simulatableBoxType` narrows to every box type the
+  // circuit has a model for — today, every `BoxType`.
   const simulatable = simulatableBoxType(box);
   if (simulatable !== null) {
     const shared: DriverSideQuantities = {w, pg, ZaE, ZaD, Cab, Zc, Ral, Raa, Ql, Qa, Cas, Mas, rho, c, lossMode};
@@ -197,11 +195,13 @@ export function solve(f: number, drv: CircuitQuantities, box: BoxType, P: SweepP
     UD = result.UD;
     UP = result.UP;
     U0 = result.U0;
+    UPr = result.UPr;
+    UPi = result.UPi;
   }
 
   // Electrical input impedance Zel = Ze + Bl²/(Sd²·(ZaD+Zbox)), with the ENTERED BL as WinISD
   // uses it (BUG_20260926_winisd-impedance-uses-entered-bl).
   // https://en.wikipedia.org/wiki/Electrical_characteristics_of_a_dynamic_loudspeaker
   const Zel = cAdd(ZcoilForZel, cDiv(cx(BlPush * BlPush, 0), cMul(cx(Sdt * Sdt, 0), cAdd(ZaD, Zbox))));
-  return { U0, UD, UP, Zbox, Zel, ZaD };
+  return { U0, UD, UP, UPr, UPi, Zbox, Zel, ZaD };
 }

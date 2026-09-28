@@ -962,10 +962,17 @@ describe('OpenISDBox — every alignment, as a window onto the project record', 
 });
 
 describe('OpenISDProject.builder — bandpass6 and abc share TwoChamberProjectBuilder, both chambers independently tunable', () => {
-  const driver = () => driverFrom({
-    brand: 'Dayton', model: 'RS225', section: 'woofer',
-    spec: specSection({ Fs_hz: 30, Qts: 0.4, Sd_m2: 0.02, Cms_m_per_N: 0.0005, Mmd_kg: 0.05, Rms_Ns_per_m: 2, Xmax_m: 0.008 }),
-  });
+  const driver = () => {
+    const d = driverFrom({
+      brand: 'Dayton', model: 'RS225', section: 'woofer',
+      spec: specSection({ Fs_hz: 30, Qts: 0.4, Sd_m2: 0.02, Cms_m_per_N: 0.0005, Mmd_kg: 0.05, Rms_Ns_per_m: 2, Xmax_m: 0.008 }),
+    });
+    // The field-only tests below never sweep, but this describe block's own sweep test does,
+    // and a sweep needs a usable electrical side `specSection` alone does not state.
+    d.specs.Re_ohm.set(6);
+    d.specs.BL_Tm.set(7);
+    return d;
+  };
 
   it('bandpass6() builds a project whose rear chamber carries its own volume AND tuning, unlike bandpass4\'s sealed rear', () => {
     const p = OpenISDProject.builder(driver(), new Engine())
@@ -985,12 +992,12 @@ describe('OpenISDProject.builder — bandpass6 and abc share TwoChamberProjectBu
     expect(p.box.abc.chambers.front.tuning_goal_hz.value).toBe(38);
   });
 
-  it('sweep()/maxCurves()/boxParamsIssues() answer "nothing to simulate" for a topology the engine has no circuit for', () => {
+  it('sweep()/maxCurves()/boxParamsIssues() simulate a bandpass6 box — see bp6-abc-wpr.test.ts for the WinISD-matched engine coverage', () => {
     const p = OpenISDProject.builder(driver(), new Engine())
       .bandpass6().rearVolume_m3(0.02).rearTuning_hz(50).frontVolume_m3(0.03).frontTuning_hz(40).build();
 
-    expect(p.sweep({fmin: 10, fmax: 100, N: 10})).toEqual({values: null, issues: []});
-    expect(p.maxCurves({fmin: 10, fmax: 100, N: 10})).toEqual({values: null, issues: [], driverPrerequisites: []});
+    expect(p.sweep({fmin: 10, fmax: 100, N: 10}).values).not.toBeNull();
+    expect(p.maxCurves({fmin: 10, fmax: 100, N: 10}).values).not.toBeNull();
     expect(p.boxParamsIssues()).toEqual([]);
   });
 });
@@ -1861,13 +1868,17 @@ describe('editing a driver — copy, then update or drop', () => {
     expect(back.value.driver.model.value).toBe('RS225');
   });
 
-  it('toWprText() answers value:null with errors for a box type .wpr cannot express (bandpass6)', () => {
+  it('toWprText() round-trips a bandpass6 box (BType=3) — see bp6-abc-wpr.test.ts for the full coverage', () => {
     const project = OpenISDProject.builder(wooferDriver(), new Engine())
       .bandpass6().rearVolume_m3(0.02).rearTuning_hz(50).frontVolume_m3(0.03).frontTuning_hz(40).build();
 
     const { value: text, errors } = project.toWprText(new Engine());
-    expect(text).toBeNull();
-    expect(errors.length).toBeGreaterThan(0);
+    expect(errors.filter((e: DriverError) => e.level === 'error')).toEqual([]);
+    if (text === null) throw new Error('toWprText produced no text');
+
+    const back = OpenISDProject.fromWprText(text, new Engine());
+    if (back.value === null) throw new Error('fromWprText returned problems: ' + JSON.stringify(back.errors));
+    expect(back.value.box.boxType.value).toBe('bandpass6');
   });
 
   it('clonePassiveRadiator() gives the record back, deep-cloned so an edit after the call cannot reach it', () => {

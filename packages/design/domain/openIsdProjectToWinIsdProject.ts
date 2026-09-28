@@ -6,11 +6,14 @@
  * physics and no unit conversion of its own (its own doc comment), and take the already-computed
  * numbers from the domain.
  *
- * Scope: `sealed`, `vented`, `bandpass4`, `box-passive-radiator` — the four `SimulatableBoxType`s
- * (`packages/design/engine/types.ts`) and the four box types the golden corpus under
- * `packages/design/test/winisd/fixtures/winisd-parity/goldens/` covers. `bandpass6`/`abc` have no
- * golden `.wpr` here and are not simulated, so `openIsdProjectToWinIsdProject` reports them as an
- * error rather than guessing a `BType`/section layout no sample confirms.
+ * Scope: all six box types. `sealed`/`vented`/`bandpass4`/`box-passive-radiator` are verified
+ * against the golden corpus under `packages/design/test/winisd/fixtures/winisd-parity/goldens/`.
+ * `bandpass6` (`BType=3`) and `abc` (`BType=5`) are verified against two real WinISD-written
+ * `.wpr` files each — a live debugger capture and a `docs/samples/` sample — in
+ * `packages/design/test/winisd/bp6-abc-wpr.test.ts`; both chambers on both box types are vented
+ * and independently tunable, so their `[Box]` keys are `Vr`/`Fr`/`Vf`/`Ff` plus a loss triple per
+ * chamber, identical in layout to `bandpass4`'s pair with an added `Fr`/rear-port triple; `abc`
+ * additionally carries a `[VentIntra]` section for the port connecting its two chambers.
  *
  * `phi` (`.wpr`'s `[Box]` humidity key) is WinISD's FRACTION, 0.0-1.0; `OpenISDProject`'s own
  * `envHumidityPct()`/`setEnvHumidityPct()` is a PERCENTAGE, 0-100 (confirmed at its own doc
@@ -37,9 +40,8 @@ type WprValues = Record<string, Record<string, string | number>>;
 /**
  * `OpenISDProject` -> a `WinISDProject` ready to render as `.wpr` text.
  *
- * Never throws for bad input: an unsimulatable box type (`bandpass6`/`abc`, out of this bridge's
- * scope — see the file doc comment) or a driver that cannot produce a `.wdr` comes back as
- * `{value: null, errors: [...]}`.
+ * Never throws for bad input: a driver spec that will not convert (e.g. a value out of `.wdr`'s
+ * range) comes back as warn/error entries in `errors`, `value` still populated where possible.
  */
 export function openIsdProjectToWinIsdProject(
   project: OpenISDProject, engine: Engine,
@@ -52,10 +54,7 @@ export function openIsdProjectToWinIsdProject(
 
   const box = project.box;
   const boxType = box.boxType.value;
-  const boxValues = boxSectionValues(box, boxType, errors);
-  if (!boxValues) {
-    return {value: null, errors};
-  }
+  const boxValues = boxSectionValues(box, boxType);
 
   // No usable Re, no power: P is left out rather than invented.
   const power_W = project.powerDrive_W.value;
@@ -164,12 +163,10 @@ function importFilters(wpr: WinISDProject, engine: Engine, errors: DriverError[]
   return filters;
 }
 
-/** `[Box]`'s own values, per box type. `null` (with an error pushed) for a box type this bridge
- *  does not cover. */
+/** `[Box]`'s own values, per box type — every `BoxType` is covered. */
 function boxSectionValues(
   box: Box, boxType: Box['boxType']['value'],
-  errors: DriverError[],
-): Record<string, string | number> | null {
+): Record<string, string | number> {
   switch (boxType) {
     case 'sealed': {
       const v: Record<string, string | number> = {BType: 0, Vr: box.sealed.volume_m3.value};
@@ -223,13 +220,48 @@ function boxSectionValues(
       v.Qar = box.passiveRadiator.losses.Qa.value;
       return v;
     }
-    case 'bandpass6':
-    case 'abc':
-      errors.push({
-        level: 'error', field: 'boxType',
-        message: `Unsupported box type "${boxType}": WinISD export supports sealed, vented, 4th-order bandpass, and passive radiator box types.`,
-      });
-      return null;
+    case 'bandpass6': {
+      const v: Record<string, string | number> = {
+        BType: 3,
+        Vr: box.bandpass6.chambers.rear.volume_m3.value,
+        Fr: box.bandpass6.chambers.rear.tuning_goal_hz.value ?? 0,
+        Vf: box.bandpass6.chambers.front.volume_m3.value,
+        Ff: box.bandpass6.chambers.front.tuning_goal_hz.value ?? 0,
+      };
+      v.Qlr = box.bandpass6.chambers.rear.losses.Ql.value;
+      v.Qar = box.bandpass6.chambers.rear.losses.Qa.value;
+      v.Qpr = box.bandpass6.chambers.rear.losses.Qp.value;
+      v.Qiclfr = box.bandpass6.chambers.rear.losses.Qicl.value;
+      v.Qlf = box.bandpass6.chambers.front.losses.Ql.value;
+      v.Qaf = box.bandpass6.chambers.front.losses.Qa.value;
+      v.Qpf = box.bandpass6.chambers.front.losses.Qp.value;
+      const rearArea = box.bandpass6.vents.rear.area_m2.value;
+      if (rearArea != null) v.Sdrport = rearArea;
+      const frontArea = box.bandpass6.vents.front.area_m2.value;
+      if (frontArea != null) v.Sdfport = frontArea;
+      return v;
+    }
+    case 'abc': {
+      const v: Record<string, string | number> = {
+        BType: 5,
+        Vr: box.abc.chambers.rear.volume_m3.value,
+        Fr: box.abc.chambers.rear.tuning_goal_hz.value ?? 0,
+        Vf: box.abc.chambers.front.volume_m3.value,
+        Ff: box.abc.chambers.front.tuning_goal_hz.value ?? 0,
+      };
+      v.Qlr = box.abc.chambers.rear.losses.Ql.value;
+      v.Qar = box.abc.chambers.rear.losses.Qa.value;
+      v.Qpr = box.abc.chambers.rear.losses.Qp.value;
+      v.Qiclfr = box.abc.chambers.rear.losses.Qicl.value;
+      v.Qlf = box.abc.chambers.front.losses.Ql.value;
+      v.Qaf = box.abc.chambers.front.losses.Qa.value;
+      v.Qpf = box.abc.chambers.front.losses.Qp.value;
+      const rearArea = box.abc.vents.rear.area_m2.value;
+      if (rearArea != null) v.Sdrport = rearArea;
+      const frontArea = box.abc.vents.front.area_m2.value;
+      if (frontArea != null) v.Sdfport = frontArea;
+      return v;
+    }
   }
 }
 
@@ -265,6 +297,14 @@ function ventSectionValues(
     out.VentRear = oneVent(box.vented.vent, box.vented.tuning_goal_hz.value);
   } else if (boxType === 'bandpass4') {
     out.VentFront = oneVent(box.bandpass4.vents.front, box.bandpass4.chambers.front.tuning_goal_hz.value);
+  } else if (boxType === 'bandpass6') {
+    out.VentRear = oneVent(box.bandpass6.vents.rear, box.bandpass6.chambers.rear.tuning_goal_hz.value);
+    out.VentFront = oneVent(box.bandpass6.vents.front, box.bandpass6.chambers.front.tuning_goal_hz.value);
+  } else if (boxType === 'abc') {
+    out.VentRear = oneVent(box.abc.vents.rear, box.abc.chambers.rear.tuning_goal_hz.value);
+    out.VentFront = oneVent(box.abc.vents.front, box.abc.chambers.front.tuning_goal_hz.value);
+    // The connecting port between the two chambers, not tuned to either — no `fb_hz`.
+    out.VentIntra = oneVent(box.abc.vents.intra, null);
   }
   return out;
 }
@@ -281,7 +321,7 @@ function ventSectionValues(
 /** The one message for a `BType` this importer does not read — absent, or a code WinISD writes
  *  that has no OpenISD topology yet. */
 function unsupportedBType(bType: number | null | undefined): string {
-  return `Unsupported or missing box type (BType=${String(bType)}): WinISD import supports sealed (0), vented (1), 4th-order bandpass (2), and passive radiator (4) boxes.`;
+  return `Unsupported or missing box type (BType=${String(bType)}): WinISD import supports sealed (0), vented (1), 4th-order bandpass (2), passive radiator (4), 6th-order bandpass (3) and ABC (5) boxes.`;
 }
 
 function importVentGeometry(
@@ -473,6 +513,76 @@ export function winIsdProjectToOpenIsdProject(
       if (Qlr != null) project.box.passiveRadiator.losses.Ql.set(Qlr);
       const Qar = wpr.number('Box', 'Qar');
       if (Qar != null) project.box.passiveRadiator.losses.Qa.set(Qar);
+      break;
+    }
+    case 3: {
+      const Vr = wpr.number('Box', 'Vr');
+      const Fr = wpr.number('Box', 'Fr');
+      const Vf = wpr.number('Box', 'Vf');
+      const Ff = wpr.number('Box', 'Ff');
+      if (Vr == null || Fr == null || Vf == null || Ff == null) {
+        errors.push({
+          level: 'error', field: 'Vr/Fr/Vf/Ff',
+          message: 'bandpass6 box: [Box] Vr, Fr, Vf and/or Ff is missing or not numeric',
+        });
+        return {value: null, errors};
+      }
+      project = builder.bandpass6()
+        .rearVolume_m3(Vr).rearTuning_hz(Fr).frontVolume_m3(Vf).frontTuning_hz(Ff).build();
+      const rearLosses = project.box.bandpass6.chambers.rear.losses;
+      const Qlr = wpr.number('Box', 'Qlr'); if (Qlr != null) rearLosses.Ql.set(Qlr);
+      const Qar = wpr.number('Box', 'Qar'); if (Qar != null) rearLosses.Qa.set(Qar);
+      const Qpr = wpr.number('Box', 'Qpr'); if (Qpr != null) rearLosses.Qp.set(Qpr);
+      const Qiclfr = wpr.number('Box', 'Qiclfr'); if (Qiclfr != null) rearLosses.Qicl.set(Qiclfr);
+      const frontLosses = project.box.bandpass6.chambers.front.losses;
+      const Qlf = wpr.number('Box', 'Qlf'); if (Qlf != null) frontLosses.Ql.set(Qlf);
+      const Qaf = wpr.number('Box', 'Qaf'); if (Qaf != null) frontLosses.Qa.set(Qaf);
+      const Qpf = wpr.number('Box', 'Qpf'); if (Qpf != null) frontLosses.Qp.set(Qpf);
+      // Diameter must land before the port count — see the vented case's own comment.
+      importVentGeometry(wpr, 'VentRear', project.box.bandpass6.vents.rear, errors);
+      const NumR = wpr.number('VentRear', 'Num'); if (NumR != null) project.box.bandpass6.vents.rear.count.set(NumR);
+      importVentGeometry(wpr, 'VentFront', project.box.bandpass6.vents.front, errors);
+      const NumF = wpr.number('VentFront', 'Num'); if (NumF != null) project.box.bandpass6.vents.front.count.set(NumF);
+      break;
+    }
+    case 5: {
+      const Vr = wpr.number('Box', 'Vr');
+      const Fr = wpr.number('Box', 'Fr');
+      const Vf = wpr.number('Box', 'Vf');
+      const Ff = wpr.number('Box', 'Ff');
+      if (Vr == null || Fr == null || Vf == null || Ff == null) {
+        errors.push({
+          level: 'error', field: 'Vr/Fr/Vf/Ff',
+          message: 'ABC box: [Box] Vr, Fr, Vf and/or Ff is missing or not numeric',
+        });
+        return {value: null, errors};
+      }
+      project = builder.abc()
+        .rearVolume_m3(Vr).rearTuning_hz(Fr).frontVolume_m3(Vf).frontTuning_hz(Ff).build();
+      const rearLosses = project.box.abc.chambers.rear.losses;
+      const Qlr = wpr.number('Box', 'Qlr'); if (Qlr != null) rearLosses.Ql.set(Qlr);
+      const Qar = wpr.number('Box', 'Qar'); if (Qar != null) rearLosses.Qa.set(Qar);
+      const Qpr = wpr.number('Box', 'Qpr'); if (Qpr != null) rearLosses.Qp.set(Qpr);
+      const Qiclfr = wpr.number('Box', 'Qiclfr'); if (Qiclfr != null) rearLosses.Qicl.set(Qiclfr);
+      const frontLosses = project.box.abc.chambers.front.losses;
+      const Qlf = wpr.number('Box', 'Qlf'); if (Qlf != null) frontLosses.Ql.set(Qlf);
+      const Qaf = wpr.number('Box', 'Qaf'); if (Qaf != null) frontLosses.Qa.set(Qaf);
+      const Qpf = wpr.number('Box', 'Qpf'); if (Qpf != null) frontLosses.Qp.set(Qpf);
+      // Diameter must land before the port count — see the vented case's own comment.
+      importVentGeometry(wpr, 'VentRear', project.box.abc.vents.rear, errors);
+      const NumR = wpr.number('VentRear', 'Num'); if (NumR != null) project.box.abc.vents.rear.count.set(NumR);
+      importVentGeometry(wpr, 'VentFront', project.box.abc.vents.front, errors);
+      const NumF = wpr.number('VentFront', 'Num'); if (NumF != null) project.box.abc.vents.front.count.set(NumF);
+      importVentGeometry(wpr, 'VentIntra', project.box.abc.vents.intra, errors);
+      const NumI = wpr.number('VentIntra', 'Num'); if (NumI != null) project.box.abc.vents.intra.count.set(NumI);
+      // The intra port has no tuning target to derive a length from (`AbcBox.ts`'s own doc: "Mai
+      // ... never from a tuning target, unlike the front/rear") — `len` is read directly here,
+      // unlike `VentRear`/`VentFront`'s own length, which `#resolve()`'s active `solveVent` still
+      // derives from tuning + volume + area for `vented`/`bandpass4` only (bandpass6/abc's rear/
+      // front ports do not run that solve yet — their own circuit never reads `Leff`, so this is
+      // display-only until that follow-up wiring lands, same as `RearPort`'s own chart-menu gap).
+      const lenIntra = wpr.number('VentIntra', 'len');
+      if (lenIntra != null) project.box.abc.vents.intra.length_m.set(lenIntra);
       break;
     }
     default: {

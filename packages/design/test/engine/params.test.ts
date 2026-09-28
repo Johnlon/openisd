@@ -30,8 +30,11 @@ describe('Engine.solveBoxParams — {values, issues} enclosure precondition (T9)
     expect(result.issues.map(i => i.target).sort()).toEqual(['prCms', 'prMmd', 'prSd']);
   });
 
-  it('returns {values: null, issues: []} for a topology the engine has no circuit model for', () => {
-    const result = engine.solveBoxParams('bandpass6', {});
-    expect(result).toEqual({ values: null, issues: [] });
+  it('reports one issue per missing field for a bandpass6/abc box missing both Vb and Vf', () => {
+    for (const box of ['bandpass6', 'abc'] as const) {
+      const result = engine.solveBoxParams(box, {});
+      expect(result.values).toBeNull();
+      expect(result.issues.map(i => i.target).sort()).toEqual(['Vb', 'Vf']);
+    }
   });
 });

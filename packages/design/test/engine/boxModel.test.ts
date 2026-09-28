@@ -25,9 +25,15 @@ describe('boxModel — one class per simulatable box type', () => {
   const P_VENTED: SweepParams = {...P_SEALED, Sp: Math.PI * 0.025 ** 2, Leff: 0.1366};
   const P_PR: SweepParams = {...P_SEALED, prSd: 0.0133, prNum: 1, prMmd: 0.030, prMadd: 0, prCms: 0.0008, prRms: 1.0};
   const P_BP4: SweepParams = {...P_VENTED, Vf: 0.020};
+  // `bandpass6`/`abc` read Fr/Ff (chamber tuning) for their own port mass in EVERY lossMode,
+  // never Leff/Sp geometry (`Bandpass6Box.ts`'s own doc) — unlike `vented`/`bandpass4` above,
+  // `conventional-lossy` buys nothing here, so a resonance is hand-tuned regardless.
+  const P_BP6: SweepParams = {...P_SEALED, Vf: 0.020, Fr: 45, Ff: 60};
+  const P_ABC: SweepParams = {...P_BP6, SpIntra: Math.PI * 0.02 ** 2, LeffIntra: 0.05};
 
   const PARAMS: Record<SimulatableBoxType, SweepParams> = {
     sealed: P_SEALED, vented: P_VENTED, 'box-passive-radiator': P_PR, bandpass4: P_BP4,
+    bandpass6: P_BP6, abc: P_ABC,
   };
   const boxes = Object.keys(PARAMS) as SimulatableBoxType[];
 
