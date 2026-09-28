@@ -26,7 +26,6 @@ const tune = useOgTune();
 // `Field` on the focused project's driver.
 type NumKey = 'Fs_hz' | 'Qts' | 'Qes' | 'Qms' | 'Vas_m3' | 'Sd_m2' | 'Re_ohm' | 'Le_H' | 'Xmax_m' | 'Pe_W' | 'BL_Tm' | 'Mms_kg';
 
-function fieldCell(key: NumKey): Readable<number | null> & Entered & Calculated { return tune.fieldCell(key); }
 function enterField(key: NumKey, v: number, precision?: number): void { tune.enterField(key, v, precision); }
 function clearField(key: NumKey): void { tune.clearField(key); }
 // Raw driver values are SI (Vas m³, Sd m², Le H, Xmax m, Mms kg); a field with a `group`/
@@ -68,7 +67,7 @@ const resetRevision = ref(0);
 
 function disp(f: TuneField): string {
   void project.value;
-  const v = fieldCell(f.key).value;
+  const v = tune.specField(f.key).value;
   if (typeof v !== 'number' || !isFinite(v)) return '';
   const d = f.group && f.token ? toDisplay(v, f.group, f.token) : v;
   return d.toFixed(f.def.precision);
@@ -108,8 +107,8 @@ function isNumKey(f: string): f is NumKey {
 /** Provenance mark + the required-but-missing alert, in the editor's own class vocabulary. */
 function fieldClasses(f: TuneField): Record<string, boolean> {
   void project.value;
-  const cellOf = (s: SpecField): Readable<number | null> & Entered & Calculated => fieldCell(isNumKey(s) ? s : 'Fs_hz');
-  const mandatory = fieldCell(f.key).mandatoryAndUnsatisfied;
+  const cellOf = (s: SpecField): Readable<number | null> & Entered & Calculated => tune.specField(isNumKey(s) ? s : 'Fs_hz');
+  const mandatory = tune.specField(f.key).mandatoryAndUnsatisfied;
   return {
     [cellClassFor(cellOf, f.key)]: true,
     'de-input-mandatory': mandatory,

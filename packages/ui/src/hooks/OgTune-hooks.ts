@@ -14,7 +14,6 @@ export interface OgTuneAPI {
   readonly vb_m3: Readonly<Ref<number | null>>;
 
   specField(key: NumSpecField): Readable<number | null> & Entered & Calculated & Writable<number> & Clearable;
-  fieldCell(key: NumSpecField): Readable<number | null> & Entered & Calculated;
   cellClass(key: NumSpecField): string;
   cellVal(key: NumSpecField): number | null;
   dqNote(key: NumSpecField): string | null;
@@ -32,7 +31,8 @@ export const OgTuneKey: InjectionKey<OgTuneAPI> = Symbol('OgTuneAPI');
 export function useOgTune(): OgTuneAPI {
   const project = useFocusedProject();
 
-  function fieldCell(key: NumSpecField): Readable<number | null> & Entered & Calculated {
+  function specField(key: NumSpecField):
+      Readable<number | null> & Entered & Calculated & Writable<number> & Clearable {
     return project.value.driver.specField(key);
   }
 
@@ -74,7 +74,7 @@ export function useOgTune(): OgTuneAPI {
   }
 
   function cellClass(key: NumSpecField): string {
-    return cellClassFor(fieldCell, key);
+    return cellClassFor(specField, key);
   }
 
   /** A bad value (≤ 0, non-finite) is marked by the DOMAIN, on the field's own `.dq`
@@ -84,20 +84,20 @@ export function useOgTune(): OgTuneAPI {
    *  in the tooltip, which nothing noticed while this panel's dq was always empty (the marks
    *  were computed and then discarded with the rebuilt embedded driver). */
   function dqNote(key: NumSpecField): string | null {
-    return fieldCell(key).dq.map(issue => issue.text).join('\n');
+    return specField(key).dq.map(issue => issue.text).join('\n');
   }
 
   function cellVal(key: NumSpecField): number | null {
-    const v = fieldCell(key).value;
+    const v = specField(key).value;
     return typeof v === 'number' ? v : null;
   }
 
   function enterField(key: NumSpecField, v: number, precision?: number): void {
-    project.value.driver.specField(key).set(v, precision);
+    specField(key).set(v, precision);
   }
 
   function clearField(key: NumSpecField): void {
-    project.value.driver.specField(key).clear();
+    specField(key).clear();
   }
 
   function cancel() {
@@ -111,10 +111,7 @@ export function useOgTune(): OgTuneAPI {
   return {
     ebp,
     vb_m3,
-    specField: function (key: NumSpecField): Readable<number | null> & Entered & Calculated & Writable<number> & Clearable {
-      return project.value.driver.specField(key);
-    },
-    fieldCell,
+    specField,
     cellClass,
     cellVal,
     dqNote,
