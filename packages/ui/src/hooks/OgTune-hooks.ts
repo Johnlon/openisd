@@ -4,7 +4,7 @@ import {useFocusedProject} from '../logic/focusedProjectContext.js';
 import {cellClassOf} from '../logic/useDriverCells.js';
 import type {Calculated, Clearable, Entered, Readable, Writable} from '@openisd/design';
 import type {NumSpecField} from '../logic/appState.js';
-import {engine, projectChanged} from '../logic/appState.js';
+import {projectChanged} from '../logic/appState.js';
 
 export type NumKey = NumSpecField;
 export type { NumSpecField };
@@ -43,9 +43,7 @@ export function useOgTune(): OgTuneAPI {
   // `createBoxVolume` in `OriginalShell-hooks.ts`.
   const ebp = computed(() => {
     void projectChanged.value; void project.value;
-    const ts = project.value.driver.specs;
-    const Fs_hz = ts.Fs_hz.value, Qes = ts.Qes.value;
-    return Fs_hz != null && Qes != null && Qes !== 0 ? engine.driver.ebp(Fs_hz, Qes) : null;
+    return project.value.driver.specs.EBP_hz.value;
   });
 
   const vb_m3 = computed<number | null>(() => {

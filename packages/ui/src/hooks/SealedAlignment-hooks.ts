@@ -1,12 +1,6 @@
 import {computed, type ComputedRef, ref, type Ref} from 'vue';
 import type {OpenISDProject} from '@openisd/design';
-import type {EbpSuitability, Engine, SealedAlignmentOption} from '@openisd/design/engine';
-
-export interface SealedAlignmentEditorDeps {
-  readonly project: ComputedRef<OpenISDProject>;
-  readonly changed: Ref<number>;
-  readonly engine: Engine;
-}
+import type {DriverEngine, EbpSuitability, SealedAlignmentOption, SealedEngine} from '@openisd/design/engine';
 
 export interface SealedAlignmentEditorAPI {
   readonly open: Readonly<Ref<boolean>>;
@@ -23,66 +17,80 @@ export interface SealedAlignmentEditorAPI {
   cancel(): void;
 }
 
-export function createSealedAlignmentEditor({project, changed, engine}: SealedAlignmentEditorDeps): SealedAlignmentEditorAPI {
-  const open = ref(false);
-  const draftVolume_m3 = ref<number | null>(null);
+/** The sealed-alignment dialog: a DRAFT volume the user shapes by Qtc or by litres, written to
+ *  the project only on `accept()`. Holds the two engine areas it consults and nothing else. */
+export class SealedAlignmentEditor implements SealedAlignmentEditorAPI {
+  readonly open = ref(false);
+  readonly options: ComputedRef<readonly SealedAlignmentOption[]>;
+  readonly selectedOption: ComputedRef<SealedAlignmentOption | null>;
+  readonly volume_L: Ref<number | null>;
+  readonly qtc: ComputedRef<number | null>;
+  readonly ebp: ComputedRef<number | null>;
+  readonly ebpSuitability: ComputedRef<EbpSuitability | null>;
+  readonly ebpSuitabilityLabel: ComputedRef<string>;
 
-  const driverValues = computed(() => {
-    void changed.value;
-    const ts = project.value.driver.specs;
-    return {Qts: ts.Qts.value, Vas_m3: ts.Vas_m3.value, Fs_hz: ts.Fs_hz.value, Qes: ts.Qes.value};
-  });
+  readonly #draftVolume_m3 = ref<number | null>(null);
+  readonly #driverValues: ComputedRef<{Qts: number | null; Vas_m3: number | null; Fs_hz: number | null; Qes: number | null}>;
 
-  const options = computed(() => engine.sealed.alignmentOptions());
-  const qtc = computed(() => {
-    const {Qts, Vas_m3} = driverValues.value;
-    const volume = draftVolume_m3.value;
-    return volume == null || Qts == null || Vas_m3 == null
+  constructor(
+    private readonly project: ComputedRef<OpenISDProject>,
+    changed: Ref<number>,
+    private readonly sealed: SealedEngine,
+    driver: DriverEngine,
+  ) {
+    this.#driverValues = computed(() => {
+      void changed.value;
+      const ts = project.value.driver.specs;
+      return {Qts: ts.Qts.value, Vas_m3: ts.Vas_m3.value, Fs_hz: ts.Fs_hz.value, Qes: ts.Qes.value};
+    });
+    this.options = computed(() => sealed.alignmentOptions());
+    this.qtc = computed(() => {
+      const {Qts, Vas_m3} = this.#driverValues.value;
+      const volume = this.#draftVolume_m3.value;
+      return volume == null || Qts == null || Vas_m3 == null
+        ? null
+        : sealed.qtcFromVolume(Qts, Vas_m3, volume);
+    });
+    this.selectedOption = computed(() => this.qtc.value == null ? null : sealed.closestAlignment(this.qtc.value));
+    this.volume_L = computed<number | null>({
+      get: () => this.#draftVolume_m3.value == null ? null : this.#draftVolume_m3.value * 1000,
+      set: value => { this.#draftVolume_m3.value = value == null ? null : value / 1000; },
+    });
+    this.ebp = computed(() => {
+      const {Fs_hz, Qes} = this.#driverValues.value;
+      return Fs_hz == null || Qes == null ? null : driver.ebp(Fs_hz, Qes);
+    });
+    this.ebpSuitability = computed(() => this.ebp.value == null ? null : driver.ebpSuitability(this.ebp.value));
+    this.ebpSuitabilityLabel = computed(() => {
+      switch (this.ebpSuitability.value) {
+        case 'sealed': return 'Sealed preferred';
+        case 'vented': return 'Vented preferred';
+        case 'either': return 'Either sealed or vented';
+        case null: return 'Suitability unavailable';
+      }
+    });
+  }
+
+  openEditor(): void {
+    this.#draftVolume_m3.value = this.project.value.box.sealed.volume_m3.value;
+    this.open.value = true;
+  }
+
+  selectQtc(targetQtc: number): void {
+    const {Qts, Vas_m3} = this.#driverValues.value;
+    this.#draftVolume_m3.value = Qts == null || Vas_m3 == null
       ? null
-      : engine.sealed.qtcFromVolume(Qts, Vas_m3, volume);
-  });
-  const selectedOption = computed(() => qtc.value == null ? null : engine.sealed.closestAlignment(qtc.value));
-  const volume_L = computed<number | null>({
-    get: () => draftVolume_m3.value == null ? null : draftVolume_m3.value * 1000,
-    set: value => { draftVolume_m3.value = value == null ? null : value / 1000; },
-  });
-  const ebp = computed(() => {
-    const {Fs_hz, Qes} = driverValues.value;
-    return Fs_hz == null || Qes == null ? null : engine.driver.ebp(Fs_hz, Qes);
-  });
-  const suitability = computed(() => ebp.value == null ? null : engine.driver.ebpSuitability(ebp.value));
-  const suitabilityLabel = computed(() => {
-    switch (suitability.value) {
-      case 'sealed': return 'Sealed preferred';
-      case 'vented': return 'Vented preferred';
-      case 'either': return 'Either sealed or vented';
-      case null: return 'Suitability unavailable';
-    }
-  });
-
-  function openEditor(): void {
-    draftVolume_m3.value = project.value.box.sealed.volume_m3.value;
-    open.value = true;
+      : this.sealed.volumeForQtc(Qts, Vas_m3, targetQtc);
   }
 
-  function selectQtc(targetQtc: number): void {
-    const {Qts, Vas_m3} = driverValues.value;
-    draftVolume_m3.value = Qts == null || Vas_m3 == null
-      ? null
-      : engine.sealed.volumeForQtc(Qts, Vas_m3, targetQtc);
+  accept(): void {
+    const v = this.#draftVolume_m3.value;
+    if (v != null && v > 0) this.project.value.box.sealed.volume_m3.set(v);
+    this.open.value = false;
   }
 
-  function accept(): void {
-    if (draftVolume_m3.value != null && draftVolume_m3.value > 0) {
-      project.value.box.sealed.volume_m3.set(draftVolume_m3.value);
-    }
-    open.value = false;
+  cancel(): void {
+    this.open.value = false;
+    this.#draftVolume_m3.value = null;
   }
-
-  function cancel(): void {
-    open.value = false;
-    draftVolume_m3.value = null;
-  }
-
-  return {open, options, selectedOption, volume_L, qtc, ebp, ebpSuitability: suitability, ebpSuitabilityLabel: suitabilityLabel, openEditor, selectQtc, accept, cancel};
 }

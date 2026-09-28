@@ -49,7 +49,7 @@ import {injectSplashModal} from './SplashModal-hooks.js';
 import {clampedFrequency, interpolatedY, steppedFrequency} from '../logic/cursorFrequency.js';
 import {ARRAY_WIRING_OPTIONS, BOX_TYPE_OPTIONS, END_CORRECTION_OPTIONS, LossMode, NumberField, VENT_SHAPE_OPTIONS} from '@openisd/design/fields';
 import {inputChecked, inputFrom, inputValue, listeningElement, selectedOption, selectValue} from '../logic/domEvents.js';
-import {createSealedAlignmentEditor} from './SealedAlignment-hooks.js';
+import {SealedAlignmentEditor} from './SealedAlignment-hooks.js';
 import {OgFilters} from './OgFilters-hooks.js';
 import type {Calculated, Clearable, Entered, OpenISDProject, Readable, Writable} from '@openisd/design';
 import type {ProvenanceLetter} from '@openisd/design';
@@ -440,7 +440,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     rearResonance, rearQtc, boxResonance,
     prAddedMassDq, prTuningDq, prSystemTuningDq, prResonanceMassDq, prFsMass_hz,
   } = sealedReadouts({ project, selectedBox, projectChanged });
-  const sealedAlignmentEditor = createSealedAlignmentEditor({ project, changed: projectChanged, engine });
+  const sealedAlignmentEditor = new SealedAlignmentEditor(project, projectChanged, engine.sealed, engine.driver);
   const ogFilters = new OgFilters(project, projectChanged, engine.filters);
   const sealedAlignmentOpen = sealedAlignmentEditor.open;
   const sealedAlignmentOptions = sealedAlignmentEditor.options;
