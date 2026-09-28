@@ -72,7 +72,7 @@ export interface OutOfRangeIssue {
  * value are the SAME kind of fact when the floor is "must be positive" (kept exactly as entered
  * when it fails this floor, only marked), so this is one issue, not two near-duplicates. NOT every
  * driver field has this floor: which one applies is a per-field decision
- * (`openIsdDriverSpec.ts`'s `FIELD_FLOOR`) — see `NegativeValueIssue` for the weaker floor some
+ * (`NumberField.floor`) — see `NegativeValueIssue` for the weaker floor some
  * fields carry instead. Vented's OWN volume ALSO judges a plausible design BAND on top of this
  * floor (`VentedPlausibilityIssue`'s `non-physical`/`out-of-range`, a setting the user owns) —
  * this is the one check every OTHER field with this floor shares, not a replacement for that

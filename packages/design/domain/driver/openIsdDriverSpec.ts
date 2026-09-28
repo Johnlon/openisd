@@ -1,5 +1,7 @@
 import type {Air, DqIssue, DriverIssue, DriverQuantityName, DriverSolverParams} from '../../engine/index.js';
 import {Engine} from '../../engine/index.js';
+import {NumberField} from '../../fields/field.js';
+import type {ValueFloor} from '../../fields/field.js';
 import type {
     Calculatable,
     Calculated,
@@ -28,61 +30,29 @@ import type {DriverSpecFieldName} from './driverSpecFieldName.js';
 import {NO_SLOT} from './noSlot.js';
 
 /**
- * The floor a driver spec field's value must clear, per BUG_20260927_driver-bad-value-decided-
- * in-ui.md's follow-up (John, 2026-09-27): applying ONE floor ("must be positive") to every
- * numeric field was wrong — a decibel figure can be zero or negative (it is a level relative to
- * a reference, not a magnitude), and some non-dB fields are legitimately zero.
+ * The floor for the `DriverSpecFieldName`s the field registry has no entry for. Every other
+ * spec field states its floor on its own `NumberField`, beside its two bands.
  *
- * - `'positive'` — zero, negative or non-finite is not physical (`Engine.positiveValueIssue`).
- * - `'non-negative'` — negative or non-finite is not physical, but zero is a real, stated fact
- *   (`Engine.nonNegativeValueIssue`).
- * - `'none'` — no floor from this mechanism; the field's own range (if any) is a different check.
+ * `VCCon` is a wiring name, never a number, and never reaches this mechanism (see `f()`).
+ * The six others are spec fields nobody has stated a band for, so there is no `NumberField` to
+ * carry the floor; `driver-spec-floor-coverage.test.ts` fails if this table and the registry
+ * ever stop covering every name between them.
  */
-type ValueFloor = 'positive' | 'non-negative' | 'none';
-
-/**
- * Every `DriverSpecFieldName`, exactly once — the compiler fails to build this object if a key
- * is missing or misspelled (a `Record` over a union requires every member), so a new field added
- * to `DriverSpecsSection` fails here rather than silently inheriting a default. `VCCon` is a
- * wiring name, never a number, and never reaches this mechanism (see `f()`) — `'none'` for it is
- * a formality, not a decision.
- *
- * Per-field reasoning (`docs/FIELD_REFERENCE.md` gives the definition and formula for each):
- * - Decibel LEVELS relative to a reference can be zero or negative: `SPL_dB`, `SPLmax_dB`,
- *   `SPLmaxLF_dB`, `USPL_dB`. `Gloss` LOOKS like a percentage figure but is not decibel — it is
- *   the fraction `g/((2π·Fs)²·Xmax)`, strictly positive for any positive Fs/Xmax.
- * - `Le_H` can be zero (no measurable inductance). `KLe_H_sqrtHz = Le·√(2π·fLe)` inherits the
- *   same zero case through `Le`, and can never be negative since `fLe` is a frequency.
- *   `alfaVC_per_K` (temperature coefficient of resistance) can be zero for an idealised
- *   zero-drift material; no real conductor has a negative one.
- * - `Znom_ohm` is genuinely 0 in some real `.wdr` files (`docs/FIELD_REFERENCE.md`) and is not
- *   used in simulation at all — a stated fact, not an error.
- * - Every other field is a magnitude (a frequency, a mass, a resistance, a physical dimension, a
- *   Q factor, a ratio of two positive quantities such as `EBP_hz = Fs/Qes` or
- *   `gamma_m_per_s2_A = BL/Mms`) that is strictly positive for any driver that actually works;
- *   `Rms_kg_per_s` is included because `Qms = 2π·Fs·Mms/Rms` divides by it.
- */
-const FIELD_FLOOR: Record<DriverSpecFieldName, ValueFloor> = Object.freeze({
+const FLOOR_WITHOUT_FIELD: Partial<Record<DriverSpecFieldName, ValueFloor>> = Object.freeze({
     VCCon: 'none',
-    Fs_hz: 'positive', Re_ohm: 'positive', Le_H: 'non-negative', fLe_hz: 'positive',
-    KLe_H_sqrtHz: 'non-negative', Znom_ohm: 'non-negative', Qts: 'positive', Qes: 'positive',
-    Qms: 'positive', Vas_m3: 'positive', Sd_m2: 'positive', BL_Tm: 'positive', Mms_kg: 'positive',
-    Cms_m_per_N: 'positive', Rms_kg_per_s: 'positive', Xmax_m: 'positive', Xlim_m: 'positive',
-    SPL_dB: 'none', Pe_W: 'positive', Dd_m: 'positive', EBP_hz: 'positive', numVC: 'positive',
-    Dia_m: 'positive', Vd_m3: 'positive', no: 'positive', SPLmax_dB: 'none', SPLmaxLF_dB: 'none',
-    USPL_dB: 'none', alfaVC_per_K: 'non-negative', Rt_K_per_W: 'positive', Ct_J_per_K: 'positive',
-    gamma_m_per_s2_A: 'positive', Rme_kg_per_s: 'positive', Mpow_N_per_sqrtW: 'positive',
-    Mcost_kg_per_s: 'positive', Gloss: 'positive', c_m_per_s: 'positive', roo_kg_per_m3: 'positive',
-    Vcd_m: 'positive', Hg_m: 'positive', Hc_m: 'positive', freq_low_hz: 'positive',
-    freq_high_hz: 'positive', power_peak_W: 'positive', weight_kg: 'positive', Thick_m: 'positive',
-    Depth_m: 'positive', MagDepth_m: 'positive', Magnet_m: 'positive', Basket_m: 'positive',
-    Outer_m: 'positive', OuterX_m: 'positive', OuterY_m: 'positive', DVol_m3: 'positive',
+    Dia_m: 'positive', freq_low_hz: 'positive', freq_high_hz: 'positive',
+    weight_kg: 'positive', OuterX_m: 'positive', OuterY_m: 'positive',
 });
+
+/** `key`'s own floor — the field's, where the registry has the field. */
+export function driverSpecFloor(key: DriverSpecFieldName): ValueFloor {
+    return NumberField.named(key)?.floor ?? FLOOR_WITHOUT_FIELD[key] ?? 'none';
+}
 
 /** `key`'s own floor, applied to `v` — no default arm: a `ValueFloor` variant added without a
  *  case here fails to compile. */
 function floorIssue(key: DriverSpecFieldName, v: number, engine: Engine): DqIssue | null {
-    switch (FIELD_FLOOR[key]) {
+    switch (driverSpecFloor(key)) {
         case 'positive':
             return engine.positiveValueIssue(v);
         case 'non-negative':
@@ -240,7 +210,7 @@ export class OpenIsdDriverSpec {
         const dqFor = (key: keyof DriverSpecsSection): (() => readonly DqIssue[]) | undefined =>
             durableIssues === undefined ? undefined : () => durableIssues().filter(issue =>
                 'field' in issue ? issue.field === key : issue.fields.some(f => f === key));
-        /** Every numeric spec field's OWN floor (`FIELD_FLOOR`, not one floor for every field —
+        /** Every numeric spec field's OWN floor (`driverSpecFloor`, not one floor for every field —
          *  BUG_20260927_driver-bad-value-decided-in-ui.md's follow-up), computed fresh from the
          *  CURRENT value on every read so it shows up immediately on `.set()`, not only after
          *  the next `resolve()`. */

@@ -1,6 +1,6 @@
 # BUG_20260928_three_tables_disagree_on_field_validity
 
-**Status:** OPEN — `PHYSICAL_RANGE` folded in 2026-09-28; `FIELD_FLOOR` remains
+**Status:** OPEN — all three tables folded in 2026-09-28; `NumInput`'s `group`/`base` props remain
 
 ## Symptom
 
@@ -97,4 +97,14 @@ driver record's own name (`driver_Vas_l` → `Vas_m3`, `driver_Le_mH` → `Le_H`
 their bands were always in. The 11 with no schema key (`driver_manufacturer`, `driver_nDrivers`,
 `driver_AddedMass_g`, `driver_VcTempRise_K`, …) keep the prefix.
 
-**Still open:** `FIELD_FLOOR`, and `NumInput`'s `group`/`base` props (see above).
+**Also fixed:** `FIELD_FLOOR`. A number field carries its own `floor` beside its two bands, so
+`Qts`'s "zero is enterable but not physical" is one fact in one place. 48 of the 55 spec fields
+took their floor onto the field. Seven did not: `VCCon` is a wiring name and never a number, and
+`Dia_m`, `freq_low_hz`, `freq_high_hz`, `weight_kg`, `OuterX_m` and `OuterY_m` have no registry
+field at all because nobody has stated a band for them — inventing one would be inventing
+physics. Their floors stay in `FLOOR_WITHOUT_FIELD`, seven entries, and
+`driver-spec-floor-coverage.test.ts` fails if that table and the registry ever stop covering
+every spec name between them.
+
+**Still open:** `NumInput`'s `group`/`base` props (see above). Also: give the six band-less spec
+fields registry entries, which needs John to state their bands.

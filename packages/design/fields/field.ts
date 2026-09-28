@@ -25,10 +25,10 @@
  * `plausible` absorbed `PHYSICAL_RANGE` (`engine/physicalRange.ts`), which stated the same fact
  * for 22 driver quantities in its own table.
  *
- * NOT yet folded in: `FIELD_FLOOR` (`domain/driver/openIsdDriverSpec.ts`) says per field whether
- * zero and negatives are admissible at all, which neither band answers — `Qts` has a `limits`
- * floor of 0 and a `FIELD_FLOOR` of 'positive'. Recorded in
- * bugs/BUG_20260928_three_tables_disagree_on_field_validity.md.
+ * `floor` is the third fact, which neither band answers: whether zero and negatives are
+ * admissible at all. `Qts` has a `limits` floor of 0 and a `floor` of 'positive'. It absorbed
+ * `FIELD_FLOOR` (`domain/driver/openIsdDriverSpec.ts`), which stated the same fact for 48 of
+ * the driver's spec fields in its own table.
  */
 import {LossMode} from './lossMode.js';
 import type {UnitGroup} from './dimensions.js';
@@ -46,6 +46,17 @@ import {
 /** What a field is, for the one place that shows it as text — the diagnostics list. Branching
  *  on it is what the subclasses exist to make unnecessary. */
 export type FieldKind = 'number' | 'enum' | 'text' | 'toggle' | 'date';
+
+/**
+ * The floor a number field's value must clear — what neither band answers, since `limits` is
+ * what the input accepts and `plausible` is what a real driver looks like.
+ *
+ * - `'positive'` — zero, negative or non-finite is not physical.
+ * - `'non-negative'` — negative or non-finite is not physical, but zero is a real, stated fact.
+ * - `'none'` — no floor. A decibel figure is a level relative to a reference, not a magnitude,
+ *   so it can be zero or negative; so can a field whose floor nobody has stated.
+ */
+export type ValueFloor = 'positive' | 'non-negative' | 'none';
 
 interface FieldSpec {
   readonly value: string;
@@ -83,6 +94,7 @@ interface NumberFieldSpec extends FieldSpec {
   readonly precision: number;
   readonly formula?: string;
   readonly plausible?: FieldLimits;
+  readonly floor?: ValueFloor;
 }
 
 /** A field holding a quantity: it has a band, a precision, and a unit. */
@@ -105,6 +117,8 @@ export class NumberField extends Field {
    * Where nothing narrower is known it IS `limits`, so there is no absent case to handle.
    */
   readonly plausible: FieldLimits;
+  /** Whether zero and negatives are admissible at all. `'none'` where nobody has stated one. */
+  readonly floor: ValueFloor;
 
   private constructor(spec: NumberFieldSpec) {
     super(spec);
@@ -114,6 +128,7 @@ export class NumberField extends Field {
     this.precision = spec.precision;
     this.formula = spec.formula;
     this.plausible = Object.freeze(spec.plausible ?? spec.limits);
+    this.floor = spec.floor ?? 'none';
   }
 
   /**
@@ -422,6 +437,7 @@ export class NumberField extends Field {
     label: "Fs",
     unit: "Hz",
     limits: {min: 1, max: 5000},
+    floor: "positive",
     precision: 2,
     plausible: {min: 1.0, max: 5000.0},
     description: "Driver Resonant Frequency (Fs)\nFree-air resonance of the driver's moving assembly and suspension.",
@@ -431,6 +447,7 @@ export class NumberField extends Field {
     label: "Qts",
     unit: "",
     limits: {min: 0, max: 5},
+    floor: "positive",
     precision: 3,
     plausible: {min: 0.01, max: 5.0},
     formula: "Qts = Qes·Qms/(Qes+Qms)",
@@ -441,6 +458,7 @@ export class NumberField extends Field {
     label: "Qes",
     unit: "",
     limits: {min: 0, max: 5},
+    floor: "positive",
     precision: 3,
     plausible: {min: 0.01, max: 5.0},
     description: "Electrical Quality Factor (Qes)\nDamping at Fs from back-EMF in the voice coil.",
@@ -450,6 +468,7 @@ export class NumberField extends Field {
     label: "Qms",
     unit: "",
     limits: {min: 0, max: 50},
+    floor: "positive",
     precision: 3,
     plausible: {min: 0.1, max: 50.0},
     description: "Mechanical Quality Factor (Qms)\nDamping at Fs from friction in the surround and spider.",
@@ -459,6 +478,7 @@ export class NumberField extends Field {
     label: "Vas",
     unit: "l",
     limits: {min: 0, max: 100},
+    floor: "positive",
     precision: 2,
     plausible: {min: 1e-06, max: 1.0},
     description: "Equivalent Compliance Volume (Vas)\nVolume of air whose compliance equals the driver suspension's own.",
@@ -468,6 +488,7 @@ export class NumberField extends Field {
     label: "Re",
     unit: "ohm",
     limits: {min: 0.01, max: 1000},
+    floor: "positive",
     precision: 3,
     plausible: {min: 0.1, max: 64.0},
     description: "DC Voice Coil Resistance (Re)\nResistance across the voice coil terminals, measured with DC.",
@@ -477,6 +498,7 @@ export class NumberField extends Field {
     label: "Le",
     unit: "mH",
     limits: {min: 0, max: 0.1},
+    floor: "non-negative",
     precision: 3,
     plausible: {min: 0.0, max: 0.1},
     description: "Voice Coil Inductance (Le)\nSelf-inductance of the coil — raises electrical impedance at high frequency.",
@@ -486,6 +508,7 @@ export class NumberField extends Field {
     label: "Mms",
     unit: "g",
     limits: {min: 0, max: 10},
+    floor: "positive",
     precision: 2,
     plausible: {min: 1e-05, max: 2.0},
     formula: "Mms = 1/((2π·Fs)²·Cms)",
@@ -496,6 +519,7 @@ export class NumberField extends Field {
     label: "Sd",
     unit: "cm²",
     limits: {min: 0.0001, max: 10},
+    floor: "positive",
     precision: 2,
     plausible: {min: 1e-05, max: 0.3},
     description: "Effective Diaphragm Area (Sd)\nEffective radiating piston area of the cone and inner surround.",
@@ -505,6 +529,7 @@ export class NumberField extends Field {
     label: "Xmax",
     unit: "mm",
     limits: {min: 0, max: 0.5},
+    floor: "positive",
     precision: 2,
     plausible: {min: 0.0001, max: 0.15},
     description: "Peak Linear Excursion (Xmax)\nThe furthest the coil can move one way while still fully inside the magnetic gap.",
@@ -514,6 +539,7 @@ export class NumberField extends Field {
     label: "Pe",
     unit: "W",
     limits: {min: 0, max: 100000},
+    floor: "positive",
     precision: 2,
     plausible: {min: 1.0, max: 20000.0},
     description: "Continuous Power Handling (Pe)\nThermal/RMS rating: the power the coil dissipates indefinitely without failing.\nNot the datasheet's peak/short-term figure — see \"Peak power\".",
@@ -523,6 +549,7 @@ export class NumberField extends Field {
     label: "Peak power",
     unit: "W",
     limits: {min: 0, max: 100000},
+    floor: "positive",
     precision: 2,
     description: "Peak Power (short-term)\nNon-continuous power handling, above Pe.\nOpenISD-only: WinISD's .wdr format has no slot for it, so it never round-trips through a .wdr/.wpr file.",
   });
@@ -531,6 +558,7 @@ export class NumberField extends Field {
     label: "BL",
     unit: "Tm",
     limits: {min: 0, max: 1000},
+    floor: "positive",
     precision: 3,
     plausible: {min: 0.1, max: 50.0},
     formula: "Bl = √(2π·Fs·Mms·Re/Qes)",
@@ -541,6 +569,7 @@ export class NumberField extends Field {
     label: "Cms",
     unit: "mm/N",
     limits: {min: 0, max: 0.1},
+    floor: "positive",
     precision: 4,
     plausible: {min: 1e-06, max: 0.1},
     formula: "Cms = Vas/(ρ·c²·Sd²)",
@@ -552,6 +581,7 @@ export class NumberField extends Field {
     unit: "Ns/m",
     unitGroup: "resistance",
     limits: {min: 0, max: 1000},
+    floor: "positive",
     precision: 4,
     plausible: {min: 0.0, max: 200.0},
     formula: "Rms = 2π·Fs·Mms/Qms",
@@ -562,6 +592,7 @@ export class NumberField extends Field {
     label: "Dd",
     unit: "mm",
     limits: {min: 0, max: 2},
+    floor: "positive",
     precision: 2,
     plausible: {min: 0.0, max: 2.0},
     description: "Effective Diaphragm Diameter (Dd)\nEffective piston diameter of the cone.\nInterchangeable with Sd (Sd = π·(Dd/2)²).",
@@ -571,6 +602,7 @@ export class NumberField extends Field {
     label: "fLe",
     unit: "kHz",
     limits: {min: 0, max: 100000},
+    floor: "positive",
     precision: 5,
     plausible: {min: 0.0, max: 100000},
     description: "Semi-Inductance Reference Frequency (fLe)\nThe frequency at which Le and KLe were measured.",
@@ -580,6 +612,7 @@ export class NumberField extends Field {
     label: "KLe",
     unit: "H·√Hz",
     limits: {min: 0, max: 10},
+    floor: "non-negative",
     precision: 6,
     plausible: {min: 0.0, max: 10},
     description: "Semi-Inductance Coefficient (KLe)\nLoss factor for eddy currents and other high-frequency coil losses.",
@@ -589,6 +622,7 @@ export class NumberField extends Field {
     label: "Hc",
     unit: "m",
     limits: {min: 0, max: 1},
+    floor: "positive",
     precision: 3,
     plausible: {min: 0.0, max: 1},
     description: "Voice Coil Height (Hc)\nWinding height of the coil wire on the former.",
@@ -598,6 +632,7 @@ export class NumberField extends Field {
     label: "Hg",
     unit: "m",
     limits: {min: 0, max: 1},
+    floor: "positive",
     precision: 3,
     plausible: {min: 0.0, max: 1},
     description: "Magnetic Gap Height (Hg)\nThickness of the top plate — defines the magnetic gap.",
@@ -607,6 +642,7 @@ export class NumberField extends Field {
     label: "Vd",
     unit: "cm³",
     limits: {min: 0, max: 100000},
+    floor: "positive",
     precision: 0,
     description: "Peak Displacement Volume (Vd)\nAir displaced by the cone at full excursion (Vd = Sd × Xmax).",
   });
@@ -615,6 +651,7 @@ export class NumberField extends Field {
     label: "Xlim",
     unit: "m",
     limits: {min: 0, max: 1},
+    floor: "positive",
     precision: 3,
     description: "Mechanical Excursion Limit (Xlim)\nAbsolute travel limit before mechanical damage or bottoming.",
   });
@@ -624,6 +661,7 @@ export class NumberField extends Field {
     unit: "%",
     unitGroup: "percent",
     limits: {min: 0, max: 100},
+    floor: "positive",
     precision: 4,
     description: "Reference Efficiency (η₀)\nHow much of the electrical power reaching the driver becomes acoustic power (η₀ = P_acc / P_elec × 100%).",
   });
@@ -632,6 +670,7 @@ export class NumberField extends Field {
     label: "USPL",
     unit: "dB",
     limits: {min: 0, max: 200},
+    floor: "none",
     precision: 2,
     formula: "USPL = SPL + 10·log₁₀(8/Re)",
     description: "Voltage Sensitivity (USPL)\nSPL at 1 m for a standard 2.83 V RMS input.",
@@ -641,6 +680,7 @@ export class NumberField extends Field {
     label: "SPL",
     unit: "dB",
     limits: {min: 0, max: 200},
+    floor: "none",
     precision: 2,
     plausible: {min: 50.0, max: 150.0},
     description: "Power Sensitivity (SPL)\nSPL at 1 m for a 1 W electrical input.",
@@ -650,6 +690,7 @@ export class NumberField extends Field {
     label: "Voicecoils",
     unit: "",
     limits: {min: 1, max: 4},
+    floor: "positive",
     precision: 0,
     description: "Voice Coil Count\nNumber of independent coil windings on the motor.",
   });
@@ -658,6 +699,7 @@ export class NumberField extends Field {
     label: "AlfaVC",
     unit: "1000/K",
     limits: {min: 0, max: 0.1},
+    floor: "non-negative",
     precision: 4,
     description: "Voice Coil Temperature Coefficient (AlfaVC)\nHow much the coil's resistance rises per degree of heating.",
   });
@@ -666,6 +708,7 @@ export class NumberField extends Field {
     label: "R(t)",
     unit: "K/W",
     limits: {min: 0, max: 1000},
+    floor: "positive",
     precision: 5,
     description: "Thermal Resistance (Rt)\nResistance to heat flow from the voice coil to the magnet and ambient air.",
   });
@@ -674,6 +717,7 @@ export class NumberField extends Field {
     label: "C(t)",
     unit: "J/K",
     limits: {min: 0, max: 10000},
+    floor: "positive",
     precision: 5,
     description: "Thermal Capacitance (Ct)\nHeat storage capacity of the coil and motor structure.",
   });
@@ -682,6 +726,7 @@ export class NumberField extends Field {
     label: "EBP",
     unit: "Hz",
     limits: {min: 0, max: 1000},
+    floor: "positive",
     precision: 2,
     plausible: {min: 0.0, max: 1000},
     formula: "EBP = Fs/Qes",
@@ -692,6 +737,7 @@ export class NumberField extends Field {
     label: "SPLmaxLF",
     unit: "dB",
     limits: {min: 0, max: 200},
+    floor: "none",
     precision: 2,
     formula: "SPLmaxLF = 20·log₁₀(ρ₀·(2π·20)²·Vd / (2π√2) / P0)",
     description: "Low-Frequency Excursion-Limited SPL\nMax SPL at 20 Hz, limited purely by peak excursion (Xmax).",
@@ -701,6 +747,7 @@ export class NumberField extends Field {
     label: "SPLmax",
     unit: "dB",
     limits: {min: 0, max: 200},
+    floor: "none",
     precision: 2,
     formula: "SPLmax = SPL + 10·log₁₀(Pe) − 3",
     description: "Thermally Limited Max SPL\nMax SPL when driven at the full thermal power rating (Pe).",
@@ -711,6 +758,7 @@ export class NumberField extends Field {
     unit: "Ns/m",
     unitGroup: "resistance",
     limits: {min: 0, max: 1000},
+    floor: "positive",
     precision: 5,
     formula: "Rme = 2π·Fs·Mms/Qes (= Bl²/Re)",
     description: "Motional Resistance at Resonance (Rme)\nElectromagnetic damping from back-EMF at Fs (= Bl²/Re).",
@@ -720,6 +768,7 @@ export class NumberField extends Field {
     label: "gamma",
     unit: "N/(A·kg)",
     limits: {min: 0, max: 100000},
+    floor: "positive",
     precision: 5,
     formula: "gamma = Bl/Mms",
     description: "Acceleration Factor (gamma)\nMotor force per unit moving mass (Bl/Mms) — initial cone acceleration per amp.",
@@ -729,6 +778,7 @@ export class NumberField extends Field {
     label: "Mpow",
     unit: "N/√W",
     limits: {min: 0, max: 1000},
+    floor: "positive",
     precision: 5,
     formula: "Mpow = √Rme (= Bl/√Re)",
     description: "Power-Normalized Motor Force (Mpow)\nMotor force per √W of input power (Bl/√Re).",
@@ -739,6 +789,7 @@ export class NumberField extends Field {
     unit: "kg/s",
     unitGroup: "resistance",
     limits: {min: 0, max: 1000},
+    floor: "positive",
     precision: 5,
     formula: "Mcost = Rme·(1 + Xmax/min(Hc, Hg))",
     description: "Motor Figure of Merit (Mcost)\nElectromagnetic coupling efficiency, accounting for gap geometry and excursion.",
@@ -749,6 +800,7 @@ export class NumberField extends Field {
     unit: "%",
     unitGroup: "percent",
     limits: {min: 0, max: 100},
+    floor: "positive",
     precision: 4,
     formula: "Gloss = g/((2π·Fs)²·Xmax), g = 9.80665",
     description: "Gravity Sag (Gloss)\nHow much of peak excursion (Xmax) gravity consumes when the driver is mounted horizontally.",
@@ -758,6 +810,7 @@ export class NumberField extends Field {
     label: "Basket Plate Thickness (Thick)",
     unit: "mm",
     limits: {min: 0, max: 0.3},
+    floor: "positive",
     precision: 2,
     description: "Basket Flange Thickness\nFrame flange thickness at the mounting boundary.",
   });
@@ -766,6 +819,7 @@ export class NumberField extends Field {
     label: "Driver Depth (Depth)",
     unit: "mm",
     limits: {min: 0, max: 5},
+    floor: "positive",
     precision: 2,
     description: "Overall Driver Depth\nFull depth from mounting flange to rear magnet pole plate.",
   });
@@ -774,6 +828,7 @@ export class NumberField extends Field {
     label: "Magnet Depth",
     unit: "mm",
     limits: {min: 0, max: 5},
+    floor: "positive",
     precision: 2,
     description: "Magnet Assembly Depth\nThickness of the rear magnet assembly.",
   });
@@ -782,6 +837,7 @@ export class NumberField extends Field {
     label: "Magnet Diameter (Magnet)",
     unit: "mm",
     limits: {min: 0, max: 5},
+    floor: "positive",
     precision: 2,
     description: "Magnet Diameter\nOuter diameter of the motor magnet.",
   });
@@ -790,6 +846,7 @@ export class NumberField extends Field {
     label: "Basket Diameter (Basket)",
     unit: "mm",
     limits: {min: 0, max: 5},
+    floor: "positive",
     precision: 2,
     description: "Basket Diameter\nOuter diameter of the frame/chassis.",
   });
@@ -798,6 +855,7 @@ export class NumberField extends Field {
     label: "Outer Diameter (Outer)",
     unit: "mm",
     limits: {min: 0, max: 5},
+    floor: "positive",
     precision: 2,
     description: "Outer Mounting Diameter\nOverall diameter of the front mounting flange.",
   });
@@ -806,6 +864,7 @@ export class NumberField extends Field {
     label: "Voice Coil Dia (Vcd)",
     unit: "mm",
     limits: {min: 0, max: 1},
+    floor: "positive",
     precision: 2,
     description: "Voice Coil Diameter\nFormer diameter of the coil winding.",
   });
@@ -814,6 +873,7 @@ export class NumberField extends Field {
     label: "Driver Displacement Volume (DVol)",
     unit: "cm³",
     limits: {min: 0, max: 1},
+    floor: "positive",
     precision: 2,
     description: "Driver Displacement Volume\nVolume the motor and basket occupy inside the enclosure.",
   });
@@ -822,6 +882,7 @@ export class NumberField extends Field {
     label: "Znom",
     unit: "ohm",
     limits: {min: 0, max: 64},
+    floor: "non-negative",
     precision: 0,
     plausible: {min: 1.0, max: 64.0},
     description: "Nominal Impedance (Znom)\nRated impedance class for amplifier matching — e.g. 4, 8 or 16 Ω.",
@@ -832,6 +893,7 @@ export class NumberField extends Field {
     unit: "m/s",
     unitGroup: "velocity",
     limits: {min: 0, max: 1000},
+    floor: "positive",
     precision: 2,
     description: "Reference Speed of Sound (c)\nSpeed of sound at this driver record's reference conditions. Display only — no calculation reads this field; the project's own air is used everywhere. Purpose unconfirmed: may just record the condition the driver was measured at, or may be meant to adapt the driver's readings to the project's air. Speculation, 2026-09-26.",
   });
@@ -841,6 +903,7 @@ export class NumberField extends Field {
     unit: "kg/m³",
     unitGroup: "density",
     limits: {min: 0, max: 10},
+    floor: "positive",
     precision: 5,
     description: "Reference Air Density (roo)\nAir density at this driver record's reference conditions. Display only — no calculation reads this field; the project's own air is used everywhere. Purpose unconfirmed: may just record the condition the driver was measured at, or may be meant to adapt the driver's readings to the project's air. Speculation, 2026-09-26.",
   });

@@ -4,7 +4,7 @@
  * reference (`SPL_dB`, `SPLmax_dB`, `SPLmaxLF_dB`, `USPL_dB`) can be zero or negative; `Le_H`,
  * `KLe_H_sqrtHz`, `Znom_ohm` and `alfaVC_per_K` are legitimately zero but never negative. Every
  * other field is a magnitude that must be strictly positive. The floor for each field is
- * `openIsdDriverSpec.ts`'s `FIELD_FLOOR`, which this test pins field by field so a floor cannot
+ * the field's own `NumberField.floor`, which this test pins field by field so a floor cannot
  * silently change without a failing test naming which one.
  *
  * Each field is driven through its own `.set()` — the same field the UI hooks already hold — and
