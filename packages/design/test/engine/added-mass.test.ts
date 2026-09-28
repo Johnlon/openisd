@@ -32,10 +32,10 @@ describe('driverAddedMass — driver-side cone mass', () => {
     const d = drv();
     const P: SweepParams = { Vb: 0.03, eg: 2.83, fmin: 10, fmax: 500, N: 400 };
     const peakF = (r: SweepResult) => r.fs[r.zmag.indexOf(Math.max(...r.zmag))];
-    const base  = engine.sweep(driverParams(d), LE_H, 'sealed', P).values!;
-    const heavy = engine.sweep(driverParams(d), LE_H, 'sealed', { ...P, driverAddedMass: 0.05 }).values!;
+    const base  = engine.simulation.sweep(driverParams(d), LE_H, 'sealed', P).values!;
+    const heavy = engine.simulation.sweep(driverParams(d), LE_H, 'sealed', { ...P, driverAddedMass: 0.05 }).values!;
     assert.ok(peakF(heavy) < peakF(base), `heavy peak ${peakF(heavy)} < base ${peakF(base)}`);
-    const zero = engine.sweep(driverParams(d), LE_H, 'sealed', { ...P, driverAddedMass: 0 }).values!;
+    const zero = engine.simulation.sweep(driverParams(d), LE_H, 'sealed', { ...P, driverAddedMass: 0 }).values!;
     assert.deepEqual(zero.zmag, base.zmag, 'driverAddedMass=0 must be byte-identical to absent');
   });
 });

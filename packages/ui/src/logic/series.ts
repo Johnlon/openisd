@@ -19,7 +19,7 @@ export const TAB_META: Record<ChartId, TabMeta> = {
   // dashed -3 dB reference line. A DISPLAY MODE derived from the same sweep, not a new engine
   // computation; see the 'TFMag' builder below.
   TFMag:     { id:'TFMag',     name:'Transfer function magnitude', unit:'dB', color:'#4fb0ff' },
-  // WinISD's own radiator-only transfer function (packages/design/engine/sweep.ts prTfMag/
+  // WinISD's own radiator-only transfer function (packages/design/engine/simulation/SimulationEngine.ts prTfMag/
   // prTfPhase) — the driver's cone is not in it, so it gets its own hue rather than TFMag's.
   PRTFMag:   { id:'PRTFMag',   name:'Transfer function magnitude (PR)', unit:'dB', color:'#c08bff' },
   PRTFPhase: { id:'PRTFPhase', name:'Transfer function phase (PR)', unit:'°', color:'#c08bff' },
@@ -28,11 +28,11 @@ export const TAB_META: Record<ChartId, TabMeta> = {
   // (BUG_20260927_winisd-charts-missing.md) — `sw.excPR` moved here.
   PRExcursion: { id:'PRExcursion', name:'Cone excursion (PR)', unit:'mm', color:'#5ad17a' },
   RearPort:  { id:'RearPort',  name:'Rear port - Air velocity', unit:'m/s', color:'#5ad17a' },
-  // Same 0 dB / -3 dB passband-asymptote convention as TFMag (packages/design/engine/sweep.ts
+  // Same 0 dB / -3 dB passband-asymptote convention as TFMag (packages/design/engine/simulation/SimulationEngine.ts
   // rearPortGain) — unlike PRTFMag, this one IS run through the filter chain.
   RearPortGain: { id:'RearPortGain', name:'Rear port - Gain', unit:'dB', color:'#4fb0ff' },
   FrontPort: { id:'FrontPort', name:'Front port - Air velocity', unit:'m/s', color:'#5ad17a' },
-  // Same 0 dB / -3 dB passband-asymptote convention as RearPortGain (packages/design/engine/sweep.ts
+  // Same 0 dB / -3 dB passband-asymptote convention as RearPortGain (packages/design/engine/simulation/SimulationEngine.ts
   // frontPortGain, the SAME computation as rearPortGain reused) — run through the filter chain.
   FrontPortGain: { id:'FrontPortGain', name:'Front port - Gain', unit:'dB', color:'#4fb0ff' },
   // ABC only (WinISD chart-21, GHIDRA_FINDINGS.md "ABC (Aperiodic Bi-Chamber)" "Charts" bullet) —
@@ -64,7 +64,7 @@ export function parseChartId(engine: Engine, v: string | null | undefined): Char
   // The id comes back off the MEMBER that matched, so it is a `ChartId` because `TabMeta.id`
   // is one — nothing asserts it. `hasOwnProperty` answered the same question correctly but
   // returns a boolean, which cannot narrow a `string`, so using its answer needed a cast.
-  return TABS.find(t => t.id === v)?.id ?? engine.defaultChart;
+  return TABS.find(t => t.id === v)?.id ?? engine.box.defaultChart;
 }
 
 /** SPL/filter-magnitude values at or below this are the engine's "no output" sentinel. */
@@ -112,7 +112,7 @@ function portVelocityBuild({ engine, meta, sw, pick }: CurveCtx, vel: number[]):
 
 /** Port gain — shared by `RearPortGain` (vented) and `FrontPortGain` (bandpass4): same
  *  0 dB / -3 dB passband-asymptote convention as TFMag, only the underlying array (`sw.rearPortGain`
- *  vs `sw.frontPortGain`, packages/design/engine/sweep.ts) and its legend name differ. Unlike
+ *  vs `sw.frontPortGain`, packages/design/engine/simulation/SimulationEngine.ts) and its legend name differ. Unlike
  *  PRTFMag, both ARE run through the filter chain. */
 function portGainBuild(rel: number[] | null, name: string, meta: TabMeta, sw: SweepResult): CurveBuild {
   const ys = rel ?? sw.fs.map(() => -200);
@@ -138,7 +138,7 @@ const CURVE_BUILDERS: Record<ChartId, (c: CurveCtx) => CurveBuild> = {
     // Ignore the -200 dB "no output" sentinel (sweep uses it where |p|=0) so it
     // can't drag the scale to nonsense; fit to the real visible curve.
     const real = realDb(ys);
-    const mx2 = engine.passbandRef(ys);
+    const mx2 = engine.simulation.passbandRef(ys);
     const lo  = real.length ? Math.min(...real) : mx2 - 45;
     const ymax = Math.ceil((mx2 + 3) / 5) * 5;
     // Bring the bottom of the visible curve fully into frame, keeping at least a 45 dB window.
@@ -147,7 +147,7 @@ const CURVE_BUILDERS: Record<ChartId, (c: CurveCtx) => CurveBuild> = {
     // a bare trace, so the caller passes bare=true to suppress them (also removes the
     // in-plot legend, since only one named series remains).
     if (!bare) {
-      const f3 = engine.rolloffFreq(sw, 3), f6 = engine.rolloffFreq(sw, 6), f10 = engine.rolloffFreq(sw, 10);
+      const f3 = engine.simulation.rolloffFreq(sw, 3), f6 = engine.simulation.rolloffFreq(sw, 6), f10 = engine.simulation.rolloffFreq(sw, 10);
       if (f3  != null) series.push({ xs: sw.fs, ys: sw.fs.map(() => mx2 -  3), color: '#ffb454', name: `F3 = ${f3.toFixed(0)} Hz`,  dash: true });
       if (f6  != null) series.push({ xs: sw.fs, ys: sw.fs.map(() => mx2 -  6), color: '#ff6b6b', name: `F6 = ${f6.toFixed(0)} Hz`,  dash: true });
       if (f10 != null) series.push({ xs: sw.fs, ys: sw.fs.map(() => mx2 - 10), color: '#c08bff', name: `F10 = ${f10.toFixed(0)} Hz`, dash: true });
@@ -168,7 +168,7 @@ const CURVE_BUILDERS: Record<ChartId, (c: CurveCtx) => CurveBuild> = {
     return { series, ymin: Math.min(ymax - 45, Math.floor((loRel - 3) / 5) * 5), ymax };
   },
 
-  // WinISD's own radiator-only transfer function (packages/design/engine/sweep.ts prTfMag) —
+  // WinISD's own radiator-only transfer function (packages/design/engine/simulation/SimulationEngine.ts prTfMag) —
   // `null` for a design whose box has no radiator (a compare overlay, say, while the focused
   // design is a passive-radiator box); that design then draws silence, exactly as a design
   // with no max curves draws nothing on MaxSPL.
@@ -218,7 +218,7 @@ const CURVE_BUILDERS: Record<ChartId, (c: CurveCtx) => CurveBuild> = {
   // Applicable only to vented (RearPortGain) or bandpass4 (FrontPortGain) — design's
   // `chartsFor` gates the menu; a compare overlay of a different box type draws the -200 dB
   // silence fallback here, same as PRTFMag. Unlike PRTFMag, both ARE run through the filter
-  // chain (packages/design/engine/sweep.ts rearPortGain/frontPortGain — one shared computation).
+  // chain (packages/design/engine/simulation/SimulationEngine.ts rearPortGain/frontPortGain — one shared computation).
   RearPortGain: ({ meta, sw }) => portGainBuild(sw.rearPortGain, 'Rear port gain', meta, sw),
   FrontPortGain: ({ meta, sw }) => portGainBuild(sw.frontPortGain, 'Front port gain', meta, sw),
 

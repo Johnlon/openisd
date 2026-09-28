@@ -33,7 +33,7 @@ describe('transmission-line port model — tanh saturation guard', () => {
   };
 
   it('stays finite across the whole sweep once the line is heavily damped enough to saturate tanh', () => {
-    const sw = engine.sweep(DRV, LE_H, 'vented', HEAVILY_DAMPED).values!;
+    const sw = engine.simulation.sweep(DRV, LE_H, 'vented', HEAVILY_DAMPED).values!;
     assert.ok(sw, 'a heavily-damped TL port must still produce a sweep');
     for (let i = 0; i < sw.fs.length; i++) {
       assert.ok(Number.isFinite(sw.zmag[i]), `zmag[${i}] must be finite at ${sw.fs[i]} Hz`);

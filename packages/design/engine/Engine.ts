@@ -11,8 +11,6 @@ import {
   findImpedancePeak,
 } from './boxDesign.js';
 import {driveVoltage} from './formulas.js';
-import {chartsFor as chartIdsFor, DEFAULT_BOX_TYPE, DEFAULT_CHART} from './charts.js';
-import type {ChartId} from './charts.js';
 import {defaultAppSettings} from './appSettings.js';
 import type {AppSettings, EnvDefaults} from './appSettings.js';
 import {nonPhysicalQuantity, quantityOutOfBand} from './plausibility.js';
@@ -33,8 +31,6 @@ import {referenceEfficiency, splFromEfficiency} from './efficiency.js';
 import type {SignalIssue} from './signal.js';
 import {solveSignal} from './signal.js';
 import {sourceLoadedQts} from './lossMode.js';
-import type {BoxParamsSolveResult} from './params.js';
-import {solveBoxParams} from './params.js';
 import {FilterEngineImpl} from './filters/index.js';
 import type {VentedEngine} from './vented/VentedEngine.js';
 import {VentedEngineImpl} from './vented/VentedEngine.js';
@@ -45,30 +41,16 @@ import {PrEngineImpl} from './pr/PrEngine.js';
 import type {VentEngine} from './vent/VentEngine.js';
 import {VentEngineImpl} from './vent/VentEngine.js';
 import type {FilterEngine} from './filters/index.js';
-import type {MaxCurvesSolveResult, SweepSolveResult} from './sweep.js';
-import {
-  classifyFinite,
-  classifyFiniteIssues,
-  classifyFlatClamp,
-  classifyMaxFinite,
-  maxCurves,
-  passbandRef,
-  rolloffFreq,
-  sweep,
-} from './sweep.js';
+import type {SimulationEngine} from './simulation/SimulationEngine.js';
+import {SimulationEngineImpl} from './simulation/SimulationEngine.js';
+import type {BoxEngine} from './box/BoxEngine.js';
+import {BoxEngineImpl} from './box/BoxEngine.js';
 
 import type {
-  BoxType,
-  DriverError,
   EbpSuitability,
-  EnclosureParams,
-  MaxCurvesResult,
-  SimulatableBoxType,
-  SweepParams,
   SweepResult,
   Wiring,
 } from './types.js';
-import {simulatableBoxType as narrowBoxType} from './types.js';
 import type {DriverSolverParams, SignalSolverParams} from './solverTypes.js';
 
 export class Engine {
@@ -250,31 +232,6 @@ export class Engine {
     return findImpedancePeak(result, Re);
   }
 
-  /** Which of this engine's topologies a box type is, or null when it has no circuit for it —
-   *  the caller's cue to report a design it cannot simulate rather than draw a wrong curve. */
-  simulatableBoxType(box: BoxType): SimulatableBoxType | null {
-    return narrowBoxType(box);
-  }
-
-  /** The charts a project with this box type shows, in WinISD's own chart-menu order — port
-   *  charts only for a ported box, PR charts only for a radiator, the ten system charts and the
-   *  three EQ/filter charts always (bugs/BUG_20260927_winisd-charts-missing.md). A design
-   *  decision, not a UI one — the UI shows exactly the ids this returns. */
-  chartsFor(box: BoxType): readonly ChartId[] {
-    return chartIdsFor(box);
-  }
-
-  /** The chart a fresh project, or an invalid/inapplicable remembered chart id, falls back to —
-   *  a design decision, not a UI literal. */
-  get defaultChart(): ChartId {
-    return DEFAULT_CHART;
-  }
-
-  /** The box type the chart menu (and any other box-shaped display) assumes when no project is
-   *  focused at all. */
-  get defaultBoxType(): BoxType {
-    return DEFAULT_BOX_TYPE;
-  }
 
   // ── THE BOX: vented ───────────────────────────────────────────────────────────────────────
 
@@ -305,53 +262,14 @@ export class Engine {
    *  may make. One member, not twelve forwarding methods. */
   readonly filters: FilterEngine = new FilterEngineImpl();
 
-  // ── THE SWEEP ─────────────────────────────────────────────────────────────────────────────
+  // ── THE SIMULATION ────────────────────────────────────────────────────────────────────────
 
-  /** The response, one complex value per frequency. */
-  sweep(drv: DriverSolverParams, Le_H: number | undefined, box: BoxType, P: SweepParams): SweepSolveResult {
-    return sweep(drv, Le_H, box, P);
-  }
+  /** The simulation area — sweep, limit curves, the enclosure precondition and the chart
+   *  readouts/classifiers. */
+  readonly simulation: SimulationEngine = new SimulationEngineImpl();
 
-  /** The limit curves — how loud before excursion or port velocity gives out. */
-  maxCurves(drv: DriverSolverParams, Le_H: number | undefined, box: BoxType, P: SweepParams): MaxCurvesSolveResult {
-    return maxCurves(drv, Le_H, box, P);
-  }
+  // ── THE BOX ───────────────────────────────────────────────────────────────────────────────
 
-  /** The one enclosure-parameter call to reach for (T9): `values` is `P` unchanged when every
-   *  field the circuit divides by is present for `box`'s topology, else `null`, with `issues`
-   *  naming what is missing. A topology the circuit has no model for reports `{values: null,
-   *  issues: []}` — naming the enclosure itself is the store's presentation concern (S3). */
-  solveBoxParams(box: BoxType, P: EnclosureParams): BoxParamsSolveResult {
-    return solveBoxParams(box, P);
-  }
-
-  /** The passband reference level a response is measured against. */
-  passbandRef(spl: number[]): number {
-    return passbandRef(spl);
-  }
-
-  /** Where the response has fallen by `dropDb`, or null if it never does. */
-  rolloffFreq(sw: SweepResult, dropDb: number): number | null {
-    return rolloffFreq(sw, dropDb);
-  }
-
-  /** A response carrying a non-finite value — a fault, not a curve. */
-  classifyFinite(sw: SweepResult): DriverError | null {
-    return classifyFinite(sw);
-  }
-
-  /** Finiteness issues split by plotted output, for a chart that needs one specific cause. */
-  classifyFiniteIssues(sw: SweepResult): DriverError[] {
-    return classifyFiniteIssues(sw);
-  }
-
-  /** A response the flat-clamp produced rather than the physics. */
-  classifyFlatClamp(sw: SweepResult): DriverError | null {
-    return classifyFlatClamp(sw);
-  }
-
-  /** Limit curves carrying a non-finite value. */
-  classifyMaxFinite(mx: MaxCurvesResult): DriverError | null {
-    return classifyMaxFinite(mx);
-  }
+  /** The box area — which topologies simulate, which charts a box shows, the display defaults. */
+  readonly box: BoxEngine = new BoxEngineImpl();
 }

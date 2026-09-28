@@ -2659,7 +2659,7 @@ describe('T1 — the vent/PR sweep-level guards (PLAN_DRIVER_SOLVE_AND_SWEEP_DIA
     const engine = new Engine();
     for (const box of ['vented', 'bp4', 'pr'] as const) {
       const p = project(box);
-      expect(p.charts).toEqual(engine.chartsFor(p.box.boxType.value));
+      expect(p.charts).toEqual(engine.box.chartsFor(p.box.boxType.value));
     }
   });
 

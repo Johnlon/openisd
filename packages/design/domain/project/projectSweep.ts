@@ -203,7 +203,7 @@ function boxSpecificParamsOf(source: ProjectSweepSource, boxType: SimulatableBox
 /** Which of the engine's simulable topologies this project is, or null — see the original
  *  `OpenISDProject.#engineBoxType`'s doc comment for why null is not a failure. */
 function engineBoxTypeOf(source: ProjectSweepSource): SimulatableBoxType | null {
-    return source.engine.simulatableBoxType(source.box.boxType.value);
+    return source.engine.box.simulatableBoxType(source.box.boxType.value);
 }
 
 /** One port's own "neither tuning nor length stated" check — the body `ventSweepIssuesOf` used
@@ -284,7 +284,7 @@ export function sweepOf(source: ProjectSweepSource, P: FrequencyGrid): SweepSolv
     const boxIssues = boxSweepIssuesOf(source, box);
     if (boxIssues.length) return {values: null, issues: boxIssues};
     const params = sweepParamsOf(source, P, source.driveVoltage_V, box);
-    return source.engine.sweep(driverSolverParamsOf(source.driver.specs, source.engine, source.winisdDriverModel.value, source.air), source.driver.specs.Le_H.value ?? undefined, box, params);
+    return source.engine.simulation.sweep(driverSolverParamsOf(source.driver.specs, source.engine, source.winisdDriverModel.value, source.air), source.driver.specs.Le_H.value ?? undefined, box, params);
 }
 
 /** The excursion- and power-limited maximum SPL curves. Reports on the same terms as `sweepOf`,
@@ -295,7 +295,7 @@ export function maxCurvesOf(source: ProjectSweepSource, P: FrequencyGrid): MaxCu
     if (!box) return {values: null, issues: [], driverPrerequisites: []};
     const boxIssues = boxSweepIssuesOf(source, box);
     if (boxIssues.length) return {values: null, issues: boxIssues, driverPrerequisites: []};
-    return source.engine.maxCurves(driverSolverParamsOf(source.driver.specs, source.engine, source.winisdDriverModel.value, source.air), source.driver.specs.Le_H.value ?? undefined, box, sweepParamsOf(source, P, 2.83, box));
+    return source.engine.simulation.maxCurves(driverSolverParamsOf(source.driver.specs, source.engine, source.winisdDriverModel.value, source.air), source.driver.specs.Le_H.value ?? undefined, box, sweepParamsOf(source, P, 2.83, box));
 }
 
 /** What is wrong with this project's enclosure parameters — checked BEFORE a sweep, so a caller
@@ -303,7 +303,7 @@ export function maxCurvesOf(source: ProjectSweepSource, P: FrequencyGrid): MaxCu
  *  a false accusation) when the topology cannot be simulated at all. */
 export function boxParamsIssuesOf(source: ProjectSweepSource): readonly BoxParamsIssue[] {
     const box = engineBoxTypeOf(source);
-    return box ? source.engine.solveBoxParams(box, enclosureParamsOf(source, box)).issues : [];
+    return box ? source.engine.simulation.solveBoxParams(box, enclosureParamsOf(source, box)).issues : [];
 }
 
 /** The tuning the vent as built actually produces. A precomputed readout — null, with a

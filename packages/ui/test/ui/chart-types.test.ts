@@ -51,7 +51,7 @@ function fakeField<T>(value: T | null): SolverField<T> {
 
 // The solver derives what the stated values imply, terminal Re/BL included — there is no
 // separate derive-and-validate step, and `sweep` is what reports a driver it cannot use.
-// S2-10: `Engine.sweep()`/`maxCurves()` now take handles (`DriverSolverParams`), so the stated
+// S2-10: `SimulationEngine.sweep()`/`maxCurves()` now take handles (`DriverSolverParams`), so the stated
 // RAW values are seeded as entered fields, `solveDriver()` fills in everything it can derive
 // (writing back via `setCalculated`), and the same handle set is then handed to `sweep()` — no
 // intermediate bag anywhere.
@@ -86,9 +86,9 @@ const SP: SweepParams = {
   filters: [{ type: 'peaking', fc: 60, Q: 3, gain: 6, enabled: true }],
 };
 const PP = SP as unknown as PlotParams;
-const SW = engine.sweep(DRV, LE_H, 'vented', SP).values;
+const SW = engine.simulation.sweep(DRV, LE_H, 'vented', SP).values;
 assert.ok(SW, 'reference sweep produced nothing');
-const MX = engine.maxCurves(DRV, LE_H, 'vented', SP).values;
+const MX = engine.simulation.maxCurves(DRV, LE_H, 'vented', SP).values;
 assert.ok(MX, 'reference max curves produced nothing');
 
 // The three "(PR)" chart ids are `null` for a vented design (SW above) — that is the correct,
@@ -99,7 +99,7 @@ assert.ok(MX, 'reference max curves produced nothing');
 const PR_ENGINE = new Engine();
 const PR_VB = 0.010;
 const PR_BOX = { prSd: 0.0095, prNum: 1, prMmd: 0.010, prMadd: 0, prCms: 0.0018, prRms: 1.0 };
-const PR_FR = PR_ENGINE.pr.tuning({ Vb: PR_VB, prMmd: PR_BOX.prMmd, prMadd: PR_BOX.prMadd, prSd: PR_BOX.prSd, prCms: PR_BOX.prCms },
+const PR_FR = PR_ENGINE.pr.tuning({ Vb: PR_VB, prMmd: PR_BOX.prMmd, prMadd: PR_BOX.prMadd, prSd: PR_BOX.prSd, prCms: PR_BOX.prCms, prNum: PR_BOX.prNum },
   PR_ENGINE.solveEnvironment({}).values);
 const SP_PR: SweepParams = {
   Vb: PR_VB, eg: 2.83, ...PR_BOX, Fr: PR_FR, Ql: 7, Qa: 30,
@@ -107,9 +107,9 @@ const SP_PR: SweepParams = {
   filters: [{ type: 'peaking', fc: 60, Q: 3, gain: 6, enabled: true }],
 };
 const PP_PR = SP_PR as unknown as PlotParams;
-const SW_PR = PR_ENGINE.sweep(DRV, LE_H, 'box-passive-radiator', SP_PR).values;
+const SW_PR = PR_ENGINE.simulation.sweep(DRV, LE_H, 'box-passive-radiator', SP_PR).values;
 assert.ok(SW_PR, 'reference PR sweep produced nothing');
-const MX_PR = PR_ENGINE.maxCurves(DRV, LE_H, 'box-passive-radiator', SP_PR).values;
+const MX_PR = PR_ENGINE.simulation.maxCurves(DRV, LE_H, 'box-passive-radiator', SP_PR).values;
 assert.ok(MX_PR, 'reference PR max curves produced nothing');
 
 // `FrontPortGain` is `null` for a vented design (SW above), same reasoning as the PR trio —
@@ -121,9 +121,9 @@ const SP_BP4: SweepParams = {
   filters: [{ type: 'peaking', fc: 60, Q: 3, gain: 6, enabled: true }],
 };
 const PP_BP4 = SP_BP4 as unknown as PlotParams;
-const SW_BP4 = BP4_ENGINE.sweep(DRV, LE_H, 'bandpass4', SP_BP4).values;
+const SW_BP4 = BP4_ENGINE.simulation.sweep(DRV, LE_H, 'bandpass4', SP_BP4).values;
 assert.ok(SW_BP4, 'reference bandpass4 sweep produced nothing');
-const MX_BP4 = BP4_ENGINE.maxCurves(DRV, LE_H, 'bandpass4', SP_BP4).values;
+const MX_BP4 = BP4_ENGINE.simulation.maxCurves(DRV, LE_H, 'bandpass4', SP_BP4).values;
 assert.ok(MX_BP4, 'reference bandpass4 max curves produced nothing');
 
 const PR_IDS = new Set<ChartId>(['PRTFMag', 'PRTFPhase', 'PRExcursion']);
@@ -250,9 +250,9 @@ describe('EQ/filter charts — units, datum and axis', () => {
     const noFlt = { ...SP, filters: [] };
     const noFltP = noFlt as unknown as PlotParams;
     const engine = new Engine();
-    const sw = engine.sweep(DRV, LE_H, 'vented', noFlt).values;
+    const sw = engine.simulation.sweep(DRV, LE_H, 'vented', noFlt).values;
     assert.ok(sw, 'sweep produced nothing');
-    const mx = engine.maxCurves(DRV, LE_H, 'vented', noFlt).values;
+    const mx = engine.simulation.maxCurves(DRV, LE_H, 'vented', noFlt).values;
     assert.ok(mx, 'maxCurves produced nothing');
     for (const id of ['FltMag', 'FltPhase', 'FltGD'] as const) {
       const b = seriesFor(engine, id, DRV, 'vented', noFltP, sw, mx);

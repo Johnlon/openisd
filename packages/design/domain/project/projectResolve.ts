@@ -127,6 +127,7 @@ export function resolveProject(ctx: ProjectResolveContext): ProjectIssues {
             prMmd_kg: inputOf(() => r.spec.Mms_kg.value),
             prSd_m2: inputOf(() => r.spec.Sd_m2.value),
             prCms_m_per_N: inputOf(() => r.spec.Cms_m_per_N.value),
+            prNum: inputOf(() => p.count.value),
         }, air);
     } else if (boxType === 'sealed') {
         const ts = driver.specs;

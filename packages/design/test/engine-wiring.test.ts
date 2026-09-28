@@ -51,7 +51,7 @@ describe('B — the project runs the engine sweep on its own driver and box', ()
 
     const mine = project.sweep(P).values;
     expect(mine).not.toBeNull();
-    const theirs = engine.sweep(
+    const theirs = engine.simulation.sweep(
       project.driver.solverParams, project.driver.specs.Le_H.value!, 'sealed',
       {
         Vb: 0.03, eg: project.driveVoltage_V.value!, fmin: 10, fmax: 1000, N: 100,
@@ -119,7 +119,7 @@ describe('B — the project runs the engine sweep on its own driver and box', ()
 
     const mx = project.maxCurves(P).values;
     expect(mx).not.toBeNull();
-    expect(project.classifyMaxFinite(mx!)).toBe(engine.classifyMaxFinite(mx!));
+    expect(project.classifyMaxFinite(mx!)).toBe(engine.simulation.classifyMaxFinite(mx!));
   });
 
   it('rolloffFreq() finds F3 below the passband, and F6 below F3', () => {
@@ -130,7 +130,7 @@ describe('B — the project runs the engine sweep on its own driver and box', ()
     const f3 = project.rolloffFreq(sw, 3);
     const f6 = project.rolloffFreq(sw, 6);
 
-    expect(f3).toBe(engine.rolloffFreq(sw, 3));
+    expect(f3).toBe(engine.simulation.rolloffFreq(sw, 3));
     expect(f6!).toBeLessThan(f3!);
   });
 
@@ -139,9 +139,9 @@ describe('B — the project runs the engine sweep on its own driver and box', ()
     const project = drivenSealed(engine, 0.03);
     const sw = project.sweep({ fmin: 10, fmax: 1000, N: 200 }).values!;
 
-    expect(project.passbandRef(sw.spl)).toBe(engine.passbandRef(sw.spl));
-    expect(project.classifyFinite(sw)).toBe(engine.classifyFinite(sw));
-    expect(project.classifyFlatClamp(sw)).toBe(engine.classifyFlatClamp(sw));
+    expect(project.passbandRef(sw.spl)).toBe(engine.simulation.passbandRef(sw.spl));
+    expect(project.classifyFinite(sw)).toBe(engine.simulation.classifyFinite(sw));
+    expect(project.classifyFlatClamp(sw)).toBe(engine.simulation.classifyFlatClamp(sw));
   });
 
   it('classifyFiniteIssues() — the per-output finiteness check — also comes from the engine', () => {
@@ -153,7 +153,7 @@ describe('B — the project runs the engine sweep on its own driver and box', ()
     const project = drivenSealed(engine, 0.03);
     const sw = project.sweep({ fmin: 10, fmax: 1000, N: 200 }).values!;
 
-    expect(project.classifyFiniteIssues(sw)).toEqual(engine.classifyFiniteIssues(sw));
+    expect(project.classifyFiniteIssues(sw)).toEqual(engine.simulation.classifyFiniteIssues(sw));
   });
 
   it('boxParamsIssues() reports a bad parameter set BEFORE a sweep is attempted', () => {
@@ -540,7 +540,7 @@ describe('K — the root surface names the engine door', () => {
     // into `@openisd/design/engine` for the class the domain already takes as a collaborator.
     expect(RootEngine).toBe(Engine);
     expect(typeof RootEngine).toBe('function');
-    expect(new RootEngine().sweep).toBe(Engine.prototype.sweep);
+    expect(new RootEngine().simulation.sweep).toBe(new Engine().simulation.sweep);
   });
 });
 

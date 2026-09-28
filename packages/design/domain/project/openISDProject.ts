@@ -733,37 +733,37 @@ export class OpenISDProject {
     /** The passband level a response is measured against — the reference every dB figure below is
      *  relative to. */
     passbandRef(spl: number[]): number {
-        return this.#engine.passbandRef(spl);
+        return this.#engine.simulation.passbandRef(spl);
     }
 
     /** The frequency where the response has fallen `dropDb` below its passband — F3 at 3 dB, F6 at
      *  6, and so on. Null when the response never falls that far inside the swept range. */
     rolloffFreq(sw: SweepResult, dropDb: number): number | null {
-        return this.#engine.rolloffFreq(sw, dropDb);
+        return this.#engine.simulation.rolloffFreq(sw, dropDb);
     }
 
     /** A non-finite value anywhere in the response, or null. A sweep that produced NaN is a fault
      *  to report, never a curve to draw. */
     classifyFinite(sw: SweepResult): DriverError | null {
-        return this.#engine.classifyFinite(sw);
+        return this.#engine.simulation.classifyFinite(sw);
     }
 
     /** Finiteness issues split by plotted output, for a caller that renders one chart at a time
      *  and needs one specific cause (BUG_20260906: without this delegate, that caller had no way
      *  to ask the project and reached around it to construct its own `Engine`). */
     classifyFiniteIssues(sw: SweepResult): DriverError[] {
-        return this.#engine.classifyFiniteIssues(sw);
+        return this.#engine.simulation.classifyFiniteIssues(sw);
     }
 
     /** A response clamped flat against a limit, or null — a shape that looks like a valid answer
      *  and is not. */
     classifyFlatClamp(sw: SweepResult): DriverError | null {
-        return this.#engine.classifyFlatClamp(sw);
+        return this.#engine.simulation.classifyFlatClamp(sw);
     }
 
     /** The same finiteness check for the max-SPL curves. */
     classifyMaxFinite(mx: MaxCurvesResult): DriverError | null {
-        return this.#engine.classifyMaxFinite(mx);
+        return this.#engine.simulation.classifyMaxFinite(mx);
     }
 
     /**

@@ -39,15 +39,15 @@ describe('boxModel — one class per simulatable box type', () => {
 
   for (const box of boxes) {
     it(`${box}: dispatches to a working circuit class — a clean, finite sweep`, () => {
-      const result = engine.sweep(DRV, LE_H, box, PARAMS[box]);
+      const result = engine.simulation.sweep(DRV, LE_H, box, PARAMS[box]);
       assert.ok(result.values, `${box}: the factory must produce a class that sweeps successfully`);
-      assert.equal(engine.classifyFinite(result.values!), null,
+      assert.equal(engine.simulation.classifyFinite(result.values!), null,
         `${box}: a valid design of this topology must not be classified as non-finite`);
     });
   }
 
   it('each box type produces its own Zbox — the factory is not one model silently reused for every topology', () => {
-    const zmagAt = (box: SimulatableBoxType) => engine.sweep(DRV, LE_H, box, PARAMS[box]).values!.zmag[0];
+    const zmagAt = (box: SimulatableBoxType) => engine.simulation.sweep(DRV, LE_H, box, PARAMS[box]).values!.zmag[0];
     const zmags = boxes.map(zmagAt);
     for (let i = 0; i < zmags.length; i++)
       for (let j = i + 1; j < zmags.length; j++)

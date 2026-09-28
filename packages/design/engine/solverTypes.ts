@@ -46,6 +46,8 @@ export interface PrSolverParams {
   prMmd_kg: SolverInput;
   prSd_m2: SolverInput;
   prCms_m_per_N: SolverInput;
+  /** Radiator count; absent reads as 1, as the sweep does. */
+  prNum: SolverInput;
   resonanceWithAddedMass_hz: SolverField;
   systemTuning_hz: SolverField;
 }

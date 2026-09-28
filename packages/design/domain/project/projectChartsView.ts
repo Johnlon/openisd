@@ -45,7 +45,7 @@ export class ProjectChartsView {
      *  EQ/filter charts always. The UI shows exactly the ids this returns, never a second list
      *  of "which charts apply". */
     get charts(): readonly ChartId[] {
-        return this.#engine.chartsFor(this.#boxType());
+        return this.#engine.box.chartsFor(this.#boxType());
     }
 
     /** The project's trace/legend colour (a CSS colour), saved in the project file; null until

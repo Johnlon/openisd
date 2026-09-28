@@ -4,8 +4,8 @@
  * it, mirroring how `../filters/index.ts` structures the filter chain.
  *
  * `boxModel()` takes the full `BoxType`, not `SimulatableBoxType`: `Bandpass6Box`/`AbcBox` exist
- * and are directly reachable here, but `circuit.ts`'s `solve()` (the `Engine.sweep()` production
- * path) and `domain/project/openISDProject.ts` still narrow through `simulatableBoxType()`,
+ * and are directly reachable here, but `circuit.ts`'s `solve()` (the `SimulationEngine.sweep()` production
+ * path) and `domain/project/openISDProject.ts` still narrow through `BoxEngine.simulatableBoxType()`,
  * which still refuses `bandpass6`/`abc` — widening THAT narrowing breaks non-exhaustive switches
  * in both those files (`types.ts`'s `BoxType` doc). Until that follow-up lands, this factory's
  * bandpass6/abc classes are reachable only by calling `boxModel()` directly (as

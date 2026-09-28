@@ -52,8 +52,8 @@ engine.solveDriver(driverParams, engine.solveEnvironment({}).values);
 const LE_H = 0.70e-3;
 const SP: SweepParams = { Vb: 0.030, eg: 2.83, fmin: 10, fmax: 2000, N: 200, filters: [] };
 const PP = SP as unknown as PlotParams;
-const SW = engine.sweep(driverParams, LE_H, 'sealed', SP).values!;
-const MX = engine.maxCurves(driverParams, LE_H, 'sealed', SP).values!;
+const SW = engine.simulation.sweep(driverParams, LE_H, 'sealed', SP).values!;
+const MX = engine.simulation.maxCurves(driverParams, LE_H, 'sealed', SP).values!;
 
 function design(name: string, color: string, sortIndex?: number): Design {
   return { driver: driverParams, box: 'sealed', P: PP, curves: SW, maxCurves: MX, name, color, sortIndex };

@@ -661,8 +661,8 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     // engine's own default box, rather than reading `project.value`, which throws with
     // nothing focused.
     const p = focusedProject();
-    const box = p?.box.boxType.value ?? engine.defaultBoxType;
-    const ids = p ? p.charts : engine.chartsFor(box);
+    const box = p?.box.boxType.value ?? engine.box.defaultBoxType;
+    const ids = p ? p.charts : engine.box.chartsFor(box);
     return ids.map(tab => ({ tab, label: CHART_LABELS[tab], sep: CHART_GROUP_START.has(tab) }));
   });
   const chartTab = computed<ChartId>({
@@ -670,12 +670,12 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     // box is now sealed) falls back to the default chart, never to a stale/inapplicable one.
     get: () => {
       const id = parseChartId(engine, presentationState.ui.originalChartTab);
-      return CHART_ITEMS.value.some(i => i.tab === id) ? id : engine.defaultChart;
+      return CHART_ITEMS.value.some(i => i.tab === id) ? id : engine.box.defaultChart;
     },
     set: (v: ChartId) => { presentationState.ui.originalChartTab = v; },
   });
   const chartLabel = computed({
-    get: () => presentationState.ui.originalChartLabel ?? CHART_LABELS[engine.defaultChart],
+    get: () => presentationState.ui.originalChartLabel ?? CHART_LABELS[engine.box.defaultChart],
     set: (v: string) => { presentationState.ui.originalChartLabel = v; },
   });
   const chartMeta = computed(() => TAB_META[chartTab.value]);

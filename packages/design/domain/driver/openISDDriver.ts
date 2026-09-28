@@ -129,7 +129,7 @@ export abstract class OpenISDDriver extends OpenISDDevice {
     // ── DERIVED FIGURES — every one from the injected engine, none computed here ──────────────
 
     /** `ts`, shaped as `DriverSolverParams` — for a caller (the UI's chart layer, `Design.driver`)
-     *  that needs the full 44-handle surface `Engine.sweep()`/`maxCurves()` take, not just the
+     *  that needs the full 44-handle surface `SimulationEngine.sweep()`/`maxCurves()` take, not just the
      *  live spec window. See `driverSolverParamsOf`'s own doc for which four members are adapted
      *  rather than reused. */
     get solverParams(): DriverSolverParams {
