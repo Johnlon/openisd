@@ -373,7 +373,7 @@ names + `solverQuantities.ts` + the `.values` result types (T3/T10 style trim).
   Vent/PR/box cells switch from formula-only DQ to the full sentence (pinning tests update).
   `inconsistent-inputs` unifies on the editor's longer, actionable form (Text ruling, §2).
 - **Driver editor (the one flagged wrinkle)**: `DriverEditorModal.vue:325` and
-  `OgTune-hooks.ts:54` stop calling `OpenISDDriver.checkConsistency()`; the driver is the first
+  `OriginalTune-hooks.ts:54` stop calling `OpenISDDriver.checkConsistency()`; the driver is the first
   full application of the §4 contract — `solveDriver(model.entered…)` writes each spec field
   (value + `'C'`), the projection attaches `dq_calculated` text, and the editor reads
   `cell.dq()`. The QO127 "stated-only" framing is re-written (T11). Kept-in: the

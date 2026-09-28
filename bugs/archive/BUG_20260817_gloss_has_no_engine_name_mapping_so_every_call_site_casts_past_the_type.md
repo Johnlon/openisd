@@ -59,5 +59,5 @@ uncommitted work (confirmed via `git stash`, unrelated to this field). Targeted 
 `packages/ui/test/ui/driver-editor-units.test.ts` — 487/487 pass. Wider suite (`packages/engine
 packages/winisd packages/model packages/ui/test/logic packages/ui/test/ui`, browser specs
 excluded): 1801/1806 pass; the 5 failures are pre-existing and unrelated (vent-area validation
-in `store.ts`, `OgTune.vue`/`OriginalShell.vue` importing `@openisd/engine` directly in
+in `store.ts`, `OriginalTune.vue`/`OriginalShell.vue` importing `@openisd/engine` directly in
 `architecture.test.ts` — both already `M` in `git status` before this change).

@@ -25,9 +25,9 @@ focused.
   Confirmed via `grep -rln "focusedProject()" packages/ui/src --include='*.ts' --include='*.vue'
   | grep -v appState.ts` → no results.
 - Every one of the 17+ files that read/write project state (`GraphPanel.vue`,
-  `PRDefineModal.vue`, `OgFilters.vue`, `liveProject.ts`, `DriverEditorModal.vue`,
+  `PRDefineModal.vue`, `OriginalFilters.vue`, `liveProject.ts`, `DriverEditorModal.vue`,
   `PREditModal.vue`, `useApplicationIO.ts`, `driverSelection.ts`, `AdvancedOptions.vue`,
-  `OgTune.vue`, `useVentGroup.ts`, `presentationState.ts`, `usePrGroup.ts`,
+  `OriginalTune.vue`, `useVentGroup.ts`, `presentationState.ts`, `usePrGroup.ts`,
   `OriginalShell.vue`, `OptionsModal.vue`, `App.vue`, and more) imports and calls methods on
   the fixed `managedProject` singleton (`appState.ts:64`) directly, by name — never through
   `focusedProject()`.

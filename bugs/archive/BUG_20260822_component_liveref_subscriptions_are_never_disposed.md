@@ -9,8 +9,8 @@ set that is never removed:
 
 - `packages/ui/src/ui/App.vue:30`
 - `packages/ui/src/ui/OriginalShell.vue:43` (`ui/shells/original/`)
-- `packages/ui/src/ui/shells/original/OgTune.vue:22`
-- `packages/ui/src/ui/shells/original/OgFilters.vue:28`
+- `packages/ui/src/ui/shells/original/OriginalTune.vue:22`
+- `packages/ui/src/ui/shells/original/OriginalFilters.vue:28`
 - `packages/ui/src/ui/components/AdvancedOptions.vue:23`
 - `packages/ui/src/ui/components/PREditModal.vue:21`
 
@@ -60,6 +60,6 @@ with `dispose` discarded (matching the six `.vue` call sites), stops the scope, 
 fake's `unsubscribeCount()` is 1 and `listenerCount()` is back to 0. "called with no active
 scope, does NOT auto-dispose" asserts a bare `createLiveRef` call (`store.ts`'s module-level
 `live`) still only unsubscribes via its own returned `dispose()`, unchanged. Both pass; the six
-`.vue` call sites (`App.vue`, `OriginalShell.vue`, `OgTune.vue`, `OgFilters.vue`,
+`.vue` call sites (`App.vue`, `OriginalShell.vue`, `OriginalTune.vue`, `OriginalFilters.vue`,
 `AdvancedOptions.vue`, `PREditModal.vue`) need no code change — each already runs inside its
 component's `setup()` scope.

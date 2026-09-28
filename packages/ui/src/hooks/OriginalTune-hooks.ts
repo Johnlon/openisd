@@ -9,7 +9,7 @@ import {projectChanged} from '../logic/appState.js';
 export type NumKey = NumSpecField;
 export type { NumSpecField };
 
-export interface OgTuneAPI {
+export interface OriginalTuneAPI {
   readonly ebp: Readonly<Ref<number | null>>;
   readonly vb_m3: Readonly<Ref<number | null>>;
 
@@ -26,9 +26,9 @@ export interface OgTuneAPI {
   cancel(): void;
 }
 
-export const OgTuneKey: InjectionKey<OgTuneAPI> = Symbol('OgTuneAPI');
+export const OriginalTuneKey: InjectionKey<OriginalTuneAPI> = Symbol('OriginalTuneAPI');
 
-export function useOgTune(): OgTuneAPI {
+export function useOgTune(): OriginalTuneAPI {
   const project = useFocusedProject();
 
   function specField(key: NumSpecField):

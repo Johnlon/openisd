@@ -1,6 +1,6 @@
 # BUG 20260916 — project wizard does not walk the WinISD "Type of Design" flow (nor ask driver count/EBP vs isobaric); and it ships a typed default volume instead of deriving one for sealed
 
-Status: RESOLVED (re-verified 2026-09-26) — the wizard has the Type of design step and derives the sealed volume from the alignment (`OgNewProject-hooks.ts`).
+Status: RESOLVED (re-verified 2026-09-26) — the wizard has the Type of design step and derives the sealed volume from the alignment (`OriginalNewProject-hooks.ts`).
 
 ## The WinISD wizard walk (human verbatim intent, the parity target)
 
@@ -10,7 +10,7 @@ Status: RESOLVED (re-verified 2026-09-26) — the wizard has the Type of design 
 4. the sealed flow then asked the **alignment** with default **0.707**
 5. **OK** → lands in the project showing **vol 4.9L, Fs 45, Qtc 0.704**
 
-openisd's wizard (`packages/ui/src/ui/shells/original/OgNewProject.vue`) does not walk that
+openisd's wizard (`packages/ui/src/ui/shells/original/OriginalNewProject.vue`) does not walk that
 multi-step sequence and shows no EBP bar; today it also ships a **typed default volume**. The human
 ruled: for a **sealed** enclosure the volume is a derived OUTPUT of the alignment (`Qtc ≈ 0.707`),
 never a typed default. Same blunder class as BUG_20260916_signal-pane-blur-must-notify: presenting

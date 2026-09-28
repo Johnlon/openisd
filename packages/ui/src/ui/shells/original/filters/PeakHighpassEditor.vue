@@ -3,9 +3,9 @@
 import {NumberField} from '@openisd/design/fields';
 import {numFrom} from './numericInput.js';
 import type {PeakHighpassFilter} from '@openisd/design/engine';
-import type {OgFiltersAPI} from '../../../../hooks/OgFilters-hooks.js';
+import type {OriginalFiltersAPI} from '../../../../hooks/OriginalFilters-hooks.js';
 
-const {f, api} = defineProps<{ f: PeakHighpassFilter; api: OgFiltersAPI }>();
+const {f, api} = defineProps<{ f: PeakHighpassFilter; api: OriginalFiltersAPI }>();
 </script>
 
 <template>

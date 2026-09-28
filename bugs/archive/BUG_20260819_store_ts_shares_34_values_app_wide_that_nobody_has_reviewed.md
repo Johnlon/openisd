@@ -50,7 +50,7 @@ bug (wire it to a UI element, or delete it) before deciding its fate here, since
 to confirm they need no further action.
 
 **Vent/PR group accessors — thin delegates to `useVentGroup.ts`/`usePrGroup.ts`, called
-directly by UI components (`OgTune.vue`, box/PR panels):**
+directly by UI components (`OriginalTune.vue`, box/PR panels):**
 `enterVentField`, `clearVentField`, `ventFieldState`, `ventTargetUnreachable`,
 `ventMaxReachableFb`, `enterPrField`, `clearPrField`, `prFieldState`, `prTargetUnreachable`
 

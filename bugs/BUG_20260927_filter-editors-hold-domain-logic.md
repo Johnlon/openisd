@@ -31,7 +31,7 @@ Chunk 2 of the filter work (b5fe226e, refactored in 7b990eba) put these in the U
   other numeric field clamps to its own entry range, everything else in `patch` (and every field
   left out of it) passes through unchanged. Reached through 8 new typed `Engine.updateXFilter`
   methods (one per filter class) — the engine's one door, no string-keyed dispatch.
-- Every `*Editor.vue` now takes an `api: OgFiltersAPI` prop and calls the matching
+- Every `*Editor.vue` now takes an `api: OriginalFiltersAPI` prop and calls the matching
   `api.updateXFilter(f, {field: value})`, then emits the result — it reads the DOM value
   (`numFrom`) and nothing else. `numericInput.ts`'s `intFrom` (order rounding) is deleted.
 
@@ -42,6 +42,6 @@ Chunk 2 of the filter work (b5fe226e, refactored in 7b990eba) put these in the U
 - `npm run typecheck`: clean (design, persistence, ui).
 - `npx vitest run packages/design`: 93 files / 2178 tests pass.
 - `npx vitest run packages/ui --project ui`: 77 files / 579 tests pass, including
-  `OgFilters-hooks.test.ts` and the architecture layering gate (`architecture.test.ts`) unchanged.
+  `OriginalFilters-hooks.test.ts` and the architecture layering gate (`architecture.test.ts`) unchanged.
 - `filters-tab.browser.spec.ts` (11 tests) and `original-skin.browser.spec.ts` (54 tests): pass
   unchanged.

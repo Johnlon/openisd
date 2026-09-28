@@ -12,7 +12,7 @@ import NumInput from '../../components/NumInput.vue';
 import GraphPanel from '../../components/GraphPanel.vue';
 import ExportMenu from '../../components/ExportMenu.vue';
 import ToolbarIcon from '../../components/ToolbarIcon.vue';
-import OgFilters from './OgFilters.vue';
+import OriginalFilters from './OriginalFilters.vue';
 import PRBrowser from '../../components/PRBrowser.vue';
 import PREditModal from '../../components/PREditModal.vue';
 import OptionsModal from '../../components/OptionsModal.vue';
@@ -37,7 +37,7 @@ const {
   selectedBox, BOX_TYPE_OPTIONS, LOSS_MODE_OPTIONS, lossMode, ARRAY_WIRING_OPTIONS, N_DRIVERS_OPTIONS, applyWinisdSettings,
   boxVolume_m3, boxVolumeDqNote, setBoxVolume_m3, sealedAlignmentEditor, sealedAlignmentOpen,
   sealedAlignmentOptions, sealedAlignmentSelected, sealedAlignmentVolume_L, sealedAlignmentEbp,
-  sealedAlignmentSuitability, sealedAlignmentSuitabilityLabel, ogFilters,
+  sealedAlignmentSuitability, sealedAlignmentSuitabilityLabel, originalFilters,
   fbState, FB_TARGET_TIP, VENT_GEOMETRY_TIP, fmtU, clearVentFieldOn, enterVentFieldOn,
   boxResonance, rearQtc, prSystemTuningDq,
   fbUnreachable, fbUnreachableMsg, boxLossesOpen, isDual,
@@ -566,9 +566,9 @@ const {
           </div>
         </section>
 
-        <!-- ===== Filters tab — OgFilters, wired to the project's filter chain ===== -->
+        <!-- ===== Filters tab — OriginalFilters, wired to the project's filter chain ===== -->
         <section v-show="activeTab === 'filters'" class="tab-section" :class="{ active: activeTab === 'filters' }">
-          <OgFilters :api="ogFilters" />
+          <OriginalFilters :api="originalFilters" />
         </section>
 
         <!-- ===== Signal tab ===== -->
@@ -710,7 +710,7 @@ const {
       </div>
     </div>
 
-    <!-- The Tune panel (`<OgTune>`) is rendered by App.vue, not here, so it survives a box-type
+    <!-- The Tune panel (`<OriginalTune>`) is rendered by App.vue, not here, so it survives a box-type
          change that re-renders this shell's enclosure pane (QO134). Its open/close state and
          refresh persistence stay on `presentationState.editDriver`, watched below. -->
     <div v-if="sealedAlignmentOpen" class="overlay on alignment-overlay">

@@ -1,4 +1,4 @@
-import type { Engine, SignalIssue } from '../../engine/index.js';
+import type { SignalEngine, SignalIssue } from '../../engine/index.js';
 import { DefaultingFieldImpl, DualWriteFieldImpl, absentCell, calculatedCell, enteredCell, focus, writeEntryDq } from '../cell.js';
 import type { SimpleField } from '../cell.js';
 import { calculatedEntry, enteredEntry } from '../specEntry.js';
@@ -15,25 +15,15 @@ const MIN_DRIVE_VOLTAGE_V = 0.01;
  *  knows how to build them (`driverOver`, the public `Rs_ohm` field, `#issues.signal`), and this
  *  class has no business constructing a driver window of its own. */
 export class ProjectSignal {
-    static wrap(
-        lens: SimpleField<OpenISDProjectJson['signal']>,
-        engine: Engine,
-        usableRe: () => number | null,
-        rsOhm: () => number,
-        signalIssues: () => readonly SignalIssue[],
-    ): ProjectSignal {
-        return new ProjectSignal(lens, engine, usableRe, rsOhm, signalIssues);
-    }
-
     readonly #lens: SimpleField<OpenISDProjectJson['signal']>;
-    readonly #engine: Engine;
+    readonly #engine: SignalEngine;
     readonly #usableRe: () => number | null;
     readonly #rsOhm: () => number;
     readonly #signalIssues: () => readonly SignalIssue[];
 
-    private constructor(
+    constructor(
         lens: SimpleField<OpenISDProjectJson['signal']>,
-        engine: Engine,
+        engine: SignalEngine,
         usableRe: () => number | null,
         rsOhm: () => number,
         signalIssues: () => readonly SignalIssue[],
@@ -66,7 +56,7 @@ export class ProjectSignal {
                         throw new Error('powerDrive_W cannot be entered: the driver has no usable Re_ohm yet.');
                     }
                     const Rs_ohm = this.#rsOhm();
-                    if (!(v > 0 && this.#engine.signal.driveVoltage(v, Re_ohm, Rs_ohm) >= MIN_DRIVE_VOLTAGE_V)) {
+                    if (!(v > 0 && this.#engine.driveVoltage(v, Re_ohm, Rs_ohm) >= MIN_DRIVE_VOLTAGE_V)) {
                         throw new RangeError(`powerDrive_W ${v} W drives below the 10 mV minimum voltage.`);
                     }
                     signal.set({...signal.value, power_W: enteredEntry(v), voltage_V: undefined});

@@ -118,8 +118,8 @@ One commit per component. The ratchet (below) names what is left.
 
 ### E. The Filters hook — own vocabulary, no engine
 
-`packages/ui/src/hooks/OgFilters-hooks.ts`: `OgFiltersAPI` stays as the interface the `.vue`
-and its tests depend on. `class OgFilters implements OgFiltersAPI` is constructed with
+`packages/ui/src/hooks/OriginalFilters-hooks.ts`: `OriginalFiltersAPI` stays as the interface the `.vue`
+and its tests depend on. `class OriginalFilters implements OriginalFiltersAPI` is constructed with
 `project`, `changed` and `engine.filters` — the one component it uses, not the whole engine.
 
 ```ts
@@ -132,8 +132,8 @@ editStaticGain / editRaisedCosine / editShelf
 ```
 
 `replaceFilter` goes private. The eight editors under `packages/ui/src/ui/shells/original/filters/`
-call `api.editShelf(f, {fc: numFrom($event)})`; the `replace` emit and `OgFilters.vue`'s
-handler go. Composition root `OriginalShell-hooks.ts:454`: `new OgFilters(project, projectChanged)`.
+call `api.editShelf(f, {fc: numFrom($event)})`; the `replace` emit and `OriginalFilters.vue`'s
+handler go. Composition root `OriginalShell-hooks.ts:454`: `new OriginalFilters(project, projectChanged)`.
 
 ### H. A free function taking an object is a missing method (ruling 7)
 
@@ -193,6 +193,6 @@ header block, a planted failure proved once.
 
 - `npm run typecheck`; `npm run lint` (new rules red on a planted violation, green without).
 - `npx vitest run packages/design/test/architecture-*.test.ts` after each of A/B/G.
-- `npx vitest run packages/ui/test/hooks/OgFilters-hooks.test.ts` + filter editor tests after E.
+- `npx vitest run packages/ui/test/hooks/OriginalFilters-hooks.test.ts` + filter editor tests after E.
 - `npx playwright test` on the Filters tab spec after E: add a shelf, change fc, caption updates.
 - Commit hook runs the full suite. No AI attribution lines.

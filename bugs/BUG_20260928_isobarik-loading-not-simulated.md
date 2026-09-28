@@ -1,6 +1,6 @@
 # BUG_20260928_isobarik-loading-not-simulated
 
-**Status:** OPEN
+**Status:** RESOLVED
 
 ## Symptom
 Setting a project's loading to iso-barik changes nothing in OpenISD's charts. WinISD's charts
@@ -20,9 +20,13 @@ WinISD's iso-barik form is not decoded yet (⚠ unverified: textbook iso-barik i
 series acoustically, Mms×2, Vas/2, BL/Re per its wiring).
 
 ## Fix
-Decode WinISD's iso-barik driver transform, fit runs/sealed-w5-isobarik exactly, then apply it
-in the engine when `loading` is `isobaric`.
+Fitted from runs/sealed-w5-isobarik: WinISD's pair is Mms×2, Cms/2, Rms×2, Vas/2 with the circuit's
+terminal BL ×√2 (Fs and Q's unchanged; the typed BL stays one driver's), and its impedance is
+Ze + 2 × the pair's motional term. `isobarikPair` (engine/solvers/driverQuantities.ts) applies the
+transform in `SimulationEngine.sweep` when `loading` is `isobaric`; `circuit.ts` doubles the
+motional term. ⚠ unverified: with voice-coil inductance on, and in ported boxes.
 
 ## Verification
-Fixture from runs/sealed-w5-isobarik; engine test ≤ 1e-12 relative on impedance, TF, SPL,
-excursion.
+`test/domain/isobarik-loading-winisd.test.ts` against `test/fixtures/winisdIsobarikCapture.ts`
+(131 points per chart): SPL, TF and impedance ≤ 1e-12 relative, excursion ≤ 1e-11. Red before
+(SPL −2.32 vs −6.90 dB at 1 Hz), green after; design suite 2375/2375.

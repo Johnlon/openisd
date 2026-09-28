@@ -24,7 +24,7 @@ import {missingDependencies} from '../consistency.js';
 import type {DriverIssue, DriverPrerequisite, DriverQuantityName} from '../driver/DriverEngine.js';
 import type {PrIssue} from '../pr/PrEngine.js';
 import type {VentIssue} from '../vent/VentEngine.js';
-import {hotRe, terminalBL_Tm, withAddedMass} from '../solvers/driverQuantities.js';
+import {hotRe, isobarikPair, terminalBL_Tm, withAddedMass} from '../solvers/driverQuantities.js';
 import {applyFilters} from '../filters.js';
 import {driveFromVoltage} from '../signal/SignalEngine.js';
 import type {BoxType, DriverError, EnclosureParams, MaxCurvesResult, SweepParams, SweepResult} from '../types.js';
@@ -384,7 +384,8 @@ export class SimulationEngineImpl implements SimulationEngine {
   sweep(drv: DriverSolverParams, Le_H: number | undefined, box: BoxType, P: SweepParams): SweepSolveResult {
     // Driver-side added mass (docs/research/WINISD_PARITY.md) shifts Mms/Fs/Q's before the circuit sees it.
     // 0/absent → withAddedMass returns the driver unchanged, so goldens are byte-identical.
-    const d = withAddedMass(driverValues(drv), P.driverAddedMass ?? 0);
+    const single = withAddedMass(driverValues(drv), P.driverAddedMass ?? 0);
+    const d = P.loading === 'isobaric' ? isobarikPair(single) : single;
     const circuit = circuitQuantities(d, Le_H, drv.BL_Tm.entered ? drv.BL_Tm.value : null);
     if (circuit.value === null) return { values: null, issues: circuit.issues };
     const cq = circuit.value;

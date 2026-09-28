@@ -161,10 +161,10 @@ a deliberately INCOMPLETE one; `tune-panel-fields` needs Qts/Qes/Qms present.
 John's ruling: "make this popup a child of a higher component so that it is independent of the
 box view from which it was opened."
 
-- **Done:** moved `<OgTune v-if="presentationState.editDriver" />` out of
+- **Done:** moved `<OriginalTune v-if="presentationState.editDriver" />` out of
   `OriginalShell.vue` and into `App.vue`, inside `v-if="project"` beside `DriverEditorModal`
-  (both global driver overlays). Removed the now-unused `OgTune` import from `OriginalShell`;
-  left a comment pointing to the new home. `OgTune` takes no props and reads
+  (both global driver overlays). Removed the now-unused `OriginalTune` import from `OriginalShell`;
+  left a comment pointing to the new home. `OriginalTune` takes no props and reads
   `useFocusedProject()`, which `App.vue` provides. The `presentationState.editDriver` state and
   its refresh-persistence watchers stay in `OriginalShell` — they sync global state,
   location-independent. `vue-tsc` + `eslint` clean.
@@ -248,7 +248,7 @@ zero.
 
 ### 3c. R4 — the per-field browser restart
 
-The tuner (`OgTune.vue`, 367 lines) and driver editor (`DriverEditorModal.vue`, 1393 lines)
+The tuner (`OriginalTune.vue`, 367 lines) and driver editor (`DriverEditorModal.vue`, 1393 lines)
 have browser specs that reload the page or re-open the panel once per field asserted. John:
 run a script or probes over the form that fly quickly by, in one page load. Two ways, pick per
 spec:

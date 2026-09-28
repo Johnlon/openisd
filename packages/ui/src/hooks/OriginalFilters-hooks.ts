@@ -8,7 +8,7 @@ import type {
 
 /** What the Filters tab can do — the vocabulary its components speak. Nothing here names the
  *  engine: an edit is one call that decides the new values and stores them. */
-export interface OgFiltersAPI {
+export interface OriginalFiltersAPI {
   readonly filters: ComputedRef<readonly Filter[]>;
   /** Appends the engine's default filter of `type` under a fresh list id; returns that id. */
   add(type: FilterType): string;
@@ -37,7 +37,7 @@ export interface OgFiltersAPI {
  * with the project, its change signal and the engine's filters area; the list id is this
  * list's row key only.
  */
-export class OgFilters implements OgFiltersAPI {
+export class OriginalFilters implements OriginalFiltersAPI {
   readonly filters: ComputedRef<readonly Filter[]>;
 
   constructor(
