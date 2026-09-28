@@ -2,31 +2,20 @@
  * Small, stateless engine formulas a component needs directly — not project state, just
  * physics with no home yet in `ManagedProject`. Each wraps exactly one `Engine` method
  * so a component reads its number from here instead of naming the engine itself
- * (architecture.test.ts "a component imports no value from the domain").
+ * (architecture.test.ts "a component imports no value from the domain"). The engine is the
+ * one the composition root built, passed in — never constructed here.
  */
-import type {Air, AirEnvironment} from '@openisd/design/engine';
-import {Engine, LossMode} from '@openisd/design/engine';
+import type {Air, AirEnvironment, Engine} from '@openisd/design/engine';
+import {LossMode} from '@openisd/design/engine';
 import type {SelectorOption} from '@openisd/design/fields';
 
-export function airForEnvironment(env: AirEnvironment): Air {
-    return new Engine().solveEnvironment(env).values;
+export function airForEnvironment(engine: Engine, env: AirEnvironment): Air {
+    return engine.solveEnvironment(env).values;
 }
 
-/** EBP = Fs/Qes — the vented-box suitability figure OgTune.vue's Vents pane shows. */
-export function ebpOf(Fs_hz: number, Qes: number): number {
-    return new Engine().ebp(Fs_hz, Qes);
-}
-
-/** Speed of sound / air density at the reference environment — an empty `AirEnvironment`,
- *  every field of which falls back to the reference condition inside the engine
- *  (`docs/design/WINISD_SCHEMA.md` §12). Functions, not values, so the driver editor's
- *  read-only Environment readout never caches a number that could go stale. */
-export function referenceC(): number {
-    return new Engine().solveEnvironment({}).values.c;
-}
-
-export function referenceRho(): number {
-    return new Engine().solveEnvironment({}).values.rho;
+/** EBP = Fs/Qes — the vented-box suitability figure the Vents pane shows. */
+export function ebpOf(engine: Engine, Fs_hz: number, Qes: number): number {
+    return engine.ebp(Fs_hz, Qes);
 }
 
 /** The string→member boundary for the sealed-box loss model, and the picker's option list —

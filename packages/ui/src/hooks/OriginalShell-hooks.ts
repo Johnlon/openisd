@@ -58,7 +58,7 @@ import type {Calculated, Clearable, Entered, OpenISDProject, Readable, Writable}
 import type {ProvenanceLetter} from '../logic/fieldProvenance.js';
 import {provenanceOf, provenanceOfEntry, provenanceOfSolved} from '../logic/fieldProvenance.js';
 import type {StoredProjectListing} from '@openisd/persistence';
-import type {BoxType, ChartId, EnvDefaults} from '@openisd/design/engine';
+import type {BoxType, ChartId, EnvDefaults, Engine} from '@openisd/design/engine';
 import type {Design, PlotParams} from '../types.js';
 
 // ---- Sealed / PR readouts (unit-testable, real domain) ------------------------
@@ -332,11 +332,12 @@ export interface EnvironmentAirDeps {
   project: ComputedRef<OpenISDProject>;
   projectChanged: Ref<number>;
   envDefaults: () => EnvDefaults;
+  engine: Engine;
 }
 
 type EnvField = Readable<number | null> & Entered & Calculated & Writable<number> & Clearable;
 
-export function createEnvironmentAir({ project, projectChanged: changed, envDefaults }: EnvironmentAirDeps) {
+export function createEnvironmentAir({ project, projectChanged: changed, envDefaults, engine }: EnvironmentAirDeps) {
   function storedOf(field: () => EnvField) {
     return computed<boolean>(() => { void changed.value; void project.value; return field().entered; });
   }
@@ -376,7 +377,7 @@ export function createEnvironmentAir({ project, projectChanged: changed, envDefa
   const advAir = computed(() => {
     void project.value;
     void changed.value;
-    return airForEnvironment({
+    return airForEnvironment(engine, {
       tempK: advTemp.value ?? undefined, humidityPct: advHumidity.value ?? undefined, pressurePa: advPressure.value ?? undefined,
       useWinisdAirModel: project.value.envUseWinisdAirModel.value,
     });
@@ -671,7 +672,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     // A remembered chart id that no longer applies to this box (a saved tab that was PR, the
     // box is now sealed) falls back to the default chart, never to a stale/inapplicable one.
     get: () => {
-      const id = parseChartId(presentationState.ui.originalChartTab);
+      const id = parseChartId(engine, presentationState.ui.originalChartTab);
       return CHART_ITEMS.value.some(i => i.tab === id) ? id : engine.defaultChart;
     },
     set: (v: ChartId) => { presentationState.ui.originalChartTab = v; },
@@ -851,7 +852,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     if (!focusedProject()) return null;
     const f = cursorHz.value;
     if (pending.value || f == null) return null;
-    const p = buildPlotData(chartTab.value, syncedP.value.fmin, syncedP.value.fmax, currentDesign.value, overlays.value, allIssues.value,
+    const p = buildPlotData(engine, chartTab.value, syncedP.value.fmin, syncedP.value.fmax, currentDesign.value, overlays.value, allIssues.value,
       { bare: true, primaryColor: WINISD_TRACE.value }).value;
     if (!p) return null;
     const s = p.series.find(x => x.current) ?? p.series.find(x => !x.phantom);
@@ -1044,7 +1045,7 @@ const overlays = computed<Design[]>(() => {
     envTempStored, envHumidityStored, envPressureStored, envTempDq, envHumidityDq, envPressureDq,
     advTemp, advHumidity, advPressure, commitAirTemp, commitAirHumidity, commitAirPressure,
     resetAirToAppDefaults, advAir,
-  } = createEnvironmentAir({ project, projectChanged, envDefaults });
+  } = createEnvironmentAir({ project, projectChanged, envDefaults, engine });
 
   const placement = ref<'standard' | 'iso'>('standard');
 

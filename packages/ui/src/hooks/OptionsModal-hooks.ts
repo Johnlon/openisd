@@ -15,6 +15,7 @@ import {computed, type ComputedRef, ref, type Ref} from 'vue';
 import type {Air, ChartId, EnvDefaults, VentedDesignLimits} from '@openisd/design/engine';
 import {
   envDefaults as appEnvDefaults,
+  engine,
   FACTORY_ENV_DEFAULTS,
   FACTORY_VENTED_LIMITS,
   setEnvDefaults as setAppEnvDefaults,
@@ -166,7 +167,7 @@ export function useOptionsModal(deps?: OptionsModalDeps): OptionsModalAPI {
       && e.pressurePa === FACTORY_ENV_DEFAULTS.pressurePa;
   });
 
-  const defaultAir = computed<Air>(() => airForEnvironment(editedEnv.value));
+  const defaultAir = computed<Air>(() => airForEnvironment(engine, editedEnv.value));
 
   function resetLimits(): void {
     minVolume_L.value = FACTORY_VENTED_LIMITS.minVb_m3 * LITRES_PER_M3;

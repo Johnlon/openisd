@@ -6,6 +6,8 @@
 import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
 import {Engine} from '@openisd/design/engine';
+
+const engine = new Engine();
 import type {DqIssue, DriverSolverParams, SolverField, SweepParams} from '@openisd/design/engine';
 import {buildPlotData} from '../../src/logic/series.js';
 import type {Design, PlotParams} from '../../src/types.js';
@@ -41,17 +43,17 @@ const driverParams: DriverSolverParams = {
   Rme_kg_per_s: fakeField<number>(null), Mpow_N_per_sqrtW: fakeField<number>(null), Mcost_kg_per_s: fakeField<number>(null),
   gamma_m_per_s2_A: fakeField<number>(null), Gloss: fakeField<number>(null), Vcd_m: fakeField<number>(null), Depth_m: fakeField<number>(null),
   MagDepth_m: fakeField<number>(null), Magnet_m: fakeField<number>(null), DVol_m3: fakeField<number>(null),
-  c_m_per_s: fakeField(new Engine().solveEnvironment({}).values.c),
-  roo_kg_per_m3: fakeField(new Engine().solveEnvironment({}).values.rho),
+  c_m_per_s: fakeField(engine.solveEnvironment({}).values.c),
+  roo_kg_per_m3: fakeField(engine.solveEnvironment({}).values.rho),
   Re_terminal_ohm: fakeField<number>(null), BL_terminal_Tm: fakeField<number>(null), numVC: fakeField<number>(null),
   wiring: fakeField('parallel'),
 };
-new Engine().solveDriver(driverParams, new Engine().solveEnvironment({}).values);
+engine.solveDriver(driverParams, engine.solveEnvironment({}).values);
 const LE_H = 0.70e-3;
 const SP: SweepParams = { Vb: 0.030, eg: 2.83, fmin: 10, fmax: 2000, N: 200, filters: [] };
 const PP = SP as unknown as PlotParams;
-const SW = new Engine().sweep(driverParams, LE_H, 'sealed', SP).values!;
-const MX = new Engine().maxCurves(driverParams, LE_H, 'sealed', SP).values!;
+const SW = engine.sweep(driverParams, LE_H, 'sealed', SP).values!;
+const MX = engine.maxCurves(driverParams, LE_H, 'sealed', SP).values!;
 
 function design(name: string, color: string, sortIndex?: number): Design {
   return { driver: driverParams, box: 'sealed', P: PP, curves: SW, maxCurves: MX, name, color, sortIndex };
@@ -59,19 +61,19 @@ function design(name: string, color: string, sortIndex?: number): Design {
 
 describe('buildPlotData — comparing two or more designs', () => {
   it('names the focused design\'s legend entry after the project, not the literal "Current"', () => {
-    const out = buildPlotData('Zmag', 10, 2000, design('W5 sealed', '#4fb0ff'), [design('p1', '#ffb454')]).value!;
+    const out = buildPlotData(engine, 'Zmag', 10, 2000, design('W5 sealed', '#4fb0ff'), [design('p1', '#ffb454')]).value!;
     assert.equal(out.series[0].name, 'W5 sealed: |Z|');
     assert.equal(out.series[1].name, 'p1: |Z|');
   });
 
   it('marks the focused design\'s own series as current; overlays are not', () => {
-    const out = buildPlotData('Zmag', 10, 2000, design('W5 sealed', '#4fb0ff'), [design('p1', '#ffb454')]).value!;
+    const out = buildPlotData(engine, 'Zmag', 10, 2000, design('W5 sealed', '#4fb0ff'), [design('p1', '#ffb454')]).value!;
     assert.equal(out.series[0].current, true);
     assert.ok(!out.series[1].current);
   });
 
   it('leaves the single-design case unmarked (no legend is drawn for it anyway)', () => {
-    const out = buildPlotData('Zmag', 10, 2000, design('W5 sealed', '#4fb0ff'), []).value!;
+    const out = buildPlotData(engine, 'Zmag', 10, 2000, design('W5 sealed', '#4fb0ff'), []).value!;
     assert.equal(out.series[0].name, '|Z|');
   });
 
@@ -79,7 +81,7 @@ describe('buildPlotData — comparing two or more designs', () => {
     // Focused project sits below the overlay in the sidebar (sortIndex 1 vs 0): its own
     // trace must draw/legend second, matching that list, not first just because it's focused.
     const out = buildPlotData(
-      'Zmag', 10, 2000,
+      engine, 'Zmag', 10, 2000,
       design('W5 sealed', '#4fb0ff', 1),
       [design('p1', '#ffb454', 0)],
     ).value!;

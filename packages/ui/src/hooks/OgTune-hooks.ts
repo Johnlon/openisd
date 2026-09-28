@@ -4,7 +4,7 @@ import {useFocusedProject} from '../logic/focusedProjectContext.js';
 import {ebpOf} from '../logic/environment.js';
 import {cellClassFor} from '../logic/useDriverCells.js';
 import type {Calculated, Clearable, Entered, Readable, Writable} from '@openisd/design';
-import {projectChanged} from '../logic/appState.js';
+import {engine, projectChanged} from '../logic/appState.js';
 import type {NumSpecField} from '../logic/appState.js';
 import {specFieldHandle} from '../logic/driverSpecFields.js';
 
@@ -51,7 +51,7 @@ export function useOgTune(): OgTuneAPI {
     void projectChanged.value; void project.value;
     const ts = project.value.driver.specs;
     const Fs_hz = ts.Fs_hz.value, Qes = ts.Qes.value;
-    return Fs_hz != null && Qes != null && Qes !== 0 ? ebpOf(Fs_hz, Qes) : null;
+    return Fs_hz != null && Qes != null && Qes !== 0 ? ebpOf(engine, Fs_hz, Qes) : null;
   });
 
   const vb_m3 = computed<number | null>(() => {

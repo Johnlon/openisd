@@ -1,5 +1,4 @@
-import type {BoxType, ChartId, DriverError, DriverSolverParams, MaxCurvesResult, SweepResult} from '@openisd/design/engine';
-import {Engine} from '@openisd/design/engine';
+import type {BoxType, ChartId, DriverError, DriverSolverParams, Engine, MaxCurvesResult, SweepResult} from '@openisd/design/engine';
 import type {Design, PlotData, PlotParams, Series} from '../types.js';
 
 export const DPAL = ['#4fb0ff','#ffb454','#5ad17a','#ff6b6b','#c08bff'];
@@ -58,11 +57,11 @@ export const TABS: TabMeta[] = Object.values(TAB_META);
  * a stale chart id restored from `localStorage`, say — and is handled as missing, i.e.
  * the default chart, never as a second spelling to tolerate.
  */
-export function parseChartId(v: string | null | undefined): ChartId {
+export function parseChartId(engine: Engine, v: string | null | undefined): ChartId {
   // The id comes back off the MEMBER that matched, so it is a `ChartId` because `TabMeta.id`
   // is one — nothing asserts it. `hasOwnProperty` answered the same question correctly but
   // returns a boolean, which cannot narrow a `string`, so using its answer needed a cast.
-  return TABS.find(t => t.id === v)?.id ?? new Engine().defaultChart;
+  return TABS.find(t => t.id === v)?.id ?? engine.defaultChart;
 }
 
 /** SPL/filter-magnitude values at or below this are the engine's "no output" sentinel. */
@@ -73,6 +72,8 @@ interface SeriesBundle { series: Series[]; ymin: number; ymax: number; logy: boo
 
 /** Everything a curve builder may read. */
 interface CurveCtx {
+  /** The one engine the composition root built — a curve builder never makes its own. */
+  engine: Engine;
   meta: TabMeta;
   drv: DriverSolverParams;
   box: BoxType;
@@ -93,10 +94,10 @@ type CurveBuild = { series: Series[]; ymin: number; ymax: number; logy?: boolean
 
 /** Port air velocity — shared by `RearPort` (vented) and `FrontPort` (bandpass4): same
  *  quantity (`sw.pv`), same Mach-limit reference line, only the port itself differs. */
-function portVelocityBuild({ meta, sw, pick }: CurveCtx): CurveBuild {
+function portVelocityBuild({ engine, meta, sw, pick }: CurveCtx): CurveBuild {
   const series: Series[] = [{ ...pick(sw.pv), color: meta.color, name: 'Port vel' }];
   // FIXME - magic number - what is 0.05 representing?
-  const machLimit = 0.05 * new Engine().solveEnvironment({}).values.c;
+  const machLimit = 0.05 * engine.solveEnvironment({}).values.c;
   series.push({ xs: sw.fs, ys: sw.fs.map(() => machLimit), color:'#ffb454', name:'17 m/s', dash:true });
   return { series, ymin: 0, ymax: Math.max(20, Math.max(...sw.pv) * 1.1) };
 }
@@ -117,7 +118,7 @@ function portGainBuild(rel: number[] | null, name: string, meta: TabMeta, sw: Sw
 }
 
 const CURVE_BUILDERS: Record<ChartId, (c: CurveCtx) => CurveBuild> = {
-  SPL: ({ meta, P, sw, bare, pick }) => {
+  SPL: ({ engine, meta, P, sw, bare, pick }) => {
     // "SPL graph is Xmax limited" (WinISD Advanced) swaps in the curve the design can
     // actually reach before the cone runs out of travel. The raw curve is drawn alongside
     // it, dashed, wherever the two differ — the whole point of the option is seeing the gap.
@@ -129,7 +130,7 @@ const CURVE_BUILDERS: Record<ChartId, (c: CurveCtx) => CurveBuild> = {
     // Ignore the -200 dB "no output" sentinel (sweep uses it where |p|=0) so it
     // can't drag the scale to nonsense; fit to the real visible curve.
     const real = realDb(ys);
-    const mx2 = new Engine().passbandRef(ys);
+    const mx2 = engine.passbandRef(ys);
     const lo  = real.length ? Math.min(...real) : mx2 - 45;
     const ymax = Math.ceil((mx2 + 3) / 5) * 5;
     // Bring the bottom of the visible curve fully into frame, keeping at least a 45 dB window.
@@ -138,7 +139,6 @@ const CURVE_BUILDERS: Record<ChartId, (c: CurveCtx) => CurveBuild> = {
     // a bare trace, so the caller passes bare=true to suppress them (also removes the
     // in-plot legend, since only one named series remains).
     if (!bare) {
-      const engine = new Engine();
       const f3 = engine.rolloffFreq(sw, 3), f6 = engine.rolloffFreq(sw, 6), f10 = engine.rolloffFreq(sw, 10);
       if (f3  != null) series.push({ xs: sw.fs, ys: sw.fs.map(() => mx2 -  3), color: '#ffb454', name: `F3 = ${f3.toFixed(0)} Hz`,  dash: true });
       if (f6  != null) series.push({ xs: sw.fs, ys: sw.fs.map(() => mx2 -  6), color: '#ff6b6b', name: `F6 = ${f6.toFixed(0)} Hz`,  dash: true });
@@ -335,7 +335,8 @@ const CURVE_BUILDERS: Record<ChartId, (c: CurveCtx) => CurveBuild> = {
   },
 };
 
-export function seriesFor(chartId: ChartId,
+export function seriesFor(engine: Engine,
+                          chartId: ChartId,
                           drv: DriverSolverParams,
                           box: BoxType,
                           P: PlotParams,
@@ -344,7 +345,7 @@ export function seriesFor(chartId: ChartId,
                           bare = false): SeriesBundle {
   const meta = TAB_META[chartId];
   const built = CURVE_BUILDERS[chartId]({
-    meta, drv, box, P, sw, mx, bare,
+    engine, meta, drv, box, P, sw, mx, bare,
     pick: (arr: number[]) => ({ xs: sw.fs, ys: arr }),
   });
   return { series: built.series, ymin: built.ymin, ymax: built.ymax, logy: built.logy ?? false, unit: meta.unit };
@@ -390,6 +391,7 @@ export function errorsForChart(chartId: ChartId, errors: DriverError[]): DriverE
 // the driver last changed). Both collapse to value:null here; the caller distinguishes
 // "blocked" (errors present) from "not ready yet" (errors empty) via the errors array.
 export function buildPlotData(
+  engine: Engine,
   chartId: ChartId,
   fmin: number,
   fmax: number,
@@ -418,7 +420,7 @@ export function buildPlotData(
   let out: PlotData | null = null;
   designs.forEach((d, di) => {
     const isCurrent = d === currentDesign;
-    const pd = seriesFor(chartId, d.driver!, d.box, d.P, d.curves!, d.maxCurves, opts.bare);
+    const pd = seriesFor(engine, chartId, d.driver!, d.box, d.P, d.curves!, d.maxCurves, opts.bare);
     if (!out) out = { series: [], ymin: pd.ymin, ymax: pd.ymax, logy: pd.logy, unit: pd.unit, fmin, fmax };
     const prim: Series = { ...pd.series[0] };
     if (multi) {
