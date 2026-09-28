@@ -20,6 +20,8 @@ import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
 import type {ChartId, DqIssue, DriverSolverParams, SolverField, SweepParams} from '@openisd/design/engine';
 import {Engine} from '@openisd/design/engine';
+
+const engine = new Engine();
 import {parseChartId, seriesFor, TAB_META, TABS} from '../../src/logic/series.js';
 import type {PlotParams} from '../../src/types.js';
 
@@ -65,28 +67,28 @@ const driverParams: DriverSolverParams = {
   Rme_kg_per_s: fakeField<number>(null), Mpow_N_per_sqrtW: fakeField<number>(null), Mcost_kg_per_s: fakeField<number>(null),
   gamma_m_per_s2_A: fakeField<number>(null), Gloss: fakeField<number>(null), Vcd_m: fakeField<number>(null), Depth_m: fakeField<number>(null),
   MagDepth_m: fakeField<number>(null), Magnet_m: fakeField<number>(null), DVol_m3: fakeField<number>(null),
-  c_m_per_s: fakeField(new Engine().solveEnvironment({}).values.c),
-  roo_kg_per_m3: fakeField(new Engine().solveEnvironment({}).values.rho),
+  c_m_per_s: fakeField(engine.solveEnvironment({}).values.c),
+  roo_kg_per_m3: fakeField(engine.solveEnvironment({}).values.rho),
   Re_terminal_ohm: fakeField<number>(null), BL_terminal_Tm: fakeField<number>(null), numVC: fakeField<number>(null),
   wiring: fakeField('parallel'),
 };
-new Engine().solveDriver(driverParams, new Engine().solveEnvironment({}).values);
+engine.solveDriver(driverParams, engine.solveEnvironment({}).values);
 const DRV = driverParams;
 const LE_H = 0.70e-3;
 
 // Fb: the tuning this Vb/Sp/Leff already amounts to (Helmholtz, inverted) — winisd-lossy's own
 // Map comes from Fb directly (circuit.ts, BUG_20260927_vented-box-losses-not-winisd-form.md).
 const SP_VB = 0.030, SP_SP = Math.PI * (0.05 / 2) ** 2, SP_LEFF = 0.30 + 0.732 * 0.05;
-const {c: SP_C} = new Engine().solveEnvironment({}).values;
+const {c: SP_C} = engine.solveEnvironment({}).values;
 const SP: SweepParams = {
   Vb: SP_VB, eg: 2.83, Sp: SP_SP, Leff: SP_LEFF, Fb: SP_C * Math.sqrt(SP_SP / (SP_LEFF * SP_VB)) / (2 * Math.PI),
   fmin: 10, fmax: 2000, N: 200,
   filters: [{ type: 'peaking', fc: 60, Q: 3, gain: 6, enabled: true }],
 };
 const PP = SP as unknown as PlotParams;
-const SW = new Engine().sweep(DRV, LE_H, 'vented', SP).values;
+const SW = engine.sweep(DRV, LE_H, 'vented', SP).values;
 assert.ok(SW, 'reference sweep produced nothing');
-const MX = new Engine().maxCurves(DRV, LE_H, 'vented', SP).values;
+const MX = engine.maxCurves(DRV, LE_H, 'vented', SP).values;
 assert.ok(MX, 'reference max curves produced nothing');
 
 // The three "(PR)" chart ids are `null` for a vented design (SW above) — that is the correct,
@@ -127,10 +129,10 @@ assert.ok(MX_BP4, 'reference bandpass4 max curves produced nothing');
 const PR_IDS = new Set<ChartId>(['PRTFMag', 'PRTFPhase', 'PRExcursion']);
 const BP4_IDS = new Set<ChartId>(['FrontPortGain']);
 const build = (id: ChartId) => PR_IDS.has(id)
-  ? seriesFor(id, DRV, 'box-passive-radiator', PP_PR, SW_PR, MX_PR)
+  ? seriesFor(engine, id, DRV, 'box-passive-radiator', PP_PR, SW_PR, MX_PR)
   : BP4_IDS.has(id)
-  ? seriesFor(id, DRV, 'bandpass4', PP_BP4, SW_BP4, MX_BP4)
-  : seriesFor(id, DRV, 'vented', PP, SW, MX);
+  ? seriesFor(engine, id, DRV, 'bandpass4', PP_BP4, SW_BP4, MX_BP4)
+  : seriesFor(engine, id, DRV, 'vented', PP, SW, MX);
 
 const ALL_IDS = Object.keys(TAB_META) as ChartId[];
 
@@ -185,19 +187,19 @@ describe('chart-type set — every declared member draws', () => {
 
 describe('chart-type set — the one string→member boundary', () => {
   it('accepts every declared id unchanged', () => {
-    for (const id of ALL_IDS) assert.equal(parseChartId(id), id);
+    for (const id of ALL_IDS) assert.equal(parseChartId(engine, id), id);
   });
 
   it('treats an undeclared id as missing, not as a second spelling', () => {
     // A stale id from localStorage, a hand-edited share link, and a typo are all just
     // invalid data — none of them selects a chart nothing can draw.
     for (const bad of ['Excursion(PR)', 'spl', 'banana', '', null, undefined])
-      assert.equal(parseChartId(bad), 'SPL', `parseChartId(${JSON.stringify(bad)})`);
+      assert.equal(parseChartId(engine, bad), 'SPL', `parseChartId(${JSON.stringify(bad)})`);
   });
 
   it('does not admit inherited Object properties as chart ids', () => {
     for (const bad of ['toString', 'constructor', 'hasOwnProperty'])
-      assert.equal(parseChartId(bad), 'SPL', `parseChartId(${JSON.stringify(bad)})`);
+      assert.equal(parseChartId(engine, bad), 'SPL', `parseChartId(${JSON.stringify(bad)})`);
   });
 });
 
@@ -214,7 +216,7 @@ describe('EQ/filter charts — units, datum and axis', () => {
   it('FltMag draws the 0 dB datum in bare/classic mode too', () => {
     // Unlike SPL's F3/F6/F10 annotations, unity is the chart's DEFINING datum, so `bare`
     // must not strip it.
-    const bare = seriesFor('FltMag', DRV, 'vented', PP, SW, MX, true);
+    const bare = seriesFor(engine, 'FltMag', DRV, 'vented', PP, SW, MX, true);
     assert.ok(bare.series.some(s => s.name === '0 dB'), 'bare mode dropped the unity datum');
   });
 
@@ -253,7 +255,7 @@ describe('EQ/filter charts — units, datum and axis', () => {
     const mx = engine.maxCurves(DRV, LE_H, 'vented', noFlt).values;
     assert.ok(mx, 'maxCurves produced nothing');
     for (const id of ['FltMag', 'FltPhase', 'FltGD'] as const) {
-      const b = seriesFor(id, DRV, 'vented', noFltP, sw, mx);
+      const b = seriesFor(engine, id, DRV, 'vented', noFltP, sw, mx);
       assert.ok(b.ymax > b.ymin, `${id}: empty chain collapsed the axis to ${b.ymin}..${b.ymax}`);
       assert.ok(b.series[0].ys.every(v => v === 0), `${id}: an empty chain is not flat at unity`);
       assert.ok(b.ymin < 0 && b.ymax > 0, `${id}: the flat unity line sits on the axis edge`);
@@ -268,18 +270,18 @@ describe('a design with no max curves draws nothing, rather than crashing', () =
   // both builders read straight through it: `realDb(mx.maxspl)` is `undefined.filter(...)`, and
   // `Math.max(...mx.maxpwr)` spreads `undefined`. Both throw.
   it('MaxSPL contributes no series when the max curves are absent', () => {
-    const bundle = seriesFor('MaxSPL', DRV, 'vented', PP, SW, undefined);
+    const bundle = seriesFor(engine, 'MaxSPL', DRV, 'vented', PP, SW, undefined);
     assert.deepEqual(bundle.series, []);
   });
 
   it('MaxPwr contributes no series when the max curves are absent', () => {
-    const bundle = seriesFor('MaxPwr', DRV, 'vented', PP, SW, undefined);
+    const bundle = seriesFor(engine, 'MaxPwr', DRV, 'vented', PP, SW, undefined);
     assert.deepEqual(bundle.series, []);
   });
 
   it('every OTHER chart is unaffected — they never read the max curves', () => {
     for (const id of ALL_IDS.filter(i => i !== 'MaxSPL' && i !== 'MaxPwr')) {
-      const bundle = seriesFor(id, DRV, 'vented', PP, SW, undefined);
+      const bundle = seriesFor(engine, id, DRV, 'vented', PP, SW, undefined);
       assert.ok(bundle.series.length > 0, `${id} drew nothing without max curves`);
     }
   });

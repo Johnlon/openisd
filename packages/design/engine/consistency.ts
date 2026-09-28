@@ -114,7 +114,9 @@ export function missingDependencies<Q extends string>(
 ): CalculationIssue<Q> {
   const blocked = routes.map(r => `${r.formula} (needs ${r.missing.join(', ')})`).join('; or ');
   return {
-    kind: 'missing-dependencies', target, routes,
+    kind: 'missing-dependencies',
+    target,
+    routes,
     text: `${target} cannot be calculated yet - state ${blocked}.`,
   };
 }

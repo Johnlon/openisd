@@ -28,7 +28,7 @@ export function useMobileChartView() {
 
   const chartTab = computed<ChartId>({
     get: () => {
-      const id = parseChartId(presentationState.ui.mobileChartTab);
+      const id = parseChartId(engine, presentationState.ui.mobileChartTab);
       return CHART_ITEMS.value.some(i => i.tab === id) ? id : engine.defaultChart;
     },
     set: (v: ChartId) => { presentationState.ui.mobileChartTab = v; },

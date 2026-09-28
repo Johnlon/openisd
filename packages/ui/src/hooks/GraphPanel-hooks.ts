@@ -1,6 +1,6 @@
 import type {InjectionKey, Ref} from 'vue';
 import {computed, ref, watch} from 'vue';
-import {allIssues, curvesData, driverName, maxData, openProjects, syncedP} from '../logic/appState.js';
+import {allIssues, curvesData, driverName, engine, maxData, openProjects, syncedP} from '../logic/appState.js';
 import {useFocusedProject} from '../logic/focusedProjectContext.js';
 import {buildPlotData, DPAL, TAB_META} from '../logic/series.js';
 import type {Design, PlotData} from '../types.js';
@@ -49,6 +49,7 @@ export function useGraphPanel(props: GraphPanelProps): GraphPanelAPI {
 
   const plot = computed(() =>
     buildPlotData(
+      engine,
       props.chartId,
       syncedP.value.fmin,
       syncedP.value.fmax,
