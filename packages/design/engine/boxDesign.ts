@@ -23,7 +23,6 @@
  */
 
 import type {Air} from './air.js';
-import {END_CORRECTION} from './air.js';
 import type {EbpSuitability, SealedAlignmentOption, SweepParams, SweepResult, VentedAlignment, VentedDesign} from './types.js';
 import {SEALED_ALIGNMENT_OPTIONS} from '../fields/options.js';
 
@@ -179,58 +178,12 @@ function ventedAlphaAndH(alignment: VentedAlignment, Qts: number, Ql: number): A
 }
 
 /**
- * Physical vent length for a target tuning frequency.
- * Helmholtz resonator: f = (c/2π) · √(A / (V₀ · L_eq))
- * where L_eq = L + END_CORRECTION·d  (flanged at the baffle, free into the box)
- * https://en.wikipedia.org/wiki/Helmholtz_resonance#Resonant_frequency
- *
- * The result is the RAW SIGNED root, never clamped. The end correction alone already supplies
- * acoustic mass, so every volume + port area has a ceiling — the tuning at L = 0 — above which
- * the equation's only solution is a negative length. That negative IS the answer: it says the
- * target is unreachable and by how much, it round-trips exactly through `tuningFromLength()`,
- * and callers guard on `> 0`. Flooring it instead would return a buildable-looking vent that
- * tunes somewhere else entirely, which is a wrong number wearing a right one's clothes.
- *
- * `Sp` is ONE port's area and `count` how many identical ports there are: the air-mass term sees
- * the total opening `count·Sp`, while the end correction is a per-port effect and keeps the
- * single port's equivalent diameter `d = 2·√(Sp/π)`.
- *
- * `air` is the PROJECT's own resolved `{ rho, c }` — never a reference-condition default computed
- * inside this module. The caller (ultimately `OpenISDBox`, via its embedded driver's already-
- * resolved air — Driver Air Constants, `docs/plans/PLAN_DRIVER_SOLVE_AND_SWEEP_DIAGNOSTICS.md`)
- * decides what air a design runs in; this function only computes the physics for whatever air it
- * is handed.
- */
-export function ventLength(Vb: number, fb: number, Sp: number, count: number, air: Air, endCorrection: number = END_CORRECTION): number {
-  const Cab = Vb / (air.rho * air.c * air.c);
-  const wb  = 2 * Math.PI * fb;
-  const Map = 1 / (wb * wb * Cab);
-  const d   = 2 * Math.sqrt(Sp / Math.PI);
-  return Map * count * Sp / air.rho - endCorrection * d;
-}
-
-/**
- * Port tuning frequency from physical dimensions.
- * f = (c/2π) · √(count·Sp / (Vb · L_eq))  where L_eq = L + END_CORRECTION·d, d from ONE port
- * https://en.wikipedia.org/wiki/Helmholtz_resonance#Resonant_frequency
- *
- * `air` — see `ventLength`'s doc comment above; the same rule applies here.
- */
-export function tuningFromLength(Vb: number, L: number, Sp: number, count: number, air: Air, endCorrection: number = END_CORRECTION): number {
-  const d    = 2 * Math.sqrt(Sp / Math.PI);
-  const Leff = L + endCorrection * d;
-  const Cab  = Vb / (air.rho * air.c * air.c);
-  const Map  = air.rho * Leff / (count * Sp);
-  return 1 / (2 * Math.PI * Math.sqrt(Map * Cab));
-}
-
-/**
  * Passive radiator system resonance frequency.
  * PR compliance Cap = prCms·prSd² combines with box compliance Cab in series:
  * Cpar = Cab·Cap/(Cab+Cap);  fp = 1/(2π·√(Map·Cpar))
  * https://en.wikipedia.org/wiki/Helmholtz_resonance#Resonant_frequency
  *
- * `air` — see `ventLength`'s doc comment above; the same rule applies here.
+ * `air` — the project's own resolved `{ rho, c }`; see `vent/VentEngine.ts`.
  */
 export function prTuning(P: PRParams, air: Air): number {
   const Cab  = P.Vb / (air.rho * air.c * air.c);
@@ -245,7 +198,7 @@ export function prTuning(P: PRParams, air: Air): number {
  * Inverts prTuning(): Map = 1/((2π·fp)²·Cpar),  Mmp = Map·prSd²
  * https://en.wikipedia.org/wiki/Helmholtz_resonance#Resonant_frequency
  *
- * `air` — see `ventLength`'s doc comment above; the same rule applies here.
+ * `air` — the project's own resolved `{ rho, c }`; see `vent/VentEngine.ts`.
  */
 export function prMassForFp(P: PRParams, fp: number, air: Air): number {
   const Cab  = P.Vb / (air.rho * air.c * air.c);
