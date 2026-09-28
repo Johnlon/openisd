@@ -50,7 +50,7 @@ export interface PrSolverParams {
   systemTuning_hz: SolverField;
 }
 
-/** A `SolverField` handle for every vent quantity. Pass this to `solveVent` — the solve
+/** A `SolverField` handle for every vent quantity. Pass this to `VentEngine.solve` — the solve
  *  derives whichever of `tuning_goal_hz`/`length_m` is not entered and writes it back via
  *  `setCalculated`, never overwriting an entered value. `Vb_m3`/`area_m2`/`count`/`endCorrection_m` are
  *  read-only inputs — nothing here ever writes back to the box volume or the vent geometry. */

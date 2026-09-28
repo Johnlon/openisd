@@ -92,7 +92,7 @@ export function resolveProject(ctx: ProjectResolveContext): ProjectIssues {
     let ventTuningExtra: DqIssue | null = null;
 
     if (boxType === 'vented') {
-        vent = engine.solveVent({
+        vent = engine.vent.solve({
             tuning_goal_hz: box.vented.tuning_goal_hz,
             length_m: box.vented.vent.length_m,
             Vb_m3: inputOf(() => box.vented.volume_m3.value),
@@ -107,7 +107,7 @@ export function resolveProject(ctx: ProjectResolveContext): ProjectIssues {
         const Fb = box.vented.tuning_goal_hz.value;
         ventTuningExtra = Fb === null ? null : engine.ventedTuningIssue(Fb);
     } else if (boxType === 'bandpass4') {
-        vent = engine.solveVent({
+        vent = engine.vent.solve({
             tuning_goal_hz: box.bandpass4.chambers.front.tuning_goal_hz,
             length_m: box.bandpass4.vents.front.length_m,
             Vb_m3: inputOf(() => box.bandpass4.chambers.front.volume_m3.value),

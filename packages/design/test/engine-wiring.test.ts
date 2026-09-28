@@ -197,7 +197,7 @@ describe('D — the vent', () => {
 
     const area = Math.PI * 0.05 ** 2;
     expect(p.box.vented.vent.effectiveLength_m()).toBe(
-      engine.ventEffectiveLength(0.2, area, 1, p.box.vented.vent.endCorrection_m.value),
+      engine.vent.effectiveLength(0.2, area, 1, p.box.vented.vent.endCorrection_m.value),
     );
     expect(p.box.vented.vent.effectiveLength_m()!).toBeGreaterThan(0.2);
   });
@@ -269,7 +269,7 @@ describe('D — the vent', () => {
   //
   // `#boxSpecificParams` reads `tuning_goal_hz.value` directly, with no fallback to
   // `ventAchievedFb`-style readout. That already works FOR THIS EXACT CASE: `solveVent`
-  // (`engine/solvers/solveVent.ts`, the vent handle solve run on every `#resolve()`) already
+  // (`engine/vent/VentEngine.ts`, the vent handle solve run on every `#resolve()`) already
   // writes the length-achieved tuning back onto `tuning_goal_hz` itself via `setCalculated()`
   // whenever the length is entered and the goal is not — verified below by checking
   // `tuning_goal_hz.value` against `ventAchievedFb.value` (the same `tuningFromLength` formula,

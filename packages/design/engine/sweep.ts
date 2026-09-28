@@ -22,7 +22,7 @@ import {hfAsymptotePressure_Pa, solve} from './circuit.js';
 import {missingDependencies} from './consistency.js';
 import type {DriverIssue, DriverPrerequisite, DriverQuantityName} from './solvers/solveDriver.js';
 import type {PrIssue} from './solvers/solvePr.js';
-import type {VentIssue} from './solvers/solveVent.js';
+import type {VentIssue} from './vent/VentEngine.js';
 import {terminalBL_Tm, withAddedMass} from './solvers/driverQuantities.js';
 import {applyFilters} from './filters.js';
 import {driveFromVoltage} from './formulas.js';

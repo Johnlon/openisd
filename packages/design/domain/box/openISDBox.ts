@@ -124,7 +124,7 @@ export class OpenISDBox implements Box {
         };
         const ventedTuningField = pairedField((entry) => commitVentedPair(entry, undefined), ventedTuningEntry);
         const ventedLengthField = pairedField((entry) => commitVentedPair(undefined, entry), ventedLengthEntry);
-        const ventWindow = new VentWindow(ventedVentLens, engine, air, ventedLengthField);
+        const ventWindow = new VentWindow(ventedVentLens, engine.vent, air, ventedLengthField);
         this.vented = {
             // The plausibility mark is computed at READ time, not stored: a mandatory volume field
             // has no `setDq` for a resolve to write through, and the band it is judged against is an
@@ -160,7 +160,7 @@ export class OpenISDBox implements Box {
         };
         const bp4FrontTuningField = pairedField((entry) => commitBp4FrontPair(entry, undefined), bp4FrontTuningEntry);
         const bp4FrontLengthField = pairedField((entry) => commitBp4FrontPair(undefined, entry), bp4FrontLengthEntry);
-        const bp4FrontVent = new VentWindow(bp4FrontVentLens, engine, air, bp4FrontLengthField);
+        const bp4FrontVent = new VentWindow(bp4FrontVentLens, engine.vent, air, bp4FrontLengthField);
         this.bandpass4 = {
             chambers: {
                 // rear is SEALED — no port, so no `vents.rear`, and a read-only calculated
@@ -200,8 +200,8 @@ export class OpenISDBox implements Box {
                 front: new VentedChamberWindow(focus(bp6, 'front'), engine),
             },
             vents: {
-                rear: new VentWindow(focus(bp6, 'rearVent'), engine, air),
-                front: new VentWindow(focus(bp6, 'frontVent'), engine, air),
+                rear: new VentWindow(focus(bp6, 'rearVent'), engine.vent, air),
+                front: new VentWindow(focus(bp6, 'frontVent'), engine.vent, air),
             },
         };
 
@@ -215,9 +215,9 @@ export class OpenISDBox implements Box {
             // connecting port between the chambers — owned by neither, which is why it sits here and
             // not inside a chamber.
             vents: {
-                rear: new VentWindow(focus(abc, 'rearVent'), engine, air),
-                front: new VentWindow(focus(abc, 'frontVent'), engine, air),
-                intra: new VentWindow(focus(abc, 'intraVent'), engine, air),
+                rear: new VentWindow(focus(abc, 'rearVent'), engine.vent, air),
+                front: new VentWindow(focus(abc, 'frontVent'), engine.vent, air),
+                intra: new VentWindow(focus(abc, 'intraVent'), engine.vent, air),
             },
         };
 

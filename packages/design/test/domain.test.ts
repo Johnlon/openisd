@@ -873,7 +873,7 @@ describe('OpenISDBox — every alignment, as a window onto the project record', 
     const area = Math.PI * 0.05 ** 2;
     const engine = new Engine();
     expect(p.box.vented.vent.effectiveLength_m()).toBe(
-      engine.ventEffectiveLength(0.2, area, 1, p.box.vented.vent.endCorrection_m.value),
+      engine.vent.effectiveLength(0.2, area, 1, p.box.vented.vent.endCorrection_m.value),
     );
     // And it is LONGER than the port measures — that is what an end correction does.
     expect(p.box.vented.vent.effectiveLength_m()!).toBeGreaterThan(0.2);
@@ -2588,7 +2588,7 @@ describe('T1 — the vent/PR sweep-level guards (PLAN_DRIVER_SOLVE_AND_SWEEP_DIA
 
     expect(p.box.vented.vent.length_m.dq.some(issue => issue.kind === 'target-unreachable')).toBe(false);
 
-    // Same physics as boxDesign.ts#ventLength's doc comment: past some tuning, for this volume
+    // Same physics as VentEngine.lengthForTuning's doc comment: past some tuning, for this volume
     // and port area, the only solution for length is negative — the target is unreachable.
     p.box.vented.tuning_goal_hz.set(200);
 
@@ -2737,7 +2737,7 @@ describe('S2-7d2 — vent + PR join the cascade', () => {
     expect(p.box.passiveRadiator.addedMass_kg.dq).toEqual([]);
   });
 
-  it('(e) exactly one engine.solveVent call per field set(), and zero for a bare project.box read', () => {
+  it('(e) exactly one engine.vent.solve call per field set(), and zero for a bare project.box read', () => {
     const engine = new Engine();
     const p = OpenISDProject.builder(driverFrom({
       brand: 'Dayton', model: 'RS225', section: 'woofer',
@@ -2746,13 +2746,13 @@ describe('S2-7d2 — vent + PR join the cascade', () => {
     p.box.vented.vent.shape.set('round');
     p.box.vented.vent.diameter_m.set(0.1);
 
-    const readSpy = vi.spyOn(engine, 'solveVent');
+    const readSpy = vi.spyOn(engine.vent, 'solve');
     void p.box;
     void p.box.vented.vent.length_m;
     expect(readSpy).toHaveBeenCalledTimes(0);
     readSpy.mockRestore();
 
-    const writeSpy = vi.spyOn(engine, 'solveVent');
+    const writeSpy = vi.spyOn(engine.vent, 'solve');
     p.box.vented.vent.endCorrection_m.set(0.6);
     expect(writeSpy).toHaveBeenCalledTimes(1);
   });
