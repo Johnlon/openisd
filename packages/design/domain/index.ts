@@ -5,7 +5,7 @@
 // (`packages/design/AGENTS.md` "INTERNAL JSON RECORD TYPES — NEVER RE-EXPORTED FROM
 // domain/index.ts").
 
-export type { Readable, Entered, Calculated, Writable, Clearable, Calculatable, Unsolvable, SimpleField } from './cell.js';
+export type { Readable, Entered, Calculated, Writable, Clearable, Calculatable, Unsolvable, SimpleField, ProvenanceLetter } from './cell.js';
 // The two ambient system facts a fresh project needs (a new identity, the current time) —
 // injected the same way `Engine` already is, so a test substitutes ONE fake instead of
 // monkey-patching `crypto.randomUUID`/`Date`. `realAppContext` is the production default every
@@ -34,6 +34,7 @@ export type { VentedChamber } from './box/ventedChamber.js';
 export type { FrequencyGrid } from './box/frequencyGrid.js';
 // We export these strictly as types to ensure encapsulation. Consumers can annotate variables with these types, but must construct them via factory functions instead of calling the class constructors directly.
 export { OpenISDDriver, OpenISDDriverStandalone } from './driver/openISDDriver.js';
+export type { DqReason } from './driver/openISDDriver.js';
 
 // Also NOT exported (consumers cannot construct these directly):
 //   `DualWriteFieldImpl` — use the capability atoms (`Readable & Entered & …`) / `SimpleField`.

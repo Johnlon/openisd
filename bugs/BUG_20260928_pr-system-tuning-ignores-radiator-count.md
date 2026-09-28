@@ -1,6 +1,6 @@
 # BUG_20260928_pr-system-tuning-ignores-radiator-count
 
-**Status:** OPEN
+**Status:** RESOLVED
 
 ## Symptom
 A passive radiator box's displayed system tuning (`passiveRadiator.systemTuning_hz`) is the same
@@ -26,4 +26,6 @@ Tuning relation (engine/pr/PrEngine.ts `tuning`, `massForFp`, and the handle sol
 Map/Npr and Npr·Cap. Target: 39.45 Hz for the case above.
 
 ## Verification
+Fixed in ec8d2016 (PrEngine `tuning`/`massForFp`/`solve` take `prNum`).
+`packages/design/test/engine/pr-tuning-count-winisd.test.ts`: 39.4542 Hz against WinISD's 39.45; the mass inverse to 1e-15.
 Fixture from a WinISD capture of the displayed tuning at Npr = 2; domain test at ≤1e-12.

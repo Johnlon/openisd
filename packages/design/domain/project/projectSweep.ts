@@ -8,7 +8,6 @@ import { CalculatedFieldImpl, absentCell, calculatedCell } from '../cell.js';
 import type { Calculated, Readable, SimpleField } from '../cell.js';
 import type { Box } from '../box/box.js';
 import type { FrequencyGrid } from '../box/frequencyGrid.js';
-import { driverSolverParamsOf } from '../driver/driverSolverParamsOf.js';
 import { engineCircuitModel } from '../driver/engineCircuitModel.js';
 import type { OpenISDDriverEmbedded } from '../driver/openISDDriverEmbedded.js';
 
@@ -284,7 +283,7 @@ export function sweepOf(source: ProjectSweepSource, P: FrequencyGrid): SweepSolv
     const boxIssues = boxSweepIssuesOf(source, box);
     if (boxIssues.length) return {values: null, issues: boxIssues};
     const params = sweepParamsOf(source, P, source.driveVoltage_V, box);
-    return source.engine.simulation.sweep(driverSolverParamsOf(source.driver.specs, source.engine, source.winisdDriverModel.value, source.air), source.driver.specs.Le_H.value ?? undefined, box, params);
+    return source.engine.simulation.sweep(source.driver.specs.solverParams(source.winisdDriverModel.value, source.air), source.driver.specs.Le_H.value ?? undefined, box, params);
 }
 
 /** The excursion- and power-limited maximum SPL curves. Reports on the same terms as `sweepOf`,
@@ -295,7 +294,7 @@ export function maxCurvesOf(source: ProjectSweepSource, P: FrequencyGrid): MaxCu
     if (!box) return {values: null, issues: [], driverPrerequisites: []};
     const boxIssues = boxSweepIssuesOf(source, box);
     if (boxIssues.length) return {values: null, issues: boxIssues, driverPrerequisites: []};
-    return source.engine.simulation.maxCurves(driverSolverParamsOf(source.driver.specs, source.engine, source.winisdDriverModel.value, source.air), source.driver.specs.Le_H.value ?? undefined, box, sweepParamsOf(source, P, 2.83, box));
+    return source.engine.simulation.maxCurves(source.driver.specs.solverParams(source.winisdDriverModel.value, source.air), source.driver.specs.Le_H.value ?? undefined, box, sweepParamsOf(source, P, 2.83, box));
 }
 
 /** What is wrong with this project's enclosure parameters — checked BEFORE a sweep, so a caller

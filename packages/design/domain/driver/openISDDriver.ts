@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import {type Engine} from '../../engine/index.js';
-import type { Air, AirEnvironment, DriverError, DriverIssue, DriverSolverParams } from '../../engine/index.js';
+import type { Air, AirEnvironment, DriverError, DriverIssue } from '../../engine/index.js';
 import { realAppContext } from '../appContext.js';
 import type { AppContext } from '../appContext.js';
 import { ReadableFieldImpl, SetOnlyFieldImpl, absentCell, enteredCell, resolvingField } from '../cell.js';
@@ -11,7 +11,6 @@ import { asDriverDevice } from '../openisdSchema.js';
 import type { DriverDeviceJson } from '../openisdSchema.js';
 import { OpenISDDeviceJson } from '../openIsdDeviceJsonIo.js';
 import { blankDeviceRecord } from './blankDeviceRecord.js';
-import { driverSolverParamsOf } from './driverSolverParamsOf.js';
 import { OpenISDDevice } from './openISDDevice.js';
 import type { NumericDriverSpecFieldName } from './driverSpecFieldName.js';
 import { OpenIsdDriverSpec } from './openIsdDriverSpec.js';
@@ -128,14 +127,6 @@ export abstract class OpenISDDriver extends OpenISDDevice {
 
     // ── DERIVED FIGURES — every one from the injected engine, none computed here ──────────────
 
-    /** `ts`, shaped as `DriverSolverParams` — for a caller (the UI's chart layer, `Design.driver`)
-     *  that needs the full 44-handle surface `SimulationEngine.sweep()`/`maxCurves()` take, not just the
-     *  live spec window. See `driverSolverParamsOf`'s own doc for which four members are adapted
-     *  rather than reused. */
-    get solverParams(): DriverSolverParams {
-        return driverSolverParamsOf(this.specs, this.engine);
-    }
-
     /** `field`'s handle, for a caller holding a NAME rather than a member — the editor's
      *  data-driven field table, which reads, writes and clears through the one it gets back.
      *  Total: every numeric spec name has a handle, so there is no null to check for. */
@@ -155,6 +146,45 @@ export abstract class OpenISDDriver extends OpenISDDevice {
      *  inconsistent no matter how wrong the user's OWN numbers are). */
     issues(): readonly DriverIssue[] {
         return this.specs.issues();
+    }
+
+    /** What actually blanks a chart: a quantity the solver cannot derive, or a mandatory field
+     *  with no value. Never merged with `inconsistentInputReasons()`: a missing Brand does not
+     *  blank a chart, and values that merely disagree blank nothing at all — every value an
+     *  `inconsistent-inputs` issue names is present and plotted as stated
+     *  (BUG_20260924_inconsistent-inputs-claims-charts-blank). */
+    chartBlockingReasons(): readonly DqReason[] {
+        const reasons: DqReason[] = this.issues().flatMap(issue => {
+            // No default arm: a new `CalculationIssue` variant fails to compile here rather than
+            // silently joining this list.
+            switch (issue.kind) {
+                case 'missing-dependencies':
+                    return [{subject: issue.target, text: `cannot be calculated yet — needs ${issue.routes.map(r => r.missing.join(', ')).join(' or ')}`}];
+                case 'inconsistent-inputs':
+                case 'out-of-range':
+                    return [];
+            }
+        });
+        const mandatoryFields: readonly NumericDriverSpecFieldName[] = ['Fs_hz', 'Vas_m3', 'Re_ohm', 'Sd_m2'];
+        for (const field of mandatoryFields) {
+            if (this.specs[field].value === null) reasons.push({subject: field, text: 'is not set'});
+        }
+        return reasons;
+    }
+
+    /** Stated values that contradict each other, each stated against what the other stated
+     *  values imply. Every value involved exists and every chart plots from the values AS
+     *  STATED — a data-quality conflict to resolve, not a blocker. */
+    inconsistentInputReasons(): readonly DqReason[] {
+        return this.issues().flatMap(issue => {
+            switch (issue.kind) {
+                case 'inconsistent-inputs':
+                    return [{subject: issue.target, text: `${issue.formula} — stated as ${issue.actual}, the others imply ${issue.expected}`}];
+                case 'missing-dependencies':
+                case 'out-of-range':
+                    return [];
+            }
+        });
     }
 
     /** An INDEPENDENT driver carrying this one's current values — and, with `update()`, the whole
@@ -293,6 +323,14 @@ export abstract class OpenISDDriver extends OpenISDDevice {
  *
  *  `export`ed for `openisdTransforms.ts` (`conformingRecordToOpenIsdDriver` calls `wrap()`);
  *  `domain/index.ts` does not re-export it, so no consumer outside `packages/design` sees it. */
+/** One data-quality reason: `subject` is the field name to highlight, `text` the rest of the
+ *  sentence. Kept apart so a renderer can show the subject distinctly without scraping it back
+ *  out of an assembled sentence. */
+export interface DqReason {
+    readonly subject: string;
+    readonly text: string;
+}
+
 export class OpenISDDriverStandalone extends OpenISDDriver {
     /** ON: every write derives, as `resolve()` always did before this flag existed. OFF: a
      *  write still lands (`entered`/`clear` on the record), but `resolve()` stops deriving —

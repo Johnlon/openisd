@@ -10,8 +10,7 @@
  */
 import type {OpenISDProject} from '@openisd/design';
 import {suspendVentSolve} from './useVentGroup.js';
-import type {ProvenanceLetter} from './fieldProvenance.js';
-import {provenanceOf} from './fieldProvenance.js';
+import type {ProvenanceLetter} from '@openisd/design';
 
 /** The two members tied by the tuning relation, named as the field-table keys them. */
 export const PR_GROUP = ['tuning_goal_hz', 'addedMass_kg'] as const;
@@ -35,5 +34,5 @@ export function clearPrField(p: OpenISDProject, field: PrField): void {
 
 /** The badge letter for the domain's own provenance. */
 export function prFieldState(p: OpenISDProject, field: PrField): ProvenanceLetter {
-  return provenanceOf(p.box.passiveRadiator[field]);
+  return p.box.passiveRadiator[field].provenance;
 }

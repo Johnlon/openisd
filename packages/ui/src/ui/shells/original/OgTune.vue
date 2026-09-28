@@ -5,15 +5,13 @@
  * you scrub. Cancel/Reset discard everything typed since the last save (`OpenISDProject.cancel()`).
  */
 import {onMounted, onUnmounted, reactive, ref} from 'vue';
-import type {SpecField} from '../../../logic/appState.js';
 import {presentationState} from '../../../logic/presentationState.js';
 import {useFocusedProject} from '../../../logic/focusedProjectContext.js';
 import {fromDisplay, statedPrecision, toDisplay} from '../../../logic/fields/units.js';
 import {NumberField, type UnitGroup} from '@openisd/design/fields';
-import {cellClassFor} from '../../../logic/useDriverCells.js';
+import {cellClassOf} from '../../../logic/useDriverCells.js';
 import NumInput from '../../components/NumInput.vue';
 import UnitToggle from '../../components/UnitToggle.vue';
-import type {Calculated, Entered, Readable} from '@openisd/design';
 import {inputValue, listeningElement} from '../../../logic/domEvents.js';
 import {useEscToClose} from '../../../logic/useEscToClose.js';
 import {useOgTune} from '../../../hooks/OgTune-hooks.js';
@@ -101,16 +99,12 @@ function scaledLimits(f: TuneField): { min?: number; max?: number } {
 // Any two of the Q trio solve the third, so all three are flagged together while fewer than
 // two are usable. The rule itself lives on the field's own `mandatoryAndUnsatisfied` — the
 // driver editor reads the same one, against its own draft model.
-function isNumKey(f: string): f is NumKey {
-  return ['Fs_hz', 'Qts', 'Qes', 'Qms', 'Vas_m3', 'Sd_m2', 'Re_ohm', 'Le_H', 'Xmax_m', 'Pe_W', 'BL_Tm', 'Mms_kg'].includes(f);
-}
 /** Provenance mark + the required-but-missing alert, in the editor's own class vocabulary. */
 function fieldClasses(f: TuneField): Record<string, boolean> {
   void project.value;
-  const cellOf = (s: SpecField): Readable<number | null> & Entered & Calculated => tune.specField(isNumKey(s) ? s : 'Fs_hz');
   const mandatory = tune.specField(f.key).mandatoryAndUnsatisfied;
   return {
-    [cellClassFor(cellOf, f.key)]: true,
+    [cellClassOf(tune.specField(f.key))]: true,
     'de-input-mandatory': mandatory,
     'de-input-empty': mandatory && fieldVal(f) === '',
   };
