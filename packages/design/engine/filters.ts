@@ -7,20 +7,18 @@
  * and the typed-edit dispatch (`updateXFilter`), not the maths itself.
  */
 import {cMul, cx} from './complex.js';
-import type {Complex, Filter, FilterSpec, FilterType, WprFilter} from './types.js';
+import type {
+  AllpassFilter, AllpassPatch, Complex, Filter, FilterSpec, FilterType, LinkwitzFilter, LinkwitzPatch,
+  ParametricEqFilter, ParametricEqPatch, PassFilter, PassPatch, PeakHighpassFilter, PeakHighpassPatch,
+  RaisedCosineFilter, RaisedCosinePatch, ShelfFilter, ShelfPatch, StaticGainFilter, StaticGainPatch,
+  WprFilter,
+} from './types.js';
 import {
-  AllpassFilter, LinkwitzTransformFilter, ParametricEqFilter, PassFilter, PeakHighpassFilter,
-  RaisedCosineFilter, ShelfFilter, StaticGainFilter, filterModel,
+  AllpassFilterModel, LinkwitzFilterModel, ParametricEqFilterModel, PassFilterModel,
+  PeakHighpassFilterModel, RaisedCosineFilterModel, ShelfFilterModel, StaticGainFilterModel,
+  filterModel,
 } from './filters/index.js';
 
-type PassSpec = Extract<Filter, {type: 'lowpass' | 'highpass'}>;
-type AllpassSpec = Extract<Filter, {type: 'allpass'}>;
-type LinkwitzSpec = Extract<Filter, {type: 'linkwitz'}>;
-type PeakingSpec = Extract<Filter, {type: 'peaking'}>;
-type PeakHighpassSpec = Extract<Filter, {type: 'peakHighpass'}>;
-type StaticGainSpec = Extract<Filter, {type: 'staticGain'}>;
-type RaisedCosineSpec = Extract<Filter, {type: 'raisedCosine'}>;
-type ShelfSpec = Extract<Filter, {type: 'lowshelf' | 'highshelf'}>;
 
 /**
  * A fresh filter of `type` with its starting values — the numbers a quick-add button puts on
@@ -124,18 +122,18 @@ export function filterFromWpr(typeNum: number, fields: readonly string[]): {filt
     case 0:
     case 1: {
       const kind = typeNum === 0 ? 'lowpass' : 'highpass';
-      const result = PassFilter.fromWpr(kind, fields);
+      const result = PassFilterModel.fromWpr(kind, fields);
       if (result === 'unsupportedSubtype') {
         return {filter: null, warning: `unsupported ${kind} subtype — skipped`};
       }
       return parsed(kind, result);
     }
-    case 2: return parsed('allpass', AllpassFilter.fromWpr(fields));
-    case 3: return parsed('linkwitz', LinkwitzTransformFilter.fromWpr(fields));
-    case 4: return parsed('peaking', ParametricEqFilter.fromWpr(fields));
-    case 5: return parsed('peakHighpass', PeakHighpassFilter.fromWpr(fields));
-    case 6: return parsed('staticGain', StaticGainFilter.fromWpr(fields));
-    case 7: return parsed('raisedCosine', RaisedCosineFilter.fromWpr(fields));
+    case 2: return parsed('allpass', AllpassFilterModel.fromWpr(fields));
+    case 3: return parsed('linkwitz', LinkwitzFilterModel.fromWpr(fields));
+    case 4: return parsed('peaking', ParametricEqFilterModel.fromWpr(fields));
+    case 5: return parsed('peakHighpass', PeakHighpassFilterModel.fromWpr(fields));
+    case 6: return parsed('staticGain', StaticGainFilterModel.fromWpr(fields));
+    case 7: return parsed('raisedCosine', RaisedCosineFilterModel.fromWpr(fields));
     default:
       return {filter: null, warning: `unknown filter type ${typeNum} — skipped`};
   }
@@ -148,41 +146,41 @@ export function filterFromWpr(typeNum: number, fields: readonly string[]): {filt
 // method matching its own narrowed `Filter` variant (BUG_20260927_filter-editors-hold-domain-logic.md).
 
 /** Typed edit for a Lowpass/Highpass filter. */
-export function updatePassFilter(f: PassSpec, patch: Partial<Pick<PassSpec, 'family' | 'order' | 'fc' | 'Q'>>): PassSpec {
-  return PassFilter.with(f, patch);
+export function updatePassFilter(f: PassFilter, patch: PassPatch): PassFilter {
+  return PassFilterModel.with(f, patch);
 }
 
 /** Typed edit for an Allpass filter. */
-export function updateAllpassFilter(f: AllpassSpec, patch: Partial<Pick<AllpassSpec, 'order' | 't' | 'Q'>>): AllpassSpec {
-  return AllpassFilter.with(f, patch);
+export function updateAllpassFilter(f: AllpassFilter, patch: AllpassPatch): AllpassFilter {
+  return AllpassFilterModel.with(f, patch);
 }
 
 /** Typed edit for a Linkwitz transform. */
-export function updateLinkwitzFilter(f: LinkwitzSpec, patch: Partial<Pick<LinkwitzSpec, 'f0' | 'Q0' | 'fp' | 'Qp'>>): LinkwitzSpec {
-  return LinkwitzTransformFilter.with(f, patch);
+export function updateLinkwitzFilter(f: LinkwitzFilter, patch: LinkwitzPatch): LinkwitzFilter {
+  return LinkwitzFilterModel.with(f, patch);
 }
 
 /** Typed edit for a Parametric EQ (peaking) filter. */
-export function updateParametricEqFilter(f: PeakingSpec, patch: Partial<Pick<PeakingSpec, 'fc' | 'Q' | 'gain'>>): PeakingSpec {
-  return ParametricEqFilter.with(f, patch);
+export function updateParametricEqFilter(f: ParametricEqFilter, patch: ParametricEqPatch): ParametricEqFilter {
+  return ParametricEqFilterModel.with(f, patch);
 }
 
 /** Typed edit for a Peaking 2nd-order highpass filter. */
-export function updatePeakHighpassFilter(f: PeakHighpassSpec, patch: Partial<Pick<PeakHighpassSpec, 'fpk' | 'gainPk'>>): PeakHighpassSpec {
-  return PeakHighpassFilter.with(f, patch);
+export function updatePeakHighpassFilter(f: PeakHighpassFilter, patch: PeakHighpassPatch): PeakHighpassFilter {
+  return PeakHighpassFilterModel.with(f, patch);
 }
 
 /** Typed edit for a Static gain filter. */
-export function updateStaticGainFilter(f: StaticGainSpec, patch: Partial<Pick<StaticGainSpec, 'gain'>>): StaticGainSpec {
-  return StaticGainFilter.with(f, patch);
+export function updateStaticGainFilter(f: StaticGainFilter, patch: StaticGainPatch): StaticGainFilter {
+  return StaticGainFilterModel.with(f, patch);
 }
 
 /** Typed edit for a DLP Raised Cosine filter. */
-export function updateRaisedCosineFilter(f: RaisedCosineSpec, patch: Partial<Pick<RaisedCosineSpec, 'fc' | 'bwOct' | 'gain'>>): RaisedCosineSpec {
-  return RaisedCosineFilter.with(f, patch);
+export function updateRaisedCosineFilter(f: RaisedCosineFilter, patch: RaisedCosinePatch): RaisedCosineFilter {
+  return RaisedCosineFilterModel.with(f, patch);
 }
 
 /** Typed edit for a Low/High shelf filter. */
-export function updateShelfFilter(f: ShelfSpec, patch: Partial<Pick<ShelfSpec, 'fc' | 'Q' | 'gain'>>): ShelfSpec {
-  return ShelfFilter.with(f, patch);
+export function updateShelfFilter(f: ShelfFilter, patch: ShelfPatch): ShelfFilter {
+  return ShelfFilterModel.with(f, patch);
 }

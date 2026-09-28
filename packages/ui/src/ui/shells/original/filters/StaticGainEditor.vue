@@ -2,10 +2,9 @@
 /** Display only: every edit is decided by `api.updateStaticGainFilter` (`Engine`), not here. */
 import {NumberField} from '@openisd/design/fields';
 import {numFrom} from './numericInput.js';
-import type {Filter} from '@openisd/design/engine';
+import type {StaticGainFilter} from '@openisd/design/engine';
 import type {OgFiltersAPI} from '../../../../hooks/OgFilters-hooks.js';
 
-type StaticGainFilter = Extract<Filter, { type: 'staticGain' }>;
 const {f, api} = defineProps<{ f: StaticGainFilter; api: OgFiltersAPI }>();
 const emit = defineEmits<{ replace: [next: StaticGainFilter] }>();
 </script>

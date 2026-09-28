@@ -2,10 +2,9 @@
 /** Display only: every edit is decided by `api.updatePeakHighpassFilter` (`Engine`), not here. */
 import {NumberField} from '@openisd/design/fields';
 import {numFrom} from './numericInput.js';
-import type {Filter} from '@openisd/design/engine';
+import type {PeakHighpassFilter} from '@openisd/design/engine';
 import type {OgFiltersAPI} from '../../../../hooks/OgFilters-hooks.js';
 
-type PeakHighpassFilter = Extract<Filter, { type: 'peakHighpass' }>;
 const {f, api} = defineProps<{ f: PeakHighpassFilter; api: OgFiltersAPI }>();
 const emit = defineEmits<{ replace: [next: PeakHighpassFilter] }>();
 </script>

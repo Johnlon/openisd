@@ -3,10 +3,9 @@
  *  Display only: every edit is decided by `api.updateShelfFilter` (`Engine`), not here. */
 import {NumberField} from '@openisd/design/fields';
 import {numFrom} from './numericInput.js';
-import type {Filter} from '@openisd/design/engine';
+import type {ShelfFilter} from '@openisd/design/engine';
 import type {OgFiltersAPI} from '../../../../hooks/OgFilters-hooks.js';
 
-type ShelfFilter = Extract<Filter, { type: 'lowshelf' | 'highshelf' }>;
 const {f, api} = defineProps<{ f: ShelfFilter; api: OgFiltersAPI }>();
 const emit = defineEmits<{ replace: [next: ShelfFilter] }>();
 </script>

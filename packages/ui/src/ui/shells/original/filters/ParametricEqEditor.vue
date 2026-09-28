@@ -2,12 +2,11 @@
 /** Display only: every edit is decided by `api.updateParametricEqFilter` (`Engine`), not here. */
 import {NumberField} from '@openisd/design/fields';
 import {numFrom} from './numericInput.js';
-import type {Filter} from '@openisd/design/engine';
+import type {ParametricEqFilter} from '@openisd/design/engine';
 import type {OgFiltersAPI} from '../../../../hooks/OgFilters-hooks.js';
 
-type PeakingFilter = Extract<Filter, { type: 'peaking' }>;
-const {f, api} = defineProps<{ f: PeakingFilter; api: OgFiltersAPI }>();
-const emit = defineEmits<{ replace: [next: PeakingFilter] }>();
+const {f, api} = defineProps<{ f: ParametricEqFilter; api: OgFiltersAPI }>();
+const emit = defineEmits<{ replace: [next: ParametricEqFilter] }>();
 </script>
 
 <template>

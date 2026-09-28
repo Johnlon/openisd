@@ -2,10 +2,9 @@
 /** Display only: every edit is decided by `api.updateRaisedCosineFilter` (`Engine`), not here. */
 import {NumberField} from '@openisd/design/fields';
 import {numFrom} from './numericInput.js';
-import type {Filter} from '@openisd/design/engine';
+import type {RaisedCosineFilter} from '@openisd/design/engine';
 import type {OgFiltersAPI} from '../../../../hooks/OgFilters-hooks.js';
 
-type RaisedCosineFilter = Extract<Filter, { type: 'raisedCosine' }>;
 const {f, api} = defineProps<{ f: RaisedCosineFilter; api: OgFiltersAPI }>();
 const emit = defineEmits<{ replace: [next: RaisedCosineFilter] }>();
 </script>

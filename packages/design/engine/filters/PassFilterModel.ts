@@ -1,4 +1,4 @@
-import type {Complex, Filter, FilterSpec, PassFamily, WprFilter} from '../types.js';
+import type {Complex, FilterSpec, PassFamily, PassFilter, PassPatch, WprFilter} from '../types.js';
 import type {FilterModel} from './FilterModel.js';
 import type {PassFamilyModel} from './passFamilies/PassFamilyModel.js';
 import {ButterworthFamily} from './passFamilies/ButterworthFamily.js';
@@ -7,7 +7,6 @@ import {BesselFamily} from './passFamilies/BesselFamily.js';
 import {SosFamily} from './passFamilies/SosFamily.js';
 import {FILTER_FC_LIMITS, FILTER_ORDER_LIMITS, FILTER_Q_LIMITS, clamp, roundClamp} from './limits.js';
 
-type Spec = Extract<Filter, {type: 'lowpass' | 'highpass'}>;
 
 /** The one place a `PassFamily` becomes a strategy — exhaustive, no default arm: `PassFamily`
  *  is a closed 4-member union, so an unhandled new subtype fails to compile here. */
@@ -48,10 +47,10 @@ function passFamilyOf(subtype: number): PassFamily | null {
  * WinISD's Lowpass/Highpass Filter Editor types — one class for both, since they differ only in
  * which side of their `PassFamilyModel` strategy they read, at normalised s = j·(f/fc).
  */
-export class PassFilter implements FilterModel {
+export class PassFilterModel implements FilterModel {
   private readonly family: PassFamilyModel;
 
-  constructor(private readonly spec: Spec) {
+  constructor(private readonly spec: PassFilter) {
     this.family = passFamilyModel(spec.family, spec.order, spec.Q);
   }
 
@@ -101,7 +100,7 @@ export class PassFilter implements FilterModel {
   /** Typed edit — `order` rounded to the nearest integer then clamped to 1..10, `fc`/`Q` clamped
    *  to their own entry ranges; `family` and any field left out of `patch` pass through
    *  unchanged. Same variant in, same variant out. */
-  static with(f: Spec, patch: Partial<Pick<Spec, 'family' | 'order' | 'fc' | 'Q'>>): Spec {
+  static with(f: PassFilter, patch: PassPatch): PassFilter {
     const next = {...f, ...patch};
     return {
       ...next,

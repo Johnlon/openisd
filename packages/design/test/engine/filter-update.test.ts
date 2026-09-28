@@ -11,12 +11,12 @@
  */
 import {describe, expect, it} from 'vitest';
 import {Engine} from '../../engine/index.js';
-import type {Filter} from '../../engine/index.js';
+import type {AllpassFilter, LinkwitzFilter, ParametricEqFilter, PassFilter, PeakHighpassFilter, RaisedCosineFilter, ShelfFilter, StaticGainFilter} from '../../engine/index.js';
 
 const engine = new Engine();
 
 describe('Engine.updatePassFilter', () => {
-  const base: Extract<Filter, {type: 'lowpass'}> =
+  const base: PassFilter =
     {type: 'lowpass', enabled: true, family: 'butterworth', order: 2, fc: 50, Q: 0.707};
 
   it('rounds a fractional order to the nearest integer: 2.6 -> 3', () => {
@@ -41,14 +41,14 @@ describe('Engine.updatePassFilter', () => {
   });
 
   it('preserves the highpass variant too', () => {
-    const hp: Extract<Filter, {type: 'highpass'}> =
+    const hp: PassFilter =
       {type: 'highpass', enabled: true, family: 'bessel', order: 4, fc: 20, Q: 0.5};
     expect(engine.updatePassFilter(hp, {order: 2.6}).type).toBe('highpass');
   });
 });
 
 describe('Engine.updateAllpassFilter', () => {
-  const base: Extract<Filter, {type: 'allpass'}> = {type: 'allpass', enabled: true, order: 1, t: 0.001, Q: 0.707};
+  const base: AllpassFilter = {type: 'allpass', enabled: true, order: 1, t: 0.001, Q: 0.707};
 
   it('rounds a fractional order to the nearest integer: 2.6 -> 3', () => {
     expect(engine.updateAllpassFilter(base, {order: 2.6}).order).toBe(3);
@@ -70,7 +70,7 @@ describe('Engine.updateAllpassFilter', () => {
 });
 
 describe('Engine.updateLinkwitzFilter', () => {
-  const base: Extract<Filter, {type: 'linkwitz'}> =
+  const base: LinkwitzFilter =
     {type: 'linkwitz', enabled: true, f0: 50, Q0: 0.7, fp: 20, Qp: 0.5};
 
   it('clamps an out-of-range f0 to the entry ceiling', () => {
@@ -90,7 +90,7 @@ describe('Engine.updateLinkwitzFilter', () => {
 });
 
 describe('Engine.updateParametricEqFilter', () => {
-  const base: Extract<Filter, {type: 'peaking'}> = {type: 'peaking', enabled: true, fc: 30, Q: 2, gain: 6};
+  const base: ParametricEqFilter = {type: 'peaking', enabled: true, fc: 30, Q: 2, gain: 6};
 
   it('clamps an out-of-range gain to the entry ceiling', () => {
     expect(engine.updateParametricEqFilter(base, {gain: 999}).gain).toBe(60);
@@ -105,7 +105,7 @@ describe('Engine.updateParametricEqFilter', () => {
 });
 
 describe('Engine.updatePeakHighpassFilter', () => {
-  const base: Extract<Filter, {type: 'peakHighpass'}> = {type: 'peakHighpass', enabled: true, fpk: 20, gainPk: 6};
+  const base: PeakHighpassFilter = {type: 'peakHighpass', enabled: true, fpk: 20, gainPk: 6};
 
   it('clamps an out-of-range fpk to the entry floor', () => {
     expect(engine.updatePeakHighpassFilter(base, {fpk: -5}).fpk).toBe(1);
@@ -119,7 +119,7 @@ describe('Engine.updatePeakHighpassFilter', () => {
 });
 
 describe('Engine.updateStaticGainFilter', () => {
-  const base: Extract<Filter, {type: 'staticGain'}> = {type: 'staticGain', enabled: true, gain: 0};
+  const base: StaticGainFilter = {type: 'staticGain', enabled: true, gain: 0};
 
   it('clamps an out-of-range gain to the entry floor', () => {
     expect(engine.updateStaticGainFilter(base, {gain: -999}).gain).toBe(-60);
@@ -131,7 +131,7 @@ describe('Engine.updateStaticGainFilter', () => {
 });
 
 describe('Engine.updateRaisedCosineFilter', () => {
-  const base: Extract<Filter, {type: 'raisedCosine'}> =
+  const base: RaisedCosineFilter =
     {type: 'raisedCosine', enabled: true, fc: 100, bwOct: 0.333, gain: 6};
 
   it('clamps an out-of-range bwOct to the entry ceiling', () => {
@@ -147,7 +147,7 @@ describe('Engine.updateRaisedCosineFilter', () => {
 });
 
 describe('Engine.updateShelfFilter', () => {
-  const base: Extract<Filter, {type: 'lowshelf'}> = {type: 'lowshelf', enabled: true, fc: 150, Q: Math.SQRT1_2, gain: 6};
+  const base: ShelfFilter = {type: 'lowshelf', enabled: true, fc: 150, Q: Math.SQRT1_2, gain: 6};
 
   it('clamps an out-of-range fc to the entry ceiling', () => {
     expect(engine.updateShelfFilter(base, {fc: 999999}).fc).toBe(20000);
@@ -162,7 +162,7 @@ describe('Engine.updateShelfFilter', () => {
     expect(next.type).toBe('lowshelf');
     expect(next.Q).toBe(Math.SQRT1_2);
 
-    const hs: Extract<Filter, {type: 'highshelf'}> = {type: 'highshelf', enabled: true, fc: 2000, Q: Math.SQRT1_2, gain: 6};
+    const hs: ShelfFilter = {type: 'highshelf', enabled: true, fc: 2000, Q: Math.SQRT1_2, gain: 6};
     expect(engine.updateShelfFilter(hs, {fc: 2500}).type).toBe('highshelf');
   });
 });

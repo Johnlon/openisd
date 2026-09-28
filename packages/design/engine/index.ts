@@ -32,6 +32,11 @@ export type { SweepOutputName, CalculationPrerequisite } from './consistency.js'
 export type {
   BoxType, SimulatableBoxType, DriverError, EbpSuitability, Filter, FilterSpec, FilterType,
   PassFamily, MaxCurvesResult,
+  // Each filter class's chain filter and editor patch — named once, in `Engine.updateXFilter`'s
+  // signature and its editor's props alike.
+  PassFilter, PassPatch, AllpassFilter, AllpassPatch, LinkwitzFilter, LinkwitzPatch,
+  ParametricEqFilter, ParametricEqPatch, PeakHighpassFilter, PeakHighpassPatch,
+  StaticGainFilter, StaticGainPatch, RaisedCosineFilter, RaisedCosinePatch, ShelfFilter, ShelfPatch,
   SealedAlignmentOption, VentedAlignment, VentedDesign, Wiring,
   EnclosureParams, SweepParams, SweepResult, WprFilter,
 } from './types.js';

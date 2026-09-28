@@ -1,16 +1,15 @@
 import {biquad} from './biquad.js';
-import type {Complex, Filter, FilterSpec, WprFilter} from '../types.js';
+import type {Complex, FilterSpec, PeakHighpassFilter, PeakHighpassPatch, WprFilter} from '../types.js';
 import type {FilterModel} from './FilterModel.js';
 import {FILTER_FC_LIMITS, FILTER_GAIN_LIMITS, clamp} from './limits.js';
 
-type Spec = Extract<Filter, {type: 'peakHighpass'}>;
 
 /**
  * The HP2 whose peak is Gpk at fpk: s²/(s²+(ω0/Q)s+ω0²), P = 10^(Gpk/20),
  * Q² = (P² + P·√(P²−1))/2, ω0 = 2π·fpk·√(1 − 1/(2Q²)).
  */
-export class PeakHighpassFilter implements FilterModel {
-  constructor(private readonly spec: Spec) {}
+export class PeakHighpassFilterModel implements FilterModel {
+  constructor(private readonly spec: PeakHighpassFilter) {}
 
   response(f: number): Complex {
     const {fpk, gainPk} = this.spec;
@@ -42,7 +41,7 @@ export class PeakHighpassFilter implements FilterModel {
 
   /** Typed edit — `fpk`/`gainPk` each clamped to their own entry ranges; any field left out of
    *  `patch` passes through unchanged. */
-  static with(f: Spec, patch: Partial<Pick<Spec, 'fpk' | 'gainPk'>>): Spec {
+  static with(f: PeakHighpassFilter, patch: PeakHighpassPatch): PeakHighpassFilter {
     const next = {...f, ...patch};
     return {
       ...next,

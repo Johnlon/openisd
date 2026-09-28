@@ -88,6 +88,9 @@ import type {
   Filter,
   FilterType,
   MaxCurvesResult,
+  PassFilter, PassPatch, AllpassFilter, AllpassPatch, LinkwitzFilter, LinkwitzPatch,
+  ParametricEqFilter, ParametricEqPatch, PeakHighpassFilter, PeakHighpassPatch,
+  StaticGainFilter, StaticGainPatch, RaisedCosineFilter, RaisedCosinePatch, ShelfFilter, ShelfPatch,
   SealedAlignmentOption,
   SimulatableBoxType,
   SweepParams,
@@ -496,72 +499,48 @@ export class Engine {
   /** Typed edit for a Lowpass/Highpass filter — `order` rounded to an integer and clamped to
    *  1..10, `fc`/`Q` clamped to their own entry ranges; `family` and any field left out of
    *  `patch` pass through unchanged. Same variant in, same variant out. */
-  updatePassFilter(
-    f: Extract<Filter, {type: 'lowpass' | 'highpass'}>,
-    patch: Partial<Pick<Extract<Filter, {type: 'lowpass' | 'highpass'}>, 'family' | 'order' | 'fc' | 'Q'>>,
-  ): Extract<Filter, {type: 'lowpass' | 'highpass'}> {
+  updatePassFilter(f: PassFilter, patch: PassPatch): PassFilter {
     return updatePassFilter(f, patch);
   }
 
   /** Typed edit for an Allpass filter — `order` rounded to an integer and clamped to 1..10,
    *  `t`/`Q` clamped to their own entry ranges. */
-  updateAllpassFilter(
-    f: Extract<Filter, {type: 'allpass'}>,
-    patch: Partial<Pick<Extract<Filter, {type: 'allpass'}>, 'order' | 't' | 'Q'>>,
-  ): Extract<Filter, {type: 'allpass'}> {
+  updateAllpassFilter(f: AllpassFilter, patch: AllpassPatch): AllpassFilter {
     return updateAllpassFilter(f, patch);
   }
 
   /** Typed edit for a Linkwitz transform — `f0`/`fp`/`Q0`/`Qp` clamped to the shared fc/Q entry
    *  ranges. */
-  updateLinkwitzFilter(
-    f: Extract<Filter, {type: 'linkwitz'}>,
-    patch: Partial<Pick<Extract<Filter, {type: 'linkwitz'}>, 'f0' | 'Q0' | 'fp' | 'Qp'>>,
-  ): Extract<Filter, {type: 'linkwitz'}> {
+  updateLinkwitzFilter(f: LinkwitzFilter, patch: LinkwitzPatch): LinkwitzFilter {
     return updateLinkwitzFilter(f, patch);
   }
 
   /** Typed edit for a Parametric EQ (peaking) filter — `fc`/`Q`/`gain` clamped to their own
    *  entry ranges. */
-  updateParametricEqFilter(
-    f: Extract<Filter, {type: 'peaking'}>,
-    patch: Partial<Pick<Extract<Filter, {type: 'peaking'}>, 'fc' | 'Q' | 'gain'>>,
-  ): Extract<Filter, {type: 'peaking'}> {
+  updateParametricEqFilter(f: ParametricEqFilter, patch: ParametricEqPatch): ParametricEqFilter {
     return updateParametricEqFilter(f, patch);
   }
 
   /** Typed edit for a Peaking 2nd-order highpass filter — `fpk`/`gainPk` clamped to their own
    *  entry ranges. */
-  updatePeakHighpassFilter(
-    f: Extract<Filter, {type: 'peakHighpass'}>,
-    patch: Partial<Pick<Extract<Filter, {type: 'peakHighpass'}>, 'fpk' | 'gainPk'>>,
-  ): Extract<Filter, {type: 'peakHighpass'}> {
+  updatePeakHighpassFilter(f: PeakHighpassFilter, patch: PeakHighpassPatch): PeakHighpassFilter {
     return updatePeakHighpassFilter(f, patch);
   }
 
   /** Typed edit for a Static gain filter — `gain` clamped to its entry range. */
-  updateStaticGainFilter(
-    f: Extract<Filter, {type: 'staticGain'}>,
-    patch: Partial<Pick<Extract<Filter, {type: 'staticGain'}>, 'gain'>>,
-  ): Extract<Filter, {type: 'staticGain'}> {
+  updateStaticGainFilter(f: StaticGainFilter, patch: StaticGainPatch): StaticGainFilter {
     return updateStaticGainFilter(f, patch);
   }
 
   /** Typed edit for a DLP Raised Cosine filter — `fc`/`bwOct`/`gain` clamped to their own entry
    *  ranges. */
-  updateRaisedCosineFilter(
-    f: Extract<Filter, {type: 'raisedCosine'}>,
-    patch: Partial<Pick<Extract<Filter, {type: 'raisedCosine'}>, 'fc' | 'bwOct' | 'gain'>>,
-  ): Extract<Filter, {type: 'raisedCosine'}> {
+  updateRaisedCosineFilter(f: RaisedCosineFilter, patch: RaisedCosinePatch): RaisedCosineFilter {
     return updateRaisedCosineFilter(f, patch);
   }
 
   /** Typed edit for a Low/High shelf filter — `fc`/`Q`/`gain` clamped to their own entry
    *  ranges. Same variant (low/high shelf) in, same variant out. */
-  updateShelfFilter(
-    f: Extract<Filter, {type: 'lowshelf' | 'highshelf'}>,
-    patch: Partial<Pick<Extract<Filter, {type: 'lowshelf' | 'highshelf'}>, 'fc' | 'Q' | 'gain'>>,
-  ): Extract<Filter, {type: 'lowshelf' | 'highshelf'}> {
+  updateShelfFilter(f: ShelfFilter, patch: ShelfPatch): ShelfFilter {
     return updateShelfFilter(f, patch);
   }
 

@@ -1,9 +1,8 @@
 import {biquad} from './biquad.js';
-import type {Complex, Filter, FilterSpec, WprFilter} from '../types.js';
+import type {Complex, FilterSpec, LinkwitzFilter, LinkwitzPatch, WprFilter} from '../types.js';
 import type {FilterModel} from './FilterModel.js';
 import {FILTER_FC_LIMITS, FILTER_Q_LIMITS, clamp} from './limits.js';
 
-type Spec = Extract<Filter, {type: 'linkwitz'}>;
 
 /**
  * Linkwitz transform (sealed enclosure bass extension) — reshapes a sealed-box low-frequency
@@ -12,8 +11,8 @@ type Spec = Extract<Filter, {type: 'linkwitz'}>;
  *   H(s) = (s² + (ω₀/Q₀)·s + ω₀²) / (s² + (ωₚ/Qₚ)·s + ωₚ²)
  * https://en.wikipedia.org/wiki/Linkwitz_transform
  */
-export class LinkwitzTransformFilter implements FilterModel {
-  constructor(private readonly spec: Spec) {}
+export class LinkwitzFilterModel implements FilterModel {
+  constructor(private readonly spec: LinkwitzFilter) {}
 
   response(f: number): Complex {
     const {f0, Q0, fp, Qp} = this.spec;
@@ -46,7 +45,7 @@ export class LinkwitzTransformFilter implements FilterModel {
 
   /** Typed edit — `f0`/`fp` and `Q0`/`Qp` each clamped to the shared Filter Editor fc/Q entry
    *  ranges; any field left out of `patch` passes through unchanged. */
-  static with(f: Spec, patch: Partial<Pick<Spec, 'f0' | 'Q0' | 'fp' | 'Qp'>>): Spec {
+  static with(f: LinkwitzFilter, patch: LinkwitzPatch): LinkwitzFilter {
     const next = {...f, ...patch};
     return {
       ...next,

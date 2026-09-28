@@ -117,20 +117,46 @@ export type CircuitModel = 'winisd' | 'gyrator' | 'winisdGyrator';
  */
 /** WinISD's low/high-pass subtypes, in its Filter Editor "Subtype" order. */
 export type PassFamily = 'butterworth' | 'linkwitzRiley' | 'bessel' | 'sos';
+
+// One interface per filter class. `type` is the discriminant; a class that handles two WinISD
+// types (low/high pass, low/high shelf) has one interface with a two-member `type`.
+export interface PassSpec { type: 'lowpass' | 'highpass'; family: PassFamily; order: number; fc: number; Q: number }
+export interface AllpassSpec { type: 'allpass'; order: number; t: number; Q: number }
+export interface LinkwitzSpec { type: 'linkwitz'; f0: number; Q0: number; fp: number; Qp: number }
+export interface ParametricEqSpec { type: 'peaking'; fc: number; Q: number; gain: number }
+export interface PeakHighpassSpec { type: 'peakHighpass'; fpk: number; gainPk: number }
+export interface StaticGainSpec { type: 'staticGain'; gain: number }
+export interface RaisedCosineSpec { type: 'raisedCosine'; fc: number; bwOct: number; gain: number }
+export interface ShelfSpec { type: 'lowshelf' | 'highshelf'; fc: number; Q: number; gain: number }
 export type FilterSpec =
-  | { type: 'lowpass';  family: PassFamily; order: number; fc: number; Q: number }
-  | { type: 'highpass'; family: PassFamily; order: number; fc: number; Q: number }
-  | { type: 'allpass'; order: number; t: number; Q: number }
-  | { type: 'linkwitz'; f0: number; Q0: number; fp: number; Qp: number }
-  | { type: 'peaking'; fc: number; Q: number; gain: number }
-  | { type: 'peakHighpass'; fpk: number; gainPk: number }
-  | { type: 'staticGain'; gain: number }
-  | { type: 'raisedCosine'; fc: number; bwOct: number; gain: number }
-  | { type: 'lowshelf'; fc: number; Q: number; gain: number }
-  | { type: 'highshelf'; fc: number; Q: number; gain: number };
-/** One signal-chain filter. `id` is the UI list key (crypto.randomUUID), ignored by the engine. */
-export type Filter = { id?: string; enabled: boolean } & FilterSpec;
+  | PassSpec | AllpassSpec | LinkwitzSpec | ParametricEqSpec
+  | PeakHighpassSpec | StaticGainSpec | RaisedCosineSpec | ShelfSpec;
 export type FilterType = FilterSpec['type'];
+
+/** What the project's chain adds to a spec: bypass, and the UI's list key (crypto.randomUUID),
+ *  which the engine ignores. */
+export interface ChainEntry { id?: string; enabled: boolean }
+/** One signal-chain filter. */
+export type Filter = ChainEntry & FilterSpec;
+// The chain filter of each class — what its editor shows and its typed edit takes and returns.
+export type PassFilter = ChainEntry & PassSpec;
+export type AllpassFilter = ChainEntry & AllpassSpec;
+export type LinkwitzFilter = ChainEntry & LinkwitzSpec;
+export type ParametricEqFilter = ChainEntry & ParametricEqSpec;
+export type PeakHighpassFilter = ChainEntry & PeakHighpassSpec;
+export type StaticGainFilter = ChainEntry & StaticGainSpec;
+export type RaisedCosineFilter = ChainEntry & RaisedCosineSpec;
+export type ShelfFilter = ChainEntry & ShelfSpec;
+// What an editor may write, per class — the fields WinISD's Filter Editor exposes, each clamped
+// to its entry range by that class's typed edit.
+export type PassPatch = Partial<Pick<PassSpec, 'family' | 'order' | 'fc' | 'Q'>>;
+export type AllpassPatch = Partial<Pick<AllpassSpec, 'order' | 't' | 'Q'>>;
+export type LinkwitzPatch = Partial<Pick<LinkwitzSpec, 'f0' | 'Q0' | 'fp' | 'Qp'>>;
+export type ParametricEqPatch = Partial<Pick<ParametricEqSpec, 'fc' | 'Q' | 'gain'>>;
+export type PeakHighpassPatch = Partial<Pick<PeakHighpassSpec, 'fpk' | 'gainPk'>>;
+export type StaticGainPatch = Partial<Pick<StaticGainSpec, 'gain'>>;
+export type RaisedCosinePatch = Partial<Pick<RaisedCosineSpec, 'fc' | 'bwOct' | 'gain'>>;
+export type ShelfPatch = Partial<Pick<ShelfSpec, 'fc' | 'Q' | 'gain'>>;
 
 /** One filter's `.wpr` `[Filters]` on-disk shape: `filter<i>type`/`filter<i>params`
  *  (winisd_research/PROBE_FINDINGS.md "`.wpr` `[Filters]` format"). `type` is WinISD's own
