@@ -1,7 +1,7 @@
 import {mkdirSync, readFileSync, writeFileSync} from 'node:fs';
 import {dirname, join} from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {Engine, OpenISDDriver, OpenISDPassiveRadiatorStandalone, OpenISDProject} from '@openisd/design';
+import {createEngine, OpenISDDriver, OpenISDPassiveRadiatorStandalone, OpenISDProject} from '@openisd/design';
 import {DEFAULT_SOURCE_RESISTANCE_OHM} from '@openisd/design/fields';
 import {COMPLETE_DRIVER_PROJECT_OWPR, SAMPLE_PROJECT_OWPR} from './sampleProject.js';
 
@@ -10,7 +10,7 @@ const __dirname = dirname(__filename);
 
 const driverStr = readFileSync(join(__dirname, '../../public/drivers/tang-band/w5-1138smf.json'), 'utf-8');
 const driverJson = JSON.parse(driverStr);
-const engine = new Engine();
+const engine = createEngine();
 const maybeDriver = OpenISDDriver.fromConformingRecord(driverJson, engine);
 if (Array.isArray(maybeDriver)) {
     throw new Error(`fixture driver is not conforming: ${maybeDriver.join(', ')}`);

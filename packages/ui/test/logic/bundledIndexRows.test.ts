@@ -12,7 +12,7 @@
 import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
 import {OpenISDDriver, OpenISDPassiveRadiatorStandalone} from '@openisd/design';
-import {Engine} from '@openisd/design/engine';
+import {createEngine} from '@openisd/design/engine';
 import {bundledDriverIndexRowOf, bundledPassiveRadiatorIndexRowOf} from '../../src/logic/bundledIndexRows.js';
 import {chipsOf, driverHasDqIssues, radiatorHasDqIssues} from '../../src/logic/driverDisplay.js';
 
@@ -90,7 +90,7 @@ function recordOf(p: DeviceFixture) {
 function driverOf(fields: FixtureFields, sources?: FixtureSources): OpenISDDriver {
   const d = OpenISDDriver.fromConformingRecord(
     recordOf({ uuid: UUID_D, brand: 'Tang Band', model: 'W5-1138SMF', driverType: 'woofer', section: 'woofer', fields, sources }),
-    new Engine());
+    createEngine());
   if (Array.isArray(d)) throw new Error(`fixture is not a valid driver: ${d.join(', ')}`);
   return d;
 }
@@ -98,7 +98,7 @@ function driverOf(fields: FixtureFields, sources?: FixtureSources): OpenISDDrive
 function radiatorOf(fields: FixtureFields, sources?: FixtureSources): OpenISDPassiveRadiatorStandalone {
   const r = OpenISDPassiveRadiatorStandalone.fromConformingRecord(
     recordOf({ uuid: UUID_P, brand: 'Dayton Audio', model: 'ND140-PR', driverType: 'passive-radiator', section: 'passive-radiator', fields, sources }),
-    new Engine());
+    createEngine());
   if (Array.isArray(r)) throw new Error(`fixture is not a valid radiator: ${r.join(', ')}`);
   return r;
 }

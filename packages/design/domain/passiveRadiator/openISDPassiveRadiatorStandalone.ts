@@ -1,4 +1,4 @@
-import { Engine } from '../../engine/index.js';
+import {type Engine} from '../../engine/index.js';
 import { realAppContext } from '../appContext.js';
 import type { AppContext } from '../appContext.js';
 import { asRadiatorDevice } from '../openisdSchema.js';

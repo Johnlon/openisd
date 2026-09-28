@@ -1,10 +1,10 @@
 import {LossMode} from '../../fields/lossMode.js';
 import {describe, expect, it} from 'vitest';
 import type {SolverField, SolverInput} from '../../engine/index.js';
-import {Engine} from '../../engine/index.js';
+import {createEngine} from '../../engine/index.js';
 import {checkSealedAlignment, fakeSolverField, solveSealedAlignmentGroup} from './testSolver.js';
 
-const engine = new Engine();
+const engine = createEngine();
 const NO_INPUT: SolverInput = Object.freeze({value: null, entered: false});
 const NO_STRING_INPUT: SolverInput<string> = Object.freeze({value: null, entered: false});
 

@@ -19,9 +19,9 @@
 import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
 import type {ChartId, DqIssue, DriverSolverParams, SolverField, SweepParams} from '@openisd/design/engine';
-import {Engine} from '@openisd/design/engine';
+import {createEngine} from '@openisd/design/engine';
 
-const engine = new Engine();
+const engine = createEngine();
 import {parseChartId, seriesFor, TAB_META, TABS} from '../../src/logic/series.js';
 import type {PlotParams} from '../../src/types.js';
 
@@ -96,7 +96,7 @@ assert.ok(MX, 'reference max curves produced nothing');
 // not a gap this suite should paper over. They get their OWN reference design, a real
 // passive-radiator box, so "every declared member draws" is checked against data that
 // actually exists for them.
-const PR_ENGINE = new Engine();
+const PR_ENGINE = createEngine();
 const PR_VB = 0.010;
 const PR_BOX = { prSd: 0.0095, prNum: 1, prMmd: 0.010, prMadd: 0, prCms: 0.0018, prRms: 1.0 };
 const PR_FR = PR_ENGINE.pr.tuning({ Vb: PR_VB, prMmd: PR_BOX.prMmd, prMadd: PR_BOX.prMadd, prSd: PR_BOX.prSd, prCms: PR_BOX.prCms, prNum: PR_BOX.prNum },
@@ -114,7 +114,7 @@ assert.ok(MX_PR, 'reference PR max curves produced nothing');
 
 // `FrontPortGain` is `null` for a vented design (SW above), same reasoning as the PR trio —
 // its own reference design is a real bandpass4 box.
-const BP4_ENGINE = new Engine();
+const BP4_ENGINE = createEngine();
 const SP_BP4: SweepParams = {
   Vb: 0.010, Vf: 0.005, Ff: 60, Qlr: 7, Qar: 30, Qiclfr: 20, Qlf: 9, Qaf: 40, Qpf: 15,
   eg: 2.83, fmin: 10, fmax: 2000, N: 200,
@@ -249,7 +249,7 @@ describe('EQ/filter charts — units, datum and axis', () => {
     // at unity, which must not collapse the axis to zero height.
     const noFlt = { ...SP, filters: [] };
     const noFltP = noFlt as unknown as PlotParams;
-    const engine = new Engine();
+    const engine = createEngine();
     const sw = engine.simulation.sweep(DRV, LE_H, 'vented', noFlt).values;
     assert.ok(sw, 'sweep produced nothing');
     const mx = engine.simulation.maxCurves(DRV, LE_H, 'vented', noFlt).values;

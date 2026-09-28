@@ -8,7 +8,7 @@ import type {
   SolverInput,
   VentSolverParams,
 } from '@openisd/design/engine';
-import {Engine} from '@openisd/design/engine';
+import {createEngine} from '@openisd/design/engine';
 import {halfUlp} from '../../domain/precision.js';
 
 // S2-10: the bag types every solve used to take/return are gone from the public engine surface
@@ -66,7 +66,7 @@ export interface TestSealedAlignmentQuantities {
   lossMode?: string;
 }
 
-const engine = new Engine();
+const engine = createEngine();
 const REFERENCE_AIR = (): Air => engine.environment.solve({}).values;
 
 /** A test seam for the engine's `SolverField` handle contracts (T10): the value is "entered"

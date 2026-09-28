@@ -4,7 +4,7 @@
  * John's ruling: "keep parity and use dq — this is the way". The designed numbers are WinISD's
  * own extrapolated answers and are NOT changed here; `box.vented.volume_m3` and
  * `box.vented.tuning_goal_hz` simply say so. The band is an application setting, reached through the
- * collaborator `new Engine(settings)` takes, so every test states its own band.
+ * collaborator `createEngine(settings)` takes, so every test states its own band.
  *
  * Two DIFFERENT marking mechanisms, forced by the two field types:
  *   - `volume_m3` is a `MandatoryField` with no `setDq` — its mark is computed at READ time.
@@ -13,7 +13,7 @@
  */
 import {describe, expect, it} from 'vitest';
 import assert from 'node:assert/strict';
-import {Engine, DEFAULT_ENV_DEFAULTS, type AppSettings, type EnvDefaults, type VentedDesignLimits} from '@openisd/design/engine';
+import {type Engine, createEngine, DEFAULT_ENV_DEFAULTS, type AppSettings, type EnvDefaults, type VentedDesignLimits} from '@openisd/design/engine';
 import {OpenISDDriver, OpenISDProject} from '../../domain/index.js';
 
 const scraped = <T,>(value: T) => ({value});
@@ -61,7 +61,7 @@ function ventedProject(engine: Engine, Vb: number, Fb: number): OpenISDProject {
 }
 
 const engineWith = (band: VentedDesignLimits): Engine =>
-  new Engine({ventedLimits: () => band, envDefaults: () => DEFAULT_ENV_DEFAULTS});
+  createEngine({ventedLimits: () => band, envDefaults: () => DEFAULT_ENV_DEFAULTS});
 
 describe('vented project cells — plausibility marks', () => {
   it('leaves a buildable design unmarked', () => {
@@ -115,7 +115,7 @@ describe('vented project cells — plausibility marks', () => {
 describe('OpenISDProject.appSettingsChanged', () => {
   it('re-marks every cell against the new band', () => {
     const settings = new MutableSettings(WIDE);
-    const p = ventedProject(new Engine(settings), 1.684, 5.4);
+    const p = ventedProject(createEngine(settings), 1.684, 5.4);
     assert.deepEqual(p.box.vented.volume_m3.dq, []);
     const tuningBefore = p.box.vented.tuning_goal_hz.dq.length;
 
@@ -128,7 +128,7 @@ describe('OpenISDProject.appSettingsChanged', () => {
 
   it('notifies, so the app repaints', () => {
     const settings = new MutableSettings(WIDE);
-    const p = ventedProject(new Engine(settings), 1.684, 5.4);
+    const p = ventedProject(createEngine(settings), 1.684, 5.4);
     let fired = 0;
     p.subscribe(() => { fired += 1; });
     settings.set(NARROW);
@@ -138,7 +138,7 @@ describe('OpenISDProject.appSettingsChanged', () => {
 
   it('does not make the project edited — a settings change is not a design change', () => {
     const settings = new MutableSettings(WIDE);
-    const p = ventedProject(new Engine(settings), 1.684, 5.4);
+    const p = ventedProject(createEngine(settings), 1.684, 5.4);
     settings.set(NARROW);
     p.appSettingsChanged();
     assert.equal(p.isModified(), false);

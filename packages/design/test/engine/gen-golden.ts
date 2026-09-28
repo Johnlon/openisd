@@ -3,7 +3,7 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import type { TestSolverQuantities } from './testSolver.js';
 import { driverParams, solveConsistencyGroup } from './testSolver.js';
-import { Engine } from '../../engine/index.js';
+import {createEngine} from '../../engine/index.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const fixturesDir = join(here, '..', 'fixtures', 'golden');
@@ -17,7 +17,7 @@ const NAMES = [
   'vented-2drv-series',
 ];
 
-const engine = new Engine();
+const engine = createEngine();
 
 for (const name of NAMES) {
   const filePath = join(fixturesDir, name + '.json');

@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { DEFAULT_ENV_DEFAULTS, Engine, type VentedDesignLimits } from '@openisd/design/engine';
+import {DEFAULT_ENV_DEFAULTS, type Engine, createEngine, type VentedDesignLimits} from '@openisd/design/engine';
 import { OpenISDDriver } from '@openisd/design';
 import { useOgNewProject } from '../../src/hooks/OgNewProject-hooks.js';
 
 /** An engine judging designed vented boxes against `band` — the shape the Settings tab writes. */
 const engineWithBand = (band: VentedDesignLimits) =>
-  new Engine({ ventedLimits: () => band, envDefaults: () => DEFAULT_ENV_DEFAULTS });
+  createEngine({ ventedLimits: () => band, envDefaults: () => DEFAULT_ENV_DEFAULTS });
 
 interface TestDriverParams {
   Fs?: number; Qes?: number; Qms?: number; Qts?: number; Re_ohm?: number; Vas_m3?: number;
@@ -32,7 +32,7 @@ function captureDriver(engine: Engine) {
 
 describe('useOgNewProject', () => {
   it('initializes at step 1 and requires a driver selection before advancing', () => {
-    const engine = new Engine();
+    const engine = createEngine();
     const wizard = useOgNewProject({ engine });
 
     expect(wizard.step.value).toBe(1);
@@ -47,7 +47,7 @@ describe('useOgNewProject', () => {
   });
 
   it('step 1 previews the chosen driver as Fs / Qts / Vas display strings, empty when nothing is chosen', () => {
-    const engine = new Engine();
+    const engine = createEngine();
     const wizard = useOgNewProject({ engine });
     expect(wizard.selectedDriverSpecs.value).toEqual([]);
 
@@ -56,7 +56,7 @@ describe('useOgNewProject', () => {
   });
 
   it('initializes with pre-loaded driver if provided', () => {
-    const engine = new Engine();
+    const engine = createEngine();
     const driver = createTestDriver(engine);
     const wizard = useOgNewProject({ engine, initialDriver: driver });
 
@@ -65,7 +65,7 @@ describe('useOgNewProject', () => {
   });
 
   it('navigates through all 5 steps when box type is sealed', () => {
-    const engine = new Engine();
+    const engine = createEngine();
     const driver = createTestDriver(engine);
     const wizard = useOgNewProject({ engine, initialDriver: driver });
 
@@ -103,7 +103,7 @@ describe('useOgNewProject', () => {
   });
 
   it('skips step 4 when box type is passive-radiator or bandpass4 (no alignment step built yet)', () => {
-    const engine = new Engine();
+    const engine = createEngine();
     const driver = createTestDriver(engine);
     const wizard = useOgNewProject({ engine, initialDriver: driver });
 
@@ -126,7 +126,7 @@ describe('useOgNewProject', () => {
   });
 
   it('gives vented a step 4 (alignment), same slot sealed uses', () => {
-    const engine = new Engine();
+    const engine = createEngine();
     const driver = createTestDriver(engine);
     const wizard = useOgNewProject({ engine, initialDriver: driver });
 
@@ -155,7 +155,7 @@ describe('useOgNewProject', () => {
   });
 
   it('offers WinISD\'s five vented alignments and opens on C4/SC4', () => {
-    const engine = new Engine();
+    const engine = createEngine();
     const wizard = useOgNewProject({ engine, initialDriver: captureDriver(engine) });
     wizard.boxType.value = 'vented';
 
@@ -164,7 +164,7 @@ describe('useOgNewProject', () => {
   });
 
   it('designs the vented box as WinISD does: source-loaded Qts at the project\'s Rg, box Ql, chosen alignment', () => {
-    const engine = new Engine();
+    const engine = createEngine();
     const wizard = useOgNewProject({ engine, initialDriver: captureDriver(engine) });
     wizard.boxType.value = 'vented';
 
@@ -184,7 +184,7 @@ describe('useOgNewProject', () => {
   });
 
   it('the preview uses the same Rg and Ql the created project carries', () => {
-    const engine = new Engine();
+    const engine = createEngine();
     const wizard = useOgNewProject({ engine, initialDriver: captureDriver(engine) });
     wizard.boxType.value = 'vented';
     wizard.selectVentedAlignment('bb4');
@@ -201,7 +201,7 @@ describe('useOgNewProject', () => {
   });
 
   it('computes EBP and suitability readout correctly', () => {
-    const engine = new Engine();
+    const engine = createEngine();
     // Driver with Fs=35, Qes=0.8 -> EBP = 43.75 < 50 -> Sealed preferred
     const sealedDriver = createTestDriver(engine, { Fs: 35, Qes: 0.8 });
     const wizardSealed = useOgNewProject({ engine, initialDriver: sealedDriver });
@@ -220,7 +220,7 @@ describe('useOgNewProject', () => {
   });
 
   it('calculates sealed volume on step 4 when selecting Qtc alignment', () => {
-    const engine = new Engine();
+    const engine = createEngine();
     // Qts = 0.38, Vas = 0.03 m3 (30 L)
     const driver = createTestDriver(engine, { Qts: 0.38, Vas_m3: 0.03 });
     const wizard = useOgNewProject({ engine, initialDriver: driver });
@@ -238,7 +238,7 @@ describe('useOgNewProject', () => {
   });
 
   it('a passive-radiator project keeps the starting volume — the sealed alignment volume never leaks into it', () => {
-    const engine = new Engine();
+    const engine = createEngine();
     const wizard = useOgNewProject({ engine });
     wizard.selectDriver(createTestDriver(engine, { Qts: 0.38, Vas_m3: 0.03 }));
     wizard.boxType.value = 'box-passive-radiator';
@@ -253,7 +253,7 @@ describe('useOgNewProject', () => {
   });
 
   it('rounds the derived sealed volume to 2dp instead of showing the raw calculation', () => {
-    const engine = new Engine();
+    const engine = createEngine();
     const driver = createTestDriver(engine, { Qts: 0.38, Vas_m3: 0.03 });
     const wizard = useOgNewProject({ engine, initialDriver: driver });
 
@@ -263,7 +263,7 @@ describe('useOgNewProject', () => {
   });
 
   it('picking a driver on step 1 moves the wizard on to step 2 — "Use" advances, it does not just arm Next', () => {
-    const engine = new Engine();
+    const engine = createEngine();
     const wizard = useOgNewProject({ engine });
 
     expect(wizard.step.value).toBe(1);
@@ -273,7 +273,7 @@ describe('useOgNewProject', () => {
   });
 
   it('preserves state when navigating Back and Next', () => {
-    const engine = new Engine();
+    const engine = createEngine();
     const driver = createTestDriver(engine);
     const wizard = useOgNewProject({ engine, initialDriver: driver });
 
@@ -309,7 +309,7 @@ describe('useOgNewProject', () => {
   });
 
   it('creates a project with all configured parameters on completion', () => {
-    const engine = new Engine();
+    const engine = createEngine();
     const driver = createTestDriver(engine);
     const wizard = useOgNewProject({ engine, initialDriver: driver });
 

@@ -12,7 +12,7 @@ import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
 import {applyLoadedProject, newProject, openProjects, requireFocusedProject} from '../../src/logic/appState.js';
 import {OpenISDDriver, OpenISDProject} from '@openisd/design';
-import {Engine} from '@openisd/design/engine';
+import {createEngine} from '@openisd/design/engine';
 
 describe('OpenISDProject.box — each box type keeps its own fields independently of which is active', () => {
   it('switching boxType does not clobber the volume left behind in the other box type', () => {
@@ -40,7 +40,7 @@ describe('OpenISDProject.box — each box type keeps its own fields independentl
 describe('applyLoadedProject — the loaded project replaces the focused one wholesale', () => {
   it('a loaded project\'s active box type and fields both take effect on the focused tab', () => {
     newProject();
-    const engine = new Engine();
+    const engine = createEngine();
     // This test is about which project is FOCUSED, not about any driver's contents, so the
     // driver states nothing — the domain's own blank rather than a record assembled here.
     const loaded = OpenISDProject.builder(OpenISDDriver.empty(engine), engine)

@@ -17,7 +17,7 @@ import {computed, ref, type Ref, shallowRef, type ShallowRef, triggerRef, watch}
 import type {
     BoxType, ChartId, DriverError, MaxCurvesResult, SweepResult, VentedDesignLimits,
 } from '@openisd/design/engine';
-import {DEFAULT_ENV_DEFAULTS, DEFAULT_VENTED_DESIGN_LIMITS, Engine, type EnvDefaults} from '@openisd/design/engine';
+import {DEFAULT_ENV_DEFAULTS, DEFAULT_VENTED_DESIGN_LIMITS, type Engine, createEngine, type EnvDefaults} from '@openisd/design/engine';
 import {driverPrerequisiteMessage, sweepIssueMessage} from './sweepIssueMessage.js';
 import {
     type AppContext,
@@ -147,7 +147,7 @@ export function setEnvDefaults(defaults: EnvDefaults): void {
 }
 
 export const engine = getOrInit(slots, 'engine',
-  () => new Engine({
+  () => createEngine({
     ventedLimits: () => appSettings.value.ventedLimits(),
     envDefaults: () => appSettings.value.envDefaults(),
   }));

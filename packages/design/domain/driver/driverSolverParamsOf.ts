@@ -1,4 +1,4 @@
-import { Engine } from '../../engine/index.js';
+import {type Engine} from '../../engine/index.js';
 import type { Air, DriverSolverParams, SolverInput, Wiring } from '../../engine/index.js';
 import { VoiceCoilWiring } from '../voiceCoilWiring.js';
 import { computedSlot } from './computedSlot.js';

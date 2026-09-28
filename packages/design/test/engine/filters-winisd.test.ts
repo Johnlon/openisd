@@ -18,10 +18,10 @@ import {driverParams, solveConsistencyGroup} from './testSolver.js';
 import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
 import type {Filter} from '../../engine/index.js';
-import {Engine} from '../../engine/index.js';
+import {createEngine} from '../../engine/index.js';
 import {WINISD_FILTER_CAPTURES} from '../fixtures/winisdFilterCaptures.js';
 
-const engine = new Engine();
+const engine = createEngine();
 
 // The filter chain's own response does not depend on the driver or box (proved directly in
 // filter-chain-charts.test.ts) — any solvable reference driver does.

@@ -5,9 +5,9 @@
  */
 import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import {Engine} from '../../engine/index.js';
+import {createEngine} from '../../engine/index.js';
 
-const engine = new Engine();
+const engine = createEngine();
 
 describe('a DqIssue reports its own text', () => {
   it('missing-dependencies names the target and the routes', () => {

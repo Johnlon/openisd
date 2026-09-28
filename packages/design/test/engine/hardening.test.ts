@@ -18,7 +18,7 @@ import {driverParams, solveConsistencyGroup} from './testSolver.js';
 import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
 import type {SimulatableBoxType, SweepParams} from '../../engine/index.js';
-import {Engine} from '../../engine/index.js';
+import {createEngine} from '../../engine/index.js';
 import {OpenISDDriver} from '../../domain/driver/openISDDriver.js';
 import {OpenISDProject} from '../../domain/project/openISDProject.js';
 
@@ -27,7 +27,7 @@ import {OpenISDProject} from '../../domain/project/openISDProject.js';
 const LE_H = 0.7e-3;
 
 /** The engine's one door: every calculation below is a method on this object. */
-const engine = new Engine();
+const engine = createEngine();
 
 /** The reference 6.5" mid-woofer used across the engine suite — complete and valid. */
 const RAW_COMPLETE = {

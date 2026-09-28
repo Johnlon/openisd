@@ -17,14 +17,14 @@ import {driverParams, solveConsistencyGroup} from './testSolver.js';
 import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
 import type {SweepParams} from '../../engine/index.js';
-import {Engine, MAX_SUPPORTED_TEMP_K, MIN_SUPPORTED_TEMP_K} from '../../engine/index.js';
+import {createEngine, MAX_SUPPORTED_TEMP_K, MIN_SUPPORTED_TEMP_K} from '../../engine/index.js';
 
 /** Voice-coil inductance for the fixtures below. Not a solver quantity — nothing
  *  derives it — so it reaches `sweep` on its own, and only the impedance plot reads it. */
 const LE_H = undefined;
 
 /** The engine's one door: every calculation below is a method on this object. */
-const engine = new Engine();
+const engine = createEngine();
 
 /** WinISD's own stored air, to all 15 digits it writes. */
 const WINISD_C   = 343.684120962152;
@@ -191,7 +191,7 @@ describe('the sweep actually consumes humidity and pressure', () => {
 
 describe('Engine.solveEnvironment — the unified { value, issues } bundle (C5)', () => {
   it('resolves the air and reports no issues in one call', () => {
-    const engine = new Engine();
+    const engine = createEngine();
     const { values, issues } = engine.environment.solve({});
     assert.ok(values.rho > 0);
     assert.ok(values.c > 0);
@@ -199,7 +199,7 @@ describe('Engine.solveEnvironment — the unified { value, issues } bundle (C5)'
   });
 
   it('resolves the air and reports the issues together, honouring an entered out-of-range temperature', () => {
-    const engine = new Engine();
+    const engine = createEngine();
     const { values, issues } = engine.environment.solve({ tempK: 100 });
     assert.ok(values.rho > 0);
     assert.equal(issues.length, 1);
@@ -209,17 +209,17 @@ describe('Engine.solveEnvironment — the unified { value, issues } bundle (C5)'
 
 describe('environmentIssues — out-of-range entered air inputs', () => {
   it('returns no issues for a default-only environment', () => {
-    const engine = new Engine();
+    const engine = createEngine();
     assert.deepEqual(engine.environment.solve({}).issues, []);
   });
 
   it('returns no issues for an entered temperature inside the supported range', () => {
-    const engine = new Engine();
+    const engine = createEngine();
     assert.deepEqual(engine.environment.solve({ tempK: 293.15 }).issues, []);
   });
 
   it('reports a missing-dependencies issue for an entered temperature below the supported range', () => {
-    const engine = new Engine();
+    const engine = createEngine();
     const issues = engine.environment.solve({ tempK: 100 }).issues;
     assert.equal(issues.length, 1);
     assert.deepEqual(issues[0], engine.issues.missingDependencies('tempK', [{
@@ -229,7 +229,7 @@ describe('environmentIssues — out-of-range entered air inputs', () => {
   });
 
   it('reports the same shape for an entered temperature above the supported range', () => {
-    const engine = new Engine();
+    const engine = createEngine();
     const issues = engine.environment.solve({ tempK: 500 }).issues;
     assert.equal(issues.length, 1);
     assert.equal(issues[0].target, 'tempK');

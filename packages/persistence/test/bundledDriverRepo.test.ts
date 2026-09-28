@@ -11,9 +11,9 @@ import assert from 'node:assert/strict';
 import {createBundledDriverRepo} from '../src/repos/bundledDriverRepo.js';
 import {createBundledPassiveRadiatorRepo} from '../src/repos/bundledPassiveRadiatorRepo.js';
 import {OpenISDDriver, OpenISDPassiveRadiatorStandalone} from '@openisd/design';
-import {Engine} from '@openisd/design/engine';
+import {createEngine} from '@openisd/design/engine';
 
-const engine = new Engine();
+const engine = createEngine();
 const BASE = '/openisd/';
 
 const driverRecord = OpenISDDriver.empty(engine).toOpenIsdDeviceJson();

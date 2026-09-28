@@ -8,14 +8,14 @@
  * it depends on has returned.
  */
 import {beforeEach, describe, expect, it} from 'vitest';
-import {Engine} from '@openisd/design/engine';
+import {createEngine} from '@openisd/design/engine';
 import {OpenISDProject} from '@openisd/design';
 import type {OpenProjectSession, ProjectRepo, ViewSnapshot} from '@openisd/persistence';
 import {bootApplication, type BootDeps} from '../../src/logic/boot.js';
 import {focusedProject, openProjects, removeProject} from '../../src/logic/appState.js';
 import {presentationState} from '../../src/logic/presentationState.js';
 
-const engine = new Engine();
+const engine = createEngine();
 
 function project(name: string): OpenISDProject {
   const p = OpenISDProject.empty(engine);

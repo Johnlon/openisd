@@ -5,9 +5,9 @@
  */
 import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import {Engine} from '@openisd/design/engine';
+import {createEngine} from '@openisd/design/engine';
 
-const engine = new Engine();
+const engine = createEngine();
 import type {DqIssue, DriverSolverParams, SolverField, SweepParams} from '@openisd/design/engine';
 import {buildPlotData} from '../../src/logic/series.js';
 import type {Design, PlotParams} from '../../src/types.js';

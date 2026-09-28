@@ -11,7 +11,7 @@ import {readFileSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 import {dirname, join} from 'node:path';
 import type {MaxCurvesResult, SweepResult} from '../../engine/index.js';
-import {Engine} from '../../engine/index.js';
+import {createEngine} from '../../engine/index.js';
 
 
 const here        = dirname(fileURLToPath(import.meta.url));
@@ -51,7 +51,7 @@ describe('golden-master — engine reproduces committed fixtures exactly', () =>
 
   for (const name of NAMES) {
     it(`${name} — sweep + maxCurves are byte-identical to the fixture`, () => {
-      const engine = new Engine();
+      const engine = createEngine();
       const { design: { driverRaw, box, P }, sweep: expSw, maxCurves: expMx } =
         JSON.parse(readFileSync(join(fixturesDir, name + '.json'), 'utf8'));
 

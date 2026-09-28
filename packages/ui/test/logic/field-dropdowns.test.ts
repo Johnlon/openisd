@@ -12,7 +12,7 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 import {dirname, join} from 'node:path';
-import {Engine} from '@openisd/design/engine';
+import {createEngine} from '@openisd/design/engine';
 import {VoiceCoilWiring} from '@openisd/design';
 import {EnumField, LossMode, NumberField} from '@openisd/design/fields';
 
@@ -50,7 +50,7 @@ describe('every dropdown is an EnumField carrying SelectorOption[]', () => {
   it('box_Qtc lists the nine WinISD sealed alignments and is the SAME list the engine hands out', () => {
     const options = optionsOf(EnumField.BOX_QTC);
     assert.equal(options.length, 9);
-    assert.deepEqual(options, new Engine().sealed.alignmentOptions());
+    assert.deepEqual(options, createEngine().sealed.alignmentOptions());
   });
 
   it('loss_DampingMode lists the engine loss modes, values being the tokens the project stores', () => {

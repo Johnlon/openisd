@@ -23,7 +23,7 @@ import assert from 'node:assert/strict';
 import { readFileSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import {Engine} from '@openisd/design/engine';
+import {createEngine} from '@openisd/design/engine';
 import { OpenISDDriver, type Readable } from '@openisd/design';
 import { winISDDriverToOpenISDDeviceJson } from '../../domain/winIsdDriverImport.js';
 import { openIsdDriverToWinIsdDriver } from '../../domain/driverYmlToOpenisdAndWdr.js';
@@ -364,7 +364,7 @@ describe('WinISD parity (functional) — field calculations against goldens WinI
         : undefined;
       const asRead = WinISDDriver.fromWdrIni(scenarioWdr(s));
       const { record } = winISDDriverToOpenISDDeviceJson(asRead);
-      const conformed = OpenISDDriver.fromConformingRecord(record, new Engine());
+      const conformed = OpenISDDriver.fromConformingRecord(record, createEngine());
       if (Array.isArray(conformed)) throw new Error(`${s.id}: not a valid driver: ${conformed.join(', ')}`);
       const drv = conformed;
 
@@ -405,7 +405,7 @@ describe('WinISD parity (functional) — field calculations against goldens WinI
         const winisd = parseFloat(raw);
         const fs = num(drv, 'Fs'), qes = num(drv, 'Qes');
         assert.ok(fs !== null && qes !== null, `${s.id}: openisd has no Fs/Qes to form EBP from`);
-        compare(s.id, 'EBP', winisd, new Engine().driver.ebp(fs, qes));
+        compare(s.id, 'EBP', winisd, createEngine().driver.ebp(fs, qes));
       });
 
       it('air — openisd in WinISD-compatibility mode against the pair WinISD stored', () => {
@@ -416,7 +416,7 @@ describe('WinISD parity (functional) — field calculations against goldens WinI
         // The goldens were captured with the environment at factory defaults, so the harness
         // feeds the reference values directly into the engine. The project's temperature stays
         // its own — the env-t-303 divergence entry bounds that leg.
-        const air = new Engine().environment.solve({
+        const air = createEngine().environment.solve({
           tempK: s.environment.T,
           useWinisdAirModel: true,
         }).values;
@@ -436,7 +436,7 @@ describe('WinISD parity (functional) — field calculations against goldens WinI
           const qes = num(drv, 'Qes'), re = num(drv, 'Re');
           assert.ok(fs !== null && vas !== null && qts !== null && re !== null,
             `${s.id}: openisd cannot form Fsc — Fs/Vas/Qts/Re missing`);
-          const engine = new Engine();
+          const engine = createEngine();
           const openisd = engine.sealed.resonance(LossMode.WinisdLossy, {
             Fs: fs, Vas: vas, Vb: s.box.Vr, Ql: s.box.Qlr, Qa: s.box.Qar,
             // WinISD's readout is Qts recomputed with Re+Rg, not bare Qts (WINE_HARNESS.md).

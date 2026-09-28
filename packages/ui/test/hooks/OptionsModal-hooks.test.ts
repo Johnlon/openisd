@@ -12,7 +12,7 @@
 import {describe, expect, it} from 'vitest';
 import assert from 'node:assert/strict';
 import {
-  DEFAULT_ENV_DEFAULTS, DEFAULT_VENTED_DESIGN_LIMITS, Engine, type EnvDefaults,
+  DEFAULT_ENV_DEFAULTS, DEFAULT_VENTED_DESIGN_LIMITS, createEngine, type EnvDefaults,
   type VentedDesignLimits,
 } from '@openisd/design/engine';
 import {LIMIT_ROWS, type OptionsModalDeps, useOptionsModal} from '../../src/hooks/OptionsModal-hooks.js';
@@ -225,7 +225,7 @@ describe('the Plot Window Y-limit rows target charts that exist', () => {
   // anything" — the row was keyed 'TFmag' while the chart is 'TFMag', so the override landed
   // under a key no chart reads. The rows are typed `ChartId` now; this pins the runtime side.
   it('every row is a chart tab the graph panel renders', () => {
-    for (const row of LIMIT_ROWS) assert.equal(parseChartId(new Engine(), row.tab), row.tab, row.label);
+    for (const row of LIMIT_ROWS) assert.equal(parseChartId(createEngine(), row.tab), row.tab, row.label);
   });
 
   it('has a row for the transfer function magnitude chart', () => {

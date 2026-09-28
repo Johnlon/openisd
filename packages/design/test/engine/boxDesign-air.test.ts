@@ -1,7 +1,7 @@
 import {describe, expect, it} from 'vitest';
-import {Engine} from '../../engine/index.js';
+import {createEngine} from '../../engine/index.js';
 
-const engine = new Engine();
+const engine = createEngine();
 
 // Two genuinely different air conditions — reference (20 °C) vs. a hot, humid one — so any
 // function reading `air` must give a DIFFERENT answer for the two, and the reference case must

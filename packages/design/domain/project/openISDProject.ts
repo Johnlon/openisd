@@ -1,5 +1,5 @@
 import {LossMode} from '../../fields/lossMode.js';
-import {Engine} from '../../engine/index.js';
+import {type Engine} from '../../engine/index.js';
 import type { Air, AirEnvironment, BoxParamsIssue, ChartId, DriverError, Filter, MaxCurvesResult, MaxCurvesSolveResult, SweepResult, SweepSolveResult } from '../../engine/index.js';
 import { realAppContext } from '../appContext.js';
 import type { AppContext } from '../appContext.js';

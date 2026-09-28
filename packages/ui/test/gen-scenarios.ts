@@ -23,7 +23,7 @@
 import {readFileSync, writeFileSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 import {dirname, join} from 'node:path';
-import {Engine} from '@openisd/design/engine';
+import {createEngine} from '@openisd/design/engine';
 import {SCENARIOS} from './scenarios.js';
 
 const here    = dirname(fileURLToPath(import.meta.url));
@@ -36,7 +36,7 @@ for (const S of SCENARIOS) {
   const drv    = { Fs: S.driver.Fs, Qts: S.driver.Qts, Vas: VAS_M3 };
 
   if (S.box.type === 'sealed' && S.box.Qtc != null) {
-    const Vb    = new Engine().sealed.volumeForQtc(drv.Qts, drv.Vas, S.box.Qtc);
+    const Vb    = createEngine().sealed.volumeForQtc(drv.Qts, drv.Vas, S.box.Qtc);
     if (Vb == null) { console.warn(`  SKIP  ${S.id}: Qtc below driver Qts`); continue; }
     const scale = Math.sqrt(1 + VAS_M3 / Vb);
     S.computed = {
@@ -49,7 +49,7 @@ for (const S of SCENARIOS) {
     const Vb  = S.box.Vb  / 1000;         // litres → m³
     const L   = S.box.ventL / 100;        // cm → m (physical length)
     const Sp  = Math.PI * (S.box.ventD / 200) ** 2;  // cm bore diameter → m² area
-    const engine = new Engine();
+    const engine = createEngine();
     const fb  = engine.vent.tuningFromLength(Vb, L, Sp, 1, engine.environment.solve({}).values);
     S.computed = {
       // StatBar.vue: fb.toFixed(1)
@@ -70,7 +70,7 @@ for (const S of SCENARIOS) {
       prRms:  pr.Rms,                   // kg/s   (direct)
       prNum:  1,
     };
-    const fp = new Engine().pr.tuning(P, new Engine().environment.solve({}).values);
+    const fp = createEngine().pr.tuning(P, createEngine().environment.solve({}).values);
     S.computed = {
       // StatBar.vue: fp.toFixed(1)
       Fp: fp.toFixed(1),

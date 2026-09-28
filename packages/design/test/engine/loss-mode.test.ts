@@ -7,10 +7,10 @@ import {LossMode} from '../../fields/lossMode.js';
 import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
 import type {SealedParams} from '../../engine/index.js';
-import {Engine} from '../../engine/index.js';
+import {createEngine} from '../../engine/index.js';
 
 /** The engine's one door: every calculation below is a method on this object. */
-const engine = new Engine();
+const engine = createEngine();
 
 /** WinISD's lossy sealed-box readout — the mode `LossMode.WinisdLossy` selects. */
 const winisdLossy = (q: SealedParams) => engine.sealed.resonance(LossMode.WinisdLossy, q);

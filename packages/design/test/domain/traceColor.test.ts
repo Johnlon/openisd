@@ -4,11 +4,11 @@
  * an unsaved change.
  */
 import {describe, expect, it} from 'vitest';
-import {Engine, OpenISDProject} from '../../domain/index.js';
+import {createEngine, OpenISDProject} from '../../domain/index.js';
 import {driverFromSpec} from '../fixtures/recordBuilders.js';
 
 describe('OpenISDProject.traceColor', () => {
-  const engine = new Engine();
+  const engine = createEngine();
   const project = (): OpenISDProject => OpenISDProject.builder(driverFromSpec(engine, {
     Fs_hz: 29, Vas_m3: 0.142, Sd_m2: 0.038, Re_ohm: 6.5, Qes: 0.44, Qms: 3.3,
   }), engine).sealed().volume_m3(0.021).build();

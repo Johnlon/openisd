@@ -9,13 +9,13 @@
  * dropdown, never this dispatch.
  */
 import {describe, expect, it} from 'vitest';
-import {Engine} from '@openisd/design/engine';
+import {createEngine} from '@openisd/design/engine';
 import {OpenISDDriver} from '@openisd/design';
 import type {NumericDriverSpecFieldName} from '../../domain/driver/driverSpecFieldName.js';
 
 describe('OpenISDDriver.specField — one name-to-handle dispatch, total over the numeric names', () => {
   it('returns the handle a write then reads back through', () => {
-    const driver = OpenISDDriver.empty(new Engine());
+    const driver = OpenISDDriver.empty(createEngine());
 
     driver.specField('Fs_hz').set(111111);
 
@@ -23,7 +23,7 @@ describe('OpenISDDriver.specField — one name-to-handle dispatch, total over th
   });
 
   it('names the right accessor per field — two fields do not share one slot', () => {
-    const driver = OpenISDDriver.empty(new Engine());
+    const driver = OpenISDDriver.empty(createEngine());
 
     driver.specField('Re_ohm').set(999999);
     driver.specField('Qts').set(222222);
@@ -33,7 +33,7 @@ describe('OpenISDDriver.specField — one name-to-handle dispatch, total over th
   });
 
   it('clears through the same handle, returning the field to not-stated', () => {
-    const driver = OpenISDDriver.empty(new Engine());
+    const driver = OpenISDDriver.empty(createEngine());
     driver.specField('Sd_m2').set(123456);
 
     driver.specField('Sd_m2').clear();
@@ -42,7 +42,7 @@ describe('OpenISDDriver.specField — one name-to-handle dispatch, total over th
   });
 
   it('covers every numeric spec name the editor can ask for', () => {
-    const driver = OpenISDDriver.empty(new Engine());
+    const driver = OpenISDDriver.empty(createEngine());
     const numericFields: NumericDriverSpecFieldName[] = [
       'Fs_hz', 'Re_ohm', 'Le_H', 'fLe_hz', 'KLe_H_sqrtHz', 'Znom_ohm', 'Qts', 'Qes', 'Qms',
       'Vas_m3', 'Sd_m2', 'BL_Tm', 'Mms_kg', 'Cms_m_per_N', 'Rms_kg_per_s', 'Xmax_m', 'Xlim_m',

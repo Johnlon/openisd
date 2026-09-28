@@ -46,12 +46,12 @@ import {
   jsonRoundTripDiffs,
 } from '../../domain/driverRoundTripDiffs.js';
 import {OpenISDDriver, OpenISDPassiveRadiatorStandalone} from '../../domain/index.js';
-import {Engine} from '../../engine/index.js';
+import {createEngine} from '../../engine/index.js';
 import {WinISDDriver} from '../../winisd/winisdDriver.js';
 import {checkOpenisdRoundTrip} from '../../../../scripts/roundTripGate.mjs';
 
 /** The engine every projection in this file uses — factory settings, as the bridge's own. */
-const engine = new Engine();
+const engine = createEngine();
 
 const FIXTURES = join(dirname(fileURLToPath(import.meta.url)), '..', 'fixtures', 'corpus');
 
@@ -298,7 +298,7 @@ describe('driverYmlToOpenisdAndWdr — one call, both derived files, one error a
     assert.ok(openisd !== null);
     const emitted = parse(openisd) as Record<string, unknown>;
     assert.equal(checkOpenisdRoundTrip(emitted, 'dsa175-pr').ok, true, 'the bundler gate refuses what the bridge wrote');
-    const loaded = OpenISDPassiveRadiatorStandalone.fromConformingRecord(emitted, new Engine());
+    const loaded = OpenISDPassiveRadiatorStandalone.fromConformingRecord(emitted, createEngine());
     assert.ok(!Array.isArray(loaded), 'the app reads the radiator the bridge wrote');
     assert.deepEqual(JSON.parse(JSON.stringify(loaded.toOpenIsdDeviceJson())), emitted,
       'the radiator on disk is not the radiator the app exports for it');
@@ -323,7 +323,7 @@ describe('driverYmlToOpenisdAndWdr — one call, both derived files, one error a
 
     // A FIXED POINT: loading what the bridge wrote and exporting it again changes nothing —
     // marks, calculated entries, everything. That is what "the app's own export" means.
-    const loaded = OpenISDDriver.fromConformingRecord(emitted, new Engine());
+    const loaded = OpenISDDriver.fromConformingRecord(emitted, createEngine());
     assert.ok(!Array.isArray(loaded), 'the app reads what the bridge wrote');
     assert.deepEqual(JSON.parse(JSON.stringify(loaded.toOpenIsdDeviceJson())), emitted,
       'the record on disk is not the record the app exports for it');
@@ -537,7 +537,7 @@ describe('driverYmlToOpenisdAndWdr — one call, both derived files, one error a
 
 describe('winIsdDriverTextToOpenIsdDriver — the reverse direction, for .wdr/.owdr import', () => {
   it('a .wdr with a stated field the driver schema rejects reads back as errors, not a driver', () => {
-    const engine = new Engine();
+    const engine = createEngine();
     const { wdr } = driverYmlToOpenisdAndWdr(daytonDriverYml(), engine);
     assert.ok(wdr !== null);
     // Corrupt a mandatory, ParState-E ("Q") row so the record this text reads back as fails the
@@ -568,7 +568,7 @@ describe('the diff primitives — each mismatch arm exercised directly, per thei
   });
 
   it('oidDriverDiffs reports a snapshot mismatch between two different real OpenISD drivers', () => {
-    const engine = new Engine();
+    const engine = createEngine();
     const daytonParsed = driverYmlToOpenisdAndWdr(daytonDriverYml(), engine);
     const scanspeakParsed = driverYmlToOpenisdAndWdr(scanspeakDriverYml(), engine);
     assert.ok(daytonParsed.openisd !== null && scanspeakParsed.openisd !== null);
@@ -620,7 +620,7 @@ describe('the diff primitives — each mismatch arm exercised directly, per thei
 
 describe('wdrRecordRoundTripDiffs — the .wdr -> record leg refusing to read back', () => {
   it('reports wdr-record-round-trip when the .wdr we hold reads back as a record the driver seam refuses', () => {
-    const engine = new Engine();
+    const engine = createEngine();
     const { openisd, wdr } = driverYmlToOpenisdAndWdr(daytonDriverYml(), engine);
     assert.ok(openisd !== null && wdr !== null);
 
@@ -653,7 +653,7 @@ describe('wdrRecordRoundTripDiffs — the .wdr -> record leg refusing to read ba
     // real content (Dayton vs ScanSpeak), not a corrupted row, so this exercises the `.map()` over
     // `oidDriverDiffs`/`wdrDriverDiffs` on the success path, past the `Array.isArray(driver3)` guard
     // the test above covers.
-    const engine = new Engine();
+    const engine = createEngine();
     const daytonParsed = driverYmlToOpenisdAndWdr(daytonDriverYml(), engine);
     const scanspeakParsed = driverYmlToOpenisdAndWdr(scanspeakDriverYml(), engine);
     assert.ok(daytonParsed.openisd !== null && scanspeakParsed.wdr !== null);

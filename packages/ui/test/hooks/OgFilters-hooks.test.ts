@@ -1,11 +1,11 @@
 import {describe, expect, it} from 'vitest';
 import {computed, ref, shallowRef} from 'vue';
-import {Engine} from '@openisd/design/engine';
+import {createEngine} from '@openisd/design/engine';
 import {OpenISDProject} from '@openisd/design';
 import {OgFilters} from '../../src/hooks/OgFilters-hooks.js';
 
 function setup() {
-  const engine = new Engine();
+  const engine = createEngine();
   const project = OpenISDProject.empty(engine);
   const changed = ref(0);
   const api = new OgFilters(computed(() => shallowRef(project).value), changed, engine.filters);
