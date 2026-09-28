@@ -162,6 +162,10 @@ export type ShelfPatch = Partial<Pick<ShelfSpec, 'fc' | 'Q' | 'gain'>>;
  *  (winisd_research/PROBE_FINDINGS.md "`.wpr` `[Filters]` format"). `type` is WinISD's own
  *  Filter Editor type number (0-7); `params` is the `;`-separated field list for that type,
  *  enabled included. */
+/** One `.wpr` `[Filters]` entry after decoding: the filter, or `null` where WinISD skips the
+ *  entry; `warning` set whenever it did not import as its own stated values. */
+export interface WprFilterImport { filter: Filter | null; warning: string | null }
+
 export interface WprFilter {
   type: number;
   params: string;

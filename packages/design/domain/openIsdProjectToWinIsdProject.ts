@@ -123,7 +123,7 @@ function filtersSectionValues(
   const out: Record<string, string | number> = {};
   let n = 0;
   for (const filter of filters) {
-    const w = engine.filterWpr(filter);
+    const w = engine.filters.wpr(filter);
     if (w == null) {
       const label = filter.type === 'lowshelf' ? 'low shelf' : 'high shelf';
       errors.push({level: 'warn', field: 'Filters', message: `${label} not written: WinISD has no shelf filter`});
@@ -154,10 +154,10 @@ function importFilters(wpr: WinISDProject, engine: Engine, errors: DriverError[]
     const paramsRaw = wpr.value('Filters', `filter${i}params`);
     if (typeRaw == null || paramsRaw == null) {
       errors.push({level: 'warn', field: 'Filters', message: `filter ${i} missing — WinISD loads it as its default lowpass`});
-      filters.push(engine.defaultFilter('lowpass'));
+      filters.push(engine.filters.default('lowpass'));
       continue;
     }
-    const {filter, warning} = engine.filterFromWpr(Number(typeRaw), paramsRaw.split(';'));
+    const {filter, warning} = engine.filters.fromWpr(Number(typeRaw), paramsRaw.split(';'));
     if (warning != null) errors.push({level: 'warn', field: 'Filters', message: `filter ${i}: ${warning}`});
     if (filter != null) filters.push(filter);
   }

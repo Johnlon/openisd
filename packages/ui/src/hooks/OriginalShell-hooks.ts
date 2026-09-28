@@ -50,7 +50,7 @@ import {clampedFrequency, interpolatedY, steppedFrequency} from '../logic/cursor
 import {ARRAY_WIRING_OPTIONS, BOX_TYPE_OPTIONS, END_CORRECTION_OPTIONS, LossMode, NumberField, VENT_SHAPE_OPTIONS} from '@openisd/design/fields';
 import {inputChecked, inputFrom, inputValue, listeningElement, selectedOption, selectValue} from '../logic/domEvents.js';
 import {createSealedAlignmentEditor} from './SealedAlignment-hooks.js';
-import {createOgFilters} from './OgFilters-hooks.js';
+import {OgFilters} from './OgFilters-hooks.js';
 import type {Calculated, Clearable, Entered, OpenISDProject, Readable, Writable} from '@openisd/design';
 import type {ProvenanceLetter} from '../logic/fieldProvenance.js';
 import {provenanceOf, provenanceOfEntry, provenanceOfSolved} from '../logic/fieldProvenance.js';
@@ -451,7 +451,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     prAddedMassDq, prTuningDq, prSystemTuningDq, prResonanceMassDq, prFsMass_hz,
   } = sealedReadouts({ project, selectedBox, projectChanged });
   const sealedAlignmentEditor = createSealedAlignmentEditor({ project, changed: projectChanged, engine });
-  const ogFilters = createOgFilters({ project, changed: projectChanged, engine });
+  const ogFilters = new OgFilters(project, projectChanged, engine.filters);
   const sealedAlignmentOpen = sealedAlignmentEditor.open;
   const sealedAlignmentOptions = sealedAlignmentEditor.options;
   const sealedAlignmentSelected = sealedAlignmentEditor.selectedOption;

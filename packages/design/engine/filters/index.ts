@@ -19,6 +19,8 @@ import {RaisedCosineFilterModel} from './RaisedCosineFilterModel.js';
 import {ShelfFilterModel} from './ShelfFilterModel.js';
 
 export type {FilterModel} from './FilterModel.js';
+export type {FilterEngine} from './FilterEngine.js';
+export {FilterEngineImpl} from './FilterEngine.js';
 // Re-exported so the `.wpr` import boundary (openIsdProjectToWinIsdProject.ts) can hand a WinISD
 // type number's split params straight to the owning class's own static parser, with no
 // string-keyed lookup table in between.

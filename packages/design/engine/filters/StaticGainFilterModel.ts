@@ -1,7 +1,6 @@
 import {cx} from '../complex.js';
-import type {Complex, FilterSpec, StaticGainFilter, StaticGainPatch, WprFilter} from '../types.js';
+import type {Complex, FilterSpec, StaticGainFilter, WprFilter} from '../types.js';
 import type {FilterModel} from './FilterModel.js';
-import {FILTER_GAIN_LIMITS, clamp} from './limits.js';
 
 
 /** A flat gain, no frequency dependence. */
@@ -27,11 +26,5 @@ export class StaticGainFilterModel implements FilterModel {
     const gain = Number(fields[2]);
     if (!Number.isFinite(gain)) return 'malformed';
     return {type: 'staticGain', gain};
-  }
-
-  /** Typed edit — `gain` clamped to its entry range. */
-  static with(f: StaticGainFilter, patch: StaticGainPatch): StaticGainFilter {
-    const next = {...f, ...patch};
-    return {...next, gain: clamp(next.gain, FILTER_GAIN_LIMITS)};
   }
 }

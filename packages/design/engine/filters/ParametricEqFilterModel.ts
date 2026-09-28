@@ -1,7 +1,6 @@
 import {biquad} from './biquad.js';
-import type {Complex, FilterSpec, ParametricEqFilter, ParametricEqPatch, WprFilter} from '../types.js';
+import type {Complex, FilterSpec, ParametricEqFilter, WprFilter} from '../types.js';
 import type {FilterModel} from './FilterModel.js';
-import {FILTER_FC_LIMITS, FILTER_GAIN_LIMITS, FILTER_Q_LIMITS, clamp} from './limits.js';
 
 
 /**
@@ -38,17 +37,5 @@ export class ParametricEqFilterModel implements FilterModel {
     const gain = Number(fields[4]);
     if (![fc, Q, gain].every(Number.isFinite)) return 'malformed';
     return {type: 'peaking', fc, Q, gain};
-  }
-
-  /** Typed edit — `fc`/`Q`/`gain` each clamped to their own entry ranges; any field left out of
-   *  `patch` passes through unchanged. */
-  static with(f: ParametricEqFilter, patch: ParametricEqPatch): ParametricEqFilter {
-    const next = {...f, ...patch};
-    return {
-      ...next,
-      fc: clamp(next.fc, FILTER_FC_LIMITS),
-      Q: clamp(next.Q, FILTER_Q_LIMITS),
-      gain: clamp(next.gain, FILTER_GAIN_LIMITS),
-    };
   }
 }

@@ -1,8 +1,7 @@
 import {biquad} from './biquad.js';
 import {cDiv, cx} from '../complex.js';
-import type {AllpassFilter, AllpassPatch, Complex, FilterSpec, WprFilter} from '../types.js';
+import type {AllpassFilter, Complex, FilterSpec, WprFilter} from '../types.js';
 import type {FilterModel} from './FilterModel.js';
-import {FILTER_ORDER_LIMITS, FILTER_Q_LIMITS, FILTER_T_LIMITS, clamp, roundClamp} from './limits.js';
 
 
 /**
@@ -40,17 +39,5 @@ export class AllpassFilterModel implements FilterModel {
     const Q = Number(fields[4]);
     if (!Number.isFinite(order) || !Number.isFinite(t) || !Number.isFinite(Q)) return 'malformed';
     return {type: 'allpass', order, t, Q};
-  }
-
-  /** Typed edit — `order` rounded to the nearest integer then clamped to 1..10, `t`/`Q` clamped
-   *  to their own entry ranges; any field left out of `patch` passes through unchanged. */
-  static with(f: AllpassFilter, patch: AllpassPatch): AllpassFilter {
-    const next = {...f, ...patch};
-    return {
-      ...next,
-      order: roundClamp(next.order, FILTER_ORDER_LIMITS),
-      t: clamp(next.t, FILTER_T_LIMITS),
-      Q: clamp(next.Q, FILTER_Q_LIMITS),
-    };
   }
 }

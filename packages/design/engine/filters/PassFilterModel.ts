@@ -1,11 +1,10 @@
-import type {Complex, FilterSpec, PassFamily, PassFilter, PassPatch, WprFilter} from '../types.js';
+import type {Complex, FilterSpec, PassFamily, PassFilter, WprFilter} from '../types.js';
 import type {FilterModel} from './FilterModel.js';
 import type {PassFamilyModel} from './passFamilies/PassFamilyModel.js';
 import {ButterworthFamily} from './passFamilies/ButterworthFamily.js';
 import {LinkwitzRileyFamily} from './passFamilies/LinkwitzRileyFamily.js';
 import {BesselFamily} from './passFamilies/BesselFamily.js';
 import {SosFamily} from './passFamilies/SosFamily.js';
-import {FILTER_FC_LIMITS, FILTER_ORDER_LIMITS, FILTER_Q_LIMITS, clamp, roundClamp} from './limits.js';
 
 
 /** The one place a `PassFamily` becomes a strategy — exhaustive, no default arm: `PassFamily`
@@ -95,18 +94,5 @@ export class PassFilterModel implements FilterModel {
     const family = passFamilyOf(subtype);
     if (family == null) return 'malformed';
     return {type: kind, family, order, fc, Q};
-  }
-
-  /** Typed edit — `order` rounded to the nearest integer then clamped to 1..10, `fc`/`Q` clamped
-   *  to their own entry ranges; `family` and any field left out of `patch` pass through
-   *  unchanged. Same variant in, same variant out. */
-  static with(f: PassFilter, patch: PassPatch): PassFilter {
-    const next = {...f, ...patch};
-    return {
-      ...next,
-      order: roundClamp(next.order, FILTER_ORDER_LIMITS),
-      fc: clamp(next.fc, FILTER_FC_LIMITS),
-      Q: clamp(next.Q, FILTER_Q_LIMITS),
-    };
   }
 }
