@@ -1,6 +1,6 @@
 # BUG_20260927_engine-sweep-crashes-on-unsimulatable-box
 
-**Status:** OPEN
+**Status:** RESOLVED
 
 ## Symptom
 `Engine.sweep` with a bandpass 6th or ABC box throws "Cannot read properties of undefined" instead
@@ -20,3 +20,6 @@ returns the refusal as an issue naming the box type; the test changes to assert 
 
 ## Verification
 The circuit.test.ts case asserts a returned issue for bandpass6 and abc, no throw.
+
+## Resolution (2026-09-29)
+No unsimulatable box remains: bandpass6 and abc simulate since merge df81902c (SimulatableBoxType = BoxType). circuit.test.ts no longer pins the throw.
