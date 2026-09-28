@@ -98,7 +98,7 @@ function fieldForKey(key: string) {
 /** The driver-spec key whose field renders the given editor label, or `undefined` when no
  *  field does — derived from the registry, never a hand-maintained map.
  *
- *  The registry names a driver field `driver_Fs_hz` while the driver record, `FIELD_FLOOR` and
+ *  The registry names a driver field `driver_Fs_hz` while the driver record and
  *  `PROVENANCE_MAP` all call it `Fs_hz`; the prefix is the registry's own decoration, and
  *  dropping it is the follow-up recorded in
  *  bugs/BUG_20260928_three_tables_disagree_on_field_validity.md. Until then this strips it. */

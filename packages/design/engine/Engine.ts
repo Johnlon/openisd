@@ -283,7 +283,7 @@ export class Engine {
 
   /** The weaker floor some driver fields carry instead: negative or non-finite is not physical,
    *  but zero is a legitimate stated value (BUG_20260927_driver-bad-value-decided-in-ui.md).
-   *  Which floor applies to which field is `openIsdDriverSpec.ts`'s `FIELD_FLOOR`, not this
+   *  Which floor applies to which field is the field's own `NumberField.floor`, not this
    *  method's business. */
   nonNegativeValueIssue(value: number): NegativeValueIssue | null {
     return nonNegativeValueIssue(value);
