@@ -1,6 +1,6 @@
 # BUG_20260927_skin-name-prefixes-inconsistent
 
-**Status:** OPEN
+**Status:** RESOLVED
 
 ## Symptom
 The original skin's files use two prefixes, `Original*` and `Og*`; the mobile skin's first draft
@@ -24,3 +24,6 @@ separate package.
 
 ## Verification
 `grep -rE "\bOg[A-Z]|\bMob[A-Z]" packages docs` finds nothing; UI unit and browser suites pass.
+
+## Resolution (2026-09-29)
+Og* → Original* in file names, identifiers, tests, docs and bugs; landed inside 2209bcae (swept from the shared index into that commit). Mob* was already gone. Kebab `og-*` DOM ids and CSS classes are unchanged (browser selectors). `git grep -E "\b[Oo]g[A-Z]"` finds only this file and questions.yml.
