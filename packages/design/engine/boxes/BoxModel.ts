@@ -53,7 +53,19 @@ export interface DriverSideQuantities {
 /** What one box topology's circuit produces at one frequency — the same four fields `solve()`
  *  itself returns, minus the electrical quantities (`Zel`) that are the same for every box
  *  type and stay computed in `solve()` once the topology's own result is in hand. */
-export type BoxOutput = Pick<Solution, 'Zbox' | 'UD' | 'UP' | 'U0'>;
+export interface BoxOutput extends Pick<Solution, 'Zbox' | 'UD' | 'UP' | 'U0'> {
+  /** The REAR port's own volume velocity, for a two-port topology (`Bandpass6Box`, `AbcBox`) —
+   *  `UP` above is that topology's FRONT port, the same "one port" convention every other box
+   *  type already returns. `circuit.ts`'s `solve()` forwards this into `Solution.UPr`, and
+   *  `sweep.ts` turns it into `SweepResult.pvRear` for the `RearPort` chart. */
+  readonly UPr?: Complex;
+  /** ABC's intra-chamber port volume velocity, WinISD's own chart-21 form (Ricl left out of the
+   *  load impedance it divides by — winisd_research/GHIDRA_FINDINGS.md "ABC (Aperiodic
+   *  Bi-Chamber)" — a WinISD wart, reproduced by default). Present only for `AbcBox`'s
+   *  `winisd-lossy` branch; forwarded the same way as `UPr`, into `Solution.UPi` /
+   *  `SweepResult.pvIntra`. */
+  readonly UPi?: Complex;
+}
 
 export interface BoxModel {
   /** Zbox and the driver/port/net volume velocities this topology produces at one frequency. */

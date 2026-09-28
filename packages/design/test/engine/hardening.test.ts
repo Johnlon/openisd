@@ -40,6 +40,10 @@ const P_SEALED: SweepParams = { Vb: 0.030, eg: 2.83, Ql: 10, fmin: 10, fmax: 100
 const P_VENTED: SweepParams = { ...P_SEALED, Sp: Math.PI * 0.025 ** 2, Leff: 0.1366 };
 const P_PR: SweepParams = { ...P_SEALED, prSd: 0.0133, prNum: 1, prMmd: 0.030, prMadd: 0, prCms: 0.0008, prRms: 1.0 };
 const P_BP4: SweepParams = { ...P_VENTED, Vf: 0.020 };
+// `bandpass6`/`abc` read Fr/Ff (chamber tuning) for their port mass in every lossMode, never
+// Leff/Sp geometry (`Bandpass6Box.ts`'s own doc) — see `boxModel.test.ts`'s own P_BP6/P_ABC.
+const P_BP6: SweepParams = { ...P_SEALED, Vf: 0.020, Fr: 45, Ff: 60 };
+const P_ABC: SweepParams = { ...P_BP6, SpIntra: Math.PI * 0.02 ** 2, LeffIntra: 0.05 };
 
 
 
@@ -120,6 +124,7 @@ describe('a zero box volume is a named error, not Infinity-poisoned curves', () 
     // here until this table names it.
     const healthy: Record<SimulatableBoxType, SweepParams> = {
       sealed: P_SEALED, vented: P_VENTED, 'box-passive-radiator': P_PR, bandpass4: P_BP4,
+      bandpass6: P_BP6, abc: P_ABC,
     };
     for (const box of Object.keys(healthy) as SimulatableBoxType[]) {
       const result = engine.solveBoxParams(box, healthy[box]);
@@ -129,26 +134,24 @@ describe('a zero box volume is a named error, not Infinity-poisoned curves', () 
     }
   });
 
-  it('a box type the circuit has no model for reports no issue and null values — naming it is the store\'s job (S3)', () => {
-    // `BoxType` names six enclosures and the circuit models four. The other two are simply
-    // unsimulatable here — never falling through to another topology's maths, which would
-    // produce a plausible-looking curve for a box that was never simulated — but the engine's
-    // precondition layer does not itself narrate WHICH box was declined; that presentation is
-    // the store's concern, not this one.
-    for (const box of ['bandpass6', 'abc'] as const) {
-      const result = engine.solveBoxParams(box, P_SEALED);
-      assert.equal(result.values, null, `${box}: has no circuit model, so there is nothing to sweep`);
-      assert.deepEqual(result.issues, [], `${box}: expected no field-level issue for an unmodelled topology`);
+  it('bandpass6/abc: a missing chamber volume is rejected the same as sealed/vented — Vb and Vf both required', () => {
+    // `Bandpass6Box`/`AbcBox` divide by both chamber compliances (Cabr = Vb/(ρc²), Cabf =
+    // Vf/(ρc²)) in every lossMode — `engine/params.ts`'s REQUIRED_BY_BOX bandpass6/abc entries.
+    for (const [box, healthy] of [['bandpass6', P_BP6], ['abc', P_ABC]] as const) {
+      assert.deepEqual(engine.solveBoxParams(box, healthy).issues, [],
+        `${box}: a valid design must produce no parameter issue`);
+      assert.ok(targets(engine.solveBoxParams(box, { ...healthy, Vb: 0 }).issues).includes('Vb'),
+        `${box}: Vb = 0 must be rejected — the rear chamber compliance collapses to zero`);
+      assert.ok(targets(engine.solveBoxParams(box, { ...healthy, Vf: 0 }).issues).includes('Vf'),
+        `${box}: Vf = 0 must be rejected — the front chamber compliance collapses to zero`);
     }
   });
 
-  it('every simulatable box type is genuinely simulatable — the refusal set is exactly the two', () => {
-    // Non-vacuity for the test above: if `simulatableBoxType` ever started refusing a box the
-    // engine really does model, that test would still pass while the app lost a feature.
-    for (const box of ['sealed', 'vented', 'bandpass4', 'box-passive-radiator'] as const)
+  it('every box type is genuinely simulatable — non-vacuity for the healthy-design test above', () => {
+    // If `simulatableBoxType` ever started refusing a box the engine really does model, that
+    // test would still pass while the app lost a feature.
+    for (const box of ['sealed', 'vented', 'bandpass4', 'box-passive-radiator', 'bandpass6', 'abc'] as const)
       assert.notEqual(engine.simulatableBoxType(box), null, `${box} must remain simulatable`);
-    for (const box of ['bandpass6', 'abc'] as const)
-      assert.equal(engine.simulatableBoxType(box), null, `${box} has no circuit model yet`);
   });
 
   it('a vented box with no vent area is rejected, naming Sp', () => {
