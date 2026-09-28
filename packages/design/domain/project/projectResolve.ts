@@ -157,8 +157,10 @@ export function resolveProject(ctx: ProjectResolveContext): ProjectIssues {
 }
 
 /** The driver's Re when it is a positive finite number, else null — read off `driverOver`, the
- *  permanent facade collaborator every caller of `resolveProject` already supplies. */
-function usableRe(root: SimpleField<OpenISDProjectJson>, driverOver: ProjectResolveContext['driverOver']): number | null {
+ *  permanent facade collaborator every caller of `resolveProject` already supplies. Exported: also
+ *  used by the facade's own `#signalOver` to build the `usableRe` callback `ProjectSignal` needs
+ *  (PLAN_openisdproject_split.md). */
+export function usableRe(root: SimpleField<OpenISDProjectJson>, driverOver: ProjectResolveContext['driverOver']): number | null {
     const Re_ohm = driverOver(root).specs.Re_ohm.value;
     return Re_ohm !== null && Number.isFinite(Re_ohm) && Re_ohm > 0 ? Re_ohm : null;
 }

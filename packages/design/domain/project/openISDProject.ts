@@ -3,12 +3,11 @@ import {Engine} from '../../engine/index.js';
 import type { Air, AirEnvironment, BoxParamsIssue, BoxType, ChartId, DriverError, EnclosureParams, Filter, MaxCurvesResult, MaxCurvesSolveResult, PrIssue, SimulatableBoxType, SweepIssue, SweepParams, SweepResult, SweepSolveResult, VentIssue } from '../../engine/index.js';
 import { realAppContext } from '../appContext.js';
 import type { AppContext } from '../appContext.js';
-import { CalculatedFieldImpl, DefaultingFieldImpl, DualWriteFieldImpl, absentCell, calculatedCell, enteredCell, focus, simpleField, writeEntryDq } from '../cell.js';
+import { CalculatedFieldImpl, absentCell, calculatedCell, focus, simpleField } from '../cell.js';
 import type { Calculatable, Calculated, Clearable, Entered, Readable, SimpleField, Unsolvable, Writable } from '../cell.js';
 import { newUuid } from '../newUuid.js';
 import { openIsdProjectToWinIsdProject, winIsdProjectToOpenIsdProject } from '../openIsdProjectToWinIsdProject.js';
 import { openISDProjectSessionJsonSchema } from '../openisdSchema.js';
-import { calculatedEntry, enteredEntry } from '../specEntry.js';
 import type { OpenISDProjectJson, OpenISDProjectSessionJson } from '../openisdSchema.js';
 import { ProjectBuilder } from '../openisdTransforms.js';
 import type { Box } from '../box/box.js';
@@ -25,7 +24,8 @@ import { freshEmbeddedDriver } from './freshEmbeddedDriver.js';
 import type { ProjectIssues } from './projectIssues.js';
 import { ProjectMeta } from './projectMeta.js';
 import { ProjectListeners } from './projectListeners.js';
-import { resolveProject } from './projectResolve.js';
+import { resolveProject, usableRe } from './projectResolve.js';
+import { ProjectSignal } from './projectSignal.js';
 
 // The domain declares its state here. JSON shapes live in `openisdSchema.ts`.
 // Internal JSON types are never re-exported from `domain/index.ts`.
@@ -33,11 +33,6 @@ import { resolveProject } from './projectResolve.js';
 // A module-scoped WeakMap bridge (`notifyProject`/`subscribeToProject`) lets
 // `ManagedProject` observe internal `OpenISDProject` changes without exposing
 // state publicly.
-
-/** The voltage a sweep runs at before anything is known. */
-const DEFAULT_DRIVE_VOLTAGE_V = 1;
-/** The lowest drive voltage a project may hold: 10 mV, the smallest the UI's 2 dp shows. */
-const MIN_DRIVE_VOLTAGE_V = 0.01;
 
 export class OpenISDProject {
     static builder(driver: OpenISDDriver, engine: Engine, appContext: AppContext = realAppContext): ProjectBuilder {
@@ -508,8 +503,8 @@ export class OpenISDProject {
             boxOver: (root) => this.#boxOver(root),
             air: (root) => this.#air(root),
             envFieldsOver: (environment) => envFieldsOver(environment, this.#engine),
-            powerDriveOver: (root) => this.#powerDriveOver(root),
-            driveVoltageOver: (root) => this.#driveVoltageOver(root),
+            powerDriveOver: (root) => this.#signalOver(root).powerDrive_W,
+            driveVoltageOver: (root) => this.#signalOver(root).driveVoltage_V,
         });
     }
 
@@ -600,86 +595,35 @@ export class OpenISDProject {
 
     // ── THE SIGNAL ────────────────────────────────────────────────────────────────────────────
 
+    /** This project's signal window, built over `root` — `#resolve()` writes through its direct
+     *  root, same split `driverOver`/`boxOver` have (S2-7d2). `usableRe`/`Rs_ohm`/`#issues.signal`
+     *  are this project's own facts, passed in rather than let `ProjectSignal` reach for them. */
+    #signalOver(root: SimpleField<OpenISDProjectJson>): ProjectSignal {
+        return ProjectSignal.wrap(
+            focus(root, 'signal'),
+            this.#engine,
+            () => usableRe(root, (r) => this.#driverOver(r)),
+            () => this.Rs_ohm.value ?? 0,
+            () => this.#issues.signal,
+        );
+    }
+
     /** The drive power — WinISD's Signal-tab "Input Power". While the driver has a usable Re,
      *  `power_W = voltage_V² / Re` holds and whichever of the pair was entered last is entered;
      *  the other is calculated. Without a usable Re it is not available and cannot be entered —
      *  its dq names the missing Re. */
     get powerDrive_W(): Readable<number | null> & Entered & Calculated & Writable<number> & Clearable & Calculatable<number> & Unsolvable {
-        return this.#powerDriveOver(this.#root());
-    }
-
-    /** `powerDrive_W` over `root` — `#resolve()` writes it through its direct root. */
-    #powerDriveOver(root: SimpleField<OpenISDProjectJson>): DualWriteFieldImpl<number> {
-        const signal = focus(root, 'signal');
-        return new DualWriteFieldImpl<number>(
-            () => {
-                const entry = signal.value.power_W;
-                if (entry === undefined) return absentCell<number>('power_W', this.#issues.signal);
-                return entry.state === 'E'
-                    ? enteredCell<number | null>('power_W', entry.value)
-                    : calculatedCell<number | null>('power_W', entry.value);
-            },
-            {
-                entered: (v: number) => {
-                    const Re_ohm = this.#usableReOver(root);
-                    if (Re_ohm === null) {
-                        throw new Error('powerDrive_W cannot be entered: the driver has no usable Re_ohm yet.');
-                    }
-                    const Rs_ohm = this.Rs_ohm.value ?? 0;
-                    if (!(v > 0 && this.#engine.driveVoltage(v, Re_ohm, Rs_ohm) >= MIN_DRIVE_VOLTAGE_V)) {
-                        throw new RangeError(`powerDrive_W ${v} W drives below the 10 mV minimum voltage.`);
-                    }
-                    signal.set({...signal.value, power_W: enteredEntry(v), voltage_V: undefined});
-                },
-                // With Re known, the voltage stays as it reads and becomes the entered one.
-                clear: () => {
-                    const {voltage_V} = signal.value;
-                    const keepVoltage = this.#usableReOver(root) !== null && voltage_V !== undefined;
-                    signal.set({...signal.value, power_W: undefined, voltage_V: keepVoltage ? enteredEntry(voltage_V.value) : voltage_V});
-                },
-                calculated: (v: number) => signal.set({...signal.value, power_W: calculatedEntry(v)}),
-                dq: (list) => writeEntryDq(focus(signal, 'power_W'), list),
-            },
-        );
+        return this.#signalOver(this.#root()).powerDrive_W;
     }
 
     /**
      * The drive voltage — the `eg` every sweep runs at. Never absent: an empty slot reads
-     * `DEFAULT_DRIVE_VOLTAGE_V` as calculated, and it is never below 10 mV. Entering it needs no Re.
+     * the default as calculated, and it is never below 10 mV. Entering it needs no Re.
      * `.clear()` empties the
      * pair; the resolve then fills it back from its defaults.
      */
     get driveVoltage_V(): Readable<number> & Entered & Calculated & Writable<number> & Clearable & Calculatable<number> {
-        return this.#driveVoltageOver(this.#root());
-    }
-
-    /** `driveVoltage_V` over `root` — `#resolve()` writes it through its direct root. */
-    #driveVoltageOver(root: SimpleField<OpenISDProjectJson>): DefaultingFieldImpl<number> {
-        const signal = focus(root, 'signal');
-        return new DefaultingFieldImpl<number>(
-            () => {
-                const entry = signal.value.voltage_V;
-                if (entry === undefined) return calculatedCell('voltage_V', DEFAULT_DRIVE_VOLTAGE_V);
-                return entry.state === 'E'
-                    ? enteredCell('voltage_V', entry.value)
-                    : calculatedCell('voltage_V', entry.value);
-            },
-            {
-                entered: (v: number) => {
-                    if (!(v >= MIN_DRIVE_VOLTAGE_V)) throw new RangeError(`driveVoltage_V ${v} V is below the 10 mV minimum.`);
-                    signal.set({...signal.value, voltage_V: enteredEntry(v), power_W: undefined});
-                },
-                clear: () => signal.set({...signal.value, voltage_V: undefined, power_W: undefined}),
-                calculated: (v: number) => signal.set({...signal.value, voltage_V: calculatedEntry(v)}),
-                dq: (list) => writeEntryDq(focus(signal, 'voltage_V'), list),
-            },
-        );
-    }
-
-    /** The driver's Re when it is a positive finite number, else null. */
-    #usableReOver(root: SimpleField<OpenISDProjectJson>): number | null {
-        const Re_ohm = this.#driverOver(root).specs.Re_ohm.value;
-        return Re_ohm !== null && Number.isFinite(Re_ohm) && Re_ohm > 0 ? Re_ohm : null;
+        return this.#signalOver(this.#root()).driveVoltage_V;
     }
 
     // ── ENVIRONMENT ───────────────────────────────────────────────────────────────────────────
