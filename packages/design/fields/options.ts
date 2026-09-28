@@ -53,8 +53,7 @@ export const SEALED_ALIGNMENT_OPTIONS: readonly SelectorOption<number>[] = Objec
 ]);
 
 /** WinISD's five vented-box alignment choices from the New Project wizard, exact labels, in
- *  its dropdown order. WinISD's default is C4/SC4. Formulas: `engine/boxDesign.ts`'s
- *  `ventedAlignment()`. */
+ *  its dropdown order. WinISD's default is C4/SC4. Formulas: `VentedEngine.alignment()`. */
 export const VENTED_ALIGNMENT_OPTIONS: readonly SelectorOption<VentedAlignment>[] = Object.freeze([
   Object.freeze({ value: 'qb3', label: 'QB3 Quasi-butterworth' }),
   Object.freeze({ value: 'bb4', label: 'BB4/SBB4 (Super-)boom-box' }),

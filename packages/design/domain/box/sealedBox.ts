@@ -13,7 +13,7 @@ export interface SealedBox {
 
     /** The resulting system Q (Qtc), under the same loss mode as `resonance_hz` — null on the
      *  same terms. An ENTRY read (S10): the project's `#resolve()` cascade writes it as a
-     *  calculated C/E entry via `Engine.solveSealedAlignment`, the same pattern the vent's
+     *  calculated C/E entry via `SealedEngine.solve`, the same pattern the vent's
      *  `tuning_goal_hz`/the PR's `tuning_goal_hz` already use — not a readout recomputed on every
      *  read. */
     readonly q_tc: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;

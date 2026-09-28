@@ -115,11 +115,11 @@ describe('appState — the application settings seam', () => {
 
   it("the engine reads the band at call time — a later write changes its answer, nothing rebuilt", () => {
     setVentedLimits(WIDE);
-    assert.equal(engine.ventedVolumeIssue(1.684), null);
+    assert.equal(engine.vented.volumeIssue(1.684), null);
 
     setVentedLimits(NARROW);
 
-    const issue = engine.ventedVolumeIssue(1.684);
+    const issue = engine.vented.volumeIssue(1.684);
     assert.notEqual(issue, null);
     assert.equal(issue?.kind, 'out-of-range');
   });

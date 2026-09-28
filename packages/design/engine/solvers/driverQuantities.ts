@@ -2,7 +2,7 @@ import type {Wiring} from '../types.js';
 
 // S2-10 (T10/T3-style trim): the bag types every solve used to take/return, PRIVATE now — a
 // caller reaches every one of these quantities through a `SolverField` handle
-// (`solveDriver`/`PrEngine.solve`/`VentEngine.solve`/`solveSealedAlignment`), never through a snapshot bag.
+// (`solveDriver`/`PrEngine.solve`/`VentEngine.solve`/`SealedEngine.solve`), never through a snapshot bag.
 // Kept as a plain WORKING SET only where the arithmetic genuinely needs one (an iterative
 // fixpoint, a group of relations feeding each other) — never exported past this file.
 export interface DriverWorkingSet {

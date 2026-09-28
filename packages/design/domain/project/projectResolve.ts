@@ -105,7 +105,7 @@ export function resolveProject(ctx: ProjectResolveContext): ProjectIssues {
         // it: the two say different things (this geometry does not solve / nobody would build
         // this).
         const Fb = box.vented.tuning_goal_hz.value;
-        ventTuningExtra = Fb === null ? null : engine.ventedTuningIssue(Fb);
+        ventTuningExtra = Fb === null ? null : engine.vented.tuningIssue(Fb);
     } else if (boxType === 'bandpass4') {
         vent = engine.vent.solve({
             tuning_goal_hz: box.bandpass4.chambers.front.tuning_goal_hz,
@@ -141,7 +141,7 @@ export function resolveProject(ctx: ProjectResolveContext): ProjectIssues {
                 ts.Qms.value ?? NaN, ts.Qes.value ?? NaN, ts.Re_ohm.value ?? NaN,
                 directRoot.value.driverEmbedding.Rs_ohm, Qts);
         };
-        sealed = engine.solveSealedAlignment({
+        sealed = engine.sealed.solve({
             Qts: inputOf(rgLoadedQts),
             Vas_m3: inputOf(() => ts.Vas_m3.value),
             Fs_hz: inputOf(() => ts.Fs_hz.value),

@@ -50,7 +50,7 @@ describe('every dropdown is an EnumField carrying SelectorOption[]', () => {
   it('box_Qtc lists the nine WinISD sealed alignments and is the SAME list the engine hands out', () => {
     const options = optionsOf(EnumField.BOX_QTC);
     assert.equal(options.length, 9);
-    assert.deepEqual(options, new Engine().sealedAlignmentOptions());
+    assert.deepEqual(options, new Engine().sealed.alignmentOptions());
   });
 
   it('loss_DampingMode lists the engine loss modes, values being the tokens the project stores', () => {

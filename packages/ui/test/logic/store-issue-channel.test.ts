@@ -241,27 +241,27 @@ it('an unsized vent port surfaces a tuning_goal_hz/length_m error through allIss
       `the sweep channel message must be one of the vent cell's own DQ sentences; cell has: ${tuningCellMessages.join(' | ')}`);
   });
 
-  it('an unsimulated topology (bandpass6) reports "Not yet implemented", not a silent blank chart (S3/T4)', async () => {
+  it('a new bandpass6 project simulates, and names its missing chamber volumes instead of a blank chart', async () => {
     newProject();
     requireFocusedProject().box.boxType.set('bandpass6');
     await awaitSweepThrottle();
 
-    const notImpl = allIssues.value.find(e => /not yet implemented/i.test(e.message));
-    assert.ok(notImpl, `allIssues must carry a "not yet implemented" error; got: ${allIssues.value.map(e => e.message).join(', ')}`);
-    assert.equal(notImpl.level, 'error');
-    assert.equal(notImpl.field, 'boxType');
-    assert.match(notImpl.message, /bandpass6/);
+    assert.equal(allIssues.value.find(e => /not yet implemented/i.test(e.message)), undefined,
+      `bandpass6 is simulatable; got: ${allIssues.value.map(e => e.message).join(', ')}`);
+    const fields = allIssues.value.filter(e => e.level === 'error').map(e => e.field);
+    assert.ok(fields.includes('Vb') && fields.includes('Vf'),
+      `allIssues must name both empty chamber volumes; got: ${fields.join(', ')}`);
   });
 
-  it('an unsimulated topology (abc) reports "Not yet implemented", not a silent blank chart (S3/T4)', async () => {
+  it('a new abc project simulates, and names its missing chamber volumes instead of a blank chart', async () => {
     newProject();
     requireFocusedProject().box.boxType.set('abc');
     await awaitSweepThrottle();
 
-    const notImpl = allIssues.value.find(e => /not yet implemented/i.test(e.message));
-    assert.ok(notImpl, `allIssues must carry a "not yet implemented" error; got: ${allIssues.value.map(e => e.message).join(', ')}`);
-    assert.equal(notImpl.level, 'error');
-    assert.equal(notImpl.field, 'boxType');
-    assert.match(notImpl.message, /abc/);
+    assert.equal(allIssues.value.find(e => /not yet implemented/i.test(e.message)), undefined,
+      `abc is simulatable; got: ${allIssues.value.map(e => e.message).join(', ')}`);
+    const fields = allIssues.value.filter(e => e.level === 'error').map(e => e.field);
+    assert.ok(fields.includes('Vb') && fields.includes('Vf'),
+      `allIssues must name both empty chamber volumes; got: ${fields.join(', ')}`);
   });
 });

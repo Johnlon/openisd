@@ -196,7 +196,7 @@ describe('useOgNewProject', () => {
     const qtsLoaded = project.sourceLoadedQts(project.Rs_ohm.value);
     expect(qtsLoaded).not.toBeNull();
     if (qtsLoaded === null) return;
-    const fromProject = engine.ventedAlignment('bb4', 40, qtsLoaded, 0.02, project.box.vented.losses.Ql.value);
+    const fromProject = engine.vented.alignment('bb4', 40, qtsLoaded, 0.02, project.box.vented.losses.Ql.value);
     expect(previewVb_m3).toBeCloseTo(fromProject.Vb, 12);
   });
 

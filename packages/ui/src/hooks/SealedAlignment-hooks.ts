@@ -33,15 +33,15 @@ export function createSealedAlignmentEditor({project, changed, engine}: SealedAl
     return {Qts: ts.Qts.value, Vas_m3: ts.Vas_m3.value, Fs_hz: ts.Fs_hz.value, Qes: ts.Qes.value};
   });
 
-  const options = computed(() => engine.sealedAlignmentOptions());
+  const options = computed(() => engine.sealed.alignmentOptions());
   const qtc = computed(() => {
     const {Qts, Vas_m3} = driverValues.value;
     const volume = draftVolume_m3.value;
     return volume == null || Qts == null || Vas_m3 == null
       ? null
-      : engine.sealedQtcFromVolume(Qts, Vas_m3, volume);
+      : engine.sealed.qtcFromVolume(Qts, Vas_m3, volume);
   });
-  const selectedOption = computed(() => qtc.value == null ? null : engine.closestSealedAlignment(qtc.value));
+  const selectedOption = computed(() => qtc.value == null ? null : engine.sealed.closestAlignment(qtc.value));
   const volume_L = computed<number | null>({
     get: () => draftVolume_m3.value == null ? null : draftVolume_m3.value * 1000,
     set: value => { draftVolume_m3.value = value == null ? null : value / 1000; },
@@ -69,7 +69,7 @@ export function createSealedAlignmentEditor({project, changed, engine}: SealedAl
     const {Qts, Vas_m3} = driverValues.value;
     draftVolume_m3.value = Qts == null || Vas_m3 == null
       ? null
-      : engine.sealedFromQtc(Qts, Vas_m3, targetQtc);
+      : engine.sealed.volumeForQtc(Qts, Vas_m3, targetQtc);
   }
 
   function accept(): void {

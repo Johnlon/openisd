@@ -65,13 +65,13 @@ export interface VentSolverParams {
 }
 
 /** A `SolverField` handle for every sealed-alignment quantity. Pass this to
- *  `solveSealedAlignment` — the solve derives whichever of `Qtc`/`Vb_m3` is not entered from
+ *  `SealedEngine.solve` — the solve derives whichever of `Qtc`/`Vb_m3` is not entered from
  *  the driver's own `Qts`/`Vas_m3` and writes it back via `setCalculated`, never overwriting an
  *  entered value. `Qts`/`Vas_m3` are read-only inputs — nothing here ever writes back to the
  *  driver's own T/S spec.
  *
  *  `Fs_hz`/`Ql`/`Qa`/`lossMode` (S10) feed the Vb→Qtc route only, matching the Box tab's own
- *  lossy readout (`sealedResonance`) instead of the lossless textbook ratio. `Fs_hz` is the
+ *  lossy readout (`SealedEngine.resonance`) instead of the lossless textbook ratio. `Fs_hz` is the
  *  gate: when a caller leaves it not-entered, the route falls back to the lossless formula
  *  exactly as before S10, so every pre-S10 caller (the target-Qtc alignment picker included)
  *  keeps its unchanged behaviour. */

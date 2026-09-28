@@ -216,12 +216,12 @@ export function useOgNewProject(deps?: OgNewProjectDeps): OgNewProjectAPI {
     const Vas_m3 = driver.specs.Vas_m3.value;
     const v_m3 = sealedVolume_L.value / 1000;
     return Qts != null && Vas_m3 != null && v_m3 > 0
-      ? eng.sealedQtcFromVolume(Qts, Vas_m3, v_m3)
+      ? eng.sealed.qtcFromVolume(Qts, Vas_m3, v_m3)
       : null;
   });
 
   const selectedSealedAlignment = computed(() => {
-    return qtc.value != null ? eng.closestSealedAlignment(qtc.value) : null;
+    return qtc.value != null ? eng.sealed.closestAlignment(qtc.value) : null;
   });
 
   /** Re-derive the sealed volume from the current driver and target Qtc; a driver without
@@ -230,7 +230,7 @@ export function useOgNewProject(deps?: OgNewProjectDeps): OgNewProjectAPI {
     const Qts = driver.specs.Qts.value;
     const Vas_m3 = driver.specs.Vas_m3.value;
     if (Qts == null || Vas_m3 == null) return;
-    const calculated_m3 = eng.sealedFromQtc(Qts, Vas_m3, target);
+    const calculated_m3 = eng.sealed.volumeForQtc(Qts, Vas_m3, target);
     // Vb is a 2dp field everywhere else in the app (packages/ui/src/logic/fields/uiFields.ts) —
     // match that here instead of showing the solver's raw float.
     if (calculated_m3 != null) sealedVolume_L.value = Math.round(calculated_m3 * 1000 * 100) / 100;
@@ -269,7 +269,7 @@ export function useOgNewProject(deps?: OgNewProjectDeps): OgNewProjectAPI {
     const QtsLoaded = Qms != null && Qes != null && Re_ohm != null
       ? eng.sourceLoadedQts(Qms, Qes, Re_ohm, Rs_ohm, Qts)
       : Qts;
-    return eng.ventedAlignment(alignment, Fs_hz, QtsLoaded, Vas_m3, Ql);
+    return eng.vented.alignment(alignment, Fs_hz, QtsLoaded, Vas_m3, Ql);
   }
 
   const ventedAlignmentResult = computed(() => {
@@ -288,7 +288,7 @@ export function useOgNewProject(deps?: OgNewProjectDeps): OgNewProjectAPI {
     if (!isVented.value) return null;
     const design = ventedAlignmentResult.value;
     if (!design) return null;
-    const issue = eng.ventedVolumeIssue(design.Vb);
+    const issue = eng.vented.volumeIssue(design.Vb);
     return issue === null ? null : issue.text;
   });
 
@@ -296,7 +296,7 @@ export function useOgNewProject(deps?: OgNewProjectDeps): OgNewProjectAPI {
     if (!isVented.value) return null;
     const design = ventedAlignmentResult.value;
     if (!design) return null;
-    const issue = eng.ventedTuningIssue(design.Fb);
+    const issue = eng.vented.tuningIssue(design.Fb);
     return issue === null ? null : issue.text;
   });
 
