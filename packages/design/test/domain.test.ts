@@ -2185,16 +2185,16 @@ describe("a blank device reports WinISD's own defaults without stating them", ()
 
   it('solverParams adapts VCCon to the plain series/parallel wiring Engine.sweep()/maxCurves() take, both ways', () => {
     const blank = OpenISDDriver.empty(createEngine());
-    expect(blank.solverParams.wiring.value).toBe('parallel');
+    expect(blank.specs.solverParams().wiring.value).toBe('parallel');
 
     blank.specs.VCCon.set(VoiceCoilWiring.Series);
-    expect(blank.solverParams.wiring.value).toBe('series');
+    expect(blank.specs.solverParams().wiring.value).toBe('series');
   });
 
   it('solverParams\' adapted Re_terminal_ohm/BL_terminal_Tm/wiring slots silently discard any write — ' +
     'S2-10: nothing persists a value neither a resolve nor the domain has a slot for', () => {
     const blank = OpenISDDriver.empty(createEngine());
-    const params = blank.solverParams;
+    const params = blank.specs.solverParams();
 
     // `wiring` is a `SolverInput`: read only, no write for a solve to reach.
     expect('setCalculated' in params.wiring).toBe(false);

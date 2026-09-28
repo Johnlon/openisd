@@ -52,8 +52,7 @@ import {inputChecked, inputFrom, inputValue, listeningElement, selectedOption, s
 import {createSealedAlignmentEditor} from './SealedAlignment-hooks.js';
 import {OgFilters} from './OgFilters-hooks.js';
 import type {Calculated, Clearable, Entered, OpenISDProject, Readable, Writable} from '@openisd/design';
-import type {ProvenanceLetter} from '../logic/fieldProvenance.js';
-import {provenanceOf, provenanceOfEntry, provenanceOfSolved} from '../logic/fieldProvenance.js';
+import type {ProvenanceLetter} from '@openisd/design';
 import type {StoredProjectListing} from '@openisd/persistence';
 import type {BoxType, ChartId, EnvDefaults, Engine} from '@openisd/design/engine';
 import type {Design, PlotParams} from '../types.js';
@@ -95,18 +94,8 @@ export function isTabId(v: unknown): v is TabId {
     || v === 'signal' || v === 'advanced' || v === 'project';
 }
 
-export function dqOfCell(field: Readable<unknown> & Entered & Calculated): DqReadout {
-  return { dq: field.dq.map(issue => issue.text), dqState: provenanceOf(field) };
-}
-
-/** `dqOfCell` for a field that is entered or absent and has no `Calculated`. */
-export function dqOfEntry(field: Readable<unknown> & Entered): DqReadout {
-  return { dq: field.dq.map(issue => issue.text), dqState: provenanceOfEntry(field) };
-}
-
-/** `dqOfCell` for a field only a solver writes — calculated or absent, no `Entered`. */
-export function dqOfSolved(field: Readable<unknown> & Calculated): DqReadout {
-  return { dq: field.dq.map(issue => issue.text), dqState: provenanceOfSolved(field) };
+export function dqOfCell(field: Readable<unknown>): DqReadout {
+  return { dq: field.dq.map(issue => issue.text), dqState: field.provenance };
 }
 
 export function airFieldDataQuality(field: AirField, value: number | null): readonly string[] {
@@ -343,7 +332,7 @@ export function createEnvironmentAir({ project, projectChanged: changed, envDefa
     return computed<DqReadout>(() => {
       void changed.value;
       const f = field();
-      return { dq: airFieldDataQuality(airField, f.value), dqState: provenanceOf(f) };
+      return { dq: airFieldDataQuality(airField, f.value), dqState: f.provenance };
     });
   }
   function entryOf(field: () => EnvField) {
@@ -838,7 +827,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   onUnmounted(stopNudge);
 
   const currentDesign = computed(() => ({
-    driver: project.value.driver.solverParams, box: project.value.box.boxType.value, P: syncedP.value,
+    driver: project.value.driver.specs.solverParams(), box: project.value.box.boxType.value, P: syncedP.value,
     curves: curvesData.value, maxCurves: maxData.value ?? undefined, name: rowName(project.value),
     color: WINISD_TRACE.value, visible: isRowVisible(project.value),
     sortIndex: openProjects().indexOf(project.value),
@@ -930,7 +919,7 @@ const overlays = computed<Design[]>(() => {
     const mx = p.maxCurves({ fmin: P.fmin, fmax: P.fmax });
     if (!sw.values || !mx.values) continue;
     out.push({
-      driver: p.driver.solverParams,
+      driver: p.driver.specs.solverParams(),
       box,
       P,
       curves: sw.values,
@@ -1138,9 +1127,7 @@ const overlays = computed<Design[]>(() => {
     activeVent, END_CORRECTION_OPTIONS, VENT_SHAPE_OPTIONS, VENT_COUNT_OPTIONS, ventLState, portPipeResonance_hz,
     prBrowseOpen, prEditOpen, loadPREntry, loadBundledPassiveRadiatorEntry, defineNewPREntry,
     prAddedMassDq, prTuningDq, prResonanceMassDq, prFsMass_hz,
-    dqOfCell: (field: Readable<unknown> & Entered & Calculated) => dqOfCell(field),
-    dqOfEntry: (field: Readable<unknown> & Entered) => dqOfEntry(field),
-    dqOfSolved: (field: Readable<unknown> & Calculated) => dqOfSolved(field),
+    dqOfCell: (field: Readable<unknown>) => dqOfCell(field),
     fmt,
     driveV, rsOhm, advTemp, advHumidity, advPressure, advAir,
     envTempDq, envHumidityDq, envPressureDq, commitAirTemp, commitAirHumidity, commitAirPressure, resetAirToAppDefaults,

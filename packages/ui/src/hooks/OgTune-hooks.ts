@@ -1,7 +1,7 @@
 import type {InjectionKey, Ref} from 'vue';
 import {computed} from 'vue';
 import {useFocusedProject} from '../logic/focusedProjectContext.js';
-import {cellClassFor} from '../logic/useDriverCells.js';
+import {cellClassOf} from '../logic/useDriverCells.js';
 import type {Calculated, Clearable, Entered, Readable, Writable} from '@openisd/design';
 import type {NumSpecField} from '../logic/appState.js';
 import {engine, projectChanged} from '../logic/appState.js';
@@ -74,7 +74,7 @@ export function useOgTune(): OgTuneAPI {
   }
 
   function cellClass(key: NumSpecField): string {
-    return cellClassFor(specField, key);
+    return cellClassOf(specField(key));
   }
 
   /** A bad value (≤ 0, non-finite) is marked by the DOMAIN, on the field's own `.dq`

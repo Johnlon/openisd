@@ -10,15 +10,9 @@ import {useApp} from '../../logic/app.js';
 import {openDriverDraft, wiringOptions} from '../../logic/driverDraft.js';
 import {readDriverFileText} from '../../logic/driverFileText.js';
 import {driverToOwdrBytes, driverToWdrBytes, owdrTextToDriver, wdrTextToDriver} from '../../logic/fileImportExport.js';
-import {cellClassFor, cellClassOf} from '../../logic/useDriverCells.js';
-import {
-  chartBlockingReasonsFor,
-  dqNoteFor,
-  driverIssues,
-  ebpVal as ebpValFor,
-  inconsistentInputReasonsFor,
-  type DqReason,
-} from '../../hooks/DriverEditorModal-hooks.js';
+import {cellClassOf} from '../../logic/useDriverCells.js';
+import {dqNoteFor, ebpVal as ebpValFor} from '../../hooks/DriverEditorModal-hooks.js';
+import type {DqReason} from '@openisd/design';
 import type {Calculated, Clearable, Entered, Readable, Writable} from '@openisd/design';
 import NumInput from './NumInput.vue';
 import UnitToggle from './UnitToggle.vue';
@@ -211,7 +205,7 @@ function fieldOf(field: NumSpecField): Readable<number | null> & Entered & Calcu
 }
 
 function cellClass(field: NumSpecField): string {
-  return cellClassFor(cellOf, field);
+  return cellClassOf(cellOf(field));
 }
 
 function cellVal(field: NumSpecField): number | null {
@@ -338,8 +332,6 @@ function handleBodyClickOrFocus(e: Event) {
 // contradict each other beyond their own precision. The ADT decides; every member of the
 // group is marked, because none of them is more wrong than the others. Like every other DQ
 // state here it blocks nothing: the driver still simulates, saves and exports.
-const issues = computed(() => { void trigger.value; return driverIssues(draftDriver.value); });
-
 /** The one DQ mark per field: its reason, or '' when there is nothing to say. Reads the CELL's
  *  own DQ (S2-12) — each issue carries its own sentence, so this is a thin read, not a second
  *  derivation of which issue names this field. */
@@ -372,16 +364,16 @@ const identityReasons = computed<DqReason[]>(() => {
 // Only a quantity the solver cannot derive, or a mandatory field with no value, reaches this
 // list. An `inconsistent-inputs` issue never does: its values are all present
 // (BUG_20260924_inconsistent-inputs-claims-charts-blank).
-const chartBlockingReasons = computed<DqReason[]>(() => {
+const chartBlockingReasons = computed<readonly DqReason[]>(() => {
   void trigger.value;
-  return chartBlockingReasonsFor(issues.value, cellOf);
+  return draftDriver.value.chartBlockingReasons();
 });
 
 // The stated values contradict each other. The charts plot from the stated values regardless,
 // so this is a conflict to resolve, not a blocker — hence its own strip and its own consequence.
-const inconsistentInputReasons = computed<DqReason[]>(() => {
+const inconsistentInputReasons = computed<readonly DqReason[]>(() => {
   void trigger.value;
-  return inconsistentInputReasonsFor(issues.value);
+  return draftDriver.value.inconsistentInputReasons();
 });
 
 // The field answers this itself, off the same draft the rest of the dialog edits.

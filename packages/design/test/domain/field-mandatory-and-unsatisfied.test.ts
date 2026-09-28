@@ -4,7 +4,7 @@
  * can decide it differently from the other.
  *
  * It reads the `missing-dependencies` issues already on the field's own `dq`, which
- * `projectFormulaDq` put there: an issue names every field it involves — the target, and
+ * `OpenIsdDriverSpec`'s DQ marking put there: an issue names every field it involves — the target, and
  * whatever each blocked route requires or is still missing. An `inconsistent-inputs` issue is
  * NOT this — that is a contradiction between stated values, not an absent one.
  */

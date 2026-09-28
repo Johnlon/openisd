@@ -32,7 +32,6 @@ import {packageRoot, ratchet, relPath, shippedSource} from './architecture-gate-
 
 const ENGINE_PARAMETER_BASELINE: ReadonlySet<string> = new Set([
   "packages/design/domain/box/openISDBox.ts#OpenISDBox.wrap",
-  "packages/design/domain/driver/driverSolverParamsOf.ts#driverSolverParamsOf",
   "packages/design/domain/driver/openISDDriver.ts#OpenISDDriver.empty",
   "packages/design/domain/driver/openISDDriver.ts#OpenISDDriver.fromConformingRecord",
   "packages/design/domain/driver/openISDDriver.ts#OpenISDDriver.fromOwdrText",

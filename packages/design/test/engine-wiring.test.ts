@@ -37,7 +37,7 @@ describe('B — the project runs the engine sweep on its own driver and box', ()
   const drivenSealed = (engine: Engine, volume_m3: number) => {
     const project = OpenISDProject.builder(complete(engine), engine).sealed().volume_m3(volume_m3).build();
     project.powerDrive_W.set(1);
-    // Off, so `project.driver.solverParams` — which knows nothing of the flag — is the same driver
+    // Off, so `project.driver.specs.solverParams()` — which knows nothing of the flag — is the same driver
     // the project sweeps. On (the default) the project substitutes the WinISD parameter set and
     // this scenario would be comparing two different drivers, not two paths to one answer.
     project.winisdDriverModel.set(false);
@@ -52,7 +52,7 @@ describe('B — the project runs the engine sweep on its own driver and box', ()
     const mine = project.sweep(P).values;
     expect(mine).not.toBeNull();
     const theirs = engine.simulation.sweep(
-      project.driver.solverParams, project.driver.specs.Le_H.value!, 'sealed',
+      project.driver.specs.solverParams(), project.driver.specs.Le_H.value!, 'sealed',
       {
         Vb: 0.03, eg: project.driveVoltage_V.value!, fmin: 10, fmax: 1000, N: 100,
         Ql: project.box.sealed.losses.Ql.value, Qa: project.box.sealed.losses.Qa.value,

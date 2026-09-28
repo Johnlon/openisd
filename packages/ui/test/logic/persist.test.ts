@@ -18,7 +18,6 @@ import type {BoxType} from '@openisd/design/engine';
 import {createEngine} from '@openisd/design/engine';
 import {createMemoryStorage, createProjectRepo, type FileStorage, type ViewSnapshot} from '@openisd/persistence';
 import {currentViewSnapshot} from '../../src/logic/appState.js';
-import {provenanceOf} from '../../src/logic/fieldProvenance.js';
 
 /** A picker that is never reached — these tests exercise the storage/link/text doors only. */
 const noFilePicker: FileStorage = {
@@ -162,16 +161,16 @@ describe('persistence — provenance survives a file-save round trip', () => {
     // `field` is one of the names listed above.
     function stateOf(d: OpenISDDriver, field: typeof CHECKED_FIELDS[number]) {
       switch (field) {
-        case 'Fs_hz': return provenanceOf(d.specs.Fs_hz);
-        case 'Qts': return provenanceOf(d.specs.Qts);
-        case 'Qes': return provenanceOf(d.specs.Qes);
-        case 'Qms': return provenanceOf(d.specs.Qms);
-        case 'Vas_m3': return provenanceOf(d.specs.Vas_m3);
-        case 'Sd_m2': return provenanceOf(d.specs.Sd_m2);
-        case 'Re_ohm': return provenanceOf(d.specs.Re_ohm);
-        case 'Cms_m_per_N': return provenanceOf(d.specs.Cms_m_per_N);
-        case 'Mms_kg': return provenanceOf(d.specs.Mms_kg);
-        case 'BL_Tm': return provenanceOf(d.specs.BL_Tm);
+        case 'Fs_hz': return d.specs.Fs_hz.provenance;
+        case 'Qts': return d.specs.Qts.provenance;
+        case 'Qes': return d.specs.Qes.provenance;
+        case 'Qms': return d.specs.Qms.provenance;
+        case 'Vas_m3': return d.specs.Vas_m3.provenance;
+        case 'Sd_m2': return d.specs.Sd_m2.provenance;
+        case 'Re_ohm': return d.specs.Re_ohm.provenance;
+        case 'Cms_m_per_N': return d.specs.Cms_m_per_N.provenance;
+        case 'Mms_kg': return d.specs.Mms_kg.provenance;
+        case 'BL_Tm': return d.specs.BL_Tm.provenance;
       }
     }
     for (const f of CHECKED_FIELDS) {
