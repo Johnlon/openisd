@@ -41,7 +41,6 @@ import {
     enterVentField as enterVentFieldOn,
     ventFieldState as ventFieldStateOn,
 } from '../logic/useVentGroup.js';
-import {airForEnvironment} from '../logic/environment.js';
 import {buildPlotData, parseChartId, TAB_META} from '../logic/series.js';
 import {createToneGenerator, type ToneGenerator} from '../logic/toneGenerator.js';
 import {useApp} from '../logic/app.js';
@@ -375,10 +374,10 @@ export function createEnvironmentAir({ project, projectChanged: changed, envDefa
   const advAir = computed(() => {
     void project.value;
     void changed.value;
-    return airForEnvironment(engine, {
+    return engine.solveEnvironment({
       tempK: advTemp.value ?? undefined, humidityPct: advHumidity.value ?? undefined, pressurePa: advPressure.value ?? undefined,
       useWinisdAirModel: project.value.envUseWinisdAirModel.value,
-    });
+    }).values;
   });
   return {
     envTempStored: storedOf(temp), envHumidityStored: storedOf(humidity), envPressureStored: storedOf(pressure),
