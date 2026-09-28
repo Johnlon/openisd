@@ -23,7 +23,10 @@ import {
 
 /** A field as the hook reads it: value, provenance and DQ, nothing else. */
 function fakeCell(value: number | null, letter: ProvenanceLetter, dq: readonly DqIssue[] = []): Readable<number | null> & Entered & Calculated {
-  return {name: '', value, entered: letter === 'E', calculated: letter === 'C', dq};
+  return {
+    name: '', value, entered: letter === 'E', calculated: letter === 'C', dq,
+    mandatoryAndUnsatisfied: dq.some(issue => issue.kind === 'missing-dependencies'),
+  };
 }
 
 function cellMap(values: Partial<Record<SpecField, Readable<number | null> & Entered & Calculated>>) {

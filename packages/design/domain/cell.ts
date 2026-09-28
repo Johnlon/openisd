@@ -13,6 +13,10 @@ export interface Readable<V> {
   readonly name: string;
   readonly value: V;
   readonly dq: readonly DqIssue[];
+  /** The project needs this field and cannot derive it — a `missing-dependencies` issue on
+   *  `dq` names it, so something depending on it is blocked until it is stated. NOT an
+   *  `inconsistent-inputs` issue, which is a contradiction between values already stated. */
+  readonly mandatoryAndUnsatisfied: boolean;
 }
 
 /** A person can have put the value there: `entered` is true when they did. */
@@ -116,6 +120,9 @@ export class ReadableFieldImpl<V> implements Readable<V> {
   get name(): string { return this.readCell().name; }
   get value(): V { return this.readCell().value; }
   get dq(): readonly DqIssue[] { return this.readCell().dq; }
+  get mandatoryAndUnsatisfied(): boolean {
+    return this.dq.some(issue => issue.kind === 'missing-dependencies');
+  }
 }
 
 /** A stated-or-absent fact: entered by the project owner, never derived. `clear()` empties the

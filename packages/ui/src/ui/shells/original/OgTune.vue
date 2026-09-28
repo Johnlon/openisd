@@ -100,8 +100,8 @@ function scaledLimits(f: TuneField): { min?: number; max?: number } {
 }
 
 // Any two of the Q trio solve the third, so all three are flagged together while fewer than
-// two are usable. The rule itself lives in useDriverCells — the driver editor reads the same
-// one, against its own draft model.
+// two are usable. The rule itself lives on the field's own `mandatoryAndUnsatisfied` — the
+// driver editor reads the same one, against its own draft model.
 function isNumKey(f: string): f is NumKey {
   return ['Fs_hz', 'Qts', 'Qes', 'Qms', 'Vas_m3', 'Sd_m2', 'Re_ohm', 'Le_H', 'Xmax_m', 'Pe_W', 'BL_Tm', 'Mms_kg'].includes(f);
 }
@@ -109,7 +109,7 @@ function isNumKey(f: string): f is NumKey {
 function fieldClasses(f: TuneField): Record<string, boolean> {
   void project.value;
   const cellOf = (s: SpecField): Readable<number | null> & Entered & Calculated => fieldCell(isNumKey(s) ? s : 'Fs_hz');
-  const mandatory = project.value.driver.fieldIsMandatoryAndUnsatisfied(f.key);
+  const mandatory = fieldCell(f.key).mandatoryAndUnsatisfied;
   return {
     [cellClassFor(cellOf, f.key)]: true,
     'de-input-mandatory': mandatory,

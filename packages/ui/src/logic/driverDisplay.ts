@@ -66,7 +66,7 @@ export function specSummaryOf(driver: OpenISDDriver): {
   return {
     Fs: s.Fs_hz.value, Sd: s.Sd_m2.value, Re: s.Re_ohm.value,
     Qts: s.Qts.value, Qes: s.Qes.value, Qms: s.Qms.value,
-    Vas: s.Vas_m3.value, Xmax: s.Xmax_m.value, Le: driver.Le_H() ?? null,
+    Vas: s.Vas_m3.value, Xmax: s.Xmax_m.value, Le: s.Le_H.value,
     Znom: s.Znom_ohm.value, Pe: s.Pe_W.value,
   };
 }

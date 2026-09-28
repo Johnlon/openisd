@@ -1094,7 +1094,7 @@ export class OpenISDProject {
         const boxIssues = this.#boxSweepIssues(box);
         if (boxIssues.length) return {values: null, issues: boxIssues};
         const params = this.#sweepParams(P, this.driveVoltage_V.value, box);
-        return this.#engine.sweep(driverSolverParamsOf(this.driver.specs, this.#engine, this.winisdDriverModel.value, this.#air(this.#root())), this.driver.Le_H() ?? undefined, box, params);
+        return this.#engine.sweep(driverSolverParamsOf(this.driver.specs, this.#engine, this.winisdDriverModel.value, this.#air(this.#root())), this.driver.specs.Le_H.value ?? undefined, box, params);
     }
 
     /** The excursion- and power-limited maximum SPL curves. Reports on the same terms as `sweep`,
@@ -1105,7 +1105,7 @@ export class OpenISDProject {
         if (!box) return {values: null, issues: [], driverPrerequisites: []};
         const boxIssues = this.#boxSweepIssues(box);
         if (boxIssues.length) return {values: null, issues: boxIssues, driverPrerequisites: []};
-        return this.#engine.maxCurves(driverSolverParamsOf(this.driver.specs, this.#engine, this.winisdDriverModel.value, this.#air(this.#root())), this.driver.Le_H() ?? undefined, box, this.#sweepParams(P, 2.83, box));
+        return this.#engine.maxCurves(driverSolverParamsOf(this.driver.specs, this.#engine, this.winisdDriverModel.value, this.#air(this.#root())), this.driver.specs.Le_H.value ?? undefined, box, this.#sweepParams(P, 2.83, box));
     }
 
     /** The active box's own sweep-level blockers, beyond what `solveBoxParams()` already reports:
