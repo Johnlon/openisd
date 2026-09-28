@@ -65,21 +65,21 @@ describe('OgTune-hooks', () => {
 
   it('Mms is calculated by default, becomes entered when set, and returns to calculated when cleared', async () => {
     const api = await renderHook();
-    expect(api.fieldCell('Mms_kg').calculated).toBe(true);
+    expect(api.specField('Mms_kg').calculated).toBe(true);
 
     api.enterField('Mms_kg', 0.0125);
-    const entered = api.fieldCell('Mms_kg');
+    const entered = api.specField('Mms_kg');
     expect(entered.entered).toBe(true);
     expect(entered.value).toBeCloseTo(0.0125, 6);
 
     api.clearField('Mms_kg');
-    expect(api.fieldCell('Mms_kg').calculated).toBe(true);
+    expect(api.specField('Mms_kg').calculated).toBe(true);
   });
 
   it('BL_Tm becomes entered when set directly', async () => {
     const api = await renderHook();
     api.enterField('BL_Tm', 9.5);
-    const blCell = api.fieldCell('BL_Tm');
+    const blCell = api.specField('BL_Tm');
     expect(blCell.entered).toBe(true);
     expect(blCell.value).toBeCloseTo(9.5, 6);
   });
@@ -89,15 +89,15 @@ describe('OgTune-hooks', () => {
     project.driver.specs.Qms.set(4.0);
     const api = await renderHook(project);
 
-    expect(api.fieldCell('Qms').entered).toBe(true);
+    expect(api.specField('Qms').entered).toBe(true);
 
     api.clearField('Qms');
-    expect(api.fieldCell('Qms').calculated).toBe(true);
-    const solved = api.fieldCell('Qms').value;
+    expect(api.specField('Qms').calculated).toBe(true);
+    const solved = api.specField('Qms').value;
     expect(solved).not.toBeNull();
 
     api.enterField('Qes', 0.55);
-    expect(api.fieldCell('Qms').value).not.toBeCloseTo(solved!, 6);
+    expect(api.specField('Qms').value).not.toBeCloseTo(solved!, 6);
   });
 
   it('clearing a second Q of the trio leaves the dependents not-available, not falsely calculated', async () => {
@@ -107,9 +107,9 @@ describe('OgTune-hooks', () => {
 
     api.clearField('Qms');
     api.clearField('Qes');
-    expect(api.fieldCell('Qes').value).toBe(null);
-    expect(api.fieldCell('Qms').value).toBe(null);
-    expect(api.fieldCell('Qts').entered).toBe(true);
+    expect(api.specField('Qes').value).toBe(null);
+    expect(api.specField('Qms').value).toBe(null);
+    expect(api.specField('Qts').entered).toBe(true);
   });
 
   it('setVb_m3 writes and reads back through vb_m3 for every box type', async () => {
