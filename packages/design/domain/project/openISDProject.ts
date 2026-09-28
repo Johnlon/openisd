@@ -1,32 +1,33 @@
 import {LossMode} from '../../fields/lossMode.js';
 import {Engine} from '../../engine/index.js';
-import type { Air, AirEnvironment, BoxParamsIssue, BoxType, ChartId, DqIssue, DriverError, EnclosureParams, Filter, MaxCurvesResult, MaxCurvesSolveResult, PrIssue, SealedAlignmentIssue, SimulatableBoxType, SweepIssue, SweepParams, SweepResult, SweepSolveResult, VentIssue } from '../../engine/index.js';
+import type { Air, AirEnvironment, BoxParamsIssue, ChartId, DriverError, Filter, MaxCurvesResult, MaxCurvesSolveResult, SweepResult, SweepSolveResult } from '../../engine/index.js';
 import { realAppContext } from '../appContext.js';
 import type { AppContext } from '../appContext.js';
-import { CalculatedFieldImpl, DefaultingFieldImpl, DualWriteFieldImpl, SetOnlyFieldImpl, absentCell, calculatedCell, defaultingEntryField, enteredCell, focus, inputOf, simpleField, writeEntryDq } from '../cell.js';
+import { focus, simpleField } from '../cell.js';
 import type { Calculatable, Calculated, Clearable, Entered, Readable, SimpleField, Unsolvable, Writable } from '../cell.js';
 import { newUuid } from '../newUuid.js';
-import { openIsdProjectToWinIsdProject, winIsdProjectToOpenIsdProject } from '../openIsdProjectToWinIsdProject.js';
-import { openISDProjectSessionJsonSchema } from '../openisdSchema.js';
-import { calcVentCount, calculatedEntry, enteredEntry } from '../specEntry.js';
-import type { EnvironmentCondition, OpenISDEnvironmentJson, OpenISDProjectJson, OpenISDProjectSessionJson } from '../openisdSchema.js';
+import { winIsdProjectToOpenIsdProject } from '../openIsdProjectToWinIsdProject.js';
+import type { OpenISDProjectJson, OpenISDProjectSessionJson } from '../openisdSchema.js';
 import { ProjectBuilder } from '../openisdTransforms.js';
-import type { Vent } from '../vent.js';
 import type { Box } from '../box/box.js';
 import type { FrequencyGrid } from '../box/frequencyGrid.js';
-import { isPortCount } from '../box/isPortCount.js';
 import { OpenISDBox } from '../box/openISDBox.js';
-import { driverSolverParamsOf } from '../driver/driverSolverParamsOf.js';
-import { engineCircuitModel } from '../driver/engineCircuitModel.js';
 import { OpenISDDriver } from '../driver/openISDDriver.js';
 import { OpenISDDriverEmbedded } from '../driver/openISDDriverEmbedded.js';
 import type { DiscardChallenge } from './discardChallenge.js';
 import type { DragRange } from './dragRange.js';
-import type { EnvironmentField, EnvironmentFields } from './environmentFields.js';
+import { ProjectAdvanced } from './projectAdvanced.js';
+import { ProjectChartsView } from './projectChartsView.js';
+import { ProjectEnvironment, envFieldsOver } from './projectEnvironment.js';
+import { owprTextOf, parseOwprSession, sessionOf, wprTextOf } from './projectSerialization.js';
+import { boxParamsIssuesOf, maxCurvesOf, sweepOf, ventAchievedFbOf, ventMaxReachableFbOf } from './projectSweep.js';
+import type { ProjectSweepSource } from './projectSweep.js';
 import { freshEmbeddedDriver } from './freshEmbeddedDriver.js';
 import type { ProjectIssues } from './projectIssues.js';
+import { ProjectMeta } from './projectMeta.js';
 import { ProjectListeners } from './projectListeners.js';
-import { sealedVolumeAsSolverField } from './sealedVolumeAsSolverField.js';
+import { resolveProject, usableRe } from './projectResolve.js';
+import { ProjectSignal } from './projectSignal.js';
 
 // The domain declares its state here. JSON shapes live in `openisdSchema.ts`.
 // Internal JSON types are never re-exported from `domain/index.ts`.
@@ -34,12 +35,18 @@ import { sealedVolumeAsSolverField } from './sealedVolumeAsSolverField.js';
 // A module-scoped WeakMap bridge (`notifyProject`/`subscribeToProject`) lets
 // `ManagedProject` observe internal `OpenISDProject` changes without exposing
 // state publicly.
-
-/** WinISD's reference drive: 1 W, and the voltage a sweep runs at before anything is known. */
-const DEFAULT_DRIVE_POWER_W = 1;
-const DEFAULT_DRIVE_VOLTAGE_V = 1;
-/** The lowest drive voltage a project may hold: 10 mV, the smallest the UI's 2 dp shows. */
-const MIN_DRIVE_VOLTAGE_V = 0.01;
+//
+// This class holds the record (`#saved`/`#edited`/`#whatif`/`#engine` — see
+// `architecture-project-has-three-fields.test.ts`) and the public surface built fresh from it on
+// every access, same as `driver`/`box` always have. Responsibility split across sibling modules
+// by area (PLAN_openisdproject_split.md): `projectResolve.ts` (the solve cascade),
+// `projectMeta.ts` (name/creator/description), `projectEnvironment.ts` (temp/humidity/pressure),
+// `projectSignal.ts` (drive power/voltage), `projectAdvanced.ts` (filters and the WinISD
+// compatibility switches), `projectChartsView.ts` (which charts, trace colour, sweep N),
+// `projectSerialization.ts` (.wpr/.owpr text), `projectSweep.ts` (the engine sweep/max-curves
+// call and its enclosure/box-specific parameter building). Each is built fresh over a lens/source
+// this class hands it, never held as a stored collaborator — `cursorF`/`pinnedF`/`cursorLocked`/
+// `dragRange` are the one documented exception, staying as this class's own private fields.
 
 export class OpenISDProject {
     static builder(driver: OpenISDDriver, engine: Engine, appContext: AppContext = realAppContext): ProjectBuilder {
@@ -120,7 +127,7 @@ export class OpenISDProject {
 
     /** The four air conditions `root` reads as — each E or C, never absent. */
     #airOver(root: SimpleField<OpenISDProjectJson>): AirEnvironment {
-        const env = this.#envFieldsOver(focus(root, 'environment'));
+        const env = envFieldsOver(focus(root, 'environment'), this.#engine);
         return {
             tempK: env.tempK.value, humidityPct: env.humidityPct.value, pressurePa: env.pressurePa.value,
             useWinisdAirModel: root.value.environment.useWinisdAirModel ?? true,
@@ -214,69 +221,69 @@ export class OpenISDProject {
         return this.#boxOver(this.#root());
     }
 
+    /** This project's metadata window, built fresh on every access — same reasoning as
+     *  `driver`/`box` above. */
+    #meta(): ProjectMeta {
+        return ProjectMeta.wrap(this.#slot('meta'));
+    }
+
     /** What the user calls this project. A LABEL, not an identity — two projects may share one,
      *  which is exactly why `uuid()` exists. */
     get name(): SimpleField<string> {
-        return focus(this.#slot('meta'), 'name');
+        return this.#meta().name;
     }
 
     /** WinISD Project tab: who made this project, and when. */
     get creator(): SimpleField<string> {
-        return focus(this.#slot('meta'), 'creator');
+        return this.#meta().creator;
     }
 
     get created(): SimpleField<string> {
-        return focus(this.#slot('meta'), 'created');
+        return this.#meta().created;
     }
 
     get modified(): SimpleField<string> {
-        return focus(this.#slot('meta'), 'modified');
+        return this.#meta().modified;
     }
 
     /** WinISD Project tab: the user's own note about this project. Stored, never interpreted. */
     get description(): Readable<string> & Entered & Writable<string> {
-        const lens = this.#slot('meta');
-        return new SetOnlyFieldImpl<string>(
-            () => enteredCell('description', lens.value.description),
-            {
-                entered: (v: string) => lens.set({...lens.value, description: v}),
-            },
-        );
+        return this.#meta().description;
     }
 
     /** The signal-chain filter list. */
     get filters(): SimpleField<readonly Filter[]> {
-        return focus(this.#slot('filters'), 'filters');
+        return ProjectAdvanced.wrap(this.#slot('advanced'), this.#slot('filters')).filters;
     }
 
     /** Force-flat auto-EQ — WinISD Advanced "Force flat response". */
     get forceFlatResponse(): SimpleField<boolean> {
-        return focus(this.#slot('advanced'), 'forceFlatResponse');
+        return ProjectAdvanced.wrap(this.#slot('advanced'), this.#slot('filters')).forceFlatResponse;
     }
 
     /** Model ports as a lossy transmission line instead of a lumped mass — WinISD Advanced
      *  "Use transmission line-model for port simulation". */
     get useTransmissionLinePortModel(): SimpleField<boolean> {
-        return focus(this.#slot('advanced'), 'useTransmissionLinePortModel');
+        return ProjectAdvanced.wrap(this.#slot('advanced'), this.#slot('filters')).useTransmissionLinePortModel;
     }
 
     /** WinISD Advanced "Rg is at driver side" — whether the amplifier's source resistance
      *  (`Rs_ohm`) is applied per driver or once across the whole array. */
     get rgAtDriverSide(): SimpleField<boolean> {
-        return focus(this.#slot('advanced'), 'rgAtDriverSide');
+        return ProjectAdvanced.wrap(this.#slot('advanced'), this.#slot('filters')).rgAtDriverSide;
     }
 
     /** WinISD Advanced "Simulate voice coil inductance" — includes Le in the acoustic circuit
      *  model (gyrator) rather than just the impedance plot (winisd). 'winisdGyrator' is WinISD's
      *  own inductance-on model. */
     get circuitModel(): SimpleField<'winisd' | 'gyrator' | 'winisdGyrator'> {
-        return focus(this.#slot('advanced'), 'circuitModel');
+        return ProjectAdvanced.wrap(this.#slot('advanced'), this.#slot('filters')).circuitModel;
     }
 
     /** WinISD Advanced "SPL graph is Xmax limited" — whether the SPL chart shows the
      *  Xmax-backed-off curve instead of the unclamped one. Display only. */
     get splGraphIsXmaxLimited(): SimpleField<boolean> {
-        return focus(this.#slot('advanced'), 'splGraphIsXmaxLimited');
+        return ProjectAdvanced.wrap(this.#slot('advanced'), this.#slot('filters')).splGraphIsXmaxLimited;
     }
 
     /** Sealed-box resonance loss model (S10/QO130) — which physics model `box.sealed`'s Fsc/Qtc
@@ -284,11 +291,7 @@ export class OpenISDProject {
      *  loss mode. `advanced.lossMode` stores the wire string; this is the one boundary that
      *  translates it via `LossMode.parse`/`.value`, matching the `circuitModel` accessor above. */
     get lossMode(): SimpleField<LossMode> {
-        const lens = focus(this.#slot('advanced'), 'lossMode');
-        return {
-            get value() { return LossMode.parse(lens.value); },
-            set: (mode: LossMode) => lens.set(mode.value),
-        };
+        return ProjectAdvanced.wrap(this.#slot('advanced'), this.#slot('filters')).lossMode;
     }
 
     /** WinISD Advanced / Compatibility "Use WinISD driver calculations" — whether engine sweeps
@@ -297,11 +300,7 @@ export class OpenISDProject {
      *  with them (measured 2026-09-26, docs/research/WINISD_PARITY.md). On where a project does
      *  not say, per the README: untouched, OpenISD gives WinISD's answer. */
     get winisdDriverModel(): SimpleField<boolean> {
-        const lens = focus(this.#slot('advanced'), 'winisdDriverModel');
-        return {
-            get value() { return lens.value ?? true; },
-            set: (on: boolean) => lens.set(on),
-        };
+        return ProjectAdvanced.wrap(this.#slot('advanced'), this.#slot('filters')).winisdDriverModel;
     }
 
     /** WinISD Compatibility "WinISD VA model": the amplifier apparent load power chart as WinISD
@@ -309,11 +308,7 @@ export class OpenISDProject {
      *  apparent power the amplifier delivers, P·(Re + Rg)·|Hf|²/|Z_amp|. On where a project does
      *  not say. */
     get winisdVaModel(): SimpleField<boolean> {
-        const lens = focus(this.#slot('advanced'), 'winisdVaModel');
-        return {
-            get value() { return lens.value ?? true; },
-            set: (on: boolean) => lens.set(on),
-        };
+        return ProjectAdvanced.wrap(this.#slot('advanced'), this.#slot('filters')).winisdVaModel;
     }
 
     /** Sets every WinISD-vs-conventional compat switch to WinISD. Native WinISD controls (voice
@@ -331,11 +326,7 @@ export class OpenISDProject {
      *  version skew that adds/removes chart ids — `parseChartId` (packages/ui `logic/series.ts`)
      *  does the string↔member conversion at the UI boundary. */
     get graphs(): SimpleField<readonly string[]> {
-        const lens = focus(this.#slot('charts'), 'graphs');
-        return {
-            get value() { return lens.value ?? []; },
-            set: (ids) => lens.set([...ids]),
-        };
+        return ProjectChartsView.wrap(this.#slot('charts'), this.#engine, () => this.box.boxType.value).graphs;
     }
 
     /** Which charts this project's box type shows, in WinISD's own chart-menu order — a design
@@ -344,7 +335,7 @@ export class OpenISDProject {
      *  EQ/filter charts always. The UI shows exactly the ids this returns, never a second list
      *  of "which charts apply". */
     get charts(): readonly ChartId[] {
-        return this.#engine.chartsFor(this.box.boxType.value);
+        return ProjectChartsView.wrap(this.#slot('charts'), this.#engine, () => this.box.boxType.value).charts;
     }
 
     /** The graph cursor/selection (S10/QO130) — PROJECT-scoped, reversing QO90: two open
@@ -382,19 +373,11 @@ export class OpenISDProject {
     /** The project's trace/legend colour (a CSS colour), saved in the project file; null until
      *  first assigned. Chart view state, so `isModified()` ignores it. */
     get traceColor(): SimpleField<string | null> {
-        const charts = this.#slot('charts');
-        return {
-            get value() { return charts.value.traceColor ?? null; },
-            set: (v) => charts.set({...charts.value, traceColor: v ?? undefined}),
-        };
+        return ProjectChartsView.wrap(this.#slot('charts'), this.#engine, () => this.box.boxType.value).traceColor;
     }
 
     get sweepN(): SimpleField<number | null> {
-        const charts = this.#slot('charts');
-        return {
-            get value() { return charts.value.N ?? null; },
-            set: (v) => charts.set({...charts.value, N: v ?? undefined}),
-        };
+        return ProjectChartsView.wrap(this.#slot('charts'), this.#engine, () => this.box.boxType.value).sweepN;
     }
 
     /** A record ENTERS the process here. A record carries no identity, so one is minted — two
@@ -484,15 +467,16 @@ export class OpenISDProject {
     }
 
     /**
-     * T11/S2-7d: resolve the CURRENT layer's driver — write every quantity `solveDriver` can
-     * derive back into THAT layer as a `'C'` entry, and cache the result in `#issues`.
-     *
-     * Reads and writes go DIRECTLY to the layer object below, never through `#slot`/`#root`:
-     * those always promote to `#edited` and notify, which would make simply LOADING a project
-     * (`wrap()`) register as "modified", and would make a solve's OWN writes notify a SECOND
-     * time for one user action — the exact write-on-read/write-on-solve loop that broke
-     * `OpenISDDriverEmbedded` in S2-7c before its own auto-resolve was pulled out of the shared
-     * driver constructor (see that class's own note).
+     * T11/S2-7d: resolve the CURRENT layer and cache the result in `#issues`. The actual solve
+     * lives in `resolveProject` (`./projectResolve.js`) — reads and writes go DIRECTLY to the
+     * layer object below, never through `#slot`/`#root`: those always promote to `#edited` and
+     * notify, which would make simply LOADING a project (`wrap()`) register as "modified", and
+     * would make a solve's OWN writes notify a SECOND time for one user action — the exact
+     * write-on-read/write-on-solve loop that broke `OpenISDDriverEmbedded` in S2-7c before its
+     * own auto-resolve was pulled out of the shared driver constructor (see that class's own
+     * note). `driverOver`/`boxOver`/`air`/`envFieldsOver`/`powerDriveOver`/`driveVoltageOver` are
+     * passed in as closures rather than let `resolveProject` reach `this`: they are this
+     * project's own window-builders, shared with the live getters below (S2-7d2).
      */
     #resolve(): void {
         const directRoot = simpleField<OpenISDProjectJson>(
@@ -502,169 +486,16 @@ export class OpenISDProject {
                 else if (this.#edited) this.#edited = json;
                 else this.#saved = json;
             });
-        // Before the driver: its own air falls back to these three conditions, so they must
-        // state the app's default by the time `driver.resolve()` reads them.
-        this.#resolveEnvironment(focus(directRoot, 'environment'));
-        const driver = this.#driverOver(directRoot);
-        const driverIssues = driver.resolve();
-
-        // The drive power/voltage pair, against the driver's just-resolved Re. Its dq is read
-        // from `#issues.signal` at read time, so no `projectGroupDq` here.
-        const Re_ohm = this.#usableReOver(directRoot);
-        this.#settleSignal(focus(directRoot, 'signal'), Re_ohm);
-        const signal = this.#engine.solveSignal({
-            power_W: this.#powerDriveOver(directRoot),
-            Re_ohm: inputOf(() => Re_ohm),
-            voltage_V: this.#driveVoltageOver(directRoot),
-            Rs_ohm: inputOf(() => this.Rs_ohm.value),
+        this.#issues = resolveProject({
+            directRoot,
+            engine: this.#engine,
+            driverOver: (root) => this.#driverOver(root),
+            boxOver: (root) => this.#boxOver(root),
+            air: (root) => this.#air(root),
+            envFieldsOver: (environment) => envFieldsOver(environment, this.#engine),
+            powerDriveOver: (root) => this.#signalOver(root).powerDrive_W,
+            driveVoltageOver: (root) => this.#signalOver(root).driveVoltage_V,
         });
-
-        // The project's own air — the driver's OWN c_m_per_s/roo_kg_per_m3 are display-only and
-        // feed nothing (BUG_20260924_driver-solve-and-sweep-use-different-air-models.md).
-        const air: Air = this.#air(directRoot);
-
-        const box = this.#boxOver(directRoot);
-        // GEOMETRY IS IN, ACOUSTICS IS OUT (John, 2026-08-26): every port's area ↔ dims
-        // relation solves here, unconditionally, for all 7 vents regardless of which box
-        // type is active — geometry does not depend on that. Must run BEFORE the acoustic
-        // `solveVent` calls below, which read `area_m2` as a plain input.
-        const vents: readonly Vent[] = [
-            box.vented.vent, box.bandpass4.vents.front,
-            box.bandpass6.vents.rear, box.bandpass6.vents.front,
-            box.abc.vents.rear, box.abc.vents.front, box.abc.vents.intra,
-        ];
-        for (const v of vents) {
-            this.#resolveVentGeometry(v);
-            this.#resolveVentCount(v);
-        }
-        const boxType = directRoot.value.box.boxType;
-        let vent: readonly VentIssue[] = [];
-        let pr: readonly PrIssue[] = [];
-        let sealed: readonly SealedAlignmentIssue[] = [];
-        let ventTuningExtra: DqIssue | null = null;
-
-        if (boxType === 'vented') {
-            vent = this.#engine.solveVent({
-                tuning_goal_hz: box.vented.tuning_goal_hz,
-                length_m: box.vented.vent.length_m,
-                Vb_m3: inputOf(() => box.vented.volume_m3.value),
-                area_m2: inputOf(() => box.vented.vent.area_m2.value),
-                count: inputOf(() => box.vented.vent.count.value),
-                endCorrection_m: inputOf(() => box.vented.vent.endCorrection_m.value),
-            }, air);
-            // The designed tuning is WinISD's own answer and is not changed — it is marked.
-            // Read live off `#issues.ventTuningExtra`, appended to `#issues.vent`'s own mark,
-            // never over it: the two say different things (this geometry does not solve /
-            // nobody would build this).
-            const Fb = box.vented.tuning_goal_hz.value;
-            ventTuningExtra = Fb === null ? null : this.#engine.ventedTuningIssue(Fb);
-        } else if (boxType === 'bandpass4') {
-            vent = this.#engine.solveVent({
-                tuning_goal_hz: box.bandpass4.chambers.front.tuning_goal_hz,
-                length_m: box.bandpass4.vents.front.length_m,
-                Vb_m3: inputOf(() => box.bandpass4.chambers.front.volume_m3.value),
-                area_m2: inputOf(() => box.bandpass4.vents.front.area_m2.value),
-                count: inputOf(() => box.bandpass4.vents.front.count.value),
-                endCorrection_m: inputOf(() => box.bandpass4.vents.front.endCorrection_m.value),
-            }, air);
-        } else if (boxType === 'box-passive-radiator') {
-            const p = box.passiveRadiator;
-            const r = p.radiator;
-            pr = this.#engine.solvePr({
-                addedMass_kg: p.addedMass_kg,
-                tuning_goal_hz: p.tuning_goal_hz,
-                resonanceWithAddedMass_hz: p.resonanceWithAddedMass_hz,
-                systemTuning_hz: p.systemTuning_hz,
-                Vb_m3: inputOf(() => p.volume_m3.value || box.vented.volume_m3.value),
-                prMmd_kg: inputOf(() => r.spec.Mms_kg.value),
-                prSd_m2: inputOf(() => r.spec.Sd_m2.value),
-                prCms_m_per_N: inputOf(() => r.spec.Cms_m_per_N.value),
-            }, air);
-        } else if (boxType === 'sealed') {
-            const ts = driver.specs;
-            // The Rg-loaded Qts, inlined rather than `sourceLoadedQts(Rs)` (that method reads
-            // the NOTIFYING `this.driver.ts` — calling it from inside a resolve would re-enter
-            // the write-on-read loop `#resolve()`'s own doc comment warns against). Mirrors
-            // `#sealedResonance_hz`'s pre-S10 feed exactly (golden Fsc 63.1762 Hz/Qtc 0.5995).
-            const rgLoadedQts = (): number | null => {
-                const Qts = ts.Qts.value;
-                if (Qts === null) return null;
-                return this.#engine.sourceLoadedQts(
-                    ts.Qms.value ?? NaN, ts.Qes.value ?? NaN, ts.Re_ohm.value ?? NaN,
-                    directRoot.value.driverEmbedding.Rs_ohm, Qts);
-            };
-            sealed = this.#engine.solveSealedAlignment({
-                Qts: inputOf(rgLoadedQts),
-                Vas_m3: inputOf(() => ts.Vas_m3.value),
-                Fs_hz: inputOf(() => ts.Fs_hz.value),
-                Ql: inputOf(() => box.sealed.losses.Ql.value),
-                Qa: inputOf(() => box.sealed.losses.Qa.value),
-                lossMode: inputOf(() => directRoot.value.advanced.lossMode ?? null),
-                Qtc: box.sealed.q_tc,
-                Vb_m3: sealedVolumeAsSolverField(box.sealed.volume_m3),
-            });
-        }
-
-        this.#issues = { driver: driverIssues, signal, vent, pr, sealed, ventTuningExtra };
-    }
-
-    /** Solves `vent.area_m2` against whichever dimension its own `shape` uses: `diameter_m`
-     *  round, `height_m` (times the live `width_m`) slotted. PLAIN GEOMETRY — πr² and width ×
-     *  height involve no air, compliance, resonance or end correction, so this belongs in the
-     *  domain, not the engine (John 2026-08-26: "simple geometric calc like pi r squared are ok
-     *  in the domain").
-     *
-     *  Entering either side of a pair already atomically clears the other (`pairedField`'s own
-     *  `commitPair`), so this only ever has one side entered, or neither. `setNotAvailable()` on
-     *  the "neither" branch wipes a stale calculated echo left over from a shape the vent has
-     *  since switched away from — a plain `shape.set()` does not itself touch `area_m2`. */
-    #resolveVentGeometry(vent: Vent): void {
-        if (vent.shape.value === 'round') {
-            if (vent.diameter_m.entered) {
-                vent.area_m2.setCalculated(Math.PI * (vent.diameter_m.value! / 2) ** 2);
-            } else if (vent.area_m2.entered) {
-                vent.diameter_m.setCalculated(2 * Math.sqrt(vent.area_m2.value! / Math.PI));
-            } else {
-                vent.area_m2.setNotAvailable();
-                vent.diameter_m.setNotAvailable();
-            }
-            return;
-        }
-        const width = vent.width_m.value;
-        if (vent.height_m.entered) {
-            if (width === null) vent.area_m2.setNotAvailable();
-            else vent.area_m2.setCalculated(width * vent.height_m.value!);
-        } else if (vent.area_m2.entered) {
-            if (width === null || width === 0) vent.height_m.setNotAvailable();
-            else vent.height_m.setCalculated(vent.area_m2.value! / width);
-        } else {
-            vent.area_m2.setNotAvailable();
-            vent.height_m.setNotAvailable();
-        }
-    }
-
-    /** Stores the port count's default (one port) as a 'C' entry wherever the record states no
-     *  count, or states one that is not a whole number of at least one — the repair John ruled on
-     *  2026-09-20, written into the record rather than applied at read time (John, 2026-09-24:
-     *  "simply no reason for these exceptions to the rule"). No solve derives a port count, so
-     *  this is the only write that ever makes one calculated. */
-    #resolveVentCount(vent: Vent): void {
-        const v = vent.count.value;
-        if (!isPortCount(v)) vent.count.setCalculated(calcVentCount());
-        else if (!vent.count.entered) vent.count.setCalculated(v);
-    }
-
-    /** Stores the app's Options → Environment value as a 'C' entry for every condition the
-     *  project does not state itself: clear, then store what the empty slot reads. Re-stamped on
-     *  every resolve, so changing Options reaches an unstated project (`appSettingsChanged`); an
-     *  entered condition is never touched. */
-    #resolveEnvironment(environment: SimpleField<OpenISDEnvironmentJson>): void {
-        const env = this.#envFieldsOver(environment);
-        for (const condition of [env.tempK, env.humidityPct, env.pressurePa]) {
-            if (condition.entered) continue;
-            condition.clear();
-            condition.setCalculated(condition.value);
-        }
     }
 
     /** @internal The record a save writes, deep-cloned — the persisted payload's one route to
@@ -690,8 +521,7 @@ export class OpenISDProject {
      *  `errors` carries the reason and every field dropped along the way. */
     toWprText(engine: Engine): { value: string | null; errors: DriverError[] } {
         const committed = OpenISDProject.wrapWithIdentity(structuredClone(this.#committed()), this.#uuid, this.#engine);
-        const {value: wpr, errors} = openIsdProjectToWinIsdProject(committed, engine);
-        return {value: wpr ? wpr.toWpr() : null, errors};
+        return wprTextOf(committed, engine);
     }
 
     /** WinISD `.wpr` text back to a project. The inverse of `toWprText()`, as far as a format
@@ -707,7 +537,7 @@ export class OpenISDProject {
      *  Lossless, unlike `toWprText()`: this is openisd's own format, so there is nothing to drop
      *  and no error to report. */
     toOwprText(): string {
-        return JSON.stringify(this.cloneSession(), null, 2);
+        return owprTextOf(this.cloneSession());
     }
 
     /** `.owpr` text back to a project, or everything wrong with the text. The inverse of
@@ -716,28 +546,14 @@ export class OpenISDProject {
      *  The project takes a FRESH identity: a file's contents are provenance, not a store key
      *  (QO81), so opening the same file twice yields two independently addressable projects. */
     static fromOwprText(text: string, engine: Engine): OpenISDProject | string[] {
-        let parsed: unknown;
-        try {
-            parsed = JSON.parse(text);
-        } catch {
-            return ['not valid JSON'];
-        }
-        const result = openISDProjectSessionJsonSchema.safeParse(parsed);
-        if (!result.success) {
-            return result.error.issues.map(issue => issue.path.length === 0
-                ? issue.message
-                : `'${issue.path.join('.')}': ${issue.message}`);
-        }
-        return OpenISDProject.wrapSession(result.data, newUuid(), engine);
+        const parsed = parseOwprSession(text);
+        if ('errors' in parsed) return parsed.errors;
+        return OpenISDProject.wrapSession(parsed.session, newUuid(), engine);
     }
 
     /** Serialises saved and ordinary edited states for persistence. The transient what-if is absent. */
     cloneSession(): OpenISDProjectSessionJson {
-        return {
-            label: this.#committed().meta.name,
-            saved: structuredClone(this.#saved),
-            edited: this.#edited ? structuredClone(this.#edited) : null,
-        };
+        return sessionOf(this.#committed().meta.name, this.#saved, this.#edited);
     }
 
 
@@ -754,104 +570,35 @@ export class OpenISDProject {
 
     // ── THE SIGNAL ────────────────────────────────────────────────────────────────────────────
 
+    /** This project's signal window, built over `root` — `#resolve()` writes through its direct
+     *  root, same split `driverOver`/`boxOver` have (S2-7d2). `usableRe`/`Rs_ohm`/`#issues.signal`
+     *  are this project's own facts, passed in rather than let `ProjectSignal` reach for them. */
+    #signalOver(root: SimpleField<OpenISDProjectJson>): ProjectSignal {
+        return ProjectSignal.wrap(
+            focus(root, 'signal'),
+            this.#engine,
+            () => usableRe(root, (r) => this.#driverOver(r)),
+            () => this.Rs_ohm.value ?? 0,
+            () => this.#issues.signal,
+        );
+    }
+
     /** The drive power — WinISD's Signal-tab "Input Power". While the driver has a usable Re,
      *  `power_W = voltage_V² / Re` holds and whichever of the pair was entered last is entered;
      *  the other is calculated. Without a usable Re it is not available and cannot be entered —
      *  its dq names the missing Re. */
     get powerDrive_W(): Readable<number | null> & Entered & Calculated & Writable<number> & Clearable & Calculatable<number> & Unsolvable {
-        return this.#powerDriveOver(this.#root());
-    }
-
-    /** `powerDrive_W` over `root` — `#resolve()` writes it through its direct root. */
-    #powerDriveOver(root: SimpleField<OpenISDProjectJson>): DualWriteFieldImpl<number> {
-        const signal = focus(root, 'signal');
-        return new DualWriteFieldImpl<number>(
-            () => {
-                const entry = signal.value.power_W;
-                if (entry === undefined) return absentCell<number>('power_W', this.#issues.signal);
-                return entry.state === 'E'
-                    ? enteredCell<number | null>('power_W', entry.value)
-                    : calculatedCell<number | null>('power_W', entry.value);
-            },
-            {
-                entered: (v: number) => {
-                    const Re_ohm = this.#usableReOver(root);
-                    if (Re_ohm === null) {
-                        throw new Error('powerDrive_W cannot be entered: the driver has no usable Re_ohm yet.');
-                    }
-                    const Rs_ohm = this.Rs_ohm.value ?? 0;
-                    if (!(v > 0 && this.#engine.driveVoltage(v, Re_ohm, Rs_ohm) >= MIN_DRIVE_VOLTAGE_V)) {
-                        throw new RangeError(`powerDrive_W ${v} W drives below the 10 mV minimum voltage.`);
-                    }
-                    signal.set({...signal.value, power_W: enteredEntry(v), voltage_V: undefined});
-                },
-                // With Re known, the voltage stays as it reads and becomes the entered one.
-                clear: () => {
-                    const {voltage_V} = signal.value;
-                    const keepVoltage = this.#usableReOver(root) !== null && voltage_V !== undefined;
-                    signal.set({...signal.value, power_W: undefined, voltage_V: keepVoltage ? enteredEntry(voltage_V.value) : voltage_V});
-                },
-                calculated: (v: number) => signal.set({...signal.value, power_W: calculatedEntry(v)}),
-                dq: (list) => writeEntryDq(focus(signal, 'power_W'), list),
-            },
-        );
+        return this.#signalOver(this.#root()).powerDrive_W;
     }
 
     /**
      * The drive voltage — the `eg` every sweep runs at. Never absent: an empty slot reads
-     * `DEFAULT_DRIVE_VOLTAGE_V` as calculated, and it is never below 10 mV. Entering it needs no Re.
+     * the default as calculated, and it is never below 10 mV. Entering it needs no Re.
      * `.clear()` empties the
      * pair; the resolve then fills it back from its defaults.
      */
     get driveVoltage_V(): Readable<number> & Entered & Calculated & Writable<number> & Clearable & Calculatable<number> {
-        return this.#driveVoltageOver(this.#root());
-    }
-
-    /** `driveVoltage_V` over `root` — `#resolve()` writes it through its direct root. */
-    #driveVoltageOver(root: SimpleField<OpenISDProjectJson>): DefaultingFieldImpl<number> {
-        const signal = focus(root, 'signal');
-        return new DefaultingFieldImpl<number>(
-            () => {
-                const entry = signal.value.voltage_V;
-                if (entry === undefined) return calculatedCell('voltage_V', DEFAULT_DRIVE_VOLTAGE_V);
-                return entry.state === 'E'
-                    ? enteredCell('voltage_V', entry.value)
-                    : calculatedCell('voltage_V', entry.value);
-            },
-            {
-                entered: (v: number) => {
-                    if (!(v >= MIN_DRIVE_VOLTAGE_V)) throw new RangeError(`driveVoltage_V ${v} V is below the 10 mV minimum.`);
-                    signal.set({...signal.value, voltage_V: enteredEntry(v), power_W: undefined});
-                },
-                clear: () => signal.set({...signal.value, voltage_V: undefined, power_W: undefined}),
-                calculated: (v: number) => signal.set({...signal.value, voltage_V: calculatedEntry(v)}),
-                dq: (list) => writeEntryDq(focus(signal, 'voltage_V'), list),
-            },
-        );
-    }
-
-    /** The driver's Re when it is a positive finite number, else null. */
-    #usableReOver(root: SimpleField<OpenISDProjectJson>): number | null {
-        const Re_ohm = this.#driverOver(root).specs.Re_ohm.value;
-        return Re_ohm !== null && Number.isFinite(Re_ohm) && Re_ohm > 0 ? Re_ohm : null;
-    }
-
-    /**
-     * The signal pair's entered-value rules the solve does not make. Re lost (a power is still
-     * stored, which only a known Re allows): the voltage keeps its value as entered and the power
-     * goes. Re known with nothing entered: the power is the 1 W reference, entered.
-     */
-    #settleSignal(signal: SimpleField<OpenISDProjectJson['signal']>, Re_ohm: number | null): void {
-        const {power_W, voltage_V} = signal.value;
-        if (Re_ohm === null) {
-            if (power_W !== undefined) {
-                signal.set({...signal.value, power_W: undefined, voltage_V: voltage_V && enteredEntry(voltage_V.value)});
-            }
-            return;
-        }
-        if (power_W?.state !== 'E' && voltage_V?.state !== 'E') {
-            signal.set({...signal.value, power_W: enteredEntry(DEFAULT_DRIVE_POWER_W)});
-        }
+        return this.#signalOver(this.#root()).driveVoltage_V;
     }
 
     // ── ENVIRONMENT ───────────────────────────────────────────────────────────────────────────
@@ -859,7 +606,7 @@ export class OpenISDProject {
     /** This project's air temperature, WinISD Advanced "Temperature". E when typed, else C: the
      *  app's Options → Environment value (`Engine.envDefaults()`), which the resolve also stores. */
     get envTempK(): Readable<number> & Entered & Calculated & Writable<number> & Clearable & Calculatable<number> {
-        return this.#envFieldsOver(this.#slot('environment')).tempK;
+        return ProjectEnvironment.wrap(this.#slot('environment'), this.#engine).tempK;
     }
 
     /** @deprecated Use `project.envTempK.set(tempK)` instead. */
@@ -870,7 +617,7 @@ export class OpenISDProject {
     /** This project's relative humidity, WinISD Advanced "Humidity". Stored the same way as
      *  `envTempK`. */
     get envHumidityPct(): Readable<number> & Entered & Calculated & Writable<number> & Clearable & Calculatable<number> {
-        return this.#envFieldsOver(this.#slot('environment')).humidityPct;
+        return ProjectEnvironment.wrap(this.#slot('environment'), this.#engine).humidityPct;
     }
 
     /** @deprecated Use `project.envHumidityPct.set(humidityPct)` instead. */
@@ -881,21 +628,7 @@ export class OpenISDProject {
     /** This project's atmospheric pressure, WinISD Advanced "Pressure". Stored the same way as
      *  `envTempK`. */
     get envPressurePa(): Readable<number> & Entered & Calculated & Writable<number> & Clearable & Calculatable<number> {
-        return this.#envFieldsOver(this.#slot('environment')).pressurePa;
-    }
-
-    /** The three environment conditions over the environment given, each reading the app's
-     *  Options → Environment value as C when not entered. The getters above pass the notifying
-     *  `#slot('environment')`; `#resolve()` passes a DIRECT environment of its own, the same split
-     *  `#driverOver`/`#boxOver` have. */
-    #envFieldsOver(environment: SimpleField<OpenISDEnvironmentJson>): EnvironmentFields {
-        const field = (key: EnvironmentCondition, fallback: () => number): EnvironmentField =>
-            defaultingEntryField(focus(environment, key), key, fallback);
-        return {
-            tempK: field('temperature_K', () => this.#engine.envDefaults().tempK),
-            humidityPct: field('humidity_pct', () => this.#engine.envDefaults().humidityPct),
-            pressurePa: field('pressure_Pa', () => this.#engine.envDefaults().pressurePa),
-        };
+        return ProjectEnvironment.wrap(this.#slot('environment'), this.#engine).pressurePa;
     }
 
     /** @deprecated Use `project.envPressurePa.set(pressurePa)` instead. */
@@ -907,13 +640,7 @@ export class OpenISDProject {
      *  physical CIPM-2007 model when false. Null reads as true (QO95): a new project matches
      *  WinISD out of the box. See `engine/air.ts` for the two models. */
     get envUseWinisdAirModel(): SimpleField<boolean> {
-        const slot = this.#slot('environment');
-        return {
-            get value() { return slot.value.useWinisdAirModel ?? true; },
-            set: (useWinisdAirModel: boolean) => {
-                slot.set({ ...slot.value, useWinisdAirModel });
-            },
-        };
+        return ProjectEnvironment.wrap(this.#slot('environment'), this.#engine).useWinisdAirModel;
     }
 
     /** @deprecated Use `project.envUseWinisdAirModel.set(useWinisdAirModel)` instead. */
@@ -946,141 +673,38 @@ export class OpenISDProject {
     // any of the rest back in would let a caller override a fact the project already states about
     // itself, which is the thing John's 2026-09-06 ruling rules out.
 
-    /** The frequency grid a sweep runs over — the only thing about a sweep this project does not
-     *  already know about itself. */
-    /** The ENCLOSURE parameters alone — what `solveBoxParams` reads (`engine/params.ts`: `Vb`,
-     *  `Vf`, `Sp`, `prSd`, `prCms`, `prMmd`), with no drive level and no sweep settings.
-     *
-     *  Separate from `#sweepParams` because the two answer different questions. Sweeping needs a
-     *  drive voltage, which needs the driver's `Re`; checking that a box volume is a usable number
-     *  does not. Building the validation input through the sweep's guard made an absent `Re`
-     *  silence every enclosure complaint on exactly the half-finished projects that most need
-     *  them. A zero drive is used only when the circuit must report its missing driver inputs;
-     *  it is never returned as a simulation result.
-     *
-     *  An unstated volume is passed through as-is rather than short-circuiting to "no issues":
-     *  "you have not sized the box" is the complaint, not a reason to stay quiet. */
-    #enclosureParams(boxType: SimulatableBoxType): EnclosureParams {
-        const {Vf, Sp, prSd, prCms, prMmd} = this.#boxSpecificParams(boxType);
-        return {Vb: this.#boxVolume_m3(boxType), Vf, Sp, prSd, prCms, prMmd};
-    }
-
-    /** `eg` is the drive voltage the sweep runs at: `sweep()` passes the solved `driveVoltage_V`
-     *  (gated non-null first), `maxCurves()` the 2.83 V reference the engine runs those curves at. */
-    #sweepParams(P: FrequencyGrid, eg: number, boxType: SimulatableBoxType): SweepParams {
-        const Vb = this.#boxVolume_m3(boxType);
-        const box = this.box;
-        let losses: {Ql?: number; Qa?: number; Qp?: number} = {};
-        switch (boxType) {
-            case 'sealed': losses = {Ql: box.sealed.losses.Ql.value, Qa: box.sealed.losses.Qa.value}; break;
-            case 'vented': losses = {Ql: box.vented.losses.Ql.value, Qa: box.vented.losses.Qa.value, Qp: box.vented.losses.Qp.value}; break;
-            case 'bandpass4': losses = {Ql: box.bandpass4.chambers.rear.losses.Ql.value, Qa: box.bandpass4.chambers.rear.losses.Qa.value}; break;
-            case 'box-passive-radiator': losses = {Ql: box.passiveRadiator.losses.Ql.value, Qa: box.passiveRadiator.losses.Qa.value}; break;
-        }
-
+    /** Everything `projectSweep.ts`'s free functions need to read off this project — built fresh
+     *  on every sweep/maxCurves/boxParamsIssues/ventAchievedFb/ventMaxReachableFb call, same
+     *  reasoning as `driver`/`box` (PLAN_openisdproject_split.md module 8). A structural
+     *  interface, not `OpenISDProject` itself, so `projectSweep.ts` never imports this class back. */
+    #sweepSource(): ProjectSweepSource {
+        const root = this.#root();
         return {
-             Vb, eg,
-            fmin: P.fmin,
-            fmax: P.fmax,
-            N: P.N ?? this.sweepN.value ?? undefined,
-            nDrivers: this.nDrivers.value,
-            wiring: this.wiring.value,
-            Rs: this.Rs_ohm.value,
-            circuitModel: engineCircuitModel(this.circuitModel.value, this.winisdDriverModel.value),
-            winisdVaModel: this.winisdVaModel.value,
-            lossMode: this.lossMode.value.value,
-            Ql: losses.Ql, Qa: losses.Qa, Qp: losses.Qp,
-            ...this.#boxSpecificParams(boxType),
-            ...this.#airOver(this.#root()),
+            driver: this.driver,
+            box: this.box,
+            nDrivers: this.nDrivers,
+            wiring: this.wiring,
+            Rs_ohm: this.Rs_ohm,
+            circuitModel: this.circuitModel,
+            winisdDriverModel: this.winisdDriverModel,
+            winisdVaModel: this.winisdVaModel,
+            lossMode: this.lossMode,
+            rgAtDriverSide: this.rgAtDriverSide,
+            useTransmissionLinePortModel: this.useTransmissionLinePortModel,
+            forceFlatResponse: this.forceFlatResponse,
+            filters: this.filters,
+            driverAddedMass_kg: this.driverAddedMass_kg,
+            vcTempRise_K: this.vcTempRise_K,
+            alfaVC_per_K: this.alfaVC_per_K,
+            sweepN: this.sweepN,
+            driveVoltage_V: this.driveVoltage_V.value,
+            airEnvironment: this.#airOver(root),
             useWinisdAirModel: this.#current().environment.useWinisdAirModel ?? true,
-            driverAddedMass: this.driverAddedMass_kg.value,
-            vcTempRise: this.vcTempRise_K.value,
-            alfaVC: this.alfaVC_per_K.value,
-            rgAtDriverSide: this.rgAtDriverSide.value,
-            tlPortModel: this.useTransmissionLinePortModel.value,
-            forceFlatResponse: this.forceFlatResponse.value,
-            filters: [...this.filters.value],
+            air: this.#air(root),
+            engine: this.#engine,
+            ventIssues: this.#issues.vent,
+            prIssues: this.#issues.pr,
         };
-    }
-
-    /** This project's box volume, WHICHEVER topology is active — `Vb` in `SweepParams` is always
-     *  the driver-side chamber's own volume, sealed or the equivalent for every other topology. */
-    #boxVolume_m3(boxType: SimulatableBoxType): number {
-        const box = this.box;
-        switch (boxType) {
-            case 'sealed': return box.sealed.volume_m3.value;
-            case 'vented': return box.vented.volume_m3.value;
-            case 'bandpass4': return box.bandpass4.chambers.rear.volume_m3.value;
-            case 'box-passive-radiator': return box.passiveRadiator.volume_m3.value;
-        }
-    }
-
-    /** The fields only one box topology reads — the vent's `Sp`/`Leff` for `vented`/`bandpass4`,
-     *  the passive radiator's five for `box-passive-radiator`. Geometry only (`area_m2()`,
-     *  `effectiveLength_m()`), never acoustics, per this file's header ruling. */
-    #boxSpecificParams(boxType: BoxType): Partial<SweepParams> {
-        const box = this.box;
-        switch (boxType) {
-            case 'vented': {
-                const Sp = box.vented.vent.totalArea_m2();
-                const Leff = box.vented.vent.effectiveLength_m();
-                // Fb for circuit.ts's winisd-lossy port mass (Map = 1/(ωb²·Cab), never from
-                // Leff). Null only when the vent's tuning ↔ length pair is itself unsolved,
-                // which #ventSweepIssues already refuses the sweep over before this is read.
-                const Fb = box.vented.tuning_goal_hz.value;
-                return {Sp: Sp ?? undefined, Leff: Leff ?? undefined, Fb: Fb ?? undefined};
-            }
-            case 'bandpass4': {
-                const Sp = box.bandpass4.vents.front.totalArea_m2();
-                const Leff = box.bandpass4.vents.front.effectiveLength_m();
-                const rear = box.bandpass4.chambers.rear.losses;
-                const front = box.bandpass4.chambers.front;
-                // circuit.ts's bandpass4 `winisd-lossy` branch reads each chamber's OWN losses
-                // and the front's own tuning — never the shared Ql/Qa/Qp above (engine/types.ts
-                // `SweepParams.Qlr` doc, bugs/BUG_20260927_bandpass4-box-not-winisd-form.md).
-                return {
-                    Vf: front.volume_m3.value, Sp: Sp ?? undefined, Leff: Leff ?? undefined,
-                    Qlr: rear.Ql.value, Qar: rear.Qa.value, Qiclfr: rear.Qicl.value,
-                    Qlf: front.losses.Ql.value, Qaf: front.losses.Qa.value, Qpf: front.losses.Qp.value,
-                    Ff: front.tuning_goal_hz.value ?? undefined,
-                };
-            }
-            case 'box-passive-radiator': {
-                const r = box.passiveRadiator.radiator.spec;
-                // Fr for circuit.ts's winisd-lossy Ral/Raa (fixed at the box's own tuning, never
-                // per-frequency). Null only when the volume/radiator/tuning-pair is itself
-                // unsolved, which #prSweepIssues already refuses the sweep over before this is
-                // read.
-                const Fr = box.passiveRadiator.systemTuning_hz.value;
-                return {
-                    prSd: r.Sd_m2.value ?? undefined,
-                    prNum: box.passiveRadiator.count.value,
-                    prMmd: r.Mms_kg.value ?? undefined,
-                    prMadd: box.passiveRadiator.addedMass_kg.value ?? undefined,
-                    prCms: r.Cms_m_per_N.value ?? undefined,
-                    prRms: r.Rms_kg_per_s.value ?? undefined,
-                    Fr: Fr ?? undefined,
-                };
-            }
-            // No box-specific geometry: sealed has no vent or radiator, and the engine has no
-            // circuit for bandpass6 or abc at all (`simulatableBoxType`).
-            case 'sealed':
-            case 'bandpass6':
-            case 'abc':
-                return {};
-        }
-    }
-
-    /**
-     * Which of the engine's simulable topologies this project is, or null.
-     *
-     * There is ONE box-type vocabulary now, so this translates nothing — it asks the engine which
-     * of its own types it can model. Null for `bandpass6` and `abc`, which it has no circuit for,
-     * and that null is the reason every simulation method below can return null: not a failure, a
-     * topology the engine does not yet cover.
-     */
-    #engineBoxType(): SimulatableBoxType | null {
-        return this.#engine.simulatableBoxType(this.box.boxType.value);
     }
 
     /** The frequency response, impedance and excursion this design produces — or the issues that
@@ -1089,79 +713,21 @@ export class OpenISDProject {
      *  `errors` when the active topology is one the engine has no model for, or a field this
      *  project itself needs to sweep (its box volume, its drive voltage) is not yet stated. */
     sweep(P: FrequencyGrid): SweepSolveResult {
-        const box = this.#engineBoxType();
-        if (!box) return {values: null, issues: []};
-        const boxIssues = this.#boxSweepIssues(box);
-        if (boxIssues.length) return {values: null, issues: boxIssues};
-        const params = this.#sweepParams(P, this.driveVoltage_V.value, box);
-        return this.#engine.sweep(driverSolverParamsOf(this.driver.specs, this.#engine, this.winisdDriverModel.value, this.#air(this.#root())), this.driver.specs.Le_H.value ?? undefined, box, params);
+        return sweepOf(this.#sweepSource(), P);
     }
 
     /** The excursion- and power-limited maximum SPL curves. Reports on the same terms as `sweep`,
      *  but does not need a stated drive level: the engine runs these curves at the 2.83 V
      *  reference whatever `eg` it is handed, so that reference is passed here outright. */
     maxCurves(P: FrequencyGrid): MaxCurvesSolveResult {
-        const box = this.#engineBoxType();
-        if (!box) return {values: null, issues: [], driverPrerequisites: []};
-        const boxIssues = this.#boxSweepIssues(box);
-        if (boxIssues.length) return {values: null, issues: boxIssues, driverPrerequisites: []};
-        return this.#engine.maxCurves(driverSolverParamsOf(this.driver.specs, this.#engine, this.winisdDriverModel.value, this.#air(this.#root())), this.driver.specs.Le_H.value ?? undefined, box, this.#sweepParams(P, 2.83, box));
-    }
-
-    /** The active box's own sweep-level blockers, beyond what `solveBoxParams()` already reports:
-     *  a vented/bandpass4 port with neither a stated tuning nor a stated port length, or a
-     *  passive-radiator mismatch target with neither a stated added mass nor a stated tuning. */
-    #boxSweepIssues(box: SimulatableBoxType): readonly SweepIssue[] {
-        if (box === 'vented' || box === 'bandpass4') return this.#ventSweepIssues(box);
-        if (box === 'box-passive-radiator') return this.#prSweepIssues();
-        return [];
-    }
-
-    /** The ACTIVE vent's cached issues (`vented`'s or `bandpass4`'s front — S2-7d2:
-     *  `#resolve()` already ran `solveVent` for whichever is active, so this is a thin read, not
-     *  a second solve). `solveVent`'s issues deliberately stay empty when NO target is stated at
-     *  all (pinned by `engine/vent-pr-consistency.test.ts`: "no target chosen yet" is not a
-     *  per-field error), so this guard adds the no-resonance case on top: a port that still has
-     *  neither `tuning_goal_hz` nor `length_m` blocks the whole sweep, in the terms the sweep's `Leff`
-     *  actually runs by. */
-    #ventSweepIssues(box: 'vented' | 'bandpass4'): readonly VentIssue[] {
-        if (this.#issues.vent.length) return this.#issues.vent;
-        const b = this.box;
-        const tuningCell = box === 'vented'
-            ? b.vented.tuning_goal_hz
-            : b.bandpass4.chambers.front.tuning_goal_hz;
-        const vent = box === 'vented' ? b.vented.vent : b.bandpass4.vents.front;
-        const Vb = box === 'vented'
-            ? b.vented.volume_m3.value
-            : b.bandpass4.chambers.front.volume_m3.value;
-        const lengthCell = vent.length_m;
-        if (tuningCell.value == null && lengthCell.value == null) {
-            const area = vent.area_m2.value;
-            const required = ['tuning_goal_hz', 'Vb_m3', 'area_m2'] as const;
-            const values: Readonly<Record<typeof required[number], number | null>> =
-                { tuning_goal_hz: null, Vb_m3: Vb, area_m2: area };
-            const missing = required.filter((f) => !(typeof values[f] === 'number' && values[f]! > 0));
-            return [this.#engine.missingDependencies('length_m',
-                [{formula: 'length_m from tuning_goal_hz + Vb_m3 + area_m2 (Helmholtz)', required, missing}])];
-        }
-        return [];
-    }
-
-    /** The PR equivalent of `#ventSweepIssues` — the cached issues from `#resolve()`'s own
-     *  `solvePr` call. A configured radiator with NEITHER target stated still sweeps — that
-     *  un-tuned state is simulable (pinned by `test/engine-wiring.test.ts` "a passive-radiator
-     *  box simulates"), and `solvePr`'s own issues already stay empty on that terms, so there is
-     *  deliberately no extra gate here, unlike `#ventSweepIssues`. */
-    #prSweepIssues(): readonly PrIssue[] {
-        return this.#issues.pr;
+        return maxCurvesOf(this.#sweepSource(), P);
     }
 
     /** What is wrong with this project's enclosure parameters — checked BEFORE a sweep, so a
      *  caller can refuse rather than plot nonsense. Empty when nothing is wrong, and also empty
      *  (rather than a false accusation) when the topology cannot be simulated at all. */
     boxParamsIssues(): readonly BoxParamsIssue[] {
-        const box = this.#engineBoxType();
-        return box ? this.#engine.solveBoxParams(box, this.#enclosureParams(box)).issues : [];
+        return boxParamsIssuesOf(this.#sweepSource());
     }
 
     /** The passband level a response is measured against — the reference every dB figure below is
@@ -1319,36 +885,13 @@ export class OpenISDProject {
     /** The tuning the vent as built actually produces. A precomputed readout — null, with a
      *  not-available cell, when the box is not vented or the geometry is incomplete. */
     get ventAchievedFb(): Readable<number | null> & Calculated {
-        return new CalculatedFieldImpl<number | null>(() => {
-            if (this.box.boxType.value !== 'vented') {
-                return absentCell<number>('ventAchievedFb');
-            }
-            const Vb = this.box.vented.volume_m3.value;
-            const v = this.box.vented.vent.tuningIn_hz(Vb);
-            return v === null
-                ? absentCell<number>('ventAchievedFb')
-                : calculatedCell<number | null>('ventAchievedFb', v);
-        });
+        return ventAchievedFbOf(this.#sweepSource());
     }
 
     /** The highest tuning this vent can reach in this volume (its L=0 ceiling). A precomputed
      *  readout — not-available when the box is not vented or the geometry is incomplete. */
     get ventMaxReachableFb(): Readable<number | null> & Calculated {
-        return new CalculatedFieldImpl<number | null>(() => {
-            if (this.box.boxType.value !== 'vented') {
-                return absentCell<number>('ventMaxReachableFb');
-            }
-            const Vb = this.box.vented.volume_m3.value;
-            const Sp = this.box.vented.vent.area_m2.value;
-            if (!(Vb > 0) || Sp === null) {
-                return absentCell<number>('ventMaxReachableFb');
-            }
-            const count = this.box.vented.vent.count.value;
-            const v = this.#engine.tuningFromLength(Vb, 0, Sp, count,
-                this.#air(this.#root()),
-                this.box.vented.vent.endCorrection_m.value);
-            return calculatedCell<number | null>('ventMaxReachableFb', v);
-        });
+        return ventMaxReachableFbOf(this.#sweepSource());
     }
 
     /** @deprecated Use `recalc()` instead. */
