@@ -257,7 +257,7 @@ export class OpenISDBox implements Box {
             systemTuning_hz: entryField(focus(pr, 'systemTuning_hz'), 'systemTuning_hz', () => groupDq(issues().pr)),
             resonanceWithAddedMass_hz: entryField(focus(pr, 'resonanceWithAddedMass_hz'), 'resonanceWithAddedMass_hz', () => groupDq(issues().pr)),
             /** A read-only WHAT-IF query, independent of the stored pair and its cascade — never
-             *  writes back, so it stays a pure computation over `Engine.prMassForFp` rather than a
+             *  writes back, so it stays a pure computation over `PrEngine.massForFp` rather than a
              *  route through the (now-deleted) bag solver. The DQ text matches
              *  `checkPrConsistency`'s own negative-mass case exactly: the only DQ this cell could
              *  ever have carried in practice (the missing-dependencies branch always paired with a
@@ -271,11 +271,11 @@ export class OpenISDBox implements Box {
                 if (!(Vb != null && Vb > 0 && prMmd != null && prSd != null && prCms != null && fp_hz > 0)) {
                     return absentCell<number>('addedMassForTuning_kg');
                 }
-                const totalMass = this.#engine.prMassForFp({ Vb, prMmd, prMadd: 0, prSd, prCms }, fp_hz, air());
+                const totalMass = this.#engine.pr.massForFp({ Vb, prMmd, prMadd: 0, prSd, prCms }, fp_hz, air());
                 const addedMass = totalMass - prMmd;
                 const dq: DqIssue[] | undefined = addedMass < 0 ? [this.#engine.targetUnreachable(
                     'addedMassForTuning_kg',
-                    this.#engine.prTuning({ Vb, prMmd, prMadd: 0, prSd, prCms }, air()),
+                    this.#engine.pr.tuning({ Vb, prMmd, prMadd: 0, prSd, prCms }, air()),
                 )] : undefined;
                 return calculatedCell<number | null>('addedMassForTuning_kg', addedMass, dq);
             }),

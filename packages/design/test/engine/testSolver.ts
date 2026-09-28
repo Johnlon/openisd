@@ -191,12 +191,12 @@ function bagFromPrHandles(p: PrSolverParams): TestPrQuantities {
  *  every one of them unchanged; a test specifically proving air-sensitivity passes its own. */
 export function solvePrConsistencyGroup(d: TestPrQuantities, air: Air = REFERENCE_AIR()): TestPrQuantities {
   const handles = prHandlesFrom(d);
-  engine.solvePr(handles, air);
+  engine.pr.solve(handles, air);
   return bagFromPrHandles(handles);
 }
 
 export function checkPrConsistency(d: TestPrQuantities, air: Air = REFERENCE_AIR()) {
-  return engine.solvePr(prHandlesFrom(d), air);
+  return engine.pr.solve(prHandlesFrom(d), air);
 }
 
 function ventHandlesFrom(v: TestVentQuantities): VentSolverParams {

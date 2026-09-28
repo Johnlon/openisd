@@ -11,22 +11,12 @@ import {
   ebp,
   ebpSuitability,
   findImpedancePeak,
-  prMassForFp,
-  prTuning,
   sealedAlignmentOptions,
   sealedFromQtc,
   sealedQtcFromVolume,
   ventedAlignment,
 } from './boxDesign.js';
-import {
-  driveVoltage,
-  prCmsFromVas,
-  prFsWithMass,
-  prMmdFromFs,
-  prQms,
-  prRmsFromQms,
-  prVas,
-} from './formulas.js';
+import {driveVoltage} from './formulas.js';
 import {chartsFor as chartIdsFor, DEFAULT_BOX_TYPE, DEFAULT_CHART} from './charts.js';
 import type {ChartId} from './charts.js';
 import {defaultAppSettings} from './appSettings.js';
@@ -38,8 +28,6 @@ import {
 import type {VentedDesignQuantity, VentedPlausibilityIssue} from './plausibility.js';
 import type {DriverIssue} from './solvers/solveDriver.js';
 import {solveDriver} from './solvers/solveDriver.js';
-import type {PrIssue} from './solvers/solvePr.js';
-import {solvePr} from './solvers/solvePr.js';
 import type {SealedAlignmentIssue} from './solvers/solveSealedAlignment.js';
 import {solveSealedAlignment} from './solvers/solveSealedAlignment.js';
 import {terminalBL_Tm, terminalRe_ohm} from './solvers/driverQuantities.js';
@@ -60,6 +48,8 @@ import {sealedResonance, sourceLoadedQts} from './lossMode.js';
 import type {BoxParamsSolveResult} from './params.js';
 import {solveBoxParams} from './params.js';
 import {FilterEngineImpl} from './filters/index.js';
+import type {PrEngine} from './pr/PrEngine.js';
+import {PrEngineImpl} from './pr/PrEngine.js';
 import type {VentEngine} from './vent/VentEngine.js';
 import {VentEngineImpl} from './vent/VentEngine.js';
 import type {FilterEngine} from './filters/index.js';
@@ -90,7 +80,7 @@ import type {
   Wiring,
 } from './types.js';
 import {simulatableBoxType as narrowBoxType} from './types.js';
-import type {DriverSolverParams, PrSolverParams, SealedAlignmentSolverParams, SignalSolverParams} from './solverTypes.js';
+import type {DriverSolverParams, SealedAlignmentSolverParams, SignalSolverParams} from './solverTypes.js';
 
 export class Engine {
   /** The application's own settings, read at CALL time — see `AppSettings`. Defaulted, so every
@@ -137,13 +127,6 @@ export class Engine {
     return solveDriver(params, air);
   }
 
-  /** The one radiator call to reach for (T10/T11): whichever of tuning/added-mass is not
-   *  entered is derived and written onto its `SolverField` handle, and the issues follow right
-   *  back. `air` is the project's own resolved `{ rho, c }` — see `vent/VentEngine.ts`'s
-   *  doc comment. Entered values are never overwritten. */
-  solvePr(params: PrSolverParams, air: Air): PrIssue[] {
-    return solvePr(params, air);
-  }
 
 
   /** The one sealed-alignment call to reach for (T10/T11): whichever of target-`Qtc`/`Vb_m3`
@@ -298,11 +281,6 @@ export class Engine {
     }).Fsc;
   }
 
-  /** A passive radiator's tuning from its own mass and compliance. `air` is the project's own
-   *  resolved `{ rho, c }` — see `vent/VentEngine.ts`'s doc comment. */
-  prTuning(p: Parameters<typeof prTuning>[0], air: Air): number {
-    return prTuning(p, air);
-  }
 
   /** The chamber volume that reaches a target system Q — the alignment picker's solve. */
   sealedFromQtc(Qts: number, Vas_m3: number, Qtc: number): number | null {
@@ -363,14 +341,6 @@ export class Engine {
     return findImpedancePeak(result, Re);
   }
 
-  // ── THE PASSIVE RADIATOR ──────────────────────────────────────────────────────────────────
-
-  /** Added cone mass that tunes a radiator to `fp`. `air` is the project's own resolved
-   *  `{ rho, c }` — see `vent/VentEngine.ts`'s doc comment. */
-  prMassForFp(P: Parameters<typeof prMassForFp>[0], fp: number, air: Air): number {
-    return prMassForFp(P, fp, air);
-  }
-
   /** Which of this engine's topologies a box type is, or null when it has no circuit for it —
    *  the caller's cue to report a design it cannot simulate rather than draw a wrong curve. */
   simulatableBoxType(box: BoxType): SimulatableBoxType | null {
@@ -397,27 +367,11 @@ export class Engine {
     return DEFAULT_BOX_TYPE;
   }
 
-  /** Compliance-equivalent volume, in cubic metres. */
-  prVas(prCms: number, prSd: number): number { return prVas(prCms, prSd); }
+  // ── THE PASSIVE RADIATOR ──────────────────────────────────────────────────────────────────
 
-  /** Compliance from Vas (cubic metres) and Sd — the inverse of `prVas`. */
-  prCmsFromVas(prVas_m3: number, prSd: number): number { return prCmsFromVas(prVas_m3, prSd); }
-
-  /** Free-air resonance loaded with added cone mass. */
-  prFsWithMass(prMmd: number, prMadd: number, prCms: number): number {
-    return prFsWithMass(prMmd, prMadd, prCms);
-  }
-
-  /** Moving mass from free-air Fs and compliance — the inverse of the resonance. */
-  prMmdFromFs(prFsHz: number, prCms: number): number { return prMmdFromFs(prFsHz, prCms); }
-
-  /** Mechanical Q from mass, compliance and resistance. */
-  prQms(prMmd: number, prCms: number, prRms: number): number { return prQms(prMmd, prCms, prRms); }
-
-  /** Mechanical resistance from Qms — the inverse of `prQms`. */
-  prRmsFromQms(prQmsValue: number, prMmd: number, prCms: number): number {
-    return prRmsFromQms(prQmsValue, prMmd, prCms);
-  }
+  /** The passive-radiator area — its own Vas/Fs/Qms and inverses, system tuning, mass for a
+   *  tuning, and the handle solve. */
+  readonly pr: PrEngine = new PrEngineImpl();
 
   // ── THE BOX: vents ────────────────────────────────────────────────────────────────────────
 

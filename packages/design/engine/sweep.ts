@@ -21,7 +21,7 @@ import type {CircuitQuantities} from './circuit.js';
 import {hfAsymptotePressure_Pa, solve} from './circuit.js';
 import {missingDependencies} from './consistency.js';
 import type {DriverIssue, DriverPrerequisite, DriverQuantityName} from './solvers/solveDriver.js';
-import type {PrIssue} from './solvers/solvePr.js';
+import type {PrIssue} from './pr/PrEngine.js';
 import type {VentIssue} from './vent/VentEngine.js';
 import {terminalBL_Tm, withAddedMass} from './solvers/driverQuantities.js';
 import {applyFilters} from './filters.js';

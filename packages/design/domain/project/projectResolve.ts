@@ -118,7 +118,7 @@ export function resolveProject(ctx: ProjectResolveContext): ProjectIssues {
     } else if (boxType === 'box-passive-radiator') {
         const p = box.passiveRadiator;
         const r = p.radiator;
-        pr = engine.solvePr({
+        pr = engine.pr.solve({
             addedMass_kg: p.addedMass_kg,
             tuning_goal_hz: p.tuning_goal_hz,
             resonanceWithAddedMass_hz: p.resonanceWithAddedMass_hz,

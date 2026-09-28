@@ -64,7 +64,7 @@ describe('circuit — acoustic circuit branches', () => {
     const PR_BOX = {Vb: P_SEALED.Vb, prSd: 0.0133, prMmd: 0.030, prMadd: 0, prCms: 0.0008};
     const P_PR: SweepParams = {
       ...P_SEALED, ...PR_BOX, prNum: 1,
-      Fr: engine.prTuning(PR_BOX, engine.solveEnvironment({}).values),
+      Fr: engine.pr.tuning(PR_BOX, engine.solveEnvironment({}).values),
     };
     const sw = engine.sweep(DRV, LE_H, 'box-passive-radiator', P_PR).values!;
     assert.ok(sw.spl.every(Number.isFinite), 'a passive radiator with no mechanical resistance specified must still produce a finite sweep');
@@ -76,7 +76,7 @@ describe('circuit — acoustic circuit branches', () => {
     // both sweeps below fall to the same -200 dB silence sentinel, masking the very difference
     // this test checks for.
     const {rho, c} = engine.solveEnvironment({}).values;
-    const Fr = engine.prTuning({Vb: 0.030, prMmd: 0.030, prMadd: 0, prSd: 0.0133, prCms: 0.0008}, {rho, c});
+    const Fr = engine.pr.tuning({Vb: 0.030, prMmd: 0.030, prMadd: 0, prSd: 0.0133, prCms: 0.0008}, {rho, c});
     const single: SweepParams = {...P_SEALED, prSd: 0.0133, prNum: 1, prMmd: 0.030, prMadd: 0, prCms: 0.0008, prRms: 1.0, Fr};
     const pair: SweepParams = {...single, prNum: 2};
     const swSingle = engine.sweep(DRV, LE_H, 'box-passive-radiator', single).values!;
