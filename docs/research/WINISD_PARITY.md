@@ -22,6 +22,9 @@ bare ✅/❌. On the OpenISD side "the field exists" is not a test — the row n
 CONSUMES the value, or the test that exercises it; a declared-but-unconsumed field is recorded
 as inert, not as ✅.
 
+Measured calculation equivalence (worst deviation per chart, box and setting) lives in
+[`WINISD_EQUIVALENCE.md`](WINISD_EQUIVALENCE.md); this file covers features and fields.
+
 Third-party competitor tools (00 Simulator, SpeakerDesign.dev, SpeakerBoxLite, Sonella) are
 **not** covered here — WinISD is the parity oracle, not a competitor. See
 [`COMPETITIVE_LANDSCAPE.md`](COMPETITIVE_LANDSCAPE.md).

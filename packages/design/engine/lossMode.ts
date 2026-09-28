@@ -1,5 +1,4 @@
 import {LossMode} from '../fields/lossMode.js';
-export type {LossModeValue} from '../fields/lossMode.js';
 
 /**
  * Sealed-box resonance under each loss model — controls both the Box tab single-number readout (Fsc/Qtc)

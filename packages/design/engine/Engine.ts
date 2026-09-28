@@ -16,9 +16,7 @@ import {
   sealedAlignmentOptions,
   sealedFromQtc,
   sealedQtcFromVolume,
-  tuningFromLength,
   ventedAlignment,
-  ventLength,
 } from './boxDesign.js';
 import {
   driveVoltage,
@@ -42,8 +40,6 @@ import type {DriverIssue} from './solvers/solveDriver.js';
 import {solveDriver} from './solvers/solveDriver.js';
 import type {PrIssue} from './solvers/solvePr.js';
 import {solvePr} from './solvers/solvePr.js';
-import type {VentIssue} from './solvers/solveVent.js';
-import {solveVent} from './solvers/solveVent.js';
 import type {SealedAlignmentIssue} from './solvers/solveSealedAlignment.js';
 import {solveSealedAlignment} from './solvers/solveSealedAlignment.js';
 import {terminalBL_Tm, terminalRe_ohm} from './solvers/driverQuantities.js';
@@ -64,6 +60,8 @@ import {sealedResonance, sourceLoadedQts} from './lossMode.js';
 import type {BoxParamsSolveResult} from './params.js';
 import {solveBoxParams} from './params.js';
 import {FilterEngineImpl} from './filters/index.js';
+import type {VentEngine} from './vent/VentEngine.js';
+import {VentEngineImpl} from './vent/VentEngine.js';
 import type {FilterEngine} from './filters/index.js';
 import type {MaxCurvesSolveResult, SweepSolveResult} from './sweep.js';
 import {
@@ -92,7 +90,7 @@ import type {
   Wiring,
 } from './types.js';
 import {simulatableBoxType as narrowBoxType} from './types.js';
-import type {DriverSolverParams, PrSolverParams, SealedAlignmentSolverParams, SignalSolverParams, VentSolverParams} from './solverTypes.js';
+import type {DriverSolverParams, PrSolverParams, SealedAlignmentSolverParams, SignalSolverParams} from './solverTypes.js';
 
 export class Engine {
   /** The application's own settings, read at CALL time — see `AppSettings`. Defaulted, so every
@@ -141,19 +139,12 @@ export class Engine {
 
   /** The one radiator call to reach for (T10/T11): whichever of tuning/added-mass is not
    *  entered is derived and written onto its `SolverField` handle, and the issues follow right
-   *  back. `air` is the project's own resolved `{ rho, c }` — see `boxDesign.ts#ventLength`'s
+   *  back. `air` is the project's own resolved `{ rho, c }` — see `vent/VentEngine.ts`'s
    *  doc comment. Entered values are never overwritten. */
   solvePr(params: PrSolverParams, air: Air): PrIssue[] {
     return solvePr(params, air);
   }
 
-  /** The one vent call to reach for (T10/T11): whichever of tuning/length is not entered is
-   *  derived and written onto its `SolverField` handle, and the issues follow right back.
-   *  `air` is the project's own resolved `{ rho, c }` — see `boxDesign.ts#ventLength`'s doc
-   *  comment. Entered values are never overwritten. */
-  solveVent(params: VentSolverParams, air: Air): VentIssue[] {
-    return solveVent(params, air);
-  }
 
   /** The one sealed-alignment call to reach for (T10/T11): whichever of target-`Qtc`/`Vb_m3`
    *  is not entered is derived from the driver's own `Qts`/`Vas_m3` and written onto its
@@ -308,41 +299,9 @@ export class Engine {
   }
 
   /** A passive radiator's tuning from its own mass and compliance. `air` is the project's own
-   *  resolved `{ rho, c }` — see `boxDesign.ts#ventLength`'s doc comment. */
+   *  resolved `{ rho, c }` — see `vent/VentEngine.ts`'s doc comment. */
   prTuning(p: Parameters<typeof prTuning>[0], air: Air): number {
     return prTuning(p, air);
-  }
-
-  // ── THE BOX: vents ────────────────────────────────────────────────────────────────────────
-
-  /** Port length for a target tuning, from the chamber volume, ONE port's area and the number of
-   *  identical ports. `air` is the project's own resolved `{ rho, c }` — see
-   *  `boxDesign.ts#ventLength`'s doc comment. */
-  ventLength(Vb: number, fb: number, Sp: number, count: number, air: Air, endCorrection?: number): number {
-    return ventLength(Vb, fb, Sp, count, air, endCorrection);
-  }
-
-  /** The tuning a port of that length actually produces — the inverse of `ventLength`. Both
-   *  directions exist because the user may enter either, and the other is then solved. */
-  tuningFromLength(Vb: number, L: number, Sp: number, count: number, air: Air, endCorrection?: number): number {
-    return tuningFromLength(Vb, L, Sp, count, air, endCorrection);
-  }
-
-  /**
-   * A port's ACOUSTIC length — the physical length plus the end correction, which is what the
-   * sweep's port model actually resonates (`SweepParams.Leff`).
-   *
-   * Takes the port's AREA, not its shape, and derives the equivalent diameter from it —
-   * `2·√(Sp/π)`. That is exact for a round port (`2·√(πr²/π) = 2r = d`) and is the standard
-   * equivalent-diameter substitution for a slotted one, so the end correction, which is
-   * inherently a round-port idea, applies to both with no branch and no shape argument.
-   *
-   * `count` is taken so every port call states the same geometry, but the end correction is a
-   * PER-PORT effect: the answer does not change with the number of identical ports.
-   */
-  ventEffectiveLength(length_m: number, Sp: number, count: number, endCorrection: number): number {
-    void count;
-    return length_m + endCorrection * 2 * Math.sqrt(Sp / Math.PI);
   }
 
   /** The chamber volume that reaches a target system Q — the alignment picker's solve. */
@@ -407,7 +366,7 @@ export class Engine {
   // ── THE PASSIVE RADIATOR ──────────────────────────────────────────────────────────────────
 
   /** Added cone mass that tunes a radiator to `fp`. `air` is the project's own resolved
-   *  `{ rho, c }` — see `boxDesign.ts#ventLength`'s doc comment. */
+   *  `{ rho, c }` — see `vent/VentEngine.ts`'s doc comment. */
   prMassForFp(P: Parameters<typeof prMassForFp>[0], fp: number, air: Air): number {
     return prMassForFp(P, fp, air);
   }
@@ -459,6 +418,12 @@ export class Engine {
   prRmsFromQms(prQmsValue: number, prMmd: number, prCms: number): number {
     return prRmsFromQms(prQmsValue, prMmd, prCms);
   }
+
+  // ── THE BOX: vents ────────────────────────────────────────────────────────────────────────
+
+  /** The vent area — port length for a tuning, tuning for a length, acoustic length, and the
+   *  handle solve. */
+  readonly vent: VentEngine = new VentEngineImpl();
 
   // ── FILTERS ──────────────────────────────────────────────────────────────────────────────
 

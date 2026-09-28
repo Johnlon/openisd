@@ -5,7 +5,7 @@
  * these types describe existing behaviour, they do not change it.
  */
 
-import type { LossModeValue } from './lossMode.js';
+import type {LossModeValue} from '../fields/lossMode.js';
 
 /** A complex number in rectangular form. */
 export interface Complex {

@@ -334,7 +334,7 @@ export function ventMaxReachableFbOf(source: ProjectSweepSource): Readable<numbe
             return absentCell<number>('ventMaxReachableFb');
         }
         const count = source.box.vented.vent.count.value;
-        const v = source.engine.tuningFromLength(Vb, 0, Sp, count, source.air, source.box.vented.vent.endCorrection_m.value);
+        const v = source.engine.vent.tuningFromLength(Vb, 0, Sp, count, source.air, source.box.vented.vent.endCorrection_m.value);
         return calculatedCell<number | null>('ventMaxReachableFb', v);
     });
 }

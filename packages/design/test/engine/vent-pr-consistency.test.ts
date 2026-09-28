@@ -63,14 +63,14 @@ describe('Engine.solveVent — handle solve, values written onto the params (T10
   it('two ports need a longer port than one for the same tuning — the count reaches the solve', () => {
     const one = params({ tuning_goal_hz: 35, Vb_m3: 0.03, area_m2: 0.002, count: 1 });
     const two = params({ tuning_goal_hz: 35, Vb_m3: 0.03, area_m2: 0.002, count: 2 });
-    engine.solveVent(one, AIR);
-    engine.solveVent(two, AIR);
+    engine.vent.solve(one, AIR);
+    engine.vent.solve(two, AIR);
     expect(two.length_m.value).toBeGreaterThan(one.length_m.value ?? Infinity);
   });
 
   it('writes the derived length onto its handle when tuning is stated and the geometry is complete', () => {
     const p = params({ tuning_goal_hz: 35, Vb_m3: 0.03, area_m2: 0.002 });
-    const issues = engine.solveVent(p, AIR);
+    const issues = engine.vent.solve(p, AIR);
     expect(p.length_m.value).toBeGreaterThan(0);
     expect(p.length_m.calculated).toBe(true);
     expect(issues).toEqual([]);
@@ -78,7 +78,7 @@ describe('Engine.solveVent — handle solve, values written onto the params (T10
 
   it('writes the derived tuning onto its handle when length is stated', () => {
     const p = params({ length_m: 0.1, Vb_m3: 0.03, area_m2: 0.002 });
-    const issues = engine.solveVent(p, AIR);
+    const issues = engine.vent.solve(p, AIR);
     expect(p.tuning_goal_hz.value).toBeGreaterThan(0);
     expect(p.tuning_goal_hz.calculated).toBe(true);
     expect(issues).toEqual([]);
@@ -86,7 +86,7 @@ describe('Engine.solveVent — handle solve, values written onto the params (T10
 
   it('never overwrites a stated value, even when the other member is also stated', () => {
     const p = params({ tuning_goal_hz: 35, length_m: 111111, Vb_m3: 0.03, area_m2: 0.002 });
-    const issues = engine.solveVent(p, AIR);
+    const issues = engine.vent.solve(p, AIR);
     expect(p.length_m.value).toBe(111111);
     expect(p.length_m.entered).toBe(true);
     expect(issues).toEqual([]);
@@ -94,7 +94,7 @@ describe('Engine.solveVent — handle solve, values written onto the params (T10
 
   it('leaves the blocked target not-available and reports the missing geometry', () => {
     const p = params({ tuning_goal_hz: 35 });
-    const issues = engine.solveVent(p, AIR);
+    const issues = engine.vent.solve(p, AIR);
     expect(p.length_m.value).toBeNull();
     expect(issues).toHaveLength(1);
     expect(issues[0]).toMatchObject({ kind: 'missing-dependencies', target: 'length_m' });
@@ -102,7 +102,7 @@ describe('Engine.solveVent — handle solve, values written onto the params (T10
 
   it('reports no issue when no target is stated — no target chosen yet', () => {
     const p = params({ Vb_m3: 0.03, area_m2: 0.002 });
-    const issues = engine.solveVent(p, AIR);
+    const issues = engine.vent.solve(p, AIR);
     expect(p.length_m.value).toBeNull();
     expect(p.tuning_goal_hz.value).toBeNull();
     expect(issues).toEqual([]);

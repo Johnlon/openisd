@@ -20,7 +20,7 @@ const PR_GEOMETRY: readonly PrQuantityName[] = Object.freeze(['Vb_m3', 'prMmd_kg
  *  plus `resonanceWithAddedMass_hz`/`systemTuning_hz`, write each onto its `SolverField` via
  *  `setCalculated`, and return the issues the stated values carry. An entered value is never
  *  overwritten; an underivable member becomes `not-available`. `air` is the project's own
- *  resolved `{ rho, c }` — see `boxDesign.ts#ventLength`'s doc comment. */
+ *  resolved `{ rho, c }` — see `vent/VentEngine.ts`. */
 export function solvePr(params: PrSolverParams, air: Air): PrIssue[] {
   const addedMass = params.addedMass_kg.value;
   const tuning = params.tuning_goal_hz.value;

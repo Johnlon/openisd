@@ -745,9 +745,9 @@ export function winIsdDriverTextToOpenIsdDriver(
  * different matter and is left to throw.
  */
 export function driverYmlToOpenisdAndWdr(
-  driverYmlText: string
+  driverYmlText: string,
+  engine: Engine,
 ): DriverYmlProjection {
-  const engine = new Engine();
   const parsed = driverYmlToOpenisdRecord(driverYmlText, engine);
   if (!parsed.ok) {
     return { openisd: null, wdr: null, errors: [parsed.error] };
