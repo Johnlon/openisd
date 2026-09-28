@@ -17,6 +17,15 @@
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
     "noImplicitOverride": true,
-    "useDefineForClassFields": true
+    "useDefineForClassFields": true,
+    "paths": {
+      "@openisd/design": ["./packages/design/domain/index.ts"],
+      "@openisd/design/engine": ["./packages/design/engine/index.ts"],
+      "@openisd/design/filter": ["./packages/design/filter/index.ts"],
+      "@openisd/design/fields": ["./packages/design/fields/index.ts"],
+      "@openisd/design/winisd": ["./packages/design/winisd/index.ts"],
+      "@openisd/design/ini": ["./packages/design/ini/index.ts"],
+      "@openisd/persistence": ["./packages/persistence/src/index.ts"]
+    }
   }
 }

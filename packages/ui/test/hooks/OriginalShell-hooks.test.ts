@@ -169,7 +169,7 @@ describe('OriginalShell-hooks', () => {
       const projectRef = shallowRef(project);
       const selectedBox = ref<BoxType>('sealed');
       const projectChanged = ref(0);
-      const expectedNote = engine.invalidVolumeToText({kind: 'invalid-volume', value: 0});
+      const expectedNote = engine.invalidValueToText({kind: 'invalid-value', value: 0});
 
       const {boxVolume_m3, setBoxVolume_m3, boxVolumeDqNote} = createBoxVolume({
         project: computed(() => projectRef.value),

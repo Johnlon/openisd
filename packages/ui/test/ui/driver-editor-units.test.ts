@@ -23,10 +23,10 @@ import {readFileSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 import {dirname, join} from 'node:path';
 import type {CellState} from '@openisd/design/winisd';
-import type {SpecField} from '../../src/logic/appState.js';
+import type {NumSpecField} from '../../src/logic/appState.js';
 import {WinISDDriver} from '@openisd/design/winisd';
 import type {Calculated, Entered, Readable} from '@openisd/design';
-import {CellClass, cellClassOf, notAvailableCell} from '../../src/logic/useDriverCells.js';
+import {CellClass, cellClassOf} from '../../src/logic/useDriverCells.js';
 import {provenanceOf} from '../../src/logic/fieldProvenance.js';
 import {OpenISDDriver, VoiceCoilWiring} from '@openisd/design';
 import {Engine} from '@openisd/design/engine';
@@ -138,10 +138,9 @@ for (const group of ['length', 'freq', 'area', 'mass', 'volume', 'tempCoeff'] as
  *  human ruling 2026-08-24, ENCAPSULATION_AND_LAYERING.md). A second copy here would be a second
  *  table free to disagree with the one the editor actually uses.
  *
- *  A name the numeric table does not own reads as not-available, which is what the editor
- *  renders for it. */
-function driverCellOf(d: OpenISDDriver, field: SpecField): Readable<number | null> & Entered & Calculated {
-  return specFieldHandle(d, field) ?? notAvailableCell;
+ *  Typed over `NumSpecField`, same as the editor's own numeric table — total, no fallback. */
+function driverCellOf(d: OpenISDDriver, field: NumSpecField): Readable<number | null> & Entered & Calculated {
+  return specFieldHandle(d, field);
 }
 
 const _engine = new Engine();
@@ -504,7 +503,7 @@ describe('driver editor — every bound cell is one the driver model answers', (
     const d = coreDriver();
     for (const label of ['SPL', 'η₀']) {
       const f = byLabel(label);
-      const cell = driverCellOf(d, f.field as SpecField);
+      const cell = driverCellOf(d, f.field as NumSpecField);
       assert.equal(
         typeof cell.value,
         'number',
@@ -521,7 +520,7 @@ describe('driver editor — every bound cell is one the driver model answers', (
     // is exactly how the panel distinguishes that from a number the user typed.
     const f = byLabel('Voicecoils');
     const d = coreDriver();
-    const cell = driverCellOf(d, f.field as SpecField);
+    const cell = driverCellOf(d, f.field as NumSpecField);
     assert.equal(cell.calculated, true, `Voicecoils cell is ${provenanceOf(cell)} — an unstated coil count reads as the default, derived`);
     assert.equal(cell.value, 1, 'and the default is WinISD\'s 1');
     assert.equal(d.specs.numVC.value ?? 1, 1, 'the ENGINE-facing driver must still default numVC to 1 for simulation');

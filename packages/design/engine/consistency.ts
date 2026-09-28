@@ -55,17 +55,36 @@ export interface OutOfRangeIssue {
 }
 
 /**
- * A stated box volume that cannot be physical: zero, negative, or not a finite number —
- * absolute, box-agnostic, and shared by EVERY box type's volume field (sealed, vented,
- * bandpass 4th/6th rear and front, ABC, passive radiator; BUG_20260927_box-volume-validity-
- * decided-in-ui.md — this was a UI-only `v > 0` check before, duplicated per box type instead
- * of reaching the domain at all). Vented's OWN volume ALSO judges a plausible design BAND on
- * top of this floor (`VentedPlausibilityIssue`'s `non-physical`/`out-of-range`, a setting the
- * user owns) — this is the one check every OTHER box type shares, not a replacement for that
+ * A stated value that cannot be physical: zero, negative, or not a finite number — absolute,
+ * FIELD-AGNOSTIC, shared by every box type's volume field (sealed, vented, bandpass 4th/6th rear
+ * and front, ABC, passive radiator; BUG_20260927_box-volume-validity-decided-in-ui.md) AND every
+ * driver spec field whose OWN physics requires strictly positive
+ * (BUG_20260927_driver-bad-value-decided-in-ui.md) — both were a UI-only `v > 0` check before,
+ * each duplicated per field instead of reaching the domain at all. A box volume and a driver spec
+ * value are the SAME kind of fact when the floor is "must be positive" (kept exactly as entered
+ * when it fails this floor, only marked), so this is one issue, not two near-duplicates. NOT every
+ * driver field has this floor: which one applies is a per-field decision
+ * (`openIsdDriverSpec.ts`'s `FIELD_FLOOR`) — see `NegativeValueIssue` for the weaker floor some
+ * fields carry instead. Vented's OWN volume ALSO judges a plausible design BAND on top of this
+ * floor (`VentedPlausibilityIssue`'s `non-physical`/`out-of-range`, a setting the user owns) —
+ * this is the one check every OTHER field with this floor shares, not a replacement for that
  * richer one.
  */
-export interface InvalidVolumeIssue {
-  readonly kind: 'invalid-volume';
+export interface InvalidValueIssue {
+  readonly kind: 'invalid-value';
+  readonly value: number;
+}
+
+/**
+ * A stated value that cannot be physical because it is negative or not a finite number — ZERO IS
+ * FINE. Some driver fields are legitimately zero (`Le_H` with no measurable inductance,
+ * `alfaVC_per_K` for an idealised zero-drift coil, `Znom_ohm` in real `.wdr` files —
+ * `docs/FIELD_REFERENCE.md`) but can never be negative
+ * (BUG_20260927_driver-bad-value-decided-in-ui.md). The weaker sibling of `InvalidValueIssue`:
+ * same kept-exactly-as-entered behaviour, different threshold.
+ */
+export interface NegativeValueIssue {
+  readonly kind: 'negative-value';
   readonly value: number;
 }
 
@@ -73,7 +92,7 @@ export interface InvalidVolumeIssue {
  *  plain `string` here, not a domain's own quantity-name union — `Readable<V>.dq` is shared
  *  across every domain and carries no quantity-name type parameter of its own, and a
  *  `CalculationIssue<Q>` for any `Q extends string` widens to this without a cast. */
-export type DqIssue = CalculationIssue<string> | VentedPlausibilityIssue | TargetUnreachableIssue | OutOfRangeIssue | InvalidVolumeIssue;
+export type DqIssue = CalculationIssue<string> | VentedPlausibilityIssue | TargetUnreachableIssue | OutOfRangeIssue | InvalidValueIssue | NegativeValueIssue;
 
 /** Every field one `CalculationIssue` names — the target, plus (for `missing-dependencies`)
  *  every field any of its routes requires or is still missing. One generic answer for any
@@ -105,11 +124,21 @@ export function issueToText<Q extends string>(issue: CalculationIssue<Q>): strin
   return `${issue.target} cannot be calculated yet - state ${routes}.`;
 }
 
-/** The one absolute floor every box type's volume field shares: zero, negative or not a finite
- *  number is not a volume, whatever box it is (BUG_20260927_box-volume-validity-decided-in-ui.md).
- *  `null` is a valid answer to "any issue?" — the value passing this check. */
-export function boxVolumeValidity(value: number): InvalidVolumeIssue | null {
-  return Number.isFinite(value) && value > 0 ? null : { kind: 'invalid-volume', value };
+/** The one absolute floor every positive physical quantity shares — a box volume
+ *  (BUG_20260927_box-volume-validity-decided-in-ui.md) or a driver spec value
+ *  (BUG_20260927_driver-bad-value-decided-in-ui.md): zero, negative or not a finite number is
+ *  not physical, whatever field it is. `null` is a valid answer to "any issue?" — the value
+ *  passing this check. */
+export function positiveValueIssue(value: number): InvalidValueIssue | null {
+  return Number.isFinite(value) && value > 0 ? null : { kind: 'invalid-value', value };
+}
+
+/** The weaker floor: negative or not a finite number is not physical, but zero is a legitimate
+ *  stated value (BUG_20260927_driver-bad-value-decided-in-ui.md — `Le_H`, `KLe_H_sqrtHz`,
+ *  `Znom_ohm`, `alfaVC_per_K`). `null` is a valid answer to "any issue?" — the value passing
+ *  this check. */
+export function nonNegativeValueIssue(value: number): NegativeValueIssue | null {
+  return Number.isFinite(value) && value >= 0 ? null : { kind: 'negative-value', value };
 }
 
 /** A near-miss needs its decimal to be readable; a gross one is quoted whole. */
@@ -170,11 +199,18 @@ export function outOfRangeToText(issue: OutOfRangeIssue): string {
     + `${decimal(issue.limit)}.`;
 }
 
-/** Zero, negative or not a finite number is not a volume — kept and saved exactly as entered
- *  (never silently coerced), so this only marks the field. Box-agnostic: no alignment, no
+/** Zero, negative or not a finite number is not physical — kept and saved exactly as entered
+ *  (never silently coerced), so this only marks the field. Field-agnostic: no alignment, no
  *  extrapolation, no design-band opinion, unlike `VentedPlausibilityIssue`'s own richer check. */
-export function invalidVolumeToText(_issue: InvalidVolumeIssue): string {
-  return 'Bad data: zero or less is not a physical volume. It is kept and saved exactly as '
+export function invalidValueToText(_issue: InvalidValueIssue): string {
+  return 'Bad data: zero or less is not a physical value here. It is kept and saved exactly as '
+    + 'entered - clear the field to fix it.';
+}
+
+/** Negative or not a finite number is not physical, but zero is fine — kept and saved exactly as
+ *  entered (never silently coerced), so this only marks the field. */
+export function negativeValueToText(_issue: NegativeValueIssue): string {
+  return 'Bad data: less than zero is not a physical value here. It is kept and saved exactly as '
     + 'entered - clear the field to fix it.';
 }
 
@@ -191,8 +227,10 @@ export function dqIssueText(issue: DqIssue): string {
       return plausibilityToText(issue);
     case 'out-of-range':
       return 'field' in issue ? outOfRangeToText(issue) : plausibilityToText(issue);
-    case 'invalid-volume':
-      return invalidVolumeToText(issue);
+    case 'invalid-value':
+      return invalidValueToText(issue);
+    case 'negative-value':
+      return negativeValueToText(issue);
     case 'target-unreachable':
       return targetUnreachableToText(issue);
   }

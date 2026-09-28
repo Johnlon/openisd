@@ -45,10 +45,11 @@ import {solveVent} from './solvers/solveVent.js';
 import type {SealedAlignmentIssue} from './solvers/solveSealedAlignment.js';
 import {solveSealedAlignment} from './solvers/solveSealedAlignment.js';
 import {terminalBL_Tm, terminalRe_ohm} from './solvers/driverQuantities.js';
-import type {CalculationIssue, DqIssue, InvalidVolumeIssue, OutOfRangeIssue, TargetUnreachableIssue} from './consistency.js';
+import type {CalculationIssue, DqIssue, InvalidValueIssue, NegativeValueIssue, OutOfRangeIssue, TargetUnreachableIssue} from './consistency.js';
 import {
-  boxVolumeValidity, dqIssueText, invalidVolumeToText, issueFields, issueFormula, issueToText,
-  outOfRangeToText, plausibilityToText, targetUnreachableToText,
+  dqIssueText, invalidValueToText, issueFields, issueFormula, issueToText,
+  negativeValueToText, nonNegativeValueIssue, outOfRangeToText, plausibilityToText,
+  positiveValueIssue, targetUnreachableToText,
 } from './consistency.js';
 import {isPhysicallyPlausible} from './physicalRange.js';
 import {referenceEfficiency, splFromEfficiency} from './efficiency.js';
@@ -240,10 +241,18 @@ export class Engine {
     return outOfRangeToText(issue);
   }
 
-  /** One sentence for an `invalid-volume` mark — zero, negative or non-finite, whatever box it
-   *  is (BUG_20260927_box-volume-validity-decided-in-ui.md). */
-  invalidVolumeToText(issue: InvalidVolumeIssue): string {
-    return invalidVolumeToText(issue);
+  /** One sentence for an `invalid-value` mark — zero, negative or non-finite, whatever field it
+   *  is: a box volume (BUG_20260927_box-volume-validity-decided-in-ui.md) or a driver spec value
+   *  (BUG_20260927_driver-bad-value-decided-in-ui.md). */
+  invalidValueToText(issue: InvalidValueIssue): string {
+    return invalidValueToText(issue);
+  }
+
+  /** One sentence for a `negative-value` mark — negative or non-finite, but zero is fine
+   *  (BUG_20260927_driver-bad-value-decided-in-ui.md: `Le_H`, `KLe_H_sqrtHz`, `Znom_ohm`,
+   *  `alfaVC_per_K`). */
+  negativeValueToText(issue: NegativeValueIssue): string {
+    return negativeValueToText(issue);
   }
 
   /** Whether a single RAW value would sit inside `PHYSICAL_RANGE`'s band for `field` (D9 tier 1)
@@ -267,12 +276,22 @@ export class Engine {
     return sealedResonance(mode, p);
   }
 
-  /** The one floor every box type's volume field shares: zero, negative or non-finite is not a
-   *  volume, whatever box it is (sealed, bandpass 4th/6th rear+front, ABC, passive radiator —
-   *  BUG_20260927_box-volume-validity-decided-in-ui.md). Vented's own volume additionally judges
-   *  a plausible design band on top of this floor — see `ventedVolumeIssue`, which is not this. */
-  boxVolumeIssue(value: number): InvalidVolumeIssue | null {
-    return boxVolumeValidity(value);
+  /** The one floor every positive physical quantity shares: zero, negative or non-finite is not
+   *  physical, whatever field it is — every box type's volume field (sealed, bandpass 4th/6th
+   *  rear+front, ABC, passive radiator — BUG_20260927_box-volume-validity-decided-in-ui.md) AND
+   *  every driver spec field (BUG_20260927_driver-bad-value-decided-in-ui.md) share this ONE
+   *  method, not two near-duplicates. Vented's own volume additionally judges a plausible design
+   *  band on top of this floor — see `ventedVolumeIssue`, which is not this. */
+  positiveValueIssue(value: number): InvalidValueIssue | null {
+    return positiveValueIssue(value);
+  }
+
+  /** The weaker floor some driver fields carry instead: negative or non-finite is not physical,
+   *  but zero is a legitimate stated value (BUG_20260927_driver-bad-value-decided-in-ui.md).
+   *  Which floor applies to which field is `openIsdDriverSpec.ts`'s `FIELD_FLOOR`, not this
+   *  method's business. */
+  nonNegativeValueIssue(value: number): NegativeValueIssue | null {
+    return nonNegativeValueIssue(value);
   }
 
   /**

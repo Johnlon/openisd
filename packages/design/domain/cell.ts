@@ -311,21 +311,30 @@ export function requiredField<K extends PropertyKey, T extends Record<K, number>
  *  fresh window on every access, discarding any closure a previous window's `#resolve()` wrote
  *  into. `issuesSource`, when given, replaces that closure — the caller reads its own durable
  *  cache (`this.#issues`-shaped) live, on every read, the same way `driveVoltage_V` already
- *  reads `#issues.signal` (John, 2026-09-23: "must be fresh and accurate once loaded"). */
+ *  reads `#issues.signal` (John, 2026-09-23: "must be fresh and accurate once loaded").
+ *
+ *  `getDq`, when given, is a SECOND, independent dq source computed fresh from the CURRENT
+ *  value on every read and appended to whichever of the two above applies — the same shape as
+ *  `requiredField`'s own `getDq` (BUG_20260927_driver-bad-value-decided-in-ui.md: a driver spec
+ *  field's positivity floor, `Engine.positiveValueIssue`, must show up immediately on `.set()`,
+ *  before any `resolve()` has run, exactly like a box volume's). */
 export function entryField(
   slot: SimpleField<SpecEntryJson | undefined>,
   name: string,
   issueText: IssueRenderer,
   issuesSource?: () => readonly DqIssue[],
+  getDq?: (value: number) => DqIssue | null,
 ): Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable {
   let liveDq: readonly DqIssue[] = [];
   const readCell = (): FieldCell<number | null> => {
     const entry = slot.value;
     const dq = issuesSource ? issuesSource() : liveDq;
     if (entry === undefined) return absentCell<number>(name, dq);
+    const extra = getDq ? getDq(entry.value) : null;
+    const fullDq = extra ? [...dq, extra] : dq;
     return entry.state === 'E'
-      ? enteredCell<number | null>(name, entry.value, dq, entryPrecision(entry))
-      : calculatedCell<number | null>(name, entry.value, dq);
+      ? enteredCell<number | null>(name, entry.value, fullDq, entryPrecision(entry))
+      : calculatedCell<number | null>(name, entry.value, fullDq);
   };
   return new DualWriteFieldImpl<number>(readCell, {
     entered: (v, precision) => { liveDq = []; slot.set({ state: 'E', value: v, precision }); },
@@ -352,8 +361,8 @@ function entryPrecision(entry: Extract<SpecEntryJson, {state: 'E'}>): number {
 
 /** One `DqIssue` as the debug-trail mark it becomes (D14/D14a) — `params` carries the finding
  *  itself (numbers/strings/string arrays only), not just prose. `non-physical`, plausibility's
- *  own `out-of-range` (vent/PR `Vb`/`Fb`), `target-unreachable` and `invalid-volume` keep the
- *  generic shape this function always wrote before D14 — only `inconsistent-inputs`,
+ *  own `out-of-range` (vent/PR `Vb`/`Fb`), `target-unreachable`, `invalid-value` and
+ *  `negative-value` keep the generic shape this function always wrote before D14 — only `inconsistent-inputs`,
  *  `missing-dependencies` and the driver-field `out-of-range` (D14, `OutOfRangeIssue`, told apart
  *  from plausibility's by `'field' in issue`) get a mark that names what it found. */
 function issueMark(issue: DqIssue, detail: string): DqMark {
@@ -385,7 +394,8 @@ function issueMark(issue: DqIssue, detail: string): DqMark {
       return { kind: 'calc', severity: 'error', rule: 'issue', params: {}, detail };
     case 'non-physical':
     case 'target-unreachable':
-    case 'invalid-volume':
+    case 'invalid-value':
+    case 'negative-value':
       return { kind: 'calc', severity: 'error', rule: 'issue', params: {}, detail };
   }
 }

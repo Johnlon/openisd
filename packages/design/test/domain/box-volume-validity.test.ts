@@ -1,8 +1,10 @@
 /**
  * Every box type's volume field shares ONE floor: zero, negative or non-finite is not a volume,
  * whatever box it is (BUG_20260927_box-volume-validity-decided-in-ui.md). This was a UI-only
- * `v > 0` check before, duplicated per box type and never reaching the domain. `Engine.boxVolumeIssue`
- * is the box-agnostic counterpart to the vented-only `Engine.ventedVolumeIssue`
+ * `v > 0` check before, duplicated per box type and never reaching the domain. `Engine.positiveValueIssue`
+ * (generalised again for BUG_20260927_driver-bad-value-decided-in-ui.md — see
+ * driver-value-validity.test.ts, the same `invalid-value` issue over driver spec fields) is the
+ * box-agnostic counterpart to the vented-only `Engine.ventedVolumeIssue`
  * (`vented-plausibility-cells.test.ts` pins that one; this file pins every OTHER box type's own
  * volume field, sealed through passive-radiator).
  *
@@ -46,7 +48,7 @@ function driverFor(engine: Engine): OpenISDDriver {
 function expectInvalidVolumeAtEachBadValue(field: {set(v: number): void; dq: readonly unknown[]}) {
   for (const value of [0, -1, NaN]) {
     field.set(value);
-    expect(field.dq).toEqual([{kind: 'invalid-volume', value}]);
+    expect(field.dq).toEqual([{kind: 'invalid-value', value}]);
   }
 }
 
