@@ -19,7 +19,7 @@ import type { DragRange } from './dragRange.js';
 import { ProjectAdvanced } from './projectAdvanced.js';
 import { ProjectChartsView } from './projectChartsView.js';
 import { ProjectEnvironment, envFieldsOver } from './projectEnvironment.js';
-import { owprTextOf, parseOwprSession, sessionOf, wprTextOf } from './projectSerialization.js';
+import { owprTextOf, parseOwprSession, sessionOf } from './projectSerialization.js';
 import { boxParamsIssuesOf, maxCurvesOf, sweepOf, ventAchievedFbOf, ventMaxReachableFbOf } from './projectSweep.js';
 import type { ProjectSweepSource } from './projectSweep.js';
 import { freshEmbeddedDriver } from './freshEmbeddedDriver.js';
@@ -519,9 +519,10 @@ export class OpenISDProject {
      *  `.wpr` models fewer box types and fewer fields than openisd does, so this is a lossy
      *  write and `value` is null when the box cannot be expressed at all (a `bandpass6`, say).
      *  `errors` carries the reason and every field dropped along the way. */
-    toWprText(engine: Engine): { value: string | null; errors: DriverError[] } {
+    toWprText(): { value: string | null; errors: DriverError[] } {
         const committed = OpenISDProject.wrapWithIdentity(structuredClone(this.#committed()), this.#uuid, this.#engine);
-        return wprTextOf(committed, engine);
+        const {value: wpr, errors} = new WinIsdProjectConverter(this.#engine).openIsdProjectToWinIsdProject(committed);
+        return {value: wpr ? wpr.toWpr() : null, errors};
     }
 
     /** WinISD `.wpr` text back to a project. The inverse of `toWprText()`, as far as a format

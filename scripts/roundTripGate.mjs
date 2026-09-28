@@ -217,7 +217,7 @@ export function checkWdrRoundTrip(wdrText, relPath) {
   if (driver === null) {
     return { ok: false, message: `${relPath}: could not read .wdr: ${readErrors.map(e => e.message).join('; ') || 'no driver returned'}` };
   }
-  const { value: reserialised, errors } = driver.toWdrIniText(engine);
+  const { value: reserialised, errors } = driver.toWdrIniText();
   if (reserialised == null) {
     const blocking = errors.filter(e => e.level === 'error');
     return { ok: false, message: `${relPath}: .wdr projection failed: ${blocking.map(e => e.message).join('; ') || 'no value returned'}` };

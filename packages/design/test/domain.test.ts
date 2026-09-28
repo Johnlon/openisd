@@ -1766,7 +1766,7 @@ describe('editing a driver — copy, then update or drop', () => {
     expect(ts.c_m_per_s.value).toBeCloseTo(projectAir.c, 6);
     expect(ts.roo_kg_per_m3.value).toBeCloseTo(projectAir.rho, 6);
 
-    const { value: wdrText, errors } = project.driver.toWdrIniText(createEngine());
+    const { value: wdrText, errors } = project.driver.toWdrIniText();
     expect(errors).toEqual([]);
     expect(wdrText).not.toBeNull();
     expect(wdrText).toContain(`c=${projectAir.c}`);
@@ -1845,7 +1845,7 @@ describe('editing a driver — copy, then update or drop', () => {
     const driver = OpenISDProject.builder(wooferDriver(), createEngine()).sealed().volume_m3(0.03).build().driver.detach();
     driver.specs.Fs_hz.set(41.5);
 
-    const { value: text, errors } = driver.toWdrIniText(createEngine());
+    const { value: text, errors } = driver.toWdrIniText();
     expect(errors.filter((e: DriverError) => e.level === 'error')).toEqual([]);
     if (text === null) throw new Error('toWdrIniText produced no text');
 
@@ -1858,7 +1858,7 @@ describe('editing a driver — copy, then update or drop', () => {
   it('toWprText() then OpenISDProject.fromWprText() round-trips a project through WinISD .wpr text', () => {
     const project = OpenISDProject.builder(wooferDriver(), createEngine()).sealed().volume_m3(0.03).build();
 
-    const { value: text, errors } = project.toWprText(createEngine());
+    const { value: text, errors } = project.toWprText();
     expect(errors.filter((e: DriverError) => e.level === 'error')).toEqual([]);
     if (text === null) throw new Error('toWprText produced no text');
 
@@ -1872,7 +1872,7 @@ describe('editing a driver — copy, then update or drop', () => {
     const project = OpenISDProject.builder(wooferDriver(), createEngine())
       .bandpass6().rearVolume_m3(0.02).rearTuning_hz(50).frontVolume_m3(0.03).frontTuning_hz(40).build();
 
-    const { value: text, errors } = project.toWprText(createEngine());
+    const { value: text, errors } = project.toWprText();
     expect(errors.filter((e: DriverError) => e.level === 'error')).toEqual([]);
     if (text === null) throw new Error('toWprText produced no text');
 
@@ -1990,7 +1990,7 @@ describe('editing a driver — copy, then update or drop', () => {
     const project = OpenISDProject.builder(wooferDriver(), createEngine()).sealed().volume_m3(0.03).build();
     project.description.set('before');
 
-    project.toWprText(createEngine());
+    project.toWprText();
 
     expect(project.description.value).toBe('before');
     expect(project.box.boxType.value).toBe('sealed');

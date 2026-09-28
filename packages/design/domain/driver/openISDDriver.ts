@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import {type Engine} from '../../engine/index.js';
 import type { Air, AirEnvironment, DriverError, DriverIssue } from '../../engine/index.js';
 import { realAppContext } from '../appContext.js';
@@ -295,7 +294,7 @@ export abstract class OpenISDDriver extends OpenISDDevice {
      *  `.wdr` states far less than an openisd record does: a field WinISD has no key for is
      *  dropped, so this is a lossy write and the round trip is not an identity. `errors` carries
      *  every such loss the converter reported. */
-    toWdrIniText(engine: Engine): { value: string | null; errors: DriverError[] } {
+    toWdrIniText(): { value: string | null; errors: DriverError[] } {
         const errors: DriverError[] = [];
         const wdr = openIsdDriverToWinIsdDriver(this, errors);
         return {value: wdr.toWdrIni(), errors};
