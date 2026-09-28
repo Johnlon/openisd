@@ -194,14 +194,21 @@ function driverValues(drv: DriverSolverParams) {
   };
 }
 
-/** WinISD's driver-count model applies: more than one driver, the model on, a sealed box. */
+/** WinISD's driver-count model applies: more than one driver, the model on, a box it is fitted
+ *  for (sealed: runs/sealed-w5-nd2; vented: runs/vented-w5-nd2). */
 function winisdCountsDrivers(box: BoxType, P: SweepParams): boolean {
-  return (P.nDrivers || 1) > 1 && P.winisdDriverCountModel !== false && box === 'sealed';
+  return (P.nDrivers || 1) > 1 && P.winisdDriverCountModel !== false && (box === 'sealed' || box === 'vented');
 }
 
-/** One of `n` drivers as WinISD simulates it: alone, in Vb/n, driven at P/n. */
+/** One of `n` drivers as WinISD simulates it: alone, driven at P/n, in Vb/n with 1/n of the port
+ *  area (same length, so the same tuning). */
 function oneOfN(P: SweepParams, n: number): SweepParams {
-  return { ...P, nDrivers: 1, Vb: P.Vb / n, eg: P.eg / Math.sqrt(n) };
+  return { ...oneBoxOfN(P, n), eg: P.eg / Math.sqrt(n) };
+}
+
+/** One of `n` drivers' share of the box: Vb/n and, where there is a port, Sp/n. */
+function oneBoxOfN(P: SweepParams, n: number): SweepParams {
+  return { ...P, nDrivers: 1, Vb: P.Vb / n, ...(P.Sp !== undefined ? { Sp: P.Sp / n } : {}) };
 }
 
 function circuitQuantities(q: ReturnType<typeof withAddedMass>, Le_H: number | undefined, BL_typed_Tm: number | null): { value: CircuitQuantities | null; issues: DriverIssue[] } {
@@ -618,7 +625,7 @@ export class SimulationEngineImpl implements SimulationEngine {
     const n = P.nDrivers || 1;
     if (winisdCountsDrivers(box, P)) {
       // WinISD: N times one driver's limits in Vb/N — max power ×N; max SPL +20·log10(N) (⚠ unverified).
-      const one = this.maxCurves(drv, Le_H, box, { ...P, nDrivers: 1, Vb: P.Vb / n });
+      const one = this.maxCurves(drv, Le_H, box, oneBoxOfN(P, n));
       if (one.values === null) return one;
       const gain = 20 * Math.log10(n);
       return { ...one, values: { ...one.values, maxpwr: one.values.maxpwr.map((v) => v * n), maxspl: one.values.maxspl.map((v) => v + gain) } };
