@@ -2,7 +2,7 @@ import {describe, expect, it} from 'vitest';
 import {computed, ref, shallowRef} from 'vue';
 import {createEngine} from '@openisd/design/engine';
 import {OpenISDProject} from '@openisd/design';
-import {createSealedAlignmentEditor} from '../../src/hooks/SealedAlignment-hooks.js';
+import {SealedAlignmentEditor} from '../../src/hooks/SealedAlignment-hooks.js';
 
 function completeProject() {
   const engine = createEngine();
@@ -15,15 +15,11 @@ function completeProject() {
   return {engine, project};
 }
 
-describe('createSealedAlignmentEditor', () => {
+describe('SealedAlignmentEditor', () => {
   it('keeps alignment edits in draft state until Accept', () => {
     const {engine, project} = completeProject();
     const projectRef = shallowRef(project);
-    const editor = createSealedAlignmentEditor({
-      project: computed(() => projectRef.value),
-      changed: ref(0),
-      engine,
-    });
+    const editor = new SealedAlignmentEditor(computed(() => projectRef.value), ref(0), engine.sealed, engine.driver);
 
     editor.openEditor();
     editor.selectQtc(0.707);
@@ -37,11 +33,7 @@ describe('createSealedAlignmentEditor', () => {
   it('accepts an edited volume and reports the closest WinISD option', () => {
     const {engine, project} = completeProject();
     const projectRef = shallowRef(project);
-    const editor = createSealedAlignmentEditor({
-      project: computed(() => projectRef.value),
-      changed: ref(0),
-      engine,
-    });
+    const editor = new SealedAlignmentEditor(computed(() => projectRef.value), ref(0), engine.sealed, engine.driver);
 
     editor.openEditor();
     editor.volume_L.value = 12;
