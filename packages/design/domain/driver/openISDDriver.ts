@@ -4,7 +4,7 @@ import type { Air, AirEnvironment, DriverError, DriverIssue, DriverSolverParams 
 import { realAppContext } from '../appContext.js';
 import type { AppContext } from '../appContext.js';
 import { ReadableFieldImpl, SetOnlyFieldImpl, absentCell, enteredCell, resolvingField } from '../cell.js';
-import type { Entered, Readable, SimpleField, Writable } from '../cell.js';
+import type { Calculated, Clearable, Entered, Readable, SimpleField, Writable } from '../cell.js';
 import { openIsdDriverToWinIsdDriver, winIsdDriverTextToOpenIsdDriver } from '../driverYmlToOpenisdAndWdr.js';
 import { newUuid } from '../newUuid.js';
 import { asDriverDevice } from '../openisdSchema.js';
@@ -13,6 +13,7 @@ import { OpenISDDeviceJson } from '../openIsdDeviceJsonIo.js';
 import { blankDeviceRecord } from './blankDeviceRecord.js';
 import { driverSolverParamsOf } from './driverSolverParamsOf.js';
 import { OpenISDDevice } from './openISDDevice.js';
+import type { NumericDriverSpecFieldName } from './driverSpecFieldName.js';
 import { OpenIsdDriverSpec } from './openIsdDriverSpec.js';
 
 /**
@@ -133,6 +134,15 @@ export abstract class OpenISDDriver extends OpenISDDevice {
      *  rather than reused. */
     get solverParams(): DriverSolverParams {
         return driverSolverParamsOf(this.specs, this.engine);
+    }
+
+    /** `field`'s handle, for a caller holding a NAME rather than a member — the editor's
+     *  data-driven field table, which reads, writes and clears through the one it gets back.
+     *  Total: every numeric spec name has a handle, so there is no null to check for. */
+    specField(field: NumericDriverSpecFieldName):
+        Readable<number | null> & Entered & Calculated & Writable<number> & Clearable {
+
+        return this.specs[field];
     }
 
     /** Everything this driver's stated values disagree about — an over-specified driver whose

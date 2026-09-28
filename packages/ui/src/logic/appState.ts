@@ -23,6 +23,7 @@ import {
     type AppContext,
     type DiscardChallenge,
     type DriverSpecFieldName,
+    type NumericDriverSpecFieldName,
     type FrequencyGrid,
     type OpenISDDriver,
     OpenISDPassiveRadiatorStandalone,
@@ -46,8 +47,9 @@ import {notifyPrChanged} from './usePrGroup.js';
  *  Derived, never a hand-maintained copy. */
 export type SpecField = DriverSpecFieldName;
 
-/** The subset of SpecField that represent numeric quantities (all except non-numeric VCCon). */
-export type NumSpecField = Exclude<SpecField, 'VCCon'>;
+/** The subset of SpecField that represent numeric quantities (all except non-numeric VCCon).
+ *  The domain's own name for them — the exclusion is stated once, where `specField` takes it. */
+export type NumSpecField = NumericDriverSpecFieldName;
 
 // appState.ts does not persist — it initialises to defaults, and App.vue applies whatever a
 // load door hands over (a share link, or an opened file).

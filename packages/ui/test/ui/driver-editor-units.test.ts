@@ -31,7 +31,6 @@ import {provenanceOf} from '../../src/logic/fieldProvenance.js';
 import {OpenISDDriver, VoiceCoilWiring} from '@openisd/design';
 import {Engine} from '@openisd/design/engine';
 import {DateField, EnumField, Field, NumberField, TextField, ToggleField} from '@openisd/design/fields';
-import {specFieldHandle} from '../../src/logic/driverSpecFields.js';
 import {nextToken, toDisplay, UNIT_GROUPS, unitDef, type UnitGroup} from '../../src/logic/fields/units.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -155,7 +154,7 @@ for (const group of ['length', 'freq', 'area', 'mass', 'volume', 'tempCoeff'] as
  *
  *  Typed over `NumSpecField`, same as the editor's own numeric table — total, no fallback. */
 function driverCellOf(d: OpenISDDriver, field: NumSpecField): Readable<number | null> & Entered & Calculated {
-  return specFieldHandle(d, field);
+  return d.specField(field);
 }
 
 const _engine = new Engine();

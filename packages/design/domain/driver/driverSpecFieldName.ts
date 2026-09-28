@@ -3,6 +3,11 @@ import type { DriverSpecsSection } from '../openisdSchema.js';
 /** The names of a driver's spec fields — the schema's own keys. */
 export type DriverSpecFieldName = keyof DriverSpecsSection;
 
+/** The numeric spec names. `VCCon` is a wiring name, never a number, and has its own dropdown —
+ *  excluding it by TYPE is what makes `OpenISDDriver.specField` total, with no null to check
+ *  for (BUG_20260927_ui-fakes-driver-cells.md). */
+export type NumericDriverSpecFieldName = Exclude<DriverSpecFieldName, 'VCCon'>;
+
 /** Every `DriverSpecFieldName`, exactly once, as a value a caller can iterate — `Object.keys`
  *  answers `string[]` regardless of what an object's type declares, so the list is stated where
  *  the compiler can check it. */

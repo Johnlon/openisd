@@ -8,7 +8,6 @@ import {useFocusedProject} from '../../logic/focusedProjectContext.js';
 import {presentationState} from '../../logic/presentationState.js';
 import {useApp} from '../../logic/app.js';
 import {openDriverDraft, wiringOptions} from '../../logic/driverDraft.js';
-import {specFieldHandle} from '../../logic/driverSpecFields.js';
 import {readDriverFileText} from '../../logic/driverFileText.js';
 import {driverToOwdrBytes, driverToWdrBytes, owdrTextToDriver, wdrTextToDriver} from '../../logic/fileImportExport.js';
 import {cellClassFor, cellClassOf} from '../../logic/useDriverCells.js';
@@ -208,7 +207,7 @@ function setWiring(e: Event) {
  *  instead — no cast, no runtime check, no fake cell standing in for it here. */
 function fieldOf(field: NumSpecField): Readable<number | null> & Entered & Calculated & Writable<number> & Clearable {
   void trigger.value;
-  return specFieldHandle(draftDriver.value, field);
+  return draftDriver.value.specField(field);
 }
 
 function cellClass(field: NumSpecField): string {
