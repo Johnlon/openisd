@@ -11,9 +11,8 @@
  * DOM.
  */
 import {OpenISDDriver, OpenISDProject} from '@openisd/design';
-import type {DriverError} from '@openisd/design/engine';
+import type {DriverError, Engine} from '@openisd/design/engine';
 import type {ProjectRepo} from '@openisd/persistence';
-import {engine} from './appState.js';
 
 export interface Bytes {
   value: Uint8Array<ArrayBuffer> | null;
@@ -42,33 +41,36 @@ export function projectToWprBytes(project: OpenISDProject): Bytes {
   return { value: value === null ? null : utf8(value), errors };
 }
 
-/** `.wdr` text → a standalone driver, or the reasons it could not be read. */
-export function wdrTextToDriver(text: string): { value: OpenISDDriver | null; errors: DriverError[] } {
-  return OpenISDDriver.fromWdrIniText(text, engine);
-}
+/** Reads every driver/project file format into a domain object, with the one engine the
+ *  composition root built and the project repo that brings a stored project up to schema. */
+export class DesignFiles {
+  constructor(private readonly engine: Engine, private readonly projectRepo: ProjectRepo) {}
 
-/** `.owdr` text → a standalone driver, or the reasons it could not be read. */
-export function owdrTextToDriver(text: string): { value: OpenISDDriver | null; errors: DriverError[] } {
-  const result = OpenISDDriver.fromOwdrText(text, engine);
+  /** `.wdr` text → a standalone driver, or the reasons it could not be read. */
+  wdrTextToDriver(text: string): { value: OpenISDDriver | null; errors: DriverError[] } {
+  return OpenISDDriver.fromWdrIniText(text, this.engine);
+  }
+
+  /** `.owdr` text → a standalone driver, or the reasons it could not be read. */
+  owdrTextToDriver(text: string): { value: OpenISDDriver | null; errors: DriverError[] } {
+  const result = OpenISDDriver.fromOwdrText(text, this.engine);
   if (Array.isArray(result)) {
     return { value: null, errors: result.map(message => ({ level: 'error', field: 'driver', message })) };
   }
   return { value: result, errors: [] };
-}
+  }
 
-/** `.wpr` text → a new project, or the reasons it could not be read. */
-export function wprTextToProject(text: string): { value: OpenISDProject | null; errors: DriverError[] } {
-  return OpenISDProject.fromWprText(text, engine);
-}
+  /** `.wpr` text → a new project, or the reasons it could not be read. */
+  wprTextToProject(text: string): { value: OpenISDProject | null; errors: DriverError[] } {
+  return OpenISDProject.fromWprText(text, this.engine);
+  }
 
-/** `.owpr` text → a project, brought up to the current schema by the persistence layer. */
-export function owprTextToProject(
-  projectRepo: ProjectRepo,
-  text: string,
-): { value: OpenISDProject | null; errors: DriverError[] } {
-  const result = projectRepo.readProjectText(text);
+  /** `.owpr` text → a project, brought up to the current schema by the persistence layer. */
+  owprTextToProject(text: string): { value: OpenISDProject | null; errors: DriverError[] } {
+  const result = this.projectRepo.readProjectText(text);
   if (Array.isArray(result)) {
     return { value: null, errors: result.map(message => ({ level: 'error', field: 'project', message })) };
   }
   return { value: result, errors: [] };
+  }
 }

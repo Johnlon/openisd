@@ -19,6 +19,7 @@ import {createFaultLog} from './diagnostics/faultLog.js';
 import {createDriverSelection} from './logic/driverSelection.js';
 import {createDriverBrowsingState} from './logic/driverBrowsingState.js';
 import {createApplicationIO} from './logic/useApplicationIO.js';
+import {DesignFiles} from './logic/fileImportExport.js';
 import {provideApp} from './logic/app.js';
 import {engine, installAppSettings, NoFocusedProjectError} from './logic/appState.js';
 import '@fontsource/inter/400.css';
@@ -67,20 +68,21 @@ const driverFileStorage = createFileStorage();
 
 // --- application layer: the app's state and what it does next ---
 const selection = createDriverSelection();
+const projectRepo = createProjectRepo(engine, fileStorage, storage);
+const designFiles = new DesignFiles(engine, projectRepo);
 const driverBrowsing = createDriverBrowsingState({
-  driverRepo, myDriverRepo, prefs, logging, selection,
+  driverRepo, myDriverRepo, prefs, logging, selection, files: designFiles,
   confirmReset: (question) => confirm(question),
 });
-const projectRepo = createProjectRepo(engine, fileStorage, storage);
 const viewStateRepo = createViewStateRepo(storage);
-const designIO = createApplicationIO({ logging, fileStorage, projectRepo });
+const designIO = createApplicationIO({ logging, fileStorage, projectRepo, files: designFiles });
 
 const app = createApp(App)
   .directive('expo-step', vExpoStep)
   .directive('limits', vLimits);
 
 provideApp(app, {
-  engine, logging, driverBrowsing, selection, designIO, myPassiveRadiators,
+  engine, logging, driverBrowsing, selection, designIO, designFiles, myPassiveRadiators,
   bundledPassiveRadiators: bundledPRs, bundledDrivers: driverRepo, myDrivers: myDriverRepo,
   driverFileStorage, faultLog, projectRepo, viewStateRepo,
 });

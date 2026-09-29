@@ -26,6 +26,7 @@ import {
     searchSubjectOfIndexRow,
 } from './driverDisplay.js';
 import {driverFromFileText, type DriverSelection} from './driverSelection.js';
+import type {DesignFiles} from './fileImportExport.js';
 import {inputFrom} from './domEvents.js';
 import {focusedProject, newProjectDriver} from './appState.js';
 
@@ -167,6 +168,7 @@ export interface DriverBrowsingStateDeps {
   prefs: PrefsRepo;
   logging: Logging;
   selection: DriverSelection;
+  files: DesignFiles;
   /** Asks the user to confirm a destructive action. The browser's `confirm` in the app. */
   confirmReset: (question: string) => boolean;
 }
@@ -457,7 +459,7 @@ export function createDriverBrowsingState(deps: DriverBrowsingStateDeps): Driver
         statusMsg.value = `${file.name} is not a driver file (expected .wdr or .owdr)`;
         return;
       }
-      const res = driverFromFileText(text, format === DriverFileFormat.Wdr ? 'wdr' : 'owdr', file.name);
+      const res = driverFromFileText(deps.files, text, format === DriverFileFormat.Wdr ? 'wdr' : 'owdr', file.name);
       if (!res.ok) { statusErr.value = true; statusMsg.value = res.error; return; }
       // A FILE IMPORT always mints a fresh identity (QO81): the file's own uuid is provenance,
       // never the store key — importing twice yields two entries.
