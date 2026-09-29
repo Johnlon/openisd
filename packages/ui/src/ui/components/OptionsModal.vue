@@ -182,8 +182,8 @@ function limitVal(chartId: ChartId, key: 'min' | 'max'): number | undefined {
               <div class="opt-env-col">
                 <div class="opt-fld">
                   <label>Temperature</label>
-                  <NumInput class="opt-num" :model-value="tempK" @update:model-value="(v: number | null) => { if (v !== null) tempK = v; }" :field="NumberField.ADV_TEMP_K" unit-key="advTemp" group="temp" base="K" :precision="2" />
-                  <UnitToggle field="advTemp" group="temp" base="K" unit-class="opt-unit" />
+                  <NumInput class="opt-num" :model-value="tempK" @update:model-value="(v: number | null) => { if (v !== null) tempK = v; }" :field="NumberField.ADV_TEMP_K" unit-key="advTemp" :precision="2" />
+                  <UnitToggle :field="NumberField.ADV_TEMP_K" unit-key="advTemp" unit-class="opt-unit" />
                 </div>
                 <div class="opt-fld">
                   <label>Relative humidity</label>
@@ -192,8 +192,8 @@ function limitVal(chartId: ChartId, key: 'min' | 'max'): number | undefined {
                 </div>
                 <div class="opt-fld">
                   <label>Air pressure</label>
-                  <NumInput class="opt-num" :model-value="pressurePa" @update:model-value="(v: number | null) => { if (v !== null) pressurePa = v; }" :field="NumberField.ADV_PRESSURE_KPA" unit-key="advPressure" group="pressure" base="Pa" :precision="1" />
-                  <UnitToggle field="advPressure" group="pressure" base="Pa" unit-class="opt-unit" />
+                  <NumInput class="opt-num" :model-value="pressurePa" @update:model-value="(v: number | null) => { if (v !== null) pressurePa = v; }" :field="NumberField.ADV_PRESSURE_KPA" unit-key="advPressure" :precision="1" />
+                  <UnitToggle :field="NumberField.ADV_PRESSURE_KPA" unit-key="advPressure" unit-class="opt-unit" />
                 </div>
               </div>
               <div class="opt-env-col opt-env-calculated-col">

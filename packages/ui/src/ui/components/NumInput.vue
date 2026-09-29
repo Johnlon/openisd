@@ -2,7 +2,7 @@
 import {computed, ref, watch} from 'vue';
 import {unitToken} from '../../logic/presentationState.js';
 import {displayPrecision, fromDisplay, statedPrecision, toDisplay} from '../../logic/fields/units.js';
-import {type NumberField, type UnitGroup} from '@openisd/design/fields';
+import {type NumberField} from '@openisd/design/fields';
 import type {ProvenanceLetter} from '@openisd/design';
 import {inputFrom} from '../../logic/domEvents.js';
 
@@ -19,15 +19,13 @@ const props = withDefaults(defineProps<{
   // unbounded.
   min?: number;
   max?: number;
-  // Unit binding: when group + field + base are all given, the display factor and precision
-  // come from the field's SELECTED unit (fields/units.ts), so a paired <UnitToggle> rescales
-  // this field live. `precision` is then the BASE-unit dp; the shown dp is derived per unit.
-  // Omit all three and the field shows its SI value unconverted — there is no other way to
-  // scale a number here, so a display unit can only ever come from the unit registry.
-  // `field` MAY also be given alone (no group/base) purely to bind the field's own facts.
-  group?: UnitGroup;
+  // Unit binding: when `field` is a SWITCHABLE field (its own `display.kind`) and `unitKey` is
+  // given, the display factor and precision come from the field's own group/base plus the
+  // SELECTED unit (fields/units.ts), so a paired <UnitToggle> rescales this field live.
+  // `precision` is then the BASE-unit dp; the shown dp is derived per unit. A fixed field, or a
+  // switchable one with no `unitKey`, shows its SI value unconverted — there is no other way to
+  // scale a number here, so a display unit can only ever come from the field's own registry entry.
   field?: NumberField;
-  base?: string;        // the field's default unit token
   /** The key this field's SELECTED unit is stored under (`presentationState.unitTokens`), which
    *  is its own namespace — `Vb`, not `box_Vb_l` — shared with the paired `<UnitToggle>`. */
   unitKey?: string;
@@ -64,21 +62,25 @@ const emit = defineEmits<{
   'blur-notify': [value: number | null];
 }>();
 
-// Unit-bound mode is active only when the caller supplies the full triple.
-const unitized = computed(() => props.group != null && props.unitKey != null && props.base != null);
-const token = computed(() => (unitized.value ? unitToken(props.unitKey!, props.base!) : ''));
+// The field's own switchable display (group + base token), when it has one — the one source for
+// what NumInput used to take as separate `group`/`base` props (BUG_20260928, "NumInput's
+// group/base props are a fourth table").
+const sw = computed(() => (props.field?.display.kind === 'switchable' ? props.field.display : undefined));
+// Unit-bound mode is active only when the field is switchable AND the caller supplies a unitKey.
+const unitized = computed(() => sw.value != null && props.unitKey != null);
+const token = computed(() => (unitized.value ? unitToken(props.unitKey!, sw.value!.base) : ''));
 // SI ↔ display. Unit-bound mode uses the affine registry conversion (handles temperature's
 // offset); unbound, the field IS its SI value. The model holds SI either way.
 function toDisp(si: number | null): number {
   if (si == null) return 0;
-  return unitized.value ? toDisplay(si, props.group!, token.value) : si;
+  return unitized.value ? toDisplay(si, sw.value!.group, token.value) : si;
 }
 function fromDisp(disp: number): number {
-  return unitized.value ? fromDisplay(disp, props.group!, token.value) : disp;
+  return unitized.value ? fromDisplay(disp, sw.value!.group, token.value) : disp;
 }
 // Decimal places: derived per selected unit when bound, else the fixed prop (min 2 dp).
 const eprec = computed(() =>
-  Math.max(2, unitized.value ? displayPrecision(props.precision, props.group!, props.base!, token.value) : props.precision),
+  Math.max(2, unitized.value ? displayPrecision(props.precision, sw.value!.group, sw.value!.base, token.value) : props.precision),
 );
 
 const focused = ref(false);
@@ -174,7 +176,7 @@ const dispMax = computed<number | undefined>(() => effMax.value === undefined ? 
 /** What the characters in the field STATE, in SI — `statedPrecision` against this field's own
  *  unit binding, or against the SI value itself when the field is not unit-bound. */
 function typedPrecision(typed: string): number | undefined {
-  return unitized.value ? statedPrecision(typed, props.group!, token.value) : statedPrecision(typed);
+  return unitized.value ? statedPrecision(typed, sw.value!.group, token.value) : statedPrecision(typed);
 }
 
 function onInput(e: Event) {
