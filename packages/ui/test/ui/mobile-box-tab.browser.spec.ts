@@ -73,3 +73,14 @@ test('Cancel discards the alignment sheet\'s draft without touching the volume f
   await expect(page.locator('.mob-align-sheet')).toHaveCount(0);
   await expect(volumeField).toHaveValue(/15/);
 });
+
+// The Box losses sheet's Ql/Qa/Qp fields aren't wired yet — engine is moving their per-box-type
+// dispatch into the domain (beside OpenISDBox.volumeOf) rather than have this tab repeat the
+// switch OriginalShell-hooks.ts still carries. This just proves the sheet itself opens/closes;
+// a field-level spec follows once that lands.
+test('the Box losses sheet opens and closes', async ({ page }) => {
+  await page.locator('.mob-btn', { hasText: 'Box losses' }).click();
+  await expect(page.locator('.mob-align-sheet')).toContainText('Box losses');
+  await page.locator('.mob-align-footer .mob-btn', { hasText: 'OK' }).click();
+  await expect(page.locator('.mob-align-sheet')).toHaveCount(0);
+});
