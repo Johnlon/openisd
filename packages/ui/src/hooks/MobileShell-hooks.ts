@@ -3,7 +3,7 @@
  * destination, plus the manual skin switch and the no-project empty state. One hook, one
  * component (`.claude/rules/ui.md`); every ref/computed/write lives here.
  */
-import {computed, ref} from 'vue';
+import {computed, onMounted, onUnmounted, ref} from 'vue';
 import {focusedProject, isModified, resetProjectToGround} from '../logic/appState.js';
 import {presentationState, setSkinOverride} from '../logic/presentationState.js';
 import {useApp} from '../logic/app.js';
@@ -16,7 +16,7 @@ import type {TabId} from './OriginalShell-hooks.js';
  *  — a destination that has no desktop counterpart, because `GraphPanel`'s canvas sets
  *  `touch-action: none` (custom pointer pan/zoom) and would trap vertical scroll if it sat
  *  inline in a form column instead of owning the whole screen. */
-export type MobileDestination = Extract<TabId, 'box' | 'driver' | 'signal'> | 'graph';
+export type MobileDestination = Extract<TabId, 'box' | 'driver' | 'signal' | 'filters' | 'project'> | 'graph';
 
 export interface MobileShellApi {
   projectOpen: import('vue').ComputedRef<boolean>;
@@ -36,6 +36,9 @@ export interface MobileShellApi {
   optionsOpen: import('vue').Ref<boolean>;
   openOptions: () => void;
   about: () => void;
+  goToProject: () => void;
+  /** The real, currently-visible viewport height in px — see the field's own comment. */
+  viewportHeightPx: import('vue').Ref<number>;
 }
 
 export function useMobileShell(): MobileShellApi {
@@ -77,6 +80,7 @@ export function useMobileShell(): MobileShellApi {
 
   const optionsOpen = ref(false);
   function openOptions(): void { optionsOpen.value = true; closeMenu(); }
+  function goToProject(): void { destination.value = 'project'; closeMenu(); }
 
   // The hamburger menu — the mobile shell's stand-in for the desktop toolbar, since there's
   // no room for individual icons at phone width. Everything it opens (Options, Driver browser,
@@ -91,9 +95,21 @@ export function useMobileShell(): MobileShellApi {
   // `OriginalShell-hooks.ts`'s `switchToMobile`.
   function switchToDesktop(): void { setSkinOverride('original'); closeMenu(); }
 
+  // CSS `100vh`/`100dvh` is not enough on its own: real browsers vary in whether/when they
+  // shrink it for their own chrome (a mobile address bar, a download shelf, any other bar a
+  // given browser version adds) — a bug John hit live, where the bottom tab bar ended up mostly
+  // hidden under one of these. `window.innerHeight` is the one number that is ALWAYS the actual
+  // visible height regardless of the cause, and every one of those bars appearing or disappearing
+  // fires `resize`, so this stays correct without needing to know what the bar even was.
+  const viewportHeightPx = ref(typeof window === 'undefined' ? 0 : window.innerHeight);
+  function updateViewportHeight(): void { viewportHeightPx.value = window.innerHeight; }
+  onMounted(() => window.addEventListener('resize', updateViewportHeight));
+  onUnmounted(() => window.removeEventListener('resize', updateViewportHeight));
+
   return {
     projectOpen, destination, fileInput, openImportedFile, openNewProject, switchToDesktop,
     menuOpen, toggleMenu, closeMenu, openFromDisk, isModified,
-    saveProject, revertProject, browseDrivers, optionsOpen, openOptions, about,
+    saveProject, revertProject, browseDrivers, optionsOpen, openOptions, about, goToProject,
+    viewportHeightPx,
   };
 }

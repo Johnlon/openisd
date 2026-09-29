@@ -99,28 +99,54 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <!-- The shell renders WITH or WITHOUT a project — with none it shows the toolbar plus the
-       empty placeholders, and the toolbar's global actions stay reachable. All overlays
-       self-gate on their own presentationState booleans. Which shell mounts is `activeSkin`:
-       the manual override when set, else the live viewport. -->
-  <MobileShell v-if="activeSkin === 'mobile'" />
-  <OriginalShell v-else />
-  <!-- Global overlays — each self-gates internally and is safe with no project open. -->
-  <MobileNewProject v-if="presentationState.newProjectOpen && activeSkin === 'mobile'" @close="presentationState.newProjectOpen = false" />
-  <OriginalNewProject v-else-if="presentationState.newProjectOpen" @close="presentationState.newProjectOpen = false" />
-  <!-- Both read the focused project, so neither may mount without one — whatever set the
-       flag. The shell itself renders with no project; these do not. -->
-  <DriverEditorModal v-if="presentationState.editDriverInfo && projectOpen" @close="presentationState.editDriverInfo = false" />
-  <OriginalTune v-if="presentationState.editDriver && projectOpen" />
-  <!-- The wizard's step-1 driver picker sits ON TOP of the wizard modal (both z-index 100). -->
-  <DriverBrowser />
-  <Flash />
-  <!-- Raises itself on the first uncaught error, rejection or console.error. -->
-  <DiagnosticsModal />
-  <!-- What OpenISD is — raised for a first visitor, reopened from Info → About OpenISD. -->
-  <SplashModal />
+  <!-- Every `position: fixed` overlay in the app (the wizards, DriverBrowser, DriverEditorModal,
+       OptionsModal, DiagnosticsModal, SplashModal, ...) is a SIBLING of the shell here, not a
+       descendant of it — so none of them can be contained by anything the shell itself does.
+       `.app-root`'s `transform` (see the style block) makes THIS element the containing block
+       for every `position: fixed` descendant in the whole app, per the CSS spec — exactly what
+       constrains them to the phone-width pane below when the mobile skin is centered inside a
+       full desktop browser window, without editing every overlay component individually. In
+       desktop mode this element is unconstrained (full width), so the same rule is a no-op —
+       `position: fixed` against a full-viewport containing block behaves identically to `fixed`
+       against the real viewport. -->
+  <div class="app-root" :class="{ 'app-root-mobile': activeSkin === 'mobile' }">
+    <!-- The shell renders WITH or WITHOUT a project — with none it shows the toolbar plus the
+         empty placeholders, and the toolbar's global actions stay reachable. All overlays
+         self-gate on their own presentationState booleans. Which shell mounts is `activeSkin`:
+         the manual override when set, else the live viewport. -->
+    <MobileShell v-if="activeSkin === 'mobile'" />
+    <OriginalShell v-else />
+    <!-- Global overlays — each self-gates internally and is safe with no project open. -->
+    <MobileNewProject v-if="presentationState.newProjectOpen && activeSkin === 'mobile'" @close="presentationState.newProjectOpen = false" />
+    <OriginalNewProject v-else-if="presentationState.newProjectOpen" @close="presentationState.newProjectOpen = false" />
+    <!-- Both read the focused project, so neither may mount without one — whatever set the
+         flag. The shell itself renders with no project; these do not. -->
+    <DriverEditorModal v-if="presentationState.editDriverInfo && projectOpen" @close="presentationState.editDriverInfo = false" />
+    <OriginalTune v-if="presentationState.editDriver && projectOpen" />
+    <!-- The wizard's step-1 driver picker sits ON TOP of the wizard modal (both z-index 100). -->
+    <DriverBrowser />
+    <Flash />
+    <!-- Raises itself on the first uncaught error, rejection or console.error. -->
+    <DiagnosticsModal />
+    <!-- What OpenISD is — raised for a first visitor, reopened from Info → About OpenISD. -->
+    <SplashModal />
+  </div>
 </template>
 
 <style scoped>
-/* No-project-open styles removed — the shell renders the placeholders itself now. */
+.app-root-mobile {
+  max-width: 480px;
+  margin: 0 auto;
+  /* No explicit height here on purpose: MobileShell.vue's .mobile-root sets its OWN height from
+     a JS-measured window.innerHeight (more robust than any CSS vh/dvh — see its own comment).
+     Every other child of this element is position:fixed (out of normal flow), so with no height
+     of its own, this element's auto height just matches .mobile-root's exactly — no risk of the
+     two disagreeing and one clipping or gapping past the other. */
+  box-shadow: 0 0 0 1px #C7CDCB;
+  /* Establishes the containing block for every position:fixed descendant app-wide — see the
+     template comment above. The exact transform doesn't matter (translateZ(0) is a common,
+     visually inert choice); only that one is present. */
+  transform: translateZ(0);
+  overflow-x: hidden;
+}
 </style>
