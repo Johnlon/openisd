@@ -9,7 +9,7 @@ import {createProjectRepo} from '../src/repos/projectRepo.js';
 import {createViewStateRepo} from '../src/repos/viewStateRepo.js';
 import type {FileStorage} from '../src/storage/fileStorage.js';
 import {createSharedMemoryStorage} from '../src/storage/keyValueStorage.js';
-import {OpenISDProject} from '@openisd/design';
+import {OpenISDProject, ProjectBuilder} from '@openisd/design';
 import {createEngine} from '@openisd/design/engine';
 
 const engine = createEngine();
@@ -22,7 +22,7 @@ const noFiles: FileStorage = {
 };
 
 function project(name: string): OpenISDProject {
-  const p = OpenISDProject.empty(engine);
+  const p = ProjectBuilder.empty(engine);
   p.name.set(name);
   p.save();
   return p;

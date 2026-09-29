@@ -16,7 +16,7 @@
  */
 import {beforeEach, describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import {OpenISDDriver, OpenISDProject} from '@openisd/design';
+import {OpenISDDriver, ProjectBuilder} from '@openisd/design';
 import {createEngine} from '@openisd/design/engine';
 import {
     clearVentField as clearVentFieldOn,
@@ -32,7 +32,7 @@ function ventedProject() {
   // This test is about box/vent/filter fields, not about any driver's contents, so the driver
   // states nothing — the domain's own blank rather than a record assembled here.
   const driver = OpenISDDriver.empty(engine);
-  const p = OpenISDProject.builder(driver, engine).vented().volume_m3(0.02).tuning_goal_hz(40).build();
+  const p = new ProjectBuilder(driver, engine).vented().volume_m3(0.02).tuning_goal_hz(40).build();
   p.box.vented.vent.shape.set('round');
   p.box.vented.vent.diameter_m.set(0.05);
   p.box.vented.vent.endCorrection_m.set(0.6);

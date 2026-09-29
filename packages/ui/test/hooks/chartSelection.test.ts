@@ -1,13 +1,13 @@
 import {describe, expect, it} from 'vitest';
 import {ref} from 'vue';
 import {createEngine} from '@openisd/design/engine';
-import {OpenISDProject} from '@openisd/design';
+import {OpenISDProject, ProjectBuilder} from '@openisd/design';
 import {ChartSelection} from '../../src/hooks/chartSelection.js';
 import {CHART_LABELS} from '../../src/logic/series.js';
 
 function createCompleteProject() {
   const engine = createEngine();
-  const project = OpenISDProject.empty(engine);
+  const project = ProjectBuilder.empty(engine);
   project.driver.specs.Fs_hz.set(40);
   project.driver.specs.Qts.set(0.38);
   project.driver.specs.Qes.set(0.45);

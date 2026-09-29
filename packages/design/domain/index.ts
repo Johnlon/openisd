@@ -54,11 +54,12 @@ export type { DqReason } from './driver/openISDDriver.js';
 
 // `OpenISDProject` IS the project a consumer holds: one class wrapping the record and holding
 // both the saved and the edited state. As a TYPE only, like every other class here — the
-// constructor is private, and `OpenISDProject.builder()` is the way one comes into existence.
+// constructor is private, and `ProjectBuilder` is the way one comes into existence.
 //
 // `projectJson` is NOT exported: it takes and returns package-private record types.
 export { OpenISDProject } from './project/openISDProject.js';
-export type { ProjectBuilder, BoxProjectBuilder } from './openisdTransforms.js';
+export { ProjectBuilder } from './openisdTransforms.js';
+export type { BoxProjectBuilder } from './openisdTransforms.js';
 export { WinIsdDriverConverter } from './winIsdDriverConverter.js';
 export { WinIsdProjectConverter } from './winIsdProjectConverter.js';
 export { OpenISDPassiveRadiatorStandalone } from './passiveRadiator/openISDPassiveRadiatorStandalone.js';

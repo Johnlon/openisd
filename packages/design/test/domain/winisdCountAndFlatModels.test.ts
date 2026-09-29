@@ -5,7 +5,7 @@
  * Off: OpenISD's coil-wiring model for N drivers, and its capped boost-only flat response.
  */
 import {describe, expect, it} from 'vitest';
-import {createEngine, type FrequencyGrid, OpenISDProject} from '../../domain/index.js';
+import {createEngine, type FrequencyGrid, OpenISDProject, ProjectBuilder} from '../../domain/index.js';
 import {driverFromSpec} from '../fixtures/recordBuilders.js';
 
 const W5 = {
@@ -15,7 +15,7 @@ const W5 = {
 };
 const engine = createEngine();
 const w5 = (): OpenISDProject => {
-  const project = OpenISDProject.builder(driverFromSpec(engine, W5), engine).sealed().volume_m3(0.00448).build();
+  const project = new ProjectBuilder(driverFromSpec(engine, W5), engine).sealed().volume_m3(0.00448).build();
   project.powerDrive_W.set(1);
   return project;
 };

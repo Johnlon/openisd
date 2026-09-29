@@ -1,6 +1,6 @@
 import {describe, expect, it} from 'vitest';
 import {createEngine} from '@openisd/design/engine';
-import {OpenISDDriver, OpenISDProject} from '../domain/index.js';
+import {OpenISDDriver, ProjectBuilder} from '../domain/index.js';
 
 // This test is the package's PROXY CONSUMER: it imports from `index.js` only.
 const scraped = <T,>(value: T) => ({ value });
@@ -29,7 +29,7 @@ function ventedProject() {
   };
   const driver = OpenISDDriver.fromConformingRecord(record, createEngine());
   if (Array.isArray(driver)) throw new Error(`fixture is not a valid driver: ${driver.join(', ')}`);
-  return OpenISDProject.builder(driver, createEngine()).vented().volume_m3(0.03).tuning_goal_hz(35).build();
+  return new ProjectBuilder(driver, createEngine()).vented().volume_m3(0.03).tuning_goal_hz(35).build();
 }
 
 /**

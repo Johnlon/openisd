@@ -2,7 +2,7 @@ import {mkdirSync, readFileSync, writeFileSync} from 'node:fs';
 import {dirname, join} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {z} from 'zod';
-import {createEngine, OpenISDDriver, OpenISDPassiveRadiatorStandalone, OpenISDProject} from '@openisd/design';
+import {createEngine, OpenISDDriver, OpenISDPassiveRadiatorStandalone, ProjectBuilder} from '@openisd/design';
 import {DEFAULT_SOURCE_RESISTANCE_OHM} from '@openisd/design/fields';
 import {COMPLETE_DRIVER_PROJECT_OWPR, SAMPLE_PROJECT_OWPR} from './sampleProject.js';
 
@@ -27,7 +27,7 @@ if (Array.isArray(maybeDriver)) {
 }
 const driver = maybeDriver;
 
-const builder = OpenISDProject.builder(driver, engine);
+const builder = new ProjectBuilder(driver, engine);
 
 // WinISD's default vented alignment (C4/SC4), designed as the New Project wizard does it
 // (docs/research/VENTED_ALIGNMENT_FORMULAS.md); a hardcoded volume/tuning here would drift from
@@ -83,7 +83,7 @@ if (Array.isArray(completeDriver)) {
     throw new Error(`complete driver is not conforming: ${completeDriver.join(', ')}`);
 }
 
-const completeBuilder = OpenISDProject.builder(completeDriver, engine);
+const completeBuilder = new ProjectBuilder(completeDriver, engine);
 const completeProject = completeBuilder.vented().volume_m3(0.03).tuning_goal_hz(35).build();
 completeProject.name.set("Complete Fixture Project");
 completeProject.box.vented.vent.diameter_m.set(0.05);

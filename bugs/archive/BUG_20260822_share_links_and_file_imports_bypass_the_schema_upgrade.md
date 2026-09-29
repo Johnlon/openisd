@@ -36,7 +36,7 @@ The project upgrade seam was rebuilt as `packages/persistence/src/repos/projectS
 Both `loadFromHash` and `readProjectText` in `projectRepo.ts` now run the upgrade before
 validation, so the hash, `File → Open` and localStorage accept the same set of payloads.
 
-The upgrade rebuilds the project through `OpenISDProject.builder(...)` and asks it for
+The upgrade rebuilds the project through `new ProjectBuilder(...)` and asks it for
 `.owprText()`, so this file states no record shape of its own — the encapsulation rule holds.
 Two behaviours are stated in the code rather than inferred: a V1 payload states no box volume
 (the field did not travel), so the upgraded project takes the builder's sealed default; and it

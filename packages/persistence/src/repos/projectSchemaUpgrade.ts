@@ -6,7 +6,7 @@
  *  The upgrade is a TEXT→TEXT step over the wire form, never a reach into the domain's record:
  *  it rebuilds the project through `OpenISDProject`'s own builder and asks it for `.owpr` text,
  *  so this file states no record shape of its own. */
-import {OpenISDDriver, OpenISDProject} from '@openisd/design';
+import {OpenISDDriver, ProjectBuilder} from '@openisd/design';
 import type {Engine} from '@openisd/design/engine';
 
 /** A pre-session payload: the driver as a record OBJECT beside flat project meta, with no
@@ -72,7 +72,7 @@ export function createProjectSchemaUpgrade(engine: Engine): ProjectSchemaUpgrade
   // A V1 payload states no box volume — the field did not travel — so the upgraded project takes
   // the builder's sealed default. The design's own numbers are the driver's; the box is what the
   // recipient re-states, exactly as they would on a fresh project.
-  const project = OpenISDProject.builder(driver, engine).sealed().volume_m3(0.03).build();
+  const project = new ProjectBuilder(driver, engine).sealed().volume_m3(0.03).build();
 
   const meta = parsed.project ?? {};
   if (meta.name !== undefined) project.name.set(meta.name);

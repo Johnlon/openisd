@@ -1,10 +1,10 @@
 import {describe, expect, it} from 'vitest';
 import {createEngine} from '@openisd/design/engine';
-import {OpenISDProject} from '@openisd/design/domain';
+import {OpenISDProject, ProjectBuilder} from '@openisd/design/domain';
 
 describe('store-path repro', () => {
   it('builds via OpenISDProject.empty, switches to vented, clears tuning', () => {
-    const p = OpenISDProject.empty(createEngine());
+    const p = ProjectBuilder.empty(createEngine());
     p.box.boxType.set('vented');
     const w = p.driver.spec.woofer;
     w.Fs_hz.set(37); w.Qts.set(0.378); w.Qes.set(0.40); w.Qms.set(7.0);

@@ -1,6 +1,6 @@
 import {describe, expect, it} from 'vitest';
 import {type BoxType, createEngine} from '@openisd/design/engine';
-import {OpenISDDriver, OpenISDProject} from '../../domain/index.js';
+import {OpenISDDriver, OpenISDProject, ProjectBuilder} from '../../domain/index.js';
 
 const scraped = <T,>(value: T) => ({value});
 const spec = (read_value: number) => ({state: 'E' as const, value: read_value, origin: 'scraped', readings: {scraped: {read_value}}});
@@ -20,7 +20,7 @@ function project(): OpenISDProject {
   };
   const driver = OpenISDDriver.fromConformingRecord(record, engine);
   if (Array.isArray(driver)) throw new Error(driver.join(', '));
-  return OpenISDProject.builder(driver, engine).sealed().volume_m3(0.03).build();
+  return new ProjectBuilder(driver, engine).sealed().volume_m3(0.03).build();
 }
 
 /** The field each box type calls its main volume: the one cabinet for sealed, vented and PR, the

@@ -50,7 +50,7 @@ These are not the same offence, and only one risks corrupting what the user is e
 
 | File | Function | Object crossing | Detached or linked | Why |
 |---|---|---|---|---|
-| `winIsdProjectConverter.ts` | `winIsdProjectToOpenIsdProject` :211 | `OpenISDProject` **out** | **detached** | built here from `.wpr` text via `OpenISDProject.builder()`; the caller is its first holder. The writes at :325–337 land on this new object, not on anyone else's |
+| `winIsdProjectConverter.ts` | `winIsdProjectToOpenIsdProject` :211 | `OpenISDProject` **out** | **detached** | built here from `.wpr` text via `new ProjectBuilder()`; the caller is its first holder. The writes at :325–337 land on this new object, not on anyone else's |
 | `winIsdDriverConverter.ts` | `winIsdDriverTextToOpenIsdDriver` :590 | `OpenISDDriver` **out** | **detached** | built here from `.wdr` text |
 | `winIsdProjectConverter.ts` | `openIsdProjectToWinIsdProject` :39 | `OpenISDProject` **in** | **LINKED** | receives the UI's live project and reads through it — `project.driver` :45, `project.box` :48, `project.description`/`creator`/`created`/`modified` :60–63, `project.Rs_ohm` :67, `project.powerDrive_W()` :68 |
 | `winIsdDriverConverter.ts` | `openIsdDriverToWinIsdDriver` :466 | `OpenISDDriver` **in** | **LINKED** | receives the UI's live driver |
@@ -88,7 +88,7 @@ line 21:  import { OpenISDDriver, OpenISDProject, OpenISDPassiveRadiatorStandalo
 line 40:    project: OpenISDProject, engine: Engine,
 line 213: ): { value: OpenISDProject | null; errors: DriverError[] } {
 line 221:   const driverOrErrors = OpenISDDriver.fromConformingRecord(record, engine);
-line 229:   const builder = OpenISDProject.builder(driver, engine);
+line 229:   const builder = new ProjectBuilder(driver, engine);
 line 304:      const radiatorOrErrors = OpenISDPassiveRadiatorStandalone.fromConformingRecord(radiatorRecord, engine);
 ```
 

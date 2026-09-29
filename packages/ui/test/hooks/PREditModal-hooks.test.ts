@@ -5,7 +5,7 @@ import {usePREditModal, type PREditModalAPI} from '../../src/hooks/PREditModal-h
 import {APP_LOGIC} from '../../src/logic/app.js';
 import {provideFocusedProject} from '../../src/logic/focusedProjectContext.js';
 import {createEngine} from '@openisd/design/engine';
-import {OpenISDPassiveRadiatorStandalone, OpenISDProject} from '@openisd/design';
+import {OpenISDPassiveRadiatorStandalone, ProjectBuilder} from '@openisd/design';
 import type {MyPassiveRadiatorRepo} from '@openisd/persistence';
 import {testAppLogic} from './testAppLogic.js';
 
@@ -13,7 +13,7 @@ describe('usePREditModal', () => {
   it('exposes passive radiator state and handles library actions', async () => {
     let hook!: PREditModalAPI;
     const engine = createEngine();
-    const project = OpenISDProject.empty(engine);
+    const project = ProjectBuilder.empty(engine);
     project.box.boxType.set('box-passive-radiator');
 
     const prStandAlone = OpenISDPassiveRadiatorStandalone.empty();

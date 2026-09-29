@@ -15,7 +15,7 @@
  */
 import {describe, expect, it} from 'vitest';
 import {type Engine, createEngine} from '@openisd/design/engine';
-import {createEngine as rootCreateEngine, type FrequencyGrid, OpenISDProject,} from '../domain/index.js';
+import {createEngine as rootCreateEngine, type FrequencyGrid, ProjectBuilder,} from '../domain/index.js';
 import {driverFromSpec, radiatorFromSpec} from './fixtures/recordBuilders.js';
 
 // Block A is GONE. It tested `ebp_hz`, `referenceEfficiency` and `spl_dB` on the driver — three
@@ -35,7 +35,7 @@ describe('B — the project runs the engine sweep on its own driver and box', ()
   /** A sealed project driven at 1 W — every scenario below states the box volume and drive power
    *  itself, so the assembled `Vb`/`eg` are never stubbed. */
   const drivenSealed = (engine: Engine, volume_m3: number) => {
-    const project = OpenISDProject.builder(complete(engine), engine).sealed().volume_m3(volume_m3).build();
+    const project = new ProjectBuilder(complete(engine), engine).sealed().volume_m3(volume_m3).build();
     project.powerDrive_W.set(1);
     // Off, so `project.driver.specs.solverParams()` — which knows nothing of the flag — is the same driver
     // the project sweeps. On (the default) the project substitutes the WinISD parameter set and
@@ -75,7 +75,7 @@ describe('B — the project runs the engine sweep on its own driver and box', ()
 
   it('sweep() is null when the driver is too incomplete to simulate', () => {
     const engine = createEngine();
-    const project = OpenISDProject.builder(driverFromSpec(engine, { Fs_hz: 30 }), engine).sealed().volume_m3(0.03).build();
+    const project = new ProjectBuilder(driverFromSpec(engine, { Fs_hz: 30 }), engine).sealed().volume_m3(0.03).build();
 
     expect(project.sweep({}).values).toBeNull();
   });
@@ -187,7 +187,7 @@ describe('B — the project runs the engine sweep on its own driver and box', ()
 
 
 describe('D — the vent', () => {
-  const project = (engine: Engine) => OpenISDProject.builder(
+  const project = (engine: Engine) => new ProjectBuilder(
     driverFromSpec(engine, { Fs_hz: 30, Qes: 0.4, Qms: 4, Sd_m2: 0.02, Cms_m_per_N: 0.0005 }), engine)
     .vented().volume_m3(0.03).tuning_goal_hz(30).build();
 
@@ -286,7 +286,7 @@ describe('D — the vent', () => {
 
   it('BUG_20260927: vented, port set by length (tuning blank), sweeps finite and matches the same project entered by its achieved tuning', () => {
     const engine = createEngine();
-    const byLength = OpenISDProject.builder(completeDriver(engine), engine)
+    const byLength = new ProjectBuilder(completeDriver(engine), engine)
       .vented().volume_m3(0.03).tuning_goal_hz(30).build();
     byLength.powerDrive_W.set(1);
     byLength.winisdDriverModel.set(false);
@@ -295,7 +295,7 @@ describe('D — the vent', () => {
     const achieved = byLength.ventAchievedFb.value;
     expect(achieved).not.toBeNull();
 
-    const byTuning = OpenISDProject.builder(completeDriver(engine), engine)
+    const byTuning = new ProjectBuilder(completeDriver(engine), engine)
       .vented().volume_m3(0.03).tuning_goal_hz(achieved!).build();
     byTuning.powerDrive_W.set(1);
     byTuning.winisdDriverModel.set(false);
@@ -316,7 +316,7 @@ describe('D — the vent', () => {
 
   it('BUG_20260927: bandpass4, front port set by length (tuning blank), sweeps finite and matches the same project entered by its achieved tuning', () => {
     const engine = createEngine();
-    const byLength = OpenISDProject.builder(completeDriver(engine), engine)
+    const byLength = new ProjectBuilder(completeDriver(engine), engine)
       .bandpass4().rearVolume_m3(0.02).frontVolume_m3(0.03).frontTuning_hz(40).build();
     byLength.powerDrive_W.set(1);
     byLength.winisdDriverModel.set(false);
@@ -325,7 +325,7 @@ describe('D — the vent', () => {
     const achieved = byLength.box.bandpass4.chambers.front.tuning_goal_hz.value;
     expect(achieved).not.toBeNull();
 
-    const byTuning = OpenISDProject.builder(completeDriver(engine), engine)
+    const byTuning = new ProjectBuilder(completeDriver(engine), engine)
       .bandpass4().rearVolume_m3(0.02).frontVolume_m3(0.03).frontTuning_hz(achieved!).build();
     byTuning.powerDrive_W.set(1);
     byTuning.winisdDriverModel.set(false);
@@ -358,7 +358,7 @@ describe('E — the signal', () => {
   const withRe = (engine: Engine) => driverFromSpec(engine, { Fs_hz: 30, Re_ohm: 8 });
   const noRe = (engine: Engine) => driverFromSpec(engine, { Fs_hz: 30 });
   const projectOf = (engine: Engine, driver: ReturnType<typeof withRe>) =>
-    OpenISDProject.builder(driver, engine).sealed().volume_m3(0.03).build();
+    new ProjectBuilder(driver, engine).sealed().volume_m3(0.03).build();
 
   it('new project — pre: Re 8, nothing stated | trigger: build | post: P 1 E, V 2.83 C', () => {
     const engine = createEngine();
@@ -493,7 +493,7 @@ describe('E — the signal', () => {
 
   it('pre: Re 6.4, P 1 E, V 2.53 C | trigger: clear P | post: P 1 C, V 2.53 E, sweep draws', () => {
     const engine = createEngine();
-    const project = OpenISDProject.builder(complete(engine), engine).sealed().volume_m3(0.03).build();
+    const project = new ProjectBuilder(complete(engine), engine).sealed().volume_m3(0.03).build();
     const grid: FrequencyGrid = { fmin: 10, fmax: 1000, N: 50 };
     project.powerDrive_W.clear();
     expect(project.powerDrive_W.value).toBeCloseTo(1, 12);
@@ -505,7 +505,7 @@ describe('E — the signal', () => {
 
   it('pre: Re 6.4, P 1 E, V 2.53 C | trigger: swap to a driver with Re 8 | post: P 1 E, V 2.83 C', () => {
     const engine = createEngine();
-    const project = OpenISDProject.builder(complete(engine), engine).sealed().volume_m3(0.03).build();
+    const project = new ProjectBuilder(complete(engine), engine).sealed().volume_m3(0.03).build();
     const replacement = complete(engine);
     replacement.specs.Re_ohm.set(8);
 
@@ -519,7 +519,7 @@ describe('E — the signal', () => {
 
   it('sourceLoadedQts() RAISES Qts as the source impedance grows, and matches the engine', () => {
     const engine = createEngine();
-    const project = OpenISDProject.builder(complete(engine), engine).sealed().volume_m3(0.03).build();
+    const project = new ProjectBuilder(complete(engine), engine).sealed().volume_m3(0.03).build();
     const Qts = 1 / (1 / 4 + 1 / 0.4);
 
     // A perfect voltage source (Rs = 0) leaves Qts alone.
@@ -530,7 +530,7 @@ describe('E — the signal', () => {
 
   it('sourceLoadedQts() is null when the driver\'s Q group cannot be resolved', () => {
     const engine = createEngine();
-    const project = OpenISDProject.builder(driverFromSpec(engine, { Fs_hz: 30 }), engine).sealed().volume_m3(0.03).build();
+    const project = new ProjectBuilder(driverFromSpec(engine, { Fs_hz: 30 }), engine).sealed().volume_m3(0.03).build();
 
     expect(project.driver.sourceLoadedQts(2)).toBeNull();
   });

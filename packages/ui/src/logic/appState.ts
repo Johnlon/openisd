@@ -29,7 +29,7 @@ import {
     type OpenISDDriver,
     OpenISDPassiveRadiatorStandalone,
     OpenISDProject,
-    type ProjectBuilder,
+    ProjectBuilder,
     realAppContext,
 } from '@openisd/design';
 import type {PlotParams, YRange} from '../types.js';
@@ -589,7 +589,7 @@ export const DEFAULT_SEALED_VOLUME_L = 6;
 export function newProject(): OpenISDProject {
   presentationState.yRanges = {};
   // A new project opens on one chart, as WinISD does (`OpenISDProject.openCharts`).
-  const p = OpenISDProject.empty(engine, appContext);
+  const p = ProjectBuilder.empty(engine, appContext);
   addProject(p);
   return p;
 }
@@ -622,7 +622,7 @@ export function definePassiveRadiator(): void {
  *  Registered and focused, like `newProject()`. */
 export function createProject(driver: OpenISDDriver, box: (b: ProjectBuilder) => BoxProjectBuilder): OpenISDProject {
   presentationState.yRanges = {};
-  const p = box(OpenISDProject.builder(driver, engine, appContext)).build();
+  const p = box(new ProjectBuilder(driver, engine, appContext)).build();
   addProject(p);
   return p;
 }

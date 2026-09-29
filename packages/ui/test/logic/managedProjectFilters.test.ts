@@ -6,7 +6,7 @@
  */
 import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import {OpenISDDriver, OpenISDProject} from '@openisd/design';
+import {OpenISDDriver, ProjectBuilder} from '@openisd/design';
 import type {Filter} from '@openisd/design/engine';
 import {createEngine} from '@openisd/design/engine';
 
@@ -24,7 +24,7 @@ function sealedProject() {
   // This test is about box/vent/filter fields, not about any driver's contents, so the driver
   // states nothing — the domain's own blank rather than a record assembled here.
   const driver = OpenISDDriver.empty(engine);
-  return OpenISDProject.builder(driver, engine).sealed().volume_m3(0.02).build();
+  return new ProjectBuilder(driver, engine).sealed().volume_m3(0.02).build();
 }
 
 describe('OpenISDProject.filters — whole-array read/write', () => {

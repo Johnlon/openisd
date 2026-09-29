@@ -29,6 +29,12 @@ export class ProjectBuilder {
         this.#appContext = appContext;
     }
 
+    /** A blank project: a blank driver in a sealed box of no volume. States no physical value
+     *  of its own — the wizard repopulates the driver from the one the user picks. */
+    static empty(engine: Engine, appContext: AppContext = realAppContext): OpenISDProject {
+        return new ProjectBuilder(OpenISDDriver.empty(engine, appContext), engine, appContext).sealed().volume_m3(0).build();
+    }
+
     sealed(): SealedProjectBuilder {
         return new SealedProjectBuilder(this.#driver, this.#engine, this.#appContext);
     }
@@ -131,7 +137,7 @@ export abstract class BoxProjectBuilder {
      * A new project's record: the chosen driver, the box being built, and defaults for everything a
      * project has not been told yet.
      *
-     * THE DRIVER IS A PARAMETER because a project cannot exist without one — `OpenISDProject.builder()` takes a
+     * THE DRIVER IS A PARAMETER because a project cannot exist without one — `new ProjectBuilder()` takes a
      * validated `OpenISDDriver` before a builder is even returned. Copied on the way in (`{...}`), so
      * the project owns its own record and later edits do not reach back into a My Drivers entry or a
      * bundle row.

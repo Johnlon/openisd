@@ -17,7 +17,7 @@ import assert from 'node:assert/strict';
 import {createProjectRepo} from '../src/repos/projectRepo.js';
 import type {FileStorage} from '../src/storage/fileStorage.js';
 import {createMemoryStorage} from '../src/storage/keyValueStorage.js';
-import {OpenISDDriver, OpenISDProject} from '@openisd/design';
+import {OpenISDDriver, ProjectBuilder} from '@openisd/design';
 import {createEngine} from '@openisd/design/engine';
 
 const engine = createEngine();
@@ -69,7 +69,7 @@ function driverJson() {
 function payloadWithBoxType(boxType: string): unknown {
   const driver = OpenISDDriver.fromConformingRecord(driverJson(), engine);
   if (Array.isArray(driver)) throw new Error('fixture driver record must conform: ' + driver.join('; '));
-  const project = OpenISDProject.builder(driver, engine).sealed().volume_m3(0.03).build();
+  const project = new ProjectBuilder(driver, engine).sealed().volume_m3(0.03).build();
   project.save();
   // `readProjectText` validates the session wrapper `{ label, saved, edited }`; the box type
   // lives on `saved`.

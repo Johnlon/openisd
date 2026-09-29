@@ -19,7 +19,7 @@ mid-wizard, so the invariant is never transiently violated.
 
 Today the app guarantees "never zero projects" by falling back to a
 driver-less empty project (`ManagedOpenISDProject.createEmpty()` →
-`OpenISDProject.empty()`) at three trigger points: app first-launch (no
+`ProjectBuilder.empty()`) at three trigger points: app first-launch (no
 saved state), closing the last open project, and selecting a project-list
 row that itself has no driver. That fallback is gone under the invariant.
 
@@ -32,7 +32,7 @@ in its own right, distinct from the wizard.
 ## Mechanical changes (removal, not redesign — ~30 sites)
 
 - `_OpenISDProjectJson.driver: string | undefined` → `driver: string`
-  (`openisdProject.ts:302`), cascading into `OpenISDProject.empty()`/
+  (`openisdProject.ts:302`), cascading into `ProjectBuilder.empty()`/
   `prototypeProject()` (must go away or require a driver param), `setDriver()`
   (stop accepting `undefined`), `driverText()` (return type), `fromWprText()`'s
   conditional adoption.

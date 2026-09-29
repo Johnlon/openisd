@@ -20,7 +20,7 @@
  */
 import {describe, expect, it} from 'vitest';
 import {createEngine} from '@openisd/design/engine';
-import {OpenISDProject} from '../../domain/index.js';
+import {ProjectBuilder} from '../../domain/index.js';
 import {openISDProjectSessionJsonSchema} from '../../domain/openisdSchema.js';
 import {driverFromSpec} from '../fixtures/recordBuilders.js';
 import type {Filter} from '@openisd/design/engine';
@@ -33,7 +33,7 @@ function sessionWithOneFilter(filter: Filter): unknown {
   const driver = driverFromSpec(engine, {
     Fs_hz: 30, Qes: 0.4, Qms: 4, Sd_m2: 0.02, Cms_m_per_N: 0.0005,
   });
-  const project = OpenISDProject.builder(driver, engine).sealed().volume_m3(0.03).build();
+  const project = new ProjectBuilder(driver, engine).sealed().volume_m3(0.03).build();
   project.filters.set([filter]);
   project.save();
   return project.cloneSession();

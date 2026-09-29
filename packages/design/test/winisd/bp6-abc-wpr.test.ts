@@ -11,7 +11,7 @@ import {readFileSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 import {dirname, join} from 'node:path';
 import {type Engine, createEngine} from '@openisd/design/engine';
-import {OpenISDDriver, OpenISDProject} from '@openisd/design';
+import {OpenISDDriver, OpenISDProject, ProjectBuilder} from '@openisd/design';
 import {WinIsdProjectConverter} from '../../domain/winIsdProjectConverter.js';
 import {WinISDDriver} from '../../winisd/winisdDriver.js';
 import {WinISDProject} from '../../winisd/winisdProject.js';
@@ -53,9 +53,9 @@ function driverFromCapture(engine: Engine): OpenISDDriver {
   return driverOrErrors;
 }
 
-function aProject(box: (p: ReturnType<typeof OpenISDProject.builder>) => OpenISDProject): OpenISDProject {
+function aProject(box: (p: ProjectBuilder) => OpenISDProject): OpenISDProject {
   const engine = createEngine();
-  return box(OpenISDProject.builder(driverFromCapture(engine), engine));
+  return box(new ProjectBuilder(driverFromCapture(engine), engine));
 }
 
 for (const [label, kind, boxType, bType, captureWpr, sampleWpr] of [

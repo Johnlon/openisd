@@ -35,13 +35,6 @@ export function driverToOwdrBytes(driver: OpenISDDriver): Uint8Array<ArrayBuffer
   return utf8(driver.toOwdrText());
 }
 
-/** The whole project as WinISD `.wpr` bytes. `value` is null when the project cannot be
- *  expressed in WinISD's format. */
-export function projectToWprBytes(project: OpenISDProject): Bytes {
-  const { value, errors } = project.toWprText();
-  return { value: value === null ? null : utf8(value), errors };
-}
-
 /** Reads every driver/project file format into a domain object, with the one engine the
  *  composition root built and the project repo that brings a stored project up to schema. */
 export class DesignFiles {
@@ -51,6 +44,13 @@ export class DesignFiles {
   constructor(private readonly engine: Engine, private readonly projectRepo: ProjectRepo) {
     this.#drivers = new WinIsdDriverConverter(engine);
     this.#projects = new WinIsdProjectConverter(engine);
+  }
+
+  /** The whole project as WinISD `.wpr` bytes. `value` is null when the project cannot be
+   *  expressed in WinISD's format. */
+  projectToWprBytes(project: OpenISDProject): Bytes {
+    const { value: wpr, errors } = this.#projects.openIsdProjectToWinIsdProject(project);
+    return { value: wpr === null ? null : utf8(wpr.toWpr()), errors };
   }
 
   /** Driver file text → a standalone driver, or the reasons it could not be read. A `.wdr`

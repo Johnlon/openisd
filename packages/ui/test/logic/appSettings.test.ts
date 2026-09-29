@@ -18,7 +18,7 @@
  */
 import {afterEach, describe, expect, it} from 'vitest';
 import assert from 'node:assert/strict';
-import {OpenISDDriver, OpenISDProject} from '@openisd/design';
+import {OpenISDDriver, OpenISDProject, ProjectBuilder} from '@openisd/design';
 import {
     DEFAULT_ENV_DEFAULTS, DEFAULT_VENTED_DESIGN_LIMITS, type EnvDefaults, type VentedDesignLimits,
 } from '@openisd/design/engine';
@@ -72,7 +72,7 @@ function testDriver(): OpenISDDriver {
 
 /** A vented project whose designed box is the extrapolated one — 1.684 m³, 5.4 Hz. */
 function implausibleVentedProject(): OpenISDProject {
-  return OpenISDProject.builder(testDriver(), engine).vented().volume_m3(1.684).tuning_goal_hz(5.4).build();
+  return new ProjectBuilder(testDriver(), engine).vented().volume_m3(1.684).tuning_goal_hz(5.4).build();
 }
 
 /** Open `project` in the registry for the duration of one test. */

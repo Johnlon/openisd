@@ -3905,7 +3905,7 @@ Line 15 error: `const driver = OpenISDDriver.fromConformingRecord(driverJson, en
 
 Lines: 13 `const engine = new Engine();`, 14 `const driver = OpenISDDriver.fromConformingRecord(driverJson, engine);`. The error at 15:40 is actually on line 15? The diagnostics say [15:40]. Let me read the current file.
 
-The error at [15:40]: `OpenISDProject.builder(driver, engine, {...})` — `driver` is typed `OpenISDDriver | string[]`. The fromConformingRecord returns the union. But this worked before with the door import... The type of Engine from root vs door is identical class. So why does the union error appear now?
+The error at [15:40]: `new ProjectBuilder(driver, engine, {...})` — `driver` is typed `OpenISDDriver | string[]`. The fromConformingRecord returns the union. But this worked before with the door import... The type of Engine from root vs door is identical class. So why does the union error appear now?
 
 Interesting — maybe TS _was_ fine before because... hmm. Actually `OpenISDProject.builder` expects `OpenISDDriver` (not the union). `OpenISDDriver.fromConformingRecord` returns `OpenISDDriver | string[]` — so `driver` is the union, and passing it to builder was ALREADY an error... unless `driver` was previously narrowed. Wait — before my first edit, the original line was:
 
@@ -3936,7 +3936,7 @@ The root barrel surfaced a real narrowing gap (the generator passes the raw `str
 
 Another surfaced gap: `builder(driver, engine, { username, tempK, ... })` — the third arg is `AppContext` (newId/now), but the builder call passes a project-init config with `username, tempK, pressurePa, humidityPct, newId`. This worked before via the deep imports but now the root barrel's `AppContext` type is the injected ambient context — the builder's third param must be `AppContext`, and this call passes an inline object missing nothing? `AppContext` is `{ newId(): string; now(): Date }`. The object supplies `newId: () => randomUUID()` plus username/tempK/etc. Excess properties → LSP now complains `username does not exist in type AppContext`.
 
-Wait — did this compile before? It must have, since it ran through vite-node (no typecheck). But whether TS was happy before: the deep import previously gave `OpenISDProject.builder(...)` with the same signature. Excess property check fires on object literals regardless of import path, so this should have errored before too... unless before, `OpenISDProject` came from `openisdDomain.ts` directly, which may have had builder's third param typed differently? No — same signature via barrel. Actually maybe the barrel's `OpenISDProject` type comes through exactly the same file.
+Wait — did this compile before? It must have, since it ran through vite-node (no typecheck). But whether TS was happy before: the deep import previously gave `new ProjectBuilder(...)` with the same signature. Excess property check fires on object literals regardless of import path, so this should have errored before too... unless before, `OpenISDProject` came from `openisdDomain.ts` directly, which may have had builder's third param typed differently? No — same signature via barrel. Actually maybe the barrel's `OpenISDProject` type comes through exactly the same file.
 
 Hmm — but honestly, maybe the LSP diagnostics were always there for this file and nobody checked (the file is only run via vite-node, never typechecked in CI, and generateSample was written by a prior agent). The honest path: make the file actually type-correct per current API.
 
@@ -3977,7 +3977,7 @@ project.envHumidityPct.set(50);
 ```
 And the builder third arg: `newId: () => randomUUID()` only (AppContext has newId + now; now optional? both required). Provide both:
 ```
-OpenISDProject.builder(driver, engine, { newId: () => randomUUID(), now: () => new Date() })
+new ProjectBuilder(driver, engine, { newId: () => randomUUID(), now: () => new Date() })
 ```
 Or simply omit and call default realAppContext — but then newId is realAppContext.newId (newUuid) — same idea, random uuid. But keep explicit for determinism clarity? realAppContext.newId already produces randomUUID via newUuid — identical behavior. Simplest: omit third arg entirely (default realAppContext). That removes the need to import randomUUID! Actually the file imports `randomUUID` from 'node:crypto' to pass newId. With default realAppContext, drop that import.
 
