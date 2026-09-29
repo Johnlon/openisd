@@ -172,6 +172,8 @@ export abstract class BoxProjectBuilder {
                 splGraphIsXmaxLimited: false,
                 winisdDriverModel: true,
                 winisdVaModel: true,
+                winisdDriverCountModel: true,
+                winisdFlatModel: true,
             },
             charts: {},
         };
