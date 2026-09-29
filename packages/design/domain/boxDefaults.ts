@@ -10,8 +10,7 @@ import type {
 
 // Shared const objects, the starting values a brand-new box is built from. Values are WinISD's
 // own defaults for a freshly-created box (packages/design/winisd/winisdProject.ts TEMPLATE:
-// Ql=10, Qa=100, Qp=100, Qiclfr=100) — not invented numbers. (The template's endcorrection=0.6 is not WinISD's; see
-// bugs/BUG_20260929_wpr_writer_end_correction_default_is_not_winisd.md.)
+// Ql=10, Qa=100, Qp=100, Qiclfr=100) — not invented numbers.
 //
 // Each is `Object.freeze`d so no assignment or mutating call on it can compile or run — see
 // packages/design/AGENTS.md "Keep module-scoped state immutable". Every use still SPREADS the

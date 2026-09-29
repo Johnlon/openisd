@@ -21,7 +21,7 @@
  * vocabulary (`Vr`, `phi`, `crosscalc`, …) and has already computed every number — the same
  * contract as `WinISDDriver.build()`, where the caller names WDR keys directly.
  *
- * Verified against 15 WinISD Pro-written goldens under
+ * Compared against 15 goldens (written by the research harness, not saved by WinISD) under
  * packages/design/test/winisd/fixtures/winisd-parity/goldens/ (test/winisdProject.test.ts). The
  * defaults below match WinISD's own, so a produced file round-trips through WinISD unchanged.
  */
@@ -33,7 +33,7 @@ const TEMPLATE: ReadonlyArray<readonly [string, ReadonlyArray<readonly [string, 
   const vent: ReadonlyArray<readonly [string, string | null]> = [
     ['Num', '0'], ['Shape', '1'], ['Fb', '0'], ['Vb', '0'],
     ['dia1', '0'], ['dia2', '0'], ['carea', '0'], ['len', '0'],
-    ['endcorrection', '0.6'], ['crosscalc', '1'],
+    ['endcorrection', '0.732'], ['crosscalc', '1'],
   ];
   return [
     ['ProjectInfo', [['Description', ''], ['Creator', ''], ['CreateDate', ''], ['ModifyDate', '']]],

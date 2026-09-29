@@ -1,6 +1,6 @@
 # BUG_20260929_wpr_writer_end_correction_default_is_not_winisd
 
-**Status:** OPEN
+**Status:** RESOLVED
 
 ## Symptom
 OpenISD's `.wpr` export writes `endcorrection=0.6` for a vent section. WinISD never writes 0.6; every
@@ -28,3 +28,11 @@ came from the harness writer, and fix the writer at `wdr.py:60`. Re-check which 
 ## Verification
 A WinISD-saved `.wpr` round-trips with `endcorrection=0.732` unchanged; no test asserts 0.6 as
 WinISD's value.
+
+## Resolution (2026-09-29)
+- `TEMPLATE` in `packages/design/winisd/winisdProject.ts` now defaults `endcorrection` to 0.732.
+- The four goldens that `winisdProject.test.ts` compares the writer against (`passive-radiator`,
+  `vented-small`, `bandpass4`, `vented-b4`) had their three `endcorrection=0.6` lines changed to
+  0.732 (red first: the four comparisons failed, then passed with the template change).
+- Left alone: `winisd_research/lib/wdr.py`, `runs/`, and the other 11 goldens (inputs to WinISD).
+- `packages/design/test/winisd` 1118/1118.
