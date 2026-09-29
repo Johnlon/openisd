@@ -3,6 +3,7 @@ import type {DriverBrowsingState} from './driverBrowsingState.js';
 import type {DriverSelection} from './driverSelection.js';
 import type {DesignIO} from './useApplicationIO.js';
 import type {DesignFiles} from './fileImportExport.js';
+import type {DriverDrafts} from './driverDraft.js';
 import type {
     BundledDriverRepo,
     BundledPassiveRadiatorRepo,
@@ -39,6 +40,7 @@ export interface AppLogic {
   selection: DriverSelection;
   designIO: DesignIO;
   designFiles: DesignFiles;
+  driverDrafts: DriverDrafts;
   myPassiveRadiators: MyPassiveRadiatorRepo;
   bundledPassiveRadiators: BundledPassiveRadiatorRepo;
   bundledDrivers: BundledDriverRepo;

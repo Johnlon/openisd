@@ -7,7 +7,7 @@ import {formatInUnit} from '../../logic/appState.js';
 import {useFocusedProject} from '../../logic/focusedProjectContext.js';
 import {presentationState} from '../../logic/presentationState.js';
 import {useApp} from '../../logic/app.js';
-import {openDriverDraft, wiringOptions} from '../../logic/driverDraft.js';
+import {wiringOptions} from '../../logic/driverDraft.js';
 import {readDriverFileText} from '../../logic/driverFileText.js';
 import {driverToOwdrBytes, driverToWdrBytes} from '../../logic/fileImportExport.js';
 import {cellClassOf} from '../../logic/useDriverCells.js';
@@ -26,7 +26,7 @@ function cellOf(field: NumSpecField): Readable<number | null> & Entered & Calcul
   return fieldOf(field);
 }
 
-const { selection, myDrivers, logging, driverFileStorage, designFiles } = useApp();
+const { selection, myDrivers, logging, driverFileStorage, designFiles, driverDrafts } = useApp();
 
 // Driver editor — a modal. Recreates WinISD's "Driver editor" dialog (docs/winisd_screenshots/edit_driver_pg*.png):
 // 4 tabs — General / Parameters / Advanced parameters / Dimension
@@ -62,7 +62,7 @@ const editorTitle = subject.kind === 'myDriver' ? 'Edit My Driver' : "Edit Proje
 // The editing session lives in logic/: it constructs and detaches the driver, and this dialog
 // only reads and writes fields through the handle. `draftDriver` is the handle's current
 // driver, re-read on every redraw so a reset() or a file load is picked up.
-const draft = openDriverDraft(subject, () => project.value.driver);
+const draft = driverDrafts.open(subject, () => project.value.driver);
 const trigger = ref(0);
 function forceUpdate() { trigger.value++; }
 const draftDriver = computed(() => { void trigger.value; return draft.driver; });

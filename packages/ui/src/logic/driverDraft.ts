@@ -10,7 +10,8 @@
  */
 import {OpenISDDriver, OpenISDDriverStandalone, type VoiceCoilWiring} from '@openisd/design';
 import {type SelectorOption, VC_CONNECTION_OPTIONS} from '@openisd/design/fields';
-import {appContext, engine} from './appState.js';
+import type {AppContext} from '@openisd/design';
+import type {Engine} from '@openisd/design/engine';
 import type {EditorDraftSeed} from './driverSelection.js';
 
 /** The wiring choices the editor's select lists — the domain's list, reached through logic so no
@@ -40,40 +41,46 @@ export interface DriverDraft {
   setAutoCalculate(enabled: boolean): void;
 }
 
-/** Open an editing session on `subject`.
- *
- *  The seed differs by subject: a My Driver's picked driver, a blank driver for a fresh My
- *  Driver (`seed: null`), or — for the project subject — the caller's own driver, since the
- *  project is not reachable from here. */
-export function openDriverDraft(
-  subject: EditorDraftSeed,
-  projectDriver?: () => OpenISDDriver,
-): DriverDraft {
-  const seedDraft = (): OpenISDDriver => {
-    if (subject.kind === 'project') {
-      if (!projectDriver) {
-        throw new Error('openDriverDraft: a project subject needs the project driver to seed from');
+/** Opens the driver editor's editing sessions. Holds the engine and app context a blank My
+ *  Driver is built with; constructed once at the composition root. */
+export class DriverDrafts {
+  constructor(private readonly engine: Engine, private readonly appContext: AppContext) {}
+
+  /** Open an editing session on `subject`.
+   *
+   *  The seed differs by subject: a My Driver's picked driver, a blank driver for a fresh My
+   *  Driver (`seed: null`), or — for the project subject — the caller's own driver, since the
+   *  project is not reachable from here. */
+  open(
+    subject: EditorDraftSeed,
+    projectDriver?: () => OpenISDDriver,
+  ): DriverDraft {
+    const seedDraft = (): OpenISDDriver => {
+      if (subject.kind === 'project') {
+        if (!projectDriver) {
+          throw new Error('DriverDrafts.open: a project subject needs the project driver to seed from');
+        }
+        return projectDriver().detach();
       }
-      return projectDriver().detach();
-    }
-    return subject.seed ? subject.seed.detach() : OpenISDDriver.empty(engine, appContext);
-  };
+      return subject.seed ? subject.seed.detach() : OpenISDDriver.empty(this.engine, this.appContext);
+    };
 
-  let current = seedDraft();
+    let current = seedDraft();
 
-  return {
-    get driver() { return current; },
-    reset() { current = seedDraft(); },
-    replace(driver: OpenISDDriver) { current = driver; },
-    setWiring(choice: VoiceCoilWiring) {
-      const d = current;
-      d.specs.VCCon.set(choice);
-    },
-    get autoCalculate() {
-      return current instanceof OpenISDDriverStandalone ? current.autoCalculate : true;
-    },
-    setAutoCalculate(enabled: boolean) {
-      if (current instanceof OpenISDDriverStandalone) current.setAutoCalculate(enabled);
-    },
-  };
+    return {
+      get driver() { return current; },
+      reset() { current = seedDraft(); },
+      replace(driver: OpenISDDriver) { current = driver; },
+      setWiring(choice: VoiceCoilWiring) {
+        const d = current;
+        d.specs.VCCon.set(choice);
+      },
+      get autoCalculate() {
+        return current instanceof OpenISDDriverStandalone ? current.autoCalculate : true;
+      },
+      setAutoCalculate(enabled: boolean) {
+        if (current instanceof OpenISDDriverStandalone) current.setAutoCalculate(enabled);
+      },
+    };
+  }
 }
