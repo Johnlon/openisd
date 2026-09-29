@@ -39,7 +39,7 @@ export const ARRAY_WIRING_OPTIONS: readonly SelectorOption<Wiring>[] = Object.fr
 ]);
 
 /** WinISD's nine sealed-box target-Q (Qtc) choices from the New Project wizard, exact labels.
- *  THE list — `engine/boxDesign.ts` hands this same object out, never a copy. */
+ *  THE list — `SealedEngine.alignmentOptions()` hands this same object out, never a copy. */
 export const SEALED_ALIGNMENT_OPTIONS: readonly SelectorOption<number>[] = Object.freeze([
   Object.freeze({ value: 0.5, label: '0.500 Critically damped' }),
   Object.freeze({ value: 0.577, label: '0.577 Max flat delay response' }),
@@ -53,8 +53,7 @@ export const SEALED_ALIGNMENT_OPTIONS: readonly SelectorOption<number>[] = Objec
 ]);
 
 /** WinISD's five vented-box alignment choices from the New Project wizard, exact labels, in
- *  its dropdown order. WinISD's default is C4/SC4. Formulas: `engine/boxDesign.ts`'s
- *  `ventedAlignment()`. */
+ *  its dropdown order. WinISD's default is C4/SC4. Formulas: `VentedEngine.alignment()`. */
 export const VENTED_ALIGNMENT_OPTIONS: readonly SelectorOption<VentedAlignment>[] = Object.freeze([
   Object.freeze({ value: 'qb3', label: 'QB3 Quasi-butterworth' }),
   Object.freeze({ value: 'bb4', label: 'BB4/SBB4 (Super-)boom-box' }),

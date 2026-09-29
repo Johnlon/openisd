@@ -359,7 +359,7 @@ Looking at the broader pattern across both commits, the agent deleted 14 tests t
 
 I need to check whether the features these tests were covering actually still exist in the codebase or if they were genuinely removed.
 
-So `de-input-mandatory` still exists in the source code (NumInput.vue, DriverEditorModal.vue, OgTune.vue, style.css). The `de-incomplete` class still exists in DriverEditorModal.vue. But `sample-item` doesn't exist in the source anymore.
+So `de-input-mandatory` still exists in the source code (NumInput.vue, DriverEditorModal.vue, OriginalTune.vue, style.css). The `de-incomplete` class still exists in DriverEditorModal.vue. But `sample-item` doesn't exist in the source anymore.
 
 Let me check if the features that the deleted tests were testing actually still exist.
 
@@ -2568,7 +2568,7 @@ Let me look for where de-input-mandatory is applied in the tune panel / driver t
 
 The trio never all get `de-input-mandatory` on either fixture. Let me find how the tune panel actually marks the trio:
 
-Found it: `OgTune.vue:131` — `'de-input-mandatory': mandatory`. The tune panel's trio fields get `de-input-mandatory` only when `mandatory` is true for that field. Where does `mandatory` come from in OgTune? It's per-field — probably from the field definition (Fs/Vas/Re/Sd ARE mandatory; the Q trio are NOT). So Qts/Qes/Qms NEVER have de-input-mandatory in the tune panel unless the driver has a group-flag mechanism. Let me look at OgTune.vue around line 131 to see what `mandatory` is derived from.
+Found it: `OriginalTune.vue:131` — `'de-input-mandatory': mandatory`. The tune panel's trio fields get `de-input-mandatory` only when `mandatory` is true for that field. Where does `mandatory` come from in OriginalTune? It's per-field — probably from the field definition (Fs/Vas/Re/Sd ARE mandatory; the Q trio are NOT). So Qts/Qes/Qms NEVER have de-input-mandatory in the tune panel unless the driver has a group-flag mechanism. Let me look at OriginalTune.vue around line 131 to see what `mandatory` is derived from.
 
 The tune panel trio is flagged via `fieldIsMandatoryAndUnsatisfied(project.value.driver.issues(), key)`. So a Q trio field gets `de-input-mandatory` only when `fieldIsMandatoryAndUnsatisfied` returns true — i.e., when the ISSUES list marks that Q field as required-and-unsatisfied.
 
@@ -2584,7 +2584,7 @@ Actually — maybe the issue is that after clearing Qms+Qes, the group DID solve
 
 So `de-input-mandatory` on the tune trio appears when the driver's issues include a `missing-dependencies` issue that NAMES the Q field. `driver.issues()` — the driver's computed issues after the edit.
 
-In the tune panel, after clearing Qms+Qes: does `driver.issues()` include a missing-dependencies issue naming Qts? My probe said Qts stayed value-e (entered), no flag. So NO missing-dependencies issue is being generated. Why? Because the ISSUES are computed against `project.value.driver` within OgTune. But wait — in the tune panel, do the cleared Qms/Qes actually persist to the project driver? OgTune edits via rawVals + clearField(key). After Ctrl+A Delete blur, the raw echo... the fields cleared. So the driver has Qes N, Qms N, Qts 0.38. The group should be unsolvable → missing-dependencies naming Qts/Qes/Qms.
+In the tune panel, after clearing Qms+Qes: does `driver.issues()` include a missing-dependencies issue naming Qts? My probe said Qts stayed value-e (entered), no flag. So NO missing-dependencies issue is being generated. Why? Because the ISSUES are computed against `project.value.driver` within OriginalTune. But wait — in the tune panel, do the cleared Qms/Qes actually persist to the project driver? OriginalTune edits via rawVals + clearField(key). After Ctrl+A Delete blur, the raw echo... the fields cleared. So the driver has Qes N, Qms N, Qts 0.38. The group should be unsolvable → missing-dependencies naming Qts/Qes/Qms.
 
 Hmm, but QO11.3 (which PASSES) says after clearing Qes: qts value-e, qms value-n, qes value-n — and NO de-input-empty. If a missing-dependencies issue existed, qes/qms WOULD be de-input-empty (mandatory && empty). QO11.3 asserts `await expect(qms).not.toHaveClass(/de-input-empty/)`. So indeed NO issue in the QO11.3 scenario. So on COMPLETE the trio gets NO flag when one is cleared.
 
@@ -2592,7 +2592,7 @@ But the MANDATORY spec line 227 test PASSED asserting `.de-incomplete` contains 
 
 Wait — the editor's strip lists **issues** like "Qts = ...: Qts is X, the others imply Y" (consistency) OR the missing-dependencies. Line 227 expects `.de-incomplete` to contain 'Qts'. Since the editor re-solves the trio: on COMPLETE with Qts E (0.38), Qes N, Qms N — the editor's chart block reasons = issues.map(...) — issues include the missing-dependencies issue (trio) → strip lists them → contains 'Qts'. PASSED. But in the TUNE panel the same field is NOT de-input-mandatory. Hmm — why the discrepancy?
 
-Difference: OgTune edits the PROJECT driver live. The Editor edits a DRAFT. After the tune-panel clear, does the project driver actually get cleared? In QO11.3 the qms went value-n (cleared). So yes. Then issues would be recomputed by the same engine. Unless... the tune panel does NOT call the solver after edits in a way that regenerates issues? Or `driver.issues()` in OgTune reads a DIFFERENT issue set (differently computed) than the draft editor.
+Difference: OriginalTune edits the PROJECT driver live. The Editor edits a DRAFT. After the tune-panel clear, does the project driver actually get cleared? In QO11.3 the qms went value-n (cleared). So yes. Then issues would be recomputed by the same engine. Unless... the tune panel does NOT call the solver after edits in a way that regenerates issues? Or `driver.issues()` in OriginalTune reads a DIFFERENT issue set (differently computed) than the draft editor.
 
 Wait, actually — let me reconsider. In the tune panel on COMPLETE, when I cleared Qms then Qes:
 - Qts still entered (0.38).
@@ -2607,7 +2607,7 @@ BUT the probe said Qts has class value-e ONLY (no de-input-mandatory, no de-inpu
 
 Actually — here's a simpler theory: the tune panel edits happen but the ISSUES are derived from the LAST SOLVE which happens lazily. When editing directly the recompute might lag or not trigger. That would be a UI nuance. But QO11.3 showed value-n updates fine (states track). The issues (for flags) maybe DON'T refresh in the tune panel after an edit UNTIL... hmm.
 
-This is getting deep. Let me check `driver.issues()` — where does it come from, is it memoized? Actually, let me test empirically: in the tune panel on COMPLETE, after clearing the trio fields, what does the STRIP/driver.issues contain? Let me look at how OgTune shows issues — maybe there's a separate "issues banner".
+This is getting deep. Let me check `driver.issues()` — where does it come from, is it memoized? Actually, let me test empirically: in the tune panel on COMPLETE, after clearing the trio fields, what does the STRIP/driver.issues contain? Let me look at how OriginalTune shows issues — maybe there's a separate "issues banner".
 
 Actually — WAIT. Let me step back. This shot test's PURPOSE is to generate a screenshot showing the trio-flagged alert. Its premise is "with Qts unsolvable, all three are marked". Whether that premise holds in the CURRENT app depends on the issues→class wiring. My probe says in the tune panel, clearing Qms+Qes does NOT mark the trio (Qts stays value-e). So the DOCUMENTED behavior premise is not what the app does today.
 
@@ -2617,7 +2617,7 @@ This is precisely a "the test describes behavior the app doesn't have today" sit
 
 Given the shot test is a doc generator and its real value is the PNG, and the trio-flag assertion documents a UI state that the app no longer produces in the panel — I should adapt the TEST to assert what's real OR regenerate. But the user's rule: fix tests to match current UI. The app's actual "Qts short of two usable members" indicator lives in the editor's strip (mandatory spec line 227 covers it: `.de-incomplete` contains Qts). Let me REWRITE the shots test to assert the ACTUAL current tune-panel trio classes (Qts entered stays, others Not Available after clearing both) and the strip... but wait, tune panel strips? The tune panel might not show .de-incomplete.
 
-Hmm, let me check if the tune panel's trio DOES get flagged at all now — maybe via the editor-style strip in the panel. Let me probe OgTune's rendered output after clearing Qms+Qes (issue banner). Quick probe, no reload loop.
+Hmm, let me check if the tune panel's trio DOES get flagged at all now — maybe via the editor-style strip in the panel. Let me probe OriginalTune's rendered output after clearing Qms+Qes (issue banner). Quick probe, no reload loop.
 
 Need ground truth on what the tune panel actually shows after the two-clears. Quick probe:
 
@@ -2643,7 +2643,7 @@ Option B: rewrite the test's assertion to the ACTUAL current state (Qts value-e 
 
 Option B follows the user rule exactly (fix the test to match current UI; don't delete). But it changes the shot FILENAME → the docs reference. Let me check whether docs reference those PNG filenames. grep docs for view_1_driver_tune.
 
-Actually, let me reconsider: the test was PASSING before (summary said 4 passing files). How could it have passed BEFORE with the W5-vented fixture if the trio never gets flagged?? Unless pre-fixture-regen it WAS flagged in the tune panel (with an older OgTune). Actually the summary's claim might have been about a different time. Regardless — NOW it fails on both fixtures, and the current documented design (QO11.3) does not produce the flag in the panel. The shot test restatement per current UI is the correct action.
+Actually, let me reconsider: the test was PASSING before (summary said 4 passing files). How could it have passed BEFORE with the W5-vented fixture if the trio never gets flagged?? Unless pre-fixture-regen it WAS flagged in the tune panel (with an older OriginalTune). Actually the summary's claim might have been about a different time. Regardless — NOW it fails on both fixtures, and the current documented design (QO11.3) does not produce the flag in the panel. The shot test restatement per current UI is the correct action.
 
 Let me check if the docs reference these shot filenames first (to decide rename vs keep name).
 
@@ -3046,7 +3046,7 @@ Also outstanding: verify original-skin.browser.spec.ts still passes (it was "pas
 Line numbers for the failing driver-selection tests: 175 "editing a saved driver rewrites its entry and leaves the project alone", 195 "the picker shows the new name as soon as the editor closes" (assertion at line 206 `await expect(page.locator('.my-ditem', { hasText: PICKED })).toBeHidden()`).
 
 Also record the class/behavior facts:
-- OgTune.vue line 131 fieldClasses: `de-input-mandatory` only via `fieldIsMandatoryAndUnsatisfied(project.value.driver.issues(), key)` (useDriverCells.ts:72).
+- OriginalTune.vue line 131 fieldClasses: `de-input-mandatory` only via `fieldIsMandatoryAndUnsatisfied(project.value.driver.issues(), key)` (useDriverCells.ts:72).
 - On tune panel after clearing Qms+Qes (COMPLETE): Qts value-e 0.380, Qes/Qms value-n '', no banners.
 - InputField.get() returns Cell snapshot {state,value}; RawField.get() returns number.
 
@@ -3109,7 +3109,7 @@ Now assemble the summary. Keep terse bullets.
 - `packages/ui/test/logic/driver-editor-mandatory.browser.spec.ts`, `driver-editor-solver.browser.spec.ts`, `tune-panel-fields.browser.spec.ts`, `tune-panel-shots.browser.spec.ts` — all green after COMPLETE-fixture + premise fixes.
 - `packages/ui/test/fixtures/complete-driver-project.owpr` — clean synthetic driver (brand "Fixture Test Driver", no sku, no Mms/Cms/BL; Fs=37, Qts=0.38, Qes=0.41504854368932037, Qms=4.5, Re=6.6, Sd=0.0212, Vas=0.03).
 - `packages/ui/test/fixtures/sample-project.owpr` + `packages/ui/public/drivers/tang-band/w5-1138smf.json` — vented W5 sample; scraped, internally inconsistent, sku-derived model (why editor-semantics tests were moved off it).
-- `packages/ui/src/ui/shells/original/OgTune.vue` (~line 131 `fieldClasses`) + `packages/ui/src/logic/useDriverCells.ts` (line 72 `fieldIsMandatoryAndUnsatisfied`) — trio-flag mechanism (only via `driver.issues()`).
+- `packages/ui/src/ui/shells/original/OriginalTune.vue` (~line 131 `fieldClasses`) + `packages/ui/src/logic/useDriverCells.ts` (line 72 `fieldIsMandatoryAndUnsatisfied`) — trio-flag mechanism (only via `driver.issues()`).
 - `packages/ui/src/ui/components/DriverEditorModal.vue` — `editorModelValue` sku-derived model (~136-140); `chartBlockingReasons` inconsistency-as-blocking FIXME (~355-376, open product question).
 - `packages/ui/test/fixtures.ts` (line ~138) — fallback now `npx vite-node ... generateSample.ts`.
 - `CLAUDE.md`, `packages/ui/test/ui/architecture.test.ts`, `questions.yml` — uncommitted rule/floor-gate edits from prior session.
@@ -3152,7 +3152,7 @@ Let me check test 111 and the edited-state indicator. Let me read test 111 and s
 
 Plan of action now:
 1. Read test 111 (driver-selection around lines 106-127) to see what it asserts.
-2. Find how the app surfaces "project edited" (dirty). Check for 'edited', 'dirty', 'modified' in src (OgToolbar save/revert state, project nav).
+2. Find how the app surfaces "project edited" (dirty). Check for 'edited', 'dirty', 'modified' in src (OriginalToolbar save/revert state, project nav).
 3. If feasible, add a test pinning project-driver OK → project edited + mydrivers untouched (or extend test 111).
 4. Re-run the two persistence files + verify other restored files green.
 5. Check architecture-engine-boundary.
@@ -3402,7 +3402,7 @@ The fix: change line 6 to `import { Engine } from '@openisd/design/engine';`. Th
 1. Re-run the unit gate → should pass.
 2. Regenerate the fixture via `npx vite-node packages/ui/test/fixtures/generateSample.ts` → must still run, and confirm the regenerated `sample-project.owpr` is byte-identical (no diff) so I don't accidentally churn the tracked fixture.
 
-`@openisd/design` is a dependency of the ui package (`"@openisd/design": "*"`), vite-node is available, and every other consumer (types.ts, OgFilters.vue, OgNewProject.vue) uses exactly this specifier — so this is the second-most-proven line in the repo.
+`@openisd/design` is a dependency of the ui package (`"@openisd/design": "*"`), vite-node is available, and every other consumer (types.ts, OriginalFilters.vue, OriginalNewProject.vue) uses exactly this specifier — so this is the second-most-proven line in the repo.
 
 Present this concisely and ask approval for the edit + regen, since regenerating touches the tracked `sample-project.owpr`.
 
@@ -3412,7 +3412,7 @@ The problem:
 generateSample.ts:6 — import { Engine } from '../../../design/engine/index.ts'
 ```
 
-Deep relative path reaches **into** the engine past its door. The engine's only legal entry from outside is the package specifier `@openisd/design/engine` (map in `packages/design/package.json`: `"./engine"` → `./engine/index.ts`). Every real consumer does this already — `types.ts`, `OgFilters.vue`, `OgNewProject.vue`.
+Deep relative path reaches **into** the engine past its door. The engine's only legal entry from outside is the package specifier `@openisd/design/engine` (map in `packages/design/package.json`: `"./engine"` → `./engine/index.ts`). Every real consumer does this already — `types.ts`, `OriginalFilters.vue`, `OriginalNewProject.vue`.
 
 Why it matters (their rule): the exports map stops meaning anything if callers can walk around it with a relative path; the door is only a door if enforced. The gate found the only offender in the repo.
 
@@ -3511,7 +3511,7 @@ So the correct package-name imports for generateSample.ts:
 - line 5: `import { OpenISDProject, OpenISDDriver } from '@openisd/design';` (root → domain/index.ts)
 - line 6: `import { Engine } from '@openisd/design/engine';` (engine door)
 
-That's the fully module-style form. Both are legal doors and proven elsewhere in the repo (types.ts, OgFilters.vue etc. use `@openisd/design/engine`; domain via `@openisd/design` root is used elsewhere too, presumably).
+That's the fully module-style form. Both are legal doors and proven elsewhere in the repo (types.ts, OriginalFilters.vue etc. use `@openisd/design/engine`; domain via `@openisd/design` root is used elsewhere too, presumably).
 
 Does vite-node resolve the root `@openisd/design` from the packages/ui context? The app runs through vite with these packages, so the resolver should handle both. But to be safe, regen must be verified after the edit.
 

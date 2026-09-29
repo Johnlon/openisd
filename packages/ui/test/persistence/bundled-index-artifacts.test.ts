@@ -21,7 +21,7 @@ import {readFileSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 import {join} from 'node:path';
 import {OpenISDDriver, OpenISDPassiveRadiatorStandalone} from '@openisd/design';
-import {Engine} from '@openisd/design/engine';
+import {createEngine} from '@openisd/design/engine';
 import {
     type BundledDriverIndexRow,
     type BundledIndexRow,
@@ -74,7 +74,7 @@ describe('the tracked catalogue — identity', () => {
 });
 
 describe('the tracked catalogue — staleness', () => {
-  const engine = new Engine();
+  const engine = createEngine();
 
   it('the index rows for the reference records equal the rows recomputed from their record files', () => {
     const drivers = loadDriverIndex();

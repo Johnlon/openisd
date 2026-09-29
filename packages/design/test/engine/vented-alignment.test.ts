@@ -13,13 +13,13 @@
  */
 import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import {Engine} from '../../engine/index.js';
+import {createEngine} from '../../engine/index.js';
 import {VENTED_ALIGNMENT_OPTIONS} from '../../fields/index.js';
 import {
   WINISD_VENTED_ALIGNMENT_CAPTURES, WINISD_VENTED_CAPTURE_DRIVER,
 } from '../fixtures/winisdVentedAlignmentCaptures.js';
 
-const engine = new Engine();
+const engine = createEngine();
 
 /** Double-precision noise budget. The Python validator's worst case over the same 60 runs was
  *  2.3e-14; anything above 1e-12 is a formula or input error. */
@@ -35,8 +35,8 @@ describe('ventedAlignment — reproduces WinISD wizard captures', () => {
   for (const c of WINISD_VENTED_ALIGNMENT_CAPTURES) {
     const qtsNominal = 1 / (1 / c.Qes + 1 / d.Qms);
     it(`${c.alignment} at Qts ${qtsNominal.toFixed(2)} → Vb ${(c.Vb_m3 * 1000).toFixed(2)} L, Fb ${c.Fb_hz.toFixed(2)} Hz`, () => {
-      const qtsLoaded = engine.sourceLoadedQts(d.Qms, c.Qes, d.Re_ohm, d.Rg_ohm, qtsNominal);
-      const {Vb, Fb} = engine.ventedAlignment(c.alignment, d.Fs_hz, qtsLoaded, d.Vas_m3, d.Ql);
+      const qtsLoaded = engine.driver.sourceLoadedQts(d.Qms, c.Qes, d.Re_ohm, d.Rg_ohm, qtsNominal);
+      const {Vb, Fb} = engine.vented.alignment(c.alignment, d.Fs_hz, qtsLoaded, d.Vas_m3, d.Ql);
       assert.ok(relErr(Vb, c.Vb_m3) < REL_TOL, `Vb ${Vb} vs WinISD ${c.Vb_m3} (rel ${relErr(Vb, c.Vb_m3)})`);
       assert.ok(relErr(Fb, c.Fb_hz) < REL_TOL, `Fb ${Fb} vs WinISD ${c.Fb_hz} (rel ${relErr(Fb, c.Fb_hz)})`);
     });
@@ -51,7 +51,7 @@ describe('ventedAlignment — reproduces WinISD wizard captures', () => {
     const c = WINISD_VENTED_ALIGNMENT_CAPTURES.find(x => x.alignment === 'bb4' && x.Qes === 0.432133);
     assert.ok(c);
     const qtsNominal = 1 / (1 / c.Qes + 1 / d.Qms);
-    const {Vb} = engine.ventedAlignment('bb4', d.Fs_hz, qtsNominal, d.Vas_m3, d.Ql);
+    const {Vb} = engine.vented.alignment('bb4', d.Fs_hz, qtsNominal, d.Vas_m3, d.Ql);
     assert.ok(relErr(Vb, c.Vb_m3) > 0.02, `unloaded Qts should miss by ~3 %, got rel ${relErr(Vb, c.Vb_m3)}`);
   });
 });
@@ -59,14 +59,14 @@ describe('ventedAlignment — reproduces WinISD wizard captures', () => {
 describe('ventedAlignment — structure', () => {
   it('BB4/SBB4 tunes the box to Fs regardless of Qts', () => {
     for (const qts of [0.2, 0.3, 0.5, 0.7]) {
-      assert.equal(engine.ventedAlignment('bb4', 40, qts, 0.02, 10).Fb, 40);
+      assert.equal(engine.vented.alignment('bb4', 40, qts, 0.02, 10).Fb, 40);
     }
   });
 
   it('only BB4/SBB4 reads Ql', () => {
     for (const o of VENTED_ALIGNMENT_OPTIONS) {
-      const at7 = engine.ventedAlignment(o.value, 40, 0.39, 0.02, 7);
-      const at10 = engine.ventedAlignment(o.value, 40, 0.39, 0.02, 10);
+      const at7 = engine.vented.alignment(o.value, 40, 0.39, 0.02, 7);
+      const at10 = engine.vented.alignment(o.value, 40, 0.39, 0.02, 10);
       if (o.value === 'bb4') assert.notEqual(at7.Vb, at10.Vb);
       else assert.deepEqual(at7, at10);
     }
@@ -74,8 +74,8 @@ describe('ventedAlignment — structure', () => {
 
   it('Vb scales with Vas and Fb with Fs', () => {
     for (const o of VENTED_ALIGNMENT_OPTIONS) {
-      const a = engine.ventedAlignment(o.value, 40, 0.39, 0.02, 10);
-      const b = engine.ventedAlignment(o.value, 80, 0.39, 0.04, 10);
+      const a = engine.vented.alignment(o.value, 40, 0.39, 0.02, 10);
+      const b = engine.vented.alignment(o.value, 80, 0.39, 0.04, 10);
       assert.ok(relErr(b.Vb, 2 * a.Vb) < 1e-12);
       assert.ok(relErr(b.Fb, 2 * a.Fb) < 1e-12);
     }

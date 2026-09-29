@@ -15,12 +15,12 @@
 
 /**
  * The provenance panel tells a user WHICH formula produced a value. `PROVENANCE_MAP` is a
- * hand-written list and the solver's routes are `setVal(...)` calls in `solvers/solveDriver.ts` control flow,
+ * hand-written list and the solver's routes are `setVal(...)` calls in `driver/DriverEngine.ts` control flow,
  * so the two are separate statements of one fact and drift apart silently. When they drift the
  * panel does not merely go quiet — it names a derivation that did not happen, which is worse than
  * showing nothing.
  *
- * The engine side is read from `solvers/solveDriver.ts`'s AST, never from a number copied into this file: a
+ * The engine side is read from `driver/DriverEngine.ts`'s AST, never from a number copied into this file: a
  * hand-maintained count here would be the same defect relocated, and would go stale the same way.
  *
  * `Fs` is pinned from BOTH sides against the same five input signatures: what the panel declares,
@@ -43,7 +43,7 @@ import {PROVENANCE_MAP} from '../../src/logic/provenance.js';
 vi.setConfig({ testTimeout: 60_000 });
 
 const UI_PKG = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
-const SOLVER_TS = join(UI_PKG, '..', 'design', 'engine', 'solvers', 'solveDriver.ts');
+const SOLVER_TS = join(UI_PKG, '..', 'design', 'engine', 'driver', 'DriverEngine.ts');
 
 let cached: Map<string, Set<string>> | null = null;
 
@@ -125,7 +125,7 @@ describe('the provenance panel declares the routes the engine actually has', () 
   it('finds the solver assignments it reads from', () => {
     const routes = engineRoutes();
     assert.ok(routes.size > 10,
-      `only ${routes.size} derived fields found in solvers/solveDriver.ts — the AST read is broken, and a ` +
+      `only ${routes.size} derived fields found in driver/DriverEngine.ts — the AST read is broken, and a ` +
       'broken read would make every assertion below pass vacuously');
   });
 

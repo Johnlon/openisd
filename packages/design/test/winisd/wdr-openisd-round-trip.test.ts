@@ -27,7 +27,7 @@ import { readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join, sep } from 'node:path';
 import { OpenISDDriver } from '@openisd/design';
-import { Engine } from '@openisd/design/engine';
+import {createEngine} from '@openisd/design/engine';
 import { PARSTATE_LEN } from '../../winisd/parstate.js';
 import { WinISDDriver } from '../../winisd/winisdDriver.js';
 
@@ -151,12 +151,12 @@ function lostEntered(file: string, src: string): string[] {
 
 /** text → WinISDDriver → OpenISDDriver → WinISDDriver → text. */
 function cycle(src: string): string {
-  const engine = new Engine();
+  const engine = createEngine();
   const imported = OpenISDDriver.fromWdrIniText(src, engine);
   if (imported.value === null) {
     assert.fail(`driver text rejected: ${imported.errors.map(error => error.message).join('; ')}`);
   }
-  const exported = imported.value.toWdrIniText(engine);
+  const exported = imported.value.toWdrIniText();
   if (exported.value === null) {
     assert.fail(`driver text could not be exported: ${exported.errors.map(error => error.message).join('; ')}`);
   }
@@ -195,7 +195,7 @@ describe('a .wdr survives the round trip THROUGH OpenISDDriver', () => {
         // the app default environment (nothing in a driver-only `.wdr` carries the real one), so
         // compare against WinISD's OWN air model at the recorded environment instead of `after`.
         const ours = (env && (key === 'c' || key === 'roo'))
-          ? new Engine().solveEnvironment({ ...env, useWinisdAirModel: true }).values[key === 'c' ? 'c' : 'rho']
+          ? createEngine().environment.solve({ ...env, useWinisdAirModel: true }).values[key === 'c' ? 'c' : 'rho']
           : Number(after.cell(key).value);
         if (!isFinite(theirs) || theirs === 0) continue;   // 0 pins no arithmetic
         if (!isFinite(ours) || !agrees(ours, theirs)) {

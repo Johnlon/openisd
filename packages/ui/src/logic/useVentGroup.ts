@@ -8,8 +8,7 @@
  * byte-identical — docs/design/STATE_MODEL.md rule 3).
  */
 import type {OpenISDProject} from '@openisd/design';
-import type {ProvenanceLetter} from './fieldProvenance.js';
-import {provenanceOfEntry} from './fieldProvenance.js';
+import type {ProvenanceLetter} from '@openisd/design';
 
 /** The four members tied by the Helmholtz relation — the set the solver solves WITHIN. */
 export const VENT_GROUP = ['Vb', 'ventD', 'Fb', 'ventL'] as const;
@@ -118,8 +117,8 @@ export function ventFieldState(p: OpenISDProject, field: VentField): ProvenanceL
   }
   // Neither field is ever derived: a volume is mandatory, a diameter is stated or absent.
   switch (field) {
-    case 'Vb': return provenanceOfEntry(p.box.vented.volume_m3);
-    case 'ventD': return provenanceOfEntry(p.box.vented.vent.diameter_m);
+    case 'Vb': return p.box.vented.volume_m3.provenance;
+    case 'ventD': return p.box.vented.vent.diameter_m.provenance;
   }
 }
 

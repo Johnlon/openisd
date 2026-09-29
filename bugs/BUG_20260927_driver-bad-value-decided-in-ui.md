@@ -5,7 +5,7 @@
 ## Symptom
 There are two judges of "this driver value is bad (≤ 0)", the driver editor's `isBadValue` /
 `dqNoteFor` (packages/ui/src/hooks/DriverEditorModal-hooks.ts) and Tune's `dqNote`
-(packages/ui/src/hooks/OgTune-hooks.ts), each with its own copy of `BAD_VALUE_NOTE`. Neither is the
+(packages/ui/src/hooks/OriginalTune-hooks.ts), each with its own copy of `BAD_VALUE_NOTE`. Neither is the
 domain. The domain must mark a non-physical driver value on the field's own `.dq`; the UI shows `.dq`
 only. John, 2026-09-27: "This is awful".
 
@@ -48,7 +48,7 @@ after the next `resolve()`.
 
 Deleted: `isBadValue` and `BAD_VALUE_NOTE` (DriverEditorModal-hooks.ts), `dqNoteFor`'s
 `isBadValue` special case (now a pure `.dq` render, same as any other issue), Tune's own copy of
-both (OgTune-hooks.ts's `dqNote`).
+both (OriginalTune-hooks.ts's `dqNote`).
 
 ## Verification (done)
 New domain test `packages/design/test/domain/driver-value-validity.test.ts`: every entered

@@ -6,14 +6,14 @@
  */
 import {afterEach, beforeEach, describe, expect, it} from 'vitest';
 import {nextTick} from 'vue';
-import {Engine} from '@openisd/design/engine';
+import {createEngine} from '@openisd/design/engine';
 import {OpenISDProject} from '@openisd/design';
 import {createProjectRepo, createSharedMemoryStorage, createViewStateRepo, type FileStorage} from '@openisd/persistence';
 import {startSessionSync} from '../../src/logic/sessionSync.js';
 import {addProject, openProjects, removeProject} from '../../src/logic/appState.js';
 import {presentationState} from '../../src/logic/presentationState.js';
 
-const engine = new Engine();
+const engine = createEngine();
 
 const noFiles: FileStorage = {
   save: () => { throw new Error('no test here writes a file'); },

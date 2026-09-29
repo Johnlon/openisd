@@ -1,6 +1,6 @@
 import { DualWriteFieldImpl, absentCell, enteredCell } from '../cell.js';
 import type { Calculatable, Calculated, Clearable, Entered, Precise, Readable, SimpleField, Unsolvable, Writable } from '../cell.js';
-import { enteredEntry, winningValue } from '../specEntry.js';
+import { enteredEntry } from '../specEntry.js';
 import type { PassiveRadiatorSpecsSection } from '../openisdSchema.js';
 
 /** The names of `PassiveRadiatorSpecsSection`'s spec-entry fields. */
@@ -13,7 +13,7 @@ export function prSpec(
 ): Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable {
     return new DualWriteFieldImpl<number>(
         () => {
-            const v = winningValue(section.value[key]);
+            const v = section.value[key]?.value ?? null;
             return v === null ? absentCell<number>('') : enteredCell<number | null>('', v);
         },
         {

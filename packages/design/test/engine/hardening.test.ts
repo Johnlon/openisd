@@ -18,7 +18,7 @@ import {driverParams, solveConsistencyGroup} from './testSolver.js';
 import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
 import type {SimulatableBoxType, SweepParams} from '../../engine/index.js';
-import {Engine} from '../../engine/index.js';
+import {createEngine} from '../../engine/index.js';
 import {OpenISDDriver} from '../../domain/driver/openISDDriver.js';
 import {OpenISDProject} from '../../domain/project/openISDProject.js';
 
@@ -27,7 +27,7 @@ import {OpenISDProject} from '../../domain/project/openISDProject.js';
 const LE_H = 0.7e-3;
 
 /** The engine's one door: every calculation below is a method on this object. */
-const engine = new Engine();
+const engine = createEngine();
 
 /** The reference 6.5" mid-woofer used across the engine suite — complete and valid. */
 const RAW_COMPLETE = {
@@ -40,6 +40,10 @@ const P_SEALED: SweepParams = { Vb: 0.030, eg: 2.83, Ql: 10, fmin: 10, fmax: 100
 const P_VENTED: SweepParams = { ...P_SEALED, Sp: Math.PI * 0.025 ** 2, Leff: 0.1366 };
 const P_PR: SweepParams = { ...P_SEALED, prSd: 0.0133, prNum: 1, prMmd: 0.030, prMadd: 0, prCms: 0.0008, prRms: 1.0 };
 const P_BP4: SweepParams = { ...P_VENTED, Vf: 0.020 };
+// `bandpass6`/`abc` read Fr/Ff (chamber tuning) for their port mass in every lossMode, never
+// Leff/Sp geometry (`Bandpass6Box.ts`'s own doc) — see `boxModel.test.ts`'s own P_BP6/P_ABC.
+const P_BP6: SweepParams = { ...P_SEALED, Vf: 0.020, Fr: 45, Ff: 60 };
+const P_ABC: SweepParams = { ...P_BP6, SpIntra: Math.PI * 0.02 ** 2, LeffIntra: 0.05 };
 
 
 
@@ -57,7 +61,7 @@ describe('a driver with Vas and Qts but no Qms gets a message naming what is mis
   // circuit has nothing to run on. The REFUSAL now lives in `sweep`, not in a separate derive
   // step: it checks the six the circuit reads unguarded, and reports what a user could state.
   const VAS_AND_QTS_ONLY: TestSolverQuantities = { Fs_hz: 37, Qts: 0.38, Vas_m3: 0.030, Sd_m2: 0.0133, Re_ohm: 5.6 };
-  const refused = () => engine.sweep(
+  const refused = () => engine.simulation.sweep(
     driverParams(solveConsistencyGroup(VAS_AND_QTS_ONLY)), undefined, 'sealed', P_SEALED);
 
   it('is refused before any arithmetic, so nothing non-finite is ever produced', () => {
@@ -83,7 +87,7 @@ describe('a driver with Vas and Qts but no Qms gets a message naming what is mis
   });
 
   it('a complete driver is NOT refused — the guard is about what is missing, not about being strict', () => {
-    assert.ok(engine.sweep(validDriver(), 0.7e-3, 'sealed', P_SEALED).values,
+    assert.ok(engine.simulation.sweep(validDriver(), 0.7e-3, 'sealed', P_SEALED).values,
       'the reference driver states enough to simulate');
   });
 });
@@ -91,7 +95,7 @@ describe('a driver with Vas and Qts but no Qms gets a message naming what is mis
 // ── Criterion 2 ──────────────────────────────────────────────────────────────
 describe('a zero box volume is a named error, not Infinity-poisoned curves', () => {
   it('Vb = 0 is rejected by the box-parameter precondition, naming Vb, with null values', () => {
-    const result = engine.solveBoxParams('sealed', { ...P_SEALED, Vb: 0 });
+    const result = engine.simulation.solveBoxParams('sealed', { ...P_SEALED, Vb: 0 });
     assert.equal(result.values, null, 'a zero-volume box cannot be simulated');
     assert.equal(result.issues.length, 1, 'exactly the one broken field should be reported');
     assert.equal(result.issues[0].kind, 'missing-dependencies');
@@ -102,7 +106,7 @@ describe('a zero box volume is a named error, not Infinity-poisoned curves', () 
   });
 
   it('the route formula explains the consequence, so the user is not told merely that a number is wrong', () => {
-    const [issue] = engine.solveBoxParams('sealed', { ...P_SEALED, Vb: 0 }).issues;
+    const [issue] = engine.simulation.solveBoxParams('sealed', { ...P_SEALED, Vb: 0 }).issues;
     assert.equal(issue.kind, 'missing-dependencies');
     if (issue.kind === 'missing-dependencies') {
       assert.match(issue.routes[0].formula, /compliance/i, 'the message must say what breaks in the model');
@@ -111,7 +115,7 @@ describe('a zero box volume is a named error, not Infinity-poisoned curves', () 
 
   it('Vb absent and Vb negative are rejected the same as zero', () => {
     for (const Vb of [undefined as unknown as number, -0.01, NaN, Infinity])
-      assert.ok(targets(engine.solveBoxParams('sealed', { ...P_SEALED, Vb }).issues).includes('Vb'),
+      assert.ok(targets(engine.simulation.solveBoxParams('sealed', { ...P_SEALED, Vb }).issues).includes('Vb'),
         `Vb = ${Vb} must be rejected — only a finite positive volume is simulatable`);
   });
 
@@ -120,60 +124,59 @@ describe('a zero box volume is a named error, not Infinity-poisoned curves', () 
     // here until this table names it.
     const healthy: Record<SimulatableBoxType, SweepParams> = {
       sealed: P_SEALED, vented: P_VENTED, 'box-passive-radiator': P_PR, bandpass4: P_BP4,
+      bandpass6: P_BP6, abc: P_ABC,
     };
     for (const box of Object.keys(healthy) as SimulatableBoxType[]) {
-      const result = engine.solveBoxParams(box, healthy[box]);
+      const result = engine.simulation.solveBoxParams(box, healthy[box]);
       assert.deepEqual(result.issues, [],
         `${box}: a valid design must produce no parameter issue (a false positive would block a good design)`);
       assert.equal(result.values, healthy[box], `${box}: a valid design's values must be its own params`);
     }
   });
 
-  it('a box type the circuit has no model for reports no issue and null values — naming it is the store\'s job (S3)', () => {
-    // `BoxType` names six enclosures and the circuit models four. The other two are simply
-    // unsimulatable here — never falling through to another topology's maths, which would
-    // produce a plausible-looking curve for a box that was never simulated — but the engine's
-    // precondition layer does not itself narrate WHICH box was declined; that presentation is
-    // the store's concern, not this one.
-    for (const box of ['bandpass6', 'abc'] as const) {
-      const result = engine.solveBoxParams(box, P_SEALED);
-      assert.equal(result.values, null, `${box}: has no circuit model, so there is nothing to sweep`);
-      assert.deepEqual(result.issues, [], `${box}: expected no field-level issue for an unmodelled topology`);
+  it('bandpass6/abc: a missing chamber volume is rejected the same as sealed/vented — Vb and Vf both required', () => {
+    // `Bandpass6Box`/`AbcBox` divide by both chamber compliances (Cabr = Vb/(ρc²), Cabf =
+    // Vf/(ρc²)) in every lossMode — `engine/params.ts`'s REQUIRED_BY_BOX bandpass6/abc entries.
+    for (const [box, healthy] of [['bandpass6', P_BP6], ['abc', P_ABC]] as const) {
+      assert.deepEqual(engine.simulation.solveBoxParams(box, healthy).issues, [],
+        `${box}: a valid design must produce no parameter issue`);
+      assert.ok(targets(engine.simulation.solveBoxParams(box, { ...healthy, Vb: 0 }).issues).includes('Vb'),
+        `${box}: Vb = 0 must be rejected — the rear chamber compliance collapses to zero`);
+      assert.ok(targets(engine.simulation.solveBoxParams(box, { ...healthy, Vf: 0 }).issues).includes('Vf'),
+        `${box}: Vf = 0 must be rejected — the front chamber compliance collapses to zero`);
     }
   });
 
-  it('every simulatable box type is genuinely simulatable — the refusal set is exactly the two', () => {
-    // Non-vacuity for the test above: if `simulatableBoxType` ever started refusing a box the
-    // engine really does model, that test would still pass while the app lost a feature.
-    for (const box of ['sealed', 'vented', 'bandpass4', 'box-passive-radiator'] as const)
-      assert.notEqual(engine.simulatableBoxType(box), null, `${box} must remain simulatable`);
-    for (const box of ['bandpass6', 'abc'] as const)
-      assert.equal(engine.simulatableBoxType(box), null, `${box} has no circuit model yet`);
+  it('every box type is genuinely simulatable — non-vacuity for the healthy-design test above', () => {
+    // If `simulatableBoxType` ever started refusing a box the engine really does model, that
+    // test would still pass while the app lost a feature.
+    for (const box of ['sealed', 'vented', 'bandpass4', 'box-passive-radiator', 'bandpass6', 'abc'] as const)
+      assert.notEqual(engine.box.simulatableBoxType(box), null, `${box} must remain simulatable`);
   });
 
   it('a vented box with no vent area is rejected, naming Sp', () => {
-    assert.deepEqual(targets(engine.solveBoxParams('vented', { ...P_VENTED, Sp: 0 }).issues), ['Sp'],
+    assert.deepEqual(targets(engine.simulation.solveBoxParams('vented', { ...P_VENTED, Sp: 0 }).issues), ['Sp'],
       'the port mass Map = ρ·Leff/Sp is infinite at Sp = 0');
   });
 
   it('a 4th-order bandpass with no front chamber is rejected, naming Vf', () => {
-    assert.deepEqual(targets(engine.solveBoxParams('bandpass4', { ...P_BP4, Vf: 0 }).issues), ['Vf'],
+    assert.deepEqual(targets(engine.simulation.solveBoxParams('bandpass4', { ...P_BP4, Vf: 0 }).issues), ['Vf'],
       'a bandpass needs both chambers; the front compliance is Vf/(ρc²)');
   });
 
   it('a passive-radiator box with no PR parameters reports every missing one, not just the first', () => {
-    assert.deepEqual(targets(engine.solveBoxParams('box-passive-radiator', P_SEALED).issues), ['prSd', 'prCms', 'prMmd'],
+    assert.deepEqual(targets(engine.simulation.solveBoxParams('box-passive-radiator', P_SEALED).issues), ['prSd', 'prCms', 'prMmd'],
       'the user should see the whole list, not fix one field and be told about the next');
   });
 
   it('the sealed box does not demand vent or PR parameters it never uses', () => {
-    const result = engine.solveBoxParams('sealed', P_SEALED);
+    const result = engine.simulation.solveBoxParams('sealed', P_SEALED);
     assert.deepEqual(result.issues, [], 'requiring an unused field would block a perfectly valid sealed design');
     assert.equal(result.values, P_SEALED);
   });
 
   it('every parameter issue is missing-dependencies, naming a field with a non-empty human-readable route', () => {
-    for (const issue of engine.solveBoxParams('box-passive-radiator', { ...P_SEALED, Vb: 0 }).issues) {
+    for (const issue of engine.simulation.solveBoxParams('box-passive-radiator', { ...P_SEALED, Vb: 0 }).issues) {
       assert.equal(issue.kind, 'missing-dependencies', 'no enclosure parameter contradicts another');
       assert.ok(issue.target.length > 0, 'target must identify an input');
       if (issue.kind === 'missing-dependencies') {
@@ -186,20 +189,20 @@ describe('a zero box volume is a named error, not Infinity-poisoned curves', () 
 // ── Criterion 3 ──────────────────────────────────────────────────────────────
 describe('an isolated mid-sweep singularity keeps the curve and explains the gap', () => {
   const singularSweep = () => {
-    const sw = engine.sweep(validDriver(), undefined, 'sealed', P_SEALED).values!;
+    const sw = engine.simulation.sweep(validDriver(), undefined, 'sealed', P_SEALED).values!;
     sw.spl[10] = NaN;   // one grid point landing on a pole
     return sw;
   };
 
   it('is classified as a warn, never as a blocking error', () => {
-    const issue = engine.classifyFinite(singularSweep());
+    const issue = engine.simulation.classifyFinite(singularSweep());
     assert.ok(issue, 'a non-finite point must never pass unreported');
     assert.equal(issue.level, 'warn', 'one bad point out of 51 is a gap, not an unusable simulation');
   });
 
   it('names the frequency where the curve is undefined', () => {
     const sw = singularSweep();
-    const issue = engine.classifyFinite(sw);
+    const issue = engine.simulation.classifyFinite(sw);
     assert.ok(issue, 'expected an issue');
     const f = sw.fs[10];
     assert.ok(issue.message.includes(f >= 100 ? f.toFixed(0) : f.toFixed(1)),
@@ -208,7 +211,7 @@ describe('an isolated mid-sweep singularity keeps the curve and explains the gap
 
   it('leaves every other point intact so the renderer still draws the curve with a gap', () => {
     const sw = singularSweep();
-    engine.classifyFinite(sw);
+    engine.simulation.classifyFinite(sw);
     const finite = sw.spl.filter(Number.isFinite).length;
     assert.equal(finite, sw.spl.length - 1, 'classification must not blank or interpolate the data');
     assert.ok(finite > 0, 'there is drawable data, so the chart must not be suppressed');
@@ -216,14 +219,14 @@ describe('an isolated mid-sweep singularity keeps the curve and explains the gap
 
   it('does not interpolate across the gap — the undefined point stays undefined', () => {
     const sw = singularSweep();
-    engine.classifyFinite(sw);
+    engine.simulation.classifyFinite(sw);
     assert.ok(!Number.isFinite(sw.spl[10]),
       'filling the hole would fabricate a value where the model has none');
   });
 
   it('a −200 dB silence sentinel is finite data and is never reported as a singularity', () => {
-    const sw = engine.sweep(validDriver(), undefined, 'sealed', { ...P_SEALED, eg: 0 }).values!;
-    assert.equal(engine.classifyFinite(sw), null, 'silence is a real answer, not a numerical failure');
+    const sw = engine.simulation.sweep(validDriver(), undefined, 'sealed', { ...P_SEALED, eg: 0 }).values!;
+    assert.equal(engine.simulation.classifyFinite(sw), null, 'silence is a real answer, not a numerical failure');
   });
 });
 
@@ -235,28 +238,28 @@ describe('no engine output reaches a chart non-finite without a surfaced issue',
   ] as const;
 
   it('a clean sweep of a valid design reports nothing — the guard does not cry wolf', () => {
-    assert.equal(engine.classifyFinite(engine.sweep(validDriver(), undefined, 'sealed', P_SEALED).values!), null);
+    assert.equal(engine.simulation.classifyFinite(engine.simulation.sweep(validDriver(), undefined, 'sealed', P_SEALED).values!), null);
   });
 
   it('poisoning any single plotted sweep series is detected', () => {
     for (const key of PLOTTED_SWEEP_SERIES) {
-      const sw = engine.sweep(validDriver(), undefined, 'sealed', P_SEALED).values!;
+      const sw = engine.simulation.sweep(validDriver(), undefined, 'sealed', P_SEALED).values!;
       sw[key][5] = NaN;
-      assert.ok(engine.classifyFinite(sw), `a NaN in sweep.${key} reaches a chart and must be reported`);
+      assert.ok(engine.simulation.classifyFinite(sw), `a NaN in sweep.${key} reaches a chart and must be reported`);
     }
   });
 
   it('an Infinity is caught as well as a NaN — both break an axis the same way', () => {
-    const sw = engine.sweep(validDriver(), undefined, 'sealed', P_SEALED).values!;
+    const sw = engine.simulation.sweep(validDriver(), undefined, 'sealed', P_SEALED).values!;
     sw.zmag[7] = Infinity;
-    assert.ok(engine.classifyFinite(sw), 'Number.isFinite must be the test, not Number.isNaN');
+    assert.ok(engine.simulation.classifyFinite(sw), 'Number.isFinite must be the test, not Number.isNaN');
   });
 
   it('a breakdown at every frequency is an error even where spl holds the finite −200 sentinel', () => {
     // Vb = 0 in the circuit: exc/zmag go NaN while spl stays at the finite sentinel, so
     // testing the headline series alone would call total garbage a mere warn.
-    const sw = engine.sweep(validDriver(), undefined, 'sealed', { ...P_SEALED, Vb: 0 }).values!;
-    const issue = engine.classifyFinite(sw);
+    const sw = engine.simulation.sweep(validDriver(), undefined, 'sealed', { ...P_SEALED, Vb: 0 }).values!;
+    const issue = engine.simulation.classifyFinite(sw);
     assert.ok(issue, 'a fully broken sweep must be reported');
     assert.equal(issue.level, 'error', 'nothing usable came out, so no chart should be drawn');
   });
@@ -271,43 +274,43 @@ describe('no engine output reaches a chart non-finite without a surfaced issue',
     // `maxCurves()`'s own `driverPrerequisites` name what would bound it instead.
     const noLimits = solveConsistencyGroup({ Fs_hz: 37, Qts: 0.38, Qes: 0.40, Qms: 7.0, Vas_m3: 0.030, Sd_m2: 0.0133, Re_ohm: 5.6 });
     assert.ok(noLimits, 'a driver without Pe/Xmax is valid — those are advisories, not errors');
-    const sw = engine.sweep(driverParams(noLimits), LE_H, 'sealed', P_SEALED).values!;
-    const mx = engine.maxCurves(driverParams(noLimits), LE_H, 'sealed', P_SEALED).values!;
+    const sw = engine.simulation.sweep(driverParams(noLimits), LE_H, 'sealed', P_SEALED).values!;
+    const mx = engine.simulation.maxCurves(driverParams(noLimits), LE_H, 'sealed', P_SEALED).values!;
 
-    assert.equal(engine.classifyFinite(sw), null, 'the sweep itself is fine — this is why a second check is needed');
+    assert.equal(engine.simulation.classifyFinite(sw), null, 'the sweep itself is fine — this is why a second check is needed');
     assert.ok(mx.maxspl.every(v => v === Infinity), 'precondition of this test: maxspl is genuinely unbounded, not NaN');
 
-    assert.equal(engine.classifyMaxFinite(mx), null,
+    assert.equal(engine.simulation.classifyMaxFinite(mx), null,
       'a genuinely unbounded (not broken) curve must not be classified as a postcondition failure');
   });
 
   it('classifyMaxFinite still reports a genuine NaN breakdown as an error — only +Infinity is exempt', () => {
-    const mx = engine.maxCurves(validDriver(), undefined, 'sealed', P_SEALED).values!;
+    const mx = engine.simulation.maxCurves(validDriver(), undefined, 'sealed', P_SEALED).values!;
     for (let i = 0; i < mx.maxspl.length; i++) { mx.maxspl[i] = NaN; mx.maxpwr[i] = NaN; }
-    const issue = engine.classifyMaxFinite(mx);
+    const issue = engine.simulation.classifyMaxFinite(mx);
     assert.ok(issue, 'NaN everywhere is still a genuine breakdown, unlike a deliberate +Infinity');
     assert.equal(issue.level, 'error');
   });
 
   it('max curves of a driver with both limits are clean', () => {
-    assert.equal(engine.classifyMaxFinite(engine.maxCurves(validDriver(), undefined, 'sealed', P_SEALED).values!), null,
+    assert.equal(engine.simulation.classifyMaxFinite(engine.simulation.maxCurves(validDriver(), undefined, 'sealed', P_SEALED).values!), null,
       'Pe and Xmax both present bounds the curve; reporting an issue here would be a false positive');
   });
 
   it('an isolated non-finite max-curve point is a warn naming the frequency, same rule as the sweep', () => {
-    const mx = engine.maxCurves(validDriver(), undefined, 'sealed', P_SEALED).values!;
+    const mx = engine.simulation.maxCurves(validDriver(), undefined, 'sealed', P_SEALED).values!;
     mx.maxpwr[12] = NaN;
-    const issue = engine.classifyMaxFinite(mx);
+    const issue = engine.simulation.classifyMaxFinite(mx);
     assert.ok(issue && issue.level === 'warn', 'one bad point is a gap, not an unusable chart');
     assert.match(issue.message, /Hz/, 'the message must name the affected frequency');
   });
 
   it('classification never throws, whatever it is handed — failure travels as a value', () => {
-    const sw = engine.sweep(validDriver(), undefined, 'sealed', P_SEALED).values!;
+    const sw = engine.simulation.sweep(validDriver(), undefined, 'sealed', P_SEALED).values!;
     for (let i = 0; i < sw.spl.length; i++) sw.spl[i] = NaN;
-    assert.doesNotThrow(() => engine.classifyFinite(sw), 'the engine communicates by Result, never by exception');
-    assert.doesNotThrow(() => engine.classifyMaxFinite(engine.maxCurves(validDriver(), undefined, 'sealed', P_SEALED).values!));
-    assert.doesNotThrow(() => engine.solveBoxParams('box-passive-radiator', {} as SweepParams));
+    assert.doesNotThrow(() => engine.simulation.classifyFinite(sw), 'the engine communicates by Result, never by exception');
+    assert.doesNotThrow(() => engine.simulation.classifyMaxFinite(engine.simulation.maxCurves(validDriver(), undefined, 'sealed', P_SEALED).values!));
+    assert.doesNotThrow(() => engine.simulation.solveBoxParams('box-passive-radiator', {} as SweepParams));
   });
 });
 
@@ -370,13 +373,13 @@ describe('T1\'s domain guard fires before classifyFinite ever sees the sweep', (
   });
 
   // (b) ENGINE-level net. The domain guard above only exists in `OpenISDProject.sweep()` — the
-  // bare engine has no such guard, so calling `engine.sweep()` directly with `Leff` undefined
+  // bare engine has no such guard, so calling `engine.simulation.sweep()` directly with `Leff` undefined
   // (P_SEALED carries none) must still reach `classifyFinite` and be classified there, proving
   // the engine keeps its OWN net regardless of whether a domain guard runs in front of it.
   it('the engine\'s own net still classifies a vented sweep given directly with Leff undefined', () => {
-    const sw = engine.sweep(validDriver(), undefined, 'vented', P_SEALED).values!;
+    const sw = engine.simulation.sweep(validDriver(), undefined, 'vented', P_SEALED).values!;
     assert.equal(P_SEALED.Leff, undefined, 'precondition: this call bypasses the domain guard entirely');
-    const issue = engine.classifyFinite(sw);
+    const issue = engine.simulation.classifyFinite(sw);
     assert.ok(issue, 'an undefined Leff must poison the vent-dependent arrays, and the engine\'s own postcondition must catch it');
   });
 });

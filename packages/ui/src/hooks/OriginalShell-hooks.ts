@@ -8,7 +8,7 @@
  * imports — nothing else touches `appState`, `presentationState` or the domain.
  *
  * The Box-tab and Signal-tab field wiring (`createSealedReadouts`/`createBoxVolume`/
- * `createSelectedBox`/`createDriveSignal`), the cell dq readouts, the chart labels and the tab
+ * `createSelectedBox`/`createDriveSignal`), the cell dq readout, the chart labels and the tab
  * rail's `TabId` are shared with `MobileShell.vue` and live in their own skin-neutral modules —
  * see `boxFields.ts`, `driveSignal.ts`, `../logic/cellDataQuality.ts`, `../logic/series.ts` and
  * `../logic/tabId.ts`. This file JIT-composes them here with the shell's own `project` /
@@ -53,16 +53,15 @@ import {injectSplashModal} from './SplashModal-hooks.js';
 import {clampedFrequency, interpolatedY, steppedFrequency} from '../logic/cursorFrequency.js';
 import {ARRAY_WIRING_OPTIONS, BOX_TYPE_OPTIONS, END_CORRECTION_OPTIONS, LossMode, NumberField, VENT_SHAPE_OPTIONS} from '@openisd/design/fields';
 import {inputChecked, inputFrom, inputValue, listeningElement, selectedOption, selectValue} from '../logic/domEvents.js';
-import {createSealedAlignmentEditor} from './SealedAlignment-hooks.js';
-import {OgFilters} from './OgFilters-hooks.js';
+import {SealedAlignmentEditor} from './SealedAlignment-hooks.js';
+import {OriginalFilters} from './OriginalFilters-hooks.js';
 import type {Calculated, Clearable, Entered, OpenISDProject, Readable, Writable} from '@openisd/design';
-import {provenanceOf} from '../logic/fieldProvenance.js';
-import {dqOfCell, dqOfEntry, dqOfSolved, type DqReadout} from '../logic/cellDataQuality.js';
+import {dqOfCell, type DqReadout} from '../logic/cellDataQuality.js';
 import {isTabId, type TabId} from '../logic/tabId.js';
 import {createBoxVolume, createSealedReadouts, createSelectedBox, DUAL_CHAMBER} from './boxFields.js';
 import {createDriveSignal} from './driveSignal.js';
 import type {StoredProjectListing} from '@openisd/persistence';
-import type {ChartId, EnvDefaults, Engine} from '@openisd/design/engine';
+import type {ChartId, EnvDefaults, EnvironmentEngine} from '@openisd/design/engine';
 import type {Design, PlotParams} from '../types.js';
 
 export type AirField = 'temperature' | 'humidity' | 'pressure';
@@ -111,12 +110,12 @@ export interface EnvironmentAirDeps {
   project: ComputedRef<OpenISDProject>;
   projectChanged: Ref<number>;
   envDefaults: () => EnvDefaults;
-  engine: Engine;
+  environment: EnvironmentEngine;
 }
 
 type EnvField = Readable<number | null> & Entered & Calculated & Writable<number> & Clearable;
 
-export function createEnvironmentAir({ project, projectChanged: changed, envDefaults, engine }: EnvironmentAirDeps) {
+export function createEnvironmentAir({ project, projectChanged: changed, envDefaults, environment }: EnvironmentAirDeps) {
   function storedOf(field: () => EnvField) {
     return computed<boolean>(() => { void changed.value; void project.value; return field().entered; });
   }
@@ -124,7 +123,7 @@ export function createEnvironmentAir({ project, projectChanged: changed, envDefa
     return computed<DqReadout>(() => {
       void changed.value;
       const f = field();
-      return { dq: airFieldDataQuality(airField, f.value), dqState: provenanceOf(f) };
+      return { dq: airFieldDataQuality(airField, f.value), dqState: f.provenance };
     });
   }
   function entryOf(field: () => EnvField) {
@@ -156,7 +155,7 @@ export function createEnvironmentAir({ project, projectChanged: changed, envDefa
   const advAir = computed(() => {
     void project.value;
     void changed.value;
-    return engine.solveEnvironment({
+    return environment.solve({
       tempK: advTemp.value ?? undefined, humidityPct: advHumidity.value ?? undefined, pressurePa: advPressure.value ?? undefined,
       useWinisdAirModel: project.value.envUseWinisdAirModel.value,
     }).values;
@@ -232,8 +231,8 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     rearResonance, rearQtc, boxResonance,
     prAddedMassDq, prTuningDq, prSystemTuningDq, prResonanceMassDq, prFsMass_hz,
   } = sealedReadouts({ project, selectedBox, projectChanged });
-  const sealedAlignmentEditor = createSealedAlignmentEditor({ project, changed: projectChanged, engine });
-  const ogFilters = new OgFilters(project, projectChanged, engine.filters);
+  const sealedAlignmentEditor = new SealedAlignmentEditor(project, projectChanged, engine.sealed, engine.driver);
+  const originalFilters = new OriginalFilters(project, projectChanged, engine.filters);
   const sealedAlignmentOpen = sealedAlignmentEditor.open;
   const sealedAlignmentOptions = sealedAlignmentEditor.options;
   const sealedAlignmentSelected = sealedAlignmentEditor.selectedOption;
@@ -442,21 +441,21 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     // engine's own default box, rather than reading `project.value`, which throws with
     // nothing focused.
     const p = focusedProject();
-    const box = p?.box.boxType.value ?? engine.defaultBoxType;
-    const ids = p ? p.charts : engine.chartsFor(box);
+    const box = p?.box.boxType.value ?? engine.box.defaultBoxType;
+    const ids = p ? p.charts : engine.box.chartsFor(box);
     return ids.map(tab => ({ tab, label: CHART_LABELS[tab], sep: CHART_GROUP_START.has(tab) }));
   });
   const chartTab = computed<ChartId>({
     // A remembered chart id that no longer applies to this box (a saved tab that was PR, the
     // box is now sealed) falls back to the default chart, never to a stale/inapplicable one.
     get: () => {
-      const id = parseChartId(engine, presentationState.ui.originalChartTab);
-      return CHART_ITEMS.value.some(i => i.tab === id) ? id : engine.defaultChart;
+      const id = parseChartId(engine.box, presentationState.ui.originalChartTab);
+      return CHART_ITEMS.value.some(i => i.tab === id) ? id : engine.box.defaultChart;
     },
     set: (v: ChartId) => { presentationState.ui.originalChartTab = v; },
   });
   const chartLabel = computed({
-    get: () => presentationState.ui.originalChartLabel ?? CHART_LABELS[engine.defaultChart],
+    get: () => presentationState.ui.originalChartLabel ?? CHART_LABELS[engine.box.defaultChart],
     set: (v: string) => { presentationState.ui.originalChartLabel = v; },
   });
   const chartMeta = computed(() => TAB_META[chartTab.value]);
@@ -620,7 +619,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   onUnmounted(stopNudge);
 
   const currentDesign = computed(() => ({
-    driver: project.value.driver.solverParams, box: project.value.box.boxType.value, P: syncedP.value,
+    driver: project.value.driver.specs.solverParams(), box: project.value.box.boxType.value, P: syncedP.value,
     curves: curvesData.value, maxCurves: maxData.value ?? undefined, name: rowName(project.value),
     color: WINISD_TRACE.value, visible: isRowVisible(project.value),
     sortIndex: openProjects().indexOf(project.value),
@@ -712,7 +711,7 @@ const overlays = computed<Design[]>(() => {
     const mx = p.maxCurves({ fmin: P.fmin, fmax: P.fmax });
     if (!sw.values || !mx.values) continue;
     out.push({
-      driver: p.driver.solverParams,
+      driver: p.driver.specs.solverParams(),
       box,
       P,
       curves: sw.values,
@@ -824,7 +823,7 @@ const overlays = computed<Design[]>(() => {
     envTempStored, envHumidityStored, envPressureStored, envTempDq, envHumidityDq, envPressureDq,
     advTemp, advHumidity, advPressure, commitAirTemp, commitAirHumidity, commitAirPressure,
     resetAirToAppDefaults, advAir,
-  } = createEnvironmentAir({ project, projectChanged, envDefaults, engine });
+  } = createEnvironmentAir({ project, projectChanged, envDefaults, environment: engine.environment });
 
   const placement = ref<'standard' | 'iso'>('standard');
 
@@ -911,7 +910,7 @@ const overlays = computed<Design[]>(() => {
     selectedBox, BOX_TYPE_OPTIONS, LOSS_MODE_OPTIONS, lossMode, ARRAY_WIRING_OPTIONS, N_DRIVERS_OPTIONS, applyWinisdSettings,
      boxVolume_m3, boxVolumeDqNote, setBoxVolume_m3, sealedAlignmentEditor, sealedAlignmentOpen,
      sealedAlignmentOptions, sealedAlignmentSelected, sealedAlignmentVolume_L, sealedAlignmentEbp,
-     sealedAlignmentSuitability, sealedAlignmentSuitabilityLabel, ogFilters,
+     sealedAlignmentSuitability, sealedAlignmentSuitabilityLabel, originalFilters,
     fbState, FB_TARGET_TIP, VENT_GEOMETRY_TIP, fmtU, clearVentFieldOn, enterVentFieldOn,
     boxResonance, rearQtc, prSystemTuningDq,
     fbUnreachable, fbUnreachableMsg, boxLossesOpen, isDual,
@@ -920,9 +919,7 @@ const overlays = computed<Design[]>(() => {
     activeVent, END_CORRECTION_OPTIONS, VENT_SHAPE_OPTIONS, VENT_COUNT_OPTIONS, ventLState, portPipeResonance_hz,
     prBrowseOpen, prEditOpen, loadPREntry, loadBundledPassiveRadiatorEntry, defineNewPREntry,
     prAddedMassDq, prTuningDq, prResonanceMassDq, prFsMass_hz,
-    dqOfCell: (field: Readable<unknown> & Entered & Calculated) => dqOfCell(field),
-    dqOfEntry: (field: Readable<unknown> & Entered) => dqOfEntry(field),
-    dqOfSolved: (field: Readable<unknown> & Calculated) => dqOfSolved(field),
+    dqOfCell: (field: Readable<unknown>) => dqOfCell(field),
     fmt,
     driveV, rsOhm, advTemp, advHumidity, advPressure, advAir,
     envTempDq, envHumidityDq, envPressureDq, commitAirTemp, commitAirHumidity, commitAirPressure, resetAirToAppDefaults,

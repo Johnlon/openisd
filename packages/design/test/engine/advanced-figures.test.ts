@@ -39,10 +39,10 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 import {dirname, join} from 'node:path';
-import {Engine} from '../../engine/index.js';
+import {createEngine} from '../../engine/index.js';
 
 /** The engine's one door: every calculation below is a method on this object. */
-const engine = new Engine();
+const engine = createEngine();
 
 /** Beyma 10BR60/V2, the real fixture whose stored Bl disagrees with its own Fs/Mms/Re/Qes. */
 const BEYMA: TestSolverQuantities = {
@@ -261,7 +261,7 @@ describe('SPLmaxLF — the excursion-limited 20 Hz SPL, at the record\'s own air
 
   it('falls back to the live reference-environment density when the record carries none', () => {
     const noAir = solve({ Fs_hz: 40, Xmax_m: 0.0067, Sd_m2: 0.022 });
-    const withRho = solve({ Fs_hz: 40, Xmax_m: 0.0067, Sd_m2: 0.022, roo_kg_per_m3: engine.solveEnvironment({}).values.rho });
+    const withRho = solve({ Fs_hz: 40, Xmax_m: 0.0067, Sd_m2: 0.022, roo_kg_per_m3: engine.environment.solve({}).values.rho });
     assert.equal(noAir.SPLmaxLF_dB, withRho.SPLmaxLF_dB);
   });
 

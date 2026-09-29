@@ -8,14 +8,14 @@ import {driverParams, solveConsistencyGroup} from './testSolver.js';
 import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
 import type {SweepParams, SweepResult} from '../../engine/index.js';
-import {Engine} from '../../engine/index.js';
+import {createEngine} from '../../engine/index.js';
 
 /** Voice-coil inductance for the fixtures below. Not a solver quantity — nothing
  *  derives it — so it reaches `sweep` on its own, and only the impedance plot reads it. */
 const LE_H = 0.5e-3;
 
 /** The engine's one door: every calculation below is a method on this object. */
-const engine = new Engine();
+const engine = createEngine();
 
 function drv() {
   const q = solveConsistencyGroup({ Fs_hz: 40, Qes: 0.45, Qms: 4, Vas_m3: 0.03, Sd_m2: 0.0133, Re_ohm: 6 });
@@ -32,10 +32,10 @@ describe('driverAddedMass — driver-side cone mass', () => {
     const d = drv();
     const P: SweepParams = { Vb: 0.03, eg: 2.83, fmin: 10, fmax: 500, N: 400 };
     const peakF = (r: SweepResult) => r.fs[r.zmag.indexOf(Math.max(...r.zmag))];
-    const base  = engine.sweep(driverParams(d), LE_H, 'sealed', P).values!;
-    const heavy = engine.sweep(driverParams(d), LE_H, 'sealed', { ...P, driverAddedMass: 0.05 }).values!;
+    const base  = engine.simulation.sweep(driverParams(d), LE_H, 'sealed', P).values!;
+    const heavy = engine.simulation.sweep(driverParams(d), LE_H, 'sealed', { ...P, driverAddedMass: 0.05 }).values!;
     assert.ok(peakF(heavy) < peakF(base), `heavy peak ${peakF(heavy)} < base ${peakF(base)}`);
-    const zero = engine.sweep(driverParams(d), LE_H, 'sealed', { ...P, driverAddedMass: 0 }).values!;
+    const zero = engine.simulation.sweep(driverParams(d), LE_H, 'sealed', { ...P, driverAddedMass: 0 }).values!;
     assert.deepEqual(zero.zmag, base.zmag, 'driverAddedMass=0 must be byte-identical to absent');
   });
 });

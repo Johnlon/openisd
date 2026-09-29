@@ -22,7 +22,9 @@ modules, one responsibility each:
 - `packages/ui/src/hooks/boxFields.ts` — `createSealedReadouts`, `createBoxVolume`,
   `createSelectedBox` (plus their `*Deps` interfaces, `DUAL_CHAMBER`).
 - `packages/ui/src/hooks/driveSignal.ts` — `createDriveSignal` (plus `DriveSignalDeps`).
-- `packages/ui/src/logic/cellDataQuality.ts` — `DqReadout`, `dqOfCell`, `dqOfEntry`, `dqOfSolved`.
+- `packages/ui/src/logic/cellDataQuality.ts` — `DqReadout`, `dqOfCell` (reads a field's own
+  `.dq`/`.provenance` directly; the domain no longer needs separate `dqOfEntry`/`dqOfSolved`
+  helpers).
 - `packages/ui/src/logic/tabId.ts` — `TabId`, `isTabId`.
 - `CHART_LABELS` moved into the existing `packages/ui/src/logic/series.ts` (alongside `TAB_META`,
   the sibling chart-id-keyed constant it was already next to conceptually).
@@ -35,7 +37,7 @@ them. `MobileBoxTab-hooks.ts`, `MobileSignalTab-hooks.ts`, `MobileChartView-hook
 never imported them, so they weren't part of the split.
 
 Doc comments naming `OriginalShell-hooks.ts` as the home of the moved factories were updated in
-`OgTune-hooks.ts`, `appState.ts`, `MobileBoxTab.vue`, and the browser-spec comments in
+`OriginalTune-hooks.ts`, `appState.ts`, `MobileBoxTab.vue`, and the browser-spec comments in
 `mobile-signal-tab.browser.spec.ts`, `mobile-box-tab.browser.spec.ts`, `original-skin.browser.spec.ts`,
 `signal-drive.browser.spec.ts` and `signal-pane-blur-must-notify.browser.spec.ts`.
 
@@ -47,8 +49,11 @@ Pure move — no behaviour change, no test-expectation edits. Matching test bloc
 - `grep -rn "OriginalShell-hooks" packages/ui/src` shows no Mobile* importer (only
   `OriginalShell.vue`'s own import, and two comments referencing it by name).
 - `npm run typecheck` and lint (`eslint` on the touched files): both clean.
-- `npx vitest run packages/ui --reporter=dot`: 584 passed, 2 unrelated failures (an .owpr fixture
-  generation race, reproduced on unmodified files, passes on rerun) — nothing in the moved code.
+- `npx vitest run packages/ui --reporter=dot`: 569 passed, 1 unrelated failure (an .owpr fixture
+  generation race under full-suite parallelism, passes on rerun) — nothing in the moved code.
 - Targeted: `boxFields.test.ts` (18), `driveSignal.test.ts` (7), `cellDataQuality.test.ts` (3),
-  `tabId.test.ts` (2), `OriginalShell-hooks.test.ts` (17 remaining), `OgTune-hooks.test.ts` (12) —
-  all pass.
+  `tabId.test.ts` (2), `OriginalShell-hooks.test.ts` (17 remaining), `OriginalTune-hooks.test.ts`
+  (12) — all pass.
+
+Redone 2026-09-29 on top of current main (engine-areas refactor, Og*→Original* renames,
+provenance simplification) — same module layout, main's implementations taken as ground truth.

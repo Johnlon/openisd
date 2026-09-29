@@ -15,7 +15,7 @@ import {dirname, join} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import {Engine} from '../../engine/index.js';
+import {createEngine} from '../../engine/index.js';
 import {OpenISDProject} from '../../domain/index.js';
 import {
   WINISD_PR_NPR_CAPTURE, WINISD_PR_ME_NPR_CAPTURE,
@@ -34,7 +34,7 @@ function angleDiff(a: number, b: number, fullTurn: number): number {
 }
 
 function setUpProject(wprFile: string): OpenISDProject {
-  const engine = new Engine();
+  const engine = createEngine();
   const text = readFileSync(join(here, '..', 'winisd', 'fixtures', wprFile), 'utf8');
   const {value: project, errors} = OpenISDProject.fromWprText(text, engine);
   if (project === null) throw new Error('fromWprText returned problems: ' + JSON.stringify(errors));

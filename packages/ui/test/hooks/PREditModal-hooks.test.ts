@@ -4,13 +4,13 @@ import {renderToString} from 'vue/server-renderer';
 import {usePREditModal, type PREditModalAPI} from '../../src/hooks/PREditModal-hooks.js';
 import {APP_LOGIC, type AppLogic} from '../../src/logic/app.js';
 import {provideFocusedProject} from '../../src/logic/focusedProjectContext.js';
-import {Engine} from '@openisd/design/engine';
+import {createEngine} from '@openisd/design/engine';
 import {OpenISDPassiveRadiatorStandalone, OpenISDProject} from '@openisd/design';
 
 describe('usePREditModal', () => {
   it('exposes passive radiator state and handles library actions', async () => {
     let hook!: PREditModalAPI;
-    const engine = new Engine();
+    const engine = createEngine();
     const project = OpenISDProject.empty(engine);
     project.box.boxType.set('box-passive-radiator');
 

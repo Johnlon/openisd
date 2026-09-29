@@ -1,518 +1,85 @@
 /**
- * The Engine provides all calculations used by the system.
- * The surface of the engine is the set of methods needed by the project.
+ * The engine: the package's calculations, aggregated as cohesive areas — one member per area,
+ * each an interface with one implementation, built once by `createEngine` and sharing the app's
+ * settings.
+ * A consumer holds the one area it uses (`engine.filters`, `engine.vent`, …), never the
+ * aggregate; the composition root is the one place that holds this whole.
  */
-
-import {LossMode} from '../fields/lossMode.js';
-import type {Air, AirEnvironment, EnvironmentSolveResult} from './air.js';
-import {solveEnvironment} from './air.js';
-import {
-  closestSealedAlignment,
-  ebp,
-  ebpSuitability,
-  findImpedancePeak,
-  prMassForFp,
-  prTuning,
-  sealedAlignmentOptions,
-  sealedFromQtc,
-  sealedQtcFromVolume,
-  tuningFromLength,
-  ventedAlignment,
-  ventLength,
-} from './boxDesign.js';
-import {
-  driveVoltage,
-  prCmsFromVas,
-  prFsWithMass,
-  prMmdFromFs,
-  prQms,
-  prRmsFromQms,
-  prVas,
-} from './formulas.js';
-import {chartsFor as chartIdsFor, DEFAULT_BOX_TYPE, DEFAULT_CHART} from './charts.js';
-import type {ChartId} from './charts.js';
 import {defaultAppSettings} from './appSettings.js';
-import type {AppSettings, EnvDefaults} from './appSettings.js';
-import {
-  nonPhysicalQuantity, quantityOutOfBand,
-  ventedPlausibility, ventedTuningPlausibility, ventedVolumePlausibility,
-} from './plausibility.js';
-import type {VentedDesignQuantity, VentedPlausibilityIssue} from './plausibility.js';
-import type {DriverIssue} from './solvers/solveDriver.js';
-import {solveDriver} from './solvers/solveDriver.js';
-import type {PrIssue} from './solvers/solvePr.js';
-import {solvePr} from './solvers/solvePr.js';
-import type {VentIssue} from './solvers/solveVent.js';
-import {solveVent} from './solvers/solveVent.js';
-import type {SealedAlignmentIssue} from './solvers/solveSealedAlignment.js';
-import {solveSealedAlignment} from './solvers/solveSealedAlignment.js';
-import {terminalBL_Tm, terminalRe_ohm} from './solvers/driverQuantities.js';
-import type {
-  CalculationIssue, InvalidValueIssue, NegativeValueIssue, OutOfRangeIssue, SolveRoute,
-  TargetUnreachableIssue,
-} from './consistency.js';
-import {
-  inconsistentInputs, issueFormula, missingDependencies, nonNegativeValueIssue,
-  outOfRange, positiveValueIssue, targetUnreachable,
-} from './consistency.js';
-import {isPhysicallyPlausible} from './physicalRange.js';
-import {referenceEfficiency, splFromEfficiency} from './efficiency.js';
-import type {SignalIssue} from './signal.js';
-import {solveSignal} from './signal.js';
-import type {SealedParams} from './lossMode.js';
-import {sealedResonance, sourceLoadedQts} from './lossMode.js';
-import type {BoxParamsSolveResult} from './params.js';
-import {solveBoxParams} from './params.js';
-import {FilterEngineImpl} from './filters/index.js';
+import type {AppSettings} from './appSettings.js';
+import type {EnvironmentEngine} from './environment/EnvironmentEngine.js';
+import {EnvironmentEngineImpl} from './environment/EnvironmentEngine.js';
+import type {DriverEngine} from './driver/DriverEngine.js';
+import {DriverEngineImpl} from './driver/DriverEngine.js';
+import type {SignalEngine} from './signal/SignalEngine.js';
+import {SignalEngineImpl} from './signal/SignalEngine.js';
+import type {IssueEngine} from './issues/IssueEngine.js';
+import {IssueEngineImpl} from './issues/IssueEngine.js';
+import type {SealedEngine} from './sealed/SealedEngine.js';
+import {SealedEngineImpl} from './sealed/SealedEngine.js';
+import type {VentedEngine} from './vented/VentedEngine.js';
+import {VentedEngineImpl} from './vented/VentedEngine.js';
+import type {VentEngine} from './vent/VentEngine.js';
+import {VentEngineImpl} from './vent/VentEngine.js';
+import type {PrEngine} from './pr/PrEngine.js';
+import {PrEngineImpl} from './pr/PrEngine.js';
 import type {FilterEngine} from './filters/index.js';
-import type {MaxCurvesSolveResult, SweepSolveResult} from './sweep.js';
-import {
-  classifyFinite,
-  classifyFiniteIssues,
-  classifyFlatClamp,
-  classifyMaxFinite,
-  maxCurves,
-  passbandRef,
-  rolloffFreq,
-  sweep,
-} from './sweep.js';
+import {FilterEngineImpl} from './filters/index.js';
+import type {SimulationEngine} from './simulation/SimulationEngine.js';
+import {SimulationEngineImpl} from './simulation/SimulationEngine.js';
+import type {BoxEngine} from './box/BoxEngine.js';
+import {BoxEngineImpl} from './box/BoxEngine.js';
 
-import type {
-  BoxType,
-  DriverError,
-  EbpSuitability,
-  EnclosureParams,
-  MaxCurvesResult,
-  SealedAlignmentOption,
-  SimulatableBoxType,
-  SweepParams,
-  SweepResult,
-  VentedAlignment,
-  VentedDesign,
-  Wiring,
-} from './types.js';
-import {simulatableBoxType as narrowBoxType} from './types.js';
-import type {DriverSolverParams, PrSolverParams, SealedAlignmentSolverParams, SignalSolverParams, VentSolverParams} from './solverTypes.js';
+export interface Engine {
+  /** The air a design runs in, and the app's environment defaults. */
+  readonly environment: EnvironmentEngine;
+  /** The T/S consistency solve and the driver's derived indicators. */
+  readonly driver: DriverEngine;
+  /** Drive voltage and power. */
+  readonly signal: SignalEngine;
+  /** The `DqIssue` constructors a caller outside the engine may need. */
+  readonly issues: IssueEngine;
+  /** Sealed-box resonance, volume↔Qtc, alignment options, the handle solve. */
+  readonly sealed: SealedEngine;
+  /** The wizard's vented alignments and the plausibility of what they design. */
+  readonly vented: VentedEngine;
+  /** Port length↔tuning, acoustic length, the handle solve. */
+  readonly vent: VentEngine;
+  /** The passive radiator's own quantities, system tuning, the handle solve. */
+  readonly pr: PrEngine;
+  /** Filter defaults, captions, `.wpr` in and out, the typed edits. */
+  readonly filters: FilterEngine;
+  /** The sweep, the limit curves, the enclosure precondition, the chart readouts and classifiers. */
+  readonly simulation: SimulationEngine;
+  /** Which topologies simulate, which charts a box shows, the display defaults. */
+  readonly box: BoxEngine;
 
-export class Engine {
-  /** The application's own settings, read at CALL time — see `AppSettings`. Defaulted, so every
-   *  existing `new Engine()` still answers with the factory values; the composition root hands
-   *  the running app the stored settings instead. */
-  readonly #settings: AppSettings;
+}
 
-  constructor(settings: AppSettings = defaultAppSettings) {
-    this.#settings = settings;
-  }
-
-  // ── AIR ───────────────────────────────────────────────────────────────────────────────────
-
-  /** The one environment call to reach for: the resolved `{ rho, c }` and any issue its stated
-   *  conditions carry — one `{ values, issues }` bundle (C5). Replaces separately calling
-   *  `airFor` and `environmentIssues`, which could be handed different arguments and so describe
-   *  two different environments. */
-  solveEnvironment(env: AirEnvironment): EnvironmentSolveResult {
-    return solveEnvironment(env);
-  }
-
-  // ── THE DRIVER ────────────────────────────────────────────────────────────────────────────
-
-  /** Re as the amplifier sees it: N coils of resistance r are r/N in parallel, N·r in series.
-   *  A separate answer from `Re_ohm`, never a replacement for it. */
-  terminalRe_ohm(Re_ohm: number, numVC: number | undefined, wiring: Wiring | undefined): number {
-    return terminalRe_ohm(Re_ohm, numVC, wiring);
-  }
-
-  /** BL as the amplifier sees it — `bl` per coil, `N·bl` in series, unchanged in parallel. */
-  terminalBL_Tm(BL_Tm: number, numVC: number | undefined, wiring: Wiring | undefined): number {
-    return terminalBL_Tm(BL_Tm, numVC, wiring);
-  }
-
-  // ── CONSISTENCY GROUP SOLVERS ──────────────────────────────────────────────────────────────
-
-  /** The one driver call to reach for (T10/T11): every entered T/S value's own handle, read
-   *  into a private working set, solved and checked by the engine's own internal consistency
-   *  group, with every derived value written back onto its handle via `setCalculated` (or
-   *  `setNotAvailable`). Entered values — including `wiring` — are never overwritten. `air` is
-   *  the project's own resolved `{ rho, c }`; a not-entered `c_m_per_s`/`roo_kg_per_m3` defaults
-   *  to it and writes back as `'C'`. */
-  solveDriver(params: DriverSolverParams, air: Air): DriverIssue[] {
-    return solveDriver(params, air);
-  }
-
-  /** The one radiator call to reach for (T10/T11): whichever of tuning/added-mass is not
-   *  entered is derived and written onto its `SolverField` handle, and the issues follow right
-   *  back. `air` is the project's own resolved `{ rho, c }` — see `boxDesign.ts#ventLength`'s
-   *  doc comment. Entered values are never overwritten. */
-  solvePr(params: PrSolverParams, air: Air): PrIssue[] {
-    return solvePr(params, air);
-  }
-
-  /** The one vent call to reach for (T10/T11): whichever of tuning/length is not entered is
-   *  derived and written onto its `SolverField` handle, and the issues follow right back.
-   *  `air` is the project's own resolved `{ rho, c }` — see `boxDesign.ts#ventLength`'s doc
-   *  comment. Entered values are never overwritten. */
-  solveVent(params: VentSolverParams, air: Air): VentIssue[] {
-    return solveVent(params, air);
-  }
-
-  /** The one sealed-alignment call to reach for (T10/T11): whichever of target-`Qtc`/`Vb_m3`
-   *  is not entered is derived from the driver's own `Qts`/`Vas_m3` and written onto its
-   *  `SolverField` handle, and the issues follow right back. Entered values are never
-   *  overwritten. */
-  solveSealedAlignment(params: SealedAlignmentSolverParams): SealedAlignmentIssue[] {
-    return solveSealedAlignment(params);
-  }
-
-  /** Efficiency bandwidth product — Fs/Qes, the sealed-vs-vented indicator. */
-  ebp(Fs_hz: number, Qes: number): number {
-    return ebp(Fs_hz, Qes);
-  }
-
-  /**
-   * Reference efficiency, in the stated air.
-   *
-   * Takes `Air` — the DERIVED pair — rather than an `AirEnvironment`, because a driver record
-   * can state its own ρ and c directly (`.wdr` allows arbitrary values), and no
-   * temperature/humidity/pressure triple reproduces an arbitrary pair. A caller holding an
-   * environment calls `airFor()` first; a caller holding a driver's stated pair passes it.
-   */
-  referenceEfficiency(Fs: number, Vas: number, Qes: number, air: Air): number {
-    return referenceEfficiency(Fs, Vas, Qes, air.c);
-  }
-
-  /** SPL for a given efficiency, in the stated air. Takes `Air` for the same reason as
-   *  `referenceEfficiency`. */
-  splFromEfficiency(no: number, air: Air): number {
-    return splFromEfficiency(no, air.rho, air.c);
-  }
-
-  /** Qts as the amplifier's source impedance loads it. Takes and returns exactly what the
-   *  underlying function does. */
-  sourceLoadedQts(...args: Parameters<typeof sourceLoadedQts>): ReturnType<typeof sourceLoadedQts> {
-    return sourceLoadedQts(...args);
-  }
-
-  /** The voltage that delivers `pin` watts into `re` (+ `rs`) ohms. */
-  driveVoltage(pin: number, re: number, rs?: number): number {
-    return driveVoltage(pin, re, rs);
-  }
-
-  /** With a usable Re: an entered V writes P = V²/Re as calculated, otherwise P writes
-   *  V = √(P·Re) as calculated. Without Re: P not available, with the issue naming Re. */
-  solveSignal(p: SignalSolverParams): readonly SignalIssue[] {
-    return solveSignal(p);
-  }
-
-  /** The formula text for one issue — the single formula for `inconsistent-inputs`, or every
-   *  blocked route's formula joined for `missing-dependencies`. */
-  issueFormula<Q extends string>(issue: CalculationIssue<Q>): string {
-    return issueFormula(issue);
-  }
-
-  /** Whether a single RAW value would sit inside `PHYSICAL_RANGE`'s band for `field` (D9 tier 1)
-   *  — the domain layer's one door into that table, since nothing outside the engine may import
-   *  `physicalRange.ts` directly. */
-  isPhysicallyPlausible(field: string, value: number): boolean {
-    return isPhysicallyPlausible(field, value);
-  }
-
-  // ── THE BOX ───────────────────────────────────────────────────────────────────────────────
-
-  /** Sealed resonance and Qtc under a chosen loss model. Takes `Vas` directly. */
-  sealedResonance(mode: LossMode, p: SealedParams): { Fsc: number; Qtc: number } {
-    return sealedResonance(mode, p);
-  }
-
-  // ── CONSTRUCTING A DQ ISSUE ───────────────────────────────────────────────────────────────
-  //
-  // Each of these builds one `DqIssue` with its own sentence already in it, so a caller holding
-  // the issue can say what is wrong without an engine. They sit here for the same reason
-  // `positiveValueIssue` does: the engine has one door, and a caller outside it constructs an
-  // issue by asking the engine for one.
-
-  /** A target no route can reach yet, naming every blocked route and what it still needs. */
-  missingDependencies<Q extends string>(target: Q, routes: readonly SolveRoute<Q>[]): CalculationIssue<Q> {
-    return missingDependencies(target, routes);
-  }
-
-  /** Stated values that contradict the formula relating them — every field in the group is marked. */
-  inconsistentInputs<Q extends string>(
-    target: Q, fields: readonly Q[], formula: string, expected: number, actual: number,
-    relative: number,
-  ): CalculationIssue<Q> {
-    return inconsistentInputs(target, fields, formula, expected, actual, relative);
-  }
-
-  /** A driver field outside its physically possible band (D14). */
-  outOfRange(field: string, value: number, limit: number, side: 'below' | 'above'): OutOfRangeIssue {
-    return outOfRange(field, value, limit, side);
-  }
-
-  /** A stated target past the maximum this geometry can produce. */
-  targetUnreachable(target: string, maxReachable_hz: number): TargetUnreachableIssue {
-    return targetUnreachable(target, maxReachable_hz);
-  }
-
-  /** A vented-alignment quantity that is zero, negative or not finite. */
-  nonPhysicalQuantity(quantity: VentedDesignQuantity, value: number): VentedPlausibilityIssue {
-    return nonPhysicalQuantity(quantity, value);
-  }
-
-  /** A vented-alignment quantity outside the design band the user owns in Settings. */
-  quantityOutOfBand(
-    quantity: VentedDesignQuantity, value: number, min: number, max: number,
-  ): VentedPlausibilityIssue {
-    return quantityOutOfBand(quantity, value, min, max);
-  }
-
-  /** The one floor every positive physical quantity shares: zero, negative or non-finite is not
-   *  physical, whatever field it is — every box type's volume field (sealed, bandpass 4th/6th
-   *  rear+front, ABC, passive radiator — BUG_20260927_box-volume-validity-decided-in-ui.md) AND
-   *  every driver spec field (BUG_20260927_driver-bad-value-decided-in-ui.md) share this ONE
-   *  method, not two near-duplicates. Vented's own volume additionally judges a plausible design
-   *  band on top of this floor — see `ventedVolumeIssue`, which is not this. */
-  positiveValueIssue(value: number): InvalidValueIssue | null {
-    return positiveValueIssue(value);
-  }
-
-  /** The weaker floor some driver fields carry instead: negative or non-finite is not physical,
-   *  but zero is a legitimate stated value (BUG_20260927_driver-bad-value-decided-in-ui.md).
-   *  Which floor applies to which field is the field's own `NumberField.floor`, not this
-   *  method's business. */
-  nonNegativeValueIssue(value: number): NegativeValueIssue | null {
-    return nonNegativeValueIssue(value);
-  }
-
-  /**
-   * Sealed-chamber resonance from the driver's STORED values, in the stated air.
-   *
-   * The domain stores compliance and cone area, never `Vas` — Vas is derived, and deriving it
-   * needs air, which is the engine's business. So a caller that holds a driver record passes
-   * what it has and this works out the rest.
-   *
-   * Null when the volume is not positive — absence is `null` in this system, never NaN or 0.
-   */
-  sealedResonanceFromCompliance(
-    mode: LossMode,
-    input: {
-      Fs_hz: number; Qts: number; Sd_m2: number; Cms_m_per_N: number;
-      volume_m3: number; Ql: number; Qa: number;
-    },
-    air: Air,
-  ): number | null {
-    if (!(input.volume_m3 > 0)) return null;
-    const Vas = input.Cms_m_per_N * input.Sd_m2 ** 2 * air.rho * air.c ** 2;
-    return sealedResonance(mode, {
-      Fs: input.Fs_hz, Qts: input.Qts, Vas, Vb: input.volume_m3, Ql: input.Ql, Qa: input.Qa,
-    }).Fsc;
-  }
-
-  /** A passive radiator's tuning from its own mass and compliance. `air` is the project's own
-   *  resolved `{ rho, c }` — see `boxDesign.ts#ventLength`'s doc comment. */
-  prTuning(p: Parameters<typeof prTuning>[0], air: Air): number {
-    return prTuning(p, air);
-  }
-
-  // ── THE BOX: vents ────────────────────────────────────────────────────────────────────────
-
-  /** Port length for a target tuning, from the chamber volume, ONE port's area and the number of
-   *  identical ports. `air` is the project's own resolved `{ rho, c }` — see
-   *  `boxDesign.ts#ventLength`'s doc comment. */
-  ventLength(Vb: number, fb: number, Sp: number, count: number, air: Air, endCorrection?: number): number {
-    return ventLength(Vb, fb, Sp, count, air, endCorrection);
-  }
-
-  /** The tuning a port of that length actually produces — the inverse of `ventLength`. Both
-   *  directions exist because the user may enter either, and the other is then solved. */
-  tuningFromLength(Vb: number, L: number, Sp: number, count: number, air: Air, endCorrection?: number): number {
-    return tuningFromLength(Vb, L, Sp, count, air, endCorrection);
-  }
-
-  /**
-   * A port's ACOUSTIC length — the physical length plus the end correction, which is what the
-   * sweep's port model actually resonates (`SweepParams.Leff`).
-   *
-   * Takes the port's AREA, not its shape, and derives the equivalent diameter from it —
-   * `2·√(Sp/π)`. That is exact for a round port (`2·√(πr²/π) = 2r = d`) and is the standard
-   * equivalent-diameter substitution for a slotted one, so the end correction, which is
-   * inherently a round-port idea, applies to both with no branch and no shape argument.
-   *
-   * `count` is taken so every port call states the same geometry, but the end correction is a
-   * PER-PORT effect: the answer does not change with the number of identical ports.
-   */
-  ventEffectiveLength(length_m: number, Sp: number, count: number, endCorrection: number): number {
-    void count;
-    return length_m + endCorrection * 2 * Math.sqrt(Sp / Math.PI);
-  }
-
-  /** The chamber volume that reaches a target system Q — the alignment picker's solve. */
-  sealedFromQtc(Qts: number, Vas_m3: number, Qtc: number): number | null {
-    return sealedFromQtc(Qts, Vas_m3, Qtc);
-  }
-
-  sealedAlignmentOptions(): readonly SealedAlignmentOption[] {
-    return sealedAlignmentOptions();
-  }
-
-  sealedQtcFromVolume(Qts: number, Vas_m3: number, Vb_m3: number): number | null {
-    return sealedQtcFromVolume(Qts, Vas_m3, Vb_m3);
-  }
-
-  closestSealedAlignment(Qtc: number): SealedAlignmentOption {
-    return closestSealedAlignment(Qtc);
-  }
-
-  ebpSuitability(EBP_hz: number): EbpSuitability {
-    return ebpSuitability(EBP_hz);
-  }
-
-  /** WinISD's five wizard vented alignments, bit-for-bit (`boxDesign.ts#ventedAlignment`).
-   *  `QtsLoaded` is `sourceLoadedQts()`'s answer, not the bare driver Qts; `Ql` is read by
-   *  BB4/SBB4 only. */
-  ventedAlignment(alignment: VentedAlignment, Fs_hz: number, QtsLoaded: number, Vas_m3: number, Ql: number): VentedDesign {
-    return ventedAlignment(alignment, Fs_hz, QtsLoaded, Vas_m3, Ql);
-  }
-
-  /** Which of a designed vented box's two answers a person should not trust — outside the
-   *  alignment's design range WinISD extrapolates, `ventedAlignment()` matches it, and this is
-   *  what marks the result instead of changing it. Judged against THIS engine's `AppSettings`,
-   *  read now, so a Settings edit lands without anything being rebuilt. */
-  ventedPlausibility(design: VentedDesign): readonly VentedPlausibilityIssue[] {
-    return ventedPlausibility(design, this.#settings.ventedLimits());
-  }
-
-  /** A designed box volume alone. A project CELL holds one quantity, so it can only be marked
-   *  for that quantity's own issue; `ventedPlausibility` answers for the wizard readout, which
-   *  shows both at once. */
-  ventedVolumeIssue(Vb_m3: number): VentedPlausibilityIssue | null {
-    return ventedVolumePlausibility(Vb_m3, this.#settings.ventedLimits());
-  }
-
-  /** A designed tuning alone — `ventedVolumeIssue`'s counterpart. */
-  ventedTuningIssue(Fb_hz: number): VentedPlausibilityIssue | null {
-    return ventedTuningPlausibility(Fb_hz, this.#settings.ventedLimits());
-  }
-
-  /** The app's configured environment defaults (Options → Environment), or the reference
-   *  values when nothing has been configured — see `AppSettings.envDefaults()`. */
-  envDefaults(): EnvDefaults {
-    return this.#settings.envDefaults();
-  }
-
-  /** Sealed resonance and Qtc read off a swept impedance curve, rather than computed. */
-  findImpedancePeak(result: SweepResult | null, Re: number): { Fsc: number; Qtc: number } | null {
-    return findImpedancePeak(result, Re);
-  }
-
-  // ── THE PASSIVE RADIATOR ──────────────────────────────────────────────────────────────────
-
-  /** Added cone mass that tunes a radiator to `fp`. `air` is the project's own resolved
-   *  `{ rho, c }` — see `boxDesign.ts#ventLength`'s doc comment. */
-  prMassForFp(P: Parameters<typeof prMassForFp>[0], fp: number, air: Air): number {
-    return prMassForFp(P, fp, air);
-  }
-
-  /** Which of this engine's topologies a box type is, or null when it has no circuit for it —
-   *  the caller's cue to report a design it cannot simulate rather than draw a wrong curve. */
-  simulatableBoxType(box: BoxType): SimulatableBoxType | null {
-    return narrowBoxType(box);
-  }
-
-  /** The charts a project with this box type shows, in WinISD's own chart-menu order — port
-   *  charts only for a ported box, PR charts only for a radiator, the ten system charts and the
-   *  three EQ/filter charts always (bugs/BUG_20260927_winisd-charts-missing.md). A design
-   *  decision, not a UI one — the UI shows exactly the ids this returns. */
-  chartsFor(box: BoxType): readonly ChartId[] {
-    return chartIdsFor(box);
-  }
-
-  /** The chart a fresh project, or an invalid/inapplicable remembered chart id, falls back to —
-   *  a design decision, not a UI literal. */
-  get defaultChart(): ChartId {
-    return DEFAULT_CHART;
-  }
-
-  /** The box type the chart menu (and any other box-shaped display) assumes when no project is
-   *  focused at all. */
-  get defaultBoxType(): BoxType {
-    return DEFAULT_BOX_TYPE;
-  }
-
-  /** Compliance-equivalent volume, in cubic metres. */
-  prVas(prCms: number, prSd: number): number { return prVas(prCms, prSd); }
-
-  /** Compliance from Vas (cubic metres) and Sd — the inverse of `prVas`. */
-  prCmsFromVas(prVas_m3: number, prSd: number): number { return prCmsFromVas(prVas_m3, prSd); }
-
-  /** Free-air resonance loaded with added cone mass. */
-  prFsWithMass(prMmd: number, prMadd: number, prCms: number): number {
-    return prFsWithMass(prMmd, prMadd, prCms);
-  }
-
-  /** Moving mass from free-air Fs and compliance — the inverse of the resonance. */
-  prMmdFromFs(prFsHz: number, prCms: number): number { return prMmdFromFs(prFsHz, prCms); }
-
-  /** Mechanical Q from mass, compliance and resistance. */
-  prQms(prMmd: number, prCms: number, prRms: number): number { return prQms(prMmd, prCms, prRms); }
-
-  /** Mechanical resistance from Qms — the inverse of `prQms`. */
-  prRmsFromQms(prQmsValue: number, prMmd: number, prCms: number): number {
-    return prRmsFromQms(prQmsValue, prMmd, prCms);
-  }
-
-  // ── FILTERS ──────────────────────────────────────────────────────────────────────────────
-
-  /** The filters area — defaults, captions, `.wpr` in and out, and the typed edits an editor
-   *  may make. One member, not twelve forwarding methods. */
+class EngineImpl implements Engine {
+  readonly environment: EnvironmentEngine;
+  readonly driver: DriverEngine = new DriverEngineImpl();
+  readonly signal: SignalEngine = new SignalEngineImpl();
+  readonly issues: IssueEngine = new IssueEngineImpl();
+  readonly sealed: SealedEngine = new SealedEngineImpl();
+  readonly vented: VentedEngine;
+  readonly vent: VentEngine = new VentEngineImpl();
+  readonly pr: PrEngine = new PrEngineImpl();
   readonly filters: FilterEngine = new FilterEngineImpl();
+  readonly simulation: SimulationEngine = new SimulationEngineImpl();
+  readonly box: BoxEngine = new BoxEngineImpl();
 
-  // ── THE SWEEP ─────────────────────────────────────────────────────────────────────────────
-
-  /** The response, one complex value per frequency. */
-  sweep(drv: DriverSolverParams, Le_H: number | undefined, box: BoxType, P: SweepParams): SweepSolveResult {
-    return sweep(drv, Le_H, box, P);
+  constructor(settings: AppSettings) {
+    this.environment = new EnvironmentEngineImpl(settings);
+    this.vented = new VentedEngineImpl(settings);
   }
+}
 
-  /** The limit curves — how loud before excursion or port velocity gives out. */
-  maxCurves(drv: DriverSolverParams, Le_H: number | undefined, box: BoxType, P: SweepParams): MaxCurvesSolveResult {
-    return maxCurves(drv, Le_H, box, P);
-  }
-
-  /** The one enclosure-parameter call to reach for (T9): `values` is `P` unchanged when every
-   *  field the circuit divides by is present for `box`'s topology, else `null`, with `issues`
-   *  naming what is missing. A topology the circuit has no model for reports `{values: null,
-   *  issues: []}` — naming the enclosure itself is the store's presentation concern (S3). */
-  solveBoxParams(box: BoxType, P: EnclosureParams): BoxParamsSolveResult {
-    return solveBoxParams(box, P);
-  }
-
-  /** The passband reference level a response is measured against. */
-  passbandRef(spl: number[]): number {
-    return passbandRef(spl);
-  }
-
-  /** Where the response has fallen by `dropDb`, or null if it never does. */
-  rolloffFreq(sw: SweepResult, dropDb: number): number | null {
-    return rolloffFreq(sw, dropDb);
-  }
-
-  /** A response carrying a non-finite value — a fault, not a curve. */
-  classifyFinite(sw: SweepResult): DriverError | null {
-    return classifyFinite(sw);
-  }
-
-  /** Finiteness issues split by plotted output, for a chart that needs one specific cause. */
-  classifyFiniteIssues(sw: SweepResult): DriverError[] {
-    return classifyFiniteIssues(sw);
-  }
-
-  /** A response the flat-clamp produced rather than the physics. */
-  classifyFlatClamp(sw: SweepResult): DriverError | null {
-    return classifyFlatClamp(sw);
-  }
-
-  /** Limit curves carrying a non-finite value. */
-  classifyMaxFinite(mx: MaxCurvesResult): DriverError | null {
-    return classifyMaxFinite(mx);
-  }
+/** The one way an engine comes into existence. `settings` is read at CALL time by the areas
+ *  that judge against it (`vented`, `environment`); defaulted, so a test's `createEngine()`
+ *  answers with the factory values, while the composition root hands the running app the
+ *  stored settings. Called once per program — `architecture-engine-boundary.test.ts` names the
+ *  two roots. */
+export function createEngine(settings: AppSettings = defaultAppSettings): Engine {
+  return new EngineImpl(settings);
 }

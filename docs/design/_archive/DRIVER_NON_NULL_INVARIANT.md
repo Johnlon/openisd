@@ -75,7 +75,7 @@ in its own right, distinct from the wizard.
 - 3 genuine user-facing "no driver has been chosen" strings
   (`useApplicationIO.ts:158`, `managedProject.ts:629,656`) become dead code —
   delete, don't leave unreachable.
-- `OgNewProject.vue`'s CURRENT box-then-driver sequencing (create a shell
+- `OriginalNewProject.vue`'s CURRENT box-then-driver sequencing (create a shell
   project, THEN hand off to the driver picker) is being replaced wholesale
   by the 5-step wizard rebuild anyway (`NEW_PROJECT_WIZARD.md`) — driver is
   step 1, so this reordering is already the plan, not new work.

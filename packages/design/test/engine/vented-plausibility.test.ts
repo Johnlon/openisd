@@ -1,5 +1,5 @@
 /**
- * `Engine.ventedPlausibility()` — is a designed vented box a box anyone could build?
+ * `Engine.vented.plausibility()` — is a designed vented box a box anyone could build?
  *
  * The alignment formulas keep PARITY with WinISD outside their design range: WinISD does not
  * clamp, it extrapolates, so `ventedAlignment()` extrapolates too (C4 at a source-loaded Qts of
@@ -16,14 +16,14 @@
 import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
 import {
-  DEFAULT_ENV_DEFAULTS, DEFAULT_VENTED_DESIGN_LIMITS, Engine, type AppSettings, type VentedDesignLimits,
+  DEFAULT_ENV_DEFAULTS, DEFAULT_VENTED_DESIGN_LIMITS, createEngine, type AppSettings, type Engine, type VentedDesignLimits,
 } from '../../engine/index.js';
 
 /** The band is an application SETTING, so an engine is constructed with the settings under
- *  test — the same seam the composition root uses (`new Engine(appSettingsRepo)`). */
+ *  test — the same seam the composition root uses (`createEngine(appSettingsRepo)`). */
 function engineWith(ventedLimits: VentedDesignLimits): Engine {
   const settings: AppSettings = {ventedLimits: () => ventedLimits, envDefaults: () => DEFAULT_ENV_DEFAULTS};
-  return new Engine(settings);
+  return createEngine(settings);
 }
 
 /** A band wide enough that nothing in these tests is out of range by accident. */
@@ -34,72 +34,72 @@ const narrow = engineWith({minVb_m3: 0.001, maxVb_m3: 1.0, minFb_hz: 10, maxFb_h
 
 describe('Engine.ventedPlausibility', () => {
   it('passes a buildable box', () => {
-    assert.deepEqual(narrow.ventedPlausibility({Vb: 0.05, Fb: 35}), []);
+    assert.deepEqual(narrow.vented.plausibility({Vb: 0.05, Fb: 35}), []);
   });
 
   it('marks a zero or negative volume non-physical however wide the band', () => {
-    const issues = wide.ventedPlausibility({Vb: 0, Fb: 35});
-    assert.deepEqual(issues, [wide.nonPhysicalQuantity('Vb', 0)]);
+    const issues = wide.vented.plausibility({Vb: 0, Fb: 35});
+    assert.deepEqual(issues, [wide.issues.nonPhysicalQuantity('Vb', 0)]);
     assert.deepEqual(
-      wide.ventedPlausibility({Vb: -0.02, Fb: 35}),
-      [wide.nonPhysicalQuantity('Vb', -0.02)]);
+      wide.vented.plausibility({Vb: -0.02, Fb: 35}),
+      [wide.issues.nonPhysicalQuantity('Vb', -0.02)]);
   });
 
   it('marks a zero or negative tuning non-physical however wide the band', () => {
     assert.deepEqual(
-      wide.ventedPlausibility({Vb: 0.05, Fb: 0}),
-      [wide.nonPhysicalQuantity('Fb', 0)]);
+      wide.vented.plausibility({Vb: 0.05, Fb: 0}),
+      [wide.issues.nonPhysicalQuantity('Fb', 0)]);
     assert.deepEqual(
-      wide.ventedPlausibility({Vb: 0.05, Fb: -3}),
-      [wide.nonPhysicalQuantity('Fb', -3)]);
+      wide.vented.plausibility({Vb: 0.05, Fb: -3}),
+      [wide.issues.nonPhysicalQuantity('Fb', -3)]);
   });
 
   it('marks NaN and Infinity non-physical', () => {
-    const nan = wide.ventedPlausibility({Vb: Number.NaN, Fb: 35});
+    const nan = wide.vented.plausibility({Vb: Number.NaN, Fb: 35});
     assert.equal(nan.length, 1);
     assert.equal(nan[0].kind, 'non-physical');
     assert.deepEqual(
-      wide.ventedPlausibility({Vb: 0.05, Fb: Number.POSITIVE_INFINITY}),
-      [wide.nonPhysicalQuantity('Fb', Number.POSITIVE_INFINITY)]);
+      wide.vented.plausibility({Vb: 0.05, Fb: Number.POSITIVE_INFINITY}),
+      [wide.issues.nonPhysicalQuantity('Fb', Number.POSITIVE_INFINITY)]);
   });
 
   it('reports both quantities when both are wrong', () => {
-    assert.deepEqual(wide.ventedPlausibility({Vb: 0, Fb: -1}), [
-      wide.nonPhysicalQuantity('Vb', 0),
-      wide.nonPhysicalQuantity('Fb', -1),
+    assert.deepEqual(wide.vented.plausibility({Vb: 0, Fb: -1}), [
+      wide.issues.nonPhysicalQuantity('Vb', 0),
+      wide.issues.nonPhysicalQuantity('Fb', -1),
     ]);
   });
 
   it('marks a volume above the band, naming the limit it broke', () => {
-    assert.deepEqual(narrow.ventedPlausibility({Vb: 1.684, Fb: 35}), [
-      narrow.quantityOutOfBand('Vb', 1.684, 0.001, 1.0),
+    assert.deepEqual(narrow.vented.plausibility({Vb: 1.684, Fb: 35}), [
+      narrow.issues.quantityOutOfBand('Vb', 1.684, 0.001, 1.0),
     ]);
   });
 
   it('marks a volume below the band', () => {
-    assert.deepEqual(narrow.ventedPlausibility({Vb: 0.0000027, Fb: 35}), [
-      narrow.quantityOutOfBand('Vb', 0.0000027, 0.001, 1.0),
+    assert.deepEqual(narrow.vented.plausibility({Vb: 0.0000027, Fb: 35}), [
+      narrow.issues.quantityOutOfBand('Vb', 0.0000027, 0.001, 1.0),
     ]);
   });
 
   it('marks a tuning below and above the band', () => {
-    assert.deepEqual(narrow.ventedPlausibility({Vb: 0.05, Fb: 5.4}), [
-      narrow.quantityOutOfBand('Fb', 5.4, 10, 150),
+    assert.deepEqual(narrow.vented.plausibility({Vb: 0.05, Fb: 5.4}), [
+      narrow.issues.quantityOutOfBand('Fb', 5.4, 10, 150),
     ]);
-    assert.deepEqual(narrow.ventedPlausibility({Vb: 0.05, Fb: 400}), [
-      narrow.quantityOutOfBand('Fb', 400, 10, 150),
+    assert.deepEqual(narrow.vented.plausibility({Vb: 0.05, Fb: 400}), [
+      narrow.issues.quantityOutOfBand('Fb', 400, 10, 150),
     ]);
   });
 
   it('accepts a value exactly on a limit', () => {
-    assert.deepEqual(narrow.ventedPlausibility({Vb: 1.0, Fb: 10}), []);
-    assert.deepEqual(narrow.ventedPlausibility({Vb: 0.001, Fb: 150}), []);
+    assert.deepEqual(narrow.vented.plausibility({Vb: 1.0, Fb: 10}), []);
+    assert.deepEqual(narrow.vented.plausibility({Vb: 0.001, Fb: 150}), []);
   });
 
   it('obeys the band it is given, not a constant of its own', () => {
     const design = {Vb: 1.684, Fb: 5.4};
-    assert.equal(narrow.ventedPlausibility(design).length, 2);
-    assert.deepEqual(wide.ventedPlausibility(design), []);
+    assert.equal(narrow.vented.plausibility(design).length, 2);
+    assert.deepEqual(wide.vented.plausibility(design), []);
   });
 
   it('asks its settings on every call, so a Settings edit lands without a new engine', () => {
@@ -110,11 +110,11 @@ describe('Engine.ventedPlausibility', () => {
       {minVb_m3: 0.001, maxVb_m3: 2.0, minFb_hz: 5, maxFb_hz: 150},
     ];
     let current = 0;
-    const live = new Engine({ventedLimits: () => bands[current]!, envDefaults: () => DEFAULT_ENV_DEFAULTS});
+    const live = createEngine({ventedLimits: () => bands[current]!, envDefaults: () => DEFAULT_ENV_DEFAULTS});
     const design = {Vb: 1.684, Fb: 5.4};
-    assert.equal(live.ventedPlausibility(design).length, 2);
+    assert.equal(live.vented.plausibility(design).length, 2);
     current = 1;
-    assert.deepEqual(live.ventedPlausibility(design), []);
+    assert.deepEqual(live.vented.plausibility(design), []);
   });
 
   it('marks WinISD\'s own extrapolated C4 design, both quantities', () => {
@@ -122,7 +122,7 @@ describe('Engine.ventedPlausibility', () => {
     // Qes 1.333333 — a 1684 L box tuned to 5.4 Hz. `vented-alignment.test.ts` proves the engine
     // reproduces it; this proves we mark it rather than clamp it.
     const design = {Vb: 1.68448856574925, Fb: 5.40253768331173};
-    assert.deepEqual(narrow.ventedPlausibility(design).map(i => i.quantity), ['Vb', 'Fb']);
+    assert.deepEqual(narrow.vented.plausibility(design).map(i => i.quantity), ['Vb', 'Fb']);
   });
 });
 
@@ -130,25 +130,25 @@ describe('Engine.ventedVolumeIssue / Engine.ventedTuningIssue', () => {
   // A CELL carries one quantity, so it can only be marked for that quantity's own issue. The
   // whole-design call answers for the wizard's step-4 readout, which shows both at once.
   it('judges a volume without being told a tuning', () => {
-    assert.equal(narrow.ventedVolumeIssue(0.05), null);
-    assert.deepEqual(narrow.ventedVolumeIssue(1.684),
-      narrow.quantityOutOfBand('Vb', 1.684, 0.001, 1.0));
-    assert.deepEqual(wide.ventedVolumeIssue(-0.02),
-      wide.nonPhysicalQuantity('Vb', -0.02));
+    assert.equal(narrow.vented.volumeIssue(0.05), null);
+    assert.deepEqual(narrow.vented.volumeIssue(1.684),
+      narrow.issues.quantityOutOfBand('Vb', 1.684, 0.001, 1.0));
+    assert.deepEqual(wide.vented.volumeIssue(-0.02),
+      wide.issues.nonPhysicalQuantity('Vb', -0.02));
   });
 
   it('judges a tuning without being told a volume', () => {
-    assert.equal(narrow.ventedTuningIssue(35), null);
-    assert.deepEqual(narrow.ventedTuningIssue(5.4),
-      narrow.quantityOutOfBand('Fb', 5.4, 10, 150));
-    assert.deepEqual(wide.ventedTuningIssue(0),
-      wide.nonPhysicalQuantity('Fb', 0));
+    assert.equal(narrow.vented.tuningIssue(35), null);
+    assert.deepEqual(narrow.vented.tuningIssue(5.4),
+      narrow.issues.quantityOutOfBand('Fb', 5.4, 10, 150));
+    assert.deepEqual(wide.vented.tuningIssue(0),
+      wide.issues.nonPhysicalQuantity('Fb', 0));
   });
 
   it('agrees with the whole-design judgement', () => {
     const design = {Vb: 1.684, Fb: 5.4};
-    assert.deepEqual(narrow.ventedPlausibility(design), [
-      narrow.ventedVolumeIssue(design.Vb), narrow.ventedTuningIssue(design.Fb),
+    assert.deepEqual(narrow.vented.plausibility(design), [
+      narrow.vented.volumeIssue(design.Vb), narrow.vented.tuningIssue(design.Fb),
     ]);
   });
 });
@@ -156,7 +156,7 @@ describe('Engine.ventedVolumeIssue / Engine.ventedTuningIssue', () => {
 describe('DEFAULT_VENTED_DESIGN_LIMITS', () => {
   it('is the band the Settings tab starts from, and is frozen', () => {
     assert.ok(Object.isFrozen(DEFAULT_VENTED_DESIGN_LIMITS));
-    assert.deepEqual(engineWith(DEFAULT_VENTED_DESIGN_LIMITS).ventedPlausibility({Vb: 0.05, Fb: 35}), []);
-    assert.equal(engineWith(DEFAULT_VENTED_DESIGN_LIMITS).ventedPlausibility({Vb: 1.684, Fb: 5.4}).length, 2);
+    assert.deepEqual(engineWith(DEFAULT_VENTED_DESIGN_LIMITS).vented.plausibility({Vb: 0.05, Fb: 35}), []);
+    assert.equal(engineWith(DEFAULT_VENTED_DESIGN_LIMITS).vented.plausibility({Vb: 1.684, Fb: 5.4}).length, 2);
   });
 });

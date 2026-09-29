@@ -1,4 +1,4 @@
-Status: OPEN (re-verified 2026-09-26) — partly fixed: the wizard still writes a 0.05 m vent and a 35 Hz tuning as literals (`packages/ui/src/hooks/OgNewProject-hooks.ts`).
+Status: OPEN (re-verified 2026-09-26) — partly fixed: the wizard still writes a 0.05 m vent and a 35 Hz tuning as literals (`packages/ui/src/hooks/OriginalNewProject-hooks.ts`).
 
 # New Project invents box volumes, tunings and vent geometry that WinISD DERIVES from driver + box type + alignment
 

@@ -5,7 +5,7 @@
 // Usage: npx tsx scripts/research/w5-openisd-dump.ts <in.wpr> <freqs.json> <out.json> [key=value ...]
 // Keys: circuitModel, rgAtDriverSide, winisdDriverModel, Rs_ohm, envUseWinisdAirModel.
 import {readFileSync, writeFileSync} from 'node:fs';
-import {Engine} from '../../packages/design/engine/index.ts';
+import {createEngine} from '../../packages/design/engine/index.ts';
 import {defaultAppSettings} from '../../packages/design/engine/appSettings.ts';
 import {OpenISDProject} from '../../packages/design/domain/project/openISDProject.ts';
 
@@ -25,7 +25,7 @@ const opts = new Map(kv.map(s => {
   return [s.slice(0, i), s.slice(i + 1)] as const;
 }));
 
-const engine = new Engine(defaultAppSettings);
+const engine = createEngine(defaultAppSettings);
 const {value: project, errors} = OpenISDProject.fromWprText(readFileSync(wprPath, 'utf8'), engine);
 if (!project) throw new Error(JSON.stringify(errors));
 

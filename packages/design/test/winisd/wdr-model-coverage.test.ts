@@ -10,7 +10,7 @@ import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
 import {OpenISDDriver} from '../../domain/driver/openISDDriver.js';
 import {WinISDDriver} from '../../winisd/winisdDriver.js';
-import {Engine} from '@openisd/design/engine';
+import {createEngine} from '@openisd/design/engine';
 import {openIsdDriverToWinIsdDriver} from '../../domain/driverYmlToOpenisdAndWdr.js';
 import type {Calculated, Entered, Readable} from '../../domain/cell.js';
 import type {CellState} from '../../winisd/cellState.js';
@@ -69,11 +69,11 @@ describe('every .wdr field has a home in the OpenISD model', () => {
         // Building the driver resolves it (fills calculated fields, writes consistency findings
         // into the record); rebuilding from that resolved record must reproduce it exactly.
         const {record} = recordWithEveryKeyEntered();
-        const driver = OpenISDDriver.fromConformingRecord(record, new Engine());
+        const driver = OpenISDDriver.fromConformingRecord(record, createEngine());
         if (Array.isArray(driver)) throw new Error(`fixture is not a valid driver: ${driver.join(', ')}`);
         const resolved = driver.cloneDriver();
 
-        const again = OpenISDDriver.fromConformingRecord(resolved, new Engine());
+        const again = OpenISDDriver.fromConformingRecord(resolved, createEngine());
         if (Array.isArray(again)) throw new Error(`resolved record does not conform: ${again.join(', ')}`);
 
         assert.deepEqual(again.cloneDriver(), resolved);
@@ -81,7 +81,7 @@ describe('every .wdr field has a home in the OpenISD model', () => {
 
     it('driver → wdr → driver is a closed loop', () => {
         const {record} = recordWithEveryKeyEntered();
-        const driver = OpenISDDriver.fromConformingRecord(record, new Engine());
+        const driver = OpenISDDriver.fromConformingRecord(record, createEngine());
         if (Array.isArray(driver)) throw new Error(`fixture is not a valid driver: ${driver.join(', ')}`);
 
         const wdr1 = openIsdDriverToWinIsdDriver(driver, []);
@@ -108,7 +108,7 @@ describe('every .wdr field has a home in the OpenISD model', () => {
             },
             specs: {woofer: {c_m_per_s: spec(111111), roo_kg_per_m3: spec(222222)}},
         };
-        const driver = OpenISDDriver.fromConformingRecord(record, new Engine());
+        const driver = OpenISDDriver.fromConformingRecord(record, createEngine());
         if (Array.isArray(driver)) throw new Error(`fixture is not a valid driver: ${driver.join(', ')}`);
 
         const wdr = openIsdDriverToWinIsdDriver(driver, []);
@@ -121,7 +121,7 @@ describe('every .wdr field has a home in the OpenISD model', () => {
     it('c and roo, unentered, read as the reference-environment values', () => {
         // The engine's `solveConsistencyGroup` fills c/roo from the air model when unset, marked
         // `calculated` — no stored constant anywhere.
-        const {c: refC, rho: refRho} = new Engine().solveEnvironment({}).values;
+        const {c: refC, rho: refRho} = createEngine().environment.solve({}).values;
         const record = {
             uuid: {value: '00000000-0000-4000-8000-000000000000'},
             manufacturer: scraped('Acme'), brand: scraped('Acme'), model: scraped('Widget'),
@@ -136,7 +136,7 @@ describe('every .wdr field has a home in the OpenISD model', () => {
             },
             specs: {woofer: {}},
         };
-        const driver = OpenISDDriver.fromConformingRecord(record, new Engine());
+        const driver = OpenISDDriver.fromConformingRecord(record, createEngine());
         if (Array.isArray(driver)) throw new Error(`fixture is not a valid driver: ${driver.join(', ')}`);
 
         const wdr = openIsdDriverToWinIsdDriver(driver, []);
@@ -147,7 +147,7 @@ describe('every .wdr field has a home in the OpenISD model', () => {
     });
 
     it('entered then cleared c/roo: entered reads back, cleared reverts to the reference value', () => {
-        const {c: refC, rho: refRho} = new Engine().solveEnvironment({}).values;
+        const {c: refC, rho: refRho} = createEngine().environment.solve({}).values;
         const record = {
             uuid: {value: '00000000-0000-4000-8000-000000000000'},
             manufacturer: scraped(''), brand: scraped(''), model: scraped(''),
@@ -162,7 +162,7 @@ describe('every .wdr field has a home in the OpenISD model', () => {
             },
             specs: {woofer: {}},
         };
-        const driver = OpenISDDriver.fromConformingRecord(record, new Engine());
+        const driver = OpenISDDriver.fromConformingRecord(record, createEngine());
         if (Array.isArray(driver)) throw new Error(`fixture is not a valid driver: ${driver.join(', ')}`);
         const section = driver.specs;
 
@@ -205,7 +205,7 @@ describe('every spec field supports get/set/get/clear/get — clear() actually c
             },
             specs: {woofer: {}},
         };
-        const driver = OpenISDDriver.fromConformingRecord(record, new Engine());
+        const driver = OpenISDDriver.fromConformingRecord(record, createEngine());
         if (Array.isArray(driver)) throw new Error(`fixture is not a valid driver: ${driver.join(', ')}`);
         return driver.specs;
     }
@@ -276,7 +276,7 @@ describe('every spec field supports get/set/get/clear/get — clear() actually c
 
     it('c_m_per_s: get=calculated air-model default, set=allowed, get=new value, clear=allowed, get=calculated default again', () => {
         const section = freshSection();
-        const referenceC = new Engine().solveEnvironment({}).values.c;
+        const referenceC = createEngine().environment.solve({}).values.c;
 
         assertReads(section.c_m_per_s, referenceC, 'calculated',
             'c_m_per_s must start at the live reference-air speed of sound on a fresh section, not absent');
@@ -292,7 +292,7 @@ describe('every spec field supports get/set/get/clear/get — clear() actually c
 
     it('roo_kg_per_m3: get=calculated air-model default, set=allowed, get=new value, clear=allowed, get=calculated default again', () => {
         const section = freshSection();
-        const referenceRho = new Engine().solveEnvironment({}).values.rho;
+        const referenceRho = createEngine().environment.solve({}).values.rho;
 
         assertReads(section.roo_kg_per_m3, referenceRho, 'calculated',
             'roo_kg_per_m3 must start at the live reference-air density on a fresh section, not absent');

@@ -55,13 +55,13 @@ no formula for these — nothing to build, just show the same disabled state.
 
 | Fact | Where |
 |---|---|
-| `totalSteps` is 5 for sealed, 4 for everything else — no alignment step exists for any non-sealed box type; wizard jumps box-type → project info | [OgNewProject-hooks.ts:129](http://localhost:8000/winisd/openisd/packages/ui/src/hooks/OgNewProject-hooks.ts#L129) |
-| Vented box creation hardcodes `vent.diameter_m = 0.05`, `tuning_hz = 35` — not derived from any alignment choice | [OgNewProject-hooks.ts:299-303](http://localhost:8000/winisd/openisd/packages/ui/src/hooks/OgNewProject-hooks.ts#L299) |
-| `bandpass4` creation hardcodes the same `0.05` / `35` on the front chamber, plus a separate `frontVol` field already in the wizard (step 3) | [OgNewProject-hooks.ts:309-313](http://localhost:8000/winisd/openisd/packages/ui/src/hooks/OgNewProject-hooks.ts#L309) |
+| `totalSteps` is 5 for sealed, 4 for everything else — no alignment step exists for any non-sealed box type; wizard jumps box-type → project info | [OriginalNewProject-hooks.ts:129](http://localhost:8000/winisd/openisd/packages/ui/src/hooks/OriginalNewProject-hooks.ts#L129) |
+| Vented box creation hardcodes `vent.diameter_m = 0.05`, `tuning_hz = 35` — not derived from any alignment choice | [OriginalNewProject-hooks.ts:299-303](http://localhost:8000/winisd/openisd/packages/ui/src/hooks/OriginalNewProject-hooks.ts#L299) |
+| `bandpass4` creation hardcodes the same `0.05` / `35` on the front chamber, plus a separate `frontVol` field already in the wizard (step 3) | [OriginalNewProject-hooks.ts:309-313](http://localhost:8000/winisd/openisd/packages/ui/src/hooks/OriginalNewProject-hooks.ts#L309) |
 | Engine has all 5 WinISD vented alignments (`ventedAlignment(alignment, Fs, QtsLoaded, Vas, Ql)`), WinISD's own polynomials + BB4 algebra, validated to 9e-15 | [boxDesign.ts](http://localhost:8000/winisd/openisd/packages/design/engine/boxDesign.ts#L149), [vented-alignment.test.ts](http://localhost:8000/winisd/openisd/packages/design/test/engine/vented-alignment.test.ts) |
 | No BP4th alignment formula (ripple/gain → Vb/Fb) anywhere in the codebase | grep of `boxDesign.ts`, no match |
 | `SEALED_ALIGNMENT_OPTIONS` is the pattern to mirror: a frozen `SelectorOption<number>[]` in `design/fields/options.ts`, paired with an engine `closestXAlignment()` / `xFromAlignment()` function pair | [options.ts:41-53](http://localhost:8000/winisd/openisd/packages/design/fields/options.ts#L41) |
-| No passive-radiator wizard step exists either (Vas/Qms/Fs/Sd/Xmax) — `defaultPassiveRadiator()` fills placeholder values today, no user input step | [OgNewProject-hooks.ts:304-307](http://localhost:8000/winisd/openisd/packages/ui/src/hooks/OgNewProject-hooks.ts#L304) |
+| No passive-radiator wizard step exists either (Vas/Qms/Fs/Sd/Xmax) — `defaultPassiveRadiator()` fills placeholder values today, no user input step | [OriginalNewProject-hooks.ts:304-307](http://localhost:8000/winisd/openisd/packages/ui/src/hooks/OriginalNewProject-hooks.ts#L304) |
 
 ## 4. Alignment math — RULED (John, 2026-09-22): wire WinISD's own formulas
 

@@ -12,9 +12,9 @@ import type {FileStorage} from '../src/storage/fileStorage.js';
 import {createMemoryStorage, type KeyValueStorage} from '../src/storage/keyValueStorage.js';
 import {OPENISD_OPEN_SESSIONS_KEY, OPENISD_QUARANTINE_SESSION_KEY} from '../src/repos/storageKeys.js';
 import {OpenISDProject} from '@openisd/design';
-import {Engine} from '@openisd/design/engine';
+import {createEngine} from '@openisd/design/engine';
 
-const engine = new Engine();
+const engine = createEngine();
 
 const noFiles: FileStorage = {
   save: () => { throw new Error('no test here writes a file'); },

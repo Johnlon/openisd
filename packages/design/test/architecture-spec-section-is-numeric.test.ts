@@ -20,12 +20,11 @@
  * `OpenISDDriver.fields()` builds the bag the engine's consistency solver works on, and it keeps
  * only what resolves to a number:
  *
- *     const value = winningValue(stated);
+ *     const value = stated?.value ?? null;
  *     if (value !== null) bag[key] = value;
  *
- * `winningValue` reads `readings[origin].read_value` — the ONE legal way to read a spec entry's
- * number. A member that is not a `SpecEntry` has no such reading, so it cannot resolve, and it
- * is skipped in the same silence.
+ * `.value` is the one legal way to read a spec entry's number. A member that is not a
+ * `SpecEntry` has no such value, so it cannot resolve, and it is skipped in the same silence.
  *
  * That filter cannot tell "this field is not a driver parameter" from "this field is broken". It
  * silently skips both. Nothing throws, nothing warns, and `DriverFields` is
@@ -94,7 +93,7 @@ describe('a spec section carries numbers, or says why not', () => {
       .map((m) => `${m.name}: ${m.type}`);
 
     expect(offenders, [
-      'A member that is not a SpecEntryJson has no `readings[origin]`, so `winningValue()` cannot',
+      'A member that is not a SpecEntryJson has no `.value` a spec field can read, so the field cannot',
       'resolve it and `OpenISDDriver.fields()` DROPS it — silently, while anything reading it',
       'back off the solved bag gets `undefined` and still compiles. Decide how this field',
       'reaches the calculation, then either make it a SpecEntryJson or add it to',

@@ -1,6 +1,6 @@
 # New Project wizard — 5-step rebuild
 
-Status: DESIGN, not yet built. Replaces the current 3-step `OgNewProject.vue`
+Status: DESIGN, not yet built. Replaces the current 3-step `OriginalNewProject.vue`
 (name → box type → manual volume) to match real WinISD's flow (screenshots in
 `docs/winisd_screenshots/new_project_wizard_*.png`).
 
@@ -37,7 +37,7 @@ built for this was reverted, `f1b41b6`).
 ## Step 3 — Box type
 
 - Reuse the existing box-type `<select>` (4 engine-modelled options, same
-  `BOX_OPTIONS` list `OgNewProject.vue` already has).
+  `BOX_OPTIONS` list `OriginalNewProject.vue` already has).
 - Illustration: `<BoxTypeDiagram :box-type="boxType" />` (`fb89bbc`, already
   landed).
 - New: a "Recommended box type: <X>" label (readonly, `.opt-greyed`-style
@@ -67,7 +67,7 @@ probe-verified follow-on work — each needs a real-WinISD probe (known
 driver → each alignment choice → capture actual computed volume/tuning →
 derive/confirm the formula), the same rigor already applied to the
 isobaric-placement question. Until each is verified, that box type's step 4
-falls back to today's manual volume entry (`OgNewProject.vue`'s existing
+falls back to today's manual volume entry (`OriginalNewProject.vue`'s existing
 step-3 behaviour) rather than shipping a guessed formula.
 
 ## Step 5 — Project name + description
@@ -90,6 +90,6 @@ step-3 behaviour) rather than shipping a guessed formula.
 3. Isobaric engine transform (if the probe finds a real one) + named
    alignment lookup table + EBP box-type recommendation — engine-only,
    `packages/engine/src`, no UI.
-4. The wizard itself: rebuilt `OgNewProject.vue`, extended `NewProjectSpec`
+4. The wizard itself: rebuilt `OriginalNewProject.vue`, extended `NewProjectSpec`
    in `appState.ts`, `managedProject` wiring for driver+placement+alignment
    in one Create call.

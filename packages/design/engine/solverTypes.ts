@@ -46,11 +46,13 @@ export interface PrSolverParams {
   prMmd_kg: SolverInput;
   prSd_m2: SolverInput;
   prCms_m_per_N: SolverInput;
+  /** Radiator count; absent reads as 1, as the sweep does. */
+  prNum: SolverInput;
   resonanceWithAddedMass_hz: SolverField;
   systemTuning_hz: SolverField;
 }
 
-/** A `SolverField` handle for every vent quantity. Pass this to `solveVent` — the solve
+/** A `SolverField` handle for every vent quantity. Pass this to `VentEngine.solve` — the solve
  *  derives whichever of `tuning_goal_hz`/`length_m` is not entered and writes it back via
  *  `setCalculated`, never overwriting an entered value. `Vb_m3`/`area_m2`/`count`/`endCorrection_m` are
  *  read-only inputs — nothing here ever writes back to the box volume or the vent geometry. */
@@ -65,13 +67,13 @@ export interface VentSolverParams {
 }
 
 /** A `SolverField` handle for every sealed-alignment quantity. Pass this to
- *  `solveSealedAlignment` — the solve derives whichever of `Qtc`/`Vb_m3` is not entered from
+ *  `SealedEngine.solve` — the solve derives whichever of `Qtc`/`Vb_m3` is not entered from
  *  the driver's own `Qts`/`Vas_m3` and writes it back via `setCalculated`, never overwriting an
  *  entered value. `Qts`/`Vas_m3` are read-only inputs — nothing here ever writes back to the
  *  driver's own T/S spec.
  *
  *  `Fs_hz`/`Ql`/`Qa`/`lossMode` (S10) feed the Vb→Qtc route only, matching the Box tab's own
- *  lossy readout (`sealedResonance`) instead of the lossless textbook ratio. `Fs_hz` is the
+ *  lossy readout (`SealedEngine.resonance`) instead of the lossless textbook ratio. `Fs_hz` is the
  *  gate: when a caller leaves it not-entered, the route falls back to the lossless formula
  *  exactly as before S10, so every pre-S10 caller (the target-Qtc alignment picker included)
  *  keeps its unchanged behaviour. */

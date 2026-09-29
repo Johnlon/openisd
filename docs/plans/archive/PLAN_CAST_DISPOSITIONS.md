@@ -23,7 +23,7 @@ forward, no checkout/restore/stash. Bug record first.
 | 1 | `driverFileText.ts:48` `reader.result as ArrayBuffer` | **Fix now, real bug.** On an aborted read `result` is `null` and `new Uint8Array(null)` is empty, so the promise *resolves with empty text* instead of rejecting. `instanceof` guard plus reject, the `domEvents.ts` pattern. TDD, red first. |
 | 3 | `faultLog.ts:87,101,237` | **Fix now.** Already guarded at `:82`. TypeScript just won't narrow `any`. One `isRecord(v): v is Record<string, unknown>` clears all three. No zod, because this is the diagnostic that reports corrupt storage. |
 | 1 | `OptionsModal.vue:70` `'General' as Tab` | **Fix now.** `reactive<{v: Tab}>({v:'General'})`. |
-| 1 | `OgFilters.vue:69` | **Fix now.** `patch<K extends keyof Filter>(id, field: K, value: Filter[K])`. Today `patch(id,'enabled',42)` typechecks. |
+| 1 | `OriginalFilters.vue:69` | **Fix now.** `patch<K extends keyof Filter>(id, field: K, value: Filter[K])`. Today `patch(id,'enabled',42)` typechecks. |
 | 1 | `appState.ts:686` (holds `any`) | **Leave to the migration.** Parses a fingerprint *this module wrote*, so it needs a typed fingerprint, not validation. Asserts `UiParams` from the gutted package. Highest-priority migration item. `projectRepo.ts:40-53` has the commented-out fix for this exact bug class. |
 | 1 | `OriginalShell.vue:369` `as TabId` | **Leave, blocked.** `UiState` is commented out (`projectRepo.ts:58`), so the field has no type to guard against. `?? 'box'` does not catch a stale non-empty string. |
 | 1 | `driverYmlToOpenisdAndWdr.ts:154` | **The one place zod fits.** The schema is already in the same package. Your live WDR work is in this file, so wait for it to land. QO112 and QO113 touch it. |
@@ -47,7 +47,7 @@ migration deletes it, that's a moved landmark, not a gate to loosen.
 
 ## Order
 
-Step 0, then `driverFileText` (TDD), then `faultLog`, `OptionsModal` and `OgFilters`, then delete
+Step 0, then `driverFileText` (TDD), then `faultLog`, `OptionsModal` and `OriginalFilters`, then delete
 `driverName.ts`, then note the 5 in the migration plan. Nothing else without your go-ahead.
 
 **Net: 11 cleared, 10 remain**, each with an owner.

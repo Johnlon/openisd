@@ -3,7 +3,7 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import type { TestSolverQuantities } from './testSolver.js';
 import { driverParams, solveConsistencyGroup } from './testSolver.js';
-import { Engine } from '../../engine/index.js';
+import {createEngine} from '../../engine/index.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const fixturesDir = join(here, '..', 'fixtures', 'golden');
@@ -17,7 +17,7 @@ const NAMES = [
   'vented-2drv-series',
 ];
 
-const engine = new Engine();
+const engine = createEngine();
 
 for (const name of NAMES) {
   const filePath = join(fixturesDir, name + '.json');
@@ -35,12 +35,12 @@ for (const name of NAMES) {
   const drv: TestSolverQuantities = {
     ...solved,
     Re_terminal_ohm: solved.Re_ohm === undefined ? undefined
-      : engine.terminalRe_ohm(solved.Re_ohm!, solved.numVC, solved.wiring),
+      : engine.driver.terminalRe_ohm(solved.Re_ohm!, solved.numVC, solved.wiring),
     BL_terminal_Tm: solved.BL_Tm === undefined ? undefined
-      : engine.terminalBL_Tm(solved.BL_Tm!, solved.numVC, solved.wiring),
+      : engine.driver.terminalBL_Tm(solved.BL_Tm!, solved.numVC, solved.wiring),
   };
-  const sw = engine.sweep(driverParams(drv), driverRaw.Le, box, P).values;
-  const mx = engine.maxCurves(driverParams(drv), driverRaw.Le, box, P).values;
+  const sw = engine.simulation.sweep(driverParams(drv), driverRaw.Le, box, P).values;
+  const mx = engine.simulation.maxCurves(driverParams(drv), driverRaw.Le, box, P).values;
 
   if (!sw || !mx) {
     throw new Error(`Engine refused fixture ${name}`);

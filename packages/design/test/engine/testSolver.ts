@@ -8,7 +8,7 @@ import type {
   SolverInput,
   VentSolverParams,
 } from '@openisd/design/engine';
-import {Engine} from '@openisd/design/engine';
+import {createEngine} from '@openisd/design/engine';
 import {halfUlp} from '../../domain/precision.js';
 
 // S2-10: the bag types every solve used to take/return are gone from the public engine surface
@@ -66,8 +66,8 @@ export interface TestSealedAlignmentQuantities {
   lossMode?: string;
 }
 
-const engine = new Engine();
-const REFERENCE_AIR = (): Air => engine.solveEnvironment({}).values;
+const engine = createEngine();
+const REFERENCE_AIR = (): Air => engine.environment.solve({}).values;
 
 /** A test seam for the engine's `SolverField` handle contracts (T10): the value is "entered"
  *  when seeded, and records whatever the solve writes (`calculated`/`not-available`). `precision`
@@ -152,7 +152,7 @@ function bagFromDriverHandles(p: DriverSolverParams): TestSolverQuantities {
  *  air being a parameter at all. */
 export function solveConsistencyGroup(d: TestSolverQuantities, air: Air = REFERENCE_AIR()): TestSolverQuantities {
   const handles = driverHandlesFrom(d);
-  engine.solveDriver(handles, air);
+  engine.driver.solve(handles, air);
   return bagFromDriverHandles(handles);
 }
 
@@ -160,7 +160,7 @@ export function solveConsistencyGroup(d: TestSolverQuantities, air: Air = REFERE
  *  the ONE place this check now runs (co-located with the solve it validates, S2-10). `d` is
  *  entered-only, matching the deleted `checkConsistency()`'s own contract. */
 export function checkConsistency(d: TestSolverQuantities, air: Air = REFERENCE_AIR()) {
-  return engine.solveDriver(driverHandlesFrom(d), air);
+  return engine.driver.solve(driverHandlesFrom(d), air);
 }
 
 function prHandlesFrom(p: TestPrQuantities): PrSolverParams {
@@ -171,6 +171,7 @@ function prHandlesFrom(p: TestPrQuantities): PrSolverParams {
     prMmd_kg: fakeInput(p.prMmd_kg),
     prSd_m2: fakeInput(p.prSd_m2),
     prCms_m_per_N: fakeInput(p.prCms_m_per_N),
+    prNum: fakeInput(1),
     resonanceWithAddedMass_hz: fakeSolverField(p.resonanceWithAddedMass_hz ?? null),
     systemTuning_hz: fakeSolverField(p.systemTuning_hz ?? null),
   };
@@ -191,12 +192,12 @@ function bagFromPrHandles(p: PrSolverParams): TestPrQuantities {
  *  every one of them unchanged; a test specifically proving air-sensitivity passes its own. */
 export function solvePrConsistencyGroup(d: TestPrQuantities, air: Air = REFERENCE_AIR()): TestPrQuantities {
   const handles = prHandlesFrom(d);
-  engine.solvePr(handles, air);
+  engine.pr.solve(handles, air);
   return bagFromPrHandles(handles);
 }
 
 export function checkPrConsistency(d: TestPrQuantities, air: Air = REFERENCE_AIR()) {
-  return engine.solvePr(prHandlesFrom(d), air);
+  return engine.pr.solve(prHandlesFrom(d), air);
 }
 
 function ventHandlesFrom(v: TestVentQuantities): VentSolverParams {
@@ -220,12 +221,12 @@ function bagFromVentHandles(v: VentSolverParams): TestVentQuantities {
 
 export function solveVentConsistencyGroup(d: TestVentQuantities, air: Air = REFERENCE_AIR()): TestVentQuantities {
   const handles = ventHandlesFrom(d);
-  engine.solveVent(handles, air);
+  engine.vent.solve(handles, air);
   return bagFromVentHandles(handles);
 }
 
 export function checkVentConsistency(d: TestVentQuantities, air: Air = REFERENCE_AIR()) {
-  return engine.solveVent(ventHandlesFrom(d), air);
+  return engine.vent.solve(ventHandlesFrom(d), air);
 }
 
 function sealedAlignmentHandlesFrom(s: TestSealedAlignmentQuantities): SealedAlignmentSolverParams {
@@ -252,10 +253,10 @@ function bagFromSealedAlignmentHandles(s: SealedAlignmentSolverParams): TestSeal
 
 export function solveSealedAlignmentGroup(s: TestSealedAlignmentQuantities): TestSealedAlignmentQuantities {
   const handles = sealedAlignmentHandlesFrom(s);
-  engine.solveSealedAlignment(handles);
+  engine.sealed.solve(handles);
   return bagFromSealedAlignmentHandles(handles);
 }
 
 export function checkSealedAlignment(s: TestSealedAlignmentQuantities) {
-  return engine.solveSealedAlignment(sealedAlignmentHandlesFrom(s));
+  return engine.sealed.solve(sealedAlignmentHandlesFrom(s));
 }

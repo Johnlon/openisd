@@ -23,6 +23,7 @@
       "Ql": 7,
       "nDrivers": 2,
       "wiring": "series",
+      "winisdDriverCountModel": false,
       "Sp": 0.001963495408493621,
       "Leff": 0.12,
       "eg": 2.83,

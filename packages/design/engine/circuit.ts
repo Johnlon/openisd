@@ -31,7 +31,6 @@ import {solveEnvironment} from './air.js';
 import {hotRe} from './solvers/driverQuantities.js';
 import {cAdd, cDiv, cInv, cMul, cScale, cx} from './complex.js';
 import type {BoxType, Complex, Solution, SweepParams} from './types.js';
-import {simulatableBoxType} from './types.js';
 import type {LossModeValue} from '../fields/lossMode.js';
 import {boxModel} from './boxes/index.js';
 import type {DriverSideQuantities} from './boxes/index.js';
@@ -177,30 +176,19 @@ export function solve(f: number, drv: CircuitQuantities, box: BoxType, P: SweepP
   const Ral = cx(Ql / (w * Cab), 0);
   const Raa = cx(Qa / (w * Cab), 0);
 
-  let Zbox!: Complex, U0!: Complex, UD!: Complex;
-  let UP: Complex = cx(0, 0);
-
   const lossMode: LossModeValue = (Ql >= 1e6 && Qa >= 1e6) ? 'lossless' : (P.lossMode ?? 'winisd-lossy');
 
   // The one place a `BoxType` becomes a topology's own circuit (`./boxes/`, mirroring
-  // `../filters/index.ts`'s `filterModel()`). `simulatableBoxType` narrows to the four types the
-  // circuit has a model for; `bandpass6`/`abc` fall through with `Zbox`/`UD`/`U0` left
-  // unassigned, reproducing the same "Cannot read properties of undefined" failure calling
-  // through with one of those types already produces today (test/engine/circuit.test.ts "an
-  // unsimulatable box type (bandpass6, abc) is not refused by solve() itself").
-  const simulatable = simulatableBoxType(box);
-  if (simulatable !== null) {
-    const shared: DriverSideQuantities = {w, pg, ZaE, ZaD, Cab, Zc, Ral, Raa, Ql, Qa, Cas, Mas, rho, c, lossMode};
-    const result = boxModel(simulatable, P).solve(shared);
-    Zbox = result.Zbox;
-    UD = result.UD;
-    UP = result.UP;
-    U0 = result.U0;
-  }
+  // `../filters/index.ts`'s `filterModel()`).
+  const shared: DriverSideQuantities = {w, pg, ZaE, ZaD, Cab, Zc, Ral, Raa, Ql, Qa, Cas, Mas, rho, c, lossMode};
+  const {Zbox, UD, UP, U0, UPr, UPi} = boxModel(box, P).solve(shared);
 
   // Electrical input impedance Zel = Ze + Bl²/(Sd²·(ZaD+Zbox)), with the ENTERED BL as WinISD
   // uses it (BUG_20260926_winisd-impedance-uses-entered-bl).
   // https://en.wikipedia.org/wiki/Electrical_characteristics_of_a_dynamic_loudspeaker
-  const Zel = cAdd(ZcoilForZel, cDiv(cx(BlPush * BlPush, 0), cMul(cx(Sdt * Sdt, 0), cAdd(ZaD, Zbox))));
-  return { U0, UD, UP, Zbox, Zel, ZaD };
+  // Iso-barik: WinISD's motional term is twice the pair's (runs/sealed-w5-isobarik, 1e-15;
+  // bugs/BUG_20260928_isobarik-loading-not-simulated.md).
+  const motional = cDiv(cx(BlPush * BlPush, 0), cMul(cx(Sdt * Sdt, 0), cAdd(ZaD, Zbox)));
+  const Zel = cAdd(ZcoilForZel, P.loading === 'isobaric' ? cScale(motional, 2) : motional);
+  return { U0, UD, UP, UPr, UPi, Zbox, Zel, ZaD };
 }

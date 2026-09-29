@@ -1,12 +1,12 @@
 import {LossMode} from '../../fields/lossMode.js';
-import {Engine} from '../../engine/index.js';
+import {type Engine} from '../../engine/index.js';
 import type { Air, AirEnvironment, BoxParamsIssue, ChartId, DriverError, Filter, MaxCurvesResult, MaxCurvesSolveResult, SweepResult, SweepSolveResult } from '../../engine/index.js';
 import { realAppContext } from '../appContext.js';
 import type { AppContext } from '../appContext.js';
 import { focus, simpleField } from '../cell.js';
 import type { Calculatable, Calculated, Clearable, Entered, Readable, SimpleField, Unsolvable, Writable } from '../cell.js';
 import { newUuid } from '../newUuid.js';
-import { winIsdProjectToOpenIsdProject } from '../openIsdProjectToWinIsdProject.js';
+import { WinIsdProjectConverter } from '../openIsdProjectToWinIsdProject.js';
 import type { OpenISDProjectJson, OpenISDProjectSessionJson } from '../openisdSchema.js';
 import { ProjectBuilder } from '../openisdTransforms.js';
 import type { Box } from '../box/box.js';
@@ -19,7 +19,7 @@ import type { DragRange } from './dragRange.js';
 import { ProjectAdvanced } from './projectAdvanced.js';
 import { ProjectChartsView } from './projectChartsView.js';
 import { ProjectEnvironment, envFieldsOver } from './projectEnvironment.js';
-import { owprTextOf, parseOwprSession, sessionOf, wprTextOf } from './projectSerialization.js';
+import { owprTextOf, parseOwprSession, sessionOf } from './projectSerialization.js';
 import { boxParamsIssuesOf, maxCurvesOf, sweepOf, ventAchievedFbOf, ventMaxReachableFbOf } from './projectSweep.js';
 import type { ProjectSweepSource } from './projectSweep.js';
 import { freshEmbeddedDriver } from './freshEmbeddedDriver.js';
@@ -122,12 +122,12 @@ export class OpenISDProject {
      *  driver's own `c_m_per_s`/`roo_kg_per_m3` are never a source for this — see the field
      *  comment on `OpenIsdDriverSpec`'s constructor. */
     #air(root: SimpleField<OpenISDProjectJson>): Air {
-        return this.#engine.solveEnvironment(this.#airOver(root)).values;
+        return this.#engine.environment.solve(this.#airOver(root)).values;
     }
 
     /** The four air conditions `root` reads as — each E or C, never absent. */
     #airOver(root: SimpleField<OpenISDProjectJson>): AirEnvironment {
-        const env = envFieldsOver(focus(root, 'environment'), this.#engine);
+        const env = envFieldsOver(focus(root, 'environment'), this.#engine.environment);
         return {
             tempK: env.tempK.value, humidityPct: env.humidityPct.value, pressurePa: env.pressurePa.value,
             useWinisdAirModel: root.value.environment.useWinisdAirModel ?? true,
@@ -326,7 +326,7 @@ export class OpenISDProject {
      *  version skew that adds/removes chart ids — `parseChartId` (packages/ui `logic/series.ts`)
      *  does the string↔member conversion at the UI boundary. */
     get graphs(): SimpleField<readonly string[]> {
-        return ProjectChartsView.wrap(this.#slot('charts'), this.#engine, () => this.box.boxType.value).graphs;
+        return new ProjectChartsView(this.#slot('charts'), this.#engine.box, () => this.box.boxType.value).graphs;
     }
 
     /** Which charts this project's box type shows, in WinISD's own chart-menu order — a design
@@ -335,7 +335,7 @@ export class OpenISDProject {
      *  EQ/filter charts always. The UI shows exactly the ids this returns, never a second list
      *  of "which charts apply". */
     get charts(): readonly ChartId[] {
-        return ProjectChartsView.wrap(this.#slot('charts'), this.#engine, () => this.box.boxType.value).charts;
+        return new ProjectChartsView(this.#slot('charts'), this.#engine.box, () => this.box.boxType.value).charts;
     }
 
     /** The graph cursor/selection (S10/QO130) — PROJECT-scoped, reversing QO90: two open
@@ -373,11 +373,11 @@ export class OpenISDProject {
     /** The project's trace/legend colour (a CSS colour), saved in the project file; null until
      *  first assigned. Chart view state, so `isModified()` ignores it. */
     get traceColor(): SimpleField<string | null> {
-        return ProjectChartsView.wrap(this.#slot('charts'), this.#engine, () => this.box.boxType.value).traceColor;
+        return new ProjectChartsView(this.#slot('charts'), this.#engine.box, () => this.box.boxType.value).traceColor;
     }
 
     get sweepN(): SimpleField<number | null> {
-        return ProjectChartsView.wrap(this.#slot('charts'), this.#engine, () => this.box.boxType.value).sweepN;
+        return new ProjectChartsView(this.#slot('charts'), this.#engine.box, () => this.box.boxType.value).sweepN;
     }
 
     /** A record ENTERS the process here. A record carries no identity, so one is minted — two
@@ -492,7 +492,7 @@ export class OpenISDProject {
             driverOver: (root) => this.#driverOver(root),
             boxOver: (root) => this.#boxOver(root),
             air: (root) => this.#air(root),
-            envFieldsOver: (environment) => envFieldsOver(environment, this.#engine),
+            envFieldsOver: (environment) => envFieldsOver(environment, this.#engine.environment),
             powerDriveOver: (root) => this.#signalOver(root).powerDrive_W,
             driveVoltageOver: (root) => this.#signalOver(root).driveVoltage_V,
         });
@@ -519,15 +519,16 @@ export class OpenISDProject {
      *  `.wpr` models fewer box types and fewer fields than openisd does, so this is a lossy
      *  write and `value` is null when the box cannot be expressed at all (a `bandpass6`, say).
      *  `errors` carries the reason and every field dropped along the way. */
-    toWprText(engine: Engine): { value: string | null; errors: DriverError[] } {
+    toWprText(): { value: string | null; errors: DriverError[] } {
         const committed = OpenISDProject.wrapWithIdentity(structuredClone(this.#committed()), this.#uuid, this.#engine);
-        return wprTextOf(committed, engine);
+        const {value: wpr, errors} = new WinIsdProjectConverter(this.#engine).openIsdProjectToWinIsdProject(committed);
+        return {value: wpr ? wpr.toWpr() : null, errors};
     }
 
     /** WinISD `.wpr` text back to a project. The inverse of `toWprText()`, as far as a format
      *  carrying fewer box types and fields allows. */
     static fromWprText(text: string, engine: Engine): { value: OpenISDProject | null; errors: DriverError[] } {
-        return winIsdProjectToOpenIsdProject(text, engine);
+        return new WinIsdProjectConverter(engine).winIsdProjectToOpenIsdProject(text);
     }
 
     /** This project as `.owpr` text — openisd project JSON, the form
@@ -574,9 +575,9 @@ export class OpenISDProject {
      *  root, same split `driverOver`/`boxOver` have (S2-7d2). `usableRe`/`Rs_ohm`/`#issues.signal`
      *  are this project's own facts, passed in rather than let `ProjectSignal` reach for them. */
     #signalOver(root: SimpleField<OpenISDProjectJson>): ProjectSignal {
-        return ProjectSignal.wrap(
+        return new ProjectSignal(
             focus(root, 'signal'),
-            this.#engine,
+            this.#engine.signal,
             () => usableRe(root, (r) => this.#driverOver(r)),
             () => this.Rs_ohm.value ?? 0,
             () => this.#issues.signal,
@@ -606,7 +607,7 @@ export class OpenISDProject {
     /** This project's air temperature, WinISD Advanced "Temperature". E when typed, else C: the
      *  app's Options → Environment value (`Engine.envDefaults()`), which the resolve also stores. */
     get envTempK(): Readable<number> & Entered & Calculated & Writable<number> & Clearable & Calculatable<number> {
-        return ProjectEnvironment.wrap(this.#slot('environment'), this.#engine).tempK;
+        return new ProjectEnvironment(this.#slot('environment'), this.#engine.environment).tempK;
     }
 
     /** @deprecated Use `project.envTempK.set(tempK)` instead. */
@@ -617,7 +618,7 @@ export class OpenISDProject {
     /** This project's relative humidity, WinISD Advanced "Humidity". Stored the same way as
      *  `envTempK`. */
     get envHumidityPct(): Readable<number> & Entered & Calculated & Writable<number> & Clearable & Calculatable<number> {
-        return ProjectEnvironment.wrap(this.#slot('environment'), this.#engine).humidityPct;
+        return new ProjectEnvironment(this.#slot('environment'), this.#engine.environment).humidityPct;
     }
 
     /** @deprecated Use `project.envHumidityPct.set(humidityPct)` instead. */
@@ -628,7 +629,7 @@ export class OpenISDProject {
     /** This project's atmospheric pressure, WinISD Advanced "Pressure". Stored the same way as
      *  `envTempK`. */
     get envPressurePa(): Readable<number> & Entered & Calculated & Writable<number> & Clearable & Calculatable<number> {
-        return ProjectEnvironment.wrap(this.#slot('environment'), this.#engine).pressurePa;
+        return new ProjectEnvironment(this.#slot('environment'), this.#engine.environment).pressurePa;
     }
 
     /** @deprecated Use `project.envPressurePa.set(pressurePa)` instead. */
@@ -640,7 +641,7 @@ export class OpenISDProject {
      *  physical CIPM-2007 model when false. Null reads as true (QO95): a new project matches
      *  WinISD out of the box. See `engine/air.ts` for the two models. */
     get envUseWinisdAirModel(): SimpleField<boolean> {
-        return ProjectEnvironment.wrap(this.#slot('environment'), this.#engine).useWinisdAirModel;
+        return new ProjectEnvironment(this.#slot('environment'), this.#engine.environment).useWinisdAirModel;
     }
 
     /** @deprecated Use `project.envUseWinisdAirModel.set(useWinisdAirModel)` instead. */
@@ -661,7 +662,7 @@ export class OpenISDProject {
         const ts = this.driver.specs;
         const Qms = ts.Qms.value, Qes = ts.Qes.value, Re_ohm = ts.Re_ohm.value, Qts = ts.Qts.value;
         if (Qms === null || Qes === null || Re_ohm === null || Qts === null) return null;
-        return this.#engine.sourceLoadedQts(Qms, Qes, Re_ohm, Rs, Qts);
+        return this.#engine.driver.sourceLoadedQts(Qms, Qes, Re_ohm, Rs, Qts);
     }
 
     // ── SIMULATION — the engine's sweep, run on THIS project's driver and box ──────────────────
@@ -695,6 +696,7 @@ export class OpenISDProject {
             filters: this.filters,
             driverAddedMass_kg: this.driverAddedMass_kg,
             vcTempRise_K: this.vcTempRise_K,
+            loading: this.loading,
             alfaVC_per_K: this.alfaVC_per_K,
             sweepN: this.sweepN,
             driveVoltage_V: this.driveVoltage_V.value,
@@ -733,37 +735,37 @@ export class OpenISDProject {
     /** The passband level a response is measured against — the reference every dB figure below is
      *  relative to. */
     passbandRef(spl: number[]): number {
-        return this.#engine.passbandRef(spl);
+        return this.#engine.simulation.passbandRef(spl);
     }
 
     /** The frequency where the response has fallen `dropDb` below its passband — F3 at 3 dB, F6 at
      *  6, and so on. Null when the response never falls that far inside the swept range. */
     rolloffFreq(sw: SweepResult, dropDb: number): number | null {
-        return this.#engine.rolloffFreq(sw, dropDb);
+        return this.#engine.simulation.rolloffFreq(sw, dropDb);
     }
 
     /** A non-finite value anywhere in the response, or null. A sweep that produced NaN is a fault
      *  to report, never a curve to draw. */
     classifyFinite(sw: SweepResult): DriverError | null {
-        return this.#engine.classifyFinite(sw);
+        return this.#engine.simulation.classifyFinite(sw);
     }
 
     /** Finiteness issues split by plotted output, for a caller that renders one chart at a time
      *  and needs one specific cause (BUG_20260906: without this delegate, that caller had no way
      *  to ask the project and reached around it to construct its own `Engine`). */
     classifyFiniteIssues(sw: SweepResult): DriverError[] {
-        return this.#engine.classifyFiniteIssues(sw);
+        return this.#engine.simulation.classifyFiniteIssues(sw);
     }
 
     /** A response clamped flat against a limit, or null — a shape that looks like a valid answer
      *  and is not. */
     classifyFlatClamp(sw: SweepResult): DriverError | null {
-        return this.#engine.classifyFlatClamp(sw);
+        return this.#engine.simulation.classifyFlatClamp(sw);
     }
 
     /** The same finiteness check for the max-SPL curves. */
     classifyMaxFinite(mx: MaxCurvesResult): DriverError | null {
-        return this.#engine.classifyMaxFinite(mx);
+        return this.#engine.simulation.classifyMaxFinite(mx);
     }
 
     /**
@@ -775,7 +777,7 @@ export class OpenISDProject {
      */
     impedancePeak(sw: SweepResult | null): { Fsc: number; Qtc: number } | null {
         const Re_ohm = this.driver.specs.Re_ohm.value;
-        return Re_ohm === null ? null : this.#engine.findImpedancePeak(sw, Re_ohm);
+        return Re_ohm === null ? null : this.#engine.driver.findImpedancePeak(sw, Re_ohm);
     }
 
     /** Start a transient what-if session from the current committed design. */

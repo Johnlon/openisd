@@ -11,7 +11,7 @@ import {readFileSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 import {dirname, join} from 'node:path';
 import type {MaxCurvesResult, SweepResult} from '../../engine/index.js';
-import {Engine} from '../../engine/index.js';
+import {createEngine} from '../../engine/index.js';
 
 
 const here        = dirname(fileURLToPath(import.meta.url));
@@ -51,7 +51,7 @@ describe('golden-master — engine reproduces committed fixtures exactly', () =>
 
   for (const name of NAMES) {
     it(`${name} — sweep + maxCurves are byte-identical to the fixture`, () => {
-      const engine = new Engine();
+      const engine = createEngine();
       const { design: { driverRaw, box, P }, sweep: expSw, maxCurves: expMx } =
         JSON.parse(readFileSync(join(fixturesDir, name + '.json'), 'utf8'));
 
@@ -72,12 +72,12 @@ describe('golden-master — engine reproduces committed fixtures exactly', () =>
       const drv: TestSolverQuantities = {
         ...solved,
         Re_terminal_ohm: solved.Re_ohm === undefined ? undefined
-          : engine.terminalRe_ohm(solved.Re_ohm!, solved.numVC, solved.wiring),
+          : engine.driver.terminalRe_ohm(solved.Re_ohm!, solved.numVC, solved.wiring),
         BL_terminal_Tm: solved.BL_Tm === undefined ? undefined
-          : engine.terminalBL_Tm(solved.BL_Tm!, solved.numVC, solved.wiring),
+          : engine.driver.terminalBL_Tm(solved.BL_Tm!, solved.numVC, solved.wiring),
       };
-      const sw = engine.sweep(driverParams(drv), driverRaw.Le, box, P).values;
-      const mx = engine.maxCurves(driverParams(drv), driverRaw.Le, box, P).values;
+      const sw = engine.simulation.sweep(driverParams(drv), driverRaw.Le, box, P).values;
+      const mx = engine.simulation.maxCurves(driverParams(drv), driverRaw.Le, box, P).values;
       assert.ok(sw && mx, `${name}: the engine refused this fixture`);
 
       for (const k of ['fs', 'spl', 'phase', 'exc', 'excPR', 'pv', 'zmag', 'zph', 'gd'] as const)

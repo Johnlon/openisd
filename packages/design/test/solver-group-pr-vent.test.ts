@@ -3,7 +3,7 @@ import {describe, expect, it} from 'vitest';
 import {OpenISDDriver} from '../domain/driver/openISDDriver.js';
 import {OpenISDPassiveRadiatorStandalone} from '../domain/passiveRadiator/openISDPassiveRadiatorStandalone.js';
 import {OpenISDProject} from '../domain/project/openISDProject.js';
-import {Engine} from '../engine/index.js';
+import {createEngine} from '../engine/index.js';
 
 const scraped = <T,>(value: T) => ({ value });
 const spec = (read_value: number) =>
@@ -30,7 +30,7 @@ function prSpecSection(p: {
 }
 
 function driverFrom(p: Parameters<typeof driverJson>[0]) {
-  const result = OpenISDDriver.fromConformingRecord(driverJson(p), new Engine());
+  const result = OpenISDDriver.fromConformingRecord(driverJson(p), createEngine());
   if (Array.isArray(result)) throw new Error(`fixture is not a valid driver: ${result.join(', ')}`);
   return result;
 }
@@ -60,7 +60,7 @@ function project() {
   return OpenISDProject.builder(driverFrom({
     brand: 'Dayton', model: 'RS225', section: 'woofer',
     spec: specSection({ Fs_hz: 30, Qts: 0.4, Sd_m2: 0.02, Cms_m_per_N: 0.0005, Mmd_kg: 0.05, Rms_Ns_per_m: 2, Xmax_m: 0.008 }),
-  }), new Engine()).sealed().volume_m3(0.03).build();
+  }), createEngine()).sealed().volume_m3(0.03).build();
 }
 
 function prJson() {
@@ -73,7 +73,7 @@ function prJson() {
 describe('PR and Vent Solver Groups', () => {
   it('PR solver group derives C/N/E state, value and structural DQ atomically', () => {
     const p = project();
-    const library = OpenISDPassiveRadiatorStandalone.fromConformingRecord(prJson(), new Engine());
+    const library = OpenISDPassiveRadiatorStandalone.fromConformingRecord(prJson(), createEngine());
     if (Array.isArray(library)) throw new Error(`fixture radiator is invalid: ${library.join(', ')}`);
     p.box.passiveRadiator.radiator.update(library);
     // S2-7d2: the project cascade only solves the ACTIVE box type's vent/PR pair, and
@@ -96,7 +96,7 @@ describe('PR and Vent Solver Groups', () => {
     expect(massCell.calculated).toBe(false);
     expect(tuningCell.entered).toBe(true);
     expect(massCell.value).toBeNull();
-    const DQ = [new Engine().targetUnreachable('addedMass_kg', ceiling)];
+    const DQ = [createEngine().issues.targetUnreachable('addedMass_kg', ceiling)];
     expect(massCell.dq).toEqual(DQ);
     expect(tuningCell.dq).toEqual(DQ);
   });

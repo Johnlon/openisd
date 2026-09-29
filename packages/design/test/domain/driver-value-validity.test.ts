@@ -12,7 +12,7 @@
  * only marked.
  */
 import {describe, expect, it} from 'vitest';
-import {Engine} from '@openisd/design/engine';
+import {type Engine, createEngine} from '@openisd/design/engine';
 import {OpenISDDriver} from '../../domain/index.js';
 import type {DriverSpecFieldName} from '../../domain/index.js';
 
@@ -38,11 +38,11 @@ describe('driver spec-field value validity — every field has its OWN floor (BU
       'Depth_m', 'MagDepth_m', 'Magnet_m', 'Basket_m', 'Outer_m', 'OuterX_m', 'OuterY_m',
       'DVol_m3',
     ] satisfies NumSpecField[])('%s', (name) => {
-      const engine = new Engine();
+      const engine = createEngine();
       for (const value of [0, -1, NaN]) {
         const f = field(engine, name);
         f.set(value);
-        expect(f.dq).toContainEqual(engine.positiveValueIssue(value));
+        expect(f.dq).toContainEqual(engine.issues.positiveValueIssue(value));
       }
     });
   });
@@ -51,7 +51,7 @@ describe('driver spec-field value validity — every field has its OWN floor (BU
     it.each([
       'Le_H', 'KLe_H_sqrtHz', 'Znom_ohm', 'alfaVC_per_K',
     ] satisfies NumSpecField[])('%s', (name) => {
-      const engine = new Engine();
+      const engine = createEngine();
       const zero = field(engine, name);
       zero.set(0);
       expect(zero.dq).not.toContainEqual(expect.objectContaining({kind: 'invalid-value'}));
@@ -60,7 +60,7 @@ describe('driver spec-field value validity — every field has its OWN floor (BU
       for (const value of [-1, NaN]) {
         const f = field(engine, name);
         f.set(value);
-        expect(f.dq).toContainEqual(engine.nonNegativeValueIssue(value));
+        expect(f.dq).toContainEqual(engine.issues.nonNegativeValueIssue(value));
       }
     });
   });
@@ -69,7 +69,7 @@ describe('driver spec-field value validity — every field has its OWN floor (BU
     it.each([
       'SPL_dB', 'SPLmax_dB', 'SPLmaxLF_dB', 'USPL_dB',
     ] satisfies NumSpecField[])('%s', (name) => {
-      const engine = new Engine();
+      const engine = createEngine();
       for (const value of [0, -3]) {
         const f = field(engine, name);
         f.set(value);
@@ -80,13 +80,13 @@ describe('driver spec-field value validity — every field has its OWN floor (BU
   });
 
   it('leaves a not-entered field alone — absence is not a bad value', () => {
-    const engine = new Engine();
+    const engine = createEngine();
     const driver = OpenISDDriver.empty(engine);
     expect(driver.specs.Fs_hz.dq).toEqual([]);
   });
 
   it('keeps the bad value exactly as entered, never coerced', () => {
-    const engine = new Engine();
+    const engine = createEngine();
     const driver = OpenISDDriver.empty(engine);
     driver.specs.Fs_hz.set(-5);
     expect(driver.specs.Fs_hz.value).toBe(-5);

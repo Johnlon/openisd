@@ -19,9 +19,9 @@
 import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
 import type {ChartId, DqIssue, DriverSolverParams, SolverField, SweepParams} from '@openisd/design/engine';
-import {Engine} from '@openisd/design/engine';
+import {createEngine} from '@openisd/design/engine';
 
-const engine = new Engine();
+const engine = createEngine();
 import {parseChartId, seriesFor, TAB_META, TABS} from '../../src/logic/series.js';
 import type {PlotParams} from '../../src/types.js';
 
@@ -51,7 +51,7 @@ function fakeField<T>(value: T | null): SolverField<T> {
 
 // The solver derives what the stated values imply, terminal Re/BL included — there is no
 // separate derive-and-validate step, and `sweep` is what reports a driver it cannot use.
-// S2-10: `Engine.sweep()`/`maxCurves()` now take handles (`DriverSolverParams`), so the stated
+// S2-10: `SimulationEngine.sweep()`/`maxCurves()` now take handles (`DriverSolverParams`), so the stated
 // RAW values are seeded as entered fields, `solveDriver()` fills in everything it can derive
 // (writing back via `setCalculated`), and the same handle set is then handed to `sweep()` — no
 // intermediate bag anywhere.
@@ -67,28 +67,28 @@ const driverParams: DriverSolverParams = {
   Rme_kg_per_s: fakeField<number>(null), Mpow_N_per_sqrtW: fakeField<number>(null), Mcost_kg_per_s: fakeField<number>(null),
   gamma_m_per_s2_A: fakeField<number>(null), Gloss: fakeField<number>(null), Vcd_m: fakeField<number>(null), Depth_m: fakeField<number>(null),
   MagDepth_m: fakeField<number>(null), Magnet_m: fakeField<number>(null), DVol_m3: fakeField<number>(null),
-  c_m_per_s: fakeField(engine.solveEnvironment({}).values.c),
-  roo_kg_per_m3: fakeField(engine.solveEnvironment({}).values.rho),
+  c_m_per_s: fakeField(engine.environment.solve({}).values.c),
+  roo_kg_per_m3: fakeField(engine.environment.solve({}).values.rho),
   Re_terminal_ohm: fakeField<number>(null), BL_terminal_Tm: fakeField<number>(null), numVC: fakeField<number>(null),
   wiring: fakeField('parallel'),
 };
-engine.solveDriver(driverParams, engine.solveEnvironment({}).values);
+engine.driver.solve(driverParams, engine.environment.solve({}).values);
 const DRV = driverParams;
 const LE_H = 0.70e-3;
 
 // Fb: the tuning this Vb/Sp/Leff already amounts to (Helmholtz, inverted) — winisd-lossy's own
 // Map comes from Fb directly (circuit.ts, BUG_20260927_vented-box-losses-not-winisd-form.md).
 const SP_VB = 0.030, SP_SP = Math.PI * (0.05 / 2) ** 2, SP_LEFF = 0.30 + 0.732 * 0.05;
-const {c: SP_C} = engine.solveEnvironment({}).values;
+const {c: SP_C} = engine.environment.solve({}).values;
 const SP: SweepParams = {
   Vb: SP_VB, eg: 2.83, Sp: SP_SP, Leff: SP_LEFF, Fb: SP_C * Math.sqrt(SP_SP / (SP_LEFF * SP_VB)) / (2 * Math.PI),
   fmin: 10, fmax: 2000, N: 200,
   filters: [{ type: 'peaking', fc: 60, Q: 3, gain: 6, enabled: true }],
 };
 const PP = SP as unknown as PlotParams;
-const SW = engine.sweep(DRV, LE_H, 'vented', SP).values;
+const SW = engine.simulation.sweep(DRV, LE_H, 'vented', SP).values;
 assert.ok(SW, 'reference sweep produced nothing');
-const MX = engine.maxCurves(DRV, LE_H, 'vented', SP).values;
+const MX = engine.simulation.maxCurves(DRV, LE_H, 'vented', SP).values;
 assert.ok(MX, 'reference max curves produced nothing');
 
 // The three "(PR)" chart ids are `null` for a vented design (SW above) — that is the correct,
@@ -96,34 +96,34 @@ assert.ok(MX, 'reference max curves produced nothing');
 // not a gap this suite should paper over. They get their OWN reference design, a real
 // passive-radiator box, so "every declared member draws" is checked against data that
 // actually exists for them.
-const PR_ENGINE = new Engine();
+const PR_ENGINE = createEngine();
 const PR_VB = 0.010;
 const PR_BOX = { prSd: 0.0095, prNum: 1, prMmd: 0.010, prMadd: 0, prCms: 0.0018, prRms: 1.0 };
-const PR_FR = PR_ENGINE.prTuning({ Vb: PR_VB, prMmd: PR_BOX.prMmd, prMadd: PR_BOX.prMadd, prSd: PR_BOX.prSd, prCms: PR_BOX.prCms },
-  PR_ENGINE.solveEnvironment({}).values);
+const PR_FR = PR_ENGINE.pr.tuning({ Vb: PR_VB, prMmd: PR_BOX.prMmd, prMadd: PR_BOX.prMadd, prSd: PR_BOX.prSd, prCms: PR_BOX.prCms, prNum: PR_BOX.prNum },
+  PR_ENGINE.environment.solve({}).values);
 const SP_PR: SweepParams = {
   Vb: PR_VB, eg: 2.83, ...PR_BOX, Fr: PR_FR, Ql: 7, Qa: 30,
   fmin: 10, fmax: 2000, N: 200,
   filters: [{ type: 'peaking', fc: 60, Q: 3, gain: 6, enabled: true }],
 };
 const PP_PR = SP_PR as unknown as PlotParams;
-const SW_PR = PR_ENGINE.sweep(DRV, LE_H, 'box-passive-radiator', SP_PR).values;
+const SW_PR = PR_ENGINE.simulation.sweep(DRV, LE_H, 'box-passive-radiator', SP_PR).values;
 assert.ok(SW_PR, 'reference PR sweep produced nothing');
-const MX_PR = PR_ENGINE.maxCurves(DRV, LE_H, 'box-passive-radiator', SP_PR).values;
+const MX_PR = PR_ENGINE.simulation.maxCurves(DRV, LE_H, 'box-passive-radiator', SP_PR).values;
 assert.ok(MX_PR, 'reference PR max curves produced nothing');
 
 // `FrontPortGain` is `null` for a vented design (SW above), same reasoning as the PR trio —
 // its own reference design is a real bandpass4 box.
-const BP4_ENGINE = new Engine();
+const BP4_ENGINE = createEngine();
 const SP_BP4: SweepParams = {
   Vb: 0.010, Vf: 0.005, Ff: 60, Qlr: 7, Qar: 30, Qiclfr: 20, Qlf: 9, Qaf: 40, Qpf: 15,
   eg: 2.83, fmin: 10, fmax: 2000, N: 200,
   filters: [{ type: 'peaking', fc: 60, Q: 3, gain: 6, enabled: true }],
 };
 const PP_BP4 = SP_BP4 as unknown as PlotParams;
-const SW_BP4 = BP4_ENGINE.sweep(DRV, LE_H, 'bandpass4', SP_BP4).values;
+const SW_BP4 = BP4_ENGINE.simulation.sweep(DRV, LE_H, 'bandpass4', SP_BP4).values;
 assert.ok(SW_BP4, 'reference bandpass4 sweep produced nothing');
-const MX_BP4 = BP4_ENGINE.maxCurves(DRV, LE_H, 'bandpass4', SP_BP4).values;
+const MX_BP4 = BP4_ENGINE.simulation.maxCurves(DRV, LE_H, 'bandpass4', SP_BP4).values;
 assert.ok(MX_BP4, 'reference bandpass4 max curves produced nothing');
 
 const PR_IDS = new Set<ChartId>(['PRTFMag', 'PRTFPhase', 'PRExcursion']);
@@ -187,19 +187,19 @@ describe('chart-type set — every declared member draws', () => {
 
 describe('chart-type set — the one string→member boundary', () => {
   it('accepts every declared id unchanged', () => {
-    for (const id of ALL_IDS) assert.equal(parseChartId(engine, id), id);
+    for (const id of ALL_IDS) assert.equal(parseChartId(engine.box, id), id);
   });
 
   it('treats an undeclared id as missing, not as a second spelling', () => {
     // A stale id from localStorage, a hand-edited share link, and a typo are all just
     // invalid data — none of them selects a chart nothing can draw.
     for (const bad of ['Excursion(PR)', 'spl', 'banana', '', null, undefined])
-      assert.equal(parseChartId(engine, bad), 'SPL', `parseChartId(${JSON.stringify(bad)})`);
+      assert.equal(parseChartId(engine.box, bad), 'SPL', `parseChartId(${JSON.stringify(bad)})`);
   });
 
   it('does not admit inherited Object properties as chart ids', () => {
     for (const bad of ['toString', 'constructor', 'hasOwnProperty'])
-      assert.equal(parseChartId(engine, bad), 'SPL', `parseChartId(${JSON.stringify(bad)})`);
+      assert.equal(parseChartId(engine.box, bad), 'SPL', `parseChartId(${JSON.stringify(bad)})`);
   });
 });
 
@@ -249,10 +249,10 @@ describe('EQ/filter charts — units, datum and axis', () => {
     // at unity, which must not collapse the axis to zero height.
     const noFlt = { ...SP, filters: [] };
     const noFltP = noFlt as unknown as PlotParams;
-    const engine = new Engine();
-    const sw = engine.sweep(DRV, LE_H, 'vented', noFlt).values;
+    const engine = createEngine();
+    const sw = engine.simulation.sweep(DRV, LE_H, 'vented', noFlt).values;
     assert.ok(sw, 'sweep produced nothing');
-    const mx = engine.maxCurves(DRV, LE_H, 'vented', noFlt).values;
+    const mx = engine.simulation.maxCurves(DRV, LE_H, 'vented', noFlt).values;
     assert.ok(mx, 'maxCurves produced nothing');
     for (const id of ['FltMag', 'FltPhase', 'FltGD'] as const) {
       const b = seriesFor(engine, id, DRV, 'vented', noFltP, sw, mx);

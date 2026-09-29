@@ -29,7 +29,7 @@ test('sealed box WinISD golden: Fs=40 Vas=7.65L Qes=0.45 Qms=2.94 Re=6.6 Rg=0.1 
   await page.goto('/');
 
   await openAProject(page);
-  // Driver: enter Fs/Qes/Qms/Vas/Re via the "Tune" panel (OgTune.vue).
+  // Driver: enter Fs/Qes/Qms/Vas/Re via the "Tune" panel (OriginalTune.vue).
   await page.locator('li', { hasText: 'Driver' }).click();
   await page.locator('button.edit-btn', { hasText: 'What-if' }).click();
   const tune = page.locator('.tune-panel');

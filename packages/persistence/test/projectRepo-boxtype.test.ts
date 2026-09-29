@@ -18,9 +18,9 @@ import {createProjectRepo} from '../src/repos/projectRepo.js';
 import type {FileStorage} from '../src/storage/fileStorage.js';
 import {createMemoryStorage} from '../src/storage/keyValueStorage.js';
 import {OpenISDDriver, OpenISDProject} from '@openisd/design';
-import {Engine} from '@openisd/design/engine';
+import {createEngine} from '@openisd/design/engine';
 
-const engine = new Engine();
+const engine = createEngine();
 
 /** No file is ever written by these tests; the repo only needs the collaborator to exist. */
 const noFiles: FileStorage = {

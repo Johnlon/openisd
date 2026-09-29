@@ -14,7 +14,7 @@ import {allNotAvailableCells} from './wdrFixture.js';
 import {driverSpecsOf} from '../../domain/openisdSchema.js';
 import {winISDDriverToOpenISDDeviceJson} from '../../domain/winIsdDriverImport.js';
 import {OpenISDDriver} from '../../domain/index.js';
-import {Engine} from '../../engine/index.js';
+import {createEngine} from '../../engine/index.js';
 
 describe('WinISDDriver [DRIVERTYPE] tag — read side (winISDDriverToOpenISDDeviceJson)', () => {
   it('a .wdr reads back with woofer section', () => {
@@ -37,7 +37,7 @@ describe('WinISDDriver [DRIVERTYPE] tag — read side (winISDDriverToOpenISDDevi
 
 describe('refusal of tweeter record', () => {
   it('a tweeter record is refused by driver seam', () => {
-    const engine = new Engine();
+    const engine = createEngine();
     const tweeterRecord = {
       uuid: { value: 'test-uuid-driver-type-tag' },
       quality: {

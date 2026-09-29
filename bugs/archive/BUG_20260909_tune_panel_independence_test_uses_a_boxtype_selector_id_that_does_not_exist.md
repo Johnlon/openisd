@@ -31,7 +31,7 @@ DOM regardless of the active tab, and `selectOption` reaches it without a tab sw
 
 `packages/ui/test/ui/tune-panel-independent-of-box-view.browser.spec.ts`: `#boxtype` →
 `#og-box-type` (both call sites, lines 38 and 41). No app change — the QO134 hoist that renders
-`<OgTune>` from `App.vue` is what this test verifies, and that code is in place.
+`<OriginalTune>` from `App.vue` is what this test verifies, and that code is in place.
 
 ## Verification
 

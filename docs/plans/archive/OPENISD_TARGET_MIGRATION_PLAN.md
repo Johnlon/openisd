@@ -36,7 +36,7 @@ npx vue-tsc -p packages/ui --noEmit
 
 | Gate | State |
 | --- | --- |
-| `ui` imports `logic` and nothing below | RED — `DriverEditorModal.vue`, `OgTune.vue`, `OriginalShell.vue` |
+| `ui` imports `logic` and nothing below | RED — `DriverEditorModal.vue`, `OriginalTune.vue`, `OriginalShell.vue` |
 | a component imports no VALUE from `@openisd/*` | RED — same three |
 | no app file imports the condemned `Driver` ADT | RED — `driverSelection.ts`, `DriverEditorModal.vue` |
 
@@ -125,7 +125,7 @@ those fields use the record's own provenance like every other field.
 `useVentGroup.ts` and `usePrGroup.ts` keep their solving; they operate on the project's members
 instead of on a flat bag.
 
-**This is the step that pays for `ManagedProject`:** `OgTune.vue`'s `vbSnapshot` hand-rolled undo
+**This is the step that pays for `ManagedProject`:** `OriginalTune.vue`'s `vbSnapshot` hand-rolled undo
 disappears, because cancelling the overlay restores `Vb` — `Vb` is IN the overlay.
 
 **Done when:** `vbSnapshot` is gone, and cancelling a what-if restores a scrubbed `Vb`.
@@ -163,7 +163,7 @@ rather than dies.
 
 ### Step 8 — Route the last `ui` imports through `logic`
 
-`OgTune.vue`, `OriginalShell.vue`, `DriverEditorModal.vue` stop importing `@openisd/engine`.
+`OriginalTune.vue`, `OriginalShell.vue`, `DriverEditorModal.vue` stop importing `@openisd/engine`.
 The value each needs is computed in `logic` and handed down as data — the pattern
 `logic/environment.ts` and `logic/prWinIsdFields.ts` already establish.
 

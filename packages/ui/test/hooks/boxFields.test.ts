@@ -1,6 +1,6 @@
 import {describe, expect, it} from 'vitest';
 import {computed, nextTick, ref, shallowRef} from 'vue';
-import {Engine, type BoxType} from '@openisd/design/engine';
+import {createEngine, type BoxType} from '@openisd/design/engine';
 import {OpenISDProject} from '@openisd/design';
 import {
   createBoxVolume,
@@ -9,7 +9,7 @@ import {
 } from '../../src/hooks/boxFields.js';
 
 function createCompleteProject() {
-  const engine = new Engine();
+  const engine = createEngine();
   const project = OpenISDProject.empty(engine);
   project.driver.specs.Fs_hz.set(40);
   project.driver.specs.Qts.set(0.38);
@@ -119,7 +119,7 @@ describe('boxFields', () => {
       const projectRef = shallowRef(project);
       const selectedBox = ref<BoxType>('sealed');
       const projectChanged = ref(0);
-      const zeroVolumeMark = engine.positiveValueIssue(0);
+      const zeroVolumeMark = engine.issues.positiveValueIssue(0);
       if (zeroVolumeMark === null) throw new Error('0 must carry the positive-value mark');
       const expectedNote = zeroVolumeMark.text;
 

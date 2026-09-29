@@ -1,4 +1,4 @@
-import { Engine } from '../../engine/index.js';
+import {type Engine} from '../../engine/index.js';
 import type { AirEnvironment, DriverIssue } from '../../engine/index.js';
 import type { SimpleField } from '../cell.js';
 import type { DriverDeviceJson } from '../openisdSchema.js';
@@ -35,6 +35,14 @@ export class OpenISDDriverEmbedded extends OpenISDDriver {
         durableIssues: () => readonly DriverIssue[],
     ): OpenISDDriverEmbedded {
         return new OpenISDDriverEmbedded(slot, engine, airProvider, durableIssues);
+    }
+
+    /** Re at the project's voice-coil temperature rise — the Re WinISD drives from — when Re is a
+     *  positive finite number, else null. The coefficient and the rise are the project's, not the
+     *  driver record's (bugs/BUG_20260928_vc-temperature-drive-uses-hot-re.md). */
+    hotRe_ohm(alfaVC_per_K: number, dT_K: number): number | null {
+        const Re_ohm = this.specs.Re_ohm.value;
+        return Re_ohm !== null && Number.isFinite(Re_ohm) && Re_ohm > 0 ? this.engine.driver.hotRe(Re_ohm, alfaVC_per_K, dT_K) : null;
     }
 
     /** Adopt `source`'s whole record, then strip its `c`/`roo` — an embedded driver never keeps

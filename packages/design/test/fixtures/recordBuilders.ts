@@ -7,7 +7,7 @@
  * exists here, because none is wanted (a short key would be a misspelling the strict schema
  * refuses).
  */
-import {Engine} from '@openisd/design/engine';
+import {type Engine} from '@openisd/design/engine';
 import {OpenISDDriver, OpenISDPassiveRadiatorStandalone, VoiceCoilWiring,} from '../../domain/index.js';
 
 const scraped = <T,>(value: T) => ({ value });

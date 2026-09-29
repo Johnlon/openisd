@@ -13,7 +13,7 @@ import {dirname, join} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import {Engine} from '../../engine/index.js';
+import {createEngine} from '../../engine/index.js';
 import {OpenISDProject} from '../../domain/index.js';
 import {WINISD_BANDPASS4_CAPTURE} from '../fixtures/winisdBandpass4Capture.js';
 import type {WinIsdComplexPoint} from '../fixtures/winisdVentedCapture.js';
@@ -31,7 +31,7 @@ function angleDiff(a: number, b: number, fullTurn: number): number {
 }
 
 function setUpProject(): OpenISDProject {
-  const engine = new Engine();
+  const engine = createEngine();
   const text = readFileSync(WPR_PATH, 'utf8');
   const {value: project, errors} = OpenISDProject.fromWprText(text, engine);
   if (project === null) throw new Error('fromWprText returned problems: ' + JSON.stringify(errors));

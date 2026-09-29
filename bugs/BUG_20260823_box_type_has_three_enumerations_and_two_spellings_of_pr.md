@@ -13,7 +13,7 @@ into another name for the same thing.
 |---|---|
 | `packages/engine/src/types.ts:65` `BoxType` | `sealed` `vented` `pr` `bandpass4` |
 | `packages/model/src/openisdProject.ts:37` `AlignmentKind` | `sealed` `vented` `bandpass4` `passive-radiator` |
-| `packages/ui/src/ui/shells/original/OriginalShell.vue:92` `OgBox` | `sealed` `vented` `pr` `bandpass4` `bandpass6` `abc` |
+| `packages/ui/src/ui/shells/original/OriginalShell.vue:92` `OriginalBox` | `sealed` `vented` `pr` `bandpass4` `bandpass6` `abc` |
 
 ## Evidence
 
@@ -27,7 +27,7 @@ into another name for the same thing.
 
 `packages/ui/src/ui/shells/original/OriginalShell.vue:92`:
 
-    type OgBox = 'sealed' | 'vented' | 'pr' | 'bandpass4' | 'bandpass6' | 'abc';
+    type OriginalBox = 'sealed' | 'vented' | 'pr' | 'bandpass4' | 'bandpass6' | 'abc';
 
 `packages/ui/src/logic/managedProject.ts:67` states the overlap in its own words:
 "`BoxType` (@openisd/engine) and `AlignmentKind` (@openisd/model) name the same four".
@@ -40,14 +40,14 @@ exists only to bridge the two spellings — a component needs it to say which bo
 
     watch(selectedBox, (b) => { if (SUPPORTED_BOX.has(b)) state.box = b as BoxType; });
 
-The `as BoxType` assertion is unchecked: `OgBox` has two members (`bandpass6`, `abc`) that
+The `as BoxType` assertion is unchecked: `OriginalBox` has two members (`bandpass6`, `abc`) that
 `BoxType` cannot represent. Correctness here rests entirely on the `SUPPORTED_BOX` guard being
 kept in sync by hand with `BoxType`'s member list, in a different package, with no gate
 relating them.
 
 ## Cause
 
-`OgBox` was declared inside the component because the Original shell needs to OFFER box types
+`OriginalBox` was declared inside the component because the Original shell needs to OFFER box types
 the engine cannot yet simulate (`bandpass6`, `abc`) so the picker can show them as pending.
 That is a real requirement, but it was met by declaring a third private enumeration in a `.vue`
 file rather than by modelling "offered" and "simulatable" as two facts about one enumeration.

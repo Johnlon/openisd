@@ -33,7 +33,7 @@ the fall-through, **because the cast already told it the value was a `BoxType`**
 checker was load-bearing here and the assertion disarmed it.
 
 Reachability today: nothing in the app writes an invalid box string — `OriginalShell.vue` gates
-on `SUPPORTED_BOX`, and `OgNewProject.vue`'s options list only the four simulatable types. So it
+on `SUPPORTED_BOX`, and `OriginalNewProject.vue`'s options list only the four simulatable types. So it
 needs a hand-edited `.owpr`, a crafted share link, or a file from another build. Not
 hypothetical: `.owpr` files and share links in the wild already carry `'pr'`, a spelling the
 current code does not use natively — the same door, already carrying a value that needs

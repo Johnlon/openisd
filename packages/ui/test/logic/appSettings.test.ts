@@ -115,11 +115,11 @@ describe('appState — the application settings seam', () => {
 
   it("the engine reads the band at call time — a later write changes its answer, nothing rebuilt", () => {
     setVentedLimits(WIDE);
-    assert.equal(engine.ventedVolumeIssue(1.684), null);
+    assert.equal(engine.vented.volumeIssue(1.684), null);
 
     setVentedLimits(NARROW);
 
-    const issue = engine.ventedVolumeIssue(1.684);
+    const issue = engine.vented.volumeIssue(1.684);
     assert.notEqual(issue, null);
     assert.equal(issue?.kind, 'out-of-range');
   });
@@ -133,7 +133,7 @@ describe('appState — the application settings seam', () => {
 
     const dq = project.box.vented.volume_m3.dq;
     assert.equal(dq.length, 1);
-    expect(dq[0]).toEqual(engine.quantityOutOfBand('Vb', 1.684, NARROW.minVb_m3, NARROW.maxVb_m3));
+    expect(dq[0]).toEqual(engine.issues.quantityOutOfBand('Vb', 1.684, NARROW.minVb_m3, NARROW.maxVb_m3));
   });
 
   it('unmarks again when the band widens — the recall is not one-way', () => {

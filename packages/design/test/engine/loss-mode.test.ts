@@ -7,13 +7,13 @@ import {LossMode} from '../../fields/lossMode.js';
 import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
 import type {SealedParams} from '../../engine/index.js';
-import {Engine} from '../../engine/index.js';
+import {createEngine} from '../../engine/index.js';
 
 /** The engine's one door: every calculation below is a method on this object. */
-const engine = new Engine();
+const engine = createEngine();
 
 /** WinISD's lossy sealed-box readout — the mode `LossMode.WinisdLossy` selects. */
-const winisdLossy = (q: SealedParams) => engine.sealedResonance(LossMode.WinisdLossy, q);
+const winisdLossy = (q: SealedParams) => engine.sealed.resonance(LossMode.WinisdLossy, q);
 /** Its pole frequency alone. */
 const winisdFsc = (q: SealedParams) => winisdLossy(q).Fsc;
 
@@ -120,8 +120,8 @@ describe('Sealed-Box Resonance Loss Models', () => {
 
   describe('Lossless mode = textbook sealed resonance', () => {
     it('Fsc = fs·√(1+Vas/Vb), independent of Ql/Qa', () => {
-      const r1 = engine.sealedResonance(LossMode.Lossless, p(0.006, 10));
-      const r2 = engine.sealedResonance(LossMode.Lossless, p(0.006, 2));
+      const r1 = engine.sealed.resonance(LossMode.Lossless, p(0.006, 10));
+      const r2 = engine.sealed.resonance(LossMode.Lossless, p(0.006, 2));
       const expected = 40 * Math.sqrt(1 + 0.00747 / 0.006);
       closeTo(r1.Fsc, expected, 9, 'Fsc at Ql=10');
       closeTo(r2.Fsc, expected, 9, 'Fsc at Ql=2 — Ql does not move it');
@@ -133,19 +133,19 @@ describe('Sealed-Box Resonance Loss Models', () => {
     const qtcLossless = 0.395643 * Math.sqrt(1 + 0.00747 / 0.006);
 
     it('Fsc equals lossless; Qtc combines 1/Qtc + 1/Ql + 1/Qa', () => {
-      const r = engine.sealedResonance(LossMode.ConventionalLossy, p(0.006, 10, 100));
+      const r = engine.sealed.resonance(LossMode.ConventionalLossy, p(0.006, 10, 100));
       const lossless = 40 * Math.sqrt(1 + 0.00747 / 0.006);
       closeTo(r.Fsc, lossless, 9, 'Fsc — frequency unchanged');
       closeTo(r.Qtc, 1 / (1 / qtcLossless + 1 / 10 + 1 / 100), 9, 'Qtc');
     });
 
     it('ignores a non-positive Ql — no leak term folded into Q', () => {
-      const r = engine.sealedResonance(LossMode.ConventionalLossy, p(0.006, 0, 100));
+      const r = engine.sealed.resonance(LossMode.ConventionalLossy, p(0.006, 0, 100));
       closeTo(r.Qtc, 1 / (1 / qtcLossless + 1 / 100), 9, 'Qtc — Ql term skipped');
     });
 
     it('ignores a non-positive Qa — no absorption term folded into Q', () => {
-      const r = engine.sealedResonance(LossMode.ConventionalLossy, p(0.006, 10, 0));
+      const r = engine.sealed.resonance(LossMode.ConventionalLossy, p(0.006, 10, 0));
       closeTo(r.Qtc, 1 / (1 / qtcLossless + 1 / 10), 9, 'Qtc — Qa term skipped');
     });
   });
@@ -183,19 +183,19 @@ describe('Sealed-Box Resonance Loss Models', () => {
     const QTS_WINISD = 0.3952; // WinISD's derived Qts for this driver (Re_eff convention)
 
     it('reproduces WinISD lossy 63.17 Hz / 0.599 with WinISD-derived Qts', () => {
-      const r = engine.sealedResonance(LossMode.WinisdLossy, { ...box, Qts: QTS_WINISD });
+      const r = engine.sealed.resonance(LossMode.WinisdLossy, { ...box, Qts: QTS_WINISD });
       closeTo(r.Fsc, 63.17, 2, 'Fsc');
       closeTo(r.Qtc, 0.599, 3, 'Qtc');
     });
     it('reproduces WinISD lossless 60.32 Hz / 0.596 with WinISD-derived Qts', () => {
-      const r = engine.sealedResonance(LossMode.Lossless, { ...box, Qts: QTS_WINISD });
+      const r = engine.sealed.resonance(LossMode.Lossless, { ...box, Qts: QTS_WINISD });
       closeTo(r.Fsc, 60.32, 2, 'Fsc');
       closeTo(r.Qtc, 0.596, 3, 'Qtc');
     });
     it('every mode returns a physical resonance, never the 20 kHz impedance-peak artifact', () => {
       for (const q of [0.39, QTS_WINISD]) {
         for (const m of LossMode.ALL) {
-          const r = engine.sealedResonance(m, { ...box, Qts: q });
+          const r = engine.sealed.resonance(m, { ...box, Qts: q });
           assert.ok(r.Fsc > 40, `${m.value} Fsc must exceed Fs (Qts=${q})`);
           assert.ok(r.Fsc < 100, `${m.value} Fsc must not be the ~20 kHz artifact (Qts=${q})`);
           assert.ok(r.Qtc > 0.4, `${m.value} Qtc must not collapse to 0 (Qts=${q})`);
@@ -214,36 +214,19 @@ describe('Sealed-Box Resonance Loss Models', () => {
     const qtsNominal = 1 / (1 / Qms + 1 / Qes); // what openisd used to compute, ignoring Rg
 
     it('Rg=0 leaves Qts at the nominal (no-source-resistance) value', () => {
-      closeTo(engine.sourceLoadedQts(Qms, Qes, Re, 0, qtsNominal), qtsNominal, 9, 'Qts at Rg=0');
+      closeTo(engine.driver.sourceLoadedQts(Qms, Qes, Re, 0, qtsNominal), qtsNominal, 9, 'Qts at Rg=0');
     });
 
     it('--fs 40 --vas 7.65 --qes 0.450 --qms 2.940 --re 6.6 --rg 0.1 --vb 6 --ql 10 --qa 100 → Fsc=63.1762Hz Qtc=0.5995', () => {
-      const qts = engine.sourceLoadedQts(Qms, Qes, Re, Rg, qtsNominal);
-      const r = engine.sealedResonance(LossMode.WinisdLossy, { Fs, Vas, Qts: qts, Vb, Ql, Qa });
+      const qts = engine.driver.sourceLoadedQts(Qms, Qes, Re, Rg, qtsNominal);
+      const r = engine.sealed.resonance(LossMode.WinisdLossy, { Fs, Vas, Qts: qts, Vb, Ql, Qa });
       closeTo(r.Fsc, 63.1762, 3, 'Fsc');
       closeTo(r.Qtc, 0.5995, 3, 'Qtc');
     });
 
     it('falls back to the nominal Qts when Qms/Qes/Re are unavailable', () => {
-      assert.equal(engine.sourceLoadedQts(0, 0, 0, Rg, 0.42), 0.42);
+      assert.equal(engine.driver.sourceLoadedQts(0, 0, 0, Rg, 0.42), 0.42);
     });
   });
 });
 
-describe('sealedResonanceFromCompliance — sealed resonance from the driver\'s STORED compliance/area', () => {
-  const AIR = engine.solveEnvironment({}).values;
-  const INPUT = { Fs_hz: 40, Qts: 0.395643, Sd_m2: 0.0133, Cms_m_per_N: 0.0006, volume_m3: 0.010, Ql: 10, Qa: 100 };
-
-  it('returns null for a non-positive box volume — no enclosure has zero or negative volume', () => {
-    assert.equal(engine.sealedResonanceFromCompliance(LossMode.WinisdLossy, { ...INPUT, volume_m3: 0 }, AIR), null);
-    assert.equal(engine.sealedResonanceFromCompliance(LossMode.WinisdLossy, { ...INPUT, volume_m3: -0.01 }, AIR), null);
-  });
-
-  it('derives Vas from Cms/Sd/air and matches sealedResonance(Fsc) computed from that same Vas', () => {
-    const Vas = INPUT.Cms_m_per_N * INPUT.Sd_m2 ** 2 * AIR.rho * AIR.c ** 2;
-    const want = engine.sealedResonance(LossMode.WinisdLossy,
-      { Fs: INPUT.Fs_hz, Qts: INPUT.Qts, Vas, Vb: INPUT.volume_m3, Ql: INPUT.Ql, Qa: INPUT.Qa }).Fsc;
-    const got = engine.sealedResonanceFromCompliance(LossMode.WinisdLossy, INPUT, AIR);
-    assert.equal(got, want);
-  });
-});

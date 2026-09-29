@@ -232,8 +232,8 @@ something unlisted, STOP, record it here, re-sequence — never improvise around
       Xmax handling, `disposition` deletion, the engine barrel, the η₀ relation, the air-constant
       ruling, the persistence vocabulary (`4a29bfc`), the QO81 storage-failure package
       (`7dc2858`, `a621ceb`).
-- [x] D14 Unit-conversion + magic-number cleanup landed across OriginalShell/OgTune/
-      OgNewProject/GraphPanel/PRBrowser/DriverEditorModal (`a55b3ba`). Verify no new instances
+- [x] D14 Unit-conversion + magic-number cleanup landed across OriginalShell/OriginalTune/
+      OriginalNewProject/GraphPanel/PRBrowser/DriverEditorModal (`a55b3ba`). Verify no new instances
       have crept in since.
 - [ ] **D9/D10 remainder** — live-domain-object editing (QO77) and the ONE unit-conversion
       mechanism (QO82). Re-scan for surviving hand-rolled conversions and dialogs that compute;

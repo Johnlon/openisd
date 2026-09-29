@@ -15,10 +15,9 @@ import assert from 'node:assert/strict';
 import {gunzipSync, gzipSync} from 'node:zlib';
 import {OpenISDDriver, OpenISDProject} from '@openisd/design';
 import type {BoxType} from '@openisd/design/engine';
-import {Engine} from '@openisd/design/engine';
+import {createEngine} from '@openisd/design/engine';
 import {createMemoryStorage, createProjectRepo, type FileStorage, type ViewSnapshot} from '@openisd/persistence';
 import {currentViewSnapshot} from '../../src/logic/appState.js';
-import {provenanceOf} from '../../src/logic/fieldProvenance.js';
 
 /** A picker that is never reached — these tests exercise the storage/link/text doors only. */
 const noFilePicker: FileStorage = {
@@ -27,7 +26,7 @@ const noFilePicker: FileStorage = {
   openFileName: () => null,
   forget: () => {},
 };
-const repo = createProjectRepo(new Engine(), noFilePicker, createMemoryStorage());
+const repo = createProjectRepo(createEngine(), noFilePicker, createMemoryStorage());
 
 /** A picker that KEEPS what was written, so a test can decode the file door's own bytes. */
 let written: string | null = null;
@@ -37,7 +36,7 @@ const capturingPicker: FileStorage = {
   openFileName: () => 'p.owpr',
   forget: () => {},
 };
-const fileRepo = createProjectRepo(new Engine(), capturingPicker, createMemoryStorage());
+const fileRepo = createProjectRepo(createEngine(), capturingPicker, createMemoryStorage());
 const owprNaming = { suggestedName: 'p.owpr', mime: 'application/json', label: 'OpenISD project', ext: '.owpr' };
 
 /** The bytes the FILE door writes, decoded independently. */
@@ -53,10 +52,10 @@ async function savedFileText(project: OpenISDProject): Promise<string> {
  *  driver (`docs/design/DRIVER_NON_NULL_INVARIANT.md`). */
 function projectOf(box: BoxType, meta: FixtureMeta,
   driverRecord: unknown): OpenISDProject {
-  const driver = OpenISDDriver.fromConformingRecord(driverRecord, new Engine());
+  const driver = OpenISDDriver.fromConformingRecord(driverRecord, createEngine());
   if (Array.isArray(driver)) throw new Error(`fixture record does not conform: ${driver.join('; ')}`);
   
-  const builder = OpenISDProject.builder(driver, new Engine());
+  const builder = OpenISDProject.builder(driver, createEngine());
   let project: OpenISDProject;
   // Each box type requires its own volume before `build()`; these tests are about what crosses
   // the wire, so any stated size does.
@@ -131,7 +130,7 @@ function sampleDriverRecord(): unknown {
 
 describe('persistence — provenance survives a file-save round trip', () => {
   it('E stays E and C stays C across save → JSON → restore', async () => {
-    const srcOrErr = OpenISDDriver.fromConformingRecord(sampleDriverRecord(), new Engine());
+    const srcOrErr = OpenISDDriver.fromConformingRecord(sampleDriverRecord(), createEngine());
     if (Array.isArray(srcOrErr)) throw new Error(`fixture record does not conform: ${srcOrErr.join('; ')}`);
     const src = srcOrErr;
     // Clear a derivable field so the fixture carries a genuine C (Cms derives from Vas and Sd)
@@ -150,7 +149,7 @@ describe('persistence — provenance survives a file-save round trip', () => {
     // must travel — not a fresh one rebuilt from the untouched record.
     project.setDriver(src);
     const wire = await storedPayload(project);
-    const backOrErr = OpenISDDriver.fromConformingRecord(wire.driverEmbedding.device, new Engine());
+    const backOrErr = OpenISDDriver.fromConformingRecord(wire.driverEmbedding.device, createEngine());
     const back = Array.isArray(backOrErr) ? null : backOrErr;
     if (!back) throw new Error('Bad back driver');
 
@@ -162,16 +161,16 @@ describe('persistence — provenance survives a file-save round trip', () => {
     // `field` is one of the names listed above.
     function stateOf(d: OpenISDDriver, field: typeof CHECKED_FIELDS[number]) {
       switch (field) {
-        case 'Fs_hz': return provenanceOf(d.specs.Fs_hz);
-        case 'Qts': return provenanceOf(d.specs.Qts);
-        case 'Qes': return provenanceOf(d.specs.Qes);
-        case 'Qms': return provenanceOf(d.specs.Qms);
-        case 'Vas_m3': return provenanceOf(d.specs.Vas_m3);
-        case 'Sd_m2': return provenanceOf(d.specs.Sd_m2);
-        case 'Re_ohm': return provenanceOf(d.specs.Re_ohm);
-        case 'Cms_m_per_N': return provenanceOf(d.specs.Cms_m_per_N);
-        case 'Mms_kg': return provenanceOf(d.specs.Mms_kg);
-        case 'BL_Tm': return provenanceOf(d.specs.BL_Tm);
+        case 'Fs_hz': return d.specs.Fs_hz.provenance;
+        case 'Qts': return d.specs.Qts.provenance;
+        case 'Qes': return d.specs.Qes.provenance;
+        case 'Qms': return d.specs.Qms.provenance;
+        case 'Vas_m3': return d.specs.Vas_m3.provenance;
+        case 'Sd_m2': return d.specs.Sd_m2.provenance;
+        case 'Re_ohm': return d.specs.Re_ohm.provenance;
+        case 'Cms_m_per_N': return d.specs.Cms_m_per_N.provenance;
+        case 'Mms_kg': return d.specs.Mms_kg.provenance;
+        case 'BL_Tm': return d.specs.BL_Tm.provenance;
       }
     }
     for (const f of CHECKED_FIELDS) {
@@ -392,7 +391,7 @@ describe('persisted-payload readers upgrade the schema (V1 driver-object → V2 
 describe('browser storage project door', () => {
   it('saves and restores the committed project without view state', () => {
     const storage = createMemoryStorage();
-    const storageRepo = createProjectRepo(new Engine(), noFilePicker, storage);
+    const storageRepo = createProjectRepo(createEngine(), noFilePicker, storage);
     const project = projectOf('sealed', {
       name: 'Browser storage fixture', creator: 'Synthetic', created: '2026-01-01',
       modified: '2026-01-02', description: '',
@@ -408,7 +407,7 @@ describe('browser storage project door', () => {
 
   it('lists every saved project newest first and loads the selected project', () => {
     const storage = createMemoryStorage();
-    const storageRepo = createProjectRepo(new Engine(), noFilePicker, storage);
+    const storageRepo = createProjectRepo(createEngine(), noFilePicker, storage);
     const older = projectOf('sealed', {
       name: 'Older browser project', creator: 'Synthetic', created: '2026-01-01',
       modified: '2026-01-02', description: '',
@@ -430,7 +429,7 @@ describe('browser storage project door', () => {
 
   it('saving a project opened from browser storage updates its entry', () => {
     const storage = createMemoryStorage();
-    const storageRepo = createProjectRepo(new Engine(), noFilePicker, storage);
+    const storageRepo = createProjectRepo(createEngine(), noFilePicker, storage);
     const original = projectOf('sealed', {
       name: 'Stored project to reopen', creator: 'Synthetic', created: '2026-01-05',
       modified: '2026-01-06', description: '',
@@ -448,7 +447,7 @@ describe('browser storage project door', () => {
 
   it('restores every open project and the focused project after refresh', () => {
     const storage = createMemoryStorage();
-    const storageRepo = createProjectRepo(new Engine(), noFilePicker, storage);
+    const storageRepo = createProjectRepo(createEngine(), noFilePicker, storage);
     const first = projectOf('sealed', {
       name: 'Open project one', creator: 'Synthetic', created: '2026-01-07',
       modified: '2026-01-08', description: '',
@@ -472,7 +471,7 @@ describe('browser storage project door', () => {
       modified: '2026-01-12', description: '',
     }, sampleDriverRecord());
     const storage = createMemoryStorage({ 'openisd.project': project.toOwprText() });
-    const storageRepo = createProjectRepo(new Engine(), noFilePicker, storage);
+    const storageRepo = createProjectRepo(createEngine(), noFilePicker, storage);
 
     const restored = storageRepo.loadFromStorage();
 
