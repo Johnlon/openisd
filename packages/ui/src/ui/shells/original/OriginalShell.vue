@@ -616,37 +616,39 @@ const {
                 <span>WinISD Compatibility</span>
                 <button class="action-btn apply-winisd-btn" title="Reset to WinISD: set every WinISD-vs-conventional switch to WinISD" @click="applyWinisdSettings">Reset</button>
               </div>
-              <div class="field-row" style="flex-wrap: nowrap; margin-bottom: 6px;">
+              <div class="field-row" style="flex-wrap: nowrap; margin-bottom: 3px;">
                 <div class="field" style="gap:6px;" :title="`Sealed box loss model: sets the box resonance (Fsc) and system Q (Qtc).\nWinISD lossy model (default): WinISD's own lossy model; Fsc rises as Ql falls, matching WinISD's readout.\nLossless model: no box losses; Fsc = Fs·√(1 + Vas/Vb).\nConventional lossy model: Ql and Qa lower Qtc only; Fsc stays put (Small/Thiele).`">
                   <select id="adv-lossmode" :value="lossMode" @change="e => { const m = selectedOption(e, LOSS_MODE_OPTIONS); if (m !== null) lossMode = m; }" style="width:200px">
                     <option v-for="m in LOSS_MODE_OPTIONS" :key="m.value" :value="m.value">{{ m.label }}</option>
                   </select>
                 </div>
               </div>
-              <div style="margin-bottom: 6px;">
-                <label data-field-key="winisdDriverModel" style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 13px;" :title="`WinISD Driver Model\nTicked (WinISD, the default): the simulation uses two BLs, as WinISD does. The damping comes from the driver WinISD acts on: Cms from Vas, then Mms, Rms and BL from Fs, Qms and Qes. The entered BL sets the loudness and, with voice coil inductance on, the inductance roll-off. We judge the two-BL mix a WinISD bug.\nUnticked (conventional): the simulation uses the entered datasheet values, one BL throughout.\nThe two differ only when the entered values disagree with Fs, Vas, Qes and Qms.`">
-                  <input type="checkbox" :checked="project.winisdDriverModel.value" @change="e => project.winisdDriverModel.set(inputChecked(e))"> WinISD driver model
-                </label>
-              </div>
-              <div style="margin-bottom: 8px;">
-                <label data-field-key="useWinisdAirModel" style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 13px;" :title="ToggleField.ADV_USEWINISDAIRMODEL.description">
-                  <input type="checkbox" :checked="project.envUseWinisdAirModel.value" @change="e => project.envUseWinisdAirModel.set(inputChecked(e))"> WinISD air model
-                </label>
-              </div>
-              <div style="margin-bottom: 8px;">
-                <label data-field-key="winisdVaModel" style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 13px;" :title="`WinISD VA model: affects the Amplifier apparent load power (VA) chart only.\nTicked (default, as WinISD): VA = P·Re/|Z + Rg|. A WinISD bug: it uses Re where the amplifier sees Re + Rg, so it reads low by Re/(Re + Rg). With 'Rg is at driver side' on, Z already includes Rg and WinISD adds it again.\nUnticked (corrected): VA = P·(Re + Rg)/|Z seen by the amplifier|, Rg counted once.\nBoth give the same result when Rg is 0.\nP: input power. Z: the impedance chart. Rg: the series resistance.`">
-                  <input type="checkbox" :checked="project.winisdVaModel.value" @change="e => project.winisdVaModel.set(inputChecked(e))"> WinISD VA model
-                </label>
-              </div>
-              <div style="margin-bottom: 8px;">
-                <label data-field-key="winisdDriverCountModel" style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 13px;" :title="`WinISD driver count: affects designs with more than one driver (sealed and vented boxes).\nTicked (default, as WinISD): N drivers are N copies of one driver, each in Vb/N with 1/N of the port, each fed P/N. Impedance is one driver's; SPL is one driver's + 10·log10(N); maximum power is N times one driver's.\nUnticked (conventional): the N voice coils are wired, in parallel or series, into one load the amplifier sees.`">
-                  <input type="checkbox" :checked="project.winisdDriverCountModel.value" @change="e => project.winisdDriverCountModel.set(inputChecked(e))"> WinISD driver count
-                </label>
-              </div>
-              <div>
-                <label data-field-key="winisdFlatModel" style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 13px;" :title="`WinISD flat response: affects 'Force flat response' only.\nTicked (default, as WinISD): every frequency is set to the transfer function's 0 dB, cut as well as boosted, uncapped; excursion shows what that costs.\nUnticked (conventional): boost only, up to the passband level, capped at 20 dB.`">
-                  <input type="checkbox" :checked="project.winisdFlatModel.value" @change="e => project.winisdFlatModel.set(inputChecked(e))"> WinISD flat response
-                </label>
+              <div class="sim-switches">
+                <div>
+                  <label data-field-key="winisdDriverModel" style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 12px;" :title="`WinISD Driver Model\nTicked (WinISD, the default): the simulation uses two BLs, as WinISD does. The damping comes from the driver WinISD acts on: Cms from Vas, then Mms, Rms and BL from Fs, Qms and Qes. The entered BL sets the loudness and, with voice coil inductance on, the inductance roll-off. We judge the two-BL mix a WinISD bug.\nUnticked (conventional): the simulation uses the entered datasheet values, one BL throughout.\nThe two differ only when the entered values disagree with Fs, Vas, Qes and Qms.`">
+                    <input type="checkbox" :checked="project.winisdDriverModel.value" @change="e => project.winisdDriverModel.set(inputChecked(e))"> WinISD driver model
+                  </label>
+                </div>
+                <div>
+                  <label data-field-key="useWinisdAirModel" style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 12px;" :title="ToggleField.ADV_USEWINISDAIRMODEL.description">
+                    <input type="checkbox" :checked="project.envUseWinisdAirModel.value" @change="e => project.envUseWinisdAirModel.set(inputChecked(e))"> WinISD air model
+                  </label>
+                </div>
+                <div>
+                  <label data-field-key="winisdVaModel" style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 12px;" :title="`WinISD VA model: affects the Amplifier apparent load power (VA) chart only.\nTicked (default, as WinISD): VA = P·Re/|Z + Rg|. A WinISD bug: it uses Re where the amplifier sees Re + Rg, so it reads low by Re/(Re + Rg). With 'Rg is at driver side' on, Z already includes Rg and WinISD adds it again.\nUnticked (corrected): VA = P·(Re + Rg)/|Z seen by the amplifier|, Rg counted once.\nBoth give the same result when Rg is 0.\nP: input power. Z: the impedance chart. Rg: the series resistance.`">
+                    <input type="checkbox" :checked="project.winisdVaModel.value" @change="e => project.winisdVaModel.set(inputChecked(e))"> WinISD VA model
+                  </label>
+                </div>
+                <div>
+                  <label data-field-key="winisdDriverCountModel" style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 12px;" :title="`WinISD driver count: affects designs with more than one driver (sealed and vented boxes).\nTicked (default, as WinISD): N drivers are N copies of one driver, each in Vb/N with 1/N of the port, each fed P/N. Impedance is one driver's; SPL is one driver's + 10·log10(N); maximum power is N times one driver's.\nUnticked (conventional): the N voice coils are wired, in parallel or series, into one load the amplifier sees.`">
+                    <input type="checkbox" :checked="project.winisdDriverCountModel.value" @change="e => project.winisdDriverCountModel.set(inputChecked(e))"> WinISD driver count
+                  </label>
+                </div>
+                <div>
+                  <label data-field-key="winisdFlatModel" style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 12px;" :title="`WinISD flat response: affects 'Force flat response' only.\nTicked (default, as WinISD): every frequency is set to the transfer function's 0 dB, cut as well as boosted, uncapped; excursion shows what that costs.\nUnticked (conventional): boost only, up to the passband level, capped at 20 dB.`">
+                    <input type="checkbox" :checked="project.winisdFlatModel.value" @change="e => project.winisdFlatModel.set(inputChecked(e))"> WinISD flat response
+                  </label>
+                </div>
               </div>
             </div>
           </div>
@@ -1141,10 +1143,11 @@ textarea.comment, textarea.description { width:100%; border:1px solid #999; bord
   background: #f4f6f9;
   border-radius: 4px;
   padding: 8px 10px;
-  width: 245px;
   flex: none;
   align-self: flex-start;
 }
+/* One tight column, so the panel stays inside the tab's height. */
+.sim-switches { display: flex; flex-direction: column; gap: 1px; }
 .sim-options-header {
   font-weight: 600;
   font-size: 12px;

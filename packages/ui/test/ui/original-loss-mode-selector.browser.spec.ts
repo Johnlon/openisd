@@ -27,6 +27,6 @@ test('the WinISD Compatibility loss model selector defaults to WinISD, unlabelle
 test('the WinISD Compatibility panel ends just below its last switch', async ({ page }) => {
   await page.locator('li', { hasText: /^Advanced$/ }).click();
   const panel = (await page.locator('.sim-options-box').boundingBox())!;
-  const last = (await page.locator('[data-field-key="winisdVaModel"]').boundingBox())!;
+  const last = (await page.locator('.sim-options-box label[data-field-key]').last().boundingBox())!;
   expect(panel.y + panel.height - (last.y + last.height)).toBeLessThanOrEqual(10);
 });
