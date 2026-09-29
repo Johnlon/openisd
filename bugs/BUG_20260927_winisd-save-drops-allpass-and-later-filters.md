@@ -1,6 +1,6 @@
 # BUG_20260927_winisd-save-drops-allpass-and-later-filters
 
-**Status:** OPEN
+**Status:** RESOLVED
 
 ## Symptom
 
@@ -16,11 +16,13 @@ Not copied: OpenISD never loses filters on save (CLAUDE.md: WinISD warts yes, da
 Export writes every filter, Allpass included.
 
 Import of a `.wpr` WinISD truncated this way: load each missing entry as WinISD does (default
-Lowpass Butterworth n=2, 50 Hz, ticked) and warn, naming the filter index. Open until the
-`.wpr` `[Filters]` import lands (chunk 3, brief written 2026-09-27).
+Lowpass Butterworth n=2, 50 Hz, ticked) and warn, naming the filter index. Done: `WinIsdProjectConverter#importFilters` (packages/design/domain/openIsdProjectToWinIsdProject.ts).
 
 ## ⚠ Human re-verification pending (QO170)
 
 Found by debugger, disassembly and scripted runs only. Not yet reproduced by hand in WinISD's own
 window. Treat as unconfirmed until John and an agent check it together (QO170); record the result
 here.
+
+## Verification (2026-09-29)
+`packages/design/test/winisd/openIsdProjectToWinIsdProject.test.ts` (52/52): "an entry whose filter<i>type/params keys are both missing loads as WinISD's own default lowpass, with a warn", and the allpass export/import round-trip cases. The QO170 hand check of WinISD's own behaviour is still pending; it does not change OpenISD's handling.
