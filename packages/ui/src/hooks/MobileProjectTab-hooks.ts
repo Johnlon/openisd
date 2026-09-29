@@ -1,5 +1,6 @@
 import {computed, type ComputedRef, type Ref, type WritableComputedRef} from 'vue';
 import type {OpenISDProject} from '@openisd/design';
+import {formatDateStamp, parseDateStamp} from '../logic/dateDisplay.js';
 
 export interface MobileProjectTabDeps {
   readonly project: ComputedRef<OpenISDProject>;
@@ -29,8 +30,10 @@ export class MobileProjectTab implements MobileProjectTabAPI {
   constructor(private readonly project: ComputedRef<OpenISDProject>, private readonly changed: Ref<number>) {
     this.name = this.metaField(() => this.project.value.name.value, v => this.project.value.name.set(v));
     this.creator = this.metaField(() => this.project.value.creator.value, v => this.project.value.creator.set(v));
-    this.created = this.metaField(() => this.project.value.created.value, v => this.project.value.created.set(v));
-    this.modified = this.metaField(() => this.project.value.modified.value, v => this.project.value.modified.set(v));
+    this.created = this.metaField(
+      () => formatDateStamp(this.project.value.created.value), v => this.project.value.created.set(parseDateStamp(v)));
+    this.modified = this.metaField(
+      () => formatDateStamp(this.project.value.modified.value), v => this.project.value.modified.set(parseDateStamp(v)));
     this.description = this.metaField(() => this.project.value.description.value, v => this.project.value.description.set(v));
   }
 
