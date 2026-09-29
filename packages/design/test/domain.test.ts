@@ -2718,6 +2718,19 @@ describe('T1 — the vent/PR sweep-level guards (PLAN_DRIVER_SOLVE_AND_SWEEP_DIA
     expect(p.charts).not.toContain('RearPort');
     expect(p.charts).not.toContain('PRTFMag');
   });
+
+  it('an open PR chart leaves the stack on a vented box and returns on a PR box', () => {
+    const p = project('pr');
+    p.openCharts.showOnly('SPL');
+    p.openCharts.toggle('PRExcursion');
+    expect(p.openCharts.value).toContain('PRExcursion');
+
+    p.box.boxType.set('vented');
+    expect(p.openCharts.value).toEqual(['SPL']);
+
+    p.box.boxType.set('box-passive-radiator');
+    expect(p.openCharts.value).toContain('PRExcursion');
+  });
 });
 
 describe('S2-7d2 — vent + PR join the cascade', () => {

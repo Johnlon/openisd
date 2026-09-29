@@ -45,7 +45,8 @@ import {
     enterVentField as enterVentFieldOn,
     ventFieldState as ventFieldStateOn,
 } from '../logic/useVentGroup.js';
-import {buildPlotData, CHART_LABELS, TAB_META} from '../logic/series.js';
+import {buildPlotData, TAB_META} from '../logic/series.js';
+import {ChartSelection, type ChartItem} from './chartSelection.js';
 import {createToneGenerator, type ToneGenerator} from '../logic/toneGenerator.js';
 import {useApp} from '../logic/app.js';
 import {useEscToClose} from '../logic/useEscToClose.js';
@@ -61,7 +62,7 @@ import {isTabId, type TabId} from '../logic/tabId.js';
 import {createBoxVolume, createSealedReadouts, createSelectedBox, DUAL_CHAMBER} from './boxFields.js';
 import {createDriveSignal} from './driveSignal.js';
 import type {StoredProjectListing} from '@openisd/persistence';
-import type {BoxEngine, ChartId, EnvDefaults, EnvironmentEngine} from '@openisd/design/engine';
+import type {ChartId, EnvDefaults, EnvironmentEngine} from '@openisd/design/engine';
 import type {Design, PlotParams} from '../types.js';
 
 export type AirField = 'temperature' | 'humidity' | 'pressure';
@@ -167,45 +168,6 @@ export function createEnvironmentAir({ project, projectChanged: changed, envDefa
     commitAirTemp: commitOf(temp), commitAirHumidity: commitOf(humidity), commitAirPressure: commitOf(pressure),
     resetAirToAppDefaults, advAir,
   };
-}
-
-// ---- Chart selector ------------------------------------------------------------
-// A separator goes before the first item of each of WinISD's own visual groupings — never
-// before a group that this box has nothing in (Port/PR are absent from most boxes).
-const CHART_GROUP_START: ReadonlySet<ChartId> = new Set<ChartId>(['Excursion', 'PRTFMag', 'RearPort', 'FrontPort', 'FltMag']);
-
-export interface ChartItem {
-  readonly label: string;
-  readonly tab: ChartId;
-  readonly sep: boolean;
-  readonly open: boolean;
-}
-
-export interface ChartSelectionDeps {
-  focusedProject: () => OpenISDProject | null;
-  projectChanged: Ref<number>;
-  box: BoxEngine;
-}
-
-/** The chart menu and the stacked charts it opens — the focused project's own `openCharts`. */
-export function createChartSelection({ focusedProject, projectChanged: changed, box }: ChartSelectionDeps) {
-  const openCharts = computed<readonly ChartId[]>(() => {
-    void changed.value;
-    return focusedProject()?.openCharts.value ?? [box.defaultChart];
-  });
-  // The design's own answer for which charts apply to THIS project's box — never a second,
-  // UI-maintained list of "which charts apply" (bugs/BUG_20260927_winisd-charts-missing.md).
-  // The toolbar (and this dropdown) renders with no project open — the engine's default box then.
-  const chartItems = computed<readonly ChartItem[]>(() => {
-    void changed.value;
-    const ids = focusedProject()?.charts ?? box.chartsFor(box.defaultBoxType);
-    const open = openCharts.value;
-    return ids.map(tab => ({ tab, label: CHART_LABELS[tab], sep: CHART_GROUP_START.has(tab), open: open.includes(tab) }));
-  });
-  const chartLabel = computed(() => openCharts.value.map(c => CHART_LABELS[c]).join(', '));
-  function showOnly(id: ChartId): void { focusedProject()?.openCharts.showOnly(id); }
-  function toggle(id: ChartId): void { focusedProject()?.openCharts.toggle(id); }
-  return { openCharts, chartItems, chartLabel, showOnly, toggle };
 }
 
 // ---- The shell's one hook -----------------------------------------------------
@@ -470,9 +432,9 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   // ---- Chart selector ------------------------------------------------------------
   // Clicking a menu label shows that chart alone and closes the menu; its checkbox opens or
   // closes that chart in the stack and leaves the menu open.
-  const chartSelection = createChartSelection({ focusedProject, projectChanged, box: engine.box });
+  const chartSelection = new ChartSelection(focusedProject, projectChanged, engine.box);
   const { openCharts, chartItems, chartLabel } = chartSelection;
-  const toggleChart = chartSelection.toggle;
+  function toggleChart(id: ChartId): void { chartSelection.toggle(id); }
   function selectChart(item: ChartItem) {
     chartSelection.showOnly(item.tab);
     closeDropdown();
