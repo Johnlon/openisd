@@ -33,6 +33,26 @@ package keeps one door; the door hands out those areas.
 7. A free function that reads or writes an object of ours is a method that object is missing
    (`getFoo(engine, someOther)` → `someOther.foo()`).
 
+## Status (2026-09-29)
+
+| Step | State |
+|---|---|
+| A. `Engine` interface + private impl + `createEngine` | done, ea6a7dad; gate holds "no method on the aggregate" |
+| B. Eleven areas, 0 forwards in `Engine.ts` | done (f92ba6ad … ff377af5) |
+| C. One name per filter variant | done |
+| E. Filters hook | done, 426aefa0 |
+| H. Field behaviour on the field | done, d6855b11: `Readable.provenance`, `OpenIsdDriverSpec.solverParams()`, `OpenISDDriver.chartBlockingReasons()` |
+| D. Components instead of a threaded engine | converters as classes (bf5062fc), project windows take one area (2209bcae), hooks take areas (51a126ed, 13f672a6), series takes `ChartEngineAreas` (22ce4efa). Ratchet 41 → 17 |
+| F. Lint rules | not started |
+
+Ratchet rows left (17): `OpenISDProject`/`OpenISDDriver`/`OpenISDPassiveRadiatorStandalone`/
+`OpenISDDriverEmbedded` static factories (`empty`, `wrap*`, `from*`, `builder`) — constructors in
+effect, each hands the engine to a private constructor — plus `OpenISDBox.wrap` (the box uses six
+areas). Whether a static factory counts as a constructor for the gate is a human ruling.
+
+Publishing rule settled on the way: an area method is a body; a pure function every solver shares
+is published by the area unchanged as a readonly property (`readonly ebp = ebp`), never wrapped.
+
 ## Work
 
 ### A. `Engine` is an interface; one private implementation; one factory
@@ -118,8 +138,8 @@ One commit per component. The ratchet (below) names what is left.
 
 ### E. The Filters hook — own vocabulary, no engine
 
-`packages/ui/src/hooks/OgFilters-hooks.ts`: `OgFiltersAPI` stays as the interface the `.vue`
-and its tests depend on. `class OgFilters implements OgFiltersAPI` is constructed with
+`packages/ui/src/hooks/OriginalFilters-hooks.ts`: `OriginalFiltersAPI` stays as the interface the `.vue`
+and its tests depend on. `class OriginalFilters implements OriginalFiltersAPI` is constructed with
 `project`, `changed` and `engine.filters` — the one component it uses, not the whole engine.
 
 ```ts
@@ -132,8 +152,8 @@ editStaticGain / editRaisedCosine / editShelf
 ```
 
 `replaceFilter` goes private. The eight editors under `packages/ui/src/ui/shells/original/filters/`
-call `api.editShelf(f, {fc: numFrom($event)})`; the `replace` emit and `OgFilters.vue`'s
-handler go. Composition root `OriginalShell-hooks.ts:454`: `new OgFilters(project, projectChanged)`.
+call `api.editShelf(f, {fc: numFrom($event)})`; the `replace` emit and `OriginalFilters.vue`'s
+handler go. Composition root `OriginalShell-hooks.ts:454`: `new OriginalFilters(project, projectChanged)`.
 
 ### H. A free function taking an object is a missing method (ruling 7)
 
@@ -193,6 +213,6 @@ header block, a planted failure proved once.
 
 - `npm run typecheck`; `npm run lint` (new rules red on a planted violation, green without).
 - `npx vitest run packages/design/test/architecture-*.test.ts` after each of A/B/G.
-- `npx vitest run packages/ui/test/hooks/OgFilters-hooks.test.ts` + filter editor tests after E.
+- `npx vitest run packages/ui/test/hooks/OriginalFilters-hooks.test.ts` + filter editor tests after E.
 - `npx playwright test` on the Filters tab spec after E: add a shelf, change fc, caption updates.
 - Commit hook runs the full suite. No AI attribution lines.

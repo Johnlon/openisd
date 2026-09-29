@@ -64,9 +64,9 @@ The acceptance suite in `packages/ui/test/scenarios/` covers the 5 critical user
 
 | Scenario Suite | End-to-End User Journey Covered | Un-mocked Systems Verified |
 |---|---|---|
-| **1. Project Creation & Driver Selection** | `OgNewProject` wizard $\rightarrow$ open `DriverBrowserWinisd` $\rightarrow$ filter by brand/type chip $\rightarrow$ select driver $\rightarrow$ verify active project parameters | Real DOM, `driverBrowsingState`, `OpenISDDriver`, `OpenISDProject` |
+| **1. Project Creation & Driver Selection** | `OriginalNewProject` wizard $\rightarrow$ open `DriverBrowserWinisd` $\rightarrow$ filter by brand/type chip $\rightarrow$ select driver $\rightarrow$ verify active project parameters | Real DOM, `driverBrowsingState`, `OpenISDDriver`, `OpenISDProject` |
 | **2. Driver Editor & Storage Persistence** | Open `DriverEditorModal` $\rightarrow$ edit T/S parameters (Fs, Qts, Vas, Re) $\rightarrow$ save to My Drivers $\rightarrow$ reload browser page $\rightarrow$ verify persisted driver values in localStorage | Real DOM, `DriverEditorModal`, `myDriverRepo`, IndexedDB/localStorage |
-| **3. Enclosure Tuning & Real-time Graph** | Switch Box Type (Vented $\rightarrow$ Sealed $\rightarrow$ Bandpass) $\rightarrow$ edit Vb & tuning Fb in `OgTune` $\rightarrow$ verify canvas graph trace redrawn & level lines updated | Real DOM, `OriginalShell`, `OgTune`, `GraphPanel`, 2D Canvas, `Engine` solver |
+| **3. Enclosure Tuning & Real-time Graph** | Switch Box Type (Vented $\rightarrow$ Sealed $\rightarrow$ Bandpass) $\rightarrow$ edit Vb & tuning Fb in `OriginalTune` $\rightarrow$ verify canvas graph trace redrawn & level lines updated | Real DOM, `OriginalShell`, `OriginalTune`, `GraphPanel`, 2D Canvas, `Engine` solver |
 | **4. File Import/Export & Share Link** | Import `.wdr`/`.wpr`/`.owpr` file $\rightarrow$ export `.wpr`/`.owdr` bytes $\rightarrow$ generate Share URL $\rightarrow$ open Share URL in new context $\rightarrow$ verify exact parameter fidelity | Real DOM, `useApplicationIO`, `fileImportExport`, `urlAppState`, `ProjectRepo` |
 | **5. Multi-Project Tab Session** | Open multiple project tabs $\rightarrow$ switch active project focus $\rightarrow$ edit parameter on project A $\rightarrow$ switch to project B $\rightarrow$ verify state isolation | Real DOM, `OriginalShell`, `appState`, `useFocusedProject`, `ManagedProject` |
 

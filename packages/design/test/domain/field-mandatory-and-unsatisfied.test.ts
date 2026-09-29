@@ -4,24 +4,24 @@
  * can decide it differently from the other.
  *
  * It reads the `missing-dependencies` issues already on the field's own `dq`, which
- * `projectFormulaDq` put there: an issue names every field it involves — the target, and
+ * `OpenIsdDriverSpec`'s DQ marking put there: an issue names every field it involves — the target, and
  * whatever each blocked route requires or is still missing. An `inconsistent-inputs` issue is
  * NOT this — that is a contradiction between stated values, not an absent one.
  */
 import {describe, expect, it} from 'vitest';
-import {Engine} from '@openisd/design/engine';
+import {createEngine} from '@openisd/design/engine';
 import {OpenISDDriver} from '../../domain/index.js';
 
 /** A driver with no value stated at all: every derivable quantity is blocked on its inputs. */
 function emptyDriver(): OpenISDDriver {
-  const driver = OpenISDDriver.empty(new Engine());
+  const driver = OpenISDDriver.empty(createEngine());
   driver.resolve();
   return driver;
 }
 
 /** Qts is derivable from Qes and Qms. Stating only Qes leaves Qts blocked, naming Qms. */
 function onlyQes(): OpenISDDriver {
-  const driver = OpenISDDriver.empty(new Engine());
+  const driver = OpenISDDriver.empty(createEngine());
   driver.specs.Qes.set(0.4);
   driver.resolve();
   return driver;
@@ -54,7 +54,7 @@ describe('a field says whether it is mandatory and unsatisfied', () => {
   });
 
   it('is false for a contradiction — inconsistent inputs are stated, not missing', () => {
-    const driver = OpenISDDriver.empty(new Engine());
+    const driver = OpenISDDriver.empty(createEngine());
     driver.specs.Qes.set(7.5);
     driver.specs.Qms.set(18.2);
     driver.specs.Qts.set(0.39);

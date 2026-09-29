@@ -1,9 +1,9 @@
 <script setup lang="ts">
 // Mobile New Project wizard — same steps, same state as the desktop wizard (WinISD order:
 // Driver -> Num/placement -> Box type + EBP -> Sealed alignment -> Metadata). Uses the SAME
-// useOgNewProject() hook as OgNewProject.vue: one wizard implementation, two presentations.
+// useOgNewProject() hook as OriginalNewProject.vue: one wizard implementation, two presentations.
 import { onBeforeUnmount } from 'vue';
-import { useOgNewProject } from '../../../hooks/OgNewProject-hooks.js';
+import { useOgNewProject } from '../../../hooks/OriginalNewProject-hooks.js';
 import { useEscToClose } from '../../../logic/useEscToClose.js';
 import { useApp } from '../../../logic/app.js';
 import BoxTypeDiagram from '../../components/BoxTypeDiagram.vue';

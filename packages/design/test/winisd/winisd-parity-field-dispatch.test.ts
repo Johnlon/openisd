@@ -17,7 +17,7 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 import {dirname, join} from 'node:path';
-import {Engine} from '@openisd/design/engine';
+import {createEngine} from '@openisd/design/engine';
 import {type Readable, OpenISDDriver} from '@openisd/design';
 import {winISDDriverToOpenISDDeviceJson} from '../../domain/winIsdDriverImport.js';
 import {WinISDDriver} from '../../winisd/winisdDriver.js';
@@ -110,7 +110,7 @@ describe('field dispatch coverage — no WinISD, no goldens', () => {
     for (const key of WDR_INI_DRIVER_FIELDS) { wdrLines.push(`${key}=${100 + i}`); i += 1; }
     const asRead = WinISDDriver.fromWdrIni(wdrLines.join('\r\n') + '\r\n');
     const { record } = winISDDriverToOpenISDDeviceJson(asRead);
-    const drv = OpenISDDriver.fromConformingRecord(record, new Engine());
+    const drv = OpenISDDriver.fromConformingRecord(record, createEngine());
     if (Array.isArray(drv)) throw new Error(`coverage fixture is not a valid driver: ${drv.join(', ')}`);
     const solved = drv.specs;
 

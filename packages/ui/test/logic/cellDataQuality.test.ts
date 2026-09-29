@@ -1,10 +1,10 @@
 import {describe, expect, it} from 'vitest';
-import {Engine} from '@openisd/design/engine';
+import {createEngine} from '@openisd/design/engine';
 import {OpenISDProject} from '@openisd/design';
-import {dqOfCell, dqOfEntry, dqOfSolved} from '../../src/logic/cellDataQuality.js';
+import {dqOfCell} from '../../src/logic/cellDataQuality.js';
 
 function createCompleteProject() {
-  const engine = new Engine();
+  const engine = createEngine();
   const project = OpenISDProject.empty(engine);
   project.driver.specs.Fs_hz.set(40);
   project.driver.specs.Qts.set(0.38);
@@ -15,26 +15,26 @@ function createCompleteProject() {
 }
 
 describe('cellDataQuality', () => {
-  describe('dqOfEntry — the readout for a field that is entered or absent, never calculated', () => {
+  describe('dqOfCell — a field that is entered or absent, never calculated', () => {
     it('E while a value is entered, N once cleared; dq passes through', () => {
       const {project} = createCompleteProject();
       const width = project.box.vented.vent.width_m;
       width.set(0.05);
-      expect(dqOfEntry(width)).toEqual({dq: [], dqState: 'E'});
+      expect(dqOfCell(width)).toEqual({dq: [], dqState: 'E'});
 
       width.clear();
-      expect(dqOfEntry(width)).toEqual({dq: [], dqState: 'N'});
+      expect(dqOfCell(width)).toEqual({dq: [], dqState: 'N'});
     });
   });
 
-  describe('dqOfSolved — the readout for a field only a solver writes, never entered', () => {
+  describe('dqOfCell — a field only a solver writes, never entered', () => {
     it('N while an input is missing, C once solved', () => {
-      const engine = new Engine();
+      const engine = createEngine();
       const blank = OpenISDProject.empty(engine);
-      expect(dqOfSolved(blank.box.sealed.resonance_hz)).toEqual({dq: [], dqState: 'N'});
+      expect(dqOfCell(blank.box.sealed.resonance_hz)).toEqual({dq: [], dqState: 'N'});
 
       const {project} = createCompleteProject();
-      expect(dqOfSolved(project.box.sealed.resonance_hz)).toEqual({dq: [], dqState: 'C'});
+      expect(dqOfCell(project.box.sealed.resonance_hz)).toEqual({dq: [], dqState: 'C'});
     });
   });
 

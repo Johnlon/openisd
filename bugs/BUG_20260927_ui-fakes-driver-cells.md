@@ -34,7 +34,7 @@ no runtime `VCCon` check. Deleted `notAvailableCell` and its import (packages/ui
 Every caller retyped to `NumSpecField`, `?? notAvailableCell` deleted at each: `cellOf`/`fieldOf`/
 `cellClass`/`cellVal`/`setNum`/`dqNote` (DriverEditorModal.vue), `isBadValue`/`dqNoteFor`/
 `chartBlockingReasonsFor`'s `cellOf` parameter and `mandatoryFields` (DriverEditorModal-hooks.ts),
-`specField` (OgTune-hooks.ts — its `if (!handle) throw` was dead code once the accessor is total,
+`specField` (OriginalTune-hooks.ts — its `if (!handle) throw` was dead code once the accessor is total,
 deleted). `driverCellOf` in the driver-editor-units.test.ts test helper had the same
 `?? notAvailableCell` pattern; fixed the same way.
 
@@ -48,5 +48,5 @@ Red first: `driverSpecFields.test.ts` rewritten to drop every `!` and the VCCon-
 case — `npx tsc -p packages/ui --noEmit` failed with 9 "Object is possibly 'null'" errors against
 the unfixed source, confirming the accessor was genuinely partial before the fix. Green after:
 same file passes, plus useDriverCells.test.ts, DriverEditorModal-hooks.test.ts,
-driver-editor-units.test.ts, OgTune-hooks.test.ts (81 tests) and the full packages/ui suite
+driver-editor-units.test.ts, OriginalTune-hooks.test.ts (81 tests) and the full packages/ui suite
 (584 tests).

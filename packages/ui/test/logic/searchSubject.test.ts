@@ -9,7 +9,7 @@
 import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
 import {OpenISDDriver} from '@openisd/design';
-import {Engine} from '@openisd/design/engine';
+import {createEngine} from '@openisd/design/engine';
 import type {BundledDriverIndexRow} from '@openisd/persistence';
 import {
     chipsOf,
@@ -38,7 +38,7 @@ const driver: OpenISDDriver = (() => {
     authoritative: { value: 'manual' },
     quality: { confirmed_fields: [], fields_with_issues: [], missing: [], invalid: [], parse_errors: [], cross_source_only: [] },
     specs: { woofer: { Fs_hz: spec(45), Sd_m2: spec(0.0075), Znom_ohm: spec(4) } },
-  }, new Engine());
+  }, createEngine());
   if (Array.isArray(d)) throw new Error(d.join(', '));
   return d;
 })();

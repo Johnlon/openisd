@@ -6,9 +6,9 @@ import {NumberField, PASS_FAMILY_OPTIONS} from '@openisd/design/fields';
 import {selectedOption} from '../../../../logic/domEvents.js';
 import {numFrom} from './numericInput.js';
 import type {PassFilter} from '@openisd/design/engine';
-import type {OgFiltersAPI} from '../../../../hooks/OgFilters-hooks.js';
+import type {OriginalFiltersAPI} from '../../../../hooks/OriginalFilters-hooks.js';
 
-const {f, api} = defineProps<{ f: PassFilter; api: OgFiltersAPI }>();
+const {f, api} = defineProps<{ f: PassFilter; api: OriginalFiltersAPI }>();
 
 function onFamily(e: Event): void {
   const family = selectedOption(e, PASS_FAMILY_OPTIONS);

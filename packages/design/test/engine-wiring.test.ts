@@ -14,8 +14,8 @@
  * from the one `it()` block without opening anything else.
  */
 import {describe, expect, it} from 'vitest';
-import {Engine} from '@openisd/design/engine';
-import {Engine as RootEngine, type FrequencyGrid, OpenISDProject,} from '../domain/index.js';
+import {type Engine, createEngine} from '@openisd/design/engine';
+import {createEngine as rootCreateEngine, type FrequencyGrid, OpenISDProject,} from '../domain/index.js';
 import {driverFromSpec, radiatorFromSpec} from './fixtures/recordBuilders.js';
 
 // Block A is GONE. It tested `ebp_hz`, `referenceEfficiency` and `spl_dB` on the driver — three
@@ -37,7 +37,7 @@ describe('B — the project runs the engine sweep on its own driver and box', ()
   const drivenSealed = (engine: Engine, volume_m3: number) => {
     const project = OpenISDProject.builder(complete(engine), engine).sealed().volume_m3(volume_m3).build();
     project.powerDrive_W.set(1);
-    // Off, so `project.driver.solverParams` — which knows nothing of the flag — is the same driver
+    // Off, so `project.driver.specs.solverParams()` — which knows nothing of the flag — is the same driver
     // the project sweeps. On (the default) the project substitutes the WinISD parameter set and
     // this scenario would be comparing two different drivers, not two paths to one answer.
     project.winisdDriverModel.set(false);
@@ -45,14 +45,14 @@ describe('B — the project runs the engine sweep on its own driver and box', ()
   };
 
   it('sweep() returns a response, and it is the ENGINE that produced it', () => {
-    const engine = new Engine();
+    const engine = createEngine();
     const project = drivenSealed(engine, 0.03);
     const P: FrequencyGrid = { fmin: 10, fmax: 1000, N: 100 };
 
     const mine = project.sweep(P).values;
     expect(mine).not.toBeNull();
-    const theirs = engine.sweep(
-      project.driver.solverParams, project.driver.specs.Le_H.value!, 'sealed',
+    const theirs = engine.simulation.sweep(
+      project.driver.specs.solverParams(), project.driver.specs.Le_H.value!, 'sealed',
       {
         Vb: 0.03, eg: project.driveVoltage_V.value!, fmin: 10, fmax: 1000, N: 100,
         Ql: project.box.sealed.losses.Ql.value, Qa: project.box.sealed.losses.Qa.value,
@@ -65,7 +65,7 @@ describe('B — the project runs the engine sweep on its own driver and box', ()
   });
 
   it('the response MOVES with the box volume — nothing is stubbed', () => {
-    const engine = new Engine();
+    const engine = createEngine();
     const small = drivenSealed(engine, 0.010);
     const big = drivenSealed(engine, 0.100);
     const P: FrequencyGrid = { fmin: 10, fmax: 1000, N: 100 };
@@ -74,14 +74,14 @@ describe('B — the project runs the engine sweep on its own driver and box', ()
   });
 
   it('sweep() is null when the driver is too incomplete to simulate', () => {
-    const engine = new Engine();
+    const engine = createEngine();
     const project = OpenISDProject.builder(driverFromSpec(engine, { Fs_hz: 30 }), engine).sealed().volume_m3(0.03).build();
 
     expect(project.sweep({}).values).toBeNull();
   });
 
   it('sweep() is null for a topology the engine has no model for, and NOT for one it has', () => {
-    const engine = new Engine();
+    const engine = createEngine();
     const project = drivenSealed(engine, 0.03);
     const P: FrequencyGrid = { fmin: 10, fmax: 1000, N: 50 };
 
@@ -97,7 +97,7 @@ describe('B — the project runs the engine sweep on its own driver and box', ()
     // engine/types.ts, and `box-passive-radiator` carries its prefix because `passive-radiator`
     // already names a DRIVER type (John's ruling D7, 2026-08-28). What this still pins is that
     // the enclosure reaches the engine and simulates, reading the PR chamber's own stored fields.
-    const engine = new Engine();
+    const engine = createEngine();
     const project = drivenSealed(engine, 0.03);
     project.box.boxType.set('box-passive-radiator');
     project.box.passiveRadiator.configurePR(radiatorFromSpec(engine, {
@@ -113,51 +113,51 @@ describe('B — the project runs the engine sweep on its own driver and box', ()
   });
 
   it('maxCurves() and its finiteness check come from the engine', () => {
-    const engine = new Engine();
+    const engine = createEngine();
     const project = drivenSealed(engine, 0.03);
     const P: FrequencyGrid = { fmin: 10, fmax: 1000, N: 100 };
 
     const mx = project.maxCurves(P).values;
     expect(mx).not.toBeNull();
-    expect(project.classifyMaxFinite(mx!)).toBe(engine.classifyMaxFinite(mx!));
+    expect(project.classifyMaxFinite(mx!)).toBe(engine.simulation.classifyMaxFinite(mx!));
   });
 
   it('rolloffFreq() finds F3 below the passband, and F6 below F3', () => {
-    const engine = new Engine();
+    const engine = createEngine();
     const project = drivenSealed(engine, 0.03);
     const sw = project.sweep({ fmin: 10, fmax: 1000, N: 400 }).values!;
 
     const f3 = project.rolloffFreq(sw, 3);
     const f6 = project.rolloffFreq(sw, 6);
 
-    expect(f3).toBe(engine.rolloffFreq(sw, 3));
+    expect(f3).toBe(engine.simulation.rolloffFreq(sw, 3));
     expect(f6!).toBeLessThan(f3!);
   });
 
   it('passbandRef() and the response classifiers agree with the engine', () => {
-    const engine = new Engine();
+    const engine = createEngine();
     const project = drivenSealed(engine, 0.03);
     const sw = project.sweep({ fmin: 10, fmax: 1000, N: 200 }).values!;
 
-    expect(project.passbandRef(sw.spl)).toBe(engine.passbandRef(sw.spl));
-    expect(project.classifyFinite(sw)).toBe(engine.classifyFinite(sw));
-    expect(project.classifyFlatClamp(sw)).toBe(engine.classifyFlatClamp(sw));
+    expect(project.passbandRef(sw.spl)).toBe(engine.simulation.passbandRef(sw.spl));
+    expect(project.classifyFinite(sw)).toBe(engine.simulation.classifyFinite(sw));
+    expect(project.classifyFlatClamp(sw)).toBe(engine.simulation.classifyFlatClamp(sw));
   });
 
   it('classifyFiniteIssues() — the per-output finiteness check — also comes from the engine', () => {
     // BUG_20260906: a UI-layer caller wanting the per-output variant (one chart needs one
     // specific cause) had no project delegate to ask, so it reached around the project and
-    // constructed its own `new Engine()` — the exact "a UI layer decides a domain question for
+    // constructed its own `createEngine()` — the exact "a UI layer decides a domain question for
     // itself" shape the project's other three classify delegates already exist to prevent.
-    const engine = new Engine();
+    const engine = createEngine();
     const project = drivenSealed(engine, 0.03);
     const sw = project.sweep({ fmin: 10, fmax: 1000, N: 200 }).values!;
 
-    expect(project.classifyFiniteIssues(sw)).toEqual(engine.classifyFiniteIssues(sw));
+    expect(project.classifyFiniteIssues(sw)).toEqual(engine.simulation.classifyFiniteIssues(sw));
   });
 
   it('boxParamsIssues() reports a bad parameter set BEFORE a sweep is attempted', () => {
-    const engine = new Engine();
+    const engine = createEngine();
     const project = drivenSealed(engine, 0.03);
 
     expect(project.boxParamsIssues()).toEqual([]);
@@ -167,7 +167,7 @@ describe('B — the project runs the engine sweep on its own driver and box', ()
   });
 
   it('impedancePeak() reads the resonance off the CURVE, near the sealed prediction', () => {
-    const engine = new Engine();
+    const engine = createEngine();
     const project = drivenSealed(engine, 0.03);
     const sw = project.sweep({ fmin: 10, fmax: 1000, N: 800 }).values!;
 
@@ -190,20 +190,20 @@ describe('D — the vent', () => {
     .vented().volume_m3(0.03).tuning_goal_hz(30).build();
 
   it('effectiveLength_m() is longer than the port measures, by the engine\'s end correction', () => {
-    const engine = new Engine();
+    const engine = createEngine();
     const p = project(engine);
     p.box.vented.vent.diameter_m.set(0.1);
     p.box.vented.vent.length_m.set(0.2);
 
     const area = Math.PI * 0.05 ** 2;
     expect(p.box.vented.vent.effectiveLength_m()).toBe(
-      engine.ventEffectiveLength(0.2, area, 1, p.box.vented.vent.endCorrection_m.value),
+      engine.vent.effectiveLength(0.2, area, 1, p.box.vented.vent.endCorrection_m.value),
     );
     expect(p.box.vented.vent.effectiveLength_m()!).toBeGreaterThan(0.2);
   });
 
   it('a SLOTTED port of the same area gets the same acoustic length as a round one', () => {
-    const engine = new Engine();
+    const engine = createEngine();
     const p = project(engine);
     p.box.vented.vent.diameter_m.set(0.1);
     p.box.vented.vent.length_m.set(0.2);
@@ -219,7 +219,7 @@ describe('D — the vent', () => {
   });
 
   it('tuning and length are inverses of each other, both through the engine', () => {
-    const engine = new Engine();
+    const engine = createEngine();
     const p = project(engine);
     p.box.vented.vent.diameter_m.set(0.1);
 
@@ -230,7 +230,7 @@ describe('D — the vent', () => {
   });
 
   it('lengthForTuning_m answers null once any of volume_m3/fb_hz/the vent\'s own area is missing', () => {
-    const engine = new Engine();
+    const engine = createEngine();
     const p = project(engine);
     p.box.vented.vent.diameter_m.set(0.1);
 
@@ -241,7 +241,7 @@ describe('D — the vent', () => {
   });
 
   it('a LONGER port tunes the same box LOWER', () => {
-    const engine = new Engine();
+    const engine = createEngine();
     const p = project(engine);
     p.box.vented.vent.diameter_m.set(0.1);
 
@@ -253,7 +253,7 @@ describe('D — the vent', () => {
   });
 
   it('a port with no dimensions reports null, and so does a zero-volume box', () => {
-    const engine = new Engine();
+    const engine = createEngine();
     const p = project(engine);
 
     expect(p.box.vented.vent.effectiveLength_m()).toBeNull();
@@ -269,7 +269,7 @@ describe('D — the vent', () => {
   //
   // `#boxSpecificParams` reads `tuning_goal_hz.value` directly, with no fallback to
   // `ventAchievedFb`-style readout. That already works FOR THIS EXACT CASE: `solveVent`
-  // (`engine/solvers/solveVent.ts`, the vent handle solve run on every `#resolve()`) already
+  // (`engine/vent/VentEngine.ts`, the vent handle solve run on every `#resolve()`) already
   // writes the length-achieved tuning back onto `tuning_goal_hz` itself via `setCalculated()`
   // whenever the length is entered and the goal is not — verified below by checking
   // `tuning_goal_hz.value` against `ventAchievedFb.value` (the same `tuningFromLength` formula,
@@ -282,7 +282,7 @@ describe('D — the vent', () => {
   });
 
   it('BUG_20260927: vented, port set by length (tuning blank), sweeps finite and matches the same project entered by its achieved tuning', () => {
-    const engine = new Engine();
+    const engine = createEngine();
     const byLength = OpenISDProject.builder(completeDriver(engine), engine)
       .vented().volume_m3(0.03).tuning_goal_hz(30).build();
     byLength.powerDrive_W.set(1);
@@ -312,7 +312,7 @@ describe('D — the vent', () => {
   });
 
   it('BUG_20260927: bandpass4, front port set by length (tuning blank), sweeps finite and matches the same project entered by its achieved tuning', () => {
-    const engine = new Engine();
+    const engine = createEngine();
     const byLength = OpenISDProject.builder(completeDriver(engine), engine)
       .bandpass4().rearVolume_m3(0.02).frontVolume_m3(0.03).frontTuning_hz(40).build();
     byLength.powerDrive_W.set(1);
@@ -358,7 +358,7 @@ describe('E — the signal', () => {
     OpenISDProject.builder(driver, engine).sealed().volume_m3(0.03).build();
 
   it('new project — pre: Re 8, nothing stated | trigger: build | post: P 1 E, V 2.83 C', () => {
-    const engine = new Engine();
+    const engine = createEngine();
     const p = projectOf(engine, withRe(engine));
     expect(p.powerDrive_W.value).toBe(1);
     expect(p.powerDrive_W.entered).toBe(true);
@@ -367,7 +367,7 @@ describe('E — the signal', () => {
   });
 
   it('scenario 1 — pre: Re none, nothing stated | trigger: build | post: P N, V 1 C', () => {
-    const engine = new Engine();
+    const engine = createEngine();
     const p = projectOf(engine, noRe(engine));
     expect(p.powerDrive_W.value).toBe(null);
     expect(p.driveVoltage_V.value).toBe(1);
@@ -375,7 +375,7 @@ describe('E — the signal', () => {
   });
 
   it('scenario 2 — pre: Re none, P N, V 1 C | trigger: type V 4 | post: P N, V 4 E', () => {
-    const engine = new Engine();
+    const engine = createEngine();
     const p = projectOf(engine, noRe(engine));
     p.driveVoltage_V.set(4);
     expect(p.driveVoltage_V.value).toBe(4);
@@ -384,7 +384,7 @@ describe('E — the signal', () => {
   });
 
   it('scenario 3 — pre: Re none, P N, V 3 E | trigger: type P 2 | post: refused; P N with dq naming Re, V 3 E', () => {
-    const engine = new Engine();
+    const engine = createEngine();
     const p = projectOf(engine, noRe(engine));
     p.driveVoltage_V.set(3);
     expect(() => p.powerDrive_W.set(2)).toThrow(/Re_ohm/);
@@ -397,7 +397,7 @@ describe('E — the signal', () => {
   });
 
   it('scenario 4 — pre: Re 8, P 2 E, V 4 C | trigger: clear V | post: P 1 E, V 2.83 C', () => {
-    const engine = new Engine();
+    const engine = createEngine();
     const p = projectOf(engine, withRe(engine));
     p.powerDrive_W.set(2);
     expect(p.driveVoltage_V.value).toBeCloseTo(Math.sqrt(16.2), 12);
@@ -409,7 +409,7 @@ describe('E — the signal', () => {
   });
 
   it('scenario 5 — pre: Re 8, P 2 E, V 4 C | trigger: clear P | post: P 2 C, V 4 E', () => {
-    const engine = new Engine();
+    const engine = createEngine();
     const p = projectOf(engine, withRe(engine));
     p.powerDrive_W.set(2);
     p.powerDrive_W.clear();
@@ -420,7 +420,7 @@ describe('E — the signal', () => {
   });
 
   it('scenario 6 — pre: Re 8, P 5 E, V 6.32 C | trigger: remove Re | post: P N, V 6.32 E; then trigger: Re 8 | post: P 5 C, V 6.32 E', () => {
-    const engine = new Engine();
+    const engine = createEngine();
     const p = projectOf(engine, withRe(engine));
     p.powerDrive_W.set(5);
     p.driver.specs.Re_ohm.clear();
@@ -436,7 +436,7 @@ describe('E — the signal', () => {
   });
 
   it('scenario 7 — pre: Re 8, P 2 C, V 4 E | trigger: remove Re | post: P N, V 4 E', () => {
-    const engine = new Engine();
+    const engine = createEngine();
     const p = projectOf(engine, withRe(engine));
     p.driveVoltage_V.set(4);
     expect(p.powerDrive_W.value).toBeCloseTo(16 / 8.1, 12);
@@ -448,7 +448,7 @@ describe('E — the signal', () => {
   });
 
   it('pre: Re 8, P 2 C, V 4 E | trigger: type P 8 | post: P 8 E, V 8 C', () => {
-    const engine = new Engine();
+    const engine = createEngine();
     const p = projectOf(engine, withRe(engine));
     p.driveVoltage_V.set(4);
     p.powerDrive_W.set(8);
@@ -458,7 +458,7 @@ describe('E — the signal', () => {
   });
 
   it('pre: Re none, P N, V 4 E | trigger: clear V | post: P N, V 1 C', () => {
-    const engine = new Engine();
+    const engine = createEngine();
     const p = projectOf(engine, noRe(engine));
     p.driveVoltage_V.set(4);
     p.driveVoltage_V.clear();
@@ -467,7 +467,7 @@ describe('E — the signal', () => {
   });
 
   it('pre: Re none, P N, V 1 C | trigger: Re 8 | post: P 1 E, V 2.83 C', () => {
-    const engine = new Engine();
+    const engine = createEngine();
     const p = projectOf(engine, noRe(engine));
     p.driver.specs.Re_ohm.set(8);
     expect(p.powerDrive_W.value).toBe(1);
@@ -476,7 +476,7 @@ describe('E — the signal', () => {
   });
 
   it('pre: Re 8, P 1 E, V 2.83 C | trigger: type V 0.005 or a P driving below 10 mV | post: refused, unchanged', () => {
-    const engine = new Engine();
+    const engine = createEngine();
     const p = projectOf(engine, withRe(engine));
     expect(() => p.driveVoltage_V.set(0.005)).toThrow(/10 mV/);
     expect(() => p.driveVoltage_V.set(0)).toThrow(/10 mV/);
@@ -489,7 +489,7 @@ describe('E — the signal', () => {
   });
 
   it('pre: Re 6.4, P 1 E, V 2.53 C | trigger: clear P | post: P 1 C, V 2.53 E, sweep draws', () => {
-    const engine = new Engine();
+    const engine = createEngine();
     const project = OpenISDProject.builder(complete(engine), engine).sealed().volume_m3(0.03).build();
     const grid: FrequencyGrid = { fmin: 10, fmax: 1000, N: 50 };
     project.powerDrive_W.clear();
@@ -501,7 +501,7 @@ describe('E — the signal', () => {
   });
 
   it('pre: Re 6.4, P 1 E, V 2.53 C | trigger: swap to a driver with Re 8 | post: P 1 E, V 2.83 C', () => {
-    const engine = new Engine();
+    const engine = createEngine();
     const project = OpenISDProject.builder(complete(engine), engine).sealed().volume_m3(0.03).build();
     const replacement = complete(engine);
     replacement.specs.Re_ohm.set(8);
@@ -515,18 +515,18 @@ describe('E — the signal', () => {
   });
 
   it('sourceLoadedQts() RAISES Qts as the source impedance grows, and matches the engine', () => {
-    const engine = new Engine();
+    const engine = createEngine();
     const project = OpenISDProject.builder(complete(engine), engine).sealed().volume_m3(0.03).build();
     const Qts = 1 / (1 / 4 + 1 / 0.4);
 
     // A perfect voltage source (Rs = 0) leaves Qts alone.
     expect(project.sourceLoadedQts(0)!).toBeCloseTo(Qts, 10);
-    expect(project.sourceLoadedQts(2)!).toBe(engine.sourceLoadedQts(4, 0.4, 6.4, 2, Qts));
+    expect(project.sourceLoadedQts(2)!).toBe(engine.driver.sourceLoadedQts(4, 0.4, 6.4, 2, Qts));
     expect(project.sourceLoadedQts(2)!).toBeGreaterThan(project.sourceLoadedQts(0)!);
   });
 
   it('sourceLoadedQts() is null when the driver\'s Q group cannot be resolved', () => {
-    const engine = new Engine();
+    const engine = createEngine();
     const project = OpenISDProject.builder(driverFromSpec(engine, { Fs_hz: 30 }), engine).sealed().volume_m3(0.03).build();
 
     expect(project.sourceLoadedQts(2)).toBeNull();
@@ -534,13 +534,13 @@ describe('E — the signal', () => {
 });
 
 describe('K — the root surface names the engine door', () => {
-  it('@openisd/design (the root barrel) re-exports Engine — the same class the engine door exports', () => {
+  it('@openisd/design (the root barrel) re-exports createEngine — the same factory the engine door exports', () => {
     // `.` in the design package exports map resolves to `domain/index.ts`, so a consumer that
     // wants to build a project that runs the engine gets ONE import specifier — no need to reach
-    // into `@openisd/design/engine` for the class the domain already takes as a collaborator.
-    expect(RootEngine).toBe(Engine);
-    expect(typeof RootEngine).toBe('function');
-    expect(new RootEngine().sweep).toBe(Engine.prototype.sweep);
+    // into `@openisd/design/engine` for the factory the domain already takes as a collaborator.
+    expect(rootCreateEngine).toBe(createEngine);
+    expect(typeof rootCreateEngine).toBe('function');
+    expect(rootCreateEngine().simulation.sweep).toBe(createEngine().simulation.sweep);
   });
 });
 

@@ -1,6 +1,6 @@
 import {describe, expect, it} from 'vitest';
 import {computed, ref, shallowRef} from 'vue';
-import {Engine} from '@openisd/design/engine';
+import {createEngine} from '@openisd/design/engine';
 import {OpenISDProject} from '@openisd/design';
 import {
   airFieldDataQuality,
@@ -9,7 +9,7 @@ import {
 } from '../../src/hooks/OriginalShell-hooks.js';
 
 function createCompleteProject() {
-  const engine = new Engine();
+  const engine = createEngine();
   const project = OpenISDProject.empty(engine);
   project.driver.specs.Fs_hz.set(40);
   project.driver.specs.Qts.set(0.38);
@@ -72,7 +72,7 @@ describe('OriginalShell-hooks', () => {
           project: computed(() => projectRef.value),
           projectChanged,
           envDefaults: () => STUB_DEFAULTS,
-          engine: new Engine(),
+          environment: createEngine().environment,
         }),
       };
     }

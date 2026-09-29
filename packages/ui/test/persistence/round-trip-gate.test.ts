@@ -12,7 +12,7 @@ import {dirname, join} from 'node:path';
 import {parse as parseYaml} from 'yaml';
 import {OpenISDDriver} from '@openisd/design';
 import type {DriverError} from '@openisd/design/engine';
-import {Engine} from '@openisd/design/engine';
+import {createEngine} from '@openisd/design/engine';
 import {driverToWdrBytes} from '../../src/logic/fileImportExport.js';
 import {PARSTATE_LEN} from '@openisd/design/winisd';
 import {checkOpenisdRoundTrip, checkWdrRoundTrip, firstDivergence} from '../../../../scripts/roundTripGate.mjs';
@@ -33,7 +33,7 @@ const POS_TO_WDRKEY = [
  * pipeline actually produces rather than against a conversion assembled here.
  */
 function wdrTextFor(record: unknown): { value: string | null; errors: DriverError[] } {
-  const driver = OpenISDDriver.fromOwdrText(JSON.stringify(record), new Engine());
+  const driver = OpenISDDriver.fromOwdrText(JSON.stringify(record), createEngine());
   if (Array.isArray(driver)) throw new Error('fixture record is invalid: ' + driver.join(', '));
   const { value, errors } = driverToWdrBytes(driver);
   return { value: value === null ? null : new TextDecoder().decode(value), errors };
@@ -64,7 +64,7 @@ describe('checkOpenisdRoundTrip', () => {
     // compatibility path for an older entry shape: a record that predates the model is
     // rebuilt, not tolerated.
     const record = realRecord();
-    const loaded = OpenISDDriver.fromConformingRecord(record, new Engine());
+    const loaded = OpenISDDriver.fromConformingRecord(record, createEngine());
     if (Array.isArray(loaded)) throw new Error('fixture record is invalid: ' + loaded.join(', '));
     const appWritten = JSON.parse(JSON.stringify(loaded.toOpenIsdDeviceJson()));
     const result = checkOpenisdRoundTrip(appWritten, 'accuton/bd90-6-727/openisd.json (app-written)');

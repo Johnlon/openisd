@@ -218,7 +218,7 @@ made, no thematic grouping.
   `clearProjectField` stayed PUBLIC, deliberately: `ProjectFieldId` is a safe bare-string-union
   key (not a storage type), and `useVentGroup.ts`/`usePrGroup.ts` — sibling logic-layer modules,
   not methods of either class — call it with a `field: ProjectFieldId` PARAMETER, which `#`-private
-  cannot serve. Every UI call site (`OriginalShell.vue`, `OgTune.vue`, `PREditModal.vue`,
+  cannot serve. Every UI call site (`OriginalShell.vue`, `OriginalTune.vue`, `PREditModal.vue`,
   `PRDefineModal.vue`, `appState.ts`) and every affected test in `packages/model`/`packages/ui`
   was repointed at the named accessors; raw-vs-`enter()` semantics were preserved exactly per
   field (the box/vent/PR fields Part A restored stay RAW — no provenance mark, no group solve —

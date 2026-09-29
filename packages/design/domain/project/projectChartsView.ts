@@ -1,4 +1,4 @@
-import type { BoxType, ChartId, Engine } from '../../engine/index.js';
+import type { BoxEngine, BoxType, ChartId } from '../../engine/index.js';
 import { focus } from '../cell.js';
 import type { SimpleField } from '../cell.js';
 import type { OpenISDProjectJson } from '../openisdSchema.js';
@@ -12,15 +12,11 @@ import type { OpenISDProjectJson } from '../openisdSchema.js';
  *  `architecture-project-has-three-fields.test.ts` (QO168) requires them as `OpenISDProject`'s
  *  own private fields, never routed through a record or a second module. */
 export class ProjectChartsView {
-    static wrap(lens: SimpleField<OpenISDProjectJson['charts']>, engine: Engine, boxType: () => BoxType): ProjectChartsView {
-        return new ProjectChartsView(lens, engine, boxType);
-    }
-
     readonly #lens: SimpleField<OpenISDProjectJson['charts']>;
-    readonly #engine: Engine;
+    readonly #engine: BoxEngine;
     readonly #boxType: () => BoxType;
 
-    private constructor(lens: SimpleField<OpenISDProjectJson['charts']>, engine: Engine, boxType: () => BoxType) {
+    constructor(lens: SimpleField<OpenISDProjectJson['charts']>, engine: BoxEngine, boxType: () => BoxType) {
         this.#lens = lens;
         this.#engine = engine;
         this.#boxType = boxType;

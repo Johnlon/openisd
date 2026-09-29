@@ -40,7 +40,7 @@ const tuneField = (page: Page, label: string) =>
 
 // ── QO11.1 — a calculated field is editable, and clearing hands it back ────────────────────
 // State transitions themselves (calculated → entered → calculated, and the g→kg-equivalent
-// numeric value landing in the model) are covered by OgTune-hooks.test.ts; this proves only
+// numeric value landing in the model) are covered by OriginalTune-hooks.test.ts; this proves only
 // that the DOM reflects that state via its value-c/value-e class.
 test('QO11.1 Tune: Mms and Bl are editable and override the calculation; clearing returns them to Calculated', async ({ page }) => {
   await openTune(page);
@@ -105,7 +105,7 @@ test('QO11.3 Tune: a blank Q autocalculates from the other two, with the editor 
   await qms.press('Control+a');
   await qms.press('Delete');
   // Qms's calculated/not-available transitions themselves are covered by
-  // OgTune-hooks.test.ts; here we only need the DOM to reflect it after blur.
+  // OriginalTune-hooks.test.ts; here we only need the DOM to reflect it after blur.
   await qms.blur();
   await expect(qms).toHaveClass(/value-c/);
   await expect(qms).not.toHaveClass(/de-input-empty/);

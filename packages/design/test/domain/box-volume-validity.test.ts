@@ -13,7 +13,7 @@
  * checked, never the stored value: a bad volume is kept exactly as entered, only marked.
  */
 import {describe, expect, it} from 'vitest';
-import {Engine} from '@openisd/design/engine';
+import {type Engine, createEngine} from '@openisd/design/engine';
 import {OpenISDDriver, OpenISDPassiveRadiatorStandalone, OpenISDProject} from '../../domain/index.js';
 
 const scraped = <T,>(value: T) => ({value});
@@ -50,61 +50,61 @@ function expectInvalidVolumeAtEachBadValue(
 ) {
   for (const value of [0, -1, NaN]) {
     field.set(value);
-    expect(field.dq).toEqual([engine.positiveValueIssue(value)]);
+    expect(field.dq).toEqual([engine.issues.positiveValueIssue(value)]);
   }
 }
 
 describe('box volume validity — every box type shares one floor (BUG_20260927)', () => {
   it('sealed volume_m3', () => {
-    const engine = new Engine();
+    const engine = createEngine();
     const p = OpenISDProject.builder(driverFor(engine), engine).sealed().volume_m3(0.03).build();
     expectInvalidVolumeAtEachBadValue(engine, p.box.sealed.volume_m3);
   });
 
   it('bandpass4 rear volume_m3', () => {
-    const engine = new Engine();
+    const engine = createEngine();
     const p = OpenISDProject.builder(driverFor(engine), engine).bandpass4()
       .rearVolume_m3(0.02).frontVolume_m3(0.02).frontTuning_hz(40).build();
     expectInvalidVolumeAtEachBadValue(engine, p.box.bandpass4.chambers.rear.volume_m3);
   });
 
   it('bandpass4 front volume_m3', () => {
-    const engine = new Engine();
+    const engine = createEngine();
     const p = OpenISDProject.builder(driverFor(engine), engine).bandpass4()
       .rearVolume_m3(0.02).frontVolume_m3(0.02).frontTuning_hz(40).build();
     expectInvalidVolumeAtEachBadValue(engine, p.box.bandpass4.chambers.front.volume_m3);
   });
 
   it('bandpass6 rear volume_m3', () => {
-    const engine = new Engine();
+    const engine = createEngine();
     const p = OpenISDProject.builder(driverFor(engine), engine).bandpass6()
       .rearVolume_m3(0.02).rearTuning_hz(30).frontVolume_m3(0.02).frontTuning_hz(40).build();
     expectInvalidVolumeAtEachBadValue(engine, p.box.bandpass6.chambers.rear.volume_m3);
   });
 
   it('bandpass6 front volume_m3', () => {
-    const engine = new Engine();
+    const engine = createEngine();
     const p = OpenISDProject.builder(driverFor(engine), engine).bandpass6()
       .rearVolume_m3(0.02).rearTuning_hz(30).frontVolume_m3(0.02).frontTuning_hz(40).build();
     expectInvalidVolumeAtEachBadValue(engine, p.box.bandpass6.chambers.front.volume_m3);
   });
 
   it('abc rear volume_m3', () => {
-    const engine = new Engine();
+    const engine = createEngine();
     const p = OpenISDProject.builder(driverFor(engine), engine).abc()
       .rearVolume_m3(0.02).rearTuning_hz(30).frontVolume_m3(0.02).frontTuning_hz(40).build();
     expectInvalidVolumeAtEachBadValue(engine, p.box.abc.chambers.rear.volume_m3);
   });
 
   it('abc front volume_m3', () => {
-    const engine = new Engine();
+    const engine = createEngine();
     const p = OpenISDProject.builder(driverFor(engine), engine).abc()
       .rearVolume_m3(0.02).rearTuning_hz(30).frontVolume_m3(0.02).frontTuning_hz(40).build();
     expectInvalidVolumeAtEachBadValue(engine, p.box.abc.chambers.front.volume_m3);
   });
 
   it('passive-radiator volume_m3', () => {
-    const engine = new Engine();
+    const engine = createEngine();
     const radiator = OpenISDPassiveRadiatorStandalone.empty(engine);
     const p = OpenISDProject.builder(driverFor(engine), engine).passiveRadiator()
       .volume_m3(0.05).tuning_goal_hz(35).count(1).radiator(radiator).build();
@@ -112,9 +112,9 @@ describe('box volume validity — every box type shares one floor (BUG_20260927)
   });
 
   it('leaves vented\'s own richer check untouched — still a VentedPlausibilityIssue, not this one', () => {
-    const engine = new Engine();
+    const engine = createEngine();
     const p = OpenISDProject.builder(driverFor(engine), engine).vented().volume_m3(0.05).tuning_goal_hz(35).build();
     p.box.vented.volume_m3.set(0);
-    expect(p.box.vented.volume_m3.dq).toEqual([engine.nonPhysicalQuantity('Vb', 0)]);
+    expect(p.box.vented.volume_m3.dq).toEqual([engine.issues.nonPhysicalQuantity('Vb', 0)]);
   });
 });

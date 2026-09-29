@@ -4,14 +4,14 @@ import type {Calculated, Entered, Readable, SimpleField} from '../domain/cell.js
 import {CalculatedFieldImpl, calculatedCell, entryField, inputOf, nullableField, pairedField, ReadableFieldImpl, requiredField, resolvingField, DefaultingFieldImpl, enteredCell} from '../domain/cell.js';
 import type {SpecEntryJson} from '../domain/openisdSchema.js';
 import type {DqIssue} from '../engine/index.js';
-import {Engine} from '../engine/index.js';
+import {createEngine} from '../engine/index.js';
 
-const engine = new Engine();
+const engine = createEngine();
 
 /** A distinct, hand-constructible `DqIssue` for fixtures — a target-unreachable issue is the
  *  simplest closed-union member to write out by hand. */
 function issue(target: string, maxReachable_hz = 0): DqIssue {
-  return engine.targetUnreachable(target, maxReachable_hz);
+  return engine.issues.targetUnreachable(target, maxReachable_hz);
 }
 
 /** A trivial in-memory `SimpleField` for a test-owned slot — no record, no schema, just a box a
@@ -135,7 +135,7 @@ describe('entryField — writeEntryDq\'s persisted mark shape, per DqIssue varia
     const slot = fakeSlot<SpecEntryJson | undefined>(undefined);
     const field = entryField(slot, 'Qts');
     field.set(0.6);
-    const mark = engine.inconsistentInputs('Qts', ['Qts', 'Qes', 'Qms'], 'Qts = Qes·Qms/(Qes+Qms)', 0.452, 0.6, 0.33);
+    const mark = engine.issues.inconsistentInputs('Qts', ['Qts', 'Qes', 'Qms'], 'Qts = Qes·Qms/(Qes+Qms)', 0.452, 0.6, 0.33);
     field.setDq([mark]);
     expect(slot.value?.dq_calculated?.[0]).toEqual({
       kind: 'calc', severity: 'error', rule: 'inconsistent-inputs',
@@ -148,7 +148,7 @@ describe('entryField — writeEntryDq\'s persisted mark shape, per DqIssue varia
     const slot = fakeSlot<SpecEntryJson | undefined>(undefined);
     const field = entryField(slot, 'Qts');
     field.set(0.4);
-    const mark = engine.missingDependencies('Qts', [
+    const mark = engine.issues.missingDependencies('Qts', [
       { formula: 'Qts = Qes·Qms/(Qes+Qms)', required: ['Qes', 'Qms'], missing: ['Qes'] },
       { formula: 'Qts = Qes·Qms/(Qes+Qms) v2', required: ['Qes', 'Qms'], missing: ['Qes'] },
     ]);
@@ -164,7 +164,7 @@ describe('entryField — writeEntryDq\'s persisted mark shape, per DqIssue varia
     const slot = fakeSlot<SpecEntryJson | undefined>(undefined);
     const field = entryField(slot, 'Qts');
     field.set(0.02);
-    const mark = engine.outOfRange('Qts', 0.02, 0.1, 'below');
+    const mark = engine.issues.outOfRange('Qts', 0.02, 0.1, 'below');
     field.setDq([mark]);
     expect(slot.value?.dq_calculated?.[0]).toEqual({
       kind: 'range', severity: 'error', rule: 'range-below-min',
@@ -177,7 +177,7 @@ describe('entryField — writeEntryDq\'s persisted mark shape, per DqIssue varia
     const slot = fakeSlot<SpecEntryJson | undefined>(undefined);
     const field = entryField(slot, 'Qts');
     field.set(12);
-    field.setDq([engine.outOfRange('Qts', 12, 2, 'above')]);
+    field.setDq([engine.issues.outOfRange('Qts', 12, 2, 'above')]);
     expect(slot.value?.dq_calculated?.[0]).toMatchObject({ kind: 'range', rule: 'range-above-max' });
   });
 
@@ -185,7 +185,7 @@ describe('entryField — writeEntryDq\'s persisted mark shape, per DqIssue varia
     const slot = fakeSlot<SpecEntryJson | undefined>(undefined);
     const field = entryField(slot, 'Fb');
     field.set(400);
-    const mark = engine.quantityOutOfBand('Fb', 400, 10, 150);
+    const mark = engine.issues.quantityOutOfBand('Fb', 400, 10, 150);
     field.setDq([mark]);
     expect(slot.value?.dq_calculated?.[0]).toEqual({
       kind: 'calc', severity: 'error', rule: 'issue', params: {},
@@ -197,7 +197,7 @@ describe('entryField — writeEntryDq\'s persisted mark shape, per DqIssue varia
     const slot = fakeSlot<SpecEntryJson | undefined>(undefined);
     const field = entryField(slot, 'Fb');
     field.set(-5);
-    const mark = engine.nonPhysicalQuantity('Fb', -5);
+    const mark = engine.issues.nonPhysicalQuantity('Fb', -5);
     field.setDq([mark]);
     expect(slot.value?.dq_calculated?.[0]).toEqual({
       kind: 'calc', severity: 'error', rule: 'issue', params: {},

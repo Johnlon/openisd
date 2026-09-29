@@ -10,7 +10,7 @@ import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {OpenISDProject} from '@openisd/design';
-import {Engine} from '@openisd/design/engine';
+import {createEngine} from '@openisd/design/engine';
 import {
   ensureCompleteDriverProject,
   ensureSampleProject,
@@ -20,7 +20,7 @@ describe('browser-spec .owpr fixtures parse under the current schema (QO152)', (
   it('sample-project.owpr loads', () => {
     const path = ensureSampleProject();
     const text = readFileSync(path, 'utf8');
-    const result = OpenISDProject.fromOwprText(text, new Engine());
+    const result = OpenISDProject.fromOwprText(text, createEngine());
     if (Array.isArray(result)) {
       throw new Error(`sample-project.owpr failed to parse: ${result.join('; ')}`);
     }
@@ -30,7 +30,7 @@ describe('browser-spec .owpr fixtures parse under the current schema (QO152)', (
   it('complete-driver-project.owpr loads a genuinely consistent driver — no dq on the Q trio (S9a Cluster 7)', () => {
     const path = ensureCompleteDriverProject();
     const text = readFileSync(path, 'utf8');
-    const result = OpenISDProject.fromOwprText(text, new Engine());
+    const result = OpenISDProject.fromOwprText(text, createEngine());
     if (Array.isArray(result)) {
       throw new Error(`complete-driver-project.owpr failed to parse: ${result.join('; ')}`);
     }

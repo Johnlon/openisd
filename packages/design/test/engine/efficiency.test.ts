@@ -20,10 +20,10 @@ import assert from 'node:assert/strict';
 import {readdirSync, readFileSync, statSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 import {dirname, extname, join} from 'node:path';
-import {Engine} from '../../engine/index.js';
+import {createEngine} from '../../engine/index.js';
 
 /** The engine's one door: every calculation below is a method on this object. */
-const engine = new Engine();
+const engine = createEngine();
 
 /** Reference sound pressure, 20 µPa — the denominator of every dB SPL. */
 const P0 = 20e-6;
@@ -51,7 +51,7 @@ const oracleAir = () => ({ rho: W.roo!, c: W.c! });
 
 /** K, the additive constant of `SPL = K + 10·log₁₀(η₀)`: at η₀ = 1 the log term is 0, so the
  *  engine's own SPL conversion reports K itself. */
-const kDb = (air: { rho: number; c: number }) => engine.splFromEfficiency(1, air);
+const kDb = (air: { rho: number; c: number }) => engine.driver.splFromEfficiency(1, air);
 
 describe('reference efficiency η₀ — WinISD oracle', () => {
   it('the oracle carries every value the formulas need (guards against a silent fixture change)', () => {
@@ -60,7 +60,7 @@ describe('reference efficiency η₀ — WinISD oracle', () => {
   });
 
   it('reproduces WinISD\'s stored `no` from Fs/Vas/Qes with the file\'s own c', () => {
-    const got = engine.referenceEfficiency(W.Fs!, W.Vas!, W.Qes!, oracleAir());
+    const got = engine.driver.referenceEfficiency(W.Fs!, W.Vas!, W.Qes!, oracleAir());
     assert.ok(Math.abs(got - W.no!) <= Math.abs(W.no!) * 1e-12,
       `no: got ${got}, WinISD stored ${W.no} (rel ${(got - W.no!) / W.no!})`);
   });
@@ -71,13 +71,13 @@ describe('reference efficiency η₀ — WinISD oracle', () => {
     const motorSide = (W.roo! / (2 * Math.PI * W.c!)) * (W.BL! ** 2 * W.Sd! ** 2) / (W.Re! * W.Mms! ** 2);
     assert.ok(Math.abs(motorSide - W.no!) <= Math.abs(W.no!) * 1e-12,
       `motor-side route: ${motorSide} vs stored ${W.no}`);
-    const got = engine.referenceEfficiency(W.Fs!, W.Vas!, W.Qes!, oracleAir());
+    const got = engine.driver.referenceEfficiency(W.Fs!, W.Vas!, W.Qes!, oracleAir());
     assert.ok(Math.abs(got - motorSide) <= Math.abs(motorSide) * 1e-12);
   });
 
   it('η₀ is a FRACTION — the oracle\'s value is ~8.8e-6, not ~8.8e-4', () => {
     assert.ok(W.no! < 1e-3, `a percent reading would be 100× larger; stored ${W.no}`);
-    assert.ok(engine.referenceEfficiency(W.Fs!, W.Vas!, W.Qes!, oracleAir()) < 1e-3);
+    assert.ok(engine.driver.referenceEfficiency(W.Fs!, W.Vas!, W.Qes!, oracleAir()) < 1e-3);
   });
 });
 
@@ -93,13 +93,13 @@ describe('the SOLVER fills SPL_dB from no — not just the raw formula', () => {
 
 describe('SPL from η₀ — the constant is DERIVED, never a literal', () => {
   it('reproduces WinISD\'s stored SPL from its stored `no` and its own ρ and c', () => {
-    const got = engine.splFromEfficiency(W.no!, oracleAir());
+    const got = engine.driver.splFromEfficiency(W.no!, oracleAir());
     assert.ok(Math.abs(got - W.SPL!) < 1e-9, `SPL: got ${got}, WinISD stored ${W.SPL}`);
   });
 
   it('reproduces the stored SPL end-to-end from Fs/Vas/Qes alone', () => {
-    const no = engine.referenceEfficiency(W.Fs!, W.Vas!, W.Qes!, oracleAir());
-    assert.ok(Math.abs(engine.splFromEfficiency(no, oracleAir()) - W.SPL!) < 1e-9);
+    const no = engine.driver.referenceEfficiency(W.Fs!, W.Vas!, W.Qes!, oracleAir());
+    assert.ok(Math.abs(engine.driver.splFromEfficiency(no, oracleAir()) - W.SPL!) < 1e-9);
   });
 
   it('K = 10·log₁₀(ρ·c/(2π·p_ref²)) — and 112.1 / 112.2 are its rounded approximations', () => {

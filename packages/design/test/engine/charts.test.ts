@@ -5,14 +5,14 @@
  */
 import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import {Engine} from '../../engine/index.js';
+import {createEngine} from '../../engine/index.js';
 import {openISDProjectJsonSchema} from '../../domain/openisdSchema.js';
 
-const engine = new Engine();
+const engine = createEngine();
 
 describe('Engine.chartsFor', () => {
   it('a sealed box: the ten system charts and the three filter charts, no port, no PR', () => {
-    const charts = engine.chartsFor('sealed');
+    const charts = engine.box.chartsFor('sealed');
     assert.deepEqual(charts, [
       'TFMag', 'Phase', 'GD', 'MaxPwr', 'MaxSPL', 'VA', 'SPL', 'Excursion', 'Zmag', 'Zph',
       'FltMag', 'FltPhase', 'FltGD',
@@ -20,12 +20,12 @@ describe('Engine.chartsFor', () => {
   });
 
   it('a vented box adds RearPort and RearPortGain, in WinISD chart-menu position, no FrontPort, no PR', () => {
-    const charts = engine.chartsFor('vented');
+    const charts = engine.box.chartsFor('vented');
     assert.ok(charts.includes('RearPort'));
     assert.ok(charts.includes('RearPortGain'));
     assert.ok(!charts.includes('FrontPort'));
     assert.ok(!charts.includes('PRTFMag') && !charts.includes('PRTFPhase') && !charts.includes('PRExcursion'));
-    assert.deepEqual([...charts].sort(), [...engine.chartsFor('sealed'), 'RearPort', 'RearPortGain'].sort());
+    assert.deepEqual([...charts].sort(), [...engine.box.chartsFor('sealed'), 'RearPort', 'RearPortGain'].sort());
     // WinISD row order: the port chart sits after Zph, before the filter trio, gain right after it.
     assert.ok(charts.indexOf('RearPort') > charts.indexOf('Zph'));
     assert.equal(charts.indexOf('RearPortGain'), charts.indexOf('RearPort') + 1);
@@ -33,12 +33,12 @@ describe('Engine.chartsFor', () => {
   });
 
   it('a 4th-order bandpass box adds FrontPort and FrontPortGain, in WinISD chart-menu position, no RearPort, no RearPortGain, no PR', () => {
-    const charts = engine.chartsFor('bandpass4');
+    const charts = engine.box.chartsFor('bandpass4');
     assert.ok(charts.includes('FrontPort'));
     assert.ok(charts.includes('FrontPortGain'));
     assert.ok(!charts.includes('RearPort'));
     assert.ok(!charts.includes('RearPortGain'));
-    assert.deepEqual([...charts].sort(), [...engine.chartsFor('sealed'), 'FrontPort', 'FrontPortGain'].sort());
+    assert.deepEqual([...charts].sort(), [...engine.box.chartsFor('sealed'), 'FrontPort', 'FrontPortGain'].sort());
     // WinISD row order: the port chart sits after Zph, before the filter trio, gain right after it.
     assert.ok(charts.indexOf('FrontPort') > charts.indexOf('Zph'));
     assert.equal(charts.indexOf('FrontPortGain'), charts.indexOf('FrontPort') + 1);
@@ -46,11 +46,11 @@ describe('Engine.chartsFor', () => {
   });
 
   it('a passive-radiator box adds the three PR charts, no port chart', () => {
-    const charts = engine.chartsFor('box-passive-radiator');
+    const charts = engine.box.chartsFor('box-passive-radiator');
     assert.ok(charts.includes('PRTFMag') && charts.includes('PRTFPhase') && charts.includes('PRExcursion'));
     assert.ok(!charts.includes('RearPort') && !charts.includes('RearPortGain')
       && !charts.includes('FrontPort') && !charts.includes('FrontPortGain'));
-    assert.deepEqual([...charts].sort(), [...engine.chartsFor('sealed'), 'PRTFMag', 'PRTFPhase', 'PRExcursion'].sort());
+    assert.deepEqual([...charts].sort(), [...engine.box.chartsFor('sealed'), 'PRTFMag', 'PRTFPhase', 'PRExcursion'].sort());
     // WinISD row order: TFMag, Phase, ... Zph, PRTFMag, PRTFPhase, PRExcursion, then the filter trio.
     assert.ok(charts.indexOf('PRTFMag') > charts.indexOf('Zph'));
     assert.ok(charts.indexOf('PRTFPhase') === charts.indexOf('PRTFMag') + 1);
@@ -58,9 +58,29 @@ describe('Engine.chartsFor', () => {
     assert.ok(charts.indexOf('PRExcursion') < charts.indexOf('FltMag'));
   });
 
-  it('bandpass6 and abc (not simulated at all) fall back to the sealed set — never a throw', () => {
-    assert.deepEqual(engine.chartsFor('bandpass6'), engine.chartsFor('sealed'));
-    assert.deepEqual(engine.chartsFor('abc'), engine.chartsFor('sealed'));
+  it('a 6th-order bandpass box adds RearPort and FrontPort, no gain charts, no PR', () => {
+    const charts = engine.box.chartsFor('bandpass6');
+    assert.ok(charts.includes('RearPort'));
+    assert.ok(charts.includes('FrontPort'));
+    assert.ok(!charts.includes('RearPortGain'));
+    assert.ok(!charts.includes('FrontPortGain'));
+    assert.deepEqual([...charts].sort(), [...engine.box.chartsFor('sealed'), 'RearPort', 'FrontPort'].sort());
+    // WinISD row order: the port charts sit after Zph, before the filter trio.
+    assert.ok(charts.indexOf('RearPort') > charts.indexOf('Zph'));
+    assert.ok(charts.indexOf('FrontPort') < charts.indexOf('FltMag'));
+  });
+
+  it('an ABC box adds RearPort, FrontPort and IntraPort (its own chart-21 row), no gain charts, no PR', () => {
+    const charts = engine.box.chartsFor('abc');
+    assert.ok(charts.includes('RearPort'));
+    assert.ok(charts.includes('FrontPort'));
+    assert.ok(charts.includes('IntraPort'));
+    assert.ok(!charts.includes('RearPortGain'));
+    assert.ok(!charts.includes('FrontPortGain'));
+    assert.deepEqual([...charts].sort(), [...engine.box.chartsFor('sealed'), 'RearPort', 'FrontPort', 'IntraPort'].sort());
+    // WinISD row order: the port charts sit after Zph, before the filter trio.
+    assert.ok(charts.indexOf('RearPort') > charts.indexOf('Zph'));
+    assert.ok(charts.indexOf('IntraPort') < charts.indexOf('FltMag'));
   });
 
   // `chartsFor` used to end in a `default` arm that threw on an unhandled box type, and this

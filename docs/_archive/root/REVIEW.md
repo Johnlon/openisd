@@ -390,7 +390,7 @@ get stuck" list above.
   **Second follow-up sweep, 2026-08-18 — more duplication found, all ruled:**
   - **`state.box: BoxType`** (`store.ts:180`) — confirmed a genuinely DISCONNECTED second copy
     of "which box alignment is active," not merely an unwired convenience field: set directly
-    in 5 places (`store.ts:481,498,551`, `OgNewProject.vue:46`, `OriginalShell.vue:95,512`),
+    in 5 places (`store.ts:481,498,551`, `OriginalNewProject.vue:46`, `OriginalShell.vue:95,512`),
     none of which also write `OpenISDBox.active` — the two can silently disagree today. **RULED:
     `state.box` is a project-level domain setting, not screen state — it moves onto
     `OpenISDProject`/`ManagedOpenISDProject` entirely.** No separate `state.box` variable
@@ -508,10 +508,10 @@ checklist — cross-check against Phase 0's red test output, which is authoritat
 ### Phase 4 — rewire the ~15 consuming files
 
 Lowest call-site-count first: `NumInput.vue`, `UnitToggle.vue`, `PRDefineModal.vue`/
-`PREditModal.vue`/`DriverBrowserWinisd.vue`/`OgFilters.vue`, `AdvancedOptions.vue`,
+`PREditModal.vue`/`DriverBrowserWinisd.vue`/`OriginalFilters.vue`, `AdvancedOptions.vue`,
 `OptionsModal.vue`, `DriverEditorModal.vue` (also fixes B8's 4 violators while here),
-`OgNewProject.vue`, `App.vue`, `driverLibrary.ts`, `driverSelection.ts`, `useApplicationIO.ts`
-(also fixes B5's PR/RHO/C duplication while here), `GraphPanel.vue`, `OgTune.vue`,
+`OriginalNewProject.vue`, `App.vue`, `driverLibrary.ts`, `driverSelection.ts`, `useApplicationIO.ts`
+(also fixes B5's PR/RHO/C duplication while here), `GraphPanel.vue`, `OriginalTune.vue`,
 `OriginalShell.vue` (largest, last — 208 `state` call sites alone). Each file's own tests run
 after that file's migration, not deferred to the end.
 

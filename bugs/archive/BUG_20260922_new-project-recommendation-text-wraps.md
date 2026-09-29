@@ -1,6 +1,6 @@
 # BUG_20260922_new-project-recommendation-text-wraps
 
-Status: RESOLVED (re-verified 2026-09-26) — confirmed against `OgNewProject.vue`'s current readout markup.
+Status: RESOLVED (re-verified 2026-09-26) — confirmed against `OriginalNewProject.vue`'s current readout markup.
 
 ## Symptom
 On the New Project wizard's sealed-box and vented-box readout panels, the
@@ -8,19 +8,19 @@ On the New Project wizard's sealed-box and vented-box readout panels, the
 line instead of staying on one line.
 
 ## Evidence
-[OgNewProject.vue:194](http://localhost:8000/winisd/openisd/packages/ui/src/ui/shells/original/OgNewProject.vue#L194) and
-[:212](http://localhost:8000/winisd/openisd/packages/ui/src/ui/shells/original/OgNewProject.vue#L212):
+[OriginalNewProject.vue:194](http://localhost:8000/winisd/openisd/packages/ui/src/ui/shells/original/OriginalNewProject.vue#L194) and
+[:212](http://localhost:8000/winisd/openisd/packages/ui/src/ui/shells/original/OriginalNewProject.vue#L212):
 ```
 <div class="readout-item"><span>Recommendation:</span> <strong>{{ ebpSuitabilityLabel }}</strong></div>
 ```
-CSS at [OgNewProject.vue:277](http://localhost:8000/winisd/openisd/packages/ui/src/ui/shells/original/OgNewProject.vue#L277):
+CSS at [OriginalNewProject.vue:277](http://localhost:8000/winisd/openisd/packages/ui/src/ui/shells/original/OriginalNewProject.vue#L277):
 ```
 .readout-item { display: flex; justify-content: space-between; width: 240px; }
 ```
 Fixed `width: 240px` on a flex row holding both the label and the value, with no
 `white-space: nowrap` on the value and no `flex-shrink`/`min-width` control — the
 longest label value, `"Either sealed or vented"` (from
-[OgNewProject-hooks.ts:199](http://localhost:8000/winisd/openisd/packages/ui/src/hooks/OgNewProject-hooks.ts#L199)),
+[OriginalNewProject-hooks.ts:199](http://localhost:8000/winisd/openisd/packages/ui/src/hooks/OriginalNewProject-hooks.ts#L199)),
 plus the "Recommendation:" label, does not fit in 240px and wraps.
 
 ## Cause
@@ -28,7 +28,7 @@ plus the "Recommendation:" label, does not fit in 240px and wraps.
 string; nothing prevents the `<strong>` value from wrapping.
 
 ## Fix
-[OgNewProject.vue:277](http://localhost:8000/winisd/openisd/packages/ui/src/ui/shells/original/OgNewProject.vue?html#L277)
+[OriginalNewProject.vue:277](http://localhost:8000/winisd/openisd/packages/ui/src/ui/shells/original/OriginalNewProject.vue?html#L277)
 — dropped the fixed `width: 240px`/`justify-content: space-between`, sized to content instead:
 ```
 .readout-item { display: flex; gap: 12px; white-space: nowrap; }

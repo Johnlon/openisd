@@ -47,7 +47,7 @@ says so. That claim is gone from the file now (see Fix).
 
 ## Cause
 
-The rule was needed by two components (`DriverEditorModal.vue`, `OgTune.vue`) and was written
+The rule was needed by two components (`DriverEditorModal.vue`, `OriginalTune.vue`) and was written
 where the consumers are rather than sourced from where the knowledge lives. The engine's export
 exists precisely to prevent this and was not used.
 

@@ -1,5 +1,4 @@
-import { Engine } from '../../engine/index.js';
-import type { Air } from '../../engine/index.js';
+import type { Air, VentEngine } from '../../engine/index.js';
 import { defaultingEntryField, entryField, focus, nullableField, pairedField } from '../cell.js';
 import type { Calculatable, Calculated, Clearable, Entered, Precise, Readable, SimpleField, Unsolvable, Writable } from '../cell.js';
 import { calcVentCount } from '../specEntry.js';
@@ -11,7 +10,7 @@ import type { Vent, VentShape } from '../vent.js';
  *  is active without any stored value having to be recomputed or migrated. */
 export class VentWindow implements Vent {
     readonly #lens: SimpleField<VentJson>;
-    readonly #engine: Engine;
+    readonly #vent: VentEngine;
     /** The project's own resolved air, read at CALL time — never a reference-condition default
      *  computed inside the engine (Driver Air Constants,
      *  `docs/plans/PLAN_DRIVER_SOLVE_AND_SWEEP_DIAGNOSTICS.md`). Sourced from the owning box's
@@ -29,7 +28,7 @@ export class VentWindow implements Vent {
     readonly area_m2: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;
 
     constructor(
-        lens: SimpleField<VentJson>, engine: Engine, air: () => Air,
+        lens: SimpleField<VentJson>, vent: VentEngine, air: () => Air,
         /** A pre-built `length_m`, ATOMICALLY paired with a tuning target living OUTSIDE this
          *  vent's own record (a chamber's `tuning_goal_hz` — `vented`'s and `bandpass4.front`'s own
          *  vents have one; bandpass6/ABC's do not, so they pass none). Only the OWNER
@@ -41,7 +40,7 @@ export class VentWindow implements Vent {
         lengthField?: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable,
     ) {
         this.#lens = lens;
-        this.#engine = engine;
+        this.#vent = vent;
         this.#air = air;
         this.shape = focus(lens, 'shape');
         this.endCorrection_m = focus(lens, 'endCorrection_m');
@@ -100,19 +99,19 @@ export class VentWindow implements Vent {
         const length_m = this.length_m.value;
         const Sp = this.area_m2.value;
         if (length_m === null || Sp === null) return null;
-        return this.#engine.ventEffectiveLength(length_m, Sp, this.#ports(), this.#lens.value.endCorrection_m);
+        return this.#vent.effectiveLength(length_m, Sp, this.#ports(), this.#lens.value.endCorrection_m);
     }
 
     tuningIn_hz(volume_m3: number | null): number | null {
         const length_m = this.length_m.value;
         const Sp = this.area_m2.value;
         if (volume_m3 === null || !(volume_m3 > 0) || length_m === null || Sp === null) return null;
-        return this.#engine.tuningFromLength(volume_m3, length_m, Sp, this.#ports(), this.#air(), this.#lens.value.endCorrection_m);
+        return this.#vent.tuningFromLength(volume_m3, length_m, Sp, this.#ports(), this.#air(), this.#lens.value.endCorrection_m);
     }
 
     lengthForTuning_m(volume_m3: number | null, fb_hz: number): number | null {
         const Sp = this.area_m2.value;
         if (volume_m3 === null || !(volume_m3 > 0) || !(fb_hz > 0) || Sp === null) return null;
-        return this.#engine.ventLength(volume_m3, fb_hz, Sp, this.#ports(), this.#air(), this.#lens.value.endCorrection_m);
+        return this.#vent.lengthForTuning(volume_m3, fb_hz, Sp, this.#ports(), this.#air(), this.#lens.value.endCorrection_m);
     }
 }

@@ -19,7 +19,7 @@
  * filter math, only proved the existing schema already guards the boundary the bug named.
  */
 import {describe, expect, it} from 'vitest';
-import {Engine} from '@openisd/design/engine';
+import {createEngine} from '@openisd/design/engine';
 import {OpenISDProject} from '../../domain/index.js';
 import {openISDProjectSessionJsonSchema} from '../../domain/openisdSchema.js';
 import {driverFromSpec} from '../fixtures/recordBuilders.js';
@@ -29,7 +29,7 @@ import type {Filter} from '@openisd/design/engine';
  *  plain JS object (`cloneSession()`), never through JSON text: `JSON.stringify(-Infinity)` is
  *  `"null"`, which would silently turn the very value this file tests into something else. */
 function sessionWithOneFilter(filter: Filter): unknown {
-  const engine = new Engine();
+  const engine = createEngine();
   const driver = driverFromSpec(engine, {
     Fs_hz: 30, Qes: 0.4, Qms: 4, Sd_m2: 0.02, Cms_m_per_N: 0.0005,
   });

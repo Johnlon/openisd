@@ -3,7 +3,7 @@ import {computed, ref, watch} from 'vue';
 import {unitToken} from '../../logic/presentationState.js';
 import {displayPrecision, fromDisplay, statedPrecision, toDisplay} from '../../logic/fields/units.js';
 import {type NumberField, type UnitGroup} from '@openisd/design/fields';
-import type {ProvenanceLetter} from '../../logic/fieldProvenance.js';
+import type {ProvenanceLetter} from '@openisd/design';
 import {inputFrom} from '../../logic/domEvents.js';
 
 // The DQ note makes this a fragment root, so attrs (id, class, …) are not auto-inherited —

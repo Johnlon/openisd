@@ -20,10 +20,8 @@
  * This is input validation only: it changes no formula and no computed number.
  */
 
-import type {BoxType, EnclosureParams, SimulatableBoxType} from './types.js';
-import {simulatableBoxType} from './types.js';
-import {missingDependencies} from './consistency.js';
-import type {CalculationIssue, SolveRoute} from './consistency.js';
+import type {BoxType, EnclosureParams} from './types.js';
+import type {CalculationIssue} from './consistency.js';
 
 export type BoxParamsQuantityName = keyof EnclosureParams;
 export type BoxParamsIssue = CalculationIssue<BoxParamsQuantityName>;
@@ -47,18 +45,18 @@ interface RequiredParam {
 
 
 /**
- * Which parameters `simulatable` actually divides by, and why — the one table `solveBoxParams()`
+ * Which parameters `box`'s circuit actually divides by, and why — the one table `solveBoxParams()`
  * reads. Lives INSIDE the function that
  * builds it, not at module scope: a module-scoped `const` object is shared mutable state
  * however it is declared, because `const` freezes the binding and not the contents
  * (packages/design/AGENTS.md).
  *
- * A TOTAL map over `SimulatableBoxType` (../AGENTS.md §"A CLOSED SET IS AN ENUM"): giving the
+ * A TOTAL map over `BoxType` (../AGENTS.md §"A CLOSED SET IS AN ENUM"): giving the
  * circuit a new topology is a compile error here rather than a silent hole in the precondition.
  * `Sp` is required for `bandpass4` as well as `vented` — the bandpass front chamber calls the
  * same `portImpedance()` (circuit.ts), so it divides by `Sp` identically.
  */
-function requiredParamsFor(simulatable: SimulatableBoxType): readonly RequiredParam[] {
+export function requiredParamsFor(box: BoxType): readonly RequiredParam[] {
   const VB: RequiredParam = {
     field: 'Vb',
     label: 'Box volume (Vb)',
@@ -95,43 +93,19 @@ function requiredParamsFor(simulatable: SimulatableBoxType): readonly RequiredPa
     consequence: 'a massless radiator has no resonance, so there is nothing for the box to tune against',
   };
 
-  const REQUIRED_BY_BOX: Record<SimulatableBoxType, readonly RequiredParam[]> = {
+  const REQUIRED_BY_BOX: Record<BoxType, readonly RequiredParam[]> = {
     sealed:                 [VB],
     vented:                 [VB, SP],
     'box-passive-radiator': [VB, PR_SD, PR_CMS, PR_MMD],
     bandpass4:              [VB, VF, SP],
+    // `Bandpass6Box`/`AbcBox` never call `port.ts`'s `portImpedance()` (their port masses come
+    // from `Fr`/`Ff`, not from `Sp`/`Leff` geometry — `SweepParams.Spr`'s own doc), so unlike
+    // `bandpass4`'s front chamber neither needs `Sp` here: only the two chamber volumes are a
+    // genuine divide-by-zero (`Cabr = Vb/(ρc²)`, `Cabf = Vf/(ρc²)`, both denominators elsewhere).
+    bandpass6:              [VB, VF],
+    abc:                    [VB, VF],
   };
 
-  return REQUIRED_BY_BOX[simulatable];
+  return REQUIRED_BY_BOX[box];
 }
 
-/** The one enclosure-parameter result: `values` is `P` unchanged when every field the circuit
- *  divides by is a finite positive number AND `box` is a topology the circuit has a model for;
- *  otherwise `null`, with `issues` naming what is missing (T9 — one solve per component). A box
- *  the circuit has no model for reports no issue here — it is not a missing FIELD, and naming it
- *  to the user is a presentation concern the store layer owns (step S3), not this precondition.
- *
- * Deliberately NOT exhaustive over everything that could go non-finite: `Leff`, the loss Q's
- * and the filter chain can each produce a singularity at one frequency without being invalid
- * inputs. Those are the postcondition's job (`classifyFinite`) — this layer only rejects values
- * that break the solve at EVERY frequency, which is the class a precondition can decide from the
- * inputs alone.
- */
-export function solveBoxParams(box: BoxType, P: EnclosureParams): BoxParamsSolveResult {
-  const simulatable = simulatableBoxType(box);
-  if (simulatable === null) return { values: null, issues: [] };
-
-  const issues: BoxParamsIssue[] = [];
-  for (const p of requiredParamsFor(simulatable)) {
-    const v = P[p.field];
-    // Finite as well as positive: `Infinity > 0` is true, so a bare `> 0` would admit a
-    // value that is itself already the poison this guard exists to stop.
-    if (typeof v === 'number' && Number.isFinite(v) && v > 0) continue;
-    const route: SolveRoute<BoxParamsQuantityName> = {
-      formula: `${p.label} must be greater than zero — ${p.consequence}.`,
-      required: [p.field], missing: [p.field],
-    };
-    issues.push(missingDependencies(p.field, [route]));
-  }
-  return { values: issues.length === 0 ? P : null, issues };
-}

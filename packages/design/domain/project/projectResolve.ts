@@ -60,7 +60,7 @@ export function resolveProject(ctx: ProjectResolveContext): ProjectIssues {
     // `#issues.signal` at read time, so no `projectGroupDq` here.
     const Re_ohm = usableRe(directRoot, driverOver);
     settleSignal(focus(directRoot, 'signal'), Re_ohm);
-    const signal = engine.solveSignal({
+    const signal = engine.signal.solve({
         power_W: powerDriveOver(directRoot),
         Re_ohm: inputOf(() => Re_ohm),
         voltage_V: driveVoltageOver(directRoot),
@@ -92,7 +92,7 @@ export function resolveProject(ctx: ProjectResolveContext): ProjectIssues {
     let ventTuningExtra: DqIssue | null = null;
 
     if (boxType === 'vented') {
-        vent = engine.solveVent({
+        vent = engine.vent.solve({
             tuning_goal_hz: box.vented.tuning_goal_hz,
             length_m: box.vented.vent.length_m,
             Vb_m3: inputOf(() => box.vented.volume_m3.value),
@@ -105,9 +105,9 @@ export function resolveProject(ctx: ProjectResolveContext): ProjectIssues {
         // it: the two say different things (this geometry does not solve / nobody would build
         // this).
         const Fb = box.vented.tuning_goal_hz.value;
-        ventTuningExtra = Fb === null ? null : engine.ventedTuningIssue(Fb);
+        ventTuningExtra = Fb === null ? null : engine.vented.tuningIssue(Fb);
     } else if (boxType === 'bandpass4') {
-        vent = engine.solveVent({
+        vent = engine.vent.solve({
             tuning_goal_hz: box.bandpass4.chambers.front.tuning_goal_hz,
             length_m: box.bandpass4.vents.front.length_m,
             Vb_m3: inputOf(() => box.bandpass4.chambers.front.volume_m3.value),
@@ -118,7 +118,7 @@ export function resolveProject(ctx: ProjectResolveContext): ProjectIssues {
     } else if (boxType === 'box-passive-radiator') {
         const p = box.passiveRadiator;
         const r = p.radiator;
-        pr = engine.solvePr({
+        pr = engine.pr.solve({
             addedMass_kg: p.addedMass_kg,
             tuning_goal_hz: p.tuning_goal_hz,
             resonanceWithAddedMass_hz: p.resonanceWithAddedMass_hz,
@@ -127,6 +127,7 @@ export function resolveProject(ctx: ProjectResolveContext): ProjectIssues {
             prMmd_kg: inputOf(() => r.spec.Mms_kg.value),
             prSd_m2: inputOf(() => r.spec.Sd_m2.value),
             prCms_m_per_N: inputOf(() => r.spec.Cms_m_per_N.value),
+            prNum: inputOf(() => p.count.value),
         }, air);
     } else if (boxType === 'sealed') {
         const ts = driver.specs;
@@ -137,11 +138,11 @@ export function resolveProject(ctx: ProjectResolveContext): ProjectIssues {
         const rgLoadedQts = (): number | null => {
             const Qts = ts.Qts.value;
             if (Qts === null) return null;
-            return engine.sourceLoadedQts(
+            return engine.driver.sourceLoadedQts(
                 ts.Qms.value ?? NaN, ts.Qes.value ?? NaN, ts.Re_ohm.value ?? NaN,
                 directRoot.value.driverEmbedding.Rs_ohm, Qts);
         };
-        sealed = engine.solveSealedAlignment({
+        sealed = engine.sealed.solve({
             Qts: inputOf(rgLoadedQts),
             Vas_m3: inputOf(() => ts.Vas_m3.value),
             Fs_hz: inputOf(() => ts.Fs_hz.value),
@@ -156,13 +157,13 @@ export function resolveProject(ctx: ProjectResolveContext): ProjectIssues {
     return { driver: driverIssues, signal, vent, pr, sealed, ventTuningExtra };
 }
 
-/** The driver's Re when it is a positive finite number, else null — read off `driverOver`, the
- *  permanent facade collaborator every caller of `resolveProject` already supplies. Exported: also
+/** The driver's Re at the project's coil temperature rise, or null when Re is unusable — read
+ *  off `driverOver`, the permanent facade collaborator every caller of `resolveProject` already supplies. Exported: also
  *  used by the facade's own `#signalOver` to build the `usableRe` callback `ProjectSignal` needs
  *  (PLAN_openisdproject_split.md). */
 export function usableRe(root: SimpleField<OpenISDProjectJson>, driverOver: ProjectResolveContext['driverOver']): number | null {
-    const Re_ohm = driverOver(root).specs.Re_ohm.value;
-    return Re_ohm !== null && Number.isFinite(Re_ohm) && Re_ohm > 0 ? Re_ohm : null;
+    const {alfaVC_per_K, vcTempRise_K} = root.value.driverEmbedding;
+    return driverOver(root).hotRe_ohm(alfaVC_per_K, vcTempRise_K);
 }
 
 /**

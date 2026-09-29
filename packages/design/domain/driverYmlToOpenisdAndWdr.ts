@@ -27,7 +27,7 @@ import {z} from "zod";
 import type {Calculated, Entered, Readable} from "./cell.js";
 import {OpenISDDriver} from "./driver/openISDDriver.js";
 import {OpenISDPassiveRadiatorStandalone} from "./passiveRadiator/openISDPassiveRadiatorStandalone.js";
-import {type DriverError, Engine} from "../engine/index.js";
+import {type DriverError, type Engine} from "../engine/index.js";
 
 import {type WdrCell, type WdrHeader, WinISDDriver,} from "../winisd/winisdDriver.js";
 import {winisdSafeText} from "../winisd/winisdSafeText.js";
@@ -42,7 +42,7 @@ import {sortKeysDeep} from "./openIsdDeviceJsonIo.js";
 import {dqMarks} from "./specEntry.js";
 import {selectOrigin} from "./selectOrigin.js";
 import {Corroboration, corroborate, type Reading} from "./corroboration.js";
-import {roundTripProblems} from "./driverRoundTripDiffs.js";
+import {DriverRoundTripCheck} from "./driverRoundTripDiffs.js";
 
 /** Both derived artefacts and every problem found producing them. `openisd`/`wdr` are null when a
  *  blocking failure stopped that artefact being produced; `errors` is always an array. */
@@ -204,84 +204,7 @@ function readingLiteral(r: Reading & { readonly actual_reading?: string }): stri
   return r.actual_reading ?? String(r.read_value);
 }
 
-/** One scraper-supplied spec entry — `scraperEntrySchema`'s shape — projected into the entry the
- *  app schema now requires: `{state:'E', value, origin, corroboration, readings, dq_scraper}`
- *  (D9's origin pick, D11's corroboration verdict; the app's one DQ implementation, computed HERE
- *  and nowhere else — `crosscheck.py`'s TS port). `readings` still carries every reading,
- *  rejected ones included: D9's own fallback tiers need to see them, and
- *  `entryWithoutRejectedReadings` (run after this, unchanged) is what drops them from the copy
- *  the app actually stores.
- *
- *  A MISMATCH verdict also pushes a warning naming every source's own reading — sources
- *  disagreeing is worth a human's attention even though a value still gets written.
- *
- *  An entry that is not a scraper entry at all — already typed (`state` present, e.g. from a
- *  hand-authored fixture), or shaped too strangely for `scraperEntrySchema` to accept — is
- *  returned UNCHANGED: a calculated entry has nothing here to project, and a malformed one is
- *  left for the record schema below to reject with its own real error rather than this function
- *  inventing one. */
-function projectScraperEntry(
-  entry: unknown,
-  section: string,
-  field: string,
-  engine: Engine,
-  warnings: DriverError[]
-): unknown {
-  if (!isKeyedObject(entry) || "state" in entry) return entry;
-  // A stale `dq_calculated` block (D22) or a stale `origin`/`corroboration` pair from a
-  // `driver.json` scraped before D9/D10/D11 (`entryForScraperSchema`, above) would otherwise trip
-  // `scraperEntrySchema`'s `strictObject` and silently fall through to "return entry unchanged"
-  // below.
-  const parsed = scraperEntrySchema.safeParse(entryForScraperSchema(entry));
-  if (!parsed.success) return entry;
 
-  const { readings, dq_scraper } = parsed.data;
-  const origin = selectOrigin(readings, field, (f, v) => engine.isPhysicallyPlausible(f, v));
-  const corroboration = corroborate(readings);
-  // `origin` always names one of `readings`' own keys — `selectOrigin` picks it FROM this same
-  // object — so this lookup can never miss.
-  const winner = readings[origin];
-
-  if (corroboration === Corroboration.Mismatch) {
-    const parts = Object.entries(readings)
-      .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
-      .map(([role, r]) => `${role}=${readingLiteral(r)}`)
-      .join(", ");
-    warnings.push({
-      level: "warn",
-      field: `${section}.${field}`,
-      message: `sources disagree: ${parts}`,
-    });
-  }
-
-  const projected: Record<string, unknown> = {
-    state: "E",
-    value: winner.read_value,
-    origin,
-    corroboration: corroboration.value,
-    readings,
-  };
-  if (dq_scraper !== undefined) projected.dq_scraper = dq_scraper;
-  return projected;
-}
-
-function projectSpecs(specs: unknown, engine: Engine, warnings: DriverError[]): unknown {
-  if (!isKeyedObject(specs)) return specs;
-  const sections: Record<string, unknown> = {};
-  for (const [sectionKey, section] of Object.entries(specs)) {
-    if (!isKeyedObject(section)) {
-      sections[sectionKey] = section;
-      continue;
-    }
-    const fields: Record<string, unknown> = {};
-    for (const [field, entry] of Object.entries(section)) {
-      const projected = projectScraperEntry(entry, sectionKey, field, engine, warnings);
-      fields[field] = entryWithoutAppOnlyKeys(entryWithoutRejectedReadings(projected));
-    }
-    sections[sectionKey] = fields;
-  }
-  return sections;
-}
 
 /**
  * Every string in the record, rewritten so WinISD can draw and store it
@@ -340,30 +263,6 @@ function describeCharacter(character: string): string {
   return `"${character}" (U+${hex})`;
 }
 
-/**
- * `driver.yml`'s keys, in the file's own order, minus the scraper section.
- *
- * Rebuilt as a fresh object rather than `delete`d from the parsed one: the parsed object is the
- * round-trip's reference (step 4 below) and must not be mutated by the thing it is checking.
- *
- * The spec keys pass through untouched — `driver.yml` spells them the openisd way (`Fs_hz`,
- * `Vas_m3`, …), so no canonicalisation is wanted here.
- */
-function stripScraperOnlyFieldsFromJavascriptObject(
-  driverYml: object,
-  engine: Engine,
-  warnings: DriverError[]
-): Record<string, unknown> {
-  const out: Record<string, unknown> = {};
-  for (const [key, value] of Object.entries(driverYml)) {
-    if (key === SCRAPER_ONLY_KEY) continue;
-    out[key] =
-      key === "specs"
-        ? projectSpecs(stripDefinitionField(value), engine, warnings)
-        : stripDefinitionField(value);
-  }
-  return stripMetadataOrigin(out);
-}
 
 
 
@@ -431,52 +330,6 @@ type OpenisdRecordResult =
   | { ok: true; record: Record<string, unknown>; warnings: DriverError[] }
   | { ok: false; error: DriverError };
 
-function driverYmlToOpenisdRecord(
-  driverYmlText: string,
-  engine: Engine
-): OpenisdRecordResult {
-  let javascriptThing: unknown;
-  try {
-    javascriptThing = parseYmlToJs(driverYmlText);
-  } catch (err) {
-    return {
-      ok: false,
-      error: {
-        level: "error",
-        field: "driver.yml",
-        message:
-          "could not parse as YAML: " +
-          String(err),
-      },
-    };
-  }
-
-  if (!isRecord(javascriptThing)) {
-    return {
-      ok: false,
-      error: {
-        level: "error",
-        field: "driver.yml",
-        message:
-          "parsed to " +
-          (javascriptThing === null ? "null" : typeof javascriptThing) +
-          ", not a record",
-      },
-    };
-  }
-
-  // D9/D11 push a warning per MISMATCH field as a side effect of the walk below — collected here
-  // rather than discovered by re-walking the finished record a second time; the text pass below
-  // adds one per character it had to rewrite, to the same array.
-  const warnings: DriverError[] = [];
-  const record = stripScraperOnlyFieldsFromJavascriptObject(javascriptThing, engine, warnings);
-
-  const safe = makeRecordTextWinisdSafe(record, "", warnings);
-  if (!isRecord(safe))
-    throw new Error("the text pass must return the record it was given");
-
-  return { ok: true, record: safe, warnings };
-}
 
 /**
  * `VCCon` — the voice-coil connection row, which is MANDATORY in a `.wdr`.
@@ -713,92 +566,248 @@ export function openIsdDriverToWinIsdDriver(
   return WinISDDriver.build(header, wdrCells, dqLines);
 }
 
-/** `.wdr` text -> `OpenISDDriver` — the reverse of `openIsdDriverToWinIsdDriver`, for a caller
- *  (a `.wdr`/`.owdr` file import) holding raw `.wdr` text rather than an already-parsed
- *  `WinISDDriver`. Three steps, same chain `winIsdProjectToOpenIsdProject` uses for the driver
- *  embedded in a `.wpr`'s `[Driver]` section: parse the INI, read it into an openisd record
- *  (`winISDDriverToOpenISDDeviceJson` — recovers `driverType` from the `[DRIVERTYPE ...]` tag in
- *  `Comment=` when present, `'woofer'` otherwise), then validate that record into a driver. */
-export function winIsdDriverTextToOpenIsdDriver(
-  text: string,
-  engine: Engine
-): { value: OpenISDDriver | null; errors: DriverError[] } {
-  const errors: DriverError[] = [];
-  const wdrDriver = WinISDDriver.fromWdrIni(text);
-  const { record, warnings } = winISDDriverToOpenISDDeviceJson(wdrDriver);
-  errors.push(...warnings);
+/** Driver file conversion — `driver.yml` to openisd + `.wdr`, and `.wdr` text back to a driver —
+ *  holding the one engine every driver it builds is given. */
+export class DriverFileConverter {
+  readonly #roundTrip: DriverRoundTripCheck;
 
-  const driverOrErrors = OpenISDDriver.fromConformingRecord(record, engine);
-  if (Array.isArray(driverOrErrors)) {
-    for (const problem of driverOrErrors)
-      errors.push({ level: "error", field: "driver", message: problem });
-    return { value: null, errors };
+  constructor(private readonly engine: Engine) {
+    this.#roundTrip = new DriverRoundTripCheck(engine);
   }
-  return { value: driverOrErrors, errors };
-}
 
-/**
- * `driver.yml` text in; `openisd.yml` text, `.wdr` text and every problem out.
- * Never throws for bad INPUT: a record the caller could not have known was malformed comes back as
- * an `errors` entry, because the Python caller's whole job is "call this, check `errors`" and an
- * exception crossing the V8 boundary is not something it can read. A defect in THIS code is a
- * different matter and is left to throw.
- */
-export function driverYmlToOpenisdAndWdr(
-  driverYmlText: string,
-  engine: Engine,
-): DriverYmlProjection {
-  const parsed = driverYmlToOpenisdRecord(driverYmlText, engine);
-  if (!parsed.ok) {
-    return { openisd: null, wdr: null, errors: [parsed.error] };
+  /**
+   * `driver.yml` text in; `openisd.yml` text, `.wdr` text and every problem out.
+   * Never throws for bad INPUT: a record the caller could not have known was malformed comes back as
+   * an `errors` entry, because the Python caller's whole job is "call this, check `errors`" and an
+   * exception crossing the V8 boundary is not something it can read. A defect in THIS code is a
+   * different matter and is left to throw.
+   */
+  driverYmlToOpenisdAndWdr(
+    driverYmlText: string
+  ): DriverYmlProjection {
+    const parsed = this.#driverYmlToOpenisdRecord(driverYmlText);
+    if (!parsed.ok) {
+      return { openisd: null, wdr: null, errors: [parsed.error] };
+    }
+    const openisdJson = parsed.record;
+
+    const driverOrErrors = OpenISDDriver.fromConformingRecord(
+      openisdJson,
+      this.engine
+    );
+    if (Array.isArray(driverOrErrors)) {
+      // its an array of errors not a driver
+      const radiatorOrErrors =
+        OpenISDPassiveRadiatorStandalone.fromConformingRecord(
+          openisdJson,
+          this.engine
+        );
+      if (!Array.isArray(radiatorOrErrors)) {
+        // not an array so its the PR
+        return {
+          openisd: JSON.stringify(sortKeysDeep(radiatorOrErrors.toOpenIsdDeviceJson()), null, 2),
+          wdr: null,
+          errors: parsed.warnings,
+        };
+      }
+
+      const errors: DriverError[] = [...parsed.warnings];
+      // dedupe
+      for (const problem of new Set([...driverOrErrors, ...radiatorOrErrors])) {
+        errors.push({ level: "error", field: "record", message: problem });
+      }
+      return { openisd: JSON.stringify(sortKeysDeep(openisdJson), null, 2), wdr: null, errors };
+    }
+
+    // ONE `dq_calculated` PRODUCER (John, 2026-09-20): what the pipeline writes is what the app
+    // exports for this record — the app's loader has already resolved it and marked every
+    // finding. So the record on disk carries the marks the app would write, and the bundler's
+    // round-trip gate (`scripts/roundTripGate.mjs`) passes it by construction.
+    const exported = driverOrErrors.toOpenIsdDeviceJson();
+    const openisd = JSON.stringify(sortKeysDeep(exported), null, 2);
+
+    const errors: DriverError[] = [...parsed.warnings];
+    // The `.wdr` comment carries the SAME marks the openisd.yml does — the app's, not the parsed
+    // driver.yml's — so the two derived files never disagree about a record's quality.
+    const wdrDriver = openIsdDriverToWinIsdDriver(
+      driverOrErrors,
+      errors,
+      dqCommentLines(exported)
+    );
+
+    const wdr = wdrDriver.toWdrIni();
+    errors.push(...this.#roundTrip.roundTripProblems(driverOrErrors, openisd, wdr));
+    return { openisd, wdr, errors };
   }
-  const openisdJson = parsed.record;
 
-  const driverOrErrors = OpenISDDriver.fromConformingRecord(
-    openisdJson,
-    engine
-  );
-  if (Array.isArray(driverOrErrors)) {
-    // its an array of errors not a driver
-    const radiatorOrErrors =
-      OpenISDPassiveRadiatorStandalone.fromConformingRecord(
-        openisdJson,
-        engine
-      );
-    if (!Array.isArray(radiatorOrErrors)) {
-      // not an array so its the PR
+  /** `.wdr` text -> `OpenISDDriver` — the reverse of `openIsdDriverToWinIsdDriver`, for a caller
+   *  (a `.wdr`/`.owdr` file import) holding raw `.wdr` text rather than an already-parsed
+   *  `WinISDDriver`. Three steps, same chain `winIsdProjectToOpenIsdProject` uses for the driver
+   *  embedded in a `.wpr`'s `[Driver]` section: parse the INI, read it into an openisd record
+   *  (`winISDDriverToOpenISDDeviceJson` — recovers `driverType` from the `[DRIVERTYPE ...]` tag in
+   *  `Comment=` when present, `'woofer'` otherwise), then validate that record into a driver. */
+  winIsdDriverTextToOpenIsdDriver(
+    text: string
+  ): { value: OpenISDDriver | null; errors: DriverError[] } {
+    const errors: DriverError[] = [];
+    const wdrDriver = WinISDDriver.fromWdrIni(text);
+    const { record, warnings } = winISDDriverToOpenISDDeviceJson(wdrDriver);
+    errors.push(...warnings);
+
+    const driverOrErrors = OpenISDDriver.fromConformingRecord(record, this.engine);
+    if (Array.isArray(driverOrErrors)) {
+      for (const problem of driverOrErrors)
+        errors.push({ level: "error", field: "driver", message: problem });
+      return { value: null, errors };
+    }
+    return { value: driverOrErrors, errors };
+  }
+
+  #driverYmlToOpenisdRecord(
+    driverYmlText: string
+  ): OpenisdRecordResult {
+    let javascriptThing: unknown;
+    try {
+      javascriptThing = parseYmlToJs(driverYmlText);
+    } catch (err) {
       return {
-        openisd: JSON.stringify(sortKeysDeep(radiatorOrErrors.toOpenIsdDeviceJson()), null, 2),
-        wdr: null,
-        errors: parsed.warnings,
+        ok: false,
+        error: {
+          level: "error",
+          field: "driver.yml",
+          message:
+            "could not parse as YAML: " +
+            String(err),
+        },
       };
     }
 
-    const errors: DriverError[] = [...parsed.warnings];
-    // dedupe
-    for (const problem of new Set([...driverOrErrors, ...radiatorOrErrors])) {
-      errors.push({ level: "error", field: "record", message: problem });
+    if (!isRecord(javascriptThing)) {
+      return {
+        ok: false,
+        error: {
+          level: "error",
+          field: "driver.yml",
+          message:
+            "parsed to " +
+            (javascriptThing === null ? "null" : typeof javascriptThing) +
+            ", not a record",
+        },
+      };
     }
-    return { openisd: JSON.stringify(sortKeysDeep(openisdJson), null, 2), wdr: null, errors };
+
+    // D9/D11 push a warning per MISMATCH field as a side effect of the walk below — collected here
+    // rather than discovered by re-walking the finished record a second time; the text pass below
+    // adds one per character it had to rewrite, to the same array.
+    const warnings: DriverError[] = [];
+    const record = this.#stripScraperOnlyFieldsFromJavascriptObject(javascriptThing,  warnings);
+
+    const safe = makeRecordTextWinisdSafe(record, "", warnings);
+    if (!isRecord(safe))
+      throw new Error("the text pass must return the record it was given");
+
+    return { ok: true, record: safe, warnings };
   }
 
-  // ONE `dq_calculated` PRODUCER (John, 2026-09-20): what the pipeline writes is what the app
-  // exports for this record — the app's loader has already resolved it and marked every
-  // finding. So the record on disk carries the marks the app would write, and the bundler's
-  // round-trip gate (`scripts/roundTripGate.mjs`) passes it by construction.
-  const exported = driverOrErrors.toOpenIsdDeviceJson();
-  const openisd = JSON.stringify(sortKeysDeep(exported), null, 2);
+  /**
+   * `driver.yml`'s keys, in the file's own order, minus the scraper section.
+   *
+   * Rebuilt as a fresh object rather than `delete`d from the parsed one: the parsed object is the
+   * round-trip's reference (step 4 below) and must not be mutated by the thing it is checking.
+   *
+   * The spec keys pass through untouched — `driver.yml` spells them the openisd way (`Fs_hz`,
+   * `Vas_m3`, …), so no canonicalisation is wanted here.
+   */
+  #stripScraperOnlyFieldsFromJavascriptObject(
+    driverYml: object,
+    warnings: DriverError[]
+  ): Record<string, unknown> {
+    const out: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(driverYml)) {
+      if (key === SCRAPER_ONLY_KEY) continue;
+      out[key] =
+        key === "specs"
+          ? this.#projectSpecs(stripDefinitionField(value),  warnings)
+          : stripDefinitionField(value);
+    }
+    return stripMetadataOrigin(out);
+  }
 
-  const errors: DriverError[] = [...parsed.warnings];
-  // The `.wdr` comment carries the SAME marks the openisd.yml does — the app's, not the parsed
-  // driver.yml's — so the two derived files never disagree about a record's quality.
-  const wdrDriver = openIsdDriverToWinIsdDriver(
-    driverOrErrors,
-    errors,
-    dqCommentLines(exported)
-  );
+  #projectSpecs(specs: unknown, warnings: DriverError[]): unknown {
+    if (!isKeyedObject(specs)) return specs;
+    const sections: Record<string, unknown> = {};
+    for (const [sectionKey, section] of Object.entries(specs)) {
+      if (!isKeyedObject(section)) {
+        sections[sectionKey] = section;
+        continue;
+      }
+      const fields: Record<string, unknown> = {};
+      for (const [field, entry] of Object.entries(section)) {
+        const projected = this.#projectScraperEntry(entry, sectionKey, field,  warnings);
+        fields[field] = entryWithoutAppOnlyKeys(entryWithoutRejectedReadings(projected));
+      }
+      sections[sectionKey] = fields;
+    }
+    return sections;
+  }
 
-  const wdr = wdrDriver.toWdrIni();
-  errors.push(...roundTripProblems(driverOrErrors, openisd, wdr, engine));
-  return { openisd, wdr, errors };
+  /** One scraper-supplied spec entry — `scraperEntrySchema`'s shape — projected into the entry the
+   *  app schema now requires: `{state:'E', value, origin, corroboration, readings, dq_scraper}`
+   *  (D9's origin pick, D11's corroboration verdict; the app's one DQ implementation, computed HERE
+   *  and nowhere else — `crosscheck.py`'s TS port). `readings` still carries every reading,
+   *  rejected ones included: D9's own fallback tiers need to see them, and
+   *  `entryWithoutRejectedReadings` (run after this, unchanged) is what drops them from the copy
+   *  the app actually stores.
+   *
+   *  A MISMATCH verdict also pushes a warning naming every source's own reading — sources
+   *  disagreeing is worth a human's attention even though a value still gets written.
+   *
+   *  An entry that is not a scraper entry at all — already typed (`state` present, e.g. from a
+   *  hand-authored fixture), or shaped too strangely for `scraperEntrySchema` to accept — is
+   *  returned UNCHANGED: a calculated entry has nothing here to project, and a malformed one is
+   *  left for the record schema below to reject with its own real error rather than this function
+   *  inventing one. */
+  #projectScraperEntry(
+    entry: unknown,
+    section: string,
+    field: string,
+    warnings: DriverError[]
+  ): unknown {
+    if (!isKeyedObject(entry) || "state" in entry) return entry;
+    // A stale `dq_calculated` block (D22) or a stale `origin`/`corroboration` pair from a
+    // `driver.json` scraped before D9/D10/D11 (`entryForScraperSchema`, above) would otherwise trip
+    // `scraperEntrySchema`'s `strictObject` and silently fall through to "return entry unchanged"
+    // below.
+    const parsed = scraperEntrySchema.safeParse(entryForScraperSchema(entry));
+    if (!parsed.success) return entry;
+
+    const { readings, dq_scraper } = parsed.data;
+    const origin = selectOrigin(readings, field, (f, v) => this.engine.driver.isPhysicallyPlausible(f, v));
+    const corroboration = corroborate(readings);
+    // `origin` always names one of `readings`' own keys — `selectOrigin` picks it FROM this same
+    // object — so this lookup can never miss.
+    const winner = readings[origin];
+
+    if (corroboration === Corroboration.Mismatch) {
+      const parts = Object.entries(readings)
+        .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
+        .map(([role, r]) => `${role}=${readingLiteral(r)}`)
+        .join(", ");
+      warnings.push({
+        level: "warn",
+        field: `${section}.${field}`,
+        message: `sources disagree: ${parts}`,
+      });
+    }
+
+    const projected: Record<string, unknown> = {
+      state: "E",
+      value: winner.read_value,
+      origin,
+      corroboration: corroboration.value,
+      readings,
+    };
+    if (dq_scraper !== undefined) projected.dq_scraper = dq_scraper;
+    return projected;
+  }
 }

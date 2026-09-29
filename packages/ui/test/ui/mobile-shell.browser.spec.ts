@@ -58,7 +58,7 @@ test('the tab bar switches between Box, Driver, Signal and Graph', async ({ page
 test('New project from the empty state opens the mobile wizard', async ({ page }) => {
   await page.goto('/');
   await page.getByText('New project').click();
-  // MobileNewProject.vue — the phone-width wizard, not the desktop OgNewProject modal. Same
+  // MobileNewProject.vue — the phone-width wizard, not the desktop OriginalNewProject modal. Same
   // useOgNewProject() state, mobile-only presentation (App.vue picks by activeSkin).
   await expect(page.locator('.mob-np-overlay .mob-np-title')).toContainText('New project');
 });

@@ -7,9 +7,9 @@
  * type's response and group delay".
  *
  * The engine has one door (`Engine`); a single filter's own response/group delay is read off
- * `Engine.sweep`'s "(EQ/Filter)" outputs (`fltMag`/`fltPhase`/`fltGd`) at a one-point grid
+ * `SimulationEngine.sweep`'s "(EQ/Filter)" outputs (`fltMag`/`fltPhase`/`fltGd`) at a one-point grid
  * (`fmin === fmax`, `N: 0`) rather than by importing `evalFilter`/`groupDelayAtMs` past the
- * door — the same pattern `complex.test.ts` uses to reach `cTanh` through `Engine.sweep`.
+ * door — the same pattern `complex.test.ts` uses to reach `cTanh` through `SimulationEngine.sweep`.
  * `fltGd` IS `groupDelayAtMs(filterChain, f)` (`sweep.ts`), so this is the same computation the
  * brief names, not an approximation of it.
  */
@@ -18,10 +18,10 @@ import {driverParams, solveConsistencyGroup} from './testSolver.js';
 import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
 import type {Filter} from '../../engine/index.js';
-import {Engine} from '../../engine/index.js';
+import {createEngine} from '../../engine/index.js';
 import {WINISD_FILTER_CAPTURES} from '../fixtures/winisdFilterCaptures.js';
 
-const engine = new Engine();
+const engine = createEngine();
 
 // The filter chain's own response does not depend on the driver or box (proved directly in
 // filter-chain-charts.test.ts) — any solvable reference driver does.
@@ -34,7 +34,7 @@ const LE_H = 0.70e-3;
 /** This filter alone, at exactly one frequency — `fmin === fmax`, `N: 0` makes `sweep`'s grid
  *  a single point at `f` (`f0 * (f1/f0)^(i/N)`, and `Math.pow(1, NaN)` is 1). */
 function filterAt(filter: Filter, f: number) {
-  const sw = engine.sweep(driverParams(DRV), LE_H, 'sealed',
+  const sw = engine.simulation.sweep(driverParams(DRV), LE_H, 'sealed',
     {Vb: 0.030, eg: 2.83, fmin: f, fmax: f, N: 0, filters: [filter]}).values!;
   return {mag: sw.fltMag[0], phase: sw.fltPhase[0], gdMs: sw.fltGd[0]};
 }

@@ -17,7 +17,7 @@ import {computed, ref, type Ref, shallowRef, type ShallowRef, triggerRef, watch}
 import type {
     BoxType, ChartId, DriverError, MaxCurvesResult, SweepResult, VentedDesignLimits,
 } from '@openisd/design/engine';
-import {DEFAULT_ENV_DEFAULTS, DEFAULT_VENTED_DESIGN_LIMITS, Engine, type EnvDefaults} from '@openisd/design/engine';
+import {DEFAULT_ENV_DEFAULTS, DEFAULT_VENTED_DESIGN_LIMITS, type Engine, createEngine, type EnvDefaults} from '@openisd/design/engine';
 import {driverPrerequisiteMessage, sweepIssueMessage} from './sweepIssueMessage.js';
 import {
     type AppContext,
@@ -147,7 +147,7 @@ export function setEnvDefaults(defaults: EnvDefaults): void {
 }
 
 export const engine = getOrInit(slots, 'engine',
-  () => new Engine({
+  () => createEngine({
     ventedLimits: () => appSettings.value.ventedLimits(),
     envDefaults: () => appSettings.value.envDefaults(),
   }));
@@ -616,7 +616,7 @@ export function newProject(): OpenISDProject {
  *  re-enumerated in a view: a second list of "types that work" is what let a UI-only box type
  *  reach the solver as an assertion. */
 export function boxTypeIsSimulatable(boxType: BoxType): boolean {
-  return engine.simulatableBoxType(boxType) !== null;
+  return engine.box.simulatableBoxType(boxType) !== null;
 }
 
 /** The enclosure types the New Project wizard offers: the registry's list (`box_Type`),

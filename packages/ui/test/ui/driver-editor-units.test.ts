@@ -27,9 +27,8 @@ import type {NumSpecField} from '../../src/logic/appState.js';
 import {WinISDDriver} from '@openisd/design/winisd';
 import type {Calculated, Entered, Readable} from '@openisd/design';
 import {CellClass, cellClassOf} from '../../src/logic/useDriverCells.js';
-import {provenanceOf} from '../../src/logic/fieldProvenance.js';
 import {OpenISDDriver, VoiceCoilWiring} from '@openisd/design';
-import {Engine} from '@openisd/design/engine';
+import {createEngine} from '@openisd/design/engine';
 import {DateField, EnumField, Field, NumberField, TextField, ToggleField} from '@openisd/design/fields';
 import {nextToken, toDisplay, UNIT_GROUPS, unitDef, type UnitGroup} from '../../src/logic/fields/units.js';
 
@@ -157,7 +156,7 @@ function driverCellOf(d: OpenISDDriver, field: NumSpecField): Readable<number | 
   return d.specField(field);
 }
 
-const _engine = new Engine();
+const _engine = createEngine();
 /** A driver stating nothing — the domain's own blank, not a record assembled here. These tests
  *  are about which cells the editor binds, not about any driver's contents. */
 function blankDriver(): OpenISDDriver {
@@ -387,7 +386,7 @@ describe('Gloss — a FRACTION in the file, a PERCENT on the panel', () => {
     const d = coreDriver();
     const cell = d.specs.Gloss;
     assert.equal(typeof cell.value, 'number',
-      `Gloss binds cellVal('Gloss'), which the driver model leaves ${provenanceOf(cell)} — the field renders blank`);
+      `Gloss binds cellVal('Gloss'), which the driver model leaves ${cell.provenance} — the field renders blank`);
     // g/((2π·37)²·0.005) for coreDriver's Fs/Xmax.
     assert.ok(Math.abs((cell.value as number) - 9.80665 / ((2 * Math.PI * 37) ** 2 * 0.005)) < 1e-15);
   });
@@ -511,7 +510,7 @@ describe('driver editor — every bound cell is one the driver model answers', (
       assert.equal(
         typeof cell.value,
         'number',
-        `${label} binds cellVal('${f.field}'), which the driver model leaves ${provenanceOf(cell)} — the field renders blank`,
+        `${label} binds cellVal('${f.field}'), which the driver model leaves ${cell.provenance} — the field renders blank`,
       );
     }
   });
@@ -525,7 +524,7 @@ describe('driver editor — every bound cell is one the driver model answers', (
     const f = byLabel('Voicecoils');
     const d = coreDriver();
     const cell = driverCellOf(d, f.field as NumSpecField);
-    assert.equal(cell.calculated, true, `Voicecoils cell is ${provenanceOf(cell)} — an unstated coil count reads as the default, derived`);
+    assert.equal(cell.calculated, true, `Voicecoils cell is ${cell.provenance} — an unstated coil count reads as the default, derived`);
     assert.equal(cell.value, 1, 'and the default is WinISD\'s 1');
     assert.equal(d.specs.numVC.value ?? 1, 1, 'the ENGINE-facing driver must still default numVC to 1 for simulation');
   });

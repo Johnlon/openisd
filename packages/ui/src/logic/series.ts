@@ -1,4 +1,11 @@
-import type {BoxType, ChartId, DriverError, DriverSolverParams, Engine, MaxCurvesResult, SweepResult} from '@openisd/design/engine';
+import type {BoxEngine, BoxType, ChartId, DriverError, DriverSolverParams, EnvironmentEngine, MaxCurvesResult, SimulationEngine, SweepResult} from '@openisd/design/engine';
+
+/** The two engine areas a curve builder reads: the sweep's own classifiers and the air the port
+ *  velocity's Mach limit is measured in. The composition root's engine satisfies it. */
+export interface ChartEngineAreas {
+  readonly simulation: SimulationEngine;
+  readonly environment: EnvironmentEngine;
+}
 import type {Design, PlotData, PlotParams, Series} from '../types.js';
 
 export const DPAL = ['#4fb0ff','#ffb454','#5ad17a','#ff6b6b','#c08bff'];
@@ -19,7 +26,7 @@ export const TAB_META: Record<ChartId, TabMeta> = {
   // dashed -3 dB reference line. A DISPLAY MODE derived from the same sweep, not a new engine
   // computation; see the 'TFMag' builder below.
   TFMag:     { id:'TFMag',     name:'Transfer function magnitude', unit:'dB', color:'#4fb0ff' },
-  // WinISD's own radiator-only transfer function (packages/design/engine/sweep.ts prTfMag/
+  // WinISD's own radiator-only transfer function (packages/design/engine/simulation/SimulationEngine.ts prTfMag/
   // prTfPhase) — the driver's cone is not in it, so it gets its own hue rather than TFMag's.
   PRTFMag:   { id:'PRTFMag',   name:'Transfer function magnitude (PR)', unit:'dB', color:'#c08bff' },
   PRTFPhase: { id:'PRTFPhase', name:'Transfer function phase (PR)', unit:'°', color:'#c08bff' },
@@ -28,13 +35,16 @@ export const TAB_META: Record<ChartId, TabMeta> = {
   // (BUG_20260927_winisd-charts-missing.md) — `sw.excPR` moved here.
   PRExcursion: { id:'PRExcursion', name:'Cone excursion (PR)', unit:'mm', color:'#5ad17a' },
   RearPort:  { id:'RearPort',  name:'Rear port - Air velocity', unit:'m/s', color:'#5ad17a' },
-  // Same 0 dB / -3 dB passband-asymptote convention as TFMag (packages/design/engine/sweep.ts
+  // Same 0 dB / -3 dB passband-asymptote convention as TFMag (packages/design/engine/simulation/SimulationEngine.ts
   // rearPortGain) — unlike PRTFMag, this one IS run through the filter chain.
   RearPortGain: { id:'RearPortGain', name:'Rear port - Gain', unit:'dB', color:'#4fb0ff' },
   FrontPort: { id:'FrontPort', name:'Front port - Air velocity', unit:'m/s', color:'#5ad17a' },
-  // Same 0 dB / -3 dB passband-asymptote convention as RearPortGain (packages/design/engine/sweep.ts
+  // Same 0 dB / -3 dB passband-asymptote convention as RearPortGain (packages/design/engine/simulation/SimulationEngine.ts
   // frontPortGain, the SAME computation as rearPortGain reused) — run through the filter chain.
   FrontPortGain: { id:'FrontPortGain', name:'Front port - Gain', unit:'dB', color:'#4fb0ff' },
+  // ABC only (WinISD chart-21, GHIDRA_FINDINGS.md "ABC (Aperiodic Bi-Chamber)" "Charts" bullet) —
+  // same air-velocity quantity/hue as RearPort/FrontPort, off `sw.pvIntra`.
+  IntraPort: { id:'IntraPort', name:'Intra-chamber port - Air velocity', unit:'m/s', color:'#5ad17a' },
   GD:        { id:'GD',        name:'Group delay',     unit:'ms',  color:'#c08bff' },
   Zmag:      { id:'Zmag',      name:'Impedance',       unit:'Ω',   color:'#ff6b6b' },
   Zph:       { id:'Zph',       name:'Impedance phase', unit:'°',   color:'#ff9bb0' },
@@ -72,6 +82,7 @@ export const CHART_LABELS: Record<ChartId, string> = {
   RearPortGain: 'Rear port - Gain',
   FrontPort: 'Front port - Air velocity',
   FrontPortGain: 'Front port - Gain',
+  IntraPort: 'Intra-chamber port - Air velocity',
   FltMag: 'Transfer function magnitude (EQ/Filter)',
   FltPhase: 'Transfer function phase (EQ/Filter)',
   FltGD: 'Group Delay (EQ/Filter)',
@@ -82,11 +93,11 @@ export const CHART_LABELS: Record<ChartId, string> = {
  * a stale chart id restored from `localStorage`, say — and is handled as missing, i.e.
  * the default chart, never as a second spelling to tolerate.
  */
-export function parseChartId(engine: Engine, v: string | null | undefined): ChartId {
+export function parseChartId(box: BoxEngine, v: string | null | undefined): ChartId {
   // The id comes back off the MEMBER that matched, so it is a `ChartId` because `TabMeta.id`
   // is one — nothing asserts it. `hasOwnProperty` answered the same question correctly but
   // returns a boolean, which cannot narrow a `string`, so using its answer needed a cast.
-  return TABS.find(t => t.id === v)?.id ?? engine.defaultChart;
+  return TABS.find(t => t.id === v)?.id ?? box.defaultChart;
 }
 
 /** SPL/filter-magnitude values at or below this are the engine's "no output" sentinel. */
@@ -97,8 +108,8 @@ interface SeriesBundle { series: Series[]; ymin: number; ymax: number; logy: boo
 
 /** Everything a curve builder may read. */
 interface CurveCtx {
-  /** The one engine the composition root built — a curve builder never makes its own. */
-  engine: Engine;
+  /** The composition root's engine areas — a curve builder never makes its own. */
+  engine: ChartEngineAreas;
   meta: TabMeta;
   drv: DriverSolverParams;
   box: BoxType;
@@ -117,19 +128,24 @@ interface CurveCtx {
 /** A builder's output. `logy` defaults to false; `unit` always comes from the tab's meta. */
 type CurveBuild = { series: Series[]; ymin: number; ymax: number; logy?: boolean };
 
-/** Port air velocity — shared by `RearPort` (vented) and `FrontPort` (bandpass4): same
- *  quantity (`sw.pv`), same Mach-limit reference line, only the port itself differs. */
-function portVelocityBuild({ engine, meta, sw, pick }: CurveCtx): CurveBuild {
-  const series: Series[] = [{ ...pick(sw.pv), color: meta.color, name: 'Port vel' }];
+/** Port air velocity — shared by `RearPort` (vented, `bandpass6`, `abc`), `FrontPort`
+ *  (`bandpass4`, `bandpass6`, `abc`) and `IntraPort` (`abc`): same quantity, same Mach-limit
+ *  reference line, only the array differs. `vel` is `sw.pv` for `FrontPort` (`Solution.UP`'s own
+ *  doc: `pv` is already the FRONT port for the two-port boxes); `RearPort` reads `sw.pvRear` when
+ *  present (`bandpass6`/`abc`) and falls back to `sw.pv` otherwise (`vented`, whose one port IS
+ *  the rear one — `SweepResult.pvRear`'s own doc); `IntraPort` reads `sw.pvIntra` (`null` outside
+ *  `abc`'s own `winisd-lossy` branch, drawn as a flat zero rather than hiding the chart). */
+function portVelocityBuild({ engine, meta, sw, pick }: CurveCtx, vel: number[]): CurveBuild {
+  const series: Series[] = [{ ...pick(vel), color: meta.color, name: 'Port vel' }];
   // FIXME - magic number - what is 0.05 representing?
-  const machLimit = 0.05 * engine.solveEnvironment({}).values.c;
+  const machLimit = 0.05 * engine.environment.solve({}).values.c;
   series.push({ xs: sw.fs, ys: sw.fs.map(() => machLimit), color:'#ffb454', name:'17 m/s', dash:true });
-  return { series, ymin: 0, ymax: Math.max(20, Math.max(...sw.pv) * 1.1) };
+  return { series, ymin: 0, ymax: Math.max(20, Math.max(...vel) * 1.1) };
 }
 
 /** Port gain — shared by `RearPortGain` (vented) and `FrontPortGain` (bandpass4): same
  *  0 dB / -3 dB passband-asymptote convention as TFMag, only the underlying array (`sw.rearPortGain`
- *  vs `sw.frontPortGain`, packages/design/engine/sweep.ts) and its legend name differ. Unlike
+ *  vs `sw.frontPortGain`, packages/design/engine/simulation/SimulationEngine.ts) and its legend name differ. Unlike
  *  PRTFMag, both ARE run through the filter chain. */
 function portGainBuild(rel: number[] | null, name: string, meta: TabMeta, sw: SweepResult): CurveBuild {
   const ys = rel ?? sw.fs.map(() => -200);
@@ -155,7 +171,7 @@ const CURVE_BUILDERS: Record<ChartId, (c: CurveCtx) => CurveBuild> = {
     // Ignore the -200 dB "no output" sentinel (sweep uses it where |p|=0) so it
     // can't drag the scale to nonsense; fit to the real visible curve.
     const real = realDb(ys);
-    const mx2 = engine.passbandRef(ys);
+    const mx2 = engine.simulation.passbandRef(ys);
     const lo  = real.length ? Math.min(...real) : mx2 - 45;
     const ymax = Math.ceil((mx2 + 3) / 5) * 5;
     // Bring the bottom of the visible curve fully into frame, keeping at least a 45 dB window.
@@ -164,7 +180,7 @@ const CURVE_BUILDERS: Record<ChartId, (c: CurveCtx) => CurveBuild> = {
     // a bare trace, so the caller passes bare=true to suppress them (also removes the
     // in-plot legend, since only one named series remains).
     if (!bare) {
-      const f3 = engine.rolloffFreq(sw, 3), f6 = engine.rolloffFreq(sw, 6), f10 = engine.rolloffFreq(sw, 10);
+      const f3 = engine.simulation.rolloffFreq(sw, 3), f6 = engine.simulation.rolloffFreq(sw, 6), f10 = engine.simulation.rolloffFreq(sw, 10);
       if (f3  != null) series.push({ xs: sw.fs, ys: sw.fs.map(() => mx2 -  3), color: '#ffb454', name: `F3 = ${f3.toFixed(0)} Hz`,  dash: true });
       if (f6  != null) series.push({ xs: sw.fs, ys: sw.fs.map(() => mx2 -  6), color: '#ff6b6b', name: `F6 = ${f6.toFixed(0)} Hz`,  dash: true });
       if (f10 != null) series.push({ xs: sw.fs, ys: sw.fs.map(() => mx2 - 10), color: '#c08bff', name: `F10 = ${f10.toFixed(0)} Hz`, dash: true });
@@ -185,7 +201,7 @@ const CURVE_BUILDERS: Record<ChartId, (c: CurveCtx) => CurveBuild> = {
     return { series, ymin: Math.min(ymax - 45, Math.floor((loRel - 3) / 5) * 5), ymax };
   },
 
-  // WinISD's own radiator-only transfer function (packages/design/engine/sweep.ts prTfMag) —
+  // WinISD's own radiator-only transfer function (packages/design/engine/simulation/SimulationEngine.ts prTfMag) —
   // `null` for a design whose box has no radiator (a compare overlay, say, while the focused
   // design is a passive-radiator box); that design then draws silence, exactly as a design
   // with no max curves draws nothing on MaxSPL.
@@ -235,16 +251,17 @@ const CURVE_BUILDERS: Record<ChartId, (c: CurveCtx) => CurveBuild> = {
   // Applicable only to vented (RearPortGain) or bandpass4 (FrontPortGain) — design's
   // `chartsFor` gates the menu; a compare overlay of a different box type draws the -200 dB
   // silence fallback here, same as PRTFMag. Unlike PRTFMag, both ARE run through the filter
-  // chain (packages/design/engine/sweep.ts rearPortGain/frontPortGain — one shared computation).
+  // chain (packages/design/engine/simulation/SimulationEngine.ts rearPortGain/frontPortGain — one shared computation).
   RearPortGain: ({ meta, sw }) => portGainBuild(sw.rearPortGain, 'Rear port gain', meta, sw),
   FrontPortGain: ({ meta, sw }) => portGainBuild(sw.frontPortGain, 'Front port gain', meta, sw),
 
-  // Applicable only to vented (rear) or bandpass4 (front) — design's `chartsFor` gates the
-  // menu; a compare overlay of a different box type draws `pv`'s own 0 curve here, same as
-  // any other chart. One builder, shared by both ids: the port is different, the quantity
-  // and its chart are not.
-  RearPort: (c) => portVelocityBuild(c),
-  FrontPort: (c) => portVelocityBuild(c),
+  // Applicable to vented/bandpass4/bandpass6/abc (rear) or bandpass4/bandpass6/abc (front) —
+  // design's `chartsFor` gates the menu; a compare overlay of a different box type draws `pv`'s
+  // own 0 curve here, same as any other chart. `portVelocityBuild`'s own doc says which array
+  // each id reads.
+  RearPort: (c) => portVelocityBuild(c, c.sw.pvRear ?? c.sw.pv),
+  FrontPort: (c) => portVelocityBuild(c, c.sw.pv),
+  IntraPort: (c) => portVelocityBuild(c, c.sw.pvIntra ?? c.sw.fs.map(() => 0)),
 
   GD: ({ meta, sw, pick }) => {
     const series: Series[] = [{ ...pick(sw.gd), color: meta.color, name: 'Group delay' }];
@@ -360,7 +377,7 @@ const CURVE_BUILDERS: Record<ChartId, (c: CurveCtx) => CurveBuild> = {
   },
 };
 
-export function seriesFor(engine: Engine,
+export function seriesFor(engine: ChartEngineAreas,
                           chartId: ChartId,
                           drv: DriverSolverParams,
                           box: BoxType,
@@ -390,6 +407,7 @@ export function errorsForChart(chartId: ChartId, errors: DriverError[]): DriverE
       case 'RearPortGain': return 'rear port gain';
       case 'FrontPort': return 'port velocity';
       case 'FrontPortGain': return 'front port gain';
+      case 'IntraPort': return 'port velocity';
       case 'GD': return 'group delay';
       case 'Zmag': return 'impedance magnitude';
       case 'Zph': return 'impedance phase';
@@ -416,7 +434,7 @@ export function errorsForChart(chartId: ChartId, errors: DriverError[]): DriverE
 // the driver last changed). Both collapse to value:null here; the caller distinguishes
 // "blocked" (errors present) from "not ready yet" (errors empty) via the errors array.
 export function buildPlotData(
-  engine: Engine,
+  engine: ChartEngineAreas,
   chartId: ChartId,
   fmin: number,
   fmax: number,

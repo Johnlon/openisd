@@ -9,7 +9,7 @@
  * imply, and with it clear it must sweep as its entered values say.
  */
 import {describe, expect, it} from 'vitest';
-import {Engine, type FrequencyGrid, OpenISDProject} from '../../domain/index.js';
+import {type Engine, createEngine, type FrequencyGrid, OpenISDProject} from '../../domain/index.js';
 import {driverFromSpec} from '../fixtures/recordBuilders.js';
 
 describe('winisdDriverModel — the whole WinISD parameter set, not Mms alone', () => {
@@ -38,7 +38,7 @@ describe('winisdDriverModel — the whole WinISD parameter set, not Mms alone', 
   };
 
   it('set: the inconsistent driver has the consistent one\'s impedance and SPL shape; its entered BL sets the SPL level and the motional impedance\'s scale', () => {
-    const engine = new Engine();
+    const engine = createEngine();
     const entered = projectOn(engine, {...SHARED, ...CONTRADICTORY});
     entered.winisdDriverModel.set(true);
     const winisd = projectOn(engine, {...SHARED});
@@ -66,7 +66,7 @@ describe('winisdDriverModel — the whole WinISD parameter set, not Mms alone', 
   it('set: the entered BL sets the SPL level and the motional impedance — WinISD, BL 7.17 → 5.0, moves every SPL point by −3.1310 dB (BUG_20260926_winisd-spl-level-uses-entered-bl)', () => {
     // WinISD 0.7.0.950 by debugger, W5-1138SMF sealed, only the entered BL changed
     // (winisd_research runs/sweep-w5-sealed-bl5-spl vs sweep-w5-sealed-baseline-charts).
-    const engine = new Engine();
+    const engine = createEngine();
     const a = projectOn(engine, {...SHARED, BL_Tm: 7.17});
     const b = projectOn(engine, {...SHARED, BL_Tm: 5.0});
     const sa = a.sweep(P).values!, sb = b.sweep(P).values!;
@@ -80,7 +80,7 @@ describe('winisdDriverModel — the whole WinISD parameter set, not Mms alone', 
   });
 
   it('clear: the entered Mms, BL and Rms are what the sweep uses', () => {
-    const engine = new Engine();
+    const engine = createEngine();
     const entered = projectOn(engine, {...SHARED, ...CONTRADICTORY});
     entered.winisdDriverModel.set(false);
     const winisd = projectOn(engine, {...SHARED});
@@ -97,8 +97,8 @@ describe('winisdDriverModel — the whole WinISD parameter set, not Mms alone', 
     // 20% larger than its entered Cms implies, so the two disagree and only one can drive the
     // sweep. Driver B states the Cms that Vas implies at the project's own air, reached here by
     // asking the engine for it rather than by writing a number this test would have to maintain.
-    const engine = new Engine();
-    const air = engine.solveEnvironment({useWinisdAirModel: true}).values;
+    const engine = createEngine();
+    const air = engine.environment.solve({useWinisdAirModel: true}).values;
     const Vas_m3 = SHARED.Vas_m3 * 1.2;
     const cmsFromVas = Vas_m3 / (air.rho * air.c * air.c * SHARED.Sd_m2 * SHARED.Sd_m2);
 
@@ -117,12 +117,12 @@ describe('winisdDriverModel — the whole WinISD parameter set, not Mms alone', 
   });
 
   it('defaults on — README: "by default, OpenISD behaves 100% like WinISD"', () => {
-    const engine = new Engine();
+    const engine = createEngine();
     expect(projectOn(engine, {...SHARED}).winisdDriverModel.value).toBe(true);
   });
 
   it('a self-consistent driver is unmoved by the flag — every substitution is an identity there', () => {
-    const engine = new Engine();
+    const engine = createEngine();
     const off = projectOn(engine, {...SHARED});
     const on = projectOn(engine, {...SHARED});
     on.winisdDriverModel.set(true);
@@ -150,40 +150,40 @@ describe('winisdDriverModel — the whole WinISD parameter set, not Mms alone', 
 
     // Fresh capture winisd_research/runs/sweep-w5-sealed-fresh-20260926 (BUG_20260926_winisd-box-absorption-is-series).
     it('SPL at 998.56 Hz is WinISD\'s 80.531534 dB', () => {
-      const spl = w5(new Engine()).sweep(at(998.5627339581864)).values!.spl[0];
+      const spl = w5(createEngine()).sweep(at(998.5627339581864)).values!.spl[0];
       expect(Math.abs(spl - 80.53153351704296)).toBeLessThan(1e-4);
     });
 
     it('SPL at 86.50 Hz, near the box resonance, is WinISD\'s 79.298205 dB', () => {
-      const spl = w5(new Engine()).sweep(at(86.49890926764193)).values!.spl[0];
+      const spl = w5(createEngine()).sweep(at(86.49890926764193)).values!.spl[0];
       expect(Math.abs(spl - 79.29820533868933)).toBeLessThan(1e-4);
     });
 
     it('max SPL at 3.909 Hz is WinISD\'s 45.221447 dB', () => {
-      const project = w5(new Engine());
+      const project = w5(createEngine());
       const maxspl = project.maxCurves(at(3.9087353201234074)).values!.maxspl[0];
       expect(Math.abs(maxspl - 45.2214471072186)).toBeLessThan(1e-4);
     });
 
     it('max power at 1 Hz is WinISD\'s 21.254886 W: power is into Re + Rg, as the 1 W drive is', () => {
-      const maxpwr = w5(new Engine()).maxCurves(at(1)).values!.maxpwr[0];
+      const maxpwr = w5(createEngine()).maxCurves(at(1)).values!.maxpwr[0];
       expect(Math.abs(maxpwr / 21.25488626455778 - 1)).toBeLessThan(1e-6);
     });
 
     it('|Z| at 65.36 Hz, the impedance peak, is WinISD\'s 18.620133 Ω: the motional term uses the entered BL', () => {
-      const zmag = w5(new Engine()).sweep(at(65.35861309217313)).values!.zmag[0];
+      const zmag = w5(createEngine()).sweep(at(65.35861309217313)).values!.zmag[0];
       expect(Math.abs(zmag - 18.620133017798484)).toBeLessThan(1e-5);
     });
 
     it('transfer function at 998.56 Hz is WinISD\'s −0.015566 dB: 0 dB is the circuit\'s own HF asymptote', () => {
-      const tf = w5(new Engine()).sweep(at(998.5627339581864)).values!.tfMag[0];
+      const tf = w5(createEngine()).sweep(at(998.5627339581864)).values!.tfMag[0];
       expect(Math.abs(tf - -0.015566171957418983)).toBeLessThan(1e-4);
     });
 
     it('group delay at 1 Hz is WinISD\'s 52.29644 ms: the phase slope at the point, not across grid neighbours', () => {
       // WinISD differentiates at f ± ((f + 1e-10) − f) (chart 12 in f_4618f0); its values carry
       // ±1.77e-4 ms of phase rounding, so 1e-3 ms is the closest a double-precision derivative gets.
-      const gd = w5(new Engine()).sweep({fmin: 1, fmax: 20000, N: 2085}).values!.gd[0];
+      const gd = w5(createEngine()).sweep({fmin: 1, fmax: 20000, N: 2085}).values!.gd[0];
       expect(Math.abs(gd - 52.29644272041911)).toBeLessThan(1e-3);
     });
 
@@ -194,7 +194,7 @@ describe('winisdDriverModel — the whole WinISD parameter set, not Mms alone', 
       [65.35861309217313, 0.17330824006319065],
       [20000, 0.7727226000686561],
     ])('amplifier apparent load power at %s Hz, Rg 1 Ω, is WinISD\'s %s VA', (f, va) => {
-      const project = w5(new Engine());
+      const project = w5(createEngine());
       project.Rs_ohm.set(1);
       const got = project.sweep(at(f)).values!.va[0];
       expect(Math.abs(got / va - 1)).toBeLessThan(1e-9);
@@ -207,7 +207,7 @@ describe('winisdDriverModel — the whole WinISD parameter set, not Mms alone', 
       [65.35861309217313, 0.16491643940526038],
       [20000, 0.6296269202788077],
     ])('amplifier apparent load power at %s Hz, Rg 1 Ω at driver side, is WinISD\'s %s VA: Rg counted twice', (f, va) => {
-      const project = w5(new Engine());
+      const project = w5(createEngine());
       project.Rs_ohm.set(1);
       project.rgAtDriverSide.set(true);
       const got = project.sweep(at(f)).values!.va[0];
@@ -215,7 +215,7 @@ describe('winisdDriverModel — the whole WinISD parameter set, not Mms alone', 
     });
 
     it('with voice coil inductance on, the flag selects WinISD\'s inductance model: on − off is −22.266 dB at 20 kHz', () => {
-      const engine = new Engine();
+      const engine = createEngine();
       const off = w5(engine).sweep(at(20000)).values!.spl[0];
       const project = w5(engine);
       project.circuitModel.set('gyrator');
@@ -224,7 +224,7 @@ describe('winisdDriverModel — the whole WinISD parameter set, not Mms alone', 
     });
 
     it('with voice coil inductance on and the flag clear, the inductance is the textbook one', () => {
-      const engine = new Engine();
+      const engine = createEngine();
       const winisd = w5(engine);
       winisd.circuitModel.set('gyrator');
       const conventional = w5(engine);
@@ -237,7 +237,7 @@ describe('winisdDriverModel — the whole WinISD parameter set, not Mms alone', 
 });
 
 describe('the saved field is winisdDriverModel (renamed 2026-09-26 from useWinisdDriverModel)', () => {
-  const engine = new Engine();
+  const engine = createEngine();
   const project = (): OpenISDProject => OpenISDProject.builder(driverFromSpec(engine, {
     Fs_hz: 29, Vas_m3: 0.142, Sd_m2: 0.038, Re_ohm: 6.5, Qes: 0.44, Qms: 3.3,
   }), engine).sealed().volume_m3(0.021).build();

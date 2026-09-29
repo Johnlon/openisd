@@ -5,22 +5,18 @@
  * so the values asserted here are traceable to files WinISD itself produced, not invented.
  *
  * Scope: sealed, vented, bandpass4, box-passive-radiator — the four `SimulatableBoxType`s, and
- * the four box types the golden corpus covers. `bandpass6`/`abc` have real WinISD-written
- * samples under `docs/samples/` but no golden fixtures here and are not simulated
- * (`packages/design/engine/types.ts` `SimulatableBoxType`) — out of scope for this bridge.
+ * the four box types the golden corpus covers. `bandpass6`/`abc` (`BType` 3/5) are covered
+ * separately, in `bp6-abc-wpr.test.ts`, against two real WinISD-written `.wpr` files each.
  */
 import {describe, it, vi} from 'vitest';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 import {dirname, join} from 'node:path';
-import {Engine} from '@openisd/design/engine';
+import {type Engine, createEngine} from '@openisd/design/engine';
 import type {Filter} from '@openisd/design/engine';
 import {OpenISDDriver, OpenISDPassiveRadiatorStandalone, OpenISDProject,} from '@openisd/design';
-import {
-    openIsdProjectToWinIsdProject,
-    winIsdProjectToOpenIsdProject,
-} from '../../domain/openIsdProjectToWinIsdProject.js';
+import {WinIsdProjectConverter} from '../../domain/openIsdProjectToWinIsdProject.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const GOLDENS_DIR = join(here, 'fixtures', 'winisd-parity', 'goldens');
@@ -90,7 +86,7 @@ function aDriver(engine: Engine, brand: string, model: string): OpenISDDriver {
 }
 
 function aProject(box: (p: ReturnType<typeof OpenISDProject.builder>) => OpenISDProject): OpenISDProject {
-  const engine = new Engine();
+  const engine = createEngine();
   return box(OpenISDProject.builder(aDriver(engine, 'QO8', 'test'), engine));
 }
 
@@ -102,7 +98,7 @@ describe('openIsdProjectToWinIsdProject — [Box]/[SignalSource] match the WinIS
     project.alfaVC_per_K.set(0.0041);
     project.vcTempRise_K.set(75);
 
-    const {value: wpr, errors} = openIsdProjectToWinIsdProject(project, new Engine());
+    const {value: wpr, errors} = new WinIsdProjectConverter(createEngine()).openIsdProjectToWinIsdProject(project);
     assert.equal(errors.length, 0, `expected no errors, got: ${JSON.stringify(errors)}`);
     if (!wpr) throw new Error('expected a WinISDProject');
     const text = wpr.toWpr().replace(/\r\n/g, '\n');
@@ -120,7 +116,7 @@ describe('openIsdProjectToWinIsdProject — [Box]/[SignalSource] match the WinIS
     project.Rs_ohm.set(0.1); // golden's [SignalSource] Rg=0.1
     project.powerDrive_W.set(1); // golden's [SignalSource] P=1
 
-    const { value: wpr, errors } = openIsdProjectToWinIsdProject(project, new Engine());
+    const { value: wpr, errors } = new WinIsdProjectConverter(createEngine()).openIsdProjectToWinIsdProject(project);
     assert.equal(errors.length, 0, `expected no errors, got: ${JSON.stringify(errors)}`);
     if (!wpr) throw new Error('expected a WinISDProject');
     const text = wpr.toWpr().replace(/\r\n/g, '\n');
@@ -151,7 +147,7 @@ describe('openIsdProjectToWinIsdProject — [Box]/[SignalSource] match the WinIS
     project.envPressurePa.set(99000);
     project.envHumidityPct.set(50); // phi is a FRACTION in the file: 50% -> 0.5
 
-    const { value: wpr, errors } = openIsdProjectToWinIsdProject(project, new Engine());
+    const { value: wpr, errors } = new WinIsdProjectConverter(createEngine()).openIsdProjectToWinIsdProject(project);
     assert.equal(errors.length, 0, JSON.stringify(errors));
     if (!wpr) throw new Error('expected a WinISDProject');
     const text = wpr.toWpr().replace(/\r\n/g, '\n');
@@ -168,7 +164,7 @@ describe('openIsdProjectToWinIsdProject — [Box]/[SignalSource] match the WinIS
     const project = aProject((p) => p.vented().volume_m3(VENTED_VOLUME_M3).tuning_goal_hz(VENTED_TUNING_HZ).build());
     project.powerDrive_W.set(1);
 
-    const { value: wpr, errors } = openIsdProjectToWinIsdProject(project, new Engine());
+    const { value: wpr, errors } = new WinIsdProjectConverter(createEngine()).openIsdProjectToWinIsdProject(project);
     assert.equal(errors.length, 0, `expected no errors, got: ${JSON.stringify(errors)}`);
     if (!wpr) throw new Error('expected a WinISDProject');
     const text = wpr.toWpr().replace(/\r\n/g, '\n');
@@ -184,7 +180,7 @@ describe('openIsdProjectToWinIsdProject — [Box]/[SignalSource] match the WinIS
     project.powerDrive_W.set(1);
     project.box.vented.vent.count.set(2);
 
-    const { value: wpr, errors } = openIsdProjectToWinIsdProject(project, new Engine());
+    const { value: wpr, errors } = new WinIsdProjectConverter(createEngine()).openIsdProjectToWinIsdProject(project);
     assert.equal(errors.length, 0, `expected no errors, got: ${JSON.stringify(errors)}`);
     if (!wpr) throw new Error('expected a WinISDProject');
     assert.equal(wpr.number('VentRear', 'Num'), 2);
@@ -199,7 +195,7 @@ describe('openIsdProjectToWinIsdProject — [Box]/[SignalSource] match the WinIS
       .rearVolume_m3(REAR_VOLUME_M3).frontVolume_m3(FRONT_VOLUME_M3).frontTuning_hz(FRONT_TUNING_HZ).build());
     project.powerDrive_W.set(1);
 
-    const { value: wpr, errors } = openIsdProjectToWinIsdProject(project, new Engine());
+    const { value: wpr, errors } = new WinIsdProjectConverter(createEngine()).openIsdProjectToWinIsdProject(project);
     assert.equal(errors.length, 0, `expected no errors, got: ${JSON.stringify(errors)}`);
     if (!wpr) throw new Error('expected a WinISDProject');
     const text = wpr.toWpr().replace(/\r\n/g, '\n');
@@ -226,7 +222,7 @@ describe('openIsdProjectToWinIsdProject — [Box]/[SignalSource] match the WinIS
     // Both read from passive-radiator.wpr's own [Box], never transcribed.
     const PR_VOLUME_M3 = Number(goldenField(GOLDEN_PASSIVE_RADIATOR_WPR, 'Box', 'Vr'));
     const PR_TUNING_HZ = Number(goldenField(GOLDEN_PASSIVE_RADIATOR_WPR, 'Box', 'Fr'));
-    const engine = new Engine();
+    const engine = createEngine();
     const radiatorRecord = {
       brand: scraped('SB Acoustics'), model: scraped('test-pr'), manufacturer: scraped('SB Acoustics'),
       provided_by: scraped('test'), comment: scraped(''), added: scraped('2026-01-01'),
@@ -258,7 +254,7 @@ describe('openIsdProjectToWinIsdProject — [Box]/[SignalSource] match the WinIS
       .volume_m3(PR_VOLUME_M3).tuning_goal_hz(PR_TUNING_HZ).count(1).radiator(radiator).build();
     project.powerDrive_W.set(1);
 
-    const { value: wpr, errors } = openIsdProjectToWinIsdProject(project, engine);
+    const { value: wpr, errors } = new WinIsdProjectConverter(engine).openIsdProjectToWinIsdProject(project);
     assert.equal(errors.length, 0, `expected no errors, got: ${JSON.stringify(errors)}`);
     if (!wpr) throw new Error('expected a WinISDProject');
     const text = wpr.toWpr().replace(/\r\n/g, '\n');
@@ -275,14 +271,14 @@ describe('openIsdProjectToWinIsdProject — [Box]/[SignalSource] match the WinIS
 
 describe('openIsdProjectToWinIsdProject — null-fallback and unsupported-type branches', () => {
   it('pre: Re none, P N, V 1 C | export .wpr | post: SignalSource has no P, a warning says why', () => {
-    const engine = new Engine();
+    const engine = createEngine();
     const driver = OpenISDDriver.empty(engine);
     driver.brand.set('Test');
     driver.model.set('NoRe');
     const project = OpenISDProject.builder(driver, engine).sealed().volume_m3(0.02).build();
     assert.equal(project.powerDrive_W.value, null);
 
-    const { value: wpr, errors } = openIsdProjectToWinIsdProject(project, engine);
+    const { value: wpr, errors } = new WinIsdProjectConverter(engine).openIsdProjectToWinIsdProject(project);
     if (!wpr) throw new Error('expected a WinISDProject: ' + JSON.stringify(errors));
     assert.equal(wpr.number('SignalSource', 'P'), undefined);
     assert.ok(errors.some(e => e.level === 'warn' && e.field === 'SignalSource P'), JSON.stringify(errors));
@@ -291,12 +287,12 @@ describe('openIsdProjectToWinIsdProject — null-fallback and unsupported-type b
   it('pre: created and modified blank | export .wpr | post: CreateDate and ModifyDate are today', () => {
     vi.useFakeTimers({now: new Date('2026-05-06T12:00:00')});
     try {
-      const engine = new Engine();
+      const engine = createEngine();
       const project = OpenISDProject.builder(OpenISDDriver.empty(engine), engine).sealed().volume_m3(0.02).build();
       project.created.set('');
       project.modified.set('');
 
-      const { value: wpr, errors } = openIsdProjectToWinIsdProject(project, engine);
+      const { value: wpr, errors } = new WinIsdProjectConverter(engine).openIsdProjectToWinIsdProject(project);
       if (!wpr) throw new Error('expected a WinISDProject: ' + JSON.stringify(errors));
       assert.equal(wpr.value('ProjectInfo', 'CreateDate'), '20260506');
       assert.equal(wpr.value('ProjectInfo', 'ModifyDate'), '20260506');
@@ -306,13 +302,13 @@ describe('openIsdProjectToWinIsdProject — null-fallback and unsupported-type b
   });
 
   it('[PassiveRadiator] omits Vas/Qms/Fs/Sd/Xmax when the radiator states none of them', () => {
-    const engine = new Engine();
+    const engine = createEngine();
     const radiator = OpenISDPassiveRadiatorStandalone.empty(engine);
     const driver = aDriver(engine, 'QO8', 'test');
     const project = OpenISDProject.builder(driver, engine).passiveRadiator()
       .volume_m3(0.03).tuning_goal_hz(35).count(1).radiator(radiator).build();
 
-    const { value: wpr, errors } = openIsdProjectToWinIsdProject(project, engine);
+    const { value: wpr, errors } = new WinIsdProjectConverter(engine).openIsdProjectToWinIsdProject(project);
     assert.equal(errors.length, 0, JSON.stringify(errors));
     if (!wpr) throw new Error('expected a WinISDProject');
     const text = wpr.toWpr().replace(/\r\n/g, '\n');
@@ -324,20 +320,16 @@ describe('openIsdProjectToWinIsdProject — null-fallback and unsupported-type b
     assert.ok(block![1].includes('Me=0'));
   });
 
-  it('bandpass6/abc box types are reported as unsupported, never guessed', () => {
-    const engine = new Engine();
+  it('bandpass6/abc box types export with BType 3/5 — see bp6-abc-wpr.test.ts for the full coverage', () => {
+    const engine = createEngine();
     const driver = aDriver(engine, 'QO8', 'test');
     const project = OpenISDProject.builder(driver, engine).bandpass6()
       .rearVolume_m3(0.01).rearTuning_hz(40).frontVolume_m3(0.02).frontTuning_hz(60).build();
 
-    const { value, errors } = openIsdProjectToWinIsdProject(project, engine);
-    assert.equal(value, null);
-    assert.equal(errors.length, 1);
-    assert.equal(errors[0].field, 'boxType');
-    assert.equal(
-      errors[0].message,
-      'Unsupported box type "bandpass6": WinISD export supports sealed, vented, 4th-order bandpass, and passive radiator box types.',
-    );
+    const { value: wpr, errors } = new WinIsdProjectConverter(engine).openIsdProjectToWinIsdProject(project);
+    assert.equal(errors.length, 0, JSON.stringify(errors));
+    if (!wpr) throw new Error('expected a WinISDProject');
+    assert.match(wpr.toWpr(), /\[Box\]\r?\nBType=3\r?\n/);
   });
 
   it('sealed [Box] Fr falls back to WinISD\'s own template default (0) when resonance is not computable', () => {
@@ -346,7 +338,7 @@ describe('openIsdProjectToWinIsdProject — null-fallback and unsupported-type b
     // the branch's actual, observable effect: no NaN/garbage value leaks through.
     const project = aProject((p) => p.sealed().volume_m3(0).build());
 
-    const { value: wpr, errors } = openIsdProjectToWinIsdProject(project, new Engine());
+    const { value: wpr, errors } = new WinIsdProjectConverter(createEngine()).openIsdProjectToWinIsdProject(project);
     assert.equal(errors.length, 0, JSON.stringify(errors));
     if (!wpr) throw new Error('expected a WinISDProject');
     const text = wpr.toWpr().replace(/\r\n/g, '\n');
@@ -357,7 +349,7 @@ describe('openIsdProjectToWinIsdProject — null-fallback and unsupported-type b
     const project = aProject((p) => p.bandpass4()
       .rearVolume_m3(0).frontVolume_m3(0.01).frontTuning_hz(50).build());
 
-    const { value: wpr, errors } = openIsdProjectToWinIsdProject(project, new Engine());
+    const { value: wpr, errors } = new WinIsdProjectConverter(createEngine()).openIsdProjectToWinIsdProject(project);
     assert.equal(errors.length, 0, JSON.stringify(errors));
     if (!wpr) throw new Error('expected a WinISDProject');
     const text = wpr.toWpr().replace(/\r\n/g, '\n');
@@ -368,7 +360,7 @@ describe('openIsdProjectToWinIsdProject — null-fallback and unsupported-type b
     const project = aProject((p) => p.vented().volume_m3(0.03).tuning_goal_hz(40).build());
     project.box.vented.tuning_goal_hz.clear();
 
-    const { value: wpr, errors } = openIsdProjectToWinIsdProject(project, new Engine());
+    const { value: wpr, errors } = new WinIsdProjectConverter(createEngine()).openIsdProjectToWinIsdProject(project);
     assert.equal(errors.length, 0, JSON.stringify(errors));
     if (!wpr) throw new Error('expected a WinISDProject');
     const text = wpr.toWpr().replace(/\r\n/g, '\n');
@@ -384,7 +376,7 @@ describe('openIsdProjectToWinIsdProject — null-fallback and unsupported-type b
       .rearVolume_m3(0.01).frontVolume_m3(0.02).frontTuning_hz(60).build());
     project.box.bandpass4.chambers.front.tuning_goal_hz.clear();
 
-    const { value: wpr, errors } = openIsdProjectToWinIsdProject(project, new Engine());
+    const { value: wpr, errors } = new WinIsdProjectConverter(createEngine()).openIsdProjectToWinIsdProject(project);
     assert.equal(errors.length, 0, JSON.stringify(errors));
     if (!wpr) throw new Error('expected a WinISDProject');
     const text = wpr.toWpr().replace(/\r\n/g, '\n');
@@ -399,7 +391,7 @@ describe('openIsdProjectToWinIsdProject — null-fallback and unsupported-type b
     project.box.bandpass4.vents.front.diameter_m.set(0.05);
     project.box.bandpass4.vents.front.length_m.set(0.1);
 
-    const { value: wpr, errors } = openIsdProjectToWinIsdProject(project, new Engine());
+    const { value: wpr, errors } = new WinIsdProjectConverter(createEngine()).openIsdProjectToWinIsdProject(project);
     assert.equal(errors.length, 0, JSON.stringify(errors));
     if (!wpr) throw new Error('expected a WinISDProject');
     const text = wpr.toWpr().replace(/\r\n/g, '\n');
@@ -412,7 +404,7 @@ describe('openIsdProjectToWinIsdProject — null-fallback and unsupported-type b
     project.box.vented.vent.diameter_m.set(0.05);
     project.box.vented.vent.length_m.set(0.15);
 
-    const { value: wpr, errors } = openIsdProjectToWinIsdProject(project, new Engine());
+    const { value: wpr, errors } = new WinIsdProjectConverter(createEngine()).openIsdProjectToWinIsdProject(project);
     assert.equal(errors.length, 0, JSON.stringify(errors));
     if (!wpr) throw new Error('expected a WinISDProject');
     const text = wpr.toWpr().replace(/\r\n/g, '\n');
@@ -432,7 +424,7 @@ describe('openIsdProjectToWinIsdProject — null-fallback and unsupported-type b
     const project = aProject((p) => p.vented().volume_m3(0.03).tuning_goal_hz(40).build());
     project.box.vented.vent.shape.set('slotted');
 
-    const { value: wpr, errors } = openIsdProjectToWinIsdProject(project, new Engine());
+    const { value: wpr, errors } = new WinIsdProjectConverter(createEngine()).openIsdProjectToWinIsdProject(project);
     assert.equal(errors.length, 0, JSON.stringify(errors));
     if (!wpr) throw new Error('expected a WinISDProject');
     const text = wpr.toWpr().replace(/\r\n/g, '\n');
@@ -441,7 +433,7 @@ describe('openIsdProjectToWinIsdProject — null-fallback and unsupported-type b
   });
 
   it('passive-radiator [Box] reports Fr once the system tuning is computable', () => {
-    const engine = new Engine();
+    const engine = createEngine();
     const radiatorRecord = {
       brand: scraped('SB Acoustics'), model: scraped('test-pr'), manufacturer: scraped('SB Acoustics'),
       provided_by: scraped('test'), comment: scraped(''), added: scraped('2026-01-01'),
@@ -467,7 +459,7 @@ describe('openIsdProjectToWinIsdProject — null-fallback and unsupported-type b
     const project = OpenISDProject.builder(driver, engine).passiveRadiator()
       .volume_m3(0.03).tuning_goal_hz(35).count(1).radiator(radiator).build();
 
-    const { value: wpr, errors } = openIsdProjectToWinIsdProject(project, engine);
+    const { value: wpr, errors } = new WinIsdProjectConverter(engine).openIsdProjectToWinIsdProject(project);
     assert.equal(errors.length, 0, JSON.stringify(errors));
     if (!wpr) throw new Error('expected a WinISDProject');
     const text = wpr.toWpr().replace(/\r\n/g, '\n');
@@ -482,8 +474,8 @@ describe('winIsdProjectToOpenIsdProject — .wpr text back to a project (round t
     // (OIDP -> WPR -> OIDP, field-for-field) is Chain 2 of the two round-trip chains — see the
     // gap noted in this session's report about the OWPR-native chain (Chain 1) not existing yet.
     const text = readFileSync(GOLDEN_SEALED_SMALL_WPR, 'utf8');
-    const engine = new Engine();
-    const { value: project, errors } = winIsdProjectToOpenIsdProject(text, engine);
+    const engine = createEngine();
+    const { value: project, errors } = new WinIsdProjectConverter(engine).winIsdProjectToOpenIsdProject(text);
     assert.equal(errors.length, 0, `expected no errors, got: ${JSON.stringify(errors)}`);
     if (!project) throw new Error('expected a project');
     assert.equal(project.box.boxType.value, 'sealed');
@@ -492,33 +484,33 @@ describe('winIsdProjectToOpenIsdProject — .wpr text back to a project (round t
 
   it('vented import reads [VentRear] Num into the port count; a file without it reads as the calculated one port', () => {
     const base = '[ProjectInfo]\n[Driver]\nBrand=Test\nModel=Driver\n[Box]\nBType=1\nVr=0.03\nFr=40\n';
-    const engine = new Engine();
-    const two = winIsdProjectToOpenIsdProject(base + '[VentRear]\nNum=2\n', engine);
+    const engine = createEngine();
+    const two = new WinIsdProjectConverter(engine).winIsdProjectToOpenIsdProject(base + '[VentRear]\nNum=2\n');
     assert.equal(two.errors.length, 0, JSON.stringify(two.errors));
     assert.equal(two.value?.box.vented.vent.count.value, 2);
     assert.equal(two.value?.box.vented.vent.count.entered, true);
-    const none = winIsdProjectToOpenIsdProject(base, engine);
+    const none = new WinIsdProjectConverter(engine).winIsdProjectToOpenIsdProject(base);
     assert.equal(none.value?.box.vented.vent.count.value, 1);
     assert.equal(none.value?.box.vented.vent.count.calculated, true);
   });
 
   it('reports a clean user-facing error when BType is missing or unsupported', () => {
     const text = '[ProjectInfo]\n[Driver]\nBrand=Test\nModel=Driver\n[Box]\n';
-    const engine = new Engine();
-    const { value: project, errors } = winIsdProjectToOpenIsdProject(text, engine);
+    const engine = createEngine();
+    const { value: project, errors } = new WinIsdProjectConverter(engine).winIsdProjectToOpenIsdProject(text);
     assert.equal(project, null);
     assert.equal(errors.length, 1);
     assert.equal(errors[0].field, 'BType');
     assert.equal(
       errors[0].message,
-      'Unsupported or missing box type (BType=undefined): WinISD import supports sealed (0), vented (1), 4th-order bandpass (2), and passive radiator (4) boxes.'
+      'Unsupported or missing box type (BType=undefined): WinISD import supports sealed (0), vented (1), 4th-order bandpass (2), passive radiator (4), 6th-order bandpass (3) and ABC (5) boxes.'
     );
   });
 
   it('reports a driver error when a [Driver] spec is stated but not numeric', () => {
     const text = '[ProjectInfo]\n[Driver]\nBrand=Test\nModel=Driver\nQts=notanumber\n[Box]\nBType=0\nVr=0.02\n';
-    const engine = new Engine();
-    const { value: project, errors } = winIsdProjectToOpenIsdProject(text, engine);
+    const engine = createEngine();
+    const { value: project, errors } = new WinIsdProjectConverter(engine).winIsdProjectToOpenIsdProject(text);
     assert.equal(project, null);
     assert.ok(errors.length > 0, 'expected at least one driver error');
     assert.ok(errors.every((e) => e.field === 'driver'));
@@ -526,8 +518,8 @@ describe('winIsdProjectToOpenIsdProject — .wpr text back to a project (round t
 
   it('reports a clean error when a sealed box is missing Vr', () => {
     const text = '[ProjectInfo]\n[Driver]\nBrand=Test\nModel=Driver\n[Box]\nBType=0\n';
-    const engine = new Engine();
-    const { value: project, errors } = winIsdProjectToOpenIsdProject(text, engine);
+    const engine = createEngine();
+    const { value: project, errors } = new WinIsdProjectConverter(engine).winIsdProjectToOpenIsdProject(text);
     assert.equal(project, null);
     assert.equal(errors.length, 1);
     assert.equal(errors[0].field, 'Vr');
@@ -536,8 +528,8 @@ describe('winIsdProjectToOpenIsdProject — .wpr text back to a project (round t
 
   it('reports a clean error when a vented box is missing Vr/Fr', () => {
     const text = '[ProjectInfo]\n[Driver]\nBrand=Test\nModel=Driver\n[Box]\nBType=1\n';
-    const engine = new Engine();
-    const { value: project, errors } = winIsdProjectToOpenIsdProject(text, engine);
+    const engine = createEngine();
+    const { value: project, errors } = new WinIsdProjectConverter(engine).winIsdProjectToOpenIsdProject(text);
     assert.equal(project, null);
     assert.equal(errors.length, 1);
     assert.equal(errors[0].field, 'Vr/Fr');
@@ -546,8 +538,8 @@ describe('winIsdProjectToOpenIsdProject — .wpr text back to a project (round t
 
   it('bandpass4 golden imports to a project whose chamber volumes/tuning match the file, [VentFront] Num carries the port count', () => {
     const text = readFileSync(GOLDEN_BANDPASS4_WPR, 'utf8');
-    const engine = new Engine();
-    const { value: project, errors } = winIsdProjectToOpenIsdProject(text, engine);
+    const engine = createEngine();
+    const { value: project, errors } = new WinIsdProjectConverter(engine).winIsdProjectToOpenIsdProject(text);
     assert.equal(errors.length, 0, JSON.stringify(errors));
     if (!project) throw new Error('expected a project');
     assert.equal(project.box.boxType.value, 'bandpass4');
@@ -561,19 +553,19 @@ describe('winIsdProjectToOpenIsdProject — .wpr text back to a project (round t
 
   it('bandpass4 import: [VentFront] Num carries the front port count; a file without it reads as the calculated one port', () => {
     const base = '[ProjectInfo]\n[Driver]\nBrand=Test\nModel=Driver\n[Box]\nBType=2\nVr=0.01\nVf=0.02\nFf=60\n';
-    const engine = new Engine();
-    const two = winIsdProjectToOpenIsdProject(base + '[VentFront]\nNum=2\n', engine);
+    const engine = createEngine();
+    const two = new WinIsdProjectConverter(engine).winIsdProjectToOpenIsdProject(base + '[VentFront]\nNum=2\n');
     assert.equal(two.errors.length, 0, JSON.stringify(two.errors));
     assert.equal(two.value?.box.bandpass4.vents.front.count.value, 2);
-    const none = winIsdProjectToOpenIsdProject(base, engine);
+    const none = new WinIsdProjectConverter(engine).winIsdProjectToOpenIsdProject(base);
     assert.equal(none.value?.box.bandpass4.vents.front.count.value, 1);
     assert.equal(none.value?.box.bandpass4.vents.front.count.calculated, true);
   });
 
   it('reports a clean error when a bandpass4 box is missing Vr/Vf/Ff', () => {
     const text = '[ProjectInfo]\n[Driver]\nBrand=Test\nModel=Driver\n[Box]\nBType=2\n';
-    const engine = new Engine();
-    const { value: project, errors } = winIsdProjectToOpenIsdProject(text, engine);
+    const engine = createEngine();
+    const { value: project, errors } = new WinIsdProjectConverter(engine).winIsdProjectToOpenIsdProject(text);
     assert.equal(project, null);
     assert.equal(errors.length, 1);
     assert.equal(errors[0].field, 'Vr/Vf/Ff');
@@ -582,8 +574,8 @@ describe('winIsdProjectToOpenIsdProject — .wpr text back to a project (round t
 
   it('passive-radiator golden imports to a project whose radiator T/S values match the file', () => {
     const text = readFileSync(GOLDEN_PASSIVE_RADIATOR_WPR, 'utf8');
-    const engine = new Engine();
-    const { value: project, errors } = winIsdProjectToOpenIsdProject(text, engine);
+    const engine = createEngine();
+    const { value: project, errors } = new WinIsdProjectConverter(engine).winIsdProjectToOpenIsdProject(text);
     assert.equal(errors.length, 0, JSON.stringify(errors));
     if (!project) throw new Error('expected a project');
     assert.equal(project.box.boxType.value, 'box-passive-radiator');
@@ -597,16 +589,16 @@ describe('winIsdProjectToOpenIsdProject — .wpr text back to a project (round t
 
   it('passive-radiator import: Npr defaults to 1 when absent', () => {
     const text = '[ProjectInfo]\n[Driver]\nBrand=Test\nModel=Driver\n[Box]\nBType=4\nVr=0.03\nFr=35\n';
-    const engine = new Engine();
-    const { value: project, errors } = winIsdProjectToOpenIsdProject(text, engine);
+    const engine = createEngine();
+    const { value: project, errors } = new WinIsdProjectConverter(engine).winIsdProjectToOpenIsdProject(text);
     assert.equal(errors.length, 0, JSON.stringify(errors));
     assert.equal(project?.box.passiveRadiator.count.value, 1);
   });
 
   it('reports a clean error when a passive-radiator box is missing Vr/Fr', () => {
     const text = '[ProjectInfo]\n[Driver]\nBrand=Test\nModel=Driver\n[Box]\nBType=4\n';
-    const engine = new Engine();
-    const { value: project, errors } = winIsdProjectToOpenIsdProject(text, engine);
+    const engine = createEngine();
+    const { value: project, errors } = new WinIsdProjectConverter(engine).winIsdProjectToOpenIsdProject(text);
     assert.equal(project, null);
     assert.equal(errors.length, 1);
     assert.equal(errors[0].field, 'Vr/Fr');
@@ -616,8 +608,8 @@ describe('winIsdProjectToOpenIsdProject — .wpr text back to a project (round t
   it('imports [Box] T/p/phi into the project\'s environment, entered', () => {
     const text = '[ProjectInfo]\n[Driver]\nBrand=Test\nModel=Driver\n'
       + '[Box]\nBType=0\nVr=0.02\nT=300\np=99000\nphi=0.5\n';
-    const engine = new Engine();
-    const { value: project, errors } = winIsdProjectToOpenIsdProject(text, engine);
+    const engine = createEngine();
+    const { value: project, errors } = new WinIsdProjectConverter(engine).winIsdProjectToOpenIsdProject(text);
     assert.equal(errors.length, 0, JSON.stringify(errors));
     if (!project) throw new Error('expected a project');
     assert.equal(project.envTempK.value, 300);
@@ -628,19 +620,33 @@ describe('winIsdProjectToOpenIsdProject — .wpr text back to a project (round t
 
   it('a file with no [Box] T/p/phi leaves the project\'s environment calculated, at the app default', () => {
     const text = '[ProjectInfo]\n[Driver]\nBrand=Test\nModel=Driver\n[Box]\nBType=0\nVr=0.02\n';
-    const engine = new Engine();
-    const { value: project, errors } = winIsdProjectToOpenIsdProject(text, engine);
+    const engine = createEngine();
+    const { value: project, errors } = new WinIsdProjectConverter(engine).winIsdProjectToOpenIsdProject(text);
     assert.equal(errors.length, 0, JSON.stringify(errors));
     if (!project) throw new Error('expected a project');
     assert.equal(project.envTempK.calculated, true);
+  });
+
+  it('a [Box] T/p/phi equal to the app default stays calculated; a differing one is entered', () => {
+    const engine = createEngine();
+    const {tempK, pressurePa, humidityPct} = engine.environment.defaults();
+    const text = '[ProjectInfo]\n[Driver]\nBrand=Test\nModel=Driver\n'
+      + `[Box]\nBType=0\nVr=0.02\nT=${tempK}\np=${pressurePa + 100}\nphi=${humidityPct / 100}\n`;
+    const {value: project, errors} = new WinIsdProjectConverter(engine).winIsdProjectToOpenIsdProject(text);
+    assert.equal(errors.length, 0, JSON.stringify(errors));
+    if (!project) throw new Error('expected a project');
+    assert.equal(project.envTempK.calculated, true);
+    assert.equal(project.envHumidityPct.calculated, true);
+    assert.equal(project.envPressurePa.entered, true);
+    assert.equal(project.envPressurePa.value, pressurePa + 100);
   });
 
   it('imports [SignalSource] P and [ProjectInfo] Description/Creator/CreateDate/ModifyDate when stated', () => {
     const text = '[ProjectInfo]\nDescription=A test project\nCreator=Test Creator\n'
       + 'CreateDate=20260101\nModifyDate=20260102\n[Driver]\nBrand=Test\nModel=Driver\nRe=8\n'
       + '[Box]\nBType=0\nVr=0.02\n[SignalSource]\nP=50\n';
-    const engine = new Engine();
-    const { value: project, errors } = winIsdProjectToOpenIsdProject(text, engine);
+    const engine = createEngine();
+    const { value: project, errors } = new WinIsdProjectConverter(engine).winIsdProjectToOpenIsdProject(text);
     assert.equal(errors.length, 0, JSON.stringify(errors));
     if (!project) throw new Error('expected a project');
     assert.equal(project.powerDrive_W.value, 50);
@@ -655,8 +661,8 @@ describe('winIsdProjectToOpenIsdProject — box losses, vent geometry and Rg', (
   it('sealed box: [Box] Qlr/Qar and [SignalSource] Rg import into losses.Ql/Qa and Rs_ohm', () => {
     const text = '[ProjectInfo]\n[Driver]\nBrand=Test\nModel=Driver\n'
       + '[Box]\nBType=0\nVr=0.02\nQlr=7\nQar=55\n[SignalSource]\nRg=0.25\n';
-    const engine = new Engine();
-    const {value: project, errors} = winIsdProjectToOpenIsdProject(text, engine);
+    const engine = createEngine();
+    const {value: project, errors} = new WinIsdProjectConverter(engine).winIsdProjectToOpenIsdProject(text);
     assert.equal(errors.length, 0, JSON.stringify(errors));
     if (!project) throw new Error('expected a project');
     assert.equal(project.box.sealed.losses.Ql.value, 7);
@@ -666,8 +672,8 @@ describe('winIsdProjectToOpenIsdProject — box losses, vent geometry and Rg', (
 
   it('vented box: sample_project_vented.wpr\'s own losses, [VentRear] dia1/endcorrection and Rg import exactly', () => {
     const text = readFileSync(SAMPLE_VENTED_WPR, 'utf8');
-    const engine = new Engine();
-    const {value: project, errors} = winIsdProjectToOpenIsdProject(text, engine);
+    const engine = createEngine();
+    const {value: project, errors} = new WinIsdProjectConverter(engine).winIsdProjectToOpenIsdProject(text);
     assert.equal(errors.length, 0, JSON.stringify(errors));
     if (!project) throw new Error('expected a project');
     assert.equal(project.box.vented.losses.Ql.value, 10);
@@ -682,8 +688,8 @@ describe('winIsdProjectToOpenIsdProject — box losses, vent geometry and Rg', (
     const text = '[ProjectInfo]\n[Driver]\nBrand=Test\nModel=Driver\n'
       + '[Box]\nBType=2\nVr=0.01\nVf=0.02\nFf=60\nQlr=6\nQar=66\nQiclfr=44\nQlf=9\nQaf=88\nQpf=77\n'
       + '[VentFront]\nShape=1\ndia1=0.06\nendcorrection=0.55\n[SignalSource]\nRg=0.33\n';
-    const engine = new Engine();
-    const {value: project, errors} = winIsdProjectToOpenIsdProject(text, engine);
+    const engine = createEngine();
+    const {value: project, errors} = new WinIsdProjectConverter(engine).winIsdProjectToOpenIsdProject(text);
     assert.equal(errors.length, 0, JSON.stringify(errors));
     if (!project) throw new Error('expected a project');
     const rear = project.box.bandpass4.chambers.rear.losses;
@@ -702,8 +708,8 @@ describe('winIsdProjectToOpenIsdProject — box losses, vent geometry and Rg', (
   it('passive-radiator box: [Box] Qlr/Qar and Rg import into losses.Ql/Qa and Rs_ohm', () => {
     const text = '[ProjectInfo]\n[Driver]\nBrand=Test\nModel=Driver\n'
       + '[Box]\nBType=4\nVr=0.03\nFr=35\nQlr=8\nQar=44\n[SignalSource]\nRg=0.5\n';
-    const engine = new Engine();
-    const {value: project, errors} = winIsdProjectToOpenIsdProject(text, engine);
+    const engine = createEngine();
+    const {value: project, errors} = new WinIsdProjectConverter(engine).winIsdProjectToOpenIsdProject(text);
     assert.equal(errors.length, 0, JSON.stringify(errors));
     if (!project) throw new Error('expected a project');
     assert.equal(project.box.passiveRadiator.losses.Ql.value, 8);
@@ -714,8 +720,8 @@ describe('winIsdProjectToOpenIsdProject — box losses, vent geometry and Rg', (
   it('a missing or non-numeric key leaves OpenISD\'s own default in place, no error', () => {
     const text = '[ProjectInfo]\n[Driver]\nBrand=Test\nModel=Driver\n'
       + '[Box]\nBType=1\nVr=0.03\nFr=40\nQar=notanumber\n[VentRear]\nendcorrection=bogus\n';
-    const engine = new Engine();
-    const {value: project, errors} = winIsdProjectToOpenIsdProject(text, engine);
+    const engine = createEngine();
+    const {value: project, errors} = new WinIsdProjectConverter(engine).winIsdProjectToOpenIsdProject(text);
     assert.equal(errors.length, 0, JSON.stringify(errors));
     if (!project) throw new Error('expected a project');
     assert.equal(project.box.vented.losses.Ql.value, 10); // default, Qlr key absent
@@ -727,8 +733,8 @@ describe('winIsdProjectToOpenIsdProject — box losses, vent geometry and Rg', (
   it('[VentRear] Shape other than round: diameter is skipped with a warn, endcorrection still imports', () => {
     const text = '[ProjectInfo]\n[Driver]\nBrand=Test\nModel=Driver\n'
       + '[Box]\nBType=1\nVr=0.03\nFr=40\n[VentRear]\nShape=2\ndia1=0.09\nendcorrection=0.4\n';
-    const engine = new Engine();
-    const {value: project, errors} = winIsdProjectToOpenIsdProject(text, engine);
+    const engine = createEngine();
+    const {value: project, errors} = new WinIsdProjectConverter(engine).winIsdProjectToOpenIsdProject(text);
     if (!project) throw new Error('expected a project: ' + JSON.stringify(errors));
     assert.equal(project.box.vented.vent.endCorrection_m.value, 0.4);
     assert.ok(errors.some((e) => e.level === 'warn' && e.field === 'VentRear Shape'
@@ -744,11 +750,11 @@ describe('winIsdProjectToOpenIsdProject — box losses, vent geometry and Rg', (
     project.box.vented.vent.endCorrection_m.set(0.7);
     project.Rs_ohm.set(0.2);
 
-    const {value: wpr, errors} = openIsdProjectToWinIsdProject(project, new Engine());
+    const {value: wpr, errors} = new WinIsdProjectConverter(createEngine()).openIsdProjectToWinIsdProject(project);
     assert.equal(errors.length, 0, JSON.stringify(errors));
     if (!wpr) throw new Error('expected a WinISDProject');
 
-    const {value: reimported, errors: importErrors} = winIsdProjectToOpenIsdProject(wpr.toWpr(), new Engine());
+    const {value: reimported, errors: importErrors} = new WinIsdProjectConverter(createEngine()).winIsdProjectToOpenIsdProject(wpr.toWpr());
     assert.equal(importErrors.length, 0, JSON.stringify(importErrors));
     if (!reimported) throw new Error('expected a project');
 
@@ -777,7 +783,7 @@ describe('openIsdProjectToWinIsdProject — [Filters] export', () => {
     const project = aProject((p) => p.sealed().volume_m3(0.02).build());
     project.filters.set(ONE_OF_EVERY_EXPORTABLE_TYPE);
 
-    const {value: wpr, errors} = openIsdProjectToWinIsdProject(project, new Engine());
+    const {value: wpr, errors} = new WinIsdProjectConverter(createEngine()).openIsdProjectToWinIsdProject(project);
     assert.equal(errors.length, 0, `expected no errors, got: ${JSON.stringify(errors)}`);
     if (!wpr) throw new Error('expected a WinISDProject');
 
@@ -794,11 +800,11 @@ describe('openIsdProjectToWinIsdProject — [Filters] export', () => {
     const project = aProject((p) => p.sealed().volume_m3(0.02).build());
     project.filters.set(ONE_OF_EVERY_EXPORTABLE_TYPE);
 
-    const {value: wpr, errors} = openIsdProjectToWinIsdProject(project, new Engine());
+    const {value: wpr, errors} = new WinIsdProjectConverter(createEngine()).openIsdProjectToWinIsdProject(project);
     assert.equal(errors.length, 0, `expected no errors, got: ${JSON.stringify(errors)}`);
     if (!wpr) throw new Error('expected a WinISDProject');
 
-    const {value: reimported, errors: importErrors} = winIsdProjectToOpenIsdProject(wpr.toWpr(), new Engine());
+    const {value: reimported, errors: importErrors} = new WinIsdProjectConverter(createEngine()).winIsdProjectToOpenIsdProject(wpr.toWpr());
     const filterWarnings = importErrors.filter((e) => e.field === 'Filters');
     assert.equal(filterWarnings.length, 0, `expected no [Filters] warnings, got: ${JSON.stringify(filterWarnings)}`);
     if (!reimported) throw new Error('expected a project');
@@ -815,7 +821,7 @@ describe('openIsdProjectToWinIsdProject — [Filters] export', () => {
       {type: 'highshelf', enabled: true, fc: 2000, Q: Math.SQRT1_2, gain: 6},
     ]);
 
-    const {value: wpr, errors} = openIsdProjectToWinIsdProject(project, new Engine());
+    const {value: wpr, errors} = new WinIsdProjectConverter(createEngine()).openIsdProjectToWinIsdProject(project);
     if (!wpr) throw new Error('expected a WinISDProject');
 
     assert.equal(wpr.number('Filters', 'Count'), 2);
@@ -829,7 +835,7 @@ describe('openIsdProjectToWinIsdProject — [Filters] export', () => {
   it('an empty filter chain writes Count=0 and no filter<i> keys', () => {
     const project = aProject((p) => p.sealed().volume_m3(0.02).build());
 
-    const {value: wpr, errors} = openIsdProjectToWinIsdProject(project, new Engine());
+    const {value: wpr, errors} = new WinIsdProjectConverter(createEngine()).openIsdProjectToWinIsdProject(project);
     assert.equal(errors.length, 0, JSON.stringify(errors));
     if (!wpr) throw new Error('expected a WinISDProject');
     assert.equal(wpr.number('Filters', 'Count'), 0);
@@ -840,8 +846,8 @@ describe('openIsdProjectToWinIsdProject — [Filters] export', () => {
 describe('winIsdProjectToOpenIsdProject — [Filters] import', () => {
   it('the real passive-radiator sample imports its own two filters exactly', () => {
     const text = readFileSync(SAMPLE_PASSIVE_RADIATOR_WPR, 'utf8');
-    const engine = new Engine();
-    const {value: project, errors} = winIsdProjectToOpenIsdProject(text, engine);
+    const engine = createEngine();
+    const {value: project, errors} = new WinIsdProjectConverter(engine).winIsdProjectToOpenIsdProject(text);
     const filterWarnings = errors.filter((e) => e.field === 'Filters');
     assert.equal(filterWarnings.length, 0, `expected no [Filters] warnings, got: ${JSON.stringify(filterWarnings)}`);
     if (!project) throw new Error('expected a project');
@@ -854,8 +860,8 @@ describe('winIsdProjectToOpenIsdProject — [Filters] import', () => {
 
   it('a WinISD-written many-filter file imports every type and every low/highpass subtype', () => {
     const text = readFileSync(MANY_FILTERS_WPR, 'utf8');
-    const engine = new Engine();
-    const {value: project, errors} = winIsdProjectToOpenIsdProject(text, engine);
+    const engine = createEngine();
+    const {value: project, errors} = new WinIsdProjectConverter(engine).winIsdProjectToOpenIsdProject(text);
     const filterWarnings = errors.filter((e) => e.field === 'Filters');
     assert.equal(filterWarnings.length, 0, `expected no [Filters] warnings, got: ${JSON.stringify(filterWarnings)}`);
     if (!project) throw new Error('expected a project');
@@ -887,8 +893,8 @@ describe('winIsdProjectToOpenIsdProject — [Filters] import', () => {
   it('an entry whose filter<i>type/params keys are both missing loads as WinISD\'s own default lowpass, with a warn', () => {
     const text = FILTERS_TEST_BASE
       + '[Filters]\nCount=2\nfilter0type=0\nfilter0params=0;1;2;50;0.707\n';
-    const engine = new Engine();
-    const {value: project, errors} = winIsdProjectToOpenIsdProject(text, engine);
+    const engine = createEngine();
+    const {value: project, errors} = new WinIsdProjectConverter(engine).winIsdProjectToOpenIsdProject(text);
     if (!project) throw new Error('expected a project: ' + JSON.stringify(errors));
 
     assert.deepEqual(project.filters.value, [
@@ -903,8 +909,8 @@ describe('winIsdProjectToOpenIsdProject — [Filters] import', () => {
     // Measured: runs/filter-allpass-1 — a 4-field allpass (missing Q) loads as n=1, t=0.001.
     const text = FILTERS_TEST_BASE
       + '[Filters]\nCount=1\nfilter0type=2\nfilter0params=0;1;3;2.0E-003\n';
-    const engine = new Engine();
-    const {value: project, errors} = winIsdProjectToOpenIsdProject(text, engine);
+    const engine = createEngine();
+    const {value: project, errors} = new WinIsdProjectConverter(engine).winIsdProjectToOpenIsdProject(text);
     if (!project) throw new Error('expected a project: ' + JSON.stringify(errors));
 
     assert.deepEqual(project.filters.value, [
@@ -917,8 +923,8 @@ describe('winIsdProjectToOpenIsdProject — [Filters] import', () => {
   it('an unknown filter type number is skipped outright, with a warn', () => {
     const text = FILTERS_TEST_BASE
       + '[Filters]\nCount=1\nfilter0type=9\nfilter0params=0;1;2;50;0.707\n';
-    const engine = new Engine();
-    const {value: project, errors} = winIsdProjectToOpenIsdProject(text, engine);
+    const engine = createEngine();
+    const {value: project, errors} = new WinIsdProjectConverter(engine).winIsdProjectToOpenIsdProject(text);
     if (!project) throw new Error('expected a project: ' + JSON.stringify(errors));
 
     assert.deepEqual(project.filters.value, []);
@@ -929,8 +935,8 @@ describe('winIsdProjectToOpenIsdProject — [Filters] import', () => {
   it('a low/highpass subtype above 3 is skipped outright, with a warn', () => {
     const text = FILTERS_TEST_BASE
       + '[Filters]\nCount=1\nfilter0type=0\nfilter0params=4;1;2;50;0.707\n';
-    const engine = new Engine();
-    const {value: project, errors} = winIsdProjectToOpenIsdProject(text, engine);
+    const engine = createEngine();
+    const {value: project, errors} = new WinIsdProjectConverter(engine).winIsdProjectToOpenIsdProject(text);
     if (!project) throw new Error('expected a project: ' + JSON.stringify(errors));
 
     assert.deepEqual(project.filters.value, []);

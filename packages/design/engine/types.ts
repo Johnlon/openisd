@@ -41,9 +41,11 @@ export interface Result<T> {
  * driver, one driver that is one: two concepts, and they must not share a spelling. The other
  * five need no prefix: nothing else answers to those names.
  *
- * `bandpass6` and `abc` are declared here and are NOT simulated — `simulatableBoxType()` is the
- * one place that decides, and every engine entry point refuses them by name rather than by
- * being unable to express them.
+ * `bandpass6` and `abc` have circuit CLASSES (`boxes/Bandpass6Box.ts`, `boxes/AbcBox.ts`,
+ * reachable through `boxes/index.ts`'s `boxModel()`) and are full `SimulatableBoxType` members:
+ * `circuit.ts`'s `solve()` (the `SimulationEngine.sweep()` production path) and
+ * `domain/project/projectSweep.ts` both switch over every `SimulatableBoxType` including these
+ * two — see `Bandpass6Box.ts`'s doc for the WinISD-captured formulas either box solves.
  */
 export type BoxType =
   | 'sealed'
@@ -53,8 +55,18 @@ export type BoxType =
   | 'box-passive-radiator'
   | 'abc';
 
-/** The box types the circuit solver actually models. */
-export type SimulatableBoxType = 'sealed' | 'vented' | 'bandpass4' | 'box-passive-radiator';
+/** The box types the circuit solver's PRODUCTION path (`circuit.ts`'s `solve()`, reached through
+ *  `SimulationEngine.sweep()`) actually models — every `BoxType` today (`Bandpass6Box.ts`/`AbcBox.ts` cover
+ *  the last two, `boxes/index.ts`'s `boxModel()`). Spelled out as its OWN union rather than
+ *  `= BoxType`: the two sets happen to match now, but a future `BoxType` with no circuit yet must
+ *  widen `BoxType` without silently claiming it here too. */
+export type SimulatableBoxType =
+  | 'sealed'
+  | 'vented'
+  | 'bandpass4'
+  | 'bandpass6'
+  | 'box-passive-radiator'
+  | 'abc';
 
 import type {SelectorOption} from '../fields/index.js';
 
@@ -70,33 +82,6 @@ export type VentedAlignment = 'qb3' | 'bb4' | 'c4' | 'ebs3' | 'ebs6';
 export interface VentedDesign {
   readonly Vb: number;
   readonly Fb: number;
-}
-
-/**
- * Narrow a box type to one the circuit models, or null when it has none. The ONE place that
- * distinction is made, so a caller gets either a simulatable type or an explicit refusal — never
- * a silent fall-through into another topology's maths.
- *
- * INTERNAL to this package: `Engine.simulatableBoxType()` is the public way to ask, and the
- * engine door exports no loose functions (`test/architecture-engine-boundary.test.ts`).
- *
- * A SWITCH, not a list. The case labels NARROW `box` to exactly those four literals, which is
- * `SimulatableBoxType`, so `return box` needs no assertion — where `array.includes(box)` cannot
- * narrow at all and took one cast to ask the question and a second to answer it. It also leaves
- * no array to be mutable state, which is what `packages/design/AGENTS.md` and
- * `test/architecture-no-globals.test.ts` are about.
- */
-export function simulatableBoxType(box: BoxType): SimulatableBoxType | null {
-  switch (box) {
-    case 'sealed':
-    case 'vented':
-    case 'bandpass4':
-    case 'box-passive-radiator':
-      return box;
-    case 'bandpass6':
-    case 'abc':
-      return null;
-  }
 }
 
 /** Driver wiring for multi-driver setups. */
@@ -196,6 +181,10 @@ export interface SweepParams {
   // Multi-driver
   nDrivers?: number;
   wiring?: Wiring;
+  /** WinISD's driver count (true/absent): N copies of one driver, each in Vb/N fed P/N — sealed and
+   *  vented boxes so far (bugs/BUG_20260928_driver-count-not-winisd.md). false: the N coils wired by
+   *  `wiring` into one terminal impedance. */
+  winisdDriverCountModel?: boolean;
   Rs?: number;
   circuitModel?: CircuitModel;
   /** WinISD's VA, P·Re·|Hf|²/|Z + Rg| (true/absent), or the amplifier's apparent power,
@@ -210,6 +199,16 @@ export interface SweepParams {
   Vf?: number;
   Sp?: number;
   Leff?: number;
+  /** The vent's end correction as a length, m (`Leff` less the physical length). Read only by
+   *  WinISD's transmission-line port (`VentedBox`, `tlPortModel`). */
+  portEndCorrection_m?: number;
+  /** The REAR port's own cross-sectional area, m² — `bandpass6`/`abc` only, WinISD `.wpr`
+   *  `Sdrport`. Read ONLY by `simulation/SimulationEngine.ts`'s own `pvRear` chart computation (rear-port velocity =
+   *  volume flow / area, the same divide `Sp` above does for the front/only port); never by the
+   *  circuit itself, which gets the rear port's acoustic MASS from `Fr` (the chamber's tuning),
+   *  not from this geometry — the same reason `Bandpass6Box.ts`/`AbcBox.ts` never call
+   *  `port.ts`'s `portImpedance()`. Absent for any other box type, which never reads it. */
+  Spr?: number;
   /** The vent's tuning target, Hz (WinISD `[VentRear]`/`[VentFront]` `Fb`, `VentedBox.tuning_goal_hz`
    *  / `Bandpass4Box.chambers.front.tuning_goal_hz`) — read ONLY by `circuit.ts`'s vented
    *  `winisd-lossy` branch, whose port mass Map = 1/(ωb²·Cab) comes from `Fb` and never from
@@ -224,12 +223,15 @@ export interface SweepParams {
   prCms?: number;
   prRms?: number;
   prXmax?: number;
-  /** The box's own tuning, Hz — WinISD's "Fr" for a passive-radiator box (`PassiveRadiatorBox.
-   *  systemTuning_hz`, the resonance this box and this radiator actually produce together, NOT
-   *  the radiator's own free-air Fs) — read ONLY by `circuit.ts`'s passive-radiator `winisd-lossy`
-   *  branch, whose Ral/Raa (leak/absorption) are fixed at `Fr` rather than per-frequency
-   *  (winisd_research/GHIDRA_FINDINGS.md "Passive radiator box — `0x45a960`"). Absent for any
-   *  other box/lossMode combination, which never reads it. */
+  /** WinISD `.wpr` `[Box] Fr`. For a passive-radiator box, the resonance this box and this
+   *  radiator actually produce together (`PassiveRadiatorBox.systemTuning_hz`, NOT the
+   *  radiator's own free-air Fs) — WinISD's own code computes that resonance itself rather than
+   *  reading this field back (winisd_research/GHIDRA_FINDINGS.md "Passive radiator box —
+   *  `0x45a960`"). For `bandpass6`/`abc`, the REAR chamber's own vent tuning target, read by
+   *  `Bandpass6Box`/`AbcBox`'s `winisd-lossy` branch the same way `Ff` feeds the front chamber —
+   *  Maprear = 1/(ωr²·Cabr) comes from THIS (winisd_research/GHIDRA_FINDINGS.md "6th-order
+   *  bandpass — `0x5668c0`", "ABC (Aperiodic Bi-Chamber) — `0x4591b0`"). Absent for `sealed`/
+   *  `vented`/`bandpass4`, which never read it. */
   Fr?: number;
   // 4th-order bandpass — read ONLY by `Bandpass4Box`'s `winisd-lossy` branch (never
   // `conventional-lossy`/`lossless`, which keep the shared `Ql`/`Qa`/`Qp` above for the rear
@@ -255,6 +257,20 @@ export interface SweepParams {
    *  port mass Mapf = 1/(ωf²·Cabf) comes from THIS, never from the front vent's own
    *  length/area (`Leff`/`Sp`, which the front vent's chart-facing geometry still uses). */
   Ff?: number;
+  // 6th-order bandpass / ABC — read ONLY by `Bandpass6Box`/`AbcBox`'s `winisd-lossy` branch. The
+  // rear chamber's OWN port loss Q: `bandpass4`'s rear chamber is sealed and has no port, so no
+  // prior box type needed this field (winisd_research/GHIDRA_FINDINGS.md "6th-order bandpass —
+  // `0x5668c0`").
+  /** Rear chamber port loss Q, WinISD `.wpr` `Qpr` — `chambers.rear.losses.Qp`. */
+  Qpr?: number;
+  // ABC's intra-chamber port — read ONLY by `AbcBox`'s `winisd-lossy` branch. Lossless
+  // (Rai = 0, winisd_research/GHIDRA_FINDINGS.md "ABC (Aperiodic Bi-Chamber) — `0x4591b0`"), so
+  // its mass is the only element: Mai = ρ·`LeffIntra`/`SpIntra`, the same
+  // end-correction-folded-length/area convention `Leff`/`Sp` use for the front/rear ports.
+  /** Intra-chamber vent effective length (physical length + end-correction·diameter), m. */
+  LeffIntra?: number;
+  /** Intra-chamber vent cross-sectional area, m². */
+  SpIntra?: number;
   // Signal chain
   filters?: Filter[];
   // ---- Environment (per project — WinISD keeps T/p/phi in the .wpr [Box] section) --------
@@ -277,6 +293,8 @@ export interface SweepParams {
   driverAddedMass?: number;
   // Thermal power compression: coil temp rise ΔT (K) × alfaVC (SI /K) → hot Re. 0/absent = no-op.
   vcTempRise?: number;
+  // Iso-barik loading: the driver is a compound pair (`isobarikPair`). Absent = standard.
+  loading?: 'standard' | 'isobaric';
   alfaVC?: number;
   // ---- WinISD Advanced-pane simulation options (PLAN_ADVANCED_SIM_OPTIONS.md) ----------
   /**
@@ -300,7 +318,11 @@ export interface SweepParams {
    * reference, so the excursion/velocity/max-SPL curves show what flattening costs.
    */
   forceFlatResponse?: boolean;
-  /** Ceiling on the force-flat boost, dB. Absent → FLAT_MAX_BOOST_DB. */
+  /** WinISD's force-flat (true/absent): every point to the transfer function's 0 dB, boosted or
+   *  cut, uncapped (bugs/BUG_20260928_force-flat-response-not-winisd.md). false: boost only, up to
+   *  the passband reference, capped at `flatMaxBoostDb`. */
+  winisdFlatModel?: boolean;
+  /** Ceiling on the conventional force-flat boost, dB. Absent → FLAT_MAX_BOOST_DB. */
   flatMaxBoostDb?: number;
 }
 
@@ -309,6 +331,15 @@ export interface Solution {
   U0: Complex;
   UD: Complex;
   UP: Complex;
+  /** The rear port's own volume velocity — `bandpass6`/`abc` only (`BoxOutput.UPr`'s own doc,
+   *  `boxes/BoxModel.ts`); `undefined` for every other box type, which has at most one port and
+   *  reports it through `UP`. */
+  UPr?: Complex;
+  /** ABC's intra-chamber port velocity, WinISD's own chart-21 form (Ricl left out — a WinISD
+   *  wart, `boxes/AbcBox.ts`'s own doc) — `winisd-lossy` only; `undefined` for `lossless`/
+   *  `conventional-lossy` (`AbcBox.solve()` does not compute it there) and for every non-`abc`
+   *  box type. */
+  UPi?: Complex;
   Zbox: Complex;
   Zel: Complex;
   ZaD: Complex;
@@ -322,7 +353,18 @@ export interface SweepResult {
   phase: number[];
   exc: number[];
   excPR: number[];
+  /** Port air velocity, m/s. The vent for `vented`; the FRONT port for `bandpass4`/`bandpass6`/
+   *  `abc` (`Solution.UP`'s own doc — `boxes/Bandpass6Box.ts`/`AbcBox.ts` both return the front
+   *  port's flow as `UP`). `0` (never a chart-hiding `null`) for `sealed`/`box-passive-radiator`,
+   *  which have no port. */
   pv: number[];
+  /** The REAR port's own air velocity, m/s — `bandpass6`/`abc` only, from `Solution.UPr`; `null`
+   *  for every other box type, which has at most one port and reports it through `pv` above. */
+  pvRear: number[] | null;
+  /** ABC's intra-chamber port velocity, m/s, WinISD's own chart-21 form (`Solution.UPi`'s own
+   *  doc) — `winisd-lossy` only; `null` for `lossless`/`conventional-lossy` and for every
+   *  non-`abc` box type. */
+  pvIntra: number[] | null;
   zmag: number[];
   zph: number[];
   gd: number[];
@@ -404,4 +446,16 @@ export interface MaxCurvesResult {
   maxpwr: number[];
   xlim: boolean[];
   peAbsent: boolean;
+}
+
+/** What a passive-radiator tuning solve reads: the box volume and the radiator's own mass,
+ *  added mass, area and compliance — all present. */
+export interface PrParams {
+  readonly Vb: number;
+  readonly prMmd: number;
+  readonly prMadd: number;
+  readonly prSd: number;
+  readonly prCms: number;
+  /** Radiator count; each radiator carries prMmd + prMadd. */
+  readonly prNum: number;
 }

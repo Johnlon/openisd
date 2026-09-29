@@ -39,12 +39,6 @@ export function calculatedEntry(value: number): SpecEntryJson {
     return {state: 'C', value};
 }
 
-/** The ONE legal way to read a spec entry's number: `.value` (T11 — one value, one flag; there
- *  is no second channel to fall back to). Null when the entry itself is absent ('N'). */
-export function winningValue(entry: SpecEntryJson | undefined): number | null {
-    return entry?.value ?? null;
-}
-
 /** WinISD's own default when a vented box states no port count (`[VentRear] Num`) — one port.
  *  Read-time fallback in the same style as `calcNumVC()` (`voiceCoilWiring.ts`): a record without
  *  a count, or with one that is not a whole number of at least one, READS as this calculated

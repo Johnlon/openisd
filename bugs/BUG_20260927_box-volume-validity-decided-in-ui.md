@@ -54,5 +54,5 @@ describe block; the zero-or-less-volume test now compares `boxVolumeDqNote` agai
 `packages/ui` unit suite: 585/585 passed.
 
 `grep -rn "v > 0" packages/ui/src` still finds six hits, none a volume check (a `NumInput`/
-`expoStep` decimal-step helper, `OgTune`/driver-editor/options-modal field checks, and a
+`expoStep` decimal-step helper, `OriginalTune`/driver-editor/options-modal field checks, and a
 driver-display usability predicate) — no volume check remains under `packages/ui`.

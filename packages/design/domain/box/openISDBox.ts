@@ -1,5 +1,5 @@
 import {LossMode} from '../../fields/lossMode.js';
-import {Engine} from '../../engine/index.js';
+import {type Engine} from '../../engine/index.js';
 import type { Air, BoxType, DqIssue } from '../../engine/index.js';
 import { CalculatedFieldImpl, absentCell, calculatedCell, entryField, focus, pairedField, requiredField } from '../cell.js';
 import type { SimpleField } from '../cell.js';
@@ -91,7 +91,7 @@ export class OpenISDBox implements Box {
         // computing its own reference-condition fallback.
 
         const sealedLens = focus(lens, 'sealed');
-        const sealedVolume = requiredField(sealedLens, 'volume_m3', (v) => engine.positiveValueIssue(v));
+        const sealedVolume = requiredField(sealedLens, 'volume_m3', (v) => engine.issues.positiveValueIssue(v));
         const sealedLosses = new SealedLossesWindow(focus(sealedLens, 'losses'));
         this.sealed = {
             volume_m3: sealedVolume,
@@ -124,7 +124,7 @@ export class OpenISDBox implements Box {
         };
         const ventedTuningField = pairedField((entry) => commitVentedPair(entry, undefined), ventedTuningEntry);
         const ventedLengthField = pairedField((entry) => commitVentedPair(undefined, entry), ventedLengthEntry);
-        const ventWindow = new VentWindow(ventedVentLens, engine, air, ventedLengthField);
+        const ventWindow = new VentWindow(ventedVentLens, engine.vent, air, ventedLengthField);
         this.vented = {
             // The plausibility mark is computed at READ time, not stored: a mandatory volume field
             // has no `setDq` for a resolve to write through, and the band it is judged against is an
@@ -136,7 +136,7 @@ export class OpenISDBox implements Box {
                 // not an implausible design — it is no design. The resolve cascade draws the
                 // same line, solving the vent only for the box type in play.
                 if (lens.value.boxType !== 'vented') return null;
-                return engine.ventedVolumeIssue(v);
+                return engine.vented.volumeIssue(v);
             }),
             tuning_goal_hz: ventedTuningField,
             vent: ventWindow,
@@ -160,13 +160,13 @@ export class OpenISDBox implements Box {
         };
         const bp4FrontTuningField = pairedField((entry) => commitBp4FrontPair(entry, undefined), bp4FrontTuningEntry);
         const bp4FrontLengthField = pairedField((entry) => commitBp4FrontPair(undefined, entry), bp4FrontLengthEntry);
-        const bp4FrontVent = new VentWindow(bp4FrontVentLens, engine, air, bp4FrontLengthField);
+        const bp4FrontVent = new VentWindow(bp4FrontVentLens, engine.vent, air, bp4FrontLengthField);
         this.bandpass4 = {
             chambers: {
                 // rear is SEALED — no port, so no `vents.rear`, and a read-only calculated
                 // `resonance_hz()` (WinISD's "Frc") stands in for the tuning it cannot be given.
                 rear: {
-                    volume_m3: requiredField(bp4Rear, 'volume_m3', (v) => engine.positiveValueIssue(v)),
+                    volume_m3: requiredField(bp4Rear, 'volume_m3', (v) => engine.issues.positiveValueIssue(v)),
                     // LOSSLESS here, unlike the plain sealed box above, because that is what
                     // WinISD itself writes for a bandpass4 rear chamber. Two goldens written by
                     // the same winisd.exe 89 seconds apart with the identical driver, identical
@@ -185,7 +185,7 @@ export class OpenISDBox implements Box {
                 },
                 // front's volume is a Field, consistent with the rear chamber.
                 front: {
-                    volume_m3: requiredField(bp4Front, 'volume_m3', (v) => engine.positiveValueIssue(v)),
+                    volume_m3: requiredField(bp4Front, 'volume_m3', (v) => engine.issues.positiveValueIssue(v)),
                     tuning_goal_hz: bp4FrontTuningField,
                     losses: new CoupledVentedLossesWindow(focus(bp4Front, 'losses')),
                 },
@@ -196,28 +196,28 @@ export class OpenISDBox implements Box {
         const bp6 = focus(lens, 'bandpass6');
         this.bandpass6 = {
             chambers: {
-                rear: new VentedChamberWindow(focus(bp6, 'rear'), engine),
-                front: new VentedChamberWindow(focus(bp6, 'front'), engine),
+                rear: new VentedChamberWindow(focus(bp6, 'rear'), engine.issues),
+                front: new VentedChamberWindow(focus(bp6, 'front'), engine.issues),
             },
             vents: {
-                rear: new VentWindow(focus(bp6, 'rearVent'), engine, air),
-                front: new VentWindow(focus(bp6, 'frontVent'), engine, air),
+                rear: new VentWindow(focus(bp6, 'rearVent'), engine.vent, air),
+                front: new VentWindow(focus(bp6, 'frontVent'), engine.vent, air),
             },
         };
 
         const abc = focus(lens, 'abc');
         this.abc = {
             chambers: {
-                rear: new VentedChamberWindow(focus(abc, 'rear'), engine),
-                front: new VentedChamberWindow(focus(abc, 'front'), engine),
+                rear: new VentedChamberWindow(focus(abc, 'rear'), engine.issues),
+                front: new VentedChamberWindow(focus(abc, 'front'), engine.issues),
             },
             // Three ports, flat siblings: rear's and front's own ports to outside air, plus the
             // connecting port between the chambers — owned by neither, which is why it sits here and
             // not inside a chamber.
             vents: {
-                rear: new VentWindow(focus(abc, 'rearVent'), engine, air),
-                front: new VentWindow(focus(abc, 'frontVent'), engine, air),
-                intra: new VentWindow(focus(abc, 'intraVent'), engine, air),
+                rear: new VentWindow(focus(abc, 'rearVent'), engine.vent, air),
+                front: new VentWindow(focus(abc, 'frontVent'), engine.vent, air),
+                intra: new VentWindow(focus(abc, 'intraVent'), engine.vent, air),
             },
         };
 
@@ -226,7 +226,7 @@ export class OpenISDBox implements Box {
         const getRadiator = (): OpenISDPassiveRadiatorEmbedded => {
             return new OpenISDPassiveRadiatorEmbedded(prSlot, engine);
         };
-        const prVolume = requiredField(pr, 'volume_m3', (v) => engine.positiveValueIssue(v));
+        const prVolume = requiredField(pr, 'volume_m3', (v) => engine.issues.positiveValueIssue(v));
         const prAddedMassEntry = entryField(focus(pr, 'addedMass_kg'), 'addedMass_kg', () => groupDq(issues().pr));
         const prTuningEntry = entryField(focus(pr, 'tuning_goal_hz'), 'tuning_goal_hz', () => groupDq(issues().pr));
         const prTuningField = pairedField(
@@ -257,7 +257,7 @@ export class OpenISDBox implements Box {
             systemTuning_hz: entryField(focus(pr, 'systemTuning_hz'), 'systemTuning_hz', () => groupDq(issues().pr)),
             resonanceWithAddedMass_hz: entryField(focus(pr, 'resonanceWithAddedMass_hz'), 'resonanceWithAddedMass_hz', () => groupDq(issues().pr)),
             /** A read-only WHAT-IF query, independent of the stored pair and its cascade — never
-             *  writes back, so it stays a pure computation over `Engine.prMassForFp` rather than a
+             *  writes back, so it stays a pure computation over `PrEngine.massForFp` rather than a
              *  route through the (now-deleted) bag solver. The DQ text matches
              *  `checkPrConsistency`'s own negative-mass case exactly: the only DQ this cell could
              *  ever have carried in practice (the missing-dependencies branch always paired with a
@@ -268,14 +268,15 @@ export class OpenISDBox implements Box {
                 const prMmd = r.spec.Mms_kg.value;
                 const prSd = r.spec.Sd_m2.value;
                 const prCms = r.spec.Cms_m_per_N.value;
+                const prNum = this.passiveRadiator.count.value || 1;
                 if (!(Vb != null && Vb > 0 && prMmd != null && prSd != null && prCms != null && fp_hz > 0)) {
                     return absentCell<number>('addedMassForTuning_kg');
                 }
-                const totalMass = this.#engine.prMassForFp({ Vb, prMmd, prMadd: 0, prSd, prCms }, fp_hz, air());
+                const totalMass = this.#engine.pr.massForFp({ Vb, prMmd, prMadd: 0, prSd, prCms, prNum }, fp_hz, air());
                 const addedMass = totalMass - prMmd;
-                const dq: DqIssue[] | undefined = addedMass < 0 ? [this.#engine.targetUnreachable(
+                const dq: DqIssue[] | undefined = addedMass < 0 ? [this.#engine.issues.targetUnreachable(
                     'addedMassForTuning_kg',
-                    this.#engine.prTuning({ Vb, prMmd, prMadd: 0, prSd, prCms }, air()),
+                    this.#engine.pr.tuning({ Vb, prMmd, prMadd: 0, prSd, prCms, prNum }, air()),
                 )] : undefined;
                 return calculatedCell<number | null>('addedMassForTuning_kg', addedMass, dq);
             }),
@@ -321,7 +322,7 @@ export class OpenISDBox implements Box {
         const Vas = ts.Vas_m3.value;
         const Qts = ts.Qts.value;
         if (Fs_hz === null || Vas === null || Qts === null) return null;
-        const QtsLoaded = this.#engine.sourceLoadedQts(
+        const QtsLoaded = this.#engine.driver.sourceLoadedQts(
             ts.Qms.value ?? NaN, ts.Qes.value ?? NaN, ts.Re_ohm.value ?? NaN, this.#rs(), Qts);
         // The project's own chosen mode (S10/QO130) by default. WinISD displays and saves the
         // LOSSY figure by default (John 2026-08-27: "default is winisd = Lossy") and it MOVES
@@ -329,7 +330,7 @@ export class OpenISDBox implements Box {
         // volume (winisd_research FINDING-007). A caller (bandpass4's rear chamber) may still
         // override `mode` — that is WinISD's own fixed behaviour for that chamber, not the
         // project's chosen mode; see that call site's own note.
-        return this.#engine.sealedResonance(mode, {
+        return this.#engine.sealed.resonance(mode, {
             Fs: Fs_hz, Vas, Qts: QtsLoaded, Vb: volume_m3, Ql: losses.Ql.value, Qa: losses.Qa.value,
         }).Fsc;
     }

@@ -11,7 +11,7 @@ only the `whatif` overlay kind remains.
 an in-progress edit is meant to accumulate silently in an overlay, and `cancelEdit()` is meant
 to discard it, leaving committed state "byte-identical to before `beginEdit()`." In the actual
 running app, this mechanism is never entered. Every driver-field edit in the tuning panel
-(`OgTune.vue`) writes directly and irreversibly to committed state the instant it's typed —
+(`OriginalTune.vue`) writes directly and irreversibly to committed state the instant it's typed —
 there is no session to cancel, and no way to discard a batch of in-progress driver-field
 changes. The only undo available is `clear()`, one field at a time.
 
@@ -29,7 +29,7 @@ packages/ui/test/logic/managedProject.test.ts:64,96,154,163,190   (unit tests on
 `grep -rn "\.beginEdit()" packages/ui/src` finds **zero** matches outside that one doc comment —
 no `.vue` component, no other `.ts` module, calls it.
 
-`packages/ui/src/ui/shells/original/OgTune.vue:66-73` — the driver-field input handler:
+`packages/ui/src/ui/shells/original/OriginalTune.vue:66-73` — the driver-field input handler:
 ```ts
 function onField(key: NumKey, scale: number, e: Event) {
   const raw = (e.target as HTMLInputElement).value;
@@ -49,7 +49,7 @@ export function clearDriverField(field: SpecField): void {
 ```
 Neither wraps a `beginEdit()`/`commitEdit()`/`cancelEdit()` session. `managedProject.enter()`
 routes through `#effective()` (`managedProject.ts:145-147`), which returns `#overlay?.layer ??
-#committed` — since nothing ever calls `beginEdit()` (or `beginWhatIf()`, which OgTune.vue DOES
+#committed` — since nothing ever calls `beginEdit()` (or `beginWhatIf()`, which OriginalTune.vue DOES
 use, but only for the box `Vb` what-if scrub at line 174, not for driver-field typing), `#overlay`
 is always null for driver fields, so every keystroke writes straight to `#committed`.
 
@@ -60,7 +60,7 @@ outside `ManagedProject`'s edit lifecycle.
 ## Cause
 
 The edit-draft mechanism was built and tested against `ManagedProject`'s own unit test suite,
-but no UI call site was ever wired to use it for driver-field edits — `OgTune.vue` calls the
+but no UI call site was ever wired to use it for driver-field edits — `OriginalTune.vue` calls the
 per-field `enter`/`clear` API directly, which is `ManagedProject`'s always-available live-write
 path, not gated by `beginEdit()`. The what-if mechanism (`beginWhatIf`/`cancelWhatIf`) IS wired
 up and used (for the box `Vb` scrub), so the app's authors clearly knew how to invoke the
@@ -69,7 +69,7 @@ driver-field UI.
 
 ## Fix
 
-**Ruled (human, 2026-08-18): the edit-draft lifecycle dies.** Not option (a) — `OgTune.vue` is
+**Ruled (human, 2026-08-18): the edit-draft lifecycle dies.** Not option (a) — `OriginalTune.vue` is
 not getting wrapped in `beginEdit()`/`commitEdit()`/`cancelEdit()`. `clear()` (per the sibling
 ruling on this same date — see `BACKLOG.md` "Driver data & T/S") is the one and only per-field
 undo mechanism; there is no batch/session-level cancel for driver fields, and none is being

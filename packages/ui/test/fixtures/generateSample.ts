@@ -1,7 +1,7 @@
 import {mkdirSync, readFileSync, writeFileSync} from 'node:fs';
 import {dirname, join} from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {Engine, OpenISDDriver, OpenISDPassiveRadiatorStandalone, OpenISDProject} from '@openisd/design';
+import {createEngine, OpenISDDriver, OpenISDPassiveRadiatorStandalone, OpenISDProject} from '@openisd/design';
 import {DEFAULT_SOURCE_RESISTANCE_OHM} from '@openisd/design/fields';
 import {COMPLETE_DRIVER_PROJECT_OWPR, SAMPLE_PROJECT_OWPR} from './sampleProject.js';
 
@@ -10,7 +10,7 @@ const __dirname = dirname(__filename);
 
 const driverStr = readFileSync(join(__dirname, '../../public/drivers/tang-band/w5-1138smf.json'), 'utf-8');
 const driverJson = JSON.parse(driverStr);
-const engine = new Engine();
+const engine = createEngine();
 const maybeDriver = OpenISDDriver.fromConformingRecord(driverJson, engine);
 if (Array.isArray(maybeDriver)) {
     throw new Error(`fixture driver is not conforming: ${maybeDriver.join(', ')}`);
@@ -22,10 +22,10 @@ const builder = OpenISDProject.builder(driver, engine);
 // WinISD's default vented alignment (C4/SC4), designed as the New Project wizard does it
 // (docs/research/VENTED_ALIGNMENT_FORMULAS.md); a hardcoded volume/tuning here would drift from
 // what the wizard actually builds for this driver. Ql 10 is the new-project vented default.
-const qtsLoaded = engine.sourceLoadedQts(
+const qtsLoaded = engine.driver.sourceLoadedQts(
   driver.specs.Qms.value!, driver.specs.Qes.value!, driver.specs.Re_ohm.value!, DEFAULT_SOURCE_RESISTANCE_OHM, driver.specs.Qts.value!,
 );
-const c4 = engine.ventedAlignment('c4', driver.specs.Fs_hz.value!, qtsLoaded, driver.specs.Vas_m3.value!, 10);
+const c4 = engine.vented.alignment('c4', driver.specs.Fs_hz.value!, qtsLoaded, driver.specs.Vas_m3.value!, 10);
 const project = builder.vented().volume_m3(c4.Vb).tuning_goal_hz(c4.Fb).build();
 project.name.set("W5-1138SMF Fixture");
 project.box.vented.vent.diameter_m.set(0.05);

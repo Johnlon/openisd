@@ -7,7 +7,7 @@ import {createLogging} from '../../src/logging/flash.js';
 import {createApplicationIO} from '../../src/logic/useApplicationIO.js';
 import {createFileStorage, createMemoryStorage, createProjectRepo, type FileStorage} from '@openisd/persistence';
 import {newProject, requireFocusedProject} from '../../src/logic/appState.js';
-import {Engine} from '@openisd/design/engine';
+import {createEngine} from '@openisd/design/engine';
 import {SAMPLE_PROJECT_OWPR} from '../fixtures/sampleProject.js';
 
 beforeAll(() => {
@@ -64,7 +64,7 @@ describe('.wpr import syncs state.project from the file, and export round-trips 
       }
     });
     try {
-      const io = createApplicationIO({ logging: createLogging(), fileStorage: createFileStorage(), projectRepo: createProjectRepo(new Engine(), createFileStorage(), createMemoryStorage()) });
+      const io = createApplicationIO({ logging: createLogging(), fileStorage: createFileStorage(), projectRepo: createProjectRepo(createEngine(), createFileStorage(), createMemoryStorage()) });
 
       // A DIFFERENT project is open before the import — these exact values must all be gone
       // after. The app starts with NO project (QO121), so this opens the one it then dirties.
@@ -123,7 +123,7 @@ describe('.wpr import syncs state.project from the file, and export round-trips 
       }
     });
     try {
-      const io = createApplicationIO({ logging: createLogging(), fileStorage: createFileStorage(), projectRepo: createProjectRepo(new Engine(), createFileStorage(), createMemoryStorage()) });
+      const io = createApplicationIO({ logging: createLogging(), fileStorage: createFileStorage(), projectRepo: createProjectRepo(createEngine(), createFileStorage(), createMemoryStorage()) });
 
       // A genuinely valid project, corrupted back to the pre-S9a shape (a solver-slot entry
       // stated as a bare `null`) at TWO distinct fields, so a fix that only logs `errors[0]` is
@@ -159,7 +159,7 @@ describe('.wpr import syncs state.project from the file, and export round-trips 
       openFileName: () => null,
       forget: () => {},
     };
-    const repo = createProjectRepo(new Engine(), fileStorage, storage);
+    const repo = createProjectRepo(createEngine(), fileStorage, storage);
     const io = createApplicationIO({ logging: createLogging(), fileStorage, projectRepo: repo });
 
     newProject();

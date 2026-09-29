@@ -16,9 +16,9 @@ import {createMyDriverRepo, MY_DRIVERS_KEY} from '../src/repos/myDriverRepo.js';
 import {createMyPassiveRadiatorRepo, MY_PASSIVE_RADIATORS_KEY} from '../src/repos/myPassiveRadiatorRepo.js';
 import type {KeyValueStorage} from '../src/storage/keyValueStorage.js';
 import {OpenISDDriver, OpenISDPassiveRadiatorStandalone} from '@openisd/design';
-import {Engine} from '@openisd/design/engine';
+import {createEngine} from '@openisd/design/engine';
 
-const engine = new Engine();
+const engine = createEngine();
 
 /** An in-memory storage, so each test sees only what it put there itself. */
 function memoryStorage(): KeyValueStorage & { raw(key: string): string | null } {

@@ -1,5 +1,5 @@
-import type {Air, DqIssue, DriverIssue, DriverQuantityName, DriverSolverParams} from '../../engine/index.js';
-import {Engine} from '../../engine/index.js';
+import type {Air, CalculationIssue, DqIssue, DriverIssue, DriverQuantityName, DriverSolverParams, IssueEngine, OutOfRangeIssue, SolverInput, Wiring} from '../../engine/index.js';
+import {type Engine} from '../../engine/index.js';
 import {NumberField} from '../../fields/field.js';
 import type {ValueFloor} from '../../fields/field.js';
 import type {
@@ -23,8 +23,11 @@ import {
     VoiceCoilWiring,
     wiringFromRecord
 } from '../voiceCoilWiring.js';
-import {winningValue} from '../specEntry.js';
-import {projectFormulaDq} from '../project/projectFormulaDq.js';
+import {computedSlot} from './computedSlot.js';
+import {winisdBLterminal_Tm} from './winisdBLterminal.js';
+import {winisdCms_m_per_N} from './winisdCms.js';
+import {winisdMms_kg} from './winisdMms.js';
+import {winisdRms_kg_per_s} from './winisdRms.js';
 import {driverSection} from './driverSection.js';
 import type {DriverSpecFieldName} from './driverSpecFieldName.js';
 import {NO_SLOT} from './noSlot.js';
@@ -51,18 +54,18 @@ export function driverSpecFloor(key: DriverSpecFieldName): ValueFloor {
 
 /** `key`'s own floor, applied to `v` — no default arm: a `ValueFloor` variant added without a
  *  case here fails to compile. */
-function floorIssue(key: DriverSpecFieldName, v: number, engine: Engine): DqIssue | null {
+function floorIssue(key: DriverSpecFieldName, v: number, issues: IssueEngine): DqIssue | null {
     switch (driverSpecFloor(key)) {
         case 'positive':
-            return engine.positiveValueIssue(v);
+            return issues.positiveValueIssue(v);
         case 'non-negative':
-            return engine.nonNegativeValueIssue(v);
+            return issues.nonNegativeValueIssue(v);
         case 'none':
             return null;
     }
 }
 
-/** Every `DriverQuantityName`, exactly once — the field list `projectFormulaDq` clears before
+/** Every `DriverQuantityName`, exactly once — the field list `#markDq` clears before
  *  applying `resolve()`'s own issues (S2-7d2). Named here, once, in a form the compiler checks
  *  (`satisfies`, not a cast) rather than read back off `params` via `Object.keys`, which answers
  *  `string[]` regardless of what the object's own type declares. */
@@ -75,7 +78,7 @@ const DRIVER_QUANTITY_NAMES = [
     'Re_terminal_ohm', 'BL_terminal_Tm', 'numVC', 'wiring',
 ] as const satisfies readonly DriverQuantityName[];
 // Completeness, not merely validity: a `DriverQuantityName` missing from the list above fails to
-// compile here and the error NAMES it, rather than `projectFormulaDq` silently never clearing it.
+// compile here and the error NAMES it, rather than `#markDq` silently never clearing it.
 type _MissingFromDriverQuantityNames = Exclude<DriverQuantityName, typeof DRIVER_QUANTITY_NAMES[number]>;
 type _AssertDriverQuantityNamesComplete = _MissingFromDriverQuantityNames extends never ? true : never;
 const _assertDriverQuantityNamesComplete: _AssertDriverQuantityNamesComplete = true;
@@ -204,7 +207,7 @@ export class OpenIsdDriverSpec {
          *  derived value once `resolve()` has run — no live recompute at read time, no
          *  `solvedNow` bag kept beside the record. `entryField` alone reports absent/entered/
          *  calculated straight off what is actually stored. */
-        /** The issues `key` is named by, out of a durable list — the same split `projectFormulaDq`
+        /** The issues `key` is named by, out of a durable list — the same split `#markDq`
          *  makes: a `field`-carrying issue names one field, everything else names whatever
          *  `issueFields` says. */
         const dqFor = (key: keyof DriverSpecsSection): (() => readonly DqIssue[]) | undefined =>
@@ -228,7 +231,7 @@ export class OpenIsdDriverSpec {
                     sectionSlot(key),
                     key,
                     dqFor(key),
-                    (v) => floorIssue(key, v, engine)
+                    (v) => floorIssue(key, v, engine.issues)
                 );
 
         /** The wiring field — `entryField` in every respect but the value's type, which is a
@@ -247,7 +250,7 @@ export class OpenIsdDriverSpec {
             () => {
                 const entry = wiringSlot.value;
                 if (entry === undefined) return absentCell<VoiceCoilWiring>('VCCon', wiringDq);
-                const wiring = wiringFromRecord(winningValue(entry));
+                const wiring = wiringFromRecord(entry.value);
                 if (wiring === null) return absentCell<VoiceCoilWiring>('VCCon', wiringDq);
                 return entry.state === 'E'
                     ? enteredCell<VoiceCoilWiring | null>('VCCon', wiring, wiringDq)
@@ -371,9 +374,82 @@ export class OpenIsdDriverSpec {
             Re_terminal_ohm: NO_SLOT, BL_terminal_Tm: NO_SLOT, numVC: this.numVC,
             wiring: this.VCCon,
         } satisfies DriverSolverParams;
-        this.#issues = this.#engine.solveDriver(params, air);
-        projectFormulaDq<DriverQuantityName>(DRIVER_QUANTITY_NAMES, params, this.#issues);
+        this.#issues = this.#engine.driver.solve(params, air);
+        this.#markDq(params, this.#issues);
         return this.#issues;
+    }
+
+    /** Clears `dq` on every quantity, then applies each issue's OWN formula only to the handles
+     *  that issue names — 44 independent quantities, where one relation's DQ has nothing to do
+     *  with an unrelated field (S2-7d2). `DRIVER_QUANTITY_NAMES` is the handle list stated where
+     *  the compiler can check it; `Object.keys(handles)` would answer `string[]`. */
+    #markDq(
+        handles: Readonly<Record<DriverQuantityName, Pick<Calculatable<unknown>, 'setDq'>>>,
+        issues: readonly (CalculationIssue<DriverQuantityName> | OutOfRangeIssue)[],
+    ): void {
+        const mark = (key: DriverQuantityName, dq: readonly DqIssue[]): void => handles[key].setDq(dq);
+        // An `OutOfRangeIssue.field` is plain `string` (D14's mark shape is shared across every
+        // domain), so it is validated against the quantity list before it is narrowed.
+        const fieldNames: readonly string[] = DRIVER_QUANTITY_NAMES;
+        const isField = (candidate: string): candidate is DriverQuantityName => fieldNames.includes(candidate);
+        DRIVER_QUANTITY_NAMES.forEach(key => mark(key, []));
+        issues.forEach(issue => {
+            if ('field' in issue) {
+                if (isField(issue.field)) mark(issue.field, [issue]);
+                return;
+            }
+            issue.fields.forEach(field => mark(field, [issue]));
+        });
+    }
+
+    /** This spec's 44 handles, shaped as `DriverSolverParams` for `SimulationEngine.sweep()`/
+     *  `maxCurves()` (S2-10: "`OpenIsdDriverSpec` structurally satisfies `DriverSolverParams`")
+     *  — true for 40 of the 44 by name; the other four are ADAPTED: `SPLref_dB`/
+     *  `Re_terminal_ohm`/`BL_terminal_Tm` have no storage slot (`NO_SLOT`), and `wiring` is
+     *  spelled `VCCon` here and carries a `VoiceCoilWiring` member, not the bare
+     *  `'series'|'parallel'` union.
+     *
+     *  `winisdDriverModel`: WinISD's simulation reads Fs, Vas, Qes, Qms, Sd and Re, and nothing
+     *  else — it keeps entered Cms, Mms, BL and Rms untouched and its circuit names none of them
+     *  outside CLe (measured against 0.7.0.950, winisd_research/PROBE_FINDINGS.md). So the flag
+     *  substitutes the four, each only where its own inputs are present and positive, and each
+     *  downstream one off the substituted Cms — every one an identity on a self-consistent
+     *  driver. The entered BL still reaches the engine as `BL_Tm`, which the 'winisdGyrator'
+     *  inductance model scales Le by; WinISD reads the entered BL there too.
+     *
+     *  `air`: the circuit's air is the PROJECT's, when one is given — the driver's own
+     *  `c_m_per_s`/`roo_kg_per_m3` are display-only and feed no calculation
+     *  (BUG_20260924_driver-solve-and-sweep-use-different-air-models.md). A caller with no
+     *  project (a standalone driver's own chart) passes none, and the spread already carries the
+     *  driver's own stated pair. */
+    solverParams(winisdDriverModel: boolean = false, air: Air | null = null): DriverSolverParams {
+        const wiring: Wiring = this.VCCon.value === VoiceCoilWiring.Series ? 'series' : 'parallel';
+        const Re_ohm = this.Re_ohm.value;
+        const BL_Tm = this.BL_Tm.value;
+        const numVC = this.numVC.value ?? undefined;
+        const wiringInput: SolverInput<Wiring> = { value: wiring, entered: this.VCCon.entered };
+
+        const Re_terminal_ohm = Re_ohm == null ? null : this.#engine.driver.terminalRe_ohm(Re_ohm, numVC, wiring);
+        const BL_terminal_entered_Tm = BL_Tm == null ? null : this.#engine.driver.terminalBL_Tm(BL_Tm, numVC, wiring);
+
+        const cmsField = winisdDriverModel ? winisdCms_m_per_N(this, air) : this.Cms_m_per_N;
+        const mmsField = winisdDriverModel ? winisdMms_kg(this, cmsField.value) : this.Mms_kg;
+        const rmsField = winisdDriverModel ? winisdRms_kg_per_s(this, mmsField) : this.Rms_kg_per_s;
+        const blTerminal = winisdDriverModel
+            ? winisdBLterminal_Tm(this, Re_terminal_ohm, cmsField.value, BL_terminal_entered_Tm)
+            : BL_terminal_entered_Tm;
+
+        return {
+            ...this,
+            Cms_m_per_N: cmsField,
+            Mms_kg: mmsField,
+            Rms_kg_per_s: rmsField,
+            SPLref_dB: NO_SLOT,
+            Re_terminal_ohm: computedSlot(Re_terminal_ohm),
+            BL_terminal_Tm: computedSlot(blTerminal),
+            wiring: wiringInput,
+            ...(air !== null ? { c_m_per_s: computedSlot(air.c), roo_kg_per_m3: computedSlot(air.rho) } : {}),
+        };
     }
 
     /** The issues the last `resolve()` produced — empty before the first one has run. */

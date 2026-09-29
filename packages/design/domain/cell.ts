@@ -8,10 +8,15 @@ import {halfUlp} from './precision.js';
 // A field the domain exposes is an intersection of these, declared inline at its site. Absence
 // is `null` in `V`; a field whose `V` excludes `null` is always present.
 
-/** Read: the current value, the field's name, and its diagnostic notes. */
+/** The badge letter a field shows: `E` entered, `C` calculated, `N` no value. */
+export type ProvenanceLetter = 'E' | 'C' | 'N';
+
+/** Read: the current value, the field's name, its provenance and its diagnostic notes. */
 export interface Readable<V> {
   readonly name: string;
   readonly value: V;
+  /** `E` when a person entered the value, `C` when it was derived, else `N`. */
+  readonly provenance: ProvenanceLetter;
   readonly dq: readonly DqIssue[];
   /** The project needs this field and cannot derive it — a `missing-dependencies` issue on
    *  `dq` names it, so something depending on it is blocked until it is stated. NOT an
@@ -119,6 +124,12 @@ export class ReadableFieldImpl<V> implements Readable<V> {
 
   get name(): string { return this.readCell().name; }
   get value(): V { return this.readCell().value; }
+  get provenance(): ProvenanceLetter {
+    const cell = this.readCell();
+    if (cell.entered) return 'E';
+    if (cell.calculated) return 'C';
+    return 'N';
+  }
   get dq(): readonly DqIssue[] { return this.readCell().dq; }
   get mandatoryAndUnsatisfied(): boolean {
     return this.dq.some(issue => issue.kind === 'missing-dependencies');

@@ -3,7 +3,7 @@
  * in the one `SelectorOption` shape (`value`/`label`), and that list is the domain's own
  * (PLAN_FIELD_REGISTRY_DESCRIPTIONS_AND_SSOT.md §6).
  *
- * Also a SOURCE check on `OriginalShell.vue` / `OgNewProject.vue`: a `<select>` whose options
+ * Also a SOURCE check on `OriginalShell.vue` / `OriginalNewProject.vue`: a `<select>` whose options
  * are written by hand in the template is a second copy of the list that the registry cannot
  * see drift.
  */
@@ -12,13 +12,13 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 import {dirname, join} from 'node:path';
-import {Engine} from '@openisd/design/engine';
+import {createEngine} from '@openisd/design/engine';
 import {VoiceCoilWiring} from '@openisd/design';
 import {EnumField, LossMode, NumberField} from '@openisd/design/fields';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const shellSrc = readFileSync(join(here, '../../src/ui/shells/original/OriginalShell.vue'), 'utf8');
-const wizardSrc = readFileSync(join(here, '../../src/ui/shells/original/OgNewProject.vue'), 'utf8');
+const wizardSrc = readFileSync(join(here, '../../src/ui/shells/original/OriginalNewProject.vue'), 'utf8');
 
 function optionsOf(field: EnumField) {
   assert.ok(field.options.length > 0, `${field.value} carries no options`);
@@ -50,7 +50,7 @@ describe('every dropdown is an EnumField carrying SelectorOption[]', () => {
   it('box_Qtc lists the nine WinISD sealed alignments and is the SAME list the engine hands out', () => {
     const options = optionsOf(EnumField.BOX_QTC);
     assert.equal(options.length, 9);
-    assert.deepEqual(options, new Engine().sealedAlignmentOptions());
+    assert.deepEqual(options, createEngine().sealed.alignmentOptions());
   });
 
   it('loss_DampingMode lists the engine loss modes, values being the tokens the project stores', () => {
@@ -80,9 +80,9 @@ describe('a count select lists every integer the field allows, as SelectorOption
   });
 });
 
-describe('OriginalShell / OgNewProject — no dropdown writes its option list by hand', () => {
+describe('OriginalShell / OriginalNewProject — no dropdown writes its option list by hand', () => {
   it('every <select> reads its choice through selectedOption — no v-model, no Number(selectValue)', () => {
-    for (const [name, src] of [['OriginalShell.vue', shellSrc], ['OgNewProject.vue', wizardSrc]] as const) {
+    for (const [name, src] of [['OriginalShell.vue', shellSrc], ['OriginalNewProject.vue', wizardSrc]] as const) {
       // A quoted attribute may hold `=>`, so quoted runs are consumed whole.
       const selects = src.match(/<select(?:"[^"]*"|[^">])*>/g) ?? [];
       assert.ok(selects.length > 0, `${name} renders no <select>`);

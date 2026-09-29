@@ -13,19 +13,19 @@ import {driverParams, solveConsistencyGroup} from './testSolver.js';
 import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
 import type {SweepParams} from '../../engine/index.js';
-import {Engine} from '../../engine/index.js';
+import {createEngine} from '../../engine/index.js';
 
 /** Voice-coil inductance for the fixtures below. Not a solver quantity — nothing
  *  derives it — so it reaches `sweep` on its own, and only the impedance plot reads it. */
 const LE_H = 0.7e-3;
 
 /** The engine's one door: every calculation below is a method on this object. */
-const engine = new Engine();
+const engine = createEngine();
 
 // No environment reaches these test's own reimplementation of the formula under test, so ρ/c
 // are computed live at the reference environment — matching production (no stored constant).
-const refRho = (): number => engine.solveEnvironment({}).values.rho;
-const refC = (): number => engine.solveEnvironment({}).values.c;
+const refRho = (): number => engine.environment.solve({}).values.rho;
+const refC = (): number => engine.environment.solve({}).values.c;
 
 // ---------------------------------------------------------------------------
 // Reference test driver — a synthetic 6.5" mid-woofer, 8 Ω nominal.
@@ -100,7 +100,7 @@ describe('Sealed box simulation', () => {
     assert.ok(d);
     const fc  = d.Fs_hz!  * Math.sqrt(1 + d.Vas_m3! / Vb_m3);
     const Qtc = d.Qts! * Math.sqrt(1 + d.Vas_m3! / Vb_m3);
-    const { fs, spl } = engine.sweep(driverParams(d), LE_H, 'sealed', {
+    const { fs, spl } = engine.simulation.sweep(driverParams(d), LE_H, 'sealed', {
       Vb: Vb_m3, Ql: 1e6, // Ql -> ∞ = lossless box (isolates acoustic response)
       eg: 2.83, fmin: 10, fmax: 1000, N: 300}).values!;
     const passbandRef = spl.at(-1)!; // HF asymptote — reference level
@@ -124,14 +124,14 @@ describe('Sealed box simulation', () => {
     //
     // The reference side uses the engine's own efficiency functions — the project's single
     // definition of that level — so what this gate actually tests is the CIRCUIT solution
-    // in engine.sweep().value! against the closed form, not one copy of a constant against another.
+    // in engine.simulation.sweep().value! against the closed form, not one copy of a constant against another.
     const Vb_m3 = 0.020;
     const EG    = 2.83; // V — IEC 60268-5 sensitivity reference voltage
     const d = solveConsistencyGroup({ ...REF_DRIVER});
     assert.ok(d);
-    const eta0  = engine.referenceEfficiency(d.Fs_hz!, d.Vas_m3!, d.Qes!, engine.solveEnvironment({}).values);
-    const predicted = engine.splFromEfficiency(eta0, engine.solveEnvironment({}).values) + 10 * Math.log10(EG ** 2 / d.Re_ohm!);
-    const { fs, spl } = engine.sweep(driverParams(d), LE_H, 'sealed', { Vb: Vb_m3, Ql: 1e6, eg: EG, fmin: 10, fmax: 1000, N: 300 }).values!;
+    const eta0  = engine.driver.referenceEfficiency(d.Fs_hz!, d.Vas_m3!, d.Qes!, engine.environment.solve({}).values);
+    const predicted = engine.driver.splFromEfficiency(eta0, engine.environment.solve({}).values) + 10 * Math.log10(EG ** 2 / d.Re_ohm!);
+    const { fs, spl } = engine.simulation.sweep(driverParams(d), LE_H, 'sealed', { Vb: Vb_m3, Ql: 1e6, eg: EG, fmin: 10, fmax: 1000, N: 300 }).values!;
     const passbandSPL = spl[idxGe(fs, 300)]; // 300 Hz — well above Fs, in the flat passband
     assert.ok(Math.abs(passbandSPL - predicted) < SPL_FORMULA_TOLERANCE_DB,
       `passband ${passbandSPL.toFixed(2)} dB vs predicted ${predicted.toFixed(2)} dB ` +
@@ -155,7 +155,7 @@ describe('Sealed box simulation', () => {
     const Vb_m3 = 0.020;
     const d = solveConsistencyGroup({ ...REF_DRIVER});
     assert.ok(d);
-    const { fs, spl } = engine.sweep(driverParams(d), LE_H, 'sealed', {
+    const { fs, spl } = engine.simulation.sweep(driverParams(d), LE_H, 'sealed', {
       Vb: Vb_m3, Ql: 1e6,  // Ql → ∞: lossless (matches QSpeakers formula)
       eg: 2.83, fmin: 10, fmax: 1000, N: 300,
     }).values!;
@@ -198,7 +198,7 @@ describe('Vented (bass-reflex) box simulation', () => {
   const Map    = 1 / (wb * wb * Cab); // acoustic mass for Fb
   const Leff   = Map * Sp_m2 / refRho();  // effective duct length (including end correction)
   const d = solveConsistencyGroup(REF_DRIVER);
-  const { fs, spl, zmag } = engine.sweep(driverParams(d), LE_H, 'vented', {
+  const { fs, spl, zmag } = engine.simulation.sweep(driverParams(d), LE_H, 'vented', {
     Vb: Vb_m3, Ql: 7, Sp: Sp_m2, Leff, Fb: Fb_Hz, eg: 2.83, fmin: 10, fmax: 1000, N: 300,
   }).values!;
 
@@ -246,7 +246,7 @@ describe('Passive radiator box simulation', () => {
   // not-winisd-form.md) — computed by the same `prTuning` formula the test below already used
   // for Fp, or an absent Fr poisons Ral/Raa with NaN and every chart collapses to the -200 dB
   // silence sentinel.
-  const PR_BOX = {Vb: 0.02, prMmd: 0.010, prMadd: 0.020, prSd: 0.0133, prCms: 0.0008};
+  const PR_BOX = {Vb: 0.02, prMmd: 0.010, prMadd: 0.020, prSd: 0.0133, prCms: 0.0008, prNum: 1};
   const PR_PARAMS: SweepParams = {
     ...PR_BOX,
     Ql:     7,      // —  — box leakage Q (same as vented default)
@@ -254,10 +254,10 @@ describe('Passive radiator box simulation', () => {
     prRms:  1.0,    // kg/s — PR mechanical damping
     prXmax: 0.012,  // m  — PR linear excursion limit (12 mm)
     fmin: 10, fmax: 1000, N: 300,
-    Fr: engine.prTuning(PR_BOX, engine.solveEnvironment({}).values),
+    Fr: engine.pr.tuning(PR_BOX, engine.environment.solve({}).values),
   };
   const d = solveConsistencyGroup(REF_DRIVER);
-  const sw = engine.sweep(driverParams(d), LE_H, 'box-passive-radiator', PR_PARAMS).values!;
+  const sw = engine.simulation.sweep(driverParams(d), LE_H, 'box-passive-radiator', PR_PARAMS).values!;
 
   it('produces a non-zero excursion curve for the PR cone alongside the main driver curve', () => {
     // The PR is acoustically coupled to the box; at resonance it moves significantly.
@@ -278,7 +278,7 @@ describe('Passive radiator box simulation', () => {
         peaks.push(sw.fs[i]);
       }
     }
-    const Fp = engine.prTuning(PR_PARAMS, engine.solveEnvironment({}).values);
+    const Fp = engine.pr.tuning(PR_BOX, engine.environment.solve({}).values);
     assert.equal(peaks.length, 2,
       `expected 2 impedance peaks, found ${peaks.length}`);
     assert.ok(Fp > peaks[0] && Fp < peaks[1],
@@ -286,11 +286,11 @@ describe('Passive radiator box simulation', () => {
   });
 
   it('auto-tune computes added mass that achieves the target Fp to within 0.5 Hz', () => {
-    // engine.prMassForFp() inverts the Fp formula.  We verify the inversion is accurate.
+    // engine.pr.massForFp() inverts the Fp formula.  We verify the inversion is accurate.
     const TARGET_FP_HZ = 42; // Hz — a typical low bass tuning
-    const totalMass    = engine.prMassForFp(PR_PARAMS, TARGET_FP_HZ, engine.solveEnvironment({}).values);
-    const addedMass    = totalMass - PR_PARAMS.prMmd!;
-    const achievedFp   = engine.prTuning({ ...PR_PARAMS, prMadd: addedMass }, engine.solveEnvironment({}).values);
+    const totalMass    = engine.pr.massForFp(PR_BOX, TARGET_FP_HZ, engine.environment.solve({}).values);
+    const addedMass    = totalMass - PR_BOX.prMmd;
+    const achievedFp   = engine.pr.tuning({ ...PR_BOX, prMadd: addedMass }, engine.environment.solve({}).values);
     assert.ok(Math.abs(achievedFp - TARGET_FP_HZ) < TUNING_FREQ_TOLERANCE_HZ,
       `target ${TARGET_FP_HZ} Hz → added ${(addedMass * 1000).toFixed(1)} g → Fp ${achievedFp.toFixed(2)} Hz ` +
       `(limit ±${TUNING_FREQ_TOLERANCE_HZ} Hz)`);

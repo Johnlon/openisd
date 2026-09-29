@@ -9,13 +9,13 @@ import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
 import {driverPrerequisiteMessage, sweepIssueMessage} from '../../src/logic/sweepIssueMessage.js';
 import type {DriverPrerequisite, SweepIssue} from '@openisd/design/engine';
-import {Engine} from '@openisd/design/engine';
+import {createEngine} from '@openisd/design/engine';
 
-const engine = new Engine();
+const engine = createEngine();
 
 describe('sweepIssueMessage — SweepIssue projected to a DriverError for the existing UI channel', () => {
   it('a missing-dependencies issue names its target field and what would unblock it', () => {
-    const issue: SweepIssue = engine.missingDependencies('Sd_m2',
+    const issue: SweepIssue = engine.issues.missingDependencies('Sd_m2',
       [{ formula: 'Sd_m2 is a directly entered or derived driver quantity', required: ['Sd_m2'], missing: ['Sd_m2'] }]);
     const error = sweepIssueMessage(issue);
     assert.equal(error.level, 'error');
@@ -24,7 +24,7 @@ describe('sweepIssueMessage — SweepIssue projected to a DriverError for the ex
   });
 
   it('an inconsistent-inputs issue names every field in the group and the disagreement', () => {
-    const issue: SweepIssue = engine.inconsistentInputs('Qts', ['Qts', 'Qes', 'Qms'],
+    const issue: SweepIssue = engine.issues.inconsistentInputs('Qts', ['Qts', 'Qes', 'Qms'],
       'Qts = Qes·Qms/(Qes+Qms)', 0.38, 0.50, 0.32);
     const error = sweepIssueMessage(issue);
     assert.equal(error.level, 'error');
