@@ -269,16 +269,14 @@ describe('nullableField — a writable field over storage no solver ever touches
     const slot = fakeSlot<{ v: number | null }>({ v: 5 });
     const field = nullableField(slot, 'v');
     // @ts-expect-error no Calculatable atom — a solver write here has no meaning.
-    const missing = field.setCalculated;
-    expect(missing).toBeUndefined();
+    expect(field.setCalculated).toBeUndefined();
   });
 
   it('has no setDq — dq is recomputed live from the getDq callback on every read instead', () => {
     const slot = fakeSlot<{ v: number | null }>({ v: 5 });
     const field = nullableField(slot, 'v', (v) => (v !== null && v > 10 ? issue('too big') : null));
     // @ts-expect-error no Calculatable atom — dq is derived, never stored.
-    const missing = field.setDq;
-    expect(missing).toBeUndefined();
+    expect(field.setDq).toBeUndefined();
   });
 
   it('name/entered read the slot directly; an empty slot is null and not entered', () => {
@@ -342,8 +340,7 @@ describe('requiredField — an always-entered slot with no "not entered" state t
     const field = requiredField(slot, 'v');
     // @ts-expect-error no Clearable atom — the write is impossible, so the type omits the
     // method rather than expose one that throws.
-    const missing = field.clear;
-    expect(missing).toBeUndefined();
+    expect(field.clear).toBeUndefined();
   });
 });
 

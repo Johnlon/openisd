@@ -1,5 +1,5 @@
 import {expect, openAProject, test} from '../fixtures.js';
-import {deviceRecord} from '../fixtures/seedMyDrivers.js';
+import {deviceRecord, parseMyDriversBucket} from '../fixtures/seedMyDrivers.js';
 import type {Page} from '@playwright/test';
 
 const MY_DRIVERS_KEY = 'openisd_my_drivers';
@@ -23,8 +23,8 @@ function bucket(...slots: { uuid: string; record: unknown }[]): string {
 }
 
 async function seedRaw(page: Page, raw: string): Promise<void> {
-  await page.addInitScript(([value, key]) => {
-    localStorage.setItem(key as string, value as string);
+  await page.addInitScript(([value, key]: readonly [string, string]) => {
+    localStorage.setItem(key, value);
   }, [raw, MY_DRIVERS_KEY] as const);
   await page.goto('/');
   await openAProject(page);
@@ -50,13 +50,13 @@ test('a corrupted bucket raises the blocking modal: no cancel, Export, challenge
   // Delete challenges an un-exported session: first press arms, does not delete
   await modal.locator('.my-delete-all').click();
   await expect(modal).toContainText('destroys the only copy');
-  const stillStored = await page.evaluate(k => localStorage.getItem(k as string), MY_DRIVERS_KEY);
+  const stillStored = await page.evaluate((k: string) => localStorage.getItem(k), MY_DRIVERS_KEY);
   expect(stillStored).toContain('NOT-VALID-JSON');
 
   // second press deletes and starts fresh
   await modal.locator('.my-delete-all').click();
   await expect(modal).toBeHidden();
-  const after = await page.evaluate(k => localStorage.getItem(k as string), MY_DRIVERS_KEY);
+  const after = await page.evaluate((k: string) => localStorage.getItem(k), MY_DRIVERS_KEY);
   expect(after).toContain('"entries":[]');
 });
 
@@ -96,7 +96,7 @@ test('a broken entry is preserved, surfaced by name, and its Delete removes only
   await row.locator('.my-broken-del').click();
   await expect(page.locator('.my-broken-row')).toHaveCount(0);
 
-  const stored = await page.evaluate(k => localStorage.getItem(k as string), MY_DRIVERS_KEY);
+  const stored = await page.evaluate((k: string) => localStorage.getItem(k), MY_DRIVERS_KEY);
   expect(stored).toContain('Good');
   expect(stored).not.toContain('Ghost');
 });
@@ -123,10 +123,11 @@ test('a name-changing save asks the ONE question; Save as a copy keeps the origi
   await expect(question).toContainText('brand or model');
   await question.locator('.save-as-copy-btn').click();
 
-  const stored = await page.evaluate(k => localStorage.getItem(k as string), MY_DRIVERS_KEY);
-  const parsed = JSON.parse(stored!) as { entries: { record: { model: { value: string } } }[] };
-  expect(parsed.entries).toHaveLength(2);
-  const models = parsed.entries.map(e => e.record.model.value).sort();
+  const stored = await page.evaluate((k: string) => localStorage.getItem(k), MY_DRIVERS_KEY);
+  const parsed = parseMyDriversBucket(stored);
+  const entries = parsed.entries ?? [];
+  expect(entries).toHaveLength(2);
+  const models = entries.map(e => e.record?.model?.value ?? '').sort();
   expect(models).toEqual(['Name', 'Renamed']);
 });
 
@@ -154,8 +155,9 @@ test('importing the same driver file twice through the real path yields two entr
     await expect(page.locator('.my-ditem')).toHaveCount(i + 1);
   }
 
-  const stored = await page.evaluate(k => localStorage.getItem(k as string), MY_DRIVERS_KEY);
-  const parsed = JSON.parse(stored!) as { entries: { uuid: string }[] };
-  expect(parsed.entries).toHaveLength(2);
-  expect(parsed.entries[0]!.uuid).not.toBe(parsed.entries[1]!.uuid);
+  const stored = await page.evaluate((k: string) => localStorage.getItem(k), MY_DRIVERS_KEY);
+  const parsed = parseMyDriversBucket(stored);
+  const entries = parsed.entries ?? [];
+  expect(entries).toHaveLength(2);
+  expect(entries[0]?.uuid).not.toBe(entries[1]?.uuid);
 });

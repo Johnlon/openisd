@@ -9,16 +9,8 @@
  */
 import type {WinIsdComplexPoint} from './winisdVentedCapture.js';
 
-export const WINISD_BANDPASS6_CAPTURE = Object.freeze({
-  wpr: 'bp6-w5-1/w5.wpr',
-  driver: {Fs: 45, Qes: 0.57, Qms: 3.56, Vas: 0.00485, Re: 3.4, Sd: 0.0094, BL: 7.17},
-  rear: {Vr: 0.01, Fr: 42.0, Ql: 7.0, Qa: 30.0, Qp: 12.0},
-  front: {Vf: 0.005, Ff: 60.0, Ql: 9.0, Qa: 40.0, Qp: 15.0},
-  Qicl: 20.0,
-  rearVent: {dia: 0.05, len: 0.36961432449005244, endcorrection: 0.732, area: 0.001963495408493621},
-  frontVent: {dia: 0.05, len: 0.36130703800025155, endcorrection: 0.732, area: 0.001963495408493621},
-  /** bp6-w5-1, plot kind 6. */
-  impedance: [
+
+const WINISD_BANDPASS6_CAPTURE_IMPEDANCE: readonly WinIsdComplexPoint[] = [
     {f: 1.0, re: 3.401034106915033, im: 0.1251045718871038},
     {f: 1.0191811354633138, re: 3.401074258484876, im: 0.1275089255481077},
     {f: 1.0387301868842898, re: 3.401115973077029, im: 0.12995967386752247},
@@ -541,9 +533,8 @@ export const WINISD_BANDPASS6_CAPTURE = Object.freeze({
     {f: 19163.039666193643, re: 3.4000098075908003, im: -0.01320765734512588},
     {f: 19530.60852591976, re: 3.400009441892343, im: -0.012959081103516928},
     {f: 19905.22777373638, re: 3.4000090898302107, im: -0.01271518344778962},
-  ] as readonly WinIsdComplexPoint[],
-  /** bp6-w5-1, plot kind 1. */
-  transfer: [
+];
+const WINISD_BANDPASS6_CAPTURE_TRANSFER: readonly WinIsdComplexPoint[] = [
     {f: 1.0, re: 1.1569406727828159e-07, im: -4.292354998247504e-07},
     {f: 1.0191811354633138, re: 1.2482385154937477e-07, im: -4.547207545402854e-07},
     {f: 1.0387301868842898, re: 1.3467386624764927e-07, im: -4.817316137272047e-07},
@@ -1066,9 +1057,8 @@ export const WINISD_BANDPASS6_CAPTURE = Object.freeze({
     {f: 19163.039666193643, re: -0.0019705000682213917, im: -5.091772636281933e-05},
     {f: 19530.60852591976, re: -0.00197032393705804, im: -4.995836075555251e-05},
     {f: 19905.22777373638, re: -0.0019701543731074026, im: -4.901711075505975e-05},
-  ] as readonly WinIsdComplexPoint[],
-  /** bp6-w5-1, plot kind 9. */
-  rearPortVelocity: [
+];
+const WINISD_BANDPASS6_CAPTURE_REAR_PORT_VELOCITY: readonly WinIsdComplexPoint[] = [
     {f: 1.0, re: 0.002310918530668432, im: 0.043843590268320756},
     {f: 1.0191811354633138, re: 0.002400462058765048, im: 0.04468300856111391},
     {f: 1.0387301868842898, re: 0.0024934768731638877, im: 0.04553843659229764},
@@ -1591,9 +1581,8 @@ export const WINISD_BANDPASS6_CAPTURE = Object.freeze({
     {f: 19163.039666193643, re: -3.4225582134603295e-07, im: 2.0620550943230948e-08},
     {f: 19530.60852591976, re: -3.2949011549068795e-07, im: 1.947808665146154e-08},
     {f: 19905.22777373638, re: -3.172007093743207e-07, im: 1.8398919383291847e-08},
-  ] as readonly WinIsdComplexPoint[],
-  /** bp6-w5-1, plot kind 10. */
-  frontPortVelocity: [
+];
+const WINISD_BANDPASS6_CAPTURE_FRONT_PORT_VELOCITY: readonly WinIsdComplexPoint[] = [
     {f: 1.0, re: 0.0022156587065955777, im: 0.044032676411811286},
     {f: 1.0191811354633138, re: 0.002301487750736419, im: 0.04487545299154978},
     {f: 1.0387301868842898, re: 0.0023906422395140667, im: 0.045734288017542604},
@@ -2116,5 +2105,22 @@ export const WINISD_BANDPASS6_CAPTURE = Object.freeze({
     {f: 19163.039666193643, re: -3.675527568568675e-07, im: 4.3963100228188446e-08},
     {f: 19530.60852591976, re: -3.538390392236774e-07, im: 4.152735338173915e-08},
     {f: 19905.22777373638, re: -3.406373193807216e-07, im: 3.922655725465115e-08},
-  ] as readonly WinIsdComplexPoint[],
+];
+
+export const WINISD_BANDPASS6_CAPTURE = Object.freeze({
+  wpr: 'bp6-w5-1/w5.wpr',
+  driver: {Fs: 45, Qes: 0.57, Qms: 3.56, Vas: 0.00485, Re: 3.4, Sd: 0.0094, BL: 7.17},
+  rear: {Vr: 0.01, Fr: 42.0, Ql: 7.0, Qa: 30.0, Qp: 12.0},
+  front: {Vf: 0.005, Ff: 60.0, Ql: 9.0, Qa: 40.0, Qp: 15.0},
+  Qicl: 20.0,
+  rearVent: {dia: 0.05, len: 0.36961432449005244, endcorrection: 0.732, area: 0.001963495408493621},
+  frontVent: {dia: 0.05, len: 0.36130703800025155, endcorrection: 0.732, area: 0.001963495408493621},
+  /** bp6-w5-1, plot kind 6. */
+  impedance: WINISD_BANDPASS6_CAPTURE_IMPEDANCE,
+  /** bp6-w5-1, plot kind 1. */
+  transfer: WINISD_BANDPASS6_CAPTURE_TRANSFER,
+  /** bp6-w5-1, plot kind 9. */
+  rearPortVelocity: WINISD_BANDPASS6_CAPTURE_REAR_PORT_VELOCITY,
+  /** bp6-w5-1, plot kind 10. */
+  frontPortVelocity: WINISD_BANDPASS6_CAPTURE_FRONT_PORT_VELOCITY,
 });

@@ -152,7 +152,8 @@ for (const tab of ['Parameters', 'Advanced parameters']) {
         if (ordered.length < 2) continue;
         const width = Math.max(...ordered.map(r => r.length));
         for (let col = 0; col < width; col++) {
-          const cells = ordered.map(r => r[col]).filter(Boolean) as Array<{ label: string; left: number }>;
+          const cells = ordered.map(r => r[col])
+            .filter((c): c is { label: string; left: number } => c !== undefined);
           const distinct = [...new Set(cells.map(c => c.left))];
           if (distinct.length > 1) {
             problems.push(`column ${col + 1}: ${cells.map(c => `${c.label}@${c.left}`).join(', ')}`);

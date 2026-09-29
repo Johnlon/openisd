@@ -9,12 +9,8 @@
  */
 export interface WinIsdPlottedPoint { readonly f: number; readonly v: number }
 
-export const WINISD_VC_TEMP_RISE_CAPTURE = Object.freeze({
-  vcTempRise_K: 20,
-  /** WinISD's grid: every point of each chart is grid point i·step. */
-  grid: {fmin: 1.0, fmax: 20095.223453196217, N: 2086},
-  step: 16,
-  spl_dB: [
+
+const WINISD_VC_TEMP_RISE_CAPTURE_SPL_DB: readonly WinIsdPlottedPoint[] = [
     {f: 1.0, v: -2.6312744618604436},
     {f: 1.0789604011446716, v: -0.7252467205109655},
     {f: 1.1641555472382705, v: 1.1701572296810188},
@@ -146,8 +142,8 @@ export const WINISD_VC_TEMP_RISE_CAPTURE = Object.freeze({
     {f: 16776.631415150903, v: 80.21322539573907},
     {f: 18101.320961547517, v: 80.21322273693372},
     {f: 19530.60852591976, v: 80.21322045300793},
-  ] as readonly WinIsdPlottedPoint[],
-  maxPower_W: [
+];
+const WINISD_VC_TEMP_RISE_CAPTURE_MAX_POWER_W: readonly WinIsdPlottedPoint[] = [
     {f: 1.0, v: 22.842442106199304},
     {f: 1.0789604011446716, v: 23.148263105752815},
     {f: 1.1641555472382705, v: 23.501360002138462},
@@ -279,8 +275,8 @@ export const WINISD_VC_TEMP_RISE_CAPTURE = Object.freeze({
     {f: 16776.631415150903, v: 40.0},
     {f: 18101.320961547517, v: 40.0},
     {f: 19530.60852591976, v: 40.0},
-  ] as readonly WinIsdPlottedPoint[],
-  impedance_ohm: [
+];
+const WINISD_VC_TEMP_RISE_CAPTURE_IMPEDANCE_OHM: readonly WinIsdPlottedPoint[] = [
     {f: 1.0, v: 3.6867100511819744},
     {f: 1.0789604011446716, v: 3.689861213058713},
     {f: 1.1641555472382705, v: 3.693411910559599},
@@ -412,5 +408,14 @@ export const WINISD_VC_TEMP_RISE_CAPTURE = Object.freeze({
     {f: 16776.631415150903, v: 3.6652429985646817},
     {f: 18101.320961547517, v: 3.6652369352844985},
     {f: 19530.60852591976, v: 3.6652317270103025},
-  ] as readonly WinIsdPlottedPoint[],
+];
+
+export const WINISD_VC_TEMP_RISE_CAPTURE = Object.freeze({
+  vcTempRise_K: 20,
+  /** WinISD's grid: every point of each chart is grid point i·step. */
+  grid: {fmin: 1.0, fmax: 20095.223453196217, N: 2086},
+  step: 16,
+  spl_dB: WINISD_VC_TEMP_RISE_CAPTURE_SPL_DB,
+  maxPower_W: WINISD_VC_TEMP_RISE_CAPTURE_MAX_POWER_W,
+  impedance_ohm: WINISD_VC_TEMP_RISE_CAPTURE_IMPEDANCE_OHM,
 });

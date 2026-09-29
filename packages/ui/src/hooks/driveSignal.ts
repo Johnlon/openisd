@@ -38,7 +38,7 @@ export function createDriveSignal({ project, projectChanged: changed }: DriveSig
     return project.value.powerDrive_W.value === null;
   });
   // Series resistance — read through `projectChanged` so a typed value sticks.
-  const rsOhm = computed<number>({
+  const rsOhm = computed<number, number | null>({
     get: () => { void changed.value; void project.value; return project.value.Rs_ohm.value; },
     set: (v) => { project.value.Rs_ohm.set(v ?? 0); },
   });

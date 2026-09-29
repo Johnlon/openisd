@@ -22,6 +22,10 @@ import {createEngine} from '@openisd/design/engine';
 
 const engine = createEngine();
 
+function isRecord(v: unknown): v is Record<string, unknown> {
+  return typeof v === 'object' && v !== null;
+}
+
 /** No file is ever written by these tests; the repo only needs the collaborator to exist. */
 const noFiles: FileStorage = {
   save: () => { throw new Error('no test here writes a file'); },
@@ -69,8 +73,13 @@ function payloadWithBoxType(boxType: string): unknown {
   project.save();
   // `readProjectText` validates the session wrapper `{ label, saved, edited }`; the box type
   // lives on `saved`.
-  const record = JSON.parse(JSON.stringify(project.cloneSession()));
-  record.saved.box.boxType = boxType;
+  const record: unknown = JSON.parse(JSON.stringify(project.cloneSession()));
+  if (!isRecord(record)) throw new Error('expected an object');
+  const saved = record.saved;
+  if (!isRecord(saved)) throw new Error('expected saved to be an object');
+  const box = saved.box;
+  if (!isRecord(box)) throw new Error('expected saved.box to be an object');
+  box.boxType = boxType;
   return record;
 }
 

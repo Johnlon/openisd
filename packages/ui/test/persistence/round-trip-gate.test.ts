@@ -66,7 +66,7 @@ describe('checkOpenisdRoundTrip', () => {
     const record = realRecord();
     const loaded = OpenISDDriver.fromConformingRecord(record, createEngine());
     if (Array.isArray(loaded)) throw new Error('fixture record is invalid: ' + loaded.join(', '));
-    const appWritten = JSON.parse(JSON.stringify(loaded.toOpenIsdDeviceJson()));
+    const appWritten: unknown = JSON.parse(JSON.stringify(loaded.toOpenIsdDeviceJson()));
     const result = checkOpenisdRoundTrip(appWritten, 'accuton/bd90-6-727/openisd.json (app-written)');
     assert.equal(result.ok, true, 'message' in result ? result.message : '');
   });
@@ -82,7 +82,7 @@ describe('checkOpenisdRoundTrip', () => {
     const here = dirname(fileURLToPath(import.meta.url));
     const path = join(here, '..', '..', '..', '..', '..', 'winisd_drivers', 'db', 'datasheets', 'dayton-audio', 'da215-8', 'openisd.json');
     assert.equal(existsSync(path), true, `fixture missing: ${path}`);
-    const record = JSON.parse(readFileSync(path, 'utf8'));
+    const record: unknown = JSON.parse(readFileSync(path, 'utf8'));
     const result = checkOpenisdRoundTrip(record, 'dayton-audio/da215-8/openisd.json');
     assert.equal(result.ok, true, 'message' in result ? result.message : '');
   });
@@ -94,7 +94,7 @@ describe('checkOpenisdRoundTrip', () => {
     // what `.owdr`'s JSON-text export IS. An openisd.json file cannot CARRY `.nan` (JSON has no
     // NaN), so the record below smuggles one in via YAML to prove the gate still catches the
     // divergence class rather than a sanitised input that could never appear on disk.
-    const record = parseYaml('specs: {}\nbadField: .nan\n', { logLevel: 'error' });
+    const record: unknown = parseYaml('specs: {}\nbadField: .nan\n', { logLevel: 'error' });
     const result = checkOpenisdRoundTrip(record, 'fake/nan-field/openisd.json');
     assert.equal(result.ok, false, `expected a divergence, got: ${JSON.stringify(result)}`);
     assert.equal((result.message ?? '').includes('badField'), true, result.message);

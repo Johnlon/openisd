@@ -32,6 +32,32 @@ function fixedAppContext(id: string, isoDate = '2026-01-01T00:00:00.000Z', platf
 // that test, so an `it()` block reads top to bottom without opening anything else.
 const scraped = <T,>(value: T) => ({ value });
 
+/** Narrows an `unknown` value to a plain object — the runtime check a `JSON.parse(...)` result
+ *  needs before any property on it can be read. This file reads `.owpr`/`.owdr` JSON only
+ *  through this and `at()` below, never through a cast: the record shapes are private (see the
+ *  note on `wooferOf` above), so a test proxy-consumer walks the parsed JSON the way any outside
+ *  caller must, with runtime checks, not by asserting a shape it isn't allowed to name. */
+function isRecord(v: unknown): v is Record<string, unknown> {
+  return typeof v === 'object' && v !== null;
+}
+
+/** Walks a parsed `.owpr`/`.owdr` JSON value one property/index step at a time, checking each
+ *  step's shape as it goes. `at(JSON.parse(text), 'saved', 'box', 'vented', 'vent', 'count')`
+ *  reads the same path a hand-typed chain would, without ever trusting `JSON.parse`'s `any`. */
+function at(v: unknown, ...path: (string | number)[]): unknown {
+  let cur = v;
+  for (const key of path) {
+    if (typeof key === 'number') {
+      if (!Array.isArray(cur)) throw new Error(`expected an array at [${key}], got ${typeof cur}`);
+      cur = cur[key];
+    } else {
+      if (!isRecord(cur)) throw new Error(`expected an object at .${key}, got ${typeof cur}`);
+      cur = cur[key];
+    }
+  }
+  return cur;
+}
+
 /** One engine for the fixtures below — issue construction goes through the engine's door. */
 const fixtureEngine = createEngine();
 
@@ -744,19 +770,24 @@ describe('OpenISDBox — every alignment, as a window onto the project record', 
     p.powerDrive_W.setDq([mark]);
     p.driveVoltage_V.setDq([mark]);
 
-    const owpr = JSON.parse(p.toOwprText());
-    expect((owpr.edited ?? owpr.saved).signal.power_W.dq_calculated[0].detail).toBe(mark.text);
+    const owpr: unknown = JSON.parse(p.toOwprText());
+    if (!isRecord(owpr)) throw new Error('expected an object');
+    const branch = owpr.edited ?? owpr.saved;
+    expect(at(branch, 'signal', 'power_W', 'dq_calculated', 0, 'detail')).toBe(mark.text);
   });
 
   it('a vent with no stated count STORES one port as a calculated entry — the same route numVC takes', () => {
     const p = project();
     expect(p.box.vented.vent.count.value).toBe(1);
     expect(p.box.vented.vent.count.calculated).toBe(true);
-    expect(JSON.parse(p.toOwprText()).saved.box.vented.vent.count).toMatchObject({ state: 'C', value: 1 });
+    expect(at(JSON.parse(p.toOwprText()), 'saved', 'box', 'vented', 'vent', 'count')).toMatchObject({ state: 'C', value: 1 });
 
     // A project saved before ports had a count carries no `count` key at all.
-    const parsed = JSON.parse(p.toOwprText());
-    delete parsed.saved.box.vented.vent.count;
+    const parsed: unknown = JSON.parse(p.toOwprText());
+    if (!isRecord(parsed)) throw new Error('expected an object');
+    const vent = at(parsed, 'saved', 'box', 'vented', 'vent');
+    if (!isRecord(vent)) throw new Error('expected saved.box.vented.vent to be an object');
+    delete vent.count;
     parsed.edited = null;
     const back = OpenISDProject.fromOwprText(JSON.stringify(parsed), createEngine());
     if (Array.isArray(back)) throw new Error('fromOwprText returned problems: ' + back.join(', '));
@@ -770,15 +801,18 @@ describe('OpenISDBox — every alignment, as a window onto the project record', 
     expect(p.box.vented.vent.count.value).toBe(2);
     expect(p.box.vented.vent.count.entered).toBe(true);
     for (const bad of [0, -1, 1.5]) {
-      const parsed = JSON.parse(p.toOwprText());
-      parsed.saved.box.vented.vent.count = { state: 'E', value: bad };
+      const parsed: unknown = JSON.parse(p.toOwprText());
+      if (!isRecord(parsed)) throw new Error('expected an object');
+      const vent = at(parsed, 'saved', 'box', 'vented', 'vent');
+      if (!isRecord(vent)) throw new Error('expected saved.box.vented.vent to be an object');
+      vent.count = { state: 'E', value: bad };
       parsed.edited = null;
       const back = OpenISDProject.fromOwprText(JSON.stringify(parsed), createEngine());
       if (Array.isArray(back)) throw new Error(`count ${bad}: fromOwprText returned problems: ` + back.join(', '));
       expect(back.box.vented.vent.count.value, `count ${bad} reads as 1`).toBe(1);
       expect(back.box.vented.vent.count.calculated, `count ${bad} reads as calculated`).toBe(true);
       // The repair is WRITTEN: the record states the count it is read as, never the bad number.
-      expect(JSON.parse(back.toOwprText()).saved.box.vented.vent.count, `count ${bad} is repaired in the record`)
+      expect(at(JSON.parse(back.toOwprText()), 'saved', 'box', 'vented', 'vent', 'count'), `count ${bad} is repaired in the record`)
         .toMatchObject({ state: 'C', value: 1 });
     }
   });
@@ -788,13 +822,13 @@ describe('OpenISDBox — every alignment, as a window onto the project record', 
     p.box.vented.vent.count.set(3);
     p.save();
     expect(p.box.vented.vent.count.entered).toBe(true);
-    expect(JSON.parse(p.toOwprText()).saved.box.vented.vent.count).toMatchObject({ state: 'E', value: 3 });
+    expect(at(JSON.parse(p.toOwprText()), 'saved', 'box', 'vented', 'vent', 'count')).toMatchObject({ state: 'E', value: 3 });
 
     p.box.vented.vent.count.clear();
     p.save();
     expect(p.box.vented.vent.count.value).toBe(1);
     expect(p.box.vented.vent.count.calculated).toBe(true);
-    expect(JSON.parse(p.toOwprText()).saved.box.vented.vent.count).toMatchObject({ state: 'C', value: 1 });
+    expect(at(JSON.parse(p.toOwprText()), 'saved', 'box', 'vented', 'vent', 'count')).toMatchObject({ state: 'C', value: 1 });
 
     // Entry-backed like every other field: the same writes, so the resolve can stamp the default.
     expect('setCalculated' in p.box.vented.vent.count).toBe(true);
@@ -1083,8 +1117,8 @@ describe('OpenISDProject graphs/cursor — project-scoped, not a UI singleton (S
     p.graphs.set(['SPL', 'Zmag']);
     p.save();
 
-    const saved = JSON.parse(p.toOwprText()).saved;
-    expect(saved.charts.graphs).toEqual(['SPL', 'Zmag']);
+    const saved = at(JSON.parse(p.toOwprText()), 'saved');
+    expect(at(saved, 'charts', 'graphs')).toEqual(['SPL', 'Zmag']);
   });
 
   it('openCharts is the default chart alone when graphs is empty', () => {
@@ -1167,8 +1201,8 @@ describe('OpenISDProject graphs/cursor — project-scoped, not a UI singleton (S
     p.dragRange.set({ fLo: 80, fHi: 200 });
     p.save();
 
-    const saved = JSON.parse(p.toOwprText()).saved;
-    expect(saved.charts).not.toHaveProperty('cursor');
+    const saved = at(JSON.parse(p.toOwprText()), 'saved');
+    expect(at(saved, 'charts')).not.toHaveProperty('cursor');
   });
 
   it('does not count as an unsaved change — cursor writes stay out of isModified()', () => {
@@ -1193,9 +1227,9 @@ describe('S10 — sealed joins the cascade: box.sealed.q_tc is an entry the reso
     expect(cell.calculated).toBe(true);
     expect(cell.value).toBeCloseTo(p.box.sealed.q_tc.value!, 12);
 
-    const parsed = JSON.parse(p.toOwprText());
-    expect(parsed.saved.box.sealed.Qtc).toMatchObject({ state: 'C' });
-    expect(parsed.saved.box.sealed.Qtc.value).toBeCloseTo(cell.value!, 6);
+    const parsed: unknown = JSON.parse(p.toOwprText());
+    expect(at(parsed, 'saved', 'box', 'sealed', 'Qtc')).toMatchObject({ state: 'C' });
+    expect(at(parsed, 'saved', 'box', 'sealed', 'Qtc', 'value')).toBeCloseTo(cell.value!, 6);
   });
 
   it('exactly one engine.solveSealedAlignment call per field set(), and zero for a bare ' +
@@ -1858,9 +1892,10 @@ describe('editing a driver — copy, then update or drop', () => {
     const driver = wooferDriver();
     const text = driver.toOwdrText();
 
-    expect(() => JSON.parse(text)).not.toThrow();
+    expect(() => { JSON.parse(text); }).not.toThrow();
     expect(text.trimStart().startsWith('{')).toBe(true);
-    const parsed = JSON.parse(text) as Record<string, unknown>;
+    const parsed: unknown = JSON.parse(text);
+    if (!isRecord(parsed)) throw new Error('expected an object');
     expect(parsed.quality).toBeDefined();
     expect(parsed.brand).toBeDefined();
     expect(parsed.specs).toBeDefined();
@@ -1967,16 +2002,23 @@ describe('editing a driver — copy, then update or drop', () => {
 
   it('a saved project with a driver in the radiator slot, or a radiator in the driver slot, is refused', () => {
     const project = OpenISDProject.builder(wooferDriver(), createEngine()).sealed().volume_m3(0.03).build();
-    const parsed = JSON.parse(project.toOwprText());
-    const driverRecord = parsed.saved.driverEmbedding.device;
-    const radiatorRecord = parsed.saved.box.passiveRadiator.component;
+    const parsed: unknown = JSON.parse(project.toOwprText());
+    if (!isRecord(parsed)) throw new Error('expected an object');
+    const saved = at(parsed, 'saved');
+    if (!isRecord(saved)) throw new Error('expected saved to be an object');
+    const driverEmbedding = saved.driverEmbedding;
+    if (!isRecord(driverEmbedding)) throw new Error('expected saved.driverEmbedding to be an object');
+    const passiveRadiator = at(saved, 'box', 'passiveRadiator');
+    if (!isRecord(passiveRadiator)) throw new Error('expected saved.box.passiveRadiator to be an object');
+    const driverRecord = driverEmbedding.device;
+    const radiatorRecord = passiveRadiator.component;
 
-    parsed.saved.box.passiveRadiator.component = driverRecord;
+    passiveRadiator.component = driverRecord;
     const driverInRadiatorSlot = OpenISDProject.fromOwprText(JSON.stringify(parsed), createEngine());
     expect(driverInRadiatorSlot).toEqual(expect.arrayContaining([expect.stringMatching(/radiator slot holds a driver record/)]));
 
-    parsed.saved.box.passiveRadiator.component = radiatorRecord;
-    parsed.saved.driverEmbedding.device = radiatorRecord;
+    passiveRadiator.component = radiatorRecord;
+    driverEmbedding.device = radiatorRecord;
     const radiatorInDriverSlot = OpenISDProject.fromOwprText(JSON.stringify(parsed), createEngine());
     expect(radiatorInDriverSlot).toEqual(expect.arrayContaining([expect.stringMatching(/driver slot holds a passive-radiator record/)]));
   });
@@ -1989,8 +2031,11 @@ describe('editing a driver — copy, then update or drop', () => {
 
   it('a signal record stating nothing loads with P N', () => {
     const project = OpenISDProject.builder(wooferDriver(), createEngine()).sealed().volume_m3(0.03).build();
-    const parsed = JSON.parse(project.toOwprText());
-    parsed.saved.signal = {};
+    const parsed: unknown = JSON.parse(project.toOwprText());
+    if (!isRecord(parsed)) throw new Error('expected an object');
+    const saved = parsed.saved;
+    if (!isRecord(saved)) throw new Error('expected saved to be an object');
+    saved.signal = {};
 
     const back = OpenISDProject.fromOwprText(JSON.stringify(parsed), createEngine());
     if (Array.isArray(back)) throw new Error('fromOwprText returned problems: ' + back.join(', '));
@@ -2023,7 +2068,8 @@ describe('editing a driver — copy, then update or drop', () => {
 
   it('a driver.yml-only key (definition) present on imported .owdr text is stripped, not refused', () => {
     const driver = OpenISDProject.builder(wooferDriver(), createEngine()).sealed().volume_m3(0.03).build().driver.detach();
-    const parsed = JSON.parse(driver.toOwdrText());
+    const parsed: unknown = JSON.parse(driver.toOwdrText());
+    if (!isRecord(parsed)) throw new Error('expected an object');
     parsed.definition = 'driver.yml only describes what a field means — never reaches an openisd record';
 
     const back = OpenISDDriver.fromOwdrText(JSON.stringify(parsed), createEngine());
@@ -2916,9 +2962,11 @@ describe('box tuning/length/mass slots load as entries (S2-7b)', () => {
    *  `saved` (and `edited`, when present) sections first — the seam every box-slot-entry test
    *  below drives a stored JSON shape through. */
   function reloadWith(project: OpenISDProject, mutate: (box: unknown) => void): OpenISDProject | string[] {
-    const parsed = JSON.parse(project.toOwprText());
-    mutate(parsed.saved.box);
-    if (parsed.edited) mutate(parsed.edited.box);
+    const parsed: unknown = JSON.parse(project.toOwprText());
+    if (!isRecord(parsed)) throw new Error('expected an object');
+    mutate(at(parsed, 'saved', 'box'));
+    const edited = parsed.edited;
+    if (edited) mutate(at(edited, 'box'));
     return OpenISDProject.fromOwprText(JSON.stringify(parsed), createEngine());
   }
 
@@ -2927,8 +2975,11 @@ describe('box tuning/length/mass slots load as entries (S2-7b)', () => {
     // re-solves the ACTIVE box type's vent pair) — this test is about JSON round-trip fidelity
     // for the entry SHAPE, not about whether a resolve leaves an inactive pair alone.
     const back = reloadWith(ventedProject(), (box) => {
-      (box as { boxType: unknown }).boxType = 'sealed';
-      (box as { vented: { vent: { length_m: unknown } } }).vented.vent.length_m = { state: 'C', value: 0.2 };
+      if (!isRecord(box)) throw new Error('expected the box object');
+      box.boxType = 'sealed';
+      const vent = at(box, 'vented', 'vent');
+      if (!isRecord(vent)) throw new Error('expected box.vented.vent to be an object');
+      vent.length_m = { state: 'C', value: 0.2 };
     });
     if (Array.isArray(back)) throw new Error('fromOwprText returned problems: ' + back.join(', '));
     const cell = back.box.vented.vent.length_m;
@@ -2938,7 +2989,9 @@ describe('box tuning/length/mass slots load as entries (S2-7b)', () => {
 
   it('the legacy null shape for a box entry slot is rejected, not silently accepted', () => {
     const back = reloadWith(ventedProject(), (box) => {
-      (box as { vented: { vent: { length_m: unknown } } }).vented.vent.length_m = null;
+      const vent = at(box, 'vented', 'vent');
+      if (!isRecord(vent)) throw new Error('expected box.vented.vent to be an object');
+      vent.length_m = null;
     });
     if (!Array.isArray(back)) throw new Error('expected problems, got a project');
     expect(back.length).toBeGreaterThan(0);
@@ -2998,7 +3051,7 @@ describe('project-level array/display settings, chart Y-range, and identity', ()
   });
 
   it('uuid() answers the identity a fixed AppContext minted at wrap time', () => {
-    const p = OpenISDProject.wrap(JSON.parse(sealedProject().toOwprText()).saved, createEngine(), fixedAppContext('proj-fixed-id'));
+    const p = OpenISDProject.wrap(sealedProject().cloneSavedProject(), createEngine(), fixedAppContext('proj-fixed-id'));
     expect(p.uuid()).toBe('proj-fixed-id');
   });
 

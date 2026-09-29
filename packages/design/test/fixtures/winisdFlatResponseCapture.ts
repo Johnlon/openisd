@@ -6,11 +6,8 @@
  */
 export interface WinIsdPlottedPoint { readonly f: number; readonly v: number }
 
-export const WINISD_FLAT_RESPONSE_CAPTURE = Object.freeze({
-  /** WinISD's grid: every point of each chart is grid point i·step. */
-  grid: {fmin: 1.0, fmax: 20095.223453196217, N: 2086},
-  step: 16,
-  spl_dB: [
+
+const WINISD_FLAT_RESPONSE_CAPTURE_SPL_DB: readonly WinIsdPlottedPoint[] = [
     {f: 1.0, v: 80.54709968900039},
     {f: 1.0789604011446716, v: 80.54709968900039},
     {f: 1.1641555472382705, v: 80.54709968900039},
@@ -142,8 +139,8 @@ export const WINISD_FLAT_RESPONSE_CAPTURE = Object.freeze({
     {f: 16776.631415150903, v: 80.54709968900039},
     {f: 18101.320961547517, v: 80.54709968900038},
     {f: 19530.60852591976, v: 80.54709968900039},
-  ] as readonly WinIsdPlottedPoint[],
-  excursion_m: [
+];
+const WINISD_FLAT_RESPONSE_CAPTURE_EXCURSION_M: readonly WinIsdPlottedPoint[] = [
     {f: 1.0, v: 27.90545922400963},
     {f: 1.0789604011446716, v: 22.25870266953267},
     {f: 1.1641555472382705, v: 17.759975326692636},
@@ -275,8 +272,8 @@ export const WINISD_FLAT_RESPONSE_CAPTURE = Object.freeze({
     {f: 16776.631415150903, v: 1.5117908170135995e-08},
     {f: 18101.320961547517, v: 1.298615811856537e-08},
     {f: 19530.60852591976, v: 1.11550024667938e-08},
-  ] as readonly WinIsdPlottedPoint[],
-  tfMag_dB: [
+];
+const WINISD_FLAT_RESPONSE_CAPTURE_TF_MAG_DB: readonly WinIsdPlottedPoint[] = [
     {f: 1.0, v: -9.643274665532871e-16},
     {f: 1.0789604011446716, v: 0.0},
     {f: 1.1641555472382705, v: 0.0},
@@ -408,5 +405,13 @@ export const WINISD_FLAT_RESPONSE_CAPTURE = Object.freeze({
     {f: 16776.631415150903, v: 0.0},
     {f: 18101.320961547517, v: -9.643274665532871e-16},
     {f: 19530.60852591976, v: -9.643274665532871e-16},
-  ] as readonly WinIsdPlottedPoint[],
+];
+
+export const WINISD_FLAT_RESPONSE_CAPTURE = Object.freeze({
+  /** WinISD's grid: every point of each chart is grid point i·step. */
+  grid: {fmin: 1.0, fmax: 20095.223453196217, N: 2086},
+  step: 16,
+  spl_dB: WINISD_FLAT_RESPONSE_CAPTURE_SPL_DB,
+  excursion_m: WINISD_FLAT_RESPONSE_CAPTURE_EXCURSION_M,
+  tfMag_dB: WINISD_FLAT_RESPONSE_CAPTURE_TF_MAG_DB,
 });

@@ -6,11 +6,8 @@
  */
 export interface WinIsdPlottedPoint { readonly f: number; readonly v: number }
 
-export const WINISD_BP6_TL_PORTS_CAPTURE = Object.freeze({
-  /** WinISD's grid: every point of each chart is grid point i·step. */
-  grid: {fmin: 1.0, fmax: 20095.223453196217, N: 2086},
-  step: 16,
-  spl_dB: [
+
+const WINISD_BP6_TL_PORTS_CAPTURE_SPL_DB: readonly WinIsdPlottedPoint[] = [
     {f: 1.0, v: -46.5840588060622},
     {f: 1.0789604011446716, v: -44.54602053549422},
     {f: 1.1641555472382705, v: -42.499432249929804},
@@ -142,8 +139,8 @@ export const WINISD_BP6_TL_PORTS_CAPTURE = Object.freeze({
     {f: 16776.631415150903, v: 54.76413753762279},
     {f: 18101.320961547517, v: 41.04852963047058},
     {f: 19530.60852591976, v: 51.60304169359636},
-  ] as readonly WinIsdPlottedPoint[],
-  impedance_ohm: [
+];
+const WINISD_BP6_TL_PORTS_CAPTURE_IMPEDANCE_OHM: readonly WinIsdPlottedPoint[] = [
     {f: 1.0, v: 3.4033338023107715},
     {f: 1.0789604011446716, v: 3.4038820071057447},
     {f: 1.1641555472382705, v: 3.4045205381455057},
@@ -275,8 +272,8 @@ export const WINISD_BP6_TL_PORTS_CAPTURE = Object.freeze({
     {f: 16776.631415150903, v: 3.400046258990139},
     {f: 18101.320961547517, v: 3.4000397430787146},
     {f: 19530.60852591976, v: 3.400034129262465},
-  ] as readonly WinIsdPlottedPoint[],
-  tfMag_dB: [
+];
+const WINISD_BP6_TL_PORTS_CAPTURE_TF_MAG_DB: readonly WinIsdPlottedPoint[] = [
     {f: 1.0, v: -127.13115849506259},
     {f: 1.0789604011446716, v: -125.09312022449461},
     {f: 1.1641555472382705, v: -123.04653193893019},
@@ -408,5 +405,12 @@ export const WINISD_BP6_TL_PORTS_CAPTURE = Object.freeze({
     {f: 16776.631415150903, v: -25.782962151377593},
     {f: 18101.320961547517, v: -39.498570058529786},
     {f: 19530.60852591976, v: -28.944057995404027},
-  ] as readonly WinIsdPlottedPoint[],
+];
+export const WINISD_BP6_TL_PORTS_CAPTURE = Object.freeze({
+  /** WinISD's grid: every point of each chart is grid point i·step. */
+  grid: {fmin: 1.0, fmax: 20095.223453196217, N: 2086},
+  step: 16,
+  spl_dB: WINISD_BP6_TL_PORTS_CAPTURE_SPL_DB,
+  impedance_ohm: WINISD_BP6_TL_PORTS_CAPTURE_IMPEDANCE_OHM,
+  tfMag_dB: WINISD_BP6_TL_PORTS_CAPTURE_TF_MAG_DB,
 });
