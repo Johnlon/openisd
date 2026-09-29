@@ -3,6 +3,16 @@ import { focus } from '../cell.js';
 import type { SimpleField } from '../cell.js';
 import type { OpenISDProjectJson } from '../openisdSchema.js';
 
+/** The charts shown at once, stacked. `value`: the stored `graphs` this box shows, in chart-menu
+ *  order; never empty — the default chart alone when none of `graphs` applies. */
+export interface OpenCharts {
+    readonly value: readonly ChartId[];
+    /** Shows `id` alone. */
+    showOnly(id: ChartId): void;
+    /** Opens `id` if closed, closes it if open. The last open chart stays open. */
+    toggle(id: ChartId): void;
+}
+
 /** A project's own chart-view window, built fresh on every access — same reasoning as
  *  `driver`/`box`/`ProjectMeta`/`ProjectAdvanced` (PLAN_openisdproject_split.md). `boxType` is
  *  passed in rather than reached for: it lives on `OpenISDProject.box`, and this class has no
@@ -42,6 +52,27 @@ export class ProjectChartsView {
      *  of "which charts apply". */
     get charts(): readonly ChartId[] {
         return this.#engine.chartsFor(this.#boxType());
+    }
+
+    /** The charts shown at once, stacked (see `OpenCharts`). */
+    get openCharts(): OpenCharts {
+        const graphs = this.graphs;
+        const charts = this.charts;
+        const fallback = this.#engine.defaultChart;
+        const read = (): readonly ChartId[] => {
+            const stored = graphs.value;
+            const open = charts.filter(c => stored.includes(c));
+            return open.length ? open : [fallback];
+        };
+        return {
+            get value() { return read(); },
+            showOnly: (id) => graphs.set([id]),
+            toggle: (id) => {
+                const open = read();
+                if (!open.includes(id)) graphs.set([...open, id]);
+                else if (open.length > 1) graphs.set(open.filter(c => c !== id));
+            },
+        };
     }
 
     /** The project's trace/legend colour (a CSS colour), saved in the project file; null until

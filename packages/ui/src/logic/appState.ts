@@ -603,11 +603,8 @@ export const DEFAULT_SEALED_VOLUME_L = 6;
  */
 export function newProject(): OpenISDProject {
   presentationState.yRanges = {};
+  // A new project opens on one chart, as WinISD does (`OpenISDProject.openCharts`).
   const p = OpenISDProject.empty(engine, appContext);
-  // `OpenISDProject.graphs` defaults to empty when absent (S10/QO130 — a project saved before
-  // S10, or a bare domain construction, opens with no charts). A brand-new project from the
-  // wizard still starts on the app's default four, same as before the move.
-  p.graphs.set(['SPL', 'Excursion', 'Zmag', 'GD']);
   addProject(p);
   return p;
 }

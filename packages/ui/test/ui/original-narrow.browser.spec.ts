@@ -67,6 +67,28 @@ for (const width of WIDTHS) {
   });
 }
 
+for (const width of [1400, ...WIDTHS]) {
+  test(`the toolbar's icons, brand and cursor readout never overlap at ${width}px wide`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 900 });
+    const boxes = await page.evaluate(() =>
+      ['.tb-icons', '.app-brand', '.cursor-readout'].map(s => {
+        const r = document.querySelector(s)!.getBoundingClientRect();
+        return { s, l: r.left, r: r.right, t: r.top, b: r.bottom };
+      }));
+    for (let i = 0; i < boxes.length; i++) {
+      for (let j = i + 1; j < boxes.length; j++) {
+        const a = boxes[i], b = boxes[j];
+        const w = Math.min(a.r, b.r) - Math.max(a.l, b.l), h = Math.min(a.b, b.b) - Math.max(a.t, b.t);
+        expect(w > 1 && h > 1, `${a.s} overlaps ${b.s}`).toBe(false);
+      }
+    }
+    // The chart menu sits inside its own group, not spilling over the brand.
+    const [menu, icons] = await Promise.all(['.chart-select', '.tb-icons'].map(s =>
+      page.locator(s).evaluate(e => e.getBoundingClientRect().right)));
+    expect(menu).toBeLessThanOrEqual(icons + 1);
+  });
+}
+
 test('the bottom panel keeps ONE height across box types (no wobble from the tab count)', async ({ page }) => {
   const select = page.locator('#og-box-type');
   await page.locator('.project-nav li', { hasText: /^Box$/ }).click();
