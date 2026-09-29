@@ -8,7 +8,7 @@ import {wiringFromRecord, VoiceCoilWiring} from '../../domain/voiceCoilWiring.js
 
 describe('specEntryJsonSchema — the {state, value} sum type (S2-7b / T11)', () => {
   it('rejects a bare {origin, readings} shape with no state key (D15 — no legacy upgrade; the bridge builds the entry)', () => {
-    const bareScraperShape = JSON.parse('{"origin":"datasheet","readings":{"datasheet":{"read_value":32.5}}}');
+    const bareScraperShape: unknown = JSON.parse('{"origin":"datasheet","readings":{"datasheet":{"read_value":32.5}}}');
     expect(() => specEntryJsonSchema.parse(bareScraperShape)).toThrow();
   });
 
@@ -65,7 +65,8 @@ describe('sortKeysDeep — canonical A→Z key order, recursively', () => {
     // comparator's a<b, a>b AND a===b arms, not just one.
     const sorted = sortKeysDeep({ b: 1, a: 2, c: 3 });
     expect(sorted).toEqual({ a: 2, b: 1, c: 3 });
-    expect(Object.keys(sorted as object)).toEqual(['a', 'b', 'c']);
+    if (typeof sorted !== 'object' || sorted === null) throw new Error('expected an object');
+    expect(Object.keys(sorted)).toEqual(['a', 'b', 'c']);
   });
 
   it('sorts nested objects and the objects inside arrays, leaving non-objects untouched', () => {
