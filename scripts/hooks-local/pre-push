@@ -68,4 +68,7 @@ if [ "$doc_only" = "1" ]; then
   exit 0
 fi
 
+# The pre-push run is a sanctioned full-suite run: scripts/test.sh refuses a no-target run by
+# hand (gates.py, John 2026-09-29) and lets this one through under the flag.
+export OPENISD_FULL_GATE=1
 npm run ci
