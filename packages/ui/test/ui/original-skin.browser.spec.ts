@@ -159,17 +159,19 @@ test('chart-menu checkboxes stack charts that share one cursor; ✕ removes one;
   await expect(page.locator('.chart-close')).toHaveCount(0);
 });
 
-test('four charts stack one under the other on a tall window and go 2x2 on a short one', async ({ page }) => {
+test('"Charts high" stacks that many charts in the height; more open charts add columns', async ({ page }) => {
+  await page.setViewportSize({ width: 1400, height: 900 });
   await page.locator('.chart-select').click();
   for (const name of [/^Cone excursion$/, /^Impedance$/, /^Group Delay$/])
     await page.locator('.chart-select .menu-item', { hasText: name }).locator('input[type=checkbox]').click();
   await page.locator('.chart-select').click();
   const lefts = () => page.locator('.chart-cell').evaluateAll(cs => cs.map(c => Math.round(c.getBoundingClientRect().left)));
+  const high = page.locator('.chart-high select');
 
-  await page.setViewportSize({ width: 1400, height: 2000 });
+  await high.selectOption('4');
   await expect.poll(async () => new Set(await lefts()).size).toBe(1);
 
-  await page.setViewportSize({ width: 1400, height: 800 });
+  await high.selectOption('3');
   await expect.poll(async () => new Set(await lefts()).size).toBe(2);
 });
 
