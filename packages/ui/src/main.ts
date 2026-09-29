@@ -6,6 +6,7 @@ import {
     createAppSettingsRepo,
     createBundledDriverRepo,
     createBundledPassiveRadiatorRepo,
+    createFileOpen,
     createFileStorage,
     createLocalStorage,
     createMyDriverRepo,
@@ -77,7 +78,7 @@ const driverBrowsing = createDriverBrowsingState({
   confirmReset: (question) => confirm(question),
 });
 const viewStateRepo = createViewStateRepo(storage);
-const designIO = createApplicationIO({ logging, fileStorage, projectRepo, files: designFiles });
+const designIO = createApplicationIO({ logging, fileStorage, fileOpen: createFileOpen(), projectRepo, files: designFiles });
 
 const app = createApp(App)
   .directive('expo-step', vExpoStep)

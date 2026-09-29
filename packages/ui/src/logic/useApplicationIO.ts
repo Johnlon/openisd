@@ -42,6 +42,7 @@ import {presentationState} from './presentationState.js';
 import {
   copyOfName,
   createFileSave,
+  type FileOpen,
   type FileNaming,
   type FileStorage,
   projectFilename,
@@ -51,7 +52,7 @@ import {
 import {setShareUrl} from './urlAppState.js';
 import type {Logging} from '../logging/flash.js';
 import {readDriverFileText} from './driverFileText.js';
-import {DriverFileFormat, formatOf, ProjectFileFormat, sniff} from '../fileFormat.js';
+import {DriverFileFormat, formatOf, OpenableFiles, ProjectFileFormat, sniff} from '../fileFormat.js';
 
 declare const __BUILD_DATETIME__: string;
 
@@ -74,6 +75,10 @@ export interface DesignIO {
   exportWpr(): void;
   exportOwdr(): void;
   importFile(f: File): void;
+  /** File > Open: the system open dialog with one "OpenISD and WinISD files" filter; the picked
+   *  file goes to `importFile`. Where the browser has no such dialog, calls `fallback` (the
+   *  shell's own file input, whose `change` reaches `importFile`). */
+  openFromDisk(fallback: () => void): Promise<void>;
 }
 
 /**
@@ -83,7 +88,7 @@ export interface DesignIO {
  * Save in the toolbar would track different files. Session-only either way — the File System
  * Access API does not persist handles across a page load.
  */
-export function createApplicationIO(deps: { logging: Logging; fileStorage: FileStorage; projectRepo: ProjectRepo; files: DesignFiles }): DesignIO {
+export function createApplicationIO(deps: { logging: Logging; fileStorage: FileStorage; fileOpen: FileOpen; projectRepo: ProjectRepo; files: DesignFiles }): DesignIO {
   const flash = (msg: string) => deps.logging.flash(msg);
   const { download } = createFileSave();
 
@@ -228,5 +233,14 @@ export function createApplicationIO(deps: { logging: Logging; fileStorage: FileS
     }, (err: Error) => { alert('Could not read "' + f.name + '": ' + err.message); });
   }
 
-  return { saveProject, saveProjectAs, shareLink, exportWdr, exportWpr, exportOwdr, importFile };
+  async function openFromDisk(fallback: () => void): Promise<void> {
+    const pick = await deps.fileOpen.pickFile(OpenableFiles.PICKER_FILTER);
+    switch (pick.kind) {
+      case 'picked': importFile(pick.file); return;
+      case 'unsupported': fallback(); return;
+      case 'cancelled': return;
+    }
+  }
+
+  return { saveProject, saveProjectAs, shareLink, exportWdr, exportWpr, exportOwdr, importFile, openFromDisk };
 }

@@ -10,6 +10,7 @@
  * a bare `'wdr'`/`'wpr'` string, which would survive a value change and be invisible to rename.
  */
 import {parse as parseYaml} from 'yaml';
+import type {FilePickerFilter} from '@openisd/persistence';
 
 export class DriverFileFormat {
   private constructor(
@@ -92,6 +93,29 @@ export class ProjectFileFormat {
 /** Either format family — a driver file or a project file. This file's own `formatOf`/`sniff`
  *  return this; `decodeDriverFileBytes` (`driverFileText.ts`) takes it. */
 export type FileFormat = DriverFileFormat | ProjectFileFormat;
+
+/** What File > Open accepts: every project and driver format, under one named filter. The app
+ *  decides what a picked file is by its format (`useApplicationIO.importFile`). */
+export class OpenableFiles {
+  private constructor() {}
+
+  static readonly FORMATS: readonly FileFormat[] = [...ProjectFileFormat.ALL, ...DriverFileFormat.ALL];
+
+  static readonly DESCRIPTION = 'OpenISD and WinISD files';
+
+  /** `.owpr,.wpr,.owdr,.wdr` — the `accept` attribute of the fallback file input. */
+  static get ACCEPT(): string {
+    return OpenableFiles.FORMATS.map(f => '.' + f.value).join(',');
+  }
+
+  /** The system open dialog's one filter, named by us rather than by the OS file-type registry. */
+  static get PICKER_FILTER(): FilePickerFilter {
+    return {
+      description: OpenableFiles.DESCRIPTION,
+      accept: Object.fromEntries(OpenableFiles.FORMATS.map(f => [f.mime, ['.' + f.value]])),
+    };
+  }
+}
 
 /** `.wdr`/`.wpr` are the only formats classic (Windows-only) WinISD itself could have written,
  *  and so the only ones QO62's CP1252 fallback applies to — a member-equality check against
