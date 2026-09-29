@@ -132,13 +132,6 @@ export function createEnvironmentAir({ project, projectChanged: changed, envDefa
       set: (v: number | null) => { if (typeof v === 'number' && Number.isFinite(v)) field().set(v); else field().clear(); },
     });
   }
-  // A cleared cell DROPS its stored value (human ruling 2026-09-13, BUG human): deletion must
-  // not re-seed the app default as an entered value. A field that is not entered reads the app
-  // default (Options → General → Environment) as its calculated value — never blank, never
-  // falsely "entered".
-  function commitOf(field: () => EnvField) {
-    return (): void => { const f = field(); if (f.value == null) f.clear(); };
-  }
   const temp = () => project.value.envTempK;
   const humidity = () => project.value.envHumidityPct;
   const pressure = () => project.value.envPressurePa;
@@ -164,7 +157,6 @@ export function createEnvironmentAir({ project, projectChanged: changed, envDefa
     envTempStored: storedOf(temp), envHumidityStored: storedOf(humidity), envPressureStored: storedOf(pressure),
     envTempDq: dqOf('temperature', temp), envHumidityDq: dqOf('humidity', humidity), envPressureDq: dqOf('pressure', pressure),
     advTemp, advHumidity, advPressure,
-    commitAirTemp: commitOf(temp), commitAirHumidity: commitOf(humidity), commitAirPressure: commitOf(pressure),
     resetAirToAppDefaults, advAir,
   };
 }
@@ -821,7 +813,7 @@ const overlays = computed<Design[]>(() => {
   // Delegated to the unit-tested `createEnvironmentAir` above.
   const {
     envTempStored, envHumidityStored, envPressureStored, envTempDq, envHumidityDq, envPressureDq,
-    advTemp, advHumidity, advPressure, commitAirTemp, commitAirHumidity, commitAirPressure,
+    advTemp, advHumidity, advPressure,
     resetAirToAppDefaults, advAir,
   } = createEnvironmentAir({ project, projectChanged, envDefaults, environment: engine.environment });
 
@@ -922,7 +914,7 @@ const overlays = computed<Design[]>(() => {
     dqOfCell: (field: Readable<unknown>) => dqOfCell(field),
     fmt,
     driveV, rsOhm, advTemp, advHumidity, advPressure, advAir,
-    envTempDq, envHumidityDq, envPressureDq, commitAirTemp, commitAirHumidity, commitAirPressure, resetAirToAppDefaults,
+    envTempDq, envHumidityDq, envPressureDq, resetAirToAppDefaults,
     envTempStored, envHumidityStored, envPressureStored,
     reconcileDriveV,
     powerLocked,
