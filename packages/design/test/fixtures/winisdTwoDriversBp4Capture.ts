@@ -7,7 +7,7 @@
 export interface WinIsdPlottedPoint { readonly f: number; readonly v: number }
 
 
-const WINISD_TWO_DRIVERS_BP4_CAPTURE_SPL_D_B: readonly WinIsdPlottedPoint[] = [
+const WINISD_TWO_DRIVERS_BP4_CAPTURE_SPL_DB: readonly WinIsdPlottedPoint[] = [
     {f: 1.0, v: -3.844893108721532},
     {f: 1.0789604011446716, v: -1.8909903899102745},
     {f: 1.1641555472382705, v: 0.058785323646780636},
@@ -411,7 +411,7 @@ export const WINISD_TWO_DRIVERS_BP4_CAPTURE = Object.freeze({
   /** WinISD's grid: every point of each chart is grid point i·step. */
   grid: {fmin: 1.0, fmax: 20095.223453196217, N: 2086},
   step: 16,
-  spl_dB: WINISD_TWO_DRIVERS_BP4_CAPTURE_SPL_D_B,
+  spl_dB: WINISD_TWO_DRIVERS_BP4_CAPTURE_SPL_DB,
   maxPower_W: WINISD_TWO_DRIVERS_BP4_CAPTURE_MAX_POWER_W,
   impedance_ohm: WINISD_TWO_DRIVERS_BP4_CAPTURE_IMPEDANCE_OHM,
 });

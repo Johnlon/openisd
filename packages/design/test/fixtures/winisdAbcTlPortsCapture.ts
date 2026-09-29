@@ -6,11 +6,8 @@
  */
 export interface WinIsdPlottedPoint { readonly f: number; readonly v: number }
 
-export const WINISD_ABC_TL_PORTS_CAPTURE = Object.freeze({
-  /** WinISD's grid: every point of each chart is grid point i·step. */
-  grid: {fmin: 1.0, fmax: 20095.223453196217, N: 2086},
-  step: 16,
-  spl_dB: [
+
+const WINISD_ABC_TL_PORTS_CAPTURE_SPL_DB: readonly WinIsdPlottedPoint[] = [
     {f: 1.0, v: -41.46448527595044},
     {f: 1.0789604011446716, v: -39.44129087593053},
     {f: 1.1641555472382705, v: -37.411584715512454},
@@ -142,8 +139,8 @@ export const WINISD_ABC_TL_PORTS_CAPTURE = Object.freeze({
     {f: 16776.631415150903, v: 80.42607161075594},
     {f: 18101.320961547517, v: 80.50918271252954},
     {f: 19530.60852591976, v: 80.50155490648923},
-  ] as readonly WinIsdPlottedPoint[],
-  impedance_ohm: [
+];
+const WINISD_ABC_TL_PORTS_CAPTURE_IMPEDANCE_OHM: readonly WinIsdPlottedPoint[] = [
     {f: 1.0, v: 3.403142944756413},
     {f: 1.0789604011446716, v: 3.403659367501546},
     {f: 1.1641555472382705, v: 3.4042607378834724},
@@ -275,8 +272,8 @@ export const WINISD_ABC_TL_PORTS_CAPTURE = Object.freeze({
     {f: 16776.631415150903, v: 3.4000455249965467},
     {f: 18101.320961547517, v: 3.400039113895618},
     {f: 19530.60852591976, v: 3.4000335975282177},
-  ] as readonly WinIsdPlottedPoint[],
-  tfMag_dB: [
+];
+const WINISD_ABC_TL_PORTS_CAPTURE_TF_MAG_DB: readonly WinIsdPlottedPoint[] = [
     {f: 1.0, v: -122.01158496495083},
     {f: 1.0789604011446716, v: -119.98839056493091},
     {f: 1.1641555472382705, v: -117.95868440451284},
@@ -408,5 +405,12 @@ export const WINISD_ABC_TL_PORTS_CAPTURE = Object.freeze({
     {f: 16776.631415150903, v: -0.12102807824444307},
     {f: 18101.320961547517, v: -0.037916976470848816},
     {f: 19530.60852591976, v: -0.04554478251115547},
-  ] as readonly WinIsdPlottedPoint[],
+];
+export const WINISD_ABC_TL_PORTS_CAPTURE = Object.freeze({
+  /** WinISD's grid: every point of each chart is grid point i·step. */
+  grid: {fmin: 1.0, fmax: 20095.223453196217, N: 2086},
+  step: 16,
+  spl_dB: WINISD_ABC_TL_PORTS_CAPTURE_SPL_DB,
+  impedance_ohm: WINISD_ABC_TL_PORTS_CAPTURE_IMPEDANCE_OHM,
+  tfMag_dB: WINISD_ABC_TL_PORTS_CAPTURE_TF_MAG_DB,
 });

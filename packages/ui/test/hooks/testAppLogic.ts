@@ -8,6 +8,7 @@ import {createEngine} from '@openisd/design/engine';
 import {
   createBundledDriverRepo,
   createBundledPassiveRadiatorRepo,
+  createFileOpen,
   createFileStorage,
   createMemoryStorage,
   createMyDriverRepo,
@@ -54,7 +55,7 @@ export function testAppLogic(overrides: Partial<AppLogic> = {}): AppLogic {
     confirmReset: () => true,
   });
   const viewStateRepo = createViewStateRepo(storage);
-  const designIO = createApplicationIO({ logging, fileStorage, projectRepo, files: designFiles });
+  const designIO = createApplicationIO({ logging, fileStorage, fileOpen: createFileOpen(), projectRepo, files: designFiles });
 
   const base: AppLogic = {
     engine, logging, driverBrowsing, selection, designIO, designFiles, driverDrafts,
