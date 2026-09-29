@@ -6,11 +6,8 @@
  */
 export interface WinIsdPlottedPoint { readonly f: number; readonly v: number }
 
-export const WINISD_TL_PORTS_CAPTURE = Object.freeze({
-  /** WinISD's grid: every point of each chart is grid point i·step. */
-  grid: {fmin: 1.0, fmax: 20095.223453196217, N: 2086},
-  step: 16,
-  spl_dB: [
+
+const WINISD_TL_PORTS_CAPTURE_SPL_D_B: readonly WinIsdPlottedPoint[] = [
     {f: 1.0, v: -40.25071393597053},
     {f: 1.0789604011446716, v: -38.18909374366346},
     {f: 1.1641555472382705, v: -36.11598076980881},
@@ -142,8 +139,8 @@ export const WINISD_TL_PORTS_CAPTURE = Object.freeze({
     {f: 16776.631415150903, v: 80.50906780961775},
     {f: 18101.320961547517, v: 76.9945365079489},
     {f: 19530.60852591976, v: 80.49479973435967},
-  ] as readonly WinIsdPlottedPoint[],
-  impedance_ohm: [
+];
+const WINISD_TL_PORTS_CAPTURE_IMPEDANCE_OHM: readonly WinIsdPlottedPoint[] = [
     {f: 1.0, v: 3.4031864428549934},
     {f: 1.0789604011446716, v: 3.4037102143587528},
     {f: 1.1641555472382705, v: 3.4043202146213294},
@@ -275,8 +272,8 @@ export const WINISD_TL_PORTS_CAPTURE = Object.freeze({
     {f: 16776.631415150903, v: 3.4000456091436875},
     {f: 18101.320961547517, v: 3.400038956783591},
     {f: 19530.60852591976, v: 3.400033652568932},
-  ] as readonly WinIsdPlottedPoint[],
-  portVelocity_m_per_s: [
+];
+const WINISD_TL_PORTS_CAPTURE_PORT_VELOCITY_M_PER_S: readonly WinIsdPlottedPoint[] = [
     {f: 1.0, v: 0.06251334261064424},
     {f: 1.0789604011446716, v: 0.06745375400984223},
     {f: 1.1641555472382705, v: 0.07278537220683148},
@@ -408,8 +405,8 @@ export const WINISD_TL_PORTS_CAPTURE = Object.freeze({
     {f: 16776.631415150903, v: 0.00014520807470669867},
     {f: 18101.320961547517, v: 0.0023472325717220255},
     {f: 19530.60852591976, v: 0.00024074851795211937},
-  ] as readonly WinIsdPlottedPoint[],
-  tfMag_dB: [
+];
+const WINISD_TL_PORTS_CAPTURE_TF_MAG_D_B: readonly WinIsdPlottedPoint[] = [
     {f: 1.0, v: -120.79781362497091},
     {f: 1.0789604011446716, v: -118.73619343266385},
     {f: 1.1641555472382705, v: -116.66308045880919},
@@ -541,5 +538,14 @@ export const WINISD_TL_PORTS_CAPTURE = Object.freeze({
     {f: 16776.631415150903, v: -0.03803187938264465},
     {f: 18101.320961547517, v: -3.5525631810514917},
     {f: 19530.60852591976, v: -0.05229995464070656},
-  ] as readonly WinIsdPlottedPoint[],
+];
+
+export const WINISD_TL_PORTS_CAPTURE = Object.freeze({
+  /** WinISD's grid: every point of each chart is grid point i·step. */
+  grid: {fmin: 1.0, fmax: 20095.223453196217, N: 2086},
+  step: 16,
+  spl_dB: WINISD_TL_PORTS_CAPTURE_SPL_D_B,
+  impedance_ohm: WINISD_TL_PORTS_CAPTURE_IMPEDANCE_OHM,
+  portVelocity_m_per_s: WINISD_TL_PORTS_CAPTURE_PORT_VELOCITY_M_PER_S,
+  tfMag_dB: WINISD_TL_PORTS_CAPTURE_TF_MAG_D_B,
 });

@@ -9,13 +9,8 @@
  */
 import type {WinIsdComplexPoint} from './winisdVentedCapture.js';
 
-export const WINISD_PASSIVE_RADIATOR_CAPTURE = Object.freeze({
-  wpr: 'pr-w5-1/w5.wpr',
-  driver: {Fs: 45, Qes: 0.57, Qms: 3.56, Vas: 0.00485, Re: 3.4, Sd: 0.0094, BL: 7.17},
-  box: {Vb: 0.01, Fr: 36.49657518178932, Ql: 7.0, Qa: 30.0, Qp: 15.0, Npr: 1},
-  radiator: {Fs: 30.0, Qms: 3.3, Vas: 0.0048, Sd: 0.0095, Me: 0.0, Xmax: 19},
-  /** pr-w5-1, plot kind 6. */
-  impedance: [
+
+const WINISD_PASSIVE_RADIATOR_CAPTURE_IMPEDANCE: readonly WinIsdComplexPoint[] = [
     {f: 1.0, re: 3.4158337668549335, im: 0.10720855358287723},
     {f: 1.0191811354633138, re: 3.4161006252142387, im: 0.10897530053908362},
     {f: 1.0387301868842898, re: 3.4163667462787877, im: 0.11077237403041552},
@@ -538,9 +533,8 @@ export const WINISD_PASSIVE_RADIATOR_CAPTURE = Object.freeze({
     {f: 19163.039666193643, re: 3.4000106093536293, im: -0.013207586182113065},
     {f: 19530.60852591976, re: 3.4000102137660866, im: -0.012959013883329562},
     {f: 19905.22777373638, re: 3.4000098329289123, im: -0.012715119951970704},
-  ] as readonly WinIsdComplexPoint[],
-  /** pr-w5-2, plot kind 1. */
-  transfer: [
+];
+const WINISD_PASSIVE_RADIATOR_CAPTURE_TRANSFER: readonly WinIsdComplexPoint[] = [
     {f: 1.0, re: -0.00014790714969186905, im: -0.00011769771956220093},
     {f: 1.0191811354633138, re: -0.00015606992125280302, im: -0.00012166977112796277},
     {f: 1.0387301868842898, re: -0.0001646254279272141, im: -0.00012572399901441343},
@@ -1063,9 +1057,8 @@ export const WINISD_PASSIVE_RADIATOR_CAPTURE = Object.freeze({
     {f: 19163.039666193643, re: 0.9952461881036228, im: 0.004932823575626675},
     {f: 19530.60852591976, re: 0.9952467278341415, im: 0.004839988141847022},
     {f: 19905.22777373638, re: 0.9952472474402685, im: 0.004748899828042293},
-  ] as readonly WinIsdComplexPoint[],
-  /** pr-w5-2, plot kind 15. */
-  radiatorExcursion: [
+];
+const WINISD_PASSIVE_RADIATOR_CAPTURE_RADIATOR_EXCURSION: readonly WinIsdComplexPoint[] = [
     {f: 1.0, re: 0.00021239833172117023, im: 0.00016650053007402404},
     {f: 1.0191811354633138, re: 0.00021577055292803807, im: 0.00016564665416761955},
     {f: 1.0387301868842898, re: 0.00021911970966050366, im: 0.00016472683283352794},
@@ -1588,5 +1581,17 @@ export const WINISD_PASSIVE_RADIATOR_CAPTURE = Object.freeze({
     {f: 19163.039666193643, re: 6.697107586698539e-15, im: 5.112903857351936e-13},
     {f: 19530.60852591976, re: 6.207004771651243e-15, im: 4.829610477108293e-13},
     {f: 19905.22777373638, re: 5.75276814849111e-15, im: 4.562014228801426e-13},
-  ] as readonly WinIsdComplexPoint[],
+];
+
+export const WINISD_PASSIVE_RADIATOR_CAPTURE = Object.freeze({
+  wpr: 'pr-w5-1/w5.wpr',
+  driver: {Fs: 45, Qes: 0.57, Qms: 3.56, Vas: 0.00485, Re: 3.4, Sd: 0.0094, BL: 7.17},
+  box: {Vb: 0.01, Fr: 36.49657518178932, Ql: 7.0, Qa: 30.0, Qp: 15.0, Npr: 1},
+  radiator: {Fs: 30.0, Qms: 3.3, Vas: 0.0048, Sd: 0.0095, Me: 0.0, Xmax: 19},
+  /** pr-w5-1, plot kind 6. */
+  impedance: WINISD_PASSIVE_RADIATOR_CAPTURE_IMPEDANCE,
+  /** pr-w5-2, plot kind 1. */
+  transfer: WINISD_PASSIVE_RADIATOR_CAPTURE_TRANSFER,
+  /** pr-w5-2, plot kind 15. */
+  radiatorExcursion: WINISD_PASSIVE_RADIATOR_CAPTURE_RADIATOR_EXCURSION,
 });

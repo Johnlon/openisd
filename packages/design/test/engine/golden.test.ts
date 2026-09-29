@@ -7,11 +7,10 @@ import {driverParams, solveConsistencyGroup} from './testSolver.js';
  * a "pure move" is a real behaviour change.  Do not add tolerance. */
 import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import {readFileSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 import {dirname, join} from 'node:path';
-import type {MaxCurvesResult, SweepResult} from '../../engine/index.js';
 import {createEngine} from '../../engine/index.js';
+import {readGoldenFixture} from '../fixtures/goldenFixture.js';
 
 
 const here        = dirname(fileURLToPath(import.meta.url));
@@ -40,7 +39,7 @@ describe('golden-master — engine reproduces committed fixtures exactly', () =>
    * explicitly, rather than inheriting whatever the engine's defaults happen to be on the day. */
   for (const name of NAMES) {
     it(`${name} — states the air it was produced in`, () => {
-      const { design: { P } } = JSON.parse(readFileSync(join(fixturesDir, name + '.json'), 'utf8'));
+      const { design: { P } } = readGoldenFixture(join(fixturesDir, name + '.json'));
       assert.equal(P.tempK, 293.15, `${name}: fixture does not state its temperature`);
       assert.equal(P.humidityPct, 30, `${name}: fixture does not state its relative humidity`);
       assert.equal(P.pressurePa, 101325, `${name}: fixture does not state its air pressure`);
@@ -53,7 +52,7 @@ describe('golden-master — engine reproduces committed fixtures exactly', () =>
     it(`${name} — sweep + maxCurves are byte-identical to the fixture`, () => {
       const engine = createEngine();
       const { design: { driverRaw, box, P }, sweep: expSw, maxCurves: expMx } =
-        JSON.parse(readFileSync(join(fixturesDir, name + '.json'), 'utf8'));
+        readGoldenFixture(join(fixturesDir, name + '.json'));
 
       // The fixture states the driver in RECORD names (`Fs`, `Vas`, `Cms`); the engine takes
       // unit-suffixed ones. `Le` is not a solver quantity, so it travels to `sweep` separately —
@@ -81,9 +80,9 @@ describe('golden-master — engine reproduces committed fixtures exactly', () =>
       assert.ok(sw && mx, `${name}: the engine refused this fixture`);
 
       for (const k of ['fs', 'spl', 'phase', 'exc', 'excPR', 'pv', 'zmag', 'zph', 'gd'] as const)
-        cmpArray(`${name} sweep.${k}`, sw[k as keyof SweepResult], expSw[k]);
+        cmpArray(`${name} sweep.${k}`, sw[k], expSw[k]);
       for (const k of ['maxspl', 'maxpwr'] as const)
-        cmpArray(`${name} maxCurves.${k}`, mx[k as keyof MaxCurvesResult], expMx[k]);
+        cmpArray(`${name} maxCurves.${k}`, mx[k], expMx[k]);
       cmpArray(`${name} maxCurves.xlim`, mx.xlim, expMx.xlim);
     });
   }
