@@ -62,3 +62,21 @@ test('New project from the empty state opens the mobile wizard', async ({ page }
   // useOgNewProject() state, mobile-only presentation (App.vue picks by activeSkin).
   await expect(page.locator('.mob-np-overlay .mob-np-title')).toContainText('New project');
 });
+
+// Bug (John, live on his phone, 2026-09-29): "openisd button should just open the splash as full
+// width scrolling it as a popup" — SplashModal.vue (shared with desktop) stays a popup, but its
+// backdrop padding and centred width cap are removed on mobile only (App.vue's .app-root-mobile
+// :deep() override), so it spans the phone pane edge-to-edge instead of floating with grey
+// margins on both sides.
+test('About OpenISD (the splash) fills the phone pane edge-to-edge, not a small centred popup', async ({ page }) => {
+  await page.goto('/');
+  await openAMobileProject(page);
+  await page.locator('.mob-hamburger').click();
+  await page.locator('.mob-menu-item', { hasText: 'About OpenISD' }).click();
+
+  const rootBox = await page.locator('.mobile-root').boundingBox();
+  const splashBox = await page.locator('.sp').boundingBox();
+  expect(rootBox).not.toBeNull();
+  expect(splashBox).not.toBeNull();
+  expect(splashBox!.width).toBeGreaterThanOrEqual(rootBox!.width - 1);
+});
