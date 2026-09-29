@@ -1,6 +1,6 @@
 import type {Page} from '@playwright/test';
 import {editorTab, expect, openAProject, test} from '../fixtures.js';
-import {myDriversJson} from '../fixtures/seedMyDrivers.js';
+import {myDriversJson, parseMyDriversBucket} from '../fixtures/seedMyDrivers.js';
 
 // My Drivers is the ONE destination for every user-created driver. Four routes reach it and
 // nothing else does: Add new Driver, Clone driver, Load File…, and saving a driver to a file
@@ -16,6 +16,20 @@ const MY_DRIVERS_KEY = 'openisd_my_drivers';
 const EDITOR = '.de-modal';
 const POOL_ROWS = '.dlist .ditem:not(.my-ditem)';
 const MY_ROWS = '.dlist .my-ditem';
+
+// `showSaveFilePicker` itself is NOT redeclared here: `packages/persistence/src/storage/
+// fileSave.ts` already declares it globally (`function showSaveFilePicker(...): Promise<
+// FileSystemFileHandle>`), reachable through `window` via `Window & typeof globalThis`. A
+// second, narrower `Window.showSaveFilePicker` would merge into an unsatisfiable intersection
+// of the two signatures, so the stub below installs it with `Object.defineProperty` instead of
+// a direct assignment — the real File System Access API returns a full `FileSystemFileHandle`
+// this stub does not implement, and never needs to: production code only calls
+// `.createWritable()` on what it gets back.
+declare global {
+  interface Window {
+    __savedFiles?: Record<string, string>;
+  }
+}
 
 interface SavedDriver { brand: string; model: string; specs: Record<string, number> }
 
@@ -61,9 +75,10 @@ const NAMELESS_WDR = DISK_WDR.replace('Brand=Bench', 'Brand=').replace('Model=Fr
 async function captureSavedFiles(page: Page): Promise<void> {
   await page.addInitScript(() => {
     const files: Record<string, string> = {};
-    (window as unknown as { __savedFiles: Record<string, string> }).__savedFiles = files;
-    (window as unknown as { showSaveFilePicker: unknown }).showSaveFilePicker =
-      async (opts?: { suggestedName?: string }) => {
+    window.__savedFiles = files;
+    Object.defineProperty(window, 'showSaveFilePicker', {
+      configurable: true,
+      value: async (opts?: { suggestedName?: string }) => {
         const name = opts?.suggestedName ?? 'unnamed';
         return {
           createWritable: async () => ({
@@ -71,13 +86,14 @@ async function captureSavedFiles(page: Page): Promise<void> {
             close: async () => { /* nothing to flush — the text is already held */ },
           }),
         };
-      };
+      },
+    });
   });
 }
 
 async function seed(page: Page, myDrivers: SavedDriver[] = [SEEDED]): Promise<void> {
-  await page.addInitScript(([json, key]) => {
-    localStorage.setItem(key as string, json as string);
+  await page.addInitScript(([json, key]: readonly [string, string]) => {
+    localStorage.setItem(key, json);
   }, [myDriversJson(myDrivers), MY_DRIVERS_KEY] as const);
   await page.goto('/');
   await openAProject(page);
@@ -91,15 +107,12 @@ async function openPicker(page: Page): Promise<void> {
 /** The brand/model of every driver in My Drivers right now, read out of the stored envelope
  *  ({ schema, entries: [{ uuid, record }] }) the app writes. */
 async function savedNames(page: Page): Promise<{ brand: string; model: string }[]> {
-  return page.evaluate((key) => {
-    const raw = localStorage.getItem(key as string);
-    if (!raw) return [];
-    const env = JSON.parse(raw) as { entries?: { record?: { brand?: { value?: string }; model?: { value?: string } } }[] };
-    return (env.entries ?? []).map(e => ({
-      brand: e.record?.brand?.value ?? '',
-      model: e.record?.model?.value ?? '',
-    }));
-  }, MY_DRIVERS_KEY);
+  const raw = await page.evaluate((key: string) => localStorage.getItem(key), MY_DRIVERS_KEY);
+  const env = parseMyDriversBucket(raw);
+  return (env.entries ?? []).map(e => ({
+    brand: e.record?.brand?.value ?? '',
+    model: e.record?.model?.value ?? '',
+  }));
 }
 
 async function savedIds(page: Page): Promise<string[]> {
@@ -299,8 +312,7 @@ test('a driver saved to .wdr and loaded back lands in My Drivers', async ({ page
   await expect(page.locator(EDITOR)).toBeVisible();
   await page.locator(`${EDITOR} .de-footer button:has-text("Save")`).click();
   await page.locator('.fmt-opt').filter({ hasText: '.wdr' }).click();
-  const written = await page.evaluate(() =>
-    (window as unknown as { __savedFiles: Record<string, string> }).__savedFiles);
+  const written = await page.evaluate(() => window.__savedFiles ?? {});
   const fileName = Object.keys(written)[0];
   expect(fileName, 'the driver editor wrote no file').toBe('Spec Fixture.wdr');
   await page.locator(`${EDITOR} .de-footer button:has-text("Cancel")`).click();

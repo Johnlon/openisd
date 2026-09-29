@@ -1,9 +1,10 @@
 import {describe, expect, it, vi} from 'vitest';
 import {defineComponent, h, provide} from 'vue';
 import {renderToString} from 'vue/server-renderer';
-import {APP_LOGIC, type AppLogic} from '../../src/logic/app.js';
+import {APP_LOGIC} from '../../src/logic/app.js';
 import {createFaultLog, type QuickFix} from '../../src/diagnostics/faultLog.js';
 import {useDiagnosticsModal, type DiagnosticsModalAPI} from '../../src/hooks/DiagnosticsModal-hooks.js';
+import {testAppLogic} from './testAppLogic.js';
 
 async function renderHook(): Promise<DiagnosticsModalAPI> {
   const faultLog = createFaultLog();
@@ -18,7 +19,7 @@ async function renderHook(): Promise<DiagnosticsModalAPI> {
 
   const Parent = defineComponent({
     setup() {
-      provide(APP_LOGIC, { faultLog } as unknown as AppLogic);
+      provide(APP_LOGIC, testAppLogic({ faultLog }));
       return () => h(Child);
     },
   });

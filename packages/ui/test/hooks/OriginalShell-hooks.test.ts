@@ -83,7 +83,8 @@ describe('OriginalShell-hooks', () => {
 
       expect(envTempStored.value).toBe(false);
       expect(advTemp.value).not.toBeNull();
-      expect(envTempDq.value).toEqual({dq: [], dqState: expect.any(String)});
+      expect(envTempDq.value.dq).toEqual([]);
+      expect(envTempDq.value.dqState).toMatch(/^[ECN]$/);
 
       project.envTempK.set(310);
       tick();

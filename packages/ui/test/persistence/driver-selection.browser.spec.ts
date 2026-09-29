@@ -1,6 +1,6 @@
 import type {Page} from '@playwright/test';
 import {editorTab, expect, openAProject, test} from '../fixtures.js';
-import {MY_DRIVERS_KEY, myDriversJson} from '../fixtures/seedMyDrivers.js';
+import {MY_DRIVERS_KEY, myDriversJson, parseMyDriversBucket} from '../fixtures/seedMyDrivers.js';
 
 // docs/design/STATE_MODEL.md rule 1: choosing a driver EMBEDS it in the project. The pick copies the
 // driver in, closes the picker, and returns the user to the project — there is no editor in
@@ -35,11 +35,9 @@ test.beforeEach(async ({ page }) => {
 
 /** The model of every driver in My Drivers, out of the stored envelope. */
 async function savedModels(page: Page): Promise<string[]> {
-  return page.evaluate((key) => {
-    const raw = localStorage.getItem(key);
-    const env = raw ? JSON.parse(raw) as { entries?: { record?: { model?: { value?: string } } }[] } : { entries: [] };
-    return (env.entries ?? []).map(e => e.record?.model?.value ?? '');
-  }, MY_DRIVERS_KEY);
+  const raw = await page.evaluate((key: string) => localStorage.getItem(key), MY_DRIVERS_KEY);
+  const env = parseMyDriversBucket(raw);
+  return (env.entries ?? []).map(e => e.record?.model?.value ?? '');
 }
 
 /** Open the library — the toolbar's Manage Drivers button, visible on every tab. */
