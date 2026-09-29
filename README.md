@@ -78,7 +78,7 @@ only on Windows, and its source was never released. OpenISD carries the idea for
   - contradictory inputs are marked, not silently discarded;
   - a typed value is never rewritten behind the user's back;
   - each project keeps its own air conditions.
-- **Parity state** (2026-09-29, one driver, W5-1138SMF): 138 of 184 cells in the
+- **Parity state** (2026-09-29, one driver, W5-1138SMF): 142 of 184 cells in the
   [WinISD equivalence register](docs/research/WINISD_EQUIVALENCE.md) match WinISD, most to
   ≤ 1e-12. Every chart exists for every box type.
 - **Remaining gaps:**
