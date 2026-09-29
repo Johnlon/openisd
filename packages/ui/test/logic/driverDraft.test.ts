@@ -10,8 +10,9 @@ import {describe, expect, it} from 'vitest';
 import assert from 'node:assert/strict';
 import {OpenISDDriver} from '@openisd/design';
 import {createEngine} from '@openisd/design/engine';
-import {openDriverDraft} from '../../src/logic/driverDraft.js';
+import {DriverDrafts} from '../../src/logic/driverDraft.js';
 import {presentationState} from '../../src/logic/presentationState.js';
+import {appContext} from '../../src/logic/appState.js';
 
 const scraped = <T,>(value: T) => ({ value });
 const spec = (read_value: number) =>
@@ -39,11 +40,11 @@ function aDriver(brand: string, model: string): OpenISDDriver {
   return driver;
 }
 
-describe('openDriverDraft — a My Driver subject', () => {
+describe('DriverDrafts.open — a My Driver subject', () => {
   it('detaches the seed, so editing the draft leaves the seed alone', () => {
     const seed = aDriver('SB Acoustics', 'SB23');
 
-    const draft = openDriverDraft({ kind: 'myDriver', openedAs: 'uuid-1', seed });
+    const draft = new DriverDrafts(createEngine(), appContext).open({ kind: 'myDriver', openedAs: 'uuid-1', seed });
     draft.driver.model.set('Edited');
 
     assert.equal(draft.driver.model.value, 'Edited');
@@ -51,7 +52,7 @@ describe('openDriverDraft — a My Driver subject', () => {
   });
 
   it('builds a blank driver when the subject is a new My Driver with no seed', () => {
-    const draft = openDriverDraft({ kind: 'myDriver', openedAs: '', seed: null });
+    const draft = new DriverDrafts(createEngine(), appContext).open({ kind: 'myDriver', openedAs: '', seed: null });
 
     assert.equal(draft.driver.brand.value, '');
     assert.equal(draft.driver.model.value, '');
@@ -61,7 +62,7 @@ describe('openDriverDraft — a My Driver subject', () => {
     const previous = presentationState.ui.username;
     presentationState.ui.username = 'johnl';
     try {
-      const draft = openDriverDraft({ kind: 'myDriver', openedAs: '', seed: null });
+      const draft = new DriverDrafts(createEngine(), appContext).open({ kind: 'myDriver', openedAs: '', seed: null });
       assert.equal(draft.driver.providedBy.value, 'johnl');
     } finally {
       presentationState.ui.username = previous;
@@ -70,7 +71,7 @@ describe('openDriverDraft — a My Driver subject', () => {
 
   it('reset() throws the edits away and starts again from the same seed', () => {
     const seed = aDriver('Dayton', 'RS225');
-    const draft = openDriverDraft({ kind: 'myDriver', openedAs: 'uuid-1', seed });
+    const draft = new DriverDrafts(createEngine(), appContext).open({ kind: 'myDriver', openedAs: 'uuid-1', seed });
     draft.driver.model.set('Edited');
 
     draft.reset();
@@ -79,7 +80,7 @@ describe('openDriverDraft — a My Driver subject', () => {
   });
 
   it('replace() adopts a driver read from a file as the new draft', () => {
-    const draft = openDriverDraft({ kind: 'myDriver', openedAs: '', seed: null });
+    const draft = new DriverDrafts(createEngine(), appContext).open({ kind: 'myDriver', openedAs: '', seed: null });
 
     draft.replace(aDriver('Peerless', 'SLS-830667'));
 
@@ -87,9 +88,9 @@ describe('openDriverDraft — a My Driver subject', () => {
   });
 });
 
-describe('openDriverDraft — wiring, expressed without naming the domain', () => {
+describe('DriverDrafts.open — wiring, expressed without naming the domain', () => {
   it('setWiring takes the UI word, so no component names the domain enum', () => {
-    const draft = openDriverDraft({ kind: 'myDriver', openedAs: '', seed: aDriver('A', 'B') });
+    const draft = new DriverDrafts(createEngine(), appContext).open({ kind: 'myDriver', openedAs: '', seed: aDriver('A', 'B') });
 
     draft.setWiring('series');
     const series = draft.driver.specs.VCCon.value;

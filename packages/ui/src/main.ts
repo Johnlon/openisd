@@ -20,8 +20,9 @@ import {createDriverSelection} from './logic/driverSelection.js';
 import {createDriverBrowsingState} from './logic/driverBrowsingState.js';
 import {createApplicationIO} from './logic/useApplicationIO.js';
 import {DesignFiles} from './logic/fileImportExport.js';
+import {DriverDrafts} from './logic/driverDraft.js';
 import {provideApp} from './logic/app.js';
-import {engine, installAppSettings, NoFocusedProjectError} from './logic/appState.js';
+import {appContext, engine, installAppSettings, NoFocusedProjectError} from './logic/appState.js';
 import '@fontsource/inter/400.css';
 import '@fontsource/inter/600.css';
 import '@fontsource/inter/700.css';
@@ -70,6 +71,7 @@ const driverFileStorage = createFileStorage();
 const selection = createDriverSelection();
 const projectRepo = createProjectRepo(engine, fileStorage, storage);
 const designFiles = new DesignFiles(engine, projectRepo);
+const driverDrafts = new DriverDrafts(engine, appContext);
 const driverBrowsing = createDriverBrowsingState({
   driverRepo, myDriverRepo, prefs, logging, selection, files: designFiles,
   confirmReset: (question) => confirm(question),
@@ -82,7 +84,7 @@ const app = createApp(App)
   .directive('limits', vLimits);
 
 provideApp(app, {
-  engine, logging, driverBrowsing, selection, designIO, designFiles, myPassiveRadiators,
+  engine, logging, driverBrowsing, selection, designIO, designFiles, driverDrafts, myPassiveRadiators,
   bundledPassiveRadiators: bundledPRs, bundledDrivers: driverRepo, myDrivers: myDriverRepo,
   driverFileStorage, faultLog, projectRepo, viewStateRepo,
 });
