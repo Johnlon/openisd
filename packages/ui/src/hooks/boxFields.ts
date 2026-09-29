@@ -6,7 +6,7 @@
  */
 import type {ComputedRef, Ref} from 'vue';
 import {computed, ref, watch} from 'vue';
-import type {Entered, OpenISDProject, Readable, Writable} from '@openisd/design';
+import type {OpenISDProject} from '@openisd/design';
 import type {BoxType} from '@openisd/design/engine';
 import {BOX_TYPE_OPTIONS} from '@openisd/design/fields';
 import {dqOfCell} from '../logic/cellDataQuality.js';
@@ -82,35 +82,20 @@ export interface BoxVolumeDeps {
 // directly by `OriginalShell-hooks.ts`'s own `frontChamberTuningLabel`.
 export const DUAL_CHAMBER = new Set<BoxType>(['bandpass4', 'bandpass6', 'abc']);
 
-/** The active box type's own volume FIELD — never just its `.value`, so both the number and its
- *  `.dq` (BUG_20260927_box-volume-validity-decided-in-ui.md: the domain judges validity for
- *  every box type, this dispatches to whichever one is showing) come from the one field. */
-function activeVolumeField(project: OpenISDProject, selectedBox: BoxType): (Readable<number> & Entered & Writable<number>) | null {
-  const box = project.box;
-  switch (selectedBox) {
-    case 'sealed': return box.sealed.volume_m3;
-    case 'vented': return box.vented.volume_m3;
-    case 'bandpass4': return box.bandpass4.chambers.rear.volume_m3;
-    case 'bandpass6': return box.bandpass6.chambers.rear.volume_m3;
-    case 'abc': return box.abc.chambers.rear.volume_m3;
-    case 'box-passive-radiator': return box.passiveRadiator.volume_m3;
-  }
-}
-
 export function createBoxVolume({ project, selectedBox, projectChanged: changed }: BoxVolumeDeps) {
   const boxVolume_m3 = computed<number | null>(() => {
     void changed.value;
     void project.value;
-    return activeVolumeField(project.value, selectedBox.value)?.value ?? null;
+    return project.value.box.volumeOf(selectedBox.value).value;
   });
   const boxVolumeDqNote = computed<string>(() => {
     void changed.value;
     void project.value;
-    const field = activeVolumeField(project.value, selectedBox.value);
-    return field ? field.dq.map((issue) => issue.text).join(' ') : '';
+    const field = project.value.box.volumeOf(selectedBox.value);
+    return field.dq.map((issue) => issue.text).join(' ');
   });
   function setBoxVolume_m3(v: number): void {
-    activeVolumeField(project.value, selectedBox.value)?.set(v);
+    project.value.box.volumeOf(selectedBox.value).set(v);
   }
   return { boxVolume_m3, boxVolumeDqNote, setBoxVolume_m3 };
 }
