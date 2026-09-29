@@ -45,7 +45,7 @@ import {
     enterVentField as enterVentFieldOn,
     ventFieldState as ventFieldStateOn,
 } from '../logic/useVentGroup.js';
-import {buildPlotData, CHART_LABELS, parseChartId, TAB_META} from '../logic/series.js';
+import {buildPlotData, CHART_LABELS, TAB_META} from '../logic/series.js';
 import {createToneGenerator, type ToneGenerator} from '../logic/toneGenerator.js';
 import {useApp} from '../logic/app.js';
 import {useEscToClose} from '../logic/useEscToClose.js';
@@ -61,7 +61,7 @@ import {isTabId, type TabId} from '../logic/tabId.js';
 import {createBoxVolume, createSealedReadouts, createSelectedBox, DUAL_CHAMBER} from './boxFields.js';
 import {createDriveSignal} from './driveSignal.js';
 import type {StoredProjectListing} from '@openisd/persistence';
-import type {ChartId, EnvDefaults, EnvironmentEngine} from '@openisd/design/engine';
+import type {BoxEngine, ChartId, EnvDefaults, EnvironmentEngine} from '@openisd/design/engine';
 import type {Design, PlotParams} from '../types.js';
 
 export type AirField = 'temperature' | 'humidity' | 'pressure';
@@ -167,6 +167,45 @@ export function createEnvironmentAir({ project, projectChanged: changed, envDefa
     commitAirTemp: commitOf(temp), commitAirHumidity: commitOf(humidity), commitAirPressure: commitOf(pressure),
     resetAirToAppDefaults, advAir,
   };
+}
+
+// ---- Chart selector ------------------------------------------------------------
+// A separator goes before the first item of each of WinISD's own visual groupings — never
+// before a group that this box has nothing in (Port/PR are absent from most boxes).
+const CHART_GROUP_START: ReadonlySet<ChartId> = new Set<ChartId>(['Excursion', 'PRTFMag', 'RearPort', 'FrontPort', 'FltMag']);
+
+export interface ChartItem {
+  readonly label: string;
+  readonly tab: ChartId;
+  readonly sep: boolean;
+  readonly open: boolean;
+}
+
+export interface ChartSelectionDeps {
+  focusedProject: () => OpenISDProject | null;
+  projectChanged: Ref<number>;
+  box: BoxEngine;
+}
+
+/** The chart menu and the stacked charts it opens — the focused project's own `openCharts`. */
+export function createChartSelection({ focusedProject, projectChanged: changed, box }: ChartSelectionDeps) {
+  const openCharts = computed<readonly ChartId[]>(() => {
+    void changed.value;
+    return focusedProject()?.openCharts.value ?? [box.defaultChart];
+  });
+  // The design's own answer for which charts apply to THIS project's box — never a second,
+  // UI-maintained list of "which charts apply" (bugs/BUG_20260927_winisd-charts-missing.md).
+  // The toolbar (and this dropdown) renders with no project open — the engine's default box then.
+  const chartItems = computed<readonly ChartItem[]>(() => {
+    void changed.value;
+    const ids = focusedProject()?.charts ?? box.chartsFor(box.defaultBoxType);
+    const open = openCharts.value;
+    return ids.map(tab => ({ tab, label: CHART_LABELS[tab], sep: CHART_GROUP_START.has(tab), open: open.includes(tab) }));
+  });
+  const chartLabel = computed(() => openCharts.value.map(c => CHART_LABELS[c]).join(', '));
+  function showOnly(id: ChartId): void { focusedProject()?.openCharts.showOnly(id); }
+  function toggle(id: ChartId): void { focusedProject()?.openCharts.toggle(id); }
+  return { openCharts, chartItems, chartLabel, showOnly, toggle };
 }
 
 // ---- The shell's one hook -----------------------------------------------------
@@ -429,43 +468,18 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     + 'either the dimension or the area and the other is calculated from it.';
 
   // ---- Chart selector ------------------------------------------------------------
-  // A separator goes before the first item of each of WinISD's own visual groupings — never
-  // before a group that this box has nothing in (Port/PR are absent from most boxes).
-  const CHART_GROUP_START = new Set<ChartId>(['Excursion', 'PRTFMag', 'RearPort', 'FrontPort', 'FltMag']);
-  type ChartItem = { label: string; tab: ChartId; sep?: boolean };
-  // The design's own answer for which charts apply to THIS project's box — never a second,
-  // UI-maintained list of "which charts apply" (bugs/BUG_20260927_winisd-charts-missing.md).
-  const CHART_ITEMS = computed<ChartItem[]>(() => {
-    void projectChanged.value;
-    // The toolbar (and this dropdown) renders with no project open — fall back to the
-    // engine's own default box, rather than reading `project.value`, which throws with
-    // nothing focused.
-    const p = focusedProject();
-    const box = p?.box.boxType.value ?? engine.box.defaultBoxType;
-    const ids = p ? p.charts : engine.box.chartsFor(box);
-    return ids.map(tab => ({ tab, label: CHART_LABELS[tab], sep: CHART_GROUP_START.has(tab) }));
-  });
-  const chartTab = computed<ChartId>({
-    // A remembered chart id that no longer applies to this box (a saved tab that was PR, the
-    // box is now sealed) falls back to the default chart, never to a stale/inapplicable one.
-    get: () => {
-      const id = parseChartId(engine.box, presentationState.ui.originalChartTab);
-      return CHART_ITEMS.value.some(i => i.tab === id) ? id : engine.box.defaultChart;
-    },
-    set: (v: ChartId) => { presentationState.ui.originalChartTab = v; },
-  });
-  const chartLabel = computed({
-    get: () => presentationState.ui.originalChartLabel ?? CHART_LABELS[engine.box.defaultChart],
-    set: (v: string) => { presentationState.ui.originalChartLabel = v; },
-  });
-  const chartMeta = computed(() => TAB_META[chartTab.value]);
+  // Clicking a menu label shows that chart alone and closes the menu; its checkbox opens or
+  // closes that chart in the stack and leaves the menu open.
+  const chartSelection = createChartSelection({ focusedProject, projectChanged, box: engine.box });
+  const { openCharts, chartItems, chartLabel } = chartSelection;
+  const toggleChart = chartSelection.toggle;
   function selectChart(item: ChartItem) {
-    // Chart buttons are a no-op with no project open — there is no curve to choose for.
-    if (!focusedProject()) return;
-    chartLabel.value = item.label;
-    chartTab.value = item.tab;
+    chartSelection.showOnly(item.tab);
     closeDropdown();
   }
+  /** The chart the toolbar readout reads: the top of the stack. */
+  const readoutChart = computed(() => openCharts.value[0]);
+  const chartMeta = computed(() => TAB_META[readoutChart.value]);
 
   // ---- Toolbar dropdown menus (folder / saveas / info / chart) -------------------
   const openDd = ref<string | null>(null);
@@ -630,7 +644,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     if (!focusedProject()) return null;
     const f = cursorHz.value;
     if (pending.value || f == null) return null;
-    const p = buildPlotData(engine, chartTab.value, syncedP.value.fmin, syncedP.value.fmax, currentDesign.value, overlays.value, allIssues.value,
+    const p = buildPlotData(engine, readoutChart.value, syncedP.value.fmin, syncedP.value.fmax, currentDesign.value, overlays.value, allIssues.value,
       { bare: true, primaryColor: WINISD_TRACE.value }).value;
     if (!p) return null;
     const s = p.series.find(x => x.current) ?? p.series.find(x => !x.phantom);
@@ -897,7 +911,7 @@ const overlays = computed<Design[]>(() => {
     version, toggleDropdown, openDd, openClick, closeDropdown, presentationState, isModified,
     openDialogOpen, storedProjects, openFromDisk, openStoredProject, switchToMobile,
     saveProject, resetProjectToGround, confirmDiscard, about, optionsOpen,
-    chartLabel, CHART_ITEMS, selectChart,
+    chartLabel, chartItems, selectChart, toggleChart,
     hzInputText, inputValue, onHzInputFocus, onHzInputBlur, onHzKeydown, onHzWheel,
     startNudge, stopNudge, cursorHz, cursorVal, chartMeta, inputChecked, selectValue, selectedOption,
     WINISD_TRACE, cycleColor, resetChartView, chartMax,
@@ -905,7 +919,7 @@ const overlays = computed<Design[]>(() => {
     projectList, isRowVisible, setRowVisible, rowName, rowUnsaved, selectProject, project, focused, projectOpen, whatIfActive,
     copyCurrentProject, requestCloseProject, closeChallenge, saveThenClose, closeProject,
     genOn, toggleGenerate, genHz,
-    boxLabel, pending, chartTab, overlays, activeTab,
+    boxLabel, pending, openCharts, overlays, activeTab,
     showEnclosureTab, enclosureNavLabel,
     selectedBox, BOX_TYPE_OPTIONS, LOSS_MODE_OPTIONS, lossMode, ARRAY_WIRING_OPTIONS, N_DRIVERS_OPTIONS, applyWinisdSettings,
      boxVolume_m3, boxVolumeDqNote, setBoxVolume_m3, sealedAlignmentEditor, sealedAlignmentOpen,

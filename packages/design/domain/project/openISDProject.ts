@@ -17,7 +17,7 @@ import { OpenISDDriverEmbedded } from '../driver/openISDDriverEmbedded.js';
 import type { DiscardChallenge } from './discardChallenge.js';
 import type { DragRange } from './dragRange.js';
 import { ProjectAdvanced } from './projectAdvanced.js';
-import { ProjectChartsView } from './projectChartsView.js';
+import { ProjectChartsView, type OpenCharts } from './projectChartsView.js';
 import { ProjectEnvironment, envFieldsOver } from './projectEnvironment.js';
 import { owprTextOf, parseOwprSession, sessionOf } from './projectSerialization.js';
 import { boxParamsIssuesOf, maxCurvesOf, sweepOf, ventAchievedFbOf, ventMaxReachableFbOf } from './projectSweep.js';
@@ -348,6 +348,11 @@ export class OpenISDProject {
      *  of "which charts apply". */
     get charts(): readonly ChartId[] {
         return new ProjectChartsView(this.#slot('charts'), this.#engine.box, () => this.box.boxType.value).charts;
+    }
+
+    /** The charts shown at once, stacked (see `OpenCharts`). */
+    get openCharts(): OpenCharts {
+        return new ProjectChartsView(this.#slot('charts'), this.#engine.box, () => this.box.boxType.value).openCharts;
     }
 
     /** The graph cursor/selection (S10/QO130) — PROJECT-scoped, reversing QO90: two open

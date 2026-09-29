@@ -1085,6 +1085,52 @@ describe('OpenISDProject graphs/cursor — project-scoped, not a UI singleton (S
     expect(saved.charts.graphs).toEqual(['SPL', 'Zmag']);
   });
 
+  it('openCharts is the default chart alone when graphs is empty', () => {
+    const p = project();
+    expect(p.openCharts.value).toEqual([createEngine().box.defaultChart]);
+  });
+
+  it('openCharts keeps only charts this box shows, in chart-menu order', () => {
+    const p = project();
+    p.graphs.set(['Zmag', 'RearPort', 'SPL', 'NoSuchChart']);
+    expect(p.openCharts.value).toEqual(p.charts.filter(c => c === 'SPL' || c === 'Zmag'));
+  });
+
+  it('openCharts falls back to the default chart when no stored chart applies to this box', () => {
+    const p = project();
+    p.graphs.set(['RearPort']);
+    expect(p.openCharts.value).toEqual([createEngine().box.defaultChart]);
+  });
+
+  it('openCharts.showOnly replaces the open charts with the one chart', () => {
+    const p = project();
+    p.graphs.set(['SPL', 'Zmag']);
+    p.openCharts.showOnly('Excursion');
+    expect(p.openCharts.value).toEqual(['Excursion']);
+  });
+
+  it('openCharts.toggle adds a closed chart and removes an open one', () => {
+    const p = project();
+    p.openCharts.showOnly('SPL');
+    p.openCharts.toggle('Zmag');
+    expect(p.openCharts.value).toEqual(p.charts.filter(c => c === 'SPL' || c === 'Zmag'));
+    p.openCharts.toggle('SPL');
+    expect(p.openCharts.value).toEqual(['Zmag']);
+  });
+
+  it('openCharts.toggle never closes the last open chart', () => {
+    const p = project();
+    p.openCharts.showOnly('Zmag');
+    p.openCharts.toggle('Zmag');
+    expect(p.openCharts.value).toEqual(['Zmag']);
+  });
+
+  it('openCharts.toggle on an empty graphs list adds to the shown default chart', () => {
+    const p = project();
+    p.openCharts.toggle('Zmag');
+    expect(p.openCharts.value).toEqual(p.charts.filter(c => c === 'SPL' || c === 'Zmag'));
+  });
+
   it('cursorF/pinnedF/cursorLocked/dragRange default to unset and round-trip in memory ' +
      '(QO168: a documented exception, not part of OpenISDProjectJson)', () => {
     const p = project();
