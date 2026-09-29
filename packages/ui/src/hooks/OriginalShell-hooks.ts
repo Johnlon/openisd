@@ -47,7 +47,7 @@ import {createVentReadouts, FB_TARGET_TIP, VENT_GEOMETRY_TIP} from './ventReadou
 import {createPassiveRadiatorActions} from './passiveRadiatorActions.js';
 import {buildPlotData, TAB_META} from '../logic/series.js';
 import {ChartSelection, type ChartItem} from './chartSelection.js';
-import {chartGridLayout, chartGridStyle} from './chartGrid.js';
+import {CHART_MIN_H, CHART_MIN_H_OPTIONS, chartGridLayout, chartGridStyle} from './chartGrid.js';
 import {createToneGenerator, type ToneGenerator} from '../logic/toneGenerator.js';
 import {useApp} from '../logic/app.js';
 import {useEscToClose} from '../logic/useEscToClose.js';
@@ -403,8 +403,17 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     ro.observe(el);
     onCleanup(() => ro.disconnect());
   });
-  const chartStackStyle = computed(() =>
-    chartGridStyle(chartGridLayout(openCharts.value.length, chartStackW.value, chartStackH.value), chartStackH.value));
+  /** The minimum chart height chosen in the chart bar; a stored value no longer offered falls
+   *  back to the default. */
+  const chartMinH = computed<number>({
+    get: () => {
+      const v = presentationState.ui.originalChartMinH;
+      return CHART_MIN_H_OPTIONS.some(o => o.value === v) && v !== undefined ? v : CHART_MIN_H;
+    },
+    set: (v: number) => { presentationState.ui.originalChartMinH = v; },
+  });
+  const chartStackStyle = computed(() => chartGridStyle(chartMinH.value,
+    chartGridLayout(chartMinH.value, openCharts.value.length, chartStackW.value, chartStackH.value), chartStackH.value));
 
   // ---- Toolbar dropdown menus (folder / saveas / info / chart) -------------------
   const openDd = ref<string | null>(null);
@@ -832,7 +841,7 @@ const overlays = computed<Design[]>(() => {
     projectList, isRowVisible, setRowVisible, rowName, rowUnsaved, selectProject, project, focused, projectOpen, whatIfActive,
     copyCurrentProject, requestCloseProject, closeChallenge, saveThenClose, closeProject,
     genOn, toggleGenerate, genHz,
-    boxLabel, pending, openCharts, chartStackEl, chartStackStyle, overlays, activeTab,
+    boxLabel, pending, openCharts, chartStackEl, chartStackStyle, chartMinH, CHART_MIN_H_OPTIONS, overlays, activeTab,
     showEnclosureTab, enclosureNavLabel,
     selectedBox, BOX_TYPE_OPTIONS, LOSS_MODE_OPTIONS, lossMode, ARRAY_WIRING_OPTIONS, N_DRIVERS_OPTIONS, applyWinisdSettings,
      boxVolume_m3, boxVolumeDqNote, setBoxVolume_m3, sealedAlignmentEditor, sealedAlignmentOpen,

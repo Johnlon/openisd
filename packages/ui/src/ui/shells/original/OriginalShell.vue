@@ -32,7 +32,7 @@ const {
   projectList, isRowVisible, setRowVisible, rowName, rowUnsaved, selectProject, project, focused, projectOpen, whatIfActive,
   copyCurrentProject, requestCloseProject, closeChallenge, saveThenClose, closeProject,
   genOn, toggleGenerate, genHz,
-  boxLabel, pending, openCharts, chartStackEl, chartStackStyle, overlays, activeTab,
+  boxLabel, pending, openCharts, chartStackEl, chartStackStyle, chartMinH, CHART_MIN_H_OPTIONS, overlays, activeTab,
   showEnclosureTab, enclosureNavLabel,
   selectedBox, BOX_TYPE_OPTIONS, LOSS_MODE_OPTIONS, lossMode, ARRAY_WIRING_OPTIONS, N_DRIVERS_OPTIONS, applyWinisdSettings,
   boxVolume_m3, boxVolumeDqNote, setBoxVolume_m3, sealedAlignmentEditor, sealedAlignmentOpen,
@@ -139,6 +139,12 @@ const {
           <span style="display:none">{{ cursorHz != null ? cursorHz.toFixed(2) + ' Hz' : '— Hz' }}</span>
         </span>
         <span class="ro-val">{{ cursorVal != null ? cursorVal.toFixed(3) + ' ' + (chartMeta?.unit ?? '') : '— ' + (chartMeta?.unit ?? 'dB') }}</span>
+        <label class="chart-minh" title="Minimum chart height. Charts stack one under the other while each gets at least this much; past that they tile into up to three columns.">
+          <span>Min h</span>
+          <select :value="chartMinH" @change="e => { const h = selectedOption(e, CHART_MIN_H_OPTIONS); if (h !== null) chartMinH = h; }">
+            <option v-for="o in CHART_MIN_H_OPTIONS" :key="o.value" :value="o.value">{{ o.label }}</option>
+          </select>
+        </label>
         <button class="chart-max-btn" title="Reset all charts — clears the shared frequency-range zoom and every chart's Y-axis zoom back to the default range."
                 @click="resetChartView">⟲</button>
         <button class="chart-max-btn" :title="chartMax ? 'Restore the normal layout (bring back the side and bottom panels)' : 'Maximise the chart over the whole page — the toolbar stays, so the chart type can still be changed'"
@@ -994,6 +1000,8 @@ const {
 .chart-cell:has(.chart-close) :deep(.gtitle) { left:24px; }
 .chart-close { position:absolute; left:3px; top:3px; z-index:3; width:17px; height:17px; padding:0; line-height:15px; font-size:10px; background:#f7f7f7; border:1px solid #bbb; border-radius:3px; cursor:pointer; color:#444; }
 .chart-close:hover { background:#dbeaff; }
+.chart-minh { display:inline-flex; align-items:center; gap:4px; font-size:12px; color:#444; }
+.original-root .chart-minh select { font-size:12px; padding:1px 2px; }
 .dropdown-menu .chart-item input { margin:0; cursor:pointer; }
 .dropdown-menu .chart-item::before { display:none !important; }
 .graph-empty { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:24px; color:#777; gap:6px; }
