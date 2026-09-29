@@ -43,3 +43,42 @@ describe('OpenISDBox.volumeOf(boxType) — the box type\'s own main-volume field
     });
   }
 });
+
+describe('OpenISDBox.frontVolumeOf / rearTuningOf / lossesOf — the other per-type fields the box tab shows', () => {
+  it('front volume: the two-chamber types have one, the others none', () => {
+    const box = project().box;
+    box.frontVolumeOf('bandpass4')!.set(0.01);
+    box.frontVolumeOf('bandpass6')!.set(0.02);
+    box.frontVolumeOf('abc')!.set(0.03);
+    expect(box.bandpass4.chambers.front.volume_m3.value).toBeCloseTo(0.01, 12);
+    expect(box.bandpass6.chambers.front.volume_m3.value).toBeCloseTo(0.02, 12);
+    expect(box.abc.chambers.front.volume_m3.value).toBeCloseTo(0.03, 12);
+    for (const type of ['sealed', 'vented', 'box-passive-radiator'] as const) expect(box.frontVolumeOf(type)).toBeNull();
+  });
+  it('rear tuning: bandpass6 and abc tune the rear chamber, the others do not', () => {
+    const box = project().box;
+    box.rearTuningOf('bandpass6')!.set(40);
+    box.rearTuningOf('abc')!.set(45);
+    expect(box.bandpass6.chambers.rear.tuning_goal_hz.value).toBe(40);
+    expect(box.abc.chambers.rear.tuning_goal_hz.value).toBe(45);
+    for (const type of ['sealed', 'vented', 'bandpass4', 'box-passive-radiator'] as const) expect(box.rearTuningOf(type)).toBeNull();
+  });
+  it('losses: Ql/Qa of the one cabinet or rear chamber, Qp of the ported one; none for bandpass6/abc', () => {
+    const box = project().box;
+    const sealed = box.lossesOf('sealed')!;
+    sealed.Ql.set(7); sealed.Qa.set(50);
+    expect(box.sealed.losses.Ql.value).toBe(7);
+    expect(box.sealed.losses.Qa.value).toBe(50);
+    expect(sealed.Qp).toBeNull();
+    const vented = box.lossesOf('vented')!;
+    vented.Qp!.set(80);
+    expect(box.vented.losses.Qp.value).toBe(80);
+    const bp4 = box.lossesOf('bandpass4')!;
+    bp4.Ql.set(9); bp4.Qp!.set(90);
+    expect(box.bandpass4.chambers.rear.losses.Ql.value).toBe(9);
+    expect(box.bandpass4.chambers.front.losses.Qp.value).toBe(90);
+    expect(box.lossesOf('box-passive-radiator')!.Qp).toBeNull();
+    expect(box.lossesOf('bandpass6')).toBeNull();
+    expect(box.lossesOf('abc')).toBeNull();
+  });
+});

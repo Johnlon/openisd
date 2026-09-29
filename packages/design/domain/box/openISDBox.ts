@@ -13,7 +13,7 @@ import type { ProjectIssues } from '../project/projectIssues.js';
 import type { AbcBox } from './abcBox.js';
 import type { Bandpass4Box } from './bandpass4Box.js';
 import type { Bandpass6Box } from './bandpass6Box.js';
-import type { Box } from './box.js';
+import type { Box, BoxLosses, TuningField } from './box.js';
 import { CoupledSealedLossesWindow } from './coupledSealedLossesWindow.js';
 import { CoupledVentedLossesWindow } from './coupledVentedLossesWindow.js';
 import type { PassiveRadiatorBox } from './passiveRadiatorBox.js';
@@ -283,7 +283,46 @@ export class OpenISDBox implements Box {
         };
     }
 
-        volumeOf(type: BoxType): Readable<number> & Entered & Writable<number> {
+        frontVolumeOf(type: BoxType): (Readable<number> & Entered & Writable<number>) | null {
+        switch (type) {
+            case 'bandpass4': return this.bandpass4.chambers.front.volume_m3;
+            case 'bandpass6': return this.bandpass6.chambers.front.volume_m3;
+            case 'abc': return this.abc.chambers.front.volume_m3;
+            case 'sealed':
+            case 'vented':
+            case 'box-passive-radiator':
+                return null;
+        }
+    }
+
+    rearTuningOf(type: BoxType): TuningField | null {
+        switch (type) {
+            case 'bandpass6': return this.bandpass6.chambers.rear.tuning_goal_hz;
+            case 'abc': return this.abc.chambers.rear.tuning_goal_hz;
+            case 'sealed':
+            case 'vented':
+            case 'bandpass4':
+            case 'box-passive-radiator':
+                return null;
+        }
+    }
+
+    lossesOf(type: BoxType): BoxLosses | null {
+        switch (type) {
+            case 'sealed': return {Ql: this.sealed.losses.Ql, Qa: this.sealed.losses.Qa, Qp: null};
+            case 'vented': return {Ql: this.vented.losses.Ql, Qa: this.vented.losses.Qa, Qp: this.vented.losses.Qp};
+            case 'bandpass4': {
+                const {rear, front} = this.bandpass4.chambers;
+                return {Ql: rear.losses.Ql, Qa: rear.losses.Qa, Qp: front.losses.Qp};
+            }
+            case 'box-passive-radiator': return {Ql: this.passiveRadiator.losses.Ql, Qa: this.passiveRadiator.losses.Qa, Qp: null};
+            case 'bandpass6':
+            case 'abc':
+                return null;
+        }
+    }
+
+    volumeOf(type: BoxType): Readable<number> & Entered & Writable<number> {
         switch (type) {
             case 'sealed': return this.sealed.volume_m3;
             case 'vented': return this.vented.volume_m3;
