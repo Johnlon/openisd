@@ -57,19 +57,39 @@ const SRC_ROOTS = readdirSync(PACKAGES)
   .map(pkg => join(PACKAGES, pkg, 'src'))
   .filter(dir => existsSync(dir) && statSync(dir).isDirectory());
 
+interface ExportTarget { types?: string; default?: string }
+
+function isExportTarget(v: unknown): v is ExportTarget {
+  if (typeof v !== 'object' || v === null) return false;
+  return (!('types' in v) || typeof v.types === 'string')
+    && (!('default' in v) || typeof v.default === 'string');
+}
+
+/** `package.json`'s `exports` map, narrowed just enough to read subpath targets — the only shape
+ *  `entryPointsOf` reads. */
+function exportsMapOf(pkg: unknown): Record<string, ExportTarget | string> | undefined {
+  if (typeof pkg !== 'object' || pkg === null || !('exports' in pkg)) return undefined;
+  const map = pkg.exports;
+  if (typeof map !== 'object' || map === null) return undefined;
+  const out: Record<string, ExportTarget | string> = {};
+  for (const [key, entry] of Object.entries(map)) {
+    if (typeof entry === 'string' || isExportTarget(entry)) out[key] = entry;
+  }
+  return out;
+}
+
 /** Every entry point each package declares, across ALL subpaths of its exports map. A package
  *  with no map falls back to `src/index.ts`. These are the only specifiers permitted to serve a
  *  name they do not declare. */
 function entryPointsOf(srcRoot: string): string[] {
   const pkgDir = dirname(srcRoot);
   try {
-    const pkg = JSON.parse(readFileSync(join(pkgDir, 'package.json'), 'utf8')) as
-      { exports?: Record<string, { types?: string; default?: string } | string> };
-    const map = pkg.exports;
+    const pkg: unknown = JSON.parse(readFileSync(join(pkgDir, 'package.json'), 'utf8'));
+    const map = exportsMapOf(pkg);
     if (map) {
       const out: string[] = [];
       for (const entry of Object.values(map)) {
-        const rel = typeof entry === 'string' ? entry : (entry?.default ?? entry?.types);
+        const rel = typeof entry === 'string' ? entry : (entry.default ?? entry.types);
         if (rel) out.push(join(pkgDir, rel));
       }
       if (out.length) return out;
