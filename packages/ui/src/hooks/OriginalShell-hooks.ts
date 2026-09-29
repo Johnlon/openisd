@@ -44,6 +44,7 @@ import {
     enterVentField as enterVentFieldOn,
 } from '../logic/useVentGroup.js';
 import {createVentReadouts, FB_TARGET_TIP, VENT_GEOMETRY_TIP} from './ventReadouts.js';
+import {formatDateStamp, parseDateStamp} from '../logic/dateDisplay.js';
 import {createPassiveRadiatorActions} from './passiveRadiatorActions.js';
 import {buildPlotData, TAB_META} from '../logic/series.js';
 import {ChartSelection, type ChartItem} from './chartSelection.js';
@@ -637,8 +638,10 @@ const overlays = computed<Design[]>(() => {
   }
   const projectName = metaField(() => project.value.name.value, (v) => project.value.name.set(v));
   const projectCreator = metaField(() => project.value.creator.value, (v) => project.value.creator.set(v));
-  const projectCreated = metaField(() => project.value.created.value, (v) => project.value.created.set(v));
-  const projectModified = metaField(() => project.value.modified.value, (v) => project.value.modified.set(v));
+  const projectCreated = metaField(
+    () => formatDateStamp(project.value.created.value), (v) => project.value.created.set(parseDateStamp(v)));
+  const projectModified = metaField(
+    () => formatDateStamp(project.value.modified.value), (v) => project.value.modified.set(parseDateStamp(v)));
   const projectDescription = metaField(() => project.value.description.value, (v) => project.value.description.set(v));
 
   // ---- Signal Generator (real audio-out tone) ------------------------------------

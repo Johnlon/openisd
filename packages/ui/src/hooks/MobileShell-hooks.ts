@@ -17,7 +17,7 @@ import {createSelectedBox} from './boxFields.js';
  *  — a destination that has no desktop counterpart, because `GraphPanel`'s canvas sets
  *  `touch-action: none` (custom pointer pan/zoom) and would trap vertical scroll if it sat
  *  inline in a form column instead of owning the whole screen. */
-export type MobileDestination = Extract<TabId, 'box' | 'driver' | 'signal' | 'filters' | 'project' | 'enclosure' | 'advanced'> | 'graph';
+export type MobileDestination = Extract<TabId, 'box' | 'driver' | 'signal' | 'filters' | 'project' | 'enclosure' | 'advanced'> | 'graph' | 'drivers';
 
 export interface MobileShellApi {
   projectOpen: import('vue').ComputedRef<boolean>;
@@ -89,8 +89,12 @@ export function useMobileShell(): MobileShellApi {
     closeMenu();
   }
 
+  // Bug (John, live on his phone, 2026-09-29): "manage drivers appears as an overlay pop-up...
+  // should be a regular pane." A destination, not the global DriverBrowser overlay (which stays
+  // reachable, unchanged, from the Driver tab's own "Select driver" — MobileDriverTab-hooks.ts's
+  // own browseDrivers, a different function).
   function browseDrivers(): void {
-    presentationState.browseOpen = true;
+    destination.value = 'drivers';
     closeMenu();
   }
 

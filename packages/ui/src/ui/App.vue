@@ -149,4 +149,17 @@ onUnmounted(() => {
   transform: translateZ(0);
   overflow-x: hidden;
 }
+/* Bug (John, live on his phone, 2026-09-29): "openisd button should just open the splash as full
+   width scrolling it as a popup, popup is ok in the main app" — SplashModal.vue already scrolls
+   its own content (.sp's overflow:auto), the complaint is the 24px backdrop padding + centred
+   width cap leaving visible grey margins on a phone. Scoped to mobile only — SplashModal.vue
+   itself is shared with desktop, where the centred/padded look is unchanged. */
+.app-root-mobile :deep(.sp-backdrop) {
+  padding: 0;
+}
+.app-root-mobile :deep(.sp) {
+  width: 100%;
+  max-height: 100%;
+  border-radius: 0;
+}
 </style>
