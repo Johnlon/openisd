@@ -104,7 +104,7 @@ dia1=0
 dia2=0
 carea=0
 len=0
-endcorrection=0.6
+endcorrection=0.732
 crosscalc=1
 
 [VentRear]
@@ -116,7 +116,7 @@ dia1=0.06
 dia2=0.06
 carea=0.00282743338823081
 len=0.172879854593916
-endcorrection=0.6
+endcorrection=0.732
 crosscalc=1
 
 [VentIntra]
@@ -128,7 +128,7 @@ dia1=0
 dia2=0
 carea=0
 len=0
-endcorrection=0.6
+endcorrection=0.732
 crosscalc=1
 
 [PlotSettings]
