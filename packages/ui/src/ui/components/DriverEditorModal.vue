@@ -9,7 +9,7 @@ import {presentationState} from '../../logic/presentationState.js';
 import {useApp} from '../../logic/app.js';
 import {openDriverDraft, wiringOptions} from '../../logic/driverDraft.js';
 import {readDriverFileText} from '../../logic/driverFileText.js';
-import {driverToOwdrBytes, driverToWdrBytes, owdrTextToDriver, wdrTextToDriver} from '../../logic/fileImportExport.js';
+import {driverToOwdrBytes, driverToWdrBytes} from '../../logic/fileImportExport.js';
 import {cellClassOf} from '../../logic/useDriverCells.js';
 import {dqNoteFor, ebpVal as ebpValFor} from '../../hooks/DriverEditorModal-hooks.js';
 import type {DqReason} from '@openisd/design';
@@ -26,7 +26,7 @@ function cellOf(field: NumSpecField): Readable<number | null> & Entered & Calcul
   return fieldOf(field);
 }
 
-const { selection, myDrivers, logging, driverFileStorage } = useApp();
+const { selection, myDrivers, logging, driverFileStorage, designFiles } = useApp();
 
 // Driver editor — a modal. Recreates WinISD's "Driver editor" dialog (docs/winisd_screenshots/edit_driver_pg*.png):
 // 4 tabs — General / Parameters / Advanced parameters / Dimension
@@ -544,8 +544,8 @@ function handleFileLoaded(e: Event) {
       // A `.wdr` is read as-read by the serialiser then projected into the app's own record;
       // an `.owdr` IS that record already. One reader each, and no second parse invented here.
       const { value: read, errors } = format === DriverFileFormat.Wdr
-        ? wdrTextToDriver(text)
-        : owdrTextToDriver(text);
+        ? designFiles.wdrTextToDriver(text)
+        : designFiles.owdrTextToDriver(text);
       if (!read) { alert('Failed to parse file: ' + (errors[0]?.message ?? 'unreadable')); return; }
       draft.replace(read);
       forceUpdate();

@@ -1,11 +1,8 @@
 import {
+  type DesignFiles,
   driverToOwdrBytes,
   driverToWdrBytes,
-  owdrTextToDriver,
-  owprTextToProject,
   projectToWprBytes,
-  wdrTextToDriver,
-  wprTextToProject,
 } from './fileImportExport.js';
 /**
  * Design I/O orchestration — Save the committed project to browser storage, Save As the project
@@ -86,7 +83,7 @@ export interface DesignIO {
  * Save in the toolbar would track different files. Session-only either way — the File System
  * Access API does not persist handles across a page load.
  */
-export function createApplicationIO(deps: { logging: Logging; fileStorage: FileStorage; projectRepo: ProjectRepo }): DesignIO {
+export function createApplicationIO(deps: { logging: Logging; fileStorage: FileStorage; projectRepo: ProjectRepo; files: DesignFiles }): DesignIO {
   const flash = (msg: string) => deps.logging.flash(msg);
   const { download } = createFileSave();
 
@@ -185,7 +182,7 @@ export function createApplicationIO(deps: { logging: Logging; fileStorage: FileS
 
         if (format === DriverFileFormat.Wdr || format === DriverFileFormat.Owdr) {
           const { value: driver, errors } = format === DriverFileFormat.Wdr
-            ? wdrTextToDriver(text) : owdrTextToDriver(text);
+            ? deps.files.wdrTextToDriver(text) : deps.files.owdrTextToDriver(text);
           if (!driver) throw new Error(errors[0]?.message ?? `could not read ${format.value}`);
           // A driver file with a project open SWAPS the driver in place; with none open it is
           // recognised as a DRIVER (not a project) and starts the New Project wizard with it
@@ -198,7 +195,7 @@ export function createApplicationIO(deps: { logging: Logging; fileStorage: FileS
             presentationState.newProjectOpen = true;
           }
         } else if (format === ProjectFileFormat.Wpr) {
-          const { value: project, errors } = wprTextToProject(text);
+          const { value: project, errors } = deps.files.wprTextToProject(text);
           if (!project) throw new Error(errors[0]?.message ?? 'could not read .wpr');
           // Opening a project file is opening a NEW project — it never folds into whatever is
           // already open (a project already open keeps its own tab and contents).
@@ -210,7 +207,7 @@ export function createApplicationIO(deps: { logging: Logging; fileStorage: FileS
           project.save();
           addProject(project);
         } else if (format === ProjectFileFormat.Owpr || /^\s*\{/.test(text)) {
-          const { value: project, errors } = owprTextToProject(deps.projectRepo, text);
+          const { value: project, errors } = deps.files.owprTextToProject(text);
           if (!project) {
             // `errors[0]` alone is what the alert shows — one line is all a modal has room for —
             // but a schema mismatch commonly raises several field-level issues at once (QO152),

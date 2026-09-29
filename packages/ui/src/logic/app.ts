@@ -2,6 +2,7 @@ import {type App, inject, type InjectionKey} from 'vue';
 import type {DriverBrowsingState} from './driverBrowsingState.js';
 import type {DriverSelection} from './driverSelection.js';
 import type {DesignIO} from './useApplicationIO.js';
+import type {DesignFiles} from './fileImportExport.js';
 import type {
     BundledDriverRepo,
     BundledPassiveRadiatorRepo,
@@ -37,6 +38,7 @@ export interface AppLogic {
   driverBrowsing: DriverBrowsingState;
   selection: DriverSelection;
   designIO: DesignIO;
+  designFiles: DesignFiles;
   myPassiveRadiators: MyPassiveRadiatorRepo;
   bundledPassiveRadiators: BundledPassiveRadiatorRepo;
   bundledDrivers: BundledDriverRepo;
