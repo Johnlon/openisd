@@ -1,4 +1,17 @@
+import {cpus, loadavg} from 'node:os';
 import {configDefaults, defineConfig} from 'vitest/config';
+
+// Worker cap for a run started outside the pre-commit hook (the hook passes --maxWorkers from
+// scripts/hooks-local/heavy-gate-concurrency.sh, which overrides this). Several agent sessions
+// share this box, so one run never takes more than half the cores, and less when the 1-minute
+// load already exceeds that half (John, 2026-09-29: load average was causing timeouts).
+function workerCap(): number {
+  const cores = cpus().length;
+  const half = Math.max(1, Math.floor(cores / 2));
+  const load = loadavg()[0];
+  if (load <= half) return half;
+  return Math.max(1, Math.floor(half * half / load));
+}
 
 // Architecture tests are synchronous AST scans of the source tree: nothing in them awaits, so a
 // timeout can only fire because the machine is busy, and it then reports no offence at all. They
@@ -15,6 +28,7 @@ const UI_ARCHITECTURE = ['test/ui/architecture*.test.ts', 'test/ui/import-from-d
 // engine suite silently isn't discovered. One project per workspace package.
 export default defineConfig({
   test: {
+    maxWorkers: workerCap(),
     // A SKIP IS A FAIL — see scripts/test-reporters/no-skips-vitest.ts.
     reporters: ['default', './scripts/test-reporters/no-skips-vitest.ts'],
     coverage: {

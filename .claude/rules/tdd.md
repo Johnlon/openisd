@@ -9,7 +9,7 @@ paths:
 Never begin by editing a source file. Write the failing test first, at the lowest layer that can
 actually observe the bug or the feature:
 
-1. **Unit** (`vitest run <file>`, or `npm run test:unit` for all) — engine, design, persistence,
+1. **Unit** (`bash scripts/test.sh <file>`) — engine, design, persistence,
    any pure logic. No DOM, no Vue. Default choice.
 2. **Hook** (`packages/ui/test/hooks/*.test.ts`) — call the `*-hooks.ts` composable directly
    (refs/computed in, assert on the returned refs). No mount, no DOM. Covers UI-adjacent logic

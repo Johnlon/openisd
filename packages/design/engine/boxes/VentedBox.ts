@@ -4,7 +4,7 @@
  * https://aes.org/e-lib/browse.cfm?elib=2149
  */
 import {cAdd, cDiv, cMul, cPar, cSub, cx} from '../complex.js';
-import {portImpedance} from './port.js';
+import {portImpedance, winisdLinePortReactance} from './port.js';
 import type {SweepParams} from '../types.js';
 import type {BoxModel, BoxOutput, DriverSideQuantities} from './BoxModel.js';
 
@@ -66,16 +66,4 @@ export class VentedBox implements BoxModel {
       }
     }
   }
-}
-
-/**
- * WinISD's transmission-line port reactance, (ρc/S)·tan(ωL/c): S the port area, L the physical
- * length that tunes to Fb — the Fb mass's own length ρ·L/S = Map, less the end correction.
- * Fitted to winisd_research runs/vented-w5-tlports (impedance 2e-15;
- * toys/w5_tl_port_model_check.py); bugs/BUG_20260928_tl-port-model-not-winisd.md.
- */
-function winisdLinePortReactance(w: number, Map: number, rho: number, c: number, P: SweepParams): number {
-  const Sp = P.Sp ?? NaN;
-  const L = Map * Sp / rho - (P.portEndCorrection_m ?? NaN);
-  return rho * c / Sp * Math.tan(w * L / c);
 }

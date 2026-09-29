@@ -9,7 +9,7 @@ import {z} from 'zod';
 import type {SpecEntryJson} from './openisdSchema.js';
 
 /** DQ marks. A function, not a shared object: a module-scoped literal would be state, and each
- *  schema gets its own. Exported so `driverYmlToOpenisdAndWdr.ts`'s `scraperEntrySchema` (D9/D11)
+ *  schema gets its own. Exported so `winIsdDriverConverter.ts`'s `scraperEntrySchema` (D9/D11)
  *  can validate `dq_scraper` against the SAME shape this record stores, rather than a
  *  hand-duplicated copy free to drift. */
 export const dqMarks = () => z.strictObject({

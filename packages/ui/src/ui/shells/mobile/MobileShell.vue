@@ -7,6 +7,10 @@ import MobileBoxTab from './MobileBoxTab.vue';
 import MobileDriverTab from './MobileDriverTab.vue';
 import MobileSignalTab from './MobileSignalTab.vue';
 import MobileChartView from './MobileChartView.vue';
+import MobileProjectTab from './MobileProjectTab.vue';
+import MobileFiltersTab from './MobileFiltersTab.vue';
+import MobileEnclosureTab from './MobileEnclosureTab.vue';
+import MobileAdvancedTab from './MobileAdvancedTab.vue';
 import ExportMenu from '../../components/ExportMenu.vue';
 import OptionsModal from '../../components/OptionsModal.vue';
 import { useMobileShell } from '../../../hooks/MobileShell-hooks.js';
@@ -14,12 +18,13 @@ import { useMobileShell } from '../../../hooks/MobileShell-hooks.js';
 const {
   projectOpen, destination, fileInput, openImportedFile, openNewProject, switchToDesktop,
   menuOpen, toggleMenu, closeMenu, openFromDisk, isModified, saveProject, revertProject,
-  browseDrivers, optionsOpen, openOptions, about,
+  browseDrivers, optionsOpen, openOptions, about, goToProject, goToAdvanced, viewportHeightPx,
+  showEnclosureTab, enclosureNavLabel,
 } = useMobileShell();
 </script>
 
 <template>
-  <div class="mobile-root">
+  <div class="mobile-root" :style="{ height: viewportHeightPx ? viewportHeightPx + 'px' : undefined }">
     <input ref="fileInput" type="file" accept=".owpr,.wpr" style="display:none" @change="openImportedFile">
 
     <div v-if="!projectOpen" class="mob-empty">
@@ -43,8 +48,12 @@ const {
         <MobileBoxTab v-else-if="destination === 'box'" />
         <MobileDriverTab v-else-if="destination === 'driver'" />
         <MobileSignalTab v-else-if="destination === 'signal'" />
+        <MobileProjectTab v-else-if="destination === 'project'" />
+        <MobileFiltersTab v-else-if="destination === 'filters'" />
+        <MobileEnclosureTab v-else-if="destination === 'enclosure'" />
+        <MobileAdvancedTab v-else-if="destination === 'advanced'" />
       </main>
-      <MobileTabBar v-model="destination" />
+      <MobileTabBar v-model="destination" :show-enclosure="showEnclosureTab" :enclosure-label="enclosureNavLabel" />
 
       <div v-if="menuOpen" class="mob-menu-overlay" @click="closeMenu">
         <div class="mob-menu" @click.stop>
@@ -54,6 +63,8 @@ const {
           <button type="button" class="mob-menu-item" :disabled="!isModified" @click="revertProject">Revert unsaved changes</button>
           <ExportMenu class="mob-menu-item mob-menu-export">Save As / Export</ExportMenu>
           <div class="mob-menu-sep"></div>
+          <button type="button" class="mob-menu-item" @click="goToProject">Project details</button>
+          <button type="button" class="mob-menu-item" @click="goToAdvanced">Advanced</button>
           <button type="button" class="mob-menu-item" @click="browseDrivers">Manage Drivers</button>
           <button type="button" class="mob-menu-item" @click="openOptions">Options</button>
           <button type="button" class="mob-menu-item" @click="about(); closeMenu()">About OpenISD</button>
@@ -80,7 +91,20 @@ const {
   /* Chart readout popup (GraphPanel's .gread) — without this it falls back to style.css's
      dark default, rendered with the near-black --fg text above: an invisible "black box". */
   --readout-bg: rgba(248, 250, 252, 0.92);
-  min-height: 100vh;
+  /* A hard cap (height), not a floor (min-height): with min-height, any tab whose content is
+     taller than the screen made the WHOLE page grow and scroll together, carrying the tab bar
+     off the bottom with it. Capping the root's height forces .mob-content's flex:1 + its own
+     overflow-y:auto to actually contain that scrolling, so the topbar and tab bar stay pinned.
+     100vh on a real phone browser is also often taller than what's actually visible (it doesn't
+     shrink for the address bar) — 100dvh tracks the visible viewport; vh is the fallback for
+     browsers that don't support dvh. */
+  height: 100vh;
+  height: 100dvh;
+  /* Width/centering for the phone-pane look, and the fixed-position containing block for every
+     overlay app-wide, both live on App.vue's .app-root-mobile (a common ancestor of this AND
+     every modal/wizard, which this element alone is not). This element only needs its own
+     height (above) and position:relative, for ITS OWN .mob-menu-overlay drawer below. */
+  position: relative;
   display: flex;
   flex-direction: column;
   background: var(--bg);
@@ -90,6 +114,11 @@ const {
 }
 .mob-content {
   flex: 1;
+  /* display:flex here too (not just flex:1) so a full-screen child (the Graph destination) can
+     use flex:1 itself to fill this exactly — a block child's height:100% does not reliably
+     resolve against a flex ITEM's own implicit height, only against an explicit flex container. */
+  display: flex;
+  flex-direction: column;
   overflow-y: auto;
   padding-bottom: 8px;
 }
@@ -115,7 +144,10 @@ const {
 }
 .mob-hamburger span { display: block; width: 20px; height: 2px; background: var(--fg); border-radius: 1px; }
 .mob-menu-overlay {
-  position: fixed;
+  /* absolute, not fixed: covers .mobile-root (its containing block — see .mobile-root's own
+     position:relative) rather than the real browser window, so the drawer stays within the
+     phone pane instead of spanning/sliding out from the actual (possibly much wider) window. */
+  position: absolute;
   inset: 0;
   background: rgba(0, 0, 0, 0.25);
   z-index: 200;

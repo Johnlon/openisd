@@ -2,7 +2,7 @@
 
 ## Done, committed (`fbcc905`)
 
-Bridge (`../../packages/design/domain/driverYmlToOpenisdAndWdr.ts`) now strips two more things
+Bridge (`../../packages/design/domain/winIsdDriverConverter.ts`) now strips two more things
 before emitting `openisd.yml`, on top of the pre-existing `scraper_meta`/`definition` strips:
 
 - **`origin` from named metadata fields** (`manufacturer`, `brand`, `model`, `driver_type`,
@@ -18,7 +18,7 @@ Spec-entry `readingJsonSchema`/`specEntryJsonSchema` unchanged — already corre
 
 Design reasoning recorded in `drivers/drivers.md` Part A, all attributed John 2026-09-05.
 
-TDD: new test in `driverYmlToOpenisdAndWdr.test.ts` using a real corpus fixture
+TDD: new test in `winIsdDriverConverter.test.ts` using a real corpus fixture
 (`test/fixtures/corpus/scanspeak-15w-4424g00.driver.yml`, copied from the live corpus — genuine
 multi-source `Re` field with one OCR-misread reading marked `rejected:
 ohm-glyph-merged-as-digit`). All 16 tests in that file pass.
@@ -61,7 +61,7 @@ import { WinISDDriver } from '@openisd/design/winisd';
 import { conformingRecordToDriver, type OpenISDDriver } from '@openisd/design';
 import { Engine } from '@openisd/design/engine';
 import { winISDDriverToOpenISDDeviceJson } from '../../domain/openisdRecordSchema.js';
-import { openIsdDriverToWinIsdDriver } from '../../winisd/driverYmlToOpenisdAndWdr.js';
+import { openIsdDriverToWinIsdDriver } from '../../winisd/winIsdDriverConverter.js';
 
 function driverOf(wdr: string): OpenISDDriver {
   const { record } = winISDDriverToOpenISDDeviceJson(WinISDDriver.fromWdrIni(wdr));

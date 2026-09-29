@@ -64,7 +64,7 @@ box's** cells:
 
 - `rearResonance` reads `box.sealed.resonance_hz` (`packages/ui/src/hooks/OriginalShell-hooks.ts:89-92`)
   instead of `box.bandpass4.chambers.rear.resonance_hz` (the cell
-  `openIsdProjectToWinIsdProject.ts` reads for the rear chamber at `:131`).
+  `winIsdProjectConverter.ts` reads for the rear chamber at `:131`).
 - The front-chamber target wires to `box.vented.tuning_hz` — see the front-vent wiring bug
   `BUG_20260918_bandpass4-front-chamber-tuning-writes-vented-cell.md`.
 

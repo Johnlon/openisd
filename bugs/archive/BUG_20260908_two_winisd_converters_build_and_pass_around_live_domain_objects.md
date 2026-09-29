@@ -7,8 +7,8 @@ Status: RESOLVED (re-verified 2026-09-26) — both converters live in `packages/
 `packages/ui/test/ui/architecture.test.ts` reports an unapproved dependency:
 
 ```
-winisd->engine: packages/design/winisd/openIsdProjectToWinIsdProject.ts imports ../engine/index.js
-winisd->engine: packages/design/winisd/driverYmlToOpenisdAndWdr.ts imports @openisd/design/engine
+winisd->engine: packages/design/winisd/winIsdProjectConverter.ts imports ../engine/index.js
+winisd->engine: packages/design/winisd/winIsdDriverConverter.ts imports @openisd/design/engine
 ```
 
 and the same two files reach into the domain, which `ARCHITECTURE.md` §2 says they may not.
@@ -24,7 +24,7 @@ schemata - especially constants then that doesn't really count - more like a typ
 | `Box`, `FieldHandle`, `OpenIsdPassiveRadiatorSpec`, `DriverSpec` | types | no |
 | `winISDDriverToOpenISDDeviceJson`, `wdrFields` | pure functions in `domain/openisdSchema.ts`; take a value, return a value, hold nothing | no — schema vocabulary |
 | `OpenISDDriver`, `OpenISDProject`, `OpenISDPassiveRadiatorStandalone` | classes, used to CONSTRUCT domain objects | **yes** |
-| a live `OpenISDProject` | passed in at `openIsdProjectToWinIsdProject.ts:40`, returned at `:213` | **yes — the real breach** |
+| a live `OpenISDProject` | passed in at `winIsdProjectConverter.ts:40`, returned at `:213` | **yes — the real breach** |
 
 So `parstate.ts` and `winisdDriver.ts` — the actual `.wdr` reader and writer — are clean. Only
 the two converters are at fault, which their filenames already admit: each names both sides.
@@ -35,12 +35,12 @@ All in package `@openisd/design`, subpath `winisd/` (`packages/design/winisd/`).
 
 | File | Function | Domain classes used | What crosses | Breach |
 |---|---|---|---|---|
-| `openIsdProjectToWinIsdProject.ts` | `openIsdProjectToWinIsdProject` :39 | `OpenISDProject` | live instance **in** (:40) | yes |
-| `openIsdProjectToWinIsdProject.ts` | `winIsdProjectToOpenIsdProject` :211 | `OpenISDDriver` :221, `OpenISDProject` :229, `OpenISDPassiveRadiatorStandalone` :304 | constructs; live instance **out** (:213) | yes |
-| `driverYmlToOpenisdAndWdr.ts` | `openIsdDriverToWinIsdDriver` :466 | `OpenISDDriver` | live instance **in** | yes |
-| `driverYmlToOpenisdAndWdr.ts` | `winIsdDriverTextToOpenIsdDriver` :590 | `OpenISDDriver` | constructs; live instance **out** | yes |
-| `driverYmlToOpenisdAndWdr.ts` | `driverYmlToOpenisdAndWdr` :613 | via the two above | both directions | yes |
-| `driverYmlToOpenisdAndWdr.ts` | `radiatorStatedValues` :158, `statedValues` :189, `wdrVCCon` :434 | `OpenIsdPassiveRadiatorSpec`, `DriverSpec` — types | nothing | no |
+| `winIsdProjectConverter.ts` | `openIsdProjectToWinIsdProject` :39 | `OpenISDProject` | live instance **in** (:40) | yes |
+| `winIsdProjectConverter.ts` | `winIsdProjectToOpenIsdProject` :211 | `OpenISDDriver` :221, `OpenISDProject` :229, `OpenISDPassiveRadiatorStandalone` :304 | constructs; live instance **out** (:213) | yes |
+| `winIsdDriverConverter.ts` | `openIsdDriverToWinIsdDriver` :466 | `OpenISDDriver` | live instance **in** | yes |
+| `winIsdDriverConverter.ts` | `winIsdDriverTextToOpenIsdDriver` :590 | `OpenISDDriver` | constructs; live instance **out** | yes |
+| `winIsdDriverConverter.ts` | `driverYmlToOpenisdAndWdr` :613 | via the two above | both directions | yes |
+| `winIsdDriverConverter.ts` | `radiatorStatedValues` :158, `statedValues` :189, `wdrVCCon` :434 | `OpenIsdPassiveRadiatorSpec`, `DriverSpec` — types | nothing | no |
 | `parstate.ts` | — | `CellState` — type | nothing | no |
 | `winisdDriver.ts` | — | `CellState` — type | nothing | no |
 
@@ -50,10 +50,10 @@ These are not the same offence, and only one risks corrupting what the user is e
 
 | File | Function | Object crossing | Detached or linked | Why |
 |---|---|---|---|---|
-| `openIsdProjectToWinIsdProject.ts` | `winIsdProjectToOpenIsdProject` :211 | `OpenISDProject` **out** | **detached** | built here from `.wpr` text via `OpenISDProject.builder()`; the caller is its first holder. The writes at :325–337 land on this new object, not on anyone else's |
-| `driverYmlToOpenisdAndWdr.ts` | `winIsdDriverTextToOpenIsdDriver` :590 | `OpenISDDriver` **out** | **detached** | built here from `.wdr` text |
-| `openIsdProjectToWinIsdProject.ts` | `openIsdProjectToWinIsdProject` :39 | `OpenISDProject` **in** | **LINKED** | receives the UI's live project and reads through it — `project.driver` :45, `project.box` :48, `project.description`/`creator`/`created`/`modified` :60–63, `project.Rs_ohm` :67, `project.powerDrive_W()` :68 |
-| `driverYmlToOpenisdAndWdr.ts` | `openIsdDriverToWinIsdDriver` :466 | `OpenISDDriver` **in** | **LINKED** | receives the UI's live driver |
+| `winIsdProjectConverter.ts` | `winIsdProjectToOpenIsdProject` :211 | `OpenISDProject` **out** | **detached** | built here from `.wpr` text via `OpenISDProject.builder()`; the caller is its first holder. The writes at :325–337 land on this new object, not on anyone else's |
+| `winIsdDriverConverter.ts` | `winIsdDriverTextToOpenIsdDriver` :590 | `OpenISDDriver` **out** | **detached** | built here from `.wdr` text |
+| `winIsdProjectConverter.ts` | `openIsdProjectToWinIsdProject` :39 | `OpenISDProject` **in** | **LINKED** | receives the UI's live project and reads through it — `project.driver` :45, `project.box` :48, `project.description`/`creator`/`created`/`modified` :60–63, `project.Rs_ohm` :67, `project.powerDrive_W()` :68 |
+| `winIsdDriverConverter.ts` | `openIsdDriverToWinIsdDriver` :466 | `OpenISDDriver` **in** | **LINKED** | receives the UI's live driver |
 
 **Detached (out):** a factory in the format package returns an object nobody else holds. No state
 is shared. The layering complaint is only that a format package knows how to CONSTRUCT a domain
@@ -81,7 +81,7 @@ names from a different path.
 
 ## Evidence
 
-`../packages/design/domain/openIsdProjectToWinIsdProject.ts`, read 2026-09-08:
+`../packages/design/domain/winIsdProjectConverter.ts`, read 2026-09-08:
 
 ```ts
 line 21:  import { OpenISDDriver, OpenISDProject, OpenISDPassiveRadiatorStandalone } from '../domain/index.js';
@@ -112,7 +112,7 @@ project itself into WinISD's format.
 Not applied — needs John's ruling on placement, though the direction is implied by the existing
 approved dependency:
 
-- move `openIsdProjectToWinIsdProject.ts` and `driverYmlToOpenisdAndWdr.ts` to the domain side,
+- move `winIsdProjectConverter.ts` and `winIsdDriverConverter.ts` to the domain side,
   leaving `packages/design/winisd/` as the pure `.wdr`/`.wpr` reader and writer it claims to be;
   the approved `domain -> winisd` edge then covers them, and the `winisd -> engine` and
   `winisd -> domain` dependencies disappear rather than needing approval; or

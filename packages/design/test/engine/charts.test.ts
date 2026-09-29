@@ -58,26 +58,19 @@ describe('Engine.chartsFor', () => {
     assert.ok(charts.indexOf('PRExcursion') < charts.indexOf('FltMag'));
   });
 
-  it('a 6th-order bandpass box adds RearPort and FrontPort, no gain charts, no PR', () => {
+  // WinISD draws both gain charts for bandpass6 and ABC (winisd_research runs/bp6-w5-base2,
+  // abc-w5-base2, 2026-09-29: popup rows 14/16 titled "Rear port - Gain"/"Front port - Gain").
+  it('a 6th-order bandpass box adds RearPort, FrontPort and both port gains, no PR', () => {
     const charts = engine.box.chartsFor('bandpass6');
-    assert.ok(charts.includes('RearPort'));
-    assert.ok(charts.includes('FrontPort'));
-    assert.ok(!charts.includes('RearPortGain'));
-    assert.ok(!charts.includes('FrontPortGain'));
-    assert.deepEqual([...charts].sort(), [...engine.box.chartsFor('sealed'), 'RearPort', 'FrontPort'].sort());
+    assert.deepEqual([...charts].sort(), [...engine.box.chartsFor('sealed'), 'RearPort', 'RearPortGain', 'FrontPort', 'FrontPortGain'].sort());
     // WinISD row order: the port charts sit after Zph, before the filter trio.
     assert.ok(charts.indexOf('RearPort') > charts.indexOf('Zph'));
     assert.ok(charts.indexOf('FrontPort') < charts.indexOf('FltMag'));
   });
 
-  it('an ABC box adds RearPort, FrontPort and IntraPort (its own chart-21 row), no gain charts, no PR', () => {
+  it('an ABC box adds RearPort, FrontPort, IntraPort (its own chart-21 row) and both port gains, no PR', () => {
     const charts = engine.box.chartsFor('abc');
-    assert.ok(charts.includes('RearPort'));
-    assert.ok(charts.includes('FrontPort'));
-    assert.ok(charts.includes('IntraPort'));
-    assert.ok(!charts.includes('RearPortGain'));
-    assert.ok(!charts.includes('FrontPortGain'));
-    assert.deepEqual([...charts].sort(), [...engine.box.chartsFor('sealed'), 'RearPort', 'FrontPort', 'IntraPort'].sort());
+    assert.deepEqual([...charts].sort(), [...engine.box.chartsFor('sealed'), 'RearPort', 'RearPortGain', 'FrontPort', 'FrontPortGain', 'IntraPort'].sort());
     // WinISD row order: the port charts sit after Zph, before the filter trio.
     assert.ok(charts.indexOf('RearPort') > charts.indexOf('Zph'));
     assert.ok(charts.indexOf('IntraPort') < charts.indexOf('FltMag'));

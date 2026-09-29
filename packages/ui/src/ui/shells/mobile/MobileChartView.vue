@@ -31,8 +31,11 @@ const { chartTab, chartLabel, selectChart, traceColour, CHART_ITEMS } = useMobil
 .mob-chart-view {
   display: flex;
   flex-direction: column;
-  height: 100%;
-  min-height: calc(100vh - 56px);
+  /* .mob-content (MobileShell.vue) is a real flex container with a JS-measured, hard-capped
+     height, so flex:1 here fills it exactly — no independent viewport calc that could disagree
+     with the parent's own (more robust) sizing. */
+  flex: 1;
+  min-height: 0;
 }
 .mob-chart-head {
   padding: 8px 12px;

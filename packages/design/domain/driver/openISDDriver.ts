@@ -4,7 +4,7 @@ import { realAppContext } from '../appContext.js';
 import type { AppContext } from '../appContext.js';
 import { ReadableFieldImpl, SetOnlyFieldImpl, absentCell, enteredCell, resolvingField } from '../cell.js';
 import type { Calculated, Clearable, Entered, Readable, SimpleField, Writable } from '../cell.js';
-import { DriverFileConverter, openIsdDriverToWinIsdDriver } from '../driverYmlToOpenisdAndWdr.js';
+import { WinIsdDriverConverter, openIsdDriverToWinIsdDriver } from '../winIsdDriverConverter.js';
 import { newUuid } from '../newUuid.js';
 import { asDriverDevice } from '../openisdSchema.js';
 import type { DriverDeviceJson } from '../openisdSchema.js';
@@ -120,7 +120,7 @@ export abstract class OpenISDDriver extends OpenISDDevice {
         this.record = record;
         this.airProvider = airProvider;
         const air = (): Air => engine.environment.solve(airProvider()).values;
-        this.specs = new OpenIsdDriverSpec(record, 'woofer', engine, air, durableIssues);
+        this.specs = new OpenIsdDriverSpec(record, 'woofer', engine.driver, engine.issues, air, durableIssues);
     }
 
     /** T11/S2-7c: resolve this driver's spec — write every derivable quantity back
@@ -308,7 +308,7 @@ export abstract class OpenISDDriver extends OpenISDDevice {
     /** WinISD `.wdr` text back to a driver. The inverse of `toWdrIniText()`, as far as a format
      *  carrying fewer fields allows. */
     static fromWdrIniText(text: string, engine: Engine): { value: OpenISDDriver | null; errors: DriverError[] } {
-        return new DriverFileConverter(engine).winIsdDriverTextToOpenIsdDriver(text);
+        return new WinIsdDriverConverter(engine).winIsdDriverToOpenIsdDriver(text);
     }
 }
 
@@ -361,7 +361,7 @@ export class OpenISDDriverStandalone extends OpenISDDriver {
     }
 
     /** `airProvider` defaults to the reference environment — every existing caller
-     *  (`conformingRecordToDriver`, tests, `driverYmlToOpenisdAndWdr.ts`) passes none. A caller
+     *  (`conformingRecordToDriver`, tests, `winIsdDriverConverter.ts`) passes none. A caller
      *  holding an app-level environment (the UI, constructing a My Drivers row) passes its own. */
     static wrap(
         json: DriverDeviceJson,

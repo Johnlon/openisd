@@ -1,7 +1,7 @@
 /**
  * Shared `.wdr` fixtures — the 48-row structure, stated here once so no test re-states it.
  *
- * The reader (`openisdSchema.ts`) and the writer (`driverYmlToOpenisdAndWdr.ts`) each spell the
+ * The reader (`openisdSchema.ts`) and the writer (`winIsdDriverConverter.ts`) each spell the
  * 48 rows out explicitly, in the file's own order. This list is the test's independent statement
  * of that order — never derived from production code.
  */

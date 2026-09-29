@@ -67,7 +67,7 @@ no-globals gate rightly rejects, and tests build engines freely. Gate: `createEn
 only in `packages/ui/src/logic/appState.ts` (the composition root) and under `test/`.
 
 Callers: `new Engine(` → `createEngine(` (two in source: `appState.ts:150`, and
-`driverYmlToOpenisdAndWdr.ts:750` which stops constructing one — see D). Tests likewise.
+`winIsdDriverConverter.ts:750` which stops constructing one — see D). Tests likewise.
 
 ### B. The engine package publishes cohesive areas — `FilterEngine`, `VentEngine`, …
 
@@ -127,9 +127,9 @@ classes constructed once with the engine; callers hold the component, never the 
 another object.
 
 Representative:
-- `driverYmlToOpenisdAndWdr.ts` — its functions become `DriverFileConverter` (constructed with
+- `winIsdDriverConverter.ts` — its functions become `WinIsdDriverConverter` (constructed with
   the engine; today it builds its own at line 750).
-- `openIsdProjectToWinIsdProject.ts` — `WinIsdProjectWriter`.
+- `winIsdProjectConverter.ts` — `WinIsdProjectWriter`.
 - `projectFormulaDq.ts`, `driverSolverParamsOf.ts`, box windows (`ventedChamberWindow.ts`,
   `openISDBox.ts` `requiredField(..., engine.positiveValueIssue)`) — the owning domain object
   already holds an engine; these become its methods or receive the one collaborator they use.

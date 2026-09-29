@@ -77,7 +77,7 @@ The dead `errors`/`blocking` block goes with it — the real errors are the ones
 
 Applied, together with one exclusion the restored gate immediately needed. With derivation back in
 the cycle the gate reported a `ParState` divergence at slot 46, `VCCon`: `N` in, `E` out. That one
-is intended and already documented at `driverYmlToOpenisdAndWdr.ts:240-247` — `VCCon`'s ParState
+is intended and already documented at `winIsdDriverConverter.ts:240-247` — `VCCon`'s ParState
 slot is unproven, so a reader consults only whether the `VCCon=` row is PRESENT, never its mark,
 and reading back a row our writer marked `N` therefore yields `entered`. The comment calls it "a
 one-time, DOCUMENTED gain of certainty, not a loss, and not a coding error", and a second round

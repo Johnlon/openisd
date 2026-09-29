@@ -1,6 +1,6 @@
 # `Sd` marked `calculable: false` in `INI_ROWS_META` — a derived `Sd` exports as `E`, never `C`
 
-Status: OPEN (re-verified 2026-09-26) — the `.wdr` writer still passes `calculable: false` for Sd, so a derived Sd is written as E (`driverYmlToOpenisdAndWdr.ts`).
+Status: OPEN (re-verified 2026-09-26) — the `.wdr` writer still passes `calculable: false` for Sd, so a derived Sd is written as E (`winIsdDriverConverter.ts`).
 
 ## Symptom
 
@@ -28,7 +28,7 @@ is wrong.
 `Dd` (`:92`, `{key: 'Dd', calculable: true}`) — the same derivation relationship in the other
 direction — is correctly `true`. Same mechanism as the already-fixed `Rme` defect
 (`BUG_20260905_rme_marked_noncalculable_in_ini_rows_meta.md`):
-`driverYmlToOpenisdAndWdr.ts:557-559` marks a solver-derived value `calculated` only when its
+`winIsdDriverConverter.ts:557-559` marks a solver-derived value `calculated` only when its
 key is in `WINISD_CALCULABLE`, else `entered`.
 
 ## Cause

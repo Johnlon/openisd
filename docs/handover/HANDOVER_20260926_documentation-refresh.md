@@ -101,7 +101,7 @@ formula, vent end-correction constants, and others — each with its own evidenc
   table it no longer needed.
 - `docs/design/WINISD_SCHEMA.md` — relation count fixed (26 → 27), two dead file references
   repointed to where that logic actually lives now (`solver.ts`, not `driver.ts`;
-  `openIsdProjectToWinIsdProject.ts`, not `wprMapping.ts`).
+  `winIsdProjectConverter.ts`, not `wprMapping.ts`).
 
 ### `CONTRIBUTING.md` / `TESTING_STRATEGY.md` / `DOCUMENTATION.md` / `FEATURES.md`
 
