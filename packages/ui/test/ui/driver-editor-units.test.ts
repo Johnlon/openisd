@@ -30,7 +30,7 @@ import {CellClass, cellClassOf} from '../../src/logic/useDriverCells.js';
 import {OpenISDDriver, VoiceCoilWiring} from '@openisd/design';
 import {createEngine} from '@openisd/design/engine';
 import {DateField, EnumField, Field, NumberField, TextField, ToggleField} from '@openisd/design/fields';
-import {nextToken, toDisplay, UNIT_GROUPS, unitDef, type UnitGroup} from '../../src/logic/fields/units.js';
+import {nextToken, toDisplay, UNIT_GROUPS, unitDef} from '../../src/logic/fields/units.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const EDITOR = join(here, '..', '..', 'src', 'ui', 'components', 'DriverEditorModal.vue');
@@ -96,16 +96,16 @@ function boundFields(): Bound[] {
     const regMatch = /:field="(\w+Field)\.([A-Z0-9_]+)"/.exec(numInput);
     const regField = regMatch ? memberNamed(regMatch[1], regMatch[2]) : null;
 
-    // A field with a click-to-rotate unit binds `field`/`group`/`base` on the NumInput itself
-    // and renders its unit label through `<UnitToggle .../>`, a COMPONENT — the text "mm" or
-    // "kHz" lives inside UnitToggle.vue's own template, not literally in this file's source, so
-    // scraping this file's raw text for it (as the fixed-unit fields below do) always found
-    // nothing. `unitDef()` is the same resolver NumInput/UnitToggle use at runtime, so asking it
-    // for the field's BASE token gives the exact label/factor a fresh render shows.
-    const groupMatch = /\bgroup="([A-Za-z]+)"/.exec(numInput);
-    const baseMatch = /\bbase="([A-Za-z0-9.]+)"/.exec(numInput);
-    if (groupMatch && baseMatch) {
-      const def = unitDef(groupMatch[1] as UnitGroup, baseMatch[1]);
+    // A field with a click-to-rotate unit is SWITCHABLE on its own registry entry — the template
+    // carries only `:field=`, never a separate `group=`/`base=` (BUG_20260928, "NumInput's
+    // group/base props are a fourth table"; the field states its display once, as
+    // `NumberField.display`). Its unit label lives inside UnitToggle.vue's own template, not
+    // literally in this file's source, so `unitDef()` — the same resolver NumInput/UnitToggle use
+    // at runtime — is asked for the field's BASE token, giving the exact label/factor a fresh
+    // render shows.
+    if (regField instanceof NumberField && regField.display.kind === 'switchable') {
+      const {group, base} = regField.display;
+      const def = unitDef(group, base);
       out.push({ label, field, scale: def.factor, precision: evalNum(precisionExpr, 2), unit: def.label, precisionExpr, toggleable: true, regField });
       continue;
     }
@@ -243,9 +243,11 @@ describe('resistance unit group — Ns/m ↔ kg/s, factor 1 (ledger QO51)', () =
     }
   });
 
-  it('Rms, Rme and Mcost declare the resistance unitGroup in the field registry', () => {
+  it('Rms, Rme and Mcost declare the resistance group on their display', () => {
     for (const f of RESISTANCE_FIELDS) {
-      assert.equal(f.unitGroup, 'resistance', `${f.value} does not carry unitGroup: 'resistance'`);
+      assert.equal(f.display.kind, 'switchable', `${f.value} is not a switchable display`);
+      assert.equal(f.display.kind === 'switchable' ? f.display.group : null, 'resistance',
+        `${f.value} does not carry display.group: 'resistance'`);
     }
   });
 
@@ -308,9 +310,11 @@ describe('percent unit group — one unit, the ONE place a fraction becomes a pe
       'nextToken must return the same token — a single-unit group has nowhere to rotate to');
   });
 
-  it('no and Gloss declare the percent unitGroup in the field registry', () => {
+  it('no and Gloss declare the percent group on their display', () => {
     for (const f of [NumberField.NO, NumberField.GLOSS]) {
-      assert.equal(f.unitGroup, 'percent', `${f.value} does not carry unitGroup: 'percent'`);
+      assert.equal(f.display.kind, 'switchable', `${f.value} is not a switchable display`);
+      assert.equal(f.display.kind === 'switchable' ? f.display.group : null, 'percent',
+        `${f.value} does not carry display.group: 'percent'`);
     }
   });
 
@@ -420,8 +424,10 @@ describe('driver editor — precision comes from the field registry', () => {
         `NumberField.${member}.precision`,
         `${label} hardcodes :precision="${f.precisionExpr || '(absent — NumInput default 2)'}" instead of reading the registry`,
       );
-      assert.equal(spec.unit, f.unit,
-        `the registry says ${spec.value} is in "${spec.unit}"; the editor labels it "${f.unit}"`);
+      const registryUnit = spec.display.kind === 'fixed' ? spec.display.symbol
+        : unitDef(spec.display.group, spec.display.base).label;
+      assert.equal(registryUnit, f.unit,
+        `the registry says ${spec.value} is in "${registryUnit}"; the editor labels it "${f.unit}"`);
     });
   }
 

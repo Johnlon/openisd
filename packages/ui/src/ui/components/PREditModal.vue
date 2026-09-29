@@ -57,13 +57,13 @@ useEscToClose(() => true, close);
         </div>
         <div class="row" data-field-key="prSd" :title="NumberField.PR_SD_CM2.description">
           <label>Sd</label>
-          <NumInput :model-value="radiator.spec.Sd_m2.value" @update:model-value="v => radiator.spec.Sd_m2.set(v ?? 0)" :field="NumberField.PR_SD_CM2" unit-key="prSd" group="area" base="cm2" :precision="4" />
-          <UnitToggle field="prSd" group="area" base="cm2" unit-class="u" />
+          <NumInput :model-value="radiator.spec.Sd_m2.value" @update:model-value="v => radiator.spec.Sd_m2.set(v ?? 0)" :field="NumberField.PR_SD_CM2" unit-key="prSd" :precision="4" />
+          <UnitToggle :field="NumberField.PR_SD_CM2" unit-key="prSd" unit-class="u" />
         </div>
         <div class="row" data-field-key="prXmax" :title="NumberField.PR_XMAX_MM.description">
           <label>Xmax</label>
-          <NumInput :model-value="radiator.spec.Xmax_m.value" @update:model-value="v => radiator.spec.Xmax_m.set(v ?? 0)" :field="NumberField.PR_XMAX_MM" unit-key="prXmax" group="length" base="mm" :precision="3" />
-          <UnitToggle field="prXmax" group="length" base="mm" unit-class="u" />
+          <NumInput :model-value="radiator.spec.Xmax_m.value" @update:model-value="v => radiator.spec.Xmax_m.set(v ?? 0)" :field="NumberField.PR_XMAX_MM" unit-key="prXmax" :precision="3" />
+          <UnitToggle :field="NumberField.PR_XMAX_MM" unit-key="prXmax" unit-class="u" />
         </div>
         <div class="row" data-field-key="prFs" :title="NumberField.PR_FS_HZ.description">
           <label>Fs</label>
@@ -82,8 +82,8 @@ useEscToClose(() => true, close);
         </div>
         <div class="row" data-field-key="prVas" :title="NumberField.PR_VAS_L.description">
           <label>Vas</label>
-          <NumInput :model-value="radiator.spec.Vas_m3.value" @update:model-value="v => radiator.spec.Vas_m3.set(v ?? 0)" :field="NumberField.PR_VAS_L" unit-key="prVas" group="volume" base="L" :precision="3" />
-          <UnitToggle field="prVas" group="volume" base="L" unit-class="u" />
+          <NumInput :model-value="radiator.spec.Vas_m3.value" @update:model-value="v => radiator.spec.Vas_m3.set(v ?? 0)" :field="NumberField.PR_VAS_L" unit-key="prVas" :precision="3" />
+          <UnitToggle :field="NumberField.PR_VAS_L" unit-key="prVas" unit-class="u" />
         </div>
 
         <div class="btns" style="margin-top:8px">

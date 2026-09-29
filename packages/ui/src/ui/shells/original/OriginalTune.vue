@@ -7,8 +7,8 @@
 import {onMounted, onUnmounted, reactive, ref} from 'vue';
 import {presentationState} from '../../../logic/presentationState.js';
 import {useFocusedProject} from '../../../logic/focusedProjectContext.js';
-import {fromDisplay, statedPrecision, toDisplay} from '../../../logic/fields/units.js';
-import {NumberField, type UnitGroup} from '@openisd/design/fields';
+import {fromDisplay, statedPrecision, toDisplay, unitDef} from '../../../logic/fields/units.js';
+import {NumberField} from '@openisd/design/fields';
 import {cellClassOf} from '../../../logic/useDriverCells.js';
 import NumInput from '../../components/NumInput.vue';
 import UnitToggle from '../../components/UnitToggle.vue';
@@ -26,34 +26,47 @@ type NumKey = 'Fs_hz' | 'Qts' | 'Qes' | 'Qms' | 'Vas_m3' | 'Sd_m2' | 'Re_ohm' | 
 
 function enterField(key: NumKey, v: number, precision?: number): void { tune.enterField(key, v, precision); }
 function clearField(key: NumKey): void { tune.clearField(key); }
-// Raw driver values are SI (Vas m³, Sd m², Le H, Xmax m, Mms kg); a field with a `group`/
-// `token` displays and accepts input via the one units.ts conversion (`display = SI × factor`);
-// a field with neither is already shown in its SI unit (Hz, Ω, W, T·m, dimensionless Q).
-// Decimal places come from the field registry (fieldDp) — the single source of truth — so
-// the units here MUST match the registry's unit.
-interface TuneField { key: NumKey; def: NumberField; label: string; group?: UnitGroup; token?: string; unit: string }
+// Raw driver values are SI (Vas m³, Sd m², Le H, Xmax m, Mms kg). Whether a field displays and
+// accepts input via the units.ts conversion, and which group/token it uses, comes from the
+// field's OWN `def.display` (`swDisplay` below) — never a second group/token/unit stated here,
+// which could silently disagree with the registry (BUG_20260928, "NumInput's group/base props
+// are a fourth table"). A `fixed` field is already shown in its SI unit (Hz, Ω, W, T·m,
+// dimensionless Q).
+interface TuneField { key: NumKey; def: NumberField; label: string }
 const MAIN: TuneField[] = [
-  { key: 'Fs_hz', def: NumberField.FS_HZ,  label: 'Fs',  unit: 'Hz' },
-  { key: 'Qts', def: NumberField.QTS, label: 'Qts', unit: '' },
-  { key: 'Qes', def: NumberField.QES, label: 'Qes', unit: '' },
-  { key: 'Qms', def: NumberField.QMS, label: 'Qms', unit: '' },
-  { key: 'Vas_m3', def: NumberField.VAS_M3, label: 'Vas', group: 'volume', token: 'L',   unit: 'l' },
-  { key: 'Sd_m2', def: NumberField.SD_M2,  label: 'Sd',  group: 'area',   token: 'cm2', unit: 'cm²' },
-  { key: 'Re_ohm', def: NumberField.RE_OHM,  label: 'Re',  unit: 'Ω' },
+  { key: 'Fs_hz', def: NumberField.FS_HZ,  label: 'Fs' },
+  { key: 'Qts', def: NumberField.QTS, label: 'Qts' },
+  { key: 'Qes', def: NumberField.QES, label: 'Qes' },
+  { key: 'Qms', def: NumberField.QMS, label: 'Qms' },
+  { key: 'Vas_m3', def: NumberField.VAS_M3, label: 'Vas' },
+  { key: 'Sd_m2', def: NumberField.SD_M2,  label: 'Sd' },
+  { key: 'Re_ohm', def: NumberField.RE_OHM,  label: 'Re' },
 ];
 const OPTIONAL: TuneField[] = [
-  { key: 'Le_H', def: NumberField.LE_H,   label: 'Le',   group: 'inductance', token: 'mH', unit: 'mH' },
-  { key: 'Xmax_m', def: NumberField.XMAX_M, label: 'Xmax', group: 'length',      token: 'mm', unit: 'mm' },
-  { key: 'Pe_W', def: NumberField.PE_W,   label: 'Pe',   unit: 'W' },
+  { key: 'Le_H', def: NumberField.LE_H,   label: 'Le' },
+  { key: 'Xmax_m', def: NumberField.XMAX_M, label: 'Xmax' },
+  { key: 'Pe_W', def: NumberField.PE_W,   label: 'Pe' },
 ];
 // Bl and Mms are ordinary driver fields, not outputs: the ADT derives them when they are not
 // entered and honours them when they are (Driver.enter → state E → fixed-E override), exactly
 // as the driver editor already treats them. So they are edited here like any other field, and
 // the E/C colour says which of the two is happening.
 const DERIVED: TuneField[] = [
-  { key: 'BL_Tm', def: NumberField.BL_TM,  label: 'Bl',  unit: 'T·m' },
-  { key: 'Mms_kg', def: NumberField.MMS_KG, label: 'Mms', group: 'mass', token: 'g', unit: 'g' },
+  { key: 'BL_Tm', def: NumberField.BL_TM,  label: 'Bl' },
+  { key: 'Mms_kg', def: NumberField.MMS_KG, label: 'Mms' },
 ];
+
+/** `f`'s own group + base token, when its display is switchable — the one source `disp`/
+ *  `onField`/`scaledLimits`/the template's unit span all read, instead of each repeating it. */
+function swDisplay(f: TuneField) {
+  return f.def.display.kind === 'switchable' ? f.def.display : undefined;
+}
+/** The unit text shown beside the field: the registry's own symbol (fixed), or the base token's
+ *  label out of `UNIT_GROUPS` (switchable) — never a second string. */
+function unitLabel(f: TuneField): string {
+  const d = f.def.display;
+  return d.kind === 'fixed' ? d.symbol : unitDef(d.group, d.base).label;
+}
 
 // While a field is focused, echo the RAW typed string (so mid-typing values like
 // "4" → "42" aren't reformatted out from under the caret); reformat on blur.
@@ -67,7 +80,8 @@ function disp(f: TuneField): string {
   void project.value;
   const v = tune.specField(f.key).value;
   if (typeof v !== 'number' || !isFinite(v)) return '';
-  const d = f.group && f.token ? toDisplay(v, f.group, f.token) : v;
+  const sw = swDisplay(f);
+  const d = sw ? toDisplay(v, sw.group, sw.base) : v;
   return d.toFixed(f.def.precision);
 }
 function fieldVal(f: TuneField): string {
@@ -83,8 +97,11 @@ function onField(f: TuneField, e: Event) {
   if (raw.trim() === '') clearField(f.key);
   // The typed characters state the precision, so they are what it is read off — `raw`, never the
   // parsed number (which has already dropped "30.00"'s trailing zeros).
-  else if (isFinite(v)) enterField(f.key, f.group && f.token ? fromDisplay(v, f.group, f.token) : v,
-                                   statedPrecision(raw, f.group, f.token));
+  else if (isFinite(v)) {
+    const sw = swDisplay(f);
+    enterField(f.key, sw ? fromDisplay(v, sw.group, sw.base) : v,
+               sw ? statedPrecision(raw, sw.group, sw.base) : statedPrecision(raw));
+  }
 }
 function onBlur(f: TuneField) { delete rawVals[f.key]; }
 
@@ -92,8 +109,9 @@ function onBlur(f: TuneField) { delete rawVals[f.key]; }
 // the same conversion (e.g. Vas max 100 m³ → 100000 L).
 function scaledLimits(f: TuneField): { min?: number; max?: number } {
   const lim = f.def.limits;
-  if (!f.group || !f.token) return { min: lim.min, max: lim.max };
-  return { min: toDisplay(lim.min, f.group, f.token), max: toDisplay(lim.max, f.group, f.token) };
+  const sw = swDisplay(f);
+  if (!sw) return { min: lim.min, max: lim.max };
+  return { min: toDisplay(lim.min, sw.group, sw.base), max: toDisplay(lim.max, sw.group, sw.base) };
 }
 
 // Any two of the Q trio solve the third, so all three are flagged together while fewer than
@@ -194,7 +212,7 @@ useEscToClose(() => presentationState.editDriver, cancel);
               </div>
             </Teleport>
           </div>
-          <span v-if="f.unit">{{ f.unit }}</span>
+          <span v-if="unitLabel(f)">{{ unitLabel(f) }}</span>
         </div>
       </div>
     </div>
@@ -204,8 +222,8 @@ useEscToClose(() => presentationState.editDriver, cancel);
       <div class="tune-fld" title="Net acoustic internal volume — excludes driver displacement, port tube volume and bracing. The same box volume the Box tab edits; Cancel puts it back. WinISD: Vb.">
         <label>Vb</label>
         <div class="tune-unit">
-          <NumInput :model-value="vb_m3" @update:model-value="v => setVb_m3(v ?? 0)" :field="NumberField.BOX_VB_L" unit-key="Vb" group="volume" base="L" :precision="4" />
-          <UnitToggle field="Vb" group="volume" base="L" />
+          <NumInput :model-value="vb_m3" @update:model-value="v => setVb_m3(v ?? 0)" :field="NumberField.BOX_VB_L" unit-key="Vb" :precision="4" />
+          <UnitToggle :field="NumberField.BOX_VB_L" unit-key="Vb" />
         </div>
       </div>
     </div>
@@ -224,7 +242,7 @@ useEscToClose(() => presentationState.editDriver, cancel);
               </div>
             </Teleport>
           </div>
-          <span v-if="f.unit">{{ f.unit }}</span>
+          <span v-if="unitLabel(f)">{{ unitLabel(f) }}</span>
         </div>
       </div>
     </div>
@@ -243,7 +261,7 @@ useEscToClose(() => presentationState.editDriver, cancel);
               </div>
             </Teleport>
           </div>
-          <span v-if="f.unit">{{ f.unit }}</span>
+          <span v-if="unitLabel(f)">{{ unitLabel(f) }}</span>
         </div>
       </div>
       <!-- EBP is NOT a driver field: the ADT does not derive it and has no slot to override

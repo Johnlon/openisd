@@ -38,10 +38,10 @@ const {
         <span class="mob-field-label">Volume</span>
         <span class="mob-field-value">
           <NumInput :model-value="boxVolume_m3" @update:model-value="(v: number | null) => setBoxVolume_m3(v ?? 0)"
-                    :field="NumberField.BOX_VB_L" unit-key="Vb" group="volume" base="L" :precision="NumberField.BOX_VB_L.precision" />
+                    :field="NumberField.BOX_VB_L" unit-key="Vb" :precision="NumberField.BOX_VB_L.precision" />
         </span>
       </div>
-      <UnitToggle field="Vb" group="volume" base="L" unit-class="mob-unit" />
+      <UnitToggle :field="NumberField.BOX_VB_L" unit-key="Vb" unit-class="mob-unit" />
     </div>
     <p v-if="boxVolumeDqNote" class="mob-hint mob-hint-warn">{{ boxVolumeDqNote }}</p>
 
