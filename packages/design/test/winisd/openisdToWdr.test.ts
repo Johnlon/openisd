@@ -38,6 +38,21 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..', '..
 const ORACLE = join(ROOT, 'drivers', 'myprobes', 'per_field_and_misc', 'john-all-defaults.wdr');
 const FIXTURES = join(dirname(fileURLToPath(import.meta.url)), 'fixtures', 'openisd');
 
+function isRecord(v: unknown): v is Record<string, unknown> {
+  return typeof v === 'object' && v !== null;
+}
+
+/** Walks a parsed JSON `unknown` value one key at a time, throwing the moment a step does not
+ *  match the shape expected — this file's only way to read into a parsed fixture, never a cast. */
+function at(v: unknown, ...path: string[]): unknown {
+  let cur = v;
+  for (const key of path) {
+    if (!isRecord(cur)) throw new Error(`expected an object at .${key}, got ${typeof cur}`);
+    cur = cur[key];
+  }
+  return cur;
+}
+
 /** Ordered `.wdr` keys of a file — the format fingerprint. */
 function keysOf(wdr: string): string[] {
   return wdr.split(/\r?\n/)
@@ -182,8 +197,9 @@ describe('openisd.json → winisd.wdr — format conformance (oracle: drivers/my
     // the app no longer produces. `Vcd` is the voice coil diameter — 38 mm, stored SI as 0.038 m,
     // and NOT to be confused with `Dia` or `Dd` (WINISD_SCHEMA.md §3.6).
     const rawJson = readFileSync(join(FIXTURES, 'e150he-44.openisd.json'), 'utf8');
-    const record = JSON.parse(rawJson) as { specs: { woofer: { Vcd_m: { readings: { manufacturer_datasheet: { read_value: number } } } } } };
-    assert.equal(record.specs.woofer.Vcd_m.readings.manufacturer_datasheet.read_value, 0.038);
+    const parsedRecord: unknown = JSON.parse(rawJson);
+    const vcdReadValue = at(parsedRecord, 'specs', 'woofer', 'Vcd_m', 'readings', 'manufacturer_datasheet', 'read_value');
+    assert.equal(vcdReadValue, 0.038);
 
     const { value, errors } = wdrOf(rawJson);
     assert.deepEqual(errors.filter((e: DriverError) => e.level === 'error'), []);

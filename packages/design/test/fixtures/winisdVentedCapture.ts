@@ -13,14 +13,8 @@ export interface WinIsdComplexPoint {
   readonly im: number;
 }
 
-export const WINISD_VENTED_CAPTURE = Object.freeze({
-  run: 'vented-w5-2',
-  wpr: 'vented-w5-2/w5.wpr',
-  driver: {Fs: 45, Qes: 0.57, Qms: 3.56, Vas: 0.00485, Re: 3.4, Sd: 0.0094, BL: 7.17, Le: 0.00034},
-  box: {Vb: 0.01, Fb: 38.0, Ql: 7.0, Qa: 30.0, Qp: 15.0, ventDia: 0.05, ventLen: 0.2, endCorrection: 0.732},
-  env: {T: 293.15, p: 101325, phi: 0.3},
-  /** Plot kind 6. */
-  impedance: [
+
+const WINISD_VENTED_CAPTURE_IMPEDANCE: readonly WinIsdComplexPoint[] = [
     {f: 1.0, re: 3.40088723818915, im: 0.12508202673996296},
     {f: 1.0191811354633138, re: 3.4009216700086933, im: 0.12748505678680025},
     {f: 1.0387301868842898, re: 3.4009574408306613, im: 0.12993440373221649},
@@ -543,9 +537,8 @@ export const WINISD_VENTED_CAPTURE = Object.freeze({
     {f: 19163.039666193643, re: 3.400009303125745, im: -0.013207588232542934},
     {f: 19530.60852591976, re: 3.4000089562427602, im: -0.012959015820151713},
     {f: 19905.22777373638, re: 3.4000086222941106, im: -0.012715121781479941},
-  ] as readonly WinIsdComplexPoint[],
-  /** Plot kind 1. */
-  transfer: [
+];
+const WINISD_VENTED_CAPTURE_TRANSFER: readonly WinIsdComplexPoint[] = [
     {f: 1.0, re: 2.9444067301498067e-07, im: -8.748550921651667e-07},
     {f: 1.0191811354633138, re: 3.1767742385208136e-07, im: -9.268525095260309e-07},
     {f: 1.0387301868842898, re: 3.427474591285842e-07, im: -9.819679234025652e-07},
@@ -1068,9 +1061,8 @@ export const WINISD_VENTED_CAPTURE = Object.freeze({
     {f: 19163.039666193643, re: 0.9952488771026305, im: 0.005030198942457352},
     {f: 19530.60852591976, re: 0.9952493165726646, im: 0.004935530246963253},
     {f: 19905.22777373638, re: 0.9952497396564995, im: 0.004842643209335446},
-  ] as readonly WinIsdComplexPoint[],
-  /** Plot kind 9. */
-  portVelocity: [
+];
+const WINISD_VENTED_CAPTURE_PORT_VELOCITY: readonly WinIsdComplexPoint[] = [
     {f: 1.0, re: 0.002228557441088655, im: 0.044151361220875075},
     {f: 1.0191811354633138, re: 0.0023148986608592047, im: 0.04499685313013455},
     {f: 1.0387301868842898, re: 0.0024045861631576556, im: 0.04585848138411245},
@@ -1593,5 +1585,18 @@ export const WINISD_VENTED_CAPTURE = Object.freeze({
     {f: 19163.039666193643, re: -3.1019035864597975e-07, im: 1.6839103763039568e-08},
     {f: 19530.60852591976, re: -2.986212782205949e-07, im: 1.5906149584426755e-08},
     {f: 19905.22777373638, re: -2.874838046918633e-07, im: 1.5024884543239452e-08},
-  ] as readonly WinIsdComplexPoint[],
+];
+
+export const WINISD_VENTED_CAPTURE = Object.freeze({
+  run: 'vented-w5-2',
+  wpr: 'vented-w5-2/w5.wpr',
+  driver: {Fs: 45, Qes: 0.57, Qms: 3.56, Vas: 0.00485, Re: 3.4, Sd: 0.0094, BL: 7.17, Le: 0.00034},
+  box: {Vb: 0.01, Fb: 38.0, Ql: 7.0, Qa: 30.0, Qp: 15.0, ventDia: 0.05, ventLen: 0.2, endCorrection: 0.732},
+  env: {T: 293.15, p: 101325, phi: 0.3},
+  /** Plot kind 6. */
+  impedance: WINISD_VENTED_CAPTURE_IMPEDANCE,
+  /** Plot kind 1. */
+  transfer: WINISD_VENTED_CAPTURE_TRANSFER,
+  /** Plot kind 9. */
+  portVelocity: WINISD_VENTED_CAPTURE_PORT_VELOCITY,
 });

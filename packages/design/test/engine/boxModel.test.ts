@@ -35,7 +35,11 @@ describe('boxModel — one class per simulatable box type', () => {
     sealed: P_SEALED, vented: P_VENTED, 'box-passive-radiator': P_PR, bandpass4: P_BP4,
     bandpass6: P_BP6, abc: P_ABC,
   };
-  const boxes = Object.keys(PARAMS) as SimulatableBoxType[];
+  // `PARAMS`' own type (`Record<SimulatableBoxType, SweepParams>`) already makes the compiler
+  // require every `SimulatableBoxType` as a key; this list just names them again for iteration,
+  // since `Object.keys` reports `string[]` regardless of a record's key type.
+  const boxes: SimulatableBoxType[] =
+    ['sealed', 'vented', 'box-passive-radiator', 'bandpass4', 'bandpass6', 'abc'];
 
   for (const box of boxes) {
     it(`${box}: dispatches to a working circuit class — a clean, finite sweep`, () => {

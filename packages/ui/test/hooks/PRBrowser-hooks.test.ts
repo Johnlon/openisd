@@ -1,16 +1,25 @@
 import {describe, expect, it, vi} from 'vitest';
 import {defineComponent, h, provide} from 'vue';
 import {renderToString} from 'vue/server-renderer';
-import {APP_LOGIC, type AppLogic} from '../../src/logic/app.js';
+import {APP_LOGIC} from '../../src/logic/app.js';
 import {usePRBrowser, type PRBrowserAPI} from '../../src/hooks/PRBrowser-hooks.js';
+import {testAppLogic} from './testAppLogic.js';
+import type {MyPassiveRadiatorRepo, BundledPassiveRadiatorRepo} from '@openisd/persistence';
 
 async function renderHook(emit = vi.fn()): Promise<{api: PRBrowserAPI; emit: ReturnType<typeof vi.fn>}> {
-  const myPassiveRadiators = {
+  const myPassiveRadiators: MyPassiveRadiatorRepo = {
+    read: () => ({ kind: 'ok', passiveRadiators: [], broken: [] }),
     list: () => [],
-    remove: vi.fn(),
+    replaceAll: () => true,
+    upsert: () => null,
+    remove: vi.fn(() => true),
+    removeBroken: () => true,
+    exportRaw: () => null,
+    deleteAll: () => undefined,
   };
-  const bundledPassiveRadiators = {
+  const bundledPassiveRadiators: BundledPassiveRadiatorRepo = {
     index: () => Promise.resolve([]),
+    load: () => Promise.reject(new Error('load not used in this test')),
   };
 
   let api!: PRBrowserAPI;
@@ -22,10 +31,7 @@ async function renderHook(emit = vi.fn()): Promise<{api: PRBrowserAPI; emit: Ret
   });
   const Root = defineComponent({
     setup() {
-      provide(APP_LOGIC, {
-        myPassiveRadiators,
-        bundledPassiveRadiators,
-      } as unknown as AppLogic);
+      provide(APP_LOGIC, testAppLogic({myPassiveRadiators, bundledPassiveRadiators}));
       return () => h(Child);
     },
   });

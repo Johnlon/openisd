@@ -23,9 +23,14 @@ interface LiveReadouts {
 }
 
 async function liveReadouts(page: Page): Promise<LiveReadouts> {
-  return page.evaluate(async () => {
+  return page.evaluate(async (): Promise<LiveReadouts> => {
+    type AppState = typeof import('../../src/logic/appState.js');
+    function isAppState(m: unknown): m is AppState {
+      return typeof m === 'object' && m !== null && 'requireFocusedProject' in m && typeof m.requireFocusedProject === 'function';
+    }
     const modPath = '/src/logic/appState.ts';
-    const s = await import(/* @vite-ignore */ modPath);
+    const s: unknown = await import(/* @vite-ignore */ modPath);
+    if (!isAppState(s)) throw new Error('appState module shape mismatch');
     const p = s.requireFocusedProject();
     const sealed = p.box.sealed;
     return {

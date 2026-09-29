@@ -24,8 +24,17 @@ import {WinISDDriver} from '../../winisd/winisdDriver.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
 
-const WDR_INI_DRIVER_FIELDS: readonly string[] =
-  JSON.parse(readFileSync(join(here, 'fixtures', 'wdr-ini-driver-fields.json'), 'utf8'));
+/** Narrows a parsed JSON fixture to `string[]` — this file's only way to read the shared field
+ *  name list, never a cast. */
+function asStringArray(v: unknown): string[] {
+  if (!Array.isArray(v) || !v.every((x): x is string => typeof x === 'string')) {
+    throw new Error(`expected a string[] value, got ${JSON.stringify(v)}`);
+  }
+  return v;
+}
+
+const parsedFieldList: unknown = JSON.parse(readFileSync(join(here, 'fixtures', 'wdr-ini-driver-fields.json'), 'utf8'));
+const WDR_INI_DRIVER_FIELDS: readonly string[] = asStringArray(parsedFieldList);
 
 /** Dispatch one of `WDR_INI_DRIVER_FIELDS`'s `.wdr`-spelled names to its own `DriverSpec`
  *  field's `Readable` — `DriverSpec`'s fields never appear as a public parameter on `OpenISDDriver`

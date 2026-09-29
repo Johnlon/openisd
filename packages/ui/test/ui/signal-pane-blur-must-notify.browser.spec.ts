@@ -41,11 +41,23 @@ function signalInput(page: Page, label: string) {
   return page.locator('.field', { hasText: label }).locator('input');
 }
 
+interface DriveGroup {
+  P: number | null;
+  V: number | null;
+  Re: number | null;
+  Rs: number | null;
+}
+
 /** The drive group's committed state, read live from the domain. */
-async function driveGroup(page: Page) {
-  return page.evaluate(async (modPath) => {
-    const s = await import(/* @vite-ignore */ modPath);
-    const p = s.requireFocusedProject();
+async function driveGroup(page: Page): Promise<DriveGroup> {
+  return page.evaluate(async (modPath): Promise<DriveGroup> => {
+    type AppState = typeof import('../../src/logic/appState.js');
+    function isAppState(m: unknown): m is AppState {
+      return typeof m === 'object' && m !== null && 'requireFocusedProject' in m && typeof m.requireFocusedProject === 'function';
+    }
+    const mod: unknown = await import(/* @vite-ignore */ modPath);
+    if (!isAppState(mod)) throw new Error('appState module shape mismatch');
+    const p = mod.requireFocusedProject();
     return { P: p.powerDrive_W.value, V: p.driveVoltage_V.value, Re: p.driver.specs.Re_ohm.value, Rs: p.Rs_ohm.value };
   }, APP_STATE);
 }

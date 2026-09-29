@@ -9,14 +9,8 @@
  */
 import type {WinIsdComplexPoint} from './winisdVentedCapture.js';
 
-export const WINISD_BANDPASS4_CAPTURE = Object.freeze({
-  wpr: 'bp4-w5-1/w5.wpr',
-  driver: {Fs: 45, Qes: 0.57, Qms: 3.56, Vas: 0.00485, Re: 3.4, Sd: 0.0094, BL: 7.17},
-  rear: {Vr: 0.01, Fr: 42.0, Ql: 7.0, Qa: 30.0, Qicl: 20.0},
-  front: {Vf: 0.005, Ff: 60.0, Ql: 9.0, Qa: 40.0, Qp: 15.0},
-  vent: {dia: 0.05, len: 0.28904563040020126, endcorrection: 0.732},
-  /** bp4-w5-1, plot kind 6. */
-  impedance: [
+
+const WINISD_BANDPASS4_CAPTURE_IMPEDANCE: readonly WinIsdComplexPoint[] = [
     {f: 1.0, re: 3.4074819860113825, im: 0.12387615189517061},
     {f: 1.0191811354633138, re: 3.4077642311185783, im: 0.12620974894715492},
     {f: 1.0387301868842898, re: 3.4080568305539076, im: 0.128585716463929},
@@ -539,9 +533,8 @@ export const WINISD_BANDPASS4_CAPTURE = Object.freeze({
     {f: 19163.039666193643, re: 3.400010511355956, im: -0.01320765539282},
     {f: 19530.60852591976, re: 3.400010119416354, im: -0.012959079259385789},
     {f: 19905.22777373638, re: 3.400009742091543, im: -0.012715181705839114},
-  ] as readonly WinIsdComplexPoint[],
-  /** bp4-w5-1, plot kind 1. */
-  transfer: [
+];
+const WINISD_BANDPASS4_CAPTURE_TRANSFER: readonly WinIsdComplexPoint[] = [
     {f: 1.0, re: -1.1490288089321289e-05, im: -5.2614976686953395e-05},
     {f: 1.0191811354633138, re: -1.2381888607000591e-05, im: -5.561702205064023e-05},
     {f: 1.0387301868842898, re: -1.3342042224739618e-05, im: -5.878701065694061e-05},
@@ -1064,9 +1057,8 @@ export const WINISD_BANDPASS4_CAPTURE = Object.freeze({
     {f: 19163.039666193643, re: -0.011576438549030277, im: -8.409457643792693e-05},
     {f: 19530.60852591976, re: -0.01157608692865438, im: -8.250977048430287e-05},
     {f: 19905.22777373638, re: -0.011575748418646337, im: -8.095490903797472e-05},
-  ] as readonly WinIsdComplexPoint[],
-  /** bp4-w5-1, plot kind 10. */
-  frontPortVelocity: [
+];
+const WINISD_BANDPASS4_CAPTURE_FRONT_PORT_VELOCITY: readonly WinIsdComplexPoint[] = [
     {f: 1.0, re: 0.0033002690726929742, im: 0.038335762082928125},
     {f: 1.0191811354633138, re: 0.0034249678838655304, im: 0.03905400357358844},
     {f: 1.0387301868842898, re: 0.0035542585017158718, im: 0.03978506523098463},
@@ -1589,5 +1581,18 @@ export const WINISD_BANDPASS4_CAPTURE = Object.freeze({
     {f: 19163.039666193643, re: -3.671371847620005e-07, im: 4.389400336386027e-08},
     {f: 19530.60852591976, re: -3.53438894658137e-07, im: 4.146208572675534e-08},
     {f: 19905.22777373638, re: -3.402520320537942e-07, im: 3.9164906569117715e-08},
-  ] as readonly WinIsdComplexPoint[],
+];
+
+export const WINISD_BANDPASS4_CAPTURE = Object.freeze({
+  wpr: 'bp4-w5-1/w5.wpr',
+  driver: {Fs: 45, Qes: 0.57, Qms: 3.56, Vas: 0.00485, Re: 3.4, Sd: 0.0094, BL: 7.17},
+  rear: {Vr: 0.01, Fr: 42.0, Ql: 7.0, Qa: 30.0, Qicl: 20.0},
+  front: {Vf: 0.005, Ff: 60.0, Ql: 9.0, Qa: 40.0, Qp: 15.0},
+  vent: {dia: 0.05, len: 0.28904563040020126, endcorrection: 0.732},
+  /** bp4-w5-1, plot kind 6. */
+  impedance: WINISD_BANDPASS4_CAPTURE_IMPEDANCE,
+  /** bp4-w5-1, plot kind 1. */
+  transfer: WINISD_BANDPASS4_CAPTURE_TRANSFER,
+  /** bp4-w5-1, plot kind 10. */
+  frontPortVelocity: WINISD_BANDPASS4_CAPTURE_FRONT_PORT_VELOCITY,
 });

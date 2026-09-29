@@ -22,7 +22,6 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 import {dirname, join} from 'node:path';
-import type {CellState} from '@openisd/design/winisd';
 import type {NumSpecField} from '../../src/logic/appState.js';
 import {WinISDDriver} from '@openisd/design/winisd';
 import type {Calculated, Entered, Readable} from '@openisd/design';
@@ -62,16 +61,20 @@ function memberNamed(cls: string, name: string): Field {
   const classes: Record<string, object> = {NumberField, EnumField, TextField, ToggleField, DateField};
   const holder = classes[cls];
   assert.ok(holder, `the template names ${cls}, which this test does not know`);
-  const found = Object.entries(holder).find(([n, v]) => n === name && v instanceof Field);
+  const found = Object.entries(holder).find((entry): entry is [string, Field] => entry[0] === name && entry[1] instanceof Field);
   assert.ok(found, `${cls}.${name} is not a registry member`);
-  return found![1] as Field;
+  return found[1];
 }
 
 /** Evaluate a template numeric expression: a literal, or `<Class>.<MEMBER>.precision`. */
 function evalNum(expr: string, fallback: number): number {
   if (expr === '') return fallback;
   const reg = /^(\w+Field)\.([A-Z0-9_]+)\.precision$/.exec(expr);
-  if (reg) return (memberNamed(reg[1], reg[2]) as NumberField).precision;
+  if (reg) {
+    const member = memberNamed(reg[1], reg[2]);
+    assert.ok(member instanceof NumberField, `${reg[1]}.${reg[2]} is not a NumberField`);
+    return member.precision;
+  }
   const n = Number(expr);
   assert.ok(Number.isFinite(n), `unparseable numeric binding: ${expr}`);
   return n;
@@ -154,6 +157,12 @@ for (const group of ['length', 'freq', 'area', 'mass', 'volume', 'tempCoeff'] as
  *  Typed over `NumSpecField`, same as the editor's own numeric table — total, no fallback. */
 function driverCellOf(d: OpenISDDriver, field: NumSpecField): Readable<number | null> & Entered & Calculated {
   return d.specField(field);
+}
+
+/** A field name scraped off the template (`Bound.field`) really is a numeric spec cell — every
+ *  key `d.specs` answers except the wiring dropdown `VCCon`, which has no numeric cell. */
+function isNumSpecField(field: string, d: OpenISDDriver): field is NumSpecField {
+  return field !== 'VCCon' && field in d.specs;
 }
 
 const _engine = createEngine();
@@ -356,7 +365,7 @@ describe('Gloss — a FRACTION in the file, a PERCENT on the panel', () => {
     assert.equal(stored, '1.72503712771898', 'fixture must be the WinISD-authored oracle');
     const wd = WinISDDriver.fromWdrIni(text);
     const cell = wd.cell('Gloss');
-    assert.equal(cell.state, 'calculated' as CellState, 'this fixture\'s ParState marks Gloss computed, not entered');
+    assert.equal(cell.state, 'calculated', 'this fixture\'s ParState marks Gloss computed, not entered');
     const parsed = Number(cell.value);
     assert.ok(Number.isFinite(parsed), 'Gloss must parse to a number');
     const relError = Math.abs(parsed - 1.72503712771898) / 1.72503712771898;
@@ -389,10 +398,12 @@ describe('Gloss — a FRACTION in the file, a PERCENT on the panel', () => {
     // has no `Gloss=` line to carry, so the number on the panel can only come from the solver.
     const d = coreDriver();
     const cell = d.specs.Gloss;
-    assert.equal(typeof cell.value, 'number',
-      `Gloss binds cellVal('Gloss'), which the driver model leaves ${cell.provenance} — the field renders blank`);
+    const value = cell.value;
+    if (typeof value !== 'number') {
+      assert.fail(`Gloss binds cellVal('Gloss'), which the driver model leaves ${cell.provenance} — the field renders blank`);
+    }
     // g/((2π·37)²·0.005) for coreDriver's Fs/Xmax.
-    assert.ok(Math.abs((cell.value as number) - 9.80665 / ((2 * Math.PI * 37) ** 2 * 0.005)) < 1e-15);
+    assert.ok(Math.abs(value - 9.80665 / ((2 * Math.PI * 37) ** 2 * 0.005)) < 1e-15);
   });
 });
 
@@ -512,7 +523,8 @@ describe('driver editor — every bound cell is one the driver model answers', (
     const d = coreDriver();
     for (const label of ['SPL', 'η₀']) {
       const f = byLabel(label);
-      const cell = driverCellOf(d, f.field as NumSpecField);
+      if (!isNumSpecField(f.field, d)) assert.fail(`${label} binds cellVal('${f.field}'), not a numeric spec field`);
+      const cell = driverCellOf(d, f.field);
       assert.equal(
         typeof cell.value,
         'number',
@@ -529,7 +541,8 @@ describe('driver editor — every bound cell is one the driver model answers', (
     // is exactly how the panel distinguishes that from a number the user typed.
     const f = byLabel('Voicecoils');
     const d = coreDriver();
-    const cell = driverCellOf(d, f.field as NumSpecField);
+    if (!isNumSpecField(f.field, d)) assert.fail(`Voicecoils binds cellVal('${f.field}'), not a numeric spec field`);
+    const cell = driverCellOf(d, f.field);
     assert.equal(cell.calculated, true, `Voicecoils cell is ${cell.provenance} — an unstated coil count reads as the default, derived`);
     assert.equal(cell.value, 1, 'and the default is WinISD\'s 1');
     assert.equal(d.specs.numVC.value ?? 1, 1, 'the ENGINE-facing driver must still default numVC to 1 for simulation');

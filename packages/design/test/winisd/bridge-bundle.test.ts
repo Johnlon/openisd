@@ -72,6 +72,59 @@ let outDir: string;
 let bundlePath: string;
 let bundleSource: string;
 
+// ── Typed reads off the vm sandbox and the bridge's own JSON contract ──────────────────────────
+// `vm.Context` (Node's own type) is `NodeJS.Dict<any>`, and `vm.runInContext(...)` returns `any`
+// — both by design, since a sandbox can hold anything. Every read below narrows through one of
+// these guards instead of a cast, so the `any` never travels past the point it enters at.
+
+function isRecord(v: unknown): v is Record<string, unknown> {
+  return typeof v === 'object' && v !== null;
+}
+
+function asStringArray(v: unknown): string[] {
+  if (!Array.isArray(v) || !v.every((x): x is string => typeof x === 'string')) {
+    throw new Error(`expected a string[] value, got ${JSON.stringify(v)}`);
+  }
+  return v;
+}
+
+/** Runs `code` in `ctx` and narrows the vm's `any` result to `string`. */
+function runString(code: string, ctx: vm.Context): string {
+  const result: unknown = vm.runInContext(code, ctx);
+  if (typeof result !== 'string') throw new Error(`expected a string, got ${typeof result}`);
+  return result;
+}
+
+/** One entry of the bridge's `errors` array. */
+interface BridgeError {
+  level: string;
+  field: string;
+  message: string;
+}
+
+function isBridgeError(v: unknown): v is BridgeError {
+  return isRecord(v) && typeof v.level === 'string' && typeof v.field === 'string' && typeof v.message === 'string';
+}
+
+/** The bridge's whole JSON envelope — `{openisd, wdr, errors}`, QT69.1's one-call contract. */
+interface BridgeResult {
+  openisd: string | null;
+  wdr: string | null;
+  errors: BridgeError[];
+}
+
+/** Parses and validates a raw string the bridge returned, against `BridgeResult` — the one point
+ *  `JSON.parse`'s `any` is narrowed for every test below. */
+function parseBridgeResult(raw: string): BridgeResult {
+  const parsed: unknown = JSON.parse(raw);
+  if (!isRecord(parsed)) throw new Error('expected an object');
+  const {openisd, wdr, errors} = parsed;
+  if (typeof openisd !== 'string' && openisd !== null) throw new Error('expected openisd: string | null');
+  if (typeof wdr !== 'string' && wdr !== null) throw new Error('expected wdr: string | null');
+  if (!Array.isArray(errors) || !errors.every(isBridgeError)) throw new Error('expected errors: BridgeError[]');
+  return {openisd, wdr, errors};
+}
+
 beforeAll(() => {
   outDir = mkdtempSync(join(tmpdir(), 'openisd-bridge-test-'));
   execFileSync(
@@ -123,7 +176,7 @@ describe('openisd-bridge.js — artifact shape', () => {
     const ABSENT_IN_MINI_RACER = ['process', 'fetch', 'Buffer', 'window', 'require', 'module'] as const;
 
     const ctx = createMiniRacerLikeContext();
-    ctx.__trapped = [] as string[];
+    ctx.__trapped = [];
     vm.runInContext(`
       for (const name of ${JSON.stringify(ABSENT_IN_MINI_RACER)}) {
         Object.defineProperty(globalThis, name, {
@@ -137,7 +190,8 @@ describe('openisd-bridge.js — artifact shape', () => {
     ctx.YAML_TEXT = ': : : not yaml : :';
     vm.runInContext('globalThis.driverYmlToOpenisdAndWdr(YAML_TEXT)', ctx);
 
-    assert.deepEqual(ctx.__trapped, [], `the bundle read: ${(ctx.__trapped as string[]).join(', ')}`);
+    const trapped: unknown = ctx.__trapped;
+    assert.deepEqual(trapped, [], `the bundle read: ${asStringArray(trapped).join(', ')}`);
   });
 
   it('does not declare or call console/setTimeout as real code (comments/docstrings excepted)', () => {
@@ -164,9 +218,9 @@ const MEASURED_ABSENT_GLOBALS = [
  *  that real V8 would fail, or fail one real V8 would pass. */
 function createMiniRacerLikeContext(): vm.Context {
   const seed: Record<string, unknown> = {};
-  for (const name of MEASURED_PRESENT_GLOBALS) seed[name] = (globalThis as Record<string, unknown>)[name];
+  for (const name of MEASURED_PRESENT_GLOBALS) seed[name] = globalThis[name];
   const ctx = vm.createContext(seed);
-  const present = vm.runInContext('Object.getOwnPropertyNames(globalThis)', ctx) as string[];
+  const present = asStringArray(vm.runInContext('Object.getOwnPropertyNames(globalThis)', ctx));
   for (const absent of MEASURED_ABSENT_GLOBALS) {
     assert.equal(present.includes(absent), false, `vm sandbox unexpectedly has '${absent}' — Node's vm context diverged from mini-racer's measured absence`);
   }
@@ -179,9 +233,9 @@ describe('openisd-bridge.js — behavioural (node:vm, mini-racer-shaped sandbox)
     // Array.from: the vm realm's own Array constructor (via Symbol.species) would otherwise
     // make the array returned by vm.runInContext structurally equal but not deepStrictEqual
     // to a main-realm array literal (different prototype chain).
-    const before = new Set(Array.from(vm.runInContext('Object.getOwnPropertyNames(globalThis)', ctx) as string[]));
+    const before = new Set(Array.from(asStringArray(vm.runInContext('Object.getOwnPropertyNames(globalThis)', ctx))));
     vm.runInContext(bundleSource, ctx);
-    const after = Array.from(vm.runInContext('Object.getOwnPropertyNames(globalThis)', ctx) as string[]);
+    const after = Array.from(asStringArray(vm.runInContext('Object.getOwnPropertyNames(globalThis)', ctx)));
     const added = after.filter(k => !before.has(k));
 
     // THE PROPERTY THIS STATES IS WEAKER THAN "NOTHING BUT THE ENTRY POINT", and deliberately so:
@@ -202,18 +256,22 @@ describe('openisd-bridge.js — behavioural (node:vm, mini-racer-shaped sandbox)
     const ctx = createMiniRacerLikeContext();
     vm.runInContext(bundleSource, ctx);
     ctx.JSON_TEXT = jsonText;
-    const raw = vm.runInContext('globalThis.driverYmlToOpenisdAndWdr(JSON_TEXT)', ctx);
+    const raw: unknown = vm.runInContext('globalThis.driverYmlToOpenisdAndWdr(JSON_TEXT)', ctx);
 
     assert.equal(typeof raw, 'string', 'the exposed global must return a JSON string, not an object');
-    const parsed = JSON.parse(raw as string) as { openisd: string | null; wdr: string | null; errors: unknown[] };
+    if (typeof raw !== 'string') throw new Error('expected a string');
+    const parsed = parseBridgeResult(raw);
     assert.deepEqual(Object.keys(parsed).sort(), ['errors', 'openisd', 'wdr']);
     assert.equal(Array.isArray(parsed.errors), true);
     assert.equal(typeof parsed.wdr, 'string');
+    if (typeof parsed.wdr !== 'string' || typeof parsed.openisd !== 'string') {
+      throw new Error(`expected a successful conversion, got errors: ${JSON.stringify(parsed.errors)}`);
+    }
 
     // Both payloads are base64 of the file's OWN bytes: the caller writes what it decodes and
     // never picks a character encoding, which is the only way the .wdr's raw 0xA4 survives.
-    const wdrBytes = Buffer.from(parsed.wdr as string, 'base64');
-    const openisdBytes = Buffer.from(parsed.openisd as string, 'base64');
+    const wdrBytes = Buffer.from(parsed.wdr, 'base64');
+    const openisdBytes = Buffer.from(parsed.openisd, 'base64');
     assert.deepEqual(Buffer.from(wdrBytes.toString('base64'), 'base64'), wdrBytes);
 
     const wdr = wdrBytes.toString('latin1');
@@ -236,11 +294,12 @@ describe('openisd-bridge.js — behavioural (node:vm, mini-racer-shaped sandbox)
     const ctx = createMiniRacerLikeContext();
     vm.runInContext(bundleSource, ctx);
     ctx.YAML_TEXT = multiLineCommentRecord;
-    const raw = vm.runInContext('globalThis.driverYmlToOpenisdAndWdr(YAML_TEXT)', ctx) as string;
-    const parsed = JSON.parse(raw) as { wdr: string | null; errors: unknown[] };
+    const raw = runString('globalThis.driverYmlToOpenisdAndWdr(YAML_TEXT)', ctx);
+    const parsed = parseBridgeResult(raw);
     assert.equal(typeof parsed.wdr, 'string', `expected a .wdr, got errors: ${JSON.stringify(parsed.errors)}`);
+    if (typeof parsed.wdr !== 'string') throw new Error('expected a wdr string');
 
-    const bytes = Buffer.from(parsed.wdr as string, 'base64');
+    const bytes = Buffer.from(parsed.wdr, 'base64');
     assert.equal(bytes.includes(0xa4), true, 'no 0xA4 marker byte in the written .wdr');
     assert.equal(bytes.includes(Buffer.from([0xef, 0xa2, 0xa4])), false,
       'the in-memory sentinel U+F8A4 reached the caller instead of the single 0xA4 byte');
@@ -250,8 +309,8 @@ describe('openisd-bridge.js — behavioural (node:vm, mini-racer-shaped sandbox)
     const ctx = createMiniRacerLikeContext();
     vm.runInContext(bundleSource, ctx);
     ctx.YAML_TEXT = ': : : not yaml : :';
-    const raw = vm.runInContext('globalThis.driverYmlToOpenisdAndWdr(YAML_TEXT)', ctx) as string;
-    const parsed = JSON.parse(raw) as { wdr: string | null; errors: { level: string; field: string; message: string }[] };
+    const raw = runString('globalThis.driverYmlToOpenisdAndWdr(YAML_TEXT)', ctx);
+    const parsed = parseBridgeResult(raw);
     assert.equal(parsed.wdr, null);
     assert.equal(parsed.errors.length > 0, true);
     for (const e of parsed.errors) {
@@ -288,8 +347,8 @@ specs:
     const ctx = createMiniRacerLikeContext();
     vm.runInContext(bundleSource, ctx);
     ctx.YAML_TEXT = yamlText;
-    const raw = vm.runInContext('globalThis.driverYmlToOpenisdAndWdr(YAML_TEXT)', ctx) as string;
-    const parsed = JSON.parse(raw) as { wdr: string | null; errors: { level: string; field: string; message: string }[] };
+    const raw = runString('globalThis.driverYmlToOpenisdAndWdr(YAML_TEXT)', ctx);
+    const parsed = parseBridgeResult(raw);
     assert.equal(typeof parsed.wdr, 'string');
     assert.equal(parsed.errors.some(e => e.level === 'warn' && e.field === 'Re'), true,
       `expected a 'warn' on field Re, got: ${JSON.stringify(parsed.errors)}`);

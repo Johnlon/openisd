@@ -8,9 +8,14 @@ const COMPLETE = COMPLETE_DRIVER_PROJECT_OWPR;
 
 async function readVb(page: Page): Promise<number> {
   return page.evaluate(async () => {
+    function isAppStateModule(m: unknown): m is typeof import('../../src/logic/appState.js') {
+      return typeof m === 'object' && m !== null
+        && 'focusedProject' in m && typeof m.focusedProject === 'function';
+    }
     const modPath = '/src/logic/appState.ts';
-    const s = await import(/* @vite-ignore */ modPath);
-    const project = s.focusedProject();
+    const mod: unknown = await import(/* @vite-ignore */ modPath);
+    if (!isAppStateModule(mod)) throw new Error('appState module did not load as expected');
+    const project = mod.focusedProject();
     if (!project) throw new Error('expected a focused project');
     // The sample fixture is VENTED, the complete-driver one is sealed, so read whichever box
     // type the project actually is. Every field answers through `.value`; vented's can be null

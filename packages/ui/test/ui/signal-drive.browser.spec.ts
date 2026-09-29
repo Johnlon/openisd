@@ -15,8 +15,13 @@ test.beforeEach(async ({ page }) => {
 test('complete driver stores the 1 W reference and draws a chart without a drive DQ', async ({ page }) => {
   // The sweep and Signal tab use the same stored 1 W project reference.
   const modPath = '/src/logic/appState.ts';
-  await expect.poll(async () => page.evaluate(async (p) => {
-    const m = await import(/* @vite-ignore */ p);
+  await expect.poll(async () => page.evaluate(async (p): Promise<number> => {
+    type AppState = typeof import('../../src/logic/appState.js');
+    function isAppState(m: unknown): m is AppState {
+      return typeof m === 'object' && m !== null && 'curvesData' in m;
+    }
+    const m: unknown = await import(/* @vite-ignore */ p);
+    if (!isAppState(m)) throw new Error('appState module shape mismatch');
     return m.curvesData.value?.spl?.length ?? 0;
   }, modPath)).toBeGreaterThan(0);
 

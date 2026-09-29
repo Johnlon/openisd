@@ -22,14 +22,8 @@ export interface WinIsdPhasePoint {
   readonly deg: number;
 }
 
-export const WINISD_PR_TF_CAPTURE = Object.freeze({
-  wprMag: 'pr-w5-tf-1/w5.wpr',
-  wprPhase: 'pr-w5-tf-2/w5.wpr',
-  driver: {Fs: 45, Qes: 0.57, Qms: 3.56, Vas: 0.00485, Re: 3.4, Sd: 0.0094, BL: 7.17},
-  box: {Vb: 0.01, Fr: 36.49657518178932, Ql: 7.0, Qa: 30.0},
-  pr: {Vas: 0.0048, Qms: 3.3, Fs: 30.0, Sd: 0.0095, Xmax: 19, Me: 0.0},
-  /** pr-w5-tf-1, plot kind 13. */
-  magnitude: [
+
+const WINISD_PR_TF_CAPTURE_MAGNITUDE: readonly WinIsdMagPoint[] = [
     {f: 1.0, dB: -80.8356861159555},
     {f: 1.0191811354633138, dB: -80.43699329072844},
     {f: 1.0387301868842898, dB: -80.03980970171557},
@@ -458,9 +452,8 @@ export const WINISD_PR_TF_CAPTURE = Object.freeze({
     {f: 3212.4398781585087, dB: -68.42257786294876},
     {f: 3274.0581226292184, dB: -68.58956145812418},
     {f: 3336.8582749941324, dB: -68.75647295171426},
-  ] as readonly WinIsdMagPoint[],
-  /** pr-w5-tf-2, plot kind 14. */
-  phase: [
+];
+const WINISD_PR_TF_CAPTURE_PHASE: readonly WinIsdPhasePoint[] = [
     {f: 1.0, deg: 128.09314434740213},
     {f: 1.0191811354633138, deg: 127.51338261128548},
     {f: 1.0387301868842898, deg: 126.93461498333834},
@@ -983,5 +976,16 @@ export const WINISD_PR_TF_CAPTURE = Object.freeze({
     {f: 19163.039666193643, deg: 179.24955745695166},
     {f: 19530.60852591976, deg: 179.263676439382},
     {f: 19905.22777373638, deg: 179.2775299472473},
-  ] as readonly WinIsdPhasePoint[],
+];
+
+export const WINISD_PR_TF_CAPTURE = Object.freeze({
+  wprMag: 'pr-w5-tf-1/w5.wpr',
+  wprPhase: 'pr-w5-tf-2/w5.wpr',
+  driver: {Fs: 45, Qes: 0.57, Qms: 3.56, Vas: 0.00485, Re: 3.4, Sd: 0.0094, BL: 7.17},
+  box: {Vb: 0.01, Fr: 36.49657518178932, Ql: 7.0, Qa: 30.0},
+  pr: {Vas: 0.0048, Qms: 3.3, Fs: 30.0, Sd: 0.0095, Xmax: 19, Me: 0.0},
+  /** pr-w5-tf-1, plot kind 13. */
+  magnitude: WINISD_PR_TF_CAPTURE_MAGNITUDE,
+  /** pr-w5-tf-2, plot kind 14. */
+  phase: WINISD_PR_TF_CAPTURE_PHASE,
 });

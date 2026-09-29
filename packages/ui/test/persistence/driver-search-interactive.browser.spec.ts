@@ -1,5 +1,5 @@
 import {expect, openAProject, test} from '../fixtures.js';
-import {MY_DRIVERS_KEY, myDriversJson} from '../fixtures/seedMyDrivers.js';
+import {MY_DRIVERS_KEY, myDriversJson, parseMyDriversBucket} from '../fixtures/seedMyDrivers.js';
 
 // A saved driver need not carry a `name` — one saved from a record whose brand and model are
 // known has those instead. Its row must still read as something and still be findable, so the
@@ -56,10 +56,8 @@ test('the delete button removes a saved driver that carries no name', async ({ p
 
   // Deletion is keyed on <brand>/<model>, so the OTHER unnamed driver survives.
   await expect(row).toBeHidden();
-  const left = await page.evaluate((key) => {
-    const raw = localStorage.getItem(key);
-    const env = raw ? JSON.parse(raw) as { entries?: { record?: { model?: { value?: string } } }[] } : { entries: [] };
-    return (env.entries ?? []).map(e => e.record?.model?.value ?? '');
-  }, MY_DRIVERS_KEY);
+  const raw = await page.evaluate((key: string) => localStorage.getItem(key), MY_DRIVERS_KEY);
+  const env = parseMyDriversBucket(raw);
+  const left = (env.entries ?? []).map(e => e.record?.model?.value ?? '');
   expect(left).toEqual(['RS180-8']);
 });
