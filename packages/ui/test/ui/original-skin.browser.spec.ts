@@ -129,6 +129,36 @@ test('the chart-select dropdown switches the shared GraphPanel', async ({ page }
   await expect(page.locator('.graph-wrap .gpanel')).toBeVisible();
 });
 
+test('chart-menu checkboxes stack charts that share one cursor; ✕ removes one; a label shows it alone', async ({ page }) => {
+  const panels = page.locator('.graph-wrap .gpanel');
+  await expect(panels).toHaveCount(1);
+
+  await page.locator('.chart-select').click();
+  await page.locator('.chart-select .menu-item', { hasText: /^Cone excursion$/ }).locator('input[type=checkbox]').click();
+  await page.locator('.chart-select .menu-item', { hasText: /^Impedance$/ }).locator('input[type=checkbox]').click();
+  await expect(page.locator('.chart-select .dropdown-menu')).toBeVisible(); // ticking leaves the menu open
+  await page.locator('.chart-select').click(); // close
+  await expect(panels).toHaveCount(3);
+
+  // Hovering one chart moves the cursor on every chart: each panel draws its own readout.
+  const box = (await panels.nth(1).locator('canvas').boundingBox())!;
+  await page.mouse.move(box.x + box.width * 0.5, box.y + box.height * 0.5);
+  for (let i = 0; i < 3; i++) await expect(panels.nth(i).locator('.gread')).toContainText('Hz');
+
+  // The open charts are the project's own: they survive a reload.
+  await page.reload();
+  await expect(panels).toHaveCount(3);
+
+  await page.locator('.chart-cell').nth(0).locator('.chart-close').click();
+  await expect(panels).toHaveCount(2);
+
+  await page.locator('.chart-select').click();
+  await page.locator('.chart-select .menu-item', { hasText: /^Group Delay$/ }).click();
+  await expect(panels).toHaveCount(1);
+  await expect(page.locator('.chart-select .chart-name')).toHaveText('Group Delay');
+  await expect(page.locator('.chart-close')).toHaveCount(0);
+});
+
 test('the chart menu lists only the charts that apply to the current box '
    + '(BUG_20260927_winisd-charts-missing)', async ({ page }) => {
   const menuItems = () => page.locator('.chart-select .menu-item');

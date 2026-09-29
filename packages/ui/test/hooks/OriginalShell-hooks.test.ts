@@ -4,9 +4,11 @@ import {createEngine} from '@openisd/design/engine';
 import {OpenISDProject} from '@openisd/design';
 import {
   airFieldDataQuality,
+  createChartSelection,
   createEnvironmentAir,
   fillBlankMeta,
 } from '../../src/hooks/OriginalShell-hooks.js';
+import {CHART_LABELS} from '../../src/logic/series.js';
 
 function createCompleteProject() {
   const engine = createEngine();
@@ -55,6 +57,52 @@ describe('OriginalShell-hooks', () => {
       expect(airFieldDataQuality('pressure', 250000)).toEqual([
         'Air pressure is outside the sane range (1000–200000)',
       ]);
+    });
+  });
+
+  describe('createChartSelection', () => {
+    function harness(project: OpenISDProject | null) {
+      const engine = createEngine();
+      const projectChanged = ref(0);
+      const tick = (): void => { projectChanged.value++; };
+      return { tick, engine, ...createChartSelection({ focusedProject: () => project, projectChanged, box: engine.box }) };
+    }
+
+    it('with no project, lists the default box\'s charts and shows the default chart', () => {
+      const h = harness(null);
+      expect(h.chartItems.value.map(i => i.tab)).toEqual(h.engine.box.chartsFor(h.engine.box.defaultBoxType));
+      expect(h.openCharts.value).toEqual([h.engine.box.defaultChart]);
+    });
+
+    it('marks the open charts in the menu items', () => {
+      const {project} = createCompleteProject();
+      project.graphs.set(['SPL', 'Zmag']);
+      const h = harness(project);
+      expect(h.chartItems.value.filter(i => i.open).map(i => i.tab)).toEqual(project.openCharts.value);
+    });
+
+    it('showOnly shows one chart; toggle adds and removes', () => {
+      const {project} = createCompleteProject();
+      const h = harness(project);
+      h.showOnly('Zmag'); h.tick();
+      expect(h.openCharts.value).toEqual(['Zmag']);
+      h.toggle('Excursion'); h.tick();
+      expect(h.openCharts.value).toEqual(project.charts.filter(c => c === 'Zmag' || c === 'Excursion'));
+      h.toggle('Zmag'); h.tick();
+      expect(h.openCharts.value).toEqual(['Excursion']);
+    });
+
+    it('chartLabel names every open chart', () => {
+      const {project} = createCompleteProject();
+      const h = harness(project);
+      h.showOnly('SPL'); h.toggle('Zmag'); h.tick();
+      expect(h.chartLabel.value).toBe(project.openCharts.value.map(c => CHART_LABELS[c]).join(', '));
+    });
+
+    it('showOnly and toggle do nothing with no project', () => {
+      const h = harness(null);
+      h.showOnly('Zmag'); h.toggle('Zmag'); h.tick();
+      expect(h.openCharts.value).toEqual([h.engine.box.defaultChart]);
     });
   });
 
