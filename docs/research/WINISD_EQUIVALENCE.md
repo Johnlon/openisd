@@ -33,10 +33,10 @@ driver** (Tang Band W5-1138SMF) — every number below is for that driver only.
 
 | Scope                                | Cells | Matched | Gaps | Deviation (✗) | Unverified (❔) | Missing (⛔) |
 | ------------------------------------ | ----: | ------: | ---: | ------------: | --------------: | -----------: |
-| Table 1 — chart × box, base settings | 76    | 56      | 20   | 0             | 20              | 0            |
+| Table 1 — chart × box, base settings | 76    | 74      | 2    | 2             | 0               | 0            |
 | Table 2 — setting × box              | 100   | 35      | 65   | 0             | 65              | 0            |
 | Table 3 — readouts and tools         | 8     | 3       | 5    | 0             | 5               | 0            |
-| Total                                | 184   | 94      | 90   | 0             | 90              | 0            |
+| Total                                | 184   | 112     | 72   | 2             | 70              | 0            |
 
 Worst matched deviation anywhere, excluding group delay: ≤ 1e-9 (BP6/ABC transfer function
 magnitude, impedance, and rear/front/intrachamber port velocity — `bp6-w5-1`/`abc-w5-1`, exact
@@ -51,29 +51,28 @@ Base settings: W5-1138SMF, 1 W, Rg 0.1 Ω not at driver side, VCInd off, winisd-
 4-filter chain of CHART_REVIEW §3.4 (sealed also without filters: the larger of the two is shown).
 BP6 and ABC: landed 2026-09-28 (merge `df81902c`, box `356c5234`). Transfer function magnitude,
 impedance, and rear/front/intrachamber port air velocity are measured against a real WinISD
-capture (≤ 1e-9). Every other chart for these two boxes is ❔ — not yet captured, not "missing":
-the box classes exist.
+capture (≤ 1e-9); every other chart from runs/bp6-w5-base2 and abc-w5-base2 (2026-09-29).
 
-| Chart                            | Unit | Sealed   | Vented    | Bandpass 4th | Passive radiator | Bandpass 6th | ABC         |
-| -------------------------------- | ---- | -------- | --------- | ------------ | ---------------- | ------------ | ----------- |
-| Transfer function magnitude      | dB   | 4.8e-14  | 5.7e-14   | 4.5e-13      | 5.7e-14          | ≤ 1e-9       | ≤ 1e-9      |
-| Transfer function phase          | deg  | 9.1e-13  | 1.3e-12   | 2.3e-12      | 1.4e-12          | ❔           | ❔          |
-| Group delay                      | ms   | ≈ 6.9e-4 | ≈ 1.0e-3  | ≈ 0.015      | ≈ 8e-4           | ❔           | ❔          |
-| Maximum power                    | W    | 8.9e-14  | 9.6e-14   | 9.2e-14      | 8.5e-14          | ❔           | ❔          |
-| Maximum SPL                      | dB   | 2.8e-14  | 2.8e-14   | 4.3e-13      | 2.8e-14          | ❔           | ❔          |
-| Amplifier apparent load power    | VA   | 8.9e-14  | 5.5e-14   | 7.3e-14      | 7.8e-14          | ❔           | ❔          |
-| SPL                              | dB   | 4.3e-14  | 4.3e-14   | 4.3e-13      | 4.3e-14          | ❔           | ❔          |
-| Cone excursion                   | mm   | 1e-14    | 1.9e-14   | 1.4e-14      | 1.5e-14          | ❔           | ❔          |
-| Impedance                        | Ω    | 2.8e-14  | 2.1e-14   | 1.8e-14      | 2.3e-14          | ≤ 1e-10 rel  | ≤ 1e-10 rel |
-| Impedance phase                  | deg  | 1.4e-13  | 8.5e-14   | 1.1e-13      | 1.1e-13          | ❔           | ❔          |
-| Transfer function magnitude (PR) | dB   | —        | —         | —            | 2.8e-14          | —            | —           |
-| Transfer function phase (PR)     | deg  | —        | —         | —            | 4.5e-13          | —            | —           |
-| Cone excursion (PR)              | mm   | —        | —         | —            | 8.3e-15          | —            | —           |
-| Rear port - Air velocity         | m/s  | —        | 2e-12 rel | —            | —                | ≤ 1e-9 rel   | ≤ 1e-9 rel  |
-| Rear port - Gain                 | dB   | —        | 5.0e-14   | —            | —                | ❔           | ❔          |
-| Front port - Air velocity        | m/s  | —        | —         | 2e-12 rel    | —                | ≤ 1e-9 rel   | ≤ 1e-9 rel  |
-| Front port - Gain                | dB   | —        | —         | 4.6e-14      | —                | ❔           | ❔          |
-| Intrachamber port - Air velocity | m/s  | —        | —         | —            | —                | —            | ≤ 1e-9 rel  |
+| Chart                            | Unit | Sealed   | Vented    | Bandpass 4th | Passive radiator | Bandpass 6th                                                                                     | ABC                                                                                   |
+| -------------------------------- | ---- | -------- | --------- | ------------ | ---------------- | ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------- |
+| Transfer function magnitude      | dB   | 4.8e-14  | 5.7e-14   | 4.5e-13      | 5.7e-14          | ≤ 1e-9                                                                                           | ≤ 1e-9                                                                                |
+| Transfer function phase          | deg  | 9.1e-13  | 1.3e-12   | 2.3e-12      | 1.4e-12          | ✅ 7.8e-12                                                                                       | ✅ 8.2e-13                                                                            |
+| Group delay                      | ms   | ≈ 6.9e-4 | ≈ 1.0e-3  | ≈ 0.015      | ≈ 8e-4           | ✗ 0.11 ms @ 4 kHz [bug](../../bugs/BUG_20260929_bp6-abc-group-delay-not-winisd.md?html)          | ✗ 7.1 ms @ 1 Hz [bug](../../bugs/BUG_20260929_bp6-abc-group-delay-not-winisd.md?html) |
+| Maximum power                    | W    | 8.9e-14  | 9.6e-14   | 9.2e-14      | 8.5e-14          | ✅ 7.8e-14                                                                                       | ✅ 9.2e-14                                                                            |
+| Maximum SPL                      | dB   | 2.8e-14  | 2.8e-14   | 4.3e-13      | 2.8e-14          | ✅ 3.4e-12                                                                                       | ✅ 2.8e-14                                                                            |
+| Amplifier apparent load power    | VA   | 8.9e-14  | 5.5e-14   | 7.3e-14      | 7.8e-14          | ✅ 7.8e-16                                                                                       | ✅ 6.7e-16                                                                            |
+| SPL                              | dB   | 4.3e-14  | 4.3e-14   | 4.3e-13      | 4.3e-14          | ✅ 3.5e-12                                                                                       | ✅ 2.8e-14                                                                            |
+| Cone excursion                   | mm   | 1e-14    | 1.9e-14   | 1.4e-14      | 1.5e-14          | ✅ 4.6e-15 m                                                                                     | ✅ 4.6e-15 m                                                                          |
+| Impedance                        | Ω    | 2.8e-14  | 2.1e-14   | 1.8e-14      | 2.3e-14          | ≤ 1e-10 rel                                                                                      | ≤ 1e-10 rel                                                                           |
+| Impedance phase                  | deg  | 1.4e-13  | 8.5e-14   | 1.1e-13      | 1.1e-13          | ✅ 1.4e-13                                                                                       | ✅ 8.5e-14                                                                            |
+| Transfer function magnitude (PR) | dB   | —        | —         | —            | 2.8e-14          | —                                                                                                | —                                                                                     |
+| Transfer function phase (PR)     | deg  | —        | —         | —            | 4.5e-13          | —                                                                                                | —                                                                                     |
+| Cone excursion (PR)              | mm   | —        | —         | —            | 8.3e-15          | —                                                                                                | —                                                                                     |
+| Rear port - Air velocity         | m/s  | —        | 2e-12 rel | —            | —                | ≤ 1e-9 rel                                                                                       | ≤ 1e-9 rel                                                                            |
+| Rear port - Gain                 | dB   | —        | 5.0e-14   | —            | —                | ✅ ≤ 1e-12 (was missing) [bug](../../bugs/BUG_20260929_bp6-abc-port-gain-charts-missing.md?html) | ✅ ≤ 1e-12 (was missing)                                                              |
+| Front port - Air velocity        | m/s  | —        | —         | 2e-12 rel    | —                | ≤ 1e-9 rel                                                                                       | ≤ 1e-9 rel                                                                            |
+| Front port - Gain                | dB   | —        | —         | 4.6e-14      | —                | ✅ ≤ 1e-12 (was missing)                                                                         | ✅ ≤ 1e-12 (was missing)                                                              |
+| Intrachamber port - Air velocity | m/s  | —        | —         | —            | —                | —                                                                                                | ≤ 1e-9 rel                                                                            |
 
 Box-independent EQ/Filter charts (4-filter chain, every box): magnitude 2.8e-14 dB, phase 8e-13 deg,
 group delay ≈ 6.6e-4 ms.

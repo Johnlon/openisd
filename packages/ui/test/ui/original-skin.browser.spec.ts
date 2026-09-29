@@ -169,6 +169,13 @@ test('the chart menu lists only the charts that apply to the current box '
   await expect(menuItems().filter({ hasText: 'Rear port - Air velocity' })).toHaveCount(0);
   await expect(menuItems().filter({ hasText: 'Rear port - Gain' })).toHaveCount(0);
   await expect(menuItems().filter({ hasText: 'Transfer function magnitude (PR)' })).toHaveCount(0);
+  await page.locator('.chart-select').click();
+
+  // Switch to 6th-order bandpass: both ports, both gains (WinISD draws both; runs/bp6-w5-base2).
+  await page.locator('#og-box-type').selectOption('bandpass6');
+  await page.locator('.chart-select').click();
+  await expect(menuItems().filter({ hasText: 'Rear port - Gain' })).toBeVisible();
+  await expect(menuItems().filter({ hasText: 'Front port - Gain' })).toBeVisible();
 });
 
 test('all seven project tabs render their ported content', async ({ page }) => {

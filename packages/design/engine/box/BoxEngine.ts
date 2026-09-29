@@ -97,11 +97,15 @@ export class BoxEngineImpl implements BoxEngine {
         break;
       case 'bandpass6':
         set.add('RearPort');
+        set.add('RearPortGain');
         set.add('FrontPort');
+        set.add('FrontPortGain');
         break;
       case 'abc':
         set.add('RearPort');
+        set.add('RearPortGain');
         set.add('FrontPort');
+        set.add('FrontPortGain');
         set.add('IntraPort');
         break;
       case 'box-passive-radiator':
