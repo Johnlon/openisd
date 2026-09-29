@@ -658,22 +658,6 @@ export class OpenISDProject {
         this.envUseWinisdAirModel.set(useWinisdAirModel);
     }
 
-    /**
-     * Qts as the amplifier's source impedance actually loads it.
-     *
-     * `Rs` is a PARAMETER rather than a record field because the record has no home for it — the
-     * same decision `packages/model`'s `sealedResonance()` made and for the same reason. When the
-     * amplifier's output impedance gets a home, this reads it instead.
-     *
-     * Null when the driver's Q group is too incomplete to resolve.
-     */
-    sourceLoadedQts(Rs: number): number | null {
-        const ts = this.driver.specs;
-        const Qms = ts.Qms.value, Qes = ts.Qes.value, Re_ohm = ts.Re_ohm.value, Qts = ts.Qts.value;
-        if (Qms === null || Qes === null || Re_ohm === null || Qts === null) return null;
-        return this.#engine.driver.sourceLoadedQts(Qms, Qes, Re_ohm, Rs, Qts);
-    }
-
     // ── SIMULATION — the engine's sweep, run on THIS project's driver and box ──────────────────
     //
     // Everything the engine's `SweepParams` needs beyond the frequency grid is already stored

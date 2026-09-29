@@ -267,15 +267,9 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
    *  resistance folded into Qes — not the bare datasheet Qts (`boxDesign.ts#ventedAlignment`). */
   function ventedDesign(driver: OpenISDDriver, alignment: VentedAlignment, Rs_ohm: number, Ql: number): VentedDesign | null {
     const Fs_hz = driver.specs.Fs_hz.value;
-    const Qts = driver.specs.Qts.value;
+    const QtsLoaded = driver.sourceLoadedQts(Rs_ohm);
     const Vas_m3 = driver.specs.Vas_m3.value;
-    if (Fs_hz == null || Qts == null || Vas_m3 == null) return null;
-    const Qms = driver.specs.Qms.value;
-    const Qes = driver.specs.Qes.value;
-    const Re_ohm = driver.specs.Re_ohm.value;
-    const QtsLoaded = Qms != null && Qes != null && Re_ohm != null
-      ? eng.driver.sourceLoadedQts(Qms, Qes, Re_ohm, Rs_ohm, Qts)
-      : Qts;
+    if (Fs_hz == null || QtsLoaded == null || Vas_m3 == null) return null;
     return eng.vented.alignment(alignment, Fs_hz, QtsLoaded, Vas_m3, Ql);
   }
 

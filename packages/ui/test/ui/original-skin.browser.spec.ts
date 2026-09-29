@@ -815,7 +815,7 @@ test('R1: an open Tune panel stays open across a reload', async ({ page }) => {
 
   await page.waitForFunction(() => (localStorage.getItem('openisd_view') || '').includes('originalTuneOpen'),
     undefined, { timeout: 5000 }); // the open-panel flag is persisted
-  await page.reload();
+  await page.reload({ waitUntil: 'domcontentloaded' });
 
   await expect(page.locator('.tune-panel')).toBeVisible();          // Tune reopened
 });

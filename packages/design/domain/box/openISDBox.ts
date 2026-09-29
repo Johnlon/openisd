@@ -370,10 +370,8 @@ export class OpenISDBox implements Box {
         const ts = this.#driver.specs;
         const Fs_hz = ts.Fs_hz.value;
         const Vas = ts.Vas_m3.value;
-        const Qts = ts.Qts.value;
-        if (Fs_hz === null || Vas === null || Qts === null) return null;
-        const QtsLoaded = this.#engine.driver.sourceLoadedQts(
-            ts.Qms.value ?? NaN, ts.Qes.value ?? NaN, ts.Re_ohm.value ?? NaN, this.#rs(), Qts);
+        const QtsLoaded = this.#driver.sourceLoadedQts(this.#rs());
+        if (Fs_hz === null || Vas === null || QtsLoaded === null) return null;
         // The project's own chosen mode (S10/QO130) by default. WinISD displays and saves the
         // LOSSY figure by default (John 2026-08-27: "default is winisd = Lossy") and it MOVES
         // with the chamber's losses: measured, `Fr` shifts 5.8 Hz for a `Ql` change at fixed
