@@ -21,7 +21,16 @@ mkdir -p "$LOG_DIR"
 LOG="$LOG_DIR/$(date +%Y%m%d-%H%M%S)-$$.log"
 MAX="${QUIET_MAX_LINES:-150}"
 
-"$@" >"$LOG" 2>&1
+# vitest: quiet reporter unless the caller chose one. NOT done for playwright: a CLI --reporter
+# replaces playwright.config.js's reporters, which would switch off the skip-is-a-fail gate and
+# the json/telemetry reporters — playwright output is only grep-filtered below.
+ARGS=("$@")
+case " $* " in
+  *" --reporter"*) ;;
+  *vitest*) ARGS+=(--reporter=dot) ;;
+esac
+
+"${ARGS[@]}" >"$LOG" 2>&1
 CODE=$?
 
 # Passing-test traces: vitest verbose/list (✓ / √), playwright list (✓ N [project] ...),
@@ -35,5 +44,7 @@ head -n "$MAX" "$LOG.filtered"
 if [ "$TOTAL" -gt "$MAX" ]; then
   echo "... $((TOTAL - MAX)) more non-pass lines; see $LOG.filtered"
 fi
+echo "--- last 15 lines of the log ---"
+sed -E 's/\x1b\[[0-9;]*[A-Za-z]//g' "$LOG" | tail -n 15
 echo "quiet-test: exit $CODE — full log $LOG"
 exit "$CODE"
