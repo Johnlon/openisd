@@ -122,6 +122,18 @@ const {
   overflow-y: auto;
   padding-bottom: 8px;
 }
+/* Every direct child here is a mounted tab's ROOT (`.mob-panel` blocks, `.mob-hint` paragraphs,
+   …) — a flex ITEM with the column-flex default `flex-shrink: 1`. Any `.mob-panel` also sets
+   `overflow: hidden`, and a flex item with overflow other than visible gets an automatic MINIMUM
+   size of 0 (flexbox spec) — so once a tall tab's content exceeds this container, the shrink
+   algorithm was silently squashing every panel down to fit and clipping its content, rather than
+   letting `.mob-content` overflow so `overflow-y: auto` above could actually scroll (the bug:
+   "Environment view truncated instead of scrolling", 2026-09-29 — the Advanced tab was simply
+   the first one tall enough to expose it; Box and Enclosure were clipped too). `:deep()` because
+   these roots belong to child components, not this one. */
+.mob-content > :deep(*) {
+  flex-shrink: 0;
+}
 .mob-topbar {
   flex-shrink: 0;
   display: flex;
@@ -179,6 +191,10 @@ const {
 }
 .mob-menu-item:disabled { color: var(--mut); cursor: default; }
 .mob-menu-item.dirty { color: var(--acc2); font-weight: 600; }
+/* .mob-menu-item's own padding lands on THIS element too (its class list includes both) — zero
+   it here so the trigger button below isn't double-indented (12px+12px) relative to every plain
+   `<button class="mob-menu-item">` sibling. */
+.mob-menu-export { padding: 0; }
 .mob-menu-export :deep(.export-menu-trigger) {
   all: unset;
   box-sizing: border-box;
