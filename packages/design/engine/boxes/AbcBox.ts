@@ -4,6 +4,7 @@
  */
 import {cAdd, cDiv, cInv, cMul, cPar, cx} from '../complex.js';
 import type {SweepParams} from '../types.js';
+import {winisdLinePortReactance} from './port.js';
 import type {BoxModel, BoxOutput, DriverSideQuantities} from './BoxModel.js';
 
 export class AbcBox implements BoxModel {
@@ -92,7 +93,7 @@ export class AbcBox implements BoxModel {
         const Ralr = cx(Qlr * wr * Mapr, 0);
         const Raar = cx(wr * Mapr / Qar, 0);
         const Zcr = cAdd(Raar, cInv(cx(0, w * Cabr)));
-        const RapBranchR = cAdd(cx(wr * Mapr / Qpr, 0), cx(0, w * Mapr));
+        const RapBranchR = cAdd(cx(wr * Mapr / Qpr, 0), cx(0, P.tlPortModel ? winisdLinePortReactance(w, Mapr, P.Spr ?? NaN, P.rearPortEndCorrection_m ?? NaN, rho, c) : w * Mapr));
         const Zr = cPar(Ralr, Zcr, RapBranchR);
 
         const wf = 2 * Math.PI * Ff;
@@ -100,7 +101,7 @@ export class AbcBox implements BoxModel {
         const Ralf = cx(Qlf * wf * Mapf, 0);
         const Raaf = cx(wf * Mapf / Qaf, 0);
         const Zcf = cAdd(Raaf, cInv(cx(0, w * Cabf)));
-        const RapBranchF = cAdd(cx(wf * Mapf / Qpf, 0), cx(0, w * Mapf));
+        const RapBranchF = cAdd(cx(wf * Mapf / Qpf, 0), cx(0, P.tlPortModel ? winisdLinePortReactance(w, Mapf, P.Sp ?? NaN, P.portEndCorrection_m ?? NaN, rho, c) : w * Mapf));
         const Zf = cPar(Ralf, Zcf, RapBranchF);
 
         const ws = 1 / Math.sqrt(Mas * Cas);
