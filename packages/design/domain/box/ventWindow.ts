@@ -102,6 +102,12 @@ export class VentWindow implements Vent {
         return this.#vent.effectiveLength(length_m, Sp, this.#ports(), this.#lens.value.endCorrection_m);
     }
 
+    endCorrectionLength_m(): number | null {
+        const Sp = this.area_m2.value;
+        if (Sp === null) return null;
+        return this.#vent.effectiveLength(0, Sp, this.#ports(), this.#lens.value.endCorrection_m);
+    }
+
     tuningIn_hz(volume_m3: number | null): number | null {
         const length_m = this.length_m.value;
         const Sp = this.area_m2.value;

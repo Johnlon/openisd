@@ -22,6 +22,9 @@ export interface Vent {
   totalArea_m2(): number | null;
   /** Acoustic length, or null when the length or the area it depends on is unset. */
   effectiveLength_m(): number | null;
+  /** The end correction as a length: the acoustic length less the physical length. Null when
+   *  the area is unset; it does not depend on the length. */
+  endCorrectionLength_m(): number | null;
 
   /** The tuning this port ACTUALLY produces in a chamber of `volume_m3` — the port as built,
    *  rather than the tuning the user asked for. Null when the port's dimensions or the volume

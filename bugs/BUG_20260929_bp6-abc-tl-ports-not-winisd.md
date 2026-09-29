@@ -1,6 +1,6 @@
 # BUG_20260929_bp6-abc-tl-ports-not-winisd
 
-**Status:** OPEN
+**Status:** RESOLVED
 
 ## Symptom
 With "Use transmission-line model for ports" on, OpenISD's 6th-order bandpass and ABC charts
@@ -24,3 +24,10 @@ intra-chamber port as a line.
 
 ## Verification
 Fixtures from both runs; SPL, impedance ≤ 1e-12 relative, TF ≤ 1e-11 dB, as the 4th-order bandpass test.
+
+## Resolution (2026-09-29)
+Both boxes use the line reactance on their front and rear ports; the ABC intra-chamber port stays a
+lumped mass (matches without it). Each vent's end correction comes from the new
+`Vent.endCorrectionLength_m()` (the effective length at zero physical length), which the vented and
+4th-order bandpass boxes now use too. SPL, Z ≤ 1e-12 relative, TF ≤ 1e-11 dB
+(test/domain/tl-port-model-bp6-winisd.test.ts, tl-port-model-abc-winisd.test.ts).
