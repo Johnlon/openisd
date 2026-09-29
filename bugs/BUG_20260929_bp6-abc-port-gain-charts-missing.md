@@ -1,6 +1,6 @@
 # BUG_20260929_bp6-abc-port-gain-charts-missing
 
-**Status:** OPEN
+**Status:** RESOLVED
 
 ## Symptom
 WinISD draws "Rear port - Gain" and "Front port - Gain" for 6th-order bandpass and ABC boxes.

@@ -26,7 +26,7 @@ export class PassiveRadiatorBox implements BoxModel {
     const Cap = (P.prCms ?? NaN) * (P.prSd ?? NaN) * (P.prSd ?? NaN);
     const Rap = (P.prRms || 0) / ((P.prSd ?? NaN) * (P.prSd ?? NaN));
     const Zpr_single = cAdd(cAdd(cx(Rap, 0), cx(0, w * Map)), cInv(cx(0, w * Cap)));
-    const Zpr = n_pr > 1 ? cScale(Zpr_single, 1 / n_pr) : Zpr_single;
+    const Zpr = n_pr !== 1 ? cScale(Zpr_single, 1 / n_pr) : Zpr_single;
 
     switch (lossMode) {
       case 'lossless':
