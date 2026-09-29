@@ -46,9 +46,11 @@ interface UiState {
   username?: string;
   unitTokens?: Record<string, string>;
   chartColors?: ChartColors;
-  /** The Original skin's minimum chart height, px (`CHART_MIN_H_OPTIONS`). Absent means
-   *  `CHART_MIN_H`. */
-  originalChartMinH?: number;
+  /** Charts stacked to the chart area's height, Original skin (`CHARTS_HIGH_OPTIONS`). Absent
+   *  means `ORIGINAL_CHARTS_HIGH`. */
+  originalChartsHigh?: number;
+  /** Charts stacked to the chart area's height, Mobile skin. Absent means `MOBILE_CHARTS_HIGH`. */
+  mobileChartsHigh?: number;
   /** The splash has been shown and dismissed once — it opens itself only for a visitor whose
    *  stored view carries nothing (`SplashModal-hooks.ts`). */
   splashSeen?: boolean;
