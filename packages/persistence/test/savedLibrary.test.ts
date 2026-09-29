@@ -20,6 +20,10 @@ import {createEngine} from '@openisd/design/engine';
 
 const engine = createEngine();
 
+function isRecord(v: unknown): v is Record<string, unknown> {
+  return typeof v === 'object' && v !== null;
+}
+
 /** An in-memory storage, so each test sees only what it put there itself. */
 function memoryStorage(): KeyValueStorage & { raw(key: string): string | null } {
   const held = new Map<string, string>();
@@ -100,16 +104,17 @@ describe('both saved libraries write the same envelope', () => {
     repo.upsert(aDriver());
 
     const written: unknown = JSON.parse(storage.raw(MY_DRIVERS_KEY) ?? 'null');
-    assert.ok(written && typeof written === 'object', 'the bucket must hold an object');
-    const env = written as { schema?: unknown; entries?: unknown };
-    assert.equal(typeof env.schema, 'number', 'the envelope states its schema version');
-    assert.ok(Array.isArray(env.entries), 'the envelope holds `entries`, the shared field name');
+    if (!isRecord(written)) throw new Error('the bucket must hold an object');
+    assert.equal(typeof written.schema, 'number', 'the envelope states its schema version');
+    if (!Array.isArray(written.entries)) throw new Error('the envelope holds `entries`, the shared field name');
+    const entries: unknown[] = written.entries;
 
-    const entry = (env.entries as unknown[])[0] as { uuid?: unknown; record?: unknown };
+    const entry = entries[0];
+    if (!isRecord(entry)) throw new Error('expected an entry object');
     assert.equal(typeof entry.uuid, 'string', 'the repo mints a uuid per entry');
-    assert.ok(entry.record && typeof entry.record === 'object', 'the entry carries the driver record');
-    assert.ok(!('uuid' in (entry.record as Record<string, unknown>))
-      || (entry.record as { uuid?: { value?: string } }).uuid?.value !== entry.uuid,
+    if (!isRecord(entry.record)) throw new Error('the entry carries the driver record');
+    const recordUuid = isRecord(entry.record.uuid) ? entry.record.uuid.value : undefined;
+    assert.ok(recordUuid !== entry.uuid,
       'the storage uuid stays OUTSIDE the record, so it cannot leak into a file export');
   });
 
@@ -120,14 +125,15 @@ describe('both saved libraries write the same envelope', () => {
     repo.upsert(aRadiator());
 
     const written: unknown = JSON.parse(storage.raw(MY_PASSIVE_RADIATORS_KEY) ?? 'null');
-    assert.ok(written && typeof written === 'object', 'the bucket must hold an object');
-    const env = written as { schema?: unknown; entries?: unknown };
-    assert.equal(typeof env.schema, 'number', 'the envelope states its schema version');
-    assert.ok(Array.isArray(env.entries), 'the envelope holds `entries`, same field name as My Drivers');
+    if (!isRecord(written)) throw new Error('the bucket must hold an object');
+    assert.equal(typeof written.schema, 'number', 'the envelope states its schema version');
+    if (!Array.isArray(written.entries)) throw new Error('the envelope holds `entries`, same field name as My Drivers');
+    const entries: unknown[] = written.entries;
 
-    const entry = (env.entries as unknown[])[0] as { uuid?: unknown; record?: unknown };
+    const entry = entries[0];
+    if (!isRecord(entry)) throw new Error('expected an entry object');
     assert.equal(typeof entry.uuid, 'string', 'a uuid, not a Date.now() id');
-    assert.ok(entry.record && typeof entry.record === 'object', 'the entry carries the RADIATOR RECORD, not five loose numbers');
+    assert.ok(isRecord(entry.record), 'the entry carries the RADIATOR RECORD, not five loose numbers');
   });
 });
 

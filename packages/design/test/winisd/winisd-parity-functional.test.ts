@@ -88,10 +88,47 @@ interface KnownDivergence {
   reference: string;
 }
 
-const scenarios: Scenario[] =
-  JSON.parse(readFileSync(join(fixtures, 'scenarios.json'), 'utf8')).scenarios;
-const divergences: KnownDivergence[] =
-  JSON.parse(readFileSync(join(fixtures, 'divergences.json'), 'utf8')).divergences;
+function isRecord(v: unknown): v is Record<string, unknown> {
+  return typeof v === 'object' && v !== null;
+}
+
+function isScenario(v: unknown): v is Scenario {
+  return isRecord(v)
+    && typeof v.id === 'string'
+    && typeof v.purpose === 'string'
+    && isRecord(v.driver) && Object.values(v.driver).every(x => typeof x === 'number' || typeof x === 'string')
+    && isRecord(v.box) && Object.values(v.box).every(x => typeof x === 'number')
+    && isRecord(v.environment)
+    && typeof v.environment.T === 'number' && typeof v.environment.p === 'number' && typeof v.environment.phi === 'number'
+    && isRecord(v.signal) && typeof v.signal.Rg === 'number' && typeof v.signal.P === 'number';
+}
+
+function asScenarios(v: unknown): Scenario[] {
+  if (!Array.isArray(v) || !v.every(isScenario)) throw new Error('expected a Scenario[] value');
+  return v;
+}
+
+function isKnownDivergence(v: unknown): v is KnownDivergence {
+  return isRecord(v)
+    && typeof v.scenario === 'string'
+    && typeof v.field === 'string'
+    && (v.maxRelative === undefined || typeof v.maxRelative === 'number')
+    && typeof v.cause === 'string'
+    && typeof v.reference === 'string';
+}
+
+function asKnownDivergences(v: unknown): KnownDivergence[] {
+  if (!Array.isArray(v) || !v.every(isKnownDivergence)) throw new Error('expected a KnownDivergence[] value');
+  return v;
+}
+
+const parsedScenariosFile: unknown = JSON.parse(readFileSync(join(fixtures, 'scenarios.json'), 'utf8'));
+if (!isRecord(parsedScenariosFile)) throw new Error('expected scenarios.json to parse to an object');
+const scenarios: Scenario[] = asScenarios(parsedScenariosFile.scenarios);
+
+const parsedDivergencesFile: unknown = JSON.parse(readFileSync(join(fixtures, 'divergences.json'), 'utf8'));
+if (!isRecord(parsedDivergencesFile)) throw new Error('expected divergences.json to parse to an object');
+const divergences: KnownDivergence[] = asKnownDivergences(parsedDivergencesFile.divergences);
 
 /**
  * Scenario ids with no golden and none obtainable — confirmed by a bug record documenting an
@@ -139,8 +176,17 @@ function scenarioWdr(s: Scenario): string {
  * "tests construct their own data" violation sharing a lookup/computation would be. Each file
  * still writes its own dispatch and its own assertions against this same name list.
  */
-const WDR_INI_DRIVER_FIELDS: readonly string[] =
-  JSON.parse(readFileSync(join(here, 'fixtures', 'wdr-ini-driver-fields.json'), 'utf8'));
+/** Narrows a parsed JSON fixture to `string[]` — this file's only way to read the shared field
+ *  name list, never a cast. */
+function asStringArray(v: unknown): string[] {
+  if (!Array.isArray(v) || !v.every((x): x is string => typeof x === 'string')) {
+    throw new Error(`expected a string[] value, got ${JSON.stringify(v)}`);
+  }
+  return v;
+}
+
+const parsedFieldList: unknown = JSON.parse(readFileSync(join(here, 'fixtures', 'wdr-ini-driver-fields.json'), 'utf8'));
+const WDR_INI_DRIVER_FIELDS: readonly string[] = asStringArray(parsedFieldList);
 
 /** Dispatch one of `WDR_INI_DRIVER_FIELDS`'s `.wdr`-spelled names to its own `DriverSpec` field's `Cell`
  *  — `DriverSpec`'s fields never appear as
@@ -315,7 +361,17 @@ describe('WinISD parity (functional) — field calculations against goldens WinI
   });
 
   it('the recorded provenance names the WinISD build and the harness commit that produced the goldens', () => {
-    const p = JSON.parse(readFileSync(join(fixtures, 'provenance.json'), 'utf8'));
+    const parsedProvenance: unknown = JSON.parse(readFileSync(join(fixtures, 'provenance.json'), 'utf8'));
+    if (!isRecord(parsedProvenance)) throw new Error('expected provenance.json to parse to an object');
+    const provenanceScenariosRaw = parsedProvenance.scenarios;
+    if (!Array.isArray(provenanceScenariosRaw)) throw new Error('expected provenance.scenarios to be an array');
+    const provenanceScenarios: unknown[] = provenanceScenariosRaw;
+    const p = {
+      winisdVersion: parsedProvenance.winisdVersion,
+      harnessCommit: parsedProvenance.harnessCommit,
+      winisdExeSha256: parsedProvenance.winisdExeSha256,
+      scenarios: provenanceScenarios,
+    };
     assert.ok(p.winisdVersion, 'provenance.json does not say which WinISD produced these goldens');
     assert.ok(p.harnessCommit, 'provenance.json does not say which harness commit produced these goldens');
     assert.ok(p.winisdExeSha256, 'provenance.json does not fingerprint the winisd.exe that ran');
@@ -352,9 +408,9 @@ describe('WinISD parity (functional) — field calculations against goldens WinI
       // Read lazily: a missing golden must be reported by the guard test above, with the
       // regenerate command, not as a collection crash that hides every other scenario.
       const path = join(GOLDENS_DIR, `${s.id}.wpr`);
-      const golden = existsSync(path)
+      const golden: Record<string, Record<string, string>> = existsSync(path)
         ? parseIni(readFileSync(path, 'utf8'))
-        : ({} as Record<string, Record<string, string>>);
+        : {};
       // The golden's [Driver] section, read through the same `.wdr` codec as the scenario — so the
       // test never interprets a ParState slot itself; the codec's `cell()` already has.
       const goldenDriver = golden.Driver
