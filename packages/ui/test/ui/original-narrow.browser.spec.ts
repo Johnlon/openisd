@@ -29,7 +29,7 @@ type Overlap = { a: string; b: string; w: number; h: number };
 async function overlappingControls(page: Page): Promise<Overlap[]> {
   return page.evaluate(() => {
     const sel = '.tab-section.active .field, .tab-section.active .checkbox-col label, .tab-section.active .hint';
-    const nodes = [...document.querySelectorAll(sel)] as HTMLElement[];
+    const nodes = [...document.querySelectorAll(sel)];
     const boxes = nodes
       .map(n => ({ r: n.getBoundingClientRect(), t: (n.textContent || '').trim().slice(0, 40) }))
       .filter(b => b.r.width > 0 && b.r.height > 0);
@@ -92,7 +92,10 @@ for (const width of [1400, ...WIDTHS]) {
 test('the bottom panel keeps ONE height across box types (no wobble from the tab count)', async ({ page }) => {
   const select = page.locator('#og-box-type');
   await page.locator('.project-nav li', { hasText: /^Box$/ }).click();
-  const boxes = await select.locator('option').evaluateAll(os => os.map(o => (o as HTMLOptionElement).value));
+  const boxes = await select.locator('option').evaluateAll(os => os.map(o => {
+    if (!(o instanceof HTMLOptionElement)) throw new Error('locator("option") matched a non-<option> element');
+    return o.value;
+  }));
   expect(boxes.length).toBeGreaterThan(3);
 
   const heights: Record<string, number> = {};
@@ -105,7 +108,7 @@ test('the bottom panel keeps ONE height across box types (no wobble from the tab
       // The left rail (tabs + projects list) shares the row; if the fixed height clips it
       // the tabs would be unreachable. scrollHeight-clientHeight must stay ~0.
       railClip: (() => {
-        const rail = el.parentElement!.querySelector('.quad-bottomleft') as HTMLElement;
+        const rail = el.parentElement!.querySelector('.quad-bottomleft');
         return rail ? Math.round(rail.scrollHeight - rail.clientHeight) : 999;
       })(),
     }));
@@ -125,7 +128,10 @@ test('the bottom panel keeps ONE height across box types (no wobble from the tab
 test('the box cut-through diagram sits at the same x for every box type', async ({ page }) => {
   await page.locator('.project-nav li', { hasText: /^Box$/ }).click();
   const select = page.locator('#og-box-type');
-  const types = await select.locator('option').evaluateAll(os => os.map(o => (o as HTMLOptionElement).value));
+  const types = await select.locator('option').evaluateAll(os => os.map(o => {
+    if (!(o instanceof HTMLOptionElement)) throw new Error('locator("option") matched a non-<option> element');
+    return o.value;
+  }));
   expect(types.length).toBeGreaterThan(3);
 
   const lefts: Record<string, number> = {};

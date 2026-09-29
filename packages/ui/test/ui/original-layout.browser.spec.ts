@@ -38,7 +38,8 @@ test('sealed Box tab opens and cancels the Alignment editor', async ({ page }) =
 // not match the predicate). A "cluster" is a run of adjacent qualifying pixel rows.
 async function levelLineClusters(page: Page): Promise<number> {
   return page.evaluate(() => {
-    const c = document.querySelector('.graph-wrap canvas') as HTMLCanvasElement;
+    const c = document.querySelector('.graph-wrap canvas');
+    if (!(c instanceof HTMLCanvasElement)) throw new Error('.graph-wrap canvas is not a <canvas>');
     const ctx = c.getContext('2d')!;
     const W = c.width, H = c.height;
     const img = ctx.getImageData(0, 0, W, H).data;
@@ -79,8 +80,14 @@ test('project rows are [checkbox] Name only; the Close button under the list rem
   await expect(rows.nth(1)).toHaveClass(/selected/);
   // A copy opens already saved, so it would close without asking — dirty it so the
   // unsaved-changes prompt is real.
-  await page.evaluate(async (modPath) => {
-    const p = (await import(/* @vite-ignore */ modPath)).requireFocusedProject();
+  await page.evaluate(async (modPath): Promise<void> => {
+    type AppState = typeof import('../../src/logic/appState.js');
+    function isAppState(m: unknown): m is AppState {
+      return typeof m === 'object' && m !== null && 'requireFocusedProject' in m && typeof m.requireFocusedProject === 'function';
+    }
+    const mod: unknown = await import(/* @vite-ignore */ modPath);
+    if (!isAppState(mod)) throw new Error('appState module shape mismatch');
+    const p = mod.requireFocusedProject();
     p.box.vented.volume_m3.set(p.box.vented.volume_m3.value + 0.01);
   }, '/src/logic/appState.ts');
   await closeBtn.click();
