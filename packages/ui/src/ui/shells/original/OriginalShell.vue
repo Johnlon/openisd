@@ -24,7 +24,7 @@ const {
   version, toggleDropdown, openDd, openClick, closeDropdown, presentationState, isModified,
   openDialogOpen, storedProjects, openFromDisk, openStoredProject, switchToMobile,
   saveProject, resetProjectToGround, confirmDiscard, about, optionsOpen,
-  chartLabel, CHART_ITEMS, selectChart,
+  chartLabel, chartItems, selectChart, toggleChart,
   hzInputText, inputValue, onHzInputFocus, onHzInputBlur, onHzKeydown, onHzWheel,
   startNudge, stopNudge, cursorHz, cursorVal, chartMeta, inputChecked, selectedOption,
   WINISD_TRACE, cycleColor, resetChartView, chartMax,
@@ -32,7 +32,7 @@ const {
   projectList, isRowVisible, setRowVisible, rowName, rowUnsaved, selectProject, project, focused, projectOpen, whatIfActive,
   copyCurrentProject, requestCloseProject, closeChallenge, saveThenClose, closeProject,
   genOn, toggleGenerate, genHz,
-  boxLabel, pending, chartTab, overlays, activeTab,
+  boxLabel, pending, openCharts, chartStackEl, chartStackStyle, overlays, activeTab,
   showEnclosureTab, enclosureNavLabel,
   selectedBox, BOX_TYPE_OPTIONS, LOSS_MODE_OPTIONS, lossMode, ARRAY_WIRING_OPTIONS, N_DRIVERS_OPTIONS, applyWinisdSettings,
   boxVolume_m3, boxVolumeDqNote, setBoxVolume_m3, sealedAlignmentEditor, sealedAlignmentOpen,
@@ -93,14 +93,17 @@ const {
           </div>
         </div>
         <div class="tb-sep"></div>
-        <div class="chart-select" @click.stop="toggleDropdown('chart-dropdown')" title="Choose which curve the graph shows">
+        <div class="chart-select" @click.stop="toggleDropdown('chart-dropdown')" title="Choose which charts the graph shows — click a name to show it alone, tick boxes to stack several">
           <ToolbarIcon name="chart" />
           <span class="chart-name" :title="chartLabel">{{ chartLabel }}</span>
           <span class="caret">&#9662;</span>
           <div class="dropdown-menu" :class="{ open: openDd === 'chart-dropdown' }" @click.stop>
-            <template v-for="item in CHART_ITEMS" :key="item.label">
+            <template v-for="item in chartItems" :key="item.tab">
               <hr v-if="item.sep">
-              <div class="menu-item" :class="{ current: item.label === chartLabel }" @click="selectChart(item)">{{ item.label }}</div>
+              <div class="menu-item chart-item" :class="{ current: item.open }" @click="selectChart(item)" title="Show only this chart">
+                <input type="checkbox" :checked="item.open" @click.stop="toggleChart(item.tab)" title="Add this chart to the stack, or remove it">
+                <span>{{ item.label }}</span>
+              </div>
             </template>
           </div>
         </div>
@@ -191,7 +194,12 @@ const {
       <!-- top-right quadrant: graph -->
       <div class="graph-area">
         <div class="graph-wrap">
-          <GraphPanel v-if="projectOpen && !pending" :chartId="chartTab" :bare="true" :primaryColor="WINISD_TRACE" :overlays="overlays" />
+          <div v-if="projectOpen && !pending" ref="chartStackEl" class="chart-stack" :style="chartStackStyle">
+            <div v-for="id in openCharts" :key="id" class="chart-cell">
+              <GraphPanel :chartId="id" :bare="true" :primaryColor="WINISD_TRACE" :overlays="overlays" />
+              <button v-if="openCharts.length > 1" class="chart-close" title="Remove this chart from the stack" @click="toggleChart(id)">✕</button>
+            </div>
+          </div>
           <div v-else-if="projectOpen" class="graph-empty">
             <template v-if="pending">
               <div class="graph-empty-h">{{ boxLabel }}</div>
@@ -797,8 +805,8 @@ const {
 .brand-icon { width:20px; height:20px; display:block; }
 
 /* ---------- Toolbar ---------- */
-.toolbar { display:flex; align-items:center; gap:12px; background:#eee; border-bottom:1px solid #bbb; padding:4px 12px; }
-.tb-icons { display:flex; align-items:center; gap:6px; min-width:0; flex:1 1 0; }
+.toolbar { display:flex; flex-wrap:wrap; align-items:center; gap:12px; background:#eee; border-bottom:1px solid #bbb; padding:4px 12px; }
+.tb-icons { display:flex; align-items:center; gap:6px; flex:none; }
 .tb-btn { display:flex; align-items:center; justify-content:center; flex:none; width:34px; height:30px; background:#f7f7f7; border:1px solid #bbb; border-radius:3px; cursor:pointer; position:relative; }
 .tb-btn:hover { background:#dbeaff; border-color:#7fb3ff; }
 .tb-btn.disabled { opacity:.4; cursor:default; pointer-events:none; }
@@ -811,7 +819,7 @@ const {
 .chart-select { display:flex; align-items:center; gap:6px; flex:none; width:324px; box-sizing:border-box; border:1px solid #bbb; border-radius:3px; background:#fff; padding:4px 8px; cursor:pointer; position:relative; user-select:none; }
 .chart-select:hover { border-color:#7fb3ff; }
 .chart-select .chart-name { font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0; flex:1; }
-.cursor-readout { line-height:1; color:#222; font-size:14px; cursor:default; display:flex; flex-direction:row; align-items:center; justify-content:flex-end; gap:12px; white-space:nowrap; min-width:0; flex:1 1 0; }
+.cursor-readout { line-height:1; color:#222; font-size:14px; cursor:default; display:flex; flex-direction:row; align-items:center; justify-content:flex-end; gap:12px; white-space:nowrap; flex:1 0 auto; }
 .version-chip { font-size:12px; color:#555; line-height:1.1; font-weight:400; }
 .cursor-readout .ro-hz, .cursor-readout .ro-val { font-variant-numeric:tabular-nums; display:inline-flex; align-items:center; }
 .ro-hz-input {
@@ -980,7 +988,14 @@ const {
 .chart-color-btn { padding:3px 12px; font-size:11px; border-radius:3px; color:#fff; text-shadow:0 0 2px rgba(0,0,0,.55); }
 .graph-area { grid-area:graph; position:relative; flex:1 1 auto; min-width:0; min-height:0; padding:8px 14px; display:flex; flex-direction:column; }
 .graph-wrap { flex:1 1 auto; min-height:0; border:1px solid #999; background:#fff; position:relative; display:flex; }
+.chart-stack { flex:1; min-width:0; display:grid; overflow-y:auto; }
+.chart-cell { min-width:0; min-height:0; position:relative; display:flex; outline:1px solid #999; outline-offset:-1px; }
 .graph-wrap :deep(.gpanel) { flex:1; height:100%; min-height:0; border:none; border-radius:0; }
+.chart-cell:has(.chart-close) :deep(.gtitle) { left:24px; }
+.chart-close { position:absolute; left:3px; top:3px; z-index:3; width:17px; height:17px; padding:0; line-height:15px; font-size:10px; background:#f7f7f7; border:1px solid #bbb; border-radius:3px; cursor:pointer; color:#444; }
+.chart-close:hover { background:#dbeaff; }
+.dropdown-menu .chart-item input { margin:0; cursor:pointer; }
+.dropdown-menu .chart-item::before { display:none !important; }
 .graph-empty { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:24px; color:#777; gap:6px; }
 .graph-empty-h { font-size:16px; font-weight:600; color:#333; }
 .graph-empty-actions { display:flex; gap:12px; margin-top:4px; }

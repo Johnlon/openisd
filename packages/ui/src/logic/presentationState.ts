@@ -46,11 +46,8 @@ interface UiState {
   username?: string;
   unitTokens?: Record<string, string>;
   chartColors?: ChartColors;
-  originalChartTab?: string;
-  originalChartLabel?: string;
-  /** The mobile shell's own last-chosen chart — independent of `originalChartTab`/
-   *  `originalChartLabel` on purpose: each skin remembers its own last-chosen chart, the same
-   *  way each has its own window layout. */
+  /** The mobile shell's own last-chosen chart. The Original skin's open charts are the
+   *  project's own (`OpenISDProject.openCharts`). */
   mobileChartTab?: string;
   mobileChartLabel?: string;
   /** The splash has been shown and dismissed once — it opens itself only for a visitor whose
