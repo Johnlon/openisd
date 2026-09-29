@@ -2,7 +2,7 @@ import {LossMode} from '../../fields/lossMode.js';
 import {type Engine} from '../../engine/index.js';
 import type { Air, BoxType, DqIssue } from '../../engine/index.js';
 import { CalculatedFieldImpl, absentCell, calculatedCell, entryField, focus, pairedField, requiredField } from '../cell.js';
-import type { SimpleField } from '../cell.js';
+import type { Entered, Readable, SimpleField, Writable } from '../cell.js';
 import type { SealedLosses } from '../losses.js';
 import type { OpenISDBoxJson, SpecEntryJson } from '../openisdSchema.js';
 import { OpenISDDriverEmbedded } from '../driver/openISDDriverEmbedded.js';
@@ -283,7 +283,18 @@ export class OpenISDBox implements Box {
         };
     }
 
-    /** Takes the lens onto the project's `box` slot. The project owns that slot and builds the
+        volumeOf(type: BoxType): Readable<number> & Entered & Writable<number> {
+        switch (type) {
+            case 'sealed': return this.sealed.volume_m3;
+            case 'vented': return this.vented.volume_m3;
+            case 'bandpass4': return this.bandpass4.chambers.rear.volume_m3;
+            case 'bandpass6': return this.bandpass6.chambers.rear.volume_m3;
+            case 'abc': return this.abc.chambers.rear.volume_m3;
+            case 'box-passive-radiator': return this.passiveRadiator.volume_m3;
+        }
+    }
+
+/** Takes the lens onto the project's `box` slot. The project owns that slot and builds the
      *  lens, so the box needs no reference back to the project. */
     static wrap(
         slot: SimpleField<OpenISDBoxJson>,

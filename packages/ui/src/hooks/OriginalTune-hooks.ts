@@ -49,26 +49,12 @@ export function useOgTune(): OriginalTuneAPI {
   const vb_m3 = computed<number | null>(() => {
     void projectChanged.value; void project.value;
     const box = project.value.box;
-    switch (box.boxType.value) {
-      case 'sealed': return box.sealed.volume_m3.value;
-      case 'vented': return box.vented.volume_m3.value;
-      case 'bandpass4': return box.bandpass4.chambers.rear.volume_m3.value;
-      case 'bandpass6': return box.bandpass6.chambers.rear.volume_m3.value;
-      case 'abc': return box.abc.chambers.rear.volume_m3.value;
-      case 'box-passive-radiator': return box.passiveRadiator.volume_m3.value;
-    }
+    return box.volumeOf(box.boxType.value).value;
   });
 
   function setVb_m3(v: number): void {
     const box = project.value.box;
-    switch (box.boxType.value) {
-      case 'sealed': box.sealed.volume_m3.set(v); break;
-      case 'vented': box.vented.volume_m3.set(v); break;
-      case 'bandpass4': box.bandpass4.chambers.rear.volume_m3.set(v); break;
-      case 'bandpass6': box.bandpass6.chambers.rear.volume_m3.set(v); break;
-      case 'abc': box.abc.chambers.rear.volume_m3.set(v); break;
-      case 'box-passive-radiator': box.passiveRadiator.volume_m3.set(v); break;
-    }
+    box.volumeOf(box.boxType.value).set(v);
   }
 
   function cellClass(key: NumSpecField): string {

@@ -1,5 +1,5 @@
 import type { BoxType } from '../../engine/index.js';
-import type { SimpleField } from '../cell.js';
+import type { Entered, Readable, SimpleField, Writable } from '../cell.js';
 import type { AbcBox } from './abcBox.js';
 import type { Bandpass4Box } from './bandpass4Box.js';
 import type { Bandpass6Box } from './bandpass6Box.js';
@@ -18,4 +18,8 @@ export interface Box {
     readonly bandpass6: Bandpass6Box;
     readonly abc: AbcBox;
     readonly passiveRadiator: PassiveRadiatorBox;
+    /** The main-volume field of `type`: the one cabinet of a sealed, vented or passive-radiator
+     *  box, the rear chamber of a two-chamber box. `type` is passed, not read from `boxType`,
+     *  because a shell's box selector may hold a type the project has not adopted yet. */
+    volumeOf(type: BoxType): Readable<number> & Entered & Writable<number>;
 }
