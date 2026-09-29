@@ -98,4 +98,26 @@ export class ProjectAdvanced {
             set: (on: boolean) => lens.set(on),
         };
     }
+
+    /** WinISD Compatibility "WinISD driver count": N drivers as WinISD simulates them, each alone
+     *  in Vb/N fed P/N (BUG_20260928_driver-count-not-winisd). Off: the N coils wired by `wiring`
+     *  into one terminal impedance. On where a project does not say. */
+    get winisdDriverCountModel(): SimpleField<boolean> {
+        const lens = focus(this.#advanced, 'winisdDriverCountModel');
+        return {
+            get value() { return lens.value ?? true; },
+            set: (on: boolean) => lens.set(on),
+        };
+    }
+
+    /** WinISD Compatibility "WinISD flat response": "Force flat response" as WinISD does it, every
+     *  point to the transfer function's 0 dB, uncapped (BUG_20260928_force-flat-response-not-winisd).
+     *  Off: boost only, up to the passband reference, capped. On where a project does not say. */
+    get winisdFlatModel(): SimpleField<boolean> {
+        const lens = focus(this.#advanced, 'winisdFlatModel');
+        return {
+            get value() { return lens.value ?? true; },
+            set: (on: boolean) => lens.set(on),
+        };
+    }
 }

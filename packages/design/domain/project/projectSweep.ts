@@ -31,6 +31,8 @@ export interface ProjectSweepSource {
     readonly circuitModel: SimpleField<'winisd' | 'gyrator' | 'winisdGyrator'>;
     readonly winisdDriverModel: SimpleField<boolean>;
     readonly winisdVaModel: SimpleField<boolean>;
+    readonly winisdDriverCountModel: SimpleField<boolean>;
+    readonly winisdFlatModel: SimpleField<boolean>;
     readonly lossMode: SimpleField<LossMode>;
     readonly rgAtDriverSide: SimpleField<boolean>;
     readonly useTransmissionLinePortModel: SimpleField<boolean>;
@@ -87,6 +89,8 @@ function sweepParamsOf(source: ProjectSweepSource, P: FrequencyGrid, eg: number,
         Rs: source.Rs_ohm.value,
         circuitModel: engineCircuitModel(source.circuitModel.value, source.winisdDriverModel.value),
         winisdVaModel: source.winisdVaModel.value,
+        winisdDriverCountModel: source.winisdDriverCountModel.value,
+        winisdFlatModel: source.winisdFlatModel.value,
         lossMode: source.lossMode.value.value,
         Ql: losses.Ql, Qa: losses.Qa, Qp: losses.Qp,
         ...boxSpecificParamsOf(source, boxType),

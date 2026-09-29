@@ -731,6 +731,12 @@ const openISDAdvancedJsonSchema = z.preprocess(renameLegacyWinisdDriverModel, z.
     // "WinISD VA model": the amplifier apparent load power chart as WinISD computes it,
     // P·Re·|Hf|²/|Z + Rg|. Optional: absent parses to ON, WinISD's own behaviour.
     winisdVaModel: z.boolean().optional(),
+    // "WinISD driver count": N drivers as WinISD simulates them, each in Vb/N fed P/N; off, the N
+    // coils wired into one terminal impedance. Optional: absent parses to ON.
+    winisdDriverCountModel: z.boolean().optional(),
+    // "WinISD flat response": force flat as WinISD does it, every point to the TF 0 dB, uncapped;
+    // off, boost only to the passband reference, capped. Optional: absent parses to ON.
+    winisdFlatModel: z.boolean().optional(),
 }));
 export type OpenISDAdvancedJson = z.infer<typeof openISDAdvancedJsonSchema>;
 
