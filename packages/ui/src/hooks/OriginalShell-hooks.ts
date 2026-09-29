@@ -47,6 +47,7 @@ import {
 } from '../logic/useVentGroup.js';
 import {buildPlotData, TAB_META} from '../logic/series.js';
 import {ChartSelection, type ChartItem} from './chartSelection.js';
+import {chartGridLayout, chartGridStyle} from './chartGrid.js';
 import {createToneGenerator, type ToneGenerator} from '../logic/toneGenerator.js';
 import {useApp} from '../logic/app.js';
 import {useEscToClose} from '../logic/useEscToClose.js';
@@ -442,6 +443,18 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   /** The chart the toolbar readout reads: the top of the stack. */
   const readoutChart = computed(() => openCharts.value[0]);
   const chartMeta = computed(() => TAB_META[readoutChart.value]);
+  // The stack tiles into a grid sized to the chart area it is drawn in.
+  const chartStackEl = ref<HTMLElement | null>(null);
+  const chartStackW = ref(0);
+  const chartStackH = ref(0);
+  watch(chartStackEl, (el, _old, onCleanup) => {
+    if (!el) return;
+    const ro = new ResizeObserver(() => { chartStackW.value = el.clientWidth; chartStackH.value = el.clientHeight; });
+    ro.observe(el);
+    onCleanup(() => ro.disconnect());
+  });
+  const chartStackStyle = computed(() =>
+    chartGridStyle(chartGridLayout(openCharts.value.length, chartStackW.value, chartStackH.value), chartStackH.value));
 
   // ---- Toolbar dropdown menus (folder / saveas / info / chart) -------------------
   const openDd = ref<string | null>(null);
@@ -881,7 +894,7 @@ const overlays = computed<Design[]>(() => {
     projectList, isRowVisible, setRowVisible, rowName, rowUnsaved, selectProject, project, focused, projectOpen, whatIfActive,
     copyCurrentProject, requestCloseProject, closeChallenge, saveThenClose, closeProject,
     genOn, toggleGenerate, genHz,
-    boxLabel, pending, openCharts, overlays, activeTab,
+    boxLabel, pending, openCharts, chartStackEl, chartStackStyle, overlays, activeTab,
     showEnclosureTab, enclosureNavLabel,
     selectedBox, BOX_TYPE_OPTIONS, LOSS_MODE_OPTIONS, lossMode, ARRAY_WIRING_OPTIONS, N_DRIVERS_OPTIONS, applyWinisdSettings,
      boxVolume_m3, boxVolumeDqNote, setBoxVolume_m3, sealedAlignmentEditor, sealedAlignmentOpen,
