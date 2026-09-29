@@ -1,15 +1,25 @@
 import {mkdirSync, readFileSync, writeFileSync} from 'node:fs';
 import {dirname, join} from 'node:path';
 import {fileURLToPath} from 'node:url';
+import {z} from 'zod';
 import {createEngine, OpenISDDriver, OpenISDPassiveRadiatorStandalone, OpenISDProject} from '@openisd/design';
 import {DEFAULT_SOURCE_RESISTANCE_OHM} from '@openisd/design/fields';
 import {COMPLETE_DRIVER_PROJECT_OWPR, SAMPLE_PROJECT_OWPR} from './sampleProject.js';
+
+// Only the fields this fixture generator mutates directly; `fromConformingRecord` re-validates
+// the whole record against the real schema, so this schema stays loose (`z.looseObject`) rather
+// than duplicating it.
+const driverRecordSchema = z.looseObject({
+  brand: z.looseObject({value: z.string()}),
+  model: z.looseObject({value: z.string()}),
+  specs: z.looseObject({woofer: z.unknown().optional()}),
+});
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const driverStr = readFileSync(join(__dirname, '../../public/drivers/tang-band/w5-1138smf.json'), 'utf-8');
-const driverJson = JSON.parse(driverStr);
+const driverJson = driverRecordSchema.parse(JSON.parse(driverStr));
 const engine = createEngine();
 const maybeDriver = OpenISDDriver.fromConformingRecord(driverJson, engine);
 if (Array.isArray(maybeDriver)) {
@@ -41,7 +51,7 @@ writeFileSync(SAMPLE_PROJECT_OWPR, owprText);
 console.log(`Generated ${SAMPLE_PROJECT_OWPR}`);
 
 // Generate complete driver project with zero consistency issues
-const completeRecord = JSON.parse(driverStr);
+const completeRecord = driverRecordSchema.parse(JSON.parse(driverStr));
 completeRecord.brand.value = 'Fixture';
 completeRecord.model.value = 'Test Driver';
 const qts = 0.38;
