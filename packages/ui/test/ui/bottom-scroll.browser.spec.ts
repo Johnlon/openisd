@@ -40,8 +40,7 @@ async function checkNoChildOverflows(page: Page) {
     const children = container.querySelectorAll('*');
     const overflows: string[] = [];
     
-    for (const child of children) {
-      const el = child as HTMLElement;
+    for (const el of children) {
       const rect = el.getBoundingClientRect();
       if (rect.width === 0 || rect.height === 0) continue;
       

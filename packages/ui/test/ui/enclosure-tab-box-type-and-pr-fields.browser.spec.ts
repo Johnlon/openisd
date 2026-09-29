@@ -51,8 +51,13 @@ test('the PR tab edits Vas and Qms in place, without the editor popup', async ({
   await qms.fill('12.25');
   await qms.dispatchEvent('input');
 
-  const stored = await page.evaluate(async modPath => {
-    const s = await import(/* @vite-ignore */ modPath);
+  const stored = await page.evaluate(async (modPath): Promise<{ vas_m3: number | null; qms: number | null }> => {
+    type AppState = typeof import('../../src/logic/appState.js');
+    function isAppState(m: unknown): m is AppState {
+      return typeof m === 'object' && m !== null && 'requireFocusedProject' in m && typeof m.requireFocusedProject === 'function';
+    }
+    const s: unknown = await import(/* @vite-ignore */ modPath);
+    if (!isAppState(s)) throw new Error('appState module shape mismatch');
     const p = s.requireFocusedProject();
     return {
       vas_m3: p.box.passiveRadiator.radiator.spec.Vas_m3.value,

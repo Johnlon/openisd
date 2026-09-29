@@ -73,10 +73,21 @@ test.beforeEach(async ({ page }) => {
 // ---------------------------------------------------------------------------------------------
 const APP_STATE = '/src/logic/appState.ts';
 
+/** The `appState.ts` module shape every dynamic-import evaluate() call below narrows to — a
+ *  type-only alias, erased at compile time, so it is safe to name from inside a serialized
+ *  browser callback without crossing the closure boundary (only VALUES can't cross it). */
+type AppState = typeof import('../../src/logic/appState.js');
+type PresentationState = typeof import('../../src/logic/presentationState.js');
+
 /** The active box's volume in m³, whichever box type is selected — mirrors boxFields.ts. */
 const readVb = (page: Page) =>
-  page.evaluate(async (modPath) => {
-    const box = (await import(/* @vite-ignore */ modPath)).requireFocusedProject().box;
+  page.evaluate(async (modPath): Promise<number> => {
+    function isAppState(m: unknown): m is AppState {
+      return typeof m === 'object' && m !== null && 'requireFocusedProject' in m && typeof m.requireFocusedProject === 'function';
+    }
+    const mod: unknown = await import(/* @vite-ignore */ modPath);
+    if (!isAppState(mod)) throw new Error('appState module shape mismatch');
+    const box = mod.requireFocusedProject().box;
     switch (box.boxType.value) {
       case 'sealed': return box.sealed.volume_m3.value;
       case 'vented': return box.vented.volume_m3.value;
@@ -88,17 +99,55 @@ const readVb = (page: Page) =>
   }, APP_STATE);
 
 const readFilterCount = (page: Page) =>
-  page.evaluate(async (modPath) =>
-    (await import(/* @vite-ignore */ modPath)).requireFocusedProject().filters.value.length, APP_STATE);
+  page.evaluate(async (modPath): Promise<number> => {
+    function isAppState(m: unknown): m is AppState {
+      return typeof m === 'object' && m !== null && 'requireFocusedProject' in m && typeof m.requireFocusedProject === 'function';
+    }
+    const mod: unknown = await import(/* @vite-ignore */ modPath);
+    if (!isAppState(mod)) throw new Error('appState module shape mismatch');
+    return mod.requireFocusedProject().filters.value.length;
+  }, APP_STATE);
 
 /** Drive power in W — the one stored drive fact; voltage is always derived from it (ruling T5). */
 const readPowerDrive_W = (page: Page) =>
-  page.evaluate(async (modPath) =>
-    (await import(/* @vite-ignore */ modPath)).requireFocusedProject().powerDrive_W.value, APP_STATE);
+  page.evaluate(async (modPath): Promise<number> => {
+    function isAppState(m: unknown): m is AppState {
+      return typeof m === 'object' && m !== null && 'requireFocusedProject' in m && typeof m.requireFocusedProject === 'function';
+    }
+    const mod: unknown = await import(/* @vite-ignore */ modPath);
+    if (!isAppState(mod)) throw new Error('appState module shape mismatch');
+    const value = mod.requireFocusedProject().powerDrive_W.value;
+    if (value === null) throw new Error('powerDrive_W has no value');
+    return value;
+  }, APP_STATE);
 
 const readAddedMass_kg = (page: Page) =>
-  page.evaluate(async (modPath) =>
-    (await import(/* @vite-ignore */ modPath)).requireFocusedProject().driverAddedMass_kg.value, APP_STATE);
+  page.evaluate(async (modPath): Promise<number> => {
+    function isAppState(m: unknown): m is AppState {
+      return typeof m === 'object' && m !== null && 'requireFocusedProject' in m && typeof m.requireFocusedProject === 'function';
+    }
+    const mod: unknown = await import(/* @vite-ignore */ modPath);
+    if (!isAppState(mod)) throw new Error('appState module shape mismatch');
+    return mod.requireFocusedProject().driverAddedMass_kg.value;
+  }, APP_STATE);
+
+/** One driver spec field's live value, read via appState.focusedProject() (nullable — the Tune
+ *  panel's what-if edits run around an open/close cycle where the project briefly loses focus). */
+function readDriverSpecField(page: Page, field: 'Fs_hz' | 'Mms_kg'): Promise<number> {
+  return page.evaluate(async (f): Promise<number> => {
+    const modPath = '/src/logic/appState.ts';
+    function isAppState(m: unknown): m is AppState {
+      return typeof m === 'object' && m !== null && 'focusedProject' in m && typeof m.focusedProject === 'function';
+    }
+    const mod: unknown = await import(/* @vite-ignore */ modPath);
+    if (!isAppState(mod)) throw new Error('appState module shape mismatch');
+    const project = mod.focusedProject();
+    if (!project) throw new Error('expected a focused project');
+    const value = project.driver.specs[f].value;
+    if (value === null) throw new Error(`driver.specs.${f} has no value`);
+    return value;
+  }, field);
+}
 
 test('choosing Original swaps to the ported WinISD shell (titlebar, projects, graph)', async ({ page }) => {
   await expect(page.locator('.original-root')).toContainText('Projects');
@@ -260,8 +309,14 @@ test('the Box tab exposes all six box types and drives the shared store for each
   await boxSel.selectOption('abc');
   await expect(page.locator('#og-box-diagram-abc')).toBeVisible();
   await expect(boxTab).not.toContainText(/response model pending/i);
-  expect(await page.evaluate(async (modPath) =>
-    (await import(/* @vite-ignore */ modPath)).requireFocusedProject().box.boxType.value, APP_STATE)).toBe('abc');
+  expect(await page.evaluate(async (modPath): Promise<string> => {
+    function isAppState(m: unknown): m is AppState {
+      return typeof m === 'object' && m !== null && 'requireFocusedProject' in m && typeof m.requireFocusedProject === 'function';
+    }
+    const mod: unknown = await import(/* @vite-ignore */ modPath);
+    if (!isAppState(mod)) throw new Error('appState module shape mismatch');
+    return mod.requireFocusedProject().box.boxType.value;
+  }, APP_STATE)).toBe('abc');
 });
 
 test('the Closed (sealed) box hides the dynamic enclosure tab — Volume lives only on the Box tab', async ({ page }) => {
@@ -288,8 +343,13 @@ test('an externally loaded box type re-syncs the Box tab', async ({ page }) => {
 
   // A box type set from outside the Box tab (a file load) must re-sync the select, the diagram
   // and the graph.
-  await page.evaluate(async (modPath) => {
-    (await import(/* @vite-ignore */ modPath)).requireFocusedProject().box.boxType.set('sealed');
+  await page.evaluate(async (modPath): Promise<void> => {
+    function isAppState(m: unknown): m is AppState {
+      return typeof m === 'object' && m !== null && 'requireFocusedProject' in m && typeof m.requireFocusedProject === 'function';
+    }
+    const mod: unknown = await import(/* @vite-ignore */ modPath);
+    if (!isAppState(mod)) throw new Error('appState module shape mismatch');
+    mod.requireFocusedProject().box.boxType.set('sealed');
   }, APP_STATE);
 
   await expect(page.locator('select#og-box-type')).toHaveValue('sealed');
@@ -324,8 +384,16 @@ test('the 6th-order-bandpass Frc field persists a typed value instead of discard
   await frc.click();
   await fillAndBlur(frc, '2222');
   await expect(frc).toHaveValue(/^2222(\.0+)?$/); // 2-dp display formatting, not the bug
-  const stored = await page.evaluate(async (modPath) =>
-    (await import(/* @vite-ignore */ modPath)).requireFocusedProject().box.bandpass6.chambers.rear.tuning_goal_hz.value, APP_STATE);
+  const stored = await page.evaluate(async (modPath): Promise<number> => {
+    function isAppState(m: unknown): m is AppState {
+      return typeof m === 'object' && m !== null && 'requireFocusedProject' in m && typeof m.requireFocusedProject === 'function';
+    }
+    const mod: unknown = await import(/* @vite-ignore */ modPath);
+    if (!isAppState(mod)) throw new Error('appState module shape mismatch');
+    const value = mod.requireFocusedProject().box.bandpass6.chambers.rear.tuning_goal_hz.value;
+    if (value === null) throw new Error('tuning_goal_hz has no value');
+    return value;
+  }, APP_STATE);
   expect(stored).toBe(2222); // model actually holds it, not just the local input's own state
 });
 
@@ -334,8 +402,13 @@ test('the Vented "1st port resonance" shows the vent pipe resonance c/(2·ventL)
   await page.locator('select#og-box-type').selectOption('vented');
   // Build a real vent through the same domain seam the UI typing drives: enter Vb + Fb + a port
   // diameter; the solver produces ventL, making the resonance readout a real number.
-  await page.evaluate(async (modPath) => {
-    const p = (await import(/* @vite-ignore */ modPath)).requireFocusedProject();
+  await page.evaluate(async (modPath): Promise<void> => {
+    function isAppState(m: unknown): m is AppState {
+      return typeof m === 'object' && m !== null && 'requireFocusedProject' in m && typeof m.requireFocusedProject === 'function';
+    }
+    const mod: unknown = await import(/* @vite-ignore */ modPath);
+    if (!isAppState(mod)) throw new Error('appState module shape mismatch');
+    const p = mod.requireFocusedProject();
     p.box.vented.volume_m3.set(0.06);
     p.box.vented.tuning_goal_hz.set(40);
     p.box.vented.vent.diameter_m.set(0.1);
@@ -383,8 +456,13 @@ test('a project is closed by selecting its row then Close (WinISD right-click De
 
   // A copy opens already saved (duplicateFocusedProject calls save()), so it would close
   // without asking — dirty it first so the unsaved-changes prompt is real.
-  await page.evaluate(async (modPath) => {
-    const p = (await import(/* @vite-ignore */ modPath)).requireFocusedProject();
+  await page.evaluate(async (modPath): Promise<void> => {
+    function isAppState(m: unknown): m is AppState {
+      return typeof m === 'object' && m !== null && 'requireFocusedProject' in m && typeof m.requireFocusedProject === 'function';
+    }
+    const mod: unknown = await import(/* @vite-ignore */ modPath);
+    if (!isAppState(mod)) throw new Error('appState module shape mismatch');
+    const p = mod.requireFocusedProject();
     p.box.sealed.volume_m3.set(p.box.sealed.volume_m3.value + 0.01);
   }, APP_STATE);
 
@@ -418,13 +496,7 @@ test('the Tune panel edits live and Cancel discards everything since the last sa
   await expect(tune.locator('button', { hasText: 'Keep' })).toHaveCount(0);
   await expect(tune.locator('button', { hasText: 'Cancel' })).toBeVisible();
 
-  const readFs = () => page.evaluate(async () => {
-    const modPath = '/src/logic/appState.ts';
-    const s = await import(/* @vite-ignore */ modPath);
-    const project = s.focusedProject();
-    if (!project) throw new Error('expected a focused project');
-    return project.driver.specs.Fs_hz.value;
-  });
+  const readFs = () => readDriverSpecField(page, 'Fs_hz');
   const before = await readFs();
 
   const fsInput = tune.locator('.tune-fld', { hasText: 'Fs' }).locator('input');
@@ -441,13 +513,7 @@ test('the Tune panel Reset discards edits and stays open', async ({ page }) => {
   await page.locator('.project-nav li', { hasText: 'Driver' }).click();
   await page.locator('.save-rail .tune-btn').click();
   const tune = page.locator('.tune-panel');
-  const readFs = () => page.evaluate(async () => {
-    const modPath = '/src/logic/appState.ts';
-    const s = await import(/* @vite-ignore */ modPath);
-    const project = s.focusedProject();
-    if (!project) throw new Error('expected a focused project');
-    return project.driver.specs.Fs_hz.value;
-  });
+  const readFs = () => readDriverSpecField(page, 'Fs_hz');
   const before = await readFs();
 
   const fsInput = tune.locator('.tune-fld', { hasText: 'Fs' }).locator('input');
@@ -468,13 +534,7 @@ test('closing Tune via the titlebar ✕ also discards the edit, same as Cancel',
   await openAProject(page);
   await page.locator('.project-nav li', { hasText: 'Driver' }).click();
 
-  const readFs = () => page.evaluate(async () => {
-    const modPath = '/src/logic/appState.ts';
-    const s = await import(/* @vite-ignore */ modPath);
-    const project = s.focusedProject();
-    if (!project) throw new Error('expected a focused project');
-    return project.driver.specs.Fs_hz.value;
-  });
+  const readFs = () => readDriverSpecField(page, 'Fs_hz');
   const before = await readFs();
 
   await page.locator('.save-rail .tune-btn').click();
@@ -495,13 +555,7 @@ test('closing Tune does not corrupt the saved Mms value', async ({ page }) => {
   await page.locator('.project-nav li', { hasText: 'Driver' }).click();
   await page.locator('.save-rail .tune-btn').click();
   const tune = page.locator('.tune-panel');
-  const readMms = () => page.evaluate(async () => {
-    const modPath = '/src/logic/appState.ts';
-    const s = await import(/* @vite-ignore */ modPath);
-    const project = s.focusedProject();
-    if (!project) throw new Error('expected a focused project');
-    return project.driver.specs.Mms_kg.value;
-  });
+  const readMms = () => readDriverSpecField(page, 'Mms_kg');
   const before = await readMms();
   const mmsInput = tune.locator('.tune-fld', { hasText: 'Mms' }).locator('input');
   await mmsInput.fill(String((before * 1000) + 6));
@@ -529,13 +583,7 @@ test('the Tune fields accept multi-character typing (no reformat-while-typing cl
   await fsInput.press('Control+a');
   await fsInput.pressSequentially('42'); // type char-by-char, like a real user
   await expect(fsInput).toHaveValue('42');
-  const fs = await page.evaluate(async () => {
-    const modPath = '/src/logic/appState.ts';
-    const s = await import(/* @vite-ignore */ modPath);
-    const project = s.focusedProject();
-    if (!project) throw new Error('expected a focused project');
-    return project.driver.specs.Fs_hz.value;
-  });
+  const fs = await readDriverSpecField(page, 'Fs_hz');
   expect(fs).toBeCloseTo(42, 1);
 });
 
@@ -599,9 +647,12 @@ test('class-level: NO Original-skin spinner gains decimal places while spinning 
 
 test('Original save buttons sit in a right-edge rail beside the tabs (no vertical space consumed)', async ({ page }) => {
   await page.locator('.project-nav li', { hasText: 'Box' }).click();
-  const { railLeft, tabsRight, railTop, tabsTop } = await page.evaluate(() => {
-    const rail = (document.querySelector('.save-rail') as HTMLElement).getBoundingClientRect();
-    const tabs = (document.querySelector('.content-tabs') as HTMLElement).getBoundingClientRect();
+  const { railLeft, tabsRight, railTop, tabsTop } = await page.evaluate((): { railLeft: number; tabsRight: number; railTop: number; tabsTop: number } => {
+    const railEl = document.querySelector('.save-rail');
+    const tabsEl = document.querySelector('.content-tabs');
+    if (!railEl || !tabsEl) throw new Error('save-rail/content-tabs not found');
+    const rail = railEl.getBoundingClientRect();
+    const tabs = tabsEl.getBoundingClientRect();
     return { railLeft: rail.left, tabsRight: tabs.right, railTop: rail.top, tabsTop: tabs.top };
   });
   expect(railLeft).toBeGreaterThanOrEqual(tabsRight); // rail is beside the tab content, not above it
@@ -684,10 +735,14 @@ test('New Project walks driver → num/placement → box type → alignment → 
   // The wizard creates the project on Create; then it is focused.
   await expect(page.locator('.original-root')).toBeVisible();
 
-  const name = await page.evaluate(async () => {
+  const name = await page.evaluate(async (): Promise<string> => {
     const modPath = '/src/logic/appState.ts';
-    const s = await import(/* @vite-ignore */ modPath);
-    return s.requireFocusedProject().name.value;
+    function isAppState(m: unknown): m is AppState {
+      return typeof m === 'object' && m !== null && 'requireFocusedProject' in m && typeof m.requireFocusedProject === 'function';
+    }
+    const mod: unknown = await import(/* @vite-ignore */ modPath);
+    if (!isAppState(mod)) throw new Error('appState module shape mismatch');
+    return mod.requireFocusedProject().name.value;
   });
   expect(name).toBe('My Sub Build');
   await expect(page.locator('.projects-list .project-row.selected')).toContainText('My Sub Build');
@@ -695,8 +750,13 @@ test('New Project walks driver → num/placement → box type → alignment → 
 
 test('New Project starts fresh — it discards the previous design (filters, params)', async ({ page }) => {
   // Dirty the current design: a filter and a non-default power.
-  await page.evaluate(async (modPath) => {
-    const project = (await import(/* @vite-ignore */ modPath)).requireFocusedProject();
+  await page.evaluate(async (modPath): Promise<void> => {
+    function isAppState(m: unknown): m is AppState {
+      return typeof m === 'object' && m !== null && 'requireFocusedProject' in m && typeof m.requireFocusedProject === 'function';
+    }
+    const mod: unknown = await import(/* @vite-ignore */ modPath);
+    if (!isAppState(mod)) throw new Error('appState module shape mismatch');
+    const project = mod.requireFocusedProject();
     project.filters.set([...project.filters.value, { type: 'highpass', family: 'sos', order: 2, enabled: true, fc: 30, Q: 0.7 }]);
     project.powerDrive_W.set(250);
   }, APP_STATE);
@@ -825,9 +885,14 @@ test('R1: an open Tune panel stays open across a reload', async ({ page }) => {
 // value (and convert typed input back), never the stored model. This is the real
 // conversion that replaced the old decorative cycleUnit (which rotated the label alone).
 const readVbToken = (page: Page) =>
-  page.evaluate(async () => {
+  page.evaluate(async (): Promise<string | undefined> => {
     const modPath = '/src/logic/presentationState.ts';
-    return (await import(/* @vite-ignore */ modPath)).presentationState.ui.unitTokens?.Vb;
+    function isPresentationState(m: unknown): m is PresentationState {
+      return typeof m === 'object' && m !== null && 'presentationState' in m;
+    }
+    const mod: unknown = await import(/* @vite-ignore */ modPath);
+    if (!isPresentationState(mod)) throw new Error('presentationState module shape mismatch');
+    return mod.presentationState.ui.unitTokens?.Vb;
   });
 
 test('clicking an entered field\'s unit label rescales the DISPLAY and keeps the model SI', async ({ page }) => {
@@ -856,8 +921,13 @@ test('clicking an entered field\'s unit label rescales the DISPLAY and keeps the
 test('a calculated readout also rescales when its unit is rotated (Hz → kHz)', async ({ page }) => {
   await page.locator('.project-nav li', { hasText: 'Box' }).click();
   await page.locator('select#og-box-type').selectOption('vented');
-  await page.evaluate(async (modPath) => {
-    const p = (await import(/* @vite-ignore */ modPath)).requireFocusedProject();
+  await page.evaluate(async (modPath): Promise<void> => {
+    function isAppState(m: unknown): m is AppState {
+      return typeof m === 'object' && m !== null && 'requireFocusedProject' in m && typeof m.requireFocusedProject === 'function';
+    }
+    const mod: unknown = await import(/* @vite-ignore */ modPath);
+    if (!isAppState(mod)) throw new Error('appState module shape mismatch');
+    const p = mod.requireFocusedProject();
     p.box.vented.volume_m3.set(0.06);
     p.box.vented.tuning_goal_hz.set(40);
     p.box.vented.vent.diameter_m.set(0.1);
@@ -998,8 +1068,13 @@ test('Original skin: Options → General → Environment default seeds a fresh m
   // The sample fixture now STORES its own env (tempK=293.15, humidity 50) — a stored project
   // value legitimately overrides the app default, so a genuine "fresh mount" is one with no
   // stored env. Drop them first so the field truly falls back to the app default.
-  await page.evaluate(async (modPath) => {
-    const p = (await import(/* @vite-ignore */ modPath)).requireFocusedProject();
+  await page.evaluate(async (modPath): Promise<void> => {
+    function isAppState(m: unknown): m is AppState {
+      return typeof m === 'object' && m !== null && 'requireFocusedProject' in m && typeof m.requireFocusedProject === 'function';
+    }
+    const mod: unknown = await import(/* @vite-ignore */ modPath);
+    if (!isAppState(mod)) throw new Error('appState module shape mismatch');
+    const p = mod.requireFocusedProject();
     p.envTempK.clear();
     p.envHumidityPct.clear();
     p.envPressurePa.clear();
@@ -1057,10 +1132,14 @@ test('Original skin: Options modal input boxes are 50% wider and do not show spi
 
 test('Original skin: Options dialog edits are draft-only and discard on Cancel, apply on OK, and reset on Defaults', async ({ page }) => {
   // The environment is an app setting: read it through appState's accessor, the repo behind it.
-  const getStoreTemp = async () => {
-    return await page.evaluate(async () => {
+  const getStoreTemp = async (): Promise<number> => {
+    return await page.evaluate(async (): Promise<number> => {
       const modPath = '/src/logic/appState.ts';
-      const app = await import(/* @vite-ignore */ modPath);
+      function isAppState(m: unknown): m is AppState {
+        return typeof m === 'object' && m !== null && 'envDefaults' in m && typeof m.envDefaults === 'function';
+      }
+      const app: unknown = await import(/* @vite-ignore */ modPath);
+      if (!isAppState(app)) throw new Error('appState module shape mismatch');
       return app.envDefaults().tempK;
     });
   };
@@ -1105,12 +1184,20 @@ test('Original skin: Options dialog edits are draft-only and discard on Cancel, 
 
 test('Original skin: Environment fieldset has its own reset button that resets envDefaults without touching other draft fields', async ({ page }) => {
   // Environment from the app settings (appState), username from presentation state.
-  const getStore = async () => {
-    return await page.evaluate(async () => {
+  const getStore = async (): Promise<{ tempK: number; username: string | undefined }> => {
+    return await page.evaluate(async (): Promise<{ tempK: number; username: string | undefined }> => {
       const appPath = '/src/logic/appState.ts';
       const psPath = '/src/logic/presentationState.ts';
-      const app = await import(/* @vite-ignore */ appPath);
-      const ps = await import(/* @vite-ignore */ psPath);
+      function isAppState(m: unknown): m is AppState {
+        return typeof m === 'object' && m !== null && 'envDefaults' in m && typeof m.envDefaults === 'function';
+      }
+      function isPresentationState(m: unknown): m is PresentationState {
+        return typeof m === 'object' && m !== null && 'presentationState' in m;
+      }
+      const app: unknown = await import(/* @vite-ignore */ appPath);
+      const ps: unknown = await import(/* @vite-ignore */ psPath);
+      if (!isAppState(app)) throw new Error('appState module shape mismatch');
+      if (!isPresentationState(ps)) throw new Error('presentationState module shape mismatch');
       return { tempK: app.envDefaults().tempK, username: ps.presentationState.ui.username };
     });
   };
@@ -1218,8 +1305,13 @@ test('the unsaved mark stays on a project row after another project takes focus'
   await expect(rows).toHaveCount(2);
 
   // The copy is focused and saved; dirty it, then focus the original.
-  await page.evaluate(async (modPath) => {
-    const p = (await import(/* @vite-ignore */ modPath)).requireFocusedProject();
+  await page.evaluate(async (modPath): Promise<void> => {
+    function isAppState(m: unknown): m is AppState {
+      return typeof m === 'object' && m !== null && 'requireFocusedProject' in m && typeof m.requireFocusedProject === 'function';
+    }
+    const mod: unknown = await import(/* @vite-ignore */ modPath);
+    if (!isAppState(mod)) throw new Error('appState module shape mismatch');
+    const p = mod.requireFocusedProject();
     p.box.sealed.volume_m3.set(p.box.sealed.volume_m3.value + 0.01);
   }, APP_STATE);
   await expect(rows.nth(1)).toHaveClass(/is-unsaved/);

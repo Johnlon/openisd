@@ -60,7 +60,7 @@ describe('PR dialogs — every numeric entry is bounded by the registry', () => 
       assert.ok(bound.length > 0, `${file} binds no registry field`);
       for (const f of bound) {
         assert.ok(f instanceof NumberField, `${f.value} is not a numeric field`);
-        const band = (f as NumberField).limits;
+        const band = f.limits;
         assert.ok(Number.isFinite(band.min) && Number.isFinite(band.max), `${f.value}'s bounds are not finite`);
         assert.ok(band.min < band.max, `${f.value}'s min (${band.min}) is not below its max (${band.max})`);
       }

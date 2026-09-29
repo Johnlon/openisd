@@ -96,13 +96,24 @@ test('a project\'s stored humidity survives a reload — not reset to the Option
     const raw = await page.evaluate(() => localStorage.getItem('openisd_open_sessions'));
     if (!raw) return null;
     try {
-      const session = JSON.parse(raw);
-      const text = session.entries[0]?.text;
+      const session: unknown = JSON.parse(raw);
+      if (typeof session !== 'object' || session === null || !('entries' in session) || !Array.isArray(session.entries)) return null;
+      const entries: unknown[] = session.entries;
+      const first: unknown = entries[0];
+      const text = typeof first === 'object' && first !== null && 'text' in first && typeof first.text === 'string' ? first.text : undefined;
       if (!text) return null;
-      const parsedProject = JSON.parse(text);
-      const activeState = parsedProject.edited || parsedProject.saved;
+      const parsedProject: unknown = JSON.parse(text);
+      if (typeof parsedProject !== 'object' || parsedProject === null) return null;
+      const activeState: unknown = 'edited' in parsedProject && parsedProject.edited ? parsedProject.edited
+        : 'saved' in parsedProject ? parsedProject.saved : undefined;
       // Persisted fields are cells — `{state, value}` — not bare numbers.
-      return activeState?.environment?.humidity_pct?.value ?? null;
+      if (typeof activeState !== 'object' || activeState === null || !('environment' in activeState)) return null;
+      const environment: unknown = activeState.environment;
+      if (typeof environment !== 'object' || environment === null || !('humidity_pct' in environment)) return null;
+      const humidity: unknown = environment.humidity_pct;
+      if (typeof humidity !== 'object' || humidity === null || !('value' in humidity)) return null;
+      const value: unknown = humidity.value;
+      return typeof value === 'number' ? value : null;
     } catch { return null; }
   }).toBe(55);
 

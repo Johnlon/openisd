@@ -89,9 +89,15 @@ test('§A1 — a target the port cannot reach is reported, and the length shows 
   // `.impossible` class), and the DQ flag is genuinely set in the model.
   await expect(page.locator('#og-vent-length-ro')).toHaveValue('—');
   await expect(page.locator('#og-vent-length-ro')).toHaveClass(/impossible/);
-  const dq = await page.evaluate(async () => {
+  const dq = await page.evaluate(async (): Promise<{ unreachable: boolean; dqCount: number }> => {
+    type AppState = typeof import('../../src/logic/appState.js');
+    function isAppState(m: unknown): m is AppState {
+      return typeof m === 'object' && m !== null && 'requireFocusedProject' in m && typeof m.requireFocusedProject === 'function';
+    }
     const modPath = '/src/logic/appState.ts';
-    const p = (await import(/* @vite-ignore */ modPath)).requireFocusedProject();
+    const mod: unknown = await import(/* @vite-ignore */ modPath);
+    if (!isAppState(mod)) throw new Error('appState module shape mismatch');
+    const p = mod.requireFocusedProject();
     // The mark sits on the field the solve FAILED to produce — the vent's own length — not on
     // the target that was asked for (`OriginalShell-hooks.ts` reads it the same way).
     const dq = p.box.vented.vent.length_m.dq;
