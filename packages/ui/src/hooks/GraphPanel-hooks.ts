@@ -1,8 +1,8 @@
 import type {InjectionKey, Ref} from 'vue';
 import {computed, ref, watch} from 'vue';
-import {allIssues, curvesData, driverName, engine, maxData, openProjects, syncedP} from '../logic/appState.js';
+import {allIssues, curvesData, driverName, maxData, openProjects, syncedP} from '../logic/appState.js';
 import {useFocusedProject} from '../logic/focusedProjectContext.js';
-import {buildPlotData, DPAL, TAB_META} from '../logic/series.js';
+import {buildPlotData, type ChartEngineAreas, DPAL, TAB_META} from '../logic/series.js';
 import type {Design, PlotData} from '../types.js';
 import type {ChartId, DriverError} from '@openisd/design/engine';
 
@@ -27,7 +27,9 @@ export interface GraphPanelAPI {
 
 export const GraphPanelKey: InjectionKey<GraphPanelAPI> = Symbol('GraphPanelAPI');
 
-export function useGraphPanel(props: GraphPanelProps): GraphPanelAPI {
+/** `chartEngine`: the simulation and environment areas the curves read — the app facade's
+ *  engine, handed in by the component rather than reached for here. */
+export function useGraphPanel(props: GraphPanelProps, chartEngine: ChartEngineAreas): GraphPanelAPI {
   const project = useFocusedProject();
   const overlayDesigns = computed(() => props.overlays ?? []);
 
@@ -49,7 +51,7 @@ export function useGraphPanel(props: GraphPanelProps): GraphPanelAPI {
 
   const plot = computed(() =>
     buildPlotData(
-      engine,
+      chartEngine,
       props.chartId,
       syncedP.value.fmin,
       syncedP.value.fmax,
