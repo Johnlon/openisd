@@ -12,8 +12,18 @@ const COMPLETE = COMPLETE_DRIVER_PROJECT_OWPR;
 // so this assertion proves the app shows exactly what the last build wrote.
 const BUILD_INFO = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'public', 'build-info.json');
 
+function isBuildInfo(v: unknown): v is { version: string } {
+  return typeof v === 'object' && v !== null && 'version' in v && typeof v.version === 'string';
+}
+
+function readBuildInfo(): { version: string } {
+  const parsed: unknown = JSON.parse(readFileSync(BUILD_INFO, 'utf8'));
+  if (!isBuildInfo(parsed)) throw new Error(`build-info.json has no string "version": ${JSON.stringify(parsed)}`);
+  return parsed;
+}
+
 test('toolbar shows the exact version stored in build-info.json', async ({ page }) => {
-  const onDisk = JSON.parse(readFileSync(BUILD_INFO, 'utf8')) as { version: string };
+  const onDisk = readBuildInfo();
   expect(onDisk.version).toMatch(/^v\d{8}T\d{6}Z$/);
 
   await page.goto('/');
