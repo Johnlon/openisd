@@ -40,3 +40,58 @@ test('the Qtc row shows only for a sealed box', async ({ page }) => {
   await expect(page.locator('.mob-field-label', { hasText: 'Qtc' })).toHaveCount(0);
   await expect(page.locator('.mob-hint', { hasText: 'Enclosure tab' })).toBeVisible();
 });
+
+test('the Choose alignment sheet picks an alignment and writes its volume on Accept', async ({ page }) => {
+  await page.locator('#mob-box-type').selectOption('sealed');
+  await expect(page.locator('.mob-btn', { hasText: 'Choose alignment' })).toBeVisible();
+
+  await page.locator('.mob-btn', { hasText: 'Choose alignment' }).click();
+  await expect(page.locator('.mob-align-sheet')).toBeVisible();
+
+  const volumeInput = page.locator('.mob-align-sheet .mob-field-value input');
+  await volumeInput.fill('20');
+  await expect(page.locator('.mob-align-readout')).toContainText('EBP');
+
+  await page.locator('.mob-align-footer .mob-btn-primary', { hasText: 'Accept' }).click();
+  await expect(page.locator('.mob-align-sheet')).toHaveCount(0);
+
+  const volumeField = page.locator('.mob-field-row.mob-field-entered .mob-field-value input').first();
+  await expect(volumeField).toHaveValue(/20/);
+});
+
+test('Cancel discards the alignment sheet\'s draft without touching the volume field', async ({ page }) => {
+  await page.locator('#mob-box-type').selectOption('sealed');
+  const volumeField = page.locator('.mob-field-row.mob-field-entered .mob-field-value input').first();
+  await volumeField.fill('15');
+  await volumeField.blur();
+
+  await page.locator('.mob-btn', { hasText: 'Choose alignment' }).click();
+  const sheetVolume = page.locator('.mob-align-sheet .mob-field-value input');
+  await sheetVolume.fill('99');
+  await page.locator('.mob-align-footer .mob-btn', { hasText: 'Cancel' }).click();
+
+  await expect(page.locator('.mob-align-sheet')).toHaveCount(0);
+  await expect(volumeField).toHaveValue(/15/);
+});
+
+// Ql/Qa/Qp dispatch on box type now lives in the domain (OpenISDBox.lossesOf, beside volumeOf) —
+// this proves the mobile sheet is correctly WIRED to it, not that lossesOf itself is correct.
+test('the Box losses sheet edits Ql/Qa, and Qp only for a vented box', async ({ page }) => {
+  await expect(page.locator('.mob-field-label', { hasText: 'Port Qp' })).toHaveCount(0);
+  await page.locator('.mob-btn', { hasText: 'Box losses' }).click();
+  await expect(page.locator('.mob-field-label', { hasText: 'Leakage Ql' })).toBeVisible();
+  await expect(page.locator('.mob-field-label', { hasText: 'Absorption Qa' })).toBeVisible();
+  await expect(page.locator('.mob-field-label', { hasText: 'Port Qp' })).toBeVisible();
+
+  const qlInput = page.locator('.mob-field-row', { has: page.locator('.mob-field-label', { hasText: 'Leakage Ql' }) }).locator('input');
+  await qlInput.fill('12');
+  await qlInput.blur();
+  await expect(qlInput).toHaveValue(/12/);
+
+  await page.locator('.mob-align-footer .mob-btn', { hasText: 'OK' }).click();
+  await expect(page.locator('.mob-align-sheet')).toHaveCount(0);
+
+  await page.locator('#mob-box-type').selectOption('sealed');
+  await page.locator('.mob-btn', { hasText: 'Box losses' }).click();
+  await expect(page.locator('.mob-field-label', { hasText: 'Port Qp' })).toHaveCount(0);
+});
