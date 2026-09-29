@@ -43,7 +43,6 @@
  */
 import {describe, expect, it} from 'vitest';
 import {
-    type AsExpression,
     Node,
     Project,
     SyntaxKind,
@@ -93,10 +92,10 @@ function isMutableContainer(stmt: VariableStatement): boolean {
     if (kind === SyntaxKind.ArrayLiteralExpression) return true;
     if (kind === SyntaxKind.NewExpression) return true;
     if (kind === SyntaxKind.ObjectLiteralExpression) return true;
-    if (kind === SyntaxKind.AsExpression) {
+    if (Node.isAsExpression(init)) {
       // `as const` makes every member readonly, so the value cannot vary and it is not state.
       // Any OTHER cast is just a label on a mutable literal and is flagged as one.
-      const as = init as AsExpression;
+      const as = init;
       const isConstAssertion = as.getTypeNode()?.getText() === 'const';
       const inner = as.getExpression();
       const isLiteral = inner.getKind() === SyntaxKind.ArrayLiteralExpression

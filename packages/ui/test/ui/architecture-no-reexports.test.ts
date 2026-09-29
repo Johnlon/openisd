@@ -70,15 +70,19 @@ const PKG_DIRS = readdirSync(PACKAGES)
  *  with no exports map. */
 function entryPointsOf(pkgDir: string): string[] {
   try {
-    const pkg = JSON.parse(readFileSync(join(pkgDir, 'package.json'), 'utf8')) as
-      { exports?: Record<string, { default?: string } | string> };
-    const entries = Object.values(pkg.exports ?? {})
-      .map(entry => typeof entry === 'string' ? entry : entry?.default)
-      .filter((rel): rel is string => Boolean(rel))
+    const pkg: unknown = JSON.parse(readFileSync(join(pkgDir, 'package.json'), 'utf8'));
+    const exportsMap = isRecord(pkg) && isRecord(pkg.exports) ? pkg.exports : {};
+    const entries = Object.values(exportsMap)
+      .map(entry => typeof entry === 'string' ? entry : isRecord(entry) ? entry.default : undefined)
+      .filter((rel): rel is string => typeof rel === 'string' && rel.length > 0)
       .map(rel => join(pkgDir, rel));
     if (entries.length) return entries;
   } catch { /* no package.json or no map — fall back */ }
   return [join(pkgDir, 'src', 'index.ts')];
+}
+
+function isRecord(v: unknown): v is Record<string, unknown> {
+  return typeof v === 'object' && v !== null;
 }
 
 /** The directories actually scanned: where each package's entry points live. */

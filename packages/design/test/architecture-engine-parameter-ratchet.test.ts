@@ -78,7 +78,8 @@ function constructingStatics(source: SourceFile, cls: ClassDeclaration): Set<str
         const callee = call.getExpression();
         if (!Node.isPropertyAccessExpression(callee)) return false;
         const target = callee.getExpression().getText();
-        const owner = target === 'this' ? (m.getParentOrThrow() as ClassDeclaration).getName() ?? '' : target;
+        const parent = m.getParent();
+        const owner = target === 'this' ? (Node.isClassDeclaration(parent) ? parent.getName() ?? '' : '') : target;
         return exempt.has(`${owner}.${callee.getName()}`);
       });
       if (constructsOwn || callsOwnFactory) { exempt.add(key); grew = true; }
