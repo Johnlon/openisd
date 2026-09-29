@@ -14,6 +14,7 @@ const DESTINATIONS: { id: MobileDestination; label: string }[] = [
   { id: 'box', label: 'Box' },
   { id: 'driver', label: 'Driver' },
   { id: 'signal', label: 'Signal' },
+  { id: 'filters', label: 'Filters' },
   { id: 'graph', label: 'Graph' },
 ];
 </script>
