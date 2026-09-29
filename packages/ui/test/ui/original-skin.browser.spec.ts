@@ -200,7 +200,7 @@ test('all seven project tabs render their ported content', async ({ page }) => {
   await expect(page.locator('.content-panel')).toContainText('Description');
 });
 
-test('the Box tab exposes all six box types and drives the shared store for supported ones', async ({ page }) => {
+test('the Box tab exposes all six box types and drives the shared store for each', async ({ page }) => {
   await page.locator('.project-nav li', { hasText: 'Box' }).click();
   const boxSel = page.locator('select#og-box-type');
   await expect(boxSel.locator('option')).toHaveCount(6);
@@ -212,9 +212,12 @@ test('the Box tab exposes all six box types and drives the shared store for supp
   await expect(page.locator('#og-box-diagram-vented')).toBeVisible();
   await expect(boxTab).not.toContainText(/response model pending/i);
 
+  // Every box type simulates (6th-order and ABC since df81902c): selecting one writes the model.
   await boxSel.selectOption('abc');
   await expect(page.locator('#og-box-diagram-abc')).toBeVisible();
-  await expect(boxTab).toContainText(/response model pending/i);
+  await expect(boxTab).not.toContainText(/response model pending/i);
+  expect(await page.evaluate(async (modPath) =>
+    (await import(/* @vite-ignore */ modPath)).requireFocusedProject().box.boxType.value, APP_STATE)).toBe('abc');
 });
 
 test('the Closed (sealed) box hides the dynamic enclosure tab — Volume lives only on the Box tab', async ({ page }) => {
@@ -234,21 +237,18 @@ test('the Closed (sealed) box hides the dynamic enclosure tab — Volume lives o
   await expect(page.locator('.tab-section.active')).toContainText('Volume');
 });
 
-test('an externally loaded box type re-syncs the Box tab (no desync while pending)', async ({ page }) => {
+test('an externally loaded box type re-syncs the Box tab', async ({ page }) => {
   await page.locator('.project-nav li', { hasText: 'Box' }).click();
-  const boxTab = page.locator('.tab-section.active');
   await page.locator('select#og-box-type').selectOption('abc');
-  await expect(boxTab).toContainText(/response model pending/i);
+  await expect(page.locator('#og-box-diagram-abc')).toBeVisible();
 
-  // 'abc' is non-simulatable, so the select intentionally leaves the MODEL on the last real
-  // box type (sealed) — the pending banner is UI state, not model state. A real external load
-  // that lands on a SIMULATABLE type (vented here, standing in for a sealed-file edge) must
-  // flip the Box tab out of pending and re-sync the diagram + graph.
+  // A box type set from outside the Box tab (a file load) must re-sync the select, the diagram
+  // and the graph.
   await page.evaluate(async (modPath) => {
     (await import(/* @vite-ignore */ modPath)).requireFocusedProject().box.boxType.set('sealed');
   }, APP_STATE);
 
-  await expect(boxTab).not.toContainText(/response model pending/i);
+  await expect(page.locator('select#og-box-type')).toHaveValue('sealed');
   await expect(page.locator('#og-box-diagram-sealed')).toBeVisible();
   await expect(page.locator('.graph-wrap .gpanel')).toBeVisible();
 });

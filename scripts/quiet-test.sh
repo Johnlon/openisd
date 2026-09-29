@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+# quiet-test.sh — run any test/typecheck/gate command; print only what is not a pass.
+#
+#   bash scripts/quiet-test.sh npx vitest run packages/design/test/foo.test.ts
+#   bash scripts/quiet-test.sh npm run typecheck
+#   bash scripts/quiet-test.sh npx playwright test packages/ui/test/ui/foo.browser.spec.ts
+#
+# The full output goes to build/test-logs/<timestamp>.log. Stdout gets the log path, every line
+# that is not a passing-test trace, capped at QUIET_MAX_LINES (default 150), and the exit code
+# is the command's. Read the log file only for a named failing test.
+set -uo pipefail
+
+if [ "$#" -eq 0 ]; then
+  echo "usage: quiet-test.sh <command...>" >&2
+  exit 2
+fi
+
+cd "$(dirname "${BASH_SOURCE[0]}")/.."
+LOG_DIR="build/test-logs"
+mkdir -p "$LOG_DIR"
+LOG="$LOG_DIR/$(date +%Y%m%d-%H%M%S)-$$.log"
+MAX="${QUIET_MAX_LINES:-150}"
+
+"$@" >"$LOG" 2>&1
+CODE=$?
+
+# Passing-test traces: vitest verbose/list (✓ / √), playwright list (✓ N [project] ...),
+# describe headers vitest prints under a passing file, and blank lines.
+PASS_LINES='^[[:space:]]*(✓|√|✔)|^[[:space:]]*$'
+
+# strip ANSI colour first so the patterns match
+sed -E 's/\x1b\[[0-9;]*[A-Za-z]//g' "$LOG" | grep -Ev "$PASS_LINES" > "$LOG.filtered"
+TOTAL=$(wc -l < "$LOG.filtered")
+head -n "$MAX" "$LOG.filtered"
+if [ "$TOTAL" -gt "$MAX" ]; then
+  echo "... $((TOTAL - MAX)) more non-pass lines; see $LOG.filtered"
+fi
+echo "quiet-test: exit $CODE — full log $LOG"
+exit "$CODE"
