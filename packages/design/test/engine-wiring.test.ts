@@ -161,8 +161,10 @@ describe('B — the project runs the engine sweep on its own driver and box', ()
     const project = drivenSealed(engine, 0.03);
 
     expect(project.boxParamsIssues()).toEqual([]);
-    // A zero-volume box is not a very small box; it is no box.
-    const zeroVolume = drivenSealed(engine, 0);
+    // A zero-volume box is not a very small box; it is no box. Entered after the build, since a
+    // builder fills an unstated volume with the type's starting value.
+    const zeroVolume = drivenSealed(engine, 0.03);
+    zeroVolume.box.sealed.volume_m3.set(0);
     expect(zeroVolume.boxParamsIssues().length).toBeGreaterThan(0);
   });
 
@@ -255,6 +257,7 @@ describe('D — the vent', () => {
   it('a port with no dimensions reports null, and so does a zero-volume box', () => {
     const engine = createEngine();
     const p = project(engine);
+    p.box.vented.vent.diameter_m.clear();   // the build gave it the 50 mm starting diameter
 
     expect(p.box.vented.vent.effectiveLength_m()).toBeNull();
     p.box.vented.vent.diameter_m.set(0.1);

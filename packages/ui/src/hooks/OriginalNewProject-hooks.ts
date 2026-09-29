@@ -5,9 +5,8 @@ import type { OpenISDDriver, OpenISDProject } from '@openisd/design';
 import type { BoxType, EbpSuitability, SealedEngine, VentedAlignment, VentedEngine, Wiring } from '@openisd/design/engine';
 import {ARRAY_WIRING_OPTIONS, DEFAULT_SOURCE_RESISTANCE_OHM, DEFAULT_VENTED_ALIGNMENT, NumberField, SEALED_ALIGNMENT_OPTIONS, VENTED_ALIGNMENT_OPTIONS, type SelectorOption} from '@openisd/design/fields';
 import {
-  defaultPassiveRadiator,
+  createProject as createProjectInStore,
   isModified,
-  newProject,
   newProjectBoxTypeOptions,
   newProjectDriver,
 } from '../logic/appState.js';
@@ -334,56 +333,28 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
 
   function createProject(): OpenISDProject | null {
     if (!selectedDriver.value) return null;
-    const p = newProject();
-    p.setDriver(selectedDriver.value);
-    const name = projName.value.trim() || 'Unnamed project';
-    p.name.set(name);
+    const volume_m3 = fromDisplay(vol.value, 'volume', 'L');
+    const frontVolume_m3 = fromDisplay(frontVol.value, 'volume', 'L');
+    // The user's choices, and only those; the builder fills the rest with the type's starting
+    // values (`OpenISDBox.applyStartingValues`). The vented design is made against the project's
+    // OWN Rg and Ql — the preview's constants are pinned to these by test, so the two never
+    // disagree.
+    const p = createProjectInStore(selectedDriver.value, (b) => {
+      switch (boxType.value) {
+        case 'sealed': return b.sealed().volume_m3(fromDisplay(sealedVolume_L.value, 'volume', 'L'));
+        case 'vented': return b.vented().alignment(selectedVentedAlignment.value);
+        case 'box-passive-radiator': return b.passiveRadiator().volume_m3(volume_m3);
+        case 'bandpass4': return b.bandpass4().rearVolume_m3(volume_m3).frontVolume_m3(frontVolume_m3);
+        case 'bandpass6': return b.bandpass6();
+        case 'abc': return b.abc();
+      }
+    });
+    p.name.set(projName.value.trim() || 'Unnamed project');
     if (projDescription.value.trim()) {
       p.description.set(projDescription.value.trim());
     }
     p.nDrivers.set(nDrivers.value);
     p.wiring.set(wiring.value);
-
-    const box = boxType.value;
-    p.box.boxType.set(box);
-    const volume_m3 = fromDisplay(vol.value, 'volume', 'L');
-    const frontVolume_m3 = fromDisplay(frontVol.value, 'volume', 'L');
-
-    switch (box) {
-      case 'sealed':
-        p.box.sealed.volume_m3.set(fromDisplay(sealedVolume_L.value, 'volume', 'L'));
-        break;
-      case 'vented': {
-        // Designed against the project's OWN Rg and Ql — the preview's constants are pinned to
-        // these by test, so the two never disagree.
-        const design = selectedDriver.value.ventedDesign(
-          selectedVentedAlignment.value, p.Rs_ohm.value, p.box.vented.losses.Ql.value,
-        );
-        if (design) {
-          p.box.vented.volume_m3.set(design.Vb);
-          p.box.vented.tuning_goal_hz.set(design.Fb);
-        }
-        p.box.vented.vent.diameter_m.set(0.05);
-        break;
-      }
-      case 'box-passive-radiator':
-        p.box.passiveRadiator.volume_m3.set(volume_m3);
-        defaultPassiveRadiator(p);
-        p.box.passiveRadiator.tuning_goal_hz.set(35);
-        break;
-      case 'bandpass4':
-        p.box.bandpass4.chambers.rear.volume_m3.set(volume_m3);
-        p.box.bandpass4.chambers.front.volume_m3.set(frontVolume_m3);
-        p.box.bandpass4.vents.front.diameter_m.set(0.05);
-        p.box.bandpass4.chambers.front.tuning_goal_hz.set(35);
-        break;
-      // The form offers four topologies. bandpass6 and abc have no starting geometry to write
-      // because the engine has no circuit for them (`simulatableBoxType`) — the project is
-      // created with the type set and nothing else.
-      case 'bandpass6':
-      case 'abc':
-        break;
-    }
 
     newProjectDriver.value = null;
     return p;

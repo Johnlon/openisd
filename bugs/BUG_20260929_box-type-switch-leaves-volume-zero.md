@@ -1,6 +1,6 @@
 # BUG_20260929_box-type-switch-leaves-volume-zero
 
-**Status:** INTERIM FIX SHIPPED (mobile UI hook) — belongs in the domain, per engine's ruling below
+**Status:** RESOLVED
 
 ## Symptom
 John, live on his phone, testing an existing project (4 L sealed, real driver T/S params
@@ -39,26 +39,17 @@ sets above — this is a real solver consequence of missing inputs, not a separa
 whether WinISD itself defaults, blanks, or refuses in this situation. This fix is John's own
 ruling for OpenISD (2026-09-29), not a parity match.
 
-## Fix (interim)
-`packages/ui/src/hooks/boxTypeDefaults.ts` — `createBoxTypeVolumeDefaults`, a `watch(selectedBox,
-...)` that, on switching into a type whose own volume is still exactly 0, writes the SAME values
-`createProject()` would have written for a fresh project of that type:
-- **sealed** — `sealed.volumeForQtc(Qts, Vas_m3, 0.707)` (SEALED_ALIGNMENT_OPTIONS' own "Max flat
-  amplitude response").
-- **vented** — `vented.alignment('qb3', Fs_hz, QtsLoaded, Vas_m3, Ql)` (VENTED_ALIGNMENT_OPTIONS'
-  own "Quasi-butterworth"), writing both `volume_m3` and `tuning_goal_hz`, plus a 5 cm vent
-  diameter if none is set (matching the wizard's own default) so the Helmholtz solve has a
-  complete input set.
-- **box-passive-radiator** — the wizard's own flat 7 L starting volume, `defaultPassiveRadiator()`
-  (chart-ready Sd/Cms/Mms), and a 35 Hz tuning goal.
-- bandpass4/bandpass6/abc — not covered yet (dual-chamber geometry is more involved).
-
-Wired into `MobileBoxTab-hooks.ts` only. **Engine's ruling (2026-09-29): this belongs in the
-domain** — where `boxType` is set, in `packages/design`'s `OpenISDBox`, with a domain test, so
-both skins get it uniformly rather than each shell needing its own copy of this hook. The UI-hook
-version above is a stopgap to unblock live testing; move/delete it once the domain version lands.
+## Fix
+`OpenISDBox.applyStartingValues()` (packages/design): run by `boxType.set()` and by every
+`ProjectBuilder` at `build()`. Sealed gets the flat (Qtc 0.707) volume; vented the QB3 design
+for the driver as driven plus a 50 mm vent; passive radiator 7 L at 35 Hz with a chart-ready
+radiator; bandpass4 a 7 L rear and 10 L front at 35 Hz through a 50 mm vent; bandpass6/abc
+nothing. Each write is gated on its own field being unset. The wizard's per-type switch, the
+store's `defaultPassiveRadiator` and the interim `boxTypeDefaults.ts` hook are deleted; the
+wizard creates through `createProject(driver, b => b.vented().alignment(a))`.
 
 ## Verification
-`packages/ui/test/ui/mobile-box-tab.browser.spec.ts` — "switching to a never-used box type
+`packages/design/test/domain/box-starting-values.test.ts` (every type, the never-overwrite rule,
+the builders). `packages/ui/test/ui/mobile-box-tab.browser.spec.ts` — "switching to a never-used box type
 defaults its volume instead of showing 0", using `COMPLETE_DRIVER_PROJECT_OWPR` (real T/S params;
 the default sample project has none, so the fix's own guard never fires against it).

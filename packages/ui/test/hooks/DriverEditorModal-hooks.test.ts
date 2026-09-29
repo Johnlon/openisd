@@ -1,4 +1,4 @@
-import {describe, expect, it} from 'vitest';
+import {describe, expect, it, vi} from 'vitest';
 import {type Calculated, type Entered, type ProvenanceLetter, type Readable, OpenISDDriver} from '@openisd/design';
 import {type DqIssue, createEngine} from '@openisd/design/engine';
 
@@ -12,7 +12,7 @@ function badValueMark(value: number): DqIssue {
   return issue;
 }
 import type {SpecField} from '../../src/logic/appState.js';
-import {dqNoteFor, ebpVal} from '../../src/hooks/DriverEditorModal-hooks.js';
+import {commitMyDriver, dqNoteFor, ebpVal} from '../../src/hooks/DriverEditorModal-hooks.js';
 
 /** A field as the hook reads it: value, provenance and DQ, nothing else. */
 function fakeCell(value: number | null, letter: ProvenanceLetter, dq: readonly DqIssue[] = []): Readable<number | null> & Entered & Calculated {
@@ -70,6 +70,29 @@ describe('DriverEditorModal-hooks', () => {
     it('is null before the driver can derive it', () => {
       const driver = OpenISDDriver.empty(createEngine());
       expect(ebpVal(driver)).toBeNull();
+    });
+  });
+
+  describe('commitMyDriver', () => {
+    const saved = {uuid: 'row-1', overwrote: true};
+
+    it('overwrites the opened row when given its uuid, so an edit never appends a twin', () => {
+      const store = {upsert: vi.fn(() => saved)};
+      const driver = completeDriver();
+      expect(commitMyDriver(store, driver, 'row-1')).toBe(true);
+      expect(store.upsert).toHaveBeenCalledWith(driver, 'row-1');
+    });
+
+    it('files a new row (no uuid) when nothing was opened', () => {
+      const store = {upsert: vi.fn(() => saved)};
+      const driver = completeDriver();
+      expect(commitMyDriver(store, driver, '')).toBe(true);
+      expect(store.upsert).toHaveBeenCalledWith(driver, undefined);
+    });
+
+    it('answers false when the store refuses the write (read-only)', () => {
+      const store = {upsert: vi.fn(() => null)};
+      expect(commitMyDriver(store, completeDriver(), 'row-1')).toBe(false);
     });
   });
 });

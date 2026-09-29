@@ -1,7 +1,7 @@
 import {LossMode} from '../../fields/lossMode.js';
 import {type Engine} from '../../engine/index.js';
 import type { Air, BoxType, DqIssue } from '../../engine/index.js';
-import { CalculatedFieldImpl, absentCell, calculatedCell, entryField, focus, pairedField, requiredField } from '../cell.js';
+import { CalculatedFieldImpl, absentCell, calculatedCell, entryField, focus, pairedField, requiredField, simpleField } from '../cell.js';
 import type { Entered, Readable, SimpleField, Writable } from '../cell.js';
 import type { SealedLosses } from '../losses.js';
 import type { OpenISDBoxJson, SpecEntryJson } from '../openisdSchema.js';
@@ -23,6 +23,24 @@ import { VentWindow } from './ventWindow.js';
 import type { VentedBox } from './ventedBox.js';
 import { VentedChamberWindow } from './ventedChamberWindow.js';
 import { VentedLossesWindow } from './ventedLossesWindow.js';
+
+/** Starting values a box type gets the first time it is used with nothing entered — what the New
+ *  Project wizard writes for a fresh project of that type (`applyStartingValues`). */
+const STARTING = Object.freeze({
+    /** Sealed: the volume for the flat (Butterworth) alignment. */
+    sealedQtc: 0.707,
+    /** Vented: the quasi-Butterworth design. */
+    ventedAlignment: 'qb3',
+    ventDiameter_m: 0.05,
+    /** Passive radiator and bandpass4 rear chamber. */
+    volume_m3: 0.007,
+    bandpass4FrontVolume_m3: 0.01,
+    tuning_hz: 35,
+    /** A chart-ready radiator (BUG_20260912: Fh must resolve instead of "--"). */
+    radiatorSd_m2: 0.02,
+    radiatorCms_m_per_N: 0.0005,
+    radiatorMms_kg: 0.05,
+} as const);
 
 /**
  * The box, as a window onto its slice of the project record — AND holding a reference to the
@@ -83,7 +101,11 @@ export class OpenISDBox implements Box {
         this.#engine = engine;
         this.#rs = rs;
         this.#lossMode = lossMode;
-        this.boxType = focus(lens, 'boxType');
+        const boxType = focus(lens, 'boxType');
+        this.boxType = simpleField(() => boxType.value, (type) => {
+            boxType.set(type);
+            this.applyStartingValues();
+        });
 
         // The project's own resolved air, injected — the driver's OWN c_m_per_s/roo_kg_per_m3
         // are display-only and feed nothing (BUG_20260924_driver-solve-and-sweep-use-different-
@@ -319,6 +341,56 @@ export class OpenISDBox implements Box {
             case 'bandpass6':
             case 'abc':
                 return null;
+        }
+    }
+
+    /** Give the active box type its starting values where nothing is entered yet: sealed gets the
+     *  flat-alignment volume, vented the QB3 design for the driver as driven plus a 50 mm vent,
+     *  a passive-radiator box 7 L at 35 Hz with a chart-ready radiator, bandpass4 a 7 L rear and a
+     *  10 L front at 35 Hz through a 50 mm vent. Bandpass6 and ABC have no starting geometry.
+     *  Called by `boxType.set()` and by every `ProjectBuilder` at build; every write is gated on
+     *  its own field being unset, so nothing entered is ever overwritten. A driver without the
+     *  specs a design needs leaves that value alone. */
+    applyStartingValues(): void {
+        switch (this.boxType.value) {
+            case 'sealed': {
+                if (this.sealed.volume_m3.value > 0) return;
+                const Vb = this.#driver.sealedVolumeForQtc(STARTING.sealedQtc);
+                if (Vb !== null && Vb > 0) this.sealed.volume_m3.set(Vb);
+                return;
+            }
+            case 'vented': {
+                if (this.vented.volume_m3.value <= 0) {
+                    const design = this.#driver.ventedDesign(STARTING.ventedAlignment, this.#rs(), this.vented.losses.Ql.value);
+                    if (design) {
+                        this.vented.volume_m3.set(design.Vb);
+                        this.vented.tuning_goal_hz.set(design.Fb);
+                    }
+                }
+                if ((this.vented.vent.diameter_m.value ?? 0) <= 0) this.vented.vent.diameter_m.set(STARTING.ventDiameter_m);
+                return;
+            }
+            case 'box-passive-radiator': {
+                const pr = this.passiveRadiator;
+                if (pr.volume_m3.value <= 0) pr.volume_m3.set(STARTING.volume_m3);
+                if (pr.tuning_goal_hz.value === null) pr.tuning_goal_hz.set(STARTING.tuning_hz);
+                const spec = pr.radiator.spec;
+                if (spec.Sd_m2.value === null) spec.Sd_m2.set(STARTING.radiatorSd_m2);
+                if (spec.Cms_m_per_N.value === null) spec.Cms_m_per_N.set(STARTING.radiatorCms_m_per_N);
+                if (spec.Mms_kg.value === null) spec.Mms_kg.set(STARTING.radiatorMms_kg);
+                return;
+            }
+            case 'bandpass4': {
+                const {chambers, vents} = this.bandpass4;
+                if (chambers.rear.volume_m3.value <= 0) chambers.rear.volume_m3.set(STARTING.volume_m3);
+                if (chambers.front.volume_m3.value <= 0) chambers.front.volume_m3.set(STARTING.bandpass4FrontVolume_m3);
+                if (chambers.front.tuning_goal_hz.value === null) chambers.front.tuning_goal_hz.set(STARTING.tuning_hz);
+                if ((vents.front.diameter_m.value ?? 0) <= 0) vents.front.diameter_m.set(STARTING.ventDiameter_m);
+                return;
+            }
+            case 'bandpass6':
+            case 'abc':
+                return;
         }
     }
 

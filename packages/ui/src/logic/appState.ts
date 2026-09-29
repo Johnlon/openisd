@@ -21,6 +21,7 @@ import {DEFAULT_ENV_DEFAULTS, DEFAULT_VENTED_DESIGN_LIMITS, type Engine, createE
 import {driverPrerequisiteMessage, sweepIssueMessage} from './sweepIssueMessage.js';
 import {
     type AppContext,
+    type BoxProjectBuilder,
     type DiscardChallenge,
     type DriverSpecFieldName,
     type NumericDriverSpecFieldName,
@@ -28,6 +29,7 @@ import {
     type OpenISDDriver,
     OpenISDPassiveRadiatorStandalone,
     OpenISDProject,
+    type ProjectBuilder,
     realAppContext,
 } from '@openisd/design';
 import type {PlotParams, YRange} from '../types.js';
@@ -614,23 +616,22 @@ export function definePassiveRadiator(): void {
     OpenISDPassiveRadiatorStandalone.empty(appContext));
 }
 
-/** Give `p` a default passive radiator with sane Mms/Sd/Cms — the New-Project wizard's chart-ready
- *  PR (BUG_20260912: Fh must resolve instead of "--"). Lives here, not in a component, so the
- *  view keeps its layering. */
-export function defaultPassiveRadiator(p: OpenISDProject): void {
-  p.box.passiveRadiator.configurePR(OpenISDPassiveRadiatorStandalone.empty(appContext));
-  p.box.passiveRadiator.radiator.spec.Sd_m2.set(0.02);
-  p.box.passiveRadiator.radiator.spec.Cms_m_per_N.set(0.0005);
-  p.box.passiveRadiator.radiator.spec.Mms_kg.set(0.05);
+/** A new project around `driver`, its box chosen through the domain's builder — the wizard's
+ *  and File → Open's way in. `box` picks the builder for the type and states what the user
+ *  chose; everything unstated gets the type's starting values (`OpenISDBox.applyStartingValues`).
+ *  Registered and focused, like `newProject()`. */
+export function createProject(driver: OpenISDDriver, box: (b: ProjectBuilder) => BoxProjectBuilder): OpenISDProject {
+  presentationState.yRanges = {};
+  const p = box(OpenISDProject.builder(driver, engine, appContext)).build();
+  addProject(p);
+  return p;
 }
 
 /** Open a driver file (`.wdr`/`.owdr`) as a project of its own — a default sealed box around
  *  `driver`, focused, with `name` for the tab. Used by File → Open when no project is focused;
  *  when one IS focused the caller swaps the driver in place instead (`loadDriver`). */
 export function openProjectFromDriver(driver: OpenISDDriver, name: string): void {
-  const p = newProject();
-  p.setDriver(driver);
-  p.box.sealed.volume_m3.set(fromDisplay(DEFAULT_SEALED_VOLUME_L, 'volume', 'L'));
+  const p = createProject(driver, (b) => b.sealed().volume_m3(fromDisplay(DEFAULT_SEALED_VOLUME_L, 'volume', 'L')));
   p.name.set(name);
 }
 

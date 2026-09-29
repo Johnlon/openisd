@@ -307,6 +307,10 @@ describe('openIsdProjectToWinIsdProject — null-fallback and unsupported-type b
     const driver = aDriver(engine, 'QO8', 'test');
     const project = OpenISDProject.builder(driver, engine).passiveRadiator()
       .volume_m3(0.03).tuning_goal_hz(35).count(1).radiator(radiator).build();
+    // The build gave the radiator its chart-ready Sd/Cms/Mms; this test is about one stating none.
+    project.box.passiveRadiator.radiator.spec.Sd_m2.clear();
+    project.box.passiveRadiator.radiator.spec.Cms_m_per_N.clear();
+    project.box.passiveRadiator.radiator.spec.Mms_kg.clear();
 
     const { value: wpr, errors } = new WinIsdProjectConverter(engine).openIsdProjectToWinIsdProject(project);
     assert.equal(errors.length, 0, JSON.stringify(errors));
@@ -336,7 +340,8 @@ describe('openIsdProjectToWinIsdProject — null-fallback and unsupported-type b
     // `WinISDProject`'s own `TEMPLATE` (winisdProject.ts) already defaults Fr to '0', so an
     // omitted key and an explicit 0 are indistinguishable in the rendered text — this asserts
     // the branch's actual, observable effect: no NaN/garbage value leaks through.
-    const project = aProject((p) => p.sealed().volume_m3(0).build());
+    const project = aProject((p) => p.sealed().build());
+    project.box.sealed.volume_m3.set(0);   // after the build: a builder fills an unstated volume
 
     const { value: wpr, errors } = new WinIsdProjectConverter(createEngine()).openIsdProjectToWinIsdProject(project);
     assert.equal(errors.length, 0, JSON.stringify(errors));
@@ -347,7 +352,8 @@ describe('openIsdProjectToWinIsdProject — null-fallback and unsupported-type b
 
   it('bandpass4 [Box] Fr falls back to WinISD\'s own template default (0) when the rear chamber volume is 0', () => {
     const project = aProject((p) => p.bandpass4()
-      .rearVolume_m3(0).frontVolume_m3(0.01).frontTuning_hz(50).build());
+      .frontVolume_m3(0.01).frontTuning_hz(50).build());
+    project.box.bandpass4.chambers.rear.volume_m3.set(0);   // after the build: a builder fills an unstated volume
 
     const { value: wpr, errors } = new WinIsdProjectConverter(createEngine()).openIsdProjectToWinIsdProject(project);
     assert.equal(errors.length, 0, JSON.stringify(errors));
@@ -458,6 +464,10 @@ describe('openIsdProjectToWinIsdProject — null-fallback and unsupported-type b
     const driver = aDriver(engine, 'QO8', 'test');
     const project = OpenISDProject.builder(driver, engine).passiveRadiator()
       .volume_m3(0.03).tuning_goal_hz(35).count(1).radiator(radiator).build();
+    // The build gave the radiator its chart-ready Sd/Cms/Mms; this test is about one stating none.
+    project.box.passiveRadiator.radiator.spec.Sd_m2.clear();
+    project.box.passiveRadiator.radiator.spec.Cms_m_per_N.clear();
+    project.box.passiveRadiator.radiator.spec.Mms_kg.clear();
 
     const { value: wpr, errors } = new WinIsdProjectConverter(engine).openIsdProjectToWinIsdProject(project);
     assert.equal(errors.length, 0, JSON.stringify(errors));

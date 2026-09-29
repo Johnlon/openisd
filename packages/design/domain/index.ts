@@ -58,6 +58,7 @@ export type { DqReason } from './driver/openISDDriver.js';
 //
 // `projectJson` is NOT exported: it takes and returns package-private record types.
 export { OpenISDProject } from './project/openISDProject.js';
+export type { ProjectBuilder, BoxProjectBuilder } from './openisdTransforms.js';
 export { WinIsdDriverConverter } from './winIsdDriverConverter.js';
 export { WinIsdProjectConverter } from './winIsdProjectConverter.js';
 export { OpenISDPassiveRadiatorStandalone } from './passiveRadiator/openISDPassiveRadiatorStandalone.js';

@@ -12,7 +12,7 @@ import {enteredEntry} from './specEntry.js';
 import {OpenISDDriver} from './driver/openISDDriver.js';
 import {OpenISDPassiveRadiatorStandalone} from './passiveRadiator/openISDPassiveRadiatorStandalone.js';
 import {OpenISDProject} from './project/openISDProject.js';
-import {type Engine} from '../engine/index.js';
+import {type Engine, type VentedAlignment} from '../engine/index.js';
 import {DEFAULT_SOURCE_RESISTANCE_OHM} from '../fields/defaults.js';
 import {type AppContext, dateStamp, realAppContext} from './appContext.js';
 
@@ -95,9 +95,10 @@ export abstract class BoxProjectBuilder {
 
     protected abstract boxRecord(): OpenISDBoxJson;
 
-    protected static required(value: number | null, what: string): number {
-        if (value === null) throw new Error(`build(): ${what} is required`);
-        return value;
+    /** Writes a specialised builder can only make against the live project (a design needs the
+     *  project's own Rs and Ql). Runs after `wrap()`, before the starting values. */
+    protected afterWrap(project: OpenISDProject): void {
+        void project;
     }
 
     /**
@@ -115,6 +116,10 @@ export abstract class BoxProjectBuilder {
             this.appContext,
         );
         if (this.radiatorChoice) project.box.passiveRadiator.radiator.update(this.radiatorChoice);
+        this.afterWrap(project);
+        // Whatever the builder was not told gets the box type's starting values — one
+        // implementation, shared with a later box-type switch (`OpenISDBox.applyStartingValues`).
+        project.box.applyStartingValues();
         // Those writes land in `#edited`, because every write does. A project the user has just
         // created has no UNSAVED changes, though — so the assembled state IS its saved baseline.
         // Without this a new project is born modified, and Cancel would discard its own driver.
@@ -197,7 +202,7 @@ class SealedProjectBuilder extends BoxProjectBuilder {
         return {
             ...box,
             boxType: 'sealed',
-            sealed: {...box.sealed, volume_m3: BoxProjectBuilder.required(this.#volume, 'sealed volume_m3')},
+            sealed: {...box.sealed, volume_m3: this.#volume ?? 0},
         };
     }
 }
@@ -205,6 +210,7 @@ class SealedProjectBuilder extends BoxProjectBuilder {
 class VentedProjectBuilder extends BoxProjectBuilder {
     #volume: number | null = null;
     #tuning: number | null = null;
+    #alignment: VentedAlignment | null = null;
 
     constructor(driver: OpenISDDriver, engine: Engine, appContext: AppContext) {
         super(driver, engine, appContext);
@@ -220,6 +226,22 @@ class VentedProjectBuilder extends BoxProjectBuilder {
         return this;
     }
 
+    /** Volume and tuning from the named alignment, designed for the driver as the project drives
+     *  it (its own Rs and Ql) — what the wizard's vented step chooses. An explicit `volume_m3`
+     *  wins over it. */
+    alignment(a: VentedAlignment): this {
+        this.#alignment = a;
+        return this;
+    }
+
+    protected override afterWrap(project: OpenISDProject): void {
+        if (this.#alignment === null || this.#volume !== null) return;
+        const design = project.driver.ventedDesign(this.#alignment, project.Rs_ohm.value, project.box.vented.losses.Ql.value);
+        if (!design) return;
+        project.box.vented.volume_m3.set(design.Vb);
+        project.box.vented.tuning_goal_hz.set(design.Fb);
+    }
+
     protected boxRecord(): OpenISDBoxJson {
         const box = this.emptyBox();
         return {
@@ -229,8 +251,8 @@ class VentedProjectBuilder extends BoxProjectBuilder {
                 ...box.vented,
                 chamber: {
                     ...box.vented.chamber,
-                    volume_m3: BoxProjectBuilder.required(this.#volume, 'vented volume_m3'),
-                    tuning_goal_hz: enteredEntry(BoxProjectBuilder.required(this.#tuning, 'vented tuning_goal_hz')),
+                    volume_m3: this.#volume ?? 0,
+                    ...(this.#tuning === null ? {} : {tuning_goal_hz: enteredEntry(this.#tuning)}),
                 },
             },
         };
@@ -265,17 +287,16 @@ class Bandpass4ProjectBuilder extends BoxProjectBuilder {
 
     protected boxRecord(): OpenISDBoxJson {
         const box = this.emptyBox();
-        const R = BoxProjectBuilder.required;
         return {
             ...box,
             boxType: 'bandpass4',
             bandpass4: {
                 ...box.bandpass4,
-                rear: {...box.bandpass4.rear, volume_m3: R(this.#rearVolume, 'bandpass4 rearVolume_m3')},
+                rear: {...box.bandpass4.rear, volume_m3: this.#rearVolume ?? 0},
                 front: {
                     ...box.bandpass4.front,
-                    volume_m3: R(this.#frontVolume, 'bandpass4 frontVolume_m3'),
-                    tuning_goal_hz: enteredEntry(R(this.#frontTuning, 'bandpass4 frontTuning_hz')),
+                    volume_m3: this.#frontVolume ?? 0,
+                    ...(this.#frontTuning === null ? {} : {tuning_goal_hz: enteredEntry(this.#frontTuning)}),
                 },
             },
         };
@@ -319,18 +340,17 @@ class TwoChamberProjectBuilder extends BoxProjectBuilder {
 
     protected boxRecord(): OpenISDBoxJson {
         const box = this.emptyBox();
-        const R = BoxProjectBuilder.required;
         const k = this.#kind;
         const chambers = {
             rear: {
                 ...box[k].rear,
-                volume_m3: R(this.#rearVolume, `${k} rearVolume_m3`),
-                tuning_goal_hz: enteredEntry(R(this.#rearTuning, `${k} rearTuning_hz`)),
+                volume_m3: this.#rearVolume ?? 0,
+                ...(this.#rearTuning === null ? {} : {tuning_goal_hz: enteredEntry(this.#rearTuning)}),
             },
             front: {
                 ...box[k].front,
-                volume_m3: R(this.#frontVolume, `${k} frontVolume_m3`),
-                tuning_goal_hz: enteredEntry(R(this.#frontTuning, `${k} frontTuning_hz`)),
+                volume_m3: this.#frontVolume ?? 0,
+                ...(this.#frontTuning === null ? {} : {tuning_goal_hz: enteredEntry(this.#frontTuning)}),
             },
         };
         return {...box, boxType: k, [k]: {...box[k], ...chambers}};
@@ -365,15 +385,13 @@ class PassiveRadiatorProjectBuilder extends BoxProjectBuilder {
 
     protected boxRecord(): OpenISDBoxJson {
         const box = this.emptyBox();
-        const R = BoxProjectBuilder.required;
-        if (!this.radiatorChoice) throw new Error('build(): a passive-radiator box requires a radiator');
         return {
             ...box,
             boxType: 'box-passive-radiator',
             passiveRadiator: {
                 ...box.passiveRadiator,
-                volume_m3: R(this.#volume, 'passive-radiator volume_m3'),
-                tuning_goal_hz: enteredEntry(R(this.#tuning, 'passive-radiator tuning_goal_hz')),
+                volume_m3: this.#volume ?? 0,
+                ...(this.#tuning === null ? {} : {tuning_goal_hz: enteredEntry(this.#tuning)}),
                 count: this.#count,
             },
         };

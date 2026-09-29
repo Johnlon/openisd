@@ -1,6 +1,6 @@
 # BUG_20260922_editing-my-drivers-entry-in-place-duplicates-storage-row
 
-Status: OPEN (re-verified 2026-09-26) — `commitToMyDrivers()` calls `upsert` with no id, so a new row is appended (`DriverEditorModal.vue`, `savedEntries.ts`).
+Status: OPEN (re-verified 2026-09-29: also hits "rename in place" — `saveRenameInPlace` and the plain save both reach `commitToMyDrivers` with no id, so each appends a twin instead of replacing the opened entry; driver-selection.browser.spec.ts only covers the Save-as-copy path, which correctly appends) — `commitToMyDrivers()` calls `upsert` with no id, so a new row is appended (`DriverEditorModal.vue`, `savedEntries.ts`).
 
 ## Symptom
 Editing an existing My Drivers entry (pencil-edit on a My Drivers row) and clicking OK

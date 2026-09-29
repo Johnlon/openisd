@@ -31,6 +31,9 @@ export interface Box {
      *  cabinet (or the rear chamber of a 4th-order bandpass), Qp of the ported chamber, null
      *  where the type has no port. Null for bandpass6/abc, whose losses are per chamber. */
     lossesOf(type: BoxType): BoxLosses | null;
+    /** Give the active type its starting values where nothing is entered yet; nothing entered is
+     *  overwritten. Runs on `boxType.set()` and at `ProjectBuilder.build()`. */
+    applyStartingValues(): void;
 }
 
 export type TuningField = Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;

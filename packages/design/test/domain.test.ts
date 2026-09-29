@@ -1044,15 +1044,9 @@ describe('BoxProjectBuilder — the shared build() guards', () => {
     spec: specSection({ Fs_hz: 30, Qts: 0.4, Sd_m2: 0.02, Cms_m_per_N: 0.0005, Mmd_kg: 0.05, Rms_Ns_per_m: 2, Xmax_m: 0.008 }),
   });
 
-  it('build() without a required field names the field that was never set, rather than shipping a half-stated box', () => {
-    expect(() => OpenISDProject.builder(driver(), createEngine()).sealed().build())
-      .toThrow(/build\(\): sealed volume_m3 is required/);
-  });
-
-  it('a passive-radiator box built with no radiator chosen refuses — the one box type that cannot exist alone', () => {
-    expect(() => OpenISDProject.builder(driver(), createEngine())
-      .passiveRadiator().volume_m3(0.05).tuning_goal_hz(35).build())
-      .toThrow(/build\(\): a passive-radiator box requires a radiator/);
+  it('build() without a volume ships the type\'s starting values, never a half-stated box (box-starting-values.test.ts)', () => {
+    const p = OpenISDProject.builder(driver(), createEngine()).sealed().build();
+    expect(p.box.sealed.volume_m3.value).toBeGreaterThan(0);
   });
 });
 
@@ -1289,6 +1283,11 @@ describe('the passive radiator a box holds', () => {
   it('a box switched to passive radiator solves its blank radiator rather than skipping it', () => {
     const p = project();
     p.box.boxType.set('box-passive-radiator');
+    // The switch gave the box a chart-ready radiator (`applyStartingValues`); blank it again,
+    // since this test is about a radiator with nothing stated.
+    p.box.passiveRadiator.radiator.spec.Sd_m2.clear();
+    p.box.passiveRadiator.radiator.spec.Cms_m_per_N.clear();
+    p.box.passiveRadiator.radiator.spec.Mms_kg.clear();
     p.box.passiveRadiator.volume_m3.set(0.03);
     p.box.passiveRadiator.addedMass_kg.set(0);
 
@@ -2669,6 +2668,8 @@ describe('T1 — the vent/PR sweep-level guards (PLAN_DRIVER_SOLVE_AND_SWEEP_DIA
 
   it('ventAchievedFb/ventMaxReachableFb answer not-available while the vent geometry is unstated', () => {
     const p = project('vented');
+    // `build()` gave the vent its 50 mm starting diameter; this test is about no geometry at all.
+    p.box.vented.vent.diameter_m.clear();
 
     expect(p.ventAchievedFb.value).toBeNull();
     expect(p.ventMaxReachableFb.value).toBeNull();
