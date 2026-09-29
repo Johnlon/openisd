@@ -1,6 +1,5 @@
 import type {
   Air,
-  DqIssue,
   DriverSolverParams,
   PrSolverParams,
   SealedAlignmentSolverParams,
@@ -85,7 +84,7 @@ export function fakeSolverField<T = number>(value: T | null, precision?: number 
     get entered() { return state === 'entered'; },
     get calculated() { return state === 'calculated'; },
     get precision() { return state === 'entered' ? ownPrecision : null; },
-    get dq() { return [] as DqIssue[]; },
+    get dq() { return []; },
     setCalculated(v: T) { current = v; state = 'calculated'; },
     setDq() {},
     setNotAvailable() { current = null; state = 'not-available'; },
@@ -136,14 +135,32 @@ function driverHandlesFrom(d: TestSolverQuantities): DriverSolverParams {
   };
 }
 
+/** Named field-by-field, matching `bagFromPrHandles`/`bagFromVentHandles`/
+ *  `bagFromSealedAlignmentHandles` below — `DriverSolverParams`' own keys are not a `string[]`
+ *  the compiler can hand back typed, so a loop over `Object.keys` can only read them by casting. */
 function bagFromDriverHandles(p: DriverSolverParams): TestSolverQuantities {
-  const out: TestSolverQuantities = {};
-  for (const key of Object.keys(p) as (keyof DriverSolverParams)[]) {
-    const v = p[key].value;
-    if (v == null) continue;
-    (out as Record<string, unknown>)[key] = v;
-  }
-  return out;
+  return {
+    Fs_hz: p.Fs_hz.value ?? undefined, Re_ohm: p.Re_ohm.value ?? undefined,
+    Znom_ohm: p.Znom_ohm.value ?? undefined, Le_H: p.Le_H.value ?? undefined,
+    fLe_hz: p.fLe_hz.value ?? undefined, KLe_H_sqrtHz: p.KLe_H_sqrtHz.value ?? undefined,
+    Qes: p.Qes.value ?? undefined, Qms: p.Qms.value ?? undefined, Qts: p.Qts.value ?? undefined,
+    Vas_m3: p.Vas_m3.value ?? undefined, Sd_m2: p.Sd_m2.value ?? undefined, Dd_m: p.Dd_m.value ?? undefined,
+    BL_Tm: p.BL_Tm.value ?? undefined, Mms_kg: p.Mms_kg.value ?? undefined,
+    Cms_m_per_N: p.Cms_m_per_N.value ?? undefined, Rms_kg_per_s: p.Rms_kg_per_s.value ?? undefined,
+    EBP_hz: p.EBP_hz.value ?? undefined, Xmax_m: p.Xmax_m.value ?? undefined, Vd_m3: p.Vd_m3.value ?? undefined,
+    Hc_m: p.Hc_m.value ?? undefined, Hg_m: p.Hg_m.value ?? undefined, Pe_W: p.Pe_W.value ?? undefined,
+    no: p.no.value ?? undefined, SPLref_dB: p.SPLref_dB.value ?? undefined, SPL_dB: p.SPL_dB.value ?? undefined,
+    USPL_dB: p.USPL_dB.value ?? undefined, SPLmax_dB: p.SPLmax_dB.value ?? undefined,
+    SPLmaxLF_dB: p.SPLmaxLF_dB.value ?? undefined, Rme_kg_per_s: p.Rme_kg_per_s.value ?? undefined,
+    Mpow_N_per_sqrtW: p.Mpow_N_per_sqrtW.value ?? undefined, Mcost_kg_per_s: p.Mcost_kg_per_s.value ?? undefined,
+    gamma_m_per_s2_A: p.gamma_m_per_s2_A.value ?? undefined, Gloss: p.Gloss.value ?? undefined,
+    Vcd_m: p.Vcd_m.value ?? undefined, Depth_m: p.Depth_m.value ?? undefined, MagDepth_m: p.MagDepth_m.value ?? undefined,
+    Magnet_m: p.Magnet_m.value ?? undefined, DVol_m3: p.DVol_m3.value ?? undefined,
+    c_m_per_s: p.c_m_per_s.value ?? undefined, roo_kg_per_m3: p.roo_kg_per_m3.value ?? undefined,
+    Re_terminal_ohm: p.Re_terminal_ohm.value ?? undefined, BL_terminal_Tm: p.BL_terminal_Tm.value ?? undefined,
+    numVC: p.numVC.value ?? undefined,
+    wiring: p.wiring.value ?? undefined,
+  };
 }
 
 /** Every quantity `d` states, solved against each other, exactly as `Engine.solveDriver()`

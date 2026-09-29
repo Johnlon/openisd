@@ -1,5 +1,5 @@
 import {describe, expect, it, vi} from 'vitest';
-import type {CalculationIssue, DqIssue, DriverIssue, DriverSolverParams, SolverField} from '../../engine/index.js';
+import type {CalculationIssue, DriverIssue, DriverSolverParams, SolverField} from '../../engine/index.js';
 import {DEFAULT_P_REF_PA, createEngine} from '../../engine/index.js';
 import type {TestSolverQuantities} from './testSolver.js';
 import {checkConsistency, fakeSolverField} from './testSolver.js';
@@ -18,7 +18,7 @@ function fakeWiringField(value: 'series' | 'parallel' | null): SolverField<'seri
     get entered() { return state === 'entered'; },
     get calculated() { return state === 'calculated'; },
     get precision() { return null; },
-    get dq() { return [] as DqIssue[]; },
+    get dq() { return []; },
     setCalculated(v: 'series' | 'parallel') { current = v; state = 'calculated'; },
     setDq() {},
     setNotAvailable() { current = null; state = 'not-available'; },
@@ -327,7 +327,7 @@ describe('Engine.solveDriver — enteredDriverValue null handling', () => {
       get entered() { return true; },
       get calculated() { return false; },
       get precision() { return null; },
-      get dq() { return [] as DqIssue[]; },
+      get dq() { return []; },
       setCalculated(v: number) { observedValue = v; },
       setDq() {},
       setNotAvailable() {},

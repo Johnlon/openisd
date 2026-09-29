@@ -6,11 +6,8 @@
  */
 export interface WinIsdPlottedPoint { readonly f: number; readonly v: number }
 
-export const WINISD_TWO_DRIVERS_BP4_CAPTURE = Object.freeze({
-  /** WinISD's grid: every point of each chart is grid point i·step. */
-  grid: {fmin: 1.0, fmax: 20095.223453196217, N: 2086},
-  step: 16,
-  spl_dB: [
+
+const WINISD_TWO_DRIVERS_BP4_CAPTURE_SPL_D_B: readonly WinIsdPlottedPoint[] = [
     {f: 1.0, v: -3.844893108721532},
     {f: 1.0789604011446716, v: -1.8909903899102745},
     {f: 1.1641555472382705, v: 0.058785323646780636},
@@ -142,8 +139,8 @@ export const WINISD_TWO_DRIVERS_BP4_CAPTURE = Object.freeze({
     {f: 16776.631415150903, v: 40.198981449183506},
     {f: 18101.320961547517, v: 40.19665312869728},
     {f: 19530.60852591976, v: 40.19465262000679},
-  ] as readonly WinIsdPlottedPoint[],
-  maxPower_W: [
+];
+const WINISD_TWO_DRIVERS_BP4_CAPTURE_MAX_POWER_W: readonly WinIsdPlottedPoint[] = [
     {f: 1.0, v: 40.10707626207407},
     {f: 1.0789604011446716, v: 40.302080040443634},
     {f: 1.1641555472382705, v: 40.52840752169436},
@@ -275,8 +272,8 @@ export const WINISD_TWO_DRIVERS_BP4_CAPTURE = Object.freeze({
     {f: 16776.631415150903, v: 80.0},
     {f: 18101.320961547517, v: 80.0},
     {f: 19530.60852591976, v: 80.0},
-  ] as readonly WinIsdPlottedPoint[],
-  impedance_ohm: [
+];
+const WINISD_TWO_DRIVERS_BP4_CAPTURE_IMPEDANCE_OHM: readonly WinIsdPlottedPoint[] = [
     {f: 1.0, v: 3.4136493538251664},
     {f: 1.0789604011446716, v: 3.4158127038143835},
     {f: 1.1641555472382705, v: 3.4183049307257787},
@@ -408,5 +405,13 @@ export const WINISD_TWO_DRIVERS_BP4_CAPTURE = Object.freeze({
     {f: 16776.631415150903, v: 3.400048168170491},
     {f: 18101.320961547517, v: 3.4000413757482533},
     {f: 19530.60852591976, v: 3.400035541195535},
-  ] as readonly WinIsdPlottedPoint[],
+];
+
+export const WINISD_TWO_DRIVERS_BP4_CAPTURE = Object.freeze({
+  /** WinISD's grid: every point of each chart is grid point i·step. */
+  grid: {fmin: 1.0, fmax: 20095.223453196217, N: 2086},
+  step: 16,
+  spl_dB: WINISD_TWO_DRIVERS_BP4_CAPTURE_SPL_D_B,
+  maxPower_W: WINISD_TWO_DRIVERS_BP4_CAPTURE_MAX_POWER_W,
+  impedance_ohm: WINISD_TWO_DRIVERS_BP4_CAPTURE_IMPEDANCE_OHM,
 });

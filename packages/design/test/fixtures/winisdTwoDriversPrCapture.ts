@@ -6,11 +6,8 @@
  */
 export interface WinIsdPlottedPoint { readonly f: number; readonly v: number }
 
-export const WINISD_TWO_DRIVERS_PR_CAPTURE = Object.freeze({
-  /** WinISD's grid: every point of each chart is grid point i·step. */
-  grid: {fmin: 1.0, fmax: 20095.223453196217, N: 2086},
-  step: 16,
-  spl_dB: [
+
+const WINISD_TWO_DRIVERS_PR_CAPTURE_SPL_D_B: readonly WinIsdPlottedPoint[] = [
     {f: 1.0, v: 7.867649661165378},
     {f: 1.0789604011446716, v: 9.385723898304517},
     {f: 1.1641555472382705, v: 10.883305575496204},
@@ -142,8 +139,8 @@ export const WINISD_TWO_DRIVERS_PR_CAPTURE = Object.freeze({
     {f: 16776.631415150903, v: 83.51613278261759},
     {f: 18101.320961547517, v: 83.51613329763916},
     {f: 19530.60852591976, v: 83.51613374001353},
-  ] as readonly WinIsdPlottedPoint[],
-  maxPower_W: [
+];
+const WINISD_TWO_DRIVERS_PR_CAPTURE_MAX_POWER_W: readonly WinIsdPlottedPoint[] = [
     {f: 1.0, v: 69.26753804523678},
     {f: 1.0789604011446716, v: 71.88789736111941},
     {f: 1.1641555472382705, v: 74.52873730528765},
@@ -275,8 +272,8 @@ export const WINISD_TWO_DRIVERS_PR_CAPTURE = Object.freeze({
     {f: 16776.631415150903, v: 80.0},
     {f: 18101.320961547517, v: 80.0},
     {f: 19530.60852591976, v: 80.0},
-  ] as readonly WinIsdPlottedPoint[],
-  impedance_ohm: [
+];
+const WINISD_TWO_DRIVERS_PR_CAPTURE_IMPEDANCE_OHM: readonly WinIsdPlottedPoint[] = [
     {f: 1.0, v: 3.424791358395376},
     {f: 1.0789604011446716, v: 3.426111929233903},
     {f: 1.1641555472382705, v: 3.4273976517696965},
@@ -408,5 +405,13 @@ export const WINISD_TWO_DRIVERS_PR_CAPTURE = Object.freeze({
     {f: 16776.631415150903, v: 3.400049787981695},
     {f: 18101.320961547517, v: 3.4000427673433387},
     {f: 19530.60852591976, v: 3.4000367367048843},
-  ] as readonly WinIsdPlottedPoint[],
+];
+
+export const WINISD_TWO_DRIVERS_PR_CAPTURE = Object.freeze({
+  /** WinISD's grid: every point of each chart is grid point i·step. */
+  grid: {fmin: 1.0, fmax: 20095.223453196217, N: 2086},
+  step: 16,
+  spl_dB: WINISD_TWO_DRIVERS_PR_CAPTURE_SPL_D_B,
+  maxPower_W: WINISD_TWO_DRIVERS_PR_CAPTURE_MAX_POWER_W,
+  impedance_ohm: WINISD_TWO_DRIVERS_PR_CAPTURE_IMPEDANCE_OHM,
 });

@@ -11,13 +11,8 @@
  */
 import type {WinIsdComplexPoint} from './winisdVentedCapture.js';
 
-export const WINISD_PR_NPR_CAPTURE = Object.freeze({
-  wpr: 'pr-w5-npr-1/w5.wpr',
-  driver: {Fs: 45, Qes: 0.57, Qms: 3.56, Vas: 0.00485, Re: 3.4, Sd: 0.0094, BL: 7.17},
-  box: {Vb: 0.01, Fr: 36.49657518178932, Ql: 7.0, Qa: 30.0, Qp: 15.0, Npr: 2},
-  radiator: {Fs: 30.0, Qms: 3.3, Vas: 0.0048, Sd: 0.0095, Me: 0.0, Xmax: 19},
-  /** pr-w5-npr-1, plot kind 6, first (only) pass, every 4th point. */
-  impedance: [
+
+const WINISD_PR_NPR_CAPTURE_IMPEDANCE: readonly WinIsdComplexPoint[] = [
     {f: 1.0, re: 3.412839203527306, im: 0.11479745754239849},
     {f: 1.0191811354633138, re: 3.4131370165245682, im: 0.11676746268856646},
     {f: 1.0387301868842898, re: 3.413437397690818, im: 0.11876944983580458},
@@ -540,9 +535,8 @@ export const WINISD_PR_NPR_CAPTURE = Object.freeze({
     {f: 19163.039666193643, re: 3.40000980379936, im: -0.013207587467685123},
     {f: 19530.60852591976, re: 3.400009438248097, im: -0.012959015097672829},
     {f: 19905.22777373638, re: 3.400009086327245, im: -0.012715121099031784},
-  ] as readonly WinIsdComplexPoint[],
-  /** pr-w5-npr-1, plot kind 1, first (only) pass, every 4th point. */
-  transfer: [
+];
+const WINISD_PR_NPR_CAPTURE_TRANSFER: readonly WinIsdComplexPoint[] = [
     {f: 1.0, re: -8.594347203177943e-05, im: -9.521140057178654e-05},
     {f: 1.0191811354633138, re: -9.125295974015714e-05, im: -9.908164825622125e-05},
     {f: 1.0387301868842898, re: -9.685608884154699e-05, im: -0.00010306810670520577},
@@ -1065,9 +1059,8 @@ export const WINISD_PR_NPR_CAPTURE = Object.freeze({
     {f: 19163.039666193643, re: 0.9952475619220175, im: 0.004946112453786374},
     {f: 19530.60852591976, re: 0.995248050429133, im: 0.00485302659197209},
     {f: 19905.22777373638, re: 0.9952485207217113, im: 0.004761692581476651},
-  ] as readonly WinIsdComplexPoint[],
-  /** pr-w5-npr-1, plot kind 15, first (only) pass, every 4th point. */
-  radiatorExcursion: [
+];
+const WINISD_PR_NPR_CAPTURE_RADIATOR_EXCURSION: readonly WinIsdComplexPoint[] = [
     {f: 1.0, re: 0.00012385740104910997, im: 0.00013489310619279048},
     {f: 1.0191811354633138, re: 0.00012660949763101213, im: 0.0001351059792584843},
     {f: 1.0387301868842898, re: 0.0001293769819440988, im: 0.00013526371169819625},
@@ -1590,16 +1583,8 @@ export const WINISD_PR_NPR_CAPTURE = Object.freeze({
     {f: 19163.039666193643, re: 7.872076765010444e-15, im: 2.9421705179726783e-13},
     {f: 19530.60852591976, re: 7.295987252084975e-15, im: 2.779144232823778e-13},
     {f: 19905.22777373638, re: 6.76205662368841e-15, im: 2.6251518594675335e-13},
-  ] as readonly WinIsdComplexPoint[],
-});
-
-export const WINISD_PR_ME_NPR_CAPTURE = Object.freeze({
-  wpr: 'pr-w5-me-npr-1/w5.wpr',
-  driver: {Fs: 45, Qes: 0.57, Qms: 3.56, Vas: 0.00485, Re: 3.4, Sd: 0.0094, BL: 7.17},
-  box: {Vb: 0.01, Fr: 36.49657518178932, Ql: 7.0, Qa: 30.0, Qp: 15.0, Npr: 2},
-  radiator: {Fs: 30.0, Qms: 3.3, Vas: 0.0048, Sd: 0.0095, Me: 0.01, Xmax: 19},
-  /** pr-w5-me-npr-1, plot kind 6, first (only) pass, every 4th point. */
-  impedance: [
+];
+const WINISD_PR_ME_NPR_CAPTURE_IMPEDANCE: readonly WinIsdComplexPoint[] = [
     {f: 1.0, re: 3.4129478790832812, im: 0.11404382817105872},
     {f: 1.0191811354633138, re: 3.413233488866541, im: 0.11599545046597608},
     {f: 1.0387301868842898, re: 3.4135209798561865, im: 0.11797917047005424},
@@ -2122,9 +2107,8 @@ export const WINISD_PR_ME_NPR_CAPTURE = Object.freeze({
     {f: 19163.039666193643, re: 3.400009874237448, im: -0.013207587362730174},
     {f: 19530.60852591976, re: 3.4000095060598103, im: -0.012959014998533231},
     {f: 19905.22777373638, re: 3.400009151610511, im: -0.012715121005385303},
-  ] as readonly WinIsdComplexPoint[],
-  /** pr-w5-me-npr-1, plot kind 1, first (only) pass, every 4th point. */
-  transfer: [
+];
+const WINISD_PR_ME_NPR_CAPTURE_TRANSFER: readonly WinIsdComplexPoint[] = [
     {f: 1.0, re: -9.206208430488726e-05, im: -9.591762682551587e-05},
     {f: 1.0191811354633138, re: -9.763690941899698e-05, im: -9.969395310050841e-05},
     {f: 1.0387301868842898, re: -0.00010351203878999534, im: -0.00010357677177738865},
@@ -2647,9 +2631,8 @@ export const WINISD_PR_ME_NPR_CAPTURE = Object.freeze({
     {f: 19163.039666193643, re: 0.9952473127508115, im: 0.0049378243873335614},
     {f: 19530.60852591976, re: 0.9952478105483947, im: 0.004844894574454438},
     {f: 19905.22777373638, re: 0.9952482897850465, im: 0.004753713672355574},
-  ] as readonly WinIsdComplexPoint[],
-  /** pr-w5-me-npr-1, plot kind 15, first (only) pass, every 4th point. */
-  radiatorExcursion: [
+];
+const WINISD_PR_ME_NPR_CAPTURE_RADIATOR_EXCURSION: readonly WinIsdComplexPoint[] = [
     {f: 1.0, re: 0.0001326072909820363, im: 0.00013586103594603134},
     {f: 1.0191811354633138, re: 0.00013539836989484021, im: 0.00013590682210336415},
     {f: 1.0387301868842898, re: 0.0001381986146452007, im: 0.0001358956763704676},
@@ -3172,5 +3155,30 @@ export const WINISD_PR_ME_NPR_CAPTURE = Object.freeze({
     {f: 19163.039666193643, re: 6.873200171488716e-15, im: 2.763797524597515e-13},
     {f: 19530.60852591976, re: 6.3702099005684396e-15, im: 2.6106561674980267e-13},
     {f: 19905.22777373638, re: 5.90402902162669e-15, im: 2.466000847767597e-13},
-  ] as readonly WinIsdComplexPoint[],
+];
+
+export const WINISD_PR_NPR_CAPTURE = Object.freeze({
+  wpr: 'pr-w5-npr-1/w5.wpr',
+  driver: {Fs: 45, Qes: 0.57, Qms: 3.56, Vas: 0.00485, Re: 3.4, Sd: 0.0094, BL: 7.17},
+  box: {Vb: 0.01, Fr: 36.49657518178932, Ql: 7.0, Qa: 30.0, Qp: 15.0, Npr: 2},
+  radiator: {Fs: 30.0, Qms: 3.3, Vas: 0.0048, Sd: 0.0095, Me: 0.0, Xmax: 19},
+  /** pr-w5-npr-1, plot kind 6, first (only) pass, every 4th point. */
+  impedance: WINISD_PR_NPR_CAPTURE_IMPEDANCE,
+  /** pr-w5-npr-1, plot kind 1, first (only) pass, every 4th point. */
+  transfer: WINISD_PR_NPR_CAPTURE_TRANSFER,
+  /** pr-w5-npr-1, plot kind 15, first (only) pass, every 4th point. */
+  radiatorExcursion: WINISD_PR_NPR_CAPTURE_RADIATOR_EXCURSION,
+});
+
+export const WINISD_PR_ME_NPR_CAPTURE = Object.freeze({
+  wpr: 'pr-w5-me-npr-1/w5.wpr',
+  driver: {Fs: 45, Qes: 0.57, Qms: 3.56, Vas: 0.00485, Re: 3.4, Sd: 0.0094, BL: 7.17},
+  box: {Vb: 0.01, Fr: 36.49657518178932, Ql: 7.0, Qa: 30.0, Qp: 15.0, Npr: 2},
+  radiator: {Fs: 30.0, Qms: 3.3, Vas: 0.0048, Sd: 0.0095, Me: 0.01, Xmax: 19},
+  /** pr-w5-me-npr-1, plot kind 6, first (only) pass, every 4th point. */
+  impedance: WINISD_PR_ME_NPR_CAPTURE_IMPEDANCE,
+  /** pr-w5-me-npr-1, plot kind 1, first (only) pass, every 4th point. */
+  transfer: WINISD_PR_ME_NPR_CAPTURE_TRANSFER,
+  /** pr-w5-me-npr-1, plot kind 15, first (only) pass, every 4th point. */
+  radiatorExcursion: WINISD_PR_ME_NPR_CAPTURE_RADIATOR_EXCURSION,
 });

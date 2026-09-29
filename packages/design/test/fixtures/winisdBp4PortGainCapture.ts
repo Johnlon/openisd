@@ -18,13 +18,8 @@ export interface WinIsdMagPoint {
   readonly dB: number;
 }
 
-export const WINISD_BP4_PORT_GAIN_CAPTURE = Object.freeze({
-  wpr: 'bp4-w5-chain-1/w5.wpr',
-  driver: {Fs: 45, Qes: 0.57, Qms: 3.56, Vas: 0.00485, Re: 3.4, Sd: 0.0094, BL: 7.17},
-  box: {Vf: 0.005, Ff: 60.0, Qlf: 9.0, Qaf: 40.0, Qpf: 15.0,
-        Vr: 0.01, Fr: 42.0, Qlr: 7.0, Qar: 30.0, Qiclfr: 20.0},
-  /** runs/bp4-w5-chain-1, plot kind 12. */
-  magnitude: [
+
+const WINISD_BP4_PORT_GAIN_CAPTURE_MAGNITUDE: readonly WinIsdMagPoint[] = [
     {f: 1.0, dB: -150.65197361588238},
     {f: 1.0191811354633138, dB: -149.66454429714958},
     {f: 1.0387301868842898, dB: -148.6772155701729},
@@ -547,5 +542,13 @@ export const WINISD_BP4_PORT_GAIN_CAPTURE = Object.freeze({
     {f: 19163.039666193643, dB: -82.10898757624761},
     {f: 19530.60852591976, dB: -82.27652420161742},
     {f: 19905.22777373638, dB: -82.44396863459133},
-  ] as readonly WinIsdMagPoint[],
+];
+
+export const WINISD_BP4_PORT_GAIN_CAPTURE = Object.freeze({
+  wpr: 'bp4-w5-chain-1/w5.wpr',
+  driver: {Fs: 45, Qes: 0.57, Qms: 3.56, Vas: 0.00485, Re: 3.4, Sd: 0.0094, BL: 7.17},
+  box: {Vf: 0.005, Ff: 60.0, Qlf: 9.0, Qaf: 40.0, Qpf: 15.0,
+        Vr: 0.01, Fr: 42.0, Qlr: 7.0, Qar: 30.0, Qiclfr: 20.0},
+  /** runs/bp4-w5-chain-1, plot kind 12. */
+  magnitude: WINISD_BP4_PORT_GAIN_CAPTURE_MAGNITUDE,
 });

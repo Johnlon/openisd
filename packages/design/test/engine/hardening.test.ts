@@ -114,7 +114,7 @@ describe('a zero box volume is a named error, not Infinity-poisoned curves', () 
   });
 
   it('Vb absent and Vb negative are rejected the same as zero', () => {
-    for (const Vb of [undefined as unknown as number, -0.01, NaN, Infinity])
+    for (const Vb of [undefined, -0.01, NaN, Infinity] as const)
       assert.ok(targets(engine.simulation.solveBoxParams('sealed', { ...P_SEALED, Vb }).issues).includes('Vb'),
         `Vb = ${Vb} must be rejected — only a finite positive volume is simulatable`);
   });
@@ -126,7 +126,9 @@ describe('a zero box volume is a named error, not Infinity-poisoned curves', () 
       sealed: P_SEALED, vented: P_VENTED, 'box-passive-radiator': P_PR, bandpass4: P_BP4,
       bandpass6: P_BP6, abc: P_ABC,
     };
-    for (const box of Object.keys(healthy) as SimulatableBoxType[]) {
+    const boxes: SimulatableBoxType[] =
+      ['sealed', 'vented', 'box-passive-radiator', 'bandpass4', 'bandpass6', 'abc'];
+    for (const box of boxes) {
       const result = engine.simulation.solveBoxParams(box, healthy[box]);
       assert.deepEqual(result.issues, [],
         `${box}: a valid design must produce no parameter issue (a false positive would block a good design)`);
@@ -310,7 +312,7 @@ describe('no engine output reaches a chart non-finite without a surfaced issue',
     for (let i = 0; i < sw.spl.length; i++) sw.spl[i] = NaN;
     assert.doesNotThrow(() => engine.simulation.classifyFinite(sw), 'the engine communicates by Result, never by exception');
     assert.doesNotThrow(() => engine.simulation.classifyMaxFinite(engine.simulation.maxCurves(validDriver(), undefined, 'sealed', P_SEALED).values!));
-    assert.doesNotThrow(() => engine.simulation.solveBoxParams('box-passive-radiator', {} as SweepParams));
+    assert.doesNotThrow(() => engine.simulation.solveBoxParams('box-passive-radiator', {}));
   });
 });
 

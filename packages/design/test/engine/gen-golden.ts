@@ -1,9 +1,10 @@
-import { readFileSync, writeFileSync } from 'node:fs';
+import { writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import type { TestSolverQuantities } from './testSolver.js';
 import { driverParams, solveConsistencyGroup } from './testSolver.js';
 import {createEngine} from '../../engine/index.js';
+import {readGoldenFixture} from '../fixtures/goldenFixture.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const fixturesDir = join(here, '..', 'fixtures', 'golden');
@@ -21,7 +22,7 @@ const engine = createEngine();
 
 for (const name of NAMES) {
   const filePath = join(fixturesDir, name + '.json');
-  const fixture = JSON.parse(readFileSync(filePath, 'utf8'));
+  const fixture = readGoldenFixture(filePath);
   const { design: { driverRaw, box, P } } = fixture;
 
   const q: TestSolverQuantities = {
