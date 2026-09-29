@@ -988,8 +988,8 @@ const {
 .chart-color-btn { padding:3px 12px; font-size:11px; border-radius:3px; color:#fff; text-shadow:0 0 2px rgba(0,0,0,.55); }
 .graph-area { grid-area:graph; position:relative; flex:1 1 auto; min-width:0; min-height:0; padding:8px 14px; display:flex; flex-direction:column; }
 .graph-wrap { flex:1 1 auto; min-height:0; border:1px solid #999; background:#fff; position:relative; display:flex; }
-.chart-stack { flex:1; min-width:0; display:grid; gap:1px; background:#999; overflow-y:auto; }
-.chart-cell { min-width:0; min-height:0; position:relative; display:flex; background:#fff; }
+.chart-stack { flex:1; min-width:0; display:grid; overflow-y:auto; }
+.chart-cell { min-width:0; min-height:0; position:relative; display:flex; outline:1px solid #999; outline-offset:-1px; }
 .graph-wrap :deep(.gpanel) { flex:1; height:100%; min-height:0; border:none; border-radius:0; }
 .chart-cell:has(.chart-close) :deep(.gtitle) { left:24px; }
 .chart-close { position:absolute; left:3px; top:3px; z-index:3; width:17px; height:17px; padding:0; line-height:15px; font-size:10px; background:#f7f7f7; border:1px solid #bbb; border-radius:3px; cursor:pointer; color:#444; }
