@@ -14,6 +14,7 @@ import MobileAdvancedTab from './MobileAdvancedTab.vue';
 import ExportMenu from '../../components/ExportMenu.vue';
 import OptionsModal from '../../components/OptionsModal.vue';
 import { useMobileShell } from '../../../hooks/MobileShell-hooks.js';
+import {OpenableFiles} from '../../../fileFormat.js';
 
 const {
   projectOpen, destination, fileInput, openImportedFile, openNewProject, switchToDesktop,
@@ -25,7 +26,7 @@ const {
 
 <template>
   <div class="mobile-root" :style="{ height: viewportHeightPx ? viewportHeightPx + 'px' : undefined }">
-    <input ref="fileInput" type="file" accept=".owpr,.wpr" style="display:none" @change="openImportedFile">
+    <input ref="fileInput" type="file" :accept="OpenableFiles.ACCEPT" style="display:none" @change="openImportedFile">
 
     <div v-if="!projectOpen" class="mob-empty">
       <p class="mob-empty-title">No project open</p>
