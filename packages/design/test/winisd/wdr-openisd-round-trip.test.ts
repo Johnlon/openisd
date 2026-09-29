@@ -26,10 +26,10 @@ import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join, sep } from 'node:path';
-import { OpenISDDriver } from '@openisd/design';
 import {createEngine} from '@openisd/design/engine';
 import { PARSTATE_LEN } from '../../winisd/parstate.js';
 import { WinISDDriver } from '../../winisd/winisdDriver.js';
+import {WinIsdDriverConverter} from '../../domain/winIsdDriverConverter.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const SAMPLES = join(here, '..', '..', '..', '..', 'drivers', 'myprobes');
@@ -152,7 +152,7 @@ function lostEntered(file: string, src: string): string[] {
 /** text → WinISDDriver → OpenISDDriver → WinISDDriver → text. */
 function cycle(src: string): string {
   const engine = createEngine();
-  const imported = OpenISDDriver.fromWdrIniText(src, engine);
+  const imported = new WinIsdDriverConverter(engine).winIsdDriverToOpenIsdDriver(src);
   if (imported.value === null) {
     assert.fail(`driver text rejected: ${imported.errors.map(error => error.message).join('; ')}`);
   }

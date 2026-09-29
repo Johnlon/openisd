@@ -35,10 +35,8 @@ import {type ClassDeclaration, Node, Project, type SourceFile, SyntaxKind} from 
 import {packageRoot, ratchet, relPath, shippedSource} from './architecture-gate-support.js';
 
 const ENGINE_PARAMETER_BASELINE: ReadonlySet<string> = new Set([
-  "packages/design/domain/driver/openISDDriver.ts#OpenISDDriver.fromWdrIniText",
   "packages/design/domain/project/openISDProject.ts#OpenISDProject.builder",
   "packages/design/domain/project/openISDProject.ts#OpenISDProject.empty",
-  "packages/design/domain/project/openISDProject.ts#OpenISDProject.fromWprText",
 ]);
 
 /** The class names in `source` that are `cls` or extend it (transitively, within the file). */

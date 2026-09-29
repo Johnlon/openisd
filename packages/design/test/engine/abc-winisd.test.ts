@@ -12,7 +12,7 @@
  * chart keep it. `AbcBox.ts` reproduces this by returning it separately as `UPi`, never folding
  * it into `Zbox`.
  *
- * Goes through `OpenISDProject.fromWprText` + `Engine`/`project.sweep()` — the SAME
+ * Goes through `WinIsdProjectConverter.winIsdProjectToOpenIsdProject` + `Engine`/`project.sweep()` — the SAME
  * `../winisd/fixtures/abc-w5-1.wpr` this fixture's own numbers were captured from (the `.wpr`
  * carries the driver, box, vent and signal-source values verbatim, so there is no separate
  * manual driver-quantity reconstruction here, unlike this file's own previous revision — see
@@ -28,6 +28,7 @@ import {createEngine} from '../../engine/index.js';
 import {OpenISDProject} from '../../domain/index.js';
 import {WINISD_ABC_CAPTURE} from '../fixtures/winisdAbcCapture.js';
 import type {WinIsdComplexPoint} from '../fixtures/winisdVentedCapture.js';
+import {WinIsdProjectConverter} from '../../domain/winIsdProjectConverter.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
 
@@ -43,8 +44,8 @@ function angleDiff(a: number, b: number, fullTurn: number): number {
 function setUpProject(wprFile: string): OpenISDProject {
   const engine = createEngine();
   const text = readFileSync(join(here, '..', 'winisd', 'fixtures', wprFile), 'utf8');
-  const {value: project, errors} = OpenISDProject.fromWprText(text, engine);
-  if (project === null) throw new Error('fromWprText returned problems: ' + JSON.stringify(errors));
+  const {value: project, errors} = new WinIsdProjectConverter(engine).winIsdProjectToOpenIsdProject(text);
+  if (project === null) throw new Error('winIsdProjectToOpenIsdProject returned problems: ' + JSON.stringify(errors));
   // The capture's own condition (this file's header, and the fixture's own doc comment): VCInd
   // off, "Use WinISD driver calculations" on, winisd-lossy, WinISD's own air model, Rg NOT at
   // driver side. `applyWinisdSettings()` covers every one of those except `rgAtDriverSide`

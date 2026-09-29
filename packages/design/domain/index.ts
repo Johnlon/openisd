@@ -58,6 +58,8 @@ export type { DqReason } from './driver/openISDDriver.js';
 //
 // `projectJson` is NOT exported: it takes and returns package-private record types.
 export { OpenISDProject } from './project/openISDProject.js';
+export { WinIsdDriverConverter } from './winIsdDriverConverter.js';
+export { WinIsdProjectConverter } from './winIsdProjectConverter.js';
 export { OpenISDPassiveRadiatorStandalone } from './passiveRadiator/openISDPassiveRadiatorStandalone.js';
 // The engine, named here as well as at its own door (`@openisd/design/engine`): the domain
 // takes an `Engine` as the collaborator that does the physics, so a consumer assembling a project

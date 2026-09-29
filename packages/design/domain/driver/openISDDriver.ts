@@ -4,7 +4,7 @@ import { realAppContext } from '../appContext.js';
 import type { AppContext } from '../appContext.js';
 import { ReadableFieldImpl, SetOnlyFieldImpl, absentCell, enteredCell, resolvingField } from '../cell.js';
 import type { Calculated, Clearable, Entered, Readable, SimpleField, Writable } from '../cell.js';
-import { WinIsdDriverConverter, openIsdDriverToWinIsdDriver } from '../winIsdDriverConverter.js';
+import { openIsdDriverToWinIsdDriver } from '../winIsdDriverConverter.js';
 import { newUuid } from '../newUuid.js';
 import { asDriverDevice } from '../openisdSchema.js';
 import type { DriverDeviceJson } from '../openisdSchema.js';
@@ -294,7 +294,7 @@ export abstract class OpenISDDriver extends OpenISDDevice {
         return OpenISDDeviceJson.toOpenisdDriverJson(this.record.value);
     }
 
-    /** This driver as WinISD `.wdr` text — the form `OpenISDDriver.fromWdrIniText` reads back.
+    /** This driver as WinISD `.wdr` text — the form `WinIsdDriverConverter.winIsdDriverToOpenIsdDriver` reads back.
      *
      *  `.wdr` states far less than an openisd record does: a field WinISD has no key for is
      *  dropped, so this is a lossy write and the round trip is not an identity. `errors` carries
@@ -305,11 +305,6 @@ export abstract class OpenISDDriver extends OpenISDDevice {
         return {value: wdr.toWdrIni(), errors};
     }
 
-    /** WinISD `.wdr` text back to a driver. The inverse of `toWdrIniText()`, as far as a format
-     *  carrying fewer fields allows. */
-    static fromWdrIniText(text: string, engine: Engine): { value: OpenISDDriver | null; errors: DriverError[] } {
-        return new WinIsdDriverConverter(engine).winIsdDriverToOpenIsdDriver(text);
-    }
 }
 
 // `OpenISDDriverStandalone` stays in THIS file, alongside its base — never its own module. Their

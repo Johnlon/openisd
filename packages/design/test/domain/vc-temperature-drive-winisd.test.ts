@@ -12,12 +12,13 @@ import assert from 'node:assert/strict';
 import {createEngine} from '../../engine/index.js';
 import {OpenISDProject} from '../../domain/index.js';
 import {WINISD_VC_TEMP_RISE_CAPTURE as CAP, type WinIsdPlottedPoint} from '../fixtures/winisdVcTempRiseCapture.js';
+import {WinIsdProjectConverter} from '../../domain/winIsdProjectConverter.js';
 
 const WPR_PATH = join(dirname(fileURLToPath(import.meta.url)), '..', 'winisd', 'fixtures', 'sealed-w5-dtvc20.wpr');
 
 function setUpProject(): OpenISDProject {
-  const {value: project, errors} = OpenISDProject.fromWprText(readFileSync(WPR_PATH, 'utf8'), createEngine());
-  if (project === null) throw new Error('fromWprText returned problems: ' + JSON.stringify(errors));
+  const {value: project, errors} = new WinIsdProjectConverter(createEngine()).winIsdProjectToOpenIsdProject(readFileSync(WPR_PATH, 'utf8'));
+  if (project === null) throw new Error('winIsdProjectToOpenIsdProject returned problems: ' + JSON.stringify(errors));
   project.winisdDriverModel.set(true);
   project.rgAtDriverSide.set(false);
   project.vcTempRise_K.set(CAP.vcTempRise_K);

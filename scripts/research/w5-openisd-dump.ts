@@ -1,5 +1,5 @@
 // OpenISD's side of the chart review (docs/research/CHART_REVIEW_WINISD_VS_OPENISD.md).
-// Reads the SAME .wpr WinISD ran, imports it through OpenISDProject.fromWprText, applies the
+// Reads the SAME .wpr WinISD ran, imports it through WinIsdProjectConverter, applies the
 // equivalence settings, writes the project out as .owpr and sweeps what reads back — so the
 // numbers compared against WinISD are the saved project's, not the imported one's.
 // Usage: npx tsx scripts/research/w5-openisd-dump.ts <in.wpr> <freqs.json> <out.json> [key=value ...]
@@ -8,6 +8,7 @@ import {readFileSync, writeFileSync} from 'node:fs';
 import {createEngine} from '../../packages/design/engine/index.ts';
 import {defaultAppSettings} from '../../packages/design/engine/appSettings.ts';
 import {OpenISDProject} from '../../packages/design/domain/project/openISDProject.ts';
+import {WinIsdProjectConverter} from '../../packages/design/domain/winIsdProjectConverter.ts';
 
 type CircuitModel = 'winisd' | 'gyrator' | 'winisdGyrator';
 const CIRCUIT_MODELS: readonly CircuitModel[] = ['winisd', 'gyrator', 'winisdGyrator'];
@@ -26,7 +27,7 @@ const opts = new Map(kv.map(s => {
 }));
 
 const engine = createEngine(defaultAppSettings);
-const {value: project, errors} = OpenISDProject.fromWprText(readFileSync(wprPath, 'utf8'), engine);
+const {value: project, errors} = new WinIsdProjectConverter(engine).winIsdProjectToOpenIsdProject(readFileSync(wprPath, 'utf8'));
 if (!project) throw new Error(JSON.stringify(errors));
 
 const circuitModel = opts.get('circuitModel');
