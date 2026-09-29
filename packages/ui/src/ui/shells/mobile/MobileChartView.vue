@@ -1,12 +1,13 @@
 <script setup lang="ts">
-// The mobile Graph destination — the project's open charts. One chart fills the screen; several
-// stack in a list that scrolls up and down, each tall enough to read with the next peeking in.
+// The mobile Graph destination — the project's open charts, one column. The header's "per screen"
+// number sets how many share the screen's height; more scroll, snapping to whole charts.
 // GraphPanel's canvas sets touch-action:none (custom pointer gestures); in a stack it is relaxed
 // to pan-y, so a vertical swipe scrolls the list and a sideways drag still moves the cursor.
 import GraphPanel from '../../components/GraphPanel.vue';
 import { useMobileChartView } from '../../../hooks/MobileChartView-hooks.js';
 
-const { openCharts, chartItems, chartLabel, pickerOpen, togglePicker, showOnly, toggle, traceColour } = useMobileChartView();
+const { openCharts, chartItems, chartLabel, pickerOpen, togglePicker, showOnly, toggle,
+  chartsHigh, CHARTS_HIGH_OPTIONS, selectedOption, stackEl, stackStyle, traceColour } = useMobileChartView();
 </script>
 
 <template>
@@ -16,6 +17,12 @@ const { openCharts, chartItems, chartLabel, pickerOpen, togglePicker, showOnly, 
         <span class="mob-chart-pick-label">{{ chartLabel }}</span>
         <span class="mob-chart-pick-caret">{{ pickerOpen ? '▴' : '▾' }}</span>
       </button>
+      <label class="mob-chart-high" title="Charts per screen">
+        <select :value="chartsHigh" aria-label="Charts per screen"
+                @change="e => { const n = selectedOption(e, CHARTS_HIGH_OPTIONS); if (n !== null) chartsHigh = n; }">
+          <option v-for="o in CHARTS_HIGH_OPTIONS" :key="o.value" :value="o.value">{{ o.label }} / screen</option>
+        </select>
+      </label>
     </div>
     <ul v-if="pickerOpen" class="mob-chart-list">
       <li v-for="item in chartItems" :key="item.tab" class="mob-chart-row" :class="{ sep: item.sep }">
@@ -23,7 +30,7 @@ const { openCharts, chartItems, chartLabel, pickerOpen, togglePicker, showOnly, 
         <button class="mob-chart-name" type="button" @click="showOnly(item.tab)">{{ item.label }}</button>
       </li>
     </ul>
-    <div class="mob-chart-stack" :class="{ stacked: openCharts.length > 1 }">
+    <div ref="stackEl" class="mob-chart-stack" :class="{ stacked: openCharts.length > 1 }" :style="stackStyle">
       <div v-for="id in openCharts" :key="id" class="mob-chart-cell">
         <GraphPanel :chart-id="id" :bare="true" :primary-color="traceColour" />
       </div>
@@ -43,6 +50,8 @@ const { openCharts, chartItems, chartLabel, pickerOpen, togglePicker, showOnly, 
   position: relative;
 }
 .mob-chart-head {
+  display: flex;
+  gap: 8px;
   padding: 8px 12px;
   border-bottom: 1px solid var(--line);
   background: var(--panel);
@@ -51,7 +60,8 @@ const { openCharts, chartItems, chartLabel, pickerOpen, togglePicker, showOnly, 
   display: flex;
   align-items: center;
   gap: 8px;
-  width: 100%;
+  flex: 1;
+  min-width: 0;
   min-height: 44px;
   padding: 8px 12px;
   border: 1px solid var(--line);
@@ -61,6 +71,17 @@ const { openCharts, chartItems, chartLabel, pickerOpen, togglePicker, showOnly, 
   font: inherit;
   font-size: 15px;
   text-align: left;
+}
+.mob-chart-high select {
+  height: 100%;
+  min-height: 44px;
+  padding: 0 6px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: #fff;
+  color: var(--fg);
+  font: inherit;
+  font-size: 15px;
 }
 .mob-chart-pick-label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 /* The checklist drops over the charts rather than pushing them down. */
@@ -94,10 +115,9 @@ const { openCharts, chartItems, chartLabel, pickerOpen, togglePicker, showOnly, 
   font-size: 15px;
   text-align: left;
 }
-/* One chart fills the pane; a stack scrolls, each chart 60% of the pane so the next peeks in. */
-.mob-chart-stack { flex: 1; min-height: 0; display: flex; flex-direction: column; overflow-y: auto; }
-.mob-chart-cell { flex: 1 0 100%; display: flex; flex-direction: column; min-height: 0; }
-.mob-chart-stack.stacked .mob-chart-cell { flex: 0 0 60%; }
+/* One-column grid; the rows come from stackStyle (chartGrid.ts). Overflow snaps to whole charts. */
+.mob-chart-stack { flex: 1; min-height: 0; display: grid; overflow-y: auto; scroll-snap-type: y mandatory; }
+.mob-chart-cell { display: flex; flex-direction: column; min-height: 0; scroll-snap-align: start; }
 .mob-chart-cell + .mob-chart-cell { border-top: 1px solid var(--line); }
 /* GraphPanel's own .gpanel defaults to a 160px min-height (style.css) sized for a small tile;
    here it fills its cell. */

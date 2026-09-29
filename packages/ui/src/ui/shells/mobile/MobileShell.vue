@@ -43,6 +43,10 @@ const {
         <button type="button" class="mob-hamburger" title="Menu" aria-label="Menu" @click.stop="toggleMenu">
           <span></span><span></span><span></span>
         </button>
+        <div class="mob-brand">
+          <img src="/icon.svg" alt="" aria-hidden="true">
+          <span>OpenISD</span>
+        </div>
       </div>
 
       <main class="mob-content">
@@ -157,6 +161,8 @@ const {
   border: none;
   cursor: pointer;
 }
+.mob-brand { display: flex; align-items: center; gap: 8px; margin-left: 4px; font-weight: 600; font-size: 17px; }
+.mob-brand img { width: 24px; height: 24px; display: block; }
 .mob-hamburger span { display: block; width: 20px; height: 2px; background: var(--fg); border-radius: 1px; }
 .mob-menu-overlay {
   /* absolute, not fixed: covers .mobile-root (its containing block — see .mobile-root's own
