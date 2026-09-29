@@ -2,10 +2,12 @@ import {describe, expect, it, vi} from 'vitest';
 import {computed, h, provide} from 'vue';
 import {renderToString} from 'vue/server-renderer';
 import {usePREditModal, type PREditModalAPI} from '../../src/hooks/PREditModal-hooks.js';
-import {APP_LOGIC, type AppLogic} from '../../src/logic/app.js';
+import {APP_LOGIC} from '../../src/logic/app.js';
 import {provideFocusedProject} from '../../src/logic/focusedProjectContext.js';
 import {createEngine} from '@openisd/design/engine';
 import {OpenISDPassiveRadiatorStandalone, OpenISDProject} from '@openisd/design';
+import type {MyPassiveRadiatorRepo} from '@openisd/persistence';
+import {testAppLogic} from './testAppLogic.js';
 
 describe('usePREditModal', () => {
   it('exposes passive radiator state and handles library actions', async () => {
@@ -18,17 +20,15 @@ describe('usePREditModal', () => {
     prStandAlone.brand.set('Dayton Audio');
     prStandAlone.model.set('SD270A-88');
 
-    const mockApp = {
-      myPassiveRadiators: {
-        list: vi.fn().mockReturnValue([
-          {
-            uuid: 'pr-1',
-            passiveRadiator: prStandAlone,
-          },
-        ]),
-        upsert: vi.fn(),
-        remove: vi.fn(),
-      },
+    const myPassiveRadiators: MyPassiveRadiatorRepo = {
+      read: () => ({ kind: 'ok', passiveRadiators: [], broken: [] }),
+      list: vi.fn(() => [{ uuid: 'pr-1', passiveRadiator: prStandAlone }]),
+      replaceAll: () => true,
+      upsert: vi.fn(() => ({ uuid: 'pr-1', overwrote: true })),
+      remove: vi.fn(() => true),
+      removeBroken: () => true,
+      exportRaw: () => null,
+      deleteAll: () => undefined,
     };
 
     const emit = vi.fn();
@@ -42,7 +42,7 @@ describe('usePREditModal', () => {
 
     const Root = {
       setup() {
-        provide(APP_LOGIC, mockApp as unknown as AppLogic);
+        provide(APP_LOGIC, testAppLogic({myPassiveRadiators}));
         provideFocusedProject(computed(() => project));
         return () => h(TestComponent);
       },
@@ -58,13 +58,13 @@ describe('usePREditModal', () => {
     expect(project.box.passiveRadiator.count.value).toBe(2);
 
     hook.saveCurrentPR();
-    expect(mockApp.myPassiveRadiators.upsert).toHaveBeenCalled();
+    expect(myPassiveRadiators.upsert).toHaveBeenCalled();
 
     hook.loadPR('pr-1');
     expect(hook.showPRLib.value).toBe(false);
 
     hook.removePR('pr-1');
-    expect(mockApp.myPassiveRadiators.remove).toHaveBeenCalledWith('pr-1');
+    expect(myPassiveRadiators.remove).toHaveBeenCalledWith('pr-1');
 
     hook.close();
     expect(emit).toHaveBeenCalledWith('close');

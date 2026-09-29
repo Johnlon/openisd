@@ -52,6 +52,8 @@ describe('AdvancedOptions-hooks', () => {
     vi.stubGlobal('HTMLInputElement', FakeHTMLInputElement);
 
     const fakeInput = new FakeHTMLInputElement();
-    expect(api.inputChecked({target: fakeInput} as unknown as Event)).toBe(true);
+    const event = new Event('change');
+    Object.defineProperty(event, 'target', {value: fakeInput, configurable: true});
+    expect(api.inputChecked(event)).toBe(true);
   });
 });

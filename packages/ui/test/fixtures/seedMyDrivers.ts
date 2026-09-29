@@ -22,8 +22,33 @@
  */
 
 import {DriverType} from '@openisd/design/filter';
+import {z} from 'zod';
 
 export const MY_DRIVERS_KEY = 'openisd_my_drivers';
+
+/** One stored slot as the current envelope round-trips it, loosely — only the fields specs
+ *  read back after a stringify/parse cycle. The full shape is what `deviceRecord` writes and
+ *  what the repo itself validates on load; this is the read-side counterpart. */
+const storedFieldSchema = z.looseObject({ value: z.string().optional() });
+const storedRecordSchema = z.looseObject({
+  brand: storedFieldSchema.optional(),
+  model: storedFieldSchema.optional(),
+});
+const storedEntrySchema = z.looseObject({
+  uuid: z.string().optional(),
+  record: storedRecordSchema.optional(),
+});
+const storedBucketSchema = z.looseObject({
+  entries: z.array(storedEntrySchema).optional(),
+});
+export type StoredBucket = z.infer<typeof storedBucketSchema>;
+
+/** Parse a My Drivers bucket string back into its typed shape. `raw` is `null` when the key
+ *  was never seeded (a fresh `localStorage.getItem` miss). */
+export function parseMyDriversBucket(raw: string | null): StoredBucket {
+  if (raw === null) return { entries: [] };
+  return storedBucketSchema.parse(JSON.parse(raw));
+}
 
 /** A driver a test wants in the My Drivers list. `specs` keys are the schema's unit-suffixed
  *  names the record uses (`Fs_hz`, `Qts`, `Vas_m3`, `Sd_m2`, `Re_ohm`, `Le_H`, `Xmax_m`,
