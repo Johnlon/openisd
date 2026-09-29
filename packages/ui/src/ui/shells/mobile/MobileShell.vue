@@ -11,6 +11,7 @@ import MobileProjectTab from './MobileProjectTab.vue';
 import MobileFiltersTab from './MobileFiltersTab.vue';
 import MobileEnclosureTab from './MobileEnclosureTab.vue';
 import MobileAdvancedTab from './MobileAdvancedTab.vue';
+import MobileManageDriversTab from './MobileManageDriversTab.vue';
 import ExportMenu from '../../components/ExportMenu.vue';
 import OptionsModal from '../../components/OptionsModal.vue';
 import { useMobileShell } from '../../../hooks/MobileShell-hooks.js';
@@ -53,6 +54,7 @@ const {
         <MobileFiltersTab v-else-if="destination === 'filters'" />
         <MobileEnclosureTab v-else-if="destination === 'enclosure'" />
         <MobileAdvancedTab v-else-if="destination === 'advanced'" />
+        <MobileManageDriversTab v-else-if="destination === 'drivers'" @chosen="destination = 'driver'" />
       </main>
       <MobileTabBar v-model="destination" :show-enclosure="showEnclosureTab" :enclosure-label="enclosureNavLabel" />
 
@@ -75,7 +77,7 @@ const {
       </div>
     </template>
 
-    <OptionsModal v-if="optionsOpen" @close="optionsOpen = false" />
+    <OptionsModal v-if="optionsOpen" class="mob-options" @close="optionsOpen = false" />
   </div>
 </template>
 
@@ -122,6 +124,18 @@ const {
   flex-direction: column;
   overflow-y: auto;
   padding-bottom: 8px;
+}
+/* Every direct child here is a mounted tab's ROOT (`.mob-panel` blocks, `.mob-hint` paragraphs,
+   …) — a flex ITEM with the column-flex default `flex-shrink: 1`. Any `.mob-panel` also sets
+   `overflow: hidden`, and a flex item with overflow other than visible gets an automatic MINIMUM
+   size of 0 (flexbox spec) — so once a tall tab's content exceeds this container, the shrink
+   algorithm was silently squashing every panel down to fit and clipping its content, rather than
+   letting `.mob-content` overflow so `overflow-y: auto` above could actually scroll (the bug:
+   "Environment view truncated instead of scrolling", 2026-09-29 — the Advanced tab was simply
+   the first one tall enough to expose it; Box and Enclosure were clipped too). `:deep()` because
+   these roots belong to child components, not this one. */
+.mob-content > :deep(*) {
+  flex-shrink: 0;
 }
 .mob-topbar {
   flex-shrink: 0;
@@ -180,6 +194,10 @@ const {
 }
 .mob-menu-item:disabled { color: var(--mut); cursor: default; }
 .mob-menu-item.dirty { color: var(--acc2); font-weight: 600; }
+/* .mob-menu-item's own padding lands on THIS element too (its class list includes both) — zero
+   it here so the trigger button below isn't double-indented (12px+12px) relative to every plain
+   `<button class="mob-menu-item">` sibling. */
+.mob-menu-export { padding: 0; }
 .mob-menu-export :deep(.export-menu-trigger) {
   all: unset;
   box-sizing: border-box;
@@ -229,5 +247,31 @@ const {
   text-decoration: underline;
   font: inherit;
   cursor: pointer;
+}
+
+/* Bug (John, live on his phone, 2026-09-29): "options appears as an overlay popup and should be
+   a regular pane". OptionsModal.vue is one monolithic file (no separable body the way
+   DriverLibrary is for DriverBrowser) with desktop specs pinned to its own centred/fixed-width
+   layout, so it stays untouched — this makes it fill the phone screen edge-to-edge and scroll
+   as a single column instead, from here only. */
+.mob-options :deep(.opt-overlay) {
+  background: var(--bg);
+  align-items: stretch;
+  justify-content: stretch;
+}
+.mob-options :deep(.opt-modal) {
+  width: 100%;
+  max-width: none;
+  max-height: none;
+  height: 100%;
+  border-radius: 0;
+  border: none;
+}
+.mob-options :deep(.opt-env-grid),
+.mob-options :deep(.opt-color-grid) {
+  grid-template-columns: 1fr;
+}
+.mob-options :deep(.opt-body) {
+  flex: 1;
 }
 </style>

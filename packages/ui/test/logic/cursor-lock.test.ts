@@ -76,12 +76,12 @@ describe('Cursor lock & frequency click state transitions', () => {
 
   it('editorModelValue resolves SKU over long model text', () => {
     // Helper replicating editorModelValue computed logic
-    const getEditorModelValue = (driverRawVal: unknown) => {
-      const r = driverRawVal as Record<string, unknown> | null | undefined;
-      if (!r) return '';
-      const sku = r.sku;
+    const getEditorModelValue = (driverRawVal: unknown): string => {
+      if (typeof driverRawVal !== 'object' || driverRawVal === null) return '';
+      const sku = 'sku' in driverRawVal ? driverRawVal.sku : undefined;
       if (sku) return String(sku).toUpperCase();
-      return (r.model as string) || '';
+      const model = 'model' in driverRawVal ? driverRawVal.model : undefined;
+      return typeof model === 'string' ? model : '';
     };
 
     const driverWithSkuAndLongModel = {

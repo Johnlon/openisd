@@ -15,9 +15,17 @@ import assert from 'node:assert/strict';
 import {parse as parseYaml} from 'yaml';
 import {isBundlable, project} from '../../../../scripts/bundleProjection.mjs';
 
+/** `yaml`'s `parse()` returns `any`; this fixture parser reads the boundary once and hands back
+ *  a plain object, never the library's untyped result. */
+function parseRecord(yamlText: string): object {
+  const parsed: unknown = parseYaml(yamlText);
+  if (typeof parsed !== 'object' || parsed === null) throw new Error('fixture YAML must parse to an object');
+  return parsed;
+}
+
 describe('bundle-drivers — bundling gates on structural readability alone', () => {
   it('bundles a fully simulatable, structurally sound record', () => {
-    const full = parseYaml(`
+    const full = parseRecord(`
 uuid:
   value: 11111111-1111-1111-1111-111111111111
 quality:
@@ -58,7 +66,7 @@ specs:
   });
 
   it('THE RULING: a structurally sound record with no Fs (not simulatable) still bundles', () => {
-    const notSimulatable = parseYaml(`
+    const notSimulatable = parseRecord(`
 uuid:
   value: 11111111-1111-1111-1111-111111111111
 quality:
@@ -102,7 +110,7 @@ specs:
   });
 
   it('excludes a structurally unreadable record (no `specs` container at all)', () => {
-    const unreadable = parseYaml(`
+    const unreadable = parseRecord(`
 manufacturer:
   value: GRS
 brand:
@@ -115,7 +123,7 @@ model:
   });
 
   it('excludes a record that has `specs` but no `quality` block at all — the second throw class recordStandingIsOk would hit', () => {
-    const noQuality = parseYaml(`
+    const noQuality = parseRecord(`
 manufacturer:
   value: GRS
 brand:
@@ -141,7 +149,7 @@ specs:
   });
 
   it('QO81: a record with a non-empty quality.missing (Cms) still bundles', () => {
-    const incomplete = parseYaml(`
+    const incomplete = parseRecord(`
 uuid:
   value: 11111111-1111-1111-1111-111111111111
 quality:
@@ -182,7 +190,7 @@ specs:
   });
 
   it('a structurally sound passive-radiator record (no woofer section) bundles — it is a device the app reads', () => {
-    const radiator = parseYaml(`
+    const radiator = parseRecord(`
 uuid:
   value: 11111111-1111-1111-1111-111111111111
 quality:
@@ -219,7 +227,9 @@ specs:
         manufacturer_product_page:
           read_value: 45.0
 `);
-    assert.equal('woofer' in radiator.specs, false, 'the fixture must genuinely be a radiator, not a driver');
+    assert.ok('specs' in radiator, 'the fixture must genuinely carry a specs section');
+    const specs = radiator.specs;
+    assert.equal(typeof specs === 'object' && specs !== null && 'woofer' in specs, false, 'the fixture must genuinely be a radiator, not a driver');
     assert.equal(isBundlable(project(radiator)), true);
   });
 });

@@ -15,7 +15,8 @@
 
 /**
  * `OpenISDProject` holds ONLY four state fields — `#saved`, `#edited`, `#whatif` (each an
- * `OpenISDProjectJson` record) and `#engine`. The what-if layer is transient and never serialized.
+ * `OpenISDProjectJson` record) and `#engine`. `#appContext` is the same kind of member as
+ * `#engine`: an injected collaborator (the clock `modified` is stamped from), not design state. The what-if layer is transient and never serialized.
  * Every other public member (`driver`, `box`,
  * `name`, `comment`, and anything added later) is a getter that builds its accessor fresh from
  * `#saved`/`#edited`/`#whatif` layers on each read — never a separate service-owned copy assigned in the
@@ -49,7 +50,7 @@ import * as url from 'node:url';
 const packageRoot = path.resolve(path.dirname(url.fileURLToPath(import.meta.url)), '..');
 
 const ALLOWED_FIELDS = new Set([
-  '#saved', '#edited', '#whatif', '#engine', '#uuid', '#listeners', '#issues', '#resolving',
+  '#saved', '#edited', '#whatif', '#engine', '#appContext', '#uuid', '#listeners', '#issues', '#resolving',
   '#cursorF', '#pinnedF', '#cursorLocked', '#dragRange',
 ]);
 

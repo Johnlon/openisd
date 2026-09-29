@@ -44,6 +44,7 @@ import {
     enterVentField as enterVentFieldOn,
 } from '../logic/useVentGroup.js';
 import {createVentReadouts, FB_TARGET_TIP, VENT_GEOMETRY_TIP} from './ventReadouts.js';
+import {formatDateStamp, parseDateStamp} from '../logic/dateDisplay.js';
 import {createPassiveRadiatorActions} from './passiveRadiatorActions.js';
 import {buildPlotData, TAB_META} from '../logic/series.js';
 import {ChartSelection, type ChartItem} from './chartSelection.js';
@@ -255,11 +256,11 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   function setFrcHz(v: number): void {
     project.value.box.rearTuningOf(selectedBox.value)?.set(v);
   }
-  const boxQl = computed<number | null>(() => focusedProject()?.box.lossesOf(selectedBox.value)?.Ql.value ?? null);
+  const boxQl = computed<number | null>(() => { void projectChanged.value; return focusedProject()?.box.lossesOf(selectedBox.value)?.Ql.value ?? null; });
   function setBoxQl(v: number): void { project.value.box.lossesOf(selectedBox.value)?.Ql.set(v); }
-  const boxQa = computed<number | null>(() => focusedProject()?.box.lossesOf(selectedBox.value)?.Qa.value ?? null);
+  const boxQa = computed<number | null>(() => { void projectChanged.value; return focusedProject()?.box.lossesOf(selectedBox.value)?.Qa.value ?? null; });
   function setBoxQa(v: number): void { project.value.box.lossesOf(selectedBox.value)?.Qa.set(v); }
-  const boxQp = computed<number | null>(() => focusedProject()?.box.lossesOf(selectedBox.value)?.Qp?.value ?? null);
+  const boxQp = computed<number | null>(() => { void projectChanged.value; return focusedProject()?.box.lossesOf(selectedBox.value)?.Qp?.value ?? null; });
   function setBoxQp(v: number): void { project.value.box.lossesOf(selectedBox.value)?.Qp?.set(v); }
   async function confirmDiscard(): Promise<boolean> {
     return globalThis.confirm('Discard all unsaved changes and return to the last saved version?');
@@ -637,8 +638,10 @@ const overlays = computed<Design[]>(() => {
   }
   const projectName = metaField(() => project.value.name.value, (v) => project.value.name.set(v));
   const projectCreator = metaField(() => project.value.creator.value, (v) => project.value.creator.set(v));
-  const projectCreated = metaField(() => project.value.created.value, (v) => project.value.created.set(v));
-  const projectModified = metaField(() => project.value.modified.value, (v) => project.value.modified.set(v));
+  const projectCreated = metaField(
+    () => formatDateStamp(project.value.created.value), (v) => project.value.created.set(parseDateStamp(v)));
+  const projectModified = metaField(
+    () => formatDateStamp(project.value.modified.value), (v) => project.value.modified.set(parseDateStamp(v)));
   const projectDescription = metaField(() => project.value.description.value, (v) => project.value.description.set(v));
 
   // ---- Signal Generator (real audio-out tone) ------------------------------------
@@ -693,12 +696,6 @@ const overlays = computed<Design[]>(() => {
   // arrive in, which is how a panel came to mount with no project (openisd.app 2026-09-25).
   watch(() => presentationState.editDriver, (active) => {
     presentationState.ui.originalTuneOpen = active;
-  });
-
-  watch(isModified, (val) => {
-    if (val) {
-      project.value.modified.set(dateStamp(new Date()));
-    }
   });
 
   // Same for the Driver Editor modal — recorded here, restored by the boot.

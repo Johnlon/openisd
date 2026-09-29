@@ -164,25 +164,30 @@ test('chart failure lists the missing circuit values returned by the sweep', asy
   await openAProject(page, COMPLETE_OWPR);
 
   await page.evaluate(async () => {
+    function isAppStateModule(m: unknown): m is typeof import('../../src/logic/appState.js') {
+      return typeof m === 'object' && m !== null
+        && 'requireFocusedProject' in m && typeof m.requireFocusedProject === 'function';
+    }
     const modPath = '/src/logic/appState.ts';
-    const appState = await import(/* @vite-ignore */ modPath);
-    const project = appState.requireFocusedProject();
+    const mod: unknown = await import(/* @vite-ignore */ modPath);
+    if (!isAppStateModule(mod)) throw new Error('appState module did not load as expected');
+    const project = mod.requireFocusedProject();
     const spec = project.driver.specs;
-    spec.Fs_hz.set(null);
-    spec.Re_ohm.set(null);
-    spec.Qts.set(null);
-    spec.Qes.set(null);
-    spec.Qms.set(null);
-    spec.Vas_m3.set(null);
-    spec.Sd_m2.set(null);
-    spec.Dd_m.set(null);
-    spec.BL_Tm.set(null);
-    spec.Mms_kg.set(null);
-    spec.Cms_m_per_N.set(null);
-    spec.Rms_kg_per_s.set(null);
-    spec.EBP_hz.set(null);
-    spec.no.set(null);
-    spec.Rme_kg_per_s.set(null);
+    spec.Fs_hz.clear();
+    spec.Re_ohm.clear();
+    spec.Qts.clear();
+    spec.Qes.clear();
+    spec.Qms.clear();
+    spec.Vas_m3.clear();
+    spec.Sd_m2.clear();
+    spec.Dd_m.clear();
+    spec.BL_Tm.clear();
+    spec.Mms_kg.clear();
+    spec.Cms_m_per_N.clear();
+    spec.Rms_kg_per_s.clear();
+    spec.EBP_hz.clear();
+    spec.no.clear();
+    spec.Rme_kg_per_s.clear();
   });
 
   const chartMessage = page.locator('.gmsg');

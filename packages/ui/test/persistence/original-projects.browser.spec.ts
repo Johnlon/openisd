@@ -1,5 +1,6 @@
 import {expect, openAProject, test} from '../fixtures.js';
 import type {Page} from '@playwright/test';
+import {z} from 'zod';
 
 // The store's debug handle, typed to just the parts these tests read. Avoids `any` casts
 // while keeping the test honest about what it is reaching into.
@@ -16,12 +17,12 @@ test.beforeEach(async ({ page }) => {
 const rowStates = (page: Page) =>
   page.locator('.project-row').evaluateAll(els => els.map(e => ({
     name: e.querySelector('span')?.textContent?.trim() ?? '',
-    checked: (e.querySelector('input') as HTMLInputElement | null)?.checked ?? false,
+    checked: e.querySelector<HTMLInputElement>('input')?.checked ?? false,
   })));
 
 /** Count distinct opaque colours drawn on the canvas: a second trace is a second colour. */
 const inkColours = (page: Page) => page.evaluate(() => {
-  const c = document.querySelector('.graph-wrap canvas') as HTMLCanvasElement;
+  const c = document.querySelector<HTMLCanvasElement>('.graph-wrap canvas')!;
   const d = c.getContext('2d')!.getImageData(0, 0, c.width, c.height).data;
   const seen = new Set<string>();
   for (let i = 0; i < d.length; i += 4) if (d[i + 3] > 200) seen.add(`${d[i]},${d[i + 1]},${d[i + 2]}`);
@@ -79,9 +80,13 @@ test('open projects are never written into the active design (nothing to leak in
   // list of other designs, and no trace of the other open projects' names.
   const persisted = await page.evaluate(() => localStorage.getItem('openisd_open_sessions') ?? '');
   expect(persisted).not.toBe('');
-  const session = JSON.parse(persisted);
+  const openSessionsSchema = z.looseObject({
+    entries: z.array(z.looseObject({ text: z.string() })).min(1),
+  });
+  const session = openSessionsSchema.parse(JSON.parse(persisted));
   const activeDesignText = session.entries[0].text;
-  expect(Object.keys(JSON.parse(activeDesignText))).not.toContain('compare');
+  const activeDesign = z.record(z.string(), z.unknown()).parse(JSON.parse(activeDesignText));
+  expect(Object.keys(activeDesign)).not.toContain('compare');
   expect(activeDesignText).not.toContain('Copy of');
 });
 
