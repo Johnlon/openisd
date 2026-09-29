@@ -1,4 +1,3 @@
-import {type Engine} from '../../engine/index.js';
 import { SetOnlyFieldImpl, absentCell, enteredCell } from '../cell.js';
 import type { Entered, Readable, SimpleField, Writable } from '../cell.js';
 import { OpenISDDeviceJson } from '../openIsdDeviceJsonIo.js';
@@ -22,10 +21,6 @@ type OptionalMetaFieldName = 'provided_by' | 'comment' | 'added';
 export abstract class OpenISDDevice {
     #slot: SimpleField<OpenISDDeviceJson>;
 
-    /** The one calculation surface. INJECTED, exactly as `OpenISDProject`'s is — a device reports
-     *  derived figures, and every one of them comes from here and nowhere else. */
-    protected readonly engine: Engine;
-
     readonly brand: Readable<string> & Entered & Writable<string>;
     readonly model: Readable<string> & Entered & Writable<string>;
     readonly manufacturer: Readable<string> & Entered & Writable<string>;
@@ -33,9 +28,8 @@ export abstract class OpenISDDevice {
     readonly comment: Readable<string | null> & Entered & Writable<string>;
     readonly added: Readable<string | null> & Entered & Writable<string>;
 
-    protected constructor(slot: SimpleField<OpenISDDeviceJson>, engine: Engine) {
+    protected constructor(slot: SimpleField<OpenISDDeviceJson>) {
         this.#slot = slot;
-        this.engine = engine;
         this.brand = this.#buildMandatoryMeta('brand');
         this.model = this.#buildMandatoryMeta('model');
         this.manufacturer = this.#buildMandatoryMeta('manufacturer');

@@ -29,7 +29,7 @@ const c4 = engine.vented.alignment('c4', driver.specs.Fs_hz.value!, qtsLoaded, d
 const project = builder.vented().volume_m3(c4.Vb).tuning_goal_hz(c4.Fb).build();
 project.name.set("W5-1138SMF Fixture");
 project.box.vented.vent.diameter_m.set(0.05);
-project.box.passiveRadiator.configurePR(OpenISDPassiveRadiatorStandalone.empty(engine));
+project.box.passiveRadiator.configurePR(OpenISDPassiveRadiatorStandalone.empty());
 project.envTempK.set(293.15);
 project.envPressurePa.set(101325);
 project.envHumidityPct.set(50);
@@ -77,7 +77,7 @@ const completeBuilder = OpenISDProject.builder(completeDriver, engine);
 const completeProject = completeBuilder.vented().volume_m3(0.03).tuning_goal_hz(35).build();
 completeProject.name.set("Complete Fixture Project");
 completeProject.box.vented.vent.diameter_m.set(0.05);
-completeProject.box.passiveRadiator.configurePR(OpenISDPassiveRadiatorStandalone.empty(engine));
+completeProject.box.passiveRadiator.configurePR(OpenISDPassiveRadiatorStandalone.empty());
 completeProject.envTempK.set(293.15);
 completeProject.envPressurePa.set(101325);
 completeProject.envHumidityPct.set(50);

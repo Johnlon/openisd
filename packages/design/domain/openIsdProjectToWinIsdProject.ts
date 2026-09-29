@@ -456,7 +456,7 @@ export class WinIsdProjectConverter {
             },
           },
         };
-        const radiator = OpenISDPassiveRadiatorStandalone.wrap(radiatorRecord, this.engine);
+        const radiator = OpenISDPassiveRadiatorStandalone.wrap(radiatorRecord);
         // The builder needs a starting tuning_goal_hz, but the .wpr's real stated input is the
         // radiator's OWN added mass ([PassiveRadiator] Me) — Box.Fr is its readout, computed by
         // WinISD from Me + the radiator's bare-cone Fs/Vas/Vb, and re-deriving Me from Fr through

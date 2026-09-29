@@ -1216,7 +1216,7 @@ describe('the passive radiator a box holds', () => {
 
   it('brand/model metadata is never solver-derived — setCalculated()/setDq() are no-ops, same S2-7c/d ruling as a radiator T/S spec', () => {
     const p = project();
-    const library = OpenISDPassiveRadiatorStandalone.fromConformingRecord(prJson(), createEngine());
+    const library = OpenISDPassiveRadiatorStandalone.fromConformingRecord(prJson());
     if (Array.isArray(library)) throw new Error(`fixture radiator is invalid: ${library.join(', ')}`);
     p.box.passiveRadiator.configurePR(library);
 
@@ -1234,7 +1234,7 @@ describe('the passive radiator a box holds', () => {
 
   it('copies the chosen radiator IN, so later edits do not touch the library entry', () => {
     const p = project();
-    const library = OpenISDPassiveRadiatorStandalone.fromConformingRecord(prJson(), createEngine());
+    const library = OpenISDPassiveRadiatorStandalone.fromConformingRecord(prJson());
     if (Array.isArray(library)) throw new Error(`fixture radiator is invalid: ${library.join(', ')}`);
     p.box.passiveRadiator.radiator.update(library);
 
@@ -1247,7 +1247,7 @@ describe('the passive radiator a box holds', () => {
 
   it('setCalculated()/setDq() are no-ops on a radiator T/S field — entry-backed, never solver-derived', () => {
     const p = project();
-    const library = OpenISDPassiveRadiatorStandalone.fromConformingRecord(prJson(), createEngine());
+    const library = OpenISDPassiveRadiatorStandalone.fromConformingRecord(prJson());
     if (Array.isArray(library)) throw new Error(`fixture radiator is invalid: ${library.join(', ')}`);
     p.box.passiveRadiator.radiator.update(library);
 
@@ -1264,7 +1264,7 @@ describe('the passive radiator a box holds', () => {
       brand: 'Dayton', model: 'RS225', section: 'woofer',
       spec: specSection({ Fs_hz: 30, Qts: 0.4, Sd_m2: 0.02, Cms_m_per_N: 0.0005, Mmd_kg: 0.05, Rms_Ns_per_m: 2, Xmax_m: 0.008 }),
     }), createEngine()).sealed().volume_m3(0.03).build();
-    const chosen = OpenISDPassiveRadiatorStandalone.fromConformingRecord(prJson(), createEngine());
+    const chosen = OpenISDPassiveRadiatorStandalone.fromConformingRecord(prJson());
     if (Array.isArray(chosen)) throw new Error(`fixture radiator is invalid: ${chosen.join(', ')}`);
     p.box.passiveRadiator.configurePR(chosen);
     p.box.passiveRadiator.radiator.spec.Sd_m2.set(0.031);
@@ -1305,14 +1305,14 @@ describe('the passive radiator a box holds', () => {
       spec: specSection({ Fs_hz: 30, Qts: 0.4, Sd_m2: 0.02, Cms_m_per_N: 0.0005, Mmd_kg: 0.05, Rms_Ns_per_m: 2, Xmax_m: 0.008 }),
     });
 
-    const result = OpenISDPassiveRadiatorStandalone.fromConformingRecord(driverShaped, createEngine());
+    const result = OpenISDPassiveRadiatorStandalone.fromConformingRecord(driverShaped);
 
     expect(Array.isArray(result)).toBe(true);
     expect(result).toContain('no passive-radiator section — this record is a driver, not a radiator');
   });
 
   it('a radiator states its record identity, the way a driver does — the bundled index and favourites key on it', () => {
-    const blank = OpenISDPassiveRadiatorStandalone.empty(createEngine());
+    const blank = OpenISDPassiveRadiatorStandalone.empty();
     expect(blank.uuid()).toBe(blank.clonePassiveRadiator().uuid.value);
     expect(blank.uuid()).toMatch(/^[0-9a-f-]{36}$/);
 
@@ -1322,28 +1322,28 @@ describe('the passive radiator a box holds', () => {
   });
 
   it('a radiator answers its catalogue links by role, the way a driver does — null when the record carries none', () => {
-    const blank = OpenISDPassiveRadiatorStandalone.empty(createEngine());
+    const blank = OpenISDPassiveRadiatorStandalone.empty();
     expect(blank.dataSource('manufacturer_datasheet')).toBeNull();
     expect(blank.dataSource('manufacturer_product_page')).toBeNull();
     expect(blank.dataSource('manufacturer_listing_page')).toBeNull();
 
     const json = blank.clonePassiveRadiator();
     json.data_sources = { value: { manufacturer_product_page: 'https://example.test/pr' } };
-    const withLink = OpenISDPassiveRadiatorStandalone.wrap(json, createEngine());
+    const withLink = OpenISDPassiveRadiatorStandalone.wrap(json);
     expect(withLink.dataSource('manufacturer_product_page')).toBe('https://example.test/pr');
     expect(withLink.dataSource('manufacturer_datasheet')).toBeNull();
   });
 
   it('stamps added/providedBy the same way a blank driver does', () => {
     const appContext = fixedAppContext('id', '2026-03-04T00:00:00.000Z', 'johnl');
-    const blank = OpenISDPassiveRadiatorStandalone.empty(createEngine(), appContext);
+    const blank = OpenISDPassiveRadiatorStandalone.empty(appContext);
 
     expect(blank.added.value).toBe('20260304');
     expect(blank.providedBy.value).toBe('johnl');
   });
 
   it('makes a blank radiator an editor can fill in, and a box can adopt', () => {
-    const blank = OpenISDPassiveRadiatorStandalone.empty(createEngine());
+    const blank = OpenISDPassiveRadiatorStandalone.empty();
 
     expect(blank.model.value).toBe('');
     expect(blank.spec.Fs_hz.value).toBe(null);
@@ -1366,7 +1366,7 @@ describe('the passive radiator a box holds', () => {
     // `prMassForFp` inverts `prTuning`, whose input is (Mmd + Madd) — so it returns the TOTAL.
     // What the user must put ON the cone is that total less the radiator's own moving mass.
     const p = project();
-    const library = OpenISDPassiveRadiatorStandalone.fromConformingRecord(prJson(), createEngine());
+    const library = OpenISDPassiveRadiatorStandalone.fromConformingRecord(prJson());
     if (Array.isArray(library)) throw new Error(`fixture radiator is invalid: ${library.join(', ')}`);
     p.box.passiveRadiator.radiator.update(library);
     // The fixture project is sealed-built, so the PR box's own volume starts at 0 and every
@@ -1388,7 +1388,7 @@ describe('the passive radiator a box holds', () => {
     // The highest tuning reachable is the one produced with NO added mass; above that the
     // arithmetic asks for negative mass, and mass cannot come off a cone carrying none.
     const p = project();
-    const library = OpenISDPassiveRadiatorStandalone.fromConformingRecord(prJson(), createEngine());
+    const library = OpenISDPassiveRadiatorStandalone.fromConformingRecord(prJson());
     if (Array.isArray(library)) throw new Error(`fixture radiator is invalid: ${library.join(', ')}`);
     p.box.passiveRadiator.radiator.update(library);
     p.box.boxType.set('box-passive-radiator');
@@ -1419,7 +1419,7 @@ describe('the passive radiator a box holds', () => {
     // sees the ⚠ on the target they typed AND on every derived output, so the field that is the
     // real problem (the entered tuning) and the fields that merely show its consequence all flag.
     const p = project();
-    const library = OpenISDPassiveRadiatorStandalone.fromConformingRecord(prJson(), createEngine());
+    const library = OpenISDPassiveRadiatorStandalone.fromConformingRecord(prJson());
     if (Array.isArray(library)) throw new Error(`fixture radiator is invalid: ${library.join(', ')}`);
     p.box.passiveRadiator.radiator.update(library);
     p.box.boxType.set('box-passive-radiator');
@@ -1444,7 +1444,7 @@ describe('the passive radiator a box holds', () => {
 
   it('resonates at the radiator own Fs when no mass has been added', () => {
     const p = project();
-    const library = OpenISDPassiveRadiatorStandalone.fromConformingRecord(prJson(), createEngine());
+    const library = OpenISDPassiveRadiatorStandalone.fromConformingRecord(prJson());
     if (Array.isArray(library)) throw new Error(`fixture radiator is invalid: ${library.join(', ')}`);
     p.box.passiveRadiator.radiator.update(library);
     p.box.boxType.set('box-passive-radiator');
@@ -1456,7 +1456,7 @@ describe('the passive radiator a box holds', () => {
 
   it('falls as tuning mass goes onto the cone', () => {
     const p = project();
-    const library = OpenISDPassiveRadiatorStandalone.fromConformingRecord(prJson(), createEngine());
+    const library = OpenISDPassiveRadiatorStandalone.fromConformingRecord(prJson());
     if (Array.isArray(library)) throw new Error(`fixture radiator is invalid: ${library.join(', ')}`);
     p.box.passiveRadiator.radiator.update(library);
     p.box.boxType.set('box-passive-radiator');
@@ -1885,13 +1885,13 @@ describe('editing a driver — copy, then update or drop', () => {
     const pr = OpenISDPassiveRadiatorStandalone.fromConformingRecord(driverJson({
       brand: 'SB Acoustics', model: 'SB23PACS', section: 'passive-radiator',
       spec: prSpecSection({ Fs_hz: 12, Sd_m2: 0.025, Cms_m_per_N: 0.0009, Mmd_kg: 0.09, Rms_Ns_per_m: 1.5, Xmax_m: 0.015 }),
-    }), createEngine());
+    }));
     if (Array.isArray(pr)) throw new Error('fixture radiator must conform: ' + pr.join('; '));
 
     const stored = pr.clonePassiveRadiator();
     pr.model.set('changed after the clone');
 
-    const back = OpenISDPassiveRadiatorStandalone.fromConformingRecord(stored, createEngine());
+    const back = OpenISDPassiveRadiatorStandalone.fromConformingRecord(stored);
     if (Array.isArray(back)) throw new Error('the cloned record must conform: ' + back.join('; '));
     expect(back.model.value).toBe('SB23PACS');
   });
@@ -2121,7 +2121,7 @@ describe('a new project, every section present and nothing stated', () => {
 
   it('accepts a real radiator afterwards, which is how the wizard fills a PR box in', () => {
     const p = OpenISDProject.empty(createEngine());
-    const picked = OpenISDPassiveRadiatorStandalone.empty(createEngine());
+    const picked = OpenISDPassiveRadiatorStandalone.empty();
     picked.model.set('SB23PACS');
     p.box.passiveRadiator.configurePR(picked);
     expect(p.box.passiveRadiator.radiator.model.value).toBe('SB23PACS');
@@ -2521,7 +2521,7 @@ describe('T1 — the vent/PR sweep-level guards (PLAN_DRIVER_SOLVE_AND_SWEEP_DIA
     spec: prSpecSection({ Fs_hz: 12, Sd_m2: 0.025, Cms_m_per_N: 0.0009, Mmd_kg: 0.09, Rms_Ns_per_m: 1.5, Xmax_m: 0.015 }),
   });
   const radiator = () => {
-    const r = OpenISDPassiveRadiatorStandalone.fromConformingRecord(radiatorJson(), createEngine());
+    const r = OpenISDPassiveRadiatorStandalone.fromConformingRecord(radiatorJson());
     if (Array.isArray(r)) throw new Error(`fixture radiator is invalid: ${r.join(', ')}`);
     return r;
   };
@@ -2711,7 +2711,7 @@ describe('S2-7d2 — vent + PR join the cascade', () => {
     const library = OpenISDPassiveRadiatorStandalone.fromConformingRecord(driverJson({
       brand: 'SB Acoustics', model: 'SB23PACS', section: 'passive-radiator',
       spec: prSpecSection({ Fs_hz: 12, Sd_m2: 0.025, Cms_m_per_N: 0.0009, Mmd_kg: 0.09, Rms_Ns_per_m: 1.5, Xmax_m: 0.015 }),
-    }), createEngine());
+    }));
     if (Array.isArray(library)) throw new Error('fixture radiator invalid');
     p.box.passiveRadiator.radiator.update(library);
     p.box.passiveRadiator.volume_m3.set(0.03);
@@ -2800,7 +2800,7 @@ describe('sweep()/maxCurves() reach every box topology\'s own params (bandpass4,
       .radiator(radiatorFor(OpenISDPassiveRadiatorStandalone.fromConformingRecord(driverJson({
         brand: 'SB Acoustics', model: 'SB23PACS', section: 'passive-radiator',
         spec: prSpecSection({ Fs_hz: 12, Sd_m2: 0.025, Cms_m_per_N: 0.0009, Mmd_kg: 0.09, Rms_Ns_per_m: 1.5, Xmax_m: 0.015 }),
-      }), createEngine())))
+      }))))
       .build();
     p.box.passiveRadiator.addedMass_kg.set(0.05);
 
@@ -2836,7 +2836,7 @@ describe('sweep()/maxCurves() reach every box topology\'s own params (bandpass4,
   it('a box-passive-radiator with an EMPTY radiator (no spec entered) reports its params with prSd/prCms/prRms unset, not thrown', () => {
     const p = OpenISDProject.builder(circuitCompleteDriver(), createEngine())
       .passiveRadiator().volume_m3(0.03).tuning_goal_hz(45)
-      .radiator(OpenISDPassiveRadiatorStandalone.empty(createEngine()))
+      .radiator(OpenISDPassiveRadiatorStandalone.empty())
       .build();
 
     expect(() => p.boxParamsIssues()).not.toThrow();

@@ -89,7 +89,7 @@ describe('the tracked catalogue — staleness', () => {
         assert.ok(!Array.isArray(driver), `${path}: ${Array.isArray(driver) ? driver.join('; ') : ''}`);
         assert.deepEqual(driverRow, bundledDriverIndexRowOf(driver, path), `${path}: drivers-index.json is stale — run scripts/bundle-drivers.mjs`);
       } else if (radiatorRow !== undefined) {
-        const radiator = OpenISDPassiveRadiatorStandalone.fromConformingRecord(record, engine);
+        const radiator = OpenISDPassiveRadiatorStandalone.fromConformingRecord(record);
         assert.ok(!Array.isArray(radiator), `${path}: ${Array.isArray(radiator) ? radiator.join('; ') : ''}`);
         assert.deepEqual(radiatorRow, bundledPassiveRadiatorIndexRowOf(radiator, path), `${path}: passive-radiators-index.json is stale — run scripts/bundle-drivers.mjs`);
       }

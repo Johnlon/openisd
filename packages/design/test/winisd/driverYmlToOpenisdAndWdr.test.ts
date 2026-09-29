@@ -295,7 +295,7 @@ describe('driverYmlToOpenisdAndWdr — one call, both derived files, one error a
     assert.ok(openisd !== null);
     const emitted = parse(openisd) as Record<string, unknown>;
     assert.equal(checkOpenisdRoundTrip(emitted, 'dsa175-pr').ok, true, 'the bundler gate refuses what the bridge wrote');
-    const loaded = OpenISDPassiveRadiatorStandalone.fromConformingRecord(emitted, createEngine());
+    const loaded = OpenISDPassiveRadiatorStandalone.fromConformingRecord(emitted);
     assert.ok(!Array.isArray(loaded), 'the app reads the radiator the bridge wrote');
     assert.deepEqual(JSON.parse(JSON.stringify(loaded.toOpenIsdDeviceJson())), emitted,
       'the radiator on disk is not the radiator the app exports for it');

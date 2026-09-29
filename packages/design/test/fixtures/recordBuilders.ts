@@ -71,7 +71,7 @@ export function radiatorFromSpec(engine: Engine, spec: Record<string, number>): 
       parse_errors: [], cross_source_only: [],
     },
     specs: { 'passive-radiator': pr },
-  }, engine);
+  });
   if (Array.isArray(result)) throw new Error(`fixture is not a valid radiator: ${result.join(', ')}`);
   return result;
 }

@@ -104,6 +104,10 @@ export abstract class OpenISDDriver extends OpenISDDevice {
      *  every call, so a project's environment changing is picked up the next time it runs. */
     protected readonly airProvider: () => AirEnvironment;
 
+    /** The one calculation surface. INJECTED, exactly as `OpenISDProject`'s is — a driver reports
+     *  derived figures, and every one of them comes from here and nowhere else. */
+    protected readonly engine: Engine;
+
     protected constructor(
         record: SimpleField<DriverDeviceJson>,
         engine: Engine,
@@ -111,7 +115,8 @@ export abstract class OpenISDDriver extends OpenISDDevice {
         /** See `OpenIsdDriverSpec`'s own parameter — only an embedded driver supplies one. */
         durableIssues?: () => readonly DriverIssue[],
     ) {
-        super(record, engine);
+        super(record);
+        this.engine = engine;
         this.record = record;
         this.airProvider = airProvider;
         const air = (): Air => engine.environment.solve(airProvider()).values;

@@ -97,8 +97,7 @@ function driverOf(fields: FixtureFields, sources?: FixtureSources): OpenISDDrive
 
 function radiatorOf(fields: FixtureFields, sources?: FixtureSources): OpenISDPassiveRadiatorStandalone {
   const r = OpenISDPassiveRadiatorStandalone.fromConformingRecord(
-    recordOf({ uuid: UUID_P, brand: 'Dayton Audio', model: 'ND140-PR', driverType: 'passive-radiator', section: 'passive-radiator', fields, sources }),
-    createEngine());
+    recordOf({ uuid: UUID_P, brand: 'Dayton Audio', model: 'ND140-PR', driverType: 'passive-radiator', section: 'passive-radiator', fields, sources }));
   if (Array.isArray(r)) throw new Error(`fixture is not a valid radiator: ${r.join(', ')}`);
   return r;
 }

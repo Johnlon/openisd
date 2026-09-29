@@ -5,7 +5,6 @@
  *  to do with the read-only radiators that ship in the bundle. This file supplies only the two
  *  things specific to a radiator: which storage key, and which domain seam validates a record. */
 import {OpenISDPassiveRadiatorStandalone} from '@openisd/design';
-import type {Engine} from '@openisd/design/engine';
 import type {KeyValueStorage} from '../storage/keyValueStorage.js';
 import {type BrokenEntry, createSavedEntries, type SavedEntries} from './savedEntries.js';
 import {OPENISD_MY_PASSIVE_RADIATORS_KEY} from './storageKeys.js';
@@ -40,11 +39,11 @@ export interface MyPassiveRadiatorRepo {
   deleteAll(): void;
 }
 
-export function createMyPassiveRadiatorRepo(storage: KeyValueStorage, engine: Engine): MyPassiveRadiatorRepo {
+export function createMyPassiveRadiatorRepo(storage: KeyValueStorage): MyPassiveRadiatorRepo {
   const library: SavedEntries<OpenISDPassiveRadiatorStandalone> = createSavedEntries(storage, {
     key: MY_PASSIVE_RADIATORS_KEY,
     schemaVersion: 1,
-    open: (record) => OpenISDPassiveRadiatorStandalone.fromConformingRecord(record, engine),
+    open: (record) => OpenISDPassiveRadiatorStandalone.fromConformingRecord(record),
     snapshot: (pr) => pr.clonePassiveRadiator(),
   });
 

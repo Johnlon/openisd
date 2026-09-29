@@ -136,7 +136,7 @@ export function checkOpenisdRoundTrip(record, relPath) {
   // the app cannot model shows up here as a divergence rather than being lost in silence.
   const engine = createEngine();
   const device = OpenISDDriver.fromConformingRecord(record, engine);
-  const radiator = Array.isArray(device) ? OpenISDPassiveRadiatorStandalone.fromConformingRecord(record, engine) : null;
+  const radiator = Array.isArray(device) ? OpenISDPassiveRadiatorStandalone.fromConformingRecord(record) : null;
   const read = Array.isArray(device) ? radiator : device;
   if (read === null || Array.isArray(read)) {
     const problems = Array.isArray(read) ? read : device;

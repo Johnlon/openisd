@@ -598,10 +598,7 @@ export class DriverFileConverter {
     if (Array.isArray(driverOrErrors)) {
       // its an array of errors not a driver
       const radiatorOrErrors =
-        OpenISDPassiveRadiatorStandalone.fromConformingRecord(
-          openisdJson,
-          this.engine
-        );
+        OpenISDPassiveRadiatorStandalone.fromConformingRecord(openisdJson);
       if (!Array.isArray(radiatorOrErrors)) {
         // not an array so its the PR
         return {
