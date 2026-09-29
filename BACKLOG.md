@@ -13,7 +13,7 @@ list is the smaller engineering and UI work items around what already ships.
 | The wizard's default vent diameter is 0.05 m; WinISD's is 4 in (0.102 m). | `packages/ui/src/hooks/OriginalNewProject-hooks.ts` |
 | The vented alignment picker works only from the wizard. Re-applying a different alignment to an existing vented project has no UI path. | `OriginalShell.vue`, `SealedAlignment-hooks.ts` |
 | The wizard has no passive-radiator step. | `OriginalNewProject.vue` |
-| End correction is a fixed preset (0.613); there is no free-entry field, and the default itself needs settling against WinISD's 0.732/0.6 constants. | `packages/design/domain/openisdSchema.ts`, `packages/design/fields/options.ts` |
+| End correction is a fixed preset (0.613); there is no free-entry field, and the default itself needs settling against WinISD's 0.732 (every WinISD-saved `.wpr` carries 0.732; 0.6 is our harness writer's own default, not WinISD's). | `packages/design/domain/openisdSchema.ts`, `packages/design/fields/options.ts` |
 | The driver editor has mandatory-field marks but no step-by-step guided entry flow. | `DriverEditorModal.vue` |
 | Decisions the app makes silently (alignment seeding, auto-calculated fields) have no on-screen explanation beyond the EBP badge and DQ marks. | `OriginalNewProject.vue`, `OriginalShell.vue` |
 
