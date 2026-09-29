@@ -47,7 +47,8 @@ import {createVentReadouts, FB_TARGET_TIP, VENT_GEOMETRY_TIP} from './ventReadou
 import {createPassiveRadiatorActions} from './passiveRadiatorActions.js';
 import {buildPlotData, TAB_META} from '../logic/series.js';
 import {ChartSelection, type ChartItem} from './chartSelection.js';
-import {CHART_MIN_H, CHART_MIN_H_OPTIONS, chartGridLayout, chartGridStyle} from './chartGrid.js';
+import {chartColumnsFit, CHARTS_HIGH_OPTIONS, ORIGINAL_CHARTS_HIGH} from './chartGrid.js';
+import {offeredChartsHigh, useChartStack} from './chartStack.js';
 import {createToneGenerator, type ToneGenerator} from '../logic/toneGenerator.js';
 import {useApp} from '../logic/app.js';
 import {useEscToClose} from '../logic/useEscToClose.js';
@@ -281,27 +282,13 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   /** The chart the toolbar readout reads: the top of the stack. */
   const readoutChart = computed(() => openCharts.value[0]);
   const chartMeta = computed(() => TAB_META[readoutChart.value]);
-  // The stack tiles into a grid sized to the chart area it is drawn in.
-  const chartStackEl = ref<HTMLElement | null>(null);
-  const chartStackW = ref(0);
-  const chartStackH = ref(0);
-  watch(chartStackEl, (el, _old, onCleanup) => {
-    if (!el) return;
-    const ro = new ResizeObserver(() => { chartStackW.value = el.clientWidth; chartStackH.value = el.clientHeight; });
-    ro.observe(el);
-    onCleanup(() => ro.disconnect());
+  /** The charts stacked to the chart area's height, chosen in the chart bar; more add columns. */
+  const chartsHigh = computed<number>({
+    get: () => offeredChartsHigh(presentationState.ui.originalChartsHigh, ORIGINAL_CHARTS_HIGH),
+    set: (v: number) => { presentationState.ui.originalChartsHigh = v; },
   });
-  /** The minimum chart height chosen in the chart bar; a stored value no longer offered falls
-   *  back to the default. */
-  const chartMinH = computed<number>({
-    get: () => {
-      const v = presentationState.ui.originalChartMinH;
-      return CHART_MIN_H_OPTIONS.some(o => o.value === v) && v !== undefined ? v : CHART_MIN_H;
-    },
-    set: (v: number) => { presentationState.ui.originalChartMinH = v; },
-  });
-  const chartStackStyle = computed(() => chartGridStyle(chartMinH.value,
-    chartGridLayout(chartMinH.value, openCharts.value.length, chartStackW.value, chartStackH.value), chartStackH.value));
+  const { el: chartStackEl, style: chartStackStyle } =
+    useChartStack(computed(() => openCharts.value.length), chartsHigh, chartColumnsFit);
 
   // ---- Toolbar dropdown menus (folder / saveas / info / chart) -------------------
   const openDd = ref<string | null>(null);
@@ -729,7 +716,7 @@ const overlays = computed<Design[]>(() => {
     projectList, isRowVisible, setRowVisible, rowName, rowUnsaved, selectProject, project, focused, projectOpen, whatIfActive,
     copyCurrentProject, requestCloseProject, closeChallenge, saveThenClose, closeProject,
     genOn, toggleGenerate, genHz,
-    boxLabel, pending, openCharts, chartStackEl, chartStackStyle, chartMinH, CHART_MIN_H_OPTIONS, overlays, activeTab,
+    boxLabel, pending, openCharts, chartStackEl, chartStackStyle, chartsHigh, CHARTS_HIGH_OPTIONS, overlays, activeTab,
     showEnclosureTab, enclosureNavLabel,
     selectedBox, BOX_TYPE_OPTIONS, LOSS_MODE_OPTIONS, lossMode, ARRAY_WIRING_OPTIONS, N_DRIVERS_OPTIONS, applyWinisdSettings,
      boxVolume_m3, boxVolumeDqNote, setBoxVolume_m3, sealedAlignmentEditor, sealedAlignmentOpen,

@@ -41,6 +41,24 @@ test('ticking charts stacks them in a list that scrolls up and down', async ({ p
   await expect(page.locator('.mob-chart-cell').last().locator('canvas')).toBeInViewport();
 });
 
+test('the per-screen number sizes each stacked chart to a whole fraction of the screen', async ({ page }) => {
+  await page.locator('.mob-chart-pick').click();
+  await pickerRow(page, 'Cone excursion').locator('input[type=checkbox]').click();
+  await pickerRow(page, 'Impedance').locator('input[type=checkbox]').click();
+  await page.locator('.mob-chart-pick').click();
+
+  const heights = () => Promise.all(['.mob-chart-cell', '.mob-chart-stack'].map(s =>
+    page.locator(s).first().evaluate(e => e.getBoundingClientRect().height)));
+  const select = page.getByLabel('Charts per screen');
+  for (const n of [2, 3, 1]) {
+    await select.selectOption(String(n));
+    await expect.poll(async () => { const [cell, stack] = await heights(); return Math.round(cell * n / stack * 100); })
+      .toBeGreaterThanOrEqual(98);
+    const [cell, stack] = await heights();
+    expect(cell * n).toBeLessThanOrEqual(stack + 2);
+  }
+});
+
 test('tapping a chart name shows it alone, and the choice survives switching tabs', async ({ page }) => {
   await page.locator('.mob-chart-pick').click();
   await pickerRow(page, 'Impedance').locator('.mob-chart-name').click();
