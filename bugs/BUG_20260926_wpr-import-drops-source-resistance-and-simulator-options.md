@@ -1,6 +1,6 @@
 # BUG_20260926_wpr-import-drops-source-resistance-and-simulator-options
 
-**Status:** OPEN
+**Status:** RESOLVED
 
 ## Symptom
 
@@ -48,3 +48,11 @@ never a silent default.
 A `.wpr` round-trip test: a WinISD project with non-default Rg, VCInd, FlatResponse, TLPorts,
 Ql/Qa/Qp, Nd, Med, Isobarik, alfaVC, dTVC and one filter imports with every value in its
 OpenISD field.
+
+## Resolution (2026-09-29)
+
+Rg, the box losses and `[Filters]` were already imported by the time of this fix. Now also, both
+directions: `[Box]` Nd → `nDrivers`, Med → `driverAddedMass_kg`, Isobarik → `loading`, alfaVC →
+`alfaVC_per_K`, dTVC → `vcTempRise_K`; `[SimulatorOptions]` VCInd → `circuitModel` (`gyrator` on,
+`winisd` off), FlatResponse → `forceFlatResponse`, TLPorts → `useTransmissionLinePortModel`.
+`test/domain/wpr-simulation-settings-round-trip.test.ts`: 17 cases, red before, green after.

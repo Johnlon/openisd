@@ -267,6 +267,14 @@ export class WinIsdProjectConverter {
         // WinISD's own defaults over whatever the design states (BUG_20260817 F3).
         alfaVC: project.alfaVC_per_K.value,
         dTVC: project.vcTempRise_K.value,
+        Nd: project.nDrivers.value,
+        Med: project.driverAddedMass_kg.value,
+        Isobarik: project.loading.value === 'isobaric' ? 1 : 0,
+      },
+      SimulatorOptions: {
+        VCInd: project.circuitModel.value === 'winisd' ? 0 : 1,
+        FlatResponse: project.forceFlatResponse.value ? 1 : 0,
+        TLPorts: project.useTransmissionLinePortModel.value ? 1 : 0,
       },
       SignalSource: {
         Rg: project.Rs_ohm.value,
@@ -564,6 +572,24 @@ export class WinIsdProjectConverter {
 
     const Rg = wpr.number('SignalSource', 'Rg');
     if (Rg != null) project.Rs_ohm.set(Rg);
+
+    // The settings WinISD simulates with (BUG_20260926_wpr-import-drops-source-resistance-and-simulator-options).
+    const Nd = wpr.number('Box', 'Nd');
+    if (Nd != null) project.nDrivers.set(Nd);
+    const Med = wpr.number('Box', 'Med');
+    if (Med != null) project.driverAddedMass_kg.set(Med);
+    const Isobarik = wpr.number('Box', 'Isobarik');
+    if (Isobarik != null) project.loading.set(Isobarik === 1 ? 'isobaric' : 'standard');
+    const alfaVC = wpr.number('Box', 'alfaVC');
+    if (alfaVC != null) project.alfaVC_per_K.set(alfaVC);
+    const dTVC = wpr.number('Box', 'dTVC');
+    if (dTVC != null) project.vcTempRise_K.set(dTVC);
+    const VCInd = wpr.number('SimulatorOptions', 'VCInd');
+    if (VCInd != null) project.circuitModel.set(VCInd === 1 ? 'gyrator' : 'winisd');
+    const FlatResponse = wpr.number('SimulatorOptions', 'FlatResponse');
+    if (FlatResponse != null) project.forceFlatResponse.set(FlatResponse === 1);
+    const TLPorts = wpr.number('SimulatorOptions', 'TLPorts');
+    if (TLPorts != null) project.useTransmissionLinePortModel.set(TLPorts === 1);
 
     const P = wpr.number('SignalSource', 'P');
     // P can be stated only against a usable Re; without one the voltage stands alone.
