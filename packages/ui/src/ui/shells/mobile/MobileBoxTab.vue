@@ -60,7 +60,7 @@ const {
   </div>
 
   <p v-if="showEnclosureTab" class="mob-hint">
-    Vents and enclosure details for {{ boxLabel }} aren't editable on this screen yet — switch to Desktop view for now.
+    Vents and enclosure details for {{ boxLabel }} are on the Enclosure tab.
   </p>
 </template>
 
