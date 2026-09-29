@@ -3,6 +3,7 @@
  * the SAME field-wiring factories `boxFields.ts` exports — one implementation of
  * "what does the Box tab's Volume field do", asked by both shells.
  */
+import {ref} from 'vue';
 import {boxTypeIsSimulatable, focusedProject, projectChanged} from '../logic/appState.js';
 import {useFocusedProject} from '../logic/focusedProjectContext.js';
 import {useApp} from '../logic/app.js';
@@ -19,6 +20,11 @@ export function useMobileBoxTab() {
     createSelectedBox({ focusedProject, projectChanged, isSimulatable });
   const { boxResonance, rearQtc } = createSealedReadouts({ project, selectedBox, projectChanged });
   const { boxVolume_m3, boxVolumeDqNote, setBoxVolume_m3 } = createBoxVolume({ project, selectedBox, projectChanged });
+  // Box-losses (Ql/Qa/Qp) field wiring is NOT here yet — engine is moving its per-box-type
+  // dispatch into the domain (OpenISDBox, beside volumeOf) rather than have this repeat the
+  // switch OriginalShell-hooks.ts still carries inline. Only the sheet's open/close state lives
+  // here until that lands; the fields themselves are wired in as a follow-up.
+  const boxLossesOpen = ref(false);
 
   // Same skin-neutral class the desktop shell uses (SealedAlignment-hooks.ts) — one editor, not
   // a mobile copy. It takes only the two engine areas it needs (sealed, driver), never the
@@ -43,5 +49,6 @@ export function useMobileBoxTab() {
     selectBoxType, BOX_TYPE_OPTIONS,
     sealedAlignmentEditor, sealedAlignmentOpen, sealedAlignmentOptions, sealedAlignmentSelected,
     sealedAlignmentVolume_L, sealedAlignmentEbp, sealedAlignmentSuitability, sealedAlignmentSuitabilityLabel,
+    boxLossesOpen,
   };
 }

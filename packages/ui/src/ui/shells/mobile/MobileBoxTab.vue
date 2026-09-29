@@ -15,6 +15,7 @@ const {
   selectBoxType, BOX_TYPE_OPTIONS,
   sealedAlignmentEditor, sealedAlignmentOpen, sealedAlignmentOptions, sealedAlignmentSelected,
   sealedAlignmentVolume_L, sealedAlignmentEbp, sealedAlignmentSuitability, sealedAlignmentSuitabilityLabel,
+  boxLossesOpen,
 } = useMobileBoxTab();
 </script>
 
@@ -63,6 +64,9 @@ const {
     <div v-if="selectedBox === 'sealed'" class="mob-row">
       <button class="mob-btn" @click="sealedAlignmentEditor.openEditor">Choose alignment</button>
     </div>
+    <div class="mob-row">
+      <button class="mob-btn" @click="boxLossesOpen = true">Box losses -&gt;</button>
+    </div>
   </div>
 
   <p v-if="showEnclosureTab" class="mob-hint">
@@ -100,6 +104,22 @@ const {
       <div class="mob-align-footer">
         <button class="mob-btn" @click="sealedAlignmentEditor.cancel">Cancel</button>
         <button class="mob-btn mob-btn-primary" @click="sealedAlignmentEditor.accept">Accept</button>
+      </div>
+    </div>
+  </div>
+
+  <div v-if="boxLossesOpen" class="mob-align-overlay" @click.self="boxLossesOpen = false">
+    <div class="mob-align-sheet">
+      <div class="mob-panel-head mob-panel-head-row">
+        <span>Box losses</span>
+        <button class="mob-x" @click="boxLossesOpen = false">&#10005;</button>
+      </div>
+      <!-- Ql/Qa/Qp fields land once the per-box-type dispatch moves into the domain (engine,
+           2026-09-29, beside OpenISDBox.volumeOf) — the sheet shell is ready, the fields aren't
+           wired yet so this doesn't duplicate the switch OriginalShell-hooks.ts still carries. -->
+      <p class="mob-hint">100 = no stuffing · 20–50 = light · 5–10 = heavy. WinISD defaults: Ql=10, Qa=100, Qp=100.</p>
+      <div class="mob-align-footer">
+        <button class="mob-btn mob-btn-primary" @click="boxLossesOpen = false">OK</button>
       </div>
     </div>
   </div>
