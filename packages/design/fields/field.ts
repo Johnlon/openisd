@@ -29,9 +29,16 @@
  * admissible at all. `Qts` has a `limits` floor of 0 and a `floor` of 'positive'. It absorbed
  * `FIELD_FLOOR` (`domain/driver/openIsdDriverSpec.ts`), which stated the same fact for 48 of
  * the driver's spec fields in its own table.
+ *
+ * `display` is the fourth fact: one member, not a `unit` string beside an optional `unitGroup`
+ * that a call site's own `group=`/`base=` props could contradict (BUG_20260928, "NumInput's
+ * group/base props are a fourth table"). `FixedUnit` is one symbol, never switched; `SwitchableUnit`
+ * names a `dimensions.ts` `UnitGroup` and a base token typed to that group's own tokens, so
+ * `{group: 'volume', base: 'mm'}` does not compile. A switchable field's on-screen label always
+ * comes from `UNIT_GROUPS`, never a second string stated here.
  */
 import {LossMode} from './lossMode.js';
-import type {UnitGroup} from './dimensions.js';
+import type {FixedUnit, SwitchableUnit} from './dimensions.js';
 import type {FieldLimits} from './filterLimits.js';
 import {
   FILTER_BW_LIMITS, FILTER_FC_LIMITS, FILTER_GAIN_LIMITS, FILTER_ORDER_LIMITS, FILTER_Q_LIMITS,
@@ -88,8 +95,7 @@ export abstract class Field {
 }
 
 interface NumberFieldSpec extends FieldSpec {
-  readonly unit: string;
-  readonly unitGroup?: UnitGroup;
+  readonly display: SwitchableUnit | FixedUnit;
   readonly limits: FieldLimits;
   readonly precision: number;
   readonly formula?: string;
@@ -97,13 +103,11 @@ interface NumberFieldSpec extends FieldSpec {
   readonly floor?: ValueFloor;
 }
 
-/** A field holding a quantity: it has a band, a precision, and a unit. */
+/** A field holding a quantity: it has a band, a precision, and a display unit. */
 export class NumberField extends Field {
   readonly kind = 'number';
-  /** Display unit symbol, or '' for dimensionless. */
-  readonly unit: string;
-  /** Interchangeable-unit group, for the fields whose unit the user may switch. */
-  readonly unitGroup: UnitGroup | undefined;
+  /** How the field is shown: one fixed symbol, or a `UnitGroup` the user may rotate through. */
+  readonly display: SwitchableUnit | FixedUnit;
   /** The band an entered value must fall in, in SI/model units. */
   readonly limits: FieldLimits;
   /** Fixed decimal places the field's base unit is meaningful to. */
@@ -122,8 +126,7 @@ export class NumberField extends Field {
 
   private constructor(spec: NumberFieldSpec) {
     super(spec);
-    this.unit = spec.unit;
-    this.unitGroup = spec.unitGroup;
+    this.display = Object.freeze(spec.display);
     this.limits = Object.freeze(spec.limits);
     this.precision = spec.precision;
     this.formula = spec.formula;
@@ -146,8 +149,7 @@ export class NumberField extends Field {
   static readonly BOX_VB_L = new NumberField({
     value: "box_Vb_l",
     label: "Volume",
-    unit: "l",
-    unitGroup: "volume",
+    display: {kind: 'switchable', group: 'volume', base: 'L'},
     limits: {min: 0.0001, max: 100},
     precision: 2,
     description: "Net Enclosure Volume\nInternal net air volume — the acoustic spring the driver works against.",
@@ -155,7 +157,7 @@ export class NumberField extends Field {
   static readonly BOX_VF_L = new NumberField({
     value: "box_Vf_l",
     label: "Front volume",
-    unit: "l",
+    display: {kind: 'switchable', group: 'volume', base: 'L'},
     limits: {min: 0.0001, max: 100},
     precision: 2,
     description: "Front Chamber Volume\nNet air volume of the front, vented chamber in a bandpass enclosure.",
@@ -163,7 +165,7 @@ export class NumberField extends Field {
   static readonly BOX_FB_HZ = new NumberField({
     value: "box_Fb_hz",
     label: "Target Tuning Freq (Fb)",
-    unit: "Hz",
+    display: {kind: 'switchable', group: 'freq', base: 'Hz'},
     limits: {min: 0, max: 1000},
     precision: 2,
     description: "Box Tuning Frequency (Fb)\nHelmholtz resonance of the vented enclosure, set by port dimensions and box volume.",
@@ -173,7 +175,7 @@ export class NumberField extends Field {
   static readonly VENT_COUNT = new NumberField({
     value: "vent_Count",
     label: "Number of vents",
-    unit: "",
+    display: {kind: 'fixed', symbol: ''},
     limits: {min: 1, max: 4},
     precision: 0,
     description: "Number of Vents\nHow many identical ports share the chamber.\nMore ports need a longer port for the same tuning, since the air-mass term sees the combined opening; end correction stays that of one port.",
@@ -181,7 +183,7 @@ export class NumberField extends Field {
   static readonly VENT_D_CM = new NumberField({
     value: "vent_D_cm",
     label: "Vent diameter",
-    unit: "cm",
+    display: {kind: 'switchable', group: 'length', base: 'cm'},
     limits: {min: 0.001, max: 2},
     precision: 2,
     description: "Port Diameter\nInternal diameter of a round port.\nLarger diameters reduce turbulence (chuffing) but need a longer tube for the same tuning.",
@@ -189,7 +191,7 @@ export class NumberField extends Field {
   static readonly VENT_W_CM = new NumberField({
     value: "vent_W_cm",
     label: "Slot width",
-    unit: "cm",
+    display: {kind: 'switchable', group: 'length', base: 'cm'},
     limits: {min: 0.001, max: 2},
     precision: 2,
     description: "Slot Port Width\nInternal width of a rectangular slotted port.",
@@ -197,7 +199,7 @@ export class NumberField extends Field {
   static readonly VENT_H_CM = new NumberField({
     value: "vent_H_cm",
     label: "Slot height",
-    unit: "cm",
+    display: {kind: 'switchable', group: 'length', base: 'cm'},
     limits: {min: 0.001, max: 2},
     precision: 2,
     description: "Slot Port Height\nInternal height of a rectangular slotted port.",
@@ -205,7 +207,7 @@ export class NumberField extends Field {
   static readonly VENT_L_CM = new NumberField({
     value: "vent_L_cm",
     label: "Vent length",
-    unit: "cm",
+    display: {kind: 'switchable', group: 'length', base: 'cm'},
     limits: {min: 0.001, max: 10},
     precision: 2,
     description: "Vent Length\nPhysical length of the port tube.\nLonger ports lower the tuning frequency for a fixed box volume.",
@@ -213,7 +215,7 @@ export class NumberField extends Field {
   static readonly VENT_CROSSAREA_M2 = new NumberField({
     value: "vent_CrossArea_m2",
     label: "Cross area",
-    unit: "m²",
+    display: {kind: 'switchable', group: 'area', base: 'm2'},
     limits: {min: 0, max: 10},
     precision: 4,
     formula: "π·(ventD/2)²",
@@ -222,7 +224,7 @@ export class NumberField extends Field {
   static readonly VENT_1STPORTRESONANCE_HZ = new NumberField({
     value: "vent_1stPortResonance_hz",
     label: "1st port resonance",
-    unit: "Hz",
+    display: {kind: 'switchable', group: 'freq', base: 'Hz'},
     limits: {min: 0, max: 20000},
     precision: 2,
     formula: "c / (2·ventL)",
@@ -233,8 +235,7 @@ export class NumberField extends Field {
   static readonly PR_SD_CM2 = new NumberField({
     value: "pr_Sd_cm2",
     label: "Sd",
-    unit: "cm²",
-    unitGroup: "area",
+    display: {kind: 'switchable', group: 'area', base: 'cm2'},
     limits: {min: 0.0001, max: 10},
     precision: 2,
     description: "Passive Radiator Area\nEffective radiating piston area of the passive radiator.",
@@ -242,8 +243,7 @@ export class NumberField extends Field {
   static readonly PR_XMAX_MM = new NumberField({
     value: "pr_Xmax_mm",
     label: "Xmax",
-    unit: "mm",
-    unitGroup: "length",
+    display: {kind: 'switchable', group: 'length', base: 'mm'},
     limits: {min: 0, max: 0.5},
     precision: 2,
     description: "Passive Radiator Excursion Limit\nMaximum peak linear displacement of the passive radiator diaphragm.",
@@ -251,7 +251,7 @@ export class NumberField extends Field {
   static readonly PR_NUM = new NumberField({
     value: "pr_Num",
     label: "Num. of PRs",
-    unit: "",
+    display: {kind: 'fixed', symbol: ''},
     limits: {min: 1, max: 16},
     precision: 0,
     description: "Passive Radiator Count\nNumber of identical passive radiators in the enclosure.",
@@ -259,7 +259,7 @@ export class NumberField extends Field {
   static readonly PR_MADD_G = new NumberField({
     value: "pr_Madd_g",
     label: "Added mass to cone",
-    unit: "g",
+    display: {kind: 'switchable', group: 'mass', base: 'g'},
     limits: {min: 0, max: 5000},
     precision: 3,
     description: "PR Added Mass\nBallast mass attached to the passive radiator cone to lower its tuning frequency.",
@@ -267,7 +267,7 @@ export class NumberField extends Field {
   static readonly PR_FP_HZ = new NumberField({
     value: "pr_Fp_hz",
     label: "Target tuning freq (Fp)",
-    unit: "Hz",
+    display: {kind: 'switchable', group: 'freq', base: 'Hz'},
     limits: {min: 1, max: 1000},
     precision: 2,
     description: "Passive Radiator System Tuning (Fp)\nHelmholtz tuning frequency the passive radiator and enclosure volume achieve together.",
@@ -275,8 +275,7 @@ export class NumberField extends Field {
   static readonly PR_VAS_L = new NumberField({
     value: "pr_Vas_l",
     label: "Vas",
-    unit: "l",
-    unitGroup: "volume",
+    display: {kind: 'switchable', group: 'volume', base: 'L'},
     limits: {min: 1e-05, max: 100},
     precision: 2,
     formula: "Vas = Cms·Sd²·ρ·c²·1000",
@@ -285,7 +284,7 @@ export class NumberField extends Field {
   static readonly PR_FS_HZ = new NumberField({
     value: "pr_Fs_hz",
     label: "Fpr",
-    unit: "Hz",
+    display: {kind: 'switchable', group: 'freq', base: 'Hz'},
     limits: {min: 1, max: 1000},
     precision: 2,
     formula: "Fpr = 1/(2π·√(Mmd·Cms))",
@@ -294,7 +293,7 @@ export class NumberField extends Field {
   static readonly PR_QMS = new NumberField({
     value: "pr_Qms",
     label: "Qms",
-    unit: "",
+    display: {kind: 'fixed', symbol: ''},
     limits: {min: 0.1, max: 100},
     precision: 3,
     formula: "Qms = √(Mmd/Cms)/Rms",
@@ -303,7 +302,7 @@ export class NumberField extends Field {
   static readonly PR_FSMASS_HZ = new NumberField({
     value: "pr_FsMass_hz",
     label: "Fpr (with added mass)",
-    unit: "Hz",
+    display: {kind: 'switchable', group: 'freq', base: 'Hz'},
     limits: {min: 0, max: 1000},
     precision: 2,
     formula: "Fpr = 1/(2π·√((Mmd+Madd)·Cms))",
@@ -314,7 +313,7 @@ export class NumberField extends Field {
   static readonly SIGNAL_PIN_W = new NumberField({
     value: "signal_Pin_W",
     label: "System input power",
-    unit: "W",
+    display: {kind: 'fixed', symbol: 'W'},
     limits: {min: 0.01, max: 100000},
     precision: 2,
     description: "System Input Power\nTotal electrical power supplied to the system (P = V² / Re).",
@@ -322,7 +321,7 @@ export class NumberField extends Field {
   static readonly SIGNAL_DRIVEV_V = new NumberField({
     value: "signal_DriveV_V",
     label: "Driver input voltage (each)",
-    unit: "V",
+    display: {kind: 'fixed', symbol: 'V'},
     limits: {min: 0.01, max: 1000},
     precision: 2,
     formula: "driveV = √(Pin · Re)",
@@ -331,7 +330,7 @@ export class NumberField extends Field {
   static readonly SIGNAL_RS_OHM = new NumberField({
     value: "signal_Rs_ohm",
     label: "Series resistance",
-    unit: "ohm",
+    display: {kind: 'fixed', symbol: 'ohm'},
     limits: {min: 0, max: 1000},
     precision: 3,
     description: "Series Resistance\nCombined amplifier output impedance, wiring and crossover resistance, in series with the driver.",
@@ -339,7 +338,7 @@ export class NumberField extends Field {
   static readonly SIGNAL_DISTANCE_M = new NumberField({
     value: "signal_Distance_m",
     label: "Distance",
-    unit: "m",
+    display: {kind: 'fixed', symbol: 'm'},
     limits: {min: 0, max: 100},
     precision: 3,
     description: "Listening Distance\nOn-axis distance from the loudspeaker to the listener, used for SPL calculations.",
@@ -347,7 +346,7 @@ export class NumberField extends Field {
   static readonly SIGNAL_ANGLE_RAD = new NumberField({
     value: "signal_Angle_rad",
     label: "Off-Axis Angle",
-    unit: "rad",
+    display: {kind: 'fixed', symbol: 'rad'},
     limits: {min: 0, max: 3.1416},
     precision: 4,
     description: "Off-Axis Angle\nAngular offset from the main acoustic axis, in radians.",
@@ -355,7 +354,7 @@ export class NumberField extends Field {
   static readonly SIGNAL_GENHZ_HZ = new NumberField({
     value: "signal_GenHz_hz",
     label: "Signal generator frequency",
-    unit: "Hz",
+    display: {kind: 'fixed', symbol: 'Hz'},
     limits: {min: 1, max: 20000},
     precision: 2,
     description: "Test Tone Frequency\nThe frequency the single-tone signal generator evaluates.",
@@ -365,7 +364,7 @@ export class NumberField extends Field {
   static readonly LOSS_QL = new NumberField({
     value: "loss_Ql",
     label: "Leakage Ql",
-    unit: "",
+    display: {kind: 'fixed', symbol: ''},
     limits: {min: 0.1, max: 1000},
     precision: 2,
     description: "Enclosure Leakage Loss Q\nAcoustic energy lost through cabinet seams and gaskets.",
@@ -373,7 +372,7 @@ export class NumberField extends Field {
   static readonly LOSS_QA = new NumberField({
     value: "loss_Qa",
     label: "Absorption Qa",
-    unit: "",
+    display: {kind: 'fixed', symbol: ''},
     limits: {min: 0.1, max: 1000},
     precision: 2,
     description: "Enclosure Damping Loss Q\nAcoustic energy absorbed by internal damping fill.",
@@ -381,7 +380,7 @@ export class NumberField extends Field {
   static readonly LOSS_QP = new NumberField({
     value: "loss_Qp",
     label: "Port Qp",
-    unit: "",
+    display: {kind: 'fixed', symbol: ''},
     limits: {min: 0.1, max: 1000},
     precision: 2,
     description: "Port Friction Loss Q\nAir friction and viscous boundary losses inside the vent.",
@@ -391,7 +390,7 @@ export class NumberField extends Field {
   static readonly ADV_TEMP_K = new NumberField({
     value: "adv_Temp_K",
     label: "Temperature",
-    unit: "K",
+    display: {kind: 'switchable', group: 'temp', base: 'K'},
     limits: {min: 173.15, max: 373.15},
     precision: 2,
     description: "Ambient Temperature\nUsed to calculate the speed of sound and the density of air.",
@@ -399,7 +398,7 @@ export class NumberField extends Field {
   static readonly ADV_HUMIDITY_PCT = new NumberField({
     value: "adv_Humidity_pct",
     label: "Relative humidity",
-    unit: "%",
+    display: {kind: 'fixed', symbol: '%'},
     limits: {min: 0, max: 100},
     precision: 2,
     description: "Relative Humidity\nAffects the speed of sound and the density of the air.",
@@ -407,7 +406,7 @@ export class NumberField extends Field {
   static readonly ADV_PRESSURE_KPA = new NumberField({
     value: "adv_Pressure_kPa",
     label: "Air pressure",
-    unit: "kPa",
+    display: {kind: 'switchable', group: 'pressure', base: 'Pa'},
     limits: {min: 1000, max: 200000},
     precision: 2,
     description: "Air Pressure\nAtmospheric pressure — affects air density and acoustic impedance.",
@@ -415,7 +414,7 @@ export class NumberField extends Field {
   static readonly ADV_SOUNDVELOCITY_M_PER_S = new NumberField({
     value: "adv_SoundVelocity_m_per_s",
     label: "Sound velocity",
-    unit: "m/s",
+    display: {kind: 'fixed', symbol: 'm/s'},
     limits: {min: 0, max: 1000},
     precision: 2,
     formula: "c = √(γ·p/ρ), γ = 1.4",
@@ -424,7 +423,7 @@ export class NumberField extends Field {
   static readonly ADV_AIRDENSITY_KG_PER_M3 = new NumberField({
     value: "adv_AirDensity_kg_per_m3",
     label: "Air density",
-    unit: "kg/m³",
+    display: {kind: 'fixed', symbol: 'kg/m³'},
     limits: {min: 0, max: 10},
     precision: 5,
     formula: "ρ = p·Ma/(R·T)·[1 − xv(1 − Mv/Ma)]",
@@ -435,7 +434,7 @@ export class NumberField extends Field {
   static readonly FS_HZ = new NumberField({
     value: "Fs_hz",
     label: "Fs",
-    unit: "Hz",
+    display: {kind: 'switchable', group: 'freq', base: 'Hz'},
     limits: {min: 1, max: 5000},
     floor: "positive",
     precision: 2,
@@ -445,7 +444,7 @@ export class NumberField extends Field {
   static readonly QTS = new NumberField({
     value: "Qts",
     label: "Qts",
-    unit: "",
+    display: {kind: 'fixed', symbol: ''},
     limits: {min: 0, max: 5},
     floor: "positive",
     precision: 3,
@@ -456,7 +455,7 @@ export class NumberField extends Field {
   static readonly QES = new NumberField({
     value: "Qes",
     label: "Qes",
-    unit: "",
+    display: {kind: 'fixed', symbol: ''},
     limits: {min: 0, max: 5},
     floor: "positive",
     precision: 3,
@@ -466,7 +465,7 @@ export class NumberField extends Field {
   static readonly QMS = new NumberField({
     value: "Qms",
     label: "Qms",
-    unit: "",
+    display: {kind: 'fixed', symbol: ''},
     limits: {min: 0, max: 50},
     floor: "positive",
     precision: 3,
@@ -476,7 +475,7 @@ export class NumberField extends Field {
   static readonly VAS_M3 = new NumberField({
     value: "Vas_m3",
     label: "Vas",
-    unit: "l",
+    display: {kind: 'switchable', group: 'volume', base: 'L'},
     limits: {min: 0, max: 100},
     floor: "positive",
     precision: 2,
@@ -486,7 +485,7 @@ export class NumberField extends Field {
   static readonly RE_OHM = new NumberField({
     value: "Re_ohm",
     label: "Re",
-    unit: "ohm",
+    display: {kind: 'fixed', symbol: 'ohm'},
     limits: {min: 0.01, max: 1000},
     floor: "positive",
     precision: 3,
@@ -496,7 +495,7 @@ export class NumberField extends Field {
   static readonly LE_H = new NumberField({
     value: "Le_H",
     label: "Le",
-    unit: "mH",
+    display: {kind: 'switchable', group: 'inductance', base: 'mH'},
     limits: {min: 0, max: 0.1},
     floor: "non-negative",
     precision: 3,
@@ -506,7 +505,7 @@ export class NumberField extends Field {
   static readonly MMS_KG = new NumberField({
     value: "Mms_kg",
     label: "Mms",
-    unit: "g",
+    display: {kind: 'switchable', group: 'mass', base: 'g'},
     limits: {min: 0, max: 10},
     floor: "positive",
     precision: 2,
@@ -517,7 +516,7 @@ export class NumberField extends Field {
   static readonly SD_M2 = new NumberField({
     value: "Sd_m2",
     label: "Sd",
-    unit: "cm²",
+    display: {kind: 'switchable', group: 'area', base: 'cm2'},
     limits: {min: 0.0001, max: 10},
     floor: "positive",
     precision: 2,
@@ -527,7 +526,7 @@ export class NumberField extends Field {
   static readonly XMAX_M = new NumberField({
     value: "Xmax_m",
     label: "Xmax",
-    unit: "mm",
+    display: {kind: 'switchable', group: 'length', base: 'mm'},
     limits: {min: 0, max: 0.5},
     floor: "positive",
     precision: 2,
@@ -537,7 +536,7 @@ export class NumberField extends Field {
   static readonly PE_W = new NumberField({
     value: "Pe_W",
     label: "Pe",
-    unit: "W",
+    display: {kind: 'fixed', symbol: 'W'},
     limits: {min: 0, max: 100000},
     floor: "positive",
     precision: 2,
@@ -547,7 +546,7 @@ export class NumberField extends Field {
   static readonly POWER_PEAK_W = new NumberField({
     value: "power_peak_W",
     label: "Peak power",
-    unit: "W",
+    display: {kind: 'fixed', symbol: 'W'},
     limits: {min: 0, max: 100000},
     floor: "positive",
     precision: 2,
@@ -556,7 +555,7 @@ export class NumberField extends Field {
   static readonly BL_TM = new NumberField({
     value: "BL_Tm",
     label: "BL",
-    unit: "Tm",
+    display: {kind: 'fixed', symbol: 'Tm'},
     limits: {min: 0, max: 1000},
     floor: "positive",
     precision: 3,
@@ -567,7 +566,7 @@ export class NumberField extends Field {
   static readonly CMS_M_PER_N = new NumberField({
     value: "Cms_m_per_N",
     label: "Cms",
-    unit: "mm/N",
+    display: {kind: 'switchable', group: 'compliance', base: 'mmPerN'},
     limits: {min: 0, max: 0.1},
     floor: "positive",
     precision: 4,
@@ -578,8 +577,7 @@ export class NumberField extends Field {
   static readonly RMS_KG_PER_S = new NumberField({
     value: "Rms_kg_per_s",
     label: "Rms",
-    unit: "Ns/m",
-    unitGroup: "resistance",
+    display: {kind: 'switchable', group: 'resistance', base: 'nsPerM'},
     limits: {min: 0, max: 1000},
     floor: "positive",
     precision: 4,
@@ -590,7 +588,7 @@ export class NumberField extends Field {
   static readonly DD_M = new NumberField({
     value: "Dd_m",
     label: "Dd",
-    unit: "mm",
+    display: {kind: 'switchable', group: 'length', base: 'mm'},
     limits: {min: 0, max: 2},
     floor: "positive",
     precision: 2,
@@ -600,7 +598,7 @@ export class NumberField extends Field {
   static readonly FLE_HZ = new NumberField({
     value: "fLe_hz",
     label: "fLe",
-    unit: "kHz",
+    display: {kind: 'switchable', group: 'freq', base: 'kHz'},
     limits: {min: 0, max: 100000},
     floor: "positive",
     precision: 5,
@@ -610,7 +608,7 @@ export class NumberField extends Field {
   static readonly KLE_H_SQRTHZ = new NumberField({
     value: "KLe_H_sqrtHz",
     label: "KLe",
-    unit: "H·√Hz",
+    display: {kind: 'fixed', symbol: 'H·√Hz'},
     limits: {min: 0, max: 10},
     floor: "non-negative",
     precision: 6,
@@ -620,7 +618,7 @@ export class NumberField extends Field {
   static readonly HC_M = new NumberField({
     value: "Hc_m",
     label: "Hc",
-    unit: "m",
+    display: {kind: 'switchable', group: 'length', base: 'mm'},
     limits: {min: 0, max: 1},
     floor: "positive",
     precision: 3,
@@ -630,7 +628,7 @@ export class NumberField extends Field {
   static readonly HG_M = new NumberField({
     value: "Hg_m",
     label: "Hg",
-    unit: "m",
+    display: {kind: 'switchable', group: 'length', base: 'mm'},
     limits: {min: 0, max: 1},
     floor: "positive",
     precision: 3,
@@ -640,7 +638,7 @@ export class NumberField extends Field {
   static readonly VD_M3 = new NumberField({
     value: "Vd_m3",
     label: "Vd",
-    unit: "cm³",
+    display: {kind: 'switchable', group: 'volume', base: 'cm3'},
     limits: {min: 0, max: 100000},
     floor: "positive",
     precision: 0,
@@ -649,7 +647,7 @@ export class NumberField extends Field {
   static readonly XLIM_M = new NumberField({
     value: "Xlim_m",
     label: "Xlim",
-    unit: "m",
+    display: {kind: 'switchable', group: 'length', base: 'mm'},
     limits: {min: 0, max: 1},
     floor: "positive",
     precision: 3,
@@ -658,8 +656,7 @@ export class NumberField extends Field {
   static readonly NO = new NumberField({
     value: "no",
     label: "η₀",
-    unit: "%",
-    unitGroup: "percent",
+    display: {kind: 'switchable', group: 'percent', base: 'pct'},
     limits: {min: 0, max: 100},
     floor: "positive",
     precision: 4,
@@ -668,7 +665,7 @@ export class NumberField extends Field {
   static readonly USPL_DB = new NumberField({
     value: "USPL_dB",
     label: "USPL",
-    unit: "dB",
+    display: {kind: 'fixed', symbol: 'dB'},
     limits: {min: 0, max: 200},
     floor: "none",
     precision: 2,
@@ -678,7 +675,7 @@ export class NumberField extends Field {
   static readonly SPL_DB = new NumberField({
     value: "SPL_dB",
     label: "SPL",
-    unit: "dB",
+    display: {kind: 'fixed', symbol: 'dB'},
     limits: {min: 0, max: 200},
     floor: "none",
     precision: 2,
@@ -688,7 +685,7 @@ export class NumberField extends Field {
   static readonly NUMVC = new NumberField({
     value: "numVC",
     label: "Voicecoils",
-    unit: "",
+    display: {kind: 'fixed', symbol: ''},
     limits: {min: 1, max: 4},
     floor: "positive",
     precision: 0,
@@ -697,7 +694,7 @@ export class NumberField extends Field {
   static readonly ALFAVC_PER_K = new NumberField({
     value: "alfaVC_per_K",
     label: "AlfaVC",
-    unit: "1000/K",
+    display: {kind: 'switchable', group: 'tempCoeff', base: 'perMilliK'},
     limits: {min: 0, max: 0.1},
     floor: "non-negative",
     precision: 4,
@@ -706,7 +703,7 @@ export class NumberField extends Field {
   static readonly RT_K_PER_W = new NumberField({
     value: "Rt_K_per_W",
     label: "R(t)",
-    unit: "K/W",
+    display: {kind: 'fixed', symbol: 'K/W'},
     limits: {min: 0, max: 1000},
     floor: "positive",
     precision: 5,
@@ -715,7 +712,7 @@ export class NumberField extends Field {
   static readonly CT_J_PER_K = new NumberField({
     value: "Ct_J_per_K",
     label: "C(t)",
-    unit: "J/K",
+    display: {kind: 'fixed', symbol: 'J/K'},
     limits: {min: 0, max: 10000},
     floor: "positive",
     precision: 5,
@@ -724,7 +721,7 @@ export class NumberField extends Field {
   static readonly EBP_HZ = new NumberField({
     value: "EBP_hz",
     label: "EBP",
-    unit: "Hz",
+    display: {kind: 'switchable', group: 'freq', base: 'Hz'},
     limits: {min: 0, max: 1000},
     floor: "positive",
     precision: 2,
@@ -735,7 +732,7 @@ export class NumberField extends Field {
   static readonly SPLMAXLF_DB = new NumberField({
     value: "SPLmaxLF_dB",
     label: "SPLmaxLF",
-    unit: "dB",
+    display: {kind: 'fixed', symbol: 'dB'},
     limits: {min: 0, max: 200},
     floor: "none",
     precision: 2,
@@ -745,7 +742,7 @@ export class NumberField extends Field {
   static readonly SPLMAX_DB = new NumberField({
     value: "SPLmax_dB",
     label: "SPLmax",
-    unit: "dB",
+    display: {kind: 'fixed', symbol: 'dB'},
     limits: {min: 0, max: 200},
     floor: "none",
     precision: 2,
@@ -755,8 +752,7 @@ export class NumberField extends Field {
   static readonly RME_KG_PER_S = new NumberField({
     value: "Rme_kg_per_s",
     label: "Rme",
-    unit: "Ns/m",
-    unitGroup: "resistance",
+    display: {kind: 'switchable', group: 'resistance', base: 'nsPerM'},
     limits: {min: 0, max: 1000},
     floor: "positive",
     precision: 5,
@@ -766,7 +762,7 @@ export class NumberField extends Field {
   static readonly GAMMA_M_PER_S2_A = new NumberField({
     value: "gamma_m_per_s2_A",
     label: "gamma",
-    unit: "N/(A·kg)",
+    display: {kind: 'fixed', symbol: 'N/(A·kg)'},
     limits: {min: 0, max: 100000},
     floor: "positive",
     precision: 5,
@@ -776,7 +772,7 @@ export class NumberField extends Field {
   static readonly MPOW_N_PER_SQRTW = new NumberField({
     value: "Mpow_N_per_sqrtW",
     label: "Mpow",
-    unit: "N/√W",
+    display: {kind: 'fixed', symbol: 'N/√W'},
     limits: {min: 0, max: 1000},
     floor: "positive",
     precision: 5,
@@ -786,8 +782,7 @@ export class NumberField extends Field {
   static readonly MCOST_KG_PER_S = new NumberField({
     value: "Mcost_kg_per_s",
     label: "Mcost",
-    unit: "kg/s",
-    unitGroup: "resistance",
+    display: {kind: 'switchable', group: 'resistance', base: 'kgPerS'},
     limits: {min: 0, max: 1000},
     floor: "positive",
     precision: 5,
@@ -797,8 +792,7 @@ export class NumberField extends Field {
   static readonly GLOSS = new NumberField({
     value: "Gloss",
     label: "Gloss",
-    unit: "%",
-    unitGroup: "percent",
+    display: {kind: 'switchable', group: 'percent', base: 'pct'},
     limits: {min: 0, max: 100},
     floor: "positive",
     precision: 4,
@@ -808,7 +802,7 @@ export class NumberField extends Field {
   static readonly THICK_M = new NumberField({
     value: "Thick_m",
     label: "Basket Plate Thickness (Thick)",
-    unit: "mm",
+    display: {kind: 'switchable', group: 'length', base: 'mm'},
     limits: {min: 0, max: 0.3},
     floor: "positive",
     precision: 2,
@@ -817,7 +811,7 @@ export class NumberField extends Field {
   static readonly DEPTH_M = new NumberField({
     value: "Depth_m",
     label: "Driver Depth (Depth)",
-    unit: "mm",
+    display: {kind: 'switchable', group: 'length', base: 'mm'},
     limits: {min: 0, max: 5},
     floor: "positive",
     precision: 2,
@@ -826,7 +820,7 @@ export class NumberField extends Field {
   static readonly MAGDEPTH_M = new NumberField({
     value: "MagDepth_m",
     label: "Magnet Depth",
-    unit: "mm",
+    display: {kind: 'switchable', group: 'length', base: 'mm'},
     limits: {min: 0, max: 5},
     floor: "positive",
     precision: 2,
@@ -835,7 +829,7 @@ export class NumberField extends Field {
   static readonly MAGNET_M = new NumberField({
     value: "Magnet_m",
     label: "Magnet Diameter (Magnet)",
-    unit: "mm",
+    display: {kind: 'switchable', group: 'length', base: 'mm'},
     limits: {min: 0, max: 5},
     floor: "positive",
     precision: 2,
@@ -844,7 +838,7 @@ export class NumberField extends Field {
   static readonly BASKET_M = new NumberField({
     value: "Basket_m",
     label: "Basket Diameter (Basket)",
-    unit: "mm",
+    display: {kind: 'switchable', group: 'length', base: 'mm'},
     limits: {min: 0, max: 5},
     floor: "positive",
     precision: 2,
@@ -853,7 +847,7 @@ export class NumberField extends Field {
   static readonly OUTER_M = new NumberField({
     value: "Outer_m",
     label: "Outer Diameter (Outer)",
-    unit: "mm",
+    display: {kind: 'switchable', group: 'length', base: 'mm'},
     limits: {min: 0, max: 5},
     floor: "positive",
     precision: 2,
@@ -862,7 +856,7 @@ export class NumberField extends Field {
   static readonly VCD_M = new NumberField({
     value: "Vcd_m",
     label: "Voice Coil Dia (Vcd)",
-    unit: "mm",
+    display: {kind: 'switchable', group: 'length', base: 'mm'},
     limits: {min: 0, max: 1},
     floor: "positive",
     precision: 2,
@@ -871,7 +865,7 @@ export class NumberField extends Field {
   static readonly DVOL_M3 = new NumberField({
     value: "DVol_m3",
     label: "Driver Displacement Volume (DVol)",
-    unit: "cm³",
+    display: {kind: 'switchable', group: 'volume', base: 'cm3'},
     limits: {min: 0, max: 1},
     floor: "positive",
     precision: 2,
@@ -880,7 +874,7 @@ export class NumberField extends Field {
   static readonly ZNOM_OHM = new NumberField({
     value: "Znom_ohm",
     label: "Znom",
-    unit: "ohm",
+    display: {kind: 'fixed', symbol: 'ohm'},
     limits: {min: 0, max: 64},
     floor: "non-negative",
     precision: 0,
@@ -890,8 +884,7 @@ export class NumberField extends Field {
   static readonly C_M_PER_S = new NumberField({
     value: "c_m_per_s",
     label: "c",
-    unit: "m/s",
-    unitGroup: "velocity",
+    display: {kind: 'switchable', group: 'velocity', base: 'mps'},
     limits: {min: 0, max: 1000},
     floor: "positive",
     precision: 2,
@@ -900,8 +893,7 @@ export class NumberField extends Field {
   static readonly ROO_KG_PER_M3 = new NumberField({
     value: "roo_kg_per_m3",
     label: "roo",
-    unit: "kg/m³",
-    unitGroup: "density",
+    display: {kind: 'switchable', group: 'density', base: 'kgPerM3'},
     limits: {min: 0, max: 10},
     floor: "positive",
     precision: 5,
@@ -912,8 +904,7 @@ export class NumberField extends Field {
   static readonly BOX_RESONANCE_HZ = new NumberField({
     value: "box_Resonance_hz",
     label: "Fsc / Fh",
-    unit: "Hz",
-    unitGroup: "freq",
+    display: {kind: 'switchable', group: 'freq', base: 'Hz'},
     limits: {min: 0, max: 20000},
     precision: 2,
     description: "System Resonance Frequency (Fsc / Fh)\nThe driver's resonance once coupled to the enclosure.",
@@ -921,8 +912,7 @@ export class NumberField extends Field {
   static readonly BOX_REARRESONANCE_HZ = new NumberField({
     value: "box_RearResonance_hz",
     label: "Frc",
-    unit: "Hz",
-    unitGroup: "freq",
+    display: {kind: 'switchable', group: 'freq', base: 'Hz'},
     limits: {min: 0, max: 20000},
     precision: 2,
     description: "Rear Chamber Resonance (Frc)\nSealed rear-chamber resonance in a 4th-order bandpass box (Frc = Fs·√(1 + Vas/Vb)).",
@@ -930,8 +920,7 @@ export class NumberField extends Field {
   static readonly BOX_FRC_HZ = new NumberField({
     value: "box_Frc_hz",
     label: "Tuning freq (Frc)",
-    unit: "Hz",
-    unitGroup: "freq",
+    display: {kind: 'switchable', group: 'freq', base: 'Hz'},
     limits: {min: 0, max: 20000},
     precision: 2,
     description: "Rear Chamber Tuning Frequency (Frc)\nTarget Helmholtz tuning for the vented rear chamber in a 6th-order bandpass or ABC box.",
@@ -941,7 +930,7 @@ export class NumberField extends Field {
   static readonly DRIVER_NDRIVERS = new NumberField({
     value: "driver_nDrivers",
     label: "Num. of drivers",
-    unit: "",
+    display: {kind: 'fixed', symbol: ''},
     limits: {min: 1, max: 64},
     precision: 0,
     description: "Driver Count\nHow many drivers are active in the enclosure.",
@@ -949,7 +938,7 @@ export class NumberField extends Field {
   static readonly DRIVER_VCTEMPRISE_K = new NumberField({
     value: "driver_VcTempRise_K",
     label: "Voice coil temp rise",
-    unit: "K",
+    display: {kind: 'switchable', group: 'tempDiff', base: 'K'},
     limits: {min: 0, max: 500},
     precision: 2,
     description: "Voice Coil Temperature Rise\nHeating from electrical power dissipation (I²·Re).\nRaises Re and causes thermal power compression.",
@@ -957,7 +946,7 @@ export class NumberField extends Field {
   static readonly DRIVER_ADDEDMASS_G = new NumberField({
     value: "driver_AddedMass_g",
     label: "Added mass to cone",
-    unit: "g",
+    display: {kind: 'switchable', group: 'mass', base: 'g'},
     limits: {min: 0, max: 5},
     precision: 5,
     description: "Cone Added Mass (test)\nMass temporarily added to the cone to shift Fs, so Cms and Mms can be calculated.",
@@ -967,7 +956,7 @@ export class NumberField extends Field {
   static readonly FILTER_FC_HZ = new NumberField({
     value: "filter_Fc_hz",
     label: "Cutoff / Center freq",
-    unit: "Hz",
+    display: {kind: 'fixed', symbol: 'Hz'},
     limits: FILTER_FC_LIMITS,
     precision: 3,
     description: "Cutoff / Center Frequency\nCutoff or center frequency of the active filter.",
@@ -975,7 +964,7 @@ export class NumberField extends Field {
   static readonly FILTER_Q = new NumberField({
     value: "filter_Q",
     label: "Q",
-    unit: "",
+    display: {kind: 'fixed', symbol: ''},
     limits: FILTER_Q_LIMITS,
     precision: 3,
     description: "Filter Quality Factor (Q)\nHow sharp the filter's resonance peak or its damping is.",
@@ -983,7 +972,7 @@ export class NumberField extends Field {
   static readonly FILTER_GAIN_DB = new NumberField({
     value: "filter_Gain_dB",
     label: "Gain",
-    unit: "dB",
+    display: {kind: 'fixed', symbol: 'dB'},
     limits: FILTER_GAIN_LIMITS,
     precision: 3,
     description: "Filter Gain\nBoost or cut applied by the filter or equalizer, in dB.",
@@ -991,7 +980,7 @@ export class NumberField extends Field {
   static readonly FILTER_ORDER = new NumberField({
     value: "filter_Order",
     label: "Order",
-    unit: "",
+    display: {kind: 'fixed', symbol: ''},
     limits: FILTER_ORDER_LIMITS,
     precision: 3,
     description: "Filter Order\nFilter steepness: 1st order = 6 dB/oct, 2nd = 12 dB/oct, 4th = 24 dB/oct.\nWinISD itself loads up to order 10; a saved .wpr above that hangs WinISD's own load.",
@@ -999,7 +988,7 @@ export class NumberField extends Field {
   static readonly FILTER_T_S = new NumberField({
     value: "filter_T_s",
     label: "t",
-    unit: "s",
+    display: {kind: 'fixed', symbol: 's'},
     limits: FILTER_T_LIMITS,
     precision: 4,
     description: "Allpass Delay Time\nGroup-delay time constant of an allpass filter section.",
@@ -1007,7 +996,7 @@ export class NumberField extends Field {
   static readonly FILTER_BW_OCT = new NumberField({
     value: "filter_BW_oct",
     label: "BW",
-    unit: "oct",
+    display: {kind: 'fixed', symbol: 'oct'},
     limits: FILTER_BW_LIMITS,
     precision: 3,
     description: "DLP Raised-Cosine Bandwidth\nWidth of the raised-cosine transition band, in octaves.",
