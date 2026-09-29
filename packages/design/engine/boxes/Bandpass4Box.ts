@@ -68,7 +68,7 @@ export class Bandpass4Box implements BoxModel {
         const Mapf = 1 / (wf * wf * Cabf);
         const Ralf = cx(Qlf * wf * Mapf, 0);
         const Raaf = cx(wf * Mapf / Qaf, 0);
-        const PortBranch = cAdd(cx(wf * Mapf / Qpf, 0), cx(0, P.tlPortModel ? winisdLinePortReactance(w, Mapf, rho, c, P) : w * Mapf));
+        const PortBranch = cAdd(cx(wf * Mapf / Qpf, 0), cx(0, P.tlPortModel ? winisdLinePortReactance(w, Mapf, P.Sp ?? NaN, P.portEndCorrection_m ?? NaN, rho, c) : w * Mapf));
         const Zf = cPar(Ralf, cAdd(Raaf, cInv(cx(0, w * Cabf))), PortBranch);
 
         const ws = 1 / Math.sqrt(Mas * Cas);

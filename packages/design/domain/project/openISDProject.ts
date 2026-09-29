@@ -1,7 +1,7 @@
 import {LossMode} from '../../fields/lossMode.js';
 import {type Engine} from '../../engine/index.js';
 import type { Air, AirEnvironment, BoxParamsIssue, ChartId, DriverError, Filter, MaxCurvesResult, MaxCurvesSolveResult, SweepResult, SweepSolveResult } from '../../engine/index.js';
-import { realAppContext } from '../appContext.js';
+import { dateStamp, realAppContext } from '../appContext.js';
 import type { AppContext } from '../appContext.js';
 import { focus, simpleField } from '../cell.js';
 import type { Calculatable, Calculated, Clearable, Entered, Readable, SimpleField, Unsolvable, Writable } from '../cell.js';
@@ -95,13 +95,17 @@ export class OpenISDProject {
      *  from this reference and from nowhere else. */
     readonly #engine: Engine;
 
+    /** The clock `modified` is stamped from. */
+    readonly #appContext: AppContext;
+
     /** The current layer's cached issues — see the class doc comment's "ONE EXCEPTION". */
     #issues: ProjectIssues = { driver: [], signal: [], vent: [], pr: [], sealed: [], ventTuningExtra: null };
 
-    private constructor(saved: OpenISDProjectJson, uuid: string, engine: Engine) {
+    private constructor(saved: OpenISDProjectJson, uuid: string, engine: Engine, appContext: AppContext) {
         this.#saved = saved;
         this.#uuid = uuid;
         this.#engine = engine;
+        this.#appContext = appContext;
         this.#resolve();
     }
 
@@ -401,7 +405,7 @@ export class OpenISDProject {
      *  wraps of one record are two independently editable projects, which is what opening a FILE
      *  twice should give. */
     static wrap(json: OpenISDProjectJson, engine: Engine, appContext: AppContext = realAppContext): OpenISDProject {
-        return this.wrapWithIdentity(freshEmbeddedDriver(json, appContext), appContext.newId(), engine);
+        return this.wrapWithIdentity(freshEmbeddedDriver(json, appContext), appContext.newId(), engine, appContext);
     }
 
     /**
@@ -414,13 +418,13 @@ export class OpenISDProject {
      * NOT for a file: a file's id was minted by another process and is provenance, never a key
      * (the driver precedent, QO81).
      */
-    static wrapWithIdentity(json: OpenISDProjectJson, uuid: string, engine: Engine): OpenISDProject {
-        return new OpenISDProject(json, uuid, engine);
+    static wrapWithIdentity(json: OpenISDProjectJson, uuid: string, engine: Engine, appContext: AppContext = realAppContext): OpenISDProject {
+        return new OpenISDProject(json, uuid, engine, appContext);
     }
 
     /** Wrap a stored session (saved and edited states) under an adopted identity. */
     static wrapSession(session: OpenISDProjectSessionJson, uuid: string, engine: Engine, appContext: AppContext = realAppContext): OpenISDProject {
-        const project = new OpenISDProject(freshEmbeddedDriver(session.saved, appContext), uuid, engine);
+        const project = new OpenISDProject(freshEmbeddedDriver(session.saved, appContext), uuid, engine, appContext);
         if (session.edited) {
             project.#edited = freshEmbeddedDriver(session.edited, appContext);
             // The constructor's own resolve() only reached `#saved`, set just above — the
@@ -461,10 +465,22 @@ export class OpenISDProject {
         return simpleField(() => this.#current()[key], (value) => {
             const base = this.#whatif ?? this.#ensureEditing();
             if (this.#whatif) this.#whatif = {...base, [key]: value};
-            else this.#edited = {...base, [key]: value};
+            else this.#edited = this.#stampModified(base, {...base, [key]: value});
             this.#resolve();
             this.#notify();
         });
+    }
+
+    /** `next` with `meta.modified` stamped from the app context's clock when the write it carries
+     *  is the one that takes the project from saved to having unsaved changes. Later writes leave
+     *  the stamp alone until the next save. A write to `modified` itself is kept as written; a
+     *  chart-view write is not a change (`isModified()`). */
+    #stampModified(before: OpenISDProjectJson, next: OpenISDProjectJson): OpenISDProjectJson {
+        if (next.meta.modified !== before.meta.modified) return next;
+        const wasModified = this.isModified();
+        this.#edited = next;
+        if (wasModified || !this.isModified()) return next;
+        return {...next, meta: {...next.meta, modified: dateStamp(this.#appContext.now())}};
     }
 
     /** A get/set pair over the WHOLE current record — what `get driver()` builds its embedded
@@ -476,7 +492,7 @@ export class OpenISDProject {
     #root(): SimpleField<OpenISDProjectJson> {
         return simpleField(() => this.#current(), (json) => {
             if (this.#whatif) this.#whatif = json;
-            else { this.#ensureEditing(); this.#edited = json; }
+            else this.#edited = this.#stampModified(this.#ensureEditing(), json);
             this.#resolve();
             this.#notify();
         });
@@ -536,7 +552,7 @@ export class OpenISDProject {
      *  write and `value` is null when the box cannot be expressed at all (a `bandpass6`, say).
      *  `errors` carries the reason and every field dropped along the way. */
     toWprText(): { value: string | null; errors: DriverError[] } {
-        const committed = OpenISDProject.wrapWithIdentity(structuredClone(this.#committed()), this.#uuid, this.#engine);
+        const committed = OpenISDProject.wrapWithIdentity(structuredClone(this.#committed()), this.#uuid, this.#engine, this.#appContext);
         const {value: wpr, errors} = new WinIsdProjectConverter(this.#engine).openIsdProjectToWinIsdProject(committed);
         return {value: wpr ? wpr.toWpr() : null, errors};
     }
@@ -656,22 +672,6 @@ export class OpenISDProject {
     /** @deprecated Use `project.envUseWinisdAirModel.set(useWinisdAirModel)` instead. */
     setEnvUseWinisdAirModel(useWinisdAirModel: boolean): void {
         this.envUseWinisdAirModel.set(useWinisdAirModel);
-    }
-
-    /**
-     * Qts as the amplifier's source impedance actually loads it.
-     *
-     * `Rs` is a PARAMETER rather than a record field because the record has no home for it — the
-     * same decision `packages/model`'s `sealedResonance()` made and for the same reason. When the
-     * amplifier's output impedance gets a home, this reads it instead.
-     *
-     * Null when the driver's Q group is too incomplete to resolve.
-     */
-    sourceLoadedQts(Rs: number): number | null {
-        const ts = this.driver.specs;
-        const Qms = ts.Qms.value, Qes = ts.Qes.value, Re_ohm = ts.Re_ohm.value, Qts = ts.Qts.value;
-        if (Qms === null || Qes === null || Re_ohm === null || Qts === null) return null;
-        return this.#engine.driver.sourceLoadedQts(Qms, Qes, Re_ohm, Rs, Qts);
     }
 
     // ── SIMULATION — the engine's sweep, run on THIS project's driver and box ──────────────────

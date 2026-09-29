@@ -7,7 +7,7 @@ import {z} from 'zod';
 import {createLogging} from '../../src/logging/flash.js';
 import {createApplicationIO} from '../../src/logic/useApplicationIO.js';
 import {DesignFiles} from '../../src/logic/fileImportExport.js';
-import {createFileStorage, createMemoryStorage, createProjectRepo, type FileStorage} from '@openisd/persistence';
+import {createFileOpen, createFileStorage, createMemoryStorage, type FileOpen, type FilePick, createProjectRepo, type FileStorage} from '@openisd/persistence';
 import {newProject, requireFocusedProject} from '../../src/logic/appState.js';
 import {createEngine} from '@openisd/design/engine';
 import {ensureSampleProject, SAMPLE_PROJECT_OWPR} from '../fixtures/sampleProject.js';
@@ -81,7 +81,7 @@ describe('.wpr import syncs state.project from the file, and export round-trips 
     try {
       const engine = createEngine();
       const repo = createProjectRepo(engine, createFileStorage(), createMemoryStorage());
-      const io = createApplicationIO({ logging: createLogging(), fileStorage: createFileStorage(), projectRepo: repo, files: new DesignFiles(engine, repo) });
+      const io = createApplicationIO({ logging: createLogging(), fileStorage: createFileStorage(), fileOpen: createFileOpen(), projectRepo: repo, files: new DesignFiles(engine, repo) });
 
       // A DIFFERENT project is open before the import — these exact values must all be gone
       // after. The app starts with NO project (QO121), so this opens the one it then dirties.
@@ -144,7 +144,7 @@ describe('.wpr import syncs state.project from the file, and export round-trips 
     try {
       const engine = createEngine();
       const repo = createProjectRepo(engine, createFileStorage(), createMemoryStorage());
-      const io = createApplicationIO({ logging: createLogging(), fileStorage: createFileStorage(), projectRepo: repo, files: new DesignFiles(engine, repo) });
+      const io = createApplicationIO({ logging: createLogging(), fileStorage: createFileStorage(), fileOpen: createFileOpen(), projectRepo: repo, files: new DesignFiles(engine, repo) });
 
       // A genuinely valid project, corrupted back to the pre-S9a shape (a solver-slot entry
       // stated as a bare `null`) at TWO distinct fields, so a fix that only logs `errors[0]` is
@@ -194,7 +194,7 @@ describe('.wpr import syncs state.project from the file, and export round-trips 
     };
     const engine = createEngine();
     const repo = createProjectRepo(engine, fileStorage, storage);
-    const io = createApplicationIO({ logging: createLogging(), fileStorage, projectRepo: repo, files: new DesignFiles(engine, repo) });
+    const io = createApplicationIO({ logging: createLogging(), fileStorage, fileOpen: createFileOpen(), projectRepo: repo, files: new DesignFiles(engine, repo) });
 
     newProject();
     requireFocusedProject().name.set('Saved from toolbar');
@@ -204,5 +204,62 @@ describe('.wpr import syncs state.project from the file, and export round-trips 
     const restored = repo.loadFromStorage();
     assert.ok(!Array.isArray(restored) && restored);
     assert.equal(restored.name.value, 'Saved from toolbar');
+  });
+});
+
+/** BUG_20260929_file-open-dialog-seeded-to-winisd: File > Open uses the system open dialog with
+ *  one "OpenISD and WinISD files" filter, and falls back to the shell's file input without it. */
+describe('openFromDisk — one named filter, fallback to the file input', () => {
+  function ioPicking(pick: FilePick, filters: unknown[]) {
+    const fileOpen: FileOpen = { pickFile: async (filter) => { filters.push(filter); return pick; } };
+    const engine = createEngine();
+    const repo = createProjectRepo(engine, createFileStorage(), createMemoryStorage());
+    return createApplicationIO({ logging: createLogging(), fileStorage: createFileStorage(), fileOpen, projectRepo: repo, files: new DesignFiles(engine, repo) });
+  }
+
+  it('asks the dialog for all four formats under one filter, and imports the picked file', async () => {
+    vi.stubGlobal('FileReader', class {
+      onload: null | (() => void) = null;
+      onerror: null | (() => void) = null;
+      result: ArrayBuffer | null = null;
+      readAsArrayBuffer(file: File): void {
+        void file.arrayBuffer().then(buf => { this.result = buf; queueMicrotask(() => this.onload?.()); });
+      }
+    });
+    const filters: unknown[] = [];
+    const fallback = vi.fn();
+    const io = ioPicking({ kind: 'picked', file: new File([readFileSync(SAMPLE_PROJECT_OWPR)], 'picked-design.owpr') }, filters);
+
+    await io.openFromDisk(fallback);
+    await new Promise(resolve => setTimeout(resolve, 0));
+    await new Promise(resolve => setTimeout(resolve, 0));
+
+    assert.deepEqual(filters, [{
+      description: 'OpenISD and WinISD files',
+      accept: {
+        'application/x-openisd-project': ['.owpr'],
+        'application/x-winisd-project': ['.wpr'],
+        'application/x-openisd-driver': ['.owdr'],
+        'application/x-winisd-driver': ['.wdr'],
+      },
+    }]);
+    assert.equal(fallback.mock.calls.length, 0);
+    assert.equal(requireFocusedProject().name.value, 'picked-design');
+    vi.unstubAllGlobals();
+    vi.stubGlobal('location', { origin: 'https://openisd.test', pathname: '/' });
+    vi.stubGlobal('history', { replaceState: () => {} });
+    vi.stubGlobal('navigator', { clipboard: { writeText: () => Promise.resolve() } });
+  });
+
+  it('opens the shell\'s file input where the browser has no open dialog', async () => {
+    const fallback = vi.fn();
+    await ioPicking({ kind: 'unsupported' }, []).openFromDisk(fallback);
+    assert.equal(fallback.mock.calls.length, 1);
+  });
+
+  it('does nothing when the user cancels the dialog', async () => {
+    const fallback = vi.fn();
+    await ioPicking({ kind: 'cancelled' }, []).openFromDisk(fallback);
+    assert.equal(fallback.mock.calls.length, 0);
   });
 });

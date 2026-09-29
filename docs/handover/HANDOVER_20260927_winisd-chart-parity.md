@@ -92,8 +92,8 @@ filter chain match ([chart review §3.5](http://localhost:8000/winisd/openisd/do
 Still open for vented:
 - **Vent length readout.** WinISD's charts ignore the length; its Box-tab length readout is
   unchecked against OpenISD's `ventLength` (c used, k·D for non-round, Num > 1).
-- **End correction default.** OpenISD 0.732 (`engine/air.ts`) vs WinISD's 0.6 in a new project.
-  Affects the length readout only (charts use Fb).
+- **End correction default.** OpenISD 0.732 (`engine/air.ts`); WinISD-saved `.wpr` files also carry 0.732. The 0.6 seen in
+  research files came from our harness writer. Affects the length readout only (charts use Fb).
 - **Vent shape.** Import reads round vents only; WinISD's non-round `Shape` codes are unverified.
 - **Variants.** VC inductance on, Rg at driver side, more than one vent.
 - **Box readouts.** Fb, F3, vent area on the Box tab.

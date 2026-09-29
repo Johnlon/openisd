@@ -1,6 +1,6 @@
 # BUG_20260926_sweep-range-and-y-ranges-not-persisted
 
-**Status:** OPEN
+**Status:** RESOLVED
 
 ## Symptom
 
@@ -45,3 +45,6 @@ gap.
 
 A browser test that sets a sweep range and a Y range, reloads the page, and finds both restored.
 A unit test on the settings repo round-tripping both fields.
+
+## Resolution (verified 2026-09-29)
+Fixed in 9c07df36 (2026-09-26): the view-state autosave writes `sweepRange` and `yRanges` (`ChartView` in viewStateRepo.ts, parsed at load). Tests green now: persistence/test/viewStateRepo.test.ts, ui/test/logic/viewSnapshot-chart.test.ts, ui/test/logic/appState-sweep-range.test.ts. The bug file was never flipped.

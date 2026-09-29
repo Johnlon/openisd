@@ -27,8 +27,10 @@ export interface UnitDef {
   offset?: number;
 }
 
-/** Groups of interchangeable display units for physical dimensions. */
-export const UNIT_GROUPS: Record<UnitGroup, readonly UnitDef[]> = Object.freeze({
+/** Groups of interchangeable display units for physical dimensions. `as const satisfies`
+ *  (not `:`) keeps each `token` a literal, which is what lets `UnitToken<G>` below name the
+ *  exact tokens one group admits, rather than every group's tokens pooled into one `string`. */
+export const UNIT_GROUPS = Object.freeze({
   volume: [
     { token: 'L', label: 'L', factor: 1000 },
     { token: 'cuft', label: 'cu ft', factor: 35.3147 },
@@ -99,4 +101,27 @@ export const UNIT_GROUPS: Record<UnitGroup, readonly UnitDef[]> = Object.freeze(
   percent: [
     { token: 'pct', label: '%', factor: 100 },
   ],
-});
+} as const) satisfies Record<UnitGroup, readonly UnitDef[]>;
+
+/** The tokens group `G` admits — e.g. `UnitToken<'length'>` is `'cm' | 'mm' | 'in'`. Derived from
+ *  `UNIT_GROUPS` itself so a token can never be spelled here and left out there, or vice versa. */
+export type UnitToken<G extends UnitGroup> = (typeof UNIT_GROUPS)[G][number]['token'];
+
+/** A field whose display unit rotates among one group's tokens (`NumInput`/`UnitToggle`'s
+ *  clickable label). `base` is the token shown until the user rotates it, typed so it must be
+ *  one of `group`'s own tokens — `{group: 'volume', base: 'mm'}` does not compile. */
+interface SwitchableUnitFor<G extends UnitGroup> {
+  readonly kind: 'switchable';
+  readonly group: G;
+  readonly base: UnitToken<G>;
+}
+/** Distributes `SwitchableUnitFor` over every `UnitGroup` member, so the union is a discriminated
+ *  one — narrowing on `.group` (or the presence of a field's `.display.group` at all) narrows
+ *  `.base` to that group's own tokens, not the pooled set of every group's. */
+export type SwitchableUnit = { [G in UnitGroup]: SwitchableUnitFor<G> }[UnitGroup];
+
+/** A field shown in one fixed symbol, never switched — `''` for dimensionless. */
+export interface FixedUnit {
+  readonly kind: 'fixed';
+  readonly symbol: string;
+}

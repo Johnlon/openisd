@@ -7,6 +7,7 @@ import type { LossMode } from '../../fields/lossMode.js';
 import { CalculatedFieldImpl, absentCell, calculatedCell } from '../cell.js';
 import type { Calculated, Readable, SimpleField } from '../cell.js';
 import type { Box } from '../box/box.js';
+import type { Bandpass6Box } from '../box/bandpass6Box.js';
 import type { FrequencyGrid } from '../box/frequencyGrid.js';
 import { engineCircuitModel } from '../driver/engineCircuitModel.js';
 import type { OpenISDDriverEmbedded } from '../driver/openISDDriverEmbedded.js';
@@ -134,14 +135,12 @@ function boxSpecificParamsOf(source: ProjectSweepSource, boxType: SimulatableBox
             // Null only when the vent's tuning ↔ length pair is itself unsolved, which
             // ventSweepIssuesOf already refuses the sweep over before this is read.
             const Fb = box.vented.tuning_goal_hz.value;
-            const length = box.vented.vent.length_m.value;
-            const portEndCorrection_m = Leff !== null && length !== null ? Leff - length : undefined;
+            const portEndCorrection_m = box.vented.vent.endCorrectionLength_m() ?? undefined;
             return {Sp: Sp ?? undefined, Leff: Leff ?? undefined, Fb: Fb ?? undefined, portEndCorrection_m};
         }
         case 'bandpass4': {
             const Sp = box.bandpass4.vents.front.totalArea_m2();
             const Leff = box.bandpass4.vents.front.effectiveLength_m();
-            const length = box.bandpass4.vents.front.length_m.value;
             const rear = box.bandpass4.chambers.rear.losses;
             const front = box.bandpass4.chambers.front;
             // circuit.ts's bandpass4 `winisd-lossy` branch reads each chamber's OWN losses and
@@ -152,7 +151,7 @@ function boxSpecificParamsOf(source: ProjectSweepSource, boxType: SimulatableBox
                 Qlr: rear.Ql.value, Qar: rear.Qa.value, Qiclfr: rear.Qicl.value,
                 Qlf: front.losses.Ql.value, Qaf: front.losses.Qa.value, Qpf: front.losses.Qp.value,
                 Ff: front.tuning_goal_hz.value ?? undefined,
-                portEndCorrection_m: Leff !== null && length !== null ? Leff - length : undefined,
+                portEndCorrection_m: box.bandpass4.vents.front.endCorrectionLength_m() ?? undefined,
             };
         }
         case 'box-passive-radiator': {
@@ -176,6 +175,7 @@ function boxSpecificParamsOf(source: ProjectSweepSource, boxType: SimulatableBox
             const front = box.bandpass6.chambers.front;
             const Sp = box.bandpass6.vents.front.totalArea_m2();
             const Spr = box.bandpass6.vents.rear.totalArea_m2();
+            const ends = ventEndCorrections_m(box.bandpass6.vents);
             // Same "each chamber's own losses, never the shared Ql/Qa/Qp" reasoning as
             // `bandpass4` above — `Bandpass6Box`'s `winisd-lossy` branch reads these directly
             // (`SweepParams.Qpr`'s own doc).
@@ -185,6 +185,7 @@ function boxSpecificParamsOf(source: ProjectSweepSource, boxType: SimulatableBox
                 Qiclfr: rear.losses.Qicl.value,
                 Qlf: front.losses.Ql.value, Qaf: front.losses.Qa.value, Qpf: front.losses.Qp.value,
                 Fr: rear.tuning_goal_hz.value ?? undefined, Ff: front.tuning_goal_hz.value ?? undefined,
+                ...ends,
             };
         }
         case 'abc': {
@@ -194,6 +195,7 @@ function boxSpecificParamsOf(source: ProjectSweepSource, boxType: SimulatableBox
             const Spr = box.abc.vents.rear.totalArea_m2();
             const SpIntra = box.abc.vents.intra.totalArea_m2();
             const LeffIntra = box.abc.vents.intra.effectiveLength_m();
+            const ends = ventEndCorrections_m(box.abc.vents);
             return {
                 Vf: front.volume_m3.value, Sp: Sp ?? undefined, Spr: Spr ?? undefined,
                 Qlr: rear.losses.Ql.value, Qar: rear.losses.Qa.value, Qpr: rear.losses.Qp.value,
@@ -201,6 +203,7 @@ function boxSpecificParamsOf(source: ProjectSweepSource, boxType: SimulatableBox
                 Qlf: front.losses.Ql.value, Qaf: front.losses.Qa.value, Qpf: front.losses.Qp.value,
                 Fr: rear.tuning_goal_hz.value ?? undefined, Ff: front.tuning_goal_hz.value ?? undefined,
                 SpIntra: SpIntra ?? undefined, LeffIntra: LeffIntra ?? undefined,
+                ...ends,
             };
         }
         // sealed has no vent or radiator.
@@ -213,6 +216,14 @@ function boxSpecificParamsOf(source: ProjectSweepSource, boxType: SimulatableBox
  *  `OpenISDProject.#engineBoxType`'s doc comment for why null is not a failure. */
 function engineBoxTypeOf(source: ProjectSweepSource): SimulatableBoxType | null {
     return source.engine.box.simulatableBoxType(source.box.boxType.value);
+}
+
+/** The front and rear vents' end corrections, for WinISD's transmission-line port model. */
+function ventEndCorrections_m(vents: Bandpass6Box['vents']): Pick<SweepParams, 'portEndCorrection_m' | 'rearPortEndCorrection_m'> {
+    return {
+        portEndCorrection_m: vents.front.endCorrectionLength_m() ?? undefined,
+        rearPortEndCorrection_m: vents.rear.endCorrectionLength_m() ?? undefined,
+    };
 }
 
 /** One port's own "neither tuning nor length stated" check — the body `ventSweepIssuesOf` used

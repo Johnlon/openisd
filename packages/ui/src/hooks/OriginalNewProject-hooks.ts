@@ -2,7 +2,7 @@ import { computed, type ComputedRef, ref, type Ref, shallowRef } from 'vue';
 // Type-only: the store constructs projects (`newProject()`) and owns the engine instance; this
 // hook only names their shapes, so neither import is a layering edge (QO80).
 import type { OpenISDDriver, OpenISDProject } from '@openisd/design';
-import type { BoxType, DriverEngine, EbpSuitability, SealedEngine, VentedAlignment, VentedDesign, VentedEngine, Wiring } from '@openisd/design/engine';
+import type { BoxType, EbpSuitability, SealedEngine, VentedAlignment, VentedEngine, Wiring } from '@openisd/design/engine';
 import {ARRAY_WIRING_OPTIONS, DEFAULT_SOURCE_RESISTANCE_OHM, DEFAULT_VENTED_ALIGNMENT, NumberField, SEALED_ALIGNMENT_OPTIONS, VENTED_ALIGNMENT_OPTIONS, type SelectorOption} from '@openisd/design/fields';
 import {
   defaultPassiveRadiator,
@@ -15,9 +15,8 @@ import {useApp} from '../logic/app.js';
 import { selectedOption } from '../logic/domEvents.js';
 import { fromDisplay } from '../logic/fields/units.js';
 
-/** The three engine areas the wizard consults; the app facade's by default, substitutes in a test. */
+/** The two engine areas the wizard consults; the app facade's by default, substitutes in a test. */
 export interface OriginalNewProjectEngineAreas {
-  readonly driver: DriverEngine;
   readonly sealed: SealedEngine;
   readonly vented: VentedEngine;
 }
@@ -194,14 +193,10 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
   const ebp = computed(() => {
     const driver = selectedDriver.value;
     if (!driver) return null;
-    const Fs_hz = driver.specs.Fs_hz.value;
-    const Qes = driver.specs.Qes.value;
-    return Fs_hz != null && Qes != null && Qes !== 0 ? eng.driver.ebp(Fs_hz, Qes) : null;
+    return driver.ebp();
   });
 
-  const ebpSuitability = computed(() => {
-    return ebp.value != null ? eng.driver.ebpSuitability(ebp.value) : null;
-  });
+  const ebpSuitability = computed(() => selectedDriver.value?.ebpSuitability() ?? null);
 
   const ebpSuitabilityLabel = computed(() => {
     switch (ebpSuitability.value) {
@@ -219,12 +214,7 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
   const qtc = computed(() => {
     const driver = selectedDriver.value;
     if (!driver) return null;
-    const Qts = driver.specs.Qts.value;
-    const Vas_m3 = driver.specs.Vas_m3.value;
-    const v_m3 = sealedVolume_L.value / 1000;
-    return Qts != null && Vas_m3 != null && v_m3 > 0
-      ? eng.sealed.qtcFromVolume(Qts, Vas_m3, v_m3)
-      : null;
+    return driver.sealedQtc(sealedVolume_L.value / 1000);
   });
 
   const selectedSealedAlignment = computed(() => {
@@ -234,10 +224,7 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
   /** Re-derive the sealed volume from the current driver and target Qtc; a driver without
    *  Qts/Vas leaves the previous volume standing. */
   function recomputeSealedVolume(driver: OpenISDDriver, target: number): void {
-    const Qts = driver.specs.Qts.value;
-    const Vas_m3 = driver.specs.Vas_m3.value;
-    if (Qts == null || Vas_m3 == null) return;
-    const calculated_m3 = eng.sealed.volumeForQtc(Qts, Vas_m3, target);
+    const calculated_m3 = driver.sealedVolumeForQtc(target);
     // Vb is a 2dp field everywhere else in the app (packages/ui/src/logic/fields/uiFields.ts) —
     // match that here instead of showing the solver's raw float.
     if (calculated_m3 != null) sealedVolume_L.value = Math.round(calculated_m3 * 1000 * 100) / 100;
@@ -264,25 +251,11 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
   }
 
   /** WinISD designs the vented box for the driver AS DRIVEN — Qts with the project's series
-   *  resistance folded into Qes — not the bare datasheet Qts (`boxDesign.ts#ventedAlignment`). */
-  function ventedDesign(driver: OpenISDDriver, alignment: VentedAlignment, Rs_ohm: number, Ql: number): VentedDesign | null {
-    const Fs_hz = driver.specs.Fs_hz.value;
-    const Qts = driver.specs.Qts.value;
-    const Vas_m3 = driver.specs.Vas_m3.value;
-    if (Fs_hz == null || Qts == null || Vas_m3 == null) return null;
-    const Qms = driver.specs.Qms.value;
-    const Qes = driver.specs.Qes.value;
-    const Re_ohm = driver.specs.Re_ohm.value;
-    const QtsLoaded = Qms != null && Qes != null && Re_ohm != null
-      ? eng.driver.sourceLoadedQts(Qms, Qes, Re_ohm, Rs_ohm, Qts)
-      : Qts;
-    return eng.vented.alignment(alignment, Fs_hz, QtsLoaded, Vas_m3, Ql);
-  }
-
+   *  resistance folded into Qes — not the bare datasheet Qts (`OpenISDDriver.ventedDesign`). */
   const ventedAlignmentResult = computed(() => {
     const driver = selectedDriver.value;
     if (!driver) return null;
-    return ventedDesign(driver, selectedVentedAlignment.value, DEFAULT_SOURCE_RESISTANCE_OHM, NEW_PROJECT_VENTED_QL);
+    return driver.ventedDesign(selectedVentedAlignment.value, DEFAULT_SOURCE_RESISTANCE_OHM, NEW_PROJECT_VENTED_QL);
   });
 
   const ventedVolume_L = computed(() => (ventedAlignmentResult.value?.Vb ?? 0) * 1000);
@@ -383,8 +356,8 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
       case 'vented': {
         // Designed against the project's OWN Rg and Ql — the preview's constants are pinned to
         // these by test, so the two never disagree.
-        const design = ventedDesign(
-          selectedDriver.value, selectedVentedAlignment.value, p.Rs_ohm.value, p.box.vented.losses.Ql.value,
+        const design = selectedDriver.value.ventedDesign(
+          selectedVentedAlignment.value, p.Rs_ohm.value, p.box.vented.losses.Ql.value,
         );
         if (design) {
           p.box.vented.volume_m3.set(design.Vb);

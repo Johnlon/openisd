@@ -520,16 +520,16 @@ describe('E — the signal', () => {
     const Qts = 1 / (1 / 4 + 1 / 0.4);
 
     // A perfect voltage source (Rs = 0) leaves Qts alone.
-    expect(project.sourceLoadedQts(0)!).toBeCloseTo(Qts, 10);
-    expect(project.sourceLoadedQts(2)!).toBe(engine.driver.sourceLoadedQts(4, 0.4, 6.4, 2, Qts));
-    expect(project.sourceLoadedQts(2)!).toBeGreaterThan(project.sourceLoadedQts(0)!);
+    expect(project.driver.sourceLoadedQts(0)!).toBeCloseTo(Qts, 10);
+    expect(project.driver.sourceLoadedQts(2)!).toBe(engine.driver.sourceLoadedQts(4, 0.4, 6.4, 2, Qts));
+    expect(project.driver.sourceLoadedQts(2)!).toBeGreaterThan(project.driver.sourceLoadedQts(0)!);
   });
 
   it('sourceLoadedQts() is null when the driver\'s Q group cannot be resolved', () => {
     const engine = createEngine();
     const project = OpenISDProject.builder(driverFromSpec(engine, { Fs_hz: 30 }), engine).sealed().volume_m3(0.03).build();
 
-    expect(project.sourceLoadedQts(2)).toBeNull();
+    expect(project.driver.sourceLoadedQts(2)).toBeNull();
   });
 });
 

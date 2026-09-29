@@ -1,5 +1,5 @@
 import {type Engine} from '../../engine/index.js';
-import type { Air, AirEnvironment, DriverError, DriverIssue } from '../../engine/index.js';
+import type { Air, AirEnvironment, DriverError, DriverIssue, EbpSuitability, VentedAlignment, VentedDesign } from '../../engine/index.js';
 import { realAppContext } from '../appContext.js';
 import type { AppContext } from '../appContext.js';
 import { ReadableFieldImpl, SetOnlyFieldImpl, absentCell, enteredCell, resolvingField } from '../cell.js';
@@ -174,6 +174,53 @@ export abstract class OpenISDDriver extends OpenISDDevice {
             if (this.specs[field].value === null) reasons.push({subject: field, text: 'is not set'});
         }
         return reasons;
+    }
+
+    /** Qts as the amplifier's source impedance `Rs_ohm` loads it: `Rs` folded into Qes. The bare
+     *  Qts when Qms/Qes/Re cannot be resolved; null when Qts cannot. `Rs` is a parameter because
+     *  the driver record has no home for it — it is the project's fact. */
+    sourceLoadedQts(Rs_ohm: number): number | null {
+        const ts = this.specs;
+        const Qts = ts.Qts.value;
+        if (Qts === null) return null;
+        return this.engine.driver.sourceLoadedQts(
+            ts.Qms.value ?? NaN, ts.Qes.value ?? NaN, ts.Re_ohm.value ?? NaN, Rs_ohm, Qts);
+    }
+
+    /** Efficiency bandwidth product, Fs/Qes. Null without Fs or Qes, or for Qes = 0. */
+    ebp(): number | null {
+        const Fs_hz = this.specs.Fs_hz.value, Qes = this.specs.Qes.value;
+        return Fs_hz !== null && Qes !== null && Qes !== 0 ? this.engine.driver.ebp(Fs_hz, Qes) : null;
+    }
+
+    /** Which box type the EBP rule of thumb prefers; null when `ebp()` is. */
+    ebpSuitability(): EbpSuitability | null {
+        const ebp = this.ebp();
+        return ebp !== null ? this.engine.driver.ebpSuitability(ebp) : null;
+    }
+
+    /** The Qtc a sealed box of `volume_m3` gives this driver. Null without Qts/Vas or for a
+     *  non-positive volume. */
+    sealedQtc(volume_m3: number): number | null {
+        const Qts = this.specs.Qts.value, Vas_m3 = this.specs.Vas_m3.value;
+        return Qts !== null && Vas_m3 !== null && volume_m3 > 0
+            ? this.engine.sealed.qtcFromVolume(Qts, Vas_m3, volume_m3) : null;
+    }
+
+    /** The sealed volume that gives this driver `targetQtc`. Null without Qts/Vas. */
+    sealedVolumeForQtc(targetQtc: number): number | null {
+        const Qts = this.specs.Qts.value, Vas_m3 = this.specs.Vas_m3.value;
+        return Qts !== null && Vas_m3 !== null ? this.engine.sealed.volumeForQtc(Qts, Vas_m3, targetQtc) : null;
+    }
+
+    /** The vented box `alignment` designs for this driver as driven through `Rs_ohm` with box
+     *  losses `Ql` — WinISD designs for the source-loaded Qts, not the datasheet Qts. Null
+     *  without Fs/Qts/Vas. */
+    ventedDesign(alignment: VentedAlignment, Rs_ohm: number, Ql: number): VentedDesign | null {
+        const Fs_hz = this.specs.Fs_hz.value, Vas_m3 = this.specs.Vas_m3.value;
+        const QtsLoaded = this.sourceLoadedQts(Rs_ohm);
+        if (Fs_hz === null || Vas_m3 === null || QtsLoaded === null) return null;
+        return this.engine.vented.alignment(alignment, Fs_hz, QtsLoaded, Vas_m3, Ql);
     }
 
     /** Stated values that contradict each other, each stated against what the other stated

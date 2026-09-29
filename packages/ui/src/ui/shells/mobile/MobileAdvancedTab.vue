@@ -25,9 +25,9 @@ const {
     <div class="mob-panel-head">Environment</div>
     <div class="mob-field-row" :class="[envTempStored ? 'mob-field-entered' : 'mob-field-calculated', { 'mob-field-dq': envTempDq.dq.length > 0 }]" :title="envTempDq.dq.join('; ')">
       <div class="mob-field-main"><span class="mob-field-label">Temperature</span>
-        <span class="mob-field-value"><NumInput v-model="advTemp" :field="NumberField.ADV_TEMP_K" unit-key="advTemp" group="temp" base="K" :precision="2" :allow-out-of-range="true" v-bind="envTempDq" /></span>
+        <span class="mob-field-value"><NumInput v-model="advTemp" :field="NumberField.ADV_TEMP_K" unit-key="advTemp" :precision="2" :allow-out-of-range="true" v-bind="envTempDq" /></span>
       </div>
-      <UnitToggle field="advTemp" group="temp" base="K" unit-class="mob-unit" />
+      <UnitToggle :field="NumberField.ADV_TEMP_K" unit-key="advTemp" unit-class="mob-unit" />
     </div>
     <div class="mob-field-row" :class="[envHumidityStored ? 'mob-field-entered' : 'mob-field-calculated', { 'mob-field-dq': envHumidityDq.dq.length > 0 }]" :title="envHumidityDq.dq.join('; ')">
       <div class="mob-field-main"><span class="mob-field-label">Relative humidity</span>
@@ -37,9 +37,9 @@ const {
     </div>
     <div class="mob-field-row" :class="[envPressureStored ? 'mob-field-entered' : 'mob-field-calculated', { 'mob-field-dq': envPressureDq.dq.length > 0 }]" :title="envPressureDq.dq.join('; ')">
       <div class="mob-field-main"><span class="mob-field-label">Air pressure</span>
-        <span class="mob-field-value"><NumInput v-model="advPressure" :field="NumberField.ADV_PRESSURE_KPA" unit-key="advPressure" group="pressure" base="Pa" :precision="1" :allow-out-of-range="true" v-bind="envPressureDq" /></span>
+        <span class="mob-field-value"><NumInput v-model="advPressure" :field="NumberField.ADV_PRESSURE_KPA" unit-key="advPressure" :precision="1" :allow-out-of-range="true" v-bind="envPressureDq" /></span>
       </div>
-      <UnitToggle field="advPressure" group="pressure" base="Pa" unit-class="mob-unit" />
+      <UnitToggle :field="NumberField.ADV_PRESSURE_KPA" unit-key="advPressure" unit-class="mob-unit" />
     </div>
     <div class="mob-field-row mob-field-calculated">
       <div class="mob-field-main"><span class="mob-field-label">Sound velocity</span>

@@ -1,6 +1,8 @@
 # BUG_20260928_three_tables_disagree_on_field_validity
 
-**Status:** OPEN — all three tables folded in 2026-09-28; `NumInput`'s `group`/`base` props remain
+**Status:** RESOLVED — all three tables folded 2026-09-28; `NumInput`'s `group`/`base` fourth
+table folded 2026-09-29. Open: six band-less spec fields (`Dia_m`, `freq_low_hz`,
+`freq_high_hz`, `weight_kg`, `OuterX_m`, `OuterY_m`) wait on John to state a band.
 
 ## Symptom
 
@@ -106,5 +108,37 @@ physics. Their floors stay in `FLOOR_WITHOUT_FIELD`, seven entries, and
 `driver-spec-floor-coverage.test.ts` fails if that table and the registry ever stop covering
 every spec name between them.
 
-**Still open:** `NumInput`'s `group`/`base` props (see above). Also: give the six band-less spec
-fields registry entries, which needs John to state their bands.
+**Still open:** give the six band-less spec fields registry entries, which needs John to state
+their bands.
+
+## Progress, 2026-09-29
+
+**Resolved.** `NumInput`'s `group`/`base` fourth table is folded. `NumberField.display` is now
+one member, `SwitchableUnit | FixedUnit`: `{kind:'switchable', group, base}` for a field the user
+can rotate between a `UnitGroup`'s tokens, `{kind:'fixed', symbol}` for one that never rotates
+(`''` for dimensionless). The label always comes from `UNIT_GROUPS`, never a second string.
+`NumInput.vue` and `UnitToggle.vue` take `:field="NumberField.X"` and read `display` off it; the
+`group`/`base` props are deleted, and so is every `group="…" base="…"` call site: 102 in the originally-scoped
+`DriverEditorModal.vue`, `OriginalShell.vue`, `PREditModal.vue`, `OptionsModal.vue`,
+`MobileBoxTab.vue`, `OriginalTune.vue`, plus 26 more in `MobileAdvancedTab.vue` and
+`MobileEnclosureTab.vue`, which the same fourth-table pattern had reached but the original count
+missed — 128 in total. 53 of 93
+`NumberField` members are switchable, 40 are fixed. `driverSpecFloor` in
+`openIsdDriverSpec.ts` now indexes a frozen `Record<DriverSpecFieldName, NumberField>` built once
+from the registry's own members, replacing the `NumberField.named(key)` string lookup there
+(`named()` itself stays — `physicalRange.ts` and `driver-spec-floor-coverage.test.ts` still use
+it).
+
+One call-site disagreement found and fixed, outside the 114-site count: `OriginalTune.vue`'s own
+hardcoded unit table said `Ω` for `Re_ohm` and `T·m` for `BL_Tm`; the registry (and every other
+call site — `DriverEditorModal.vue`, `OriginalShell.vue`) says `ohm` and `Tm`. Made
+`OriginalTune.vue` consistent with the registry and the majority spelling: displayed text for
+these two fields changes from `Ω`/`T·m` to `ohm`/`Tm`.
+
+Tests: `field-display.test.ts` (new, 6/6) pins the sum type. `field-floor.test.ts`,
+`physicalRange.test.ts`, `driver-spec-floor-coverage.test.ts`, `driver-value-validity.test.ts`
+(70/70), `driver-editor-units.test.ts` (41/41),
+`driver-editor-provenance-and-units.browser.spec.ts` (10/10), `original-skin.browser.spec.ts`
+(57/57), `mobile-advanced-tab.browser.spec.ts` + `mobile-enclosure-tab.browser.spec.ts` (7/7) all
+green. `npx tsc -p packages/design` and `npx vue-tsc -p packages/ui` clean; targeted eslint on
+every changed file clean.

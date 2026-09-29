@@ -1,5 +1,10 @@
 Status: RESOLVED
 
+> **Correction 2026-09-29:** the claim below that 0.6 is WinISD's own default end correction is wrong. The
+> goldens grepped here were written by our harness (`Creator=winisd_research overnight harness`, writer
+> default at `winisd_research/lib/wdr.py:60`). Every WinISD-saved `.wpr` carries `endcorrection=0.732`.
+> See `bugs/BUG_20260929_wpr_writer_end_correction_default_is_not_winisd.md`.
+
 # `toWpr` emits a phantom vent in `[VentFront]`/`[VentRear]` for a passive-radiator project
 
 ## Symptom

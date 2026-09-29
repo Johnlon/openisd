@@ -29,6 +29,7 @@ export {
 } from './storage/keyValueStorage.js';
 
 export { createFileSave, type FileSave } from './storage/fileSave.js';
+export { createFileOpen, type FileOpen, type FilePick, type FilePickerFilter } from './storage/fileOpen.js';
 
 export {
   OPENISD_STATE_KEY, OPENISD_PROJECTS_KEY, OPENISD_OPEN_SESSIONS_KEY, OPENISD_VIEW_KEY,
