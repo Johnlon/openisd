@@ -46,13 +46,9 @@ interface UiState {
   username?: string;
   unitTokens?: Record<string, string>;
   chartColors?: ChartColors;
-  /** The mobile shell's own last-chosen chart. The Original skin's open charts are the
-   *  project's own (`OpenISDProject.openCharts`). */
-  mobileChartTab?: string;
   /** The Original skin's minimum chart height, px (`CHART_MIN_H_OPTIONS`). Absent means
    *  `CHART_MIN_H`. */
   originalChartMinH?: number;
-  mobileChartLabel?: string;
   /** The splash has been shown and dismissed once — it opens itself only for a visitor whose
    *  stored view carries nothing (`SplashModal-hooks.ts`). */
   splashSeen?: boolean;
