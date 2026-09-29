@@ -224,7 +224,7 @@ export class OpenISDBox implements Box {
         const pr = focus(lens, 'passiveRadiator');
         const prSlot = focus(pr, 'component');
         const getRadiator = (): OpenISDPassiveRadiatorEmbedded => {
-            return new OpenISDPassiveRadiatorEmbedded(prSlot, engine);
+            return new OpenISDPassiveRadiatorEmbedded(prSlot);
         };
         const prVolume = requiredField(pr, 'volume_m3', (v) => engine.issues.positiveValueIssue(v));
         const prAddedMassEntry = entryField(focus(pr, 'addedMass_kg'), 'addedMass_kg', () => groupDq(issues().pr));

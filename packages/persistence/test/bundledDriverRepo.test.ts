@@ -17,7 +17,7 @@ const engine = createEngine();
 const BASE = '/openisd/';
 
 const driverRecord = OpenISDDriver.empty(engine).toOpenIsdDeviceJson();
-const radiatorRecord = OpenISDPassiveRadiatorStandalone.empty(engine).clonePassiveRadiator();
+const radiatorRecord = OpenISDPassiveRadiatorStandalone.empty().clonePassiveRadiator();
 
 const base = (uuid: string, path: string) =>
   ({ uuid, path, name: path, dq: true, datasheet: null, productPage: null, listingPage: null });
@@ -65,7 +65,7 @@ describe('createBundledPassiveRadiatorRepo', () => {
       [`${BASE}passive-radiators-index.json`]: [radiatorRow],
       [`${BASE}drivers/brand/pr/openisd.yml.json`]: radiatorRecord,
     });
-    const repo = createBundledPassiveRadiatorRepo({ fetch: s.fetchImpl, baseUrl: BASE, engine, maxAge_ms: 60_000, now: () => 0 });
+    const repo = createBundledPassiveRadiatorRepo({ fetch: s.fetchImpl, baseUrl: BASE, maxAge_ms: 60_000, now: () => 0 });
     const rows = await repo.index();
     assert.equal(rows[0].uuid, radiatorRecord.uuid.value);
     const pr = await repo.load(radiatorRecord.uuid.value);
@@ -78,7 +78,7 @@ describe('createBundledPassiveRadiatorRepo', () => {
       [`${BASE}passive-radiators-index.json`]: [radiatorRow],
       [`${BASE}drivers/brand/pr/openisd.yml.json`]: driverRecord,
     });
-    const repo = createBundledPassiveRadiatorRepo({ fetch: s.fetchImpl, baseUrl: BASE, engine, maxAge_ms: 60_000, now: () => 0 });
+    const repo = createBundledPassiveRadiatorRepo({ fetch: s.fetchImpl, baseUrl: BASE, maxAge_ms: 60_000, now: () => 0 });
     await assert.rejects(repo.load(radiatorRecord.uuid.value), (e: Error) => /passive-radiator section/.test(e.message));
   });
 });

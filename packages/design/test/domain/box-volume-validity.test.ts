@@ -105,7 +105,7 @@ describe('box volume validity — every box type shares one floor (BUG_20260927)
 
   it('passive-radiator volume_m3', () => {
     const engine = createEngine();
-    const radiator = OpenISDPassiveRadiatorStandalone.empty(engine);
+    const radiator = OpenISDPassiveRadiatorStandalone.empty();
     const p = OpenISDProject.builder(driverFor(engine), engine).passiveRadiator()
       .volume_m3(0.05).tuning_goal_hz(35).count(1).radiator(radiator).build();
     expectInvalidVolumeAtEachBadValue(engine, p.box.passiveRadiator.volume_m3);

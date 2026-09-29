@@ -59,8 +59,8 @@ const CATALOGUE_MAX_AGE_MS = 60 * 60 * 1000;
 const driverRepo = createBundledDriverRepo({ fetch, baseUrl: import.meta.env.BASE_URL, engine, maxAge_ms: CATALOGUE_MAX_AGE_MS, now: Date.now });
 const myDriverRepo = createMyDriverRepo(storage, engine);
 const prefs = createPrefsRepo(storage);
-const myPassiveRadiators = createMyPassiveRadiatorRepo(storage, engine);
-const bundledPRs = createBundledPassiveRadiatorRepo({ fetch, baseUrl: import.meta.env.BASE_URL, engine, maxAge_ms: CATALOGUE_MAX_AGE_MS, now: Date.now });
+const myPassiveRadiators = createMyPassiveRadiatorRepo(storage);
+const bundledPRs = createBundledPassiveRadiatorRepo({ fetch, baseUrl: import.meta.env.BASE_URL, maxAge_ms: CATALOGUE_MAX_AGE_MS, now: Date.now });
 // STORAGE (port): the interactive file-save destination. Two SEPARATE instances — one for
 // the project (retains the open project's file handle), one for the driver editor's one-shot
 // .wdr/.owdr export — so exporting a driver cannot silently retarget the project Save button.

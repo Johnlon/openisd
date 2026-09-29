@@ -109,7 +109,7 @@ describe('passiveRadiatorRows — the PR browser row view model', () => {
   });
 
   const radiatorOf = (p: { brand: string; model: string; Sd_m2?: number; Mms_kg?: number; Cms_m_per_N?: number }) => {
-    const pr = OpenISDPassiveRadiatorStandalone.fromConformingRecord(prRecord(p), createEngine());
+    const pr = OpenISDPassiveRadiatorStandalone.fromConformingRecord(prRecord(p));
     if (Array.isArray(pr)) throw new Error(`fixture is not a valid radiator: ${pr.join(', ')}`);
     return pr;
   };

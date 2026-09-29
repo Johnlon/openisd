@@ -79,7 +79,7 @@ describe('structural DQ on ReadonlyField<T>', () => {
 
   it('exposes dq() on PR addedMass_kg and tuning_goal_hz for unreachable tuning target', () => {
     const p = project();
-    const library = OpenISDPassiveRadiatorStandalone.fromConformingRecord(prJson(), createEngine());
+    const library = OpenISDPassiveRadiatorStandalone.fromConformingRecord(prJson());
     if (Array.isArray(library)) throw new Error(`fixture radiator is invalid: ${library.join(', ')}`);
     p.box.passiveRadiator.radiator.update(library);
     // S2-7d2: the project cascade only solves the ACTIVE box type's vent/PR pair.

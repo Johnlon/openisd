@@ -87,7 +87,7 @@ function aDriver(): OpenISDDriver {
 }
 
 function aRadiator(): OpenISDPassiveRadiatorStandalone {
-  const pr = OpenISDPassiveRadiatorStandalone.fromConformingRecord(passiveRadiatorRecord(), engine);
+  const pr = OpenISDPassiveRadiatorStandalone.fromConformingRecord(passiveRadiatorRecord());
   if (Array.isArray(pr)) throw new Error('fixture radiator must conform: ' + pr.join('; '));
   return pr;
 }
@@ -115,7 +115,7 @@ describe('both saved libraries write the same envelope', () => {
 
   it('My Passive Radiators writes the SAME envelope shape', () => {
     const storage = memoryStorage();
-    const repo = createMyPassiveRadiatorRepo(storage, engine);
+    const repo = createMyPassiveRadiatorRepo(storage);
 
     repo.upsert(aRadiator());
 
@@ -145,10 +145,10 @@ describe('both saved libraries return live domain objects', () => {
 
   it('My Passive Radiators reads back a radiator, not a five-number row', () => {
     const storage = memoryStorage();
-    const repo = createMyPassiveRadiatorRepo(storage, engine);
+    const repo = createMyPassiveRadiatorRepo(storage);
     repo.upsert(aRadiator());
 
-    const back = createMyPassiveRadiatorRepo(storage, engine).list();
+    const back = createMyPassiveRadiatorRepo(storage).list();
     assert.equal(back.length, 1);
     // The whole point: brand and model survive a save, which the five-number row discarded.
     assert.equal(back[0].passiveRadiator.model.value, 'DSA175-PR');
@@ -157,15 +157,15 @@ describe('both saved libraries return live domain objects', () => {
 
   it('a saved radiator keeps its uuid across a read, so a row can be deleted by identity', () => {
     const storage = memoryStorage();
-    const saved = createMyPassiveRadiatorRepo(storage, engine).upsert(aRadiator());
+    const saved = createMyPassiveRadiatorRepo(storage).upsert(aRadiator());
     assert.ok(saved, 'the fixture storage is writable, so the save must succeed');
 
-    const repo = createMyPassiveRadiatorRepo(storage, engine);
+    const repo = createMyPassiveRadiatorRepo(storage);
     const listed = repo.list();
     assert.ok(saved);
     assert.equal(listed[0].uuid, saved.uuid, 'the uuid is adopted on read, never re-minted');
 
     repo.remove(saved.uuid);
-    assert.equal(createMyPassiveRadiatorRepo(storage, engine).list().length, 0);
+    assert.equal(createMyPassiveRadiatorRepo(storage).list().length, 0);
   });
 });

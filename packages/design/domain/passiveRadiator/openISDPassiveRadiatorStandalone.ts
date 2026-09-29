@@ -1,4 +1,3 @@
-import {type Engine} from '../../engine/index.js';
 import { realAppContext } from '../appContext.js';
 import type { AppContext } from '../appContext.js';
 import { asRadiatorDevice } from '../openisdSchema.js';
@@ -19,17 +18,17 @@ export class OpenISDPassiveRadiatorStandalone extends OpenISDPassiveRadiator {
     /** A radiator stating nothing — the counterpart of `OpenISDDriver.empty()`, and how a PR
      *  comes into existence before anyone has typed its parameters. `configurePR()` accepts it,
      *  so a box can adopt one and the editor fills it in from there. */
-    static empty(engine: Engine, appContext: AppContext = realAppContext): OpenISDPassiveRadiatorStandalone {
-        return OpenISDPassiveRadiatorStandalone.wrap(blankDeviceRecord({'passive-radiator': {}}, 'passive-radiator', appContext), engine);
+    static empty(appContext: AppContext = realAppContext): OpenISDPassiveRadiatorStandalone {
+        return OpenISDPassiveRadiatorStandalone.wrap(blankDeviceRecord({'passive-radiator': {}}, 'passive-radiator', appContext));
     }
 
-    static fromConformingRecord(record: unknown, engine: Engine): OpenISDPassiveRadiatorStandalone | string[] {
+    static fromConformingRecord(record: unknown): OpenISDPassiveRadiatorStandalone | string[] {
         const conformed = OpenISDDeviceJson.fromConformingRecord(record);
         if ('problems' in conformed) return conformed.problems;
 
         const radiator = asRadiatorDevice(conformed.json);
         if (radiator === null) return ['no passive-radiator section — this record is a driver, not a radiator'];
-        return OpenISDPassiveRadiatorStandalone.wrap(radiator, engine);
+        return OpenISDPassiveRadiatorStandalone.wrap(radiator);
     }
 
 
@@ -37,16 +36,15 @@ export class OpenISDPassiveRadiatorStandalone extends OpenISDPassiveRadiator {
     private constructor(
         read: () => RadiatorDeviceJson,
         set: (json: RadiatorDeviceJson) => void,
-        engine: Engine,
     ) {
-        super({get value() { return read(); }, set}, engine);
+        super({get value() { return read(); }, set});
     }
 
-    static wrap(json: RadiatorDeviceJson, engine: Engine): OpenISDPassiveRadiatorStandalone {
+    static wrap(json: RadiatorDeviceJson): OpenISDPassiveRadiatorStandalone {
         let current = json;
         return new OpenISDPassiveRadiatorStandalone(() => current, (j) => {
             current = j;
-        }, engine);
+        });
     }
 
     /** @internal The record a save writes, deep-cloned — the radiator's counterpart to

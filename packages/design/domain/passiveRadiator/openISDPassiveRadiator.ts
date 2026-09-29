@@ -1,4 +1,3 @@
-import {type Engine} from '../../engine/index.js';
 import type { SimpleField } from '../cell.js';
 import type { RadiatorDeviceJson } from '../openisdSchema.js';
 import { OpenISDDevice } from '../driver/openISDDevice.js';
@@ -26,8 +25,8 @@ export abstract class OpenISDPassiveRadiator extends OpenISDDevice {
     // is, so a field list that differed between them was describing nothing real. The six identity
     // fields are not here: every device has those, so they live on `OpenISDDevice`.
 
-    protected constructor(slot: SimpleField<RadiatorDeviceJson>, engine: Engine) {
-        super(slot, engine);
+    protected constructor(slot: SimpleField<RadiatorDeviceJson>) {
+        super(slot);
         this.slot = slot;
         this.spec = new OpenIsdPassiveRadiatorSpec(slot);
     }

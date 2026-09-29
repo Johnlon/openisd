@@ -75,7 +75,7 @@ export abstract class BoxProjectBuilder {
 
     /** An inert box holding a blank radiator. */
     protected emptyBox(): OpenISDBoxJson {
-        return emptyBoxJson(OpenISDPassiveRadiatorStandalone.empty(this.engine, this.appContext).clonePassiveRadiator());
+        return emptyBoxJson(OpenISDPassiveRadiatorStandalone.empty(this.appContext).clonePassiveRadiator());
     }
 
     /** The chosen radiator. */

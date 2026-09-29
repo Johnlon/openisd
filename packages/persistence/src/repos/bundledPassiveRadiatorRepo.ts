@@ -6,7 +6,6 @@
  *  `OpenISDPassiveRadiatorStandalone.fromConformingRecord`. Records live in the same `drivers/`
  *  store as the drivers' — a radiator record is a device record. */
 import {OpenISDPassiveRadiatorStandalone} from '@openisd/design';
-import type {Engine} from '@openisd/design/engine';
 import type {BundledPassiveRadiatorIndexRow, IndexRead} from './bundledIndex.js';
 import {baseOf, createBundledRepo, type FieldReader, readIndex} from './bundledRepo.js';
 
@@ -35,7 +34,6 @@ export interface BundledPassiveRadiatorRepoDeps {
   /** `import.meta.env.BASE_URL` — `/`, the GitHub Pages `/openisd/`, or Electron's `./`. */
   readonly baseUrl: string;
   /** Handed to the domain seam that opens each record — injected, never constructed here. */
-  readonly engine: Engine;
   /** How long a fetched index or radiator is trusted before it is fetched again. */
   readonly maxAge_ms: number;
   readonly now: () => number;
@@ -56,7 +54,7 @@ export function createBundledPassiveRadiatorRepo(deps: BundledPassiveRadiatorRep
     indexUrl: `${deps.baseUrl}passive-radiators-index.json`,
     recordUrl: path => `${deps.baseUrl}drivers/${path}.json`,
     readIndex: readBundledPassiveRadiatorIndex,
-    construct: record => OpenISDPassiveRadiatorStandalone.fromConformingRecord(record, deps.engine),
+    construct: record => OpenISDPassiveRadiatorStandalone.fromConformingRecord(record),
     maxAge_ms: deps.maxAge_ms,
     now: deps.now,
   });

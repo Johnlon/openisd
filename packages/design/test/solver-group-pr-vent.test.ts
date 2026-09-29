@@ -73,7 +73,7 @@ function prJson() {
 describe('PR and Vent Solver Groups', () => {
   it('PR solver group derives C/N/E state, value and structural DQ atomically', () => {
     const p = project();
-    const library = OpenISDPassiveRadiatorStandalone.fromConformingRecord(prJson(), createEngine());
+    const library = OpenISDPassiveRadiatorStandalone.fromConformingRecord(prJson());
     if (Array.isArray(library)) throw new Error(`fixture radiator is invalid: ${library.join(', ')}`);
     p.box.passiveRadiator.radiator.update(library);
     // S2-7d2: the project cascade only solves the ACTIVE box type's vent/PR pair, and

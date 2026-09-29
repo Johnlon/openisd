@@ -631,14 +631,14 @@ export function newProjectBoxTypeOptions(): readonly SelectorOption<BoxType>[] {
  *  place to keep them right. */
 export function definePassiveRadiator(): void {
   requireFocusedProject().box.passiveRadiator.configurePR(
-    OpenISDPassiveRadiatorStandalone.empty(engine, appContext));
+    OpenISDPassiveRadiatorStandalone.empty(appContext));
 }
 
 /** Give `p` a default passive radiator with sane Mms/Sd/Cms — the New-Project wizard's chart-ready
  *  PR (BUG_20260912: Fh must resolve instead of "--"). Lives here, not in a component, so the
  *  view keeps its layering. */
 export function defaultPassiveRadiator(p: OpenISDProject): void {
-  p.box.passiveRadiator.configurePR(OpenISDPassiveRadiatorStandalone.empty(engine, appContext));
+  p.box.passiveRadiator.configurePR(OpenISDPassiveRadiatorStandalone.empty(appContext));
   p.box.passiveRadiator.radiator.spec.Sd_m2.set(0.02);
   p.box.passiveRadiator.radiator.spec.Cms_m_per_N.set(0.0005);
   p.box.passiveRadiator.radiator.spec.Mms_kg.set(0.05);

@@ -246,7 +246,7 @@ describe('openIsdProjectToWinIsdProject — [Box]/[SignalSource] match the WinIS
         },
       },
     };
-    const radiator = OpenISDPassiveRadiatorStandalone.fromConformingRecord(radiatorRecord, engine);
+    const radiator = OpenISDPassiveRadiatorStandalone.fromConformingRecord(radiatorRecord);
     if (Array.isArray(radiator)) throw new Error(`fixture is not a conforming radiator: ${radiator.join('; ')}`);
 
     const driver = aDriver(engine, 'QO8', 'test');
@@ -303,7 +303,7 @@ describe('openIsdProjectToWinIsdProject — null-fallback and unsupported-type b
 
   it('[PassiveRadiator] omits Vas/Qms/Fs/Sd/Xmax when the radiator states none of them', () => {
     const engine = createEngine();
-    const radiator = OpenISDPassiveRadiatorStandalone.empty(engine);
+    const radiator = OpenISDPassiveRadiatorStandalone.empty();
     const driver = aDriver(engine, 'QO8', 'test');
     const project = OpenISDProject.builder(driver, engine).passiveRadiator()
       .volume_m3(0.03).tuning_goal_hz(35).count(1).radiator(radiator).build();
@@ -453,7 +453,7 @@ describe('openIsdProjectToWinIsdProject — null-fallback and unsupported-type b
         },
       },
     };
-    const radiator = OpenISDPassiveRadiatorStandalone.fromConformingRecord(radiatorRecord, engine);
+    const radiator = OpenISDPassiveRadiatorStandalone.fromConformingRecord(radiatorRecord);
     if (Array.isArray(radiator)) throw new Error(`fixture is not a conforming radiator: ${radiator.join('; ')}`);
     const driver = aDriver(engine, 'QO8', 'test');
     const project = OpenISDProject.builder(driver, engine).passiveRadiator()

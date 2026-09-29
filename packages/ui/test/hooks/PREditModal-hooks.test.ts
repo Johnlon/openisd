@@ -14,7 +14,7 @@ describe('usePREditModal', () => {
     const project = OpenISDProject.empty(engine);
     project.box.boxType.set('box-passive-radiator');
 
-    const prStandAlone = OpenISDPassiveRadiatorStandalone.empty(engine);
+    const prStandAlone = OpenISDPassiveRadiatorStandalone.empty();
     prStandAlone.brand.set('Dayton Audio');
     prStandAlone.model.set('SD270A-88');
 
