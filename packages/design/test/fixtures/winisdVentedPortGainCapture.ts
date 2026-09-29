@@ -18,12 +18,8 @@ export interface WinIsdMagPoint {
   readonly dB: number;
 }
 
-export const WINISD_VENTED_PORT_GAIN_CAPTURE = Object.freeze({
-  wpr: 'vented-gain-1/w5.wpr',
-  driver: {Fs: 45, Qes: 0.57, Qms: 3.56, Vas: 0.00485, Re: 3.4, Sd: 0.0094, BL: 7.17},
-  box: {Vb: 0.01, Fr: 38.0, Ql: 7.0, Qa: 30.0, Qp: 15.0},
-  /** runs/vented-gain-1, plot kind 11. */
-  magnitude: [
+
+const WINISD_VENTED_PORT_GAIN_CAPTURE_MAGNITUDE: readonly WinIsdMagPoint[] = [
     {f: 1.0, dB: -149.44619084157176},
     {f: 1.0191811354633138, dB: -148.45600725634026},
     {f: 1.0387301868842898, dB: -147.46582298434052},
@@ -546,5 +542,12 @@ export const WINISD_VENTED_PORT_GAIN_CAPTURE = Object.freeze({
     {f: 19163.039666193643, dB: -83.6218478180062},
     {f: 19530.60852591976, dB: -83.7874506894675},
     {f: 19905.22777373638, dB: -83.95303217965028},
-  ] as readonly WinIsdMagPoint[],
+];
+
+export const WINISD_VENTED_PORT_GAIN_CAPTURE = Object.freeze({
+  wpr: 'vented-gain-1/w5.wpr',
+  driver: {Fs: 45, Qes: 0.57, Qms: 3.56, Vas: 0.00485, Re: 3.4, Sd: 0.0094, BL: 7.17},
+  box: {Vb: 0.01, Fr: 38.0, Ql: 7.0, Qa: 30.0, Qp: 15.0},
+  /** runs/vented-gain-1, plot kind 11. */
+  magnitude: WINISD_VENTED_PORT_GAIN_CAPTURE_MAGNITUDE,
 });

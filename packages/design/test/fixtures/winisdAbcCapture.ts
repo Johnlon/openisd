@@ -9,17 +9,8 @@
  */
 import type {WinIsdComplexPoint} from './winisdVentedCapture.js';
 
-export const WINISD_ABC_CAPTURE = Object.freeze({
-  wpr: 'abc-w5-1/w5.wpr',
-  driver: {Fs: 45, Qes: 0.57, Qms: 3.56, Vas: 0.00485, Re: 3.4, Sd: 0.0094, BL: 7.17},
-  rear: {Vr: 0.01, Fr: 42.0, Ql: 7.0, Qa: 30.0, Qp: 12.0},
-  front: {Vf: 0.005, Ff: 60.0, Ql: 9.0, Qa: 40.0, Qp: 15.0},
-  Qicl: 20.0,
-  rearVent: {dia: 0.05, len: 0.36961432449005244, endcorrection: 0.732, area: 0.001963495408493621},
-  frontVent: {dia: 0.05, len: 0.36130703800025155, endcorrection: 0.732, area: 0.001963495408493621},
-  intraVent: {dia: 0.05, len: 0.1, endcorrection: 0.732, area: 0.001963495408493621},
-  /** abc-w5-1, plot kind 6. */
-  impedance: [
+
+const WINISD_ABC_CAPTURE_IMPEDANCE: readonly WinIsdComplexPoint[] = [
     {f: 1.0, re: 3.4008443445847716, im: 0.1250613174700236},
     {f: 1.0191811354633138, re: 3.400877095683877, im: 0.12746313020516467},
     {f: 1.0387301868842898, re: 3.4009111191297956, im: 0.12991118818336758},
@@ -542,9 +533,8 @@ export const WINISD_ABC_CAPTURE = Object.freeze({
     {f: 19163.039666193643, re: 3.400009246398915, im: -0.013207588158107663},
     {f: 19530.60852591976, re: 3.4000089016305255, im: -0.012959015749826747},
     {f: 19905.22777373638, re: 3.4000085697176643, im: -0.012715121715038798},
-  ] as readonly WinIsdComplexPoint[],
-  /** abc-w5-1, plot kind 1. */
-  transfer: [
+];
+const WINISD_ABC_CAPTURE_TRANSFER: readonly WinIsdComplexPoint[] = [
     {f: 1.0, re: 1.796260658204228e-07, im: -7.787791146423556e-07},
     {f: 1.0191811354633138, re: 1.9380019640923997e-07, im: -8.248615573506386e-07},
     {f: 1.0387301868842898, re: 2.0909240245080436e-07, im: -8.736871768822045e-07},
@@ -1067,9 +1057,8 @@ export const WINISD_ABC_CAPTURE = Object.freeze({
     {f: 19163.039666193643, re: 0.9952512556268012, im: 0.005061941962196787},
     {f: 19530.60852591976, re: 0.9952516695911544, im: 0.004966675702005893},
     {f: 19905.22777373638, re: 0.995252068120215, im: 0.00487320235460549},
-  ] as readonly WinIsdComplexPoint[],
-  /** abc-w5-1, plot kind 9. */
-  rearPortVelocity: [
+];
+const WINISD_ABC_CAPTURE_REAR_PORT_VELOCITY: readonly WinIsdComplexPoint[] = [
     {f: 1.0, re: 0.00045681047620845324, im: 0.02356693969040165},
     {f: 1.0191811354633138, re: 0.00047751150364878925, im: 0.024027035804336495},
     {f: 1.0387301868842898, re: 0.000499227802748029, im: 0.024496357721488886},
@@ -1592,9 +1581,8 @@ export const WINISD_ABC_CAPTURE = Object.freeze({
     {f: 19163.039666193643, re: -3.4256883631561357e-07, im: 2.0632113980413788e-08},
     {f: 19530.60852591976, re: -3.2979136070876694e-07, im: 1.9489004331483814e-08},
     {f: 19905.22777373638, re: -3.17490630909775e-07, im: 1.8409227888966623e-08},
-  ] as readonly WinIsdComplexPoint[],
-  /** abc-w5-1, plot kind 10. */
-  frontPortVelocity: [
+];
+const WINISD_ABC_CAPTURE_FRONT_PORT_VELOCITY: readonly WinIsdComplexPoint[] = [
     {f: 1.0, re: 0.0017026985703359036, im: 0.020559162384767755},
     {f: 1.0191811354633138, re: 0.0017656145866846544, im: 0.02094352600692512},
     {f: 1.0387301868842898, re: 0.001830752150179876, im: 0.021334748338860916},
@@ -2117,9 +2105,8 @@ export const WINISD_ABC_CAPTURE = Object.freeze({
     {f: 19163.039666193643, re: -3.023463135240496e-10, im: 1.2316154363621414e-10},
     {f: 19530.60852591976, re: -2.9158475889662745e-10, im: 1.1635329812129219e-10},
     {f: 19905.22777373638, re: -2.811870001462251e-10, im: 1.0992085910721693e-10},
-  ] as readonly WinIsdComplexPoint[],
-  /** abc-w5-1, plot kind 21. */
-  intraPortVelocity: [
+];
+const WINISD_ABC_CAPTURE_INTRA_PORT_VELOCITY: readonly WinIsdComplexPoint[] = [
     {f: 1.0, re: 0.0016541333795143203, im: 0.020711274767751732},
     {f: 1.0191811354633138, re: 0.0017151653548622425, im: 0.02109846587938651},
     {f: 1.0387301868842898, re: 0.0017783456025791172, im: 0.021492564519020763},
@@ -2642,5 +2629,25 @@ export const WINISD_ABC_CAPTURE = Object.freeze({
     {f: 19163.039666193643, re: -8.352142029929252e-07, im: 5.029973416924422e-08},
     {f: 19530.60852591976, re: -8.040608420837044e-07, im: 4.751286745277204e-08},
     {f: 19905.22777373638, re: -7.740699090183135e-07, im: 4.488040886703303e-08},
-  ] as readonly WinIsdComplexPoint[],
+];
+
+export const WINISD_ABC_CAPTURE = Object.freeze({
+  wpr: 'abc-w5-1/w5.wpr',
+  driver: {Fs: 45, Qes: 0.57, Qms: 3.56, Vas: 0.00485, Re: 3.4, Sd: 0.0094, BL: 7.17},
+  rear: {Vr: 0.01, Fr: 42.0, Ql: 7.0, Qa: 30.0, Qp: 12.0},
+  front: {Vf: 0.005, Ff: 60.0, Ql: 9.0, Qa: 40.0, Qp: 15.0},
+  Qicl: 20.0,
+  rearVent: {dia: 0.05, len: 0.36961432449005244, endcorrection: 0.732, area: 0.001963495408493621},
+  frontVent: {dia: 0.05, len: 0.36130703800025155, endcorrection: 0.732, area: 0.001963495408493621},
+  intraVent: {dia: 0.05, len: 0.1, endcorrection: 0.732, area: 0.001963495408493621},
+  /** abc-w5-1, plot kind 6. */
+  impedance: WINISD_ABC_CAPTURE_IMPEDANCE,
+  /** abc-w5-1, plot kind 1. */
+  transfer: WINISD_ABC_CAPTURE_TRANSFER,
+  /** abc-w5-1, plot kind 9. */
+  rearPortVelocity: WINISD_ABC_CAPTURE_REAR_PORT_VELOCITY,
+  /** abc-w5-1, plot kind 10. */
+  frontPortVelocity: WINISD_ABC_CAPTURE_FRONT_PORT_VELOCITY,
+  /** abc-w5-1, plot kind 21. */
+  intraPortVelocity: WINISD_ABC_CAPTURE_INTRA_PORT_VELOCITY,
 });
