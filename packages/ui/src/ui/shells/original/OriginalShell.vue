@@ -19,6 +19,7 @@ import OptionsModal from '../../components/OptionsModal.vue';
 import AdvancedOptions from '../../components/AdvancedOptions.vue';
 import BoxTypeDiagram from '../../components/BoxTypeDiagram.vue';
 import {useOriginalShell} from '../../../hooks/OriginalShell-hooks.js';
+import {OpenableFiles} from '../../../fileFormat.js';
 
 const {
   version, toggleDropdown, openDd, openClick, closeDropdown, presentationState, isModified,
@@ -784,7 +785,7 @@ const {
       </div>
     </div>
 
-    <input ref="fileInput" type="file" accept=".owpr,.wpr,.owdr,.wdr,.json" style="display:none" @change="onFile">
+    <input ref="fileInput" type="file" :accept="OpenableFiles.ACCEPT" style="display:none" @change="onFile">
   </div>
 </template>
 

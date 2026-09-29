@@ -1,6 +1,6 @@
 # BUG_20260929_file-open-dialog-seeded-to-winisd
 
-**Status:** OPEN
+**Status:** RESOLVED — John to confirm the dialog on Windows
 
 ## Symptom
 
@@ -46,3 +46,16 @@ file type of an accepted extension, and `.wpr` is registered to WinISD on John's
 - Browser test: Import from disk calls the picker with the one named filter; the chosen file
   reaches `importFile`.
 - John checks the dialog on Windows.
+
+## Resolution (2026-09-29)
+
+- `OpenableFiles` (`packages/ui/src/fileFormat.ts`): the formats File > Open takes, built from
+  `ProjectFileFormat.ALL` + `DriverFileFormat.ALL` (`.json` dropped). `ACCEPT` feeds both shells'
+  file inputs; `PICKER_FILTER` is the dialog's one filter, "OpenISD and WinISD files".
+- `createFileOpen()` (`packages/persistence/src/storage/fileOpen.ts`): the system open dialog;
+  answers picked / cancelled / unsupported.
+- `DesignIO.openFromDisk(fallback)`: opens the dialog, sends the pick to `importFile`, or clicks
+  the shell's file input where the browser has no dialog. Both shells' Open use it.
+- Tests: `persistence/test/fileOpen.test.ts` (3), `ui/test/logic/fileFormat.test.ts`,
+  `ui/test/logic/useApplicationIO.test.ts` (openFromDisk, 3),
+  `ui/test/ui/empty-state-open-file.browser.spec.ts` (dialog stubbed: filter asserted, pick opens).

@@ -77,7 +77,7 @@ export function useMobileShell(): MobileShellApi {
     closeMenu();
   }
   function openFromDisk(): void {
-    fileInput.value?.click();
+    void designIO.openFromDisk(() => fileInput.value?.click());
     closeMenu();
   }
 
