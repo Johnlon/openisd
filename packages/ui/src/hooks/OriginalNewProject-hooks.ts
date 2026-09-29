@@ -6,16 +6,16 @@ import type { BoxType, DriverEngine, EbpSuitability, SealedEngine, VentedAlignme
 import {ARRAY_WIRING_OPTIONS, DEFAULT_SOURCE_RESISTANCE_OHM, DEFAULT_VENTED_ALIGNMENT, NumberField, SEALED_ALIGNMENT_OPTIONS, VENTED_ALIGNMENT_OPTIONS, type SelectorOption} from '@openisd/design/fields';
 import {
   defaultPassiveRadiator,
-  engine as appEngine,
   isModified,
   newProject,
   newProjectBoxTypeOptions,
   newProjectDriver,
 } from '../logic/appState.js';
+import {useApp} from '../logic/app.js';
 import { selectedOption } from '../logic/domEvents.js';
 import { fromDisplay } from '../logic/fields/units.js';
 
-/** The three engine areas the wizard consults; `appState`'s by default, substitutes in a test. */
+/** The three engine areas the wizard consults; the app facade's by default, substitutes in a test. */
 export interface OriginalNewProjectEngineAreas {
   readonly driver: DriverEngine;
   readonly sealed: SealedEngine;
@@ -121,7 +121,7 @@ const STEP_LABELS = Object.freeze([
 ]);
 
 export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProjectAPI {
-  const eng: OriginalNewProjectEngineAreas = deps?.areas ?? appEngine;
+  const eng: OriginalNewProjectEngineAreas = deps?.areas ?? useApp().engine;
   const initialDriver = deps?.initialDriver ?? newProjectDriver.value ?? null;
 
   const step = ref(1);

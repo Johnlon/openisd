@@ -15,13 +15,13 @@ import {computed, type ComputedRef, ref, type Ref} from 'vue';
 import type {Air, ChartId, EnvDefaults, EnvironmentEngine, VentedDesignLimits} from '@openisd/design/engine';
 import {
   envDefaults as appEnvDefaults,
-  engine,
   FACTORY_ENV_DEFAULTS,
   FACTORY_VENTED_LIMITS,
   setEnvDefaults as setAppEnvDefaults,
   setVentedLimits as setAppVentedLimits,
   ventedLimits as appVentedLimits,
 } from '../logic/appState.js';
+import {useApp} from '../logic/app.js';
 
 /** The settings seam this dialog edits through — `appState`'s by default, a substitute in a test. */
 export interface OptionsModalDeps {
@@ -107,7 +107,7 @@ export function useOptionsModal(deps?: OptionsModalDeps): OptionsModalAPI {
     setVentedLimits: setAppVentedLimits,
     envDefaults: appEnvDefaults,
     setEnvDefaults: setAppEnvDefaults,
-    environment: engine.environment,
+    environment: useApp().engine.environment,
   };
 
   const band = settings.ventedLimits();
