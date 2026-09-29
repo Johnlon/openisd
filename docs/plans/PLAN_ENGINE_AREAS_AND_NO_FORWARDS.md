@@ -42,10 +42,10 @@ package keeps one door; the door hands out those areas.
 | C. One name per filter variant | done |
 | E. Filters hook | done, 426aefa0 |
 | H. Field behaviour on the field | done, d6855b11: `Readable.provenance`, `OpenIsdDriverSpec.solverParams()`, `OpenISDDriver.chartBlockingReasons()` |
-| D. Components instead of a threaded engine | converters as classes (bf5062fc), project windows take one area (2209bcae), hooks take areas (51a126ed, 13f672a6), series takes `ChartEngineAreas` (22ce4efa). Ratchet 41 → 17 |
+| D. Components instead of a threaded engine | converters as classes (bf5062fc), project windows take one area (2209bcae), hooks take areas (51a126ed, 13f672a6), series takes `ChartEngineAreas` (22ce4efa), passive radiators and their repos carry no engine (7fd40adc), DesignFiles/DriverDrafts classes + UI gate: only main.ts imports appState's engine (686eea62 … 31acd78b). Ratchet 41 → 14 |
 | F. Lint rules | not started |
 
-Ratchet rows left (17): `OpenISDProject`/`OpenISDDriver`/`OpenISDPassiveRadiatorStandalone`/
+Ratchet rows left (14): `OpenISDProject`/`OpenISDDriver`/`OpenISDDriverStandalone`/
 `OpenISDDriverEmbedded` static factories (`empty`, `wrap*`, `from*`, `builder`) — constructors in
 effect, each hands the engine to a private constructor — plus `OpenISDBox.wrap` (the box uses six
 areas). Whether a static factory counts as a constructor for the gate is a human ruling.
