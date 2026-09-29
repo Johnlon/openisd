@@ -16,7 +16,7 @@ test('WinISD\'s inductance model has no switch of its own — "WinISD driver mod
 test('WinISD Compatibility labels are unclipped and drop the "Use" prefix', async ({ page }) => {
   const panel = page.locator('.sim-options-box', { hasText: 'WinISD Compatibility' });
   const labels = panel.locator('label[data-field-key]');
-  await expect(labels).toHaveText(['WinISD driver model', 'WinISD air model', 'WinISD VA model']);
+  await expect(labels).toHaveText(['WinISD driver model', 'WinISD air model', 'WinISD VA model', 'WinISD driver count', 'WinISD flat response']);
   const panelBox = (await panel.boundingBox())!;
   const clipRight = await panel.evaluate(el => {
     // The visible right edge: the panel's own, or an ancestor's that clips it first.
@@ -71,3 +71,18 @@ test('"WinISD VA model" switches the VA chart between WinISD\'s Re and the ampli
   await page.locator('.sim-options-header').getByRole('button', { name: 'Reset' }).click();
   await expect(va.locator('input')).toBeChecked();
 });
+
+for (const [key, titleText] of [
+  ['winisdDriverCountModel', /each in Vb\/N/],
+  ['winisdFlatModel', /uncapped/],
+] as const) {
+  test(`"${key}" is on by default, can be switched off, and Reset turns it back on`, async ({ page }) => {
+    const box = page.locator(`[data-field-key="${key}"]`);
+    await expect(box).toHaveAttribute('title', titleText);
+    await expect(box.locator('input')).toBeChecked();
+    await box.locator('input').uncheck();
+    await expect(box.locator('input')).not.toBeChecked();
+    await page.locator('.sim-options-header').getByRole('button', { name: 'Reset' }).click();
+    await expect(box.locator('input')).toBeChecked();
+  });
+}
