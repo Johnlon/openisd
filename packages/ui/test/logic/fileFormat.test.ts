@@ -4,7 +4,7 @@
  */
 import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import {DriverFileFormat, formatOf, ProjectFileFormat, sniff} from '../../src/fileFormat.js';
+import {DriverFileFormat, formatOf, OpenableFiles, ProjectFileFormat, sniff} from '../../src/fileFormat.js';
 import {winisdTextToBytes} from '@openisd/design/winisd';
 
 describe('formatOf — file-name classification across both format families', () => {
@@ -29,5 +29,22 @@ describe('sniff — content classification when the name does not say', () => {
   it('answers undefined for bytes it cannot classify', () => {
     assert.equal(sniff(new TextEncoder().encode('not a known format')), undefined);
     assert.equal(sniff(new Uint8Array([0xff, 0xfe, 0xae])), undefined);
+  });
+});
+
+describe('OpenableFiles — File > Open takes every project and driver format under one named filter', () => {
+  it('accepts .owpr, .wpr, .owdr and .wdr, and nothing else', () => {
+    assert.equal(OpenableFiles.ACCEPT, '.owpr,.wpr,.owdr,.wdr');
+  });
+  it('names its one dialog filter itself, mapping each format\'s MIME type to its extension', () => {
+    assert.deepEqual(OpenableFiles.PICKER_FILTER, {
+      description: 'OpenISD and WinISD files',
+      accept: {
+        'application/x-openisd-project': ['.owpr'],
+        'application/x-winisd-project': ['.wpr'],
+        'application/x-openisd-driver': ['.owdr'],
+        'application/x-winisd-driver': ['.wdr'],
+      },
+    });
   });
 });

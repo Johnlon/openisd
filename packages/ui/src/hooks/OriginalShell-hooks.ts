@@ -355,7 +355,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   }
   function openFromDisk() {
     openDialogOpen.value = false;
-    fileInput.value?.click();
+    void designIO.openFromDisk(() => fileInput.value?.click());
   }
   function openStoredProject(id: string) {
     const result = projectRepo.loadStoredProject(id);
