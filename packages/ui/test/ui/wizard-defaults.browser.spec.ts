@@ -1,6 +1,7 @@
 import { test, expect } from '../fixtures.js';
 import { readFileSync } from 'node:fs';
 import {createEngine} from '@openisd/design/engine';
+import { OpenISDDriver } from '@openisd/design';
 import { DEFAULT_SOURCE_RESISTANCE_OHM } from '@openisd/design/fields';
 import { SAMPLE_PROJECT_OWPR } from '../fixtures/sampleProject.js';
 import { MY_DRIVERS_KEY, myDriversJson } from '../fixtures/seedMyDrivers.js';
@@ -50,19 +51,60 @@ async function buildProject(page: import('@playwright/test').Page, boxType: stri
   await modal.locator('button', { hasText: 'Create' }).click();
   await expect(page.locator('.original-root')).toBeVisible();
 }
+/** A freshly-parsed JSON object, navigated field by field — no domain shape is assumed. */
+function isRecord(v: unknown): v is Record<string, unknown> {
+  return typeof v === 'object' && v !== null && !Array.isArray(v);
+}
+
+/** The bundled catalogue's W5-1138SMF fixture is already a conforming `OpenISDDeviceJson`
+ *  device record — the same shape `deviceRecord()` (seedMyDrivers.ts) builds, not the flat
+ *  `SeedDriver` shape `myDriversJson` accepts. Validate it via the public
+ *  `OpenISDDriver.fromConformingRecord` entry point (the sanctioned way to confirm a record
+ *  conforms — generateSample.ts uses the same call on the same file), then wrap it straight
+ *  into a My Drivers envelope entry instead of round-tripping it through `SeedDriver`. */
+function w5MyDriversJson(): string {
+  const parsed: unknown = JSON.parse(readFileSync('packages/ui/public/drivers/tang-band/w5-1138smf.json', 'utf-8'));
+  const maybeDriver = OpenISDDriver.fromConformingRecord(parsed, createEngine());
+  if (Array.isArray(maybeDriver)) {
+    throw new Error(`w5-1138smf.json is not a conforming device record: ${maybeDriver.join(', ')}`);
+  }
+  const uuid = getPath(parsed, 'uuid', 'value');
+  if (typeof uuid !== 'string') throw new Error('w5-1138smf.json record is missing a uuid');
+  return JSON.stringify({ schema: 1, entries: [{ uuid, record: parsed }] });
+}
+
+/** `obj.a.b.c`, stopping at the first missing/non-object link — never throws on an absent path. */
+function getPath(v: unknown, ...path: string[]): unknown {
+  let cur = v;
+  for (const key of path) {
+    if (!isRecord(cur)) return undefined;
+    cur = cur[key];
+  }
+  return cur;
+}
+
 /** Ignore UUIDs, dates, and non-essential meta fields for comparison. */
-function normalize(json: unknown) {
-  const clone = JSON.parse(JSON.stringify(json));
-  if (clone.driverEmbedding?.device?.uuid) clone.driverEmbedding.device.uuid = 'normalized';
-  if (clone.driverEmbedding?.device?.added) clone.driverEmbedding.device.added = 'normalized';
-  if (clone.box?.passiveRadiator?.component?.uuid?.value) clone.box.passiveRadiator.component.uuid.value = 'normalized';
-  // The passive radiator's own added-date, stamped when the record was built. The fixture is
-  // generated once and cached, so this differs from the wizard's whenever the two happen on
-  // different days — the same volatility as `device.added` above.
-  if (clone.box?.passiveRadiator?.component?.added?.value) clone.box.passiveRadiator.component.added.value = 'normalized';
-  if (clone.meta) {
-    clone.meta.created = 'normalized';
-    clone.meta.modified = 'normalized';
+function normalize(json: unknown): unknown {
+  const clone: unknown = JSON.parse(JSON.stringify(json));
+  const device = getPath(clone, 'driverEmbedding', 'device');
+  if (isRecord(device)) {
+    if (device.uuid) device.uuid = 'normalized';
+    if (device.added) device.added = 'normalized';
+  }
+  const component = getPath(clone, 'box', 'passiveRadiator', 'component');
+  if (isRecord(component)) {
+    const uuid = component.uuid;
+    if (isRecord(uuid) && uuid.value) uuid.value = 'normalized';
+    // The passive radiator's own added-date, stamped when the record was built. The fixture is
+    // generated once and cached, so this differs from the wizard's whenever the two happen on
+    // different days — the same volatility as `device.added` above.
+    const added = component.added;
+    if (isRecord(added) && added.value) added.value = 'normalized';
+  }
+  const meta = getPath(clone, 'meta');
+  if (isRecord(meta)) {
+    meta.created = 'normalized';
+    meta.modified = 'normalized';
   }
   return clone;
 }
@@ -71,8 +113,8 @@ function normalize(json: unknown) {
 function maskDerived(json: unknown): unknown {
   const walk = (node: unknown): unknown => {
     if (Array.isArray(node)) return node.map(walk);
-    if (node && typeof node === 'object') {
-      const o = node as Record<string, unknown>;
+    if (isRecord(node)) {
+      const o = node;
       const out: Record<string, unknown> = {};
       for (const [k, v] of Object.entries(o)) {
         if (k === 'value' && o.state === 'C' && typeof v === 'number') { out[k] = 'derived'; continue; }
@@ -87,8 +129,7 @@ function maskDerived(json: unknown): unknown {
 
 /** The vented project's solved port length — the number a user reads. */
 function ventLengthOf(json: unknown): number {
-  const len = (json as { box?: { vented?: { vent?: { length_m?: { value: number } } } } })
-    .box?.vented?.vent?.length_m?.value;
+  const len = getPath(json, 'box', 'vented', 'vent', 'length_m', 'value');
   if (typeof len !== 'number') throw new Error('a vented project must carry a solved vent length');
   return len;
 }
@@ -97,8 +138,13 @@ test('a wizard-created project draws a chart for every simulatable box type', as
   test.setTimeout(30000);
   for (const box of ['sealed', 'vented', 'box-passive-radiator', 'bandpass4']) {
     await buildProject(page, box);
-    await expect.poll(async () => page.evaluate(async (p) => {
-      const m = await import(/* @vite-ignore */ p);
+    await expect.poll(async () => page.evaluate(async (p): Promise<number> => {
+      type AppState = typeof import('../../src/logic/appState.js');
+      function isAppState(mod: unknown): mod is AppState {
+        return typeof mod === 'object' && mod !== null && 'curvesData' in mod;
+      }
+      const m: unknown = await import(/* @vite-ignore */ p);
+      if (!isAppState(m)) throw new Error('appState module shape mismatch');
       return m.curvesData.value?.spl?.length ?? 0;
     }, '/src/logic/appState.ts')).toBeGreaterThan(0);
   }
@@ -137,10 +183,9 @@ test('wizard-created project has correct default physics values (e.g. copper alf
 
 test('the standard fixture sample-project.owpr is a faithful representation of a wizard-created project', async ({ page }) => {
   // Load the W5 driver into localStorage so it can be picked
-  const w5 = JSON.parse(readFileSync('packages/ui/public/drivers/tang-band/w5-1138smf.json', 'utf-8'));
   await page.addInitScript(([key, json]) => {
     localStorage.setItem(key, json);
-  }, [MY_DRIVERS_KEY, myDriversJson([w5])] as const);
+  }, [MY_DRIVERS_KEY, w5MyDriversJson()] as const);
   await page.goto('/');
   await page.locator('.original-root').waitFor({ state: 'visible' });
 
@@ -158,24 +203,31 @@ test('the standard fixture sample-project.owpr is a faithful representation of a
   await expect(page.locator('.original-root')).toBeVisible();
 
   // Export the created project and compare its core structure to the fixture
-  const wizardJson = await page.evaluate(async (modPath) => {
-    const { requireFocusedProject } = await import(/* @vite-ignore */ modPath);
-    const p = requireFocusedProject();
+  const wizardJson: unknown = await page.evaluate(async (modPath): Promise<unknown> => {
+    type AppState = typeof import('../../src/logic/appState.js');
+    function isAppState(m: unknown): m is AppState {
+      return typeof m === 'object' && m !== null && 'requireFocusedProject' in m && typeof m.requireFocusedProject === 'function';
+    }
+    const mod: unknown = await import(/* @vite-ignore */ modPath);
+    if (!isAppState(mod)) throw new Error('appState module shape mismatch');
+    const p = mod.requireFocusedProject();
     // `saved` is the project C/S baseline (empty) until the wizard's choices are committed —
     // mirror generateSample.ts, which saves before serializing.
     p.save();
     return JSON.parse(p.toOwprText());
   }, APP_STATE);
 
-  const sampleJson = JSON.parse(readFileSync(SAMPLE, 'utf-8'));
+  const sampleJson: unknown = JSON.parse(readFileSync(SAMPLE, 'utf-8'));
   
-  const normWizard = normalize(wizardJson.saved);
-  const normSample = normalize(sampleJson.saved);
+  const normWizard = normalize(getPath(wizardJson, 'saved'));
+  const normSample = normalize(getPath(sampleJson, 'saved'));
 
   // SOLVED values (state "C") are masked below (maskDerived) so the two construction paths
   // compare structurally; the one number a user reads (the port length) is closeTo-checked.
-  const maskedWizard = maskDerived(normWizard) as { box: unknown; driverEmbedding: unknown };
-  const maskedSample = maskDerived(normSample) as { box: unknown; driverEmbedding: unknown };
+  const maskedWizardFull = maskDerived(normWizard);
+  const maskedSampleFull = maskDerived(normSample);
+  const maskedWizard = { box: getPath(maskedWizardFull, 'box'), driverEmbedding: getPath(maskedWizardFull, 'driverEmbedding') };
+  const maskedSample = { box: getPath(maskedSampleFull, 'box'), driverEmbedding: getPath(maskedSampleFull, 'driverEmbedding') };
 
   // Compare the box section, driver section, etc.
   // Using toEqual which does a deep comparison
