@@ -27,18 +27,17 @@ test('toolbar shows the exact version stored in build-info.json', async ({ page 
   // (the shell embeds the loudspeaker mark directly) — assert the icon exists and is SVG.
   await expect(brand.locator('img')).toHaveAttribute('src', /^data:image\/svg\+xml|\/icon\.svg$/);
 
-  // Layout contract (John 2026-09-13): the version sits IN THE MIDDLE OF THE TOOLBAR —
-  // one row: window buttons far left, the version centred in the gap between the two
-  // clusters, frequency selector far right. A version stranded on its own row above the
-  // controls is a regression.
+  // Layout contract: one row — window buttons and chart menu left, then the version, then
+  // the frequency selector right, none painting over another. A version stranded on its own
+  // row is a regression. (John 2026-09-29: the version need not be centred — the chart menu
+  // is wider than half the bar at 1280 px, so centring it overlapped the icons.)
   const barBox = await page.locator('.toolbar').boundingBox();
   expect(barBox!.height).toBeLessThan(60);
   const brandBox = await brand.boundingBox();
-  const brandCentre = brandBox!.x + brandBox!.width / 2;
-  const barCentre = barBox!.x + barBox!.width / 2;
-  expect(Math.abs(brandCentre - barCentre)).toBeLessThan(4);
   const icons = await page.locator('.tb-icons').boundingBox();
   const readout = await page.locator('.cursor-readout').boundingBox();
-  expect(icons!.x + icons!.width).toBeLessThan(brandCentre);
-  expect(readout!.x).toBeGreaterThan(brandCentre);
+  const menu = await page.locator('.chart-select').boundingBox();
+  expect(menu!.x + menu!.width).toBeLessThanOrEqual(icons!.x + icons!.width + 1);
+  expect(icons!.x + icons!.width).toBeLessThanOrEqual(brandBox!.x);
+  expect(brandBox!.x + brandBox!.width).toBeLessThanOrEqual(readout!.x);
 });

@@ -801,11 +801,11 @@ const {
 .original-root button, .original-root select, .original-root input, .original-root textarea { font-family:inherit; font-size:14px; }
 
 .app-icon { width:20px; height:20px; border-radius:50%; background:radial-gradient(circle at 35% 35%, #888, #333 70%); display:inline-block; }
-.app-brand { display:flex; align-items:center; gap:6px; flex:none; white-space:nowrap; font-weight:600; }
+.app-brand { display:flex; align-items:center; gap:6px; flex:0 1 auto; min-width:0; overflow:hidden; white-space:nowrap; font-weight:600; }
 .brand-icon { width:20px; height:20px; display:block; }
 
 /* ---------- Toolbar ---------- */
-.toolbar { display:flex; flex-wrap:wrap; align-items:center; gap:12px; background:#eee; border-bottom:1px solid #bbb; padding:4px 12px; }
+.toolbar { display:flex; align-items:center; gap:12px; background:#eee; border-bottom:1px solid #bbb; padding:4px 12px; }
 .tb-icons { display:flex; align-items:center; gap:6px; flex:none; }
 .tb-btn { display:flex; align-items:center; justify-content:center; flex:none; width:34px; height:30px; background:#f7f7f7; border:1px solid #bbb; border-radius:3px; cursor:pointer; position:relative; }
 .tb-btn:hover { background:#dbeaff; border-color:#7fb3ff; }
@@ -819,7 +819,7 @@ const {
 .chart-select { display:flex; align-items:center; gap:6px; flex:none; width:324px; box-sizing:border-box; border:1px solid #bbb; border-radius:3px; background:#fff; padding:4px 8px; cursor:pointer; position:relative; user-select:none; }
 .chart-select:hover { border-color:#7fb3ff; }
 .chart-select .chart-name { font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0; flex:1; }
-.cursor-readout { line-height:1; color:#222; font-size:14px; cursor:default; display:flex; flex-direction:row; align-items:center; justify-content:flex-end; gap:12px; white-space:nowrap; flex:1 0 auto; }
+.cursor-readout { line-height:1; color:#222; font-size:14px; cursor:default; display:flex; flex-direction:row; align-items:center; justify-content:flex-end; gap:12px; white-space:nowrap; flex:1 0 auto; margin-left:auto; }
 .version-chip { font-size:12px; color:#555; line-height:1.1; font-weight:400; }
 .cursor-readout .ro-hz, .cursor-readout .ro-val { font-variant-numeric:tabular-nums; display:inline-flex; align-items:center; }
 .ro-hz-input {
