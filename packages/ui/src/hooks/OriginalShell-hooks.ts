@@ -18,7 +18,6 @@ import {
     boxTypeIsSimulatable,
     copyProjectName,
     curvesData,
-    definePassiveRadiator,
     driverName,
     duplicateFocusedProject,
     envDefaults,
@@ -39,8 +38,9 @@ import {useFocusedProject} from '../logic/focusedProjectContext.js';
 import {
     clearVentField as clearVentFieldOn,
     enterVentField as enterVentFieldOn,
-    ventFieldState as ventFieldStateOn,
 } from '../logic/useVentGroup.js';
+import {createVentReadouts, DUAL_CHAMBER, FB_TARGET_TIP, VENT_GEOMETRY_TIP} from './ventReadouts.js';
+import {createPassiveRadiatorActions} from './passiveRadiatorActions.js';
 import {buildPlotData, parseChartId, TAB_META} from '../logic/series.js';
 import {createToneGenerator, type ToneGenerator} from '../logic/toneGenerator.js';
 import {useApp} from '../logic/app.js';
@@ -196,9 +196,6 @@ function activeVolumeField(project: OpenISDProject, selectedBox: BoxType): (Read
     case 'box-passive-radiator': return box.passiveRadiator.volume_m3;
   }
 }
-
-// A presentation fact with no domain counterpart: these three draw two chambers.
-const DUAL_CHAMBER = new Set<BoxType>(['bandpass4', 'bandpass6', 'abc']);
 
 // WinISD's own caption for each chart id, exactly as its menu prints it — shared by every
 // shell's chart dropdown, so a caption never drifts between skins.
@@ -591,51 +588,9 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   async function confirmDiscard(): Promise<boolean> {
     return globalThis.confirm('Discard all unsaved changes and return to the last saved version?');
   }
-  // The Vents tab's port — vented's own vent for a single-chamber box, bandpass4's front vent.
-  const activeVent = computed(() => {
-    void projectChanged.value;
-    void project.value;
-    const box = project.value.box;
-    return selectedBox.value === 'bandpass4' ? box.bandpass4.vents.front : box.vented.vent;
-  });
-  // First port (organ-pipe) resonance of the vent tube itself — the open-open duct fundamental
-  // c/(2·L). Uses the PHYSICAL vent length (NOT the end-corrected Leff) to match WinISD exactly.
-  const portPipeResonance_hz = computed<number | null>(() => {
-    void project.value;
-    const L = activeVent.value.length_m.value;
-    if (L == null || L <= 0) return null;
-    return advAir.value.c / (2 * L);
-  });
-  // Single-chamber vented tuning uses Vb (the whole box); the bandpass front chamber tunes on
-  // its own front volume Vf. The four below are READ-ONLY derived values shown in more than one
-  // place (E/C/N badges, warning banners) — genuinely DERIVED state.
-  const fbState    = computed<'E' | 'C' | 'N'>(() => { void projectChanged.value; void project.value; return ventFieldStateOn(project.value, 'Fb'); });
-  const ventLState = computed<'E' | 'C' | 'N'>(() => { void projectChanged.value; void project.value; return ventFieldStateOn(project.value, 'ventL'); });
-  /** The vent's own dq — a `target-unreachable` mark means the entered tuning has no positive
-   *  port length in this volume/area; the solver already wrote `length_m` null. */
-  const fbUnreachableIssue = computed(() => {
-    void projectChanged.value; void project.value;
-    return activeVent.value.length_m.dq.find(issue => issue.kind === 'target-unreachable') ?? null;
-  });
-  const fbUnreachable = computed(() => fbUnreachableIssue.value !== null);
-  /** The vent's own dq sentence — the issue carries it, so the Box tab and the Vents tab say
-   *  the same thing. */
-  const fbUnreachableMsg = computed(() => {
-    const issue = fbUnreachableIssue.value;
-    return issue === null ? '' : issue.text;
-  });
-  /** The front chamber of a bandpass is vented on its OWN volume, so it carries its own symbol. */
-  const frontChamberTuningLabel = computed(() =>
-    DUAL_CHAMBER.has(selectedBox.value) ? 'Target Tuning Freq (Ffc)' : 'Target Tuning Freq');
-  /** The tooltip the QO11 ruling requires: Fb is the target the port solver designs to. */
-  const FB_TARGET_TIP = 'The tuning you are designing to. It is an INPUT, not a readout: the '
-    + 'port dimensions are calculated from it — the vent length on the enclosure tab is solved '
-    + 'to deliver this tuning, and moves whenever you change the vent diameter or the volume.';
-  /** Cross area is a solved pair with the vent's own shape dimension — diameter round, height
-   *  slotted. Width is always an input, never derived. */
-  const VENT_GEOMETRY_TIP = 'Cross area is solved from the vent\'s own dimension: diameter for a '
-    + 'round vent, height for a slotted one. Width is always an input, never derived. Enter '
-    + 'either the dimension or the area and the other is calculated from it.';
+  // Delegated to the unit-tested `createVentReadouts` above — needs `advAir`, so the call sits
+  // just after `createEnvironmentAir` below, but the destructured names read the same everywhere
+  // this file used to declare them inline.
 
   // ---- Chart selector ------------------------------------------------------------
   // A separator goes before the first item of each of WinISD's own visual groupings — never
@@ -1033,6 +988,13 @@ const overlays = computed<Design[]>(() => {
     resetAirToAppDefaults, advAir,
   } = createEnvironmentAir({ project, projectChanged, envDefaults, environment: engine.environment });
 
+  // ---- Enclosure tab: vent (port) readouts ---------------------------------------
+  // Delegated to the unit-tested `createVentReadouts` above — needs `advAir`, hence placed here.
+  const {
+    activeVent, portPipeResonance_hz, fbState, ventLState, fbUnreachable, fbUnreachableMsg,
+    frontChamberTuningLabel,
+  } = createVentReadouts({ project, projectChanged, selectedBox, air: advAir });
+
   const placement = ref<'standard' | 'iso'>('standard');
 
   // ---- Box losses (real: Ql/Qa/Qp) + docked/modal editors ------------------------
@@ -1047,28 +1009,9 @@ const overlays = computed<Design[]>(() => {
   }
 
   // ---- PR selection header (Enclosure tab, PR box type) --------------------------
-  const prBrowseOpen = ref(false);
-  const prEditOpen = ref(false);
-  function loadPREntry(uuid: string) {
-    const entry = myPassiveRadiators.list().find(e => e.uuid === uuid);
-    if (!entry) return;
-    project.value.box.passiveRadiator.configurePR(entry.passiveRadiator);
-    prBrowseOpen.value = false;
-  }
-  // Bundled PRs publish only Sd/Cms — the rest of the record states nothing, so the editor
-  // opens for the user to supply them.
-  async function loadBundledPassiveRadiatorEntry(uuid: string): Promise<void> {
-    // The row's id is the record uuid; the repo fetches the record (cached after the first time).
-    const pr = await bundledPassiveRadiators.load(uuid);
-    project.value.box.passiveRadiator.configurePR(pr);
-    prBrowseOpen.value = false;
-    prEditOpen.value = true;
-  }
-  function defineNewPREntry() {
-    definePassiveRadiator();
-    prBrowseOpen.value = false;
-    prEditOpen.value = true;
-  }
+  // Delegated to the unit-tested `createPassiveRadiatorActions` above.
+  const { prBrowseOpen, prEditOpen, loadPREntry, loadBundledPassiveRadiatorEntry, defineNewPREntry } =
+    createPassiveRadiatorActions({ project, myPassiveRadiators, bundledPassiveRadiators });
   function startEdit() { editProjectDriver(); }
 
   // R1 refresh fidelity — RECORD an open Tune / Driver Editor so a reload can restore it.

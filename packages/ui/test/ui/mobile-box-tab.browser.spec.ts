@@ -38,5 +38,5 @@ test('the Qtc row shows only for a sealed box', async ({ page }) => {
 
   await page.locator('#mob-box-type').selectOption('vented');
   await expect(page.locator('.mob-field-label', { hasText: 'Qtc' })).toHaveCount(0);
-  await expect(page.locator('.mob-hint', { hasText: 'Vents and enclosure' })).toBeVisible();
+  await expect(page.locator('.mob-hint', { hasText: 'Enclosure tab' })).toBeVisible();
 });

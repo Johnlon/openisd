@@ -9,6 +9,7 @@ import MobileSignalTab from './MobileSignalTab.vue';
 import MobileChartView from './MobileChartView.vue';
 import MobileProjectTab from './MobileProjectTab.vue';
 import MobileFiltersTab from './MobileFiltersTab.vue';
+import MobileEnclosureTab from './MobileEnclosureTab.vue';
 import ExportMenu from '../../components/ExportMenu.vue';
 import OptionsModal from '../../components/OptionsModal.vue';
 import { useMobileShell } from '../../../hooks/MobileShell-hooks.js';
@@ -17,6 +18,7 @@ const {
   projectOpen, destination, fileInput, openImportedFile, openNewProject, switchToDesktop,
   menuOpen, toggleMenu, closeMenu, openFromDisk, isModified, saveProject, revertProject,
   browseDrivers, optionsOpen, openOptions, about, goToProject, viewportHeightPx,
+  showEnclosureTab, enclosureNavLabel,
 } = useMobileShell();
 </script>
 
@@ -47,8 +49,9 @@ const {
         <MobileSignalTab v-else-if="destination === 'signal'" />
         <MobileProjectTab v-else-if="destination === 'project'" />
         <MobileFiltersTab v-else-if="destination === 'filters'" />
+        <MobileEnclosureTab v-else-if="destination === 'enclosure'" />
       </main>
-      <MobileTabBar v-model="destination" />
+      <MobileTabBar v-model="destination" :show-enclosure="showEnclosureTab" :enclosure-label="enclosureNavLabel" />
 
       <div v-if="menuOpen" class="mob-menu-overlay" @click="closeMenu">
         <div class="mob-menu" @click.stop>

@@ -4,19 +4,19 @@
  * component (`.claude/rules/ui.md`); every ref/computed/write lives here.
  */
 import {computed, onMounted, onUnmounted, ref} from 'vue';
-import {focusedProject, isModified, resetProjectToGround} from '../logic/appState.js';
+import {boxTypeIsSimulatable, focusedProject, isModified, projectChanged, resetProjectToGround} from '../logic/appState.js';
 import {presentationState, setSkinOverride} from '../logic/presentationState.js';
 import {useApp} from '../logic/app.js';
 import {inputFrom} from '../logic/domEvents.js';
 import {injectSplashModal} from './SplashModal-hooks.js';
-import type {TabId} from './OriginalShell-hooks.js';
+import {createSelectedBox, type TabId} from './OriginalShell-hooks.js';
 
 /** The mobile shell's own destinations: the same tab ids the desktop shell's content panel
  *  uses (so a shared field-wiring caller never has to ask "which shell is this"), plus `graph`
  *  — a destination that has no desktop counterpart, because `GraphPanel`'s canvas sets
  *  `touch-action: none` (custom pointer pan/zoom) and would trap vertical scroll if it sat
  *  inline in a form column instead of owning the whole screen. */
-export type MobileDestination = Extract<TabId, 'box' | 'driver' | 'signal' | 'filters' | 'project'> | 'graph';
+export type MobileDestination = Extract<TabId, 'box' | 'driver' | 'signal' | 'filters' | 'project' | 'enclosure'> | 'graph';
 
 export interface MobileShellApi {
   projectOpen: import('vue').ComputedRef<boolean>;
@@ -39,6 +39,11 @@ export interface MobileShellApi {
   goToProject: () => void;
   /** The real, currently-visible viewport height in px — see the field's own comment. */
   viewportHeightPx: import('vue').Ref<number>;
+  /** Mirrors desktop's own nav gate: sealed has no Enclosure destination (Volume + Fsc live only
+   *  on the Box tab). */
+  showEnclosureTab: import('vue').ComputedRef<boolean>;
+  /** The Enclosure tab bar label, matching desktop's `enclosureNavLabel`. */
+  enclosureNavLabel: import('vue').ComputedRef<string>;
 }
 
 export function useMobileShell(): MobileShellApi {
@@ -47,6 +52,15 @@ export function useMobileShell(): MobileShellApi {
   const { show: about } = injectSplashModal();
   const projectOpen = computed(() => focusedProject() != null);
   const destination = ref<MobileDestination>('box');
+
+  // Mirrors desktop's own nav gate (OriginalShell-hooks.ts) — its own selectedBox instance, kept
+  // synced to the project the same way (see createSelectedBox's own comment).
+  const { selectedBox, boxLabel, showEnclosureTab } =
+    createSelectedBox({ focusedProject, projectChanged, isSimulatable: boxTypeIsSimulatable });
+  const enclosureNavLabel = computed(() =>
+    selectedBox.value === 'box-passive-radiator' ? 'Passive Radiator'
+      : selectedBox.value === 'sealed' ? 'Closed'
+        : boxLabel.value);
 
   const fileInput = ref<HTMLInputElement | null>(null);
   function openImportedFile(e: Event): void {
@@ -110,6 +124,6 @@ export function useMobileShell(): MobileShellApi {
     projectOpen, destination, fileInput, openImportedFile, openNewProject, switchToDesktop,
     menuOpen, toggleMenu, closeMenu, openFromDisk, isModified,
     saveProject, revertProject, browseDrivers, optionsOpen, openOptions, about, goToProject,
-    viewportHeightPx,
+    viewportHeightPx, showEnclosureTab, enclosureNavLabel,
   };
 }
