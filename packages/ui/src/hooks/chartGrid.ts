@@ -6,7 +6,7 @@
 import type {CSSProperties} from 'vue';
 
 /** The smallest chart height that still reads well. */
-export const CHART_MIN_H = 220;
+export const CHART_MIN_H = 160;
 /** The smallest chart width that still reads well. */
 export const CHART_MIN_W = 380;
 const MAX_COLS = 3;
