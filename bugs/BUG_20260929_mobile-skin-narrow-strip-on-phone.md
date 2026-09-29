@@ -3,7 +3,7 @@
 **Status:** WONTFIX
 
 ## Symptom
-On John's phone (Chrome, "Desktop site" not ticked), https://openisd.app shows the mobile skin as
+On John's phone (Chrome, "Desktop site" ticked, mobile skin chosen by hand), https://openisd.app shows the mobile skin as
 a narrow strip down the middle of the screen with grey margins, the text rendered small, as if the
 whole page were zoomed out. Box tab, closed box, project open (screenshot 2026-09-29 16:33).
 
