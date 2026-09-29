@@ -1,6 +1,6 @@
 # BUG_20260928_driver-count-not-winisd
 
-**Status:** OPEN
+**Status:** RESOLVED
 
 ## Symptom
 With two drivers (`[Box] Nd=2`) OpenISD's charts differ from WinISD's, with either wiring.
@@ -50,3 +50,7 @@ SPL and VA.
 `test/domain/driver-count-winisd.test.ts` against `test/fixtures/winisdTwoDriversCapture.ts`:
 SPL, impedance, max power ≤ 1e-12 relative, TF ≤ 1e-12 dB, excursion ≤ 1e-11. Red before (Z 1.72
 vs 3.43 Ω at 1 Hz), green after.
+
+## Resolution (2026-09-29)
+Sealed, vented, 4th-order bandpass and passive radiator all match WinISD at ≤ 1e-12: one driver alone in its 1/N share of the box (Vb/N, Vf/N, port area Sp/N, radiators prNum/N), fed eg/√N; SPL +20·log10 N, max power ×N. Tests: driver-count-winisd, driver-count-vented-winisd, driver-count-bp4-winisd, driver-count-pr-winisd. 6th-order bandpass and ABC not yet captured (register ❔).
+

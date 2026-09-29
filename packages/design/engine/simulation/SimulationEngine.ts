@@ -197,7 +197,7 @@ function driverValues(drv: DriverSolverParams) {
 /** WinISD's driver-count model applies: more than one driver, the model on, a box it is fitted
  *  for (sealed: runs/sealed-w5-nd2; vented: runs/vented-w5-nd2). */
 function winisdCountsDrivers(box: BoxType, P: SweepParams): boolean {
-  return (P.nDrivers || 1) > 1 && P.winisdDriverCountModel !== false && (box === 'sealed' || box === 'vented');
+  return (P.nDrivers || 1) > 1 && P.winisdDriverCountModel !== false && (box === 'sealed' || box === 'vented' || box === 'bandpass4' || box === 'box-passive-radiator');
 }
 
 /** One of `n` drivers as WinISD simulates it: alone, driven at P/n, in Vb/n with 1/n of the port
@@ -206,9 +206,9 @@ function oneOfN(P: SweepParams, n: number): SweepParams {
   return { ...oneBoxOfN(P, n), eg: P.eg / Math.sqrt(n) };
 }
 
-/** One of `n` drivers' share of the box: Vb/n and, where there is a port, Sp/n. */
+/** One of `n` drivers' share of the box: Vb/n and, where they exist, Vf/n, Sp/n and prNum/n. */
 function oneBoxOfN(P: SweepParams, n: number): SweepParams {
-  return { ...P, nDrivers: 1, Vb: P.Vb / n, ...(P.Sp !== undefined ? { Sp: P.Sp / n } : {}) };
+  return { ...P, nDrivers: 1, Vb: P.Vb / n, ...(P.Vf !== undefined ? { Vf: P.Vf / n } : {}), ...(P.Sp !== undefined ? { Sp: P.Sp / n } : {}), ...(P.prNum !== undefined ? { prNum: P.prNum / n } : {}) };
 }
 
 function circuitQuantities(q: ReturnType<typeof withAddedMass>, Le_H: number | undefined, BL_typed_Tm: number | null): { value: CircuitQuantities | null; issues: DriverIssue[] } {
