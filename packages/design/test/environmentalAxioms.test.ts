@@ -4,6 +4,23 @@ import {
 } from '../engine/index.js';
 import {OpenISDProject} from '../domain/project/openISDProject.js';
 
+function isRecord(v: unknown): v is Record<string, unknown> {
+  return typeof v === 'object' && v !== null;
+}
+
+/** Narrows a `JSON.parse(...)` result's `saved.environment` section — the runtime check the
+ *  value needs before its fields can be read; this file reads `.owpr` JSON only through this,
+ *  never through a cast. */
+function savedEnvironment(owprText: string): Record<string, unknown> {
+  const parsed: unknown = JSON.parse(owprText);
+  if (!isRecord(parsed)) throw new Error('expected an object');
+  const saved = parsed.saved;
+  if (!isRecord(saved)) throw new Error('expected saved to be an object');
+  const environment = saved.environment;
+  if (!isRecord(environment)) throw new Error('expected saved.environment to be an object');
+  return environment;
+}
+
 describe('Phase 1: Environmental Axioms (Tasks 26-33)', () => {
   it('envTempK provides the brand pattern: calculated default, entered, cleared', () => {
     const engine = createEngine();
@@ -83,14 +100,14 @@ describe('Phase 1: Environmental Axioms (Tasks 26-33)', () => {
   it('the environment trio is STORED as calculated entries, and an entered one as an E entry', () => {
     const project = OpenISDProject.empty(createEngine());
 
-    const stored = JSON.parse(project.toOwprText()).saved.environment;
+    const stored = savedEnvironment(project.toOwprText());
     expect(stored.temperature_K).toMatchObject({state: 'C', value: DEFAULT_T_REF_K});
     expect(stored.humidity_pct).toMatchObject({state: 'C', value: DEFAULT_RH_REF_PCT});
     expect(stored.pressure_Pa).toMatchObject({state: 'C', value: DEFAULT_P_REF_PA});
 
     project.envTempK.set(295.15);
     project.save();
-    expect(JSON.parse(project.toOwprText()).saved.environment.temperature_K)
+    expect(savedEnvironment(project.toOwprText()).temperature_K)
       .toMatchObject({state: 'E', value: 295.15});
   });
 

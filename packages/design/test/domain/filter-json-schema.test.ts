@@ -45,7 +45,7 @@ const validPeaking: Filter = {type: 'peaking', enabled: true, fc: 100, Q: 1, gai
 /** Reaches into a cloned session's one filter and returns a fresh copy with `field` overwritten —
  *  never mutates the caller's session object. */
 function withFilterField(session: unknown, field: string, value: number): unknown {
-  const s = session as {saved: {filters: {filters: Record<string, unknown>[]}}};
+  const s = openISDProjectSessionJsonSchema.parse(session);
   const filters = s.saved.filters.filters;
   return {
     ...s,
