@@ -133,7 +133,7 @@ Source: `WINISD_MODEL.md` §"WinISD's sealed-box resonance".
 | Figure-of-merit formulas: Gloss, SPLmaxLF, Mcost (`min`), SPLmax −3 dB, `KLe = Le·√(2π·fLe)`, the four-way DVol relation. | `parity/SOLVER_GAPS.md`; `GHIDRA_FINDINGS.md` |
 | New Project wizard, sealed route: nine fixed Qtc targets, `Vr = Vas/((Qtc/Qts_eff)²−1)`, with an unexplained ×1.0098 on Qts. | `PROBE_FINDINGS.md` §New Project wizard |
 | Passive radiator: Fh is the series-compliance resonance; `prTuning()` and Fs with added mass match exactly. | `PROBE_FINDINGS.md` §Passive radiator |
-| Vents tab: the first port resonance is `c/(2L)` over the bare length, with no end correction. The binary holds two end-correction constants, 0.732 and 0.6. | `PROBE_FINDINGS.md` §Vents; `GHIDRA_METHOD.md` |
+| Vents tab: the first port resonance is `c/(2L)` over the bare length, with no end correction. WinISD-saved `.wpr` files carry endcorrection=0.732; the 0.6 in the research corpus is the harness writer's default (`winisd_research/lib/wdr.py`), not a WinISD constant. | `PROBE_FINDINGS.md` §Vents; `GHIDRA_METHOD.md` |
 | Box-loss defaults are Ql 10, Qa 100, Qp 100. Ql shifts Fsc; Qa does not. | `WINISD_PARITY.md` §Losses; `PROBE_FINDINGS.md` |
 | `.wpr`: `phi` is a fraction; `[SimulatorOptions]` holds VCInd, FlatResponse and TLPorts; box sections store no computed output except sealed `Fr`; `BL=` and `Znom=` are case-sensitive. | `WINISD_MODEL.md` §wpr |
 | BUG-006: WinISD's recomputed Re, Rms and Cms differ from hand calculation by about 1 %. | `PROBE_FINDINGS.md` BUG-006 |
