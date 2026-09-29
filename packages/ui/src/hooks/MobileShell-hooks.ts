@@ -16,7 +16,7 @@ import {createSelectedBox, type TabId} from './OriginalShell-hooks.js';
  *  — a destination that has no desktop counterpart, because `GraphPanel`'s canvas sets
  *  `touch-action: none` (custom pointer pan/zoom) and would trap vertical scroll if it sat
  *  inline in a form column instead of owning the whole screen. */
-export type MobileDestination = Extract<TabId, 'box' | 'driver' | 'signal' | 'filters' | 'project' | 'enclosure'> | 'graph';
+export type MobileDestination = Extract<TabId, 'box' | 'driver' | 'signal' | 'filters' | 'project' | 'enclosure' | 'advanced'> | 'graph';
 
 export interface MobileShellApi {
   projectOpen: import('vue').ComputedRef<boolean>;
@@ -37,6 +37,7 @@ export interface MobileShellApi {
   openOptions: () => void;
   about: () => void;
   goToProject: () => void;
+  goToAdvanced: () => void;
   /** The real, currently-visible viewport height in px — see the field's own comment. */
   viewportHeightPx: import('vue').Ref<number>;
   /** Mirrors desktop's own nav gate: sealed has no Enclosure destination (Volume + Fsc live only
@@ -95,6 +96,7 @@ export function useMobileShell(): MobileShellApi {
   const optionsOpen = ref(false);
   function openOptions(): void { optionsOpen.value = true; closeMenu(); }
   function goToProject(): void { destination.value = 'project'; closeMenu(); }
+  function goToAdvanced(): void { destination.value = 'advanced'; closeMenu(); }
 
   // The hamburger menu — the mobile shell's stand-in for the desktop toolbar, since there's
   // no room for individual icons at phone width. Everything it opens (Options, Driver browser,
@@ -124,6 +126,6 @@ export function useMobileShell(): MobileShellApi {
     projectOpen, destination, fileInput, openImportedFile, openNewProject, switchToDesktop,
     menuOpen, toggleMenu, closeMenu, openFromDisk, isModified,
     saveProject, revertProject, browseDrivers, optionsOpen, openOptions, about, goToProject,
-    viewportHeightPx, showEnclosureTab, enclosureNavLabel,
+    goToAdvanced, viewportHeightPx, showEnclosureTab, enclosureNavLabel,
   };
 }

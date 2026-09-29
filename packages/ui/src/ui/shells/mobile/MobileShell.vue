@@ -10,6 +10,7 @@ import MobileChartView from './MobileChartView.vue';
 import MobileProjectTab from './MobileProjectTab.vue';
 import MobileFiltersTab from './MobileFiltersTab.vue';
 import MobileEnclosureTab from './MobileEnclosureTab.vue';
+import MobileAdvancedTab from './MobileAdvancedTab.vue';
 import ExportMenu from '../../components/ExportMenu.vue';
 import OptionsModal from '../../components/OptionsModal.vue';
 import { useMobileShell } from '../../../hooks/MobileShell-hooks.js';
@@ -17,7 +18,7 @@ import { useMobileShell } from '../../../hooks/MobileShell-hooks.js';
 const {
   projectOpen, destination, fileInput, openImportedFile, openNewProject, switchToDesktop,
   menuOpen, toggleMenu, closeMenu, openFromDisk, isModified, saveProject, revertProject,
-  browseDrivers, optionsOpen, openOptions, about, goToProject, viewportHeightPx,
+  browseDrivers, optionsOpen, openOptions, about, goToProject, goToAdvanced, viewportHeightPx,
   showEnclosureTab, enclosureNavLabel,
 } = useMobileShell();
 </script>
@@ -50,6 +51,7 @@ const {
         <MobileProjectTab v-else-if="destination === 'project'" />
         <MobileFiltersTab v-else-if="destination === 'filters'" />
         <MobileEnclosureTab v-else-if="destination === 'enclosure'" />
+        <MobileAdvancedTab v-else-if="destination === 'advanced'" />
       </main>
       <MobileTabBar v-model="destination" :show-enclosure="showEnclosureTab" :enclosure-label="enclosureNavLabel" />
 
@@ -62,6 +64,7 @@ const {
           <ExportMenu class="mob-menu-item mob-menu-export">Save As / Export</ExportMenu>
           <div class="mob-menu-sep"></div>
           <button type="button" class="mob-menu-item" @click="goToProject">Project details</button>
+          <button type="button" class="mob-menu-item" @click="goToAdvanced">Advanced</button>
           <button type="button" class="mob-menu-item" @click="browseDrivers">Manage Drivers</button>
           <button type="button" class="mob-menu-item" @click="openOptions">Options</button>
           <button type="button" class="mob-menu-item" @click="about(); closeMenu()">About OpenISD</button>
