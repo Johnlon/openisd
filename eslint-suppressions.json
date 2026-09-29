@@ -34,24 +34,9 @@
       "count": 1
     }
   },
-  "packages/design/domain/openisdTransforms.ts": {
-    "import-x/no-cycle": {
-      "count": 1
-    }
-  },
-  "packages/design/domain/project/openISDProject.ts": {
-    "import-x/no-cycle": {
-      "count": 2
-    }
-  },
   "packages/design/domain/winIsdDriverConverter.ts": {
     "import-x/no-cycle": {
       "count": 2
-    }
-  },
-  "packages/design/domain/winIsdProjectConverter.ts": {
-    "import-x/no-cycle": {
-      "count": 1
     }
   },
   "packages/design/engine/filters/FilterEngine.ts": {

@@ -1,12 +1,12 @@
 import {describe, expect, it} from 'vitest';
 import {computed, ref, shallowRef} from 'vue';
 import {createEngine} from '@openisd/design/engine';
-import {OpenISDProject} from '@openisd/design';
+import {ProjectBuilder} from '@openisd/design';
 import {SealedAlignmentEditor} from '../../src/hooks/SealedAlignment-hooks.js';
 
 function completeProject() {
   const engine = createEngine();
-  const project = OpenISDProject.empty(engine);
+  const project = ProjectBuilder.empty(engine);
   project.driver.specs.Fs_hz.set(40);
   project.driver.specs.Qts.set(0.38);
   project.driver.specs.Qes.set(0.45);

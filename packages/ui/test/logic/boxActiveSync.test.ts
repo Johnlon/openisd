@@ -11,7 +11,7 @@
 import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
 import {applyLoadedProject, newProject, openProjects, requireFocusedProject} from '../../src/logic/appState.js';
-import {OpenISDDriver, OpenISDProject} from '@openisd/design';
+import {OpenISDDriver, ProjectBuilder} from '@openisd/design';
 import {createEngine} from '@openisd/design/engine';
 
 describe('OpenISDProject.box — each box type keeps its own fields independently of which is active', () => {
@@ -43,7 +43,7 @@ describe('applyLoadedProject — the loaded project replaces the focused one who
     const engine = createEngine();
     // This test is about which project is FOCUSED, not about any driver's contents, so the
     // driver states nothing — the domain's own blank rather than a record assembled here.
-    const loaded = OpenISDProject.builder(OpenISDDriver.empty(engine), engine)
+    const loaded = new ProjectBuilder(OpenISDDriver.empty(engine), engine)
       .sealed().volume_m3(0.0275).build();
 
     applyLoadedProject(loaded);

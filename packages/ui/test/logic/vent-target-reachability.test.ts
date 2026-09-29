@@ -17,7 +17,7 @@
  */
 import {beforeEach, describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import {OpenISDDriver, OpenISDProject} from '@openisd/design';
+import {OpenISDDriver, ProjectBuilder} from '@openisd/design';
 import {createEngine} from '@openisd/design/engine';
 import {
     enterVentField as enterVentFieldOn,
@@ -55,7 +55,7 @@ function trial(targetFb: number) {
   const engine = createEngine();
   const driver = OpenISDDriver.fromConformingRecord(blankDriverRecord(), engine);
   if (Array.isArray(driver)) throw new Error(`blankDriverRecord() does not conform: ${driver.join('; ')}`);
-  const p = OpenISDProject.builder(driver, engine).vented().volume_m3(0.03).tuning_goal_hz(targetFb).build();
+  const p = new ProjectBuilder(driver, engine).vented().volume_m3(0.03).tuning_goal_hz(targetFb).build();
   p.box.vented.vent.shape.set('round');
   p.box.vented.vent.diameter_m.set(0.05);
   p.box.vented.vent.endCorrection_m.set(0.6);
@@ -105,7 +105,7 @@ describe('vent target reachability — an unreachable tuning must surface, not h
     const engine = createEngine();
     const driver = OpenISDDriver.fromConformingRecord(blankDriverRecord(), engine);
     if (Array.isArray(driver)) throw new Error(`blankDriverRecord() does not conform: ${driver.join('; ')}`);
-    const p = OpenISDProject.builder(driver, engine).bandpass4().rearVolume_m3(0.03).frontVolume_m3(0.002)
+    const p = new ProjectBuilder(driver, engine).bandpass4().rearVolume_m3(0.03).frontVolume_m3(0.002)
       .frontTuning_hz(40).build();
     p.box.bandpass4.chambers.front.volume_m3.set(0.002); // small front chamber → 40 Hz is far easier
     p.box.bandpass4.vents.front.shape.set('round');

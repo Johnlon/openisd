@@ -13,7 +13,7 @@
 import {afterAll, beforeAll, describe, it, vi} from 'vitest';
 import assert from 'node:assert/strict';
 import {gunzipSync, gzipSync} from 'node:zlib';
-import {OpenISDDriver, OpenISDProject} from '@openisd/design';
+import {OpenISDDriver, OpenISDProject, ProjectBuilder} from '@openisd/design';
 import type {BoxType} from '@openisd/design/engine';
 import {createEngine} from '@openisd/design/engine';
 import {createMemoryStorage, createProjectRepo, type FileStorage, type ViewSnapshot} from '@openisd/persistence';
@@ -86,7 +86,7 @@ function projectOf(box: BoxType, meta: FixtureMeta,
   const driver = OpenISDDriver.fromConformingRecord(driverRecord, createEngine());
   if (Array.isArray(driver)) throw new Error(`fixture record does not conform: ${driver.join('; ')}`);
   
-  const builder = OpenISDProject.builder(driver, createEngine());
+  const builder = new ProjectBuilder(driver, createEngine());
   let project: OpenISDProject;
   // Each box type requires its own volume before `build()`; these tests are about what crosses
   // the wire, so any stated size does.

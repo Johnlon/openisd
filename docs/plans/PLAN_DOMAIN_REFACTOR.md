@@ -2727,7 +2727,7 @@ export class OpenISDProject {
     //     ROLE: Internal member of enclosure/device/project.
     //     STATUS: GOOD AS-IS. Pure precomputed read or direct slot lens; complies with architectural invariants.
     static empty(engine: Engine): OpenISDProject {
-        return OpenISDProject.builder(OpenISDDriver.empty(engine), engine)
+        return new ProjectBuilder(OpenISDDriver.empty(engine), engine)
             .sealed()
             .volume_m3(0)
             .radiator(OpenISDPassiveRadiatorStandalone.empty(engine))

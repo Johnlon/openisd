@@ -9,7 +9,7 @@ When opening a new project from scratch (e.g. sealed w51138 and 6l), the Signal 
 P (system input power) must be initialised to 1W for all new project states.
 
 ## Evidence
-Reproduced on fresh project creation: `OpenISDProject.empty()` → Signal tab shows Pin and driveV both empty/null.
+Reproduced on fresh project creation: `ProjectBuilder.empty()` → Signal tab shows Pin and driveV both empty/null.
 
 ## Cause
 New project initialization does not set a default value for `powerDrive_W`. The field starts empty and nothing populates it. `driveVoltage_V` is derived from `powerDrive_W`, so it is also blank.

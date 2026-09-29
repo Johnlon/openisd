@@ -25,7 +25,7 @@ Probe: build a project, set `name` and `creator` through the project's own field
 the repo, read the bytes the picker received.
 
 ```ts
-const p = OpenISDProject.builder(OpenISDDriver.empty(new Engine()), new Engine())
+const p = new ProjectBuilder(OpenISDDriver.empty(new Engine()), new Engine())
   .sealed().volume_m3(0.03).build();
 p.name.set('PROBE-NAME-999999');
 p.creator.set('PROBE-CREATOR-999999');

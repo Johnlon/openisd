@@ -44,8 +44,8 @@ describe('.wpr simulation settings import into their OpenISD fields', () => {
 });
 
 describe('.wpr simulation settings export back', () => {
-  const {value: wpr} = imported(SETTINGS_TEXT).toWprText();
-  const text = wpr!;
+  const {value: wpr} = new WinIsdProjectConverter(createEngine()).openIsdProjectToWinIsdProject(imported(SETTINGS_TEXT));
+  const text = wpr!.toWpr();
   it.each([
     ['Box', 'Nd', 2], ['Box', 'Med', 0.005], ['Box', 'Isobarik', 1], ['Box', 'alfaVC', 0.0042], ['Box', 'dTVC', 35],
     ['SimulatorOptions', 'VCInd', 1], ['SimulatorOptions', 'FlatResponse', 1], ['SimulatorOptions', 'TLPorts', 1],

@@ -2,13 +2,13 @@ import {describe, expect, it, vi} from 'vitest';
 import {computed, defineComponent, h} from 'vue';
 import {renderToString} from 'vue/server-renderer';
 import {createEngine} from '@openisd/design/engine';
-import {OpenISDProject} from '@openisd/design';
+import {ProjectBuilder} from '@openisd/design';
 import {provideFocusedProject} from '../../src/logic/focusedProjectContext.js';
 import {useAdvancedOptions, type AdvancedOptionsAPI} from '../../src/hooks/AdvancedOptions-hooks.js';
 
 function createProject(boxType: 'sealed' | 'vented' | 'bandpass4' = 'sealed') {
   const engine = createEngine();
-  const project = OpenISDProject.empty(engine);
+  const project = ProjectBuilder.empty(engine);
   project.box.boxType.set(boxType);
   return project;
 }

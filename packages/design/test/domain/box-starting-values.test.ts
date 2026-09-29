@@ -6,7 +6,7 @@
  * (BUG_20260929_box-type-switch-leaves-volume-zero).
  */
 import {describe, expect, it} from 'vitest';
-import {OpenISDDriver, OpenISDProject} from '../../domain/index.js';
+import {OpenISDDriver, OpenISDProject, ProjectBuilder} from '../../domain/index.js';
 import {createEngine} from '../../engine/index.js';
 import {DEFAULT_SOURCE_RESISTANCE_OHM} from '../../fields/defaults.js';
 
@@ -24,12 +24,12 @@ function driver(): OpenISDDriver {
 }
 
 function sealedProject(): OpenISDProject {
-  return OpenISDProject.builder(driver(), createEngine()).sealed().volume_m3(0.03).build();
+  return new ProjectBuilder(driver(), createEngine()).sealed().volume_m3(0.03).build();
 }
 
 describe('box starting values on a type switch', () => {
   it('sealed: the flat (Qtc 0.707) volume', () => {
-    const p = OpenISDProject.builder(driver(), createEngine()).vented().volume_m3(0.03).tuning_goal_hz(35).build();
+    const p = new ProjectBuilder(driver(), createEngine()).vented().volume_m3(0.03).tuning_goal_hz(35).build();
     p.box.boxType.set('sealed');
     expect(p.box.sealed.volume_m3.value).toBe(p.driver.sealedVolumeForQtc(0.707));
   });
@@ -58,7 +58,7 @@ describe('box starting values on a type switch', () => {
   });
 
   it('passive radiator with a driver stating no Sd/Xmax: the flat 20 cm² Sd, no Xmax', () => {
-    const p = OpenISDProject.empty(createEngine());
+    const p = ProjectBuilder.empty(createEngine());
     p.box.boxType.set('box-passive-radiator');
     expect(p.box.passiveRadiator.radiator.spec.Sd_m2.value).toBe(0.02);
     expect(p.box.passiveRadiator.radiator.spec.Xmax_m.value).toBeNull();
@@ -70,7 +70,7 @@ describe('box starting values on a type switch', () => {
     p.box.boxType.set('vented');
     expect(p.box.vented.vent.width_m.value).toBe(0.13);
     expect(p.box.vented.vent.height_m.value).toBe(0.03);
-    const q = OpenISDProject.empty(createEngine());
+    const q = ProjectBuilder.empty(createEngine());
     q.box.vented.vent.shape.set('slotted');
     q.box.boxType.set('vented');
     expect(q.box.vented.vent.width_m.value).toBe(0.1);
@@ -93,7 +93,7 @@ describe('box starting values on a type switch', () => {
   });
 
   it('a driver without Qts/Vas gives no sealed or vented starting value', () => {
-    const p = OpenISDProject.empty(createEngine());
+    const p = ProjectBuilder.empty(createEngine());
     p.box.boxType.set('vented');
     expect(p.box.vented.volume_m3.value).toBe(0);
     p.box.boxType.set('sealed');
@@ -103,29 +103,29 @@ describe('box starting values on a type switch', () => {
 
 describe('ProjectBuilder starting values', () => {
   it('sealed() without a volume builds the flat volume', () => {
-    const p = OpenISDProject.builder(driver(), createEngine()).sealed().build();
+    const p = new ProjectBuilder(driver(), createEngine()).sealed().build();
     expect(p.box.sealed.volume_m3.value).toBe(p.driver.sealedVolumeForQtc(0.707));
     expect(p.isModified()).toBe(false);
   });
 
   it('vented().alignment(a) designs for the named alignment; without one, QB3', () => {
-    const p = OpenISDProject.builder(driver(), createEngine()).vented().alignment('bb4').build();
+    const p = new ProjectBuilder(driver(), createEngine()).vented().alignment('bb4').build();
     const design = p.driver.ventedDesign('bb4', DEFAULT_SOURCE_RESISTANCE_OHM, p.box.vented.losses.Ql.value)!;
     expect(p.box.vented.volume_m3.value).toBe(design.Vb);
     expect(p.box.vented.tuning_goal_hz.value).toBe(design.Fb);
     expect(p.box.vented.vent.diameter_m.value).toBe(0.05);
-    const q = OpenISDProject.builder(driver(), createEngine()).vented().build();
+    const q = new ProjectBuilder(driver(), createEngine()).vented().build();
     expect(q.box.vented.volume_m3.value).toBe(p.driver.ventedDesign('qb3', DEFAULT_SOURCE_RESISTANCE_OHM, q.box.vented.losses.Ql.value)!.Vb);
   });
 
   it('passiveRadiator() without a radiator builds the chart-ready one', () => {
-    const p = OpenISDProject.builder(driver(), createEngine()).passiveRadiator().build();
+    const p = new ProjectBuilder(driver(), createEngine()).passiveRadiator().build();
     expect(p.box.passiveRadiator.volume_m3.value).toBe(0.007);
     expect(p.box.passiveRadiator.radiator.spec.Mms_kg.value).toBe(0.05);
   });
 
   it('empty() stays at zero volumes: a blank driver has nothing to design from', () => {
-    const p = OpenISDProject.empty(createEngine());
+    const p = ProjectBuilder.empty(createEngine());
     expect(p.box.sealed.volume_m3.value).toBe(0);
   });
 });

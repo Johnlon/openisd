@@ -2,7 +2,7 @@ import {describe, expect, it} from 'vitest';
 import {
   createEngine, DEFAULT_T_REF_K, DEFAULT_RH_REF_PCT, DEFAULT_P_REF_PA, DEFAULT_VENTED_DESIGN_LIMITS,
 } from '../engine/index.js';
-import {OpenISDProject} from '../domain/project/openISDProject.js';
+import {ProjectBuilder} from '../domain/openisdTransforms.js';
 
 function isRecord(v: unknown): v is Record<string, unknown> {
   return typeof v === 'object' && v !== null;
@@ -24,7 +24,7 @@ function savedEnvironment(owprText: string): Record<string, unknown> {
 describe('Phase 1: Environmental Axioms (Tasks 26-33)', () => {
   it('envTempK provides the brand pattern: calculated default, entered, cleared', () => {
     const engine = createEngine();
-    const project = OpenISDProject.empty(engine);
+    const project = ProjectBuilder.empty(engine);
 
     // Initial unstated state reads the calculated default, never null
     expect(project.envTempK.value).toBe(DEFAULT_T_REF_K);
@@ -50,7 +50,7 @@ describe('Phase 1: Environmental Axioms (Tasks 26-33)', () => {
 
   it('envHumidityPct provides the brand pattern: calculated default, entered, cleared', () => {
     const engine = createEngine();
-    const project = OpenISDProject.empty(engine);
+    const project = ProjectBuilder.empty(engine);
 
     expect(project.envHumidityPct.value).toBe(DEFAULT_RH_REF_PCT);
     expect(project.envHumidityPct.entered).toBe(false);
@@ -72,7 +72,7 @@ describe('Phase 1: Environmental Axioms (Tasks 26-33)', () => {
 
   it('envPressurePa provides the brand pattern: calculated default, entered, cleared', () => {
     const engine = createEngine();
-    const project = OpenISDProject.empty(engine);
+    const project = ProjectBuilder.empty(engine);
 
     expect(project.envPressurePa.value).toBe(DEFAULT_P_REF_PA);
     expect(project.envPressurePa.entered).toBe(false);
@@ -98,7 +98,7 @@ describe('Phase 1: Environmental Axioms (Tasks 26-33)', () => {
   // (bugs/BUG_20260924_defaulted-fields-are-neither-marked-nor-recorded.md).
 
   it('the environment trio is STORED as calculated entries, and an entered one as an E entry', () => {
-    const project = OpenISDProject.empty(createEngine());
+    const project = ProjectBuilder.empty(createEngine());
 
     const stored = savedEnvironment(project.toOwprText());
     expect(stored.temperature_K).toMatchObject({state: 'C', value: DEFAULT_T_REF_K});
@@ -113,7 +113,7 @@ describe('Phase 1: Environmental Axioms (Tasks 26-33)', () => {
 
   it('a changed app default re-stamps an unstated environment, and leaves an entered one alone', () => {
     let defaults = {tempK: 293.15, humidityPct: 50, pressurePa: 101325};
-    const project = OpenISDProject.empty(createEngine({
+    const project = ProjectBuilder.empty(createEngine({
       ventedLimits: () => DEFAULT_VENTED_DESIGN_LIMITS,
       envDefaults: () => defaults,
     }));
@@ -132,7 +132,7 @@ describe('Phase 1: Environmental Axioms (Tasks 26-33)', () => {
 
   it('envUseWinisdAirModel provides SimpleField<boolean> behavior defaulting to true', () => {
     const engine = createEngine();
-    const project = OpenISDProject.empty(engine);
+    const project = ProjectBuilder.empty(engine);
 
     // Default out-of-the-box matches WinISD (QO95)
     expect(project.envUseWinisdAirModel.value).toBe(true);
@@ -148,7 +148,7 @@ describe('Phase 1: Environmental Axioms (Tasks 26-33)', () => {
 
   it('the embedded driver resolves air the same way the project/sweep does, with useWinisdAirModel unset (BUG_20260924)', () => {
     const engine = createEngine();
-    const project = OpenISDProject.empty(engine);
+    const project = ProjectBuilder.empty(engine);
 
     // Away from reference conditions, so the physical and WinISD air models diverge visibly —
     // and envUseWinisdAirModel is left UNSET (defaults to true, QO95), so both sides must apply

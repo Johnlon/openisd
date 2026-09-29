@@ -11,7 +11,7 @@ import {createProjectRepo} from '../src/repos/projectRepo.js';
 import type {FileStorage} from '../src/storage/fileStorage.js';
 import {createMemoryStorage, type KeyValueStorage} from '../src/storage/keyValueStorage.js';
 import {OPENISD_OPEN_SESSIONS_KEY, OPENISD_QUARANTINE_SESSION_KEY} from '../src/repos/storageKeys.js';
-import {OpenISDProject} from '@openisd/design';
+import {ProjectBuilder} from '@openisd/design';
 import {createEngine} from '@openisd/design/engine';
 
 const engine = createEngine();
@@ -30,7 +30,7 @@ function sessionRecord(texts: readonly string[], focusedId: string | null): stri
 }
 
 function goodProjectText(name: string): string {
-  const project = OpenISDProject.empty(engine);
+  const project = ProjectBuilder.empty(engine);
   project.name.set(name);
   project.save();
   return project.toOwprText();

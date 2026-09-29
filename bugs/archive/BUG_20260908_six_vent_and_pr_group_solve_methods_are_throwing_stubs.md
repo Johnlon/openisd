@@ -43,7 +43,7 @@ try { solveVentGroup(p); } finally { solvingVent = false; }
 ```
 
 Reproduced by `packages/ui/test/logic/newBlankProject.test.ts`, which failed on
-`OpenISDProject.empty()` reaching the registry — the throw came from `addProject`, not from
+`ProjectBuilder.empty()` reaching the registry — the throw came from `addProject`, not from
 anything vent-related in the test.
 
 ## Cause

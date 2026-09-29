@@ -14,7 +14,7 @@
 import {describe, expect, it} from 'vitest';
 import assert from 'node:assert/strict';
 import {type Engine, createEngine, DEFAULT_ENV_DEFAULTS, type AppSettings, type EnvDefaults, type VentedDesignLimits} from '@openisd/design/engine';
-import {OpenISDDriver, OpenISDProject} from '../../domain/index.js';
+import {OpenISDDriver, OpenISDProject, ProjectBuilder} from '../../domain/index.js';
 
 const scraped = <T,>(value: T) => ({value});
 const spec = (read_value: number) => ({state: 'E' as const, value: read_value, origin: 'scraped', readings: {scraped: {read_value}}});
@@ -57,7 +57,7 @@ function driverFor(engine: Engine): OpenISDDriver {
 }
 
 function ventedProject(engine: Engine, Vb: number, Fb: number): OpenISDProject {
-  const p = OpenISDProject.builder(driverFor(engine), engine).vented().volume_m3(Vb).tuning_goal_hz(Fb).build();
+  const p = new ProjectBuilder(driverFor(engine), engine).vented().volume_m3(Vb).tuning_goal_hz(Fb).build();
   p.box.vented.vent.diameter_m.clear();   // no vent geometry: the build gave it the 50 mm starting diameter
   p.save();                                // the fixture's own state is its saved baseline
   return p;
@@ -106,7 +106,7 @@ describe('vented project cells — plausibility marks', () => {
     // A sealed project's vented chamber sits at its schema default of 0 m³. That is not an
     // implausible box; it is no box. `cell-dq.test.ts` pins the same expectation.
     const engine = engineWith(NARROW);
-    const p = OpenISDProject.builder(driverFor(engine), engine).sealed().volume_m3(0.03).build();
+    const p = new ProjectBuilder(driverFor(engine), engine).sealed().volume_m3(0.03).build();
     assert.deepEqual(p.box.vented.volume_m3.dq, []);
   });
 

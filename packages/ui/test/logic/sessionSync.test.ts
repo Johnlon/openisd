@@ -7,7 +7,7 @@
 import {afterEach, beforeEach, describe, expect, it} from 'vitest';
 import {nextTick} from 'vue';
 import {createEngine} from '@openisd/design/engine';
-import {OpenISDProject} from '@openisd/design';
+import {OpenISDProject, ProjectBuilder} from '@openisd/design';
 import {createProjectRepo, createSharedMemoryStorage, createViewStateRepo, type FileStorage} from '@openisd/persistence';
 import {startSessionSync} from '../../src/logic/sessionSync.js';
 import {addProject, openProjects, removeProject} from '../../src/logic/appState.js';
@@ -23,7 +23,7 @@ const noFiles: FileStorage = {
 };
 
 function project(name: string): OpenISDProject {
-  const p = OpenISDProject.empty(engine);
+  const p = ProjectBuilder.empty(engine);
   p.name.set(name);
   p.save();
   return p;

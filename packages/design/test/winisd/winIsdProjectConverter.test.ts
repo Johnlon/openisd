@@ -15,7 +15,7 @@ import {fileURLToPath} from 'node:url';
 import {dirname, join} from 'node:path';
 import {type Engine, createEngine} from '@openisd/design/engine';
 import type {Filter} from '@openisd/design/engine';
-import {OpenISDDriver, OpenISDPassiveRadiatorStandalone, OpenISDProject,} from '@openisd/design';
+import {OpenISDDriver, OpenISDPassiveRadiatorStandalone, OpenISDProject, ProjectBuilder,} from '@openisd/design';
 import {WinIsdProjectConverter} from '../../domain/winIsdProjectConverter.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -85,9 +85,9 @@ function aDriver(engine: Engine, brand: string, model: string): OpenISDDriver {
   return driver;
 }
 
-function aProject(box: (p: ReturnType<typeof OpenISDProject.builder>) => OpenISDProject): OpenISDProject {
+function aProject(box: (p: ProjectBuilder) => OpenISDProject): OpenISDProject {
   const engine = createEngine();
-  return box(OpenISDProject.builder(aDriver(engine, 'QO8', 'test'), engine));
+  return box(new ProjectBuilder(aDriver(engine, 'QO8', 'test'), engine));
 }
 
 describe('openIsdProjectToWinIsdProject — [Box]/[SignalSource] match the WinISD-written goldens', () => {
@@ -250,7 +250,7 @@ describe('openIsdProjectToWinIsdProject — [Box]/[SignalSource] match the WinIS
     if (Array.isArray(radiator)) throw new Error(`fixture is not a conforming radiator: ${radiator.join('; ')}`);
 
     const driver = aDriver(engine, 'QO8', 'test');
-    const project = OpenISDProject.builder(driver, engine).passiveRadiator()
+    const project = new ProjectBuilder(driver, engine).passiveRadiator()
       .volume_m3(PR_VOLUME_M3).tuning_goal_hz(PR_TUNING_HZ).count(1).radiator(radiator).build();
     project.powerDrive_W.set(1);
 
@@ -275,7 +275,7 @@ describe('openIsdProjectToWinIsdProject — null-fallback and unsupported-type b
     const driver = OpenISDDriver.empty(engine);
     driver.brand.set('Test');
     driver.model.set('NoRe');
-    const project = OpenISDProject.builder(driver, engine).sealed().volume_m3(0.02).build();
+    const project = new ProjectBuilder(driver, engine).sealed().volume_m3(0.02).build();
     assert.equal(project.powerDrive_W.value, null);
 
     const { value: wpr, errors } = new WinIsdProjectConverter(engine).openIsdProjectToWinIsdProject(project);
@@ -288,7 +288,7 @@ describe('openIsdProjectToWinIsdProject — null-fallback and unsupported-type b
     vi.useFakeTimers({now: new Date('2026-05-06T12:00:00')});
     try {
       const engine = createEngine();
-      const project = OpenISDProject.builder(OpenISDDriver.empty(engine), engine).sealed().volume_m3(0.02).build();
+      const project = new ProjectBuilder(OpenISDDriver.empty(engine), engine).sealed().volume_m3(0.02).build();
       project.created.set('');
       project.modified.set('');
 
@@ -305,7 +305,7 @@ describe('openIsdProjectToWinIsdProject — null-fallback and unsupported-type b
     const engine = createEngine();
     const radiator = OpenISDPassiveRadiatorStandalone.empty();
     const driver = aDriver(engine, 'QO8', 'test');
-    const project = OpenISDProject.builder(driver, engine).passiveRadiator()
+    const project = new ProjectBuilder(driver, engine).passiveRadiator()
       .volume_m3(0.03).tuning_goal_hz(35).count(1).radiator(radiator).build();
     // The build gave the radiator its chart-ready Sd/Cms/Mms; this test is about one stating none.
     project.box.passiveRadiator.radiator.spec.Sd_m2.clear();
@@ -328,7 +328,7 @@ describe('openIsdProjectToWinIsdProject — null-fallback and unsupported-type b
   it('bandpass6/abc box types export with BType 3/5 — see bp6-abc-wpr.test.ts for the full coverage', () => {
     const engine = createEngine();
     const driver = aDriver(engine, 'QO8', 'test');
-    const project = OpenISDProject.builder(driver, engine).bandpass6()
+    const project = new ProjectBuilder(driver, engine).bandpass6()
       .rearVolume_m3(0.01).rearTuning_hz(40).frontVolume_m3(0.02).frontTuning_hz(60).build();
 
     const { value: wpr, errors } = new WinIsdProjectConverter(engine).openIsdProjectToWinIsdProject(project);
@@ -463,7 +463,7 @@ describe('openIsdProjectToWinIsdProject — null-fallback and unsupported-type b
     const radiator = OpenISDPassiveRadiatorStandalone.fromConformingRecord(radiatorRecord);
     if (Array.isArray(radiator)) throw new Error(`fixture is not a conforming radiator: ${radiator.join('; ')}`);
     const driver = aDriver(engine, 'QO8', 'test');
-    const project = OpenISDProject.builder(driver, engine).passiveRadiator()
+    const project = new ProjectBuilder(driver, engine).passiveRadiator()
       .volume_m3(0.03).tuning_goal_hz(35).count(1).radiator(radiator).build();
     // The build gave the radiator its chart-ready Sd/Cms/Mms; this test is about one stating none.
     project.box.passiveRadiator.radiator.spec.Sd_m2.clear();

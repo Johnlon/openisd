@@ -18,7 +18,7 @@ import {
     openProjects,
     removeProject,
 } from '../../src/logic/appState.js';
-import {OpenISDDriver, OpenISDProject} from '@openisd/design';
+import {OpenISDDriver, ProjectBuilder} from '@openisd/design';
 import {presentationState} from '../../src/logic/presentationState.js';
 
 describe('project registry', () => {
@@ -38,7 +38,7 @@ describe('project registry', () => {
     // `addProject` is the door for a project built ELSEWHERE — a `.owpr` opened from disk, a
     // share link, a `.wpr` import. Distinct from `newProject()`, which builds a blank one, so it
     // is handed a project here rather than asserted through its caller.
-    const adopted = OpenISDProject.builder(OpenISDDriver.empty(engine), engine)
+    const adopted = new ProjectBuilder(OpenISDDriver.empty(engine), engine)
       .sealed().volume_m3(0.03).build();
     const before = openProjects().length;
 

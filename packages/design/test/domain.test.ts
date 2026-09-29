@@ -8,7 +8,7 @@ import {
     OpenISDDriver,
     OpenISDDriverStandalone,
     OpenISDPassiveRadiatorStandalone,
-    OpenISDProject,
+    OpenISDProject, ProjectBuilder,
     type FrequencyGrid,
     VoiceCoilWiring
 } from '../domain/index.js';
@@ -243,7 +243,7 @@ describe('OpenISDDriver.issues() — the last resolve()\'s own diagnostic (S2-10
 
 describe('the driver — a window, not a copy', () => {
   it('reads and writes through to the record it was given', () => {
-    const driver = OpenISDProject.builder(driverFrom({
+    const driver = new ProjectBuilder(driverFrom({
       brand: 'Dayton', model: 'RS225', section: 'woofer',
       spec: specSection({ Fs_hz: 30, Qts: 0.4, Sd_m2: 0.02, Cms_m_per_N: 0.0005, Mmd_kg: 0.05, Rms_Ns_per_m: 2, Xmax_m: 0.008 }),
     }), createEngine()).sealed().volume_m3(0.03).build().driver;
@@ -268,7 +268,7 @@ describe('the driver — a window, not a copy', () => {
     // layer is effective — writing to committed opens an edit layer. A caller that bound the
     // handle once (the ordinary shape of UI code) then read stale values from its own first
     // edit onwards, so the write looked lost.
-    const project = OpenISDProject.builder(driverFrom({
+    const project = new ProjectBuilder(driverFrom({
       brand: 'Dayton', model: 'RS225', section: 'woofer',
       spec: specSection({ Fs_hz: 30, Qts: 0.4, Sd_m2: 0.02, Cms_m_per_N: 0.0005, Mmd_kg: 0.05, Rms_Ns_per_m: 2, Xmax_m: 0.008 }),
     }), createEngine()).sealed().volume_m3(0.03).build();
@@ -288,7 +288,7 @@ describe('the driver — a window, not a copy', () => {
   });
 
   it('what-if edits are transient and cancel preserves ordinary edits', () => {
-    const project = OpenISDProject.builder(driverFrom({
+    const project = new ProjectBuilder(driverFrom({
       brand: 'Dayton', model: 'RS225', section: 'woofer',
       spec: specSection({ Fs_hz: 30, Qts: 0.4, Sd_m2: 0.02, Cms_m_per_N: 0.0005, Mmd_kg: 0.05, Rms_Ns_per_m: 2, Xmax_m: 0.008 }),
     }), createEngine()).sealed().volume_m3(0.03).build();
@@ -305,7 +305,7 @@ describe('the driver — a window, not a copy', () => {
   });
 
   it('beginWhatIf() is a no-op once a what-if is already active — the running session is not restarted', () => {
-    const project = OpenISDProject.builder(driverFrom({
+    const project = new ProjectBuilder(driverFrom({
       brand: 'Dayton', model: 'RS225', section: 'woofer',
       spec: specSection({ Fs_hz: 30, Qts: 0.4, Sd_m2: 0.02, Cms_m_per_N: 0.0005, Mmd_kg: 0.05, Rms_Ns_per_m: 2, Xmax_m: 0.008 }),
     }), createEngine()).sealed().volume_m3(0.03).build();
@@ -318,7 +318,7 @@ describe('the driver — a window, not a copy', () => {
   });
 
   it('cancelWhatIf()/resetWhatIf() are no-ops when no what-if session is active', () => {
-    const project = OpenISDProject.builder(driverFrom({
+    const project = new ProjectBuilder(driverFrom({
       brand: 'Dayton', model: 'RS225', section: 'woofer',
       spec: specSection({ Fs_hz: 30, Qts: 0.4, Sd_m2: 0.02, Cms_m_per_N: 0.0005, Mmd_kg: 0.05, Rms_Ns_per_m: 2, Xmax_m: 0.008 }),
     }), createEngine()).sealed().volume_m3(0.03).build();
@@ -335,7 +335,7 @@ describe('the driver — a window, not a copy', () => {
     // for a reason that has nothing to do with what it is testing: a random UUID happening to
     // contain the digits '40' inside it (the flake this fixture replaces, 2026-09-15).
     const appContext = fixedAppContext('11111111-1111-4111-8111-111111111111');
-    const project = OpenISDProject.builder(driverFrom({
+    const project = new ProjectBuilder(driverFrom({
       brand: 'Dayton', model: 'RS225', section: 'woofer',
       spec: specSection({ Fs_hz: 30, Qts: 0.4, Sd_m2: 0.02, Cms_m_per_N: 0.0005, Mmd_kg: 0.05, Rms_Ns_per_m: 2, Xmax_m: 0.008 }),
     }), createEngine(), appContext).sealed().volume_m3(0.03).build();
@@ -357,7 +357,7 @@ describe('the driver — a window, not a copy', () => {
   });
 
   it('gives every field a STABLE identity across accesses', () => {
-    const driver = OpenISDProject.builder(driverFrom({
+    const driver = new ProjectBuilder(driverFrom({
       brand: 'Dayton', model: 'RS225', section: 'woofer',
       spec: specSection({ Fs_hz: 30, Qts: 0.4, Sd_m2: 0.02, Cms_m_per_N: 0.0005, Mmd_kg: 0.05, Rms_Ns_per_m: 2, Xmax_m: 0.008 }),
     }), createEngine()).sealed().volume_m3(0.03).build().driver;
@@ -508,7 +508,7 @@ describe('the driver — a window, not a copy', () => {
   });
 
   it('detach() yields an instance that no longer shares storage with the original', () => {
-    const original = OpenISDProject.builder(driverFrom({
+    const original = new ProjectBuilder(driverFrom({
       brand: 'Dayton', model: 'RS225', section: 'woofer',
       spec: specSection({ Fs_hz: 30, Qts: 0.4, Sd_m2: 0.02, Cms_m_per_N: 0.0005, Mmd_kg: 0.05, Rms_Ns_per_m: 2, Xmax_m: 0.008 }),
     }), createEngine()).sealed().volume_m3(0.03).build().driver;
@@ -522,7 +522,7 @@ describe('the driver — a window, not a copy', () => {
 });
 
 describe('OpenISDBox — every alignment, as a window onto the project record', () => {
-  const project = () => OpenISDProject.builder(driverFrom({
+  const project = () => new ProjectBuilder(driverFrom({
     brand: 'Dayton', model: 'RS225', section: 'woofer',
     spec: specSection({ Fs_hz: 30, Qts: 0.4, Sd_m2: 0.02, Cms_m_per_N: 0.0005, Mmd_kg: 0.05, Rms_Ns_per_m: 2, Xmax_m: 0.008 }),
   }), createEngine()).sealed().volume_m3(0.03).build();
@@ -562,7 +562,7 @@ describe('OpenISDBox — every alignment, as a window onto the project record', 
     // `sourceLoadedQts` falls back to NaN for whichever of Qms/Qes/Re_ohm is unstated (its own
     // contract). Without `Rms_kg_per_s` there is no mechanical route to Qms either, so all three
     // are genuinely unstated here — Fs/Vas/Qts alone are enough to keep resonance itself answerable.
-    const p = OpenISDProject.builder(driverFrom({
+    const p = new ProjectBuilder(driverFrom({
       brand: 'Dayton', model: 'RS225', section: 'woofer',
       spec: specSectionNoRms({ Fs_hz: 30, Qts: 0.4, Sd_m2: 0.02, Cms_m_per_N: 0.0005, Mmd_kg: 0.05, Xmax_m: 0.008 }),
     }), createEngine()).sealed().volume_m3(0.03).build();
@@ -577,7 +577,7 @@ describe('OpenISDBox — every alignment, as a window onto the project record', 
   it('answers null for sealed resonance when the driver states no Q at all — nothing to invert', () => {
     // No `Qts` and no `Qes`/`Qms` pair to derive it from either: the guard is about Q, not
     // volume, so the box volume here is the same real 0.03 m³ the passing tests use.
-    const p = OpenISDProject.builder(driverFrom({
+    const p = new ProjectBuilder(driverFrom({
       brand: 'Dayton', model: 'RS225', section: 'woofer',
       spec: specSectionNoRms({ Fs_hz: 30, Sd_m2: 0.02, Cms_m_per_N: 0.0005, Mmd_kg: 0.05, Xmax_m: 0.008 }),
     }), createEngine()).sealed().volume_m3(0.03).build();
@@ -593,7 +593,7 @@ describe('OpenISDBox — every alignment, as a window onto the project record', 
     const p = project();
     expect(p.box.sealed.resonance_hz.calculated).toBe(true);
     expect(p.box.sealed.resonance_hz.value).not.toBeNull();
-    const ventedOnly = OpenISDProject.builder(driverFrom({
+    const ventedOnly = new ProjectBuilder(driverFrom({
       brand: 'Dayton', model: 'RS225', section: 'woofer',
       spec: specSection({ Fs_hz: 30, Qts: 0.4, Sd_m2: 0.02, Cms_m_per_N: 0.0005, Mmd_kg: 0.05, Rms_Ns_per_m: 2, Xmax_m: 0.008 }),
     }), createEngine()).vented().volume_m3(0.05).tuning_goal_hz(40).build();
@@ -613,11 +613,11 @@ describe('OpenISDBox — every alignment, as a window onto the project record', 
     // at a fixed volume, `Fr` shifts 5.8 Hz between Ql=10000 and Ql=5 (winisd_research
     // FINDING-007). The lossless formula `Fs·√(1 + Vas/Vb)` cannot see Ql at all, so it returns
     // the same number for both — which is exactly the defect this pins.
-    const leaky = OpenISDProject.builder(driverFrom({
+    const leaky = new ProjectBuilder(driverFrom({
       brand: 'Dayton', model: 'RS225', section: 'woofer',
       spec: specSection({ Fs_hz: 30, Qts: 0.4, Sd_m2: 0.02, Cms_m_per_N: 0.0005, Mmd_kg: 0.05, Rms_Ns_per_m: 2, Xmax_m: 0.008 }),
     }), createEngine()).sealed().volume_m3(0.03).build();
-    const tight = OpenISDProject.builder(driverFrom({
+    const tight = new ProjectBuilder(driverFrom({
       brand: 'Dayton', model: 'RS225', section: 'woofer',
       spec: specSection({ Fs_hz: 30, Qts: 0.4, Sd_m2: 0.02, Cms_m_per_N: 0.0005, Mmd_kg: 0.05, Rms_Ns_per_m: 2, Xmax_m: 0.008 }),
     }), createEngine()).sealed().volume_m3(0.03).build();
@@ -641,7 +641,7 @@ describe('OpenISDBox — every alignment, as a window onto the project record', 
     //
     // The bare-Qts feed alone is wrong by 0.040 Hz here, and the compliance feed cannot answer
     // this record at all (Sd/Cms are null), so today the cell reads not-available:
-    const p = OpenISDProject.builder(driverFrom({
+    const p = new ProjectBuilder(driverFrom({
       brand: 'Dayton', model: 'E150HE', section: 'woofer',
       spec: tuneSpec({Fs_hz: 40, Vas_m3: 0.00765, Qes: 0.45, Qms: 2.94, Re_ohm: 6.6}),
     }), createEngine()).sealed().volume_m3(0.006).build();
@@ -665,7 +665,7 @@ describe('OpenISDBox — every alignment, as a window onto the project record', 
 
   it('answers null for sealed Qtc when the enclosure is not set', () => {
     // The sealed box is dormant in a vented project — no volume, so no Q.
-    const ventedOnly = OpenISDProject.builder(driverFrom({
+    const ventedOnly = new ProjectBuilder(driverFrom({
       brand: 'Dayton', model: 'RS225', section: 'woofer',
       spec: specSection({ Fs_hz: 30, Qts: 0.4, Sd_m2: 0.02, Cms_m_per_N: 0.0005, Mmd_kg: 0.05, Rms_Ns_per_m: 2, Xmax_m: 0.008 }),
     }), createEngine()).vented().volume_m3(0.05).tuning_goal_hz(40).build();
@@ -744,7 +744,7 @@ describe('OpenISDBox — every alignment, as a window onto the project record', 
       params.Vb_m3.setCalculated(0.01);
       return [];
     });
-    expect(() => OpenISDProject.builder(driverFrom({
+    expect(() => new ProjectBuilder(driverFrom({
       brand: 'Dayton', model: 'RS225', section: 'woofer',
       spec: tuneSpec({Fs_hz: 40, Vas_m3: 0.00765, Qes: 0.45, Qms: 2.94, Re_ohm: 8}),
     }), engine).sealed().volume_m3(0.03).build()).toThrow(/structurally unreachable/);
@@ -761,7 +761,7 @@ describe('OpenISDBox — every alignment, as a window onto the project record', 
 
   it('P and V dq writes carry the issue\'s own sentence into the record trail', () => {
     const engine = createEngine();
-    const p = OpenISDProject.builder(driverFrom({
+    const p = new ProjectBuilder(driverFrom({
       brand: 'Dayton', model: 'RS225', section: 'woofer',
       spec: tuneSpec({Fs_hz: 40, Vas_m3: 0.00765, Qes: 0.45, Qms: 2.94, Re_ohm: 8}),
     }), engine).sealed().volume_m3(0.03).build();
@@ -847,7 +847,7 @@ describe('OpenISDBox — every alignment, as a window onto the project record', 
 
   it('a driver\'s own c_m_per_s/roo_kg_per_m3 has no effect on box calculations — display only (BUG_20260924)', () => {
     const engine = createEngine();
-    const p = OpenISDProject.builder(driverFrom({
+    const p = new ProjectBuilder(driverFrom({
       brand: 'Dayton', model: 'RS225', section: 'woofer',
       spec: specSection({ Fs_hz: 30, Qts: 0.4, Sd_m2: 0.02, Cms_m_per_N: 0.0005, Mmd_kg: 0.05, Rms_Ns_per_m: 2, Xmax_m: 0.008 }),
     }), engine).sealed().volume_m3(0.03).build();
@@ -977,7 +977,7 @@ describe('OpenISDBox — every alignment, as a window onto the project record', 
     expect(p.box.bandpass4.chambers.rear.resonance_hz.value).toBe(null);
     expect(p.box.bandpass4.chambers.rear.resonance_hz.value).toBeNull();
 
-    const bp4 = OpenISDProject.builder(driverFrom({
+    const bp4 = new ProjectBuilder(driverFrom({
       brand: 'Dayton', model: 'RS225', section: 'woofer',
       spec: specSection({ Fs_hz: 30, Qts: 0.4, Sd_m2: 0.02, Cms_m_per_N: 0.0005, Mmd_kg: 0.05, Rms_Ns_per_m: 2, Xmax_m: 0.008 }),
     }), createEngine()).bandpass4().rearVolume_m3(0.02).frontVolume_m3(0.03).frontTuning_hz(40).build();
@@ -988,7 +988,7 @@ describe('OpenISDBox — every alignment, as a window onto the project record', 
   it('gives the bandpass4 front volume a Field readout like every other chamber', () => {
     // The front chamber volume carries entered/calculated status like the rear chamber,
     // not a bare SimpleField.
-    const bp4 = OpenISDProject.builder(driverFrom({
+    const bp4 = new ProjectBuilder(driverFrom({
       brand: 'Dayton', model: 'RS225', section: 'woofer',
       spec: specSection({ Fs_hz: 30, Qts: 0.4, Sd_m2: 0.02, Cms_m_per_N: 0.0005, Mmd_kg: 0.05, Rms_Ns_per_m: 2, Xmax_m: 0.008 }),
     }), createEngine()).bandpass4().rearVolume_m3(0.02).frontVolume_m3(0.03).frontTuning_hz(40).build();
@@ -1011,7 +1011,7 @@ describe('OpenISDProject.builder — bandpass6 and abc share TwoChamberProjectBu
   };
 
   it('bandpass6() builds a project whose rear chamber carries its own volume AND tuning, unlike bandpass4\'s sealed rear', () => {
-    const p = OpenISDProject.builder(driver(), createEngine())
+    const p = new ProjectBuilder(driver(), createEngine())
       .bandpass6().rearVolume_m3(0.02).rearTuning_hz(50).frontVolume_m3(0.03).frontTuning_hz(40).build();
     expect(p.box.bandpass6.chambers.rear.volume_m3.value).toBe(0.02);
     expect(p.box.bandpass6.chambers.rear.tuning_goal_hz.value).toBe(50);
@@ -1020,7 +1020,7 @@ describe('OpenISDProject.builder — bandpass6 and abc share TwoChamberProjectBu
   });
 
   it('abc() builds the same two independently-tunable chambers under the abc box type', () => {
-    const p = OpenISDProject.builder(driver(), createEngine())
+    const p = new ProjectBuilder(driver(), createEngine())
       .abc().rearVolume_m3(0.025).rearTuning_hz(45).frontVolume_m3(0.035).frontTuning_hz(38).build();
     expect(p.box.abc.chambers.rear.volume_m3.value).toBe(0.025);
     expect(p.box.abc.chambers.rear.tuning_goal_hz.value).toBe(45);
@@ -1029,7 +1029,7 @@ describe('OpenISDProject.builder — bandpass6 and abc share TwoChamberProjectBu
   });
 
   it('sweep()/maxCurves()/boxParamsIssues() simulate a bandpass6 box — see bp6-abc-wpr.test.ts for the WinISD-matched engine coverage', () => {
-    const p = OpenISDProject.builder(driver(), createEngine())
+    const p = new ProjectBuilder(driver(), createEngine())
       .bandpass6().rearVolume_m3(0.02).rearTuning_hz(50).frontVolume_m3(0.03).frontTuning_hz(40).build();
 
     expect(p.sweep({fmin: 10, fmax: 100, N: 10}).values).not.toBeNull();
@@ -1045,13 +1045,13 @@ describe('BoxProjectBuilder — the shared build() guards', () => {
   });
 
   it('build() without a volume ships the type\'s starting values, never a half-stated box (box-starting-values.test.ts)', () => {
-    const p = OpenISDProject.builder(driver(), createEngine()).sealed().build();
+    const p = new ProjectBuilder(driver(), createEngine()).sealed().build();
     expect(p.box.sealed.volume_m3.value).toBeGreaterThan(0);
   });
 });
 
 describe('OpenISDProject.lossMode — project-scoped, not a UI singleton (S10/QO130)', () => {
-  const project = () => OpenISDProject.builder(driverFrom({
+  const project = () => new ProjectBuilder(driverFrom({
     brand: 'Dayton', model: 'RS225', section: 'woofer',
     spec: specSection({ Fs_hz: 30, Qts: 0.4, Sd_m2: 0.02, Cms_m_per_N: 0.0005, Mmd_kg: 0.05, Rms_Ns_per_m: 2, Xmax_m: 0.008 }),
   }), createEngine()).sealed().volume_m3(0.03).build();
@@ -1079,7 +1079,7 @@ describe('OpenISDProject.lossMode — project-scoped, not a UI singleton (S10/QO
 });
 
 describe('OpenISDProject graphs/cursor — project-scoped, not a UI singleton (S10/QO130)', () => {
-  const project = () => OpenISDProject.builder(driverFrom({
+  const project = () => new ProjectBuilder(driverFrom({
     brand: 'Dayton', model: 'RS225', section: 'woofer',
     spec: specSection({ Fs_hz: 30, Qts: 0.4, Sd_m2: 0.02, Cms_m_per_N: 0.0005, Mmd_kg: 0.05, Rms_Ns_per_m: 2, Xmax_m: 0.008 }),
   }), createEngine()).sealed().volume_m3(0.03).build();
@@ -1209,7 +1209,7 @@ describe('OpenISDProject graphs/cursor — project-scoped, not a UI singleton (S
 });
 
 describe('S10 — sealed joins the cascade: box.sealed.q_tc is an entry the resolve writes', () => {
-  const sealedProject = () => OpenISDProject.builder(driverFrom({
+  const sealedProject = () => new ProjectBuilder(driverFrom({
     brand: 'Dayton', model: 'RS225', section: 'woofer',
     spec: specSection({ Fs_hz: 30, Qts: 0.4, Sd_m2: 0.02, Cms_m_per_N: 0.0005, Mmd_kg: 0.05, Rms_Ns_per_m: 2, Xmax_m: 0.008 }),
   }), createEngine()).sealed().volume_m3(0.03).build();
@@ -1229,7 +1229,7 @@ describe('S10 — sealed joins the cascade: box.sealed.q_tc is an entry the reso
   it('exactly one engine.solveSealedAlignment call per field set(), and zero for a bare ' +
      'project.box read', () => {
     const engine = createEngine();
-    const p = OpenISDProject.builder(driverFrom({
+    const p = new ProjectBuilder(driverFrom({
       brand: 'Dayton', model: 'RS225', section: 'woofer',
       spec: specSection({ Fs_hz: 30, Qts: 0.4, Sd_m2: 0.02, Cms_m_per_N: 0.0005, Mmd_kg: 0.05, Rms_Ns_per_m: 2, Xmax_m: 0.008 }),
     }), engine).sealed().volume_m3(0.03).build();
@@ -1247,7 +1247,7 @@ describe('S10 — sealed joins the cascade: box.sealed.q_tc is an entry the reso
 
   it('a vented project leaves box.sealed.Qtc not-available — only the active box type ' +
      'joins the cascade', () => {
-    const ventedOnly = OpenISDProject.builder(driverFrom({
+    const ventedOnly = new ProjectBuilder(driverFrom({
       brand: 'Dayton', model: 'RS225', section: 'woofer',
       spec: specSection({ Fs_hz: 30, Qts: 0.4, Sd_m2: 0.02, Cms_m_per_N: 0.0005, Mmd_kg: 0.05, Rms_Ns_per_m: 2, Xmax_m: 0.008 }),
     }), createEngine()).vented().volume_m3(0.05).tuning_goal_hz(40).build();
@@ -1260,7 +1260,7 @@ describe('the passive radiator a box holds', () => {
     brand: 'SB Acoustics', model: 'SB23PACS', section: 'passive-radiator',
     spec: prSpecSection({ Fs_hz: 12, Sd_m2: 0.025, Cms_m_per_N: 0.0009, Mmd_kg: 0.09, Rms_Ns_per_m: 1.5, Xmax_m: 0.015 }),
   });
-  const project = () => OpenISDProject.builder(driverFrom({
+  const project = () => new ProjectBuilder(driverFrom({
     brand: 'Dayton', model: 'RS225', section: 'woofer',
     spec: specSection({ Fs_hz: 30, Qts: 0.4, Sd_m2: 0.02, Cms_m_per_N: 0.0005, Mmd_kg: 0.05, Rms_Ns_per_m: 2, Xmax_m: 0.008 }),
   }), createEngine()).sealed().volume_m3(0.03).build();
@@ -1341,7 +1341,7 @@ describe('the passive radiator a box holds', () => {
   });
 
   it('detaches the box radiator into a standalone the library can hold, sharing no storage', () => {
-    const p = OpenISDProject.builder(driverFrom({
+    const p = new ProjectBuilder(driverFrom({
       brand: 'Dayton', model: 'RS225', section: 'woofer',
       spec: specSection({ Fs_hz: 30, Qts: 0.4, Sd_m2: 0.02, Cms_m_per_N: 0.0005, Mmd_kg: 0.05, Rms_Ns_per_m: 2, Xmax_m: 0.008 }),
     }), createEngine()).sealed().volume_m3(0.03).build();
@@ -1363,7 +1363,7 @@ describe('the passive radiator a box holds', () => {
   });
 
   it('detaches the blank radiator a box starts with', () => {
-    const p = OpenISDProject.builder(driverFrom({
+    const p = new ProjectBuilder(driverFrom({
       brand: 'Dayton', model: 'RS225', section: 'woofer',
       spec: specSection({ Fs_hz: 30, Qts: 0.4, Sd_m2: 0.02, Cms_m_per_N: 0.0005, Mmd_kg: 0.05, Rms_Ns_per_m: 2, Xmax_m: 0.008 }),
     }), createEngine()).sealed().volume_m3(0.03).build();
@@ -1372,7 +1372,7 @@ describe('the passive radiator a box holds', () => {
   });
 
   it('the blank radiator a box starts with has its own identity', () => {
-    const p = OpenISDProject.builder(driverFrom({
+    const p = new ProjectBuilder(driverFrom({
       brand: 'Dayton', model: 'RS225', section: 'woofer',
       spec: specSection({ Fs_hz: 30, Qts: 0.4, Sd_m2: 0.02, Cms_m_per_N: 0.0005, Mmd_kg: 0.05, Rms_Ns_per_m: 2, Xmax_m: 0.008 }),
     }), createEngine()).sealed().volume_m3(0.03).build();
@@ -1549,7 +1549,7 @@ describe('the passive radiator a box holds', () => {
 });
 
 describe('ManagedProject — the layers', () => {
-  const managed = () => OpenISDProject.builder(driverFrom({
+  const managed = () => new ProjectBuilder(driverFrom({
     brand: 'Dayton', model: 'RS225', section: 'woofer',
     spec: specSection({ Fs_hz: 30, Qts: 0.4, Sd_m2: 0.02, Cms_m_per_N: 0.0005, Mmd_kg: 0.05, Rms_Ns_per_m: 2, Xmax_m: 0.008 }),
   }), createEngine()).sealed().volume_m3(0.03).build();
@@ -1718,7 +1718,7 @@ describe('editing a driver — copy, then update or drop', () => {
   });
 
   it('leaves the project untouched until the copy is written back', () => {
-    const mp = OpenISDProject.builder(wooferDriver(), createEngine()).sealed().volume_m3(0.03).build();
+    const mp = new ProjectBuilder(wooferDriver(), createEngine()).sealed().volume_m3(0.03).build();
 
     // What an editor does: take a copy, edit THAT, and only then decide.
     const working = mp.driver.detach();
@@ -1732,7 +1732,7 @@ describe('editing a driver — copy, then update or drop', () => {
   });
 
   it('works identically on a standalone driver — the same two calls, whatever the origin', () => {
-    const original = OpenISDProject.builder(wooferDriver(), createEngine()).sealed().volume_m3(0.03).build().driver.detach();
+    const original = new ProjectBuilder(wooferDriver(), createEngine()).sealed().volume_m3(0.03).build().driver.detach();
 
     const working = original.detach();
     working.specs.Fs_hz.set(200);
@@ -1743,7 +1743,7 @@ describe('editing a driver — copy, then update or drop', () => {
   });
 
   it('update() takes a deep copy — a later edit on the source does not reach the target', () => {
-    const target = OpenISDProject.builder(wooferDriver(), createEngine()).sealed().volume_m3(0.03).build().driver.detach();
+    const target = new ProjectBuilder(wooferDriver(), createEngine()).sealed().volume_m3(0.03).build().driver.detach();
     const source = target.detach();
     source.specs.Fs_hz.set(111111);
 
@@ -1756,7 +1756,7 @@ describe('editing a driver — copy, then update or drop', () => {
   });
 
   it('setDriver() takes a deep copy — a later edit on the source does not reach the project', () => {
-    const project = OpenISDProject.builder(wooferDriver(), createEngine()).sealed().volume_m3(0.03).build();
+    const project = new ProjectBuilder(wooferDriver(), createEngine()).sealed().volume_m3(0.03).build();
     const source = project.driver.detach();
     source.specs.Fs_hz.set(333333);
 
@@ -1768,7 +1768,7 @@ describe('editing a driver — copy, then update or drop', () => {
   });
 
   it('adopting a standalone driver gives the embedded project record a fresh UUID', () => {
-    const project = OpenISDProject.builder(wooferDriver(), createEngine()).sealed().volume_m3(0.03).build();
+    const project = new ProjectBuilder(wooferDriver(), createEngine()).sealed().volume_m3(0.03).build();
     const source = wooferDriver();
 
     project.loadDriver(source);
@@ -1777,7 +1777,7 @@ describe('editing a driver — copy, then update or drop', () => {
   });
 
   it('discards an edit by dropping the copy — nothing to roll back', () => {
-    const original = OpenISDProject.builder(wooferDriver(), createEngine()).sealed().volume_m3(0.03).build().driver.detach();
+    const original = new ProjectBuilder(wooferDriver(), createEngine()).sealed().volume_m3(0.03).build().driver.detach();
 
     const working = original.detach();
     working.specs.Fs_hz.set(500);
@@ -1787,7 +1787,7 @@ describe('editing a driver — copy, then update or drop', () => {
   });
 
   it('loadDriver() takes a deep copy — a later edit on the source does not reach the project', () => {
-    const project = OpenISDProject.builder(wooferDriver(), createEngine()).sealed().volume_m3(0.03).build();
+    const project = new ProjectBuilder(wooferDriver(), createEngine()).sealed().volume_m3(0.03).build();
     const source = project.driver.detach();
     source.specs.Fs_hz.set(555555);
 
@@ -1801,7 +1801,7 @@ describe('editing a driver — copy, then update or drop', () => {
   });
 
   it('embedding a driver that states its own c/roo strips them — the project is the sole source', () => {
-    const project = OpenISDProject.builder(wooferDriver(), createEngine()).sealed().volume_m3(0.03).build();
+    const project = new ProjectBuilder(wooferDriver(), createEngine()).sealed().volume_m3(0.03).build();
     project.envTempK.set(250);   // far from the reference default, so a leaked driver value is obvious
     project.envHumidityPct.set(80);
     project.envPressurePa.set(90000);
@@ -1824,7 +1824,7 @@ describe('editing a driver — copy, then update or drop', () => {
   it("a stale c/roo already sitting in an embedded driver's record (pre-existing data, or any " +
     'write that bypasses setDriver/loadDriver) is still ignored by both the solver and .wdr export ' +
     "— the project's environment wins regardless of how the stale value got there", () => {
-    const project = OpenISDProject.builder(wooferDriver(), createEngine()).sealed().volume_m3(0.03).build();
+    const project = new ProjectBuilder(wooferDriver(), createEngine()).sealed().volume_m3(0.03).build();
     project.envTempK.set(250);
     project.envHumidityPct.set(80);
     project.envPressurePa.set(90000);
@@ -1857,7 +1857,7 @@ describe('editing a driver — copy, then update or drop', () => {
   });
 
   it('loading a project file gives its embedded driver a fresh project-owned UUID', () => {
-    const original = OpenISDProject.builder(wooferDriver(), createEngine()).sealed().volume_m3(0.03).build();
+    const original = new ProjectBuilder(wooferDriver(), createEngine()).sealed().volume_m3(0.03).build();
     const originalDriverUuid = original.driver.uuid();
 
     const loaded = OpenISDProject.fromOwprText(original.toOwprText(), createEngine());
@@ -1867,7 +1867,7 @@ describe('editing a driver — copy, then update or drop', () => {
   });
 
   it('renameToCopy() prefixes the model so the copy is a distinct brand/model', () => {
-    const driver = OpenISDProject.builder(wooferDriver(), createEngine()).sealed().volume_m3(0.03).build().driver.detach();
+    const driver = new ProjectBuilder(wooferDriver(), createEngine()).sealed().volume_m3(0.03).build().driver.detach();
     expect(driver.model.value).toBe('RS225');
 
     driver.renameToCopy();
@@ -1875,7 +1875,7 @@ describe('editing a driver — copy, then update or drop', () => {
   });
 
   it('toOwdrText() then OpenISDDriver.fromOwdrText() round-trips a driver through .owdr text', () => {
-    const driver = OpenISDProject.builder(wooferDriver(), createEngine()).sealed().volume_m3(0.03).build().driver.detach();
+    const driver = new ProjectBuilder(wooferDriver(), createEngine()).sealed().volume_m3(0.03).build().driver.detach();
     driver.specs.Fs_hz.set(41.5);
 
     const text = driver.toOwdrText();
@@ -1924,7 +1924,7 @@ describe('editing a driver — copy, then update or drop', () => {
   });
 
   it('toWdrIniText() then WinIsdDriverConverter() round-trips a driver through WinISD .wdr text', () => {
-    const driver = OpenISDProject.builder(wooferDriver(), createEngine()).sealed().volume_m3(0.03).build().driver.detach();
+    const driver = new ProjectBuilder(wooferDriver(), createEngine()).sealed().volume_m3(0.03).build().driver.detach();
     driver.specs.Fs_hz.set(41.5);
 
     const { value: text, errors } = driver.toWdrIniText();
@@ -1937,28 +1937,28 @@ describe('editing a driver — copy, then update or drop', () => {
     expect(back.value.model.value).toBe('RS225');
   });
 
-  it('toWprText() then WinIsdProjectConverter() round-trips a project through WinISD .wpr text', () => {
-    const project = OpenISDProject.builder(wooferDriver(), createEngine()).sealed().volume_m3(0.03).build();
+  it('WinIsdProjectConverter round-trips a project through WinISD .wpr text', () => {
+    const project = new ProjectBuilder(wooferDriver(), createEngine()).sealed().volume_m3(0.03).build();
 
-    const { value: text, errors } = project.toWprText();
+    const { value: wpr, errors } = new WinIsdProjectConverter(createEngine()).openIsdProjectToWinIsdProject(project);
     expect(errors.filter((e: DriverError) => e.level === 'error')).toEqual([]);
-    if (text === null) throw new Error('toWprText produced no text');
+    if (wpr === null) throw new Error('openIsdProjectToWinIsdProject produced no project');
 
-    const back = new WinIsdProjectConverter(createEngine()).winIsdProjectToOpenIsdProject(text);
+    const back = new WinIsdProjectConverter(createEngine()).winIsdProjectToOpenIsdProject(wpr.toWpr());
     if (back.value === null) throw new Error('winIsdProjectToOpenIsdProject returned problems: ' + JSON.stringify(back.errors));
     expect(back.value.box.boxType.value).toBe('sealed');
     expect(back.value.driver.model.value).toBe('RS225');
   });
 
-  it('toWprText() round-trips a bandpass6 box (BType=3) — see bp6-abc-wpr.test.ts for the full coverage', () => {
-    const project = OpenISDProject.builder(wooferDriver(), createEngine())
+  it('the converter round-trips a bandpass6 box (BType=3) — see bp6-abc-wpr.test.ts for the full coverage', () => {
+    const project = new ProjectBuilder(wooferDriver(), createEngine())
       .bandpass6().rearVolume_m3(0.02).rearTuning_hz(50).frontVolume_m3(0.03).frontTuning_hz(40).build();
 
-    const { value: text, errors } = project.toWprText();
+    const { value: wpr, errors } = new WinIsdProjectConverter(createEngine()).openIsdProjectToWinIsdProject(project);
     expect(errors.filter((e: DriverError) => e.level === 'error')).toEqual([]);
-    if (text === null) throw new Error('toWprText produced no text');
+    if (wpr === null) throw new Error('openIsdProjectToWinIsdProject produced no project');
 
-    const back = new WinIsdProjectConverter(createEngine()).winIsdProjectToOpenIsdProject(text);
+    const back = new WinIsdProjectConverter(createEngine()).winIsdProjectToOpenIsdProject(wpr.toWpr());
     if (back.value === null) throw new Error('winIsdProjectToOpenIsdProject returned problems: ' + JSON.stringify(back.errors));
     expect(back.value.box.boxType.value).toBe('bandpass6');
   });
@@ -1979,7 +1979,7 @@ describe('editing a driver — copy, then update or drop', () => {
   });
 
   it('toOwprText() then OpenISDProject.fromOwprText() round-trips a project through .owpr text', () => {
-    const project = OpenISDProject.builder(wooferDriver(), createEngine()).sealed().volume_m3(0.03).build();
+    const project = new ProjectBuilder(wooferDriver(), createEngine()).sealed().volume_m3(0.03).build();
     project.name.set('Kitchen sub');
     project.description.set('111111');
 
@@ -2000,7 +2000,7 @@ describe('editing a driver — copy, then update or drop', () => {
   });
 
   it('a saved project with a driver in the radiator slot, or a radiator in the driver slot, is refused', () => {
-    const project = OpenISDProject.builder(wooferDriver(), createEngine()).sealed().volume_m3(0.03).build();
+    const project = new ProjectBuilder(wooferDriver(), createEngine()).sealed().volume_m3(0.03).build();
     const parsed: unknown = JSON.parse(project.toOwprText());
     if (!isRecord(parsed)) throw new Error('expected an object');
     const saved = at(parsed, 'saved');
@@ -2029,7 +2029,7 @@ describe('editing a driver — copy, then update or drop', () => {
   });
 
   it('a signal record stating nothing loads with P N', () => {
-    const project = OpenISDProject.builder(wooferDriver(), createEngine()).sealed().volume_m3(0.03).build();
+    const project = new ProjectBuilder(wooferDriver(), createEngine()).sealed().volume_m3(0.03).build();
     const parsed: unknown = JSON.parse(project.toOwprText());
     if (!isRecord(parsed)) throw new Error('expected an object');
     const saved = parsed.saved;
@@ -2066,7 +2066,7 @@ describe('editing a driver — copy, then update or drop', () => {
   });
 
   it('a driver.yml-only key (definition) present on imported .owdr text is stripped, not refused', () => {
-    const driver = OpenISDProject.builder(wooferDriver(), createEngine()).sealed().volume_m3(0.03).build().driver.detach();
+    const driver = new ProjectBuilder(wooferDriver(), createEngine()).sealed().volume_m3(0.03).build().driver.detach();
     const parsed: unknown = JSON.parse(driver.toOwdrText());
     if (!isRecord(parsed)) throw new Error('expected an object');
     parsed.definition = 'driver.yml only describes what a field means — never reaches an openisd record';
@@ -2076,14 +2076,11 @@ describe('editing a driver — copy, then update or drop', () => {
     expect(back.model.value).toBe('RS225');
   });
 
-  it('toWprText() takes a SNAPSHOT — the project it was called on is not held by the converter', () => {
-    // The whole point of the method form: the domain passes ITSELF to the WinISD converter, so a
-    // live project never crosses out of the domain into a format package. Writing the file must
-    // therefore leave the project exactly as it was.
-    const project = OpenISDProject.builder(wooferDriver(), createEngine()).sealed().volume_m3(0.03).build();
+  it('the converter takes a SNAPSHOT — the project it was given is not held or changed', () => {
+    const project = new ProjectBuilder(wooferDriver(), createEngine()).sealed().volume_m3(0.03).build();
     project.description.set('before');
 
-    project.toWprText();
+    new WinIsdProjectConverter(createEngine()).openIsdProjectToWinIsdProject(project);
 
     expect(project.description.value).toBe('before');
     expect(project.box.boxType.value).toBe('sealed');
@@ -2156,17 +2153,17 @@ describe('a new project, every section present and nothing stated', () => {
   // one the user supplied.
 
   it('builds without a driver, since the wizard picks one afterwards', () => {
-    const p = OpenISDProject.empty(createEngine());
+    const p = ProjectBuilder.empty(createEngine());
     expect(p.driver.brand.value).toBe('');
     expect(p.driver.specs.Fs_hz.value).toBe(null);
   });
 
   it('starts sealed, the box type the wizard opens on', () => {
-    expect(OpenISDProject.empty(createEngine()).box.boxType.value).toBe('sealed');
+    expect(ProjectBuilder.empty(createEngine()).box.boxType.value).toBe('sealed');
   });
 
   it('holds a radiator already, so a switch to a PR box is legal with no further setup', () => {
-    const p = OpenISDProject.empty(createEngine());
+    const p = ProjectBuilder.empty(createEngine());
     // Writing a radiator spec field is what throws when the slot is null, so it is the test
     // that a radiator is genuinely present rather than merely reported as one.
     p.box.passiveRadiator.radiator.spec.Fs_hz.set(12);
@@ -2174,22 +2171,22 @@ describe('a new project, every section present and nothing stated', () => {
   });
 
   it('states no radiator parameters of its own', () => {
-    const p = OpenISDProject.empty(createEngine());
+    const p = ProjectBuilder.empty(createEngine());
     expect(p.box.passiveRadiator.radiator.spec.Fs_hz.value).toBe(null);
     expect(p.box.passiveRadiator.systemTuning_hz.value).toBeNull();
   });
 
   it('gives each new project its own records, so editing one leaves the next untouched', () => {
     const engine = createEngine();
-    const one = OpenISDProject.empty(engine);
-    const two = OpenISDProject.empty(engine);
+    const one = ProjectBuilder.empty(engine);
+    const two = ProjectBuilder.empty(engine);
     one.driver.model.set('RS225');
     expect(two.driver.model.value).toBe('');
   });
 
   it('stamps created/modified from the injected AppContext, and creator from the platform user, including the embedded driver', () => {
     const appContext = fixedAppContext('id', '2026-03-04T00:00:00.000Z', 'johnl');
-    const p = OpenISDProject.empty(createEngine(), appContext);
+    const p = ProjectBuilder.empty(createEngine(), appContext);
 
     expect(p.created.value).toBe('20260304');
     expect(p.modified.value).toBe('20260304');
@@ -2199,12 +2196,12 @@ describe('a new project, every section present and nothing stated', () => {
   });
 
   it('leaves creator blank when the platform user is not known', () => {
-    const p = OpenISDProject.empty(createEngine(), fixedAppContext('id', '2026-03-04T00:00:00.000Z', null));
+    const p = ProjectBuilder.empty(createEngine(), fixedAppContext('id', '2026-03-04T00:00:00.000Z', null));
     expect(p.creator.value).toBe('');
   });
 
   it('accepts a real driver afterwards, which is how the wizard fills it in', () => {
-    const p = OpenISDProject.empty(createEngine());
+    const p = ProjectBuilder.empty(createEngine());
     const picked = OpenISDDriver.empty(createEngine());
     picked.brand.set('Dayton');
     picked.model.set('RS225');
@@ -2213,7 +2210,7 @@ describe('a new project, every section present and nothing stated', () => {
   });
 
   it('accepts a real radiator afterwards, which is how the wizard fills a PR box in', () => {
-    const p = OpenISDProject.empty(createEngine());
+    const p = ProjectBuilder.empty(createEngine());
     const picked = OpenISDPassiveRadiatorStandalone.empty();
     picked.model.set('SB23PACS');
     p.box.passiveRadiator.configurePR(picked);
@@ -2503,7 +2500,7 @@ describe('OpenISDProject — the driver cascade resolves on every write (S2-7d1)
     const driver = OpenISDDriver.empty(engine);
     driver.specs.Qes.set(0.4);
     driver.specs.Qms.set(3.0);
-    const built = OpenISDProject.builder(driver, engine).sealed().volume_m3(0.03).build();
+    const built = new ProjectBuilder(driver, engine).sealed().volume_m3(0.03).build();
     return OpenISDProject.wrap(built.cloneSession().saved, engine);
   }
 
@@ -2589,7 +2586,7 @@ describe('T1 — the vent/PR sweep-level guards (PLAN_DRIVER_SOLVE_AND_SWEEP_DIA
   const project = (box: 'vented' | 'bp4' | 'pr') => {
     let p: OpenISDProject;
     if (box === 'pr') {
-      p = OpenISDProject.builder(driverFrom({
+      p = new ProjectBuilder(driverFrom({
         brand: 'Dayton', model: 'RS225', section: 'woofer',
         spec: tuneSpec({ Fs_hz: 37, Vas_m3: 0.0300, Qes: 0.40, Qms: 7.0, Re_ohm: 5.6 }),
       }), createEngine())
@@ -2597,7 +2594,7 @@ describe('T1 — the vent/PR sweep-level guards (PLAN_DRIVER_SOLVE_AND_SWEEP_DIA
         .radiator(radiator())
         .build();
     } else {
-      p = OpenISDProject.builder(driverFrom({
+      p = new ProjectBuilder(driverFrom({
         brand: 'Dayton', model: 'RS225', section: 'woofer',
         spec: tuneSpec({ Fs_hz: 37, Vas_m3: 0.0300, Qes: 0.40, Qms: 7.0, Re_ohm: 5.6 }),
       }), createEngine()).vented().volume_m3(0.05).tuning_goal_hz(40).build();
@@ -2654,7 +2651,7 @@ describe('T1 — the vent/PR sweep-level guards (PLAN_DRIVER_SOLVE_AND_SWEEP_DIA
   });
 
   it('ventAchievedFb/ventMaxReachableFb answer not-available when the box is not vented', () => {
-    const p = OpenISDProject.builder(driverFrom({
+    const p = new ProjectBuilder(driverFrom({
       brand: 'Dayton', model: 'RS225', section: 'woofer',
       spec: tuneSpec({ Fs_hz: 37, Vas_m3: 0.0300, Qes: 0.40, Qms: 7.0, Re_ohm: 5.6 }),
     }), createEngine()).sealed().volume_m3(0.02).build();
@@ -2784,7 +2781,7 @@ describe('T1 — the vent/PR sweep-level guards (PLAN_DRIVER_SOLVE_AND_SWEEP_DIA
 
 describe('S2-7d2 — vent + PR join the cascade', () => {
   const ventedProjectWithArea = () => {
-    const p = OpenISDProject.builder(driverFrom({
+    const p = new ProjectBuilder(driverFrom({
       brand: 'Dayton', model: 'RS225', section: 'woofer',
       spec: specSection({ Fs_hz: 30, Qts: 0.4, Sd_m2: 0.02, Cms_m_per_N: 0.0005, Mmd_kg: 0.05, Rms_Ns_per_m: 2, Xmax_m: 0.008 }),
     }), createEngine()).vented().volume_m3(0.05).tuning_goal_hz(40).build();
@@ -2812,7 +2809,7 @@ describe('S2-7d2 — vent + PR join the cascade', () => {
   });
 
   const prProject = () => {
-    const p = OpenISDProject.builder(driverFrom({
+    const p = new ProjectBuilder(driverFrom({
       brand: 'Dayton', model: 'RS225', section: 'woofer',
       spec: specSection({ Fs_hz: 30, Qts: 0.4, Sd_m2: 0.02, Cms_m_per_N: 0.0005, Mmd_kg: 0.05, Rms_Ns_per_m: 2, Xmax_m: 0.008 }),
     }), createEngine()).sealed().volume_m3(0.03).build();
@@ -2858,7 +2855,7 @@ describe('S2-7d2 — vent + PR join the cascade', () => {
 
   it('(e) exactly one engine.vent.solve call per field set(), and zero for a bare project.box read', () => {
     const engine = createEngine();
-    const p = OpenISDProject.builder(driverFrom({
+    const p = new ProjectBuilder(driverFrom({
       brand: 'Dayton', model: 'RS225', section: 'woofer',
       spec: specSection({ Fs_hz: 30, Qts: 0.4, Sd_m2: 0.02, Cms_m_per_N: 0.0005, Mmd_kg: 0.05, Rms_Ns_per_m: 2, Xmax_m: 0.008 }),
     }), engine).vented().volume_m3(0.05).tuning_goal_hz(40).build();
@@ -2891,7 +2888,7 @@ describe('sweep()/maxCurves() reach every box topology\'s own params (bandpass4,
   };
 
   it('a bandpass4 project with a sized front vent sweeps clean — covers the bandpass4 loss/volume/vent params', () => {
-    const p = OpenISDProject.builder(circuitCompleteDriver(), createEngine())
+    const p = new ProjectBuilder(circuitCompleteDriver(), createEngine())
       .bandpass4().rearVolume_m3(0.02).frontVolume_m3(0.03).frontTuning_hz(45)
       .build();
     p.box.bandpass4.vents.front.shape.set('round');
@@ -2903,7 +2900,7 @@ describe('sweep()/maxCurves() reach every box topology\'s own params (bandpass4,
   });
 
   it('a box-passive-radiator project with every PR quantity stated sweeps clean — covers the PR params\' full set', () => {
-    const p = OpenISDProject.builder(circuitCompleteDriver(), createEngine())
+    const p = new ProjectBuilder(circuitCompleteDriver(), createEngine())
       .passiveRadiator().volume_m3(0.03).tuning_goal_hz(45)
       .radiator(radiatorFor(OpenISDPassiveRadiatorStandalone.fromConformingRecord(driverJson({
         brand: 'SB Acoustics', model: 'SB23PACS', section: 'passive-radiator',
@@ -2926,7 +2923,7 @@ describe('sweep()/maxCurves() reach every box topology\'s own params (bandpass4,
   }
 
   it('a vented box with no port geometry entered yet reports its params with Sp/Leff unset, not thrown', () => {
-    const p = OpenISDProject.builder(circuitCompleteDriver(), createEngine())
+    const p = new ProjectBuilder(circuitCompleteDriver(), createEngine())
       .vented().volume_m3(0.02).tuning_goal_hz(40)
       .build();
 
@@ -2934,7 +2931,7 @@ describe('sweep()/maxCurves() reach every box topology\'s own params (bandpass4,
   });
 
   it('a bandpass4 box with no front-port geometry entered yet reports its params with Sp/Leff unset, not thrown', () => {
-    const p = OpenISDProject.builder(circuitCompleteDriver(), createEngine())
+    const p = new ProjectBuilder(circuitCompleteDriver(), createEngine())
       .bandpass4().rearVolume_m3(0.02).frontVolume_m3(0.03).frontTuning_hz(45)
       .build();
 
@@ -2942,7 +2939,7 @@ describe('sweep()/maxCurves() reach every box topology\'s own params (bandpass4,
   });
 
   it('a box-passive-radiator with an EMPTY radiator (no spec entered) reports its params with prSd/prCms/prRms unset, not thrown', () => {
-    const p = OpenISDProject.builder(circuitCompleteDriver(), createEngine())
+    const p = new ProjectBuilder(circuitCompleteDriver(), createEngine())
       .passiveRadiator().volume_m3(0.03).tuning_goal_hz(45)
       .radiator(OpenISDPassiveRadiatorStandalone.empty())
       .build();
@@ -2953,7 +2950,7 @@ describe('sweep()/maxCurves() reach every box topology\'s own params (bandpass4,
 
 describe('box tuning/length/mass slots load as entries (S2-7b)', () => {
   function ventedProject() {
-    return OpenISDProject.builder(driverFrom({
+    return new ProjectBuilder(driverFrom({
       brand: 'Dayton', model: 'RS225', section: 'woofer',
       spec: specSection({ Fs_hz: 30, Qts: 0.4, Sd_m2: 0.02, Cms_m_per_N: 0.0005, Mmd_kg: 0.05, Rms_Ns_per_m: 2, Xmax_m: 0.008 }),
     }), createEngine()).vented().volume_m3(0.05).tuning_goal_hz(40).build();
@@ -3002,7 +2999,7 @@ describe('box tuning/length/mass slots load as entries (S2-7b)', () => {
 
 describe('project-level array/display settings, chart Y-range, and identity', () => {
   function sealedProject() {
-    return OpenISDProject.builder(driverFrom({
+    return new ProjectBuilder(driverFrom({
       brand: 'Dayton', model: 'RS225', section: 'woofer',
       spec: specSection({ Fs_hz: 30, Qts: 0.4, Sd_m2: 0.02, Cms_m_per_N: 0.0005, Mmd_kg: 0.05, Rms_Ns_per_m: 2, Xmax_m: 0.008 }),
     }), createEngine()).sealed().volume_m3(0.03).build();
@@ -3019,7 +3016,7 @@ describe('project-level array/display settings, chart Y-range, and identity', ()
       });
       driver.specs.Re_ohm.set(6);
       driver.specs.BL_Tm.set(7);
-      return OpenISDProject.builder(driver, engine).sealed().volume_m3(0.03).build();
+      return new ProjectBuilder(driver, engine).sealed().volume_m3(0.03).build();
     };
     const onOptions = sealedOn(createEngine({
       ventedLimits: () => DEFAULT_VENTED_DESIGN_LIMITS, envDefaults: () => options,

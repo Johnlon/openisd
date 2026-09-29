@@ -9,7 +9,7 @@
  * imply, and with it clear it must sweep as its entered values say.
  */
 import {describe, expect, it} from 'vitest';
-import {type Engine, createEngine, type FrequencyGrid, OpenISDProject} from '../../domain/index.js';
+import {type Engine, createEngine, type FrequencyGrid, OpenISDProject, ProjectBuilder} from '../../domain/index.js';
 import {driverFromSpec} from '../fixtures/recordBuilders.js';
 
 describe('winisdDriverModel — the whole WinISD parameter set, not Mms alone', () => {
@@ -25,7 +25,7 @@ describe('winisdDriverModel — the whole WinISD parameter set, not Mms alone', 
 
   /** A sealed 21 L project at 1 W on the given spec. */
   const projectOn = (engine: Engine, spec: Record<string, number>): OpenISDProject => {
-    const project = OpenISDProject.builder(driverFromSpec(engine, spec), engine)
+    const project = new ProjectBuilder(driverFromSpec(engine, spec), engine)
       .sealed().volume_m3(0.021).build();
     project.powerDrive_W.set(1);
     return project;
@@ -139,7 +139,7 @@ describe('winisdDriverModel — the whole WinISD parameter set, not Mms alone', 
       Xmax_m: 0.00925, Pe_W: 40,
     };
     const w5 = (engine: Engine): OpenISDProject => {
-      const project = OpenISDProject.builder(driverFromSpec(engine, W5), engine)
+      const project = new ProjectBuilder(driverFromSpec(engine, W5), engine)
         .sealed().volume_m3(0.00448).build();
       project.powerDrive_W.set(1);
       project.Rs_ohm.set(0.1);
@@ -238,7 +238,7 @@ describe('winisdDriverModel — the whole WinISD parameter set, not Mms alone', 
 
 describe('the saved field is winisdDriverModel (renamed 2026-09-26 from useWinisdDriverModel)', () => {
   const engine = createEngine();
-  const project = (): OpenISDProject => OpenISDProject.builder(driverFromSpec(engine, {
+  const project = (): OpenISDProject => new ProjectBuilder(driverFromSpec(engine, {
     Fs_hz: 29, Vas_m3: 0.142, Sd_m2: 0.038, Re_ohm: 6.5, Qes: 0.44, Qms: 3.3,
   }), engine).sealed().volume_m3(0.021).build();
 

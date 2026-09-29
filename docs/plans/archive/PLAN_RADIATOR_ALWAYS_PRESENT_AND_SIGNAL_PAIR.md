@@ -15,7 +15,7 @@ Rulings (John, 2026-09-24):
 - Drop `Clearable` from brand/model/manufacturer/project description. The UI only calls `.set()`.
 
 Where projects come from today:
-- `OpenISDProject.empty()` ([openisdDomain.ts#L2096-L2116](http://localhost:8000/winisd/openisd/packages/design/domain/openisdDomain.ts#L2096-L2116)): has a blank radiator.
+- `ProjectBuilder.empty()` ([openisdDomain.ts#L2096-L2116](http://localhost:8000/winisd/openisd/packages/design/domain/openisdDomain.ts#L2096-L2116)): has a blank radiator.
 - The box builders (sealed, vented, …) and projects loaded from saved files: can have no radiator (`component: null`).
 
 After this pass, every project has a radiator, blank until the user picks or types one.
@@ -33,7 +33,7 @@ After this pass, every project has a radiator, blank until the user picks or typ
   `OpenISDPassiveRadiatorStandalone.empty(engine, appContext).clonePassiveRadiator()`.
 - `build()` L132 keeps `update(this.radiatorChoice)` when one was chosen.
 - Remove the "component stays null HERE" comment at L384.
-- `OpenISDProject.empty()` drops its now-redundant `.radiator(empty)` call and its "present
+- `ProjectBuilder.empty()` drops its now-redundant `.radiator(empty)` call and its "present
   FROM THE START" paragraph; the schema holds that fact now.
 
 **Domain** ([openisdDomain.ts](http://localhost:8000/winisd/openisd/packages/design/domain/openisdDomain.ts))
@@ -47,7 +47,7 @@ After this pass, every project has a radiator, blank until the user picks or typ
 | `uuid()` / `detach()`        | throw 'no radiator is chosen'                                           | throws deleted                                                                                |
 | `update()`                   | `v8 ignore` absent-record guard                                         | guard deleted                                                                                 |
 | `configurePR` L781           | `if (!current)` branch                                                  | single merge path                                                                             |
-| solver guard L2572           | `&& component !== null`                                                 | deleted; a blank radiator solves to null + dq, as `OpenISDProject.empty()` projects do today  |
+| solver guard L2572           | `&& component !== null`                                                 | deleted; a blank radiator solves to null + dq, as `ProjectBuilder.empty()` projects do today  |
 | project `description` L2278  | nullable + Clearable                                                    | `SetOnlyFieldImpl`: `Readable<string> & Entered & Writable<string>`                         |
 
 **Pointless null checks deleted** (with their `v8 ignore` comments)

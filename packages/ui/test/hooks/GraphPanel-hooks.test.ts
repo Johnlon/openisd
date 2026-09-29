@@ -2,7 +2,7 @@ import {describe, expect, it} from 'vitest';
 import {computed, defineComponent, h} from 'vue';
 import {renderToString} from 'vue/server-renderer';
 import {createEngine} from '@openisd/design/engine';
-import {OpenISDProject} from '@openisd/design';
+import {OpenISDProject, ProjectBuilder} from '@openisd/design';
 import {provideFocusedProject} from '../../src/logic/focusedProjectContext.js';
 import {
   createMockGraphPanelAPI,
@@ -14,7 +14,7 @@ import {DPAL, TAB_META} from '../../src/logic/series.js';
 
 function createTestProject(): OpenISDProject {
   const engine = createEngine();
-  const project = OpenISDProject.empty(engine);
+  const project = ProjectBuilder.empty(engine);
   project.driver.specs.Fs_hz.set(40);
   project.driver.specs.Qts.set(0.38);
   project.driver.specs.Qes.set(0.45);

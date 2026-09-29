@@ -9,7 +9,7 @@
  */
 import {beforeEach, describe, expect, it} from 'vitest';
 import {createEngine} from '@openisd/design/engine';
-import {OpenISDProject} from '@openisd/design';
+import {OpenISDProject, ProjectBuilder} from '@openisd/design';
 import type {OpenProjectSession, ProjectRepo, ViewSnapshot} from '@openisd/persistence';
 import {bootApplication, type BootDeps} from '../../src/logic/boot.js';
 import {focusedProject, openProjects, removeProject} from '../../src/logic/appState.js';
@@ -18,7 +18,7 @@ import {presentationState} from '../../src/logic/presentationState.js';
 const engine = createEngine();
 
 function project(name: string): OpenISDProject {
-  const p = OpenISDProject.empty(engine);
+  const p = ProjectBuilder.empty(engine);
   p.name.set(name);
   p.save();
   return p;

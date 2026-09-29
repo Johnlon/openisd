@@ -34,10 +34,7 @@ import {describe, expect, it} from 'vitest';
 import {type ClassDeclaration, Node, Project, type SourceFile, SyntaxKind} from 'ts-morph';
 import {packageRoot, ratchet, relPath, shippedSource} from './architecture-gate-support.js';
 
-const ENGINE_PARAMETER_BASELINE: ReadonlySet<string> = new Set([
-  "packages/design/domain/project/openISDProject.ts#OpenISDProject.builder",
-  "packages/design/domain/project/openISDProject.ts#OpenISDProject.empty",
-]);
+const ENGINE_PARAMETER_BASELINE: ReadonlySet<string> = new Set([]);
 
 /** The class names in `source` that are `cls` or extend it (transitively, within the file). */
 function classFamily(source: SourceFile, cls: ClassDeclaration): Set<string> {

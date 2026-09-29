@@ -2,7 +2,7 @@ import {solvePrConsistencyGroup, solveVentConsistencyGroup} from './engine/testS
 import {describe, expect, it} from 'vitest';
 import {OpenISDDriver} from '../domain/driver/openISDDriver.js';
 import {OpenISDPassiveRadiatorStandalone} from '../domain/passiveRadiator/openISDPassiveRadiatorStandalone.js';
-import {OpenISDProject} from '../domain/project/openISDProject.js';
+import {ProjectBuilder} from '../domain/openisdTransforms.js';
 import {createEngine} from '../engine/index.js';
 
 const scraped = <T,>(value: T) => ({ value });
@@ -57,7 +57,7 @@ function driverJson(p: {
 }
 
 function project() {
-  return OpenISDProject.builder(driverFrom({
+  return new ProjectBuilder(driverFrom({
     brand: 'Dayton', model: 'RS225', section: 'woofer',
     spec: specSection({ Fs_hz: 30, Qts: 0.4, Sd_m2: 0.02, Cms_m_per_N: 0.0005, Mmd_kg: 0.05, Rms_Ns_per_m: 2, Xmax_m: 0.008 }),
   }), createEngine()).sealed().volume_m3(0.03).build();

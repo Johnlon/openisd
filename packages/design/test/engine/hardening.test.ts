@@ -20,7 +20,7 @@ import assert from 'node:assert/strict';
 import type {SimulatableBoxType, SweepParams} from '../../engine/index.js';
 import {createEngine} from '../../engine/index.js';
 import {OpenISDDriver} from '../../domain/driver/openISDDriver.js';
-import {OpenISDProject} from '../../domain/project/openISDProject.js';
+import {ProjectBuilder} from '../../domain/openisdTransforms.js';
 
 /** Voice-coil inductance for the fixtures below. Not a solver quantity — nothing
  *  derives it — so it reaches `sweep` on its own, and only the impedance plot reads it. */
@@ -355,7 +355,7 @@ describe('T1\'s domain guard fires before classifyFinite ever sees the sweep', (
   it('the message the user sees is the guard\'s own sentence, not classifyFinite\'s generic text', () => {
     const drv = OpenISDDriver.fromConformingRecord(driverJson(), engine);
     if (Array.isArray(drv)) throw new Error(`fixture driver is invalid: ${drv.join(', ')}`);
-    const p = OpenISDProject.builder(drv, engine).vented().volume_m3(0.03).tuning_goal_hz(40).build();
+    const p = new ProjectBuilder(drv, engine).vented().volume_m3(0.03).tuning_goal_hz(40).build();
     p.box.vented.vent.shape.set('round');
     p.box.vented.vent.diameter_m.set(0.05);
     // The builder requires an initial tuning_goal_hz to construct at all — cleared right back off so

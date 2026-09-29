@@ -4,7 +4,7 @@
  * (BUG_20260929_modified-date-only-stamped-by-original-shell).
  */
 import {describe, expect, it} from 'vitest';
-import {type AppContext, OpenISDProject} from '../../domain/index.js';
+import {type AppContext, ProjectBuilder} from '../../domain/index.js';
 import {createEngine} from '../../engine/index.js';
 
 function clock(isoDate: string): AppContext {
@@ -13,7 +13,7 @@ function clock(isoDate: string): AppContext {
 
 describe('OpenISDProject stamps modified on edit', () => {
   it('the first edit stamps modified with the context clock', () => {
-    const p = OpenISDProject.empty(createEngine(), clock('2026-03-04T12:00:00.000Z'));
+    const p = ProjectBuilder.empty(createEngine(), clock('2026-03-04T12:00:00.000Z'));
     p.modified.set('20200101');
     p.save();
     p.name.set('Edited');
@@ -21,7 +21,7 @@ describe('OpenISDProject stamps modified on edit', () => {
   });
 
   it('a nested driver edit stamps too', () => {
-    const p = OpenISDProject.empty(createEngine(), clock('2026-03-04T12:00:00.000Z'));
+    const p = ProjectBuilder.empty(createEngine(), clock('2026-03-04T12:00:00.000Z'));
     p.modified.set('20200101');
     p.save();
     p.driver.model.set('RS225');
@@ -29,7 +29,7 @@ describe('OpenISDProject stamps modified on edit', () => {
   });
 
   it('later edits before a save leave the stamp alone', () => {
-    const p = OpenISDProject.empty(createEngine(), clock('2026-03-04T12:00:00.000Z'));
+    const p = ProjectBuilder.empty(createEngine(), clock('2026-03-04T12:00:00.000Z'));
     p.save();
     p.name.set('Edited');
     p.modified.set('20200101');
@@ -38,14 +38,14 @@ describe('OpenISDProject stamps modified on edit', () => {
   });
 
   it('setting modified itself is kept as set', () => {
-    const p = OpenISDProject.empty(createEngine(), clock('2026-03-04T12:00:00.000Z'));
+    const p = ProjectBuilder.empty(createEngine(), clock('2026-03-04T12:00:00.000Z'));
     p.save();
     p.modified.set('');
     expect(p.modified.value).toBe('');
   });
 
   it('a chart view change is not an edit, so it does not stamp', () => {
-    const p = OpenISDProject.empty(createEngine(), clock('2026-03-04T12:00:00.000Z'));
+    const p = ProjectBuilder.empty(createEngine(), clock('2026-03-04T12:00:00.000Z'));
     p.modified.set('20200101');
     p.save();
     p.openCharts.showOnly('SPL');

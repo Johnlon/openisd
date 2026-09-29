@@ -2,7 +2,6 @@ import {
   type DesignFiles,
   driverToOwdrBytes,
   driverToWdrBytes,
-  projectToWprBytes,
 } from './fileImportExport.js';
 /**
  * Design I/O orchestration — Save the committed project to browser storage, Save As the project
@@ -174,7 +173,7 @@ export function createApplicationIO(deps: { logging: Logging; fileStorage: FileS
   /** Export the current design as a WinISD .wpr project (WINISD_WPR_FILE_SCHEMA.md). */
   function exportWpr(): void {
     closeTunePanelAfterIO();
-    const { value: bytes, errors } = projectToWprBytes(requireFocusedProject());
+    const { value: bytes, errors } = deps.files.projectToWprBytes(requireFocusedProject());
     if (!bytes) { flash(`Cannot export .wpr: ${errors[0]?.message ?? 'incomplete'}`); return; }
     download(sanitizeFilename(driverName.value) + '.wpr', bytes, ProjectFileFormat.Wpr.mime);
   }

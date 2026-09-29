@@ -6,9 +6,7 @@ import type { AppContext } from '../appContext.js';
 import { focus, simpleField } from '../cell.js';
 import type { Calculatable, Calculated, Clearable, Entered, Readable, SimpleField, Unsolvable, Writable } from '../cell.js';
 import { newUuid } from '../newUuid.js';
-import { WinIsdProjectConverter } from '../winIsdProjectConverter.js';
 import type { OpenISDProjectJson, OpenISDProjectSessionJson } from '../openisdSchema.js';
-import { ProjectBuilder } from '../openisdTransforms.js';
 import type { Box } from '../box/box.js';
 import type { FrequencyGrid } from '../box/frequencyGrid.js';
 import { OpenISDBox } from '../box/openISDBox.js';
@@ -49,26 +47,6 @@ import { ProjectSignal } from './projectSignal.js';
 // `dragRange` are the one documented exception, staying as this class's own private fields.
 
 export class OpenISDProject {
-    static builder(driver: OpenISDDriver, engine: Engine, appContext: AppContext = realAppContext): ProjectBuilder {
-        return new ProjectBuilder(driver, engine, appContext);
-    }
-
-    /**
-     * A new project with every section present and nothing stated — what the New Project wizard
-     * opens on and writes into, rather than collecting a spec and building at the end.
-     *
-     * The driver and the radiator are blank devices (`OpenISDDriver.empty()`,
-     * `OpenISDPassiveRadiatorStandalone.empty()`), so no physical value here was invented: the
-     * wizard repopulates the driver from the one the user picks, and the radiator from the one
-     * they pick when they choose a passive-radiator box.
-     */
-    static empty(engine: Engine, appContext: AppContext = realAppContext): OpenISDProject {
-        return OpenISDProject.builder(OpenISDDriver.empty(engine, appContext), engine, appContext)
-            .sealed()
-            .volume_m3(0)
-            .build();
-    }
-
     /** THE project's identity, and IN-MEMORY ONLY — deliberately a class field rather than a
      *  member of `OpenISDProjectJson`, which is what makes "internal only" structural instead of
      *  a rule someone has to remember: the record is the only thing that is ever serialised, so
@@ -543,18 +521,11 @@ export class OpenISDProject {
         return structuredClone(this.#saved);
     }
 
-    /** This project as WinISD `.wpr` text — the form `WinIsdProjectConverter.winIsdProjectToOpenIsdProject` reads back.
-     *
-     *  Writing is a SNAPSHOT: the converter reads this project and renders text, and keeps no
-     *  hold on it afterwards, so saving a file never changes what is on screen.
-     *
-     *  `.wpr` models fewer box types and fewer fields than openisd does, so this is a lossy
-     *  write and `value` is null when the box cannot be expressed at all (a `bandpass6`, say).
-     *  `errors` carries the reason and every field dropped along the way. */
-    toWprText(): { value: string | null; errors: DriverError[] } {
-        const committed = OpenISDProject.wrapWithIdentity(structuredClone(this.#committed()), this.#uuid, this.#engine, this.#appContext);
-        const {value: wpr, errors} = new WinIsdProjectConverter(this.#engine).openIsdProjectToWinIsdProject(committed);
-        return {value: wpr ? wpr.toWpr() : null, errors};
+    /** An independent project holding this one's committed state — the edited layer, or the
+     *  saved one when nothing is edited — under the same identity, with no what-if. A snapshot for
+     *  an export or a comparison: the converter that reads it keeps no hold on this project. */
+    committedSnapshot(): OpenISDProject {
+        return OpenISDProject.wrapWithIdentity(structuredClone(this.#committed()), this.#uuid, this.#engine, this.#appContext);
     }
 
     /** This project as `.owpr` text — openisd project JSON, the form

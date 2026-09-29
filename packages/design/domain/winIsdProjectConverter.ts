@@ -25,6 +25,7 @@ import type {Vent} from './vent.js';
 import {OpenISDDriver} from './driver/openISDDriver.js';
 import {OpenISDPassiveRadiatorStandalone} from './passiveRadiator/openISDPassiveRadiatorStandalone.js';
 import {OpenISDProject} from './project/openISDProject.js';
+import {ProjectBuilder} from './openisdTransforms.js';
 import type {EnvironmentField} from './project/environmentFields.js';
 import {type DriverError, type Engine, type Filter} from '../engine/index.js';
 
@@ -231,8 +232,11 @@ export class WinIsdProjectConverter {
    * range) comes back as warn/error entries in `errors`, `value` still populated where possible.
    */
   openIsdProjectToWinIsdProject(
-    project: OpenISDProject
+    live: OpenISDProject
   ): { value: WinISDProject | null; errors: DriverError[] } {
+    // A SNAPSHOT of the committed state: an open what-if never reaches a file, and this converter
+    // keeps no hold on the live project.
+    const project = live.committedSnapshot();
     const errors: DriverError[] = [];
 
     const driverErrors: DriverError[] = [];
@@ -334,7 +338,7 @@ export class WinIsdProjectConverter {
     const driver: OpenISDDriver = driverOrErrors;
 
     const bTypeRaw = wpr.number('Box', 'BType');
-    const builder = OpenISDProject.builder(driver, this.engine);
+    const builder = new ProjectBuilder(driver, this.engine);
     let project: OpenISDProject;
     // `BType` arrives from a file, so it is `number | null` before this point and the switch below
     // cannot be exhaustive over it. Absence is rejected here; the switch then decides over a plain
