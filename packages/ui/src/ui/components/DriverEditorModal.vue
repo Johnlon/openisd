@@ -11,7 +11,7 @@ import {wiringOptions} from '../../logic/driverDraft.js';
 import {readDriverFileText} from '../../logic/driverFileText.js';
 import {driverToOwdrBytes, driverToWdrBytes} from '../../logic/fileImportExport.js';
 import {cellClassOf} from '../../logic/useDriverCells.js';
-import {dqNoteFor, ebpVal as ebpValFor} from '../../hooks/DriverEditorModal-hooks.js';
+import {commitMyDriver, dqNoteFor, ebpVal as ebpValFor} from '../../hooks/DriverEditorModal-hooks.js';
 import type {DqReason} from '@openisd/design';
 import type {Calculated, Clearable, Entered, Readable, Writable} from '@openisd/design';
 import NumInput from './NumInput.vue';
@@ -70,9 +70,9 @@ const draftDriver = computed(() => { void trigger.value; return draft.driver; })
 /** OK on a myDriver subject: save the draft under its uuid — in place, same identity. A save
  *  that would CHANGE the driver's brand/model first asks the ONE ruled question (rename in
  *  place vs save as copy) via `renameQuestionOpen`; by the time this runs, that is decided. */
-function commitToMyDrivers(driver: typeof draft.driver): void {
+function commitToMyDrivers(driver: typeof draft.driver, replacesOpened: boolean): void {
   if (subject.kind !== 'myDriver') throw new Error('commitToMyDrivers called on a project subject');
-  if (myDrivers.upsert(driver) == null) {
+  if (!commitMyDriver(myDrivers, driver, replacesOpened ? subject.openedAs : '')) {
     alert('Saved drivers are read-only until the storage problem is resolved');
   }
 }
@@ -102,7 +102,7 @@ const renameQuestionOpen = ref(false);
 
 function saveRenameInPlace(): void {
   renameQuestionOpen.value = false;
-  commitToMyDrivers(draftDriver.value);
+  commitToMyDrivers(draftDriver.value, true);
   logging.flash('Saved to My Drivers');
   selection.closeEditor();
   emit('close');
@@ -112,7 +112,7 @@ function saveAsCopy(): void {
   renameQuestionOpen.value = false;
   // A copy is a DIFFERENT driver (QO81): its own record identity, never the source's — sharing
   // the source's uuid would make the two rows answer to one favourites entry.
-  commitToMyDrivers(draftDriver.value.copyAsNew());
+  commitToMyDrivers(draftDriver.value.copyAsNew(), false);
   logging.flash('Saved as a copy to My Drivers');
   selection.closeEditor();
   emit('close');
@@ -443,8 +443,8 @@ function confirmSaveToMyDrivers() {
     // brand-new driver) — this save FILES a new My Drivers entry, so it needs its own record
     // identity rather than the source's (the bug: editing a library driver and saving it kept
     // that driver's own uuid, so its favourite star stayed linked to the library original's).
-    const toSave = savedEntryForSubject() == null ? draftDriver.value.copyAsNew() : draftDriver.value;
-    commitToMyDrivers(toSave);
+    const opened = savedEntryForSubject() != null;
+    commitToMyDrivers(opened ? draftDriver.value : draftDriver.value.copyAsNew(), opened);
     logging.flash('Saved to My Drivers');
     selection.closeEditor();
     emit('close');

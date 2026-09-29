@@ -78,8 +78,8 @@ test('Cancel discards the alignment sheet\'s draft without touching the volume f
 
 // Bug (John, live on his phone, 2026-09-29): switching from sealed to vented left volume=0,
 // cascading into every chart sweep failing (no finite group delay / max SPL, no vent length
-// solution). Interim UI-level fix (boxTypeDefaults.ts) — engine's ruling is this ultimately
-// belongs in the domain; kept here to unblock testing, see the commit/bug record.
+// solution). Fixed in the domain: `OpenISDBox.applyStartingValues`, run by `boxType.set()`.
+// This spec proves the seam from the box-type select to that method.
 //
 // COMPLETE_DRIVER_PROJECT_OWPR (not the beforeEach's default sample project, which has no T/S
 // params — the guard this fix needs would never fire) opens on vented with its own volume

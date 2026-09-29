@@ -230,6 +230,18 @@ test('the picker shows a driver under its new name as soon as the editor closes'
   await expect(page.locator('.my-ditem', { hasText: PICKED })).toBeVisible();
 });
 
+test('OK on a saved driver without a rename overwrites that row instead of adding a twin', async ({ page }) => {
+  await openPicker(page);
+  await page.locator('.my-ditem', { hasText: PICKED }).locator('.my-edit').click();
+  await expect(await modelCell(page)).toHaveValue('Fixture');
+
+  await page.locator(`${EDITOR} .de-footer button:has-text("OK")`).click();
+  await page.locator('.save-confirm-btn').click();
+  await expect(page.locator(EDITOR)).toBeHidden();
+
+  expect(await savedModels(page)).toEqual(['Fixture']);
+});
+
 test('Cancel on a saved driver writes nothing', async ({ page }) => {
   await openPicker(page);
   await page.locator('.my-ditem', { hasText: PICKED }).locator('.my-edit').click();

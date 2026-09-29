@@ -57,7 +57,10 @@ function driverFor(engine: Engine): OpenISDDriver {
 }
 
 function ventedProject(engine: Engine, Vb: number, Fb: number): OpenISDProject {
-  return OpenISDProject.builder(driverFor(engine), engine).vented().volume_m3(Vb).tuning_goal_hz(Fb).build();
+  const p = OpenISDProject.builder(driverFor(engine), engine).vented().volume_m3(Vb).tuning_goal_hz(Fb).build();
+  p.box.vented.vent.diameter_m.clear();   // no vent geometry: the build gave it the 50 mm starting diameter
+  p.save();                                // the fixture's own state is its saved baseline
+  return p;
 }
 
 const engineWith = (band: VentedDesignLimits): Engine =>

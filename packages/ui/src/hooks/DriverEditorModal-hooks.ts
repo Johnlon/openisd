@@ -19,3 +19,14 @@ export function dqNoteFor(cellOf: (field: NumSpecField) => Readable<number | nul
 export function ebpVal(driver: OpenISDDriver): number | null {
   return driver.specs.EBP_hz.value;
 }
+
+/** The slice of My Drivers a save needs. */
+export interface MyDriversUpsert {
+  upsert(driver: OpenISDDriver, uuid?: string): { uuid: string; overwrote: boolean } | null;
+}
+
+/** Save `driver` to My Drivers: over the row `replacesUuid` names, or as a new row when it is
+ *  ''. False = My Drivers refused (read-only). */
+export function commitMyDriver(myDrivers: MyDriversUpsert, driver: OpenISDDriver, replacesUuid: string): boolean {
+  return myDrivers.upsert(driver, replacesUuid === '' ? undefined : replacesUuid) !== null;
+}
