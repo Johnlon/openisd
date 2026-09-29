@@ -56,20 +56,20 @@ const {
           <span class="mob-field-label">Slot width</span>
           <span class="mob-field-value" :title="VENT_GEOMETRY_TIP">
             <NumInput :model-value="activeVent.width_m.value" @update:model-value="setVentWidth"
-                      :field="NumberField.VENT_W_CM" unit-key="ventW" group="length" base="cm" :precision="NumberField.VENT_W_CM.precision" />
+                      :field="NumberField.VENT_W_CM" unit-key="ventW" :precision="NumberField.VENT_W_CM.precision" />
           </span>
         </div>
-        <UnitToggle field="ventW" group="length" base="cm" unit-class="mob-unit" />
+        <UnitToggle :field="NumberField.VENT_W_CM" unit-key="ventW" unit-class="mob-unit" />
       </div>
       <div class="mob-field-row mob-field-entered">
         <div class="mob-field-main">
           <span class="mob-field-label">Slot height</span>
           <span class="mob-field-value" :title="VENT_GEOMETRY_TIP">
             <NumInput :model-value="activeVent.height_m.value" @update:model-value="setVentHeight"
-                      :field="NumberField.VENT_H_CM" unit-key="ventH" group="length" base="cm" :precision="NumberField.VENT_H_CM.precision" />
+                      :field="NumberField.VENT_H_CM" unit-key="ventH" :precision="NumberField.VENT_H_CM.precision" />
           </span>
         </div>
-        <UnitToggle field="ventH" group="length" base="cm" unit-class="mob-unit" />
+        <UnitToggle :field="NumberField.VENT_H_CM" unit-key="ventH" unit-class="mob-unit" />
       </div>
     </template>
     <div v-else class="mob-field-row mob-field-entered">
@@ -77,10 +77,10 @@ const {
         <span class="mob-field-label">Vent diameter</span>
         <span class="mob-field-value" :title="VENT_GEOMETRY_TIP">
           <NumInput :model-value="activeVent.diameter_m.value" @update:model-value="setVentDiameter"
-                    :field="NumberField.VENT_D_CM" unit-key="ventD" group="length" base="cm" :precision="NumberField.VENT_D_CM.precision" />
+                    :field="NumberField.VENT_D_CM" unit-key="ventD" :precision="NumberField.VENT_D_CM.precision" />
         </span>
       </div>
-      <UnitToggle field="ventD" group="length" base="cm" unit-class="mob-unit" />
+      <UnitToggle :field="NumberField.VENT_D_CM" unit-key="ventD" unit-class="mob-unit" />
     </div>
 
     <div class="mob-field-row" :class="ventLState === 'E' ? 'mob-field-entered' : 'mob-field-calculated'">
@@ -89,13 +89,13 @@ const {
         <span v-if="ventLState === 'E'" class="mob-field-value">
           <NumInput :model-value="activeVent.length_m.value"
                     @update:model-value="setVentLength"
-                    :field="NumberField.VENT_L_CM" unit-key="ventL" group="length" base="cm" :precision="NumberField.VENT_L_CM.precision" />
+                    :field="NumberField.VENT_L_CM" unit-key="ventL" :precision="NumberField.VENT_L_CM.precision" />
         </span>
         <span v-else class="mob-field-value mob-readonly" :class="{ 'mob-impossible': activeVent.length_m.value === null }">
           {{ activeVent.length_m.value != null ? activeVent.length_m.value.toFixed(NumberField.VENT_L_CM.precision) + ' cm' : '—' }}
         </span>
       </div>
-      <UnitToggle field="ventL" group="length" base="cm" unit-class="mob-unit" />
+      <UnitToggle :field="NumberField.VENT_L_CM" unit-key="ventL" unit-class="mob-unit" />
     </div>
 
     <div class="mob-field-row" :class="fbState === 'E' ? 'mob-field-entered' : 'mob-field-calculated'">
@@ -104,13 +104,13 @@ const {
         <span v-if="fbState === 'E'" class="mob-field-value" :title="FB_TARGET_TIP">
           <NumInput :model-value="project.box.vented.tuning_goal_hz.value"
                     @update:model-value="setFbTarget"
-                    :field="NumberField.BOX_FB_HZ" unit-key="Fb" group="freq" base="Hz" :precision="NumberField.BOX_FB_HZ.precision" />
+                    :field="NumberField.BOX_FB_HZ" unit-key="Fb" :precision="NumberField.BOX_FB_HZ.precision" />
         </span>
         <span v-else class="mob-field-value mob-readonly" :title="FB_TARGET_TIP">
           {{ project.box.vented.tuning_goal_hz.value != null ? project.box.vented.tuning_goal_hz.value.toFixed(NumberField.BOX_FB_HZ.precision) + ' Hz' : '—' }}
         </span>
       </div>
-      <UnitToggle field="Fb" group="freq" base="Hz" unit-class="mob-unit" />
+      <UnitToggle :field="NumberField.BOX_FB_HZ" unit-key="Fb" unit-class="mob-unit" />
     </div>
 
     <div class="mob-field-row mob-field-calculated">
@@ -144,9 +144,9 @@ const {
 
     <div class="mob-field-row mob-field-entered">
       <div class="mob-field-main"><span class="mob-field-label">Vas</span>
-        <span class="mob-field-value"><NumInput :model-value="project.box.passiveRadiator.radiator.spec.Vas_m3.value" @update:model-value="(v: number | null) => project.box.passiveRadiator.radiator.spec.Vas_m3.set(v ?? 0)" :field="NumberField.PR_VAS_L" unit-key="prVas" group="volume" base="L" :precision="NumberField.PR_VAS_L.precision" /></span>
+        <span class="mob-field-value"><NumInput :model-value="project.box.passiveRadiator.radiator.spec.Vas_m3.value" @update:model-value="(v: number | null) => project.box.passiveRadiator.radiator.spec.Vas_m3.set(v ?? 0)" :field="NumberField.PR_VAS_L" unit-key="prVas" :precision="NumberField.PR_VAS_L.precision" /></span>
       </div>
-      <UnitToggle field="prVas" group="volume" base="L" unit-class="mob-unit" />
+      <UnitToggle :field="NumberField.PR_VAS_L" unit-key="prVas" unit-class="mob-unit" />
     </div>
     <div class="mob-field-row mob-field-entered">
       <div class="mob-field-main"><span class="mob-field-label">Qms</span>
@@ -155,21 +155,21 @@ const {
     </div>
     <div class="mob-field-row mob-field-entered">
       <div class="mob-field-main"><span class="mob-field-label">Fpr</span>
-        <span class="mob-field-value"><NumInput :model-value="project.box.passiveRadiator.radiator.spec.Fs_hz.value" @update:model-value="(v: number | null) => project.box.passiveRadiator.radiator.spec.Fs_hz.set(v ?? 0)" :field="NumberField.PR_FS_HZ" unit-key="prFs" group="freq" base="Hz" :precision="NumberField.PR_FS_HZ.precision" /></span>
+        <span class="mob-field-value"><NumInput :model-value="project.box.passiveRadiator.radiator.spec.Fs_hz.value" @update:model-value="(v: number | null) => project.box.passiveRadiator.radiator.spec.Fs_hz.set(v ?? 0)" :field="NumberField.PR_FS_HZ" unit-key="prFs" :precision="NumberField.PR_FS_HZ.precision" /></span>
       </div>
-      <UnitToggle field="prFs" group="freq" base="Hz" unit-class="mob-unit" />
+      <UnitToggle :field="NumberField.PR_FS_HZ" unit-key="prFs" unit-class="mob-unit" />
     </div>
     <div class="mob-field-row mob-field-entered">
       <div class="mob-field-main"><span class="mob-field-label">Sd</span>
-        <span class="mob-field-value"><NumInput :model-value="project.box.passiveRadiator.radiator.spec.Sd_m2.value" @update:model-value="(v: number | null) => project.box.passiveRadiator.radiator.spec.Sd_m2.set(v ?? 0)" :field="NumberField.PR_SD_CM2" unit-key="prSd" group="area" base="cm2" :precision="NumberField.PR_SD_CM2.precision" /></span>
+        <span class="mob-field-value"><NumInput :model-value="project.box.passiveRadiator.radiator.spec.Sd_m2.value" @update:model-value="(v: number | null) => project.box.passiveRadiator.radiator.spec.Sd_m2.set(v ?? 0)" :field="NumberField.PR_SD_CM2" unit-key="prSd" :precision="NumberField.PR_SD_CM2.precision" /></span>
       </div>
-      <UnitToggle field="prSd" group="area" base="cm2" unit-class="mob-unit" />
+      <UnitToggle :field="NumberField.PR_SD_CM2" unit-key="prSd" unit-class="mob-unit" />
     </div>
     <div class="mob-field-row mob-field-entered">
       <div class="mob-field-main"><span class="mob-field-label">Xmax</span>
-        <span class="mob-field-value"><NumInput :model-value="project.box.passiveRadiator.radiator.spec.Xmax_m.value" @update:model-value="(v: number | null) => project.box.passiveRadiator.radiator.spec.Xmax_m.set(v ?? 0)" :field="NumberField.PR_XMAX_MM" unit-key="prXmax" group="length" base="mm" :precision="NumberField.PR_XMAX_MM.precision" /></span>
+        <span class="mob-field-value"><NumInput :model-value="project.box.passiveRadiator.radiator.spec.Xmax_m.value" @update:model-value="(v: number | null) => project.box.passiveRadiator.radiator.spec.Xmax_m.set(v ?? 0)" :field="NumberField.PR_XMAX_MM" unit-key="prXmax" :precision="NumberField.PR_XMAX_MM.precision" /></span>
       </div>
-      <UnitToggle field="prXmax" group="length" base="mm" unit-class="mob-unit" />
+      <UnitToggle :field="NumberField.PR_XMAX_MM" unit-key="prXmax" unit-class="mob-unit" />
     </div>
 
     <div class="mob-panel-head mob-panel-head-sub">User options</div>
@@ -180,15 +180,15 @@ const {
     </div>
     <div class="mob-field-row mob-field-entered" :class="{ 'mob-field-dq': prAddedMassDq.dq.length > 0 }">
       <div class="mob-field-main"><span class="mob-field-label">Added mass to cone</span>
-        <span class="mob-field-value"><NumInput :model-value="project.box.passiveRadiator.addedMass_kg.value" @update:model-value="(v: number | null) => project.box.passiveRadiator.addedMass_kg.set(v ?? 0)" :field="NumberField.PR_MADD_G" unit-key="prMadd" group="mass" base="g" :precision="NumberField.PR_MADD_G.precision" v-bind="prAddedMassDq" /></span>
+        <span class="mob-field-value"><NumInput :model-value="project.box.passiveRadiator.addedMass_kg.value" @update:model-value="(v: number | null) => project.box.passiveRadiator.addedMass_kg.set(v ?? 0)" :field="NumberField.PR_MADD_G" unit-key="prMadd" :precision="NumberField.PR_MADD_G.precision" v-bind="prAddedMassDq" /></span>
       </div>
-      <UnitToggle field="prMadd" group="mass" base="g" unit-class="mob-unit" />
+      <UnitToggle :field="NumberField.PR_MADD_G" unit-key="prMadd" unit-class="mob-unit" />
     </div>
     <div class="mob-field-row mob-field-entered" :class="{ 'mob-field-dq': prTuningDq.dq.length > 0 }">
       <div class="mob-field-main"><span class="mob-field-label">Target tuning freq (Fp)</span>
-        <span class="mob-field-value"><NumInput :model-value="project.box.passiveRadiator.tuning_goal_hz.value" @update:model-value="(v: number | null) => project.box.passiveRadiator.tuning_goal_hz.set(v ?? 0)" :field="NumberField.PR_FP_HZ" unit-key="Fp" group="freq" base="Hz" :precision="NumberField.PR_FP_HZ.precision" v-bind="prTuningDq" /></span>
+        <span class="mob-field-value"><NumInput :model-value="project.box.passiveRadiator.tuning_goal_hz.value" @update:model-value="(v: number | null) => project.box.passiveRadiator.tuning_goal_hz.set(v ?? 0)" :field="NumberField.PR_FP_HZ" unit-key="Fp" :precision="NumberField.PR_FP_HZ.precision" v-bind="prTuningDq" /></span>
       </div>
-      <UnitToggle field="Fp" group="freq" base="Hz" unit-class="mob-unit" />
+      <UnitToggle :field="NumberField.PR_FP_HZ" unit-key="Fp" unit-class="mob-unit" />
     </div>
     <div class="mob-field-row mob-field-calculated" :class="{ 'mob-field-dq': prResonanceMassDq.dq.length > 0 }" :title="prResonanceMassDq.dq.length > 0 ? prResonanceMassDq.dq.join('; ') : ''">
       <div class="mob-field-main"><span class="mob-field-label">Fpr (with added mass)</span>
