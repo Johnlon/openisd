@@ -42,13 +42,13 @@ package keeps one door; the door hands out those areas.
 | C. One name per filter variant | done |
 | E. Filters hook | done, 426aefa0 |
 | H. Field behaviour on the field | done, d6855b11: `Readable.provenance`, `OpenIsdDriverSpec.solverParams()`, `OpenISDDriver.chartBlockingReasons()` |
-| D. Components instead of a threaded engine | converters as classes (bf5062fc), project windows take one area (2209bcae), hooks take areas (51a126ed, 13f672a6), series takes `ChartEngineAreas` (22ce4efa), passive radiators and their repos carry no engine (7fd40adc), DesignFiles/DriverDrafts classes + UI gate: only main.ts imports appState's engine (686eea62 … 31acd78b). Ratchet 41 → 14 |
-| F. Lint rules | not started |
+| D. Components instead of a threaded engine | converters as classes (bf5062fc), project windows take one area (2209bcae), hooks take areas (51a126ed, 13f672a6), series takes `ChartEngineAreas` (22ce4efa), passive radiators and their repos carry no engine (7fd40adc), DesignFiles/DriverDrafts classes + UI gate: only main.ts imports appState's engine (686eea62 … 31acd78b), OpenIsdDriverSpec takes DriverEngine + IssueEngine (03a78854), converters renamed WinIsdDriverConverter/WinIsdProjectConverter and the duplicate factories fromWdrIniText/fromWprText deleted (a532a9ef, bec547c2). Ratchet 41 → 2 |
+| F. Lint rules | rules for `Engine['x']`, `.bind(engine)`, re-exports, `Extract<Filter,…>`, casts and switch exhaustiveness are in eslint.config.js; `import/no-cycle` not added |
 
-Ratchet rows left (14): `OpenISDProject`/`OpenISDDriver`/`OpenISDDriverStandalone`/
-`OpenISDDriverEmbedded` static factories (`empty`, `wrap*`, `from*`, `builder`) — constructors in
-effect, each hands the engine to a private constructor — plus `OpenISDBox.wrap` (the box uses six
-areas). Whether a static factory counts as a constructor for the gate is a human ruling.
+Ratchet rows left (2): `OpenISDProject.builder` and `OpenISDProject.empty`, which hand the engine to
+`ProjectBuilder`. Ruling (John, 2026-09-29): a static factory that is a genuine constructor may take
+the engine; the gate exempts a static that constructs its own class or a subclass in the same file
+(0f46b8c8). The builder is the one way a project comes into existence, so these two stay.
 
 Publishing rule settled on the way: an area method is a body; a pure function every solver shares
 is published by the area unchanged as a readonly property (`readonly ebp = ebp`), never wrapped.
