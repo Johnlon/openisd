@@ -2,6 +2,8 @@ import pluginVue from 'eslint-plugin-vue';
 import pluginPlaywright from 'eslint-plugin-playwright';
 import tseslint from 'typescript-eslint';
 import globals from 'globals';
+import {importX} from 'eslint-plugin-import-x';
+import {createTypeScriptImportResolver} from 'eslint-import-resolver-typescript';
 
 // Shared no-unused-vars config — the @typescript-eslint variant understands TS
 // type constructs (the base rule misfires on them). Applied to .js too (the TS
@@ -344,6 +346,24 @@ export default [
   },
 
   typeAware,
+  // ── No import cycles ─────────────────────────────────────────────────────────────────────
+  // A cycle makes module load order matter and lets a "lower" module reach a "higher" one.
+  // Existing cycles are suppressed in eslint-suppressions.json (a ratchet: a new cycle fails, a
+  // fixed one must be pruned with `npm run lint:prune`). `.vue` files are not parsed here, so a
+  // cycle running through a component is not seen.
+  {
+    files: ['packages/**/*.ts'],
+    plugins: { 'import-x': importX },
+    settings: {
+      // Without .ts here import-x never parses a TypeScript dependency and no-cycle finds nothing.
+      'import-x/extensions': ['.ts', '.js'],
+      'import-x/resolver-next': [createTypeScriptImportResolver({
+        project: ['packages/design/tsconfig.json', 'packages/persistence/tsconfig.json', 'packages/ui/tsconfig.json'],
+        noWarnOnMultipleProjects: true,
+      })],
+    },
+    rules: { 'import-x/no-cycle': 'error' },
+  },
   // ── The one file that imports a Vue SFC from TypeScript ──────────────────────────────────
   // `vue-tsc` resolves `./ui/App.vue` and `npm run typecheck` checks this file properly. ESLint's
   // TypeScript program cannot: an SFC is not a module it can parse, so `App` arrives error-typed
