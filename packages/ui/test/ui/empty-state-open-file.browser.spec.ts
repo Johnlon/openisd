@@ -37,6 +37,38 @@ test('Open shows saved browser projects with Import from disk first', async ({ p
   await expect(dialog.locator('.open-project-list')).toContainText('No saved project yet');
 });
 
+// bugs/BUG_20260929_file-open-dialog-seeded-to-winisd.md — Import from disk opens the system
+// dialog with our own "OpenISD and WinISD files" filter, and the picked file opens as a project.
+test('Import from disk asks the system dialog for one OpenISD and WinISD filter and opens the pick', async ({ page }) => {
+  await page.addInitScript((owpr: string) => {
+    Object.assign(window, {
+      showOpenFilePicker: async (options: unknown) => {
+        document.documentElement.dataset.pickerOptions = JSON.stringify(options);
+        return [{ getFile: async () => new File([owpr], 'picked-design.owpr') }];
+      },
+    });
+  }, readFileSync(OWPR, 'utf8'));
+  await page.goto('/');
+
+  await page.getByTitle('Open project').click();
+  await page.locator('.open-project-dialog').getByRole('button', { name: 'Import from disk' }).click();
+
+  await expect(page.locator('.projects-list')).toContainText('picked-design');
+  const options: unknown = JSON.parse(await page.locator('html').getAttribute('data-picker-options') ?? 'null');
+  expect(options).toEqual({
+    multiple: false,
+    types: [{
+      description: 'OpenISD and WinISD files',
+      accept: {
+        'application/x-openisd-project': ['.owpr'],
+        'application/x-winisd-project': ['.wpr'],
+        'application/x-openisd-driver': ['.owdr'],
+        'application/x-winisd-driver': ['.wdr'],
+      },
+    }],
+  });
+});
+
 test('no-project chart empty state offers icon links for New, Open, and Import', async ({ page }) => {
   await page.goto('/');
 
