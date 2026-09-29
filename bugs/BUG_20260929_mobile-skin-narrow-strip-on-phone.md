@@ -1,6 +1,6 @@
 # BUG_20260929_mobile-skin-narrow-strip-on-phone
 
-**Status:** OPEN
+**Status:** WONTFIX
 
 ## Symptom
 On John's phone (Chrome, "Desktop site" not ticked), https://openisd.app shows the mobile skin as
@@ -28,3 +28,10 @@ and elements whose `getBoundingClientRect().right > innerWidth`), then constrain
 ## Verification
 On the phone, `document.documentElement.scrollWidth === innerWidth` and the mobile column fills
 the screen on every tab.
+
+## Ruling
+Not a bug (John, 2026-09-29): "it is my fault - I was using the mobile view in chrome on a phone
+with the desktop view selected". Chrome's Desktop site mode lays the page out ~980 px wide, above
+the 600 px automatic mobile breakpoint (`logic/viewport.ts`), so the automatic choice was the
+desktop skin; the stored manual "Switch to Mobile view" override beat it, as designed, and the
+480 px mobile column sat centred in the 980 px page.
