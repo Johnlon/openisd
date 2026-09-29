@@ -19,7 +19,7 @@ bridge rear Fr=61.311243219623286  should be within 0.05 Hz of WinISD's own Fr=5
 ## Example
 
 ```ts
-// packages/design/domain/openIsdProjectToWinIsdProject.ts:131
+// packages/design/domain/winIsdProjectConverter.ts:131
 const frc = box.bandpass4.chambers.rear.resonance_hz();
 if (frc != null) v.Fr = frc;
 ```

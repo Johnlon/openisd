@@ -26,7 +26,7 @@ import { dirname, join } from 'node:path';
 import {createEngine} from '@openisd/design/engine';
 import { OpenISDDriver, type Readable } from '@openisd/design';
 import { winISDDriverToOpenISDDeviceJson } from '../../domain/winIsdDriverImport.js';
-import { openIsdDriverToWinIsdDriver } from '../../domain/driverYmlToOpenisdAndWdr.js';
+import { openIsdDriverToWinIsdDriver } from '../../domain/winIsdDriverConverter.js';
 import { WinISDDriver } from '../../winisd/index.js';
 
 const here = dirname(fileURLToPath(import.meta.url));

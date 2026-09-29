@@ -467,7 +467,7 @@ solvePr → solveSealedAlignment` over the live `Field` handles; a standalone `O
 | Chunk | Files | RED |
 |---|---|---|
 | S2-7a `Field` lens rewrite + `entryField` | `cell.ts`, cell tests | setCalculated/set/clear/setDq each land in the lens; setNotAvailable leaves 'E' alone |
-| S2-7b schema + loader transform + serialisers | `openisdSchema.ts`, `driverYmlToOpenisdAndWdr.ts`, `projectRepo.ts`, schema tests | legacy readings JSON string loads as `{state:'E', value}`; `winningValue` reads `.value`; box entries |
+| S2-7b schema + loader transform + serialisers | `openisdSchema.ts`, `winIsdDriverConverter.ts`, `projectRepo.ts`, schema tests | legacy readings JSON string loads as `{state:'E', value}`; `winningValue` reads `.value`; box entries |
 | S2-7c driver resolve | `openisdDomain.ts` driver section | edit `Fs` → `Qts`/`Rms` `'C'` entries in the record refreshed; `solvedNow` gone |
 | S2-7d1 project cascade root (driver) | `openisdDomain.ts` OpenISDProject | `#resolve` over the current layer, no notify; wrap → `isModified()` false; `#issues` cache |
 | S2-7d2 vent/PR/sealed rewire | `solverTypes.ts` (`SolverInput` split), `openisdSchema.ts` (sealed `volume_m3` entry), `openisdDomain.ts` box sections | edit vent tuning → `length_m` `'C'` in record; PR mass ↔ tuning; sealed Qtc/Vb; getters are plain reads |

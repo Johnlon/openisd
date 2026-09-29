@@ -31,7 +31,7 @@ KLe = Le · √(2π·fLe)          members: KLe, Le, fLe
 | `packages/design/domain/project.ts:1185,1305` | `KLe_H_sqrtHz: Field<number>`, read from the record |
 | `packages/winisd/src/winisdDriver.ts:69` | a key in `INI_ROWS` |
 | `packages/winisd/src/parstate.ts:51` | ParState slot 7 |
-| `packages/winisd/src/driverYmlToOpenisdAndWdr.ts:89` | passed straight through to `.wdr` |
+| `packages/winisd/src/winIsdDriverConverter.ts:89` | passed straight through to `.wdr` |
 
 There is no arithmetic anywhere — no multiplication, no `Math.sqrt`, nothing referencing `fLe`
 alongside `Le`.
@@ -113,7 +113,7 @@ reverting the entry and re-running. Those 6 are the `EngineQuantities`→`Solver
 
 ## Still open
 
-The `.wdr` writer (`packages/winisd/src/driverYmlToOpenisdAndWdr.ts`) reads STATED record values,
+The `.wdr` writer (`packages/winisd/src/winIsdDriverConverter.ts`) reads STATED record values,
 not solved ones, so a computed `KLe` still does not reach the emitted file — it writes a filler and
 ParState carries no `C` marks at all. That is a separate gap covering every derived quantity, not
 just this relation.

@@ -1,6 +1,6 @@
 /**
  * `OpenISDProject` <-> WinISD `.wpr` — the project-level counterpart to
- * `driverYmlToOpenisdAndWdr.ts`. Verified against the same WinISD-Pro-written goldens
+ * `winIsdDriverConverter.ts`. Verified against the same WinISD-Pro-written goldens
  * `winisdProject.test.ts` uses (`packages/design/test/winisd/fixtures/winisd-parity/goldens/`),
  * so the values asserted here are traceable to files WinISD itself produced, not invented.
  *
@@ -16,7 +16,7 @@ import {dirname, join} from 'node:path';
 import {type Engine, createEngine} from '@openisd/design/engine';
 import type {Filter} from '@openisd/design/engine';
 import {OpenISDDriver, OpenISDPassiveRadiatorStandalone, OpenISDProject,} from '@openisd/design';
-import {WinIsdProjectConverter} from '../../domain/openIsdProjectToWinIsdProject.js';
+import {WinIsdProjectConverter} from '../../domain/winIsdProjectConverter.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const GOLDENS_DIR = join(here, 'fixtures', 'winisd-parity', 'goldens');

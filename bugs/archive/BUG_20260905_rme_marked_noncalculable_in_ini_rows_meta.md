@@ -12,7 +12,7 @@ of the 15 parity scenarios: WinISD's own goldens mark the slot `C` (computed), o
 
 `packages/design/winisd/winisdDriver.ts:104`: `{key: 'Rme', calculable: false}`.
 
-`driverYmlToOpenisdAndWdr.ts:550-559` marks a solver-derived value `calculated` only when its
+`winIsdDriverConverter.ts:550-559` marks a solver-derived value `calculated` only when its
 `.wdr` key is in `WINISD_CALCULABLE` (built by filtering `INI_ROWS_META` on `calculable`);
 otherwise it marks the derived value `entered`, which is the E/C mismatch observed.
 

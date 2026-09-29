@@ -54,8 +54,20 @@ Or call the runner directly. \`npm test\` with genuinely no arguments is the ful
 EOF
     exit 1
   fi
-  npx vitest run
-  bash "$SCRIPT_DIR/test-browser.sh"
+  if [ "${OPENISD_FULL_GATE:-}" != "1" ]; then
+    cat >&2 <<EOF
+ERROR: the full suite is not run by hand. Name the specs for your change:
+
+  bash scripts/test.sh packages/design/test/engine/circuit.test.ts
+  bash scripts/test.sh packages/ui/test/ui/visual.browser.spec.ts
+
+The full suite runs in the pre-commit hook and scripts/health-check.sh only
+(.claude/rules/verify.md, John 2026-09-29).
+EOF
+    exit 1
+  fi
+  bash "$SCRIPT_DIR/quiet-test.sh" npx vitest run
+  bash "$SCRIPT_DIR/quiet-test.sh" bash "$SCRIPT_DIR/test-browser.sh"
   exit 0
 fi
 
@@ -63,7 +75,7 @@ fi
 for arg in "$@"; do
   case "$arg" in
     *.browser.spec.ts)
-      exec bash "$SCRIPT_DIR/test-browser.sh" "$@"
+      exec bash "$SCRIPT_DIR/quiet-test.sh" bash "$SCRIPT_DIR/test-browser.sh" "$@"
       ;;
   esac
 done
@@ -72,7 +84,7 @@ for arg in "$@"; do
   case "$arg" in
     -*) ;;                       # a flag names no target
     */*|*.test.ts|*.test.js|*.test.mjs)
-      exec npx vitest run "$@"
+      exec bash "$SCRIPT_DIR/quiet-test.sh" npx vitest run "$@"
       ;;
   esac
 done

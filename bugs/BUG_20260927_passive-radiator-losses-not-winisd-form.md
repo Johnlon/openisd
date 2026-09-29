@@ -32,7 +32,7 @@ per-frequency form unchanged.
 `OpenISDProject#boxSpecificParams`'s `box-passive-radiator` case (`packages/design/domain/
 openisdDomain.ts`). Absent → NaN, caught by `classifyFinite`, same as an absent vented `Fb`.
 
-Import fix (`packages/design/domain/openIsdProjectToWinIsdProject.ts`): the `.wpr` [PassiveRadiator]
+Import fix (`packages/design/domain/winIsdProjectConverter.ts`): the `.wpr` [PassiveRadiator]
 section states only Vas/Qms/Fs/Sd/Xmax, never the radiator's own Cms/Mms/Rms — these are entry-
 backed fields with no consistency solver of their own, so the importer now derives them with the
 same closed forms the PR editor uses (`engine.prCmsFromVas`/`prMmdFromFs`/`prRmsFromQms`) instead

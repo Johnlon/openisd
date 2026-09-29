@@ -16,7 +16,7 @@ like `Fs_hz` that the engine genuinely cannot compute.
 environment. `VCCon` DOES have a real documented default: WinISD's own default is 1 (parallel)
 — `docs/spec/SPEC_ENGINE.md:424`, `"Defaults are 0, except numVC=1, VCCon=1, ..."`. Neither
 default is invented; both are already implemented — but only inside
-`openIsdDriverToWinIsdDriver` (`driverYmlToOpenisdAndWdr.ts:497-499` for c/roo,
+`openIsdDriverToWinIsdDriver` (`winIsdDriverConverter.ts:497-499` for c/roo,
 `wdrVCCon()`/`431-440` for VCCon), which runs at `.wdr` export time.
 
 Any caller reading the driver directly — the UI, a test, `solveConsistencyGroup`'s own inputs —
@@ -44,7 +44,7 @@ wrong — it currently passes only because the getter has no such behavior.
 `packages/design/domain/project.ts`'s field builders (`f()` at ~1177, the `wiring()` builder at
 ~1154) read only `record.get().specs[section]?.[key]` and report `not-available` when absent.
 Neither consults the engine. The live-default computation lives entirely in
-`driverYmlToOpenisdAndWdr.ts`'s `openIsdDriverToWinIsdDriver`, which is export-only code, not
+`winIsdDriverConverter.ts`'s `openIsdDriverToWinIsdDriver`, which is export-only code, not
 reachable from `driver.spec[section].c_m_per_s.get()`.
 
 ## Impact
