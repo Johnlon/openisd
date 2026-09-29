@@ -6,11 +6,8 @@
  */
 export interface WinIsdPlottedPoint { readonly f: number; readonly v: number }
 
-export const WINISD_TWO_DRIVERS_CAPTURE = Object.freeze({
-  /** WinISD's grid: every point of each chart is grid point i·step. */
-  grid: {fmin: 1.0, fmax: 20095.223453196217, N: 2086},
-  step: 16,
-  spl_dB: [
+
+const WINISD_TWO_DRIVERS_CAPTURE_SPL_D_B: readonly WinIsdPlottedPoint[] = [
     {f: 1.0, v: -1.3623948846296114},
     {f: 1.0789604011446716, v: 0.509961198002883},
     {f: 1.1641555472382705, v: 2.3678879346524884},
@@ -142,8 +139,8 @@ export const WINISD_TWO_DRIVERS_CAPTURE = Object.freeze({
     {f: 16776.631415150903, v: 83.54478246713416},
     {f: 18101.320961547517, v: 83.5447724464046},
     {f: 19530.60852591976, v: 83.54476383861649},
-  ] as readonly WinIsdPlottedPoint[],
-  excursion_m: [
+];
+const WINISD_TWO_DRIVERS_CAPTURE_EXCURSION_M: readonly WinIsdPlottedPoint[] = [
     {f: 1.0, v: 0.0013751337677854636},
     {f: 1.0789604011446716, v: 0.0013598616205552148},
     {f: 1.1641555472382705, v: 0.0013427999487076359},
@@ -275,8 +272,8 @@ export const WINISD_TWO_DRIVERS_CAPTURE = Object.freeze({
     {f: 16776.631415150903, v: 1.066953815281156e-08},
     {f: 18101.320961547517, v: 9.165034430407546e-09},
     {f: 19530.60852591976, v: 7.872680969048651e-09},
-  ] as readonly WinIsdPlottedPoint[],
-  impedance_ohm: [
+];
+const WINISD_TWO_DRIVERS_CAPTURE_IMPEDANCE_OHM: readonly WinIsdPlottedPoint[] = [
     {f: 1.0, v: 3.4317216495314398},
     {f: 1.0789604011446716, v: 3.4361017600515282},
     {f: 1.1641555472382705, v: 3.440960612438782},
@@ -408,8 +405,8 @@ export const WINISD_TWO_DRIVERS_CAPTURE = Object.freeze({
     {f: 16776.631415150903, v: 3.4000455571213877},
     {f: 18101.320961547517, v: 3.400039132967163},
     {f: 19530.60852591976, v: 3.40003361473042},
-  ] as readonly WinIsdPlottedPoint[],
-  tfMag_dB: [
+];
+const WINISD_TWO_DRIVERS_CAPTURE_TF_MAG_D_B: readonly WinIsdPlottedPoint[] = [
     {f: 1.0, v: -84.91979453026981},
     {f: 1.0789604011446716, v: -83.04743844763732},
     {f: 1.1641555472382705, v: -81.1895117109877},
@@ -541,8 +538,8 @@ export const WINISD_TWO_DRIVERS_CAPTURE = Object.freeze({
     {f: 16776.631415150903, v: -0.012617178506038869},
     {f: 18101.320961547517, v: -0.012627199235598368},
     {f: 19530.60852591976, v: -0.012635807023710057},
-  ] as readonly WinIsdPlottedPoint[],
-  maxPower_W: [
+];
+const WINISD_TWO_DRIVERS_CAPTURE_MAX_POWER_W: readonly WinIsdPlottedPoint[] = [
     {f: 1.0, v: 45.24739407327894},
     {f: 1.0789604011446716, v: 46.2694174720779},
     {f: 1.1641555472382705, v: 47.45268964362746},
@@ -674,5 +671,15 @@ export const WINISD_TWO_DRIVERS_CAPTURE = Object.freeze({
     {f: 16776.631415150903, v: 80.0},
     {f: 18101.320961547517, v: 80.0},
     {f: 19530.60852591976, v: 80.0},
-  ] as readonly WinIsdPlottedPoint[],
+];
+
+export const WINISD_TWO_DRIVERS_CAPTURE = Object.freeze({
+  /** WinISD's grid: every point of each chart is grid point i·step. */
+  grid: {fmin: 1.0, fmax: 20095.223453196217, N: 2086},
+  step: 16,
+  spl_dB: WINISD_TWO_DRIVERS_CAPTURE_SPL_D_B,
+  excursion_m: WINISD_TWO_DRIVERS_CAPTURE_EXCURSION_M,
+  impedance_ohm: WINISD_TWO_DRIVERS_CAPTURE_IMPEDANCE_OHM,
+  tfMag_dB: WINISD_TWO_DRIVERS_CAPTURE_TF_MAG_D_B,
+  maxPower_W: WINISD_TWO_DRIVERS_CAPTURE_MAX_POWER_W,
 });

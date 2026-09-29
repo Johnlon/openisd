@@ -211,7 +211,7 @@ describe('Gloss — the static cone sag, as a FRACTION of Xmax', () => {
     // The record field and the `.wdr` key are both `Gloss` — one name, on disk and in memory
     // alike. A second key holding the same number would be a second name for one concept.
     const r = solve({ ...ORACLE_INPUTS });
-    assert.equal((r as Record<string, unknown>).loss, undefined,
+    assert.equal(Object.keys(r).includes('loss'), false,
       'the solver must not invent a second key for the quantity `Gloss` already names');
   });
 
@@ -322,12 +322,12 @@ describe('Xmax route precedence is on the RESULT, not the route (QO39 probe case
   it('an equal overhang is not an excursion limit — it falls through to Vd/Sd', () => {
     // Hc === Hg makes abs(Hc-Hg)/2 zero. WinISD does not accept that as Xmax; it uses the
     // other route. Expected value is independent of the code: 140e-6 / 0.0095.
-    const r = solveConsistencyGroup({ Hc_m: 0.012, Hg_m: 0.012, Vd_m3: 140e-6, Sd_m2: 0.0095 }) as Record<string, number>;
-    assert.ok(Math.abs(r.Xmax_m - 140e-6 / 0.0095) < 1e-15, `Xmax was ${r.Xmax_m}`);
+    const r = solve({ Hc_m: 0.012, Hg_m: 0.012, Vd_m3: 140e-6, Sd_m2: 0.0095 });
+    assert.ok(Math.abs(derived(r.Xmax_m, 'Xmax_m') - 140e-6 / 0.0095) < 1e-15, `Xmax was ${r.Xmax_m}`);
   });
 
   it('an unequal overhang wins over Vd/Sd', () => {
-    const r = solveConsistencyGroup({ Hc_m: 0.0176, Hg_m: 0.006, Vd_m3: 140e-6, Sd_m2: 0.0095 }) as Record<string, number>;
-    assert.ok(Math.abs(r.Xmax_m - 0.0058) < 1e-15, `Xmax was ${r.Xmax_m}`);
+    const r = solve({ Hc_m: 0.0176, Hg_m: 0.006, Vd_m3: 140e-6, Sd_m2: 0.0095 });
+    assert.ok(Math.abs(derived(r.Xmax_m, 'Xmax_m') - 0.0058) < 1e-15, `Xmax was ${r.Xmax_m}`);
   });
 });
