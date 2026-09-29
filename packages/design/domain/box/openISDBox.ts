@@ -2,7 +2,7 @@ import {LossMode} from '../../fields/lossMode.js';
 import {type Engine} from '../../engine/index.js';
 import type { Air, BoxType, DqIssue } from '../../engine/index.js';
 import { CalculatedFieldImpl, absentCell, calculatedCell, entryField, focus, pairedField, requiredField } from '../cell.js';
-import type { SimpleField } from '../cell.js';
+import type { Entered, Readable, SimpleField, Writable } from '../cell.js';
 import type { SealedLosses } from '../losses.js';
 import type { OpenISDBoxJson, SpecEntryJson } from '../openisdSchema.js';
 import { OpenISDDriverEmbedded } from '../driver/openISDDriverEmbedded.js';
@@ -13,7 +13,7 @@ import type { ProjectIssues } from '../project/projectIssues.js';
 import type { AbcBox } from './abcBox.js';
 import type { Bandpass4Box } from './bandpass4Box.js';
 import type { Bandpass6Box } from './bandpass6Box.js';
-import type { Box } from './box.js';
+import type { Box, BoxLosses, TuningField } from './box.js';
 import { CoupledSealedLossesWindow } from './coupledSealedLossesWindow.js';
 import { CoupledVentedLossesWindow } from './coupledVentedLossesWindow.js';
 import type { PassiveRadiatorBox } from './passiveRadiatorBox.js';
@@ -283,7 +283,57 @@ export class OpenISDBox implements Box {
         };
     }
 
-    /** Takes the lens onto the project's `box` slot. The project owns that slot and builds the
+        frontVolumeOf(type: BoxType): (Readable<number> & Entered & Writable<number>) | null {
+        switch (type) {
+            case 'bandpass4': return this.bandpass4.chambers.front.volume_m3;
+            case 'bandpass6': return this.bandpass6.chambers.front.volume_m3;
+            case 'abc': return this.abc.chambers.front.volume_m3;
+            case 'sealed':
+            case 'vented':
+            case 'box-passive-radiator':
+                return null;
+        }
+    }
+
+    rearTuningOf(type: BoxType): TuningField | null {
+        switch (type) {
+            case 'bandpass6': return this.bandpass6.chambers.rear.tuning_goal_hz;
+            case 'abc': return this.abc.chambers.rear.tuning_goal_hz;
+            case 'sealed':
+            case 'vented':
+            case 'bandpass4':
+            case 'box-passive-radiator':
+                return null;
+        }
+    }
+
+    lossesOf(type: BoxType): BoxLosses | null {
+        switch (type) {
+            case 'sealed': return {Ql: this.sealed.losses.Ql, Qa: this.sealed.losses.Qa, Qp: null};
+            case 'vented': return {Ql: this.vented.losses.Ql, Qa: this.vented.losses.Qa, Qp: this.vented.losses.Qp};
+            case 'bandpass4': {
+                const {rear, front} = this.bandpass4.chambers;
+                return {Ql: rear.losses.Ql, Qa: rear.losses.Qa, Qp: front.losses.Qp};
+            }
+            case 'box-passive-radiator': return {Ql: this.passiveRadiator.losses.Ql, Qa: this.passiveRadiator.losses.Qa, Qp: null};
+            case 'bandpass6':
+            case 'abc':
+                return null;
+        }
+    }
+
+    volumeOf(type: BoxType): Readable<number> & Entered & Writable<number> {
+        switch (type) {
+            case 'sealed': return this.sealed.volume_m3;
+            case 'vented': return this.vented.volume_m3;
+            case 'bandpass4': return this.bandpass4.chambers.rear.volume_m3;
+            case 'bandpass6': return this.bandpass6.chambers.rear.volume_m3;
+            case 'abc': return this.abc.chambers.rear.volume_m3;
+            case 'box-passive-radiator': return this.passiveRadiator.volume_m3;
+        }
+    }
+
+/** Takes the lens onto the project's `box` slot. The project owns that slot and builds the
      *  lens, so the box needs no reference back to the project. */
     static wrap(
         slot: SimpleField<OpenISDBoxJson>,
@@ -320,10 +370,8 @@ export class OpenISDBox implements Box {
         const ts = this.#driver.specs;
         const Fs_hz = ts.Fs_hz.value;
         const Vas = ts.Vas_m3.value;
-        const Qts = ts.Qts.value;
-        if (Fs_hz === null || Vas === null || Qts === null) return null;
-        const QtsLoaded = this.#engine.driver.sourceLoadedQts(
-            ts.Qms.value ?? NaN, ts.Qes.value ?? NaN, ts.Re_ohm.value ?? NaN, this.#rs(), Qts);
+        const QtsLoaded = this.#driver.sourceLoadedQts(this.#rs());
+        if (Fs_hz === null || Vas === null || QtsLoaded === null) return null;
         // The project's own chosen mode (S10/QO130) by default. WinISD displays and saves the
         // LOSSY figure by default (John 2026-08-27: "default is winisd = Lossy") and it MOVES
         // with the chamber's losses: measured, `Fr` shifts 5.8 Hz for a `Ql` change at fixed

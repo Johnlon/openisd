@@ -57,7 +57,7 @@ export class VentedBox implements BoxModel {
         const RaaSeries = cx(wb * Map / Qa, 0);
         const RapSeries = cx(wb * Map / Qp, 0);
         const CabBranch = cAdd(RaaSeries, Zc);
-        const PortBranch = cAdd(RapSeries, cx(0, P.tlPortModel ? winisdLinePortReactance(w, Map, rho, c, P) : w * Map));
+        const PortBranch = cAdd(RapSeries, cx(0, P.tlPortModel ? winisdLinePortReactance(w, Map, P.Sp ?? NaN, P.portEndCorrection_m ?? NaN, rho, c) : w * Map));
         const Zbox = cPar(RalConst, CabBranch, PortBranch);
         const UD = cDiv(pg, cAdd(cAdd(ZaE, ZaD), Zbox));
         const UP = cMul(UD, cDiv(Zbox, PortBranch));

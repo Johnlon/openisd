@@ -44,6 +44,7 @@ import {
     enterVentField as enterVentFieldOn,
 } from '../logic/useVentGroup.js';
 import {createVentReadouts, FB_TARGET_TIP, VENT_GEOMETRY_TIP} from './ventReadouts.js';
+import {formatDateStamp, parseDateStamp} from '../logic/dateDisplay.js';
 import {createPassiveRadiatorActions} from './passiveRadiatorActions.js';
 import {buildPlotData, TAB_META} from '../logic/series.js';
 import {ChartSelection, type ChartItem} from './chartSelection.js';
@@ -238,141 +239,29 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   // Box-type-generic rear-chamber volume (WinISD "Vb") — the Box tab's single "Volume" field
   // dispatches through the unit-tested `createBoxVolume` (`boxFields.ts`).
   const { boxVolume_m3, boxVolumeDqNote, setBoxVolume_m3 } = createBoxVolume({ project, selectedBox, projectChanged });
-  // Front-chamber volume (WinISD "Vf") — dual-chamber types only (bandpass4/6, abc).
+  // Front-chamber volume (WinISD "Vf"), rear-chamber tuning (WinISD "Frc") and the box-level
+  // losses: which field each box type has is the box's own knowledge (`Box.frontVolumeOf`,
+  // `rearTuningOf`, `lossesOf`); this reads and writes whatever it hands back.
   const frontVolume_m3 = computed<number | null>(() => {
     void projectChanged.value;
-    const p = focusedProject();
-    if (!p) return null;
-    const box = p.box;
-    switch (selectedBox.value) {
-      case 'bandpass4': return box.bandpass4.chambers.front.volume_m3.value;
-      case 'bandpass6': return box.bandpass6.chambers.front.volume_m3.value;
-      case 'abc': return box.abc.chambers.front.volume_m3.value;
-      case 'sealed':
-      case 'vented':
-      case 'box-passive-radiator':
-        return null;
-    }
+    return focusedProject()?.box.frontVolumeOf(selectedBox.value)?.value ?? null;
   });
   function setFrontVolume_m3(v: number): void {
-    const box = project.value.box;
-    switch (selectedBox.value) {
-      case 'bandpass4': box.bandpass4.chambers.front.volume_m3.set(v); break;
-      case 'bandpass6': box.bandpass6.chambers.front.volume_m3.set(v); break;
-      case 'abc': box.abc.chambers.front.volume_m3.set(v); break;
-      case 'sealed':
-      case 'vented':
-      case 'box-passive-radiator':
-        break;
-    }
+    project.value.box.frontVolumeOf(selectedBox.value)?.set(v);
   }
-  // Rear-chamber tuning (WinISD "Frc") — bandpass6/abc only.
   const frcHz = computed<number | null>(() => {
     void projectChanged.value; void project.value;
-    const p = focusedProject();
-    if (!p) return null;
-    const box = p.box;
-    switch (selectedBox.value) {
-      case 'bandpass6': return box.bandpass6.chambers.rear.tuning_goal_hz.value;
-      case 'abc': return box.abc.chambers.rear.tuning_goal_hz.value;
-      case 'sealed':
-      case 'vented':
-      case 'bandpass4':
-      case 'box-passive-radiator':
-        return null;
-    }
+    return focusedProject()?.box.rearTuningOf(selectedBox.value)?.value ?? null;
   });
   function setFrcHz(v: number): void {
-    const box = project.value.box;
-    switch (selectedBox.value) {
-      case 'bandpass6': box.bandpass6.chambers.rear.tuning_goal_hz.set(v); break;
-      case 'abc': box.abc.chambers.rear.tuning_goal_hz.set(v); break;
-      case 'sealed':
-      case 'vented':
-      case 'bandpass4':
-      case 'box-passive-radiator':
-        break;
-    }
+    project.value.box.rearTuningOf(selectedBox.value)?.set(v);
   }
-  // Box-level Ql/Qa/Qp (WinISD's Box losses modal) — each box type keeps its own losses window.
-  const boxQl = computed<number | null>(() => {
-    const p = focusedProject();
-    if (!p) return null;
-    const box = p.box;
-    switch (selectedBox.value) {
-      case 'sealed': return box.sealed.losses.Ql.value;
-      case 'vented': return box.vented.losses.Ql.value;
-      case 'bandpass4': return box.bandpass4.chambers.rear.losses.Ql.value;
-      case 'box-passive-radiator': return box.passiveRadiator.losses.Ql.value;
-      case 'bandpass6':
-      case 'abc':
-        return null;
-    }
-  });
-  function setBoxQl(v: number): void {
-    const box = project.value.box;
-    switch (selectedBox.value) {
-      case 'sealed': box.sealed.losses.Ql.set(v); break;
-      case 'vented': box.vented.losses.Ql.set(v); break;
-      case 'bandpass4': box.bandpass4.chambers.rear.losses.Ql.set(v); break;
-      case 'box-passive-radiator': box.passiveRadiator.losses.Ql.set(v); break;
-      case 'bandpass6':
-      case 'abc':
-        break;
-    }
-  }
-  const boxQa = computed<number | null>(() => {
-    const p = focusedProject();
-    if (!p) return null;
-    const box = p.box;
-    switch (selectedBox.value) {
-      case 'sealed': return box.sealed.losses.Qa.value;
-      case 'vented': return box.vented.losses.Qa.value;
-      case 'bandpass4': return box.bandpass4.chambers.rear.losses.Qa.value;
-      case 'box-passive-radiator': return box.passiveRadiator.losses.Qa.value;
-      case 'bandpass6':
-      case 'abc':
-        return null;
-    }
-  });
-  function setBoxQa(v: number): void {
-    const box = project.value.box;
-    switch (selectedBox.value) {
-      case 'sealed': box.sealed.losses.Qa.set(v); break;
-      case 'vented': box.vented.losses.Qa.set(v); break;
-      case 'bandpass4': box.bandpass4.chambers.rear.losses.Qa.set(v); break;
-      case 'box-passive-radiator': box.passiveRadiator.losses.Qa.set(v); break;
-      case 'bandpass6':
-      case 'abc':
-        break;
-    }
-  }
-  const boxQp = computed<number | null>(() => {
-    const p = focusedProject();
-    if (!p) return null;
-    const box = p.box;
-    switch (selectedBox.value) {
-      case 'vented': return box.vented.losses.Qp.value;
-      case 'bandpass4': return box.bandpass4.chambers.front.losses.Qp.value;
-      case 'sealed':
-      case 'bandpass6':
-      case 'abc':
-      case 'box-passive-radiator':
-        return null;
-    }
-  });
-  function setBoxQp(v: number): void {
-    const box = project.value.box;
-    switch (selectedBox.value) {
-      case 'vented': box.vented.losses.Qp.set(v); break;
-      case 'bandpass4': box.bandpass4.chambers.front.losses.Qp.set(v); break;
-      case 'sealed':
-      case 'bandpass6':
-      case 'abc':
-      case 'box-passive-radiator':
-        break;
-    }
-  }
+  const boxQl = computed<number | null>(() => { void projectChanged.value; return focusedProject()?.box.lossesOf(selectedBox.value)?.Ql.value ?? null; });
+  function setBoxQl(v: number): void { project.value.box.lossesOf(selectedBox.value)?.Ql.set(v); }
+  const boxQa = computed<number | null>(() => { void projectChanged.value; return focusedProject()?.box.lossesOf(selectedBox.value)?.Qa.value ?? null; });
+  function setBoxQa(v: number): void { project.value.box.lossesOf(selectedBox.value)?.Qa.set(v); }
+  const boxQp = computed<number | null>(() => { void projectChanged.value; return focusedProject()?.box.lossesOf(selectedBox.value)?.Qp?.value ?? null; });
+  function setBoxQp(v: number): void { project.value.box.lossesOf(selectedBox.value)?.Qp?.set(v); }
   async function confirmDiscard(): Promise<boolean> {
     return globalThis.confirm('Discard all unsaved changes and return to the last saved version?');
   }
@@ -467,7 +356,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   }
   function openFromDisk() {
     openDialogOpen.value = false;
-    fileInput.value?.click();
+    void designIO.openFromDisk(() => fileInput.value?.click());
   }
   function openStoredProject(id: string) {
     const result = projectRepo.loadStoredProject(id);
@@ -749,8 +638,10 @@ const overlays = computed<Design[]>(() => {
   }
   const projectName = metaField(() => project.value.name.value, (v) => project.value.name.set(v));
   const projectCreator = metaField(() => project.value.creator.value, (v) => project.value.creator.set(v));
-  const projectCreated = metaField(() => project.value.created.value, (v) => project.value.created.set(v));
-  const projectModified = metaField(() => project.value.modified.value, (v) => project.value.modified.set(v));
+  const projectCreated = metaField(
+    () => formatDateStamp(project.value.created.value), (v) => project.value.created.set(parseDateStamp(v)));
+  const projectModified = metaField(
+    () => formatDateStamp(project.value.modified.value), (v) => project.value.modified.set(parseDateStamp(v)));
   const projectDescription = metaField(() => project.value.description.value, (v) => project.value.description.set(v));
 
   // ---- Signal Generator (real audio-out tone) ------------------------------------
@@ -805,12 +696,6 @@ const overlays = computed<Design[]>(() => {
   // arrive in, which is how a panel came to mount with no project (openisd.app 2026-09-25).
   watch(() => presentationState.editDriver, (active) => {
     presentationState.ui.originalTuneOpen = active;
-  });
-
-  watch(isModified, (val) => {
-    if (val) {
-      project.value.modified.set(dateStamp(new Date()));
-    }
   });
 
   // Same for the Driver Editor modal — recorded here, restored by the boot.

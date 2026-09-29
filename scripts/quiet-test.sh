@@ -49,10 +49,12 @@ PASS_LINES='^[[:space:]]*(✓|√|✔)|^[[:space:]]*$'
 sed -E 's/\x1b\[[0-9;]*[A-Za-z]//g' "$LOG" | grep -Ev "$PASS_LINES" > "$LOG.filtered"
 TOTAL=$(wc -l < "$LOG.filtered")
 head -n "$MAX" "$LOG.filtered"
+# The summary is the log's tail. When the filtered output was shown whole it already ends with
+# every non-pass line of that tail, so the tail is printed only when the cap cut it off.
 if [ "$TOTAL" -gt "$MAX" ]; then
   echo "... $((TOTAL - MAX)) more non-pass lines; see $LOG.filtered"
+  echo "--- last 15 lines of the log ---"
+  sed -E 's/\x1b\[[0-9;]*[A-Za-z]//g' "$LOG" | tail -n 15
 fi
-echo "--- last 15 lines of the log ---"
-sed -E 's/\x1b\[[0-9;]*[A-Za-z]//g' "$LOG" | tail -n 15
 echo "quiet-test: exit $CODE — full log $LOG"
 exit "$CODE"

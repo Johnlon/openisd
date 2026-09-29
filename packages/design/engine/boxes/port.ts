@@ -60,8 +60,7 @@ export function portImpedance(w: number, P: SweepParams): Complex {
  * toys/w5_tl_port_model_check.py) and runs/bp4-w5-tlports (the front port);
  * bugs/BUG_20260928_tl-port-model-not-winisd.md.
  */
-export function winisdLinePortReactance(w: number, Map: number, rho: number, c: number, P: SweepParams): number {
-  const Sp = P.Sp ?? NaN;
-  const L = Map * Sp / rho - (P.portEndCorrection_m ?? NaN);
+export function winisdLinePortReactance(w: number, Map: number, Sp: number, endCorrection_m: number, rho: number, c: number): number {
+  const L = Map * Sp / rho - endCorrection_m;
   return rho * c / Sp * Math.tan(w * L / c);
 }

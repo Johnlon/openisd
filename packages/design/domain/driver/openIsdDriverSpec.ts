@@ -28,6 +28,7 @@ import {winisdCms_m_per_N} from './winisdCms.js';
 import {winisdMms_kg} from './winisdMms.js';
 import {winisdRms_kg_per_s} from './winisdRms.js';
 import {driverSection} from './driverSection.js';
+import {DRIVER_SPEC_FIELD_NAMES} from './driverSpecFieldName.js';
 import type {DriverSpecFieldName} from './driverSpecFieldName.js';
 import {NO_SLOT} from './noSlot.js';
 
@@ -46,9 +47,20 @@ const FLOOR_WITHOUT_FIELD: Partial<Record<DriverSpecFieldName, ValueFloor>> = Ob
     weight_kg: 'positive', OuterX_m: 'positive', OuterY_m: 'positive',
 });
 
+/** Every `DriverSpecFieldName` the registry has a `NumberField` for, indexed once from the
+ *  registry's own members — never a per-key literal that could fall out of step with it. A name
+ *  in `FLOOR_WITHOUT_FIELD` above is absent here, not present with a `NumberField` that isn't one. */
+const FIELD_FOR_SPEC_NAME: Partial<Record<DriverSpecFieldName, NumberField>> = Object.freeze(
+    DRIVER_SPEC_FIELD_NAMES.reduce<Partial<Record<DriverSpecFieldName, NumberField>>>((map, name) => {
+        const field = NumberField.ALL.find(f => f.value === name);
+        if (field !== undefined) map[name] = field;
+        return map;
+    }, {}),
+);
+
 /** `key`'s own floor — the field's, where the registry has the field. */
 export function driverSpecFloor(key: DriverSpecFieldName): ValueFloor {
-    return NumberField.named(key)?.floor ?? FLOOR_WITHOUT_FIELD[key] ?? 'none';
+    return FIELD_FOR_SPEC_NAME[key]?.floor ?? FLOOR_WITHOUT_FIELD[key] ?? 'none';
 }
 
 /** `key`'s own floor, applied to `v` — no default arm: a `ValueFloor` variant added without a
