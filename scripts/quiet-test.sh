@@ -26,6 +26,14 @@ MAX="${QUIET_MAX_LINES:-150}"
 # the json/telemetry reporters — playwright output is only grep-filtered below.
 ARGS=("$@")
 case " $* " in
+  *vitest*)
+    if [ "${OPENISD_FULL_GATE:-}" != "1" ] && ! printf '%s\n' "$@" | grep -qE '\.(test|spec)\.(ts|js|mjs)$|/test/'; then
+      echo "quiet-test: a vitest run names its target specs; the full suite runs only in the pre-commit hook and scripts/health-check.sh (.claude/rules/verify.md)." >&2
+      exit 1
+    fi
+    ;;
+esac
+case " $* " in
   *" --reporter"*) ;;
   *vitest*) ARGS+=(--reporter=dot) ;;
 esac

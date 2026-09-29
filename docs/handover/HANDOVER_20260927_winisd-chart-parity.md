@@ -107,7 +107,7 @@ Still open for vented:
    types, their charts including the intrachamber port.
 4. Port entered by length ([bug](../../bugs/BUG_20260927_tuning-absent-when-port-length-entered.md)).
 5. Design-package file splits, no behaviour change: `engine/solver.ts` (one file per solver),
-   `domain/openisdSchema.ts` (data shapes vs the logic in it), `domain/driverYmlToOpenisdAndWdr.ts`
+   `domain/openisdSchema.ts` (data shapes vs the logic in it), `domain/winIsdDriverConverter.ts`
    (conversion vs diff tools).
 6. `OpenISDProject` split by responsibility — plan first.
 7. UI splits (`OriginalShell-hooks.ts` per tab, `appState.ts`, big `.vue` files) and Og* → Original*

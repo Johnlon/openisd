@@ -26,14 +26,14 @@ forward, no checkout/restore/stash. Bug record first.
 | 1 | `OriginalFilters.vue:69` | **Fix now.** `patch<K extends keyof Filter>(id, field: K, value: Filter[K])`. Today `patch(id,'enabled',42)` typechecks. |
 | 1 | `appState.ts:686` (holds `any`) | **Leave to the migration.** Parses a fingerprint *this module wrote*, so it needs a typed fingerprint, not validation. Asserts `UiParams` from the gutted package. Highest-priority migration item. `projectRepo.ts:40-53` has the commented-out fix for this exact bug class. |
 | 1 | `OriginalShell.vue:369` `as TabId` | **Leave, blocked.** `UiState` is commented out (`projectRepo.ts:58`), so the field has no type to guard against. `?? 'box'` does not catch a stale non-empty string. |
-| 1 | `driverYmlToOpenisdAndWdr.ts:154` | **The one place zod fits.** The schema is already in the same package. Your live WDR work is in this file, so wait for it to land. QO112 and QO113 touch it. |
+| 1 | `winIsdDriverConverter.ts:154` | **The one place zod fits.** The schema is already in the same package. Your live WDR work is in this file, so wait for it to land. QO112 and QO113 touch it. |
 | 2 | `liveProject.ts:45`, `managedProject.ts:906` | **Report only.** Vue typings, and the TS 5.7 `Uint8Array` generic. Try `shallowRef<T>(obj)`. If the widening spreads past `driverFileText.ts:59`, stop and ask. |
 
 I verified the fixes compile under `--strict` with a probe in `build/`, now deleted.
 
 ## zod
 
-Your seam ruling, applied honestly, lands on **one** cast: `driverYmlToOpenisdAndWdr.ts:154`, in
+Your seam ruling, applied honestly, lands on **one** cast: `winIsdDriverConverter.ts:154`, in
 `packages/design` where zod already is. The others aren't untrusted boundaries. `faultLog` is
 already guarded, and `appState.ts:686` validates data it wrote itself. I'm not adding a UI
 dependency to look like I followed the instruction.

@@ -1,7 +1,7 @@
 # Driver-editor fields and project values are silently dropped on file write
 
 ## Status
-RESOLVED (2026-09-26) — PR Vas, F2 and now F3 are fixed. The `.wpr` export writes the project's own `alfaVC` and `dTVC` (`openIsdProjectToWinIsdProject.ts`); the template's WinISD defaults no longer stamp over them.
+RESOLVED (2026-09-26) — PR Vas, F2 and now F3 are fixed. The `.wpr` export writes the project's own `alfaVC` and `dTVC` (`winIsdProjectConverter.ts`); the template's WinISD defaults no longer stamp over them.
 
 ## Symptom
 

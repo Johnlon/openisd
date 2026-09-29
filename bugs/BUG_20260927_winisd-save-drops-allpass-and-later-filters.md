@@ -16,7 +16,7 @@ Not copied: OpenISD never loses filters on save (CLAUDE.md: WinISD warts yes, da
 Export writes every filter, Allpass included.
 
 Import of a `.wpr` WinISD truncated this way: load each missing entry as WinISD does (default
-Lowpass Butterworth n=2, 50 Hz, ticked) and warn, naming the filter index. Done: `WinIsdProjectConverter#importFilters` (packages/design/domain/openIsdProjectToWinIsdProject.ts).
+Lowpass Butterworth n=2, 50 Hz, ticked) and warn, naming the filter index. Done: `WinIsdProjectConverter#importFilters` (packages/design/domain/winIsdProjectConverter.ts).
 
 ## ⚠ Human re-verification pending (QO170)
 

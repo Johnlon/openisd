@@ -56,7 +56,7 @@ OPENISD_HEAVY_GATE_ACCOUNTING_LOCK="${OPENISD_HEAVY_GATE_DIR}.lock"
 mkdir -p "$OPENISD_HEAVY_GATE_DIR"
 
 reserve_heavy_gate_slot() {
-  local f pid active cores my_workers my_timeout load1 load_centi cores_centi load_workers my_typecheck_concurrency
+  local f pid active cores budget my_workers my_timeout load1 load_centi cores_centi load_workers my_typecheck_concurrency
 
   # This lock guards only the bookkeeping below (read the reservation dir, write our own file) —
   # a few milliseconds — never the heavy commands themselves. Runs are free to overlap fully.
@@ -78,7 +78,11 @@ reserve_heavy_gate_slot() {
   done
 
   cores="$(nproc 2>/dev/null || echo 4)"
-  my_workers=$((cores / (active + 1)))
+  # Budget is HALF the cores, shared among the active gate runs: several agent sessions commit on
+  # this box at once and each one's ad-hoc test runs need the other half (John, 2026-09-29).
+  budget=$((cores / 2))
+  [ "$budget" -lt 1 ] && budget=1
+  my_workers=$((budget / (active + 1)))
   [ "$my_workers" -lt 1 ] && my_workers=1
 
   # Real load average, independent of who else is registered here. load_centi/cores_centi are
@@ -87,8 +91,8 @@ reserve_heavy_gate_slot() {
     load1="$(cut -d' ' -f1 /proc/loadavg)"
     load_centi="$(printf '%s' "$load1" | awk '{printf "%d", $1 * 100}')"
     cores_centi=$((cores * 100))
-    if [ "$load_centi" -gt "$cores_centi" ]; then
-      load_workers=$((cores_centi * cores / load_centi))
+    if [ "$load_centi" -gt "$((budget * 100))" ]; then
+      load_workers=$((budget * 100 * budget / load_centi))
       [ "$load_workers" -lt 1 ] && load_workers=1
       [ "$load_workers" -lt "$my_workers" ] && my_workers="$load_workers"
     fi

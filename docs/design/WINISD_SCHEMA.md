@@ -1335,7 +1335,7 @@ a full field enumeration yet.
 | `phi` | fraction, 0.0–1.0 | Relative humidity, stored as a FRACTION, not a percentage. `phi=0.3` is 30%. Confirmed 2026-08-19: writing `phi=30.0` (percent) into the file made the Project tab's RH field display `3000.0000` — WinISD's own reader multiplies the stored fraction by 100 for display, so a percent value written raw reads back 100× too large. `lib/wdr.py`'s `DEFAULT_BOX` already has this right (`phi=0.3`); the bug was in ad-hoc probe scripts passing `phi=30.0`, not the library. |
 | `p`   | Pa      | Static air pressure. |
 
-openisd's own `.wpr` writer already gets this right — `packages/design/domain/openIsdProjectToWinIsdProject.ts`:
+openisd's own `.wpr` writer already gets this right — `packages/design/domain/winIsdProjectConverter.ts`:
 `OpenISDProject`'s own humidity field is a percentage; the percent→fraction conversion happens
 once, at the `.wpr` write boundary.
 

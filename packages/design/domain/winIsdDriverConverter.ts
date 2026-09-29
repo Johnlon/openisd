@@ -568,7 +568,7 @@ export function openIsdDriverToWinIsdDriver(
 
 /** Driver file conversion — `driver.yml` to openisd + `.wdr`, and `.wdr` text back to a driver —
  *  holding the one engine every driver it builds is given. */
-export class DriverFileConverter {
+export class WinIsdDriverConverter {
   readonly #roundTrip: DriverRoundTripCheck;
 
   constructor(private readonly engine: Engine) {
@@ -643,7 +643,7 @@ export class DriverFileConverter {
    *  embedded in a `.wpr`'s `[Driver]` section: parse the INI, read it into an openisd record
    *  (`winISDDriverToOpenISDDeviceJson` — recovers `driverType` from the `[DRIVERTYPE ...]` tag in
    *  `Comment=` when present, `'woofer'` otherwise), then validate that record into a driver. */
-  winIsdDriverTextToOpenIsdDriver(
+  winIsdDriverToOpenIsdDriver(
     text: string
   ): { value: OpenISDDriver | null; errors: DriverError[] } {
     const errors: DriverError[] = [];

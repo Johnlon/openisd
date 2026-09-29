@@ -5,7 +5,7 @@
 
 ### Prerequisite Task
 - [x] **Task 0: Fixture Key Suffix Repair (`packages/design/test/winisd/`)**
-  - Repair test fixtures in `openisdToWdr.test.ts`, `wdr-model-coverage.test.ts`, `openIsdProjectToWinIsdProject.test.ts`, and canonicalize spec keys in `driverYmlToOpenisdAndWdr.ts` and `openisdSchema.ts`.
+  - Repair test fixtures in `openisdToWdr.test.ts`, `wdr-model-coverage.test.ts`, `winIsdProjectConverter.test.ts`, and canonicalize spec keys in `winIsdDriverConverter.ts` and `openisdSchema.ts`.
   - Targeted test: `npx vitest run packages/design/test/winisd/` (1418/1418 passing).
 
 ### Exact Domain Symbol Task Queue (38 Pending Symbols)
@@ -152,8 +152,8 @@ import {type Air, type AirConstantProvider, Engine, LossMode} from '../engine/in
 import { solveDriverConsistencyGroup as solveConsistencyGroup, solveVentConsistencyGroup, checkVentConsistency, solvePrConsistencyGroup, checkPrConsistency } from '../engine/solver.js';
 // The DEFINING modules, never `../winisd/index.js`: the barrel also re-exports these two
 // converter modules, so importing it here would pull them in whichever name was asked for.
-import {openIsdDriverToWinIsdDriver, winIsdDriverTextToOpenIsdDriver} from './driverYmlToOpenisdAndWdr.js';
-import {openIsdProjectToWinIsdProject, winIsdProjectToOpenIsdProject} from './openIsdProjectToWinIsdProject.js';
+import {openIsdDriverToWinIsdDriver, winIsdDriverToOpenIsdDriver} from './winIsdDriverConverter.js';
+import {openIsdProjectToWinIsdProject, winIsdProjectToOpenIsdProject} from './winIsdProjectConverter.js';
 import type {
     BoxType, SimulatableBoxType, ConsistencyIssue, DriverError, Filter,
     EnclosureParams, MaxCurvesResult, Result, SweepParams, SweepResult, DriverSolverQuantities,
@@ -2280,7 +2280,7 @@ export abstract class OpenISDDriver extends OpenISDDevice {
     //     ROLE: Internal member of enclosure/device/project.
     //     STATUS: GOOD AS-IS. Pure precomputed read or direct slot lens; complies with architectural invariants.
     static fromWdrIniText(text: string, engine: Engine): { value: OpenISDDriver | null; errors: DriverError[] } {
-        return winIsdDriverTextToOpenIsdDriver(text, engine);
+        return winIsdDriverToOpenIsdDriver(text, engine);
     }
 }
 
@@ -2294,7 +2294,7 @@ export abstract class OpenISDDriver extends OpenISDDevice {
 //     STATUS: MAINTAIN & ENHANCE. Encapsulates state over immutable JSON records.
 export class OpenISDDriverStandalone extends OpenISDDriver {
     /** `airProvider` defaults to the reference environment — every existing caller
-     *  (`conformingRecordToDriver`, tests, `driverYmlToOpenisdAndWdr.ts`) passes none. A caller
+     *  (`conformingRecordToDriver`, tests, `winIsdDriverConverter.ts`) passes none. A caller
      *  holding an app-level environment (the UI, constructing a My Drivers row) passes its own. */
     // [x] STRATEGY (wrap):
     //     ROLE: Internal member of enclosure/device/project.

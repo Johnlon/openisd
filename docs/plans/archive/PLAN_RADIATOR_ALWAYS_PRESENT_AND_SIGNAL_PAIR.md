@@ -51,8 +51,8 @@ After this pass, every project has a radiator, blank until the user picks or typ
 | project `description` L2278  | nullable + Clearable                                                    | `SetOnlyFieldImpl`: `Readable<string> & Entered & Writable<string>`                         |
 
 **Pointless null checks deleted** (with their `v8 ignore` comments)
-- `driverYmlToOpenisdAndWdr.ts`: `brand`/`model`/`manufacturer` `?? ""`
-- `openIsdProjectToWinIsdProject.ts:61` `description ?? ''`; `:116,130,132` `volume_m3 ?? 0` (already non-null today)
+- `winIsdDriverConverter.ts`: `brand`/`model`/`manufacturer` `?? ""`
+- `winIsdProjectConverter.ts:61` `description ?? ''`; `:116,130,132` `volume_m3 ?? 0` (already non-null today)
 - `OriginalShell-hooks.ts:889` `description.value ?? ''`
 - `PREditModal.vue:51` `radiator.model.value ?? ''`
 - Every other fallback on these fields that typecheck exposes

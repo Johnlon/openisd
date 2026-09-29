@@ -1,6 +1,6 @@
 # `winISDDriverToOpenISDDeviceJson` drops ProvidedBy/Comment/DateAdded on every .wdr -> record read
 
-Status: RESOLVED (re-verified 2026-09-26) — confirmed: `providedBy`/`comment`/`dateAdded` are read in `driverYmlToOpenisdAndWdr.ts`.
+Status: RESOLVED (re-verified 2026-09-26) — confirmed: `providedBy`/`comment`/`dateAdded` are read in `winIsdDriverConverter.ts`.
 
 ## Symptom
 

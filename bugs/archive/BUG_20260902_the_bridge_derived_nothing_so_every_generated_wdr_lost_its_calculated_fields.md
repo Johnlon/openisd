@@ -1,6 +1,6 @@
 # The bridge derived nothing, so every generated .wdr lost its calculated fields
 
-Status: RESOLVED (re-verified 2026-09-26) — `Dia` is now written calculable (`wdrRow(errors, spec.Dia_m, true, "Dia")`, `driverYmlToOpenisdAndWdr.ts`); no field remains outstanding.
+Status: RESOLVED (re-verified 2026-09-26) — `Dia` is now written calculable (`wdrRow(errors, spec.Dia_m, true, "Dia")`, `winIsdDriverConverter.ts`); no field remains outstanding.
 
 ## Symptom
 
@@ -25,7 +25,7 @@ them — were absent from every file. **All 1986 `.wdr` generated on 2026-09-01 
     derivable -> calculated value, mark C
     otherwise -> 0, mark N
 
-`cellsFrom` in `../packages/design/domain/driverYmlToOpenisdAndWdr.ts` implemented the first and the
+`cellsFrom` in `../packages/design/domain/winIsdDriverConverter.ts` implemented the first and the
 last. It read each `.wdr` key's `FieldHandle`, wrote the value when the record stated one, and
 skipped the key otherwise — `toWdrIni` then wrote the default and `#parState()` marked it `N`. The
 middle rule had no code at all: the solver was never called.

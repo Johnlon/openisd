@@ -1,4 +1,4 @@
-import {winIsdDriverTextToOpenIsdDriver} from './packages/design/domain/driverYmlToOpenisdAndWdr.ts';
+import {winIsdDriverToOpenIsdDriver} from './packages/design/domain/winIsdDriverConverter.ts';
 import {OpenISDDriver} from './packages/design/domain/openisdDomain.ts';
 import {Engine} from './packages/design/engine/index.ts';
 
@@ -8,7 +8,7 @@ const wdr = [
 ].join('\r\n');
 
 const engine = new Engine();
-const res = winIsdDriverTextToOpenIsdDriver(wdr, engine);
+const res = winIsdDriverToOpenIsdDriver(wdr, engine);
 if (!res.value) {
   console.log("ERRORS:", res.errors);
 } else {
