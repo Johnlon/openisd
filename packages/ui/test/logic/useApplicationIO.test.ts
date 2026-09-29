@@ -3,13 +3,19 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 import {dirname, join} from 'node:path';
+import {z} from 'zod';
 import {createLogging} from '../../src/logging/flash.js';
 import {createApplicationIO} from '../../src/logic/useApplicationIO.js';
 import {DesignFiles} from '../../src/logic/fileImportExport.js';
 import {createFileStorage, createMemoryStorage, createProjectRepo, type FileStorage} from '@openisd/persistence';
 import {newProject, requireFocusedProject} from '../../src/logic/appState.js';
 import {createEngine} from '@openisd/design/engine';
-import {SAMPLE_PROJECT_OWPR} from '../fixtures/sampleProject.js';
+import {ensureSampleProject, SAMPLE_PROJECT_OWPR} from '../fixtures/sampleProject.js';
+
+// SAMPLE_PROJECT_OWPR is read directly (not through readSampleProject()) below, so the
+// generated fixture has to exist before that read runs — ensured here, once, the same way
+// every other consumer of this generated file ensures it (packages/ui/test/fixtures/sampleProject.ts).
+ensureSampleProject();
 
 beforeAll(() => {
   // shareLink() reads location.{origin,pathname} (the project repo's stateToUrl) and writes to the
@@ -45,7 +51,15 @@ describe('.wpr import syncs state.project from the file, and export round-trips 
     const downloadedBodies: (string | Uint8Array)[] = [];
     vi.stubGlobal('alert', (msg: string) => { alerts.push(msg); });
     vi.stubGlobal('URL', { createObjectURL: () => 'blob:x', revokeObjectURL: () => {} });
-    vi.stubGlobal('Blob', class { constructor(parts: unknown[]) { downloadedBodies.push(parts[0] as string | Uint8Array); } });
+    vi.stubGlobal('Blob', class {
+      constructor(parts: unknown[]) {
+        const part = parts[0];
+        if (typeof part !== 'string' && !(part instanceof Uint8Array)) {
+          throw new Error('exportWpr must download a string or bytes');
+        }
+        downloadedBodies.push(part);
+      }
+    });
     vi.stubGlobal('document', {
       createElement: (_tag: string) => ({ href: '', download: '', click: () => {} }),
     });
@@ -92,7 +106,9 @@ describe('.wpr import syncs state.project from the file, and export round-trips 
 
       io.exportWpr();
       assert.equal(downloadedBodies.length, 1, 'exportWpr must produce exactly one download');
-      const exported = new TextDecoder().decode(downloadedBodies[0] as Uint8Array);
+      const exportedBody = downloadedBodies[0];
+      if (typeof exportedBody === 'string') throw new Error('exportWpr must download bytes, not a string');
+      const exported = new TextDecoder().decode(exportedBody);
       assert.match(exported, /^Description=probe-description-123456$/m);
       assert.match(exported, /^Creator=winisd_research overnight harness$/m);
       assert.match(exported, /^CreateDate=20260813$/m);
@@ -134,7 +150,17 @@ describe('.wpr import syncs state.project from the file, and export round-trips 
       // stated as a bare `null`) at TWO distinct fields, so a fix that only logs `errors[0]` is
       // distinguishable from one that logs all of them.
       const FIXTURE = SAMPLE_PROJECT_OWPR;
-      const parsed = JSON.parse(readFileSync(FIXTURE, 'utf8'));
+      const owprFixtureSchema = z.looseObject({
+        saved: z.looseObject({
+          box: z.looseObject({
+            vented: z.looseObject({
+              chamber: z.looseObject({ tuning_goal_hz: z.unknown() }),
+              vent: z.looseObject({ length_m: z.unknown() }),
+            }),
+          }),
+        }),
+      });
+      const parsed = owprFixtureSchema.parse(JSON.parse(readFileSync(FIXTURE, 'utf8')));
       parsed.saved.box.vented.chamber.tuning_goal_hz = null;
       parsed.saved.box.vented.vent.length_m = null;
       const fakeFile = new File([new TextEncoder().encode(JSON.stringify(parsed))], 'broken.owpr');
@@ -144,7 +170,9 @@ describe('.wpr import syncs state.project from the file, and export round-trips 
 
       assert.equal(alerts.length, 1, 'the malformed file must still alert the user');
       assert.equal(consoleErrors.length, 1, 'the malformed file must log to the console exactly once');
-      const [, logged] = consoleErrors[0] as [string, string];
+      const [, loggedRaw] = consoleErrors[0];
+      if (typeof loggedRaw !== 'string') throw new Error('console.error\'s second argument must be the error text');
+      const logged = loggedRaw;
       assert.match(logged, /tuning_goal_hz/);
       assert.match(logged, /length_m/, 'the full error list must name BOTH bad fields, not just the first');
     } finally {

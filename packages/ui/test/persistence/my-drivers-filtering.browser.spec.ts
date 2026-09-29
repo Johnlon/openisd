@@ -24,8 +24,8 @@ const SAVED: SeedDriver[] = [
 ];
 
 async function open(page: Page): Promise<void> {
-  await page.addInitScript(([json, key]) => {
-    localStorage.setItem(key as string, json as string);
+  await page.addInitScript(([json, key]: readonly [string, string]) => {
+    localStorage.setItem(key, json);
   }, [myDriversJson(SAVED), MY_DRIVERS_KEY] as const);
   await page.goto('/');
   await openAProject(page);
