@@ -42,7 +42,7 @@ function fakeField<T>(value: T | null): SolverField<T> {
     get entered() { return state === 'entered'; },
     get calculated() { return state === 'calculated'; },
     get precision() { return null; },
-    get dq() { return [] as DqIssue[]; },
+    get dq(): DqIssue[] { return []; },
     setCalculated(v: T) { current = v; state = 'calculated'; },
     setDq() {},
     setNotAvailable() { current = null; state = 'not-available'; },
@@ -80,12 +80,18 @@ const LE_H = 0.70e-3;
 // Map comes from Fb directly (circuit.ts, BUG_20260927_vented-box-losses-not-winisd-form.md).
 const SP_VB = 0.030, SP_SP = Math.PI * (0.05 / 2) ** 2, SP_LEFF = 0.30 + 0.732 * 0.05;
 const {c: SP_C} = engine.environment.solve({}).values;
+// The one PlotParams the sweeps below share — fmin/fmax is all seriesFor() reads off it, and
+// every SweepParams literal in this file states the same range, so it's built once here rather
+// than narrowed out of each SweepParams (whose fmin/fmax are optional, so cast-free narrowing
+// would need re-asserting them anyway).
+const PLOT_RANGE: PlotParams = { fmin: 10, fmax: 2000 };
+
 const SP: SweepParams = {
   Vb: SP_VB, eg: 2.83, Sp: SP_SP, Leff: SP_LEFF, Fb: SP_C * Math.sqrt(SP_SP / (SP_LEFF * SP_VB)) / (2 * Math.PI),
   fmin: 10, fmax: 2000, N: 200,
   filters: [{ type: 'peaking', fc: 60, Q: 3, gain: 6, enabled: true }],
 };
-const PP = SP as unknown as PlotParams;
+const PP = PLOT_RANGE;
 const SW = engine.simulation.sweep(DRV, LE_H, 'vented', SP).values;
 assert.ok(SW, 'reference sweep produced nothing');
 const MX = engine.simulation.maxCurves(DRV, LE_H, 'vented', SP).values;
@@ -106,7 +112,7 @@ const SP_PR: SweepParams = {
   fmin: 10, fmax: 2000, N: 200,
   filters: [{ type: 'peaking', fc: 60, Q: 3, gain: 6, enabled: true }],
 };
-const PP_PR = SP_PR as unknown as PlotParams;
+const PP_PR = PLOT_RANGE;
 const SW_PR = PR_ENGINE.simulation.sweep(DRV, LE_H, 'box-passive-radiator', SP_PR).values;
 assert.ok(SW_PR, 'reference PR sweep produced nothing');
 const MX_PR = PR_ENGINE.simulation.maxCurves(DRV, LE_H, 'box-passive-radiator', SP_PR).values;
@@ -120,7 +126,7 @@ const SP_BP4: SweepParams = {
   eg: 2.83, fmin: 10, fmax: 2000, N: 200,
   filters: [{ type: 'peaking', fc: 60, Q: 3, gain: 6, enabled: true }],
 };
-const PP_BP4 = SP_BP4 as unknown as PlotParams;
+const PP_BP4 = PLOT_RANGE;
 const SW_BP4 = BP4_ENGINE.simulation.sweep(DRV, LE_H, 'bandpass4', SP_BP4).values;
 assert.ok(SW_BP4, 'reference bandpass4 sweep produced nothing');
 const MX_BP4 = BP4_ENGINE.simulation.maxCurves(DRV, LE_H, 'bandpass4', SP_BP4).values;
@@ -134,7 +140,7 @@ const build = (id: ChartId) => PR_IDS.has(id)
   ? seriesFor(engine, id, DRV, 'bandpass4', PP_BP4, SW_BP4, MX_BP4)
   : seriesFor(engine, id, DRV, 'vented', PP, SW, MX);
 
-const ALL_IDS = Object.keys(TAB_META) as ChartId[];
+const ALL_IDS = TABS.map(t => t.id);
 
 describe('chart-type set — every declared member draws', () => {
   it('TABS exposes exactly the declared members, in declaration order', () => {
@@ -248,14 +254,13 @@ describe('EQ/filter charts — units, datum and axis', () => {
     // The default project has no filters, so this is what the user sees first: a flat line
     // at unity, which must not collapse the axis to zero height.
     const noFlt = { ...SP, filters: [] };
-    const noFltP = noFlt as unknown as PlotParams;
     const engine = createEngine();
     const sw = engine.simulation.sweep(DRV, LE_H, 'vented', noFlt).values;
     assert.ok(sw, 'sweep produced nothing');
     const mx = engine.simulation.maxCurves(DRV, LE_H, 'vented', noFlt).values;
     assert.ok(mx, 'maxCurves produced nothing');
     for (const id of ['FltMag', 'FltPhase', 'FltGD'] as const) {
-      const b = seriesFor(engine, id, DRV, 'vented', noFltP, sw, mx);
+      const b = seriesFor(engine, id, DRV, 'vented', PLOT_RANGE, sw, mx);
       assert.ok(b.ymax > b.ymin, `${id}: empty chain collapsed the axis to ${b.ymin}..${b.ymax}`);
       assert.ok(b.series[0].ys.every(v => v === 0), `${id}: an empty chain is not flat at unity`);
       assert.ok(b.ymin < 0 && b.ymax > 0, `${id}: the flat unity line sits on the axis edge`);
