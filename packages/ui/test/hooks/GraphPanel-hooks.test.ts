@@ -28,7 +28,7 @@ async function renderHook(props: GraphPanelProps, project = createTestProject())
   let api!: GraphPanelAPI;
   const Child = defineComponent({
     setup() {
-      api = useGraphPanel(props);
+      api = useGraphPanel(props, createEngine());
       return () => null;
     },
   });

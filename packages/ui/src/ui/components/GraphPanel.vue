@@ -8,6 +8,7 @@ import type {Design, Geo} from '../../types.js';
 import type {ChartId} from '@openisd/design/engine';
 import {drawOne} from '../canvas.js';
 import {useGraphPanel} from '../../hooks/GraphPanel-hooks.js';
+import {useApp} from '../../logic/app.js';
 
 // `bare`/`primaryColor` are the WinISD chart mode: a clean single trace with no
 // F3/F6/F10 reference lines or legend, coloured to match the shell's Color swatch.
@@ -18,7 +19,7 @@ import {useGraphPanel} from '../../hooks/GraphPanel-hooks.js';
 const props = defineProps<{ chartId: ChartId; bare?: boolean; primaryColor?: string; overlays?: Design[] }>();
 
 const project = useFocusedProject();
-const graph = useGraphPanel(props);
+const graph = useGraphPanel(props, useApp().engine);
 
 const canvasEl = ref<HTMLCanvasElement | null>(null);
 const readEl   = ref<HTMLElement | null>(null);
