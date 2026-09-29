@@ -14,6 +14,7 @@ import type { AbcBox } from './abcBox.js';
 import type { Bandpass4Box } from './bandpass4Box.js';
 import type { Bandpass6Box } from './bandpass6Box.js';
 import type { Box, BoxLosses, TuningField } from './box.js';
+import type { Vent } from '../vent.js';
 import { CoupledSealedLossesWindow } from './coupledSealedLossesWindow.js';
 import { CoupledVentedLossesWindow } from './coupledVentedLossesWindow.js';
 import type { PassiveRadiatorBox } from './passiveRadiatorBox.js';
@@ -32,15 +33,33 @@ const STARTING = Object.freeze({
     /** Vented: the quasi-Butterworth design. */
     ventedAlignment: 'qb3',
     ventDiameter_m: 0.05,
+    /** A slotted vent: width the driver's diaphragm diameter when known, else this; height flat. */
+    ventSlotWidth_m: 0.1,
+    ventSlotHeight_m: 0.03,
     /** Passive radiator and bandpass4 rear chamber. */
     volume_m3: 0.007,
     bandpass4FrontVolume_m3: 0.01,
     tuning_hz: 35,
-    /** A chart-ready radiator (BUG_20260912: Fh must resolve instead of "--"). */
+    /** A chart-ready radiator (BUG_20260912: Fh must resolve instead of "--"), named so it reads
+     *  as a stand-in, never a spec sheet (John 2026-09-29): Sd the driver's own when known, Xmax
+     *  twice the driver's — a radiator has no motor, so it needs more excursion than the driver. */
+    radiatorBrand: 'Placeholder',
+    radiatorModel: 'ReplaceMe',
     radiatorSd_m2: 0.02,
+    radiatorXmaxMultiple: 2,
     radiatorCms_m_per_N: 0.0005,
     radiatorMms_kg: 0.05,
 } as const);
+
+/** Fill the geometry pair a vent's `shape` uses, where unset. */
+function startVentGeometry(vent: Vent, driverDd_m: number | null): void {
+    if (vent.shape.value === 'slotted') {
+        if ((vent.width_m.value ?? 0) <= 0) vent.width_m.set(driverDd_m !== null && driverDd_m > 0 ? driverDd_m : STARTING.ventSlotWidth_m);
+        if ((vent.height_m.value ?? 0) <= 0) vent.height_m.set(STARTING.ventSlotHeight_m);
+    } else if ((vent.diameter_m.value ?? 0) <= 0) {
+        vent.diameter_m.set(STARTING.ventDiameter_m);
+    }
+}
 
 /**
  * The box, as a window onto its slice of the project record — AND holding a reference to the
@@ -345,9 +364,10 @@ export class OpenISDBox implements Box {
     }
 
     /** Give the active box type its starting values where nothing is entered yet: sealed gets the
-     *  flat-alignment volume, vented the QB3 design for the driver as driven plus a 50 mm vent,
-     *  a passive-radiator box 7 L at 35 Hz with a chart-ready radiator, bandpass4 a 7 L rear and a
-     *  10 L front at 35 Hz through a 50 mm vent. Bandpass6 and ABC have no starting geometry.
+     *  flat-alignment volume, vented the QB3 design for the driver as driven plus vent geometry for
+     *  its shape (50 mm round; a slot the driver's diameter wide and 3 cm high), a passive-radiator
+     *  box 7 L at 35 Hz with a placeholder radiator sized off the driver, bandpass4 a 7 L rear and
+     *  a 10 L front at 35 Hz through the same vent geometry. Bandpass6 and ABC have none.
      *  Called by `boxType.set()` and by every `ProjectBuilder` at build; every write is gated on
      *  its own field being unset, so nothing entered is ever overwritten. A driver without the
      *  specs a design needs leaves that value alone. */
@@ -367,15 +387,20 @@ export class OpenISDBox implements Box {
                         this.vented.tuning_goal_hz.set(design.Fb);
                     }
                 }
-                if ((this.vented.vent.diameter_m.value ?? 0) <= 0) this.vented.vent.diameter_m.set(STARTING.ventDiameter_m);
+                startVentGeometry(this.vented.vent, this.#driver.specs.Dd_m.value);
                 return;
             }
             case 'box-passive-radiator': {
                 const pr = this.passiveRadiator;
                 if (pr.volume_m3.value <= 0) pr.volume_m3.set(STARTING.volume_m3);
                 if (pr.tuning_goal_hz.value === null) pr.tuning_goal_hz.set(STARTING.tuning_hz);
+                if (pr.radiator.brand.value === '') pr.radiator.brand.set(STARTING.radiatorBrand);
+                if (pr.radiator.model.value === '') pr.radiator.model.set(STARTING.radiatorModel);
                 const spec = pr.radiator.spec;
-                if (spec.Sd_m2.value === null) spec.Sd_m2.set(STARTING.radiatorSd_m2);
+                const driver = this.#driver.specs;
+                const driverSd = driver.Sd_m2.value, driverXmax = driver.Xmax_m.value;
+                if (spec.Sd_m2.value === null) spec.Sd_m2.set(driverSd !== null && driverSd > 0 ? driverSd : STARTING.radiatorSd_m2);
+                if (spec.Xmax_m.value === null && driverXmax !== null && driverXmax > 0) spec.Xmax_m.set(driverXmax * STARTING.radiatorXmaxMultiple);
                 if (spec.Cms_m_per_N.value === null) spec.Cms_m_per_N.set(STARTING.radiatorCms_m_per_N);
                 if (spec.Mms_kg.value === null) spec.Mms_kg.set(STARTING.radiatorMms_kg);
                 return;
@@ -385,7 +410,7 @@ export class OpenISDBox implements Box {
                 if (chambers.rear.volume_m3.value <= 0) chambers.rear.volume_m3.set(STARTING.volume_m3);
                 if (chambers.front.volume_m3.value <= 0) chambers.front.volume_m3.set(STARTING.bandpass4FrontVolume_m3);
                 if (chambers.front.tuning_goal_hz.value === null) chambers.front.tuning_goal_hz.set(STARTING.tuning_hz);
-                if ((vents.front.diameter_m.value ?? 0) <= 0) vents.front.diameter_m.set(STARTING.ventDiameter_m);
+                startVentGeometry(vents.front, this.#driver.specs.Dd_m.value);
                 return;
             }
             case 'bandpass6':
