@@ -10,7 +10,7 @@ import UnitToggle from '../../components/UnitToggle.vue';
 import { useMobileBoxTab } from '../../../hooks/MobileBoxTab-hooks.js';
 
 const {
-  selectedBox, pending, boxLabel, showEnclosureTab,
+  selectedBox, pending, boxLabel, showEnclosureTab, enclosureNavLabel,
   boxResonance, rearQtc, boxVolume_m3, boxVolumeDqNote, setBoxVolume_m3,
   selectBoxType, BOX_TYPE_OPTIONS,
   sealedAlignmentEditor, sealedAlignmentOpen, sealedAlignmentOptions, sealedAlignmentSelected,
@@ -70,7 +70,7 @@ const {
   </div>
 
   <p v-if="showEnclosureTab" class="mob-hint">
-    Vents and enclosure details for {{ boxLabel }} are on the Enclosure tab.
+    Vents and enclosure details for {{ boxLabel }} are on the "{{ enclosureNavLabel }}" tab.
   </p>
 
   <div v-if="sealedAlignmentOpen" class="mob-align-overlay" @click.self="sealedAlignmentEditor.cancel">

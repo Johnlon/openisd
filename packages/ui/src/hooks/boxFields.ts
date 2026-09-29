@@ -124,5 +124,15 @@ export function createSelectedBox({ focusedProject, projectChanged: changed, isS
   const isDual = computed(() => DUAL_CHAMBER.has(selectedBox.value));
   const boxLabel = computed(() => BOX_TYPE_OPTIONS.find(o => o.value === selectedBox.value)?.label ?? 'Box');
   const showEnclosureTab = computed(() => selectedBox.value !== 'sealed');
-  return { selectedBox, pending, isDual, boxLabel, showEnclosureTab };
+  // The Enclosure destination's own bar/menu label — "Passive Radiator" for a PR box, "Closed"
+  // for sealed (though sealed never shows the destination at all), else the box type's own name
+  // ("Vented", "4th Order Bandpass", …). One shared computed so any hint referring to "the
+  // Enclosure tab" can name what the user actually sees there instead of a literal string that
+  // was never a real tab name (bug: John, 2026-09-29, "there is no such thing [as 'Enclosure
+  // tab'] — should say 'Passive Radiator'").
+  const enclosureNavLabel = computed(() =>
+    selectedBox.value === 'box-passive-radiator' ? 'Passive Radiator'
+      : selectedBox.value === 'sealed' ? 'Closed'
+        : boxLabel.value);
+  return { selectedBox, pending, isDual, boxLabel, showEnclosureTab, enclosureNavLabel };
 }
