@@ -194,10 +194,10 @@ function driverValues(drv: DriverSolverParams) {
   };
 }
 
-/** WinISD's driver-count model applies: more than one driver, the model on, a box it is fitted
- *  for (sealed: runs/sealed-w5-nd2; vented: runs/vented-w5-nd2). */
-function winisdCountsDrivers(box: BoxType, P: SweepParams): boolean {
-  return (P.nDrivers || 1) > 1 && P.winisdDriverCountModel !== false && (box === 'sealed' || box === 'vented' || box === 'bandpass4' || box === 'box-passive-radiator');
+/** WinISD's driver-count model applies: more than one driver, the model on, every box type
+ *  (runs/sealed-w5-nd2, vented-, bp4-, pr-, bp6- and abc-w5-nd2). */
+function winisdCountsDrivers(P: SweepParams): boolean {
+  return (P.nDrivers || 1) > 1 && P.winisdDriverCountModel !== false;
 }
 
 /** One of `n` drivers as WinISD simulates it: alone, driven at P/n, in Vb/n with 1/n of the port
@@ -206,9 +206,10 @@ function oneOfN(P: SweepParams, n: number): SweepParams {
   return { ...oneBoxOfN(P, n), eg: P.eg / Math.sqrt(n) };
 }
 
-/** One of `n` drivers' share of the box: Vb/n and, where they exist, Vf/n, Sp/n and prNum/n. */
+/** One of `n` drivers' share of the box: Vb/n and, where they exist, Vf/n, every port area /n and prNum/n. */
 function oneBoxOfN(P: SweepParams, n: number): SweepParams {
-  return { ...P, nDrivers: 1, Vb: P.Vb / n, ...(P.Vf !== undefined ? { Vf: P.Vf / n } : {}), ...(P.Sp !== undefined ? { Sp: P.Sp / n } : {}), ...(P.prNum !== undefined ? { prNum: P.prNum / n } : {}) };
+  return { ...P, nDrivers: 1, Vb: P.Vb / n, ...(P.Vf !== undefined ? { Vf: P.Vf / n } : {}), ...(P.Sp !== undefined ? { Sp: P.Sp / n } : {}), ...(P.prNum !== undefined ? { prNum: P.prNum / n } : {}),
+    ...(P.Spr !== undefined ? { Spr: P.Spr / n } : {}), ...(P.SpIntra !== undefined ? { SpIntra: P.SpIntra / n } : {}) };
 }
 
 function circuitQuantities(q: ReturnType<typeof withAddedMass>, Le_H: number | undefined, BL_typed_Tm: number | null): { value: CircuitQuantities | null; issues: DriverIssue[] } {
@@ -400,7 +401,7 @@ export class SimulationEngineImpl implements SimulationEngine {
 
   sweep(drv: DriverSolverParams, Le_H: number | undefined, box: BoxType, P: SweepParams): SweepSolveResult {
     const n = P.nDrivers || 1;
-    if (winisdCountsDrivers(box, P)) {
+    if (winisdCountsDrivers(P)) {
       // WinISD: one driver in Vb/N fed P/N (eg/√N); N of them sum to +20·log10(N) on its SPL.
       const one = this.sweep(drv, Le_H, box, oneOfN(P, n));
       if (one.values === null) return one;
@@ -630,7 +631,7 @@ export class SimulationEngineImpl implements SimulationEngine {
    */
   maxCurves(drv: DriverSolverParams, Le_H: number | undefined, box: BoxType, P: SweepParams): MaxCurvesSolveResult {
     const n = P.nDrivers || 1;
-    if (winisdCountsDrivers(box, P)) {
+    if (winisdCountsDrivers(P)) {
       // WinISD: N times one driver's limits in Vb/N — max power ×N; max SPL +20·log10(N) (⚠ unverified).
       const one = this.maxCurves(drv, Le_H, box, oneBoxOfN(P, n));
       if (one.values === null) return one;

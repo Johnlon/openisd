@@ -640,7 +640,7 @@ const {
                   </label>
                 </div>
                 <div>
-                  <label data-field-key="winisdDriverCountModel" style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 12px;" :title="`WinISD driver count: affects designs with more than one driver (sealed and vented boxes).\nTicked (default, as WinISD): N drivers are N copies of one driver, each in Vb/N with 1/N of the port, each fed P/N. Impedance is one driver's; SPL is one driver's + 10·log10(N); maximum power is N times one driver's.\nUnticked (conventional): the N voice coils are wired, in parallel or series, into one load the amplifier sees.`">
+                  <label data-field-key="winisdDriverCountModel" style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 12px;" :title="`WinISD driver count: affects designs with more than one driver.\nTicked (default, as WinISD): N drivers are N copies of one driver, each in Vb/N with 1/N of the port, each fed P/N. Impedance is one driver's; SPL is one driver's + 10·log10(N); maximum power is N times one driver's.\nUnticked (conventional): the N voice coils are wired, in parallel or series, into one load the amplifier sees.`">
                     <input type="checkbox" :checked="project.winisdDriverCountModel.value" @change="e => project.winisdDriverCountModel.set(inputChecked(e))"> WinISD driver count
                   </label>
                 </div>

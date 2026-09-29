@@ -52,5 +52,5 @@ SPL, impedance, max power ≤ 1e-12 relative, TF ≤ 1e-12 dB, excursion ≤ 1e-
 vs 3.43 Ω at 1 Hz), green after.
 
 ## Resolution (2026-09-29)
-Sealed, vented, 4th-order bandpass and passive radiator all match WinISD at ≤ 1e-12: one driver alone in its 1/N share of the box (Vb/N, Vf/N, port area Sp/N, radiators prNum/N), fed eg/√N; SPL +20·log10 N, max power ×N. Tests: driver-count-winisd, driver-count-vented-winisd, driver-count-bp4-winisd, driver-count-pr-winisd. 6th-order bandpass and ABC not yet captured (register ❔).
+Sealed, vented, 4th-order bandpass and passive radiator all match WinISD at ≤ 1e-12: one driver alone in its 1/N share of the box (Vb/N, Vf/N, port area Sp/N, radiators prNum/N), fed eg/√N; SPL +20·log10 N, max power ×N. Tests: driver-count-winisd, driver-count-vented-winisd, driver-count-bp4-winisd, driver-count-pr-winisd. 6th-order bandpass and ABC (2026-09-29, runs/bp6-w5-nd2, abc-w5-nd2): the same model, with the rear and intra-chamber port areas also /N; ≤ 1e-12 (driver-count-bp6-winisd, driver-count-abc-winisd). The model now applies to every box type.
 
