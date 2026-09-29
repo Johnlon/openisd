@@ -437,6 +437,8 @@ export class SimulationEngineImpl implements SimulationEngine {
     // REAR port flow), so the identical formula is the identical computation for both charts —
     // never two copies.
     const portGainSpl: number[] = [];
+    // bandpass6/abc "Rear port - Gain": the same gain off the REAR port's flow (`s.UPr`).
+    const rearGainSpl: number[] = [];
     // Amplifier apparent load power. WinISD's (`winisdVaModel`, the default): P·Re·|Hf|²/|Z + Rg|,
     // Rg added whatever its placement (f_46bd30 case 0x14). Conventional: P·(Re + Rg)·|Hf|²/|Z_amp|,
     // the load the amplifier sees — Zel already holds Rg when Rg is at the driver side.
@@ -508,8 +510,11 @@ export class SimulationEngineImpl implements SimulationEngine {
         hasUPr = true;
         const UPrF = cMul(s.UPr, Hf);
         pvRear.push(P.Spr ? Math.SQRT2 * cAbs(UPrF) / P.Spr : 0);
+        const rearPm = cAbs(cScale(cMul(cx(0, w), UPrF), rho / (2 * Math.PI * r)));
+        rearGainSpl.push(rearPm === 0 ? -200 : 20 * Math.log10(rearPm / P0));
       } else {
         pvRear.push(0);
+        rearGainSpl.push(-200);
       }
       if (s.UPi !== undefined) {
         hasUPi = true;
@@ -563,6 +568,7 @@ export class SimulationEngineImpl implements SimulationEngine {
         pvIntra[i] *= a; // same, for ABC's intra port
         prSpl[i] += gDb; // the same real upstream gain reaches the radiator branch too
         portGainSpl[i] += gDb; // ...and the vented/bandpass4 port branch, same reasoning
+        rearGainSpl[i] += gDb; // ...and the bandpass6/abc rear port
         H[i] = cScale(H[i], a);
       }
     }
@@ -588,12 +594,13 @@ export class SimulationEngineImpl implements SimulationEngine {
     // no rear/front port.
     const isVented = box === 'vented';
     const isBandpass4 = box === 'bandpass4';
+    const hasTwoPorts = box === 'bandpass6' || box === 'abc';
 
     return { values: { fs, H, spl, phase: ph, exc, excPR, pv, pvRear: hasUPr ? pvRear : null,
                       pvIntra: hasUPi ? pvIntra : null, zmag, zph, gd, tfMag: tfMag(spl, splRefLimit),
                       prTfMag: isPr ? tfMag(prSpl, splRefLimit) : null, prTfPhase: isPr ? prPh : null,
-                      rearPortGain: isVented ? tfMag(portGainSpl, splRefLimit) : null,
-                      frontPortGain: isBandpass4 ? tfMag(portGainSpl, splRefLimit) : null,
+                      rearPortGain: isVented ? tfMag(portGainSpl, splRefLimit) : hasTwoPorts ? tfMag(rearGainSpl, splRefLimit) : null,
+                      frontPortGain: isBandpass4 || hasTwoPorts ? tfMag(portGainSpl, splRefLimit) : null,
                       splXlimCurve, xlimited, flatClamped,
                       fltMag, fltPhase, fltGd, va }, issues: [] };
   }
