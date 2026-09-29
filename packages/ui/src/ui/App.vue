@@ -162,4 +162,31 @@ onUnmounted(() => {
   max-height: 100%;
   border-radius: 0;
 }
+
+/* Bug (John, live on his phone, 2026-09-29, screenshot): Driver Editor's Parameters tab rendered
+   with labels and inputs overlapping/garbled, illegibly. DriverEditorModal.vue's own CSS builds
+   ONE whole-tab grid sized for "4 field-slots per row" at a 770px desktop width (.de-params'
+   own comment) — on a phone that grid has nowhere near the room, and the fixed-width modal
+   (.de-modal, 770px) only had a weak max-width:96vw safety net, not an actually responsive
+   layout. Collapsing to one field-slot's worth of tracks (4, not 16) makes every .de-fld — which
+   already spans exactly 4 tracks — stack one per row with no changes needed there. `!important`
+   to outrank the component's own `!important` rules (its own comments explain why IT needs
+   those, against a different collision than the one this fixes). */
+.app-root-mobile :deep(.de-modal) {
+  width: 100% !important;
+  max-width: none !important;
+  height: 100% !important;
+  max-height: none !important;
+  min-height: 0 !important;
+  border-radius: 0 !important;
+}
+.app-root-mobile :deep(.de-params) {
+  grid-template-columns: minmax(0, max-content) minmax(0, max-content) auto 34px !important;
+}
+.app-root-mobile :deep(.de-dims) {
+  flex-direction: column !important;
+}
+.app-root-mobile :deep(.de-dimlist) {
+  width: 100% !important;
+}
 </style>
