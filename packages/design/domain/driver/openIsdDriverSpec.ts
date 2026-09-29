@@ -1,5 +1,4 @@
-import type {Air, CalculationIssue, DqIssue, DriverIssue, DriverQuantityName, DriverSolverParams, IssueEngine, OutOfRangeIssue, SolverInput, Wiring} from '../../engine/index.js';
-import {type Engine} from '../../engine/index.js';
+import type {Air, CalculationIssue, DqIssue, DriverEngine, DriverIssue, DriverQuantityName, DriverSolverParams, IssueEngine, OutOfRangeIssue, SolverInput, Wiring} from '../../engine/index.js';
 import {NumberField} from '../../fields/field.js';
 import type {ValueFloor} from '../../fields/field.js';
 import type {
@@ -170,13 +169,14 @@ export class OpenIsdDriverSpec {
     readonly OuterY_m: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;
     readonly DVol_m3: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;
 
-    readonly #engine: Engine;
+    readonly #driver: DriverEngine;
     #issues: readonly DriverIssue[] = [];
 
     constructor(
         record: SimpleField<DriverDeviceJson>,
         section: 'woofer' | 'tweeter',
-        engine: Engine,
+        driver: DriverEngine,
+        issues: IssueEngine,
         /** The driver's air: what a not-entered `c_m_per_s`/`roo_kg_per_m3` reads as. */
         air: () => Air,
         /** Where a field's dq is read from when THIS spec object cannot be relied on to still
@@ -187,7 +187,7 @@ export class OpenIsdDriverSpec {
          *  (`entryField`'s `issuesSource`). */
         durableIssues?: () => readonly DriverIssue[],
     ) {
-        this.#engine = engine;
+        this.#driver = driver;
 
         /** One `SpecEntryJson` slot inside this section — deletes the key when set to `undefined`
          *  (T11: absence is 'N', not a stored null). */
@@ -231,7 +231,7 @@ export class OpenIsdDriverSpec {
                     sectionSlot(key),
                     key,
                     dqFor(key),
-                    (v) => floorIssue(key, v, engine.issues)
+                    (v) => floorIssue(key, v, issues)
                 );
 
         /** The wiring field — `entryField` in every respect but the value's type, which is a
@@ -374,7 +374,7 @@ export class OpenIsdDriverSpec {
             Re_terminal_ohm: NO_SLOT, BL_terminal_Tm: NO_SLOT, numVC: this.numVC,
             wiring: this.VCCon,
         } satisfies DriverSolverParams;
-        this.#issues = this.#engine.driver.solve(params, air);
+        this.#issues = this.#driver.solve(params, air);
         this.#markDq(params, this.#issues);
         return this.#issues;
     }
@@ -429,8 +429,8 @@ export class OpenIsdDriverSpec {
         const numVC = this.numVC.value ?? undefined;
         const wiringInput: SolverInput<Wiring> = { value: wiring, entered: this.VCCon.entered };
 
-        const Re_terminal_ohm = Re_ohm == null ? null : this.#engine.driver.terminalRe_ohm(Re_ohm, numVC, wiring);
-        const BL_terminal_entered_Tm = BL_Tm == null ? null : this.#engine.driver.terminalBL_Tm(BL_Tm, numVC, wiring);
+        const Re_terminal_ohm = Re_ohm == null ? null : this.#driver.terminalRe_ohm(Re_ohm, numVC, wiring);
+        const BL_terminal_entered_Tm = BL_Tm == null ? null : this.#driver.terminalBL_Tm(BL_Tm, numVC, wiring);
 
         const cmsField = winisdDriverModel ? winisdCms_m_per_N(this, air) : this.Cms_m_per_N;
         const mmsField = winisdDriverModel ? winisdMms_kg(this, cmsField.value) : this.Mms_kg;
