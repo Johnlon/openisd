@@ -9,6 +9,7 @@ import {useFocusedProject} from '../logic/focusedProjectContext.js';
 import {useApp} from '../logic/app.js';
 import {createBoxVolume, createSealedReadouts, createSelectedBox} from './boxFields.js';
 import {SealedAlignmentEditor} from './SealedAlignment-hooks.js';
+import {createBoxTypeVolumeDefaults} from './boxTypeDefaults.js';
 import {BOX_TYPE_OPTIONS} from '@openisd/design/fields';
 
 export function useMobileBoxTab() {
@@ -16,8 +17,13 @@ export function useMobileBoxTab() {
   const { engine } = useApp();
   const isSimulatable = boxTypeIsSimulatable;
 
-  const { selectedBox, pending, boxLabel, showEnclosureTab } =
+  const { selectedBox, pending, boxLabel, showEnclosureTab, enclosureNavLabel } =
     createSelectedBox({ focusedProject, projectChanged, isSimulatable });
+  // Interim UI-level stopgap (John, live on his phone, 2026-09-29 — a switch to a never-used box
+  // type left volume/tuning at 0, cascading into every chart sweep failing). Engine's ruling:
+  // this belongs in the domain (OpenISDBox, where boxType is set), not a UI hook, and will move
+  // there — kept here only to unblock testing right now; see bugs/ for the ruling record.
+  createBoxTypeVolumeDefaults({ project, selectedBox, sealed: engine.sealed, vented: engine.vented });
   const { boxResonance, rearQtc } = createSealedReadouts({ project, selectedBox, projectChanged });
   const { boxVolume_m3, boxVolumeDqNote, setBoxVolume_m3 } = createBoxVolume({ project, selectedBox, projectChanged });
   // Box-losses (Ql/Qa/Qp) — the per-box-type dispatch now lives in the domain
@@ -57,7 +63,7 @@ export function useMobileBoxTab() {
   }
 
   return {
-    project, selectedBox, pending, boxLabel, showEnclosureTab,
+    project, selectedBox, pending, boxLabel, showEnclosureTab, enclosureNavLabel,
     boxResonance, rearQtc, boxVolume_m3, boxVolumeDqNote, setBoxVolume_m3,
     selectBoxType, BOX_TYPE_OPTIONS,
     sealedAlignmentEditor, sealedAlignmentOpen, sealedAlignmentOptions, sealedAlignmentSelected,

@@ -57,12 +57,8 @@ export function useMobileShell(): MobileShellApi {
 
   // Mirrors desktop's own nav gate (OriginalShell-hooks.ts) — its own selectedBox instance, kept
   // synced to the project the same way (see createSelectedBox's own comment).
-  const { selectedBox, boxLabel, showEnclosureTab } =
+  const { showEnclosureTab, enclosureNavLabel } =
     createSelectedBox({ focusedProject, projectChanged, isSimulatable: boxTypeIsSimulatable });
-  const enclosureNavLabel = computed(() =>
-    selectedBox.value === 'box-passive-radiator' ? 'Passive Radiator'
-      : selectedBox.value === 'sealed' ? 'Closed'
-        : boxLabel.value);
 
   const fileInput = ref<HTMLInputElement | null>(null);
   function openImportedFile(e: Event): void {
