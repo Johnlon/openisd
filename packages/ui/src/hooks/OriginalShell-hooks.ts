@@ -255,11 +255,11 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   function setFrcHz(v: number): void {
     project.value.box.rearTuningOf(selectedBox.value)?.set(v);
   }
-  const boxQl = computed<number | null>(() => focusedProject()?.box.lossesOf(selectedBox.value)?.Ql.value ?? null);
+  const boxQl = computed<number | null>(() => { void projectChanged.value; return focusedProject()?.box.lossesOf(selectedBox.value)?.Ql.value ?? null; });
   function setBoxQl(v: number): void { project.value.box.lossesOf(selectedBox.value)?.Ql.set(v); }
-  const boxQa = computed<number | null>(() => focusedProject()?.box.lossesOf(selectedBox.value)?.Qa.value ?? null);
+  const boxQa = computed<number | null>(() => { void projectChanged.value; return focusedProject()?.box.lossesOf(selectedBox.value)?.Qa.value ?? null; });
   function setBoxQa(v: number): void { project.value.box.lossesOf(selectedBox.value)?.Qa.set(v); }
-  const boxQp = computed<number | null>(() => focusedProject()?.box.lossesOf(selectedBox.value)?.Qp?.value ?? null);
+  const boxQp = computed<number | null>(() => { void projectChanged.value; return focusedProject()?.box.lossesOf(selectedBox.value)?.Qp?.value ?? null; });
   function setBoxQp(v: number): void { project.value.box.lossesOf(selectedBox.value)?.Qp?.set(v); }
   async function confirmDiscard(): Promise<boolean> {
     return globalThis.confirm('Discard all unsaved changes and return to the last saved version?');
@@ -693,12 +693,6 @@ const overlays = computed<Design[]>(() => {
   // arrive in, which is how a panel came to mount with no project (openisd.app 2026-09-25).
   watch(() => presentationState.editDriver, (active) => {
     presentationState.ui.originalTuneOpen = active;
-  });
-
-  watch(isModified, (val) => {
-    if (val) {
-      project.value.modified.set(dateStamp(new Date()));
-    }
   });
 
   // Same for the Driver Editor modal — recorded here, restored by the boot.
