@@ -193,7 +193,7 @@ describe('useOgNewProject', () => {
     const project = wizard.createProject();
     expect(project).not.toBeNull();
     if (!project) return;
-    const qtsLoaded = project.sourceLoadedQts(project.Rs_ohm.value);
+    const qtsLoaded = project.driver.sourceLoadedQts(project.Rs_ohm.value);
     expect(qtsLoaded).not.toBeNull();
     if (qtsLoaded === null) return;
     const fromProject = engine.vented.alignment('bb4', 40, qtsLoaded, 0.02, project.box.vented.losses.Ql.value);

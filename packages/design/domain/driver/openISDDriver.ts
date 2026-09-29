@@ -176,6 +176,17 @@ export abstract class OpenISDDriver extends OpenISDDevice {
         return reasons;
     }
 
+    /** Qts as the amplifier's source impedance `Rs_ohm` loads it: `Rs` folded into Qes. The bare
+     *  Qts when Qms/Qes/Re cannot be resolved; null when Qts cannot. `Rs` is a parameter because
+     *  the driver record has no home for it — it is the project's fact. */
+    sourceLoadedQts(Rs_ohm: number): number | null {
+        const ts = this.specs;
+        const Qts = ts.Qts.value;
+        if (Qts === null) return null;
+        return this.engine.driver.sourceLoadedQts(
+            ts.Qms.value ?? NaN, ts.Qes.value ?? NaN, ts.Re_ohm.value ?? NaN, Rs_ohm, Qts);
+    }
+
     /** Stated values that contradict each other, each stated against what the other stated
      *  values imply. Every value involved exists and every chart plots from the values AS
      *  STATED — a data-quality conflict to resolve, not a blocker. */
