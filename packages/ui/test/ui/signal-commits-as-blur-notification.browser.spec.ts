@@ -7,8 +7,23 @@ const APP_STATE = '/src/logic/appState.ts';
 
 /** The focused project driver's Re, read from the app's own state (no tab switch). */
 const readRe_ohm = (page: import('@playwright/test').Page) =>
-  page.evaluate(async (modPath) =>
-    (await import(/* @vite-ignore */ modPath)).requireFocusedProject().driver.specs.Re_ohm.value, APP_STATE);
+  page.evaluate(async (modPath): Promise<number | null> => {
+    type AppState = typeof import('../../src/logic/appState.js');
+    function isAppState(m: unknown): m is AppState {
+      return typeof m === 'object' && m !== null && 'requireFocusedProject' in m && typeof m.requireFocusedProject === 'function';
+    }
+    const mod: unknown = await import(/* @vite-ignore */ modPath);
+    if (!isAppState(mod)) throw new Error('appState module shape mismatch');
+    return mod.requireFocusedProject().driver.specs.Re_ohm.value;
+  }, APP_STATE);
+
+/** Same as readRe_ohm, but for call sites that treat "no Re entered" as a precondition
+ *  failure rather than a value to assert on. */
+async function requireRe_ohm(page: import('@playwright/test').Page): Promise<number> {
+  const re = await readRe_ohm(page);
+  if (re === null) throw new Error('precondition: an Re must be entered');
+  return re;
+}
 
 /**
  * WinISD Signal-pane coupling law, as a blur-COMMIT rule (not an animation):
@@ -57,7 +72,7 @@ test('deleting the voltage re-derives it from P and Re on blur — never leaves 
 
   // The group starts with P and Re entered; V is the derived output.
   const pBefore = Number(await pow.inputValue());
-  const re = await readRe_ohm(page);
+  const re = await requireRe_ohm(page);
   expect(pBefore, 'precondition: a power must be entered').toBeGreaterThan(0);
   expect(re, 'precondition: an Re must be entered').toBeGreaterThan(0);
 
