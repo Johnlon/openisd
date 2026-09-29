@@ -17,7 +17,9 @@ function driver(): OpenISDDriver {
   d.specs.Qms.set(4);
   d.specs.Vas_m3.set(0.02);
   d.specs.Re_ohm.set(6.4);
-  d.specs.Sd_m2.set(0.02);
+  d.specs.Sd_m2.set(0.021);
+  d.specs.Xmax_m.set(0.008);
+  d.specs.Dd_m.set(0.13);
   return d;
 }
 
@@ -41,14 +43,37 @@ describe('box starting values on a type switch', () => {
     expect(p.box.vented.vent.diameter_m.value).toBe(0.05);
   });
 
-  it('passive radiator: 7 L, 35 Hz, a chart-ready radiator', () => {
+  it('passive radiator: 7 L, 35 Hz, a placeholder radiator sized off the driver', () => {
     const p = sealedProject();
     p.box.boxType.set('box-passive-radiator');
-    expect(p.box.passiveRadiator.volume_m3.value).toBe(0.007);
-    expect(p.box.passiveRadiator.tuning_goal_hz.value).toBe(35);
+    const pr = p.box.passiveRadiator;
+    expect(pr.volume_m3.value).toBe(0.007);
+    expect(pr.tuning_goal_hz.value).toBe(35);
+    expect(pr.radiator.brand.value).toBe('Placeholder');
+    expect(pr.radiator.model.value).toBe('ReplaceMe');
+    expect(pr.radiator.spec.Sd_m2.value).toBe(0.021);        // the driver's own Sd
+    expect(pr.radiator.spec.Xmax_m.value).toBe(0.016);       // twice the driver's Xmax
+    expect(pr.radiator.spec.Cms_m_per_N.value).toBe(0.0005);
+    expect(pr.radiator.spec.Mms_kg.value).toBe(0.05);
+  });
+
+  it('passive radiator with a driver stating no Sd/Xmax: the flat 20 cm² Sd, no Xmax', () => {
+    const p = OpenISDProject.empty(createEngine());
+    p.box.boxType.set('box-passive-radiator');
     expect(p.box.passiveRadiator.radiator.spec.Sd_m2.value).toBe(0.02);
-    expect(p.box.passiveRadiator.radiator.spec.Cms_m_per_N.value).toBe(0.0005);
-    expect(p.box.passiveRadiator.radiator.spec.Mms_kg.value).toBe(0.05);
+    expect(p.box.passiveRadiator.radiator.spec.Xmax_m.value).toBeNull();
+  });
+
+  it('vented with a slotted vent: width is the driver diameter, height 3 cm; 10 cm width without a diameter', () => {
+    const p = sealedProject();
+    p.box.vented.vent.shape.set('slotted');
+    p.box.boxType.set('vented');
+    expect(p.box.vented.vent.width_m.value).toBe(0.13);
+    expect(p.box.vented.vent.height_m.value).toBe(0.03);
+    const q = OpenISDProject.empty(createEngine());
+    q.box.vented.vent.shape.set('slotted');
+    q.box.boxType.set('vented');
+    expect(q.box.vented.vent.width_m.value).toBe(0.1);
   });
 
   it('bandpass4: 7 L rear, 10 L front tuned to 35 Hz through a 50 mm vent', () => {
