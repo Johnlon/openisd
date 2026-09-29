@@ -8,7 +8,7 @@ import {computed} from 'vue';
 import type {ComputedRef, Ref} from 'vue';
 import {ventFieldState as ventFieldStateOn} from '../logic/useVentGroup.js';
 import type {OpenISDProject} from '@openisd/design';
-import type {BoxType, EnvironmentEngine} from '@openisd/design/engine';
+import type {BoxType, EnvironmentEngine, VentEngine} from '@openisd/design/engine';
 
 /** A presentation fact with no domain counterpart: these three box types draw two chambers. */
 export const DUAL_CHAMBER = new Set<BoxType>(['bandpass4', 'bandpass6', 'abc']);
@@ -18,6 +18,7 @@ export interface VentReadoutsDeps {
   projectChanged: Ref<number>;
   selectedBox: Ref<BoxType>;
   air: ComputedRef<ReturnType<EnvironmentEngine['solve']>['values']>;
+  vent: VentEngine;
 }
 
 /** The tooltip the QO11 ruling requires: Fb is the target the port solver designs to. */
@@ -30,20 +31,20 @@ export const VENT_GEOMETRY_TIP = 'Cross area is solved from the vent\'s own dime
   + 'round vent, height for a slotted one. Width is always an input, never derived. Enter '
   + 'either the dimension or the area and the other is calculated from it.';
 
-export function createVentReadouts({ project, projectChanged: changed, selectedBox, air }: VentReadoutsDeps) {
+export function createVentReadouts({ project, projectChanged: changed, selectedBox, air, vent }: VentReadoutsDeps) {
   const activeVent = computed(() => {
     void changed.value;
     void project.value;
     const box = project.value.box;
     return selectedBox.value === 'bandpass4' ? box.bandpass4.vents.front : box.vented.vent;
   });
-  // First port (organ-pipe) resonance of the vent tube itself — the open-open duct fundamental
-  // c/(2·L). Uses the PHYSICAL vent length (NOT the end-corrected Leff) to match WinISD exactly.
+  // The formula itself lives on VentEngine (UI is display-only) — this just feeds it the
+  // currently-active vent's length and the resolved air.
   const portPipeResonance_hz = computed<number | null>(() => {
     void project.value;
     const L = activeVent.value.length_m.value;
-    if (L == null || L <= 0) return null;
-    return air.value.c / (2 * L);
+    if (L == null) return null;
+    return vent.firstResonance_hz(L, air.value);
   });
   // Single-chamber vented tuning uses Vb (the whole box); the bandpass front chamber tunes on
   // its own front volume Vf. The four below are READ-ONLY derived values shown in more than one

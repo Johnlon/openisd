@@ -23,7 +23,7 @@ export function useMobileEnclosureTab() {
   const { advAir } = createEnvironmentAir({ project, projectChanged, envDefaults, environment: engine.environment });
   const {
     activeVent, portPipeResonance_hz, fbState, ventLState, fbUnreachable, fbUnreachableMsg, frontChamberTuningLabel,
-  } = createVentReadouts({ project, projectChanged, selectedBox, air: advAir });
+  } = createVentReadouts({ project, projectChanged, selectedBox, air: advAir, vent: engine.vent });
   const { prAddedMassDq, prTuningDq, prResonanceMassDq, prFsMass_hz } =
     createSealedReadouts({ project, selectedBox, projectChanged });
   const { prBrowseOpen, prEditOpen, loadPREntry, loadBundledPassiveRadiatorEntry, defineNewPREntry } =
