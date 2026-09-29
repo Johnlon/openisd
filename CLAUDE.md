@@ -77,6 +77,11 @@ the Options dialog writes one, the engine reads the other, eliminate the first.
 Repeat of the same failure, same day: told the rule, the agent led with the correct sentence and
 then appended six bullets of file/line evidence nobody asked for.
 
+## Test output — quiet by default
+
+Run every test/typecheck/gate via `bash scripts/quiet-test.sh <command>`; it hides passing lines and
+logs the full output to `build/test-logs/`. Rule: `.claude/rules/verify.md`.
+
 ## Loaded on demand
 
 The rest of the project's working conventions live in path-scoped rules and docs so they only

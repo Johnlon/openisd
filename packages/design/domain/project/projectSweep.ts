@@ -141,6 +141,7 @@ function boxSpecificParamsOf(source: ProjectSweepSource, boxType: SimulatableBox
         case 'bandpass4': {
             const Sp = box.bandpass4.vents.front.totalArea_m2();
             const Leff = box.bandpass4.vents.front.effectiveLength_m();
+            const length = box.bandpass4.vents.front.length_m.value;
             const rear = box.bandpass4.chambers.rear.losses;
             const front = box.bandpass4.chambers.front;
             // circuit.ts's bandpass4 `winisd-lossy` branch reads each chamber's OWN losses and
@@ -151,6 +152,7 @@ function boxSpecificParamsOf(source: ProjectSweepSource, boxType: SimulatableBox
                 Qlr: rear.Ql.value, Qar: rear.Qa.value, Qiclfr: rear.Qicl.value,
                 Qlf: front.losses.Ql.value, Qaf: front.losses.Qa.value, Qpf: front.losses.Qp.value,
                 Ff: front.tuning_goal_hz.value ?? undefined,
+                portEndCorrection_m: Leff !== null && length !== null ? Leff - length : undefined,
             };
         }
         case 'box-passive-radiator': {
