@@ -8,7 +8,7 @@
  * its own default, unrelated to this tab. Tests that care which box type is active select it
  * explicitly rather than assuming sealed.
  */
-import {expect, openAMobileProject, test} from '../fixtures.js';
+import {COMPLETE_DRIVER_PROJECT_OWPR, expect, openAMobileProject, test} from '../fixtures.js';
 
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => {
@@ -76,8 +76,23 @@ test('Cancel discards the alignment sheet\'s draft without touching the volume f
   await expect(volumeField).toHaveValue(/15/);
 });
 
-// Ql/Qa/Qp dispatch on box type now lives in the domain (OpenISDBox.lossesOf, beside volumeOf) —
-// this proves the mobile sheet is correctly WIRED to it, not that lossesOf itself is correct.
+// Bug (John, live on his phone, 2026-09-29): switching from sealed to vented left volume=0,
+// cascading into every chart sweep failing (no finite group delay / max SPL, no vent length
+// solution). Interim UI-level fix (boxTypeDefaults.ts) — engine's ruling is this ultimately
+// belongs in the domain; kept here to unblock testing, see the commit/bug record.
+//
+// COMPLETE_DRIVER_PROJECT_OWPR (not the beforeEach's default sample project, which has no T/S
+// params — the guard this fix needs would never fire) opens on vented with its own volume
+// already set, so switching to SEALED is what exercises the never-used-type path.
+test('switching to a never-used box type defaults its volume instead of showing 0', async ({ page }) => {
+  await openAMobileProject(page, COMPLETE_DRIVER_PROJECT_OWPR);
+
+  await page.locator('#mob-box-type').selectOption('sealed');
+  const volumeInput = page.locator('.mob-field-row.mob-field-entered .mob-field-value input').first();
+  await expect(volumeInput).not.toHaveValue('0.00');
+  await expect(volumeInput).not.toHaveValue('');
+});
+
 test('the Box losses sheet edits Ql/Qa, and Qp only for a vented box', async ({ page }) => {
   await expect(page.locator('.mob-field-label', { hasText: 'Port Qp' })).toHaveCount(0);
   await page.locator('.mob-btn', { hasText: 'Box losses' }).click();
