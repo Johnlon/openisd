@@ -24,6 +24,13 @@ describe('Engine.solveBoxParams — {values, issues} enclosure precondition (T9)
     expect(result.issues.map(i => i.target).sort()).toEqual(['Sp', 'Vb']);
   });
 
+  it.each(['bandpass6', 'abc'] as const)('a %s box missing Vf is not told it is a 4th-order bandpass', (box) => {
+    const result = engine.simulation.solveBoxParams(box, { Vb: 0.02 });
+    const vf = result.issues.find(i => i.target === 'Vf');
+    expect(vf?.text).toBeDefined();
+    expect(vf?.text).not.toMatch(/4th-order/);
+  });
+
   it('reports every passive-radiator field the circuit divides by', () => {
     const result = engine.simulation.solveBoxParams('box-passive-radiator', { Vb: 0.02 });
     expect(result.values).toBeNull();

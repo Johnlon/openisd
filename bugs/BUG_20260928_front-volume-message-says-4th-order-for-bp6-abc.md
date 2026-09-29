@@ -1,6 +1,6 @@
 # BUG_20260928_front-volume-message-says-4th-order-for-bp6-abc
 
-**Status:** OPEN
+**Status:** RESOLVED
 
 ## Symptom
 A new 6th-order bandpass or ABC project with no front chamber volume says "a 4th-order bandpass
@@ -19,3 +19,6 @@ Say "a bandpass box needs both chambers", or name the box type from the requirem
 
 ## Verification
 The store-issue-channel bandpass6/abc cases assert the message names no box order it isn't.
+
+## Resolution (2026-09-29)
+params.ts VF consequence now reads "this box has two chambers, and the front one needs a volume before the response can be drawn" (plain words, per John: the formula wording made no sense to a human). params.test.ts: bandpass6/abc cases assert no "4th-order", red before, green after.
