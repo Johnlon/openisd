@@ -11,6 +11,7 @@ import MobileProjectTab from './MobileProjectTab.vue';
 import MobileFiltersTab from './MobileFiltersTab.vue';
 import MobileEnclosureTab from './MobileEnclosureTab.vue';
 import MobileAdvancedTab from './MobileAdvancedTab.vue';
+import MobileManageDriversTab from './MobileManageDriversTab.vue';
 import ExportMenu from '../../components/ExportMenu.vue';
 import OptionsModal from '../../components/OptionsModal.vue';
 import { useMobileShell } from '../../../hooks/MobileShell-hooks.js';
@@ -52,6 +53,7 @@ const {
         <MobileFiltersTab v-else-if="destination === 'filters'" />
         <MobileEnclosureTab v-else-if="destination === 'enclosure'" />
         <MobileAdvancedTab v-else-if="destination === 'advanced'" />
+        <MobileManageDriversTab v-else-if="destination === 'drivers'" @chosen="destination = 'driver'" />
       </main>
       <MobileTabBar v-model="destination" :show-enclosure="showEnclosureTab" :enclosure-label="enclosureNavLabel" />
 
@@ -74,7 +76,7 @@ const {
       </div>
     </template>
 
-    <OptionsModal v-if="optionsOpen" @close="optionsOpen = false" />
+    <OptionsModal v-if="optionsOpen" class="mob-options" @close="optionsOpen = false" />
   </div>
 </template>
 
@@ -244,5 +246,31 @@ const {
   text-decoration: underline;
   font: inherit;
   cursor: pointer;
+}
+
+/* Bug (John, live on his phone, 2026-09-29): "options appears as an overlay popup and should be
+   a regular pane". OptionsModal.vue is one monolithic file (no separable body the way
+   DriverLibrary is for DriverBrowser) with desktop specs pinned to its own centred/fixed-width
+   layout, so it stays untouched — this makes it fill the phone screen edge-to-edge and scroll
+   as a single column instead, from here only. */
+.mob-options :deep(.opt-overlay) {
+  background: var(--bg);
+  align-items: stretch;
+  justify-content: stretch;
+}
+.mob-options :deep(.opt-modal) {
+  width: 100%;
+  max-width: none;
+  max-height: none;
+  height: 100%;
+  border-radius: 0;
+  border: none;
+}
+.mob-options :deep(.opt-env-grid),
+.mob-options :deep(.opt-color-grid) {
+  grid-template-columns: 1fr;
+}
+.mob-options :deep(.opt-body) {
+  flex: 1;
 }
 </style>
