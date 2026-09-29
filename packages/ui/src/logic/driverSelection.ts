@@ -2,6 +2,7 @@ import {OpenISDDriver} from '@openisd/design';
 import {requireFocusedProject} from './appState.js';
 import {presentationState} from './presentationState.js';
 import type {DesignFiles} from './fileImportExport.js';
+import type {DriverFileFormat} from '../fileFormat.js';
 
 // The ONE implementation of "the user chose a driver" (ARCHITECTURE.md §7, "Components decide nothing").
 //
@@ -59,8 +60,8 @@ export type FileReadResult =
  * `<brand>/<model>` has no identity to be saved under. The name is the file's own, not an
  * invented value.
  */
-export function driverFromFileText(files: DesignFiles, text: string, format: 'wdr' | 'owdr', fileName: string): FileReadResult {
-  const parsed = format === 'wdr' ? files.wdrTextToDriver(text) : files.owdrTextToDriver(text);
+export function driverFromFileText(files: DesignFiles, text: string, format: DriverFileFormat, fileName: string): FileReadResult {
+  const parsed = files.driverFromText(text, format);
   if (!parsed.value) return { ok: false, error: parsed.errors[0]?.message ?? `${fileName} could not be read` };
   const driver = parsed.value;
 

@@ -13,12 +13,13 @@ import {createEngine} from '../../engine/index.js';
 import {OpenISDProject} from '../../domain/index.js';
 import {WINISD_BP6_PORT_GAIN_CAPTURE as BP6, type WinIsdPlottedPoint} from '../fixtures/winisdBp6PortGainCapture.js';
 import {WINISD_ABC_PORT_GAIN_CAPTURE as ABC} from '../fixtures/winisdAbcPortGainCapture.js';
+import {WinIsdProjectConverter} from '../../domain/winIsdProjectConverter.js';
 
 const FIXTURES = join(dirname(fileURLToPath(import.meta.url)), '..', 'winisd', 'fixtures');
 
 function project(wpr: string): OpenISDProject {
-  const {value, errors} = OpenISDProject.fromWprText(readFileSync(join(FIXTURES, wpr), 'utf8'), createEngine());
-  if (value === null) throw new Error('fromWprText returned problems: ' + JSON.stringify(errors));
+  const {value, errors} = new WinIsdProjectConverter(createEngine()).winIsdProjectToOpenIsdProject(readFileSync(join(FIXTURES, wpr), 'utf8'));
+  if (value === null) throw new Error('winIsdProjectToOpenIsdProject returned problems: ' + JSON.stringify(errors));
   value.winisdDriverModel.set(true);
   value.rgAtDriverSide.set(false);
   return value;

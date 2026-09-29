@@ -181,8 +181,7 @@ export function createApplicationIO(deps: { logging: Logging; fileStorage: FileS
         const format = formatOf(f.name) ?? sniff(new TextEncoder().encode(text));
 
         if (format === DriverFileFormat.Wdr || format === DriverFileFormat.Owdr) {
-          const { value: driver, errors } = format === DriverFileFormat.Wdr
-            ? deps.files.wdrTextToDriver(text) : deps.files.owdrTextToDriver(text);
+          const { value: driver, errors } = deps.files.driverFromText(text, format);
           if (!driver) throw new Error(errors[0]?.message ?? `could not read ${format.value}`);
           // A driver file with a project open SWAPS the driver in place; with none open it is
           // recognised as a DRIVER (not a project) and starts the New Project wizard with it
@@ -195,7 +194,7 @@ export function createApplicationIO(deps: { logging: Logging; fileStorage: FileS
             presentationState.newProjectOpen = true;
           }
         } else if (format === ProjectFileFormat.Wpr) {
-          const { value: project, errors } = deps.files.wprTextToProject(text);
+          const { value: project, errors } = deps.files.projectFromText(text, ProjectFileFormat.Wpr);
           if (!project) throw new Error(errors[0]?.message ?? 'could not read .wpr');
           // Opening a project file is opening a NEW project — it never folds into whatever is
           // already open (a project already open keeps its own tab and contents).
@@ -207,7 +206,7 @@ export function createApplicationIO(deps: { logging: Logging; fileStorage: FileS
           project.save();
           addProject(project);
         } else if (format === ProjectFileFormat.Owpr || /^\s*\{/.test(text)) {
-          const { value: project, errors } = deps.files.owprTextToProject(text);
+          const { value: project, errors } = deps.files.projectFromText(text, ProjectFileFormat.Owpr);
           if (!project) {
             // `errors[0]` alone is what the alert shows — one line is all a modal has room for —
             // but a schema mismatch commonly raises several field-level issues at once (QO152),

@@ -425,7 +425,6 @@ export class OpenISDProject {
         return project;
     }
 
-
     /** This project's in-memory identity. */
     uuid(): string {
         return this.#uuid;
@@ -523,7 +522,7 @@ export class OpenISDProject {
         return structuredClone(this.#saved);
     }
 
-    /** This project as WinISD `.wpr` text — the form `OpenISDProject.fromWprText` reads back.
+    /** This project as WinISD `.wpr` text — the form `WinIsdProjectConverter.winIsdProjectToOpenIsdProject` reads back.
      *
      *  Writing is a SNAPSHOT: the converter reads this project and renders text, and keeps no
      *  hold on it afterwards, so saving a file never changes what is on screen.
@@ -535,12 +534,6 @@ export class OpenISDProject {
         const committed = OpenISDProject.wrapWithIdentity(structuredClone(this.#committed()), this.#uuid, this.#engine);
         const {value: wpr, errors} = new WinIsdProjectConverter(this.#engine).openIsdProjectToWinIsdProject(committed);
         return {value: wpr ? wpr.toWpr() : null, errors};
-    }
-
-    /** WinISD `.wpr` text back to a project. The inverse of `toWprText()`, as far as a format
-     *  carrying fewer box types and fields allows. */
-    static fromWprText(text: string, engine: Engine): { value: OpenISDProject | null; errors: DriverError[] } {
-        return new WinIsdProjectConverter(engine).winIsdProjectToOpenIsdProject(text);
     }
 
     /** This project as `.owpr` text — openisd project JSON, the form
@@ -568,7 +561,6 @@ export class OpenISDProject {
     cloneSession(): OpenISDProjectSessionJson {
         return sessionOf(this.#committed().meta.name, this.#saved, this.#edited);
     }
-
 
     /** Whether unsaved changes exist. `charts` (chart zoom/sweep range) is excluded: dragging a
      *  chart axis writes through the same `#slot().set()` path as every other field, but it is
@@ -896,7 +888,6 @@ export class OpenISDProject {
     notifyVentChanged(): void {
         this.#notify();
     }
-
 
     /** The tuning the vent as built actually produces. A precomputed readout — null, with a
      *  not-available cell, when the box is not vented or the geometry is incomplete. */

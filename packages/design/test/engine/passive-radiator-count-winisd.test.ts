@@ -21,6 +21,7 @@ import {
   WINISD_PR_NPR_CAPTURE, WINISD_PR_ME_NPR_CAPTURE,
 } from '../fixtures/winisdPassiveRadiatorCountCapture.js';
 import type {WinIsdComplexPoint} from '../fixtures/winisdVentedCapture.js';
+import {WinIsdProjectConverter} from '../../domain/winIsdProjectConverter.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
 
@@ -36,8 +37,8 @@ function angleDiff(a: number, b: number, fullTurn: number): number {
 function setUpProject(wprFile: string): OpenISDProject {
   const engine = createEngine();
   const text = readFileSync(join(here, '..', 'winisd', 'fixtures', wprFile), 'utf8');
-  const {value: project, errors} = OpenISDProject.fromWprText(text, engine);
-  if (project === null) throw new Error('fromWprText returned problems: ' + JSON.stringify(errors));
+  const {value: project, errors} = new WinIsdProjectConverter(engine).winIsdProjectToOpenIsdProject(text);
+  if (project === null) throw new Error('winIsdProjectToOpenIsdProject returned problems: ' + JSON.stringify(errors));
   // Same Advanced/Compatibility switches the captures ran under as passive-radiator-winisd.test.ts.
   project.winisdDriverModel.set(true);
   project.rgAtDriverSide.set(false);

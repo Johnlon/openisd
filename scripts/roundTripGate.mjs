@@ -12,7 +12,7 @@
  * Calls ONLY the app's real functions — `OpenISDDriver.fromConformingRecord`/
  * `.toOpenIsdDeviceJson()` for the openisd.json leg (`checkOpenisdRoundTrip` takes the
  * already-parsed record, since `bundle-drivers.mjs`'s own loop needs that same parsed object for
- * other purposes too), and `OpenISDDriver.fromWdrIniText`/`toWdrIniText` for
+ * other purposes too), and `WinIsdDriverConverter.winIsdDriverToOpenIsdDriver`/`OpenISDDriver.toWdrIniText` for
  * the .wdr leg.
  * This script runs inside the same Node/vite-node process as the rest of the bundler, so it
  * imports `@openisd/design` directly rather than crossing the V8-bridge boundary the tools side
@@ -20,6 +20,7 @@
  */
 import {OpenISDDriver, OpenISDPassiveRadiatorStandalone} from '@openisd/design';
 import {createEngine} from '@openisd/design/engine';
+import {WinIsdDriverConverter} from '@openisd/design';
 
 /** Whether `v` is a `state:'C'` `SpecEntryJson` — a quantity the driver's own `resolve()`
  *  (S2-7c) derived, never a fact materialising from nowhere. `{state, value}` is a shape
@@ -213,7 +214,7 @@ export function checkWdrRoundTrip(wdrText, relPath) {
   // divergence this gate exists to catch — and is the exact pair the app's own import/export runs
   // (`packages/ui/src/logic/fileImportExport.ts`).
   const engine = createEngine();
-  const { value: driver, errors: readErrors } = OpenISDDriver.fromWdrIniText(wdrText, engine);
+  const { value: driver, errors: readErrors } = new WinIsdDriverConverter(engine).winIsdDriverToOpenIsdDriver(wdrText);
   if (driver === null) {
     return { ok: false, message: `${relPath}: could not read .wdr: ${readErrors.map(e => e.message).join('; ') || 'no driver returned'}` };
   }

@@ -21,6 +21,7 @@ import assert from 'node:assert/strict';
 import {createEngine} from '../../engine/index.js';
 import {OpenISDProject} from '../../domain/index.js';
 import {WINISD_BP4_PORT_GAIN_CAPTURE} from '../fixtures/winisdBp4PortGainCapture.js';
+import {WinIsdProjectConverter} from '../../domain/winIsdProjectConverter.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const WPR_PATH = join(here, '..', 'winisd', 'fixtures', 'bp4-w5-chain-1.wpr');
@@ -28,8 +29,8 @@ const WPR_PATH = join(here, '..', 'winisd', 'fixtures', 'bp4-w5-chain-1.wpr');
 function setUpProject(): OpenISDProject {
   const engine = createEngine();
   const text = readFileSync(WPR_PATH, 'utf8');
-  const {value: project, errors} = OpenISDProject.fromWprText(text, engine);
-  if (project === null) throw new Error('fromWprText returned problems: ' + JSON.stringify(errors));
+  const {value: project, errors} = new WinIsdProjectConverter(engine).winIsdProjectToOpenIsdProject(text);
+  if (project === null) throw new Error('winIsdProjectToOpenIsdProject returned problems: ' + JSON.stringify(errors));
   // WinISD Advanced/Compatibility switches this capture ran under (fixture header comment):
   // VCInd off (circuitModel stays its 'winisd' default — Le excluded), Rg AT driver side
   // (WinISD's own default — not toggled for this capture).

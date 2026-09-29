@@ -9,6 +9,7 @@ import {fileURLToPath} from 'node:url';
 import {describe, expect, it} from 'vitest';
 import {createEngine} from '../../engine/index.js';
 import {OpenISDProject} from '../../domain/index.js';
+import {WinIsdProjectConverter} from '../../domain/winIsdProjectConverter.js';
 
 const WPR_PATH = join(dirname(fileURLToPath(import.meta.url)), '..', 'winisd', 'fixtures', 'sealed-w5-dtvc20.wpr');
 const engine = createEngine();
@@ -20,8 +21,8 @@ const SETTINGS_TEXT = readFileSync(WPR_PATH, 'utf8')
   .replace(/^VCInd=0$/m, 'VCInd=1').replace(/^FlatResponse=0$/m, 'FlatResponse=1').replace(/^TLPorts=0$/m, 'TLPorts=1');
 
 function imported(text: string): OpenISDProject {
-  const {value, errors} = OpenISDProject.fromWprText(text, engine);
-  if (value === null) throw new Error('fromWprText returned problems: ' + JSON.stringify(errors));
+  const {value, errors} = new WinIsdProjectConverter(engine).winIsdProjectToOpenIsdProject(text);
+  if (value === null) throw new Error('winIsdProjectToOpenIsdProject returned problems: ' + JSON.stringify(errors));
   return value;
 }
 

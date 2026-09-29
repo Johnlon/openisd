@@ -1,6 +1,8 @@
 import {LossMode} from '@openisd/design/fields';
 import {describe, expect, it, vi} from 'vitest';
 import {type DqIssue, type DriverError, type DriverIssue, type Engine, createEngine, DEFAULT_VENTED_DESIGN_LIMITS} from '@openisd/design/engine';
+import {WinIsdDriverConverter} from '../domain/winIsdDriverConverter.js';
+import {WinIsdProjectConverter} from '../domain/winIsdProjectConverter.js';
 import {
     type AppContext,
     OpenISDDriver,
@@ -1841,7 +1843,7 @@ describe('editing a driver — copy, then update or drop', () => {
     expect(driver.model.value).toBe('Copy of RS225');
   });
 
-  it('toWdrIniText() then OpenISDDriver.fromWdrIniText() round-trips a driver through WinISD .wdr text', () => {
+  it('toWdrIniText() then WinIsdDriverConverter() round-trips a driver through WinISD .wdr text', () => {
     const driver = OpenISDProject.builder(wooferDriver(), createEngine()).sealed().volume_m3(0.03).build().driver.detach();
     driver.specs.Fs_hz.set(41.5);
 
@@ -1849,21 +1851,21 @@ describe('editing a driver — copy, then update or drop', () => {
     expect(errors.filter((e: DriverError) => e.level === 'error')).toEqual([]);
     if (text === null) throw new Error('toWdrIniText produced no text');
 
-    const back = OpenISDDriver.fromWdrIniText(text, createEngine());
-    if (back.value === null) throw new Error('fromWdrIniText returned problems: ' + JSON.stringify(back.errors));
+    const back = new WinIsdDriverConverter(createEngine()).winIsdDriverToOpenIsdDriver(text);
+    if (back.value === null) throw new Error('winIsdDriverToOpenIsdDriver returned problems: ' + JSON.stringify(back.errors));
     expect(back.value.specs.Fs_hz.value).toBeCloseTo(41.5, 3);
     expect(back.value.model.value).toBe('RS225');
   });
 
-  it('toWprText() then OpenISDProject.fromWprText() round-trips a project through WinISD .wpr text', () => {
+  it('toWprText() then WinIsdProjectConverter() round-trips a project through WinISD .wpr text', () => {
     const project = OpenISDProject.builder(wooferDriver(), createEngine()).sealed().volume_m3(0.03).build();
 
     const { value: text, errors } = project.toWprText();
     expect(errors.filter((e: DriverError) => e.level === 'error')).toEqual([]);
     if (text === null) throw new Error('toWprText produced no text');
 
-    const back = OpenISDProject.fromWprText(text, createEngine());
-    if (back.value === null) throw new Error('fromWprText returned problems: ' + JSON.stringify(back.errors));
+    const back = new WinIsdProjectConverter(createEngine()).winIsdProjectToOpenIsdProject(text);
+    if (back.value === null) throw new Error('winIsdProjectToOpenIsdProject returned problems: ' + JSON.stringify(back.errors));
     expect(back.value.box.boxType.value).toBe('sealed');
     expect(back.value.driver.model.value).toBe('RS225');
   });
@@ -1876,8 +1878,8 @@ describe('editing a driver — copy, then update or drop', () => {
     expect(errors.filter((e: DriverError) => e.level === 'error')).toEqual([]);
     if (text === null) throw new Error('toWprText produced no text');
 
-    const back = OpenISDProject.fromWprText(text, createEngine());
-    if (back.value === null) throw new Error('fromWprText returned problems: ' + JSON.stringify(back.errors));
+    const back = new WinIsdProjectConverter(createEngine()).winIsdProjectToOpenIsdProject(text);
+    if (back.value === null) throw new Error('winIsdProjectToOpenIsdProject returned problems: ' + JSON.stringify(back.errors));
     expect(back.value.box.boxType.value).toBe('bandpass6');
   });
 

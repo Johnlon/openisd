@@ -543,9 +543,7 @@ function handleFileLoaded(e: Event) {
     try {
       // A `.wdr` is read as-read by the serialiser then projected into the app's own record;
       // an `.owdr` IS that record already. One reader each, and no second parse invented here.
-      const { value: read, errors } = format === DriverFileFormat.Wdr
-        ? designFiles.wdrTextToDriver(text)
-        : designFiles.owdrTextToDriver(text);
+      const { value: read, errors } = designFiles.driverFromText(text, format);
       if (!read) { alert('Failed to parse file: ' + (errors[0]?.message ?? 'unreadable')); return; }
       draft.replace(read);
       forceUpdate();

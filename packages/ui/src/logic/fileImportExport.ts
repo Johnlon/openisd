@@ -1,7 +1,7 @@
 /**
  * Every driver/project file the app reads or writes: WinISD's `.wdr`/`.wpr`, our own
  * `.owdr`/`.owpr`. One function per operation, and each one is the domain's own text method for
- * that format — `toWdrIniText`/`fromWdrIniText`, `toWprText`/`fromWprText`,
+ * that format — `toWdrIniText`/`WinIsdDriverConverter`, `toWprText`/`WinIsdProjectConverter`,
  * `toOwdrText`/`fromOwdrText` — except `.owpr` reading, which goes through the injected project
  * repo. This module converts text to bytes and problems to `DriverError`s; it never assembles a
  * format object itself.
@@ -10,7 +10,8 @@
  * messages; this module owns the format conversion. Nothing here touches app state or the
  * DOM.
  */
-import {OpenISDDriver, OpenISDProject} from '@openisd/design';
+import {OpenISDDriver, OpenISDProject, WinIsdDriverConverter, WinIsdProjectConverter} from '@openisd/design';
+import {DriverFileFormat, ProjectFileFormat} from '../fileFormat.js';
 import type {DriverError, Engine} from '@openisd/design/engine';
 import type {ProjectRepo} from '@openisd/persistence';
 
@@ -44,33 +45,34 @@ export function projectToWprBytes(project: OpenISDProject): Bytes {
 /** Reads every driver/project file format into a domain object, with the one engine the
  *  composition root built and the project repo that brings a stored project up to schema. */
 export class DesignFiles {
-  constructor(private readonly engine: Engine, private readonly projectRepo: ProjectRepo) {}
+  readonly #drivers: WinIsdDriverConverter;
+  readonly #projects: WinIsdProjectConverter;
 
-  /** `.wdr` text → a standalone driver, or the reasons it could not be read. */
-  wdrTextToDriver(text: string): { value: OpenISDDriver | null; errors: DriverError[] } {
-  return OpenISDDriver.fromWdrIniText(text, this.engine);
-  }
-
-  /** `.owdr` text → a standalone driver, or the reasons it could not be read. */
-  owdrTextToDriver(text: string): { value: OpenISDDriver | null; errors: DriverError[] } {
-  const result = OpenISDDriver.fromOwdrText(text, this.engine);
-  if (Array.isArray(result)) {
-    return { value: null, errors: result.map(message => ({ level: 'error', field: 'driver', message })) };
-  }
-  return { value: result, errors: [] };
+  constructor(private readonly engine: Engine, private readonly projectRepo: ProjectRepo) {
+    this.#drivers = new WinIsdDriverConverter(engine);
+    this.#projects = new WinIsdProjectConverter(engine);
   }
 
-  /** `.wpr` text → a new project, or the reasons it could not be read. */
-  wprTextToProject(text: string): { value: OpenISDProject | null; errors: DriverError[] } {
-  return OpenISDProject.fromWprText(text, this.engine);
+  /** Driver file text → a standalone driver, or the reasons it could not be read. A `.wdr`
+   *  goes through the WinISD converter; an `.owdr` IS the app's own record. */
+  driverFromText(text: string, format: DriverFileFormat): { value: OpenISDDriver | null; errors: DriverError[] } {
+    if (format === DriverFileFormat.Wdr) return this.#drivers.winIsdDriverToOpenIsdDriver(text);
+    const result = OpenISDDriver.fromOwdrText(text, this.engine);
+    if (Array.isArray(result)) {
+      return { value: null, errors: result.map(message => ({ level: 'error', field: 'driver', message })) };
+    }
+    return { value: result, errors: [] };
   }
 
-  /** `.owpr` text → a project, brought up to the current schema by the persistence layer. */
-  owprTextToProject(text: string): { value: OpenISDProject | null; errors: DriverError[] } {
-  const result = this.projectRepo.readProjectText(text);
-  if (Array.isArray(result)) {
-    return { value: null, errors: result.map(message => ({ level: 'error', field: 'project', message })) };
-  }
-  return { value: result, errors: [] };
+  /** Project file text → a project, or the reasons it could not be read. A `.wpr` goes
+   *  through the WinISD converter; an `.owpr` is brought up to the current schema by the
+   *  persistence layer. */
+  projectFromText(text: string, format: ProjectFileFormat): { value: OpenISDProject | null; errors: DriverError[] } {
+    if (format === ProjectFileFormat.Wpr) return this.#projects.winIsdProjectToOpenIsdProject(text);
+    const result = this.projectRepo.readProjectText(text);
+    if (Array.isArray(result)) {
+      return { value: null, errors: result.map(message => ({ level: 'error', field: 'project', message })) };
+    }
+    return { value: result, errors: [] };
   }
 }

@@ -11,12 +11,13 @@ import assert from 'node:assert/strict';
 import {createEngine} from '../../engine/index.js';
 import {OpenISDProject} from '../../domain/index.js';
 import {WINISD_BP4_TL_PORTS_CAPTURE as CAP, type WinIsdPlottedPoint} from '../fixtures/winisdBp4TlPortsCapture.js';
+import {WinIsdProjectConverter} from '../../domain/winIsdProjectConverter.js';
 
 const WPR_PATH = join(dirname(fileURLToPath(import.meta.url)), '..', 'winisd', 'fixtures', 'bp4-w5-tlports.wpr');
 
 function setUpProject(): OpenISDProject {
-  const {value: project, errors} = OpenISDProject.fromWprText(readFileSync(WPR_PATH, 'utf8'), createEngine());
-  if (project === null) throw new Error('fromWprText returned problems: ' + JSON.stringify(errors));
+  const {value: project, errors} = new WinIsdProjectConverter(createEngine()).winIsdProjectToOpenIsdProject(readFileSync(WPR_PATH, 'utf8'));
+  if (project === null) throw new Error('winIsdProjectToOpenIsdProject returned problems: ' + JSON.stringify(errors));
   project.winisdDriverModel.set(true);
   project.rgAtDriverSide.set(false);
   return project;
