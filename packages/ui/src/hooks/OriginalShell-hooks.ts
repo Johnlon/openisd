@@ -993,7 +993,7 @@ const overlays = computed<Design[]>(() => {
   const {
     activeVent, portPipeResonance_hz, fbState, ventLState, fbUnreachable, fbUnreachableMsg,
     frontChamberTuningLabel,
-  } = createVentReadouts({ project, projectChanged, selectedBox, air: advAir });
+  } = createVentReadouts({ project, projectChanged, selectedBox, air: advAir, vent: engine.vent });
 
   const placement = ref<'standard' | 'iso'>('standard');
 
