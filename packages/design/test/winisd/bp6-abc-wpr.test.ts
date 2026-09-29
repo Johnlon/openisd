@@ -1,6 +1,6 @@
 /**
  * `OpenISDProject` <-> WinISD `.wpr`, bandpass6 (BType=3) and ABC (BType=5) — the two box types
- * `openIsdProjectToWinIsdProject.ts` used to refuse. Two real WinISD-written samples per box
+ * `winIsdProjectConverter.ts` used to refuse. Two real WinISD-written samples per box
  * type: a live debugger capture (`winisd_research runs/{bp6,abc}-w5-1/w5.wpr`, copied here as
  * `bp6-w5-1.wpr`/`abc-w5-1.wpr` — the same files `bandpass6-winisd.test.ts`/`abc-winisd.test.ts`
  * build their engine fixtures from) and `docs/samples/sample_project_{bandpass6,abc}.wpr`.
@@ -12,7 +12,7 @@ import {fileURLToPath} from 'node:url';
 import {dirname, join} from 'node:path';
 import {type Engine, createEngine} from '@openisd/design/engine';
 import {OpenISDDriver, OpenISDProject} from '@openisd/design';
-import {WinIsdProjectConverter} from '../../domain/openIsdProjectToWinIsdProject.js';
+import {WinIsdProjectConverter} from '../../domain/winIsdProjectConverter.js';
 import {WinISDDriver} from '../../winisd/winisdDriver.js';
 import {WinISDProject} from '../../winisd/winisdProject.js';
 import {winISDDriverToOpenISDDeviceJson} from '../../domain/winIsdDriverImport.js';

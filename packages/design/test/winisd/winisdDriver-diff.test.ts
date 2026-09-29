@@ -14,7 +14,7 @@ import assert from 'node:assert/strict';
 import {WinISDDriver} from '@openisd/design/winisd';
 import {OpenISDDriver} from '@openisd/design';
 import {createEngine} from '@openisd/design/engine';
-import {openIsdDriverToWinIsdDriver} from '../../domain/driverYmlToOpenisdAndWdr.js';
+import {openIsdDriverToWinIsdDriver} from '../../domain/winIsdDriverConverter.js';
 
 const scraped = <T,>(value: T) => ({ value });
 const spec = (read_value: number) => ({ state: 'E' as const, value: read_value, origin: 'manual', readings: { manual: { read_value } } });

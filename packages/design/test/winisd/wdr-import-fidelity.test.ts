@@ -30,7 +30,7 @@ import {WinISDDriver} from '@openisd/design/winisd';
 import {OpenISDDriver} from '@openisd/design';
 import {createEngine} from '@openisd/design/engine';
 import {winISDDriverToOpenISDDeviceJson} from '../../domain/winIsdDriverImport.js';
-import {openIsdDriverToWinIsdDriver} from '../../domain/driverYmlToOpenisdAndWdr.js';
+import {openIsdDriverToWinIsdDriver} from '../../domain/winIsdDriverConverter.js';
 
 /** The app's view of a `.wdr`: read as-read by the serialiser, projected into the record,
  *  then asked through the driver's own accessors — the exact path the app itself takes. */

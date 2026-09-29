@@ -7,7 +7,7 @@
  * build.
  *
  * `rollupOptions.external` is left empty deliberately: the `yaml` npm package
- * (`winisd/driverYmlToOpenisdAndWdr.ts`) MUST be inlined, not left as a runtime
+ * (`winisd/winIsdDriverConverter.ts`) MUST be inlined, not left as a runtime
  * import, because mini-racer's V8 has no module loader.
  */
 import {defineConfig} from 'vite';

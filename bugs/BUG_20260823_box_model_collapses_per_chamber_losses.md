@@ -1,7 +1,7 @@
 # The box model has one loss triple; WinISD's bandpass4 has one per chamber
 
 ## Status
-OPEN (re-verified 2026-09-26) — losses are stored and exported per chamber, but `.wpr` import reads no loss keys, so every imported project gets default losses (`packages/design/domain/openIsdProjectToWinIsdProject.ts`).
+OPEN (re-verified 2026-09-26) — losses are stored and exported per chamber, but `.wpr` import reads no loss keys, so every imported project gets default losses (`packages/design/domain/winIsdProjectConverter.ts`).
 
 ## Symptom
 

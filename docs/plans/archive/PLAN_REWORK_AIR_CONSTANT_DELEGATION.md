@@ -16,7 +16,7 @@ real, always-available calculated default:
 - `numVC` — WinISD's documented default of 1 coil (same line, `"numVC=1"`).
 
 Today the calculated default for all four exists ONLY inside
-`openIsdDriverToWinIsdDriver` (`winisd/driverYmlToOpenisdAndWdr.ts`), which runs at `.wdr`
+`openIsdDriverToWinIsdDriver` (`winisd/winIsdDriverConverter.ts`), which runs at `.wdr`
 export time. Any caller reading the driver directly — the UI, `solveConsistencyGroup`'s own
 inputs, a test — sees a hole instead of the value WinISD itself always shows.
 
@@ -26,11 +26,11 @@ Neither field needs an `Engine` reference; both defaults are static constants.
 
 | Step                                                                                                                                                            | Where                                        |
 | --------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
-| Remove the inline `{value: '1', state: 'not-available'}` literal in `wdrVCCon()`                                                                                | `winisd/driverYmlToOpenisdAndWdr.ts:431-440` |
-| Remove the inline `{value: '1', state: 'calculated'}` literal for `numVC`                                                                                       | `winisd/driverYmlToOpenisdAndWdr.ts:506-508` |
+| Remove the inline `{value: '1', state: 'not-available'}` literal in `wdrVCCon()`                                                                                | `winisd/winIsdDriverConverter.ts:431-440` |
+| Remove the inline `{value: '1', state: 'calculated'}` literal for `numVC`                                                                                       | `winisd/winIsdDriverConverter.ts:506-508` |
 | Add `calcVCCon(): VoiceCoilWiring` returning `VoiceCoilWiring.Parallel`, and `calcNumVC(): number` returning `1`                                                | `domain/project.ts`, near `wiringFromRecord` |
 | `DriverSpecsSection`'s `wiring()`/`f('numVC')` builders report the calculated value instead of `not-available` when the record states nothing                   | `domain/project.ts:1154-1199`                |
-| `wdrVCCon()` and the exporter's `numVC` line read `spec.VCCon.get()`/`spec.numVC.get()` and serialize whatever state/value comes back — no local literal at all | `winisd/driverYmlToOpenisdAndWdr.ts`         |
+| `wdrVCCon()` and the exporter's `numVC` line read `spec.VCCon.get()`/`spec.numVC.get()` and serialize whatever state/value comes back — no local literal at all | `winisd/winIsdDriverConverter.ts`         |
 
 Single source of truth for each: the exporter never decides these facts, it only serializes
 what the driver reports.
@@ -111,7 +111,7 @@ something patched onto an already-built `OpenIsdDriverSpec` from outside.
 `conformingRecordToOpenIsdDriver` (`:1459-1466`) calls `OpenISDDriverStandalone.wrap(conformed.json,
 engine)` directly — it is a thin validate-then-wrap, not a separate builder of `OpenIsdDriverSpec`.
 Ruled 2026-09-05: its signature does NOT grow a provider parameter. Every existing call site
-(tests, `driverYmlToOpenisdAndWdr.ts`) keeps working with no provider, falling back to
+(tests, `winIsdDriverConverter.ts`) keeps working with no provider, falling back to
 `airFor({})` inside `OpenIsdDriverSpec` when none was supplied — the provider is a property of the
 `OpenISDDriver` object being built via `wrap()`, not of parsing the record.
 

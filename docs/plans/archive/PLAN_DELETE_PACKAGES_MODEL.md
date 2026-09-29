@@ -274,7 +274,7 @@ predates that design.
 ## 4d-bis. ⛔ `drivers.md` Part C cannot live in `packages/design` — dependency cycle
 
 **Found 2026-08-31 while building Part C, TDD red in place
-(`packages/design/test/driverYmlToOpenisdAndWdr.test.ts`, 5 tests failing on "not a function").**
+(`packages/design/test/winIsdDriverConverter.test.ts`, 5 tests failing on "not a function").**
 
 `drivers.md` Part C says _"Files: the entry in `packages/design`, exposed through
 `packages/winisd/src/bridge.ts`"_. That is not implementable as written:

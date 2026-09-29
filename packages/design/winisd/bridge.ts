@@ -47,12 +47,12 @@
  * EVERY record until that module matches. `drivers.md` Part D lists that side.
  *
  * This file is a thin adapter, not a reimplementation: the projection, its round-trip checks and
- * every `errors` entry come from `./driverYmlToOpenisdAndWdr.ts` — see that file's own
+ * every `errors` entry come from `./winIsdDriverConverter.ts` — see that file's own
  * docstring. This bridge only serialises the result to JSON at the V8 boundary; the
  * field-for-field shape of `errors` is passed through unchanged.
  */
 import {createEngine} from '../engine/index.js';
-import {DriverFileConverter} from '../domain/driverYmlToOpenisdAndWdr.js';
+import {WinIsdDriverConverter} from '../domain/winIsdDriverConverter.js';
 import {bytesToBase64} from './base64.js';
 import {utf8Bytes} from './utf8.js';
 import {winisdTextToBytes} from './winisdBytes.js';
@@ -60,7 +60,7 @@ import {winisdTextToBytes} from './winisdBytes.js';
 /** The bridge's composition root: the one engine this process builds, with factory settings —
  *  a scraper projection has no user settings to honour. */
 const engine = createEngine();
-const driverFiles = new DriverFileConverter(engine);
+const driverFiles = new WinIsdDriverConverter(engine);
 
 function driverYmlToOpenisdAndWdrBridge(driverYmlText: string): string {
   const { openisd, wdr, errors } = driverFiles.driverYmlToOpenisdAndWdr(driverYmlText);

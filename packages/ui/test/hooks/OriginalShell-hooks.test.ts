@@ -131,34 +131,25 @@ describe('OriginalShell-hooks', () => {
       expect(envTempDq.value.dq.length).toBeGreaterThan(0);
     });
 
-    it('commitAirTemp/Humidity/Pressure clear the stored value once it reads back null — never re-seed the app default as entered', () => {
+    it('clearing each air field text clears its entry and reads back as the app default, calculated', () => {
       const {project} = createCompleteProject();
-      const {commitAirTemp, commitAirHumidity, commitAirPressure, envTempStored, envHumidityStored, envPressureStored} = harness(project);
+      const {tick, advTemp, advHumidity, advPressure, envTempStored, envHumidityStored, envPressureStored} = harness(project);
 
-      project.envTempK.set(300);
-      project.envHumidityPct.set(50);
-      project.envPressurePa.set(100000);
-      project.envTempK.clear();     // simulates NumInput driving the cell to null via blank text
-      project.envHumidityPct.clear();
-      project.envPressurePa.clear();
-
-      commitAirTemp();
-      commitAirHumidity();
-      commitAirPressure();
+      const appDefaults = {temp: advTemp.value, humidity: advHumidity.value, pressure: advPressure.value};
+      advTemp.value = 300;
+      advHumidity.value = 50;
+      advPressure.value = 100000;
+      advTemp.value = null;
+      advHumidity.value = null;
+      advPressure.value = null;
+      tick();
 
       expect(envTempStored.value).toBe(false);
       expect(envHumidityStored.value).toBe(false);
       expect(envPressureStored.value).toBe(false);
-    });
-
-    it('commitAirTemp is a no-op while a value is still entered', () => {
-      const {project} = createCompleteProject();
-      const {commitAirTemp} = harness(project);
-
-      project.envTempK.set(305);
-      commitAirTemp();
-      expect(project.envTempK.value).toBe(305);
-      expect(project.envTempK.entered).toBe(true);
+      expect(advTemp.value).toBe(appDefaults.temp);
+      expect(advHumidity.value).toBe(appDefaults.humidity);
+      expect(advPressure.value).toBe(appDefaults.pressure);
     });
 
     it('resetAirToAppDefaults enters all three fields from the injected envDefaults()', () => {

@@ -22,7 +22,6 @@ import {
     boxTypeIsSimulatable,
     copyProjectName,
     curvesData,
-    definePassiveRadiator,
     driverName,
     duplicateFocusedProject,
     envDefaults,
@@ -43,8 +42,9 @@ import {useFocusedProject} from '../logic/focusedProjectContext.js';
 import {
     clearVentField as clearVentFieldOn,
     enterVentField as enterVentFieldOn,
-    ventFieldState as ventFieldStateOn,
 } from '../logic/useVentGroup.js';
+import {createVentReadouts, FB_TARGET_TIP, VENT_GEOMETRY_TIP} from './ventReadouts.js';
+import {createPassiveRadiatorActions} from './passiveRadiatorActions.js';
 import {buildPlotData, TAB_META} from '../logic/series.js';
 import {ChartSelection, type ChartItem} from './chartSelection.js';
 import {chartGridLayout, chartGridStyle} from './chartGrid.js';
@@ -60,7 +60,7 @@ import {OriginalFilters} from './OriginalFilters-hooks.js';
 import type {Calculated, Clearable, Entered, OpenISDProject, Readable, Writable} from '@openisd/design';
 import {dqOfCell, type DqReadout} from '../logic/cellDataQuality.js';
 import {isTabId, type TabId} from '../logic/tabId.js';
-import {createBoxVolume, createSealedReadouts, createSelectedBox, DUAL_CHAMBER} from './boxFields.js';
+import {createBoxVolume, createSealedReadouts, createSelectedBox} from './boxFields.js';
 import {createDriveSignal} from './driveSignal.js';
 import type {StoredProjectListing} from '@openisd/persistence';
 import type {ChartId, EnvDefaults, EnvironmentEngine} from '@openisd/design/engine';
@@ -134,13 +134,6 @@ export function createEnvironmentAir({ project, projectChanged: changed, envDefa
       set: (v: number | null) => { if (typeof v === 'number' && Number.isFinite(v)) field().set(v); else field().clear(); },
     });
   }
-  // A cleared cell DROPS its stored value (human ruling 2026-09-13, BUG human): deletion must
-  // not re-seed the app default as an entered value. A field that is not entered reads the app
-  // default (Options → General → Environment) as its calculated value — never blank, never
-  // falsely "entered".
-  function commitOf(field: () => EnvField) {
-    return (): void => { const f = field(); if (f.value == null) f.clear(); };
-  }
   const temp = () => project.value.envTempK;
   const humidity = () => project.value.envHumidityPct;
   const pressure = () => project.value.envPressurePa;
@@ -166,7 +159,6 @@ export function createEnvironmentAir({ project, projectChanged: changed, envDefa
     envTempStored: storedOf(temp), envHumidityStored: storedOf(humidity), envPressureStored: storedOf(pressure),
     envTempDq: dqOf('temperature', temp), envHumidityDq: dqOf('humidity', humidity), envPressureDq: dqOf('pressure', pressure),
     advTemp, advHumidity, advPressure,
-    commitAirTemp: commitOf(temp), commitAirHumidity: commitOf(humidity), commitAirPressure: commitOf(pressure),
     resetAirToAppDefaults, advAir,
   };
 }
@@ -384,51 +376,9 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   async function confirmDiscard(): Promise<boolean> {
     return globalThis.confirm('Discard all unsaved changes and return to the last saved version?');
   }
-  // The Vents tab's port — vented's own vent for a single-chamber box, bandpass4's front vent.
-  const activeVent = computed(() => {
-    void projectChanged.value;
-    void project.value;
-    const box = project.value.box;
-    return selectedBox.value === 'bandpass4' ? box.bandpass4.vents.front : box.vented.vent;
-  });
-  // First port (organ-pipe) resonance of the vent tube itself — the open-open duct fundamental
-  // c/(2·L). Uses the PHYSICAL vent length (NOT the end-corrected Leff) to match WinISD exactly.
-  const portPipeResonance_hz = computed<number | null>(() => {
-    void project.value;
-    const L = activeVent.value.length_m.value;
-    if (L == null || L <= 0) return null;
-    return advAir.value.c / (2 * L);
-  });
-  // Single-chamber vented tuning uses Vb (the whole box); the bandpass front chamber tunes on
-  // its own front volume Vf. The four below are READ-ONLY derived values shown in more than one
-  // place (E/C/N badges, warning banners) — genuinely DERIVED state.
-  const fbState    = computed<'E' | 'C' | 'N'>(() => { void projectChanged.value; void project.value; return ventFieldStateOn(project.value, 'Fb'); });
-  const ventLState = computed<'E' | 'C' | 'N'>(() => { void projectChanged.value; void project.value; return ventFieldStateOn(project.value, 'ventL'); });
-  /** The vent's own dq — a `target-unreachable` mark means the entered tuning has no positive
-   *  port length in this volume/area; the solver already wrote `length_m` null. */
-  const fbUnreachableIssue = computed(() => {
-    void projectChanged.value; void project.value;
-    return activeVent.value.length_m.dq.find(issue => issue.kind === 'target-unreachable') ?? null;
-  });
-  const fbUnreachable = computed(() => fbUnreachableIssue.value !== null);
-  /** The vent's own dq sentence — the issue carries it, so the Box tab and the Vents tab say
-   *  the same thing. */
-  const fbUnreachableMsg = computed(() => {
-    const issue = fbUnreachableIssue.value;
-    return issue === null ? '' : issue.text;
-  });
-  /** The front chamber of a bandpass is vented on its OWN volume, so it carries its own symbol. */
-  const frontChamberTuningLabel = computed(() =>
-    DUAL_CHAMBER.has(selectedBox.value) ? 'Target Tuning Freq (Ffc)' : 'Target Tuning Freq');
-  /** The tooltip the QO11 ruling requires: Fb is the target the port solver designs to. */
-  const FB_TARGET_TIP = 'The tuning you are designing to. It is an INPUT, not a readout: the '
-    + 'port dimensions are calculated from it — the vent length on the enclosure tab is solved '
-    + 'to deliver this tuning, and moves whenever you change the vent diameter or the volume.';
-  /** Cross area is a solved pair with the vent's own shape dimension — diameter round, height
-   *  slotted. Width is always an input, never derived. */
-  const VENT_GEOMETRY_TIP = 'Cross area is solved from the vent\'s own dimension: diameter for a '
-    + 'round vent, height for a slotted one. Width is always an input, never derived. Enter '
-    + 'either the dimension or the area and the other is calculated from it.';
+  // Delegated to the unit-tested `createVentReadouts` above — needs `advAir`, so the call sits
+  // just after `createEnvironmentAir` below, but the destructured names read the same everywhere
+  // this file used to declare them inline.
 
   // ---- Chart selector ------------------------------------------------------------
   // Clicking a menu label shows that chart alone and closes the menu; its checkbox opens or
@@ -810,9 +760,16 @@ const overlays = computed<Design[]>(() => {
   // Delegated to the unit-tested `createEnvironmentAir` above.
   const {
     envTempStored, envHumidityStored, envPressureStored, envTempDq, envHumidityDq, envPressureDq,
-    advTemp, advHumidity, advPressure, commitAirTemp, commitAirHumidity, commitAirPressure,
+    advTemp, advHumidity, advPressure,
     resetAirToAppDefaults, advAir,
   } = createEnvironmentAir({ project, projectChanged, envDefaults, environment: engine.environment });
+
+  // ---- Enclosure tab: vent (port) readouts ---------------------------------------
+  // Delegated to the unit-tested `createVentReadouts` above — needs `advAir`, hence placed here.
+  const {
+    activeVent, portPipeResonance_hz, fbState, ventLState, fbUnreachable, fbUnreachableMsg,
+    frontChamberTuningLabel,
+  } = createVentReadouts({ project, projectChanged, selectedBox, air: advAir, vent: engine.vent });
 
   const placement = ref<'standard' | 'iso'>('standard');
 
@@ -828,28 +785,9 @@ const overlays = computed<Design[]>(() => {
   }
 
   // ---- PR selection header (Enclosure tab, PR box type) --------------------------
-  const prBrowseOpen = ref(false);
-  const prEditOpen = ref(false);
-  function loadPREntry(uuid: string) {
-    const entry = myPassiveRadiators.list().find(e => e.uuid === uuid);
-    if (!entry) return;
-    project.value.box.passiveRadiator.configurePR(entry.passiveRadiator);
-    prBrowseOpen.value = false;
-  }
-  // Bundled PRs publish only Sd/Cms — the rest of the record states nothing, so the editor
-  // opens for the user to supply them.
-  async function loadBundledPassiveRadiatorEntry(uuid: string): Promise<void> {
-    // The row's id is the record uuid; the repo fetches the record (cached after the first time).
-    const pr = await bundledPassiveRadiators.load(uuid);
-    project.value.box.passiveRadiator.configurePR(pr);
-    prBrowseOpen.value = false;
-    prEditOpen.value = true;
-  }
-  function defineNewPREntry() {
-    definePassiveRadiator();
-    prBrowseOpen.value = false;
-    prEditOpen.value = true;
-  }
+  // Delegated to the unit-tested `createPassiveRadiatorActions` above.
+  const { prBrowseOpen, prEditOpen, loadPREntry, loadBundledPassiveRadiatorEntry, defineNewPREntry } =
+    createPassiveRadiatorActions({ project, myPassiveRadiators, bundledPassiveRadiators });
   function startEdit() { editProjectDriver(); }
 
   // R1 refresh fidelity — RECORD an open Tune / Driver Editor so a reload can restore it.
@@ -911,7 +849,7 @@ const overlays = computed<Design[]>(() => {
     dqOfCell: (field: Readable<unknown>) => dqOfCell(field),
     fmt,
     driveV, rsOhm, advTemp, advHumidity, advPressure, advAir,
-    envTempDq, envHumidityDq, envPressureDq, commitAirTemp, commitAirHumidity, commitAirPressure, resetAirToAppDefaults,
+    envTempDq, envHumidityDq, envPressureDq, resetAirToAppDefaults,
     envTempStored, envHumidityStored, envPressureStored,
     reconcileDriveV,
     powerLocked,

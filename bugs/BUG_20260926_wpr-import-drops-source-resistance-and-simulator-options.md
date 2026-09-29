@@ -20,7 +20,7 @@ Observed 2026-09-26 on
 | `[SignalSource] Rg`             | 10.0         | `driverEmbedding.Rs_ohm` = 0.1                  | 0.1                     |
 | `[SimulatorOptions] VCInd`      | 1            | `advanced.circuitModel` = `winisd` (inductance off) | `winisd`            |
 
-The importer (`packages/design/domain/openIsdProjectToWinIsdProject.ts:216-349`,
+The importer (`packages/design/domain/winIsdProjectConverter.ts:216-349`,
 `winIsdProjectToOpenIsdProject`) reads only these keys: `[Box]` BType, Vr, Fr, Vf, Ff, Npr,
 T, p, phi; `[PassiveRadiator]`; `[SignalSource]` P; `[VentRear]`/`[VentFront]` Num;
 `[ProjectInfo]`. It never reads these, all of which WinISD simulates with:

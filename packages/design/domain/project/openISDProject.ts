@@ -6,7 +6,7 @@ import type { AppContext } from '../appContext.js';
 import { focus, simpleField } from '../cell.js';
 import type { Calculatable, Calculated, Clearable, Entered, Readable, SimpleField, Unsolvable, Writable } from '../cell.js';
 import { newUuid } from '../newUuid.js';
-import { WinIsdProjectConverter } from '../openIsdProjectToWinIsdProject.js';
+import { WinIsdProjectConverter } from '../winIsdProjectConverter.js';
 import type { OpenISDProjectJson, OpenISDProjectSessionJson } from '../openisdSchema.js';
 import { ProjectBuilder } from '../openisdTransforms.js';
 import type { Box } from '../box/box.js';

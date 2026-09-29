@@ -11,7 +11,7 @@ import assert from 'node:assert/strict';
 import {OpenISDDriver} from '../../domain/driver/openISDDriver.js';
 import {WinISDDriver} from '../../winisd/winisdDriver.js';
 import {createEngine} from '@openisd/design/engine';
-import {openIsdDriverToWinIsdDriver} from '../../domain/driverYmlToOpenisdAndWdr.js';
+import {openIsdDriverToWinIsdDriver} from '../../domain/winIsdDriverConverter.js';
 import type {Calculated, Entered, Readable} from '../../domain/cell.js';
 import type {CellState} from '../../winisd/cellState.js';
 

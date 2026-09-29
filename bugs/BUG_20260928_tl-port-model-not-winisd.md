@@ -29,3 +29,5 @@ lossy line is unchanged. Open: bandpass 4/6 and ABC ports in TL mode (need captu
 `test/domain/tl-port-model-winisd.test.ts` against `test/fixtures/winisdTlPortsCapture.ts`: SPL
 and impedance ≤ 1e-12 relative, TF ≤ 1e-12 dB, port velocity ≤ 1e-10. Red before (SPL −40.148
 vs −40.251 dB at 1 Hz), green after; design suite 2389/2389.
+
+4th-order bandpass front port (2026-09-29): same reactance, the front port's Ff mass and end correction; runs/bp4-w5-tlports SPL, Z ≤ 1e-12 (test/domain/tl-port-model-bp4-winisd.test.ts).

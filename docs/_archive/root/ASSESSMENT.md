@@ -27,7 +27,7 @@ This is a **remarkably well-governed** codebase for a solo/small-team project. A
 | A3 | **Medium** | **Direct appState imports from hooks/components** — ~12 hooks + 8 `.vue` files import `logic/appState.ts` directly, bypassing the service layer. Service layer is declared "NOT BUILT" in ARCHITECTURE.md. | `DriverEditorModal.vue:4,18`, etc. |
 | A4 | **Medium** | **Prototype code shipped in design package** — `packages/design/app/` (composition.ts + workspace.ts) is a prototype "stands in for the real UI" that is unreachable from outside the package. | `packages/design/app/` |
 | A5 | **Low** | **0-byte dead file** — `winisd/iniRows.ts` is empty and unreferenced. | `packages/design/winisd/iniRows.ts` |
-| A6 | **Low** | **Stale comment** — `driverYmlToOpenisdAndWdr.ts:5-6` says "It lives in `packages/design/winisd`" but the file is in `packages/design/domain/`. | `domain/driverYmlToOpenisdAndWdr.ts:5-6` |
+| A6 | **Low** | **Stale comment** — `winIsdDriverConverter.ts:5-6` says "It lives in `packages/design/winisd`" but the file is in `packages/design/domain/`. | `domain/winIsdDriverConverter.ts:5-6` |
 | A7 | **Low** | **Deprecated-but-active method** — `notifyVentChanged()` is `@deprecated` but is the app's *active* notification path (called from `useVentGroup.ts:40,70,102`). | `openisdDomain.ts:2942` |
 
 ---

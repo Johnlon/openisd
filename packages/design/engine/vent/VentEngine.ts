@@ -49,6 +49,11 @@ export interface VentEngine {
    *  stated values carry. An entered value is never overwritten; an underivable member becomes
    *  `not-available`. */
   solve(params: VentSolverParams, air: Air): VentIssue[];
+  /** The vent tube's own first (organ-pipe) resonance — the open-open duct fundamental
+   *  `c/(2·L)`. Uses the PHYSICAL length, NOT the end-corrected `Leff` (`effectiveLength`), to
+   *  match WinISD's own "1st port resonance" readout exactly. `null` for a non-positive length —
+   *  there is no port to resonate. */
+  firstResonance_hz(length_m: number, air: Air): number | null;
 }
 
 /** The vent geometry every route below needs, beside `tuning_goal_hz`/`length_m` themselves. */
@@ -74,6 +79,10 @@ export class VentEngineImpl implements VentEngine {
   effectiveLength(length_m: number, Sp: number, count: number, endCorrection: number): number {
     void count;
     return length_m + endCorrection * 2 * Math.sqrt(Sp / Math.PI);
+  }
+
+  firstResonance_hz(length_m: number, air: Air): number | null {
+    return length_m > 0 ? air.c / (2 * length_m) : null;
   }
 
   solve(params: VentSolverParams, air: Air): VentIssue[] {

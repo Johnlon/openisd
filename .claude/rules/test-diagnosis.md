@@ -8,8 +8,8 @@ paths:
 Reproduce and verify at the narrowest scope that can show the failure. Widen only when the
 narrow scope can't reproduce it.
 
-1. Run the single target file: `vitest run <path/to/file.test.ts>` (or the one
-   `.browser.spec.ts` under Playwright: `npx playwright test <file>`). Never the whole suite
+1. Run the single target file: `bash scripts/test.sh <path/to/file.test.ts>` (or the one
+   `.browser.spec.ts`: `bash scripts/test.sh <file>`). Never the whole suite
    while iterating.
 2. If the bug is in logic, reproduce it at the unit or hook layer first (see `tdd.md`) — same
    symptom, seconds instead of minutes, and it pinpoints the actual broken function instead of

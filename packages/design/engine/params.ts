@@ -66,7 +66,7 @@ export function requiredParamsFor(box: BoxType): readonly RequiredParam[] {
   const VF: RequiredParam = {
     field: 'Vf',
     label: 'Front chamber volume (Vf)',
-    consequence: 'a 4th-order bandpass needs both chambers, and the front compliance Vf/(ρc²) collapses to zero',
+    consequence: 'this box has two chambers, and the front one needs a volume before the response can be drawn',
   };
 
   const SP: RequiredParam = {

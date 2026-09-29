@@ -180,7 +180,7 @@ const VCCON_SLOT = 46;
  * `VCCon` is the one field a reader consults by PRESENCE rather than by its mark: slot 46 is
  * unproven — no probing shows WinISD ever writing it — so reading back a `VCCon=` row our writer
  * marked `N` yields `entered`, and the slot moves `N` -> `E` once and is then stable. That is
- * documented at `packages/design/winisd/driverYmlToOpenisdAndWdr.ts:240-247` as a one-time gain of
+ * documented at `packages/design/winisd/winIsdDriverConverter.ts:240-247` as a one-time gain of
  * certainty rather than a loss, and `wdrDriverDiffs` in that same file already excludes the field
  * for it; this gate makes the same exception rather than reporting the intended flip as a defect.
  */

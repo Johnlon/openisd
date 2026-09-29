@@ -23,7 +23,7 @@ boosted only, up to its own passband reference, capped at 20 dB.
 ## Fix
 `SweepParams.winisdFlatModel` (absent = WinISD): reference = the TF's 0 dB, gain = ref − SPL at
 every point, uncapped. `false` keeps OpenISD's capped boost-only variant (`flatMaxBoostDb`), which
-the older engine tests now state. Open: the project/Compatibility-panel switch for it.
+the older engine tests now state. Switch: `ProjectAdvanced.winisdFlatModel` (f65a07b8, on by default, Reset to WinISD turns it on) and the Compatibility panel's "WinISD flat response" checkbox (401c1088).
 
 ## Verification
 `test/domain/force-flat-response-winisd.test.ts` against `test/fixtures/winisdFlatResponseCapture.ts`:

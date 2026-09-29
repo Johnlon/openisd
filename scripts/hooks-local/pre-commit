@@ -43,5 +43,5 @@ $HEAVY npm run typecheck
 # packages/ui/test/ui/architecture.test.ts and architecture-no-reexports.test.ts.
 # The load-scaled timeout reaches vitest as OPENISD_HEAVY_GATE_TEST_TIMEOUT (read in vitest.config.ts),
 # not --testTimeout, which would also time out the architecture tests.
-PRECOMMIT=1 $HEAVY npx vitest run packages/design packages/persistence packages/ui --maxWorkers="$OPENISD_HEAVY_GATE_WORKERS"
+PRECOMMIT=1 $HEAVY npx vitest run packages/design packages/persistence packages/ui --maxWorkers="$OPENISD_HEAVY_GATE_WORKERS" --reporter=dot
 echo "[pre-commit] all green ✓ (checklist gates deferred to ci/A10)"

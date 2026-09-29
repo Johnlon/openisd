@@ -161,7 +161,7 @@ export interface PassiveRadiatorSpecsSection {
 
 
 /** One source's reading of one parameter. `read_value` is the number; the rest annotate it.
- *  Exported so `driverYmlToOpenisdAndWdr.ts` can validate a scraper's driver.yml readings against
+ *  Exported so `winIsdDriverConverter.ts` can validate a scraper's driver.yml readings against
  *  the SAME shape this record stores, rather than a hand-duplicated copy free to drift. */
 export const readingJsonSchema = z.strictObject({
     // `_KEY_PRIORITY_LIST` (`model_driver.py:1509`) is the canonical key order — the emitter's
@@ -239,7 +239,7 @@ const calculatedEntrySchema = z.strictObject({
  *
  * NO LEGACY PREPROCESS (D15): a bare `{origin, readings}` shape with no `state` key — the old
  * `driver.yml` shape, before the scraper's own origin pick and corroboration verdict were retired
- * from the scraper side — is no longer accepted here. `driverYmlToOpenisdAndWdr.ts` builds the
+ * from the scraper side — is no longer accepted here. `winIsdDriverConverter.ts` builds the
  * `{state:'E', value, origin, corroboration, readings, dq_scraper}` entry itself, choosing the
  * origin and computing corroboration on this side (`sourceRank.ts`, `corroboration.ts`), before
  * this schema ever parses it — so a bare scraper shape reaching this union IS a parse error, not
