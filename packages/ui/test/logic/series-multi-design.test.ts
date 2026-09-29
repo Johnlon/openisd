@@ -19,7 +19,7 @@ function fakeField<T>(value: T | null): SolverField<T> {
     get value() { return current; },
     get entered() { return state === 'entered'; },
     get calculated() { return state === 'calculated'; },
-    get dq() { return [] as DqIssue[]; },
+    get dq(): DqIssue[] { return []; },
     get precision() { return null; },
     setCalculated(v: T) { current = v; state = 'calculated'; },
     setDq() {},
@@ -51,7 +51,7 @@ const driverParams: DriverSolverParams = {
 engine.driver.solve(driverParams, engine.environment.solve({}).values);
 const LE_H = 0.70e-3;
 const SP: SweepParams = { Vb: 0.030, eg: 2.83, fmin: 10, fmax: 2000, N: 200, filters: [] };
-const PP = SP as unknown as PlotParams;
+const PP: PlotParams = { fmin: SP.fmin ?? 10, fmax: SP.fmax ?? 2000 };
 const SW = engine.simulation.sweep(driverParams, LE_H, 'sealed', SP).values!;
 const MX = engine.simulation.maxCurves(driverParams, LE_H, 'sealed', SP).values!;
 
