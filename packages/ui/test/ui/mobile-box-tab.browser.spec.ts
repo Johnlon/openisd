@@ -38,7 +38,9 @@ test('the Qtc row shows only for a sealed box', async ({ page }) => {
 
   await page.locator('#mob-box-type').selectOption('vented');
   await expect(page.locator('.mob-field-label', { hasText: 'Qtc' })).toHaveCount(0);
-  await expect(page.locator('.mob-hint', { hasText: 'Enclosure tab' })).toBeVisible();
+  // Bug (John, 2026-09-29): there is no tab literally named "Enclosure" — the hint must name the
+  // tab bar's own dynamic label ("Vented" here) instead of a hardcoded string.
+  await expect(page.locator('.mob-hint', { hasText: '"Vented" tab' })).toBeVisible();
 });
 
 test('the Choose alignment sheet picks an alignment and writes its volume on Accept', async ({ page }) => {

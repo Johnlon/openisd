@@ -16,7 +16,7 @@ export function useMobileBoxTab() {
   const { engine } = useApp();
   const isSimulatable = boxTypeIsSimulatable;
 
-  const { selectedBox, pending, boxLabel, showEnclosureTab } =
+  const { selectedBox, pending, boxLabel, showEnclosureTab, enclosureNavLabel } =
     createSelectedBox({ focusedProject, projectChanged, isSimulatable });
   const { boxResonance, rearQtc } = createSealedReadouts({ project, selectedBox, projectChanged });
   const { boxVolume_m3, boxVolumeDqNote, setBoxVolume_m3 } = createBoxVolume({ project, selectedBox, projectChanged });
@@ -57,7 +57,7 @@ export function useMobileBoxTab() {
   }
 
   return {
-    project, selectedBox, pending, boxLabel, showEnclosureTab,
+    project, selectedBox, pending, boxLabel, showEnclosureTab, enclosureNavLabel,
     boxResonance, rearQtc, boxVolume_m3, boxVolumeDqNote, setBoxVolume_m3,
     selectBoxType, BOX_TYPE_OPTIONS,
     sealedAlignmentEditor, sealedAlignmentOpen, sealedAlignmentOptions, sealedAlignmentSelected,
