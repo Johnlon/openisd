@@ -74,13 +74,24 @@ test('Cancel discards the alignment sheet\'s draft without touching the volume f
   await expect(volumeField).toHaveValue(/15/);
 });
 
-// The Box losses sheet's Ql/Qa/Qp fields aren't wired yet — engine is moving their per-box-type
-// dispatch into the domain (beside OpenISDBox.volumeOf) rather than have this tab repeat the
-// switch OriginalShell-hooks.ts still carries. This just proves the sheet itself opens/closes;
-// a field-level spec follows once that lands.
-test('the Box losses sheet opens and closes', async ({ page }) => {
+// Ql/Qa/Qp dispatch on box type now lives in the domain (OpenISDBox.lossesOf, beside volumeOf) —
+// this proves the mobile sheet is correctly WIRED to it, not that lossesOf itself is correct.
+test('the Box losses sheet edits Ql/Qa, and Qp only for a vented box', async ({ page }) => {
+  await expect(page.locator('.mob-field-label', { hasText: 'Port Qp' })).toHaveCount(0);
   await page.locator('.mob-btn', { hasText: 'Box losses' }).click();
-  await expect(page.locator('.mob-align-sheet')).toContainText('Box losses');
+  await expect(page.locator('.mob-field-label', { hasText: 'Leakage Ql' })).toBeVisible();
+  await expect(page.locator('.mob-field-label', { hasText: 'Absorption Qa' })).toBeVisible();
+  await expect(page.locator('.mob-field-label', { hasText: 'Port Qp' })).toBeVisible();
+
+  const qlInput = page.locator('.mob-field-row', { has: page.locator('.mob-field-label', { hasText: 'Leakage Ql' }) }).locator('input');
+  await qlInput.fill('12');
+  await qlInput.blur();
+  await expect(qlInput).toHaveValue(/12/);
+
   await page.locator('.mob-align-footer .mob-btn', { hasText: 'OK' }).click();
   await expect(page.locator('.mob-align-sheet')).toHaveCount(0);
+
+  await page.locator('#mob-box-type').selectOption('sealed');
+  await page.locator('.mob-btn', { hasText: 'Box losses' }).click();
+  await expect(page.locator('.mob-field-label', { hasText: 'Port Qp' })).toHaveCount(0);
 });

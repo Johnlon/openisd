@@ -15,7 +15,7 @@ const {
   selectBoxType, BOX_TYPE_OPTIONS,
   sealedAlignmentEditor, sealedAlignmentOpen, sealedAlignmentOptions, sealedAlignmentSelected,
   sealedAlignmentVolume_L, sealedAlignmentEbp, sealedAlignmentSuitability, sealedAlignmentSuitabilityLabel,
-  boxLossesOpen,
+  boxQl, setBoxQl, boxQa, setBoxQa, boxQp, setBoxQp, boxLossesOpen,
 } = useMobileBoxTab();
 </script>
 
@@ -114,9 +114,30 @@ const {
         <span>Box losses</span>
         <button class="mob-x" @click="boxLossesOpen = false">&#10005;</button>
       </div>
-      <!-- Ql/Qa/Qp fields land once the per-box-type dispatch moves into the domain (engine,
-           2026-09-29, beside OpenISDBox.volumeOf) — the sheet shell is ready, the fields aren't
-           wired yet so this doesn't duplicate the switch OriginalShell-hooks.ts still carries. -->
+      <div class="mob-field-row mob-field-entered">
+        <div class="mob-field-main">
+          <span class="mob-field-label">Leakage Ql</span>
+          <span class="mob-field-value">
+            <NumInput :model-value="boxQl" @update:model-value="(v: number | null) => setBoxQl(v ?? 0)" :precision="NumberField.LOSS_QL.precision" />
+          </span>
+        </div>
+      </div>
+      <div class="mob-field-row mob-field-entered">
+        <div class="mob-field-main">
+          <span class="mob-field-label">Absorption Qa</span>
+          <span class="mob-field-value">
+            <NumInput :model-value="boxQa" @update:model-value="(v: number | null) => setBoxQa(v ?? 0)" :precision="NumberField.LOSS_QA.precision" />
+          </span>
+        </div>
+      </div>
+      <div v-if="boxQp !== null" class="mob-field-row mob-field-entered">
+        <div class="mob-field-main">
+          <span class="mob-field-label">Port Qp</span>
+          <span class="mob-field-value">
+            <NumInput :model-value="boxQp" @update:model-value="(v: number | null) => setBoxQp(v ?? 0)" :precision="NumberField.LOSS_QP.precision" />
+          </span>
+        </div>
+      </div>
       <p class="mob-hint">100 = no stuffing · 20–50 = light · 5–10 = heavy. WinISD defaults: Ql=10, Qa=100, Qp=100.</p>
       <div class="mob-align-footer">
         <button class="mob-btn mob-btn-primary" @click="boxLossesOpen = false">OK</button>

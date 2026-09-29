@@ -3,7 +3,7 @@
  * the SAME field-wiring factories `boxFields.ts` exports — one implementation of
  * "what does the Box tab's Volume field do", asked by both shells.
  */
-import {ref} from 'vue';
+import {computed, ref} from 'vue';
 import {boxTypeIsSimulatable, focusedProject, projectChanged} from '../logic/appState.js';
 import {useFocusedProject} from '../logic/focusedProjectContext.js';
 import {useApp} from '../logic/app.js';
@@ -20,10 +20,23 @@ export function useMobileBoxTab() {
     createSelectedBox({ focusedProject, projectChanged, isSimulatable });
   const { boxResonance, rearQtc } = createSealedReadouts({ project, selectedBox, projectChanged });
   const { boxVolume_m3, boxVolumeDqNote, setBoxVolume_m3 } = createBoxVolume({ project, selectedBox, projectChanged });
-  // Box-losses (Ql/Qa/Qp) field wiring is NOT here yet — engine is moving its per-box-type
-  // dispatch into the domain (OpenISDBox, beside volumeOf) rather than have this repeat the
-  // switch OriginalShell-hooks.ts still carries inline. Only the sheet's open/close state lives
-  // here until that lands; the fields themselves are wired in as a follow-up.
+  // Box-losses (Ql/Qa/Qp) — the per-box-type dispatch now lives in the domain
+  // (OpenISDBox.lossesOf, beside volumeOf/frontVolumeOf/rearTuningOf), so this is a one-liner
+  // each, mirroring OriginalShell-hooks.ts's own boxQl/boxQa/boxQp: never switch on box type in a
+  // mobile hook. null means the type has no such field; Qp null means no port.
+  //
+  // `void projectChanged.value` in each getter: reading `focusedProject()` alone does not
+  // register a dependency on the project's OWN field mutations (only on focus changing), so
+  // without this the readout freezes at whatever it was on mount instead of updating after
+  // `setBoxQl`/etc — the same staleness class the file's own top comment on `changeTicks`
+  // documents elsewhere. Desktop's current boxQl/boxQa/boxQp lack this too (same bug, not fixed
+  // here — flagged to engine, that file's in flux).
+  const boxQl = computed<number | null>(() => { void projectChanged.value; return focusedProject()?.box.lossesOf(selectedBox.value)?.Ql.value ?? null; });
+  function setBoxQl(v: number): void { project.value.box.lossesOf(selectedBox.value)?.Ql.set(v); }
+  const boxQa = computed<number | null>(() => { void projectChanged.value; return focusedProject()?.box.lossesOf(selectedBox.value)?.Qa.value ?? null; });
+  function setBoxQa(v: number): void { project.value.box.lossesOf(selectedBox.value)?.Qa.set(v); }
+  const boxQp = computed<number | null>(() => { void projectChanged.value; return focusedProject()?.box.lossesOf(selectedBox.value)?.Qp?.value ?? null; });
+  function setBoxQp(v: number): void { project.value.box.lossesOf(selectedBox.value)?.Qp?.set(v); }
   const boxLossesOpen = ref(false);
 
   // Same skin-neutral class the desktop shell uses (SealedAlignment-hooks.ts) — one editor, not
@@ -49,6 +62,6 @@ export function useMobileBoxTab() {
     selectBoxType, BOX_TYPE_OPTIONS,
     sealedAlignmentEditor, sealedAlignmentOpen, sealedAlignmentOptions, sealedAlignmentSelected,
     sealedAlignmentVolume_L, sealedAlignmentEbp, sealedAlignmentSuitability, sealedAlignmentSuitabilityLabel,
-    boxLossesOpen,
+    boxQl, setBoxQl, boxQa, setBoxQa, boxQp, setBoxQp, boxLossesOpen,
   };
 }
