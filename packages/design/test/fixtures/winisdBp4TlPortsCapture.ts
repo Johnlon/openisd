@@ -7,7 +7,7 @@
 export interface WinIsdPlottedPoint { readonly f: number; readonly v: number }
 
 
-const WINISD_BP4_TL_PORTS_CAPTURE_SPL_D_B: readonly WinIsdPlottedPoint[] = [
+const WINISD_BP4_TL_PORTS_CAPTURE_SPL_DB: readonly WinIsdPlottedPoint[] = [
     {f: 1.0, v: -4.828845599243258},
     {f: 1.0789604011446716, v: -2.8712851959556858},
     {f: 1.1641555472382705, v: -0.9173084651179472},
@@ -273,7 +273,7 @@ const WINISD_BP4_TL_PORTS_CAPTURE_IMPEDANCE_OHM: readonly WinIsdPlottedPoint[] =
     {f: 18101.320961547517, v: 3.4000405312365043},
     {f: 19530.60852591976, v: 3.4000348072274136},
 ];
-const WINISD_BP4_TL_PORTS_CAPTURE_TF_MAG_D_B: readonly WinIsdPlottedPoint[] = [
+const WINISD_BP4_TL_PORTS_CAPTURE_TF_MAG_DB: readonly WinIsdPlottedPoint[] = [
     {f: 1.0, v: -85.37594528824364},
     {f: 1.0789604011446716, v: -83.41838488495607},
     {f: 1.1641555472382705, v: -81.46440815411833},
@@ -411,7 +411,7 @@ export const WINISD_BP4_TL_PORTS_CAPTURE = Object.freeze({
   /** WinISD's grid: every point of each chart is grid point i·step. */
   grid: {fmin: 1.0, fmax: 20095.223453196217, N: 2086},
   step: 16,
-  spl_dB: WINISD_BP4_TL_PORTS_CAPTURE_SPL_D_B,
+  spl_dB: WINISD_BP4_TL_PORTS_CAPTURE_SPL_DB,
   impedance_ohm: WINISD_BP4_TL_PORTS_CAPTURE_IMPEDANCE_OHM,
-  tfMag_dB: WINISD_BP4_TL_PORTS_CAPTURE_TF_MAG_D_B,
+  tfMag_dB: WINISD_BP4_TL_PORTS_CAPTURE_TF_MAG_DB,
 });

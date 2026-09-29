@@ -7,7 +7,7 @@
 export interface WinIsdPlottedPoint { readonly f: number; readonly v: number }
 
 
-const WINISD_ABC_PORT_GAIN_CAPTURE_REAR_PORT_GAIN_D_B: readonly WinIsdPlottedPoint[] = [
+const WINISD_ABC_PORT_GAIN_CAPTURE_REAR_PORT_GAIN_DB: readonly WinIsdPlottedPoint[] = [
     {f: 1.0, v: -71.66889228696083},
     {f: 1.0789604011446716, v: -70.33613333159911},
     {f: 1.1641555472382705, v: -69.0018279342112},
@@ -140,7 +140,7 @@ const WINISD_ABC_PORT_GAIN_CAPTURE_REAR_PORT_GAIN_D_B: readonly WinIsdPlottedPoi
     {f: 18101.320961547517, v: -82.25926431626236},
     {f: 19530.60852591976, v: -82.9223464642924},
 ];
-const WINISD_ABC_PORT_GAIN_CAPTURE_FRONT_PORT_GAIN_D_B: readonly WinIsdPlottedPoint[] = [
+const WINISD_ABC_PORT_GAIN_CAPTURE_FRONT_PORT_GAIN_DB: readonly WinIsdPlottedPoint[] = [
     {f: 1.0, v: -72.82679235917635},
     {f: 1.0789604011446716, v: -71.51944622678593},
     {f: 1.1641555472382705, v: -70.2137689008004},
@@ -278,6 +278,6 @@ export const WINISD_ABC_PORT_GAIN_CAPTURE = Object.freeze({
   /** WinISD's grid: every point of each chart is grid point i·step. */
   grid: {fmin: 1.0, fmax: 20095.223453196217, N: 2086},
   step: 16,
-  rearPortGain_dB: WINISD_ABC_PORT_GAIN_CAPTURE_REAR_PORT_GAIN_D_B,
-  frontPortGain_dB: WINISD_ABC_PORT_GAIN_CAPTURE_FRONT_PORT_GAIN_D_B,
+  rearPortGain_dB: WINISD_ABC_PORT_GAIN_CAPTURE_REAR_PORT_GAIN_DB,
+  frontPortGain_dB: WINISD_ABC_PORT_GAIN_CAPTURE_FRONT_PORT_GAIN_DB,
 });

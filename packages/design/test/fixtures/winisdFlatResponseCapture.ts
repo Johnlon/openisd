@@ -7,7 +7,7 @@
 export interface WinIsdPlottedPoint { readonly f: number; readonly v: number }
 
 
-const WINISD_FLAT_RESPONSE_CAPTURE_SPL_D_B: readonly WinIsdPlottedPoint[] = [
+const WINISD_FLAT_RESPONSE_CAPTURE_SPL_DB: readonly WinIsdPlottedPoint[] = [
     {f: 1.0, v: 80.54709968900039},
     {f: 1.0789604011446716, v: 80.54709968900039},
     {f: 1.1641555472382705, v: 80.54709968900039},
@@ -273,7 +273,7 @@ const WINISD_FLAT_RESPONSE_CAPTURE_EXCURSION_M: readonly WinIsdPlottedPoint[] = 
     {f: 18101.320961547517, v: 1.298615811856537e-08},
     {f: 19530.60852591976, v: 1.11550024667938e-08},
 ];
-const WINISD_FLAT_RESPONSE_CAPTURE_TF_MAG_D_B: readonly WinIsdPlottedPoint[] = [
+const WINISD_FLAT_RESPONSE_CAPTURE_TF_MAG_DB: readonly WinIsdPlottedPoint[] = [
     {f: 1.0, v: -9.643274665532871e-16},
     {f: 1.0789604011446716, v: 0.0},
     {f: 1.1641555472382705, v: 0.0},
@@ -411,7 +411,7 @@ export const WINISD_FLAT_RESPONSE_CAPTURE = Object.freeze({
   /** WinISD's grid: every point of each chart is grid point i·step. */
   grid: {fmin: 1.0, fmax: 20095.223453196217, N: 2086},
   step: 16,
-  spl_dB: WINISD_FLAT_RESPONSE_CAPTURE_SPL_D_B,
+  spl_dB: WINISD_FLAT_RESPONSE_CAPTURE_SPL_DB,
   excursion_m: WINISD_FLAT_RESPONSE_CAPTURE_EXCURSION_M,
-  tfMag_dB: WINISD_FLAT_RESPONSE_CAPTURE_TF_MAG_D_B,
+  tfMag_dB: WINISD_FLAT_RESPONSE_CAPTURE_TF_MAG_DB,
 });

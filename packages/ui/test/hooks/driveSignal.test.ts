@@ -139,7 +139,7 @@ describe('driveSignal', () => {
       expect(rsOhm.value).toBe(project.Rs_ohm.value);
       rsOhm.value = 0.5;
       expect(project.Rs_ohm.value).toBe(0.5);
-      rsOhm.value = null as unknown as number;
+      rsOhm.value = null;
       expect(project.Rs_ohm.value).toBe(0);
     });
   });

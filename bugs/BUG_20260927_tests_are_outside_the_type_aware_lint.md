@@ -1,6 +1,6 @@
 # BUG_20260927_tests_are_outside_the_type_aware_lint
 
-**Status:** OPEN
+**Status:** RESOLVED
 
 ## Symptom
 
@@ -54,3 +54,19 @@ the line is commented there with a pointer to this record.
 ## Verification
 
 `npx eslint packages/` is clean with tests in the list.
+
+## Resolution (2026-09-29)
+
+`'packages/*/test/**/*.ts'` is in `typeAware.files`; `npm run lint` and `npm run typecheck` are
+clean over the whole repo. Four slices did the work (design engine, design rest, ui specs, ui
+logic/persistence/hooks/fixtures).
+
+- Casts became typed helpers, `.clear()` where a test had passed `null` to `set()`, and typed
+  `page.evaluate()` callbacks.
+- Golden fixtures are hoisted typed constants, not `as readonly WinIsdPlottedPoint[]` literals.
+  `winisd_research/toys/plotted_fixture_ts.py:41` still emits the `as` form: regenerating a
+  capture fixture reintroduces lint errors until that generator is changed.
+- One source change: `driveSignal.ts` `rsOhm` is `computed<number, number | null>`, matching its
+  setter, which already took null.
+- Found on the way: `useApplicationIO.test.ts` read the generated sample project without generating
+  it and passed only by other files' side effect. Fixed.
