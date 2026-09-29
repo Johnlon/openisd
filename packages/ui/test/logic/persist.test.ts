@@ -18,6 +18,37 @@ import type {BoxType} from '@openisd/design/engine';
 import {createEngine} from '@openisd/design/engine';
 import {createMemoryStorage, createProjectRepo, type FileStorage, type ViewSnapshot} from '@openisd/persistence';
 import {currentViewSnapshot} from '../../src/logic/appState.js';
+import {z} from 'zod';
+
+/** The driver record inside a saved project's wire — only the fields these tests read; the
+ *  full shape is validated again when the record is handed to `OpenISDDriver.fromConformingRecord`. */
+const driverWireRecordSchema = z.looseObject({
+  specs: z.looseObject({
+    woofer: z.looseObject({
+      Fs_hz: z.looseObject({ readings: z.unknown() }).optional(),
+    }).optional(),
+  }),
+});
+
+/** A project's `.owpr`/share-link wire, as `session.saved` carries it — only the fields these
+ *  tests read. `z.looseObject` passes every other key through unvalidated, so `Object.keys()`
+ *  over a parsed value still sees the real record. */
+const savedProjectWireSchema = z.looseObject({
+  meta: z.looseObject({ name: z.unknown(), creator: z.unknown(), modified: z.unknown() }).optional(),
+  box: z.looseObject({ boxType: z.unknown() }).optional(),
+  driverEmbedding: z.looseObject({ device: driverWireRecordSchema }).optional(),
+});
+type SavedProjectWire = z.infer<typeof savedProjectWireSchema>;
+
+/** `sessionText` is a `{..., saved, ...}` session wrapper (`.owpr` or a decoded share link's
+ *  `project` text) — this reads the boundary once and hands back the `saved` project, typed. */
+function parseSavedProject(sessionText: string): SavedProjectWire {
+  const parsed: unknown = JSON.parse(sessionText);
+  if (typeof parsed !== 'object' || parsed === null || !('saved' in parsed)) {
+    throw new Error('the payload must carry a saved project');
+  }
+  return savedProjectWireSchema.parse(parsed.saved);
+}
 
 /** A picker that is never reached — these tests exercise the storage/link/text doors only. */
 const noFilePicker: FileStorage = {
@@ -83,11 +114,8 @@ function projectOf(box: BoxType, meta: FixtureMeta,
  *  A `.owpr` file holds the session wrapper `{label, saved, edited}`
  *  (`openISDProjectSessionJsonSchema`), so the project itself is `saved` — every assertion below
  *  is about the project, and reading the wrapper instead would make each one vacuously true. */
-// Parsed JSON, so untyped — a test reads whatever fields it is checking.
-async function storedPayload(project: OpenISDProject): Promise<ReturnType<typeof JSON.parse>> {
-  const session = JSON.parse(await savedFileText(project));
-  assert.ok(session.saved, 'the file must carry a saved project');
-  return session.saved;
+async function storedPayload(project: OpenISDProject): Promise<SavedProjectWire> {
+  return parseSavedProject(await savedFileText(project));
 }
 
 /** The share-link payload, decoded independently of the app's own `stateToUrl`/gzip path —
@@ -95,9 +123,17 @@ async function storedPayload(project: OpenISDProject): Promise<ReturnType<typeof
 /** What a decoded share link holds: the project as `.owpr` text (parsed further where a test
  *  reaches into the record) beside the view the link was carrying. */
 interface DecodedShare { project: string; view: ViewSnapshot }
+function isDecodedShare(value: unknown): value is DecodedShare {
+  if (typeof value !== 'object' || value === null) return false;
+  if (!('project' in value) || typeof value.project !== 'string') return false;
+  if (!('view' in value) || typeof value.view !== 'object' || value.view === null) return false;
+  return true;
+}
 function decodeShare(url: string): DecodedShare {
   const b64 = url.match(/[#&]s=([^&]+)/)![1].replace(/-/g, '+').replace(/_/g, '/');
-  return JSON.parse(gunzipSync(Buffer.from(b64, 'base64')).toString('utf8'));
+  const decoded: unknown = JSON.parse(gunzipSync(Buffer.from(b64, 'base64')).toString('utf8'));
+  if (!isDecodedShare(decoded)) throw new Error('share link payload does not match {project, view}');
+  return decoded;
 }
 
 /** The project metadata a fixture states — the five fields `projectOf` writes onto a project
@@ -149,7 +185,7 @@ describe('persistence — provenance survives a file-save round trip', () => {
     // must travel — not a fresh one rebuilt from the untouched record.
     project.setDriver(src);
     const wire = await storedPayload(project);
-    const backOrErr = OpenISDDriver.fromConformingRecord(wire.driverEmbedding.device, createEngine());
+    const backOrErr = OpenISDDriver.fromConformingRecord(wire.driverEmbedding?.device, createEngine());
     const back = Array.isArray(backOrErr) ? null : backOrErr;
     if (!back) throw new Error('Bad back driver');
 
@@ -276,7 +312,7 @@ describe('share link carries the whole state, stripped of nothing', () => {
     };
     const urlOrErr = await repo.stateToUrl(projectOf('sealed', meta, drv), uiView);
     if (Array.isArray(urlOrErr)) throw new Error('fail');
-    const shared = decodeShare(urlOrErr as string);
+    const shared = decodeShare(urlOrErr);
     // A share link is `{project, view}` — the design and where the sender was looking, kept
     // apart. The ui fields are the view's; the metadata is the project's.
     const ui: Record<string, unknown> | undefined = shared.view?.ui;
@@ -287,7 +323,7 @@ describe('share link carries the whole state, stripped of nothing', () => {
     // The project travels as `.owpr` TEXT — the same bytes a saved file holds, one serialised
     // form for every door (`projectRepo.stateToUrl`) — so it is parsed to reach the record. The
     // parsed shape is the session wrapper `{label, saved, edited}`; the design is under `saved`.
-    const saved = JSON.parse(shared.project)?.saved;
+    const saved = parseSavedProject(shared.project);
     assert.equal(saved?.meta?.name, 'Kick bin');
     assert.equal(saved?.meta?.creator, 'John Lonergan');
     assert.equal(saved?.meta?.modified, '2026-08-14T12:30:00.000Z');
