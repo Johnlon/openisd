@@ -39,6 +39,9 @@ const {
   boxVolume_m3, boxVolumeDqNote, setBoxVolume_m3, sealedAlignmentEditor, sealedAlignmentOpen,
   sealedAlignmentOptions, sealedAlignmentSelected, sealedAlignmentVolume_L, sealedAlignmentEbp,
   sealedAlignmentSuitability, sealedAlignmentSuitabilityLabel, originalFilters,
+  ventedAlignmentEditor, ventedAlignmentOpen, ventedAlignmentOptions, ventedAlignmentSelected,
+  ventedAlignmentVolume_L, ventedAlignmentTuning_hz, ventedAlignmentEbp, ventedAlignmentSuitability,
+  ventedAlignmentSuitabilityLabel,
   fbState, FB_TARGET_TIP, VENT_GEOMETRY_TIP, fmtU, clearVentFieldOn, enterVentFieldOn,
   boxResonance, rearQtc, prSystemTuningDq,
   fbUnreachable, fbUnreachableMsg, boxLossesOpen, isDual,
@@ -271,6 +274,7 @@ const {
               <div class="field-row">
                 <div class="field entered"><label>Volume</label><NumInput :model-value="boxVolume_m3" @update:model-value="(v: number | null) => setBoxVolume_m3(v ?? 0)" :field="NumberField.BOX_VB_L" unit-key="Vb" :precision="NumberField.BOX_VB_L.precision" /><span v-if="boxVolumeDqNote" class="de-dq" :title="boxVolumeDqNote">&#9888;</span><UnitToggle :field="NumberField.BOX_VB_L" unit-key="Vb" unit-class="unit unit-cyc" /></div>
                 <button v-if="selectedBox === 'sealed'" class="link-btn" title="Choose a sealed-box alignment and calculate its volume" @click="sealedAlignmentEditor.openEditor">Alignment</button>
+                <button v-if="selectedBox === 'vented'" class="link-btn" title="Choose a vented-box alignment and calculate its volume and tuning" @click="ventedAlignmentEditor.openEditor">Alignment</button>
               </div>
               <div class="field-row" style="flex-wrap: nowrap;">
                 <!-- A vented chamber's tuning is a real design choice (the port is an extra
@@ -761,6 +765,31 @@ const {
           <p class="hint">The volume uses the driver's Qts and Vas. Editing Volume changes the resulting Qtc and selects the closest numeric alignment.</p>
         </div>
         <div class="modal-footer"><div></div><div class="footer-buttons"><button class="cancel-btn" @click="sealedAlignmentEditor.cancel">Cancel</button><button class="ok-btn" @click="sealedAlignmentEditor.accept">Accept</button></div></div>
+      </div>
+    </div>
+
+    <div v-if="ventedAlignmentOpen" class="overlay on alignment-overlay">
+      <div class="modal alignment-modal">
+        <div class="modal-titlebar">
+          <div class="tb-left"><span class="app-icon"></span><span>Choose Vented Alignment</span></div>
+          <div class="win-controls"><span class="close-btn" @click="ventedAlignmentEditor.cancel">&#10005;</span></div>
+        </div>
+        <div class="modal-body">
+          <p class="hint">Select a named vented alignment to calculate the box volume and tuning frequency for the current driver.</p>
+          <div class="field-row"><div class="field alignment-field"><label>Alignment</label>
+            <select class="alignment-select" :value="ventedAlignmentSelected" @change="e => { const a = selectedOption(e, ventedAlignmentOptions); if (a !== null) ventedAlignmentEditor.selectAlignment(a); }">
+              <option v-for="option in ventedAlignmentOptions" :key="option.value" :value="option.value">{{ option.label }}</option>
+            </select>
+          </div></div>
+          <div class="field-row"><div class="field"><label>Volume</label><input type="number" readonly :value="ventedAlignmentVolume_L == null ? '' : ventedAlignmentVolume_L.toFixed(2)"><span class="unit">L</span></div></div>
+          <div class="field-row"><div class="field"><label>Tuning freq (Fb)</label><input type="number" readonly :value="ventedAlignmentTuning_hz == null ? '' : ventedAlignmentTuning_hz.toFixed(1)"><span class="unit">Hz</span></div></div>
+          <div class="alignment-readout"><span class="alignment-icon" :class="ventedAlignmentSuitability ?? 'unknown'">●</span>
+            <span>EBP {{ ventedAlignmentEbp == null ? '—' : ventedAlignmentEbp.toFixed(1) }} Hz — {{ ventedAlignmentSuitabilityLabel }}</span>
+          </div>
+          <p class="hint">EBP is Fs ÷ Qes. It is a rule-of-thumb suitability guide: below 50 generally favors sealed, above 100 generally favors vented, and the middle range can use either.</p>
+          <p class="hint">Volume and tuning are calculated from the driver's Fs, Qts, and Vas for the selected alignment.</p>
+        </div>
+        <div class="modal-footer"><div></div><div class="footer-buttons"><button class="cancel-btn" @click="ventedAlignmentEditor.cancel">Cancel</button><button class="ok-btn" @click="ventedAlignmentEditor.accept">Accept</button></div></div>
       </div>
     </div>
 

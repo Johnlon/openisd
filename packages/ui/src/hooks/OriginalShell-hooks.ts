@@ -58,6 +58,7 @@ import {clampedFrequency, interpolatedY, steppedFrequency} from '../logic/cursor
 import {ARRAY_WIRING_OPTIONS, BOX_TYPE_OPTIONS, END_CORRECTION_OPTIONS, LossMode, NumberField, VENT_SHAPE_OPTIONS} from '@openisd/design/fields';
 import {inputChecked, inputFrom, inputValue, listeningElement, selectedOption, selectValue} from '../logic/domEvents.js';
 import {SealedAlignmentEditor} from './SealedAlignment-hooks.js';
+import {VentedAlignmentEditor} from './VentedAlignment-hooks.js';
 import {OriginalFilters} from './OriginalFilters-hooks.js';
 import type {Calculated, Clearable, Entered, OpenISDProject, Readable, Writable} from '@openisd/design';
 import {dqOfCell, type DqReadout} from '../logic/cellDataQuality.js';
@@ -236,6 +237,18 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   const sealedAlignmentEbp = sealedAlignmentEditor.ebp;
   const sealedAlignmentSuitability = sealedAlignmentEditor.ebpSuitability;
   const sealedAlignmentSuitabilityLabel = sealedAlignmentEditor.ebpSuitabilityLabel;
+
+  // Same class the mobile skin drives (VentedAlignment-hooks.ts) — one implementation, both
+  // shells' pickers.
+  const ventedAlignmentEditor = new VentedAlignmentEditor(project, projectChanged, engine.driver);
+  const ventedAlignmentOpen = ventedAlignmentEditor.open;
+  const ventedAlignmentOptions = ventedAlignmentEditor.options;
+  const ventedAlignmentSelected = ventedAlignmentEditor.selectedAlignment;
+  const ventedAlignmentVolume_L = ventedAlignmentEditor.volume_L;
+  const ventedAlignmentTuning_hz = ventedAlignmentEditor.tuning_hz;
+  const ventedAlignmentEbp = ventedAlignmentEditor.ebp;
+  const ventedAlignmentSuitability = ventedAlignmentEditor.ebpSuitability;
+  const ventedAlignmentSuitabilityLabel = ventedAlignmentEditor.ebpSuitabilityLabel;
 
   // Box-type-generic rear-chamber volume (WinISD "Vb") — the Box tab's single "Volume" field
   // dispatches through the unit-tested `createBoxVolume` (`boxFields.ts`).
@@ -719,6 +732,9 @@ const overlays = computed<Design[]>(() => {
      boxVolume_m3, boxVolumeDqNote, setBoxVolume_m3, sealedAlignmentEditor, sealedAlignmentOpen,
      sealedAlignmentOptions, sealedAlignmentSelected, sealedAlignmentVolume_L, sealedAlignmentEbp,
      sealedAlignmentSuitability, sealedAlignmentSuitabilityLabel, originalFilters,
+     ventedAlignmentEditor, ventedAlignmentOpen, ventedAlignmentOptions, ventedAlignmentSelected,
+     ventedAlignmentVolume_L, ventedAlignmentTuning_hz, ventedAlignmentEbp, ventedAlignmentSuitability,
+     ventedAlignmentSuitabilityLabel,
     fbState, FB_TARGET_TIP, VENT_GEOMETRY_TIP, fmtU, clearVentFieldOn, enterVentFieldOn,
     boxResonance, rearQtc, prSystemTuningDq,
     fbUnreachable, fbUnreachableMsg, boxLossesOpen, isDual,

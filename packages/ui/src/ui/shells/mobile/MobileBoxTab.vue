@@ -15,6 +15,9 @@ const {
   selectBoxType, BOX_TYPE_OPTIONS,
   sealedAlignmentEditor, sealedAlignmentOpen, sealedAlignmentOptions, sealedAlignmentSelected,
   sealedAlignmentVolume_L, sealedAlignmentEbp, sealedAlignmentSuitability, sealedAlignmentSuitabilityLabel,
+  ventedAlignmentEditor, ventedAlignmentOpen, ventedAlignmentOptions, ventedAlignmentSelected,
+  ventedAlignmentVolume_L, ventedAlignmentTuning_hz, ventedAlignmentEbp, ventedAlignmentSuitability,
+  ventedAlignmentSuitabilityLabel,
   boxQl, setBoxQl, boxQa, setBoxQa, boxQp, setBoxQp, boxLossesOpen,
 } = useMobileBoxTab();
 </script>
@@ -64,6 +67,9 @@ const {
     <div v-if="selectedBox === 'sealed'" class="mob-row">
       <button class="mob-btn" @click="sealedAlignmentEditor.openEditor">Choose alignment</button>
     </div>
+    <div v-if="selectedBox === 'vented'" class="mob-row">
+      <button class="mob-btn" @click="ventedAlignmentEditor.openEditor">Choose alignment</button>
+    </div>
     <div class="mob-row">
       <button class="mob-btn" @click="boxLossesOpen = true">Box losses -&gt;</button>
     </div>
@@ -104,6 +110,42 @@ const {
       <div class="mob-align-footer">
         <button class="mob-btn" @click="sealedAlignmentEditor.cancel">Cancel</button>
         <button class="mob-btn mob-btn-primary" @click="sealedAlignmentEditor.accept">Accept</button>
+      </div>
+    </div>
+  </div>
+
+  <div v-if="ventedAlignmentOpen" class="mob-align-overlay" @click.self="ventedAlignmentEditor.cancel">
+    <div class="mob-align-sheet">
+      <div class="mob-panel-head mob-panel-head-row">
+        <span>Choose vented alignment</span>
+        <button class="mob-x" @click="ventedAlignmentEditor.cancel">&#10005;</button>
+      </div>
+      <div class="mob-row">
+        <label class="mob-row-label">Alignment</label>
+        <select class="mob-select" :value="ventedAlignmentSelected"
+                @change="e => { const a = selectedOption(e, ventedAlignmentOptions); if (a !== null) ventedAlignmentEditor.selectAlignment(a); }">
+          <option v-for="o in ventedAlignmentOptions" :key="o.value" :value="o.value">{{ o.label }}</option>
+        </select>
+      </div>
+      <div class="mob-field-row mob-field-calculated">
+        <div class="mob-field-main">
+          <span class="mob-field-label">Volume</span>
+          <span class="mob-field-value mob-readonly">{{ ventedAlignmentVolume_L == null ? '—' : ventedAlignmentVolume_L.toFixed(2) + ' L' }}</span>
+        </div>
+      </div>
+      <div class="mob-field-row mob-field-calculated">
+        <div class="mob-field-main">
+          <span class="mob-field-label">Tuning freq (Fb)</span>
+          <span class="mob-field-value mob-readonly">{{ ventedAlignmentTuning_hz == null ? '—' : ventedAlignmentTuning_hz.toFixed(1) + ' Hz' }}</span>
+        </div>
+      </div>
+      <div class="mob-align-readout">
+        <span class="mob-align-dot" :class="ventedAlignmentSuitability ?? 'unknown'"></span>
+        <span>EBP {{ ventedAlignmentEbp == null ? '—' : ventedAlignmentEbp.toFixed(1) }} Hz — {{ ventedAlignmentSuitabilityLabel }}</span>
+      </div>
+      <div class="mob-align-footer">
+        <button class="mob-btn" @click="ventedAlignmentEditor.cancel">Cancel</button>
+        <button class="mob-btn mob-btn-primary" @click="ventedAlignmentEditor.accept">Accept</button>
       </div>
     </div>
   </div>

@@ -61,6 +61,32 @@ test('the Choose alignment sheet picks an alignment and writes its volume on Acc
   await expect(volumeField).toHaveValue(/20/);
 });
 
+test('the vented Choose alignment sheet picks an alignment and writes volume + tuning on Accept', async ({ page }) => {
+  // The default sample project has no T/S params, so ventedDesign() has nothing to compute from
+  // (recalculate() would silently no-op) — needs COMPLETE_DRIVER_PROJECT_OWPR's real Fs/Qes/Vas,
+  // same as the box-type-switch-defaults spec below.
+  await openAMobileProject(page, COMPLETE_DRIVER_PROJECT_OWPR);
+  await page.locator('#mob-box-type').selectOption('vented');
+  await expect(page.locator('.mob-btn', { hasText: 'Choose alignment' })).toBeVisible();
+
+  await page.locator('.mob-btn', { hasText: 'Choose alignment' }).click();
+  await expect(page.locator('.mob-align-sheet')).toBeVisible();
+
+  // Vented has no volume/tuning reverse lookup (VentedEngine has no closestAlignment), so the
+  // sheet's Volume + Tuning freq are read-only readouts driven by the alignment <select>, unlike
+  // sealed's directly-editable field.
+  await page.locator('.mob-align-sheet .mob-select').selectOption('bb4');
+  await expect(page.locator('.mob-align-sheet .mob-field-label', { hasText: 'Tuning freq' })).toBeVisible();
+  await expect(page.locator('.mob-align-readout')).toContainText('EBP');
+
+  await page.locator('.mob-align-footer .mob-btn-primary', { hasText: 'Accept' }).click();
+  await expect(page.locator('.mob-align-sheet')).toHaveCount(0);
+
+  const volumeField = page.locator('.mob-field-row.mob-field-entered .mob-field-value input').first();
+  await expect(volumeField).not.toHaveValue('0.00');
+  await expect(volumeField).not.toHaveValue('');
+});
+
 test('Cancel discards the alignment sheet\'s draft without touching the volume field', async ({ page }) => {
   await page.locator('#mob-box-type').selectOption('sealed');
   const volumeField = page.locator('.mob-field-row.mob-field-entered .mob-field-value input').first();
