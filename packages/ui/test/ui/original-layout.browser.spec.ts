@@ -33,6 +33,20 @@ test('sealed Box tab opens and cancels the Alignment editor', async ({ page }) =
   await expect(page.locator('.alignment-modal')).toBeHidden();
 });
 
+test('vented Box tab opens and cancels the Alignment editor', async ({ page }) => {
+  await page.locator('.project-nav li', { hasText: 'Box' }).click();
+  await page.locator('#og-box-type').selectOption('vented');
+  await page.getByRole('button', { name: 'Alignment', exact: true }).click();
+  await expect(page.locator('.alignment-modal')).toBeVisible();
+  await expect(page.locator('.alignment-modal select option')).toHaveCount(5);
+  // Volume/tuning are read-only readouts here (no closestAlignment reverse lookup for vented,
+  // unlike sealed's editable Volume field) — just check both are present.
+  await expect(page.locator('.alignment-modal input[type="number"]')).toHaveCount(2);
+  await expect(page.locator('.alignment-readout')).toContainText(/Either sealed or vented|Suitability unavailable/);
+  await page.getByRole('button', { name: 'Cancel', exact: true }).click();
+  await expect(page.locator('.alignment-modal')).toBeHidden();
+});
+
 // Count horizontal dark line clusters on the graph canvas (the level lines are drawn in
 // the dark translucent cursor/band colours; the light grid and the yellow-green trace do
 // not match the predicate). A "cluster" is a run of adjacent qualifying pixel rows.

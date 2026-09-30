@@ -9,6 +9,7 @@ import {useFocusedProject} from '../logic/focusedProjectContext.js';
 import {useApp} from '../logic/app.js';
 import {createBoxVolume, createSealedReadouts, createSelectedBox} from './boxFields.js';
 import {SealedAlignmentEditor} from './SealedAlignment-hooks.js';
+import {VentedAlignmentEditor} from './VentedAlignment-hooks.js';
 import {BOX_TYPE_OPTIONS} from '@openisd/design/fields';
 
 export function useMobileBoxTab() {
@@ -51,6 +52,18 @@ export function useMobileBoxTab() {
   const sealedAlignmentSuitability = sealedAlignmentEditor.ebpSuitability;
   const sealedAlignmentSuitabilityLabel = sealedAlignmentEditor.ebpSuitabilityLabel;
 
+  // Same class the desktop shell will drive too (engine, 2026-09-29: "go, and add the desktop
+  // button too since it is the same class") — one implementation, both shells' pickers.
+  const ventedAlignmentEditor = new VentedAlignmentEditor(project, projectChanged, engine.driver);
+  const ventedAlignmentOpen = ventedAlignmentEditor.open;
+  const ventedAlignmentOptions = ventedAlignmentEditor.options;
+  const ventedAlignmentSelected = ventedAlignmentEditor.selectedAlignment;
+  const ventedAlignmentVolume_L = ventedAlignmentEditor.volume_L;
+  const ventedAlignmentTuning_hz = ventedAlignmentEditor.tuning_hz;
+  const ventedAlignmentEbp = ventedAlignmentEditor.ebp;
+  const ventedAlignmentSuitability = ventedAlignmentEditor.ebpSuitability;
+  const ventedAlignmentSuitabilityLabel = ventedAlignmentEditor.ebpSuitabilityLabel;
+
   function selectBoxType(value: string): void {
     const opt = BOX_TYPE_OPTIONS.find(o => o.value === value);
     if (opt) selectedBox.value = opt.value;
@@ -62,6 +75,9 @@ export function useMobileBoxTab() {
     selectBoxType, BOX_TYPE_OPTIONS,
     sealedAlignmentEditor, sealedAlignmentOpen, sealedAlignmentOptions, sealedAlignmentSelected,
     sealedAlignmentVolume_L, sealedAlignmentEbp, sealedAlignmentSuitability, sealedAlignmentSuitabilityLabel,
+    ventedAlignmentEditor, ventedAlignmentOpen, ventedAlignmentOptions, ventedAlignmentSelected,
+    ventedAlignmentVolume_L, ventedAlignmentTuning_hz, ventedAlignmentEbp, ventedAlignmentSuitability,
+    ventedAlignmentSuitabilityLabel,
     boxQl, setBoxQl, boxQa, setBoxQa, boxQp, setBoxQp, boxLossesOpen,
   };
 }
