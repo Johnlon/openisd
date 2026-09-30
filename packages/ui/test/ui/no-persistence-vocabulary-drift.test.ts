@@ -17,9 +17,9 @@
  * `docs/design/PERSISTENCE_NAMING_AND_PLACEMENT.md` §Enforcement — the persistence vocabulary
  * gate. Three concepts, three words, three homes: STORAGE (`persistence/storage/`, a dumb
  * port onto bytes), REPO (`persistence/repos/`, domain-shaped access to one collection), STATE
- * (`logic/*State.ts`, the app's reactive truth). The word "store" is eliminated from the
- * codebase entirely (orchestrator ruling, 2026-08-22, pending John's review) — the port is
- * STORAGE, the app state is `appState`, and nothing is called a store.
+ * (`logic/*State.ts`, the app's reactive truth). The port is STORAGE, the app state is
+ * `appState`. "Store" is a fine name for a store (John, 2026-09-30); an earlier agent ban on the
+ * word was never his ruling and is gone.
  *
  * Shape-based checks over the AST, never prose greps — a docstring explaining the rule must not
  * fail the rule (behavioral_instructions.md §"BAN THE CODE, NEVER THE VOCABULARY"). This file
@@ -175,41 +175,6 @@ describe('persistence vocabulary — CHECK 3: *Storage lives only under storage/
       }
     }
     assert.deepEqual(offences, [], 'A *Repo-named export under storage/ is a repo living in a PORT file.');
-  });
-});
-
-describe('persistence vocabulary — CHECK 4: "store" is eliminated from the codebase entirely', () => {
-  it('no exported symbol anywhere is named *Store or *store (the word is banned, not relocated)', () => {
-    const offences: string[] = [];
-    for (const f of [...filesUnder(UI_SRC), ...filesUnder(PERSISTENCE_SRC)]) {
-      for (const name of topLevelExportedNames(f)) {
-        // Case-sensitive on the suffix "Store"/"store" as a whole word component — matches
-        // `KeyValueStore`, `createFileStore`, `PrefsStore`, but not `Storage`/`storage` (a
-        // different, sanctioned word) or an unrelated identifier that merely contains "store"
-        // as a substring inside a longer word with no boundary (there are none in this tree).
-        if (/(^|[a-z])Store$/.test(name) || /^store$/.test(name)) {
-          offences.push(`${rel(f)} exports ${name}`);
-        }
-      }
-    }
-    assert.deepEqual(offences, [],
-      'The word "store" is eliminated from the codebase (ruling, PERSISTENCE_NAMING_AND_' +
-      'PLACEMENT.md top). The port is STORAGE (`KeyValueStorage`, `FileStorage`), the app ' +
-      'state is `appState`, and nothing is a store — not even a synonym-carrying alias.');
-  });
-
-  it('no local/module-level binding is literally named `store` (the STORAGE gloss binds it `storage`)', () => {
-    const offences: string[] = [];
-    for (const f of [...filesUnder(UI_SRC), ...filesUnder(PERSISTENCE_SRC)]) {
-      const source = sourceFileOf(f);
-      source.forEachDescendant(node => {
-        if (!Node.isVariableDeclaration(node)) return;
-        if (node.getName() === 'store') offences.push(`${rel(f)}: const/let store = …`);
-      });
-    }
-    assert.deepEqual(offences, [],
-      'A binding named `store` reintroduces the eliminated word at the call site even when the ' +
-      'type is honestly `KeyValueStorage` — name it `storage` (or a more specific noun) instead.');
   });
 });
 
