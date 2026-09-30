@@ -328,7 +328,9 @@ function onDocClick() {
 
 let ro: ResizeObserver | undefined;
 onMounted(() => {
-  ro = new ResizeObserver(redraw);
+  // Deferred to the next frame: drawing resizes the canvas backing store, and a resize inside
+  // the observer's own callback is the loop Chrome reports as an error (BUG_20261001).
+  ro = new ResizeObserver(() => requestAnimationFrame(redraw));
   ro.observe(canvasEl.value!);
   document.addEventListener('click', onDocClick);
   // Canvas text is rasterized at draw time — if Inter loads after the first
