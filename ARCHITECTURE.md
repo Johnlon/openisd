@@ -282,9 +282,10 @@ the phase before it has returned, and it is the only place that order is stated.
   - `design/winisd` owns ParState and WinISD's text encoding.
   - WinISD writes UTF-8 and stores a newline as the byte `A4`, so its reader destroys any
     character whose UTF-8 contains `A4`.
-- **File I/O belongs to the domain object it reads or writes.** For example,
-  `project.toWprText()` and `OpenISDProject.fromOwprText()`. `ui/logic/useApplicationIO.ts`
-  only chooses file names, calls those methods and shows messages.
+- **File I/O belongs to the domain.** `OpenISDProject.fromOwprText()`/`toOwprText()` for the
+  app's own format; `WinIsdProjectConverter` and `WinIsdDriverConverter` for WinISD's, reached
+  through `ui/logic/fileImportExport.ts`'s `DesignFiles`. `ui/logic/useApplicationIO.ts` only
+  chooses file names, calls those and shows messages.
 
 ## 7. Patterns and coupling rules
 
