@@ -1,4 +1,5 @@
-import {describe, expect, it, vi} from 'vitest';
+import {describe, expect, it} from 'vitest';
+import {MY_DRIVERS_KEY, createMemoryStorage, createMyDriverRepo} from '@openisd/persistence';
 import {type Calculated, type Entered, type ProvenanceLetter, type Readable, OpenISDDriver} from '@openisd/design';
 import {type DqIssue, createEngine} from '@openisd/design/engine';
 
@@ -74,25 +75,34 @@ describe('DriverEditorModal-hooks', () => {
   });
 
   describe('commitMyDriver', () => {
-    const saved = {uuid: 'row-1', overwrote: true};
-
-    it('overwrites the opened row when given its uuid, so an edit never appends a twin', () => {
-      const store = {upsert: vi.fn(() => saved)};
+    function savedWith(model: string) {
+      const myDrivers = createMyDriverRepo(createMemoryStorage(), createEngine());
       const driver = completeDriver();
-      expect(commitMyDriver(store, driver, 'row-1')).toBe(true);
-      expect(store.upsert).toHaveBeenCalledWith(driver, 'row-1');
+      driver.brand.set('Test');
+      driver.model.set(model);
+      const saved = myDrivers.upsert(driver);
+      if (saved === null) throw new Error('memory storage refused a save');
+      return {myDrivers, driver, uuid: saved.uuid};
+    }
+
+    it('overwrites the opened row, so an edit never appends a twin', () => {
+      const {myDrivers, driver, uuid} = savedWith('Fixture');
+      driver.model.set('Fixture Mk2');
+      expect(commitMyDriver(myDrivers, driver, uuid)).toBe(true);
+      expect(myDrivers.list().map(e => [e.uuid, e.driver.model.value])).toEqual([[uuid, 'Fixture Mk2']]);
     });
 
-    it('files a new row (no uuid) when nothing was opened', () => {
-      const store = {upsert: vi.fn(() => saved)};
-      const driver = completeDriver();
-      expect(commitMyDriver(store, driver, '')).toBe(true);
-      expect(store.upsert).toHaveBeenCalledWith(driver, undefined);
+    it('files a new row when nothing was opened', () => {
+      const {myDrivers, driver} = savedWith('Fixture');
+      expect(commitMyDriver(myDrivers, driver.copyAsNew(), '')).toBe(true);
+      expect(myDrivers.list()).toHaveLength(2);
     });
 
-    it('answers false when the store refuses the write (read-only)', () => {
-      const store = {upsert: vi.fn(() => null)};
-      expect(commitMyDriver(store, completeDriver(), 'row-1')).toBe(false);
+    it('answers false while My Drivers is unreadable (read-only)', () => {
+      const storage = createMemoryStorage();
+      const myDrivers = createMyDriverRepo(storage, createEngine());
+      storage.set(MY_DRIVERS_KEY, 'not json');
+      expect(commitMyDriver(myDrivers, completeDriver(), '')).toBe(false);
     });
   });
 });
