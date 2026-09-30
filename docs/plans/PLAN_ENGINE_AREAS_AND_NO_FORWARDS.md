@@ -43,12 +43,12 @@ package keeps one door; the door hands out those areas.
 | E. Filters hook | done, 426aefa0 |
 | H. Field behaviour on the field | done, d6855b11: `Readable.provenance`, `OpenIsdDriverSpec.solverParams()`, `OpenISDDriver.chartBlockingReasons()` |
 | D. Components instead of a threaded engine | converters as classes (bf5062fc), project windows take one area (2209bcae), hooks take areas (51a126ed, 13f672a6), series takes `ChartEngineAreas` (22ce4efa), passive radiators and their repos carry no engine (7fd40adc), DesignFiles/DriverDrafts classes + UI gate: only main.ts imports appState's engine (686eea62 … 31acd78b), OpenIsdDriverSpec takes DriverEngine + IssueEngine (03a78854), converters renamed WinIsdDriverConverter/WinIsdProjectConverter and the duplicate factories fromWdrIniText/fromWprText deleted (a532a9ef, bec547c2). Ratchet 41 → 2 |
-| F. Lint rules | rules for `Engine['x']`, `.bind(engine)`, re-exports, `Extract<Filter,…>`, casts and switch exhaustiveness are in eslint.config.js; `import/no-cycle` not added |
+| F. Lint rules | rules for `Engine['x']`, `.bind(engine)`, re-exports, `Extract<Filter,…>`, casts and switch exhaustiveness are in eslint.config.js; `import-x/no-cycle` added with a baselined suppression list (a0faf238), 14 cycles left to break |
 
-Ratchet rows left (2): `OpenISDProject.builder` and `OpenISDProject.empty`, which hand the engine to
-`ProjectBuilder`. Ruling (John, 2026-09-29): a static factory that is a genuine constructor may take
-the engine; the gate exempts a static that constructs its own class or a subclass in the same file
-(0f46b8c8). The builder is the one way a project comes into existence, so these two stay.
+Ratchet rows left: none (f2cdb434). `OpenISDProject.builder`/`empty` are deleted; a project is made
+with `new ProjectBuilder(driver, engine)` or `ProjectBuilder.empty(engine)`. Ruling (John,
+2026-09-29): a static factory that is a genuine constructor may take the engine; the gate exempts a
+static that constructs its own class or a subclass in the same file (0f46b8c8).
 
 Publishing rule settled on the way: an area method is a body; a pure function every solver shares
 is published by the area unchanged as a readonly property (`readonly ebp = ebp`), never wrapped.
