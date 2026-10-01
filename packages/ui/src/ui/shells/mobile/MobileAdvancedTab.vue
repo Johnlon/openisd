@@ -179,5 +179,5 @@ const {
   min-height: 32px;
 }
 .mob-readonly { color: var(--acc); }
-.mob-unit { font-size: 13px; color: var(--mut); }
+.mob-unit { font-size: 13px; color: var(--mut); min-width: 40px; flex-shrink: 0; }
 </style>

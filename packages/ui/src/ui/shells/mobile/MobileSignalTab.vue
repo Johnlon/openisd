@@ -86,5 +86,5 @@ const { driveV, reconcileDriveV, powerLocked, rsOhm, powerDq, voltageDq, power_W
   min-height: 32px;
 }
 .mob-field-dq-note { font-size: 12px; color: var(--acc2); }
-.mob-unit { font-size: 13px; color: var(--mut); }
+.mob-unit { font-size: 13px; color: var(--mut); min-width: 40px; flex-shrink: 0; }
 </style>
