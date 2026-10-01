@@ -100,7 +100,6 @@ function toggleEdit(id: string | undefined) { editing.value = editing.value === 
 .filter-row-head:hover { background:#f5f8fc; }
 .filter-type-badge { font-weight:600; }
 .filter-summary { color:#555; flex:1; }
-.filter-summary::before { content:"\2014\00a0"; color:#bbb; }
 .filter-edit-hint { color:#6a8cae; font-size:12px; opacity:0; }
 .filter-row-head:hover .filter-edit-hint { opacity:.8; }
 .filter-row-inline.editing { background:#eef4ff; }
