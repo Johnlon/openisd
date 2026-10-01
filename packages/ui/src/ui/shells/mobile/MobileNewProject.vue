@@ -187,9 +187,9 @@ function handleCreate() {
         </div>
         <div class="readout-box">
           <div class="readout-item"><span>Box volume:</span> <strong>{{ ventedVolume_L.toFixed(1) }} l</strong></div>
-          <div v-if="ventedVolumeWarning" class="readout-warning" data-testid="np-vented-volume-warning">{{ ventedVolumeWarning }}</div>
+          <div v-if="ventedVolumeWarning" class="readout-warning" role="alert" aria-live="polite" data-testid="np-vented-volume-warning">{{ ventedVolumeWarning }}</div>
           <div class="readout-item"><span>Tuning frequency:</span> <strong>{{ ventedTuning_hz.toFixed(1) }} Hz</strong></div>
-          <div v-if="ventedTuningWarning" class="readout-warning" data-testid="np-vented-tuning-warning">{{ ventedTuningWarning }}</div>
+          <div v-if="ventedTuningWarning" class="readout-warning" role="alert" aria-live="polite" data-testid="np-vented-tuning-warning">{{ ventedTuningWarning }}</div>
           <div class="readout-item"><span>EBP:</span> <strong>{{ ebp !== null ? ebp.toFixed(1) : '--' }}</strong></div>
           <div class="readout-item"><span>Recommendation:</span> <strong>{{ ebpSuitabilityLabel }}</strong></div>
         </div>

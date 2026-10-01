@@ -78,9 +78,12 @@ async function onBackupFile(e: Event) {
 }
 
 // App settings — environment + vented design limits — are the hook's draft; OK applies both.
+// The frequency range lives in the hook too, so its validation gates the same OK
+// (BUG_20261001 options-frequency-range-unvalidated-empty-inverted).
 const {
   tempK, humidityPct, pressurePa, defaultAir, envIsFactory, resetEnv,
   minVolume_L, maxVolume_L, minTuning_hz, maxTuning_hz, error: limitsError, limitsAreFactory, resetLimits,
+  setFreqRange,
   canApply, apply: applyAppSettings,
 } = useOptionsModal();
 
@@ -99,6 +102,12 @@ const draft = reactive({
     fmax: NumberField.PLOT_FMAX_HZ.rounded(presentationState.sweepRange.max),
   },
 });
+// Seed the hook's frequency-range draft from the dialog's display-precision copy; every edit
+// below re-publishes it so the hook's validation sees exactly what OK would write.
+setFreqRange(draft.P.fmin, draft.P.fmax);
+function onFreqChange() {
+  setFreqRange(draft.P.fmin, draft.P.fmax);
+}
 
 const unitsResetPending = ref(false);
 
@@ -115,6 +124,7 @@ function restoreDefaults() {
   draft.unitTokens = {};
   draft.yRanges = {};
   draft.P = { fmin: 10, fmax: 20000 };
+  onFreqChange();
   unitsResetPending.value = true;
 }
 
@@ -170,9 +180,25 @@ function setLimit(chartId: ChartId, key: 'min' | 'max', e: Event) {
   const v = parseFloat(inputValue(e));
   const cur = draft.yRanges[chartId] ?? { min: NaN, max: NaN };
   draft.yRanges[chartId] = { ...cur, [key]: v };
+  // BUG_20261001 options-chart-y-limit-partial-edit-silently-drops: an untouched half was
+  // seeded NaN, and GraphPanel's view contract drops an override unless BOTH halves are
+  // finite and ordered — so a one-sided edit silently did nothing. Fill the untouched half
+  // from the row's own placeholder default, the value the user could see it promising.
+  const row = LIMIT_ROWS.find(r => r.tab === chartId);
+  const stored = draft.yRanges[chartId];
+  if (row && stored) {
+    if (!isFinite(stored.min)) stored.min = row.start;
+    if (!isFinite(stored.max)) stored.max = row.end;
+    if (stored.min >= stored.max) {
+      // An inverted pair would be silently dropped by the chart too; order it from the
+      // placeholder so the row stays meaningful.
+      stored.min = Math.min(row.start, row.end);
+      stored.max = Math.max(row.start, row.end);
+    }
+  }
 }
 function resetLimit(chartId: ChartId) { delete draft.yRanges[chartId]; }
-function resetFreqRange() { draft.P = { fmin: 10, fmax: 20000 }; }
+function resetFreqRange() { draft.P = { fmin: 10, fmax: 20000 }; onFreqChange(); }
 // A number input's `:value` must never be literally NaN (an unset half of a partial edit) —
 // the DOM emits a console warning ("value 'NaN' cannot be parsed") for that. undefined renders
 // as an empty field instead, so the placeholder (WinISD's default) shows through as intended.
@@ -241,13 +267,13 @@ function limitVal(chartId: ChartId, key: 'min' | 'max'): number | undefined {
           <fieldset class="opt-group">
             <legend>Vented design limits</legend>
             <p class="opt-help">
-              A vented design outside these limits gets a warning. Its numbers are never changed.
+              A vented design outside these limits is marked. Its numbers are never changed.
               <button type="button" class="opt-more-btn" data-testid="limits-more" :aria-expanded="limitsMoreOpen" @click="limitsMoreOpen = !limitsMoreOpen">More info</button>
             </p>
             <div v-if="limitsMoreOpen" class="opt-popup" role="note" data-testid="limits-more-popup">
-              <p>WinISD's vented formulas were only checked for a certain range of speakers.</p>
-              <p>Outside that range WinISD keeps calculating anyway, and the results may not be trustworthy. OpenISD does the same, so its results match WinISD.</p>
-              <p>If a design falls outside the limits below, OpenISD shows it exactly as you set it, with a warning.</p>
+              <p>WinISD does not limit its vented alignments, so it will design a box of any size or tuning.</p>
+              <p>OpenISD gives the same answer, so its results match WinISD.</p>
+              <p>If a design falls outside the limits below, OpenISD shows it exactly as designed and marks it.</p>
               <button type="button" class="opt-more-btn" @click="limitsMoreOpen = false">Close</button>
             </div>
             <div class="opt-env-grid">
@@ -276,7 +302,7 @@ function limitVal(chartId: ChartId, key: 'min' | 'max'): number | undefined {
                 </div>
               </div>
             </div>
-            <div v-if="limitsError" class="opt-error" data-testid="settings-error">{{ limitsError }}</div>
+            <div v-if="limitsError" class="opt-error">{{ limitsError }}</div>
             <div class="opt-group-actions">
               <button class="opt-reset-btn" data-testid="settings-reset" :disabled="limitsAreFactory" title="Back to the built-in limits. Only this fieldset is affected." @click="resetLimits">Reset to defaults</button>
             </div>
@@ -346,8 +372,8 @@ function limitVal(chartId: ChartId, key: 'min' | 'max'): number | undefined {
               <tbody>
                 <tr>
                   <td>Frequency range</td>
-                  <td><input class="opt-num" type="number" v-limits="NumberField.PLOT_FMIN_HZ.limits" v-model.number="draft.P.fmin" /></td>
-                  <td><input class="opt-num" type="number" v-limits="NumberField.PLOT_FMAX_HZ.limits" v-model.number="draft.P.fmax" /></td>
+                  <td><input class="opt-num" type="number" v-limits="NumberField.PLOT_FMIN_HZ.limits" v-model.number="draft.P.fmin" @change="onFreqChange" /></td>
+                  <td><input class="opt-num" type="number" v-limits="NumberField.PLOT_FMAX_HZ.limits" v-model.number="draft.P.fmax" @change="onFreqChange" /></td>
                   <td>Hz</td>
                   <td><button class="opt-clear-btn" title="Reset to default" @click="resetFreqRange()">↺</button></td>
                 </tr>
@@ -365,8 +391,11 @@ function limitVal(chartId: ChartId, key: 'min' | 'max'): number | undefined {
       </div>
 
       <div class="opt-footer">
+        <!-- The dialog's ONE validity surface, visible from either tab: OK is one write or
+             none, and the reason it is refused must be visible wherever the user is looking. -->
+        <div v-if="!canApply" class="opt-error opt-footer-error" data-testid="settings-error">{{ limitsError ?? 'The frequency range needs both a start and an end, with the start below the end.' }}</div>
         <button class="opt-defaults-btn" @click="restoreDefaults">Defaults</button>
-        <button class="opt-ok" data-testid="settings-apply" :disabled="!canApply" :title="limitsError ?? 'Apply and close'" @click="saveAndClose">OK</button>
+        <button class="opt-ok" data-testid="settings-apply" :disabled="!canApply" :title="canApply ? 'Apply and close' : 'Resolve the error before applying'" @click="saveAndClose">OK</button>
         <button @click="close">Cancel</button>
       </div>
     </div>
@@ -413,7 +442,8 @@ function limitVal(chartId: ChartId, key: 'min' | 'max'): number | undefined {
 .opt-group-actions { display: flex; justify-content: flex-end; margin-top: 8px; }
 .opt-reset-btn { width: max-content; padding: 4px 12px; cursor: pointer; }
 .opt-reset-btn:disabled { cursor: default; opacity: 0.5; }
-.opt-footer { display: flex; justify-content: flex-end; gap: 8px; padding: 10px 14px; border-top: 1px solid var(--line); }
+.opt-footer { display: flex; justify-content: flex-end; align-items: center; gap: 8px; padding: 10px 14px; border-top: 1px solid var(--line); }
+.opt-footer-error { margin-right: auto; }
 .opt-ok { font-weight: 600; }
 .opt-defaults-btn { margin-right: auto; cursor: pointer; }
 

@@ -1,11 +1,11 @@
 /**
  * Is a designed vented box one anyone could build?
  *
- * The five wizard alignments keep PARITY with WinISD outside their design range — WinISD does
- * not clamp, it extrapolates, and so does `VentedEngine.alignment()` (John, 2026-09-22: "keep parity
+ * The five wizard alignments keep PARITY with WinISD at every Qts — WinISD does
+ * not clamp, and neither does `VentedEngine.alignment()` (John, 2026-09-22: "keep parity
  * and use dq"). C4 at a source-loaded Qts of 1.0 designs a 1684 L box tuned to 5.4 Hz, and that
  * is what both programs answer. Nothing here changes a designed value; this only says which of
- * them a person should not trust, so the caller can mark the cell.
+ * them fall outside the band, so the caller can mark the cell.
  */
 import {PARITY, quantified, subject} from './issueText.js';
 
@@ -49,11 +49,17 @@ export type VentedPlausibilityIssue =
     };
 
 /** A quantity that cannot be physical at all. The sentence is built here, with the issue, so a
- *  reader of `DqIssue.text` never needs the engine to render it. */
+ *  reader of `DqIssue.text` never needs the engine to render it.
+ *
+ *  Deliberately WITHOUT the `PARITY` suffix: the 60-capture WinISD evidence covers what the
+ *  alignments answer for ordinary inputs (Qts 0.15–1.0, Ql 10), not their behaviour at the
+ *  degenerate inputs that produce a non-physical value (BB4 at Qts' = Ql → Vb = ∞), so this
+ *  sentence may not claim it (BUG_20261001 nonphysical-parity-text-overreach). */
 export function nonPhysicalQuantity(quantity: VentedDesignQuantity, value: number): VentedPlausibilityIssue {
   return {
     kind: 'non-physical', quantity, value,
-    text: `${subject(quantity)} is ${quantified(quantity, value)} - not a physical value. ${PARITY}`,
+    text: `${subject(quantity)} is ${quantified(quantity, value)} - not a physical value. ` +
+      `The alignment was evaluated outside the range it was validated for; the raw result is shown, not changed.`,
   };
 }
 

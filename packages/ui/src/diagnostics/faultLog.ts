@@ -17,10 +17,10 @@
  *     work, and throwing it away to clear an error destroys the evidence too.
  */
 
-const STATE_KEY = 'openisd_state';
-/** Where `applyState` sets a refused record aside, so a one-field repair stays possible
- *  after the autosave has overwritten the live state. */
-const QUARANTINE_KEY = 'openisd_quarantine_driver';
+import type {AppSettingsRepo, ProjectRepairReport, ViewStateRepo} from '@openisd/persistence';
+
+/** Writes a file the user keeps — the backup every repair takes before it changes stored state. */
+export type SaveBackup = (fileName: string, text: string) => void;
 
 export interface Fault {
   /** Monotonic id so the UI can key a list without an index. */
@@ -52,155 +52,100 @@ export interface QuickFix {
   loses: string;
   /** True when this machine's stored state has the defect this fix repairs. */
   probe: () => boolean;
-  /** Repair it. Returns a human-readable account of what changed. */
-  apply: () => string;
+  /** Repair it, after handing `saveBackup` everything it is about to change. Returns a
+   *  human-readable account of what changed. */
+  apply: (saveBackup: SaveBackup) => string;
 }
 
-/**
- * Read one stored blob as an object, REPORTING anything wrong with it.
- *
- * The two readers below used to `catch { return null }`, so a corrupt blob and an absent one were
- * indistinguishable: the fault log — the very thing whose job is to explain a broken machine —
- * silently pretended the state was not there. Now the reason reaches the console, which is where
- * a browser test can see it (`packages/ui/test/fixtures.js`'s `browserLog` asserts on console
- * errors, so a corrupt blob FAILS a test rather than vanishing).
- *
- * `console.error` rather than `warn`: if this fires, stored state that the app will act on is
- * unreadable, and that is not a detail to scroll past.
- */
-function isRecord(v: unknown): v is Record<string, unknown> {
-  return typeof v === 'object' && v !== null;
+/** The stored records a repair may reset — each through its own repo. */
+export interface ResettableRecords {
+  readonly view: ViewStateRepo;
+  readonly appSettings: AppSettingsRepo;
 }
 
-function readStoredObject(key: string): Record<string, unknown> | null {
-  const raw = localStorage.getItem(key);
-  if (!raw) return null;
-
-  let parsed: unknown;
-  try {
-    parsed = JSON.parse(raw);
-  } catch {
-    console.error(`faultLog: localStorage['${key}'] is not valid JSON, ignoring.`);
-    return null;
-  }
-  if (!isRecord(parsed)) {
-    console.error(
-      `faultLog: localStorage['${key}'] parsed to ${parsed === null ? 'null' : typeof parsed}, `
-      + 'not an object, so it is being ignored.');
-    return null;
-  }
-  return parsed;
-}
-
-function readState(): Record<string, unknown> | null {
-  return readStoredObject(STATE_KEY);
-}
-
-function writeState(state: Record<string, unknown>): void {
-  localStorage.setItem(STATE_KEY, JSON.stringify(state));
-}
-
-/** The saved driver record, or null where there is none to inspect. */
-function savedDriver(): Record<string, unknown> | null {
-  const d = readState()?.driver;
-  return isRecord(d) ? d : null;
-}
-
-/** The record `applyState` refused, if one is set aside. */
-function quarantinedDriver(): Record<string, unknown> | null {
-  return readStoredObject(QUARANTINE_KEY);
+/** Hand a record's stored text to `saveBackup`, then reset it. False when nothing was stored. */
+function backUpAndReset(record: ViewStateRepo | AppSettingsRepo, fileName: string, saveBackup: SaveBackup): boolean {
+  const raw = record.exportRaw();
+  if (raw === null) return false;
+  saveBackup(fileName, raw);
+  record.reset();
+  return true;
 }
 
 /**
  * The built-in ladder.
  *
- * Ordered by what they destroy, not by how likely they are to work. A repair that keeps the
- * design is always offered above one that drops it, even when the broader one is more certain.
+ * Ordered by what the user loses. Every rung backs up what it changes before changing it, and no
+ * rung deletes a design, a project or a saved driver: those are the user's work, and a fault in
+ * the running code is never a reason to lose them (John, 2026-10-01).
  */
-export const QUICK_FIXES: readonly QuickFix[] = [
-  {
-    id: 'add-missing-specs',
-    title: 'Repair the saved driver — add the missing specs container',
-    impact: 1,
-    keeps: 'everything: the design, the driver and every value in it',
-    loses: '',
-    // `OpenISDDriver` reads `record.specs[section]`. A record with no `specs` key at all
-    // throws on the FIRST read, so every computed that touches the driver dies. The container
-    // is structural, not data — restoring it loses nothing, because there was nothing in it.
-    probe: () => {
-      const d = quarantinedDriver() ?? savedDriver();
-      return !!d && d.specs == null;
+export function repairLadder({ view, appSettings }: ResettableRecords): readonly QuickFix[] {
+  return [
+    {
+      id: 'reset-view',
+      title: 'Reset the chart layout and panels',
+      impact: 2,
+      keeps: 'every project, design, filter, My Drivers and your Options',
+      loses: 'chart layout, open panels and which tab is shown (a backup file is saved first)',
+      probe: () => view.exportRaw() !== null,
+      apply: (saveBackup) => backUpAndReset(view, 'openisd_view.backup.json', saveBackup)
+        ? 'Saved a backup of the chart layout, then reset it.' : 'There was no stored chart layout.',
     },
-    apply: () => {
-      const broken = quarantinedDriver() ?? savedDriver()!;
-      broken.specs = { woofer: {} };
-      const state = readState() ?? {};
-      state.driver = broken;
-      writeState(state);
-      localStorage.removeItem(QUARANTINE_KEY);
-      return 'Added the empty `specs` container and put the driver back in the design.';
+    {
+      id: 'reset-app-settings',
+      title: 'Reset Options to their defaults',
+      impact: 3,
+      keeps: 'every project, design, filter, chart layout and My Drivers',
+      loses: 'Options settings such as the environment defaults (a backup file is saved first)',
+      probe: () => appSettings.exportRaw() !== null,
+      apply: (saveBackup) => backUpAndReset(appSettings, 'openisd_app_settings.backup.json', saveBackup)
+        ? 'Saved a backup of Options, then reset them.' : 'There were no stored Options.',
     },
-  },
-  {
-    id: 'drop-saved-driver',
-    title: 'Forget the saved driver, keep the design',
-    impact: 2,
-    keeps: 'the box, vents, targets, signal, charts and every UI setting',
-    loses: 'which driver was selected — pick it again from the library',
-    probe: () => savedDriver() != null || quarantinedDriver() != null,
-    apply: () => {
-      const state = readState() ?? {};
-      delete state.driver;
-      writeState(state);
-      localStorage.removeItem(QUARANTINE_KEY);
-      return 'Removed the saved driver from the stored design.';
-    },
-  },
-  {
-    id: 'reset-design',
-    title: 'Reset the saved design',
-    impact: 3,
-    keeps: 'My Drivers, saved passive radiators and your preferences',
-    loses: 'the current design — box, vents, targets and chart setup',
-    probe: () => readState() != null,
-    apply: () => { localStorage.removeItem(STATE_KEY); return `Removed \`${STATE_KEY}\`.`; },
-  },
-  {
-    id: 'clear-all',
-    title: 'Clear ALL saved state',
-    impact: 9,
-    keeps: 'nothing stored in this browser',
-    loses: 'the design, My Drivers, saved passive radiators and all preferences',
-    // Last resort, and it says so. Offered only when something is actually stored, so it is
-    // never the sole option on a machine with nothing to clear.
-    probe: () => {
-      try { return Object.keys(localStorage).some(k => k.startsWith('openisd_')); }
-      catch { return false; }
-    },
-    apply: () => {
-      const keys = Object.keys(localStorage).filter(k => k.startsWith('openisd_'));
-      for (const k of keys) localStorage.removeItem(k);
-      return `Removed ${keys.length} key(s): ${keys.join(', ')}.`;
-    },
-  },
-];
+  ];
+}
+
+/** A project that loaded only after fields were reset — shown to the user, never silent. */
+export interface RepairNotice {
+  readonly projectName: string;
+  /** Each reset field as a dotted path, e.g. `saved.box.portVelocityLimit_m_per_s`. */
+  readonly fields: readonly string[];
+  /** Where the text as it was is kept; null when the source (a file, a link) still has it. */
+  readonly backupKey: string | null;
+}
 
 export interface FaultLog {
   /** Every distinct fault, newest last. */
   faults: Fault[];
+  /** Every project repaired while loading, oldest first. */
+  repairs: RepairNotice[];
+  /** Record a load-time repair and raise the dialog. */
+  recordRepair: (report: ProjectRepairReport) => void;
+  /** Save the backed-up original of a repaired project as a file. False when none is kept. */
+  downloadOriginal: (notice: RepairNotice) => boolean;
   /** Repairs whose `probe()` says they apply to this machine, least destructive first. */
   applicable: () => QuickFix[];
+  /** Run one repair, giving it the backup writer. */
+  repair: (fix: QuickFix) => string;
   /** A copyable report: the faults, the stored-state shape, and the build. */
   report: () => string;
   /** Start listening. Idempotent. */
   install: () => void;
+  /** Called whenever a repair is recorded — raises the dialog too. */
+  onRepair: (fn: () => void) => void;
   /** Called whenever a NEW fault is recorded — the UI hook that raises the dialog. */
   onFault: (fn: (f: Fault) => void) => void;
 }
 
-export function createFaultLog(): FaultLog {
+/** `records` is a thunk: the fault log is created before the repos (so a fault while the app is
+ *  being wired is still caught); until they exist, no repair is offered. */
+export function createFaultLog(saveBackup: SaveBackup, records: () => ResettableRecords): FaultLog {
+  function ladder(): readonly QuickFix[] {
+    try { return repairLadder(records()); } catch { return []; }
+  }
   const faults: Fault[] = [];
   const listeners: Array<(f: Fault) => void> = [];
+  const repairListeners: Array<() => void> = [];
+  const repairs: RepairNotice[] = [];
   let nextId = 1;
   let installed = false;
 
@@ -216,7 +161,25 @@ export function createFaultLog(): FaultLog {
 
   return {
     faults,
-    applicable: () => QUICK_FIXES.filter(f => { try { return f.probe(); } catch { return false; } })
+    repair: (fix) => fix.apply(saveBackup),
+    repairs,
+    recordRepair: (report) => {
+      repairs.push({
+        projectName: report.projectName,
+        fields: report.repaired.map(path => path.join('.')),
+        backupKey: report.backupKey,
+      });
+      for (const fn of repairListeners) fn();
+    },
+    downloadOriginal: (notice) => {
+      if (notice.backupKey === null) return false;
+      const text = localStorage.getItem(notice.backupKey);
+      if (text === null) return false;
+      saveBackup(`${notice.backupKey}.json`, text);
+      return true;
+    },
+    onRepair: (fn) => { repairListeners.push(fn); },
+    applicable: () => ladder().filter(f => { try { return f.probe(); } catch { return false; } })
       .slice().sort((a, b) => a.impact - b.impact),
     report: () => {
       const stored = (() => {
@@ -225,7 +188,6 @@ export function createFaultLog(): FaultLog {
             .map(k => `${k}: ${(localStorage.getItem(k) ?? '').length} bytes`).join('\n  ');
         } catch { return '(localStorage unavailable)'; }
       })();
-      const driver = savedDriver();
       return [
         `OpenISD diagnostics — ${new Date().toISOString()}`,
         `url: ${location.href}`,
@@ -235,13 +197,7 @@ export function createFaultLog(): FaultLog {
         ...faults.map(f => `  [${f.kind}] ×${f.count} ${f.message}\n${f.stack ? '    ' + f.stack.split('\n').slice(0, 6).join('\n    ') : ''}`),
         '',
         'stored keys:',
-        `  ${stored || '(none)'}`,
-        '',
-        'saved driver record:',
-        driver
-          ? `  keys: ${Object.keys(driver).join(', ')}\n  specs: ${isRecord(driver.specs) ? Object.keys(driver.specs).join(', ') : 'MISSING'}`
-          : '  (none saved)',
-      ].join('\n');
+        `  ${stored || '(none)'}`].join('\n');
     },
     install: () => {
       if (installed) return;

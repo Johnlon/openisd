@@ -12,6 +12,7 @@ import {DEFAULT_VENTED_DESIGN_LIMITS, DEFAULT_ENV_DEFAULTS} from '@openisd/desig
 import type {VentedDesignLimits, EnvDefaults} from '@openisd/design/engine';
 import {createMemoryStorage} from '../src/storage/keyValueStorage.js';
 import {createAppSettingsRepo, APP_SETTINGS_KEY} from '../src/repos/appSettingsRepo.js';
+import {OPENISD_BACKUP_KEYS} from '../src/repos/storageKeys.js';
 
 const EDITED: VentedDesignLimits = Object.freeze({
   minVb_m3: 0.002, maxVb_m3: 0.5, minFb_hz: 15, maxFb_hz: 120,
@@ -109,6 +110,32 @@ describe('createAppSettingsRepo', () => {
       assert.deepEqual(
         createAppSettingsRepo(createMemoryStorage({[APP_SETTINGS_KEY]: legacy})).envDefaults(),
         DEFAULT_ENV_DEFAULTS);
+    });
+  });
+
+  describe('repair, never reset (BUG_20261001_view-and-options-bad-value-silently-resets-whole-record)', () => {
+    const ENV: EnvDefaults = Object.freeze({tempK: 300, humidityPct: 40, pressurePa: 100000});
+
+    it('a bad vented band does not cost the stored environment defaults', () => {
+      const text = JSON.stringify({vented: 'garbage', env: ENV});
+      const repo = createAppSettingsRepo(createMemoryStorage({[APP_SETTINGS_KEY]: text}));
+      assert.deepEqual(repo.ventedLimits(), DEFAULT_VENTED_DESIGN_LIMITS);
+      assert.deepEqual(repo.envDefaults(), ENV);
+    });
+
+    it('a write over a record with a bad member backs the original text up first', () => {
+      const text = JSON.stringify({vented: 'garbage', env: ENV});
+      const storage = createMemoryStorage({[APP_SETTINGS_KEY]: text});
+      createAppSettingsRepo(storage).setVentedLimits(EDITED);
+      assert.equal(storage.get(OPENISD_BACKUP_KEYS.appSettings), text);
+      assert.deepEqual(createAppSettingsRepo(storage).envDefaults(), ENV);
+    });
+
+    it('a write over a clean record takes no backup', () => {
+      const storage = createMemoryStorage();
+      createAppSettingsRepo(storage).setVentedLimits(EDITED);
+      createAppSettingsRepo(storage).setEnvDefaults(ENV);
+      assert.equal(storage.get(OPENISD_BACKUP_KEYS.appSettings), null);
     });
   });
 });

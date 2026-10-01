@@ -12,7 +12,7 @@ export {
   PASS_FAMILY_OPTIONS,
 } from './options.js';
 
-export { DEFAULT_SOURCE_RESISTANCE_OHM } from './defaults.js';
+export { DEFAULT_NEW_PROJECT_VENTED_QL, DEFAULT_SOURCE_RESISTANCE_OHM } from './defaults.js';
 
 export {
   type UnitGroup,

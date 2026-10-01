@@ -185,33 +185,36 @@ required, plus the derived quantities `Cms`/`Mms`/`Rms`/`Bl` (formulas: §1.1).
 
 | Export              | Value                  | Description                                                                      |
 | ------------------- | ---------------------- | -------------------------------------------------------------------------------- |
-| `RHO`               | 1.20095217714682 kg/m³ | Air density, 20 °C — WinISD's own Advanced-pane derived value, full precision    |
-| `C`                 | 343.684120962153 m/s   | Speed of sound, 20 °C — WinISD's own Advanced-pane derived value, full precision |
 | `P0`                | 20×10⁻⁶ Pa             | Reference sound pressure (0 dB SPL)                                              |
 | `END_CORRECTION`    | 0.732                  | Vent end-correction factor, × diameter per open (unflanged) end                  |
 | `FLAT_MAX_BOOST_DB` | 20 dB                  | Default ceiling on the force-flat auto-EQ boost                                  |
 
-`RHO`/`C` are the reference values at `tempK = 293.15` K (20 °C); `sweep`/`circuit` rescale
-both by the live `SweepParams.tempK` when present (§4.3).
+**There are no frozen ρ/c constants** — not in WinISD and not here (machine-verified against
+WinISD 2026-08-20, `docs/design/WINISD_SCHEMA.md` §12; `engine/air.ts`'s module docstring).
+Air density and sound velocity are always computed from the environment (T, RH, p) through
+`engine/air.ts`:
 
-**Full precision, corrected 2026-08-14.** Previously `1.20095`/`343.68` (6/5 significant
-figures) — a truncation, not a different value: `winisd-parity` goldens (all eight, across
-every humidity leg) and `drivers/myprobes/per_field_and_misc/john-all-defaults.wdr` (a WinISD-authored blank
-driver, ParState `C` on `c`/`roo`) directly carry `1.20095217714682`/`343.684120962153`. The
-truncation cost 1.8e-6 (ρ) / 1.2e-5 (c) relative, propagating into `no` (∝ 1/c³, 3.6e-5) and
-`SPLmaxLF` (2e-7) — see
+- **Default (CIPM-2007 moist air)** — `moistAirDensity` / `moistAirSoundVelocity`. The
+  metrological standard, and the better description of real air.
+- **WinISD parity model** (`useWinisdAirModel: true`, the DEFAULT for new projects since
+  QO95) — WinISD's own formula set: Hyland–Wexler vapour pressure, ideal-gas moist mixing for
+  c, density derived as `γ·p/c²`. Reproduces live-probed WinISD output to ≤ 2.5e-15 relative
+  across six controlled environments (QO93, FINDING-008).
+
+Both models consume all three of temperature, humidity, and pressure — neither discards an
+input. `sweep`/`circuit` compute ρ/c from the `SweepParams` environment directly (§4.3);
+there is no rescale step.
+
+**History (2026-08-14).** This section formerly described frozen `RHO`/`C` constants
+(1.20095217714682 kg/m³ / 343.684120962153 m/s at 293.15 K) which the sweep rescaled by
+`tempK` alone. That engine no longer exists. The full-precision correction of the then-constants
+(and its golden rebase, max 3.6e-3 relative on one near-zero impedance-phase bin) is recorded in
 `bugs/BUG_20260813_winisd-compatibility-air-returns-truncated-rho-and-c-not-winisds-own-pair.md`.
-Fixing it moved `packages/design/test/engine/fixtures/golden/*.json` (rebaselined in the same commit —
-max delta 3.6e-3 relative on one near-zero impedance-phase bin, 3.2e-6 relative on `spl`; every
-delta traces to this ~1e-5-level correction propagating through the resonant circuit, not to a
-behaviour change) — see `npm run gen-golden`.
-
-⚠ **`winisdAir()`'s temperature scaling of this pair is a SEPARATE, still-open divergence** —
-WinISD's own frozen compatibility air does not move with a record's stated temperature at all
-(`goldens/env-t-303.wpr` and its 293.15 K twin `env-rh-30.wpr` carry byte-identical `c`/`roo`),
-but `airFor({ useWinisdAirModel: true, tempK })` currently scales both by `tempK`. See
-`bugs/BUG_20260814_winisd-compatibility-air-does-not-scale-with-temperature-but-winisdair-does.md`
-(not fixed — awaiting a human ruling, same permission gate).
+The formerly-flagged "temperature scaling still-open divergence" (env-t-303 vs env-rh-30
+byte-identical goldens) was resolved BY EXPERIMENT as QO93: WinISD's c/roo move with its
+app-level Options environment, and the goldens' identical pair reflects project-env values
+WinISD never reads. `bugs/BUG_20260814_winisd-compatibility-air-…` is closed WONTFIX on that
+basis.
 
 ### 4.3 Sweep Parameters — `sweep(drv: Driver, box: BoxType, P: SweepParams) → SweepResult`
 
@@ -236,7 +239,10 @@ non-positive is a blocking `DriverError`, not a silently-substituted default (`v
 | `fmin` / `fmax`     | Hz                       | 10 / 1000                | Sweep frequency range                                                                                                             |
 | `N`                 | integer                  | 400                      | Number of frequency points                                                                                                        |
 | `filters`           | `Filter[]`               | `[]`                     | Signal-chain filters (`SPEC_UI.md` §3.2)                                                                                          |
-| `tempK`             | K                        | 293.15                   | Ambient temperature — rescales `RHO`/`C` for the sweep (§4.2); `humidityPct`/`pressurePa` are UI-only, not consumed by the engine |
+| `tempK`             | K                        | 293.15                   | Ambient temperature — one of the three environment inputs ρ/c are computed from (`engine/air.ts`, §4.2) |
+| `humidityPct`       | % (0–100)                | 30                       | Relative humidity — moves ρ and c; consumed by the engine in BOTH air models (QO88/QO95)                    |
+| `pressurePa`        | Pa                       | 101325                   | Static air pressure — moves ρ and c; consumed by the engine in BOTH air models (QO88/QO95)                  |
+| `useWinisdAirModel` | boolean                  | `true` (QO95)            | `true`: WinISD's parity air formula set. `false`: CIPM-2007 moist air. Neither discards an input (§4.2)     |
 | `driverAddedMass`   | kg                       | 0 (no-op)                | Added mass to the cone — raises Mms, lowers Fs                                                                                    |
 | `vcTempRise`        | K                        | 0 (no-op)                | Coil temperature rise → hot Re, combined with `alfaVC`                                                                            |
 | `alfaVC`            | /K                       | 0 (no-op)                | Copper thermal coefficient for `vcTempRise`                                                                                       |

@@ -17,7 +17,8 @@ import type { DragRange } from './dragRange.js';
 import { ProjectAdvanced } from './projectAdvanced.js';
 import { ProjectChartsView, type OpenCharts } from './projectChartsView.js';
 import { ProjectEnvironment, envFieldsOver } from './projectEnvironment.js';
-import { owprTextOf, parseOwprSession, sessionOf } from './projectSerialization.js';
+import { owprTextOf, parseOwprSession, parseOwprSessionRepairing, sessionOf } from './projectSerialization.js';
+import type { FieldPath } from '../schemaRepair.js';
 import { boxParamsIssuesOf, maxCurvesOf, sweepOf, sweepPlanOf, ventAchievedFbOf, ventMaxReachableFbOf } from './projectSweep.js';
 import type { ProjectSweepSource, SweepPlan } from './projectSweep.js';
 import { freshEmbeddedDriver } from './freshEmbeddedDriver.js';
@@ -560,6 +561,15 @@ export class OpenISDProject {
         const parsed = parseOwprSession(text);
         if ('errors' in parsed) return parsed.errors;
         return OpenISDProject.wrapSession(parsed.session, newUuid(), engine);
+    }
+
+    /** Like `fromOwprText`, but a field that fails the schema is removed so its default applies
+     *  instead of refusing the project; `repaired` names every field that was reset, for the
+     *  user to be told. Refused only when the text is not a project at all. */
+    static fromOwprTextRepairing(text: string, engine: Engine): { project: OpenISDProject; repaired: readonly FieldPath[] } | string[] {
+        const parsed = parseOwprSessionRepairing(text);
+        if (Array.isArray(parsed)) return parsed;
+        return { project: OpenISDProject.wrapSession(parsed.value, newUuid(), engine), repaired: parsed.repaired };
     }
 
     /** Serialises saved and ordinary edited states for persistence. The transient what-if is absent. */

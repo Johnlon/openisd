@@ -7,6 +7,7 @@ import type {
     ChamberJson, CoupledSealedLossesJson, CoupledVentedLossesJson, OpenISDBoxJson,
     RadiatorDeviceJson, SealedLossesJson, VentedLossesJson, VentJson,
 } from './openisdSchema.js';
+import {DEFAULT_NEW_PROJECT_VENTED_QL} from '../fields/defaults.js';
 
 // Shared const objects, the starting values a brand-new box is built from. Values are WinISD's
 // own defaults for a freshly-created box (packages/design/winisd/winisdProject.ts TEMPLATE:
@@ -16,8 +17,9 @@ import type {
 // packages/design/AGENTS.md "Keep module-scoped state immutable". Every use still SPREADS the
 // value (`{ ...NO_VENTED_CHAMBER }`) so the object reaching a project record is always a fresh
 // copy, never the shared one.
-const NO_SEALED_LOSSES: SealedLossesJson = Object.freeze({Ql: 10, Qa: 100});
-const NO_VENTED_LOSSES: VentedLossesJson = Object.freeze({Ql: 10, Qa: 100, Qp: 100});
+const NO_SEALED_LOSSES: SealedLossesJson = Object.freeze({Ql: DEFAULT_NEW_PROJECT_VENTED_QL, Qa: 100});
+const NO_VENTED_LOSSES: VentedLossesJson =
+    Object.freeze({Ql: DEFAULT_NEW_PROJECT_VENTED_QL, Qa: 100, Qp: 100});
 const NO_COUPLED_SEALED_LOSSES: CoupledSealedLossesJson =
     Object.freeze({Ql: 10, Qa: 100, Qicl: 100});
 const NO_COUPLED_VENTED_LOSSES: CoupledVentedLossesJson =

@@ -17,6 +17,7 @@ import {
   createPrefsRepo,
   createProjectRepo,
   createViewStateRepo,
+  createAppSettingsRepo,
 } from '@openisd/persistence';
 import {createLogging} from '../../src/logging/flash.js';
 import {createFaultLog} from '../../src/diagnostics/faultLog.js';
@@ -34,8 +35,10 @@ const unusedFetch: typeof fetch = () => Promise.reject(new Error('fetch not used
 export function testAppLogic(overrides: Partial<AppLogic> = {}): AppLogic {
   const engine = createEngine();
   const logging = createLogging();
-  const faultLog = createFaultLog();
   const storage = createMemoryStorage();
+  const faultLog = createFaultLog(() => undefined, () => ({
+    view: createViewStateRepo(storage), appSettings: createAppSettingsRepo(storage),
+  }));
   const driverRepo = createBundledDriverRepo({
     fetch: unusedFetch, baseUrl: '/', engine, maxAge_ms: CATALOGUE_MAX_AGE_MS, now: Date.now,
   });

@@ -3,8 +3,8 @@
  *
  * Environment: the temperature/humidity/pressure a project reads for any of the three it has
  * not entered. Vented design limits: the band a designed vented box is judged plausible
- * against. WinISD extrapolates its alignment polynomials outside their design range, OpenISD
- * matches it bit-exact, and an implausible answer is marked rather than changed (John
+ * against. WinISD does not clamp its alignment polynomials, OpenISD
+ * matches it bit-exact, and an out-of-band answer is marked rather than changed (John
  * 2026-09-22: "keep parity and use dq — this is the way"). Not editable here: the non-physical
  * judgement (zero, negative, non-finite), which is absolute and has no band to set.
  *
@@ -76,7 +76,12 @@ export interface OptionsModalAPI {
   readonly tempK: Ref<number>;
   readonly humidityPct: Ref<number>;
   readonly pressurePa: Ref<number>;
-  /** Why the edited band is not a band, or null when it is one. */
+  /** The Plot Window frequency-range draft (Start/End, Hz) and its setter — validated by
+   *  the same OK that applies the settings. */
+  readonly freqRangeDraft: Ref<{fmin: number | string; fmax: number | string}>;
+  setFreqRange(fmin: number | string, fmax: number | string): void;
+  /** Why the edited settings are not savable, or null when they are. Covers BOTH the band and
+   *  the frequency range: OK is one write or none. */
   readonly error: ComputedRef<string | null>;
   /** Whether `apply()` would write. False exactly when `error` is set. */
   readonly canApply: ComputedRef<boolean>;
@@ -101,6 +106,10 @@ function isPositive(v: number): boolean {
   return Number.isFinite(v) && v > 0;
 }
 
+function isFiniteNumber(v: unknown): v is number {
+  return typeof v === 'number' && Number.isFinite(v);
+}
+
 export function useOptionsModal(deps?: OptionsModalDeps): OptionsModalAPI {
   const settings: OptionsModalDeps = deps ?? {
     ventedLimits: appVentedLimits,
@@ -120,6 +129,15 @@ export function useOptionsModal(deps?: OptionsModalDeps): OptionsModalAPI {
   const tempK = ref(env.tempK);
   const humidityPct = ref(env.humidityPct);
   const pressurePa = ref(env.pressurePa);
+
+  /** The Plot Window frequency-range draft. Lives here rather than in the .vue so its
+   *  validation gates the same OK that applies the settings. */
+  const freqRangeDraft = ref<{fmin: number | string; fmax: number | string}>({
+    fmin: 10, fmax: 20000,
+  });
+  function setFreqRange(fmin: number | string, fmax: number | string): void {
+    freqRangeDraft.value = {fmin, fmax};
+  }
 
   /** The edited values as the band they would become — not yet checked. */
   const editedBand = computed<VentedDesignLimits>(() => ({
@@ -152,7 +170,24 @@ export function useOptionsModal(deps?: OptionsModalDeps): OptionsModalAPI {
     return null;
   });
 
-  const canApply = computed(() => error.value === null);
+  /** The frequency range's draft pair, validated where the user set it: both halves a finite
+   *  number and Start below End. `v-model.number` keeps a CLEARED field as the raw empty
+   *  string, and `v-limits` deliberately leaves transient empties alone, so without this gate
+   *  `''` (and any inverted pair) reached `sweepRange` on OK and broke every chart's
+   *  frequency axis — persistently (BUG_20261001 options-frequency-range-unvalidated-empty-inverted).
+   *  The dialog's single error covers every tab's edits: OK is one write or none. */
+  const freqError = computed<string | null>(() => {
+    const lo = freqRangeDraft.value.fmin, hi = freqRangeDraft.value.fmax;
+    if (!isFiniteNumber(lo) || !isFiniteNumber(hi)) {
+      return 'Frequency range needs both a start and an end.';
+    }
+    if (lo >= hi) {
+      return 'Frequency range start must be below its end.';
+    }
+    return null;
+  });
+
+  const canApply = computed(() => error.value === null && freqError.value === null);
 
   const limitsAreFactory = computed(() => {
     const b = editedBand.value;
@@ -193,6 +228,7 @@ export function useOptionsModal(deps?: OptionsModalDeps): OptionsModalAPI {
   return {
     minVolume_L, maxVolume_L, minTuning_hz, maxTuning_hz,
     tempK, humidityPct, pressurePa,
+    freqRangeDraft, setFreqRange,
     error, canApply, limitsAreFactory, envIsFactory, defaultAir,
     resetLimits, resetEnv, apply,
   };

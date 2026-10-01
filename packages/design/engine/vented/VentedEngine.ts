@@ -1,9 +1,8 @@
 /**
  * The vented-box area of the engine: WinISD's five wizard alignments, bit-for-bit, and the
- * plausibility judgement on what they design — outside an alignment's design range WinISD
- * extrapolates (John, 2026-09-22: "keep parity and use dq"), so nothing here changes a designed
- * value; the judgement only says which of them a person should not trust, against the band the
- * user owns in Settings, read at call time so a Settings edit lands without a rebuild.
+ * plausibility judgement on what they design — WinISD does not clamp (John, 2026-09-22: "keep
+ * parity and use dq"), so nothing here changes a designed value; the judgement only says which
+ * of them fall outside the band the user owns in Settings, read at call time so a Settings edit lands without a rebuild.
  */
 import type {AppSettings} from '../appSettings.js';
 import type {VentedAlignment, VentedDesign} from '../types.js';
@@ -94,8 +93,8 @@ function polynomialAlignment(poly: VentedPolynomials, Qts: number): AlignmentRat
 /**
  * Vented box design as WinISD's New Project wizard does it — reproduces its `.wpr` `Vb`/`Fb`
  * to floating-point noise (60 captures, Qts 0.15–1.0, ≤ 2.3e-14 relative; `winisd_research/
- * runs/vented_alignment_validation.md`). No clamp: outside ~0.25–0.6 WinISD extrapolates the
- * polynomials, and so does this.
+ * runs/vented_alignment_validation.md`). No clamp: WinISD evaluates the
+ * polynomials at any Qts, and so does this.
  *
  * `QtsLoaded` is the SOURCE-LOADED Qts: WinISD folds the project's series resistance Rg into
  * Qes before designing (`sourceLoadedQts()` in `lossMode.ts`). Passing the bare driver Qts
