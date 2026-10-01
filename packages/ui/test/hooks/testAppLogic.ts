@@ -64,7 +64,7 @@ export function testAppLogic(overrides: Partial<AppLogic> = {}): AppLogic {
 
   const base: AppLogic = {
     engine, logging, driverBrowsing, selection, designIO, designFiles, driverDrafts,
-    myPassiveRadiators, bundledPassiveRadiators, bundledDrivers: driverRepo, myDrivers: myDriverRepo,
+    myPassiveRadiators, prefs, bundledPassiveRadiators, bundledDrivers: driverRepo, myDrivers: myDriverRepo,
     driverFileStorage, faultLog, projectRepo, viewStateRepo,
   };
   return Object.assign({}, base, overrides);

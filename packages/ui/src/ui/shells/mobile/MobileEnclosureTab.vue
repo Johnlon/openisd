@@ -170,6 +170,8 @@ const {
       <div class="mob-field-main"><span class="mob-field-label">Qms</span>
         <span class="mob-field-value"><NumInput :model-value="project.box.passiveRadiator.radiator.spec.Qms.value" @update:model-value="(v: number | null) => project.box.passiveRadiator.radiator.spec.Qms.set(v ?? 0)" :field="NumberField.PR_QMS" :precision="NumberField.PR_QMS.precision" stepper /></span>
       </div>
+      <!-- An empty unit column, so this row's ▲▼ line up with the rows that have a unit. -->
+      <span class="mob-unit" aria-hidden="true"></span>
     </div>
     <div class="mob-field-row mob-field-entered">
       <div class="mob-field-main"><span class="mob-field-label">Fpr</span>
@@ -303,6 +305,17 @@ const {
   flex: 1 1 auto;
   min-width: 0;
   min-height: 32px;
+}
+/* An editable value looks like an input box; a read-only one stays flat text. */
+.mob-field-value :deep(input:not([readonly])) {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #fff;
+  padding: 2px 8px;
+}
+.mob-field-value :deep(input:not([readonly]):focus) {
+  border-color: var(--acc);
+  outline: none;
 }
 .mob-readonly { color: var(--acc); }
 .mob-impossible { color: #a11; }

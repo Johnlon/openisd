@@ -1,6 +1,6 @@
 # The app titlebar and its build datetime are gone
 
-Status: OPEN (re-verified 2026-09-26) — the build date is defined at build time but shown nowhere.
+Status: RESOLVED (re-verified 2026-10-02) — the build stamp is shown beside the OpenISD brand in the toolbar.
 
 ## Symptom
 
@@ -61,3 +61,14 @@ titlebar that used to carry it.
 
 `npx playwright test packages/ui/test/ui/original-skin.browser.spec.ts -g "build datetime"`
 fails at `expect(tbCenter).toBeVisible()`.
+
+## Resolved (re-verified 2026-10-02)
+The build stamp is back, out of the way as ruled: the toolbar's brand shows `(vYYYYMMDDTHHMMSSZ)`
+in `.version-chip`
+([OriginalShell.vue](http://localhost:8000/winisd/openisd/packages/ui/src/ui/shells/original/OriginalShell.vue#L118)),
+read from the build's `build-info.json` (since ade563bb, 2026-09-25). Tests:
+`toolbar-version.browser.spec.ts` (passes, 2026-10-02) and `original-skin.browser.spec.ts`
+"the toolbar shows the build version chip". The old titlebar test is gone.
+
+The unused `__BUILD_DATETIME__` define (`vite.config.js`) and its `declare`
+(`useApplicationIO.ts`) were deleted: nothing read them.

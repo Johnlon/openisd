@@ -9,6 +9,12 @@ export interface PRBrowserAPI {
   readonly fBundled: Readonly<Ref<readonly ReturnType<typeof passiveRadiatorRows>[number][]>>;
   /** Why the bundled section is empty when the index could not be fetched; '' otherwise. */
   readonly bundledStatus: Readonly<Ref<string>>;
+  /** The Favorites button: when on, both sections show only starred radiators. */
+  readonly favoritesOnly: Readonly<Ref<boolean>>;
+  isFavorite(id: string): boolean;
+  /** Star or unstar a radiator by its row id; kept for the next session. */
+  toggleFavorite(id: string): void;
+  toggleFavoritesOnly(): void;
   remove(uuid: string): void;
   close(): void;
 }
@@ -16,7 +22,7 @@ export interface PRBrowserAPI {
 export const PRBrowserKey: InjectionKey<PRBrowserAPI> = Symbol('PRBrowserAPI');
 
 export function usePRBrowser(emit: (event: 'close') => void): PRBrowserAPI {
-  const { myPassiveRadiators, bundledPassiveRadiators } = useApp();
+  const { myPassiveRadiators, bundledPassiveRadiators, prefs } = useApp();
   const filter = ref('');
 
   const savedRows = ref(passiveRadiatorRows(
@@ -30,8 +36,19 @@ export function usePRBrowser(emit: (event: 'close') => void): PRBrowserAPI {
     rows => { bundledRows.value = bundledPassiveRadiatorRows(rows); },
     (err: Error) => { bundledStatus.value = err.message; });
 
-  const matching = <T extends { name: string }>(rows: readonly T[], q: string): readonly T[] =>
-    q ? rows.filter(r => r.name.toLowerCase().includes(q)) : rows;
+  const favorites = ref<string[]>(prefs.favoritePassiveRadiators());
+  const favoritesOnly = ref(false);
+  const isFavorite = (id: string): boolean => favorites.value.includes(id);
+  function toggleFavorite(id: string): void {
+    favorites.value = isFavorite(id) ? favorites.value.filter(k => k !== id) : [...favorites.value, id];
+    prefs.setFavoritePassiveRadiators(favorites.value);
+  }
+  function toggleFavoritesOnly(): void {
+    favoritesOnly.value = !favoritesOnly.value;
+  }
+
+  const matching = <T extends { id: string; name: string }>(rows: readonly T[], q: string): readonly T[] =>
+    rows.filter(r => (!q || r.name.toLowerCase().includes(q)) && (!favoritesOnly.value || isFavorite(r.id)));
 
   const fSaved = computed(() => matching(savedRows.value, filter.value.trim().toLowerCase()));
   const fBundled = computed(() => matching(bundledRows.value, filter.value.trim().toLowerCase()));
@@ -51,6 +68,10 @@ export function usePRBrowser(emit: (event: 'close') => void): PRBrowserAPI {
     fSaved,
     fBundled,
     bundledStatus,
+    favoritesOnly,
+    isFavorite,
+    toggleFavorite,
+    toggleFavoritesOnly,
     remove,
     close,
   };

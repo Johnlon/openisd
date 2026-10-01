@@ -70,15 +70,15 @@ flowchart TD
     R -. constructs .-> P
 ```
 
-| Layer            | Owns                                                                 | Must not                                                   |
-|------------------|----------------------------------------------------------------------|------------------------------------------------------------|
-| `ui/components`  | Markup and bindings.                                                 | Make decisions, or import a domain value.                  |
-| `ui/hooks`       | The behaviour behind one component, as a composable tested without a DOM. | Hold module-level state.                              |
-| `ui/logic`       | The open projects, presentation state, file I/O orchestration, driver browsing. | Calculate anything a domain object can answer.  |
-| `persistence`    | Storage keys, payload upgrades, catalogue fetch and caching.         | Validate a record; the domain does that. It passes `.owpr`/`.owdr` text to and from the domain. `projectSchemaUpgrade.ts` knows retired payload shapes only. |
-| `design/domain`  | The project aggregate, its fields, its solve cascade, file text.     | Do acoustics; that belongs to the engine.                  |
-| `design/engine`  | Air, T/S solving, box design, the circuit, sweeps.                   | Throw, or know about files.                                |
-| `design/winisd`  | `.wdr`/`.wpr` parsing and writing, ParState, WinISD text encoding.   | Model the physics.                                          |
+| Layer           | Owns                                                                            | Must not                                                                                                                                                                                                                 |
+|-----------------|---------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `ui/components` | Markup and bindings.                                                            | Must not make decisions. Must not import a domain value.                                                                                                                                                                 |
+| `ui/hooks`      | The behaviour behind one component, as a composable tested without a DOM.       | Must not hold module-level state.                                                                                                                                                                                        |
+| `ui/logic`      | The open projects, presentation state, file I/O orchestration, driver browsing. | Must not calculate anything a domain object can answer.                                                                                                                                                                  |
+| `persistence`   | Storage keys, payload upgrades, catalogue fetch and caching.                    | Must not validate a record; the domain does that. Must not do anything with `.owpr`/`.owdr` text except pass it to and from the domain. Must not let `projectSchemaUpgrade.ts` know anything but retired payload shapes. |
+| `design/domain` | The project aggregate, its fields, its solve cascade, file text.                | Must not do acoustics; that belongs to the engine.                                                                                                                                                                       |
+| `design/engine` | Air, T/S solving, box design, the circuit, sweeps.                              | Must not throw. Must not know about files.                                                                                                                                                                               |
+| `design/winisd` | `.wdr`/`.wpr` parsing and writing, ParState, WinISD text encoding.              | Must not model the physics.                                                                                                                                                                                              |
 
 Enforcement, as tests that fail the build:
 

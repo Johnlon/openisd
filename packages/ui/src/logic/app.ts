@@ -10,6 +10,7 @@ import type {
     FileStorage,
     MyDriverRepo,
     MyPassiveRadiatorRepo,
+    PrefsRepo,
     ProjectRepo,
     ViewStateRepo
 } from '@openisd/persistence';
@@ -42,6 +43,7 @@ export interface AppLogic {
   designFiles: DesignFiles;
   driverDrafts: DriverDrafts;
   myPassiveRadiators: MyPassiveRadiatorRepo;
+  prefs: PrefsRepo;
   bundledPassiveRadiators: BundledPassiveRadiatorRepo;
   bundledDrivers: BundledDriverRepo;
   myDrivers: MyDriverRepo;
