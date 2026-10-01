@@ -366,7 +366,7 @@ export class OpenISDBox implements Box {
     /** Give the active box type its starting values where nothing is entered yet: sealed gets the
      *  flat-alignment volume, vented the QB3 design for the driver as driven plus vent geometry for
      *  its shape (50 mm round; a slot the driver's diameter wide and 3 cm high), a passive-radiator
-     *  box 7 L at 35 Hz with a placeholder radiator sized off the driver, bandpass4 a 7 L rear and
+     *  box 7 L with no mass added to a placeholder radiator sized off the driver, bandpass4 a 7 L rear and
      *  a 10 L front at 35 Hz through the same vent geometry. Bandpass6 and ABC have none.
      *  Called by `boxType.set()` and by every `ProjectBuilder` at build; every write is gated on
      *  its own field being unset, so nothing entered is ever overwritten. A driver without the
@@ -393,7 +393,8 @@ export class OpenISDBox implements Box {
             case 'box-passive-radiator': {
                 const pr = this.passiveRadiator;
                 if (pr.volume_m3.value <= 0) pr.volume_m3.set(STARTING.volume_m3);
-                if (pr.tuning_goal_hz.value === null) pr.tuning_goal_hz.set(STARTING.tuning_hz);
+                // No mass added to the radiator cone (John, 2026-10-01); the tuning is calculated from it.
+                if (!pr.addedMass_kg.entered && !pr.tuning_goal_hz.entered) pr.addedMass_kg.set(0);
                 if (pr.radiator.brand.value === '') pr.radiator.brand.set(STARTING.radiatorBrand);
                 if (pr.radiator.model.value === '') pr.radiator.model.set(STARTING.radiatorModel);
                 const spec = pr.radiator.spec;
