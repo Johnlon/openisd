@@ -262,7 +262,7 @@ export class NumberField extends Field {
     display: {kind: 'fixed', symbol: 'm/s'},
     limits: {min: 1, max: 340},
     precision: 1,
-    description: "Port Air Velocity Limit\nThe maximum air velocity the port should reach before audible chuffing or turbulence, drawn as a limit line on the port velocity charts. Defaults to 17 m/s; a flared port tolerates more, a straight pipe less.",
+    description: "Port Air Velocity Limit\nAbove this air speed, a port starts making audible noise (\"chuffing\") and turbulence. Shown as a line on the port velocity charts so you can see when a design exceeds it. Default 17 m/s — a flared port can handle more, a plain straight pipe less.",
   });
 
   // ── Passive radiator ──────────────────────────────────────────────────────────────────────
