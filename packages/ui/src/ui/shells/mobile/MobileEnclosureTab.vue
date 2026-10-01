@@ -306,7 +306,7 @@ const {
 }
 .mob-readonly { color: var(--acc); }
 .mob-impossible { color: #a11; }
-.mob-unit { font-size: 13px; color: var(--mut); min-width: 40px; flex-shrink: 0; }
+.mob-unit { font-size: 13px; color: var(--mut); min-width: 30px; flex-shrink: 0; }
 .mob-hint { margin: 8px 16px; font-size: 12.5px; color: var(--mut); line-height: 1.4; }
 .mob-hint-warn { color: var(--acc2); }
 </style>
