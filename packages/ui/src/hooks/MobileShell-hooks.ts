@@ -59,6 +59,8 @@ export interface MobileShellApi {
    *  can change its height without the user scrolling (mount, a tab switch, a window resize,
    *  or the mounted tab's own content growing/shrinking). */
   updateScrollEdges: () => void;
+  /** The menu drawer's identity line — null until the user sets one (Options → Username). */
+  username: import('vue').ComputedRef<string | null>;
 }
 
 export function useMobileShell(): MobileShellApi {
@@ -67,6 +69,10 @@ export function useMobileShell(): MobileShellApi {
   const { show: about } = injectSplashModal();
   const projectOpen = computed(() => focusedProject() != null);
   const destination = ref<MobileDestination>('box');
+  // The menu drawer's own identity line (John, 2026-10-02: "get my name in there somewhere") —
+  // the same free-text app-level preference the Options dialog's "Username" field edits
+  // (OptionsModal.vue), not a new setting of its own.
+  const username = computed(() => presentationState.ui.username || null);
 
   // Mirrors desktop's own nav gate (OriginalShell-hooks.ts) — its own selectedBox instance, kept
   // synced to the project the same way (see createSelectedBox's own comment).
@@ -183,7 +189,7 @@ export function useMobileShell(): MobileShellApi {
     projectOpen, destination, fileInput, openImportedFile, openNewProject, switchToDesktop,
     menuOpen, toggleMenu, closeMenu, openFromDisk, isModified,
     saveProject, revertProject, browseDrivers, optionsOpen, openOptions, about, goToProject,
-    contentEl, canScrollUp, canScrollDown, updateScrollEdges,
+    contentEl, canScrollUp, canScrollDown, updateScrollEdges, username,
     goToAdvanced, viewportHeightPx, showEnclosureTab, enclosureNavLabel,
   };
 }

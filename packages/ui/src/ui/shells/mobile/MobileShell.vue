@@ -22,6 +22,7 @@ const {
   menuOpen, toggleMenu, closeMenu, openFromDisk, isModified, saveProject, revertProject,
   browseDrivers, optionsOpen, openOptions, about, goToProject, goToAdvanced, viewportHeightPx,
   showEnclosureTab, enclosureNavLabel, contentEl, canScrollUp, canScrollDown, updateScrollEdges,
+  username,
 } = useMobileShell();
 </script>
 
@@ -65,6 +66,14 @@ const {
 
       <div v-if="menuOpen" class="mob-menu-overlay" @click="closeMenu">
         <div class="mob-menu" @click.stop>
+          <div class="mob-menu-brand">
+            <img src="/icon.svg" alt="" aria-hidden="true">
+            <div class="mob-menu-brand-text">
+              <span class="mob-menu-brand-name">OpenISD</span>
+              <span v-if="username" class="mob-menu-username">{{ username }}</span>
+            </div>
+          </div>
+          <div class="mob-menu-sep"></div>
           <button type="button" class="mob-menu-item" @click="openNewProject">New project</button>
           <button type="button" class="mob-menu-item" @click="openFromDisk">Open a file</button>
           <button type="button" class="mob-menu-item" :class="{ dirty: isModified }" @click="saveProject(); closeMenu()">Save</button>
@@ -192,6 +201,16 @@ const {
   flex-direction: column;
   padding: 8px 0;
 }
+.mob-menu-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 18px 10px;
+}
+.mob-menu-brand img { width: 28px; height: 28px; display: block; flex-shrink: 0; }
+.mob-menu-brand-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.mob-menu-brand-name { font-weight: 600; font-size: 17px; color: var(--fg); }
+.mob-menu-username { font-size: 13px; color: var(--mut); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .mob-menu-item {
   all: unset;
   box-sizing: border-box;
