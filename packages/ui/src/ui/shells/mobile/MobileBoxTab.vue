@@ -259,7 +259,7 @@ const {
   min-height: 32px;
 }
 .mob-readonly { color: var(--acc); }
-.mob-unit { font-size: 13px; color: var(--mut); }
+.mob-unit { font-size: 13px; color: var(--mut); min-width: 40px; flex-shrink: 0; }
 .mob-hint { margin: 8px 16px; font-size: 12.5px; color: var(--mut); line-height: 1.4; }
 .mob-hint-warn { color: var(--acc2); }
 
