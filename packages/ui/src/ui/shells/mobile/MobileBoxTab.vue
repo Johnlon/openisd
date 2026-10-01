@@ -45,7 +45,7 @@ const {
         <span class="mob-field-label">Volume</span>
         <span class="mob-field-value">
           <NumInput :model-value="boxVolume_m3" @update:model-value="(v: number | null) => setBoxVolume_m3(v ?? 0)"
-                    :field="NumberField.BOX_VB_L" unit-key="Vb" :precision="NumberField.BOX_VB_L.precision" />
+                    :field="NumberField.BOX_VB_L" unit-key="Vb" :precision="NumberField.BOX_VB_L.precision" stepper />
         </span>
       </div>
       <UnitToggle :field="NumberField.BOX_VB_L" unit-key="Vb" unit-class="mob-unit" />
@@ -160,7 +160,7 @@ const {
         <div class="mob-field-main">
           <span class="mob-field-label">Leakage Ql</span>
           <span class="mob-field-value">
-            <NumInput :model-value="boxQl" @update:model-value="(v: number | null) => setBoxQl(v ?? 0)" :precision="NumberField.LOSS_QL.precision" />
+            <NumInput :model-value="boxQl" @update:model-value="(v: number | null) => setBoxQl(v ?? 0)" :precision="NumberField.LOSS_QL.precision" stepper />
           </span>
         </div>
       </div>
@@ -168,7 +168,7 @@ const {
         <div class="mob-field-main">
           <span class="mob-field-label">Absorption Qa</span>
           <span class="mob-field-value">
-            <NumInput :model-value="boxQa" @update:model-value="(v: number | null) => setBoxQa(v ?? 0)" :precision="NumberField.LOSS_QA.precision" />
+            <NumInput :model-value="boxQa" @update:model-value="(v: number | null) => setBoxQa(v ?? 0)" :precision="NumberField.LOSS_QA.precision" stepper />
           </span>
         </div>
       </div>
@@ -176,7 +176,7 @@ const {
         <div class="mob-field-main">
           <span class="mob-field-label">Port Qp</span>
           <span class="mob-field-value">
-            <NumInput :model-value="boxQp" @update:model-value="(v: number | null) => setBoxQp(v ?? 0)" :precision="NumberField.LOSS_QP.precision" />
+            <NumInput :model-value="boxQp" @update:model-value="(v: number | null) => setBoxQp(v ?? 0)" :precision="NumberField.LOSS_QP.precision" stepper />
           </span>
         </div>
       </div>
@@ -246,7 +246,7 @@ const {
 .mob-field-calculated { border-left-color: var(--acc); }
 .mob-field-main { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
 .mob-field-label { font-size: 13px; color: var(--mut); }
-.mob-field-value { font-size: 18px; font-variant-numeric: tabular-nums; }
+.mob-field-value { font-size: 18px; font-variant-numeric: tabular-nums; display: flex; align-items: center; gap: 6px; }
 .mob-field-value :deep(input) {
   border: none;
   background: transparent;
@@ -254,7 +254,8 @@ const {
   font-size: 18px;
   color: var(--fg);
   padding: 0;
-  width: 100%;
+  flex: 1 1 auto;
+  min-width: 0;
   min-height: 32px;
 }
 .mob-readonly { color: var(--acc); }
