@@ -22,8 +22,10 @@ import {allIssues, curvesData, newProject, paramIssues, requireFocusedProject} f
  *  exactly as a real user's edits, spread over multiple frames, naturally would. Reading
  *  `allIssues.value` synchronously right after a change proves nothing either way: a
  *  test that never awaits this can pass whether or not the channel ever actually recomputed. */
+// Past the sweep's settle run (`SweepScheduler`, 150 ms after the last edit), which brings the
+// max curves and their issues up to date after a burst of edits.
 async function awaitSweepThrottle(): Promise<void> {
-  await new Promise(resolve => setTimeout(resolve, 50));
+  await new Promise(resolve => setTimeout(resolve, 200));
 }
 
 describe('the store unions every hardening layer into one issue list', () => {
