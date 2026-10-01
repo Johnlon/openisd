@@ -1,6 +1,6 @@
 # BUG_20261001_boot-rewrites-open-sessions-and-other-tabs-rebuild
 
-**Status:** OPEN
+**Status:** FIXED 2026-10-01
 
 ## Symptom
 Opening OpenISD in a new tab makes every other open tab rebuild all of its projects, for
@@ -26,8 +26,10 @@ A boot save of an unchanged session writes nothing.
 a third tab now sends the others no event. Test: `projectRepair.test.ts` "saving the session it
 just read".
 
-## Still open
-The first tab to READ a session written by another tab still rewrites it once, because the read
-changes content, not only the id: it stamps `saved.charts.traceColor`, and it writes `edited` as
-null where the writing tab held an edited state. That one rewrite makes the writing tab rebuild
-its projects once. Fix: the writing tab stores the same form a reader produces.
+## Fixed (rest), 2026-10-01
+The first reader still rewrote the record once after a file import: the importing tab gave the
+project its trace colour as an unsaved edit, and the reader's boot (`markProjectSaved`) committed
+it, so the reader's text differed. `OpenISDProject.stampTraceColor` now writes the colour into the
+saved record (and any edits), so it is never an unsaved change. Measured: opening a second tab
+sends the first no storage event. Tests: `project-trace-color.test.ts`, `sessionSync.test.ts`
+"a project imported in one tab"; `tabs-share-one-session.browser.spec.ts` 4/4.

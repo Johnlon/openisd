@@ -12,7 +12,7 @@ import {createProjectRepo, createSharedMemoryStorage, createViewStateRepo, type 
 import {readFileSync} from 'node:fs';
 import {ensureSampleProject, SAMPLE_PROJECT_OWPR} from '../fixtures/sampleProject.js';
 import {startSessionSync} from '../../src/logic/sessionSync.js';
-import {addProject, openProjects, removeProject} from '../../src/logic/appState.js';
+import {addProject, openProjects, removeProject, restoreProjects} from '../../src/logic/appState.js';
 import {presentationState} from '../../src/logic/presentationState.js';
 
 const engine = createEngine();
@@ -116,5 +116,35 @@ describe('startSessionSync — a stored session the app wrote', () => {
     expect(Array.isArray(session) ? session : []).toEqual([]);
     expect(repairs).toEqual([]);
     expect(heardByOtherTab).toBe(1);
+  });
+});
+
+// bugs/BUG_20261001_boot-rewrites-open-sessions-and-other-tabs-rebuild.md
+describe('startSessionSync — a project imported in one tab', () => {
+  it('is stored in the form another tab reads it in, so that tab has nothing to write back', async () => {
+    ensureSampleProject();
+    const store = createSharedMemoryStorage();
+    const tab = store.tab();
+    stop = startSessionSync({projectRepo: createProjectRepo(engine, noFiles, tab), viewStateRepo: createViewStateRepo(tab)});
+    const imported = OpenISDProject.fromOwprText(readFileSync(SAMPLE_PROJECT_OWPR, 'utf8'), engine);
+    if (Array.isArray(imported)) throw new Error(imported.join('; '));
+    imported.save(); // File → Open commits the loaded design before opening it
+    addProject(imported);
+    await nextTick();
+    const written = tab.get('openisd_open_sessions');
+
+    const reader = createProjectRepo(engine, noFiles, store.tab());
+    const session = reader.loadOpenProjects();
+    if (session === null || Array.isArray(session)) throw new Error('expected a session');
+    stop();
+    closeAll();
+    restoreProjects(session.projects, session.focusedIndex);
+    session.projects[session.focusedIndex]?.save(); // the boot commits the restored design
+    let heard = 0;
+    tab.watch('openisd_open_sessions', () => { heard++; });
+    reader.saveOpenProjects(openProjects(), session.projects[session.focusedIndex] ?? null);
+
+    expect(written).not.toBeNull();
+    expect(heard).toBe(0);
   });
 });

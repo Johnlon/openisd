@@ -396,6 +396,17 @@ export class OpenISDProject {
         return new ProjectChartsView(this.#slot('charts'), this.#engine.box, () => this.box.boxType.value).traceColor;
     }
 
+    /** Give the project its trace colour as ground state: written to the saved record, and to the
+     *  unsaved edits when there are any, so being given a colour is never itself an unsaved change
+     *  and every tab stores the same record. */
+    stampTraceColor(color: string): void {
+        const coloured = (json: OpenISDProjectJson): OpenISDProjectJson => ({...json, charts: {...json.charts, traceColor: color}});
+        this.#saved = coloured(this.#saved);
+        if (this.#edited) this.#edited = coloured(this.#edited);
+        if (this.#whatif) this.#whatif = coloured(this.#whatif);
+        this.#notify();
+    }
+
     get sweepN(): SimpleField<number | null> {
         return new ProjectChartsView(this.#slot('charts'), this.#engine.box, () => this.box.boxType.value).sweepN;
     }

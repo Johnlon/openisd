@@ -132,7 +132,7 @@ export function traceColor(project: OpenISDProject): string {
 export function assignTraceColor(project: OpenISDProject, open: readonly OpenISDProject[]): void {
   if (project.traceColor.value !== null) return;
   const taken = new Set(open.map(p => p.traceColor.value).filter((c): c is string => c !== null));
-  project.traceColor.set(TRACE_PALETTE.find(c => !taken.has(c)) ?? TRACE_PALETTE[open.length % TRACE_PALETTE.length]);
+  project.stampTraceColor(TRACE_PALETTE.find(c => !taken.has(c)) ?? TRACE_PALETTE[open.length % TRACE_PALETTE.length]);
 }
 
 /** Advance `project`'s own trace colour to the next palette entry — the toolbar's "Color" button. */
