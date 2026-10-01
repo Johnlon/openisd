@@ -229,6 +229,13 @@ export class OpenISDProject {
         return this.#meta().name;
     }
 
+    /** The name a layout shows for this project: its own name, else its driver's brand and model. */
+    title(): string {
+        const name = this.name.value;
+        if (name) return name;
+        return [this.driver.brand.value, this.driver.model.value].filter(x => x.length > 0).join(' ');
+    }
+
     /** WinISD Project tab: who made this project, and when. */
     get creator(): SimpleField<string> {
         return this.#meta().creator;

@@ -19,7 +19,7 @@ import {OpenableFiles} from '../../../fileFormat.js';
 
 const {
   projectOpen, destination, fileInput, openImportedFile, openNewProject, switchToDesktop,
-  menuOpen, toggleMenu, closeMenu, openFromDisk, isModified, saveProject, revertProject,
+  menuOpen, toggleMenu, closeMenu, openFromDisk, isModified, saveProject, revertProject, projectTitle,
   browseDrivers, optionsOpen, openOptions, about, goToProject, goToAdvanced, viewportHeightPx,
   showEnclosureTab, enclosureNavLabel, contentEl, canScrollUp, canScrollDown, updateScrollEdges,
   username, openDialogOpen, storedProjects, openProjectDialog, openStoredProject,
@@ -48,6 +48,7 @@ const {
           <img src="/icon.svg" alt="" aria-hidden="true">
           <span>OpenISD</span>
         </div>
+        <div v-if="projectTitle" class="mob-project-title" :title="projectTitle">{{ projectTitle }}</div>
       </div>
 
       <main ref="contentEl" class="mob-content" @scroll="updateScrollEdges">
@@ -192,6 +193,11 @@ const {
 }
 .mob-brand { display: flex; align-items: center; gap: 8px; margin-left: 4px; font-weight: 600; font-size: 17px; }
 .mob-brand img { width: 24px; height: 24px; display: block; }
+/* The focused project's name: takes the rest of the bar, cut with an ellipsis when long. */
+.mob-project-title {
+  flex: 1; min-width: 0; margin-left: 12px; text-align: right;
+  font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
 .mob-hamburger span { display: block; width: 20px; height: 2px; background: var(--fg); border-radius: 1px; }
 .mob-menu-overlay {
   /* absolute, not fixed: covers .mobile-root (its containing block — see .mobile-root's own
