@@ -507,7 +507,11 @@ const {
                   </div>
                 </div>
                 <div class="field-row">
-                  <div class="field" :title="VENT_GEOMETRY_TIP"><label>Cross area</label><input class="calculated greyed" :value="fmtU(activeVent.area_m2.value, 'ventArea', 'area', 'm2', NumberField.VENT_CROSSAREA_M2.precision)" readonly><UnitToggle :field="NumberField.VENT_CROSSAREA_M2" unit-key="ventCrossArea" unit-class="unit" /></div>
+                  <!-- The unit-key here MUST match the sibling UnitToggle's — a mismatch (it was
+                       'ventArea' vs the toggle's 'ventCrossArea') means rotating the picker
+                       relabels the unit but never rewrites the value (QO143, same bug class as
+                       the mobile Enclosure tab's hand-rolled readouts below). -->
+                  <div class="field" :title="VENT_GEOMETRY_TIP"><label>Cross area</label><input class="calculated greyed" :value="fmtU(activeVent.area_m2.value, 'ventCrossArea', 'area', 'cm2', NumberField.VENT_CROSSAREA_M2.precision)" readonly><UnitToggle :field="NumberField.VENT_CROSSAREA_M2" unit-key="ventCrossArea" unit-class="unit" /></div>
                 </div>
                 <div class="field-row">
                   <div class="field"><label>1st port resonance</label><input class="calculated greyed" :value="fmtU(portPipeResonance_hz, 'portResonance', 'freq', 'Hz', NumberField.VENT_1STPORTRESONANCE_HZ.precision)" readonly><UnitToggle :field="NumberField.VENT_1STPORTRESONANCE_HZ" unit-key="portResonance" unit-class="unit unit-cyc" /></div>

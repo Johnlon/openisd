@@ -215,9 +215,11 @@ export class NumberField extends Field {
   static readonly VENT_CROSSAREA_M2 = new NumberField({
     value: "vent_CrossArea_m2",
     label: "Cross area",
-    display: {kind: 'switchable', group: 'area', base: 'm2'},
+    // cm² to match the vent's own dimensions (VENT_D_CM/VENT_L_CM etc. are all cm) — John,
+    // 2026-10-01: "on the vented view the default unit must be cm and cm2".
+    display: {kind: 'switchable', group: 'area', base: 'cm2'},
     limits: {min: 0, max: 10},
-    precision: 4,
+    precision: 2,
     formula: "π·(ventD/2)²",
     description: "Vent Cross-Sectional Area\nTotal internal cross-sectional area of the port.",
   });
