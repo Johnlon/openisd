@@ -79,8 +79,12 @@ export function clearVentField(p: OpenISDProject, field: Exclude<VentField, 'Vb'
           if (userEnteredPair === 'both') {
             userEnteredPair = 'ventL';
           } else {
-            userEnteredPair = 'none';
+            // Nothing left on either side of the pair — rather than leave both blank (John,
+            // 2026-10-01: "unrecoverable"), fall back to the same QB3-style alignment a fresh
+            // box gets. Fb is the alignment's own entered side, same as a new box.
             p.box.vented.vent.length_m.clear();
+            p.box.resetVentedAlignment();
+            userEnteredPair = 'Fb';
           }
           break;
         case 'ventD': p.box.vented.vent.diameter_m.clear(); break;
@@ -89,8 +93,9 @@ export function clearVentField(p: OpenISDProject, field: Exclude<VentField, 'Vb'
           if (userEnteredPair === 'both') {
             userEnteredPair = 'Fb';
           } else {
-            userEnteredPair = 'none';
             p.box.vented.tuning_goal_hz.clear();
+            p.box.resetVentedAlignment();
+            userEnteredPair = 'Fb';
           }
           break;
       }

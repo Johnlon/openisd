@@ -1,4 +1,4 @@
-import type { BoxType } from '../../engine/index.js';
+import type { BoxType, VentedAlignment } from '../../engine/index.js';
 import type { Calculatable, Calculated, Clearable, Entered, Precise, Readable, SimpleField, Unsolvable, Writable } from '../cell.js';
 import type { AbcBox } from './abcBox.js';
 import type { Bandpass4Box } from './bandpass4Box.js';
@@ -34,6 +34,13 @@ export interface Box {
     /** Give the active type its starting values where nothing is entered yet; nothing entered is
      *  overwritten. Runs on `boxType.set()` and at `ProjectBuilder.build()`. */
     applyStartingValues(): void;
+    /** Re-derive the vented box's volume and tuning from a named alignment (the same QB3-style
+     *  design `applyStartingValues` gives a fresh box, unless `alignment` is given), UNLIKE
+     *  `applyStartingValues` overwriting unconditionally. Used when clearing Target Tuning Freq
+     *  (or Vent length) leaves nothing entered on either side of the Helmholtz pair: falling
+     *  back to a real alignment instead of leaving both blank and unrecoverable (QO142). A no-op
+     *  if the driver has no design to give (Fs/Qts/Vas unresolved). */
+    resetVentedAlignment(alignment?: VentedAlignment): void;
 }
 
 export type TuningField = Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;

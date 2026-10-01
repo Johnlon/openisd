@@ -46,7 +46,11 @@ test('editing the vent diameter writes through to the field', async ({ page }) =
 // it and Vent length stuck as read-only blanks — the template only ever rendered an input for
 // the 'E' state, so once a clear drove both to 'N' there was no way back in without reloading
 // the project. Mirrors the desktop repro in original-tuning-target.browser.spec.ts.
-test('clearing Target Tuning Freq leaves both it and Vent length editable, not stuck', async ({ page }) => {
+//
+// John's own follow-up ("clear ... should probably default to ... an alignment") is the actual
+// fix where the driver resolves: `clearVentField` now calls `Box.resetVentedAlignment()`, so
+// the pair comes back alive with a real QB3 design rather than merely blank-but-typeable.
+test('clearing Target Tuning Freq re-derives a QB3 design, not a dead blank', async ({ page }) => {
   await page.locator('.mob-tab', { hasText: 'Vented' }).click();
   const fbInput = fieldRow(page, 'Target Tuning Freq').locator('input');
   await fbInput.fill('40');
@@ -55,17 +59,16 @@ test('clearing Target Tuning Freq leaves both it and Vent length editable, not s
 
   await fbInput.fill('');
   await fbInput.blur();
-  // Still a live input, not a dead readonly span — the regression made this locator find
-  // nothing (no `input` inside the readonly branch's `.mob-readonly` span).
-  await expect(fieldRow(page, 'Target Tuning Freq').locator('input')).toBeVisible();
+  // Still a live input, not a dead readonly span (the regression made this locator find
+  // nothing) — AND non-empty: the default alignment re-derived a real tuning, not a dead blank.
+  const fbAfterClear = fieldRow(page, 'Target Tuning Freq').locator('input');
+  await expect(fbAfterClear).toBeVisible();
+  const fb = Number(await fbAfterClear.inputValue());
+  expect(fb).toBeGreaterThan(0);
+  expect(fb, 'a different design, not the stale 40 surviving the clear').not.toBeCloseTo(40, 1);
 
-  const lengthInput = fieldRow(page, 'Vent length').locator('input');
-  await expect(lengthInput).toBeVisible();
-
-  // Recovery: typing a fresh length re-derives a real Fb, proving the pair is alive again.
-  await lengthInput.fill('15');
-  await lengthInput.blur();
-  await expect(fieldRow(page, 'Target Tuning Freq').locator('.mob-readonly')).not.toHaveText('—');
+  // Vent length is the pair's now-calculated side — a real length, not the '—' impossible mark.
+  await expect(fieldRow(page, 'Vent length').locator('.mob-readonly')).not.toHaveText('—');
 });
 
 test('a sealed box drops the Enclosure destination from the tab bar', async ({ page }) => {

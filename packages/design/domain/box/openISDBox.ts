@@ -1,6 +1,6 @@
 import {LossMode} from '../../fields/lossMode.js';
 import {type Engine} from '../../engine/index.js';
-import type { Air, BoxType, DqIssue } from '../../engine/index.js';
+import type { Air, BoxType, DqIssue, VentedAlignment } from '../../engine/index.js';
 import { CalculatedFieldImpl, absentCell, calculatedCell, entryField, focus, pairedField, requiredField, simpleField } from '../cell.js';
 import type { Entered, Readable, SimpleField, Writable } from '../cell.js';
 import type { SealedLosses } from '../losses.js';
@@ -416,6 +416,16 @@ export class OpenISDBox implements Box {
             case 'bandpass6':
             case 'abc':
                 return;
+        }
+    }
+
+    /** See `Box.resetVentedAlignment` (box.ts) for why this exists separately from
+     *  `applyStartingValues`: it must overwrite, not merely fill a gap. */
+    resetVentedAlignment(alignment: VentedAlignment = STARTING.ventedAlignment): void {
+        const design = this.#driver.ventedDesign(alignment, this.#rs(), this.vented.losses.Ql.value);
+        if (design) {
+            this.vented.volume_m3.set(design.Vb);
+            this.vented.tuning_goal_hz.set(design.Fb);
         }
     }
 
