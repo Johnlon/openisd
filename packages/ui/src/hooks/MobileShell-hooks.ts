@@ -3,7 +3,7 @@
  * destination, plus the manual skin switch and the no-project empty state. One hook, one
  * component (`.claude/rules/ui.md`); every ref/computed/write lives here.
  */
-import {computed, onMounted, onUnmounted, ref} from 'vue';
+import {computed, nextTick, onMounted, onUnmounted, ref, watch} from 'vue';
 import {boxTypeIsSimulatable, focusedProject, isModified, projectChanged, resetProjectToGround} from '../logic/appState.js';
 import {presentationState, setSkinOverride} from '../logic/presentationState.js';
 import {useApp} from '../logic/app.js';
@@ -46,6 +46,19 @@ export interface MobileShellApi {
   showEnclosureTab: import('vue').ComputedRef<boolean>;
   /** The Enclosure tab bar label, matching desktop's `enclosureNavLabel`. */
   enclosureNavLabel: import('vue').ComputedRef<string>;
+  /** Bound to `.mob-content` so its scroll position/height can be read. */
+  contentEl: import('vue').Ref<HTMLElement | null>;
+  /** True while there is unscrolled content ABOVE the current view — shows as a shadow under
+   *  the top bar (John, 2026-10-02: "a visual indicator that there's something to scroll ...
+   *  up to"). */
+  canScrollUp: import('vue').Ref<boolean>;
+  /** Same, for content BELOW the current view — shows as a shadow above the tab bar. */
+  canScrollDown: import('vue').Ref<boolean>;
+  /** Recompute both of the above from `contentEl`'s live scroll position. Bound to the
+   *  content pane's own `scroll` event for immediate feedback; also re-run after anything that
+   *  can change its height without the user scrolling (mount, a tab switch, a window resize,
+   *  or the mounted tab's own content growing/shrinking). */
+  updateScrollEdges: () => void;
 }
 
 export function useMobileShell(): MobileShellApi {
@@ -123,10 +136,54 @@ export function useMobileShell(): MobileShellApi {
   onMounted(() => window.addEventListener('resize', updateViewportHeight));
   onUnmounted(() => window.removeEventListener('resize', updateViewportHeight));
 
+  // Scroll affordance (John, 2026-10-02: "a visual indicator that there's something to scroll
+  // down [or] up to") — a shadow under the top bar / above the tab bar, driven by the content
+  // pane's own live scroll position rather than a CSS-only trick: `.mob-content`'s children are
+  // opaque `.mob-panel` blocks that fill it edge to edge, so a background-gradient-based
+  // indicator on `.mob-content` itself would sit entirely behind them and never be seen — the
+  // shadow has to live on the ALWAYS-VISIBLE, never-covered top/tab bars instead.
+  const contentEl = ref<HTMLElement | null>(null);
+  const canScrollUp = ref(false);
+  const canScrollDown = ref(false);
+  function updateScrollEdges(): void {
+    const el = contentEl.value;
+    if (el === null) { canScrollUp.value = false; canScrollDown.value = false; return; }
+    canScrollUp.value = el.scrollTop > 1;
+    canScrollDown.value = el.scrollTop + el.clientHeight < el.scrollHeight - 1;
+  }
+  // Catches content height changes the user didn't cause by scrolling (switching box type,
+  // editing a field that shows/hides a hint row, …) without a per-field wiring: watches the
+  // CURRENTLY MOUNTED tab's own root element, re-subscribed whenever the tab itself changes.
+  let contentResizeObserver: ResizeObserver | null = null;
+  function observeContentSize(): void {
+    contentResizeObserver?.disconnect();
+    contentResizeObserver = null;
+    const child = contentEl.value?.firstElementChild;
+    if (!child) return;
+    contentResizeObserver = new ResizeObserver(updateScrollEdges);
+    contentResizeObserver.observe(child);
+  }
+  function refreshScrollTracking(): void {
+    void nextTick().then(() => {
+      updateScrollEdges();
+      observeContentSize();
+    });
+  }
+  watch(destination, refreshScrollTracking);
+  onMounted(() => {
+    window.addEventListener('resize', updateScrollEdges);
+    refreshScrollTracking();
+  });
+  onUnmounted(() => {
+    window.removeEventListener('resize', updateScrollEdges);
+    contentResizeObserver?.disconnect();
+  });
+
   return {
     projectOpen, destination, fileInput, openImportedFile, openNewProject, switchToDesktop,
     menuOpen, toggleMenu, closeMenu, openFromDisk, isModified,
     saveProject, revertProject, browseDrivers, optionsOpen, openOptions, about, goToProject,
+    contentEl, canScrollUp, canScrollDown, updateScrollEdges,
     goToAdvanced, viewportHeightPx, showEnclosureTab, enclosureNavLabel,
   };
 }

@@ -13,6 +13,9 @@ const props = defineProps<{
   /** Mirrors desktop's own nav gate: sealed has no Enclosure destination. */
   showEnclosure: boolean;
   enclosureLabel: string;
+  /** True while the content pane above has more to scroll down to — shows as a shadow on this
+   *  bar's own top edge (MobileShell-hooks.ts's `canScrollDown`). */
+  shadowAbove?: boolean;
 }>();
 defineEmits<{ 'update:modelValue': [value: MobileDestination] }>();
 
@@ -27,7 +30,7 @@ const DESTINATIONS = computed<{ id: MobileDestination; label: string }[]>(() => 
 </script>
 
 <template>
-  <nav class="mob-tabbar">
+  <nav class="mob-tabbar" :class="{ 'mob-shadow-above': shadowAbove }">
     <button
       v-for="d in DESTINATIONS"
       :key="d.id"
@@ -61,5 +64,8 @@ const DESTINATIONS = computed<{ id: MobileDestination; label: string }[]>(() => 
 .mob-tab.active {
   color: var(--acc);
   border-top-color: var(--acc);
+}
+.mob-tabbar.mob-shadow-above {
+  box-shadow: 0 -4px 6px -4px rgba(0, 0, 0, 0.3);
 }
 </style>
