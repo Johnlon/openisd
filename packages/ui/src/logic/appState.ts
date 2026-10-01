@@ -15,11 +15,15 @@
 
 import {computed, ref, type Ref, shallowRef, type ShallowRef, triggerRef, watch} from 'vue';
 import type {
-    BoxType, ChartId, DriverError, MaxCurvesResult, MaxCurvesSolveResult, SweepResult, VentedDesignLimits,
+    BoxType, ChartId, DriverError, DriverPrerequisite, MaxCurvesResult, MaxCurvesSolveResult, SweepIssue, SweepResult,
+    VentedDesignLimits,
 } from '@openisd/design/engine';
 import {DEFAULT_ENV_DEFAULTS, DEFAULT_VENTED_DESIGN_LIMITS, type Engine, createEngine, type EnvDefaults} from '@openisd/design/engine';
 import {driverPrerequisiteMessage, sweepIssueMessage} from './sweepIssueMessage.js';
 import {SweepScheduler} from './sweepScheduler.js';
+import {LatestSweepRunner} from './latestSweepRunner.js';
+import {SweepComputer, type SweepReply} from './sweepRequest.js';
+import {sweepTransport} from './sweepTransport.js';
 import {
     type AppContext,
     type BoxProjectBuilder,
@@ -429,12 +433,47 @@ const sweepErrors = getOrInit(slots, 'sweepErrors', () => ref<DriverError[]>([])
 // The last max-curves solve, kept for the issue channel while burst steps skip max curves
 // (`SweepScheduler`); the settle run replaces it.
 const lastMax = getOrInit(slots, 'lastMax', () => shallowRef<MaxCurvesSolveResult | null>(null));
+
+function showNoCurves(errors: DriverError[]): void {
+  sweepRunner.cancel();
+  lastMax.value = null;
+  curves.value = null;
+  max.value = null;
+  sweepErrors.value = errors;
+}
+
+// Dedupe by field+message: `sweep` and `maxCurves` report the same driver-completeness issue
+// (`maxCurves` forwards whatever `sweep` itself returned), so a naive concat shows every issue
+// twice. Projected through `sweepIssueMessage` first — the engine's `SweepIssue` (QO142) is
+// structured (`CalculationIssue<Q>`), not the `DriverError` shape this channel already renders.
+function sweepIssueMessages(issues: readonly SweepIssue[], prerequisites: readonly DriverPrerequisite[]): DriverError[] {
+  return [...new Map(
+    [...issues.map(issue => sweepIssueMessage(issue)), ...prerequisites.map(driverPrerequisiteMessage)]
+      .map(e => [`${e.field ?? ''}|${e.message}`, e]),
+  ).values()];
+}
+
+/** The worker's answer for the focused project. A step without max curves keeps the last ones. */
+function showSweep(reply: SweepReply): void {
+  const mx = reply.max ?? lastMax.value;
+  lastMax.value = mx;
+  curves.value = reply.sweep.values;
+  max.value = mx?.values ?? null;
+  sweepErrors.value = sweepIssueMessages(
+    [...reply.sweep.issues, ...(mx?.issues ?? [])], mx?.driverPrerequisites ?? []);
+}
+
+// The sweep runs in a Web Worker so a held spinner never blocks the page: one request in
+// flight, only the newest waiting, a reply for a project no longer focused dropped.
+const sweepRunner = new LatestSweepRunner<OpenISDProject>(
+  sweepTransport(new SweepComputer(engine.simulation), reply => sweepRunner.replied(reply)),
+  (_project, reply) => showSweep(reply),
+);
+
 const doSweep = (withMax = true) => {
   const p = live.value;
   if (!p) {
-    curves.value = null;
-    max.value = null;
-    sweepErrors.value = [];
+    showNoCurves([]);
     return;
   }
   const boxType = p.box.boxType.value;
@@ -444,30 +483,19 @@ const doSweep = (withMax = true) => {
     // the reason the chart is blank (S3/T4, QO145). Named here instead of in the domain: the
     // domain's null already IS the correct "not yet implemented" answer for those types: it is
     // this presentation-layer channel that was dropping it on the floor.
-    curves.value = null;
-    max.value = null;
-    sweepErrors.value = [{level: 'error', field: 'boxType', message: `Not yet implemented — ${boxType}`}];
+    showNoCurves([{level: 'error', field: 'boxType', message: `Not yet implemented — ${boxType}`}]);
     return;
   }
   // The chart axis and the sweep read one range: the project's, or WinISD's 10 Hz–20 kHz Plot
   // Window default when it stores none (`syncedP`). A grid of the store's own left the axis at
   // 1 Hz and the curves starting at 10 Hz.
   const grid: FrequencyGrid = { fmin: syncedP.value.fmin, fmax: syncedP.value.fmax };
-  const sw = p.sweep(grid);
-  const mx = withMax || lastMax.value === null ? p.maxCurves(grid) : lastMax.value;
-  lastMax.value = mx;
-  curves.value = sw.values;
-  max.value    = mx.values;
-  // Dedupe by field+message: `sweep` and `maxCurves` report the same driver-completeness issue
-  // (`maxCurves` forwards whatever `sweep` itself returned), so a naive concat shows every issue
-  // twice. Projected through `sweepIssueMessage` first — the engine's `SweepIssue` (QO142) is
-  // structured (`CalculationIssue<Q>`), not the `DriverError` shape this channel already renders.
-  sweepErrors.value = [...new Map(
-    [
-      ...[...sw.issues, ...mx.issues].map(issue => sweepIssueMessage(issue)),
-      ...mx.driverPrerequisites.map(driverPrerequisiteMessage),
-    ].map(e => [`${e.field ?? ''}|${e.message}`, e]),
-  ).values()];
+  const plan = p.sweepPlan(grid);
+  if (plan.kind === 'blocked') {
+    showNoCurves(sweepIssueMessages(plan.issues, []));
+    return;
+  }
+  sweepRunner.run(p, plan.job, withMax || lastMax.value === null);
 };
 doSweep();
 // The chart curves redraw DURING a held/rapid spinner drag, not only after release: the first

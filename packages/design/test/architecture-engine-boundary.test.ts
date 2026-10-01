@@ -117,11 +117,13 @@ describe('the engine is reachable only through its door', () => {
   });
 
   it('the engine is constructed in a composition root, nowhere else', () => {
-    // One `createEngine(` per process: the app's (`appState.ts`) and the Python bridge's
-    // (`winisd/bridge.ts`). Anything else building its own engine is a component that should
+    // One `createEngine(` per process: the app's (`appState.ts`), the app's sweep worker's (its
+    // own thread, `sweepWorker.ts`) and the Python bridge's (`winisd/bridge.ts`). Anything else building its own engine is a component that should
     // have been handed one (John, 2026-09-28: "composition in one place"). Tests build what
     // they need.
-    const roots = new Set(['packages/ui/src/logic/appState.ts', 'packages/design/winisd/bridge.ts']);
+    const roots = new Set([
+      'packages/ui/src/logic/appState.ts', 'packages/ui/src/logic/sweepWorker.ts', 'packages/design/winisd/bridge.ts',
+    ]);
     // The factory's own definition is not a construction site.
     roots.add('packages/design/engine/Engine.ts');
     const offences: string[] = [];
