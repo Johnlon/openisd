@@ -32,12 +32,16 @@ async function createProjectViaWizard(page: Page, boxType: string): Promise<void
   await page.getByText('Use', { exact: true }).click(); // step 1 -> 2
   await page.locator('.mob-np-footer .ok-btn').click(); // step 2 -> 3
   await page.locator('#np-box-type').selectOption(boxType);
-  // Box types with no alignment step (PR, bandpass4/6/abc) run a 4-step wizard, not 5
-  // (OriginalNewProject-hooks.ts's own totalSteps = hasAlignmentStep ? 5 : 4) — so "Next" is
+  // Box types with no step 4 (bandpass4/6/abc) run a 4-step wizard, not 5 — so "Next" is
   // clicked until the button itself becomes "Create" rather than a fixed number of times.
   const okBtn = page.locator('.mob-np-footer .ok-btn');
-  while ((await okBtn.textContent())?.includes('Next')) {
-    await okBtn.click();
+  if (boxType === 'box-passive-radiator') {
+    await okBtn.click(); // step 3 -> 4: the radiator; Next waits until one is chosen
+    await page.locator('#np-pr-select').click();
+    await page.locator('button', { hasText: 'Define new PR' }).click();
+  }
+  while ((await okBtn.first().textContent())?.includes('Next')) {
+    await okBtn.first().click();
   }
   // canCreate requires a non-empty name (projName starts ''); the only field on the name step not
   // left at its own default.

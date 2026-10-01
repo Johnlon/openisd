@@ -15,7 +15,7 @@ This is the remainder: nothing here is started unless its row says so.
 | 4 | Playwright browser spec `wizard-defaults.browser.spec.ts` updated for C4 + source-loaded Qts but not run | DONE 2026-10-01: run, 4/4 pass | [wizard-defaults.browser.spec.ts](http://localhost:8000/winisd/openisd/packages/ui/test/ui/wizard-defaults.browser.spec.ts) |
 | 5 | BP4th alignment step: 8 ripple/gain options, no formula sourced. `bandpass4` keeps hardcoded `0.05` / `35` | Out of scope, not ruled on | archived plan §2, §4 |
 | 6 | 6th-order bandpass / ABC: wizard should show WinISD's disabled `<None available>` state | Not started | archived plan §2 |
-| 7 | Passive-radiator wizard step (Vas/Qms/Fs/Sd/Xmax) — `defaultPassiveRadiator()` fills placeholders today | Not started | archived plan §3 |
+| 7 | Passive-radiator wizard step (Vas/Qms/Fs/Sd/Xmax) | DONE 2026-10-01: step 4 picks or defines the radiator; project built with it | [bug](http://localhost:8000/winisd/openisd/bugs/BUG_20261001_new-project-wizard-skips-the-passive-radiator-step.md?html) |
 
 ## 2. Item 2 — the plausibility mark, as shipped
 

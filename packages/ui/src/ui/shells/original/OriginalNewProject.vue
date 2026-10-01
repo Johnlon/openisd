@@ -9,6 +9,7 @@ import { useEscToClose } from '../../../logic/useEscToClose.js';
 import { useApp } from '../../../logic/app.js';
 import BoxTypeDiagram from '../../components/BoxTypeDiagram.vue';
 import DriverLibrary from '../../components/DriverLibrary.vue';
+import NewProjectPassiveRadiatorStep from '../../components/NewProjectPassiveRadiatorStep.vue';
 
 const emit = defineEmits<{ close: [] }>();
 
@@ -57,6 +58,14 @@ const {
   ventedTuning_hz,
   ventedVolumeWarning,
   ventedTuningWarning,
+
+  isPassiveRadiator,
+  passiveRadiatorView,
+  passiveRadiatorEdits,
+  passiveRadiatorBrowseOpen,
+  loadSavedPassiveRadiator,
+  loadBundledPassiveRadiator,
+  defineNewPassiveRadiator,
 
   projName,
   projDescription,
@@ -219,6 +228,13 @@ function handleCreate() {
             <div class="readout-item"><span>EBP:</span> <strong>{{ ebp !== null ? ebp.toFixed(1) : '--' }}</strong></div>
             <div class="readout-item"><span>Recommendation:</span> <strong>{{ ebpSuitabilityLabel }}</strong></div>
           </div>
+        </div>
+
+        <!-- Step 4: Passive Radiator (WinISD's own wizard step: the radiator and its Vas / Qms / Fs / Sd / Xmax) -->
+        <div v-else-if="step === 4 && isPassiveRadiator" class="step-content">
+          <NewProjectPassiveRadiatorStep :radiator="passiveRadiatorView" :edits="passiveRadiatorEdits" :browsing="passiveRadiatorBrowseOpen"
+            @browse="passiveRadiatorBrowseOpen = true" @close-browse="passiveRadiatorBrowseOpen = false"
+            @load-saved="loadSavedPassiveRadiator" @load-bundled="id => void loadBundledPassiveRadiator(id)" @define="defineNewPassiveRadiator" />
         </div>
 
         <!-- Step 5: Project Information -->

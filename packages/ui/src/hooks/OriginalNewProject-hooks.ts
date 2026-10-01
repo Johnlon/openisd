@@ -1,7 +1,8 @@
-import { computed, type ComputedRef, ref, type Ref, shallowRef } from 'vue';
+import { computed, type ComputedRef, ref, type Ref, shallowRef, triggerRef } from 'vue';
 // Type-only: the store constructs projects (`newProject()`) and owns the engine instance; this
 // hook only names their shapes, so neither import is a layering edge (QO80).
-import type { OpenISDDriver, OpenISDProject } from '@openisd/design';
+import { type OpenISDDriver, type OpenISDProject, OpenISDPassiveRadiatorStandalone } from '@openisd/design';
+import type { BundledPassiveRadiatorRepo, MyPassiveRadiatorRepo } from '@openisd/persistence';
 import type { BoxType, EbpSuitability, SealedEngine, VentedAlignment, VentedEngine, Wiring } from '@openisd/design/engine';
 import {ARRAY_WIRING_OPTIONS, DEFAULT_NEW_PROJECT_VENTED_QL, DEFAULT_SOURCE_RESISTANCE_OHM, DEFAULT_VENTED_ALIGNMENT, NumberField, SEALED_ALIGNMENT_OPTIONS, VENTED_ALIGNMENT_OPTIONS, type SelectorOption} from '@openisd/design/fields';
 import {
@@ -20,8 +21,34 @@ export interface OriginalNewProjectEngineAreas {
   readonly vented: VentedEngine;
 }
 
+/** What the passive-radiator step shows: the chosen radiator's name and WinISD's five parameters. */
+export interface PassiveRadiatorStepView {
+  readonly name: string;
+  readonly Vas_m3: number | null;
+  readonly Qms: number | null;
+  readonly Fs_hz: number | null;
+  readonly Sd_m2: number | null;
+  readonly Xmax_m: number | null;
+}
+
+/** The step's writes, one per parameter; null clears the entry. */
+export interface PassiveRadiatorStepEdits {
+  setVas_m3(v: number | null): void;
+  setQms(v: number | null): void;
+  setFs_hz(v: number | null): void;
+  setSd_m2(v: number | null): void;
+  setXmax_m(v: number | null): void;
+}
+
+/** Where the passive-radiator step finds radiators: the user's saved ones and the bundled catalogue. */
+export interface NewProjectPassiveRadiatorRepos {
+  readonly saved: MyPassiveRadiatorRepo;
+  readonly bundled: BundledPassiveRadiatorRepo;
+}
+
 export interface OriginalNewProjectDeps {
   areas?: OriginalNewProjectEngineAreas;
+  passiveRadiators?: NewProjectPassiveRadiatorRepos;
   initialDriver?: OpenISDDriver | null;
 }
 
@@ -87,6 +114,20 @@ export interface OriginalNewProjectAPI {
   /** Why `ventedTuning_hz` is implausible, or null when it is not. */
   readonly ventedTuningWarning: ComputedRef<string | null>;
 
+  // Step 4: Passive Radiator — WinISD's wizard asks for the radiator (Vas / Qms / Fs / Sd / Xmax)
+  readonly isPassiveRadiator: ComputedRef<boolean>;
+  /** The chosen radiator as the step shows it; null until one is chosen or defined. */
+  readonly passiveRadiatorView: ComputedRef<PassiveRadiatorStepView | null>;
+  readonly passiveRadiatorEdits: PassiveRadiatorStepEdits;
+  /** The PR picker is open over the step; choosing or defining a radiator closes it. */
+  readonly passiveRadiatorBrowseOpen: Ref<boolean>;
+  /** Choose a saved radiator by its uuid. */
+  loadSavedPassiveRadiator(uuid: string): void;
+  /** Choose a bundled radiator by its catalogue id. */
+  loadBundledPassiveRadiator(uuid: string): Promise<void>;
+  /** Start a radiator that states nothing, for the user to type in. */
+  defineNewPassiveRadiator(): void;
+
   // Step 5: Metadata
   readonly projName: Ref<string>;
   readonly projDescription: Ref<string>;
@@ -121,6 +162,8 @@ const STEP_LABELS = Object.freeze([
 
 export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProjectAPI {
   const eng: OriginalNewProjectEngineAreas = deps?.areas ?? useApp().engine;
+  const prRepos: NewProjectPassiveRadiatorRepos = deps?.passiveRadiators
+    ?? { saved: useApp().myPassiveRadiators, bundled: useApp().bundledPassiveRadiators };
   const initialDriver = deps?.initialDriver ?? newProjectDriver.value ?? null;
 
   const step = ref(1);
@@ -150,20 +193,22 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
   const isDual = computed(() => boxType.value === 'bandpass4');
   const isSealed = computed(() => boxType.value === 'sealed');
   const isVented = computed(() => boxType.value === 'vented');
-  // Both sealed and vented get an alignment step (step 4); every other box type skips straight
-  // from box-type (3) to project info (5) — no sourced alignment formula for them yet
+  const isPassiveRadiator = computed(() => boxType.value === 'box-passive-radiator');
+  // Step 4 is the sealed or vented alignment, or the passive radiator; every other box type skips
+  // straight from box-type (3) to project info (5) — no sourced alignment formula for them yet
   // (docs/plans/archive/FIX_WIZARD_VENTED.md §4).
-  const hasAlignmentStep = computed(() => isSealed.value || isVented.value);
-  const totalSteps = computed(() => (hasAlignmentStep.value ? 5 : 4));
+  const hasStep4 = computed(() => isSealed.value || isVented.value || isPassiveRadiator.value);
+  const totalSteps = computed(() => (hasStep4.value ? 5 : 4));
 
   const currentStepNumber = computed(() => {
     if (step.value <= 3) return step.value;
     if (step.value === 4) return 4;
-    return hasAlignmentStep.value ? 5 : 4;
+    return hasStep4.value ? 5 : 4;
   });
 
   const stepLabel = computed(() => {
     if (step.value === 4 && isVented.value) return 'Vented Alignment';
+    if (step.value === 4 && isPassiveRadiator.value) return 'Passive Radiator';
     return STEP_LABELS[step.value - 1];
   });
 
@@ -282,8 +327,52 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
 
   if (initialDriver) recomputeSealedVolume(initialDriver, targetQtc.value);
 
+  const passiveRadiator = shallowRef<OpenISDPassiveRadiatorStandalone | null>(null);
+  const passiveRadiatorBrowseOpen = ref(false);
+
+  function loadSavedPassiveRadiator(uuid: string): void {
+    passiveRadiatorBrowseOpen.value = false;
+    const entry = prRepos.saved.list().find(e => e.uuid === uuid);
+    if (entry) passiveRadiator.value = entry.passiveRadiator;
+  }
+
+  async function loadBundledPassiveRadiator(uuid: string): Promise<void> {
+    passiveRadiatorBrowseOpen.value = false;
+    passiveRadiator.value = await prRepos.bundled.load(uuid);
+  }
+
+  function defineNewPassiveRadiator(): void {
+    passiveRadiatorBrowseOpen.value = false;
+    passiveRadiator.value = OpenISDPassiveRadiatorStandalone.empty();
+  }
+
+  const passiveRadiatorView = computed<PassiveRadiatorStepView | null>(() => {
+    const pr = passiveRadiator.value;
+    if (pr === null) return null;
+    const { spec } = pr;
+    return {
+      name: pr.model.value || 'Custom PR',
+      Vas_m3: spec.Vas_m3.value, Qms: spec.Qms.value, Fs_hz: spec.Fs_hz.value,
+      Sd_m2: spec.Sd_m2.value, Xmax_m: spec.Xmax_m.value,
+    };
+  });
+
+  /** Write one parameter of the chosen radiator and redraw the step; nothing when none is chosen. */
+  function writeSpec(field: OpenISDPassiveRadiatorStandalone['spec']['Qms'], v: number | null): void {
+    if (v === null) field.clear(); else field.set(v);
+    triggerRef(passiveRadiator);
+  }
+  const passiveRadiatorEdits: PassiveRadiatorStepEdits = {
+    setVas_m3: v => { if (passiveRadiator.value) writeSpec(passiveRadiator.value.spec.Vas_m3, v); },
+    setQms: v => { if (passiveRadiator.value) writeSpec(passiveRadiator.value.spec.Qms, v); },
+    setFs_hz: v => { if (passiveRadiator.value) writeSpec(passiveRadiator.value.spec.Fs_hz, v); },
+    setSd_m2: v => { if (passiveRadiator.value) writeSpec(passiveRadiator.value.spec.Sd_m2, v); },
+    setXmax_m: v => { if (passiveRadiator.value) writeSpec(passiveRadiator.value.spec.Xmax_m, v); },
+  };
+
   const canNext = computed(() => {
     if (step.value === 1) return selectedDriver.value !== null;
+    if (step.value === 4 && isPassiveRadiator.value) return passiveRadiatorView.value !== null;
     if (step.value >= 2 && step.value <= 4) return true;
     return false;
   });
@@ -303,7 +392,7 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
       return;
     }
     if (step.value === 3) {
-      step.value = hasAlignmentStep.value ? 4 : 5;
+      step.value = hasStep4.value ? 4 : 5;
       return;
     }
     if (step.value === 4) {
@@ -315,7 +404,7 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
   function back(): void {
     if (!canBack.value) return;
     if (step.value === 5) {
-      step.value = hasAlignmentStep.value ? 4 : 3;
+      step.value = hasStep4.value ? 4 : 3;
       return;
     }
     if (step.value === 4) {
@@ -344,7 +433,10 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
       switch (boxType.value) {
         case 'sealed': return b.sealed().volume_m3(fromDisplay(sealedVolume_L.value, 'volume', 'L'));
         case 'vented': return b.vented().alignment(selectedVentedAlignment.value);
-        case 'box-passive-radiator': return b.passiveRadiator().volume_m3(volume_m3);
+        case 'box-passive-radiator': {
+          const pr = b.passiveRadiator().volume_m3(volume_m3);
+          return passiveRadiator.value === null ? pr : pr.radiator(passiveRadiator.value);
+        }
         case 'bandpass4': return b.bandpass4().rearVolume_m3(volume_m3).frontVolume_m3(frontVolume_m3);
         case 'bandpass6': return b.bandpass6();
         case 'abc': return b.abc();
@@ -411,6 +503,14 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
     ventedTuning_hz,
     ventedVolumeWarning,
     ventedTuningWarning,
+
+    isPassiveRadiator,
+    passiveRadiatorView,
+    passiveRadiatorEdits,
+    passiveRadiatorBrowseOpen,
+    loadSavedPassiveRadiator,
+    loadBundledPassiveRadiator,
+    defineNewPassiveRadiator,
 
     projName,
     projDescription,
