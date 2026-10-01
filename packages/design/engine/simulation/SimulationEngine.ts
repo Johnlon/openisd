@@ -68,8 +68,14 @@ export interface MaxCurvesSolveResult {
   readonly driverPrerequisites: readonly DriverPrerequisite[];
 }
 
-/** SPL below this is the "no output" sentinel sweep() writes where |p| = 0, not a real level. */
-const SILENCE_DB = -190;
+/** The "no output" sentinel sweep() writes where |p| = 0 exactly. A real level can sit below it
+ *  (a steep filter), so silence is this exact value, never a threshold. */
+const SILENCE_DB = -200;
+
+/** Whether `v` is the silence sentinel, not a real level. */
+function isSilence(v: number): boolean {
+  return v === SILENCE_DB;
+}
 
 
 /**
@@ -77,7 +83,7 @@ const SILENCE_DB = -190;
  * asymptote (0 dB).
  */
 export function tfMag(spl: number[], ref: number): number[] {
-  return spl.map(v => (Number.isFinite(v) && v > SILENCE_DB) ? v - ref : v);
+  return spl.map(v => (Number.isFinite(v) && !isSilence(v)) ? v - ref : v);
 }
 
 
@@ -335,6 +341,11 @@ export interface SimulationEngine {
   solveBoxParams(box: BoxType, P: EnclosureParams): BoxParamsSolveResult;
   /** The passband reference level a response is measured against. */
   passbandRef(spl: number[]): number;
+  /** The real levels of a dB curve: finite, and not the silence sentinel. A real level may sit
+   *  far below −190 dB (a steep filter). */
+  realLevels(db: readonly number[]): number[];
+  /** A dB curve of `n` points that are all silence — what a design with no such output draws. */
+  silentCurve(n: number): number[];
   /** Where the response has fallen by `dropDb`, or null if it never does. */
   rolloffFreq(sw: SweepResult, dropDb: number): number | null;
   /** A response carrying a non-finite value — a fault, not a curve. */
@@ -356,9 +367,17 @@ export class SimulationEngineImpl implements SimulationEngine {
    * chart's normalisation, the F3/F6/F10 read-outs, and force-flat's EQ target. Returns 0
    * for an all-silent curve (a −200 dB "reference" is not a reference).
    */
+  realLevels(db: readonly number[]): number[] {
+    return db.filter(v => Number.isFinite(v) && !isSilence(v));
+  }
+
+  silentCurve(n: number): number[] {
+    return new Array<number>(n).fill(SILENCE_DB);
+  }
+
   passbandRef(spl: number[]): number {
     let ref = -Infinity;
-    for (const v of spl) if (Number.isFinite(v) && v > SILENCE_DB && v > ref) ref = v;
+    for (const v of spl) if (Number.isFinite(v) && !isSilence(v) && v > ref) ref = v;
     return ref === -Infinity ? 0 : ref;
   }
 
@@ -406,7 +425,7 @@ export class SimulationEngineImpl implements SimulationEngine {
       const one = this.sweep(drv, Le_H, box, oneOfN(P, n));
       if (one.values === null) return one;
       const gain = 20 * Math.log10(n);
-      return { ...one, values: { ...one.values, spl: one.values.spl.map((v) => v === -200 ? v : v + gain) } };
+      return { ...one, values: { ...one.values, spl: one.values.spl.map((v) => isSilence(v) ? v : v + gain) } };
     }
     // Driver-side added mass (docs/research/WINISD_PARITY.md) shifts Mms/Fs/Q's before the circuit sees it.
     // 0/absent → withAddedMass returns the driver unchanged, so goldens are byte-identical.
@@ -464,7 +483,7 @@ export class SimulationEngineImpl implements SimulationEngine {
       // case and lets a NaN |H| (a breakdown) pass through for `classifyFinite` to report,
       // instead of being hidden as silence (BUG_20260927_spl-maps-nan-to-silence).
       const fltAbs = cAbs(Hf);
-      fltMag.push(fltAbs === 0 ? -200 : 20 * Math.log10(fltAbs));
+      fltMag.push(fltAbs === 0 ? SILENCE_DB : 20 * Math.log10(fltAbs));
       fltPhaseWrapped.push(cArg(Hf));
       const Hc  = cMul(cScale(cMul(cx(0, w), s.U0), rho / (2 * Math.PI * r)), Hf);
       const UD  = cMul(s.UD, Hf);
@@ -477,7 +496,7 @@ export class SimulationEngineImpl implements SimulationEngine {
       // -200 dB is the silence sentinel for |p| = 0 exactly — `pm === 0`, not `pm > 0`, so a NaN
       // pressure (a breakdown) passes through for `classifyFinite` to report instead of being
       // drawn as silence (BUG_20260927_spl-maps-nan-to-silence).
-      spl.push(pm === 0 ? -200 : 20 * Math.log10(pm / P0));
+      spl.push(pm === 0 ? SILENCE_DB : 20 * Math.log10(pm / P0));
       phase.push(cArg(Hc));
       // The radiator's OWN pressure, jω·Upr, on the same 0 dB reference as `Hc` above — but,
       // unlike `Hc`, NOT multiplied by `Hf` (winisd_research/GHIDRA_FINDINGS.md "Passive
@@ -485,7 +504,7 @@ export class SimulationEngineImpl implements SimulationEngine {
       // output, before the loop's own filtered `UP` local shadows it.
       const Hpr = cScale(cMul(cx(0, w), s.UP), rho / (2 * Math.PI * r));
       const prPm = cAbs(Hpr);
-      prSpl.push(prPm === 0 ? -200 : 20 * Math.log10(prPm / P0));
+      prSpl.push(prPm === 0 ? SILENCE_DB : 20 * Math.log10(prPm / P0));
       // WinISD's own wart, reproduced exactly (validated against winisd_research
       // runs/pr-w5-tf-1/-2 to <5e-13°): both PR charts come off Z = K·ω·Upr with ω taken as a
       // REAL scalar, not the complex jω·Upr the box solve actually produces. |Z| = |K·ω·Upr| =
@@ -500,7 +519,7 @@ export class SimulationEngineImpl implements SimulationEngine {
       // |jω| = ω for real ω > 0 — one computation, `portGainSpl`, feeds both.
       const Hgain = cScale(cMul(cx(0, w), UP), rho / (2 * Math.PI * r));
       const gainPm = cAbs(Hgain);
-      portGainSpl.push(gainPm === 0 ? -200 : 20 * Math.log10(gainPm / P0));
+      portGainSpl.push(gainPm === 0 ? SILENCE_DB : 20 * Math.log10(gainPm / P0));
       // x_peak = √2·|UD|/(ω·Sd)  https://en.wikipedia.org/wiki/Thiele/Small_parameters#Small_signal_parameters
       exc.push(Math.SQRT2 * cAbs(UD) / (w * Sdt) * 1000);
       pv.push(area ? Math.SQRT2 * cAbs(UP) / area : 0);
@@ -512,10 +531,10 @@ export class SimulationEngineImpl implements SimulationEngine {
         const UPrF = cMul(s.UPr, Hf);
         pvRear.push(P.Spr ? Math.SQRT2 * cAbs(UPrF) / P.Spr : 0);
         const rearPm = cAbs(cScale(cMul(cx(0, w), UPrF), rho / (2 * Math.PI * r)));
-        rearGainSpl.push(rearPm === 0 ? -200 : 20 * Math.log10(rearPm / P0));
+        rearGainSpl.push(rearPm === 0 ? SILENCE_DB : 20 * Math.log10(rearPm / P0));
       } else {
         pvRear.push(0);
-        rearGainSpl.push(-200);
+        rearGainSpl.push(SILENCE_DB);
       }
       if (s.UPi !== undefined) {
         hasUPi = true;
@@ -555,7 +574,7 @@ export class SimulationEngineImpl implements SimulationEngine {
       const ref      = winisd ? splRefLimit : this.passbandRef(spl);
       const maxBoost = winisd ? Infinity : P.flatMaxBoostDb ?? FLAT_MAX_BOOST_DB;
       for (let i = 0; i < fs.length; i++) {
-        if (!Number.isFinite(spl[i]) || spl[i] <= SILENCE_DB) continue;  // no gain resurrects silence
+        if (!Number.isFinite(spl[i]) || isSilence(spl[i])) continue;  // no gain resurrects silence
         const want = ref - spl[i];
         if (want <= 0 && !winisd) continue;
         const gDb = Math.min(want, maxBoost);

@@ -90,3 +90,23 @@ describe('buildPlotData — comparing two or more designs', () => {
     assert.equal(out.series[1].current, true);
   });
 });
+
+describe('buildPlotData — levels below −190 dB are real points, not silence', () => {
+  // LP Butterworth n=10 at 50 Hz takes the transfer function well below −190 dB inside the sweep
+  // (BUG_20261001_transfer-function-jumps-80db-where-spl-drops-below-190db).
+  const steep: SweepParams = { ...SP, filters: [{ type: 'lowpass', family: 'butterworth', order: 10, fc: 50, Q: Math.SQRT1_2, enabled: true }] };
+  const sw = engine.simulation.sweep(driverParams, LE_H, 'sealed', steep).values!;
+  const steepDesign: Design = { ...design('steep', '#4fb0ff'), curves: sw };
+
+  it('the transfer-function chart\'s y range reaches its lowest real point', () => {
+    const out = buildPlotData(engine, 'TFMag', 10, 2000, steepDesign, []).value!;
+    const lowest = Math.min(...sw.tfMag);
+    assert.ok(lowest < -190, `sweep should reach below −190 dB, lowest ${lowest}`);
+    assert.ok(out.ymin <= lowest, `ymin ${out.ymin} cuts off the lowest real point ${lowest}`);
+  });
+
+  it('the SPL chart\'s y range reaches its lowest real point', () => {
+    const out = buildPlotData(engine, 'SPL', 10, 2000, steepDesign, []).value!;
+    assert.ok(out.ymin <= Math.min(...sw.spl), `ymin ${out.ymin}`);
+  });
+});
