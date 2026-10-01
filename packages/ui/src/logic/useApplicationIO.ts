@@ -39,6 +39,7 @@ import {
 } from './appState.js';
 import {presentationState} from './presentationState.js';
 import {
+  type BackupRepo,
   copyOfName,
   createFileSave,
   type FileOpen,
@@ -46,7 +47,8 @@ import {
   type FileStorage,
   projectFilename,
   projectNameFromFilename,
-  type ProjectRepo
+  type ProjectRepo,
+  type RestoreResult
 } from '@openisd/persistence';
 import {setShareUrl} from './urlAppState.js';
 import type {Logging} from '../logging/flash.js';
@@ -78,6 +80,15 @@ export interface DesignIO {
    *  file goes to `importFile`. Where the browser has no such dialog, calls `fallback` (the
    *  shell's own file input, whose `change` reaches `importFile`). */
   openFromDisk(fallback: () => void): Promise<void>;
+  /** Download a snapshot of every persisted key (`BackupRepo.exportAll`) as one JSON file —
+   *  the Options dialog's "Backup" section. Not project-scoped like everything else here, but
+   *  the same one-shot-download shape as `exportWdr`/`exportWpr`, so it reuses this module's
+   *  `download` rather than a second `FileSave` instance. */
+  exportBackup(): void;
+  /** Restore every persisted key from a previously-downloaded backup file. Pure pass-through to
+   *  `BackupRepo.importAll` — confirming with the user and reloading afterwards is the Options
+   *  dialog's own job, not this module's. */
+  importBackup(json: string): RestoreResult;
 }
 
 /**
@@ -87,7 +98,7 @@ export interface DesignIO {
  * Save in the toolbar would track different files. Session-only either way — the File System
  * Access API does not persist handles across a page load.
  */
-export function createApplicationIO(deps: { logging: Logging; fileStorage: FileStorage; fileOpen: FileOpen; projectRepo: ProjectRepo; files: DesignFiles }): DesignIO {
+export function createApplicationIO(deps: { logging: Logging; fileStorage: FileStorage; fileOpen: FileOpen; projectRepo: ProjectRepo; files: DesignFiles; backup: BackupRepo }): DesignIO {
   const flash = (msg: string) => deps.logging.flash(msg);
   const { download } = createFileSave();
 
@@ -244,5 +255,17 @@ export function createApplicationIO(deps: { logging: Logging; fileStorage: FileS
     }
   }
 
-  return { saveProject, saveProjectAs, shareLink, exportWdr, exportWpr, exportOwdr, importFile, openFromDisk };
+  function exportBackup(): void {
+    const stamp = new Date().toISOString().slice(0, 10);
+    download(`openisd-backup-${stamp}.json`, deps.backup.exportAll(), 'application/json');
+  }
+
+  function importBackup(json: string): RestoreResult {
+    return deps.backup.importAll(json);
+  }
+
+  return {
+    saveProject, saveProjectAs, shareLink, exportWdr, exportWpr, exportOwdr, importFile, openFromDisk,
+    exportBackup, importBackup,
+  };
 }

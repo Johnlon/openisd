@@ -7,7 +7,7 @@ import {z} from 'zod';
 import {createLogging} from '../../src/logging/flash.js';
 import {createApplicationIO} from '../../src/logic/useApplicationIO.js';
 import {DesignFiles} from '../../src/logic/fileImportExport.js';
-import {createFileOpen, createFileStorage, createMemoryStorage, type FileOpen, type FilePick, createProjectRepo, type FileStorage} from '@openisd/persistence';
+import {createBackupRepo, createFileOpen, createFileStorage, createMemoryStorage, type FileOpen, type FilePick, createProjectRepo, type FileStorage} from '@openisd/persistence';
 import {newProject, requireFocusedProject} from '../../src/logic/appState.js';
 import {createEngine} from '@openisd/design/engine';
 import {ensureSampleProject, SAMPLE_PROJECT_OWPR} from '../fixtures/sampleProject.js';
@@ -16,6 +16,11 @@ import {ensureSampleProject, SAMPLE_PROJECT_OWPR} from '../fixtures/sampleProjec
 // generated fixture has to exist before that read runs — ensured here, once, the same way
 // every other consumer of this generated file ensures it (packages/ui/test/fixtures/sampleProject.ts).
 ensureSampleProject();
+
+// Backup export/import is exercised on its own in persistence/test/backupRepo.test.ts — every
+// createApplicationIO() call here just needs a BackupRepo to satisfy the dependency, never one
+// backed by the SAME storage another test in this file is asserting against.
+const backup = createBackupRepo(createMemoryStorage());
 
 beforeAll(() => {
   // shareLink() reads location.{origin,pathname} (the project repo's stateToUrl) and writes to the
@@ -82,7 +87,7 @@ describe('.wpr import syncs state.project from the file, and export round-trips 
       const engine = createEngine();
       const repo = createProjectRepo(engine, createFileStorage(), createMemoryStorage());
       const logging = createLogging();
-      const io = createApplicationIO({ logging, fileStorage: createFileStorage(), fileOpen: createFileOpen(), projectRepo: repo, files: new DesignFiles(engine, repo) });
+      const io = createApplicationIO({ logging, fileStorage: createFileStorage(), fileOpen: createFileOpen(), projectRepo: repo, files: new DesignFiles(engine, repo), backup });
 
       // A DIFFERENT project is open before the import — these exact values must all be gone
       // after. The app starts with NO project (QO121), so this opens the one it then dirties.
@@ -155,7 +160,7 @@ describe('.wpr import syncs state.project from the file, and export round-trips 
     try {
       const engine = createEngine();
       const repo = createProjectRepo(engine, createFileStorage(), createMemoryStorage());
-      const io = createApplicationIO({ logging: createLogging(), fileStorage: createFileStorage(), fileOpen: createFileOpen(), projectRepo: repo, files: new DesignFiles(engine, repo) });
+      const io = createApplicationIO({ logging: createLogging(), fileStorage: createFileStorage(), fileOpen: createFileOpen(), projectRepo: repo, files: new DesignFiles(engine, repo), backup });
 
       // A genuinely valid project, corrupted back to the pre-S9a shape (a solver-slot entry
       // stated as a bare `null`) at TWO distinct fields, so a fix that only logs `errors[0]` is
@@ -205,7 +210,7 @@ describe('.wpr import syncs state.project from the file, and export round-trips 
     };
     const engine = createEngine();
     const repo = createProjectRepo(engine, fileStorage, storage);
-    const io = createApplicationIO({ logging: createLogging(), fileStorage, fileOpen: createFileOpen(), projectRepo: repo, files: new DesignFiles(engine, repo) });
+    const io = createApplicationIO({ logging: createLogging(), fileStorage, fileOpen: createFileOpen(), projectRepo: repo, files: new DesignFiles(engine, repo), backup });
 
     newProject();
     requireFocusedProject().name.set('Saved from toolbar');
@@ -225,7 +230,7 @@ describe('openFromDisk — one named filter, fallback to the file input', () => 
     const fileOpen: FileOpen = { pickFile: async (filter) => { filters.push(filter); return pick; } };
     const engine = createEngine();
     const repo = createProjectRepo(engine, createFileStorage(), createMemoryStorage());
-    return createApplicationIO({ logging: createLogging(), fileStorage: createFileStorage(), fileOpen, projectRepo: repo, files: new DesignFiles(engine, repo) });
+    return createApplicationIO({ logging: createLogging(), fileStorage: createFileStorage(), fileOpen, projectRepo: repo, files: new DesignFiles(engine, repo), backup });
   }
 
   it('asks the dialog for all four formats under one filter, and imports the picked file', async () => {
