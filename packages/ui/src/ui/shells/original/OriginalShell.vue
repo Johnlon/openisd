@@ -47,7 +47,7 @@ const {
   fbUnreachable, fbUnreachableMsg, boxLossesOpen, isDual,
   frontVolume_m3, setFrontVolume_m3, frcHz, setFrcHz, rearResonance, frontChamberTuningLabel,
   model, startEdit, startTune, placement,
-  activeVent, END_CORRECTION_OPTIONS, VENT_SHAPE_OPTIONS, VENT_COUNT_OPTIONS, ventLState, portPipeResonance_hz,
+  activeVent, END_CORRECTION_OPTIONS, VENT_SHAPE_OPTIONS, VENT_COUNT_OPTIONS, PR_COUNT_OPTIONS, ventLState, portPipeResonance_hz,
   prBrowseOpen, prEditOpen, loadPREntry, loadBundledPassiveRadiatorEntry, defineNewPREntry,
   prAddedMassDq, prTuningDq, prResonanceMassDq, prFsMass_hz, dqOfCell, fmt,
   driveV, rsOhm, advTemp, advHumidity, advPressure, advAir,
@@ -560,7 +560,7 @@ const {
               </div>
               <div style="--label-w:150px;">
                 <div class="section-header">User options</div>
-                <div class="field-row"><div class="field entered"><label>Num. of PRs:</label><NumInput :model-value="project.box.passiveRadiator.count.value" @update:model-value="(v: number | null) => project.box.passiveRadiator.count.set(v ?? 0)" :field="NumberField.PR_NUM" :precision="NumberField.PR_NUM.precision" /></div></div>
+                <div class="field-row"><div class="field entered"><label>Num. of PRs:</label><select id="og-pr-count" :value="project.box.passiveRadiator.count.value" @change="e => { const n = selectedOption(e, PR_COUNT_OPTIONS); if (n !== null) project.box.passiveRadiator.count.set(n); }"><option v-for="o in PR_COUNT_OPTIONS" :key="o.value" :value="o.value">{{ o.label }}</option></select></div></div>
                 <div class="field-row">
                   <div :class="['field', 'entered', { 'dq-flag': prAddedMassDq.dq.length > 0 }]"><label>Added mass to cone:</label><NumInput id="og-pr-madd" :model-value="project.box.passiveRadiator.addedMass_kg.value" @update:model-value="(v: number | null) => project.box.passiveRadiator.addedMass_kg.set(v ?? 0)" :field="NumberField.PR_MADD_G" unit-key="prMadd" :precision="NumberField.PR_MADD_G.precision" v-bind="prAddedMassDq" /><UnitToggle :field="NumberField.PR_MADD_G" unit-key="prMadd" unit-class="unit" /></div>
                 </div>

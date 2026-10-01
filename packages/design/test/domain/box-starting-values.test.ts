@@ -43,12 +43,15 @@ describe('box starting values on a type switch', () => {
     expect(p.box.vented.vent.diameter_m.value).toBe(0.05);
   });
 
-  it('passive radiator: 7 L, 35 Hz, a placeholder radiator sized off the driver', () => {
+  // John, 2026-10-01: "added mass to cone should be 0 for pr" — the tuning follows from it.
+  it('passive radiator: 7 L, no added mass, a placeholder radiator sized off the driver', () => {
     const p = sealedProject();
     p.box.boxType.set('box-passive-radiator');
     const pr = p.box.passiveRadiator;
     expect(pr.volume_m3.value).toBe(0.007);
-    expect(pr.tuning_goal_hz.value).toBe(35);
+    expect(pr.addedMass_kg.value).toBe(0);
+    expect(pr.addedMass_kg.entered).toBe(true);
+    expect(pr.tuning_goal_hz.entered).toBe(false);
     expect(pr.radiator.brand.value).toBe('Placeholder');
     expect(pr.radiator.model.value).toBe('ReplaceMe');
     expect(pr.radiator.spec.Sd_m2.value).toBe(0.021);        // the driver's own Sd

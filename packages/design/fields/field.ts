@@ -286,7 +286,7 @@ export class NumberField extends Field {
     value: "pr_Num",
     label: "Num. of PRs",
     display: {kind: 'fixed', symbol: ''},
-    limits: {min: 1, max: 16},
+    limits: {min: 1, max: 4},
     precision: 0,
     description: "Passive Radiator Count\nNumber of identical passive radiators in the enclosure.",
   });

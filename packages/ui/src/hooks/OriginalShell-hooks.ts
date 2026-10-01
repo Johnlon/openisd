@@ -197,6 +197,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   });
   const N_DRIVERS_OPTIONS = NumberField.DRIVER_NDRIVERS.countOptions();
   const VENT_COUNT_OPTIONS = NumberField.VENT_COUNT.countOptions();
+  const PR_COUNT_OPTIONS = NumberField.PR_NUM.countOptions();
 
   // The focused project's own trace/legend colour — a project attribute saved in its project
   // file (`OpenISDProject.traceColor`), not a page-level index: it must follow the project
@@ -746,7 +747,7 @@ const overlays = computed<Design[]>(() => {
     fbUnreachable, fbUnreachableMsg, boxLossesOpen, isDual,
     frontVolume_m3, setFrontVolume_m3, frcHz, setFrcHz, rearResonance, frontChamberTuningLabel,
     model, startEdit, startTune, placement,
-    activeVent, END_CORRECTION_OPTIONS, VENT_SHAPE_OPTIONS, VENT_COUNT_OPTIONS, ventLState, portPipeResonance_hz,
+    activeVent, END_CORRECTION_OPTIONS, VENT_SHAPE_OPTIONS, VENT_COUNT_OPTIONS, PR_COUNT_OPTIONS, ventLState, portPipeResonance_hz,
     prBrowseOpen, prEditOpen, loadPREntry, loadBundledPassiveRadiatorEntry, defineNewPREntry,
     prAddedMassDq, prTuningDq, prResonanceMassDq, prFsMass_hz,
     dqOfCell: (field: Readable<unknown>) => dqOfCell(field),

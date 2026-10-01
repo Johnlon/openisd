@@ -104,9 +104,11 @@ describe('PR entry bounds keep the limits the dialogs enforced before the regist
     assert.ok(band.min >= 0.1, 'Qms floor is below the 0.1 the form enforced — a Q of 0 is unphysical');
   });
 
-  it('PR count: 1 to 16 whole radiators', () => {
+  // John, 2026-10-01: "num PRs is a drop down 1-4".
+  it('PR count: a 1 to 4 picker', () => {
     const band = NumberField.PR_NUM.limits;
     assert.equal(band.min, 1, 'a design with a PR has at least one');
-    assert.equal(band.max, 16, 'PR count ceiling moved off 16');
+    assert.equal(band.max, 4, 'PR count ceiling moved off 4');
+    assert.deepEqual(NumberField.PR_NUM.countOptions().map(o => o.value), [1, 2, 3, 4]);
   });
 });

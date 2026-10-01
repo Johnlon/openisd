@@ -3,6 +3,7 @@ import {NumberField} from '@openisd/design/fields';
 import NumInput from './NumInput.vue';
 import UnitToggle from './UnitToggle.vue';
 import {useEscToClose} from '../../logic/useEscToClose.js';
+import {selectedOption} from '../../logic/domEvents.js';
 import {usePREditModal} from '../../hooks/PREditModal-hooks.js';
 
 // PR "Edit" — a real popup (unlike Tune, this doesn't need the graph
@@ -16,6 +17,7 @@ const {
   prFsWithMassShown,
   count,
   setCount,
+  countOptions,
   saveCurrentPR,
   close,
   inputValue,
@@ -40,7 +42,7 @@ useEscToClose(() => true, close);
         </div>
         <div class="row" data-field-key="prNum" :title="NumberField.PR_NUM.description">
           <label>PR count</label>
-          <NumInput :model-value="count" @update:model-value="v => setCount(v ?? 0)" :field="NumberField.PR_NUM" :precision="0" step="1" />
+          <select id="pr-edit-count" :value="count" @change="e => { const n = selectedOption(e, countOptions); if (n !== null) setCount(n); }"><option v-for="o in countOptions" :key="o.value" :value="o.value">{{ o.label }}</option></select>
           <span class="u"></span>
         </div>
         <div class="row" data-field-key="prSd" :title="NumberField.PR_SD_CM2.description">

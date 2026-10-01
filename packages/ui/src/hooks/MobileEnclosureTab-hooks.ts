@@ -15,6 +15,7 @@ import {createPassiveRadiatorActions} from './passiveRadiatorActions.js';
 import {END_CORRECTION_OPTIONS, NumberField, VENT_SHAPE_OPTIONS} from '@openisd/design/fields';
 
 const VENT_COUNT_OPTIONS = NumberField.VENT_COUNT.countOptions();
+const PR_COUNT_OPTIONS = NumberField.PR_NUM.countOptions();
 
 export function useMobileEnclosureTab() {
   const project = useFocusedProject();
@@ -50,7 +51,7 @@ export function useMobileEnclosureTab() {
     prAddedMassDq, prTuningDq, prResonanceMassDq, prFsMass_hz,
     prBrowseOpen, prEditOpen, loadPREntry, loadBundledPassiveRadiatorEntry, defineNewPREntry,
     setVentWidth, setVentHeight, setVentDiameter, setVentLength, setFbTarget,
-    VENT_SHAPE_OPTIONS, END_CORRECTION_OPTIONS, VENT_COUNT_OPTIONS,
+    VENT_SHAPE_OPTIONS, END_CORRECTION_OPTIONS, VENT_COUNT_OPTIONS, PR_COUNT_OPTIONS,
     FB_TARGET_TIP, VENT_GEOMETRY_TIP,
   };
 }
