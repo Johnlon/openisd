@@ -282,7 +282,7 @@ const {
                      from it. A sealed chamber has no port, so Fsc is fully determined by Vb
                      and the driver — calculated, nothing to type. Per-chamber, not per-box. -->
                 <template v-if="selectedBox === 'vented'">
-                  <div v-if="fbState === 'E'" id="og-fb-target-field" class="field entered" :title="FB_TARGET_TIP"><label>Target Tuning Freq</label><NumInput id="og-fb-target" :model-value="project.box.vented.tuning_goal_hz.value" @update:model-value="(v: number | null) => { if (v == null || isNaN(v) || v <= 0) clearVentFieldOn(project, 'Fb'); else enterVentFieldOn(project, 'Fb', v); }" :field="NumberField.BOX_FB_HZ" unit-key="Fb" :precision="NumberField.BOX_FB_HZ.precision" /><UnitToggle :field="NumberField.BOX_FB_HZ" unit-key="Fb" unit-class="unit unit-cyc" /></div>
+                  <div v-if="fbState !== 'C'" id="og-fb-target-field" class="field entered" :title="FB_TARGET_TIP"><label>Target Tuning Freq</label><NumInput id="og-fb-target" :model-value="project.box.vented.tuning_goal_hz.value" @update:model-value="(v: number | null) => { if (v == null || isNaN(v) || v <= 0) clearVentFieldOn(project, 'Fb'); else enterVentFieldOn(project, 'Fb', v); }" :field="NumberField.BOX_FB_HZ" unit-key="Fb" :precision="NumberField.BOX_FB_HZ.precision" /><UnitToggle :field="NumberField.BOX_FB_HZ" unit-key="Fb" unit-class="unit unit-cyc" /></div>
                   <div v-else id="og-fb-target-field" class="field" :title="FB_TARGET_TIP"><label>Target Tuning Freq</label><input class="calculated greyed" :value="fmtU(project.box.vented.tuning_goal_hz.value, 'Fb', 'freq', 'Hz', NumberField.BOX_FB_HZ.precision)" readonly><UnitToggle :field="NumberField.BOX_FB_HZ" unit-key="Fb" unit-class="unit unit-cyc" /></div>
                 </template>
                 <template v-else-if="selectedBox === 'sealed'">
@@ -320,7 +320,7 @@ const {
                 <div class="section-header">Front chamber</div>
                 <div class="field-row"><div class="field entered"><label>Volume</label><NumInput :model-value="frontVolume_m3" @update:model-value="(v: number | null) => setFrontVolume_m3(v ?? 0)" :field="NumberField.BOX_VF_L" unit-key="Vf" :precision="NumberField.BOX_VF_L.precision" /><UnitToggle :field="NumberField.BOX_VF_L" unit-key="Vf" unit-class="unit unit-cyc" /></div></div>
                 <div class="field-row">
-                  <div v-if="fbState === 'E'" id="og-ffc-target-field" class="field entered" :title="FB_TARGET_TIP">
+                  <div v-if="fbState !== 'C'" id="og-ffc-target-field" class="field entered" :title="FB_TARGET_TIP">
                     <label>{{ frontChamberTuningLabel }}</label>
                     <NumInput id="og-ffc-target" :model-value="project.box.vented.tuning_goal_hz.value" @update:model-value="(v: number | null) => { if (v == null || isNaN(v) || v <= 0) clearVentFieldOn(project, 'Fb'); else enterVentFieldOn(project, 'Fb', v); }" :field="NumberField.BOX_FB_HZ" unit-key="Fb" :precision="NumberField.BOX_FB_HZ.precision" />
                     <UnitToggle :field="NumberField.BOX_FB_HZ" unit-key="Fb" unit-class="unit unit-cyc" />
@@ -463,7 +463,11 @@ const {
                 </div>
 
                 <div class="field-row">
-                  <div v-if="ventLState === 'E'" class="field entered">
+                  <!-- `ventLState === 'N'` means two different things: Fb is entered but the
+                       solver found no valid length (impossible — stays readonly, the `fbState
+                       === 'E'` guard below), or NOTHING is entered on either side (truly blank —
+                       must stay editable so the user has a way back in, QO139). -->
+                  <div v-if="ventLState !== 'C' && fbState !== 'E'" class="field entered">
                     <label>Vent length</label>
                     <NumInput :model-value="activeVent.length_m.value" @update:model-value="(v: number | null) => { if (v == null || isNaN(v) || v <= 0) clearVentFieldOn(project, 'ventL'); else enterVentFieldOn(project, 'ventL', v); }" :field="NumberField.VENT_L_CM" unit-key="ventL" :precision="NumberField.VENT_L_CM.precision" />
                     <UnitToggle :field="NumberField.VENT_L_CM" unit-key="ventL" unit-class="unit unit-cyc" />
@@ -491,7 +495,7 @@ const {
                      first two overflows the panel for the round or the slotted shape
                      (test/ui/bottom-scroll.browser.spec.ts). Here every shape stays at three. -->
                 <div class="field-row">
-                  <div v-if="fbState === 'E'" id="og-vent-fb-target-field" class="field entered" :title="FB_TARGET_TIP">
+                  <div v-if="fbState !== 'C'" id="og-vent-fb-target-field" class="field entered" :title="FB_TARGET_TIP">
                     <label>Target Tuning Freq</label>
                     <NumInput id="og-vent-fb-target" :model-value="project.box.vented.tuning_goal_hz.value" @update:model-value="(v: number | null) => { if (v == null || isNaN(v) || v <= 0) clearVentFieldOn(project, 'Fb'); else enterVentFieldOn(project, 'Fb', v); }" :field="NumberField.BOX_FB_HZ" unit-key="Fb" :precision="NumberField.BOX_FB_HZ.precision" />
                     <UnitToggle :field="NumberField.BOX_FB_HZ" unit-key="Fb" unit-class="unit unit-cyc" />

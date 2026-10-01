@@ -42,6 +42,32 @@ test('editing the vent diameter writes through to the field', async ({ page }) =
   await expect(diameterInput).toHaveValue(/6/);
 });
 
+// Bug (John, live on his phone, 2026-10-01): clearing an entered Target Tuning Freq left both
+// it and Vent length stuck as read-only blanks — the template only ever rendered an input for
+// the 'E' state, so once a clear drove both to 'N' there was no way back in without reloading
+// the project. Mirrors the desktop repro in original-tuning-target.browser.spec.ts.
+test('clearing Target Tuning Freq leaves both it and Vent length editable, not stuck', async ({ page }) => {
+  await page.locator('.mob-tab', { hasText: 'Vented' }).click();
+  const fbInput = fieldRow(page, 'Target Tuning Freq').locator('input');
+  await fbInput.fill('40');
+  await fbInput.blur();
+  await expect(fbInput).toHaveValue(/40/);
+
+  await fbInput.fill('');
+  await fbInput.blur();
+  // Still a live input, not a dead readonly span — the regression made this locator find
+  // nothing (no `input` inside the readonly branch's `.mob-readonly` span).
+  await expect(fieldRow(page, 'Target Tuning Freq').locator('input')).toBeVisible();
+
+  const lengthInput = fieldRow(page, 'Vent length').locator('input');
+  await expect(lengthInput).toBeVisible();
+
+  // Recovery: typing a fresh length re-derives a real Fb, proving the pair is alive again.
+  await lengthInput.fill('15');
+  await lengthInput.blur();
+  await expect(fieldRow(page, 'Target Tuning Freq').locator('.mob-readonly')).not.toHaveText('—');
+});
+
 test('a sealed box drops the Enclosure destination from the tab bar', async ({ page }) => {
   await expect(page.locator('.mob-tab', { hasText: 'Vented' })).toBeVisible();
   await page.locator('#mob-box-type').selectOption('sealed');
