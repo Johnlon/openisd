@@ -1,6 +1,6 @@
 # Passive radiators cannot be favourited at all
 
-Status: OPEN (re-verified 2026-09-26) — one favourites key; `PRBrowser.vue` has no star.
+Status: FIXED 2026-10-02 (re-verified open the same day before the fix).
 
 ## Symptom
 
@@ -32,6 +32,15 @@ Settle the identity scheme at the same time as
 `BUG_20260909_a_saved_copy_of_a_bundled_driver_shares_its_favourite_key_so_one_star_stars_both.md`,
 so radiators do not inherit the same bundled/saved collision.
 
-## Verification
+## Fixed (2026-10-02)
+- `PrefsRepo` keeps passive-radiator favourites under their own key,
+  `openisd_favourite_passive_radiators` (`favoritePassiveRadiators()` /
+  `setFavoritePassiveRadiators()`), apart from the drivers'.
+- The PR picker ([PRBrowser.vue](http://localhost:8000/winisd/openisd/packages/ui/src/ui/components/PRBrowser.vue))
+  has the driver picker's star on every Saved and Bundled row, and a ★ Favorites filter.
+- Identity: a saved radiator is starred by its storage uuid, a bundled one by its record uuid, so
+  a saved copy never shares its original's star (the driver collision does not recur).
 
-Not yet fixed.
+## Verification
+`prefsRepo.test.ts`, `PRBrowser-hooks.test.ts` (favourites), `pr-favourites.browser.spec.ts`
+(star survives a reload; Favorites shows only the starred radiator).

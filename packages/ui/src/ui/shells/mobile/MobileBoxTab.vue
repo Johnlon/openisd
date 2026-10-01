@@ -163,6 +163,8 @@ const {
             <NumInput :model-value="boxQl" @update:model-value="(v: number | null) => setBoxQl(v ?? 0)" :precision="NumberField.LOSS_QL.precision" stepper />
           </span>
         </div>
+        <!-- An empty unit column, so this row's ▲▼ line up with the rows that have a unit. -->
+        <span class="mob-unit" aria-hidden="true"></span>
       </div>
       <div class="mob-field-row mob-field-entered">
         <div class="mob-field-main">
@@ -257,6 +259,17 @@ const {
   flex: 1 1 auto;
   min-width: 0;
   min-height: 32px;
+}
+/* An editable value looks like an input box; a read-only one stays flat text. */
+.mob-field-value :deep(input:not([readonly])) {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #fff;
+  padding: 2px 8px;
+}
+.mob-field-value :deep(input:not([readonly]):focus) {
+  border-color: var(--acc);
+  outline: none;
 }
 .mob-readonly { color: var(--acc); }
 .mob-unit { font-size: 13px; color: var(--mut); min-width: 30px; flex-shrink: 0; }

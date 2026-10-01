@@ -120,3 +120,43 @@ test('pressing a step button moves focus to that field', async ({ page }) => {
   await row.locator('.num-stepper-btn').first().click();
   await expect(input).toBeFocused();
 });
+
+// John, 2026-10-02 (screenshot): a row with no unit (Qms) had its ▲▼ further right than its
+// neighbours. Every stepper lines up whether or not its row has a unit.
+test('a unitless row\'s step buttons line up with a row that has a unit', async ({ page }) => {
+  await page.evaluate(async (p) => {
+    type AppState = typeof import('../../src/logic/appState.js');
+    function isAppState(m: unknown): m is AppState {
+      return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
+    }
+    const m: unknown = await import(/* @vite-ignore */ p);
+    if (!isAppState(m)) throw new Error('appState module shape mismatch');
+    m.requireFocusedProject().box.boxType.set('box-passive-radiator');
+  }, '/src/logic/appState.ts');
+  await page.locator('.mob-tab', { hasText: 'Passive Radiator' }).click();
+  const withUnit = await fieldRow(page, 'Vas').locator('.num-stepper').boundingBox();
+  const unitless = await fieldRow(page, 'Qms').locator('.num-stepper').boundingBox();
+  expect(withUnit).not.toBeNull();
+  expect(unitless).not.toBeNull();
+  expect(Math.abs(unitless!.x + unitless!.width - (withUnit!.x + withUnit!.width))).toBeLessThan(1);
+});
+
+// John, 2026-10-02: "make the mobile fields look like inputs when they are input".
+test('an editable value is drawn as an input box; a read-only one is not', async ({ page }) => {
+  await page.locator('.mob-tab', { hasText: 'Signal' }).click();
+  const input = fieldRow(page, 'Series resistance').locator('input');
+  const style = await input.evaluate(el => {
+    const s = getComputedStyle(el);
+    return { border: s.borderTopStyle, width: parseFloat(s.borderTopWidth), bg: s.backgroundColor };
+  });
+  expect(style.border).toBe('solid');
+  expect(style.width).toBeGreaterThan(0);
+  expect(style.bg).not.toBe('rgba(0, 0, 0, 0)');
+
+  // A calculated read-only value renders through NumReadout (a plain span), not NumInput with a
+  // readonly attribute — asserted directly (no `if`, playwright/no-conditional-expect): there is
+  // no <input> at all for it to look like one.
+  await page.locator('.mob-tab', { hasText: 'Box' }).click();
+  await page.locator('#mob-box-type').selectOption('sealed');
+  await expect(fieldRow(page, 'Fsc').locator('input')).toHaveCount(0);
+});

@@ -1,7 +1,7 @@
 /** REPO: domain access to the user's browser-local preferences. Takes a storage, returns
  *  domain values. */
 import type {KeyValueStorage} from '../storage/keyValueStorage.js';
-import {OPENISD_FAVOURITE_DRIVERS_KEY} from './storageKeys.js';
+import {OPENISD_FAVOURITE_DRIVERS_KEY, OPENISD_FAVOURITE_PASSIVE_RADIATORS_KEY} from './storageKeys.js';
 
 // Browser-local preferences. THE one place that knows their storage keys and their shapes.
 //
@@ -16,20 +16,31 @@ import {OPENISD_FAVOURITE_DRIVERS_KEY} from './storageKeys.js';
 export const FAVORITES_KEY = OPENISD_FAVOURITE_DRIVERS_KEY;
 
 export interface PrefsRepo {
+  /** The starred drivers' ids. */
   favorites(): string[];
   setFavorites(keys: string[]): void;
+  /** The starred passive radiators' ids: a saved radiator's storage uuid, a bundled one's record
+   *  uuid — so a saved copy never shares its original's star. */
+  favoritePassiveRadiators(): string[];
+  setFavoritePassiveRadiators(keys: string[]): void;
 }
 
 export function createPrefsRepo(storage: KeyValueStorage): PrefsRepo {
+  /** The ids stored under `key`; none when nothing, or nothing readable, is there. */
+  function idsAt(key: string): string[] {
+    try {
+      const parsed: unknown = JSON.parse(storage.get(key) ?? '[]');
+      return Array.isArray(parsed) ? parsed.filter((k): k is string => typeof k === 'string') : [];
+    } catch { return []; }
+  }
   return {
-    favorites() {
-      try {
-        const parsed: unknown = JSON.parse(storage.get(FAVORITES_KEY) ?? '[]');
-        return Array.isArray(parsed) ? parsed.filter((k): k is string => typeof k === 'string') : [];
-      } catch { return []; }
-    },
+    favorites: () => idsAt(FAVORITES_KEY),
     setFavorites(keys) {
       storage.set(FAVORITES_KEY, JSON.stringify(keys));
+    },
+    favoritePassiveRadiators: () => idsAt(OPENISD_FAVOURITE_PASSIVE_RADIATORS_KEY),
+    setFavoritePassiveRadiators(keys) {
+      storage.set(OPENISD_FAVOURITE_PASSIVE_RADIATORS_KEY, JSON.stringify(keys));
     },
   };
 }

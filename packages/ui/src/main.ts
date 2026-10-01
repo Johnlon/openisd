@@ -95,7 +95,7 @@ const app = createApp(App)
   .directive('limits', vLimits);
 
 provideApp(app, {
-  engine, logging, driverBrowsing, selection, designIO, designFiles, driverDrafts, myPassiveRadiators,
+  engine, logging, driverBrowsing, selection, designIO, designFiles, driverDrafts, myPassiveRadiators, prefs,
   bundledPassiveRadiators: bundledPRs, bundledDrivers: driverRepo, myDrivers: myDriverRepo,
   driverFileStorage, faultLog, projectRepo, viewStateRepo,
 });

@@ -55,8 +55,6 @@ import type {Logging} from '../logging/flash.js';
 import {readDriverFileText} from './driverFileText.js';
 import {DriverFileFormat, formatOf, OpenableFiles, ProjectFileFormat, sniff} from '../fileFormat.js';
 
-declare const __BUILD_DATETIME__: string;
-
 function sanitizeFilename(name: string | undefined): string {
   return (name || 'design').replace(/[^\w.-]+/g, '_');
 }

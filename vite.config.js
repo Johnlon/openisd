@@ -79,9 +79,6 @@ const WATCH_IGNORED = [
 export default defineConfig(({ command }) => ({
   root: UI_ROOT,
   base,
-  define: {
-    __BUILD_DATETIME__: JSON.stringify(new Date().toISOString().replace('T', ' ').substring(0, 19)),
-  },
   server: {
     // Native inotify is reliable on this WSL2 (native ext4, kernel 6.18) and costs ~0% CPU
     // idle — polling the ~2,000-file catalogue at 100ms burned ~29% CPU for nothing. The
