@@ -9,18 +9,14 @@ import {usePREditModal} from '../../hooks/PREditModal-hooks.js';
 // visible while typing: WinISD ref view_3_passive_radiator.png "Passive radiator
 // parameters" box). Fields here describe the PR unit itself, not the box around it.
 
-const emit = defineEmits<{ close: [] }>();
+const emit = defineEmits<{ close: []; browse: [] }>();
 
 const {
   radiator,
   prFsWithMassShown,
-  prLib,
-  showPRLib,
   count,
   setCount,
   saveCurrentPR,
-  loadPR,
-  removePR,
   close,
   inputValue,
 } = usePREditModal(emit);
@@ -33,18 +29,10 @@ useEscToClose(() => true, close);
     <div class="modal">
       <h2>Edit passive radiator<button class="x" @click="close" title="Close">✕</button></h2>
       <div class="body">
-        <button style="width:100%" @click="showPRLib = !showPRLib"
-          title="Browse your saved passive radiators and load one into the current design">
-          {{ showPRLib ? 'Hide PR library ▾' : 'Browse PR library… ▸' }}
+        <button style="width:100%" @click="emit('browse')"
+          title="Back to the passive radiator library — your saved PRs, the bundled catalogue, or define a new one">
+          Browse PR library… ▸
         </button>
-        <div v-if="showPRLib" class="pr-lib" style="margin:6px 0">
-          <div v-if="!prLib.length" style="color:var(--mut);font-size:11px;padding:4px 0">No saved PRs yet — fill in the fields below and click Save.</div>
-          <div v-for="e in prLib" :key="e.id" class="pr-lib-item">
-            <span class="pr-lib-name" @click="loadPR(e.id)"
-              :title="`Load ${e.name} — Sd=${e.sd} Mms=${e.mms} Cms=${e.cms}`">{{ e.name }}</span>
-            <button class="pr-lib-del" @click="removePR(e.id)" title="Remove this PR from the library">✕</button>
-          </div>
-        </div>
 
         <div class="row">
           <label>PR name</label>
