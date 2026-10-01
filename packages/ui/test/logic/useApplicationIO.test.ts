@@ -81,7 +81,8 @@ describe('.wpr import syncs state.project from the file, and export round-trips 
     try {
       const engine = createEngine();
       const repo = createProjectRepo(engine, createFileStorage(), createMemoryStorage());
-      const io = createApplicationIO({ logging: createLogging(), fileStorage: createFileStorage(), fileOpen: createFileOpen(), projectRepo: repo, files: new DesignFiles(engine, repo) });
+      const logging = createLogging();
+      const io = createApplicationIO({ logging, fileStorage: createFileStorage(), fileOpen: createFileOpen(), projectRepo: repo, files: new DesignFiles(engine, repo) });
 
       // A DIFFERENT project is open before the import — these exact values must all be gone
       // after. The app starts with NO project (QO121), so this opens the one it then dirties.
@@ -115,6 +116,16 @@ describe('.wpr import syncs state.project from the file, and export round-trips 
       // F4 parity: the golden's box values survive the import→export round trip.
       assert.match(exported, /^BType=0$/m);
       assert.match(exported, /^Vr=0\.02$/m);
+
+      // A filter above WinISD's order 10 is exported as order 10, and the export says so.
+      requireFocusedProject().filters.set(
+        [{type: 'lowpass', enabled: true, family: 'butterworth', order: 15, fc: 50, Q: 0.707}]);
+      requireFocusedProject().save();
+      io.exportWpr();
+      const clamped = downloadedBodies[1];
+      if (clamped === undefined || typeof clamped === 'string') throw new Error('second export must download bytes');
+      assert.match(new TextDecoder().decode(clamped), /^filter0params=0;1;10;50;0\.707$/m);
+      assert.match(logging.message.value, /lowpass order 15 written as order 10/);
     } finally {
       vi.unstubAllGlobals();
       // beforeAll's own stubs are cleared by unstubAllGlobals too — restore them for any

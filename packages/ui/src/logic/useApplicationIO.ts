@@ -176,6 +176,9 @@ export function createApplicationIO(deps: { logging: Logging; fileStorage: FileS
     const { value: bytes, errors } = deps.files.projectToWprBytes(requireFocusedProject());
     if (!bytes) { flash(`Cannot export .wpr: ${errors[0]?.message ?? 'incomplete'}`); return; }
     download(sanitizeFilename(driverName.value) + '.wpr', bytes, ProjectFileFormat.Wpr.mime);
+    // What the export changed to keep WinISD working (e.g. a filter order clamped to 10).
+    const filterWarnings = errors.filter(e => e.field === 'Filters');
+    if (filterWarnings.length) flash(`Exported .wpr: ${filterWarnings.map(e => e.message).join('; ')}`);
   }
 
   /** Load a driver/design from a picked File. */

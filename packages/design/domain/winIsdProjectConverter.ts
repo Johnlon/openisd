@@ -28,6 +28,7 @@ import {OpenISDProject} from './project/openISDProject.js';
 import {ProjectBuilder} from './openisdTransforms.js';
 import type {EnvironmentField} from './project/environmentFields.js';
 import {type DriverError, type Engine, type Filter} from '../engine/index.js';
+import {WINISD_MAX_FILTER_ORDER} from '../fields/filterLimits.js';
 
 import {openIsdDriverToWinIsdDriver} from './winIsdDriverConverter.js';
 import {WinISDDriver} from '../winisd/winisdDriver.js';
@@ -624,7 +625,7 @@ export class WinIsdProjectConverter {
     const out: Record<string, string | number> = {};
     let n = 0;
     for (const filter of filters) {
-      const w = this.engine.filters.wpr(filter);
+      const w = this.engine.filters.wpr(winisdOrder(filter, errors));
       if (w == null) {
         const label = filter.type === 'lowshelf' ? 'low shelf' : 'high shelf';
         errors.push({level: 'warn', field: 'Filters', message: `${label} not written: WinISD has no shelf filter`});
@@ -664,4 +665,15 @@ export class WinIsdProjectConverter {
     }
     return filters;
   }
+}
+
+/** `filter` with its order at most WinISD's: above order 10 WinISD's filter calculation overflows
+ *  and it shows an error dialog (bugs/BUG_20260927_winisd-wpr-filter-order-12-stops-load.md). A
+ *  clamped order is reported as a warning. */
+function winisdOrder(filter: Filter, errors: DriverError[]): Filter {
+  if ((filter.type !== 'lowpass' && filter.type !== 'highpass' && filter.type !== 'allpass')
+      || filter.order <= WINISD_MAX_FILTER_ORDER) return filter;
+  errors.push({level: 'warn', field: 'Filters', message:
+    `${filter.type} order ${filter.order} written as order ${WINISD_MAX_FILTER_ORDER}: WinISD overflows above order ${WINISD_MAX_FILTER_ORDER}`});
+  return {...filter, order: WINISD_MAX_FILTER_ORDER};
 }
