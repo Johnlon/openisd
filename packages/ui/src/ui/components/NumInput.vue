@@ -174,8 +174,11 @@ function stopRepeat(): void {
 }
 // Hold-to-repeat: one immediate step, then a pause before repeating (so a single tap never
 // double-fires), then a faster repeat while held — the common native-spinner feel.
+// The spun field takes focus first (John, 2026-10-01): the press is `.prevent`ed so the button
+// itself never takes it, and without this the previously focused field kept it.
 function startRepeat(dir: 1 | -1): void {
   stopRepeat();
+  inputEl.value?.focus({ preventScroll: true });
   applyStep(dir);
   repeatTimer = setTimeout(function tick() {
     applyStep(dir);

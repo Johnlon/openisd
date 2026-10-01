@@ -108,3 +108,15 @@ test('holding the button repeats the step, not just one click\'s worth of moveme
     .toBeGreaterThan(afterOneClick + oneStep);
   await page.mouse.up();
 });
+
+// John, 2026-10-01: "focus must shift to the field that is being spun or weird UI".
+test('pressing a step button moves focus to that field', async ({ page }) => {
+  await page.locator('.mob-tab', { hasText: 'Box' }).click();
+  const other = fieldRow(page, 'Volume').locator('input');
+  await other.focus();
+  await page.locator('.mob-tab', { hasText: 'Signal' }).click();
+  const row = fieldRow(page, 'Series resistance');
+  const input = row.locator('input');
+  await row.locator('.num-stepper-btn').first().click();
+  await expect(input).toBeFocused();
+});
