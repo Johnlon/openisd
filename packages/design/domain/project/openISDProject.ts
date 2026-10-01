@@ -46,6 +46,9 @@ import { ProjectSignal } from './projectSignal.js';
 // this class hands it, never held as a stored collaborator — `cursorF`/`pinnedF`/`cursorLocked`/
 // `dragRange` are the one documented exception, staying as this class's own private fields.
 
+/** The port-velocity limit line where a project does not state one. */
+const DEFAULT_PORT_VELOCITY_LIMIT_M_PER_S = 17;
+
 export class OpenISDProject {
     /** THE project's identity, and IN-MEMORY ONLY — deliberately a class field rather than a
      *  member of `OpenISDProjectJson`, which is what makes "internal only" structural instead of
@@ -201,6 +204,16 @@ export class OpenISDProject {
      *  Built fresh on every access, same reasoning as `driver`. */
     get box(): Box {
         return this.#boxOver(this.#root());
+    }
+
+    /** The port air velocity, m/s, every port-velocity chart draws as its limit line. 17 m/s
+     *  where the project does not say. Whether WinISD has such a setting is unverified. */
+    get portVelocityLimit_m_per_s(): SimpleField<number> {
+        const lens = focus(this.#slot('box'), 'portVelocityLimit_m_per_s');
+        return {
+            get value() { return lens.value ?? DEFAULT_PORT_VELOCITY_LIMIT_M_PER_S; },
+            set: (v: number) => lens.set(v),
+        };
     }
 
     /** This project's metadata window, built fresh on every access — same reasoning as

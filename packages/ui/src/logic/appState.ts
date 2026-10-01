@@ -420,6 +420,7 @@ export const syncedP = computed<PlotParams>(() => {
     fmax: presentationState.sweepRange.max,
     splXmaxLimited: p.splGraphIsXmaxLimited.value,
     prXmax,
+    portVelocityLimit_m_per_s: p.portVelocityLimit_m_per_s.value,
   };
 });
 

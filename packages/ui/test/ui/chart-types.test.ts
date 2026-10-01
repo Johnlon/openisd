@@ -258,3 +258,34 @@ describe('a design with no max curves draws nothing, rather than crashing', () =
     }
   });
 });
+
+// John, 2026-10-01: the port air-velocity limit line is a per-project setting (default 17 m/s),
+// drawn at the design's own value and labelled with it, on every port-velocity chart.
+describe('port velocity charts draw the design\'s own velocity limit', () => {
+  const limitLine = (b: ReturnType<typeof seriesFor>) => b.series.find(s => s.dash === true && /m\/s/.test(s.name));
+
+  it('RearPort (vented) draws the limit at the design\'s value, named with it', () => {
+    const b = seriesFor(engine, 'RearPort', DRV, 'vented', { ...PP, portVelocityLimit_m_per_s: 25 }, SW, MX);
+    const line = limitLine(b);
+    assert.ok(line, 'no limit line');
+    assert.ok(line.ys.every(v => v === 25), `limit at ${line.ys[0]}`);
+    assert.equal(line.name, '25 m/s');
+  });
+
+  it('FrontPort (bandpass4) reads the same value', () => {
+    const b = seriesFor(engine, 'FrontPort', DRV, 'bandpass4', { ...PP_BP4, portVelocityLimit_m_per_s: 12.5 }, SW_BP4, MX_BP4);
+    const line = limitLine(b);
+    assert.ok(line, 'no limit line');
+    assert.ok(line.ys.every(v => v === 12.5));
+    assert.equal(line.name, '12.5 m/s');
+  });
+
+  it('the y axis reaches the limit line', () => {
+    const b = seriesFor(engine, 'RearPort', DRV, 'vented', { ...PP, portVelocityLimit_m_per_s: 500 }, SW, MX);
+    assert.ok(b.ymax >= 500, `ymax ${b.ymax}`);
+  });
+
+  it('a design with no limit draws no limit line', () => {
+    assert.equal(limitLine(seriesFor(engine, 'RearPort', DRV, 'vented', PP, SW, MX)), undefined);
+  });
+});

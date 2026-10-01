@@ -1323,3 +1323,23 @@ test('the unsaved mark stays on a project row after another project takes focus'
   await expect(rows.nth(1), 'the unsaved mark vanished when the row lost focus').toHaveClass(/is-unsaved/);
   await expect(rows.nth(0)).not.toHaveClass(/is-unsaved/);
 });
+
+// John, 2026-10-01: the port air-velocity limit is a per-project setting on the Vented tab,
+// default 17 m/s.
+test('the Vented tab edits the project\'s port velocity limit, 17 m/s by default', async ({ page }) => {
+  const readLimit = () => page.evaluate(async (modPath): Promise<number> => {
+    function isAppState(m: unknown): m is AppState {
+      return typeof m === 'object' && m !== null && 'requireFocusedProject' in m && typeof m.requireFocusedProject === 'function';
+    }
+    const mod: unknown = await import(/* @vite-ignore */ modPath);
+    if (!isAppState(mod)) throw new Error('appState module shape mismatch');
+    return mod.requireFocusedProject().portVelocityLimit_m_per_s.value;
+  }, APP_STATE);
+
+  await page.locator('.project-nav li', { hasText: 'Box' }).click();
+  await page.locator('#og-box-type').selectOption('vented');
+  const field = page.locator('#og-vent-velocity-limit');
+  await expect(field).toHaveValue('17');
+  await fillAndBlur(field, '25');
+  await expect.poll(readLimit).toBe(25);
+});
