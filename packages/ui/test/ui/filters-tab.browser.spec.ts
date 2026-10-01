@@ -119,3 +119,36 @@ test('an emptied field waits for the entry instead of snapping to its limit', as
   await expect(cutoff).toHaveValue('');
   await expect(panel.locator('.filter-summary')).toContainText('fc=50.00 Hz');
 });
+
+// John, 2026-10-01: spinning a filter value moved the charts only on release. Each held-spinner
+// step (an `input`, no `change`) must reach the swept curves, not just the caption.
+test('a held LP Cutoff spinner moves the swept SPL before release', async ({page}) => {
+  const errors: string[] = [];
+  page.on('pageerror', e => errors.push(e.message));
+  page.on('console', m => { if (m.type() === 'error') errors.push(m.text()); });
+  const splSum = () => page.evaluate(async (p): Promise<number> => {
+    type AppState = typeof import('../../src/logic/appState.js');
+    function isAppState(m: unknown): m is AppState {
+      return typeof m === 'object' && m !== null && 'curvesData' in m;
+    }
+    const m: unknown = await import(/* @vite-ignore */ p);
+    if (!isAppState(m)) throw new Error('appState module shape mismatch');
+    return (m.curvesData.value?.spl ?? []).reduce((a, b) => a + b, 0);
+  }, '/src/logic/appState.ts');
+
+  const panel = page.locator('.content-panel');
+  await panel.locator('.action-btn', {hasText: '+ LP'}).click();
+  await expect(panel.locator('.filter-summary')).toContainText('fc=50.00 Hz');
+  await expect.poll(splSum).not.toBe(0);
+  const before = await splSum();
+
+  for (let step = 0; step < 5; step++) {
+    await editorField(panel, 'Cutoff').evaluate((el: HTMLInputElement) => {
+      el.value = String(Number(el.value) - 5);
+      el.dispatchEvent(new Event('input', {bubbles: true}));
+    });
+  }
+  await expect(panel.locator('.filter-summary')).toContainText('fc=25.00 Hz');
+  await expect.poll(splSum).not.toBe(before);
+  expect(errors).toEqual([]);
+});
