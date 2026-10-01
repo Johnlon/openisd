@@ -467,8 +467,71 @@ WinISD's side comes from its screenshots, its help files and the probes in `wini
 - **Build:** Vite. `npm run build` produces the web app.
 - **Offline:** a Workbox service worker caches the app and the catalogue.
 - **Desktop:** `make electron` builds the same UI as an Electron app.
-- **Hosting:** the web build is published to GitHub Pages.
+- **Hosting:** the web build is published to GitHub Pages at <https://openisd.app/>; see
+  [Publishing](#publishing).
 - **Bridge:** `npm run build:bridge` builds `packages/design/dist/openisd-bridge.js` for `winisd_tools`.
+
+### Publishing
+
+The app is the GitHub Pages site of this repo, served at the custom domain
+<https://openisd.app/>.
+
+**How GitHub Pages names a site**
+
+- This repo is called `openisd`, so by default its Pages site is published at
+  `https://johnlon.github.io/openisd`.
+- This is true for any repo of `Johnlon`: a repo called `X` with GitHub Pages enabled is
+  published at `https://johnlon.github.io/X/`.
+- The exception is where the main site repo, `johnlon.github.io`, has a page or folder of the
+  same name that eclipses it.
+
+**How `openisd.app` maps to `johnlon.github.io/openisd`**
+
+- The repo's Pages settings name `openisd.app` as the custom domain.
+- DNS for `openisd.app` points at GitHub's Pages servers. GitHub reads the host name of each
+  request and serves this repo's site for it.
+- With a custom domain set, the site is served at the root of that domain, not under
+  `/openisd/`.
+- `https://johnlon.github.io/openisd/...` answers with a 301 redirect to the same path on
+  `openisd.app`.
+
+**GitHub Pages configuration** (repo Settings > Pages)
+
+| Setting        | Value                                                         |
+|----------------|---------------------------------------------------------------|
+| Source         | GitHub Actions                                                |
+| Custom domain  | `openisd.app`                                                 |
+| Certificate    | issued by GitHub for `openisd.app` and `www.openisd.app`      |
+| Enforce HTTPS  | off                                                           |
+
+- There is no `CNAME` file in the repo. With the GitHub Actions source the custom domain is
+  held in the Pages settings.
+- `.app` domains are on the browser HSTS preload list, so browsers use HTTPS for
+  `openisd.app` whatever the Enforce HTTPS setting says.
+
+**Build and deploy**
+
+- `.github/workflows/deploy.yml` runs on every push to `main`.
+- It runs `npm run build` and deploys `packages/ui/dist` to Pages.
+- `vite.config.js` sets the web `base` to `/`, because the site is served at the root of the
+  custom domain. Under `johnlon.github.io/openisd/` alone it would need `/openisd/`.
+
+**Porkbun configuration**
+
+`openisd.app` is registered at Porkbun and uses Porkbun's name servers. These are the DNS
+records as read from public DNS on 2026-10-01.
+
+| Host              | Type  | Value                                                                              |
+|-------------------|-------|------------------------------------------------------------------------------------|
+| `openisd.app`     | A     | `185.199.108.153`, `185.199.109.153`, `185.199.110.153`, `185.199.111.153`         |
+| `openisd.app`     | AAAA  | `2606:50c0:8000::153`, `2606:50c0:8001::153`, `2606:50c0:8002::153`, `2606:50c0:8003::153` |
+| `www.openisd.app` | CNAME | `johnlon.github.io.old`                                                            |
+
+- The A and AAAA values are GitHub's published Pages addresses for an apex domain.
+- The `www` record does not resolve, so `www.openisd.app` does not load. GitHub's guidance
+  is a CNAME to `johnlon.github.io`.
+- No web hosting, URL forwarding or email is configured at Porkbun: there are no other
+  records.
 
 ## 12. Transparency and learning
 
