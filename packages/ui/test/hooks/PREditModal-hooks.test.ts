@@ -52,7 +52,6 @@ describe('usePREditModal', () => {
 
     expect(hook.radiator.value).toBeDefined();
     expect(hook.count.value).toBe(1);
-    expect(hook.prLib.value.length).toBe(1);
 
     hook.setCount(2);
     expect(project.box.passiveRadiator.count.value).toBe(2);
@@ -60,13 +59,11 @@ describe('usePREditModal', () => {
     hook.saveCurrentPR();
     expect(myPassiveRadiators.upsert).toHaveBeenCalled();
 
-    hook.loadPR('pr-1');
-    expect(hook.showPRLib.value).toBe(false);
-
-    hook.removePR('pr-1');
-    expect(myPassiveRadiators.remove).toHaveBeenCalledWith('pr-1');
-
     hook.close();
     expect(emit).toHaveBeenCalledWith('close');
+    // "Browse PR library" now emits 'browse' straight from the template (PREditModal.vue),
+    // sending the shell back to the ONE real picker (PRBrowser.vue — Saved + Bundled + Define
+    // new) rather than a second cut-down saved-only list inline here — nothing for the hook
+    // itself to own, so there is no hook-level method to test.
   });
 });

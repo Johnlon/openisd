@@ -147,7 +147,7 @@ const {
     </div>
     <PRBrowser v-if="prBrowseOpen" @close="prBrowseOpen = false"
       @load="loadPREntry" @load-bundled="loadBundledPassiveRadiatorEntry" @define="defineNewPREntry" />
-    <PREditModal v-if="prEditOpen" @close="prEditOpen = false" />
+    <PREditModal v-if="prEditOpen" @close="prEditOpen = false" @browse="prEditOpen = false; prBrowseOpen = true" />
 
     <div class="mob-field-row mob-field-entered">
       <div class="mob-field-main"><span class="mob-field-label">Vas</span>

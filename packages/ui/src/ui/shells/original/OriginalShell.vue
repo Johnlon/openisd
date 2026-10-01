@@ -533,7 +533,7 @@ const {
             </div>
             <PRBrowser v-if="prBrowseOpen" @close="prBrowseOpen = false"
               @load="loadPREntry" @load-bundled="loadBundledPassiveRadiatorEntry" @define="defineNewPREntry" />
-            <PREditModal v-if="prEditOpen" @close="prEditOpen = false" />
+            <PREditModal v-if="prEditOpen" @close="prEditOpen = false" @browse="prEditOpen = false; prBrowseOpen = true" />
             <div class="two-col">
               <div style="--label-w:44px;">
                 <div class="section-header">Passive radiator parameters</div>
