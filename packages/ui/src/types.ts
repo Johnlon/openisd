@@ -51,12 +51,14 @@ export interface PlotData {
  * (`OpenISDProject.sweep()`/`maxCurves()`) and is never read back out through a `Design`.
  * `splXmaxLimited` chooses which SPL array to draw (`sw.splXlimCurve` vs `sw.spl`); `prXmax`
  * is the passive radiator's own excursion limit, used only by the Excursion chart's PR trace.
+ * `portVelocityLimit_m_per_s` is the project's port air-velocity limit line; absent, none is drawn.
  */
 export type PlotParams = {
   fmin: number;
   fmax: number;
   splXmaxLimited?: boolean;
   prXmax?: number;
+  portVelocityLimit_m_per_s?: number;
 };
 
 /** A design shown on a chart — the current design plus any pinned comparisons. */

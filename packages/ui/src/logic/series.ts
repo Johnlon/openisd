@@ -5,6 +5,8 @@ import type {BoxEngine, BoxType, ChartId, DriverError, EnvironmentEngine, MaxCur
 export interface ChartEngineAreas {
   readonly simulation: SimulationEngine;
   readonly environment: EnvironmentEngine;
+  /** Which charts each box type has (`chartsFor`): a design draws only on those. */
+  readonly box: BoxEngine;
 }
 import type {Design, PlotData, PlotParams, Series} from '../types.js';
 
@@ -132,12 +134,14 @@ type CurveBuild = { series: Series[]; ymin: number; ymax: number; logy?: boolean
  *  present (`bandpass6`/`abc`) and falls back to `sw.pv` otherwise (`vented`, whose one port IS
  *  the rear one — `SweepResult.pvRear`'s own doc); `IntraPort` reads `sw.pvIntra` (`null` outside
  *  `abc`'s own `winisd-lossy` branch, drawn as a flat zero rather than hiding the chart). */
-function portVelocityBuild({ engine, meta, sw, pick }: CurveCtx, vel: number[]): CurveBuild {
+function portVelocityBuild({ meta, sw, pick, P }: CurveCtx, vel: number[]): CurveBuild {
   const series: Series[] = [{ ...pick(vel), color: meta.color, name: 'Port vel' }];
-  // FIXME - magic number - what is 0.05 representing?
-  const machLimit = 0.05 * engine.environment.solve({}).values.c;
-  series.push({ xs: sw.fs, ys: sw.fs.map(() => machLimit), color:'#ffb454', name:'17 m/s', dash:true });
-  return { series, ymin: 0, ymax: Math.max(20, Math.max(...vel) * 1.1) };
+  // The project's port air-velocity limit (`OpenISDProject.portVelocityLimit_m_per_s`).
+  const limit = P.portVelocityLimit_m_per_s;
+  if (limit !== undefined) {
+    series.push({ xs: sw.fs, ys: sw.fs.map(() => limit), color:'#ffb454', name:`${limit} m/s`, dash:true });
+  }
+  return { series, ymin: 0, ymax: Math.max(20, Math.max(...vel) * 1.1, (limit ?? 0) * 1.1) };
 }
 
 /** Port gain — shared by `RearPortGain` (vented) and `FrontPortGain` (bandpass4): same
@@ -452,12 +456,16 @@ export function buildPlotData(
   // (John, 2026-09-24). `sortIndex` (set by the caller from `openProjects().indexOf(...)`)
   // carries that order across the currentDesign/compare split; a design without one sorts
   // by its position in this call's own arguments.
+  // A design draws only on a chart its own box type has: a PR box has no port, so it draws
+  // nothing on a port-velocity chart (BUG_20261001_port-velocity-chart-draws-a-pr-box-overlay).
   const designs = [currentDesign, ...compare.filter(d => d.visible !== false)]
+    .filter(d => engine.box.chartsFor(d.box).includes(chartId))
     .map((d, i) => [d, d.sortIndex ?? i] as const)
     .sort((a, b) => a[1] - b[1])
     .map(([d]) => d);
   const multi = designs.length > 1;
   let out: PlotData | null = null;
+  if (designs.length === 0) return { value: null, errors: chartErrors };
   designs.forEach((d, di) => {
     const isCurrent = d === currentDesign;
     const pd = seriesFor(engine, chartId, d.driver!, d.box, d.P, d.curves!, d.maxCurves, opts.bare);

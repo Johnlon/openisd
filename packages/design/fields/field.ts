@@ -232,6 +232,14 @@ export class NumberField extends Field {
     formula: "c / (2·ventL)",
     description: "First Vent Pipe Resonance\nThe lowest organ-pipe standing-wave resonance inside the port (f = c / 2L).\nCauses output peaks and noise at or above the passband, limiting usable port bandwidth.",
   });
+  static readonly VENT_PORTVELOCITYLIMIT_M_PER_S = new NumberField({
+    value: "vent_portVelocityLimit_m_per_s",
+    label: "Port velocity limit",
+    display: {kind: 'fixed', symbol: 'm/s'},
+    limits: {min: 1, max: 340},
+    precision: 1,
+    description: "Port Air Velocity Limit\nThe air velocity the port velocity charts draw as their limit line. 17 m/s by default; opinions on a safe figure vary with port shape (a flared port tolerates more before chuffing).\nWhether WinISD has this setting is unverified.",
+  });
 
   // ── Passive radiator ──────────────────────────────────────────────────────────────────────
   static readonly PR_SD_CM2 = new NumberField({

@@ -88,3 +88,25 @@ describe('buildPlotData — levels below −190 dB are real points, not silence'
     assert.ok(out.ymin <= Math.min(...sw.spl), `ymin ${out.ymin}`);
   });
 });
+
+// BUG_20261001_port-velocity-chart-draws-a-pr-box-overlay: a design whose box type does not have
+// the chart (`BoxEngine.chartsFor`) draws no line on it — a PR box has no port.
+describe('buildPlotData — a design draws only on charts its box type has', () => {
+  const of = (box: Design['box'], name: string): Design => ({ ...design(name, '#ffb454'), box });
+
+  it('a passive-radiator overlay draws nothing on the port velocity chart', () => {
+    const out = buildPlotData(engine, 'RearPort', 10, 2000, of('vented', 'vent'), [of('box-passive-radiator', 'pr')]).value!;
+    // One design left, so its trace carries no project prefix.
+    assert.deepEqual(out.series.filter(s => !s.dash).map(s => s.name), ['Port vel']);
+  });
+
+  it('a vented overlay still draws on the port velocity chart', () => {
+    const out = buildPlotData(engine, 'RearPort', 10, 2000, of('vented', 'a'), [of('vented', 'b')]).value!;
+    assert.ok(out.series.some(s => s.name.startsWith('b: ')));
+  });
+
+  it('every design draws on a chart every box type has', () => {
+    const out = buildPlotData(engine, 'SPL', 10, 2000, of('vented', 'a'), [of('box-passive-radiator', 'b')]).value!;
+    assert.ok(out.series.some(s => s.name.startsWith('b: ')));
+  });
+});

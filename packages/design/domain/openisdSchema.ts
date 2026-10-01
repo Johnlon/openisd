@@ -583,6 +583,9 @@ const openISDBoxJsonSchema = z.strictObject({
     boxType: z.enum([
         'sealed', 'vented', 'bandpass4', 'bandpass6', 'box-passive-radiator', 'abc',
     ] satisfies readonly BoxType[]),
+    // The port air velocity every port-velocity chart draws as its limit line, m/s. Per project
+    // (John, 2026-10-01). Optional: absent reads as 17 m/s, matching every project saved before it.
+    portVelocityLimit_m_per_s: z.number().optional(),
     sealed: z.strictObject({
         volume_m3: z.number(), losses: sealedLossesJsonSchema,
         // A solver-set slot (S7-a) — see `ventJsonSchema.length_m`'s note; a slot for the

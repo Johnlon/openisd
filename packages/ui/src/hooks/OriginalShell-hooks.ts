@@ -548,6 +548,7 @@ const overlays = computed<Design[]>(() => {
       fmax: presentationState.sweepRange.max,
       splXmaxLimited: p.splGraphIsXmaxLimited.value,
       prXmax,
+      portVelocityLimit_m_per_s: p.portVelocityLimit_m_per_s.value,
     };
     const swept = overlaySweeps.sweep(p, { fmin: P.fmin, fmax: P.fmax });
     const sw = swept?.sweep, mx = swept?.max;
