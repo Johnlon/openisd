@@ -83,10 +83,14 @@ const {
       <UnitToggle :field="NumberField.VENT_D_CM" unit-key="ventD" unit-class="mob-unit" />
     </div>
 
-    <div class="mob-field-row" :class="ventLState === 'E' ? 'mob-field-entered' : 'mob-field-calculated'">
+    <!-- `ventLState === 'N'` means two different things: Fb entered but the solver found no
+         valid length (impossible — stays readonly, the `fbState === 'E'` guard below), or
+         NOTHING entered on either side (truly blank — must stay editable so the user has a way
+         back in, QO139). -->
+    <div class="mob-field-row" :class="(ventLState !== 'C' && fbState !== 'E') ? 'mob-field-entered' : 'mob-field-calculated'">
       <div class="mob-field-main">
         <span class="mob-field-label">Vent length</span>
-        <span v-if="ventLState === 'E'" class="mob-field-value">
+        <span v-if="ventLState !== 'C' && fbState !== 'E'" class="mob-field-value">
           <NumInput :model-value="activeVent.length_m.value"
                     @update:model-value="setVentLength"
                     :field="NumberField.VENT_L_CM" unit-key="ventL" :precision="NumberField.VENT_L_CM.precision" />
@@ -98,10 +102,10 @@ const {
       <UnitToggle :field="NumberField.VENT_L_CM" unit-key="ventL" unit-class="mob-unit" />
     </div>
 
-    <div class="mob-field-row" :class="fbState === 'E' ? 'mob-field-entered' : 'mob-field-calculated'">
+    <div class="mob-field-row" :class="fbState !== 'C' ? 'mob-field-entered' : 'mob-field-calculated'">
       <div class="mob-field-main">
         <span class="mob-field-label">{{ frontChamberTuningLabel }}</span>
-        <span v-if="fbState === 'E'" class="mob-field-value" :title="FB_TARGET_TIP">
+        <span v-if="fbState !== 'C'" class="mob-field-value" :title="FB_TARGET_TIP">
           <NumInput :model-value="project.box.vented.tuning_goal_hz.value"
                     @update:model-value="setFbTarget"
                     :field="NumberField.BOX_FB_HZ" unit-key="Fb" :precision="NumberField.BOX_FB_HZ.precision" />

@@ -110,6 +110,39 @@ test('§A1 — a target the port cannot reach is reported, and the length shows 
   expect(dq.dqCount).toBeGreaterThan(0);
 });
 
+// Bug (John, live on his phone, 2026-10-01): clearing an entered Target Tuning Freq left BOTH
+// it and Vent length stuck on the read-only "nothing entered" branch — the template only ever
+// rendered an input for the 'E' state, so once a clear drove both to 'N' there was no element
+// left to type into. "Unrecoverable" (his word) without reloading the project from disk.
+test('§A1 — clearing Target Tuning Freq leaves both it and Vent length editable, not stuck', async ({ page }) => {
+  const pageOps = new PageOps(page);
+  await page.locator('select#og-box-type').selectOption('vented');
+  await pageOps.setNum('#og-fb-target', '40');
+  await expect(page.locator('#og-fb-target')).toHaveValue('40.00');
+
+  await fillAndCommit(page.locator('#og-fb-target'), '');
+  // The field must still be the live input (not the readonly `#og-fb-target-field > input`
+  // branch with no id) — if this locator finds nothing, the regression is back.
+  await expect(page.locator('#og-fb-target')).toBeVisible();
+  await expect(page.locator('#og-fb-target')).toHaveValue('');
+
+  // Vent length has no element id in its editable form — found by its label instead, same as
+  // the clear helper above.
+  await page.locator('.project-nav li', { hasText: 'Vented' }).click();
+  const lengthInput = numInputByLabel(page, 'Vent length');
+  await expect(lengthInput).toBeVisible();
+  await expect(lengthInput).not.toHaveAttribute('readonly', '');
+
+  // Recovery: typing a fresh length re-derives a real Fb, proving the pair is alive again —
+  // not merely rendered as an input while still functionally dead. Length is now the entered
+  // side, so Fb flips back to 'C' (calculated, readonly) — the Box tab's field keeps its id
+  // only on the wrapping div once that happens, not on the (now plain) readonly input.
+  await fillAndCommit(lengthInput, '15');
+  await page.locator('.project-nav li', { hasText: 'Box' }).first().click();
+  const fb = Number(await page.locator('#og-fb-target-field input').inputValue());
+  expect(fb).toBeGreaterThan(0);
+});
+
 // The human's QO11 ruling: the target tuning is the port solver's INPUT, so it belongs on the
 // Vents pane as well as the Box tab — the user sizing a vent must see, and be able to change,
 // the target those dimensions were solved for. WinISD shows it only on its Box screen; this is
