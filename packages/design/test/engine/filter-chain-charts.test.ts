@@ -212,3 +212,22 @@ describe('maximum SPL and maximum power leave the filter chain out, as WinISD do
     assert.deepEqual(filtered.xlim, bare.xlim);
   });
 });
+
+describe('EQ/filter chain charts — orders above WinISD\'s 10', () => {
+  for (const family of ['butterworth', 'bessel'] as const) {
+    it(`a ${family} order-20 low-pass is finite everywhere and falls monotonically above fc`, () => {
+      const filters: Filter[] = [{ type: 'lowpass', family, order: 20, fc: 100, Q: Math.SQRT1_2, enabled: true }];
+      const sw = engine.simulation.sweep(driverParams(DRV), LE_H, 'sealed', { ...SEALED, filters }).values!;
+      assert.ok(sw.fltMag.every(Number.isFinite), 'non-finite filter magnitude');
+      for (let i = 1; i < sw.fs.length; i++)
+        if (sw.fs[i] > 200) assert.ok(sw.fltMag[i] < sw.fltMag[i - 1], `not falling at ${sw.fs[i].toFixed(0)} Hz`);
+    });
+  }
+
+  it('a Butterworth order-20 low-pass is −3.01 dB at its own fc', () => {
+    const filters: Filter[] = [{ type: 'lowpass', family: 'butterworth', order: 20, fc: 100, Q: Math.SQRT1_2, enabled: true }];
+    const sw = engine.simulation.sweep(driverParams(DRV), LE_H, 'sealed', { ...SEALED, filters }).values!;
+    const i = nearest(sw.fs, 100);
+    assert.ok(Math.abs(sw.fltMag[i] + 3.01) < 0.3, `got ${sw.fltMag[i].toFixed(3)} dB at ${sw.fs[i].toFixed(2)} Hz`);
+  });
+});

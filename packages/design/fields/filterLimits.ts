@@ -5,15 +5,16 @@
  * `<input>` for display (native min/max, arrow-key stop). One number per field, never a second
  * copy.
  *
- * `order`: WinISD itself loads up to order 10; a saved `.wpr` above that hangs WinISD's own
- * load (see `filter_Order` in `uiFields.ts`, carried over unchanged).
+ * `order`: 1..20. WinISD stops at 10 because its filter calculation overflows (floating point)
+ * above it — a bug, not a design limit (John, 2026-10-01). OpenISD does not copy a crash, so it
+ * allows more (bugs/BUG_20260927_winisd-wpr-filter-order-12-stops-load.md).
  */
 export interface FieldLimits {
   readonly min: number;
   readonly max: number;
 }
 
-export const FILTER_ORDER_LIMITS: FieldLimits = Object.freeze({min: 1, max: 10});
+export const FILTER_ORDER_LIMITS: FieldLimits = Object.freeze({min: 1, max: 20});
 export const FILTER_FC_LIMITS: FieldLimits = Object.freeze({min: 1, max: 20000});
 export const FILTER_Q_LIMITS: FieldLimits = Object.freeze({min: 0.1, max: 100});
 export const FILTER_GAIN_LIMITS: FieldLimits = Object.freeze({min: -60, max: 60});

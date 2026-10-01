@@ -1,7 +1,7 @@
 /**
  * `FilterEngine.editX` — one typed edit method per filter class, the core's own decision on
  * what a filter EDITOR is allowed to write: order rounded to the nearest integer then clamped to
- * WinISD's Filter Editor entry range (1..10), every other numeric field clamped to its own entry
+ * the Filter Editor entry range (1..20; WinISD stops at 10 only because of a calculation bug above it), every other numeric field clamped to its own entry
  * range (`packages/design/fields/filterLimits.ts`). Every `*Editor.vue` calls one of these and
  * emits the result — it owns no rounding or clamping of its own
  * (bugs/BUG_20260927_filter-editors-hold-domain-logic.md).
@@ -23,12 +23,20 @@ describe('Engine.updatePassFilter', () => {
     expect(engine.filters.editPass(base, {order: 2.6}).order).toBe(3);
   });
 
-  it('clamps order at the 1..10 floor: 0 -> 1', () => {
+  it('clamps order at the 1..20 floor: 0 -> 1', () => {
     expect(engine.filters.editPass(base, {order: 0}).order).toBe(1);
   });
 
   it('clamps an out-of-range fc to the entry ceiling', () => {
     expect(engine.filters.editPass(base, {fc: 999999}).fc).toBe(20000);
+  });
+
+  it('keeps an order above WinISD\'s 10 (WinISD\'s cap is a calculation bug, not a design limit)', () => {
+    expect(engine.filters.editPass(base, {order: 15}).order).toBe(15);
+  });
+
+  it('clamps order at the 1..20 ceiling: 25 -> 20', () => {
+    expect(engine.filters.editPass(base, {order: 25}).order).toBe(20);
   });
 
   it('leaves every other field untouched and keeps the variant', () => {
@@ -54,7 +62,7 @@ describe('Engine.updateAllpassFilter', () => {
     expect(engine.filters.editAllpass(base, {order: 2.6}).order).toBe(3);
   });
 
-  it('clamps order at the 1..10 floor: 0 -> 1', () => {
+  it('clamps order at the 1..20 floor: 0 -> 1', () => {
     expect(engine.filters.editAllpass(base, {order: 0}).order).toBe(1);
   });
 

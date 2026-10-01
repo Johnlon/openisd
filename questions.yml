@@ -9713,6 +9713,9 @@ questions:
   - at: '2026-09-27'
     text: 'Also: bugs/BUG_20260927_winisd-va-uses-re-not-re-plus-rg.md (WinISD''s VA chart uses Re, not
       Re + Rg; Rg counted twice with ''Rg is at driver side'') — same kind of claim, same check.'
+  - at: '2026-10-01'
+    text: 'Item 6 confirmed by John: WinISD gets a floating-point overflow above order 10, shown in a
+      modal error dialog (what looked like a hang). OpenISD now allows orders up to 20.'
 - id: QO171
   title: Filter edit rework started then abandoned after a wrong review
   status: open

@@ -983,7 +983,7 @@ export class NumberField extends Field {
     display: {kind: 'fixed', symbol: ''},
     limits: FILTER_ORDER_LIMITS,
     precision: 3,
-    description: "Filter Order\nFilter steepness: 1st order = 6 dB/oct, 2nd = 12 dB/oct, 4th = 24 dB/oct.\nWinISD itself loads up to order 10; a saved .wpr above that hangs WinISD's own load.",
+    description: "Filter Order\nFilter steepness: 1st order = 6 dB/oct, 2nd = 12 dB/oct, 4th = 24 dB/oct. Up to 20.\nWinISD stops at order 10 (above that it hits a floating-point overflow error); a project with a higher order shows that error in WinISD.",
   });
   static readonly FILTER_T_S = new NumberField({
     value: "filter_T_s",
