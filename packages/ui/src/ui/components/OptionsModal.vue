@@ -48,6 +48,7 @@ import {reactive, ref} from 'vue';
 import {presentationState, resetUnitTokens} from '../../logic/presentationState.js';
 import {useEscToClose} from '../../logic/useEscToClose.js';
 import {LIMIT_ROWS, useOptionsModal} from '../../hooks/OptionsModal-hooks.js';
+import {useBackupSettings} from '../../hooks/useBackupSettings.js';
 import type {ChartId} from '@openisd/design/engine';
 import NumInput from './NumInput.vue';
 import UnitToggle from './UnitToggle.vue';
@@ -57,6 +58,24 @@ const emit = defineEmits<{ close: [] }>();
 function close() { emit('close'); }
 function onBackdrop(e: MouseEvent) { if (e.target === e.currentTarget) close(); }
 useEscToClose(() => true, close);
+
+const { downloadBackup, restoreFromFile } = useBackupSettings();
+const backupFileInput = ref<HTMLInputElement | null>(null);
+function pickBackupFile() { backupFileInput.value?.click(); }
+async function onBackupFile(e: Event) {
+  const input = e.target as HTMLInputElement;
+  const file = input.files?.[0];
+  input.value = '';
+  if (!file) return;
+  if (!confirm(
+    'Restoring a backup REPLACES all projects, My Drivers, My Passive Radiators, and preferences '
+    + 'with what is in this file — anything not in the file is removed. This cannot be undone. Continue?',
+  )) return;
+  const result = await restoreFromFile(file);
+  if (!result.ok) { alert(`Could not restore: ${result.reason}`); return; }
+  alert(`Backup restored (${result.keysRestored} item${result.keysRestored === 1 ? '' : 's'}). The app will now reload.`);
+  window.location.reload();
+}
 
 // App settings — environment + vented design limits — are the hook's draft; OK applies both.
 const {
@@ -268,6 +287,24 @@ function limitVal(chartId: ChartId, key: 'min' | 'max'): number | undefined {
             <button class="opt-reset-btn" title="Reset every field's display unit back to its default (cm, L, g, Hz, K, Pa…) — undoes any unit clicking. The stored design is never affected." @click="resetUnitsDraft">
               Reset to Metric (l, mm, …)
             </button>
+          </fieldset>
+
+          <fieldset class="opt-group">
+            <legend>Backup</legend>
+            <p class="opt-help">
+              Everything in this browser — every project, My Drivers, My Passive Radiators, and your
+              preferences — as one JSON file. The bundled driver/radiator catalogue is never included;
+              it ships with the app itself and needs no backup.
+            </p>
+            <div class="opt-group-actions">
+              <button class="opt-reset-btn" title="Download a backup of everything in this browser as one JSON file." @click="downloadBackup">
+                Download backup
+              </button>
+              <button class="opt-reset-btn" title="Restore from a previously downloaded backup file. This replaces everything currently in this browser." @click="pickBackupFile">
+                Restore from file…
+              </button>
+            </div>
+            <input ref="backupFileInput" type="file" accept="application/json,.json" style="display:none" @change="onBackupFile">
           </fieldset>
         </template>
 

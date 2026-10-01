@@ -4,6 +4,7 @@ import {vExpoStep} from './ui/directives/expoStep.js';
 import {vLimits} from './ui/directives/limits.js';
 import {
     createAppSettingsRepo,
+    createBackupRepo,
     createBundledDriverRepo,
     createBundledPassiveRadiatorRepo,
     createFileOpen,
@@ -78,7 +79,8 @@ const driverBrowsing = createDriverBrowsingState({
   confirmReset: (question) => confirm(question),
 });
 const viewStateRepo = createViewStateRepo(storage);
-const designIO = createApplicationIO({ logging, fileStorage, fileOpen: createFileOpen(), projectRepo, files: designFiles });
+const backup = createBackupRepo(storage);
+const designIO = createApplicationIO({ logging, fileStorage, fileOpen: createFileOpen(), projectRepo, files: designFiles, backup });
 
 const app = createApp(App)
   .directive('expo-step', vExpoStep)

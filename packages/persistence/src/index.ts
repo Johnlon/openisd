@@ -50,3 +50,7 @@ export {
 export {
   type ViewStateRepo, VIEW_STATE_KEY, createViewStateRepo,
 } from './repos/viewStateRepo.js';
+
+export {
+  type BackupRepo, type RestoreResult, createBackupRepo,
+} from './repos/backupRepo.js';
