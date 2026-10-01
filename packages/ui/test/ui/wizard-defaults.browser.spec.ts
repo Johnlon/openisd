@@ -28,6 +28,15 @@ test.beforeEach(async ({ page }) => {
   await page.locator('.original-root').waitFor({ state: 'visible' });
 });
 
+/** Step 4 of a passive-radiator project: Next waits for a radiator; define a new one. */
+async function choosePassiveRadiator(page: import('@playwright/test').Page): Promise<void> {
+  const modal = page.locator('.overlay.open');
+  await expect(modal).toContainText('Passive Radiator');
+  await expect(modal.locator('button', { hasText: 'Next' })).toHaveCount(0);
+  await modal.locator('#np-pr-select').click();
+  await page.locator('button', { hasText: 'Define new PR' }).click();
+}
+
 /** New 5-step wizard (FIX_WIZARD_SEALED): driver → num/placement → box type → (alignment) → name. */
 async function buildProject(page: import('@playwright/test').Page, boxType: string): Promise<void> {
   await page.locator('.tb-btn[title*="New project"]').click();
@@ -46,6 +55,10 @@ async function buildProject(page: import('@playwright/test').Page, boxType: stri
   await modal.locator('button', { hasText: 'Next' }).click();
   if (boxType === 'sealed' || boxType === 'vented') {
     await modal.locator('button', { hasText: 'Next' }).click(); // step 4: alignment (sealed or vented — docs/plans/archive/FIX_WIZARD_VENTED.md)
+  }
+  if (boxType === 'box-passive-radiator') {
+    await choosePassiveRadiator(page);                          // step 4: the radiator, as WinISD's wizard asks
+    await modal.locator('button', { hasText: 'Next' }).click();
   }
   await modal.locator('input[type="text"]').fill('Wizard project');  // step 5: name
   await modal.locator('button', { hasText: 'Create' }).click();
@@ -237,4 +250,30 @@ test('the standard fixture sample-project.owpr is a faithful representation of a
   // The port length is a solved value the two construction paths float-differ on — it must be
   // present (never skipped) and close, not bit-identical.
   expect(ventLengthOf(normWizard)).toBeCloseTo(ventLengthOf(normSample), 2);
+});
+
+// WinISD's wizard asks for the passive radiator after the box type.
+// bugs/BUG_20261001_new-project-wizard-skips-the-passive-radiator-step.md
+test('the passive-radiator step\'s Vas / Qms / Fs reach the created project', async ({ page }) => {
+  await page.locator('.tb-btn[title*="New project"]').click();
+  const modal = page.locator('.overlay.open');
+  await modal.locator('.dlist .ditem', { hasText: 'Wizard Test RS225' }).first().click();
+  await modal.locator('.use-btn').click();
+  await modal.locator('button', { hasText: 'Next' }).click();
+  await modal.locator('.field', { hasText: 'Box type' }).locator('select').selectOption('box-passive-radiator');
+  await modal.locator('button', { hasText: 'Next' }).click();
+  await choosePassiveRadiator(page);
+
+  for (const [id, text] of [['#np-pr-vas', '40'], ['#np-pr-qms', '6'], ['#np-pr-fs', '18']] as const) {
+    await modal.locator(id).fill(text);
+    await modal.locator(id).press('Tab');
+  }
+  await modal.locator('button', { hasText: 'Next' }).click();
+  await modal.locator('input[type="text"]').fill('PR from the wizard');
+  await modal.locator('button', { hasText: 'Create' }).click();
+
+  await page.locator('.project-nav li', { hasText: 'Box' }).first().click();
+  await expect.poll(async () => parseFloat(await page.locator('#og-pr-vas').inputValue())).toBeCloseTo(40, 3);
+  await expect.poll(async () => parseFloat(await page.locator('#og-pr-qms').inputValue())).toBeCloseTo(6, 3);
+  await expect.poll(async () => parseFloat(await page.locator('#og-pr-fs').inputValue())).toBeCloseTo(18, 3);
 });

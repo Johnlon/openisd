@@ -1,6 +1,6 @@
 # BUG_20261001_new-project-wizard-skips-the-passive-radiator-step
 
-**Status:** OPEN
+**Status:** FIXED 2026-10-01
 
 ## Symptom
 Choosing "Passive Radiator" in the New Project wizard goes straight from box type to project
@@ -22,3 +22,11 @@ Tracked as item 7 of
 ## Fix
 A passive-radiator step: pick from the PR picker (saved, bundled, define new) and edit
 Vas/Qms/Fs/Sd/Xmax, and build the project with that radiator.
+
+## Fixed
+Step 4 for a passive-radiator box is the radiator: Select PR opens the PR picker (saved, bundled,
+define new), the step shows Vas / Qms / Fs / Sd / Xmax, and Next waits until a radiator is
+chosen. The project is built with it. Both skins show the same step component,
+[NewProjectPassiveRadiatorStep.vue](http://localhost:8000/winisd/openisd/packages/ui/src/ui/components/NewProjectPassiveRadiatorStep.vue).
+Tests: `OriginalNewProject-hooks.test.ts` (passive-radiator step), `wizard-defaults.browser.spec.ts`,
+`mobile-box-type-switch-defaults.browser.spec.ts`.
