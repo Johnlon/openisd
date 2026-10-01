@@ -8,7 +8,9 @@ import {afterEach, beforeEach, describe, expect, it} from 'vitest';
 import {nextTick} from 'vue';
 import {createEngine} from '@openisd/design/engine';
 import {OpenISDProject, ProjectBuilder} from '@openisd/design';
-import {createProjectRepo, createSharedMemoryStorage, createViewStateRepo, type FileStorage} from '@openisd/persistence';
+import {createProjectRepo, createSharedMemoryStorage, createViewStateRepo, type FileStorage, type ProjectRepairReport} from '@openisd/persistence';
+import {readFileSync} from 'node:fs';
+import {ensureSampleProject, SAMPLE_PROJECT_OWPR} from '../fixtures/sampleProject.js';
 import {startSessionSync} from '../../src/logic/sessionSync.js';
 import {addProject, openProjects, removeProject} from '../../src/logic/appState.js';
 import {presentationState} from '../../src/logic/presentationState.js';
@@ -89,5 +91,30 @@ describe('startSessionSync', () => {
     await nextTick();
 
     expect(presentationState.ui.unitTokens).toEqual({probe_111111: 'x'});
+  });
+});
+
+describe('startSessionSync — a stored session the app wrote', () => {
+  it('reads back in another tab with nothing repaired and nothing written', async () => {
+    ensureSampleProject();
+    const store = createSharedMemoryStorage();
+    const repairs: ProjectRepairReport[] = [];
+    const otherTab = store.tab();
+    const otherRepo = createProjectRepo(engine, noFiles, otherTab, r => { repairs.push(r); });
+    const tab = store.tab();
+    stop = startSessionSync({projectRepo: createProjectRepo(engine, noFiles, tab, r => { repairs.push(r); }), viewStateRepo: createViewStateRepo(tab)});
+    const sample = OpenISDProject.fromOwprText(readFileSync(SAMPLE_PROJECT_OWPR, 'utf8'), engine);
+    if (Array.isArray(sample)) throw new Error(sample.join('; '));
+    let heardByOtherTab = 0;
+    otherRepo.watchOpenProjects(() => { heardByOtherTab++; });
+
+    addProject(sample);
+    await nextTick();
+    await nextTick();
+    const session = otherRepo.loadOpenProjects();
+
+    expect(Array.isArray(session) ? session : []).toEqual([]);
+    expect(repairs).toEqual([]);
+    expect(heardByOtherTab).toBe(1);
   });
 });

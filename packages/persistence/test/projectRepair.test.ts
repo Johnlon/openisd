@@ -8,7 +8,7 @@
 import {describe, expect, it, vi} from 'vitest';
 import {createProjectRepo, type ProjectRepairReport} from '../src/repos/projectRepo.js';
 import type {FileStorage} from '../src/storage/fileStorage.js';
-import {createMemoryStorage} from '../src/storage/keyValueStorage.js';
+import {createMemoryStorage, createSharedMemoryStorage} from '../src/storage/keyValueStorage.js';
 import {OPENISD_OPEN_SESSIONS_KEY, OPENISD_STATE_KEY, OPENISD_BACKUP_KEYS} from '../src/repos/storageKeys.js';
 import {ProjectBuilder} from '@openisd/design';
 import {createEngine} from '@openisd/design/engine';
@@ -77,5 +77,27 @@ describe('projectRepo — repairing loads', () => {
 
     expect(onRepaired).not.toHaveBeenCalled();
     expect(storage.get(OPENISD_BACKUP_KEYS.state)).toBeNull();
+  });
+});
+
+// bugs/BUG_20261001_boot-rewrites-open-sessions-and-other-tabs-rebuild.md
+describe('projectRepo — saving the session it just read', () => {
+  it('writes nothing, so no other tab rebuilds its projects', () => {
+    const shared = createSharedMemoryStorage();
+    const otherTab = shared.tab();
+    const thisTab = shared.tab();
+    const project = ProjectBuilder.empty(engine);
+    project.name.set('unchanged');
+    project.save();
+    createProjectRepo(engine, noFiles, otherTab).saveOpenProjects([project], project);
+    let heard = 0;
+    otherTab.watch(OPENISD_OPEN_SESSIONS_KEY, () => { heard++; });
+
+    const repo = createProjectRepo(engine, noFiles, thisTab);
+    const session = repo.loadOpenProjects();
+    if (session === null || Array.isArray(session)) throw new Error('expected a session');
+    repo.saveOpenProjects(session.projects, session.projects[session.focusedIndex] ?? null);
+
+    expect(heard).toBe(0);
   });
 });

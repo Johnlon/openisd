@@ -38,6 +38,17 @@ export function parseOwprSession(text: string): { session: OpenISDProjectSession
 
 /** `.owpr` text parsed with every failing field removed so its default applies, and which ones
  *  were; refused only when the text is not JSON or not a project session at all. */
+/** `session` with its embedded driver's `uuid` blanked — the id every read mints afresh, so two
+ *  reads of one project differ only there. */
+export function withoutDriverId(session: OpenISDProjectSessionJson): OpenISDProjectSessionJson {
+    const strip = (project: OpenISDProjectJson): OpenISDProjectJson => {
+        const {driverEmbedding} = project;
+        const {device} = driverEmbedding;
+        return {...project, driverEmbedding: {...driverEmbedding, device: {...device, uuid: {...device.uuid, value: ''}}}};
+    };
+    return {...session, saved: strip(session.saved), edited: session.edited === null ? null : strip(session.edited)};
+}
+
 export function parseOwprSessionRepairing(text: string): Repaired<OpenISDProjectSessionJson> | string[] {
     let parsed: unknown;
     try {
