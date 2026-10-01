@@ -15,10 +15,11 @@
 
 import {computed, ref, type Ref, shallowRef, type ShallowRef, triggerRef, watch} from 'vue';
 import type {
-    BoxType, ChartId, DriverError, MaxCurvesResult, SweepResult, VentedDesignLimits,
+    BoxType, ChartId, DriverError, MaxCurvesResult, MaxCurvesSolveResult, SweepResult, VentedDesignLimits,
 } from '@openisd/design/engine';
 import {DEFAULT_ENV_DEFAULTS, DEFAULT_VENTED_DESIGN_LIMITS, type Engine, createEngine, type EnvDefaults} from '@openisd/design/engine';
 import {driverPrerequisiteMessage, sweepIssueMessage} from './sweepIssueMessage.js';
+import {SweepScheduler} from './sweepScheduler.js';
 import {
     type AppContext,
     type BoxProjectBuilder,
@@ -81,6 +82,7 @@ interface AppStateSingletons {
   curves: Ref<SweepResult | null>;
   max: Ref<MaxCurvesResult | null>;
   sweepErrors: Ref<DriverError[]>;
+  lastMax: ShallowRef<MaxCurvesSolveResult | null>;
 }
 declare global {
   var __openisd_appState: Partial<AppStateSingletons> | undefined;
@@ -424,7 +426,10 @@ const max    = getOrInit(slots, 'max', () => ref<MaxCurvesResult | null>(null));
 // `allIssues` would otherwise never see — a silently blank chart. Captured here for the issue
 // channel so GraphPanel's "Can't plot / Fix the driver parameters" state actually fires.
 const sweepErrors = getOrInit(slots, 'sweepErrors', () => ref<DriverError[]>([]));
-const doSweep = () => {
+// The last max-curves solve, kept for the issue channel while burst steps skip max curves
+// (`SweepScheduler`); the settle run replaces it.
+const lastMax = getOrInit(slots, 'lastMax', () => shallowRef<MaxCurvesSolveResult | null>(null));
+const doSweep = (withMax = true) => {
   const p = live.value;
   if (!p) {
     curves.value = null;
@@ -449,7 +454,8 @@ const doSweep = () => {
   // 1 Hz and the curves starting at 10 Hz.
   const grid: FrequencyGrid = { fmin: syncedP.value.fmin, fmax: syncedP.value.fmax };
   const sw = p.sweep(grid);
-  const mx = p.maxCurves(grid);
+  const mx = withMax || lastMax.value === null ? p.maxCurves(grid) : lastMax.value;
+  lastMax.value = mx;
   curves.value = sw.values;
   max.value    = mx.values;
   // Dedupe by field+message: `sweep` and `maxCurves` report the same driver-completeness issue
@@ -464,34 +470,24 @@ const doSweep = () => {
   ).values()];
 };
 doSweep();
-// Leading-edge throttle (was a pure trailing debounce): the chart curves must
-// redraw DURING a held/rapid spinner drag, not only after release. A pure
-// `setTimeout(doSweep, 80)` cleared on every change starves the sweep while the
-// value keeps changing faster than 80ms, so the graph froze until you let go
-// (the bottom stat numbers, which read `driver`/`syncedP` directly, stayed live —
-// that mismatch was the tell). Here the first change runs immediately, then at
-// most once per SWEEP_MS while changes keep coming, with a trailing run to catch
-// the final value.
-const SWEEP_MS = 32;   // ~30 fps — live-feeling without resweeping every event
-// Whatever handle this platform's setTimeout hands back — a number in the browser, an object in Node.
-let sweepTimer: ReturnType<typeof setTimeout> | null = null;
-let lastSweep = 0;
-function scheduleSweep(): void {
-  const now = performance.now();
-  const wait = SWEEP_MS - (now - lastSweep);
-  if (wait <= 0) {
-    if (sweepTimer) { clearTimeout(sweepTimer); sweepTimer = null; }
-    lastSweep = now;
-    doSweep();
-  } else if (sweepTimer === null) {
-    sweepTimer = setTimeout(() => {
-      sweepTimer = null;
-      lastSweep = performance.now();
-      doSweep();
-    }, wait);
-  }
-}
-watch(live, scheduleSweep);
+// The chart curves redraw DURING a held/rapid spinner drag, not only after release: the first
+// change runs at once, then at most once per SWEEP_MS (~30 fps) while changes keep coming, with a
+// trailing run for the final value. Max curves only run per step while a chart that draws them is
+// open; otherwise once the changes settle (`SweepScheduler`).
+const SWEEP_MS = 32;
+const SETTLE_MS = 150;
+const MAX_CHARTS: readonly ChartId[] = ['MaxSPL', 'MaxPwr'];
+const sweepScheduler = new SweepScheduler(
+  doSweep,
+  () => live.value?.openCharts.value.some(c => MAX_CHARTS.includes(c)) ?? false,
+  {
+    now: () => performance.now(),
+    schedule: (fn, ms) => { const h = setTimeout(fn, ms); return () => clearTimeout(h); },
+  },
+  SWEEP_MS,
+  SETTLE_MS,
+);
+watch(live, () => sweepScheduler.changed());
 export const curvesData = curves;
 export const maxData    = max;
 

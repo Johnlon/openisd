@@ -10,8 +10,10 @@ import {curvesData, maxData, newProject, requireFocusedProject, syncedP} from '.
 import {presentationState} from '../../src/logic/presentationState.js';
 
 /** Past `scheduleSweep`'s throttle window (`SWEEP_MS`), so the re-sweep has landed. */
+// Past the sweep's settle run (`SweepScheduler`, 150 ms after the last edit), which brings the
+// max curves and their issues up to date after a burst of edits.
 async function awaitSweepThrottle(): Promise<void> {
-  await new Promise(resolve => setTimeout(resolve, 50));
+  await new Promise(resolve => setTimeout(resolve, 200));
 }
 
 function aSimulatableSealedProject(): void {
