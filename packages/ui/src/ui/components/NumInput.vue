@@ -390,12 +390,12 @@ span.dq-note {
 span.dq-note-root { color: var(--bad); }
 span.dq-note-symptom { color: color-mix(in srgb, var(--bad) 65%, orange); }
 
-/* Stacked ▲▼, not side-by-side: the dense mobile row has spare width (the empty space to the
-   right of a short number) but a fixed ~48px row height, so stacking is what actually fits —
-   two 22px-tall buttons make a 44px touch target, same ballpark as the row itself. */
+/* Side-by-side (▲ then ▼), not stacked: the dense mobile row has spare width — the empty space
+   to the right of a short number — which is exactly what a horizontal pair uses (John,
+   2026-10-02: "wide beside, not above"). Square-ish 32px buttons make a real touch target. */
 .num-stepper {
   display: inline-flex;
-  flex-direction: column;
+  flex-direction: row;
   flex-shrink: 0;
   margin-left: 6px;
 }
@@ -405,9 +405,9 @@ span.dq-note-symptom { color: color-mix(in srgb, var(--bad) 65%, orange); }
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 34px;
-  height: 22px;
-  font-size: 11px;
+  width: 32px;
+  height: 32px;
+  font-size: 16px;
   line-height: 1;
   color: var(--mut);
   background: var(--panel2, #f0f0f0);
@@ -416,8 +416,8 @@ span.dq-note-symptom { color: color-mix(in srgb, var(--bad) 65%, orange); }
   user-select: none;
   touch-action: manipulation;
 }
-.num-stepper-btn + .num-stepper-btn { border-top: none; }
-.num-stepper-btn:first-child { border-radius: 4px 4px 0 0; }
-.num-stepper-btn:last-child { border-radius: 0 0 4px 4px; }
+.num-stepper-btn + .num-stepper-btn { border-left: none; }
+.num-stepper-btn:first-child { border-radius: 4px 0 0 4px; }
+.num-stepper-btn:last-child { border-radius: 0 4px 4px 0; }
 .num-stepper-btn:active { background: var(--acc, #36c); color: #fff; }
 </style>
