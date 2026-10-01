@@ -4,7 +4,7 @@
  * field-wiring factories `OriginalShell-hooks.ts` exports — one implementation of "what does the
  * Enclosure tab do", asked by both shells.
  */
-import {boxTypeIsSimulatable, envDefaults, focusedProject, formatInUnit as fmtU, projectChanged} from '../logic/appState.js';
+import {boxTypeIsSimulatable, envDefaults, focusedProject, projectChanged} from '../logic/appState.js';
 import {useFocusedProject} from '../logic/focusedProjectContext.js';
 import {useApp} from '../logic/app.js';
 import {clearVentField as clearVentFieldOn, enterVentField as enterVentFieldOn} from '../logic/useVentGroup.js';
@@ -51,6 +51,6 @@ export function useMobileEnclosureTab() {
     prBrowseOpen, prEditOpen, loadPREntry, loadBundledPassiveRadiatorEntry, defineNewPREntry,
     setVentWidth, setVentHeight, setVentDiameter, setVentLength, setFbTarget,
     VENT_SHAPE_OPTIONS, END_CORRECTION_OPTIONS, VENT_COUNT_OPTIONS,
-    FB_TARGET_TIP, VENT_GEOMETRY_TIP, fmtU,
+    FB_TARGET_TIP, VENT_GEOMETRY_TIP,
   };
 }
