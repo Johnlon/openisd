@@ -227,6 +227,17 @@ export function createProjectRepo(
     return result.project;
   }
 
+  /** Whether the stored open session already holds `entries` focused on `focusedId`. */
+  function storesSameSession(entries: readonly StoredProjectEntry[], focusedId: string | null): boolean {
+    const text = storage.get(OPEN_SESSION_STORAGE_KEY);
+    if (text === null) return false;
+    let parsed: unknown;
+    try { parsed = JSON.parse(text); } catch { return false; }
+    const stored = openSessionPayload(parsed);
+    if (!stored || stored.focusedId !== focusedId || stored.entries.length !== entries.length) return false;
+    return stored.entries.every((e, i) => e.id === entries[i].id && OpenISDProject.sameOwprText(e.text, entries[i].text));
+  }
+
   function readStoredEntries(): StoredProjectEntry[] {
     for (const key of [PROJECTS_STORAGE_KEY, LEGACY_PROJECTS_STORAGE_KEY]) {
       const collectionText = storage.get(key);
@@ -333,6 +344,9 @@ export function createProjectRepo(
         return { id, text: project.toOwprText(), modified: '' };
       });
       const focusedId = focused === null ? null : storedIdentity.get(focused) ?? focused.uuid();
+      // Writing the session already stored would still change its text (each read mints the
+      // embedded driver a fresh id), and every other tab would rebuild all its projects.
+      if (storesSameSession(entries, focusedId)) return;
       storage.set(OPEN_SESSION_STORAGE_KEY, JSON.stringify({ entries, focusedId } satisfies OpenSessionPayload));
     },
     loadOpenProjects(): OpenProjectSession | string[] | null {

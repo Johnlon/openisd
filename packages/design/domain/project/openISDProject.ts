@@ -17,7 +17,7 @@ import type { DragRange } from './dragRange.js';
 import { ProjectAdvanced } from './projectAdvanced.js';
 import { ProjectChartsView, type OpenCharts } from './projectChartsView.js';
 import { ProjectEnvironment, envFieldsOver } from './projectEnvironment.js';
-import { owprTextOf, parseOwprSession, parseOwprSessionRepairing, sessionOf } from './projectSerialization.js';
+import { owprTextOf, parseOwprSession, parseOwprSessionRepairing, sessionOf, withoutDriverId } from './projectSerialization.js';
 import type { FieldPath } from '../schemaRepair.js';
 import { boxParamsIssuesOf, maxCurvesOf, sweepOf, sweepPlanOf, ventAchievedFbOf, ventMaxReachableFbOf } from './projectSweep.js';
 import type { ProjectSweepSource, SweepPlan } from './projectSweep.js';
@@ -561,6 +561,16 @@ export class OpenISDProject {
         const parsed = parseOwprSession(text);
         if ('errors' in parsed) return parsed.errors;
         return OpenISDProject.wrapSession(parsed.session, newUuid(), engine);
+    }
+
+    /** Whether two `.owpr` texts state the same project, the embedded driver's per-read id aside.
+     *  Unreadable text is never the same as anything. */
+    static sameOwprText(a: string, b: string): boolean {
+        if (a === b) return true;
+        const x = parseOwprSession(a);
+        const y = parseOwprSession(b);
+        if ('errors' in x || 'errors' in y) return false;
+        return JSON.stringify(withoutDriverId(x.session)) === JSON.stringify(withoutDriverId(y.session));
     }
 
     /** Like `fromOwprText`, but a field that fails the schema is removed so its default applies
