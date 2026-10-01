@@ -1,6 +1,7 @@
 /**
  * NumInput's up/down stepper (John, 2026-10-01: mobile's numeric rows have "lots of empty
- * space"; wants touch step buttons next to the value, Box/Enclosure/Signal/Advanced tabs).
+ * space"; wants touch step buttons next to the value, Box/Enclosure/Signal/Advanced tabs — side
+ * by side, 2026-10-02: "wide beside, not above" — value, then ▲▼, then the unit).
  *
  * The buttons drive the native input's own `stepUp()`/`stepDown()` against the SAME `step`/
  * `min`/`max` the keyboard arrows already use (NumInput.vue's `stepAttr`), then dispatch the
@@ -31,7 +32,7 @@ test('a step button click moves the value by the exact same amount as an ArrowUp
   await page.locator('.mob-tab', { hasText: 'Signal' }).click();
   const row = fieldRow(page, 'Series resistance');
   const input = row.locator('input');
-  const upBtn = row.locator('.num-stepper-btn').first();
+  const upBtn = row.locator('.num-stepper-btn').first(); // [▲, ▼] order — ▲ is first
 
   const before = Number(await input.inputValue());
   await upBtn.click();
@@ -51,7 +52,7 @@ test('the down button undoes the up button exactly — same step size, opposite 
   await page.locator('.mob-tab', { hasText: 'Signal' }).click();
   const row = fieldRow(page, 'Series resistance');
   const input = row.locator('input');
-  const [upBtn, downBtn] = await row.locator('.num-stepper-btn').all();
+  const [upBtn, downBtn] = await row.locator('.num-stepper-btn').all(); // [▲, ▼] order
 
   const start = Number(await input.inputValue());
   await upBtn.click();
@@ -84,7 +85,7 @@ test('holding the button repeats the step, not just one click\'s worth of moveme
   await page.locator('.mob-tab', { hasText: 'Signal' }).click();
   const row = fieldRow(page, 'Series resistance');
   const input = row.locator('input');
-  const upBtn = row.locator('.num-stepper-btn').first();
+  const upBtn = row.locator('.num-stepper-btn').first(); // [▲, ▼] order — ▲ is first
 
   // One plain click: the baseline, a single step's worth of movement.
   const before = Number(await input.inputValue());
