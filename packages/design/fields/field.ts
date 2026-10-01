@@ -262,7 +262,7 @@ export class NumberField extends Field {
     display: {kind: 'fixed', symbol: 'm/s'},
     limits: {min: 1, max: 340},
     precision: 1,
-    description: "Port Air Velocity Limit\nThe air velocity the port velocity charts draw as their limit line. 17 m/s by default; opinions on a safe figure vary with port shape (a flared port tolerates more before chuffing).\nWhether WinISD has this setting is unverified.",
+    description: "Port Air Velocity Limit\nThe maximum air velocity the port should reach before audible chuffing or turbulence, drawn as a limit line on the port velocity charts. Defaults to 17 m/s; a flared port tolerates more, a straight pipe less.",
   });
 
   // ── Passive radiator ──────────────────────────────────────────────────────────────────────
