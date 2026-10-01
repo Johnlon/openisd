@@ -83,10 +83,17 @@ export class OriginalFilters implements OriginalFiltersAPI {
   editShelf(f: ShelfFilter, patch: ShelfPatch): void { this.replace(f, this.engine.editShelf(f, patch)); }
 
   /** `next` takes `f`'s place in the chain; every other filter is untouched. A filter with no
-   *  list id is not in any list yet and has nothing to replace. */
+   *  list id is not in any list yet and has nothing to replace. An edit that changes no field
+   *  writes nothing — an arrow-key spin step fires `input` and `change` with the same value. */
   private replace(f: Filter, next: Filter): void {
-    if (f.id === undefined) return;
+    if (f.id === undefined || sameFields(f, next)) return;
     const chain = this.project.value.filters;
     chain.set(chain.value.map(x => (x.id === f.id ? next : x)));
   }
+}
+
+/** Every field of `a` and `b` holds the same value (filters are flat records of primitives). */
+function sameFields(a: Filter, b: Filter): boolean {
+  const ka = Object.keys(a), kb = Object.keys(b);
+  return ka.length === kb.length && ka.every(k => Object.is(Reflect.get(a, k), Reflect.get(b, k)));
 }

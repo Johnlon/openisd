@@ -55,6 +55,19 @@ describe('OriginalFilters', () => {
     expect(fb).toMatchObject({id: b, fc: 20, enabled: false});
   });
 
+  // An arrow-key spin step fires both `input` and `change` with the same value; the second must not
+  // write the chain again, or every step costs two full recomputes.
+  it('an edit that changes nothing leaves the chain unwritten', () => {
+    const {project, api} = setup();
+    api.add('lowpass');
+    const before = project.filters.value;
+    const f = before[0];
+    if (f?.type !== 'lowpass') throw new Error('expected lowpass');
+    api.editPass(f, {fc: f.fc});
+    api.setEnabled(f, f.enabled);
+    expect(project.filters.value).toBe(before);
+  });
+
   it('caption is the engine\'s wording', () => {
     const {api} = setup();
     api.add('staticGain');
