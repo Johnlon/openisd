@@ -66,6 +66,7 @@ const {
 } = useOptionsModal();
 
 type Tab = 'General' | 'Plot Window';
+const limitsMoreOpen = ref(false);
 const tab = reactive<{ v: Tab }>({ v: 'General' });
 
 const draft = reactive({
@@ -217,10 +218,15 @@ function limitVal(chartId: ChartId, key: 'min' | 'max'): number | undefined {
           <fieldset class="opt-group">
             <legend>Vented design limits</legend>
             <p class="opt-help">
-              WinISD extrapolates its vented alignment formulas outside their design range, and OpenISD
-              reproduces that exactly. A designed box outside this band is still shown as designed — it
-              is marked, never changed.
+              A vented design outside these limits gets a warning. Its numbers are never changed.
+              <button type="button" class="opt-more-btn" data-testid="limits-more" :aria-expanded="limitsMoreOpen" @click="limitsMoreOpen = !limitsMoreOpen">More info</button>
             </p>
+            <div v-if="limitsMoreOpen" class="opt-popup" role="note" data-testid="limits-more-popup">
+              <p>WinISD's vented formulas are only reliable for a certain range of box sizes and tunings.</p>
+              <p>Outside that range WinISD keeps calculating anyway, and the answer can be wrong. OpenISD does the same, so its results match WinISD.</p>
+              <p>If a design falls outside the limits below, OpenISD shows it exactly as you set it, with a warning.</p>
+              <button type="button" class="opt-more-btn" @click="limitsMoreOpen = false">Close</button>
+            </div>
             <div class="opt-env-grid">
               <div class="opt-env-col">
                 <div class="opt-fld">
@@ -358,6 +364,9 @@ function limitVal(chartId: ChartId, key: 'min' | 'max'): number | undefined {
 .opt-group { border: 1px solid var(--line); border-radius: 5px; padding: 10px 12px; margin: 0; }
 .opt-group legend { padding: 0 6px; font-size: 11px; color: var(--mut); }
 .opt-help { margin: 0 0 8px; font-size: 11px; color: var(--mut); line-height: 1.4; }
+.opt-more-btn { background: none; border: 0; padding: 0; font: inherit; color: var(--acc, #36c); text-decoration: underline; cursor: pointer; }
+.opt-popup { margin: 0 0 8px; padding: 8px 10px; font-size: 11px; line-height: 1.4; border: 1px solid var(--bdr, #888); border-radius: 4px; background: var(--bg, #fff); }
+.opt-popup p { margin: 0 0 6px; }
 .opt-error { color: #8a1f1f; background: #fdeeee; border: 1px solid #e8b0b0; border-radius: 3px;
   padding: 4px 8px; font-size: 11px; margin-top: 8px; }
 .opt-group-actions { display: flex; justify-content: flex-end; margin-top: 8px; }
