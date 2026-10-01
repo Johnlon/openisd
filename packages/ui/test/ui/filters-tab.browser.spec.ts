@@ -91,3 +91,31 @@ test('switching a lowpass Subtype to Bessel keeps order/fc/Q and updates the cap
 
   await expect(panel.locator('.filter-summary')).toContainText('Lowpass (Bessel, n=2, fc=50.00 Hz)');
 });
+
+// BUG_20261001_filter-spinners-do-not-update-charts-live: holding a spinner arrow fires `input` on
+// every step but `change` only on release; the filter must take each step while the arrow is held.
+// Headless Chromium runs no spin arrows on a mouse hold, so the step is what Chromium sends during
+// one: a new value and an `input` event, no `change`.
+for (const c of CASES) {
+  test(`${c.badge}: a held ${c.editLabel} spinner applies each step before release`, async ({page}) => {
+    const panel = page.locator('.content-panel');
+    await panel.locator('.action-btn', {hasText: c.addLabel}).click();
+    await expect(panel.locator('.filter-summary')).toContainText(c.initialCaption);
+
+    await editorField(panel, c.editLabel).evaluate((el: HTMLInputElement) => {
+      const v = Number(el.value);
+      el.value = String(v === 0 ? 1 : v * 2);
+      el.dispatchEvent(new Event('input', {bubbles: true}));
+    });
+    await expect(panel.locator('.filter-summary')).not.toContainText(c.initialCaption);
+  });
+}
+
+test('an emptied field waits for the entry instead of snapping to its limit', async ({page}) => {
+  const panel = page.locator('.content-panel');
+  await panel.locator('.action-btn', {hasText: '+ LP'}).click();
+  const cutoff = editorField(panel, 'Cutoff');
+  await cutoff.fill('');
+  await expect(cutoff).toHaveValue('');
+  await expect(panel.locator('.filter-summary')).toContainText('fc=50.00 Hz');
+});
