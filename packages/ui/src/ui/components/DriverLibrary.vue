@@ -448,6 +448,7 @@ onMounted(openedLibrary);
   align-items: center;
   gap: 8px;
   padding-bottom: 8px;
+  flex-shrink: 0;
 }
 .driver-library .prev-nav .fav-btn {
   font-size: 32px;
@@ -459,6 +460,12 @@ onMounted(openedLibrary);
   gap: 8px;
   padding-top: 8px;
   border-top: 1px solid #ececec;
+  /* .preview is a flex column with overflow:hidden, which gives every flex ITEM an automatic
+     MINIMUM size of 0 (flexbox spec) unless told otherwise — without this, a tall .prev-body
+     (long description/notes) squashes Cancel/Use along with everything else instead of letting
+     .prev-body's own overflow-y:auto absorb the overflow and the footer stay fully visible
+     (John, 2026-10-02: "something is eclipsing the bottom of the Use and Cancel buttons"). */
+  flex-shrink: 0;
 }
 .driver-library .use-btn {
   font-size: 12px;
@@ -694,6 +701,7 @@ onMounted(openedLibrary);
   gap: 8px;
   padding: 4px 0 2px;
   flex-wrap: wrap;
+  flex-shrink: 0;
 }
 .driver-library .browser-footer a {
   font-size: 11px;

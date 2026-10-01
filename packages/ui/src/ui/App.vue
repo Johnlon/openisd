@@ -189,4 +189,19 @@ onUnmounted(() => {
 .app-root-mobile :deep(.de-dimlist) {
   width: 100% !important;
 }
+
+/* Bug (John, 2026-10-02: "something is eclipsing the bottom of the Use and Cancel buttons when
+   picking driver"): DriverBrowser.vue's own .wb-modal is fixed at 770x535 (a weak max-width/
+   max-height safety net, same gap DriverEditorModal's .de-modal had before its own override
+   above) — on a phone whose actual viewport is shorter than ~630px (535px / the 85vh cap), the
+   modal's real height clamps below what DriverLibrary.vue's list+preview+footer need, and
+   nothing in that fixed-height box was scrollable enough to compensate. Full-screen removes the
+   ceiling entirely, the same fix as .de-modal just above. */
+.app-root-mobile :deep(.wb-modal) {
+  width: 100% !important;
+  max-width: none !important;
+  height: 100% !important;
+  max-height: none !important;
+  border-radius: 0 !important;
+}
 </style>
