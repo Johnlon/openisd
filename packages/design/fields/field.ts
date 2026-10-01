@@ -145,6 +145,30 @@ export class NumberField extends Field {
     return Object.freeze(out);
   }
 
+  /** `v` at this field's `precision`: the figure a reader is shown. */
+  rounded(v: number): number {
+    const k = 10 ** this.precision;
+    return Math.round(v * k) / k;
+  }
+
+  // ── Plot window ───────────────────────────────────────────────────────────────────────────
+  static readonly PLOT_FMIN_HZ = new NumberField({
+    value: "plot_fmin_hz",
+    label: "Frequency range start",
+    display: {kind: 'fixed', symbol: 'Hz'},
+    limits: {min: 1, max: 20000},
+    precision: 1,
+    description: "Plot Start Frequency\nThe lowest frequency every chart draws and the sweep computes.",
+  });
+  static readonly PLOT_FMAX_HZ = new NumberField({
+    value: "plot_fmax_hz",
+    label: "Frequency range end",
+    display: {kind: 'fixed', symbol: 'Hz'},
+    limits: {min: 1, max: 40000},
+    precision: 1,
+    description: "Plot End Frequency\nThe highest frequency every chart draws and the sweep computes.",
+  });
+
   // ── Box ───────────────────────────────────────────────────────────────────────────────────
   static readonly BOX_VB_L = new NumberField({
     value: "box_Vb_l",

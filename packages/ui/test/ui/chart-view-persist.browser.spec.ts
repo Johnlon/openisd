@@ -58,3 +58,23 @@ test('the trace colour chosen with the Color button survives a reload (saved in 
 
   await expect.poll(() => page.locator('.chart-color-btn').evaluate(el => getComputedStyle(el).backgroundColor)).toBe(chosen);
 });
+
+// John, 2026-10-01: a drag-zoomed range (stored as e.g. 13.478123 Hz) showed in Options to every
+// digit. The dialog shows it at the field's precision.
+test('Options shows a drag-zoomed frequency range at one decimal', async ({ page }) => {
+  await page.goto('/');
+  await openAProject(page);
+  await page.evaluate(async (p) => {
+    type PS = typeof import('../../src/logic/presentationState.js');
+    function isPS(m: unknown): m is PS {
+      return typeof m === 'object' && m !== null && 'presentationState' in m;
+    }
+    const m: unknown = await import(/* @vite-ignore */ p);
+    if (!isPS(m)) throw new Error('presentationState module shape mismatch');
+    m.presentationState.sweepRange = { min: 13.478123, max: 19987.34567 };
+  }, '/src/logic/presentationState.ts');
+  await page.locator('.tb-btn[title="Options"]').click();
+  await page.locator('.opt-tab', { hasText: 'Plot Window' }).click();
+  await expect(freqRow(page).nth(0)).toHaveValue('13.5');
+  await expect(freqRow(page).nth(1)).toHaveValue('19987.3');
+});
