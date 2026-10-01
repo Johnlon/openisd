@@ -2,7 +2,7 @@ import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
 import type {SimulatableBoxType, SweepParams} from '../../engine/index.js';
 import {createEngine} from '../../engine/index.js';
-import {driverParams, solveConsistencyGroup} from './testSolver.js';
+import {sweepDriver, solveConsistencyGroup} from './testSolver.js';
 
 /**
  * `boxModel()` (engine/boxes/index.ts) — the exhaustive factory that gives each
@@ -14,7 +14,7 @@ import {driverParams, solveConsistencyGroup} from './testSolver.js';
 describe('boxModel — one class per simulatable box type', () => {
   const engine = createEngine();
   const LE_H = 0.7e-3;
-  const DRV = driverParams(solveConsistencyGroup({
+  const DRV = sweepDriver(solveConsistencyGroup({
     Fs_hz: 37, Qts: 0.378, Qes: 0.40, Qms: 7.0, Vas_m3: 0.0300,
     Sd_m2: 0.0133, Re_ohm: 5.6, Xmax_m: 0.0050, Pe_W: 60, Znom_ohm: 8,
   }));

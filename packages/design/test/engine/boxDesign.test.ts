@@ -24,7 +24,7 @@ import assert from 'node:assert/strict';
 import type {SweepParams} from '../../engine/index.js';
 import {createEngine} from '../../engine/index.js';
 import type {TestSolverQuantities} from './testSolver.js';
-import {driverParams} from './testSolver.js';
+import {sweepDriver} from './testSolver.js';
 
 /** Voice-coil inductance for the fixtures below. Not a solver quantity — nothing
  *  derives it — so it reaches `sweep` on its own, and only the impedance plot reads it. */
@@ -470,7 +470,7 @@ describe('Lossy sealed box resonance and Q from sweep (findImpedancePeak)', () =
       fmax: 200,
       N: 2000,
     };
-    const result = engine.simulation.sweep(driverParams(drv), LE_H, 'sealed', P).values!;
+    const result = engine.simulation.sweep(sweepDriver(drv), LE_H, 'sealed', P).values!;
     const peak = engine.driver.findImpedancePeak(result, drv.Re_ohm!);
     assert.ok(peak !== null);
     // Assert peak frequency is near 54.81 Hz
@@ -500,7 +500,7 @@ describe('Lossy sealed box resonance and Q from sweep (findImpedancePeak)', () =
       Re_terminal_ohm: engine.driver.terminalRe_ohm(6.0, 1, undefined),
       BL_terminal_Tm: engine.driver.terminalBL_Tm(10.0, 1, undefined),
     };
-    const result = engine.simulation.sweep(driverParams(drv), LE_H, 'sealed', {
+    const result = engine.simulation.sweep(sweepDriver(drv), LE_H, 'sealed', {
       Vb: 0.010, Ql: 10, Qa: 100, Qp: 100, eg: 2.83, Rs: 0,
       wiring: 'parallel' as const, nDrivers: 1, fmin: 10, fmax: 200, N: 200,
     }).values!;
@@ -533,7 +533,7 @@ describe('Lossy sealed box resonance and Q from sweep (findImpedancePeak)', () =
       Re_terminal_ohm: engine.driver.terminalRe_ohm(6.0, 1, undefined),
       BL_terminal_Tm: engine.driver.terminalBL_Tm(10.0, 1, undefined),
     };
-    const result = engine.simulation.sweep(driverParams(drv), LE_H, 'sealed', {
+    const result = engine.simulation.sweep(sweepDriver(drv), LE_H, 'sealed', {
       Vb: 0.010, Ql: 10, Qa: 100, Qp: 100, eg: 2.83, Rs: 0,
       wiring: 'parallel' as const, nDrivers: 1, fmin: 10, fmax: 200, N: 200,
     }).values!;

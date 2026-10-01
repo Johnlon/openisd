@@ -61,4 +61,4 @@ export type { VentSolverParams } from './solverTypes.js';
 export type { PrSolverParams } from './solverTypes.js';
 export type { SealedAlignmentSolverParams } from './solverTypes.js';
 export type { PresentSolverField, SignalSolverParams } from './solverTypes.js';
-export type { DriverSolverParams } from './solverTypes.js';
+export type { DriverSolverParams, DriverValues, SweepDriver } from './solverTypes.js';

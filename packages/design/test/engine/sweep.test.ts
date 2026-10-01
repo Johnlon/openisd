@@ -1,4 +1,4 @@
-import {driverParams, solveConsistencyGroup} from './testSolver.js';
+import {sweepDriver, solveConsistencyGroup} from './testSolver.js';
 /**
  * Unit tests for src/core/sweep.js — targeting the branch coverage gaps
  * not covered by engine.test.mjs:
@@ -62,7 +62,7 @@ describe('sweep — parameter defaults when fmin / fmax / N are absent', () => {
    + 'verifies P.fmin||10, P.fmax||1000, P.N||400 fallbacks', () => {
     // Call sweep without fmin, fmax, or N.  The returned fs array must span 10–1000 Hz
     // with 401 points (steps 0…400 inclusive).
-    const { fs } = engine.simulation.sweep(driverParams(DRV), LE_H, BOX, { Vb: VB_M3, Ql: QL_LOSSLESS, eg: EG_STANDARD }).values!;
+    const { fs } = engine.simulation.sweep(sweepDriver(DRV), LE_H, BOX, { Vb: VB_M3, Ql: QL_LOSSLESS, eg: EG_STANDARD }).values!;
 
     // N+1 = 401 points
     assert.equal(fs.length, DEFAULT_N + 1,
@@ -85,7 +85,7 @@ describe('sweep — zero-excitation (eg=0) produces -200 dB SPL for all frequenc
     // With eg=0: pg = cx(0·Bl, 0) = cx(0,0) → UD = 0 → U0 = 0 → pm = |Hc| = 0.
     // The guard `pm > 0 ? 20·log10(pm/P0) : -200` takes the -200 branch.
     const SPL_SILENCE_DB = -200;  // sentinel value for zero-excitation, defined in sweep.js
-    const { spl } = engine.simulation.sweep(driverParams(DRV), LE_H, BOX, { Vb: VB_M3, Ql: QL_LOSSLESS, eg: 0 }).values!;
+    const { spl } = engine.simulation.sweep(sweepDriver(DRV), LE_H, BOX, { Vb: VB_M3, Ql: QL_LOSSLESS, eg: 0 }).values!;
     assert(spl.length > 0, 'spl array must be non-empty');
     for (let i = 0; i < spl.length; i++) {
       assert.equal(spl[i], SPL_SILENCE_DB,
@@ -102,7 +102,7 @@ describe('sweep — zero-excitation (eg=0) produces -200 dB SPL for all frequenc
  */
 describe('sweep — a NaN pressure is reported, never drawn as -200 dB silence', () => {
   it('eg=NaN poisons the acoustic pressure; spl carries NaN, not the -200 dB sentinel', () => {
-    const { spl } = engine.simulation.sweep(driverParams(DRV), LE_H, BOX, { Vb: VB_M3, Ql: QL_LOSSLESS, eg: NaN }).values!;
+    const { spl } = engine.simulation.sweep(sweepDriver(DRV), LE_H, BOX, { Vb: VB_M3, Ql: QL_LOSSLESS, eg: NaN }).values!;
     assert.ok(spl.length > 0, 'spl array must be non-empty');
     for (let i = 0; i < spl.length; i++) {
       assert.ok(Number.isNaN(spl[i]), `spl[${i}] must be NaN (not -200) when the drive voltage is NaN, got ${spl[i]}`);
@@ -110,14 +110,14 @@ describe('sweep — a NaN pressure is reported, never drawn as -200 dB silence',
   });
 
   it('classifyFinite names SPL specifically — before the fix only the OTHER poisoned arrays named it', () => {
-    const sw = engine.simulation.sweep(driverParams(DRV), LE_H, BOX, { Vb: VB_M3, Ql: QL_LOSSLESS, eg: NaN }).values!;
+    const sw = engine.simulation.sweep(sweepDriver(DRV), LE_H, BOX, { Vb: VB_M3, Ql: QL_LOSSLESS, eg: NaN }).values!;
     const issue = engine.simulation.classifyFinite(sw);
     assert.ok(issue, 'a NaN pressure must never pass classifyFinite silently');
     assert.match(issue.message, /SPL/, `classifyFinite's message must name SPL; got: ${issue.message}`);
   });
 
   it('exact zero pressure (eg=0) is unaffected by the NaN fix — still the -200 dB sentinel', () => {
-    const { spl } = engine.simulation.sweep(driverParams(DRV), LE_H, BOX, { Vb: VB_M3, Ql: QL_LOSSLESS, eg: 0 }).values!;
+    const { spl } = engine.simulation.sweep(sweepDriver(DRV), LE_H, BOX, { Vb: VB_M3, Ql: QL_LOSSLESS, eg: 0 }).values!;
     assert.ok(spl.every(v => v === -200), 'pm === 0 exactly must still take the -200 dB branch');
   });
 });
@@ -132,7 +132,7 @@ describe('fltMag — a NaN filter-chain magnitude is reported, never drawn as -2
       Vb: VB_M3, Ql: QL_LOSSLESS, eg: EG_STANDARD, fmin: 10, fmax: 1000, N: 2,
       filters: [{ type: 'staticGain', enabled: true, gain: NaN }],
     };
-    const { fltMag } = engine.simulation.sweep(driverParams(DRV), LE_H, BOX, P).values!;
+    const { fltMag } = engine.simulation.sweep(sweepDriver(DRV), LE_H, BOX, P).values!;
     for (let i = 0; i < fltMag.length; i++) {
       assert.ok(Number.isNaN(fltMag[i]), `fltMag[${i}] must be NaN, got ${fltMag[i]}`);
     }
@@ -147,10 +147,10 @@ describe('fltMag — a NaN filter-chain magnitude is reported, never drawn as -2
 describe('sweep — fmin=fmax: every sample is the group delay at that one frequency', () => {
   it('a sweep collapsed onto 100 Hz reports the same, non-zero group delay as a normal sweep does at 100 Hz', () => {
     const FREQ_HZ = 100;
-    const collapsed = engine.simulation.sweep(driverParams(DRV), LE_H, BOX, {
+    const collapsed = engine.simulation.sweep(sweepDriver(DRV), LE_H, BOX, {
       Vb: VB_M3, Ql: QL_LOSSLESS, eg: EG_STANDARD, fmin: FREQ_HZ, fmax: FREQ_HZ, N: 5,
     }).values!;
-    const single = engine.simulation.sweep(driverParams(DRV), LE_H, BOX, {
+    const single = engine.simulation.sweep(sweepDriver(DRV), LE_H, BOX, {
       Vb: VB_M3, Ql: QL_LOSSLESS, eg: EG_STANDARD, fmin: FREQ_HZ, fmax: FREQ_HZ * 1.5, N: 1,
     }).values!;
     assert.ok(single.gd[0] > 0, `group delay at ${FREQ_HZ} Hz must be positive, got ${single.gd[0]}`);
@@ -170,7 +170,7 @@ describe('maxCurves — one limit absent falls back to the other (never poisons 
       Vas_m3: 0.030, Sd_m2: 0.0133, Re_ohm: 5.6, Xmax_m: 0.005,
     });
 
-    const { fs, maxspl } = engine.simulation.maxCurves(driverParams(drvNoPe), LE_H, BOX, {
+    const { fs, maxspl } = engine.simulation.maxCurves(sweepDriver(drvNoPe), LE_H, BOX, {
       Vb: VB_M3, Ql: QL_LOSSLESS, eg: EG_STANDARD, fmin: 10, fmax: 1000, N: 50,
     }).values!;
 
@@ -193,7 +193,7 @@ describe('maxCurves — one limit absent falls back to the other (never poisons 
       Vas_m3: 0.030, Sd_m2: 0.0133, Re_ohm: 5.6, Pe_W: 60, Xmax_m: 0,
     });
 
-    const { maxspl, maxpwr } = engine.simulation.maxCurves(driverParams(drvXmax0), LE_H, BOX, {
+    const { maxspl, maxpwr } = engine.simulation.maxCurves(sweepDriver(drvXmax0), LE_H, BOX, {
       Vb: VB_M3, Ql: QL_LOSSLESS, eg: EG_STANDARD, fmin: 10, fmax: 1000, N: 50,
     }).values!;
 
@@ -211,7 +211,7 @@ describe('maxCurves — one limit absent falls back to the other (never poisons 
       Vas_m3: 0.030, Sd_m2: 0.0133, Re_ohm: 5.6,
     });
 
-    const result = engine.simulation.maxCurves(driverParams(drvNeither), LE_H, BOX, {
+    const result = engine.simulation.maxCurves(sweepDriver(drvNeither), LE_H, BOX, {
       Vb: VB_M3, Ql: QL_LOSSLESS, eg: EG_STANDARD, fmin: 10, fmax: 1000, N: 50,
     });
 
@@ -230,7 +230,7 @@ describe('maxCurves — one limit absent falls back to the other (never poisons 
       Vas_m3: 0.030, Sd_m2: 0.0133, Re_ohm: 5.6, Xmax_m: 0.005,
     });
 
-    const result = engine.simulation.maxCurves(driverParams(drvXmaxOnly), LE_H, BOX, {
+    const result = engine.simulation.maxCurves(sweepDriver(drvXmaxOnly), LE_H, BOX, {
       Vb: VB_M3, Ql: QL_LOSSLESS, eg: EG_STANDARD, fmin: 10, fmax: 1000, N: 50,
     });
 
@@ -247,17 +247,17 @@ describe('classifyFinite — non-finite sweep results are surfaced, never silent
   const P: SweepParams = { Vb: VB_M3, Ql: QL_LOSSLESS, eg: 2.83, fmin: 10, fmax: 1000, N: 50 };
 
   it('returns null for an all-finite sweep', () => {
-    const sw = engine.simulation.sweep(driverParams(DRV), LE_H, BOX, P).values!;
+    const sw = engine.simulation.sweep(sweepDriver(DRV), LE_H, BOX, P).values!;
     assert.equal(engine.simulation.classifyFinite(sw), null, 'a healthy sweep has no finiteness issue');
   });
 
   it('an all-finite sweep with -200 dB silence sentinels is still null (sentinels are finite)', () => {
-    const sw = engine.simulation.sweep(driverParams(DRV), LE_H, BOX, { ...P, eg: 0 }).values!; // eg=0 → spl all -200 (finite sentinel)
+    const sw = engine.simulation.sweep(sweepDriver(DRV), LE_H, BOX, { ...P, eg: 0 }).values!; // eg=0 → spl all -200 (finite sentinel)
     assert.equal(engine.simulation.classifyFinite(sw), null, '-200 dB sentinels must not be flagged as non-finite');
   });
 
   it('flags an isolated non-finite point as a warn that names the frequency', () => {
-    const sw = engine.simulation.sweep(driverParams(DRV), LE_H, BOX, P).values!;
+    const sw = engine.simulation.sweep(sweepDriver(DRV), LE_H, BOX, P).values!;
     sw.spl[10] = NaN; // inject a lone singularity
     const r = engine.simulation.classifyFinite(sw);
     assert.ok(r && r.level === 'warn', 'an isolated NaN is a warn, not a block');
@@ -265,7 +265,7 @@ describe('classifyFinite — non-finite sweep results are surfaced, never silent
   });
 
   it('flags an entirely non-finite primary curve as a blocking error', () => {
-    const sw = engine.simulation.sweep(driverParams(DRV), LE_H, BOX, P).values!;
+    const sw = engine.simulation.sweep(sweepDriver(DRV), LE_H, BOX, P).values!;
     for (let i = 0; i < sw.spl.length; i++) sw.spl[i] = NaN;
     const r = engine.simulation.classifyFinite(sw);
     assert.ok(r && r.level === 'error', 'no finite spl point at all → blocking error');
@@ -274,7 +274,7 @@ describe('classifyFinite — non-finite sweep results are surfaced, never silent
   });
 
   it('names the plotted outputs that failed instead of guessing at an input cause', () => {
-    const sw = engine.simulation.sweep(driverParams(DRV), LE_H, BOX, P).values!;
+    const sw = engine.simulation.sweep(sweepDriver(DRV), LE_H, BOX, P).values!;
     for (let i = 0; i < sw.fs.length; i++) {
       sw.exc[i] = NaN;
       sw.zmag[i] = NaN;
@@ -287,7 +287,7 @@ describe('classifyFinite — non-finite sweep results are surfaced, never silent
   });
 
   it('reports a broken transfer-magnitude series for the TFM chart', () => {
-    const sw = engine.simulation.sweep(driverParams(DRV), LE_H, BOX, P).values!;
+    const sw = engine.simulation.sweep(sweepDriver(DRV), LE_H, BOX, P).values!;
     for (let i = 0; i < sw.tfMag.length; i++) sw.tfMag[i] = NaN;
     const issue = engine.simulation.classifyFiniteIssues(sw).find(error => error.field === 'sweep:transfer magnitude');
     assert.ok(issue, 'TFM output failure must be reported to the chart');
@@ -295,7 +295,7 @@ describe('classifyFinite — non-finite sweep results are surfaced, never silent
   });
 
   it('per-output: exactly one non-finite value reads as singular ("1 non-finite ... value", not "values")', () => {
-    const sw = engine.simulation.sweep(driverParams(DRV), LE_H, BOX, P).values!;
+    const sw = engine.simulation.sweep(sweepDriver(DRV), LE_H, BOX, P).values!;
     sw.tfMag[0] = NaN; // exactly one bad point, not all of them
     const issue = engine.simulation.classifyFiniteIssues(sw).find(error => error.field === 'sweep:transfer magnitude');
     assert.ok(issue && issue.level === 'warn', 'a partial failure is a warn, not a block');
@@ -303,7 +303,7 @@ describe('classifyFinite — non-finite sweep results are surfaced, never silent
   });
 
   it('per-output: more than one non-finite value (but not all) reads as plural ("values")', () => {
-    const sw = engine.simulation.sweep(driverParams(DRV), LE_H, BOX, P).values!;
+    const sw = engine.simulation.sweep(sweepDriver(DRV), LE_H, BOX, P).values!;
     sw.tfMag[0] = NaN;
     sw.tfMag[1] = NaN;
     sw.tfMag[2] = NaN;
@@ -313,7 +313,7 @@ describe('classifyFinite — non-finite sweep results are surfaced, never silent
   });
 
   it('reports a tempK missing-dependencies issue for a temperature beyond the supported range', () => {
-    const result = engine.simulation.sweep(driverParams(DRV), LE_H, BOX, { ...P, tempK: 5000 });
+    const result = engine.simulation.sweep(sweepDriver(DRV), LE_H, BOX, { ...P, tempK: 5000 });
     assert.equal(result.values, null);
     assert.equal(result.issues.length, 1);
     const [issue] = result.issues;
@@ -324,7 +324,7 @@ describe('classifyFinite — non-finite sweep results are surfaced, never silent
   });
 
   it('rejects a temperature beyond the supported range even if the formula stays finite', () => {
-    const result = engine.simulation.sweep(driverParams(DRV), LE_H, BOX, { ...P, tempK: 500 });
+    const result = engine.simulation.sweep(sweepDriver(DRV), LE_H, BOX, { ...P, tempK: 500 });
     assert.equal(result.values, null);
     assert.equal(result.issues.length, 1);
     const [issue] = result.issues;
@@ -334,7 +334,7 @@ describe('classifyFinite — non-finite sweep results are surfaced, never silent
   });
 
   it('rejects absolute zero with an exclusive lower-bound formula', () => {
-    const result = engine.simulation.sweep(driverParams(DRV), LE_H, BOX, { ...P, tempK: 1 });
+    const result = engine.simulation.sweep(sweepDriver(DRV), LE_H, BOX, { ...P, tempK: 1 });
     assert.equal(result.values, null);
     const [issue] = result.issues;
     assert.equal(issue.kind, 'missing-dependencies');
@@ -346,7 +346,7 @@ describe('classifyFinite — non-finite sweep results are surfaced, never silent
     // Vb=0 makes cInv(0) poison exc/zmag with NaN, but spl stays −200 (finite) via
     // the pm>0 guard. Classifying on spl alone would call this a "warn"; it is total
     // garbage → error. Every frequency is affected, so it must be a blocking error.
-    const sw = engine.simulation.sweep(driverParams(DRV), LE_H, BOX, P).values!;
+    const sw = engine.simulation.sweep(sweepDriver(DRV), LE_H, BOX, P).values!;
     for (let i = 0; i < sw.exc.length; i++) sw.exc[i] = NaN;
     const r = engine.simulation.classifyFinite(sw);
     assert.ok(r && r.level === 'error', 'every-frequency breakdown → error, not warn, despite finite spl');
@@ -356,7 +356,7 @@ describe('classifyFinite — non-finite sweep results are surfaced, never silent
     // A single bad index never invokes the frequency sort (nothing to sort) and never reaches
     // the >3 "+more" count — needs several, spanning both sides of the fs.toFixed(0)/toFixed(1)
     // 100 Hz split, and out of order so the sort actually does work.
-    const sw = engine.simulation.sweep(driverParams(DRV), LE_H, BOX, P).values!;
+    const sw = engine.simulation.sweep(sweepDriver(DRV), LE_H, BOX, P).values!;
     for (const i of [40, 5, 30, 13, 45]) sw.spl[i] = NaN; // unsorted on purpose
     const r = engine.simulation.classifyFinite(sw);
     assert.ok(r && r.level === 'warn', 'a partial, isolated breakdown is a warn, not a block');
@@ -369,7 +369,7 @@ describe('classifyFinite — non-finite sweep results are surfaced, never silent
 describe('sweep circuit diagnostics', () => {
   it('reports one missing-dependencies issue per missing circuit quantity, each naming exactly '
    + 'that field — never a combined message or a cross-field substitution suggestion', () => {
-    const result = engine.simulation.sweep(driverParams({ Fs_hz: 111111 }), LE_H, BOX, {
+    const result = engine.simulation.sweep(sweepDriver({ Fs_hz: 111111 }), LE_H, BOX, {
       Vb: VB_M3, Ql: QL_LOSSLESS, eg: EG_STANDARD,
     });
 
@@ -387,10 +387,10 @@ describe('sweep circuit diagnostics', () => {
   });
 
   it('maxCurves() passes through the same null values and issues as sweep() when the circuit is missing fields', () => {
-    const swept = engine.simulation.sweep(driverParams({ Fs_hz: 111111 }), LE_H, BOX, {
+    const swept = engine.simulation.sweep(sweepDriver({ Fs_hz: 111111 }), LE_H, BOX, {
       Vb: VB_M3, Ql: QL_LOSSLESS, eg: EG_STANDARD,
     });
-    const mx = engine.simulation.maxCurves(driverParams({ Fs_hz: 111111 }), LE_H, BOX, {
+    const mx = engine.simulation.maxCurves(sweepDriver({ Fs_hz: 111111 }), LE_H, BOX, {
       Vb: VB_M3, Ql: QL_LOSSLESS, eg: EG_STANDARD,
     });
     assert.equal(mx.values, null);
@@ -414,7 +414,7 @@ describe('rolloffFreq — Encapsulated Engine Physics Calculations', () => {
    * Spec Link: docs/spec/SPEC_ENGINE.md §3.2 "Cutoff Frequency Readouts (F3, F6, F10)"
    */
   it('rolloffFreq derives F3 (-3 dB), F6 (-6 dB), and F10 (-10 dB) cutoff frequencies inside engine', () => {
-    const sw = engine.simulation.sweep(driverParams(DRV), LE_H, BOX, P).values!;
+    const sw = engine.simulation.sweep(sweepDriver(DRV), LE_H, BOX, P).values!;
     const f3 = engine.simulation.rolloffFreq(sw, 3);
     const f6 = engine.simulation.rolloffFreq(sw, 6);
     const f10 = engine.simulation.rolloffFreq(sw, 10);
@@ -428,7 +428,7 @@ describe('rolloffFreq — Encapsulated Engine Physics Calculations', () => {
   it('returns null when no frequency ever reaches within dropDb of the passband reference (an all-silent sweep)', () => {
     // eg=0 → spl is -200 dB everywhere, so passbandRef falls back to its own 0 dB sentinel and
     // even a 3 dB drop is never satisfied by -200 >= 0 - 3.
-    const sw = engine.simulation.sweep(driverParams(DRV), LE_H, BOX, { ...P, eg: 0 }).values!;
+    const sw = engine.simulation.sweep(sweepDriver(DRV), LE_H, BOX, { ...P, eg: 0 }).values!;
     assert.equal(engine.simulation.rolloffFreq(sw, 3), null, 'an all-silent sweep has no rolloff frequency to report');
   });
 });
@@ -439,7 +439,7 @@ describe('rolloffFreq — Encapsulated Engine Physics Calculations', () => {
  */
 describe('tfMag — 0 dB is the lossless circuit\'s high-frequency asymptote', () => {
   it('a lossless sealed sweep without Le approaches 0 dB at 20 kHz', () => {
-    const circuitOnly = driverParams({
+    const circuitOnly = sweepDriver({
       Sd_m2: 0.0133, Re_terminal_ohm: 5.6, BL_terminal_Tm: 7.0,
       Cms_m_per_N: 0.0008, Mms_kg: 0.012, Rms_kg_per_s: 1.5,
       Xmax_m: 0.005, Pe_W: 60,
@@ -464,7 +464,7 @@ describe('classifyFlatClamp — clamp-bound frequency formatting at/above 100 Hz
       forceFlatResponse: true, winisdFlatModel: false, flatMaxBoostDb: 6,
       filters: [{ type: 'highpass', family: 'sos', order: 2, enabled: true, fc: 300, Q: Math.SQRT1_2 }],
     };
-    const sw = engine.simulation.sweep(driverParams(DRV), LE_H, BOX, P).values!;
+    const sw = engine.simulation.sweep(sweepDriver(DRV), LE_H, BOX, P).values!;
     assert.ok(sw.flatClamped !== null && sw.flatClamped >= 100, 'fixture must clamp at/above 100 Hz');
     const issue = engine.simulation.classifyFlatClamp(sw);
     assert.ok(issue, 'a bound clamp must surface an issue');
@@ -479,7 +479,7 @@ describe('classifyFlatClamp — clamp-bound frequency formatting at/above 100 Hz
  */
 describe('force-flat response — silent (-200 dB) points are never resurrected by the EQ', () => {
   it('an all-silent sweep (eg=0) stays all-silent under forceFlatResponse — no clamp, no gain applied', () => {
-    const sw = engine.simulation.sweep(driverParams(DRV), LE_H, BOX, {
+    const sw = engine.simulation.sweep(sweepDriver(DRV), LE_H, BOX, {
       Vb: VB_M3, Ql: QL_LOSSLESS, eg: 0, fmin: 10, fmax: 1000, N: 50, forceFlatResponse: true,
     }).values!;
     assert.ok(sw.spl.every(v => v === -200), 'silence must not be boosted just because force-flat is on');
@@ -504,7 +504,7 @@ describe('fltMag — an exact spectral null lands the -200 dB silence sentinel, 
       Vb: VB_M3, Ql: QL_LOSSLESS, eg: EG_STANDARD, fmin: 10, fmax: 1000, N: 2,
       filters: [{ type: 'staticGain', enabled: true, gain: -Infinity }],
     };
-    const sw = engine.simulation.sweep(driverParams(DRV), LE_H, BOX, P).values!;
+    const sw = engine.simulation.sweep(sweepDriver(DRV), LE_H, BOX, P).values!;
     assert.ok(sw.fltMag.every(v => v === -200), 'an exact |H|=0 must read the -200 dB silence sentinel at every point');
   });
 });
@@ -516,7 +516,7 @@ describe('fltMag — an exact spectral null lands the -200 dB silence sentinel, 
  */
 describe('sweep — driverAddedMass > 0 on a driver missing a mass-shift input leaves the driver unchanged', () => {
   it('a driver missing Cms_m_per_N still reports Cms_m_per_N missing, not a mass-shifted circuit', () => {
-    const partial = driverParams({ Fs_hz: 37, Re_ohm: 5.6, BL_Tm: 6, Mms_kg: 0.012, Rms_kg_per_s: 1.2 });
+    const partial = sweepDriver({ Fs_hz: 37, Re_ohm: 5.6, BL_Tm: 6, Mms_kg: 0.012, Rms_kg_per_s: 1.2 });
     const result = engine.simulation.sweep(partial, LE_H, BOX, { Vb: VB_M3, Ql: QL_LOSSLESS, eg: EG_STANDARD, driverAddedMass: 0.01 });
     assert.equal(result.values, null, 'the circuit cannot be built without Cms_m_per_N');
     assert.ok(

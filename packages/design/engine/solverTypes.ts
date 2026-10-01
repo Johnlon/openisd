@@ -155,3 +155,17 @@ export interface DriverSolverParams {
   /** Read only: the domain defaults a not-entered wiring itself; the solve never derives one. */
   wiring: SolverInput<'series' | 'parallel'>;
 }
+
+/** One plain value per driver solver quantity: `DriverSolverParams`' values, without the handles. */
+export type DriverValues = {
+  readonly [K in keyof DriverSolverParams]: DriverSolverParams[K] extends SolverInput<infer T> ? T | null : never
+};
+
+/** The driver as `SimulationEngine.sweep`/`maxCurves` read it. Plain data, so it crosses a Worker
+ *  boundary (structured clone) unchanged. */
+export interface SweepDriver {
+  readonly values: DriverValues;
+  /** BL as WinISD's entered-BL mix uses it: the entered value, null when BL is derived
+   *  (ACCURACY_IMPROVEMENTS #8). */
+  readonly winisdBL_Tm: number | null;
+}

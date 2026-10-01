@@ -82,7 +82,7 @@ describe('GraphPanel-hooks', () => {
       expect(api.currentDesign.value.box).toBe('sealed');
       expect(api.currentDesign.value.color).toBe(DPAL[0]);
       expect(api.currentDesign.value.name).toBe('W5 sealed');
-      expect(api.currentDesign.value.driver?.Fs_hz.value).toBe(40);
+      expect(api.currentDesign.value.driver?.values.Fs_hz).toBe(40);
     });
 
     it('honours custom primaryColor when provided in props', async () => {

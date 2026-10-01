@@ -4,7 +4,7 @@
  */
 import {describe, expect, it} from 'vitest';
 import {createEngine, type Filter, type SweepParams} from '../../engine/index.js';
-import {driverParams, solveConsistencyGroup} from './testSolver.js';
+import {sweepDriver, solveConsistencyGroup} from './testSolver.js';
 
 const engine = createEngine();
 const SILENCE = engine.simulation.silentCurve(1)[0];
@@ -28,7 +28,7 @@ const DRV = solveConsistencyGroup({
 const LE_H = 0.70e-3;
 const STEEP: Filter[] = [{ type: 'lowpass', family: 'butterworth', order: 10, fc: 50, Q: Math.SQRT1_2, enabled: true }];
 const SEALED: SweepParams = { Vb: 0.030, eg: 2.83, fmin: 10, fmax: 20000, N: 400, filters: STEEP };
-const sweep = (P: SweepParams) => engine.simulation.sweep(driverParams(DRV), LE_H, 'sealed', P).values!;
+const sweep = (P: SweepParams) => engine.simulation.sweep(sweepDriver(DRV), LE_H, 'sealed', P).values!;
 
 describe('levels below −190 dB in a real sweep', () => {
   const sw = sweep(SEALED);

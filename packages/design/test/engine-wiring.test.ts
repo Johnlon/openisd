@@ -52,7 +52,7 @@ describe('B — the project runs the engine sweep on its own driver and box', ()
     const mine = project.sweep(P).values;
     expect(mine).not.toBeNull();
     const theirs = engine.simulation.sweep(
-      project.driver.specs.solverParams(), project.driver.specs.Le_H.value!, 'sealed',
+      project.driver.specs.sweepDriver(), project.driver.specs.Le_H.value!, 'sealed',
       {
         Vb: 0.03, eg: project.driveVoltage_V.value!, fmin: 10, fmax: 1000, N: 100,
         Ql: project.box.sealed.losses.Ql.value, Qa: project.box.sealed.losses.Qa.value,

@@ -8,55 +8,33 @@ import assert from 'node:assert/strict';
 import {createEngine} from '@openisd/design/engine';
 
 const engine = createEngine();
-import type {DqIssue, DriverSolverParams, SolverField, SweepParams} from '@openisd/design/engine';
+import type {SweepDriver, SweepParams} from '@openisd/design/engine';
+import {ProjectBuilder} from '@openisd/design';
 import {buildPlotData} from '../../src/logic/series.js';
 import type {Design, PlotParams} from '../../src/types.js';
-
-function fakeField<T>(value: T | null): SolverField<T> {
-  let current: T | null = value;
-  let state: 'entered' | 'calculated' | 'not-available' = value === null ? 'not-available' : 'entered';
-  return {
-    get value() { return current; },
-    get entered() { return state === 'entered'; },
-    get calculated() { return state === 'calculated'; },
-    get dq(): DqIssue[] { return []; },
-    get precision() { return null; },
-    setCalculated(v: T) { current = v; state = 'calculated'; },
-    setDq() {},
-    setNotAvailable() { current = null; state = 'not-available'; },
-  };
-}
 
 const RAW: Record<string, number> = {
   Fs: 37, Qts: 0.378, Qes: 0.40, Qms: 7.0, Vas: 0.0300,
   Sd: 0.0133, Re: 5.6, Le: 0.70e-3, Xmax: 0.0050, Pe: 60, Znom: 8,
 };
-const driverParams: DriverSolverParams = {
-  Fs_hz: fakeField(RAW.Fs), Re_ohm: fakeField(RAW.Re), Znom_ohm: fakeField(RAW.Znom),
-  Le_H: fakeField(RAW.Le), fLe_hz: fakeField<number>(null), KLe_H_sqrtHz: fakeField<number>(null),
-  Qes: fakeField(RAW.Qes), Qms: fakeField(RAW.Qms), Qts: fakeField(RAW.Qts), Vas_m3: fakeField(RAW.Vas),
-  Sd_m2: fakeField(RAW.Sd), Dd_m: fakeField<number>(null), BL_Tm: fakeField<number>(null), Mms_kg: fakeField<number>(null),
-  Cms_m_per_N: fakeField<number>(null), Rms_kg_per_s: fakeField<number>(null), EBP_hz: fakeField<number>(null),
-  Xmax_m: fakeField(RAW.Xmax), Vd_m3: fakeField<number>(null), Hc_m: fakeField<number>(null), Hg_m: fakeField<number>(null),
-  Pe_W: fakeField(RAW.Pe), no: fakeField<number>(null), SPLref_dB: fakeField<number>(null), SPL_dB: fakeField<number>(null),
-  USPL_dB: fakeField<number>(null), SPLmax_dB: fakeField<number>(null), SPLmaxLF_dB: fakeField<number>(null),
-  Rme_kg_per_s: fakeField<number>(null), Mpow_N_per_sqrtW: fakeField<number>(null), Mcost_kg_per_s: fakeField<number>(null),
-  gamma_m_per_s2_A: fakeField<number>(null), Gloss: fakeField<number>(null), Vcd_m: fakeField<number>(null), Depth_m: fakeField<number>(null),
-  MagDepth_m: fakeField<number>(null), Magnet_m: fakeField<number>(null), DVol_m3: fakeField<number>(null),
-  c_m_per_s: fakeField(engine.environment.solve({}).values.c),
-  roo_kg_per_m3: fakeField(engine.environment.solve({}).values.rho),
-  Re_terminal_ohm: fakeField<number>(null), BL_terminal_Tm: fakeField<number>(null), numVC: fakeField<number>(null),
-  wiring: fakeField('parallel'),
-};
-engine.driver.solve(driverParams, engine.environment.solve({}).values);
+/** The RAW driver, solved through an OpenISD project as the app solves it, in the plain form
+ *  `SimulationEngine.sweep()`/`maxCurves()` take. */
+function solvedDriver(): SweepDriver {
+  const specs = ProjectBuilder.empty(engine).driver.specs;
+  specs.Fs_hz.set(RAW.Fs); specs.Qts.set(RAW.Qts); specs.Qes.set(RAW.Qes); specs.Qms.set(RAW.Qms);
+  specs.Vas_m3.set(RAW.Vas); specs.Sd_m2.set(RAW.Sd); specs.Re_ohm.set(RAW.Re); specs.Le_H.set(RAW.Le);
+  specs.Xmax_m.set(RAW.Xmax); specs.Pe_W.set(RAW.Pe); specs.Znom_ohm.set(RAW.Znom);
+  return specs.sweepDriver();
+}
+const DRV = solvedDriver();
 const LE_H = 0.70e-3;
 const SP: SweepParams = { Vb: 0.030, eg: 2.83, fmin: 10, fmax: 2000, N: 200, filters: [] };
 const PP: PlotParams = { fmin: SP.fmin ?? 10, fmax: SP.fmax ?? 2000 };
-const SW = engine.simulation.sweep(driverParams, LE_H, 'sealed', SP).values!;
-const MX = engine.simulation.maxCurves(driverParams, LE_H, 'sealed', SP).values!;
+const SW = engine.simulation.sweep(DRV, LE_H, 'sealed', SP).values!;
+const MX = engine.simulation.maxCurves(DRV, LE_H, 'sealed', SP).values!;
 
 function design(name: string, color: string, sortIndex?: number): Design {
-  return { driver: driverParams, box: 'sealed', P: PP, curves: SW, maxCurves: MX, name, color, sortIndex };
+  return { driver: DRV, box: 'sealed', P: PP, curves: SW, maxCurves: MX, name, color, sortIndex };
 }
 
 describe('buildPlotData — comparing two or more designs', () => {
@@ -95,7 +73,7 @@ describe('buildPlotData — levels below −190 dB are real points, not silence'
   // LP Butterworth n=10 at 50 Hz takes the transfer function well below −190 dB inside the sweep
   // (BUG_20261001_transfer-function-jumps-80db-where-spl-drops-below-190db).
   const steep: SweepParams = { ...SP, filters: [{ type: 'lowpass', family: 'butterworth', order: 10, fc: 50, Q: Math.SQRT1_2, enabled: true }] };
-  const sw = engine.simulation.sweep(driverParams, LE_H, 'sealed', steep).values!;
+  const sw = engine.simulation.sweep(DRV, LE_H, 'sealed', steep).values!;
   const steepDesign: Design = { ...design('steep', '#4fb0ff'), curves: sw };
 
   it('the transfer-function chart\'s y range reaches its lowest real point', () => {

@@ -2,7 +2,7 @@ import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
 import type {SweepParams} from '../../engine/index.js';
 import {createEngine} from '../../engine/index.js';
-import {driverParams, solveConsistencyGroup} from './testSolver.js';
+import {sweepDriver, solveConsistencyGroup} from './testSolver.js';
 
 /**
  * `solve()` (engine/circuit.ts) branches not reached by the rest of the engine suite. Reached
@@ -11,7 +11,7 @@ import {driverParams, solveConsistencyGroup} from './testSolver.js';
 describe('circuit — acoustic circuit branches', () => {
   const engine = createEngine();
   const LE_H = 0.7e-3;
-  const DRV = driverParams(solveConsistencyGroup({
+  const DRV = sweepDriver(solveConsistencyGroup({
     Fs_hz: 37, Qts: 0.378, Qes: 0.40, Qms: 7.0, Vas_m3: 0.0300,
     Sd_m2: 0.0133, Re_ohm: 5.6, Xmax_m: 0.0050, Pe_W: 60, Znom_ohm: 8,
   }));
@@ -30,7 +30,7 @@ describe('circuit — acoustic circuit branches', () => {
     const gyrator = engine.simulation.sweep(DRV, LE_H, 'sealed', {...P_HI, circuitModel: 'gyrator'}).values!;
     const topIdx = winisd.zmag.length - 1;
     assert.ok(gyrator.zmag[topIdx] > winisd.zmag[topIdx] + 10.0, 'gyrator zmag at 20kHz reflects Le reactance');
-    assert.ok(winisd.zmag[topIdx] < (DRV.Re_ohm.value ?? 5.6) + 2.0, 'winisd zmag at 20kHz excludes Le reactance');
+    assert.ok(winisd.zmag[topIdx] < (DRV.values.Re_ohm ?? 5.6) + 2.0, 'winisd zmag at 20kHz excludes Le reactance');
   });
 
   it('circuitModel "gyrator" matches the WinISD split exactly when Le = 0 (nothing left for the gyrator to fold in)', () => {
@@ -43,7 +43,7 @@ describe('circuit — acoustic circuit branches', () => {
     // WinISD 0.7.0.950, VCInd on − off, transfer-function chart traced from pixels
     // (winisd_research/runs/vcind_default). Driver as entered in the .wdr: BL 7.17 disagrees with
     // the 7.38 its Fs/Qes/Vas/Re imply — the disagreement WinISD's model turns into extra roll-off.
-    const w5 = driverParams(solveConsistencyGroup({
+    const w5 = sweepDriver(solveConsistencyGroup({
       Fs_hz: 45, Qes: 0.57, Qms: 3.56, Vas_m3: 0.00485, Sd_m2: 0.0094, Re_ohm: 3.4, BL_Tm: 7.17,
     }));
     const P: SweepParams = {Vb: 0.00448, eg: 2.83, Rs: 0.1, N: 1};

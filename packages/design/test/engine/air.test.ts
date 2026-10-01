@@ -1,5 +1,5 @@
 import type {TestSolverQuantities} from './testSolver.js';
-import {driverParams, solveConsistencyGroup} from './testSolver.js';
+import {sweepDriver, solveConsistencyGroup} from './testSolver.js';
 /**
  * Moist-air properties — the ONE model of ρ and c from temperature, relative humidity and
  * static pressure, and the WinISD-parity mode that swaps in WinISD's air equation set
@@ -162,7 +162,7 @@ describe('the sweep actually consumes humidity and pressure', () => {
   };
   const BASE: SweepParams = { Vb: 0.020, Ql: 7, eg: 2.83, fmin: 20, fmax: 200, N: 40 };
   const drv = solveConsistencyGroup(RAW);
-  const splAt = (P: SweepParams) => engine.simulation.sweep(driverParams(drv), LE_H, 'sealed', P).values!.spl;
+  const splAt = (P: SweepParams) => engine.simulation.sweep(sweepDriver(drv), LE_H, 'sealed', P).values!.spl;
   const maxAbsDelta = (a: number[], b: number[]) => Math.max(...a.map((v, i) => Math.abs(v - b[i]!)));
 
   it('changing relative humidity changes SPL — the input is not inert', () => {
