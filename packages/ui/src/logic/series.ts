@@ -100,9 +100,6 @@ export function parseChartId(box: BoxEngine, v: string | null | undefined): Char
   return TABS.find(t => t.id === v)?.id ?? box.defaultChart;
 }
 
-/** SPL/filter-magnitude values at or below this are the engine's "no output" sentinel. */
-const SILENCE_DB = -190;
-const realDb = (ys: number[]) => ys.filter(v => Number.isFinite(v) && v > SILENCE_DB);
 
 interface SeriesBundle { series: Series[]; ymin: number; ymax: number; logy: boolean; unit: string }
 
@@ -147,12 +144,12 @@ function portVelocityBuild({ engine, meta, sw, pick }: CurveCtx, vel: number[]):
  *  0 dB / -3 dB passband-asymptote convention as TFMag, only the underlying array (`sw.rearPortGain`
  *  vs `sw.frontPortGain`, packages/design/engine/simulation/SimulationEngine.ts) and its legend name differ. Unlike
  *  PRTFMag, both ARE run through the filter chain. */
-function portGainBuild(rel: number[] | null, name: string, meta: TabMeta, sw: SweepResult): CurveBuild {
-  const ys = rel ?? sw.fs.map(() => -200);
+function portGainBuild(engine: ChartEngineAreas, rel: number[] | null, name: string, meta: TabMeta, sw: SweepResult): CurveBuild {
+  const ys = rel ?? engine.simulation.silentCurve(sw.fs.length);
   const series: Series[] = [{ xs: sw.fs, ys, color: meta.color, name }];
   series.push({ xs: sw.fs, ys: sw.fs.map(() => 0), color: '#8a99ab', name: '0 dB', dash: true });
   series.push({ xs: sw.fs, ys: sw.fs.map(() => -3), color: '#ffb454', name: '−3 dB', dash: true });
-  const relReal = realDb(ys);
+  const relReal = engine.simulation.realLevels(ys);
   const loRel = relReal.length ? Math.min(...relReal) : -45;
   const ymax = 5;
   return { series, ymin: Math.min(ymax - 45, Math.floor((loRel - 3) / 5) * 5), ymax };
@@ -170,7 +167,7 @@ const CURVE_BUILDERS: Record<ChartId, (c: CurveCtx) => CurveBuild> = {
       series.push({ ...pick(sw.spl), color: '#8a99ab', name: 'Unlimited', dash: true });
     // Ignore the -200 dB "no output" sentinel (sweep uses it where |p|=0) so it
     // can't drag the scale to nonsense; fit to the real visible curve.
-    const real = realDb(ys);
+    const real = engine.simulation.realLevels(ys);
     const mx2 = engine.simulation.passbandRef(ys);
     const lo  = real.length ? Math.min(...real) : mx2 - 45;
     const ymax = Math.ceil((mx2 + 3) / 5) * 5;
@@ -188,14 +185,14 @@ const CURVE_BUILDERS: Record<ChartId, (c: CurveCtx) => CurveBuild> = {
     return { series, ymin, ymax };
   },
 
-  TFMag: ({ meta, sw }) => {
+  TFMag: ({ engine, meta, sw }) => {
     // The engine calculates sw.tfMag normalized so 0 dB = high-frequency passband asymptote.
     // The 0 dB / -3 dB reference lines are the chart's defining feature, so they're always drawn.
     const rel = sw.tfMag;
     const series: Series[] = [{ xs: sw.fs, ys: rel, color: meta.color, name: 'Transfer function' }];
     series.push({ xs: sw.fs, ys: sw.fs.map(() => 0), color: '#8a99ab', name: '0 dB', dash: true });
     series.push({ xs: sw.fs, ys: sw.fs.map(() => -3), color: '#ffb454', name: '−3 dB', dash: true });
-    const relReal = realDb(rel);
+    const relReal = engine.simulation.realLevels(rel);
     const loRel = relReal.length ? Math.min(...relReal) : -45;
     const ymax = 5;
     return { series, ymin: Math.min(ymax - 45, Math.floor((loRel - 3) / 5) * 5), ymax };
@@ -205,12 +202,12 @@ const CURVE_BUILDERS: Record<ChartId, (c: CurveCtx) => CurveBuild> = {
   // `null` for a design whose box has no radiator (a compare overlay, say, while the focused
   // design is a passive-radiator box); that design then draws silence, exactly as a design
   // with no max curves draws nothing on MaxSPL.
-  PRTFMag: ({ meta, sw }) => {
-    const rel = sw.prTfMag ?? sw.fs.map(() => -200);
+  PRTFMag: ({ engine, meta, sw }) => {
+    const rel = sw.prTfMag ?? engine.simulation.silentCurve(sw.fs.length);
     const series: Series[] = [{ xs: sw.fs, ys: rel, color: meta.color, name: 'Transfer function (PR)' }];
     series.push({ xs: sw.fs, ys: sw.fs.map(() => 0), color: '#8a99ab', name: '0 dB', dash: true });
     series.push({ xs: sw.fs, ys: sw.fs.map(() => -3), color: '#ffb454', name: '−3 dB', dash: true });
-    const relReal = realDb(rel);
+    const relReal = engine.simulation.realLevels(rel);
     const loRel = relReal.length ? Math.min(...relReal) : -45;
     const ymax = 5;
     return { series, ymin: Math.min(ymax - 45, Math.floor((loRel - 3) / 5) * 5), ymax };
@@ -252,8 +249,8 @@ const CURVE_BUILDERS: Record<ChartId, (c: CurveCtx) => CurveBuild> = {
   // `chartsFor` gates the menu; a compare overlay of a different box type draws the -200 dB
   // silence fallback here, same as PRTFMag. Unlike PRTFMag, both ARE run through the filter
   // chain (packages/design/engine/simulation/SimulationEngine.ts rearPortGain/frontPortGain — one shared computation).
-  RearPortGain: ({ meta, sw }) => portGainBuild(sw.rearPortGain, 'Rear port gain', meta, sw),
-  FrontPortGain: ({ meta, sw }) => portGainBuild(sw.frontPortGain, 'Front port gain', meta, sw),
+  RearPortGain: ({ engine, meta, sw }) => portGainBuild(engine, sw.rearPortGain, 'Rear port gain', meta, sw),
+  FrontPortGain: ({ engine, meta, sw }) => portGainBuild(engine, sw.frontPortGain, 'Front port gain', meta, sw),
 
   // Applicable to vented/bandpass4/bandpass6/abc (rear) or bandpass4/bandpass6/abc (front) —
   // design's `chartsFor` gates the menu; a compare overlay of a different box type draws `pv`'s
@@ -291,12 +288,12 @@ const CURVE_BUILDERS: Record<ChartId, (c: CurveCtx) => CurveBuild> = {
     };
   },
 
-  MaxSPL: ({ meta, mx }) => {
+  MaxSPL: ({ engine, meta, mx }) => {
     // Nothing to draw, and nothing wrong: this design has no max curves, so it contributes no
     // trace to this chart while every other design still draws its own.
     if (!mx) return { series: [], ymin: 0, ymax: 0 };
     const series: Series[] = [{ xs: mx.fs, ys: mx.maxspl, color: meta.color, name: 'Max SPL', xlim: mx.xlim }];
-    const real = realDb(mx.maxspl);
+    const real = engine.simulation.realLevels(mx.maxspl);
     const mx2 = real.length ? Math.max(...real) : 0;
     const lo  = real.length ? Math.min(...real) : mx2 - 40;
     // FIXME - Magic number
@@ -338,13 +335,13 @@ const CURVE_BUILDERS: Record<ChartId, (c: CurveCtx) => CurveBuild> = {
   // help, "Filter/equalizer behavioral simulator": "Filter system is logically located at
   // electrical side. 0 dB gain at filter chain means that voltage at driver terminal is
   // equal that is specified at 'signal'-tab."
-  FltMag: ({ meta, sw, pick }) => {
+  FltMag: ({ engine, meta, sw, pick }) => {
     const series: Series[] = [{ ...pick(sw.fltMag), color: meta.color, name: 'Filter chain' }];
     // Unity gain is this chart's DEFINING datum (it is what the help pins 0 dB to), not an
     // optional annotation, so it is drawn in the bare mode too — same reasoning as
     // TFMag's 0 dB line.
     series.push({ xs: sw.fs, ys: sw.fs.map(() => 0), color: '#8a99ab', name: '0 dB', dash: true });
-    const real = realDb(sw.fltMag);
+    const real = engine.simulation.realLevels(sw.fltMag);
     const hi = real.length ? Math.max(...real, 0) : 0;
     const lo = real.length ? Math.min(...real, 0) : 0;
     return { series, ymin: Math.floor((lo - 3) / 5) * 5, ymax: Math.ceil((hi + 3) / 5) * 5 };

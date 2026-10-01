@@ -1,6 +1,6 @@
 # BUG_20261001_transfer-function-jumps-80db-where-spl-drops-below-190db
 
-**Status:** OPEN
+**Status:** RESOLVED
 
 ## Symptom
 Transfer function magnitude chart jumps up ~80 dB part-way down a steep roll-off, then keeps
@@ -24,10 +24,17 @@ the sentinel, so a real SPL below −190 skips the reference subtraction. The fo
 same threshold, so they also drop real levels below −190.
 
 ## Fix
-Make silence distinguishable from a real level: write `-Infinity` (or a typed absence) where
-|p| = 0, rather than −200, and stop using the −190 threshold. Then `tfMag` subtracts `ref` from
-every finite value.
+Silence is the exact −200 dB sentinel (`SILENCE_DB`, `isSilence`), private to `SimulationEngine.ts`.
+Every "≤ −190" threshold is gone: `tfMag`, `passbandRef`, force flat, the WinISD driver-count gain.
+The UI's `realDb` in `series.ts` is replaced by `engine.simulation.realLevels(db)`, and its −200
+fills by `engine.simulation.silentCurve(n)`. The value written is unchanged (−200), so saved files, share links and the store carry
+the same numbers as before; −Infinity was rejected because JSON writes it as `null`.
+
+What WinISD writes for silence in a `.wpr` export is ⚠ unverified.
 
 ## Verification
-Unit test: `tfMag` on a sweep through LP Butterworth n=10 fc=50 Hz is monotonic falling above
-fc, with no step. The browser chart for the screenshot's project shows no step.
+- `packages/design/test/engine/tf-silence.test.ts`: realLevels, silentCurve, and a sealed sweep
+  through LP Butterworth n=10 fc=50 Hz — TF falls without a step, passband reference, force flat,
+  driver count. The sweep tests fail with the old −190 threshold put back in `isSilence`.
+- `packages/ui/test/logic/series-multi-design.test.ts`: TFMag and SPL y-range reach the lowest real
+  point. Both fail with the old threshold in `realDb`.
