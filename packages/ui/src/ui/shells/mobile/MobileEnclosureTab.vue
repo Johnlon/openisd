@@ -20,7 +20,7 @@ const {
   prBrowseOpen, prEditOpen, loadPREntry, loadBundledPassiveRadiatorEntry, defineNewPREntry,
   setVentWidth, setVentHeight, setVentDiameter, setVentLength, setFbTarget,
   VENT_SHAPE_OPTIONS, END_CORRECTION_OPTIONS, VENT_COUNT_OPTIONS,
-  FB_TARGET_TIP, VENT_GEOMETRY_TIP,
+  FB_TARGET_TIP, VENT_GEOMETRY_TIP, fmtU,
 } = useMobileEnclosureTab();
 </script>
 
@@ -96,7 +96,7 @@ const {
                     :field="NumberField.VENT_L_CM" unit-key="ventL" :precision="NumberField.VENT_L_CM.precision" />
         </span>
         <span v-else class="mob-field-value mob-readonly" :class="{ 'mob-impossible': activeVent.length_m.value === null }">
-          {{ activeVent.length_m.value != null ? activeVent.length_m.value.toFixed(NumberField.VENT_L_CM.precision) + ' cm' : '—' }}
+          {{ activeVent.length_m.value != null ? fmtU(activeVent.length_m.value, 'ventL', 'length', 'cm', NumberField.VENT_L_CM.precision) : '—' }}
         </span>
       </div>
       <UnitToggle :field="NumberField.VENT_L_CM" unit-key="ventL" unit-class="mob-unit" />
@@ -111,7 +111,7 @@ const {
                     :field="NumberField.BOX_FB_HZ" unit-key="Fb" :precision="NumberField.BOX_FB_HZ.precision" />
         </span>
         <span v-else class="mob-field-value mob-readonly" :title="FB_TARGET_TIP">
-          {{ project.box.vented.tuning_goal_hz.value != null ? project.box.vented.tuning_goal_hz.value.toFixed(NumberField.BOX_FB_HZ.precision) + ' Hz' : '—' }}
+          {{ project.box.vented.tuning_goal_hz.value != null ? fmtU(project.box.vented.tuning_goal_hz.value, 'Fb', 'freq', 'Hz', NumberField.BOX_FB_HZ.precision) : '—' }}
         </span>
       </div>
       <UnitToggle :field="NumberField.BOX_FB_HZ" unit-key="Fb" unit-class="mob-unit" />
@@ -120,14 +120,16 @@ const {
     <div class="mob-field-row mob-field-calculated">
       <div class="mob-field-main">
         <span class="mob-field-label">Cross area</span>
-        <span class="mob-field-value mob-readonly">{{ activeVent.area_m2.value != null ? (activeVent.area_m2.value * 10000).toFixed(NumberField.VENT_CROSSAREA_M2.precision) + ' cm²' : '—' }}</span>
+        <span class="mob-field-value mob-readonly">{{ activeVent.area_m2.value != null ? fmtU(activeVent.area_m2.value, 'ventCrossArea', 'area', 'cm2', NumberField.VENT_CROSSAREA_M2.precision) : '—' }}</span>
       </div>
+      <UnitToggle :field="NumberField.VENT_CROSSAREA_M2" unit-key="ventCrossArea" unit-class="mob-unit" />
     </div>
     <div class="mob-field-row mob-field-calculated">
       <div class="mob-field-main">
         <span class="mob-field-label">1st port resonance</span>
-        <span class="mob-field-value mob-readonly">{{ portPipeResonance_hz != null ? portPipeResonance_hz.toFixed(NumberField.VENT_1STPORTRESONANCE_HZ.precision) + ' Hz' : '—' }}</span>
+        <span class="mob-field-value mob-readonly">{{ portPipeResonance_hz != null ? fmtU(portPipeResonance_hz, 'portResonance', 'freq', 'Hz', NumberField.VENT_1STPORTRESONANCE_HZ.precision) : '—' }}</span>
       </div>
+      <UnitToggle :field="NumberField.VENT_1STPORTRESONANCE_HZ" unit-key="portResonance" unit-class="mob-unit" />
     </div>
     <p v-if="fbUnreachable" class="mob-hint mob-hint-warn">{{ fbUnreachableMsg }}</p>
   </div>
