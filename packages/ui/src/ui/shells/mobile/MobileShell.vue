@@ -21,7 +21,7 @@ const {
   projectOpen, destination, fileInput, openImportedFile, openNewProject, switchToDesktop,
   menuOpen, toggleMenu, closeMenu, openFromDisk, isModified, saveProject, revertProject,
   browseDrivers, optionsOpen, openOptions, about, goToProject, goToAdvanced, viewportHeightPx,
-  showEnclosureTab, enclosureNavLabel,
+  showEnclosureTab, enclosureNavLabel, contentEl, canScrollUp, canScrollDown, updateScrollEdges,
 } = useMobileShell();
 </script>
 
@@ -39,7 +39,7 @@ const {
     <template v-else>
       <!-- No top bar over the Graph destination — it's deliberately full-screen (see
            MobileChartView.vue); the hamburger stays reachable from the other three tabs. -->
-      <div v-if="destination !== 'graph'" class="mob-topbar">
+      <div v-if="destination !== 'graph'" class="mob-topbar" :class="{ 'mob-shadow-below': canScrollUp }">
         <button type="button" class="mob-hamburger" title="Menu" aria-label="Menu" @click.stop="toggleMenu">
           <span></span><span></span><span></span>
         </button>
@@ -49,7 +49,7 @@ const {
         </div>
       </div>
 
-      <main class="mob-content">
+      <main ref="contentEl" class="mob-content" @scroll="updateScrollEdges">
         <MobileChartView v-if="destination === 'graph'" />
         <MobileBoxTab v-else-if="destination === 'box'" />
         <MobileDriverTab v-else-if="destination === 'driver'" />
@@ -60,7 +60,8 @@ const {
         <MobileAdvancedTab v-else-if="destination === 'advanced'" />
         <MobileManageDriversTab v-else-if="destination === 'drivers'" @chosen="destination = 'driver'" />
       </main>
-      <MobileTabBar v-model="destination" :show-enclosure="showEnclosureTab" :enclosure-label="enclosureNavLabel" />
+      <MobileTabBar v-model="destination" :show-enclosure="showEnclosureTab" :enclosure-label="enclosureNavLabel"
+        :shadow-above="canScrollDown" />
 
       <div v-if="menuOpen" class="mob-menu-overlay" @click="closeMenu">
         <div class="mob-menu" @click.stop>
@@ -148,6 +149,9 @@ const {
   padding: 6px 10px;
   background: var(--panel);
   border-bottom: 1px solid var(--line);
+}
+.mob-topbar.mob-shadow-below {
+  box-shadow: 0 4px 6px -4px rgba(0, 0, 0, 0.3);
 }
 .mob-hamburger {
   width: 40px;
