@@ -132,6 +132,17 @@ const {
       </div>
       <UnitToggle :field="NumberField.VENT_1STPORTRESONANCE_HZ" unit-key="portResonance" unit-class="mob-unit" />
     </div>
+    <div class="mob-field-row mob-field-entered">
+      <div class="mob-field-main">
+        <span class="mob-field-label">Port velocity limit</span>
+        <span class="mob-field-value" :title="NumberField.VENT_PORTVELOCITYLIMIT_M_PER_S.description">
+          <NumInput id="mob-vent-velocity-limit" :model-value="project.portVelocityLimit_m_per_s.value"
+                    @update:model-value="(v: number | null) => { if (v != null) project.portVelocityLimit_m_per_s.set(v); }"
+                    :field="NumberField.VENT_PORTVELOCITYLIMIT_M_PER_S" unit-key="portVelocityLimit" :precision="NumberField.VENT_PORTVELOCITYLIMIT_M_PER_S.precision" />
+        </span>
+      </div>
+      <UnitToggle :field="NumberField.VENT_PORTVELOCITYLIMIT_M_PER_S" unit-key="portVelocityLimit" unit-class="mob-unit" />
+    </div>
     <p v-if="fbUnreachable" class="mob-hint mob-hint-warn">{{ fbUnreachableMsg }}</p>
   </div>
 

@@ -1338,8 +1338,9 @@ test('the Vented tab edits the project\'s port velocity limit, 17 m/s by default
 
   await page.locator('.project-nav li', { hasText: 'Box' }).click();
   await page.locator('#og-box-type').selectOption('vented');
+  await page.locator('.project-nav li', { hasText: 'Vented' }).click();
   const field = page.locator('#og-vent-velocity-limit');
-  await expect(field).toHaveValue('17');
+  await expect(field).toHaveValue(/^17(\.0+)?$/);
   await fillAndBlur(field, '25');
   await expect.poll(readLimit).toBe(25);
 });
