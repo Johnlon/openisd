@@ -392,7 +392,7 @@ span.dq-note-symptom { color: color-mix(in srgb, var(--bad) 65%, orange); }
 
 /* Side-by-side (▲ then ▼), not stacked: the dense mobile row has spare width — the empty space
    to the right of a short number — which is exactly what a horizontal pair uses (John,
-   2026-10-02: "wide beside, not above"). Square-ish 32px buttons make a real touch target. */
+   2026-10-02: "wide beside, not above"; "make up down 2x wider" — 64px, not square). */
 .num-stepper {
   display: inline-flex;
   flex-direction: row;
@@ -405,7 +405,7 @@ span.dq-note-symptom { color: color-mix(in srgb, var(--bad) 65%, orange); }
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
+  width: 64px;
   height: 32px;
   font-size: 16px;
   line-height: 1;
