@@ -77,6 +77,13 @@ the Options dialog writes one, the engine reads the other, eliminate the first.
 Repeat of the same failure, same day: told the rule, the agent led with the correct sentence and
 then appended six bullets of file/line evidence nobody asked for.
 
+## Running the app locally — `scripts/preview-4000.sh`
+
+To build or run the app for John to look at, run `bash scripts/preview-4000.sh` from the repo root
+(background it). It kills whatever holds port 4000, then starts the live Vite dev server with HMR at
+http://localhost:4000. Never hand-roll `npx vite` on another port, and never run the script from
+inside `scripts/`: Vite then finds no config and serves 404 on every page.
+
 ## Test output — quiet by default
 
 Run every test/typecheck/gate via `bash scripts/quiet-test.sh <command>`; it hides passing lines and
