@@ -68,6 +68,8 @@ import {createDriveSignal} from './driveSignal.js';
 import type {StoredProjectListing} from '@openisd/persistence';
 import type {ChartId, EnvDefaults, EnvironmentEngine} from '@openisd/design/engine';
 import type {Design, PlotParams} from '../types.js';
+import {SweepCache} from '../logic/sweepCache.js';
+import {SweepComputer} from '../logic/sweepRequest.js';
 
 export type AirField = 'temperature' | 'humidity' | 'pressure';
 
@@ -525,6 +527,9 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
 // other open project contributes a trace (BUG_20260917_nonfocused-project-traces-never-drawn).
 // A project the engine cannot sweep (bandpass6/abc, or an incomplete driver) contributes
 // nothing — `buildPlotData` would crash on an overlay without curves.
+// Re-sweeps an overlay project only when its own sweep job changes: editing the focused project
+// re-runs this computed, and re-sweeping every other project per spinner step blocked the page.
+const overlaySweeps = new SweepCache(new SweepComputer(engine.simulation));
 const overlays = computed<Design[]>(() => {
   void projectChanged.value;
   void visibleRevision.value;
@@ -544,9 +549,9 @@ const overlays = computed<Design[]>(() => {
       splXmaxLimited: p.splGraphIsXmaxLimited.value,
       prXmax,
     };
-    const sw = p.sweep({ fmin: P.fmin, fmax: P.fmax });
-    const mx = p.maxCurves({ fmin: P.fmin, fmax: P.fmax });
-    if (!sw.values || !mx.values) continue;
+    const swept = overlaySweeps.sweep(p, { fmin: P.fmin, fmax: P.fmax });
+    const sw = swept?.sweep, mx = swept?.max;
+    if (!sw?.values || !mx?.values) continue;
     out.push({
       driver: p.driver.specs.sweepDriver(),
       box,
