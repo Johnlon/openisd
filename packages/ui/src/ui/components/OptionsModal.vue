@@ -74,7 +74,11 @@ const draft = reactive({
   chartColors: JSON.parse(JSON.stringify(presentationState.ui.chartColors ?? {})),
   unitTokens: JSON.parse(JSON.stringify(presentationState.ui.unitTokens ?? {})),
   yRanges: JSON.parse(JSON.stringify(presentationState.yRanges)),
-  P: { fmin: presentationState.sweepRange.min, fmax: presentationState.sweepRange.max },
+  // At the fields' display precision: a drag-zoomed axis stores e.g. 13.478123 Hz.
+  P: {
+    fmin: NumberField.PLOT_FMIN_HZ.rounded(presentationState.sweepRange.min),
+    fmax: NumberField.PLOT_FMAX_HZ.rounded(presentationState.sweepRange.max),
+  },
 });
 
 const unitsResetPending = ref(false);
@@ -222,8 +226,8 @@ function limitVal(chartId: ChartId, key: 'min' | 'max'): number | undefined {
               <button type="button" class="opt-more-btn" data-testid="limits-more" :aria-expanded="limitsMoreOpen" @click="limitsMoreOpen = !limitsMoreOpen">More info</button>
             </p>
             <div v-if="limitsMoreOpen" class="opt-popup" role="note" data-testid="limits-more-popup">
-              <p>WinISD's vented formulas are only reliable for a certain range of box sizes and tunings.</p>
-              <p>Outside that range WinISD keeps calculating anyway, and the answer can be wrong. OpenISD does the same, so its results match WinISD.</p>
+              <p>WinISD's vented formulas were only checked for a certain range of speakers.</p>
+              <p>Outside that range WinISD keeps calculating anyway, and the results may not be trustworthy. OpenISD does the same, so its results match WinISD.</p>
               <p>If a design falls outside the limits below, OpenISD shows it exactly as you set it, with a warning.</p>
               <button type="button" class="opt-more-btn" @click="limitsMoreOpen = false">Close</button>
             </div>
@@ -305,8 +309,8 @@ function limitVal(chartId: ChartId, key: 'min' | 'max'): number | undefined {
               <tbody>
                 <tr>
                   <td>Frequency range</td>
-                  <td><input class="opt-num" type="number" v-limits="{ min: 1, max: 20000 }" v-model.number="draft.P.fmin" /></td>
-                  <td><input class="opt-num" type="number" v-limits="{ min: 1, max: 40000 }" v-model.number="draft.P.fmax" /></td>
+                  <td><input class="opt-num" type="number" v-limits="NumberField.PLOT_FMIN_HZ.limits" v-model.number="draft.P.fmin" /></td>
+                  <td><input class="opt-num" type="number" v-limits="NumberField.PLOT_FMAX_HZ.limits" v-model.number="draft.P.fmax" /></td>
                   <td>Hz</td>
                   <td><button class="opt-clear-btn" title="Reset to default" @click="resetFreqRange()">↺</button></td>
                 </tr>
