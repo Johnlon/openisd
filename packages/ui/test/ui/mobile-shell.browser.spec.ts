@@ -80,3 +80,22 @@ test('About OpenISD (the splash) fills the phone pane edge-to-edge, not a small 
   expect(splashBox).not.toBeNull();
   expect(splashBox!.width).toBeGreaterThanOrEqual(rootBox!.width - 1);
 });
+
+// John, 2026-10-01: the top bar shows the focused project's title.
+test('the top bar shows the open project\'s title and follows a rename', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.locator('.mob-project-title')).toHaveCount(0);
+  await openAMobileProject(page);
+  const title = page.locator('.mob-topbar .mob-project-title');
+  await expect(title).not.toHaveText('');
+  await page.evaluate(async (p) => {
+    type AppState = typeof import('../../src/logic/appState.js');
+    function isAppState(m: unknown): m is AppState {
+      return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
+    }
+    const m: unknown = await import(/* @vite-ignore */ p);
+    if (!isAppState(m)) throw new Error('appState module shape mismatch');
+    m.requireFocusedProject().name.set('Living room sub');
+  }, '/src/logic/appState.ts');
+  await expect(title).toHaveText('Living room sub');
+});

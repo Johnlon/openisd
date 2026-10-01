@@ -22,6 +22,8 @@ export type MobileDestination = Extract<TabId, 'box' | 'driver' | 'signal' | 'fi
 
 export interface MobileShellApi {
   projectOpen: import('vue').ComputedRef<boolean>;
+  /** The focused project's title for the top bar; '' with no project open. */
+  projectTitle: import('vue').ComputedRef<string>;
   destination: import('vue').Ref<MobileDestination>;
   fileInput: import('vue').Ref<HTMLInputElement | null>;
   openImportedFile: (e: Event) => void;
@@ -77,6 +79,7 @@ export function useMobileShell(): MobileShellApi {
   const { saveProject } = designIO;
   const { show: about } = injectSplashModal();
   const projectOpen = computed(() => focusedProject() != null);
+  const projectTitle = computed(() => { void projectChanged.value; return focusedProject()?.title() ?? ''; });
   const destination = ref<MobileDestination>('box');
   // The menu drawer's own identity line (John, 2026-10-02: "get my name in there somewhere") —
   // the same free-text app-level preference the Options dialog's "Username" field edits
@@ -215,7 +218,7 @@ export function useMobileShell(): MobileShellApi {
   });
 
   return {
-    projectOpen, destination, fileInput, openImportedFile, openNewProject, switchToDesktop,
+    projectOpen, projectTitle, destination, fileInput, openImportedFile, openNewProject, switchToDesktop,
     menuOpen, toggleMenu, closeMenu, openFromDisk, isModified,
     saveProject, revertProject, browseDrivers, optionsOpen, openOptions, about, goToProject,
     contentEl, canScrollUp, canScrollDown, updateScrollEdges, username,
