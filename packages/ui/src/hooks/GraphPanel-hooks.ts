@@ -36,7 +36,7 @@ export function useGraphPanel(props: GraphPanelProps, chartEngine: ChartEngineAr
   const meta = computed(() => TAB_META[props.chartId]);
 
   const currentDesign = computed<Design>(() => ({
-    driver: project.value.driver.specs.solverParams(),
+    driver: project.value.driver.specs.sweepDriver(),
     box: project.value.box.boxType.value,
     P: syncedP.value,
     curves: curvesData.value,

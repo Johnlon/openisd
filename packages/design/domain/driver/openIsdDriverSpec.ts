@@ -1,4 +1,4 @@
-import type {Air, CalculationIssue, DqIssue, DriverEngine, DriverIssue, DriverQuantityName, DriverSolverParams, IssueEngine, OutOfRangeIssue, SolverInput, Wiring} from '../../engine/index.js';
+import type {Air, CalculationIssue, DqIssue, DriverEngine, DriverIssue, DriverQuantityName, DriverSolverParams, DriverValues, IssueEngine, OutOfRangeIssue, SolverInput, SweepDriver, Wiring} from '../../engine/index.js';
 import {NumberField} from '../../fields/field.js';
 import type {ValueFloor} from '../../fields/field.js';
 import type {
@@ -464,8 +464,37 @@ export class OpenIsdDriverSpec {
         };
     }
 
+    /** `solverParams`' values as plain data for `SimulationEngine.sweep`/`maxCurves`, with the
+     *  entered BL WinISD's entered-BL mix reads (null when BL is derived). */
+    sweepDriver(winisdDriverModel: boolean = false, air: Air | null = null): SweepDriver {
+        return {
+            values: valuesOf(this.solverParams(winisdDriverModel, air)),
+            winisdBL_Tm: this.BL_Tm.entered ? this.BL_Tm.value : null,
+        };
+    }
+
     /** The issues the last `resolve()` produced — empty before the first one has run. */
     issues(): readonly DriverIssue[] {
         return this.#issues;
     }
+}
+
+/** Each handle's value, named field by field: `DriverSolverParams`' keys are not a list the
+ *  compiler can hand back typed. */
+function valuesOf(p: DriverSolverParams): DriverValues {
+    return {
+        Fs_hz: p.Fs_hz.value, Re_ohm: p.Re_ohm.value, Znom_ohm: p.Znom_ohm.value, Le_H: p.Le_H.value,
+        fLe_hz: p.fLe_hz.value, KLe_H_sqrtHz: p.KLe_H_sqrtHz.value, Qes: p.Qes.value, Qms: p.Qms.value,
+        Qts: p.Qts.value, Vas_m3: p.Vas_m3.value, Sd_m2: p.Sd_m2.value, Dd_m: p.Dd_m.value,
+        BL_Tm: p.BL_Tm.value, Mms_kg: p.Mms_kg.value, Cms_m_per_N: p.Cms_m_per_N.value, Rms_kg_per_s: p.Rms_kg_per_s.value,
+        EBP_hz: p.EBP_hz.value, Xmax_m: p.Xmax_m.value, Vd_m3: p.Vd_m3.value, Hc_m: p.Hc_m.value,
+        Hg_m: p.Hg_m.value, Pe_W: p.Pe_W.value, no: p.no.value, SPLref_dB: p.SPLref_dB.value,
+        SPL_dB: p.SPL_dB.value, USPL_dB: p.USPL_dB.value, SPLmax_dB: p.SPLmax_dB.value, SPLmaxLF_dB: p.SPLmaxLF_dB.value,
+        Rme_kg_per_s: p.Rme_kg_per_s.value, Mpow_N_per_sqrtW: p.Mpow_N_per_sqrtW.value, Mcost_kg_per_s: p.Mcost_kg_per_s.value,
+        gamma_m_per_s2_A: p.gamma_m_per_s2_A.value, Gloss: p.Gloss.value, Vcd_m: p.Vcd_m.value,
+        Depth_m: p.Depth_m.value, MagDepth_m: p.MagDepth_m.value, Magnet_m: p.Magnet_m.value,
+        DVol_m3: p.DVol_m3.value, c_m_per_s: p.c_m_per_s.value, roo_kg_per_m3: p.roo_kg_per_m3.value,
+        Re_terminal_ohm: p.Re_terminal_ohm.value, BL_terminal_Tm: p.BL_terminal_Tm.value, numVC: p.numVC.value,
+        wiring: p.wiring.value,
+    };
 }

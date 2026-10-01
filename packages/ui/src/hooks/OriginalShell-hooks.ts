@@ -456,7 +456,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   onUnmounted(stopNudge);
 
   const currentDesign = computed(() => ({
-    driver: project.value.driver.specs.solverParams(), box: project.value.box.boxType.value, P: syncedP.value,
+    driver: project.value.driver.specs.sweepDriver(), box: project.value.box.boxType.value, P: syncedP.value,
     curves: curvesData.value, maxCurves: maxData.value ?? undefined, name: rowName(project.value),
     color: WINISD_TRACE.value, visible: isRowVisible(project.value),
     sortIndex: openProjects().indexOf(project.value),
@@ -548,7 +548,7 @@ const overlays = computed<Design[]>(() => {
     const mx = p.maxCurves({ fmin: P.fmin, fmax: P.fmax });
     if (!sw.values || !mx.values) continue;
     out.push({
-      driver: p.driver.specs.solverParams(),
+      driver: p.driver.specs.sweepDriver(),
       box,
       P,
       curves: sw.values,

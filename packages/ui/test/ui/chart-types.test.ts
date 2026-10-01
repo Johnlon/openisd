@@ -18,7 +18,8 @@
 
 import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import type {ChartId, DqIssue, DriverSolverParams, SolverField, SweepParams} from '@openisd/design/engine';
+import type {ChartId, SweepDriver, SweepParams} from '@openisd/design/engine';
+import {ProjectBuilder} from '@openisd/design';
 import {createEngine} from '@openisd/design/engine';
 
 const engine = createEngine();
@@ -30,50 +31,16 @@ const RAW: Record<string, number> = {
   Sd: 0.0133, Re: 5.6, Le: 0.70e-3, Xmax: 0.0050, Pe: 60, Znom: 8,
 };
 
-/** A writable `SolverField` test double (mirrors `packages/design/test/engine/testSolver.ts`'s
- *  own `fakeSolverField`, not importable here — that lives under `packages/design/test/`, not
- *  the published package). `entered` for a stated value, so `Engine.solveDriver()` leaves it
- *  alone; absent starts `not-available` and the solve fills it via `setCalculated`. */
-function fakeField<T>(value: T | null): SolverField<T> {
-  let current: T | null = value;
-  let state: 'entered' | 'calculated' | 'not-available' = value === null ? 'not-available' : 'entered';
-  return {
-    get value() { return current; },
-    get entered() { return state === 'entered'; },
-    get calculated() { return state === 'calculated'; },
-    get precision() { return null; },
-    get dq(): DqIssue[] { return []; },
-    setCalculated(v: T) { current = v; state = 'calculated'; },
-    setDq() {},
-    setNotAvailable() { current = null; state = 'not-available'; },
-  };
+/** The RAW driver, solved through an OpenISD project as the app solves it, in the plain form
+ *  `SimulationEngine.sweep()`/`maxCurves()` take. */
+function solvedDriver(): SweepDriver {
+  const specs = ProjectBuilder.empty(engine).driver.specs;
+  specs.Fs_hz.set(RAW.Fs); specs.Qts.set(RAW.Qts); specs.Qes.set(RAW.Qes); specs.Qms.set(RAW.Qms);
+  specs.Vas_m3.set(RAW.Vas); specs.Sd_m2.set(RAW.Sd); specs.Re_ohm.set(RAW.Re); specs.Le_H.set(RAW.Le);
+  specs.Xmax_m.set(RAW.Xmax); specs.Pe_W.set(RAW.Pe); specs.Znom_ohm.set(RAW.Znom);
+  return specs.sweepDriver();
 }
-
-// The solver derives what the stated values imply, terminal Re/BL included — there is no
-// separate derive-and-validate step, and `sweep` is what reports a driver it cannot use.
-// S2-10: `SimulationEngine.sweep()`/`maxCurves()` now take handles (`DriverSolverParams`), so the stated
-// RAW values are seeded as entered fields, `solveDriver()` fills in everything it can derive
-// (writing back via `setCalculated`), and the same handle set is then handed to `sweep()` — no
-// intermediate bag anywhere.
-const driverParams: DriverSolverParams = {
-  Fs_hz: fakeField(RAW.Fs), Re_ohm: fakeField(RAW.Re), Znom_ohm: fakeField(RAW.Znom),
-  Le_H: fakeField(RAW.Le), fLe_hz: fakeField<number>(null), KLe_H_sqrtHz: fakeField<number>(null),
-  Qes: fakeField(RAW.Qes), Qms: fakeField(RAW.Qms), Qts: fakeField(RAW.Qts), Vas_m3: fakeField(RAW.Vas),
-  Sd_m2: fakeField(RAW.Sd), Dd_m: fakeField<number>(null), BL_Tm: fakeField<number>(null), Mms_kg: fakeField<number>(null),
-  Cms_m_per_N: fakeField<number>(null), Rms_kg_per_s: fakeField<number>(null), EBP_hz: fakeField<number>(null),
-  Xmax_m: fakeField(RAW.Xmax), Vd_m3: fakeField<number>(null), Hc_m: fakeField<number>(null), Hg_m: fakeField<number>(null),
-  Pe_W: fakeField(RAW.Pe), no: fakeField<number>(null), SPLref_dB: fakeField<number>(null), SPL_dB: fakeField<number>(null),
-  USPL_dB: fakeField<number>(null), SPLmax_dB: fakeField<number>(null), SPLmaxLF_dB: fakeField<number>(null),
-  Rme_kg_per_s: fakeField<number>(null), Mpow_N_per_sqrtW: fakeField<number>(null), Mcost_kg_per_s: fakeField<number>(null),
-  gamma_m_per_s2_A: fakeField<number>(null), Gloss: fakeField<number>(null), Vcd_m: fakeField<number>(null), Depth_m: fakeField<number>(null),
-  MagDepth_m: fakeField<number>(null), Magnet_m: fakeField<number>(null), DVol_m3: fakeField<number>(null),
-  c_m_per_s: fakeField(engine.environment.solve({}).values.c),
-  roo_kg_per_m3: fakeField(engine.environment.solve({}).values.rho),
-  Re_terminal_ohm: fakeField<number>(null), BL_terminal_Tm: fakeField<number>(null), numVC: fakeField<number>(null),
-  wiring: fakeField('parallel'),
-};
-engine.driver.solve(driverParams, engine.environment.solve({}).values);
-const DRV = driverParams;
+const DRV = solvedDriver();
 const LE_H = 0.70e-3;
 
 // Fb: the tuning this Vb/Sp/Leff already amounts to (Helmholtz, inverted) — winisd-lossy's own

@@ -1,4 +1,4 @@
-import type {BoxEngine, BoxType, ChartId, DriverError, DriverSolverParams, EnvironmentEngine, MaxCurvesResult, SimulationEngine, SweepResult} from '@openisd/design/engine';
+import type {BoxEngine, BoxType, ChartId, DriverError, EnvironmentEngine, MaxCurvesResult, SimulationEngine, SweepDriver, SweepResult} from '@openisd/design/engine';
 
 /** The two engine areas a curve builder reads: the sweep's own classifiers and the air the port
  *  velocity's Mach limit is measured in. The composition root's engine satisfies it. */
@@ -108,7 +108,7 @@ interface CurveCtx {
   /** The composition root's engine areas — a curve builder never makes its own. */
   engine: ChartEngineAreas;
   meta: TabMeta;
-  drv: DriverSolverParams;
+  drv: SweepDriver;
   box: BoxType;
   P: PlotParams;
   sw: SweepResult;
@@ -226,7 +226,7 @@ const CURVE_BUILDERS: Record<ChartId, (c: CurveCtx) => CurveBuild> = {
     const series: Series[] = [{ ...pick(sw.exc), color: meta.color, name: 'Cone' }];
     // Xmax limit line — omitted when Xmax is absent (the cone curve stays reliable;
     // the missing line is surfaced to the user as a dismissable issue elsewhere).
-    const drvXmax_m = drv.Xmax_m.value;
+    const drvXmax_m = drv.values.Xmax_m;
     const xm = drvXmax_m != null && drvXmax_m > 0 ? drvXmax_m * 1000 : null;
     if (xm != null) series.push({ xs: sw.fs, ys: sw.fs.map(() => xm), color:'#ff6b6b', name:'Xmax', dash:true });
     const top = Math.max((xm || 0) * 1.4, Math.max(...sw.exc.slice(0, 20)) * 1.1);
@@ -376,7 +376,7 @@ const CURVE_BUILDERS: Record<ChartId, (c: CurveCtx) => CurveBuild> = {
 
 export function seriesFor(engine: ChartEngineAreas,
                           chartId: ChartId,
-                          drv: DriverSolverParams,
+                          drv: SweepDriver,
                           box: BoxType,
                           P: PlotParams,
                           sw: SweepResult,

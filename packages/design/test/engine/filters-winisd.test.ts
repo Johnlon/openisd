@@ -14,7 +14,7 @@
  * brief names, not an approximation of it.
  */
 import type {TestSolverQuantities} from './testSolver.js';
-import {driverParams, solveConsistencyGroup} from './testSolver.js';
+import {sweepDriver, solveConsistencyGroup} from './testSolver.js';
 import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
 import type {Filter} from '../../engine/index.js';
@@ -34,7 +34,7 @@ const LE_H = 0.70e-3;
 /** This filter alone, at exactly one frequency — `fmin === fmax`, `N: 0` makes `sweep`'s grid
  *  a single point at `f` (`f0 * (f1/f0)^(i/N)`, and `Math.pow(1, NaN)` is 1). */
 function filterAt(filter: Filter, f: number) {
-  const sw = engine.simulation.sweep(driverParams(DRV), LE_H, 'sealed',
+  const sw = engine.simulation.sweep(sweepDriver(DRV), LE_H, 'sealed',
     {Vb: 0.030, eg: 2.83, fmin: f, fmax: f, N: 0, filters: [filter]}).values!;
   return {mag: sw.fltMag[0], phase: sw.fltPhase[0], gdMs: sw.fltGd[0]};
 }

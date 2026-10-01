@@ -28,7 +28,7 @@ import {hotRe, isobarikPair, terminalBL_Tm, withAddedMass} from '../solvers/driv
 import {applyFilters} from '../filters.js';
 import {driveFromVoltage} from '../signal/SignalEngine.js';
 import type {BoxType, DriverError, EnclosureParams, MaxCurvesResult, SweepParams, SweepResult} from '../types.js';
-import type {DriverSolverParams} from '../solverTypes.js';
+import type {DriverValues, SweepDriver} from '../solverTypes.js';
 import type {BoxParamsIssue, BoxParamsQuantityName, BoxParamsSolveResult} from '../params.js';
 import {requiredParamsFor} from '../params.js';
 import type {SolveRoute} from '../consistency.js';
@@ -171,32 +171,32 @@ const CIRCUIT_REQUIRED_FIELDS: readonly DriverQuantityName[] = Object.freeze([
  * yields an infinite `Cms_m_per_N`, which is not a driver) is reported the same way as absent:
  * either way the user's actual next step is "state a valid `<field>`".
  */
-/** `drv`'s 44 handles, read into a plain bag once — the one conversion point `sweep()` needs:
+/** The driver's values with null read as absent — the one conversion point `sweep()` needs:
  *  `withAddedMass` (a pure mass-shift transform) and `circuitQuantities` both work over plain
  *  numbers, never over the `SolverField` handle machinery itself. No type name crosses this
  *  boundary — `withAddedMass`'s own working-set type is private to `solver.ts` (S2-10), and
  *  this object's shape is checked structurally against it at the call site below. */
-function driverValues(drv: DriverSolverParams) {
+function driverValues(v: DriverValues) {
   return {
-    Fs_hz: drv.Fs_hz.value ?? undefined, Re_ohm: drv.Re_ohm.value ?? undefined,
-    Znom_ohm: drv.Znom_ohm.value ?? undefined, Le_H: drv.Le_H.value ?? undefined,
-    fLe_hz: drv.fLe_hz.value ?? undefined, KLe_H_sqrtHz: drv.KLe_H_sqrtHz.value ?? undefined,
-    Qes: drv.Qes.value ?? undefined, Qms: drv.Qms.value ?? undefined, Qts: drv.Qts.value ?? undefined,
-    Vas_m3: drv.Vas_m3.value ?? undefined, Sd_m2: drv.Sd_m2.value ?? undefined, Dd_m: drv.Dd_m.value ?? undefined,
-    BL_Tm: drv.BL_Tm.value ?? undefined, Mms_kg: drv.Mms_kg.value ?? undefined,
-    Cms_m_per_N: drv.Cms_m_per_N.value ?? undefined, Rms_kg_per_s: drv.Rms_kg_per_s.value ?? undefined,
-    EBP_hz: drv.EBP_hz.value ?? undefined, Xmax_m: drv.Xmax_m.value ?? undefined, Vd_m3: drv.Vd_m3.value ?? undefined,
-    Hc_m: drv.Hc_m.value ?? undefined, Hg_m: drv.Hg_m.value ?? undefined, Pe_W: drv.Pe_W.value ?? undefined,
-    no: drv.no.value ?? undefined, SPLref_dB: drv.SPLref_dB.value ?? undefined, SPL_dB: drv.SPL_dB.value ?? undefined,
-    USPL_dB: drv.USPL_dB.value ?? undefined, SPLmax_dB: drv.SPLmax_dB.value ?? undefined,
-    SPLmaxLF_dB: drv.SPLmaxLF_dB.value ?? undefined, Rme_kg_per_s: drv.Rme_kg_per_s.value ?? undefined,
-    Mpow_N_per_sqrtW: drv.Mpow_N_per_sqrtW.value ?? undefined, Mcost_kg_per_s: drv.Mcost_kg_per_s.value ?? undefined,
-    gamma_m_per_s2_A: drv.gamma_m_per_s2_A.value ?? undefined, Gloss: drv.Gloss.value ?? undefined,
-    Vcd_m: drv.Vcd_m.value ?? undefined, Depth_m: drv.Depth_m.value ?? undefined, MagDepth_m: drv.MagDepth_m.value ?? undefined,
-    Magnet_m: drv.Magnet_m.value ?? undefined, DVol_m3: drv.DVol_m3.value ?? undefined,
-    c_m_per_s: drv.c_m_per_s.value ?? undefined, roo_kg_per_m3: drv.roo_kg_per_m3.value ?? undefined,
-    Re_terminal_ohm: drv.Re_terminal_ohm.value ?? undefined, BL_terminal_Tm: drv.BL_terminal_Tm.value ?? undefined,
-    numVC: drv.numVC.value ?? undefined, wiring: drv.wiring.value ?? undefined,
+    Fs_hz: v.Fs_hz ?? undefined, Re_ohm: v.Re_ohm ?? undefined,
+    Znom_ohm: v.Znom_ohm ?? undefined, Le_H: v.Le_H ?? undefined,
+    fLe_hz: v.fLe_hz ?? undefined, KLe_H_sqrtHz: v.KLe_H_sqrtHz ?? undefined,
+    Qes: v.Qes ?? undefined, Qms: v.Qms ?? undefined, Qts: v.Qts ?? undefined,
+    Vas_m3: v.Vas_m3 ?? undefined, Sd_m2: v.Sd_m2 ?? undefined, Dd_m: v.Dd_m ?? undefined,
+    BL_Tm: v.BL_Tm ?? undefined, Mms_kg: v.Mms_kg ?? undefined,
+    Cms_m_per_N: v.Cms_m_per_N ?? undefined, Rms_kg_per_s: v.Rms_kg_per_s ?? undefined,
+    EBP_hz: v.EBP_hz ?? undefined, Xmax_m: v.Xmax_m ?? undefined, Vd_m3: v.Vd_m3 ?? undefined,
+    Hc_m: v.Hc_m ?? undefined, Hg_m: v.Hg_m ?? undefined, Pe_W: v.Pe_W ?? undefined,
+    no: v.no ?? undefined, SPLref_dB: v.SPLref_dB ?? undefined, SPL_dB: v.SPL_dB ?? undefined,
+    USPL_dB: v.USPL_dB ?? undefined, SPLmax_dB: v.SPLmax_dB ?? undefined,
+    SPLmaxLF_dB: v.SPLmaxLF_dB ?? undefined, Rme_kg_per_s: v.Rme_kg_per_s ?? undefined,
+    Mpow_N_per_sqrtW: v.Mpow_N_per_sqrtW ?? undefined, Mcost_kg_per_s: v.Mcost_kg_per_s ?? undefined,
+    gamma_m_per_s2_A: v.gamma_m_per_s2_A ?? undefined, Gloss: v.Gloss ?? undefined,
+    Vcd_m: v.Vcd_m ?? undefined, Depth_m: v.Depth_m ?? undefined, MagDepth_m: v.MagDepth_m ?? undefined,
+    Magnet_m: v.Magnet_m ?? undefined, DVol_m3: v.DVol_m3 ?? undefined,
+    c_m_per_s: v.c_m_per_s ?? undefined, roo_kg_per_m3: v.roo_kg_per_m3 ?? undefined,
+    Re_terminal_ohm: v.Re_terminal_ohm ?? undefined, BL_terminal_Tm: v.BL_terminal_Tm ?? undefined,
+    numVC: v.numVC ?? undefined, wiring: v.wiring ?? undefined,
   };
 }
 
@@ -332,9 +332,9 @@ function classifyArrays(
  *  postcondition classifiers a chart applies to a swept result. */
 export interface SimulationEngine {
   /** The response, one complex value per frequency. */
-  sweep(drv: DriverSolverParams, Le_H: number | undefined, box: BoxType, P: SweepParams): SweepSolveResult;
+  sweep(drv: SweepDriver, Le_H: number | undefined, box: BoxType, P: SweepParams): SweepSolveResult;
   /** The limit curves — how loud before excursion or port velocity gives out. */
-  maxCurves(drv: DriverSolverParams, Le_H: number | undefined, box: BoxType, P: SweepParams): MaxCurvesSolveResult;
+  maxCurves(drv: SweepDriver, Le_H: number | undefined, box: BoxType, P: SweepParams): MaxCurvesSolveResult;
   /** The enclosure-parameter precondition (T9): `values` is `P` unchanged when every field the
    *  circuit divides by is present for `box`'s topology, else `null`, with `issues` naming what
    *  is missing. */
@@ -418,7 +418,7 @@ export class SimulationEngineImpl implements SimulationEngine {
     return { values: issues.length === 0 ? P : null, issues };
   }
 
-  sweep(drv: DriverSolverParams, Le_H: number | undefined, box: BoxType, P: SweepParams): SweepSolveResult {
+  sweep(drv: SweepDriver, Le_H: number | undefined, box: BoxType, P: SweepParams): SweepSolveResult {
     const n = P.nDrivers || 1;
     if (winisdCountsDrivers(P)) {
       // WinISD: one driver in Vb/N fed P/N (eg/√N); N of them sum to +20·log10(N) on its SPL.
@@ -429,9 +429,9 @@ export class SimulationEngineImpl implements SimulationEngine {
     }
     // Driver-side added mass (docs/research/WINISD_PARITY.md) shifts Mms/Fs/Q's before the circuit sees it.
     // 0/absent → withAddedMass returns the driver unchanged, so goldens are byte-identical.
-    const single = withAddedMass(driverValues(drv), P.driverAddedMass ?? 0);
+    const single = withAddedMass(driverValues(drv.values), P.driverAddedMass ?? 0);
     const d = P.loading === 'isobaric' ? isobarikPair(single) : single;
-    const circuit = circuitQuantities(d, Le_H, drv.BL_Tm.entered ? drv.BL_Tm.value : null);
+    const circuit = circuitQuantities(d, Le_H, drv.winisdBL_Tm);
     if (circuit.value === null) return { values: null, issues: circuit.issues };
     const cq = circuit.value;
     const env = solveEnvironment(P);
@@ -597,7 +597,7 @@ export class SimulationEngineImpl implements SimulationEngine {
     // frequency before the cone runs out of linear travel. Computed unconditionally as its
     // OWN curve: `spl` still feeds the transfer-function chart, the F3/F6/F10 read-outs and
     // every compare trace, so it must never be clamped in place.
-    const drvXmax_m = drv.Xmax_m.value;
+    const drvXmax_m = drv.values.Xmax_m;
     const Xmax = (drvXmax_m != null && Number.isFinite(drvXmax_m) && drvXmax_m > 0) ? drvXmax_m : null;
     const splXlimCurve: number[] = [], xlimited: boolean[] = [];
     for (let i = 0; i < fs.length; i++) {
@@ -648,7 +648,7 @@ export class SimulationEngineImpl implements SimulationEngine {
    * Power limit:   v_Pe   = √(Pe · Re)  — Pe is thermal power into Re, per T/S definition.
    *   https://en.wikipedia.org/wiki/Thiele/Small_parameters#Other_parameters
    */
-  maxCurves(drv: DriverSolverParams, Le_H: number | undefined, box: BoxType, P: SweepParams): MaxCurvesSolveResult {
+  maxCurves(drv: SweepDriver, Le_H: number | undefined, box: BoxType, P: SweepParams): MaxCurvesSolveResult {
     const n = P.nDrivers || 1;
     if (winisdCountsDrivers(P)) {
       // WinISD: N times one driver's limits in Vb/N — max power ×N; max SPL +20·log10(N) (⚠ unverified).
@@ -663,7 +663,7 @@ export class SimulationEngineImpl implements SimulationEngine {
     const swept = this.sweep(drv, Le_H, box, Object.assign({}, P, { eg: 2.83, filters: [] }));
     if (swept.values === null) return { values: null, issues: swept.issues, driverPrerequisites: [] };
     const base = swept.values;
-    const drvPe_W = drv.Pe_W.value;
+    const drvPe_W = drv.values.Pe_W;
     const Pe   = (drvPe_W != null && drvPe_W > 0) ? drvPe_W * (P.nDrivers || 1) : null;
     // The power reference is Re, not Znom — and the TERMINAL Re, because the amplifier drives the
     // coils as they are wired. `sweep` above already succeeded, and its circuit-required-fields
@@ -672,8 +672,8 @@ export class SimulationEngineImpl implements SimulationEngine {
     // Power is into Re + Rs, the same load the power → voltage drive solve uses (`driveVoltage`),
     // with Re at the coil's temperature rise as WinISD states it
     // (bugs/BUG_20260928_vc-temperature-drive-uses-hot-re.md).
-    const Re = hotRe(drv.Re_terminal_ohm.value!, P.alfaVC ?? 0, P.vcTempRise ?? 0) + (P.Rs != null && P.Rs > 0 ? P.Rs : 0);
-    const drvXmax_m = drv.Xmax_m.value;
+    const Re = hotRe(drv.values.Re_terminal_ohm!, P.alfaVC ?? 0, P.vcTempRise ?? 0) + (P.Rs != null && P.Rs > 0 ? P.Rs : 0);
+    const drvXmax_m = drv.values.Xmax_m;
     const xmaxUsable = drvXmax_m != null && drvXmax_m > 0;
     const maxspl: number[] = [], maxpwr: number[] = [], xlim: boolean[] = [];
     for (let i = 0; i < base.fs.length; i++) {

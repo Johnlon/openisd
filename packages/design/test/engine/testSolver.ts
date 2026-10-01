@@ -5,6 +5,7 @@ import type {
   SealedAlignmentSolverParams,
   SolverField,
   SolverInput,
+  SweepDriver,
   VentSolverParams,
 } from '@openisd/design/engine';
 import {createEngine} from '@openisd/design/engine';
@@ -106,6 +107,30 @@ function fakeStringInput(value: string | undefined): SolverInput<string> {
 
 /** Handles built from a plain bag, entered wherever the bag states a value — for a test that
  *  calls `Engine.sweep()`/`maxCurves()` directly (S2-10: they now take handles, not a bag). */
+/** The plain driver `SimulationEngine.sweep`/`maxCurves` take. A stated BL counts as entered, as
+ *  `driverParams`' handles mark every stated value. */
+export function sweepDriver(d: TestSolverQuantities): SweepDriver {
+  return {
+    values: {
+      Fs_hz: d.Fs_hz ?? null, Re_ohm: d.Re_ohm ?? null, Znom_ohm: d.Znom_ohm ?? null, Le_H: d.Le_H ?? null,
+      fLe_hz: d.fLe_hz ?? null, KLe_H_sqrtHz: d.KLe_H_sqrtHz ?? null, Qes: d.Qes ?? null,
+      Qms: d.Qms ?? null, Qts: d.Qts ?? null, Vas_m3: d.Vas_m3 ?? null, Sd_m2: d.Sd_m2 ?? null,
+      Dd_m: d.Dd_m ?? null, BL_Tm: d.BL_Tm ?? null, Mms_kg: d.Mms_kg ?? null, Cms_m_per_N: d.Cms_m_per_N ?? null,
+      Rms_kg_per_s: d.Rms_kg_per_s ?? null, EBP_hz: d.EBP_hz ?? null, Xmax_m: d.Xmax_m ?? null,
+      Vd_m3: d.Vd_m3 ?? null, Hc_m: d.Hc_m ?? null, Hg_m: d.Hg_m ?? null, Pe_W: d.Pe_W ?? null,
+      no: d.no ?? null, SPLref_dB: d.SPLref_dB ?? null, SPL_dB: d.SPL_dB ?? null, USPL_dB: d.USPL_dB ?? null,
+      SPLmax_dB: d.SPLmax_dB ?? null, SPLmaxLF_dB: d.SPLmaxLF_dB ?? null, Rme_kg_per_s: d.Rme_kg_per_s ?? null,
+      Mpow_N_per_sqrtW: d.Mpow_N_per_sqrtW ?? null, Mcost_kg_per_s: d.Mcost_kg_per_s ?? null,
+      gamma_m_per_s2_A: d.gamma_m_per_s2_A ?? null, Gloss: d.Gloss ?? null, Vcd_m: d.Vcd_m ?? null,
+      Depth_m: d.Depth_m ?? null, MagDepth_m: d.MagDepth_m ?? null, Magnet_m: d.Magnet_m ?? null,
+      DVol_m3: d.DVol_m3 ?? null, c_m_per_s: d.c_m_per_s ?? null, roo_kg_per_m3: d.roo_kg_per_m3 ?? null,
+      Re_terminal_ohm: d.Re_terminal_ohm ?? null, BL_terminal_Tm: d.BL_terminal_Tm ?? null,
+      numVC: d.numVC ?? null, wiring: d.wiring ?? null,
+    },
+    winisdBL_Tm: d.BL_Tm ?? null,
+  };
+}
+
 export function driverParams(d: TestSolverQuantities): DriverSolverParams {
   return driverHandlesFrom(d);
 }

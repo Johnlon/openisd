@@ -1,5 +1,5 @@
 import type {TestSolverQuantities} from './testSolver.js';
-import {driverParams, solveConsistencyGroup} from './testSolver.js';
+import {sweepDriver, solveConsistencyGroup} from './testSolver.js';
 /**
  * Unit tests for the EQ/filter chain's OWN response — the three arrays behind WinISD's
  * "Transfer function magnitude (EQ/Filter)", "Transfer function phase (EQ/Filter)" and
@@ -43,7 +43,7 @@ const nearest = (fs: number[], f: number) =>
 
 describe('EQ/filter chain charts — no filters means unity, exactly', () => {
   it('an empty chain is 0 dB, 0 rad and 0 ms at every frequency', () => {
-    const sw = engine.simulation.sweep(driverParams(DRV), LE_H, 'sealed', SEALED).values!;
+    const sw = engine.simulation.sweep(sweepDriver(DRV), LE_H, 'sealed', SEALED).values!;
     assert.equal(sw.fltMag.length, sw.fs.length);
     for (let i = 0; i < sw.fs.length; i++) {
       assert.equal(sw.fltMag[i], 0, `fltMag[${i}] at ${sw.fs[i]} Hz`);
@@ -56,7 +56,7 @@ describe('EQ/filter chain charts — no filters means unity, exactly', () => {
 
   it('a chain whose only filter is DISABLED is also unity — enabled is what counts', () => {
     const filters: Filter[] = [{ type: 'peaking', fc: 60, Q: 2, gain: 9, enabled: false }];
-    const sw = engine.simulation.sweep(driverParams(DRV), LE_H, 'sealed', { ...SEALED, filters }).values!;
+    const sw = engine.simulation.sweep(sweepDriver(DRV), LE_H, 'sealed', { ...SEALED, filters }).values!;
     assert.ok(sw.fltMag.every(v => v === 0), 'a disabled filter still moved the chain');
   });
 });
@@ -65,7 +65,7 @@ describe('EQ/filter chain charts — the magnitude is the chain\'s own gain in d
   it('a 2nd-order Butterworth low-pass is −3.01 dB at its own fc', () => {
     // |H(fc)| = 1/√2 for Q = 1/√2, independent of everything else in the model.
     const filters: Filter[] = [{ type: 'lowpass', family: 'sos', order: 2, fc: 100, Q: Math.SQRT1_2, enabled: true }];
-    const sw = engine.simulation.sweep(driverParams(DRV), LE_H, 'sealed', { ...SEALED, filters }).values!;
+    const sw = engine.simulation.sweep(sweepDriver(DRV), LE_H, 'sealed', { ...SEALED, filters }).values!;
     const i = nearest(sw.fs, 100);
     assert.ok(Math.abs(sw.fltMag[i] - 20 * Math.log10(Math.SQRT1_2)) < 0.05,
       `expected ≈ −3.01 dB at ${sw.fs[i].toFixed(2)} Hz, got ${sw.fltMag[i].toFixed(3)} dB`);
@@ -73,7 +73,7 @@ describe('EQ/filter chain charts — the magnitude is the chain\'s own gain in d
 
   it('a +6 dB parametric EQ peaks at +6 dB on its centre frequency', () => {
     const filters: Filter[] = [{ type: 'peaking', fc: 60, Q: 3, gain: 6, enabled: true }];
-    const sw = engine.simulation.sweep(driverParams(DRV), LE_H, 'sealed', { ...SEALED, filters }).values!;
+    const sw = engine.simulation.sweep(sweepDriver(DRV), LE_H, 'sealed', { ...SEALED, filters }).values!;
     const i = nearest(sw.fs, 60);
     assert.ok(Math.abs(sw.fltMag[i] - 6) < 0.1,
       `expected ≈ +6 dB at ${sw.fs[i].toFixed(2)} Hz, got ${sw.fltMag[i].toFixed(3)} dB`);
@@ -83,9 +83,9 @@ describe('EQ/filter chain charts — the magnitude is the chain\'s own gain in d
   it('cascaded filters multiply, i.e. their dB gains add', () => {
     const a: Filter = { type: 'peaking', fc: 40, Q: 4, gain: 4, enabled: true };
     const b: Filter = { type: 'peaking', fc: 400, Q: 4, gain: 3, enabled: true };
-    const swA  = engine.simulation.sweep(driverParams(DRV), LE_H, 'sealed', { ...SEALED, filters: [a] }).values!;
-    const swB  = engine.simulation.sweep(driverParams(DRV), LE_H, 'sealed', { ...SEALED, filters: [b] }).values!;
-    const swAB = engine.simulation.sweep(driverParams(DRV), LE_H, 'sealed', { ...SEALED, filters: [a, b] }).values!;
+    const swA  = engine.simulation.sweep(sweepDriver(DRV), LE_H, 'sealed', { ...SEALED, filters: [a] }).values!;
+    const swB  = engine.simulation.sweep(sweepDriver(DRV), LE_H, 'sealed', { ...SEALED, filters: [b] }).values!;
+    const swAB = engine.simulation.sweep(sweepDriver(DRV), LE_H, 'sealed', { ...SEALED, filters: [a, b] }).values!;
     for (let i = 0; i < swAB.fs.length; i++)
       assert.ok(Math.abs(swAB.fltMag[i] - (swA.fltMag[i] + swB.fltMag[i])) < 1e-9,
         `cascade ≠ sum of dB at ${swAB.fs[i].toFixed(2)} Hz`);
@@ -96,8 +96,8 @@ describe('EQ/filter chain charts — the chain is electrical, so driver and box 
   const filters: Filter[] = [{ type: 'highpass', family: 'sos', order: 2, fc: 30, Q: Math.SQRT1_2, enabled: true }];
 
   it('the same filters give the same chain response in a sealed and a vented box', () => {
-    const s = engine.simulation.sweep(driverParams(DRV), LE_H, 'sealed', { ...SEALED, filters }).values!;
-    const v = engine.simulation.sweep(driverParams(DRV), LE_H, 'vented', { ...VENTED, filters }).values!;
+    const s = engine.simulation.sweep(sweepDriver(DRV), LE_H, 'sealed', { ...SEALED, filters }).values!;
+    const v = engine.simulation.sweep(sweepDriver(DRV), LE_H, 'vented', { ...VENTED, filters }).values!;
     for (let i = 0; i < s.fs.length; i++) {
       assert.equal(s.fltMag[i], v.fltMag[i],   `fltMag differs at ${s.fs[i].toFixed(2)} Hz`);
       assert.equal(s.fltPhase[i], v.fltPhase[i], `fltPhase differs at ${s.fs[i].toFixed(2)} Hz`);
@@ -112,15 +112,15 @@ describe('EQ/filter chain charts — the chain is electrical, so driver and box 
     // Vary only params that are free of the Q identity 1/Qts = 1/Qes + 1/Qms — changing
     const other = solveConsistencyGroup({ ...RAW, Fs_hz: 55, Vas_m3: 0.012, Sd_m2: 0.0090 });
     assert.ok(other, 'comparison driver failed to derive');
-    const a = engine.simulation.sweep(driverParams(DRV), LE_H,   'sealed', { ...SEALED, filters }).values!;
-    const b = engine.simulation.sweep(driverParams(other), LE_H, 'sealed', { ...SEALED, filters }).values!;
+    const a = engine.simulation.sweep(sweepDriver(DRV), LE_H,   'sealed', { ...SEALED, filters }).values!;
+    const b = engine.simulation.sweep(sweepDriver(other), LE_H, 'sealed', { ...SEALED, filters }).values!;
     for (let i = 0; i < a.fs.length; i++)
       assert.equal(a.fltMag[i], b.fltMag[i], `fltMag differs at ${a.fs[i].toFixed(2)} Hz`);
   });
 
   it('force-flat does not appear in the chain — it is a real gain applied downstream', () => {
-    const off = engine.simulation.sweep(driverParams(DRV), LE_H, 'sealed', { ...SEALED, filters }).values!;
-    const on  = engine.simulation.sweep(driverParams(DRV), LE_H, 'sealed', { ...SEALED, filters, forceFlatResponse: true }).values!;
+    const off = engine.simulation.sweep(sweepDriver(DRV), LE_H, 'sealed', { ...SEALED, filters }).values!;
+    const on  = engine.simulation.sweep(sweepDriver(DRV), LE_H, 'sealed', { ...SEALED, filters, forceFlatResponse: true }).values!;
     for (let i = 0; i < off.fs.length; i++)
       assert.equal(off.fltMag[i], on.fltMag[i], `force-flat leaked into the chain at ${off.fs[i].toFixed(2)} Hz`);
     // Guard the guard: force-flat must actually have done something to the output curve.
@@ -135,7 +135,7 @@ describe('EQ/filter chain charts — Linkwitz transform, low-shelf, high-shelf',
     // fltMag at the same frequency.
     const f0 = 50, Q0 = 0.7, fp = 20, Qp = 0.5, TEST_F = 1;
     const filters: Filter[] = [{ type: 'linkwitz', f0, Q0, fp, Qp, enabled: true }];
-    const sw = engine.simulation.sweep(driverParams(DRV), LE_H, 'sealed', { ...SEALED, fmin: 1, filters }).values!;
+    const sw = engine.simulation.sweep(sweepDriver(DRV), LE_H, 'sealed', { ...SEALED, fmin: 1, filters }).values!;
     const w = 2 * Math.PI * TEST_F, w0 = 2 * Math.PI * f0, wp = 2 * Math.PI * fp;
     const numMag = Math.hypot(w0 * w0 - w * w, (w0 / Q0) * w);
     const denMag = Math.hypot(wp * wp - w * w, (wp / Qp) * w);
@@ -149,7 +149,7 @@ describe('EQ/filter chain charts — Linkwitz transform, low-shelf, high-shelf',
     // H(0) = A·A/1 = A² = 10^(gain/20) → dB(H(0)) = gain, exactly. A frequency two decades
     // below fc is close enough to that DC limit to confirm it.
     const filters: Filter[] = [{ type: 'lowshelf', fc: 500, Q: 1, gain: 6, enabled: true }];
-    const sw = engine.simulation.sweep(driverParams(DRV), LE_H, 'sealed', { ...SEALED, fmin: 1, filters }).values!;
+    const sw = engine.simulation.sweep(sweepDriver(DRV), LE_H, 'sealed', { ...SEALED, fmin: 1, filters }).values!;
     const i = nearest(sw.fs, 1);
     assert.ok(Math.abs(sw.fltMag[i] - 6) < 0.05,
       `expected ≈ 6 dB at ${sw.fs[i].toFixed(2)} Hz (fc=500 Hz), got ${sw.fltMag[i].toFixed(3)} dB`);
@@ -159,7 +159,7 @@ describe('EQ/filter chain charts — Linkwitz transform, low-shelf, high-shelf',
     // H(∞) = A·s²/(A·s²) = 1 → 0 dB, the shelf's flat region above fc — the asymptote does
     // not depend on Q (Q only shapes the transition near fc).
     const filters: Filter[] = [{ type: 'lowshelf', fc: 20, Q: Math.SQRT1_2, gain: 6, enabled: true }];
-    const sw = engine.simulation.sweep(driverParams(DRV), LE_H, 'sealed', { ...SEALED, filters }).values!;
+    const sw = engine.simulation.sweep(sweepDriver(DRV), LE_H, 'sealed', { ...SEALED, filters }).values!;
     const i = nearest(sw.fs, 2000);
     assert.ok(Math.abs(sw.fltMag[i]) < 0.05,
       `expected ≈ 0 dB at ${sw.fs[i].toFixed(0)} Hz (fc=20 Hz), got ${sw.fltMag[i].toFixed(3)} dB`);
@@ -169,7 +169,7 @@ describe('EQ/filter chain charts — Linkwitz transform, low-shelf, high-shelf',
     // H(0) = A·1/A = 1 → 0 dB, the shelf's flat region below fc — the asymptote does not
     // depend on Q (Q only shapes the transition near fc).
     const filters: Filter[] = [{ type: 'highshelf', fc: 500, Q: Math.SQRT1_2, gain: 6, enabled: true }];
-    const sw = engine.simulation.sweep(driverParams(DRV), LE_H, 'sealed', { ...SEALED, fmin: 1, filters }).values!;
+    const sw = engine.simulation.sweep(sweepDriver(DRV), LE_H, 'sealed', { ...SEALED, fmin: 1, filters }).values!;
     const i = nearest(sw.fs, 1);
     assert.ok(Math.abs(sw.fltMag[i]) < 0.05,
       `expected ≈ 0 dB at ${sw.fs[i].toFixed(2)} Hz (fc=500 Hz), got ${sw.fltMag[i].toFixed(3)} dB`);
@@ -178,7 +178,7 @@ describe('EQ/filter chain charts — Linkwitz transform, low-shelf, high-shelf',
   it('a high-shelf boost is at full gain well above fc (explicit Q)', () => {
     // H(∞) = A·A·s²/s² = A² = 10^(gain/20) → dB(H(∞)) = gain, exactly.
     const filters: Filter[] = [{ type: 'highshelf', fc: 20, Q: 1, gain: 6, enabled: true }];
-    const sw = engine.simulation.sweep(driverParams(DRV), LE_H, 'sealed', { ...SEALED, filters }).values!;
+    const sw = engine.simulation.sweep(sweepDriver(DRV), LE_H, 'sealed', { ...SEALED, filters }).values!;
     const i = nearest(sw.fs, 2000);
     assert.ok(Math.abs(sw.fltMag[i] - 6) < 0.05,
       `expected ≈ 6 dB at ${sw.fs[i].toFixed(0)} Hz (fc=20 Hz), got ${sw.fltMag[i].toFixed(3)} dB`);
@@ -188,7 +188,7 @@ describe('EQ/filter chain charts — Linkwitz transform, low-shelf, high-shelf',
 describe('EQ/filter chain charts — phase and group delay', () => {
   it('a 2nd-order high-pass leads in phase (positive) below its corner', () => {
     const filters: Filter[] = [{ type: 'highpass', family: 'sos', order: 2, fc: 40, Q: Math.SQRT1_2, enabled: true }];
-    const sw = engine.simulation.sweep(driverParams(DRV), LE_H, 'sealed', { ...SEALED, filters }).values!;
+    const sw = engine.simulation.sweep(sweepDriver(DRV), LE_H, 'sealed', { ...SEALED, filters }).values!;
     const i = nearest(sw.fs, 12);
     const deg = sw.fltPhase[i] * 180 / Math.PI;
     assert.ok(deg > 90, `expected a large phase lead well below fc, got ${deg.toFixed(1)}° at ${sw.fs[i].toFixed(2)} Hz`);
@@ -205,8 +205,8 @@ describe('maximum SPL and maximum power leave the filter chain out, as WinISD do
       {type: 'linkwitz', enabled: true, f0: 67.234, Q0: 0.49, fp: 25, Qp: 0.6},
       {type: 'peaking', enabled: true, fc: 45, Q: 3, gain: -4},
     ];
-    const bare = engine.simulation.maxCurves(driverParams(DRV), LE_H, 'sealed', SEALED).values!;
-    const filtered = engine.simulation.maxCurves(driverParams(DRV), LE_H, 'sealed', {...SEALED, filters}).values!;
+    const bare = engine.simulation.maxCurves(sweepDriver(DRV), LE_H, 'sealed', SEALED).values!;
+    const filtered = engine.simulation.maxCurves(sweepDriver(DRV), LE_H, 'sealed', {...SEALED, filters}).values!;
     assert.deepEqual(filtered.maxspl, bare.maxspl);
     assert.deepEqual(filtered.maxpwr, bare.maxpwr);
     assert.deepEqual(filtered.xlim, bare.xlim);
@@ -217,7 +217,7 @@ describe('EQ/filter chain charts — orders above WinISD\'s 10', () => {
   for (const family of ['butterworth', 'bessel'] as const) {
     it(`a ${family} order-20 low-pass is finite everywhere and falls monotonically above fc`, () => {
       const filters: Filter[] = [{ type: 'lowpass', family, order: 20, fc: 100, Q: Math.SQRT1_2, enabled: true }];
-      const sw = engine.simulation.sweep(driverParams(DRV), LE_H, 'sealed', { ...SEALED, filters }).values!;
+      const sw = engine.simulation.sweep(sweepDriver(DRV), LE_H, 'sealed', { ...SEALED, filters }).values!;
       assert.ok(sw.fltMag.every(Number.isFinite), 'non-finite filter magnitude');
       for (let i = 1; i < sw.fs.length; i++)
         if (sw.fs[i] > 200) assert.ok(sw.fltMag[i] < sw.fltMag[i - 1], `not falling at ${sw.fs[i].toFixed(0)} Hz`);
@@ -226,7 +226,7 @@ describe('EQ/filter chain charts — orders above WinISD\'s 10', () => {
 
   it('a Butterworth order-20 low-pass is −3.01 dB at its own fc', () => {
     const filters: Filter[] = [{ type: 'lowpass', family: 'butterworth', order: 20, fc: 100, Q: Math.SQRT1_2, enabled: true }];
-    const sw = engine.simulation.sweep(driverParams(DRV), LE_H, 'sealed', { ...SEALED, filters }).values!;
+    const sw = engine.simulation.sweep(sweepDriver(DRV), LE_H, 'sealed', { ...SEALED, filters }).values!;
     const i = nearest(sw.fs, 100);
     assert.ok(Math.abs(sw.fltMag[i] + 3.01) < 0.3, `got ${sw.fltMag[i].toFixed(3)} dB at ${sw.fs[i].toFixed(2)} Hz`);
   });

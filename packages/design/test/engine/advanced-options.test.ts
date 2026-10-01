@@ -1,4 +1,4 @@
-import {driverParams, solveConsistencyGroup} from './testSolver.js';
+import {sweepDriver, solveConsistencyGroup} from './testSolver.js';
 /**
  * Unit tests for the WinISD Advanced-pane simulation options and the absent-Le
  * defect they surfaced. See PLAN_ADVANCED_SIM_OPTIONS.md.
@@ -32,7 +32,7 @@ const RAW: Record<string, number> = {
 };
 /** The solver never refuses — an underdetermined driver simply has fewer known values, and
  *  `sweep` is what reports that it cannot be simulated. */
-const derive = (raw: Record<string, number>) => driverParams(solveConsistencyGroup({
+const derive = (raw: Record<string, number>) => sweepDriver(solveConsistencyGroup({
   Fs_hz: raw.Fs, Qts: raw.Qts, Qes: raw.Qes, Qms: raw.Qms, Vas_m3: raw.Vas,
   Sd_m2: raw.Sd, Re_ohm: raw.Re, Xmax_m: raw.Xmax, Pe_W: raw.Pe, Znom_ohm: raw.Znom,
 }));
@@ -229,10 +229,10 @@ describe('Xmax-limited SPL (WinISD Advanced: SPL graph is Xmax limited)', () => 
     let clamped = 0;
     for (let i = 0; i < loud.fs.length; i++) {
       const xPeak = loud.exc[i] / 1000;                 // exc is mm, Xmax is m
-      if (xPeak > DRV.Xmax_m.value!) {
+      if (xPeak > DRV.values.Xmax_m!) {
         clamped++;
         assert.equal(loud.xlimited[i], true, `xlimited[${i}] must be true at ${loud.fs[i].toFixed(1)} Hz`);
-        const expected = loud.spl[i] + 20 * Math.log10(DRV.Xmax_m.value! / xPeak);
+        const expected = loud.spl[i] + 20 * Math.log10(DRV.values.Xmax_m! / xPeak);
         assert.ok(Math.abs(loud.splXlimCurve[i] - expected) < 1e-9,
           `at ${loud.fs[i].toFixed(1)} Hz: splXlim ${loud.splXlimCurve[i]} should be ${expected}`);
         assert.ok(loud.splXlimCurve[i] < loud.spl[i], 'a clamped point must sit below the unclamped SPL');

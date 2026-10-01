@@ -2,7 +2,7 @@
  * Shared UI types — the view-layer shapes (plot series, designs, canvas geometry).
  * Engine shapes (Driver, SweepResult, …) are imported from @openisd/design/engine.
  */
-import type {BoxType, DriverSolverParams, MaxCurvesResult, SweepResult} from '@openisd/design/engine';
+import type {BoxType, MaxCurvesResult, SweepDriver, SweepResult} from '@openisd/design/engine';
 
 /**
  * `ChartId` (`@openisd/design`'s `Engine.chartsFor`, bugs/BUG_20260927_winisd-charts-missing.md)
@@ -61,7 +61,7 @@ export type PlotParams = {
 
 /** A design shown on a chart — the current design plus any pinned comparisons. */
 export interface Design {
-  driver: DriverSolverParams | null;
+  driver: SweepDriver | null;
   box: BoxType;
   P: PlotParams;
   curves: SweepResult | null;
