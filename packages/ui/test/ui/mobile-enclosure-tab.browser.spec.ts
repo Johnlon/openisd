@@ -89,3 +89,13 @@ test('switching to a passive-radiator box shows PR fields and Select PR opens th
   await page.locator('.modal .x').click();
   await expect(page.getByText('Passive radiator library')).toHaveCount(0);
 });
+
+// John, 2026-10-01: the port velocity limit sits on the vent section in both layouts.
+test('the port velocity limit shows 17 m/s and takes an edit', async ({ page }) => {
+  await page.locator('.mob-tab', { hasText: 'Vented' }).click();
+  const input = page.locator('#mob-vent-velocity-limit');
+  await expect(input).toHaveValue(/^17(\.0+)?$/);
+  await input.fill('25');
+  await input.blur();
+  await expect(input).toHaveValue(/^25(\.0+)?$/);
+});

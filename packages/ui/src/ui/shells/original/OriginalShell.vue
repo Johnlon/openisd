@@ -517,7 +517,7 @@ const {
                   <div class="field"><label>1st port resonance</label><input class="calculated greyed" :value="fmtU(portPipeResonance_hz, 'portResonance', 'freq', 'Hz', NumberField.VENT_1STPORTRESONANCE_HZ.precision)" readonly><UnitToggle :field="NumberField.VENT_1STPORTRESONANCE_HZ" unit-key="portResonance" unit-class="unit unit-cyc" /></div>
                 </div>
                 <div class="field-row">
-                  <div class="field entered" :title="NumberField.VENT_PORTVELOCITYLIMIT_M_PER_S.description"><label>Port velocity limit</label><NumInput id="og-vent-velocity-limit" :model-value="project.portVelocityLimit_m_per_s.value" @update:model-value="(v: number | null) => { if (v != null && v > 0) project.portVelocityLimit_m_per_s.set(v); }" :field="NumberField.VENT_PORTVELOCITYLIMIT_M_PER_S" unit-key="portVelocityLimit" :precision="NumberField.VENT_PORTVELOCITYLIMIT_M_PER_S.precision" /><UnitToggle :field="NumberField.VENT_PORTVELOCITYLIMIT_M_PER_S" unit-key="portVelocityLimit" unit-class="unit" /></div>
+                  <div class="field entered" :title="NumberField.VENT_PORTVELOCITYLIMIT_M_PER_S.description"><label>Port velocity limit</label><NumInput id="og-vent-velocity-limit" :model-value="project.portVelocityLimit_m_per_s.value" @update:model-value="(v: number | null) => { if (v != null) project.portVelocityLimit_m_per_s.set(v); }" :field="NumberField.VENT_PORTVELOCITYLIMIT_M_PER_S" unit-key="portVelocityLimit" :precision="NumberField.VENT_PORTVELOCITYLIMIT_M_PER_S.precision" /><UnitToggle :field="NumberField.VENT_PORTVELOCITYLIMIT_M_PER_S" unit-key="portVelocityLimit" unit-class="unit" /></div>
                 </div>
               </div>
             </div>
