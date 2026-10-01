@@ -4,13 +4,14 @@
  * component (`.claude/rules/ui.md`); every ref/computed/write lives here.
  */
 import {computed, nextTick, onMounted, onUnmounted, ref, watch} from 'vue';
-import {boxTypeIsSimulatable, focusedProject, isModified, projectChanged, resetProjectToGround} from '../logic/appState.js';
+import {addProject, boxTypeIsSimulatable, focusedProject, isModified, projectChanged, resetProjectToGround} from '../logic/appState.js';
 import {presentationState, setSkinOverride} from '../logic/presentationState.js';
 import {useApp} from '../logic/app.js';
 import {inputFrom} from '../logic/domEvents.js';
 import {injectSplashModal} from './SplashModal-hooks.js';
 import type {TabId} from '../logic/tabId.js';
 import {createSelectedBox} from './boxFields.js';
+import type {StoredProjectListing} from '@openisd/persistence';
 
 /** The mobile shell's own destinations: the same tab ids the desktop shell's content panel
  *  uses (so a shared field-wiring caller never has to ask "which shell is this"), plus `graph`
@@ -61,10 +62,18 @@ export interface MobileShellApi {
   updateScrollEdges: () => void;
   /** The menu drawer's identity line — null until the user sets one (Options → Username). */
   username: import('vue').ComputedRef<string | null>;
+  /** The "Open project" sheet — previously-SAVED projects (browser storage), distinct from
+   *  "Open a file" (`openFromDisk`, a disk import). Desktop's own `openDialogOpen`/
+   *  `storedProjects`/`openStoredProject` (OriginalShell-hooks.ts), mobile had no equivalent
+   *  (John, 2026-10-02: "the file menu offer no way to save and reopen projects"). */
+  openDialogOpen: import('vue').Ref<boolean>;
+  storedProjects: import('vue').Ref<StoredProjectListing[]>;
+  openProjectDialog: () => void;
+  openStoredProject: (id: string) => void;
 }
 
 export function useMobileShell(): MobileShellApi {
-  const { designIO } = useApp();
+  const { designIO, projectRepo } = useApp();
   const { saveProject } = designIO;
   const { show: about } = injectSplashModal();
   const projectOpen = computed(() => focusedProject() != null);
@@ -94,6 +103,26 @@ export function useMobileShell(): MobileShellApi {
   function openFromDisk(): void {
     void designIO.openFromDisk(() => fileInput.value?.click());
     closeMenu();
+  }
+
+  // "Open project" — previously-SAVED projects (browser storage), not a disk import. Desktop's
+  // own openDialogOpen/storedProjects/openStoredProject (OriginalShell-hooks.ts); mobile had no
+  // equivalent (John, 2026-10-02: "the file menu offer no way to save and reopen projects").
+  const openDialogOpen = ref(false);
+  const storedProjects = ref<StoredProjectListing[]>([]);
+  function openProjectDialog(): void {
+    storedProjects.value = projectRepo.listStoredProjects();
+    openDialogOpen.value = true;
+    closeMenu();
+  }
+  function openStoredProject(id: string): void {
+    const result = projectRepo.loadStoredProject(id);
+    if (Array.isArray(result)) {
+      alert('Could not open the saved project: ' + result.join('; '));
+      return;
+    }
+    addProject(result);
+    openDialogOpen.value = false;
   }
 
   async function confirmDiscard(): Promise<boolean> {
@@ -191,5 +220,6 @@ export function useMobileShell(): MobileShellApi {
     saveProject, revertProject, browseDrivers, optionsOpen, openOptions, about, goToProject,
     contentEl, canScrollUp, canScrollDown, updateScrollEdges, username,
     goToAdvanced, viewportHeightPx, showEnclosureTab, enclosureNavLabel,
+    openDialogOpen, storedProjects, openProjectDialog, openStoredProject,
   };
 }

@@ -22,7 +22,7 @@ const {
   menuOpen, toggleMenu, closeMenu, openFromDisk, isModified, saveProject, revertProject,
   browseDrivers, optionsOpen, openOptions, about, goToProject, goToAdvanced, viewportHeightPx,
   showEnclosureTab, enclosureNavLabel, contentEl, canScrollUp, canScrollDown, updateScrollEdges,
-  username,
+  username, openDialogOpen, storedProjects, openProjectDialog, openStoredProject,
 } = useMobileShell();
 </script>
 
@@ -75,6 +75,7 @@ const {
           </div>
           <div class="mob-menu-sep"></div>
           <button type="button" class="mob-menu-item" @click="openNewProject">New project</button>
+          <button type="button" class="mob-menu-item" @click="openProjectDialog">Open project…</button>
           <button type="button" class="mob-menu-item" @click="openFromDisk">Open a file</button>
           <button type="button" class="mob-menu-item" :class="{ dirty: isModified }" @click="saveProject(); closeMenu()">Save</button>
           <button type="button" class="mob-menu-item" :disabled="!isModified" @click="revertProject">Revert unsaved changes</button>
@@ -87,6 +88,21 @@ const {
           <button type="button" class="mob-menu-item" @click="about(); closeMenu()">About OpenISD</button>
           <div class="mob-menu-sep"></div>
           <button type="button" class="mob-menu-item" @click="switchToDesktop">Switch to Desktop view</button>
+        </div>
+      </div>
+
+      <div v-if="openDialogOpen" class="mob-align-overlay" @click.self="openDialogOpen = false">
+        <div class="mob-align-sheet">
+          <div class="mob-panel-head mob-panel-head-row">
+            <span>Open project</span>
+            <button class="mob-x" @click="openDialogOpen = false">&#10005;</button>
+          </div>
+          <p v-if="storedProjects.length === 0" class="mob-hint">No saved project yet.</p>
+          <button v-for="p in storedProjects" :key="p.id" type="button" class="mob-stored-project-row"
+            @click="openStoredProject(p.id)">
+            <span class="mob-stored-project-name">{{ p.name }}</span>
+            <span class="mob-stored-project-modified">{{ new Date(p.modified).toLocaleString() }}</span>
+          </button>
         </div>
       </div>
     </template>
@@ -242,6 +258,52 @@ const {
 .mob-menu-export :deep(.export-menu-list) { position: static; box-shadow: none; border: none; border-top: 1px solid var(--line); border-radius: 0; margin-top: 0; }
 .mob-menu-export :deep(.export-menu-list button) { padding: 10px 28px; font-size: 14px; }
 .mob-menu-sep { height: 1px; background: var(--line); margin: 6px 0; }
+
+/* The "Open project" sheet — same sheet chrome as MobileBoxTab.vue's own .mob-align-overlay/
+   .mob-align-sheet (that file's own copy, not shared; this is the established per-component
+   duplication pattern for these classes, not introduced here). */
+.mob-align-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  z-index: 210;
+  display: flex;
+  align-items: flex-end;
+}
+.mob-align-sheet {
+  width: 100%;
+  max-height: 80%;
+  overflow-y: auto;
+  background: var(--panel);
+  border-top: 1px solid var(--line);
+  border-radius: 8px 8px 0 0;
+}
+.mob-panel-head {
+  padding: 10px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--mut);
+  border-bottom: 1px solid var(--line);
+  background: var(--panel2);
+}
+.mob-panel-head-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.mob-x { all: unset; cursor: pointer; padding: 4px 8px; font-size: 14px; color: var(--mut); }
+.mob-hint { margin: 8px 16px; font-size: 12.5px; color: var(--mut); line-height: 1.4; }
+.mob-stored-project-row {
+  all: unset;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 100%;
+  padding: 10px 16px;
+  border-top: 1px solid var(--line);
+  cursor: pointer;
+}
+.mob-stored-project-row:first-of-type { border-top: none; }
+.mob-stored-project-name { font-size: 15px; color: var(--fg); }
+.mob-stored-project-modified { font-size: 12px; color: var(--mut); }
+
 .mob-empty {
   flex: 1;
   display: flex;
