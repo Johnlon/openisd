@@ -1,6 +1,6 @@
 import type {
     Air, AirEnvironment, BoxParamsIssue, Engine, MaxCurvesSolveResult, PrIssue, SimulatableBoxType,
-    SweepIssue, SweepParams, SweepSolveResult, VentIssue,
+    SweepDriver, SweepIssue, SweepParams, SweepSolveResult, VentIssue,
 } from '../../engine/index.js';
 import type { Filter, EnclosureParams } from '../../engine/index.js';
 import type { LossMode } from '../../fields/lossMode.js';
@@ -293,29 +293,57 @@ function boxSweepIssuesOf(source: ProjectSweepSource, box: SimulatableBoxType): 
     return [];
 }
 
+/** A sweep the engine runs as given: `SimulationEngine.sweep(driver, Le_H, box, sweep)` and
+ *  `maxCurves(driver, Le_H, box, maxCurves)`. Plain data, so it crosses a Worker boundary. */
+export interface SweepJob {
+    readonly driver: SweepDriver;
+    readonly Le_H: number | undefined;
+    readonly box: SimulatableBoxType;
+    readonly sweep: SweepParams;
+    /** At the 2.83 V reference: the engine runs max curves there whatever `eg` it is handed. */
+    readonly maxCurves: SweepParams;
+}
+
+/** The job this project's sweep runs, or the issues that stop it. `issues` is empty when the
+ *  topology is one the engine has no model for. */
+export type SweepPlan =
+    | { readonly kind: 'ready'; readonly job: SweepJob }
+    | { readonly kind: 'blocked'; readonly issues: readonly SweepIssue[] };
+
+export function sweepPlanOf(source: ProjectSweepSource, P: FrequencyGrid): SweepPlan {
+    const box = engineBoxTypeOf(source);
+    if (!box) return {kind: 'blocked', issues: []};
+    const boxIssues = boxSweepIssuesOf(source, box);
+    if (boxIssues.length) return {kind: 'blocked', issues: boxIssues};
+    return {kind: 'ready', job: {
+        driver: source.driver.specs.sweepDriver(source.winisdDriverModel.value, source.air),
+        Le_H: source.driver.specs.Le_H.value ?? undefined,
+        box,
+        sweep: sweepParamsOf(source, P, source.driveVoltage_V, box),
+        maxCurves: sweepParamsOf(source, P, 2.83, box),
+    }};
+}
+
 /** The frequency response, impedance and excursion this design produces — or the issues that
  *  stopped it, each NAMING the quantity the driver does not state. A bare null would say only
  *  "cannot simulate", which is what a caller cannot act on. `value` is null with an empty
  *  `errors` when the active topology is one the engine has no model for, or a field this project
  *  itself needs to sweep (its box volume, its drive voltage) is not yet stated. */
 export function sweepOf(source: ProjectSweepSource, P: FrequencyGrid): SweepSolveResult {
-    const box = engineBoxTypeOf(source);
-    if (!box) return {values: null, issues: []};
-    const boxIssues = boxSweepIssuesOf(source, box);
-    if (boxIssues.length) return {values: null, issues: boxIssues};
-    const params = sweepParamsOf(source, P, source.driveVoltage_V, box);
-    return source.engine.simulation.sweep(source.driver.specs.sweepDriver(source.winisdDriverModel.value, source.air), source.driver.specs.Le_H.value ?? undefined, box, params);
+    const plan = sweepPlanOf(source, P);
+    if (plan.kind === 'blocked') return {values: null, issues: [...plan.issues]};
+    const {driver, Le_H, box, sweep} = plan.job;
+    return source.engine.simulation.sweep(driver, Le_H, box, sweep);
 }
 
 /** The excursion- and power-limited maximum SPL curves. Reports on the same terms as `sweepOf`,
  *  but does not need a stated drive level: the engine runs these curves at the 2.83 V reference
  *  whatever `eg` it is handed, so that reference is passed here outright. */
 export function maxCurvesOf(source: ProjectSweepSource, P: FrequencyGrid): MaxCurvesSolveResult {
-    const box = engineBoxTypeOf(source);
-    if (!box) return {values: null, issues: [], driverPrerequisites: []};
-    const boxIssues = boxSweepIssuesOf(source, box);
-    if (boxIssues.length) return {values: null, issues: boxIssues, driverPrerequisites: []};
-    return source.engine.simulation.maxCurves(source.driver.specs.sweepDriver(source.winisdDriverModel.value, source.air), source.driver.specs.Le_H.value ?? undefined, box, sweepParamsOf(source, P, 2.83, box));
+    const plan = sweepPlanOf(source, P);
+    if (plan.kind === 'blocked') return {values: null, issues: [...plan.issues], driverPrerequisites: []};
+    const {driver, Le_H, box, maxCurves} = plan.job;
+    return source.engine.simulation.maxCurves(driver, Le_H, box, maxCurves);
 }
 
 /** What is wrong with this project's enclosure parameters — checked BEFORE a sweep, so a caller

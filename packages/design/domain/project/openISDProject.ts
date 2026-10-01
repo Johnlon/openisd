@@ -18,8 +18,8 @@ import { ProjectAdvanced } from './projectAdvanced.js';
 import { ProjectChartsView, type OpenCharts } from './projectChartsView.js';
 import { ProjectEnvironment, envFieldsOver } from './projectEnvironment.js';
 import { owprTextOf, parseOwprSession, sessionOf } from './projectSerialization.js';
-import { boxParamsIssuesOf, maxCurvesOf, sweepOf, ventAchievedFbOf, ventMaxReachableFbOf } from './projectSweep.js';
-import type { ProjectSweepSource } from './projectSweep.js';
+import { boxParamsIssuesOf, maxCurvesOf, sweepOf, sweepPlanOf, ventAchievedFbOf, ventMaxReachableFbOf } from './projectSweep.js';
+import type { ProjectSweepSource, SweepPlan } from './projectSweep.js';
 import { freshEmbeddedDriver } from './freshEmbeddedDriver.js';
 import type { ProjectIssues } from './projectIssues.js';
 import { ProjectMeta } from './projectMeta.js';
@@ -689,6 +689,12 @@ export class OpenISDProject {
             ventIssues: this.#issues.vent,
             prIssues: this.#issues.pr,
         };
+    }
+
+    /** The sweep this project asks the engine for, as plain data: ready (a `SweepJob`) or
+     *  blocked (the issues `sweep()` reports). A job runs the same in a Worker. */
+    sweepPlan(P: FrequencyGrid): SweepPlan {
+        return sweepPlanOf(this.#sweepSource(), P);
     }
 
     /** The frequency response, impedance and excursion this design produces — or the issues that

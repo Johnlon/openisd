@@ -32,6 +32,7 @@ export type { PassiveRadiatorBox } from './box/passiveRadiatorBox.js';
 export type { OpenIsdPassiveRadiatorSpec } from './passiveRadiator/openIsdPassiveRadiatorSpec.js';
 export type { VentedChamber } from './box/ventedChamber.js';
 export type { FrequencyGrid } from './box/frequencyGrid.js';
+export type { SweepJob, SweepPlan } from './project/projectSweep.js';
 // We export these strictly as types to ensure encapsulation. Consumers can annotate variables with these types, but must construct them via factory functions instead of calling the class constructors directly.
 export { OpenISDDriver, OpenISDDriverStandalone } from './driver/openISDDriver.js';
 export type { DqReason } from './driver/openISDDriver.js';
