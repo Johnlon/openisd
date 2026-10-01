@@ -91,8 +91,6 @@ Notes:
 - **C4/SC4**: WinISD does not run Futtrup's iterative Chebyshev solve (`e = Qt/Ql`, cubic
   iteration); it uses this fixed polynomial with no `Ql` term. C4 is WinISD's default vented
   alignment.
-- Validity range: captures cover `Qts` 0.25–0.60 only. The polynomials are fits of unknown
-  domain; outside that range they may diverge. Clamp or warn — do not extrapolate silently.
 
 ## 4. Ql — where it comes from
 
@@ -106,8 +104,7 @@ Only BB4 reads it. `Qa`/`Qp` are not used by any alignment.
 `winisd_research/runs/vented_alignments.jsonl`. `Fs = 40 Hz`, `Vas = 0.02 m³`, `Qms = 4.0`,
 `Re = 6 Ω`, `Rg = 0.1 Ω`, `Ql = 10`, `Qa = Qp = 100` for every row; `Qts` and alignment
 varied. `Vb`/`Fb` below are rounded; the jsonl holds 15 significant digits and the validation
-matches those. Qts 0.15–0.20 and 0.70–1.0 are outside any sane vented range: WinISD does not
-clamp, it extrapolates the polynomials and writes whatever comes out (C4 at 1.0: 1684 L, 5.4 Hz).
+matches those. WinISD does not clamp at Qts 0.15–1.0; it writes whatever the polynomials give (C4 at 1.0: 1684 L, 5.4 Hz).
 
 | Qts  | QB3 Vb/Fb     | BB4 Vb/Fb      | C4 Vb/Fb       | EBS3 Vb/Fb     | EBS6 Vb/Fb    |
 |------|---------------|----------------|----------------|----------------|---------------|
@@ -139,7 +136,7 @@ clamp, it extrapolates the polynomials and writes whatever comes out (C4 at 1.0:
 ## 6. Open
 
 1. Out-of-range `Qts` — CLOSED 2026-09-22: 25 captures at 0.15 / 0.20 / 0.70 / 0.80 / 1.0
-   all reproduce the polynomials to 2.3e-14. WinISD does not clamp. The engine extrapolates
-   the same way, so it matches WinISD there — including the nonsense (C4 at Qts 1.0: 1684 L).
+   all reproduce the polynomials to 2.3e-14. WinISD does not clamp. The engine does not
+   clamp either, so it matches WinISD there (C4 at Qts 1.0: 1684 L).
    Whether OpenISD should refuse or warn instead of matching is a product call, not a parity
    one: [`FIX_WIZARD_VENTED-remains.md`](../plans/FIX_WIZARD_VENTED-remains.md?html) #2.

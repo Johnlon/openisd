@@ -36,5 +36,4 @@ export function subject(quantity: VentedDesignQuantity): string {
 
 /** Every plausibility sentence ends in the same fact, because it is the fact that decides what a
  *  reader does next: the number is not a bug, it is WinISD's own answer, kept deliberately. */
-export const PARITY = 'The alignment formula was extrapolated outside its design range; WinISD '
-  + 'gives the same answer, and OpenISD keeps it rather than quietly changing it.';
+export const PARITY = 'WinISD gives the same answer, and OpenISD keeps it rather than quietly changing it.';

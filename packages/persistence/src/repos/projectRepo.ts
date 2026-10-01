@@ -4,11 +4,11 @@
  *  validation and reconstruction are entirely `@openisd/design`'s
  *  (`OpenISDProject.fromOwprText()` — QO116: one whole-record `.safeParse()` at the load
  *  boundary). This file supplies no shape of its own and never holds the project's record. */
-import {OpenISDProject} from '@openisd/design';
+import {OpenISDProject, type FieldPath} from '@openisd/design';
 import type {Engine} from '@openisd/design/engine';
 import type {FileStorage, SaveResult} from '../storage/fileStorage.js';
 import type {KeyValueStorage} from '../storage/keyValueStorage.js';
-import {OPENISD_OPEN_SESSIONS_KEY, OPENISD_PROJECTS_KEY, OPENISD_QUARANTINE_SESSION_KEY, OPENISD_STATE_KEY,} from './storageKeys.js';
+import {OPENISD_OPEN_SESSIONS_KEY, OPENISD_PROJECTS_KEY, OPENISD_QUARANTINE_SESSION_KEY, OPENISD_STATE_KEY, OPENISD_BACKUP_KEYS} from './storageKeys.js';
 import {createProjectSchemaUpgrade} from './projectSchemaUpgrade.js';
 
 export interface FileNaming { suggestedName: string; mime: string; label: string; ext: string }
@@ -81,6 +81,15 @@ export interface ProjectRepo {
    *  Called when a record holds entries that would not read, so the next save cannot take
    *  them with it. A no-op when there is no stored record. */
   quarantineOpenSession(): void;
+}
+
+/** A project that loaded only after fields were reset to their defaults. The user must be told;
+ *  `backupKey` holds the stored text as it was (null when the source was a file or a link,
+ *  which still exist as they were). */
+export interface ProjectRepairReport {
+  readonly projectName: string;
+  readonly repaired: readonly FieldPath[];
+  readonly backupKey: string | null;
 }
 
 export interface StoredProjectListing {
@@ -175,13 +184,48 @@ async function gzipDecodeBase64Url(encoded: string): Promise<string> {
   return new TextDecoder().decode(buf);
 }
 
+/** A stored record a project is read from, and where its pre-repair text is kept. */
+interface StoredSource {
+  readonly key: string;
+  readonly backupKey: string;
+}
+
+const AUTOSAVE_SOURCE: StoredSource = { key: OPENISD_STATE_KEY, backupKey: OPENISD_BACKUP_KEYS.state };
+const LEGACY_AUTOSAVE_SOURCE: StoredSource = { key: LEGACY_PROJECT_STORAGE_KEY, backupKey: OPENISD_BACKUP_KEYS.state };
+const SAVED_PROJECTS_SOURCE: StoredSource = { key: OPENISD_PROJECTS_KEY, backupKey: OPENISD_BACKUP_KEYS.projects };
+const OPEN_SESSION_SOURCE: StoredSource = { key: OPENISD_OPEN_SESSIONS_KEY, backupKey: OPENISD_BACKUP_KEYS.openSessions };
+
 export function createProjectRepo(
   engine: Engine, fileStorage: FileStorage,
   storage: KeyValueStorage,
+  onRepaired: (report: ProjectRepairReport) => void = () => undefined,
 ): ProjectRepo {
   const upgrade = createProjectSchemaUpgrade(engine);
   let lastSavedAt = 0;
   const storedIdentity = new WeakMap<OpenISDProject, string>();
+
+  /** Upgrade and parse `text`, resetting any field the schema refuses. When a field was reset,
+   *  the stored record it came from is backed up (before anything can write over it) and the
+   *  repair is reported. `source` is null for a file or a link, which still hold the original. */
+  function readRepairing(text: string, source: StoredSource | null): OpenISDProject | string[] {
+    let parsed: unknown;
+    try { parsed = JSON.parse(text); } catch { return ['not valid JSON']; }
+    // The same upgrade every door applies, so a design saved by an older build opens anywhere.
+    const current = upgrade.projectPayload(parsed);
+    if (Array.isArray(current)) return current;
+    const result = OpenISDProject.fromOwprTextRepairing(current, engine);
+    if (Array.isArray(result)) return result;
+    if (result.repaired.length > 0) {
+      const original = source === null ? null : storage.get(source.key);
+      if (source !== null && original !== null) storage.set(source.backupKey, original);
+      onRepaired({
+        projectName: result.project.name.value,
+        repaired: result.repaired,
+        backupKey: source === null || original === null ? null : source.backupKey,
+      });
+    }
+    return result.project;
+  }
 
   function readStoredEntries(): StoredProjectEntry[] {
     for (const key of [PROJECTS_STORAGE_KEY, LEGACY_PROJECTS_STORAGE_KEY]) {
@@ -228,18 +272,12 @@ export function createProjectRepo(
       const payload = sharePayload(current.payload);
       if (!payload) return ['share link is not a recognised session payload'];
 
-      const result = OpenISDProject.fromOwprText(payload.project, engine);
+      const result = readRepairing(payload.project, null);
       return Array.isArray(result) ? result : { project: result, view: payload.view };
     },
 
     readProjectText(text: string): OpenISDProject | string[] {
-      let parsed: unknown;
-      try { parsed = JSON.parse(text); } catch { return ['not valid JSON']; }
-      // The same upgrade the hash path applies — File → Open and a share link accept the same
-      // set of payloads, or a design saved by an older build opens through one door only.
-      const current = upgrade.projectPayload(parsed);
-      if (Array.isArray(current)) return current;
-      return OpenISDProject.fromOwprText(current, engine);
+      return readRepairing(text, null);
     },
 
     saveToFile(project: OpenISDProject, naming: FileNaming): Promise<SaveResult> {
@@ -264,9 +302,10 @@ export function createProjectRepo(
     },
 
     loadFromStorage(): OpenISDProject | string[] | null {
-      const text = storage.get(PROJECT_STORAGE_KEY) ?? storage.get(LEGACY_PROJECT_STORAGE_KEY);
+      const source = storage.get(PROJECT_STORAGE_KEY) !== null ? AUTOSAVE_SOURCE : LEGACY_AUTOSAVE_SOURCE;
+      const text = storage.get(source.key);
       if (text === null) return null;
-      const project = this.readProjectText(text);
+      const project = readRepairing(text, source);
       if (Array.isArray(project)) return project;
       const entry = readStoredEntries().find(candidate => candidate.text === text);
       storedIdentity.set(project, entry?.id ?? 'legacy');
@@ -283,7 +322,7 @@ export function createProjectRepo(
     loadStoredProject(id: string): OpenISDProject | string[] {
       const entry = readStoredEntries().find(candidate => candidate.id === id);
       if (entry === undefined) return ['saved project not found'];
-      const project = this.readProjectText(entry.text);
+      const project = readRepairing(entry.text, SAVED_PROJECTS_SOURCE);
       if (!Array.isArray(project)) storedIdentity.set(project, id);
       return project;
     },
@@ -307,7 +346,7 @@ export function createProjectRepo(
       const refused: string[] = [];
       let focusedIndex = 0;
       for (const entry of payload.entries) {
-        const project = this.readProjectText(entry.text);
+        const project = readRepairing(entry.text, OPEN_SESSION_SOURCE);
         if (Array.isArray(project)) {
           refused.push(`entry ${entry.id}: ${project.join('; ')}`);
           continue;

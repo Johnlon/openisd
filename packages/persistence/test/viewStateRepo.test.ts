@@ -4,6 +4,7 @@
  */
 import {describe, expect, it} from 'vitest';
 import {createViewStateRepo, VIEW_STATE_KEY} from '../src/repos/viewStateRepo.js';
+import {OPENISD_BACKUP_KEYS} from '../src/repos/storageKeys.js';
 import {createSharedMemoryStorage} from '../src/storage/keyValueStorage.js';
 
 describe('view state repo — chart ranges', () => {
@@ -25,5 +26,20 @@ describe('view state repo — chart ranges', () => {
     const storage = createSharedMemoryStorage().tab();
     storage.set(VIEW_STATE_KEY, JSON.stringify({ui: {}, chart: {sweepRange: {min: 2, max: 3000}, yRanges: {SPL: {min: null, max: 111}, Zmag: {min: 1, max: 99}}}}));
     expect(createViewStateRepo(storage).load()?.chart).toEqual({sweepRange: {min: 2, max: 3000}, yRanges: {Zmag: {min: 1, max: 99}}});
+  });
+
+  it('saving over a stored view it could not read backs the original text up first', () => {
+    const storage = createSharedMemoryStorage().tab();
+    storage.set(VIEW_STATE_KEY, 'not json');
+    createViewStateRepo(storage).save({ui: {}});
+    expect(storage.get(OPENISD_BACKUP_KEYS.view)).toBe('not json');
+  });
+
+  it('saving over a readable view takes no backup', () => {
+    const storage = createSharedMemoryStorage().tab();
+    const repo = createViewStateRepo(storage);
+    repo.save({ui: {}});
+    repo.save({ui: {}});
+    expect(storage.get(OPENISD_BACKUP_KEYS.view)).toBeNull();
   });
 });

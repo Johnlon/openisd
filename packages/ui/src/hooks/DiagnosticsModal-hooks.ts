@@ -1,7 +1,7 @@
 import type {InjectionKey, Ref} from 'vue';
 import {ref} from 'vue';
 import {useApp} from '../logic/app.js';
-import type {QuickFix} from '../diagnostics/faultLog.js';
+import type {QuickFix, RepairNotice} from '../diagnostics/faultLog.js';
 
 export interface DiagnosticsModalAPI {
   readonly open: Ref<boolean>;
@@ -9,6 +9,7 @@ export interface DiagnosticsModalAPI {
   readonly copied: Ref<boolean>;
   readonly faultLog: ReturnType<typeof useApp>['faultLog'];
   applyFix(fix: QuickFix): void;
+  downloadOriginal(notice: RepairNotice): void;
   reload(): void;
   copyReport(): Promise<void>;
 }
@@ -24,10 +25,21 @@ export function useDiagnosticsModal(): DiagnosticsModalAPI {
   faultLog.onFault(() => {
     open.value = true;
   });
+  faultLog.onRepair(() => {
+    open.value = true;
+  });
+  // A repair recorded during boot, before this dialog existed, is shown as soon as it mounts.
+  if (faultLog.repairs.length > 0) open.value = true;
+
+  function downloadOriginal(notice: RepairNotice): void {
+    outcome.value = faultLog.downloadOriginal(notice)
+      ? `Saved the original of "${notice.projectName}" as a file.`
+      : `No stored original is kept for "${notice.projectName}": it is still in the file or link it came from.`;
+  }
 
   function applyFix(fix: QuickFix): void {
     try {
-      outcome.value = `${fix.apply()} Reload to continue.`;
+      outcome.value = `${faultLog.repair(fix)} Reload to continue.`;
     } catch (e) {
       outcome.value = `That repair failed: ${e instanceof Error ? e.message : String(e)}`;
     }
@@ -52,6 +64,7 @@ export function useDiagnosticsModal(): DiagnosticsModalAPI {
     copied,
     faultLog,
     applyFix,
+    downloadOriginal,
     reload,
     copyReport,
   };

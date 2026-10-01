@@ -5,7 +5,7 @@
  * (winisd_research/GHIDRA_FINDINGS.md "VENTED ALIGNMENT MECHANISM FOUND — 0x46afd0") and
  * validated there against 60 wizard captures (Qts 0.15–1.0) to 2.3e-14. The engine must
  * reproduce those captures to floating-point noise: a percent-level miss is a wrong input, not
- * rounding. WinISD does not clamp: outside ~0.25–0.6 the polynomials are extrapolated as-is
+ * rounding. WinISD does not clamp: the polynomials are evaluated as-is at every captured Qts
  * (C4 at Qts 1.0 gives 1684 L) and the captures pin that too.
  *
  * Inputs: the SOURCE-LOADED Qts (`sourceLoadedQts` — WinISD folds the project's series

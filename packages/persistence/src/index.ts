@@ -34,15 +34,15 @@ export { createFileOpen, type FileOpen, type FilePick, type FilePickerFilter } f
 export {
   OPENISD_STATE_KEY, OPENISD_PROJECTS_KEY, OPENISD_OPEN_SESSIONS_KEY, OPENISD_VIEW_KEY,
   OPENISD_MY_DRIVERS_KEY, OPENISD_MY_PASSIVE_RADIATORS_KEY,
-  OPENISD_FAVOURITE_DRIVERS_KEY, OPENISD_QUARANTINE_DRIVER_KEY,
-  OPENISD_STORAGE_KEYS,
+  OPENISD_FAVOURITE_DRIVERS_KEY,
+  OPENISD_STORAGE_KEYS, OPENISD_BACKUP_KEYS,
 } from './repos/storageKeys.js';
 
 export { type SaveResult, type FileStorage, createFileStorage } from './storage/fileStorage.js';
 
 export {
   type ViewSnapshot,
-  type ProjectRepo, type StoredProjectListing, type OpenProjectSession, type FileNaming,
+  type ProjectRepo, type StoredProjectListing, type OpenProjectSession, type FileNaming, type ProjectRepairReport,
   createProjectRepo,
   PROJECT_EXT, projectNameFromFilename, projectFilename, copyOfName, uniqueName,
 } from './repos/projectRepo.js';

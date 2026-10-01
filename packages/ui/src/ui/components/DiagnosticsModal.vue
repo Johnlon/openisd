@@ -12,18 +12,28 @@
  */
 import {useDiagnosticsModal} from '../../hooks/DiagnosticsModal-hooks.js';
 
-const {faultLog, open, outcome, copied, applyFix, reload, copyReport} = useDiagnosticsModal();
+const {faultLog, open, outcome, copied, applyFix, downloadOriginal, reload, copyReport} = useDiagnosticsModal();
 </script>
 
 <template>
   <div v-if="open" class="dg-backdrop">
     <div class="dg" role="alertdialog" aria-labelledby="dg-title">
       <header>
-        <h2 id="dg-title">Something went wrong</h2>
+        <h2 id="dg-title">{{ faultLog.faults.length ? 'Something went wrong' : 'Saved projects were repaired' }}</h2>
         <button class="dg-x" title="Dismiss — the app stays as it is" @click="open = false">&times;</button>
       </header>
 
-      <section class="dg-faults">
+      <section v-if="faultLog.repairs.length" class="dg-repaired">
+        <div v-for="(r, i) in faultLog.repairs" :key="i" class="dg-fix">
+          <div class="dg-fix-head">
+            <strong>“{{ r.projectName }}” loaded with {{ r.fields.length }} field(s) reset to the default</strong>
+            <button v-if="r.backupKey" @click="downloadOriginal(r)">Download the original</button>
+          </div>
+          <div class="dg-loses">Reset: {{ r.fields.join(', ') }}</div>
+        </div>
+      </section>
+
+      <section v-if="faultLog.faults.length" class="dg-faults">
         <div v-for="f in faultLog.faults" :key="f.id" class="dg-fault">
           <div class="dg-msg">
             <span class="dg-kind">{{ f.kind }}</span>
@@ -46,7 +56,7 @@ const {faultLog, open, outcome, copied, applyFix, reload, copyReport} = useDiagn
           <div v-else class="dg-keeps">Loses: nothing</div>
         </div>
       </section>
-      <p v-else class="dg-nofix">
+      <p v-else-if="faultLog.faults.length" class="dg-nofix">
         No stored-state repair applies — this fault is in the running code, not in your saved
         data. Copy the report below.
       </p>

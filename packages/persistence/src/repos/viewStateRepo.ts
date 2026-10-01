@@ -7,7 +7,7 @@
  *  repo only ever needs local persistence. */
 import type {ChartView, ViewRange, ViewSnapshot} from './projectRepo.js';
 import type {KeyValueStorage} from '../storage/keyValueStorage.js';
-import {OPENISD_VIEW_KEY} from './storageKeys.js';
+import {OPENISD_VIEW_KEY, OPENISD_BACKUP_KEYS} from './storageKeys.js';
 
 export const VIEW_STATE_KEY = OPENISD_VIEW_KEY;
 
@@ -20,6 +20,10 @@ export interface ViewStateRepo {
   load(): ViewSnapshot | null;
   /** Call `onChange` whenever another tab saves the view. Returns the call that stops it. */
   watch(onChange: () => void): () => void;
+  /** The stored text verbatim, or null when none — what a backup saves. */
+  exportRaw(): string | null;
+  /** Forget the stored view; the next load reads the defaults. */
+  reset(): void;
 }
 
 function isViewSnapshot(obj: unknown): obj is ViewSnapshot {
@@ -60,9 +64,20 @@ function canonicalJson(value: unknown): string {
   });
 }
 
+/** Whether stored view text parses as a view with nothing dropped. */
+function readsCleanly(text: string): boolean {
+  let parsed: unknown;
+  try { parsed = JSON.parse(text); } catch { return false; }
+  if (!isViewSnapshot(parsed)) return false;
+  return !('chart' in parsed) || parseChartView(parsed.chart) !== null;
+}
+
 export function createViewStateRepo(storage: KeyValueStorage): ViewStateRepo {
   return {
     save(v: ViewSnapshot): void {
+      // A stored view this repo could not read is about to be overwritten: keep its text.
+      const before = storage.get(VIEW_STATE_KEY);
+      if (before !== null && !readsCleanly(before)) storage.set(OPENISD_BACKUP_KEYS.view, before);
       storage.set(VIEW_STATE_KEY, canonicalJson(v));
     },
     load(): ViewSnapshot | null {
@@ -84,5 +99,7 @@ export function createViewStateRepo(storage: KeyValueStorage): ViewStateRepo {
     watch(onChange: () => void): () => void {
       return storage.watch(VIEW_STATE_KEY, onChange);
     },
+    exportRaw: () => storage.get(VIEW_STATE_KEY),
+    reset: () => storage.remove(VIEW_STATE_KEY),
   };
 }

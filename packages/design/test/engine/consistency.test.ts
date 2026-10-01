@@ -395,11 +395,11 @@ describe('a calculation issue\'s own sentence', () => {
 });
 
 describe('a vented-plausibility issue\'s own sentence', () => {
-  it('states the value, its unit and that WinISD agrees, for a non-physical answer', () => {
+  it('states the value and its unit, and does not claim WinISD agrees, for a non-physical answer', () => {
     const text = engine.issues.nonPhysicalQuantity('Vb', -0.02).text;
     expect(text).toMatch(/-20 L/);
     expect(text).toMatch(/not a physical/i);
-    expect(text).toMatch(/WinISD/);
+    expect(text).not.toMatch(/WinISD/);
   });
 
   it('states the band a value fell outside', () => {

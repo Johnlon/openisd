@@ -1,8 +1,8 @@
 /**
  * `Engine.vented.plausibility()` — is a designed vented box a box anyone could build?
  *
- * The alignment formulas keep PARITY with WinISD outside their design range: WinISD does not
- * clamp, it extrapolates, so `ventedAlignment()` extrapolates too (C4 at a source-loaded Qts of
+ * The alignment formulas keep PARITY with WinISD at every Qts: WinISD does not
+ * clamp, so `ventedAlignment()` does not either (C4 at a source-loaded Qts of
  * 1.0 designs a 1684 L box tuned to 5.4 Hz). The number is not changed — it is MARKED. This is
  * the marking, and nothing here may alter a designed value.
  *
@@ -52,6 +52,19 @@ describe('Engine.ventedPlausibility', () => {
     assert.deepEqual(
       wide.vented.plausibility({Vb: 0.05, Fb: -3}),
       [wide.issues.nonPhysicalQuantity('Fb', -3)]);
+  });
+
+  it('a non-physical issue does NOT claim WinISD parity — that evidence covers only normal outputs', () => {
+    // The 60-capture parity evidence (Qts 0.15–1.0, Ql 10) never exercised a degenerate input,
+    // so a non-physical sentence may not assert what WinISD does there (BUG_20261001
+    // nonphysical-parity-text-overreach). The out-of-range sentence keeps the claim.
+    const issues = wide.vented.plausibility({Vb: Number.POSITIVE_INFINITY, Fb: 35});
+    assert.equal(issues.length, 1);
+    assert.ok(!issues[0].text.includes('WinISD'),
+      `non-physical text must not claim WinISD parity, got: ${issues[0].text}`);
+    const band = narrow.vented.plausibility({Vb: 1.684, Fb: 35});
+    assert.ok(band[0].text.includes('WinISD'),
+      `out-of-range text keeps the parity sentence, got: ${band[0].text}`);
   });
 
   it('marks NaN and Infinity non-physical', () => {

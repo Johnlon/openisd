@@ -3,7 +3,6 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 import {dirname, join} from 'node:path';
-import {z} from 'zod';
 import {createLogging} from '../../src/logging/flash.js';
 import {createApplicationIO} from '../../src/logic/useApplicationIO.js';
 import {DesignFiles} from '../../src/logic/fileImportExport.js';
@@ -141,7 +140,7 @@ describe('.wpr import syncs state.project from the file, and export round-trips 
     }
   });
 
-  it('a malformed .owpr logs the FULL parse error list to the console, before the alert (QO152)', async () => {
+  it('an .owpr that is not a project logs the FULL parse error list to the console, before the alert (QO152)', async () => {
     const alerts: string[] = [];
     const consoleErrors: unknown[][] = [];
     vi.stubGlobal('alert', (msg: string) => { alerts.push(msg); });
@@ -162,24 +161,10 @@ describe('.wpr import syncs state.project from the file, and export round-trips 
       const repo = createProjectRepo(engine, createFileStorage(), createMemoryStorage());
       const io = createApplicationIO({ logging: createLogging(), fileStorage: createFileStorage(), fileOpen: createFileOpen(), projectRepo: repo, files: new DesignFiles(engine, repo), backup });
 
-      // A genuinely valid project, corrupted back to the pre-S9a shape (a solver-slot entry
-      // stated as a bare `null`) at TWO distinct fields, so a fix that only logs `errors[0]` is
-      // distinguishable from one that logs all of them.
-      const FIXTURE = SAMPLE_PROJECT_OWPR;
-      const owprFixtureSchema = z.looseObject({
-        saved: z.looseObject({
-          box: z.looseObject({
-            vented: z.looseObject({
-              chamber: z.looseObject({ tuning_goal_hz: z.unknown() }),
-              vent: z.looseObject({ length_m: z.unknown() }),
-            }),
-          }),
-        }),
-      });
-      const parsed = owprFixtureSchema.parse(JSON.parse(readFileSync(FIXTURE, 'utf8')));
-      parsed.saved.box.vented.chamber.tuning_goal_hz = null;
-      parsed.saved.box.vented.vent.length_m = null;
-      const fakeFile = new File([new TextEncoder().encode(JSON.stringify(parsed))], 'broken.owpr');
+      // Not a project at all — every required top-level member is missing — so there is nothing a
+      // field-level repair can keep (a project with bad fields loads repaired instead; John,
+      // 2026-10-01). Two members are named, so a fix that only logs `errors[0]` is caught.
+      const fakeFile = new File([new TextEncoder().encode('{}')], 'broken.owpr');
       io.importFile(fakeFile);
       await new Promise(resolve => setTimeout(resolve, 0));
       await new Promise(resolve => setTimeout(resolve, 0));
@@ -189,8 +174,8 @@ describe('.wpr import syncs state.project from the file, and export round-trips 
       const [, loggedRaw] = consoleErrors[0];
       if (typeof loggedRaw !== 'string') throw new Error('console.error\'s second argument must be the error text');
       const logged = loggedRaw;
-      assert.match(logged, /tuning_goal_hz/);
-      assert.match(logged, /length_m/, 'the full error list must name BOTH bad fields, not just the first');
+      assert.match(logged, /label/);
+      assert.match(logged, /saved/, 'the full error list must name BOTH missing members, not just the first');
     } finally {
       vi.unstubAllGlobals();
       vi.restoreAllMocks();

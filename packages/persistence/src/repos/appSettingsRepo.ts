@@ -3,7 +3,7 @@
 import {DEFAULT_VENTED_DESIGN_LIMITS, DEFAULT_ENV_DEFAULTS} from '@openisd/design/engine';
 import type {AppSettings, EnvDefaults, VentedDesignLimits} from '@openisd/design/engine';
 import type {KeyValueStorage} from '../storage/keyValueStorage.js';
-import {OPENISD_APP_SETTINGS_KEY} from './storageKeys.js';
+import {OPENISD_APP_SETTINGS_KEY, OPENISD_BACKUP_KEYS} from './storageKeys.js';
 
 // What the user configured for the application itself — today, the band that decides which
 // designed values get a DQ mark, and the environment defaults a project falls back to when it
@@ -22,6 +22,10 @@ export const APP_SETTINGS_KEY = OPENISD_APP_SETTINGS_KEY;
 export interface AppSettingsRepo extends AppSettings {
   setVentedLimits(limits: VentedDesignLimits): void;
   setEnvDefaults(defaults: EnvDefaults): void;
+  /** The stored text verbatim, or null when none — what a backup saves. */
+  exportRaw(): string | null;
+  /** Forget the stored settings; every setting reads its factory value. */
+  reset(): void;
 }
 
 /** The stored record — one member per setting, so the next app-level setting is an added
@@ -59,36 +63,49 @@ function parseEnv(raw: unknown): EnvDefaults | null {
   return {tempK, humidityPct, pressurePa};
 }
 
-function parseStored(text: string | null): StoredAppSettings | null {
-  if (text === null) return null;
-  try {
-    const parsed: unknown = JSON.parse(text);
-    if (typeof parsed !== 'object' || parsed === null || !('vented' in parsed)) return null;
-    const vented = parseVented(parsed.vented);
-    if (vented === null) return null;
-    const env = 'env' in parsed ? parseEnv(parsed.env) : null;
-    return env === null ? {vented} : {vented, env};
-  } catch { return null; }
+/** The stored record, each member parsed on its own: a bad member reads as absent (its factory
+ *  value) without costing the others. `clean` is false when stored text had anything that did
+ *  not parse — the text a write must back up before replacing it. */
+interface ParsedAppSettings {
+  readonly vented: VentedDesignLimits | null;
+  readonly env: EnvDefaults | null;
+  readonly clean: boolean;
+}
+
+function parseStored(text: string | null): ParsedAppSettings {
+  if (text === null) return {vented: null, env: null, clean: true};
+  let parsed: unknown;
+  try { parsed = JSON.parse(text); } catch { return {vented: null, env: null, clean: false}; }
+  if (typeof parsed !== 'object' || parsed === null) return {vented: null, env: null, clean: false};
+  const vented = 'vented' in parsed ? parseVented(parsed.vented) : null;
+  const env = 'env' in parsed ? parseEnv(parsed.env) : null;
+  const clean = ('vented' in parsed) === (vented !== null) && ('env' in parsed) === (env !== null);
+  return {vented, env, clean};
 }
 
 export function createAppSettingsRepo(storage: KeyValueStorage): AppSettingsRepo {
+  /** Replace the record with `next(current)`, backing the old text up first when part of it
+   *  could not be read — that part is about to be overwritten. */
+  function write(next: (current: ParsedAppSettings) => StoredAppSettings): void {
+    const text = storage.get(APP_SETTINGS_KEY);
+    const current = parseStored(text);
+    if (text !== null && !current.clean) storage.set(OPENISD_BACKUP_KEYS.appSettings, text);
+    storage.set(APP_SETTINGS_KEY, JSON.stringify(next(current)));
+  }
   return {
     ventedLimits(): VentedDesignLimits {
-      return parseStored(storage.get(APP_SETTINGS_KEY))?.vented ?? DEFAULT_VENTED_DESIGN_LIMITS;
+      return parseStored(storage.get(APP_SETTINGS_KEY)).vented ?? DEFAULT_VENTED_DESIGN_LIMITS;
     },
     envDefaults(): EnvDefaults {
-      return parseStored(storage.get(APP_SETTINGS_KEY))?.env ?? DEFAULT_ENV_DEFAULTS;
+      return parseStored(storage.get(APP_SETTINGS_KEY)).env ?? DEFAULT_ENV_DEFAULTS;
     },
     setVentedLimits(limits: VentedDesignLimits): void {
-      const current = parseStored(storage.get(APP_SETTINGS_KEY));
-      const stored: StoredAppSettings = current?.env === undefined
-        ? {vented: limits} : {vented: limits, env: current.env};
-      storage.set(APP_SETTINGS_KEY, JSON.stringify(stored));
+      write(current => current.env === null ? {vented: limits} : {vented: limits, env: current.env});
     },
     setEnvDefaults(defaults: EnvDefaults): void {
-      const current = parseStored(storage.get(APP_SETTINGS_KEY));
-      const stored: StoredAppSettings = {vented: current?.vented ?? DEFAULT_VENTED_DESIGN_LIMITS, env: defaults};
-      storage.set(APP_SETTINGS_KEY, JSON.stringify(stored));
+      write(current => ({vented: current.vented ?? DEFAULT_VENTED_DESIGN_LIMITS, env: defaults}));
     },
+    exportRaw: () => storage.get(APP_SETTINGS_KEY),
+    reset: () => storage.remove(APP_SETTINGS_KEY),
   };
 }

@@ -3,7 +3,7 @@ import { computed, type ComputedRef, ref, type Ref, shallowRef } from 'vue';
 // hook only names their shapes, so neither import is a layering edge (QO80).
 import type { OpenISDDriver, OpenISDProject } from '@openisd/design';
 import type { BoxType, EbpSuitability, SealedEngine, VentedAlignment, VentedEngine, Wiring } from '@openisd/design/engine';
-import {ARRAY_WIRING_OPTIONS, DEFAULT_SOURCE_RESISTANCE_OHM, DEFAULT_VENTED_ALIGNMENT, NumberField, SEALED_ALIGNMENT_OPTIONS, VENTED_ALIGNMENT_OPTIONS, type SelectorOption} from '@openisd/design/fields';
+import {ARRAY_WIRING_OPTIONS, DEFAULT_NEW_PROJECT_VENTED_QL, DEFAULT_SOURCE_RESISTANCE_OHM, DEFAULT_VENTED_ALIGNMENT, NumberField, SEALED_ALIGNMENT_OPTIONS, VENTED_ALIGNMENT_OPTIONS, type SelectorOption} from '@openisd/design/fields';
 import {
   createProject as createProjectInStore,
   isModified,
@@ -105,10 +105,11 @@ export interface OriginalNewProjectAPI {
   cancel(): void;
 }
 
-/** The vented `Ql` a new project is born with (`NO_VENTED_LOSSES` in the schema). The preview
- *  runs before the project exists, so it is read here; `OriginalNewProject-hooks.test.ts` pins it to
- *  the created project's own value. */
-const NEW_PROJECT_VENTED_QL = 10;
+/** The vented `Ql` a new project is born with — ONE declaration in `fields/defaults.ts`, shared
+ *  with `domain/boxDefaults.ts`'s starting losses. The preview runs before the project exists, so
+ *  it reads the same constant; the test pins it to the created project's own value.
+ *  Re-exported so the test can pin the sharing without a second import path. */
+export const NEW_PROJECT_VENTED_QL = DEFAULT_NEW_PROJECT_VENTED_QL;
 
 const STEP_LABELS = Object.freeze([
   'Select driver for project',

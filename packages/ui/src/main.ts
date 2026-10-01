@@ -40,7 +40,14 @@ import './style.css';
 
 // --- services: arguments in, data out, no app state ---
 // FIRST: a fault that fires while the rest of this file runs must still be caught.
-const faultLog = createFaultLog();
+// A repair's backup is a file download: the user keeps it outside the browser.
+const faultLog = createFaultLog((fileName, text) => {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([text], { type: 'application/json' }));
+  a.download = fileName;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}, () => ({ view: viewStateRepo, appSettings: appSettingsRepo }));
 faultLog.install();
 
 // STORAGE (port): the browser's own key-value storage.
@@ -51,7 +58,8 @@ const storage = createLocalStorage();
 // against a different band depending on which of the two a caller happened to hold.
 // `installAppSettings` is what points it at the browser-backed store; until this line runs it
 // reads the factory band.
-installAppSettings(createAppSettingsRepo(storage));
+const appSettingsRepo = createAppSettingsRepo(storage);
+installAppSettings(appSettingsRepo);
 const logging = createLogging();
 // The bundled catalogue — docs/design/BUNDLED_CATALOGUE_API.md. Two repos over the same
 // mechanism: an index fetched when a picker opens, one record fetched when a device is picked,
@@ -71,7 +79,7 @@ const driverFileStorage = createFileStorage();
 
 // --- application layer: the app's state and what it does next ---
 const selection = createDriverSelection();
-const projectRepo = createProjectRepo(engine, fileStorage, storage);
+const projectRepo = createProjectRepo(engine, fileStorage, storage, report => faultLog.recordRepair(report));
 const designFiles = new DesignFiles(engine, projectRepo);
 const driverDrafts = new DriverDrafts(engine, appContext);
 const driverBrowsing = createDriverBrowsingState({

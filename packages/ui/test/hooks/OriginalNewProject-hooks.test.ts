@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {DEFAULT_ENV_DEFAULTS, type Engine, createEngine, type VentedDesignLimits} from '@openisd/design/engine';
 import { OpenISDDriver } from '@openisd/design';
-import { useOgNewProject } from '../../src/hooks/OriginalNewProject-hooks.js';
+import { NEW_PROJECT_VENTED_QL, useOgNewProject } from '../../src/hooks/OriginalNewProject-hooks.js';
 
 /** An engine judging designed vented boxes against `band` — the shape the Settings tab writes. */
 const engineWithBand = (band: VentedDesignLimits) =>
@@ -183,6 +183,31 @@ describe('useOgNewProject', () => {
     expect(project?.box.vented.tuning_goal_hz.value).toBeCloseTo(wizard.ventedTuning_hz.value, 12);
   });
 
+  it("the wizard preview's Ql is the SCHEMA's new-project Ql, not a hook-local copy (plan FIX_WIZARD_VENTED-remains #3)", () => {
+    // The preview constant and the box record's starting value must be ONE declaration: if the
+    // schema's NO_VENTED_LOSSES ever changes, a hook-local `10` would silently disagree with
+    // the project the wizard creates. The design is made from the created project's OWN Ql
+    // (openisdTransforms afterWrap), so the preview must read the same source.
+    const engine = createEngine();
+    const wizard = useOgNewProject({ areas: engine, initialDriver: captureDriver(engine) });
+    wizard.boxType.value = 'vented';
+    wizard.selectVentedAlignment('bb4');
+    const previewVb_m3 = wizard.ventedVolume_L.value / 1000;
+
+    const project = wizard.createProject();
+    expect(project).not.toBeNull();
+    if (!project) return;
+    const qtsLoaded = project.driver.sourceLoadedQts(project.Rs_ohm.value);
+    expect(qtsLoaded).not.toBeNull();
+    if (qtsLoaded === null) return;
+    const fromProject = engine.vented.alignment(
+      'bb4', 40, qtsLoaded, 0.02, project.box.vented.losses.Ql.value,
+    );
+    expect(previewVb_m3).toBeCloseTo(fromProject.Vb, 12);
+    // And the constants are literally shared — the hook no longer carries its own literal.
+    expect(NEW_PROJECT_VENTED_QL).toBe(project.box.vented.losses.Ql.value);
+  });
+
   it('the preview uses the same Rg and Ql the created project carries', () => {
     const engine = createEngine();
     const wizard = useOgNewProject({ areas: engine, initialDriver: captureDriver(engine) });
@@ -336,8 +361,8 @@ describe('useOgNewProject', () => {
 /**
  * Step 4's vented readout says when the designed box is implausible.
  *
- * WinISD extrapolates its alignment polynomials outside their design range and OpenISD matches
- * it bit-exact, so the number on screen is right and stays put (John 2026-09-22: "keep parity
+ * WinISD does not clamp its alignment polynomials and OpenISD matches
+ * it bit-exact, so the number on screen matches WinISD and stays put (John 2026-09-22: "keep parity
  * and use dq — this is the way"). The readout MARKS it instead: the wizard is the one surface
  * where the user meets a designed value before a project exists to carry a cell's DQ.
  *
