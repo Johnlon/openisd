@@ -25,19 +25,19 @@ const {
     <div class="mob-panel-head">Environment</div>
     <div class="mob-field-row" :class="[envTempStored ? 'mob-field-entered' : 'mob-field-calculated', { 'mob-field-dq': envTempDq.dq.length > 0 }]" :title="envTempDq.dq.join('; ')">
       <div class="mob-field-main"><span class="mob-field-label">Temperature</span>
-        <span class="mob-field-value"><NumInput v-model="advTemp" :field="NumberField.ADV_TEMP_K" unit-key="advTemp" :precision="2" :allow-out-of-range="true" v-bind="envTempDq" /></span>
+        <span class="mob-field-value"><NumInput v-model="advTemp" :field="NumberField.ADV_TEMP_K" unit-key="advTemp" :precision="2" :allow-out-of-range="true" v-bind="envTempDq" stepper /></span>
       </div>
       <UnitToggle :field="NumberField.ADV_TEMP_K" unit-key="advTemp" unit-class="mob-unit" />
     </div>
     <div class="mob-field-row" :class="[envHumidityStored ? 'mob-field-entered' : 'mob-field-calculated', { 'mob-field-dq': envHumidityDq.dq.length > 0 }]" :title="envHumidityDq.dq.join('; ')">
       <div class="mob-field-main"><span class="mob-field-label">Relative humidity</span>
-        <span class="mob-field-value"><NumInput v-model="advHumidity" :precision="2" :allow-out-of-range="true" v-bind="envHumidityDq" /></span>
+        <span class="mob-field-value"><NumInput v-model="advHumidity" :precision="2" :allow-out-of-range="true" v-bind="envHumidityDq" stepper /></span>
       </div>
       <span class="mob-unit">%</span>
     </div>
     <div class="mob-field-row" :class="[envPressureStored ? 'mob-field-entered' : 'mob-field-calculated', { 'mob-field-dq': envPressureDq.dq.length > 0 }]" :title="envPressureDq.dq.join('; ')">
       <div class="mob-field-main"><span class="mob-field-label">Air pressure</span>
-        <span class="mob-field-value"><NumInput v-model="advPressure" :field="NumberField.ADV_PRESSURE_KPA" unit-key="advPressure" :precision="1" :allow-out-of-range="true" v-bind="envPressureDq" /></span>
+        <span class="mob-field-value"><NumInput v-model="advPressure" :field="NumberField.ADV_PRESSURE_KPA" unit-key="advPressure" :precision="1" :allow-out-of-range="true" v-bind="envPressureDq" stepper /></span>
       </div>
       <UnitToggle :field="NumberField.ADV_PRESSURE_KPA" unit-key="advPressure" unit-class="mob-unit" />
     </div>
@@ -166,7 +166,7 @@ const {
 .mob-field-dq { border-left-color: var(--acc2); }
 .mob-field-main { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
 .mob-field-label { font-size: 13px; color: var(--mut); }
-.mob-field-value { font-size: 18px; font-variant-numeric: tabular-nums; }
+.mob-field-value { font-size: 18px; font-variant-numeric: tabular-nums; display: flex; align-items: center; gap: 6px; }
 .mob-field-value :deep(input) {
   border: none;
   background: transparent;
@@ -174,7 +174,8 @@ const {
   font-size: 18px;
   color: var(--fg);
   padding: 0;
-  width: 100%;
+  flex: 1 1 auto;
+  min-width: 0;
   min-height: 32px;
 }
 .mob-readonly { color: var(--acc); }

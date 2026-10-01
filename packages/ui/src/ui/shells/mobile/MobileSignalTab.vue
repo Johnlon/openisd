@@ -15,7 +15,7 @@ const { driveV, reconcileDriveV, powerLocked, rsOhm, powerDq, voltageDq, power_W
       <div class="mob-field-main">
         <span class="mob-field-label">System input power</span>
         <span class="mob-field-value">
-          <NumInput :field="NumberField.SIGNAL_PIN_W" :readonly="powerLocked" :model-value="power_W" @update:model-value="setPower" :precision="NumberField.SIGNAL_PIN_W.precision" />
+          <NumInput :field="NumberField.SIGNAL_PIN_W" :readonly="powerLocked" :model-value="power_W" @update:model-value="setPower" :precision="NumberField.SIGNAL_PIN_W.precision" stepper />
         </span>
         <span v-if="powerDq.dq.length" class="mob-field-dq-note">{{ powerDq.dq[0] }}</span>
       </div>
@@ -26,7 +26,7 @@ const { driveV, reconcileDriveV, powerLocked, rsOhm, powerDq, voltageDq, power_W
       <div class="mob-field-main">
         <span class="mob-field-label">Driver input voltage (each)</span>
         <span class="mob-field-value">
-          <NumInput :field="NumberField.SIGNAL_DRIVEV_V" v-model="driveV" :precision="NumberField.SIGNAL_DRIVEV_V.precision" @blur-notify="reconcileDriveV" />
+          <NumInput :field="NumberField.SIGNAL_DRIVEV_V" v-model="driveV" :precision="NumberField.SIGNAL_DRIVEV_V.precision" @blur-notify="reconcileDriveV" stepper />
         </span>
       </div>
       <span class="mob-unit">V</span>
@@ -35,7 +35,7 @@ const { driveV, reconcileDriveV, powerLocked, rsOhm, powerDq, voltageDq, power_W
     <div class="mob-field-row mob-field-entered">
       <div class="mob-field-main">
         <span class="mob-field-label">Series resistance</span>
-        <span class="mob-field-value"><NumInput v-model="rsOhm" :precision="NumberField.SIGNAL_RS_OHM.precision" /></span>
+        <span class="mob-field-value"><NumInput v-model="rsOhm" :precision="NumberField.SIGNAL_RS_OHM.precision" stepper /></span>
       </div>
       <span class="mob-unit">ohm</span>
     </div>
@@ -73,7 +73,7 @@ const { driveV, reconcileDriveV, powerLocked, rsOhm, powerDq, voltageDq, power_W
 .mob-field-dq { border-left-color: var(--acc2); }
 .mob-field-main { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
 .mob-field-label { font-size: 13px; color: var(--mut); }
-.mob-field-value { font-size: 18px; font-variant-numeric: tabular-nums; }
+.mob-field-value { font-size: 18px; font-variant-numeric: tabular-nums; display: flex; align-items: center; gap: 6px; }
 .mob-field-value :deep(input) {
   border: none;
   background: transparent;
@@ -81,7 +81,8 @@ const { driveV, reconcileDriveV, powerLocked, rsOhm, powerDq, voltageDq, power_W
   font-size: 18px;
   color: var(--fg);
   padding: 0;
-  width: 100%;
+  flex: 1 1 auto;
+  min-width: 0;
   min-height: 32px;
 }
 .mob-field-dq-note { font-size: 12px; color: var(--acc2); }

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {computed, ref, watch} from 'vue';
+import {computed, onBeforeUnmount, ref, useAttrs, watch} from 'vue';
 import {unitToken} from '../../logic/presentationState.js';
 import {displayPrecision, fromDisplay, statedPrecision, toDisplay} from '../../logic/fields/units.js';
 import {type NumberField} from '@openisd/design/fields';
@@ -38,12 +38,20 @@ const props = withDefaults(defineProps<{
   // treatment. Both are redlined; only the entered one is called out as the cause.
   dq?: readonly string[];
   dqState?: ProvenanceLetter;
+  /** Render touch-sized up/down buttons beside the field (mobile's dense rows, John
+   *  2026-10-01: "lots of empty space ... wants up/down step buttons"). Opt-in — desktop's
+   *  many call sites are unaffected unless they ask for it. The buttons drive the SAME
+   *  native stepUp()/stepDown() the keyboard arrows and the browser's own spinner already
+   *  use (`onKeydown`'s ArrowUp/ArrowDown case, `stepAttr` below) — there is no second step
+   *  or rounding path to keep in sync. */
+  stepper?: boolean;
 }>(), {
   modelValue: null,
   precision: 2,   // decimal places (fixed); WinISD's most common field width
   step: 'any',
   mandatory: false,
   allowOutOfRange: false,
+  stepper: false,
 });
 
 const emit = defineEmits<{
@@ -137,6 +145,44 @@ function onWheel() { typing.value = false; }   // wheel over the field is a step
 // A mouse press (incl. on the native ▲▼ spinner buttons) is not typing → reformat on the
 // resulting step. If the press is to place the caret, the next keydown flips typing back on.
 function onPointerDown() { typing.value = false; }
+
+// `readonly` is never a declared prop — it reaches the native input only through $attrs (see
+// the fragment-root note above) — so the stepper reads it the same way to stay in lockstep
+// with whatever actually makes the field uneditable.
+const attrs = useAttrs();
+const isReadonly = computed(() => attrs.readonly !== undefined && attrs.readonly !== false);
+const showStepper = computed(() => props.stepper && !isReadonly.value);
+
+const inputEl = ref<HTMLInputElement | null>(null);
+let repeatTimer: ReturnType<typeof setTimeout> | undefined;
+
+// Drives the IDENTICAL path a real ArrowUp/ArrowDown keypress or the native spinner already
+// does: the browser's own stepUp()/stepDown() against the same `:step`/`:min`/`:max` this
+// input is already bound to (`stepAttr`/`dispMin`/`dispMax` below), then the resulting
+// `input` event runs through the SAME `onInput()` every other path uses — no second rounding
+// or precision rule to keep in sync with the keyboard/spinner behaviour.
+function applyStep(dir: 1 | -1): void {
+  const el = inputEl.value;
+  if (el === null) return;
+  typing.value = false;   // a step always reformats, same as the keyboard/wheel paths
+  if (dir > 0) el.stepUp(); else el.stepDown();
+  el.dispatchEvent(new Event('input', { bubbles: true }));
+}
+
+function stopRepeat(): void {
+  if (repeatTimer !== undefined) { clearTimeout(repeatTimer); repeatTimer = undefined; }
+}
+// Hold-to-repeat: one immediate step, then a pause before repeating (so a single tap never
+// double-fires), then a faster repeat while held — the common native-spinner feel.
+function startRepeat(dir: 1 | -1): void {
+  stopRepeat();
+  applyStep(dir);
+  repeatTimer = setTimeout(function tick() {
+    applyStep(dir);
+    repeatTimer = setTimeout(tick, 80);
+  }, 450);
+}
+onBeforeUnmount(stopRepeat);
 
 // Effective SI-space bounds: explicit props win; else the bound field's registry limits
 // (the row's own field def in packages/design — bounds there are in SI/model space); else the
@@ -304,10 +350,16 @@ const stepAttr = computed<string | number>(() => {
 </script>
 
 <template>
-  <input v-bind="$attrs" type="number" :step="stepAttr" :min="dispMin" :max="dispMax" :value="display"
+  <input ref="inputEl" v-bind="$attrs" type="number" :step="stepAttr" :min="dispMin" :max="dispMax" :value="display"
     :class="classes" :title="hasDq ? `${helpText ?? ''}${helpText ? ' — ' : ''}${dqTooltip}` : helpText"
     @focus="onFocus" @keydown="onKeydown" @wheel="onWheel" @pointerdown="onPointerDown" @input="onInput" @blur="onBlur">
   <span v-if="hasDq" class="dq-note" :class="{ 'dq-note-root': isRootCause, 'dq-note-symptom': isSymptom }" :title="dqNoteTitle">⚠</span>
+  <span v-if="showStepper" class="num-stepper">
+    <button type="button" class="num-stepper-btn" tabindex="-1" title="Increase"
+      @pointerdown.prevent="startRepeat(1)" @pointerup="stopRepeat" @pointerleave="stopRepeat" @pointercancel="stopRepeat">▲</button>
+    <button type="button" class="num-stepper-btn" tabindex="-1" title="Decrease"
+      @pointerdown.prevent="startRepeat(-1)" @pointerup="stopRepeat" @pointerleave="stopRepeat" @pointercancel="stopRepeat">▼</button>
+  </span>
 </template>
 
 <style scoped>
@@ -337,4 +389,35 @@ span.dq-note {
 }
 span.dq-note-root { color: var(--bad); }
 span.dq-note-symptom { color: color-mix(in srgb, var(--bad) 65%, orange); }
+
+/* Stacked ▲▼, not side-by-side: the dense mobile row has spare width (the empty space to the
+   right of a short number) but a fixed ~48px row height, so stacking is what actually fits —
+   two 22px-tall buttons make a 44px touch target, same ballpark as the row itself. */
+.num-stepper {
+  display: inline-flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  margin-left: 6px;
+}
+.num-stepper-btn {
+  all: unset;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 22px;
+  font-size: 11px;
+  line-height: 1;
+  color: var(--mut);
+  background: var(--panel2, #f0f0f0);
+  border: 1px solid var(--line);
+  cursor: pointer;
+  user-select: none;
+  touch-action: manipulation;
+}
+.num-stepper-btn + .num-stepper-btn { border-top: none; }
+.num-stepper-btn:first-child { border-radius: 4px 4px 0 0; }
+.num-stepper-btn:last-child { border-radius: 0 0 4px 4px; }
+.num-stepper-btn:active { background: var(--acc, #36c); color: #fff; }
 </style>
