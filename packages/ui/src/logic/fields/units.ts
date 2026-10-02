@@ -16,6 +16,7 @@
  */
 
 import {UNIT_GROUPS as DOMAIN_UNIT_GROUPS, type UnitDef, type UnitGroup} from '@openisd/design/fields';
+import {knownDecimals} from '@openisd/design';
 
 export const UNIT_GROUPS: Record<UnitGroup, readonly UnitDef[]> = DOMAIN_UNIT_GROUPS;
 export type {UnitDef, UnitGroup};
@@ -89,4 +90,18 @@ export function statedPrecision(typed: string, g?: UnitGroup, token?: string): n
   const halfInDisplay = 0.5 * Math.pow(10, -decimals);
   if (g === undefined || token === undefined) return halfInDisplay;
   return halfInDisplay / unitDef(g, token).factor;
+}
+
+/**
+ * Decimals a value is shown to: at least `minDp` (the field's resolution in the shown unit), more
+ * when the value's own half-width — typed, or inherited from what it was calculated from — states
+ * them. `halfWidthSI` is in SI; only the factor scales a width, never an affine offset. `disp` is
+ * the value in the shown unit.
+ */
+export function shownDecimals(
+  minDp: number, halfWidthSI: number | null | undefined, disp: number, g?: UnitGroup, token?: string,
+): number {
+  if (halfWidthSI == null) return minDp;
+  const factor = g === undefined || token === undefined ? 1 : unitDef(g, token).factor;
+  return Math.max(minDp, knownDecimals(halfWidthSI * factor, disp));
 }

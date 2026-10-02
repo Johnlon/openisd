@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import {displayPrecision} from '../../src/logic/fields/units.js';
+import {displayPrecision, shownDecimals} from '../../src/logic/fields/units.js';
 
 // The registry declares ONE precision per field, in the field's base unit, and that states the
 // field's ABSOLUTE resolution — Mms is known to a hundredth of a gram. Rotating the unit derives
@@ -34,5 +34,28 @@ describe('displayPrecision', () => {
 
   it('floors at zero — a unit finer than the field\'s own resolution needs no decimals', () => {
     expect(displayPrecision(0, 'mass', 'kg', 'g')).toBe(0);
+  });
+});
+
+// A value shows at least its field's decimals, and more where its own half-width — typed, or
+// inherited from what it was calculated from — states them (John, 2026-10-02: "0.0754 entered
+// in η₀ shows as 0.08").
+describe('shownDecimals', () => {
+  it('η₀ typed as 0.0754 % (stored as a fraction) shows 4 decimals in %', () => {
+    const halfWidthSI = 0.00005 / 100;
+    expect(shownDecimals(2, halfWidthSI, 0.0754, 'percent', 'pct')).toBe(4);
+  });
+
+  it('a value typed to fewer decimals than the field shows still shows the field\'s decimals', () => {
+    expect(shownDecimals(3, 0.005, 0.45)).toBe(3);
+  });
+
+  it('no half-width: the field\'s decimals', () => {
+    expect(shownDecimals(2, null, 1.234567)).toBe(2);
+  });
+
+  it('a width stated in grams carries into kilograms', () => {
+    // 30.125 g typed: ±0.0005 g = ±5e-7 kg, shown in kg → 6 decimals.
+    expect(shownDecimals(5, 5e-7, 0.030125, 'mass', 'kg')).toBe(6);
   });
 });

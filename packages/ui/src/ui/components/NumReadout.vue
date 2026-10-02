@@ -11,7 +11,7 @@
 // — this is its read-only twin, not a second implementation.
 import {computed} from 'vue';
 import {unitToken} from '../../logic/presentationState.js';
-import {displayPrecision, toDisplay} from '../../logic/fields/units.js';
+import {displayPrecision, shownDecimals, toDisplay} from '../../logic/fields/units.js';
 import type {NumberField} from '@openisd/design/fields';
 
 const props = withDefaults(defineProps<{
@@ -23,7 +23,11 @@ const props = withDefaults(defineProps<{
    *  field with no alternate units — the SI value is shown unconverted. */
   field?: NumberField;
   unitKey?: string;
+  /** Decimals in the base unit. Defaults to the bound `field`'s own registry precision. */
   precision?: number;
+  /** The value's own half-width in SI — typed, or inherited from what it was calculated from.
+   *  Shows more decimals than `precision` where it states them. */
+  halfWidth?: number | null;
   /** Shown in place of a null/non-finite value — '—' everywhere the app already uses it. */
   placeholder?: string;
   /** Render as a readonly `<input>` (desktop's "greyed field" look) instead of a bare `<span>`
@@ -31,7 +35,8 @@ const props = withDefaults(defineProps<{
   asInput?: boolean;
 }>(), {
   value: null,
-  precision: 2,
+  precision: undefined,
+  halfWidth: null,
   placeholder: '—',
   asInput: false,
 });
@@ -39,14 +44,18 @@ const props = withDefaults(defineProps<{
 const sw = computed(() => (props.field?.display.kind === 'switchable' ? props.field.display : undefined));
 const unitized = computed(() => sw.value != null && props.unitKey != null);
 const token = computed(() => (unitized.value ? unitToken(props.unitKey!, sw.value!.base) : ''));
-const eprec = computed(() =>
-  unitized.value ? displayPrecision(props.precision, sw.value!.group, sw.value!.base, token.value) : props.precision);
+const basePrec = computed(() => props.precision ?? props.field?.precision ?? 2);
+const minDp = computed(() =>
+  unitized.value ? displayPrecision(basePrec.value, sw.value!.group, sw.value!.base, token.value) : basePrec.value);
 
 const text = computed(() => {
   const si = props.value;
   if (si == null || !isFinite(si)) return props.placeholder;
   const disp = unitized.value ? toDisplay(si, sw.value!.group, token.value) : si;
-  return disp.toFixed(eprec.value);
+  const dp = unitized.value
+    ? shownDecimals(minDp.value, props.halfWidth, disp, sw.value!.group, token.value)
+    : shownDecimals(minDp.value, props.halfWidth, disp);
+  return disp.toFixed(dp);
 });
 </script>
 

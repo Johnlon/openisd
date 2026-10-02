@@ -70,7 +70,8 @@ const engine = createEngine();
 const REFERENCE_AIR = (): Air => engine.environment.solve({}).values;
 
 /** A test seam for the engine's `SolverField` handle contracts (T10): the value is "entered"
- *  when seeded, and records whatever the solve writes (`calculated`/`not-available`). `precision`
+ *  when seeded, and records whatever the solve writes (`calculated` with its precision, or
+ *  `not-available`). `precision`
  *  left unspecified defaults to `halfUlp(value)` for a numeric entered value — the same fallback
  *  D13's real field factories use when no reading's own `read_precision` is available — so an
  *  existing fixture that never mentioned precision keeps testing the same rounding-derived
@@ -80,13 +81,14 @@ export function fakeSolverField<T = number>(value: T | null, precision?: number 
   let current: T | null = value;
   let state: 'entered' | 'calculated' | 'not-available' = value === null ? 'not-available' : 'entered';
   const ownPrecision = precision !== undefined ? precision : (typeof value === 'number' ? halfUlp(value) : null);
+  let calculatedPrecision: number | null = null;
   return {
     get value() { return current; },
     get entered() { return state === 'entered'; },
     get calculated() { return state === 'calculated'; },
-    get precision() { return state === 'entered' ? ownPrecision : null; },
+    get precision() { return state === 'entered' ? ownPrecision : state === 'calculated' ? calculatedPrecision : null; },
     get dq() { return []; },
-    setCalculated(v: T) { current = v; state = 'calculated'; },
+    setCalculated(v: T, _dq?: unknown, p?: number) { current = v; state = 'calculated'; calculatedPrecision = p ?? null; },
     setDq() {},
     setNotAvailable() { current = null; state = 'not-available'; },
   };
