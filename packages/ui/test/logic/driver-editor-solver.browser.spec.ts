@@ -45,8 +45,9 @@ test.describe('Driver Editor — solver wiring', () => {
     await qesf.fill('0.400');
     await qmsf.fill('4.000');
 
-    // Qts = (0.4 * 4.0) / 4.4 = 0.364 (state C)
-    await expect(qtsf).toHaveValue('0.364');
+    // Qts = (0.4 * 4.0) / 4.4 = 0.36364 (state C). Qes/Qms stated to ±0.0005 move it by
+    // ±0.0004, so it shows 4 decimals.
+    await expect(qtsf).toHaveValue('0.3636');
     await expect(qtsf).toHaveClass(/value-c/);
   });
 
@@ -58,7 +59,7 @@ test.describe('Driver Editor — solver wiring', () => {
     await qtsf.fill('');
     await qesf.fill('0.400');
     await qmsf.fill('4.000');
-    await expect(qtsf).toHaveValue('0.364');
+    await expect(qtsf).toHaveValue('0.3636');
 
     // Clear Qes anchor the caret-safe way (QO11.3's Control+A + Delete — the same gesture
     // pressSequentially and press(Control+a)+press(Delete) exercise; a bare fill('') is a
@@ -79,14 +80,14 @@ test.describe('Driver Editor — solver wiring', () => {
     await qtsf.fill('');
     await page.locator('.de-fld:has-text("Qes") input').fill('0.400');
     await page.locator('.de-fld:has-text("Qms") input').fill('4.000');
-    await expect(qtsf).toHaveValue('0.364');
+    await expect(qtsf).toHaveValue('0.3636');
 
     // Switch to Advanced parameters tab and back
     await page.getByRole('button', { name: 'Advanced parameters', exact: true }).click();
     await page.getByRole('button', { name: 'Parameters', exact: true }).click();
 
     // Value and state class must persist
-    await expect(qtsf).toHaveValue('0.364');
+    await expect(qtsf).toHaveValue('0.3636');
     await expect(qtsf).toHaveClass(/value-c/);
   });
 

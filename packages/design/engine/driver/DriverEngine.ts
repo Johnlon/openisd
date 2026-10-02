@@ -512,6 +512,21 @@ const RELATION_FIELDS: readonly NumericDriverQuantityName[] = Object.freeze(
   Array.from(new Set(RELATIONS.flatMap(rel => rel.fields))),
 );
 
+/** Every numeric driver quantity — what a calculated value's inherited width is measured over. */
+const NUMERIC_QUANTITY_NAMES = Object.freeze([
+  'Fs_hz', 'Re_ohm', 'Znom_ohm', 'Le_H', 'fLe_hz', 'KLe_H_sqrtHz', 'Qes', 'Qms', 'Qts', 'Vas_m3',
+  'Sd_m2', 'Dd_m', 'BL_Tm', 'Mms_kg', 'Cms_m_per_N', 'Rms_kg_per_s', 'EBP_hz', 'Xmax_m', 'Vd_m3',
+  'Hc_m', 'Hg_m', 'Pe_W', 'no', 'SPLref_dB', 'SPL_dB', 'USPL_dB', 'SPLmax_dB', 'SPLmaxLF_dB',
+  'Rme_kg_per_s', 'Mpow_N_per_sqrtW', 'Mcost_kg_per_s', 'gamma_m_per_s2_A', 'Gloss', 'Vcd_m',
+  'Depth_m', 'MagDepth_m', 'Magnet_m', 'DVol_m3', 'c_m_per_s', 'roo_kg_per_m3',
+  'Re_terminal_ohm', 'BL_terminal_Tm',
+] as const satisfies readonly NumericDriverQuantityName[]);
+/** Fails to compile when a numeric quantity is added to `DriverSolverParams` and not listed above. */
+type _MissingFromNumericQuantityNames = Exclude<NumericDriverQuantityName, typeof NUMERIC_QUANTITY_NAMES[number]>;
+type _AssertNumericQuantityNamesComplete = _MissingFromNumericQuantityNames extends never ? true : never;
+const _assertNumericQuantityNamesComplete: _AssertNumericQuantityNamesComplete = true;
+void _assertNumericQuantityNamesComplete;
+
 /** A computed field's uncertainty can collapse to zero when the solve is insensitive to every
  *  entered value; this is a representation floor, not a tolerance. */
 const FLOAT_NOISE = 1e-9;
@@ -539,6 +554,36 @@ function withNumericField(
 }
 
 /**
+ * How far each not-entered quantity in `observed` moves when each entered quantity in
+ * `perturbed` is bumped by its own half-width (`widthOf`), summed: the worst-case width the
+ * entered values' own rounding gives a derived value. A quantity nothing moves is absent.
+ */
+function inheritedWidths(
+  entered: DriverWorkingSet,
+  resolved: DriverWorkingSet,
+  perturbed: readonly NumericDriverQuantityName[],
+  observed: readonly NumericDriverQuantityName[],
+  widthOf: (field: NumericDriverQuantityName) => number,
+): Partial<Record<NumericDriverQuantityName, number>> {
+  const widths: Partial<Record<NumericDriverQuantityName, number>> = {};
+  for (const field of perturbed) {
+    const enteredValue = entered[field];
+    const ownWidth = widthOf(field);
+    if (typeof enteredValue !== 'number' || !(ownWidth > 0)) continue;
+    const bumped = solveConsistencyGroup(withNumericField(entered, field, enteredValue + ownWidth));
+    for (const other of observed) {
+      if (entered[other] != null) continue; // only derived quantities inherit a width
+      const moved = bumped[other];
+      const base = resolved[other];
+      if (typeof moved === 'number' && typeof base === 'number' && isFinite(moved - base) && moved !== base) {
+        widths[other] = (widths[other] ?? 0) + Math.abs(moved - base);
+      }
+    }
+  }
+  return widths;
+}
+
+/**
  * Every entered value's disagreement with what the OTHER entered values imply for it, beyond
  * their own combined rounding precision — plus, for `Qts`, whether the group can even be
  * solved at all. `entered` is the driver's own stated numerics; a value the solver itself
@@ -553,29 +598,15 @@ function checkConsistency(entered: DriverWorkingSet, params: DriverSolverParams)
   // Each field's own uncertainty: an ENTERED field carries its own stated precision (D13); a
   // COMPUTED one starts at the float-representation floor and accumulates however far each
   // entered field's own rounding can move it (below).
+  const inherited = inheritedWidths(entered, resolved, RELATION_FIELDS, RELATION_FIELDS,
+    field => params[field].precision ?? 0);
   const delta: Partial<Record<NumericDriverQuantityName, number>> = {};
   for (const field of RELATION_FIELDS) {
     const value = resolved[field];
     if (typeof value !== 'number') continue;
-    delta[field] = entered[field] != null ? (params[field].precision ?? 0) : Math.abs(value) * FLOAT_NOISE;
-  }
-  for (const field of RELATION_FIELDS) {
-    const enteredValue = entered[field];
-    const ownDelta = delta[field];
-    if (typeof enteredValue !== 'number' || !(ownDelta! > 0)) continue;
-    const bumped = solveConsistencyGroup(withNumericField(entered, field, enteredValue + ownDelta!));
-    for (const other of RELATION_FIELDS) {
-      if (entered[other] != null) continue; // only computed fields accumulate movement
-      const moved = bumped[other];
-      const base = resolved[other];
-      if (typeof moved === 'number' && typeof base === 'number') {
-        // `other` reached here only via `entered[other] == null` (above) and `base` (=
-        // `resolved[other]`) being a number — exactly the two conditions the population loop
-        // above used to set `delta[other]` for every field in `RELATION_FIELDS`, so it is
-        // already set.
-        delta[other] = delta[other]! + Math.abs(moved - base);
-      }
-    }
+    delta[field] = entered[field] != null
+      ? (params[field].precision ?? 0)
+      : Math.abs(value) * FLOAT_NOISE + (inherited[field] ?? 0);
   }
 
   const resolvedValues = valuesFrom(resolved);
@@ -634,11 +665,11 @@ function enteredDriverValue(field: SolverInput): number | undefined {
   return field.entered ? field.value ?? undefined : undefined;
 }
 
-/** Write `value` onto a non-entered handle: derived when present, `not-available` when not. An
- *  entered handle is never touched. */
-function writeDriverBack(field: SolverField, value: number | undefined): void {
+/** Write `value` onto a non-entered handle: derived, with the width it inherits from the entered
+ *  values, when present; `not-available` when not. An entered handle is never touched. */
+function writeDriverBack(field: SolverField, value: number | undefined, width: number | undefined): void {
   if (field.entered) return;
-  if (value != null) field.setCalculated(value); else field.setNotAvailable();
+  if (value != null) field.setCalculated(value, undefined, width); else field.setNotAvailable();
 }
 
 /**
@@ -733,24 +764,26 @@ export class DriverEngineImpl implements DriverEngine {
 
     const solved = solveConsistencyGroup(working);
     const issues: DriverIssue[] = [...checkConsistency(working, params), ...checkRange(params)];
+    const widths = inheritedWidths(working, solved, NUMERIC_QUANTITY_NAMES, NUMERIC_QUANTITY_NAMES,
+      field => params[field].precision ?? 0);
 
-    writeDriverBack(params.Fs_hz, solved.Fs_hz); writeDriverBack(params.Re_ohm, solved.Re_ohm);
-    writeDriverBack(params.Znom_ohm, solved.Znom_ohm); writeDriverBack(params.Le_H, solved.Le_H);
-    writeDriverBack(params.fLe_hz, solved.fLe_hz); writeDriverBack(params.KLe_H_sqrtHz, solved.KLe_H_sqrtHz);
-    writeDriverBack(params.Qes, solved.Qes); writeDriverBack(params.Qms, solved.Qms); writeDriverBack(params.Qts, solved.Qts);
-    writeDriverBack(params.Vas_m3, solved.Vas_m3); writeDriverBack(params.Sd_m2, solved.Sd_m2); writeDriverBack(params.Dd_m, solved.Dd_m);
-    writeDriverBack(params.BL_Tm, solved.BL_Tm); writeDriverBack(params.Mms_kg, solved.Mms_kg);
-    writeDriverBack(params.Cms_m_per_N, solved.Cms_m_per_N); writeDriverBack(params.Rms_kg_per_s, solved.Rms_kg_per_s);
-    writeDriverBack(params.EBP_hz, solved.EBP_hz); writeDriverBack(params.Xmax_m, solved.Xmax_m); writeDriverBack(params.Vd_m3, solved.Vd_m3);
-    writeDriverBack(params.Hc_m, solved.Hc_m); writeDriverBack(params.Hg_m, solved.Hg_m); writeDriverBack(params.Pe_W, solved.Pe_W);
-    writeDriverBack(params.no, solved.no); writeDriverBack(params.SPLref_dB, solved.SPLref_dB); writeDriverBack(params.SPL_dB, solved.SPL_dB);
-    writeDriverBack(params.USPL_dB, solved.USPL_dB); writeDriverBack(params.SPLmax_dB, solved.SPLmax_dB);
-    writeDriverBack(params.SPLmaxLF_dB, solved.SPLmaxLF_dB); writeDriverBack(params.Rme_kg_per_s, solved.Rme_kg_per_s);
-    writeDriverBack(params.Mpow_N_per_sqrtW, solved.Mpow_N_per_sqrtW); writeDriverBack(params.Mcost_kg_per_s, solved.Mcost_kg_per_s);
-    writeDriverBack(params.gamma_m_per_s2_A, solved.gamma_m_per_s2_A); writeDriverBack(params.Gloss, solved.Gloss);
-    writeDriverBack(params.Vcd_m, solved.Vcd_m); writeDriverBack(params.Depth_m, solved.Depth_m); writeDriverBack(params.MagDepth_m, solved.MagDepth_m);
-    writeDriverBack(params.Magnet_m, solved.Magnet_m); writeDriverBack(params.DVol_m3, solved.DVol_m3); writeDriverBack(params.Re_terminal_ohm, solved.Re_terminal_ohm);
-    writeDriverBack(params.BL_terminal_Tm, solved.BL_terminal_Tm);
+    writeDriverBack(params.Fs_hz, solved.Fs_hz, widths.Fs_hz); writeDriverBack(params.Re_ohm, solved.Re_ohm, widths.Re_ohm);
+    writeDriverBack(params.Znom_ohm, solved.Znom_ohm, widths.Znom_ohm); writeDriverBack(params.Le_H, solved.Le_H, widths.Le_H);
+    writeDriverBack(params.fLe_hz, solved.fLe_hz, widths.fLe_hz); writeDriverBack(params.KLe_H_sqrtHz, solved.KLe_H_sqrtHz, widths.KLe_H_sqrtHz);
+    writeDriverBack(params.Qes, solved.Qes, widths.Qes); writeDriverBack(params.Qms, solved.Qms, widths.Qms); writeDriverBack(params.Qts, solved.Qts, widths.Qts);
+    writeDriverBack(params.Vas_m3, solved.Vas_m3, widths.Vas_m3); writeDriverBack(params.Sd_m2, solved.Sd_m2, widths.Sd_m2); writeDriverBack(params.Dd_m, solved.Dd_m, widths.Dd_m);
+    writeDriverBack(params.BL_Tm, solved.BL_Tm, widths.BL_Tm); writeDriverBack(params.Mms_kg, solved.Mms_kg, widths.Mms_kg);
+    writeDriverBack(params.Cms_m_per_N, solved.Cms_m_per_N, widths.Cms_m_per_N); writeDriverBack(params.Rms_kg_per_s, solved.Rms_kg_per_s, widths.Rms_kg_per_s);
+    writeDriverBack(params.EBP_hz, solved.EBP_hz, widths.EBP_hz); writeDriverBack(params.Xmax_m, solved.Xmax_m, widths.Xmax_m); writeDriverBack(params.Vd_m3, solved.Vd_m3, widths.Vd_m3);
+    writeDriverBack(params.Hc_m, solved.Hc_m, widths.Hc_m); writeDriverBack(params.Hg_m, solved.Hg_m, widths.Hg_m); writeDriverBack(params.Pe_W, solved.Pe_W, widths.Pe_W);
+    writeDriverBack(params.no, solved.no, widths.no); writeDriverBack(params.SPLref_dB, solved.SPLref_dB, widths.SPLref_dB); writeDriverBack(params.SPL_dB, solved.SPL_dB, widths.SPL_dB);
+    writeDriverBack(params.USPL_dB, solved.USPL_dB, widths.USPL_dB); writeDriverBack(params.SPLmax_dB, solved.SPLmax_dB, widths.SPLmax_dB);
+    writeDriverBack(params.SPLmaxLF_dB, solved.SPLmaxLF_dB, widths.SPLmaxLF_dB); writeDriverBack(params.Rme_kg_per_s, solved.Rme_kg_per_s, widths.Rme_kg_per_s);
+    writeDriverBack(params.Mpow_N_per_sqrtW, solved.Mpow_N_per_sqrtW, widths.Mpow_N_per_sqrtW); writeDriverBack(params.Mcost_kg_per_s, solved.Mcost_kg_per_s, widths.Mcost_kg_per_s);
+    writeDriverBack(params.gamma_m_per_s2_A, solved.gamma_m_per_s2_A, widths.gamma_m_per_s2_A); writeDriverBack(params.Gloss, solved.Gloss, widths.Gloss);
+    writeDriverBack(params.Vcd_m, solved.Vcd_m, widths.Vcd_m); writeDriverBack(params.Depth_m, solved.Depth_m, widths.Depth_m); writeDriverBack(params.MagDepth_m, solved.MagDepth_m, widths.MagDepth_m);
+    writeDriverBack(params.Magnet_m, solved.Magnet_m, widths.Magnet_m); writeDriverBack(params.DVol_m3, solved.DVol_m3, widths.DVol_m3); writeDriverBack(params.Re_terminal_ohm, solved.Re_terminal_ohm, widths.Re_terminal_ohm);
+    writeDriverBack(params.BL_terminal_Tm, solved.BL_terminal_Tm, widths.BL_terminal_Tm);
     if (!params.c_m_per_s.entered) params.c_m_per_s.setCalculated(air.c);
     if (!params.roo_kg_per_m3.entered) params.roo_kg_per_m3.setCalculated(air.rho);
 

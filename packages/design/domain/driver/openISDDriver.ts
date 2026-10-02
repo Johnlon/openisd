@@ -3,7 +3,7 @@ import type { Air, AirEnvironment, DriverError, DriverIssue, EbpSuitability, Ven
 import { realAppContext } from '../appContext.js';
 import type { AppContext } from '../appContext.js';
 import { ReadableFieldImpl, SetOnlyFieldImpl, absentCell, enteredCell, resolvingField } from '../cell.js';
-import type { Calculated, Clearable, Entered, Readable, SimpleField, Writable } from '../cell.js';
+import type { Calculated, Clearable, Entered, Precise, Readable, SimpleField, Writable } from '../cell.js';
 import { openIsdDriverToWinIsdDriver } from '../winIsdDriverConverter.js';
 import { newUuid } from '../newUuid.js';
 import { asDriverDevice } from '../openisdSchema.js';
@@ -135,7 +135,7 @@ export abstract class OpenISDDriver extends OpenISDDevice {
      *  data-driven field table, which reads, writes and clears through the one it gets back.
      *  Total: every numeric spec name has a handle, so there is no null to check for. */
     specField(field: NumericDriverSpecFieldName):
-        Readable<number | null> & Entered & Calculated & Writable<number> & Clearable {
+        Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable {
 
         return this.specs[field];
     }

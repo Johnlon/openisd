@@ -42,11 +42,14 @@ interface Bound {
   field: string;
   /** `:scale` as bound, or NumInput's default of 1 when absent. */
   scale: number;
-  /** `:precision` as bound, or NumInput's default of 2 when absent. */
+  /** `:precision` as bound; absent, NumInput's default — the bound `:field`'s registry
+   *  precision, or 2 with no field. */
   precision: number;
   /** The `<span class="u">` unit label, or '' when the field carries none. */
   unit: string;
-  /** The literal `:precision="…"` expression, for asserting it reads the registry. */
+  /** The literal `:precision="…"` expression, for asserting it reads the registry. Absent on a
+   *  NumInput bound to a `:field`, it is `<Class>.<MEMBER>.precision` of that field — the default
+   *  NumInput reads. */
   precisionExpr: string;
   /** True when the field binds `group`/`field`/`base` (a click-to-rotate <UnitToggle>) rather
    *  than a fixed `:scale` + static `<span class="u">` label. */
@@ -95,9 +98,10 @@ function boundFields(): Bound[] {
     const field = /<NumInput[^>]*:model-value="cellVal\('([^']+)'\)"/.exec(chunk)?.[1];
     if (!label || !field) continue;                       // read-only readout or a text input
     const numInput = /<NumInput[\s\S]*?>/.exec(chunk)![0];
-    const precisionExpr = /:precision="([^"]+)"/.exec(numInput)?.[1] ?? '';
     const regMatch = /:field="(\w+Field)\.([A-Z0-9_]+)"/.exec(numInput);
     const regField = regMatch ? memberNamed(regMatch[1], regMatch[2]) : null;
+    const precisionExpr = /:precision="([^"]+)"/.exec(numInput)?.[1]
+      ?? (regMatch ? `${regMatch[1]}.${regMatch[2]}.precision` : '');
 
     // A field with a click-to-rotate unit is SWITCHABLE on its own registry entry — the template
     // carries only `:field=`, never a separate `group=`/`base=` (BUG_20260928, "NumInput's

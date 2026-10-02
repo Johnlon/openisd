@@ -10,14 +10,16 @@ export interface SolverField<T = number> {
   /** True if the value was derived by the physics engine ('C'). */
   readonly calculated: boolean;
 
-  /** Half-width of the entered value's rounding interval; `null` unless entered. */
+  /** Half-width of the value's interval: stated when entered, inherited from the entered inputs
+   *  when calculated; `null` when unknown. */
   readonly precision: number | null;
 
   /** The current DQ issues on this field. */
   readonly dq: readonly DqIssue[];
 
-  /** Write a derived value, marking the field as 'calculated' ('C'), and optionally attach DQ. */
-  setCalculated(value: T, dq?: readonly DqIssue[]): void;
+  /** Write a derived value, marking the field as 'calculated' ('C'), optionally attaching DQ and
+   *  the half-width it inherits from its entered inputs. */
+  setCalculated(value: T, dq?: readonly DqIssue[], precision?: number): void;
 
   /** Attach a Data Quality (DQ) issue to an *entered* field. */
   setDq(dq?: readonly DqIssue[]): void;

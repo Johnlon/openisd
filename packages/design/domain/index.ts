@@ -5,7 +5,8 @@
 // (`packages/design/AGENTS.md` "INTERNAL JSON RECORD TYPES — NEVER RE-EXPORTED FROM
 // domain/index.ts").
 
-export type { Readable, Entered, Calculated, Writable, Clearable, Calculatable, Unsolvable, SimpleField, ProvenanceLetter } from './cell.js';
+export type { Readable, Entered, Calculated, Precise, Writable, Clearable, Calculatable, Unsolvable, SimpleField, ProvenanceLetter } from './cell.js';
+export { knownDecimals } from './precision.js';
 // The two ambient system facts a fresh project needs (a new identity, the current time) —
 // injected the same way `Engine` already is, so a test substitutes ONE fake instead of
 // monkey-patching `crypto.randomUUID`/`Date`. `realAppContext` is the production default every

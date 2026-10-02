@@ -34,9 +34,10 @@ export interface Calculated {
   readonly calculated: boolean;
 }
 
-/** Half-width of the entered value's rounding interval; `null` unless entered (D13) — the
- *  tolerance a consistency check widens an input's contribution by, so a value stated as
- *  "0.49" is not flagged against one stated as "0.495". */
+/** Half-width of the value's interval: what an entered value STATES (D13), or what a
+ *  calculated one inherits from the entered values it was derived from; `null` when neither is
+ *  known. A consistency check widens an input's contribution by it, so a value stated as "0.49"
+ *  is not flagged against one stated as "0.495"; a display shows the decimals it supports. */
 export interface Precise {
   readonly precision: number | null;
 }
@@ -54,9 +55,10 @@ export interface Clearable {
   clear(): void;
 }
 
-/** The solver's writes: a derived value with optional notes, or notes alone. */
+/** The solver's writes: a derived value with optional notes and the half-width it inherits from
+ *  its inputs, or notes alone. */
 export interface Calculatable<T> {
-  setCalculated(value: T, dq?: readonly DqIssue[]): void;
+  setCalculated(value: T, dq?: readonly DqIssue[], precision?: number): void;
   setDq(dq?: readonly DqIssue[]): void;
 }
 
@@ -80,7 +82,7 @@ export interface FieldCell<V> {
   readonly value: V;
   readonly entered: boolean;
   readonly calculated: boolean;
-  /** Half-width of the entered value's rounding interval; `null` unless entered (D13). */
+  /** Half-width of the value's interval, entered or calculated; `null` when unknown (D13). */
   readonly precision: number | null;
   readonly dq: readonly DqIssue[];
 }
@@ -89,8 +91,8 @@ export function enteredCell<V>(name: string, value: V, dq?: readonly DqIssue[], 
   return { name, value, entered: true, calculated: false, precision, dq: dq ?? [] };
 }
 
-export function calculatedCell<V>(name: string, value: V, dq?: readonly DqIssue[]): FieldCell<V> {
-  return { name, value, entered: false, calculated: true, precision: null, dq: dq ?? [] };
+export function calculatedCell<V>(name: string, value: V, dq?: readonly DqIssue[], precision: number | null = null): FieldCell<V> {
+  return { name, value, entered: false, calculated: true, precision, dq: dq ?? [] };
 }
 
 export function absentCell<T>(name: string, dq?: readonly DqIssue[]): FieldCell<T | null> {
@@ -105,9 +107,9 @@ export interface Enterable<V> {
   entered(v: V, precision?: number): void;
 }
 
-/** `calculated(v)`/`dq(list)` — the solver's writes. */
+/** `calculated(v, precision)`/`dq(list)` — the solver's writes. */
 export interface SolverWritable<V> {
-  calculated(v: V): void;
+  calculated(v: V, precision?: number): void;
   dq(dq: readonly DqIssue[]): void;
 }
 
@@ -180,8 +182,8 @@ export class DualWriteFieldImpl<T> extends ReadableFieldImpl<T | null>
     if (!this.entered) this.writes.clear();
   }
 
-  setCalculated(value: T, dq?: readonly DqIssue[]): void {
-    this.writes.calculated(value);
+  setCalculated(value: T, dq?: readonly DqIssue[], precision?: number): void {
+    this.writes.calculated(value, precision);
     if (dq !== undefined) this.writes.dq(dq);
   }
 
@@ -208,8 +210,8 @@ export class DefaultingFieldImpl<T> extends ReadableFieldImpl<T>
   set(v: T, precision?: number): void { this.writes.entered(v, precision); }
   clear(): void { this.writes.clear(); }
 
-  setCalculated(value: T, dq?: readonly DqIssue[]): void {
-    this.writes.calculated(value);
+  setCalculated(value: T, dq?: readonly DqIssue[], precision?: number): void {
+    this.writes.calculated(value, precision);
     if (dq !== undefined) this.writes.dq(dq);
   }
 
@@ -343,6 +345,9 @@ export function entryField(
   getDq?: (value: number) => DqIssue | null,
 ): Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable {
   let liveDq: readonly DqIssue[] = [];
+  // A calculated value's inherited width — like `liveDq`, live only: the record format carries
+  // no width for a 'C' entry, and the next solve writes it again.
+  let liveWidth: number | null = null;
   const readCell = (): FieldCell<number | null> => {
     const entry = slot.value;
     const dq = issuesSource ? issuesSource() : liveDq;
@@ -351,12 +356,12 @@ export function entryField(
     const fullDq = extra ? [...dq, extra] : dq;
     return entry.state === 'E'
       ? enteredCell<number | null>(name, entry.value, fullDq, entryPrecision(entry))
-      : calculatedCell<number | null>(name, entry.value, fullDq);
+      : calculatedCell<number | null>(name, entry.value, fullDq, liveWidth);
   };
   return new DualWriteFieldImpl<number>(readCell, {
-    entered: (v, precision) => { liveDq = []; slot.set({ state: 'E', value: v, precision }); },
-    clear: () => { liveDq = []; slot.set(undefined); },
-    calculated: (v) => { liveDq = []; slot.set({ state: 'C', value: v }); },
+    entered: (v, precision) => { liveDq = []; liveWidth = null; slot.set({ state: 'E', value: v, precision }); },
+    clear: () => { liveDq = []; liveWidth = null; slot.set(undefined); },
+    calculated: (v, precision) => { liveDq = []; liveWidth = precision ?? null; slot.set({ state: 'C', value: v }); },
     dq: (list) => { liveDq = list; writeEntryDq(slot, list); },
   });
 }

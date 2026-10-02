@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import {computed, onBeforeUnmount, ref, useAttrs, watch} from 'vue';
 import {unitToken} from '../../logic/presentationState.js';
-import {displayPrecision, fromDisplay, statedPrecision, toDisplay} from '../../logic/fields/units.js';
+import {displayPrecision, fromDisplay, shownDecimals, statedPrecision, toDisplay} from '../../logic/fields/units.js';
 import {type NumberField} from '@openisd/design/fields';
 import type {ProvenanceLetter} from '@openisd/design';
 import {inputFrom} from '../../logic/domEvents.js';
@@ -12,7 +12,11 @@ defineOptions({ inheritAttrs: false });
 
 const props = withDefaults(defineProps<{
   modelValue: number | null | undefined;
+  /** Decimals in the base unit. Defaults to the bound `field`'s own registry precision. */
   precision?: number;
+  /** The value's own half-width in SI — what it was typed to, or inherited from what it was
+   *  calculated from. Shows more decimals than `precision` where it states them. */
+  halfWidth?: number | null;
   step?: string;
   // Explicit SI-space bounds. When omitted, a bound `field` states its own min/max; with
   // neither, min falls back to 0 (physical quantities are non-negative by default) and max is
@@ -47,7 +51,8 @@ const props = withDefaults(defineProps<{
   stepper?: boolean;
 }>(), {
   modelValue: null,
-  precision: 2,   // decimal places (fixed); WinISD's most common field width
+  precision: undefined,
+  halfWidth: null,
   step: 'any',
   mandatory: false,
   allowOutOfRange: false,
@@ -86,10 +91,19 @@ function toDisp(si: number | null): number {
 function fromDisp(disp: number): number {
   return unitized.value ? fromDisplay(disp, sw.value!.group, token.value) : disp;
 }
-// Decimal places: derived per selected unit when bound, else the fixed prop (min 2 dp).
-const eprec = computed(() =>
-  Math.max(2, unitized.value ? displayPrecision(props.precision, sw.value!.group, sw.value!.base, token.value) : props.precision),
-);
+// Base-unit decimals: the explicit prop, else the bound field's registry precision, else 2 —
+// WinISD's most common field width.
+const basePrec = computed(() => props.precision ?? props.field?.precision ?? 2);
+// Decimal places: derived per selected unit when bound, else the base (min 2 dp); more where the
+// value's own half-width states them.
+const eprec = computed(() => {
+  const minDp = Math.max(2, unitized.value ? displayPrecision(basePrec.value, sw.value!.group, sw.value!.base, token.value) : basePrec.value);
+  const v = props.modelValue;
+  if (v == null || !isFinite(v)) return minDp;
+  return unitized.value
+    ? shownDecimals(minDp, props.halfWidth, toDisp(v), sw.value!.group, token.value)
+    : shownDecimals(minDp, props.halfWidth, v);
+});
 
 const focused = ref(false);
 // Distinguish keyboard TYPING (echo the raw keystrokes so we don't fight the caret) from a

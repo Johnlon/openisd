@@ -49,6 +49,28 @@ describe('entryField — a field over a C/E-flagged entry slot (S2-7a)', () => {
     expect(field.entered).toBe(false);
   });
 
+  it('setCalculated(v, dq, precision) reads the inherited precision back, never writing it to the record', () => {
+    const slot = fakeSlot<SpecEntryJson | undefined>(undefined);
+    const field = entryField(slot, 'x');
+    field.setCalculated(4, undefined, 0.01);
+    expect(slot.value).toEqual({ state: 'C', value: 4 });
+    expect(Object.keys(slot.value ?? {})).not.toContain('precision');
+    expect(field.precision).toBe(0.01);
+  });
+
+  it('an entered write drops the inherited precision for the entry\'s own', () => {
+    const slot = fakeSlot<SpecEntryJson | undefined>(undefined);
+    const field = entryField(slot, 'x');
+    field.setCalculated(4, undefined, 0.01);
+    field.set(5, 0.5);
+    expect(field.precision).toBe(0.5);
+  });
+
+  it('a calculated entry with no stated precision reads null', () => {
+    const slot = fakeSlot<SpecEntryJson | undefined>({ state: 'C', value: 4 });
+    expect(entryField(slot, 'x').precision).toBeNull();
+  });
+
   it('an entered write after a calculated one wins outright', () => {
     const slot = fakeSlot<SpecEntryJson | undefined>(undefined);
     const field = entryField(slot, 'x');
