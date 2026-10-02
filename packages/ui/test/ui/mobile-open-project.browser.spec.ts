@@ -58,3 +58,17 @@ test('the Graph page has its own menu button', async ({ page }) => {
   await expect(page.locator('.mob-menu')).toBeVisible();
   await expect(page.locator('.mob-open-project')).toHaveCount(1);
 });
+
+test('the whole menu, open projects included, fits a phone screen without scrolling', async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 667 });
+  await openMenu(page);
+  const fits = await page.locator('.mob-menu').evaluate(el => el.scrollHeight <= el.clientHeight);
+  expect(fits).toBe(true);
+});
+
+test('an open project has a show-on-graphs checkbox, ticked by default', async ({ page }) => {
+  await openMenu(page);
+  await expect(page.locator('.mob-open-project-show').first()).toBeChecked();
+  await page.locator('.mob-open-project-show').first().uncheck();
+  await expect(page.locator('.mob-open-project-show').first()).not.toBeChecked();
+});
