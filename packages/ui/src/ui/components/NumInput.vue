@@ -174,11 +174,12 @@ function stopRepeat(): void {
 }
 // Hold-to-repeat: one immediate step, then a pause before repeating (so a single tap never
 // double-fires), then a faster repeat while held — the common native-spinner feel.
-// The spun field takes focus first (John, 2026-10-01): the press is `.prevent`ed so the button
-// itself never takes it, and without this the previously focused field kept it.
-function startRepeat(dir: 1 | -1): void {
+// The tapped button takes focus (John, 2026-10-02): the press is `.prevent`ed so the browser
+// never focuses it, and the previously focused field kept focus. Focusing the field instead
+// (2026-10-01) popped the phone keyboard on every tap; the button holds focus without one.
+function startRepeat(dir: 1 | -1, e: PointerEvent): void {
   stopRepeat();
-  inputEl.value?.focus({ preventScroll: true });
+  if (e.currentTarget instanceof HTMLElement) e.currentTarget.focus({ preventScroll: true });
   applyStep(dir);
   repeatTimer = setTimeout(function tick() {
     applyStep(dir);
@@ -359,9 +360,9 @@ const stepAttr = computed<string | number>(() => {
   <span v-if="hasDq" class="dq-note" :class="{ 'dq-note-root': isRootCause, 'dq-note-symptom': isSymptom }" :title="dqNoteTitle">⚠</span>
   <span v-if="showStepper" class="num-stepper">
     <button type="button" class="num-stepper-btn" tabindex="-1" title="Increase"
-      @pointerdown.prevent="startRepeat(1)" @pointerup="stopRepeat" @pointerleave="stopRepeat" @pointercancel="stopRepeat">▲</button>
+      @pointerdown.prevent="startRepeat(1, $event)" @pointerup="stopRepeat" @pointerleave="stopRepeat" @pointercancel="stopRepeat">▲</button>
     <button type="button" class="num-stepper-btn" tabindex="-1" title="Decrease"
-      @pointerdown.prevent="startRepeat(-1)" @pointerup="stopRepeat" @pointerleave="stopRepeat" @pointercancel="stopRepeat">▼</button>
+      @pointerdown.prevent="startRepeat(-1, $event)" @pointerup="stopRepeat" @pointerleave="stopRepeat" @pointercancel="stopRepeat">▼</button>
   </span>
 </template>
 

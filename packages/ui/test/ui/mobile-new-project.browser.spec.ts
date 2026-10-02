@@ -20,12 +20,12 @@ test.beforeEach(async ({ page }) => {
   await page.getByText('New project').click();
 });
 
-test('step 1 has no wizard footer — DriverLibrary\'s own Cancel/Use is the only pair shown', async ({ page }) => {
-  await expect(page.locator('.mob-np-footer')).toBeHidden();
+test('step 1 shows the wizard footer with Cancel, in the list and in the driver preview', async ({ page }) => {
+  const footerCancel = page.locator('.mob-np-footer').getByText('Cancel', { exact: true });
+  await expect(footerCancel).toBeVisible();
   await page.getByText(TEST_DRIVER).click();
-  await expect(page.locator('.mob-np-footer')).toBeHidden();
-  await expect(page.getByText('Cancel', { exact: true })).toHaveCount(1);
-  await expect(page.getByText('Use', { exact: true })).toHaveCount(1);
+  await expect(footerCancel).toBeVisible();
+  await expect(page.locator('.prev-footer').getByText('Use', { exact: true })).toBeVisible();
 });
 
 test('picking a driver (Use) advances to step 2 and restores the wizard footer', async ({ page }) => {
