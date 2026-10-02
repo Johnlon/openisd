@@ -10,7 +10,7 @@ import {
 } from '../logic/appState.js';
 import {isTraceVisible, setTraceVisible, traceVisibilityRevision} from '../logic/traceVisibility.js';
 import type {OpenISDProject} from '@openisd/design';
-import {presentationState, setSkinOverride} from '../logic/presentationState.js';
+import {cycleTraceColor, presentationState, setSkinOverride, traceColor} from '../logic/presentationState.js';
 import {useApp} from '../logic/app.js';
 import {inputFrom} from '../logic/domEvents.js';
 import {injectSplashModal} from './SplashModal-hooks.js';
@@ -81,6 +81,7 @@ export interface MobileShellApi {
   openProjectRows: import('vue').ComputedRef<OpenProjectRow[]>;
   selectOpenProject: (row: OpenProjectRow) => void;
   setOpenProjectTraceVisible: (row: OpenProjectRow, visible: boolean) => void;
+  cycleOpenProjectColour: (row: OpenProjectRow) => void;
   closeOpenProject: (row: OpenProjectRow) => void;
 }
 
@@ -92,6 +93,8 @@ export interface OpenProjectRow {
   readonly focused: boolean;
   /** Whether this project's trace is drawn on the graphs. */
   readonly traceVisible: boolean;
+  /** The colour this project's curves are drawn in. */
+  readonly colour: string;
 }
 
 export function useMobileShell(): MobileShellApi {
@@ -159,6 +162,7 @@ export function useMobileShell(): MobileShellApi {
       unsaved: projectHasUnsavedChanges(project),
       focused: project === focused,
       traceVisible: isTraceVisible(project),
+      colour: traceColor(project),
     }));
   });
   function selectOpenProject(row: OpenProjectRow): void {
@@ -169,6 +173,7 @@ export function useMobileShell(): MobileShellApi {
   function setOpenProjectTraceVisible(row: OpenProjectRow, visible: boolean): void {
     setTraceVisible(row.project, visible);
   }
+  function cycleOpenProjectColour(row: OpenProjectRow): void { cycleTraceColor(row.project); }
   function closeOpenProject(row: OpenProjectRow): void {
     if (row.unsaved && !globalThis.confirm(`"${row.name}" has unsaved changes. Close it without saving?`)) return;
     const index = openProjects().indexOf(row.project);
@@ -271,6 +276,6 @@ export function useMobileShell(): MobileShellApi {
     contentEl, canScrollUp, canScrollDown, updateScrollEdges, username,
     goToAdvanced, viewportHeightPx, showEnclosureTab, enclosureNavLabel,
     openDialogOpen, storedProjects, openProjectDialog, openStoredProject,
-    openProjectRows, selectOpenProject, setOpenProjectTraceVisible, closeOpenProject,
+    openProjectRows, selectOpenProject, setOpenProjectTraceVisible, cycleOpenProjectColour, closeOpenProject,
   };
 }

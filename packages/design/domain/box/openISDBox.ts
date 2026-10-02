@@ -137,7 +137,7 @@ export class OpenISDBox implements Box {
         this.sealed = {
             volume_m3: sealedVolume,
             resonance_hz: new CalculatedFieldImpl<number | null>(() => {
-                const v = this.#sealedResonance_hz(sealedVolume.value, sealedLosses);
+                const v = this.#sealedResonance(sealedVolume.value, sealedLosses)?.Fsc ?? null;
                 return v === null
                     ? absentCell<number>('resonance_hz')
                     : calculatedCell<number | null>('resonance_hz', v);
@@ -216,11 +216,19 @@ export class OpenISDBox implements Box {
                     // (= Fs·√(1+Vas/Vr), matched to 13 significant figures). The rear chamber's
                     // damping is already carried by Qlr/Qar in the bandpass circuit.
                     resonance_hz: new CalculatedFieldImpl<number | null>(() => {
-                        const v = this.#sealedResonance_hz(
-                            focus(bp4Rear, 'volume_m3').value, bp4RearLosses, LossMode.Lossless);
+                        const v = this.#sealedResonance(
+                            focus(bp4Rear, 'volume_m3').value, bp4RearLosses, LossMode.Lossless)?.Fsc ?? null;
                         return v === null
                             ? absentCell<number>('resonance_hz')
                             : calculatedCell<number | null>('resonance_hz', v);
+                    }),
+                    // Same lossless chamber model as Frc above, so Qtc = Qts·√(1+Vas/Vr).
+                    q_tc: new CalculatedFieldImpl<number | null>(() => {
+                        const v = this.#sealedResonance(
+                            focus(bp4Rear, 'volume_m3').value, bp4RearLosses, LossMode.Lossless)?.Qtc ?? null;
+                        return v === null
+                            ? absentCell<number>('q_tc')
+                            : calculatedCell<number | null>('q_tc', v);
                     }),
                     losses: bp4RearLosses,
                 },
@@ -472,8 +480,8 @@ export class OpenISDBox implements Box {
      * compliance reconstruction `Cms·Sd²·ρc²` and never bare `Qts` (Rg alone moves Fsc by 0.040 Hz
      * on the golden scene; `SEALED_FSC_MODEL.md` §5).
      */
-    #sealedResonance_hz(volume_m3: number | null, losses: SealedLosses,
-                        mode: LossMode = this.#lossMode()): number | null {
+    #sealedResonance(volume_m3: number | null, losses: SealedLosses,
+                     mode: LossMode = this.#lossMode()): { Fsc: number; Qtc: number } | null {
         if (volume_m3 === null || !(volume_m3 > 0)) return null;
         const ts = this.#driver.specs;
         const Fs_hz = ts.Fs_hz.value;
@@ -488,7 +496,7 @@ export class OpenISDBox implements Box {
         // project's chosen mode; see that call site's own note.
         return this.#engine.sealed.resonance(mode, {
             Fs: Fs_hz, Vas, Qts: QtsLoaded, Vb: volume_m3, Ql: losses.Ql.value, Qa: losses.Qa.value,
-        }).Fsc;
+        });
     }
 
 }

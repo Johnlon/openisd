@@ -344,7 +344,9 @@ const dqNoteTitle = computed(() => hasDq.value ? `⚠ ${dqTooltip.value}` : '');
 const stepAttr = computed<string | number>(() => {
   if (props.step !== 'any') return props.step;
   const dv = Math.abs(toDisp(props.modelValue));
-  if (!(dv > 0)) return 'any';
+  // Zero/empty/negative has no magnitude to scale from, and step="any" makes stepUp()/stepDown()
+  // throw InvalidStateError (field report 2026-10-02): step by the field's own resolution.
+  if (!(dv > 0)) return Math.pow(10, -eprec.value);
   const decade = Math.pow(10, Math.floor(Math.log10(dv)) - 1);
   // Never finer than the field's own decimal places: a sub-precision step (e.g. 0.01 on a
   // 1-dp field once the value drops below 1.0) would add decimals the field can't show and
