@@ -37,7 +37,7 @@ export function useMobileChartView() {
   });
   const { el: stackEl, style: stackStyle } = useChartStack(computed(() => openCharts.value.length), chartsHigh, () => 1);
 
-  const traceColour = computed(() => traceColor(project.value));
+  const traceColour = computed(() => { void projectChanged.value; return traceColor(project.value); });
 
   return { openCharts, chartItems, chartLabel, pickerOpen, togglePicker, showOnly, toggle,
     chartsHigh, CHARTS_HIGH_OPTIONS, selectedOption, stackEl, stackStyle, traceColour, overlays };

@@ -446,12 +446,15 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   }
   onUnmounted(stopNudge);
 
-  const currentDesign = computed(() => ({
+  const currentDesign = computed(() => {
+    void projectChanged.value;
+    return {
     driver: project.value.driver.specs.sweepDriver(), box: project.value.box.boxType.value, P: syncedP.value,
     curves: curvesData.value, maxCurves: maxData.value ?? undefined, name: projectDisplayName(project.value),
     color: WINISD_TRACE.value, visible: isTraceVisible(project.value),
     sortIndex: openProjects().indexOf(project.value),
-  }));
+  };
+  });
   const cursorVal = computed<number | null>(() => {
     // The readout is part of the toolbar, which renders without a project — show a dash
     // rather than try to build plot data from a project that does not exist.
