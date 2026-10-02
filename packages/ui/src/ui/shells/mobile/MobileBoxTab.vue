@@ -10,7 +10,7 @@ import UnitToggle from '../../components/UnitToggle.vue';
 import { useMobileBoxTab } from '../../../hooks/MobileBoxTab-hooks.js';
 
 const {
-  selectedBox, pending, boxLabel, showEnclosureTab, enclosureNavLabel,
+  selectedBox, pending, isDual, frontVolume_m3, setFrontVolume_m3, frcHz, setFrcHz, boxLabel, showEnclosureTab, enclosureNavLabel,
   boxResonance, rearQtc, boxVolume_m3, boxVolumeDqNote, setBoxVolume_m3,
   selectBoxType, BOX_TYPE_OPTIONS,
   sealedAlignmentEditor, sealedAlignmentOpen, sealedAlignmentOptions, sealedAlignmentSelected,
@@ -52,7 +52,17 @@ const {
     </div>
     <p v-if="boxVolumeDqNote" class="mob-hint mob-hint-warn">{{ boxVolumeDqNote }}</p>
 
-    <div class="mob-field-row mob-field-calculated">
+    <div v-if="selectedBox === 'bandpass6' || selectedBox === 'abc'" class="mob-field-row mob-field-entered">
+      <div class="mob-field-main">
+        <span class="mob-field-label">Frc</span>
+        <span class="mob-field-value">
+          <NumInput :model-value="frcHz" @update:model-value="(v: number | null) => setFrcHz(v ?? 0)"
+                    :field="NumberField.BOX_FRC_HZ" unit-key="Frc" :precision="NumberField.BOX_FB_HZ.precision" stepper />
+        </span>
+      </div>
+      <UnitToggle :field="NumberField.BOX_FRC_HZ" unit-key="Frc" unit-class="mob-unit" />
+    </div>
+    <div v-else class="mob-field-row mob-field-calculated">
       <div class="mob-field-main">
         <span class="mob-field-label">{{ selectedBox === 'box-passive-radiator' ? 'Fh' : 'Fsc' }}</span>
         <span class="mob-field-value mob-readonly">{{ boxResonance != null ? boxResonance.toFixed(NumberField.BOX_RESONANCE_HZ.precision) + ' Hz' : '—' }}</span>
@@ -72,6 +82,20 @@ const {
     </div>
     <div class="mob-row">
       <button class="mob-btn" @click="boxLossesOpen = true">Box losses -&gt;</button>
+    </div>
+  </div>
+
+  <div v-if="isDual" class="mob-panel">
+    <div class="mob-panel-head">Front chamber</div>
+    <div class="mob-field-row mob-field-entered">
+      <div class="mob-field-main">
+        <span class="mob-field-label">Volume</span>
+        <span class="mob-field-value">
+          <NumInput :model-value="frontVolume_m3" @update:model-value="(v: number | null) => setFrontVolume_m3(v ?? 0)"
+                    :field="NumberField.BOX_VF_L" unit-key="Vf" :precision="NumberField.BOX_VF_L.precision" stepper />
+        </span>
+      </div>
+      <UnitToggle :field="NumberField.BOX_VF_L" unit-key="Vf" unit-class="mob-unit" />
     </div>
   </div>
 
