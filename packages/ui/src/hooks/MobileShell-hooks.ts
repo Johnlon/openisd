@@ -4,7 +4,11 @@
  * component (`.claude/rules/ui.md`); every ref/computed/write lives here.
  */
 import {computed, nextTick, onMounted, onUnmounted, ref, watch} from 'vue';
-import {addProject, boxTypeIsSimulatable, focusedProject, isModified, projectChanged, resetProjectToGround} from '../logic/appState.js';
+import {
+  addProject, boxTypeIsSimulatable, focusedProject, focusProject, isModified, openProjects, projectChanged,
+  projectDisplayName, projectHasUnsavedChanges, removeProject, resetProjectToGround,
+} from '../logic/appState.js';
+import type {OpenISDProject} from '@openisd/design';
 import {presentationState, setSkinOverride} from '../logic/presentationState.js';
 import {useApp} from '../logic/app.js';
 import {inputFrom} from '../logic/domEvents.js';
@@ -72,6 +76,18 @@ export interface MobileShellApi {
   storedProjects: import('vue').Ref<StoredProjectListing[]>;
   openProjectDialog: () => void;
   openStoredProject: (id: string) => void;
+  /** Every open project, saved or not — the same registry as desktop's Projects panel. */
+  openProjectRows: import('vue').ComputedRef<OpenProjectRow[]>;
+  selectOpenProject: (row: OpenProjectRow) => void;
+  closeOpenProject: (row: OpenProjectRow) => void;
+}
+
+/** One open project in the menu's "Open projects" list. */
+export interface OpenProjectRow {
+  readonly project: OpenISDProject;
+  readonly name: string;
+  readonly unsaved: boolean;
+  readonly focused: boolean;
 }
 
 export function useMobileShell(): MobileShellApi {
@@ -126,6 +142,28 @@ export function useMobileShell(): MobileShellApi {
     }
     addProject(result);
     openDialogOpen.value = false;
+  }
+
+  // "Open projects" — the registry desktop's Projects panel lists (OriginalShell-hooks.ts), so a
+  // project that is open but never saved is reachable here too.
+  const openProjectRows = computed<OpenProjectRow[]>(() => {
+    const focused = focusedProject();
+    return openProjects().map(project => ({
+      project,
+      name: projectDisplayName(project),
+      unsaved: projectHasUnsavedChanges(project),
+      focused: project === focused,
+    }));
+  });
+  function selectOpenProject(row: OpenProjectRow): void {
+    const index = openProjects().indexOf(row.project);
+    if (index >= 0) focusProject(index);
+    closeMenu();
+  }
+  function closeOpenProject(row: OpenProjectRow): void {
+    if (row.unsaved && !globalThis.confirm(`"${row.name}" has unsaved changes. Close it without saving?`)) return;
+    const index = openProjects().indexOf(row.project);
+    if (index >= 0) removeProject(index);
   }
 
   async function confirmDiscard(): Promise<boolean> {
@@ -224,5 +262,6 @@ export function useMobileShell(): MobileShellApi {
     contentEl, canScrollUp, canScrollDown, updateScrollEdges, username,
     goToAdvanced, viewportHeightPx, showEnclosureTab, enclosureNavLabel,
     openDialogOpen, storedProjects, openProjectDialog, openStoredProject,
+    openProjectRows, selectOpenProject, closeOpenProject,
   };
 }

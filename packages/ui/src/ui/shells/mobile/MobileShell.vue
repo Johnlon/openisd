@@ -23,6 +23,7 @@ const {
   browseDrivers, optionsOpen, openOptions, about, goToProject, goToAdvanced, viewportHeightPx,
   showEnclosureTab, enclosureNavLabel, contentEl, canScrollUp, canScrollDown, updateScrollEdges,
   username, openDialogOpen, storedProjects, openProjectDialog, openStoredProject,
+  openProjectRows, selectOpenProject, closeOpenProject,
 } = useMobileShell();
 </script>
 
@@ -52,7 +53,7 @@ const {
       </div>
 
       <main ref="contentEl" class="mob-content" @scroll="updateScrollEdges">
-        <MobileChartView v-if="destination === 'graph'" />
+        <MobileChartView v-if="destination === 'graph'" @menu="toggleMenu" />
         <MobileBoxTab v-else-if="destination === 'box'" />
         <MobileDriverTab v-else-if="destination === 'driver'" />
         <MobileSignalTab v-else-if="destination === 'signal'" />
@@ -89,6 +90,14 @@ const {
           <button type="button" class="mob-menu-item" @click="about(); closeMenu()">About OpenISD</button>
           <div class="mob-menu-sep"></div>
           <button type="button" class="mob-menu-item" @click="switchToDesktop">Switch to Desktop view</button>
+          <div class="mob-menu-sep"></div>
+          <div class="mob-menu-heading">Open projects</div>
+          <div v-for="(row, i) in openProjectRows" :key="i" class="mob-open-project" :class="{ focused: row.focused }">
+            <button type="button" class="mob-open-project-name" :title="row.name" @click="selectOpenProject(row)">
+              <span v-if="row.unsaved" class="mob-open-project-dot" title="Unsaved changes"></span>{{ row.name }}
+            </button>
+            <button type="button" class="mob-open-project-close" :aria-label="'Close ' + row.name" @click="closeOpenProject(row)">&#10005;</button>
+          </div>
         </div>
       </div>
 
@@ -264,6 +273,28 @@ const {
 .mob-menu-export :deep(.export-menu-list) { position: static; box-shadow: none; border: none; border-top: 1px solid var(--line); border-radius: 0; margin-top: 0; }
 .mob-menu-export :deep(.export-menu-list button) { padding: 10px 28px; font-size: 14px; }
 .mob-menu-sep { height: 1px; background: var(--line); margin: 6px 0; }
+.mob-menu-heading { padding: 2px 18px; font-size: 12px; color: var(--mut); text-transform: uppercase; letter-spacing: 0.04em; }
+.mob-open-project { display: flex; align-items: center; }
+.mob-open-project.focused { background: var(--panel2); }
+.mob-open-project-name {
+  all: unset;
+  box-sizing: border-box;
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 4px 6px 18px;
+  font-size: 14px;
+  color: var(--fg);
+  cursor: pointer;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.mob-open-project.focused .mob-open-project-name { font-weight: 600; }
+.mob-open-project-dot { flex: none; width: 7px; height: 7px; border-radius: 50%; background: var(--acc2); }
+.mob-open-project-close { all: unset; box-sizing: border-box; flex: none; padding: 6px 14px; font-size: 13px; color: var(--mut); cursor: pointer; }
 
 /* The "Open project" sheet — same sheet chrome as MobileBoxTab.vue's own .mob-align-overlay/
    .mob-align-sheet (that file's own copy, not shared; this is the established per-component

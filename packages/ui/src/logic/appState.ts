@@ -393,6 +393,22 @@ export const driverName = computed<string>(() => {
     .filter((x): x is string => !!x && x.length > 0).join(' ').trim();
 });
 
+/** A project's display name in any project list — its own `name`, falling back to its driver's
+ *  brand and model. Any open project, not only the focused one. */
+export function projectDisplayName(p: OpenISDProject): string {
+  void projectChanged.value; void live.value;
+  const name = p.name.value;
+  if (name) return name;
+  return [p.driver.brand.value, p.driver.model.value].filter(x => x.length > 0).join(' ').trim();
+}
+
+/** Whether `p` has unsaved edits — any open project, not only the focused one. A background
+ *  project cannot be edited, so its answer only changes on focus, save or open. */
+export function projectHasUnsavedChanges(p: OpenISDProject): boolean {
+  void projectChanged.value; void live.value;
+  return p.isModified();
+}
+
 /**
  * Open the driver picker — the ONE governed entry point. Every "Select Driver"/"Browse…"
  * trigger calls this, never a raw `presentationState.browseOpen = true`. No-ops when no

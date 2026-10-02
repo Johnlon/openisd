@@ -6,6 +6,7 @@
 import GraphPanel from '../../components/GraphPanel.vue';
 import { useMobileChartView } from '../../../hooks/MobileChartView-hooks.js';
 
+const emit = defineEmits<{ menu: [] }>();
 const { openCharts, chartItems, chartLabel, pickerOpen, togglePicker, showOnly, toggle,
   chartsHigh, CHARTS_HIGH_OPTIONS, selectedOption, stackEl, stackStyle, traceColour } = useMobileChartView();
 </script>
@@ -13,6 +14,9 @@ const { openCharts, chartItems, chartLabel, pickerOpen, togglePicker, showOnly, 
 <template>
   <div class="mob-chart-view">
     <div class="mob-chart-head">
+      <button type="button" class="mob-chart-menu" title="Menu" aria-label="Menu" @click.stop="emit('menu')">
+        <span></span><span></span><span></span>
+      </button>
       <button class="mob-chart-pick" type="button" :aria-expanded="pickerOpen" @click="togglePicker">
         <span class="mob-chart-pick-label">{{ chartLabel }}</span>
         <span class="mob-chart-pick-caret">{{ pickerOpen ? '▴' : '▾' }}</span>
@@ -56,6 +60,21 @@ const { openCharts, chartItems, chartLabel, pickerOpen, togglePicker, showOnly, 
   border-bottom: 1px solid var(--line);
   background: var(--panel);
 }
+.mob-chart-menu {
+  flex: none;
+  width: 44px;
+  min-height: 44px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: #fff;
+  cursor: pointer;
+}
+.mob-chart-menu span { display: block; width: 20px; height: 2px; background: var(--fg); border-radius: 1px; }
 .mob-chart-pick {
   display: flex;
   align-items: center;

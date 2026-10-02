@@ -30,7 +30,7 @@ const {
   startNudge, stopNudge, cursorHz, cursorVal, chartMeta, inputChecked, selectedOption,
   WINISD_TRACE, cycleColor, resetChartView, chartMax,
   mainEl, navCollapsed, bottomCollapsed, mainStyle, onNavSplitDown, onBottomSplitDown,
-  projectList, isRowVisible, setRowVisible, rowName, rowUnsaved, selectProject, project, focused, projectOpen, whatIfActive,
+  projectList, isRowVisible, setRowVisible, projectDisplayName, projectHasUnsavedChanges, selectProject, project, focused, projectOpen, whatIfActive,
   copyCurrentProject, requestCloseProject, closeChallenge, saveThenClose, closeProject,
   genOn, toggleGenerate, genHz,
   boxLabel, pending, openCharts, chartStackEl, chartStackStyle, chartsHigh, CHARTS_HIGH_OPTIONS, overlays, activeTab,
@@ -168,14 +168,14 @@ const {
               No projects open
             </div>
             <div v-else v-for="(p, i) in projectList" :key="i" class="project-row"
-                 :class="{ selected: p === focused, 'trace-hidden': !isRowVisible(p), 'is-unsaved': rowUnsaved(p) }"
-                 :title="'Project — ' + rowName(p) + (p === focused ? ' (Active)' : ' (Click to select)')"
+                 :class="{ selected: p === focused, 'trace-hidden': !isRowVisible(p), 'is-unsaved': projectHasUnsavedChanges(p) }"
+                 :title="'Project — ' + projectDisplayName(p) + (p === focused ? ' (Active)' : ' (Click to select)')"
                  @click="selectProject(p)">
               <input type="checkbox" :checked="isRowVisible(p)"
                      @click.stop
                      @change.stop="setRowVisible(p, inputChecked($event))"
                      title="Show/hide this project's trace on the graph">
-              <span>{{ rowName(p) }}</span>
+              <span>{{ projectDisplayName(p) }}</span>
             </div>
           </div>
           <div class="proj-actions">
@@ -742,7 +742,7 @@ const {
           <div class="win-controls"><span class="close-btn" @click="closeChallenge = null">&#10005;</span></div>
         </div>
         <div class="modal-body">
-          <p><b>{{ (closeChallenge && rowName(closeChallenge)) || 'This project' }}</b> has unsaved changes.</p>
+          <p><b>{{ (closeChallenge && projectDisplayName(closeChallenge)) || 'This project' }}</b> has unsaved changes.</p>
           <div class="close-actions">
             <button class="btn" title="Save the project to its file, then close it" @click="saveThenClose(closeChallenge)">Save and close</button>
             <button class="btn" title="Close the project and lose the changes made since it was last saved" @click="closeProject(closeChallenge)">Close without saving</button>
