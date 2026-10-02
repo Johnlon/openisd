@@ -1,6 +1,6 @@
 # `Sd` marked `calculable: false` in `INI_ROWS_META` — a derived `Sd` exports as `E`, never `C`
 
-Status: OPEN (re-verified 2026-09-26) — the `.wdr` writer still passes `calculable: false` for Sd, so a derived Sd is written as E (`winIsdDriverConverter.ts`).
+Status: FIXED 2026-10-02 — `winIsdDriverConverter.ts` updated to pass `calculable: true` for `Sd`, matching `Dd`.
 
 ## Symptom
 

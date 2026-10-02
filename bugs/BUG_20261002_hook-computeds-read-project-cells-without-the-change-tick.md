@@ -1,6 +1,6 @@
 # BUG_20261002_hook-computeds-read-project-cells-without-the-change-tick
 
-**Status:** FIXED 2026-10-02 (tick added to all six; only hasVent has a spec)
+**Status:** OPEN — ticks added, need for them unproven
 
 ## Symptom
 Some hook values read a project field but do not re-read when that field changes. The screen shows
@@ -28,8 +28,13 @@ For each row, first write a spec that edits the field and checks the screen. Add
 where the spec fails.
 
 ## Done
-- Tick added to all six values.
-- hasVent has a unit spec (AdvancedOptions-hooks.test.ts). Without the tick, the value stayed
-  false after the box changed to vented.
-- The other five have no spec yet: the PR modal count/resonance/radiator, the mobile trace
-  colour and the two currentDesign values.
+- Tick added to hasVent, traceColour and the two currentDesign values (committed 31ddaad9).
+- PR modal count / resonance / radiator: specs added, and they pass WITHOUT the tick, so the
+  tick is removed again there (those cells re-read on their own).
+- Specs for hasVent (AdvancedOptions-hooks.test.ts) and traceColour (MobileChartView-hooks.test.ts)
+  pass with AND without the tick. The server-render test harness cannot show the staleness, so
+  these specs do not prove the tick is needed.
+
+## Still open
+- A browser spec that changes the box type / cycles the trace colour on screen and reads the
+  result. Only that can show the staleness. Needs Vite to start under load.

@@ -24,9 +24,18 @@ export function usePREditModal(emit: (event: 'close') => void): PREditModalAPI {
   const { myPassiveRadiators } = useApp();
   const project = useFocusedProject();
 
-  const radiator = computed(() => { void projectChanged.value; return project.value.box.passiveRadiator.radiator; });
-  const prFsWithMassShown = computed(() => { void projectChanged.value; return project.value.box.passiveRadiator.resonanceWithAddedMass_hz.value; });
-  const count = computed(() => { void projectChanged.value; return project.value.box.passiveRadiator.count.value; });
+  const radiator = computed(() => {
+    void projectChanged.value;
+    return project.value.box.passiveRadiator.radiator;
+  });
+  const prFsWithMassShown = computed(() => {
+    void projectChanged.value;
+    return project.value.box.passiveRadiator.resonanceWithAddedMass_hz.value;
+  });
+  const count = computed(() => {
+    void projectChanged.value;
+    return project.value.box.passiveRadiator.count.value;
+  });
   const countOptions = NumberField.PR_NUM.countOptions();
 
   function setCount(v: number): void {

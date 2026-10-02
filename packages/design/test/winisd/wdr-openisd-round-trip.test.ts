@@ -244,8 +244,6 @@ describe('a .wdr survives the round trip THROUGH OpenISDDriver', () => {
 
       const invented: string[] = [];
       for (const [key, cell] of before.rows()) {
-        // Slot 17 is Sd — see the comment above the `it` block.
-        if (key === 'Sd') continue;
         const outCell = after.cell(key);
         if (cell.state !== 'not-available' || outCell.state === 'not-available') continue;
         const sourceValue = Number(cell.value);
