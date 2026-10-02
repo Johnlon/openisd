@@ -38,8 +38,9 @@ Original files used in the first phase of analysis:
 - `Cms=0, ParState[Cms]=C` — WinISD computed 0 because its inputs were broken; still C.
 - `Znom=8, ParState[Znom]=N` — Znom retained its value (8) but was cascade-disabled when Fs was
   knocked out.
-- `c=343.684, ParState[c]=N` — speed of sound is always non-zero but always N; it is a constant,
-  not an active parameter.
+- `c=343.684, ParState[c]=N` — speed of sound is always non-zero but always N (not entered);
+  the value is WinISD's live compute from its app-level Options environment, not a stored
+  constant (consolidated in `docs/research/C_ROO_PROVENANCE.md`).
 
 ### ParState is a fixed 49-slot table mapped to WinISD's internal parameter list
 

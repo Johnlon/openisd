@@ -1,5 +1,5 @@
 /**
- * bugs/BUG_20260927_peaking-cut-notch-nan.md — leader ruling (2026-09-28): `gain = -Infinity` is
+ * bugs/archive/BUG_20260927_peaking-cut-notch-nan.md — leader ruling (2026-09-28): `gain = -Infinity` is
  * unreachable through the app (every filter's own `.update()` clamps to `FILTER_GAIN_LIMITS`, and
  * JSON text cannot carry `Infinity`/`NaN` at all — `JSON.parse('{"gain":-Infinity}')` is a syntax
  * error, never a value). The one remaining door is the LOAD schema itself

@@ -1,6 +1,6 @@
 # Air-constant delegation rework — c/roo/VCCon/numVC calculated defaults
 
-Companion to `bugs/BUG_20260905_c_roo_vccon_calculated_default_only_visible_at_wdr_export_not_on_the_driver_getter.md`
+Companion to `bugs/archive/BUG_20260905_c_roo_vccon_calculated_default_only_visible_at_wdr_export_not_on_the_driver_getter.md`
 (the defect this plan fixes) · `ARCHITECTURE.md` §3 (driver model) · `engine/air.ts` (the air
 model itself, unchanged by this plan) · `.claude/rules/engine.md` (calculation-logic sign-off).
 

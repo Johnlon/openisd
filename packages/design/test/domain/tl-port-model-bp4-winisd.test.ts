@@ -1,7 +1,7 @@
 /**
  * Transmission-line port model in a 4th-order bandpass box, matched to WinISD's own plotted SPL, impedance and transfer function.
  * Golden data: `../fixtures/winisdBp4TlPortsCapture.ts`, logged from the same `.wpr` this test imports
- * (`../winisd/fixtures/bp4-w5-tlports.wpr`). bugs/BUG_20260928_tl-port-model-not-winisd.md.
+ * (`../winisd/fixtures/bp4-w5-tlports.wpr`). bugs/archive/BUG_20260928_tl-port-model-not-winisd.md.
  */
 import {readFileSync} from 'node:fs';
 import {dirname, join} from 'node:path';

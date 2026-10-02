@@ -2036,7 +2036,7 @@ export abstract class OpenISDDriver extends OpenISDDevice {
      *  Every value seen across the driver.yml corpus: "woofer", "subwoofer", "midrange",
      *  "mid-bass", "mid-woofer", "full-range", "coaxial", "tweeter", "amt", "passive-radiator".
      *
-     *  TODO(bugs/BUG_20260907_driver_type_has_no_closed_set_shared_with_python.md): this is a
+     *  TODO(bugs/archive/BUG_20260907_driver_type_has_no_closed_set_shared_with_python.md): this is a
      *  closed vocabulary (`driver.yml`'s own field comment says so) with no enum backing it on
      *  either side of the scraper/domain boundary. Once one exists, shared with the Python
      *  scraper the way `filter/driverType.ts` keeps `DriverType`/`Chip` in parity with
@@ -3058,7 +3058,7 @@ export class OpenISDProject {
      * ELSE: a store key was minted in this process, so adopting it back is restoring an identity,
      * not importing a foreign one. Without this, a project loaded from the store gets a new
      * identity and its next save writes to a NEW key, orphaning the entry it came from
-     * (`bugs/BUG_20260826_reopening_a_stored_project_duplicates_its_store_entry.md`).
+     * (`bugs/archive/BUG_20260826_reopening_a_stored_project_duplicates_its_store_entry.md`).
      *
      * NOT for a file: a file's id was minted by another process and is provenance, never a key
      * (the driver precedent, QO81).

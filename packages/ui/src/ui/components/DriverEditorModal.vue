@@ -259,7 +259,7 @@ const provenanceInfo = computed(() => {
   if (!inspectProvenance.value || !inspectedField.value) return null;
   // `driverRaw` is metadata only (brand/model/…) — it never carried a T/S value, so every
   // "Live:" substitution read `undefined` and printed `?` for every input, always.
-  // bugs/BUG_20260817_provenance_live_substitution_always_shows_question_marks.md
+  // bugs/archive/BUG_20260817_provenance_live_substitution_always_shows_question_marks.md
   // The driver's own spec section, keyed by schema name — every value a formula input can name,
   // no hand-listed inputs and no field-name casting. `cellVal` is the same accessor every
   // NumInput on this modal reads through, and it is reactive to `trigger`.
@@ -1168,7 +1168,7 @@ useEscToClose(() => saveMyDialogOpen.value, () => { saveMyDialogOpen.value = fal
    being the only field on the tab with no natural size. The selector carries `.de-general` and
    both classes deliberately: `.de-fld` is one class too and declares `width: fit-content`
    further down the sheet, which won on cascade order and collapsed the box to 50px.
-   bugs/BUG_20260817_driver_editor_general_comment_box_renders_50px_wide.md */
+   bugs/archive/BUG_20260817_driver_editor_general_comment_box_renders_50px_wide.md */
 .de-general .de-fld.de-comment {
   display: flex !important;
   flex-direction: column !important;
@@ -1293,7 +1293,7 @@ input.value-n, .de-fld.value-n input, select.value-n { color: var(--mut); }
      wastes space on the other. Every field in a column is still the SAME width, because they
      all subgrid onto the same tracks — that sameness is what makes the columns line up and the
      provenance highlight (painted on `.de-fld`, wrapping all four parts) read as one component
-     per field. bugs/BUG_20260817_driver_editor_labels_overflow_a_fixed_62px_column.md */
+     per field. bugs/archive/BUG_20260817_driver_editor_labels_overflow_a_fixed_62px_column.md */
   width: auto !important;
   text-align: left !important;
   flex: 0 0 auto !important;
@@ -1330,7 +1330,7 @@ input.value-n, .de-fld.value-n input, select.value-n { color: var(--mut); }
    (docs/winisd_screenshots/edit_driver_pg2_parameters.png). A field laid out inside a single wide track
    instead starts its input wherever its own label happens to end, which put "no" and
    "Voicecoils" 40px apart in the same column:
-   bugs/BUG_20260817_driver_editor_columns_do_not_share_a_column_edge.md
+   bugs/archive/BUG_20260817_driver_editor_columns_do_not_share_a_column_edge.md
    minmax(0, …) on the two content tracks: a bare max-content track refuses to shrink, and four
    columns of them overran the modal and forced a sideways scroll. */
 .de-cols {

@@ -102,7 +102,7 @@ export const test = base.extend<{ browserLog: BrowserLog }>({
     // mid-run nothing restarts it and every remaining test fails identically on
     // ERR_CONNECTION_REFUSED. That once turned one infrastructure death into "210 failed",
     // a number that measured how far the run got rather than anything about the code.
-    // bugs/BUG_20260909_the_playwright_vite_server_dies_mid_run_and_fakes_hundreds_of_failures.md
+    // bugs/archive/BUG_20260909_the_playwright_vite_server_dies_mid_run_and_fakes_hundreds_of_failures.md
     //
     // Raised FIRST and on its own, so the message says what actually happened rather than
     // burying it among the diagnostics categories below.

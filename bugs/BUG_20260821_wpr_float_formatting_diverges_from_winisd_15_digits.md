@@ -57,7 +57,7 @@ Any test asserting golden-derived byte-equality on a value this repo computes (r
 copies from the golden as a literal) is unsound until this is resolved: it will only pass if
 the test feeds the golden's own printed value back in as input, which proves formatting
 pass-through, never derivation parity. The three new `wpr.test.ts` golden-equality tests added
-for `bugs/BUG_20260821_wpr_writer_zeroes_fb_vb_carea_on_populated_vents.md` do exactly this for
+for `bugs/archive/BUG_20260821_wpr_writer_zeroes_fb_vb_carea_on_populated_vents.md` do exactly this for
 `carea` — see that bug file's note.
 
 Standing rule for future golden-parity tests: derive the test's input FROM THE SCENARIO

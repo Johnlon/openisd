@@ -1,7 +1,7 @@
 /**
  * `[ENV T=<kelvin> p=<pascal> RH=<percent>]` in a `.wdr`'s `Comment=` — the environment `c`/
  * `roo` were computed under, for a driver-only `.wdr` (no other field can carry it; see
- * `bugs/BUG_20260907_wdr_c_roo_environment_not_recoverable_on_round_trip.md`).
+ * `bugs/archive/BUG_20260907_wdr_c_roo_environment_not_recoverable_on_round_trip.md`).
  *
  * Real WinISD never writes or reads this tag — it is OpenISD's own convention, round-tripped
  * only through `WinISDDriver` itself. A file with no tag is unaffected: `WinISDDriver.build()`

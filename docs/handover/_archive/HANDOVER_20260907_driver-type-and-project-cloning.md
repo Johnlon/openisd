@@ -65,7 +65,7 @@ there is never a need to look at #edit[ed]".)
 
 ### `driver_type` — bug recorded, no schema change made
 
-`bugs/BUG_20260907_driver_type_has_no_closed_set_shared_with_python.md` — `driver_type` is a
+`bugs/archive/BUG_20260907_driver_type_has_no_closed_set_shared_with_python.md` — `driver_type` is a
 free string (`textField`/`z.string()`) on both the TS domain schema and the Python scraper, with
 no shared closed-set enum backing it, even though the field is documented as a closed vocabulary.
 `packages/design/filter/DriverType` looked like a candidate but is explicitly UI/search-only

@@ -1,7 +1,7 @@
 /**
  * Two drivers, matched to WinISD's own plotted SPL, excursion, impedance, transfer function and maximum power.
  * Golden data: `../fixtures/winisdTwoDriversCapture.ts`, logged from the same `.wpr` this test imports
- * (`../winisd/fixtures/sealed-w5-nd2.wpr`). bugs/BUG_20260928_driver-count-not-winisd.md.
+ * (`../winisd/fixtures/sealed-w5-nd2.wpr`). bugs/archive/BUG_20260928_driver-count-not-winisd.md.
  */
 import {readFileSync} from 'node:fs';
 import {dirname, join} from 'node:path';

@@ -183,7 +183,7 @@ list** — UI state must become structurally unreachable from the fingerprint, n
 from it by hand. If it leaves that list in place, it is churn.
 
 Then fix
-`bugs/BUG_20260814_address-bar-carries-no-design-state-at-all-so-the-url-cannot-share-the-design.md`
+`bugs/archive/BUG_20260814_address-bar-carries-no-design-state-at-all-so-the-url-cannot-share-the-design.md`
 — the address bar carries no design state at all. **Diagnose before changing anything:** establish
 whether the write never happens or happens and produces nothing.
 

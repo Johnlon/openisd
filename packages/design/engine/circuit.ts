@@ -187,7 +187,7 @@ export function solve(f: number, drv: CircuitQuantities, box: BoxType, P: SweepP
   // uses it (BUG_20260926_winisd-impedance-uses-entered-bl).
   // https://en.wikipedia.org/wiki/Electrical_characteristics_of_a_dynamic_loudspeaker
   // Iso-barik: WinISD's motional term is twice the pair's (runs/sealed-w5-isobarik, 1e-15;
-  // bugs/BUG_20260928_isobarik-loading-not-simulated.md).
+  // bugs/archive/BUG_20260928_isobarik-loading-not-simulated.md).
   const motional = cDiv(cx(BlPush * BlPush, 0), cMul(cx(Sdt * Sdt, 0), cAdd(ZaD, Zbox)));
   const Zel = cAdd(ZcoilForZel, P.loading === 'isobaric' ? cScale(motional, 2) : motional);
   return { U0, UD, UP, UPr, UPi, Zbox, Zel, ZaD };

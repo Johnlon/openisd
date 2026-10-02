@@ -273,7 +273,7 @@ something unlisted, STOP, record it here, re-sequence — never improvise around
       comparison removed now that the bridge self-validates (`0c6b6d94`).
 - [ ] **F3 parity** Parity of the bridge output against the QT60 bar. If parity fails the ruled
       bar: STOP and report — never regenerate to paper over it.
-- [ ] Spin-out OPEN: `bugs/BUG_20260822_bridge_bundle_emits_yaml_parser_warnings_into_an_unknown_host_console.md`.
+- [ ] Spin-out OPEN: `bugs/archive/BUG_20260822_bridge_bundle_emits_yaml_parser_warnings_into_an_unknown_host_console.md`.
 
 ### Lane P — project domain symmetry
 

@@ -39,7 +39,7 @@ export interface Vent {
   // changes no design — the user may enter either end and NOTHING is solved from it. The vented
   // box's tuning ↔ vent length is the same relation the passive-radiator box has as tuning ↔
   // added mass, and both must become solved pairs through one mechanism. Ruled and scoped in
-  // bugs/BUG_20260908_tuning_and_its_paired_quantity_never_solve_each_other.md; deferred until
+  // bugs/archive/BUG_20260908_tuning_and_its_paired_quantity_never_solve_each_other.md; deferred until
   // the packages/model → packages/design migration lands.
   //
   // Audit `lengthForTuning_m` against BUG_20260908_addedMassForTuning_returns_total_mass_not_

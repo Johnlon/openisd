@@ -1,6 +1,9 @@
 # BUG_20261001_options-chart-y-limit-partial-edit-silently-drops
 
-**Status:** OPEN
+**Status:** FIXED 2026-10-01 — `OptionsModal.vue` `setLimit()` now fills the untouched half from the
+row's placeholder (row.start/row.end) and orders inverted pairs; `GraphPanel` drops overrides
+unless both halves are finite and ordered. Functional coverage:
+`packages/ui/test/ui/options-chart-limits.browser.spec.ts` (3 tests).
 
 ## Symptom
 

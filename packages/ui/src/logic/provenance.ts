@@ -45,7 +45,7 @@ Qms: {
   // WinISD's own priority order (11 > 14 > 2 > 4 > 12, docs/design/WINISD_SCHEMA.md relation 11).
   // That ordering mismatch is ruled on separately (QO50: the engine must match WinISD's five
   // routes) -- see
-  // bugs/BUG_20260817_engine_is_missing_two_of_winisds_fs_routes_and_has_one_winisd_does_not.md.
+  // bugs/archive/BUG_20260817_engine_is_missing_two_of_winisds_fs_routes_and_has_one_winisd_does_not.md.
   // provenance-matches-engine.test.ts holds this list to the engine's site count, so a route
   // added to driver.ts fails there until it is declared here too.
 Fs_hz: {

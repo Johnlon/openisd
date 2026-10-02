@@ -32,7 +32,7 @@ export class VentedBox implements BoxModel {
       }
       case 'winisd-lossy': {
         // WinISD's vented box (winisd_research/GHIDRA_FINDINGS.md "Vented box — `0x456800`",
-        // bugs/BUG_20260927_vented-box-losses-not-winisd-form.md). Every loss is a FIXED
+        // bugs/archive/BUG_20260927_vented-box-losses-not-winisd-form.md). Every loss is a FIXED
         // resistance taken at ωb = 2π·Fb — the box's TUNING, never the vent's own length or
         // area — unlike the branch above, whose Map/Rap are per-frequency and length-derived:
         //   Map = 1/(ωb²·Cab)                 the vent's geometry is not read at all

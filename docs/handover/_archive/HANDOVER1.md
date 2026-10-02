@@ -64,7 +64,7 @@ The Sep-16 telemetry run (`build/ui-telemetry/events.jsonl`) recorded **53 faili
 5. **The 10-minute tool cap** → run specs in chunks sized ≲8 min (~10 s/test + per-file vite startup).
 6. **Grep is regex** — leaf titles with `(`/`)` must be escaped (the runner now does this).
 7. **TDD rules apply to app-source fixes.** The env-defaults fixes were done test-first (the failing test was the red). For `original-narrow`, the failing test is the red — do not edit source before running it.
-8. **Record bugs honestly.** `bugs/BUG_20260918_unticking-winisd-air-model-does-not-refresh-advanced-air-readouts.md` was opened as a reactivity bug, then corrected to WONTFIX-not-a-bug after probes showed the models simply agree at RH 50. The probe spec (`zz-probe-air.browser.spec.ts`) is deleted. Probing via the domain state in-page is the fastest way to split "stale test" vs "real bug".
+8. **Record bugs honestly.** `bugs/archive/BUG_20260918_unticking-winisd-air-model-does-not-refresh-advanced-air-readouts.md` was opened as a reactivity bug, then corrected to WONTFIX-not-a-bug after probes showed the models simply agree at RH 50. The probe spec (`zz-probe-air.browser.spec.ts`) is deleted. Probing via the domain state in-page is the fastest way to split "stale test" vs "real bug".
 
 ## Housekeeping done
 

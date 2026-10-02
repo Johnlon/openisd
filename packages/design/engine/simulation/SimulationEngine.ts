@@ -569,7 +569,7 @@ export class SimulationEngineImpl implements SimulationEngine {
     let flatClamped: number | null = null;
     if (P.forceFlatResponse) {
       // WinISD: every point to the TF's 0 dB, cut as well as boosted, no ceiling
-      // (runs/sealed-w5-flatresponse; bugs/BUG_20260928_force-flat-response-not-winisd.md).
+      // (runs/sealed-w5-flatresponse; bugs/archive/BUG_20260928_force-flat-response-not-winisd.md).
       const winisd   = P.winisdFlatModel !== false;
       const ref      = winisd ? splRefLimit : this.passbandRef(spl);
       const maxBoost = winisd ? Infinity : P.flatMaxBoostDb ?? FLAT_MAX_BOOST_DB;
@@ -671,7 +671,7 @@ export class SimulationEngineImpl implements SimulationEngine {
     // positive finite number before `swept.values` can be non-null — Re cannot be absent here.
     // Power is into Re + Rs, the same load the power → voltage drive solve uses (`driveVoltage`),
     // with Re at the coil's temperature rise as WinISD states it
-    // (bugs/BUG_20260928_vc-temperature-drive-uses-hot-re.md).
+    // (bugs/archive/BUG_20260928_vc-temperature-drive-uses-hot-re.md).
     const Re = hotRe(drv.values.Re_terminal_ohm!, P.alfaVC ?? 0, P.vcTempRise ?? 0) + (P.Rs != null && P.Rs > 0 ? P.Rs : 0);
     const drvXmax_m = drv.values.Xmax_m;
     const xmaxUsable = drvXmax_m != null && drvXmax_m > 0;

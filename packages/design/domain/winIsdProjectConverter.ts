@@ -668,7 +668,7 @@ export class WinIsdProjectConverter {
 }
 
 /** `filter` with its order at most WinISD's: above order 10 WinISD's filter calculation overflows
- *  and it shows an error dialog (bugs/BUG_20260927_winisd-wpr-filter-order-12-stops-load.md). A
+ *  and it shows an error dialog (bugs/archive/BUG_20260927_winisd-wpr-filter-order-12-stops-load.md). A
  *  clamped order is reported as a warning. */
 function winisdOrder(filter: Filter, errors: DriverError[]): Filter {
   if ((filter.type !== 'lowpass' && filter.type !== 'highpass' && filter.type !== 'allpass')

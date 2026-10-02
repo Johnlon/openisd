@@ -1,7 +1,7 @@
 /**
  * Transmission-line port model in a 6th-order bandpass box, matched to WinISD's own plotted SPL, impedance and transfer function.
  * Golden data: `../fixtures/winisdBp6TlPortsCapture.ts`, logged from the same `.wpr` this test imports
- * (`../winisd/fixtures/bp6-w5-tlports.wpr`). bugs/BUG_20260929_bp6-abc-tl-ports-not-winisd.md.
+ * (`../winisd/fixtures/bp6-w5-tlports.wpr`). bugs/archive/BUG_20260929_bp6-abc-tl-ports-not-winisd.md.
  */
 import {readFileSync} from 'node:fs';
 import {dirname, join} from 'node:path';

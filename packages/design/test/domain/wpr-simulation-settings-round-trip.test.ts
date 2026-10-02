@@ -1,7 +1,7 @@
 /**
  * The WinISD settings a `.wpr` simulates with — `[Box]` Nd, Med, Isobarik, alfaVC, dTVC and
  * `[SimulatorOptions]` VCInd, FlatResponse, TLPorts — survive import into their OpenISD fields and
- * export back. bugs/BUG_20260926_wpr-import-drops-source-resistance-and-simulator-options.md.
+ * export back. bugs/archive/BUG_20260926_wpr-import-drops-source-resistance-and-simulator-options.md.
  */
 import {readFileSync} from 'node:fs';
 import {dirname, join} from 'node:path';

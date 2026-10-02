@@ -1,6 +1,8 @@
 # BUG_20261001_spec-engine-4-2-describes-a-frozen-rho-c-engine-that-no-longer-exists
 
-**Status:** OPEN
+**Status:** FIXED 2026-10-01 — SPEC_ENGINE.md §4.2/§4.3 rewritten: no frozen RHO/C, both air
+models consume T/RH/p, environment rows added to the SweepParams table. The c/roo provenance
+question is consolidated in `docs/research/C_ROO_PROVENANCE.md`.
 
 ## Symptom
 

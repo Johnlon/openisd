@@ -2224,7 +2224,7 @@ describe("a blank device reports WinISD's own defaults without stating them", ()
   // stated". The default reads as CALCULATED, never entered — and since John's 2026-09-24
   // ruling ("simply no reason for these exceptions to the rule") the record carries it as a
   // real `'C'` entry, the same as every other derived quantity, instead of being conjured at
-  // read time. See `bugs/BUG_20260924_defaulted-fields-are-neither-marked-nor-recorded.md`.
+  // read time. See `bugs/archive/BUG_20260924_defaulted-fields-are-neither-marked-nor-recorded.md`.
 
   it('reads the default wiring as calculated, not as something the user entered', () => {
     const blank = OpenISDDriver.empty(createEngine());
@@ -3006,7 +3006,7 @@ describe('project-level array/display settings, chart Y-range, and identity', ()
   }
 
   it('sweep() reads Options → Environment for an unstated environment — the same SPL as entering those values', () => {
-    // bugs/BUG_20260924_sweep-ignores-options-environment-setting.md
+    // bugs/archive/BUG_20260924_sweep-ignores-options-environment-setting.md
     const grid: FrequencyGrid = {fmin: 20, fmax: 200, N: 8};
     const options = {tempK: 263.15, humidityPct: 90, pressurePa: 85000};
     const sealedOn = (engine: Engine) => {

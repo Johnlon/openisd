@@ -1,7 +1,7 @@
 /**
  * Voice-coil temperature rise, matched to WinISD's own plotted SPL, maximum power and impedance.
  * Golden data: `../fixtures/winisdVcTempRiseCapture.ts`, logged from the same `.wpr` this test imports
- * (`../winisd/fixtures/sealed-w5-dtvc20.wpr`). bugs/BUG_20260928_vc-temperature-drive-uses-hot-re.md:
+ * (`../winisd/fixtures/sealed-w5-dtvc20.wpr`). bugs/archive/BUG_20260928_vc-temperature-drive-uses-hot-re.md:
  * WinISD drives from the hot Re and plots max power into it.
  */
 import {readFileSync} from 'node:fs';

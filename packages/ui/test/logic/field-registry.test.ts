@@ -2,7 +2,7 @@
  * The field registry is the ONE place a field is described: its name, label, unit, band and
  * decimals. There used to be four — `FIELD_FLOOR`, `PHYSICAL_RANGE`, the UI's own field table
  * and NumInput's props — and they drifted apart on nine fields
- * (bugs/BUG_20260928_three_tables_disagree_on_field_validity.md).
+ * (bugs/archive/BUG_20260928_three_tables_disagree_on_field_validity.md).
  *
  * These gates pin the properties that stop it splitting again: no member may be absent from
  * `ALL_FIELDS`, no two members may claim the same field, and a member's NAME must be its

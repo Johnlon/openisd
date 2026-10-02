@@ -15,10 +15,10 @@ Sources:
 
 ## Resolved
 
-- **Sealed-box leakage (Ql)**: the leak is WinISD's fixed Ral = Ql/(ωsc·Cab); raising Ql moves phase and group delay the same way as WinISD ([sealed-box-leakage](bugs/BUG_20260924_sealed-box-leakage-modelled-as-damping-not-a-leak.md)).
-- **Transfer-function 0 dB reference**: the circuit's own HF asymptote, from the same parameters as the SPL ([tfmag-reference](bugs/BUG_20260924_tfmag-reference-disagrees-with-own-passband-spl.md)).
-- **Air model**: the driver solve and the sweep use the same ρ and c ([air-models](bugs/BUG_20260924_driver-solve-and-sweep-use-different-air-models.md)).
-- **Voice-coil inductance ($L_e$)**: `circuitModel` switch now controls $L_e$ in both electrical impedance ($Z_{el}$) and acoustic response ($Z_{\text{coil,AC}}$) together ([BUG_20260924](bugs/BUG_20260924_voice-coil-inductance-affects-impedance-but-not-spl.md)).
+- **Sealed-box leakage (Ql)**: the leak is WinISD's fixed Ral = Ql/(ωsc·Cab); raising Ql moves phase and group delay the same way as WinISD ([sealed-box-leakage](bugs/archive/BUG_20260924_sealed-box-leakage-modelled-as-damping-not-a-leak.md)).
+- **Transfer-function 0 dB reference**: the circuit's own HF asymptote, from the same parameters as the SPL ([tfmag-reference](bugs/archive/BUG_20260924_tfmag-reference-disagrees-with-own-passband-spl.md)).
+- **Air model**: the driver solve and the sweep use the same ρ and c ([air-models](bugs/archive/BUG_20260924_driver-solve-and-sweep-use-different-air-models.md)).
+- **Voice-coil inductance ($L_e$)**: `circuitModel` switch now controls $L_e$ in both electrical impedance ($Z_{el}$) and acoustic response ($Z_{\text{coil,AC}}$) together ([BUG_20260924](bugs/archive/BUG_20260924_voice-coil-inductance-affects-impedance-but-not-spl.md)).
 - **Drive Voltage ($e_g$)**: Drive voltage is sized as $e_g = \sqrt{P(R_e + R_s)}$, matching WinISD's reference-power convention.
 
 ## Not a gap

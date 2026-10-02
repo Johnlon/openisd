@@ -196,7 +196,7 @@ export function winISDDriverToOpenISDDeviceJson(wdr: WinISDDriver):
 
     // Optional: present only when the header line is non-blank, so a `.wdr` that never states
     // one produces no field — not an empty string standing in for "unstated"
-    // (bugs/BUG_20260903_wdr_reader_drops_providedby_comment_dateadded_on_every_round_trip.md).
+    // (bugs/archive/BUG_20260903_wdr_reader_drops_providedby_comment_dateadded_on_every_round_trip.md).
     const stated = (text: string | undefined) =>
         text && text.length > 0 ? {value: text} : undefined;
     const providedBy = stated(wdr.headerField('providedBy'));
@@ -206,7 +206,7 @@ export function winISDDriverToOpenISDDeviceJson(wdr: WinISDDriver):
     // A driver-only `.wdr` has no field for OID's `driver_type` — WinISD's format never had one
     // to lose. `[DRIVERTYPE ...]` in `Comment=` is OpenISD's own tag for it (same mechanism as
     // `[DQ]`/`[ENV]`; see
-    // bugs/BUG_20260907_driver_type_has_no_wdr_slot_so_every_loaded_driver_becomes_a_woofer.md).
+    // bugs/archive/BUG_20260907_driver_type_has_no_wdr_slot_so_every_loaded_driver_becomes_a_woofer.md).
     // A file with no tag — every real WinISD file — falls back to `woofer`, today's behaviour.
     const record: OpenISDDeviceJson = {
         uuid: {value: newUuid()},

@@ -253,7 +253,7 @@ test('the standard fixture sample-project.owpr is a faithful representation of a
 });
 
 // WinISD's wizard asks for the passive radiator after the box type.
-// bugs/BUG_20261001_new-project-wizard-skips-the-passive-radiator-step.md
+// bugs/archive/BUG_20261001_new-project-wizard-skips-the-passive-radiator-step.md
 test('the passive-radiator step\'s Vas / Qms / Fs reach the created project', async ({ page }) => {
   await page.locator('.tb-btn[title*="New project"]').click();
   const modal = page.locator('.overlay.open');

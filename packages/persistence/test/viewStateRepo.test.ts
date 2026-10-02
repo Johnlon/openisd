@@ -1,6 +1,6 @@
 /**
  * The chart view — swept frequency range and per-chart Y ranges — is app-level state and must
- * survive a restart. bugs/BUG_20260926_sweep-range-and-y-ranges-not-persisted.md
+ * survive a restart. bugs/archive/BUG_20260926_sweep-range-and-y-ranges-not-persisted.md
  */
 import {describe, expect, it} from 'vitest';
 import {createViewStateRepo, VIEW_STATE_KEY} from '../src/repos/viewStateRepo.js';

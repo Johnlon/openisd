@@ -1,6 +1,9 @@
 # BUG_20261001_options-frequency-range-unvalidated-empty-inverted
 
-**Status:** OPEN
+**Status:** FIXED 2026-10-01 — freq range draft/validation moved to `OptionsModal-hooks.ts`
+(`freqError`: both finite AND lo < hi, ANDed into canApply); the error message moved to the dialog
+footer (data-testid="settings-error"), visible from either tab. Functional coverage:
+`packages/ui/test/ui/options-chart-limits.browser.spec.ts`.
 
 ## Symptom
 

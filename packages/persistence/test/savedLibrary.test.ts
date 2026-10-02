@@ -8,7 +8,7 @@
  * repo names a schema and neither asserts a shape. The uuid is minted by the repo and lives
  * OUTSIDE the record — an id inside the record could leak into a file export.
  *
- * bugs/BUG_20260909_the_my_passive_radiators_library_stores_five_loose_numbers_instead_of_a_radiator_record.md
+ * bugs/archive/BUG_20260909_the_my_passive_radiators_library_stores_five_loose_numbers_instead_of_a_radiator_record.md
  */
 import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';

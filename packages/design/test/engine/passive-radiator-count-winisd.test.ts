@@ -1,6 +1,6 @@
 /**
  * Passive-radiator box, radiator count (Npr), matched to WinISD's own logged charts
- * (bugs/BUG_20260928_pr-added-mass-or-count-not-winisd.md). Golden data:
+ * (bugs/archive/BUG_20260928_pr-added-mass-or-count-not-winisd.md). Golden data:
  * `../fixtures/winisdPassiveRadiatorCountCapture.ts` — WinISD 0.7.0.950's impedance/transfer/
  * radiator-excursion, logged live by debugger from the SAME `.wpr` files this test imports
  * (`../winisd/fixtures/pr-w5-npr-1.wpr`, `pr-w5-me-npr-1.wpr`).

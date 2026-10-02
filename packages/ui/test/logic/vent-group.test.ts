@@ -64,7 +64,7 @@ describe('vent group — the entered set decides the direction', () => {
   });
 });
 
-// QO126 RESOLVED (S2-7d2, bugs/BUG_20260908_tuning_and_its_paired_quantity_never_solve_each_other.md):
+// QO126 RESOLVED (S2-7d2, bugs/archive/BUG_20260908_tuning_and_its_paired_quantity_never_solve_each_other.md):
 // the tuning ↔ vent-length relation is now wired into `OpenISDProject#resolve()`, run
 // synchronously by every `.set()`/`.clear()` `enterVentField`/`clearVentField` make. The record
 // can hold only ONE stated target per pair at a time — entering either member atomically clears

@@ -114,7 +114,7 @@ kept, so classification is from reading the current source against the spec):
 
 | Spec:line | ×N | Cause | Fix difficulty |
 |---|---|---|---|
-| `persistence/driver-favorites.browser.spec.ts:47` | 2 | Real app bug — a starred BUNDLED driver loses its star on reload. `bugs/BUG_20260909_a_starred_bundled_driver_loses_its_favourite_mark_on_reload.md`. The two sibling favourites tests (`:66`, `:91`) pass; they never reload. | App bug — investigate the favourites store's storage key and identity function for bundled rows. |
+| `persistence/driver-favorites.browser.spec.ts:47` | 2 | Real app bug — a starred BUNDLED driver loses its star on reload. `bugs/archive/BUG_20260909_a_starred_bundled_driver_loses_its_favourite_mark_on_reload.md`. The two sibling favourites tests (`:66`, `:91`) pass; they never reload. | App bug — investigate the favourites store's storage key and identity function for bundled rows. |
 | `persistence/driver-search-interactive.browser.spec.ts:28,60` | 4 | **Not a stale premise** — this session already repointed both to `seedMyDrivers.js` with real brand+model records, so "no name" is a misnomer now. They fail at line 44/72 `page.getByRole('button', { name: /Browse \/ Select/ })` — that control no longer exists. It is now `<div class="tb-btn" title="Manage Drivers — browse the library.">` (`OriginalShell.vue:820`). | **Trivial.** Swap both call sites to `await page.locator('[title*="librar" i]').first().click();` — exactly how the passing `my-drivers.browser.spec.ts` opens the picker (`my-drivers.browser.spec.ts:105`). NOT DONE — John scoped this turn to the handover only. |
 | `persistence/driver-selection.browser.spec.ts:182,202` | 4 | Confirmed the `openedAs: ''` gap (§1 item 6). Both tests assert "editing a saved driver rewrites its entry"; `editMyDriver` cannot name its storage entry, so the rewrite is a no-op and the saved row keeps its old model. | Out of scope — behaviour change awaiting John's ruling. |
 | `persistence/my-drivers-failures.browser.spec.ts:89,128,153` | 6 | **Selectors still exist** — `.my-storage-modal`, `.my-export-raw`, `.my-delete-all`, `.my-broken-row` are all in `DriverBrowserWinisd.vue:83-107`; `.de-rename-panel` is in `DriverEditorModal.vue:979`. A corrupt bucket still routes to `{ kind: 'unreadable' }` via `savedEntries.ts:157` → the modal condition `myDriversRead.kind === 'unreadable'` still fires. So the failure is NOT stale markup. `:128` exercises the same save→rewrite path as the `driver-selection` pair above — likely the same `openedAs` gap. `:153` is the mint-fresh-on-import rule in `driverBrowsingState.loadFromDisk`. `:89` is the export-and-disarm flow. | **Unclassified** — needs a targeted run for the real assertion failures. A triage run was launched this session (`packages/ui/test/persistence/my-drivers-failures.browser.spec.ts` + `driver-search-interactive` alone); its result is in `scratchpad/triage.log` if the session is still alive, otherwise re-run. |
@@ -122,7 +122,7 @@ kept, so classification is from reading the current source against the spec):
 ### 2b. The two root causes and the fixes made
 
 **Batch 1 — one shared fixture, contradictory needs.**
-`bugs/BUG_20260909_one_shared_owpr_fixture_cannot_satisfy_tests_with_opposite_driver_needs.md`.
+`bugs/archive/BUG_20260909_one_shared_owpr_fixture_cannot_satisfy_tests_with_opposite_driver_needs.md`.
 33 specs share `packages/ui/test/fixtures/sample-project.owpr`, whose driver has only 5 fields.
 Three specs need mutually exclusive driver states: `consistency-dq` needs a COMPLETE driver
 (so a consistency group reconciles before the test breaks it); `driver-editor-mandatory` needs
@@ -136,11 +136,11 @@ a deliberately INCOMPLETE one; `tune-panel-fields` needs Qts/Qes/Qms present.
   deliberately-incomplete `.owpr`, missing exactly the fields each test asserts are reported
   missing. `tune-panel-fields.browser.spec.ts` (5) needs a Qts/Qes/Qms fixture AND the
   removed-API fix (`s.driverCell`, `s.state.P.Vb` no longer exist —
-  `bugs/BUG_20260909_tune_panel_tests_call_appState_APIs_that_no_longer_exist.md`); gated on
+  `bugs/archive/BUG_20260909_tune_panel_tests_call_appState_APIs_that_no_longer_exist.md`); gated on
   QO121. `tune-panel-shots.browser.spec.ts` (1) — regen baseline once the panel renders.
 
 **Batch 2 — 7 specs seeded the pre-migration localStorage shape.**
-`bugs/BUG_20260909_my_drivers_specs_seed_the_pre_migration_localstorage_shape.md`.
+`bugs/archive/BUG_20260909_my_drivers_specs_seed_the_pre_migration_localstorage_shape.md`.
 `myDriverRepo` now reads a versioned uuid-keyed envelope
 (`{ schema: 1, entries: [{ uuid, record: <OpenISDDeviceJson> }] }`, owned by
 `packages/persistence/src/repos/savedEntries.ts`). The 7 specs seeded a flat
@@ -172,7 +172,7 @@ box view from which it was opened."
   `:26` (box-type change) timed out — NOT the hoist. The spec targeted `#boxtype`, an id that
   does not exist; the box-type `<select>` is `id="og-box-type"` (`OriginalShell.vue:971`).
   Fixed both call sites in the spec.
-  `bugs/BUG_20260909_tune_panel_independence_test_uses_a_boxtype_selector_id_that_does_not_exist.md`.
+  `bugs/archive/BUG_20260909_tune_panel_independence_test_uses_a_boxtype_selector_id_that_does_not_exist.md`.
 - **To do:** re-run that spec, expect both green, then
   `python3 ~/.claude/bin/inbox.py close QO134 -` with John's ruling verbatim.
 
@@ -181,7 +181,7 @@ box view from which it was opened."
 Empty-state file open: `App.vue` got an `emptyStateFileInput` ref + `openFileFromEmptyState` +
 `<input ref="emptyStateFileInput" type="file" accept=".owpr,.wpr,.owdr,.wdr,.json">`.
 `empty-state-open-file.browser.spec.ts` passes.
-`bugs/BUG_20260909_no_project_can_be_opened_from_a_file_when_none_is_open.md` — FIXED.
+`bugs/archive/BUG_20260909_no_project_can_be_opened_from_a_file_when_none_is_open.md` — FIXED.
 
 ---
 

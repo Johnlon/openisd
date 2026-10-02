@@ -1,6 +1,9 @@
 # BUG_20261001_nonphysical-parity-text-overreach
 
-**Status:** OPEN
+**Status:** FIXED 2026-10-01 — `nonPhysicalQuantity()` no longer appends PARITY; the non-physical
+sentence now states the raw result is shown, not changed. Pinned in
+`packages/design/test/engine/vented-plausibility.test.ts` (non-physical text must not contain
+'WinISD'; out-of-range keeps the parity sentence).
 
 ## Symptom
 

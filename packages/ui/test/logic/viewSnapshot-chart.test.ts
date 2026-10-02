@@ -1,6 +1,6 @@
 /**
  * The chart view (sweep range, per-chart Y ranges) travels in the saved view state, so it
- * survives a restart. bugs/BUG_20260926_sweep-range-and-y-ranges-not-persisted.md
+ * survives a restart. bugs/archive/BUG_20260926_sweep-range-and-y-ranges-not-persisted.md
  */
 import {describe, expect, it} from 'vitest';
 import {applyViewSnapshot, currentViewSnapshot} from '../../src/logic/appState.js';

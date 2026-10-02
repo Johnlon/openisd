@@ -354,7 +354,7 @@ describe('Gloss — a FRACTION in the file, a PERCENT on the panel', () => {
   const PANE_PERCENT = '2.3172';
 
   it('the .wdr carries the fraction, and the model holds it unscaled', () => {
-    // bugs/BUG_20260814_gloss-unscaled-test-asserts-exact-equality-against-a-computed-not-entered-fixture-value.md —
+    // bugs/archive/BUG_20260814_gloss-unscaled-test-asserts-exact-equality-against-a-computed-not-entered-fixture-value.md —
     // this fixture's ParState marks Gloss 'C' (slot 37): WinISD computed it, so the model
     // legitimately returns its OWN derivation, not the file's literal — the two agree to
     // ~14 significant figures (independent-implementation float noise), never byte-identical.

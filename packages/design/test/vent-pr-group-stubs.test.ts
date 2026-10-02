@@ -39,7 +39,7 @@ function ventedProject() {
  * on a passive-radiator one — which is NOT WIRED: `tuning_goal_hz` is a stored value no calculation
  * consumes, and the forward/inverse methods that would close the loop have no callers. That
  * feature is ruled and scoped in QO126
- * (`bugs/BUG_20260908_tuning_and_its_paired_quantity_never_solve_each_other.md`).
+ * (`bugs/archive/BUG_20260908_tuning_and_its_paired_quantity_never_solve_each_other.md`).
  *
  * What is pinned here is the INTERIM contract, and specifically that these do not THROW:
  * `notifyVentChanged()` runs on every project change (`packages/ui/src/logic/appState.ts`), so a

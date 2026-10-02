@@ -106,7 +106,7 @@ describe('solveConsistencyGroup — full fixpoint solver mode', () => {
 
 // ── Fs route parity with WinISD — BUG_20260817 ──────────────────────────────
 // WinISD derives Fs via exactly five routes, tried in this priority order (first whose
-// inputs are all present wins — bugs/BUG_20260817_engine_is_missing_two_of_winisds_fs_routes_and_has_one_winisd_does_not.md):
+// inputs are all present wins — bugs/archive/BUG_20260817_engine_is_missing_two_of_winisds_fs_routes_and_has_one_winisd_does_not.md):
 //   1. rel 11  Fs = 1 / (2π·√(Mms·Cms))
 //   2. rel 14  Fs = ∛(no·c³·Qes / (4π²·Vas))
 //   3. rel 2   Fs = Qes·BL² / (2π·Mms·Re)

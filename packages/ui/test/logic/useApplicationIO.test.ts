@@ -31,7 +31,7 @@ beforeAll(() => {
 });
 
 /**
- * bugs/BUG_20260822_wpr_import_leaves_previous_projects_meta_in_state_and_reexports_it.md —
+ * bugs/archive/BUG_20260822_wpr_import_leaves_previous_projects_meta_in_state_and_reexports_it.md —
  * the Verification section's round-trip: import a `.wpr` with distinct creator/description/
  * date while a differently-named project is open; `state.project.*` must adopt the FILE's
  * values (name from the filename, per the name↔file rule); a following export must emit the

@@ -46,7 +46,7 @@ export class ProjectChartsView {
     }
 
     /** Which charts this project's box type shows, in WinISD's own chart-menu order — a design
-     *  decision, not a UI one (bugs/BUG_20260927_winisd-charts-missing.md): port charts only
+     *  decision, not a UI one (bugs/archive/BUG_20260927_winisd-charts-missing.md): port charts only
      *  for a ported box, PR charts only for a radiator, the ten system charts and the three
      *  EQ/filter charts always. The UI shows exactly the ids this returns, never a second list
      *  of "which charts apply". */

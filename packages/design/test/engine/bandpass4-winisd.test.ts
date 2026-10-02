@@ -1,6 +1,6 @@
 /**
  * 4th-order bandpass box, matched to WinISD's own logged charts
- * (bugs/BUG_20260927_bandpass4-box-not-winisd-form.md). Golden data:
+ * (bugs/archive/BUG_20260927_bandpass4-box-not-winisd-form.md). Golden data:
  * `../fixtures/winisdBandpass4Capture.ts` (`WINISD_BANDPASS4_CAPTURE`) — WinISD 0.7.0.950's
  * impedance/transfer-function/front-port-velocity, logged live by debugger from the SAME
  * `.wpr` this test imports (`../winisd/fixtures/bp4-w5-1.wpr`).

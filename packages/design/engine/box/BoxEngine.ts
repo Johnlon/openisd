@@ -1,6 +1,6 @@
 /**
  * The closed set of chart curves the engine can draw, and which of them apply to a given box
- * type — a design decision, not a UI one (bugs/BUG_20260927_winisd-charts-missing.md, John
+ * type — a design decision, not a UI one (bugs/archive/BUG_20260927_winisd-charts-missing.md, John
  * 2026-09-27): "a chart is listed where it logically applies to a component the project has" —
  * port charts for a ported box, PR charts for a radiator, the ten box-agnostic system charts
  * and the three EQ/filter charts always. NEVER "when the data exists" — a chart WinISD draws
@@ -50,7 +50,7 @@ export interface BoxEngine {
   simulatableBoxType(box: BoxType): SimulatableBoxType | null;
   /** The charts a project with this box type shows, in WinISD's own chart-menu order — port
    *  charts only for a ported box, PR charts only for a radiator, the ten system charts and the
-   *  three EQ/filter charts always (bugs/BUG_20260927_winisd-charts-missing.md). */
+   *  three EQ/filter charts always (bugs/archive/BUG_20260927_winisd-charts-missing.md). */
   chartsFor(box: BoxType): readonly ChartId[];
   /** The chart a fresh project, or an invalid/inapplicable remembered chart id, falls back to. */
   readonly defaultChart: ChartId;

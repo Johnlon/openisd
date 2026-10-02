@@ -4,7 +4,7 @@
  *
  * It did: `loadOpenProjects()` returned on the first entry the validator refused, so a single
  * bad record looked exactly like an unusable session and every readable project went with it.
- * bugs/BUG_20260926_one-bad-session-entry-discards-the-readable-ones.md
+ * bugs/archive/BUG_20260926_one-bad-session-entry-discards-the-readable-ones.md
  */
 import {describe, expect, it} from 'vitest';
 import {createProjectRepo} from '../src/repos/projectRepo.js';

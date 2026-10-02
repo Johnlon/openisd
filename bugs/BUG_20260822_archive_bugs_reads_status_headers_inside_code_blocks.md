@@ -5,7 +5,7 @@ OPEN (re-verified 2026-09-26) — `scripts/archive-bugs.py` still reads Status l
 
 ## Symptom
 
-`bugs/BUG_20260822_archive_bugs_script_classifies_by_first_status_line_and_carries_per_file_overrides.md`
+`bugs/archive/BUG_20260822_archive_bugs_script_classifies_by_first_status_line_and_carries_per_file_overrides.md`
 states `Status: FIXED` and is never archived. Its status region reads:
 
     Status: FIXED — classifier rewritten to scan every status line; overrides deleted

@@ -101,7 +101,7 @@ function fieldForKey(key: string) {
  *  The registry names a driver field `driver_Fs_hz` while the driver record and
  *  `PROVENANCE_MAP` all call it `Fs_hz`; the prefix is the registry's own decoration, and
  *  dropping it is the follow-up recorded in
- *  bugs/BUG_20260928_three_tables_disagree_on_field_validity.md. Until then this strips it. */
+ *  bugs/archive/BUG_20260928_three_tables_disagree_on_field_validity.md. Until then this strips it. */
 function keyForLabel(label: string): string | undefined {
   const field = ALL_FIELDS.find(f => f.label === label);
   if (!field) return undefined;
@@ -327,7 +327,7 @@ test('rotating a unit changes the display only — the stored value round-trips'
 
 /** Guards the popup sitting at a fixed viewport corner regardless of where the editor
  *  renders — on a viewport too narrow to clear it on either side it would land on top of
- *  the very panel it explains (bugs/BUG_20260817_equation_inspector_popup_overlaps_the_editor.md). */
+ *  the very panel it explains (bugs/archive/BUG_20260817_equation_inspector_popup_overlaps_the_editor.md). */
 test('the equation-inspector popup never overlaps the editor, even on a narrow viewport', async ({ page }) => {
   await page.setViewportSize({ width: 1200, height: 900 }); // 770px modal, ~215px free per side
   await openEditor(page);
@@ -344,7 +344,7 @@ test('the equation-inspector popup never overlaps the editor, even on a narrow v
 });
 
 test('the equation-inspector popup is visible on screen at a normal window height', async ({ page }) => {
-  // bugs/BUG_20260817_equation_inspector_popup_overlaps_the_editor.md — the "below the modal"
+  // bugs/archive/BUG_20260817_equation_inspector_popup_overlaps_the_editor.md — the "below the modal"
   // fallback picked a vertical band without checking the popup's own height fit in it, so at an
   // ordinary (not maximized) window height the popup rendered past the bottom of the viewport —
   // present in the DOM, entirely invisible.

@@ -46,7 +46,7 @@ export class ChartSelection implements ChartSelectionAPI {
       return focusedProject()?.openCharts.value ?? [box.defaultChart];
     });
     // The design's own answer for which charts apply to THIS project's box — never a second,
-    // UI-maintained list of "which charts apply" (bugs/BUG_20260927_winisd-charts-missing.md).
+    // UI-maintained list of "which charts apply" (bugs/archive/BUG_20260927_winisd-charts-missing.md).
     this.chartItems = computed(() => {
       void projectChanged.value;
       const ids = focusedProject()?.charts ?? box.chartsFor(box.defaultBoxType);

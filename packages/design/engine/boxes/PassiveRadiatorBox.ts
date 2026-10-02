@@ -42,7 +42,7 @@ export class PassiveRadiatorBox implements BoxModel {
       }
       case 'winisd-lossy': {
         // WinISD's passive-radiator box (winisd_research/GHIDRA_FINDINGS.md "Passive radiator
-        // box — `0x45a960`", bugs/BUG_20260927_passive-radiator-losses-not-winisd-form.md).
+        // box — `0x45a960`", bugs/archive/BUG_20260927_passive-radiator-losses-not-winisd-form.md).
         // Leak and absorption are FIXED resistances taken at ωr — never the radiator's free-air
         // Fs and never per-frequency:
         //   Ral = Ql·ωr·Map          leak, parallel to the box (fixed)

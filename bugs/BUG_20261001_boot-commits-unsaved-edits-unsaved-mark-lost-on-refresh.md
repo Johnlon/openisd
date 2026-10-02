@@ -13,7 +13,7 @@ restore with `markProjectSaved()`, which calls `save()` on the focused project. 
 session that carried an edited layer has it folded into the saved record.
 
 Seen 2026-10-01 while measuring the two-tab rewrite
-(bugs/BUG_20261001_boot-rewrites-open-sessions-and-other-tabs-rebuild.md): a session written with
+(bugs/archive/BUG_20261001_boot-rewrites-open-sessions-and-other-tabs-rebuild.md): a session written with
 `saved` plus an `edited` layer came back from the reading tab with the edits in `saved` and
 `edited` null.
 

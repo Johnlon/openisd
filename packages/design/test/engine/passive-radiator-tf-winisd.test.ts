@@ -1,6 +1,6 @@
 /**
  * Passive-radiator box: "Transfer function magnitude (PR)" / "Transfer function phase (PR)",
- * matched to WinISD's own logged charts (bugs/BUG_20260927_winisd-charts-missing.md). Golden
+ * matched to WinISD's own logged charts (bugs/archive/BUG_20260927_winisd-charts-missing.md). Golden
  * data: `../fixtures/winisdPassiveRadiatorTfCapture.ts` (`WINISD_PR_TF_CAPTURE`) — WinISD
  * 0.7.0.950's own plotted dB/degrees, logged live by debugger from the SAME `.wpr` this test
  * imports (`../winisd/fixtures/pr-w5-tf-1.wpr`). That project carries a 4-filter chain — the

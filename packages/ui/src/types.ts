@@ -5,7 +5,7 @@
 import type {BoxType, MaxCurvesResult, SweepDriver, SweepResult} from '@openisd/design/engine';
 
 /**
- * `ChartId` (`@openisd/design`'s `Engine.chartsFor`, bugs/BUG_20260927_winisd-charts-missing.md)
+ * `ChartId` (`@openisd/design`'s `Engine.chartsFor`, bugs/archive/BUG_20260927_winisd-charts-missing.md)
  * is the closed set of chart curves the engine can draw, and which apply to a given box type —
  * a design decision, not a UI one.
  *

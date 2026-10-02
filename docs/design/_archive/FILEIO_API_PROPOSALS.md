@@ -41,7 +41,7 @@ This returns the private record shape to the UI, which the standing ruling forbi
 exception: **the UI must never talk to a JSON shape.** `_OpenISDDriverJson` is class-private to
 `openisdDriver.ts` and its allow-list has one entry. A `FileIO` typed this way could not compile
 against the current gate, and is also the exact defect
-`bugs/BUG_20260821_the_driver_record_is_used_as_currency_between_functions.md` records: records
+`bugs/archive/BUG_20260821_the_driver_record_is_used_as_currency_between_functions.md` records: records
 cross the PERSISTENCE boundary, drivers cross FUNCTION boundaries.
 
 So reads return `OpenISDDriver` / `OpenISDProject`.

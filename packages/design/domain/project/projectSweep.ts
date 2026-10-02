@@ -145,7 +145,7 @@ function boxSpecificParamsOf(source: ProjectSweepSource, boxType: SimulatableBox
             const front = box.bandpass4.chambers.front;
             // circuit.ts's bandpass4 `winisd-lossy` branch reads each chamber's OWN losses and
             // the front's own tuning — never the shared Ql/Qa/Qp above (engine/types.ts
-            // `SweepParams.Qlr` doc, bugs/BUG_20260927_bandpass4-box-not-winisd-form.md).
+            // `SweepParams.Qlr` doc, bugs/archive/BUG_20260927_bandpass4-box-not-winisd-form.md).
             return {
                 Vf: front.volume_m3.value, Sp: Sp ?? undefined, Leff: Leff ?? undefined,
                 Qlr: rear.Ql.value, Qar: rear.Qa.value, Qiclfr: rear.Qicl.value,

@@ -232,7 +232,7 @@ consulted.**
 marks* (kind `calc`), while oid's own `checkConsistency` independently *recomputes* 7 of python's
 9 relations live. The two paths are not unified — they can disagree, and nothing reconciles them.
 
-### 2.3 EBP/Fs bug — `bugs/BUG_20260821_consistency_relations_miss_the_ebp_fs_route.md`
+### 2.3 EBP/Fs bug — `bugs/archive/BUG_20260821_consistency_relations_miss_the_ebp_fs_route.md`
 
 Filed 2026-08-21, OPEN. Cause: `RELATIONS` never got a row for `Fs = EBP·Qes` when the EBP↔Fs
 derivation route was added elsewhere in `driver.ts`; `EBP` participates in no relation in

@@ -1,6 +1,6 @@
 /**
  * `[DRIVERTYPE tweeter]` in a `.wdr`'s `Comment=` — WinISD's `.wdr` format has no field for
- * driver type (`bugs/BUG_20260907_driver_type_has_no_wdr_slot_so_every_loaded_driver_becomes_a_woofer.md`),
+ * driver type (`bugs/archive/BUG_20260907_driver_type_has_no_wdr_slot_so_every_loaded_driver_becomes_a_woofer.md`),
  * so a non-woofer OID record round-tripped through `.wdr` loses its type on read. Same mechanism
  * as `[DQ]` and `[ENV]`: `Comment=` is the one field real WinISD round-trips opaquely.
  *

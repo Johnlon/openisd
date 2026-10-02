@@ -1,6 +1,6 @@
 /**
  * Passive-radiator box, matched to WinISD's own logged charts
- * (bugs/BUG_20260927_passive-radiator-losses-not-winisd-form.md). Golden data:
+ * (bugs/archive/BUG_20260927_passive-radiator-losses-not-winisd-form.md). Golden data:
  * `../fixtures/winisdPassiveRadiatorCapture.ts` (`WINISD_PASSIVE_RADIATOR_CAPTURE`) — WinISD
  * 0.7.0.950's impedance/transfer-function/radiator-excursion, logged live by debugger from the
  * SAME `.wpr` this test imports (`../winisd/fixtures/pr-w5-1.wpr`).

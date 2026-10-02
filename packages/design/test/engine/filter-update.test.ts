@@ -4,7 +4,7 @@
  * the Filter Editor entry range (1..20; WinISD stops at 10 only because of a calculation bug above it), every other numeric field clamped to its own entry
  * range (`packages/design/fields/filterLimits.ts`). Every `*Editor.vue` calls one of these and
  * emits the result — it owns no rounding or clamping of its own
- * (bugs/BUG_20260927_filter-editors-hold-domain-logic.md).
+ * (bugs/archive/BUG_20260927_filter-editors-hold-domain-logic.md).
  *
  * Rounding/clamp order for `order`: round first, then clamp — 2.6 rounds to 3 (in range, no
  * clamp needed); 0 rounds to 0, then clamps up to the 1 floor.

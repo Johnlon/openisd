@@ -19,7 +19,7 @@ export interface OriginalFiltersAPI {
   caption(f: Filter): string;
   // One typed edit per filter class: the engine decides what an editor may write (rounding,
   // clamping to the entry range), and the result replaces `f` in the chain. An editor calls
-  // the one matching its own `Filter` variant (bugs/BUG_20260927_filter-editors-hold-domain-logic.md).
+  // the one matching its own `Filter` variant (bugs/archive/BUG_20260927_filter-editors-hold-domain-logic.md).
   editPass(f: PassFilter, patch: PassPatch): void;
   editAllpass(f: AllpassFilter, patch: AllpassPatch): void;
   editLinkwitz(f: LinkwitzFilter, patch: LinkwitzPatch): void;
