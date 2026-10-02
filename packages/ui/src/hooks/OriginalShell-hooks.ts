@@ -65,7 +65,7 @@ import {OriginalFilters} from './OriginalFilters-hooks.js';
 import type {Calculated, Clearable, Entered, OpenISDProject, Readable, Writable} from '@openisd/design';
 import {dqOfCell, type DqReadout} from '../logic/cellDataQuality.js';
 import {isTabId, type TabId} from '../logic/tabId.js';
-import {createBoxVolume, createSealedReadouts, createSelectedBox} from './boxFields.js';
+import {createBoxVolume, createChamberFields, createSealedReadouts, createSelectedBox} from './boxFields.js';
 import {createDriveSignal} from './driveSignal.js';
 import type {StoredProjectListing} from '@openisd/persistence';
 import type {ChartId, EnvDefaults, EnvironmentEngine} from '@openisd/design/engine';
@@ -260,20 +260,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   // Front-chamber volume (WinISD "Vf"), rear-chamber tuning (WinISD "Frc") and the box-level
   // losses: which field each box type has is the box's own knowledge (`Box.frontVolumeOf`,
   // `rearTuningOf`, `lossesOf`); this reads and writes whatever it hands back.
-  const frontVolume_m3 = computed<number | null>(() => {
-    void projectChanged.value;
-    return focusedProject()?.box.frontVolumeOf(selectedBox.value)?.value ?? null;
-  });
-  function setFrontVolume_m3(v: number): void {
-    project.value.box.frontVolumeOf(selectedBox.value)?.set(v);
-  }
-  const frcHz = computed<number | null>(() => {
-    void projectChanged.value; void project.value;
-    return focusedProject()?.box.rearTuningOf(selectedBox.value)?.value ?? null;
-  });
-  function setFrcHz(v: number): void {
-    project.value.box.rearTuningOf(selectedBox.value)?.set(v);
-  }
+  const { frontVolume_m3, setFrontVolume_m3, frcHz, setFrcHz } = createChamberFields({ project, selectedBox, projectChanged });
   const boxQl = computed<number | null>(() => { void projectChanged.value; return focusedProject()?.box.lossesOf(selectedBox.value)?.Ql.value ?? null; });
   function setBoxQl(v: number): void { project.value.box.lossesOf(selectedBox.value)?.Ql.set(v); }
   const boxQa = computed<number | null>(() => { void projectChanged.value; return focusedProject()?.box.lossesOf(selectedBox.value)?.Qa.value ?? null; });

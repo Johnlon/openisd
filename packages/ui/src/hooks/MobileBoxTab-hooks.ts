@@ -7,7 +7,7 @@ import {computed, ref} from 'vue';
 import {boxTypeIsSimulatable, focusedProject, projectChanged} from '../logic/appState.js';
 import {useFocusedProject} from '../logic/focusedProjectContext.js';
 import {useApp} from '../logic/app.js';
-import {createBoxVolume, createSealedReadouts, createSelectedBox} from './boxFields.js';
+import {createBoxVolume, createChamberFields, createSealedReadouts, createSelectedBox} from './boxFields.js';
 import {SealedAlignmentEditor} from './SealedAlignment-hooks.js';
 import {VentedAlignmentEditor} from './VentedAlignment-hooks.js';
 import {BOX_TYPE_OPTIONS} from '@openisd/design/fields';
@@ -17,10 +17,11 @@ export function useMobileBoxTab() {
   const { engine } = useApp();
   const isSimulatable = boxTypeIsSimulatable;
 
-  const { selectedBox, pending, boxLabel, showEnclosureTab, enclosureNavLabel } =
+  const { selectedBox, pending, isDual, boxLabel, showEnclosureTab, enclosureNavLabel } =
     createSelectedBox({ focusedProject, projectChanged, isSimulatable });
   const { boxResonance, rearQtc } = createSealedReadouts({ project, selectedBox, projectChanged });
   const { boxVolume_m3, boxVolumeDqNote, setBoxVolume_m3 } = createBoxVolume({ project, selectedBox, projectChanged });
+  const { frontVolume_m3, setFrontVolume_m3, frcHz, setFrcHz } = createChamberFields({ project, selectedBox, projectChanged });
   // Box-losses (Ql/Qa/Qp) — the per-box-type dispatch now lives in the domain
   // (OpenISDBox.lossesOf, beside volumeOf/frontVolumeOf/rearTuningOf), so this is a one-liner
   // each, mirroring OriginalShell-hooks.ts's own boxQl/boxQa/boxQp: never switch on box type in a
@@ -70,7 +71,7 @@ export function useMobileBoxTab() {
   }
 
   return {
-    project, selectedBox, pending, boxLabel, showEnclosureTab, enclosureNavLabel,
+    project, selectedBox, pending, isDual, boxLabel, frontVolume_m3, setFrontVolume_m3, frcHz, setFrcHz, showEnclosureTab, enclosureNavLabel,
     boxResonance, rearQtc, boxVolume_m3, boxVolumeDqNote, setBoxVolume_m3,
     selectBoxType, BOX_TYPE_OPTIONS,
     sealedAlignmentEditor, sealedAlignmentOpen, sealedAlignmentOptions, sealedAlignmentSelected,
