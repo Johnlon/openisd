@@ -2,7 +2,7 @@
  * The DVol/Depth/MagDepth/Magnet geometry relation — one equation WinISD solves in four
  * directions, reverse-engineered and pinned in `docs/design/WINISD_SCHEMA.md` §3.10.1 /
  * `winisd_research/RE_GHIDRA_FINDINGS.md` "The DVol geometry relation — recovered formulas".
- * bugs/BUG_20260817_dvol_depth_magdepth_magnet_relation_is_documented_but_never_implemented.md.
+ * bugs/archive/BUG_20260817_dvol_depth_magdepth_magnet_relation_is_documented_but_never_implemented.md.
  *
  * Built and tested standalone, alongside `solver.ts`'s own solver, rather than inside it — a
  * new file carries no risk of colliding with concurrent edits to that hot file. Wiring into

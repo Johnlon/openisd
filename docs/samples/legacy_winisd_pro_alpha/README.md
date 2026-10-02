@@ -14,4 +14,6 @@ program, not an alternate state of the 0.7.0.950 build.
 See `docs/research/WINISD_PARITY.md` §20 for what these evidence the Plot-tab environment
 control's values land in the `.wpr`'s `[Driver]` section (`c`/`roo`), never in `[Box]`
 (the project-level environment), and for a secondary anomaly (populated vent sections in a
-sealed-box save) flagged for follow-up.
+sealed-box save) flagged for follow-up. The consolidated `c`/`roo` provenance story —
+the measured rule in 0.7.0.950, this Alpha evidence, and what was superseded — is
+`docs/research/C_ROO_PROVENANCE.md`.

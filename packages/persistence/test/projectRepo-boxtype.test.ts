@@ -7,7 +7,7 @@
  * unknown value rather than letting an arbitrary string reach a switch whose cases are
  * exhaustive only over the declared `BoxType` members.
  *
- * bugs/BUG_20260828_stored_box_type_is_cast_not_parsed_so_an_unknown_string_reaches_the_simulation.md
+ * bugs/archive/BUG_20260828_stored_box_type_is_cast_not_parsed_so_an_unknown_string_reaches_the_simulation.md
  *
  * These drive the PUBLIC door (`readProjectText`) rather than the schema directly, so they
  * prove the refusal actually reaches a caller.

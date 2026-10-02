@@ -79,8 +79,8 @@ sits in a developer's browser.
 
 Recorded separately; settle the favourites identity scheme before building the favourites half.
 
-- `bugs/BUG_20260909_loss_mode_is_app_wide_so_it_is_wrong_for_every_project_but_the_last_one_touched.md`
-- `bugs/BUG_20260909_a_saved_copy_of_a_bundled_driver_shares_its_favourite_key_so_one_star_stars_both.md`
+- `bugs/archive/BUG_20260909_loss_mode_is_app_wide_so_it_is_wrong_for_every_project_but_the_last_one_touched.md`
+- `bugs/archive/BUG_20260909_a_saved_copy_of_a_bundled_driver_shares_its_favourite_key_so_one_star_stars_both.md`
 - `bugs/BUG_20260909_passive_radiators_cannot_be_favourited_at_all.md`
 
 ## Verification

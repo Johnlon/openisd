@@ -3,7 +3,7 @@
  * registry has one, in `FLOOR_WITHOUT_FIELD` for the handful it does not. A new spec field that
  * lands in neither would silently take 'none' and stop being checked at all, so this names it.
  *
- * bugs/BUG_20260928_three_tables_disagree_on_field_validity.md.
+ * bugs/archive/BUG_20260928_three_tables_disagree_on_field_validity.md.
  */
 import {describe, expect, it} from 'vitest';
 import {NumberField} from '../../fields/field.js';

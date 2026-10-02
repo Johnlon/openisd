@@ -121,7 +121,7 @@ describe('Mpow, gamma', () => {
   // every self-consistent record, including BEYMA below — which is why this needs its own
   // discriminator). WinISD wrote `Rme=17.578125`, `Mpow=2.96463530640786` on that record;
   // `Bl/√Re` matches to the last digit, `√Rme` (4.1926274578121) does not. See
-  // bugs/BUG_20260813_mpow-uses-sqrt-rme-where-winisd-uses-bl-over-sqrt-re.md.
+  // bugs/archive/BUG_20260813_mpow-uses-sqrt-rme-where-winisd-uses-bl-over-sqrt-re.md.
   it('Mpow is Bl/√Re, NOT √Rme — the two happen to agree on BEYMA, so this only pins the value', () => {
     const r = solve({ ...BEYMA });
     assert.ok(Math.abs(derived(r.Mpow_N_per_sqrtW, 'Mpow_N_per_sqrtW') - derived(BEYMA.BL_Tm, 'BL_Tm') / Math.sqrt(derived(BEYMA.Re_ohm, 'Re_ohm'))) < 1e-12, `Mpow = ${r.Mpow_N_per_sqrtW}`);
@@ -165,7 +165,7 @@ describe('SPLmax and USPL — both offsets from the ONE reference base', () => {
   // predicting each golden's own `USPL`/`SPLmax` from its stated `SPL` and `Re`/`Pe` with
   // `2.83²` (not the bare `8`) and a flat `−3` dB agrees with WinISD's stored values to
   // 4.3e-14 / 0 and 4.3e-15 relative respectively, on every golden available. See
-  // bugs/BUG_20260813_uspl-and-splmax-use-formulas-winisd-does-not-2p83-volts-and-a-3db-derating.md.
+  // bugs/archive/BUG_20260813_uspl-and-splmax-use-formulas-winisd-does-not-2p83-volts-and-a-3db-derating.md.
   it('SPLmax = SPLref + 10·log₁₀(Pe) − 3 dB', () => {
     const r = solve({ ...FULL });
     assert.ok(derived(r.SPLref_dB, 'SPLref_dB') > 0, 'the reference sensitivity must have been derived first');

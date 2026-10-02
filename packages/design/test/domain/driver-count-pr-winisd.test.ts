@@ -1,7 +1,7 @@
 /**
  * Two drivers in a passive-radiator box, matched to WinISD's own plotted SPL, maximum power and impedance.
  * Golden data: `../fixtures/winisdTwoDriversPrCapture.ts`, logged from the same `.wpr` this test imports
- * (`../winisd/fixtures/pr-w5-nd2.wpr`). bugs/BUG_20260928_driver-count-not-winisd.md.
+ * (`../winisd/fixtures/pr-w5-nd2.wpr`). bugs/archive/BUG_20260928_driver-count-not-winisd.md.
  */
 import {readFileSync} from 'node:fs';
 import {dirname, join} from 'node:path';

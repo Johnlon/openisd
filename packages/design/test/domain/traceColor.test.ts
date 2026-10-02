@@ -1,6 +1,6 @@
 /**
  * A project's trace colour is saved in the project file (John, 2026-09-26,
- * bugs/BUG_20260926_trace-colour-not-persisted.md). It is chart view state, so setting it is not
+ * bugs/archive/BUG_20260926_trace-colour-not-persisted.md). It is chart view state, so setting it is not
  * an unsaved change.
  */
 import {describe, expect, it} from 'vitest';

@@ -7,7 +7,7 @@
  *
  * `order`: 1..20. WinISD stops at 10 because its filter calculation overflows (floating point)
  * above it — a bug, not a design limit (John, 2026-10-01). OpenISD does not copy a crash, so it
- * allows more (bugs/BUG_20260927_winisd-wpr-filter-order-12-stops-load.md).
+ * allows more (bugs/archive/BUG_20260927_winisd-wpr-filter-order-12-stops-load.md).
  */
 export interface FieldLimits {
   readonly min: number;

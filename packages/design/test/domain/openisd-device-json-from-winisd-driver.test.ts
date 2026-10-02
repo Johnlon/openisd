@@ -102,7 +102,7 @@ describe('winISDDriverFromOpenISDDeviceJson', () => {
   });
 
   it('providedBy/comment/dateAdded cross into provided_by/comment/added — not dropped', () => {
-    // bugs/BUG_20260903_wdr_reader_drops_providedby_comment_dateadded_on_every_round_trip.md
+    // bugs/archive/BUG_20260903_wdr_reader_drops_providedby_comment_dateadded_on_every_round_trip.md
     const wdr = WinISDDriver.fromWdrIni(
       '[Driver]\r\nProvidedBy=A Community Contributor\r\nComment=a note\r\nDateAdded=2026-09-01\r\n');
 

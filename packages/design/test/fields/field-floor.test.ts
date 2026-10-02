@@ -2,7 +2,7 @@
  * A number field carries its own floor, beside its two bands — whether zero and negatives are
  * admissible at all, which neither `limits` nor `plausible` answers (`Qts` has a `limits` floor
  * of 0 and a floor of 'positive'). Third of the three tables in
- * bugs/BUG_20260928_three_tables_disagree_on_field_validity.md.
+ * bugs/archive/BUG_20260928_three_tables_disagree_on_field_validity.md.
  *
  * `driver-value-validity.test.ts` pins the BEHAVIOUR field by field; this pins where the fact
  * now lives, so a floor stated on the field and a floor the driver applies cannot drift apart.

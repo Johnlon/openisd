@@ -182,7 +182,7 @@ export interface SweepParams {
   nDrivers?: number;
   wiring?: Wiring;
   /** WinISD's driver count (true/absent): N copies of one driver, each in Vb/N fed P/N — sealed and
-   *  vented boxes so far (bugs/BUG_20260928_driver-count-not-winisd.md). false: the N coils wired by
+   *  vented boxes so far (bugs/archive/BUG_20260928_driver-count-not-winisd.md). false: the N coils wired by
    *  `wiring` into one terminal impedance. */
   winisdDriverCountModel?: boolean;
   Rs?: number;
@@ -241,7 +241,7 @@ export interface SweepParams {
   // chamber and never read the front chamber's own losses at all). Each is a FIXED resistance
   // at that chamber's own frequency, never per-sweep-frequency, and never shared between
   // chambers (winisd_research/GHIDRA_FINDINGS.md "4th-order bandpass — `0x457a30`",
-  // bugs/BUG_20260927_bandpass4-box-not-winisd-form.md). Absent for any other box/lossMode
+  // bugs/archive/BUG_20260927_bandpass4-box-not-winisd-form.md). Absent for any other box/lossMode
   // combination, which never reads them.
   /** Rear (sealed) chamber leakage Q, WinISD `.wpr` `Qlr` — `Bandpass4Box.chambers.rear.losses.Ql`. */
   Qlr?: number;
@@ -322,7 +322,7 @@ export interface SweepParams {
    */
   forceFlatResponse?: boolean;
   /** WinISD's force-flat (true/absent): every point to the transfer function's 0 dB, boosted or
-   *  cut, uncapped (bugs/BUG_20260928_force-flat-response-not-winisd.md). false: boost only, up to
+   *  cut, uncapped (bugs/archive/BUG_20260928_force-flat-response-not-winisd.md). false: boost only, up to
    *  the passband reference, capped at `flatMaxBoostDb`. */
   winisdFlatModel?: boolean;
   /** Ceiling on the conventional force-flat boost, dB. Absent → FLAT_MAX_BOOST_DB. */

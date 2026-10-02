@@ -100,7 +100,7 @@ export function withAddedMass(drv: Readonly<DriverWorkingSet>, MaddKg: number): 
  * The iso-barik pair as WinISD models it: two drivers acting as one, Mms×2, Cms/2, Rms×2, Vas/2
  * and the circuit's terminal BL ×√2, so Fs and the Q's are unchanged. The typed BL (the motor's
  * push) stays one driver's. Fitted to winisd_research runs/sealed-w5-isobarik (SPL, excursion,
- * TF to 3e-14); bugs/BUG_20260928_isobarik-loading-not-simulated.md.
+ * TF to 3e-14); bugs/archive/BUG_20260928_isobarik-loading-not-simulated.md.
  */
 export function isobarikPair(drv: Readonly<DriverWorkingSet>): DriverWorkingSet {
   const out: DriverWorkingSet = Object.assign({}, drv);

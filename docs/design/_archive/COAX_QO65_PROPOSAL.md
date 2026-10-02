@@ -50,7 +50,7 @@ No test in `packages/model/test`, `packages/ui/test`, or `packages/winisd/test` 
 three test trees returns nothing). Coax is entirely untested today.
 
 There is a prior bug record on this exact defect —
-`bugs/BUG_20260818_coaxial_driver_type_still_locks_openisddriver_to_the_woofer_section_only.md` —
+`bugs/archive/BUG_20260818_coaxial_driver_type_still_locks_openisddriver_to_the_woofer_section_only.md` —
 carrying a human ruling dated 2026-08-21: *"Coax out of scope atm but add this as an open item in
 openisd and mark it as human deferred until big refactoring complete."* That bug file cites the
 ledger id as QO62; the ledger's current QO62 is a different, unrelated question (`.wdr`/`.wpr`

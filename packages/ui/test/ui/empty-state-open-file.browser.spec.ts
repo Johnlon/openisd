@@ -2,7 +2,7 @@
  * The no-project shell can open a saved project from disk.
  *
  * The shell remains mounted without a project, including its hidden file input.
- * bugs/BUG_20260909_no_project_can_be_opened_from_a_file_when_none_is_open.md
+ * bugs/archive/BUG_20260909_no_project_can_be_opened_from_a_file_when_none_is_open.md
  */
 import {readFileSync} from 'node:fs';
 import {SAMPLE_PROJECT_OWPR} from '../fixtures/sampleProject.js';
@@ -37,7 +37,7 @@ test('Open shows saved browser projects with Import from disk first', async ({ p
   await expect(dialog.locator('.open-project-list')).toContainText('No saved project yet');
 });
 
-// bugs/BUG_20260929_file-open-dialog-seeded-to-winisd.md — Import from disk opens the system
+// bugs/archive/BUG_20260929_file-open-dialog-seeded-to-winisd.md — Import from disk opens the system
 // dialog with our own "OpenISD and WinISD files" filter, and the picked file opens as a project.
 test('Import from disk asks the system dialog for one OpenISD and WinISD filter and opens the pick', async ({ page }) => {
   await page.addInitScript((owpr: string) => {

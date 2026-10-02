@@ -5,7 +5,7 @@
  * field to preserve. This SUPERSEDES the class's older no-drop guarantee.
  *
  * `WinISDProject` (`.wpr`) is unrelated and keeps its own no-drop guarantee — see
- * `bugs/BUG_20260823_wpr_import_discards_vent_cross_section_provenance.md` — because `.wpr`
+ * `bugs/archive/BUG_20260823_wpr_import_discards_vent_cross_section_provenance.md` — because `.wpr`
  * sections have no fixed key count the way a `.wdr`'s 48 numeric rows do.
  */
 import {describe, it} from 'vitest';

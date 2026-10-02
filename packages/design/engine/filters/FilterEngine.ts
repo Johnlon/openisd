@@ -39,7 +39,7 @@ export interface FilterEngine {
   // Typed edits, one per filter class — what a filter EDITOR may write: `order` rounded to an
   // integer then clamped to WinISD's 1..10, every other field clamped to its own entry range
   // (`fields/filterLimits.ts`). A field left out of `patch` passes through unchanged; the
-  // variant in is the variant out (bugs/BUG_20260927_filter-editors-hold-domain-logic.md).
+  // variant in is the variant out (bugs/archive/BUG_20260927_filter-editors-hold-domain-logic.md).
   editPass(f: PassFilter, patch: PassPatch): PassFilter;
   editAllpass(f: AllpassFilter, patch: AllpassPatch): AllpassFilter;
   editLinkwitz(f: LinkwitzFilter, patch: LinkwitzPatch): LinkwitzFilter;

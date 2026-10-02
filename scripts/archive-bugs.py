@@ -30,7 +30,11 @@ def status_region_lines(path):
     in_status = False
     for line in lines:
         stripped = line.strip()
-        if re.match(r"^status:", stripped, re.IGNORECASE):
+        # A status line is either `Status: ...` or the bold form `**Status:** ...`
+        # (the dominant convention, 75 of 96 records as of 2026-10-02 — before this
+        # fix the bold form was invisible to the archiver and closed records
+        # stranded in bugs/ forever).
+        if re.match(r"^(\*{2})?status:(\*{2})?", stripped, re.IGNORECASE):
             gathered.append(stripped)
             continue
         if re.match(r"^#+\s*status\b", stripped, re.IGNORECASE):

@@ -4,7 +4,7 @@
  * A thrown exception in a Vue computed kills that computed and nothing else. The page keeps
  * rendering, the console fills up, and the user sees a panel that is merely blank or stale.
  * That is how a build shipped with every driver-panel computation throwing and still looked
- * "loaded" — `bugs/BUG_20260817_deploy_verifies_asset_freshness_but_never_that_the_app_runs.md`.
+ * "loaded" — `bugs/archive/BUG_20260817_deploy_verifies_asset_freshness_but_never_that_the_app_runs.md`.
  *
  * Two jobs:
  *

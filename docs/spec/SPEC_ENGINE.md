@@ -81,8 +81,8 @@ to float precision, not a plausibility argument.
 
 - [`packages/design/test/engine/advanced-figures.test.ts`](../../packages/design/test/engine/advanced-figures.test.ts)
 - [`packages/design/test/winisd/winisd-parity-functional.test.ts`](../../packages/design/test/winisd/winisd-parity-functional.test.ts) — `USPL`, `SPLmax`, `Mpow` rows
-- `bugs/BUG_20260813_uspl-and-splmax-use-formulas-winisd-does-not-2p83-volts-and-a-3db-derating.md`
-- `bugs/BUG_20260813_mpow-uses-sqrt-rme-where-winisd-uses-bl-over-sqrt-re.md`
+- `bugs/archive/BUG_20260813_uspl-and-splmax-use-formulas-winisd-does-not-2p83-volts-and-a-3db-derating.md`
+- `bugs/archive/BUG_20260813_mpow-uses-sqrt-rme-where-winisd-uses-bl-over-sqrt-re.md`
 
 ---
 
@@ -203,18 +203,8 @@ Air density and sound velocity are always computed from the environment (T, RH, 
 
 Both models consume all three of temperature, humidity, and pressure — neither discards an
 input. `sweep`/`circuit` compute ρ/c from the `SweepParams` environment directly (§4.3);
-there is no rescale step.
-
-**History (2026-08-14).** This section formerly described frozen `RHO`/`C` constants
-(1.20095217714682 kg/m³ / 343.684120962153 m/s at 293.15 K) which the sweep rescaled by
-`tempK` alone. That engine no longer exists. The full-precision correction of the then-constants
-(and its golden rebase, max 3.6e-3 relative on one near-zero impedance-phase bin) is recorded in
-`bugs/BUG_20260813_winisd-compatibility-air-returns-truncated-rho-and-c-not-winisds-own-pair.md`.
-The formerly-flagged "temperature scaling still-open divergence" (env-t-303 vs env-rh-30
-byte-identical goldens) was resolved BY EXPERIMENT as QO93: WinISD's c/roo move with its
-app-level Options environment, and the goldens' identical pair reflects project-env values
-WinISD never reads. `bugs/BUG_20260814_winisd-compatibility-air-…` is closed WONTFIX on that
-basis.
+there is no rescale step. The `c`/`roo` provenance (measured rule and version history)
+is consolidated in `docs/research/C_ROO_PROVENANCE.md`.
 
 ### 4.3 Sweep Parameters — `sweep(drv: Driver, box: BoxType, P: SweepParams) → SweepResult`
 

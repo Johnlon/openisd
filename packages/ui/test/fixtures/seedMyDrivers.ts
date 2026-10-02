@@ -8,7 +8,7 @@
  * and every `record` is opened through `OpenISDDriver.fromConformingRecord`. A flat
  * `{ brand, model, Fs }` literal — the pre-migration seed shape — is not a conforming record, so
  * seeding one leaves My Drivers empty and every test that needs a saved row on screen fails.
- * bugs/BUG_20260909_my_drivers_specs_seed_the_pre_migration_localstorage_shape.md
+ * bugs/archive/BUG_20260909_my_drivers_specs_seed_the_pre_migration_localstorage_shape.md
  *
  * This module owns ONLY the mechanism: the envelope shape and the record skeleton. Each spec
  * still declares its own driver values inline and passes them in — the values the assertions

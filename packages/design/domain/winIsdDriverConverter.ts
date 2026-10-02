@@ -560,7 +560,7 @@ export function openIsdDriverToWinIsdDriver(
   // carried as permanently-dead code: proved via the class's own literal field, not argued). The
   // tag mechanism itself still exists and is still read back (`winISDDriverToOpenISDDeviceJson`
   // recovers it from `Comment=` when present) — a driver-only `.wdr` has no dedicated field for
-  // the type (bugs/BUG_20260907_driver_type_has_no_wdr_slot_so_every_loaded_driver_becomes_a_woofer.md),
+  // the type (bugs/archive/BUG_20260907_driver_type_has_no_wdr_slot_so_every_loaded_driver_becomes_a_woofer.md),
   // so `Comment=` is where it would ride — but nothing on THIS write side ever has a non-woofer
   // `OpenISDDriver` to tag.
   return WinISDDriver.build(header, wdrCells, dqLines);

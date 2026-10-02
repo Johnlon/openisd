@@ -2,7 +2,7 @@
  * "Rear port - Gain" and "Front port - Gain" for the 6th-order bandpass and ABC boxes, matched to
  * WinISD's own plotted values. Golden data: `../fixtures/winisdBp6PortGainCapture.ts` and
  * `../fixtures/winisdAbcPortGainCapture.ts`, logged from the `.wpr` each block imports.
- * bugs/BUG_20260929_bp6-abc-port-gain-charts-missing.md.
+ * bugs/archive/BUG_20260929_bp6-abc-port-gain-charts-missing.md.
  */
 import {readFileSync} from 'node:fs';
 import {dirname, join} from 'node:path';

@@ -49,7 +49,7 @@ the regeneration runs ONCE, after everything below is in — never per-change.
    db-conformance on this — the headline symptom B10 clears).
 9. **`name` field: dead** (B1 spin-out): no record carries it, the registry entry is deleted,
    and the TS-side declaration awaits deletion
-   (`openisd/bugs/BUG_20260821_openisd_name_field_declared_but_inert.md`).
+   (`openisd/bugs/archive/BUG_20260821_openisd_name_field_declared_but_inert.md`).
 10. **Brand-primary definition** (QO34/QO42): fixed in source; lands via the regeneration.
 
 ## Standing caveat on this whole document

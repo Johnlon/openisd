@@ -40,7 +40,7 @@ always appends rather than overwriting.
 The two resulting rows do correctly share one domain-record uuid (this path never calls
 `copyAsNew()`), so favourites do NOT visibly split between them — this is a distinct defect
 from
-[BUG_20260922_favoriting-copied-driver-also-highlights-original.md](http://localhost:8000/winisd/openisd/bugs/BUG_20260922_favoriting-copied-driver-also-highlights-original.md?html):
+[BUG_20260922_favoriting-copied-driver-also-highlights-original.md](http://localhost:8000/winisd/openisd/bugs/archive/BUG_20260922_favoriting-copied-driver-also-highlights-original.md?html):
 that one was a missing `copyAsNew()`; this one is a missing uuid handed to `upsert()`.
 
 ## Fix

@@ -468,7 +468,7 @@ describe('useOgNewProject — vented plausibility readout', () => {
 });
 
 // WinISD's wizard has a passive-radiator step after the box type: pick or enter the radiator
-// (Vas / Qms / Fs / Sd / Xmax). bugs/BUG_20261001_new-project-wizard-skips-the-passive-radiator-step.md
+// (Vas / Qms / Fs / Sd / Xmax). bugs/archive/BUG_20261001_new-project-wizard-skips-the-passive-radiator-step.md
 describe('useOgNewProject — passive-radiator step', () => {
   function atBoxTypeStep(passiveRadiators: NewProjectPassiveRadiatorRepos) {
     const engine = createEngine();

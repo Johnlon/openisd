@@ -1,6 +1,6 @@
 /**
  * `Engine.chartsFor` — which charts a project shows, by box type
- * (bugs/BUG_20260927_winisd-charts-missing.md): a design decision, not a UI one. A chart is
+ * (bugs/archive/BUG_20260927_winisd-charts-missing.md): a design decision, not a UI one. A chart is
  * listed where it logically applies to a component the box has, never "when the data exists".
  */
 import {describe, it} from 'vitest';

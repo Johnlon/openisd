@@ -1,7 +1,7 @@
 /**
  * Iso-barik loading, matched to WinISD's own plotted SPL, excursion, impedance and transfer function.
  * Golden data: `../fixtures/winisdIsobarikCapture.ts`, logged from the same `.wpr` this test imports
- * (`../winisd/fixtures/sealed-w5-isobarik.wpr`). bugs/BUG_20260928_isobarik-loading-not-simulated.md.
+ * (`../winisd/fixtures/sealed-w5-isobarik.wpr`). bugs/archive/BUG_20260928_isobarik-loading-not-simulated.md.
  */
 import {readFileSync} from 'node:fs';
 import {dirname, join} from 'node:path';

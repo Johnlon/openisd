@@ -1,7 +1,7 @@
 /**
  * WinISD Compatibility switches "WinISD driver count" (`winisdDriverCountModel`) and "WinISD flat
  * response" (`winisdFlatModel`). On (default): WinISD's own models
- * (bugs/BUG_20260928_driver-count-not-winisd.md, bugs/BUG_20260928_force-flat-response-not-winisd.md).
+ * (bugs/archive/BUG_20260928_driver-count-not-winisd.md, bugs/archive/BUG_20260928_force-flat-response-not-winisd.md).
  * Off: OpenISD's coil-wiring model for N drivers, and its capped boost-only flat response.
  */
 import {describe, expect, it} from 'vitest';

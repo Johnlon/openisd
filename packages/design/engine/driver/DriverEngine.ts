@@ -291,7 +291,7 @@ function solveConsistencyGroup(p: DriverWorkingSet): DriverWorkingSet {
     // function, only passed through); a record with no stated SPL falls back to `SPLref`, the
     // η₀-derived reference sensitivity block 11 above just produced — WinISD does the same
     // (its own `SPL` cell is entered-or-computed exactly like `SPLref` is here). See
-    // bugs/BUG_20260813_uspl-and-splmax-use-formulas-winisd-does-not-2p83-volts-and-a-3db-derating.md
+    // bugs/archive/BUG_20260813_uspl-and-splmax-use-formulas-winisd-does-not-2p83-volts-and-a-3db-derating.md
     // and docs/spec/SPEC_ENGINE.md "USPL / SPLmax — the 2.83 V reference and the 3 dB derating".
     const V283_SQ = 2.83 * 2.83;
     const uSplBase = r.SPL_dB ?? r.SPLref_dB;
@@ -333,7 +333,7 @@ function solveConsistencyGroup(p: DriverWorkingSet): DriverWorkingSet {
     // `Mpow = √Rme` is not an identity WinISD holds, so this code must not pin it.
     // `√Rme` is retained only as the fallback for a record with no `Bl` (e.g. `Bl` itself
     // absent but `Rme` derivable from Fs/Mms/Qes). See
-    // bugs/BUG_20260813_mpow-uses-sqrt-rme-where-winisd-uses-bl-over-sqrt-re.md.
+    // bugs/archive/BUG_20260813_mpow-uses-sqrt-rme-where-winisd-uses-bl-over-sqrt-re.md.
     if (r.Mpow_N_per_sqrtW == null && r.BL_Tm != null && r.Re_ohm != null && r.Re_ohm > 0) setVal('Mpow_N_per_sqrtW', r.BL_Tm / Math.sqrt(r.Re_ohm));
     if (r.Mpow_N_per_sqrtW == null && r.Rme_kg_per_s != null && r.Rme_kg_per_s > 0) setVal('Mpow_N_per_sqrtW', Math.sqrt(r.Rme_kg_per_s));
     // gamma = Bl/Mms — one route only.
@@ -345,7 +345,7 @@ function solveConsistencyGroup(p: DriverWorkingSet): DriverWorkingSet {
     // 3.0, e.g. `sealed-small`: `90 + 10·log₁₀(100) − 3 = 107`, WinISD's own stored value
     // exactly) but its PHYSICAL reason is not established by any source found in
     // winisd_research/ — the WHAT (exactly −3 dB) is proven, the WHY is not. See
-    // bugs/BUG_20260813_uspl-and-splmax-use-formulas-winisd-does-not-2p83-volts-and-a-3db-derating.md
+    // bugs/archive/BUG_20260813_uspl-and-splmax-use-formulas-winisd-does-not-2p83-volts-and-a-3db-derating.md
     // and docs/spec/SPEC_ENGINE.md "USPL / SPLmax — the 2.83 V reference and the 3 dB derating".
     if (r.SPLmax_dB == null && uSplBase != null && r.Pe_W != null && r.Pe_W > 0) {
       setVal('SPLmax_dB', uSplBase + 10 * Math.log10(r.Pe_W) - 3);

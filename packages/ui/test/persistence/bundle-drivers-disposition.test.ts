@@ -102,7 +102,7 @@ specs:
       true,
       'no driver is excluded for missing spec params (QO81) — Fs is a spec param like any other',
     );
-    // FIXME(bugs/BUG_20260908_dq_badge_never_fires_for_a_driver_missing_its_spec_params.md):
+    // FIXME(bugs/archive/BUG_20260908_dq_badge_never_fires_for_a_driver_missing_its_spec_params.md):
     // the other half of the QO79 ruling — that the ⚠ badge fires for this record — was asserted
     // here and cannot be, because the badge now asks `checkConsistency()`, which finds
     // CONTRADICTIONS between stated values and so reports nothing for a driver stating nothing.

@@ -4,7 +4,7 @@
  * Source: winisd_research runs/pr-w5-1/pr_tuning_edit.json (toys/probe_pr_tuning_edit.py,
  * 2026-09-28): W5-1138SMF project, 10 L, radiator Fs 30 Hz / Vas 4.8 L / Sd 95 cm²; after typing
  * the radiator count 2 and Me 0.01 kg the Box pane Fb reads "39.45" (two decimals).
- * bugs/BUG_20260928_pr-system-tuning-ignores-radiator-count.md.
+ * bugs/archive/BUG_20260928_pr-system-tuning-ignores-radiator-count.md.
  */
 import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';

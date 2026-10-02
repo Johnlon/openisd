@@ -5,7 +5,7 @@
  * An adopted session is never saved back. Reading a project mints its embedded driver a fresh
  * id, so a tab that saved what it had just adopted would write different text, every other tab
  * would hear a change and adopt it in turn, and the tabs would echo one record forever.
- * bugs/BUG_20260926_tabs-overwrite-each-others-open-projects.md
+ * bugs/archive/BUG_20260926_tabs-overwrite-each-others-open-projects.md
  */
 import {effectScope, nextTick, watch} from 'vue';
 import type {ProjectRepo, ViewStateRepo} from '@openisd/persistence';

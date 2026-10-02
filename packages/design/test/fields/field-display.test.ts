@@ -2,7 +2,7 @@
  * A number field states its display unit once: `display` is either `fixed` (one symbol) or
  * `switchable` (a `UnitGroup` plus that group's own base token) — never a separate `unit` string
  * alongside a separate `unitGroup` that a call site's `base=` could contradict. Second follow-up
- * of bugs/BUG_20260928_three_tables_disagree_on_field_validity.md.
+ * of bugs/archive/BUG_20260928_three_tables_disagree_on_field_validity.md.
  */
 import {describe, expect, it} from 'vitest';
 import {NumberField} from '../../fields/field.js';

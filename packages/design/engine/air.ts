@@ -43,7 +43,8 @@
  * driver's `c`/`roo` are always either the driver's OWN stated value, or CALCULATED — from
  * the driver's own remaining field, or from the app's live T/RH/AP — never a stored literal.
  * "Factory settings give 343.68" is a live computation landing on that number, not a
- * constant. This module holds no `RHO`/`C` for the same reason.
+ * constant. This module holds no `RHO`/`C` for the same reason. Full provenance:
+ * `docs/research/C_ROO_PROVENANCE.md`.
  *
  * ## The WinISD-parity mode
  *

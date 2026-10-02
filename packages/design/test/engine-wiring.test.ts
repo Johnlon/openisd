@@ -265,7 +265,7 @@ describe('D — the vent', () => {
     expect(p.box.vented.vent.tuningIn_hz(0)).toBeNull();
   });
 
-  // bugs/BUG_20260927_tuning-absent-when-port-length-entered.md — WHEN A PORT IS SET BY LENGTH
+  // bugs/archive/BUG_20260927_tuning-absent-when-port-length-entered.md — WHEN A PORT IS SET BY LENGTH
   // (tuning frequency blank), `winisd-lossy`'s Fb/Ff must still be the tuning that length
   // achieves, or the port-mass term (`Map = 1/(ωb²·Cab)`) divides by zero-derived NaN
   // (`VentedBox.ts`/`Bandpass4Box.ts`: "P.Fb absent poisons every value below with NaN").

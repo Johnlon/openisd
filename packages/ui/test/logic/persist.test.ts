@@ -102,7 +102,7 @@ function projectOf(box: BoxType, meta: FixtureMeta,
   // A file/share write serialises the SAVED record, never the edited one
   // (`openisdDomain.ts` `#slot`/`save()`), so the meta set above reaches the wire only once it is
   // committed. That the app itself never commits before writing is
-  // bugs/BUG_20260908_saving_a_project_drops_its_name_creator_and_all_metadata.md; these tests
+  // bugs/archive/BUG_20260908_saving_a_project_drops_its_name_creator_and_all_metadata.md; these tests
   // commit here so they exercise the WIRE rather than restating that bug.
   project.save();
   return project;
@@ -384,7 +384,7 @@ describe('share link carries the whole state, stripped of nothing', () => {
  * `toUiParams → save → load → applyLoadedProject → toUiParams` unchanged.
  */
 /**
- * bugs/BUG_20260822_share_links_and_file_imports_bypass_the_schema_upgrade.md — every reader
+ * bugs/archive/BUG_20260822_share_links_and_file_imports_bypass_the_schema_upgrade.md — every reader
  * of a persisted payload upgrades it. The V1→V2 step converts the driver slot from a record
  * OBJECT to the managed layer's serialised TEXT; a V1 share link must arrive upgraded.
  */

@@ -12,7 +12,7 @@ migration). **Do not `git add -A` / `git commit -a`.** Stage by name. See §"Wor
 ## 1. What was done this session (all staged, NOT committed)
 
 ### 1a. Test-instrument fix — the vite server death (was already in place; verified)
-`bugs/BUG_20260909_the_playwright_vite_server_dies_mid_run_and_fakes_hundreds_of_failures.md`
+`bugs/archive/BUG_20260909_the_playwright_vite_server_dies_mid_run_and_fakes_hundreds_of_failures.md`
 — Part 1 DONE. `packages/ui/test/fixtures.ts` throws a distinct "DEV SERVER UNREACHABLE — this
 is NOT a test failure" error the moment any request hits `ERR_CONNECTION_REFUSED`, before the
 diagnostics categories. `playwright.config.js` has `maxFailures: 180`. **Part 2 (why vite
@@ -40,7 +40,7 @@ Batch 3 distinct failing specs: `original-skin` 76, `app` 14, `driver-type-chips
 ### 1b. Root-caused both batch-1 and batch-2 failures — BOTH are stale tests, not app bugs
 
 **Batch 1 (15 fails)** —
-`bugs/BUG_20260909_one_shared_owpr_fixture_cannot_satisfy_tests_with_opposite_driver_needs.md`.
+`bugs/archive/BUG_20260909_one_shared_owpr_fixture_cannot_satisfy_tests_with_opposite_driver_needs.md`.
 33 specs share `packages/ui/test/fixtures/sample-project.owpr`, whose driver has only 5 fields
 (Fs 37, Qts 0.38, Vas 0.03, Re 6.6, Sd 0.0212). Three specs need mutually contradictory driver
 states:
@@ -60,7 +60,7 @@ run once batch 3 frees vite.
   `.owpr` fixture, missing exactly the fields each test asserts are reported missing.
 - `tune-panel-fields.browser.spec.ts` (5 fails) — needs a Qts/Qes/Qms fixture AND it calls
   removed APIs (`s.driverCell(f)`, `s.state.P.Vb`): see
-  `bugs/BUG_20260909_tune_panel_tests_call_appState_APIs_that_no_longer_exist.md`. That is a
+  `bugs/archive/BUG_20260909_tune_panel_tests_call_appState_APIs_that_no_longer_exist.md`. That is a
   SEPARATE defect in the same spec — a better fixture does not fix it. Read the value through
   the DOM (`value-e`/`value-c`/`value-n` class) or the focused project, not the deleted store
   export. Gated on QO121 (below).
@@ -68,7 +68,7 @@ run once batch 3 frees vite.
   the panel renders correctly.
 
 **Batch 2 (46 fails)** —
-`bugs/BUG_20260909_my_drivers_specs_seed_the_pre_migration_localstorage_shape.md`. `myDriverRepo`
+`bugs/archive/BUG_20260909_my_drivers_specs_seed_the_pre_migration_localstorage_shape.md`. `myDriverRepo`
 now stores a versioned envelope owned by `packages/persistence/src/repos/savedEntries.ts`:
 
 ```
@@ -96,7 +96,7 @@ shape. Nothing parses, My Drivers renders empty, every saved-driver test fails.
 - **NOT YET VERIFIED against a run.** Re-run batch 2 to confirm.
 
 **Also found in batch 2, a SEPARATE real app bug (not the seed shape):**
-`bugs/BUG_20260909_a_starred_bundled_driver_loses_its_favourite_mark_on_reload.md` —
+`bugs/archive/BUG_20260909_a_starred_bundled_driver_loses_its_favourite_mark_on_reload.md` —
 `driver-favorites.browser.spec.ts:47` stars a BUNDLED driver, reloads, the star is gone.
 Seeds no My Drivers. Investigate the favourites store's storage key + identity function (does
 the bundled-row identity survive a reload?). One test, distinct from the 46.
@@ -118,7 +118,7 @@ and reads `useFocusedProject()`, which `App.vue` provides, so the move is clean.
 failure was NOT the hoist — the test targeted `#boxtype`, an id that does not exist. The
 box-type `<select>` is `id="og-box-type"` (`OriginalShell.vue:971`). Fixed both call sites in
 the spec (`#boxtype` → `#og-box-type`).
-`bugs/BUG_20260909_tune_panel_independence_test_uses_a_boxtype_selector_id_that_does_not_exist.md`.
+`bugs/archive/BUG_20260909_tune_panel_independence_test_uses_a_boxtype_selector_id_that_does_not_exist.md`.
 
 **To do:** re-run `packages/ui/test/ui/tune-panel-independent-of-box-view.browser.spec.ts` with
 the selector fix — expect both to pass. Then close QO134 in the ledger:
@@ -176,9 +176,9 @@ deleted `packages/ui/src/logic/schemaUpgrade.ts`, `packages/ui/src/driverName.ts
   file also carries earlier empty-state-file-open work from this session)
 - `packages/ui/src/ui/shells/original/OriginalShell.vue` (QO134 — `<OriginalTune>` removal + import
   removal; **the diff also shows peer/other changes — inspect before staging**)
-- `bugs/BUG_20260909_one_shared_owpr_fixture_cannot_satisfy_tests_with_opposite_driver_needs.md` (new)
-- `bugs/BUG_20260909_my_drivers_specs_seed_the_pre_migration_localstorage_shape.md` (new)
-- `bugs/BUG_20260909_a_starred_bundled_driver_loses_its_favourite_mark_on_reload.md` (new)
+- `bugs/archive/BUG_20260909_one_shared_owpr_fixture_cannot_satisfy_tests_with_opposite_driver_needs.md` (new)
+- `bugs/archive/BUG_20260909_my_drivers_specs_seed_the_pre_migration_localstorage_shape.md` (new)
+- `bugs/archive/BUG_20260909_a_starred_bundled_driver_loses_its_favourite_mark_on_reload.md` (new)
 
 Everything above was already `git add`-ed (a hook or the peer staged it) but **nothing is
 committed**. Commit this session's stream by name; do not sweep the peer's half-finished
@@ -207,5 +207,5 @@ somewhere out of the way on screen — the titlebar was deliberately deleted; NO
 `tune_panel_tests_call_appState_APIs_that_no_longer_exist.md` (see §1b).
 
 Cast list: John authorised clean removals, ask before any hack.
-`bugs/BUG_20260909_driverName_ts_is_dead_code_holding_five_of_the_twenty_three_open_casts.md` —
+`bugs/archive/BUG_20260909_driverName_ts_is_dead_code_holding_five_of_the_twenty_three_open_casts.md` —
 `driverName.ts` is now DELETED by the peer, so those 5 casts are gone; re-count the cast gate.

@@ -2,7 +2,7 @@
  * Every tab of the app shares one session. A tab hears when ANOTHER tab rewrites the open
  * projects or the view, and never its own writes. The same view saved in another key order is
  * the same text, so it is not a change.
- * bugs/BUG_20260926_tabs-overwrite-each-others-open-projects.md
+ * bugs/archive/BUG_20260926_tabs-overwrite-each-others-open-projects.md
  */
 import {describe, expect, it} from 'vitest';
 import {createProjectRepo} from '../src/repos/projectRepo.js';

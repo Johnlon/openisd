@@ -127,9 +127,9 @@ The driver has two BLs when its entered BL disagrees with Fs, Vas, Qes and Re. W
 | Inductance CLe | entered | all, with inductance on |
 
 We judge the two-BL mix a WinISD bug; "WinISD driver model" off gives one BL throughout.
-Bugs: [spl-level](../bugs/BUG_20260926_winisd-spl-level-uses-entered-bl.md),
-[impedance](../bugs/BUG_20260926_winisd-impedance-uses-entered-bl.md),
-[tf-reference](../bugs/BUG_20260926_winisd-tf-reference.md).
+Bugs: [spl-level](../bugs/archive/BUG_20260926_winisd-spl-level-uses-entered-bl.md),
+[impedance](../bugs/archive/BUG_20260926_winisd-impedance-uses-entered-bl.md),
+[tf-reference](../bugs/archive/BUG_20260926_winisd-tf-reference.md).
 
 ---
 
@@ -158,7 +158,7 @@ not implemented in OpenISD.
 - The reference is the lossless circuit's high-frequency level: entered BL, Re + Rg, Le excluded.
   It is 0 dB for every driver, switch on or off.
 - Evidence: chart review §3, worst 3.3e-14 dB. Before the fix OpenISD used η₀ from Qes and Re,
-  0.507 dB off ([bug](../bugs/BUG_20260926_winisd-tf-reference.md)).
+  0.507 dB off ([bug](../bugs/archive/BUG_20260926_winisd-tf-reference.md)).
 
 ### 3.3 Transfer function phase — match
 
@@ -176,7 +176,7 @@ not implemented in OpenISD.
   step turns each rounding step of the phase into 1.77e-4 ms: the staircase in its curve.
 - Evidence: chart review §3, worst 0.00049 ms, about 3 of WinISD's rounding steps. Copying WinISD's
   step in double arithmetic agrees worse (0.0018 ms). Before the fix OpenISD differenced grid
-  neighbours: 0.025 ms off at 1 Hz ([bug](../bugs/BUG_20260926_group-delay-grid-difference.md)).
+  neighbours: 0.025 ms off at 1 Hz ([bug](../bugs/archive/BUG_20260926_group-delay-grid-difference.md)).
 - The EQ/filter chain is included: WinISD adds each enabled filter's own group delay (`f_46bd30`,
   kind 3). Checked with a 4-filter chain, worst 0.00069 ms (capture `filt-chain-sealed-1`).
 
@@ -195,7 +195,7 @@ not implemented in OpenISD.
 - Source: `sweep.ts` `maxCurves` `maxpwr`: the drive at which the cone reaches Xmax, capped at Pe.
 - Power is into Re + Rg, the same load the Signal tab's power → voltage uses.
 - Evidence: chart review §3, worst 8.9e-14 W. Before the fix OpenISD used Re alone, +2.94 %
-  ([bug](../bugs/BUG_20260926_max-power-ignores-rg.md)).
+  ([bug](../bugs/archive/BUG_20260926_max-power-ignores-rg.md)).
 
 ### 3.7 Maximum SPL — match
 
@@ -248,9 +248,9 @@ not implemented in OpenISD.
 - Evidence: `filters-winisd.test.ts` (33 single-filter captures, ≤ 1e-12); capture
   `filt-chain-sealed-1`: magnitude 2.8e-14, phase 8e-13, group delay 0.00066 ms.
 - The filter chain multiplies every chart except Maximum SPL and Maximum power, which WinISD
-  draws for the driver alone ([bug](../bugs/BUG_20260927_max-spl-and-max-power-include-the-filter-chain.md)).
+  draws for the driver alone ([bug](../bugs/archive/BUG_20260927_max-spl-and-max-power-include-the-filter-chain.md)).
 - ⚠ Unverified: WinISD skips points where the box impedance is 0; what it draws there
-  ([bug](../bugs/BUG_20260927_winisd-filter-charts-skip-zero-box-points.md)).
+  ([bug](../bugs/archive/BUG_20260927_winisd-filter-charts-skip-zero-box-points.md)).
 
 ### 3.13 Amplifier apparent load power (VA) — match
 
@@ -260,7 +260,7 @@ not implemented in OpenISD.
   so with "Rg is at driver side" on Rg is counted twice, as WinISD does.
 - WinISD (`f_46bd30` case 0x14): the chart routine returns Z, and the plot code applies this
   formula. WinISD bug, kept by default: Re where the amplifier's apparent power has Re + Rg, so it
-  reads Re/(Re + Rg) low ([bug](../bugs/BUG_20260927_winisd-va-uses-re-not-re-plus-rg.md)).
+  reads Re/(Re + Rg) low ([bug](../bugs/archive/BUG_20260927_winisd-va-uses-re-not-re-plus-rg.md)).
   "WinISD VA model" off: P·(Re + Rg)·|Hf|²/|Z_amp|.
 - Evidence: `winisd_research/runs/sweep-w5-sealed-va-rg1` (Rg 1 Ω, driver side off) and
   `sweep-w5-sealed-va-rg1-driverside` (driver side on), all 2087 points each to 3e-16.

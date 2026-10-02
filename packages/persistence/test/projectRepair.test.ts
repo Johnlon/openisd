@@ -80,7 +80,7 @@ describe('projectRepo — repairing loads', () => {
   });
 });
 
-// bugs/BUG_20261001_boot-rewrites-open-sessions-and-other-tabs-rebuild.md
+// bugs/archive/BUG_20261001_boot-rewrites-open-sessions-and-other-tabs-rebuild.md
 describe('projectRepo — saving the session it just read', () => {
   it('writes nothing, so no other tab rebuilds its projects', () => {
     const shared = createSharedMemoryStorage();

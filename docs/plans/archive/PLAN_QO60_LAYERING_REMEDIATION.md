@@ -272,7 +272,7 @@ start time, and index built or rebuilt using env setting — nothing at bundle t
   `OpenISDDriver.fromRecord()` to accommodate. It ships today's `{inputs}` flat bag instead
   (verified: 1,526 rows, every `record` has exactly one key), which the model cannot read at
   all; fixing that is PART OF THIS OBJECTIVE, not a prerequisite to it — see
-  `bugs/BUG_20260820_drivers_bundle_ships_a_shape_openisddriver_cannot_read.md`.
+  `bugs/archive/BUG_20260820_drivers_bundle_ships_a_shape_openisddriver_cannot_read.md`.
   Cost accepted: the record payload is already 87% of the row data (1,170,044 of 1,347,317 B)
   and provenance envelopes are fatter than a flat bag, so the bundle grows.
   Consequence: no derived build artifact exists, so nothing can go stale and no fingerprint
@@ -384,7 +384,7 @@ sweep converted correctly first time.
 Split by side: format-fidelity assertions stay in `packages/winisd/test`; model-coverage
 assertions move to `packages/model/test`. Where a test genuinely needs both objects, name the
 variables for their type — `wdrCell` / `driverCell`, never a bare `cell`.
-Record: `bugs/BUG_20260821_winisd_tests_assert_model_behaviour_from_the_format_package.md`.
+Record: `bugs/archive/BUG_20260821_winisd_tests_assert_model_behaviour_from_the_format_package.md`.
 
 **9. `useDriverCells.ts` dissolves; the `use` prefix stops lying.**
 
@@ -398,7 +398,7 @@ Two defects, both recorded 2026-08-21:
   leave the UI. What stays is `CellClass` and `cellClassOf()`, genuine presentation, which fold
   into `presentationState.ts` with objective 2b. `consistencyNote()` is borderline: the wording
   is presentation, the rule it formats is not.
-  Record: `bugs/BUG_20260821_q_group_redeclared_in_ui_against_the_engines_explicit_ban.md`.
+  Record: `bugs/archive/BUG_20260821_q_group_redeclared_in_ui_against_the_engines_explicit_ban.md`.
 
 - **`use` names four modules that are not composables.** `useDriverCells` (1 of 5 exports),
   `useApplicationIO` (0 — its only export is the FACTORY `createApplicationIO`), `useVentGroup`,
@@ -428,7 +428,7 @@ Still open, separate: `CellState` is declared in `@openisd/winisd` and re-export
 owned by the format package. Not a layering breach under the ruled direction, but needs a
 decision — leave it, or declare it in `@openisd/model` and have WinISD import it.
 
-Record: `bugs/BUG_20260820_model_depends_on_winisd_and_re_exports_its_cellstate.md`.
+Record: `bugs/archive/BUG_20260820_model_depends_on_winisd_and_re_exports_its_cellstate.md`.
 
 **7. The UI stops importing storage.** With 1–6 done, the `.vue` files take the domain facade or
 a service instead. `OriginalShell.vue` (21 names) is the bulk of this and should be last.

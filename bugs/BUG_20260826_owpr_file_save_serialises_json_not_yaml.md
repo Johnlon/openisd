@@ -8,7 +8,7 @@ OPEN (re-verified 2026-09-26) — needs a ruling: `.owpr` is written as JSON (`t
 `.owpr` (project) Save/Save As writes JSON text to disk. Per John, 2026-08-26: "we dont
 serialise json to disk at all — never — yml only... save as Owdr or Owpr is openisd.yml and a
 yml project not json." The sibling `.owdr` (driver) case is fixed —
-`bugs/BUG_20260826_owdr_file_save_serialised_json_not_yaml.md`.
+`bugs/archive/BUG_20260826_owdr_file_save_serialised_json_not_yaml.md`.
 
 ## Evidence
 

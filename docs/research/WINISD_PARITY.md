@@ -38,8 +38,8 @@ Third-party competitor tools (00 Simulator, SpeakerDesign.dev, SpeakerBoxLite, S
 | Calculation Axis | WinISD 0.7.0.950 Behavior | OpenISD Standard Behavior | How to match WinISD |
 | :--- | :--- | :--- | :--- |
 | **$M_{ms}$, $BL$, $R_{ms}$ vs. the simulation** | Keeps the entered values and never rewrites them — measured 2026-09-26: a driver whose $M_{ms}$, $BL$ and $R_{ms}$ contradict its own $F_s$/$C_{ms}$/$Q_{es}$/$Q_{ms}$ loads, saves back byte-identical and stays marked Entered, with no consistency warning. The simulation does not use them: the sealed-box $F_{sc}$ and $Q_{tc}$ readouts track $F_s$, $V_{as}$, $Q_{es}$, $Q_{ms}$, $S_d$, so the moving mass actually in play is $M_{ms} = 1/((2\pi F_s)^2 C_{ms})$ (equivalently $\rho_0 c^2 S_d^2/((2\pi F_s)^2 V_{as})$). Evidence: [`toys/probe_entered_mms_overwrite.py`](http://localhost:8000/winisd/winisd_research/toys/probe_entered_mms_overwrite.py), [`toys/probe_sim_uses_which_mms.py`](http://localhost:8000/winisd/winisd_research/toys/probe_sim_uses_which_mms.py). | Builds the acoustic branch straight from the entered $M_{ms}$, $C_{ms}$, $R_{ms}$ and $BL$ (`circuit.ts` `Mas`/`Ras`/`ZaE`), so an internally inconsistent record diverges from WinISD; conflicts are flagged via Data Quality (DQ). | Check **WinISD driver model** (`winisdDriverModel`) inside the WinISD Compatibility box on the Advanced tab, or click **Reset to WinISD**. On by default, per the README goal. It substitutes the whole set the WinISD circuit implies — $C_{ms} = V_{as}/(\rho c^2 S_d^2)$, then $M_{ms} = 1/((2\pi F_s)^2 C_{ms})$, $R_{ms} = 2\pi F_s M_{ms}/Q_{ms}$ and $BL = \sqrt{R_e/(2\pi F_s Q_{es} C_{ms})}$ off that compliance — each only where its own inputs are stated and positive, so every one is an identity on a self-consistent driver. The entered $BL$ still sets the level (the motor's push) and $C_{Le}$, as in WinISD; the $Q_{es}$-derived $BL$ sets the damping. |
-| **Acoustic Inductance ($L_e$)** | Has the same option: **Simulate voice coil inductance** on the Advanced pane (`view_6_advanced.png`), stored as `[SimulatorOptions] VCInd` in the `.wpr`, **default off**. Off, $L_e$ is excluded from the acoustic circuit ($Z_{\text{coil,AC}} = R_e + R_s$) and the response is flat above the passband; on, it rolls off — measured 2026-09-26 on the W5-1138SMF ($L_e = 0.34$ mH, $R_e = 3.4\,\Omega$): −1.21 dB at 1 kHz, −10.62 dB at 5 kHz, −22.31 dB at 20 kHz. | Same option, same default: **Simulate voice coil inductance** (`circuitModel`, `'winisd'` off / `'gyrator'` on) in the middle options column of the Advanced tab. Its sub-option **WinISD-compatible inductance** (`'winisdGyrator'`) reproduces WinISD's inductance-on roll-off; unchecked, the roll-off is textbook first-order ([bug record](../../bugs/BUG_20260926_gyrator-rolloff-shallower-than-winisd.md)). | Nothing to match — leave it as it is. |
-| **Rg in the impedance chart** | The impedance chart includes Rg only when **Rg is at driver side** is on: off, Z is the driver alone and Rg changes nothing; on, Z = Z(off) + Rg exactly — measured 2026-09-26 by debugger on the W5-1138SMF at Rg 0 and 10 Ω ([records](http://localhost:8000/winisd/winisd_research/runs/sweep-w5-sealed-impedance-rg10-vcind1-driverside-off.json)). | Same behavior: `Zel` excludes Rg when **Rg is at driver side** is off, includes it when on — [fixed 2026-09-26](../../bugs/BUG_20260926_impedance-includes-rg-when-rg-is-not-at-driver-side.md). | Nothing to match — leave it as it is. |
+| **Acoustic Inductance ($L_e$)** | Has the same option: **Simulate voice coil inductance** on the Advanced pane (`view_6_advanced.png`), stored as `[SimulatorOptions] VCInd` in the `.wpr`, **default off**. Off, $L_e$ is excluded from the acoustic circuit ($Z_{\text{coil,AC}} = R_e + R_s$) and the response is flat above the passband; on, it rolls off — measured 2026-09-26 on the W5-1138SMF ($L_e = 0.34$ mH, $R_e = 3.4\,\Omega$): −1.21 dB at 1 kHz, −10.62 dB at 5 kHz, −22.31 dB at 20 kHz. | Same option, same default: **Simulate voice coil inductance** (`circuitModel`, `'winisd'` off / `'gyrator'` on) in the middle options column of the Advanced tab. Its sub-option **WinISD-compatible inductance** (`'winisdGyrator'`) reproduces WinISD's inductance-on roll-off; unchecked, the roll-off is textbook first-order ([bug record](../../bugs/archive/BUG_20260926_gyrator-rolloff-shallower-than-winisd.md)). | Nothing to match — leave it as it is. |
+| **Rg in the impedance chart** | The impedance chart includes Rg only when **Rg is at driver side** is on: off, Z is the driver alone and Rg changes nothing; on, Z = Z(off) + Rg exactly — measured 2026-09-26 by debugger on the W5-1138SMF at Rg 0 and 10 Ω ([records](http://localhost:8000/winisd/winisd_research/runs/sweep-w5-sealed-impedance-rg10-vcind1-driverside-off.json)). | Same behavior: `Zel` excludes Rg when **Rg is at driver side** is off, includes it when on — [fixed 2026-09-26](../../bugs/archive/BUG_20260926_impedance-includes-rg-when-rg-is-not-at-driver-side.md). | Nothing to match — leave it as it is. |
 | **Sealed Box Losses** | Subtracts leak volume velocity $U_{\text{leak}}$ evaluated at $F_{sc}$ ($R_{al}$ constant). | Supports `'winisd-lossy'`, `'conventional-lossy'`, and `'lossless'`. | Set **Loss model** (`lossMode`) to `WinISD default` (`'winisd-lossy'`) inside the WinISD Compatibility box on the Advanced tab (default in OpenISD). |
 | **Air model** | No option — always derives $c$ and $\rho$ from the Advanced pane's temperature, humidity and pressure with its own 0.7 formulas ($c = 343.68$ m/s, $\rho = 1.20095$ kg/m³ at 293.15 K / 30% / 101325 Pa). | Defaults to the CIPM-2007 real-gas equations, which disagree with WinISD's at the same conditions. | Check **Use WinISD air model** (`envUseWinisdAirModel`) inside the WinISD Compatibility box on the Advanced tab, or click **Reset to WinISD**. OpenISD-only switch — WinISD has no counterpart. |
 
@@ -269,8 +269,10 @@ copper ≈0.0039), R(t)/C(t) (thermal resistance/capacity).
 **Figure of merit** (all derived/read-only) — SPLmaxLF, SPLmax, Rme, gamma, Mpow (=√Rme),
 Mcost, EBP (=Fs/Qes), Gloss.
 
-**Environment** — c (_OpenISD: autofills 343 m/s, state C, overridable_), roo/ρ (_autofills
-1.2, state C, overridable_).
+**Environment** — c, roo/ρ (_OpenISD computes both from the project environment,
+overridable; there are no autofill constants — the full provenance story, including
+WinISD's own wiring and version history, is consolidated in
+[`C_ROO_PROVENANCE.md`](C_ROO_PROVENANCE.md)_).
 
 **Dimensions** — Thick, Depth, Magnet Depth, Magnet, Basket (baffle cutout diameter), Outer
 (baffle clearance diameter), VCd, Dvol (driver displacement volume).
@@ -804,7 +806,7 @@ WinISD's transfer-function chart traced from pixels at `[SimulatorOptions] VCInd
 
 OpenISD's roll-off is exactly first-order — at 20 kHz, `20·log10(|Re+Rs+jωLe| / (Re+Rs))`
 = 21.76 dB — and WinISD's is 0.56 dB steeper, flat in that residual from 5 kHz up.
-Recorded as `bugs/BUG_20260926_gyrator-rolloff-shallower-than-winisd.md`.
+Recorded as `bugs/archive/BUG_20260926_gyrator-rolloff-shallower-than-winisd.md`.
 
 ### Recommendation
 
@@ -1369,6 +1371,10 @@ Confidence note: this finding rests on one screenshot and one saved project file
 multi-cell probe (as in §12) would be needed before treating every branch of this build's
 resolution rule as settled.
 
+The complete `c`/`roo` provenance story — the measured rule, this migration history, and
+John's recollection checked against the evidence — is consolidated in
+[`C_ROO_PROVENANCE.md`](C_ROO_PROVENANCE.md).
+
 ### Secondary anomaly (same file, not fully investigated)
 
 The same project has `[Box].BType=0` (sealed) yet also carries fully populated
@@ -1392,10 +1398,10 @@ chain"; `.wpr` `[Filters]` format: `PROBE_FINDINGS.md`. The bugs, one file each:
 
 | WinISD bug | OpenISD | File |
 |---|---|---|
-| Save loses an Allpass and every filter after it | not copied (no data loss); import to follow WinISD | [bugs/BUG_20260927_winisd-save-drops-allpass-and-later-filters.md](../../bugs/BUG_20260927_winisd-save-drops-allpass-and-later-filters.md) |
-| Bessel high-pass is not the mirror of its low-pass | copied | [bugs/BUG_20260927_winisd-bessel-highpass-not-mirror-of-lowpass.md](../../bugs/BUG_20260927_winisd-bessel-highpass-not-mirror-of-lowpass.md) |
-| Allpass: t is not the delay for order ≥ 2; order > 2 ignored | copied | [bugs/BUG_20260927_winisd-allpass-t-not-delay-order-above-2-ignored.md](../../bugs/BUG_20260927_winisd-allpass-t-not-delay-order-above-2-ignored.md) |
-| Linkwitz-Riley and SOS ignore Order | copied | [bugs/BUG_20260927_winisd-linkwitz-riley-and-sos-ignore-order.md](../../bugs/BUG_20260927_winisd-linkwitz-riley-and-sos-ignore-order.md) |
-| Filter group delay unwraps one direction only | not copied (never triggers) | [bugs/BUG_20260927_winisd-filter-group-delay-unwrap-one-direction.md](../../bugs/BUG_20260927_winisd-filter-group-delay-unwrap-one-direction.md) |
-| `.wpr` with filter order above 10: WinISD hits a floating-point overflow, shown in a modal error dialog (John, 2026-10-01) | not copied; OpenISD allows orders up to 20 | [bugs/BUG_20260927_winisd-wpr-filter-order-12-stops-load.md](../../bugs/BUG_20260927_winisd-wpr-filter-order-12-stops-load.md) |
-| Points where the box value is exactly 0 are skipped, EQ/Filter charts included | open | [bugs/BUG_20260927_winisd-filter-charts-skip-zero-box-points.md](../../bugs/BUG_20260927_winisd-filter-charts-skip-zero-box-points.md) |
+| Save loses an Allpass and every filter after it | not copied (no data loss); import to follow WinISD | [bugs/archive/BUG_20260927_winisd-save-drops-allpass-and-later-filters.md](../../bugs/archive/BUG_20260927_winisd-save-drops-allpass-and-later-filters.md) |
+| Bessel high-pass is not the mirror of its low-pass | copied | [bugs/archive/BUG_20260927_winisd-bessel-highpass-not-mirror-of-lowpass.md](../../bugs/archive/BUG_20260927_winisd-bessel-highpass-not-mirror-of-lowpass.md) |
+| Allpass: t is not the delay for order ≥ 2; order > 2 ignored | copied | [bugs/archive/BUG_20260927_winisd-allpass-t-not-delay-order-above-2-ignored.md](../../bugs/archive/BUG_20260927_winisd-allpass-t-not-delay-order-above-2-ignored.md) |
+| Linkwitz-Riley and SOS ignore Order | copied | [bugs/archive/BUG_20260927_winisd-linkwitz-riley-and-sos-ignore-order.md](../../bugs/archive/BUG_20260927_winisd-linkwitz-riley-and-sos-ignore-order.md) |
+| Filter group delay unwraps one direction only | not copied (never triggers) | [bugs/archive/BUG_20260927_winisd-filter-group-delay-unwrap-one-direction.md](../../bugs/archive/BUG_20260927_winisd-filter-group-delay-unwrap-one-direction.md) |
+| `.wpr` with filter order above 10: WinISD hits a floating-point overflow, shown in a modal error dialog (John, 2026-10-01) | not copied; OpenISD allows orders up to 20 | [bugs/archive/BUG_20260927_winisd-wpr-filter-order-12-stops-load.md](../../bugs/archive/BUG_20260927_winisd-wpr-filter-order-12-stops-load.md) |
+| Points where the box value is exactly 0 are skipped, EQ/Filter charts included | open | [bugs/archive/BUG_20260927_winisd-filter-charts-skip-zero-box-points.md](../../bugs/archive/BUG_20260927_winisd-filter-charts-skip-zero-box-points.md) |

@@ -91,7 +91,7 @@ const FIELD_DISAGREEMENT_EXCUSED = new Set(['s-roo.wdr:c']);
  * `roo` were computed under, for a driver-only `.wdr` (no `[Box]` section, so no other field
  * carries it). Real WinISD never writes this tag; it is a human annotation added to a specific
  * oracle file once the true environment was known by other means (see
- * `bugs/BUG_20260907_wdr_c_roo_environment_not_recoverable_on_round_trip.md`), read HERE ONLY,
+ * `bugs/archive/BUG_20260907_wdr_c_roo_environment_not_recoverable_on_round_trip.md`), read HERE ONLY,
  * for this test's own comparison — `OpenISDDriver` does not parse or honour it.
  */
 function envTagOf(src: string): { tempK: number; pressurePa: number; humidityPct: number } | undefined {
@@ -105,7 +105,7 @@ const MARK_WITHOUT_DERIVATION =
   'was computed: the solver read an ABSENT input as 0, ran the arithmetic on it (Sd = π·(0/2)² ' +
   '= 0), got a finite answer and marked the slot C on the strength of isFinite(). A zero area, ' +
   'impedance, Q or diameter is not a value any driver could have. See ' +
-  'bugs/BUG_20260816_cycling_a_wdr_through_openisd_destroys_15_entered_winisd_fields.md ' +
+  'bugs/archive/BUG_20260816_cycling_a_wdr_through_openisd_destroys_15_entered_winisd_fields.md ' +
   '§"a C mark is written over a value nothing computed"';
 
 /** ParState as written, or undefined where the file states none. */

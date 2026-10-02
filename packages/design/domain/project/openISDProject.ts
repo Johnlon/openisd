@@ -345,7 +345,7 @@ export class OpenISDProject {
     }
 
     /** Which charts this project's box type shows, in WinISD's own chart-menu order — a design
-     *  decision, not a UI one (bugs/BUG_20260927_winisd-charts-missing.md): port charts only
+     *  decision, not a UI one (bugs/archive/BUG_20260927_winisd-charts-missing.md): port charts only
      *  for a ported box, PR charts only for a radiator, the ten system charts and the three
      *  EQ/filter charts always. The UI shows exactly the ids this returns, never a second list
      *  of "which charts apply". */
@@ -423,7 +423,7 @@ export class OpenISDProject {
      * ELSE: a store key was minted in this process, so adopting it back is restoring an identity,
      * not importing a foreign one. Without this, a project loaded from the store gets a new
      * identity and its next save writes to a NEW key, orphaning the entry it came from
-     * (`bugs/BUG_20260826_reopening_a_stored_project_duplicates_its_store_entry.md`).
+     * (`bugs/archive/BUG_20260826_reopening_a_stored_project_duplicates_its_store_entry.md`).
      *
      * NOT for a file: a file's id was minted by another process and is provenance, never a key
      * (the driver precedent, QO81).
@@ -897,7 +897,7 @@ export class OpenISDProject {
 
     // ── vent-group / PR-group solve ───────────────────────────────────────────────────────────
     //
-    // FIXME(QO126, bugs/BUG_20260908_six_vent_and_pr_group_solve_methods_are_throwing_stubs.md):
+    // FIXME(QO126, bugs/archive/BUG_20260908_six_vent_and_pr_group_solve_methods_are_throwing_stubs.md):
     // these six answer the tuning ↔ paired-quantity relation — vent length on a vented box, added
     // cone mass on a passive-radiator one — which is NOT WIRED. `tuning_goal_hz` is a stored value no
     // calculation consumes, and the forward/inverse methods that would close the loop

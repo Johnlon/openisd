@@ -1,6 +1,6 @@
 /**
  * `.wpr` export of a filter above order 10: WinISD's filter calculation overflows above order 10
- * (John, 2026-10-01; bugs/BUG_20260927_winisd-wpr-filter-order-12-stops-load.md), so the export
+ * (John, 2026-10-01; bugs/archive/BUG_20260927_winisd-wpr-filter-order-12-stops-load.md), so the export
  * writes order 10 and warns that it did. OpenISD's own project keeps the order it has.
  */
 import {describe, expect, it} from 'vitest';

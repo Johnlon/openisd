@@ -1423,6 +1423,9 @@ WinISD has a separate, global "Options" dialog (Environment T/RH/AP) that is NOT
 any `.wpr` — it persists in the app's own config, independent of any project, and per §12 is
 the ONLY environment source a driver's blank `c`/`roo` ever reads. Distinct from `[Box]`'s
 per-project T/RH/AP (§11), which feeds the Project tab's own readouts and nothing else.
+The full provenance story — why the pair is live-computed, the version-to-version
+"half transition", and what the project-level env does and does not do — is consolidated in
+`docs/research/C_ROO_PROVENANCE.md`.
 
 The New Driver path (Manage Drivers opened with no file loaded) follows the same rule — a
 fresh driver has no `c`/`roo` of its own, so it shows the app-level live pair. Machine-verified

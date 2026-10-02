@@ -85,7 +85,7 @@ export abstract class OpenISDDriver extends OpenISDDevice {
      *  Every value seen across the driver.yml corpus: "woofer", "subwoofer", "midrange",
      *  "mid-bass", "mid-woofer", "full-range", "coaxial", "tweeter", "amt", "passive-radiator".
      *
-     *  TODO(bugs/BUG_20260907_driver_type_has_no_closed_set_shared_with_python.md): this is a
+     *  TODO(bugs/archive/BUG_20260907_driver_type_has_no_closed_set_shared_with_python.md): this is a
      *  closed vocabulary (`driver.yml`'s own field comment says so) with no enum backing it on
      *  either side of the scraper/domain boundary. Once one exists, shared with the Python
      *  scraper the way `filter/driverType.ts` keeps `DriverType`/`Chip` in parity with

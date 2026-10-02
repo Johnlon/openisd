@@ -618,7 +618,7 @@ VCInd on, 1 Hz–20 kHz. For each Rg (0 and 10 Ω), one WinISD launch logs the i
 the checkbox off, then ticks it on the Advanced tab and logs the chart again. The option byte
 (project+0x53) and Rg (project+0x38) are read back from memory at every point. On the OpenISD
 side `Rs_ohm` and `rgAtDriverSide` are set to match: the `.wpr` import drops Rg
-([BUG_20260926_wpr-import-drops-source-resistance-and-simulator-options](http://localhost:8000/winisd/openisd/bugs/BUG_20260926_wpr-import-drops-source-resistance-and-simulator-options.md?html)).
+([BUG_20260926_wpr-import-drops-source-resistance-and-simulator-options](http://localhost:8000/winisd/openisd/bugs/archive/BUG_20260926_wpr-import-drops-source-resistance-and-simulator-options.md?html)).
 
 | Rg (Ω) | Driver side | WinISD Z @1 Hz | @115.6 Hz | @20 kHz | OpenISD Z @1 Hz | @115.6 Hz | @20 kHz |
 |--------|-------------|---------------:|----------:|--------:|----------------:|----------:|--------:|
@@ -650,7 +650,7 @@ Record
 (Rg 1 Ω, driver side off): the plotted value, logged at 0x46c05c in `f_46bd30` with its inputs.
 VA = P·Re·|Hf|²/|Z + Rg| reproduces all 2087 points to 3e-16, and OpenISD's `va` matches WinISD's
 to 1e-9 at 1, 65.36 and 20000 Hz (`winisdDriverModel.test.ts`). WinISD uses Re where the apparent
-power has Re + Rg: [BUG_20260927_winisd-va-uses-re-not-re-plus-rg](http://localhost:8000/winisd/openisd/bugs/BUG_20260927_winisd-va-uses-re-not-re-plus-rg.md?html).
+power has Re + Rg: [BUG_20260927_winisd-va-uses-re-not-re-plus-rg](http://localhost:8000/winisd/openisd/bugs/archive/BUG_20260927_winisd-va-uses-re-not-re-plus-rg.md?html).
 
 Record
 [sweep-w5-sealed-va-rg1-driverside](http://localhost:8000/winisd/winisd_research/runs/sweep-w5-sealed-va-rg1-driverside/gdb.log)
@@ -680,7 +680,7 @@ EQ 45 Hz Q 3 −4 dB, raised cosine 120 Hz 0.5 oct +5 dB. Plotted values logged 
 | EQ/Filter group delay     | 0.00066 ms     |
 
 Maximum SPL and Maximum power leave the filter chain out in WinISD; OpenISD included it until
-[max-spl-and-max-power-include-the-filter-chain](http://localhost:8000/winisd/openisd/bugs/BUG_20260927_max-spl-and-max-power-include-the-filter-chain.md?html).
+[max-spl-and-max-power-include-the-filter-chain](http://localhost:8000/winisd/openisd/bugs/archive/BUG_20260927_max-spl-and-max-power-include-the-filter-chain.md?html).
 Each filter type alone: 33 captures, `packages/design/test/engine/filters-winisd.test.ts`.
 
 ### 3.5 Vented with a 4-filter chain
@@ -689,7 +689,7 @@ Record
 [vented-w5-chain-1](http://localhost:8000/winisd/winisd_research/runs/vented-w5-chain-1/gdb.log):
 W5 in 10 L tuned to 38 Hz, 5 cm port with a 0.2 m length that WinISD ignores, Ql 7, Qa 30, Qp 15,
 Rg 0.1, the §3.4 filter chain. OpenISD after
-[vented-box-losses-not-winisd-form](http://localhost:8000/winisd/openisd/bugs/BUG_20260927_vented-box-losses-not-winisd-form.md?html).
+[vented-box-losses-not-winisd-form](http://localhost:8000/winisd/openisd/bugs/archive/BUG_20260927_vented-box-losses-not-winisd-form.md?html).
 
 | Chart                     | Max difference |
 |---------------------------|----------------|
@@ -716,7 +716,7 @@ Record
 [pr-w5-chain-1](http://localhost:8000/winisd/winisd_research/runs/pr-w5-chain-1/gdb.log):
 W5 in 10 L with one radiator (Fs 30 Hz, Vas 4.8 L, Qms 3.3, Sd 95 cm², Me 0), Ql 7, Qa 30,
 Qp 15 (unused by WinISD), Rg 0.1, the §3.4 filter chain. OpenISD after
-[passive-radiator-losses-not-winisd-form](http://localhost:8000/winisd/openisd/bugs/BUG_20260927_passive-radiator-losses-not-winisd-form.md?html).
+[passive-radiator-losses-not-winisd-form](http://localhost:8000/winisd/openisd/bugs/archive/BUG_20260927_passive-radiator-losses-not-winisd-form.md?html).
 
 | Chart                     | Max difference |
 |---------------------------|----------------|
@@ -801,7 +801,7 @@ after the EQ/Filter phase; filter group delay and TF magnitude re-captured in
 [bp4-w5-chain-2](http://localhost:8000/winisd/winisd_research/runs/bp4-w5-chain-2/gdb.log)): W5, rear
 10 L sealed, front 5 L tuned to 60 Hz by one 5 cm port, Qlr 7, Qar 30, Qiclfr 20, Qlf 9, Qaf 40,
 Qpf 15, Rg 0.1, the §3.4 filter chain. OpenISD after
-[bandpass4-box-not-winisd-form](http://localhost:8000/winisd/openisd/bugs/BUG_20260927_bandpass4-box-not-winisd-form.md?html).
+[bandpass4-box-not-winisd-form](http://localhost:8000/winisd/openisd/bugs/archive/BUG_20260927_bandpass4-box-not-winisd-form.md?html).
 
 | Chart                     | Max difference |
 |---------------------------|----------------|
@@ -834,12 +834,12 @@ for its circuit (`toys/w5_fresh_model_check.py`):
 
 | Gap                                   | WinISD                                          | OpenISD before                  | Bug |
 |---------------------------------------|-------------------------------------------------|---------------------------------|-----|
-| SPL level, excursion                  | push from the entered BL                        | Qes-derived BL                  | [winisd-spl-level-uses-entered-bl](http://localhost:8000/winisd/openisd/bugs/BUG_20260926_winisd-spl-level-uses-entered-bl.md?html) |
-| SPL/phase near resonance, max curves  | absorption ωsc·Mas/Qa in series with Cab        | Qa/(ωCab) in parallel           | [winisd-box-absorption-is-series](http://localhost:8000/winisd/openisd/bugs/BUG_20260926_winisd-box-absorption-is-series.md?html) |
-| Impedance peak                        | motional term from the entered BL               | Qes-derived BL                  | [winisd-impedance-uses-entered-bl](http://localhost:8000/winisd/openisd/bugs/BUG_20260926_winisd-impedance-uses-entered-bl.md?html) |
-| TF magnitude, flat 0.507 dB           | 0 dB = ρ·Pg/(2π·Mas), entered BL, Re + Rg       | η₀ from Qes, Re                 | [winisd-tf-reference](http://localhost:8000/winisd/openisd/bugs/BUG_20260926_winisd-tf-reference.md?html) |
-| Max power +2.94 %, max SPL −0.126 dB  | power into Re + Rg                              | power into Re                   | [max-power-ignores-rg](http://localhost:8000/winisd/openisd/bugs/BUG_20260926_max-power-ignores-rg.md?html) |
-| Group delay 0.025 ms at 1 Hz          | slope at the point, f ± ((f + 1e-10) − f)       | grid difference, one-sided at the ends | [group-delay-grid-difference](http://localhost:8000/winisd/openisd/bugs/BUG_20260926_group-delay-grid-difference.md?html) |
+| SPL level, excursion                  | push from the entered BL                        | Qes-derived BL                  | [winisd-spl-level-uses-entered-bl](http://localhost:8000/winisd/openisd/bugs/archive/BUG_20260926_winisd-spl-level-uses-entered-bl.md?html) |
+| SPL/phase near resonance, max curves  | absorption ωsc·Mas/Qa in series with Cab        | Qa/(ωCab) in parallel           | [winisd-box-absorption-is-series](http://localhost:8000/winisd/openisd/bugs/archive/BUG_20260926_winisd-box-absorption-is-series.md?html) |
+| Impedance peak                        | motional term from the entered BL               | Qes-derived BL                  | [winisd-impedance-uses-entered-bl](http://localhost:8000/winisd/openisd/bugs/archive/BUG_20260926_winisd-impedance-uses-entered-bl.md?html) |
+| TF magnitude, flat 0.507 dB           | 0 dB = ρ·Pg/(2π·Mas), entered BL, Re + Rg       | η₀ from Qes, Re                 | [winisd-tf-reference](http://localhost:8000/winisd/openisd/bugs/archive/BUG_20260926_winisd-tf-reference.md?html) |
+| Max power +2.94 %, max SPL −0.126 dB  | power into Re + Rg                              | power into Re                   | [max-power-ignores-rg](http://localhost:8000/winisd/openisd/bugs/archive/BUG_20260926_max-power-ignores-rg.md?html) |
+| Group delay 0.025 ms at 1 Hz          | slope at the point, f ± ((f + 1e-10) − f)       | grid difference, one-sided at the ends | [group-delay-grid-difference](http://localhost:8000/winisd/openisd/bugs/archive/BUG_20260926_group-delay-grid-difference.md?html) |
 
 WinISD's box, exactly: Zbox = Ral ∥ (Raa + 1/(jωCab)), Ral = Ql/(ωsc·Cab), Raa = ωsc·Mas/Qa,
 ωsc = 1/√(Mas·Cat); the radiated volume velocity is the cone's minus the leak's.

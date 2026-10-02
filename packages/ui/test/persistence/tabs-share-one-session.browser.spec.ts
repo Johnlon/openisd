@@ -3,7 +3,7 @@ import type {Page} from '@playwright/test';
 
 // Every tab of the app shows the same open projects. A change made in one tab — open, close,
 // edit — appears in every other tab, and a fresh tab opens on that same session.
-// bugs/BUG_20260926_tabs-overwrite-each-others-open-projects.md
+// bugs/archive/BUG_20260926_tabs-overwrite-each-others-open-projects.md
 
 interface StoreHandle { state: { P: { Vb: number } } }
 declare global {

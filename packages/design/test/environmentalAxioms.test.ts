@@ -95,7 +95,7 @@ describe('Phase 1: Environmental Axioms (Tasks 26-33)', () => {
   // John, 2026-09-24: "simply no reason for these exceptions to the rule" — the three
   // environment quantities are record-backed like every other field, so the app's Options value
   // is STORED as a 'C' entry rather than substituted at read time
-  // (bugs/BUG_20260924_defaulted-fields-are-neither-marked-nor-recorded.md).
+  // (bugs/archive/BUG_20260924_defaulted-fields-are-neither-marked-nor-recorded.md).
 
   it('the environment trio is STORED as calculated entries, and an entered one as an E entry', () => {
     const project = ProjectBuilder.empty(createEngine());

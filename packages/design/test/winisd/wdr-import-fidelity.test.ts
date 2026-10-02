@@ -10,9 +10,9 @@
  *    a genuine WinISD save always writes so the EXPORT emits them; feeding those fabricated
  *    defaults into the entered bag asserts a human typed them, and the solver then refuses to
  *    compute the field. Record:
- *    `bugs/BUG_20260813_fromwdr-fabricates-entered-defaults-for-absent-wdr-keys-and-pins-gloss-to-zero.md`
+ *    `bugs/archive/BUG_20260813_fromwdr-fabricates-entered-defaults-for-absent-wdr-keys-and-pins-gloss-to-zero.md`
  *  - a key the file DOES carry must not be overwritten by our own calculation. Record:
- *    `bugs/BUG_20260813_wdr-spl-is-discarded-on-import-and-openisd-substitutes-its-own-computed-sensitivity.md`
+ *    `bugs/archive/BUG_20260813_wdr-spl-is-discarded-on-import-and-openisd-substitutes-its-own-computed-sensitivity.md`
  *
  * 🔒 ORACLE. Every expected value comes from WinISD 0.7.0.0, not from this codebase:
  * `drivers/mysamples/winisd/s-spl.wdr` and `s-gloss.wdr` are single-parameter probes WinISD itself

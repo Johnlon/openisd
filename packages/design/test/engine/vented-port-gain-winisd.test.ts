@@ -1,6 +1,6 @@
 /**
  * Vented box: "Rear port - Gain", matched to WinISD's own logged chart
- * (bugs/BUG_20260927_winisd-charts-missing.md). Golden data:
+ * (bugs/archive/BUG_20260927_winisd-charts-missing.md). Golden data:
  * `../fixtures/winisdVentedPortGainCapture.ts` (`WINISD_VENTED_PORT_GAIN_CAPTURE`) — WinISD
  * 0.7.0.950's own plotted dB, logged live by debugger from the SAME `.wpr` this test imports
  * (`../winisd/fixtures/vented-gain-1.wpr`). That project carries a 4-filter chain — unlike the

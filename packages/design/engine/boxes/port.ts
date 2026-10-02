@@ -58,7 +58,7 @@ export function portImpedance(w: number, P: SweepParams): Complex {
  * length that tunes to Fb — the Fb mass's own length ρ·L/S = Map, less the end correction.
  * Fitted to winisd_research runs/vented-w5-tlports (impedance 2e-15;
  * toys/w5_tl_port_model_check.py) and runs/bp4-w5-tlports (the front port);
- * bugs/BUG_20260928_tl-port-model-not-winisd.md.
+ * bugs/archive/BUG_20260928_tl-port-model-not-winisd.md.
  */
 export function winisdLinePortReactance(w: number, Map: number, Sp: number, endCorrection_m: number, rho: number, c: number): number {
   const L = Map * Sp / rho - endCorrection_m;

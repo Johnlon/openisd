@@ -1,7 +1,7 @@
 /**
  * A project's trace colour is given to it when it is opened; that is part of its ground state,
  * never an unsaved change, so every tab stores the same record for it.
- * bugs/BUG_20261001_boot-rewrites-open-sessions-and-other-tabs-rebuild.md
+ * bugs/archive/BUG_20261001_boot-rewrites-open-sessions-and-other-tabs-rebuild.md
  */
 import {describe, expect, it} from 'vitest';
 import {ProjectBuilder} from '../../domain/index.js';

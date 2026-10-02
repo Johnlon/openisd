@@ -11,7 +11,7 @@
  * can answer for, keyed by WinISD's own spelling (`Fs`, `BL`, `Znom`, …) — the caller has
  * already computed the numbers. The 48-key order, WinISD's defaults, the ParState row and the
  * `[DQ]`-suffixed `Comment=` line all live here once, not once per producer — which is what
- * fixed `bugs/BUG_20260813_parstate-writer-emits-n-for-the-34-slots-the-driver-does-not-model.md`.
+ * fixed `bugs/archive/BUG_20260813_parstate-writer-emits-n-for-the-34-slots-the-driver-does-not-model.md`.
  *
  * Reading keeps only the 48 known keys, each becoming a cell with its ParState mark. A key
  * outside that set is discarded: `.wdr` has no extension mechanism, so a foreign key is
@@ -107,7 +107,7 @@ function commentWithDq(base: string, dqLines: readonly string[]): string {
 
 /** The environment `c`/`roo` were computed under, for a driver-only `.wdr` (no `[Box]` section,
  *  so no other field can carry it). Real WinISD never writes or reads this — see
- *  `bugs/BUG_20260907_wdr_c_roo_environment_not_recoverable_on_round_trip.md`. */
+ *  `bugs/archive/BUG_20260907_wdr_c_roo_environment_not_recoverable_on_round_trip.md`. */
 export interface WdrEnv {
     tempK: number;
     pressurePa: number;
@@ -134,7 +134,7 @@ function envFromComment(comment: string | undefined): WdrEnv | undefined {
 }
 
 /** The OID `driver_type` a driver-only `.wdr` has no field for — see
- *  `bugs/BUG_20260907_driver_type_has_no_wdr_slot_so_every_loaded_driver_becomes_a_woofer.md`.
+ *  `bugs/archive/BUG_20260907_driver_type_has_no_wdr_slot_so_every_loaded_driver_becomes_a_woofer.md`.
  *  Real WinISD never writes or reads this tag. */
 const DRIVERTYPE_TAG = /\[DRIVERTYPE ([^\]]+)\]/;
 

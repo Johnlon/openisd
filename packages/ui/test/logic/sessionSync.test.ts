@@ -2,7 +2,7 @@
  * Every tab shows the same session. This tab saves its own changes for the others, adopts the
  * changes another tab saves, and never writes an adopted session back — a tab that did would
  * make every other tab hear a change and adopt it again, forever.
- * bugs/BUG_20260926_tabs-overwrite-each-others-open-projects.md
+ * bugs/archive/BUG_20260926_tabs-overwrite-each-others-open-projects.md
  */
 import {afterEach, beforeEach, describe, expect, it} from 'vitest';
 import {nextTick} from 'vue';
@@ -119,7 +119,7 @@ describe('startSessionSync — a stored session the app wrote', () => {
   });
 });
 
-// bugs/BUG_20261001_boot-rewrites-open-sessions-and-other-tabs-rebuild.md
+// bugs/archive/BUG_20261001_boot-rewrites-open-sessions-and-other-tabs-rebuild.md
 describe('startSessionSync — a project imported in one tab', () => {
   it('is stored in the form another tab reads it in, so that tab has nothing to write back', async () => {
     ensureSampleProject();

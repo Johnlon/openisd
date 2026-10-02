@@ -1,7 +1,7 @@
 /**
  * Force flat response, matched to WinISD's own plotted SPL, excursion and transfer function.
  * Golden data: `../fixtures/winisdFlatResponseCapture.ts`, logged from the same `.wpr` this test imports
- * (`../winisd/fixtures/sealed-w5-flatresponse.wpr`). bugs/BUG_20260928_force-flat-response-not-winisd.md.
+ * (`../winisd/fixtures/sealed-w5-flatresponse.wpr`). bugs/archive/BUG_20260928_force-flat-response-not-winisd.md.
  */
 import {readFileSync} from 'node:fs';
 import {dirname, join} from 'node:path';

@@ -1,7 +1,7 @@
 /**
  * Transmission-line port model, matched to WinISD's own plotted SPL, impedance, port velocity and transfer function.
  * Golden data: `../fixtures/winisdTlPortsCapture.ts`, logged from the same `.wpr` this test imports
- * (`../winisd/fixtures/vented-w5-tlports.wpr`). bugs/BUG_20260928_tl-port-model-not-winisd.md.
+ * (`../winisd/fixtures/vented-w5-tlports.wpr`). bugs/archive/BUG_20260928_tl-port-model-not-winisd.md.
  */
 import {readFileSync} from 'node:fs';
 import {dirname, join} from 'node:path';

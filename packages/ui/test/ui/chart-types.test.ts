@@ -65,7 +65,7 @@ const MX = engine.simulation.maxCurves(DRV, LE_H, 'vented', SP).values;
 assert.ok(MX, 'reference max curves produced nothing');
 
 // The three "(PR)" chart ids are `null` for a vented design (SW above) — that is the correct,
-// designed answer (bugs/BUG_20260927_winisd-charts-missing.md: no fake zero, unlike `excPR`),
+// designed answer (bugs/archive/BUG_20260927_winisd-charts-missing.md: no fake zero, unlike `excPR`),
 // not a gap this suite should paper over. They get their OWN reference design, a real
 // passive-radiator box, so "every declared member draws" is checked against data that
 // actually exists for them.

@@ -1,7 +1,7 @@
 # Plan — a project holds a collection of boxes, not one switchable box
 
 Ruling: John, 2026-09-29, live on his phone — raised as an alternative to
-`bugs/BUG_20260929_box-type-switch-leaves-volume-zero.md`'s "default the fields on switch"
+`bugs/archive/BUG_20260929_box-type-switch-leaves-volume-zero.md`'s "default the fields on switch"
 approach. **Not started. Parked behind finishing the smaller fix (John's own call, same
 conversation).** Recorded here so the idea and its open questions aren't lost.
 
