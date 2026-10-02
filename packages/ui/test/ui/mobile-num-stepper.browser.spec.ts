@@ -109,16 +109,18 @@ test('holding the button repeats the step, not just one click\'s worth of moveme
   await page.mouse.up();
 });
 
-// John, 2026-10-01: "focus must shift to the field that is being spun or weird UI".
-test('pressing a step button moves focus to that field', async ({ page }) => {
+// John, 2026-10-02: focus on the tapped button, never the input (it pops the phone keyboard).
+test('pressing a step button focuses the button, not the field', async ({ page }) => {
   await page.locator('.mob-tab', { hasText: 'Box' }).click();
   const other = fieldRow(page, 'Volume').locator('input');
   await other.focus();
   await page.locator('.mob-tab', { hasText: 'Signal' }).click();
   const row = fieldRow(page, 'Series resistance');
   const input = row.locator('input');
-  await row.locator('.num-stepper-btn').first().click();
-  await expect(input).toBeFocused();
+  const btn = row.locator('.num-stepper-btn').first();
+  await btn.click();
+  await expect(btn).toBeFocused();
+  await expect(input).not.toBeFocused();
 });
 
 // John, 2026-10-02 (screenshot): a row with no unit (Qms) had its ▲▼ further right than its

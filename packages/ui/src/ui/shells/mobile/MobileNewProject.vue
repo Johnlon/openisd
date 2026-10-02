@@ -223,12 +223,9 @@ function handleCreate() {
       </div>
     </div>
 
-    <!-- Step 1 is DriverLibrary's own job end to end: it has its own Cancel/Use pair for
-         previewing a driver, and picking one auto-advances past this step (useOgNewProject's
-         selectDriver calls next()) — so this footer's Back/Next/Cancel are never actionable
-         there and just duplicate DriverLibrary's Cancel, confusing on a phone-height screen.
-         Aborting the whole wizard from step 1 still works via the header's close (✕). -->
-    <div v-if="step !== 1" class="mob-np-footer">
+    <!-- Same footer on every step, step 1 included: Cancel is always in the same place. On step 1
+         DriverLibrary keeps its own compact Cancel/Use pair for the driver preview inside the list. -->
+    <div class="mob-np-footer">
       <button v-if="canBack" class="cancel-btn" @click="back">&lt; Back</button>
       <button v-if="canNext" class="ok-btn" @click="next">Next &gt;</button>
       <button v-if="step === 5" class="ok-btn" :disabled="!canCreate" @click="handleCreate">Create</button>
@@ -257,37 +254,6 @@ function handleCreate() {
 .mob-np-body { flex: 1; overflow-y: auto; padding: 14px; display: flex; flex-direction: column; }
 .mob-np-library-wrap { display: flex; flex-direction: column; flex: 1; min-height: 0; }
 .mob-np-library { flex: 1; min-height: 0; }
-/* DriverLibrary's own Cancel/Use pair (John's own ruling for its OTHER callers, 2026-09-24:
-   bottom-right, compact) restyled here to match this wizard's own footer buttons — full-width,
-   same padding/border/radius — so step 1's exit pair looks like part of the same footer
-   language as steps 2-5's, not a visually distinct control. Scoped to this component only
-   (:deep), so DriverLibrary's other caller (the standalone Manage Drivers browser) is unaffected. */
-.mob-np-library-wrap :deep(.prev-footer) {
-  justify-content: stretch;
-  gap: 8px;
-  padding: 10px 14px;
-  margin: 10px -14px -14px;
-  border-top: 1px solid #C7CDCB;
-  background: #F9FAF9;
-}
-.mob-np-library-wrap :deep(.prev-footer button) {
-  flex: 1;
-  font-size: 15px;
-  padding: 12px;
-  border-radius: 4px;
-}
-.mob-np-library-wrap :deep(.prev-footer .cancel-btn) {
-  color: #b02a2a;
-  background: #f0f0f0;
-  border: 1px solid #999;
-}
-.mob-np-library-wrap :deep(.prev-footer .use-btn) {
-  color: #1b7d1b;
-  background: #f0f0f0;
-  border: 1px solid #999;
-  font-weight: 600;
-}
-.mob-np-library-wrap :deep(.prev-footer .use-btn:hover) { background: #e8f5ea; }
 .np-step { color: #59635F; margin-bottom: 10px; font-weight: 500; }
 .np-warn { color: #8a4b00; background: #fff3e0; border: 1px solid #f0c088; border-radius: 3px; padding: 8px 10px; margin-bottom: 10px; font-size: 13px; }
 .selected-driver-banner { background: #eef4fc; border: 1px solid #b8d4f8; padding: 8px 10px; border-radius: 4px; margin-bottom: 12px; font-size: 13px; color: #224466; display: flex; flex-direction: column; gap: 4px; }
