@@ -1,6 +1,6 @@
 # BUG_20261002_hook-computeds-read-project-cells-without-the-change-tick
 
-**Status:** OPEN
+**Status:** FIXED 2026-10-02 (tick added to all six; only hasVent has a spec)
 
 ## Symptom
 Some hook values read a project field but do not re-read when that field changes. The screen shows
@@ -26,3 +26,10 @@ reads `projectChanged` (2026-10-02). Not yet shown stale in the app:
 ## Fix
 For each row, first write a spec that edits the field and checks the screen. Add the tick only
 where the spec fails.
+
+## Done
+- Tick added to all six values.
+- hasVent has a unit spec (AdvancedOptions-hooks.test.ts). Without the tick, the value stayed
+  false after the box changed to vented.
+- The other five have no spec yet: the PR modal count/resonance/radiator, the mobile trace
+  colour and the two currentDesign values.

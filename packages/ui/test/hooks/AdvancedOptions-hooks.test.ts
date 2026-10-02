@@ -3,6 +3,7 @@ import {computed, defineComponent, h} from 'vue';
 import {renderToString} from 'vue/server-renderer';
 import {createEngine} from '@openisd/design/engine';
 import {ProjectBuilder} from '@openisd/design';
+import {addProject} from '../../src/logic/appState.js';
 import {provideFocusedProject} from '../../src/logic/focusedProjectContext.js';
 import {useAdvancedOptions, type AdvancedOptionsAPI} from '../../src/hooks/AdvancedOptions-hooks.js';
 
@@ -41,6 +42,15 @@ describe('AdvancedOptions-hooks', () => {
 
     const bp4Api = await renderHook(createProject('bandpass4'));
     expect(bp4Api.hasVent.value).toBe(true);
+  });
+
+  it('hasVent follows the box type when it changes after the first read', async () => {
+    const project = createProject('sealed');
+    addProject(project);   // the change tick only fires for a project appState holds
+    const api = await renderHook(project);
+    expect(api.hasVent.value).toBe(false);
+    project.box.boxType.set('vented');
+    expect(api.hasVent.value).toBe(true);
   });
 
   it('exposes the inputChecked helper', async () => {

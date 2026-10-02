@@ -1,6 +1,6 @@
 import type {InjectionKey, Ref} from 'vue';
 import {computed} from 'vue';
-import {simVcInductance} from '../logic/appState.js';
+import {projectChanged, simVcInductance} from '../logic/appState.js';
 import {useFocusedProject} from '../logic/focusedProjectContext.js';
 import {inputChecked} from '../logic/domEvents.js';
 import type {OpenISDProject} from '@openisd/design';
@@ -19,6 +19,7 @@ export function useAdvancedOptions(): AdvancedOptionsAPI {
   const project = useFocusedProject();
 
   const hasVent = computed(() => {
+    void projectChanged.value;
     const b = project.value.box.boxType.value;
     return b === 'vented' || b === 'bandpass4';
   });
