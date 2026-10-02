@@ -33,6 +33,8 @@ import {
     maxData,
     openProjects,
     projectChanged,
+    projectDisplayName,
+    projectHasUnsavedChanges,
     removeProject,
     resetProjectToGround,
     syncedP,
@@ -460,7 +462,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
 
   const currentDesign = computed(() => ({
     driver: project.value.driver.specs.sweepDriver(), box: project.value.box.boxType.value, P: syncedP.value,
-    curves: curvesData.value, maxCurves: maxData.value ?? undefined, name: rowName(project.value),
+    curves: curvesData.value, maxCurves: maxData.value ?? undefined, name: projectDisplayName(project.value),
     color: WINISD_TRACE.value, visible: isRowVisible(project.value),
     sortIndex: openProjects().indexOf(project.value),
   }));
@@ -498,25 +500,6 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   const visibleRevision = ref(0);
   function isRowVisible(p: OpenISDProject): boolean { return visibleOf.get(p) ?? true; }
   function setRowVisible(p: OpenISDProject, v: boolean): void { visibleOf.set(p, v); visibleRevision.value++; }
-
-  /** Whether this row's project has unsaved edits — every row, not only the focused one
-   *  (John, 2026-09-24: the unsaved mark "only shows for the focused project - it needs to be
-   *  always visible"). `projectChanged` ticks for the focused project's edits; a background
-   *  project cannot be edited, so its answer only changes on focus, save or open. */
-  function rowUnsaved(p: OpenISDProject): boolean {
-    void projectChanged.value; void project.value;
-    return p.isModified();
-  }
-
-  /** Each row's display name — the project's own `name` field, falling back to the driver name. */
-  function rowName(p: OpenISDProject): string {
-    if (p === project.value) return project.value.name.value || driverName.value;
-    const name = p.name.value;
-    if (name) return name;
-    const brand = p.driver.brand.value;
-    const model2 = p.driver.model.value;
-    return [brand, model2].filter(x => x.length > 0).join(' ').trim();
-  }
 
   function selectProject(p: OpenISDProject) {
     const idx = projectList.value.indexOf(p);
@@ -560,7 +543,7 @@ const overlays = computed<Design[]>(() => {
       P,
       curves: sw.values,
       maxCurves: mx.values,
-      name: rowName(p),
+      name: projectDisplayName(p),
       color: traceColor(p),
       visible: isRowVisible(p),
       // Legend/draw order follows the sidebar's project list order, not "current first"
@@ -574,7 +557,7 @@ const overlays = computed<Design[]>(() => {
 
   /** "+ Copy" — duplicate the focused project's committed design into a new, independent tab. */
   function copyCurrentProject() {
-    const taken = projectList.value.map(rowName);
+    const taken = projectList.value.map(projectDisplayName);
     duplicateFocusedProject(copyProjectName(taken));
   }
 
@@ -730,7 +713,7 @@ const overlays = computed<Design[]>(() => {
     startNudge, stopNudge, cursorHz, cursorVal, chartMeta, inputChecked, selectValue, selectedOption,
     WINISD_TRACE, cycleColor, resetChartView, chartMax,
     mainEl, navCollapsed, bottomCollapsed, mainStyle, onNavSplitDown, onBottomSplitDown,
-    projectList, isRowVisible, setRowVisible, rowName, rowUnsaved, selectProject, project, focused, projectOpen, whatIfActive,
+    projectList, isRowVisible, setRowVisible, projectDisplayName, projectHasUnsavedChanges, selectProject, project, focused, projectOpen, whatIfActive,
     copyCurrentProject, requestCloseProject, closeChallenge, saveThenClose, closeProject,
     genOn, toggleGenerate, genHz,
     boxLabel, pending, openCharts, chartStackEl, chartStackStyle, chartsHigh, CHARTS_HIGH_OPTIONS, overlays, activeTab,

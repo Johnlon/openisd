@@ -17,14 +17,19 @@ const api = useMobileFiltersTab();
 </template>
 
 <style scoped>
-.mob-panel { padding: 12px; display: flex; flex-direction: column; height: 100%; box-sizing: border-box; }
+.mob-panel {
+  margin: 12px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  overflow: hidden;
+}
 .mob-panel-head {
+  padding: 10px 12px;
   font-size: 13px;
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
   color: var(--mut);
-  padding: 6px 4px 10px;
-  flex-shrink: 0;
+  border-bottom: 1px solid var(--line);
+  background: var(--panel2);
 }
 </style>

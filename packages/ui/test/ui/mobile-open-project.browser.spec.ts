@@ -43,3 +43,18 @@ test('Save, then "Open project…" lists it and reopens it', async ({ page }) =>
   // not a no-op that merely closed the sheet.
   await expect(page.locator('.mob-field-row.mob-field-entered .mob-field-value input').first()).toHaveValue(before);
 });
+
+test('the menu lists the open project at the bottom, though it was never saved', async ({ page }) => {
+  await openMenu(page);
+  const rows = page.locator('.mob-open-project');
+  await expect(rows).toHaveCount(1);
+  await expect(rows.first()).toHaveClass(/focused/);
+});
+
+test('the Graph page has its own menu button', async ({ page }) => {
+  await page.locator('.mob-tab', { hasText: 'Graph' }).click();
+  await expect(page.locator('.mob-topbar')).toHaveCount(0);
+  await page.locator('.mob-chart-menu').click();
+  await expect(page.locator('.mob-menu')).toBeVisible();
+  await expect(page.locator('.mob-open-project')).toHaveCount(1);
+});
