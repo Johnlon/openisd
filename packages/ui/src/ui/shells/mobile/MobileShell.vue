@@ -24,7 +24,7 @@ const {
   browseDrivers, optionsOpen, openOptions, about, goToProject, goToAdvanced, viewportHeightPx,
   showEnclosureTab, enclosureNavLabel, contentEl, canScrollUp, canScrollDown, updateScrollEdges,
   username, openDialogOpen, storedProjects, openProjectDialog, openStoredProject,
-  openProjectRows, selectOpenProject, setOpenProjectTraceVisible, closeOpenProject,
+  openProjectRows, selectOpenProject, setOpenProjectTraceVisible, cycleOpenProjectColour, closeOpenProject,
 } = useMobileShell();
 </script>
 
@@ -97,6 +97,9 @@ const {
             <input type="checkbox" class="mob-open-project-show" :checked="row.traceVisible"
                    :aria-label="'Show ' + row.name + ' on the graphs'" title="Show/hide this project's trace on the graphs"
                    @change="setOpenProjectTraceVisible(row, inputChecked($event))">
+            <button type="button" class="mob-open-project-colour" :style="{ background: row.colour }"
+                    :aria-label="'Change the colour of ' + row.name" title="Tap to change this project's curve colour"
+                    @click="cycleOpenProjectColour(row)"></button>
             <button type="button" class="mob-open-project-name" :title="row.name" @click="selectOpenProject(row)">
               <span v-if="row.unsaved" class="mob-open-project-dot" title="Unsaved changes"></span>{{ row.name }}
             </button>
@@ -280,6 +283,7 @@ const {
 .mob-menu-heading { padding: 2px 18px; font-size: 12px; color: var(--mut); text-transform: uppercase; letter-spacing: 0.04em; }
 .mob-open-project { display: flex; align-items: center; }
 .mob-open-project-show { flex: none; margin: 0 0 0 18px; width: 18px; height: 18px; }
+.mob-open-project-colour { all: unset; box-sizing: border-box; flex: none; width: 18px; height: 18px; margin-left: 10px; border-radius: 4px; border: 1px solid var(--line); cursor: pointer; }
 .mob-open-project.focused { background: var(--panel2); }
 .mob-open-project-name {
   all: unset;
@@ -289,7 +293,7 @@ const {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 4px;
+  padding: 6px 4px 6px 10px;
   font-size: 14px;
   color: var(--fg);
   cursor: pointer;

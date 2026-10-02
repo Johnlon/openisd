@@ -38,6 +38,23 @@ describe('boxFields', () => {
       expect(readouts.boxResonance.value).toBe(readouts.rearResonance.value);
     });
 
+    it('reads the bandpass4 rear chamber for Frc and Qtc, not the dormant sealed box', () => {
+      const {project} = createCompleteProject();
+      project.box.bandpass4.chambers.rear.volume_m3.set(0.02);
+      const projectRef = shallowRef(project);
+
+      const readouts = createSealedReadouts({
+        project: computed(() => projectRef.value),
+        selectedBox: ref<BoxType>('bandpass4'),
+        projectChanged: ref(0),
+      });
+
+      expect(readouts.rearResonance.value).toBe(project.box.bandpass4.chambers.rear.resonance_hz.value);
+      expect(readouts.rearResonance.value).toBeGreaterThan(0);
+      expect(readouts.rearQtc.value).toBe(project.box.bandpass4.chambers.rear.q_tc.value);
+      expect(readouts.rearQtc.value).toBeGreaterThan(0);
+    });
+
     it('returns null for rearQtc when box is vented', () => {
       const {project} = createCompleteProject();
       const projectRef = shallowRef(project);

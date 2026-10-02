@@ -985,6 +985,18 @@ describe('OpenISDBox — every alignment, as a window onto the project record', 
     expect(bp4.box.bandpass4.chambers.rear.resonance_hz.value).not.toBeNull();
   });
 
+  it('exposes bandpass4 rear Qtc on the same lossless model as Frc', () => {
+    const bp4 = new ProjectBuilder(driverFrom({
+      brand: 'Dayton', model: 'RS225', section: 'woofer',
+      spec: specSection({ Fs_hz: 30, Qts: 0.4, Sd_m2: 0.02, Cms_m_per_N: 0.0005, Mmd_kg: 0.05, Rms_Ns_per_m: 2, Xmax_m: 0.008 }),
+    }), createEngine()).bandpass4().rearVolume_m3(0.02).frontVolume_m3(0.03).frontTuning_hz(40).build();
+    const qtc = bp4.box.bandpass4.chambers.rear.q_tc;
+    expect(qtc.calculated).toBe(true);
+    // Qtc/Qts = Frc/Fs for a lossless sealed chamber (Qts is the source-loaded one, ≈0.4 here).
+    const frc = bp4.box.bandpass4.chambers.rear.resonance_hz.value ?? 0;
+    expect(qtc.value).toBeCloseTo(0.4 * frc / 30, 1);
+  });
+
   it('gives the bandpass4 front volume a Field readout like every other chamber', () => {
     // The front chamber volume carries entered/calculated status like the rear chamber,
     // not a bare SimpleField.

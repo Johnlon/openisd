@@ -13,6 +13,8 @@ export interface Bandpass4Box {
         readonly rear: {
             readonly volume_m3: Readable<number> & Entered & Writable<number>;
             readonly resonance_hz: Readable<number | null> & Calculated;
+            /** The rear chamber's system Q, under the same lossless model as `resonance_hz`. */
+            readonly q_tc: Readable<number | null> & Calculated;
             readonly losses: CoupledSealedLosses;
         };
         /** front = vented; its volume (`Vf`) has a Field readout like every other chamber. */

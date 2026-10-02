@@ -33,7 +33,9 @@ export function createSealedReadouts({ project, selectedBox, projectChanged: cha
   // They require a real project — there is no box and no readout without one.
   const rearResonance = computed<number | null>(() => {
     void changed.value; void project.value;
-    return project.value.box.sealed.resonance_hz.value;
+    return selectedBox.value === 'bandpass4'
+      ? project.value.box.bandpass4.chambers.rear.resonance_hz.value
+      : project.value.box.sealed.resonance_hz.value;
   });
   const prFsMass_hz = computed<number | null>(() => {
     void changed.value;
@@ -54,6 +56,7 @@ export function createSealedReadouts({ project, selectedBox, projectChanged: cha
   const rearQtc = computed<number | null>(() => {
     void changed.value;
     void project.value;
+    if (selectedBox.value === 'bandpass4') return project.value.box.bandpass4.chambers.rear.q_tc.value;
     if (selectedBox.value !== 'sealed') return null;
     return project.value.box.sealed.q_tc.value;
   });

@@ -162,3 +162,18 @@ test('an editable value is drawn as an input box; a read-only one is not', async
   await page.locator('#mob-box-type').selectOption('sealed');
   await expect(fieldRow(page, 'Fsc').locator('input')).toHaveCount(0);
 });
+
+// Field diagnostics 2026-10-02: a stepper tapped on a field holding 0 threw InvalidStateError
+// ("does not have an allowed value step") because the step was 'any' for a non-positive value.
+test('a step button on a field holding zero steps up instead of throwing', async ({ page }) => {
+  const errors: string[] = [];
+  page.on('pageerror', e => errors.push(e.message));
+  await page.locator('.mob-tab', { hasText: 'Signal' }).click();
+  const row = fieldRow(page, 'Series resistance');
+  const input = row.locator('input');
+  await input.fill('0');
+  await input.blur();
+  await row.locator('.num-stepper-btn').first().click();
+  expect(Number(await input.inputValue())).toBeGreaterThan(0);
+  expect(errors).toEqual([]);
+});
