@@ -12,7 +12,7 @@ import type {OpenISDProject} from '@openisd/design';
  * `useApp()`/`provideApp()` convention this codebase already uses for the composition root's
  * `AppLogic` facade.
  */
-const FOCUSED_PROJECT: InjectionKey<ComputedRef<OpenISDProject>> = Symbol('openisd.focusedProject');
+export const FOCUSED_PROJECT: InjectionKey<ComputedRef<OpenISDProject>> = Symbol('openisd.focusedProject');
 
 /** Provide the guaranteed-non-null focused project to this component's whole subtree. Called
  *  once, by the gate, inside its non-null branch. */

@@ -421,6 +421,7 @@ describe('only the approved stores hold state', () => {
     join(UI_SRC, 'logic', 'appState.ts'),
     join(UI_SRC, 'logic', 'presentationState.ts'),   // not built yet — see ARCHITECTURE.md
     join(UI_SRC, 'logic', 'urlAppState.ts'),
+    join(UI_SRC, 'logic', 'traceVisibility.ts'),
   ];
   const REACTIVE_FACTORIES = new Set(['ref', 'shallowRef', 'reactive', 'shallowReactive']);
 

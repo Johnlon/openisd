@@ -499,7 +499,7 @@ export function openIsdDriverToWinIsdDriver(
     wdrRow(errors, spec.Qes, true, "Qes"),
     wdrRow(errors, spec.Rms_kg_per_s, true, "Rms"),
     wdrRow(errors, spec.Mms_kg, true, "Mms"),
-    wdrRow(errors, spec.Sd_m2, false, "Sd"),
+    wdrRow(errors, spec.Sd_m2, true, "Sd"),
     wdrRow(errors, spec.Vas_m3, true, "Vas"),
     wdrRow(errors, spec.Dia_m, true, "Dia"),
     wdrRow(errors, spec.Vd_m3, true, "Vd"),
