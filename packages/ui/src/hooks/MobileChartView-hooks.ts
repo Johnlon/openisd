@@ -8,6 +8,7 @@ import {focusedProject, projectChanged} from '../logic/appState.js';
 import {presentationState, traceColor} from '../logic/presentationState.js';
 import {useFocusedProject} from '../logic/focusedProjectContext.js';
 import {useApp} from '../logic/app.js';
+import {useCompareOverlays} from './compareOverlays.js';
 import {ChartSelection} from './chartSelection.js';
 import {CHARTS_HIGH_OPTIONS, MOBILE_CHARTS_HIGH} from './chartGrid.js';
 import {offeredChartsHigh, useChartStack} from './chartStack.js';
@@ -16,7 +17,9 @@ import type {ChartId} from '@openisd/design/engine';
 
 export function useMobileChartView() {
   const project = useFocusedProject();
-  const selection = new ChartSelection(focusedProject, projectChanged, useApp().engine.box);
+  const { engine } = useApp();
+  const selection = new ChartSelection(focusedProject, projectChanged, engine.box);
+  const overlays = useCompareOverlays(engine.simulation, project);
   const { openCharts, chartItems, chartLabel } = selection;
 
   /** Whether the chart checklist is showing. */
@@ -37,5 +40,5 @@ export function useMobileChartView() {
   const traceColour = computed(() => traceColor(project.value));
 
   return { openCharts, chartItems, chartLabel, pickerOpen, togglePicker, showOnly, toggle,
-    chartsHigh, CHARTS_HIGH_OPTIONS, selectedOption, stackEl, stackStyle, traceColour };
+    chartsHigh, CHARTS_HIGH_OPTIONS, selectedOption, stackEl, stackStyle, traceColour, overlays };
 }

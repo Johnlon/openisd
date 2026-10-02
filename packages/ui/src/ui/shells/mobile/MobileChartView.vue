@@ -8,7 +8,7 @@ import { useMobileChartView } from '../../../hooks/MobileChartView-hooks.js';
 
 const emit = defineEmits<{ menu: [] }>();
 const { openCharts, chartItems, chartLabel, pickerOpen, togglePicker, showOnly, toggle,
-  chartsHigh, CHARTS_HIGH_OPTIONS, selectedOption, stackEl, stackStyle, traceColour } = useMobileChartView();
+  chartsHigh, CHARTS_HIGH_OPTIONS, selectedOption, stackEl, stackStyle, traceColour, overlays } = useMobileChartView();
 </script>
 
 <template>
@@ -36,7 +36,7 @@ const { openCharts, chartItems, chartLabel, pickerOpen, togglePicker, showOnly, 
     </ul>
     <div ref="stackEl" class="mob-chart-stack" :class="{ stacked: openCharts.length > 1 }" :style="stackStyle">
       <div v-for="id in openCharts" :key="id" class="mob-chart-cell">
-        <GraphPanel :chart-id="id" :bare="true" :primary-color="traceColour" />
+        <GraphPanel :chart-id="id" :bare="true" :primary-color="traceColour" :overlays="overlays" />
       </div>
     </div>
   </div>

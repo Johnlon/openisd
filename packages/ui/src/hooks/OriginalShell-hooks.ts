@@ -15,7 +15,7 @@
  * `selectedBox` / `projectChanged`.
  */
 import type {ComputedRef, Ref} from 'vue';
-import {computed, onMounted, onUnmounted, reactive, ref, shallowRef, watch} from 'vue';
+import {computed, onMounted, onUnmounted, ref, shallowRef, watch} from 'vue';
 import {
     addProject,
     allIssues,
@@ -69,9 +69,8 @@ import {createBoxVolume, createSealedReadouts, createSelectedBox} from './boxFie
 import {createDriveSignal} from './driveSignal.js';
 import type {StoredProjectListing} from '@openisd/persistence';
 import type {ChartId, EnvDefaults, EnvironmentEngine} from '@openisd/design/engine';
-import type {Design, PlotParams} from '../types.js';
-import {SweepCache} from '../logic/sweepCache.js';
-import {SweepComputer} from '../logic/sweepRequest.js';
+import {isTraceVisible, setTraceVisible} from '../logic/traceVisibility.js';
+import {useCompareOverlays} from './compareOverlays.js';
 
 export type AirField = 'temperature' | 'humidity' | 'pressure';
 
@@ -463,7 +462,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   const currentDesign = computed(() => ({
     driver: project.value.driver.specs.sweepDriver(), box: project.value.box.boxType.value, P: syncedP.value,
     curves: curvesData.value, maxCurves: maxData.value ?? undefined, name: projectDisplayName(project.value),
-    color: WINISD_TRACE.value, visible: isRowVisible(project.value),
+    color: WINISD_TRACE.value, visible: isTraceVisible(project.value),
     sortIndex: openProjects().indexOf(project.value),
   }));
   const cursorVal = computed<number | null>(() => {
@@ -490,70 +489,12 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   // ---- Projects list -------------------------------------------------------------
   const projectList = computed(() => openProjects());
 
-  // Graph visibility is UI-only per-project state — a WeakMap here, the same pattern
-  // `appState.ts` itself uses for `groundByProject`. `reactive()` so the template's row
-  // class/checkbox bindings invalidate on `.set()`. `visibleRevision` is the DEPENDABLE
-  // dependency for the compare-overlay computed: a `reactive()` WeakMap's key operations are
-  // not reliably trackable inside a computed (Vue treats WeakMap as a COMMON target, so the
-  // computed does not re-evaluate on a `.set()`), while a plain ref always fires.
-  const visibleOf = reactive(new WeakMap<OpenISDProject, boolean>());
-  const visibleRevision = ref(0);
-  function isRowVisible(p: OpenISDProject): boolean { return visibleOf.get(p) ?? true; }
-  function setRowVisible(p: OpenISDProject, v: boolean): void { visibleOf.set(p, v); visibleRevision.value++; }
-
   function selectProject(p: OpenISDProject) {
     const idx = projectList.value.indexOf(p);
     if (idx >= 0) focusProject(idx);
   }
 
-// Compare-overlay curves: a Design per OTHER open project, swept on its own frequency range,
-// following each row's show/hide checkbox. The focused project is the primary design; every
-// other open project contributes a trace (BUG_20260917_nonfocused-project-traces-never-drawn).
-// A project the engine cannot sweep (bandpass6/abc, or an incomplete driver) contributes
-// nothing — `buildPlotData` would crash on an overlay without curves.
-// Re-sweeps an overlay project only when its own sweep job changes: editing the focused project
-// re-runs this computed, and re-sweeping every other project per spinner step blocked the page.
-const overlaySweeps = new SweepCache(new SweepComputer(engine.simulation));
-const overlays = computed<Design[]>(() => {
-  void projectChanged.value;
-  void visibleRevision.value;
-  const focused = project.value;
-  const projects = openProjects();
-  const out: Design[] = [];
-  for (const p of projects) {
-    if (p === focused) continue;
-    const box = p.box.boxType.value;
-    if (!boxTypeIsSimulatable(box)) continue;
-    const prXmax = box === 'box-passive-radiator'
-      ? (p.box.passiveRadiator.radiator.spec.Xmax_m.value ?? undefined)
-      : undefined;
-    const P: PlotParams = {
-      fmin: presentationState.sweepRange.min,
-      fmax: presentationState.sweepRange.max,
-      splXmaxLimited: p.splGraphIsXmaxLimited.value,
-      prXmax,
-      portVelocityLimit_m_per_s: p.portVelocityLimit_m_per_s.value,
-    };
-    const swept = overlaySweeps.sweep(p, { fmin: P.fmin, fmax: P.fmax });
-    const sw = swept?.sweep, mx = swept?.max;
-    if (!sw?.values || !mx?.values) continue;
-    out.push({
-      driver: p.driver.specs.sweepDriver(),
-      box,
-      P,
-      curves: sw.values,
-      maxCurves: mx.values,
-      name: projectDisplayName(p),
-      color: traceColor(p),
-      visible: isRowVisible(p),
-      // Legend/draw order follows the sidebar's project list order, not "current first"
-      // (John, 2026-09-24: "Dont change the legend project order - keep it the same as the
-      // side bar proj list").
-      sortIndex: projects.indexOf(p),
-    });
-  }
-  return out;
-});
+  const overlays = useCompareOverlays(engine.simulation, project);
 
   /** "+ Copy" — duplicate the focused project's committed design into a new, independent tab. */
   function copyCurrentProject() {
@@ -713,7 +654,7 @@ const overlays = computed<Design[]>(() => {
     startNudge, stopNudge, cursorHz, cursorVal, chartMeta, inputChecked, selectValue, selectedOption,
     WINISD_TRACE, cycleColor, resetChartView, chartMax,
     mainEl, navCollapsed, bottomCollapsed, mainStyle, onNavSplitDown, onBottomSplitDown,
-    projectList, isRowVisible, setRowVisible, projectDisplayName, projectHasUnsavedChanges, selectProject, project, focused, projectOpen, whatIfActive,
+    projectList, isTraceVisible, setTraceVisible, projectDisplayName, projectHasUnsavedChanges, selectProject, project, focused, projectOpen, whatIfActive,
     copyCurrentProject, requestCloseProject, closeChallenge, saveThenClose, closeProject,
     genOn, toggleGenerate, genHz,
     boxLabel, pending, openCharts, chartStackEl, chartStackStyle, chartsHigh, CHARTS_HIGH_OPTIONS, overlays, activeTab,

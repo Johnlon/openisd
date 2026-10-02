@@ -16,6 +16,7 @@ import ExportMenu from '../../components/ExportMenu.vue';
 import OptionsModal from '../../components/OptionsModal.vue';
 import { useMobileShell } from '../../../hooks/MobileShell-hooks.js';
 import {OpenableFiles} from '../../../fileFormat.js';
+import {inputChecked} from '../../../logic/domEvents.js';
 
 const {
   projectOpen, destination, fileInput, openImportedFile, openNewProject, switchToDesktop,
@@ -23,7 +24,7 @@ const {
   browseDrivers, optionsOpen, openOptions, about, goToProject, goToAdvanced, viewportHeightPx,
   showEnclosureTab, enclosureNavLabel, contentEl, canScrollUp, canScrollDown, updateScrollEdges,
   username, openDialogOpen, storedProjects, openProjectDialog, openStoredProject,
-  openProjectRows, selectOpenProject, closeOpenProject,
+  openProjectRows, selectOpenProject, setOpenProjectTraceVisible, closeOpenProject,
 } = useMobileShell();
 </script>
 
@@ -93,6 +94,9 @@ const {
           <div class="mob-menu-sep"></div>
           <div class="mob-menu-heading">Open projects</div>
           <div v-for="(row, i) in openProjectRows" :key="i" class="mob-open-project" :class="{ focused: row.focused }">
+            <input type="checkbox" class="mob-open-project-show" :checked="row.traceVisible"
+                   :aria-label="'Show ' + row.name + ' on the graphs'" title="Show/hide this project's trace on the graphs"
+                   @change="setOpenProjectTraceVisible(row, inputChecked($event))">
             <button type="button" class="mob-open-project-name" :title="row.name" @click="selectOpenProject(row)">
               <span v-if="row.unsaved" class="mob-open-project-dot" title="Unsaved changes"></span>{{ row.name }}
             </button>
@@ -236,7 +240,7 @@ const {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 14px 18px 10px;
+  padding: 10px 18px 6px;
 }
 .mob-menu-brand img { width: 28px; height: 28px; display: block; flex-shrink: 0; }
 .mob-menu-brand-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
@@ -246,9 +250,9 @@ const {
   all: unset;
   box-sizing: border-box;
   width: 100%;
-  padding: 12px 18px;
+  padding: 7px 18px;
   font: inherit;
-  font-size: 15px;
+  font-size: 14px;
   color: var(--fg);
   cursor: pointer;
 }
@@ -263,18 +267,19 @@ const {
   box-sizing: border-box;
   width: 100%;
   display: block;
-  padding: 12px 18px;
+  padding: 7px 18px;
   font: inherit;
-  font-size: 15px;
+  font-size: 14px;
   color: var(--fg);
   cursor: pointer;
 }
 .mob-menu-export :deep(.export-menu-trigger:disabled) { color: var(--mut); cursor: default; }
 .mob-menu-export :deep(.export-menu-list) { position: static; box-shadow: none; border: none; border-top: 1px solid var(--line); border-radius: 0; margin-top: 0; }
-.mob-menu-export :deep(.export-menu-list button) { padding: 10px 28px; font-size: 14px; }
-.mob-menu-sep { height: 1px; background: var(--line); margin: 6px 0; }
+.mob-menu-export :deep(.export-menu-list button) { padding: 7px 28px; font-size: 14px; }
+.mob-menu-sep { height: 1px; background: var(--line); margin: 4px 0; }
 .mob-menu-heading { padding: 2px 18px; font-size: 12px; color: var(--mut); text-transform: uppercase; letter-spacing: 0.04em; }
 .mob-open-project { display: flex; align-items: center; }
+.mob-open-project-show { flex: none; margin: 0 0 0 18px; width: 18px; height: 18px; }
 .mob-open-project.focused { background: var(--panel2); }
 .mob-open-project-name {
   all: unset;
@@ -284,7 +289,7 @@ const {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 4px 6px 18px;
+  padding: 6px 4px;
   font-size: 14px;
   color: var(--fg);
   cursor: pointer;

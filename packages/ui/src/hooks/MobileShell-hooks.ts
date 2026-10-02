@@ -8,6 +8,7 @@ import {
   addProject, boxTypeIsSimulatable, focusedProject, focusProject, isModified, openProjects, projectChanged,
   projectDisplayName, projectHasUnsavedChanges, removeProject, resetProjectToGround,
 } from '../logic/appState.js';
+import {isTraceVisible, setTraceVisible, traceVisibilityRevision} from '../logic/traceVisibility.js';
 import type {OpenISDProject} from '@openisd/design';
 import {presentationState, setSkinOverride} from '../logic/presentationState.js';
 import {useApp} from '../logic/app.js';
@@ -79,6 +80,7 @@ export interface MobileShellApi {
   /** Every open project, saved or not — the same registry as desktop's Projects panel. */
   openProjectRows: import('vue').ComputedRef<OpenProjectRow[]>;
   selectOpenProject: (row: OpenProjectRow) => void;
+  setOpenProjectTraceVisible: (row: OpenProjectRow, visible: boolean) => void;
   closeOpenProject: (row: OpenProjectRow) => void;
 }
 
@@ -88,6 +90,8 @@ export interface OpenProjectRow {
   readonly name: string;
   readonly unsaved: boolean;
   readonly focused: boolean;
+  /** Whether this project's trace is drawn on the graphs. */
+  readonly traceVisible: boolean;
 }
 
 export function useMobileShell(): MobileShellApi {
@@ -148,17 +152,22 @@ export function useMobileShell(): MobileShellApi {
   // project that is open but never saved is reachable here too.
   const openProjectRows = computed<OpenProjectRow[]>(() => {
     const focused = focusedProject();
+    void traceVisibilityRevision.value;
     return openProjects().map(project => ({
       project,
       name: projectDisplayName(project),
       unsaved: projectHasUnsavedChanges(project),
       focused: project === focused,
+      traceVisible: isTraceVisible(project),
     }));
   });
   function selectOpenProject(row: OpenProjectRow): void {
     const index = openProjects().indexOf(row.project);
     if (index >= 0) focusProject(index);
     closeMenu();
+  }
+  function setOpenProjectTraceVisible(row: OpenProjectRow, visible: boolean): void {
+    setTraceVisible(row.project, visible);
   }
   function closeOpenProject(row: OpenProjectRow): void {
     if (row.unsaved && !globalThis.confirm(`"${row.name}" has unsaved changes. Close it without saving?`)) return;
@@ -262,6 +271,6 @@ export function useMobileShell(): MobileShellApi {
     contentEl, canScrollUp, canScrollDown, updateScrollEdges, username,
     goToAdvanced, viewportHeightPx, showEnclosureTab, enclosureNavLabel,
     openDialogOpen, storedProjects, openProjectDialog, openStoredProject,
-    openProjectRows, selectOpenProject, closeOpenProject,
+    openProjectRows, selectOpenProject, setOpenProjectTraceVisible, closeOpenProject,
   };
 }

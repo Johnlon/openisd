@@ -30,7 +30,7 @@ const {
   startNudge, stopNudge, cursorHz, cursorVal, chartMeta, inputChecked, selectedOption,
   WINISD_TRACE, cycleColor, resetChartView, chartMax,
   mainEl, navCollapsed, bottomCollapsed, mainStyle, onNavSplitDown, onBottomSplitDown,
-  projectList, isRowVisible, setRowVisible, projectDisplayName, projectHasUnsavedChanges, selectProject, project, focused, projectOpen, whatIfActive,
+  projectList, isTraceVisible, setTraceVisible, projectDisplayName, projectHasUnsavedChanges, selectProject, project, focused, projectOpen, whatIfActive,
   copyCurrentProject, requestCloseProject, closeChallenge, saveThenClose, closeProject,
   genOn, toggleGenerate, genHz,
   boxLabel, pending, openCharts, chartStackEl, chartStackStyle, chartsHigh, CHARTS_HIGH_OPTIONS, overlays, activeTab,
@@ -168,12 +168,12 @@ const {
               No projects open
             </div>
             <div v-else v-for="(p, i) in projectList" :key="i" class="project-row"
-                 :class="{ selected: p === focused, 'trace-hidden': !isRowVisible(p), 'is-unsaved': projectHasUnsavedChanges(p) }"
+                 :class="{ selected: p === focused, 'trace-hidden': !isTraceVisible(p), 'is-unsaved': projectHasUnsavedChanges(p) }"
                  :title="'Project — ' + projectDisplayName(p) + (p === focused ? ' (Active)' : ' (Click to select)')"
                  @click="selectProject(p)">
-              <input type="checkbox" :checked="isRowVisible(p)"
+              <input type="checkbox" :checked="isTraceVisible(p)"
                      @click.stop
-                     @change.stop="setRowVisible(p, inputChecked($event))"
+                     @change.stop="setTraceVisible(p, inputChecked($event))"
                      title="Show/hide this project's trace on the graph">
               <span>{{ projectDisplayName(p) }}</span>
             </div>
