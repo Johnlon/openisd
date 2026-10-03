@@ -42,6 +42,8 @@ function setUpProject(wprFile: string): OpenISDProject {
   // Same Advanced/Compatibility switches the captures ran under as passive-radiator-winisd.test.ts.
   project.winisdDriverModel.set(true);
   project.rgAtDriverSide.set(false);
+  // WinISD's own fixed-loss frequency (Npr times below the tuning) is what these captures show.
+  project.winisdPrNprResonance.set(true);
   return project;
 }
 

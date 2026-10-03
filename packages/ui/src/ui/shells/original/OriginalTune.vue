@@ -7,7 +7,7 @@
 import {onMounted, onUnmounted, reactive, ref} from 'vue';
 import {presentationState} from '../../../logic/presentationState.js';
 import {useFocusedProject} from '../../../logic/focusedProjectContext.js';
-import {NumberField} from '@openisd/design/fields';
+import {formatFixedOrDash, NumberField} from '@openisd/design/fields';
 import {cellClassOf} from '../../../logic/useDriverCells.js';
 import NumInput from '../../components/NumInput.vue';
 import UnitToggle from '../../components/UnitToggle.vue';
@@ -170,7 +170,7 @@ const dqNote = (key: NumKey): string | null => tune.dqNote(key);
 const ebpVal = tune.ebp;
 const vb_m3 = tune.vb_m3;
 function setVb_m3(v: number): void { tune.setVb_m3(v); }
-function fmt(v: number | null, dp: number): string { return v != null && isFinite(v) ? v.toFixed(dp) : '—'; }
+function fmt(v: number | null, dp: number): string { return formatFixedOrDash(v, dp); }
 
 // Tune writes to the project's transient what-if layer. It never promotes those values into the
 // ordinary edit or saved layer.

@@ -358,7 +358,7 @@ export class NumberField extends Field {
     display: {kind: 'switchable', group: 'area', base: 'cm2'},
     limits: {min: 0.0001, max: 10},
     precision: 2,
-    description: "Passive Radiator Area\nEffective radiating piston area of the passive radiator.",
+    description: "Passive Radiator Area\nEffective radiating piston area of the passive radiator.\nWith Vas, Fs and Qms held, Sd changes the PR excursion and air velocity charts only: the radiator's mass, compliance and loss are derived from Vas, Fs and Qms.",
   });
   static readonly PR_XMAX_MM = new NumberField({
     value: "pr_Xmax_mm",
@@ -366,7 +366,7 @@ export class NumberField extends Field {
     display: {kind: 'switchable', group: 'length', base: 'mm'},
     limits: {min: 0, max: 0.5},
     precision: 2,
-    description: "Passive Radiator Excursion Limit\nMaximum peak linear displacement of the passive radiator diaphragm.",
+    description: "Passive Radiator Excursion Limit\nMaximum peak linear displacement of the passive radiator diaphragm.\nDraws the PR excursion limit line; it does not change the response curves.",
   });
   static readonly PR_NUM = new NumberField({
     value: "pr_Num",
@@ -399,7 +399,7 @@ export class NumberField extends Field {
     limits: {min: 1e-05, max: 100},
     precision: 2,
     formula: "Vas = Cms·Sd²·ρ·c²·1000",
-    description: "PR Equivalent Compliance Volume\nVolume of air whose compliance equals the passive radiator's own suspension.",
+    description: "PR Equivalent Compliance Volume\nVolume of air whose compliance equals the passive radiator's own suspension.\nWith Sd, sets the radiator's compliance (Cms).",
   });
   static readonly PR_FS_HZ = new NumberField({
     value: "pr_Fs_hz",
@@ -408,7 +408,7 @@ export class NumberField extends Field {
     limits: {min: 1, max: 1000},
     precision: 2,
     formula: "Fpr = 1/(2π·√(Mmd·Cms))",
-    description: "Unloaded PR Resonance (Fpr)\nThe passive radiator's free-air resonance, with no added mass and no box coupling.",
+    description: "Unloaded PR Resonance (Fpr)\nThe passive radiator's free-air resonance, with no added mass and no box coupling.\nWith Vas and Sd, sets the radiator's moving mass (Mms).",
   });
   static readonly PR_QMS = new NumberField({
     value: "pr_Qms",
@@ -417,7 +417,7 @@ export class NumberField extends Field {
     limits: {min: 0.1, max: 100},
     precision: 3,
     formula: "Qms = √(Mmd/Cms)/Rms",
-    description: "PR Mechanical Quality Factor\nQuality factor for mechanical suspension friction losses in the passive radiator.",
+    description: "PR Mechanical Quality Factor\nQuality factor for mechanical suspension friction losses in the passive radiator.\nWith the derived Mms and Cms, sets the radiator's mechanical resistance (Rms).",
   });
   static readonly PR_FSMASS_HZ = new NumberField({
     value: "pr_FsMass_hz",
@@ -1287,6 +1287,17 @@ export class ToggleField extends Field {
     value: "adv_UseWinisdAirModel",
     label: "WinISD air model",
     description: "WinISD Air Model\nTicked (WinISD): WinISD's own air equations: Hyland-Wexler vapour pressure with no enhancement factor, density from γ·p/c², at this project's temperature, humidity and pressure.\nUnticked (conventional): the CIPM-2007 moist-air standard (BIPM), with the speed of sound from Laplace's adiabatic relation.",
+  });
+  static readonly ADV_WINISDABCINTRAPORTVELOCITY = new ToggleField({
+    value: "adv_WinisdAbcIntraPortVelocity",
+    label: "WinISD ABC intra-port velocity",
+    description: "WinISD ABC intra-port velocity: affects the ABC box's Intra port velocity chart only.\nTicked (as WinISD): V/(jωMai + Zf). A WinISD error: the chart leaves the leak between the two chambers (Ricl) out of the divider, while WinISD's own box load and every other ABC chart keep it. Negligible near the box tunings; +0.38 dB at 100 Hz, −0.26 dB at 1 kHz, −4.2 dB at 5 kHz, −14.2 dB at 20 kHz (W5-1138SMF, abc-w5-1).\nUnticked (default): V/(Zi + Zf) with Zi = Ricl ∥ jωMai, the flow through the intra port, consistent with the box load.\nThe two agree when the inter-chamber leak Q is very large. Only on an ABC box.",
+  });
+
+  static readonly ADV_WINISDPRNPRRESONANCE = new ToggleField({
+    value: "adv_WinisdPrNprResonance",
+    label: "PR Npr resonance",
+    description: "PR Npr resonance: affects the passive radiator box with more than one radiator (Npr > 1) in the WinISD lossy model; no effect at Npr = 1.\nTicked (as WinISD): the box's leak and absorption are taken at WinISD's frequency 1/√(Npr·Map·(Cab ∥ Npr·Cap)). A WinISD error: the radiator mass is multiplied by Npr where the tuning divides by it, so that frequency is Npr times too low (Npr 2, W5 in 10 L, radiator Fs 30 Hz and Vas 4.8 L: WinISD 21 Hz, tuning 42 Hz; impedance up to 1 Ω and transfer function up to 2 dB off).\nUnticked: the same losses taken at the physical tuning 1/√((Map/Npr)·(Cab ∥ Npr·Cap)).",
   });
 
   static readonly ALL: readonly ToggleField[] =

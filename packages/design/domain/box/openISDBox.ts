@@ -296,6 +296,7 @@ export class OpenISDBox implements Box {
             // record, legal because both derive from the class that declares `slot`.
             configurePR: (chosen: OpenISDPassiveRadiatorStandalone) => {
                 prSlot.set({ ...prSlot.value, ...chosen.clonePassiveRadiator() });
+                getRadiator().spec.deriveFromWinisdFigures(this.#engine.pr, air());
             },
             get radiator() {
                 return getRadiator();
@@ -305,6 +306,19 @@ export class OpenISDBox implements Box {
             // recomputed at read time here.
             systemTuning_hz: entryField(focus(pr, 'systemTuning_hz'), 'systemTuning_hz', () => groupDq(issues().pr)),
             resonanceWithAddedMass_hz: entryField(focus(pr, 'resonanceWithAddedMass_hz'), 'resonanceWithAddedMass_hz', () => groupDq(issues().pr)),
+            naturalTuning_hz: new CalculatedFieldImpl<number | null>(() => {
+                const Vb = prVolume.value || this.vented.volume_m3.value;
+                const r = getRadiator();
+                const mech = {Mms_kg: r.spec.Mms_kg.value, Cms_m_per_N: r.spec.Cms_m_per_N.value};
+                const prSd = r.spec.Sd_m2.value;
+                const prNum = this.passiveRadiator.count.value || 1;
+                if (!(Vb != null && Vb > 0 && mech.Mms_kg !== null && mech.Mms_kg > 0 && prSd !== null && prSd > 0
+                    && mech.Cms_m_per_N !== null && mech.Cms_m_per_N > 0 && prNum > 0)) {
+                    return absentCell<number>('naturalTuning_hz');
+                }
+                return calculatedCell<number | null>('naturalTuning_hz',
+                    this.#engine.pr.tuning({ Vb, prMmd: mech.Mms_kg, prMadd: 0, prSd, prCms: mech.Cms_m_per_N, prNum }, air()));
+            }),
             /** A read-only WHAT-IF query, independent of the stored pair and its cascade — never
              *  writes back, so it stays a pure computation over `PrEngine.massForFp` rather than a
              *  route through the (now-deleted) bag solver. The DQ text matches
@@ -410,8 +424,15 @@ export class OpenISDBox implements Box {
                 const driverSd = driver.Sd_m2.value, driverXmax = driver.Xmax_m.value;
                 if (spec.Sd_m2.value === null) spec.Sd_m2.set(driverSd !== null && driverSd > 0 ? driverSd : STARTING.radiatorSd_m2);
                 if (spec.Xmax_m.value === null && driverXmax !== null && driverXmax > 0) spec.Xmax_m.set(driverXmax * STARTING.radiatorXmaxMultiple);
-                if (spec.Cms_m_per_N.value === null) spec.Cms_m_per_N.set(STARTING.radiatorCms_m_per_N);
-                if (spec.Mms_kg.value === null) spec.Mms_kg.set(STARTING.radiatorMms_kg);
+                // The starting radiator as the figures WinISD asks for: its mass and compliance
+                // stated through Fs and Vas, Qms left blank. Mms, Cms and Rms follow by the solve.
+                const startSd = spec.Sd_m2.value;
+                if (spec.Fs_hz.value === null && startSd !== null) {
+                    spec.Fs_hz.set(this.#engine.pr.fsWithMass(STARTING.radiatorMms_kg, 0, STARTING.radiatorCms_m_per_N));
+                }
+                if (spec.Vas_m3.value === null && startSd !== null) {
+                    spec.Vas_m3.set(this.#engine.pr.vas(STARTING.radiatorCms_m_per_N, startSd));
+                }
                 return;
             }
             case 'bandpass4': {

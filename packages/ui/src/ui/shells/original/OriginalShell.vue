@@ -7,6 +7,7 @@
 // gets unit-tested without a DOM. This `<script setup>` is nothing but a hook call plus the
 // child-component imports; the template reads the destructured API surface only.
 import {NumberField, ToggleField} from '@openisd/design/fields';
+import {LOSS_MODE_TIP} from '../../../hooks/errorSwitches.js';
 import UnitToggle from '../../components/UnitToggle.vue';
 import NumInput from '../../components/NumInput.vue';
 import GraphPanel from '../../components/GraphPanel.vue';
@@ -17,6 +18,8 @@ import PRBrowser from '../../components/PRBrowser.vue';
 import PREditModal from '../../components/PREditModal.vue';
 import OptionsModal from '../../components/OptionsModal.vue';
 import AdvancedOptions from '../../components/AdvancedOptions.vue';
+import ErrorSwitch from '../../components/ErrorSwitch.vue';
+import ErrorSwitchGroup from '../../components/ErrorSwitchGroup.vue';
 import BoxTypeDiagram from '../../components/BoxTypeDiagram.vue';
 import {useOriginalShell} from '../../../hooks/OriginalShell-hooks.js';
 import {OpenableFiles} from '../../../fileFormat.js';
@@ -35,7 +38,7 @@ const {
   genOn, toggleGenerate, genHz,
   boxLabel, pending, openCharts, chartStackEl, chartStackStyle, chartsHigh, CHARTS_HIGH_OPTIONS, overlays, activeTab,
   showEnclosureTab, enclosureNavLabel,
-  selectedBox, BOX_TYPE_OPTIONS, LOSS_MODE_OPTIONS, lossMode, ARRAY_WIRING_OPTIONS, N_DRIVERS_OPTIONS, applyWinisdSettings,
+  selectedBox, BOX_TYPE_OPTIONS, LOSS_MODE_OPTIONS, lossMode, ARRAY_WIRING_OPTIONS, N_DRIVERS_OPTIONS, applyWinisdSettings, errorSwitches,
   boxVolume_m3, boxVolumeDqNote, setBoxVolume_m3, sealedAlignmentEditor, sealedAlignmentOpen,
   sealedAlignmentOptions, sealedAlignmentSelected, sealedAlignmentVolume_L, sealedAlignmentEbp,
   sealedAlignmentSuitability, sealedAlignmentSuitabilityLabel, originalFilters,
@@ -644,26 +647,17 @@ const {
                 <button class="action-btn apply-winisd-btn" title="Reset to WinISD: set every WinISD-vs-conventional switch to WinISD" @click="applyWinisdSettings">Reset</button>
               </div>
               <div class="field-row" style="flex-wrap: nowrap; margin-bottom: 3px;">
-                <div class="field" style="gap:6px;" :title="`Sealed box loss model: sets the box resonance (Fsc) and system Q (Qtc).\nWinISD lossy model (default): WinISD's own lossy model; Fsc rises as Ql falls, matching WinISD's readout.\nLossless model: no box losses; Fsc = Fs·√(1 + Vas/Vb).\nConventional lossy model: Ql and Qa lower Qtc only; Fsc stays put (Small/Thiele).`">
+                <div class="field" style="gap:6px;" :title="LOSS_MODE_TIP">
                   <select id="adv-lossmode" :value="lossMode" @change="e => { const m = selectedOption(e, LOSS_MODE_OPTIONS); if (m !== null) lossMode = m; }" style="width:200px">
                     <option v-for="m in LOSS_MODE_OPTIONS" :key="m.value" :value="m.value">{{ m.label }}</option>
                   </select>
                 </div>
               </div>
               <div class="sim-switches">
-                <div>
-                  <label data-field-key="winisdDriverModel" style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 12px;" :title="`WinISD Driver Model\nTicked (WinISD, the default): the simulation uses two BLs, as WinISD does. The damping comes from the driver WinISD acts on: Cms from Vas, then Mms, Rms and BL from Fs, Qms and Qes. The entered BL sets the loudness and, with voice coil inductance on, the inductance roll-off. We judge the two-BL mix a WinISD bug.\nUnticked (conventional): the simulation uses the entered datasheet values, one BL throughout.\nThe two differ only when the entered values disagree with Fs, Vas, Qes and Qms.`">
-                    <input type="checkbox" :checked="project.winisdDriverModel.value" @change="e => project.winisdDriverModel.set(inputChecked(e))"> WinISD driver model
-                  </label>
-                </div>
+                <div class="sim-switch-col">
                 <div>
                   <label data-field-key="useWinisdAirModel" style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 12px;" :title="ToggleField.ADV_USEWINISDAIRMODEL.description">
                     <input type="checkbox" :checked="project.envUseWinisdAirModel.value" @change="e => project.envUseWinisdAirModel.set(inputChecked(e))"> WinISD air model
-                  </label>
-                </div>
-                <div>
-                  <label data-field-key="winisdVaModel" style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 12px;" :title="`WinISD VA model: affects the Amplifier apparent load power (VA) chart only.\nTicked (default, as WinISD): VA = P·Re/|Z + Rg|. A WinISD bug: it uses Re where the amplifier sees Re + Rg, so it reads low by Re/(Re + Rg). With 'Rg is at driver side' on, Z already includes Rg and WinISD adds it again.\nUnticked (corrected): VA = P·(Re + Rg)/|Z seen by the amplifier|, Rg counted once.\nBoth give the same result when Rg is 0.\nP: input power. Z: the impedance chart. Rg: the series resistance.`">
-                    <input type="checkbox" :checked="project.winisdVaModel.value" @change="e => project.winisdVaModel.set(inputChecked(e))"> WinISD VA model
                   </label>
                 </div>
                 <div>
@@ -681,6 +675,29 @@ const {
                     <input type="checkbox" :checked="project.winisdFlatModel.value" @change="e => project.winisdFlatModel.set(inputChecked(e))"> WinISD flat response
                   </label>
                 </div>
+                </div>
+                <ErrorSwitchGroup>
+                  <div>
+                    <ErrorSwitch as="label" field-key="winisdDriverModel" style="font-size: 12px;" :marked="errorSwitches.driverModel.marked" :applicable="errorSwitches.driverModel.applicable" :reproduces-error="errorSwitches.driverModel.reproducesError" :title="`WinISD Driver Model\nTicked (WinISD, the default): the simulation uses two BLs, as WinISD does. The damping comes from the driver WinISD acts on: Cms from Vas, then Mms, Rms and BL from Fs, Qms and Qes. The entered BL sets the loudness and, with voice coil inductance on, the inductance roll-off. We judge the two-BL mix a WinISD bug.\nUnticked (conventional): the simulation uses the entered datasheet values, one BL throughout.\nThe two differ only when the entered values disagree with Fs, Vas, Qes and Qms.`">
+                      <input type="checkbox" :checked="project.winisdDriverModel.value" @change="e => project.winisdDriverModel.set(inputChecked(e))"> WinISD driver model
+                    </ErrorSwitch>
+                  </div>
+                  <div>
+                    <ErrorSwitch as="label" field-key="winisdVaModel" style="font-size: 12px;" :marked="errorSwitches.vaModel.marked" :applicable="errorSwitches.vaModel.applicable" :reproduces-error="errorSwitches.vaModel.reproducesError" :title="`WinISD VA model: affects the Amplifier apparent load power (VA) chart only.\nTicked (default, as WinISD): VA = P·Re/|Z + Rg|. A WinISD bug: it uses Re where the amplifier sees Re + Rg, so it reads low by Re/(Re + Rg). With 'Rg is at driver side' on, Z already includes Rg and WinISD adds it again.\nUnticked (corrected): VA = P·(Re + Rg)/|Z seen by the amplifier|, Rg counted once.\nBoth give the same result when Rg is 0.\nP: input power. Z: the impedance chart. Rg: the series resistance.`">
+                      <input type="checkbox" :checked="project.winisdVaModel.value" @change="e => project.winisdVaModel.set(inputChecked(e))"> WinISD VA model
+                    </ErrorSwitch>
+                  </div>
+                  <div>
+                    <ErrorSwitch as="label" field-key="winisdAbcIntraPortVelocity" style="font-size: 12px;" :marked="errorSwitches.abcIntraPortVelocity.marked" :applicable="errorSwitches.abcIntraPortVelocity.applicable" :reproduces-error="errorSwitches.abcIntraPortVelocity.reproducesError" :title="ToggleField.ADV_WINISDABCINTRAPORTVELOCITY.description">
+                      <input type="checkbox" :checked="project.winisdAbcIntraPortVelocity.value" :disabled="!errorSwitches.abcIntraPortVelocity.applicable" @change="e => project.winisdAbcIntraPortVelocity.set(inputChecked(e))"> {{ ToggleField.ADV_WINISDABCINTRAPORTVELOCITY.label }}
+                    </ErrorSwitch>
+                  </div>
+                  <div>
+                    <ErrorSwitch as="label" field-key="winisdPrNprResonance" style="font-size: 12px;" :marked="errorSwitches.prNprResonance.marked" :applicable="errorSwitches.prNprResonance.applicable" :reproduces-error="errorSwitches.prNprResonance.reproducesError" :title="ToggleField.ADV_WINISDPRNPRRESONANCE.description">
+                      <input type="checkbox" :checked="project.winisdPrNprResonance.value" :disabled="!errorSwitches.prNprResonance.applicable" @change="e => project.winisdPrNprResonance.set(inputChecked(e))"> {{ ToggleField.ADV_WINISDPRNPRRESONANCE.label }}
+                    </ErrorSwitch>
+                  </div>
+                </ErrorSwitchGroup>
               </div>
             </div>
           </div>
@@ -1130,9 +1147,9 @@ const {
 .field input.greyed { background:#e9e9e9; color:#777; }
 .field input.calculated { color:#1868d1; border-color:#1868d1; }
 .adv-air-fields { display:grid; grid-template-columns:max-content max-content; column-gap:16px; align-items:start; }
-.adv-air-fields .field { gap:4px; }
+.adv-air-fields .field { gap:2px; }
 .adv-air-fields .field label { width:108px; white-space:nowrap; }
-.adv-air-fields .field input, .adv-air-field :deep(input) { width:78px; padding:4px 4px; }
+.adv-air-fields .field input, .adv-air-field :deep(input) { width:54px; padding:4px 3px; }
 .adv-air-fields .field .unit { min-width:auto; }
 .adv-air-fields .field-row { margin-bottom: 4px; }
 .adv-air-fields .field-row:nth-child(-n+3) { grid-column:1; }
@@ -1141,7 +1158,7 @@ const {
 .adv-air-fields .field-row:nth-child(4) { grid-row:1; }
 .adv-air-fields .field-row:nth-child(5) { grid-row:2; }
 .adv-air-fields .field-row:nth-child(4) label,
-.adv-air-fields .field-row:nth-child(5) label { width:96px; margin-right:6px; }
+.adv-air-fields .field-row:nth-child(5) label { width:92px; margin-right:4px; }
 .adv-air-fields .reset-air-btn { grid-column:2; grid-row:3; justify-self:start; margin-top:2px; }
 .reset-air-btn { border:1px solid #999; background:#f0f0f0; border-radius:3px; padding:4px 8px; cursor:pointer; color:#333; }
 /* A solved length of zero or less is not a port that can be built — it reads as the failure it
@@ -1194,8 +1211,8 @@ textarea.comment, textarea.description { width:100%; border:1px solid #999; bord
 .checkbox-col label { display:flex; align-items:center; gap:6px; }
 .checkbox-col label input[type=checkbox] { flex:none; }
 
-.adv-two-col { gap: 12px; align-items: flex-start; }
-.adv-two-col .checkbox-col { margin-left: 0; width: 215px; }
+.adv-two-col { gap: 8px; align-items: flex-start; }
+.adv-two-col .checkbox-col { margin-left: 0; width: 205px; }
 .adv-two-col .side-hint { width: 190px; }
 .adv-two-col .sim-options-box {
   border: 1px solid #c8c8c8;
@@ -1205,8 +1222,11 @@ textarea.comment, textarea.description { width:100%; border:1px solid #999; bord
   flex: none;
   align-self: flex-start;
 }
-/* Two-column grid for WinISD compat switches. */
-.sim-switches { display: grid; grid-template-columns: repeat(2, 1fr); gap: 2px 12px; }
+/* Plain switches in one column, the WinISD errors group in a second: the panel stays inside the tab's height and width. */
+.sim-switches { display: flex; flex-direction: row; align-items: flex-start; gap: 8px; }
+.sim-switch-col { display: flex; flex-direction: column; gap: 0; }
+/* A fixed width, so a long error-switch label wraps inside the group and does not widen the panel. */
+.sim-switches :deep(.error-switch-group) { flex: none; width: 160px; }
 .sim-options-header {
   font-weight: 600;
   font-size: 11px;

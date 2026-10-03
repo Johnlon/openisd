@@ -16,7 +16,7 @@ test('WinISD\'s inductance model has no switch of its own — "WinISD driver mod
 test('WinISD Compatibility labels are unclipped and drop the "Use" prefix', async ({ page }) => {
   const panel = page.locator('.sim-options-box', { hasText: 'WinISD Compatibility' });
   const labels = panel.locator('label[data-field-key]');
-  await expect(labels).toHaveText([/WinISD driver model/, /WinISD air model/, /WinISD VA model/, /WinISD phase wrapping/, /WinISD driver count/, /WinISD flat response/]);
+  await expect(labels).toHaveText([/WinISD air model/, /WinISD phase wrapping/, /WinISD driver count/, /WinISD flat response/, /WinISD driver model/, /WinISD VA model/, /WinISD ABC intra-port velocity/]);
   const panelBox = (await panel.boundingBox())!;
   const clipRight = await panel.evaluate(el => {
     // The visible right edge: the panel's own, or an ancestor's that clips it first.
@@ -31,6 +31,15 @@ test('WinISD Compatibility labels are unclipped and drop the "Use" prefix', asyn
       const r = document.createRange(); r.selectNodeContents(el); return r.getBoundingClientRect().right;
     });
     expect(textRight, await label.innerText()).toBeLessThanOrEqual(Math.min(panelBox.x + panelBox.width, clipRight));
+  }
+});
+
+test('Advanced layout: no air-field label text is clipped by its label box', async ({ page }) => {
+  const labels = page.locator('.adv-air-fields .field label');
+  await expect(labels).toHaveCount(5);
+  for (const label of await labels.all()) {
+    const [scroll, client] = await label.evaluate(el => [el.scrollWidth, el.clientWidth]);
+    expect(scroll, await label.innerText()).toBeLessThanOrEqual(client);
   }
 });
 

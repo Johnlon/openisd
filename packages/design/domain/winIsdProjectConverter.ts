@@ -436,16 +436,7 @@ export class WinIsdProjectConverter {
           return {value: null, errors};
         }
         const manual = (v: number): SpecEntryJson => ({state: 'E', value: v, origin: 'manual', readings: {manual: {actual_reading: String(v), read_value: v}}});
-        // The .wpr's [PassiveRadiator] section states only Vas/Qms/Fs/Sd/Xmax — never Cms/Mms/Rms
-        // directly. `PassiveRadiatorSpecsSection`'s fields are entry-backed, never solver-derived
-        // (openisdDomain.ts's own `prSpec()` doc comment), so unlike a driver's T/S set there is no
-        // later consistency pass to fill them in: the circuit's `prMmd`/`prCms`/`prRms`
-        // (engine/circuit.ts, box-passive-radiator) come from HERE or not at all. Same closed forms
-        // `engine/formulas.ts` publishes for the PR editor: Cms = Vas/(ρc²Sd²), Mmd = 1/((2πFs)²Cms),
-        // Rms = √(Mmd/Cms)/Qms.
-        const cms = vas != null && sd != null ? this.engine.pr.cmsFromVas(vas, sd) : null;
-        const mmd = cms != null && fs != null ? this.engine.pr.mmdFromFs(fs, cms) : null;
-        const rms = mmd != null && cms != null && qms != null ? this.engine.pr.rmsFromQms(qms, mmd, cms) : null;
+        // The .wpr states only Vas/Qms/Fs/Sd/Xmax; the project's resolve derives Mms, Cms and Rms.
         const radiatorRecord: RadiatorDeviceJson = {
           brand: {value: 'WinISD import'}, model: {value: 'passive-radiator'},
           manufacturer: {value: 'WinISD import'}, driver_type: {value: 'passive-radiator'},
@@ -463,9 +454,6 @@ export class WinIsdProjectConverter {
               ...(fs != null ? {Fs_hz: manual(fs)} : {}),
               ...(sd != null ? {Sd_m2: manual(sd)} : {}),
               ...(xmax != null ? {Xmax_m: manual(xmax)} : {}),
-              ...(cms != null ? {Cms_m_per_N: manual(cms)} : {}),
-              ...(mmd != null ? {Mms_kg: manual(mmd)} : {}),
-              ...(rms != null ? {Rms_kg_per_s: manual(rms)} : {}),
             },
           },
         };

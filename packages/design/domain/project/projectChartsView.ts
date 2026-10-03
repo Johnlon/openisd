@@ -35,7 +35,7 @@ export class ProjectChartsView {
     /** Which charts are open (S10/QO130) — PROJECT-scoped, reversing QO90 for this field.
      *  Empty when absent (a project saved before S10, or a fresh one). Plain strings, not
      *  `ChartId`: this is PERSISTED project data (`.owpr`), so it must stay readable across a
-     *  version skew that adds/removes chart ids — `parseChartId` (packages/ui `logic/series.ts`)
+     *  version skew that adds/removes chart ids — `parseChartId` (`chart/series.ts`)
      *  does the string↔member conversion at the UI boundary. */
     get graphs(): SimpleField<readonly string[]> {
         const lens = focus(this.#lens, 'graphs');

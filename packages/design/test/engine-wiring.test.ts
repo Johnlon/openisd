@@ -101,7 +101,7 @@ describe('B — the project runs the engine sweep on its own driver and box', ()
     const project = drivenSealed(engine, 0.03);
     project.box.boxType.set('box-passive-radiator');
     project.box.passiveRadiator.configurePR(radiatorFromSpec(engine, {
-      Fs_hz: 12, Sd_m2: 0.025, Cms_m_per_N: 0.0009, Mms_kg: 0.09, Rms_kg_per_s: 1.5, Xmax_m: 0.015,
+      Fs_hz: 12, Sd_m2: 0.025, Vas_m3: 0.03, Xmax_m: 0.015,
     }));
     project.box.passiveRadiator.count.set(1);
     project.box.passiveRadiator.losses.Ql.set(7);
@@ -110,6 +110,57 @@ describe('B — the project runs the engine sweep on its own driver and box', ()
     const P: FrequencyGrid = { fmin: 10, fmax: 1000, N: 50 };
     const mine = project.sweep(P).values;
     expect(mine).not.toBeNull();
+  });
+
+  it('BUG_20261003: editing the radiator Qms moves the sweep; Qms sets the radiator loss', () => {
+    const engine = createEngine();
+    const sweepWithQms = (qms: number) => {
+      const project = drivenSealed(engine, 0.03);
+      project.box.boxType.set('box-passive-radiator');
+      project.box.passiveRadiator.configurePR(radiatorFromSpec(engine, {
+        Fs_hz: 12, Sd_m2: 0.025, Vas_m3: 0.03, Xmax_m: 0.015,
+      }));
+      project.box.passiveRadiator.count.set(1);
+      project.box.passiveRadiator.losses.Ql.set(7);
+      project.box.passiveRadiator.losses.Qa.set(30);
+      project.box.passiveRadiator.radiator.spec.Qms.set(qms);
+      return project.sweep({ fmin: 10, fmax: 1000, N: 50 }).values!.spl;
+    };
+    expect(sweepWithQms(3.3)).not.toEqual(sweepWithQms(4.02));
+  });
+
+  it('BUG_20261003: a radiator Qms, Sd, Fs or Vas edit (not Xmax) notifies the project and changes its sweep job', () => {
+    const engine = createEngine();
+    const project = drivenSealed(engine, 0.03);
+    project.box.boxType.set('box-passive-radiator');
+    project.box.passiveRadiator.configurePR(radiatorFromSpec(engine, {
+      Fs_hz: 44.2, Qms: 4.02, Vas_m3: 0.0084, Sd_m2: 0.00866, Xmax_m: 0.009,
+    }));
+    project.box.passiveRadiator.count.set(1);
+    project.box.passiveRadiator.losses.Ql.set(7);
+    project.box.passiveRadiator.losses.Qa.set(30);
+    const grid: FrequencyGrid = { fmin: 10, fmax: 1000, N: 50 };
+    const spec = project.box.passiveRadiator.radiator.spec;
+    const edits = [
+      ['Qms', () => spec.Qms.set(1)],
+      ['Sd', () => spec.Sd_m2.set(0.01)],
+      ['Xmax', () => spec.Xmax_m.set(0.02)],
+      ['Fs', () => spec.Fs_hz.set(20)],
+      ['Vas', () => spec.Vas_m3.set(0.02)],
+    ] as const;
+    const report = edits.map(([name, edit]) => {
+      let notified = 0;
+      const stop = project.subscribe(() => { notified++; });
+      const before = JSON.stringify(project.sweepPlan(grid));
+      edit();
+      const after = JSON.stringify(project.sweepPlan(grid));
+      stop();
+      return `${name}: notified=${notified} jobChanged=${before !== after}`;
+    });
+    expect(report).toEqual([
+      'Qms: notified=1 jobChanged=true', 'Sd: notified=1 jobChanged=true', 'Xmax: notified=1 jobChanged=false',
+      'Fs: notified=1 jobChanged=true', 'Vas: notified=1 jobChanged=true',
+    ]);
   });
 
   it('maxCurves() and its finiteness check come from the engine', () => {

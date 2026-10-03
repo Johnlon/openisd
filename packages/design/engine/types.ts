@@ -192,6 +192,14 @@ export interface SweepParams {
   winisdVaModel?: boolean;
   /** WinISD phase wrapping, [-180°, +180°] (true/absent), or continuous unwrapped phase (false). */
   winisdWrapPhase?: boolean;
+  /** ABC intra-chamber port velocity as WinISD charts it, V/(jωMai + Zf) with Ricl left out
+   *  (true), or the flow through the intra port, V/(Zi + Zf) with Zi = Ricl ∥ jωMai (false/absent).
+   *  `winisd-lossy` only; the other loss models have no Ricl. */
+  winisdAbcIntraPortVelocity?: boolean;
+  /** Passive-radiator box fixed-loss frequency ωr as WinISD computes it, 1/√(Npr·Map·(Cab ∥ Npr·Cap)),
+   *  Npr times below the tuning (true), or the physical tuning 1/√((Map/Npr)·(Cab ∥ Npr·Cap))
+   *  (false/absent). `winisd-lossy` only; the same at Npr = 1. */
+  winisdPrNprResonance?: boolean;
   // Box losses
   lossMode?: LossModeValue;
   Ql?: number;

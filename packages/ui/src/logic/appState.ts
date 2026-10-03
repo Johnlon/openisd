@@ -37,14 +37,14 @@ import {
     ProjectBuilder,
     realAppContext,
 } from '@openisd/design';
-import type {PlotParams, YRange} from '../types.js';
-import {TABS} from './series.js';
+import type {YRange} from '../types.js';
+import {type PlotParams, TABS} from '@openisd/design/chart';
 import {
     type AppSettingsRepo, copyOfName, createAppSettingsRepo, createMemoryStorage, uniqueName,
     type ViewSnapshot,
 } from '@openisd/persistence';
 import {assignTraceColor, presentationState, unitToken} from './presentationState.js';
-import {BOX_TYPE_OPTIONS, decimalsIn, isTokenIn, NumberField, type SelectorOption, toDisplay, unitFor, type UnitGroup} from '@openisd/design/fields';
+import {BOX_TYPE_OPTIONS, decimalsIn, formatFixed, isTokenIn, NumberField, type SelectorOption, toDisplay, unitFor, type UnitGroup} from '@openisd/design/fields';
 import {getOrInit, hmrSlots} from './hmrSingleton.js';
 import {notifyVentChanged, ventSolveSuspended,} from './useVentGroup.js';
 import {notifyPrChanged} from './usePrGroup.js';
@@ -807,7 +807,7 @@ export function formatInUnit(
   const u = isTokenIn(group, tok) ? unitFor(group, tok) : unitFor(group, baseToken);
   const dispVal = toDisplay(u, si);
   const dp = decimalsIn(u, baseDp);
-  return dispVal.toFixed(dp);
+  return formatFixed(dispVal, dp);
 }
 
 /**

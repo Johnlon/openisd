@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import {computed, onMounted, onUnmounted, ref, watch} from 'vue';
-import {projectChanged, syncedP} from '../../logic/appState.js';
+import {projectChanged} from '../../logic/appState.js';
 import {useFocusedProject} from '../../logic/focusedProjectContext.js';
 import {presentationState} from '../../logic/presentationState.js';
-import {rangeStatsOf} from '../../logic/series.js';
-import type {Design, Geo} from '../../types.js';
+import type {Design, FrequencyAxis, FrequencyDragMode, LevelAxis, LevelDragMode, SnapDirection, SnapExtremum} from '@openisd/design/chart';
+import type {Geo} from '../../types.js';
 import type {ChartId} from '@openisd/design/engine';
 import {drawOne} from '../canvas.js';
 import {useGraphPanel} from '../../hooks/GraphPanel-hooks.js';
@@ -38,9 +38,8 @@ const viewPlot  = computed(() => {
   const p = plotData.value;
   if (!p) return p;
   const ov = yOverride.value;
-  if (ov && isFinite(ov.min) && isFinite(ov.max) && ov.min < ov.max && !(p.logy && ov.min <= 0))
-    return { ...p, ymin: ov.min, ymax: ov.max };
-  return p;
+  const axis = ov ? p.levelAxis.overridden(ov.min, ov.max) : null;
+  return axis ? { ...p, ymin: axis.min, ymax: axis.max, levelAxis: axis } : p;
 });
 // Reset a chart's Y scale to auto (invoked by double-clicking its axis).
 function resetY() { delete presentationState.yRanges[props.chartId]; }
@@ -51,18 +50,16 @@ const effectiveF = computed(() => {
   return p.cursorLocked.value ? p.pinnedF.value : (p.cursorF.value ?? p.pinnedF.value);
 });
 
-const X_LMAX = Math.log10(40000); // frequency drag clamps to 1 Hz … 40 kHz (log space)
-
 let geoRef: Geo | null = null;
 let dragOrigin: { clientX: number; f: number } | null = null; // set on pointerdown (frequency band-select)
-let yDrag: { mode: string; startY: number; ly0: number; ly1: number; logy: boolean; ph: number } | null = null; // Y-axis drag
-let xDrag: { mode: string; startX: number; lx0: number; lx1: number; pw: number } | null = null; // X-axis (frequency) drag
+let yDrag: { mode: LevelDragMode; startY: number; axis: LevelAxis; ph: number } | null = null; // Y-axis drag
+let xDrag: { mode: FrequencyDragMode; startX: number; axis: FrequencyAxis; pw: number } | null = null; // X-axis (frequency) drag
 
 // Is a pointer position inside the left Y-axis strip (the value-label margin)?
 // Returns the vertical zone for the gesture, or null if not on the axis.
 //   'zoomTop' (top quarter) / 'zoomBot' (bottom quarter) → zoom that end
 //   'pan' (middle) → shift the window;  Shift key → 'zoomSym' (symmetric zoom)
-function yAxisZone(e: PointerEvent | MouseEvent): string | null {
+function yAxisZone(e: PointerEvent | MouseEvent): LevelDragMode | null {
   if (!geoRef || !viewPlot.value) return null;
   const rect = canvasEl.value!.getBoundingClientRect();
   const xIn = e.clientX - rect.left, yIn = e.clientY - rect.top;
@@ -77,7 +74,7 @@ function yAxisZone(e: PointerEvent | MouseEvent): string | null {
 // Same idea for the bottom X-axis strip (the frequency-label margin, below the plot).
 //   'zoomLo' (left quarter) / 'zoomHi' (right quarter) → zoom that end
 //   'pan' (middle) → shift the frequency window;  Shift → 'zoomSym'
-function xAxisZone(e: PointerEvent | MouseEvent): string | null {
+function xAxisZone(e: PointerEvent | MouseEvent): FrequencyDragMode | null {
   if (!geoRef) return null;
   const rect = canvasEl.value!.getBoundingClientRect();
   const xIn = e.clientX - rect.left, yIn = e.clientY - rect.top;
@@ -91,16 +88,11 @@ function xAxisZone(e: PointerEvent | MouseEvent): string | null {
 
 function freqAt(clientX: number): number | null {
   if (!geoRef) return null;
-  const { m, pw, f0, f1 } = geoRef;
+  const { m, pw, axis } = geoRef;
   const rect = canvasEl.value!.getBoundingClientRect();
   const frac = (clientX - rect.left - m.l) / pw;
   if (frac < 0 || frac > 1) return null;
-  return Math.pow(10, Math.log10(f0) + frac * (Math.log10(f1) - Math.log10(f0)));
-}
-
-function rangeStats(fLo: number, fHi: number) {
-  const s = plotData.value?.series?.find(s => !s.dash && !s.phantom);
-  return s ? rangeStatsOf(s, fLo, fHi) : null;
+  return axis.at(frac);
 }
 
 // Per-panel view of the shared frequency selection — stats come from this panel's series
@@ -109,7 +101,7 @@ const localDragRange = computed(() => {
   const range = project.value.dragRange.value;
   if (!range) return null;
   const { fLo, fHi } = range;
-  return { fLo, fHi, stats: rangeStats(fLo, fHi) ?? undefined };
+  return { fLo, fHi, stats: graph.rangeStats(fLo, fHi) ?? undefined };
 });
 
 function redraw() {
@@ -123,12 +115,8 @@ function onPointerDown(e: PointerEvent) {
   // Y-axis strip → start a level pan/zoom drag (takes priority over the freq band).
   const zone = yAxisZone(e);
   if (zone) {
-    const p = viewPlot.value!, logy = p.logy;
-    yDrag = {
-      mode: zone, startY: e.clientY, logy, ph: geoRef.ph,
-      ly0: logy ? Math.log10(p.ymin) : p.ymin,
-      ly1: logy ? Math.log10(p.ymax) : p.ymax,
-    };
+    const p = viewPlot.value!;
+    yDrag = { mode: zone, startY: e.clientY, ph: geoRef.ph, axis: p.levelAxis };
     canvasEl.value!.setPointerCapture(e.pointerId);
     e.preventDefault();
     return;
@@ -138,7 +126,7 @@ function onPointerDown(e: PointerEvent) {
   if (xzone) {
     xDrag = {
       mode: xzone, startX: e.clientX, pw: geoRef.pw,
-      lx0: Math.log10(syncedP.value.fmin), lx1: Math.log10(syncedP.value.fmax),
+      axis: graph.frequencyAxis(),
     };
     canvasEl.value!.setPointerCapture(e.pointerId);
     e.preventDefault();
@@ -153,45 +141,19 @@ function onPointerDown(e: PointerEvent) {
 }
 
 // Apply the in-progress Y-axis drag → write a per-chart Y override (which viewPlot
-// picks up and redraws). All math is in display space (log for log-scale charts).
+// picks up and redraws).
 function applyYDrag(e: PointerEvent) {
-  const { mode, startY, ly0, ly1, logy, ph } = yDrag!;
-  const span = ly1 - ly0;
-  const dy = e.clientY - startY;
-  let a = ly0, b = ly1;
-  if (mode === 'pan') { const d = -(dy / ph) * span; a += d; b += d; }
-  else if (mode === 'zoomTop') { b += -(dy / ph) * span; }        // drag top end
-  else if (mode === 'zoomBot') { a += -(dy / ph) * span; }        // drag bottom end
-  else { // zoomSym: drag down = zoom out (wider), up = zoom in
-    const c = (ly0 + ly1) / 2, half = (span / 2) * Math.max(0.05, 1 + dy / ph);
-    a = c - half; b = c + half;
-  }
-  if (b - a < span * 0.05) return;              // guard: don't collapse/invert
-  const inv = (v: number) => logy ? Math.pow(10, v) : v;
-  const min = inv(a), max = inv(b);
-  if (!isFinite(min) || !isFinite(max) || (logy && min <= 0)) return;
-  presentationState.yRanges[props.chartId] = { min, max };
+  const { mode, startY, axis, ph } = yDrag!;
+  const next = axis.drag(mode, (e.clientY - startY) / ph);
+  if (next) presentationState.yRanges[props.chartId] = { min: next.min, max: next.max };
 }
 
 // Apply the in-progress X-axis (frequency) drag → write the global sweep range
-// (`presentationState.sweepRange`, shared across every open project). Math is in log
-// space; result is clamped to 1 Hz … 40 kHz.
+// (`presentationState.sweepRange`, shared across every open project).
 function applyXDrag(e: PointerEvent) {
-  const { mode, startX, lx0, lx1, pw } = xDrag!;
-  const span = lx1 - lx0;
-  const dx = e.clientX - startX;
-  let a = lx0, b = lx1;
-  if (mode === 'pan') { const d = -(dx / pw) * span; a += d; b += d; }
-  else if (mode === 'zoomLo') { a += (dx / pw) * span; }          // drag low (left) end
-  else if (mode === 'zoomHi') { b += (dx / pw) * span; }          // drag high (right) end
-  else { // zoomSym: drag right = zoom in (narrower), left = zoom out
-    const c = (lx0 + lx1) / 2, half = (span / 2) * Math.max(0.05, 1 - dx / pw);
-    a = c - half; b = c + half;
-  }
-  a = Math.max(0, Math.min(a, X_LMAX - 0.1));   // 0 = log10(1 Hz)
-  b = Math.min(X_LMAX, Math.max(b, a + 0.1));
-  if (b - a < 0.1) return;                        // keep at least ~0.1 decade
-  presentationState.sweepRange = { min: Math.pow(10, a), max: Math.pow(10, b) };
+  const { mode, startX, axis, pw } = xDrag!;
+  const next = axis.drag(mode, (e.clientX - startX) / pw);
+  if (next) presentationState.sweepRange = { min: next.fmin, max: next.fmax };
 }
 
 function onPointerMove(e: PointerEvent) {
@@ -218,11 +180,11 @@ function onPointerMove(e: PointerEvent) {
     }
   }
   if (project.value.cursorLocked.value || !geoRef) return;
-  const { m, pw, f0, f1 } = geoRef;
+  const { m, pw, axis } = geoRef;
   const rect = canvasEl.value!.getBoundingClientRect();
   const frac = (e.clientX - rect.left - m.l) / pw;
   if (frac < 0 || frac > 1) { if (project.value.cursorF.value !== null) project.value.cursorF.set(null); return; }
-  project.value.cursorF.set(Math.pow(10, Math.log10(f0) + frac * (Math.log10(f1) - Math.log10(f0))));
+  project.value.cursorF.set(axis.at(frac));
 }
 
 function onPointerUp(e: PointerEvent) {
@@ -241,7 +203,7 @@ function onPointerUp(e: PointerEvent) {
   if (f === null) return;
   const p = project.value;
   const pinnedF = p.pinnedF.value;
-  if (p.cursorLocked.value && pinnedF !== null && Math.abs(Math.log10(f) - Math.log10(pinnedF)) < 0.02) {
+  if (p.cursorLocked.value && pinnedF !== null && geoRef?.axis.isNear(f, pinnedF)) {
     p.cursorLocked.set(false);
   } else if (p.cursorLocked.value) {
     p.pinnedF.set(f);
@@ -286,33 +248,12 @@ function onContextMenu(e: MouseEvent) {
 
 function closeMenu() { ctxMenu.value.visible = false; }
 
-function snapAction(dir: string, type: string) {
-  const s = plotData.value?.series?.find(s => !s.dash);
-  if (!s) return closeMenu();
-  const f = ctxMenu.value.f;
-  const isMax = type === 'max';
-  const candidates = [];
-  for (let i = 1; i < s.ys.length - 1; i++) {
-    if (!isFinite(s.ys[i])) continue;
-    const peak   = s.ys[i] > s.ys[i-1] && s.ys[i] > s.ys[i+1];
-    const trough = s.ys[i] < s.ys[i-1] && s.ys[i] < s.ys[i+1];
-    if (isMax ? !peak : !trough) continue;
-    if (f !== null) {
-      if (dir === 'left'  && s.xs[i] >= f) continue;
-      if (dir === 'right' && s.xs[i] <= f) continue;
-    }
-    candidates.push(i);
+function snapAction(direction: SnapDirection, extremum: SnapExtremum) {
+  const f = graph.snapFrequency(ctxMenu.value.f, direction, extremum);
+  if (f !== null) {
+    project.value.pinnedF.set(f);
+    project.value.cursorLocked.set(true);   // hold the snapped point so hover doesn't override it
   }
-  if (!candidates.length) return closeMenu();
-  // pick nearest in log-frequency to cursor
-  const ref = f ?? s.xs[Math.floor(s.xs.length / 2)];
-  let best = candidates[0], bestD = Infinity;
-  for (const i of candidates) {
-    const d = Math.abs(Math.log10(s.xs[i]) - Math.log10(ref));
-    if (d < bestD) { bestD = d; best = i; }
-  }
-  project.value.pinnedF.set(s.xs[best]);
-  project.value.cursorLocked.set(true);   // hold the snapped point so hover doesn't override it
   closeMenu();
 }
 

@@ -51,7 +51,7 @@ export type {DriverEngine, DriverQuantityName, DriverIssue, DriverPrerequisite} 
 export type {EnvironmentEngine} from './environment/EnvironmentEngine.js';
 export type {IssueEngine} from './issues/IssueEngine.js';
 export type {VentEngine, VentQuantityName, VentIssue} from './vent/VentEngine.js';
-export type {PrEngine, PrQuantityName, PrIssue} from './pr/PrEngine.js';
+export type {PrEngine, PrQuantityName, PrIssue, PrSpecValues} from './pr/PrEngine.js';
 export type {VentedEngine} from './vented/VentedEngine.js';
 export type {SealedEngine, SealedAlignmentQuantityName, SealedAlignmentIssue} from './sealed/SealedEngine.js';
 // `SolverField` is the interface a domain field implements for the solver; `SolverInput` its

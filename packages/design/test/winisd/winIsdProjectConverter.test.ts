@@ -307,10 +307,10 @@ describe('openIsdProjectToWinIsdProject — null-fallback and unsupported-type b
     const driver = aDriver(engine, 'QO8', 'test');
     const project = new ProjectBuilder(driver, engine).passiveRadiator()
       .volume_m3(0.03).tuning_goal_hz(35).count(1).radiator(radiator).build();
-    // The build gave the radiator its chart-ready Sd/Cms/Mms; this test is about one stating none.
+    // The build gave the radiator its chart-ready Sd/Fs/Vas; this test is about one stating none.
     project.box.passiveRadiator.radiator.spec.Sd_m2.clear();
-    project.box.passiveRadiator.radiator.spec.Cms_m_per_N.clear();
-    project.box.passiveRadiator.radiator.spec.Mms_kg.clear();
+    project.box.passiveRadiator.radiator.spec.Fs_hz.clear();
+    project.box.passiveRadiator.radiator.spec.Vas_m3.clear();
     project.box.passiveRadiator.radiator.spec.Xmax_m.clear();
 
     const { value: wpr, errors } = new WinIsdProjectConverter(engine).openIsdProjectToWinIsdProject(project);
@@ -465,10 +465,10 @@ describe('openIsdProjectToWinIsdProject — null-fallback and unsupported-type b
     const driver = aDriver(engine, 'QO8', 'test');
     const project = new ProjectBuilder(driver, engine).passiveRadiator()
       .volume_m3(0.03).tuning_goal_hz(35).count(1).radiator(radiator).build();
-    // The build gave the radiator its chart-ready Sd/Cms/Mms; this test is about one stating none.
+    // The build gave the radiator its chart-ready Sd/Fs/Vas; this test is about one stating none.
     project.box.passiveRadiator.radiator.spec.Sd_m2.clear();
-    project.box.passiveRadiator.radiator.spec.Cms_m_per_N.clear();
-    project.box.passiveRadiator.radiator.spec.Mms_kg.clear();
+    project.box.passiveRadiator.radiator.spec.Fs_hz.clear();
+    project.box.passiveRadiator.radiator.spec.Vas_m3.clear();
 
     const { value: wpr, errors } = new WinIsdProjectConverter(engine).openIsdProjectToWinIsdProject(project);
     assert.equal(errors.length, 0, JSON.stringify(errors));

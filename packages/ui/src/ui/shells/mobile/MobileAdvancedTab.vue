@@ -9,6 +9,9 @@ import {inputChecked, selectedOption} from '../../../logic/domEvents.js';
 import NumInput from '../../components/NumInput.vue';
 import UnitToggle from '../../components/UnitToggle.vue';
 import AdvancedOptions from '../../components/AdvancedOptions.vue';
+import ErrorSwitch from '../../components/ErrorSwitch.vue';
+import ErrorSwitchGroup from '../../components/ErrorSwitchGroup.vue';
+import {LOSS_MODE_TIP} from '../../../hooks/errorSwitches.js';
 import {useMobileAdvancedTab} from '../../../hooks/MobileAdvancedTab-hooks.js';
 
 const {
@@ -16,7 +19,7 @@ const {
   envTempStored, envHumidityStored, envPressureStored, envTempDq, envHumidityDq, envPressureDq,
   advTemp, advHumidity, advPressure,
   resetAirToAppDefaults, advAir,
-  LOSS_MODE_OPTIONS, lossMode, applyWinisdSettings,
+  LOSS_MODE_OPTIONS, lossMode, applyWinisdSettings, errorSwitches,
 } = useMobileAdvancedTab();
 </script>
 
@@ -68,7 +71,7 @@ const {
       <span>WinISD compatibility</span>
       <button class="mob-btn mob-btn-small" title="Reset to WinISD: set every WinISD-vs-conventional switch to WinISD" @click="applyWinisdSettings">Reset</button>
     </div>
-    <div class="mob-row">
+    <div class="mob-row" :title="LOSS_MODE_TIP">
       <label class="mob-row-label" for="mob-adv-lossmode">Sealed loss model</label>
       <select id="mob-adv-lossmode" class="mob-select" :value="lossMode"
               @change="e => { const m = selectedOption(e, LOSS_MODE_OPTIONS); if (m !== null) lossMode = m; }">
@@ -80,16 +83,20 @@ const {
         <input type="checkbox" :checked="project.envUseWinisdAirModel.value" @change="e => project.envUseWinisdAirModel.set(inputChecked(e))"> WinISD air model
       </label>
     </div>
-    <div class="mob-row mob-checkbox-row">
-      <label title="Ticked (default, as WinISD): the simulation uses two BLs, as WinISD does. Unticked (conventional): one BL throughout, from the entered datasheet values.">
+    <ErrorSwitchGroup>
+      <ErrorSwitch as="label" class="mob-row mob-checkbox-row" field-key="winisdDriverModel" :marked="errorSwitches.driverModel.marked" :applicable="errorSwitches.driverModel.applicable" :reproduces-error="errorSwitches.driverModel.reproducesError" title="Ticked (default, as WinISD): the simulation uses two BLs, as WinISD does. Unticked (conventional): one BL throughout, from the entered datasheet values.">
         <input type="checkbox" :checked="project.winisdDriverModel.value" @change="e => project.winisdDriverModel.set(inputChecked(e))"> WinISD driver model
-      </label>
-    </div>
-    <div class="mob-row mob-checkbox-row">
-      <label title="Affects the Amplifier apparent load power (VA) chart only — see the desktop tooltip for the formula difference.">
+      </ErrorSwitch>
+      <ErrorSwitch as="label" class="mob-row mob-checkbox-row" field-key="winisdVaModel" :marked="errorSwitches.vaModel.marked" :applicable="errorSwitches.vaModel.applicable" :reproduces-error="errorSwitches.vaModel.reproducesError" title="Affects the Amplifier apparent load power (VA) chart only — see the desktop tooltip for the formula difference.">
         <input type="checkbox" :checked="project.winisdVaModel.value" @change="e => project.winisdVaModel.set(inputChecked(e))"> WinISD VA model
-      </label>
-    </div>
+      </ErrorSwitch>
+      <ErrorSwitch as="label" class="mob-row mob-checkbox-row" field-key="winisdAbcIntraPortVelocity" :marked="errorSwitches.abcIntraPortVelocity.marked" :applicable="errorSwitches.abcIntraPortVelocity.applicable" :reproduces-error="errorSwitches.abcIntraPortVelocity.reproducesError" :title="ToggleField.ADV_WINISDABCINTRAPORTVELOCITY.description">
+        <input type="checkbox" :checked="project.winisdAbcIntraPortVelocity.value" :disabled="!errorSwitches.abcIntraPortVelocity.applicable" @change="e => project.winisdAbcIntraPortVelocity.set(inputChecked(e))"> {{ ToggleField.ADV_WINISDABCINTRAPORTVELOCITY.label }}
+      </ErrorSwitch>
+      <ErrorSwitch as="label" class="mob-row mob-checkbox-row" field-key="winisdPrNprResonance" :marked="errorSwitches.prNprResonance.marked" :applicable="errorSwitches.prNprResonance.applicable" :reproduces-error="errorSwitches.prNprResonance.reproducesError" :title="ToggleField.ADV_WINISDPRNPRRESONANCE.description">
+        <input type="checkbox" :checked="project.winisdPrNprResonance.value" :disabled="!errorSwitches.prNprResonance.applicable" @change="e => project.winisdPrNprResonance.set(inputChecked(e))"> {{ ToggleField.ADV_WINISDPRNPRRESONANCE.label }}
+      </ErrorSwitch>
+    </ErrorSwitchGroup>
   </div>
 </template>
 

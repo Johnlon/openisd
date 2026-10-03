@@ -15,7 +15,7 @@ import {presentationState, traceColor} from '../logic/presentationState.js';
 import {SweepCache} from '../logic/sweepCache.js';
 import {SweepComputer} from '../logic/sweepRequest.js';
 import {isTraceVisible, traceVisibilityRevision} from '../logic/traceVisibility.js';
-import type {Design, PlotParams} from '../types.js';
+import type {Design, PlotParams} from '@openisd/design/chart';
 
 export function useCompareOverlays(simulation: SimulationEngine, focusedProject: ComputedRef<OpenISDProject>): ComputedRef<Design[]> {
   const sweeps = new SweepCache(new SweepComputer(simulation));

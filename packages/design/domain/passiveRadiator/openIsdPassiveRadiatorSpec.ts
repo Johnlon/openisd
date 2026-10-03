@@ -1,4 +1,5 @@
 import type { Calculatable, Calculated, Clearable, Entered, Precise, Readable, SimpleField, Unsolvable, Writable } from '../cell.js';
+import type { Air, PrEngine, PrSpecValues } from '../../engine/index.js';
 import type { RadiatorDeviceJson } from '../openisdSchema.js';
 import { prSpec } from '../box/prSpec.js';
 import { radiatorSection } from '../box/radiatorSection.js';
@@ -55,5 +56,41 @@ export class OpenIsdPassiveRadiatorSpec {
         this.OuterX_m = prSpec(section, 'OuterX_m');
         this.OuterY_m = prSpec(section, 'OuterY_m');
         this.weight_kg = prSpec(section, 'weight_kg');
+    }
+
+    /** The seven figures of the radiator's T/S set that were typed or loaded, nothing derived. */
+    #stated(): PrSpecValues {
+        const stated = (f: Entered & Readable<number | null>): number | null => f.entered ? f.value : null;
+        return {
+            Fs_hz: stated(this.Fs_hz), Qms: stated(this.Qms), Vas_m3: stated(this.Vas_m3), Sd_m2: stated(this.Sd_m2),
+            Mms_kg: stated(this.Mms_kg), Cms_m_per_N: stated(this.Cms_m_per_N), Rms_kg_per_s: stated(this.Rms_kg_per_s),
+        };
+    }
+
+    /** Write every figure the stated ones derive onto its field as calculated, `air` being the
+     *  project's. A stated figure is never touched; one nothing derives reads not-available. */
+    resolve(pr: PrEngine, air: Air): void {
+        const solved = pr.solveSpec(this.#stated(), air);
+        const write = (field: Entered & Calculatable<number> & Unsolvable, value: number | null): void => {
+            if (field.entered) return;
+            if (value === null) field.setNotAvailable(); else field.setCalculated(value);
+        };
+        write(this.Fs_hz, solved.Fs_hz); write(this.Qms, solved.Qms); write(this.Vas_m3, solved.Vas_m3);
+        write(this.Sd_m2, solved.Sd_m2); write(this.Mms_kg, solved.Mms_kg);
+        write(this.Cms_m_per_N, solved.Cms_m_per_N); write(this.Rms_kg_per_s, solved.Rms_kg_per_s);
+    }
+
+    /** A record adopted into a project states Mms, Cms and Rms from its datasheet; where Fs, Qms,
+     *  Vas and Sd alone derive one of them, it is demoted to calculated so the four drive it. A
+     *  record stating only the mechanical set keeps it entered. */
+    deriveFromWinisdFigures(pr: PrEngine, air: Air): void {
+        const stated = this.#stated();
+        const fromFour = pr.solveSpec({...stated, Mms_kg: null, Cms_m_per_N: null, Rms_kg_per_s: null}, air);
+        const demote = (field: Entered & Calculatable<number>, derived: number | null): void => {
+            if (field.entered && derived !== null) field.setCalculated(derived);
+        };
+        demote(this.Cms_m_per_N, fromFour.Cms_m_per_N);
+        demote(this.Mms_kg, fromFour.Mms_kg);
+        demote(this.Rms_kg_per_s, fromFour.Rms_kg_per_s);
     }
 }

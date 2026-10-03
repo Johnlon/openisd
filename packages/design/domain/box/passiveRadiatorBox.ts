@@ -44,6 +44,10 @@ export interface PassiveRadiatorBox {
     // `tuning_goal_hz` reads the achieved tuning. The pair is one relation seen from two ends, both
     // solver-written fields, stating either deriving the other. The volume stays the axiomatic input.
 
+    /** The tuning this radiator gives this box with NO mass added to the cone: the Box pane's Fh
+     *  readout. Mms, Cms are the radiator's own calculated figures (from its Fs, Qms, Vas, Sd). Null until a radiator is chosen and the volume is set. */
+    readonly naturalTuning_hz: Readable<number | null> & Calculated;
+
     /** WinISD's "Fs (with added mass)" — the RADIATOR'S OWN resonance carrying whatever tuning
      *  mass is on its cone, with no box in it. A different quantity from `systemTuning_hz`,
      *  which is this radiator loaded by this box's air. Null until a radiator is chosen and

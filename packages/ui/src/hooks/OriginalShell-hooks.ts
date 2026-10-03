@@ -10,7 +10,7 @@
  * The Box-tab and Signal-tab field wiring (`createSealedReadouts`/`createBoxVolume`/
  * `createSelectedBox`/`createDriveSignal`), the cell dq readout, the chart labels and the tab
  * rail's `TabId` are shared with `MobileShell.vue` and live in their own skin-neutral modules —
- * see `boxFields.ts`, `driveSignal.ts`, `../logic/cellDataQuality.ts`, `../logic/series.ts` and
+ * see `boxFields.ts`, `driveSignal.ts`, `../logic/cellDataQuality.ts`, `@openisd/design/chart` and
  * `../logic/tabId.ts`. This file JIT-composes them here with the shell's own `project` /
  * `selectedBox` / `projectChanged`.
  */
@@ -48,7 +48,7 @@ import {
 import {createVentReadouts, FB_TARGET_TIP, FH_TARGET_TIP, VENT_GEOMETRY_TIP} from './ventReadouts.js';
 import {formatDateStamp, parseDateStamp} from '../logic/dateDisplay.js';
 import {createPassiveRadiatorActions} from './passiveRadiatorActions.js';
-import {buildPlotData, TAB_META} from '../logic/series.js';
+import {buildPlotData, FrequencyAxis, interpolatedY, TAB_META} from '@openisd/design/chart';
 import {ChartSelection, type ChartItem} from './chartSelection.js';
 import {chartColumnsFit, CHARTS_HIGH_OPTIONS, ORIGINAL_CHARTS_HIGH} from './chartGrid.js';
 import {offeredChartsHigh, useChartStack} from './chartStack.js';
@@ -56,8 +56,7 @@ import {createToneGenerator, type ToneGenerator} from '../logic/toneGenerator.js
 import {useApp} from '../logic/app.js';
 import {useEscToClose} from '../logic/useEscToClose.js';
 import {injectSplashModal} from './SplashModal-hooks.js';
-import {clampedFrequency, interpolatedY, steppedFrequency} from '../logic/cursorFrequency.js';
-import {ARRAY_WIRING_OPTIONS, BOX_TYPE_OPTIONS, END_CORRECTION_OPTIONS, LossMode, NumberField, VENT_SHAPE_OPTIONS} from '@openisd/design/fields';
+import {ARRAY_WIRING_OPTIONS, BOX_TYPE_OPTIONS, END_CORRECTION_OPTIONS, formatFixed, formatFixedOrDash, LossMode, NumberField, VENT_SHAPE_OPTIONS} from '@openisd/design/fields';
 import {inputChecked, inputFrom, inputValue, listeningElement, selectedOption, selectValue} from '../logic/domEvents.js';
 import {SealedAlignmentEditor} from './SealedAlignment-hooks.js';
 import {VentedAlignmentEditor} from './VentedAlignment-hooks.js';
@@ -67,6 +66,7 @@ import {dqOfCell, type DqReadout} from '../logic/cellDataQuality.js';
 import {isTabId, type TabId} from '../logic/tabId.js';
 import {createBoxVolume, createChamberFields, createSealedReadouts, createSelectedBox} from './boxFields.js';
 import {createDriveSignal} from './driveSignal.js';
+import {createErrorSwitches} from './errorSwitches.js';
 import type {StoredProjectListing} from '@openisd/persistence';
 import type {ChartId, EnvDefaults, EnvironmentEngine} from '@openisd/design/engine';
 import {isTraceVisible, setTraceVisible} from '../logic/traceVisibility.js';
@@ -214,7 +214,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   }
 
   function fmt(n: number | null | undefined, dp: number): string {
-    return n != null && isFinite(n) ? n.toFixed(dp) : '—';
+    return formatFixedOrDash(n ?? null, dp);
   }
 
   // ---- Box types — the registry's own list (`box_Type`), not a copy ------------------
@@ -386,13 +386,13 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
 
   watch(cursorHz, (newF) => {
     if (!isHzInputFocused.value) {
-      hzInputText.value = newF != null ? newF.toFixed(2) : '';
+      hzInputText.value = newF != null ? formatFixed(newF, 2) : '';
     }
   }, { immediate: true });
 
   function onHzInputFocus() {
     isHzInputFocused.value = true;
-    hzInputText.value = cursorHz.value != null ? cursorHz.value.toFixed(2) : '';
+    hzInputText.value = cursorHz.value != null ? formatFixed(cursorHz.value, 2) : '';
   }
 
   function onHzInputBlur() {
@@ -401,7 +401,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   }
 
   function commitHzInput() {
-    const f = clampedFrequency(parseFloat(hzInputText.value), fmin.value, fmax.value);
+    const f = new FrequencyAxis(fmin.value, fmax.value).clampTyped(parseFloat(hzInputText.value));
     const p = project.value;
     p.pinnedF.set(f);
     p.cursorF.set(f);
@@ -409,12 +409,12 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   }
 
   function spinHz(dir: number, factor = 1.02) {
-    const f = steppedFrequency({ current: cursorHz.value, dir, factor, fmin: fmin.value, fmax: fmax.value });
+    const f = new FrequencyAxis(fmin.value, fmax.value).step({ current: cursorHz.value, dir, factor });
     const p = project.value;
     p.pinnedF.set(f);
     p.cursorF.set(f);
     p.cursorLocked.set(true);
-    hzInputText.value = f.toFixed(2);
+    hzInputText.value = formatFixed(f, 2);
   }
 
   function onHzKeydown(e: KeyboardEvent) {
@@ -635,6 +635,8 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     project.value.applyWinisdSettings();
   };
 
+  const errorSwitches = createErrorSwitches({project, projectChanged});
+
   return {
     version, toggleDropdown, openDd, openClick, closeDropdown, presentationState, isModified,
     openDialogOpen, storedProjects, openFromDisk, openStoredProject, switchToMobile,
@@ -649,7 +651,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     genOn, toggleGenerate, genHz,
     boxLabel, pending, openCharts, chartStackEl, chartStackStyle, chartsHigh, CHARTS_HIGH_OPTIONS, overlays, activeTab,
     showEnclosureTab, enclosureNavLabel,
-    selectedBox, BOX_TYPE_OPTIONS, LOSS_MODE_OPTIONS, lossMode, ARRAY_WIRING_OPTIONS, N_DRIVERS_OPTIONS, applyWinisdSettings,
+    selectedBox, BOX_TYPE_OPTIONS, LOSS_MODE_OPTIONS, lossMode, ARRAY_WIRING_OPTIONS, N_DRIVERS_OPTIONS, applyWinisdSettings, errorSwitches,
      boxVolume_m3, boxVolumeDqNote, setBoxVolume_m3, sealedAlignmentEditor, sealedAlignmentOpen,
      sealedAlignmentOptions, sealedAlignmentSelected, sealedAlignmentVolume_L, sealedAlignmentEbp,
      sealedAlignmentSuitability, sealedAlignmentSuitabilityLabel, originalFilters,

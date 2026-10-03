@@ -3,6 +3,7 @@ import {describe, expect, it, vi} from 'vitest';
 import {type DqIssue, type DriverError, type DriverIssue, type Engine, createEngine, DEFAULT_VENTED_DESIGN_LIMITS} from '@openisd/design/engine';
 import {WinIsdDriverConverter} from '../domain/winIsdDriverConverter.js';
 import {WinIsdProjectConverter} from '../domain/winIsdProjectConverter.js';
+import {radiatorFromSpec} from './fixtures/recordBuilders.js';
 import {
     type AppContext,
     OpenISDDriver,
@@ -1270,7 +1271,7 @@ describe('S10 — sealed joins the cascade: box.sealed.q_tc is an entry the reso
 describe('the passive radiator a box holds', () => {
   const prJson = () => driverJson({
     brand: 'SB Acoustics', model: 'SB23PACS', section: 'passive-radiator',
-    spec: prSpecSection({ Fs_hz: 12, Sd_m2: 0.025, Cms_m_per_N: 0.0009, Mmd_kg: 0.09, Rms_Ns_per_m: 1.5, Xmax_m: 0.015 }),
+    spec: prSpecSection({ Fs_hz: 1 / (2 * Math.PI * Math.sqrt(0.09 * 0.0009)), Sd_m2: 0.025, Cms_m_per_N: 0.0009, Mmd_kg: 0.09, Rms_Ns_per_m: 1.5, Xmax_m: 0.015 }),
   });
   const project = () => new ProjectBuilder(driverFrom({
     brand: 'Dayton', model: 'RS225', section: 'woofer',
@@ -1338,18 +1339,18 @@ describe('the passive radiator a box holds', () => {
     expect(library.spec.Sd_m2.value).toBe(0.025);
   });
 
-  it('setCalculated()/setDq() are no-ops on a radiator T/S field — entry-backed, never solver-derived', () => {
+  it('a radiator T/S field takes a calculated value: setCalculated() stores it as calculated, not entered', () => {
     const p = project();
     const library = OpenISDPassiveRadiatorStandalone.fromConformingRecord(prJson());
     if (Array.isArray(library)) throw new Error(`fixture radiator is invalid: ${library.join(', ')}`);
     p.box.passiveRadiator.radiator.update(library);
 
-    p.box.passiveRadiator.radiator.spec.Fs_hz.setCalculated(99, [ignoredIssue('ignored')]);
-    expect(p.box.passiveRadiator.radiator.spec.Fs_hz.value).toBe(12);
-    expect(p.box.passiveRadiator.radiator.spec.Fs_hz.dq).toEqual([]);
-
-    p.box.passiveRadiator.radiator.spec.Fs_hz.setDq([ignoredIssue('ignored too')]);
-    expect(p.box.passiveRadiator.radiator.spec.Fs_hz.dq).toEqual([]);
+    const Fs = p.box.passiveRadiator.radiator.spec.Fs_hz;
+    Fs.clear();
+    Fs.setCalculated(99);
+    expect(Fs.value).toBe(99);
+    expect(Fs.calculated).toBe(true);
+    expect(Fs.entered).toBe(false);
   });
 
   it('detaches the box radiator into a standalone the library can hold, sharing no storage', () => {
@@ -1452,6 +1453,23 @@ describe('the passive radiator a box holds', () => {
     const p = project();
     expect(p.box.passiveRadiator.addedMassForTuning_kg(15).value).toBe(null);
     expect(p.box.passiveRadiator.addedMassForTuning_kg(15).value).toBeNull();
+  });
+
+  it('BUG_20261003: naturalTuning_hz is the radiator tuning with no added mass and follows a hand edit of Fs; addedMassForTuning_kg follows it too', () => {
+    const p = project();
+    p.box.passiveRadiator.configurePR(radiatorFromSpec(createEngine(), {Fs_hz: 30, Qms: 3.3, Vas_m3: 0.0048, Sd_m2: 0.0095}));
+    p.box.boxType.set('box-passive-radiator');
+    p.box.passiveRadiator.volume_m3.set(0.03);
+    p.box.passiveRadiator.addedMass_kg.set(0);
+    const spec = p.box.passiveRadiator.radiator.spec;
+    // With no added mass, the tuning the box produces (systemTuning_hz) is the radiator's natural tuning.
+    expect(p.box.passiveRadiator.naturalTuning_hz.value).toBeCloseTo(p.box.passiveRadiator.systemTuning_hz.value!, 9);
+    const massBefore = p.box.passiveRadiator.addedMassForTuning_kg(15).value;
+    const naturalBefore = p.box.passiveRadiator.naturalTuning_hz.value;
+    spec.Fs_hz.set(20);
+    expect(p.box.passiveRadiator.naturalTuning_hz.value).toBeCloseTo(p.box.passiveRadiator.systemTuning_hz.value!, 9);
+    expect(p.box.passiveRadiator.naturalTuning_hz.value).not.toBe(naturalBefore);
+    expect(p.box.passiveRadiator.addedMassForTuning_kg(15).value).not.toBe(massBefore);
   });
 
   it('answers the mass to ADD for a target tuning, not the total moving mass', () => {
@@ -1978,7 +1996,7 @@ describe('editing a driver — copy, then update or drop', () => {
   it('clonePassiveRadiator() gives the record back, deep-cloned so an edit after the call cannot reach it', () => {
     const pr = OpenISDPassiveRadiatorStandalone.fromConformingRecord(driverJson({
       brand: 'SB Acoustics', model: 'SB23PACS', section: 'passive-radiator',
-      spec: prSpecSection({ Fs_hz: 12, Sd_m2: 0.025, Cms_m_per_N: 0.0009, Mmd_kg: 0.09, Rms_Ns_per_m: 1.5, Xmax_m: 0.015 }),
+      spec: prSpecSection({ Fs_hz: 1 / (2 * Math.PI * Math.sqrt(0.09 * 0.0009)), Sd_m2: 0.025, Cms_m_per_N: 0.0009, Mmd_kg: 0.09, Rms_Ns_per_m: 1.5, Xmax_m: 0.015 }),
     }));
     if (Array.isArray(pr)) throw new Error('fixture radiator must conform: ' + pr.join('; '));
 
@@ -2069,7 +2087,7 @@ describe('editing a driver — copy, then update or drop', () => {
   it('OpenISDDriver.fromOwdrText() refuses text that parses fine but is a radiator record, not a driver\'s', () => {
     const {uuid: _uuid, ...radiatorJsonWithoutUuid} = driverJson({
       brand: 'SB Acoustics', model: 'SB23PACS', section: 'passive-radiator',
-      spec: prSpecSection({ Fs_hz: 12, Sd_m2: 0.025, Cms_m_per_N: 0.0009, Mmd_kg: 0.09, Rms_Ns_per_m: 1.5, Xmax_m: 0.015 }),
+      spec: prSpecSection({ Fs_hz: 1 / (2 * Math.PI * Math.sqrt(0.09 * 0.0009)), Sd_m2: 0.025, Cms_m_per_N: 0.0009, Mmd_kg: 0.09, Rms_Ns_per_m: 1.5, Xmax_m: 0.015 }),
     });
 
     const back = OpenISDDriver.fromOwdrText(JSON.stringify(radiatorJsonWithoutUuid), createEngine());
@@ -2620,7 +2638,7 @@ describe('T1 — the vent/PR sweep-level guards (PLAN_DRIVER_SOLVE_AND_SWEEP_DIA
   };
   const radiatorJson = () => driverJson({
     brand: 'SB Acoustics', model: 'SB23PACS', section: 'passive-radiator',
-    spec: prSpecSection({ Fs_hz: 12, Sd_m2: 0.025, Cms_m_per_N: 0.0009, Mmd_kg: 0.09, Rms_Ns_per_m: 1.5, Xmax_m: 0.015 }),
+    spec: prSpecSection({ Fs_hz: 1 / (2 * Math.PI * Math.sqrt(0.09 * 0.0009)), Sd_m2: 0.025, Cms_m_per_N: 0.0009, Mmd_kg: 0.09, Rms_Ns_per_m: 1.5, Xmax_m: 0.015 }),
   });
   const radiator = () => {
     const r = OpenISDPassiveRadiatorStandalone.fromConformingRecord(radiatorJson());
@@ -2723,6 +2741,7 @@ describe('T1 — the vent/PR sweep-level guards (PLAN_DRIVER_SOLVE_AND_SWEEP_DIA
     // by engine-wiring.test.ts — so that case must stay silent.)
     const p = project('pr');
     p.box.passiveRadiator.radiator.spec.Mms_kg.clear();
+    p.box.passiveRadiator.radiator.spec.Fs_hz.clear();
 
     const result = p.sweep({ fmin: 10, fmax: 100, N: 10 });
     expect(result.values).toBeNull();
@@ -2827,7 +2846,7 @@ describe('S2-7d2 — vent + PR join the cascade', () => {
     }), createEngine()).sealed().volume_m3(0.03).build();
     const library = OpenISDPassiveRadiatorStandalone.fromConformingRecord(driverJson({
       brand: 'SB Acoustics', model: 'SB23PACS', section: 'passive-radiator',
-      spec: prSpecSection({ Fs_hz: 12, Sd_m2: 0.025, Cms_m_per_N: 0.0009, Mmd_kg: 0.09, Rms_Ns_per_m: 1.5, Xmax_m: 0.015 }),
+      spec: prSpecSection({ Fs_hz: 1 / (2 * Math.PI * Math.sqrt(0.09 * 0.0009)), Sd_m2: 0.025, Cms_m_per_N: 0.0009, Mmd_kg: 0.09, Rms_Ns_per_m: 1.5, Xmax_m: 0.015 }),
     }));
     if (Array.isArray(library)) throw new Error('fixture radiator invalid');
     p.box.passiveRadiator.radiator.update(library);
@@ -2916,7 +2935,7 @@ describe('sweep()/maxCurves() reach every box topology\'s own params (bandpass4,
       .passiveRadiator().volume_m3(0.03).tuning_goal_hz(45)
       .radiator(radiatorFor(OpenISDPassiveRadiatorStandalone.fromConformingRecord(driverJson({
         brand: 'SB Acoustics', model: 'SB23PACS', section: 'passive-radiator',
-        spec: prSpecSection({ Fs_hz: 12, Sd_m2: 0.025, Cms_m_per_N: 0.0009, Mmd_kg: 0.09, Rms_Ns_per_m: 1.5, Xmax_m: 0.015 }),
+        spec: prSpecSection({ Fs_hz: 1 / (2 * Math.PI * Math.sqrt(0.09 * 0.0009)), Sd_m2: 0.025, Cms_m_per_N: 0.0009, Mmd_kg: 0.09, Rms_Ns_per_m: 1.5, Xmax_m: 0.015 }),
       }))))
       .build();
     p.box.passiveRadiator.addedMass_kg.set(0.05);

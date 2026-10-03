@@ -64,7 +64,7 @@ class EngineImpl implements Engine {
   readonly sealed: SealedEngine = new SealedEngineImpl();
   readonly vented: VentedEngine;
   readonly vent: VentEngine = new VentEngineImpl();
-  readonly pr: PrEngine = new PrEngineImpl();
+  readonly pr: PrEngine = new PrEngineImpl(this.driver);
   readonly filters: FilterEngine = new FilterEngineImpl();
   readonly simulation: SimulationEngine = new SimulationEngineImpl();
   readonly box: BoxEngine = new BoxEngineImpl();

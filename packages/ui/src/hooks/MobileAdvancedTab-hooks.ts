@@ -11,6 +11,7 @@ import {envDefaults, projectChanged} from '../logic/appState.js';
 import {useFocusedProject} from '../logic/focusedProjectContext.js';
 import {useApp} from '../logic/app.js';
 import {createEnvironmentAir} from './OriginalShell-hooks.js';
+import {createErrorSwitches} from './errorSwitches.js';
 import {LossMode} from '@openisd/design/fields';
 
 export function useMobileAdvancedTab() {
@@ -31,11 +32,13 @@ export function useMobileAdvancedTab() {
 
   function applyWinisdSettings(): void { project.value.applyWinisdSettings(); }
 
+  const errorSwitches = createErrorSwitches({project, projectChanged});
+
   return {
     project,
     envTempStored, envHumidityStored, envPressureStored, envTempDq, envHumidityDq, envPressureDq,
     advTemp, advHumidity, advPressure,
     resetAirToAppDefaults, advAir,
-    LOSS_MODE_OPTIONS, lossMode, applyWinisdSettings,
+    LOSS_MODE_OPTIONS, lossMode, applyWinisdSettings, errorSwitches,
   };
 }

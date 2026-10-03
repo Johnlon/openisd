@@ -16,7 +16,7 @@ import {
   type VentedDesignLimits,
 } from '@openisd/design/engine';
 import {LIMIT_ROWS, type OptionsModalDeps, useOptionsModal} from '../../src/hooks/OptionsModal-hooks.js';
-import {parseChartId} from '../../src/logic/series.js';
+import {parseChartId} from '@openisd/design/chart';
 
 /** A stand-in for appState's settings seam — records what the dialog writes. */
 function fakeSettings(

@@ -20,6 +20,8 @@ function setUpProject(): OpenISDProject {
   if (project === null) throw new Error('winIsdProjectToOpenIsdProject returned problems: ' + JSON.stringify(errors));
   project.winisdDriverModel.set(true);
   project.rgAtDriverSide.set(false);
+  // WinISD's own fixed-loss frequency (Npr times below the tuning) is what these captures show.
+  project.winisdPrNprResonance.set(true);
     return project;
 }
 

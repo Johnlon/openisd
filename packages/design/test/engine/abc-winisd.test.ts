@@ -9,8 +9,8 @@
  *
  * Chart-21 wart (leader's "Gotcha 2", also `docs/research/ACCURACY_IMPROVEMENTS.md`): the intra
  * port velocity chart is `V/(jωMai + Zf)`, dropping `Ricl` — the load `Zbox` and every other
- * chart keep it. `AbcBox.ts` reproduces this by returning it separately as `UPi`, never folding
- * it into `Zbox`.
+ * chart keep it. `AbcBox.ts` reproduces this as `UPi` when `winisdAbcIntraPortVelocity` is on
+ * (`applyWinisdSettings()` ticks it); off, the chart divides by `Zi + Zf` (`abc-intra-port-velocity.test.ts`).
  *
  * Goes through `WinIsdProjectConverter.winIsdProjectToOpenIsdProject` + `Engine`/`project.sweep()` — the SAME
  * `../winisd/fixtures/abc-w5-1.wpr` this fixture's own numbers were captured from (the `.wpr`
@@ -52,6 +52,7 @@ function setUpProject(wprFile: string): OpenISDProject {
   // (a native control it deliberately leaves alone — its own doc comment).
   project.applyWinisdSettings();
   project.rgAtDriverSide.set(false);
+  assert.equal(project.winisdAbcIntraPortVelocity.value, true, 'WinISD\'s intra-port chart needs the switch on');
   return project;
 }
 
@@ -127,7 +128,7 @@ describe('ABC box, winisd-lossy: matches WinISD\'s own charts (abc-w5-1)', () =>
     }
   });
 
-  it('intra port velocity (pvIntra) matches WinISD\'s own chart-21 wart, scaled by √2 (Ricl left out — V/(jωMai+Zf), not the correct Zi)', () => {
+  it('intra port velocity (pvIntra), switch on, matches WinISD\'s own chart-21 form, scaled by √2 (Ricl left out — V/(jωMai+Zf), not the correct Zi)', () => {
     const fixture: readonly WinIsdComplexPoint[] = F.intraPortVelocity;
     assert.equal(fixture.length, grid.length);
     assert.ok(sw.pvIntra !== null, 'abc must produce an intra-port velocity curve');

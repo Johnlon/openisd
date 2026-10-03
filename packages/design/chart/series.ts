@@ -1,5 +1,5 @@
-import type {BoxEngine, BoxType, ChartId, DriverError, EnvironmentEngine, MaxCurvesResult, SimulationEngine, SweepDriver, SweepResult} from '@openisd/design/engine';
-import {NumberField} from '@openisd/design/fields';
+import type {BoxEngine, BoxType, ChartId, DriverError, EnvironmentEngine, MaxCurvesResult, SimulationEngine, SweepDriver, SweepResult} from '../engine/index.js';
+import {NumberField} from '../fields/index.js';
 
 /** The two engine areas a curve builder reads: the sweep's own classifiers and the air the port
  *  velocity's Mach limit is measured in. The composition root's engine satisfies it. */
@@ -9,7 +9,21 @@ export interface ChartEngineAreas {
   /** Which charts each box type has (`chartsFor`): a design draws only on those. */
   readonly box: BoxEngine;
 }
-import type {Design, PlotData, PlotParams, Series} from '../types.js';
+import type {Design, PlotData, PlotParams, Series} from './types.js';
+import {FrequencyAxis, LevelAxis} from './axis.js';
+
+/**
+ * `ChartId` (`Engine.chartsFor`, bugs/archive/BUG_20260927_winisd-charts-missing.md) is the
+ * closed set of chart curves the engine can draw, and which apply to a given box type.
+ *
+ * Every member MUST appear in `TAB_META` and in `CURVE_BUILDERS` below — both are
+ * `Record<ChartId, …>`, so declaring a member without implementing it is a COMPILE ERROR, not a
+ * chart that silently draws nothing. Adding a curve is therefore: fix the two build errors with
+ * its name/colour/unit and its series builder.
+ *
+ * `parseChartId()` is the one string→member boundary; persisted and shared blobs carry plain
+ * strings and go through it.
+ */
 
 export const DPAL = ['#4fb0ff','#ffb454','#5ad17a','#ff6b6b','#c08bff'];
 
@@ -465,12 +479,12 @@ export function buildPlotData(
     .sort((a, b) => a[1] - b[1])
     .map(([d]) => d);
   const multi = designs.length > 1;
-  let out: PlotData | null = null;
+  let out: { series: Series[]; ymin: number; ymax: number; logy: boolean; unit: string } | null = null;
   if (designs.length === 0) return { value: null, errors: chartErrors };
-  designs.forEach((d, di) => {
+  for (const [di, d] of designs.entries()) {
     const isCurrent = d === currentDesign;
     const pd = seriesFor(engine, chartId, d.driver!, d.box, d.P, d.curves!, d.maxCurves, opts.bare);
-    if (!out) out = { series: [], ymin: pd.ymin, ymax: pd.ymax, logy: pd.logy, unit: pd.unit, fmin, fmax };
+    if (!out) out = { series: [], ymin: pd.ymin, ymax: pd.ymax, logy: pd.logy, unit: pd.unit };
     const prim: Series = { ...pd.series[0] };
     if (multi) {
       prim.color = d.color || DPAL[di % DPAL.length]; prim.name = d.name + ': ' + prim.name;
@@ -483,8 +497,14 @@ export function buildPlotData(
     if (isCurrent) for (let k = 1; k < pd.series.length; k++) out.series.push(pd.series[k]);
     out.ymin = Math.min(out.ymin, pd.ymin); out.ymax = Math.max(out.ymax, pd.ymax);
     out.logy = out.logy || pd.logy;
-  });
-  return { value: out, errors: chartErrors };
+  }
+  if (!out) return { value: null, errors: chartErrors };
+  const value: PlotData = {
+    ...out, fmin, fmax,
+    freqAxis: new FrequencyAxis(fmin || 10, fmax || 1000),
+    levelAxis: new LevelAxis(out.ymin, out.ymax, out.logy),
+  };
+  return { value, errors: chartErrors };
 }
 
 export interface RangeStats { peak: number; peakF: number | null; trough: number; ripple: number; avg: number }

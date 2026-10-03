@@ -56,8 +56,12 @@ describe('box starting values on a type switch', () => {
     expect(pr.radiator.model.value).toBe('ReplaceMe');
     expect(pr.radiator.spec.Sd_m2.value).toBe(0.021);        // the driver's own Sd
     expect(pr.radiator.spec.Xmax_m.value).toBe(0.016);       // twice the driver's Xmax
-    expect(pr.radiator.spec.Cms_m_per_N.value).toBe(0.0005);
-    expect(pr.radiator.spec.Mms_kg.value).toBe(0.05);
+    // Stated as Fs and Vas, Qms blank; Cms and Mms are calculated from them.
+    expect(pr.radiator.spec.Fs_hz.value).toBeCloseTo(31.8310, 4);
+    expect(pr.radiator.spec.Qms.value).toBeNull();
+    expect(pr.radiator.spec.Cms_m_per_N.calculated).toBe(true);
+    expect(pr.radiator.spec.Cms_m_per_N.value).toBeCloseTo(0.0005, 8);
+    expect(pr.radiator.spec.Mms_kg.value).toBeCloseTo(0.05, 6);
   });
 
   it('passive radiator with a driver stating no Sd/Xmax: the flat 20 cm² Sd, no Xmax', () => {

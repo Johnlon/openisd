@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import {computed, onBeforeUnmount, ref, useAttrs, watch} from 'vue';
 import {unitToken, presentationState} from '../../logic/presentationState.js';
-import {type NumberField} from '@openisd/design/fields';
+import {formatFixed, type NumberField} from '@openisd/design/fields';
 import type {ProvenanceLetter} from '@openisd/design';
 import {inputFrom} from '../../logic/domEvents.js';
 
@@ -62,7 +62,7 @@ function fmt(v: number | null | undefined): string {
     return props.field.format(v, props.halfWidth, activeToken.value);
   }
   const minDp = props.precision ?? 2;
-  return v.toFixed(minDp);
+  return formatFixed(v, minDp);
 }
 
 const focused = ref(false);

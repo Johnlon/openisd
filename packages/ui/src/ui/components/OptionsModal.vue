@@ -43,7 +43,7 @@
 //             literally "set this chart's persisted default view", not a parallel concept, and
 //             an untouched row still auto-scales exactly as it does today. The rows are
 //             `LIMIT_ROWS` in OptionsModal-hooks.ts, keyed by `ChartId`.
-import {NumberField} from '@openisd/design/fields';
+import {formatFixedOrDash, NumberField} from '@openisd/design/fields';
 import {reactive, ref} from 'vue';
 import {presentationState, resetUnitTokens} from '../../logic/presentationState.js';
 import {useEscToClose} from '../../logic/useEscToClose.js';
@@ -143,7 +143,7 @@ function saveAndClose() {
 }
 
 function fmt(n: number | null | undefined, dp: number): string {
-  return n != null && isFinite(n) ? n.toFixed(dp) : '—';
+  return formatFixedOrDash(n ?? null, dp);
 }
 
 type ColorKey = 'zeroDb' | 'minus3Db' | 'background' | 'otherLines' | 'labels' | 'xmaxLimit' | 'cursor';
