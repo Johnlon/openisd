@@ -1,6 +1,6 @@
 # BUG_20261001_session-quarantine-goes-stale
 
-**Status:** OPEN
+**Status:** CLOSED 2026-10-03 — fixed in e87e04e9 (bug filed and fixed in one commit, never closed). Refused entries are repaired, not dropped; the pre-repair text goes to a backup the dialog offers for download.
 
 ## Symptom
 When boot refuses an open project, the whole open-session text is copied to

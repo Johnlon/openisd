@@ -1,6 +1,6 @@
 # BUG_20261001_view-and-options-bad-value-silently-resets-whole-record
 
-**Status:** OPEN
+**Status:** CLOSED 2026-10-03 — fixed in e87e04e9 (bug filed and fixed in one commit, never closed). View and Options records keep good fields; appSettingsRepo.test.ts passes.
 
 ## Symptom
 One bad value in the stored chart view or in Options makes the whole record read as defaults,
