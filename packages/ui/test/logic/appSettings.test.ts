@@ -30,9 +30,7 @@ import {
     installAppSettings,
     openProjects,
     removeProject,
-    prAddedMassAlert,
     setEnvDefaults,
-    setPrAddedMassAlert,
     setVentedLimits,
     ventedLimits,
 } from '../../src/logic/appState.js';
@@ -244,28 +242,5 @@ describe('appState — the environment defaults, Options → General → Environ
     setEnvDefaults(ARCTIC);
 
     assert.equal(project.isModified(), false);
-  });
-});
-
-describe('appState — the passive-radiator added-mass alert', () => {
-  it('starts on', () => {
-    assert.equal(prAddedMassAlert(), true);
-  });
-
-  it('writes through the installed repo, so it survives a reload', () => {
-    const storage = createMemoryStorage();
-    installAppSettings(createAppSettingsRepo(storage));
-
-    setPrAddedMassAlert(false);
-
-    assert.equal(createAppSettingsRepo(storage).prAddedMassAlert(), false);
-  });
-
-  it('the engine reads it at call time — switching off silences the advisory, nothing rebuilt', () => {
-    assert.notEqual(engine.pr.addedMassIssue(0.2, 0.1), null);
-
-    setPrAddedMassAlert(false);
-
-    assert.equal(engine.pr.addedMassIssue(0.2, 0.1), null);
   });
 });

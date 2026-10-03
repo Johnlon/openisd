@@ -153,24 +153,10 @@ export function setEnvDefaults(defaults: EnvDefaults): void {
   for (const project of projects.value) project.appSettingsChanged();
 }
 
-/** Whether a passive radiator's added mass past the practice limit is flagged
- *  (Options → General → Passive radiator). On unless the user turned it off. */
-export function prAddedMassAlert(): boolean {
-  return appSettings.value.prAddedMassAlert();
-}
-
-/** Switch the alert, then recall EVERY open project so its marks match — the same recall as
- *  `setVentedLimits`, for the same reason. */
-export function setPrAddedMassAlert(on: boolean): void {
-  appSettings.value.setPrAddedMassAlert(on);
-  for (const project of projects.value) project.appSettingsChanged();
-}
-
 export const engine = getOrInit(slots, 'engine',
   () => createEngine({
     ventedLimits: () => appSettings.value.ventedLimits(),
     envDefaults: () => appSettings.value.envDefaults(),
-    prAddedMassAlert: () => appSettings.value.prAddedMassAlert(),
   }));
 
 /** The domain's ambient facts, with `platformUser` overridden to read the app's own Username

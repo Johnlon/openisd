@@ -413,7 +413,6 @@ function issueMark(issue: DqIssue, detail: string): DqMark {
       return { kind: 'calc', severity: 'error', rule: 'issue', params: {}, detail };
     case 'non-physical':
     case 'target-unreachable':
-    case 'added-mass-advisory':
     case 'invalid-value':
     case 'negative-value':
       return { kind: 'calc', severity: 'error', rule: 'issue', params: {}, detail };

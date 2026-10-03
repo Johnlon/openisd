@@ -22,7 +22,7 @@ import {
 /** The band is an application SETTING, so an engine is constructed with the settings under
  *  test — the same seam the composition root uses (`createEngine(appSettingsRepo)`). */
 function engineWith(ventedLimits: VentedDesignLimits): Engine {
-  const settings: AppSettings = {ventedLimits: () => ventedLimits, envDefaults: () => DEFAULT_ENV_DEFAULTS, prAddedMassAlert: () => true};
+  const settings: AppSettings = {ventedLimits: () => ventedLimits, envDefaults: () => DEFAULT_ENV_DEFAULTS};
   return createEngine(settings);
 }
 
@@ -123,7 +123,7 @@ describe('Engine.ventedPlausibility', () => {
       {minVb_m3: 0.001, maxVb_m3: 2.0, minFb_hz: 5, maxFb_hz: 150},
     ];
     let current = 0;
-    const live = createEngine({ventedLimits: () => bands[current]!, envDefaults: () => DEFAULT_ENV_DEFAULTS, prAddedMassAlert: () => true});
+    const live = createEngine({ventedLimits: () => bands[current]!, envDefaults: () => DEFAULT_ENV_DEFAULTS});
     const design = {Vb: 1.684, Fb: 5.4};
     assert.equal(live.vented.plausibility(design).length, 2);
     current = 1;

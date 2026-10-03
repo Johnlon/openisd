@@ -83,7 +83,6 @@ async function onBackupFile(e: Event) {
 const {
   tempK, humidityPct, pressurePa, defaultAir, envIsFactory, resetEnv,
   minVolume_L, maxVolume_L, minTuning_hz, maxTuning_hz, error: limitsError, limitsAreFactory, resetLimits,
-  prAddedMassAlert, prAddedMassAlertIsFactory, resetPrAddedMassAlert,
   setFreqRange,
   canApply, apply: applyAppSettings,
 } = useOptionsModal();
@@ -121,7 +120,6 @@ function restoreDefaults() {
   draft.username = '';
   resetEnv();
   resetLimits();
-  resetPrAddedMassAlert();
   draft.chartColors = {};
   draft.unitTokens = {};
   draft.yRanges = {};
@@ -307,18 +305,6 @@ function limitVal(chartId: ChartId, key: 'min' | 'max'): number | undefined {
             <div v-if="limitsError" class="opt-error">{{ limitsError }}</div>
             <div class="opt-group-actions">
               <button class="opt-reset-btn" data-testid="settings-reset" :disabled="limitsAreFactory" title="Back to the built-in limits. Only this fieldset is affected." @click="resetLimits">Reset to defaults</button>
-            </div>
-          </fieldset>
-
-          <fieldset class="opt-group">
-            <legend>Passive radiator</legend>
-            <label class="opt-check-label">
-              <input id="set-pr-added-mass-alert" type="checkbox" data-testid="pr-added-mass-alert" v-model="prAddedMassAlert" />
-              Advise against added mass above 160% of the radiator's own mass
-            </label>
-            <p class="opt-help">A recommendation only: the added mass is never limited or changed.</p>
-            <div class="opt-group-actions">
-              <button class="opt-reset-btn" data-testid="pr-added-mass-alert-reset" :disabled="prAddedMassAlertIsFactory" title="Back to the built-in setting: on. Only this fieldset is affected." @click="resetPrAddedMassAlert">Reset to defaults</button>
             </div>
           </fieldset>
 

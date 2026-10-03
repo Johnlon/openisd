@@ -64,7 +64,7 @@ class EngineImpl implements Engine {
   readonly sealed: SealedEngine = new SealedEngineImpl();
   readonly vented: VentedEngine;
   readonly vent: VentEngine = new VentEngineImpl();
-  readonly pr: PrEngine;
+  readonly pr: PrEngine = new PrEngineImpl(this.driver);
   readonly filters: FilterEngine = new FilterEngineImpl();
   readonly simulation: SimulationEngine = new SimulationEngineImpl();
   readonly box: BoxEngine = new BoxEngineImpl();
@@ -72,7 +72,6 @@ class EngineImpl implements Engine {
   constructor(settings: AppSettings) {
     this.environment = new EnvironmentEngineImpl(settings);
     this.vented = new VentedEngineImpl(settings);
-    this.pr = new PrEngineImpl(this.driver, settings);
   }
 }
 

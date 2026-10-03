@@ -113,46 +113,6 @@ describe('createAppSettingsRepo', () => {
     });
   });
 
-  describe('passive-radiator added-mass alert', () => {
-    it('is on when nothing is stored', () => {
-      assert.equal(createAppSettingsRepo(createMemoryStorage()).prAddedMassAlert(), true);
-    });
-
-    it('round-trips off and on', () => {
-      const storage = createMemoryStorage();
-      createAppSettingsRepo(storage).setPrAddedMassAlert(false);
-      assert.equal(createAppSettingsRepo(storage).prAddedMassAlert(), false);
-      createAppSettingsRepo(storage).setPrAddedMassAlert(true);
-      assert.equal(createAppSettingsRepo(storage).prAddedMassAlert(), true);
-    });
-
-    it('keeps the band and the environment, and they keep it', () => {
-      const storage = createMemoryStorage();
-      const repo = createAppSettingsRepo(storage);
-      const env: EnvDefaults = {tempK: 300, humidityPct: 45, pressurePa: 99000};
-      repo.setPrAddedMassAlert(false);
-      repo.setVentedLimits(EDITED);
-      repo.setEnvDefaults(env);
-      assert.equal(repo.prAddedMassAlert(), false);
-      assert.deepEqual(repo.ventedLimits(), EDITED);
-      assert.deepEqual(repo.envDefaults(), env);
-    });
-
-    it('a stored value that is not a boolean reads as on, without costing the other members', () => {
-      const text = JSON.stringify({vented: EDITED, prAddedMassAlert: 'no'});
-      const repo = createAppSettingsRepo(createMemoryStorage({[APP_SETTINGS_KEY]: text}));
-      assert.equal(repo.prAddedMassAlert(), true);
-      assert.deepEqual(repo.ventedLimits(), EDITED);
-    });
-
-    it('a write over a record with a bad alert member backs the original text up first', () => {
-      const text = JSON.stringify({vented: EDITED, prAddedMassAlert: 'no'});
-      const storage = createMemoryStorage({[APP_SETTINGS_KEY]: text});
-      createAppSettingsRepo(storage).setVentedLimits(EDITED);
-      assert.equal(storage.get(OPENISD_BACKUP_KEYS.appSettings), text);
-    });
-  });
-
   describe('repair, never reset (BUG_20261001_view-and-options-bad-value-silently-resets-whole-record)', () => {
     const ENV: EnvDefaults = Object.freeze({tempK: 300, humidityPct: 40, pressurePa: 100000});
 
