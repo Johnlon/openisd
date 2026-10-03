@@ -31,7 +31,7 @@ function testRadiator(model: string): OpenISDPassiveRadiatorStandalone {
 
 /** An engine judging designed vented boxes against `band` — the shape the Settings tab writes. */
 const engineWithBand = (band: VentedDesignLimits) =>
-  createEngine({ ventedLimits: () => band, envDefaults: () => DEFAULT_ENV_DEFAULTS, prAddedMassAlert: () => true });
+  createEngine({ ventedLimits: () => band, envDefaults: () => DEFAULT_ENV_DEFAULTS });
 
 interface TestDriverParams {
   Fs?: number; Qes?: number; Qms?: number; Qts?: number; Re_ohm?: number; Vas_m3?: number;

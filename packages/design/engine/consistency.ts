@@ -47,15 +47,6 @@ export interface TargetUnreachableIssue {
   readonly text: string;
 }
 
-/** A passive radiator carrying more added mass than the practice limit allows: advice, never a
- *  limit — the value is kept as it is. `ratio` is added mass over the radiator's own moving mass. */
-export interface AddedMassAdvisoryIssue {
-  readonly kind: 'added-mass-advisory';
-  readonly ratio: number;
-  readonly maxRatio: number;
-  readonly text: string;
-}
-
 /** An entered driver field outside its physically possible band (D5/D14) — `PHYSICAL_RANGE`'s
  *  own `lo`/`hi`, not a plausibility opinion. Shares the `'out-of-range'` literal with
  *  `VentedPlausibilityIssue`'s own variant (same event, two different domains); the two are
@@ -111,7 +102,7 @@ export interface NegativeValueIssue {
  *  plain `string` here, not a domain's own quantity-name union — `Readable<V>.dq` is shared
  *  across every domain and carries no quantity-name type parameter of its own, and a
  *  `CalculationIssue<Q>` for any `Q extends string` widens to this without a cast. */
-export type DqIssue = CalculationIssue<string> | VentedPlausibilityIssue | TargetUnreachableIssue | AddedMassAdvisoryIssue | OutOfRangeIssue | InvalidValueIssue | NegativeValueIssue;
+export type DqIssue = CalculationIssue<string> | VentedPlausibilityIssue | TargetUnreachableIssue | OutOfRangeIssue | InvalidValueIssue | NegativeValueIssue;
 
 // ───────────────────────────── Issues, each carrying its own sentence ───────────────────────────
 //
@@ -164,16 +155,6 @@ export function targetUnreachable(target: string, maxReachable_hz: number): Targ
     : `${target} cannot reach this target - the maximum this geometry can reach is ${decimal(maxReachable_hz)} Hz.`;
   return {
     kind: 'target-unreachable', target, maxReachable_hz, text,
-  };
-}
-
-/** Added mass beyond `maxRatio` times the radiator's own moving mass. */
-export function addedMassAdvisory(ratio: number, maxRatio: number): AddedMassAdvisoryIssue {
-  return {
-    kind: 'added-mass-advisory', ratio, maxRatio,
-    text: `Added mass is ${Math.round(ratio * 100)}% of the radiator's own moving mass. Adding more than `
-      + `${Math.round(maxRatio * 100)}% is considered poor practice. This is a recommendation, not a limit; `
-      + 'switch it off in Options.',
   };
 }
 

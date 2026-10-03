@@ -66,7 +66,6 @@ const FORWARDS_BASELINE: ReadonlySet<string> = new Set([
   "packages/ui/src/logic/appState.ts#currentProject",
   "packages/ui/src/logic/appState.ts#envDefaults",
   "packages/ui/src/logic/appState.ts#markProjectSaved",
-  "packages/ui/src/logic/appState.ts#prAddedMassAlert",
   "packages/ui/src/logic/appState.ts#ventedLimits",
 ]);
 

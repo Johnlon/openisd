@@ -12,8 +12,6 @@ export interface EnvDefaults {
 export interface AppSettings {
   ventedLimits(): VentedDesignLimits;
   envDefaults(): EnvDefaults;
-  /** Whether a passive radiator's added mass past the practice limit is flagged. */
-  prAddedMassAlert(): boolean;
 }
 
 export const DEFAULT_VENTED_DESIGN_LIMITS: VentedDesignLimits = Object.freeze({
@@ -27,5 +25,4 @@ export const DEFAULT_ENV_DEFAULTS: EnvDefaults = Object.freeze({
 export const defaultAppSettings: AppSettings = Object.freeze({
   ventedLimits: (): VentedDesignLimits => DEFAULT_VENTED_DESIGN_LIMITS,
   envDefaults: (): EnvDefaults => DEFAULT_ENV_DEFAULTS,
-  prAddedMassAlert: (): boolean => true,
 });
