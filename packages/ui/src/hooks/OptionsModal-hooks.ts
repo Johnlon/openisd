@@ -19,6 +19,8 @@ import {
   FACTORY_VENTED_LIMITS,
   setEnvDefaults as setAppEnvDefaults,
   setVentedLimits as setAppVentedLimits,
+  prAddedMassAlert as appPrAddedMassAlert,
+  setPrAddedMassAlert as setAppPrAddedMassAlert,
   ventedLimits as appVentedLimits,
 } from '../logic/appState.js';
 import {useApp} from '../logic/app.js';
@@ -29,6 +31,8 @@ export interface OptionsModalDeps {
   setVentedLimits(limits: VentedDesignLimits): void;
   envDefaults(): EnvDefaults;
   setEnvDefaults(defaults: EnvDefaults): void;
+  prAddedMassAlert(): boolean;
+  setPrAddedMassAlert(on: boolean): void;
   /** The air readout's calculator — the environment area, not the whole engine. */
   environment: EnvironmentEngine;
 }
@@ -76,6 +80,12 @@ export interface OptionsModalAPI {
   readonly tempK: Ref<number>;
   readonly humidityPct: Ref<number>;
   readonly pressurePa: Ref<number>;
+  /** Whether the passive-radiator added-mass alert is on, as edited. Editing writes nothing. */
+  readonly prAddedMassAlert: Ref<boolean>;
+  /** Whether the edited alert setting is the factory one (on) — what greys out its reset. */
+  readonly prAddedMassAlertIsFactory: ComputedRef<boolean>;
+  /** Put the factory setting (on) in the draft. Writes nothing. */
+  resetPrAddedMassAlert(): void;
   /** The Plot Window frequency-range draft (Start/End, Hz) and its setter — validated by
    *  the same OK that applies the settings. */
   readonly freqRangeDraft: Ref<{fmin: number | string; fmax: number | string}>;
@@ -101,6 +111,7 @@ export interface OptionsModalAPI {
 }
 
 const LITRES_PER_M3 = 1000;
+const FACTORY_PR_ADDED_MASS_ALERT = true;
 
 function isPositive(v: number): boolean {
   return Number.isFinite(v) && v > 0;
@@ -116,6 +127,8 @@ export function useOptionsModal(deps?: OptionsModalDeps): OptionsModalAPI {
     setVentedLimits: setAppVentedLimits,
     envDefaults: appEnvDefaults,
     setEnvDefaults: setAppEnvDefaults,
+    prAddedMassAlert: appPrAddedMassAlert,
+    setPrAddedMassAlert: setAppPrAddedMassAlert,
     environment: useApp().engine.environment,
   };
 
@@ -129,6 +142,12 @@ export function useOptionsModal(deps?: OptionsModalDeps): OptionsModalAPI {
   const tempK = ref(env.tempK);
   const humidityPct = ref(env.humidityPct);
   const pressurePa = ref(env.pressurePa);
+
+  const prAddedMassAlert = ref(settings.prAddedMassAlert());
+  const prAddedMassAlertIsFactory = computed(() => prAddedMassAlert.value === FACTORY_PR_ADDED_MASS_ALERT);
+  function resetPrAddedMassAlert(): void {
+    prAddedMassAlert.value = FACTORY_PR_ADDED_MASS_ALERT;
+  }
 
   /** The Plot Window frequency-range draft. Lives here rather than in the .vue so its
    *  validation gates the same OK that applies the settings. */
@@ -223,11 +242,13 @@ export function useOptionsModal(deps?: OptionsModalDeps): OptionsModalAPI {
     if (!canApply.value) return;
     settings.setEnvDefaults(editedEnv.value);
     settings.setVentedLimits(editedBand.value);
+    settings.setPrAddedMassAlert(prAddedMassAlert.value);
   }
 
   return {
     minVolume_L, maxVolume_L, minTuning_hz, maxTuning_hz,
     tempK, humidityPct, pressurePa,
+    prAddedMassAlert, prAddedMassAlertIsFactory, resetPrAddedMassAlert,
     freqRangeDraft, setFreqRange,
     error, canApply, limitsAreFactory, envIsFactory, defaultAir,
     resetLimits, resetEnv, apply,

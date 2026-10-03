@@ -22,17 +22,21 @@ import {parseChartId} from '@openisd/design/chart';
 function fakeSettings(
   band: VentedDesignLimits = DEFAULT_VENTED_DESIGN_LIMITS,
   env: EnvDefaults = DEFAULT_ENV_DEFAULTS,
+  prAddedMassAlert = true,
 ) {
   const bandWrites: VentedDesignLimits[] = [];
   const envWrites: EnvDefaults[] = [];
+  const alertWrites: boolean[] = [];
   const deps: OptionsModalDeps = {
     ventedLimits: () => band,
     setVentedLimits: (limits) => { band = limits; bandWrites.push(limits); },
     envDefaults: () => env,
     setEnvDefaults: (defaults) => { env = defaults; envWrites.push(defaults); },
+    prAddedMassAlert: () => prAddedMassAlert,
+    setPrAddedMassAlert: (on) => { prAddedMassAlert = on; alertWrites.push(on); },
     environment: createEngine().environment,
   };
-  return {...deps, bandWrites, envWrites};
+  return {...deps, bandWrites, envWrites, alertWrites};
 }
 
 const ARCTIC: EnvDefaults = {tempK: 250, humidityPct: 80, pressurePa: 99000};
@@ -231,5 +235,41 @@ describe('the Plot Window Y-limit rows target charts that exist', () => {
 
   it('has a row for the transfer function magnitude chart', () => {
     assert.ok(LIMIT_ROWS.some(row => row.tab === 'TFMag'));
+  });
+});
+
+describe('useOptionsModal — passive-radiator added-mass alert', () => {
+  it('opens showing the setting in force', () => {
+    assert.equal(useOptionsModal(fakeSettings(undefined, undefined, true)).prAddedMassAlert.value, true);
+    assert.equal(useOptionsModal(fakeSettings(undefined, undefined, false)).prAddedMassAlert.value, false);
+  });
+
+  it('writes nothing until apply()', () => {
+    const settings = fakeSettings();
+    const dialog = useOptionsModal(settings);
+
+    dialog.prAddedMassAlert.value = false;
+
+    assert.deepEqual(settings.alertWrites, []);
+  });
+
+  it('apply() writes the edited setting', () => {
+    const settings = fakeSettings();
+    const dialog = useOptionsModal(settings);
+
+    dialog.prAddedMassAlert.value = false;
+    dialog.apply();
+
+    assert.deepEqual(settings.alertWrites, [false]);
+  });
+
+  it('is on in the factory state, which is what "Reset to defaults" puts back', () => {
+    const dialog = useOptionsModal(fakeSettings(undefined, undefined, false));
+    expect(dialog.prAddedMassAlertIsFactory.value).toBe(false);
+
+    dialog.resetPrAddedMassAlert();
+
+    expect(dialog.prAddedMassAlert.value).toBe(true);
+    expect(dialog.prAddedMassAlertIsFactory.value).toBe(true);
   });
 });

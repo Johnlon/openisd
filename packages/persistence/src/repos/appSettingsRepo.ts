@@ -22,6 +22,7 @@ export const APP_SETTINGS_KEY = OPENISD_APP_SETTINGS_KEY;
 export interface AppSettingsRepo extends AppSettings {
   setVentedLimits(limits: VentedDesignLimits): void;
   setEnvDefaults(defaults: EnvDefaults): void;
+  setPrAddedMassAlert(on: boolean): void;
   /** The stored text verbatim, or null when none — what a backup saves. */
   exportRaw(): string | null;
   /** Forget the stored settings; every setting reads its factory value. */
@@ -33,6 +34,7 @@ export interface AppSettingsRepo extends AppSettings {
 interface StoredAppSettings {
   readonly vented: VentedDesignLimits;
   readonly env?: EnvDefaults;
+  readonly prAddedMassAlert?: boolean;
 }
 
 function isPositiveNumber(v: unknown): v is number {
@@ -69,28 +71,45 @@ function parseEnv(raw: unknown): EnvDefaults | null {
 interface ParsedAppSettings {
   readonly vented: VentedDesignLimits | null;
   readonly env: EnvDefaults | null;
+  readonly prAddedMassAlert: boolean | null;
   readonly clean: boolean;
 }
 
+const NOTHING_STORED: ParsedAppSettings = {vented: null, env: null, prAddedMassAlert: null, clean: true};
+
+function parseBoolean(raw: unknown): boolean | null {
+  return typeof raw === 'boolean' ? raw : null;
+}
+
 function parseStored(text: string | null): ParsedAppSettings {
-  if (text === null) return {vented: null, env: null, clean: true};
+  if (text === null) return NOTHING_STORED;
   let parsed: unknown;
-  try { parsed = JSON.parse(text); } catch { return {vented: null, env: null, clean: false}; }
-  if (typeof parsed !== 'object' || parsed === null) return {vented: null, env: null, clean: false};
+  try { parsed = JSON.parse(text); } catch { return {...NOTHING_STORED, clean: false}; }
+  if (typeof parsed !== 'object' || parsed === null) return {...NOTHING_STORED, clean: false};
   const vented = 'vented' in parsed ? parseVented(parsed.vented) : null;
   const env = 'env' in parsed ? parseEnv(parsed.env) : null;
-  const clean = ('vented' in parsed) === (vented !== null) && ('env' in parsed) === (env !== null);
-  return {vented, env, clean};
+  const prAddedMassAlert = 'prAddedMassAlert' in parsed ? parseBoolean(parsed.prAddedMassAlert) : null;
+  const clean = ('vented' in parsed) === (vented !== null)
+    && ('env' in parsed) === (env !== null)
+    && ('prAddedMassAlert' in parsed) === (prAddedMassAlert !== null);
+  return {vented, env, prAddedMassAlert, clean};
 }
 
 export function createAppSettingsRepo(storage: KeyValueStorage): AppSettingsRepo {
-  /** Replace the record with `next(current)`, backing the old text up first when part of it
-   *  could not be read — that part is about to be overwritten. */
-  function write(next: (current: ParsedAppSettings) => StoredAppSettings): void {
+  /** Replace the record with the current one overlaid by `change`, backing the old text up
+   *  first when part of it could not be read — that part is about to be overwritten. */
+  function write(change: Partial<StoredAppSettings>): void {
     const text = storage.get(APP_SETTINGS_KEY);
     const current = parseStored(text);
     if (text !== null && !current.clean) storage.set(OPENISD_BACKUP_KEYS.appSettings, text);
-    storage.set(APP_SETTINGS_KEY, JSON.stringify(next(current)));
+    const env = change.env ?? current.env;
+    const prAddedMassAlert = change.prAddedMassAlert ?? current.prAddedMassAlert;
+    const next: StoredAppSettings = {
+      vented: change.vented ?? current.vented ?? DEFAULT_VENTED_DESIGN_LIMITS,
+      ...(env === null ? {} : {env}),
+      ...(prAddedMassAlert === null ? {} : {prAddedMassAlert}),
+    };
+    storage.set(APP_SETTINGS_KEY, JSON.stringify(next));
   }
   return {
     ventedLimits(): VentedDesignLimits {
@@ -99,11 +118,17 @@ export function createAppSettingsRepo(storage: KeyValueStorage): AppSettingsRepo
     envDefaults(): EnvDefaults {
       return parseStored(storage.get(APP_SETTINGS_KEY)).env ?? DEFAULT_ENV_DEFAULTS;
     },
+    prAddedMassAlert(): boolean {
+      return parseStored(storage.get(APP_SETTINGS_KEY)).prAddedMassAlert ?? true;
+    },
     setVentedLimits(limits: VentedDesignLimits): void {
-      write(current => current.env === null ? {vented: limits} : {vented: limits, env: current.env});
+      write({vented: limits});
     },
     setEnvDefaults(defaults: EnvDefaults): void {
-      write(current => ({vented: current.vented ?? DEFAULT_VENTED_DESIGN_LIMITS, env: defaults}));
+      write({env: defaults});
+    },
+    setPrAddedMassAlert(on: boolean): void {
+      write({prAddedMassAlert: on});
     },
     exportRaw: () => storage.get(APP_SETTINGS_KEY),
     reset: () => storage.remove(APP_SETTINGS_KEY),

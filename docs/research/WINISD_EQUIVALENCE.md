@@ -87,7 +87,8 @@ WinISD warts reproduced on purpose (not deviations): PR phase chart plots arg(Up
 of its magnitude chart; Maximum SPL / Maximum power leave the filter chain out; VA uses Re, not
 Re + Rg; BP6 transfer is rear minus front. ABC intra-port velocity leaves the inter-chamber leak
 out (drops Ricl): that cell matches WinISD with the "WinISD ABC intra-port velocity" error switch on
-(Reset to WinISD ticks it); off, the default, OpenISD draws the flow through the intra port
+(Reset to WinISD ticks it); off, the default, OpenISD draws the flow through the intra port. With the leak made negligible
+(Qiclfr 1e6, `abc-w5-qicl1e6`) WinISD's chart agrees with the corrected one to 3.3e-6, and with the switch on to 1e-9
 ([ACCURACY_IMPROVEMENTS.md](ACCURACY_IMPROVEMENTS.md?html#winisd-calculation-errors--correct-by-default-an-error-switch-brings-winisd-back)).
 The passive-radiator box with Npr > 1 matches WinISD's impedance, transfer function and excursion with the
 "PR Npr resonance" error switch on (Reset to WinISD ticks it): WinISD takes the fixed losses at an ωr Npr times

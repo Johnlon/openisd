@@ -3050,7 +3050,7 @@ describe('project-level array/display settings, chart Y-range, and identity', ()
       return new ProjectBuilder(driver, engine).sealed().volume_m3(0.03).build();
     };
     const onOptions = sealedOn(createEngine({
-      ventedLimits: () => DEFAULT_VENTED_DESIGN_LIMITS, envDefaults: () => options,
+      ventedLimits: () => DEFAULT_VENTED_DESIGN_LIMITS, envDefaults: () => options, prAddedMassAlert: () => true,
     }));
     const entered = sealedOn(createEngine());
     entered.envTempK.set(options.tempK);

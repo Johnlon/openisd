@@ -276,7 +276,8 @@ export class OpenISDBox implements Box {
             return new OpenISDPassiveRadiatorEmbedded(prSlot);
         };
         const prVolume = requiredField(pr, 'volume_m3', (v) => engine.issues.positiveValueIssue(v));
-        const prAddedMassEntry = entryField(focus(pr, 'addedMass_kg'), 'addedMass_kg', () => groupDq(issues().pr));
+        const prAddedMassEntry = entryField(focus(pr, 'addedMass_kg'), 'addedMass_kg', () => groupDq(issues().pr),
+            (mass) => engine.pr.addedMassIssue(mass, getRadiator().spec.Mms_kg.value));
         const prTuningEntry = entryField(focus(pr, 'tuning_goal_hz'), 'tuning_goal_hz', () => groupDq(issues().pr));
         const prTuningField = pairedField(
             (entry) => pr.set({ ...pr.value, tuning_goal_hz: entry, addedMass_kg: undefined }),

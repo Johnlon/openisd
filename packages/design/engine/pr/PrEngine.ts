@@ -9,8 +9,9 @@ import type {DriverEngine} from '../driver/DriverEngine.js';
 import {solveEnvironment} from '../air.js';
 import type {PrParams} from '../types.js';
 import type {PrSolverParams} from '../solverTypes.js';
-import {inconsistentInputs, missingDependencies, targetUnreachable} from '../consistency.js';
-import type {CalculationIssue, TargetUnreachableIssue} from '../consistency.js';
+import type {AppSettings} from '../appSettings.js';
+import {addedMassAdvisory, inconsistentInputs, missingDependencies, targetUnreachable} from '../consistency.js';
+import type {AddedMassAdvisoryIssue, CalculationIssue, TargetUnreachableIssue} from '../consistency.js';
 
 export type PrQuantityName = keyof PrSolverParams;
 export type PrIssue = CalculationIssue<PrQuantityName> | TargetUnreachableIssue;
@@ -61,14 +62,28 @@ export interface PrEngine {
    *  `SolverField` via `setCalculated`, and return the issues the stated values carry. An
    *  entered value is never overwritten; an underivable member becomes `not-available`. */
   solve(params: PrSolverParams, air: Air): PrIssue[];
+  /** The advisory for `addedMass_kg` past `MAX_ADDED_MASS_RATIO` times the radiator's own moving
+   *  mass `prMmd_kg`, or null: within the ratio, no positive `prMmd_kg` to compare against, or the
+   *  alert switched off in the application settings (read at call time). */
+  addedMassIssue(addedMass_kg: number, prMmd_kg: number | null): AddedMassAdvisoryIssue | null;
 }
+
+/** Added mass beyond this multiple of the radiator's own moving mass is poor practice. */
+export const MAX_ADDED_MASS_RATIO = 1.6;
 
 /** The PR geometry every solve route needs, beside `tuning_goal_hz`/`addedMass_kg` themselves —
  *  named once so both routes report the identical missing set. */
 const PR_GEOMETRY: readonly PrQuantityName[] = Object.freeze(['Vb_m3', 'prMmd_kg', 'prSd_m2', 'prCms_m_per_N']);
 
 export class PrEngineImpl implements PrEngine {
-  constructor(private readonly driver: DriverEngine) {}
+  constructor(private readonly driver: DriverEngine, private readonly settings: AppSettings) {}
+
+  addedMassIssue(addedMass_kg: number, prMmd_kg: number | null): AddedMassAdvisoryIssue | null {
+    if (!this.settings.prAddedMassAlert()) return null;
+    if (prMmd_kg === null || !(prMmd_kg > 0)) return null;
+    const ratio = addedMass_kg / prMmd_kg;
+    return ratio > MAX_ADDED_MASS_RATIO ? addedMassAdvisory(ratio, MAX_ADDED_MASS_RATIO) : null;
+  }
 
   tuning(p: PrParams, air: Air): number {
     const Cab  = p.Vb / (air.rho * air.c * air.c);
