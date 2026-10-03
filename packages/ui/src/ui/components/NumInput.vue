@@ -48,7 +48,7 @@ const emit = defineEmits<{
 const activeToken = computed(() => {
   if (props.field) {
     const d = props.field.display;
-    return props.field.unitTokenFor(presentationState.ui.unitTokens ?? {}) ?? (props.unitKey && d.kind === 'switchable' ? unitToken(props.unitKey, d.group, d.base) : undefined);
+    return props.field.unitTokenFor(presentationState.ui.unitTokens ?? {}, props.unitKey) ?? (props.unitKey && d.kind === 'switchable' ? unitToken(props.unitKey, d.group, d.base) : undefined);
   }
   if (props.unitKey) {
     return presentationState.ui.unitTokens?.[props.unitKey];

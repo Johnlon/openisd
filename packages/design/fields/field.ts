@@ -215,10 +215,9 @@ export class NumberField extends Field {
   }
 
   /** Helper to parse presentationState unit store without checking display.kind. */
-  unitTokenFor(unitTokensStore: Record<string, string>): string | undefined {
+  unitTokenFor(unitTokensStore: Record<string, string>, keyOverride?: string): string | undefined {
     if (this.display.kind === 'fixed') return undefined;
-    const key = this.value;
-    return unitTokensStore[key] ?? this.display.base;
+    return (keyOverride ? unitTokensStore[keyOverride] : undefined) ?? unitTokensStore[this.value] ?? this.display.base;
   }
 
   /**

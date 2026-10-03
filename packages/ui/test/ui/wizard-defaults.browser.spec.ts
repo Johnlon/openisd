@@ -130,7 +130,7 @@ function maskDerived(json: unknown): unknown {
       const o = node;
       const out: Record<string, unknown> = {};
       for (const [k, v] of Object.entries(o)) {
-        if (k === 'value' && o.state === 'C' && typeof v === 'number') { out[k] = 'derived'; continue; }
+        if ((k === 'value' || k === 'precision') && o.state === 'C') { out[k] = 'derived'; continue; }
         out[k] = walk(v);
       }
       return out;

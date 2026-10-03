@@ -328,7 +328,7 @@ test('rotating a unit changes the display only — the stored value round-trips'
  *  renders — on a viewport too narrow to clear it on either side it would land on top of
  *  the very panel it explains (bugs/archive/BUG_20260817_equation_inspector_popup_overlaps_the_editor.md). */
 test('the equation-inspector popup never overlaps the editor, even on a narrow viewport', async ({ page }) => {
-  await page.setViewportSize({ width: 1200, height: 900 }); // 770px modal, ~215px free per side
+  await page.setViewportSize({ width: 1300, height: 900 }); // 850px modal, ~225px free per side
   await openEditor(page);
   await page.getByRole('button', { name: 'Parameters', exact: true }).click();
   await page.getByRole('checkbox', { name: 'Inspect Provenance' }).check();

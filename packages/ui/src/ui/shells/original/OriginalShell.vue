@@ -42,7 +42,7 @@ const {
   ventedAlignmentEditor, ventedAlignmentOpen, ventedAlignmentOptions, ventedAlignmentSelected,
   ventedAlignmentVolume_L, ventedAlignmentTuning_hz, ventedAlignmentEbp, ventedAlignmentSuitability,
   ventedAlignmentSuitabilityLabel,
-  fbState, FB_TARGET_TIP, VENT_GEOMETRY_TIP, fmtU, clearVentFieldOn, enterVentFieldOn,
+  fbState, FB_TARGET_TIP, FH_TARGET_TIP, VENT_GEOMETRY_TIP, fmtU, clearVentFieldOn, enterVentFieldOn,
   boxResonance, rearQtc, prSystemTuningDq,
   fbUnreachable, fbUnreachableMsg, boxLossesOpen, isDual,
   frontVolume_m3, setFrontVolume_m3, frcHz, setFrcHz, rearResonance, frontChamberTuningLabel,
@@ -289,7 +289,7 @@ const {
                   <div class="field"><label>Fsc</label><input id="og-box-resonance" class="calculated greyed" :value="fmtU(boxResonance, 'boxResonance', 'freq', 'Hz', NumberField.BOX_FB_HZ.precision)" readonly><UnitToggle :field="NumberField.BOX_RESONANCE_HZ" unit-key="boxResonance" unit-class="unit unit-cyc" style="min-width: auto;" /></div>
                   <div class="field" style="margin-left: 4px; gap: 4px;"><label style="width: auto; margin-right: 4px;">Qtc</label><input class="calculated greyed" :value="rearQtc != null ? rearQtc.toFixed(3) : ''" readonly></div>
                 </template>
-                <div v-else :class="['field', { 'dq-flag': selectedBox === 'box-passive-radiator' && prSystemTuningDq.dq.length > 0 }]" :title="selectedBox === 'box-passive-radiator' && prSystemTuningDq.dq.length > 0 ? prSystemTuningDq.dq.join('; ') : ''"><label>Fh</label><input id="og-box-resonance" class="calculated greyed" :value="fmtU(boxResonance, 'boxResonance', 'freq', 'Hz', NumberField.BOX_FB_HZ.precision)" readonly><UnitToggle :field="NumberField.BOX_RESONANCE_HZ" unit-key="boxResonance" unit-class="unit unit-cyc" /></div>
+                <div v-else :class="['field', { 'dq-flag': selectedBox === 'box-passive-radiator' && prSystemTuningDq.dq.length > 0 }]" :title="selectedBox === 'box-passive-radiator' ? (prSystemTuningDq.dq.length > 0 ? prSystemTuningDq.dq.join('; ') + '\n\n' + FH_TARGET_TIP : FH_TARGET_TIP) : ''"><label>Fh</label><input id="og-box-resonance" class="calculated greyed" :value="fmtU(boxResonance, 'boxResonance', 'freq', 'Hz', NumberField.BOX_FB_HZ.precision)" readonly><UnitToggle :field="NumberField.BOX_RESONANCE_HZ" unit-key="boxResonance" unit-class="unit unit-cyc" /></div>
               </div>
               <p v-if="selectedBox === 'vented' && fbUnreachable" id="og-fb-unreachable" class="hint" style="color:#a11;">{{ fbUnreachableMsg }}</p>
               <button class="link-btn" @click="boxLossesOpen = true">Advanced-&gt;</button>
@@ -1199,9 +1199,9 @@ textarea.comment, textarea.description { width:100%; border:1px solid #999; bord
   padding: 8px 10px;
   flex: none;
   align-self: flex-start;
-  width: max-content;
 }
-.sim-switches { display: grid; grid-template-columns: repeat(2, 1fr); gap: 2px 12px; }
+/* One tight column, so the panel stays inside the tab's height and width. */
+.sim-switches { display: flex; flex-direction: column; gap: 1px; }
 .sim-options-header {
   font-weight: 600;
   font-size: 12px;

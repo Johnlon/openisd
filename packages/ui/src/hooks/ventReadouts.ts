@@ -30,6 +30,12 @@ export const FB_TARGET_TIP = 'The tuning you are designing to. It is an INPUT, n
 export const VENT_GEOMETRY_TIP = 'Cross area is solved from the vent\'s own dimension: diameter for a '
   + 'round vent, height for a slotted one. Width is always an input, never derived. Enter '
   + 'either the dimension or the area and the other is calculated from it.';
+/** Fh (Helmholtz Frequency) tooltip explaining meaning and calculation. */
+export const FH_TARGET_TIP = 'Fh (Helmholtz Frequency):\n'
+  + 'The system tuning frequency of the passive radiator enclosure.\n'
+  + 'It represents the Helmholtz resonance of the box volume (Vb) coupled to the passive radiator mass and suspension compliance.\n'
+  + 'Formula: Fh = Fs_pr · √(1 + Vas_pr / Vb)';
+
 
 export function createVentReadouts({ project, projectChanged: changed, selectedBox, air, vent }: VentReadoutsDeps) {
   const activeVent = computed(() => {
