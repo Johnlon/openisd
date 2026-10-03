@@ -45,7 +45,7 @@ const {
   ventedAlignmentEditor, ventedAlignmentOpen, ventedAlignmentOptions, ventedAlignmentSelected,
   ventedAlignmentVolume_L, ventedAlignmentTuning_hz, ventedAlignmentEbp, ventedAlignmentSuitability,
   ventedAlignmentSuitabilityLabel,
-  fbState, FB_TARGET_TIP, FH_TARGET_TIP, VENT_GEOMETRY_TIP, fmtU, clearVentFieldOn, enterVentFieldOn,
+  activeTuning, fbState, FB_TARGET_TIP, FH_TARGET_TIP, VENT_GEOMETRY_TIP, fmtU, clearVentFieldOn, enterVentFieldOn,
   boxResonance, rearQtc, prSystemTuningDq, prNaturalFh,
   fbUnreachable, fbUnreachableMsg, boxLossesOpen, isDual,
   frontVolume_m3, setFrontVolume_m3, frcHz, setFrcHz, rearResonance, frontChamberTuningLabel,
@@ -285,8 +285,8 @@ const {
                      from it. A sealed chamber has no port, so Fsc is fully determined by Vb
                      and the driver — calculated, nothing to type. Per-chamber, not per-box. -->
                 <template v-if="selectedBox === 'vented'">
-                  <div v-if="fbState !== 'C'" id="og-fb-target-field" class="field entered" :title="FB_TARGET_TIP"><label>Target Tuning Freq</label><NumInput id="og-fb-target" :model-value="project.box.vented.tuning_goal_hz.value" @update:model-value="(v: number | null) => { if (v == null || isNaN(v) || v <= 0) clearVentFieldOn(project, 'Fb'); else enterVentFieldOn(project, 'Fb', v); }" :field="NumberField.BOX_FB_HZ" unit-key="Fb" :precision="NumberField.BOX_FB_HZ.precision" /><UnitToggle :field="NumberField.BOX_FB_HZ" unit-key="Fb" unit-class="unit unit-cyc" /></div>
-                  <div v-else id="og-fb-target-field" class="field" :title="FB_TARGET_TIP"><label>Target Tuning Freq</label><input class="calculated greyed" :value="fmtU(project.box.vented.tuning_goal_hz.value, 'Fb', 'freq', 'Hz', NumberField.BOX_FB_HZ.precision)" readonly><UnitToggle :field="NumberField.BOX_FB_HZ" unit-key="Fb" unit-class="unit unit-cyc" /></div>
+                  <div v-if="fbState !== 'C'" id="og-fb-target-field" class="field entered" :title="FB_TARGET_TIP"><label>Target Tuning Freq</label><NumInput id="og-fb-target" :model-value="activeTuning.value" @update:model-value="(v: number | null) => { if (v == null || isNaN(v) || v <= 0) clearVentFieldOn(project, 'Fb'); else enterVentFieldOn(project, 'Fb', v); }" :field="NumberField.BOX_FB_HZ" unit-key="Fb" :precision="NumberField.BOX_FB_HZ.precision" /><UnitToggle :field="NumberField.BOX_FB_HZ" unit-key="Fb" unit-class="unit unit-cyc" /></div>
+                  <div v-else id="og-fb-target-field" class="field" :title="FB_TARGET_TIP"><label>Target Tuning Freq</label><input class="calculated greyed" :value="fmtU(activeTuning.value, 'Fb', 'freq', 'Hz', NumberField.BOX_FB_HZ.precision)" readonly><UnitToggle :field="NumberField.BOX_FB_HZ" unit-key="Fb" unit-class="unit unit-cyc" /></div>
                 </template>
                 <template v-else-if="selectedBox === 'sealed'">
                   <div class="field"><label>Fsc</label><input id="og-box-resonance" class="calculated greyed" :value="fmtU(boxResonance, 'boxResonance', 'freq', 'Hz', NumberField.BOX_FB_HZ.precision)" readonly><UnitToggle :field="NumberField.BOX_RESONANCE_HZ" unit-key="boxResonance" unit-class="unit unit-cyc" style="min-width: auto;" /></div>
@@ -325,12 +325,12 @@ const {
                 <div class="field-row">
                   <div v-if="fbState !== 'C'" id="og-ffc-target-field" class="field entered" :title="FB_TARGET_TIP">
                     <label>{{ frontChamberTuningLabel }}</label>
-                    <NumInput id="og-ffc-target" :model-value="project.box.vented.tuning_goal_hz.value" @update:model-value="(v: number | null) => { if (v == null || isNaN(v) || v <= 0) clearVentFieldOn(project, 'Fb'); else enterVentFieldOn(project, 'Fb', v); }" :field="NumberField.BOX_FB_HZ" unit-key="Fb" :precision="NumberField.BOX_FB_HZ.precision" />
+                    <NumInput id="og-ffc-target" :model-value="activeTuning.value" @update:model-value="(v: number | null) => { if (v == null || isNaN(v) || v <= 0) clearVentFieldOn(project, 'Fb'); else enterVentFieldOn(project, 'Fb', v); }" :field="NumberField.BOX_FB_HZ" unit-key="Fb" :precision="NumberField.BOX_FB_HZ.precision" />
                     <UnitToggle :field="NumberField.BOX_FB_HZ" unit-key="Fb" unit-class="unit unit-cyc" />
                   </div>
                   <div v-else id="og-ffc-target-field" class="field" :title="FB_TARGET_TIP">
                     <label>{{ frontChamberTuningLabel }}</label>
-                    <input class="calculated greyed" :value="fmtU(project.box.vented.tuning_goal_hz.value, 'Fb', 'freq', 'Hz', NumberField.BOX_FB_HZ.precision)" readonly>
+                    <input class="calculated greyed" :value="fmtU(activeTuning.value, 'Fb', 'freq', 'Hz', NumberField.BOX_FB_HZ.precision)" readonly>
                     <UnitToggle :field="NumberField.BOX_FB_HZ" unit-key="Fb" unit-class="unit unit-cyc" />
                   </div>
                 </div>
@@ -500,12 +500,12 @@ const {
                 <div class="field-row">
                   <div v-if="fbState !== 'C'" id="og-vent-fb-target-field" class="field entered" :title="FB_TARGET_TIP">
                     <label>Target Tuning Freq</label>
-                    <NumInput id="og-vent-fb-target" :model-value="project.box.vented.tuning_goal_hz.value" @update:model-value="(v: number | null) => { if (v == null || isNaN(v) || v <= 0) clearVentFieldOn(project, 'Fb'); else enterVentFieldOn(project, 'Fb', v); }" :field="NumberField.BOX_FB_HZ" unit-key="Fb" :precision="NumberField.BOX_FB_HZ.precision" />
+                    <NumInput id="og-vent-fb-target" :model-value="activeTuning.value" @update:model-value="(v: number | null) => { if (v == null || isNaN(v) || v <= 0) clearVentFieldOn(project, 'Fb'); else enterVentFieldOn(project, 'Fb', v); }" :field="NumberField.BOX_FB_HZ" unit-key="Fb" :precision="NumberField.BOX_FB_HZ.precision" />
                     <UnitToggle :field="NumberField.BOX_FB_HZ" unit-key="Fb" unit-class="unit unit-cyc" />
                   </div>
                   <div v-else id="og-vent-fb-target-field" class="field" :title="FB_TARGET_TIP">
                     <label>Target Tuning Freq</label>
-                    <input id="og-vent-fb-target" class="calculated greyed" :value="fmtU(project.box.vented.tuning_goal_hz.value, 'Fb', 'freq', 'Hz', NumberField.BOX_FB_HZ.precision)" readonly>
+                    <input id="og-vent-fb-target" class="calculated greyed" :value="fmtU(activeTuning.value, 'Fb', 'freq', 'Hz', NumberField.BOX_FB_HZ.precision)" readonly>
                     <UnitToggle :field="NumberField.BOX_FB_HZ" unit-key="Fb" unit-class="unit unit-cyc" />
                   </div>
                 </div>

@@ -13,7 +13,7 @@ import type { ProjectIssues } from '../project/projectIssues.js';
 import type { AbcBox } from './abcBox.js';
 import type { Bandpass4Box } from './bandpass4Box.js';
 import type { Bandpass6Box } from './bandpass6Box.js';
-import type { Box, BoxLosses, TuningField } from './box.js';
+import type { Box, BoxLosses, TuningField, VentGroup } from './box.js';
 import type { Vent } from '../vent.js';
 import { CoupledSealedLossesWindow } from './coupledSealedLossesWindow.js';
 import { CoupledVentedLossesWindow } from './coupledVentedLossesWindow.js';
@@ -368,6 +368,14 @@ export class OpenISDBox implements Box {
             case 'box-passive-radiator':
                 return null;
         }
+    }
+
+    ventGroupOf(type: BoxType): VentGroup {
+        if (type === 'bandpass4') {
+            const front = this.bandpass4.chambers.front;
+            return { volume_m3: front.volume_m3, tuning_goal_hz: front.tuning_goal_hz, vent: this.bandpass4.vents.front };
+        }
+        return this.vented;
     }
 
     lossesOf(type: BoxType): BoxLosses | null {

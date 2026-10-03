@@ -40,6 +40,18 @@ export function notifyVentChanged(p: OpenISDProject): void {
  *  solve: the domain solves inside `enter()`, and the suspension parks the auto-solve watch.
  *  `OpenISDProject` has no keyed accessor — this switch is the field-id dispatch,
  *  living here in the UI seam rather than as a generic method on the domain facade. */
+/** The vent group of the project's adopted box type: the front chamber's on a 4th-order bandpass,
+ *  the vented box's otherwise. The domain owns that choice (`Box.ventGroupOf`). */
+function group(p: OpenISDProject) {
+  return p.box.ventGroupOf(p.box.boxType.value);
+}
+
+/** Clearing both of the pair falls back to the vented starting alignment; a bandpass front
+ *  chamber has none and is left as cleared. */
+function fallBackToStartingAlignment(p: OpenISDProject): void {
+  if (p.box.boxType.value !== 'bandpass4') p.box.resetVentedAlignment();
+}
+
 let userEnteredPair: 'Fb' | 'ventL' | 'both' | 'none' = 'Fb';
 
 export function resetVentGroupState(): void {
@@ -50,18 +62,18 @@ export function enterVentField(p: OpenISDProject, field: VentEntryField, value: 
   suspendVentSolve(() => {
     p.batch(() => {
       switch (field) {
-        case 'Vb': p.box.vented.volume_m3.set(value); break;
+        case 'Vb': group(p).volume_m3.set(value); break;
         case 'Fb':
-          p.box.vented.tuning_goal_hz.set(value);
-          userEnteredPair = (p.box.vented.vent.length_m.value !== null && userEnteredPair === 'ventL') ? 'both' : 'Fb';
+          group(p).tuning_goal_hz.set(value);
+          userEnteredPair = (group(p).vent.length_m.value !== null && userEnteredPair === 'ventL') ? 'both' : 'Fb';
           break;
-        case 'ventD': p.box.vented.vent.diameter_m.set(value); break;
+        case 'ventD': group(p).vent.diameter_m.set(value); break;
         case 'ventL':
-          p.box.vented.vent.length_m.set(value);
-          userEnteredPair = (p.box.vented.tuning_goal_hz.value !== null && userEnteredPair === 'Fb') ? 'both' : 'ventL';
+          group(p).vent.length_m.set(value);
+          userEnteredPair = (group(p).tuning_goal_hz.value !== null && userEnteredPair === 'Fb') ? 'both' : 'ventL';
           break;
-        case 'ventW': p.box.vented.vent.width_m.set(value); break;
-        case 'ventH': p.box.vented.vent.height_m.set(value); break;
+        case 'ventW': group(p).vent.width_m.set(value); break;
+        case 'ventH': group(p).vent.height_m.set(value); break;
       }
       p.notifyVentChanged();
     });
@@ -75,26 +87,26 @@ export function clearVentField(p: OpenISDProject, field: Exclude<VentField, 'Vb'
     p.batch(() => {
       switch (field) {
         case 'Fb':
-          p.box.vented.tuning_goal_hz.clear();
+          group(p).tuning_goal_hz.clear();
           if (userEnteredPair === 'both') {
             userEnteredPair = 'ventL';
           } else {
             // Nothing left on either side of the pair — rather than leave both blank (John,
             // 2026-10-01: "unrecoverable"), fall back to the same QB3-style alignment a fresh
             // box gets. Fb is the alignment's own entered side, same as a new box.
-            p.box.vented.vent.length_m.clear();
-            p.box.resetVentedAlignment();
+            group(p).vent.length_m.clear();
+            fallBackToStartingAlignment(p);
             userEnteredPair = 'Fb';
           }
           break;
-        case 'ventD': p.box.vented.vent.diameter_m.clear(); break;
+        case 'ventD': group(p).vent.diameter_m.clear(); break;
         case 'ventL':
-          p.box.vented.vent.length_m.clear();
+          group(p).vent.length_m.clear();
           if (userEnteredPair === 'both') {
             userEnteredPair = 'Fb';
           } else {
-            p.box.vented.tuning_goal_hz.clear();
-            p.box.resetVentedAlignment();
+            group(p).tuning_goal_hz.clear();
+            fallBackToStartingAlignment(p);
             userEnteredPair = 'Fb';
           }
           break;
@@ -107,8 +119,8 @@ export function clearVentField(p: OpenISDProject, field: Exclude<VentField, 'Vb'
 /** `E` entered and locked · `C` calculated · `N` not available — the badge letter for the
  *  domain's own provenance. */
 export function ventFieldState(p: OpenISDProject, field: VentField): ProvenanceLetter {
-  const fbVal = p.box.vented.tuning_goal_hz.value;
-  const lenVal = p.box.vented.vent.length_m.value;
+  const fbVal = group(p).tuning_goal_hz.value;
+  const lenVal = group(p).vent.length_m.value;
 
   if (field === 'Fb') {
     if (fbVal === null) return 'N';
@@ -122,8 +134,8 @@ export function ventFieldState(p: OpenISDProject, field: VentField): ProvenanceL
   }
   // Neither field is ever derived: a volume is mandatory, a diameter is stated or absent.
   switch (field) {
-    case 'Vb': return p.box.vented.volume_m3.provenance;
-    case 'ventD': return p.box.vented.vent.diameter_m.provenance;
+    case 'Vb': return group(p).volume_m3.provenance;
+    case 'ventD': return group(p).vent.diameter_m.provenance;
   }
 }
 

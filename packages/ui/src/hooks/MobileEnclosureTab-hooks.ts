@@ -24,7 +24,7 @@ export function useMobileEnclosureTab() {
   const { selectedBox } = createSelectedBox({ focusedProject, projectChanged, isSimulatable: boxTypeIsSimulatable });
   const { advAir } = createEnvironmentAir({ project, projectChanged, envDefaults, environment: engine.environment });
   const {
-    activeVent, portPipeResonance_hz, fbState, ventLState, fbUnreachable, fbUnreachableMsg, frontChamberTuningLabel,
+    activeVent, activeTuning, portPipeResonance_hz, fbState, ventLState, fbUnreachable, fbUnreachableMsg, frontChamberTuningLabel,
   } = createVentReadouts({ project, projectChanged, selectedBox, air: advAir, vent: engine.vent });
   const { prAddedMassDq, prTuningDq, prResonanceMassDq, prFsMass_hz } =
     createSealedReadouts({ project, selectedBox, projectChanged });
@@ -47,7 +47,7 @@ export function useMobileEnclosureTab() {
 
   return {
     project, selectedBox,
-    activeVent, portPipeResonance_hz, fbState, ventLState, fbUnreachable, fbUnreachableMsg, frontChamberTuningLabel,
+    activeVent, activeTuning, portPipeResonance_hz, fbState, ventLState, fbUnreachable, fbUnreachableMsg, frontChamberTuningLabel,
     prAddedMassDq, prTuningDq, prResonanceMassDq, prFsMass_hz,
     prBrowseOpen, prEditOpen, loadPREntry, loadBundledPassiveRadiatorEntry, defineNewPREntry,
     setVentWidth, setVentHeight, setVentDiameter, setVentLength, setFbTarget,

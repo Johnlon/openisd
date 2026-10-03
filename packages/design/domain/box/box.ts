@@ -6,6 +6,7 @@ import type { Bandpass6Box } from './bandpass6Box.js';
 import type { PassiveRadiatorBox } from './passiveRadiatorBox.js';
 import type { SealedBox } from './sealedBox.js';
 import type { VentedBox } from './ventedBox.js';
+import type { Vent } from '../vent.js';
 
 /** The enclosure: which box type is active, and every box type's own fields. All six are
  *  present at once and dormant unless `boxType` names them — the dormant-data rule expressed in
@@ -27,6 +28,11 @@ export interface Box {
     /** The rear-chamber tuning field of a `type` that tunes its rear chamber (bandpass6, abc);
      *  null otherwise. */
     rearTuningOf(type: BoxType): TuningField | null;
+    /** The ported chamber's vent group — the volume, tuning goal and vent tied by the Helmholtz
+     *  relation: the FRONT chamber of a 4th-order bandpass, the one cabinet of a vented box. Every
+     *  other type answers the vented box's group (dormant data, as `volumeOf` is for a type the
+     *  project has not adopted). `type` is passed, not read from `boxType`, for the same reason. */
+    ventGroupOf(type: BoxType): VentGroup;
     /** The box-level losses WinISD's Box losses dialog edits for `type`: Ql/Qa of the one
      *  cabinet (or the rear chamber of a 4th-order bandpass), Qp of the ported chamber, null
      *  where the type has no port. Null for bandpass6/abc, whose losses are per chamber. */
@@ -41,6 +47,12 @@ export interface Box {
      *  back to a real alignment instead of leaving both blank and unrecoverable (QO142). A no-op
      *  if the driver has no design to give (Fs/Qts/Vas unresolved). */
     resetVentedAlignment(alignment?: VentedAlignment): void;
+}
+
+export interface VentGroup {
+    readonly volume_m3: Readable<number> & Entered & Writable<number>;
+    readonly tuning_goal_hz: TuningField;
+    readonly vent: Vent;
 }
 
 export type TuningField = Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;

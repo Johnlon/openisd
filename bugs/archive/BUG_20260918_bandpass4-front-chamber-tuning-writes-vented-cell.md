@@ -1,6 +1,6 @@
 # BUG_20260918_bandpass4-front-chamber-tuning-writes-vented-cell
 
-Status: OPEN (re-verified 2026-09-26) — the tuning targets and vent diameter write `box.vented.*` for every box type; the bandpass4 solve reads `box.bandpass4.chambers.front`.
+Status: CLOSED 2026-10-03 — fixed: `Box.ventGroupOf(type)` (domain) names the front chamber's volume, tuning and vent for a 4th-order bandpass; useVentGroup.ts and the Enclosure screens (desktop and mobile) read and write through it. Tests: test/logic/vent-group-bandpass4.test.ts, and the bandpass4 spec in mobile-enclosure-tab.browser.spec.ts (red on the old wiring, green now).
 
 ## Symptom
 For a `bandpass4` box, the front-chamber's vent can never be solved through the UI. The
