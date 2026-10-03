@@ -15,12 +15,12 @@
 
 /**
  * The provenance panel tells a user WHICH formula produced a value. `PROVENANCE_MAP` is a
- * hand-written list and the solver's routes are `setVal(...)` calls in `driver/DriverEngine.ts` control flow,
- * so the two are separate statements of one fact and drift apart silently. When they drift the
+ * hand-written list and the solver's routes are `new SolveRoute(...)` entries in
+ * `driver/routes/*.ts`, so the two are separate statements of one fact and drift apart silently. When they drift the
  * panel does not merely go quiet — it names a derivation that did not happen, which is worse than
  * showing nothing.
  *
- * The engine side is read from `driver/DriverEngine.ts`'s AST, never from a number copied into this file: a
+ * The engine side is read from the route files' AST, never from a number copied into this file: a
  * hand-maintained count here would be the same defect relocated, and would go stale the same way.
  *
  * `Fs` is pinned from BOTH sides against the same five input signatures: what the panel declares,
@@ -36,6 +36,7 @@
 import {describe, it, vi} from 'vitest';
 import assert from 'node:assert/strict';
 import {fileURLToPath} from 'node:url';
+import {readdirSync} from 'node:fs';
 import {dirname, join} from 'node:path';
 import {Node, Project as TsProject} from 'ts-morph';
 import {PROVENANCE_MAP} from '../../src/logic/provenance.js';
@@ -43,7 +44,7 @@ import {PROVENANCE_MAP} from '../../src/logic/provenance.js';
 vi.setConfig({ testTimeout: 60_000 });
 
 const UI_PKG = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
-const SOLVER_TS = join(UI_PKG, '..', 'design', 'engine', 'driver', 'DriverEngine.ts');
+const ROUTES_DIR = join(UI_PKG, '..', 'design', 'engine', 'driver', 'routes');
 
 let cached: Map<string, Set<string>> | null = null;
 
@@ -51,18 +52,11 @@ let cached: Map<string, Set<string>> | null = null;
  * Every distinct route the solver has for each field: field name → set of input signatures,
  * each signature the sorted input names of one route joined by `+`.
  *
- * Two details make this a faithful read of the solver rather than a text count.
- *
- * The solver writes a derived value two ways and BOTH are routes: `setVal('Fs', …)` inside the
- * consistency group, and a plain `r.Znom = …` assignment in the passes that run outside it.
- * Reading only the first form reports a field derived by the second as having no route at all.
- *
- * A route's inputs are read from its ENCLOSING GUARD — `if (r.Fs == null && r.Mms != null &&
- * r.Cms != null)` — not from the assigned expression. The guard names exactly what the route
- * requires, whereas the expression reaches some inputs through locals and helper calls. Reading
- * the guard is also what makes the result a set of ROUTES rather than a count of SITES: the same
- * formula implemented in two passes carries the same guard, so it collapses to one entry, which
- * is what the panel should declare.
+ * A route is a `new SolveRoute('Fs_hz', ['Mms_kg', 'Cms_m_per_N'], …)` expression: its first
+ * argument names the quantity it derives and its second lists the inputs it requires. Reading
+ * the expressions is what makes the result a set of ROUTES rather than a count of SITES: two
+ * routes with the same inputs for one target collapse to one entry, which is what the panel
+ * should declare.
  */
 /** The record's name for an engine quantity: `Fs_hz` → `Fs`, `Cms_m_per_N` → `Cms`.
  *
@@ -76,44 +70,21 @@ function engineRoutes(): Map<string, Set<string>> {
   if (cached) return cached;
 
   const project = new TsProject({ skipAddingFilesFromTsConfig: true });
-  const source = project.addSourceFileAtPath(SOLVER_TS);
   const routes = new Map<string, Set<string>>();
 
-  /** The `r.X != null` names in the `if` guard enclosing this assignment, minus the target. */
-  function guardInputs(node: Node, field: string): string | null {
-    for (let n: Node | undefined = node; n; n = n.getParent()) {
-      if (!Node.isIfStatement(n)) continue;
-      const names = new Set<string>();
-      for (const d of n.getExpression().getDescendants()) {
-        if (Node.isPropertyAccessExpression(d) && d.getExpression().getText() === 'r') {
-          names.add(recordName(d.getName()));
-        }
-      }
-      names.delete(field);
-      return [...names].sort().join('+');
-    }
-    return null;
-  }
-
-  const add = (quantity: string, node: Node) => {
-    const field = recordName(quantity);
-    const signature = guardInputs(node, field);
-    if (signature === null) return;
-    if (!routes.has(field)) routes.set(field, new Set());
-    routes.get(field)!.add(signature);
-  };
-
-  for (const node of source.getDescendants()) {
-    if (Node.isCallExpression(node) && node.getExpression().getText() === 'setVal') {
-      const first = node.getArguments()[0];
-      if (first && Node.isStringLiteral(first)) add(first.getLiteralValue(), node);
-      continue;
-    }
-    if (Node.isBinaryExpression(node) && node.getOperatorToken().getText() === '=') {
-      const target = node.getLeft();
-      if (Node.isPropertyAccessExpression(target) && target.getExpression().getText() === 'r') {
-        add(target.getName(), node);
-      }
+  for (const file of readdirSync(ROUTES_DIR).filter(name => name.endsWith('Routes.ts'))) {
+    const source = project.addSourceFileAtPath(join(ROUTES_DIR, file));
+    for (const node of source.getDescendants()) {
+      if (!Node.isNewExpression(node) || node.getExpression().getText() !== 'SolveRoute') continue;
+      const [target, inputs] = node.getArguments();
+      if (!target || !Node.isStringLiteral(target) || !inputs || !Node.isArrayLiteralExpression(inputs)) continue;
+      const field = recordName(target.getLiteralValue());
+      const names = inputs.getElements()
+        .filter(Node.isStringLiteral)
+        .map(element => recordName(element.getLiteralValue()));
+      const signature = [...new Set(names)].sort().join('+');
+      if (!routes.has(field)) routes.set(field, new Set());
+      routes.get(field)!.add(signature);
     }
   }
 
@@ -125,7 +96,7 @@ describe('the provenance panel declares the routes the engine actually has', () 
   it('finds the solver assignments it reads from', () => {
     const routes = engineRoutes();
     assert.ok(routes.size > 10,
-      `only ${routes.size} derived fields found in driver/DriverEngine.ts — the AST read is broken, and a ` +
+      `only ${routes.size} derived fields found in driver/routes — the AST read is broken, and a ` +
       'broken read would make every assertion below pass vacuously');
   });
 

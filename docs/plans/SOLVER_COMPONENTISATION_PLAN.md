@@ -1,6 +1,6 @@
 # Plan: split the driver consistency solver into relations
 
-Status: DRAFT for John's go-ahead. Nothing refactored yet. Delete this file when the work lands.
+Status: approved by John with all six recommendations. In progress: step 1 done. Delete this file when the work lands.
 Bug file: [`bugs/BUG_20261003_driver-consistency-solver-is-one-925-line-function.md`](../../bugs/BUG_20261003_driver-consistency-solver-is-one-925-line-function.md).
 Net: `packages/design/test/driver-solver-characterization.test.ts` (196 cases, golden in
 `test/fixtures/driverSolverGolden.ts`, written before any refactor, green on the current solver).
@@ -111,7 +111,7 @@ Each step is one commit, ends green on: the characterization suite untouched, th
 tests, `domain.test.ts`, `engine-wiring.test.ts`, `bash scripts/compat.sh all` (same 2
 disagreements), typecheck, the architecture tests.
 
-1. **Routes as data, loop unchanged in behaviour.** Convert each `if (…) setVal(…)` into a
+1. **DONE. Routes as data, loop unchanged in behaviour.** Convert each `if (…) setVal(…)` into a
    `SolveRoute` in `DriverRoutes`, add `RouteGroup`, make `solveValues` call it. Finish stage moves
    as it is. No file other than the driver area changes.
 2. **Group routes by relation.** Name the formula once per relation; routes of one relation
