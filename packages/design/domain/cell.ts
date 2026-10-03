@@ -345,9 +345,6 @@ export function entryField(
   getDq?: (value: number) => DqIssue | null,
 ): Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable {
   let liveDq: readonly DqIssue[] = [];
-  // A calculated value's inherited width — like `liveDq`, live only: the record format carries
-  // no width for a 'C' entry, and the next solve writes it again.
-  let liveWidth: number | null = null;
   const readCell = (): FieldCell<number | null> => {
     const entry = slot.value;
     const dq = issuesSource ? issuesSource() : liveDq;
@@ -356,12 +353,12 @@ export function entryField(
     const fullDq = extra ? [...dq, extra] : dq;
     return entry.state === 'E'
       ? enteredCell<number | null>(name, entry.value, fullDq, entryPrecision(entry))
-      : calculatedCell<number | null>(name, entry.value, fullDq, liveWidth);
+      : calculatedCell<number | null>(name, entry.value, fullDq, entry.precision ?? null);
   };
   return new DualWriteFieldImpl<number>(readCell, {
-    entered: (v, precision) => { liveDq = []; liveWidth = null; slot.set({ state: 'E', value: v, precision }); },
-    clear: () => { liveDq = []; liveWidth = null; slot.set(undefined); },
-    calculated: (v, precision) => { liveDq = []; liveWidth = precision ?? null; slot.set({ state: 'C', value: v }); },
+    entered: (v, precision) => { liveDq = []; slot.set({ state: 'E', value: v, precision }); },
+    clear: () => { liveDq = []; slot.set(undefined); },
+    calculated: (v, precision) => { liveDq = []; slot.set({ state: 'C', value: v, precision }); },
     dq: (list) => { liveDq = list; writeEntryDq(slot, list); },
   });
 }

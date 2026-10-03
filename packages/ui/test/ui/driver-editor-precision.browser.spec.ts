@@ -5,7 +5,7 @@ import {fillAndBlur} from '../fixtures/numField.js';
 /**
  * Driver editor — a value shows the decimals it is known to (John, 2026-10-02):
  *  - an entered value keeps every decimal it was typed with ("0.0754" in η₀ showed "0.08");
- *  - a calculated value shows the decimals its entered inputs support.
+ *  - a calculated value shows the decimals its entered inputs' half-widths support.
  * Never fewer than the field's own registry precision.
  */
 
@@ -50,6 +50,6 @@ test('Qts calculated from 5-decimal Qes and Qms shows the decimals they support'
   await fillAndBlur(inputFor(page, 'Qts'), '');
   await typeAndCommit(inputFor(page, 'Qes'), '0.45123');
   await typeAndCommit(inputFor(page, 'Qms'), '3.20000');
-  // ±0.000005 on each moves Qts by about ±0.0000039: known to 6 decimals.
+  // ±0.000005 on each bounds Qts to about ±0.0000039: known to 6 decimals.
   await expect(inputFor(page, 'Qts')).toHaveValue(/^0\.39\d{4}$/);
 });
