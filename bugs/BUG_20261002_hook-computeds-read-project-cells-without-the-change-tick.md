@@ -1,6 +1,6 @@
 # BUG_20261002_hook-computeds-read-project-cells-without-the-change-tick
 
-**Status:** OPEN — ticks added, need for them unproven
+**Status:** OPEN — two values proven and fixed, two currentDesign values have a tick but no spec
 
 ## Symptom
 Some hook values read a project field but do not re-read when that field changes. The screen shows
@@ -28,13 +28,12 @@ For each row, first write a spec that edits the field and checks the screen. Add
 where the spec fails.
 
 ## Done
-- Tick added to hasVent, traceColour and the two currentDesign values (committed 31ddaad9).
-- PR modal count / resonance / radiator: specs added, and they pass WITHOUT the tick, so the
-  tick is removed again there (those cells re-read on their own).
-- Specs for hasVent (AdvancedOptions-hooks.test.ts) and traceColour (MobileChartView-hooks.test.ts)
-  pass with AND without the tick. The server-render test harness cannot show the staleness, so
-  these specs do not prove the tick is needed.
+- Specs run the hook client-side (test/hooks/runHook.ts), where computeds cache. A server render
+  (renderToString) recomputes on every read and cannot show a stale value.
+- hasVent and traceColour: each spec fails without the tick and passes with it. Ticks kept.
+- PR modal count / resonance: the spec passes without a tick (those cells re-read on their own).
+  Ticks removed there.
+- currentDesign (OriginalShell-hooks.ts, GraphPanel-hooks.ts): tick added, no spec yet.
 
 ## Still open
-- A browser spec that changes the box type / cycles the trace colour on screen and reads the
-  result. Only that can show the staleness. Needs Vite to start under load.
+- A spec for the two currentDesign values.

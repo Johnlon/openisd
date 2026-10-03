@@ -19,6 +19,7 @@ export function useAdvancedOptions(): AdvancedOptionsAPI {
   const project = useFocusedProject();
 
   const hasVent = computed(() => {
+    void projectChanged.value;
     const b = project.value.box.boxType.value;
     return b === 'vented' || b === 'bandpass4';
   });
