@@ -45,7 +45,7 @@ test.describe('Driver Editor — solver wiring', () => {
     await qesf.fill('0.400');
     await qmsf.fill('4.000');
 
-    // Qts = (0.4 * 4.0) / 4.4 = 0.36364 (state C). Qes/Qms stated to ±0.0005 move it by
+    // Qts = (0.4 * 4.0) / 4.4 = 0.363636… (state C). Qes/Qms stated to ±0.0005 bound it to
     // ±0.0004, so it shows 4 decimals.
     await expect(qtsf).toHaveValue('0.3636');
     await expect(qtsf).toHaveClass(/value-c/);

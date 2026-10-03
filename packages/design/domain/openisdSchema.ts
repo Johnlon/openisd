@@ -213,11 +213,14 @@ const enteredEntrySchema = z.strictObject({
     dq_calculated: dqMarks(),
 });
 
-/** A calculated spec entry: a `value` plus `state:'C'` and nothing else but its own dq — nothing
- *  was read, so no `origin`/`readings`/`dq_scraper` (only a scraper produces those). */
+/** A calculated spec entry: a `value` plus `state:'C'`, the precision it inherits, and its own dq
+ *  — nothing was read, so no `origin`/`readings`/`dq_scraper` (only a scraper produces those). */
 const calculatedEntrySchema = z.strictObject({
     state: z.literal('C'),
     value: z.number(),
+    /** Half-width the value inherits from its most precise entered input, in SI — stored as an
+     *  entered value's `precision` is. Absent when no entered width reaches it. */
+    precision: z.number().positive().optional(),
     dq_calculated: dqMarks(),
 });
 

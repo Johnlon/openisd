@@ -583,6 +583,41 @@ function inheritedWidths(
   return widths;
 }
 
+/** Central-difference step, as a fraction of an input's own half-width: small enough that the
+ *  slope is the derivative, large enough to stay clear of float noise. */
+const DERIVATIVE_STEP = 1e-3;
+
+/**
+ * Each derived quantity's half-width: Σ |∂f/∂x|·d(x) over every entered input x with a
+ * half-width d(x) — the guaranteed first-order bound, winisd_tools' former `lib/precision.py`
+ * (CALCULATIONS.md §1.3, interval arithmetic). Slopes are central differences through the
+ * solve itself. A quantity no entered width reaches is absent.
+ */
+function calculatedWidths(
+  entered: DriverWorkingSet,
+  resolved: DriverWorkingSet,
+  widthOf: (field: NumericDriverQuantityName) => number,
+): Partial<Record<NumericDriverQuantityName, number>> {
+  const widths: Partial<Record<NumericDriverQuantityName, number>> = {};
+  for (const field of NUMERIC_QUANTITY_NAMES) {
+    const x = entered[field];
+    const d = widthOf(field);
+    if (typeof x !== 'number' || !(d > 0)) continue;
+    const step = d * DERIVATIVE_STEP;
+    const up = solveConsistencyGroup(withNumericField(entered, field, x + step));
+    const down = solveConsistencyGroup(withNumericField(entered, field, x - step));
+    for (const other of NUMERIC_QUANTITY_NAMES) {
+      if (entered[other] != null || typeof resolved[other] !== 'number') continue;
+      const hi = up[other];
+      const lo = down[other];
+      if (typeof hi !== 'number' || typeof lo !== 'number') continue;
+      const contribution = Math.abs((hi - lo) / (2 * step)) * d;
+      if (contribution > 0 && isFinite(contribution)) widths[other] = (widths[other] ?? 0) + contribution;
+    }
+  }
+  return widths;
+}
+
 /**
  * Every entered value's disagreement with what the OTHER entered values imply for it, beyond
  * their own combined rounding precision — plus, for `Qts`, whether the group can even be
@@ -665,8 +700,8 @@ function enteredDriverValue(field: SolverInput): number | undefined {
   return field.entered ? field.value ?? undefined : undefined;
 }
 
-/** Write `value` onto a non-entered handle: derived, with the width it inherits from the entered
- *  values, when present; `not-available` when not. An entered handle is never touched. */
+/** Write `value` onto a non-entered handle: derived, with the width its entered inputs give
+ *  it, when present; `not-available` when not. An entered handle is never touched. */
 function writeDriverBack(field: SolverField, value: number | undefined, width: number | undefined): void {
   if (field.entered) return;
   if (value != null) field.setCalculated(value, undefined, width); else field.setNotAvailable();
@@ -764,8 +799,7 @@ export class DriverEngineImpl implements DriverEngine {
 
     const solved = solveConsistencyGroup(working);
     const issues: DriverIssue[] = [...checkConsistency(working, params), ...checkRange(params)];
-    const widths = inheritedWidths(working, solved, NUMERIC_QUANTITY_NAMES, NUMERIC_QUANTITY_NAMES,
-      field => params[field].precision ?? 0);
+    const widths = calculatedWidths(working, solved, field => params[field].precision ?? 0);
 
     writeDriverBack(params.Fs_hz, solved.Fs_hz, widths.Fs_hz); writeDriverBack(params.Re_ohm, solved.Re_ohm, widths.Re_ohm);
     writeDriverBack(params.Znom_ohm, solved.Znom_ohm, widths.Znom_ohm); writeDriverBack(params.Le_H, solved.Le_H, widths.Le_H);

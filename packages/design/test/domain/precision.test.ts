@@ -58,4 +58,8 @@ describe('knownDecimals — the decimals a value is known to, from its half-widt
     const v = 1.9085175370557992;
     expect(knownDecimals(halfUlp(v), v)).toBe(9);
   });
+
+  it('0.1000 + 0.1200 (each ±0.00005, sum ±0.0001) shows 0.2200', () => {
+    expect((0.22).toFixed(knownDecimals(0.0001, 0.22))).toBe('0.2200');
+  });
 });

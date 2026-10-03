@@ -66,7 +66,7 @@ questions:
 - id: QO166
   title: Parallel session rolled the Driver Editor back to short field names plus a lookup table — restored
     to schema-name bindings
-  status: open
+  status: decided
   raised: '2026-09-20'
   body: |
     Task: finish docs/plans/archive/PLAN_FIELD_REGISTRY_DESCRIPTIONS_AND_SSOT.md.
@@ -90,6 +90,9 @@ questions:
     schema names cannot be used in the editor), or a tail-spin? If deliberate, say why and
     the restore can be reverted from 13ec42b.
   notes: []
+  answer:
+    at: '2026-10-03'
+    text: ack qo166
 - id: QO157
   title: Driver Editor is truly modal — focus-switch cannot close it by clicking another row
   status: decided

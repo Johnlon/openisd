@@ -129,9 +129,9 @@ Every value is a field built from small capability interfaces (`domain/cell.ts`)
 | `Calculated`     | `.calculated`: the solve produced it                         |
 | `Writable<T>`    | `.set(v)` records an entered value                           |
 | `Clearable`      | `.clear()` withdraws an entered value                        |
-| `Calculatable<T>`| `setCalculated(v, dq)`, `setDq(dq)`: the solver writes C or a DQ issue |
+| `Calculatable<T>`| `setCalculated(v, dq, precision)`, `setDq(dq)`: the solver writes C or a DQ issue |
 | `Unsolvable`     | `setNotAvailable()`: the solver writes N                     |
-| `Precise`        | `.precision`                                                 |
+| `Precise`        | `.precision`: the half-width the value is known to — see Precision below |
 
 - **The declared type states what the field can do.** A field's type is the intersection of the
   capabilities it has; there is no god class. For example, drive voltage is
@@ -147,6 +147,106 @@ Every value is a field built from small capability interfaces (`domain/cell.ts`)
   voice-coil count and wiring, the driver's `c`/`roo` and the drive voltage read their default as
   C until someone enters a value. `clear()` returns them to C.
 - **Absence is `null`**, spelled one way. There are no sentinel objects.
+
+### Precision
+
+A value's **precision** is the half-width of the interval it is known to, in SI: `0.29` typed
+means somewhere in `[0.285, 0.295)`, so its precision is `0.005`. It is a fact about the value,
+not about the field showing it. The field's own decimals (`NumberField.precision`) are a separate
+thing — a display minimum, below.
+
+**Values are never rounded.** Storage and every calculation use the full number. Precision only
+decides how many digits are shown, and how far apart two values may be before the consistency
+check calls them inconsistent.
+
+#### Where an entered value's precision comes from
+
+First match wins (`entryPrecision`, `domain/cell.ts`):
+
+1. **The winning reading's `read_precision`** — a scraper parsed it from the printed digits
+   (`0.40` → ±0.005; a trailing zero is a claim).
+2. **The entry's own `precision`** — written when a person typed the value, counted off the
+   typed characters (`statedPrecision`, `logic/fields/units.ts`), scaled by the unit's factor.
+   `30.00 g` and `30 g` are the same number and different statements.
+3. **The stored number's own printed digits** (`halfUlp`) — for a value that arrived as a bare
+   number, e.g. from a `.wdr`. Worked out on read, not stored.
+
+#### How a calculated value's precision is worked out
+
+**Rule: first-order worst-case error propagation** (also called the *maximum error bound*;
+the derivative form of interval arithmetic). For a calculated `f` of entered inputs `xᵢ`, each
+known to half-width `dᵢ`:
+
+```
+d(f) = Σ |∂f/∂xᵢ| · dᵢ
+```
+
+- **Sums:** half-widths add. `0.1000 + 0.1200` → `±0.0001` → `0.2200`.
+- **Products:** relative half-widths add. `0.2 × 0.030` → `±27 %` → `0.006`;
+  `0.20 × 0.0300` → `±2.7 %` → `0.0060`.
+- **Least precise input dominates.** A product cannot be known better than its coarsest
+  factor; typing one input to more digits does not lift the result past the other.
+
+Where it runs: `calculatedWidths`, `engine/driver/DriverEngine.ts`, inside `DriverEngine.solve`.
+
+- **The solve is the formula.** Each `∂f/∂xᵢ` is a central difference taken through
+  `solveConsistencyGroup` itself, stepping `xᵢ` by `dᵢ·10⁻³`. There is no second copy of any
+  formula, and a chain (`Fs → Mms → no`) is propagated automatically. An input used twice in
+  one formula is counted once, correctly.
+- **Only entered inputs contribute.** A C value is never fed back in as an input with a width
+  of its own.
+- **No entered width reaches it → no precision.** `c`/`roo` defaulted from the project air,
+  for example, carry none.
+- **Stored on the record like an entered precision.** A C entry is
+  `{state:'C', value, precision}`. It is recomputed on every solve, exactly as the value is
+  (QO167), so `scripts/roundTripGate.mjs` ignores it when comparing a C entry.
+
+**Why the worst-case bound and not GUM.** Metrology's GUM (*Guide to the Expression of
+Uncertainty in Measurement*) converts each half-width to a standard uncertainty `u = d/√3`
+and adds them in quadrature. That answers "how wrong is this likely to be"; the bound answers
+"what can this possibly be". OpenISD uses the bound because:
+
+- a rounding half-width is a hard limit, not scatter — the true value cannot lie outside it;
+- the consistency check already asks a bound question (D12,
+  `docs/plans/PLAN_RETIRE_CALCS_FROM_SCRAPERS.md`), and one meaning of `precision` across the
+  app beats two;
+- it is the rule winisd_tools locked in `CALCULATIONS.md` §1.3, and its former
+  `lib/precision.py` (the `uncertainties` library, linear sum) computed the same figure.
+
+This is a deliberate departure from §1.3's own note that "a user-facing tolerance display" would
+call for GUM: OpenISD shows a bare number with no ±, so the bound is used for display too.
+
+The cost: the bound is wider. Combining the same half-widths in quadrature gives 59–92 % of
+its width on the real T/S formulas (measured in winisd_tools, 2026-07-29), so a calculated
+value can occasionally show one digit fewer than a quadrature figure would. It never shows a
+digit the inputs cannot support.
+
+#### How many digits are shown
+
+```
+decimals = max(field minimum in the shown unit, digits up to the first uncertain one)
+```
+
+- **Field minimum:** `NumberField.precision` in the base unit, converted per selected unit
+  (`displayPrecision`). Every driver field is at least what WinISD's driver editor shows
+  (`test/fields/field-winisd-minimum-decimals.test.ts`). It may pad a value past what is
+  known — those trailing digits are layout, not precision.
+- **Digits known:** `knownDecimals` (`domain/precision.ts`) —
+  `ceil(−log10(2d))`, i.e. the last digit shown is the first uncertain one. This is the
+  significant-figures convention for a bare number with no ± beside it. Capped at 10
+  significant digits so a double read from a file never prints its float tail.
+- **Where:** `shownDecimals` (`logic/fields/units.ts`), called by `NumInput`/`NumReadout`
+  with the cell's `.precision` as `halfWidth`.
+
+To show more digits legitimately, enter the digits actually known — `0.200`, not `0.2`.
+Padding a datasheet's `0.2` to `0.200` claims a precision nobody measured, and everything
+calculated from it inherits the claim.
+
+#### Not yet covered
+
+- Box, vent, passive-radiator and signal solves write C values with no precision; they show
+  the field minimum.
+- An imported entered value's precision (rule 3 above) is not written to the record.
 
 ## 4. Solving
 

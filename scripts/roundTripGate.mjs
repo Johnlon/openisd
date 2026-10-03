@@ -72,6 +72,14 @@ export function firstDivergence(a, b, path = '$') {
     }
     return null;
   }
+  // A `state:'C'` entry's `precision` is recomputed on every open from the entered widths, the
+  // same as its value (QO167) — the source owns neither, so present on one side only, or
+  // different, is not loss.
+  if (isCalculatedEntry(a) && isCalculatedEntry(b) && ('precision' in a || 'precision' in b)) {
+    const {precision: _a, ...aRest} = a;
+    const {precision: _b, ...bRest} = b;
+    return firstDivergence(aRest, bRest, path);
+  }
   // No allowance for a record written under an older entry shape: a corpus or golden whose
   // model has changed is deleted and rebuilt, never read through a compatibility path.
   if (isTolerableCalculatedDrift(a, b)) {
