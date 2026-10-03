@@ -1,10 +1,19 @@
-# PR transfer-function magnitude: notch near 43 Hz is -45 dB in OpenISD, ~-20.5 dB in WinISD
+# PR system transfer function: OpenISD peak +8.4 dB @65 Hz / notch -40 dB @43 Hz; WinISD peak +3.3 dB @71 Hz / trough -20 dB @41 Hz
 
 Status: OPEN — investigating (2026-10-03). Evidence: /tmp/w.png (WinISD), /tmp/o.png (OpenISD), W5 nd140 + PR.
+Numbers are John's readings (2026-10-03 06:35). My first reading of o.png misjudged the y-axis (said +3.5 dB peak); corrected here.
 
-Same curve everywhere else: -78.5 dB at 1 Hz, +/-0 hump of -20 dB near 30-34 Hz, +3.5 dB peak at 65-71 Hz, flat above 200 Hz.
+Same: -78.5 dB at 1 Hz, -20 dB hump at 30-34 Hz, flat 0 dB above 200 Hz.
+Different: peak height and frequency, notch depth and frequency. This is NOT a sampling artifact: a 5 dB peak-height difference is a loss/damping difference.
 
-Difference: OpenISD draws a narrow notch to about -45 dB at ~43.8 Hz. WinISD draws a shallow dip to about -20.5 dB at ~43 Hz with straight polyline segments either side.
+Known: OpenISD's `winisd-lossy` PR box (`PassiveRadiatorBox.ts` L43-L73) already reproduces WinISD's form
+(fixed Ral/Raa at WinISD's own wr incl. the Npr bug, Rpr = wp*Map_free/Qms, output = Cab branch current),
+pinned to 1e-15 on runs/pr-w5-1.. by GHIDRA_FINDINGS.md §"Passive radiator box". So the engine formula is not
+the first suspect; the inputs or the selected loss mode are.
 
-Hypothesis (unmeasured): the notch is real (PR transmission zero at the PR resonance) and WinISD's chart grid is too coarse to land a sample at the bottom, as with the group-delay grid difference (BUG_20260926). Test: set WinISD chart resolution to 1-3 Hz / maximum, re-capture, compare notch depth and frequency; also sample OpenISD at WinISD's grid.
-Open: peak frequency reads 65 Hz (OpenISD) vs ~71 Hz (WinISD) from pixels; re-measure after the resolution change.
+Suspects, in order:
+1. OpenISD project loss mode is not `winisd-lossy` (lossless / conventional-lossy gives a deeper notch and higher peak).
+2. Different Ql / Qa / Qms (or Rms) / Npr / added mass between the two projects.
+3. Both OpenISD traces (w5 nd140, w5 nd140pr) overlap exactly — check the PR trace is actually the PR box.
+Next: dump OpenISD's PR + loss-mode + Ql/Qa settings and WinISD's PR pane + Advanced Ql/Qa for this project; run the
+engine at those inputs and compare to w.png.
