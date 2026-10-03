@@ -50,14 +50,14 @@ into a Vue invalidation — see `Subscribable`/`createLiveRef()` below.
  * reactive. That is what makes the 19 `state.P` accessors and the five `_version` delegates
  * unnecessary rather than merely relocated.
  */
-const version = shallowRef(0);
-managedProject.subscribe(() => { version.value++; });
-
-export const liveProject = computed(() => {
-  void version.value;          // the dependency; the value is the domain object itself
-  return managedProject;
-});
+export const liveProject = shallowRef(managedProject);
+managedProject.subscribe(() => { triggerRef(liveProject); });
 ```
+
+`triggerRef` is what makes this work. A `computed(() => { void version.value; return managedProject; })`
+looks equivalent but is not: it returns the same object every time, Vue's `computed` compares the
+new value with the old one, finds them equal, and never tells its consumers to re-run. `triggerRef`
+notifies a ref's consumers unconditionally.
 
 A template then calls the domain directly, which is the ruling:
 
@@ -82,9 +82,9 @@ the other eighteen: one binding covers every method the object has, including on
 
   ```ts
   export function createLiveRef<T extends { subscribe(fn: () => void): () => void }>(obj: T) {
-    const version = shallowRef(0);
-    const stop = obj.subscribe(() => { version.value++; });
-    return { live: computed(() => { void version.value; return obj; }), dispose: stop };
+    const live = shallowRef(obj);
+    const stop = obj.subscribe(() => { triggerRef(live); });
+    return { live, dispose: stop };
   }
   ```
 
