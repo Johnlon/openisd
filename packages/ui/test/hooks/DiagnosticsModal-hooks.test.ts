@@ -6,7 +6,7 @@ import {createFaultLog, type QuickFix, type SaveBackup} from '../../src/diagnost
 import {useDiagnosticsModal, type DiagnosticsModalAPI} from '../../src/hooks/DiagnosticsModal-hooks.js';
 import {testAppLogic} from './testAppLogic.js';
 import {
-  type KeyValueStorage, createAppSettingsRepo, createMemoryStorage, createViewStateRepo,
+  type KeyValueStorage, type StoreName, StoredDataFault, createAppSettingsRepo, createMemoryStorage, createViewStateRepo,
 } from '@openisd/persistence';
 
 async function renderHook(
@@ -57,7 +57,7 @@ describe('useDiagnosticsModal', () => {
   it('applies quick fix and updates outcome message on success', async () => {
     const api = await renderHook();
     const mockFix: QuickFix = {
-      id: 'fix-1',
+      id: 'fix-1', store: 'view',
       title: 'Test repair',
       impact: 1,
       keeps: 'all',
@@ -72,7 +72,7 @@ describe('useDiagnosticsModal', () => {
   it('catches and reports quick fix failure in outcome', async () => {
     const api = await renderHook();
     const failingFix: QuickFix = {
-      id: 'fix-err',
+      id: 'fix-err', store: 'view',
       title: 'Failing repair',
       impact: 1,
       keeps: 'all',
@@ -96,8 +96,21 @@ describe('useDiagnosticsModal', () => {
       openisd_my_drivers: '{"drivers":1}',
     };
 
+    /** Raise stored-data faults for `stores` the way a loader does: through the installed handler. */
+    function raiseStoredDataFaults(api: DiagnosticsModalAPI, ...stores: StoreName[]): void {
+      let onError: (e: unknown) => void = () => undefined;
+      vi.stubGlobal('window', {addEventListener: (type: string, fn: (e: unknown) => void) => { if (type === 'error') onError = fn; }});
+      try {
+        api.faultLog.install();
+        for (const store of stores) onError({message: `${store} unreadable`, error: new StoredDataFault(store, `${store} unreadable`)});
+      } finally {
+        vi.unstubAllGlobals();
+      }
+    }
+
     it('offers only the view and app-settings resets: nothing that loses a design or a driver', async () => {
       const api = await renderHook(() => undefined, createMemoryStorage(EVERYTHING));
+      raiseStoredDataFaults(api, 'view', 'options');
       expect(api.faultLog.applicable().map(f => f.id)).toEqual(['reset-view', 'reset-app-settings']);
     });
 
@@ -107,6 +120,7 @@ describe('useDiagnosticsModal', () => {
         expect(storage.get('openisd_view')).not.toBeNull(); // still there while the backup is written
       });
       const api = await renderHook(saveBackup, storage);
+      raiseStoredDataFaults(api, 'view');
       const resetView = api.faultLog.applicable().find(f => f.id === 'reset-view');
       expect(resetView).toBeDefined();
       if (resetView) api.applyFix(resetView);

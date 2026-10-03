@@ -1,6 +1,6 @@
 # BUG_20261001_fault-dialog-offers-data-wipe-for-a-code-fault
 
-**Status:** CLOSED 2026-10-03 — fixed in e87e04e9 (bug filed and fixed in one commit, never closed). The two data wipes (reset design, clear all) are gone from the ladder. What is left: reset chart layout and reset Options, each backs up first and loses no project or driver. Still offered whenever that record is stored; John, 2026-10-03: a fault should name the object that failed, otherwise the storage strategy is at fault. Not built.
+**Status:** CLOSED 2026-10-03 — fixed in e87e04e9 (bug filed and fixed in one commit, never closed). The two data wipes (reset design, clear all) are gone from the ladder. What is left: reset chart layout and reset Options, each backs up first and loses no project or driver. Still offered whenever that record is stored; John, 2026-10-03: a fault should name the object that failed, otherwise the storage strategy is at fault. Built 2026-10-03: every fault now carries an origin (stored data naming its store, dev reload, or running code); repairs are offered only for the store a fault names; dev-reload faults do not raise the dialog; the report and dialog show the origin. Only the chart-view loader names its store so far; Options, driver and project loaders still need to.
 
 ## Symptom
 The "Something went wrong" dialog offered "Reset the saved design" and "Clear ALL saved state"
