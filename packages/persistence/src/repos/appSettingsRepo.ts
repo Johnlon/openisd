@@ -4,6 +4,7 @@ import {DEFAULT_VENTED_DESIGN_LIMITS, DEFAULT_ENV_DEFAULTS} from '@openisd/desig
 import type {AppSettings, EnvDefaults, VentedDesignLimits} from '@openisd/design/engine';
 import type {KeyValueStorage} from '../storage/keyValueStorage.js';
 import {OPENISD_APP_SETTINGS_KEY, OPENISD_BACKUP_KEYS} from './storageKeys.js';
+import {createStoredDataFault, type StoredDataFault} from './storedDataFault.js';
 
 // What the user configured for the application itself — today, the band that decides which
 // designed values get a DQ mark, and the environment defaults a project falls back to when it
@@ -83,7 +84,23 @@ function parseStored(text: string | null): ParsedAppSettings {
   return {vented, env, clean};
 }
 
-export function createAppSettingsRepo(storage: KeyValueStorage): AppSettingsRepo {
+/** `onUnreadable` hears each distinct stored text that did not parse, once — the composition root
+ *  routes it to the fault log so the user is told which store, not left with silent defaults. */
+export function createAppSettingsRepo(
+  storage: KeyValueStorage,
+  onUnreadable: (fault: StoredDataFault) => void = () => undefined,
+): AppSettingsRepo {
+  let reportedText: string | null = null;
+  /** Parse the stored text, reporting it once if any of it could not be read. */
+  function readStored(): ParsedAppSettings {
+    const text = storage.get(APP_SETTINGS_KEY);
+    const parsed = parseStored(text);
+    if (text !== null && !parsed.clean && text !== reportedText) {
+      reportedText = text;
+      onUnreadable(createStoredDataFault('options', 'stored Options could not be fully read; unreadable settings use their defaults'));
+    }
+    return parsed;
+  }
   /** Replace the record with `next(current)`, backing the old text up first when part of it
    *  could not be read — that part is about to be overwritten. */
   function write(next: (current: ParsedAppSettings) => StoredAppSettings): void {
@@ -94,10 +111,10 @@ export function createAppSettingsRepo(storage: KeyValueStorage): AppSettingsRepo
   }
   return {
     ventedLimits(): VentedDesignLimits {
-      return parseStored(storage.get(APP_SETTINGS_KEY)).vented ?? DEFAULT_VENTED_DESIGN_LIMITS;
+      return readStored().vented ?? DEFAULT_VENTED_DESIGN_LIMITS;
     },
     envDefaults(): EnvDefaults {
-      return parseStored(storage.get(APP_SETTINGS_KEY)).env ?? DEFAULT_ENV_DEFAULTS;
+      return readStored().env ?? DEFAULT_ENV_DEFAULTS;
     },
     setVentedLimits(limits: VentedDesignLimits): void {
       write(current => current.env === null ? {vented: limits} : {vented: limits, env: current.env});

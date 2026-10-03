@@ -60,7 +60,7 @@ const storage = createLocalStorage();
 // against a different band depending on which of the two a caller happened to hold.
 // `installAppSettings` is what points it at the browser-backed store; until this line runs it
 // reads the factory band.
-const appSettingsRepo = createAppSettingsRepo(storage);
+const appSettingsRepo = createAppSettingsRepo(storage, fault => console.error(fault));
 installAppSettings(appSettingsRepo);
 const logging = createLogging();
 // The bundled catalogue — docs/design/BUNDLED_CATALOGUE_API.md. Two repos over the same
