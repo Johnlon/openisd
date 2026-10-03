@@ -1,4 +1,4 @@
-Status: OPEN (re-verified 2026-09-26) — most wrappers are gone; `referenceC` and `referenceRho` in `packages/design/engine/environment.ts` have no callers and should be deleted.
+Status: CLOSED 2026-10-03 — fixed: no production code declares a reference-air wrapper any more (referenceC, referenceRho, referenceRhoC2, the engine and selftest copies are gone). Two test files each keep a two-line local `refRho`/`refC` over `engine.environment.solve({})`; that is test setup, not a duplicate of a production function.
 
 # Seven local reference-air wrappers duplicate `airFor({})`
 
