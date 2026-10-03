@@ -11,7 +11,7 @@ import {wiringOptions} from '../../logic/driverDraft.js';
 import {readDriverFileText} from '../../logic/driverFileText.js';
 import {driverToOwdrBytes, driverToWdrBytes} from '../../logic/fileImportExport.js';
 import {cellClassOf} from '../../logic/useDriverCells.js';
-import {commitMyDriver, dqNoteFor, ebpVal as ebpValFor} from '../../hooks/DriverEditorModal-hooks.js';
+import {commitMyDriver, dqNoteFor} from '../../hooks/DriverEditorModal-hooks.js';
 import type {DqReason} from '@openisd/design';
 import type {Calculated, Clearable, Entered, Precise, Readable, Writable} from '@openisd/design';
 import NumInput from './NumInput.vue';
@@ -388,11 +388,6 @@ const mandatory = (field: NumSpecField) => { void trigger.value; return cellOf(f
 /** The full-text tooltip for a `.de-incomplete` strip — one line per reason, subject and text
  *  rejoined, since a native `title` attribute cannot render `<strong>`. */
 const reasonTitle = (reasons: readonly DqReason[]) => reasons.map(r => `${r.subject} ${r.text}`).join('\n');
-
-function ebpVal(): number | null {
-  void trigger.value;
-  return ebpValFor(draftDriver.value);
-}
 
 /**
  * Copy to My Drivers — the draft as it stands becomes a saved driver, DISCONNECTED: no link
@@ -882,9 +877,10 @@ useEscToClose(() => saveMyDialogOpen.value, () => { saveMyDialogOpen.value = fal
                 <NumInput :class="cellClass('Mcost_kg_per_s')" :model-value="cellVal('Mcost_kg_per_s')" :field="NumberField.MCOST_KG_PER_S" unit-key="Mcost_kg_per_s" :half-width="cellWidth('Mcost_kg_per_s')" @update:model-value="(v, p) => setNum('Mcost_kg_per_s', v, p)"></NumInput><span v-if="dqNote('Mcost_kg_per_s')" class="de-dq" :title="dqNote('Mcost_kg_per_s')">&#9888;</span>
                 <UnitToggle :field="NumberField.MCOST_KG_PER_S" unit-key="Mcost_kg_per_s" unit-class="u" />
               </div>
-              <div class="de-fld value-c" data-field-key="EBP_hz" :style="getFieldStyle('EBP_hz')" :title="NumberField.EBP_HZ.description">
+              <div class="de-fld" data-field-key="EBP_hz" :style="getFieldStyle('EBP_hz')" :title="NumberField.EBP_HZ.description">
                 <label>{{ NumberField.EBP_HZ.label }}</label>
-                <input type="text" readonly :value="ebpVal() != null ? formatInUnit(ebpVal(), 'EBP_hz', 'freq', 'Hz', 1) : ''"><UnitToggle :field="NumberField.EBP_HZ" unit-key="EBP_hz" unit-class="u" />
+                <NumInput :class="cellClass('EBP_hz')" :model-value="cellVal('EBP_hz')" :field="NumberField.EBP_HZ" unit-key="EBP_hz" :half-width="cellWidth('EBP_hz')" @update:model-value="(v, p) => setNum('EBP_hz', v, p)"></NumInput><span v-if="dqNote('EBP_hz')" class="de-dq" :title="dqNote('EBP_hz')">&#9888;</span>
+                <UnitToggle :field="NumberField.EBP_HZ" unit-key="EBP_hz" unit-class="u" />
               </div>
               <!-- The model holds the FRACTION the .wdr carries; WinISD's pane prints a
                    percentage. The `percent` unit group is the ONE place that ×100 lives. -->
@@ -1091,7 +1087,7 @@ useEscToClose(() => saveMyDialogOpen.value, () => { saveMyDialogOpen.value = fal
    the widest (748px of content) and Parameters the tallest. Both measured, not guessed. The
    vh caps are only a small-screen backstop. */
 /* position: relative anchors the format picker's scrim to the editor, not the viewport. */
-.de-modal { position: relative !important; display: flex !important; flex-direction: column !important; width: 770px !important; max-width: 96vw !important; min-height: 550px !important; max-height: 96vh !important; flex-shrink: 0 !important; overflow: hidden !important; }
+.de-modal { position: relative !important; display: flex !important; flex-direction: column !important; width: 850px !important; max-width: 96vw !important; min-height: 550px !important; max-height: 96vh !important; flex-shrink: 0 !important; overflow: hidden !important; }
 .de-tabs { display: flex; gap: 2px; padding: 6px 12px 0; border-bottom: 1px solid var(--line); }
 .de-tab { padding: 4px 10px; border: 1px solid var(--line); border-bottom: none; border-radius: 3px 3px 0 0; background: var(--panel2); color: var(--fg); cursor: pointer; font: inherit; font-size: 13px; }
 .de-tab.on { background: var(--panel); font-weight: 600; }
@@ -1130,7 +1126,7 @@ useEscToClose(() => saveMyDialogOpen.value, () => { saveMyDialogOpen.value = fal
 
 .de-fld { display: flex; flex-direction: column; gap: 2px; margin-bottom: 3px; width: fit-content; justify-self: start; }
 .de-fld label { font-size: 11px; color: var(--mut); white-space: nowrap; }
-.de-fld input, .de-fld select { padding: 2px 5px; border: 1px solid var(--line); border-radius: 3px; font: inherit; background: var(--panel); color: var(--fg); width: 90px; }
+.de-fld input, .de-fld select { padding: 2px 5px; border: 1px solid var(--line); border-radius: 3px; font: inherit; background: var(--panel); color: var(--fg); width: 110px; }
 .de-fld .u, .u {
   font-size: 11px; color: var(--mut); white-space: nowrap !important; display: inline-block;
   /* FIXED width. A unit sized by its own text ("mm" 19px, "cm³" 21px) reflowed the whole
@@ -1306,7 +1302,7 @@ input.value-n, .de-fld.value-n input, select.value-n { color: var(--mut); }
 }
 .de-fld input,
 .de-fld select {
-  width: 90px !important;
+  width: 110px !important;
 }
 
 /* Column-flex (labels-above) override specifically for the General tab */
@@ -1324,7 +1320,7 @@ input.value-n, .de-fld.value-n input, select.value-n { color: var(--mut); }
 }
 .de-general .de-fld input,
 .de-general .de-fld select {
-  width: 90px !important;
+  width: 110px !important;
 }
 .de-general .de-row2 .de-fld input {
   width: 100% !important;
