@@ -1,4 +1,4 @@
-Status: OPEN (re-verified 2026-09-26) — documentation only: `docs/design/REACTIVITY.md` still shows the broken sample.
+Status: CLOSED 2026-10-03 — fixed: docs/design/REACTIVITY.md now shows the shallowRef + triggerRef form that liveProject.ts uses, and says why a plain computed does not work.
 
 # `docs/design/REACTIVITY.md`'s `createLiveRef` code sample never invalidates a real consumer
 
