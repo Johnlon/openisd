@@ -419,7 +419,7 @@ const {
                 <div class="field-row">
                   <div class="field">
                     <label>Shape</label>
-                    <select :value="activeVent.shape.value" @change="e => { const shape = selectedOption(e, VENT_SHAPE_OPTIONS); if (shape !== null) activeVent.shape.set(shape); }">
+                    <select id="vent-shape" :value="activeVent.shape.value" @change="e => { const shape = selectedOption(e, VENT_SHAPE_OPTIONS); if (shape !== null) activeVent.shape.set(shape); }" style="width:135px">
                       <option v-for="o in VENT_SHAPE_OPTIONS" :key="o.value" :value="o.value">{{ o.label }}</option>
                     </select>
                   </div>
@@ -1201,8 +1201,7 @@ textarea.comment, textarea.description { width:100%; border:1px solid #999; bord
   align-self: flex-start;
   width: max-content;
 }
-/* Single column vertical stack so compatibility box stays narrow. */
-.sim-switches { display: flex; flex-direction: column; gap: 4px; }
+.sim-switches { display: grid; grid-template-columns: repeat(2, 1fr); gap: 2px 12px; }
 .sim-options-header {
   font-weight: 600;
   font-size: 12px;

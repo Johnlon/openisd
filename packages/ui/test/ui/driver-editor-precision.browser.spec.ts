@@ -10,7 +10,7 @@ import {fillAndBlur} from '../fixtures/numField.js';
  */
 
 async function openParameters(page: Page) {
-  await page.goto('/');
+  await page.goto('/', { timeout: 15000 });
   await openAProject(page);
   await page.locator('.project-nav li', { hasText: 'Driver' }).click();
   await page.locator('.edit-btn', { hasText: 'Edit' }).click();
