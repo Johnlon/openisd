@@ -42,7 +42,13 @@ export function createVentReadouts({ project, projectChanged: changed, selectedB
     void changed.value;
     void project.value;
     const box = project.value.box;
-    return selectedBox.value === 'bandpass4' ? box.bandpass4.vents.front : box.vented.vent;
+    return box.ventGroupOf(selectedBox.value).vent;
+  });
+  /** The tuning goal the vent group designs to: the front chamber's on a 4th-order bandpass. */
+  const activeTuning = computed(() => {
+    void changed.value;
+    void project.value;
+    return project.value.box.ventGroupOf(selectedBox.value).tuning_goal_hz;
   });
   // The formula itself lives on VentEngine (UI is display-only) — this just feeds it the
   // currently-active vent's length and the resolved air.
@@ -73,5 +79,5 @@ export function createVentReadouts({ project, projectChanged: changed, selectedB
   /** The front chamber of a bandpass is vented on its OWN volume, so it carries its own symbol. */
   const frontChamberTuningLabel = computed(() =>
     DUAL_CHAMBER.has(selectedBox.value) ? 'Target Tuning Freq (Ffc)' : 'Target Tuning Freq');
-  return { activeVent, portPipeResonance_hz, fbState, ventLState, fbUnreachable, fbUnreachableMsg, frontChamberTuningLabel };
+  return { activeVent, activeTuning, portPipeResonance_hz, fbState, ventLState, fbUnreachable, fbUnreachableMsg, frontChamberTuningLabel };
 }

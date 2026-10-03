@@ -99,3 +99,21 @@ test('the port velocity limit shows 17 m/s and takes an edit', async ({ page }) 
   await input.blur();
   await expect(input).toHaveValue(/^25(\.0+)?$/);
 });
+
+// BUG_20260918_bandpass4-front-chamber-tuning-writes-vented-cell: on a 4th-order bandpass the
+// Ffc entry and the vent diameter belong to the FRONT chamber; they were written to the vented
+// box's cells, so the diameter re-read empty and the vent length never solved.
+test('a 4th-order bandpass keeps its front-chamber tuning and vent diameter, and solves the vent length', async ({ page }) => {
+  await page.locator('.mob-tab', { hasText: 'Box' }).click();
+  await page.locator('#mob-box-type').selectOption('bandpass4');
+  await page.locator('.mob-tab', { hasText: '4th Order Bandpass' }).click();
+  const diameter = fieldRow(page, 'Vent diameter').locator('input');
+  await diameter.fill('5');
+  await diameter.blur();
+  await expect(diameter).toHaveValue(/5/);
+  const tuning = fieldRow(page, 'Target Tuning Freq (Ffc)').locator('input');
+  await tuning.fill('47.8');
+  await tuning.blur();
+  await expect(tuning).toHaveValue(/47\.8/);
+  await expect(fieldRow(page, 'Vent length').locator('.mob-field-value')).toHaveText(/\d/);
+});

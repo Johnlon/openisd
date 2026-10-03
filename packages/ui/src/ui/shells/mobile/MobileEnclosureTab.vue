@@ -16,7 +16,7 @@ import {useMobileEnclosureTab} from '../../../hooks/MobileEnclosureTab-hooks.js'
 
 const {
   project, selectedBox,
-  activeVent, portPipeResonance_hz, fbState, ventLState, fbUnreachable, fbUnreachableMsg, frontChamberTuningLabel,
+  activeVent, activeTuning, portPipeResonance_hz, fbState, ventLState, fbUnreachable, fbUnreachableMsg, frontChamberTuningLabel,
   prAddedMassDq, prTuningDq, prResonanceMassDq, prFsMass_hz,
   prBrowseOpen, prEditOpen, loadPREntry, loadBundledPassiveRadiatorEntry, defineNewPREntry,
   setVentWidth, setVentHeight, setVentDiameter, setVentLength, setFbTarget,
@@ -107,12 +107,12 @@ const {
       <div class="mob-field-main">
         <span class="mob-field-label">{{ frontChamberTuningLabel }}</span>
         <span v-if="fbState !== 'C'" class="mob-field-value" :title="FB_TARGET_TIP">
-          <NumInput :model-value="project.box.vented.tuning_goal_hz.value"
+          <NumInput :model-value="activeTuning.value"
                     @update:model-value="setFbTarget"
                     :field="NumberField.BOX_FB_HZ" unit-key="Fb" :precision="NumberField.BOX_FB_HZ.precision" stepper />
         </span>
         <span v-else class="mob-field-value mob-readonly" :title="FB_TARGET_TIP">
-          <NumReadout :value="project.box.vented.tuning_goal_hz.value" :field="NumberField.BOX_FB_HZ" unit-key="Fb" :precision="NumberField.BOX_FB_HZ.precision" />
+          <NumReadout :value="activeTuning.value" :field="NumberField.BOX_FB_HZ" unit-key="Fb" :precision="NumberField.BOX_FB_HZ.precision" />
         </span>
       </div>
       <UnitToggle :field="NumberField.BOX_FB_HZ" unit-key="Fb" unit-class="mob-unit" />
