@@ -1,6 +1,6 @@
 # BUG_20261002_hook-computeds-read-project-cells-without-the-change-tick
 
-**Status:** OPEN — two values proven and fixed, two currentDesign values have a tick but no spec
+**Status:** FIXED 2026-10-03 — hasVent and traceColour needed the tick (proven red/green); the rest were not stale
 
 ## Symptom
 Some hook values read a project field but do not re-read when that field changes. The screen shows
@@ -33,7 +33,6 @@ where the spec fails.
 - hasVent and traceColour: each spec fails without the tick and passes with it. Ticks kept.
 - PR modal count / resonance: the spec passes without a tick (those cells re-read on their own).
   Ticks removed there.
-- currentDesign (OriginalShell-hooks.ts, GraphPanel-hooks.ts): tick added, no spec yet.
-
-## Still open
-- A spec for the two currentDesign values.
+- currentDesign (OriginalShell-hooks.ts, GraphPanel-hooks.ts): not stale. It also reads
+  curvesData, which re-fires on every project change. Ticks removed; a spec in
+  GraphPanel-hooks.test.ts keeps the box-type behaviour pinned.

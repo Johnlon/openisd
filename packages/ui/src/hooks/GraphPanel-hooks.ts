@@ -1,6 +1,6 @@
 import type {InjectionKey, Ref} from 'vue';
 import {computed, ref, watch} from 'vue';
-import {allIssues, curvesData, driverName, maxData, openProjects, projectChanged, syncedP} from '../logic/appState.js';
+import {allIssues, curvesData, driverName, maxData, openProjects, syncedP} from '../logic/appState.js';
 import {useFocusedProject} from '../logic/focusedProjectContext.js';
 import {
   buildPlotData, type ChartEngineAreas, type Design, DPAL, FrequencyAxis, type PlotData, rangeStatsOf, type RangeStats,
@@ -43,9 +43,7 @@ export function useGraphPanel(props: GraphPanelProps, chartEngine: ChartEngineAr
 
   const meta = computed(() => TAB_META[props.chartId]);
 
-  const currentDesign = computed<Design>(() => {
-    void projectChanged.value;
-    return {
+  const currentDesign = computed<Design>(() => ({
     driver: project.value.driver.specs.sweepDriver(),
     box: project.value.box.boxType.value,
     P: syncedP.value,
@@ -57,8 +55,7 @@ export function useGraphPanel(props: GraphPanelProps, chartEngine: ChartEngineAr
     color: props.primaryColor || DPAL[0],
     // Legend/draw order follows the sidebar's project list order, not "current first".
     sortIndex: openProjects().indexOf(project.value),
-  };
-  });
+  }));
 
   const plot = computed(() =>
     buildPlotData(
