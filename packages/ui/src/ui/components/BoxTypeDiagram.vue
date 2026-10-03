@@ -4,9 +4,9 @@
  * Box tab and the New Project wizard draw the exact same art for a given box type,
  * instead of each carrying its own copy of the SVG markup.
  */
-export type BoxDiagramType = 'sealed' | 'vented' | 'box-passive-radiator' | 'bandpass4' | 'bandpass6' | 'abc';
+import type {BoxType} from '@openisd/design/engine';
 
-defineProps<{ boxType: BoxDiagramType }>();
+defineProps<{ boxType: BoxType }>();
 </script>
 
 <template>

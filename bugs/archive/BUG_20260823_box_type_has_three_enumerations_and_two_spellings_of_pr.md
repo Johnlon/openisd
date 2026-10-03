@@ -1,6 +1,6 @@
 # Box type has three enumerations across three packages, and two spellings of the PR member
 
-Status: OPEN (re-verified 2026-09-26) — `BoxType` is one union in `packages/design/engine/types.ts`; `BoxTypeDiagram.vue` still declares a second literal union of the same six members.
+Status: CLOSED 2026-10-03 — fixed: `BoxType` (packages/design/engine/types.ts) is the one enumeration, with one spelling of the passive-radiator member ('box-passive-radiator'). The last copy, BoxTypeDiagram.vue's own union, now imports it. The remaining literal unions (e.g. projectSweep.ts's vented/bandpass subset) are narrowings, not copies.
 
 ## Symptom
 
