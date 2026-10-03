@@ -13,6 +13,7 @@ import type {VentedDesignLimits, EnvDefaults} from '@openisd/design/engine';
 import {createMemoryStorage} from '../src/storage/keyValueStorage.js';
 import {createAppSettingsRepo, APP_SETTINGS_KEY} from '../src/repos/appSettingsRepo.js';
 import {OPENISD_BACKUP_KEYS} from '../src/repos/storageKeys.js';
+import {isStoredDataFault, type StoredDataFault} from '../src/repos/storedDataFault.js';
 
 const EDITED: VentedDesignLimits = Object.freeze({
   minVb_m3: 0.002, maxVb_m3: 0.5, minFb_hz: 15, maxFb_hz: 120,
@@ -137,5 +138,34 @@ describe('createAppSettingsRepo', () => {
       createAppSettingsRepo(storage).setEnvDefaults(ENV);
       assert.equal(storage.get(OPENISD_BACKUP_KEYS.appSettings), null);
     });
+  });
+});
+
+describe('createAppSettingsRepo — says when stored Options could not be read', () => {
+  function reported(storedText: string | null): StoredDataFault[] {
+    const storage = createMemoryStorage();
+    if (storedText !== null) storage.set(APP_SETTINGS_KEY, storedText);
+    const faults: StoredDataFault[] = [];
+    const repo = createAppSettingsRepo(storage, fault => faults.push(fault));
+    repo.ventedLimits();
+    repo.envDefaults();
+    repo.ventedLimits();   // reading again must not report again
+    return faults;
+  }
+
+  it('reports nothing for absent or readable Options', () => {
+    assert.deepEqual(reported(null), []);
+    assert.deepEqual(reported(JSON.stringify({env: DEFAULT_ENV_DEFAULTS})), []);
+  });
+
+  it('reports once, naming the options store, when the text is not JSON', () => {
+    const faults = reported('not json');
+    assert.equal(faults.length, 1);
+    assert.ok(isStoredDataFault(faults[0]));
+    assert.equal(faults[0].store, 'options');
+  });
+
+  it('reports once when a member does not parse, however often it is read', () => {
+    assert.equal(reported(JSON.stringify({env: 1})).length, 1);
   });
 });
