@@ -17,15 +17,43 @@
  *     work, and throwing it away to clear an error destroys the evidence too.
  */
 
-import type {AppSettingsRepo, ProjectRepairReport, ViewStateRepo} from '@openisd/persistence';
+import {type AppSettingsRepo, type ProjectRepairReport, StoredDataFault, type StoreName, type ViewStateRepo} from '@openisd/persistence';
 
 /** Writes a file the user keeps — the backup every repair takes before it changes stored state. */
 export type SaveBackup = (fileName: string, text: string) => void;
+
+/** Where a fault came from. Only a loader that names its store (`StoredDataFault`) blames stored
+ *  data; a stack stamped by the dev server's hot reload is a half-reloaded page, not a bug; every
+ *  other fault is running code. */
+export type FaultOrigin =
+  | { readonly kind: 'stored-data'; readonly store: StoreName }
+  | { readonly kind: 'dev-reload' }
+  | { readonly kind: 'code' };
+
+export function originLabel(origin: FaultOrigin): string {
+  switch (origin.kind) {
+    case 'stored-data': return `stored data (${origin.store})`;
+    case 'dev-reload': return 'dev reload';
+    case 'code': return 'running code';
+  }
+}
+
+/** Vite stamps a hot-reloaded module's URL with `?t=<timestamp>`. */
+function hasHotReloadStamp(stack: string | undefined): boolean {
+  return stack !== undefined && /[?&]t=\d+/.test(stack);
+}
+
+function originOf(thrown: unknown, stack: string | undefined): FaultOrigin {
+  if (thrown instanceof StoredDataFault) return { kind: 'stored-data', store: thrown.store };
+  if (hasHotReloadStamp(stack)) return { kind: 'dev-reload' };
+  return { kind: 'code' };
+}
 
 export interface Fault {
   /** Monotonic id so the UI can key a list without an index. */
   id: number;
   kind: 'exception' | 'rejection' | 'console';
+  origin: FaultOrigin;
   message: string;
   stack?: string;
   /** When it happened, ISO, for the copyable report. */
@@ -43,6 +71,8 @@ export interface Fault {
  */
 export interface QuickFix {
   id: string;
+  /** The store this repair resets; it is offered only for a fault that names it. */
+  store: StoreName;
   title: string;
   /** Smaller is safer. The list is sorted on this. */
   impact: number;
@@ -83,6 +113,7 @@ export function repairLadder({ view, appSettings }: ResettableRecords): readonly
   return [
     {
       id: 'reset-view',
+      store: 'view',
       title: 'Reset the chart layout and panels',
       impact: 2,
       keeps: 'every project, design, filter, My Drivers and your Options',
@@ -93,6 +124,7 @@ export function repairLadder({ view, appSettings }: ResettableRecords): readonly
     },
     {
       id: 'reset-app-settings',
+      store: 'options',
       title: 'Reset Options to their defaults',
       impact: 3,
       keeps: 'every project, design, filter, chart layout and My Drivers',
@@ -149,14 +181,15 @@ export function createFaultLog(saveBackup: SaveBackup, records: () => Resettable
   let nextId = 1;
   let installed = false;
 
-  function record(kind: Fault['kind'], message: string, stack?: string): void {
+  function record(kind: Fault['kind'], message: string, thrown: unknown, stack?: string): void {
     // A throwing computed re-throws on every reactive tick. Counting repeats keeps the dialog
     // readable instead of showing the same line two hundred times.
     const same = faults.find(f => f.message === message && f.kind === kind);
     if (same) { same.count++; return; }
-    const fault: Fault = { id: nextId++, kind, message, stack, at: new Date().toISOString(), count: 1 };
+    const fault: Fault = { id: nextId++, kind, origin: originOf(thrown, stack), message, stack, at: new Date().toISOString(), count: 1 };
     faults.push(fault);
-    for (const fn of listeners) fn(fault);
+    // A half-reloaded dev page is recorded but never interrupts the user.
+    if (fault.origin.kind !== 'dev-reload') for (const fn of listeners) fn(fault);
   }
 
   return {
@@ -179,7 +212,9 @@ export function createFaultLog(saveBackup: SaveBackup, records: () => Resettable
       return true;
     },
     onRepair: (fn) => { repairListeners.push(fn); },
-    applicable: () => ladder().filter(f => { try { return f.probe(); } catch { return false; } })
+    applicable: () => ladder()
+      .filter(f => faults.some(x => x.origin.kind === 'stored-data' && x.origin.store === f.store))
+      .filter(f => { try { return f.probe(); } catch { return false; } })
       .slice().sort((a, b) => a.impact - b.impact),
     report: () => {
       const stored = (() => {
@@ -194,7 +229,7 @@ export function createFaultLog(saveBackup: SaveBackup, records: () => Resettable
         `agent: ${navigator.userAgent}`,
         '',
         `faults (${faults.length}):`,
-        ...faults.map(f => `  [${f.kind}] ×${f.count} ${f.message}\n${f.stack ? '    ' + f.stack.split('\n').slice(0, 6).join('\n    ') : ''}`),
+        ...faults.map(f => `  [${f.kind}] origin: ${originLabel(f.origin)} ×${f.count} ${f.message}\n${f.stack ? '    ' + f.stack.split('\n').slice(0, 6).join('\n    ') : ''}`),
         '',
         'stored keys:',
         `  ${stored || '(none)'}`].join('\n');
@@ -207,11 +242,11 @@ export function createFaultLog(saveBackup: SaveBackup, records: () => Resettable
         // `ErrorEvent.error` is typed `any` by the DOM lib — it is whatever was thrown. Only an
         // Error carries a stack worth recording.
         const thrown: unknown = e.error;
-        record('exception', e.message || String(thrown), thrown instanceof Error ? thrown.stack : undefined);
+        record('exception', e.message || String(thrown), thrown, thrown instanceof Error ? thrown.stack : undefined);
       });
       window.addEventListener('unhandledrejection', e => {
         const r: unknown = e.reason;
-        record('rejection', r instanceof Error ? r.message : String(r),
+        record('rejection', r instanceof Error ? r.message : String(r), r,
           r instanceof Error ? r.stack : undefined);
       });
 
@@ -222,7 +257,7 @@ export function createFaultLog(saveBackup: SaveBackup, records: () => Resettable
       console.error = (...args: unknown[]) => {
         original(...args);
         const err = args.filter((a): a is Error => a instanceof Error)[0];
-        record('console', err ? err.message : args.map(a => String(a)).join(' '), err?.stack);
+        record('console', err ? err.message : args.map(a => String(a)).join(' '), err, err?.stack);
       };
     },
     onFault: fn => { listeners.push(fn); },
