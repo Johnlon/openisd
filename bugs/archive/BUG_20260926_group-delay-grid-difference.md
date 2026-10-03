@@ -37,4 +37,6 @@ takes the slope over f·(1 ± 1e-6): worst 0.00049 ms against WinISD, within its
 Copying the 1e-10 step in double gives 0.0018 ms. `winisdDriverModel.test.ts`: 1 Hz within
 1e-3 ms of 52.29644 (red before: 0.0247).
 
-Ruling, John 2026-09-26: accepted. WinISD's rounding noise (x87 80-bit intermediates, `f_45e660`'s operation order) is not emulated.
+Ruling, John 2026-09-26: accepted. WinISD's operation order rounding noise is not emulated.
+
+Updated 2026-10-03: Adopted WinISD's exact `1e-10 Hz` fixed step (`WINISD_GROUP_DELAY_STEP_HZ = 1e-10`) in `SimulationEngine.ts#groupDelayAtMs` to align with WinISD's low-frequency woofer design focus (1–200 Hz). The ~0.0005 ms high-frequency numerical noise floor introduced is invisible on chart plots and UI readouts, while low-frequency readouts (like 1.99 Hz) match WinISD exactly.

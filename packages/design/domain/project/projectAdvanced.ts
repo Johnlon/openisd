@@ -99,6 +99,16 @@ export class ProjectAdvanced {
         };
     }
 
+    /** WinISD Compatibility "WinISD phase wrapping": wraps phase curves to [-180°, +180°] (default).
+     *  Off: continuous unwrapped phase. On where a project does not say. */
+    get winisdWrapPhase(): SimpleField<boolean> {
+        const lens = focus(this.#advanced, 'winisdWrapPhase');
+        return {
+            get value() { return lens.value ?? true; },
+            set: (on: boolean) => lens.set(on),
+        };
+    }
+
     /** WinISD Compatibility "WinISD driver count": N drivers as WinISD simulates them, each alone
      *  in Vb/N fed P/N (BUG_20260928_driver-count-not-winisd). Off: the N coils wired by `wiring`
      *  into one terminal impedance. On where a project does not say. */

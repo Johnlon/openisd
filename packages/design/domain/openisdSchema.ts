@@ -737,6 +737,8 @@ const openISDAdvancedJsonSchema = z.preprocess(renameLegacyWinisdDriverModel, z.
     // "WinISD VA model": the amplifier apparent load power chart as WinISD computes it,
     // P·Re·|Hf|²/|Z + Rg|. Optional: absent parses to ON, WinISD's own behaviour.
     winisdVaModel: z.boolean().optional(),
+    // "WinISD phase wrapping": wraps phase curves to [-180°, +180°]. Optional: absent parses to ON.
+    winisdWrapPhase: z.boolean().optional(),
     // "WinISD driver count": N drivers as WinISD simulates them, each in Vb/N fed P/N; off, the N
     // coils wired into one terminal impedance. Optional: absent parses to ON.
     winisdDriverCountModel: z.boolean().optional(),

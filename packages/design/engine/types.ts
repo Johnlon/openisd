@@ -190,6 +190,8 @@ export interface SweepParams {
   /** WinISD's VA, P·Re·|Hf|²/|Z + Rg| (true/absent), or the amplifier's apparent power,
    *  P·(Re + Rg)·|Hf|²/|Z_amp| (false). */
   winisdVaModel?: boolean;
+  /** WinISD phase wrapping, [-180°, +180°] (true/absent), or continuous unwrapped phase (false). */
+  winisdWrapPhase?: boolean;
   // Box losses
   lossMode?: LossModeValue;
   Ql?: number;

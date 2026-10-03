@@ -662,6 +662,11 @@ const {
                   </label>
                 </div>
                 <div>
+                  <label data-field-key="winisdWrapPhase" style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 12px;" :title="`WinISD phase wrapping: wraps phase curves to [-180°, +180°].\nTicked (default, as WinISD): phase curves wrap at ±180°.\nUnticked (conventional): phase curves stay continuous and unwrapped.`">
+                    <input type="checkbox" :checked="project.winisdWrapPhase.value" @change="e => project.winisdWrapPhase.set(inputChecked(e))"> WinISD phase wrapping
+                  </label>
+                </div>
+                <div>
                   <label data-field-key="winisdDriverCountModel" style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 12px;" :title="`WinISD driver count: affects designs with more than one driver.\nTicked (default, as WinISD): N drivers are N copies of one driver, each in Vb/N with 1/N of the port, each fed P/N. Impedance is one driver's; SPL is one driver's + 10·log10(N); maximum power is N times one driver's.\nUnticked (conventional): the N voice coils are wired, in parallel or series, into one load the amplifier sees.`">
                     <input type="checkbox" :checked="project.winisdDriverCountModel.value" @change="e => project.winisdDriverCountModel.set(inputChecked(e))"> WinISD driver count
                   </label>
@@ -1195,8 +1200,8 @@ textarea.comment, textarea.description { width:100%; border:1px solid #999; bord
   flex: none;
   align-self: flex-start;
 }
-/* One tight column, so the panel stays inside the tab's height. */
-.sim-switches { display: flex; flex-direction: column; gap: 1px; }
+/* Two columns, so the compatibility box stays compact. */
+.sim-switches { display: grid; grid-template-columns: repeat(2, 1fr); gap: 2px 12px; }
 .sim-options-header {
   font-weight: 600;
   font-size: 12px;
