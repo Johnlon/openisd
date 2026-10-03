@@ -347,7 +347,7 @@ const {
               <p class="hint"><b>Rear chamber</b> is the chamber behind the driver, <b>front chamber</b> the one in front of it. Closed, vented and PR have a rear chamber only.</p>
               <p v-if="selectedBox === 'sealed'" class="hint"><b>Sealed (Fsc):</b> System resonance frequency where the speaker impedance peaks and below which the response rolls off at 12 dB/octave. Solved from the box volume Vb.</p>
               <p v-if="selectedBox === 'vented'" class="hint"><b>Vented (Fb):</b> Helmholtz resonance of the box volume and port. At Fb, port output is maximized and driver cone excursion is minimized.</p>
-              <p v-if="selectedBox === 'box-passive-radiator'" class="hint"><b>PR (Fp):</b> Helmholtz-like tuning frequency of the passive radiator and Vb. Lowered by adding mass (Madd) to the radiator cone.</p>
+              <p v-if="selectedBox === 'box-passive-radiator'" class="hint"><b>PR (Fh):</b> Helmholtz tuning frequency of the passive radiator and Vb. Lowered by adding mass (Madd) to the radiator cone.</p>
               <p v-if="selectedBox === 'bandpass4'" class="hint"><b>Bandpass 4th order:</b> Uses sealed rear chamber resonance (Frc) for low-end control, and front chamber port tuning (Fb) to bandpass-filter the output.</p>
               <p v-if="selectedBox === 'bandpass6'" class="hint"><b>Bandpass 6th order:</b> Dual-tuned bandpass filter. Front and rear chambers are both tuned to separate port frequencies to shape the passband.</p>
               <p v-if="selectedBox === 'abc'" class="hint">ABC's driver mounts on the outer baffle, firing straight into the room — unlike 4th/6th order bandpass, where the driver is fully enclosed and fires only into the two internal chambers.</p>
@@ -565,7 +565,7 @@ const {
                   <div :class="['field', 'entered', { 'dq-flag': prAddedMassDq.dq.length > 0 }]"><label>Added mass to cone:</label><NumInput id="og-pr-madd" :model-value="project.box.passiveRadiator.addedMass_kg.value" @update:model-value="(v: number | null) => project.box.passiveRadiator.addedMass_kg.set(v ?? 0)" :field="NumberField.PR_MADD_G" unit-key="prMadd" :precision="NumberField.PR_MADD_G.precision" v-bind="prAddedMassDq" /><UnitToggle :field="NumberField.PR_MADD_G" unit-key="prMadd" unit-class="unit" /></div>
                 </div>
                 <div class="field-row">
-                  <div :class="['field', 'entered', { 'dq-flag': prTuningDq.dq.length > 0 }]"><label>Target tuning freq (Fp):</label><NumInput id="og-pr-fp" :model-value="project.box.passiveRadiator.tuning_goal_hz.value" @update:model-value="(v: number | null) => project.box.passiveRadiator.tuning_goal_hz.set(v ?? 0)" :field="NumberField.PR_FP_HZ" unit-key="Fp" :precision="NumberField.PR_FP_HZ.precision" v-bind="prTuningDq" /><UnitToggle :field="NumberField.PR_FP_HZ" unit-key="Fp" unit-class="unit" /></div>
+                  <div :class="['field', 'entered', { 'dq-flag': prTuningDq.dq.length > 0 }]"><label>Target tuning freq (Fh):</label><NumInput id="og-pr-fp" :model-value="project.box.passiveRadiator.tuning_goal_hz.value" @update:model-value="(v: number | null) => project.box.passiveRadiator.tuning_goal_hz.set(v ?? 0)" :field="NumberField.PR_FP_HZ" unit-key="Fp" :precision="NumberField.PR_FP_HZ.precision" v-bind="prTuningDq" /><UnitToggle :field="NumberField.PR_FP_HZ" unit-key="Fp" unit-class="unit" /></div>
                 </div>
                 <div class="field-row"><div :class="['field', { 'dq-flag': prResonanceMassDq.dq.length > 0 }]" :title="prResonanceMassDq.dq.length > 0 ? prResonanceMassDq.dq.join('; ') : ''"><label>Fpr (with added mass):</label><input id="og-pr-fs-mass" class="calculated greyed" :value="fmtU(prFsMass_hz, 'prFsMass', 'freq', 'Hz', NumberField.PR_FSMASS_HZ.precision)" readonly><UnitToggle :field="NumberField.PR_FSMASS_HZ" unit-key="prFsMass" unit-class="unit" /></div></div>
               </div>
@@ -1196,19 +1196,19 @@ textarea.comment, textarea.description { width:100%; border:1px solid #999; bord
   border: 1px solid #c8c8c8;
   background: #f4f6f9;
   border-radius: 4px;
-  padding: 8px 10px;
+  padding: 4px 8px;
   flex: none;
   align-self: flex-start;
 }
-/* One tight column, so the panel stays inside the tab's height and width. */
-.sim-switches { display: flex; flex-direction: column; gap: 1px; }
+/* Tight column so the panel stays inside the tab height (max 185px) with 6 switches. */
+.sim-switches { display: flex; flex-direction: column; gap: 0; }
 .sim-options-header {
   font-weight: 600;
-  font-size: 12px;
+  font-size: 11px;
   color: #333;
-  margin-bottom: 6px;
+  margin-bottom: 3px;
   border-bottom: 1px solid #d0d0d0;
-  padding-bottom: 4px;
+  padding-bottom: 2px;
   display: flex;
   align-items: center;
   justify-content: space-between;
