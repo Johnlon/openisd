@@ -646,15 +646,15 @@ const {
                 <span>WinISD Compatibility</span>
                 <button class="action-btn apply-winisd-btn" title="Reset to WinISD: set every WinISD-vs-conventional switch to WinISD" @click="applyWinisdSettings">Reset</button>
               </div>
-              <div class="field-row" style="flex-wrap: nowrap; margin-bottom: 3px;">
+              <div class="sim-switches">
+                <div class="sim-switch-col">
+                <div class="field-row" style="flex-wrap: nowrap; margin-bottom: 3px;">
                 <div class="field" style="gap:6px;" :title="LOSS_MODE_TIP">
-                  <select id="adv-lossmode" :value="lossMode" @change="e => { const m = selectedOption(e, LOSS_MODE_OPTIONS); if (m !== null) lossMode = m; }" style="width:200px">
+                  <select id="adv-lossmode" :value="lossMode" @change="e => { const m = selectedOption(e, LOSS_MODE_OPTIONS); if (m !== null) lossMode = m; }" style="width:150px">
                     <option v-for="m in LOSS_MODE_OPTIONS" :key="m.value" :value="m.value">{{ m.label }}</option>
                   </select>
                 </div>
               </div>
-              <div class="sim-switches">
-                <div class="sim-switch-col">
                 <div>
                   <label data-field-key="useWinisdAirModel" style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 12px;" :title="ToggleField.ADV_USEWINISDAIRMODEL.description">
                     <input type="checkbox" :checked="project.envUseWinisdAirModel.value" @change="e => project.envUseWinisdAirModel.set(inputChecked(e))"> WinISD air model

@@ -11,6 +11,8 @@ import {
   type GraphPanelProps,
 } from '../../src/hooks/GraphPanel-hooks.js';
 import {DPAL, TAB_META} from '@openisd/design/chart';
+import {addProject} from '../../src/logic/appState.js';
+import {runHook} from './runHook.js';
 
 function createTestProject(): OpenISDProject {
   const engine = createEngine();
@@ -68,6 +70,15 @@ describe('GraphPanel-hooks', () => {
   });
 
   describe('useGraphPanel', () => {
+    it('currentDesign follows the box type when it changes after the first read', () => {
+      const project = createTestProject();
+      addProject(project);   // the change tick only fires for a project appState holds
+      const api = runHook(computed(() => project), () => useGraphPanel({chartId: 'SPL'}, createEngine()));
+      expect(api.currentDesign.value.box).toBe('sealed');
+      project.box.boxType.set('vented');
+      expect(api.currentDesign.value.box).toBe('vented');
+    });
+
     it('computes tab metadata corresponding to requested chartId', async () => {
       const apiSpl = await renderHook({chartId: 'SPL'});
       expect(apiSpl.meta.value).toEqual(TAB_META['SPL']);
