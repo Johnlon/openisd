@@ -18,6 +18,7 @@ import {
   createProjectRepo,
   createViewStateRepo,
   createAppSettingsRepo,
+  isStoredDataFault,
 } from '@openisd/persistence';
 import {createLogging} from '../../src/logging/flash.js';
 import {createFaultLog} from '../../src/diagnostics/faultLog.js';
@@ -38,7 +39,7 @@ export function testAppLogic(overrides: Partial<AppLogic> = {}): AppLogic {
   const storage = createMemoryStorage();
   const faultLog = createFaultLog(() => undefined, () => ({
     view: createViewStateRepo(storage), appSettings: createAppSettingsRepo(storage),
-  }));
+  }), (thrown) => isStoredDataFault(thrown) ? thrown.store : null);
   const driverRepo = createBundledDriverRepo({
     fetch: unusedFetch, baseUrl: '/', engine, maxAge_ms: CATALOGUE_MAX_AGE_MS, now: Date.now,
   });

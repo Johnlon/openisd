@@ -1,11 +1,12 @@
 import {afterEach, describe, expect, it, vi} from 'vitest';
-import {StoredDataFault, createAppSettingsRepo, createMemoryStorage, createViewStateRepo} from '@openisd/persistence';
+import {createAppSettingsRepo, createStoredDataFault, isStoredDataFault, createMemoryStorage, createViewStateRepo} from '@openisd/persistence';
 import {createFaultLog, originLabel, type FaultLog} from '../../src/diagnostics/faultLog.js';
 
 // BUG: the fault log could not say where a fault came from, so a stored-data problem, a code
 // bug and a half-reloaded dev page all looked alike and all offered the same repairs.
 
 type Listener = (e: unknown) => void;
+const storeOf = (thrown: unknown) => isStoredDataFault(thrown) ? thrown.store : null;
 
 function installedLog(): {log: FaultLog; fire: (type: string, e: unknown) => void; raised: number[]} {
   const listeners = new Map<string, Listener>();
@@ -13,7 +14,7 @@ function installedLog(): {log: FaultLog; fire: (type: string, e: unknown) => voi
   const storage = createMemoryStorage();
   const log = createFaultLog(() => undefined, () => ({
     view: createViewStateRepo(storage), appSettings: createAppSettingsRepo(storage),
-  }));
+  }), storeOf);
   const raised: number[] = [];
   log.onFault(f => raised.push(f.id));
   log.install();
@@ -32,13 +33,13 @@ describe('fault origin', () => {
 
   it('a StoredDataFault names the store it came from', () => {
     const {log, fire} = installedLog();
-    fire('error', {message: 'bad view', error: new StoredDataFault('view', 'bad view')});
+    fire('error', {message: 'bad view', error: createStoredDataFault('view', 'bad view')});
     expect(log.faults[0].origin).toEqual({kind: 'stored-data', store: 'view'});
   });
 
   it('a StoredDataFault logged through console.error names its store too', () => {
     const {log} = installedLog();
-    console.error(new StoredDataFault('options', 'options record unreadable'));
+    console.error(createStoredDataFault('options', 'options record unreadable'));
     expect(log.faults[0].origin).toEqual({kind: 'stored-data', store: 'options'});
   });
 
@@ -73,9 +74,9 @@ describe('repairs follow the origin', () => {
     appSettings.setEnvDefaults({tempK: 300, humidityPct: 40, pressurePa: 100000});
     vi.stubGlobal('window', {addEventListener: (type: string, fn: Listener) => { if (type === 'error') fire = fn; }});
     let fire: Listener = () => undefined;
-    const log = createFaultLog(() => undefined, () => ({view, appSettings}));
+    const log = createFaultLog(() => undefined, () => ({view, appSettings}), storeOf);
     log.install();
-    fire({message: 'bad view', error: new StoredDataFault('view', 'bad view')});
+    fire({message: 'bad view', error: createStoredDataFault('view', 'bad view')});
     expect(log.applicable().map(f => f.id)).toEqual(['reset-view']);
   });
 });
@@ -86,8 +87,14 @@ describe('report and labels', () => {
     vi.stubGlobal('location', {href: 'http://x'});
     vi.stubGlobal('navigator', {userAgent: 't'});
     vi.stubGlobal('localStorage', {});
-    fire('error', {message: 'bad view', error: new StoredDataFault('view', 'bad view')});
+    fire('error', {message: 'bad view', error: createStoredDataFault('view', 'bad view')});
     expect(log.report()).toContain('origin: stored data (view)');
+  });
+
+  it('a fault carries its own origin label for a screen that cannot import the log', () => {
+    const {log, fire} = installedLog();
+    fire('error', {message: 'bad view', error: createStoredDataFault('view', 'bad view')});
+    expect(log.faults[0].originLabel).toBe('stored data (view)');
   });
 
   it('every origin has a plain label', () => {

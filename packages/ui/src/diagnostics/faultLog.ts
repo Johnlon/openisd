@@ -17,7 +17,7 @@
  *     work, and throwing it away to clear an error destroys the evidence too.
  */
 
-import {type AppSettingsRepo, type ProjectRepairReport, StoredDataFault, type StoreName, type ViewStateRepo} from '@openisd/persistence';
+import type {AppSettingsRepo, ProjectRepairReport, StoreName, ViewStateRepo} from '@openisd/persistence';
 
 /** Writes a file the user keeps — the backup every repair takes before it changes stored state. */
 export type SaveBackup = (fileName: string, text: string) => void;
@@ -43,8 +43,13 @@ function hasHotReloadStamp(stack: string | undefined): boolean {
   return stack !== undefined && /[?&]t=\d+/.test(stack);
 }
 
-function originOf(thrown: unknown, stack: string | undefined): FaultOrigin {
-  if (thrown instanceof StoredDataFault) return { kind: 'stored-data', store: thrown.store };
+/** Names the store a thrown value came from, or null when it is not stored-data fault. Injected:
+ *  the fault log is a service and may not import the persistence service that defines the type. */
+export type StoreOfFault = (thrown: unknown) => StoreName | null;
+
+function originOf(thrown: unknown, stack: string | undefined, storeOf: StoreOfFault): FaultOrigin {
+  const store = storeOf(thrown);
+  if (store !== null) return { kind: 'stored-data', store };
   if (hasHotReloadStamp(stack)) return { kind: 'dev-reload' };
   return { kind: 'code' };
 }
@@ -54,6 +59,8 @@ export interface Fault {
   id: number;
   kind: 'exception' | 'rejection' | 'console';
   origin: FaultOrigin;
+  /** `originLabel(origin)`, for a screen that may not import this module. */
+  originLabel: string;
   message: string;
   stack?: string;
   /** When it happened, ISO, for the copyable report. */
@@ -170,7 +177,7 @@ export interface FaultLog {
 
 /** `records` is a thunk: the fault log is created before the repos (so a fault while the app is
  *  being wired is still caught); until they exist, no repair is offered. */
-export function createFaultLog(saveBackup: SaveBackup, records: () => ResettableRecords): FaultLog {
+export function createFaultLog(saveBackup: SaveBackup, records: () => ResettableRecords, storeOf: StoreOfFault): FaultLog {
   function ladder(): readonly QuickFix[] {
     try { return repairLadder(records()); } catch { return []; }
   }
@@ -186,7 +193,8 @@ export function createFaultLog(saveBackup: SaveBackup, records: () => Resettable
     // readable instead of showing the same line two hundred times.
     const same = faults.find(f => f.message === message && f.kind === kind);
     if (same) { same.count++; return; }
-    const fault: Fault = { id: nextId++, kind, origin: originOf(thrown, stack), message, stack, at: new Date().toISOString(), count: 1 };
+    const origin = originOf(thrown, stack, storeOf);
+    const fault: Fault = { id: nextId++, kind, origin, originLabel: originLabel(origin), message, stack, at: new Date().toISOString(), count: 1 };
     faults.push(fault);
     // A half-reloaded dev page is recorded but never interrupts the user.
     if (fault.origin.kind !== 'dev-reload') for (const fn of listeners) fn(fault);

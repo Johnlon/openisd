@@ -14,7 +14,8 @@ import {
     createMyPassiveRadiatorRepo,
     createPrefsRepo,
     createProjectRepo,
-    createViewStateRepo
+    createViewStateRepo,
+    isStoredDataFault
 } from '@openisd/persistence';
 import {createLogging} from './logging/flash.js';
 import {createFaultLog} from './diagnostics/faultLog.js';
@@ -47,7 +48,8 @@ const faultLog = createFaultLog((fileName, text) => {
   a.download = fileName;
   a.click();
   URL.revokeObjectURL(a.href);
-}, () => ({ view: viewStateRepo, appSettings: appSettingsRepo }));
+}, () => ({ view: viewStateRepo, appSettings: appSettingsRepo }),
+  (thrown) => isStoredDataFault(thrown) ? thrown.store : null);
 faultLog.install();
 
 // STORAGE (port): the browser's own key-value storage.
