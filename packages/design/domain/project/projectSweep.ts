@@ -318,13 +318,22 @@ export type SweepPlan =
     | { readonly kind: 'ready'; readonly job: SweepJob }
     | { readonly kind: 'blocked'; readonly issues: readonly SweepIssue[] };
 
+/** The driver as the sweep reads it: WinISD's own circuit values when "Use WinISD driver
+ *  calculations" is on, the entered ones otherwise. The entered BL still reaches the engine as
+ *  `winisdBL_Tm`, which WinISD's inductance model reads too. */
+function sweepDriverOf(source: ProjectSweepSource): SweepDriver {
+    const entered = source.driver.specs.sweepDriver(source.air);
+    if (!source.winisdDriverModel.value) return entered;
+    return {...entered, values: source.engine.driver.winisdCircuitValues(entered.values, source.air)};
+}
+
 export function sweepPlanOf(source: ProjectSweepSource, P: FrequencyGrid): SweepPlan {
     const box = engineBoxTypeOf(source);
     if (!box) return {kind: 'blocked', issues: []};
     const boxIssues = boxSweepIssuesOf(source, box);
     if (boxIssues.length) return {kind: 'blocked', issues: boxIssues};
     return {kind: 'ready', job: {
-        driver: source.driver.specs.sweepDriver(source.winisdDriverModel.value, source.air),
+        driver: sweepDriverOf(source),
         Le_H: source.driver.specs.Le_H.value ?? undefined,
         box,
         sweep: sweepParamsOf(source, P, source.driveVoltage_V, box),

@@ -8,6 +8,7 @@ import {
 import {V283_SQ} from './constants.js';
 import {SolveRoute} from './SolveRoute.js';
 import type {DriverRoute} from './SolveRoute.js';
+import {VAS_FROM_COMPLIANCE} from './relations.js';
 
 /**
  * Block 4b: `no`, the reference efficiency. Every route precedes the Vas routes, as WinISD
@@ -29,6 +30,10 @@ export const NO_ROUTES: readonly DriverRoute[] = Object.freeze([
   new SolveRoute('no', ['SPLref_dB'], (v, air) => efficiencyFromSpl(v.SPLref_dB, air.rho(v), air.c(v))),
 ]);
 
+/** Vas from Cms and Sd: the one Vas route the passive radiator shares with the driver. */
+export const VAS_FROM_CMS_SD_ROUTE = Object.freeze(new SolveRoute('Vas_m3', ['Cms_m_per_N', 'Sd_m2'],
+  (v, air) => air.rho(v) * air.c(v) * air.c(v) * v.Sd_m2 * v.Sd_m2 * v.Cms_m_per_N).inRelation(VAS_FROM_COMPLIANCE));
+
 /**
  * Block 4c: Vas. rel 14 (efficiency) first, rel 10 (compliance) LAST: a cleared Vas refills
  * through the efficiency group first and only falls to the compliance group when `no` is
@@ -40,8 +45,7 @@ export const VAS_ROUTES: readonly DriverRoute[] = Object.freeze([
     (v, air) => v.no * v.Qes / (efficiencyConstant(air.c(v)) * (v.Fs_hz ** 3)),
     v => v.Fs_hz > 0),
   // rel 10
-  new SolveRoute('Vas_m3', ['Cms_m_per_N', 'Sd_m2'],
-    (v, air) => air.rho(v) * air.c(v) * air.c(v) * v.Sd_m2 * v.Sd_m2 * v.Cms_m_per_N),
+  VAS_FROM_CMS_SD_ROUTE,
 ]);
 
 /** Block 10: Qes from `no`. The `no` and Vas rel-14 routes live in blocks 4b and 4c, ahead of the compliance group. */

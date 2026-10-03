@@ -1,11 +1,12 @@
 import {depthFromDims, dvolFromDims, magDepthFromDims, magnetFromDims} from '../../dvolRelation.js';
 import {SolveRoute} from './SolveRoute.js';
 import type {DriverRoute} from './SolveRoute.js';
+import {DD_FROM_SD, VD_FROM_EXCURSION} from './relations.js';
 
 /** Block 1: Sd and Dd from each other. */
 export const SD_DD_ROUTES: readonly DriverRoute[] = Object.freeze([
-  new SolveRoute('Sd_m2', ['Dd_m'], v => Math.PI * (v.Dd_m / 2) ** 2, v => v.Dd_m > 0),
-  new SolveRoute('Dd_m', ['Sd_m2'], v => 2 * Math.sqrt(v.Sd_m2 / Math.PI), v => v.Sd_m2 > 0),
+  new SolveRoute('Sd_m2', ['Dd_m'], v => Math.PI * (v.Dd_m / 2) ** 2, v => v.Dd_m > 0).inRelation(DD_FROM_SD),
+  new SolveRoute('Dd_m', ['Sd_m2'], v => 2 * Math.sqrt(v.Sd_m2 / Math.PI), v => v.Sd_m2 > 0).inRelation(DD_FROM_SD),
 ]);
 
 /**
@@ -17,17 +18,17 @@ export const XMAX_ROUTES: readonly DriverRoute[] = Object.freeze([
   new SolveRoute('Xmax_m', ['Hc_m', 'Hg_m'], v => Math.abs(v.Hc_m - v.Hg_m) / 2, v => v.Hc_m !== v.Hg_m),
   new SolveRoute('Hc_m', ['Xmax_m', 'Hg_m'], v => v.Hg_m > 2 * v.Xmax_m ? v.Hg_m - 2 * v.Xmax_m : v.Hg_m + 2 * v.Xmax_m),
   new SolveRoute('Hg_m', ['Xmax_m', 'Hc_m'], v => v.Hc_m > 2 * v.Xmax_m ? v.Hc_m - 2 * v.Xmax_m : v.Hc_m + 2 * v.Xmax_m),
-  new SolveRoute('Xmax_m', ['Vd_m3', 'Sd_m2'], v => v.Vd_m3 / v.Sd_m2, v => v.Sd_m2 > 0),
+  new SolveRoute('Xmax_m', ['Vd_m3', 'Sd_m2'], v => v.Vd_m3 / v.Sd_m2, v => v.Sd_m2 > 0).inRelation(VD_FROM_EXCURSION),
 ]);
 
 /** Block 8: Sd fallback from Vd and Xmax. */
 export const SD_FROM_VD_ROUTES: readonly DriverRoute[] = Object.freeze([
-  new SolveRoute('Sd_m2', ['Vd_m3', 'Xmax_m'], v => v.Vd_m3 / v.Xmax_m, v => v.Xmax_m > 0),
+  new SolveRoute('Sd_m2', ['Vd_m3', 'Xmax_m'], v => v.Vd_m3 / v.Xmax_m, v => v.Xmax_m > 0).inRelation(VD_FROM_EXCURSION),
 ]);
 
 /** Block 9: Vd. */
 export const VD_ROUTES: readonly DriverRoute[] = Object.freeze([
-  new SolveRoute('Vd_m3', ['Sd_m2', 'Xmax_m'], v => v.Sd_m2 * v.Xmax_m),
+  new SolveRoute('Vd_m3', ['Sd_m2', 'Xmax_m'], v => v.Sd_m2 * v.Xmax_m).inRelation(VD_FROM_EXCURSION),
 ]);
 
 /**

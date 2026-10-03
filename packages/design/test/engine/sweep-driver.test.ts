@@ -41,8 +41,8 @@ describe('OpenIsdDriverSpec.sweepDriver — the projection at the project seam',
 
   it('carries each quantity\'s value as the solver handles hold it', () => {
     const s = specs();
-    const d = s.sweepDriver(false, null);
-    const handles = s.solverParams(false, null);
+    const d = s.sweepDriver(null);
+    const handles = s.solverParams(null);
     expect(d.values.Fs_hz).toBe(handles.Fs_hz.value);
     expect(d.values.Qes).toBe(handles.Qes.value);
     expect(d.values.wiring).toBe(handles.wiring.value);
@@ -51,8 +51,8 @@ describe('OpenIsdDriverSpec.sweepDriver — the projection at the project seam',
 
   it('winisdBL_Tm is the entered BL, null when BL is not entered', () => {
     const s = specs();
-    expect(s.sweepDriver(false, null).winisdBL_Tm).toBeNull();
+    expect(s.sweepDriver(null).winisdBL_Tm).toBeNull();
     s.BL_Tm.set(7.17);
-    expect(s.sweepDriver(false, null).winisdBL_Tm).toBe(7.17);
+    expect(s.sweepDriver(null).winisdBL_Tm).toBe(7.17);
   });
 });

@@ -11,7 +11,7 @@ import type {EnvironmentEngine} from './environment/EnvironmentEngine.js';
 import {EnvironmentEngineImpl} from './environment/EnvironmentEngine.js';
 import type {DriverEngine} from './driver/DriverEngine.js';
 import {DriverEngineImpl} from './driver/DriverEngine.js';
-import {DRIVER_ROUTES, DriverAir, RouteGroup} from './driver/routes/index.js';
+import {DRIVER_ROUTES, DriverAir, RADIATOR_ROUTES, RouteGroup} from './driver/routes/index.js';
 import type {SignalEngine} from './signal/SignalEngine.js';
 import {SignalEngineImpl} from './signal/SignalEngine.js';
 import type {IssueEngine} from './issues/IssueEngine.js';
@@ -66,7 +66,7 @@ class EngineImpl implements Engine {
   readonly sealed: SealedEngine = new SealedEngineImpl();
   readonly vented: VentedEngine;
   readonly vent: VentEngine = new VentEngineImpl();
-  readonly pr: PrEngine = new PrEngineImpl(this.driver);
+  readonly pr: PrEngine = new PrEngineImpl(new RouteGroup(RADIATOR_ROUTES, this.driverAir));
   readonly filters: FilterEngine = new FilterEngineImpl();
   readonly simulation: SimulationEngine = new SimulationEngineImpl();
   readonly box: BoxEngine = new BoxEngineImpl();

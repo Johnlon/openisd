@@ -4,31 +4,6 @@
       "count": 1
     }
   },
-  "packages/design/domain/driver/openIsdDriverSpec.ts": {
-    "import-x/no-cycle": {
-      "count": 4
-    }
-  },
-  "packages/design/domain/driver/winisdBLterminal.ts": {
-    "import-x/no-cycle": {
-      "count": 1
-    }
-  },
-  "packages/design/domain/driver/winisdCms.ts": {
-    "import-x/no-cycle": {
-      "count": 1
-    }
-  },
-  "packages/design/domain/driver/winisdMms.ts": {
-    "import-x/no-cycle": {
-      "count": 1
-    }
-  },
-  "packages/design/domain/driver/winisdRms.ts": {
-    "import-x/no-cycle": {
-      "count": 1
-    }
-  },
   "packages/design/domain/driverRoundTripDiffs.ts": {
     "import-x/no-cycle": {
       "count": 1

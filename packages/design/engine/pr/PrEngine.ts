@@ -5,7 +5,7 @@
  * tuning/added-mass the project has not entered.
  */
 import type {Air} from '../air.js';
-import type {DriverEngine} from '../driver/DriverEngine.js';
+import type {RouteGroup} from '../driver/routes/index.js';
 import {solveEnvironment} from '../air.js';
 import type {PrParams} from '../types.js';
 import type {PrSolverParams} from '../solverTypes.js';
@@ -68,7 +68,7 @@ export interface PrEngine {
 const PR_GEOMETRY: readonly PrQuantityName[] = Object.freeze(['Vb_m3', 'prMmd_kg', 'prSd_m2', 'prCms_m_per_N']);
 
 export class PrEngineImpl implements PrEngine {
-  constructor(private readonly driver: DriverEngine) {}
+  constructor(private readonly routes: RouteGroup) {}
 
   tuning(p: PrParams, air: Air): number {
     const Cab  = p.Vb / (air.rho * air.c * air.c);
@@ -116,7 +116,7 @@ export class PrEngineImpl implements PrEngine {
 
   solveSpec(stated: PrSpecValues, air: Air): PrSpecValues {
     const orUndefined = (x: number | null): number | undefined => x ?? undefined;
-    const solved = this.driver.solveValues({
+    const solved = this.routes.run({
       Fs_hz: orUndefined(stated.Fs_hz), Qms: orUndefined(stated.Qms), Vas_m3: orUndefined(stated.Vas_m3),
       Sd_m2: orUndefined(stated.Sd_m2), Mms_kg: orUndefined(stated.Mms_kg),
       Cms_m_per_N: orUndefined(stated.Cms_m_per_N), Rms_kg_per_s: orUndefined(stated.Rms_kg_per_s),

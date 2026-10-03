@@ -3,6 +3,7 @@ import {nominalImpedance} from '../../solvers/driverQuantities.js';
 import {TAU} from './constants.js';
 import {SolveRoute} from './SolveRoute.js';
 import type {DriverRoute} from './SolveRoute.js';
+import {GAMMA_FROM_MOTOR, MPOW_FROM_MOTOR, MPOW_FROM_RME, RME_FROM_MOTIONAL, RME_FROM_MOTOR} from './relations.js';
 
 /**
  * Block 13: WinISD's Advanced-pane figures of merit (KNOWLEDGE_REPORT.md §4). Everything on that
@@ -18,11 +19,11 @@ import type {DriverRoute} from './SolveRoute.js';
  * stays absent when that divisor is zero or missing.
  */
 export const ADVANCED_ROUTES: readonly DriverRoute[] = Object.freeze([
-  new SolveRoute('Rme_kg_per_s', ['Fs_hz', 'Mms_kg', 'Qes'], v => TAU * v.Fs_hz * v.Mms_kg / v.Qes, v => v.Qes > 0),
-  new SolveRoute('Rme_kg_per_s', ['BL_Tm', 'Re_ohm'], v => v.BL_Tm * v.BL_Tm / v.Re_ohm, v => v.Re_ohm > 0),
-  new SolveRoute('Mpow_N_per_sqrtW', ['BL_Tm', 'Re_ohm'], v => v.BL_Tm / Math.sqrt(v.Re_ohm), v => v.Re_ohm > 0),
-  new SolveRoute('Mpow_N_per_sqrtW', ['Rme_kg_per_s'], v => Math.sqrt(v.Rme_kg_per_s), v => v.Rme_kg_per_s > 0),
-  new SolveRoute('gamma_m_per_s2_A', ['BL_Tm', 'Mms_kg'], v => v.BL_Tm / v.Mms_kg, v => v.Mms_kg > 0),
+  new SolveRoute('Rme_kg_per_s', ['Fs_hz', 'Mms_kg', 'Qes'], v => TAU * v.Fs_hz * v.Mms_kg / v.Qes, v => v.Qes > 0).inRelation(RME_FROM_MOTIONAL),
+  new SolveRoute('Rme_kg_per_s', ['BL_Tm', 'Re_ohm'], v => v.BL_Tm * v.BL_Tm / v.Re_ohm, v => v.Re_ohm > 0).inRelation(RME_FROM_MOTOR),
+  new SolveRoute('Mpow_N_per_sqrtW', ['BL_Tm', 'Re_ohm'], v => v.BL_Tm / Math.sqrt(v.Re_ohm), v => v.Re_ohm > 0).inRelation(MPOW_FROM_MOTOR),
+  new SolveRoute('Mpow_N_per_sqrtW', ['Rme_kg_per_s'], v => Math.sqrt(v.Rme_kg_per_s), v => v.Rme_kg_per_s > 0).inRelation(MPOW_FROM_RME),
+  new SolveRoute('gamma_m_per_s2_A', ['BL_Tm', 'Mms_kg'], v => v.BL_Tm / v.Mms_kg, v => v.Mms_kg > 0).inRelation(GAMMA_FROM_MOTOR),
   new SolveRoute('SPLmax_dB', ['Pe_W'], v => {
     const base = v.SPL_dB ?? v.SPLref_dB;
     return base == null ? null : base + 10 * Math.log10(v.Pe_W) - 3;

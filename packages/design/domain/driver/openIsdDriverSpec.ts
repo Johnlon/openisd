@@ -23,10 +23,6 @@ import {
     wiringFromRecord
 } from '../voiceCoilWiring.js';
 import {computedSlot} from './computedSlot.js';
-import {winisdBLterminal_Tm} from './winisdBLterminal.js';
-import {winisdCms_m_per_N} from './winisdCms.js';
-import {winisdMms_kg} from './winisdMms.js';
-import {winisdRms_kg_per_s} from './winisdRms.js';
 import {driverSection} from './driverSection.js';
 import {DRIVER_SPEC_FIELD_NAMES} from './driverSpecFieldName.js';
 import type {DriverSpecFieldName} from './driverSpecFieldName.js';
@@ -421,20 +417,12 @@ export class OpenIsdDriverSpec {
      *  spelled `VCCon` here and carries a `VoiceCoilWiring` member, not the bare
      *  `'series'|'parallel'` union.
      *
-     *  `winisdDriverModel`: WinISD's simulation reads Fs, Vas, Qes, Qms, Sd and Re, and nothing
-     *  else — it keeps entered Cms, Mms, BL and Rms untouched and its circuit names none of them
-     *  outside CLe (measured against 0.7.0.950, winisd_research/PROBE_FINDINGS.md). So the flag
-     *  substitutes the four, each only where its own inputs are present and positive, and each
-     *  downstream one off the substituted Cms — every one an identity on a self-consistent
-     *  driver. The entered BL still reaches the engine as `BL_Tm`, which the 'winisdGyrator'
-     *  inductance model scales Le by; WinISD reads the entered BL there too.
-     *
      *  `air`: the circuit's air is the PROJECT's, when one is given — the driver's own
      *  `c_m_per_s`/`roo_kg_per_m3` are display-only and feed no calculation
      *  (BUG_20260924_driver-solve-and-sweep-use-different-air-models.md). A caller with no
      *  project (a standalone driver's own chart) passes none, and the spread already carries the
      *  driver's own stated pair. */
-    solverParams(winisdDriverModel: boolean = false, air: Air | null = null): DriverSolverParams {
+    solverParams(air: Air | null = null): DriverSolverParams {
         const wiring: Wiring = this.VCCon.value === VoiceCoilWiring.Series ? 'series' : 'parallel';
         const Re_ohm = this.Re_ohm.value;
         const BL_Tm = this.BL_Tm.value;
@@ -444,21 +432,11 @@ export class OpenIsdDriverSpec {
         const Re_terminal_ohm = Re_ohm == null ? null : this.#driver.terminalRe_ohm(Re_ohm, numVC, wiring);
         const BL_terminal_entered_Tm = BL_Tm == null ? null : this.#driver.terminalBL_Tm(BL_Tm, numVC, wiring);
 
-        const cmsField = winisdDriverModel ? winisdCms_m_per_N(this, air) : this.Cms_m_per_N;
-        const mmsField = winisdDriverModel ? winisdMms_kg(this, cmsField.value) : this.Mms_kg;
-        const rmsField = winisdDriverModel ? winisdRms_kg_per_s(this, mmsField) : this.Rms_kg_per_s;
-        const blTerminal = winisdDriverModel
-            ? winisdBLterminal_Tm(this, Re_terminal_ohm, cmsField.value, BL_terminal_entered_Tm)
-            : BL_terminal_entered_Tm;
-
         return {
             ...this,
-            Cms_m_per_N: cmsField,
-            Mms_kg: mmsField,
-            Rms_kg_per_s: rmsField,
             SPLref_dB: NO_SLOT,
             Re_terminal_ohm: computedSlot(Re_terminal_ohm),
-            BL_terminal_Tm: computedSlot(blTerminal),
+            BL_terminal_Tm: computedSlot(BL_terminal_entered_Tm),
             wiring: wiringInput,
             ...(air !== null ? { c_m_per_s: computedSlot(air.c), roo_kg_per_m3: computedSlot(air.rho) } : {}),
         };
@@ -466,9 +444,9 @@ export class OpenIsdDriverSpec {
 
     /** `solverParams`' values as plain data for `SimulationEngine.sweep`/`maxCurves`, with the
      *  entered BL WinISD's entered-BL mix reads (null when BL is derived). */
-    sweepDriver(winisdDriverModel: boolean = false, air: Air | null = null): SweepDriver {
+    sweepDriver(air: Air | null = null): SweepDriver {
         return {
-            values: valuesOf(this.solverParams(winisdDriverModel, air)),
+            values: valuesOf(this.solverParams(air)),
             winisdBL_Tm: this.BL_Tm.entered ? this.BL_Tm.value : null,
         };
     }

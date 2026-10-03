@@ -1,6 +1,6 @@
 # BUG_20261003_driver-consistency-solver-is-one-925-line-function
 
-**Status:** OPEN — refactor todo, not a wrong number
+**Status:** FIXED, see Done
 
 ## Symptom
 There is one solver, `solveConsistencyGroup` in `packages/design/engine/driver/DriverEngine.ts`
@@ -41,3 +41,8 @@ against the current solver.
 4. Gates: WinISD parity tests, domain tests, `bash scripts/compat.sh all`.
 
 ## Done
+Fixed 2026-10-03, characterization suite unchanged throughout.
+- The 54 `if` blocks are `SolveRoute` data in `engine/driver/routes/`, run by `RouteGroup`; `DriverAir` replaces `driverC`/`driverRho`. `DriverEngine.ts` is 533 lines, was 925.
+- The 13 formulas are named once in `routes/relations.ts`. Routes carry their relation, and `checkConsistency` reads the same objects; the `RELATIONS` copy is deleted.
+- The passive radiator runs its own 9-route `RouteGroup` (`RADIATOR_ROUTES`) and no longer depends on `DriverEngine`.
+- The three domain copies (`winisdCms/Mms/Rms.ts`, plus `winisdBLterminal.ts` and `positive.ts`) are deleted. `DriverEngine.winisdCircuitValues` runs the same routes for the "Use WinISD driver calculations" switch; `projectSweep` calls it where the engine and air exist, and the driver spec holds no substitution branch.

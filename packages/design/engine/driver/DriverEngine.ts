@@ -19,6 +19,7 @@ import {
 } from '../efficiency.js';
 import type {
     DriverSolverParams,
+    DriverValues,
     SolverField,
     SolverInput,
 } from '../solverTypes.js';
@@ -28,7 +29,11 @@ import {checkRange, isPhysicallyPlausible} from '../physicalRange.js';
 import type {DriverWorkingSet} from '../solvers/driverQuantities.js';
 import {hotRe, terminalBL_Tm, terminalRe_ohm} from '../solvers/driverQuantities.js';
 import type {EbpSuitability, SweepResult, Wiring} from '../types.js';
-import {DriverAir, RouteGroup} from './routes/index.js';
+import {
+  CMS_FROM_VAS_SD_ROUTE, DRIVER_RELATIONS, DriverAir, MMS_FROM_FS_CMS_ROUTE, RMS_FROM_FS_MMS_QMS_ROUTE, RouteGroup,
+  type RelationValues,
+} from './routes/index.js';
+import type {DriverRoute} from './routes/index.js';
 
 export type DriverQuantityName = keyof DriverSolverParams;
 export type DriverIssue = CalculationIssue<DriverQuantityName> | OutOfRangeIssue;
@@ -46,56 +51,11 @@ export type DriverPrerequisite = CalculationPrerequisite<DriverQuantityName>;
  *  (the domain defaults a not-entered coil count itself); no relation below names either. */
 type NumericDriverQuantityName = Exclude<DriverQuantityName, 'wiring' | 'numVC'>;
 
-/** Field values by name, SI, as the solver produces them — a concrete, closed dictionary over
- *  the driver's own numeric quantities, never a bare `Record<string, unknown>`. */
-type Values = Readonly<Partial<Record<NumericDriverQuantityName, number>>>;
-
-/** One inconsistent-inputs group: every member, and the relation that predicts `target` from
- *  the others. WINISD_SCHEMA.md §4 verbatim; nothing here is a new formula. */
-interface Relation {
-  readonly formula: string;
-  readonly target: NumericDriverQuantityName;
-  readonly fields: readonly NumericDriverQuantityName[];
-  readonly predict: (v: Values) => number;
-}
-
-const CONSISTENCY_TAU = 2 * Math.PI;
-
-const RELATIONS: readonly Readonly<Relation>[] = Object.freeze([
-  Object.freeze({ formula: 'Qts = Qes·Qms/(Qes+Qms)', target: 'Qts', fields: Object.freeze(['Qts', 'Qes', 'Qms'] as const),
-    predict: (v: Values) => v.Qes! * v.Qms! / (v.Qes! + v.Qms!) }),
-  Object.freeze({ formula: 'Fs = 1/(2π·√(Mms·Cms))', target: 'Fs_hz', fields: Object.freeze(['Fs_hz', 'Mms_kg', 'Cms_m_per_N'] as const),
-    predict: (v: Values) => 1 / (CONSISTENCY_TAU * Math.sqrt(v.Mms_kg! * v.Cms_m_per_N!)) }),
-  Object.freeze({ formula: 'Rms = 2π·Fs·Mms/Qms', target: 'Rms_kg_per_s', fields: Object.freeze(['Rms_kg_per_s', 'Fs_hz', 'Mms_kg', 'Qms'] as const),
-    predict: (v: Values) => CONSISTENCY_TAU * v.Fs_hz! * v.Mms_kg! / v.Qms! }),
-  Object.freeze({ formula: 'Qes = 2π·Fs·Mms·Re/Bl²', target: 'Qes', fields: Object.freeze(['Qes', 'Fs_hz', 'Mms_kg', 'Re_ohm', 'BL_Tm'] as const),
-    predict: (v: Values) => CONSISTENCY_TAU * v.Fs_hz! * v.Mms_kg! * v.Re_ohm! / (v.BL_Tm! * v.BL_Tm!) }),
-  Object.freeze({ formula: 'Rme = Bl²/Re', target: 'Rme_kg_per_s', fields: Object.freeze(['Rme_kg_per_s', 'BL_Tm', 'Re_ohm'] as const),
-    predict: (v: Values) => v.BL_Tm! * v.BL_Tm! / v.Re_ohm! }),
-  Object.freeze({ formula: 'Rme = 2π·Fs·Mms/Qes', target: 'Rme_kg_per_s', fields: Object.freeze(['Rme_kg_per_s', 'Fs_hz', 'Mms_kg', 'Qes'] as const),
-    predict: (v: Values) => CONSISTENCY_TAU * v.Fs_hz! * v.Mms_kg! / v.Qes! }),
-  Object.freeze({ formula: 'Dd = 2·√(Sd/π)', target: 'Dd_m', fields: Object.freeze(['Dd_m', 'Sd_m2'] as const),
-    predict: (v: Values) => 2 * Math.sqrt(v.Sd_m2! / Math.PI) }),
-  Object.freeze({ formula: 'Mpow = Bl/√Re', target: 'Mpow_N_per_sqrtW', fields: Object.freeze(['Mpow_N_per_sqrtW', 'BL_Tm', 'Re_ohm'] as const),
-    predict: (v: Values) => v.BL_Tm! / Math.sqrt(v.Re_ohm!) }),
-  Object.freeze({ formula: 'Mpow = √Rme', target: 'Mpow_N_per_sqrtW', fields: Object.freeze(['Mpow_N_per_sqrtW', 'Rme_kg_per_s'] as const),
-    predict: (v: Values) => Math.sqrt(v.Rme_kg_per_s!) }),
-  Object.freeze({ formula: 'gamma = Bl/Mms', target: 'gamma_m_per_s2_A', fields: Object.freeze(['gamma_m_per_s2_A', 'BL_Tm', 'Mms_kg'] as const),
-    predict: (v: Values) => v.BL_Tm! / v.Mms_kg! }),
-  Object.freeze({ formula: 'Vd = Sd·Xmax', target: 'Vd_m3', fields: Object.freeze(['Vd_m3', 'Sd_m2', 'Xmax_m'] as const),
-    predict: (v: Values) => v.Sd_m2! * v.Xmax_m! }),
-  // ρ/c are the driver's OWN resolved air (`solveValues` always fills `c_m_per_s`/
-  // `roo_kg_per_m3` in, per solver.ts above), never a fixed reference constant — matching the
-  // same air the solve itself used for this exact conversion.
-  Object.freeze({ formula: 'Vas = ρ·c²·Sd²·Cms', target: 'Vas_m3', fields: Object.freeze(['Vas_m3', 'Cms_m_per_N', 'Sd_m2', 'roo_kg_per_m3', 'c_m_per_s'] as const),
-    predict: (v: Values) => v.roo_kg_per_m3! * v.c_m_per_s! * v.c_m_per_s! * v.Sd_m2! * v.Sd_m2! * v.Cms_m_per_N! }),
-  Object.freeze({ formula: 'EBP = Fs/Qes', target: 'EBP_hz', fields: Object.freeze(['EBP_hz', 'Fs_hz', 'Qes'] as const),
-    predict: (v: Values) => v.Fs_hz! / v.Qes! }),
-]);
+type Values = RelationValues;
 
 /** Every field name any relation above reads, deduplicated — the closed set `Values` covers. */
 const RELATION_FIELDS: readonly NumericDriverQuantityName[] = Object.freeze(
-  Array.from(new Set(RELATIONS.flatMap(rel => rel.fields))),
+  Array.from(new Set(DRIVER_RELATIONS.flatMap(rel => rel.fields))),
 );
 
 /** Every numeric driver quantity — what a calculated value's inherited width is measured over. */
@@ -179,6 +139,12 @@ export interface DriverEngine {
    *  returned with the stated ones. A stated value is never overwritten. The handle solve above
    *  runs this same group. */
   solveValues(stated: DriverWorkingSet): DriverWorkingSet;
+  /** `values` as WinISD's own circuit takes them (the "Use WinISD driver calculations" switch):
+   *  Cms from Vas and Sd, Mms from Fs and that Cms, Rms from Fs, that Mms and Qms, and the
+   *  terminal BL from Re, Fs, Qes and that Cms. Each is replaced only where its own inputs are
+   *  positive and the result is positive; otherwise the entered value stands. `air` is the
+   *  project's; with none, Cms stays as entered and so do the three that follow it. */
+  winisdCircuitValues(values: DriverValues, air: Air | null): DriverValues;
   /** Efficiency bandwidth product — Fs/Qes, the sealed-vs-vented indicator. */
   ebp(Fs_hz: number, Qes: number): number;
   /** The enclosure type an EBP points at: below 50 sealed, above 100 vented, else either. */
@@ -222,6 +188,30 @@ export class DriverEngineImpl implements DriverEngine {
   readonly hotRe = hotRe;
   readonly terminalBL_Tm = terminalBL_Tm;
   readonly isPhysicallyPlausible = isPhysicallyPlausible;
+
+  winisdCircuitValues(values: DriverValues, air: Air | null): DriverValues {
+    const positive = (x: number | null | undefined): x is number => typeof x === 'number' && Number.isFinite(x) && x > 0;
+    const {Fs_hz, Qms, Qes, Vas_m3, Sd_m2} = values;
+    const routeValue = (route: DriverRoute, working: DriverWorkingSet): number | null => {
+      const v = route.value(working, this.air);
+      return positive(v) ? v : null;
+    };
+    const Cms = air !== null && positive(air.c) && positive(air.rho) && positive(Vas_m3) && positive(Sd_m2)
+      ? routeValue(CMS_FROM_VAS_SD_ROUTE, {Vas_m3, Sd_m2, c_m_per_s: air.c, roo_kg_per_m3: air.rho}) : null;
+    const Cms_m_per_N = Cms ?? values.Cms_m_per_N;
+    const Mms = positive(Fs_hz) && positive(Cms_m_per_N)
+      ? routeValue(MMS_FROM_FS_CMS_ROUTE, {Fs_hz, Cms_m_per_N}) : null;
+    const Mms_kg = Mms ?? values.Mms_kg;
+    const Rms = positive(Fs_hz) && positive(Qms) && positive(Mms_kg)
+      ? routeValue(RMS_FROM_FS_MMS_QMS_ROUTE, {Fs_hz, Qms, Mms_kg}) : null;
+    const Re_terminal_ohm = values.Re_terminal_ohm;
+    const BL = positive(Re_terminal_ohm) && positive(Fs_hz) && positive(Qes) && positive(Cms_m_per_N)
+      ? Math.sqrt(Re_terminal_ohm / (2 * Math.PI * Fs_hz * Qes * Cms_m_per_N)) : null;
+    return {
+      ...values, Cms_m_per_N, Mms_kg, Rms_kg_per_s: Rms ?? values.Rms_kg_per_s,
+      BL_terminal_Tm: positive(BL) ? BL : values.BL_terminal_Tm,
+    };
+  }
 
   /** The driver handle solve (T10/T11): build a private, entered-only `DriverWorkingSet` working
    *  set from the handles, run `solveValues`/`checkConsistency` on it unchanged, write
@@ -429,7 +419,7 @@ export class DriverEngineImpl implements DriverEngine {
 
     const resolvedValues = valuesFrom(resolved);
     const issues: DriverIssue[] = [];
-    for (const rel of RELATIONS) {
+    for (const rel of DRIVER_RELATIONS) {
       if (!rel.fields.every(f => typeof resolvedValues[f] === 'number')) continue;
       const expected = rel.predict(resolvedValues);
       if (!isFinite(expected)) continue;
