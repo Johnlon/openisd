@@ -192,5 +192,34 @@ export async function editorTab(page: Page, tab: EditorTab): Promise<void> {
 
 export type EditorTab = 'General' | 'Parameters' | 'Advanced parameters' | 'Dimensions';
 
+/** The focused project's main (box) volume, read through the app's own state module, which the
+ *  dev server serves — the app ships no debug handle for this. */
+export async function focusedBoxVolume(page: Page): Promise<number> {
+  return page.evaluate(async (path) => {
+    type AppState = typeof import('../src/logic/appState.js');
+    function isAppState(m: unknown): m is AppState {
+      return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
+    }
+    const m: unknown = await import(/* @vite-ignore */ path);
+    if (!isAppState(m)) throw new Error('appState module shape mismatch');
+    const box = m.requireFocusedProject().box;
+    return box.volumeOf(box.boxType.value).value;
+  }, '/src/logic/appState.ts');
+}
+
+/** Write the focused project's main (box) volume, so its design differs from its saved one. */
+export async function setFocusedBoxVolume(page: Page, volume_m3: number): Promise<void> {
+  await page.evaluate(async ({path, v}) => {
+    type AppState = typeof import('../src/logic/appState.js');
+    function isAppState(m: unknown): m is AppState {
+      return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
+    }
+    const m: unknown = await import(/* @vite-ignore */ path);
+    if (!isAppState(m)) throw new Error('appState module shape mismatch');
+    const box = m.requireFocusedProject().box;
+    box.volumeOf(box.boxType.value).set(v);
+  }, {path: '/src/logic/appState.ts', v: volume_m3});
+}
+
 export { expect };
 export * from './fixtures/reference-drivers.js';

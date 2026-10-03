@@ -1,14 +1,9 @@
-import {editorTab, expect, openAProject, test} from '../fixtures.js';
+import {editorTab, expect, focusedBoxVolume, openAProject, setFocusedBoxVolume, test} from '../fixtures.js';
 import type {Page} from '@playwright/test';
 
 // Every tab of the app shows the same open projects. A change made in one tab — open, close,
 // edit — appears in every other tab, and a fresh tab opens on that same session.
 // bugs/archive/BUG_20260926_tabs-overwrite-each-others-open-projects.md
-
-interface StoreHandle { state: { P: { Vb: number } } }
-declare global {
-  interface Window { __store_context: StoreHandle }
-}
 
 const rowNames = (page: Page) =>
   page.locator('.project-row span').evaluateAll(els => els.map(e => e.textContent?.trim() ?? ''));
@@ -56,9 +51,9 @@ test('an edit made in one tab shows in the other', async ({ page, context }) => 
   await other.goto('/');
   await expect(other.locator('.project-row')).toHaveCount(1);
 
-  await other.evaluate(() => { window.__store_context.state.P.Vb = 0.0111111; });
+  await setFocusedBoxVolume(other, 0.0111111);
 
-  await expect.poll(() => page.evaluate(() => window.__store_context.state.P.Vb)).toBeCloseTo(0.0111111, 9);
+  await expect.poll(() => focusedBoxVolume(page)).toBeCloseTo(0.0111111, 9);
 });
 
 test('a fresh tab opens on the session every tab shares', async ({ page, context }) => {
@@ -71,7 +66,7 @@ test('a fresh tab opens on the session every tab shares', async ({ page, context
 
   // The FIRST tab edits last. Before the fix its write carried only its own one project, so a
   // fresh tab opened on one project instead of two.
-  await page.evaluate(() => { window.__store_context.state.P.Vb = 0.0222222; });
+  await setFocusedBoxVolume(page, 0.0222222);
 
   const third = await context.newPage();
   await third.goto('/');
@@ -103,7 +98,7 @@ test('the unsaved mark shows in the other tab when one tab edits a project', asy
   await expect(other.locator('.project-row')).toHaveCount(1);
   await expect(other.locator('.project-row')).not.toHaveClass(/is-unsaved/);
 
-  await page.evaluate(() => { window.__store_context.state.P.Vb = 0.0111111; });
+  await setFocusedBoxVolume(page, 0.0111111);
   await expect(page.locator('.project-row')).toHaveClass(/is-unsaved/);
 
   await expect(other.locator('.project-row')).toHaveClass(/is-unsaved/);
@@ -119,8 +114,8 @@ test('a Driver Editor left open in one tab still edits the project after the oth
   await other.locator('.edit-btn', { hasText: 'Edit' }).click();
   await expect(other.locator('.de-modal')).toBeVisible();
 
-  await page.evaluate(() => { window.__store_context.state.P.Vb = 0.0111111; });
-  await expect.poll(() => other.evaluate(() => window.__store_context.state.P.Vb)).toBeCloseTo(0.0111111, 9);
+  await setFocusedBoxVolume(page, 0.0111111);
+  await expect.poll(() => focusedBoxVolume(other)).toBeCloseTo(0.0111111, 9);
 
   await editorTab(other, 'General');
   await other.locator('.de-fld', { has: other.locator('label', { hasText: 'Model' }) }).locator('input').fill('Model 111111');
@@ -129,7 +124,7 @@ test('a Driver Editor left open in one tab still edits the project after the oth
 
   const model = (p: Page) => p.locator('.driver-id-row input').nth(1);
   await expect(model(other)).toHaveValue('Model 111111');
-  expect(await other.evaluate(() => window.__store_context.state.P.Vb)).toBeCloseTo(0.0111111, 9);
+  expect(await focusedBoxVolume(other)).toBeCloseTo(0.0111111, 9);
   await page.locator('.project-nav li', { hasText: 'Driver' }).click();
   await expect(model(page)).toHaveValue('Model 111111');
 });

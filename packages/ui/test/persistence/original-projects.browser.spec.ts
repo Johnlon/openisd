@@ -1,21 +1,6 @@
-import {expect, openAProject, test} from '../fixtures.js';
+import {expect, openAProject, setFocusedBoxVolume, test} from '../fixtures.js';
 import type {Page} from '@playwright/test';
 import {z} from 'zod';
-
-/** Make the focused project's design differ from its saved one: write its box volume through the
- *  app's own state module, which the dev server serves (no debug handle ships in the app). */
-async function editFocusedBoxVolume(page: Page, volume_m3: number): Promise<void> {
-  await page.evaluate(async ({path, v}) => {
-    type AppState = typeof import('../../src/logic/appState.js');
-    function isAppState(m: unknown): m is AppState {
-      return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
-    }
-    const m: unknown = await import(/* @vite-ignore */ path);
-    if (!isAppState(m)) throw new Error('appState module shape mismatch');
-    const box = m.requireFocusedProject().box;
-    box.volumeOf(box.boxType.value).set(v);
-  }, {path: '/src/logic/appState.ts', v: volume_m3});
-}
 
 test.beforeEach(async ({ page }) => {
   await page.goto('/');
@@ -54,7 +39,7 @@ test('every project row keeps its own show/hide state, including the active one'
   // An unrelated design edit must not resurrect any of them. The active row's checkbox
   // used to spring back here, because a second copy of "visible" was re-applied on every
   // store change.
-  await editFocusedBoxVolume(page, 0.042);
+  await setFocusedBoxVolume(page, 0.042);
   await expect.poll(async () => (await rowStates(page)).map(r => r.checked)).toEqual([false, false, false]);
 });
 
@@ -100,7 +85,7 @@ test('open projects are never written into the active design (nothing to leak in
 
 test('closing an unsaved project asks first, and offers all three outcomes by name', async ({ page }) => {
   await addCopies(page, 1);
-  await editFocusedBoxVolume(page, 0.037);  // make it unsaved
+  await setFocusedBoxVolume(page, 0.037);  // make it unsaved
 
   await page.locator('.proj-actions button:has-text("Close")').click();
   await expect(page.locator('.close-actions')).toBeVisible();
@@ -120,7 +105,7 @@ test('closing an unsaved project asks first, and offers all three outcomes by na
 test('the last project can be closed too — the app lands on an empty workspace', async ({ page }) => {
   // Dirty it first, so the challenge is CERTAIN to appear and the close path under test is the
   // same one every other close goes through.
-  await editFocusedBoxVolume(page, 0.037);
+  await setFocusedBoxVolume(page, 0.037);
 
   await page.locator('.proj-actions button:has-text("Close")').click();
   await expect(page.locator('.close-actions')).toBeVisible();
