@@ -1,7 +1,7 @@
 # `archive-bugs.py` reads a `# Status` header inside a code block as a real status header
 
 ## Status
-OPEN (re-verified 2026-09-26) — `scripts/archive-bugs.py` still reads Status lines inside code blocks.
+CLOSED 2026-10-03 — fixed: status_region_lines() skips fenced and indented-code lines; scripts/test_archive_bugs.py covers it (`python3 -m pytest scripts/test_archive_bugs.py`).
 
 ## Symptom
 
