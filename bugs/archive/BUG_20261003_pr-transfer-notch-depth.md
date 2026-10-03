@@ -17,3 +17,11 @@ Suspects, in order:
 3. Both OpenISD traces (w5 nd140, w5 nd140pr) overlap exactly — check the PR trace is actually the PR box.
 Next: dump OpenISD's PR + loss-mode + Ql/Qa settings and WinISD's PR pane + Advanced Ql/Qa for this project; run the
 engine at those inputs and compare to w.png.
+
+## RESOLVED 2026-10-03 — different inputs (harness), not an engine difference
+John: OpenISD was on winisd-lossy; Ql/Qa identical; Qms differed (3.3 in one app, 4.020 in the other); added mass 0 in both.
+After correcting Qms the charts are nearly identical. Cause: the two projects were not given the same PR Qms.
+Not a cause (retracted): the "no chart-resolution control" and "sampling artifact" hypothesis; my first misread of the o.png y-axis.
+Open side question, unproven: in-app PRs get Rms only from a .wpr import (winIsdProjectConverter.ts L446-L448); the wizard writes Qms but not Rms, so
+a wizard-built PR would sweep with Rap=0. Not the cause here; to be checked separately.
+Remaining: "nearly identical" — quantify the residual (peak/notch dB and Hz) once both apps hold the same Qms.
