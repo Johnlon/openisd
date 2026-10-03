@@ -1287,7 +1287,7 @@ input.value-n, .de-fld.value-n input, select.value-n { color: var(--mut); }
 /* Connection sits directly UNDER Voicecoils, not beside it: an explicit column-1 start pushes
    it past Voicecoils' own column-1 slot (already taken) into column 1 of the NEXT row. */
 .de-conn { grid-column: 1 / span 4 !important; }
-/* "Parallel"/"Series" plus the native select arrow do not fit the shared 75px input track —
+/* "Parallel"/"Series" plus the native select arrow do not fit the shared 90px input track —
    it read as "Paralle" with the last letter clipped. Widened just for this one field. */
 .de-conn-sel { width: 96px !important; }
 .de-fld label {
@@ -1306,7 +1306,7 @@ input.value-n, .de-fld.value-n input, select.value-n { color: var(--mut); }
 }
 .de-fld input,
 .de-fld select {
-  width: 75px !important;
+  width: 90px !important;
 }
 
 /* Column-flex (labels-above) override specifically for the General tab */
