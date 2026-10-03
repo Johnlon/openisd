@@ -50,3 +50,14 @@ const emit = defineEmits<{
     </template>
   </div>
 </template>
+
+<style scoped>
+.np-pr-step { margin-top: 10px; }
+.field-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
+.field { display: flex; align-items: center; gap: 6px; }
+.field label { color: #333; display: inline-block; min-width: 80px; }
+.field input { border: 1px solid #999; padding: 4px 6px; border-radius: 2px; background: #fff; width: 140px; }
+.field .unit { color: #555; }
+.edit-btn { border: 1px solid #999; background: #f0f0f0; color: #222; border-radius: 3px; padding: 4px 10px; cursor: pointer; font-size: 12px; }
+.edit-btn:hover { background: #dbeaff; border-color: #7fb3ff; }
+</style>

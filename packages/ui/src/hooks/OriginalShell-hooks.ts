@@ -45,7 +45,7 @@ import {
     clearVentField as clearVentFieldOn,
     enterVentField as enterVentFieldOn,
 } from '../logic/useVentGroup.js';
-import {createVentReadouts, FB_TARGET_TIP, VENT_GEOMETRY_TIP} from './ventReadouts.js';
+import {createVentReadouts, FB_TARGET_TIP, FH_TARGET_TIP, VENT_GEOMETRY_TIP} from './ventReadouts.js';
 import {formatDateStamp, parseDateStamp} from '../logic/dateDisplay.js';
 import {createPassiveRadiatorActions} from './passiveRadiatorActions.js';
 import {buildPlotData, TAB_META} from '../logic/series.js';
@@ -656,7 +656,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
      ventedAlignmentEditor, ventedAlignmentOpen, ventedAlignmentOptions, ventedAlignmentSelected,
      ventedAlignmentVolume_L, ventedAlignmentTuning_hz, ventedAlignmentEbp, ventedAlignmentSuitability,
      ventedAlignmentSuitabilityLabel,
-    fbState, FB_TARGET_TIP, VENT_GEOMETRY_TIP, fmtU, clearVentFieldOn, enterVentFieldOn,
+    fbState, FB_TARGET_TIP, FH_TARGET_TIP, VENT_GEOMETRY_TIP, fmtU, clearVentFieldOn, enterVentFieldOn,
     boxResonance, rearQtc, prSystemTuningDq,
     fbUnreachable, fbUnreachableMsg, boxLossesOpen, isDual,
     frontVolume_m3, setFrontVolume_m3, frcHz, setFrcHz, rearResonance, frontChamberTuningLabel,

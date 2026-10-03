@@ -25,7 +25,7 @@ const props = defineProps<{
 
 const currentToken = computed(() => {
   const d = props.field.display;
-  return props.field.unitTokenFor(presentationState.ui.unitTokens ?? {}) ?? (d.kind === 'switchable' ? unitToken(props.unitKey, d.group, d.base) : '');
+  return props.field.unitTokenFor(presentationState.ui.unitTokens ?? {}, props.unitKey) ?? (d.kind === 'switchable' ? unitToken(props.unitKey, d.group, d.base) : '');
 });
 const label = computed(() => props.field.unitLabel(currentToken.value));
 // A field with a `fixed` display, or a `switchable` one whose group has ONE unit (e.g. `percent`
