@@ -27,3 +27,16 @@ Why: this is what makes layers 2 and 3 of `tdd.md` possible — testing the hook
 mocked (layer 3) — without ever paying for a browser. A component that calls the domain directly,
 or reaches for a hook via import instead of injection, can only be tested at layer 4 (full
 browser) — slow, and the wrong layer for proving logic.
+
+## The UI does no maths, formatting or constants
+
+Pixel multiplication by canvas size and margins is all the UI computes. Axis mapping, ticks and grid,
+pan/zoom, cursor stepping, nearest-sample lookup, number formatting and physical constants live in
+`packages/design` (`chart/axis.ts` `FrequencyAxis`/`LevelAxis`, `fields/format.ts`,
+`fields/spinnerStep.ts`). A component gets the axis instance on `PlotData` (`freqAxis`, `levelAxis`)
+or from its hook, and calls its methods; `ui/` files import design values only from `fields`.
+
+`eslint.config.js` (`packages/ui/src` block) bans in the UI: `Math.log/log10/log2/exp/pow/sqrt/hypot/PI/sin/cos/tan/atan/atan2`,
+`.toFixed(`, and the literals 1.2041 and 343.2/343.235. `Math.min/max/abs/floor/round/ceil` stay allowed.
+Fix a violation by adding the method to design, never with an `eslint-disable`. The lint sees `<script>`
+blocks, not `<template>` expressions; keep templates free of them too.

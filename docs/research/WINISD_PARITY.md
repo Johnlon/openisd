@@ -1273,6 +1273,17 @@ Classic WinISD has a known UI calculation dependency bug where the calculated va
   - **Large Perturbation:** Change the volume/parameter to a vastly different value (e.g. `100` L), wait for recalculation, and change it back.
   - **Cut and Paste (Preferred):** Select all text in the edit field, Cut it (Ctrl+X), and Paste it (Ctrl+V). The deletion/re-insertion events trigger immediate VCL recalculation and refresh the display readouts instantly.
 
+### PR Sd typed in the UI is not linked to the model (probed 2026-10-03)
+
+A broken link, not a calculation difference. WinISD's Cone excursion (PR) uses Sd: a project loaded
+with Sd 0.019 draws a different chart from one loaded with 0.0095. But typing a new Sd into the
+Passive radiator pane changes nothing: no chart points recomputed, chart pixel-identical, also
+after a forced redraw (`winisd_research/runs/pr-sd-edit-1`, `-2`, `pr-sd-load-1`;
+`PROBE_FINDINGS.md`). OpenISD does not copy it: the Sd edit takes effect and PR excursion scales as
+1/Sd. Fs is linked: typing a new Fs changes both PR charts (`runs/pr-Fs-edit-1`). Vas and Qms were still
+being probed when this was written (`runs/pr-Vas-edit-1`, `runs/pr-Qms-edit-1`). Not yet probed: the
+cut-and-paste trigger above. Bug: [BUG_20261003_winisd-pr-sd-edit-ignored.md](../../bugs/BUG_20261003_winisd-pr-sd-edit-ignored.md?html).
+
 ## 19. WinISD parameter entry — community best practices (a second source)
 
 **Source:** mtg90 ("Matt") via AVS Forum

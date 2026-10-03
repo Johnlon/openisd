@@ -99,3 +99,10 @@ so on. The rename of older files is tracked in
 
 Guards: Playwright workers are memory-capped; `maxFailures` stops a collapsed run early; the
 no-skips reporter turns a skip into a failure; the json reporter records durations on every run.
+
+## Compatibility suite
+
+Rare, selective checks outside the pre-commit suite: OpenISD consistency (a value loaded from a
+`.wpr` vs entered by hand: `bash scripts/compat.sh --list`), WinISD consistency (the same two routes
+in the real WinISD under Wine), and OpenISD vs WinISD compat (parity register). See
+[`packages/design/compat/README.md`](packages/design/compat/README.md).

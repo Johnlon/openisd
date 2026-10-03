@@ -56,6 +56,26 @@ const typeAware = {
   },
 };
 
+// `no-restricted-syntax` is ONE rule: when several config blocks match a file, the LAST block's
+// selector list replaces every earlier one. So a file that several blocks match (a UI `.ts`
+// file matches the re-export, Filter and UI blocks) is governed by the last block alone, and that
+// block must spread in every selector list that should still apply.
+const NO_REEXPORT_SELECTORS = [
+  {
+    selector: 'ExportAllDeclaration',
+    message: 'No `export * from`: a module exports what it declares. Import from the declaring module.',
+  },
+  {
+    selector: 'ExportNamedDeclaration[source]',
+    message: 'No `export {x} from`: a module exports what it declares. Import from the declaring module.',
+  },
+];
+
+const FILTER_EXTRACT_SELECTORS = [{
+  selector: 'TSTypeReference[typeName.name="Extract"] > TSTypeParameterInstantiation > TSTypeReference:first-child[typeName.name="Filter"]',
+  message: 'A Filter variant already has a name in packages/design/engine/types.ts (PassFilter, ShelfFilter, …). Use it.',
+}];
+
 export default [
   // ── Ignore generated and dependency directories ──────────────────────────
   // dist-electron/ is the optional desktop shell's build output — same minified bundle as
@@ -146,6 +166,12 @@ export default [
   // computed is the module's whole job, so it cannot be written without naming the console.
   {
     files: ['packages/ui/src/diagnostics/faultLog.ts'],
+    rules: { 'no-console': 'off' },
+  },
+
+  // The compatibility suite is a command-line program: its report goes to stdout.
+  {
+    files: ['packages/design/compat/run.ts'],
     rules: { 'no-console': 'off' },
   },
   // The restore boundary reports a payload it refuses through `console.error`/`console.info`,
@@ -245,29 +271,6 @@ export default [
     },
   },
 
-  // ── A hook's interface is the panel's vocabulary, not a window onto the engine ─────────
-  // `updatePassFilter: Engine['updatePassFilter']` borrows an engine method's type into a hook's
-  // API, and `engine.updatePassFilter.bind(engine)` hands the method itself through. Both make
-  // the hook a proxy for the engine instead of a component that HOLDS it (John, 2026-09-28:
-  // "there is no need for the hooks to refer to the engine that way at all — define your own
-  // interface"). The engine is a constructor argument, kept private; each method says what the
-  // panel does and calls the engine inside.
-  {
-    files: ['packages/ui/src/**/*.{ts,vue}'],
-    rules: {
-      'no-restricted-syntax': ['error',
-        {
-          selector: 'TSIndexedAccessType > TSTypeReference[typeName.name="Engine"]',
-          message: "A hook declares its own method, in the panel's words, and calls the engine inside it. `Engine['x']` makes the hook a window onto the engine.",
-        },
-        {
-          selector: 'CallExpression[callee.property.name="bind"][arguments.0.name="engine"]',
-          message: 'Hand out a method of your own that calls the engine, not the engine\'s method itself.',
-        },
-      ],
-    },
-  },
-
   // ── No re-exports outside a package entry point ────────────────────────────────────────
   // QO86 (2026-08-23): "never a re-exported symbol"; John, 2026-09-28: "re-exporting generally
   // is an evil I'd like the linters to stop". A module exports what it declares. The barrels
@@ -276,16 +279,7 @@ export default [
     files: ['packages/**/*.ts'],
     ignores: ['**/index.ts'],
     rules: {
-      'no-restricted-syntax': ['error',
-        {
-          selector: 'ExportAllDeclaration',
-          message: 'No `export * from`: a module exports what it declares. Import from the declaring module.',
-        },
-        {
-          selector: 'ExportNamedDeclaration[source]',
-          message: 'No `export {x} from`: a module exports what it declares. Import from the declaring module.',
-        },
-      ],
+      'no-restricted-syntax': ['error', ...NO_REEXPORT_SELECTORS],
     },
   },
 
@@ -298,10 +292,50 @@ export default [
   {
     files: ['packages/**/*.{ts,vue}'],
     rules: {
-      'no-restricted-syntax': ['error', {
-        selector: 'TSTypeReference[typeName.name="Extract"] > TSTypeParameterInstantiation > TSTypeReference:first-child[typeName.name="Filter"]',
-        message: 'A Filter variant already has a name in packages/design/engine/types.ts (PassFilter, ShelfFilter, …). Use it.',
-      }],
+      'no-restricted-syntax': ['error', ...FILTER_EXTRACT_SELECTORS],
+    },
+  },
+
+  // ── UI: a hook is the panel's vocabulary; no maths, formatting or constants ────────────
+  // Placed after the blocks above so its selector list (which spreads theirs) is the one in force.
+  // A hook's interface is the panel's vocabulary, not a window onto the engine.
+  // `updatePassFilter: Engine['updatePassFilter']` borrows an engine method's type into a hook's
+  // API, and `engine.updatePassFilter.bind(engine)` hands the method itself through. Both make
+  // the hook a proxy for the engine instead of a component that HOLDS it (John, 2026-09-28:
+  // "there is no need for the hooks to refer to the engine that way at all — define your own
+  // interface"). The engine is a constructor argument, kept private; each method says what the
+  // panel does and calls the engine inside.
+  {
+    files: ['packages/ui/src/**/*.{ts,vue}'],
+    rules: {
+      'no-restricted-syntax': ['error',
+        ...NO_REEXPORT_SELECTORS,
+        ...FILTER_EXTRACT_SELECTORS,
+        {
+          selector: 'TSIndexedAccessType > TSTypeReference[typeName.name="Engine"]',
+          message: "A hook declares its own method, in the panel's words, and calls the engine inside it. `Engine['x']` makes the hook a window onto the engine.",
+        },
+        {
+          selector: 'CallExpression[callee.property.name="bind"][arguments.0.name="engine"]',
+          message: 'Hand out a method of your own that calls the engine, not the engine\'s method itself.',
+        },
+        // The UI is display-only: pixel multiplication by canvas size and margins, nothing else.
+        // Calculation, number formatting and physical constants live in packages/design
+        // (`@openisd/design/chart`, `@openisd/design/fields`). `Math.min/max/abs/floor/round/ceil`
+        // stay allowed for pixel clamping.
+        {
+          selector: 'MemberExpression[object.name="Math"][property.name=/^(log|log10|log2|exp|pow|sqrt|hypot|PI|sin|cos|tan|atan|atan2)$/]',
+          message: 'No maths in the UI. Add the calculation to packages/design (an axis, field or chart class) and call it.',
+        },
+        {
+          selector: 'CallExpression[callee.property.name="toFixed"]',
+          message: 'No number formatting in the UI. Use `@openisd/design/chart` format functions or a NumberField.',
+        },
+        {
+          selector: 'Literal[value=1.2041], Literal[value=343.235], Literal[value=343.2]',
+          message: 'Air density and speed of sound are design constants. Read them from packages/design.',
+        },
+      ],
     },
   },
 
