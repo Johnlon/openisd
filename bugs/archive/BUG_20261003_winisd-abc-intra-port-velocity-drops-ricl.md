@@ -14,7 +14,7 @@ Zi = Ricl ∥ jωMai. One formula, two answers inside WinISD.
    Intra port velocity chart matches WinISD to 1e-9.
 3. Untick it. The chart changes by: under 0.02 dB at 42 and 60 Hz, 0.38 dB at 100 Hz, 4.2 dB at
    5 kHz, 14.2 dB at 20 kHz.
-4. Set the inter-chamber leak Qiclfr very large: both settings agree to 1e-9.
+4. Set the inter-chamber leak Qiclfr very large (capture `abc-w5-qicl1e6`, Qiclfr 1e6): the switch on matches WinISD at 1e-9, the switch off at 3.3e-6, and the gap between off and on shrinks as 1/Qiclfr (`packages/design/test/engine/abc-large-qiclfr-winisd.test.ts`).
 
 ## Fix
 `engine/boxes/AbcBox.ts`: UPi divides by Zi + Zf, the same Zi the load uses; the switch
@@ -25,7 +25,4 @@ Zi = Ricl ∥ jωMai. One formula, two answers inside WinISD.
 [ACCURACY_IMPROVEMENTS.md](../docs/research/ACCURACY_IMPROVEMENTS.md?html).
 
 ## Open
-A WinISD-only recipe a user can run to see the contradiction inside WinISD, and the WinISD capture at
-a very large Qiclfr, are not done.
-
-## Done
+A WinISD-only recipe a user can run to see the contradiction inside WinISD is not done. The WinISD capture at a very large Qiclfr is done (2026-10-03, `winisd_research/runs/abc-w5-qicl1e6`).

@@ -28,6 +28,7 @@ class MutableSettings implements AppSettings {
   constructor(private band: VentedDesignLimits) {}
   ventedLimits(): VentedDesignLimits { return this.band; }
   envDefaults(): EnvDefaults { return DEFAULT_ENV_DEFAULTS; }
+  prAddedMassAlert(): boolean { return true; }
   set(band: VentedDesignLimits): void { this.band = band; }
 }
 
@@ -64,7 +65,7 @@ function ventedProject(engine: Engine, Vb: number, Fb: number): OpenISDProject {
 }
 
 const engineWith = (band: VentedDesignLimits): Engine =>
-  createEngine({ventedLimits: () => band, envDefaults: () => DEFAULT_ENV_DEFAULTS});
+  createEngine({ventedLimits: () => band, envDefaults: () => DEFAULT_ENV_DEFAULTS, prAddedMassAlert: () => true});
 
 describe('vented project cells — plausibility marks', () => {
   it('leaves a buildable design unmarked', () => {

@@ -116,6 +116,7 @@ describe('Phase 1: Environmental Axioms (Tasks 26-33)', () => {
     const project = ProjectBuilder.empty(createEngine({
       ventedLimits: () => DEFAULT_VENTED_DESIGN_LIMITS,
       envDefaults: () => defaults,
+      prAddedMassAlert: () => true,
     }));
     expect(project.envTempK.value).toBe(293.15);
     project.envHumidityPct.set(42);
