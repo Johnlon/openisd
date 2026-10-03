@@ -2,8 +2,10 @@ import type {InjectionKey, Ref} from 'vue';
 import {computed, ref, watch} from 'vue';
 import {allIssues, curvesData, driverName, maxData, openProjects, projectChanged, syncedP} from '../logic/appState.js';
 import {useFocusedProject} from '../logic/focusedProjectContext.js';
-import {buildPlotData, type ChartEngineAreas, DPAL, TAB_META} from '../logic/series.js';
-import type {Design, PlotData} from '../types.js';
+import {
+  buildPlotData, type ChartEngineAreas, type Design, DPAL, FrequencyAxis, type PlotData, rangeStatsOf, type RangeStats,
+  type SnapDirection, type SnapExtremum, snapFrequency, TAB_META,
+} from '@openisd/design/chart';
 import type {ChartId, DriverError} from '@openisd/design/engine';
 
 export interface GraphPanelProps {
@@ -23,6 +25,12 @@ export interface GraphPanelAPI {
   readonly warningsDismissed: Readonly<Ref<boolean>>;
 
   dismissWarnings(): void;
+  /** The frequency axis as the sweep range sets it now — the starting point of an axis drag. */
+  frequencyAxis(): FrequencyAxis;
+  /** Ripple, peak and trough of this chart's trace between two frequencies; null with no trace. */
+  rangeStats(fLo: number, fHi: number): RangeStats | null;
+  /** The peak or trough of this chart's trace nearest `f` on one side; null when none. */
+  snapFrequency(f: number | null, direction: SnapDirection, extremum: SnapExtremum): number | null;
 }
 
 export const GraphPanelKey: InjectionKey<GraphPanelAPI> = Symbol('GraphPanelAPI');
@@ -79,6 +87,20 @@ export function useGraphPanel(props: GraphPanelProps, chartEngine: ChartEngineAr
     warningsDismissed.value = true;
   }
 
+  function frequencyAxis(): FrequencyAxis {
+    return new FrequencyAxis(syncedP.value.fmin, syncedP.value.fmax);
+  }
+
+  function rangeStats(fLo: number, fHi: number): RangeStats | null {
+    const s = plotData.value?.series.find(x => !x.dash && !x.phantom);
+    return s ? rangeStatsOf(s, fLo, fHi) : null;
+  }
+
+  function snapFrequencyOnTrace(f: number | null, direction: SnapDirection, extremum: SnapExtremum): number | null {
+    const s = plotData.value?.series.find(x => !x.dash);
+    return s ? snapFrequency(s.xs, s.ys, f, direction, extremum) : null;
+  }
+
   return {
     meta,
     currentDesign,
@@ -88,6 +110,9 @@ export function useGraphPanel(props: GraphPanelProps, chartEngine: ChartEngineAr
     warnings,
     warningsDismissed,
     dismissWarnings,
+    frequencyAxis,
+    rangeStats,
+    snapFrequency: snapFrequencyOnTrace,
   };
 }
 
@@ -114,6 +139,9 @@ export function createMockGraphPanelAPI(overrides?: Partial<GraphPanelAPI>): Gra
     dismissWarnings: () => {
       warningsDismissed.value = true;
     },
+    frequencyAxis: () => new FrequencyAxis(10, 1000),
+    rangeStats: () => null,
+    snapFrequency: () => null,
     ...overrides,
   };
 }

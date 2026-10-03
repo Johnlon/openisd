@@ -5,6 +5,7 @@
  * tuning/added-mass the project has not entered.
  */
 import type {Air} from '../air.js';
+import type {DriverEngine} from '../driver/DriverEngine.js';
 import {solveEnvironment} from '../air.js';
 import type {PrParams} from '../types.js';
 import type {PrSolverParams} from '../solverTypes.js';
@@ -13,6 +14,18 @@ import type {CalculationIssue, TargetUnreachableIssue} from '../consistency.js';
 
 export type PrQuantityName = keyof PrSolverParams;
 export type PrIssue = CalculationIssue<PrQuantityName> | TargetUnreachableIssue;
+
+/** A radiator's stated figures: the WinISD set (Fs, Qms, Vas, Sd) and the mechanical set
+ *  (Mms, Cms, Rms) a record may also carry. */
+export interface PrSpecValues {
+  readonly Fs_hz: number | null;
+  readonly Qms: number | null;
+  readonly Vas_m3: number | null;
+  readonly Sd_m2: number | null;
+  readonly Mms_kg: number | null;
+  readonly Cms_m_per_N: number | null;
+  readonly Rms_kg_per_s: number | null;
+}
 
 /** `air` where taken is the PROJECT's own resolved `{ rho, c }` — see `vent/VentEngine.ts`.
  *  `vas`/`cmsFromVas` take none: no environment reaches their call sites, so ρ/c are the
@@ -39,6 +52,10 @@ export interface PrEngine {
   qms(prMmd: number, prCms: number, prRms: number): number;
   /** Mechanical resistance from Qms — the inverse of `qms`. 0 when Qms ≤ 0. */
   rmsFromQms(prQmsValue: number, prMmd: number, prCms: number): number;
+  /** The radiator's seven stated figures run through the driver's consistency relations, in
+   *  the project's `air`: every figure derivable from the stated ones comes back with them, a
+   *  stated one unchanged, an underivable one null. Pass only what was entered. */
+  solveSpec(stated: PrSpecValues, air: Air): PrSpecValues;
   /** The PR handle solve (T10/T11): derive whichever of `tuning_goal_hz`/`addedMass_kg` is not
    *  entered plus `resonanceWithAddedMass_hz`/`systemTuning_hz`, write each onto its
    *  `SolverField` via `setCalculated`, and return the issues the stated values carry. An
@@ -51,6 +68,8 @@ export interface PrEngine {
 const PR_GEOMETRY: readonly PrQuantityName[] = Object.freeze(['Vb_m3', 'prMmd_kg', 'prSd_m2', 'prCms_m_per_N']);
 
 export class PrEngineImpl implements PrEngine {
+  constructor(private readonly driver: DriverEngine) {}
+
   tuning(p: PrParams, air: Air): number {
     const Cab  = p.Vb / (air.rho * air.c * air.c);
     const Map  = (p.prMmd + p.prMadd) / (p.prSd * p.prSd);
@@ -93,6 +112,20 @@ export class PrEngineImpl implements PrEngine {
 
   rmsFromQms(prQmsValue: number, prMmd: number, prCms: number): number {
     return prQmsValue > 0 ? Math.sqrt(prMmd / prCms) / prQmsValue : 0;
+  }
+
+  solveSpec(stated: PrSpecValues, air: Air): PrSpecValues {
+    const orUndefined = (x: number | null): number | undefined => x ?? undefined;
+    const solved = this.driver.solveValues({
+      Fs_hz: orUndefined(stated.Fs_hz), Qms: orUndefined(stated.Qms), Vas_m3: orUndefined(stated.Vas_m3),
+      Sd_m2: orUndefined(stated.Sd_m2), Mms_kg: orUndefined(stated.Mms_kg),
+      Cms_m_per_N: orUndefined(stated.Cms_m_per_N), Rms_kg_per_s: orUndefined(stated.Rms_kg_per_s),
+      c_m_per_s: air.c, roo_kg_per_m3: air.rho,
+    });
+    return {
+      Fs_hz: solved.Fs_hz ?? null, Qms: solved.Qms ?? null, Vas_m3: solved.Vas_m3 ?? null, Sd_m2: solved.Sd_m2 ?? null,
+      Mms_kg: solved.Mms_kg ?? null, Cms_m_per_N: solved.Cms_m_per_N ?? null, Rms_kg_per_s: solved.Rms_kg_per_s ?? null,
+    };
   }
 
   solve(params: PrSolverParams, air: Air): PrIssue[] {

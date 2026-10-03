@@ -7,7 +7,7 @@ import type {ComputedRef, Ref} from 'vue';
 import {computed} from 'vue';
 import type {OpenISDProject} from '@openisd/design';
 import type {BoxEngine, ChartId} from '@openisd/design/engine';
-import {CHART_LABELS} from '../logic/series.js';
+import {CHART_LABELS} from '@openisd/design/chart';
 
 // A separator goes before the first item of each of WinISD's own visual groupings — never
 // before a group that this box has nothing in (Port/PR are absent from most boxes).

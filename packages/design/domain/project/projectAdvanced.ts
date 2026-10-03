@@ -99,6 +99,29 @@ export class ProjectAdvanced {
         };
     }
 
+    /** WinISD Compatibility "WinISD ABC intra-port velocity": the ABC intra-chamber port velocity
+     *  chart as WinISD draws it, V/(jωMai + Zf) with Ricl left out of the divider (its own box load
+     *  and every other ABC chart keep Ricl). Off: V/(Zi + Zf), the flow through the intra port.
+     *  Off where a project does not say. */
+    get winisdAbcIntraPortVelocity(): SimpleField<boolean> {
+        const lens = focus(this.#advanced, 'winisdAbcIntraPortVelocity');
+        return {
+            get value() { return lens.value ?? false; },
+            set: (on: boolean) => lens.set(on),
+        };
+    }
+
+    /** WinISD Compatibility "PR Npr resonance": the passive-radiator box's fixed leak and absorption
+     *  losses taken at WinISD's ωr = 1/√(Npr·Map·(Cab ∥ Npr·Cap)), Npr times below the tuning. Off:
+     *  the physical tuning. Off where a project does not say; no effect at Npr = 1. */
+    get winisdPrNprResonance(): SimpleField<boolean> {
+        const lens = focus(this.#advanced, 'winisdPrNprResonance');
+        return {
+            get value() { return lens.value ?? false; },
+            set: (on: boolean) => lens.set(on),
+        };
+    }
+
     /** WinISD Compatibility "WinISD phase wrapping": wraps phase curves to [-180°, +180°] (default).
      *  Off: continuous unwrapped phase. On where a project does not say. */
     get winisdWrapPhase(): SimpleField<boolean> {

@@ -10,7 +10,7 @@ import {
   type GraphPanelAPI,
   type GraphPanelProps,
 } from '../../src/hooks/GraphPanel-hooks.js';
-import {DPAL, TAB_META} from '../../src/logic/series.js';
+import {DPAL, TAB_META} from '@openisd/design/chart';
 
 function createTestProject(): OpenISDProject {
   const engine = createEngine();

@@ -17,6 +17,10 @@
       "types": "./filter/index.ts",
       "default": "./filter/index.ts"
     },
+    "./chart": {
+      "types": "./chart/index.ts",
+      "default": "./chart/index.ts"
+    },
     "./fields": {
       "types": "./fields/index.ts",
       "default": "./fields/index.ts"

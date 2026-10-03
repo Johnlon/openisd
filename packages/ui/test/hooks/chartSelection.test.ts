@@ -3,7 +3,7 @@ import {ref} from 'vue';
 import {createEngine} from '@openisd/design/engine';
 import {OpenISDProject, ProjectBuilder} from '@openisd/design';
 import {ChartSelection} from '../../src/hooks/chartSelection.js';
-import {CHART_LABELS} from '../../src/logic/series.js';
+import {CHART_LABELS} from '@openisd/design/chart';
 
 function createCompleteProject() {
   const engine = createEngine();

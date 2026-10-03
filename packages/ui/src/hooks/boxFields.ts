@@ -67,20 +67,7 @@ export function createSealedReadouts({ project, selectedBox, projectChanged: cha
   const prNaturalFh = computed<number | null>(() => {
     void changed.value; void project.value;
     if (selectedBox.value !== 'box-passive-radiator') return null;
-    const pr = project.value.box.passiveRadiator;
-    if (!pr) return null;
-    const Vb = pr.volume_m3?.value;
-    const prMmd = pr.radiator?.spec?.Mms_kg?.value;
-    const prSd = pr.radiator?.spec?.Sd_m2?.value;
-    const prCms = pr.radiator?.spec?.Cms_m_per_N?.value;
-    const prNum = pr.count?.value;
-    if (Vb == null || prMmd == null || prSd == null || prCms == null || prNum == null || !(Vb > 0) || !(prMmd > 0) || !(prSd > 0) || !(prCms > 0) || !(prNum > 0)) return null;
-    const Cap = prNum * prCms * prSd * prSd;
-    const rho = 1.2041, c = 343.235;
-    const Cab = Vb / (rho * c * c);
-    const Cpar = (Cab * Cap) / (Cab + Cap);
-    const Map = prMmd / (prSd * prSd);
-    return 1 / (2 * Math.PI * Math.sqrt((Map / prNum) * Cpar));
+    return project.value.box.passiveRadiator.naturalTuning_hz.value;
   });
 
   const boxResonance = computed<number | null>(() => {

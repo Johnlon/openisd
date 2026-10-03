@@ -23,8 +23,7 @@ import {ProjectBuilder} from '@openisd/design';
 import {createEngine} from '@openisd/design/engine';
 
 const engine = createEngine();
-import {parseChartId, seriesFor, TAB_META, TABS} from '../../src/logic/series.js';
-import type {PlotParams} from '../../src/types.js';
+import {parseChartId, type PlotParams, seriesFor, TAB_META, TABS} from '@openisd/design/chart';
 
 const RAW: Record<string, number> = {
   Fs: 37, Qts: 0.378, Qes: 0.40, Qms: 7.0, Vas: 0.0300,

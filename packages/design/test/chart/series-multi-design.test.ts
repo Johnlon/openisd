@@ -10,8 +10,7 @@ import {createEngine} from '@openisd/design/engine';
 const engine = createEngine();
 import type {SweepDriver, SweepParams} from '@openisd/design/engine';
 import {ProjectBuilder} from '@openisd/design';
-import {buildPlotData} from '../../src/logic/series.js';
-import type {Design, PlotParams} from '../../src/types.js';
+import {buildPlotData, type Design, type PlotParams} from '@openisd/design/chart';
 
 const RAW: Record<string, number> = {
   Fs: 37, Qts: 0.378, Qes: 0.40, Qms: 7.0, Vas: 0.0300,
@@ -36,6 +35,21 @@ const MX = engine.simulation.maxCurves(DRV, LE_H, 'sealed', SP).values!;
 function design(name: string, color: string, sortIndex?: number): Design {
   return { driver: DRV, box: 'sealed', P: PP, curves: SW, maxCurves: MX, name, color, sortIndex };
 }
+
+describe('buildPlotData — the axes it draws on', () => {
+  it('carries a frequency axis over the sweep range and a level axis over the merged value range', () => {
+    const one = buildPlotData(engine, 'Zmag', 10, 2000, design('a', '#4fb0ff'), []).value!;
+    assert.deepEqual([one.freqAxis.fmin, one.freqAxis.fmax], [10, 2000]);
+    assert.deepEqual([one.levelAxis.min, one.levelAxis.max, one.levelAxis.logy], [one.ymin, one.ymax, one.logy]);
+    const two = buildPlotData(engine, 'Zmag', 10, 2000, design('a', '#4fb0ff'), [design('b', '#ffb454')]).value!;
+    assert.deepEqual([two.levelAxis.min, two.levelAxis.max], [two.ymin, two.ymax]);
+  });
+
+  it('a zero sweep range falls back to 10 … 1000 Hz', () => {
+    const out = buildPlotData(engine, 'Zmag', 0, 0, design('a', '#4fb0ff'), []).value!;
+    assert.deepEqual([out.freqAxis.fmin, out.freqAxis.fmax], [10, 1000]);
+  });
+});
 
 describe('buildPlotData — comparing two or more designs', () => {
   it('names the focused design\'s legend entry after the project, not the literal "Current"', () => {

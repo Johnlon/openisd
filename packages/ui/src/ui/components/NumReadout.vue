@@ -11,7 +11,7 @@
 // — this is its read-only twin, not a second implementation.
 import {computed} from 'vue';
 import {unitToken, presentationState} from '../../logic/presentationState.js';
-import type {NumberField} from '@openisd/design/fields';
+import {formatFixed, type NumberField} from '@openisd/design/fields';
 
 const props = withDefaults(defineProps<{
   /** The value in SI — same convention as NumInput's modelValue. */
@@ -58,7 +58,7 @@ const text = computed(() => {
     return props.field.format(si, props.halfWidth, activeToken.value);
   }
   const minDp = props.precision ?? 2;
-  return si.toFixed(minDp);
+  return formatFixed(si, minDp);
 });
 </script>
 

@@ -57,3 +57,6 @@ export {
 
 /** The sealed-box loss model — a field's closed value set. */
 export { type LossModeValue, LossMode } from './lossMode.js';
+
+export { formatFixed, formatFixedOrDash } from './format.js';
+export { spinnerStep } from './spinnerStep.js';

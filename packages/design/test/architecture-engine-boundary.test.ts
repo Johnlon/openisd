@@ -118,12 +118,14 @@ describe('the engine is reachable only through its door', () => {
 
   it('the engine is constructed in a composition root, nowhere else', () => {
     // One `createEngine(` per process: the app's (`appState.ts`), the sweep worker's
-    // (`sweepWorker.ts`) and the Python bridge's (`winisd/bridge.ts`). The worker is a second
+    // (`sweepWorker.ts`), the Python bridge's (`winisd/bridge.ts`) and the compatibility suite
+    // runner's (`compat/run.ts`, its own command-line process). The worker is a second
     // composition root because it is a second thread, not a loophole. Anything else building its own engine is a component that should
     // have been handed one (John, 2026-09-28: "composition in one place"). Tests build what
     // they need.
     const roots = new Set([
       'packages/ui/src/logic/appState.ts', 'packages/ui/src/logic/sweepWorker.ts', 'packages/design/winisd/bridge.ts',
+      'packages/design/compat/run.ts',
     ]);
     // The factory's own definition is not a construction site.
     roots.add('packages/design/engine/Engine.ts');

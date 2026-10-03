@@ -14,6 +14,8 @@ import { OpenISDDriver } from '../driver/openISDDriver.js';
 import { OpenISDDriverEmbedded } from '../driver/openISDDriverEmbedded.js';
 import type { DiscardChallenge } from './discardChallenge.js';
 import type { DragRange } from './dragRange.js';
+import { errorSwitchStatesOf } from './errorSwitches.js';
+import type { ErrorSwitchStates } from './errorSwitches.js';
 import { ProjectAdvanced } from './projectAdvanced.js';
 import { ProjectChartsView, type OpenCharts } from './projectChartsView.js';
 import { ProjectEnvironment, envFieldsOver } from './projectEnvironment.js';
@@ -324,6 +326,28 @@ export class OpenISDProject {
         return ProjectAdvanced.wrap(this.#slot('advanced'), this.#slot('filters')).winisdDriverCountModel;
     }
 
+    /** WinISD Compatibility "WinISD ABC intra-port velocity" — see `ProjectAdvanced.winisdAbcIntraPortVelocity`. */
+    get winisdAbcIntraPortVelocity(): SimpleField<boolean> {
+        return ProjectAdvanced.wrap(this.#slot('advanced'), this.#slot('filters')).winisdAbcIntraPortVelocity;
+    }
+
+    /** WinISD Compatibility "PR Npr resonance" — see `ProjectAdvanced.winisdPrNprResonance`. */
+    get winisdPrNprResonance(): SimpleField<boolean> {
+        return ProjectAdvanced.wrap(this.#slot('advanced'), this.#slot('filters')).winisdPrNprResonance;
+    }
+
+    /** The controls that reproduce a known WinISD error: which carry the warning look, whether each
+     *  applies to the open box, and whether it is reproducing the error now. */
+    get errorSwitches(): ErrorSwitchStates {
+        return errorSwitchStatesOf({
+            boxType: this.box.boxType.value,
+            winisdDriverModel: this.winisdDriverModel.value,
+            winisdVaModel: this.winisdVaModel.value,
+            winisdAbcIntraPortVelocity: this.winisdAbcIntraPortVelocity.value,
+            winisdPrNprResonance: this.winisdPrNprResonance.value,
+        });
+    }
+
     /** WinISD Compatibility "WinISD flat response" — see `ProjectAdvanced.winisdFlatModel`. */
     get winisdFlatModel(): SimpleField<boolean> {
         return ProjectAdvanced.wrap(this.#slot('advanced'), this.#slot('filters')).winisdFlatModel;
@@ -339,12 +363,14 @@ export class OpenISDProject {
         this.winisdWrapPhase.set(true);
         this.winisdDriverCountModel.set(true);
         this.winisdFlatModel.set(true);
+        this.winisdAbcIntraPortVelocity.set(true);
+        this.winisdPrNprResonance.set(true);
     }
 
     /** Which charts are open (S10/QO130) — PROJECT-scoped, reversing QO90 for this field.
      *  Empty when absent (a project saved before S10, or a fresh one). Plain strings, not
      *  `ChartId`: this is PERSISTED project data (`.owpr`), so it must stay readable across a
-     *  version skew that adds/removes chart ids — `parseChartId` (packages/ui `logic/series.ts`)
+     *  version skew that adds/removes chart ids — `parseChartId` (`chart/series.ts`)
      *  does the string↔member conversion at the UI boundary. */
     get graphs(): SimpleField<readonly string[]> {
         return new ProjectChartsView(this.#slot('charts'), this.#engine.box, () => this.box.boxType.value).graphs;
@@ -729,6 +755,8 @@ export class OpenISDProject {
             winisdWrapPhase: this.winisdWrapPhase,
             winisdDriverCountModel: this.winisdDriverCountModel,
             winisdFlatModel: this.winisdFlatModel,
+            winisdAbcIntraPortVelocity: this.winisdAbcIntraPortVelocity,
+            winisdPrNprResonance: this.winisdPrNprResonance,
             lossMode: this.lossMode,
             rgAtDriverSide: this.rgAtDriverSide,
             useTransmissionLinePortModel: this.useTransmissionLinePortModel,

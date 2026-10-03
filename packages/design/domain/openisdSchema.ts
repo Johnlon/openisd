@@ -737,6 +737,12 @@ const openISDAdvancedJsonSchema = z.preprocess(renameLegacyWinisdDriverModel, z.
     // "WinISD VA model": the amplifier apparent load power chart as WinISD computes it,
     // P·Re·|Hf|²/|Z + Rg|. Optional: absent parses to ON, WinISD's own behaviour.
     winisdVaModel: z.boolean().optional(),
+    // "WinISD ABC intra-port velocity": the ABC intra-port velocity chart as WinISD draws it, Ricl
+    // left out of the divider. Optional: absent parses to OFF, the correct flow through the port.
+    winisdAbcIntraPortVelocity: z.boolean().optional(),
+    // "PR Npr resonance": the passive-radiator box's fixed-loss frequency as WinISD computes it,
+    // Npr times below the tuning. Optional: absent parses to OFF, the physical tuning.
+    winisdPrNprResonance: z.boolean().optional(),
     // "WinISD phase wrapping": wraps phase curves to [-180°, +180°]. Optional: absent parses to ON.
     winisdWrapPhase: z.boolean().optional(),
     // "WinISD driver count": N drivers as WinISD simulates them, each in Vb/N fed P/N; off, the N

@@ -53,16 +53,16 @@ export class PassiveRadiatorBox implements BoxModel {
         // radiator's own loss Rap above already carries it, as ωp·Map_free/Qms per radiator,
         // WITHOUT Me — verified for Me ≠ 0 and n_pr > 1, GHIDRA_FINDINGS.md same section).
         //
-        // ωr is WinISD's OWN fixed-loss frequency, `1/√(Npr·Map·(Cab ∥ Npr·Cap))`
-        // (winisd_research/GHIDRA_FINDINGS.md "4th-order bandpass" § "Added mass and radiator
-        // count" — WinISD's calc bug: the branch mass is multiplied by Npr where the true tuning
-        // divides by it, so this ωr is Npr times too low; invisible at Npr = 1, where it equals
-        // the domain's own `systemTuning_hz`). Reproduced here deliberately, matching WinISD's
-        // own bug rather than the physical tuning — never derived from `P.Fr` (the domain's
-        // `systemTuning_hz`, a separate, correctly-computed reading; BUG_20260928_pr-added-mass-or-
-        // count-not-winisd.md), which stays untouched and unused in this branch.
+        // ωr: with `winisdPrNprResonance` on, WinISD's OWN fixed-loss frequency,
+        // `1/√(Npr·Map·(Cab ∥ Npr·Cap))` (winisd_research/GHIDRA_FINDINGS.md "4th-order bandpass"
+        // § "Added mass and radiator count" — WinISD's calc bug: the branch mass is multiplied by
+        // Npr where the true tuning divides by it, so this ωr is Npr times too low; invisible at
+        // Npr = 1). Off (the default), the physical tuning `1/√((Map/Npr)·(Cab ∥ Npr·Cap))`, which
+        // is Npr times higher. Never derived from `P.Fr` (the domain's `systemTuning_hz`, a
+        // separate reading; BUG_20260928_pr-added-mass-or-count-not-winisd.md).
         const CabParNCap = (Cab * n_pr * Cap) / (Cab + n_pr * Cap);
-        const wr = 1 / Math.sqrt(n_pr * Map * CabParNCap);
+        const wrWinisd = 1 / Math.sqrt(n_pr * Map * CabParNCap);
+        const wr = P.winisdPrNprResonance === true ? wrWinisd : n_pr * wrWinisd;
         const RalConst = cx(Ql * wr * Map, 0);
         const RaaSeries = cx(wr * Map / Qa, 0);
         const CabBranch = cAdd(RaaSeries, Zc);

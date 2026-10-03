@@ -1,65 +1,5 @@
-import type {DragRange, Geo, PlotData} from '../types.js';
-
-export const fmtF   = (f: number): string => f >= 1000 ? (f/1000).toFixed(f < 10000 ? 2 : 1) + 'k' : f.toFixed(0);
-export const fmtY   = (v: number): string => { const a = Math.abs(v); if (a >= 1000) return (v/1000).toFixed(1)+'k'; if (a >= 10) return v.toFixed(0); if (a >= 1) return v.toFixed(1); return v.toFixed(2); };
-export const fmtVal = (v: number, u: string): string => { if (!isFinite(v)) return '—'; const a = Math.abs(v); return v.toFixed(a >= 100 ? 0 : a >= 10 ? 1 : 2) + ' ' + u; };
-
-// Nearest sample index to frequency f in a log-spaced xs grid.
-function nearestIdx(xs: number[], f: number): number {
-  let bi = 0, bd = Infinity;
-  for (let i = 0; i < xs.length; i++) {
-    const dd = Math.abs(Math.log10(xs[i]) - Math.log10(f));
-    if (dd < bd) { bd = dd; bi = i; }
-  }
-  return bi;
-}
-
-// Nearest sample index to f, or null when f falls outside the series' own plotted range.
-// The chart axis (presentationState.sweepRange) updates on every drag pixel while the throttled
-// sweep it's drawn from lags a step behind, so the cursor can sit left of xs[0] for the
-// ~32ms until the next resweep lands. Snapping to xs[0] there would paint a value at a
-// frequency the curve hasn't reached yet — QO: "Max power chart, missing below 10Hz but
-// cursor still shows a value".
-export function crosshairIndex(xs: number[], f: number): number | null {
-  if (xs.length === 0 || f < xs[0] || f > xs[xs.length - 1]) return null;
-  return nearestIdx(xs, f);
-}
-
-/** A linear axis's ticks: `step` apart, on multiples of `step`; `mag` is the step's decade. */
-export interface LinearTicks {
-  readonly ticks: number[];
-  readonly step: number;
-  readonly mag: number;
-}
-
-const MAX_TICKS = 1000;
-
-/** Round ticks for `ymin … ymax` on a plot `ph` px tall, about one per 40 px. Counted, not stepped
- *  to an end margin, so any finite range terminates; a zero, reversed or non-finite range has
- *  none. */
-export function linearTicks(ymin: number, ymax: number, ph: number): LinearTicks {
-  const none: LinearTicks = { ticks: [], step: 1, mag: 1 };
-  const span = ymax - ymin;
-  if (!Number.isFinite(span) || !(span > 0)) return none;
-  const step0 = span / Math.max(4, Math.round(ph / 40));
-  const mag = Math.pow(10, Math.floor(Math.log10(step0)));
-  const norm = step0 / mag;
-  const step = (norm < 1.5 ? 1 : norm < 3 ? 2 : norm < 7 ? 5 : 10) * mag;
-  if (!Number.isFinite(step) || !(step > 0)) return none;
-  const k0 = Math.ceil(ymin / step - 1e-9);
-  const count = Math.floor(ymax / step + 1e-9) - k0;
-  if (!(count >= 0) || count > MAX_TICKS) return none;
-  const ticks: number[] = [];
-  for (let i = 0; i <= count; i++) ticks.push(+((k0 + i) * step).toPrecision(12));
-  return { ticks, step, mag };
-}
-
-export function logTicks(min: number, max: number): number[] {
-  const t: number[] = [];
-  for (let d = Math.floor(Math.log10(min)); d <= Math.ceil(Math.log10(max)); d++)
-    for (const mul of [1, 2, 5]) { const v = mul * Math.pow(10, d); if (v >= min && v <= max) t.push(v); }
-  return t;
-}
+import type {PlotData} from '@openisd/design/chart';
+import type {DragRange, Geo} from '../types.js';
 
 // Returns geo so the caller can map pixel → frequency for crosshair.
 export function drawOne(
@@ -105,45 +45,24 @@ export function drawOne(
 
   const m = { l:44, r:10, t:18, b:20 };
   const pw = W - m.l - m.r, ph = H - m.t - m.b;
-  const f0 = plotData.fmin || 10, f1 = plotData.fmax || 1000;
-  const lx0 = Math.log10(f0), lx1 = Math.log10(f1);
-  const { ymin, ymax, logy } = plotData;
-  const ly0 = logy ? Math.log10(ymin) : ymin, ly1 = logy ? Math.log10(ymax) : ymax;
-  const X = (f: number) => m.l + (Math.log10(f) - lx0) / (lx1 - lx0) * pw;
-  const Y = (v: number) => { const vv = logy ? Math.log10(v) : v; return m.t + (1 - (vv - ly0) / (ly1 - ly0)) * ph; };
+  const { freqAxis, levelAxis } = plotData;
+  const X = (f: number) => m.l + freqAxis.fraction(f) * pw;
+  const Y = (v: number) => m.t + (1 - levelAxis.fraction(v)) * ph;
 
   // frequency grid
   ctx.strokeStyle = COL.grid; ctx.fillStyle = COL.text; ctx.font = '9px Inter'; ctx.lineWidth = 1;
-  for (let dec = Math.floor(lx0); dec <= Math.ceil(lx1); dec++)
-    for (const mul of [1,2,3,4,5,6,7,8,9]) {
-      const f = mul * Math.pow(10, dec); if (f < f0 || f > f1) continue;
-      const x = X(f); ctx.globalAlpha = mul === 1 ? 0.85 : 0.28;
-      ctx.beginPath(); ctx.moveTo(x, m.t); ctx.lineTo(x, m.t + ph); ctx.stroke();
-      if (mul === 1 || mul === 2 || mul === 5) { ctx.globalAlpha = 1; ctx.textAlign = 'center'; ctx.fillText(fmtF(f), x, m.t + ph + 11); }
-    }
+  for (const line of freqAxis.gridLines()) {
+    const x = X(line.f); ctx.globalAlpha = line.major ? 0.85 : 0.28;
+    ctx.beginPath(); ctx.moveTo(x, m.t); ctx.lineTo(x, m.t + ph); ctx.stroke();
+    if (line.labelled) { ctx.globalAlpha = 1; ctx.textAlign = 'center'; ctx.fillText(freqAxis.tickLabel(line.f), x, m.t + ph + 11); }
+  }
   ctx.globalAlpha = 1;
 
   // y grid
-  let yt_all: number[] = [];
-  let s_minor = 1;
-  let mag = 1;
-
-  if (logy) {
-    yt_all = logTicks(ymin, ymax);
-  } else {
-    const lt = linearTicks(ymin, ymax, ph);
-    yt_all = lt.ticks;
-    s_minor = lt.step;
-    mag = lt.mag;
-  }
-
   ctx.textAlign = 'right';
-  for (const v of yt_all) {
-    const y = Y(v); if (y < m.t - 1 || y > m.t + ph + 1) continue;
-
-    const isMajor = logy
-      ? (Math.log10(v) % 1 === 0 || Math.abs(Math.log10(v) - Math.round(Math.log10(v))) < 1e-9)
-      : (s_minor >= 10 * mag ? true : Math.abs(v / (10 * mag) - Math.round(v / (10 * mag))) < 1e-9);
+  for (const tick of levelAxis.ticks(ph)) {
+    const y = Y(tick.value); if (y < m.t - 1 || y > m.t + ph + 1) continue;
+    const isMajor = tick.major;
 
     if (isMajor) {
       ctx.globalAlpha = 0.55;
@@ -155,9 +74,9 @@ export function drawOne(
 
     ctx.beginPath(); ctx.moveTo(m.l, y); ctx.lineTo(m.l + pw, y); ctx.stroke();
 
-    if (isMajor || !logy) {
+    if (tick.labelled) {
       ctx.globalAlpha = isMajor ? 1.0 : 0.45;
-      ctx.fillText(fmtY(v), m.l - 5, y + 3);
+      ctx.fillText(levelAxis.tickLabel(tick.value), m.l - 5, y + 3);
     }
   }
   ctx.globalAlpha = 1;
@@ -210,11 +129,12 @@ export function drawOne(
     }
   }
 
-  const geo: Geo = { m, pw, ph, X, Y, f0, f1 };
+  const geo: Geo = { m, pw, ph, X, Y, axis: freqAxis };
 
   // drag range — shaded band between two frequencies with measurement readout
   if (dragRange) {
-    const x1 = X(Math.max(dragRange.fLo, f0)), x2 = X(Math.min(dragRange.fHi, f1));
+    const band = freqAxis.clampBand(dragRange.fLo, dragRange.fHi);
+    const x1 = X(band.lo), x2 = X(band.hi);
     ctx.fillStyle = COL.band;
     ctx.fillRect(x1, m.t, x2 - x1, ph);
     ctx.strokeStyle = COL.bandLine; ctx.lineWidth = 1; ctx.setLineDash([3, 3]);
@@ -224,20 +144,19 @@ export function drawOne(
     const prim = plotData.series.find(s => s.current) ?? plotData.series.find(s => !s.dash && !s.phantom);
     if (prim && prim.xs.length) {
       for (const f of [dragRange.fLo, dragRange.fHi]) {
-        const y = Y(prim.ys[nearestIdx(prim.xs, f)]);
+        const y = Y(prim.ys[freqAxis.nearestIndex(prim.xs, f)]);
         if (!isFinite(y) || y < m.t || y > m.t + ph) continue;
         ctx.beginPath(); ctx.moveTo(m.l, y); ctx.lineTo(m.l + pw, y); ctx.stroke();
       }
     }
     ctx.setLineDash([]);
     if (readEl) {
-      const ff = (f: number) => f >= 100 ? f.toFixed(0) : f.toFixed(1);
       const u = plotData.unit;
       const st = dragRange.stats;
-      let html = `<b>${ff(dragRange.fLo)} Hz</b> – <b>${ff(dragRange.fHi)} Hz</b>`;
+      let html = `<b>${freqAxis.bandLabel(dragRange.fLo)} Hz</b> – <b>${freqAxis.bandLabel(dragRange.fHi)} Hz</b>`;
       if (st) {
-        html += `  Δ <b>${st.ripple.toFixed(1)} ${u}</b>`;
-        html += `<br>peak <b>${st.peak.toFixed(1)} ${u}</b>  trough <b>${st.trough.toFixed(1)} ${u}</b>`;
+        html += `  Δ <b>${levelAxis.statLabel(st.ripple)} ${u}</b>`;
+        html += `<br>peak <b>${levelAxis.statLabel(st.peak)} ${u}</b>  trough <b>${levelAxis.statLabel(st.trough)} ${u}</b>`;
       }
       readEl.innerHTML = html; readEl.style.display = 'block';
     }
@@ -245,7 +164,7 @@ export function drawOne(
 
   // crosshair
   const s0 = plotData.series.find(s => s.current) ?? plotData.series[0];
-  const bi = cursorF && s0 ? crosshairIndex(s0.xs, cursorF) : null;
+  const bi = cursorF && s0 ? freqAxis.crosshairIndex(s0.xs, cursorF) : null;
   if (bi !== null && s0) {
     const fx = s0.xs[bi];
     ctx.strokeStyle = COL.cross; ctx.setLineDash([3, 3]);
@@ -259,12 +178,12 @@ export function drawOne(
       }
     }
     ctx.setLineDash([]);
-    let html = `<b>${fx.toFixed(fx < 100 ? 1 : 0)}Hz</b>`;
+    let html = `<b>${freqAxis.cursorLabel(fx)}Hz</b>`;
     for (const s of plotData.series) {
       if (s.dash || s.phantom) continue;
       const y = s.ys[bi];
       ctx.fillStyle = s.color; ctx.beginPath(); ctx.arc(X(fx), Y(y), 2.6, 0, 7); ctx.fill();
-      html += ` <span style="color:${s.color}">${fmtVal(y, plotData.unit)}</span>`;
+      html += ` <span style="color:${s.color}">${levelAxis.readout(y, plotData.unit)}</span>`;
     }
     if (readEl) { readEl.innerHTML = html; readEl.style.display = 'block'; }
   } else if (readEl && !dragRange) {

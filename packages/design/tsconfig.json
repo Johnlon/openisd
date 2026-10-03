@@ -10,11 +10,13 @@
     ]
   },
   "include": [
+    "chart/**/*.ts",
     "domain/**/*.ts",
     "engine/**/*.ts",
     "filter/**/*.ts",
     "browser/**/*.ts",
     "app/**/*.ts",
-    "test/**/*.ts"
+    "test/**/*.ts",
+    "compat/**/*.ts"
   ]
 }
