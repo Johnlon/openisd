@@ -60,4 +60,12 @@ const emit = defineEmits<{
 .field .unit { color: #555; }
 .edit-btn { border: 1px solid #999; background: #f0f0f0; color: #222; border-radius: 3px; padding: 4px 10px; cursor: pointer; font-size: 12px; }
 .edit-btn:hover { background: #dbeaff; border-color: #7fb3ff; }
+
+/* Mobile: stack fields vertically on small screens */
+@media (max-width: 640px) {
+  .field-row { flex-direction: column; align-items: stretch; }
+  .field { flex-direction: column; }
+  .field label { min-width: auto; }
+  .field input { width: 100%; }
+}
 </style>

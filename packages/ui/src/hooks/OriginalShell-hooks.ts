@@ -230,7 +230,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   // ---- Live engine-derived readouts (never faked literals) -----------------------
   const {
     rearResonance, rearQtc, boxResonance,
-    prAddedMassDq, prTuningDq, prSystemTuningDq, prResonanceMassDq, prFsMass_hz,
+    prAddedMassDq, prTuningDq, prSystemTuningDq, prResonanceMassDq, prFsMass_hz, prNaturalFh,
   } = sealedReadouts({ project, selectedBox, projectChanged });
   const sealedAlignmentEditor = new SealedAlignmentEditor(project, projectChanged, engine.sealed, engine.driver);
   const originalFilters = new OriginalFilters(project, projectChanged, engine.filters);
@@ -663,7 +663,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     model, startEdit, startTune, placement,
     activeVent, END_CORRECTION_OPTIONS, VENT_SHAPE_OPTIONS, VENT_COUNT_OPTIONS, PR_COUNT_OPTIONS, ventLState, portPipeResonance_hz,
     prBrowseOpen, prEditOpen, loadPREntry, loadBundledPassiveRadiatorEntry, defineNewPREntry,
-    prAddedMassDq, prTuningDq, prResonanceMassDq, prFsMass_hz,
+    prAddedMassDq, prTuningDq, prResonanceMassDq, prFsMass_hz, prNaturalFh,
     dqOfCell: (field: Readable<unknown>) => dqOfCell(field),
     fmt,
     driveV, rsOhm, advTemp, advHumidity, advPressure, advAir,

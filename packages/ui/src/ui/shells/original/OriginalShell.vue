@@ -43,7 +43,7 @@ const {
   ventedAlignmentVolume_L, ventedAlignmentTuning_hz, ventedAlignmentEbp, ventedAlignmentSuitability,
   ventedAlignmentSuitabilityLabel,
   fbState, FB_TARGET_TIP, FH_TARGET_TIP, VENT_GEOMETRY_TIP, fmtU, clearVentFieldOn, enterVentFieldOn,
-  boxResonance, rearQtc, prSystemTuningDq,
+  boxResonance, rearQtc, prSystemTuningDq, prNaturalFh,
   fbUnreachable, fbUnreachableMsg, boxLossesOpen, isDual,
   frontVolume_m3, setFrontVolume_m3, frcHz, setFrcHz, rearResonance, frontChamberTuningLabel,
   model, startEdit, startTune, placement,
@@ -561,13 +561,18 @@ const {
               <div style="--label-w:150px;">
                 <div class="section-header">User options</div>
                 <div class="field-row"><div class="field entered"><label>Num. of PRs:</label><select id="og-pr-count" :value="project.box.passiveRadiator.count.value" @change="e => { const n = selectedOption(e, PR_COUNT_OPTIONS); if (n !== null) project.box.passiveRadiator.count.set(n); }"><option v-for="o in PR_COUNT_OPTIONS" :key="o.value" :value="o.value">{{ o.label }}</option></select></div></div>
+                <div style="display:flex; gap:12px; align-items:stretch;">
+                  <div>
+                <div class="field-row">
+                  <div :class="['field', 'entered', { 'dq-flag': prTuningDq.dq.length > 0 }]"><label>Target tuning freq (Fh):</label><NumInput id="og-pr-fp" :model-value="project.box.passiveRadiator.tuning_goal_hz.value" @update:model-value="(v: number | null) => project.box.passiveRadiator.tuning_goal_hz.set(v ?? 0)" :field="NumberField.PR_FP_HZ" unit-key="Fp" :precision="NumberField.PR_FP_HZ.precision" :max="prNaturalFh ?? undefined" v-bind="prTuningDq" /><UnitToggle :field="NumberField.PR_FP_HZ" unit-key="Fp" unit-class="unit" /></div>
+                </div>
                 <div class="field-row">
                   <div :class="['field', 'entered', { 'dq-flag': prAddedMassDq.dq.length > 0 }]"><label>Added mass to cone:</label><NumInput id="og-pr-madd" :model-value="project.box.passiveRadiator.addedMass_kg.value" @update:model-value="(v: number | null) => project.box.passiveRadiator.addedMass_kg.set(v ?? 0)" :field="NumberField.PR_MADD_G" unit-key="prMadd" :precision="NumberField.PR_MADD_G.precision" v-bind="prAddedMassDq" /><UnitToggle :field="NumberField.PR_MADD_G" unit-key="prMadd" unit-class="unit" /></div>
                 </div>
-                <div class="field-row">
-                  <div :class="['field', 'entered', { 'dq-flag': prTuningDq.dq.length > 0 }]"><label>Target tuning freq (Fh):</label><NumInput id="og-pr-fp" :model-value="project.box.passiveRadiator.tuning_goal_hz.value" @update:model-value="(v: number | null) => project.box.passiveRadiator.tuning_goal_hz.set(v ?? 0)" :field="NumberField.PR_FP_HZ" unit-key="Fp" :precision="NumberField.PR_FP_HZ.precision" v-bind="prTuningDq" /><UnitToggle :field="NumberField.PR_FP_HZ" unit-key="Fp" unit-class="unit" /></div>
-                </div>
                 <div class="field-row"><div :class="['field', { 'dq-flag': prResonanceMassDq.dq.length > 0 }]" :title="prResonanceMassDq.dq.length > 0 ? prResonanceMassDq.dq.join('; ') : ''"><label>Fpr (with added mass):</label><input id="og-pr-fs-mass" class="calculated greyed" :value="fmtU(prFsMass_hz, 'prFsMass', 'freq', 'Hz', NumberField.PR_FSMASS_HZ.precision)" readonly><UnitToggle :field="NumberField.PR_FSMASS_HZ" unit-key="prFsMass" unit-class="unit" /></div></div>
+                  </div>
+                  <p class="hint" style="margin: 0; font-size: 11px; white-space: normal; max-width: 200px; align-self: center;">Lowering Fh selects a target tuning frequency. If achievable by added mass, the required mass is calculated.</p>
+                </div>
               </div>
             </div>
           </div>
@@ -1200,8 +1205,8 @@ textarea.comment, textarea.description { width:100%; border:1px solid #999; bord
   flex: none;
   align-self: flex-start;
 }
-/* Tight column so the panel stays inside the tab height (max 185px) with 6 switches. */
-.sim-switches { display: flex; flex-direction: column; gap: 0; }
+/* Two-column grid for WinISD compat switches. */
+.sim-switches { display: grid; grid-template-columns: repeat(2, 1fr); gap: 2px 12px; }
 .sim-options-header {
   font-weight: 600;
   font-size: 11px;

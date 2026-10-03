@@ -91,7 +91,7 @@ test('an unreachable PR target flags the entered Fp as the cause and the derived
   await expect(maddInput).toHaveClass(/dq-flag/);
   await expect(maddInput).not.toHaveClass(/dq-root/);
   await expect(maddInput).toHaveValue('');
-  await expect(maddInput).toHaveAttribute('title', /cannot reach this target/);
+  await expect(maddInput).toHaveAttribute('title', /cannot be higher than|cannot reach this target/);
 
   // The readout outputs are redlined too.
   await expect(page.locator('#og-pr-fs-mass').locator('xpath=ancestor::div[contains(@class,"field")][1]'))
