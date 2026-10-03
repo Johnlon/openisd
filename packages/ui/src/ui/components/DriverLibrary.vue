@@ -12,7 +12,9 @@ import {DriverFileFormat} from '../../fileFormat.js';
 //
 // `showName`: the overlay puts the summarised driver's name in its own title bar; a host with
 // no title bar asks for it inline above the summary.
-const props = defineProps<{ showName?: boolean }>();
+// `hostFooter`: the host (the mobile wizard) draws the page's own buttons, so the summary shows
+// no Use/Cancel pair of its own.
+const props = defineProps<{ showName?: boolean; hostFooter?: boolean }>();
 
 const { driverBrowsing, selection } = useApp();
 const { openNewDriver } = selection;
@@ -289,7 +291,7 @@ onMounted(openedLibrary);
           </div>
           <!-- The primary action sits at the bottom, under the specs it commits (John, 2026-09-24).
                Cancel sits beside it — the pane's two exits belong together (John, 2026-09-24). -->
-          <div class="prev-footer">
+          <div v-if="!props.hostFooter" class="prev-footer">
             <button class="cancel-btn" @click="pickDriver(null)"
                     title="Back to the driver list — nothing is changed">Cancel</button>
             <button class="use-btn" @click="chooseDriver(previewDriver)"

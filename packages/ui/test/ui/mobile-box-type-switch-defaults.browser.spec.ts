@@ -29,7 +29,7 @@ async function createProjectViaWizard(page: Page, boxType: string): Promise<void
   await page.goto('/');
   await page.getByText('New project').click();
   await page.getByText(TEST_DRIVER).click();
-  await page.getByText('Use', { exact: true }).click(); // step 1 -> 2
+  await page.locator('.mob-np-footer .ok-btn').click(); // step 1 -> 2: Next chooses the driver being read
   await page.locator('.mob-np-footer .ok-btn').click(); // step 2 -> 3
   await page.locator('#np-box-type').selectOption(boxType);
   // Box types with no step 4 (bandpass4/6/abc) run a 4-step wizard, not 5 — so "Next" is

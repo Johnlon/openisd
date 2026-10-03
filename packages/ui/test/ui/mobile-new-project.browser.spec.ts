@@ -1,8 +1,8 @@
 /**
- * The mobile New Project wizard. Step 1 (driver picker) delegates entirely to DriverLibrary,
- * which has its own Cancel/Use pair when previewing a driver — the wizard's own footer must stay
- * hidden there, or the two "Cancel" buttons duplicate and confuse (John: "consolidate the
- * buttons", after seeing both at once on a phone-height screen).
+ * The mobile New Project wizard. Every step is a regular page with one footer: Back, Next
+ * (green) and Cancel (John, 2026-10-03: "this needs to be a regular looking page, back/next
+ * green/cancel"). On step 1 the driver preview has no Use/Cancel pair of its own — Next is what
+ * chooses the driver being read and moves on, so there is one set of buttons, not two.
  *
  * The test suite's own vite server swaps in a tiny 6-reference-device catalogue (test-bundle.mjs
  * — "no corpus needed"), not the full ~1600-driver one a dev server serves — "Tang Band
@@ -20,19 +20,29 @@ test.beforeEach(async ({ page }) => {
   await page.getByText('New project').click();
 });
 
-test('step 1 shows the wizard footer with Cancel, in the list and in the driver preview', async ({ page }) => {
-  const footerCancel = page.locator('.mob-np-footer').getByText('Cancel', { exact: true });
-  await expect(footerCancel).toBeVisible();
+test('step 1 has one footer, in the list and in the driver preview: Next and Cancel, no Use', async ({ page }) => {
+  const footer = page.locator('.mob-np-footer');
+  await expect(footer.getByText('Cancel', { exact: true })).toBeVisible();
+  await expect(footer.getByText('Next >')).toBeDisabled();   // nothing chosen or being read yet
   await page.getByText(TEST_DRIVER).click();
-  await expect(footerCancel).toBeVisible();
-  await expect(page.locator('.prev-footer').getByText('Use', { exact: true })).toBeVisible();
+  await expect(footer.getByText('Cancel', { exact: true })).toBeVisible();
+  await expect(footer.getByText('Next >')).toBeEnabled();
+  await expect(page.locator('.prev-footer')).toHaveCount(0);   // the preview's own Use/Cancel pair is gone
+  await expect(page.getByText('Use', { exact: true })).toHaveCount(0);
 });
 
-test('picking a driver (Use) advances to step 2 and restores the wizard footer', async ({ page }) => {
+test('Next chooses the driver being read and advances to step 2 with the footer intact', async ({ page }) => {
   await page.getByText(TEST_DRIVER).click();
-  await page.getByText('Use', { exact: true }).click();
+  await page.locator('.mob-np-footer').getByText('Next >').click();
   await expect(page.locator('.np-step')).toContainText('Step 2 of 5');
-  await expect(page.locator('.mob-np-footer')).toBeVisible();
+  await expect(page.locator('.mob-np-footer').getByText('< Back')).toBeVisible();
+});
+
+test('Next is green', async ({ page }) => {
+  await page.getByText(TEST_DRIVER).click();
+  const bg = await page.locator('.mob-np-footer').getByText('Next >').evaluate(el => getComputedStyle(el).backgroundColor);
+  expect(bg).not.toBe('rgb(240, 240, 240)');
+  expect(bg).toMatch(/^rgb\(\d+, (1[0-9]{2}|[2-9][0-9]), \d+\)$/);   // a green-dominant fill
 });
 
 test('the header close (✕) still cancels the whole wizard from step 1', async ({ page }) => {

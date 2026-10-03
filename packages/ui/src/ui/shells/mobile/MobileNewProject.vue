@@ -4,6 +4,7 @@
 // useOgNewProject() hook as OriginalNewProject.vue: one wizard implementation, two presentations.
 import { onBeforeUnmount } from 'vue';
 import { useOgNewProject } from '../../../hooks/OriginalNewProject-hooks.js';
+import { createMobileNewProjectFooter } from '../../../hooks/MobileNewProject-hooks.js';
 import { useEscToClose } from '../../../logic/useEscToClose.js';
 import { useApp } from '../../../logic/app.js';
 import BoxTypeDiagram from '../../components/BoxTypeDiagram.vue';
@@ -71,14 +72,14 @@ const {
 
   selectedOption,
 
-  canNext,
   canBack,
   canCreate,
-  next,
   back,
   createProject,
   cancel,
 } = wizard;
+
+const { canGoNext, goNext } = createMobileNewProjectFooter(wizard, driverBrowsing);
 
 function handleCancel() {
   cancel();
@@ -116,7 +117,7 @@ function handleCreate() {
 
       <!-- Step 1: driver library -->
       <div v-if="step === 1" class="step-content mob-np-library-wrap">
-        <DriverLibrary class="mob-np-library" show-name />
+        <DriverLibrary class="mob-np-library" show-name host-footer />
       </div>
 
       <!-- Step 2: Driver count & placement -->
@@ -223,11 +224,11 @@ function handleCreate() {
       </div>
     </div>
 
-    <!-- Same footer on every step, step 1 included: Cancel is always in the same place. On step 1
-         DriverLibrary keeps its own compact Cancel/Use pair for the driver preview inside the list. -->
+    <!-- One footer on every step, step 1 included: Back, Next (green), Cancel, always in the same
+         place. On step 1 Next chooses the driver being read; the preview has no buttons of its own. -->
     <div class="mob-np-footer">
       <button v-if="canBack" class="cancel-btn" @click="back">&lt; Back</button>
-      <button v-if="canNext" class="ok-btn" @click="next">Next &gt;</button>
+      <button v-if="step < 5" class="ok-btn" :disabled="!canGoNext" @click="goNext">Next &gt;</button>
       <button v-if="step === 5" class="ok-btn" :disabled="!canCreate" @click="handleCreate">Create</button>
       <button class="cancel-btn" @click="handleCancel">Cancel</button>
     </div>
@@ -282,5 +283,5 @@ function handleCreate() {
 .mob-np-footer button { flex: 1; border: 1px solid #999; background: #f0f0f0; color: #222; border-radius: 4px; padding: 12px; font: inherit; cursor: pointer; }
 .mob-np-footer button:disabled { opacity: 0.5; }
 .mob-np-footer button.cancel-btn { color: #b02a2a; }
-.mob-np-footer button.ok-btn { color: #1b7d1b; font-weight: 600; }
+.mob-np-footer button.ok-btn { background: #2e7d32; border-color: #2e7d32; color: #fff; font-weight: 600; }
 </style>
