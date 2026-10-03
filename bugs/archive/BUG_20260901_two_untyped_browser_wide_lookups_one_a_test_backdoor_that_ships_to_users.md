@@ -1,6 +1,6 @@
 # Two untyped browser-wide lookups: one hidden by switching lint off for the file, one a test backdoor that ships to users
 
-Status: OPEN (re-verified 2026-09-26) — the untyped registry is gone, but `appState.ts` still installs `globalThis.__store_context`, read only by tests.
+Status: CLOSED 2026-10-03 — fixed: the untyped registry was already gone; `globalThis.__store_context` and its unit test are deleted, and original-projects.browser.spec.ts edits the box volume through a dev-server import of the app's state module (5 specs pass).
 
 ## Symptom
 

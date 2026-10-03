@@ -253,41 +253,6 @@ export function requireFocusedProject(): OpenISDProject {
   return p;
 }
 
-/** The focused project's main volume ("Vb"), for the debug handle below. */
-function setFocusedBoxVolume_m3(v: number): void {
-  const box = requireFocusedProject().box;
-  box.volumeOf(box.boxType.value).set(v);
-}
-
-function focusedBoxVolume_m3(): number {
-  const box = requireFocusedProject().box;
-  return box.volumeOf(box.boxType.value).value;
-}
-
-/** A debug handle for browser specs that need to simulate "an unrelated design edit" without
- *  going through the DOM (`persistence/original-projects.browser.spec.ts`). Mirrors the
- *  `globalThis.__openisd_appState` pattern above — always on, no build-flag gate, since this
- *  codebase has none for this kind of hook. `state.P.Vb` is the ONE writable path: assigning it
- *  routes through the focused project's own box-volume write (`setFocusedBoxVolume_m3`), so the
- *  write is real — it resolves and notifies, exactly as the Box tab's own field does — rather
- *  than a mutation on a dead, disconnected object. */
-export interface StoreDebugContext {
-  readonly state: {
-    readonly P: { Vb: number };
-  };
-}
-declare global {
-  var __store_context: StoreDebugContext | undefined;
-}
-globalThis.__store_context = {
-  state: {
-    P: {
-      get Vb(): number { return focusedBoxVolume_m3(); },
-      set Vb(v: number) { setFocusedBoxVolume_m3(v); },
-    },
-  },
-};
-
 /** Duplicate the FOCUSED project's own design into a brand-new, independent tab under
  *  `newName`, and focus it. Round-trips through the project's own `.owpr` text — the same
  *  serialised form every persistence door carries — so the copy is a genuinely separate
