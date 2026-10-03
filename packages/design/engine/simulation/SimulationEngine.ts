@@ -102,27 +102,28 @@ export function unwrap(p: number[]): number[] {
   return o;
 }
 
-/** Relative frequency step of `groupDelayAtMs`: small enough that the central difference's
- *  truncation error is far below WinISD's own phase rounding (±1.77e-4 ms), large enough that
- *  double rounding in the phase stays below it too. */
-const GROUP_DELAY_STEP = 1e-6;
+/** WinISD's fixed frequency step (1e-10 Hz) for group delay differentiation (`f_4618f0` chart 12).
+ *  Adopted to match WinISD's low-frequency woofer design focus (1–200 Hz) exact numbers.
+ *  The ~0.0005 ms high-frequency numerical noise floor introduced is invisible on chart plots. */
+const WINISD_GROUP_DELAY_STEP_HZ = 1e-10;
 
 /**
  * Group delay in ms of the response `h` at `f` (Hz): τg = −dφ/dω, as the phase slope AT `f`,
- * by central difference over f·(1 ± GROUP_DELAY_STEP). WinISD takes the slope at the point too
- * (f ± 1e-10 Hz, chart 12 of `f_4618f0`), not across chart-grid neighbours
- * (BUG_20260926_group-delay-grid-difference).
+ * by central difference over f ± 1e-10 Hz, exactly as WinISD 0.7 computes it (`f_4618f0`).
  *   https://en.wikipedia.org/wiki/Group_delay_and_phase_delay
  *
  * ONE definition, shared by the system group delay (`gd`) and the filter-chain group
  * delay (`fltGd`) — the two charts must not be able to disagree about what τg means.
  */
 export function groupDelayAtMs(h: (f: number) => Complex, f: number): number {
-  const above = h(f * (1 + GROUP_DELAY_STEP)), below = h(f * (1 - GROUP_DELAY_STEP));
+  const fAbove = f + WINISD_GROUP_DELAY_STEP_HZ;
+  const fBelow = Math.max(1e-12, f - WINISD_GROUP_DELAY_STEP_HZ);
+  const deltaF = fAbove - fBelow;
+  const above = h(fAbove), below = h(fBelow);
   // No signal, no phase: a silent response (eg = 0) has no delay, as its phase reads 0.
   if (cAbs(above) === 0 || cAbs(below) === 0) return 0;
   const dphi = cArg(cDiv(above, below));
-  const tau = -dphi / (2 * Math.PI * 2 * f * GROUP_DELAY_STEP) * 1000;
+  const tau = -dphi / (2 * Math.PI * deltaF) * 1000;
   // A flat phase gives `-(0)`, which is NEGATIVE zero. There is no such delay, and
   // `Object.is` — hence `assert.strict.equal` and any `1 / τ` — treats it as its own value.
   return tau === 0 ? 0 : tau;
@@ -549,9 +550,10 @@ export class SimulationEngineImpl implements SimulationEngine {
       va.push(vaNumerator * fltAbs * fltAbs / cAbs(cx(s.Zel.re + vaRg, s.Zel.im)));
       zph.push(cArg(s.Zel) * 180 / Math.PI);
     }
-    const ph = unwrap(phase);
-    const prPh = unwrap(prPhase);
-    const fltPhase = unwrap(fltPhaseWrapped);
+    const winisdWrap = P.winisdWrapPhase === true;
+    const ph = winisdWrap ? phase : unwrap(phase);
+    const prPh = winisdWrap ? prPhase : unwrap(prPhase);
+    const fltPhase = winisdWrap ? fltPhaseWrapped : unwrap(fltPhaseWrapped);
     // Radiated pressure up to a real scale factor, which the phase slope does not see.
     const pressure = (f: number): Complex =>
       cMul(cMul(cx(0, 2 * Math.PI * f), solve(f, cq, box, P).U0), applyFilters(f, P.filters));

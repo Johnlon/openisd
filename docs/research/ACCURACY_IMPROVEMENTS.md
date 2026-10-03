@@ -37,6 +37,6 @@ awaits the by-hand check with John (QO170).
 
 | WinISD does                                                          | Why omitted |
 |----------------------------------------------------------------------|-------------|
-| Group delay by 1e-10 Hz central difference in x87 arithmetic         | Staircase noise ≈ 1.8e-4 ms; invisible on the chart. |
+| Group delay by 1e-10 Hz central difference                             | Noise floor ≈ 1.8e-4 ms; invisible on the chart. |
 | Group-delay unwrap fixes a −2π jump only                             | Hit only when a phase wrap lies within 1e-10 Hz of a grid point. |
 | EQ/filter charts skip points where the box impedance is 0            | Needs \|Z\| exactly 0 at a grid point; not seen in any capture. |

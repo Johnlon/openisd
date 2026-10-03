@@ -123,7 +123,30 @@ function applyStep(dir: 1 | -1): void {
   const el = inputEl.value;
   if (el === null) return;
   typing.value = false;   // a step always reformats, same as the keyboard/wheel paths
-  if (dir > 0) el.stepUp(); else el.stepDown();
+  try {
+    if (dir > 0) el.stepUp(); else el.stepDown();
+  } catch (err) {
+    if (err instanceof DOMException && err.name === 'InvalidStateError') {
+      const stepAttrVal = el.getAttribute('step');
+      const parsedStep = stepAttrVal && stepAttrVal !== 'any' ? parseFloat(stepAttrVal) : NaN;
+      let effectiveStep: number = !isNaN(parsedStep) && parsedStep > 0 ? parsedStep : 1;
+      if (isNaN(parsedStep) && props.field) {
+        const fieldStepStr = props.field.stepAttr(activeToken.value);
+        const parsedFieldStep = parseFloat(fieldStepStr);
+        if (!isNaN(parsedFieldStep) && parsedFieldStep > 0) effectiveStep = parsedFieldStep;
+      } else if (isNaN(parsedStep) && typeof props.precision === 'number') {
+        effectiveStep = 10 ** -props.precision;
+      }
+      const current = parseFloat(display.value) || 0;
+      const next = current + dir * effectiveStep;
+      display.value = fmt(fromDisp(next));
+      el.value = display.value;
+      if (valid(fromDisp(next))) emit('update:modelValue', fromDisp(next), typedPrecision(display.value));
+      el.dispatchEvent(new Event('input', { bubbles: true }));
+      return;
+    }
+    throw err;
+  }
   el.dispatchEvent(new Event('input', { bubbles: true }));
 }
 
@@ -267,6 +290,7 @@ const dqNoteTitle = computed(() => hasDq.value ? `⚠ ${dqTooltip.value}` : '');
 const stepAttr = computed<string | number>(() => {
   if (props.step !== 'any') return props.step;
   if (props.field) return props.field.stepAttr(activeToken.value);
+  if (typeof props.precision === 'number') return (10 ** -props.precision).toString();
   return 'any';
 });
 </script>

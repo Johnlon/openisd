@@ -314,6 +314,11 @@ export class OpenISDProject {
         return ProjectAdvanced.wrap(this.#slot('advanced'), this.#slot('filters')).winisdVaModel;
     }
 
+    /** WinISD Compatibility "WinISD phase wrapping" — see `ProjectAdvanced.winisdWrapPhase`. */
+    get winisdWrapPhase(): SimpleField<boolean> {
+        return ProjectAdvanced.wrap(this.#slot('advanced'), this.#slot('filters')).winisdWrapPhase;
+    }
+
     /** WinISD Compatibility "WinISD driver count" — see `ProjectAdvanced.winisdDriverCountModel`. */
     get winisdDriverCountModel(): SimpleField<boolean> {
         return ProjectAdvanced.wrap(this.#slot('advanced'), this.#slot('filters')).winisdDriverCountModel;
@@ -331,6 +336,7 @@ export class OpenISDProject {
         this.envUseWinisdAirModel.set(true);
         this.winisdDriverModel.set(true);
         this.winisdVaModel.set(true);
+        this.winisdWrapPhase.set(true);
         this.winisdDriverCountModel.set(true);
         this.winisdFlatModel.set(true);
     }
@@ -720,6 +726,7 @@ export class OpenISDProject {
             circuitModel: this.circuitModel,
             winisdDriverModel: this.winisdDriverModel,
             winisdVaModel: this.winisdVaModel,
+            winisdWrapPhase: this.winisdWrapPhase,
             winisdDriverCountModel: this.winisdDriverCountModel,
             winisdFlatModel: this.winisdFlatModel,
             lossMode: this.lossMode,

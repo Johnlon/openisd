@@ -183,6 +183,7 @@ export abstract class BoxProjectBuilder {
                 splGraphIsXmaxLimited: false,
                 winisdDriverModel: true,
                 winisdVaModel: true,
+                winisdWrapPhase: true,
                 winisdDriverCountModel: true,
                 winisdFlatModel: true,
             },

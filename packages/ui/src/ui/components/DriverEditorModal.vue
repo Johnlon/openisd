@@ -646,17 +646,17 @@ useEscToClose(() => saveMyDialogOpen.value, () => { saveMyDialogOpen.value = fal
             <div class="de-cols">
               <div class="de-fld" data-field-key="Qes" :style="getFieldStyle('Qes')" :title="NumberField.QES.description">
                 <label>{{ NumberField.QES.label }}</label>
-                <NumInput :class="cellClass('Qes')" :mandatory="mandatory('Qes')" :model-value="cellVal('Qes')" :precision="NumberField.QES.precision" :half-width="cellWidth('Qes')" @update:model-value="(v, p) => setNum('Qes', v, p)">
+                <NumInput :class="cellClass('Qes')" :mandatory="mandatory('Qes')" :model-value="cellVal('Qes')" :field="NumberField.QES" :half-width="cellWidth('Qes')" @update:model-value="(v, p) => setNum('Qes', v, p)">
                 </NumInput><span v-if="dqNote('Qes')" class="de-dq" :title="dqNote('Qes')">&#9888;</span>
               </div>
               <div class="de-fld" data-field-key="Qms" :style="getFieldStyle('Qms')" :title="NumberField.QMS.description">
                 <label>{{ NumberField.QMS.label }}</label>
-                <NumInput :class="cellClass('Qms')" :mandatory="mandatory('Qms')" :model-value="cellVal('Qms')" :precision="NumberField.QMS.precision" :half-width="cellWidth('Qms')" @update:model-value="(v, p) => setNum('Qms', v, p)">
+                <NumInput :class="cellClass('Qms')" :mandatory="mandatory('Qms')" :model-value="cellVal('Qms')" :field="NumberField.QMS" :half-width="cellWidth('Qms')" @update:model-value="(v, p) => setNum('Qms', v, p)">
                 </NumInput><span v-if="dqNote('Qms')" class="de-dq" :title="dqNote('Qms')">&#9888;</span>
               </div>
               <div class="de-fld" data-field-key="Qts" :style="getFieldStyle('Qts')" :title="NumberField.QTS.description">
                 <label>{{ NumberField.QTS.label }}</label>
-                <NumInput :class="cellClass('Qts')" :mandatory="mandatory('Qts')" :model-value="cellVal('Qts')" :precision="NumberField.QTS.precision" :half-width="cellWidth('Qts')" @update:model-value="(v, p) => setNum('Qts', v, p)">
+                <NumInput :class="cellClass('Qts')" :mandatory="mandatory('Qts')" :model-value="cellVal('Qts')" :field="NumberField.QTS" :half-width="cellWidth('Qts')" @update:model-value="(v, p) => setNum('Qts', v, p)">
                 </NumInput><span v-if="dqNote('Qts')" class="de-dq" :title="dqNote('Qts')">&#9888;</span>
               </div>
               <div class="de-fld" data-field-key="Fs_hz" :style="getFieldStyle('Fs_hz')" :title="NumberField.FS_HZ.description">
@@ -697,13 +697,13 @@ useEscToClose(() => saveMyDialogOpen.value, () => { saveMyDialogOpen.value = fal
               </div>
               <div class="de-fld" data-field-key="Re_ohm" :style="getFieldStyle('Re_ohm')" :title="NumberField.RE_OHM.description">
                 <label>{{ NumberField.RE_OHM.label }}</label>
-                <NumInput :class="cellClass('Re_ohm')" :mandatory="true" :model-value="cellVal('Re_ohm')" :precision="NumberField.RE_OHM.precision" :half-width="cellWidth('Re_ohm')" @update:model-value="(v, p) => setNum('Re_ohm', v, p)">
+                <NumInput :class="cellClass('Re_ohm')" :mandatory="true" :model-value="cellVal('Re_ohm')" :field="NumberField.RE_OHM" :half-width="cellWidth('Re_ohm')" @update:model-value="(v, p) => setNum('Re_ohm', v, p)">
                 </NumInput><span v-if="dqNote('Re_ohm')" class="de-dq" :title="dqNote('Re_ohm')">&#9888;</span>
                 <span class="u">ohm</span>
               </div>
               <div class="de-fld" data-field-key="BL_Tm" :style="getFieldStyle('BL_Tm')" :title="NumberField.BL_TM.description">
                 <label>{{ NumberField.BL_TM.label }}</label>
-                <NumInput :class="cellClass('BL_Tm')" :model-value="cellVal('BL_Tm')" :precision="NumberField.BL_TM.precision" :half-width="cellWidth('BL_Tm')" @update:model-value="(v, p) => setNum('BL_Tm', v, p)">
+                <NumInput :class="cellClass('BL_Tm')" :model-value="cellVal('BL_Tm')" :field="NumberField.BL_TM" :half-width="cellWidth('BL_Tm')" @update:model-value="(v, p) => setNum('BL_Tm', v, p)">
                 </NumInput><span v-if="dqNote('BL_Tm')" class="de-dq" :title="dqNote('BL_Tm')">&#9888;</span>
                 <span class="u">Tm</span>
               </div>
@@ -734,7 +734,7 @@ useEscToClose(() => saveMyDialogOpen.value, () => { saveMyDialogOpen.value = fal
               </div>
               <div class="de-fld" data-field-key="KLe_H_sqrtHz" :style="getFieldStyle('KLe_H_sqrtHz')" :title="NumberField.KLE_H_SQRTHZ.description">
                 <label>{{ NumberField.KLE_H_SQRTHZ.label }}</label>
-                <NumInput :class="cellClass('KLe_H_sqrtHz')" :model-value="cellVal('KLe_H_sqrtHz')" :precision="NumberField.KLE_H_SQRTHZ.precision" :half-width="cellWidth('KLe_H_sqrtHz')" @update:model-value="(v, p) => setNum('KLe_H_sqrtHz', v, p)"></NumInput><span v-if="dqNote('KLe_H_sqrtHz')" class="de-dq" :title="dqNote('KLe_H_sqrtHz')">&#9888;</span>
+                <NumInput :class="cellClass('KLe_H_sqrtHz')" :model-value="cellVal('KLe_H_sqrtHz')" :field="NumberField.KLE_H_SQRTHZ" :half-width="cellWidth('KLe_H_sqrtHz')" @update:model-value="(v, p) => setNum('KLe_H_sqrtHz', v, p)"></NumInput><span v-if="dqNote('KLe_H_sqrtHz')" class="de-dq" :title="dqNote('KLe_H_sqrtHz')">&#9888;</span>
                 <span class="u">H·√Hz</span>
               </div>
             </div>
@@ -772,7 +772,7 @@ useEscToClose(() => saveMyDialogOpen.value, () => { saveMyDialogOpen.value = fal
               </div>
               <div class="de-fld" data-field-key="Pe_W" :style="getFieldStyle('Pe_W')" :title="NumberField.PE_W.description">
                 <label>{{ NumberField.PE_W.label }}</label>
-                <NumInput :class="cellClass('Pe_W')" :model-value="cellVal('Pe_W')" :precision="NumberField.PE_W.precision" :half-width="cellWidth('Pe_W')" @update:model-value="(v, p) => setNum('Pe_W', v, p)">
+                <NumInput :class="cellClass('Pe_W')" :model-value="cellVal('Pe_W')" :field="NumberField.PE_W" :half-width="cellWidth('Pe_W')" @update:model-value="(v, p) => setNum('Pe_W', v, p)">
                 </NumInput><span v-if="dqNote('Pe_W')" class="de-dq" :title="dqNote('Pe_W')">&#9888;</span>
                 <span class="u">W</span>
               </div>
@@ -789,23 +789,23 @@ useEscToClose(() => saveMyDialogOpen.value, () => { saveMyDialogOpen.value = fal
               </div>
               <div class="de-fld" data-field-key="Znom_ohm" :style="getFieldStyle('Znom_ohm')" :title="NumberField.ZNOM_OHM.description">
                 <label>{{ NumberField.ZNOM_OHM.label }}</label>
-                <NumInput :class="cellClass('Znom_ohm')" :model-value="cellVal('Znom_ohm')" :precision="NumberField.ZNOM_OHM.precision" :half-width="cellWidth('Znom_ohm')" @update:model-value="(v, p) => setNum('Znom_ohm', v, p)">
+                <NumInput :class="cellClass('Znom_ohm')" :model-value="cellVal('Znom_ohm')" :field="NumberField.ZNOM_OHM" :half-width="cellWidth('Znom_ohm')" @update:model-value="(v, p) => setNum('Znom_ohm', v, p)">
                 </NumInput><span v-if="dqNote('Znom_ohm')" class="de-dq" :title="dqNote('Znom_ohm')">&#9888;</span>
                 <span class="u">ohm</span>
               </div>
               <div class="de-fld" data-field-key="USPL_dB" :style="getFieldStyle('USPL_dB')" :title="NumberField.USPL_DB.description">
                 <label>{{ NumberField.USPL_DB.label }}</label>
-                <NumInput :class="cellClass('USPL_dB')" :model-value="cellVal('USPL_dB')" :precision="NumberField.USPL_DB.precision" :half-width="cellWidth('USPL_dB')" @update:model-value="(v, p) => setNum('USPL_dB', v, p)"></NumInput><span v-if="dqNote('USPL_dB')" class="de-dq" :title="dqNote('USPL_dB')">&#9888;</span>
+                <NumInput :class="cellClass('USPL_dB')" :model-value="cellVal('USPL_dB')" :field="NumberField.USPL_DB" :half-width="cellWidth('USPL_dB')" @update:model-value="(v, p) => setNum('USPL_dB', v, p)"></NumInput><span v-if="dqNote('USPL_dB')" class="de-dq" :title="dqNote('USPL_dB')">&#9888;</span>
                 <span class="u">dB</span>
               </div>
               <div class="de-fld" data-field-key="SPL_dB" :style="getFieldStyle('SPL_dB')" :title="NumberField.SPL_DB.description">
                 <label>{{ NumberField.SPL_DB.label }}</label>
-                <NumInput :class="cellClass('SPL_dB')" :model-value="cellVal('SPL_dB')" :precision="NumberField.SPL_DB.precision" :half-width="cellWidth('SPL_dB')" @update:model-value="(v, p) => setNum('SPL_dB', v, p)"></NumInput><span v-if="dqNote('SPL_dB')" class="de-dq" :title="dqNote('SPL_dB')">&#9888;</span>
+                <NumInput :class="cellClass('SPL_dB')" :model-value="cellVal('SPL_dB')" :field="NumberField.SPL_DB" :half-width="cellWidth('SPL_dB')" @update:model-value="(v, p) => setNum('SPL_dB', v, p)"></NumInput><span v-if="dqNote('SPL_dB')" class="de-dq" :title="dqNote('SPL_dB')">&#9888;</span>
                 <span class="u">dB</span>
               </div>
               <div class="de-fld" data-field-key="numVC" :style="getFieldStyle('numVC')" :title="NumberField.NUMVC.description">
                 <label>{{ NumberField.NUMVC.label }}</label>
-                <NumInput :class="cellClass('numVC')" :model-value="cellVal('numVC')" :precision="NumberField.NUMVC.precision" :half-width="cellWidth('numVC')" @update:model-value="(v, p) => setNum('numVC', v, p)"></NumInput><span v-if="dqNote('numVC')" class="de-dq" :title="dqNote('numVC')">&#9888;</span>
+                <NumInput :class="cellClass('numVC')" :model-value="cellVal('numVC')" :field="NumberField.NUMVC" :half-width="cellWidth('numVC')" @update:model-value="(v, p) => setNum('numVC', v, p)"></NumInput><span v-if="dqNote('numVC')" class="de-dq" :title="dqNote('numVC')">&#9888;</span>
               </div>
               <div class="de-fld de-conn" data-field-key="VCCon" :title="EnumField.VCCON.description">
                 <label>{{ EnumField.VCCON.label }}</label>
@@ -813,7 +813,7 @@ useEscToClose(() => saveMyDialogOpen.value, () => { saveMyDialogOpen.value = fal
               </div>
               <div class="de-fld" data-field-key="power_peak_W" :style="getFieldStyle('power_peak_W')" :title="NumberField.POWER_PEAK_W.description">
                 <label>{{ NumberField.POWER_PEAK_W.label }}</label>
-                <NumInput :class="cellClass('power_peak_W')" :model-value="cellVal('power_peak_W')" :precision="NumberField.POWER_PEAK_W.precision" :half-width="cellWidth('power_peak_W')" @update:model-value="(v, p) => setNum('power_peak_W', v, p)">
+                <NumInput :class="cellClass('power_peak_W')" :model-value="cellVal('power_peak_W')" :field="NumberField.POWER_PEAK_W" :half-width="cellWidth('power_peak_W')" @update:model-value="(v, p) => setNum('power_peak_W', v, p)">
                 </NumInput><span v-if="dqNote('power_peak_W')" class="de-dq" :title="dqNote('power_peak_W')">&#9888;</span>
                 <span class="u">W</span>
               </div>
@@ -833,12 +833,12 @@ useEscToClose(() => saveMyDialogOpen.value, () => { saveMyDialogOpen.value = fal
               </div>
               <div class="de-fld" data-field-key="Rt_K_per_W" :style="getFieldStyle('Rt_K_per_W')" :title="NumberField.RT_K_PER_W.description">
                 <label>{{ NumberField.RT_K_PER_W.label }}</label>
-                <NumInput :class="cellClass('Rt_K_per_W')" :model-value="cellVal('Rt_K_per_W')" :precision="NumberField.RT_K_PER_W.precision" :half-width="cellWidth('Rt_K_per_W')" @update:model-value="(v, p) => setNum('Rt_K_per_W', v, p)"></NumInput><span v-if="dqNote('Rt_K_per_W')" class="de-dq" :title="dqNote('Rt_K_per_W')">&#9888;</span>
+                <NumInput :class="cellClass('Rt_K_per_W')" :model-value="cellVal('Rt_K_per_W')" :field="NumberField.RT_K_PER_W" :half-width="cellWidth('Rt_K_per_W')" @update:model-value="(v, p) => setNum('Rt_K_per_W', v, p)"></NumInput><span v-if="dqNote('Rt_K_per_W')" class="de-dq" :title="dqNote('Rt_K_per_W')">&#9888;</span>
                 <span class="u">K/W</span>
               </div>
               <div class="de-fld" data-field-key="Ct_J_per_K" :style="getFieldStyle('Ct_J_per_K')" :title="NumberField.CT_J_PER_K.description">
                 <label>{{ NumberField.CT_J_PER_K.label }}</label>
-                <NumInput :class="cellClass('Ct_J_per_K')" :model-value="cellVal('Ct_J_per_K')" :precision="NumberField.CT_J_PER_K.precision" :half-width="cellWidth('Ct_J_per_K')" @update:model-value="(v, p) => setNum('Ct_J_per_K', v, p)"></NumInput><span v-if="dqNote('Ct_J_per_K')" class="de-dq" :title="dqNote('Ct_J_per_K')">&#9888;</span>
+                <NumInput :class="cellClass('Ct_J_per_K')" :model-value="cellVal('Ct_J_per_K')" :field="NumberField.CT_J_PER_K" :half-width="cellWidth('Ct_J_per_K')" @update:model-value="(v, p) => setNum('Ct_J_per_K', v, p)"></NumInput><span v-if="dqNote('Ct_J_per_K')" class="de-dq" :title="dqNote('Ct_J_per_K')">&#9888;</span>
                 <span class="u">J/K</span>
               </div>
             </div>
@@ -849,12 +849,12 @@ useEscToClose(() => saveMyDialogOpen.value, () => { saveMyDialogOpen.value = fal
             <div class="de-cols">
               <div class="de-fld" data-field-key="SPLmaxLF_dB" :style="getFieldStyle('SPLmaxLF_dB')" :title="NumberField.SPLMAXLF_DB.description">
                 <label>{{ NumberField.SPLMAXLF_DB.label }}</label>
-                <NumInput :class="cellClass('SPLmaxLF_dB')" :model-value="cellVal('SPLmaxLF_dB')" :precision="NumberField.SPLMAXLF_DB.precision" :half-width="cellWidth('SPLmaxLF_dB')" @update:model-value="(v, p) => setNum('SPLmaxLF_dB', v, p)"></NumInput><span v-if="dqNote('SPLmaxLF_dB')" class="de-dq" :title="dqNote('SPLmaxLF_dB')">&#9888;</span>
+                <NumInput :class="cellClass('SPLmaxLF_dB')" :model-value="cellVal('SPLmaxLF_dB')" :field="NumberField.SPLMAXLF_DB" :half-width="cellWidth('SPLmaxLF_dB')" @update:model-value="(v, p) => setNum('SPLmaxLF_dB', v, p)"></NumInput><span v-if="dqNote('SPLmaxLF_dB')" class="de-dq" :title="dqNote('SPLmaxLF_dB')">&#9888;</span>
                 <span class="u">dB</span>
               </div>
               <div class="de-fld" data-field-key="SPLmax_dB" :style="getFieldStyle('SPLmax_dB')" :title="NumberField.SPLMAX_DB.description">
                 <label>{{ NumberField.SPLMAX_DB.label }}</label>
-                <NumInput :class="cellClass('SPLmax_dB')" :model-value="cellVal('SPLmax_dB')" :precision="NumberField.SPLMAX_DB.precision" :half-width="cellWidth('SPLmax_dB')" @update:model-value="(v, p) => setNum('SPLmax_dB', v, p)"></NumInput><span v-if="dqNote('SPLmax_dB')" class="de-dq" :title="dqNote('SPLmax_dB')">&#9888;</span>
+                <NumInput :class="cellClass('SPLmax_dB')" :model-value="cellVal('SPLmax_dB')" :field="NumberField.SPLMAX_DB" :half-width="cellWidth('SPLmax_dB')" @update:model-value="(v, p) => setNum('SPLmax_dB', v, p)"></NumInput><span v-if="dqNote('SPLmax_dB')" class="de-dq" :title="dqNote('SPLmax_dB')">&#9888;</span>
                 <span class="u">dB</span>
               </div>
               <div class="de-fld" data-field-key="Rme_kg_per_s" :style="getFieldStyle('Rme_kg_per_s')" :title="NumberField.RME_KG_PER_S.description">
@@ -864,12 +864,12 @@ useEscToClose(() => saveMyDialogOpen.value, () => { saveMyDialogOpen.value = fal
               </div>
               <div class="de-fld" data-field-key="gamma_m_per_s2_A" :style="getFieldStyle('gamma_m_per_s2_A')" :title="NumberField.GAMMA_M_PER_S2_A.description">
                 <label>{{ NumberField.GAMMA_M_PER_S2_A.label }}</label>
-                <NumInput :class="cellClass('gamma_m_per_s2_A')" :model-value="cellVal('gamma_m_per_s2_A')" :precision="NumberField.GAMMA_M_PER_S2_A.precision" :half-width="cellWidth('gamma_m_per_s2_A')" @update:model-value="(v, p) => setNum('gamma_m_per_s2_A', v, p)"></NumInput><span v-if="dqNote('gamma_m_per_s2_A')" class="de-dq" :title="dqNote('gamma_m_per_s2_A')">&#9888;</span>
+                <NumInput :class="cellClass('gamma_m_per_s2_A')" :model-value="cellVal('gamma_m_per_s2_A')" :field="NumberField.GAMMA_M_PER_S2_A" :half-width="cellWidth('gamma_m_per_s2_A')" @update:model-value="(v, p) => setNum('gamma_m_per_s2_A', v, p)"></NumInput><span v-if="dqNote('gamma_m_per_s2_A')" class="de-dq" :title="dqNote('gamma_m_per_s2_A')">&#9888;</span>
                 <span class="u">N/(A·kg)</span>
               </div>
               <div class="de-fld" data-field-key="Mpow_N_per_sqrtW" :style="getFieldStyle('Mpow_N_per_sqrtW')" :title="NumberField.MPOW_N_PER_SQRTW.description">
                 <label>{{ NumberField.MPOW_N_PER_SQRTW.label }}</label>
-                <NumInput :class="cellClass('Mpow_N_per_sqrtW')" :model-value="cellVal('Mpow_N_per_sqrtW')" :precision="NumberField.MPOW_N_PER_SQRTW.precision" :half-width="cellWidth('Mpow_N_per_sqrtW')" @update:model-value="(v, p) => setNum('Mpow_N_per_sqrtW', v, p)"></NumInput><span v-if="dqNote('Mpow_N_per_sqrtW')" class="de-dq" :title="dqNote('Mpow_N_per_sqrtW')">&#9888;</span>
+                <NumInput :class="cellClass('Mpow_N_per_sqrtW')" :model-value="cellVal('Mpow_N_per_sqrtW')" :field="NumberField.MPOW_N_PER_SQRTW" :half-width="cellWidth('Mpow_N_per_sqrtW')" @update:model-value="(v, p) => setNum('Mpow_N_per_sqrtW', v, p)"></NumInput><span v-if="dqNote('Mpow_N_per_sqrtW')" class="de-dq" :title="dqNote('Mpow_N_per_sqrtW')">&#9888;</span>
                 <span class="u">N/√W</span>
               </div>
               <div class="de-fld" data-field-key="Mcost_kg_per_s" :style="getFieldStyle('Mcost_kg_per_s')" :title="NumberField.MCOST_KG_PER_S.description">
