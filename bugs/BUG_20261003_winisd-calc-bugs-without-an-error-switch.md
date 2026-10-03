@@ -10,13 +10,13 @@ switch yet:
 
 | Row | WinISD behaviour | Switch today |
 |-----|------------------|--------------|
-| 2   | VA with "Rg is at driver side" on counts Rg twice | unclear: "covered by #1's switch? — check" |
-| 3   | Maximum SPL and Maximum power leave the filter chain out | none |
-| 4   | Bessel high-pass is not the mirror of its low-pass | none |
-| 5   | Allpass `t` is not the group delay; orders above 2 ignored | none |
-| 6   | Linkwitz-Riley and SOS ignore the order field | none |
-| 9   | PR box ωr multiplies the branch mass by Npr | Loss model tooltip only; becomes a yellow switch (error-switch group) |
-| 10  | ABC intra-port velocity drops Ricl | in progress, new yellow switch |
+| 2   | VA with "Rg is at driver side" on counts Rg twice | DONE 2026-10-03: covered by the "WinISD VA model" switch; off counts Rg once (`winisdVaModel.test.ts`) |
+| 3   | Maximum SPL and Maximum power leave the filter chain out | STOPPED: needs a decision, see below |
+| 4   | Bessel high-pass is not the mirror of its low-pass | DONE 2026-10-03: yellow switch "WinISD Bessel high-pass", off by default, active while an enabled Bessel high-pass exists |
+| 5   | Allpass `t` is not the group delay; orders above 2 ignored | STOPPED: needs a decision, see below |
+| 6   | Linkwitz-Riley and SOS ignore the order field | STOPPED: needs a decision, see below |
+| 9   | PR box ωr multiplies the branch mass by Npr | DONE 2026-10-03: yellow switch "PR Npr resonance", off by default, PR boxes only |
+| 10  | ABC intra-port velocity drops Ricl | DONE 2026-10-03: yellow switch "WinISD ABC intra-port velocity", off by default, ABC boxes only |
 
 Not covered by the rule: row 7 (a default value, not a calculation), row 11 (an overflow crash),
 and rows that are trigger or linkage bugs. Row 8 (two BLs) and row 1 (VA uses Re) already have a switch
@@ -35,3 +35,15 @@ For each row, in this order of size of the visible effect:
 4. Update the accuracy table, the equivalence register and the README gap list.
 
 ## Done
+
+## Stopped: decisions needed (2026-10-03)
+- **Row 3, Max SPL and Max power.** A linear filter in front of the driver scales the SPL at a given
+  amplifier voltage by |Hf| and the voltage the driver limit allows by 1/|Hf|. The two cancel, so the
+  limit "with the filter chain in" is the same curve unless another bound on the input is chosen (an
+  amplifier voltage limit, say). Which bound is the decision.
+- **Row 5, allpass.** WinISD's delay `t` for orders 2 and above, and orders above 2, have no
+  standard counterpart: an order-n allpass whose low-frequency delay is `t` is not unique. A
+  definition is the decision.
+- **Row 6, Linkwitz-Riley and SOS.** A Linkwitz-Riley of even order n is Butterworth(n/2) squared and
+  is well defined; an odd order and an SOS of order other than 2 are not. What OpenISD does for those
+  is the decision.

@@ -19,4 +19,10 @@ describe('spinnerStep — proportional spinner step from the shown text', () => 
     expect(spinnerStep('12.5')).toBe('1');
     expect(spinnerStep('0.045')).toBe('0.001');
   });
+
+  // BUG_20261003_chart-tick-and-spinner-step-edge-cases: 10 ** -4 is 0.00009999999999999999.
+  it('a step below 0.001 is a clean decimal, with no float tail', () => {
+    expect(spinnerStep('0.0045')).toBe('0.0001');
+    expect(spinnerStep('0.00045')).toBe('0.00001');
+  });
 });

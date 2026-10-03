@@ -122,6 +122,17 @@ export class ProjectAdvanced {
         };
     }
 
+    /** WinISD Compatibility "WinISD Bessel high-pass": Bessel high-pass filters as WinISD computes
+     *  them, (k·s)^n over the low-pass's own denominator. Off: the mirror of the low-pass (s → 1/s).
+     *  Off where a project does not say. */
+    get winisdBesselHighpass(): SimpleField<boolean> {
+        const lens = focus(this.#advanced, 'winisdBesselHighpass');
+        return {
+            get value() { return lens.value ?? false; },
+            set: (on: boolean) => lens.set(on),
+        };
+    }
+
     /** WinISD Compatibility "WinISD phase wrapping": wraps phase curves to [-180°, +180°] (default).
      *  Off: continuous unwrapped phase. On where a project does not say. */
     get winisdWrapPhase(): SimpleField<boolean> {

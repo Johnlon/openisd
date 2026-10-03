@@ -697,6 +697,11 @@ const {
                       <input type="checkbox" :checked="project.winisdPrNprResonance.value" :disabled="!errorSwitches.prNprResonance.applicable" @change="e => project.winisdPrNprResonance.set(inputChecked(e))"> {{ ToggleField.ADV_WINISDPRNPRRESONANCE.label }}
                     </ErrorSwitch>
                   </div>
+                  <div>
+                    <ErrorSwitch as="label" field-key="winisdBesselHighpass" style="font-size: 12px;" :marked="errorSwitches.besselHighpass.marked" :applicable="errorSwitches.besselHighpass.applicable" :reproduces-error="errorSwitches.besselHighpass.reproducesError" :title="ToggleField.ADV_WINISDBESSELHIGHPASS.description">
+                      <input type="checkbox" :checked="project.winisdBesselHighpass.value" :disabled="!errorSwitches.besselHighpass.applicable" @change="e => project.winisdBesselHighpass.set(inputChecked(e))"> {{ ToggleField.ADV_WINISDBESSELHIGHPASS.label }}
+                    </ErrorSwitch>
+                  </div>
                 </ErrorSwitchGroup>
               </div>
             </div>

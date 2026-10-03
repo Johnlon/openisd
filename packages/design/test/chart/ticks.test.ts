@@ -42,3 +42,15 @@ describe('logTicks', () => {
     expect(logTicks(1e-3, 1)).toEqual([0.001, 0.002, 0.005, 0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1]);
   });
 });
+
+describe('logTicks', () => {
+  // BUG_20261003_chart-tick-and-spinner-step-edge-cases: log10(0) is -Infinity.
+  it('a non-positive lower bound has no log ticks, and does not throw', () => {
+    expect(logTicks(0, 10)).toEqual([]);
+    expect(logTicks(-5, 10)).toEqual([]);
+  });
+
+  it('a positive range gets 1-2-5 ticks inside it', () => {
+    expect(logTicks(1, 100)).toEqual([1, 2, 5, 10, 20, 50, 100]);
+  });
+});

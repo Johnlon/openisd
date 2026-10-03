@@ -9,11 +9,11 @@ import {SosFamily} from './passFamilies/SosFamily.js';
 
 /** The one place a `PassFamily` becomes a strategy — exhaustive, no default arm: `PassFamily`
  *  is a closed 4-member union, so an unhandled new subtype fails to compile here. */
-function passFamilyModel(family: PassFamily, order: number, Q: number): PassFamilyModel {
+function passFamilyModel(family: PassFamily, order: number, Q: number, winisdBesselHighpass: boolean): PassFamilyModel {
   switch (family) {
     case 'butterworth':   return new ButterworthFamily(order);
     case 'linkwitzRiley': return new LinkwitzRileyFamily();
-    case 'bessel':        return new BesselFamily(order);
+    case 'bessel':        return new BesselFamily(order, winisdBesselHighpass);
     case 'sos':           return new SosFamily(Q);
   }
 }
@@ -49,8 +49,8 @@ function passFamilyOf(subtype: number): PassFamily | null {
 export class PassFilterModel implements FilterModel {
   private readonly family: PassFamilyModel;
 
-  constructor(private readonly spec: PassFilter) {
-    this.family = passFamilyModel(spec.family, spec.order, spec.Q);
+  constructor(private readonly spec: PassFilter, winisdBesselHighpass: boolean) {
+    this.family = passFamilyModel(spec.family, spec.order, spec.Q, winisdBesselHighpass);
   }
 
   response(f: number): Complex {

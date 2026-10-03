@@ -60,7 +60,7 @@ test('toggling the "Force flat response" checkbox writes through to the project'
 test('the error switches carry the warning class under a "WinISD errors" heading; the air model does not', async ({ page }) => {
   const group = page.locator('.error-switch-group');
   await expect(group.locator('.error-switch-group-head')).toHaveText('WinISD errors');
-  for (const key of ['winisdDriverModel', 'winisdVaModel', 'winisdAbcIntraPortVelocity', 'winisdPrNprResonance']) {
+  for (const key of ['winisdDriverModel', 'winisdVaModel', 'winisdAbcIntraPortVelocity', 'winisdPrNprResonance', 'winisdBesselHighpass']) {
     const label = group.locator(`label[data-field-key="${key}"]`);
     await expect(label, key).toHaveClass(/error-switch-marked/);
     await expect(label, key).toHaveAttribute('title', /^Reproduces a WinISD error\.\n/);

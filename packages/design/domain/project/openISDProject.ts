@@ -336,6 +336,11 @@ export class OpenISDProject {
         return ProjectAdvanced.wrap(this.#slot('advanced'), this.#slot('filters')).winisdPrNprResonance;
     }
 
+    /** WinISD Compatibility "WinISD Bessel high-pass" — see `ProjectAdvanced.winisdBesselHighpass`. */
+    get winisdBesselHighpass(): SimpleField<boolean> {
+        return ProjectAdvanced.wrap(this.#slot('advanced'), this.#slot('filters')).winisdBesselHighpass;
+    }
+
     /** The controls that reproduce a known WinISD error: which carry the warning look, whether each
      *  applies to the open box, and whether it is reproducing the error now. */
     get errorSwitches(): ErrorSwitchStates {
@@ -345,6 +350,8 @@ export class OpenISDProject {
             winisdVaModel: this.winisdVaModel.value,
             winisdAbcIntraPortVelocity: this.winisdAbcIntraPortVelocity.value,
             winisdPrNprResonance: this.winisdPrNprResonance.value,
+            winisdBesselHighpass: this.winisdBesselHighpass.value,
+            hasBesselHighpass: this.filters.value.some(f => f.type === 'highpass' && f.family === 'bessel' && f.enabled),
         });
     }
 
@@ -365,6 +372,7 @@ export class OpenISDProject {
         this.winisdFlatModel.set(true);
         this.winisdAbcIntraPortVelocity.set(true);
         this.winisdPrNprResonance.set(true);
+        this.winisdBesselHighpass.set(true);
     }
 
     /** Which charts are open (S10/QO130) — PROJECT-scoped, reversing QO90 for this field.
@@ -757,6 +765,7 @@ export class OpenISDProject {
             winisdFlatModel: this.winisdFlatModel,
             winisdAbcIntraPortVelocity: this.winisdAbcIntraPortVelocity,
             winisdPrNprResonance: this.winisdPrNprResonance,
+            winisdBesselHighpass: this.winisdBesselHighpass,
             lossMode: this.lossMode,
             rgAtDriverSide: this.rgAtDriverSide,
             useTransmissionLinePortModel: this.useTransmissionLinePortModel,

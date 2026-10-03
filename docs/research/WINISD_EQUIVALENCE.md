@@ -89,6 +89,13 @@ Re + Rg; BP6 transfer is rear minus front. ABC intra-port velocity leaves the in
 out (drops Ricl): that cell matches WinISD with the "WinISD ABC intra-port velocity" error switch on
 (Reset to WinISD ticks it); off, the default, OpenISD draws the flow through the intra port
 ([ACCURACY_IMPROVEMENTS.md](ACCURACY_IMPROVEMENTS.md?html#winisd-calculation-errors--correct-by-default-an-error-switch-brings-winisd-back)).
+The passive-radiator box with Npr > 1 matches WinISD's impedance, transfer function and excursion with the
+"PR Npr resonance" error switch on (Reset to WinISD ticks it): WinISD takes the fixed losses at an ωr Npr times
+below the tuning; off, the default, OpenISD uses the tuning. The captures (`pr-w5-npr-1`, `pr-w5-me-npr-1`)
+run with the switch on.
+A Bessel high-pass filter matches WinISD's response and group delay with the "WinISD Bessel high-pass" error
+switch on (Reset to WinISD ticks it); off, the default, OpenISD draws the mirror of the low-pass. The
+filter captures run with the switch on.
 Candidates for a conventional switch: [ACCURACY_IMPROVEMENTS.md](ACCURACY_IMPROVEMENTS.md?html).
 
 ---

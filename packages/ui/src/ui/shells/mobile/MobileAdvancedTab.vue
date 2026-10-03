@@ -96,6 +96,9 @@ const {
       <ErrorSwitch as="label" class="mob-row mob-checkbox-row" field-key="winisdPrNprResonance" :marked="errorSwitches.prNprResonance.marked" :applicable="errorSwitches.prNprResonance.applicable" :reproduces-error="errorSwitches.prNprResonance.reproducesError" :title="ToggleField.ADV_WINISDPRNPRRESONANCE.description">
         <input type="checkbox" :checked="project.winisdPrNprResonance.value" :disabled="!errorSwitches.prNprResonance.applicable" @change="e => project.winisdPrNprResonance.set(inputChecked(e))"> {{ ToggleField.ADV_WINISDPRNPRRESONANCE.label }}
       </ErrorSwitch>
+      <ErrorSwitch as="label" class="mob-row mob-checkbox-row" field-key="winisdBesselHighpass" :marked="errorSwitches.besselHighpass.marked" :applicable="errorSwitches.besselHighpass.applicable" :reproduces-error="errorSwitches.besselHighpass.reproducesError" :title="ToggleField.ADV_WINISDBESSELHIGHPASS.description">
+        <input type="checkbox" :checked="project.winisdBesselHighpass.value" :disabled="!errorSwitches.besselHighpass.applicable" @change="e => project.winisdBesselHighpass.set(inputChecked(e))"> {{ ToggleField.ADV_WINISDBESSELHIGHPASS.label }}
+      </ErrorSwitch>
     </ErrorSwitchGroup>
   </div>
 </template>
