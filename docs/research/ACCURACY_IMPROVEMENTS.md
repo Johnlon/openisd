@@ -22,8 +22,26 @@ awaits the by-hand check with John (QO170).
 | 7 | New vent end correction 0.6 (OpenISD's default 0.732)                        | one agreed default, stated                          | Vent length readout: Δ = 0.132·D; 5 cm port, 20 L, 40 Hz → 6.6 mm on 154 mm (4 %). Charts unaffected (they use Fb)            | none   | handover "Still open for vented" |
 | 8 | Mixes an entered BL (drive push, CLe inductance corner) with a Qes-derived BL (acoustic damping) instead of one consistent value | use one consistent BL throughout | W5-1138SMF (entered 7.17, Qes-implied 7.384): SPL passband +0.256 dB, impedance peak ~1.23 Ω (8 %) high, TF reference off by 0.507 dB, inductance-on rolloff corner off by 0.56 dB at 20 kHz — all the same (7.384/7.17)² factor | "WinISD driver calculations" off avoids the mix but also drops the Mms/Rms substitutions | [bug](../../bugs/archive/BUG_20260926_winisd-spl-level-uses-entered-bl.md), [bug](../../bugs/archive/BUG_20260926_winisd-impedance-uses-entered-bl.md), [bug](../../bugs/archive/BUG_20260926_winisd-tf-reference.md), [bug](../../bugs/archive/BUG_20260926_gyrator-rolloff-shallower-than-winisd.md) |
 | 9 | Passive-radiator box: fixed-loss frequency ωr = 1/√(Npr·Map·(Cab ∥ Npr·Cap)) — the branch mass is multiplied by Npr where the true tuning divides by it, so ωr is Npr times too low (invisible at Npr = 1) | ωr = the physical tuning, 1/√((Map/Npr)·(Cab ∥ Npr·Cap)) | Npr 2, W5 in 10 L, radiator Fs 30 Hz/Vas 4.8 L: WinISD ωr → 21.0 Hz, true 42 Hz; impedance up to 1 Ω and TF up to 2 dB off at Npr = 2 (chart review) | none | [bug](../../bugs/archive/BUG_20260928_pr-added-mass-or-count-not-winisd.md) |
-| 10 | ABC box: intra-chamber port velocity chart is V/(jωMai + Zf) — drops Ricl from the divider. The box's own load Zbox and every other ABC chart use the correct Zi = Ricl ∥ jωMai | intra port velocity on V/(Zi + Zf), same Zi the load uses | W5-1138SMF in abc-w5-1: negligible near the box tunings (42/60 Hz, <0.01 dB), rises through the passband — 100 Hz +0.38 dB, 1 kHz −0.26 dB, 5 kHz −4.2 dB, 20 kHz −14.2 dB | none | winisd_research/GHIDRA_FINDINGS.md "ABC (Aperiodic Bi-Chamber)" chart-21 note; `packages/design/engine/boxes/AbcBox.ts` `UPi` |
 | 11 | Filter order capped at 10: its filter calculation overflows (floating point) above that | orders up to 20, calculated without overflow | An order 12–20 low/high-pass (Butterworth, Bessel) cannot be entered in WinISD; OpenISD draws it, −3.01 dB at fc for Butterworth n = 20 | none — fixed by default (an overflow is a crash, not a calculation wart to copy) | [bug](../../bugs/archive/BUG_20260927_winisd-wpr-filter-order-12-stops-load.md) |
+
+## WinISD bugs fixed by default — broken links, not calculation differences
+
+These are not accuracy choices and have no switch: WinISD fails to apply something it should.
+
+| WinISD does | OpenISD | Bug |
+|---|---|---|
+| Passive radiator Sd typed in the UI is not linked to the model: the chart does not change, though a file loaded with a different Sd draws a different chart (probe 2026-10-03) | the Sd edit takes effect; PR excursion and PR air velocity scale as 1/Sd | [bug](../../bugs/BUG_20261003_winisd-pr-sd-edit-ignored.md) |
+
+## WinISD calculation errors — correct by default, an error switch brings WinISD back
+
+A wrong formula, or a value that contradicts WinISD's own other charts. OpenISD does the correct
+thing by default. A yellow "error switch", editable only where it applies, makes WinISD's
+calculation come back. The error switches sit under "WinISD errors" in the Compatibility panel.
+Rows 1 (VA), 8 (two BLs) and 9 (passive-radiator ωr) above are error switches too.
+
+| WinISD does | OpenISD default | Switch | Bug |
+|---|---|---|---|
+| ABC box: intra-chamber port velocity chart is V/(jωMai + Zf), dropping Ricl; WinISD's own box load and every other ABC chart use Zi = Ricl ∥ jωMai. Negligible near the box tunings; +0.38 dB at 100 Hz, −0.26 dB at 1 kHz, −4.2 dB at 5 kHz, −14.2 dB at 20 kHz (W5-1138SMF, abc-w5-1). The two agree when the inter-chamber leak Qiclfr is very large | V/(Zi + Zf), the flow through the intra port | "WinISD ABC intra-port velocity", off by default, ABC boxes only | [bug](../../bugs/BUG_20261003_winisd-abc-intra-port-velocity-drops-ricl.md) |
 
 ## Not an improvement — WinISD matches the textbook
 

@@ -85,8 +85,10 @@ radiator — §3.6, §3.7; BP6/ABC — winisd_research runs `bp6-w5-1`, `abc-w5-
 
 WinISD warts reproduced on purpose (not deviations): PR phase chart plots arg(Upr) without the 90°
 of its magnitude chart; Maximum SPL / Maximum power leave the filter chain out; VA uses Re, not
-Re + Rg; BP6 transfer is rear minus front; ABC intra-port velocity leaves the inter-chamber leak out
-(drops Ricl — [ACCURACY_IMPROVEMENTS.md #11](ACCURACY_IMPROVEMENTS.md?html#worth-a-switch)).
+Re + Rg; BP6 transfer is rear minus front. ABC intra-port velocity leaves the inter-chamber leak
+out (drops Ricl): that cell matches WinISD with the "WinISD ABC intra-port velocity" error switch on
+(Reset to WinISD ticks it); off, the default, OpenISD draws the flow through the intra port
+([ACCURACY_IMPROVEMENTS.md](ACCURACY_IMPROVEMENTS.md?html#winisd-calculation-errors--correct-by-default-an-error-switch-brings-winisd-back)).
 Candidates for a conventional switch: [ACCURACY_IMPROVEMENTS.md](ACCURACY_IMPROVEMENTS.md?html).
 
 ---

@@ -17,12 +17,14 @@ async function boxType(page: Page, value: string): Promise<void> {
   await page.locator('li', {hasText: /^Advanced$/}).click();
 }
 
-const ERROR_KEYS = ['winisdDriverModel', 'winisdVaModel', 'winisdAbcIntraPortVelocity'];
+const ERROR_KEYS = ['winisdDriverModel', 'winisdVaModel', 'winisdAbcIntraPortVelocity', 'winisdPrNprResonance'];
+/** The box type each error switch acts on; a switch that applies everywhere is shown on an ABC box. */
+const BOX_FOR: Record<string, string> = {winisdPrNprResonance: 'box-passive-radiator'};
 const DESIGN_KEYS = ['useWinisdAirModel', 'winisdWrapPhase', 'winisdDriverCountModel', 'winisdFlatModel'];
 
 test('the error switches carry the warning class, unticked and ticked', async ({page}) => {
-  await boxType(page, 'abc');
   for (const key of ERROR_KEYS) {
+    await boxType(page, BOX_FOR[key] ?? 'abc');
     const label = page.locator(`label[data-field-key="${key}"]`);
     const box = label.locator('input[type=checkbox]');
     for (const want of [false, true]) {
@@ -68,18 +70,23 @@ test('the ABC velocity switch is editable on an ABC box only', async ({page}) =>
   await expect(page.locator('label[data-field-key="winisdAbcIntraPortVelocity"]')).not.toHaveClass(/error-switch-na/);
 });
 
-test('the loss model drop-down carries it only on a passive radiator with the WinISD lossy model', async ({page}) => {
-  const frame = page.locator('.sim-options-box .field', {has: page.locator('select#adv-lossmode')});
-  await boxType(page, 'sealed');
-  await expect(frame).not.toHaveClass(/error-switch-marked/);
+test('the PR Npr switch is editable on a passive radiator box only', async ({page}) => {
+  const label = page.locator('label[data-field-key="winisdPrNprResonance"]');
+  await boxType(page, 'vented');
+  await expect(label.locator('input')).toBeDisabled();
+  await expect(label).toHaveClass(/error-switch-na/);
   await boxType(page, 'box-passive-radiator');
-  await page.locator('select#adv-lossmode').selectOption('winisd-lossy');
-  await expect(frame).toHaveClass(/error-switch-marked/);
-  await expect(frame).toHaveAttribute('title', /^Reproduces a WinISD error\.\n/);
-  await page.locator('select#adv-lossmode').selectOption('lossless');
-  await expect(frame).not.toHaveClass(/error-switch-marked/);
-  await page.locator('select#adv-lossmode').selectOption('conventional-lossy');
-  await expect(frame).not.toHaveClass(/error-switch-marked/);
+  await expect(label.locator('input')).toBeEnabled();
+  await expect(label).not.toHaveClass(/error-switch-na/);
+});
+
+test('the loss model drop-down is a design choice: it never carries the warning class', async ({page}) => {
+  const frame = page.locator('.sim-options-box .field', {has: page.locator('select#adv-lossmode')});
+  await boxType(page, 'box-passive-radiator');
+  for (const mode of ['winisd-lossy', 'lossless', 'conventional-lossy']) {
+    await page.locator('select#adv-lossmode').selectOption(mode);
+    await expect(frame, mode).not.toHaveClass(/error-switch-marked/);
+  }
 });
 
 test('the error group fits inside the Compatibility panel', async ({page}) => {

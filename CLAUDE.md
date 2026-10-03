@@ -34,8 +34,33 @@ protection applies to them as to your own.
 
 ## WinISD controls behave as native WinISD
 
-Goal: by default OpenISD behaves 100% like WinISD, warts and calculation bugs included (not
-crashes, hangs or data loss). Stretch goal: other conventions, for interest and education.
+Goal: by default OpenISD behaves 100% like WinISD, including WinISD's deliberate calculation
+choices. A straight WinISD bug is not copied. Stretch goal: other conventions, for interest and
+education.
+
+Three kinds of WinISD difference, handled differently:
+
+- **A different calculation** (the maths differs: another formula, loss model, convention, or a
+  consistent calculation error such as the passive-radiator ωr using Npr where the tuning divides
+  by it) is copied by default. The conventional maths sits behind a compat switch, or behind an
+  existing switch whose tooltip is extended to name the case.
+- **A calculation bug** (a wrong formula, or a value that contradicts WinISD's own other charts)
+  can be reproduced: OpenISD does the correct thing by default and provides a yellow error switch
+  that makes WinISD's calculation come back. The switch is off by default (a WinISD default that is
+  itself the bug is the one exception: it stays as WinISD has it, shown yellow), editable only
+  where it applies, and looks different from ordinary switches even when off. The error switches
+  sit in one group headed "WinISD errors", and each is a visible, listed WinISD issue: the switches
+  are how OpenISD tells users what is wrong in WinISD, and they build trust. Record each as a
+  WinISD bug (a `bugs/BUG_*_winisd-*.md` file, a row in the "fixed by default" section of
+  `docs/research/ACCURACY_IMPROVEMENTS.md`, and `docs/research/WINISD_PARITY.md`).
+- **A trigger, linkage or update bug** (an edit that does not recalculate where a load or another
+  event does; a crash, hang or data loss) is NEVER copied and gets no switch: there is nothing to
+  reproduce on purpose. OpenISD does the correct thing. Record it the same way.
+- **One test that tells them apart:** the same value entered by hand and loaded from a file give
+  different results. That is a strong signal of a linkage bug, not a calculation difference. There
+  are other tests and signals. It also means OpenISD may already have copied such a bug while
+  chasing parity: look for it, and remove it.
+- When it is unclear which kind a WinISD behaviour is, ask John.
 
 - Every control OpenISD shares with WinISD behaves exactly as WinISD does, by default (e.g. "Rg
   is at driver side").
@@ -99,5 +124,6 @@ enter context when relevant, not on every session:
 - **Task-list format and granularity**: [`docs/TASK_LIST_FORMAT.md`](docs/TASK_LIST_FORMAT.md) —
   read before writing any `todowrite` list.
 - **Multi-session coordination** (disjoint file assignment, dispatch): [`docs/MULTI_SESSION_COORDINATION.md`](docs/MULTI_SESSION_COORDINATION.md).
+- **UI does no maths, formatting or constants**: `.claude/rules/ui.md` — lint bans `Math.log/pow/…` and `.toFixed(` under `packages/ui/src`; use `packages/design` axes and `fields/format.ts`.
 - **UI test fixtures & scratch specs**: `.claude/rules/ui-test-fixtures.md` — auto-loads under
   `packages/ui/test/`.
