@@ -13,9 +13,11 @@ This is a WinISD bug. Evidence and mechanism: [winisd_research/bugs/BUG_20260927
 
 ## OpenISD
 
-Copied by default: `packages/design/engine/filters.ts` `besselHP` (commit bcb445e5), pinned by
-`packages/design/test/engine/filters-winisd.test.ts` (WinISD captures `2|1;2;1;4;25;0.707` etc.).
-Stretch, not built: a conventional (mirrored) Bessel HP behind a WinISD Compatibility switch.
+Correct by default (2026-10-03): the Bessel high-pass is the mirror of the low-pass,
+`packages/design/engine/filters/passFamilies/BesselFamily.ts` `highpass`, pinned by
+`packages/design/test/engine/bessel-highpass-switch.test.ts`. The error switch "WinISD Bessel
+high-pass" (`winisdBesselHighpass`, off by default, ticked by Reset to WinISD) brings WinISD's form
+back; the WinISD captures (`2|1;2;1;4;25;0.707` etc.) in `filters-winisd.test.ts` run with it on.
 
 ## ⚠ Human re-verification pending (QO170)
 

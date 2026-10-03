@@ -31,10 +31,11 @@ const ERROR_SWITCH_TITLE = 'Reproduces a WinISD error.';
 </template>
 
 <style>
-.error-switch { display: flex; align-items: center; gap: 4px; cursor: pointer; min-width: 0; }
+.error-switch { display: flex; align-items: center; gap: 3px; line-height: 1.15; cursor: pointer; min-width: 0; }
 .error-switch input[type=checkbox] { margin: 0; flex: none; }
-.error-switch-marked { border: 1px solid #d9a400; border-radius: 3px; padding: 0 3px; background: rgba(255, 196, 0, 0.12); }
+.error-switch-marked { position: relative; border: 1px solid #d9a400; border-radius: 3px; padding: 0 2px 0 6px; background: rgba(255, 196, 0, 0.12); }
 .error-switch-marked.error-switch-on { background: rgba(255, 196, 0, 0.45); }
-.error-switch-mark { color: #b88400; }
+/* A badge on the left border, out of the text flow, so a label keeps its full width. */
+.error-switch-mark { position: absolute; left: -5px; top: 50%; transform: translateY(-50%); color: #b88400; font-size: 10px; line-height: 1; background: #f4f6f9; }
 .error-switch-na { opacity: 0.45; cursor: default; }
 </style>

@@ -10,20 +10,21 @@ import {filterModel} from './filters/index.js';
  * Evaluate one filter descriptor at frequency f.
  * Returns complex H(jω) — multiply onto Hc, UD, UP in sweep.js.
  */
-export function evalFilter(f: number, flt: Filter): Complex {
-  return filterModel(flt).response(f);
+export function evalFilter(f: number, flt: Filter, winisdBesselHighpass: boolean): Complex {
+  return filterModel(flt, winisdBesselHighpass).response(f);
 }
 
 /**
  * Apply an array of filter descriptors to a complex quantity as a cascade.
  * Enabled filters multiply in sequence; disabled ones are skipped.
- * Returns the net complex gain at frequency f (unity if no filters).
+ * Returns the net complex gain at frequency f (unity if no filters). `winisdBesselHighpass`
+ * selects WinISD's own Bessel high-pass over the mirror of the low-pass.
  */
-export function applyFilters(f: number, filters?: Filter[]): Complex {
+export function applyFilters(f: number, filters: Filter[] | undefined, winisdBesselHighpass: boolean): Complex {
   let H = cx(1, 0);
   if (!filters || !filters.length) return H;
   for (const flt of filters) {
-    if (flt.enabled) H = cMul(H, evalFilter(f, flt));
+    if (flt.enabled) H = cMul(H, evalFilter(f, flt, winisdBesselHighpass));
   }
   return H;
 }

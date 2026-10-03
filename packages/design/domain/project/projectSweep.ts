@@ -37,6 +37,7 @@ export interface ProjectSweepSource {
     readonly winisdFlatModel: SimpleField<boolean>;
     readonly winisdAbcIntraPortVelocity: SimpleField<boolean>;
     readonly winisdPrNprResonance: SimpleField<boolean>;
+    readonly winisdBesselHighpass: SimpleField<boolean>;
     readonly lossMode: SimpleField<LossMode>;
     readonly rgAtDriverSide: SimpleField<boolean>;
     readonly useTransmissionLinePortModel: SimpleField<boolean>;
@@ -98,6 +99,7 @@ function sweepParamsOf(source: ProjectSweepSource, P: FrequencyGrid, eg: number,
         winisdFlatModel: source.winisdFlatModel.value,
         winisdAbcIntraPortVelocity: source.winisdAbcIntraPortVelocity.value,
         winisdPrNprResonance: source.winisdPrNprResonance.value,
+        winisdBesselHighpass: source.winisdBesselHighpass.value,
         lossMode: source.lossMode.value.value,
         Ql: losses.Ql, Qa: losses.Qa, Qp: losses.Qp,
         ...boxSpecificParamsOf(source, boxType),

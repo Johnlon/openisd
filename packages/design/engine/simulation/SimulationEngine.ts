@@ -477,7 +477,7 @@ export class SimulationEngineImpl implements SimulationEngine {
       const w   = 2 * Math.PI * f;
       // p = ρ·ω·U₀/(2π·r)  https://en.wikipedia.org/wiki/Acoustic_impedance#Radiation_impedance
       // Filters are line-level (upstream of amp) — multiply Hc, UD, UP; Zel is unaffected.
-      const Hf  = applyFilters(f, P.filters);
+      const Hf  = applyFilters(f, P.filters, P.winisdBesselHighpass === true);
       // The chain's own electrical response — the "(EQ/Filter)" charts. Same -200 dB silence
       // sentinel as `spl`, for the pathological |H| = 0 exactly (e.g. a notch landing on a grid
       // point) — `cAbs` never returns a negative number, so testing `=== 0` catches only that
@@ -556,8 +556,8 @@ export class SimulationEngineImpl implements SimulationEngine {
     const fltPhase = winisdWrap ? fltPhaseWrapped : unwrap(fltPhaseWrapped);
     // Radiated pressure up to a real scale factor, which the phase slope does not see.
     const pressure = (f: number): Complex =>
-      cMul(cMul(cx(0, 2 * Math.PI * f), solve(f, cq, box, P).U0), applyFilters(f, P.filters));
-    const filterChain = (f: number): Complex => applyFilters(f, P.filters);
+      cMul(cMul(cx(0, 2 * Math.PI * f), solve(f, cq, box, P).U0), applyFilters(f, P.filters, P.winisdBesselHighpass === true));
+    const filterChain = (f: number): Complex => applyFilters(f, P.filters, P.winisdBesselHighpass === true);
     const gd = fs.map(f => groupDelayAtMs(pressure, f));
     const fltGd = fs.map(f => groupDelayAtMs(filterChain, f));
 

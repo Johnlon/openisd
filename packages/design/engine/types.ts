@@ -200,6 +200,10 @@ export interface SweepParams {
    *  Npr times below the tuning (true), or the physical tuning 1/√((Map/Npr)·(Cab ∥ Npr·Cap))
    *  (false/absent). `winisd-lossy` only; the same at Npr = 1. */
   winisdPrNprResonance?: boolean;
+  /** Bessel high-pass filters as WinISD computes them, (k·s)^n over the low-pass's denominator,
+   *  which is not the mirror of the low-pass (true), or the mirror, the low-pass with s → 1/s
+   *  (false/absent). */
+  winisdBesselHighpass?: boolean;
   // Box losses
   lossMode?: LossModeValue;
   Ql?: number;

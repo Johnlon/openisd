@@ -25,10 +25,14 @@ scale as 1/Sd.
 ## Other fields (probe `winisd_research/toys/probe_pr_sd_edit.py field=...`)
 - Fs: LINKED. Typing 30 → 20 changes Transfer function (PR) at once and both PR charts after a
   redraw (`runs/pr-Fs-edit-1`).
-- Vas, Qms: edit probes still running when this was written (`runs/pr-Vas-edit-1`,
-  `runs/pr-Qms-edit-1`); not yet judged. Type Vas as `.012`: a leading `0` fails in the harness.
+- Qms: LINKED. Typing 3.3 → 1.5 changes Transfer function (PR) at once (5864 px) and both PR charts
+  after a redraw (`runs/pr-Qms-edit-1`).
+- Vas: edit route NOT probed, harness cannot type into the Vas box (three failure modes in
+  `PROBE_FINDINGS.md`). Load route: Vas in the file moves both PR charts (`runs/pr-Vas-load-1`).
+  Whether the Vas edit is linked in WinISD is unknown.
 
 ## Not probed
 - The edit was typed character by character; PARITY §18 documents a recalculation-trigger lag for
   typed edits and the cut-and-paste trigger was not tried.
-- The file-load route for Vas, Fs and Qms (only Sd was shown to differ on load).
+- The Vas edit route, and the file-load route for Fs and Qms (an edit that moves the chart on its own
+  shows the field is linked, so the load run was not needed).

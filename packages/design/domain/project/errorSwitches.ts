@@ -20,6 +20,8 @@ export interface ErrorSwitchStates {
     /** PR Npr resonance: the passive-radiator box's fixed losses at an ωr that uses Npr where the
      *  tuning divides by it. */
     readonly prNprResonance: ErrorSwitchState;
+    /** WinISD Bessel high-pass: not the mirror of the Bessel low-pass. */
+    readonly besselHighpass: ErrorSwitchState;
 }
 
 export interface ErrorSwitchInputs {
@@ -28,6 +30,9 @@ export interface ErrorSwitchInputs {
     readonly winisdVaModel: boolean;
     readonly winisdAbcIntraPortVelocity: boolean;
     readonly winisdPrNprResonance: boolean;
+    readonly winisdBesselHighpass: boolean;
+    /** The project has at least one enabled Bessel high-pass filter. */
+    readonly hasBesselHighpass: boolean;
 }
 
 export function errorSwitchStatesOf(i: ErrorSwitchInputs): ErrorSwitchStates {
@@ -35,6 +40,7 @@ export function errorSwitchStatesOf(i: ErrorSwitchInputs): ErrorSwitchStates {
         abcIntraPortVelocity: {marked: true, applicable: i.boxType === 'abc', reproducesError: i.winisdAbcIntraPortVelocity},
         driverModel: {marked: true, applicable: true, reproducesError: i.winisdDriverModel},
         vaModel: {marked: true, applicable: true, reproducesError: i.winisdVaModel},
+        besselHighpass: {marked: true, applicable: i.hasBesselHighpass, reproducesError: i.winisdBesselHighpass},
         prNprResonance: {marked: true, applicable: i.boxType === 'box-passive-radiator', reproducesError: i.winisdPrNprResonance},
     };
 }

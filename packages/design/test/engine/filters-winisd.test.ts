@@ -35,7 +35,8 @@ const LE_H = 0.70e-3;
  *  a single point at `f` (`f0 * (f1/f0)^(i/N)`, and `Math.pow(1, NaN)` is 1). */
 function filterAt(filter: Filter, f: number) {
   const sw = engine.simulation.sweep(sweepDriver(DRV), LE_H, 'sealed',
-    {Vb: 0.030, eg: 2.83, fmin: f, fmax: f, N: 0, filters: [filter]}).values!;
+    // The captures are WinISD's own, Bessel high-pass quirk included (`winisdBesselHighpass`).
+    {Vb: 0.030, eg: 2.83, fmin: f, fmax: f, N: 0, filters: [filter], winisdBesselHighpass: true}).values!;
   return {mag: sw.fltMag[0], phase: sw.fltPhase[0], gdMs: sw.fltGd[0]};
 }
 

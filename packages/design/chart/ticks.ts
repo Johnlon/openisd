@@ -27,9 +27,10 @@ export function linearTicks(ymin: number, ymax: number, ph: number): LinearTicks
   return { ticks, step, mag };
 }
 
-/** 1, 2, 5 per decade inside `min … max`. */
+/** 1, 2, 5 per decade inside `min … max`. A log axis has none below zero: log10(0) is -Infinity. */
 export function logTicks(min: number, max: number): number[] {
   const t: number[] = [];
+  if (!(min > 0) || !Number.isFinite(max)) return t;
   for (let d = Math.floor(Math.log10(min)); d <= Math.ceil(Math.log10(max)); d++)
     for (const mul of [1, 2, 5]) { const v = mul * Math.pow(10, d); if (v >= min && v <= max) t.push(v); }
   return t;

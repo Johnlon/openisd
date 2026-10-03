@@ -1280,9 +1280,10 @@ with Sd 0.019 draws a different chart from one loaded with 0.0095. But typing a 
 Passive radiator pane changes nothing: no chart points recomputed, chart pixel-identical, also
 after a forced redraw (`winisd_research/runs/pr-sd-edit-1`, `-2`, `pr-sd-load-1`;
 `PROBE_FINDINGS.md`). OpenISD does not copy it: the Sd edit takes effect and PR excursion scales as
-1/Sd. Fs is linked: typing a new Fs changes both PR charts (`runs/pr-Fs-edit-1`). Vas and Qms were still
-being probed when this was written (`runs/pr-Vas-edit-1`, `runs/pr-Qms-edit-1`). Not yet probed: the
-cut-and-paste trigger above. Bug: [BUG_20261003_winisd-pr-sd-edit-ignored.md](../../bugs/BUG_20261003_winisd-pr-sd-edit-ignored.md?html).
+1/Sd. Fs and Qms are linked: typing a new value changes the PR charts (`runs/pr-Fs-edit-1`,
+`runs/pr-Qms-edit-1`). Vas: the edit route is not probed (the harness cannot type into the Vas box),
+the file-load route moves both PR charts (`runs/pr-Vas-load-1`). Not yet probed: the cut-and-paste
+trigger above. Bug: [BUG_20261003_winisd-pr-sd-edit-ignored.md](../../bugs/BUG_20261003_winisd-pr-sd-edit-ignored.md?html).
 
 ## 19. WinISD parameter entry — community best practices (a second source)
 

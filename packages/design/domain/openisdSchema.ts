@@ -743,6 +743,9 @@ const openISDAdvancedJsonSchema = z.preprocess(renameLegacyWinisdDriverModel, z.
     // "PR Npr resonance": the passive-radiator box's fixed-loss frequency as WinISD computes it,
     // Npr times below the tuning. Optional: absent parses to OFF, the physical tuning.
     winisdPrNprResonance: z.boolean().optional(),
+    // "WinISD Bessel high-pass": Bessel high-pass filters as WinISD computes them, not the mirror of
+    // the low-pass. Optional: absent parses to OFF, the mirror.
+    winisdBesselHighpass: z.boolean().optional(),
     // "WinISD phase wrapping": wraps phase curves to [-180°, +180°]. Optional: absent parses to ON.
     winisdWrapPhase: z.boolean().optional(),
     // "WinISD driver count": N drivers as WinISD simulates them, each in Vb/N fed P/N; off, the N

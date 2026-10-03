@@ -1300,6 +1300,12 @@ export class ToggleField extends Field {
     description: "PR Npr resonance: affects the passive radiator box with more than one radiator (Npr > 1) in the WinISD lossy model; no effect at Npr = 1.\nTicked (as WinISD): the box's leak and absorption are taken at WinISD's frequency 1/√(Npr·Map·(Cab ∥ Npr·Cap)). A WinISD error: the radiator mass is multiplied by Npr where the tuning divides by it, so that frequency is Npr times too low (Npr 2, W5 in 10 L, radiator Fs 30 Hz and Vas 4.8 L: WinISD 21 Hz, tuning 42 Hz; impedance up to 1 Ω and transfer function up to 2 dB off).\nUnticked: the same losses taken at the physical tuning 1/√((Map/Npr)·(Cab ∥ Npr·Cap)).",
   });
 
+  static readonly ADV_WINISDBESSELHIGHPASS = new ToggleField({
+    value: "adv_WinisdBesselHighpass",
+    label: "WinISD Bessel high-pass",
+    description: "WinISD Bessel high-pass: affects Bessel high-pass filters in the EQ/Filter chain only; Butterworth, Linkwitz-Riley, SOS and every low-pass are unchanged, and so is a first-order Bessel.\nTicked (as WinISD): the high-pass keeps the low-pass's own denominator with the numerator swapped to (k·s)^n. A WinISD error: that is not the mirror of the Bessel low-pass (order 4, fc 25 Hz: up to 6 % off in complex response).\nUnticked: the mirror of the low-pass, s → 1/s.",
+  });
+
   static readonly ALL: readonly ToggleField[] =
     Object.freeze(Object.values(ToggleField).filter((v): v is ToggleField => v instanceof ToggleField));
 }

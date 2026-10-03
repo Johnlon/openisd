@@ -76,7 +76,12 @@ test('an unreachable PR target flags the entered Fp as the cause and the derived
   expect(ceiling).toBeGreaterThan(0);
 
   await page.locator('.project-nav li', { hasText: 'Passive Radiator' }).click();
-  await pageOps.setNum('#og-pr-fp', (ceiling * 1.5).toFixed(2));
+  // The Fp input is capped at the ceiling, so an over-ceiling target can't be typed. Enter one
+  // just under it, then make the box bigger: the ceiling falls below the entered Fp.
+  await pageOps.setNum('#og-pr-fp', (ceiling * 0.99).toFixed(2));
+  await page.locator('.project-nav li', { hasText: 'Box' }).first().click();
+  await pageOps.setNum(VOLUME_INPUT, '3000');
+  await page.locator('.project-nav li', { hasText: 'Passive Radiator' }).click();
 
   // The INPUT (entered Fp) is the real problem: dq-root + the ⚠ note.
   const fpInput = page.locator('#og-pr-fp');

@@ -40,10 +40,10 @@ export {ShelfFilterModel} from './ShelfFilterModel.js';
  * model nobody asked for. Takes the whole `Filter` (spec + `enabled`), not just the spec, so a
  * model can write its own `enabled` bit into its `.wpr()` shape.
  */
-export function filterModel(f: Filter): FilterModel {
+export function filterModel(f: Filter, winisdBesselHighpass: boolean): FilterModel {
   switch (f.type) {
     case 'lowpass':
-    case 'highpass':     return new PassFilterModel(f);
+    case 'highpass':     return new PassFilterModel(f, winisdBesselHighpass);
     case 'allpass':       return new AllpassFilterModel(f);
     case 'linkwitz':      return new LinkwitzFilterModel(f);
     case 'peaking':       return new ParametricEqFilterModel(f);

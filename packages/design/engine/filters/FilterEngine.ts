@@ -89,11 +89,12 @@ export class FilterEngineImpl implements FilterEngine {
   }
 
   caption(f: Filter): string {
-    return filterModel(f).caption();
+    // A caption and a `.wpr` shape do not depend on the response maths, so the Bessel form is moot.
+    return filterModel(f, false).caption();
   }
 
   wpr(f: Filter): WprFilter | null {
-    return filterModel(f).wpr();
+    return filterModel(f, false).wpr();
   }
 
   fromWpr(typeNum: number, fields: readonly string[]): WprFilterImport {

@@ -17,20 +17,23 @@ async function boxType(page: Page, value: string): Promise<void> {
   await page.locator('li', {hasText: /^Advanced$/}).click();
 }
 
-const ERROR_KEYS = ['winisdDriverModel', 'winisdVaModel', 'winisdAbcIntraPortVelocity', 'winisdPrNprResonance'];
+const ERROR_KEYS = ['winisdDriverModel', 'winisdVaModel', 'winisdAbcIntraPortVelocity', 'winisdPrNprResonance', 'winisdBesselHighpass'];
 /** The box type each error switch acts on; a switch that applies everywhere is shown on an ABC box. */
 const BOX_FOR: Record<string, string> = {winisdPrNprResonance: 'box-passive-radiator'};
+/** The Bessel switch acts only on a project with a Bessel high-pass filter, so it cannot be ticked here. */
+const TICKABLE_KEYS = ERROR_KEYS.filter(key => key !== 'winisdBesselHighpass');
 const DESIGN_KEYS = ['useWinisdAirModel', 'winisdWrapPhase', 'winisdDriverCountModel', 'winisdFlatModel'];
 
 test('the error switches carry the warning class, unticked and ticked', async ({page}) => {
-  for (const key of ERROR_KEYS) {
+  for (const key of TICKABLE_KEYS) {
     await boxType(page, BOX_FOR[key] ?? 'abc');
     const label = page.locator(`label[data-field-key="${key}"]`);
     const box = label.locator('input[type=checkbox]');
+    await expect(label, key).toHaveClass(/error-switch-marked/);
+    await expect(label.locator('.error-switch-mark')).toBeVisible();
     for (const want of [false, true]) {
       await box.setChecked(want);
       await expect(label, `${key} ticked=${want}`).toHaveClass(/error-switch-marked/);
-      await expect(label.locator('.error-switch-mark')).toBeVisible();
       await expect(label).toHaveClass(want ? /error-switch-on/ : /^(?!.*error-switch-on)/);
     }
   }
@@ -68,6 +71,15 @@ test('the ABC velocity switch is editable on an ABC box only', async ({page}) =>
   await boxType(page, 'abc');
   await expect(box).toBeEnabled();
   await expect(page.locator('label[data-field-key="winisdAbcIntraPortVelocity"]')).not.toHaveClass(/error-switch-na/);
+});
+
+test('the Bessel high-pass switch is editable only while a Bessel high-pass filter exists', async ({page}) => {
+  const label = page.locator('label[data-field-key="winisdBesselHighpass"]');
+  await page.locator('li', {hasText: /^Advanced$/}).click();
+  await expect(label.locator('input')).toBeDisabled();
+  await expect(label).toHaveClass(/error-switch-na/);
+  await expect(label).toHaveClass(/error-switch-marked/);
+  await expect(label.locator('.error-switch-mark')).toBeVisible();
 });
 
 test('the PR Npr switch is editable on a passive radiator box only', async ({page}) => {

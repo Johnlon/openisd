@@ -6,8 +6,8 @@
 export function spinnerStep(shown: string): string {
   const v = Math.abs(parseFloat(shown));
   if (!(v > 0)) return 'any';
-  const decade = Math.pow(10, Math.floor(Math.log10(v)) - 1);
+  const decade = Math.floor(Math.log10(v)) - 1;
   const shownDp = (shown.split('.')[1] || '').length;
-  const minStep = shownDp > 0 ? Math.pow(10, -shownDp) : 1;
-  return String(Math.max(decade, minStep));
+  // `Number('1e-4')` is the exact decimal; `Math.pow(10, -4)` is 0.00009999999999999999.
+  return String(Number(`1e${Math.max(decade, -shownDp)}`));
 }

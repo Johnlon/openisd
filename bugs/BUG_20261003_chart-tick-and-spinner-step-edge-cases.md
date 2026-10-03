@@ -1,6 +1,6 @@
 # BUG_20261003_chart-tick-and-spinner-step-edge-cases
 
-**Status:** OPEN — found while moving the UI chart maths into packages/design; behaviour kept as it was
+**Status:** FIXED 2026-10-03 — failing tests first (parked by the engine session), then the fix
 
 ## Symptom
 1. `logTicks(0, 10)` throws `RangeError: Invalid array length`. A log axis starting at 0 takes `Math.log10(0)`, which is `-Infinity`.
