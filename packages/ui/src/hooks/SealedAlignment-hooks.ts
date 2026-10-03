@@ -1,5 +1,6 @@
 import {computed, type ComputedRef, ref, type Ref} from 'vue';
 import type {OpenISDProject} from '@openisd/design';
+import {NumberField} from '@openisd/design/fields';
 import type {DriverEngine, EbpSuitability, SealedAlignmentOption, SealedEngine} from '@openisd/design/engine';
 
 export interface SealedAlignmentEditorAPI {
@@ -53,8 +54,8 @@ export class SealedAlignmentEditor implements SealedAlignmentEditorAPI {
     });
     this.selectedOption = computed(() => this.qtc.value == null ? null : sealed.closestAlignment(this.qtc.value));
     this.volume_L = computed<number | null>({
-      get: () => this.#draftVolume_m3.value == null ? null : this.#draftVolume_m3.value * 1000,
-      set: value => { this.#draftVolume_m3.value = value == null ? null : value / 1000; },
+      get: () => this.#draftVolume_m3.value == null ? null : NumberField.BOX_VB_L.toDisplay(this.#draftVolume_m3.value),
+      set: value => { this.#draftVolume_m3.value = value == null ? null : NumberField.BOX_VB_L.toSI(value); },
     });
     this.ebp = computed(() => {
       const {Fs_hz, Qes} = this.#driverValues.value;

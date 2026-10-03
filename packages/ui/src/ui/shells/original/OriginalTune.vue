@@ -7,7 +7,6 @@
 import {onMounted, onUnmounted, reactive, ref} from 'vue';
 import {presentationState} from '../../../logic/presentationState.js';
 import {useFocusedProject} from '../../../logic/focusedProjectContext.js';
-import {fromDisplay, statedPrecision, toDisplay, unitDef} from '../../../logic/fields/units.js';
 import {NumberField} from '@openisd/design/fields';
 import {cellClassOf} from '../../../logic/useDriverCells.js';
 import NumInput from '../../components/NumInput.vue';
@@ -56,16 +55,11 @@ const DERIVED: TuneField[] = [
   { key: 'Mms_kg', def: NumberField.MMS_KG, label: 'Mms' },
 ];
 
-/** `f`'s own group + base token, when its display is switchable — the one source `disp`/
- *  `onField`/`scaledLimits`/the template's unit span all read, instead of each repeating it. */
-function swDisplay(f: TuneField) {
-  return f.def.display.kind === 'switchable' ? f.def.display : undefined;
-}
+
 /** The unit text shown beside the field: the registry's own symbol (fixed), or the base token's
  *  label out of `UNIT_GROUPS` (switchable) — never a second string. */
 function unitLabel(f: TuneField): string {
-  const d = f.def.display;
-  return d.kind === 'fixed' ? d.symbol : unitDef(d.group, d.base).label;
+  return f.def.unitLabel();
 }
 
 // While a field is focused, echo the RAW typed string (so mid-typing values like
@@ -80,9 +74,7 @@ function disp(f: TuneField): string {
   void project.value;
   const v = tune.specField(f.key).value;
   if (typeof v !== 'number' || !isFinite(v)) return '';
-  const sw = swDisplay(f);
-  const d = sw ? toDisplay(v, sw.group, sw.base) : v;
-  return d.toFixed(f.def.precision);
+  return f.def.format(v);
 }
 function fieldVal(f: TuneField): string {
   void resetRevision.value;
@@ -91,16 +83,15 @@ function fieldVal(f: TuneField): string {
 function onField(f: TuneField, e: Event) {
   const raw = inputValue(e);
   rawVals[f.key] = raw;
-  const v = parseFloat(raw);
   // Emptying a field RELEASES it back to Calculated — the override is withdrawn, not set to
   // nothing. Without this a cleared field would keep its last entered value invisibly.
-  if (raw.trim() === '') clearField(f.key);
-  // The typed characters state the precision, so they are what it is read off — `raw`, never the
-  // parsed number (which has already dropped "30.00"'s trailing zeros).
-  else if (isFinite(v)) {
-    const sw = swDisplay(f);
-    enterField(f.key, sw ? fromDisplay(v, sw.group, sw.base) : v,
-               sw ? statedPrecision(raw, sw.group, sw.base) : statedPrecision(raw));
+  if (raw.trim() === '') {
+    clearField(f.key);
+  } else {
+    const res = f.def.parseEntry(raw);
+    if (res.kind === 'quantity') {
+      enterField(f.key, res.valueSI, res.halfWidthSI);
+    }
   }
 }
 function onBlur(f: TuneField) { delete rawVals[f.key]; }
@@ -109,9 +100,10 @@ function onBlur(f: TuneField) { delete rawVals[f.key]; }
 // the same conversion (e.g. Vas max 100 m³ → 100000 L).
 function scaledLimits(f: TuneField): { min?: number; max?: number } {
   const lim = f.def.limits;
-  const sw = swDisplay(f);
-  if (!sw) return { min: lim.min, max: lim.max };
-  return { min: toDisplay(lim.min, sw.group, sw.base), max: toDisplay(lim.max, sw.group, sw.base) };
+  return {
+    min: lim.min != null ? f.def.toDisplay(lim.min) : undefined,
+    max: lim.max != null ? f.def.toDisplay(lim.max) : undefined,
+  };
 }
 
 // Any two of the Q trio solve the third, so all three are flagged together while fewer than

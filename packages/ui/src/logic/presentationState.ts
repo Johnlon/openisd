@@ -20,8 +20,7 @@ import {reactive} from 'vue';
 import type {YRange} from '../types.js';
 import type {ChartId} from '@openisd/design/engine';
 import {getOrInit, hmrSlots} from './hmrSingleton.js';
-import {nextToken} from './fields/units.js';
-import {type UnitGroup} from '@openisd/design/fields';
+import {isTokenIn, type UnitGroup} from '@openisd/design/fields';
 import type {OpenISDProject} from '@openisd/design';
 
 /** The palette `assignTraceColor`/`cycleTraceColor` draw from — one project's own
@@ -148,13 +147,16 @@ export function cycleTraceColor(project: OpenISDProject): void {
 // than one place shares one selected unit. `baseToken` is the field's own default unit (its
 // historic display unit) used until the user rotates it.
 /** The field's currently-selected unit token (its base unit until rotated). */
-export function unitToken(field: string, baseToken: string): string {
-  return presentationState.ui.unitTokens?.[field] ?? baseToken;
-}
-/** Rotate a field's unit to the next token in its group (persisted, survives refresh). */
-export function cycleUnitToken(field: string, group: UnitGroup, baseToken: string): void {
-  if (!presentationState.ui.unitTokens) presentationState.ui.unitTokens = {};
-  presentationState.ui.unitTokens[field] = nextToken(group, unitToken(field, baseToken));
+export function unitToken(field: string, group: UnitGroup, baseToken: string): string {
+  const stored = presentationState.ui.unitTokens?.[field];
+  if (stored && isTokenIn(group, stored)) {
+    return stored;
+  }
+  if (stored && presentationState.ui.unitTokens) {
+    // Sanitize invalid storage token to group default
+    delete presentationState.ui.unitTokens[field];
+  }
+  return baseToken;
 }
 /** Reset every field's display unit back to its own default (undoes all unit toggling app-wide
  *  — cm/L/g/Hz/K/Pa etc., whatever each field's `base` prop is), in one action. Does not touch

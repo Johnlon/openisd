@@ -22,8 +22,8 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 import {dirname, join} from 'node:path';
-import {Field, NumberField} from '@openisd/design/fields';
-import {fromDisplay} from '../../src/logic/fields/units.js';
+import {Field, NumberField, toSI, unitFor, type UnitGroup} from '@openisd/design/fields';
+const fromDisplay = (val: number, group: UnitGroup, token: string) => toSI(unitFor(group, token), val);
 
 const here = dirname(fileURLToPath(import.meta.url));
 const components = join(here, '..', '..', 'src', 'ui', 'components');

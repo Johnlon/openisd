@@ -10,8 +10,7 @@
 // registry's own `unit`/`unitGroup` (BUG_20260928, "NumInput's group/base props are a fourth
 // table"). A field with a `fixed` display renders its symbol, unrotatable.
 import {computed} from 'vue';
-import {cycleUnitToken, unitToken} from '../../logic/presentationState.js';
-import {UNIT_GROUPS, unitDef} from '../../logic/fields/units.js';
+import {presentationState, unitToken} from '../../logic/presentationState.js';
 import type {NumberField} from '@openisd/design/fields';
 
 const props = defineProps<{
@@ -24,21 +23,24 @@ const props = defineProps<{
   unitClass?: string;
 }>();
 
-const display = computed(() => props.field.display);
-const label = computed(() => {
-  const d = display.value;
-  if (d.kind === 'fixed') return d.symbol;
-  return unitDef(d.group, unitToken(props.unitKey, d.base)).label;
+const currentToken = computed(() => {
+  const d = props.field.display;
+  return props.field.unitTokenFor(presentationState.ui.unitTokens ?? {}) ?? (d.kind === 'switchable' ? unitToken(props.unitKey, d.group, d.base) : '');
 });
+const label = computed(() => props.field.unitLabel(currentToken.value));
 // A field with a `fixed` display, or a `switchable` one whose group has ONE unit (e.g. `percent`
 // — a stored fraction shown as %), has nowhere to rotate: render a plain label, never a
 // clickable toggle with nothing to cycle.
-const hasChoice = computed(() => display.value.kind === 'switchable' && UNIT_GROUPS[display.value.group].length > 1);
+const hasChoice = computed(() => props.field.display.kind === 'switchable' && props.field.nextToken(currentToken.value) !== currentToken.value);
 
 function cycle() {
-  const d = display.value;
+  const d = props.field.display;
   if (d.kind !== 'switchable') return;
-  cycleUnitToken(props.unitKey, d.group, d.base);
+  const next = props.field.nextToken(currentToken.value);
+  if (next) {
+    if (!presentationState.ui.unitTokens) presentationState.ui.unitTokens = {};
+    presentationState.ui.unitTokens[props.unitKey] = next;
+  }
 }
 </script>
 

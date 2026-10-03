@@ -17,8 +17,20 @@ export { DEFAULT_NEW_PROJECT_VENTED_QL, DEFAULT_SOURCE_RESISTANCE_OHM } from './
 export {
   type UnitGroup,
   type UnitDef,
+  type UnitToken,
+  type Unit,
+  type Quantity,
+  type TypedEntry,
   UNIT_GROUPS,
+  isTokenIn,
+  unitFor,
+  toDisplay,
+  toSI,
+  toDisplayDelta,
+  decimalsIn,
 } from './dimensions.js';
+
+export { knownDecimals } from './precision.js';
 
 export {
   type FieldLimits,

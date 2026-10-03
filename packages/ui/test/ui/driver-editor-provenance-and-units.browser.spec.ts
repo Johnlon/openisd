@@ -2,8 +2,7 @@ import {expect, openAProject, test} from '../fixtures.js';
 import type {Page} from '@playwright/test';
 import {fillAndBlur} from '../fixtures/numField.js';
 import {PROVENANCE_MAP} from '../../src/logic/provenance.js';
-import {ALL_FIELDS} from '@openisd/design/fields';
-import {UNIT_GROUPS} from '../../src/logic/fields/units.js';
+import {ALL_FIELDS, UNIT_GROUPS} from '@openisd/design/fields';
 
 /**
  * Driver editor — provenance highlighting and per-field display units, over EVERY field on

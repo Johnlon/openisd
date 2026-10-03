@@ -78,7 +78,7 @@ describe('useOgNewProject', () => {
     expect(wizard.selectedDriverSpecs.value).toEqual([]);
 
     wizard.selectDriver(createTestDriver(engine, { Fs: 40, Qts: 0.38, Vas_m3: 0.03 }));
-    expect(wizard.selectedDriverSpecs.value).toEqual(['Fs: 40 Hz', 'Qts: 0.38', 'Vas: 30.0 L']);
+    expect(wizard.selectedDriverSpecs.value).toEqual(['Fs: 40 Hz', 'Qts: 0.38', 'Vas: 30.00 L']);
   });
 
   it('initializes with pre-loaded driver if provided', () => {

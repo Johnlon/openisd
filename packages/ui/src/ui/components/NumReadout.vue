@@ -10,8 +10,7 @@
 // calculated value is shown, is what NumInput already is for the ENTERED side of the same fields
 // — this is its read-only twin, not a second implementation.
 import {computed} from 'vue';
-import {unitToken} from '../../logic/presentationState.js';
-import {displayPrecision, shownDecimals, toDisplay} from '../../logic/fields/units.js';
+import {unitToken, presentationState} from '../../logic/presentationState.js';
 import type {NumberField} from '@openisd/design/fields';
 
 const props = withDefaults(defineProps<{
@@ -41,21 +40,25 @@ const props = withDefaults(defineProps<{
   asInput: false,
 });
 
-const sw = computed(() => (props.field?.display.kind === 'switchable' ? props.field.display : undefined));
-const unitized = computed(() => sw.value != null && props.unitKey != null);
-const token = computed(() => (unitized.value ? unitToken(props.unitKey!, sw.value!.base) : ''));
-const basePrec = computed(() => props.precision ?? props.field?.precision ?? 2);
-const minDp = computed(() =>
-  unitized.value ? displayPrecision(basePrec.value, sw.value!.group, sw.value!.base, token.value) : basePrec.value);
+const activeToken = computed(() => {
+  if (props.field) {
+    const d = props.field.display;
+    return props.field.unitTokenFor(presentationState.ui.unitTokens ?? {}) ?? (props.unitKey && d.kind === 'switchable' ? unitToken(props.unitKey, d.group, d.base) : undefined);
+  }
+  if (props.unitKey) {
+    return presentationState.ui.unitTokens?.[props.unitKey];
+  }
+  return undefined;
+});
 
 const text = computed(() => {
   const si = props.value;
   if (si == null || !isFinite(si)) return props.placeholder;
-  const disp = unitized.value ? toDisplay(si, sw.value!.group, token.value) : si;
-  const dp = unitized.value
-    ? shownDecimals(minDp.value, props.halfWidth, disp, sw.value!.group, token.value)
-    : shownDecimals(minDp.value, props.halfWidth, disp);
-  return disp.toFixed(dp);
+  if (props.field) {
+    return props.field.format(si, props.halfWidth, activeToken.value);
+  }
+  const minDp = props.precision ?? 2;
+  return si.toFixed(minDp);
 });
 </script>
 

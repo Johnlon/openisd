@@ -8,7 +8,7 @@
 import type {OpenISDDriver, OpenISDPassiveRadiatorStandalone, Readable} from '@openisd/design';
 import type {BundledDriverIndexRow, BundledPassiveRadiatorIndexRow} from '@openisd/persistence';
 import {Chip, DriverType} from '@openisd/design/filter';
-import {toDisplay} from './fields/units.js';
+import {NumberField} from '@openisd/design/fields';
 
 /** One row of the preview pane's spec table. `value` is already formatted for display. */
 export interface PreviewSpec { label: string; value: string | null; unit?: string }
@@ -74,24 +74,26 @@ export function specSummaryOf(driver: OpenISDDriver): {
 /** The preview pane's spec table for one driver — formatted rows, zero/absent values dropped. */
 export function previewSpecsOf(driver: OpenISDDriver): PreviewSpec[] {
   const n = specSummaryOf(driver);
-  const scaled = (v: number | null, scale = 1): number | null =>
-    (v != null && isFinite(v * scale) && v !== 0) ? v * scale : null;
+  const fmtField = (field: NumberField, v: number | null): { value: string | null; unit?: string } => {
+    if (v == null || !isFinite(v) || v === 0) return { value: null };
+    return { value: field.format(v), unit: field.unitLabel() };
+  };
   const canonical = chipsOf(driver).canonical;
-  const Fs = n.Fs, Qes = n.Qes;
+  const ebpVal = driver.ebp();
   return [
-    { label: 'Fs',   value: scaled(n.Fs)?.toFixed(1) ?? null,          unit: 'Hz'  },
-    { label: 'Qts',  value: scaled(n.Qts)?.toFixed(3) ?? null },
-    { label: 'Qes',  value: scaled(n.Qes)?.toFixed(3) ?? null },
-    { label: 'Qms',  value: scaled(n.Qms)?.toFixed(3) ?? null },
-    { label: 'Re',   value: scaled(n.Re)?.toFixed(2) ?? null,          unit: 'Ω'   },
-    { label: 'Le',   value: scaled(n.Le, 1000)?.toFixed(3) ?? null,    unit: 'mH'  },
-    { label: 'Vas',  value: scaled(n.Vas, 1000)?.toFixed(2) ?? null,   unit: 'L'   },
-    { label: 'Sd',   value: scaled(n.Sd, 1e4)?.toFixed(1) ?? null,     unit: 'cm²' },
-    { label: 'Xmax', value: scaled(n.Xmax, 1000)?.toFixed(1) ?? null,  unit: 'mm'  },
-    { label: 'Pe',   value: scaled(n.Pe)?.toFixed(0) ?? null,          unit: 'W'   },
-    { label: 'Znom', value: scaled(n.Znom)?.toFixed(0) ?? null,        unit: 'Ω'   },
+    { label: 'Fs',   ...fmtField(NumberField.FS_HZ, n.Fs) },
+    { label: 'Qts',  ...fmtField(NumberField.QTS, n.Qts) },
+    { label: 'Qes',  ...fmtField(NumberField.QES, n.Qes) },
+    { label: 'Qms',  ...fmtField(NumberField.QMS, n.Qms) },
+    { label: 'Re',   ...fmtField(NumberField.RE_OHM, n.Re) },
+    { label: 'Le',   ...fmtField(NumberField.LE_H, n.Le) },
+    { label: 'Vas',  ...fmtField(NumberField.VAS_M3, n.Vas) },
+    { label: 'Sd',   ...fmtField(NumberField.SD_M2, n.Sd) },
+    { label: 'Xmax', ...fmtField(NumberField.XMAX_M, n.Xmax) },
+    { label: 'Pe',   ...fmtField(NumberField.PE_W, n.Pe) },
+    { label: 'Znom', ...fmtField(NumberField.ZNOM_OHM, n.Znom) },
     { label: 'Type', value: canonical && canonical !== DriverType.Unclassified.display ? canonical : null },
-    { label: 'EBP',  value: (Fs && Qes) ? (Fs / Qes).toFixed(0) : null },
+    { label: 'EBP',  value: ebpVal != null ? NumberField.EBP_HZ.format(ebpVal) : null, unit: NumberField.EBP_HZ.unitLabel() },
   ].filter(s => s.value != null);
 }
 
@@ -215,9 +217,9 @@ function radiatorRow(id: string, name: string, dq: boolean, sd: number | null, m
     id,
     name,
     dq,
-    sd: sd === null ? '—' : toDisplay(sd, 'area', 'cm2').toFixed(0) + 'cm²',
-    mms: mms === null ? '—' : toDisplay(mms, 'mass', 'g').toFixed(1) + 'g',
-    cms: cms === null ? '—' : toDisplay(cms, 'compliance', 'mmPerN').toFixed(2) + 'mm/N',
+    sd: sd === null ? '—' : NumberField.SD_M2.format(sd) + NumberField.SD_M2.unitLabel(),
+    mms: mms === null ? '—' : NumberField.MMS_KG.format(mms) + NumberField.MMS_KG.unitLabel(),
+    cms: cms === null ? '—' : NumberField.CMS_M_PER_N.format(cms) + NumberField.CMS_M_PER_N.unitLabel(),
   };
 }
 

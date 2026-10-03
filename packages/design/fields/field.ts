@@ -38,7 +38,12 @@
  * comes from `UNIT_GROUPS`, never a second string stated here.
  */
 import {LossMode} from './lossMode.js';
-import type {FixedUnit, SwitchableUnit} from './dimensions.js';
+import type {FixedUnit, SwitchableUnit, Quantity, TypedEntry} from './dimensions.js';
+import {
+  decimalsIn, parseEntry as parseEntryDim, toDisplay as toDisplayDim, toDisplayDelta as toDisplayDeltaDim,
+  toSI as toSIDim, UNIT_GROUPS, unitFor,
+} from './dimensions.js';
+import {knownDecimals} from './precision.js';
 import type {FieldLimits} from './filterLimits.js';
 import {
   FILTER_BW_LIMITS, FILTER_FC_LIMITS, FILTER_GAIN_LIMITS, FILTER_ORDER_LIMITS, FILTER_Q_LIMITS,
@@ -132,6 +137,88 @@ export class NumberField extends Field {
     this.formula = spec.formula;
     this.plausible = Object.freeze(spec.plausible ?? spec.limits);
     this.floor = spec.floor ?? 'none';
+  }
+
+  /** Authoritative unit resolution for this field. */
+  unitFor(token?: string) {
+    return unitFor(this.display, token);
+  }
+
+  /** Display unit label symbol for this field. */
+  unitLabel(token?: string): string {
+    return this.unitFor(token).label;
+  }
+
+  /** Convert valueSI to display unit space for this field. */
+  toDisplay(valueSI: number, token?: string): number {
+    return toDisplayDim(this.unitFor(token), valueSI);
+  }
+
+  /** Convert valueDisp to SI space for this field. */
+  toSI(valueDisp: number, token?: string): number {
+    return toSIDim(this.unitFor(token), valueDisp);
+  }
+
+  /** Format valueSI or Quantity into display string for this field using unit conversion & precision rules. */
+  format(valueSIOrQuantity: number | Quantity, halfWidthSI?: number | null, token?: string): string {
+    let val: number;
+    let hw: number | null | undefined;
+    if (typeof valueSIOrQuantity === 'object' && valueSIOrQuantity !== null) {
+      val = valueSIOrQuantity.valueSI;
+      hw = valueSIOrQuantity.halfWidthSI;
+    } else {
+      val = valueSIOrQuantity;
+      hw = halfWidthSI;
+    }
+
+    if (!isFinite(val)) return '—';
+
+    const u = this.unitFor(token);
+    const valDisp = toDisplayDim(u, val);
+    const minDp = decimalsIn(u, this.precision);
+
+    let decimals = minDp;
+    if (hw != null && hw > 0 && isFinite(hw)) {
+      const hwDisp = toDisplayDeltaDim(u, hw);
+      const kd = knownDecimals(hwDisp, valDisp);
+      decimals = Math.max(minDp, kd);
+    }
+
+    decimals = Math.max(0, Math.min(20, decimals));
+    const sanitizedVal = valDisp === 0 ? 0 : valDisp;
+    return sanitizedVal.toFixed(decimals);
+  }
+
+  /** Parse raw typed string input into a Quantity or Text discriminant for this field. */
+  parseEntry(typed: string, token?: string): TypedEntry {
+    return parseEntryDim(this.unitFor(token), typed);
+  }
+
+  /** Get step attribute string for NumInput / expoStep. */
+  stepAttr(token?: string): string {
+    const u = this.unitFor(token);
+    const dp = decimalsIn(u, this.precision);
+    if (dp <= 0) return '1';
+    return (1 / Math.pow(10, dp)).toString();
+  }
+
+  /** Rotate unit to next token in group for switchable fields, or undefined for fixed fields. */
+  nextToken(token?: string): string | undefined {
+    if (this.display.kind === 'fixed') return undefined;
+    const groupUnits = UNIT_GROUPS[this.display.group];
+    const currentToken = (token && groupUnits.some(u => u.token === token))
+      ? token
+      : this.display.base;
+    const idx = groupUnits.findIndex(u => u.token === currentToken);
+    const nextIdx = (idx + 1) % groupUnits.length;
+    return groupUnits[nextIdx].token;
+  }
+
+  /** Helper to parse presentationState unit store without checking display.kind. */
+  unitTokenFor(unitTokensStore: Record<string, string>): string | undefined {
+    if (this.display.kind === 'fixed') return undefined;
+    const key = this.value;
+    return unitTokensStore[key] ?? this.display.base;
   }
 
   /**

@@ -1,5 +1,22 @@
 import {describe, expect, it} from 'vitest';
-import {displayPrecision, shownDecimals} from '../../src/logic/fields/units.js';
+import {decimalsIn, knownDecimals, toDisplayDelta, unitFor, type UnitGroup} from '@openisd/design/fields';
+
+function displayPrecision(baseDp: number, group: UnitGroup, baseToken: string, token: string): number {
+  const u = unitFor(group, token, baseToken);
+  return decimalsIn(u, baseDp);
+}
+
+function shownDecimals(minDp: number, halfWidthSI: number | null | undefined, valDisp: number, group?: UnitGroup, token?: string): number {
+  if (halfWidthSI != null && group != null && token != null) {
+    const u = unitFor(group, token);
+    const hwDisp = toDisplayDelta(u, halfWidthSI);
+    return Math.max(minDp, knownDecimals(hwDisp, valDisp));
+  }
+  if (halfWidthSI != null) {
+    return Math.max(minDp, knownDecimals(halfWidthSI, valDisp));
+  }
+  return minDp;
+}
 
 // The registry declares ONE precision per field, in the field's base unit, and that states the
 // field's ABSOLUTE resolution — Mms is known to a hundredth of a gram. Rotating the unit derives

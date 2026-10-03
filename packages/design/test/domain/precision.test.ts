@@ -1,5 +1,6 @@
 import {describe, expect, it} from 'vitest';
-import {halfUlp, knownDecimals} from '../../domain/precision.js';
+import {halfUlp} from '../../domain/precision.js';
+import {knownDecimals} from '../../fields/precision.js';
 
 describe('halfUlp — the rounding interval a typed decimal implies', () => {
   it('0.49 (two decimals) implies a half-width of 0.005', () => {

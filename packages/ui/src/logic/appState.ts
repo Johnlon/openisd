@@ -44,8 +44,7 @@ import {
     type ViewSnapshot,
 } from '@openisd/persistence';
 import {assignTraceColor, presentationState, unitToken} from './presentationState.js';
-import {displayPrecision, fromDisplay, toDisplay} from './fields/units.js';
-import {BOX_TYPE_OPTIONS, type SelectorOption, type UnitGroup} from '@openisd/design/fields';
+import {BOX_TYPE_OPTIONS, decimalsIn, isTokenIn, NumberField, type SelectorOption, toDisplay, unitFor, type UnitGroup} from '@openisd/design/fields';
 import {getOrInit, hmrSlots} from './hmrSingleton.js';
 import {notifyVentChanged, ventSolveSuspended,} from './useVentGroup.js';
 import {notifyPrChanged} from './usePrGroup.js';
@@ -672,7 +671,7 @@ export function createProject(driver: OpenISDDriver, box: (b: ProjectBuilder) =>
  *  `driver`, focused, with `name` for the tab. Used by File → Open when no project is focused;
  *  when one IS focused the caller swaps the driver in place instead (`loadDriver`). */
 export function openProjectFromDriver(driver: OpenISDDriver, name: string): void {
-  const p = createProject(driver, (b) => b.sealed().volume_m3(fromDisplay(DEFAULT_SEALED_VOLUME_L, 'volume', 'L')));
+  const p = createProject(driver, (b) => b.sealed().volume_m3(NumberField.BOX_VB_L.toSI(DEFAULT_SEALED_VOLUME_L)));
   p.name.set(name);
 }
 
@@ -804,8 +803,11 @@ export function formatInUnit(
   baseDp: number,
 ): string {
   if (si == null || !isFinite(si)) return '—';
-  const tok = unitToken(field, baseToken);
-  return toDisplay(si, group, tok).toFixed(displayPrecision(baseDp, group, baseToken, tok));
+  const tok = unitToken(field, group, baseToken);
+  const u = isTokenIn(group, tok) ? unitFor(group, tok) : unitFor(group, baseToken);
+  const dispVal = toDisplay(u, si);
+  const dp = decimalsIn(u, baseDp);
+  return dispVal.toFixed(dp);
 }
 
 /**
