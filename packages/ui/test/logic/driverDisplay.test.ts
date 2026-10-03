@@ -143,9 +143,9 @@ describe('passiveRadiatorRows — the PR browser row view model', () => {
       { id: 'aaaa-1', radiator: radiatorOf({ brand: 'SB', model: 'PR', Sd_m2: 0.025, Mms_kg: 0.06, Cms_m_per_N: 0.0011 }) },
     ]);
 
-    assert.equal(rows[0].sd, '250cm²');
-    assert.equal(rows[0].mms, '60.0g');
-    assert.equal(rows[0].cms, '1.10mm/N');
+    assert.equal(rows[0].sd, '250.00cm²');
+    assert.equal(rows[0].mms, '60.00g');
+    assert.equal(rows[0].cms, '1.1000mm/N');
   });
 
   it('shows an em dash for a number the radiator does not state', () => {
@@ -154,7 +154,7 @@ describe('passiveRadiatorRows — the PR browser row view model', () => {
       { id: 'aaaa-1', radiator: radiatorOf({ brand: 'SB', model: 'PR', Sd_m2: 0.025 }) },
     ]);
 
-    assert.equal(rows[0].sd, '250cm²');
+    assert.equal(rows[0].sd, '250.00cm²');
     assert.equal(rows[0].mms, '—');
   });
 

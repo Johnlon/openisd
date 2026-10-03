@@ -29,7 +29,10 @@ import {CellClass, cellClassOf} from '../../src/logic/useDriverCells.js';
 import {OpenISDDriver, VoiceCoilWiring} from '@openisd/design';
 import {createEngine} from '@openisd/design/engine';
 import {DateField, EnumField, Field, NumberField, TextField, ToggleField} from '@openisd/design/fields';
-import {nextToken, toDisplay, UNIT_GROUPS, unitDef} from '../../src/logic/fields/units.js';
+import {toDisplay as toDispCore, UNIT_GROUPS, unitFor, type UnitGroup} from '@openisd/design/fields';
+const unitDef = (group: UnitGroup, token: string) => unitFor(group, token);
+const toDisplay = (val: number, group: UnitGroup, token: string) => toDispCore(unitFor(group, token), val);
+const nextToken = (group: UnitGroup, token: string) => { const grp = UNIT_GROUPS[group]; const idx = grp.findIndex(u => u.token === token); return grp[(idx + 1) % grp.length].token; };
 
 const here = dirname(fileURLToPath(import.meta.url));
 const EDITOR = join(here, '..', '..', 'src', 'ui', 'components', 'DriverEditorModal.vue');
@@ -113,7 +116,8 @@ function boundFields(): Bound[] {
     if (regField instanceof NumberField && regField.display.kind === 'switchable') {
       const {group, base} = regField.display;
       const def = unitDef(group, base);
-      out.push({ label, field, scale: def.factor, precision: evalNum(precisionExpr, 2), unit: def.label, precisionExpr, toggleable: true, regField });
+      const scale = def.kind === 'switchable' ? def.factor : 1;
+      out.push({ label, field, scale, precision: evalNum(precisionExpr, 2), unit: def.label, precisionExpr, toggleable: true, regField });
       continue;
     }
 

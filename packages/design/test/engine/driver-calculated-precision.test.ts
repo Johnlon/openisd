@@ -1,6 +1,6 @@
 import {describe, expect, it} from 'vitest';
 import {createEngine} from '../../engine/index.js';
-import {knownDecimals} from '../../domain/precision.js';
+import {knownDecimals} from '../../fields/precision.js';
 import {driverParams, fakeSolverField} from './testSolver.js';
 
 const engine = createEngine();

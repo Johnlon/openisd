@@ -13,7 +13,6 @@ import {
 } from '../logic/appState.js';
 import {useApp} from '../logic/app.js';
 import { selectedOption } from '../logic/domEvents.js';
-import { fromDisplay } from '../logic/fields/units.js';
 
 /** The two engine areas the wizard consults; the app facade's by default, substitutes in a test. */
 export interface OriginalNewProjectEngineAreas {
@@ -231,7 +230,7 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
     const Vas_m3 = driver.specs.Vas_m3.value;
     if (Fs_hz != null) lines.push(`Fs: ${Fs_hz} Hz`);
     if (Qts != null) lines.push(`Qts: ${Qts}`);
-    if (Vas_m3 != null) lines.push(`Vas: ${(Vas_m3 * 1000).toFixed(1)} L`);
+    if (Vas_m3 != null) lines.push(`Vas: ${NumberField.VAS_M3.format(Vas_m3)} ${NumberField.VAS_M3.unitLabel()}`);
     return lines;
   });
 
@@ -259,7 +258,7 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
   const qtc = computed(() => {
     const driver = selectedDriver.value;
     if (!driver) return null;
-    return driver.sealedQtc(sealedVolume_L.value / 1000);
+    return driver.sealedQtc(NumberField.BOX_VB_L.toSI(sealedVolume_L.value));
   });
 
   const selectedSealedAlignment = computed(() => {
@@ -270,9 +269,8 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
    *  Qts/Vas leaves the previous volume standing. */
   function recomputeSealedVolume(driver: OpenISDDriver, target: number): void {
     const calculated_m3 = driver.sealedVolumeForQtc(target);
-    // Vb is a 2dp field everywhere else in the app (packages/ui/src/logic/fields/uiFields.ts) —
-    // match that here instead of showing the solver's raw float.
-    if (calculated_m3 != null) sealedVolume_L.value = Math.round(calculated_m3 * 1000 * 100) / 100;
+    // Vb is a 2dp field everywhere else in the app — match that here instead of showing the solver's raw float.
+    if (calculated_m3 != null) sealedVolume_L.value = Number(NumberField.BOX_VB_L.format(calculated_m3));
   }
 
   function selectDriver(driver: OpenISDDriver): void {
@@ -303,7 +301,7 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
     return driver.ventedDesign(selectedVentedAlignment.value, DEFAULT_SOURCE_RESISTANCE_OHM, NEW_PROJECT_VENTED_QL);
   });
 
-  const ventedVolume_L = computed(() => (ventedAlignmentResult.value?.Vb ?? 0) * 1000);
+  const ventedVolume_L = computed(() => (ventedAlignmentResult.value?.Vb != null ? NumberField.BOX_VB_L.toDisplay(ventedAlignmentResult.value.Vb) : 0));
   const ventedTuning_hz = computed(() => ventedAlignmentResult.value?.Fb ?? 0);
 
   // The designed value stays exactly as WinISD designs it; these say when it is implausible.
@@ -423,15 +421,15 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
 
   function createProject(): OpenISDProject | null {
     if (!selectedDriver.value) return null;
-    const volume_m3 = fromDisplay(vol.value, 'volume', 'L');
-    const frontVolume_m3 = fromDisplay(frontVol.value, 'volume', 'L');
+    const volume_m3 = NumberField.BOX_VB_L.toSI(vol.value);
+    const frontVolume_m3 = NumberField.BOX_VB_L.toSI(frontVol.value);
     // The user's choices, and only those; the builder fills the rest with the type's starting
     // values (`OpenISDBox.applyStartingValues`). The vented design is made against the project's
     // OWN Rg and Ql — the preview's constants are pinned to these by test, so the two never
     // disagree.
     const p = createProjectInStore(selectedDriver.value, (b) => {
       switch (boxType.value) {
-        case 'sealed': return b.sealed().volume_m3(fromDisplay(sealedVolume_L.value, 'volume', 'L'));
+        case 'sealed': return b.sealed().volume_m3(NumberField.BOX_VB_L.toSI(sealedVolume_L.value));
         case 'vented': return b.vented().alignment(selectedVentedAlignment.value);
         case 'box-passive-radiator': {
           const pr = b.passiveRadiator().volume_m3(volume_m3);

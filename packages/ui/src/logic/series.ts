@@ -1,4 +1,5 @@
 import type {BoxEngine, BoxType, ChartId, DriverError, EnvironmentEngine, MaxCurvesResult, SimulationEngine, SweepDriver, SweepResult} from '@openisd/design/engine';
+import {NumberField} from '@openisd/design/fields';
 
 /** The two engine areas a curve builder reads: the sweep's own classifiers and the air the port
  *  velocity's Mach limit is measured in. The composition root's engine satisfies it. */
@@ -231,7 +232,7 @@ const CURVE_BUILDERS: Record<ChartId, (c: CurveCtx) => CurveBuild> = {
     // Xmax limit line — omitted when Xmax is absent (the cone curve stays reliable;
     // the missing line is surfaced to the user as a dismissable issue elsewhere).
     const drvXmax_m = drv.values.Xmax_m;
-    const xm = drvXmax_m != null && drvXmax_m > 0 ? drvXmax_m * 1000 : null;
+    const xm = drvXmax_m != null && drvXmax_m > 0 ? NumberField.XMAX_M.toDisplay(drvXmax_m, 'mm') : null;
     if (xm != null) series.push({ xs: sw.fs, ys: sw.fs.map(() => xm), color:'#ff6b6b', name:'Xmax', dash:true });
     const top = Math.max((xm || 0) * 1.4, Math.max(...sw.exc.slice(0, 20)) * 1.1);
     return { series, ymin: 0, ymax: top };
@@ -240,7 +241,7 @@ const CURVE_BUILDERS: Record<ChartId, (c: CurveCtx) => CurveBuild> = {
   // WinISD draws the radiator's own excursion as its own chart, not inside 'Excursion'
   // (BUG_20260927_winisd-charts-missing.md).
   PRExcursion: ({ meta, P, sw }) => {
-    const xmp = (P.prXmax || 0.01) * 1000;
+    const xmp = NumberField.XMAX_M.toDisplay(P.prXmax || 0.01, 'mm');
     const series: Series[] = [
       { xs: sw.fs, ys: sw.excPR, color: meta.color, name: 'PR' },
       { xs: sw.fs, ys: sw.fs.map(() => xmp), color: '#9ad17a', name: 'PR Xmax', dash: true },
