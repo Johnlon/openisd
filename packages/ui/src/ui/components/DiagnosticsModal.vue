@@ -11,7 +11,6 @@
  * needed to fix the cause.
  */
 import {useDiagnosticsModal} from '../../hooks/DiagnosticsModal-hooks.js';
-import {originLabel} from '../../diagnostics/faultLog.js';
 const {faultLog, open, outcome, copied, applyFix, downloadOriginal, reload, copyReport} = useDiagnosticsModal();
 </script>
 
@@ -37,7 +36,7 @@ const {faultLog, open, outcome, copied, applyFix, downloadOriginal, reload, copy
         <div v-for="f in faultLog.faults" :key="f.id" class="dg-fault">
           <div class="dg-msg">
             <span class="dg-kind">{{ f.kind }}</span>
-            <span class="dg-kind">{{ originLabel(f.origin) }}</span>
+            <span class="dg-kind">{{ f.originLabel }}</span>
             {{ f.message }}
             <span v-if="f.count > 1" class="dg-count">×{{ f.count }}</span>
           </div>

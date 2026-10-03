@@ -6,7 +6,7 @@ import {createFaultLog, type QuickFix, type SaveBackup} from '../../src/diagnost
 import {useDiagnosticsModal, type DiagnosticsModalAPI} from '../../src/hooks/DiagnosticsModal-hooks.js';
 import {testAppLogic} from './testAppLogic.js';
 import {
-  type KeyValueStorage, type StoreName, StoredDataFault, createAppSettingsRepo, createMemoryStorage, createViewStateRepo,
+  type KeyValueStorage, type StoreName, createStoredDataFault, isStoredDataFault, createAppSettingsRepo, createMemoryStorage, createViewStateRepo,
 } from '@openisd/persistence';
 
 async function renderHook(
@@ -14,7 +14,7 @@ async function renderHook(
 ): Promise<DiagnosticsModalAPI> {
   const faultLog = createFaultLog(saveBackup, () => ({
     view: createViewStateRepo(storage), appSettings: createAppSettingsRepo(storage),
-  }));
+  }), (thrown) => isStoredDataFault(thrown) ? thrown.store : null);
   let api!: DiagnosticsModalAPI;
   const Child = defineComponent({
     setup() {
@@ -102,7 +102,7 @@ describe('useDiagnosticsModal', () => {
       vi.stubGlobal('window', {addEventListener: (type: string, fn: (e: unknown) => void) => { if (type === 'error') onError = fn; }});
       try {
         api.faultLog.install();
-        for (const store of stores) onError({message: `${store} unreadable`, error: new StoredDataFault(store, `${store} unreadable`)});
+        for (const store of stores) onError({message: `${store} unreadable`, error: createStoredDataFault(store, `${store} unreadable`)});
       } finally {
         vi.unstubAllGlobals();
       }

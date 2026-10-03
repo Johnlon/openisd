@@ -5,7 +5,7 @@
  *  No schema-upgrade seam, no share-link door: a share link keeps carrying the whole session
  *  through `ProjectRepo`'s own `stateToUrl`/`loadFromHash` (human ruling 2026-08-14) — this
  *  repo only ever needs local persistence. */
-import {StoredDataFault} from '../storedDataFault.js';
+import {createStoredDataFault} from './storedDataFault.js';
 import type {ChartView, ViewRange, ViewSnapshot} from './projectRepo.js';
 import type {KeyValueStorage} from '../storage/keyValueStorage.js';
 import {OPENISD_VIEW_KEY, OPENISD_BACKUP_KEYS} from './storageKeys.js';
@@ -87,13 +87,13 @@ export function createViewStateRepo(storage: KeyValueStorage): ViewStateRepo {
       try {
         const parsed: unknown = JSON.parse(raw);
         if (!isViewSnapshot(parsed)) {
-          console.error(new StoredDataFault('view', 'saved view state carries no ui object — refused'));
+          console.error(createStoredDataFault('view', 'saved view state carries no ui object — refused'));
           return null;
         }
         const chart = 'chart' in parsed ? parseChartView(parsed.chart) : null;
         return chart === null ? {ui: parsed.ui} : {ui: parsed.ui, chart};
       } catch {
-        console.error(new StoredDataFault('view', 'saved view state is not valid JSON — ignored'));
+        console.error(createStoredDataFault('view', 'saved view state is not valid JSON — ignored'));
         return null;
       }
     },

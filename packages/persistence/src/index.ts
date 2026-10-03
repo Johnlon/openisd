@@ -55,4 +55,4 @@ export {
   type BackupRepo, type RestoreResult, createBackupRepo,
 } from './repos/backupRepo.js';
 
-export { type StoreName, StoredDataFault } from './storedDataFault.js';
+export { type StoreName, type StoredDataFault, createStoredDataFault, isStoredDataFault } from './repos/storedDataFault.js';
