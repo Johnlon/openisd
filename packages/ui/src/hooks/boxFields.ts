@@ -9,7 +9,7 @@ import {computed, ref, watch} from 'vue';
 import type {OpenISDProject} from '@openisd/design';
 import type {BoxType} from '@openisd/design/engine';
 import {BOX_TYPE_OPTIONS} from '@openisd/design/fields';
-import {dqOfCell} from '../logic/cellDataQuality.js';
+import {dqOfCell, type DqReadout} from '../logic/cellDataQuality.js';
 
 // ---- Sealed / PR readouts (unit-testable, real domain) ------------------------
 // The fix this slice exists for: reading `project.value` ALONE does not invalidate these
@@ -33,22 +33,22 @@ export function createSealedReadouts({ project, selectedBox, projectChanged: cha
   // They require a real project — there is no box and no readout without one.
   const rearResonance = computed<number | null>(() => {
     void changed.value; void project.value;
-    return selectedBox.value === 'bandpass4'
-      ? project.value.box.bandpass4.chambers.rear.resonance_hz.value
-      : project.value.box.sealed.resonance_hz.value;
+    if (selectedBox.value === 'bandpass4') return project.value.box.bandpass4?.chambers?.rear?.resonance_hz?.value ?? null;
+    return project.value.box.sealed?.resonance_hz?.value ?? null;
   });
   const prFsMass_hz = computed<number | null>(() => {
     void changed.value;
-    return project.value.box.passiveRadiator.resonanceWithAddedMass_hz.value;
+    return project.value.box.passiveRadiator?.resonanceWithAddedMass_hz?.value ?? null;
   });
   // PR solved-pair DQ readouts, live: the editable added mass and target tuning (Fp), and the
   // two read-only outputs (system tuning, free-air resonance with mass). Each is a fresh
   // `DqReadout` per recompute — the field object itself never changes identity, so a computed
   // returning the field would not re-render its dependents.
-  const prAddedMassDq = computed(() => { void changed.value; return dqOfCell(project.value.box.passiveRadiator.addedMass_kg); });
-  const prTuningDq = computed(() => { void changed.value; return dqOfCell(project.value.box.passiveRadiator.tuning_goal_hz); });
-  const prSystemTuningDq = computed(() => { void changed.value; return dqOfCell(project.value.box.passiveRadiator.systemTuning_hz); });
-  const prResonanceMassDq = computed(() => { void changed.value; return dqOfCell(project.value.box.passiveRadiator.resonanceWithAddedMass_hz); });
+  const EMPTY_DQ: DqReadout = { dq: [], dqState: 'E' };
+  const prAddedMassDq = computed(() => { void changed.value; const f = project.value.box.passiveRadiator?.addedMass_kg; return f ? dqOfCell(f) : EMPTY_DQ; });
+  const prTuningDq = computed(() => { void changed.value; const f = project.value.box.passiveRadiator?.tuning_goal_hz; return f ? dqOfCell(f) : EMPTY_DQ; });
+  const prSystemTuningDq = computed(() => { void changed.value; const f = project.value.box.passiveRadiator?.systemTuning_hz; return f ? dqOfCell(f) : EMPTY_DQ; });
+  const prResonanceMassDq = computed(() => { void changed.value; const f = project.value.box.passiveRadiator?.resonanceWithAddedMass_hz; return f ? dqOfCell(f) : EMPTY_DQ; });
   // box.sealed.resonance_hz / q_tc are the domain's own readouts under the selected loss mode:
   // engine.sealedResonance returns {Fsc, Qtc} together, fed the driver's SOLVED Vas and Qts as
   // sourceLoadedQts(Rs) loads it (winisd-parity-functional.test.ts "Box.Fr" pins that feed) —
@@ -56,20 +56,40 @@ export function createSealedReadouts({ project, selectedBox, projectChanged: cha
   const rearQtc = computed<number | null>(() => {
     void changed.value;
     void project.value;
-    if (selectedBox.value === 'bandpass4') return project.value.box.bandpass4.chambers.rear.q_tc.value;
-    if (selectedBox.value !== 'sealed') return null;
-    return project.value.box.sealed.q_tc.value;
+    if (selectedBox.value === 'bandpass4') return project.value.box.bandpass4?.chambers?.rear?.q_tc?.value ?? null;
+    if (selectedBox.value === 'sealed') return project.value.box.sealed?.q_tc?.value ?? null;
+    return null;
   });
   // WinISD's "Fh" for a PR box is the PASSIVE RADIATOR system tuning — the box compliance in
   // series with the PR's own, against the PR's moving mass — NOT the sealed Fc above, which
   // ignores the PR entirely. winisd_research/GAPS.md §A3.
   /** The Box pane's rear-chamber readout: the PR system tuning for a PR box, else sealed Fc. */
-  const boxResonance = computed<number | null>(() => {
+  const prNaturalFh = computed<number | null>(() => {
     void changed.value; void project.value;
-    return selectedBox.value === 'box-passive-radiator' ? project.value.box.passiveRadiator.systemTuning_hz.value : rearResonance.value;
+    if (selectedBox.value !== 'box-passive-radiator') return null;
+    const pr = project.value.box.passiveRadiator;
+    if (!pr) return null;
+    const Vb = pr.volume_m3?.value;
+    const prMmd = pr.radiator?.spec?.Mms_kg?.value;
+    const prSd = pr.radiator?.spec?.Sd_m2?.value;
+    const prCms = pr.radiator?.spec?.Cms_m_per_N?.value;
+    const prNum = pr.count?.value;
+    if (Vb == null || prMmd == null || prSd == null || prCms == null || prNum == null || !(Vb > 0) || !(prMmd > 0) || !(prSd > 0) || !(prCms > 0) || !(prNum > 0)) return null;
+    const Cap = prNum * prCms * prSd * prSd;
+    const rho = 1.2041, c = 343.235;
+    const Cab = Vb / (rho * c * c);
+    const Cpar = (Cab * Cap) / (Cab + Cap);
+    const Map = prMmd / (prSd * prSd);
+    return 1 / (2 * Math.PI * Math.sqrt((Map / prNum) * Cpar));
   });
 
-  return { rearResonance, rearQtc, boxResonance, prAddedMassDq, prTuningDq, prSystemTuningDq, prResonanceMassDq, prFsMass_hz };
+  const boxResonance = computed<number | null>(() => {
+    void changed.value; void project.value;
+    if (selectedBox.value === 'box-passive-radiator') return project.value.box.passiveRadiator?.systemTuning_hz?.value ?? null;
+    return rearResonance.value;
+  });
+
+  return { rearResonance, rearQtc, boxResonance, prAddedMassDq, prTuningDq, prSystemTuningDq, prResonanceMassDq, prFsMass_hz, prNaturalFh };
 }
 
 // ---- Box-type-generic rear-chamber volume (unit-testable, real domain) --------

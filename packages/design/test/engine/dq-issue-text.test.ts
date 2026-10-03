@@ -33,6 +33,11 @@ describe('a DqIssue reports its own text', () => {
     assert.match(issue.text, /maximum this geometry can reach is 62.5 Hz/);
   });
 
+  it('target-unreachable states natural tuning ceiling for PR addedMass_kg', () => {
+    const issue = engine.issues.targetUnreachable('addedMass_kg', 63.3);
+    assert.match(issue.text, /Target tuning frequency \(Fh\) cannot be higher than the natural box tuning of 63.3 Hz \(with 0 added mass\)/);
+  });
+
   it('invalid-value and negative-value say what is kept', () => {
     // Both answer `null` for a value that passes their floor; -1 passes neither.
     const invalid = engine.issues.positiveValueIssue(-1);

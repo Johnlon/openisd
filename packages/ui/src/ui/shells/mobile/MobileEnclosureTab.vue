@@ -198,17 +198,17 @@ const {
         <span class="mob-field-value"><select id="mob-pr-count" class="mob-select" :value="project.box.passiveRadiator.count.value" @change="e => { const n = selectedOption(e, PR_COUNT_OPTIONS); if (n !== null) project.box.passiveRadiator.count.set(n); }"><option v-for="o in PR_COUNT_OPTIONS" :key="o.value" :value="o.value">{{ o.label }}</option></select></span>
       </div>
     </div>
-    <div class="mob-field-row mob-field-entered" :class="{ 'mob-field-dq': prAddedMassDq.dq.length > 0 }">
-      <div class="mob-field-main"><span class="mob-field-label">Added mass to cone</span>
-        <span class="mob-field-value"><NumInput :model-value="project.box.passiveRadiator.addedMass_kg.value" @update:model-value="(v: number | null) => project.box.passiveRadiator.addedMass_kg.set(v ?? 0)" :field="NumberField.PR_MADD_G" unit-key="prMadd" :precision="NumberField.PR_MADD_G.precision" v-bind="prAddedMassDq" stepper /></span>
-      </div>
-      <UnitToggle :field="NumberField.PR_MADD_G" unit-key="prMadd" unit-class="mob-unit" />
-    </div>
     <div class="mob-field-row mob-field-entered" :class="{ 'mob-field-dq': prTuningDq.dq.length > 0 }">
       <div class="mob-field-main"><span class="mob-field-label">Target tuning freq (Fh)</span>
         <span class="mob-field-value"><NumInput :model-value="project.box.passiveRadiator.tuning_goal_hz.value" @update:model-value="(v: number | null) => project.box.passiveRadiator.tuning_goal_hz.set(v ?? 0)" :field="NumberField.PR_FP_HZ" unit-key="Fp" :precision="NumberField.PR_FP_HZ.precision" v-bind="prTuningDq" stepper /></span>
       </div>
       <UnitToggle :field="NumberField.PR_FP_HZ" unit-key="Fp" unit-class="mob-unit" />
+    </div>
+    <div class="mob-field-row mob-field-entered" :class="{ 'mob-field-dq': prAddedMassDq.dq.length > 0 }">
+      <div class="mob-field-main"><span class="mob-field-label">Added mass to cone</span>
+        <span class="mob-field-value"><NumInput :model-value="project.box.passiveRadiator.addedMass_kg.value" @update:model-value="(v: number | null) => project.box.passiveRadiator.addedMass_kg.set(v ?? 0)" :field="NumberField.PR_MADD_G" unit-key="prMadd" :precision="NumberField.PR_MADD_G.precision" v-bind="prAddedMassDq" stepper /></span>
+      </div>
+      <UnitToggle :field="NumberField.PR_MADD_G" unit-key="prMadd" unit-class="mob-unit" />
     </div>
     <div class="mob-field-row mob-field-calculated" :class="{ 'mob-field-dq': prResonanceMassDq.dq.length > 0 }" :title="prResonanceMassDq.dq.length > 0 ? prResonanceMassDq.dq.join('; ') : ''">
       <div class="mob-field-main"><span class="mob-field-label">Fpr (with added mass)</span>
