@@ -1199,9 +1199,10 @@ textarea.comment, textarea.description { width:100%; border:1px solid #999; bord
   padding: 8px 10px;
   flex: none;
   align-self: flex-start;
+  width: max-content;
 }
-/* Two columns, so the compatibility box stays compact. */
-.sim-switches { display: grid; grid-template-columns: repeat(2, 1fr); gap: 2px 12px; }
+/* Single column vertical stack so compatibility box stays narrow. */
+.sim-switches { display: flex; flex-direction: column; gap: 4px; }
 .sim-options-header {
   font-weight: 600;
   font-size: 12px;
