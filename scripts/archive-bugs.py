@@ -28,8 +28,16 @@ def status_region_lines(path):
 
     gathered = []
     in_status = False
+    in_fence = False
     for line in lines:
         stripped = line.strip()
+        # A quoted example is not the record's own status: skip fenced blocks, and a line
+        # indented four or more spaces (an indented code block).
+        if stripped.startswith("```"):
+            in_fence = not in_fence
+            continue
+        if in_fence or re.match(r"^( {4,}|\t)\S", line):
+            continue
         # A status line is either `Status: ...` or the bold form `**Status:** ...`
         # (the dominant convention, 75 of 96 records as of 2026-10-02 — before this
         # fix the bold form was invisible to the archiver and closed records
