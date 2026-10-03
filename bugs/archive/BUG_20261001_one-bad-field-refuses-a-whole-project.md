@@ -1,6 +1,6 @@
 # BUG_20261001_one-bad-field-refuses-a-whole-project
 
-**Status:** OPEN
+**Status:** CLOSED 2026-10-03 — fixed in e87e04e9 (bug filed and fixed in one commit, never closed). Project records repair field by field; packages/persistence/test/projectRepair.test.ts and design/test/domain/owpr-repair.test.ts pass.
 
 ## Symptom
 A stored or opened project with one field that fails the schema is refused whole: autosave,
