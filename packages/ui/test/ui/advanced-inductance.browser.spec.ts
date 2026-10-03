@@ -16,7 +16,7 @@ test('WinISD\'s inductance model has no switch of its own — "WinISD driver mod
 test('WinISD Compatibility labels are unclipped and drop the "Use" prefix', async ({ page }) => {
   const panel = page.locator('.sim-options-box', { hasText: 'WinISD Compatibility' });
   const labels = panel.locator('label[data-field-key]');
-  await expect(labels).toHaveText(['WinISD driver model', 'WinISD air model', 'WinISD VA model', 'WinISD driver count', 'WinISD flat response']);
+  await expect(labels).toHaveText([/WinISD driver model/, /WinISD air model/, /WinISD VA model/, /WinISD phase wrapping/, /WinISD driver count/, /WinISD flat response/]);
   const panelBox = (await panel.boundingBox())!;
   const clipRight = await panel.evaluate(el => {
     // The visible right edge: the panel's own, or an ancestor's that clips it first.
