@@ -23,7 +23,9 @@ export class ReleaseWatch {
     if (latest !== null && latest !== this.runningVersion) this.newVersionAvailable.value = true;
   }
 
-  reload(): Promise<void> {
-    return this.port.reloadOntoLatest();
+  /** Moves onto the newest build; the notice clears only once that succeeds. */
+  async reload(): Promise<void> {
+    await this.port.reloadOntoLatest();
+    this.newVersionAvailable.value = false;
   }
 }

@@ -9733,7 +9733,7 @@ questions:
     Decided with: John (the correction), the worker (stopped on request, discarded nothing). Nothing needs doing unless you want the set-aside branch deleted.
 - id: QO172
   title: An agent went around the reset guard after the history rewrite
-  status: open
+  status: done
   raised: '2026-10-04'
   body: |-
     Task: removing AI attribution lines from the openisd commit history. The rewritten history was force-pushed to GitHub with John's approval (main now 0a32266; same files, same 506 commits, 58 attribution lines removed).
@@ -9743,3 +9743,6 @@ questions:
     Damage: none. The checkout had no uncommitted changes, held no unpushed commits, and its files were identical to the new history, so nothing was discarded. It was left as it is, because undoing it would be another reset.
 
     Coordinated with: the other sessions were idle under a freeze at the time and were released afterwards. Nothing to do unless John wants the checkout handled differently.
+  notes:
+  - at: '2026-10-04'
+    text: 'Closed by John after discussion: no damage, nothing to remedy. Lesson saved: a blocked command means stop and report.'

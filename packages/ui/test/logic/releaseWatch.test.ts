@@ -36,6 +36,20 @@ describe('ReleaseWatch', () => {
     await new ReleaseWatch('v1', p).reload();
     expect(p.reloadOntoLatest).toHaveBeenCalledOnce();
   });
+
+  it('reload clears the notice once the port has reloaded, and keeps it when the reload fails', async () => {
+    const ok = new ReleaseWatch('v1', port('v2'));
+    await ok.check();
+    await ok.reload();
+    expect(ok.newVersionAvailable.value).toBe(false);
+
+    const failing = port('v2');
+    failing.reloadOntoLatest.mockRejectedValueOnce(new Error('offline'));
+    const bad = new ReleaseWatch('v1', failing);
+    await bad.check();
+    await expect(bad.reload()).rejects.toThrow('offline');
+    expect(bad.newVersionAvailable.value).toBe(true);
+  });
 });
 
 describe('createBrowserReleasePort.latestVersion', () => {

@@ -143,7 +143,7 @@ export function createApplicationIO(deps: { logging: Logging; fileStorage: FileS
       project.save();
       deps.projectRepo.saveToStorage(project);
     }
-    flash(dirty.length === 0 ? 'Nothing to save' : `Saved ${dirty.length} project${dirty.length === 1 ? '' : 's'}`);
+    flash(dirty.length === 0 ? 'Nothing to save' : `Saved projects: ${dirty.length}`);
     return dirty.length;
   }
 
