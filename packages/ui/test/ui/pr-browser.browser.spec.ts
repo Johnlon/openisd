@@ -48,7 +48,7 @@ test.beforeEach(async ({ page }) => {
 });
 
 test('a starred passive radiator stays starred after a reload, and Favorites shows only it', async ({ page }) => {
-  await page.locator('button', { hasText: 'Select PR' }).click();
+  await page.locator('button', { hasText: 'Select passive radiator' }).click();
   const row = page.locator('.pr-lib-item', { hasText: 'Test PR PR250' });
   await expect(row.locator('.fav-btn')).toHaveText('☆');
   await row.locator('.fav-btn').click();
@@ -56,7 +56,7 @@ test('a starred passive radiator stays starred after a reload, and Favorites sho
 
   await page.reload();
   await page.locator('.project-nav li', { hasText: 'Passive Radiator' }).click();
-  await page.locator('button', { hasText: 'Select PR' }).click();
+  await page.locator('button', { hasText: 'Select passive radiator' }).click();
   await expect(page.locator('.pr-lib-item', { hasText: 'Test PR PR250' }).locator('.fav-btn')).toHaveText('★');
 
   await page.locator('.pr-lib').locator('..').locator('button', { hasText: '★ Favorites' }).click();

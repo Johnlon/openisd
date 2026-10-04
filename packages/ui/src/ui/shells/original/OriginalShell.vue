@@ -351,10 +351,10 @@ const {
                  pane (and so the whole bottom track, which is auto-sized) whenever a box type
                  with notes was picked, shifting the chart above. -->
             <div class="box-notes-col">
-              <p class="hint"><b>Rear chamber</b> is the chamber behind the driver, <b>front chamber</b> the one in front of it. Closed, vented and PR have a rear chamber only.</p>
+              <p class="hint"><b>Rear chamber</b> is the chamber behind the driver, <b>front chamber</b> the one in front of it. Closed, vented and passive radiator boxes have a rear chamber only.</p>
               <p v-if="selectedBox === 'sealed'" class="hint"><b>Sealed (Fsc):</b> System resonance frequency where the speaker impedance peaks and below which the response rolls off at 12 dB/octave. Solved from the box volume Vb.</p>
               <p v-if="selectedBox === 'vented'" class="hint"><b>Vented (Fb):</b> Helmholtz resonance of the box volume and port. At Fb, port output is maximized and driver cone excursion is minimized.</p>
-              <p v-if="selectedBox === 'box-passive-radiator'" class="hint"><b>PR (Fh):</b> Helmholtz tuning frequency of the passive radiator and Vb. Lowered by adding mass (Madd) to the radiator cone.</p>
+              <p v-if="selectedBox === 'box-passive-radiator'" class="hint"><b>Passive radiator (Fh):</b> Helmholtz tuning frequency of the passive radiator and Vb. Lowered by adding mass (Madd) to the radiator cone.</p>
               <p v-if="selectedBox === 'bandpass4'" class="hint"><b>Bandpass 4th order:</b> Uses sealed rear chamber resonance (Frc) for low-end control, and front chamber port tuning (Fb) to bandpass-filter the output.</p>
               <p v-if="selectedBox === 'bandpass6'" class="hint"><b>Bandpass 6th order:</b> Dual-tuned bandpass filter. Front and rear chambers are both tuned to separate port frequencies to shape the passband.</p>
               <p v-if="selectedBox === 'abc'" class="hint">ABC's driver mounts on the outer baffle, firing straight into the room — unlike 4th/6th order bandpass, where the driver is fully enclosed and fires only into the two internal chambers.</p>
@@ -537,8 +537,8 @@ const {
           <!-- passive radiator -->
           <div v-else-if="selectedBox === 'box-passive-radiator'">
             <div class="field-row driver-id-row" style="--label-w:36px; margin-bottom:8px;">
-              <div class="field tight"><label>PR</label><input type="text" style="width:220px" :value="(project.box.passiveRadiator.radiator.model.value) || 'Custom PR'" readonly></div>
-              <button class="edit-btn" title="Browse bundled + saved passive radiators — click one to load it into this project." @click="prBrowseOpen = true">Select PR</button>
+              <div class="field tight"><label>Passive radiator</label><input type="text" style="width:220px" :value="(project.box.passiveRadiator.radiator.model.value) || 'Custom passive radiator'" readonly></div>
+              <button class="edit-btn" title="Browse bundled + saved passive radiators — click one to load it into this project." @click="prBrowseOpen = true">Select passive radiator</button>
               <button class="edit-btn" title="Edit this passive radiator's own specs — Sd/Fs/Qms/Vas/Xmax." @click="prEditOpen = true">&#9998; Edit</button>
             </div>
             <PRBrowser v-if="prBrowseOpen" @close="prBrowseOpen = false"
@@ -567,7 +567,7 @@ const {
               </div>
               <div style="--label-w:150px;">
                 <div class="section-header">User options</div>
-                <div class="field-row"><div class="field entered"><label>Num. of PRs:</label><select id="og-pr-count" :value="project.box.passiveRadiator.count.value" @change="e => { const n = selectedOption(e, PR_COUNT_OPTIONS); if (n !== null) project.box.passiveRadiator.count.set(n); }"><option v-for="o in PR_COUNT_OPTIONS" :key="o.value" :value="o.value">{{ o.label }}</option></select></div></div>
+                <div class="field-row"><div class="field entered"><label>Number of passive radiators:</label><select id="og-pr-count" :value="project.box.passiveRadiator.count.value" @change="e => { const n = selectedOption(e, PR_COUNT_OPTIONS); if (n !== null) project.box.passiveRadiator.count.set(n); }"><option v-for="o in PR_COUNT_OPTIONS" :key="o.value" :value="o.value">{{ o.label }}</option></select></div></div>
                 <div style="display:flex; gap:12px; align-items:stretch;">
                   <div>
                 <div class="field-row">
@@ -704,6 +704,11 @@ const {
                   <div>
                     <ErrorSwitch as="label" field-key="winisdBesselHighpass" style="font-size: 12px;" :marked="errorSwitches.besselHighpass.marked" :applicable="errorSwitches.besselHighpass.applicable" :reproduces-error="errorSwitches.besselHighpass.reproducesError" :title="ToggleField.ADV_WINISDBESSELHIGHPASS.description">
                       <input type="checkbox" :checked="project.winisdBesselHighpass.value" :disabled="!errorSwitches.besselHighpass.applicable" @change="e => project.winisdBesselHighpass.set(inputChecked(e))"> {{ ToggleField.ADV_WINISDBESSELHIGHPASS.label }}
+                    </ErrorSwitch>
+                  </div>
+                  <div>
+                    <ErrorSwitch as="label" field-key="winisdAllpassOrder" style="font-size: 12px;" :marked="errorSwitches.allpassOrder.marked" :applicable="errorSwitches.allpassOrder.applicable" :reproduces-error="errorSwitches.allpassOrder.reproducesError" :title="ToggleField.ADV_WINISDALLPASSORDER.description">
+                      <input type="checkbox" :checked="project.winisdAllpassOrder.value" :disabled="!errorSwitches.allpassOrder.applicable" @change="e => project.winisdAllpassOrder.set(inputChecked(e))"> {{ ToggleField.ADV_WINISDALLPASSORDER.label }}
                     </ErrorSwitch>
                   </div>
                 </ErrorSwitchGroup>

@@ -13,8 +13,6 @@ interface Props {
   edits: PassiveRadiatorStepEdits;
   /** The PR picker is open over the step. */
   browsing: boolean;
-  /** Spell out "passive radiator" instead of WinISD's "PR" (the mobile skin). */
-  fullNames?: boolean;
 }
 
 defineProps<Props>();
@@ -29,14 +27,14 @@ const emit = defineEmits<{
 
 <template>
   <div class="np-pr-step">
-    <button id="np-pr-select" class="np-pr-browse" title="Choose a saved or bundled passive radiator, or define a new one." @click="emit('browse')">{{ fullNames ? 'Select passive radiator' : 'Select PR' }} ▸</button>
-    <PRBrowser v-if="browsing" :full-names="fullNames" @close="emit('closeBrowse')"
+    <button id="np-pr-select" class="np-pr-browse" title="Choose a saved or bundled passive radiator, or define a new one." @click="emit('browse')">Select passive radiator ▸</button>
+    <PRBrowser v-if="browsing" @close="emit('closeBrowse')"
       @load="id => emit('loadSaved', id)" @load-bundled="id => emit('loadBundled', id)" @define="emit('define')" />
     <p class="np-pr-hint">Pick one above, or type the values straight in.</p>
 
     <!-- The same rows as the Edit passive radiator popup: label, fixed-width value, fixed-width unit. -->
     <div class="np-row">
-      <label>{{ fullNames ? 'Passive radiator name' : 'PR name' }}</label>
+      <label>Passive radiator name</label>
       <input id="np-pr-name" class="np-pr-name" type="text" :value="radiator?.name ?? ''" placeholder="e.g. Dayton SD270A-88"
         @input="e => edits.setName(inputValue(e))">
     </div>

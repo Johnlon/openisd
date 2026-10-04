@@ -24,7 +24,7 @@ test.describe('Original Passive Radiator tab', () => {
 
       // Passive Radiator tab, load the bundled radiator through the browser
       await page.locator('.project-nav li', { hasText: 'Passive Radiator' }).click();
-      await page.locator('button.edit-btn', { hasText: 'Select PR' }).click();
+      await page.locator('button.edit-btn', { hasText: 'Select passive radiator' }).click();
       const prBrowser = page.locator('.modal');
       await expect(prBrowser.locator('h2')).toHaveText(/Passive radiator library/);
       const nd140Row = prBrowser.locator('.pr-lib-item .pr-lib-name', { hasText: 'ND140-PR' });
@@ -67,7 +67,7 @@ test.describe('Original Passive Radiator tab', () => {
 
       // Load the bundled ND140-PR through the PR pane — the real user path to a solvable PR.
       await page.locator('.project-nav li', { hasText: 'Passive Radiator' }).click();
-      await page.locator('button.edit-btn', { hasText: 'Select PR' }).click();
+      await page.locator('button.edit-btn', { hasText: 'Select passive radiator' }).click();
       const lib = page.locator('.modal');
       await lib.locator('.pr-lib-item .pr-lib-name', { hasText: 'ND140-PR' }).first().click();
       // The radiator editor opens for review; Done confirms the load.
@@ -179,7 +179,7 @@ test.describe('Original Passive Radiator tab data quality', () => {
 
   async function configureRadiator(page: Page): Promise<void> {
     await page.locator('.project-nav li', { hasText: 'Passive Radiator' }).click();
-    await page.locator('button', { hasText: 'Select PR' }).click();
+    await page.locator('button', { hasText: 'Select passive radiator' }).click();
     await expect(page.locator('.pr-lib')).toBeVisible();
     await page.locator('.pr-lib-item .pr-lib-name', { hasText: 'Test PR PR250' }).click();
     await expect(page.locator('.pr-lib')).toHaveCount(0);
