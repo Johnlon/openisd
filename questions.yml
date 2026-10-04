@@ -6943,6 +6943,8 @@ questions:
       is the symmetric half-width interval model itself right; should derived values propagate interval
       widths through formulas (full interval arithmetic) rather than the current perturbation-based delta
       accumulation; and what the UI shows when a verdict is precision-marginal. Cycle 2+; no schedule.'
+  - at: '2026-10-04'
+    text: 'Still deferred. ConsistencyCheck.ts already compares intervals, but derived widths come from nudging each input (perturbation), not full interval arithmetic, which is what this question asks about; John''s answer stands: not now.'
   tag: precision
   answer:
     at: '2026-09-04'
