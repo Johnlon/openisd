@@ -30,8 +30,10 @@ export interface PassiveRadiatorStepView {
   readonly Xmax_m: number | null;
 }
 
-/** The step's writes, one per parameter; null clears the entry. */
+/** The step's writes, one per field; null clears a parameter. Writing with no radiator chosen
+ *  defines a new one first, so the fields can be typed into directly. */
 export interface PassiveRadiatorStepEdits {
+  setName(v: string): void;
   setVas_m3(v: number | null): void;
   setQms(v: number | null): void;
   setFs_hz(v: number | null): void;
@@ -349,23 +351,30 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
     if (pr === null) return null;
     const { spec } = pr;
     return {
-      name: pr.model.value || 'Custom PR',
+      name: pr.model.value,
       Vas_m3: spec.Vas_m3.value, Qms: spec.Qms.value, Fs_hz: spec.Fs_hz.value,
       Sd_m2: spec.Sd_m2.value, Xmax_m: spec.Xmax_m.value,
     };
   });
 
-  /** Write one parameter of the chosen radiator and redraw the step; nothing when none is chosen. */
-  function writeSpec(field: OpenISDPassiveRadiatorStandalone['spec']['Qms'], v: number | null): void {
+  /** The chosen radiator, defining a blank one first when none is chosen yet. */
+  function radiatorToEdit(): OpenISDPassiveRadiatorStandalone {
+    if (passiveRadiator.value === null) passiveRadiator.value = OpenISDPassiveRadiatorStandalone.empty();
+    return passiveRadiator.value;
+  }
+  /** Write one parameter of the radiator and redraw the step. */
+  function writeSpec(pick: (pr: OpenISDPassiveRadiatorStandalone) => OpenISDPassiveRadiatorStandalone['spec']['Qms'], v: number | null): void {
+    const field = pick(radiatorToEdit());
     if (v === null) field.clear(); else field.set(v);
     triggerRef(passiveRadiator);
   }
   const passiveRadiatorEdits: PassiveRadiatorStepEdits = {
-    setVas_m3: v => { if (passiveRadiator.value) writeSpec(passiveRadiator.value.spec.Vas_m3, v); },
-    setQms: v => { if (passiveRadiator.value) writeSpec(passiveRadiator.value.spec.Qms, v); },
-    setFs_hz: v => { if (passiveRadiator.value) writeSpec(passiveRadiator.value.spec.Fs_hz, v); },
-    setSd_m2: v => { if (passiveRadiator.value) writeSpec(passiveRadiator.value.spec.Sd_m2, v); },
-    setXmax_m: v => { if (passiveRadiator.value) writeSpec(passiveRadiator.value.spec.Xmax_m, v); },
+    setName: v => { radiatorToEdit().model.set(v); triggerRef(passiveRadiator); },
+    setVas_m3: v => writeSpec(pr => pr.spec.Vas_m3, v),
+    setQms: v => writeSpec(pr => pr.spec.Qms, v),
+    setFs_hz: v => writeSpec(pr => pr.spec.Fs_hz, v),
+    setSd_m2: v => writeSpec(pr => pr.spec.Sd_m2, v),
+    setXmax_m: v => writeSpec(pr => pr.spec.Xmax_m, v),
   };
 
   const canNext = computed(() => {

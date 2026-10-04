@@ -549,4 +549,18 @@ describe('useOgNewProject — passive-radiator step', () => {
     expect(spec?.Sd_m2.value).toBeCloseTo(0.06, 9);
     expect(spec?.Xmax_m.value).toBeCloseTo(0.012, 9);
   });
+
+  it('typing a name or a parameter at step 4 defines the radiator with no pick first', () => {
+    const wizard = atBoxTypeStep(testPassiveRadiators());
+    wizard.next();
+    expect(wizard.passiveRadiatorView.value).toBeNull();
+    expect(wizard.canNext.value).toBe(false);
+
+    wizard.passiveRadiatorEdits.setName('Typed direct');
+    wizard.passiveRadiatorEdits.setSd_m2(0.05);
+
+    expect(wizard.passiveRadiatorView.value?.name).toBe('Typed direct');
+    expect(wizard.passiveRadiatorView.value?.Sd_m2).toBeCloseTo(0.05, 9);
+    expect(wizard.canNext.value).toBe(true);
+  });
 });
