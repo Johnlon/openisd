@@ -18,11 +18,11 @@ Export writes every filter, Allpass included.
 Import of a `.wpr` WinISD truncated this way: load each missing entry as WinISD does (default
 Lowpass Butterworth n=2, 50 Hz, ticked) and warn, naming the filter index. Done: `WinIsdProjectConverter#importFilters` (packages/design/domain/winIsdProjectConverter.ts).
 
-## ⚠ Human re-verification pending (QO170)
+## Checked by hand (QO170, 2026-10-04)
 
-Found by debugger, disassembly and scripted runs only. Not yet reproduced by hand in WinISD's own
-window. Treat as unconfirmed until John and an agent check it together (QO170); record the result
-here.
+SEEN. Five filters added and saved: the file has `Count=5` but only 2 entries; on reopen rows 3 to 5 are default
+low-pass filters. Screenshots: `winisd_research/runs/qo170-bessel/save_1_before_save_5_filters.png` (five filters) /
+`winisd_research/runs/qo170-save/save_2_after_reopen.png` (rows 3 to 5 reset).
 
 ## Verification (2026-09-29)
 `packages/design/test/winisd/winIsdProjectConverter.test.ts` (52/52): "an entry whose filter<i>type/params keys are both missing loads as WinISD's own default lowpass, with a warn", and the allpass export/import round-trip cases. The QO170 hand check of WinISD's own behaviour is still pending; it does not change OpenISD's handling.

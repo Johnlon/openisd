@@ -48,8 +48,12 @@ Rg at the amplifier and at the driver side.
 Reset turns it on; saved and read back. `advanced-inductance.browser.spec.ts`: the checkbox, its
 tooltip, and Reset.
 
-## ⚠ Human re-verification pending (QO170)
+## Checked by hand (QO170, 2026-10-04)
 
-Found by debugger, disassembly and scripted runs only. Not yet reproduced by hand in WinISD's own
-window. Treat as unconfirmed until John and an agent check it together (QO170); record the result
-here.
+SEEN in WinISD's own window under Wine. Flat-band VA reads 0.97 at Rg 0.1 Ω and 0.50 at Rg 3.4 Ω. With
+"Rg is at driver side" ticked, impedance is 6.84 Ω and VA is 0.336, which is 3.4/(6.8+3.4): Rg is counted
+twice. WinISD's own SPL chart drops 2.84 dB from Rg 0.1 to 3.4 Ω, which matches power into Re + Rg (2.89 dB),
+not into Re (5.77 dB), so the VA chart contradicts the SPL chart: a bug, not a definition of power.
+Screenshots (`winisd_research/runs/qo170-va2/`): `va_1_rg0.1_va.png` / `va_2_rg3.4_va.png` (look at the flat band of the VA
+chart), `va_1_rg0.1_spl.png` / `va_2_rg3.4_spl.png`, `va_3_rg3.4_atamp_impedance.png` /
+`va_5_rg3.4_driverside_impedance.png`, `va_5_rg3.4_driverside_va.png`.

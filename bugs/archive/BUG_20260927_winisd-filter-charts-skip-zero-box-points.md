@@ -15,11 +15,11 @@ This is a WinISD bug. Evidence and mechanism: [winisd_research/bugs/BUG_20260927
 Not copied yet. OpenISD's EQ/Filter charts plot every point. Needs a check of what WinISD draws
 at a skipped point (gap or 0) before deciding whether to copy it.
 
-## ⚠ Human re-verification pending (QO170)
+## Checked by hand (QO170, 2026-10-04)
 
-Found by debugger, disassembly and scripted runs only. Not yet reproduced by hand in WinISD's own
-window. Treat as unconfirmed until John and an agent check it together (QO170); record the result
-here.
+PARTLY. Gaps appear on the group-delay chart only (17 empty columns, 10.8 to 18.5 kHz). EQ magnitude and phase
+are unbroken, so the claim is the group-delay charts, not every chart kind. Screenshots (`winisd_research/runs/qo170-zero/`):
+`zero_1_before…png` / `zero_3_peq15k_q50_groupdelay.png`, `zero_3_zoom_9k_20k.png`.
 
 ## Resolution (2026-09-29): not copied — no visible effect
 winisd_research runs/filt-peq-2 (sealed W5, peaking EQ): the 92 points kind 19 skips are all single,
