@@ -84,6 +84,8 @@ export interface MobileShellApi {
   updateScrollEdges: () => void;
   /** The menu drawer's identity line — null until the user sets one (Options → Username). */
   username: import('vue').ComputedRef<string | null>;
+  /** The version of the running build, shown in the menu; '' on a dev server. */
+  appVersion: string;
   /** The "Open project" sheet — previously-SAVED projects (browser storage), distinct from
    *  "Open a file" (`openFromDisk`, a disk import). Desktop's own `openDialogOpen`/
    *  `storedProjects`/`openStoredProject` (OriginalShell-hooks.ts), mobile had no equivalent
@@ -310,7 +312,7 @@ export function useMobileShell(): MobileShellApi {
     projectOpen, projectTitle, destination, fileInput, openImportedFile, openNewProject, switchToDesktop,
     menuOpen, toggleMenu, closeMenu, openFromDisk, isModified,
     saveProject, saveAllProjects, anyUnsaved, updateBannerVisible, reloadForUpdate, dismissUpdateBanner, revertProject, browseDrivers, optionsOpen, openOptions, about, goToProject,
-    contentEl, canScrollUp, canScrollDown, updateScrollEdges, username,
+    contentEl, canScrollUp, canScrollDown, updateScrollEdges, username, appVersion: releases.runningVersion,
     goToAdvanced, pane, closePane, viewportHeightPx, showEnclosureTab, enclosureNavLabel,
     openDialogOpen, storedProjects, openProjectDialog, openStoredProject,
     openProjectRows, selectOpenProject, setOpenProjectTraceVisible, cycleOpenProjectColour, closeOpenProject,

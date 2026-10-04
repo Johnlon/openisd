@@ -24,7 +24,7 @@ const {
   menuOpen, toggleMenu, closeMenu, openFromDisk, isModified, saveProject, saveAllProjects, anyUnsaved, updateBannerVisible, reloadForUpdate, dismissUpdateBanner, revertProject, projectTitle,
   browseDrivers, optionsOpen, openOptions, about, goToProject, goToAdvanced, pane, closePane, viewportHeightPx,
   showEnclosureTab, enclosureNavLabel, contentEl, canScrollUp, canScrollDown, updateScrollEdges,
-  username, openDialogOpen, storedProjects, openProjectDialog, openStoredProject,
+  username, appVersion, openDialogOpen, storedProjects, openProjectDialog, openStoredProject,
   openProjectRows, selectOpenProject, setOpenProjectTraceVisible, cycleOpenProjectColour, closeOpenProject,
 } = useMobileShell();
 </script>
@@ -84,7 +84,10 @@ const {
           <div class="mob-menu-brand">
             <img src="/icon.svg" alt="" aria-hidden="true">
             <div class="mob-menu-brand-text">
-              <span class="mob-menu-brand-name">OpenISD</span>
+              <span class="mob-menu-brand-line">
+                <span class="mob-menu-brand-name">OpenISD</span>
+                <span v-if="appVersion" class="mob-menu-version" data-testid="app-version">{{ appVersion }}</span>
+              </span>
               <span v-if="username" class="mob-menu-username">{{ username }}</span>
             </div>
           </div>
@@ -263,6 +266,8 @@ const {
 .mob-menu-brand img { width: 28px; height: 28px; display: block; flex-shrink: 0; }
 .mob-menu-brand-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .mob-menu-brand-name { font-weight: 600; font-size: 17px; color: var(--fg); }
+.mob-menu-brand-line { display: flex; align-items: baseline; gap: 8px; min-width: 0; }
+.mob-menu-version { font-size: 12px; color: var(--mut); font-variant-numeric: tabular-nums; }
 .mob-menu-username { font-size: 13px; color: var(--mut); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .mob-menu-item {
   all: unset;
