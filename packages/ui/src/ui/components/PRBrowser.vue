@@ -9,6 +9,9 @@ import {usePRBrowser} from '../../hooks/PRBrowser-hooks.js';
 // A row's `id` is all that crosses the boundary: the storage uuid for a saved radiator, the
 // list position for a bundled one. The shell resolves it back to a radiator (A9 — a component
 // carries no domain value).
+const props = defineProps<{ fullNames?: boolean }>();
+/** What this dialog calls a passive radiator: WinISD's "PR", or the full words on the mobile skin. */
+const pr = props.fullNames ? 'passive radiator' : 'PR';
 const emit = defineEmits<{
   close: [];
   load: [string];
@@ -35,21 +38,21 @@ useEscToClose(() => true, close);
         <div class="pr-lib">
           <div class="pr-lib-hdr">Saved</div>
           <div v-if="!fSaved.length" style="color:var(--mut);font-size:11px;padding:4px 8px">
-            {{ filter ? 'No saved PRs match.' : 'No saved PRs yet — define one below, or Save from the PR editor.' }}
+            {{ filter ? `No saved ${pr}s match.` : `No saved ${pr}s yet — define one below, or Save from the ${pr} editor.` }}
           </div>
           <div v-for="e in fSaved" :key="e.id" class="pr-lib-item">
             <button class="fav-btn" :class="{ on: isFavorite(e.id) }" :title="isFavorite(e.id) ? 'Remove from favourites' : 'Add to favourites'"
               @click.stop="toggleFavorite(e.id)">{{ isFavorite(e.id) ? '★' : '☆' }}</button>
             <span class="pr-lib-name" @click="emit('load', e.id)"
               :title="`Load ${e.name} — Sd=${e.sd} Mms=${e.mms} Cms=${e.cms}`">{{ e.name }}</span>
-            <button class="pr-lib-del" @click="remove(e.id)" title="Remove this PR from your library">✕</button>
+            <button class="pr-lib-del" @click="remove(e.id)" :title="`Remove this ${pr} from your library`">✕</button>
           </div>
 
           <div class="pr-lib-hdr"
             title="Passive radiators bundled from the driver collections. Datasheets publish Sd/Cms/Vas only — Fs/Mms/Rms/Xmax are left blank for you to supply.">Bundled</div>
           <div v-if="bundledStatus" class="pr-lib-status" style="color:var(--bad);font-size:11px;padding:4px 8px">{{ bundledStatus }}</div>
           <div v-else-if="!fBundled.length" style="color:var(--mut);font-size:11px;padding:4px 8px">
-            {{ filter ? 'No bundled PRs match.' : 'No bundled passive radiators in the current collection.' }}
+            {{ filter ? `No bundled ${pr}s match.` : 'No bundled passive radiators in the current collection.' }}
           </div>
           <div v-for="p in fBundled" :key="p.id" class="pr-lib-item">
             <button class="fav-btn" :class="{ on: isFavorite(p.id) }" :title="isFavorite(p.id) ? 'Remove from favourites' : 'Add to favourites'"
@@ -61,7 +64,7 @@ useEscToClose(() => true, close);
         </div>
 
         <div class="btns" style="margin-top:10px">
-          <button @click="emit('define')" title="Define a brand-new passive radiator from scratch">＋ Define new PR</button>
+          <button @click="emit('define')" title="Define a brand-new passive radiator from scratch">＋ Define new {{ pr }}</button>
           <button class="pri" @click="close" title="Close">Done</button>
         </div>
       </div>

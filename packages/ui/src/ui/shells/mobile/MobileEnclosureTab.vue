@@ -160,9 +160,9 @@ const {fieldWithUnit} = useUnitReadouts();
       <button class="mob-btn" @click="prBrowseOpen = true">Select passive radiator</button>
       <button class="mob-btn mob-btn-secondary" @click="prEditOpen = true">Edit</button>
     </div>
-    <PRBrowser v-if="prBrowseOpen" @close="prBrowseOpen = false"
+    <PRBrowser full-names v-if="prBrowseOpen" @close="prBrowseOpen = false"
       @load="loadPREntry" @load-bundled="loadBundledPassiveRadiatorEntry" @define="defineNewPREntry" />
-    <PREditModal v-if="prEditOpen" @close="prEditOpen = false" @browse="prEditOpen = false; prBrowseOpen = true" />
+    <PREditModal full-names v-if="prEditOpen" @close="prEditOpen = false" @browse="prEditOpen = false; prBrowseOpen = true" />
 
     <div class="mob-field-row mob-field-entered">
       <div class="mob-field-main"><span class="mob-field-label">Vas</span>

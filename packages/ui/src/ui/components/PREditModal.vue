@@ -10,6 +10,10 @@ import {usePREditModal} from '../../hooks/PREditModal-hooks.js';
 // visible while typing: WinISD ref view_3_passive_radiator.png "Passive radiator
 // parameters" box). Fields here describe the PR unit itself, not the box around it.
 
+const props = defineProps<{ fullNames?: boolean }>();
+/** What this dialog calls a passive radiator: WinISD's "PR", or the full words on the mobile skin. */
+const pr = props.fullNames ? 'passive radiator' : 'PR';
+const Pr = props.fullNames ? 'Passive radiator' : 'PR';
 const emit = defineEmits<{ close: []; browse: [] }>();
 
 const {
@@ -32,16 +36,16 @@ useEscToClose(() => true, close);
       <h2>Edit passive radiator<button class="x" @click="close" title="Close">✕</button></h2>
       <div class="body">
         <button style="width:100%" @click="emit('browse')"
-          title="Back to the passive radiator library — your saved PRs, the bundled catalogue, or define a new one">
-          Browse PR library… ▸
+          :title="`Back to the passive radiator library — your saved ${pr}s, the bundled catalogue, or define a new one`">
+          Browse {{ pr }} library… ▸
         </button>
 
         <div class="row">
-          <label>PR name</label>
+          <label>{{ Pr }} name</label>
           <input style="flex:1" type="text" :value="radiator.model.value" @input="e => radiator.model.set(inputValue(e))" placeholder="e.g. Dayton SD270A-88">
         </div>
         <div class="row" data-field-key="prNum" :title="NumberField.PR_NUM.description">
-          <label>PR count</label>
+          <label>{{ Pr }} count</label>
           <select id="pr-edit-count" :value="count" @change="e => { const n = selectedOption(e, countOptions); if (n !== null) setCount(n); }"><option v-for="o in countOptions" :key="o.value" :value="o.value">{{ o.label }}</option></select>
           <span class="u"></span>
         </div>
@@ -77,7 +81,7 @@ useEscToClose(() => true, close);
         </div>
 
         <div class="btns" style="margin-top:8px">
-          <button @click="saveCurrentPR" title="Save these PR parameters to your library under the current PR name">Save to PR library</button>
+          <button @click="saveCurrentPR" :title="`Save these ${pr} parameters to your library under the current ${pr} name`">Save to {{ pr }} library</button>
           <button class="pri" @click="close" title="Close">Done</button>
         </div>
       </div>

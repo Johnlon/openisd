@@ -30,7 +30,7 @@ const emit = defineEmits<{
 <template>
   <div class="np-pr-step">
     <button id="np-pr-select" class="np-pr-browse" title="Choose a saved or bundled passive radiator, or define a new one." @click="emit('browse')">{{ fullNames ? 'Select passive radiator' : 'Select PR' }} ▸</button>
-    <PRBrowser v-if="browsing" @close="emit('closeBrowse')"
+    <PRBrowser v-if="browsing" :full-names="fullNames" @close="emit('closeBrowse')"
       @load="id => emit('loadSaved', id)" @load-bundled="id => emit('loadBundled', id)" @define="emit('define')" />
     <p class="np-pr-hint">Pick one above, or type the values straight in.</p>
 
