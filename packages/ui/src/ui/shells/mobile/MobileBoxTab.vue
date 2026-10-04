@@ -64,7 +64,7 @@ const { fieldWithUnit, readoutWithUnit } = useUnitReadouts();
       </div>
       <UnitToggle :field="NumberField.BOX_FRC_HZ" unit-key="Frc" unit-class="mob-unit" />
     </div>
-    <div v-else class="mob-field-row mob-field-calculated">
+    <div v-else-if="selectedBox !== 'vented'" class="mob-field-row mob-field-calculated">
       <div class="mob-field-main">
         <span class="mob-field-label">{{ selectedBox === 'box-passive-radiator' ? 'Fh' : 'Fsc' }}</span>
         <span class="mob-field-value mob-readonly">{{ fieldWithUnit(NumberField.BOX_RESONANCE_HZ, boxResonance, '—') }}</span>
