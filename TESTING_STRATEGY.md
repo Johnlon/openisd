@@ -113,8 +113,8 @@ A test that keeps making progress is never killed. Only a stuck one fails. (John
   sessions load the machine. A step stuck past 20 s fails and names itself. There is no
   whole-test limit (`timeout: 0`): it cannot tell progress from a hang, so it would kill a test
   that is still moving.
-- **Vitest:** no per-test limit either (`testTimeout: 0`), for the same reason. The pre-commit
-  gate still passes its own load-scaled value (`OPENISD_HEAVY_GATE_TEST_TIMEOUT`).
+- **Vitest:** no per-test limit either (`testTimeout: 0`), for the same reason, in the pre-commit
+  gate too. The gate runs vitest through `quiet-test.sh`, so the idle watchdog guards it.
 - **Stuck runs: the idle watchdog in `scripts/quiet-test.sh`.** A run that keeps writing output is
   making progress and is left alone. If its log does not grow for 180 s (`OPENISD_IDLE_LIMIT_S`),
   every node process in it writes a diagnostic report to `build/test-reports/`, the run is

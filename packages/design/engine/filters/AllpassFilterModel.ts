@@ -1,23 +1,44 @@
 import {biquad} from './biquad.js';
-import {cDiv, cx} from '../complex.js';
+import {cAdd, cDiv, cMul, cx} from '../complex.js';
 import type {AllpassFilter, Complex, FilterSpec, WprFilter} from '../types.js';
 import type {FilterModel} from './FilterModel.js';
 
 
+/** Reverse Bessel polynomial θn(s) = Σ a_k·s^k, a_k = (2n−k)!/(2^(n−k)·k!·(n−k)!), at s = j·x.
+ *  Built from a_n = 1 down, a_(k−1) = a_k·k·(2n−k+1)/(2·(n−k+1)), so no factorial overflows. */
+function reverseBessel(n: number, x: number): Complex {
+  let a = 1;
+  let sum = cx(0, 0);
+  for (let k = n; k >= 0; k--) {
+    sum = cAdd(cMul(sum, cx(0, x)), cx(a, 0));
+    if (k > 0) a = a * k * (2 * n - k + 1) / (2 * (n - k + 1));
+  }
+  return sum;
+}
+
 /**
- * Allpass. Order 1: (1 − jωt/2)/(1 + jωt/2), DC group delay t. Order ≥ 2: the 2nd-order allpass
- * with ω0 = 2/t and Q, DC group delay t/Q; order above 2 is ignored (GHIDRA_FINDINGS.md
- * "Allpass n ≥ 2 ⚠": n=3 and n=4 give the same 2nd-order section as n=2).
+ * Allpass, order n, delay t.
+ * Default: the order-n Bessel (maximally flat delay) allpass θn(−s·t/2)/θn(s·t/2). Its
+ * low-frequency group delay is t at every order, flat to a higher frequency as the order rises.
+ * Q is not used. Order 1 is (1 − jωt/2)/(1 + jωt/2), the same as WinISD's.
+ * `winisdOrder` (error switch "WinISD allpass order"): WinISD's own. Order ≥ 2 is one
+ * 2nd-order allpass with ω0 = 2/t and Q, delay t/Q, and orders above 2 are ignored
+ * (GHIDRA_FINDINGS.md "Allpass n ≥ 2 ⚠";
+ * bugs/archive/BUG_20260927_winisd-allpass-t-not-delay-order-above-2-ignored.md).
  */
 export class AllpassFilterModel implements FilterModel {
-  constructor(private readonly spec: AllpassFilter) {}
+  constructor(private readonly spec: AllpassFilter, private readonly winisdOrder: boolean) {}
 
   response(f: number): Complex {
     const {order, t, Q} = this.spec;
     const w = 2 * Math.PI * f;
-    if (order <= 1) return cDiv(cx(1, -w * t / 2), cx(1, w * t / 2));
-    const w0 = 2 / t;
-    return biquad(w, 1, -w0 / Q, w0 * w0, 1, w0 / Q, w0 * w0);
+    if (this.winisdOrder && order >= 2) {
+      const w0 = 2 / t;
+      return biquad(w, 1, -w0 / Q, w0 * w0, 1, w0 / Q, w0 * w0);
+    }
+    // θn has real coefficients, so θn(−jx) = conj(θn(jx)).
+    const d = reverseBessel(Math.max(1, order), w * t / 2);
+    return cDiv(cx(d.re, -d.im), d);
   }
 
   caption(): string {

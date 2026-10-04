@@ -55,6 +55,14 @@ export {
   ALL_FIELDS,
 } from './field.js';
 
+/** Where OpenISD's default differs from WinISD because it fixed a WinISD bug — the deviation cues. */
+export {
+  type WinisdDeviationSpec,
+  type WinisdFilterDeviationSpec,
+  WinisdDeviation,
+  WinisdFilterDeviation,
+} from './winisdDeviation.js';
+
 /** The sealed-box loss model — a field's closed value set. */
 export { type LossModeValue, LossMode } from './lossMode.js';
 

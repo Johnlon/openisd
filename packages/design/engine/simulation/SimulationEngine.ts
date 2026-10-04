@@ -27,7 +27,7 @@ import type {VentIssue} from '../vent/VentEngine.js';
 import {hotRe, isobarikPair, terminalBL_Tm, withAddedMass} from '../solvers/driverQuantities.js';
 import {applyFilters} from '../filters.js';
 import {driveFromVoltage} from '../signal/SignalEngine.js';
-import type {BoxType, DriverError, EnclosureParams, MaxCurvesResult, SweepParams, SweepResult} from '../types.js';
+import type {BoxType, DriverError, EnclosureParams, MaxCurvesResult, SweepParams, SweepResult, WinisdFilterErrors} from '../types.js';
 import type {DriverValues, SweepDriver} from '../solverTypes.js';
 import type {BoxParamsIssue, BoxParamsQuantityName, BoxParamsSolveResult} from '../params.js';
 import {requiredParamsFor} from '../params.js';
@@ -471,13 +471,14 @@ export class SimulationEngineImpl implements SimulationEngine {
     // Filter-chain response, sampled on the same grid. Magnitude in dB, phase wrapped for now
     // (unwrapped after the loop, like `phase`).
     const fltMag: number[] = [], fltPhaseWrapped: number[] = [];
+    const filterErrors: WinisdFilterErrors = {besselHighpass: P.winisdBesselHighpass === true, allpassOrder: P.winisdAllpassOrder === true};
     for (let i = 0; i <= N; i++) {
       const f   = f0 * Math.pow(f1 / f0, i / N);
       const s   = solve(f, cq, box, P);
       const w   = 2 * Math.PI * f;
       // p = ρ·ω·U₀/(2π·r)  https://en.wikipedia.org/wiki/Acoustic_impedance#Radiation_impedance
       // Filters are line-level (upstream of amp) — multiply Hc, UD, UP; Zel is unaffected.
-      const Hf  = applyFilters(f, P.filters, P.winisdBesselHighpass === true);
+      const Hf  = applyFilters(f, P.filters, filterErrors);
       // The chain's own electrical response — the "(EQ/Filter)" charts. Same -200 dB silence
       // sentinel as `spl`, for the pathological |H| = 0 exactly (e.g. a notch landing on a grid
       // point) — `cAbs` never returns a negative number, so testing `=== 0` catches only that
@@ -556,8 +557,8 @@ export class SimulationEngineImpl implements SimulationEngine {
     const fltPhase = winisdWrap ? fltPhaseWrapped : unwrap(fltPhaseWrapped);
     // Radiated pressure up to a real scale factor, which the phase slope does not see.
     const pressure = (f: number): Complex =>
-      cMul(cMul(cx(0, 2 * Math.PI * f), solve(f, cq, box, P).U0), applyFilters(f, P.filters, P.winisdBesselHighpass === true));
-    const filterChain = (f: number): Complex => applyFilters(f, P.filters, P.winisdBesselHighpass === true);
+      cMul(cMul(cx(0, 2 * Math.PI * f), solve(f, cq, box, P).U0), applyFilters(f, P.filters, filterErrors));
+    const filterChain = (f: number): Complex => applyFilters(f, P.filters, filterErrors);
     const gd = fs.map(f => groupDelayAtMs(pressure, f));
     const fltGd = fs.map(f => groupDelayAtMs(filterChain, f));
 

@@ -341,6 +341,11 @@ export class OpenISDProject {
         return ProjectAdvanced.wrap(this.#slot('advanced'), this.#slot('filters')).winisdBesselHighpass;
     }
 
+    /** WinISD Compatibility "WinISD allpass order" — see `ProjectAdvanced.winisdAllpassOrder`. */
+    get winisdAllpassOrder(): SimpleField<boolean> {
+        return ProjectAdvanced.wrap(this.#slot('advanced'), this.#slot('filters')).winisdAllpassOrder;
+    }
+
     /** The controls that reproduce a known WinISD error: which carry the warning look, whether each
      *  applies to the open box, and whether it is reproducing the error now. */
     get errorSwitches(): ErrorSwitchStates {
@@ -352,6 +357,8 @@ export class OpenISDProject {
             winisdPrNprResonance: this.winisdPrNprResonance.value,
             winisdBesselHighpass: this.winisdBesselHighpass.value,
             hasBesselHighpass: this.filters.value.some(f => f.type === 'highpass' && f.family === 'bessel' && f.enabled),
+            winisdAllpassOrder: this.winisdAllpassOrder.value,
+            hasAllpassAboveOrder1: this.filters.value.some(f => f.type === 'allpass' && f.order >= 2 && f.enabled),
         });
     }
 
@@ -373,6 +380,7 @@ export class OpenISDProject {
         this.winisdAbcIntraPortVelocity.set(true);
         this.winisdPrNprResonance.set(true);
         this.winisdBesselHighpass.set(true);
+        this.winisdAllpassOrder.set(true);
     }
 
     /** Which charts are open (S10/QO130) — PROJECT-scoped, reversing QO90 for this field.
@@ -766,6 +774,7 @@ export class OpenISDProject {
             winisdAbcIntraPortVelocity: this.winisdAbcIntraPortVelocity,
             winisdPrNprResonance: this.winisdPrNprResonance,
             winisdBesselHighpass: this.winisdBesselHighpass,
+            winisdAllpassOrder: this.winisdAllpassOrder,
             lossMode: this.lossMode,
             rgAtDriverSide: this.rgAtDriverSide,
             useTransmissionLinePortModel: this.useTransmissionLinePortModel,

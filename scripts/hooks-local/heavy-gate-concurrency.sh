@@ -19,7 +19,7 @@
 #   trap release_heavy_gate_slot EXIT
 #
 # Sets OPENISD_HEAVY_GATE_WORKERS: how many of the 3 typecheck programs, and how many vitest
-# worker threads, THIS run should use. Also sets OPENISD_HEAVY_GATE_TEST_TIMEOUT.
+# worker threads, THIS run should use. It sets no test time limit.
 #
 # Peer-count fair share alone is not enough: it only sees sessions that also source this script.
 # A session running tsc/vitest by hand, wine/build work, or anything else on the box adds real
@@ -56,7 +56,7 @@ OPENISD_HEAVY_GATE_ACCOUNTING_LOCK="${OPENISD_HEAVY_GATE_DIR}.lock"
 mkdir -p "$OPENISD_HEAVY_GATE_DIR"
 
 reserve_heavy_gate_slot() {
-  local f pid active cores budget my_workers my_timeout load1 load_centi cores_centi load_workers my_typecheck_concurrency
+  local f pid active cores budget my_workers load1 load_centi cores_centi load_workers my_typecheck_concurrency
 
   # This lock guards only the bookkeeping below (read the reservation dir, write our own file) —
   # a few milliseconds — never the heavy commands themselves. Runs are free to overlap fully.
@@ -101,14 +101,9 @@ reserve_heavy_gate_slot() {
     cores_centi="$((cores * 100))"
   fi
 
-  # Timeout scales with worker-count shrinkage (peer count, real load, or both), then applies the
-  # fixed heavy.slice CPUWeight penalty (20 vs the default 100 = 5x) whenever there is ANY real
-  # contention — load above a small idle floor, not only once load exceeds core count.
-  CPU_WEIGHT_RATIO=5
+  # No test time limit is computed or exported: a test that keeps making progress is never killed.
+  # A stuck run is caught by the idle watchdog in scripts/quiet-test.sh instead.
   IDLE_LOAD_CENTI=100
-  my_timeout=$((5000 * cores / my_workers))
-  [ "$load_centi" -gt "$IDLE_LOAD_CENTI" ] && my_timeout=$((my_timeout * CPU_WEIGHT_RATIO))
-  [ "$my_timeout" -gt 30000 ] && my_timeout=30000
 
   : > "$OPENISD_HEAVY_GATE_DIR/$$"
   exec 9>&-   # release the accounting lock — the run itself starts below, outside it
@@ -120,8 +115,7 @@ reserve_heavy_gate_slot() {
 
   export OPENISD_HEAVY_GATE_WORKERS="$my_workers"
   export OPENISD_TYPECHECK_CONCURRENCY="$my_typecheck_concurrency"
-  export OPENISD_HEAVY_GATE_TEST_TIMEOUT="$my_timeout"
-  echo "[heavy-gate] $my_workers vitest worker(s), $my_typecheck_concurrency typecheck process(es), ${my_timeout}ms test timeout this run ($active other heavy gate(s) active, $cores cores)"
+  echo "[heavy-gate] $my_workers vitest worker(s), $my_typecheck_concurrency typecheck process(es) this run ($active other heavy gate(s) active, $cores cores)"
 }
 
 release_heavy_gate_slot() {

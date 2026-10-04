@@ -1312,6 +1312,12 @@ export class ToggleField extends Field {
     description: "WinISD Bessel high-pass: affects Bessel high-pass filters in the EQ/Filter chain only; Butterworth, Linkwitz-Riley, SOS and every low-pass are unchanged, and so is a first-order Bessel.\nTicked (as WinISD): the high-pass keeps the low-pass's own denominator with the numerator swapped to (k·s)^n. A WinISD error: that is not the mirror of the Bessel low-pass (order 4, fc 25 Hz: up to 6 % off in complex response).\nUnticked: the mirror of the low-pass, s → 1/s.",
   });
 
+  static readonly ADV_WINISDALLPASSORDER = new ToggleField({
+    value: "adv_WinisdAllpassOrder",
+    label: "WinISD allpass order",
+    description: "WinISD allpass order: affects allpass filters of order 2 and above in the EQ/Filter chain only; an order-1 allpass is unchanged.\nTicked (as WinISD): every order above 1 is one 2nd-order allpass with ω0 = 2/t and Q, so the delay is t/Q, not t, and orders 3 to 10 draw exactly order 2. A WinISD error (t 3 ms, Q 0.6: 5 ms delay at every order from 2 up).\nUnticked: the order-n Bessel (maximally flat delay) allpass, delay t at every order, flat to a higher frequency as the order rises; Q is not used.",
+  });
+
   static readonly ALL: readonly ToggleField[] =
     Object.freeze(Object.values(ToggleField).filter((v): v is ToggleField => v instanceof ToggleField));
 }

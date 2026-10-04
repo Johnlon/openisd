@@ -123,6 +123,14 @@ export type FilterType = FilterSpec['type'];
 export interface ChainEntry { id?: string; enabled: boolean }
 /** One signal-chain filter. */
 export type Filter = ChainEntry & FilterSpec;
+
+/** Which WinISD filter-chain calculation errors the chain reproduces (each an error switch). */
+export interface WinisdFilterErrors {
+  /** Bessel high-pass: the low-pass's denominator under (k·s)^n, not the mirror of the low-pass. */
+  readonly besselHighpass: boolean;
+  /** Allpass: orders above 2 drawn as 2, and t/Q (not t) the delay from order 2 up. */
+  readonly allpassOrder: boolean;
+}
 // The chain filter of each class — what its editor shows and its typed edit takes and returns.
 export type PassFilter = ChainEntry & PassSpec;
 export type AllpassFilter = ChainEntry & AllpassSpec;
@@ -204,6 +212,10 @@ export interface SweepParams {
    *  which is not the mirror of the low-pass (true), or the mirror, the low-pass with s → 1/s
    *  (false/absent). */
   winisdBesselHighpass?: boolean;
+  /** Allpass filters as WinISD computes them: order 1 delays t, every higher order draws one
+   *  2nd-order section with ω0 = 2/t and Q, delay t/Q (true); or the order-n Bessel allpass,
+   *  delay t at every order (false/absent). */
+  winisdAllpassOrder?: boolean;
   // Box losses
   lossMode?: LossModeValue;
   Ql?: number;

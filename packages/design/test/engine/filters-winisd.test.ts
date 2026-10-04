@@ -33,10 +33,13 @@ const LE_H = 0.70e-3;
 
 /** This filter alone, at exactly one frequency — `fmin === fmax`, `N: 0` makes `sweep`'s grid
  *  a single point at `f` (`f0 * (f1/f0)^(i/N)`, and `Math.pow(1, NaN)` is 1). */
-function filterAt(filter: Filter, f: number) {
+/** `allpass`: the "WinISD allpass order" flag, `null` to leave it out of the params. */
+function filterAt(filter: Filter, f: number, allpass: boolean | null = true) {
   const sw = engine.simulation.sweep(sweepDriver(DRV), LE_H, 'sealed',
-    // The captures are WinISD's own, Bessel high-pass quirk included (`winisdBesselHighpass`).
-    {Vb: 0.030, eg: 2.83, fmin: f, fmax: f, N: 0, filters: [filter], winisdBesselHighpass: true}).values!;
+    // The captures are WinISD's own, Bessel high-pass and allpass errors included
+    // (`winisdBesselHighpass`, `winisdAllpassOrder`).
+    {Vb: 0.030, eg: 2.83, fmin: f, fmax: f, N: 0, filters: [filter], winisdBesselHighpass: true,
+      ...(allpass === null ? {} : {winisdAllpassOrder: allpass})}).values!;
   return {mag: sw.fltMag[0], phase: sw.fltPhase[0], gdMs: sw.fltGd[0]};
 }
 
@@ -71,5 +74,57 @@ describe('applyFilters skips a disabled filter', () => {
       assert.equal(phase, 0, `${capture.wpr}: a disabled filter must read 0 rad`);
       assert.equal(gdMs, 0, `${capture.wpr}: a disabled filter must read 0 ms group delay`);
     }
+  });
+});
+
+/**
+ * Allpass and the "WinISD allpass order" error switch (`winisdAllpassOrder`).
+ * WinISD: order 1 delays t; order 2 and above draw one 2nd-order section with ω0 = 2/t, so the
+ * delay is t/Q and orders 3–10 equal order 2 (bugs/archive/BUG_20260927_winisd-allpass-t-not-delay-order-above-2-ignored.md).
+ * Off (the default): the order-n Bessel (maximally flat delay) allpass θn(−s·t/2)/θn(s·t/2), its
+ * low-frequency delay t at every order; Q is not used.
+ */
+describe('Allpass, switch off: the order-n Bessel allpass, delay t', () => {
+  const T = 0.003;
+  const allpass = (order: number, Q = 0.6): Filter => ({type: 'allpass', enabled: true, order, t: T, Q});
+
+  it('low-frequency delay is t at every order 1..20 (phase/ω to 1e-6, group delay to 1e-3)', () => {
+    for (let order = 1; order <= 20; order++) {
+      const f = 0.1;
+      const {mag, phase, gdMs} = filterAt(allpass(order), f, false);
+      assert.ok(Math.abs(mag) < 1e-9, `order ${order}: |H| = 1 (got ${mag} dB)`);
+      const delay = -phase / (2 * Math.PI * f);
+      assert.ok(Math.abs(delay - T) / T < 1e-6, `order ${order}: −φ/ω ${delay}, want ${T}`);
+      assert.ok(Math.abs(gdMs / 1000 - T) / T < 1e-3, `order ${order}: group delay ${gdMs} ms, want ${T * 1000} ms`);
+    }
+  });
+
+  it('Q is not used', () => {
+    for (const f of [1, 30, 200]) assert.deepEqual(filterAt(allpass(3, 0.6), f, false), filterAt(allpass(3, 2.5), f, false));
+  });
+
+  it('the order is honoured: order 4 differs from order 2, and a higher order holds the delay to a higher frequency', () => {
+    const at = (order: number, f: number) => filterAt(allpass(order), f, false).gdMs / 1000;
+    assert.ok(Math.abs(filterAt(allpass(4), 100, false).phase - filterAt(allpass(2), 100, false).phase) > 0.01);
+    // At f·t = 0.6 (200 Hz, 3 ms) order 2 has lost more than 30 % of its delay, order 8 under 0.1 %.
+    assert.ok(Math.abs(at(2, 200) - T) / T > 0.3, `order 2 at 200 Hz: ${at(2, 200)}`);
+    assert.ok(Math.abs(at(8, 200) - T) / T < 1e-3, `order 8 at 200 Hz: ${at(8, 200)}`);
+  });
+
+  it('order 1 is WinISD\'s own (switch on and off agree)', () => {
+    for (const f of [1, 30, 200, 2000]) assert.deepEqual(filterAt(allpass(1), f, false), filterAt(allpass(1), f, true));
+  });
+
+  it('absent flag means off', () => {
+    assert.deepEqual(filterAt(allpass(4), 40, null), filterAt(allpass(4), 40, false));
+  });
+});
+
+describe('Allpass, switch on: WinISD\'s', () => {
+  it('order 4 draws exactly order 2 (t/Q delay)', () => {
+    const ap = (order: number): Filter => ({type: 'allpass', enabled: true, order, t: 0.003, Q: 0.6});
+    for (const f of [1, 30, 200, 2000]) assert.deepEqual(filterAt(ap(4), f, true), filterAt(ap(2), f, true));
+    const {gdMs} = filterAt(ap(4), 1, true);
+    assert.ok(Math.abs(gdMs - 5) < 5e-3, `order 4 delay ${gdMs} ms, want 5 ms (t/Q)`);
   });
 });

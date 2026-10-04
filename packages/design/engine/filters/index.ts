@@ -1,13 +1,13 @@
 /**
  * WinISD's EQ/Filter chain, and the two OpenISD-only shelves — one class per filter type,
- * chosen by `filterModel()` below. Every formula, evaluation order and quirk (Bessel HP not
- * mirroring its LP, Linkwitz-Riley ignoring its own order field, Allpass order above 2
- * collapsing to the 2nd-order section, …) is WinISD behaviour, verified live by debugger and
- * copied exactly onto the class that owns it: winisd_research/GHIDRA_FINDINGS.md "EQ/Filter
+ * chosen by `filterModel()` below. Every formula, evaluation order and quirk (Linkwitz-Riley
+ * ignoring its own order field, …) is WinISD behaviour, verified live by debugger and copied
+ * exactly onto the class that owns it, except the WinISD calculation errors behind an error
+ * switch (`WinisdFilterErrors`: Bessel HP not mirroring its LP, Allpass order above 2): winisd_research/GHIDRA_FINDINGS.md "EQ/Filter
  * chain — every filter type's response and group delay". `.wpr` field names and Add defaults:
  * winisd_research/PROBE_FINDINGS.md "`.wpr` `[Filters]` format".
  */
-import type {Filter} from '../types.js';
+import type {Filter, WinisdFilterErrors} from '../types.js';
 import type {FilterModel} from './FilterModel.js';
 import {PassFilterModel} from './PassFilterModel.js';
 import {AllpassFilterModel} from './AllpassFilterModel.js';
@@ -40,11 +40,11 @@ export {ShelfFilterModel} from './ShelfFilterModel.js';
  * model nobody asked for. Takes the whole `Filter` (spec + `enabled`), not just the spec, so a
  * model can write its own `enabled` bit into its `.wpr()` shape.
  */
-export function filterModel(f: Filter, winisdBesselHighpass: boolean): FilterModel {
+export function filterModel(f: Filter, errors: WinisdFilterErrors): FilterModel {
   switch (f.type) {
     case 'lowpass':
-    case 'highpass':     return new PassFilterModel(f, winisdBesselHighpass);
-    case 'allpass':       return new AllpassFilterModel(f);
+    case 'highpass':     return new PassFilterModel(f, errors.besselHighpass);
+    case 'allpass':       return new AllpassFilterModel(f, errors.allpassOrder);
     case 'linkwitz':      return new LinkwitzFilterModel(f);
     case 'peaking':       return new ParametricEqFilterModel(f);
     case 'peakHighpass':  return new PeakHighpassFilterModel(f);

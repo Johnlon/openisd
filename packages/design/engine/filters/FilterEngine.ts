@@ -8,7 +8,7 @@ import type {
   AllpassFilter, AllpassPatch, Filter, FilterSpec, FilterType, LinkwitzFilter, LinkwitzPatch,
   ParametricEqFilter, ParametricEqPatch, PassFilter, PassPatch, PeakHighpassFilter, PeakHighpassPatch,
   RaisedCosineFilter, RaisedCosinePatch, ShelfFilter, ShelfPatch, StaticGainFilter, StaticGainPatch,
-  WprFilter, WprFilterImport,
+  WinisdFilterErrors, WprFilter, WprFilterImport,
 } from '../types.js';
 import {
   AllpassFilterModel, LinkwitzFilterModel, ParametricEqFilterModel, PassFilterModel,
@@ -69,6 +69,9 @@ function defaultedWprFilter(engine: FilterEngine, type: FilterType, fields: read
   };
 }
 
+/** No WinISD filter error reproduced: for a caption or `.wpr` shape, which no response maths reaches. */
+const NO_WINISD_FILTER_ERRORS: WinisdFilterErrors = Object.freeze({besselHighpass: false, allpassOrder: false});
+
 /** The one implementation. Built by `Engine`; nothing outside the engine names it. */
 export class FilterEngineImpl implements FilterEngine {
   default(type: FilterType): Filter {
@@ -89,12 +92,12 @@ export class FilterEngineImpl implements FilterEngine {
   }
 
   caption(f: Filter): string {
-    // A caption and a `.wpr` shape do not depend on the response maths, so the Bessel form is moot.
-    return filterModel(f, false).caption();
+    // A caption and a `.wpr` shape do not depend on the response maths, so the error switches are moot.
+    return filterModel(f, NO_WINISD_FILTER_ERRORS).caption();
   }
 
   wpr(f: Filter): WprFilter | null {
-    return filterModel(f, false).wpr();
+    return filterModel(f, NO_WINISD_FILTER_ERRORS).wpr();
   }
 
   fromWpr(typeNum: number, fields: readonly string[]): WprFilterImport {
