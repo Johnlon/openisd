@@ -65,7 +65,7 @@ export const GAMMA = 1.4;
 
 // Port end correction for a vent flanged at one end (baffle) and free at the other
 // (open into the box) — WinISD's own default (Vents tab "End Correction" field;
-// see docs/winisd_screenshots/view_3_ported.png).
+// see docs/images/winisd/vents-tab.png).
 /** Port end correction, × vent diameter, per open (unflanged) end. */
 export const END_CORRECTION = 0.732;
 

@@ -7,7 +7,7 @@ import {selectedOption} from '../../logic/domEvents.js';
 import {usePREditModal} from '../../hooks/PREditModal-hooks.js';
 
 // PR "Edit" — a real popup (unlike Tune, this doesn't need the graph
-// visible while typing: WinISD ref view_3_passive_radiator.png "Passive radiator
+// visible while typing: WinISD ref passive-radiator-tab.png "Passive radiator
 // parameters" box). Fields here describe the PR unit itself, not the box around it.
 
 const emit = defineEmits<{ close: []; browse: [] }>();

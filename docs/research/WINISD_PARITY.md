@@ -12,7 +12,7 @@ It distinguishes **confirmed** facts (user-observed, sourced), **inferred** conc
 **Confidence markers** (WinISD column, per the project's anti-hallucination rule):
 
 - ✅ Confirmed — source: this document, the WinISD help file, direct user observation, or a
-  WinISD 0.7.0.950 screenshot in [`docs/winisd_screenshots/`](../winisd_screenshots/) (Part 2 ties each fact to a
+  WinISD 0.7.0.950 screenshot in [`docs/images/winisd/`](../images/winisd/) (Part 2 ties each fact to a
   named screenshot).
 - ❌ Confirmed absent — observed directly or follows from platform constraints.
 - ❔ Untested — nobody has run a test for this row. Not a soft yes and not a soft no.
@@ -38,7 +38,7 @@ Third-party competitor tools (00 Simulator, SpeakerDesign.dev, SpeakerBoxLite, S
 | Calculation Axis | WinISD 0.7.0.950 Behavior | OpenISD Standard Behavior | How to match WinISD |
 | :--- | :--- | :--- | :--- |
 | **$M_{ms}$, $BL$, $R_{ms}$ vs. the simulation** | Keeps the entered values and never rewrites them — measured 2026-09-26: a driver whose $M_{ms}$, $BL$ and $R_{ms}$ contradict its own $F_s$/$C_{ms}$/$Q_{es}$/$Q_{ms}$ loads, saves back byte-identical and stays marked Entered, with no consistency warning. The simulation does not use them: the sealed-box $F_{sc}$ and $Q_{tc}$ readouts track $F_s$, $V_{as}$, $Q_{es}$, $Q_{ms}$, $S_d$, so the moving mass actually in play is $M_{ms} = 1/((2\pi F_s)^2 C_{ms})$ (equivalently $\rho_0 c^2 S_d^2/((2\pi F_s)^2 V_{as})$). Evidence: [`toys/probe_entered_mms_overwrite.py`](http://localhost:8000/winisd/winisd_research/toys/probe_entered_mms_overwrite.py), [`toys/probe_sim_uses_which_mms.py`](http://localhost:8000/winisd/winisd_research/toys/probe_sim_uses_which_mms.py). | Builds the acoustic branch straight from the entered $M_{ms}$, $C_{ms}$, $R_{ms}$ and $BL$ (`circuit.ts` `Mas`/`Ras`/`ZaE`), so an internally inconsistent record diverges from WinISD; conflicts are flagged via Data Quality (DQ). | Check **WinISD driver model** (`winisdDriverModel`) inside the WinISD Compatibility box on the Advanced tab, or click **Reset to WinISD**. On by default, per the README goal. It substitutes the whole set the WinISD circuit implies — $C_{ms} = V_{as}/(\rho c^2 S_d^2)$, then $M_{ms} = 1/((2\pi F_s)^2 C_{ms})$, $R_{ms} = 2\pi F_s M_{ms}/Q_{ms}$ and $BL = \sqrt{R_e/(2\pi F_s Q_{es} C_{ms})}$ off that compliance — each only where its own inputs are stated and positive, so every one is an identity on a self-consistent driver. The entered $BL$ still sets the level (the motor's push) and $C_{Le}$, as in WinISD; the $Q_{es}$-derived $BL$ sets the damping. |
-| **Acoustic Inductance ($L_e$)** | Has the same option: **Simulate voice coil inductance** on the Advanced pane (`view_6_advanced.png`), stored as `[SimulatorOptions] VCInd` in the `.wpr`, **default off**. Off, $L_e$ is excluded from the acoustic circuit ($Z_{\text{coil,AC}} = R_e + R_s$) and the response is flat above the passband; on, it rolls off — measured 2026-09-26 on the W5-1138SMF ($L_e = 0.34$ mH, $R_e = 3.4\,\Omega$): −1.21 dB at 1 kHz, −10.62 dB at 5 kHz, −22.31 dB at 20 kHz. | Same option, same default: **Simulate voice coil inductance** (`circuitModel`, `'winisd'` off / `'gyrator'` on) in the middle options column of the Advanced tab. Its sub-option **WinISD-compatible inductance** (`'winisdGyrator'`) reproduces WinISD's inductance-on roll-off; unchecked, the roll-off is textbook first-order ([bug record](../../bugs/archive/BUG_20260926_gyrator-rolloff-shallower-than-winisd.md)). | Nothing to match — leave it as it is. |
+| **Acoustic Inductance ($L_e$)** | Has the same option: **Simulate voice coil inductance** on the Advanced pane (`advanced-tab.png`), stored as `[SimulatorOptions] VCInd` in the `.wpr`, **default off**. Off, $L_e$ is excluded from the acoustic circuit ($Z_{\text{coil,AC}} = R_e + R_s$) and the response is flat above the passband; on, it rolls off — measured 2026-09-26 on the W5-1138SMF ($L_e = 0.34$ mH, $R_e = 3.4\,\Omega$): −1.21 dB at 1 kHz, −10.62 dB at 5 kHz, −22.31 dB at 20 kHz. | Same option, same default: **Simulate voice coil inductance** (`circuitModel`, `'winisd'` off / `'gyrator'` on) in the middle options column of the Advanced tab. Its sub-option **WinISD-compatible inductance** (`'winisdGyrator'`) reproduces WinISD's inductance-on roll-off; unchecked, the roll-off is textbook first-order ([bug record](../../bugs/archive/BUG_20260926_gyrator-rolloff-shallower-than-winisd.md)). | Nothing to match — leave it as it is. |
 | **Rg in the impedance chart** | The impedance chart includes Rg only when **Rg is at driver side** is on: off, Z is the driver alone and Rg changes nothing; on, Z = Z(off) + Rg exactly — measured 2026-09-26 by debugger on the W5-1138SMF at Rg 0 and 10 Ω ([records](http://localhost:8000/winisd/winisd_research/runs/sweep-w5-sealed-impedance-rg10-vcind1-driverside-off.json)). | Same behavior: `Zel` excludes Rg when **Rg is at driver side** is off, includes it when on — [fixed 2026-09-26](../../bugs/archive/BUG_20260926_impedance-includes-rg-when-rg-is-not-at-driver-side.md). | Nothing to match — leave it as it is. |
 | **Sealed Box Losses** | Subtracts leak volume velocity $U_{\text{leak}}$ evaluated at $F_{sc}$ ($R_{al}$ constant). | Supports `'winisd-lossy'`, `'conventional-lossy'`, and `'lossless'`. | Set **Loss model** (`lossMode`) to `WinISD default` (`'winisd-lossy'`) inside the WinISD Compatibility box on the Advanced tab (default in OpenISD). |
 | **Air model** | No option — always derives $c$ and $\rho$ from the Advanced pane's temperature, humidity and pressure with its own 0.7 formulas ($c = 343.68$ m/s, $\rho = 1.20095$ kg/m³ at 293.15 K / 30% / 101325 Pa). | Defaults to the CIPM-2007 real-gas equations, which disagree with WinISD's at the same conditions. | Check **Use WinISD air model** (`envUseWinisdAirModel`) inside the WinISD Compatibility box on the Advanced tab, or click **Reset to WinISD**. OpenISD-only switch — WinISD has no counterpart. |
@@ -72,11 +72,11 @@ Third-party competitor tools (00 Simulator, SpeakerDesign.dev, SpeakerBoxLite, S
 | Box loss model (Ql leakage, Qa absorption)            | ✅ default Ql=10, Qa=100                                                                                                                                                                               | ✅ confirmed — same defaults (WinISD help file + direct observation)                 |
 | WinISD-compatible circuit model                       | ✅ (default mode)                                                                                                                                                                                      | ✅ confirmed                                                                         |
 | Full gyrator (frequency-dependent Le)                 | ✅ switchable                                                                    | ✅ confirmed — Advanced "Simulate voice coil inductance", default off (`[SimulatorOptions] VCInd`); the two on-models differ by ~0.6 dB at 5–20 kHz (Part 3 §9) |
-| Transmission-line port model                          | ✅ branches port impedance at `engine/src/circuit.ts:69`; tested `tl-port-model.test.ts` → "transmission-line port model"                                                                           | ✅ confirmed — Advanced "Use transmission line-model for port" (view_6_advanced.png) |
-| Environment model (temp / humidity / pressure → c, ρ) | ⚠ temperature only: `tempK` consumed at `engine/src/circuit.ts:64-66`; `humidityPct`/`pressurePa` appear only in `ui/src/types.ts:225` and `OriginalShell.vue:536-537` — grep finds no engine consumer | ✅ confirmed — Advanced pane derives c=343.68 m/s, ρ=1.20095 (view_6_advanced.png)   |
-| Force-flat response                                   | ✅ consumed at `engine/src/sweep.ts:118`                                                                                                                                                               | ✅ confirmed — Advanced "Force flat response" toggle (view_6_advanced.png)           |
-| Source-resistance placement (Rg at driver side)       | ✅ consumed at `engine/src/circuit.ts:116`; tested `rg-placement.test.ts` → "Rg placement"                                                                                                         | ✅ confirmed — Advanced "Rg is at driver side" toggle (view_6_advanced.png)          |
-| Xmax-limited SPL toggle                               | ✅ selects `splXlim` vs `spl` at `ui/src/utils/series.ts:38-39`; plus a separate Max-SPL chart                                                                                                         | ✅ confirmed — Advanced "SPL graph is Xmax limited" toggle (view_6_advanced.png)     |
+| Transmission-line port model                          | ✅ branches port impedance at `engine/src/circuit.ts:69`; tested `tl-port-model.test.ts` → "transmission-line port model"                                                                           | ✅ confirmed — Advanced "Use transmission line-model for port" (advanced-tab.png) |
+| Environment model (temp / humidity / pressure → c, ρ) | ⚠ temperature only: `tempK` consumed at `engine/src/circuit.ts:64-66`; `humidityPct`/`pressurePa` appear only in `ui/src/types.ts:225` and `OriginalShell.vue:536-537` — grep finds no engine consumer | ✅ confirmed — Advanced pane derives c=343.68 m/s, ρ=1.20095 (advanced-tab.png)   |
+| Force-flat response                                   | ✅ consumed at `engine/src/sweep.ts:118`                                                                                                                                                               | ✅ confirmed — Advanced "Force flat response" toggle (advanced-tab.png)           |
+| Source-resistance placement (Rg at driver side)       | ✅ consumed at `engine/src/circuit.ts:116`; tested `rg-placement.test.ts` → "Rg placement"                                                                                                         | ✅ confirmed — Advanced "Rg is at driver side" toggle (advanced-tab.png)          |
+| Xmax-limited SPL toggle                               | ✅ selects `splXlim` vs `spl` at `ui/src/utils/series.ts:38-39`; plus a separate Max-SPL chart                                                                                                         | ✅ confirmed — Advanced "SPL graph is Xmax limited" toggle (advanced-tab.png)     |
 
 ## Simulation curves
 
@@ -84,24 +84,24 @@ Third-party competitor tools (00 Simulator, SpeakerDesign.dev, SpeakerBoxLite, S
 | ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------- |
 | SPL (sound pressure level)                 | ✅                                                                                                                                               | ✅ confirmed                                                                                  |
 | Driver excursion (Xmax)                    | ✅                                                                                                                                               | ✅ confirmed                                                                                  |
-| PR excursion                               | ✅                                                                                                                                               | ✅ confirmed — "Cone excursion (PR)" (chart_dropdown.png)                                     |
-| Port air velocity                          | ✅                                                                                                                                               | ✅ confirmed — front/rear port "Air velocity" (chart_dropdown.png)                            |
+| PR excursion                               | ✅                                                                                                                                               | ✅ confirmed — "Cone excursion (PR)" (chart-dropdown.png)                                     |
+| Port air velocity                          | ✅                                                                                                                                               | ✅ confirmed — front/rear port "Air velocity" (chart-dropdown.png)                            |
 | Impedance magnitude                        | ✅                                                                                                                                               | ✅ confirmed                                                                                  |
-| Impedance phase                            | ✅                                                                                                                                               | ✅ confirmed — "Impedance phase" (chart_dropdown.png)                                         |
+| Impedance phase                            | ✅                                                                                                                                               | ✅ confirmed — "Impedance phase" (chart-dropdown.png)                                         |
 | Group delay                                | ✅                                                                                                                                               | ✅ confirmed                                                                                  |
-| Transfer phase                             | ✅                                                                                                                                               | ✅ confirmed — "Transfer function phase" (chart_dropdown.png)                                 |
+| Transfer phase                             | ✅                                                                                                                                               | ✅ confirmed — "Transfer function phase" (chart-dropdown.png)                                 |
 | EQ/Filter chain response (mag/phase/GD)    | ✅ `FltMag`/`FltPhase`/`FltGD`, real working curve builders — `types.ts:22-24`, `series.ts:189,201,212` (verified 2026-08-13, see Part 2 Charts) | ✅ confirmed — "(EQ/Filter)" chart group                                                      |
-| Max SPL curve (excursion-limited)          | ✅                                                                                                                                               | ✅ confirmed — "Maximum SPL" (chart_dropdown.png)                                             |
-| Max power curve (thermal-limited)          | ✅                                                                                                                                               | ✅ confirmed — "Maximum Power" (chart_dropdown.png)                                           |
-| Amplifier apparent load power (VA)         | 🚧 menu entry present, `tab: null` — no chart behind it                                                                                          | ✅ confirmed — "Amplifier apparent load power (VA)" (chart_dropdown.png)                      |
-| Port "Gain" curve                          | 🚧 (velocity only), menu entries `tab: null`                                                                                                     | ✅ confirmed — front/rear port "Gain" (chart_dropdown.png)                                    |
-| PR-specific transfer-function/phase curves | ❌ no PR-variant `ChartTabId` exists (verified 2026-08-13)                                                                                       | ✅ confirmed — "TF magnitude/phase (PR)" (chart_dropdown.png)                                 |
-| Compare / overlay multiple designs         | ✅ pin + overlay                                                                                                                                 | ✅ confirmed — two checked projects, two curves overlaid (view_3_ported.png) — see note below |
-| Cursor with frequency / value readout      | ✅                                                                                                                                               | ✅ confirmed — header shows "38.01 Hz / −9.896 dB" readout (view_5_signal.png)                |
+| Max SPL curve (excursion-limited)          | ✅                                                                                                                                               | ✅ confirmed — "Maximum SPL" (chart-dropdown.png)                                             |
+| Max power curve (thermal-limited)          | ✅                                                                                                                                               | ✅ confirmed — "Maximum Power" (chart-dropdown.png)                                           |
+| Amplifier apparent load power (VA)         | 🚧 menu entry present, `tab: null` — no chart behind it                                                                                          | ✅ confirmed — "Amplifier apparent load power (VA)" (chart-dropdown.png)                      |
+| Port "Gain" curve                          | 🚧 (velocity only), menu entries `tab: null`                                                                                                     | ✅ confirmed — front/rear port "Gain" (chart-dropdown.png)                                    |
+| PR-specific transfer-function/phase curves | ❌ no PR-variant `ChartTabId` exists (verified 2026-08-13)                                                                                       | ✅ confirmed — "TF magnitude/phase (PR)" (chart-dropdown.png)                                 |
+| Compare / overlay multiple designs         | ✅ pin + overlay                                                                                                                                 | ✅ confirmed — two checked projects, two curves overlaid (vents-tab.png) — see note below |
+| Cursor with frequency / value readout      | ✅                                                                                                                                               | ✅ confirmed — header shows "38.01 Hz / −9.896 dB" readout (signal-tab.png)                |
 | Cursor peak snap                           | ✅ right-click snap                                                                                                                              | ❌ confirmed                                                                                  |
 | Cursor lock and nudge                      | ✅                                                                                                                                               | ❔ untested                                                                                   |
 
-> **⚠ Correction — WinISD _does_ overlay multiple designs.** `docs/winisd_screenshots/view_3_ported.png`
+> **⚠ Correction — WinISD _does_ overlay multiple designs.** `docs/images/winisd/vents-tab.png`
 > shows two projects ("Epique15 - pr" and "Epique15-ported") both checked in the Projects
 > pane with both transfer-function curves drawn on one graph. This contradicts an earlier
 > claim in Part 3 §9 that WinISD cannot compare designs — that section is corrected below.
@@ -113,18 +113,18 @@ Third-party competitor tools (00 Simulator, SpeakerDesign.dev, SpeakerBoxLite, S
 | Feature                              | OpenISD                                                                          | WinISD                                                                                        |
 | ------------------------------------ | -------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
 | Drive voltage (2.83 V IEC reference) | ✅                                                                               | ✅ confirmed — `Eg = sqrt(P × Re)`                                                            |
-| Arbitrary input power / voltage      | ✅                                                                               | ✅ confirmed — Signal pane power/voltage fields (view_5_signal.png)                           |
-| Series source resistance (Rs)        | ✅                                                                               | ✅ confirmed — Signal pane "Series resistance" (view_5_signal.png)                            |
-| High-pass filter                     | ✅                                                                               | ✅ confirmed — Filter Editor Highpass/Butterworth (view_4_filters_edit_highpass.png)          |
-| Low-pass filter                      | ✅                                                                               | ✅ confirmed — "Lowpass (Butterworth, n=2)" in filter list (view_4_filters_edit_highpass.png) |
-| Linkwitz transform                   | ✅                                                                               | ✅ confirmed — filter type (view_4_filters_edit_linkwitz_transform.png)                       |
-| Parametric EQ (peaking)              | ✅                                                                               | ✅ confirmed — filter type (view_4_filters_edit_parametric_eq.png)                            |
-| Multiple filters in a chain          | ✅                                                                               | ✅ confirmed — filter list with Add/Delete/Modify (view_4_filters_edit_highpass.png)          |
-| All-pass filter                      | ❌ (BACKLOG) confirmed absent — `FilterType` closed union, `engine/types.ts:137` | ✅ confirmed — filter type (view_4_filters_edit_allpass.png)                                  |
-| DLP raised-cosine (delay) filter     | ❌ (BACKLOG) confirmed absent — `FilterType` closed union                        | ✅ confirmed — filter type (view_4_filters_edit_dlp_raised_cosine.png)                        |
-| Static-gain filter                   | ❌ (BACKLOG) confirmed absent — `FilterType` closed union                        | ✅ confirmed — filter type (view_4_filters_edit_statis_gain.png)                              |
-| Configurable listening distance      | ❌ fixed 1 m                                                                     | ✅ confirmed — Signal pane "Distance (m)" (view_5_signal.png)                                 |
-| Off-axis listening angle             | ❌                                                                               | ✅ confirmed — Signal pane "Angle (rad)" (view_5_signal.png)                                  |
+| Arbitrary input power / voltage      | ✅                                                                               | ✅ confirmed — Signal pane power/voltage fields (signal-tab.png)                           |
+| Series source resistance (Rs)        | ✅                                                                               | ✅ confirmed — Signal pane "Series resistance" (signal-tab.png)                            |
+| High-pass filter                     | ✅                                                                               | ✅ confirmed — Filter Editor Highpass/Butterworth (filters-tab-edit-highpass.png)          |
+| Low-pass filter                      | ✅                                                                               | ✅ confirmed — "Lowpass (Butterworth, n=2)" in filter list (filters-tab-edit-highpass.png) |
+| Linkwitz transform                   | ✅                                                                               | ✅ confirmed — filter type (filters-tab-edit-linkwitz-transform.png)                       |
+| Parametric EQ (peaking)              | ✅                                                                               | ✅ confirmed — filter type (filters-tab-edit-parametric-eq.png)                            |
+| Multiple filters in a chain          | ✅                                                                               | ✅ confirmed — filter list with Add/Delete/Modify (filters-tab-edit-highpass.png)          |
+| All-pass filter                      | ❌ (BACKLOG) confirmed absent — `FilterType` closed union, `engine/types.ts:137` | ✅ confirmed — filter type (filters-tab-edit-allpass.png)                                  |
+| DLP raised-cosine (delay) filter     | ❌ (BACKLOG) confirmed absent — `FilterType` closed union                        | ✅ confirmed — filter type (filters-tab-edit-dlp-raised-cosine.png)                        |
+| Static-gain filter                   | ❌ (BACKLOG) confirmed absent — `FilterType` closed union                        | ✅ confirmed — filter type (filters-tab-edit-static-gain.png)                              |
+| Configurable listening distance      | ❌ fixed 1 m                                                                     | ✅ confirmed — Signal pane "Distance (m)" (signal-tab.png)                                 |
+| Off-axis listening angle             | ❌                                                                               | ✅ confirmed — Signal pane "Angle (rad)" (signal-tab.png)                                  |
 
 ## Alignment & design tools
 
@@ -196,7 +196,7 @@ See [`BACKLOG.md`](../../BACKLOG.md) to claim one or discuss prioritisation.
 # Part 2 — Per-pane field-by-field parity (Original skin only)
 
 Evidence-based comparison built by reading the WinISD 0.7.0.950 screenshots in
-[`docs/winisd_screenshots/`](../winisd_screenshots/) against OpenISD's actual **Original**-skin UI (`OriginalShell.vue`
+[`docs/images/winisd/`](../images/winisd/) against OpenISD's actual **Original**-skin UI (`OriginalShell.vue`
 and its sub-components) and engine — Classic/Modern are not parity targets.
 **Source of each row is the named screenshot**, unless otherwise marked as code-verified.
 
@@ -206,7 +206,7 @@ Legend: ✅ OpenISD has an input/feature · ❌ OpenISD lacks it · ⚠️ parti
 were found wrong (or partially wrong) against a first-draft version of this ledger, all
 corrected below with file:line evidence, not left as originally written.
 
-## Driver editor → Parameters tab (`edit_driver_pg2_parameters.png`)
+## Driver editor → Parameters tab (`edit-driver-page2-parameters.png`)
 
 WinISD's own colour legend on this tab is the ParState model verbatim:
 **🟩 Entered · 🟦 Calculated · ⬛ Not available**, plus an "Auto calculate unknowns" toggle.
@@ -221,7 +221,7 @@ WinISD's own colour legend on this tab is the ParState model verbatim:
 | no (η₀), Znom, SPL, Voicecoils, Connection                | ✅                      |
 | **USPL** (dB)                                             | ⚠️ stored, not modelled |
 
-## Driver editor → Advanced parameters tab (`edit_driver_pg3_advanced_parameters.png`)
+## Driver editor → Advanced parameters tab (`edit-driver-page3-advanced-parameters.png`)
 
 | WinISD field                                                          | OpenISD                                                                                                                                                                                                                                                                          |
 | --------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -230,14 +230,14 @@ WinISD's own colour legend on this tab is the ParState model verbatim:
 | Figure-of-merit: EBP                                                  | ⚠️ computed as a gauge, not an editable field                                                                                                                                                                                                                                    |
 | Figure-of-merit: **SPLmaxLF, SPLmax, Rme, gamma, Mpow, Mcost, Gloss** | ⚠️ all present as fields, but `modeled: false` — shown as "calculated" while nothing computes them                                                                                                                                                                               |
 
-## Driver editor → Dimensions tab (`edit_driver_pg4_dimensions.png`)
+## Driver editor → Dimensions tab (`edit-driver-page4-dimensions.png`)
 
 | WinISD field                                           | OpenISD                                             |
 | ------------------------------------------------------ | --------------------------------------------------- |
 | Thick, Depth, Magnet Depth, Magnet, Basket, Outer, VCd | ✅                                                  |
 | **Dvol** (driver displacement volume)                  | ⚠️ stored, not modelled (a Weight field exists too) |
 
-## Driver editor → General tab (`edit_driver_pg1_text.png`) — not detailed here (metadata: brand/model/comment).
+## Driver editor → General tab (`edit-driver-page1-text.png`) — not detailed here (metadata: brand/model/comment).
 
 ### Field purposes (verified from WinISD help — Claus Futtrup, condensed)
 
@@ -290,7 +290,7 @@ WinISD's own wiring and version history, is consolidated in
 | **Added mass to cone (kg)** — driver                 | ✅ live and engine-wired: `OriginalShell.vue:1177` `state.P.driverAddedMass` → `engine/sweep.ts:126` `withAddedMass()`, WinISD-verified physics in `fieldRegistry.ts:431` (+100g on a ~14.6g cone shifts Fs 70→25 Hz) (corrected 2026-08-13 — same Classic-vs-Original mistake as above; only PR added-mass exists) |
 | Placement (button)                                   | ❔ contents not captured in these shots                                                                                                                                                                                                                                                                             |
 
-## Box pane (`view_2_box.png`) — parity
+## Box pane (`box-tab.png`) — parity
 
 Volume, Fh, and an Advanced→ (losses). OpenISD has Vb + Ql/Qa/Qp.
 **⚠ Two different states for the two non-sealed box types under the "Fh" label:**
@@ -303,12 +303,12 @@ Volume, Fh, and an Advanced→ (losses). OpenISD has Vb + Ql/Qa/Qp.
   falls through to `rearResonance` — the **sealed**-box `Fsc` formula — for every non-PR box,
   vented included. A plain vented box's "Fh" readout still shows the wrong quantity.
 
-## Passive Radiator pane (`view_3_passive_radiator.png`) — parity
+## Passive Radiator pane (`passive-radiator-tab.png`) — parity
 
 Vas, Fs, Qms, Sd, Xmax, Num. of PRs, Added mass, Fs-with-added-mass. OpenISD's PR panel
 (`prSd/prNum/prMmd/prMadd/prCms/prRms/prXmax`, winisd/T-S modes) covers these. ✅
 
-## Signal pane (`view_5_signal.png`)
+## Signal pane (`signal-tab.png`)
 
 | WinISD field                                                | OpenISD                      |
 | ----------------------------------------------------------- | ---------------------------- |
@@ -316,7 +316,7 @@ Vas, Fs, Qms, Sd, Xmax, Num. of PRs, Added mass, Fs-with-added-mass. OpenISD's P
 | **Listening Distance** (m)                                  | ❌ fixed at 1 m (BACKLOG P1) |
 | **Angle** (rad, off-axis)                                   | ❌ not modelled              |
 
-## Advanced (project) pane (`view_6_advanced.png`)
+## Advanced (project) pane (`advanced-tab.png`)
 
 | WinISD field / toggle                                                                   | OpenISD                                                                                   |
 | --------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
@@ -327,20 +327,20 @@ Vas, Fs, Qms, Sd, Xmax, Num. of PRs, Added mass, Fs-with-added-mass. OpenISD's P
 | **Rg is at driver side** (source-resistance placement)                                  | ✅                                                                                        |
 | **SPL graph is Xmax limited**                                                           | ✅ (plus a separate Max-SPL chart)                                                        |
 
-## Project pane (`view_7_advanced.png`) — Creator/Created/Modified/Description metadata
+## Project pane (`advanced-tab-compat.png`) — Creator/Created/Modified/Description metadata
 
 ✅ **Confirmed live** (corrected 2026-08-13 — a first draft said these fields don't exist).
 All five are live `v-model` bindings in `OriginalShell.vue:1385-1392`, auto-populated on
 project creation (`:271-274`, `:316-321`) and stamped on save (`:780`).
 
-## App Options (`options_general.png`)
+## App Options (`options-general.png`)
 
 | WinISD                                                                         | OpenISD                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
 | ------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Environment defaults (Temp/Humidity/Pressure → Sound velocity)                 | ⚠️ exists but calc-incomplete — `OptionsModal.vue:182-192` has the full `envDefaults.{tempK,pressurePa,humidityPct}` section; only `tempK` reaches `circuit.ts` (corrected 2026-08-13 — a first draft said ❌ doesn't exist at all)                                                                                                                                                                                                                                                 |
 | App-level environment silently overriding a project's own Advanced-pane T/RH/p | **Fixed.** WinISD lets its app-level Options environment substitute for a project's own stated temperature/humidity/pressure, so two projects with identical Advanced-pane values can simulate differently depending on global app state. OpenISD has no such override: a project's air always comes from that project's own environment fields. `useWinisdAirModel` (which formula computes the air — WinISD's or the physical CIPM-2007 model) is a separate, unaffected setting. |
 | **Units: metric ↔ imperial**                                                   | ⚠️ imperial units throughout (cu ft, cu in, in, in², oz, °F) via per-field toggles; no single global metric↔imperial mode (confirmed 2026-08-13 — no global toggle found anywhere, only per-field `UnitToggle` components)                                                                                                                                                                                                                                                          |
-| Plot Window options (`options_plot_window.png`)                                | not detailed here                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| Plot Window options (`options-plot-window.png`)                                | not detailed here                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
 
 ---
 
@@ -363,7 +363,7 @@ parametric EQ, peaking / 2nd-order highpass, static gain.**
 a closed union — `'highpass' | 'lowpass' | 'linkwitz' | 'peaking' | 'lowshelf' | 'highshelf'`.
 No all-pass, no raised-cosine/delay, no static-gain anywhere in the codebase.
 
-## Charts — WinISD chart types (`chart_dropdown.png`)
+## Charts — WinISD chart types (`chart-dropdown.png`)
 
 WinISD: TF magnitude/phase, Group Delay, Maximum Power, Maximum SPL, **Amplifier apparent
 load power (VA)**, SPL, Cone excursion, Impedance, Impedance phase, TF magnitude/phase (PR),
@@ -784,7 +784,7 @@ effective electrical Q and coupled system resonance by ~1.9 Hz in the full gyrat
 | Open source               | No                                                                                             | Yes                            |
 | State persistence         | Project files                                                                                  | localStorage (auto)            |
 | Driver library            | Local .wdr files                                                                               | Bundled JSON + browse          |
-| **Compare designs**       | **Yes — checkbox-per-project overlay (`view_3_ported.png`), corrected 2026-07-04, see Part 1** | Yes (pin + overlay)            |
+| **Compare designs**       | **Yes — checkbox-per-project overlay (`vents-tab.png`), corrected 2026-07-04, see Part 1** | Yes (pin + overlay)            |
 | Cursor peak snap          | No                                                                                             | Right-click on graph           |
 | Export                    | Print / project file                                                                           | (planned)                      |
 
@@ -1401,7 +1401,7 @@ _WinISD comparison (Part 1) accurate as of 2026-07-04. WinISD version observed: 
 Part 2 field-by-field claims independently re-verified 2026-08-13 against live Original-skin
 code. WinISD confirmation sources: official help files extracted from the 0.7 installer,
 direct UI observation, community reports, and the annotated 0.7.0.950 screenshots in
-[`docs/winisd_screenshots/`](../winisd_screenshots/)._
+[`docs/images/winisd/`](../images/winisd/)._
 
 ## 21. EQ/Filter chain — WinISD bugs (verified 2026-09-27)
 

@@ -92,9 +92,9 @@ test.describe('Original Passive Radiator tab', () => {
     });
 
     // WinISD's PR screen labels the radiator's own free-air resonance "Fs" (docs/winisd_screenshots/
-    // view_3_passive_radiator.png: Fs 30.00 Hz), which collides with the DRIVER's Fs. The human
+    // passive-radiator-tab.png: Fs 30.00 Hz), which collides with the DRIVER's Fs. The human
     // ruled Fpr, for consistency with the other F* symbols. This is the PR's own resonance — NOT
-    // the system tuning, which is the Box tab's Fh (view_2_box.png: 40.25 Hz on the same project).
+    // the system tuning, which is the Box tab's Fh (box-tab.png: 40.25 Hz on the same project).
     test('the PR pane labels the radiator\'s own resonance Fpr, not Fs', async ({ page }) => {
       await setFocusedBoxType(page, 'box-passive-radiator');
       await page.locator('.project-nav li', { hasText: 'Passive Radiator' }).click();

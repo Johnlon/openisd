@@ -211,7 +211,7 @@ describe('driver editor — unit label and scale agree', () => {
 
   it('fLe renders hertz as kilohertz', () => {
     // .wdr stores fLe in Hz (docs/design/WINISD_SCHEMA.md, fLe row); WinISD's Parameters tab
-    // shows it in kHz (docs/winisd_screenshots/edit_driver_pg2_parameters.png). 1234 Hz ⇒ 1.234 kHz.
+    // shows it in kHz (docs/images/winisd/edit-driver-page2-parameters.png). 1234 Hz ⇒ 1.234 kHz.
     const f = byLabel('fLe');
     assert.equal(f.unit, 'kHz');
     assert.equal(1234 * f.scale, 1.234);
@@ -219,7 +219,7 @@ describe('driver editor — unit label and scale agree', () => {
 
   it('AlfaVC stores per-kelvin when the human types under the "1000/K" label', () => {
     // The label is WinISD's: its Advanced parameters tab prints "1000/K" beside AlfaVC
-    // (docs/winisd_screenshots/edit_driver_pg3_advanced_parameters.png). The stored quantity is SI 1/K —
+    // (docs/images/winisd/edit-driver-page3-advanced-parameters.png). The stored quantity is SI 1/K —
     // docs/design/WINISD_SCHEMA.md's alfaVC row ("1/K … copper ≈ 0.0039"), and a real WinISD
     // project holds exactly that for a copper coil (docs/winisd_screenshots/sample_project_Epique15_-_pr.wpr
     // `alfaVC=0.0039`). So copper is 3.9 on screen and 0.0039 in the model, and the editor
@@ -462,7 +462,7 @@ describe('driver editor — every bound cell is one the driver model answers', (
     // John, 2026-09-08: "use the existing WinIsd default values - but some of these are
     // functions like calcVcCon() ... which isn't really a calc but plays that role if the VCCon
     // isn't yet stated". WinISD's own blank-driver screen
-    // (docs/winisd_screenshots/edit_driver_pg2_parameters.png) shows 1 there, and `calculated`
+    // (docs/images/winisd/edit-driver-page2-parameters.png) shows 1 there, and `calculated`
     // is exactly how the panel distinguishes that from a number the user typed.
     const f = byLabel('Voicecoils');
     const d = coreDriver();
