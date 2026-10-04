@@ -43,3 +43,30 @@ describe('view state repo — chart ranges', () => {
     expect(storage.get(OPENISD_BACKUP_KEYS.view)).toBeNull();
   });
 });
+
+describe('view shared between tabs', () => {
+  it('a tab hears another tab save the view', () => {
+    const store = createSharedMemoryStorage();
+    const first = createViewStateRepo(store.tab());
+    const second = createViewStateRepo(store.tab());
+    let heard = 0;
+    second.watch(() => { heard++; });
+
+    first.save({ui: {a: 111111}});
+
+    expect(heard).toBe(1);
+  });
+
+  it('the same view saved with its fields in another order is not a change', () => {
+    const store = createSharedMemoryStorage();
+    const first = createViewStateRepo(store.tab());
+    const second = createViewStateRepo(store.tab());
+    first.save({ui: {a: 111111, b: {c: 1, d: 2}}});
+    let heard = 0;
+    first.watch(() => { heard++; });
+
+    second.save({ui: {b: {d: 2, c: 1}, a: 111111}});
+
+    expect(heard).toBe(0);
+  });
+});
