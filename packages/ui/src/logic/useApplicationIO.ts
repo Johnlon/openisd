@@ -34,6 +34,7 @@ import {
   driverName,
   focusedProject,
   markProjectSaved,
+  openProjects,
   newProjectDriver,
   requireFocusedProject,
 } from './appState.js';
@@ -68,6 +69,9 @@ function closeTunePanelAfterIO(): void {
 
 export interface DesignIO {
   saveProject(): Promise<boolean>;
+  /** Save every open project that has unsaved edits to browser storage, the unfocused ones
+   *  too. Resolves with how many were saved. */
+  saveAllProjects(): Promise<number>;
   saveProjectAs(): Promise<void>;
   shareLink(): Promise<void>;
   exportWdr(): void;
@@ -128,6 +132,19 @@ export function createApplicationIO(deps: { logging: Logging; fileStorage: FileS
     deps.projectRepo.saveToStorage(project);
     markProjectSaved();
     return true;
+  }
+
+  /** Save all — Save for every open project with unsaved edits, not only the focused one. */
+  async function saveAllProjects(): Promise<number> {
+    closeTunePanelAfterIO();
+    const dirty = openProjects().filter(p => p.isModified());
+    for (const project of dirty) {
+      project.cancelWhatIf();
+      project.save();
+      deps.projectRepo.saveToStorage(project);
+    }
+    flash(dirty.length === 0 ? 'Nothing to save' : `Saved ${dirty.length} project${dirty.length === 1 ? '' : 's'}`);
+    return dirty.length;
   }
 
   /**
@@ -263,7 +280,7 @@ export function createApplicationIO(deps: { logging: Logging; fileStorage: FileS
   }
 
   return {
-    saveProject, saveProjectAs, shareLink, exportWdr, exportWpr, exportOwdr, importFile, openFromDisk,
+    saveProject, saveAllProjects, saveProjectAs, shareLink, exportWdr, exportWpr, exportOwdr, importFile, openFromDisk,
     exportBackup, importBackup,
   };
 }

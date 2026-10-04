@@ -40,6 +40,10 @@ export interface MobileShellApi {
   openFromDisk: () => void;
   isModified: import('vue').ComputedRef<boolean>;
   saveProject: () => Promise<unknown>;
+  /** Save every open project with unsaved edits. */
+  saveAllProjects: () => Promise<number>;
+  /** Some open project, focused or not, has unsaved edits — Save all has work to do. */
+  anyUnsaved: import('vue').ComputedRef<boolean>;
   revertProject: () => void;
   browseDrivers: () => void;
   optionsOpen: import('vue').Ref<boolean>;
@@ -99,7 +103,7 @@ export interface OpenProjectRow {
 
 export function useMobileShell(): MobileShellApi {
   const { designIO, projectRepo } = useApp();
-  const { saveProject } = designIO;
+  const { saveProject, saveAllProjects } = designIO;
   const { show: about } = injectSplashModal();
   const projectOpen = computed(() => focusedProject() != null);
   const projectTitle = computed(() => { void projectChanged.value; return focusedProject()?.title() ?? ''; });
@@ -165,6 +169,7 @@ export function useMobileShell(): MobileShellApi {
       colour: traceColor(project),
     }));
   });
+  const anyUnsaved = computed(() => openProjectRows.value.some(row => row.unsaved));
   function selectOpenProject(row: OpenProjectRow): void {
     const index = openProjects().indexOf(row.project);
     if (index >= 0) focusProject(index);
@@ -272,7 +277,7 @@ export function useMobileShell(): MobileShellApi {
   return {
     projectOpen, projectTitle, destination, fileInput, openImportedFile, openNewProject, switchToDesktop,
     menuOpen, toggleMenu, closeMenu, openFromDisk, isModified,
-    saveProject, revertProject, browseDrivers, optionsOpen, openOptions, about, goToProject,
+    saveProject, saveAllProjects, anyUnsaved, revertProject, browseDrivers, optionsOpen, openOptions, about, goToProject,
     contentEl, canScrollUp, canScrollDown, updateScrollEdges, username,
     goToAdvanced, viewportHeightPx, showEnclosureTab, enclosureNavLabel,
     openDialogOpen, storedProjects, openProjectDialog, openStoredProject,

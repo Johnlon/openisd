@@ -7,7 +7,7 @@ import {createLogging} from '../../src/logging/flash.js';
 import {createApplicationIO} from '../../src/logic/useApplicationIO.js';
 import {DesignFiles} from '../../src/logic/fileImportExport.js';
 import {createBackupRepo, createFileOpen, createFileStorage, createMemoryStorage, type FileOpen, type FilePick, createProjectRepo, type FileStorage} from '@openisd/persistence';
-import {newProject, requireFocusedProject} from '../../src/logic/appState.js';
+import {newProject, openProjects, requireFocusedProject} from '../../src/logic/appState.js';
 import {createEngine} from '@openisd/design/engine';
 import {ensureSampleProject, SAMPLE_PROJECT_OWPR} from '../fixtures/sampleProject.js';
 
@@ -205,6 +205,31 @@ describe('.wpr import syncs state.project from the file, and export round-trips 
     const restored = repo.loadFromStorage();
     assert.ok(!Array.isArray(restored) && restored);
     assert.equal(restored.name.value, 'Saved from toolbar');
+  });
+
+  it('Save all commits every open project with unsaved edits, the unfocused ones too', async () => {
+    const storage = createMemoryStorage();
+    const fileStorage: FileStorage = {
+      save: async () => { throw new Error('Save all must not open a file picker'); },
+      saveAs: async () => { throw new Error('Save all must not open a file picker'); },
+      openFileName: () => null,
+      forget: () => {},
+    };
+    const engine = createEngine();
+    const repo = createProjectRepo(engine, fileStorage, storage);
+    const io = createApplicationIO({ logging: createLogging(), fileStorage, fileOpen: createFileOpen(), projectRepo: repo, files: new DesignFiles(engine, repo), backup });
+
+    newProject();
+    requireFocusedProject().name.set('First of two');
+    newProject();
+    requireFocusedProject().name.set('Second of two');
+    const dirtyBefore = openProjects().filter(p => p.isModified()).length;
+    const saved = await io.saveAllProjects();
+
+    assert.equal(saved, dirtyBefore);
+    const storedNames = repo.listStoredProjects().map(l => l.name);
+    assert.ok(storedNames.includes('First of two') && storedNames.includes('Second of two'), `both were stored: ${storedNames.join(', ')}`);
+    assert.ok(openProjects().every(p => !p.isModified()), 'every open project is clean after Save all');
   });
 });
 

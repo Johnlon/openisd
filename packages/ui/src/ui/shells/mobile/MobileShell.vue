@@ -20,7 +20,7 @@ import {inputChecked} from '../../../logic/domEvents.js';
 
 const {
   projectOpen, destination, fileInput, openImportedFile, openNewProject, switchToDesktop,
-  menuOpen, toggleMenu, closeMenu, openFromDisk, isModified, saveProject, revertProject, projectTitle,
+  menuOpen, toggleMenu, closeMenu, openFromDisk, isModified, saveProject, saveAllProjects, anyUnsaved, revertProject, projectTitle,
   browseDrivers, optionsOpen, openOptions, about, goToProject, goToAdvanced, viewportHeightPx,
   showEnclosureTab, enclosureNavLabel, contentEl, canScrollUp, canScrollDown, updateScrollEdges,
   username, openDialogOpen, storedProjects, openProjectDialog, openStoredProject,
@@ -81,6 +81,7 @@ const {
           <button type="button" class="mob-menu-item" @click="openProjectDialog">Open project…</button>
           <button type="button" class="mob-menu-item" @click="openFromDisk">Open a file</button>
           <button type="button" class="mob-menu-item" :class="{ dirty: isModified }" @click="saveProject(); closeMenu()">Save</button>
+          <button type="button" class="mob-menu-item" :disabled="!anyUnsaved" @click="saveAllProjects(); closeMenu()">Save all</button>
           <button type="button" class="mob-menu-item" :disabled="!isModified" @click="revertProject">Revert unsaved changes</button>
           <ExportMenu class="mob-menu-item mob-menu-export">Save As / Export</ExportMenu>
           <div class="mob-menu-sep"></div>
