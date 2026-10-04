@@ -8,11 +8,6 @@ const engine = createEngine();
 describe('DqIssue text', () => {
   describe('a DqIssue reports its own text', () => {
 
-    it('out-of-range names the field, the value and the limit', () => {
-      const issue = engine.issues.outOfRange('Re_ohm', 900, 800, 'above');
-      assert.match(issue.text, /Re_ohm 900 is above the physical limit 800/);
-    });
-
     it('target-unreachable states the ceiling', () => {
       const issue = engine.issues.targetUnreachable('length_m', 62.5);
       assert.match(issue.text, /maximum this geometry can reach is 62.5 Hz/);

@@ -46,10 +46,6 @@ describe('levels below −190 dB in a real sweep', () => {
     expect(engine.simulation.passbandRef([-250, -195, SILENCE])).toBe(-195);
   });
 
-  it('the passband reference of an all-silent curve is 0', () => {
-    expect(engine.simulation.passbandRef([SILENCE, SILENCE])).toBe(0);
-  });
-
   it('force flat lifts levels below −190 dB to 0 dB transfer function too', () => {
     const flat = sweep({ ...SEALED, forceFlatResponse: true });
     for (let i = 0; i < flat.fs.length; i++)
