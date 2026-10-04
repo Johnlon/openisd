@@ -427,7 +427,7 @@ function wdrRow(
   return [wdrName, { value: String(cell.value), state }];
 }
 
-export function winIsdDriverConverter(
+export function openIsdDriverToWinIsdDriver(
   driver: OpenISDDriver,
   errors: DriverError[],
   dqLines: readonly string[] = []
@@ -626,7 +626,7 @@ export class WinIsdDriverConverter {
     const errors: DriverError[] = [...parsed.warnings];
     // The `.wdr` comment carries the SAME marks the openisd.yml does — the app's, not the parsed
     // driver.yml's — so the two derived files never disagree about a record's quality.
-    const wdrDriver = winIsdDriverConverter(
+    const wdrDriver = openIsdDriverToWinIsdDriver(
       driverOrErrors,
       errors,
       dqCommentLines(exported)
@@ -637,7 +637,7 @@ export class WinIsdDriverConverter {
     return { openisd, wdr, errors };
   }
 
-  /** `.wdr` text -> `OpenISDDriver` — the reverse of `winIsdDriverConverter`, for a caller
+  /** `.wdr` text -> `OpenISDDriver` — the reverse of `openIsdDriverToWinIsdDriver`, for a caller
    *  (a `.wdr`/`.owdr` file import) holding raw `.wdr` text rather than an already-parsed
    *  `WinISDDriver`. Three steps, same chain `winIsdProjectToOpenIsdProject` uses for the driver
    *  embedded in a `.wpr`'s `[Driver]` section: parse the INI, read it into an openisd record

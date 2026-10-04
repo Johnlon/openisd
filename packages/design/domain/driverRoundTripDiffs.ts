@@ -2,9 +2,9 @@
  * The round-trip/diff tools `winIsdDriverConverter.ts` uses to prove its own writers and
  * readers agree with themselves — split out of that file (moves only, `winIsdDriverConverter.ts`
  * keeps the conversion logic itself: `driverYmlToOpenisdAndWdr`, `winIsdDriverToOpenIsdDriver`,
- * `winIsdDriverConverter`).
+ * `openIsdDriverToWinIsdDriver`).
  *
- * `wdrRecordRoundTripDiffs` and `roundTripProblems` call back into `winIsdDriverConverter`
+ * `wdrRecordRoundTripDiffs` and `roundTripProblems` call back into `openIsdDriverToWinIsdDriver`
  * (still declared in `winIsdDriverConverter.ts`), which creates a two-file IMPORT CYCLE between
  * this module and that one. Both crossing symbols are `export function` declarations — hoisted,
  * so each module's export binding exists before either file's top-level body runs — so the cycle
@@ -18,7 +18,7 @@ import {OpenISDDriver} from "./driver/openISDDriver.js";
 import type {DriverSpec} from "./openisdSchema.js";
 import {type DriverError, type Engine} from "../engine/index.js";
 import {winISDDriverToOpenISDDeviceJson} from "./winIsdDriverImport.js";
-import {winIsdDriverConverter} from "./winIsdDriverConverter.js";
+import {openIsdDriverToWinIsdDriver} from "./winIsdDriverConverter.js";
 
 const WDR_HEADER_FIELDS = [
   "brand",
@@ -81,7 +81,7 @@ function comparableOidState(field: Readable<unknown>): string {
 }
 
 /**
- * The SAME 48 fields `wdrCells` writes (`winIsdDriverConverter`), in that order, minus
+ * The SAME 48 fields `wdrCells` writes (`openIsdDriverToWinIsdDriver`), in that order, minus
  * `Xlim_m`: `WDR_LOGIC.md`'s "Xlim discards its value on save" means no `.wdr` row ever carries a
  * value for it, so there is nothing for an OID-vs-OID comparison to compare there — the same
  * reason `wdrDriverSnapshotJson` never treats Xlim's mark as a real difference.
@@ -287,7 +287,7 @@ export class DriverRoundTripCheck {
           driver3.join("; "),
       }];
     }
-    const w3 = winIsdDriverConverter(driver3, []);
+    const w3 = openIsdDriverToWinIsdDriver(driver3, []);
     return [
       ...oidDriverDiffs(driver1, driver3),
       ...wdrDriverDiffs(w2, w3),

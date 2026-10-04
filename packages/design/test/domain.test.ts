@@ -1970,9 +1970,9 @@ describe('editing a driver — copy, then update or drop', () => {
   it('WinIsdProjectConverter round-trips a project through WinISD .wpr text', () => {
     const project = new ProjectBuilder(wooferDriver(), createEngine()).sealed().volume_m3(0.03).build();
 
-    const { value: wpr, errors } = new WinIsdProjectConverter(createEngine()).winIsdProjectConverter(project);
+    const { value: wpr, errors } = new WinIsdProjectConverter(createEngine()).openIsdProjectToWinIsdProject(project);
     expect(errors.filter((e: DriverError) => e.level === 'error')).toEqual([]);
-    if (wpr === null) throw new Error('winIsdProjectConverter produced no project');
+    if (wpr === null) throw new Error('openIsdProjectToWinIsdProject produced no project');
 
     const back = new WinIsdProjectConverter(createEngine()).winIsdProjectToOpenIsdProject(wpr.toWpr());
     if (back.value === null) throw new Error('winIsdProjectToOpenIsdProject returned problems: ' + JSON.stringify(back.errors));
@@ -1984,9 +1984,9 @@ describe('editing a driver — copy, then update or drop', () => {
     const project = new ProjectBuilder(wooferDriver(), createEngine())
       .bandpass6().rearVolume_m3(0.02).rearTuning_hz(50).frontVolume_m3(0.03).frontTuning_hz(40).build();
 
-    const { value: wpr, errors } = new WinIsdProjectConverter(createEngine()).winIsdProjectConverter(project);
+    const { value: wpr, errors } = new WinIsdProjectConverter(createEngine()).openIsdProjectToWinIsdProject(project);
     expect(errors.filter((e: DriverError) => e.level === 'error')).toEqual([]);
-    if (wpr === null) throw new Error('winIsdProjectConverter produced no project');
+    if (wpr === null) throw new Error('openIsdProjectToWinIsdProject produced no project');
 
     const back = new WinIsdProjectConverter(createEngine()).winIsdProjectToOpenIsdProject(wpr.toWpr());
     if (back.value === null) throw new Error('winIsdProjectToOpenIsdProject returned problems: ' + JSON.stringify(back.errors));
@@ -2110,7 +2110,7 @@ describe('editing a driver — copy, then update or drop', () => {
     const project = new ProjectBuilder(wooferDriver(), createEngine()).sealed().volume_m3(0.03).build();
     project.description.set('before');
 
-    new WinIsdProjectConverter(createEngine()).winIsdProjectConverter(project);
+    new WinIsdProjectConverter(createEngine()).openIsdProjectToWinIsdProject(project);
 
     expect(project.description.value).toBe('before');
     expect(project.box.boxType.value).toBe('sealed');

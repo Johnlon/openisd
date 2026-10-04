@@ -1,6 +1,6 @@
 /**
  * `OpenISDProject` <-> WinISD `.wpr` — the project-level counterpart to
- * `winIsdDriverConverter.ts`'s `winIsdDriverConverter`/`winISDDriverToOpenISDDeviceJson`
+ * `winIsdDriverConverter.ts`'s `openIsdDriverToWinIsdDriver`/`winISDDriverToOpenISDDeviceJson`
  * pair. Free functions, not methods on `OpenISDProject` — `packages/design/AGENTS.md` "expose
  * only the class surface from domain/index.ts": these live beside `WinISDProject`, which does no
  * physics and no unit conversion of its own (its own doc comment), and take the already-computed
@@ -30,7 +30,7 @@ import type {EnvironmentField} from './project/environmentFields.js';
 import {type DriverError, type Engine, type Filter} from '../engine/index.js';
 import {WINISD_MAX_FILTER_ORDER} from '../fields/filterLimits.js';
 
-import {winIsdDriverConverter} from './winIsdDriverConverter.js';
+import {openIsdDriverToWinIsdDriver} from './winIsdDriverConverter.js';
 import {WinISDDriver} from '../winisd/winisdDriver.js';
 import {WinISDProject} from '../winisd/winisdProject.js';
 import {type RadiatorDeviceJson, type SpecEntryJson} from './openisdSchema.js';
@@ -232,7 +232,7 @@ export class WinIsdProjectConverter {
    * Never throws for bad input: a driver spec that will not convert (e.g. a value out of `.wdr`'s
    * range) comes back as warn/error entries in `errors`, `value` still populated where possible.
    */
-  winIsdProjectConverter(
+  openIsdProjectToWinIsdProject(
     live: OpenISDProject
   ): { value: WinISDProject | null; errors: DriverError[] } {
     // A SNAPSHOT of the committed state: an open what-if never reaches a file, and this converter
@@ -241,7 +241,7 @@ export class WinIsdProjectConverter {
     const errors: DriverError[] = [];
 
     const driverErrors: DriverError[] = [];
-    const wdrDriver = winIsdDriverConverter(project.driver, driverErrors);
+    const wdrDriver = openIsdDriverToWinIsdDriver(project.driver, driverErrors);
     errors.push(...driverErrors);
 
     const box = project.box;

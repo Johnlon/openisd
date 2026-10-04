@@ -5,7 +5,7 @@
  * — a value hand-edited in WinISD, for instance — as a data-quality signal rather than
  * silently overwriting").
  *
- * Seam under test: `WinISDDriver.fromWdrIni(text)` vs. `winIsdDriverConverter(driver, ...)`,
+ * Seam under test: `WinISDDriver.fromWdrIni(text)` vs. `openIsdDriverToWinIsdDriver(driver, ...)`,
  * compared with `diffWdrValues`.
  */
 import {describe, it} from 'vitest';
@@ -14,7 +14,7 @@ import assert from 'node:assert/strict';
 import {WinISDDriver} from '@openisd/design/winisd';
 import {OpenISDDriver} from '@openisd/design';
 import {createEngine} from '@openisd/design/engine';
-import {winIsdDriverConverter} from '../../domain/winIsdDriverConverter.js';
+import {openIsdDriverToWinIsdDriver} from '../../domain/winIsdDriverConverter.js';
 
 const scraped = <T,>(value: T) => ({ value });
 const spec = (read_value: number) => ({ state: 'E' as const, value: read_value, origin: 'manual', readings: { manual: { read_value } } });
@@ -41,7 +41,7 @@ function recordDriver() {
   };
   const driver = OpenISDDriver.fromConformingRecord(record, createEngine());
   if (Array.isArray(driver)) throw new Error(`fixture is not a valid driver: ${driver.join(', ')}`);
-  return winIsdDriverConverter(driver, []);
+  return openIsdDriverToWinIsdDriver(driver, []);
 }
 
 describe('diffWdrValues — as-read values vs the independently-derived record', () => {

@@ -27,7 +27,7 @@ import {WinISDDriver} from '@openisd/design/winisd';
 import {OpenISDDriver} from '@openisd/design';
 import {createEngine} from '@openisd/design/engine';
 import {winISDDriverToOpenISDDeviceJson} from '../../domain/winIsdDriverImport.js';
-import {winIsdDriverConverter} from '../../domain/winIsdDriverConverter.js';
+import {openIsdDriverToWinIsdDriver} from '../../domain/winIsdDriverConverter.js';
 
 /** The field reads `value` and carries the `.wdr` provenance `state`. */
 function assertReads<T>(field: Readable<T | null> & Entered & Calculated, value: T | null, state: CellState): void {
@@ -74,7 +74,7 @@ describe('winISDDriverToOpenISDDeviceJson/conformingRecordToDriver — provenanc
   });
 
   it('the excluded C field is independently RE-DERIVED on export, matching WinISD\'s own formula', () => {
-    const wdr = winIsdDriverConverter(driverOf(WDR_TEXT), []);
+    const wdr = openIsdDriverToWinIsdDriver(driverOf(WDR_TEXT), []);
     assert.ok(wdr, 'the driver must be complete enough to export');
     const cell = wdr.cell('Qts');
     assert.equal(cell.state, 'calculated');
@@ -89,7 +89,7 @@ describe('diffWdrValues — a WinISD-stored C value that disagrees with the fres
     const sourceWdr = WinISDDriver.fromWdrIni(WDR_TEXT);
     const driver = driverOf(WDR_TEXT);
 
-    const derivedWdr = winIsdDriverConverter(driver, []);
+    const derivedWdr = openIsdDriverToWinIsdDriver(driver, []);
     assert.ok(derivedWdr, 'projection failed');
 
     const mismatches = diffWdrValues(sourceWdr, derivedWdr);
