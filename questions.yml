@@ -8653,9 +8653,12 @@ questions:
       and verified by existing tests.'
 - id: QO121
   title: Delete appState.ts state/state.box/state.project — app is project-or-no-project
-  status: open
+  status: done
   raised: '2026-09-08'
   body: ''
+  notes:
+  - at: '2026-10-04'
+    text: 'appState.ts no longer has a state/state.box/state.project object; the app is project-or-no-project. Closed by agent (engine) on John''s instruction.'
 - id: QO122
   title: PR editor drops datasheet-vocabulary re-solve; binds canonical spec fields directly
   status: decided
@@ -8830,7 +8833,7 @@ questions:
       hidden exemption.
 - id: QO129
   title: 'UI layering: .vue files hold no logic — composables in src/stripped/ own state and domain calls'
-  status: open
+  status: done
   raised: '2026-09-08'
   body: ''
   notes:
@@ -8927,6 +8930,8 @@ questions:
       - Wired 5 live modals and panels to composables: AdvancedOptions, DiagnosticsModal, PRBrowser, OgTune, PREditModal.
       - Added 100% Vitest unit test coverage for all active hooks in packages/ui/test/hooks/ (10 test suites, 32 tests passing in <6s).
       - Direction recorded: avoid artificial 1:1 X-hooks.ts per .vue file; prefer in-memory @vue/test-utils with Vitest for fast component logic testing without browser startup costs.
+  - at: '2026-10-04'
+    text: 'Done: hook layer in place (one *-hooks.ts per component); the rule is codified in .claude/rules/ui.md and enforced by lint and the architecture test. Closed by agent (engine) on John''s instruction.'
 - id: QO130
   title: Which of ViewSnapshot's fields belong to the project and which to the user
   status: decided
@@ -9165,7 +9170,7 @@ questions:
       fo rthis then fine
 - id: QO138
   title: Open dialog lists browser projects and offers From disk
-  status: open
+  status: done
   raised: '2026-09-13'
   body: ''
   notes:
@@ -9173,6 +9178,8 @@ questions:
     text: The Open button should open from browser storage first. Its dialog lists all saved projects
       newest first, provides a scrollbar when needed, and puts From disk... at the top; From disk accepts
       .owpr and .wpr, transforming .wpr on import.
+  - at: '2026-10-04'
+    text: 'Done: the Open dialog lists saved browser projects with Import from disk at the top (OriginalShell.vue open-project-dialog). Closed by agent (engine) on John''s instruction.'
 - id: QO139
   title: Saved projects keep hidden selectable version history
   status: open
@@ -9373,7 +9380,7 @@ questions:
       like finishing the charts for the supported box types
 - id: QO146
   title: Agents got stuck on the UI test speed work, and a blocked undo was worked around
-  status: open
+  status: done
   raised: '2026-09-16'
   body: |-
     Raised retrospectively, under the rule added in commit 6de691f which says a tail spin must leave a record the human can read afterwards. This is that record for the night of 2026-09-15/16.
@@ -9389,6 +9396,9 @@ questions:
     WHO I COORDINATED WITH, AND WHAT WAS DECIDED. The leader session approved the work, ruled on the undo, and later told me you had made three decisions: no separate working directories for each agent, the rule should be commit-before-undo rather than ask-first, and the git guard should actually block the commands it names. That contradicted what you had told me directly, so I checked with you before acting, and you confirmed it. Commits 531fbf5 and 6de691f carry the resulting rules; the guard now blocks seven forms of destructive command instead of three, and lets read-only ones through. The worker2 session was asked for its view on the rule and never replied.
 
     WHAT IS STILL OPEN FOR YOU, not part of this record but the reason the night ended early: the test suite has 98 failing tests at HEAD out of 284, and its 50 minute running time is almost entirely those failures timing out. Measuring speed further is close to pointless until that is dealt with, and it needs a quiet machine.
+  notes:
+  - at: '2026-10-04'
+    text: 'Incident record only; seen, nothing to remedy. Closed by agent (engine) on John''s instruction.'
 - id: QO147
   title: 'Saved files: keep or strip the calculated values the solver now writes into the record'
   status: decided
@@ -9482,7 +9492,7 @@ questions:
       path surfaces the schema error text to the user and to the browser console so tests see it.'
 - id: QO153
   title: Review ASSESSMENT.md and rule on findings
-  status: open
+  status: done
   raised: '2026-09-17'
   body: |-
     Architectural and quality assessment of the full openisd codebase has been
@@ -9514,6 +9524,9 @@ questions:
 
     NEEDS FROM YOU: review the findings and rule on each — which to fix, which to
     defer, which to wontfix. You can ack individual items, fix them, or defer.
+  notes:
+  - at: '2026-10-04'
+    text: 'Superseded: ASSESSMENT.md was archived to docs/_archive/root/; its findings were worked through the bug list. Closed by agent (engine) on John''s instruction.'
 - id: QO154
   title: Fixture regeneration needs a ruling — keep new bytes or restore committed sample-project.owpr?
   status: decided
@@ -9604,7 +9617,7 @@ questions:
     text: MARKED HIGH IMPORTANCE by the human (2026-09-18).
 - id: QO159
   title: Consolidate driver field naming into one enum — plan written
-  status: open
+  status: done
   raised: '2026-09-18'
   body: |-
     A plan is written at docs/plans/PLAN_FIELD_KEY_CONSOLIDATION.md. The driver-field identity is spread across parallel collections that speak different names: the domain uses name_unit (Fs_hz, Vas_m3), the UI's SpecField/data-field-key/provenance strip the suffix (Fs, Vas), and the .wdr/.wpr writers have their own literal key pools. They drift (the provenance map had stale Le2/tc/Rth/Cth entries the tests caught).
@@ -9612,9 +9625,12 @@ questions:
     The plan: one enum in packages/design carrying the domain field name, label, and WDR/WPR identity; the UI derives SpecField + data-field-key + provenance keys from it; the writers read it. A python transform script can do the mechanical bare→name_unit rename given a mapping table; the design enum + writer rewiring is structural.
 
     NEEDS FROM YOU: proceed with the consolidation now (it is the proper fix for the failing provenance tests), or park it and land a minimal fix so the failing suite goes green this pass.
+  notes:
+  - at: '2026-10-04'
+    text: 'Done: driver fields are one static enumeration (Field, packages/design/fields/field.ts); the plan file is retired. Closed by agent (engine) on John''s instruction.'
 - id: QO160
   title: 'improvement: fill+blur on a locator should be one intent-named helper'
-  status: open
+  status: done
   raised: '2026-09-18'
   body: |-
     Improvement note (human, 2026-09-18): a construct like
@@ -9628,11 +9644,17 @@ questions:
         await page.setNum('#og-pr-madd', 0);
 
     so a reader follows the intent ("set this field to 0") instead of the mechanics (fill, then blur, re-resolving the same selector). Sweep the browser specs for the fill-then-blur idiom and route it through a shared intent-named helper (the label-based `numInputByLabel`/`fillAndCommit`/`setNumField` already exist in packages/ui/test/fixtures/numField.ts; the id/selector-based case is still raw).
+  notes:
+  - at: '2026-10-04'
+    text: 'Done: fillAndCommit / fillAndBlur helpers in packages/ui/test/fixtures/numField.ts. Closed by agent (engine) on John''s instruction.'
 - id: QO161
   title: Attempted git restore --staged on another session's staged deletions
-  status: open
+  status: done
   raised: '2026-09-18'
   body: ''
+  notes:
+  - at: '2026-10-04'
+    text: 'Incident record only; seen, nothing to remedy. Closed by agent (engine) on John''s instruction.'
 - id: QO162
   title: optional port air-velocity (chuffing) limit as a vent constraint, later
   status: open
@@ -9721,7 +9743,7 @@ questions:
       modal error dialog (what looked like a hang). OpenISD now allows orders up to 20.'
 - id: QO171
   title: Filter edit rework started then abandoned after a wrong review
-  status: open
+  status: done
   raised: '2026-09-27'
   body: |-
     Task: moving the Filters tab's editing rules (order rounding, value limits, the subtype list) out of the screen code and into the core, so the new mobile skin can reuse them. A worker did this and it was good.
@@ -9731,6 +9753,9 @@ questions:
     What was set aside: the worker's half-finished strip-down (4 files, never used). It is kept on its own branch "wip-filter-edit-rework" in the openisd-filter-classes worktree, not deleted. The good version goes to main.
 
     Decided with: John (the correction), the worker (stopped on request, discarded nothing). Nothing needs doing unless you want the set-aside branch deleted.
+  notes:
+  - at: '2026-10-04'
+    text: 'Resolved: the set-aside branch wip-filter-edit-rework was deleted 2026-10-04 (kept as tag archive/wip-filter-edit-rework); the good version is on main. Closed by agent (engine) on John''s instruction.'
 - id: QO172
   title: An agent went around the reset guard after the history rewrite
   status: done
