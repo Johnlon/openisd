@@ -112,33 +112,3 @@ export function useGraphPanel(props: GraphPanelProps, chartEngine: ChartEngineAr
     snapFrequency: snapFrequencyOnTrace,
   };
 }
-
-export function createMockGraphPanelAPI(overrides?: Partial<GraphPanelAPI>): GraphPanelAPI {
-  const warningsDismissed = ref(false);
-  const mockDesign: Design = {
-    driver: null,
-    box: 'vented',
-    P: { fmin: 10, fmax: 1000 },
-    curves: null,
-    maxCurves: undefined,
-    name: 'Current',
-    color: '#000000',
-  };
-
-  return {
-    meta: ref(TAB_META['SPL']),
-    currentDesign: ref(mockDesign),
-    plotData: ref(null),
-    blockErrors: ref([]),
-    blocked: ref(false),
-    warnings: ref([]),
-    warningsDismissed,
-    dismissWarnings: () => {
-      warningsDismissed.value = true;
-    },
-    frequencyAxis: () => new FrequencyAxis(10, 1000),
-    rangeStats: () => null,
-    snapFrequency: () => null,
-    ...overrides,
-  };
-}
