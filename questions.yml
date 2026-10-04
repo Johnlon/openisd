@@ -9089,7 +9089,7 @@ questions:
       Gate green, both new arms broken on purpose and watched go red.
 - id: QO133
   title: Bandpass4 rear-chamber resonance is 3Hz above WinISD's (61.31 vs 58.34) — physics call -
-  status: hold
+  status: done
   raised: '2026-09-09'
   body: ''
   answer:
@@ -9101,6 +9101,8 @@ questions:
   - at: '2026-09-12'
     text: 'HOLD (John, 2026-09-12): Let us get the app working and then reinvestigate this Bandpass4 3Hz
       discrepancy.'
+  - at: '2026-10-04'
+    text: 'Resolved: WinISD computes the bandpass4 rear Fr on the lossless model; OpenISD now does too (58.3392 Hz). Pinned against bandpass4.wpr to 1e-9 Hz in winIsdProjectConverter.test.ts (passing). Bug archived 2026-09-09. Closed by agent (engine) on John''s instruction.'
 - id: QO134
   title: Tune popup must be a child of a higher component, independent of the box view it was opened from
   status: decided
