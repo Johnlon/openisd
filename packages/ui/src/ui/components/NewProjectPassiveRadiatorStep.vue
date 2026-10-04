@@ -66,11 +66,13 @@ const emit = defineEmits<{
 /* Mobile: stack fields vertically on small screens */
 @media (max-width: 640px) {
   .field-row { flex-direction: column; align-items: stretch; }
-  .field { flex-direction: column; }
-  .field label { min-width: auto; }
+  .field { flex-direction: column; align-items: stretch; gap: 4px; }
+  .field label { min-width: auto; text-align: left; font-size: 13px; color: #555; }
   .field input { width: 100%; min-height: 40px; }
   .field-inline { width: 100%; }
-  .field-inline input { flex: 1; min-width: 0; }
+  .field-inline :deep(> :first-child) { flex: 1; min-width: 0; }
+  .field-inline :deep(input) { width: 100%; box-sizing: border-box; }
+  .field-inline :deep(.unit) { min-width: 3.5em; }
   .np-pr-name { width: 100%; }
   .edit-btn { padding: 10px; font-size: 14px; }
 }
