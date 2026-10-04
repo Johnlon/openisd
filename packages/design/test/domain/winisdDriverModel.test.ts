@@ -9,7 +9,7 @@
  * imply, and with it clear it must sweep as its entered values say.
  */
 import {describe, expect, it} from 'vitest';
-import {type Engine, createEngine, type FrequencyGrid, OpenISDProject, ProjectBuilder} from '../../domain/index.js';
+import {type Engine, CompatPreset, createEngine, type FrequencyGrid, OpenISDProject, ProjectBuilder} from '../../domain/index.js';
 import {driverFromSpec} from '../fixtures/recordBuilders.js';
 
 describe('winisdDriverModel — the whole WinISD parameter set, not Mms alone', () => {
@@ -23,10 +23,11 @@ describe('winisdDriverModel — the whole WinISD parameter set, not Mms alone', 
 
   const P: FrequencyGrid = {fmin: 10, fmax: 1000, N: 120};
 
-  /** A sealed 21 L project at 1 W on the given spec. */
+  /** A sealed 21 L project at 1 W on the given spec, set to reproduce WinISD exactly. */
   const projectOn = (engine: Engine, spec: Record<string, number>): OpenISDProject => {
     const project = new ProjectBuilder(driverFromSpec(engine, spec), engine)
       .sealed().volume_m3(0.021).build();
+    project.applyCompatPreset(CompatPreset.WINISD_WITH_BUGS);
     project.powerDrive_W.set(1);
     return project;
   };
@@ -116,15 +117,19 @@ describe('winisdDriverModel — the whole WinISD parameter set, not Mms alone', 
     expect(a.spl.some((db, i) => Math.abs(db - b.spl[i]) > 0.01)).toBe(true);
   });
 
-  it('defaults on — README: "by default, OpenISD behaves 100% like WinISD"', () => {
+  it('defaults off — a new project is WinISD-ish: WinISD\'s two-BL bug fixed (John, 2026-10-04)', () => {
     const engine = createEngine();
-    expect(projectOn(engine, {...SHARED}).winisdDriverModel.value).toBe(true);
+    expect(new ProjectBuilder(driverFromSpec(engine, SHARED), engine).sealed().volume_m3(0.021).build().winisdDriverModel.value).toBe(false);
   });
 
   it('a self-consistent driver is unmoved by the flag — every substitution is an identity there', () => {
     const engine = createEngine();
-    const off = projectOn(engine, {...SHARED});
-    const on = projectOn(engine, {...SHARED});
+    // No entered Cms: the compliance comes from Vas either way, so nothing disagrees.
+    const consistent = {Fs_hz: SHARED.Fs_hz, Vas_m3: SHARED.Vas_m3, Sd_m2: SHARED.Sd_m2, Re_ohm: SHARED.Re_ohm,
+      Qes: SHARED.Qes, Qms: SHARED.Qms, Qts: SHARED.Qts, Xmax_m: SHARED.Xmax_m, Pe_W: SHARED.Pe_W};
+    const off = projectOn(engine, consistent);
+    off.winisdDriverModel.set(false);
+    const on = projectOn(engine, consistent);
     on.winisdDriverModel.set(true);
 
     const a = off.sweep(P).values!;
@@ -141,6 +146,7 @@ describe('winisdDriverModel — the whole WinISD parameter set, not Mms alone', 
     const w5 = (engine: Engine): OpenISDProject => {
       const project = new ProjectBuilder(driverFromSpec(engine, W5), engine)
         .sealed().volume_m3(0.00448).build();
+      project.applyCompatPreset(CompatPreset.WINISD_WITH_BUGS);
       project.powerDrive_W.set(1);
       project.Rs_ohm.set(0.1);
       project.rgAtDriverSide.set(false);
@@ -244,18 +250,18 @@ describe('the saved field is winisdDriverModel (renamed 2026-09-26 from useWinis
 
   it('a project saves it as winisdDriverModel', () => {
     const p = project();
-    p.winisdDriverModel.set(false);
+    p.winisdDriverModel.set(true);
     const text = p.toOwprText();
-    expect(text).toContain('"winisdDriverModel": false');
+    expect(text).toContain('"winisdDriverModel": true');
     expect(text).not.toContain('useWinisdDriverModel');
   });
 
   it('a project saved under the old name still opens with its value', () => {
     const p = project();
-    p.winisdDriverModel.set(false);
+    p.winisdDriverModel.set(true);
     const legacy = p.toOwprText().replaceAll('"winisdDriverModel"', '"useWinisdDriverModel"');
     const back = OpenISDProject.fromOwprText(legacy, engine);
     if (Array.isArray(back)) throw new Error('fromOwprText returned problems: ' + back.join(', '));
-    expect(back.winisdDriverModel.value).toBe(false);
+    expect(back.winisdDriverModel.value).toBe(true);
   });
 });

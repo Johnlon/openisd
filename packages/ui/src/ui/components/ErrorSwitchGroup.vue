@@ -4,7 +4,6 @@
 // .errorSwitches`), not here.
 const GROUP_TITLE = 'WinISD errors: each switch makes OpenISD reproduce a known WinISD calculation error. '
   + 'Off, OpenISD does the correct calculation. On, WinISD\'s own result comes back. '
-  + 'A switch whose WinISD default is itself the error is on until you turn it off. '
   + 'The yellow look marks them.';
 </script>
 

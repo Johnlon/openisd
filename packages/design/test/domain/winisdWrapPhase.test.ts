@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { createEngine, type FrequencyGrid, OpenISDProject, ProjectBuilder } from '../../domain/index.js';
+import { createEngine, type FrequencyGrid, OpenISDProject, ProjectBuilder, CompatPreset} from '../../domain/index.js';
 import { driverFromSpec } from '../fixtures/recordBuilders.js';
 
 const W5 = { Fs_hz: 45, Re_ohm: 3.4, Le_H: 0.00034, BL_Tm: 7.17, Qes: 0.57, Qms: 3.56, Vas_m3: 0.00485, Sd_m2: 0.0094, Pe_W: 40 };
@@ -37,10 +37,10 @@ describe('winisdWrapPhase', () => {
     expect(back.winisdWrapPhase.value).toBe(false);
   });
 
-  it('is reset to true by applyWinisdSettings()', () => {
+  it('is set to true by the WinISD-ish preset', () => {
     const p = projectWithWrap(false);
     expect(p.winisdWrapPhase.value).toBe(false);
-    p.applyWinisdSettings();
+    p.applyCompatPreset(CompatPreset.WINISD_ISH);
     expect(p.winisdWrapPhase.value).toBe(true);
   });
 });

@@ -59,14 +59,26 @@ test('toggling the "Force flat response" checkbox writes through to the project'
 test('the error switches carry the warning class under a "WinISD errors" heading; the air model does not', async ({ page }) => {
   const group = page.locator('.error-switch-group');
   await expect(group.locator('.error-switch-group-head')).toHaveText('WinISD errors');
-  for (const key of ['winisdDriverModel', 'winisdVaModel', 'winisdAbcIntraPortVelocity', 'winisdPrNprResonance', 'winisdBesselHighpass']) {
+  for (const key of ['winisdDriverModel', 'winisdVaModel', 'winisdPrNprResonance', 'winisdBesselHighpass']) {
     const label = group.locator(`label[data-field-key="${key}"]`);
     await expect(label, key).toHaveClass(/error-switch-marked/);
     await expect(label, key).toHaveAttribute('title', /^Reproduces a WinISD error\.\n/);
   }
   await expect(page.locator('.mob-checkbox-row', { hasText: 'WinISD air model' })).not.toHaveClass(/error-switch-marked/);
-  await expect(group.locator('label[data-field-key="winisdAbcIntraPortVelocity"] input')).toBeDisabled();
+  await expect(group.locator('label[data-field-key="winisdAbcIntraPortVelocity"]')).toHaveCount(0);
+  await expect(page.locator('label[data-field-key="winisdAbcIntraPortVelocity"] input')).toBeDisabled();
   await expect(group.locator('label[data-field-key="winisdPrNprResonance"] input')).toBeDisabled();
+});
+
+test('the three presets apply and show which one the project matches', async ({ page }) => {
+  const now = page.locator('.compat-preset-match-label');
+  await expect(now).toHaveText('WinISD-ish');
+  await page.locator('.compat-preset-btn', { hasText: 'WinISD incl. bugs' }).click();
+  await expect(now).toHaveText('WinISD incl. bugs');
+  await expect(page.locator('label[data-field-key="winisdVaModel"] input')).toBeChecked();
+  await page.locator('.compat-preset-btn', { hasText: 'Recommended (debugged)' }).click();
+  await expect(now).toHaveText('Recommended (debugged)');
+  await expect(page.locator('label[data-field-key="winisdVaModel"] input')).not.toBeChecked();
 });
 
 // BUG (2026-09-29, John, live on his phone): "environment view needs to scroll... truncation at

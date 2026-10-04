@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import {createEngine, type FrequencyGrid, OpenISDProject, ProjectBuilder} from '../../domain/index.js';
+import {createEngine, type FrequencyGrid, OpenISDProject, ProjectBuilder, CompatPreset} from '../../domain/index.js';
 import {driverFromSpec} from '../fixtures/recordBuilders.js';
 
 const W5 = {
@@ -30,10 +30,10 @@ describe('winisdFlatModel', () => {
     expect(p.sweep(at(1)).values!.tfMag[0]).toBeLessThan(-20);
   });
 
-  it('Reset to WinISD turns it on', () => {
+  it('the WinISD-ish preset turns it on', () => {
     const p = w5();
     p.winisdFlatModel.set(false);
-    p.applyWinisdSettings();
+    p.applyCompatPreset(CompatPreset.WINISD_ISH);
     expect(p.winisdFlatModel.value).toBe(true);
   });
 

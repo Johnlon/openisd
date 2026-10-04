@@ -1,5 +1,5 @@
 /**
- * "WinISD Bessel high-pass" (`winisdBesselHighpass`): off by default, ticked by "Reset to WinISD",
+ * "WinISD Bessel high-pass" (`winisdBesselHighpass`): off by default, ticked by "WinISD incl. bugs",
  * saved with the project, applicable only while an enabled Bessel high-pass filter exists.
  */
 import {readFileSync} from 'node:fs';
@@ -8,7 +8,7 @@ import {fileURLToPath} from 'node:url';
 import {describe, expect, it} from 'vitest';
 import {createEngine} from '../../engine/index.js';
 import type {Filter} from '../../engine/index.js';
-import {OpenISDProject} from '../../domain/index.js';
+import {OpenISDProject, CompatPreset} from '../../domain/index.js';
 import {WinIsdProjectConverter} from '../../domain/winIsdProjectConverter.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -34,9 +34,9 @@ describe('winisdBesselHighpass', () => {
     expect(project().winisdBesselHighpass.value).toBe(false);
   });
 
-  it('"Reset to WinISD" ticks it', () => {
+  it('"WinISD incl. bugs" ticks it', () => {
     const p = project();
-    p.applyWinisdSettings();
+    p.applyCompatPreset(CompatPreset.WINISD_WITH_BUGS);
     expect(p.winisdBesselHighpass.value).toBe(true);
   });
 

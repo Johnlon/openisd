@@ -1,5 +1,5 @@
 import type {ErrorSwitchState, ErrorSwitchStates} from '../domain/project/errorSwitches.js';
-import type {Filter} from '../engine/index.js';
+import type {ChartId, Filter} from '../engine/index.js';
 import {ToggleField} from './field.js';
 
 /** A WinISD calculation bug: the yellow error switch in "WinISD errors" brings it back. */
@@ -27,6 +27,9 @@ export interface WinisdDeviationSpec {
   /** How large the difference is, for a realistic case. */
   readonly size: string;
   readonly fix: WinisdDeviationFix;
+  /** The charts whose curves differ from WinISD's while the deviation is in effect; its cue sits by
+   *  the chart picker while one is open. Empty: the cue sits by a control instead. */
+  readonly charts: readonly ChartId[];
 }
 
 /** A filter deviation's spec: also which filters in the chain it changes. */
@@ -47,12 +50,14 @@ export class WinisdDeviation {
   /** What brings WinISD's behaviour back, in plain words. */
   readonly remedy: string;
   readonly #fix: WinisdDeviationFix;
+  readonly #charts: readonly ChartId[];
 
   protected constructor(spec: WinisdDeviationSpec) {
     this.title = spec.title;
     this.explanation = spec.explanation;
     this.size = spec.size;
     this.#fix = spec.fix;
+    this.#charts = spec.charts;
     this.remedy = remedyOf(spec.fix);
   }
 
@@ -67,11 +72,17 @@ export class WinisdDeviation {
     }
   }
 
+  /** In effect now and `id`'s curves differ from WinISD's. */
+  inEffectOnChart(s: ErrorSwitchStates, id: ChartId): boolean {
+    return this.#charts.includes(id) && this.inEffect(s);
+  }
+
   static readonly DRIVER_MODEL = new WinisdDeviation({
     title: 'WinISD mixes two BL values',
     explanation: 'WinISD drives the cone with the entered BL but damps it with the BL implied by Fs, Qes and Vas. OpenISD uses one BL throughout, from the entered datasheet values.',
     size: 'W5-1138SMF (entered BL 7.17, implied 7.384): passband SPL 0.26 dB, impedance peak about 8 % apart.',
     fix: {kind: 'errorSwitch', switchLabel: 'WinISD driver model', switchOf: s => s.driverModel},
+    charts: [],
   });
 
   static readonly VA_MODEL = new WinisdDeviation({
@@ -79,13 +90,7 @@ export class WinisdDeviation {
     explanation: 'WinISD\'s amplifier load (VA) chart uses Re where the amplifier sees Re + Rg, and with "Rg is at driver side" on it counts Rg twice. OpenISD counts Rg once.',
     size: 'Re 3.4 Ω, Rg 1 Ω: WinISD reads 23 % (1.1 dB) low.',
     fix: {kind: 'errorSwitch', switchLabel: 'WinISD VA model', switchOf: s => s.vaModel},
-  });
-
-  static readonly ABC_INTRA_PORT_VELOCITY = new WinisdDeviation({
-    title: 'WinISD ABC intra-port velocity leaves out the leak',
-    explanation: 'WinISD\'s ABC Intra port velocity chart leaves out the leak term Zf·jωMai/Ricl. OpenISD shows the exact port-mass current.',
-    size: 'Up to 1.35 dB and 4.6° near 110 Hz, under 0.1 dB elsewhere (W5-1138SMF, abc-w5-1).',
-    fix: {kind: 'errorSwitch', switchLabel: ToggleField.ADV_WINISDABCINTRAPORTVELOCITY.label, switchOf: s => s.abcIntraPortVelocity},
+    charts: ['VA'],
   });
 
   static readonly PR_NPR_RESONANCE = new WinisdDeviation({
@@ -93,6 +98,7 @@ export class WinisdDeviation {
     explanation: 'With more than one passive radiator, WinISD multiplies the radiator mass by Npr where the tuning divides by it, so it takes the box losses at a frequency Npr times too low. OpenISD takes them at the physical tuning.',
     size: 'Npr 2, W5 in 10 L, radiator Fs 30 Hz: WinISD 21 Hz, tuning 42 Hz; impedance up to 1 Ω and transfer function up to 2 dB apart.',
     fix: {kind: 'errorSwitch', switchLabel: ToggleField.ADV_WINISDPRNPRRESONANCE.label, switchOf: s => s.prNprResonance},
+    charts: [],
   });
 
   /** The project-wide members, by reflection; declared last. */
@@ -126,6 +132,7 @@ export class WinisdFilterDeviation extends WinisdDeviation {
     explanation: 'WinISD draws an allpass of order 3 or more exactly as order 2: one 2nd-order section with ω0 = 2/t, delay t/Q. OpenISD honours the order: above 2 it draws the order-n Bessel (maximally flat delay) allpass, delay t, flat to a higher frequency as the order rises; Q is not used there. Orders 1 and 2 are WinISD\'s own.',
     size: 't 3 ms, Q 0.6, order 4: WinISD delays 5.0 ms (its order 2); OpenISD 3.0 ms.',
     fix: {kind: 'ignoredInput'},
+    charts: [],
     affects: f => f.type === 'allpass' && f.order > 2,
   });
 
@@ -134,6 +141,7 @@ export class WinisdFilterDeviation extends WinisdDeviation {
     explanation: 'WinISD always draws a 4th-order Linkwitz-Riley, whatever the Order box says (a typed 2 or 6 reopens as 4). OpenISD honours the order: a Linkwitz-Riley of even order n is Butterworth(n/2) squared.',
     size: 'Low-pass an octave above fc: LR2 −7.0 dB, LR4 (WinISD) −24.6 dB; phase at fc −90° against −180°.',
     fix: {kind: 'ignoredInput'},
+    charts: [],
     affects: f => (f.type === 'lowpass' || f.type === 'highpass') && f.family === 'linkwitzRiley' && f.order !== 4,
   });
 
@@ -142,6 +150,7 @@ export class WinisdFilterDeviation extends WinisdDeviation {
     explanation: 'WinISD keeps the Bessel low-pass\'s own denominator and swaps the numerator to (k·s)^n. That is not a Bessel high-pass. OpenISD draws the mirror of the low-pass (s → 1/s).',
     size: 'Order 4, fc 25 Hz: up to 6 % apart in complex response. Order 1 is the same.',
     fix: {kind: 'errorSwitch', switchLabel: ToggleField.ADV_WINISDBESSELHIGHPASS.label, switchOf: s => s.besselHighpass},
+    charts: [],
     affects: f => f.type === 'highpass' && f.family === 'bessel' && f.order >= 2,
   });
 

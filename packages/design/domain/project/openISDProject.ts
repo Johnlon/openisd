@@ -1,4 +1,5 @@
 import {LossMode} from '../../fields/lossMode.js';
+import {CompatPreset, type CompatChoices} from './compatPreset.js';
 import {type Engine} from '../../engine/index.js';
 import type { Air, AirEnvironment, BoxParamsIssue, ChartId, DriverError, Filter, MaxCurvesResult, MaxCurvesSolveResult, SweepResult, SweepSolveResult } from '../../engine/index.js';
 import { dateStamp, realAppContext } from '../appContext.js';
@@ -302,16 +303,16 @@ export class OpenISDProject {
     /** WinISD Advanced / Compatibility "Use WinISD driver calculations" — whether engine sweeps
      *  substitute the driver WinISD's own simulation acts on, `Mms = 1/((2π·Fs)²·Cms)`,
      *  `Rms = 2π·Fs·Mms/Qms` and `BL = √(Re/(2π·Fs·Qes·Cms))`, for entered values that conflict
-     *  with them (measured 2026-09-26, docs/research/WINISD_PARITY.md). On where a project does
-     *  not say, per the README: untouched, OpenISD gives WinISD's answer. */
+     *  with them (measured 2026-09-26, docs/research/WINISD_PARITY.md). Off where a project does
+     *  not say (`CompatPreset.DEFAULT`). */
     get winisdDriverModel(): SimpleField<boolean> {
         return ProjectAdvanced.wrap(this.#slot('advanced'), this.#slot('filters')).winisdDriverModel;
     }
 
     /** WinISD Compatibility "WinISD VA model": the amplifier apparent load power chart as WinISD
      *  computes it, P·Re·|Hf|²/|Z + Rg| (BUG_20260927_winisd-va-uses-re-not-re-plus-rg). Off: the
-     *  apparent power the amplifier delivers, P·(Re + Rg)·|Hf|²/|Z_amp|. On where a project does
-     *  not say. */
+     *  apparent power the amplifier delivers, P·(Re + Rg)·|Hf|²/|Z_amp|. Off where a project does
+     *  not say (`CompatPreset.DEFAULT`). */
     get winisdVaModel(): SimpleField<boolean> {
         return ProjectAdvanced.wrap(this.#slot('advanced'), this.#slot('filters')).winisdVaModel;
     }
@@ -331,6 +332,11 @@ export class OpenISDProject {
         return ProjectAdvanced.wrap(this.#slot('advanced'), this.#slot('filters')).winisdAbcIntraPortVelocity;
     }
 
+    /** "WinISD ABC intra-port velocity" acts on the open box: an ABC box only. */
+    get winisdAbcIntraPortVelocityApplies(): boolean {
+        return this.box.boxType.value === 'abc';
+    }
+
     /** WinISD Compatibility "PR Npr resonance" — see `ProjectAdvanced.winisdPrNprResonance`. */
     get winisdPrNprResonance(): SimpleField<boolean> {
         return ProjectAdvanced.wrap(this.#slot('advanced'), this.#slot('filters')).winisdPrNprResonance;
@@ -348,7 +354,6 @@ export class OpenISDProject {
             boxType: this.box.boxType.value,
             winisdDriverModel: this.winisdDriverModel.value,
             winisdVaModel: this.winisdVaModel.value,
-            winisdAbcIntraPortVelocity: this.winisdAbcIntraPortVelocity.value,
             winisdPrNprResonance: this.winisdPrNprResonance.value,
             winisdBesselHighpass: this.winisdBesselHighpass.value,
             hasBesselHighpass: this.filters.value.some(f => f.type === 'highpass' && f.family === 'bessel' && f.enabled),
@@ -360,19 +365,40 @@ export class OpenISDProject {
         return ProjectAdvanced.wrap(this.#slot('advanced'), this.#slot('filters')).winisdFlatModel;
     }
 
-    /** Sets every WinISD-vs-conventional compat switch to WinISD. Native WinISD controls (voice
-     *  coil inductance on/off, "Rg is at driver side") and project data keep their values. */
-    applyWinisdSettings(): void {
-        this.lossMode.set(LossMode.parse('winisd-lossy'));
-        this.envUseWinisdAirModel.set(true);
-        this.winisdDriverModel.set(true);
-        this.winisdVaModel.set(true);
-        this.winisdWrapPhase.set(true);
-        this.winisdDriverCountModel.set(true);
-        this.winisdFlatModel.set(true);
-        this.winisdAbcIntraPortVelocity.set(true);
-        this.winisdPrNprResonance.set(true);
-        this.winisdBesselHighpass.set(true);
+    /** The project's WinISD-vs-conventional choices and WinISD error switches, as one set. */
+    get compatChoices(): CompatChoices {
+        return {
+            lossMode: this.lossMode.value,
+            winisdWrapPhase: this.winisdWrapPhase.value,
+            winisdDriverCountModel: this.winisdDriverCountModel.value,
+            winisdFlatModel: this.winisdFlatModel.value,
+            winisdAbcIntraPortVelocity: this.winisdAbcIntraPortVelocity.value,
+            winisdDriverModel: this.winisdDriverModel.value,
+            winisdVaModel: this.winisdVaModel.value,
+            winisdPrNprResonance: this.winisdPrNprResonance.value,
+            winisdBesselHighpass: this.winisdBesselHighpass.value,
+        };
+    }
+
+    /** The preset the project's choices match, or null for a custom mix. */
+    get compatPreset(): CompatPreset | null {
+        return CompatPreset.of(this.compatChoices);
+    }
+
+    /** Sets every WinISD-vs-conventional choice and error switch to `preset`'s. Native WinISD
+     *  controls (voice coil inductance on/off, "Rg is at driver side", ...) and project data keep
+     *  their values. */
+    applyCompatPreset(preset: CompatPreset): void {
+        const c = preset.choices;
+        this.lossMode.set(c.lossMode);
+        this.winisdWrapPhase.set(c.winisdWrapPhase);
+        this.winisdDriverCountModel.set(c.winisdDriverCountModel);
+        this.winisdFlatModel.set(c.winisdFlatModel);
+        this.winisdAbcIntraPortVelocity.set(c.winisdAbcIntraPortVelocity);
+        this.winisdDriverModel.set(c.winisdDriverModel);
+        this.winisdVaModel.set(c.winisdVaModel);
+        this.winisdPrNprResonance.set(c.winisdPrNprResonance);
+        this.winisdBesselHighpass.set(c.winisdBesselHighpass);
     }
 
     /** Which charts are open (S10/QO130) — PROJECT-scoped, reversing QO90 for this field.

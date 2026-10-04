@@ -19,7 +19,7 @@ import {fileURLToPath} from 'node:url';
 import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
 import {createEngine} from '../../engine/index.js';
-import {OpenISDProject} from '../../domain/index.js';
+import {OpenISDProject, CompatPreset} from '../../domain/index.js';
 import {WINISD_BANDPASS6_CAPTURE} from '../fixtures/winisdBandpass6Capture.js';
 import type {WinIsdComplexPoint} from '../fixtures/winisdVentedCapture.js';
 import {WinIsdProjectConverter} from '../../domain/winIsdProjectConverter.js';
@@ -42,9 +42,9 @@ function setUpProject(wprFile: string): OpenISDProject {
   if (project === null) throw new Error('winIsdProjectToOpenIsdProject returned problems: ' + JSON.stringify(errors));
   // The capture's own condition (this file's header, and the fixture's own doc comment): VCInd
   // off, "Use WinISD driver calculations" on, winisd-lossy, WinISD's own air model, Rg NOT at
-  // driver side. `applyWinisdSettings()` covers every one of those except `rgAtDriverSide`
+  // driver side. `CompatPreset.WINISD_WITH_BUGS` covers every one of those except `rgAtDriverSide`
   // (a native control it deliberately leaves alone — its own doc comment).
-  project.applyWinisdSettings();
+  project.applyCompatPreset(CompatPreset.WINISD_WITH_BUGS);
   project.rgAtDriverSide.set(false);
   return project;
 }

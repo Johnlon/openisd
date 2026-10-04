@@ -11,6 +11,7 @@ import UnitToggle from '../../components/UnitToggle.vue';
 import AdvancedOptions from '../../components/AdvancedOptions.vue';
 import ErrorSwitch from '../../components/ErrorSwitch.vue';
 import ErrorSwitchGroup from '../../components/ErrorSwitchGroup.vue';
+import CompatPresets from '../../components/CompatPresets.vue';
 import {LOSS_MODE_TIP} from '../../../hooks/errorSwitches.js';
 import {useMobileAdvancedTab} from '../../../hooks/MobileAdvancedTab-hooks.js';
 
@@ -19,7 +20,7 @@ const {
   envTempStored, envHumidityStored, envPressureStored, envTempDq, envHumidityDq, envPressureDq,
   advTemp, advHumidity, advPressure,
   resetAirToAppDefaults, advAir,
-  LOSS_MODE_OPTIONS, lossMode, applyWinisdSettings, errorSwitches,
+  LOSS_MODE_OPTIONS, lossMode, abcVelocityApplies, errorSwitches,
 } = useMobileAdvancedTab();
 </script>
 
@@ -67,10 +68,8 @@ const {
   </div>
 
   <div class="mob-panel">
-    <div class="mob-panel-head mob-panel-head-row">
-      <span>WinISD compatibility</span>
-      <button class="mob-btn mob-btn-small" title="Reset to WinISD: set every WinISD-vs-conventional switch to WinISD" @click="applyWinisdSettings">Reset</button>
-    </div>
+    <div class="mob-panel-head">WinISD compatibility</div>
+    <div class="mob-row mob-presets-row"><CompatPresets /></div>
     <div class="mob-row" :title="LOSS_MODE_TIP">
       <label class="mob-row-label" for="mob-adv-lossmode">Sealed loss model</label>
       <select id="mob-adv-lossmode" class="mob-select" :value="lossMode"
@@ -83,15 +82,17 @@ const {
         <input type="checkbox" :checked="project.envUseWinisdAirModel.value" @change="e => project.envUseWinisdAirModel.set(inputChecked(e))"> WinISD air model
       </label>
     </div>
+    <div class="mob-row mob-checkbox-row" :class="{ 'mob-row-na': !abcVelocityApplies }">
+      <label data-field-key="winisdAbcIntraPortVelocity" :title="ToggleField.ADV_WINISDABCINTRAPORTVELOCITY.description">
+        <input type="checkbox" :checked="project.winisdAbcIntraPortVelocity.value" :disabled="!abcVelocityApplies" @change="e => project.winisdAbcIntraPortVelocity.set(inputChecked(e))"> {{ ToggleField.ADV_WINISDABCINTRAPORTVELOCITY.label }}
+      </label>
+    </div>
     <ErrorSwitchGroup>
-      <ErrorSwitch as="label" class="mob-row mob-checkbox-row" field-key="winisdDriverModel" :marked="errorSwitches.driverModel.marked" :applicable="errorSwitches.driverModel.applicable" :reproduces-error="errorSwitches.driverModel.reproducesError" title="Ticked (default, as WinISD): the simulation uses two BLs, as WinISD does. Unticked (conventional): one BL throughout, from the entered datasheet values.">
+      <ErrorSwitch as="label" class="mob-row mob-checkbox-row" field-key="winisdDriverModel" :marked="errorSwitches.driverModel.marked" :applicable="errorSwitches.driverModel.applicable" :reproduces-error="errorSwitches.driverModel.reproducesError" title="Ticked (as WinISD): the simulation uses two BLs, as WinISD does. Unticked (the default, corrected): one BL throughout, from the entered datasheet values.">
         <input type="checkbox" :checked="project.winisdDriverModel.value" @change="e => project.winisdDriverModel.set(inputChecked(e))"> WinISD driver model
       </ErrorSwitch>
       <ErrorSwitch as="label" class="mob-row mob-checkbox-row" field-key="winisdVaModel" :marked="errorSwitches.vaModel.marked" :applicable="errorSwitches.vaModel.applicable" :reproduces-error="errorSwitches.vaModel.reproducesError" title="Affects the Amplifier apparent load power (VA) chart only — see the desktop tooltip for the formula difference.">
         <input type="checkbox" :checked="project.winisdVaModel.value" @change="e => project.winisdVaModel.set(inputChecked(e))"> WinISD VA model
-      </ErrorSwitch>
-      <ErrorSwitch as="label" class="mob-row mob-checkbox-row" field-key="winisdAbcIntraPortVelocity" :marked="errorSwitches.abcIntraPortVelocity.marked" :applicable="errorSwitches.abcIntraPortVelocity.applicable" :reproduces-error="errorSwitches.abcIntraPortVelocity.reproducesError" :title="ToggleField.ADV_WINISDABCINTRAPORTVELOCITY.description">
-        <input type="checkbox" :checked="project.winisdAbcIntraPortVelocity.value" :disabled="!errorSwitches.abcIntraPortVelocity.applicable" @change="e => project.winisdAbcIntraPortVelocity.set(inputChecked(e))"> {{ ToggleField.ADV_WINISDABCINTRAPORTVELOCITY.label }}
       </ErrorSwitch>
       <ErrorSwitch as="label" class="mob-row mob-checkbox-row" field-key="winisdPrNprResonance" :marked="errorSwitches.prNprResonance.marked" :applicable="errorSwitches.prNprResonance.applicable" :reproduces-error="errorSwitches.prNprResonance.reproducesError" :title="ToggleField.ADV_WINISDPRNPRRESONANCE.description">
         <input type="checkbox" :checked="project.winisdPrNprResonance.value" :disabled="!errorSwitches.prNprResonance.applicable" @change="e => project.winisdPrNprResonance.set(inputChecked(e))"> {{ ToggleField.ADV_WINISDPRNPRRESONANCE.label }}
@@ -119,7 +120,6 @@ const {
   border-bottom: 1px solid var(--line);
   background: var(--panel2);
 }
-.mob-panel-head-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .mob-row {
   display: flex;
   align-items: center;
@@ -156,7 +156,9 @@ const {
   font: inherit;
   font-size: 14px;
 }
-.mob-btn-small { flex: none; min-height: 32px; padding: 0 12px; font-size: 13px; }
+.mob-presets-row { display: block; }
+.mob-presets-row :deep(.compat-preset-btn) { min-height: 36px; font-size: 13px; }
+.mob-row-na { opacity: 0.45; }
 .mob-adv-options { padding: 10px 12px; }
 .mob-adv-options :deep(.adv-options) { gap: 12px; }
 .mob-adv-options :deep(.adv-options label) { font-size: 14px; min-height: 32px; }

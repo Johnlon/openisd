@@ -10,7 +10,7 @@
  * Chart-21 wart (leader's "Gotcha 2", also `docs/research/ACCURACY_IMPROVEMENTS.md`): the intra
  * port velocity chart is `V/(jωMai + Zf)`, dropping `Ricl` — the load `Zbox` and every other
  * chart keep it. `AbcBox.ts` reproduces this as `UPi` when `winisdAbcIntraPortVelocity` is on
- * (`applyWinisdSettings()` ticks it); off, the chart divides by `Zi + Zf` (`abc-intra-port-velocity.test.ts`).
+ * (the WinISD presets tick it); off, the chart divides by `Zi + Zf` (`abc-intra-port-velocity.test.ts`).
  *
  * Goes through `WinIsdProjectConverter.winIsdProjectToOpenIsdProject` + `Engine`/`project.sweep()` — the SAME
  * `../winisd/fixtures/abc-w5-1.wpr` this fixture's own numbers were captured from (the `.wpr`
@@ -25,7 +25,7 @@ import {fileURLToPath} from 'node:url';
 import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
 import {createEngine} from '../../engine/index.js';
-import {OpenISDProject} from '../../domain/index.js';
+import {OpenISDProject, CompatPreset} from '../../domain/index.js';
 import {WINISD_ABC_CAPTURE} from '../fixtures/winisdAbcCapture.js';
 import type {WinIsdComplexPoint} from '../fixtures/winisdVentedCapture.js';
 import {WinIsdProjectConverter} from '../../domain/winIsdProjectConverter.js';
@@ -48,9 +48,9 @@ function setUpProject(wprFile: string): OpenISDProject {
   if (project === null) throw new Error('winIsdProjectToOpenIsdProject returned problems: ' + JSON.stringify(errors));
   // The capture's own condition (this file's header, and the fixture's own doc comment): VCInd
   // off, "Use WinISD driver calculations" on, winisd-lossy, WinISD's own air model, Rg NOT at
-  // driver side. `applyWinisdSettings()` covers every one of those except `rgAtDriverSide`
+  // driver side. `CompatPreset.WINISD_WITH_BUGS` covers every one of those except `rgAtDriverSide`
   // (a native control it deliberately leaves alone — its own doc comment).
-  project.applyWinisdSettings();
+  project.applyCompatPreset(CompatPreset.WINISD_WITH_BUGS);
   project.rgAtDriverSide.set(false);
   assert.equal(project.winisdAbcIntraPortVelocity.value, true, 'WinISD\'s intra-port chart needs the switch on');
   return project;

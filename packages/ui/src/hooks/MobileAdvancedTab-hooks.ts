@@ -30,15 +30,18 @@ export function useMobileAdvancedTab() {
     set: (v: string) => { project.value.lossMode.set(LossMode.parse(v)); },
   });
 
-  function applyWinisdSettings(): void { project.value.applyWinisdSettings(); }
-
   const errorSwitches = createErrorSwitches({project, projectChanged});
+  /** "WinISD ABC intra-port velocity" acts on the open box. */
+  const abcVelocityApplies = computed(() => {
+    void projectChanged.value;
+    return project.value.winisdAbcIntraPortVelocityApplies;
+  });
 
   return {
     project,
     envTempStored, envHumidityStored, envPressureStored, envTempDq, envHumidityDq, envPressureDq,
     advTemp, advHumidity, advPressure,
     resetAirToAppDefaults, advAir,
-    LOSS_MODE_OPTIONS, lossMode, applyWinisdSettings, errorSwitches,
+    LOSS_MODE_OPTIONS, lossMode, abcVelocityApplies, errorSwitches,
   };
 }
