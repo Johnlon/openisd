@@ -16,7 +16,7 @@ function exported(filters: Filter[]) {
   const project = new ProjectBuilder(driver, engine).sealed().volume_m3(0.03).build();
   project.filters.set(filters);
   project.save();
-  const {value: wpr, errors} = new WinIsdProjectConverter(engine).openIsdProjectToWinIsdProject(project);
+  const {value: wpr, errors} = new WinIsdProjectConverter(engine).winIsdProjectConverter(project);
   if (wpr === null) throw new Error('no .wpr produced');
   const back = new WinIsdProjectConverter(engine).winIsdProjectToOpenIsdProject(wpr.toWpr());
   if (back.value === null) throw new Error('the .wpr did not read back');

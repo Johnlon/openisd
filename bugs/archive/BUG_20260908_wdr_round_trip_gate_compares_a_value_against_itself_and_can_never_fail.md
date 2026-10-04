@@ -68,12 +68,12 @@ blindness was hidden behind a louder error.
 
 The comparison needs a cycle that re-derives, not one that echoes: read the `.wdr` into an
 `OpenISDDriver` through `winIsdDriverTextToOpenIsdDriver`, then write it back out through
-`openIsdDriverToWinIsdDriver(...).toWdrIni()`, which recomputes the `C` fields from the entered
+`winIsdDriverConverter(...).toWdrIni()`, which recomputes the `C` fields from the entered
 inputs via the engine. That is the same pair `packages/ui/src/logic/fileImportExport.ts` uses for
 the app's own import/export, so the gate would then be checking the path the app actually runs.
 
 The dead `errors`/`blocking` block goes with it — the real errors are the ones
-`winIsdDriverTextToOpenIsdDriver` and `openIsdDriverToWinIsdDriver` report.
+`winIsdDriverTextToOpenIsdDriver` and `winIsdDriverConverter` report.
 
 Applied, together with one exclusion the restored gate immediately needed. With derivation back in
 the cycle the gate reported a `ParState` divergence at slot 46, `VCCon`: `N` in, `E` out. That one

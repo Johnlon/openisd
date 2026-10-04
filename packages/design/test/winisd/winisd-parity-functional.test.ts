@@ -26,7 +26,7 @@ import { dirname, join } from 'node:path';
 import {createEngine} from '@openisd/design/engine';
 import { OpenISDDriver, type Readable } from '@openisd/design';
 import { winISDDriverToOpenISDDeviceJson } from '../../domain/winIsdDriverImport.js';
-import { openIsdDriverToWinIsdDriver } from '../../domain/winIsdDriverConverter.js';
+import { winIsdDriverConverter } from '../../domain/winIsdDriverConverter.js';
 import { WinISDDriver } from '../../winisd/index.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -505,7 +505,7 @@ describe('WinISD parity (functional) — field calculations against goldens WinI
       it('ParState — the per-field E/C/N marks WinISD assigned', () => {
         const winisd = golden.Driver.ParState;
         assert.ok(winisd, `${s.id}: the golden carries no ParState`);
-        const written = openIsdDriverToWinIsdDriver(drv, []);
+        const written = winIsdDriverConverter(drv, []);
         const openisd = parseIni(written.toWdrIni()).Driver.ParState;
         assert.ok(openisd, `${s.id}: openisd produced no ParState`);
         assert.equal(openisd.length, winisd.length,

@@ -30,7 +30,7 @@ import {WinISDDriver} from '@openisd/design/winisd';
 import {OpenISDDriver} from '@openisd/design';
 import {createEngine} from '@openisd/design/engine';
 import {winISDDriverToOpenISDDeviceJson} from '../../domain/winIsdDriverImport.js';
-import {openIsdDriverToWinIsdDriver} from '../../domain/winIsdDriverConverter.js';
+import {winIsdDriverConverter} from '../../domain/winIsdDriverConverter.js';
 
 /** The app's view of a `.wdr`: read as-read by the serialiser, projected into the record,
  *  then asked through the driver's own accessors — the exact path the app itself takes. */
@@ -79,7 +79,7 @@ describe('a .wdr key the file does not carry is not a stated value', () => {
     // The record CAN hold a Gloss (`SpecSection.Gloss`), and this one does not state a value.
     // So the serialiser writes what the engine derived and marks slot 37 `C` — an `E` would
     // assert a human typed a value nobody typed.
-    const wdr = openIsdDriverToWinIsdDriver(driverOf(SEALED_SMALL), []);
+    const wdr = winIsdDriverConverter(driverOf(SEALED_SMALL), []);
     assert.ok(wdr, 'the driver must be complete enough to export');
     const cell = wdr.cell('Gloss');
     assert.equal(cell.state, 'calculated',
@@ -111,7 +111,7 @@ describe('a .wdr key the file does carry survives import unchanged', () => {
   it('the stated SPL reaches the exported ParState at slot 3 and the exported SPL= line', () => {
     // Out through the app's own path: the record the driver holds, projected back to a .wdr
     // by the one class that knows the format.
-    const wdr = openIsdDriverToWinIsdDriver(driverOf(SEALED_SMALL), []);
+    const wdr = winIsdDriverConverter(driverOf(SEALED_SMALL), []);
     assert.ok(wdr, 'the driver must be complete enough to export');
     const text = wdr.toWdrIni();
     const parState = text.split(/\r?\n/).find((l: string) => l.startsWith('ParState='))!.slice(9);

@@ -11,7 +11,7 @@ import assert from 'node:assert/strict';
 import {OpenISDDriver} from '../../domain/driver/openISDDriver.js';
 import {WinISDDriver} from '../../winisd/winisdDriver.js';
 import {createEngine} from '@openisd/design/engine';
-import {openIsdDriverToWinIsdDriver} from '../../domain/winIsdDriverConverter.js';
+import {winIsdDriverConverter} from '../../domain/winIsdDriverConverter.js';
 import type {Calculated, Entered, Readable} from '../../domain/cell.js';
 import type {CellState} from '../../winisd/cellState.js';
 
@@ -84,7 +84,7 @@ describe('every .wdr field has a home in the OpenISD model', () => {
         const driver = OpenISDDriver.fromConformingRecord(record, createEngine());
         if (Array.isArray(driver)) throw new Error(`fixture is not a valid driver: ${driver.join(', ')}`);
 
-        const wdr1 = openIsdDriverToWinIsdDriver(driver, []);
+        const wdr1 = winIsdDriverConverter(driver, []);
         const wdr2 = WinISDDriver.fromWdrIni(wdr1.toWdrIni());
 
         for (const [key, cell] of wdr1.rows()) {
@@ -111,7 +111,7 @@ describe('every .wdr field has a home in the OpenISD model', () => {
         const driver = OpenISDDriver.fromConformingRecord(record, createEngine());
         if (Array.isArray(driver)) throw new Error(`fixture is not a valid driver: ${driver.join(', ')}`);
 
-        const wdr = openIsdDriverToWinIsdDriver(driver, []);
+        const wdr = winIsdDriverConverter(driver, []);
         assert.equal(wdr.cell('c').state, 'entered');
         assert.equal(wdr.cell('c').value, '111111');
         assert.equal(wdr.cell('roo').state, 'entered');
@@ -139,7 +139,7 @@ describe('every .wdr field has a home in the OpenISD model', () => {
         const driver = OpenISDDriver.fromConformingRecord(record, createEngine());
         if (Array.isArray(driver)) throw new Error(`fixture is not a valid driver: ${driver.join(', ')}`);
 
-        const wdr = openIsdDriverToWinIsdDriver(driver, []);
+        const wdr = winIsdDriverConverter(driver, []);
         assert.equal(wdr.cell('c').state, 'calculated');
         assert.equal(Number(wdr.cell('c').value), refC);
         assert.equal(wdr.cell('roo').state, 'calculated');
@@ -176,7 +176,7 @@ describe('every .wdr field has a home in the OpenISD model', () => {
         assertReads(section.c_m_per_s, refC, 'calculated');
         assertReads(section.roo_kg_per_m3, refRho, 'calculated');
 
-        const wdr = openIsdDriverToWinIsdDriver(driver, []);
+        const wdr = winIsdDriverConverter(driver, []);
         assert.equal(wdr.cell('c').state, 'calculated');
         assert.equal(Number(wdr.cell('c').value), refC);
         assert.equal(wdr.cell('roo').state, 'calculated');

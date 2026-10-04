@@ -61,7 +61,7 @@ import { WinISDDriver } from '@openisd/design/winisd';
 import { conformingRecordToDriver, type OpenISDDriver } from '@openisd/design';
 import { Engine } from '@openisd/design/engine';
 import { winISDDriverToOpenISDDeviceJson } from '../../domain/openisdRecordSchema.js';
-import { openIsdDriverToWinIsdDriver } from '../../winisd/winIsdDriverConverter.js';
+import { winIsdDriverConverter } from '../../winisd/winIsdDriverConverter.js';
 
 function driverOf(wdr: string): OpenISDDriver {
   const { record } = winISDDriverToOpenISDDeviceJson(WinISDDriver.fromWdrIni(wdr));
@@ -72,7 +72,7 @@ function driverOf(wdr: string): OpenISDDriver {
 // read a field:
 driver.spec[driver.section].SPL_dB.get()   // → {value, state: 'entered'|'calculated'|'not-available', origin?}
 // export:
-const wdr = openIsdDriverToWinIsdDriver(driver, new Engine(), []);
+const wdr = winIsdDriverConverter(driver, new Engine(), []);
 wdr.toWdrIni();
 ```
 

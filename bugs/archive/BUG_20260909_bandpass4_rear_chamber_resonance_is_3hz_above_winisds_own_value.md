@@ -104,7 +104,7 @@ the sealed box is unchanged), and the bandpass4 rear passes `LossMode.Lossless`.
 ## Verification
 
 ```
-npx vitest run packages/design/test/winisd/openIsdProjectToWinIsdProject.test.ts   5 passed
+npx vitest run packages/design/test/winisd/winIsdProjectConverter.test.ts   5 passed
 npx vitest run packages/design                                                     2286 passed
 ```
 

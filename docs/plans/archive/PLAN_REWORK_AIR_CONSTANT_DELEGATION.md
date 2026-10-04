@@ -16,7 +16,7 @@ real, always-available calculated default:
 - `numVC` — WinISD's documented default of 1 coil (same line, `"numVC=1"`).
 
 Today the calculated default for all four exists ONLY inside
-`openIsdDriverToWinIsdDriver` (`winisd/winIsdDriverConverter.ts`), which runs at `.wdr`
+`winIsdDriverConverter` (`winisd/winIsdDriverConverter.ts`), which runs at `.wdr`
 export time. Any caller reading the driver directly — the UI, `solveConsistencyGroup`'s own
 inputs, a test — sees a hole instead of the value WinISD itself always shows.
 

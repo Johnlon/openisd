@@ -53,7 +53,7 @@ this record named would have left every sibling call site with the same omission
 
 ## Verification (2026-09-26)
 
-`packages/design/test/winisd/openIsdProjectToWinIsdProject.test.ts` asserted this within 0.05 Hz
+`packages/design/test/winisd/winIsdProjectConverter.test.ts` asserted this within 0.05 Hz
 and said in its own comment that the slack tolerance existed to document the gap rather than hide
 it. Measured after the fix: `bridgeFr - goldenFr = -6.39e-14` Hz. The tolerance is now 1e-9 Hz,
 so the gap cannot reopen without the test failing. 34 passed in that file.

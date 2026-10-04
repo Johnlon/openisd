@@ -90,7 +90,7 @@ function aProject(box: (p: ProjectBuilder) => OpenISDProject): OpenISDProject {
   return box(new ProjectBuilder(aDriver(engine, 'QO8', 'test'), engine));
 }
 
-describe('openIsdProjectToWinIsdProject — [Box]/[SignalSource] match the WinISD-written goldens', () => {
+describe('winIsdProjectConverter — [Box]/[SignalSource] match the WinISD-written goldens', () => {
   it('[Box] alfaVC and dTVC carry the project\'s own thermal values, not the template defaults', () => {
     // BUG_20260817 F3: both were emitted as WinISD's defaults (alfaVC=0.0039, dTVC=0), so a
     // design exported and reopened came back with someone else's coil temperature behaviour.
@@ -98,7 +98,7 @@ describe('openIsdProjectToWinIsdProject — [Box]/[SignalSource] match the WinIS
     project.alfaVC_per_K.set(0.0041);
     project.vcTempRise_K.set(75);
 
-    const {value: wpr, errors} = new WinIsdProjectConverter(createEngine()).openIsdProjectToWinIsdProject(project);
+    const {value: wpr, errors} = new WinIsdProjectConverter(createEngine()).winIsdProjectConverter(project);
     assert.equal(errors.length, 0, `expected no errors, got: ${JSON.stringify(errors)}`);
     if (!wpr) throw new Error('expected a WinISDProject');
     const text = wpr.toWpr().replace(/\r\n/g, '\n');
@@ -116,7 +116,7 @@ describe('openIsdProjectToWinIsdProject — [Box]/[SignalSource] match the WinIS
     project.Rs_ohm.set(0.1); // golden's [SignalSource] Rg=0.1
     project.powerDrive_W.set(1); // golden's [SignalSource] P=1
 
-    const { value: wpr, errors } = new WinIsdProjectConverter(createEngine()).openIsdProjectToWinIsdProject(project);
+    const { value: wpr, errors } = new WinIsdProjectConverter(createEngine()).winIsdProjectConverter(project);
     assert.equal(errors.length, 0, `expected no errors, got: ${JSON.stringify(errors)}`);
     if (!wpr) throw new Error('expected a WinISDProject');
     const text = wpr.toWpr().replace(/\r\n/g, '\n');
@@ -147,7 +147,7 @@ describe('openIsdProjectToWinIsdProject — [Box]/[SignalSource] match the WinIS
     project.envPressurePa.set(99000);
     project.envHumidityPct.set(50); // phi is a FRACTION in the file: 50% -> 0.5
 
-    const { value: wpr, errors } = new WinIsdProjectConverter(createEngine()).openIsdProjectToWinIsdProject(project);
+    const { value: wpr, errors } = new WinIsdProjectConverter(createEngine()).winIsdProjectConverter(project);
     assert.equal(errors.length, 0, JSON.stringify(errors));
     if (!wpr) throw new Error('expected a WinISDProject');
     const text = wpr.toWpr().replace(/\r\n/g, '\n');
@@ -164,7 +164,7 @@ describe('openIsdProjectToWinIsdProject — [Box]/[SignalSource] match the WinIS
     const project = aProject((p) => p.vented().volume_m3(VENTED_VOLUME_M3).tuning_goal_hz(VENTED_TUNING_HZ).build());
     project.powerDrive_W.set(1);
 
-    const { value: wpr, errors } = new WinIsdProjectConverter(createEngine()).openIsdProjectToWinIsdProject(project);
+    const { value: wpr, errors } = new WinIsdProjectConverter(createEngine()).winIsdProjectConverter(project);
     assert.equal(errors.length, 0, `expected no errors, got: ${JSON.stringify(errors)}`);
     if (!wpr) throw new Error('expected a WinISDProject');
     const text = wpr.toWpr().replace(/\r\n/g, '\n');
@@ -180,7 +180,7 @@ describe('openIsdProjectToWinIsdProject — [Box]/[SignalSource] match the WinIS
     project.powerDrive_W.set(1);
     project.box.vented.vent.count.set(2);
 
-    const { value: wpr, errors } = new WinIsdProjectConverter(createEngine()).openIsdProjectToWinIsdProject(project);
+    const { value: wpr, errors } = new WinIsdProjectConverter(createEngine()).winIsdProjectConverter(project);
     assert.equal(errors.length, 0, `expected no errors, got: ${JSON.stringify(errors)}`);
     if (!wpr) throw new Error('expected a WinISDProject');
     assert.equal(wpr.number('VentRear', 'Num'), 2);
@@ -195,7 +195,7 @@ describe('openIsdProjectToWinIsdProject — [Box]/[SignalSource] match the WinIS
       .rearVolume_m3(REAR_VOLUME_M3).frontVolume_m3(FRONT_VOLUME_M3).frontTuning_hz(FRONT_TUNING_HZ).build());
     project.powerDrive_W.set(1);
 
-    const { value: wpr, errors } = new WinIsdProjectConverter(createEngine()).openIsdProjectToWinIsdProject(project);
+    const { value: wpr, errors } = new WinIsdProjectConverter(createEngine()).winIsdProjectConverter(project);
     assert.equal(errors.length, 0, `expected no errors, got: ${JSON.stringify(errors)}`);
     if (!wpr) throw new Error('expected a WinISDProject');
     const text = wpr.toWpr().replace(/\r\n/g, '\n');
@@ -254,7 +254,7 @@ describe('openIsdProjectToWinIsdProject — [Box]/[SignalSource] match the WinIS
       .volume_m3(PR_VOLUME_M3).tuning_goal_hz(PR_TUNING_HZ).count(1).radiator(radiator).build();
     project.powerDrive_W.set(1);
 
-    const { value: wpr, errors } = new WinIsdProjectConverter(engine).openIsdProjectToWinIsdProject(project);
+    const { value: wpr, errors } = new WinIsdProjectConverter(engine).winIsdProjectConverter(project);
     assert.equal(errors.length, 0, `expected no errors, got: ${JSON.stringify(errors)}`);
     if (!wpr) throw new Error('expected a WinISDProject');
     const text = wpr.toWpr().replace(/\r\n/g, '\n');
@@ -269,7 +269,7 @@ describe('openIsdProjectToWinIsdProject — [Box]/[SignalSource] match the WinIS
   });
 });
 
-describe('openIsdProjectToWinIsdProject — null-fallback and unsupported-type branches', () => {
+describe('winIsdProjectConverter — null-fallback and unsupported-type branches', () => {
   it('pre: Re none, P N, V 1 C | export .wpr | post: SignalSource has no P, a warning says why', () => {
     const engine = createEngine();
     const driver = OpenISDDriver.empty(engine);
@@ -278,7 +278,7 @@ describe('openIsdProjectToWinIsdProject — null-fallback and unsupported-type b
     const project = new ProjectBuilder(driver, engine).sealed().volume_m3(0.02).build();
     assert.equal(project.powerDrive_W.value, null);
 
-    const { value: wpr, errors } = new WinIsdProjectConverter(engine).openIsdProjectToWinIsdProject(project);
+    const { value: wpr, errors } = new WinIsdProjectConverter(engine).winIsdProjectConverter(project);
     if (!wpr) throw new Error('expected a WinISDProject: ' + JSON.stringify(errors));
     assert.equal(wpr.number('SignalSource', 'P'), undefined);
     assert.ok(errors.some(e => e.level === 'warn' && e.field === 'SignalSource P'), JSON.stringify(errors));
@@ -292,7 +292,7 @@ describe('openIsdProjectToWinIsdProject — null-fallback and unsupported-type b
       project.created.set('');
       project.modified.set('');
 
-      const { value: wpr, errors } = new WinIsdProjectConverter(engine).openIsdProjectToWinIsdProject(project);
+      const { value: wpr, errors } = new WinIsdProjectConverter(engine).winIsdProjectConverter(project);
       if (!wpr) throw new Error('expected a WinISDProject: ' + JSON.stringify(errors));
       assert.equal(wpr.value('ProjectInfo', 'CreateDate'), '20260506');
       assert.equal(wpr.value('ProjectInfo', 'ModifyDate'), '20260506');
@@ -313,7 +313,7 @@ describe('openIsdProjectToWinIsdProject — null-fallback and unsupported-type b
     project.box.passiveRadiator.radiator.spec.Vas_m3.clear();
     project.box.passiveRadiator.radiator.spec.Xmax_m.clear();
 
-    const { value: wpr, errors } = new WinIsdProjectConverter(engine).openIsdProjectToWinIsdProject(project);
+    const { value: wpr, errors } = new WinIsdProjectConverter(engine).winIsdProjectConverter(project);
     assert.equal(errors.length, 0, JSON.stringify(errors));
     if (!wpr) throw new Error('expected a WinISDProject');
     const text = wpr.toWpr().replace(/\r\n/g, '\n');
@@ -331,7 +331,7 @@ describe('openIsdProjectToWinIsdProject — null-fallback and unsupported-type b
     const project = new ProjectBuilder(driver, engine).bandpass6()
       .rearVolume_m3(0.01).rearTuning_hz(40).frontVolume_m3(0.02).frontTuning_hz(60).build();
 
-    const { value: wpr, errors } = new WinIsdProjectConverter(engine).openIsdProjectToWinIsdProject(project);
+    const { value: wpr, errors } = new WinIsdProjectConverter(engine).winIsdProjectConverter(project);
     assert.equal(errors.length, 0, JSON.stringify(errors));
     if (!wpr) throw new Error('expected a WinISDProject');
     assert.match(wpr.toWpr(), /\[Box\]\r?\nBType=3\r?\n/);
@@ -344,7 +344,7 @@ describe('openIsdProjectToWinIsdProject — null-fallback and unsupported-type b
     const project = aProject((p) => p.sealed().build());
     project.box.sealed.volume_m3.set(0);   // after the build: a builder fills an unstated volume
 
-    const { value: wpr, errors } = new WinIsdProjectConverter(createEngine()).openIsdProjectToWinIsdProject(project);
+    const { value: wpr, errors } = new WinIsdProjectConverter(createEngine()).winIsdProjectConverter(project);
     assert.equal(errors.length, 0, JSON.stringify(errors));
     if (!wpr) throw new Error('expected a WinISDProject');
     const text = wpr.toWpr().replace(/\r\n/g, '\n');
@@ -356,7 +356,7 @@ describe('openIsdProjectToWinIsdProject — null-fallback and unsupported-type b
       .frontVolume_m3(0.01).frontTuning_hz(50).build());
     project.box.bandpass4.chambers.rear.volume_m3.set(0);   // after the build: a builder fills an unstated volume
 
-    const { value: wpr, errors } = new WinIsdProjectConverter(createEngine()).openIsdProjectToWinIsdProject(project);
+    const { value: wpr, errors } = new WinIsdProjectConverter(createEngine()).winIsdProjectConverter(project);
     assert.equal(errors.length, 0, JSON.stringify(errors));
     if (!wpr) throw new Error('expected a WinISDProject');
     const text = wpr.toWpr().replace(/\r\n/g, '\n');
@@ -367,7 +367,7 @@ describe('openIsdProjectToWinIsdProject — null-fallback and unsupported-type b
     const project = aProject((p) => p.vented().volume_m3(0.03).tuning_goal_hz(40).build());
     project.box.vented.tuning_goal_hz.clear();
 
-    const { value: wpr, errors } = new WinIsdProjectConverter(createEngine()).openIsdProjectToWinIsdProject(project);
+    const { value: wpr, errors } = new WinIsdProjectConverter(createEngine()).winIsdProjectConverter(project);
     assert.equal(errors.length, 0, JSON.stringify(errors));
     if (!wpr) throw new Error('expected a WinISDProject');
     const text = wpr.toWpr().replace(/\r\n/g, '\n');
@@ -383,7 +383,7 @@ describe('openIsdProjectToWinIsdProject — null-fallback and unsupported-type b
       .rearVolume_m3(0.01).frontVolume_m3(0.02).frontTuning_hz(60).build());
     project.box.bandpass4.chambers.front.tuning_goal_hz.clear();
 
-    const { value: wpr, errors } = new WinIsdProjectConverter(createEngine()).openIsdProjectToWinIsdProject(project);
+    const { value: wpr, errors } = new WinIsdProjectConverter(createEngine()).winIsdProjectConverter(project);
     assert.equal(errors.length, 0, JSON.stringify(errors));
     if (!wpr) throw new Error('expected a WinISDProject');
     const text = wpr.toWpr().replace(/\r\n/g, '\n');
@@ -398,7 +398,7 @@ describe('openIsdProjectToWinIsdProject — null-fallback and unsupported-type b
     project.box.bandpass4.vents.front.diameter_m.set(0.05);
     project.box.bandpass4.vents.front.length_m.set(0.1);
 
-    const { value: wpr, errors } = new WinIsdProjectConverter(createEngine()).openIsdProjectToWinIsdProject(project);
+    const { value: wpr, errors } = new WinIsdProjectConverter(createEngine()).winIsdProjectConverter(project);
     assert.equal(errors.length, 0, JSON.stringify(errors));
     if (!wpr) throw new Error('expected a WinISDProject');
     const text = wpr.toWpr().replace(/\r\n/g, '\n');
@@ -411,7 +411,7 @@ describe('openIsdProjectToWinIsdProject — null-fallback and unsupported-type b
     project.box.vented.vent.diameter_m.set(0.05);
     project.box.vented.vent.length_m.set(0.15);
 
-    const { value: wpr, errors } = new WinIsdProjectConverter(createEngine()).openIsdProjectToWinIsdProject(project);
+    const { value: wpr, errors } = new WinIsdProjectConverter(createEngine()).winIsdProjectConverter(project);
     assert.equal(errors.length, 0, JSON.stringify(errors));
     if (!wpr) throw new Error('expected a WinISDProject');
     const text = wpr.toWpr().replace(/\r\n/g, '\n');
@@ -431,7 +431,7 @@ describe('openIsdProjectToWinIsdProject — null-fallback and unsupported-type b
     const project = aProject((p) => p.vented().volume_m3(0.03).tuning_goal_hz(40).build());
     project.box.vented.vent.shape.set('slotted');
 
-    const { value: wpr, errors } = new WinIsdProjectConverter(createEngine()).openIsdProjectToWinIsdProject(project);
+    const { value: wpr, errors } = new WinIsdProjectConverter(createEngine()).winIsdProjectConverter(project);
     assert.equal(errors.length, 0, JSON.stringify(errors));
     if (!wpr) throw new Error('expected a WinISDProject');
     const text = wpr.toWpr().replace(/\r\n/g, '\n');
@@ -470,7 +470,7 @@ describe('openIsdProjectToWinIsdProject — null-fallback and unsupported-type b
     project.box.passiveRadiator.radiator.spec.Fs_hz.clear();
     project.box.passiveRadiator.radiator.spec.Vas_m3.clear();
 
-    const { value: wpr, errors } = new WinIsdProjectConverter(engine).openIsdProjectToWinIsdProject(project);
+    const { value: wpr, errors } = new WinIsdProjectConverter(engine).winIsdProjectConverter(project);
     assert.equal(errors.length, 0, JSON.stringify(errors));
     if (!wpr) throw new Error('expected a WinISDProject');
     const text = wpr.toWpr().replace(/\r\n/g, '\n');
@@ -761,7 +761,7 @@ describe('winIsdProjectToOpenIsdProject — box losses, vent geometry and Rg', (
     project.box.vented.vent.endCorrection_m.set(0.7);
     project.Rs_ohm.set(0.2);
 
-    const {value: wpr, errors} = new WinIsdProjectConverter(createEngine()).openIsdProjectToWinIsdProject(project);
+    const {value: wpr, errors} = new WinIsdProjectConverter(createEngine()).winIsdProjectConverter(project);
     assert.equal(errors.length, 0, JSON.stringify(errors));
     if (!wpr) throw new Error('expected a WinISDProject');
 
@@ -778,7 +778,7 @@ describe('winIsdProjectToOpenIsdProject — box losses, vent geometry and Rg', (
   });
 });
 
-describe('openIsdProjectToWinIsdProject — [Filters] export', () => {
+describe('winIsdProjectConverter — [Filters] export', () => {
   const ONE_OF_EVERY_EXPORTABLE_TYPE: Filter[] = [
     {type: 'lowpass', enabled: true, family: 'butterworth', order: 2, fc: 50, Q: 0.707},
     {type: 'highpass', enabled: false, family: 'bessel', order: 3, fc: 20, Q: 0.6},
@@ -794,7 +794,7 @@ describe('openIsdProjectToWinIsdProject — [Filters] export', () => {
     const project = aProject((p) => p.sealed().volume_m3(0.02).build());
     project.filters.set(ONE_OF_EVERY_EXPORTABLE_TYPE);
 
-    const {value: wpr, errors} = new WinIsdProjectConverter(createEngine()).openIsdProjectToWinIsdProject(project);
+    const {value: wpr, errors} = new WinIsdProjectConverter(createEngine()).winIsdProjectConverter(project);
     assert.equal(errors.length, 0, `expected no errors, got: ${JSON.stringify(errors)}`);
     if (!wpr) throw new Error('expected a WinISDProject');
 
@@ -811,7 +811,7 @@ describe('openIsdProjectToWinIsdProject — [Filters] export', () => {
     const project = aProject((p) => p.sealed().volume_m3(0.02).build());
     project.filters.set(ONE_OF_EVERY_EXPORTABLE_TYPE);
 
-    const {value: wpr, errors} = new WinIsdProjectConverter(createEngine()).openIsdProjectToWinIsdProject(project);
+    const {value: wpr, errors} = new WinIsdProjectConverter(createEngine()).winIsdProjectConverter(project);
     assert.equal(errors.length, 0, `expected no errors, got: ${JSON.stringify(errors)}`);
     if (!wpr) throw new Error('expected a WinISDProject');
 
@@ -832,7 +832,7 @@ describe('openIsdProjectToWinIsdProject — [Filters] export', () => {
       {type: 'highshelf', enabled: true, fc: 2000, Q: Math.SQRT1_2, gain: 6},
     ]);
 
-    const {value: wpr, errors} = new WinIsdProjectConverter(createEngine()).openIsdProjectToWinIsdProject(project);
+    const {value: wpr, errors} = new WinIsdProjectConverter(createEngine()).winIsdProjectConverter(project);
     if (!wpr) throw new Error('expected a WinISDProject');
 
     assert.equal(wpr.number('Filters', 'Count'), 2);
@@ -846,7 +846,7 @@ describe('openIsdProjectToWinIsdProject — [Filters] export', () => {
   it('an empty filter chain writes Count=0 and no filter<i> keys', () => {
     const project = aProject((p) => p.sealed().volume_m3(0.02).build());
 
-    const {value: wpr, errors} = new WinIsdProjectConverter(createEngine()).openIsdProjectToWinIsdProject(project);
+    const {value: wpr, errors} = new WinIsdProjectConverter(createEngine()).winIsdProjectConverter(project);
     assert.equal(errors.length, 0, JSON.stringify(errors));
     if (!wpr) throw new Error('expected a WinISDProject');
     assert.equal(wpr.number('Filters', 'Count'), 0);

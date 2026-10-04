@@ -54,7 +54,7 @@ parser existing — this lets the round-trip test be fixed once the reader honou
 - `wdr-openisd-round-trip.test.ts` uses `.env()` (via `envTagOf`, now redundant with the class's
   own parsing — kept as the test's own comparison logic) to compare `c`/`roo` against WinISD's
   air model at the recorded environment instead of the app default.
-- `OpenISDDriver` and `openIsdDriverToWinIsdDriver()` are untouched — see
+- `OpenISDDriver` and `winIsdDriverConverter()` are untouched — see
   `BUG_20260907_openisddriver_has_no_internal_environment_override.md` for the separate,
   unimplemented idea of feeding this into production driver behaviour.
 

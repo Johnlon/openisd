@@ -5,7 +5,7 @@ Status: PARTIALLY RESOLVED 2026-09-09
 ## Symptom
 
 ```
-packages/design/test/winisd/openIsdProjectToWinIsdProject.test.ts
+packages/design/test/winisd/winIsdProjectConverter.test.ts
   29:7  error  'VENTED_SMALL_WPR' is assigned a value but never used
   30:7  error  'BANDPASS4_WPR' is assigned a value but never used
   31:7  error  'PASSIVE_RADIATOR_WPR' is assigned a value but never used
@@ -55,7 +55,7 @@ All three tests now read their goldens through one helper, `goldenField(file, se
 no expected value is transcribed into the test.
 
 ```
-npx vitest run packages/design/test/winisd/openIsdProjectToWinIsdProject.test.ts
+npx vitest run packages/design/test/winisd/winIsdProjectConverter.test.ts
 ```
 
 That alone did NOT make them oracle checks, and the probe proves it: corrupting a golden's

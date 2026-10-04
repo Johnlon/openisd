@@ -49,7 +49,7 @@ export class DesignFiles {
   /** The whole project as WinISD `.wpr` bytes. `value` is null when the project cannot be
    *  expressed in WinISD's format. */
   projectToWprBytes(project: OpenISDProject): Bytes {
-    const { value: wpr, errors } = this.#projects.openIsdProjectToWinIsdProject(project);
+    const { value: wpr, errors } = this.#projects.winIsdProjectConverter(project);
     return { value: wpr === null ? null : utf8(wpr.toWpr()), errors };
   }
 

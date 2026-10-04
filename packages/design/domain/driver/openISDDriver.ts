@@ -4,7 +4,7 @@ import { realAppContext } from '../appContext.js';
 import type { AppContext } from '../appContext.js';
 import { ReadableFieldImpl, SetOnlyFieldImpl, absentCell, enteredCell, resolvingField } from '../cell.js';
 import type { Calculated, Clearable, Entered, Precise, Readable, SimpleField, Writable } from '../cell.js';
-import { openIsdDriverToWinIsdDriver } from '../winIsdDriverConverter.js';
+import { winIsdDriverConverter } from '../winIsdDriverConverter.js';
 import { newUuid } from '../newUuid.js';
 import { asDriverDevice } from '../openisdSchema.js';
 import type { DriverDeviceJson } from '../openisdSchema.js';
@@ -348,7 +348,7 @@ export abstract class OpenISDDriver extends OpenISDDevice {
      *  every such loss the converter reported. */
     toWdrIniText(): { value: string | null; errors: DriverError[] } {
         const errors: DriverError[] = [];
-        const wdr = openIsdDriverToWinIsdDriver(this, errors);
+        const wdr = winIsdDriverConverter(this, errors);
         return {value: wdr.toWdrIni(), errors};
     }
 

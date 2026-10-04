@@ -152,8 +152,8 @@ import {type Air, type AirConstantProvider, Engine, LossMode} from '../engine/in
 import { solveDriverConsistencyGroup as solveConsistencyGroup, solveVentConsistencyGroup, checkVentConsistency, solvePrConsistencyGroup, checkPrConsistency } from '../engine/solver.js';
 // The DEFINING modules, never `../winisd/index.js`: the barrel also re-exports these two
 // converter modules, so importing it here would pull them in whichever name was asked for.
-import {openIsdDriverToWinIsdDriver, winIsdDriverToOpenIsdDriver} from './winIsdDriverConverter.js';
-import {openIsdProjectToWinIsdProject, winIsdProjectToOpenIsdProject} from './winIsdProjectConverter.js';
+import {winIsdDriverConverter, winIsdDriverToOpenIsdDriver} from './winIsdDriverConverter.js';
+import {winIsdProjectConverter, winIsdProjectToOpenIsdProject} from './winIsdProjectConverter.js';
 import type {
     BoxType, SimulatableBoxType, ConsistencyIssue, DriverError, Filter,
     EnclosureParams, MaxCurvesResult, Result, SweepParams, SweepResult, DriverSolverQuantities,
@@ -1798,7 +1798,7 @@ export class OpenIsdDriverSpec {
 
         /** The air field builder. Its own builder, not `f()`: unlike every other numeric field,
          *  an unstated `c`/`roo` reads back as the live air model at this driver's own environment
-         *  — the calculated default `openIsdDriverToWinIsdDriver` used to compute only at `.wdr`
+         *  — the calculated default `winIsdDriverConverter` used to compute only at `.wdr`
          *  export time, now available on the driver's own getter (see `AirConstantProvider`). */
         const air = (key: 'c_m_per_s' | 'roo_kg_per_m3', pick: (a: Air) => number): Field<number> => new Field<number>(
             () => {
@@ -2270,7 +2270,7 @@ export abstract class OpenISDDriver extends OpenISDDevice {
     //     STATUS: GOOD AS-IS. Pure precomputed read or direct slot lens; complies with architectural invariants.
     toWdrIniText(engine: Engine): { value: string | null; errors: DriverError[] } {
         const errors: DriverError[] = [];
-        const wdr = openIsdDriverToWinIsdDriver(this, engine, errors);
+        const wdr = winIsdDriverConverter(this, engine, errors);
         return {value: wdr.toWdrIni(), errors};
     }
 
@@ -3157,7 +3157,7 @@ export class OpenISDProject {
     //     ROLE: Internal member of enclosure/device/project.
     //     STATUS: GOOD AS-IS. Pure precomputed read or direct slot lens; complies with architectural invariants.
     toWprText(engine: Engine): { value: string | null; errors: DriverError[] } {
-        const {value: wpr, errors} = openIsdProjectToWinIsdProject(this, engine);
+        const {value: wpr, errors} = winIsdProjectConverter(this, engine);
         return {value: wpr ? wpr.toWpr() : null, errors};
     }
 

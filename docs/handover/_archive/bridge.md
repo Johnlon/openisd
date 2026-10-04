@@ -15,14 +15,14 @@ Session `33d3ea3a-c73c-4482-a883-e33bd3ed4b56`, branch `dev`, working on the V8 
 - `packages/design/test/winisd/wdr-openisd-round-trip.test.ts`:
   - Ported `cycle()` off the dead `OpenISDDriver.fromWinISDDriver`/`.toWinISDDriver()` API
     onto the live `winISDDriverToOpenISDDeviceJson` / `conformingRecordToOpenIsdDriver` /
-    `openIsdDriverToWinIsdDriver` functions.
+    `winIsdDriverConverter` functions.
   - Added a `numVC` exception to `lostEntered()`: an out-of-range `numVC` (not 1-4) coerces
     to `1` per `WDR_LOGIC.md` "`numVC` — read on mark, value checked" — not a lost value.
   - Added a VCCon (slot 46) exception to the N-slot-promotion check: VCCon's ParState is
     unproven, so a reader trusts the value over the mark (`WDR_LOGIC.md` "`VCCon` exception
     — read on presence, not mark"). An unstated wiring saved as the `.wdr` default `1`/mark
     `N` reads back `entered` — documented, not invented.
-- `../../packages/design/domain/winIsdDriverConverter.ts` — exported `openIsdDriverToWinIsdDriver`
+- `../../packages/design/domain/winIsdDriverConverter.ts` — exported `winIsdDriverConverter`
   (was module-private) so the round-trip test can call it directly.
 
 Result: `wdr-openisd-round-trip.test.ts` went from 160/247 to 244/247 passing.

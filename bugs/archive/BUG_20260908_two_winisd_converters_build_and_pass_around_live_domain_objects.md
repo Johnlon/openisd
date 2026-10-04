@@ -35,9 +35,9 @@ All in package `@openisd/design`, subpath `winisd/` (`packages/design/winisd/`).
 
 | File | Function | Domain classes used | What crosses | Breach |
 |---|---|---|---|---|
-| `winIsdProjectConverter.ts` | `openIsdProjectToWinIsdProject` :39 | `OpenISDProject` | live instance **in** (:40) | yes |
+| `winIsdProjectConverter.ts` | `winIsdProjectConverter` :39 | `OpenISDProject` | live instance **in** (:40) | yes |
 | `winIsdProjectConverter.ts` | `winIsdProjectToOpenIsdProject` :211 | `OpenISDDriver` :221, `OpenISDProject` :229, `OpenISDPassiveRadiatorStandalone` :304 | constructs; live instance **out** (:213) | yes |
-| `winIsdDriverConverter.ts` | `openIsdDriverToWinIsdDriver` :466 | `OpenISDDriver` | live instance **in** | yes |
+| `winIsdDriverConverter.ts` | `winIsdDriverConverter` :466 | `OpenISDDriver` | live instance **in** | yes |
 | `winIsdDriverConverter.ts` | `winIsdDriverTextToOpenIsdDriver` :590 | `OpenISDDriver` | constructs; live instance **out** | yes |
 | `winIsdDriverConverter.ts` | `driverYmlToOpenisdAndWdr` :613 | via the two above | both directions | yes |
 | `winIsdDriverConverter.ts` | `radiatorStatedValues` :158, `statedValues` :189, `wdrVCCon` :434 | `OpenIsdPassiveRadiatorSpec`, `DriverSpec` — types | nothing | no |
@@ -52,8 +52,8 @@ These are not the same offence, and only one risks corrupting what the user is e
 |---|---|---|---|---|
 | `winIsdProjectConverter.ts` | `winIsdProjectToOpenIsdProject` :211 | `OpenISDProject` **out** | **detached** | built here from `.wpr` text via `new ProjectBuilder()`; the caller is its first holder. The writes at :325–337 land on this new object, not on anyone else's |
 | `winIsdDriverConverter.ts` | `winIsdDriverTextToOpenIsdDriver` :590 | `OpenISDDriver` **out** | **detached** | built here from `.wdr` text |
-| `winIsdProjectConverter.ts` | `openIsdProjectToWinIsdProject` :39 | `OpenISDProject` **in** | **LINKED** | receives the UI's live project and reads through it — `project.driver` :45, `project.box` :48, `project.description`/`creator`/`created`/`modified` :60–63, `project.Rs_ohm` :67, `project.powerDrive_W()` :68 |
-| `winIsdDriverConverter.ts` | `openIsdDriverToWinIsdDriver` :466 | `OpenISDDriver` **in** | **LINKED** | receives the UI's live driver |
+| `winIsdProjectConverter.ts` | `winIsdProjectConverter` :39 | `OpenISDProject` **in** | **LINKED** | receives the UI's live project and reads through it — `project.driver` :45, `project.box` :48, `project.description`/`creator`/`created`/`modified` :60–63, `project.Rs_ohm` :67, `project.powerDrive_W()` :68 |
+| `winIsdDriverConverter.ts` | `winIsdDriverConverter` :466 | `OpenISDDriver` **in** | **LINKED** | receives the UI's live driver |
 
 **Detached (out):** a factory in the format package returns an object nobody else holds. No state
 is shared. The layering complaint is only that a format package knows how to CONSTRUCT a domain
@@ -69,9 +69,9 @@ silently mutate the user's open project. This is the half worth fixing first.
 
 | Caller package | Caller file | Calls | Receives / sends |
 |---|---|---|---|
-| `@openisd/ui` | `logic/fileImportExport.ts:47` | `openIsdProjectToWinIsdProject` | sends a live `OpenISDProject` |
+| `@openisd/ui` | `logic/fileImportExport.ts:47` | `winIsdProjectConverter` | sends a live `OpenISDProject` |
 | `@openisd/ui` | `logic/fileImportExport.ts:68` | `winIsdProjectToOpenIsdProject` | receives a live `OpenISDProject` |
-| `@openisd/ui` | `logic/fileImportExport.ts:33` | `openIsdDriverToWinIsdDriver` | sends a live `OpenISDDriver` |
+| `@openisd/ui` | `logic/fileImportExport.ts:33` | `winIsdDriverConverter` | sends a live `OpenISDDriver` |
 | `@openisd/ui` | `logic/fileImportExport.ts:54` | `winIsdDriverTextToOpenIsdDriver` | receives a live `OpenISDDriver` |
 | build script | `scripts/roundTripGate.mjs:156,161` | both driver converters | both directions |
 
@@ -102,7 +102,7 @@ never learn OpenISD exists" — is a sound boundary for a serialiser: it stops t
 from depending on the shape of our own model.
 
 The two conversion functions were then placed inside that package. A function named
-`openIsdProjectToWinIsdProject` cannot honour a rule that forbids naming `OpenISDProject`; by
+`winIsdProjectConverter` cannot honour a rule that forbids naming `OpenISDProject`; by
 existing where it does, it breaks the boundary by construction. The already-approved
 `domain -> winisd` direction is where a converter belongs, because the domain is allowed to
 project itself into WinISD's format.

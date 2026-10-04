@@ -40,7 +40,7 @@ wiring: `enterVentFieldOn(project, 'ventD', …)` writes the vented box's vent, 
 front vent, which is why the diameter re-reads empty.
 
 Consequence wider than the pane: the WPR/export path reads the real cell
-`box.bandpass4.chambers.front.tuning_hz` (openIsdProjectToWinIsdProject) — which nothing ever
+`box.bandpass4.chambers.front.tuning_hz` (winIsdProjectConverter) — which nothing ever
 writes — so a bandpass4 design exports Ff = un-set.
 
 ## Should fix

@@ -8596,7 +8596,7 @@ questions:
          text -> OpenISDDriver then call loadDriver().
        - File encode/decode (wdr/owdr/wpr) lives in a NEW useDesignIO-owned logic module
          (logic/designFileIo.ts or similar), NOT as methods on OpenISDProject. It wraps the existing
-         packages/design/winisd free functions (openIsdDriverToWinIsdDriver,
+         packages/design/winisd free functions (winIsdDriverConverter,
          winIsdDriverTextToOpenIsdDriver, winIsdProjectToOpenIsdProject, ...).
 
       To inspect later:
