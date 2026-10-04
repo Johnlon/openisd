@@ -9,12 +9,11 @@
  * preview + footer need. 412x600 reproduces that: narrow AND short, not just narrow.
  */
 import {expect, openAMobileProject, test} from '../fixtures.js';
+import {forceMobileSkin} from '../fixtures/mobileSkin.js';
 
 test.beforeEach(async ({ page }) => {
   await page.setViewportSize({ width: 412, height: 600 });
-  await page.addInitScript(() => {
-    localStorage.setItem('openisd_view', JSON.stringify({ ui: { splashSeen: true, skinOverride: 'mobile' } }));
-  });
+  await forceMobileSkin(page);
   await page.goto('/');
   await openAMobileProject(page);
   await page.locator('.mob-tab', { hasText: 'Driver' }).click();

@@ -9,13 +9,12 @@
  * W5-1138SMF" is one of the six (also used by wizard-defaults.browser.spec.ts).
  */
 import {expect, test} from '../fixtures.js';
+import {forceMobileSkin} from '../fixtures/mobileSkin.js';
 
 const TEST_DRIVER = 'Tang Band W5-1138SMF';
 
 test.beforeEach(async ({ page }) => {
-  await page.addInitScript(() => {
-    localStorage.setItem('openisd_view', JSON.stringify({ ui: { splashSeen: true, skinOverride: 'mobile' } }));
-  });
+  await forceMobileSkin(page);
   await page.goto('/');
   await page.getByText('New project').click();
 });
@@ -48,4 +47,10 @@ test('Next is green', async ({ page }) => {
 test('the header close (✕) still cancels the whole wizard from step 1', async ({ page }) => {
   await page.locator('.mob-np-close').click();
   await expect(page.locator('.mob-np-overlay')).toBeHidden();
+});
+
+test('New project from the empty state opens the phone-width wizard, not the desktop modal', async ({ page }) => {
+  // MobileNewProject.vue — same useOgNewProject() state as OriginalNewProject, mobile-only
+  // presentation (App.vue picks by activeSkin). The beforeEach has already tapped New project.
+  await expect(page.locator('.mob-np-overlay .mob-np-title')).toContainText('New project');
 });

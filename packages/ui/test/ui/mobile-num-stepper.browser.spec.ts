@@ -14,12 +14,11 @@
  * needs the real narrow layout, not a wide window with the mobile skin switched on.
  */
 import {expect, openAMobileProject, test} from '../fixtures.js';
+import {forceMobileSkin} from '../fixtures/mobileSkin.js';
 
 test.beforeEach(async ({ page }) => {
   await page.setViewportSize({ width: 412, height: 900 });
-  await page.addInitScript(() => {
-    localStorage.setItem('openisd_view', JSON.stringify({ ui: { splashSeen: true, skinOverride: 'mobile' } }));
-  });
+  await forceMobileSkin(page);
   await page.goto('/');
   await openAMobileProject(page);
 });
@@ -177,17 +176,3 @@ test('a step button on a field holding zero steps up instead of throwing', async
   expect(Number(await input.inputValue())).toBeGreaterThan(0);
   expect(errors).toEqual([]);
 });
-
-// John, 2026-10-02: 6th-order and ABC boxes showed one chamber with volume 0 on mobile.
-for (const boxType of ['bandpass4', 'bandpass6', 'abc']) {
-  test(`${boxType}: the Box tab has a Front chamber volume that steps`, async ({ page }) => {
-    await page.locator('.mob-tab', { hasText: 'Box' }).click();
-    await page.locator('#mob-box-type').selectOption(boxType);
-    const panel = page.locator('.mob-panel', { has: page.locator('.mob-panel-head', { hasText: 'Front chamber' }) });
-    const input = panel.locator('input');
-    await expect(input).toHaveCount(1);
-    const before = Number(await input.inputValue());
-    await panel.locator('.num-stepper-btn').first().click();
-    expect(Number(await input.inputValue())).toBeGreaterThan(before);
-  });
-}

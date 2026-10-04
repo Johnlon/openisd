@@ -8,15 +8,14 @@
  * Project: a settings-style destination, not a primary content tab.
  */
 import {expect, openAMobileProject, test} from '../fixtures.js';
+import {forceMobileSkin} from '../fixtures/mobileSkin.js';
 
 function fieldRow(page: import('@playwright/test').Page, label: string) {
   return page.locator('.mob-field-row', { has: page.locator('.mob-field-label', { hasText: label }) });
 }
 
 test.beforeEach(async ({ page }) => {
-  await page.addInitScript(() => {
-    localStorage.setItem('openisd_view', JSON.stringify({ ui: { splashSeen: true, skinOverride: 'mobile' } }));
-  });
+  await forceMobileSkin(page);
   await page.goto('/');
   await openAMobileProject(page);
   await page.locator('.mob-hamburger').click();
@@ -68,4 +67,26 @@ test('the error switches carry the warning class under a "WinISD errors" heading
   await expect(page.locator('.mob-checkbox-row', { hasText: 'WinISD air model' })).not.toHaveClass(/error-switch-marked/);
   await expect(group.locator('label[data-field-key="winisdAbcIntraPortVelocity"] input')).toBeDisabled();
   await expect(group.locator('label[data-field-key="winisdPrNprResonance"] input')).toBeDisabled();
+});
+
+// BUG (2026-09-29, John, live on his phone): "environment view needs to scroll... truncation at
+// the moment". Every mobile tab's `.mob-panel` sets `overflow: hidden`, and a flex item with
+// overflow other than visible gets an automatic MINIMUM size of 0 — so with the column-flex default
+// `flex-shrink: 1`, once a tall tab's content exceeded `.mob-content` the shrink algorithm silently
+// squashed every panel and clipped its content, instead of letting `.mob-content`'s own
+// `overflow-y: auto` scroll. Fixed in MobileShell.vue: `.mob-content > :deep(*) { flex-shrink: 0; }`.
+// Needs a genuinely phone-sized (narrow AND short) viewport: the default one is tall enough that
+// most tabs never overflow.
+test('scrolls to its last control instead of clipping it', async ({ page }) => {
+  await page.setViewportSize({ width: 412, height: 700 });
+
+  const lastControl = page.getByText('WinISD VA model');
+  await lastControl.scrollIntoViewIfNeeded();
+  await expect(lastControl).toBeVisible();
+
+  // The scrollable element is .mob-content, not the individual .mob-panel blocks — each panel
+  // must render at its full (unclipped) height, only the shared container scrolls.
+  const panelOverflow = await page.locator('.mob-panel').evaluateAll(
+    panels => panels.map(p => ({ scrollHeight: p.scrollHeight, clientHeight: p.clientHeight })));
+  for (const p of panelOverflow) expect(p.scrollHeight).toBeLessThanOrEqual(p.clientHeight);
 });
