@@ -6930,7 +6930,7 @@ questions:
       So: a RATCHET gate. (1) NOW: baseline every existing `export *` site WITH the exact symbol list it currently re-exports, recorded in the gate; test passes on the baseline, fails on any NEW wildcard or any growth of an existing one. (2) Non-blocking work unit: convert wildcards to named exports one by one, deleting each from the baseline as it converts, until the baseline is empty and the ban is absolute. (3) Later, separate: trim unjustified exports / relocate code where misplacement is the root cause. None of it blocks the release.
 - id: QO87
   title: 'Big precision fix: port the full printed-precision interval model into consistency checking'
-  status: deferred
+  status: done
   raised: '2026-08-23'
   body: ''
   notes:
@@ -6945,6 +6945,8 @@ questions:
       accumulation; and what the UI shows when a verdict is precision-marginal. Cycle 2+; no schedule.'
   - at: '2026-10-04'
     text: 'Still deferred. ConsistencyCheck.ts already compares intervals, but derived widths come from nudging each input (perturbation), not full interval arithmetic, which is what this question asks about; John''s answer stands: not now.'
+  - at: '2026-10-04'
+    text: 'Correction, DONE (checked with John): the week of 2026-09-29 landed it. Every value carries a half-width: entered from its stated or typed precision, calculated as the first-order bound sum |df/dx|*d(x) over entered inputs (DriverEngine.calculatedWidths, the same bound precision.py used; slopes by central difference). Widths are stored on E and C entries, shown via Field.format(), and the consistency check compares intervals. The earlier still-deferred note was wrong.'
   tag: precision
   answer:
     at: '2026-09-04'
