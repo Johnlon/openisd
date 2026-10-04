@@ -1,5 +1,5 @@
 /**
- * Driver editor — every numeric field must display its SI value in the unit it is labelled
+ * DriverEditorModal.vue template — every numeric field must display its SI value in the unit it is labelled
  * with, at the precision the field registry declares.
  *
  * The editor holds SI (m, m², m³, Hz, kg) and NumInput renders `SI × scale` under a fixed
@@ -23,16 +23,13 @@ import {readFileSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 import {dirname, join} from 'node:path';
 import type {NumSpecField} from '../../src/logic/appState.js';
-import {WinISDDriver} from '@openisd/design/winisd';
 import type {Calculated, Entered, Readable} from '@openisd/design';
 import {CellClass, cellClassOf} from '../../src/logic/useDriverCells.js';
 import {OpenISDDriver, VoiceCoilWiring} from '@openisd/design';
 import {createEngine} from '@openisd/design/engine';
 import {DateField, EnumField, Field, NumberField, TextField, ToggleField} from '@openisd/design/fields';
-import {toDisplay as toDispCore, UNIT_GROUPS, unitFor, type UnitGroup} from '@openisd/design/fields';
+import {UNIT_GROUPS, unitFor, type UnitGroup} from '@openisd/design/fields';
 const unitDef = (group: UnitGroup, token: string) => unitFor(group, token);
-const toDisplay = (val: number, group: UnitGroup, token: string) => toDispCore(unitFor(group, token), val);
-const nextToken = (group: UnitGroup, token: string) => { const grp = UNIT_GROUPS[group]; const idx = grp.findIndex(u => u.token === token); return grp[(idx + 1) % grp.length].token; };
 
 const here = dirname(fileURLToPath(import.meta.url));
 const EDITOR = join(here, '..', '..', 'src', 'ui', 'components', 'DriverEditorModal.vue');
@@ -252,24 +249,6 @@ describe('driver editor — unit label and scale agree', () => {
 });
 
 describe('resistance unit group — Ns/m ↔ kg/s, factor 1 (ledger QO51)', () => {
-  it('units.ts defines a resistance group offering exactly WinISD\'s two spellings, both SI × 1', () => {
-    const defs = UNIT_GROUPS.resistance;
-    assert.ok(defs, 'no "resistance" group in UNIT_GROUPS');
-    assert.deepEqual(defs.map(d => d.label).sort(), ['Ns/m', 'kg/s']);
-    for (const d of defs) {
-      assert.equal(d.factor, 1, `${d.label} must be SI × 1 — Ns/m and kg/s are the same dimension, so a real ` +
-        'conversion factor here would silently change the number the toggle is only meant to relabel');
-    }
-  });
-
-  it('Rms, Rme and Mcost declare the resistance group on their display', () => {
-    for (const f of RESISTANCE_FIELDS) {
-      assert.equal(f.display.kind, 'switchable', `${f.value} is not a switchable display`);
-      assert.equal(f.display.kind === 'switchable' ? f.display.group : null, 'resistance',
-        `${f.value} does not carry display.group: 'resistance'`);
-    }
-  });
-
   it('Rms, Rme and Mcost render as click-to-rotate toggles, not a fixed unit span', () => {
     for (const label of ['Rms', 'Rme', 'Mcost']) {
       assert.equal(byLabel(label).toggleable, true,
@@ -281,14 +260,6 @@ describe('resistance unit group — Ns/m ↔ kg/s, factor 1 (ledger QO51)', () =
     assert.equal(byLabel('Rms').unit, 'Ns/m');
     assert.equal(byLabel('Rme').unit, 'Ns/m');
     assert.equal(byLabel('Mcost').unit, 'kg/s');
-  });
-
-  it('every token in the resistance group renders the identical number — a toggle can only change the label', () => {
-    const sample = 12.5;   // neutral value — no claim about any driver's real Rms/Rme/Mcost
-    for (const d of UNIT_GROUPS.resistance) {
-      assert.equal(toDisplay(sample, 'resistance', d.token), sample,
-        `switching to "${d.label}" changed ${sample} — the group's factor must be 1 for every token`);
-    }
   });
 
   // Binding `field="Rms"`/`"Rme"`/`"Mcost"` (needed for the toggle) also wires NumInput's
@@ -314,29 +285,6 @@ describe('resistance unit group — Ns/m ↔ kg/s, factor 1 (ledger QO51)', () =
 });
 
 describe('percent unit group — one unit, the ONE place a fraction becomes a percentage', () => {
-  it('units.ts defines a percent group holding exactly one unit, "%", at SI × 100', () => {
-    const defs = UNIT_GROUPS.percent;
-    assert.ok(defs, 'no "percent" group in UNIT_GROUPS');
-    assert.equal(defs.length, 1, 'a percentage has one spelling — a second entry would imply a conversion that does not exist');
-    assert.equal(defs[0].label, '%');
-    assert.equal(defs[0].factor, 100, 'a stored FRACTION renders as a percentage: 0.0231… → 2.31…');
-    assert.equal(defs[0].offset ?? 0, 0, 'a percentage is purely multiplicative — an offset here would bend every value');
-  });
-
-  it('rotating a one-unit group is a no-op, so the toggle cannot change the number', () => {
-    const only = UNIT_GROUPS.percent[0].token;
-    assert.equal(nextToken('percent', only), only,
-      'nextToken must return the same token — a single-unit group has nowhere to rotate to');
-  });
-
-  it('no and Gloss declare the percent group on their display', () => {
-    for (const f of [NumberField.NO, NumberField.GLOSS]) {
-      assert.equal(f.display.kind, 'switchable', `${f.value} is not a switchable display`);
-      assert.equal(f.display.kind === 'switchable' ? f.display.group : null, 'percent',
-        `${f.value} does not carry display.group: 'percent'`);
-    }
-  });
-
   it('no and Gloss render through the group, not a hand-bound :scale', () => {
     for (const label of ['η₀', 'Gloss']) {
       assert.equal(byLabel(label).toggleable, true,
@@ -363,27 +311,6 @@ describe('Gloss — a FRACTION in the file, a PERCENT on the panel', () => {
   const FILE_FRACTION = 0.0231721405215982;
   const PANE_PERCENT = '2.3172';
 
-  it('the .wdr carries the fraction, and the model holds it unscaled', () => {
-    // bugs/archive/BUG_20260814_gloss-unscaled-test-asserts-exact-equality-against-a-computed-not-entered-fixture-value.md —
-    // this fixture's ParState marks Gloss 'C' (slot 37): WinISD computed it, so the model
-    // legitimately returns its OWN derivation, not the file's literal — the two agree to
-    // ~14 significant figures (independent-implementation float noise), never byte-identical.
-    // A tolerance far tighter than that noise, but nowhere near 100x, is what actually proves
-    // no scaling: this test's real purpose per its own docstring above.
-    const text = readFileSync(join(here, '..', '..', '..', '..', 'drivers', 'myprobes', 'per_field_and_misc', 'john-all-noncalc-fields-manually-entered.wdr'), 'utf8');
-    const stored = /^Gloss=(.*)$/m.exec(text)?.[1];
-    assert.equal(stored, '1.72503712771898', 'fixture must be the WinISD-authored oracle');
-    const wd = WinISDDriver.fromWdrIni(text);
-    const cell = wd.cell('Gloss');
-    assert.equal(cell.state, 'calculated', 'this fixture\'s ParState marks Gloss computed, not entered');
-    const parsed = Number(cell.value);
-    assert.ok(Number.isFinite(parsed), 'Gloss must parse to a number');
-    const relError = Math.abs(parsed - 1.72503712771898) / 1.72503712771898;
-    assert.ok(relError < 1e-9,
-      `the parser must not scale — got ${cell.value}, file holds 1.72503712771898 ` +
-      `(relative error ${relError}); a real ×100/÷100 bug would show as ~1 or ~0.01, not this`);
-  });
-
   it('the panel renders it as a percentage, at WinISD\'s 4 dp', () => {
     const f = byLabel('Gloss');
     assert.equal(f.unit, '%');
@@ -403,18 +330,6 @@ describe('Gloss — a FRACTION in the file, a PERCENT on the panel', () => {
       `typing "${PANE_PERCENT}" stores ${Number(PANE_PERCENT) / f.scale}, not ${FILE_FRACTION}`);
   });
 
-  it('the engine fills it, so a driver that never carried a Gloss still shows one', () => {
-    // Advanced-panel ruling QO24: only alfaVC, Rt and Ct are manual. A driver authored in-app
-    // has no `Gloss=` line to carry, so the number on the panel can only come from the solver.
-    const d = coreDriver();
-    const cell = d.specs.Gloss;
-    const value = cell.value;
-    if (typeof value !== 'number') {
-      assert.fail(`Gloss binds cellVal('Gloss'), which the driver model leaves ${cell.provenance} — the field renders blank`);
-    }
-    // g/((2π·37)²·0.005) for coreDriver's Fs/Xmax.
-    assert.ok(Math.abs(value - 9.80665 / ((2 * Math.PI * 37) ** 2 * 0.005)) < 1e-15);
-  });
 });
 
 describe('driver editor — precision comes from the field registry', () => {

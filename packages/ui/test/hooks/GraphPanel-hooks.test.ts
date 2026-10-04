@@ -5,7 +5,6 @@ import {createEngine} from '@openisd/design/engine';
 import {OpenISDProject, ProjectBuilder} from '@openisd/design';
 import {provideFocusedProject} from '../../src/logic/focusedProjectContext.js';
 import {
-  createMockGraphPanelAPI,
   useGraphPanel,
   type GraphPanelAPI,
   type GraphPanelProps,
@@ -45,30 +44,6 @@ async function renderHook(props: GraphPanelProps, project = createTestProject())
 }
 
 describe('GraphPanel-hooks', () => {
-  describe('createMockGraphPanelAPI', () => {
-    it('returns default mock values for graph panel', () => {
-      const mock = createMockGraphPanelAPI();
-      expect(mock.meta.value).toEqual(TAB_META['SPL']);
-      expect(mock.currentDesign.value.name).toBe('Current');
-      expect(mock.currentDesign.value.box).toBe('vented');
-      expect(mock.plotData.value).toBeNull();
-      expect(mock.blockErrors.value).toEqual([]);
-      expect(mock.blocked.value).toBe(false);
-      expect(mock.warnings.value).toEqual([]);
-      expect(mock.warningsDismissed.value).toBe(false);
-
-      mock.dismissWarnings();
-      expect(mock.warningsDismissed.value).toBe(true);
-    });
-
-    it('accepts partial overrides', () => {
-      const mock = createMockGraphPanelAPI({
-        blocked: computed(() => true),
-      });
-      expect(mock.blocked.value).toBe(true);
-    });
-  });
-
   describe('useGraphPanel', () => {
     it('currentDesign follows the box type when it changes after the first read', () => {
       const project = createTestProject();

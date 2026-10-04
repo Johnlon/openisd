@@ -7,6 +7,8 @@
 import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
 import {OpenISDDriver, OpenISDPassiveRadiatorStandalone} from '@openisd/design';
+import {Chip, DriverType} from '@openisd/design/filter';
+import {DRIVER_TYPES} from '../../src/logic/driverBrowsingState.js';
 import {createEngine} from '@openisd/design/engine';
 import {
     bundledPassiveRadiatorRows,
@@ -168,3 +170,122 @@ describe('passiveRadiatorRows — the PR browser row view model', () => {
     }
   });
 });
+
+/**
+ * Filter parity for the `driver_type` wire contract. winisd_tools' `test_driver_type_enum_parity.py`
+ * proves the two enums hold the same VALUES; that says nothing about whether the UI can filter on
+ * each value. A member can exist in both enums and still fall through `chipsOf()` to the name/T-S
+ * heuristics, as `passive-radiator`, `amt` and `mid-woofer` did. Every DriverType member must
+ * yield chips, and every chip it yields must be one the filter bar renders.
+ */
+const CHIP_VALUES = new Set(Chip.ALL.map(c => c.value));
+const chipValues = (dt: DriverType) => dt.chips.map(c => c.value);
+
+describe('driver_type -> chip projection (enum, no driver)', () => {
+  it('reflects every declared member into ALL', () => {
+    // ALL is built by reflection, so a member declared after it would be missed.
+    const declared = Object.values(DriverType).filter(v => v instanceof DriverType);
+    assert.equal(DriverType.ALL.length, declared.length,
+      'DriverType.ALL is not the full member set — is it still the LAST static field?');
+    assert.equal(Chip.ALL.length, Object.values(Chip).filter(v => v instanceof Chip).length,
+      'Chip.ALL is not the full member set — is it still the LAST static field?');
+  });
+
+  it('maps every DriverType member to chips the filter bar renders', () => {
+    for (const dt of DriverType.ALL) {
+      for (const c of dt.chips) {
+        assert.ok(CHIP_VALUES.has(c.value), `DriverType.${dt.value} maps to unknown chip "${c.value}"`);
+        assert.ok(Chip.ALL.includes(c), `DriverType.${dt.value} maps to a non-member Chip "${c.value}"`);
+      }
+    }
+    assert.deepEqual(DRIVER_TYPES, Chip.ALL, 'the filter bar renders something other than the Chip enum');
+  });
+
+  it('gives every member except unclassified a non-empty chip collection', () => {
+    for (const dt of DriverType.ALL) {
+      if (dt === DriverType.Unclassified) continue;
+      assert.ok(dt.chips.length > 0,
+        `DriverType.${dt.value} projects to NO chips — it can never be filtered for`);
+    }
+  });
+
+  it('never emits the derived `unclassified` chip', () => {
+    // A driver is unclassified when its chip collection is EMPTY (isUnclassified in
+    // useDriverLibrary). Emitting the chip as well would double-count it.
+    for (const dt of DriverType.ALL) {
+      assert.ok(!dt.chips.includes(Chip.Unclassified),
+        `DriverType.${dt.value} emits the derived Unclassified chip`);
+    }
+  });
+
+  it('gives every member a display label and every chip a label and tooltip', () => {
+    for (const dt of DriverType.ALL) assert.ok(dt.display.length, `DriverType.${dt.value} has no display label`);
+    for (const c of Chip.ALL) {
+      assert.ok(c.label.length, `Chip.${c.value} has no label`);
+      assert.ok(c.title.length, `Chip.${c.value} has no tooltip`);
+    }
+  });
+
+  it('serialises members to their wire value', () => {
+    assert.equal(String(DriverType.PassiveRadiator), 'passive-radiator');
+    assert.equal(JSON.stringify(DriverType.MidWoofer), '"mid-woofer"');
+    assert.equal(String(Chip.FullRange), 'fullrange');
+  });
+});
+
+/** A driver stating only brand/model/driver_type — no T/S values — matching what these tests
+ *  need: chipsOf() falling through driver_type -> name -> T/S, in that order. */
+function driverOfType(name: string, driverType: string): OpenISDDriver {
+  const record = {
+    uuid: { value: '00000000-0000-4000-8000-000000000000' },
+    manufacturer: scraped(''), brand: scraped(''), model: scraped(name),
+    provided_by: scraped('test'), comment: scraped(''), added: scraped('2026-01-01'),
+    sku: { value: '', grounds: [{ origin: 'manufacturer_datasheet', reading: '' }] },
+    driver_type: scraped(driverType),
+    data_sources: { value: {} },
+    quality: {
+      confirmed_fields: [], fields_with_issues: [], missing: [], invalid: [],
+      parse_errors: [], cross_source_only: [],
+    },
+    specs: { woofer: {} },
+  };
+  const driver = OpenISDDriver.fromConformingRecord(record, createEngine());
+  if (Array.isArray(driver)) throw new Error(`fixture is not a valid driver: ${driver.join(', ')}`);
+  return driver;
+}
+
+describe('chipsOf honours every canonical driver_type (wire value -> chips)', () => {
+  it('classifies each member from its wire value alone, with no name or T/S help', () => {
+    for (const dt of DriverType.ALL) {
+      if (dt === DriverType.Unclassified) continue;
+      const got = chipsOf(driverOfType('', dt.value));
+      assert.deepEqual([...got.types].sort(), [...chipValues(dt)].sort(),
+        `driver_type "${dt.value}" did not classify from its wire value — the projection has drifted from the enum`);
+      assert.equal(got.canonical, dt.display);
+    }
+  });
+
+  it('round-trips every member through parse', () => {
+    for (const dt of DriverType.ALL) assert.equal(DriverType.parse(dt.value), dt);
+  });
+
+  it('takes the leading token of a compound value and ignores qualifiers', () => {
+    const got = chipsOf(driverOfType('', `${DriverType.Subwoofer.value}, automotive`));
+    assert.deepEqual([...got.types].sort(), [...chipValues(DriverType.Subwoofer)].sort());
+  });
+
+  it('falls back to the name when driver_type is absent or not canonical', () => {
+    // 'fullrange' is NOT a DriverType value ('full-range' is) — an off-contract
+    // record must not classify off it; the name is what carries it.
+    assert.equal(DriverType.parse('fullrange'), null);
+    assert.equal(chipsOf(driverOfType('', 'fullrange')).types.length, 0);
+    assert.ok(chipsOf(driverOfType('Tang Band W5-1880 5in fullrange', 'fullrange'))
+      .types.includes(Chip.FullRange.value));
+  });
+
+  it('reports unclassified as an empty chip collection', () => {
+    assert.deepEqual(chipsOf(driverOfType('', DriverType.Unclassified.value)).types, []);
+    assert.deepEqual(chipsOf(driverOfType('', '')).types, []);
+  });
+});
+
