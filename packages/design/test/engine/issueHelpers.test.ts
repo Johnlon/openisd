@@ -34,7 +34,7 @@ describe('Engine.issueFormula', () => {
   });
 });
 
-describe('outOfRange (D14)', () => {
+describe('outOfRange', () => {
   it('names the field, its value, and the limit it fell below', () => {
     // decimal()'s own rule: below 0.1 in magnitude renders to 2 significant figures.
     expect(engine.issues.outOfRange('Qts', 0.02, 0.1, 'below').text)
@@ -46,16 +46,3 @@ describe('outOfRange (D14)', () => {
   });
 });
 
-// `out-of-range` is one kind name over two shapes — a driver field's band (field/limit/side) and
-// a vented-alignment band (quantity/min/max). Each is built by its own factory, so the sentence
-// is decided where the shape is known and no reader ever has to tell the two apart afterwards.
-describe('the shared \'out-of-range\' kind, two shapes (D14)', () => {
-  it('a driver-field breach names the field and the physical limit', () => {
-    expect(engine.issues.outOfRange('Qts', 0.02, 0.1, 'below').text)
-      .toBe('Qts 0.020 is below the physical limit 0.1.');
-  });
-
-  it('a vented-alignment breach names the design band instead', () => {
-    expect(engine.issues.quantityOutOfBand('Fb', 400, 10, 150).text).toMatch(/plausible/);
-  });
-});

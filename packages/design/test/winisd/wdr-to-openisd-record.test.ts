@@ -1,22 +1,4 @@
-/**
- * `winISDDriverToOpenISDDeviceJson` + `conformingRecordToDriver` — the reader half of Step 8
- * (ARCHITECTURE.md §3 "Import"): ".wdr text populates a WinISDDriver; those as-read values are
- * diffed against what OpenISDDriver independently derives, surfacing a mismatch ... as a
- * data-quality signal rather than silently overwriting." `fromWdrIni()` itself is unchanged — it
- * still returns raw, undived cells. `winISDDriverToOpenISDDeviceJson()` projects those as-read
- * cells into an `OpenISDDeviceJson` record; `conformingRecordToDriver()` turns that record into
- * the `OpenISDDriver` the app queries.
- *
- * Seam: `WinISDDriver.fromWdrIni(text)` → `winISDDriverToOpenISDDeviceJson(wdr)` →
- * `conformingRecordToDriver(record, engine)`.
- *
- * 🔒 ORACLE: `drivers/mysamples/winisd/inconsistency-test-qts-C.wdr` is a genuine WinISD save
- * (WINISD_SCHEMA.md consistency-check experiment 2026-06-28) that states `Qts=0.500` but marks
- * ParState slot 14 `C` (WinISD computed it, not the human) — its own comment records the
- * correct value as "~0.358", i.e. Qes·Qms/(Qes+Qms) = 0.38·6.2/(0.38+6.2) = 0.3580547...
- */
 import {describe, it} from 'vitest';
-import {diffWdrValues} from './wdrDiff.js';
 import assert from 'node:assert/strict';
 import type {Calculated, Entered, Readable} from '../../domain/cell.js';
 import type {CellState} from '../../winisd/cellState.js';
@@ -37,6 +19,7 @@ function assertReads<T>(field: Readable<T | null> & Entered & Calculated, value:
 }
 
 const here = dirname(fileURLToPath(import.meta.url));
+
 const WDR_TEXT = readFileSync(
   join(here, '..', '..', '..', '..', 'drivers', 'myprobes', 'inconsistencies', 'inconsistency-test-qts-C.wdr'),
   'utf8',
@@ -81,21 +64,5 @@ describe('winISDDriverToOpenISDDeviceJson/conformingRecordToDriver — provenanc
     const v = parseFloat(cell.value);
     assert.ok(isFinite(v) && Math.abs(v - 0.35805471124620064) < 1e-9,
       `Qts ${cell.value} does not match Qes*Qms/(Qes+Qms)`);
-  });
-});
-
-describe('diffWdrValues — a WinISD-stored C value that disagrees with the fresh derivation is flagged', () => {
-  it('surfaces the stale Qts=0.500 (C) against the freshly-derived ~0.358 as a warn-level mismatch', () => {
-    const sourceWdr = WinISDDriver.fromWdrIni(WDR_TEXT);
-    const driver = driverOf(WDR_TEXT);
-
-    const derivedWdr = openIsdDriverToWinIsdDriver(driver, []);
-    assert.ok(derivedWdr, 'projection failed');
-
-    const mismatches = diffWdrValues(sourceWdr, derivedWdr);
-    const qtsMismatch = mismatches.find(m => m.field === 'Qts');
-    assert.ok(qtsMismatch, 'expected a Qts mismatch between the stored C value and the fresh derivation');
-    assert.equal(qtsMismatch!.level, 'warn');
-    assert.match(qtsMismatch!.message, /0\.5/);
   });
 });

@@ -349,7 +349,7 @@ const radiatorSpecsJsonSchema = z.strictObject({
  *  Dispatched by hand rather than through `z.union`: a union that fails reports ONE issue on
  *  `specs` and swallows the member's own findings, so a driver record with two bad readings
  *  inside `Fs_hz` would have come back as "specs: invalid" instead of naming each reading
- *  (`domain.test.ts` "names EVERY bad reading"). The key that is present says which member the
+ *  (`domain/driver-record.test.ts` "names EVERY bad reading"). The key that is present says which member the
  *  value claims to be; that member then parses it and its issues pass through, paths intact. */
 const SPECS_SHAPE = "a driver (a 'woofer' section, optionally with a 'tweeter' section) or a "
     + "passive radiator (a 'passive-radiator' section) — not both, not neither";

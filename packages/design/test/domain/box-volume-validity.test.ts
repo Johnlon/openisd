@@ -53,7 +53,8 @@ function expectInvalidVolumeAtEachBadValue(
   }
 }
 
-describe('box volume validity — every box type shares one floor (BUG_20260927)', () => {
+// Regression for bugs/archive/BUG_20260927*.md
+describe('box volume validity — every box type shares one floor', () => {
   it('sealed volume_m3', () => {
     const engine = createEngine();
     const p = new ProjectBuilder(driverFor(engine), engine).sealed().volume_m3(0.03).build();

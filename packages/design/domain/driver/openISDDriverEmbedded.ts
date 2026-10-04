@@ -64,7 +64,7 @@ export class OpenISDDriverEmbedded extends OpenISDDriver {
      *  project record saved before this rule existed, `fromOwprText` loading it back, or a
      *  direct field write) can still leave `c_m_per_s`/`roo_kg_per_m3` 'entered' in the raw
      *  record, and `resolve()` never overwrites an entered value on its own — so without this,
-     *  such a record's stale pair would surface again (test/domain.test.ts "a stale c/roo
+     *  such a record's stale pair would surface again (test/domain/driver-record.test.ts "a stale c/roo
      *  already sitting in an embedded driver's record… is still ignored"). */
     override resolve(): readonly DriverIssue[] {
         this.specs.c_m_per_s.clear();

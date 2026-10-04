@@ -219,7 +219,7 @@ describe('EQ/filter charts — units, datum and axis', () => {
   it('an empty filter chain still yields a drawable, non-degenerate axis on all three', () => {
     // The default project has no filters, so this is what the user sees first: a flat line
     // at unity, which must not collapse the axis to zero height.
-    const noFlt = { ...SP, filters: [] };
+    const noFlt: SweepParams = { ...SP, filters: [] };
     const engine = createEngine();
     const sw = engine.simulation.sweep(DRV, LE_H, 'vented', noFlt).values;
     assert.ok(sw, 'sweep produced nothing');

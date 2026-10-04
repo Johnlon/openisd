@@ -56,7 +56,8 @@ function withFilterField(session: unknown, field: string, value: number): unknow
   };
 }
 
-describe('BUG_20260927 — filter numerics reject NaN/Infinity at the load schema', () => {
+// Regression for bugs/archive/BUG_20260927*.md
+describe('filter numerics reject NaN/Infinity at the load schema', () => {
   it('a valid peaking filter parses — the baseline every mutation below starts from', () => {
     const session = sessionWithOneFilter(validPeaking);
     expect(openISDProjectSessionJsonSchema.safeParse(session).success).toBe(true);

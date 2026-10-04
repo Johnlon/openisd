@@ -63,7 +63,7 @@ describe('winisdDriverModel — the whole WinISD parameter set, not Mms alone', 
     });
   });
 
-  it('set: the entered BL sets the SPL level and the motional impedance — WinISD, BL 7.17 → 5.0, moves every SPL point by −3.1310 dB (BUG_20260926_winisd-spl-level-uses-entered-bl)', () => {
+  it('set: the entered BL sets the SPL level and the motional impedance — WinISD, BL 7.17 → 5.0, moves every SPL point by −3.1310 dB', () => {
     // WinISD 0.7.0.950 by debugger, W5-1138SMF sealed, only the entered BL changed
     // (winisd_research runs/sweep-w5-sealed-bl5-spl vs sweep-w5-sealed-baseline-charts).
     const engine = createEngine();

@@ -232,7 +232,7 @@ describe('openisd.json → winisd.wdr — format conformance (oracle: drivers/my
   });
 });
 
-describe('openisd.json → winisd.wdr — calculation (SPEC_ENGINE §4.7 obligation b)', () => {
+describe('openisd.json → winisd.wdr — calculation ', () => {
   const real = readFileSync(join(FIXTURES, 'w5-1138smf.openisd.json'), 'utf8');
 
   it('calculates every derivable field rather than leaving it at its default', () => {
@@ -275,7 +275,8 @@ describe('openisd.json → winisd.wdr — Result contract (never throws)', () =>
     assert.equal(errors.some((e: DriverError) => e.level === 'error'), true);
   });
 
-  it('reports a record whose specs interior is not the SpecEntry shape as an error, does not throw (BUG_20260822)', () => {
+  // Regression for bugs/archive/BUG_20260822*.md
+  it('reports a record whose specs interior is not the SpecEntry shape as an error, does not throw', () => {
     const { value, errors } = wdrOf('specs: {woofer: {fs: 12}}\n');
     assert.equal(value, null);
     assert.equal(errors.some((e: DriverError) => e.level === 'error'), true);
@@ -326,7 +327,7 @@ const WITH_XLIM = recordWith(`  woofer:
       readings: {manual: {read_value: 12.5}}
 `);
 
-describe('openisd.json → winisd.wdr — DQ marks travel into Comment= (ARCHITECTURE.md §3)', () => {
+describe('openisd.json → winisd.wdr — DQ marks travel into Comment= ', () => {
   it('a coaxial\'s tweeter marks travel into Comment= after the woofer\'s', () => {
     const coax = recordWith(`  woofer: {}
   tweeter:

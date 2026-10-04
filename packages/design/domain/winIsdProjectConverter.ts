@@ -10,7 +10,7 @@
  * against the golden corpus under `packages/design/test/winisd/fixtures/winisd-parity/goldens/`.
  * `bandpass6` (`BType=3`) and `abc` (`BType=5`) are verified against two real WinISD-written
  * `.wpr` files each — a live debugger capture and a `docs/samples/` sample — in
- * `packages/design/test/winisd/bp6-abc-wpr.test.ts`; both chambers on both box types are vented
+ * `packages/design/test/winisd/winIsdProjectToOpenIsdProject.test.ts` and `openIsdProjectToWinIsdProject.test.ts`; both chambers on both box types are vented
  * and independently tunable, so their `[Box]` keys are `Vr`/`Fr`/`Vf`/`Ff` plus a loss triple per
  * chamber, identical in layout to `bandpass4`'s pair with an added `Fr`/rear-port triple; `abc`
  * additionally carries a `[VentIntra]` section for the port connecting its two chambers.
