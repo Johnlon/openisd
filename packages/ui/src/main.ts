@@ -1,3 +1,5 @@
+import {ReleaseWatch} from './logic/releaseWatch.js';
+import {createBrowserReleasePort} from './logic/browserReleasePort.js';
 import {createApp} from 'vue';
 import App from './ui/App.vue';
 import {vExpoStep} from './ui/directives/expoStep.js';
@@ -92,6 +94,14 @@ const viewStateRepo = createViewStateRepo(storage);
 const backup = createBackupRepo(storage);
 const designIO = createApplicationIO({ logging, fileStorage, fileOpen: createFileOpen(), projectRepo, files: designFiles, backup });
 
+// The running build's version is baked in at build time; a dev server has none, which turns the
+// check off. Narrowed, not cast: the env value is untyped.
+const bakedVersion: unknown = import.meta.env.VITE_BUILD_VERSION;
+const releases = new ReleaseWatch(
+  typeof bakedVersion === 'string' ? bakedVersion : '',
+  createBrowserReleasePort({ baseUrl: import.meta.env.BASE_URL, fetch, serviceWorker: navigator.serviceWorker, location }),
+);
+
 const app = createApp(App)
   .directive('expo-step', vExpoStep)
   .directive('limits', vLimits);
@@ -99,7 +109,7 @@ const app = createApp(App)
 provideApp(app, {
   engine, logging, driverBrowsing, selection, designIO, designFiles, driverDrafts, myPassiveRadiators, prefs,
   bundledPassiveRadiators: bundledPRs, bundledDrivers: driverRepo, myDrivers: myDriverRepo,
-  driverFileStorage, faultLog, projectRepo, viewStateRepo,
+  driverFileStorage, faultLog, projectRepo, viewStateRepo, releases,
 });
 
 // Visibility only, not a recovery mechanism (PROMPT_RELEASE_HARDENING plan): a

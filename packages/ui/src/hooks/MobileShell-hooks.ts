@@ -44,6 +44,12 @@ export interface MobileShellApi {
   saveAllProjects: () => Promise<number>;
   /** Some open project, focused or not, has unsaved edits — Save all has work to do. */
   anyUnsaved: import('vue').ComputedRef<boolean>;
+  /** A newer build is published and the user has not dismissed the notice for it. */
+  updateBannerVisible: import('vue').ComputedRef<boolean>;
+  /** Reload onto the newer build. */
+  reloadForUpdate: () => Promise<void>;
+  /** Hide the notice until the next visit. */
+  dismissUpdateBanner: () => void;
   revertProject: () => void;
   browseDrivers: () => void;
   optionsOpen: import('vue').Ref<boolean>;
@@ -102,7 +108,7 @@ export interface OpenProjectRow {
 }
 
 export function useMobileShell(): MobileShellApi {
-  const { designIO, projectRepo } = useApp();
+  const { designIO, projectRepo, releases } = useApp();
   const { saveProject, saveAllProjects } = designIO;
   const { show: about } = injectSplashModal();
   const projectOpen = computed(() => focusedProject() != null);
@@ -169,6 +175,25 @@ export function useMobileShell(): MobileShellApi {
       colour: traceColor(project),
     }));
   });
+  // New-version notice: checked on start, whenever the app comes back to the foreground, and every
+  // few minutes while it stays open.
+  const updateDismissed = ref(false);
+  const updateBannerVisible = computed(() => releases.newVersionAvailable.value && !updateDismissed.value);
+  const reloadForUpdate = (): Promise<void> => releases.reload();
+  function dismissUpdateBanner(): void { updateDismissed.value = true; }
+  const UPDATE_CHECK_INTERVAL_MS = 5 * 60 * 1000;
+  let updateTimer: ReturnType<typeof setInterval> | undefined;
+  function checkForUpdate(): void { if (document.visibilityState === 'visible') void releases.check(); }
+  onMounted(() => {
+    checkForUpdate();
+    document.addEventListener('visibilitychange', checkForUpdate);
+    updateTimer = setInterval(checkForUpdate, UPDATE_CHECK_INTERVAL_MS);
+  });
+  onUnmounted(() => {
+    document.removeEventListener('visibilitychange', checkForUpdate);
+    clearInterval(updateTimer);
+  });
+
   const anyUnsaved = computed(() => openProjectRows.value.some(row => row.unsaved));
   function selectOpenProject(row: OpenProjectRow): void {
     const index = openProjects().indexOf(row.project);
@@ -277,7 +302,7 @@ export function useMobileShell(): MobileShellApi {
   return {
     projectOpen, projectTitle, destination, fileInput, openImportedFile, openNewProject, switchToDesktop,
     menuOpen, toggleMenu, closeMenu, openFromDisk, isModified,
-    saveProject, saveAllProjects, anyUnsaved, revertProject, browseDrivers, optionsOpen, openOptions, about, goToProject,
+    saveProject, saveAllProjects, anyUnsaved, updateBannerVisible, reloadForUpdate, dismissUpdateBanner, revertProject, browseDrivers, optionsOpen, openOptions, about, goToProject,
     contentEl, canScrollUp, canScrollDown, updateScrollEdges, username,
     goToAdvanced, viewportHeightPx, showEnclosureTab, enclosureNavLabel,
     openDialogOpen, storedProjects, openProjectDialog, openStoredProject,

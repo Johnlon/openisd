@@ -29,6 +29,7 @@ import {DesignFiles} from '../../src/logic/fileImportExport.js';
 import {DriverDrafts} from '../../src/logic/driverDraft.js';
 import {appContext} from '../../src/logic/appState.js';
 import type {AppLogic} from '../../src/logic/app.js';
+import {ReleaseWatch} from '../../src/logic/releaseWatch.js';
 
 const CATALOGUE_MAX_AGE_MS = 60 * 60 * 1000;
 const unusedFetch: typeof fetch = () => Promise.reject(new Error('fetch not used in this test'));
@@ -67,6 +68,7 @@ export function testAppLogic(overrides: Partial<AppLogic> = {}): AppLogic {
     engine, logging, driverBrowsing, selection, designIO, designFiles, driverDrafts,
     myPassiveRadiators, prefs, bundledPassiveRadiators, bundledDrivers: driverRepo, myDrivers: myDriverRepo,
     driverFileStorage, faultLog, projectRepo, viewStateRepo,
+    releases: new ReleaseWatch('', { latestVersion: () => Promise.resolve(null), reloadOntoLatest: () => Promise.resolve() }),
   };
   return Object.assign({}, base, overrides);
 }

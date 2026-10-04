@@ -209,7 +209,9 @@ export function createDriverBrowsingState(deps: DriverBrowsingStateDeps): Driver
   let onChoose: ((d: OpenISDDriver) => void) | null = null;
 
   const favorites = ref<string[]>(prefs.favorites());
-  const favoritesOnly = ref(false);   // the Favorites button: an on/off filter, like a type chip
+  // The Favorites button: an on/off filter, like a type chip. On at the start when there are
+  // favourites to show; with none, on would open an empty list.
+  const favoritesOnly = ref(favorites.value.length > 0);
 
   // The scope chip: which POOL is a candidate — bundled, the user's own, or both. It starts
   // at `All`. The ref carries `.value`, never the member: Vue's reactive proxy wraps an object

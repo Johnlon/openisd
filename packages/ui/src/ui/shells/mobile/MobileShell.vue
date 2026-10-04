@@ -20,7 +20,7 @@ import {inputChecked} from '../../../logic/domEvents.js';
 
 const {
   projectOpen, destination, fileInput, openImportedFile, openNewProject, switchToDesktop,
-  menuOpen, toggleMenu, closeMenu, openFromDisk, isModified, saveProject, saveAllProjects, anyUnsaved, revertProject, projectTitle,
+  menuOpen, toggleMenu, closeMenu, openFromDisk, isModified, saveProject, saveAllProjects, anyUnsaved, updateBannerVisible, reloadForUpdate, dismissUpdateBanner, revertProject, projectTitle,
   browseDrivers, optionsOpen, openOptions, about, goToProject, goToAdvanced, viewportHeightPx,
   showEnclosureTab, enclosureNavLabel, contentEl, canScrollUp, canScrollDown, updateScrollEdges,
   username, openDialogOpen, storedProjects, openProjectDialog, openStoredProject,
@@ -64,6 +64,11 @@ const {
         <MobileAdvancedTab v-else-if="destination === 'advanced'" />
         <MobileManageDriversTab v-else-if="destination === 'drivers'" @chosen="destination = 'driver'" />
       </main>
+      <div v-if="updateBannerVisible" class="mob-update-banner" role="status">
+        <span>A new version of OpenISD is available.</span>
+        <button type="button" class="mob-update-reload" @click="reloadForUpdate">Reload</button>
+        <button type="button" class="mob-update-later" aria-label="Dismiss" @click="dismissUpdateBanner">&#10005;</button>
+      </div>
       <MobileTabBar v-model="destination" :show-enclosure="showEnclosureTab" :enclosure-label="enclosureNavLabel"
         :shadow-above="canScrollDown" />
 
@@ -80,10 +85,12 @@ const {
           <button type="button" class="mob-menu-item" @click="openNewProject">New project</button>
           <button type="button" class="mob-menu-item" @click="openProjectDialog">Open project…</button>
           <button type="button" class="mob-menu-item" @click="openFromDisk">Open a file</button>
+          <div class="mob-menu-sep"></div>
           <button type="button" class="mob-menu-item" :class="{ dirty: isModified }" @click="saveProject(); closeMenu()">Save</button>
           <button type="button" class="mob-menu-item" :disabled="!anyUnsaved" @click="saveAllProjects(); closeMenu()">Save all</button>
-          <button type="button" class="mob-menu-item" :disabled="!isModified" @click="revertProject">Revert unsaved changes</button>
           <ExportMenu class="mob-menu-item mob-menu-export">Save As / Export</ExportMenu>
+          <div class="mob-menu-sep"></div>
+          <button type="button" class="mob-menu-item" :disabled="!isModified" @click="revertProject">Revert unsaved changes</button>
           <div class="mob-menu-sep"></div>
           <button type="button" class="mob-menu-item" @click="goToProject">Project details</button>
           <button type="button" class="mob-menu-item" @click="goToAdvanced">Advanced</button>
@@ -412,4 +419,8 @@ const {
 .mob-options :deep(.opt-body) {
   flex: 1;
 }
+.mob-update-banner { display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: #e8f1fb; border-top: 1px solid #b8d4f8; color: #224466; font-size: 14px; }
+.mob-update-banner span { flex: 1; }
+.mob-update-reload { min-height: 40px; padding: 0 16px; border: 1px solid var(--acc); border-radius: 4px; background: var(--acc); color: #fff; font: inherit; font-weight: 600; cursor: pointer; }
+.mob-update-later { min-height: 40px; min-width: 40px; border: none; background: none; color: #224466; font-size: 16px; cursor: pointer; }
 </style>

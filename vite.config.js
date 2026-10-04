@@ -3,7 +3,7 @@ import vue from '@vitejs/plugin-vue';
 import {VitePWA} from 'vite-plugin-pwa';
 import {fileURLToPath} from 'url';
 import {join} from 'path';
-import {createReadStream, existsSync} from 'fs';
+import {createReadStream, existsSync, readFileSync} from 'fs';
 
 // Optional desktop target, built by `make electron`. It shares the entire UI and engine
 // with the web app and differs only in how the assets are addressed and cached:
@@ -23,6 +23,17 @@ function resolveBase() {
   return ELECTRON ? './' : '/';
 }
 const base = resolveBase();
+
+// The build's own version (scripts/version-info.mjs writes it before every build), baked into the
+// bundle so a running app can tell when a newer build is published. '' when the file is absent.
+function buildVersion() {
+  try {
+    const info = JSON.parse(readFileSync(join(fileURLToPath(import.meta.url), '..', 'packages', 'ui', 'public', 'build-info.json'), 'utf8'));
+    return typeof info.version === 'string' ? info.version : '';
+  } catch {
+    return '';
+  }
+}
 const UI_ROOT = join(fileURLToPath(import.meta.url), '..', 'packages', 'ui');
 
 // In dev mode, inject a script that unregisters any stale PWA service worker on every
@@ -79,6 +90,7 @@ const WATCH_IGNORED = [
 export default defineConfig(({ command }) => ({
   root: UI_ROOT,
   base,
+  define: { 'import.meta.env.VITE_BUILD_VERSION': JSON.stringify(buildVersion()) },
   server: {
     // Native inotify is reliable on this WSL2 (native ext4, kernel 6.18) and costs ~0% CPU
     // idle — polling the ~2,000-file catalogue at 100ms burned ~29% CPU for nothing. The
