@@ -1,6 +1,6 @@
 # BUG_20260927_max-spl-and-max-power-include-the-filter-chain
 
-**Status:** RESOLVED
+**Status:** WONTFIX (2026-10-04, John: no change)
 
 ## Symptom
 
@@ -32,3 +32,9 @@ OpenISD's includes the filter chain. Drop the filter chain from `maxCurves`.
 
 Done: `filter-chain-charts.test.ts` "maximum SPL and maximum power leave the filter chain out" (RED then green). Compare on
 `filt-chain-sealed-1`: max SPL 2.8e-14 dB, max power 8.9e-14 W — all 11 charts match.
+
+## WinISD row 3 ruling (2026-10-04)
+
+WONTFIX, no change and no switch (John). A filter before the driver scales the SPL by |Hf| and the
+voltage the driver limit allows by 1/|Hf|, so the limit curves are identical with or without the
+filter chain. WinISD leaving the chain out is not an error.

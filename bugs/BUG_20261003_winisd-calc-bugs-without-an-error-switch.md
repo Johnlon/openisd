@@ -1,6 +1,6 @@
 # BUG_20261003_winisd-calc-bugs-without-an-error-switch
 
-**Status:** OPEN — todo, follows from the rule John set 2026-10-03
+**Status:** RESOLVED — every row done (2026-10-04)
 
 ## Symptom
 The rule: every WinISD calculation bug can be reproduced. OpenISD does the correct thing by
@@ -11,10 +11,10 @@ switch yet:
 | Row | WinISD behaviour | Switch today |
 |-----|------------------|--------------|
 | 2   | VA with "Rg is at driver side" on counts Rg twice | DONE 2026-10-03: covered by the "WinISD VA model" switch; off counts Rg once (`winisdVaModel.test.ts`) |
-| 3   | Maximum SPL and Maximum power leave the filter chain out | STOPPED: needs a decision, see below |
+| 3   | Maximum SPL and Maximum power leave the filter chain out | DONE 2026-10-04, no switch: not an error (John). The chain scales SPL by \|Hf\| and the allowed voltage by 1/\|Hf\|, so the limit curves are the same |
 | 4   | Bessel high-pass is not the mirror of its low-pass | DONE 2026-10-03: yellow switch "WinISD Bessel high-pass", off by default, active while an enabled Bessel high-pass exists |
-| 5   | Allpass `t` is not the group delay; orders above 2 ignored | DONE 2026-10-04: yellow switch "WinISD allpass order", off by default (order-n Bessel allpass, delay t), active while an enabled allpass of order 2 or more exists |
-| 6   | Linkwitz-Riley and SOS ignore the order field | STOPPED: needs a decision, see below |
+| 5   | Allpass `t` is not the group delay; orders above 2 ignored | DONE 2026-10-04, no switch: an ignored input (John). Above order 2 the order-n Bessel allpass, delay t; order 2 stays WinISD's t/Q; ≠W cue on the Order box |
+| 6   | Linkwitz-Riley and SOS ignore the order field | DONE 2026-10-04, no switch: an ignored input (John). LR of even order n = Butterworth(n/2)², even orders only, ≠W cue while not 4; SOS Order box greyed out (order 2 by definition) |
 | 9   | PR box ωr multiplies the branch mass by Npr | DONE 2026-10-03: yellow switch "PR Npr resonance", off by default, PR boxes only |
 | 10  | ABC intra-port velocity omits a leak term | DONE 2026-10-03: yellow switch "WinISD ABC intra-port velocity", ticked (WinISD) by default, unticked = exact current, ABC boxes only |
 
@@ -35,12 +35,3 @@ For each row, in this order of size of the visible effect:
 4. Update the accuracy table, the equivalence register and the README gap list.
 
 ## Done
-
-## Stopped: decisions needed (2026-10-03)
-- **Row 3, Max SPL and Max power.** A linear filter in front of the driver scales the SPL at a given
-  amplifier voltage by |Hf| and the voltage the driver limit allows by 1/|Hf|. The two cancel, so the
-  limit "with the filter chain in" is the same curve unless another bound on the input is chosen (an
-  amplifier voltage limit, say). Which bound is the decision.
-- **Row 6, Linkwitz-Riley and SOS.** A Linkwitz-Riley of even order n is Butterworth(n/2) squared and
-  is well defined; an odd order and an SOS of order other than 2 are not. What OpenISD does for those
-  is the decision.
