@@ -153,16 +153,16 @@ const {fieldWithUnit} = useUnitReadouts();
     <div class="mob-row">
       <div class="mob-pr-id">
         <span class="mob-pr-label">Passive radiator</span>
-        <span class="mob-pr-name">{{ project.box.passiveRadiator.radiator.model.value || 'Custom PR' }}</span>
+        <span class="mob-pr-name">{{ project.box.passiveRadiator.radiator.model.value || 'Custom passive radiator' }}</span>
       </div>
     </div>
     <div class="mob-row mob-pr-actions">
       <button class="mob-btn" @click="prBrowseOpen = true">Select passive radiator</button>
       <button class="mob-btn mob-btn-secondary" @click="prEditOpen = true">Edit</button>
     </div>
-    <PRBrowser full-names v-if="prBrowseOpen" @close="prBrowseOpen = false"
+    <PRBrowser v-if="prBrowseOpen" @close="prBrowseOpen = false"
       @load="loadPREntry" @load-bundled="loadBundledPassiveRadiatorEntry" @define="defineNewPREntry" />
-    <PREditModal full-names v-if="prEditOpen" @close="prEditOpen = false" @browse="prEditOpen = false; prBrowseOpen = true" />
+    <PREditModal v-if="prEditOpen" @close="prEditOpen = false" @browse="prEditOpen = false; prBrowseOpen = true" />
 
     <div class="mob-field-row mob-field-entered">
       <div class="mob-field-main"><span class="mob-field-label">Vas</span>

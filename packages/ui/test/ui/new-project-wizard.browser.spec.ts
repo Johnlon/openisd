@@ -28,7 +28,7 @@ async function choosePassiveRadiator(page: Page): Promise<void> {
   await expect(modal).toContainText('Passive Radiator');
   await expect(modal.locator('button', { hasText: 'Next' })).toHaveCount(0);
   await modal.locator('#np-pr-select').click();
-  await page.locator('button', { hasText: 'Define new PR' }).click();
+  await page.locator('button', { hasText: 'Define new passive radiator' }).click();
 }
 
 /** Open the wizard from the toolbar. */

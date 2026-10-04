@@ -13,7 +13,7 @@ test.beforeEach(async ({ page }) => {
 });
 
 test.describe('MobilePrTab', () => {
-  test('a passive-radiator box shows PR fields and Select PR opens the browser', async ({ page }) => {
+  test('a passive-radiator box shows passive radiator fields and Select passive radiator opens the browser', async ({ page }) => {
     await page.locator('#mob-box-type').selectOption('box-passive-radiator');
     await page.locator('.mob-tab', { hasText: 'Passive Radiator' }).click();
     await expect(page.locator('.mob-panel-head').first()).toHaveText('Passive radiator');
