@@ -419,7 +419,9 @@ export const openISDDeviceJsonSchema = z.strictObject({
         manufacturer_product_page: z.string().optional(),
         manufacturer_listing_page: z.string().optional(),
     })),
-    authoritative: bookkeepingFieldOf(z.string()),
+    // Retired (John, 2026-10-04): the app picks a reading's origin itself (selectOrigin.ts). Older
+    // records still carry it, so it parses; nothing reads it and OpenISD never writes it.
+    authoritative: bookkeepingFieldOf(z.string()).optional(),
     product_image: textField.optional(),
     description: textField.optional(),
     surround_material: textField.optional(),

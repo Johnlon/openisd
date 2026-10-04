@@ -28,7 +28,6 @@ function aDriver(brand: string, model: string): OpenISDDriver {
     sku: { value: '', grounds: [{ origin: 'manufacturer_datasheet', reading: '' }] },
     driver_type: scraped('woofer'),
     data_sources: { value: {} },
-    authoritative: { value: 'manual' },
     quality: {
       confirmed_fields: [], fields_with_issues: [], missing: [], invalid: [],
       parse_errors: [], cross_source_only: [],

@@ -54,7 +54,6 @@ function recordWithEveryKeyEntered(): { record: object } {
         sku: {value: 'ACME-WIDGET', grounds: [{origin: 'manufacturer_datasheet', reading: 'ACME-WIDGET'}]},
         driver_type: scraped('woofer'),
         data_sources: {value: {manufacturer_datasheet: 'https://example.invalid/ds.pdf'}},
-        authoritative: {value: 'manufacturer_datasheet'},
         quality: {
             confirmed_fields: [], fields_with_issues: [], missing: [], invalid: [],
             parse_errors: [], cross_source_only: [],
@@ -101,7 +100,6 @@ describe('every .wdr field has a home in the OpenISD model', () => {
             sku: {value: 'ACME-WIDGET', grounds: [{origin: 'manufacturer_datasheet', reading: 'ACME-WIDGET'}]},
             driver_type: scraped('woofer'),
             data_sources: {value: {manufacturer_datasheet: 'https://example.invalid/ds.pdf'}},
-            authoritative: {value: 'manufacturer_datasheet'},
             quality: {
                 confirmed_fields: [], fields_with_issues: [], missing: [], invalid: [],
                 parse_errors: [], cross_source_only: [],
@@ -129,7 +127,6 @@ describe('every .wdr field has a home in the OpenISD model', () => {
             sku: {value: 'ACME-WIDGET', grounds: [{origin: 'manufacturer_datasheet', reading: 'ACME-WIDGET'}]},
             driver_type: scraped('woofer'),
             data_sources: {value: {manufacturer_datasheet: 'https://example.invalid/ds.pdf'}},
-            authoritative: {value: 'manufacturer_datasheet'},
             quality: {
                 confirmed_fields: [], fields_with_issues: [], missing: [], invalid: [],
                 parse_errors: [], cross_source_only: [],
@@ -155,7 +152,6 @@ describe('every .wdr field has a home in the OpenISD model', () => {
             sku: {value: '', grounds: [{origin: 'manufacturer_datasheet', reading: ''}]},
             driver_type: scraped('woofer'),
             data_sources: {value: {}},
-            authoritative: {value: 'manual'},
             quality: {
                 confirmed_fields: [], fields_with_issues: [], missing: [], invalid: [],
                 parse_errors: [], cross_source_only: [],
@@ -198,7 +194,6 @@ describe('every spec field supports get/set/get/clear/get — clear() actually c
             sku: {value: '', grounds: [{origin: 'manufacturer_datasheet', reading: ''}]},
             driver_type: scraped('woofer'),
             data_sources: {value: {}},
-            authoritative: {value: 'manual'},
             quality: {
                 confirmed_fields: [], fields_with_issues: [], missing: [], invalid: [],
                 parse_errors: [], cross_source_only: [],

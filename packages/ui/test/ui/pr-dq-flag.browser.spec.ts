@@ -27,7 +27,6 @@ function passiveRadiatorRecord() {
     sku: { value: 'TEST-PR', grounds: [{ origin: 'manufacturer_datasheet', reading: 'TEST-PR' }] },
     driver_type: { value: 'passive-radiator' },
     data_sources: { value: {} },
-    authoritative: { value: 'openisd' },
     quality: {
       confirmed_fields: [], fields_with_issues: [], missing: [], invalid: [],
       parse_errors: [], cross_source_only: [],

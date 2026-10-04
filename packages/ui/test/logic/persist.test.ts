@@ -155,7 +155,6 @@ function sampleDriverRecord(): unknown {
       parse_errors: [], cross_source_only: [],
     },
     data_sources: {value: {}},
-    authoritative: {value: 'openisd'},
     specs: { woofer: {
       Fs_hz:  { state: 'E', value: 30, origin: 'entered', readings: { entered: { read_value: 30 } } },
       Vas_m3: { state: 'E', value: 0.05, origin: 'entered', readings: { entered: { read_value: 0.05 } } },

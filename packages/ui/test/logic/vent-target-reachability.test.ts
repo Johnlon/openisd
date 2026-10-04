@@ -45,7 +45,6 @@ function blankDriverRecord(): unknown {
     sku: { value: '', grounds: [{ origin: 'entered', reading: '' }] },
     driver_type: { value: 'woofer' },
     data_sources: { value: {} },
-    authoritative: { value: 'openisd' },
     specs: { woofer: {} },
   };
 }

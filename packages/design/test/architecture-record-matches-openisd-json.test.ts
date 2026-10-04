@@ -23,10 +23,13 @@ describe('OpenISDDeviceJson matches the openisd.json record', () => {
   // model requires it" from "every record we happen to hold has it".
   const ALWAYS = [
     'uuid', 'quality', 'manufacturer', 'brand', 'model', 'sku',
-    'driver_type', 'data_sources', 'authoritative', 'specs',
+    'driver_type', 'data_sources', 'specs',
   ];
+  // `authoritative` is retired (John, 2026-10-04: "kill it" — the app picks the origin itself,
+  // selectOrigin.ts). Records written before winisd_tools stopped emitting it still carry it, so
+  // it stays readable, optional, and is never written.
   const SOMETIMES = [
-    'series', 'nominal_size_cm', 'product_image', 'description',
+    'authoritative', 'series', 'nominal_size_cm', 'product_image', 'description',
     'surround_material', 'provided_by', 'comment', 'added', 'curves',
   ];
 

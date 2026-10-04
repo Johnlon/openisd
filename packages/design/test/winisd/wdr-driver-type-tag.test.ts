@@ -50,7 +50,6 @@ describe('refusal of tweeter record', () => {
       sku: { value: 'T-1', grounds: [{ origin: 'manual' as const, reading: 'T-1' }] },
       driver_type: { value: 'tweeter' },
       data_sources: { value: {} },
-      authoritative: { value: 'openisd' },
       specs: { tweeter: {} },
     };
 

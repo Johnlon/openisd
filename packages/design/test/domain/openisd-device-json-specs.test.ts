@@ -23,7 +23,6 @@ function record(specs: unknown): unknown {
     sku: {value: 'RS225', grounds: [{origin: 'manual', reading: 'RS225'}]},
     driver_type: {value: 'woofer'},
     data_sources: {value: {}},
-    authoritative: {value: 'openisd'},
     specs,
   };
 }

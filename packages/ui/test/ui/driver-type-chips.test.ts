@@ -90,7 +90,6 @@ function driverOf(name: string, driverType: string): import('@openisd/design').O
     sku: { value: '', grounds: [{ origin: 'manufacturer_datasheet', reading: '' }] },
     driver_type: scraped(driverType),
     data_sources: { value: {} },
-    authoritative: { value: 'manual' },
     quality: {
       confirmed_fields: [], fields_with_issues: [], missing: [], invalid: [],
       parse_errors: [], cross_source_only: [],

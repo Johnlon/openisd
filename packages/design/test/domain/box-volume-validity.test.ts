@@ -27,7 +27,6 @@ function driverFor(engine: Engine): OpenISDDriver {
     sku: {value: 'TEST-SKU', grounds: [{origin: 'manufacturer_datasheet', reading: 'TEST-SKU'}]},
     driver_type: scraped('woofer'),
     data_sources: {value: {manufacturer_datasheet: 'https://example.invalid/ds.pdf'}},
-    authoritative: {value: 'manufacturer_datasheet'},
     quality: {
       confirmed_fields: [], fields_with_issues: [], missing: [], invalid: [],
       parse_errors: [], cross_source_only: [],

@@ -25,13 +25,7 @@ import type {DriverSpecsSection, OpenISDDeviceJson, SpecEntryJson} from './openi
  *
  * There is no source document, so every field this record can source is marked `manual`
  * (`SourceRole.MANUAL` — "a hand-entered value", `record_registries.py`).
- *
- * `authoritative` is required by the schema below but has no honest value for a `.wdr` import:
- * there is no document to name, and `manual` is barred from `data_sources` in the format this
- * field describes (winisd_tools `model_driver.py`). `openisd` is the pipeline's own role,
- * declared for exactly this case (`record_registries.py`: "a record's own provenance"). This is
- * a placeholder, not a considered choice — `authoritative`'s future is unsettled (John,
- * 2026-09-01: "it's total crap").
+
  */
 /**
  * /**
@@ -220,7 +214,6 @@ export function winISDDriverToOpenISDDeviceJson(wdr: WinISDDriver):
         sku: {value: model, grounds: [{origin: 'manual', reading: model}]},
         driver_type: {value: 'woofer'},
         data_sources: {value: {}},
-        authoritative: {value: 'openisd'},
         ...(providedBy ? {provided_by: providedBy} : {}),
         ...(comment ? {comment} : {}),
         ...(added ? {added} : {}),

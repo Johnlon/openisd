@@ -91,7 +91,6 @@ export function deviceRecord(d: SeedDriver, recordUuid: string): unknown {
     sku: { value: '', grounds: [{ origin: 'manual', reading: '' }] },
     driver_type: { value: (d.driverType ?? DriverType.Woofer).value },
     data_sources: { value: {} },
-    authoritative: { value: 'openisd' },
     specs: { woofer: specEntries },
   };
 }

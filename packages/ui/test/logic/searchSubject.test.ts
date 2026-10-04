@@ -35,7 +35,6 @@ const driver: OpenISDDriver = (() => {
     sku: { value: '', grounds: [{ origin: 'manufacturer_datasheet', reading: '' }] },
     driver_type: scraped('subwoofer'),
     data_sources: { value: {} },
-    authoritative: { value: 'manual' },
     quality: { confirmed_fields: [], fields_with_issues: [], missing: [], invalid: [], parse_errors: [], cross_source_only: [] },
     specs: { woofer: { Fs_hz: spec(45), Sd_m2: spec(0.0075), Znom_ohm: spec(4) } },
   }, createEngine());

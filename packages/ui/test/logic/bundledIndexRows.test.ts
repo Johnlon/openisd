@@ -78,7 +78,6 @@ function recordOf(p: DeviceFixture) {
     sku: { value: '', grounds: [{ origin: 'manufacturer_datasheet', reading: '' }] },
     driver_type: scraped(p.driverType),
     data_sources: { value: p.sources ?? {} },
-    authoritative: { value: 'manual' },
     quality: {
       confirmed_fields: [], fields_with_issues: [], missing: [], invalid: [],
       parse_errors: [], cross_source_only: [],
