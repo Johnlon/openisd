@@ -50,7 +50,7 @@ Box-type dispatcher 0x566850: 0 sealed 0x4618f0, 1 vented 0x456800, 2 bp4 0x457a
    charts plus SPL, excursion, VA, max SPL/power. Sealed is exact, so any gap is the filter's.
 2. ✅ **Vented** — full chart pass, then one capture with a filter.
 3. **Passive radiator**, then **bandpass 4th** — the same.
-4. **Human re-verification (QO170)** — every WinISD bug claimed from debugger/disassembly/scripted
+4. ✅ **Human re-verification (QO170)**, done 2026-10-04 — every WinISD bug claimed from debugger/disassembly/scripted
    runs is reproduced by hand in WinISD with John before it counts as fact. Filter bugs: the seven
    `bugs/BUG_20260927_winisd-*` filter files. Add each new claimed WinISD bug to QO170.
 

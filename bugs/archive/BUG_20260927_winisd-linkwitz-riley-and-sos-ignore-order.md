@@ -16,8 +16,9 @@ Copied: `filters.ts` `passFilter` keeps the order field (it round-trips through 
 ignores it for Linkwitz-Riley and SOS, commit bcb445e5, pinned by `filters-winisd.test.ts`.
 Filters tab caption shows n=4 for Linkwitz-Riley, as WinISD does (`logic/filterCaption.ts`).
 
-## ⚠ Human re-verification pending (QO170)
+## Checked by hand (QO170, 2026-10-04)
 
-Found by debugger, disassembly and scripted runs only. Not yet reproduced by hand in WinISD's own
-window. Treat as unconfirmed until John and an agent check it together (QO170); record the result
-here.
+SEEN, with one correction. A typed Linkwitz-Riley order of 2 or 6 gives caption order 4, and the box reopens at
+4.000: the editor does not keep the typed order. (The claim that a loaded file keeps the typed order is not
+what the editor does.) SOS order 4 reads −12.4 dB at 100 Hz, the same curve as order 2. Screenshots
+(`winisd_research/runs/qo170-bessel/`): `lr_1_order2…png` / `lr_2_order6…png`, `sos_1_order4…png` / `sos_2_order2…png`.

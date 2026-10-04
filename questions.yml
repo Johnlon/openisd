@@ -9727,7 +9727,7 @@ questions:
     text: No migration
 - id: QO170
   title: Re-check every claimed WinISD filter bug by hand with John
-  status: open
+  status: done
   raised: '2026-09-27'
   body: |-
     On 2026-09-27 an agent recorded seven WinISD bugs in the EQ/Filter chain, from debugger logs, disassembly and scripted runs of WinISD. None has been checked by a person in WinISD's own window. Each must be reproduced by hand with John before it is treated as fact, and before OpenISD's copy (or refusal to copy) of it is final.
@@ -9749,6 +9749,9 @@ questions:
   - at: '2026-10-01'
     text: 'Item 6 confirmed by John: WinISD gets a floating-point overflow above order 10, shown in a
       modal error dialog (what looked like a hang). OpenISD now allows orders up to 20.'
+  - at: '2026-10-04'
+    text: 'Re-checked by hand in WinISD under Wine, with before/after screenshots. SEEN: items 1 (save drops filters), 2 (Bessel high-pass), 3 (Allpass t/Q, order 4 = order 2), 4 (LR and SOS ignore the order; the editor rewrites a typed LR order to 4); VA rows 1 and 2 (flat band 0.97 at Rg 0.1 ohm, 0.50 at 3.4 ohm; driver side 0.336). PARTLY: item 7 (zero-box skip is on the group-delay charts only, not every chart). NOT SEEN, not reachable by hand: item 5 (unwrap needs a point within 1e-10 Hz of a wrap); stays disassembly-only. Evidence: winisd_research/PROBE_FINDINGS.md, section QO170, and each bug file. Still open and John-decided, not part of this check: the Allpass definition (row 5) and what Linkwitz-Riley / SOS orders mean (row 6), so no switch yet.'
+
 - id: QO171
   title: Filter edit rework started then abandoned after a wrong review
   status: done

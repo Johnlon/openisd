@@ -17,8 +17,8 @@ commit bcb445e5, pinned by `filters-winisd.test.ts` (captures `2|0;1;2;0.003;0.6
 `2|0;1;3;0.004;0.8`, `2|0;1;4;0.002;0.7`). Stretch, not built: a conventional allpass where t is
 the delay and every order is honoured.
 
-## ⚠ Human re-verification pending (QO170)
+## Checked by hand (QO170, 2026-10-04)
 
-Found by debugger, disassembly and scripted runs only. Not yet reproduced by hand in WinISD's own
-window. Treat as unconfirmed until John and an agent check it together (QO170); record the result
-here.
+SEEN. The group-delay plateau is 3.0 ms at order 1 and 5.0 ms at order 2 with Q 0.6 (t/Q), and the order 4 chart
+is pixel-identical to order 2. Screenshots (`winisd_research/runs/qo170-allpass/`): `allpass_3_n1…png` (3 ms), `allpass_1_n2…png`
+(5 ms), `allpass_2_n4…png` (identical to order 2).

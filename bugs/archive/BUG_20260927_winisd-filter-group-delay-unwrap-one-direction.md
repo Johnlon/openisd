@@ -18,8 +18,8 @@ matches WinISD's to its rounding noise over every capture (`filters-winisd.test.
 branch needs a +2π phase jump inside a 2e-10 Hz step and was never seen in 34 000 logged points.
 Revisit only if a capture shows a spike.
 
-## ⚠ Human re-verification pending (QO170)
+## Checked by hand (QO170, 2026-10-04)
 
-Found by debugger, disassembly and scripted runs only. Not yet reproduced by hand in WinISD's own
-window. Treat as unconfirmed until John and an agent check it together (QO170); record the result
-here.
+NOT SEEN, not reachable by hand. A spike needs a plotted point within 1e-10 Hz of a phase wrap, and the
+Allpass wrap at 106 Hz is smooth. It stays a disassembly-only claim. Screenshot:
+`winisd_research/runs/qo170-allpass/allpass_1_n2…png`.
