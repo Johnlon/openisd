@@ -178,7 +178,7 @@ test.describe('No-project shell', () => {
     test('Open shows saved browser projects with Import from disk first', async ({ page }) => {
       await page.goto('/');
 
-      await page.getByTitle('Open project').click();
+      await page.getByTitle('Open project', {exact: true}).click();
       const dialog = page.locator('.open-project-dialog');
       await expect(dialog).toBeVisible();
       await expect(dialog.locator('button').first()).toHaveText('Import from disk');
@@ -198,7 +198,7 @@ test.describe('No-project shell', () => {
       }, readFileSync(OWPR, 'utf8'));
       await page.goto('/');
 
-      await page.getByTitle('Open project').click();
+      await page.getByTitle('Open project', {exact: true}).click();
       await page.locator('.open-project-dialog').getByRole('button', { name: 'Import from disk' }).click();
 
       await expect(page.locator('.projects-list')).toContainText('picked-design');
