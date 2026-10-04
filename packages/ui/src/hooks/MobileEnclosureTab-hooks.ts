@@ -24,7 +24,7 @@ export function useMobileEnclosureTab() {
   const { selectedBox } = createSelectedBox({ focusedProject, projectChanged, isSimulatable: boxTypeIsSimulatable });
   const { advAir } = createEnvironmentAir({ project, projectChanged, envDefaults, environment: engine.environment });
   const {
-    activeVent, activeTuning, portPipeResonance_hz, fbState, ventLState, fbUnreachable, fbUnreachableMsg, frontChamberTuningLabel,
+    activeVent, activeTuning, portPipeResonance_hz, fbState, ventLState, fbUnreachable, fbUnreachableMsg, frontChamberTuningLabel, setFbTarget,
   } = createVentReadouts({ project, projectChanged, selectedBox, air: advAir, vent: engine.vent });
   const { prAddedMassDq, prTuningDq, prResonanceMassDq, prFsMass_hz } =
     createSealedReadouts({ project, selectedBox, projectChanged });
@@ -39,10 +39,6 @@ export function useMobileEnclosureTab() {
   function setVentLength(v: number | null): void {
     if (v == null || Number.isNaN(v) || v <= 0) clearVentFieldOn(project.value, 'ventL');
     else enterVentFieldOn(project.value, 'ventL', v);
-  }
-  function setFbTarget(v: number | null): void {
-    if (v == null || Number.isNaN(v) || v <= 0) clearVentFieldOn(project.value, 'Fb');
-    else enterVentFieldOn(project.value, 'Fb', v);
   }
 
   return {

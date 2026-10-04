@@ -4,9 +4,11 @@
  * "what does the Box tab's Volume field do", asked by both shells.
  */
 import {computed, ref} from 'vue';
-import {boxTypeIsSimulatable, focusedProject, projectChanged} from '../logic/appState.js';
+import {boxTypeIsSimulatable, envDefaults, focusedProject, projectChanged} from '../logic/appState.js';
 import {useFocusedProject} from '../logic/focusedProjectContext.js';
 import {useApp} from '../logic/app.js';
+import {createEnvironmentAir} from './OriginalShell-hooks.js';
+import {createVentReadouts, FB_TARGET_TIP} from './ventReadouts.js';
 import {createBoxVolume, createChamberFields, createSealedReadouts, createSelectedBox} from './boxFields.js';
 import {SealedAlignmentEditor} from './SealedAlignment-hooks.js';
 import {VentedAlignmentEditor} from './VentedAlignment-hooks.js';
@@ -20,6 +22,8 @@ export function useMobileBoxTab() {
   const { selectedBox, pending, isDual, boxLabel, showEnclosureTab, enclosureNavLabel } =
     createSelectedBox({ focusedProject, projectChanged, isSimulatable });
   const { boxResonance, rearQtc } = createSealedReadouts({ project, selectedBox, projectChanged });
+  const { advAir } = createEnvironmentAir({ project, projectChanged, envDefaults, environment: engine.environment });
+  const { activeTuning, fbState, setFbTarget } = createVentReadouts({ project, projectChanged, selectedBox, air: advAir, vent: engine.vent });
   const { boxVolume_m3, boxVolumeDqNote, setBoxVolume_m3 } = createBoxVolume({ project, selectedBox, projectChanged });
   const { frontVolume_m3, setFrontVolume_m3, frcHz, setFrcHz } = createChamberFields({ project, selectedBox, projectChanged });
   // Box-losses (Ql/Qa/Qp) — the per-box-type dispatch now lives in the domain
@@ -73,6 +77,7 @@ export function useMobileBoxTab() {
   return {
     project, selectedBox, pending, isDual, boxLabel, frontVolume_m3, setFrontVolume_m3, frcHz, setFrcHz, showEnclosureTab, enclosureNavLabel,
     boxResonance, rearQtc, boxVolume_m3, boxVolumeDqNote, setBoxVolume_m3,
+    activeTuning, fbState, setFbTarget, FB_TARGET_TIP,
     selectBoxType, BOX_TYPE_OPTIONS,
     sealedAlignmentEditor, sealedAlignmentOpen, sealedAlignmentOptions, sealedAlignmentSelected,
     sealedAlignmentVolume_L, sealedAlignmentEbp, sealedAlignmentSuitability, sealedAlignmentSuitabilityLabel,

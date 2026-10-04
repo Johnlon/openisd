@@ -6,7 +6,7 @@
  */
 import {computed} from 'vue';
 import type {ComputedRef, Ref} from 'vue';
-import {ventFieldState as ventFieldStateOn} from '../logic/useVentGroup.js';
+import {clearVentField as clearVentFieldOn, enterVentField as enterVentFieldOn, ventFieldState as ventFieldStateOn} from '../logic/useVentGroup.js';
 import type {OpenISDProject} from '@openisd/design';
 import type {BoxType, EnvironmentEngine, VentEngine} from '@openisd/design/engine';
 
@@ -79,5 +79,11 @@ export function createVentReadouts({ project, projectChanged: changed, selectedB
   /** The front chamber of a bandpass is vented on its OWN volume, so it carries its own symbol. */
   const frontChamberTuningLabel = computed(() =>
     DUAL_CHAMBER.has(selectedBox.value) ? 'Target Tuning Freq (Ffc)' : 'Target Tuning Freq');
-  return { activeVent, activeTuning, portPipeResonance_hz, fbState, ventLState, fbUnreachable, fbUnreachableMsg, frontChamberTuningLabel };
+  /** Typing a tuning enters Fb; clearing it (or a non-positive value) hands Fb back to the solver. */
+  function setFbTarget(v: number | null): void {
+    if (v == null || Number.isNaN(v) || v <= 0) clearVentFieldOn(project.value, 'Fb');
+    else enterVentFieldOn(project.value, 'Fb', v);
+  }
+
+  return { activeVent, activeTuning, portPipeResonance_hz, fbState, ventLState, fbUnreachable, fbUnreachableMsg, frontChamberTuningLabel, setFbTarget };
 }
