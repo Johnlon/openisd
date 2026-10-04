@@ -228,7 +228,7 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
     const Fs_hz = driver.specs.Fs_hz.value;
     const Qts = driver.specs.Qts.value;
     const Vas_m3 = driver.specs.Vas_m3.value;
-    if (Fs_hz != null) lines.push(`Fs: ${Fs_hz} Hz`);
+    if (Fs_hz != null) lines.push(`Fs: ${Fs_hz} ${NumberField.FS_HZ.unitLabel()}`);
     if (Qts != null) lines.push(`Qts: ${Qts}`);
     if (Vas_m3 != null) lines.push(`Vas: ${NumberField.VAS_M3.format(Vas_m3)} ${NumberField.VAS_M3.unitLabel()}`);
     return lines;

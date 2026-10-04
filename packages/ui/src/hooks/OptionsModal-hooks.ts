@@ -13,6 +13,7 @@
  */
 import {computed, type ComputedRef, ref, type Ref} from 'vue';
 import type {Air, ChartId, EnvDefaults, EnvironmentEngine, VentedDesignLimits} from '@openisd/design/engine';
+import {NumberField} from '@openisd/design/fields';
 import {
   envDefaults as appEnvDefaults,
   FACTORY_ENV_DEFAULTS,
@@ -53,23 +54,23 @@ export interface LimitRow {
  * transfer func mag" is OpenISD's filter-magnitude chart, `FltMag`.
  */
 export const LIMIT_ROWS: readonly LimitRow[] = [
-  { tab: 'TFMag',     label: 'Transfer func. magn.',  start: -30,  end: 6,    unit: 'dB' },
-  { tab: 'FltMag',    label: 'EQ transfer func mag',  start: -40,  end: 20,   unit: 'dB' },
+  { tab: 'TFMag',     label: 'Transfer func. magn.',  start: -30,  end: 6,    unit: NumberField.SPL_DB.unitLabel() },
+  { tab: 'FltMag',    label: 'EQ transfer func mag',  start: -40,  end: 20,   unit: NumberField.SPL_DB.unitLabel() },
   { tab: 'Phase',     label: 'Transfer func. phase',  start: -180, end: 180,  unit: 'deg' },
-  { tab: 'SPL',       label: 'SPL',                   start: 40,   end: 115,  unit: 'dB' },
+  { tab: 'SPL',       label: 'SPL',                   start: 40,   end: 115,  unit: NumberField.SPL_DB.unitLabel() },
   { tab: 'Excursion', label: 'Cone excursion',        start: 0.0,  end: 30.0, unit: 'mm peak' },
-  { tab: 'Zmag',      label: 'Impedance',             start: 0,    end: 150,  unit: 'ohm' },
+  { tab: 'Zmag',      label: 'Impedance',             start: 0,    end: 150,  unit: NumberField.ZNOM_OHM.unitLabel() },
   { tab: 'Zph',       label: 'Impedance phase',       start: -90,  end: 90,   unit: 'deg' },
   { tab: 'GD',        label: 'Group delay',           start: 0,    end: 40,   unit: 'ms' },
-  { tab: 'MaxPwr',    label: 'Maximum power',         start: 0,    end: 500,  unit: 'W' },
+  { tab: 'MaxPwr',    label: 'Maximum power',         start: 0,    end: 500,  unit: NumberField.POWER_PEAK_W.unitLabel() },
   { tab: 'RearPort',  label: 'Rear port - Air velocity',  start: 0.00, end: 40.00, unit: 'm/s peak' },
   { tab: 'FrontPort', label: 'Front port - Air velocity', start: 0.00, end: 40.00, unit: 'm/s peak' },
 ];
 
 export interface OptionsModalAPI {
   /** The band being edited, in the units on screen. Editing these writes nothing. */
-  readonly minVolume_L: Ref<number>;
-  readonly maxVolume_L: Ref<number>;
+  readonly minVolume_m3: Ref<number>;
+  readonly maxVolume_m3: Ref<number>;
   readonly minTuning_hz: Ref<number>;
   readonly maxTuning_hz: Ref<number>;
   /** The environment being edited. Editing these writes nothing. */
@@ -100,7 +101,6 @@ export interface OptionsModalAPI {
   apply(): void;
 }
 
-const LITRES_PER_M3 = 1000;
 
 function isPositive(v: number): boolean {
   return Number.isFinite(v) && v > 0;
@@ -120,8 +120,8 @@ export function useOptionsModal(deps?: OptionsModalDeps): OptionsModalAPI {
   };
 
   const band = settings.ventedLimits();
-  const minVolume_L = ref(band.minVb_m3 * LITRES_PER_M3);
-  const maxVolume_L = ref(band.maxVb_m3 * LITRES_PER_M3);
+  const minVolume_m3 = ref(band.minVb_m3);
+  const maxVolume_m3 = ref(band.maxVb_m3);
   const minTuning_hz = ref(band.minFb_hz);
   const maxTuning_hz = ref(band.maxFb_hz);
 
@@ -141,8 +141,8 @@ export function useOptionsModal(deps?: OptionsModalDeps): OptionsModalAPI {
 
   /** The edited values as the band they would become — not yet checked. */
   const editedBand = computed<VentedDesignLimits>(() => ({
-    minVb_m3: minVolume_L.value / LITRES_PER_M3,
-    maxVb_m3: maxVolume_L.value / LITRES_PER_M3,
+    minVb_m3: minVolume_m3.value,
+    maxVb_m3: maxVolume_m3.value,
     minFb_hz: minTuning_hz.value,
     maxFb_hz: maxTuning_hz.value,
   }));
@@ -207,8 +207,8 @@ export function useOptionsModal(deps?: OptionsModalDeps): OptionsModalAPI {
   const defaultAir = computed<Air>(() => settings.environment.solve(editedEnv.value).values);
 
   function resetLimits(): void {
-    minVolume_L.value = FACTORY_VENTED_LIMITS.minVb_m3 * LITRES_PER_M3;
-    maxVolume_L.value = FACTORY_VENTED_LIMITS.maxVb_m3 * LITRES_PER_M3;
+    minVolume_m3.value = FACTORY_VENTED_LIMITS.minVb_m3;
+    maxVolume_m3.value = FACTORY_VENTED_LIMITS.maxVb_m3;
     minTuning_hz.value = FACTORY_VENTED_LIMITS.minFb_hz;
     maxTuning_hz.value = FACTORY_VENTED_LIMITS.maxFb_hz;
   }
@@ -226,7 +226,7 @@ export function useOptionsModal(deps?: OptionsModalDeps): OptionsModalAPI {
   }
 
   return {
-    minVolume_L, maxVolume_L, minTuning_hz, maxTuning_hz,
+    minVolume_m3, maxVolume_m3, minTuning_hz, maxTuning_hz,
     tempK, humidityPct, pressurePa,
     freqRangeDraft, setFreqRange,
     error, canApply, limitsAreFactory, envIsFactory, defaultAir,

@@ -106,7 +106,7 @@ test('a band the user narrows marks the wizard readout — the value itself is u
 
   // The designed numbers are NEVER changed by a mark — the readout still shows a real box.
   const readout = modal.locator('.readout-box');
-  await expect(readout).not.toContainText('Box volume: 0.0 l');
+  await expect(readout).not.toContainText('Box volume: 0.0 L');
   await expect(readout).not.toContainText('Tuning frequency: 0.0 Hz');
 });
 

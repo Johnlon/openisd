@@ -13,6 +13,7 @@ import UnitToggle from '../../components/UnitToggle.vue';
 import PRBrowser from '../../components/PRBrowser.vue';
 import PREditModal from '../../components/PREditModal.vue';
 import {useMobileEnclosureTab} from '../../../hooks/MobileEnclosureTab-hooks.js';
+import {useUnitReadouts} from '../../../hooks/useUnitReadouts.js';
 
 const {
   project, selectedBox,
@@ -23,6 +24,7 @@ const {
   VENT_SHAPE_OPTIONS, END_CORRECTION_OPTIONS, VENT_COUNT_OPTIONS, PR_COUNT_OPTIONS,
   FB_TARGET_TIP, VENT_GEOMETRY_TIP,
 } = useMobileEnclosureTab();
+const {fieldWithUnit} = useUnitReadouts();
 </script>
 
 <template>
@@ -212,7 +214,7 @@ const {
     </div>
     <div class="mob-field-row mob-field-calculated" :class="{ 'mob-field-dq': prResonanceMassDq.dq.length > 0 }" :title="prResonanceMassDq.dq.length > 0 ? prResonanceMassDq.dq.join('; ') : ''">
       <div class="mob-field-main"><span class="mob-field-label">Fpr (with added mass)</span>
-        <span class="mob-field-value mob-readonly">{{ prFsMass_hz != null ? NumberField.PR_FSMASS_HZ.fixed(prFsMass_hz) + ' Hz' : '—' }}</span>
+        <span class="mob-field-value mob-readonly">{{ fieldWithUnit(NumberField.PR_FSMASS_HZ, prFsMass_hz, '—') }}</span>
       </div>
     </div>
   </div>

@@ -19,7 +19,7 @@ const { driveV, reconcileDriveV, powerLocked, rsOhm, powerDq, voltageDq, power_W
         </span>
         <span v-if="powerDq.dq.length" class="mob-field-dq-note">{{ powerDq.dq[0] }}</span>
       </div>
-      <span class="mob-unit">W</span>
+      <span class="mob-unit">{{ NumberField.SIGNAL_PIN_W.unitLabel() }}</span>
     </div>
 
     <div class="mob-field-row mob-field-entered" :class="{ 'mob-field-dq': voltageDq.dq.length > 0 }">
@@ -29,7 +29,7 @@ const { driveV, reconcileDriveV, powerLocked, rsOhm, powerDq, voltageDq, power_W
           <NumInput :field="NumberField.SIGNAL_DRIVEV_V" v-model="driveV" :precision="NumberField.SIGNAL_DRIVEV_V.precision" @blur-notify="reconcileDriveV" stepper />
         </span>
       </div>
-      <span class="mob-unit">V</span>
+      <span class="mob-unit">{{ NumberField.SIGNAL_DRIVEV_V.unitLabel() }}</span>
     </div>
 
     <div class="mob-field-row mob-field-entered">
@@ -37,7 +37,7 @@ const { driveV, reconcileDriveV, powerLocked, rsOhm, powerDq, voltageDq, power_W
         <span class="mob-field-label">Series resistance</span>
         <span class="mob-field-value"><NumInput v-model="rsOhm" :precision="NumberField.SIGNAL_RS_OHM.precision" stepper /></span>
       </div>
-      <span class="mob-unit">ohm</span>
+      <span class="mob-unit">{{ NumberField.SIGNAL_RS_OHM.unitLabel() }}</span>
     </div>
   </div>
 </template>

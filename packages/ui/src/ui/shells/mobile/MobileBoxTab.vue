@@ -8,6 +8,7 @@ import BoxTypeDiagram from '../../components/BoxTypeDiagram.vue';
 import NumInput from '../../components/NumInput.vue';
 import UnitToggle from '../../components/UnitToggle.vue';
 import { useMobileBoxTab } from '../../../hooks/MobileBoxTab-hooks.js';
+import { useUnitReadouts } from '../../../hooks/useUnitReadouts.js';
 
 const {
   selectedBox, pending, isDual, frontVolume_m3, setFrontVolume_m3, frcHz, setFrcHz, boxLabel, showEnclosureTab, enclosureNavLabel,
@@ -20,6 +21,7 @@ const {
   ventedAlignmentSuitabilityLabel,
   boxQl, setBoxQl, boxQa, setBoxQa, boxQp, setBoxQp, boxLossesOpen,
 } = useMobileBoxTab();
+const { fieldWithUnit, readoutWithUnit } = useUnitReadouts();
 </script>
 
 <template>
@@ -65,7 +67,7 @@ const {
     <div v-else class="mob-field-row mob-field-calculated">
       <div class="mob-field-main">
         <span class="mob-field-label">{{ selectedBox === 'box-passive-radiator' ? 'Fh' : 'Fsc' }}</span>
-        <span class="mob-field-value mob-readonly">{{ boxResonance != null ? NumberField.BOX_RESONANCE_HZ.fixed(boxResonance) + ' Hz' : '—' }}</span>
+        <span class="mob-field-value mob-readonly">{{ fieldWithUnit(NumberField.BOX_RESONANCE_HZ, boxResonance, '—') }}</span>
       </div>
     </div>
     <div v-if="selectedBox === 'sealed'" class="mob-field-row mob-field-calculated">
@@ -125,11 +127,11 @@ const {
                    @input="sealedAlignmentVolume_L = Number(($event.target as HTMLInputElement).value)">
           </span>
         </div>
-        <span class="mob-unit">L</span>
+        <span class="mob-unit">{{ ReadoutFormat.ALIGNMENT_VOLUME_L.unitLabel({}) }}</span>
       </div>
       <div class="mob-align-readout">
         <span class="mob-align-dot" :class="sealedAlignmentSuitability ?? 'unknown'"></span>
-        <span>EBP {{ ReadoutFormat.EBP.text(sealedAlignmentEbp, '—') }} Hz — {{ sealedAlignmentSuitabilityLabel }}</span>
+        <span>EBP {{ readoutWithUnit(ReadoutFormat.EBP, sealedAlignmentEbp, '—') }} — {{ sealedAlignmentSuitabilityLabel }}</span>
       </div>
       <div class="mob-align-footer">
         <button class="mob-btn" @click="sealedAlignmentEditor.cancel">Cancel</button>
@@ -154,18 +156,18 @@ const {
       <div class="mob-field-row mob-field-calculated">
         <div class="mob-field-main">
           <span class="mob-field-label">Volume</span>
-          <span class="mob-field-value mob-readonly">{{ ventedAlignmentVolume_L == null ? '—' : ReadoutFormat.ALIGNMENT_VOLUME_L.text(ventedAlignmentVolume_L, '—') + ' L' }}</span>
+          <span class="mob-field-value mob-readonly">{{ readoutWithUnit(ReadoutFormat.ALIGNMENT_VOLUME_L, ventedAlignmentVolume_L, '—') }}</span>
         </div>
       </div>
       <div class="mob-field-row mob-field-calculated">
         <div class="mob-field-main">
           <span class="mob-field-label">Tuning freq (Fb)</span>
-          <span class="mob-field-value mob-readonly">{{ ventedAlignmentTuning_hz == null ? '—' : ReadoutFormat.TUNING_HZ.text(ventedAlignmentTuning_hz, '—') + ' Hz' }}</span>
+          <span class="mob-field-value mob-readonly">{{ readoutWithUnit(ReadoutFormat.TUNING_HZ, ventedAlignmentTuning_hz, '—') }}</span>
         </div>
       </div>
       <div class="mob-align-readout">
         <span class="mob-align-dot" :class="ventedAlignmentSuitability ?? 'unknown'"></span>
-        <span>EBP {{ ReadoutFormat.EBP.text(ventedAlignmentEbp, '—') }} Hz — {{ ventedAlignmentSuitabilityLabel }}</span>
+        <span>EBP {{ readoutWithUnit(ReadoutFormat.EBP, ventedAlignmentEbp, '—') }} — {{ ventedAlignmentSuitabilityLabel }}</span>
       </div>
       <div class="mob-align-footer">
         <button class="mob-btn" @click="ventedAlignmentEditor.cancel">Cancel</button>

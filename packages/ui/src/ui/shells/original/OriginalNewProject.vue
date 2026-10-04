@@ -6,6 +6,7 @@
 import { onBeforeUnmount } from 'vue';
 import { ReadoutFormat } from '@openisd/design/fields';
 import { useOgNewProject } from '../../../hooks/OriginalNewProject-hooks.js';
+import { useUnitReadouts } from '../../../hooks/useUnitReadouts.js';
 import { useEscToClose } from '../../../logic/useEscToClose.js';
 import { useApp } from '../../../logic/app.js';
 import BoxTypeDiagram from '../../components/BoxTypeDiagram.vue';
@@ -16,6 +17,7 @@ const emit = defineEmits<{ close: [] }>();
 
 const { driverBrowsing } = useApp();
 const wizard = useOgNewProject();
+const { readoutWithUnit } = useUnitReadouts();
 
 const {
   step,
@@ -176,11 +178,11 @@ function handleCreate() {
           <!-- Sealed and vented boxes take their volume from the alignment step; the other types start here. -->
           <div v-if="!isSealed && !isVented" class="volume-fields">
             <template v-if="!isDual">
-              <div class="field-row"><div class="field"><label>Starting volume</label><input type="number" step="0.1" v-limits="{ min: 0.1, max: 100000 }" v-model.number="vol"><span class="unit">l</span></div></div>
+              <div class="field-row"><div class="field"><label>Starting volume</label><input type="number" step="0.1" v-limits="{ min: 0.1, max: 100000 }" v-model.number="vol"><span class="unit">{{ ReadoutFormat.PROJECT_VOLUME_L.unitLabel({}) }}</span></div></div>
             </template>
             <template v-else>
-              <div class="field-row"><div class="field"><label>Rear chamber volume</label><input type="number" step="0.1" v-limits="{ min: 0.1, max: 100000 }" v-model.number="vol"><span class="unit">l</span></div></div>
-              <div class="field-row"><div class="field"><label>Front chamber volume</label><input type="number" step="0.1" v-limits="{ min: 0.1, max: 100000 }" v-model.number="frontVol"><span class="unit">l</span></div></div>
+              <div class="field-row"><div class="field"><label>Rear chamber volume</label><input type="number" step="0.1" v-limits="{ min: 0.1, max: 100000 }" v-model.number="vol"><span class="unit">{{ ReadoutFormat.PROJECT_VOLUME_L.unitLabel({}) }}</span></div></div>
+              <div class="field-row"><div class="field"><label>Front chamber volume</label><input type="number" step="0.1" v-limits="{ min: 0.1, max: 100000 }" v-model.number="frontVol"><span class="unit">{{ ReadoutFormat.PROJECT_VOLUME_L.unitLabel({}) }}</span></div></div>
             </template>
           </div>
         </div>
@@ -198,7 +200,7 @@ function handleCreate() {
           <div class="field-row">
             <div class="field"><label>Box volume</label>
               <input type="number" step="0.1" v-limits="{ min: 0.1, max: 100000 }" v-model.number="sealedVolume_L">
-              <span class="unit">l</span>
+              <span class="unit">{{ ReadoutFormat.PROJECT_VOLUME_L.unitLabel({}) }}</span>
             </div>
           </div>
 
@@ -220,11 +222,11 @@ function handleCreate() {
           </div>
 
           <div class="readout-box">
-            <div class="readout-item"><span>Box volume:</span> <strong>{{ ReadoutFormat.PROJECT_VOLUME_L.text(ventedVolume_L, '--') }} l</strong></div>
+            <div class="readout-item"><span>Box volume:</span> <strong>{{ readoutWithUnit(ReadoutFormat.PROJECT_VOLUME_L, ventedVolume_L, '--') }}</strong></div>
             <!-- The designed value above is WinISD's own and is never changed; these say when it
                  is implausible. Band: Settings → Vented design limits. -->
             <div v-if="ventedVolumeWarning" class="readout-warning" role="alert" aria-live="polite" data-testid="np-vented-volume-warning">{{ ventedVolumeWarning }}</div>
-            <div class="readout-item"><span>Tuning frequency:</span> <strong>{{ ReadoutFormat.TUNING_HZ.text(ventedTuning_hz, '--') }} Hz</strong></div>
+            <div class="readout-item"><span>Tuning frequency:</span> <strong>{{ readoutWithUnit(ReadoutFormat.TUNING_HZ, ventedTuning_hz, '--') }}</strong></div>
             <div v-if="ventedTuningWarning" class="readout-warning" role="alert" aria-live="polite" data-testid="np-vented-tuning-warning">{{ ventedTuningWarning }}</div>
             <div class="readout-item"><span>EBP:</span> <strong>{{ ReadoutFormat.EBP.text(ebp, '--') }}</strong></div>
             <div class="readout-item"><span>Recommendation:</span> <strong>{{ ebpSuitabilityLabel }}</strong></div>

@@ -127,7 +127,9 @@ function boundFields(): Bound[] {
       field,
       scale: evalNum(scaleExpr, 1),
       precision: evalNum(precisionExpr, 2),
-      unit: /<span class="u">([^<]*)<\/span>/.exec(chunk)?.[1]?.trim() ?? '',
+      // A fixed-unit field's label is the registry symbol, drawn by UnitToggle (no literal here).
+      unit: regField instanceof NumberField && /<UnitToggle[^>]*:field=/.test(chunk) ? regField.unitLabel()
+        : /<span class="u">([^<]*)<\/span>/.exec(chunk)?.[1]?.trim() ?? '',
       precisionExpr,
       toggleable: false,
       regField,

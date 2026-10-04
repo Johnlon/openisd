@@ -1,3 +1,4 @@
+import {NumberField} from '@openisd/design/fields';
 import type {PlotData} from '@openisd/design/chart';
 import type {DragRange, Geo} from '../types.js';
 
@@ -46,6 +47,7 @@ export function drawOne(
   const m = { l:44, r:10, t:18, b:20 };
   const pw = W - m.l - m.r, ph = H - m.t - m.b;
   const { freqAxis, levelAxis } = plotData;
+  const hz = NumberField.PLOT_FMIN_HZ.unitLabel();
   const X = (f: number) => m.l + freqAxis.fraction(f) * pw;
   const Y = (v: number) => m.t + (1 - levelAxis.fraction(v)) * ph;
 
@@ -153,7 +155,7 @@ export function drawOne(
     if (readEl) {
       const u = plotData.unit;
       const st = dragRange.stats;
-      let html = `<b>${freqAxis.bandLabel(dragRange.fLo)} Hz</b> – <b>${freqAxis.bandLabel(dragRange.fHi)} Hz</b>`;
+      let html = `<b>${freqAxis.bandLabel(dragRange.fLo)} ${hz}</b> – <b>${freqAxis.bandLabel(dragRange.fHi)} ${hz}</b>`;
       if (st) {
         html += `  Δ <b>${levelAxis.statLabel(st.ripple)} ${u}</b>`;
         html += `<br>peak <b>${levelAxis.statLabel(st.peak)} ${u}</b>  trough <b>${levelAxis.statLabel(st.trough)} ${u}</b>`;
@@ -178,7 +180,7 @@ export function drawOne(
       }
     }
     ctx.setLineDash([]);
-    let html = `<b>${freqAxis.cursorLabel(fx)}Hz</b>`;
+    let html = `<b>${freqAxis.cursorLabel(fx)}${hz}</b>`;
     for (const s of plotData.series) {
       if (s.dash || s.phantom) continue;
       const y = s.ys[bi];

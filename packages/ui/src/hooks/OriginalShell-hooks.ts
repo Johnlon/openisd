@@ -56,7 +56,7 @@ import {createToneGenerator, type ToneGenerator} from '../logic/toneGenerator.js
 import {useApp} from '../logic/app.js';
 import {useEscToClose} from '../logic/useEscToClose.js';
 import {injectSplashModal} from './SplashModal-hooks.js';
-import {ARRAY_WIRING_OPTIONS, BOX_TYPE_OPTIONS, END_CORRECTION_OPTIONS, formatFixed, formatFixedOrDash, LossMode, NumberField, VENT_SHAPE_OPTIONS} from '@openisd/design/fields';
+import {ARRAY_WIRING_OPTIONS, BOX_TYPE_OPTIONS, END_CORRECTION_OPTIONS, formatFixed, formatFixedOrDash, LossMode, NumberField, ReadoutFormat, VENT_SHAPE_OPTIONS} from '@openisd/design/fields';
 import {inputChecked, inputFrom, inputValue, listeningElement, selectedOption, selectValue} from '../logic/domEvents.js';
 import {SealedAlignmentEditor} from './SealedAlignment-hooks.js';
 import {VentedAlignmentEditor} from './VentedAlignment-hooks.js';
@@ -287,6 +287,8 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   /** The chart the toolbar readout reads: the top of the stack. */
   const readoutChart = computed(() => openCharts.value[0]);
   const chartMeta = computed(() => TAB_META[readoutChart.value]);
+  /** The unit the user has rotated each field to; every readout's label and number read it. */
+  const unitTokens = computed<Record<string, string>>(() => presentationState.ui.unitTokens ?? {});
   /** The charts stacked to the chart area's height, chosen in the chart bar; more add columns. */
   const chartsHigh = computed<number>({
     get: () => offeredChartsHigh(presentationState.ui.originalChartsHigh, ORIGINAL_CHARTS_HIGH),
@@ -384,6 +386,13 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   const isHzInputFocused = ref(false);
   const hzInputText = ref('');
 
+  /** The cursor frequency with its unit, in the rotated unit; a dash and the unit when there is none. */
+  const cursorHzText = computed(() => {
+    const label = ReadoutFormat.CURSOR_FREQUENCY_HZ.unitLabel(unitTokens.value);
+    return cursorHz.value != null
+      ? ReadoutFormat.CURSOR_FREQUENCY_HZ.text(cursorHz.value, '', unitTokens.value) + ' ' + label
+      : '— ' + label;
+  });
   watch(cursorHz, (newF) => {
     if (!isHzInputFocused.value) {
       hzInputText.value = newF != null ? formatFixed(newF, 2) : '';
@@ -640,7 +649,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     saveProject, resetProjectToGround, confirmDiscard, about, optionsOpen,
     chartLabel, chartItems, selectChart, toggleChart,
     hzInputText, inputValue, onHzInputFocus, onHzInputBlur, onHzKeydown, onHzWheel,
-    startNudge, stopNudge, cursorHz, cursorVal, chartMeta, inputChecked, selectValue, selectedOption,
+    startNudge, stopNudge, cursorHz, cursorVal, cursorHzText, unitTokens, chartMeta, inputChecked, selectValue, selectedOption,
     WINISD_TRACE, cycleColor, resetChartView, chartMax,
     mainEl, navCollapsed, bottomCollapsed, mainStyle, onNavSplitDown, onBottomSplitDown,
     projectList, isTraceVisible, setTraceVisible, projectDisplayName, projectHasUnsavedChanges, selectProject, project, focused, projectOpen, whatIfActive,

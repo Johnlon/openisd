@@ -82,7 +82,7 @@ async function onBackupFile(e: Event) {
 // (BUG_20261001 options-frequency-range-unvalidated-empty-inverted).
 const {
   tempK, humidityPct, pressurePa, defaultAir, envIsFactory, resetEnv,
-  minVolume_L, maxVolume_L, minTuning_hz, maxTuning_hz, error: limitsError, limitsAreFactory, resetLimits,
+  minVolume_m3, maxVolume_m3, minTuning_hz, maxTuning_hz, error: limitsError, limitsAreFactory, resetLimits,
   setFreqRange,
   canApply, apply: applyAppSettings,
 } = useOptionsModal();
@@ -238,7 +238,7 @@ function limitVal(chartId: ChartId, key: 'min' | 'max'): number | undefined {
                 <div class="opt-fld">
                   <label>Relative humidity</label>
                   <NumInput class="opt-num" :model-value="humidityPct" @update:model-value="(v: number | null) => { if (v !== null) humidityPct = v; }" :field="NumberField.ADV_HUMIDITY_PCT" :precision="2" />
-                  <span class="opt-unit">%</span>
+                  <UnitToggle :field="NumberField.ADV_HUMIDITY_PCT" unit-key="advHumidity" unit-class="opt-unit" />
                 </div>
                 <div class="opt-fld">
                   <label>Air pressure</label>
@@ -250,12 +250,12 @@ function limitVal(chartId: ChartId, key: 'min' | 'max'): number | undefined {
                 <div class="opt-fld">
                   <label>Sound velocity</label>
                   <input class="opt-num opt-greyed" type="text" :value="fmt(defaultAir.c, NumberField.ADV_SOUNDVELOCITY_M_PER_S.precision)" readonly disabled aria-label="Sound velocity, calculated" />
-                  <span class="opt-unit">m/s</span>
+                  <UnitToggle :field="NumberField.ADV_SOUNDVELOCITY_M_PER_S" unit-key="advSoundVelocity" unit-class="opt-unit" />
                 </div>
                 <div class="opt-fld">
                   <label>Air density</label>
                   <input class="opt-num opt-greyed" type="text" :value="fmt(defaultAir.rho, NumberField.ADV_AIRDENSITY_KG_PER_M3.precision)" readonly disabled aria-label="Air density, calculated" />
-                  <span class="opt-unit">kg/m³</span>
+                  <UnitToggle :field="NumberField.ADV_AIRDENSITY_KG_PER_M3" unit-key="advAirDensity" unit-class="opt-unit" />
                 </div>
               </div>
             </div>
@@ -280,25 +280,25 @@ function limitVal(chartId: ChartId, key: 'min' | 'max'): number | undefined {
               <div class="opt-env-col">
                 <div class="opt-fld">
                   <label>Min box volume</label>
-                  <NumInput id="set-min-volume" class="opt-num" :model-value="minVolume_L" @update:model-value="(v: number | null) => { if (v !== null) minVolume_L = v; }" :precision="2" />
-                  <span class="opt-unit">l</span>
+                  <NumInput id="set-min-volume" class="opt-num" :model-value="minVolume_m3" @update:model-value="(v: number | null) => { if (v !== null) minVolume_m3 = v; }" :field="NumberField.BOX_VB_L" unit-key="Vb" />
+                  <UnitToggle :field="NumberField.BOX_VB_L" unit-key="Vb" unit-class="opt-unit" />
                 </div>
                 <div class="opt-fld">
                   <label>Min tuning</label>
-                  <NumInput id="set-min-tuning" class="opt-num" :model-value="minTuning_hz" @update:model-value="(v: number | null) => { if (v !== null) minTuning_hz = v; }" />
-                  <span class="opt-unit">Hz</span>
+                  <NumInput id="set-min-tuning" class="opt-num" :model-value="minTuning_hz" @update:model-value="(v: number | null) => { if (v !== null) minTuning_hz = v; }" :field="NumberField.BOX_FB_HZ" unit-key="Fb" />
+                  <UnitToggle :field="NumberField.BOX_FB_HZ" unit-key="Fb" unit-class="opt-unit" />
                 </div>
               </div>
               <div class="opt-env-col">
                 <div class="opt-fld">
                   <label>Max box volume</label>
-                  <NumInput id="set-max-volume" class="opt-num" :model-value="maxVolume_L" @update:model-value="(v: number | null) => { if (v !== null) maxVolume_L = v; }" :precision="2" />
-                  <span class="opt-unit">l</span>
+                  <NumInput id="set-max-volume" class="opt-num" :model-value="maxVolume_m3" @update:model-value="(v: number | null) => { if (v !== null) maxVolume_m3 = v; }" :field="NumberField.BOX_VB_L" unit-key="Vb" />
+                  <UnitToggle :field="NumberField.BOX_VB_L" unit-key="Vb" unit-class="opt-unit" />
                 </div>
                 <div class="opt-fld">
                   <label>Max tuning</label>
-                  <NumInput id="set-max-tuning" class="opt-num" :model-value="maxTuning_hz" @update:model-value="(v: number | null) => { if (v !== null) maxTuning_hz = v; }" />
-                  <span class="opt-unit">Hz</span>
+                  <NumInput id="set-max-tuning" class="opt-num" :model-value="maxTuning_hz" @update:model-value="(v: number | null) => { if (v !== null) maxTuning_hz = v; }" :field="NumberField.BOX_FB_HZ" unit-key="Fb" />
+                  <UnitToggle :field="NumberField.BOX_FB_HZ" unit-key="Fb" unit-class="opt-unit" />
                 </div>
               </div>
             </div>

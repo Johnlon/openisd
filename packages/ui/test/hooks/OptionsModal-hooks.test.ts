@@ -43,8 +43,8 @@ describe('useOptionsModal — vented design limits', () => {
 
     const dialog = useOptionsModal(settings);
 
-    assert.equal(dialog.minVolume_L.value, 2);
-    assert.equal(dialog.maxVolume_L.value, 500);
+    assert.equal(dialog.minVolume_m3.value, 0.002);
+    assert.equal(dialog.maxVolume_m3.value, 0.5);
     assert.equal(dialog.minTuning_hz.value, 12);
     assert.equal(dialog.maxTuning_hz.value, 120);
   });
@@ -53,8 +53,8 @@ describe('useOptionsModal — vented design limits', () => {
     const settings = fakeSettings();
     const dialog = useOptionsModal(settings);
 
-    dialog.minVolume_L.value = 5;
-    dialog.maxVolume_L.value = 800;
+    dialog.minVolume_m3.value = 0.005;
+    dialog.maxVolume_m3.value = 0.8;
 
     assert.deepEqual(settings.bandWrites, []);
   });
@@ -63,8 +63,8 @@ describe('useOptionsModal — vented design limits', () => {
     const settings = fakeSettings();
     const dialog = useOptionsModal(settings);
 
-    dialog.minVolume_L.value = 5;
-    dialog.maxVolume_L.value = 800;
+    dialog.minVolume_m3.value = 0.005;
+    dialog.maxVolume_m3.value = 0.8;
     dialog.minTuning_hz.value = 15;
     dialog.maxTuning_hz.value = 200;
     dialog.apply();
@@ -78,8 +78,8 @@ describe('useOptionsModal — vented design limits', () => {
     const settings = fakeSettings();
     const dialog = useOptionsModal(settings);
 
-    dialog.minVolume_L.value = 800;
-    dialog.maxVolume_L.value = 5;
+    dialog.minVolume_m3.value = 0.8;
+    dialog.maxVolume_m3.value = 0.005;
 
     expect(dialog.error.value).toMatch(/volume/i);
     assert.equal(dialog.canApply.value, false);
@@ -91,7 +91,7 @@ describe('useOptionsModal — vented design limits', () => {
     const settings = fakeSettings();
     const dialog = useOptionsModal(settings);
 
-    dialog.minVolume_L.value = 0;
+    dialog.minVolume_m3.value = 0.0;
 
     assert.equal(dialog.canApply.value, false);
     dialog.apply();
@@ -112,8 +112,8 @@ describe('useOptionsModal — vented design limits', () => {
   it('accepts a valid band with no error', () => {
     const dialog = useOptionsModal(fakeSettings());
 
-    dialog.minVolume_L.value = 1;
-    dialog.maxVolume_L.value = 1000;
+    dialog.minVolume_m3.value = 0.001;
+    dialog.maxVolume_m3.value = 1.0;
 
     assert.equal(dialog.error.value, null);
     assert.equal(dialog.canApply.value, true);
@@ -126,7 +126,7 @@ describe('useOptionsModal — vented design limits', () => {
     dialog.resetLimits();
 
     assert.deepEqual(settings.bandWrites, []);
-    assert.equal(dialog.minVolume_L.value, DEFAULT_VENTED_DESIGN_LIMITS.minVb_m3 * 1000);
+    assert.equal(dialog.minVolume_m3.value, DEFAULT_VENTED_DESIGN_LIMITS.minVb_m3);
     assert.equal(dialog.maxTuning_hz.value, DEFAULT_VENTED_DESIGN_LIMITS.maxFb_hz);
 
     dialog.apply();
@@ -137,7 +137,7 @@ describe('useOptionsModal — vented design limits', () => {
     const dialog = useOptionsModal(fakeSettings());
     assert.equal(dialog.limitsAreFactory.value, true);
 
-    dialog.minVolume_L.value = 7;
+    dialog.minVolume_m3.value = 0.007;
 
     assert.equal(dialog.limitsAreFactory.value, false);
   });
@@ -212,7 +212,7 @@ describe('useOptionsModal — environment defaults', () => {
     const settings = fakeSettings();
     const dialog = useOptionsModal(settings);
     dialog.tempK.value = 250;
-    dialog.minVolume_L.value = 0;
+    dialog.minVolume_m3.value = 0.0;
 
     dialog.apply();
 

@@ -78,4 +78,14 @@ describe('radiator Mms, Cms and Rms are calculated', () => {
     expect(hot.box.passiveRadiator.radiator.spec.Cms_m_per_N.value)
       .not.toBe(cool.box.passiveRadiator.radiator.spec.Cms_m_per_N.value);
   });
+  // BUG_20261004_winisd-pr-vas-box-emptied-crashes: WinISD dies when its Vas box is emptied. The UI writes 0 when a
+  // radiator field is cleared, so a zero in any of the four figures must leave no NaN, Infinity or throw.
+  it.each(['Fs_hz', 'Qms', 'Vas_m3', 'Sd_m2'] as const)('a zero %s leaves every derived value finite or absent', field => {
+    const project = prProject(createEngine(), four);
+    const spec = project.box.passiveRadiator.radiator.spec;
+    spec[field].set(0);
+    const shown = [spec.Mms_kg.value, spec.Cms_m_per_N.value, spec.Rms_kg_per_s.value,
+      project.box.passiveRadiator.naturalTuning_hz.value];
+    for (const v of shown) expect(v === null || Number.isFinite(v)).toBe(true);
+  });
 });

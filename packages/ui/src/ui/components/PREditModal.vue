@@ -58,12 +58,12 @@ useEscToClose(() => true, close);
         <div class="row" data-field-key="prFs" :title="NumberField.PR_FS_HZ.description">
           <label>Fs</label>
           <NumInput :model-value="radiator.spec.Fs_hz.value" :field="NumberField.PR_FS_HZ" :precision="4" @update:model-value="v => radiator.spec.Fs_hz.set(v ?? 0)" />
-          <span class="u">Hz</span>
+          <UnitToggle :field="NumberField.PR_FS_HZ" unit-key="prFs" unit-class="u" />
         </div>
         <div class="row" data-field-key="prFsMass" :title="NumberField.PR_FSMASS_HZ.description">
           <label>Fs (with mass)</label>
           <NumInput :model-value="prFsWithMassShown" :field="NumberField.PR_FSMASS_HZ" :precision="4" readonly />
-          <span class="u">Hz</span>
+          <UnitToggle :field="NumberField.PR_FSMASS_HZ" unit-key="prFsMass" unit-class="u" />
         </div>
         <div class="row" data-field-key="prQms" :title="NumberField.PR_QMS.description">
           <label>Qms</label>

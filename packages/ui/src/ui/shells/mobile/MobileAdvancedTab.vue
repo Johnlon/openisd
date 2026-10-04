@@ -36,7 +36,7 @@ const {
       <div class="mob-field-main"><span class="mob-field-label">Relative humidity</span>
         <span class="mob-field-value"><NumInput v-model="advHumidity" :precision="2" :allow-out-of-range="true" v-bind="envHumidityDq" stepper /></span>
       </div>
-      <span class="mob-unit">%</span>
+      <span class="mob-unit">{{ NumberField.ADV_HUMIDITY_PCT.unitLabel() }}</span>
     </div>
     <div class="mob-field-row" :class="[envPressureStored ? 'mob-field-entered' : 'mob-field-calculated', { 'mob-field-dq': envPressureDq.dq.length > 0 }]" :title="envPressureDq.dq.join('; ')">
       <div class="mob-field-main"><span class="mob-field-label">Air pressure</span>
@@ -46,12 +46,12 @@ const {
     </div>
     <div class="mob-field-row mob-field-calculated">
       <div class="mob-field-main"><span class="mob-field-label">Sound velocity</span>
-        <span class="mob-field-value mob-readonly">{{ NumberField.ADV_SOUNDVELOCITY_M_PER_S.fixed(advAir.c) }} m/s</span>
+        <span class="mob-field-value mob-readonly">{{ NumberField.ADV_SOUNDVELOCITY_M_PER_S.fixed(advAir.c) }} {{ NumberField.ADV_SOUNDVELOCITY_M_PER_S.unitLabel() }}</span>
       </div>
     </div>
     <div class="mob-field-row mob-field-calculated">
       <div class="mob-field-main"><span class="mob-field-label">Air density</span>
-        <span class="mob-field-value mob-readonly">{{ NumberField.ADV_AIRDENSITY_KG_PER_M3.fixed(advAir.rho) }} kg/m³</span>
+        <span class="mob-field-value mob-readonly">{{ NumberField.ADV_AIRDENSITY_KG_PER_M3.fixed(advAir.rho) }} {{ NumberField.ADV_AIRDENSITY_KG_PER_M3.unitLabel() }}</span>
       </div>
     </div>
     <div class="mob-row">
