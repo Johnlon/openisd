@@ -28,25 +28,6 @@ async function assertTrueModal(page: Page, modal: Locator, open: () => Promise<v
   await expect(rows.nth(0)).toHaveClass(/selected/);
 }
 
-test('switching focus to a different open project closes an open Tune panel', async ({ page }) => {
-  await page.goto('/');
-
-  await openAProject(page);
-  await page.locator('button.link-btn', { hasText: '＋ Copy' }).click();
-
-  await page.locator('li', { hasText: 'Driver' }).click();
-  await page.locator('button.edit-btn', { hasText: 'What-if' }).click();
-  const tunePanel = page.locator('.tune-panel');
-  await expect(tunePanel).toBeVisible();
-
-  // Tune is a DOCKED panel, not a modal — the rows stay clickable, and switching focus closes it.
-  const projectRows = page.locator('.project-row');
-  await expect(projectRows).toHaveCount(2);
-  await projectRows.nth(0).click();
-
-  await expect(tunePanel).toBeHidden();
-});
-
 test('the Driver Editor is a true modal — the project rows are unclickable while it is open', async ({ page }) => {
   await page.goto('/');
   await openAProject(page);

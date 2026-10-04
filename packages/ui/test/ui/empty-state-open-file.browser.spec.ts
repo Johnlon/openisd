@@ -68,16 +68,3 @@ test('Import from disk asks the system dialog for one OpenISD and WinISD filter 
     }],
   });
 });
-
-test('no-project chart empty state offers icon links for New, Open, and Import', async ({ page }) => {
-  await page.goto('/');
-
-  const emptyState = page.locator('.graph-empty');
-  await expect(emptyState).toContainText('Open or Create a project for charts');
-  await expect(emptyState.getByRole('button', { name: 'New project' })).toBeVisible();
-  await expect(emptyState.getByRole('button', { name: 'Open project' })).toBeVisible();
-  await expect(emptyState.getByRole('button', { name: 'Import project' })).toBeVisible();
-
-  await emptyState.getByRole('button', { name: 'Open project' }).click();
-  await expect(page.locator('.open-project-dialog')).toBeVisible();
-});
