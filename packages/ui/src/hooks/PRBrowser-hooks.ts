@@ -37,8 +37,7 @@ export function usePRBrowser(emit: (event: 'close') => void): PRBrowserAPI {
     (err: Error) => { bundledStatus.value = err.message; });
 
   const favorites = ref<string[]>(prefs.favoritePassiveRadiators());
-  // On at the start when there are favourites to show; with none, on would open an empty list.
-  const favoritesOnly = ref(favorites.value.length > 0);
+  const favoritesOnly = ref(false);
   const isFavorite = (id: string): boolean => favorites.value.includes(id);
   function toggleFavorite(id: string): void {
     favorites.value = isFavorite(id) ? favorites.value.filter(k => k !== id) : [...favorites.value, id];
