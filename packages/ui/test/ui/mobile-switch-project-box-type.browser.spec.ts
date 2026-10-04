@@ -9,7 +9,7 @@ import type {Page} from '@playwright/test';
 
 const TEST_DRIVER = 'Tang Band W5-1138SMF';
 
-async function startWizard(page: Page, first: boolean): Promise<void> {
+async function startWizard(page: Page, first: boolean, driver: string): Promise<void> {
   if (first) {
     await page.addInitScript(() => {
       localStorage.setItem('openisd_view', JSON.stringify({ ui: { splashSeen: true, skinOverride: 'mobile' } }));
@@ -20,11 +20,11 @@ async function startWizard(page: Page, first: boolean): Promise<void> {
     await page.locator('.mob-hamburger').click();
     await page.locator('.mob-menu-item', { hasText: 'New project' }).click();
   }
-  await page.getByText(TEST_DRIVER).click();
+  await page.getByText(driver).click();
 }
 
-async function createProject(page: Page, first: boolean, boxType: string, name: string): Promise<void> {
-  await startWizard(page, first);
+async function createProject(page: Page, first: boolean, boxType: string, name: string, driver = TEST_DRIVER): Promise<void> {
+  await startWizard(page, first, driver);
   const okBtn = page.locator('.mob-np-footer .ok-btn');
   await okBtn.click();
   await okBtn.click();
@@ -88,4 +88,20 @@ test('switching projects while the Passive Radiator tab is showing leaves a tab 
   await switchTo(page, 'Vented three');
   await expect(page.getByText('Select passive radiator')).toHaveCount(0);
   await expect(tabs.filter({ hasText: 'Passive Radiator' })).toHaveCount(0);
+});
+
+test('switching from a vented project to a sealed one on the Box tab repaints it', async ({ page }) => {
+  await createProject(page, true, 'sealed', 'w5 sealed');
+  await createProject(page, false, 'vented', 'w5 vented');
+  const tabs = page.locator('.mob-tab');
+  await tabs.filter({ hasText: 'Box' }).click();
+  await expect(page.locator('#mob-box-type')).toHaveValue('vented');
+
+  await switchTo(page, 'w5 sealed');
+  await expect(page.locator('#mob-box-type')).toHaveValue('sealed');
+  await expect(tabs.filter({ hasText: 'Vented' })).toHaveCount(0);
+
+  await switchTo(page, 'w5 vented');
+  await expect(page.locator('#mob-box-type')).toHaveValue('vented');
+  await expect(tabs.filter({ hasText: 'Vented' })).toHaveCount(1);
 });
