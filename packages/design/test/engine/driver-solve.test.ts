@@ -118,7 +118,7 @@ function qtsHalfWidth(qes: number, dQes: number, qms: number, dQms: number): num
 }
 
 describe('Engine.solveDriver', () => {
-  describe('Engine.solveDriver — handle solve, values written onto the params (T10/T11)', () => {
+  describe('Engine.solveDriver — handle solve, values written onto the params', () => {
     it('writes the derived Qts onto its handle when Qes and Qms are entered', () => {
       const Qes = 0.4, Qms = 3.0;
       const p = driverParams({ Qes, Qms });
@@ -299,7 +299,7 @@ describe('Engine.solveDriver', () => {
 
   describe('solveConsistencyGroup — full fixpoint solver mode', () => {
     // The DVol/Depth/MagDepth/Magnet geometry lock (WINISD_SCHEMA.md §3.10.1): any one member
-    // solves from the other three plus Dd and Vcd. Geometry from dvolRelation.test.ts's worked
+    // solves from the other three plus Dd and Vcd. Geometry from the DVol geometry block above's worked
     // example — Dd 90mm, Vcd 25mm, Depth 55mm, MagDepth 20mm, Magnet 60mm.
     const GEOM = { Dd_m: 0.090, Vcd_m: 0.025, Depth_m: 0.055, MagDepth_m: 0.020, Magnet_m: 0.060 } as const;
     const DVOL = (Math.PI / 4) * ((0.090 ** 2 + 0.090 * 0.025 + 0.025 ** 2) * (0.055 - 0.020) / 3

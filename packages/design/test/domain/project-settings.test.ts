@@ -119,7 +119,7 @@ describe('OpenISDProject settings', () => {
       expect(on.winisdDriverModel.value).toBe(true);
     });
 
-    it('description is a project note, never solver-derived — no solver write exists on it (T5)', () => {
+    it('description is a project note, never solver-derived — no solver write exists on it', () => {
       const p = sealedProject();
       p.description.set('my note');
 

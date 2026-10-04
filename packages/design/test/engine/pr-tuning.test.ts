@@ -7,7 +7,7 @@ const engine = createEngine();
 
 // The reference air pair, passed explicitly to every ventLength/tuningFromLength/prTuning/
 // prMassForFp call below — these tests are about the Helmholtz/PR formulas, not air-sensitivity
-// (see boxDesign-air.test.ts for that), so every one of them runs at the same reference
+// (see the air sensitivity block below for that), so every one of them runs at the same reference
 // condition `refRho()`/`refC()` above already assume.
 const AIR = engine.environment.solve({}).values;
 

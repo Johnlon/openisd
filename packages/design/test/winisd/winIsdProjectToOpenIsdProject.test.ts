@@ -6,7 +6,6 @@ import {dirname, join} from 'node:path';
 import {type Engine, createEngine} from '@openisd/design/engine';
 import {OpenISDDriver, OpenISDProject, ProjectBuilder} from '@openisd/design';
 import {WinIsdProjectConverter} from '../../domain/winIsdProjectConverter.js';
-import {WinISDProject} from '../../winisd/winisdProject.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
 

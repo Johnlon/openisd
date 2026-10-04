@@ -80,7 +80,7 @@ group delay ≈ 6.6e-4 ms.
 Sources: sealed — CHART_REVIEW §3, §3.4; vented — §3.5, §3.8; bandpass 4th — §3.9, §3.10; passive
 radiator — §3.6, §3.7; BP6/ABC — winisd_research runs `bp6-w5-1`, `abc-w5-1` against
 `packages/design/test/engine/{bandpass6,abc}-winisd.test.ts` and
-`packages/design/test/winisd/bp6-abc-wpr.test.ts`. Unit tests holding the rest:
+`packages/design/test/winisd/winIsdProjectToOpenIsdProject.test.ts` and `packages/design/test/winisd/openIsdProjectToWinIsdProject.test.ts`. Unit tests holding the rest:
 `packages/design/test/engine/{vented,bandpass4,passive-radiator,passive-radiator-tf,vented-port-gain,bp4-front-port-gain,filters}-winisd.test.ts`.
 
 WinISD warts reproduced on purpose (not deviations): PR phase chart plots arg(Upr) without the 90°

@@ -4,7 +4,7 @@ import {OpenISDDriver, OpenISDPassiveRadiatorStandalone, OpenISDProject, Project
 import {fixtureEngine, specSection, prSpecSection, driverFrom, driverJson} from '../fixtures/domainBuilders.js';
 
 describe('OpenISDProject driver cascade', () => {
-  describe('OpenISDProject — the driver cascade resolves on every write (S2-7d1)', () => {
+  describe('OpenISDProject — the driver cascade resolves on every write', () => {
     /** A saved project whose embedded driver states ONLY Qes+Qms — Qts is the one relation it can
      *  derive. Built via the ordinary `.builder().build()` path (which itself calls `save()`), then
      *  re-wrapped through `OpenISDProject.wrap()` — the entry point this task adds a resolve to —
@@ -91,7 +91,7 @@ describe('OpenISDProject driver cascade', () => {
     });
   });
 
-  describe('S2-7d2 — vent + PR join the cascade', () => {
+  describe('vent + PR join the cascade', () => {
     const ventedProjectWithArea = () => {
       const p = new ProjectBuilder(driverFrom({
         brand: 'Dayton', model: 'RS225', section: 'woofer',

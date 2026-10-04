@@ -32,7 +32,7 @@ describe('driver Fs and Vas route parity with WinISD', () => {
   //   4. rel 4   Fs = Rme·Qes / (2π·Mms)
   //   5. rel 12  Fs = EBP·Qes
   // WinISD has no route deriving Fs from Rms/Qms/Mms — that direction must stay unfilled.
-  describe('solveConsistencyGroup — Fs route parity with WinISD (BUG_20260817)', () => {
+  describe('solveConsistencyGroup — Fs route parity with WinISD', () => {
     it('derives Fs from EBP + Qes (rel 12)', () => {
       const res = solveConsistencyGroup({ EBP_hz: 207.77, Qes: 0.1925 });
       assert.ok(res.Fs_hz != null, 'Fs must be derived from EBP+Qes');

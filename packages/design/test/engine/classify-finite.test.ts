@@ -278,9 +278,9 @@ describe('classifyFinite', () => {
   });
 
   // ── Criterion 5 (S4/T6) ──────────────────────────────────────────────────────
-  describe('T1\'s domain guard fires before classifyFinite ever sees the sweep', () => {
+  describe('the domain guard fires before classifyFinite ever sees the sweep', () => {
     // (a) DOMAIN-level. `values: null`, `issue.target === 'length_m'` and the routes shape are
-    // already pinned at packages/design/test/domain.test.ts:1568 ("a vented project with no
+    // already pinned at packages/design/test/domain/project-sweep-guards.test.ts ("a vented project with no
     // tuning_goal_hz and no length_m reports a blocking VentIssue, not NaN curves") — not duplicated
     // here. What that test does NOT check, and this adds: the MESSAGE a user actually sees is the
     // guard's own sentence (`engine.issueToText`), never classifyFinite's generic postcondition
@@ -319,7 +319,7 @@ describe('classifyFinite', () => {
       p.box.vented.vent.shape.set('round');
       p.box.vented.vent.diameter_m.set(0.05);
       // The builder requires an initial tuning_goal_hz to construct at all — cleared right back off so
-      // NEITHER tuning_goal_hz nor vent.length_m is stated, same as domain.test.ts:1568's fixture.
+      // NEITHER tuning_goal_hz nor vent.length_m is stated, same as domain/project-sweep-guards.test.ts's fixture.
       p.box.vented.tuning_goal_hz.clear();
 
       const result = p.sweep({ fmin: 10, fmax: 100, N: 10 });

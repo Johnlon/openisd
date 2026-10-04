@@ -9,7 +9,7 @@ const engine = createEngine();
  *  path that runs it, alongside `checkConsistency` (S2-10: both checks are co-located inside
  *  `solveDriver`, same as every other node's solve+check pair). `checkConsistency` here is
  *  `testSolver.ts`'s own wrapper for that call (see its doc comment), matching
- *  `consistency.test.ts`'s own precedent for testing the driver solve's issue channel. */
+ *  `driver-solve.test.ts`'s own precedent for testing the driver solve's issue channel. */
 function rangeIssues(d: Parameters<typeof driverParams>[0]): readonly OutOfRangeIssue[] {
   return checkConsistency(d).filter((i): i is OutOfRangeIssue => i.kind === 'out-of-range');
 }

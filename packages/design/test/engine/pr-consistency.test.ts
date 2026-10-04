@@ -16,7 +16,7 @@ const exact = {Fs_hz: 0, Qms: 0, Vas_m3: 0, Sd_m2: 0, Mms_kg: 0, Cms_m_per_N: 0,
 const four = {...none, Fs_hz: 30, Qms: 3.3, Vas_m3: 0.0048, Sd_m2: 0.0095};
 
 describe('passive radiator consistency', () => {
-  describe('Engine.solvePr — handle solve, values written onto the params (T10/T11)', () => {
+  describe('Engine.solvePr — handle solve, values written onto the params', () => {
     function params(p: {
       addedMass_kg?: number; tuning_goal_hz?: number; Vb_m3?: number; prMmd_kg?: number;
       prSd_m2?: number; prCms_m_per_N?: number;
@@ -68,7 +68,7 @@ describe('passive radiator consistency', () => {
     });
   });
 
-  describe('checkPrConsistency (S2-10: a test-only bag wrapper over Engine.solvePr) — missing-dependencies', () => {
+  describe('checkPrConsistency (a test-only bag wrapper over Engine.solvePr) — missing-dependencies', () => {
     it('returns no issues once tuning_goal_hz solves from a complete PR geometry', () => {
       const solved = solvePrConsistencyGroup({
         tuning_goal_hz: 30, Vb_m3: 0.03, prMmd_kg: 0.02, prSd_m2: 0.02, prCms_m_per_N: 0.0008,

@@ -244,7 +244,7 @@ describe('editing a driver — copy, then update or drop', () => {
     expect(back.value.driver.model.value).toBe('RS225');
   });
 
-  it('the converter round-trips a bandpass6 box (BType=3) — see bp6-abc-wpr.test.ts for the full coverage', () => {
+  it('the converter round-trips a bandpass6 box (BType=3) — see winisd/winIsdProjectToOpenIsdProject.test.ts for the full coverage', () => {
     const project = new ProjectBuilder(wooferDriver(), createEngine())
       .bandpass6().rearVolume_m3(0.02).rearTuning_hz(50).frontVolume_m3(0.03).frontTuning_hz(40).build();
 

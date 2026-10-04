@@ -120,7 +120,7 @@ describe('Engine.solveBoxParams', () => {
     });
   });
 
-  describe('Engine.solveBoxParams — {values, issues} enclosure precondition (T9)', () => {
+  describe('Engine.solveBoxParams — {values, issues} enclosure precondition', () => {
     it('returns the same params as values, and no issues, for a sealed box with a usable Vb', () => {
       const P = { Vb: 0.03 };
       const result = engine.simulation.solveBoxParams('sealed', P);

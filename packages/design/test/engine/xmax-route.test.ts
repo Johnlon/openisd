@@ -19,7 +19,7 @@ function derived(v: number | undefined, name: string): number {
 }
 
 describe('Xmax route precedence', () => {
-  describe('Xmax route precedence is on the RESULT, not the route (QO39 probe case G)', () => {
+  describe('Xmax route precedence is on the RESULT, not the route ', () => {
     it('an equal overhang is not an excursion limit — it falls through to Vd/Sd', () => {
       // Hc === Hg makes abs(Hc-Hg)/2 zero. WinISD does not accept that as Xmax; it uses the
       // other route. Expected value is independent of the code: 140e-6 / 0.0095.

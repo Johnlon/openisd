@@ -44,7 +44,7 @@ describe('the passive radiator a box holds', () => {
     expect(p.box.passiveRadiator.systemTuning_hz.dq.length).toBeGreaterThan(0);
   });
 
-  it('brand/model metadata is never solver-derived — setCalculated()/setDq() are no-ops, same S2-7c/d ruling as a radiator T/S spec', () => {
+  it('brand/model metadata is never solver-derived — setCalculated()/setDq() are no-ops, as for a radiator T/S spec', () => {
     const p = project();
     const library = OpenISDPassiveRadiatorStandalone.fromConformingRecord(prJson());
     if (Array.isArray(library)) throw new Error(`fixture radiator is invalid: ${library.join(', ')}`);
@@ -191,7 +191,8 @@ describe('the passive radiator a box holds', () => {
     expect(p.box.passiveRadiator.addedMassForTuning_kg(15).value).toBeNull();
   });
 
-  it('BUG_20261003: naturalTuning_hz is the radiator tuning with no added mass and follows a hand edit of Fs; addedMassForTuning_kg follows it too', () => {
+  // Regression for bugs/archive/BUG_20261003*.md
+  it('naturalTuning_hz is the radiator tuning with no added mass and follows a hand edit of Fs; addedMassForTuning_kg follows it too', () => {
     const p = project();
     p.box.passiveRadiator.configurePR(radiatorFromSpec(createEngine(), {Fs_hz: 30, Qms: 3.3, Vas_m3: 0.0048, Sd_m2: 0.0095}));
     p.box.boxType.set('box-passive-radiator');

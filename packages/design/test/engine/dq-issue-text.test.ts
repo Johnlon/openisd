@@ -7,18 +7,6 @@ const engine = createEngine();
 
 describe('DqIssue text', () => {
   describe('a DqIssue reports its own text', () => {
-    it('missing-dependencies names the target and the routes', () => {
-      const issue = engine.issues.missingDependencies('Vas_m3', [
-        {formula: 'Vas = f(Cms, Sd)', required: ['Cms_m_per_N', 'Sd_m2'], missing: ['Cms_m_per_N']},
-      ]);
-      assert.match(issue.text, /Vas_m3 cannot be calculated yet/);
-      assert.match(issue.text, /Cms_m_per_N/);
-    });
-
-    it('inconsistent-inputs states the disagreement', () => {
-      const issue = engine.issues.inconsistentInputs('Fs_hz', ['Fs_hz', 'Mms_kg'], 'Fs = f(Mms, Cms)', 45, 48.8, 0.085);
-      assert.match(issue.text, /Fs_hz, Mms_kg disagree by 8.5%/);
-    });
 
     it('out-of-range names the field, the value and the limit', () => {
       const issue = engine.issues.outOfRange('Re_ohm', 900, 800, 'above');

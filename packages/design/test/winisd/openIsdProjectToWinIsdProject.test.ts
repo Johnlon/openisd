@@ -343,7 +343,7 @@ describe('openIsdProjectToWinIsdProject', () => {
       assert.ok(block![1].includes('Me=0'));
     });
 
-    it('bandpass6/abc box types export with BType 3/5 — see bp6-abc-wpr.test.ts for the full coverage', () => {
+    it('bandpass6/abc box types export with BType 3/5 — see the bandpass6 and ABC block below for the full coverage', () => {
       const engine = createEngine();
       const driver = aDriver(engine, 'QO8', 'test');
       const project = new ProjectBuilder(driver, engine).bandpass6()
@@ -497,7 +497,7 @@ describe('openIsdProjectToWinIsdProject', () => {
   });
 
   describe('bandpass6 and ABC boxes', () => {
-  for (const [label, kind, boxType, bType, captureWpr, sampleWpr] of [
+  for (const [label, kind, , bType, captureWpr] of [
     ['bandpass6', 'bandpass6', 'bandpass6', 3, CAPTURE_BP6_WPR, SAMPLE_BP6_WPR],
     ['ABC', 'abc', 'abc', 5, CAPTURE_ABC_WPR, SAMPLE_ABC_WPR],
   ] as const) {

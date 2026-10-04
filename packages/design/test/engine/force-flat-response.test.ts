@@ -48,7 +48,7 @@ const derive = (raw: Record<string, number>) => sweepDriver(solveConsistencyGrou
   Sd_m2: raw.Sd, Re_ohm: raw.Re, Xmax_m: raw.Xmax, Pe_W: raw.Pe, Znom_ohm: raw.Znom,
 }));
 
-const DRV_B = derive(RAW);
+const DERIVED_DRV = derive(RAW);
 
 // A vented box tuned near the driver's Fs, with a long-ish port so its pipe
 // resonance c/(2·Leff) lands inside the sweep range and the TL model has something to show.
@@ -71,7 +71,7 @@ describe('force-flat response', () => {
   /**
    * classifyFlatClamp (sweep.ts) — the frequency in its message is formatted with .toFixed(0)
    * at/above 100 Hz and .toFixed(1) below, the same split classifyArrays uses for its own
-   * singularity list. advanced-options.test.ts already covers a clamp binding below 100 Hz;
+   * singularity list. the 'force flat response, conventional capped variant' block already covers a clamp binding below 100 Hz;
    * this covers the >=100 Hz arm.
    */
   describe('classifyFlatClamp — clamp-bound frequency formatting at/above 100 Hz', () => {
@@ -94,7 +94,7 @@ describe('force-flat response', () => {
   /**
    * Force-flat response (sweep.ts L296-312) skips silent points ("no gain resurrects silence")
    * — the continue at L300. Reached only when force-flat is on AND some point is the -200 dB
-   * sentinel (or already non-finite), which advanced-options.test.ts's fixtures never produce.
+   * sentinel (or already non-finite), which that block's fixtures never produce.
    */
   describe('force-flat response — silent (-200 dB) points are never resurrected by the EQ', () => {
     it('an all-silent sweep (eg=0) stays all-silent under forceFlatResponse — no clamp, no gain applied', () => {
@@ -110,16 +110,16 @@ describe('force-flat response', () => {
     const FLAT: SweepParams = { ...VENTED, forceFlatResponse: true, winisdFlatModel: false, flatMaxBoostDb: 60 };
 
     it('flattens the SPL curve to the passband reference wherever the clamp does not bind', () => {
-      const flat = engine.simulation.sweep(DRV_B, LE_H, 'vented', FLAT).values!;
-      const ref  = engine.simulation.passbandRef(engine.simulation.sweep(DRV_B, LE_H, 'vented', VENTED).values!.spl);
+      const flat = engine.simulation.sweep(DERIVED_DRV, LE_H, 'vented', FLAT).values!;
+      const ref  = engine.simulation.passbandRef(engine.simulation.sweep(DERIVED_DRV, LE_H, 'vented', VENTED).values!.spl);
       for (let i = 0; i < flat.fs.length; i++)
         assert.ok(Math.abs(flat.spl[i] - ref) < 1e-9,
           `at ${flat.fs[i].toFixed(1)} Hz: SPL ${flat.spl[i]} should equal the reference ${ref}`);
     });
 
     it('charges the EQ boost to the excursion — flattening a rolloff is not free', () => {
-      const plain = engine.simulation.sweep(DRV_B, LE_H, 'vented', VENTED).values!;
-      const flat  = engine.simulation.sweep(DRV_B, LE_H, 'vented', FLAT).values!;
+      const plain = engine.simulation.sweep(DERIVED_DRV, LE_H, 'vented', VENTED).values!;
+      const flat  = engine.simulation.sweep(DERIVED_DRV, LE_H, 'vented', FLAT).values!;
       let boosted = 0;
       for (let i = 0; i < plain.fs.length; i++) {
         assert.ok(flat.exc[i] >= plain.exc[i] - 1e-12,
@@ -130,15 +130,15 @@ describe('force-flat response', () => {
     });
 
     it('leaves the electrical impedance untouched — the EQ is line-level, upstream of the amp', () => {
-      const plain = engine.simulation.sweep(DRV_B, LE_H, 'vented', VENTED).values!;
-      const flat  = engine.simulation.sweep(DRV_B, LE_H, 'vented', FLAT).values!;
+      const plain = engine.simulation.sweep(DERIVED_DRV, LE_H, 'vented', VENTED).values!;
+      const flat  = engine.simulation.sweep(DERIVED_DRV, LE_H, 'vented', FLAT).values!;
       for (let i = 0; i < plain.fs.length; i++)
         assert.equal(flat.zmag[i], plain.zmag[i], `zmag[${i}] must be unchanged by a line-level gain`);
     });
 
     it('clamps the boost and reports the frequency where the clamp binds', () => {
-      const clamped = engine.simulation.sweep(DRV_B, LE_H, 'vented', { ...VENTED, forceFlatResponse: true, winisdFlatModel: false, flatMaxBoostDb: 6 }).values!;
-      const plain   = engine.simulation.sweep(DRV_B, LE_H, 'vented', VENTED).values!;
+      const clamped = engine.simulation.sweep(DERIVED_DRV, LE_H, 'vented', { ...VENTED, forceFlatResponse: true, winisdFlatModel: false, flatMaxBoostDb: 6 }).values!;
+      const plain   = engine.simulation.sweep(DERIVED_DRV, LE_H, 'vented', VENTED).values!;
       const ref     = engine.simulation.passbandRef(plain.spl);
       for (let i = 0; i < clamped.fs.length; i++)
         assert.ok(clamped.spl[i] <= plain.spl[i] + 6 + 1e-9,
@@ -150,8 +150,8 @@ describe('force-flat response', () => {
     });
 
     it('is off by default — an unspecified flag changes nothing', () => {
-      const dflt  = engine.simulation.sweep(DRV_B, LE_H, 'vented', VENTED).values!;
-      const plain = engine.simulation.sweep(DRV_B, LE_H, 'vented', { ...VENTED, forceFlatResponse: false }).values!;
+      const dflt  = engine.simulation.sweep(DERIVED_DRV, LE_H, 'vented', VENTED).values!;
+      const plain = engine.simulation.sweep(DERIVED_DRV, LE_H, 'vented', { ...VENTED, forceFlatResponse: false }).values!;
       for (let i = 0; i < dflt.fs.length; i++)
         assert.equal(dflt.spl[i], plain.spl[i], `spl[${i}] default must equal forceFlatResponse:false`);
       assert.equal(dflt.flatClamped, null, 'no clamp without the flag');

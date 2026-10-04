@@ -4,7 +4,7 @@ import {OpenISDPassiveRadiatorStandalone, OpenISDProject, ProjectBuilder} from '
 import {tuneSpec, prSpecSection, driverFrom, driverJson} from '../fixtures/domainBuilders.js';
 
 describe('OpenISDProject sweep guards', () => {
-  describe('T1 — the vent/PR sweep-level guards (PLAN_DRIVER_SOLVE_AND_SWEEP_DIAGNOSTICS)', () => {
+  describe('the vent/PR sweep-level guards', () => {
     // A CIRCUIT-COMPLETE driver (the store's `store-issue-channel.test.ts` clean-fixture field
     // set): Qts derived from stated Qes/Qms so nothing can contradict, Mms/Rms/Bl/Cms derived by
     // the solver, and Re stated — sweeping is possible at all, so the vent/PR guards below are
@@ -134,7 +134,7 @@ describe('OpenISDProject sweep guards', () => {
       // radiator's own mass (`Mms` → `prMmd_kg`) is missing — the geometry the addedMass route
       // needs. `checkPrConsistency` fires because a target WAS stated; this is the "missing PR
       // mass" case of the plan. (A radiator with no target at all still sweeps un-tuned — pinned
-      // by engine-wiring.test.ts — so that case must stay silent.)
+      // by project-sweep.test.ts — so that case must stay silent.)
       const p = project('pr');
       p.box.passiveRadiator.radiator.spec.Mms_kg.clear();
       p.box.passiveRadiator.radiator.spec.Fs_hz.clear();
@@ -174,7 +174,8 @@ describe('OpenISDProject sweep guards', () => {
       expect(two.values.pv[i]).toBeCloseTo(one.values.pv[i] / 2, 9);
     });
 
-    it('project.charts is the engine\'s own answer for this project\'s box type (BUG_20260927_winisd-charts-missing)', () => {
+    // Regression for bugs/archive/BUG_20260927_winisd-charts-missing*.md
+    it('project.charts is the engine\'s own answer for this project\'s box type', () => {
       const engine = createEngine();
       for (const box of ['vented', 'bp4', 'pr'] as const) {
         const p = project(box);

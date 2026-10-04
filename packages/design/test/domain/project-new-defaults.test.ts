@@ -144,7 +144,7 @@ describe('OpenISDProject new-project defaults', () => {
     });
 
     it('solverParams\' adapted Re_terminal_ohm/BL_terminal_Tm/wiring slots silently discard any write — ' +
-      'S2-10: nothing persists a value neither a resolve nor the domain has a slot for', () => {
+      'nothing persists a value neither a resolve nor the domain has a slot for', () => {
       const blank = OpenISDDriver.empty(createEngine());
       const params = blank.specs.solverParams();
 

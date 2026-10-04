@@ -6,9 +6,6 @@ import {dirname, join} from 'node:path';
 import {WinIsdDriverConverter} from '../../domain/winIsdDriverConverter.js';
 import {createEngine} from '../../engine/index.js';
 
-/** The engine every projection in this file uses — factory settings, as the bridge's own. */
-const engine = createEngine();
-
 const FIXTURES = join(dirname(fileURLToPath(import.meta.url)), '..', 'fixtures', 'corpus');
 
 /** A real `driver.yml`: Dayton CE28N-4, a woofer-section record carrying `scraper_meta`. */

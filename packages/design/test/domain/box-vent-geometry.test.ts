@@ -101,7 +101,8 @@ describe('OpenISDBox vent geometry', () => {
     Sd_m2: 0.02, Cms_m_per_N: 0.0005, Vas_m3: 0.05, BL_Tm: 8, Mms_kg: 0.05, Xmax_m: 0.008, Pe_W: 100,
   });
 
-  it('BUG_20260927: vented, port set by length (tuning blank), sweeps finite and matches the same project entered by its achieved tuning', () => {
+  // Regression for bugs/archive/BUG_20260927*.md
+  it('vented, port set by length (tuning blank), sweeps finite and matches the same project entered by its achieved tuning', () => {
     const engine = createEngine();
     const byLength = new ProjectBuilder(completeDriver(engine), engine)
       .vented().volume_m3(0.03).tuning_goal_hz(30).build();
@@ -131,7 +132,8 @@ describe('OpenISDBox vent geometry', () => {
     }
   });
 
-  it('BUG_20260927: bandpass4, front port set by length (tuning blank), sweeps finite and matches the same project entered by its achieved tuning', () => {
+  // Regression for bugs/archive/BUG_20260927*.md
+  it('bandpass4, front port set by length (tuning blank), sweeps finite and matches the same project entered by its achieved tuning', () => {
     const engine = createEngine();
     const byLength = new ProjectBuilder(completeDriver(engine), engine)
       .bandpass4().rearVolume_m3(0.02).frontVolume_m3(0.03).frontTuning_hz(40).build();

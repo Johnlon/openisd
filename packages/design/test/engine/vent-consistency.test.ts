@@ -8,7 +8,7 @@ const engine = createEngine();
 const AIR = engine.environment.solve({}).values;
 
 describe('vent consistency', () => {
-  describe('checkVentConsistency (S2-10: a test-only bag wrapper over Engine.solveVent) — missing-dependencies', () => {
+  describe('checkVentConsistency (a test-only bag wrapper over Engine.solveVent) — missing-dependencies', () => {
     it('returns no issues once tuning_goal_hz solves from a complete vent geometry', () => {
       const solved = solveVentConsistencyGroup({ tuning_goal_hz: 35, Vb_m3: 0.03, area_m2: 0.002 }, AIR);
       expect(checkVentConsistency(solved)).toEqual([]);
@@ -42,7 +42,7 @@ describe('vent consistency', () => {
     });
   });
 
-  describe('Engine.solveVent — handle solve, values written onto the params (T10/T11)', () => {
+  describe('Engine.solveVent — handle solve, values written onto the params', () => {
     function params(p: {
       tuning_goal_hz?: number; length_m?: number; Vb_m3?: number; area_m2?: number; count?: number; endCorrection_m?: number;
     }): { tuning_goal_hz: SolverField; length_m: SolverField; Vb_m3: SolverField; area_m2: SolverField; count: SolverField; endCorrection_m: SolverField } {

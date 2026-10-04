@@ -361,7 +361,7 @@ export abstract class OpenISDDriver extends OpenISDDevice {
 // circular MODULE import: whichever file loads first hits `extends OpenISDDriver` (or a static
 // call on `OpenISDDriverStandalone`) before the other module has finished evaluating —
 // `TypeError: Class extends value undefined is not a constructor or null`, reproduced by
-// `npx vitest run packages/design/test/domain.test.ts` when the two lived in separate files.
+// `npx vitest run packages/design/test/domain/driver-record.test.ts` when the two lived in separate files.
 // Kept together, the cycle never crosses a module boundary.
 
 /** A driver that belongs to no project — a My Drivers entry, a bundle row, a detached copy.

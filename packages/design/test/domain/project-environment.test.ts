@@ -21,7 +21,7 @@ function savedEnvironment(owprText: string): Record<string, unknown> {
   return environment;
 }
 
-describe('Phase 1: Environmental Axioms (Tasks 26-33)', () => {
+describe('Phase 1: Environmental Axioms', () => {
   it('envTempK provides the brand pattern: calculated default, entered, cleared', () => {
     const engine = createEngine();
     const project = ProjectBuilder.empty(engine);
@@ -146,7 +146,8 @@ describe('Phase 1: Environmental Axioms (Tasks 26-33)', () => {
     expect(project.envUseWinisdAirModel.value).toBe(true);
   });
 
-  it('the embedded driver resolves air the same way the project/sweep does, with useWinisdAirModel unset (BUG_20260924)', () => {
+  // Regression for bugs/archive/BUG_20260924*.md
+  it('the embedded driver resolves air the same way the project/sweep does, with useWinisdAirModel unset', () => {
     const engine = createEngine();
     const project = ProjectBuilder.empty(engine);
 

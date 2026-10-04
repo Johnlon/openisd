@@ -328,7 +328,8 @@ describe('OpenISDBox alignments', () => {
       expect(p.box.vented.vent.totalArea_m2()).toBeNull();
     });
 
-    it('a driver\'s own c_m_per_s/roo_kg_per_m3 has no effect on box calculations — display only (BUG_20260924)', () => {
+    // Regression for bugs/archive/BUG_20260924*.md
+    it('a driver\'s own c_m_per_s/roo_kg_per_m3 has no effect on box calculations — display only', () => {
       const engine = createEngine();
       const p = new ProjectBuilder(driverFrom({
         brand: 'Dayton', model: 'RS225', section: 'woofer',
@@ -444,7 +445,8 @@ describe('OpenISDBox alignments', () => {
       expect(p.box.bandpass6.chambers.front.tuning_goal_hz.value).toBe(80);
     });
 
-    it('keeps per-chamber losses separate — BUG_20260824', () => {
+    // Regression for bugs/archive/BUG_20260824*.md
+    it('keeps per-chamber losses separate', () => {
       const p = project();
       p.box.bandpass4.chambers.rear.losses.Ql.set(5);
       p.box.bandpass4.chambers.front.losses.Ql.set(9);
@@ -492,7 +494,7 @@ describe('OpenISDBox alignments', () => {
     });
   });
 
-  describe('S10 — sealed joins the cascade: box.sealed.q_tc is an entry the resolve writes', () => {
+  describe('sealed joins the cascade: box.sealed.q_tc is an entry the resolve writes', () => {
     const sealedProject = () => new ProjectBuilder(driverFrom({
       brand: 'Dayton', model: 'RS225', section: 'woofer',
       spec: specSection({ Fs_hz: 30, Qts: 0.4, Sd_m2: 0.02, Cms_m_per_N: 0.0005, Mmd_kg: 0.05, Rms_Ns_per_m: 2, Xmax_m: 0.008 }),
@@ -539,7 +541,7 @@ describe('OpenISDBox alignments', () => {
     });
   });
 
-  describe('box tuning/length/mass slots load as entries (S2-7b)', () => {
+  describe('box tuning/length/mass slots load as entries', () => {
     function ventedProject() {
       return new ProjectBuilder(driverFrom({
         brand: 'Dayton', model: 'RS225', section: 'woofer',

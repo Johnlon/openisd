@@ -2,8 +2,8 @@ import {describe, expect, it} from 'vitest';
 import {specEntryJsonSchema} from '../../domain/openisdSchema.js';
 import {calculatedEntry, enteredEntry} from '../../domain/specEntry.js';
 
-describe('specEntryJsonSchema — the {state, value} sum type (S2-7b / T11)', () => {
-  it('rejects a bare {origin, readings} shape with no state key (D15 — no legacy upgrade; the bridge builds the entry)', () => {
+describe('specEntryJsonSchema — the {state, value} sum type', () => {
+  it('rejects a bare {origin, readings} shape with no state key (no legacy upgrade; the bridge builds the entry)', () => {
     const bareScraperShape: unknown = JSON.parse('{"origin":"datasheet","readings":{"datasheet":{"read_value":32.5}}}');
     expect(() => specEntryJsonSchema.parse(bareScraperShape)).toThrow();
   });

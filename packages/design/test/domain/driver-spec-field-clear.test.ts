@@ -14,8 +14,6 @@ function assertReads<T>(field: Readable<T | null> & Entered & Calculated, value:
 
 const scraped = <T, >(value: T) => ({value});
 
-const spec = (read_value: number) => ({state: 'E' as const, value: read_value, origin: 'manual', readings: {manual: {read_value}}});
-
 describe('every spec field supports get/set/get/clear/get — clear() actually clears, never throws', () => {
     // Regression guard: `clear()` on a driver's spec field used to throw unconditionally
     // ("this section always exists once constructed") even though the field's own getter already

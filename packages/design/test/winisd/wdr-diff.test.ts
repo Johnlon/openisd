@@ -11,27 +11,6 @@ import {WinISDDriver} from '../../winisd/winisdDriver.js';
 import {diffWdrValues} from './wdrDiff.js';
 import {winISDDriverToOpenISDDeviceJson} from '../../domain/winIsdDriverImport.js';
 
-function isRecord(v: unknown): v is Record<string, unknown> {
-  return typeof v === 'object' && v !== null;
-}
-
-/** Walks a parsed YAML/JSON `unknown` value one key/index at a time, throwing the moment a step
- *  does not match the shape expected — this file's only way to read into fixture-parsed data,
- *  never a cast. */
-function at(v: unknown, ...path: (string | number)[]): unknown {
-  let cur = v;
-  for (const key of path) {
-    if (typeof key === 'number') {
-      if (!Array.isArray(cur)) throw new Error(`expected an array at [${key}], got ${typeof cur}`);
-      cur = cur[key];
-    } else {
-      if (!isRecord(cur)) throw new Error(`expected an object at .${key}, got ${typeof cur}`);
-      cur = cur[key];
-    }
-  }
-  return cur;
-}
-
 /** The engine every projection in this file uses — factory settings, as the bridge's own. */
 const engine = createEngine();
 

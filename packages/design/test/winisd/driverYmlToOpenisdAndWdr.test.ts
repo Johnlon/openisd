@@ -7,7 +7,6 @@ import {parse, stringify as stringifyYaml} from 'yaml';
 import {WinIsdDriverConverter} from '../../domain/winIsdDriverConverter.js';
 import {OpenISDDriver, OpenISDPassiveRadiatorStandalone} from '../../domain/index.js';
 import {createEngine} from '../../engine/index.js';
-import {WinISDDriver} from '../../winisd/winisdDriver.js';
 import {checkOpenisdRoundTrip} from '../../../../scripts/roundTripGate.mjs';
 
 function isRecord(v: unknown): v is Record<string, unknown> {

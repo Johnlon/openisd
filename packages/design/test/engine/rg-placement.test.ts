@@ -39,7 +39,8 @@ describe('Rg placement', () => {
         assert.equal(atDriver.spl[i], atAmp.spl[i], `spl[${i}] must be bit-identical at nDrivers=1`);
     });
 
-    it('impedance includes Rg only at the driver side: driver-side Z = amp-side Z + Rg (BUG_20260926)', () => {
+    // Regression for bugs/archive/BUG_20260926*.md
+    it('impedance includes Rg only at the driver side: driver-side Z = amp-side Z + Rg', () => {
       // WinISD 0.7.0.950, debugger capture over 2086 points: with "Rg is at driver side" off, Rg
       // does not appear in the impedance; with it on, Z = Z(off) + Rg exactly, as a complex sum.
       const atDriver = engine.simulation.sweep(DRV, LE_H, 'sealed', base({ nDrivers: 1, rgAtDriverSide: true })).values!;

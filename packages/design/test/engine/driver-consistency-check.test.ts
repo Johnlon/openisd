@@ -122,7 +122,7 @@ describe('Engine.checkConsistency', () => {
   // winisd_tools/scrapers/scrapers/lib/semantic_dq.py's own test suite, against the real solver
   // (`driverParams` + `Engine.solveDriver`, not the plain bag wrapper) so each case's OWN stated
   // precision — not an auto-derived one — decides the outcome.
-  describe('Engine.checkConsistency — precision-derived tolerance, not a fixed allowance (D12/D13)', () => {
+  describe('Engine.checkConsistency — precision-derived tolerance, not a fixed allowance', () => {
     function inconsistentInputIssues(p: DriverSolverParams): readonly DriverIssue[] {
       return engine.driver.solve(p, AIR).filter((i): i is DriverIssue => i.kind === 'inconsistent-inputs');
     }

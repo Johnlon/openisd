@@ -106,7 +106,8 @@ describe('OpenISDProject sweep', () => {
     expect(mine).not.toBeNull();
   });
 
-  it('BUG_20261003: editing the radiator Qms moves the sweep; Qms sets the radiator loss', () => {
+  // Regression for bugs/archive/BUG_20261003*.md
+  it('editing the radiator Qms moves the sweep; Qms sets the radiator loss', () => {
     const engine = createEngine();
     const sweepWithQms = (qms: number) => {
       const project = drivenSealed(engine, 0.03);
@@ -123,7 +124,8 @@ describe('OpenISDProject sweep', () => {
     expect(sweepWithQms(3.3)).not.toEqual(sweepWithQms(4.02));
   });
 
-  it('BUG_20261003: a radiator Qms, Sd, Fs or Vas edit (not Xmax) notifies the project and changes its sweep job', () => {
+  // Regression for bugs/archive/BUG_20261003*.md
+  it('a radiator Qms, Sd, Fs or Vas edit (not Xmax) notifies the project and changes its sweep job', () => {
     const engine = createEngine();
     const project = drivenSealed(engine, 0.03);
     project.box.boxType.set('box-passive-radiator');

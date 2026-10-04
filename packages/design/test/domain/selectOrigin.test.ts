@@ -5,7 +5,7 @@ import {selectOrigin} from '../../domain/selectOrigin.js';
  *  unconditionally unless a test overrides it. */
 const alwaysPlausible = () => true;
 
-describe('selectOrigin (D9) — which source wins a field, three tiers', () => {
+describe('selectOrigin — which source wins a field, three tiers', () => {
   it('tier 1: excludes a physically impossible reading even when it outranks the alternative', () => {
     const readings = {
       manufacturer_datasheet: {read_value: 999999}, // impossible — e.g. Fs 999999 Hz

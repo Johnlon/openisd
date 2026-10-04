@@ -24,7 +24,8 @@ describe('circuit — acoustic circuit branches', () => {
       'at the top of the sweep, Le is no longer negligible — the gyrator model must diverge from WinISD\'s Le-excluded acoustic circuit');
   });
 
-  it('circuitModel "winisd" excludes Le from both SPL and impedance (zmag); "gyrator" includes Le in both (BUG_20260924)', () => {
+  // Regression for bugs/archive/BUG_20260924*.md
+  it('circuitModel "winisd" excludes Le from both SPL and impedance (zmag); "gyrator" includes Le in both', () => {
     const P_HI: SweepParams = {...P_SEALED, fmax: 20000};
     const winisd = engine.simulation.sweep(DRV, LE_H, 'sealed', P_HI).values!;
     const gyrator = engine.simulation.sweep(DRV, LE_H, 'sealed', {...P_HI, circuitModel: 'gyrator'}).values!;
@@ -39,7 +40,8 @@ describe('circuit — acoustic circuit branches', () => {
     assert.deepEqual(gyrator.spl, winisd.spl);
   });
 
-  it('circuitModel "winisdGyrator" reproduces WinISD\'s traced inductance roll-off on the W5-1138SMF (BUG_20260926)', () => {
+  // Regression for bugs/archive/BUG_20260926*.md
+  it('circuitModel "winisdGyrator" reproduces WinISD\'s traced inductance roll-off on the W5-1138SMF', () => {
     // WinISD 0.7.0.950, VCInd on − off, transfer-function chart traced from pixels
     // (winisd_research/runs/vcind_default). Driver as entered in the .wdr: BL 7.17 disagrees with
     // the 7.38 its Fs/Qes/Vas/Re imply — the disagreement WinISD's model turns into extra roll-off.

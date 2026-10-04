@@ -35,7 +35,7 @@ describe('OpenISDDriver record', () => {
     });
   });
 
-  describe('OpenISDDriver.issues() — the last resolve()\'s own diagnostic (S2-10: renamed from checkConsistency())', () => {
+  describe('OpenISDDriver.issues() — the last resolve()\'s own diagnostic (renamed from checkConsistency())', () => {
     it('reports no issues for a driver whose stated Qes/Qms are mutually consistent', () => {
       const driver = driverFrom({
         brand: 'Dayton', model: 'RS225', section: 'woofer',
@@ -63,7 +63,7 @@ describe('OpenISDDriver record', () => {
       expect(issues[0]).toMatchObject({ kind: 'inconsistent-inputs', target: 'Qts', actual: 0.60 });
     });
 
-    it('a derived Qts (T11: resolve() writes it back on load) reads back calculated, and issues() ' +
+    it('a derived Qts (resolve() writes it back on load) reads back calculated, and issues() ' +
       'still agrees with itself rather than reporting the solved Qts as a contradiction of Qes/Qms', () => {
       const driver = driverFrom({
         brand: 'Dayton', model: 'RS225', section: 'woofer',
@@ -410,7 +410,7 @@ describe('OpenISDDriver record', () => {
     });
   });
 
-  describe('a spec field the record does not state resolves on write (T11/S2-7c)', () => {
+  describe('a spec field the record does not state resolves on write', () => {
     // T11 (2026-09-16) supersedes the earlier QO127 "stated-only" ruling: a driver's own writes
     // now trigger a resolve that writes every derivable field back into the record as `'C'` —
     // the record itself is a cache the solver keeps current, not a value computed fresh at read
@@ -451,7 +451,7 @@ describe('OpenISDDriver record', () => {
       expect(vasAndSd().specs.Xmax_m.value).toBe(null);
     });
 
-    it('the solved value IS written into the record, as a calculated entry (T11)', () => {
+    it('the solved value IS written into the record, as a calculated entry', () => {
       // The whole point of T11: a resolve runs on every write, and a derivable field's cell is
       // backed by a real `'C'` entry in the record — not recomputed fresh at every read with
       // nothing persisted.
@@ -470,7 +470,7 @@ describe('OpenISDDriver record', () => {
     });
   });
 
-  describe('OpenISDDriver — resolves on every write (S2-7c)', () => {
+  describe('OpenISDDriver — resolves on every write', () => {
     /** Qes+Qms entered, nothing else — Qts = Qes·Qms/(Qes+Qms) is the one relation this can
      *  derive; every OTHER relation needs at least one field this driver never states. */
     function qesQms(): OpenISDDriver {

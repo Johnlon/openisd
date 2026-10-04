@@ -3,7 +3,7 @@ import {createEngine} from '@openisd/design/engine';
 import {ProjectBuilder} from '../../domain/index.js';
 import {at, specSection, driverFrom} from '../fixtures/domainBuilders.js';
 
-describe('OpenISDProject graphs/cursor — project-scoped, not a UI singleton (S10/QO130)', () => {
+describe('OpenISDProject graphs/cursor — project-scoped, not a UI singleton', () => {
   const project = () => new ProjectBuilder(driverFrom({
     brand: 'Dayton', model: 'RS225', section: 'woofer',
     spec: specSection({ Fs_hz: 30, Qts: 0.4, Sd_m2: 0.02, Cms_m_per_N: 0.0005, Mmd_kg: 0.05, Rms_Ns_per_m: 2, Xmax_m: 0.008 }),
@@ -87,7 +87,7 @@ describe('OpenISDProject graphs/cursor — project-scoped, not a UI singleton (S
   });
 
   it('cursorF/pinnedF/cursorLocked/dragRange default to unset and round-trip in memory ' +
-     '(QO168: a documented exception, not part of OpenISDProjectJson)', () => {
+     '(a documented exception, not part of OpenISDProjectJson)', () => {
     const p = project();
     expect(p.cursorF.value).toBeNull();
     expect(p.pinnedF.value).toBeNull();
@@ -112,7 +112,7 @@ describe('OpenISDProject graphs/cursor — project-scoped, not a UI singleton (S
     expect(b.cursorF.value).toBeNull();
   });
 
-  it('cursor writes never reach the saved record — QO168 keeps them out of .owpr entirely', () => {
+  it('cursor writes never reach the saved record — they are kept out of .owpr entirely', () => {
     const p = project();
     p.cursorF.set(120);
     p.pinnedF.set(100);

@@ -30,7 +30,7 @@ function assertOneProvenance(field: Readable<unknown> & Entered & Calculated): v
   expect(marks, `entered=${field.entered} calculated=${field.calculated} value=${String(field.value)}`).toBe(1);
 }
 
-describe('entryField — a field over a C/E-flagged entry slot (S2-7a)', () => {
+describe('entryField — a field over a C/E-flagged entry slot', () => {
   it('set(v) writes an entered entry into the slot', () => {
     const slot = fakeSlot<SpecEntryJson | undefined>(undefined);
     const field = entryField(slot, 'x');
@@ -181,7 +181,7 @@ describe('entryField — writeEntryDq\'s persisted mark shape, per DqIssue varia
     });
   });
 
-  it('out-of-range (driver field, D14): kind range, rule range-below-min, params name field/value/limit', () => {
+  it('out-of-range (driver field): kind range, rule range-below-min, params name field/value/limit', () => {
     const slot = fakeSlot<SpecEntryJson | undefined>(undefined);
     const field = entryField(slot, 'Qts');
     field.set(0.02);
@@ -194,7 +194,7 @@ describe('entryField — writeEntryDq\'s persisted mark shape, per DqIssue varia
     });
   });
 
-  it('out-of-range (driver field, D14): rule range-above-max on the other side', () => {
+  it('out-of-range (driver field): rule range-above-max on the other side', () => {
     const slot = fakeSlot<SpecEntryJson | undefined>(undefined);
     const field = entryField(slot, 'Qts');
     field.set(12);
@@ -202,7 +202,7 @@ describe('entryField — writeEntryDq\'s persisted mark shape, per DqIssue varia
     expect(slot.value?.dq_calculated?.[0]).toMatchObject({ kind: 'range', rule: 'range-above-max' });
   });
 
-  it('out-of-range (vented plausibility, quantity/min/max shape): keeps the pre-D14 generic calc/issue mapping', () => {
+  it('out-of-range (vented plausibility, quantity/min/max shape): keeps the generic calc/issue mapping', () => {
     const slot = fakeSlot<SpecEntryJson | undefined>(undefined);
     const field = entryField(slot, 'Fb');
     field.set(400);
@@ -214,7 +214,7 @@ describe('entryField — writeEntryDq\'s persisted mark shape, per DqIssue varia
     });
   });
 
-  it('non-physical: keeps the pre-D14 generic calc/issue mapping', () => {
+  it('non-physical: keeps the generic calc/issue mapping', () => {
     const slot = fakeSlot<SpecEntryJson | undefined>(undefined);
     const field = entryField(slot, 'Fb');
     field.set(-5);
@@ -226,7 +226,7 @@ describe('entryField — writeEntryDq\'s persisted mark shape, per DqIssue varia
     });
   });
 
-  it('target-unreachable: keeps the pre-D14 generic calc/issue mapping', () => {
+  it('target-unreachable: keeps the generic calc/issue mapping', () => {
     const slot = fakeSlot<SpecEntryJson | undefined>(undefined);
     const field = entryField(slot, 'length_m');
     field.set(0.5);
@@ -239,7 +239,7 @@ describe('entryField — writeEntryDq\'s persisted mark shape, per DqIssue varia
   });
 });
 
-describe('entryField — precision, derived from the entry\'s own shape (D13)', () => {
+describe('entryField — precision, derived from the entry\'s own shape', () => {
   it('a calculated entry reports null precision', () => {
     const slot = fakeSlot<SpecEntryJson | undefined>(undefined);
     const field = entryField(slot, 'x');
@@ -285,7 +285,7 @@ describe('entryField — precision, derived from the entry\'s own shape (D13)', 
   });
 });
 
-describe('nullableField — a writable field over storage no solver ever touches (S2-7a)', () => {
+describe('nullableField — a writable field over storage no solver ever touches', () => {
   it('has no setCalculated — no engine code ever computes this quantity, so the type omits the method rather than no-op it', () => {
     const slot = fakeSlot<{ v: number | null }>({ v: 5 });
     const field = nullableField(slot, 'v');
@@ -458,7 +458,7 @@ describe('DefaultingFieldImpl — owner and solver write; never absent, clear() 
   });
 });
 
-describe('resolvingField — a slot that resolves after every outside write (S2-7c)', () => {
+describe('resolvingField — a slot that resolves after every outside write', () => {
   it('runs onWrite once after an ordinary set()', () => {
     const base = fakeSlot(0);
     let calls = 0;

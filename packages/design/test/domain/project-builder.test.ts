@@ -35,7 +35,7 @@ describe('ProjectBuilder', () => {
       expect(p.box.abc.chambers.front.tuning_goal_hz.value).toBe(38);
     });
 
-    it('sweep()/maxCurves()/boxParamsIssues() simulate a bandpass6 box — see bp6-abc-wpr.test.ts for the WinISD-matched engine coverage', () => {
+    it('sweep()/maxCurves()/boxParamsIssues() simulate a bandpass6 box — see engine/bandpass6-winisd.test.ts for the WinISD-matched engine coverage', () => {
       const p = new ProjectBuilder(driver(), createEngine())
         .bandpass6().rearVolume_m3(0.02).rearTuning_hz(50).frontVolume_m3(0.03).frontTuning_hz(40).build();
 
