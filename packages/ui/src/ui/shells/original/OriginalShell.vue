@@ -28,7 +28,7 @@ import {OpenableFiles} from '../../../fileFormat.js';
 const {
   version, toggleDropdown, openDd, openClick, closeDropdown, presentationState, isModified,
   openDialogOpen, storedProjects, openFromDisk, openStoredProject, switchToMobile,
-  saveProject, resetProjectToGround, confirmDiscard, about, optionsOpen,
+  saveProject, saveAllProjects, anyUnsaved, resetProjectToGround, confirmDiscard, about, optionsOpen,
   chartLabel, chartItems, selectChart, toggleChart,
   hzInputText, inputValue, onHzInputFocus, onHzInputBlur, onHzKeydown, onHzWheel,
   startNudge, stopNudge, cursorVal, cursorHzText, unitTokens, chartMeta, inputChecked, selectedOption,
@@ -78,6 +78,9 @@ const {
         </div>
         <div class="tb-btn" :class="{ dirty: isModified, disabled: !projectOpen }" title="Save - saves the file to browser storage. Use Export to save as file" @click="saveProject">
           <ToolbarIcon name="save" />
+        </div>
+        <div class="tb-btn" :class="{ dirty: anyUnsaved, disabled: !anyUnsaved }" :title="anyUnsaved ? 'Save all — saves every open project with unsaved changes to browser storage.' : 'Save all — no open project has unsaved changes.'" @click="anyUnsaved && saveAllProjects()">
+          <ToolbarIcon name="saveAll" />
         </div>
         <div class="tb-btn" :class="{ disabled: !isModified }" :title="isModified ? 'Revert — discard all unsaved changes and return to the last saved version.' : 'Revert — no unsaved changes to discard.'" @click="isModified && resetProjectToGround(confirmDiscard)">
           <ToolbarIcon name="revert" />

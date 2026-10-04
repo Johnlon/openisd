@@ -180,7 +180,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   const project = useFocusedProject();
 
   const { engine, designIO, selection, myPassiveRadiators, bundledPassiveRadiators } = useApp();
-  const { saveProject, importFile } = designIO;
+  const { saveProject, saveAllProjects, importFile } = designIO;
   // The Info menu's "About OpenISD" opens the splash — the one place that text lives.
   const { show: about } = injectSplashModal();
   // The Info menu's manual, persisted skin switch — the auto-by-viewport half lives in
@@ -484,6 +484,8 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
 
   // ---- Projects list -------------------------------------------------------------
   const projectList = computed(() => openProjects());
+  /** Some open project, focused or not, has unsaved edits — Save all has work to do. */
+  const anyUnsaved = computed(() => projectList.value.some(projectHasUnsavedChanges));
 
   function selectProject(p: OpenISDProject) {
     const idx = projectList.value.indexOf(p);
@@ -646,7 +648,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   return {
     version, toggleDropdown, openDd, openClick, closeDropdown, presentationState, isModified,
     openDialogOpen, storedProjects, openFromDisk, openStoredProject, switchToMobile,
-    saveProject, resetProjectToGround, confirmDiscard, about, optionsOpen,
+    saveProject, saveAllProjects, anyUnsaved, resetProjectToGround, confirmDiscard, about, optionsOpen,
     chartLabel, chartItems, selectChart, toggleChart,
     hzInputText, inputValue, onHzInputFocus, onHzInputBlur, onHzKeydown, onHzWheel,
     startNudge, stopNudge, cursorHz, cursorVal, cursorHzText, unitTokens, chartMeta, inputChecked, selectValue, selectedOption,
