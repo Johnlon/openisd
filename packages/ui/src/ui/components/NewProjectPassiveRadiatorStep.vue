@@ -73,8 +73,9 @@ const emit = defineEmits<{
   .field input { width: 100%; min-height: 40px; padding: 10px; border-radius: 4px; font: inherit; }
   .field-inline { width: 100%; }
   /* NumInput is a fragment (input + optional stepper), so its input is reached with :deep. */
-  .field-inline :deep(input) { flex: 1; width: auto; min-width: 0; box-sizing: border-box; min-height: 40px; padding: 10px; border: 1px solid #999; border-radius: 4px; background: #fff; font: inherit; }
-  .field-inline .unit { flex: 0 0 3.5em; }
+  .field-inline :deep(input) { flex: 0 0 auto; width: 110px; box-sizing: border-box; min-height: 40px; padding: 10px; border: 1px solid #999; border-radius: 4px; background: #fff; font: inherit; }
+  /* Fixed widths, as in the driver editor (110px value, 34px unit): cycling a unit never reflows the row. */
+  .field-inline .unit { flex: 0 0 34px; width: 34px; text-align: left; white-space: nowrap; }
   .np-pr-name { width: 100%; }
   .edit-btn { padding: 10px; font-size: 14px; }
 }
