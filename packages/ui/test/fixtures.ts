@@ -1,5 +1,6 @@
 import {readFileSync} from 'node:fs';
-import {expect, type Page, test as base} from '@playwright/test';
+import {expect, type Locator, type Page, test as base} from '@playwright/test';
+import {fillAndBlur} from './fixtures/numField.js';
 import {COMPLETE_DRIVER_PROJECT_OWPR, ensureSampleProject, SAMPLE_PROJECT_OWPR} from './fixtures/sampleProject.js';
 export {COMPLETE_DRIVER_PROJECT_OWPR, SAMPLE_PROJECT_OWPR};
 
@@ -219,6 +220,456 @@ export async function setFocusedBoxVolume(page: Page, volume_m3: number): Promis
     const box = m.requireFocusedProject().box;
     box.volumeOf(box.boxType.value).set(v);
   }, {path: '/src/logic/appState.ts', v: volume_m3});
+}
+
+/** The drive group's committed state (power, voltage, driver Re, series Rs), read live from the
+ *  focused project's domain object. */
+export interface DriveGroupState {
+  P: number | null;
+  V: number | null;
+  Re: number | null;
+  Rs: number | null;
+}
+
+export async function focusedDriveGroup(page: Page): Promise<DriveGroupState> {
+  return page.evaluate(async (path): Promise<DriveGroupState> => {
+    type AppState = typeof import('../src/logic/appState.js');
+    function isAppState(m: unknown): m is AppState {
+      return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
+    }
+    const m: unknown = await import(/* @vite-ignore */ path);
+    if (!isAppState(m)) throw new Error('appState module shape mismatch');
+    const p = m.requireFocusedProject();
+    return { P: p.powerDrive_W.value, V: p.driveVoltage_V.value, Re: p.driver.specs.Re_ohm.value, Rs: p.Rs_ohm.value };
+  }, '/src/logic/appState.ts');
+}
+
+/** Number of points in the latest computed SPL curve (0 until the first sweep lands). */
+export async function curvesSplLength(page: Page): Promise<number> {
+  return page.evaluate(async (path): Promise<number> => {
+    type AppState = typeof import('../src/logic/appState.js');
+    function isAppState(m: unknown): m is AppState {
+      return typeof m === 'object' && m !== null && 'curvesData' in m;
+    }
+    const m: unknown = await import(/* @vite-ignore */ path);
+    if (!isAppState(m)) throw new Error('appState module shape mismatch');
+    return m.curvesData.value?.spl?.length ?? 0;
+  }, '/src/logic/appState.ts');
+}
+
+/** The focused project's box type, as the domain holds it. */
+export async function focusedBoxType(page: Page): Promise<string> {
+  return page.evaluate(async (path): Promise<string> => {
+    type AppState = typeof import('../src/logic/appState.js');
+    function isAppState(m: unknown): m is AppState {
+      return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
+    }
+    const m: unknown = await import(/* @vite-ignore */ path);
+    if (!isAppState(m)) throw new Error('appState module shape mismatch');
+    return m.requireFocusedProject().box.boxType.value;
+  }, '/src/logic/appState.ts');
+}
+
+/** Switch the focused project's box type through the domain, as a file load would. */
+export type BoxTypeName = 'sealed' | 'vented' | 'bandpass4' | 'bandpass6' | 'abc' | 'box-passive-radiator';
+
+export async function setFocusedBoxType(page: Page, boxType: BoxTypeName): Promise<void> {
+  await page.evaluate(async ({path, value}) => {
+    type AppState = typeof import('../src/logic/appState.js');
+    function isAppState(m: unknown): m is AppState {
+      return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
+    }
+    const m: unknown = await import(/* @vite-ignore */ path);
+    if (!isAppState(m)) throw new Error('appState module shape mismatch');
+    m.requireFocusedProject().box.boxType.set(value);
+  }, {path: '/src/logic/appState.ts', value: boxType});
+}
+
+/** Drop the focused project's own temperature, humidity and pressure, as a freshly built project
+ *  has none, so the Advanced tab falls back to the Options environment. */
+export async function clearFocusedEnvironment(page: Page): Promise<void> {
+  await page.evaluate(async (path) => {
+    type AppState = typeof import('../src/logic/appState.js');
+    function isAppState(m: unknown): m is AppState {
+      return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
+    }
+    const m: unknown = await import(/* @vite-ignore */ path);
+    if (!isAppState(m)) throw new Error('appState module shape mismatch');
+    const p = m.requireFocusedProject();
+    p.envTempK.clear();
+    p.envHumidityPct.clear();
+    p.envPressurePa.clear();
+  }, '/src/logic/appState.ts');
+}
+
+/** Driver parameters a test may set on the focused project's driver; `null` clears the entry so
+ *  it is re-derived. SI units (Vas in m³, not litres). */
+export type DriverSpecEntries = Partial<Record<'Fs_hz' | 'Qes' | 'Qms' | 'Qts' | 'Vas_m3' | 'Re_ohm', number | null>>;
+
+/** Set (or clear) driver parameters on the focused project through the domain, as typing them in
+ *  the Tune panel would. */
+export async function setFocusedDriverSpecs(page: Page, entries: DriverSpecEntries): Promise<void> {
+  await page.evaluate(async ({path, values}) => {
+    type AppState = typeof import('../src/logic/appState.js');
+    function isAppState(m: unknown): m is AppState {
+      return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
+    }
+    const m: unknown = await import(/* @vite-ignore */ path);
+    if (!isAppState(m)) throw new Error('appState module shape mismatch');
+    const specs = m.requireFocusedProject().driver.specs;
+    for (const key of ['Fs_hz', 'Qes', 'Qms', 'Qts', 'Vas_m3', 'Re_ohm'] as const) {
+      const v = values[key];
+      if (v === undefined) continue;
+      if (v === null) specs[key].clear(); else specs[key].set(v);
+    }
+  }, {path: '/src/logic/appState.ts', values: entries});
+}
+
+/** Set the focused project's series source resistance Rs (ohm), as the Signal tab does. */
+export async function setFocusedSeriesResistance(page: Page, ohm: number): Promise<void> {
+  await page.evaluate(async ({path, v}) => {
+    type AppState = typeof import('../src/logic/appState.js');
+    function isAppState(m: unknown): m is AppState {
+      return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
+    }
+    const m: unknown = await import(/* @vite-ignore */ path);
+    if (!isAppState(m)) throw new Error('appState module shape mismatch');
+    m.requireFocusedProject().Rs_ohm.set(v);
+  }, {path: '/src/logic/appState.ts', v: ohm});
+}
+
+/** Set the leakage Ql and absorption Qa losses of the focused project's `sealed` box, as the Box
+ *  losses popup does. */
+export async function setFocusedSealedLosses(page: Page, losses: {Ql: number; Qa: number}): Promise<void> {
+  await page.evaluate(async ({path, values}) => {
+    type AppState = typeof import('../src/logic/appState.js');
+    function isAppState(m: unknown): m is AppState {
+      return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
+    }
+    const m: unknown = await import(/* @vite-ignore */ path);
+    if (!isAppState(m)) throw new Error('appState module shape mismatch');
+    const sealed = m.requireFocusedProject().box.lossesOf('sealed');
+    if (!sealed) throw new Error('a sealed box has losses');
+    sealed.Ql.set(values.Ql);
+    sealed.Qa.set(values.Qa);
+  }, {path: '/src/logic/appState.ts', values: losses});
+}
+
+/** The focused sealed box's resonance Fsc and Qtc as the domain holds them. */
+export async function focusedSealedReadouts(page: Page): Promise<{fsc: number | null; qtc: number | null}> {
+  return page.evaluate(async (path) => {
+    type AppState = typeof import('../src/logic/appState.js');
+    function isAppState(m: unknown): m is AppState {
+      return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
+    }
+    const m: unknown = await import(/* @vite-ignore */ path);
+    if (!isAppState(m)) throw new Error('appState module shape mismatch');
+    const sealed = m.requireFocusedProject().box.sealed;
+    return {fsc: sealed.resonance_hz.value, qtc: sealed.q_tc.value};
+  }, '/src/logic/appState.ts');
+}
+
+/** The focused vented box's vent length target-unreachable flag and DQ issue count. */
+export async function focusedVentLengthDq(page: Page): Promise<{unreachable: boolean; dqCount: number}> {
+  return page.evaluate(async (path) => {
+    type AppState = typeof import('../src/logic/appState.js');
+    function isAppState(m: unknown): m is AppState {
+      return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
+    }
+    const m: unknown = await import(/* @vite-ignore */ path);
+    if (!isAppState(m)) throw new Error('appState module shape mismatch');
+    const dq = m.requireFocusedProject().box.vented.vent.length_m.dq;
+    return {unreachable: dq.some(issue => issue.kind === 'target-unreachable'), dqCount: dq.length};
+  }, '/src/logic/appState.ts');
+}
+
+/** Give the focused vented box a real vent (volume, tuning goal, port diameter) through the same
+ *  domain seam the typing drives, so the solver produces a vent length. */
+export async function setFocusedVentedDesign(page: Page, design: {volume_m3: number; tuning_hz: number; diameter_m: number}): Promise<void> {
+  await page.evaluate(async ({path, d}) => {
+    type AppState = typeof import('../src/logic/appState.js');
+    function isAppState(m: unknown): m is AppState {
+      return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
+    }
+    const m: unknown = await import(/* @vite-ignore */ path);
+    if (!isAppState(m)) throw new Error('appState module shape mismatch');
+    const p = m.requireFocusedProject();
+    p.box.vented.volume_m3.set(d.volume_m3);
+    p.box.vented.tuning_goal_hz.set(d.tuning_hz);
+    p.box.vented.vent.diameter_m.set(d.diameter_m);
+  }, {path: '/src/logic/appState.ts', d: design});
+}
+
+/** The focused bandpass6 rear chamber's tuning goal (Hz). */
+export async function focusedBandpass6RearTuning(page: Page): Promise<number> {
+  return page.evaluate(async (path): Promise<number> => {
+    type AppState = typeof import('../src/logic/appState.js');
+    function isAppState(m: unknown): m is AppState {
+      return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
+    }
+    const m: unknown = await import(/* @vite-ignore */ path);
+    if (!isAppState(m)) throw new Error('appState module shape mismatch');
+    const value = m.requireFocusedProject().box.bandpass6.chambers.rear.tuning_goal_hz.value;
+    if (value === null) throw new Error('tuning_goal_hz has no value');
+    return value;
+  }, '/src/logic/appState.ts');
+}
+
+/** The focused project's passive-radiator Vas (m³) and Qms. */
+export async function focusedPassiveRadiatorSpec(page: Page): Promise<{vas_m3: number | null; qms: number | null}> {
+  return page.evaluate(async (path) => {
+    type AppState = typeof import('../src/logic/appState.js');
+    function isAppState(m: unknown): m is AppState {
+      return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
+    }
+    const m: unknown = await import(/* @vite-ignore */ path);
+    if (!isAppState(m)) throw new Error('appState module shape mismatch');
+    const spec = m.requireFocusedProject().box.passiveRadiator.radiator.spec;
+    return {vas_m3: spec.Vas_m3.value, qms: spec.Qms.value};
+  }, '/src/logic/appState.ts');
+}
+
+/** The focused project's port air-velocity limit (m/s). */
+export async function focusedPortVelocityLimit(page: Page): Promise<number> {
+  return page.evaluate(async (path): Promise<number> => {
+    type AppState = typeof import('../src/logic/appState.js');
+    function isAppState(m: unknown): m is AppState {
+      return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
+    }
+    const m: unknown = await import(/* @vite-ignore */ path);
+    if (!isAppState(m)) throw new Error('appState module shape mismatch');
+    return m.requireFocusedProject().portVelocityLimit_m_per_s.value;
+  }, '/src/logic/appState.ts');
+}
+
+/** One driver spec value of the focused project's driver (SI units); fails when it has no value. */
+export async function focusedDriverSpec(page: Page, field: 'Fs_hz' | 'Mms_kg'): Promise<number> {
+  return page.evaluate(async ({path, f}): Promise<number> => {
+    type AppState = typeof import('../src/logic/appState.js');
+    function isAppState(m: unknown): m is AppState {
+      return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
+    }
+    const m: unknown = await import(/* @vite-ignore */ path);
+    if (!isAppState(m)) throw new Error('appState module shape mismatch');
+    const value = m.requireFocusedProject().driver.specs[f].value;
+    if (value === null) throw new Error(`driver.specs.${f} has no value`);
+    return value;
+  }, {path: '/src/logic/appState.ts', f: field});
+}
+
+/** Open a second, independent project as a copy of the focused one, and focus it — the domain
+ *  call behind the project list's "＋ Copy". */
+export async function duplicateFocusedProject(page: Page, newName: string): Promise<void> {
+  await page.evaluate(async ({path, name}) => {
+    type AppState = typeof import('../src/logic/appState.js');
+    function isAppState(m: unknown): m is AppState {
+      return typeof m === 'object' && m !== null && 'duplicateFocusedProject' in m;
+    }
+    const m: unknown = await import(/* @vite-ignore */ path);
+    if (!isAppState(m)) throw new Error('appState module shape mismatch');
+    m.duplicateFocusedProject(name);
+  }, {path: '/src/logic/appState.ts', name: newName});
+}
+
+/** The Options environment temperature (K) as the application settings hold it. */
+export async function appEnvDefaultsTempK(page: Page): Promise<number> {
+  return page.evaluate(async (path): Promise<number> => {
+    type AppState = typeof import('../src/logic/appState.js');
+    function isAppState(m: unknown): m is AppState {
+      return typeof m === 'object' && m !== null && 'envDefaults' in m;
+    }
+    const m: unknown = await import(/* @vite-ignore */ path);
+    if (!isAppState(m)) throw new Error('appState module shape mismatch');
+    return m.envDefaults().tempK;
+  }, '/src/logic/appState.ts');
+}
+
+/** The user name saved by the Options dialog. */
+export async function savedUsername(page: Page): Promise<string | undefined> {
+  return page.evaluate(async (path): Promise<string | undefined> => {
+    type PresentationState = typeof import('../src/logic/presentationState.js');
+    function isPresentationState(m: unknown): m is PresentationState {
+      return typeof m === 'object' && m !== null && 'presentationState' in m;
+    }
+    const m: unknown = await import(/* @vite-ignore */ path);
+    if (!isPresentationState(m)) throw new Error('presentationState module shape mismatch');
+    return m.presentationState.ui.username;
+  }, '/src/logic/presentationState.ts');
+}
+
+/** The persisted display-unit token for the box volume field (`Vb`), if the user rotated it. */
+export async function boxVolumeUnitToken(page: Page): Promise<string | undefined> {
+  return page.evaluate(async (path): Promise<string | undefined> => {
+    type PresentationState = typeof import('../src/logic/presentationState.js');
+    function isPresentationState(m: unknown): m is PresentationState {
+      return typeof m === 'object' && m !== null && 'presentationState' in m;
+    }
+    const m: unknown = await import(/* @vite-ignore */ path);
+    if (!isPresentationState(m)) throw new Error('presentationState module shape mismatch');
+    return m.presentationState.ui.unitTokens?.Vb;
+  }, '/src/logic/presentationState.ts');
+}
+
+/** Set the app-wide chart frequency sweep range, as a drag-zoom does. */
+export async function setSweepRange(page: Page, range: {min: number; max: number}): Promise<void> {
+  await page.evaluate(async ({path, r}) => {
+    type PresentationState = typeof import('../src/logic/presentationState.js');
+    function isPresentationState(m: unknown): m is PresentationState {
+      return typeof m === 'object' && m !== null && 'presentationState' in m;
+    }
+    const m: unknown = await import(/* @vite-ignore */ path);
+    if (!isPresentationState(m)) throw new Error('presentationState module shape mismatch');
+    m.presentationState.sweepRange = r;
+  }, {path: '/src/logic/presentationState.ts', r: range});
+}
+
+/** Sum of the latest computed SPL curve — changes whenever the swept response changes. */
+export async function curvesSplSum(page: Page): Promise<number> {
+  return page.evaluate(async (path): Promise<number> => {
+    type AppState = typeof import('../src/logic/appState.js');
+    function isAppState(m: unknown): m is AppState {
+      return typeof m === 'object' && m !== null && 'curvesData' in m;
+    }
+    const m: unknown = await import(/* @vite-ignore */ path);
+    if (!isAppState(m)) throw new Error('appState module shape mismatch');
+    return (m.curvesData.value?.spl ?? []).reduce((a, b) => a + b, 0);
+  }, '/src/logic/appState.ts');
+}
+
+/** Number of filters in the focused project's filter chain. */
+export async function focusedFilterCount(page: Page): Promise<number> {
+  return page.evaluate(async (path): Promise<number> => {
+    type AppState = typeof import('../src/logic/appState.js');
+    function isAppState(m: unknown): m is AppState {
+      return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
+    }
+    const m: unknown = await import(/* @vite-ignore */ path);
+    if (!isAppState(m)) throw new Error('appState module shape mismatch');
+    return m.requireFocusedProject().filters.value.length;
+  }, '/src/logic/appState.ts');
+}
+
+/** The focused project's drive power (W) — the one stored drive fact; voltage derives from it. */
+export async function focusedPowerDrive_W(page: Page): Promise<number> {
+  return page.evaluate(async (path): Promise<number> => {
+    type AppState = typeof import('../src/logic/appState.js');
+    function isAppState(m: unknown): m is AppState {
+      return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
+    }
+    const m: unknown = await import(/* @vite-ignore */ path);
+    if (!isAppState(m)) throw new Error('appState module shape mismatch');
+    const value = m.requireFocusedProject().powerDrive_W.value;
+    if (value === null) throw new Error('powerDrive_W has no value');
+    return value;
+  }, '/src/logic/appState.ts');
+}
+
+/** The focused project's name. */
+export async function focusedProjectName(page: Page): Promise<string> {
+  return page.evaluate(async (path): Promise<string> => {
+    type AppState = typeof import('../src/logic/appState.js');
+    function isAppState(m: unknown): m is AppState {
+      return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
+    }
+    const m: unknown = await import(/* @vite-ignore */ path);
+    if (!isAppState(m)) throw new Error('appState module shape mismatch');
+    return m.requireFocusedProject().name.value;
+  }, '/src/logic/appState.ts');
+}
+
+/** Dirty the focused design: add a highpass filter and move the drive power off its 1 W reference. */
+export async function dirtyFocusedDesign(page: Page): Promise<void> {
+  await page.evaluate(async (path): Promise<void> => {
+    type AppState = typeof import('../src/logic/appState.js');
+    function isAppState(m: unknown): m is AppState {
+      return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
+    }
+    const m: unknown = await import(/* @vite-ignore */ path);
+    if (!isAppState(m)) throw new Error('appState module shape mismatch');
+    const project = m.requireFocusedProject();
+    project.filters.set([...project.filters.value, { type: 'highpass', family: 'sos', order: 2, enabled: true, fc: 30, Q: 0.7 }]);
+    project.powerDrive_W.set(250);
+  }, '/src/logic/appState.ts');
+}
+
+/** The focused project serialised as `.owpr` JSON, saved first so the saved layer holds the design. */
+export async function focusedProjectOwpr(page: Page): Promise<unknown> {
+  return page.evaluate(async (path): Promise<unknown> => {
+    type AppState = typeof import('../src/logic/appState.js');
+    function isAppState(m: unknown): m is AppState {
+      return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
+    }
+    const m: unknown = await import(/* @vite-ignore */ path);
+    if (!isAppState(m)) throw new Error('appState module shape mismatch');
+    const p = m.requireFocusedProject();
+    // `saved` is the project baseline (empty) until the wizard's choices are committed.
+    p.save();
+    return JSON.parse(p.toOwprText());
+  }, '/src/logic/appState.ts');
+}
+
+/** The focused project's driver added cone mass (kg). */
+export async function focusedAddedMass_kg(page: Page): Promise<number> {
+  return page.evaluate(async (path): Promise<number> => {
+    type AppState = typeof import('../src/logic/appState.js');
+    function isAppState(m: unknown): m is AppState {
+      return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
+    }
+    const m: unknown = await import(/* @vite-ignore */ path);
+    if (!isAppState(m)) throw new Error('appState module shape mismatch');
+    return m.requireFocusedProject().driverAddedMass_kg.value;
+  }, '/src/logic/appState.ts');
+}
+
+/** Open the Driver Editor the way a user does: Driver tab, Edit, wait for the body. */
+export async function openDriverEditor(page: Page): Promise<void> {
+  await page.locator('.project-nav li', { hasText: 'Driver' }).click();
+  await page.locator('.edit-btn', { hasText: 'Edit' }).click();
+  await page.locator('.de-body').waitFor({ state: 'visible' });
+}
+
+/** A Driver Editor field box, found by its exact label text. */
+export function driverEditorField(page: Page, label: string): Locator {
+  return page.locator('.de-body .de-fld', { has: page.locator(`label:text-is("${label}")`) }).first();
+}
+
+/** Values the seeded driver enters, in the unit the field displays: one solvable driver, so the
+ *  solver marks a realistic set of fields CALCULATED. */
+const SEED_PARAMETERS: ReadonlyArray<readonly [string, string]> = [
+  ['Fs', '35'], ['Qts', '0.38'], ['Qes', '0.42'], ['Re', '6.4'],
+  ['Vas', '32'], ['Sd', '220'], ['Xmax', '6.5'], ['Pe', '150'],
+  ['Hc', '18'], ['Hg', '8'],
+];
+
+/** Dimensions-tab geometry (mm). DVol is deliberately the ONE unseeded member of the
+ *  DVol/Depth/MagDepth/Magnet lock, so the solver fills it and a CALCULATED geometry field exists. */
+const SEED_DIMENSIONS: ReadonlyArray<readonly [string, string]> = [
+  ['Driver Depth (Depth)', '55'], ['Magnet Depth', '20'],
+  ['Magnet Diameter (Magnet)', '60'], ['Voice Coil Dia (Vcd)', '25'],
+];
+
+/** In the open Driver Editor, enter a solvable driver so the derived fields carry the CALCULATED mark. */
+export async function seedDriverInEditor(page: Page): Promise<void> {
+  await page.getByRole('button', { name: 'Parameters', exact: true }).click();
+  for (const [label, value] of SEED_PARAMETERS) {
+    await fillAndBlur(driverEditorField(page, label).locator('input').first(), value);
+  }
+  await page.getByRole('button', { name: 'Dimensions', exact: true }).click();
+  for (const [label, value] of SEED_DIMENSIONS) {
+    await fillAndBlur(driverEditorField(page, label).locator('input').first(), value);
+  }
+  await page.getByRole('button', { name: 'Parameters', exact: true }).click();
+}
+
+/** Walk every Driver Editor tab, handing the visitor that tab's own field labels WHILE it is on
+ *  screen (collecting them up front would run every assertion against the last tab open). */
+export async function forEachEditorTab(page: Page, visit: (tab: string, labels: string[]) => Promise<void>): Promise<void> {
+  const tabs = (await page.locator('.de-tab').allInnerTexts()).map(s => s.trim());
+  for (const tab of tabs) {
+    await page.getByRole('button', { name: tab, exact: true }).click();
+    const labels = (await page.locator('.de-body .de-fld label').allInnerTexts()).map(s => s.trim());
+    await visit(tab, labels);
+  }
 }
 
 export { expect };

@@ -1,5 +1,5 @@
 import type {Locator} from '@playwright/test';
-import {expect, openAProject, test} from '../fixtures.js';
+import {curvesSplSum, expect, focusedFilterCount, openAProject, test} from '../fixtures.js';
 import {fillAndBlur} from '../fixtures/numField.js';
 
 /** The `.filter-edit-body` field whose `<label>` starts with `label` — the tab nests the
@@ -126,15 +126,7 @@ test('a held LP Cutoff spinner moves the swept SPL before release', async ({page
   const errors: string[] = [];
   page.on('pageerror', e => errors.push(e.message));
   page.on('console', m => { if (m.type() === 'error') errors.push(m.text()); });
-  const splSum = () => page.evaluate(async (p): Promise<number> => {
-    type AppState = typeof import('../../src/logic/appState.js');
-    function isAppState(m: unknown): m is AppState {
-      return typeof m === 'object' && m !== null && 'curvesData' in m;
-    }
-    const m: unknown = await import(/* @vite-ignore */ p);
-    if (!isAppState(m)) throw new Error('appState module shape mismatch');
-    return (m.curvesData.value?.spl ?? []).reduce((a, b) => a + b, 0);
-  }, '/src/logic/appState.ts');
+  const splSum = () => curvesSplSum(page);
 
   const panel = page.locator('.content-panel');
   await panel.locator('.action-btn', {hasText: '+ LP'}).click();
@@ -151,4 +143,15 @@ test('a held LP Cutoff spinner moves the swept SPL before release', async ({page
   await expect(panel.locator('.filter-summary')).toContainText('fc=25.00 Hz');
   await expect.poll(splSum).not.toBe(before);
   expect(errors).toEqual([]);
+});
+
+test('the quick-add bar offers every WinISD filter type plus the two shelves, and a quick-add reaches the project', async ({page}) => {
+  const panel = page.locator('.content-panel');
+  // Every WinISD Filter Editor type (8) plus the two OpenISD-only shelves.
+  await expect(panel.locator('.filters-quickadd .action-btn')).toHaveCount(10);
+
+  await panel.locator('.action-btn', {hasText: '+ HP'}).click();
+  expect(await focusedFilterCount(page)).toBe(1);
+  await panel.locator('.filter-del').click();
+  expect(await focusedFilterCount(page)).toBe(0);
 });

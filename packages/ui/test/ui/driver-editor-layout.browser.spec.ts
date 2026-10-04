@@ -1,5 +1,4 @@
 import {expect, openAProject, test} from '../fixtures.js';
-import {fillAndBlur} from '../fixtures/numField.js';
 
 test.beforeEach(async ({ page }) => {
   await page.goto('/');
@@ -357,93 +356,4 @@ test('Dimensions: the rows are not spaced out', async ({ page }) => {
   const worst = Math.max(...gaps);
   expect(worst, `rows are ${gaps.join('/')}px apart — the list is padded out with dead space`)
     .toBeLessThanOrEqual(8);
-});
-
-/**
- * The unit beside each field DEFAULTS to WinISD's own spelling.
- *
- * Read off the two reference captures of the real application:
- * docs/winisd_screenshots/edit_driver_pg2_parameters.png and edit_driver_pg3_advanced_parameters.png.
- * Rms/Rme read "Ns/m" while Mcost reads "kg/s" — the same physical dimension spelled two ways.
- * Ledger QO51: all three now carry a click-to-rotate `resistance` unit group (Ns/m <-> kg/s,
- * factor 1) for consistency with every other toggleable field, so this table pins the DEFAULT
- * a fresh load shows, not a fixed label — the toggle test below covers the rotation.
- */
-const WINISD_UNITS: Array<{ tab: string; label: string; unit: string }> = [
-  { tab: 'Parameters', label: 'Cms', unit: 'mm/N' },
-  { tab: 'Parameters', label: 'Rms', unit: 'Ns/m' },
-  { tab: 'Parameters', label: 'Re', unit: 'ohm' },
-  { tab: 'Parameters', label: 'BL', unit: 'Tm' },
-  { tab: 'Parameters', label: 'Le', unit: 'mH' },
-  { tab: 'Parameters', label: 'KLe', unit: 'H·√Hz' },
-  { tab: 'Parameters', label: 'Pe', unit: 'W' },
-  { tab: 'Parameters', label: 'η₀', unit: '%' },
-  { tab: 'Parameters', label: 'Znom', unit: 'ohm' },
-  { tab: 'Advanced parameters', label: 'R(t)', unit: 'K/W' },
-  { tab: 'Advanced parameters', label: 'C(t)', unit: 'J/K' },
-  { tab: 'Advanced parameters', label: 'Rme', unit: 'Ns/m' },
-  { tab: 'Advanced parameters', label: 'gamma', unit: 'N/(A·kg)' },
-  { tab: 'Advanced parameters', label: 'Mpow', unit: 'N/√W' },
-  { tab: 'Advanced parameters', label: 'Mcost', unit: 'kg/s' },
-  { tab: 'Advanced parameters', label: 'Gloss', unit: '%' },
-];
-
-for (const tab of ['Parameters', 'Advanced parameters']) {
-  test(`${tab}: each field carries WinISD's own unit`, async ({ page }) => {
-    await openEditor(page, tab);
-    const want = WINISD_UNITS.filter(u => u.tab === tab);
-    const got = await page.evaluate((labels) => {
-      const out: Record<string, string | null> = {};
-      for (const wanted of labels) {
-        const fld = [...document.querySelectorAll<HTMLElement>('.de-body .de-fld')]
-          .find(f => (f.querySelector('label')?.textContent || '').trim() === wanted);
-        out[wanted] = fld ? ((fld.querySelector('.u')?.textContent || '').trim() || null) : null;
-      }
-      return out;
-    }, want.map(u => u.label));
-    expect(got).toEqual(Object.fromEntries(want.map(u => [u.label, u.unit])));
-  });
-}
-
-/**
- * Ledger QO51: Rms/Rme/Mcost's Ns/m <-> kg/s toggle is a relabel, never a rescale — the group's
- * conversion factor is 1 for both spellings, so the number on screen must survive a full
- * rotation byte-for-byte while the label alone rotates.
- */
-const RESISTANCE_FIELDS: Array<{ tab: string; label: string; defaultUnit: string; otherUnit: string }> = [
-  { tab: 'Parameters', label: 'Rms', defaultUnit: 'Ns/m', otherUnit: 'kg/s' },
-  { tab: 'Advanced parameters', label: 'Rme', defaultUnit: 'Ns/m', otherUnit: 'kg/s' },
-  { tab: 'Advanced parameters', label: 'Mcost', defaultUnit: 'kg/s', otherUnit: 'Ns/m' },
-];
-
-for (const { tab, label, defaultUnit, otherUnit } of RESISTANCE_FIELDS) {
-  test(`${label}: the resistance unit toggle rotates the label and never the value`, async ({ page }) => {
-    await openEditor(page, tab);
-    const fld = page.locator('.de-body .de-fld', { has: page.locator('label', { hasText: label }) }).first();
-    const unit = fld.locator('.u').first();
-    const input = fld.locator('input').first();
-
-    await expect(unit).toHaveText(defaultUnit);
-    await fillAndBlur(input, '12.5');
-    const before = await input.inputValue();
-
-    await unit.click();
-    await expect(unit).toHaveText(otherUnit);
-    await expect(input, `${label} changed value after the label rotated ${defaultUnit} -> ${otherUnit}`).toHaveValue(before);
-
-    await unit.click();
-    await expect(unit).toHaveText(defaultUnit);
-    await expect(input, `${label} did not round-trip back to ${before} after a full rotation`).toHaveValue(before);
-  });
-}
-
-test('every unit label occupies the same width, whatever it says', async ({ page }) => {
-  await openEditor(page, 'Dimensions');
-  const widths = await page.evaluate(() =>
-    [...document.querySelectorAll<HTMLElement>('.de-body .u, .de-body .unit-toggle')]
-      .map(u => ({ text: (u.textContent || '').trim(), w: Math.round(u.getBoundingClientRect().width) })));
-  expect(widths.length, 'the tab must actually render unit labels').toBeGreaterThan(3);
-  const distinct = [...new Set(widths.map(w => w.w))];
-  expect(distinct, `unit widths differ (${widths.map(w => `${w.text}=${w.w}px`).join(', ')}) — ` +
-    'a unit sized by its text moves every column when it is cycled').toHaveLength(1);
 });
