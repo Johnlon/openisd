@@ -11,7 +11,6 @@ useMobileManageDriversTab(() => emit('chosen'));
 
 <template>
   <div class="mob-drivers-wrap">
-    <div class="mob-panel-head">Manage drivers</div>
     <DriverLibrary class="mob-drivers-library" show-name />
   </div>
 </template>
@@ -24,15 +23,6 @@ useMobileManageDriversTab(() => emit('chosen'));
   flex-direction: column;
   padding: 12px;
   box-sizing: border-box;
-}
-.mob-panel-head {
-  font-size: 13px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
-  color: var(--mut);
-  padding: 0 0 10px;
-  flex-shrink: 0;
 }
 .mob-drivers-library { flex: 1; min-height: 0; }
 /* Cancel/Use restyled to match the rest of the mobile skin's footer buttons — same treatment

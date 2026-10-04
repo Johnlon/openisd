@@ -26,7 +26,7 @@ test('editing the name writes the project, and survives switching tabs', async (
   await page.locator('#mob-proj-name').fill('Living-room sub');
   await page.locator('#mob-proj-name').blur();
 
-  await page.locator('.mob-tab', { hasText: 'Box' }).click();
+  await page.locator('.mob-dlg-close').click();
   await page.locator('.mob-hamburger').click();
   await page.getByText('Project details').click();
   await expect(page.locator('#mob-proj-name')).toHaveValue('Living-room sub');

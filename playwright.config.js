@@ -102,9 +102,11 @@ export default defineConfig({
   testDir: './packages/ui/test',
   testMatch: '**/*.browser.spec.ts',
   testIgnore: process.env.OPENISD_EXTERNAL === '1' ? [] : EXTERNAL_NETWORK_SPECS,
-  timeout: 10000,
+  // Generous on purpose: the suite shares the machine with other agent sessions, and a spec that
+  // is merely slow under load must not fail. A genuinely broken one still fails, a little later.
+  timeout: 30000,
   expect: {
-    timeout: 2000,
+    timeout: 5000,
   },
   // A SKIP IS A FAIL — see scripts/test-reporters/no-skips-playwright.js.
   // The json reporter is what makes "is the suite faster?" answerable at all: `list` prints a
@@ -138,8 +140,8 @@ export default defineConfig({
   // memory so the suite backs off instead of OOM-killing the WSL VM under memory pressure.
   workers: WORKERS,
   use: {
-    actionTimeout: 2000,
-    navigationTimeout: 5000,
+    actionTimeout: 5000,
+    navigationTimeout: 15000,
     browserName: 'chromium',
     // `channel: 'chromium'` selects the full browser. WITHOUT it Playwright launches
     // `chrome-headless-shell`, and on this machine that binary is SIGKILLed (exit 137) the

@@ -11,7 +11,6 @@ const { name, creator, created, modified, description } = useMobileProjectTab({ 
 
 <template>
   <div class="mob-panel">
-    <div class="mob-panel-head">Project</div>
     <div class="mob-card">
       <div class="mob-field">
         <label for="mob-proj-name">Name</label>
@@ -39,14 +38,6 @@ const { name, creator, created, modified, description } = useMobileProjectTab({ 
 
 <style scoped>
 .mob-panel { padding: 12px; }
-.mob-panel-head {
-  font-size: 13px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
-  color: var(--mut);
-  padding: 6px 4px 10px;
-}
 .mob-card {
   background: var(--panel);
   border: 1px solid var(--line);

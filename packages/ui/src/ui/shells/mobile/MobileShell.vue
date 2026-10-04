@@ -13,6 +13,7 @@ import MobileEnclosureTab from './MobileEnclosureTab.vue';
 import MobileAdvancedTab from './MobileAdvancedTab.vue';
 import MobileManageDriversTab from './MobileManageDriversTab.vue';
 import ExportMenu from '../../components/ExportMenu.vue';
+import MobilePaneDialog from './MobilePaneDialog.vue';
 import OptionsModal from '../../components/OptionsModal.vue';
 import { useMobileShell } from '../../../hooks/MobileShell-hooks.js';
 import {OpenableFiles} from '../../../fileFormat.js';
@@ -21,7 +22,7 @@ import {inputChecked} from '../../../logic/domEvents.js';
 const {
   projectOpen, destination, fileInput, openImportedFile, openNewProject, switchToDesktop,
   menuOpen, toggleMenu, closeMenu, openFromDisk, isModified, saveProject, saveAllProjects, anyUnsaved, updateBannerVisible, reloadForUpdate, dismissUpdateBanner, revertProject, projectTitle,
-  browseDrivers, optionsOpen, openOptions, about, goToProject, goToAdvanced, viewportHeightPx,
+  browseDrivers, optionsOpen, openOptions, about, goToProject, goToAdvanced, pane, closePane, viewportHeightPx,
   showEnclosureTab, enclosureNavLabel, contentEl, canScrollUp, canScrollDown, updateScrollEdges,
   username, openDialogOpen, storedProjects, openProjectDialog, openStoredProject,
   openProjectRows, selectOpenProject, setOpenProjectTraceVisible, cycleOpenProjectColour, closeOpenProject,
@@ -58,12 +59,18 @@ const {
         <MobileBoxTab v-else-if="destination === 'box'" />
         <MobileDriverTab v-else-if="destination === 'driver'" />
         <MobileSignalTab v-else-if="destination === 'signal'" />
-        <MobileProjectTab v-else-if="destination === 'project'" />
         <MobileFiltersTab v-else-if="destination === 'filters'" />
         <MobileEnclosureTab v-else-if="destination === 'enclosure'" />
-        <MobileAdvancedTab v-else-if="destination === 'advanced'" />
-        <MobileManageDriversTab v-else-if="destination === 'drivers'" @chosen="destination = 'driver'" />
       </main>
+      <MobilePaneDialog v-if="pane === 'drivers'" title="Manage drivers" @close="closePane">
+        <MobileManageDriversTab @chosen="destination = 'driver'; closePane()" />
+      </MobilePaneDialog>
+      <MobilePaneDialog v-else-if="pane === 'project'" title="Project" @close="closePane">
+        <MobileProjectTab />
+      </MobilePaneDialog>
+      <MobilePaneDialog v-else-if="pane === 'advanced'" title="Advanced" @close="closePane">
+        <MobileAdvancedTab />
+      </MobilePaneDialog>
       <div v-if="updateBannerVisible" class="mob-update-banner" role="status">
         <span>A new version of OpenISD is available.</span>
         <button type="button" class="mob-update-reload" @click="reloadForUpdate">Reload</button>

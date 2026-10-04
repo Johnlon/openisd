@@ -20,7 +20,7 @@ test('Manage Drivers opens as a full pane, not the DriverBrowser overlay', async
   await page.locator('.mob-hamburger').click();
   await page.locator('.mob-menu-item', { hasText: 'Manage Drivers' }).click();
 
-  await expect(page.locator('.mob-panel-head', { hasText: 'Manage drivers' })).toBeVisible();
+  await expect(page.locator('.mob-dlg-title', { hasText: 'Manage drivers' })).toBeVisible();
   await expect(page.locator('.driver-library')).toBeVisible();
   // The global DriverBrowser overlay (.wb-modal) must NOT be what opened.
   await expect(page.locator('.wb-modal')).toHaveCount(0);

@@ -23,7 +23,10 @@ import type {StoredProjectListing} from '@openisd/persistence';
  *  — a destination that has no desktop counterpart, because `GraphPanel`'s canvas sets
  *  `touch-action: none` (custom pointer pan/zoom) and would trap vertical scroll if it sat
  *  inline in a form column instead of owning the whole screen. */
-export type MobileDestination = Extract<TabId, 'box' | 'driver' | 'signal' | 'filters' | 'project' | 'enclosure' | 'advanced'> | 'graph' | 'drivers';
+export type MobileDestination = Extract<TabId, 'box' | 'driver' | 'signal' | 'filters' | 'enclosure'> | 'graph';
+
+/** The panes the hamburger menu opens as full-screen dialogs over the current destination. */
+export type MobilePane = 'project' | 'advanced' | 'drivers';
 
 export interface MobileShellApi {
   projectOpen: import('vue').ComputedRef<boolean>;
@@ -55,6 +58,8 @@ export interface MobileShellApi {
   optionsOpen: import('vue').Ref<boolean>;
   openOptions: () => void;
   about: () => void;
+  pane: import('vue').Ref<MobilePane | null>;
+  closePane: () => void;
   goToProject: () => void;
   goToAdvanced: () => void;
   /** The real, currently-visible viewport height in px — see the field's own comment. */
@@ -114,6 +119,7 @@ export function useMobileShell(): MobileShellApi {
   const projectOpen = computed(() => focusedProject() != null);
   const projectTitle = computed(() => { void projectChanged.value; return focusedProject()?.title() ?? ''; });
   const destination = ref<MobileDestination>('box');
+  const pane = ref<MobilePane | null>(null);
   // The menu drawer's own identity line (John, 2026-10-02: "get my name in there somewhere") —
   // the same free-text app-level preference the Options dialog's "Username" field edits
   // (OptionsModal.vue), not a new setting of its own.
@@ -223,14 +229,15 @@ export function useMobileShell(): MobileShellApi {
   // reachable, unchanged, from the Driver tab's own "Select driver" — MobileDriverTab-hooks.ts's
   // own browseDrivers, a different function).
   function browseDrivers(): void {
-    destination.value = 'drivers';
+    pane.value = 'drivers';
     closeMenu();
   }
 
   const optionsOpen = ref(false);
   function openOptions(): void { optionsOpen.value = true; closeMenu(); }
-  function goToProject(): void { destination.value = 'project'; closeMenu(); }
-  function goToAdvanced(): void { destination.value = 'advanced'; closeMenu(); }
+  function goToProject(): void { pane.value = 'project'; closeMenu(); }
+  function goToAdvanced(): void { pane.value = 'advanced'; closeMenu(); }
+  function closePane(): void { pane.value = null; }
 
   // The hamburger menu — the mobile shell's stand-in for the desktop toolbar, since there's
   // no room for individual icons at phone width. Everything it opens (Options, Driver browser,
@@ -304,7 +311,7 @@ export function useMobileShell(): MobileShellApi {
     menuOpen, toggleMenu, closeMenu, openFromDisk, isModified,
     saveProject, saveAllProjects, anyUnsaved, updateBannerVisible, reloadForUpdate, dismissUpdateBanner, revertProject, browseDrivers, optionsOpen, openOptions, about, goToProject,
     contentEl, canScrollUp, canScrollDown, updateScrollEdges, username,
-    goToAdvanced, viewportHeightPx, showEnclosureTab, enclosureNavLabel,
+    goToAdvanced, pane, closePane, viewportHeightPx, showEnclosureTab, enclosureNavLabel,
     openDialogOpen, storedProjects, openProjectDialog, openStoredProject,
     openProjectRows, selectOpenProject, setOpenProjectTraceVisible, cycleOpenProjectColour, closeOpenProject,
   };
