@@ -1,8 +1,8 @@
 /**
- * The vent group's UI seam. The physics — which of `Vb`, `ventD`, `Fb`, `ventL` is HELD and
+ * The vent group's UI seam. The physics — which of volume, diameter, tuning and length is HELD and
  * which is SOLVED, the Helmholtz relation itself, reachability — lives on `OpenISDProject`
  * (`cell()`/`enter()`/`clear()`/`notifyVentChanged()`), the owner of the state. This module keeps
- * only what is genuinely a UI concern: the field vocabulary the shells bind, the E/C/N letter
+ * only what is genuinely a UI concern: the members the shells bind (`VentMember`), the E/C/N letter
  * the badges show, and the solve-suspension that parks `appState.ts`'s coarse auto-solve watch
  * so one user action produces one solve (and a wholesale restore is adopted verbatim,
  * byte-identical — docs/design/STATE_MODEL.md rule 3).
@@ -10,23 +10,10 @@
 import type {OpenISDProject} from '@openisd/design';
 import type {ProvenanceLetter} from '@openisd/design';
 
-/** The four members tied by the Helmholtz relation — the set the solver solves WITHIN. */
-export const VENT_GROUP = ['Vb', 'ventD', 'Fb', 'ventL'] as const;
-/** One of the four names listed above. */
-export type VentField = typeof VENT_GROUP[number];
-
-/**
- * What a human can ENTER — wider than what the solver solves, because a slotted vent states
- * its cross-section as width × height where a round one states a diameter.
- */
-export const VENT_ENTRY_FIELDS = [...VENT_GROUP, 'ventW', 'ventH'] as const;
-/** One of the names listed above. */
-export type VentEntryField = typeof VENT_ENTRY_FIELDS[number];
-
 /** A thin passthrough onto the domain's own reactivity ping (`usePrGroup.ts`'s
  *  `notifyPrChanged` already took this shape). S2-7d2 wires the tuning ↔ vent-length relation
  *  into `OpenISDProject#resolve()` itself, run synchronously by every `.set()`/`.clear()` this
- *  module's own `enterVentField`/`clearVentField` already make — so the manual Helmholtz solve
+ *  module's own `VentMember` writes already make — so the manual Helmholtz solve
  *  this function used to perform (QO126's stub workaround, while the relation was unwired) is
  *  gone: it is now REDUNDANT with `#resolve()`, and worse, actively conflicting with it — calling
  *  `.set()` here on the "achieved" side re-entered it as a fresh fact, which (correctly) cleared
@@ -36,10 +23,6 @@ export function notifyVentChanged(p: OpenISDProject): void {
   p.notifyVentChanged();
 }
 
-/** Enter a vent-group field — held until an explicit `clearVentField`. One user action, one
- *  solve: the domain solves inside `enter()`, and the suspension parks the auto-solve watch.
- *  `OpenISDProject` has no keyed accessor — this switch is the field-id dispatch,
- *  living here in the UI seam rather than as a generic method on the domain facade. */
 /** The vent group of the project's adopted box type: the front chamber's on a 4th-order bandpass,
  *  the vented box's otherwise. The domain owns that choice (`Box.ventGroupOf`). */
 function group(p: OpenISDProject) {
@@ -52,91 +35,113 @@ function fallBackToStartingAlignment(p: OpenISDProject): void {
   if (p.box.boxType.value !== 'bandpass4') p.box.resetVentedAlignment();
 }
 
-let userEnteredPair: 'Fb' | 'ventL' | 'both' | 'none' = 'Fb';
+/** Which side of the tuning / vent-length pair the user stated. */
+type EnteredPair = 'tuning' | 'length' | 'both';
+let userEnteredPair: EnteredPair = 'tuning';
 
 export function resetVentGroupState(): void {
-  userEnteredPair = 'Fb';
+  userEnteredPair = 'tuning';
 }
 
-export function enterVentField(p: OpenISDProject, field: VentEntryField, value: number): void {
+/** One user action, one solve: the domain solves inside the write, and the suspension parks the
+ *  auto-solve watch. */
+function act(p: OpenISDProject, write: () => void): void {
   suspendVentSolve(() => {
     p.batch(() => {
-      switch (field) {
-        case 'Vb': group(p).volume_m3.set(value); break;
-        case 'Fb':
-          group(p).tuning_goal_hz.set(value);
-          userEnteredPair = (group(p).vent.length_m.value !== null && userEnteredPair === 'ventL') ? 'both' : 'Fb';
-          break;
-        case 'ventD': group(p).vent.diameter_m.set(value); break;
-        case 'ventL':
-          group(p).vent.length_m.set(value);
-          userEnteredPair = (group(p).tuning_goal_hz.value !== null && userEnteredPair === 'Fb') ? 'both' : 'ventL';
-          break;
-        case 'ventW': group(p).vent.width_m.set(value); break;
-        case 'ventH': group(p).vent.height_m.set(value); break;
-      }
+      write();
       p.notifyVentChanged();
     });
   });
 }
 
-/** Clear a vent-group field — it becomes `C` if the remaining entered set determines it, `N`
- *  if nothing can. `Vb` is mandatory on a vented box, so it has no cleared state to go to. */
-export function clearVentField(p: OpenISDProject, field: Exclude<VentField, 'Vb'>): void {
-  suspendVentSolve(() => {
-    p.batch(() => {
-      switch (field) {
-        case 'Fb':
-          group(p).tuning_goal_hz.clear();
-          if (userEnteredPair === 'both') {
-            userEnteredPair = 'ventL';
-          } else {
-            // Nothing left on either side of the pair — rather than leave both blank (John,
-            // 2026-10-01: "unrecoverable"), fall back to the same QB3-style alignment a fresh
-            // box gets. Fb is the alignment's own entered side, same as a new box.
-            group(p).vent.length_m.clear();
-            fallBackToStartingAlignment(p);
-            userEnteredPair = 'Fb';
-          }
-          break;
-        case 'ventD': group(p).vent.diameter_m.clear(); break;
-        case 'ventL':
-          group(p).vent.length_m.clear();
-          if (userEnteredPair === 'both') {
-            userEnteredPair = 'Fb';
-          } else {
-            group(p).tuning_goal_hz.clear();
-            fallBackToStartingAlignment(p);
-            userEnteredPair = 'Fb';
-          }
-          break;
-      }
-      p.notifyVentChanged();
-    });
-  });
+/** A vent-group member the user can enter — held until cleared. */
+export interface VentInput {
+  enter(p: OpenISDProject, value: number): void;
+}
+/** A member that can be handed back: it becomes `C` if the remaining entered set determines it,
+ *  `N` if nothing can. */
+export interface VentClearable {
+  clear(p: OpenISDProject): void;
+}
+/** A member that shows an E/C/N badge: `E` entered and locked · `C` calculated · `N` not
+ *  available. */
+export interface VentBadged {
+  state(p: OpenISDProject): ProvenanceLetter;
 }
 
-/** `E` entered and locked · `C` calculated · `N` not available — the badge letter for the
- *  domain's own provenance. */
-export function ventFieldState(p: OpenISDProject, field: VentField): ProvenanceLetter {
-  const fbVal = group(p).tuning_goal_hz.value;
-  const lenVal = group(p).vent.length_m.value;
+/**
+ * The vent group's members. Volume, diameter, tuning and length are tied by the Helmholtz
+ * relation; width and height are what a slotted vent states in place of a diameter.
+ */
+export class VentMember {
+  /** Mandatory on a vented box, so it has no cleared state. */
+  static readonly VOLUME: VentInput & VentBadged = Object.freeze({
+    enter: (p: OpenISDProject, value: number) => act(p, () => group(p).volume_m3.set(value)),
+    state: (p: OpenISDProject) => group(p).volume_m3.provenance,
+  });
 
-  if (field === 'Fb') {
-    if (fbVal === null) return 'N';
-    if (userEnteredPair === 'ventL' && lenVal !== null) return 'C';
-    return 'E';
-  }
-  if (field === 'ventL') {
-    if (lenVal === null) return 'N';
-    if (userEnteredPair === 'Fb' && fbVal !== null) return 'C';
-    return 'E';
-  }
-  // Neither field is ever derived: a volume is mandatory, a diameter is stated or absent.
-  switch (field) {
-    case 'Vb': return group(p).volume_m3.provenance;
-    case 'ventD': return group(p).vent.diameter_m.provenance;
-  }
+  static readonly DIAMETER: VentInput & VentClearable & VentBadged = Object.freeze({
+    enter: (p: OpenISDProject, value: number) => act(p, () => group(p).vent.diameter_m.set(value)),
+    clear: (p: OpenISDProject) => act(p, () => group(p).vent.diameter_m.clear()),
+    state: (p: OpenISDProject) => group(p).vent.diameter_m.provenance,
+  });
+
+  static readonly TUNING: VentInput & VentClearable & VentBadged = Object.freeze({
+    enter: (p: OpenISDProject, value: number) => act(p, () => {
+      group(p).tuning_goal_hz.set(value);
+      userEnteredPair = (group(p).vent.length_m.value !== null && userEnteredPair === 'length') ? 'both' : 'tuning';
+    }),
+    clear: (p: OpenISDProject) => act(p, () => {
+      group(p).tuning_goal_hz.clear();
+      if (userEnteredPair === 'both') {
+        userEnteredPair = 'length';
+      } else {
+        // Nothing left on either side of the pair — rather than leave both blank (John,
+        // 2026-10-01: "unrecoverable"), fall back to the same QB3-style alignment a fresh
+        // box gets. The tuning is the alignment's own entered side, same as a new box.
+        group(p).vent.length_m.clear();
+        fallBackToStartingAlignment(p);
+        userEnteredPair = 'tuning';
+      }
+    }),
+    state: (p: OpenISDProject): ProvenanceLetter => {
+      if (group(p).tuning_goal_hz.value === null) return 'N';
+      if (userEnteredPair === 'length' && group(p).vent.length_m.value !== null) return 'C';
+      return 'E';
+    },
+  });
+
+  static readonly LENGTH: VentInput & VentClearable & VentBadged = Object.freeze({
+    enter: (p: OpenISDProject, value: number) => act(p, () => {
+      group(p).vent.length_m.set(value);
+      userEnteredPair = (group(p).tuning_goal_hz.value !== null && userEnteredPair === 'tuning') ? 'both' : 'length';
+    }),
+    clear: (p: OpenISDProject) => act(p, () => {
+      group(p).vent.length_m.clear();
+      if (userEnteredPair === 'both') {
+        userEnteredPair = 'tuning';
+      } else {
+        group(p).tuning_goal_hz.clear();
+        fallBackToStartingAlignment(p);
+        userEnteredPair = 'tuning';
+      }
+    }),
+    state: (p: OpenISDProject): ProvenanceLetter => {
+      if (group(p).vent.length_m.value === null) return 'N';
+      if (userEnteredPair === 'tuning' && group(p).tuning_goal_hz.value !== null) return 'C';
+      return 'E';
+    },
+  });
+
+  static readonly WIDTH: VentInput = Object.freeze({
+    enter: (p: OpenISDProject, value: number) => act(p, () => group(p).vent.width_m.set(value)),
+  });
+
+  static readonly HEIGHT: VentInput = Object.freeze({
+    enter: (p: OpenISDProject, value: number) => act(p, () => group(p).vent.height_m.set(value)),
+  });
+
+  private constructor() {}
 }
 
 /** The tuning the CURRENT vent length actually delivers. */

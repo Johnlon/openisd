@@ -6,7 +6,7 @@
  */
 import {computed} from 'vue';
 import type {ComputedRef, Ref} from 'vue';
-import {clearVentField as clearVentFieldOn, enterVentField as enterVentFieldOn, ventFieldState as ventFieldStateOn} from '../logic/useVentGroup.js';
+import {VentMember} from '../logic/useVentGroup.js';
 import type {OpenISDProject} from '@openisd/design';
 import type {BoxType, EnvironmentEngine, VentEngine} from '@openisd/design/engine';
 
@@ -61,8 +61,8 @@ export function createVentReadouts({ project, projectChanged: changed, selectedB
   // Single-chamber vented tuning uses Vb (the whole box); the bandpass front chamber tunes on
   // its own front volume Vf. The four below are READ-ONLY derived values shown in more than one
   // place (E/C/N badges, warning banners) — genuinely DERIVED state.
-  const fbState    = computed<'E' | 'C' | 'N'>(() => { void changed.value; void project.value; return ventFieldStateOn(project.value, 'Fb'); });
-  const ventLState = computed<'E' | 'C' | 'N'>(() => { void changed.value; void project.value; return ventFieldStateOn(project.value, 'ventL'); });
+  const fbState    = computed<'E' | 'C' | 'N'>(() => { void changed.value; void project.value; return VentMember.TUNING.state(project.value); });
+  const ventLState = computed<'E' | 'C' | 'N'>(() => { void changed.value; void project.value; return VentMember.LENGTH.state(project.value); });
   /** The vent's own dq — a `target-unreachable` mark means the entered tuning has no positive
    *  port length in this volume/area; the solver already wrote `length_m` null. */
   const fbUnreachableIssue = computed(() => {
@@ -79,10 +79,10 @@ export function createVentReadouts({ project, projectChanged: changed, selectedB
   /** The front chamber of a bandpass is vented on its OWN volume, so it carries its own symbol. */
   const frontChamberTuningLabel = computed(() =>
     DUAL_CHAMBER.has(selectedBox.value) ? 'Target Tuning Freq (Ffc)' : 'Target Tuning Freq');
-  /** Typing a tuning enters Fb; clearing it (or a non-positive value) hands Fb back to the solver. */
+  /** Typing a tuning enters it; clearing it (or a non-positive value) hands it back to the solver. */
   function setFbTarget(v: number | null): void {
-    if (v == null || Number.isNaN(v) || v <= 0) clearVentFieldOn(project.value, 'Fb');
-    else enterVentFieldOn(project.value, 'Fb', v);
+    if (v == null || Number.isNaN(v) || v <= 0) VentMember.TUNING.clear(project.value);
+    else VentMember.TUNING.enter(project.value, v);
   }
 
   return { activeVent, activeTuning, portPipeResonance_hz, fbState, ventLState, fbUnreachable, fbUnreachableMsg, frontChamberTuningLabel, setFbTarget };

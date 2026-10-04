@@ -44,7 +44,7 @@ import {
     type ViewSnapshot,
 } from '@openisd/persistence';
 import {assignTraceColor, presentationState} from './presentationState.js';
-import {BOX_TYPE_OPTIONS, NumberField, type SelectorOption} from '@openisd/design/fields';
+import {BOX_TYPE_OPTIONS, NumberField, parseUnitRotation, type SelectorOption} from '@openisd/design/fields';
 import {getOrInit, hmrSlots} from './hmrSingleton.js';
 import {notifyVentChanged, ventSolveSuspended,} from './useVentGroup.js';
 import {notifyPrChanged} from './usePrGroup.js';
@@ -727,7 +727,10 @@ export function applyLoadedProject(project: OpenISDProject): void {
  *  moved onto the project itself (QO130/QO168) — restored automatically as part of the project
  *  text, not through this door. */
 export function applyViewSnapshot(v: ViewSnapshot): void {
-  if (v.ui) Object.assign(presentationState.ui, v.ui);   // the whole view context is carried by a share link (stateToUrl, human ruling 2026-08-14) — nothing in it is stripped
+  if (v.ui) {
+    Object.assign(presentationState.ui, v.ui);   // the whole view context is carried by a share link (stateToUrl, human ruling 2026-08-14) — nothing in it is stripped
+    presentationState.ui.unitTokens = {...parseUnitRotation(v.ui.unitTokens)};   // an older save's short-named unit choices move to their field
+  }
   if (v.chart) {
     presentationState.sweepRange = {min: v.chart.sweepRange.min, max: v.chart.sweepRange.max};
     const yRanges: Partial<Record<ChartId, YRange>> = {};

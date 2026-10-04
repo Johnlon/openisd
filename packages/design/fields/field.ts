@@ -224,6 +224,11 @@ export class NumberField extends Field {
     return isTokenIn(this.display.group, stored) ? stored : this.display.base;
   }
 
+  /** Whether `token` is one of the units this field rotates through; never for a fixed unit. */
+  rotatesTo(token: unknown): token is string {
+    return this.display.kind === 'switchable' && isTokenIn(this.display.group, token);
+  }
+
   /** `rotation` with this field moved to its next unit; `rotation` itself for a field with
    *  nowhere to rotate. */
   withNextUnit(rotation: Readonly<Record<string, string>>): Readonly<Record<string, string>> {

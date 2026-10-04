@@ -26,6 +26,10 @@
  * `NumberField.withNextUnit(rotation)`), so the compiler checks which rotation a widget follows.
  * A string naming a rotation (`unit-key="Vb"`, `unitTokens['Fb']`, `unitTokens.Vb`) is reported:
  * a misspelt one silently follows no rotation at all.
+ *
+ * The vent group's members were routed by the same short names ('Vb', 'Fb', 'ventL', ...). They
+ * are `VentMember` objects now (`VentMember.TUNING.enter(project, v)`); a string literal equal to
+ * one of those names, in a hook or a template expression, is reported.
  */
 import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
@@ -173,6 +177,19 @@ function rotationKeyOffences(source: string): {what: string; line: number}[] {
   return found;
 }
 
+/** The short names the vent group used to be routed by. */
+const VENT_SHORT_NAMES: ReadonlySet<string> = new Set(['Vb', 'Fb', 'ventD', 'ventL', 'ventW', 'ventH']);
+
+/** String literals equal to a vent short name: `enterVentField(p, 'Fb', v)`, `case 'ventL':`. */
+function ventNameOffences(source: string): {what: string; line: number}[] {
+  const file = scratch.createSourceFile('source.ts', source, {overwrite: true});
+  return [
+    ...file.getDescendantsOfKind(SyntaxKind.StringLiteral),
+    ...file.getDescendantsOfKind(SyntaxKind.NoSubstitutionTemplateLiteral),
+  ].filter(lit => VENT_SHORT_NAMES.has(lit.getLiteralText()))
+    .map(lit => ({what: `vent member named by string ${lit.getText()}`, line: lit.getStartLineNumber()}));
+}
+
 /** A `unit-key` / `unitKey` attribute, static or bound, on any element. */
 function unitKeyAttributeOffences(root: ParentNode): {what: string; line: number}[] {
   const found: {what: string; line: number}[] = [];
@@ -223,6 +240,29 @@ describe('units come from the rotation', () => {
     ].join(' '));
   });
 
+  it('no template or hook names a vent-group member by string; the VentMember is the key', () => {
+    const offences: string[] = [];
+    for (const file of filesUnder(UI_SRC, '.vue')) {
+      const {descriptor} = parseSfc(readFileSync(file, 'utf8'));
+      for (const block of [descriptor.script, descriptor.scriptSetup]) {
+        if (block === null) continue;
+        const base = block.loc.start.line - 1;
+        for (const o of ventNameOffences(block.content)) offences.push(`${relative(UI_SRC, file)}:${base + o.line} ${o.what}`);
+      }
+      if (descriptor.template === null) continue;
+      const base = descriptor.template.loc.start.line - 1;
+      for (const {text, line} of expressionsOf(parseTemplate(descriptor.template.content))) {
+        for (const o of ventNameOffences(`(${text});`)) offences.push(`${relative(UI_SRC, file)}:${base + line} ${o.what}`);
+      }
+    }
+    for (const file of filesUnder(UI_SRC, '.ts')) {
+      for (const o of ventNameOffences(readFileSync(file, 'utf8'))) offences.push(`${relative(UI_SRC, file)}:${o.line} ${o.what}`);
+    }
+    assert.deepEqual(offences.sort(), [], [
+      'A vent-group member is named by a string. Call the member itself',
+      '(`VentMember.TUNING.enter(project, v)`, `VentMember.LENGTH.state(project)`), so the compiler checks it.',
+    ].join(' '));
+  });
 
   it('no template or hook types a unit beside a shown value', () => {
     const offences: string[] = [];

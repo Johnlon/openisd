@@ -7,6 +7,7 @@
 import {afterEach, beforeEach, describe, expect, it} from 'vitest';
 import {nextTick} from 'vue';
 import {createEngine} from '@openisd/design/engine';
+import {NumberField} from '@openisd/design/fields';
 import {OpenISDProject, ProjectBuilder} from '@openisd/design';
 import {createProjectRepo, createSharedMemoryStorage, createViewStateRepo, type FileStorage, type ProjectRepairReport} from '@openisd/persistence';
 import {readFileSync} from 'node:fs';
@@ -87,10 +88,10 @@ describe('startSessionSync', () => {
     const tab = store.tab();
     stop = startSessionSync({projectRepo: createProjectRepo(engine, noFiles, tab), viewStateRepo: createViewStateRepo(tab)});
 
-    otherTab.save({ui: {...presentationState.ui, unitTokens: {probe_111111: 'x'}}});
+    otherTab.save({ui: {...presentationState.ui, unitTokens: {[NumberField.BOX_FB_HZ.value]: 'kHz'}}});
     await nextTick();
 
-    expect(presentationState.ui.unitTokens).toEqual({probe_111111: 'x'});
+    expect(presentationState.ui.unitTokens).toEqual({[NumberField.BOX_FB_HZ.value]: 'kHz'});
   });
 });
 

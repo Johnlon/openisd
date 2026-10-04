@@ -46,7 +46,7 @@ const {
   ventedAlignmentEditor, ventedAlignmentOpen, ventedAlignmentOptions, ventedAlignmentSelected,
   ventedAlignmentVolume_L, ventedAlignmentTuning_hz, ventedAlignmentEbp, ventedAlignmentSuitability,
   ventedAlignmentSuitabilityLabel,
-  activeTuning, fbState, FB_TARGET_TIP, FH_TARGET_TIP, VENT_GEOMETRY_TIP, clearVentFieldOn, enterVentFieldOn,
+  activeTuning, fbState, FB_TARGET_TIP, FH_TARGET_TIP, VENT_GEOMETRY_TIP, VentMember,
   boxResonance, rearQtc, prSystemTuningDq, prNaturalFh,
   fbUnreachable, fbUnreachableMsg, boxLossesOpen, isDual,
   frontVolume_m3, setFrontVolume_m3, frcHz, setFrcHz, rearResonance, frontChamberTuningLabel,
@@ -289,7 +289,7 @@ const {
                      from it. A sealed chamber has no port, so Fsc is fully determined by Vb
                      and the driver — calculated, nothing to type. Per-chamber, not per-box. -->
                 <template v-if="selectedBox === 'vented'">
-                  <div v-if="fbState !== 'C'" id="og-fb-target-field" class="field entered" :title="FB_TARGET_TIP"><label>Target Tuning Freq</label><NumInput id="og-fb-target" :model-value="activeTuning.value" @update:model-value="(v: number | null) => { if (v == null || isNaN(v) || v <= 0) clearVentFieldOn(project, 'Fb'); else enterVentFieldOn(project, 'Fb', v); }" :field="NumberField.BOX_FB_HZ" :precision="NumberField.BOX_FB_HZ.precision" /><UnitToggle :field="NumberField.BOX_FB_HZ" unit-class="unit unit-cyc" /></div>
+                  <div v-if="fbState !== 'C'" id="og-fb-target-field" class="field entered" :title="FB_TARGET_TIP"><label>Target Tuning Freq</label><NumInput id="og-fb-target" :model-value="activeTuning.value" @update:model-value="(v: number | null) => { if (v == null || isNaN(v) || v <= 0) VentMember.TUNING.clear(project); else VentMember.TUNING.enter(project, v); }" :field="NumberField.BOX_FB_HZ" :precision="NumberField.BOX_FB_HZ.precision" /><UnitToggle :field="NumberField.BOX_FB_HZ" unit-class="unit unit-cyc" /></div>
                   <div v-else id="og-fb-target-field" class="field" :title="FB_TARGET_TIP"><label>Target Tuning Freq</label><NumReadout as-input class="calculated greyed" :field="NumberField.BOX_FB_HZ" :value="activeTuning.value" /><UnitToggle :field="NumberField.BOX_FB_HZ" unit-class="unit unit-cyc" /></div>
                 </template>
                 <template v-else-if="selectedBox === 'sealed'">
@@ -329,7 +329,7 @@ const {
                 <div class="field-row">
                   <div v-if="fbState !== 'C'" id="og-ffc-target-field" class="field entered" :title="FB_TARGET_TIP">
                     <label>{{ frontChamberTuningLabel }}</label>
-                    <NumInput id="og-ffc-target" :model-value="activeTuning.value" @update:model-value="(v: number | null) => { if (v == null || isNaN(v) || v <= 0) clearVentFieldOn(project, 'Fb'); else enterVentFieldOn(project, 'Fb', v); }" :field="NumberField.BOX_FB_HZ" :precision="NumberField.BOX_FB_HZ.precision" />
+                    <NumInput id="og-ffc-target" :model-value="activeTuning.value" @update:model-value="(v: number | null) => { if (v == null || isNaN(v) || v <= 0) VentMember.TUNING.clear(project); else VentMember.TUNING.enter(project, v); }" :field="NumberField.BOX_FB_HZ" :precision="NumberField.BOX_FB_HZ.precision" />
                     <UnitToggle :field="NumberField.BOX_FB_HZ" unit-class="unit unit-cyc" />
                   </div>
                   <div v-else id="og-ffc-target-field" class="field" :title="FB_TARGET_TIP">
@@ -447,14 +447,14 @@ const {
                   <div class="field-row">
                     <div class="field entered" :title="VENT_GEOMETRY_TIP">
                       <label>Slot width</label>
-                      <NumInput :model-value="activeVent.width_m.value" @update:model-value="(v: number | null) => enterVentFieldOn(project, 'ventW', v ?? 0)" :field="NumberField.VENT_W_CM" :precision="NumberField.VENT_W_CM.precision" />
+                      <NumInput :model-value="activeVent.width_m.value" @update:model-value="(v: number | null) => VentMember.WIDTH.enter(project, v ?? 0)" :field="NumberField.VENT_W_CM" :precision="NumberField.VENT_W_CM.precision" />
                       <UnitToggle :field="NumberField.VENT_W_CM" unit-class="unit unit-cyc" />
                     </div>
                   </div>
                   <div class="field-row">
                     <div class="field entered" :title="VENT_GEOMETRY_TIP">
                       <label>Slot height</label>
-                      <NumInput :model-value="activeVent.height_m.value" @update:model-value="(v: number | null) => enterVentFieldOn(project, 'ventH', v ?? 0)" :field="NumberField.VENT_H_CM" :precision="NumberField.VENT_H_CM.precision" />
+                      <NumInput :model-value="activeVent.height_m.value" @update:model-value="(v: number | null) => VentMember.HEIGHT.enter(project, v ?? 0)" :field="NumberField.VENT_H_CM" :precision="NumberField.VENT_H_CM.precision" />
                       <UnitToggle :field="NumberField.VENT_H_CM" unit-class="unit unit-cyc" />
                     </div>
                   </div>
@@ -463,7 +463,7 @@ const {
                   <div class="field-row">
                     <div class="field entered" :title="VENT_GEOMETRY_TIP">
                       <label>Vent diameter</label>
-                      <NumInput :model-value="activeVent.diameter_m.value" @update:model-value="(v: number | null) => enterVentFieldOn(project, 'ventD', v ?? 0)" :field="NumberField.VENT_D_CM" :precision="NumberField.VENT_D_CM.precision" />
+                      <NumInput :model-value="activeVent.diameter_m.value" @update:model-value="(v: number | null) => VentMember.DIAMETER.enter(project, v ?? 0)" :field="NumberField.VENT_D_CM" :precision="NumberField.VENT_D_CM.precision" />
                       <UnitToggle :field="NumberField.VENT_D_CM" unit-class="unit unit-cyc" />
                     </div>
                   </div>
@@ -476,7 +476,7 @@ const {
                        must stay editable so the user has a way back in, QO139). -->
                   <div v-if="ventLState !== 'C' && fbState !== 'E'" class="field entered">
                     <label>Vent length</label>
-                    <NumInput :model-value="activeVent.length_m.value" @update:model-value="(v: number | null) => { if (v == null || isNaN(v) || v <= 0) clearVentFieldOn(project, 'ventL'); else enterVentFieldOn(project, 'ventL', v); }" :field="NumberField.VENT_L_CM" :precision="NumberField.VENT_L_CM.precision" />
+                    <NumInput :model-value="activeVent.length_m.value" @update:model-value="(v: number | null) => { if (v == null || isNaN(v) || v <= 0) VentMember.LENGTH.clear(project); else VentMember.LENGTH.enter(project, v); }" :field="NumberField.VENT_L_CM" :precision="NumberField.VENT_L_CM.precision" />
                     <UnitToggle :field="NumberField.VENT_L_CM" unit-class="unit unit-cyc" />
                   </div>
                   <div v-else class="field">
@@ -504,7 +504,7 @@ const {
                 <div class="field-row">
                   <div v-if="fbState !== 'C'" id="og-vent-fb-target-field" class="field entered" :title="FB_TARGET_TIP">
                     <label>Target Tuning Freq</label>
-                    <NumInput id="og-vent-fb-target" :model-value="activeTuning.value" @update:model-value="(v: number | null) => { if (v == null || isNaN(v) || v <= 0) clearVentFieldOn(project, 'Fb'); else enterVentFieldOn(project, 'Fb', v); }" :field="NumberField.BOX_FB_HZ" :precision="NumberField.BOX_FB_HZ.precision" />
+                    <NumInput id="og-vent-fb-target" :model-value="activeTuning.value" @update:model-value="(v: number | null) => { if (v == null || isNaN(v) || v <= 0) VentMember.TUNING.clear(project); else VentMember.TUNING.enter(project, v); }" :field="NumberField.BOX_FB_HZ" :precision="NumberField.BOX_FB_HZ.precision" />
                     <UnitToggle :field="NumberField.BOX_FB_HZ" unit-class="unit unit-cyc" />
                   </div>
                   <div v-else id="og-vent-fb-target-field" class="field" :title="FB_TARGET_TIP">
