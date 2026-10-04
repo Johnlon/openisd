@@ -5,7 +5,7 @@
  * L = c²·Sp/(4π²·Fb²·V) − k·d, so a target above the ceiling comes back NEGATIVE. The ceiling is
  * the tuning at L = 0: the end correction alone supplies acoustic mass, so a zero-length
  * aperture in this volume through this area already resonates somewhere, and nothing shorter
- * exists. The formula itself is pinned in engine/boxDesign.test.ts; these assert the domain
+ * exists. The formula itself is pinned in engine/vent-length.test.ts; these assert the domain
  * wrapper (project air, vent area, end correction) delivers it.
  *
  * Trial geometry: Vb = 30 L, round vent d = 5 cm, k = 0.6 → L = 0 tunes to 80.79 Hz, so

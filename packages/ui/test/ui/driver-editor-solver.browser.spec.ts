@@ -13,7 +13,7 @@ const COMPLETE = COMPLETE_DRIVER_PROJECT_OWPR;
  * The Driver Editor is WIRED to the driver solver — the seam, not the maths.
  *
  * The derivation rules themselves (which field follows from which, route precedence, cascades,
- * zero and contradiction handling) are unit-tested in `packages/design/test/engine/driver.test.ts`
+ * zero and contradiction handling) are unit-tested in `packages/design/test/engine/driver-solve.test.ts`
  * and pinned against WinISD's own goldens in
  * `packages/design/test/winisd/winisd-parity-goldens.test.ts`. This spec proves only what
  * a unit test cannot: that typing into the editor reaches the solver, that a solver result

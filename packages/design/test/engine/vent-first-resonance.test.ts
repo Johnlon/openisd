@@ -4,7 +4,7 @@
  * (John, 2026-09-27: "UI is display only" — a shell must not carry a physics formula).
  *
  * Uses the PHYSICAL length, not `effectiveLength`'s end-corrected `Leff`, to match WinISD's own
- * "1st port resonance" readout exactly (`original-skin.browser.spec.ts`'s
+ * "1st port resonance" readout exactly (`original-vented-tab.browser.spec.ts`'s
  * "the Vented '1st port resonance' shows the vent pipe resonance c/(2·ventL), not the box
  * tuning" pins the same distinction at the UI layer).
  */

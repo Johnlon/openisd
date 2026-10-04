@@ -3,7 +3,7 @@
  * (`CalculationIssue<Q>`-shaped) and the store's `DriverError`-shaped `allIssues` channel that
  * `GraphPanel-hooks.ts`/`series.ts` already render. Converting `sweep()`'s return type to the
  * unified issue shape (QO142) must not change what a user actually sees, so this pins the
- * projected text independently of the wider store wiring covered by `store-issue-channel.test.ts`.
+ * projected text independently of the wider store wiring covered by `appState-issues.test.ts`.
  */
 import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';

@@ -35,7 +35,7 @@ Four independent checks, all against `winisd.exe` 0.7.0.0:
    `docs/winisd_helpfiles/help/`, including `graphs.html`, contain no occurrence of
    *export*, *clipboard* or *csv*.
 
-What still guards the curves: `packages/engine/test/golden.test.ts`, which pins openisd's own
+What still guards the curves: `packages/design/test/engine/sweep-golden-master.test.ts`, which pins openisd's own
 sweep output byte for byte. That is a different guarantee — it proves openisd has not changed,
 not that it agrees with WinISD.
 

@@ -1,7 +1,7 @@
 /**
  * The SECOND loop: `.wdr` text → `WinISDDriver` → `OpenISDDriver` → `WinISDDriver` → text.
  *
- * The first loop (`wdr-round-trip.test.ts`) proves the format layer is faithful, and it can
+ * The first loop (`wdr-ini-byte-round-trip.test.ts`) proves the format layer is faithful, and it can
  * demand byte equality because `WinISDDriver` is dumb: it carries the file's own strings.
  *
  * This loop cannot, and MUST not. `toOpenISDRecord()` carries E fields and deliberately drops

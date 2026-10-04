@@ -6,7 +6,7 @@
  *
  * The test suite's own vite server swaps in a tiny 6-reference-device catalogue (test-bundle.mjs
  * — "no corpus needed"), not the full ~1600-driver one a dev server serves — "Tang Band
- * W5-1138SMF" is one of the six (also used by wizard-defaults.browser.spec.ts).
+ * W5-1138SMF" is one of the six (also used by new-project-wizard.browser.spec.ts).
  */
 import {expect, test} from '../fixtures.js';
 import {forceMobileSkin} from '../fixtures/mobileSkin.js';

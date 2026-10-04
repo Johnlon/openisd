@@ -5,7 +5,7 @@ import {tuneSpec, prSpecSection, driverFrom, driverJson} from '../fixtures/domai
 
 describe('OpenISDProject sweep guards', () => {
   describe('the vent/PR sweep-level guards', () => {
-    // A CIRCUIT-COMPLETE driver (the store's `store-issue-channel.test.ts` clean-fixture field
+    // A CIRCUIT-COMPLETE driver (the store's `appState-issues.test.ts` clean-fixture field
     // set): Qts derived from stated Qes/Qms so nothing can contradict, Mms/Rms/Bl/Cms derived by
     // the solver, and Re stated — sweeping is possible at all, so the vent/PR guards below are
     // the ONLY expected blockers.

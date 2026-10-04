@@ -16,7 +16,7 @@ export interface ViewportWatch {
 }
 
 /** `query` defaults to the mobile-skin breakpoint (600px — see the plan: comfortably below
- *  `original-narrow.browser.spec.ts`'s 780px floor and Playwright's default 1280×720 viewport,
+ *  `original-shell-layout.browser.spec.ts`'s 780px floor and Playwright's default 1280×720 viewport,
  *  so no existing desktop spec crosses it). */
 export function createViewportWatch(query = '(max-width: 600px)'): ViewportWatch {
   const mql = window.matchMedia(query);

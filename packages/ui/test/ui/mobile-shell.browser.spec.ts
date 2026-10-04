@@ -5,7 +5,7 @@
  * are `mobile-topbar`, `mobile-splash` and `mobile-new-project-wizard`.
  *
  * Every test forces the mobile skin via a persisted override (not a narrow viewport) — deciding
- * WHICH skin renders is `mobile-skin-selection.browser.spec.ts`'s job; these specs assume the
+ * WHICH skin renders is `skin-selection.browser.spec.ts`'s job; these specs assume the
  * mobile skin and test what it does once showing.
  */
 import {expect, openAMobileProject, test} from '../fixtures.js';

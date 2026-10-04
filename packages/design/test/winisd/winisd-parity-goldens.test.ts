@@ -10,7 +10,7 @@
  * SCOPE — field calculations only. WinISD exposes no way to get a plotted CURVE out as
  * text (README §"Curve data as text"), and reading a chart off a screenshot is not an
  * acceptable golden, so the chart half of QO8 is out of scope until that changes. The
- * engine's own curve regression lives in `packages/engine/test/golden.test.ts`, which is a
+ * engine's own curve regression lives in `packages/design/test/engine/sweep-golden-master.test.ts`, which is a
  * different guarantee: it proves openisd has not changed, not that it matches WinISD.
  *
  * The openisd side runs through the APP's own path — `Driver.fromWdrIni()` + `cell()` — not a
@@ -300,7 +300,7 @@ function findDivergence(scenario: string, field: string): KnownDivergence | unde
  * slot `C` and writes `13.18359375`, which IS compared, and passes.
  *
  * The slot map is `packages/design/winisd/parstate.ts`, fixed by WinISD's own single-parameter
- * probes in `drivers/mysamples/winisd/s-*.wdr` and pinned by `wdr-round-trip.test.ts` — not by
+ * probes in `drivers/mysamples/winisd/s-*.wdr` and pinned by `wdr-ini-byte-round-trip.test.ts` — not by
  * anything this suite computes.
  */
 function winisdDeclined(scenario: Scenario, goldenDriver: WinISDDriver | undefined, key: string): boolean {

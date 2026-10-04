@@ -39,7 +39,7 @@ test.describe('MobileVentedTab', () => {
   // Bug (John, live on his phone, 2026-10-01): clearing an entered Target Tuning Freq left both
   // it and Vent length stuck as read-only blanks — the template only ever rendered an input for
   // the 'E' state, so once a clear drove both to 'N' there was no way back in without reloading
-  // the project. Mirrors the desktop repro in original-tuning-target.browser.spec.ts.
+  // the project. Mirrors the desktop repro in original-vented-tab.browser.spec.ts.
   //
   // John's own follow-up ("clear ... should probably default to ... an alignment") is the actual
   // fix where the driver resolves: `clearVentField` now calls `Box.resetVentedAlignment()`, so

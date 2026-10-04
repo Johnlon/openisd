@@ -83,7 +83,7 @@ describe('vented project cells — plausibility marks', () => {
 
   it('leaves the vented cells of a sealed project alone — no design, nothing to judge', () => {
     // A sealed project's vented chamber sits at its schema default of 0 m³. That is not an
-    // implausible box; it is no box. `cell-dq.test.ts` pins the same expectation.
+    // implausible box; it is no box. `domain/field-dq.test.ts` pins the same expectation.
     const engine = engineWith(NARROW);
     const p = new ProjectBuilder(driverFor(engine), engine).sealed().volume_m3(0.03).build();
     assert.deepEqual(p.box.vented.volume_m3.dq, []);

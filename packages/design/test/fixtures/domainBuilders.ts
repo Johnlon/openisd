@@ -93,7 +93,7 @@ export function specSectionNoRms(p: {
 
 /** A driver the Tune panel might have produced: Thiele/Small values only, NO `Sd`/`Cms`/`Mms`/
  *  `Rms`/`Xmax`, and no stored `Qts` — the pair `Qes`+`Qms` implies it. This is the golden
- *  scene's shape (`sealed-fsc-winisd-golden.browser.spec.ts`), and a shape the old compliance
+ *  scene's shape (`original-box-tab.browser.spec.ts`), and a shape the old compliance
  *  feed could not answer at all: `Cms·Sd²·ρc²` needs the fields this record deliberately lacks. */
 export function tuneSpec(p: {Fs_hz: number; Vas_m3: number; Qes: number; Qms: number; Re_ohm: number}) {
   return {

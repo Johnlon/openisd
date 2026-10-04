@@ -3,7 +3,7 @@
  * `sweep`/`maxCurves` directly), so it is where the engine's hardening layers have to be
  * unioned into one issue list. These pin the WIRING — that `allIssues` actually carries
  * each layer — not the classification rules themselves, which are covered engine-side by
- * `packages/engine/test/hardening.test.ts`.
+ * `packages/design/test/engine/classify-finite.test.ts` and `driver-preconditions.test.ts`.
  *
  * Without this, a layer can be implemented, tested, and still reach no one: the store is
  * the only place the three sources are joined.

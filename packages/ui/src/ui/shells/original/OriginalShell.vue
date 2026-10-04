@@ -500,7 +500,7 @@ const {
                      It sits in this column, not beside the other config fields, because the
                      pane's height is set by its tallest column: a fourth row in either of the
                      first two overflows the panel for the round or the slotted shape
-                     (test/ui/bottom-scroll.browser.spec.ts). Here every shape stays at three. -->
+                     (test/ui/original-shell-layout.browser.spec.ts). Here every shape stays at three. -->
                 <div class="field-row">
                   <div v-if="fbState !== 'C'" id="og-vent-fb-target-field" class="field entered" :title="FB_TARGET_TIP">
                     <label>Target Tuning Freq</label>
@@ -529,7 +529,7 @@ const {
               </div>
             </div>
             <!-- No trailing hint here: the pane must fit the fixed bottom panel without
-                 scrolling (bottom-scroll.browser.spec.ts), and the target-tuning guidance already
+                 scrolling (original-shell-layout.browser.spec.ts), and the target-tuning guidance already
                  lives in the field's own tooltip (FB_TARGET_TIP). -->
             <p v-if="fbUnreachable" id="og-vent-unreachable" class="hint" style="color:#a11;">{{ fbUnreachableMsg }}</p>
           </div>
@@ -1112,7 +1112,7 @@ const {
 /* Columns keep their natural width and never shrink below their contents. A shrinking
    column (`flex:0 1 auto` with `min-width:0`) let the next column's origin slide left
    while this one's controls kept their own width, so the two painted on top of each
-   other — the exact overlap `original-narrow.browser.spec.ts` locks out. */
+   other — the exact overlap `original-shell-layout.browser.spec.ts` locks out. */
 .two-col { display:flex; gap:24px; align-items:flex-start; justify-content:flex-start; }
 .two-col > div { flex:none; }
 .box-layout { display:flex; gap:var(--box-col-gap); align-items:flex-start; }

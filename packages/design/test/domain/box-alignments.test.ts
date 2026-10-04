@@ -112,7 +112,7 @@ describe('OpenISDBox alignments', () => {
     });
 
     it('feeds the engine the driver\'s SOLVED Vas and the Rg-loaded Qts, not compliance-route Vas and bare Qts (golden Fsc 63.1762 Hz / Qtc 0.5995)', () => {
-      // The user-verified golden scene (sealed-fsc-winisd-golden.browser.spec.ts): Fs=40 Vas=7.65 L
+      // The user-verified golden scene (original-box-tab.browser.spec.ts): Fs=40 Vas=7.65 L
       // Qes=0.450 Qms=2.940 Re=6.6 Rg=0.1 Vb=6 L Ql=10 Qa=100 → Fsc 63.1762 Hz, Qtc 0.5995.
       //
       // This is WinISD SEALED, and the engine already reproduces it: the parity feed
