@@ -68,11 +68,11 @@ const emit = defineEmits<{
   .field-row { flex-direction: column; align-items: stretch; }
   .field { flex-direction: column; align-items: stretch; gap: 4px; }
   .field label { min-width: auto; text-align: left; font-size: 13px; color: #555; }
-  .field input { width: 100%; min-height: 40px; }
+  .field input { width: 100%; min-height: 40px; padding: 10px; border-radius: 4px; font: inherit; }
   .field-inline { width: 100%; }
-  .field-inline :deep(> :first-child) { flex: 1; min-width: 0; }
-  .field-inline :deep(input) { width: 100%; box-sizing: border-box; }
-  .field-inline :deep(.unit) { min-width: 3.5em; }
+  /* NumInput is a fragment (input + optional stepper), so its input is reached with :deep. */
+  .field-inline :deep(input) { flex: 1; width: auto; min-width: 0; box-sizing: border-box; min-height: 40px; padding: 10px; border: 1px solid #999; border-radius: 4px; background: #fff; font: inherit; }
+  .field-inline .unit { flex: 0 0 3.5em; }
   .np-pr-name { width: 100%; }
   .edit-btn { padding: 10px; font-size: 14px; }
 }
