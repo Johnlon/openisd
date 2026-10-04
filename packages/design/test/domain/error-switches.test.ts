@@ -23,11 +23,11 @@ function abcProject(): OpenISDProject {
 }
 
 describe('errorSwitches', () => {
-  it('ABC velocity: marked and applicable on an ABC box only, reproducing the error only when ticked', () => {
+  it('ABC velocity: marked, applicable on an ABC box only, reproducing the error while ticked (the default)', () => {
     const p = abcProject();
-    expect(p.errorSwitches.abcIntraPortVelocity).toEqual({marked: true, applicable: true, reproducesError: false});
-    p.winisdAbcIntraPortVelocity.set(true);
     expect(p.errorSwitches.abcIntraPortVelocity).toEqual({marked: true, applicable: true, reproducesError: true});
+    p.winisdAbcIntraPortVelocity.set(false);
+    expect(p.errorSwitches.abcIntraPortVelocity).toEqual({marked: true, applicable: true, reproducesError: false});
     p.box.boxType.set('vented');
     expect(p.errorSwitches.abcIntraPortVelocity.applicable).toBe(false);
     expect(p.errorSwitches.abcIntraPortVelocity.marked).toBe(true);

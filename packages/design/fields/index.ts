@@ -59,4 +59,5 @@ export {
 export { type LossModeValue, LossMode } from './lossMode.js';
 
 export { formatFixed, formatFixedOrDash } from './format.js';
+export { ReadoutFormat } from './readoutFormat.js';
 export { spinnerStep } from './spinnerStep.js';

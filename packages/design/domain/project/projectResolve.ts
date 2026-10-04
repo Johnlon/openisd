@@ -1,5 +1,5 @@
 import type { Engine } from '../../engine/index.js';
-import type { Air, DqIssue, PrIssue, SealedAlignmentIssue, VentIssue } from '../../engine/index.js';
+import type { Air, DqIssue, PrIssue, PrSpecIssue, SealedAlignmentIssue, VentIssue } from '../../engine/index.js';
 import { focus, inputOf } from '../cell.js';
 import type { DefaultingFieldImpl, DualWriteFieldImpl, SimpleField } from '../cell.js';
 import { calcVentCount, enteredEntry } from '../specEntry.js';
@@ -88,6 +88,7 @@ export function resolveProject(ctx: ProjectResolveContext): ProjectIssues {
     const boxType = directRoot.value.box.boxType;
     let vent: readonly VentIssue[] = [];
     let pr: readonly PrIssue[] = [];
+    let radiator: readonly PrSpecIssue[] = [];
     let sealed: readonly SealedAlignmentIssue[] = [];
     let ventTuningExtra: DqIssue | null = null;
 
@@ -118,7 +119,7 @@ export function resolveProject(ctx: ProjectResolveContext): ProjectIssues {
     } else if (boxType === 'box-passive-radiator') {
         const p = box.passiveRadiator;
         const r = p.radiator;
-        r.spec.resolve(engine.pr, air);
+        radiator = r.spec.resolve(engine.pr, air);
         pr = engine.pr.solve({
             addedMass_kg: p.addedMass_kg,
             tuning_goal_hz: p.tuning_goal_hz,
@@ -155,7 +156,7 @@ export function resolveProject(ctx: ProjectResolveContext): ProjectIssues {
         });
     }
 
-    return { driver: driverIssues, signal, vent, pr, sealed, ventTuningExtra };
+    return { driver: driverIssues, signal, vent, pr, radiator, sealed, ventTuningExtra };
 }
 
 /** The driver's Re at the project's coil temperature rise, or null when Re is unusable — read

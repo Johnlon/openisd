@@ -1,5 +1,5 @@
 import type { Calculatable, Calculated, Clearable, Entered, Precise, Readable, SimpleField, Unsolvable, Writable } from '../cell.js';
-import type { Air, PrEngine, PrSpecValues } from '../../engine/index.js';
+import type { Air, PrEngine, PrSpecIssue, PrSpecPrecision, PrSpecValues } from '../../engine/index.js';
 import type { RadiatorDeviceJson } from '../openisdSchema.js';
 import { prSpec } from '../box/prSpec.js';
 import { radiatorSection } from '../box/radiatorSection.js';
@@ -34,15 +34,17 @@ export class OpenIsdPassiveRadiatorSpec {
     readonly OuterY_m: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;
     readonly weight_kg: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;
 
-    constructor(slot: SimpleField<RadiatorDeviceJson>) {
+    constructor(slot: SimpleField<RadiatorDeviceJson>, conflicts: () => readonly PrSpecIssue[] = () => []) {
         const section = radiatorSection(slot);
-        this.Fs_hz = prSpec(section, 'Fs_hz');
-        this.Qms = prSpec(section, 'Qms');
-        this.Cms_m_per_N = prSpec(section, 'Cms_m_per_N');
-        this.Mms_kg = prSpec(section, 'Mms_kg');
-        this.Rms_kg_per_s = prSpec(section, 'Rms_kg_per_s');
-        this.Sd_m2 = prSpec(section, 'Sd_m2');
-        this.Vas_m3 = prSpec(section, 'Vas_m3');
+        const marks = (name: keyof PrSpecValues) => (): readonly PrSpecIssue[] =>
+            conflicts().filter(issue => issue.fields.some(field => field === name));
+        this.Fs_hz = prSpec(section, 'Fs_hz', marks('Fs_hz'));
+        this.Qms = prSpec(section, 'Qms', marks('Qms'));
+        this.Cms_m_per_N = prSpec(section, 'Cms_m_per_N', marks('Cms_m_per_N'));
+        this.Mms_kg = prSpec(section, 'Mms_kg', marks('Mms_kg'));
+        this.Rms_kg_per_s = prSpec(section, 'Rms_kg_per_s', marks('Rms_kg_per_s'));
+        this.Sd_m2 = prSpec(section, 'Sd_m2', marks('Sd_m2'));
+        this.Vas_m3 = prSpec(section, 'Vas_m3', marks('Vas_m3'));
         this.Vd_m3 = prSpec(section, 'Vd_m3');
         this.Xmax_m = prSpec(section, 'Xmax_m');
         this.Xlim_m = prSpec(section, 'Xlim_m');
@@ -67,10 +69,21 @@ export class OpenIsdPassiveRadiatorSpec {
         };
     }
 
+    /** Each stated figure's own half-width, 0 for one not stated. */
+    #precisions(): PrSpecPrecision {
+        const width = (f: Entered & Precise): number => f.entered ? f.precision ?? 0 : 0;
+        return {
+            Fs_hz: width(this.Fs_hz), Qms: width(this.Qms), Vas_m3: width(this.Vas_m3), Sd_m2: width(this.Sd_m2),
+            Mms_kg: width(this.Mms_kg), Cms_m_per_N: width(this.Cms_m_per_N), Rms_kg_per_s: width(this.Rms_kg_per_s),
+        };
+    }
+
     /** Write every figure the stated ones derive onto its field as calculated, `air` being the
-     *  project's. A stated figure is never touched; one nothing derives reads not-available. */
-    resolve(pr: PrEngine, air: Air): void {
-        const solved = pr.solveSpec(this.#stated(), air);
+     *  project's, and return the stated figures that contradict each other. A stated figure is
+     *  never touched; one nothing derives reads not-available. */
+    resolve(pr: PrEngine, air: Air): PrSpecIssue[] {
+        const stated = this.#stated();
+        const solved = pr.solveSpec(stated, air);
         const write = (field: Entered & Calculatable<number> & Unsolvable, value: number | null): void => {
             if (field.entered) return;
             if (value === null) field.setNotAvailable(); else field.setCalculated(value);
@@ -78,6 +91,7 @@ export class OpenIsdPassiveRadiatorSpec {
         write(this.Fs_hz, solved.Fs_hz); write(this.Qms, solved.Qms); write(this.Vas_m3, solved.Vas_m3);
         write(this.Sd_m2, solved.Sd_m2); write(this.Mms_kg, solved.Mms_kg);
         write(this.Cms_m_per_N, solved.Cms_m_per_N); write(this.Rms_kg_per_s, solved.Rms_kg_per_s);
+        return pr.checkSpec(stated, this.#precisions(), air);
     }
 
     /** A record adopted into a project states Mms, Cms and Rms from its datasheet; where Fs, Qms,

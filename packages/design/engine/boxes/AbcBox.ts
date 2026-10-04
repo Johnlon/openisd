@@ -69,10 +69,15 @@ export class AbcBox implements BoxModel {
         //   Upr = V/(Rapr+jωMapr)               rear port flow — returned as `UPr` (straight
         //                                       V/Zpr: Zr is a direct shunt off V, unlike
         //                                       `Bandpass6Box` where Zr is in series with Zf)
-        //   Upi = V/(Zi + Zf)                   the flow through the intra port, same Zi as the load
-        //                                       (returned as `UPi`). `winisdAbcIntraPortVelocity`
-        //                                       on: V/(jωMai + Zf), WinISD's chart-21 form, Ricl
-        //                                       left out (winisd_research/GHIDRA_FINDINGS.md).
+        //   Upi = V/[jωMai + Zf·(1 + jωMai/Ricl)]
+        //                                       the current through the intra port's mass alone
+        //                                       (returned as `UPi`): Ricl is the leak AROUND the
+        //                                       port, so its current is not port flow.
+        //                                       `winisdAbcIntraPortVelocity` on (the default, and
+        //                                       where the flag is absent): V/(jωMai + Zf),
+        //                                       WinISD's chart-21 form, which omits the term
+        //                                       Zf·jωMai/Ricl (winisd_research/GHIDRA_FINDINGS.md,
+        //                                       PROBE_FINDINGS.md abc velocity self-consistency).
         //   U0 = Vf/(Raaf+1/jωCabf) + V/(Raar+1/jωCabr)
         //        the SUM of the two compliance currents — captured to 1.6e-15, no sign
         //        correction needed (unlike `Bandpass6Box`'s own transfer).
@@ -117,7 +122,7 @@ export class AbcBox implements BoxModel {
         const Vf = cMul(V, cDiv(Zf, ZiPlusZf));
         const UP = cDiv(Vf, RapBranchF);
         const UPr = cDiv(V, RapBranchR);
-        const UPi = cDiv(V, P.winisdAbcIntraPortVelocity === true ? cAdd(jwMai, Zf) : ZiPlusZf);
+        const UPi = cDiv(V, P.winisdAbcIntraPortVelocity !== false ? cAdd(jwMai, Zf) : cAdd(jwMai, cMul(Zf, cAdd(cx(1, 0), cDiv(jwMai, Ricl)))));
         const U0 = cAdd(cDiv(Vf, Zcf), cDiv(V, Zcr));
         return {Zbox, UD, UP, U0, UPr, UPi};
       }

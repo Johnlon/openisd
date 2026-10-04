@@ -1,8 +1,9 @@
+export {ConsistencyCheck, withQuantity} from './ConsistencyCheck.js';
 export {DriverAir} from './DriverAir.js';
 export {DRIVER_ROUTES} from './DriverRoutes.js';
 export {Relation, type RelationValues} from './Relation.js';
 export {DRIVER_RELATIONS} from './relations.js';
-export {RADIATOR_ROUTES} from './RadiatorRoutes.js';
+export {RADIATOR_RELATIONS, RADIATOR_ROUTES} from './RadiatorRoutes.js';
 export {RouteGroup} from './RouteGroup.js';
 export {SolveRoute} from './SolveRoute.js';
 export type {DriverRoute, RouteQuantity, WithInputs} from './SolveRoute.js';

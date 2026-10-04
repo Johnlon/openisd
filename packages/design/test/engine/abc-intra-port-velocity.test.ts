@@ -1,10 +1,13 @@
 /**
- * ABC intra-chamber port velocity: the correct flow through the intra port, and WinISD's chart.
+ * ABC intra-chamber port velocity: the flow through the intra port's mass, and WinISD's chart.
  *
- * WinISD divides the rear-node pressure by `jωMai + Zf` for this one chart, dropping Ricl. Its own
- * box load and every other ABC chart use `Zi = Ricl ∥ jωMai`. `winisdAbcIntraPortVelocity` off
- * (the default) divides by `Zi + Zf`; on, it reproduces WinISD's chart.
- * Evidence: bugs/BUG_20261003_winisd-abc-intra-port-velocity-drops-ricl.md.
+ * Air speed in the intra port is the current through the port mass `jωMai`; Ricl is the leak around
+ * the port. With `Zi = Ricl ∥ jωMai` and V the rear-node pressure, that current is
+ *   V / [jωMai + Zf·(1 + jωMai/Ricl)].
+ * WinISD's chart is V/(jωMai + Zf): it drops the term Zf·jωMai/Ricl. `winisdAbcIntraPortVelocity`
+ * on (the default) reproduces WinISD's chart; off uses the full form.
+ * Evidence: winisd_research/PROBE_FINDINGS.md (abc velocity self-consistency) and
+ * bugs/archive/BUG_20261003_winisd-abc-intra-port-velocity-drops-ricl.md.
  *
  * Goes through the engine's door (`engine.simulation.sweep`) with a driver from the test solver.
  */
@@ -12,6 +15,7 @@ import {describe, expect, it} from 'vitest';
 import {createEngine} from '../../engine/index.js';
 import type {SweepParams, SweepResult} from '../../engine/index.js';
 import {solveConsistencyGroup, sweepDriver} from './testSolver.js';
+import type {TestSolverQuantities} from './testSolver.js';
 
 const engine = createEngine();
 const LE_H = 0.5e-3;
@@ -49,34 +53,54 @@ function frontChamber(f: number): {Zf: number; Rap: number} {
   return {Zf: 1 / Math.hypot(sum.re, sum.im), Rap: Math.hypot(wf * Mapf / BASE.Qpf!, w * Mapf)};
 }
 
+const DRIVER = {Fs_hz: 40, Qes: 0.45, Qms: 4, Vas_m3: 0.03, Sd_m2: 0.0133, Re_ohm: 6} satisfies TestSolverQuantities;
+
+/** Ricl and the intra port's mass, rebuilt from the driver and the parameters alone. */
+function intraPort(): {Mai: number; Ricl: number} {
+  const d = solveConsistencyGroup(DRIVER);
+  const Mas = d.Mms_kg! / (DRIVER.Sd_m2 * DRIVER.Sd_m2);
+  const ws = 2 * Math.PI * d.Fs_hz!;
+  return {Mai: RHO * LEFF_INTRA / SP_INTRA, Ricl: BASE.Qiclfr! * ws * Mas};
+}
+
+/** |UPi·Zf·(1 + jωMai/Ricl)| against |UP·Rap|: both are the pressure Vf across the front chamber. */
+function identityGap(r: SweepResult, i: number): number {
+  const {Mai, Ricl} = intraPort();
+  const f = r.fs[i]!;
+  const {Zf, Rap} = frontChamber(f);
+  const x = 2 * Math.PI * f * Mai / Ricl;
+  const lhs = r.pvIntra![i]! * SP_INTRA * Zf * Math.hypot(1, x);
+  const rhs = r.pv[i]! * SP * Rap;
+  return Math.abs(lhs - rhs) / rhs;
+}
+
+/** dB difference of two velocity curves at point `i`. */
+const gapDb = (a: SweepResult, b: SweepResult, i: number): number =>
+  20 * Math.log10(a.pvIntra![i]! / b.pvIntra![i]!);
+
 describe('ABC intra-port velocity, winisd-lossy', () => {
-  it('switch off: the flow through the intra port builds the front-chamber pressure, |UPi·Zf| = |UP·Rap|', () => {
+  it('switch off: the current through the port mass builds the front-chamber pressure, |UPi·Zf·(1+jωMai/Ricl)| = |UP·Rap|', () => {
     const r = sweepWith(false);
-    for (let i = 0; i < r.fs.length; i += 10) {
-      const {Zf, Rap} = frontChamber(r.fs[i]!);
-      const lhs = r.pvIntra![i]! * SP_INTRA * Zf;
-      const rhs = r.pv[i]! * SP * Rap;
-      expect(Math.abs(lhs - rhs) / rhs, `${r.fs[i]} Hz`).toBeLessThan(1e-9);
-    }
+    for (let i = 0; i < r.fs.length; i += 10) expect(identityGap(r, i), `${r.fs[i]} Hz`).toBeLessThan(1e-9);
   });
 
-  it('absent flag means off', () => {
-    expect(sweepWith(undefined).pvIntra).toEqual(sweepWith(false).pvIntra);
+  it('absent flag means on: WinISD\'s chart is the default', () => {
+    expect(sweepWith(undefined).pvIntra).toEqual(sweepWith(true).pvIntra);
   });
 
-  it('switch on differs from off, most at the top of the band where Ricl matters', () => {
+  it('switch on is WinISD\'s chart: it differs from off by a small dropped term (2.54 dB measured on this box)', () => {
     const on = sweepWith(true), off = sweepWith(false);
-    const last = on.fs.length - 1;
-    expect(Math.abs(20 * Math.log10(on.pvIntra![last]! / off.pvIntra![last]!))).toBeGreaterThan(3);
+    let worst = 0;
+    for (let i = 0; i < on.fs.length; i++) worst = Math.max(worst, Math.abs(gapDb(on, off, i)));
+    expect(worst).toBeGreaterThan(2.5);
+    expect(worst).toBeLessThan(2.6);
   });
 
-  it('switch on: the flow no longer builds the front-chamber pressure (Ricl is left out)', () => {
-    const r = sweepWith(true);
-    const i = r.fs.length - 1;
-    const {Zf, Rap} = frontChamber(r.fs[i]!);
-    const lhs = r.pvIntra![i]! * SP_INTRA * Zf;
-    const rhs = r.pv[i]! * SP * Rap;
-    expect(Math.abs(lhs - rhs) / rhs).toBeGreaterThan(0.1);
+  it('switch on does not satisfy the port-mass identity (the dropped term)', () => {
+    const on = sweepWith(true);
+    let worst = 0;
+    for (let i = 0; i < on.fs.length; i++) worst = Math.max(worst, identityGap(on, i));
+    expect(worst).toBeGreaterThan(0.01);
   });
 
   it('a very large inter-chamber leak Q: on and off agree to 1e-9', () => {

@@ -85,10 +85,7 @@ radiator — §3.6, §3.7; BP6/ABC — winisd_research runs `bp6-w5-1`, `abc-w5-
 
 WinISD warts reproduced on purpose (not deviations): PR phase chart plots arg(Upr) without the 90°
 of its magnitude chart; Maximum SPL / Maximum power leave the filter chain out; VA uses Re, not
-Re + Rg; BP6 transfer is rear minus front. ABC intra-port velocity leaves the inter-chamber leak
-out (drops Ricl): that cell matches WinISD with the "WinISD ABC intra-port velocity" error switch on
-(Reset to WinISD ticks it); off, the default, OpenISD draws the flow through the intra port. With the leak made negligible
-(Qiclfr 1e6, `abc-w5-qicl1e6`) WinISD's chart agrees with the corrected one to 3.3e-6, and with the switch on to 1e-9
+Re + Rg; BP6 transfer is rear minus front. ABC intra-port velocity omits the leak term Zf·jωMai/Ricl of the port-mass current (a calculation difference of up to 1.35 dB and 4.6° near 110 Hz): matched by default; unticking the yellow "WinISD ABC intra-port velocity" error switch gives the exact current. With the leak made negligible (Qiclfr 1e6, `abc-w5-qicl1e6`) the two agree to 3.3e-6, and WinISD's form to 1e-9
 ([ACCURACY_IMPROVEMENTS.md](ACCURACY_IMPROVEMENTS.md?html#winisd-calculation-errors--correct-by-default-an-error-switch-brings-winisd-back)).
 The passive-radiator box with Npr > 1 matches WinISD's impedance, transfer function and excursion with the
 "PR Npr resonance" error switch on (Reset to WinISD ticks it): WinISD takes the fixed losses at an ωr Npr times

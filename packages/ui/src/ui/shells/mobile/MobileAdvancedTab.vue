@@ -46,12 +46,12 @@ const {
     </div>
     <div class="mob-field-row mob-field-calculated">
       <div class="mob-field-main"><span class="mob-field-label">Sound velocity</span>
-        <span class="mob-field-value mob-readonly">{{ advAir.c.toFixed(NumberField.ADV_SOUNDVELOCITY_M_PER_S.precision) }} m/s</span>
+        <span class="mob-field-value mob-readonly">{{ NumberField.ADV_SOUNDVELOCITY_M_PER_S.fixed(advAir.c) }} m/s</span>
       </div>
     </div>
     <div class="mob-field-row mob-field-calculated">
       <div class="mob-field-main"><span class="mob-field-label">Air density</span>
-        <span class="mob-field-value mob-readonly">{{ advAir.rho.toFixed(NumberField.ADV_AIRDENSITY_KG_PER_M3.precision) }} kg/m³</span>
+        <span class="mob-field-value mob-readonly">{{ NumberField.ADV_AIRDENSITY_KG_PER_M3.fixed(advAir.rho) }} kg/m³</span>
       </div>
     </div>
     <div class="mob-row">

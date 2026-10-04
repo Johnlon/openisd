@@ -11,7 +11,7 @@ export interface ErrorSwitchState {
 
 /** The error switches, one member each. */
 export interface ErrorSwitchStates {
-    /** WinISD ABC intra-port velocity: Ricl left out of the divider. */
+    /** WinISD ABC intra-port velocity: the chart omits the leak term Zf·jωMai/Ricl (ticked, the default). */
     readonly abcIntraPortVelocity: ErrorSwitchState;
     /** WinISD driver model: two BLs. */
     readonly driverModel: ErrorSwitchState;

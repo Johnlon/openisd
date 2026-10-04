@@ -6,7 +6,7 @@
 // src/hooks/OriginalShell-hooks.ts (`useOriginalShell`), where it is a plain composable that
 // gets unit-tested without a DOM. This `<script setup>` is nothing but a hook call plus the
 // child-component imports; the template reads the destructured API surface only.
-import {NumberField, ToggleField} from '@openisd/design/fields';
+import {NumberField, ReadoutFormat, ToggleField} from '@openisd/design/fields';
 import {LOSS_MODE_TIP} from '../../../hooks/errorSwitches.js';
 import UnitToggle from '../../components/UnitToggle.vue';
 import NumInput from '../../components/NumInput.vue';
@@ -143,9 +143,9 @@ const {
                   @pointerleave="stopNudge"
                   title="Spin frequency up logarithmically within chart limits (hold to spin)">►</button>
           <span class="ro-hz-unit">Hz</span>
-          <span style="display:none">{{ cursorHz != null ? cursorHz.toFixed(2) + ' Hz' : '— Hz' }}</span>
+          <span style="display:none">{{ cursorHz != null ? ReadoutFormat.CURSOR_FREQUENCY_HZ.text(cursorHz, '') + ' Hz' : '— Hz' }}</span>
         </span>
-        <span class="ro-val">{{ cursorVal != null ? cursorVal.toFixed(3) + ' ' + (chartMeta?.unit ?? '') : '— ' + (chartMeta?.unit ?? 'dB') }}</span>
+        <span class="ro-val">{{ cursorVal != null ? ReadoutFormat.CURSOR_LEVEL.text(cursorVal, '') + ' ' + (chartMeta?.unit ?? '') : '— ' + (chartMeta?.unit ?? 'dB') }}</span>
         <label class="chart-high" title="Charts high. This many charts stack one under the other, sharing the height; more open charts add columns, up to three.">
           <span>Charts high</span>
           <select :value="chartsHigh" @change="e => { const n = selectedOption(e, CHARTS_HIGH_OPTIONS); if (n !== null) chartsHigh = n; }">
@@ -290,7 +290,7 @@ const {
                 </template>
                 <template v-else-if="selectedBox === 'sealed'">
                   <div class="field"><label>Fsc</label><input id="og-box-resonance" class="calculated greyed" :value="fmtU(boxResonance, 'boxResonance', 'freq', 'Hz', NumberField.BOX_FB_HZ.precision)" readonly><UnitToggle :field="NumberField.BOX_RESONANCE_HZ" unit-key="boxResonance" unit-class="unit unit-cyc" style="min-width: auto;" /></div>
-                  <div class="field" style="margin-left: 4px; gap: 4px;"><label style="width: auto; margin-right: 4px;">Qtc</label><input class="calculated greyed" :value="rearQtc != null ? rearQtc.toFixed(3) : ''" readonly></div>
+                  <div class="field" style="margin-left: 4px; gap: 4px;"><label style="width: auto; margin-right: 4px;">Qtc</label><input class="calculated greyed" :value="ReadoutFormat.QTC.text(rearQtc, '')" readonly></div>
                 </template>
                 <div v-else :class="['field', { 'dq-flag': selectedBox === 'box-passive-radiator' && prSystemTuningDq.dq.length > 0 }]" :title="selectedBox === 'box-passive-radiator' ? (prSystemTuningDq.dq.length > 0 ? prSystemTuningDq.dq.join('; ') + '\n\n' + FH_TARGET_TIP : FH_TARGET_TIP) : ''"><label>Fh</label><input id="og-box-resonance" class="calculated greyed" :value="fmtU(boxResonance, 'boxResonance', 'freq', 'Hz', NumberField.BOX_FB_HZ.precision)" readonly><UnitToggle :field="NumberField.BOX_RESONANCE_HZ" unit-key="boxResonance" unit-class="unit unit-cyc" /></div>
               </div>
@@ -315,7 +315,7 @@ const {
                   </div>
                 </div>
                 <div v-if="selectedBox === 'bandpass4'" class="field-row">
-                  <div class="field"><label>Qtc</label><input class="calculated greyed" :value="rearQtc != null ? rearQtc.toFixed(3) : ''" readonly></div>
+                  <div class="field"><label>Qtc</label><input class="calculated greyed" :value="ReadoutFormat.QTC.text(rearQtc, '')" readonly></div>
                 </div>
                 <button class="link-btn" @click="boxLossesOpen = true">Advanced-&gt;</button>
               </div>
@@ -635,7 +635,7 @@ const {
               <div class="field-row"><div :class="['field', 'adv-air-field', envHumidityStored ? 'entered' : '', { 'dq-flag': envHumidityDq.dq.length > 0 }]" :title="envHumidityDq.dq.join('; ')"><label>Relative humidity</label><NumInput v-model="advHumidity" :class="{ calculated: !envHumidityStored }" :field="NumberField.ADV_HUMIDITY_PCT" :precision="2" :allow-out-of-range="true" v-bind="envHumidityDq" /><span class="unit">%</span></div></div>
               <div class="field-row"><div :class="['field', 'adv-air-field', envPressureStored ? 'entered' : '', { 'dq-flag': envPressureDq.dq.length > 0 }]" :title="envPressureDq.dq.join('; ')"><label>Air pressure</label><NumInput v-model="advPressure" :class="{ calculated: !envPressureStored }" :field="NumberField.ADV_PRESSURE_KPA" unit-key="advPressure" :precision="1" :allow-out-of-range="true" v-bind="envPressureDq" /><UnitToggle :field="NumberField.ADV_PRESSURE_KPA" unit-key="advPressure" unit-class="unit unit-cyc" /></div></div>
               <div class="field-row"><div class="field"><label>Sound velocity</label><input class="calculated greyed" :value="fmt(advAir.c, NumberField.ADV_SOUNDVELOCITY_M_PER_S.precision)" readonly><span class="unit">m/s</span></div></div>
-              <div class="field-row"><div class="field"><label>Air density</label><input class="calculated greyed" :value="advAir.rho.toFixed(NumberField.ADV_AIRDENSITY_KG_PER_M3.precision)" readonly><span class="unit">kg/m³</span></div></div>
+              <div class="field-row"><div class="field"><label>Air density</label><input class="calculated greyed" :value="NumberField.ADV_AIRDENSITY_KG_PER_M3.fixed(advAir.rho)" readonly><span class="unit">kg/m³</span></div></div>
               <button class="reset-air-btn" @click="resetAirToAppDefaults">Reset to app levels</button>
             </div>
             <div class="checkbox-col">
@@ -800,9 +800,9 @@ const {
               <option v-for="option in sealedAlignmentOptions" :key="option.value" :value="option.value">{{ option.label }}</option>
             </select>
           </div></div>
-          <div class="field-row"><div class="field"><label>Volume</label><input type="number" min="0" step="0.01" :value="sealedAlignmentVolume_L == null ? '' : sealedAlignmentVolume_L.toFixed(2)" @input="sealedAlignmentVolume_L = Number(($event.target as HTMLInputElement).value)"><span class="unit">L</span></div></div>
+          <div class="field-row"><div class="field"><label>Volume</label><input type="number" min="0" step="0.01" :value="ReadoutFormat.ALIGNMENT_VOLUME_L.text(sealedAlignmentVolume_L, '')" @input="sealedAlignmentVolume_L = Number(($event.target as HTMLInputElement).value)"><span class="unit">L</span></div></div>
           <div class="alignment-readout"><span class="alignment-icon" :class="sealedAlignmentSuitability ?? 'unknown'">●</span>
-            <span>EBP {{ sealedAlignmentEbp == null ? '—' : sealedAlignmentEbp.toFixed(1) }} Hz — {{ sealedAlignmentSuitabilityLabel }}</span>
+            <span>EBP {{ ReadoutFormat.EBP.text(sealedAlignmentEbp, '—') }} Hz — {{ sealedAlignmentSuitabilityLabel }}</span>
           </div>
           <p class="hint">EBP is Fs ÷ Qes. It is a rule-of-thumb suitability guide: below 50 generally favors sealed, above 100 generally favors vented, and the middle range can use either.</p>
           <p class="hint">The volume uses the driver's Qts and Vas. Editing Volume changes the resulting Qtc and selects the closest numeric alignment.</p>
@@ -824,10 +824,10 @@ const {
               <option v-for="option in ventedAlignmentOptions" :key="option.value" :value="option.value">{{ option.label }}</option>
             </select>
           </div></div>
-          <div class="field-row"><div class="field"><label>Volume</label><input type="number" readonly :value="ventedAlignmentVolume_L == null ? '' : ventedAlignmentVolume_L.toFixed(2)"><span class="unit">L</span></div></div>
-          <div class="field-row"><div class="field"><label>Tuning freq (Fb)</label><input type="number" readonly :value="ventedAlignmentTuning_hz == null ? '' : ventedAlignmentTuning_hz.toFixed(1)"><span class="unit">Hz</span></div></div>
+          <div class="field-row"><div class="field"><label>Volume</label><input type="number" readonly :value="ReadoutFormat.ALIGNMENT_VOLUME_L.text(ventedAlignmentVolume_L, '')"><span class="unit">L</span></div></div>
+          <div class="field-row"><div class="field"><label>Tuning freq (Fb)</label><input type="number" readonly :value="ReadoutFormat.TUNING_HZ.text(ventedAlignmentTuning_hz, '')"><span class="unit">Hz</span></div></div>
           <div class="alignment-readout"><span class="alignment-icon" :class="ventedAlignmentSuitability ?? 'unknown'">●</span>
-            <span>EBP {{ ventedAlignmentEbp == null ? '—' : ventedAlignmentEbp.toFixed(1) }} Hz — {{ ventedAlignmentSuitabilityLabel }}</span>
+            <span>EBP {{ ReadoutFormat.EBP.text(ventedAlignmentEbp, '—') }} Hz — {{ ventedAlignmentSuitabilityLabel }}</span>
           </div>
           <p class="hint">EBP is Fs ÷ Qes. It is a rule-of-thumb suitability guide: below 50 generally favors sealed, above 100 generally favors vented, and the middle range can use either.</p>
           <p class="hint">Volume and tuning are calculated from the driver's Fs, Qts, and Vas for the selected alignment.</p>

@@ -212,7 +212,7 @@ const {
     </div>
     <div class="mob-field-row mob-field-calculated" :class="{ 'mob-field-dq': prResonanceMassDq.dq.length > 0 }" :title="prResonanceMassDq.dq.length > 0 ? prResonanceMassDq.dq.join('; ') : ''">
       <div class="mob-field-main"><span class="mob-field-label">Fpr (with added mass)</span>
-        <span class="mob-field-value mob-readonly">{{ prFsMass_hz != null ? prFsMass_hz.toFixed(NumberField.PR_FSMASS_HZ.precision) + ' Hz' : '—' }}</span>
+        <span class="mob-field-value mob-readonly">{{ prFsMass_hz != null ? NumberField.PR_FSMASS_HZ.fixed(prFsMass_hz) + ' Hz' : '—' }}</span>
       </div>
     </div>
   </div>

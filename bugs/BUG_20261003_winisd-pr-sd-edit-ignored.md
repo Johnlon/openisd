@@ -27,12 +27,12 @@ scale as 1/Sd.
   redraw (`runs/pr-Fs-edit-1`).
 - Qms: LINKED. Typing 3.3 → 1.5 changes Transfer function (PR) at once (5864 px) and both PR charts
   after a redraw (`runs/pr-Qms-edit-1`).
-- Vas: edit route NOT probed, harness cannot type into the Vas box (three failure modes in
-  `PROBE_FINDINGS.md`). Load route: Vas in the file moves both PR charts (`runs/pr-Vas-load-1`).
-  Whether the Vas edit is linked in WinISD is unknown.
+- Vas: linked (2026-10-04). Edit 0.0048 → 0.00948 moved Transfer function (PR) from −10 dB at 35 Hz to −5.3 dB at 41 Hz,
+  7926 px, no redraw (`runs/pr-Vas-ui-drive2`). Load route moves both PR charts too. No WinISD bug.
+  Side finding: emptying the Vas box crashes WinISD (FLT_DIVIDE_BY_ZERO, `runs/pr-Vas-ui-crash1`).
 
 ## Not probed
 - The edit was typed character by character; PARITY §18 documents a recalculation-trigger lag for
   typed edits and the cut-and-paste trigger was not tried.
-- The Vas edit route, and the file-load route for Fs and Qms (an edit that moves the chart on its own
+- The file-load route for Fs and Qms (an edit that moves the chart on its own
   shows the field is linked, so the load run was not needed).

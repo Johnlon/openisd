@@ -44,6 +44,7 @@ import {
   toSI as toSIDim, UNIT_GROUPS, unitFor,
 } from './dimensions.js';
 import {knownDecimals} from './precision.js';
+import {formatFixed} from './format.js';
 import type {FieldLimits} from './filterLimits.js';
 import {
   FILTER_BW_LIMITS, FILTER_FC_LIMITS, FILTER_GAIN_LIMITS, FILTER_ORDER_LIMITS, FILTER_Q_LIMITS,
@@ -235,6 +236,11 @@ export class NumberField extends Field {
   rounded(v: number): number {
     const k = 10 ** this.precision;
     return Math.round(v * k) / k;
+  }
+
+  /** `valueSI` as text at this field's `precision`, in the base unit. */
+  fixed(valueSI: number): string {
+    return formatFixed(valueSI, this.precision);
   }
 
   // ── Plot window ───────────────────────────────────────────────────────────────────────────
@@ -1291,7 +1297,7 @@ export class ToggleField extends Field {
   static readonly ADV_WINISDABCINTRAPORTVELOCITY = new ToggleField({
     value: "adv_WinisdAbcIntraPortVelocity",
     label: "WinISD ABC intra-port velocity",
-    description: "WinISD ABC intra-port velocity: affects the ABC box's Intra port velocity chart only.\nTicked (as WinISD): V/(jωMai + Zf). A WinISD error: the chart leaves the leak between the two chambers (Ricl) out of the divider, while WinISD's own box load and every other ABC chart keep it. Negligible near the box tunings; +0.38 dB at 100 Hz, −0.26 dB at 1 kHz, −4.2 dB at 5 kHz, −14.2 dB at 20 kHz (W5-1138SMF, abc-w5-1).\nUnticked (default): V/(Zi + Zf) with Zi = Ricl ∥ jωMai, the flow through the intra port, consistent with the box load.\nThe two agree when the inter-chamber leak Q is very large. Only on an ABC box.",
+    description: "WinISD ABC intra-port velocity: affects the ABC box's Intra port velocity chart only.\nTicked (WinISD, the default): the intra-port velocity leaves out the leak term Zf·jωMai/Ricl.\nUnticked: the exact port-mass current. Differs by up to 1.35 dB and 4.6° near 110 Hz, under 0.1 dB elsewhere (W5-1138SMF, abc-w5-1).\nOnly on an ABC box.",
   });
 
   static readonly ADV_WINISDPRNPRRESONANCE = new ToggleField({

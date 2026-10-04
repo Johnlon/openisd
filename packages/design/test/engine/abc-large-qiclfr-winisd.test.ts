@@ -3,11 +3,13 @@
  * Golden data: `../fixtures/winisdAbcHugeQiclCapture.ts` (winisd_research runs/abc-w5-qicl1e6) — the
  * abc-w5-1 project with only Qiclfr changed from 20 to 1e6.
  *
- * With a leak this large, `Zi = Ricl ∥ jωMai` tends to `jωMai`, so WinISD's chart V/(jωMai + Zf) and
- * the corrected V/(Zi + Zf) tend to coincide. Measured at Qiclfr 1e6: the switch on matches WinISD at
- * 1e-9, the switch off at 3.3e-6 (Ricl is large, not infinite); the gap between off and on shrinks as
- * 1/Qiclfr. At Qiclfr 20 (abc-w5-1) the switch off differs from WinISD's chart by far more, the switch
- * on matches (`abc-winisd.test.ts`). Evidence: bugs/BUG_20261003_winisd-abc-intra-port-velocity-drops-ricl.md.
+ * WinISD's chart V/(jωMai + Zf) drops the term Zf·jωMai/Ricl from the port-mass current
+ * V/[jωMai + Zf(1 + jωMai/Ricl)]. With a leak this large the term vanishes and the two coincide.
+ * Measured at Qiclfr 1e6: the switch on matches WinISD at 4e-15 (pinned at 1e-9), the switch off at
+ * 3.3e-6 (Ricl is large, not infinite); the gap between off and on shrinks as 1/Qiclfr. At Qiclfr 20
+ * (abc-w5-1) the switch off differs from WinISD's chart by 0.14 relative (1.35 dB), the switch on
+ * matches (`abc-winisd.test.ts`). Evidence: winisd_research/PROBE_FINDINGS.md (abc velocity
+ * self-consistency), bugs/archive/BUG_20261003_winisd-abc-intra-port-velocity-drops-ricl.md.
  */
 import {readFileSync} from 'node:fs';
 import {dirname, join} from 'node:path';
@@ -68,12 +70,12 @@ function offOnGap(Qicl: number): number {
 }
 
 describe('ABC intra-port velocity, Qiclfr 1e6: WinISD\'s chart and the corrected one nearly coincide', () => {
-  it('switch off (corrected V/(Zi + Zf)) matches WinISD at 1e-5 (measured 3.3e-6: Ricl is large, not infinite)', () => {
+  it('switch off (port-mass current) matches WinISD at 1e-5 (measured 3.3e-6: Ricl is large, not infinite)', {timeout: 30000}, () => {
     const worst = worstIntraError('abc-w5-qicl1e6.wpr', false, HUGE);
     assert.ok(worst <= 1e-5, `worst relative error ${worst.toExponential(3)}`);
   });
 
-  it('the gap between switch off and on shrinks as 1/Qiclfr', () => {
+  it('the gap between switch off and on shrinks as 1/Qiclfr', {timeout: 30000}, () => {
     const at1e6 = offOnGap(1e6), at1e9 = offOnGap(1e9);
     assert.ok(at1e9 <= 1e-8, `gap at 1e9 ${at1e9.toExponential(3)}`);
     assert.ok(at1e6 / at1e9 > 500 && at1e6 / at1e9 < 2000, `gap ratio 1e6/1e9 ${(at1e6 / at1e9).toFixed(0)}`);
@@ -85,10 +87,10 @@ describe('ABC intra-port velocity, Qiclfr 1e6: WinISD\'s chart and the corrected
   });
 });
 
-describe('ABC intra-port velocity, Qiclfr 20: the corrected chart is not WinISD\'s', () => {
-  it('switch off differs from the abc-w5-1 capture by more than 1e-3 somewhere', () => {
+describe('ABC intra-port velocity, Qiclfr 20: the port-mass chart is not WinISD\'s, by the dropped term', () => {
+  it('switch off differs from the abc-w5-1 capture by 0.14 relative (1.35 dB) at most', () => {
     const worst = worstIntraError('abc-w5-1.wpr', false, WINISD_ABC_CAPTURE.intraPortVelocity);
-    assert.ok(worst > 1e-3, `worst relative error ${worst.toExponential(3)}`);
+    assert.ok(worst > 0.1 && worst < 0.2, `worst relative error ${worst.toExponential(3)}`);
   });
 
   it('switch on matches the abc-w5-1 capture at 1e-9', () => {

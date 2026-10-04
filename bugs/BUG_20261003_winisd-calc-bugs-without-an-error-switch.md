@@ -16,7 +16,7 @@ switch yet:
 | 5   | Allpass `t` is not the group delay; orders above 2 ignored | STOPPED: needs a decision, see below |
 | 6   | Linkwitz-Riley and SOS ignore the order field | STOPPED: needs a decision, see below |
 | 9   | PR box ωr multiplies the branch mass by Npr | DONE 2026-10-03: yellow switch "PR Npr resonance", off by default, PR boxes only |
-| 10  | ABC intra-port velocity drops Ricl | DONE 2026-10-03: yellow switch "WinISD ABC intra-port velocity", off by default, ABC boxes only |
+| 10  | ABC intra-port velocity omits a leak term | DONE 2026-10-03: yellow switch "WinISD ABC intra-port velocity", ticked (WinISD) by default, unticked = exact current, ABC boxes only |
 
 Not covered by the rule: row 7 (a default value, not a calculation), row 11 (an overflow crash),
 and rows that are trigger or linkage bugs. Row 8 (two BLs) and row 1 (VA uses Re) already have a switch

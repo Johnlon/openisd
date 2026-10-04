@@ -2,7 +2,7 @@
 // The mobile Box tab — box type, volume, and the calculated resonance/Qtc readout. Thin: all
 // state and domain reads/writes live in useMobileBoxTab() (src/hooks/MobileBoxTab-hooks.ts), which
 // calls the SAME field-wiring factories src/hooks/boxFields.ts exports.
-import {NumberField} from '@openisd/design/fields';
+import {NumberField, ReadoutFormat} from '@openisd/design/fields';
 import {selectedOption} from '../../../logic/domEvents.js';
 import BoxTypeDiagram from '../../components/BoxTypeDiagram.vue';
 import NumInput from '../../components/NumInput.vue';
@@ -65,13 +65,13 @@ const {
     <div v-else class="mob-field-row mob-field-calculated">
       <div class="mob-field-main">
         <span class="mob-field-label">{{ selectedBox === 'box-passive-radiator' ? 'Fh' : 'Fsc' }}</span>
-        <span class="mob-field-value mob-readonly">{{ boxResonance != null ? boxResonance.toFixed(NumberField.BOX_RESONANCE_HZ.precision) + ' Hz' : '—' }}</span>
+        <span class="mob-field-value mob-readonly">{{ boxResonance != null ? NumberField.BOX_RESONANCE_HZ.fixed(boxResonance) + ' Hz' : '—' }}</span>
       </div>
     </div>
     <div v-if="selectedBox === 'sealed'" class="mob-field-row mob-field-calculated">
       <div class="mob-field-main">
         <span class="mob-field-label">Qtc</span>
-        <span class="mob-field-value mob-readonly">{{ rearQtc != null ? rearQtc.toFixed(3) : '—' }}</span>
+        <span class="mob-field-value mob-readonly">{{ ReadoutFormat.QTC.text(rearQtc, '—') }}</span>
       </div>
     </div>
     <div v-if="selectedBox === 'sealed'" class="mob-row">
@@ -121,7 +121,7 @@ const {
           <span class="mob-field-label">Volume</span>
           <span class="mob-field-value">
             <input type="number" min="0" step="0.01"
-                   :value="sealedAlignmentVolume_L == null ? '' : sealedAlignmentVolume_L.toFixed(2)"
+                   :value="ReadoutFormat.ALIGNMENT_VOLUME_L.text(sealedAlignmentVolume_L, '')"
                    @input="sealedAlignmentVolume_L = Number(($event.target as HTMLInputElement).value)">
           </span>
         </div>
@@ -129,7 +129,7 @@ const {
       </div>
       <div class="mob-align-readout">
         <span class="mob-align-dot" :class="sealedAlignmentSuitability ?? 'unknown'"></span>
-        <span>EBP {{ sealedAlignmentEbp == null ? '—' : sealedAlignmentEbp.toFixed(1) }} Hz — {{ sealedAlignmentSuitabilityLabel }}</span>
+        <span>EBP {{ ReadoutFormat.EBP.text(sealedAlignmentEbp, '—') }} Hz — {{ sealedAlignmentSuitabilityLabel }}</span>
       </div>
       <div class="mob-align-footer">
         <button class="mob-btn" @click="sealedAlignmentEditor.cancel">Cancel</button>
@@ -154,18 +154,18 @@ const {
       <div class="mob-field-row mob-field-calculated">
         <div class="mob-field-main">
           <span class="mob-field-label">Volume</span>
-          <span class="mob-field-value mob-readonly">{{ ventedAlignmentVolume_L == null ? '—' : ventedAlignmentVolume_L.toFixed(2) + ' L' }}</span>
+          <span class="mob-field-value mob-readonly">{{ ventedAlignmentVolume_L == null ? '—' : ReadoutFormat.ALIGNMENT_VOLUME_L.text(ventedAlignmentVolume_L, '—') + ' L' }}</span>
         </div>
       </div>
       <div class="mob-field-row mob-field-calculated">
         <div class="mob-field-main">
           <span class="mob-field-label">Tuning freq (Fb)</span>
-          <span class="mob-field-value mob-readonly">{{ ventedAlignmentTuning_hz == null ? '—' : ventedAlignmentTuning_hz.toFixed(1) + ' Hz' }}</span>
+          <span class="mob-field-value mob-readonly">{{ ventedAlignmentTuning_hz == null ? '—' : ReadoutFormat.TUNING_HZ.text(ventedAlignmentTuning_hz, '—') + ' Hz' }}</span>
         </div>
       </div>
       <div class="mob-align-readout">
         <span class="mob-align-dot" :class="ventedAlignmentSuitability ?? 'unknown'"></span>
-        <span>EBP {{ ventedAlignmentEbp == null ? '—' : ventedAlignmentEbp.toFixed(1) }} Hz — {{ ventedAlignmentSuitabilityLabel }}</span>
+        <span>EBP {{ ReadoutFormat.EBP.text(ventedAlignmentEbp, '—') }} Hz — {{ ventedAlignmentSuitabilityLabel }}</span>
       </div>
       <div class="mob-align-footer">
         <button class="mob-btn" @click="ventedAlignmentEditor.cancel">Cancel</button>

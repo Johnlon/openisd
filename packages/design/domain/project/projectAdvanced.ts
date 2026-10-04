@@ -100,13 +100,13 @@ export class ProjectAdvanced {
     }
 
     /** WinISD Compatibility "WinISD ABC intra-port velocity": the ABC intra-chamber port velocity
-     *  chart as WinISD draws it, V/(jωMai + Zf) with Ricl left out of the divider (its own box load
-     *  and every other ABC chart keep Ricl). Off: V/(Zi + Zf), the flow through the intra port.
-     *  Off where a project does not say. */
+     *  chart as WinISD draws it, V/(jωMai + Zf), which omits the leak term Zf·jωMai/Ricl. Off: the
+     *  exact current through the port mass, V/[jωMai + Zf·(1 + jωMai/Ricl)]. On (WinISD) where a
+     *  project does not say. */
     get winisdAbcIntraPortVelocity(): SimpleField<boolean> {
         const lens = focus(this.#advanced, 'winisdAbcIntraPortVelocity');
         return {
-            get value() { return lens.value ?? false; },
+            get value() { return lens.value ?? true; },
             set: (on: boolean) => lens.set(on),
         };
     }

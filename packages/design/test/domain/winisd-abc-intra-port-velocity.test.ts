@@ -1,6 +1,6 @@
 /**
- * "WinISD ABC intra-port velocity" (`winisdAbcIntraPortVelocity`): off by default, ticked by
- * "Reset to WinISD", saved with the project, applicable on an ABC box only.
+ * "WinISD ABC intra-port velocity" (`winisdAbcIntraPortVelocity`): on by default (WinISD's chart),
+ * ticked by "Reset to WinISD", saved with the project, applicable on an ABC box only.
  * Sizes are from the abc-w5-1 capture (bugs/BUG_20261003_winisd-abc-intra-port-velocity-drops-ricl.md).
  */
 import {readFileSync} from 'node:fs';
@@ -37,10 +37,10 @@ function deviationDb(on: OpenISDProject, off: OpenISDProject, f: number): number
 }
 
 describe('winisdAbcIntraPortVelocity', () => {
-  it('is off in a freshly imported project and a new project', () => {
+  it('is on (WinISD) in a freshly imported project and a new project', () => {
     const text = readFileSync(join(here, '..', 'winisd', 'fixtures', 'abc-w5-1.wpr'), 'utf8');
     const {value} = new WinIsdProjectConverter(engine).winIsdProjectToOpenIsdProject(text);
-    expect(value!.winisdAbcIntraPortVelocity.value).toBe(false);
+    expect(value!.winisdAbcIntraPortVelocity.value).toBe(true);
   });
 
   it('"Reset to WinISD" ticks it', () => {
@@ -52,21 +52,22 @@ describe('winisdAbcIntraPortVelocity', () => {
 
   it('is saved with the project and read back', () => {
     const p = abcProject();
-    p.winisdAbcIntraPortVelocity.set(true);
+    p.winisdAbcIntraPortVelocity.set(false);
     const back = OpenISDProject.fromOwprText(p.toOwprText(), engine);
     if (Array.isArray(back)) throw new Error('fromOwprText returned problems: ' + back.join(', '));
-    expect(back.winisdAbcIntraPortVelocity.value).toBe(true);
+    expect(back.winisdAbcIntraPortVelocity.value).toBe(false);
   });
 
-  it('on and off differ by the recorded sizes: under 0.02 dB at the tunings, about 0.4 dB at 100 Hz, about 4 dB at 5 kHz, about 14 dB at 20 kHz', () => {
+  it('on and off differ by a small dropped term: 1.36 dB at 110 Hz at most, under 0.1 dB away from 80-150 Hz', {timeout: 30000}, () => {
     const on = abcProject(), off = abcProject();
     on.winisdAbcIntraPortVelocity.set(true);
     off.winisdAbcIntraPortVelocity.set(false);
-    expect(Math.abs(deviationDb(on, off, 42))).toBeLessThan(0.02);
-    expect(Math.abs(deviationDb(on, off, 60))).toBeLessThan(0.02);
-    expect(Math.abs(Math.abs(deviationDb(on, off, 100)) - 0.38)).toBeLessThan(0.05);
-    expect(Math.abs(Math.abs(deviationDb(on, off, 5000)) - 4.2)).toBeLessThan(0.3);
-    expect(Math.abs(Math.abs(deviationDb(on, off, 20000)) - 14.2)).toBeLessThan(0.5);
+    const gap = (f: number) => Math.abs(deviationDb(on, off, f));
+    expect(gap(42)).toBeLessThan(0.01);
+    expect(gap(60)).toBeLessThan(0.02);
+    expect(Math.abs(gap(110) - 1.355)).toBeLessThan(0.01);
+    expect(gap(200)).toBeLessThan(0.1);
+    for (const f of [1000, 5000, 20000]) expect(gap(f)).toBeLessThan(0.01);
   });
 
   it('with a very large inter-chamber leak Q, on and off agree to 1e-9', () => {

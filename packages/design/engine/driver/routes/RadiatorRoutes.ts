@@ -1,4 +1,5 @@
 import {VAS_FROM_CMS_SD_ROUTE} from './efficiencyRoutes.js';
+import {DRIVER_RELATIONS} from './relations.js';
 import {
   CMS_SD_ROUTES,
   FS_FROM_MASS_CMS_ROUTE,
@@ -18,3 +19,9 @@ export const RADIATOR_ROUTES: readonly DriverRoute[] = Object.freeze([
   VAS_FROM_CMS_SD_ROUTE,
   ...RMS_QMS_MMS_ROUTES,
 ]);
+
+/** The relations those routes solve, in the driver's report order: the ones the consistency check
+ *  applies to a radiator's figures. */
+export const RADIATOR_RELATIONS = Object.freeze(
+  DRIVER_RELATIONS.filter(rel => RADIATOR_ROUTES.some(route => route.relation === rel)),
+);

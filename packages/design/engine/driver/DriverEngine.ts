@@ -23,15 +23,15 @@ import type {
     SolverField,
     SolverInput,
 } from '../solverTypes.js';
-import {inconsistentInputs, missingDependencies} from '../consistency.js';
+import {missingDependencies} from '../consistency.js';
 import type {CalculationIssue, CalculationPrerequisite, OutOfRangeIssue} from '../consistency.js';
 import {checkRange, isPhysicallyPlausible} from '../physicalRange.js';
 import type {DriverWorkingSet} from '../solvers/driverQuantities.js';
 import {hotRe, terminalBL_Tm, terminalRe_ohm} from '../solvers/driverQuantities.js';
 import type {EbpSuitability, SweepResult, Wiring} from '../types.js';
 import {
-  CMS_FROM_VAS_SD_ROUTE, DRIVER_RELATIONS, DriverAir, MMS_FROM_FS_CMS_ROUTE, RMS_FROM_FS_MMS_QMS_ROUTE, RouteGroup,
-  type RelationValues,
+  CMS_FROM_VAS_SD_ROUTE, type ConsistencyCheck, DriverAir, MMS_FROM_FS_CMS_ROUTE,
+  RMS_FROM_FS_MMS_QMS_ROUTE, RouteGroup, withQuantity,
 } from './routes/index.js';
 import type {DriverRoute} from './routes/index.js';
 
@@ -51,13 +51,6 @@ export type DriverPrerequisite = CalculationPrerequisite<DriverQuantityName>;
  *  (the domain defaults a not-entered coil count itself); no relation below names either. */
 type NumericDriverQuantityName = Exclude<DriverQuantityName, 'wiring' | 'numVC'>;
 
-type Values = RelationValues;
-
-/** Every field name any relation above reads, deduplicated — the closed set `Values` covers. */
-const RELATION_FIELDS: readonly NumericDriverQuantityName[] = Object.freeze(
-  Array.from(new Set(DRIVER_RELATIONS.flatMap(rel => rel.fields))),
-);
-
 /** Every numeric driver quantity — what a calculated value's inherited width is measured over. */
 const NUMERIC_QUANTITY_NAMES = Object.freeze([
   'Fs_hz', 'Re_ohm', 'Znom_ohm', 'Le_H', 'fLe_hz', 'KLe_H_sqrtHz', 'Qes', 'Qms', 'Qts', 'Vas_m3',
@@ -72,32 +65,6 @@ type _MissingFromNumericQuantityNames = Exclude<NumericDriverQuantityName, typeo
 type _AssertNumericQuantityNamesComplete = _MissingFromNumericQuantityNames extends never ? true : never;
 const _assertNumericQuantityNamesComplete: _AssertNumericQuantityNamesComplete = true;
 void _assertNumericQuantityNamesComplete;
-
-/** A computed field's uncertainty can collapse to zero when the solve is insensitive to every
- *  entered value; this is a representation floor, not a tolerance. */
-const FLOAT_NOISE = 1e-9;
-
-/** Only the fields any relation reads, as a closed `Values` bag — never the full solved record
- *  (which also carries `wiring` and everything else no relation names). */
-function valuesFrom(r: DriverWorkingSet): Values {
-  const out: Partial<Record<NumericDriverQuantityName, number>> = {};
-  for (const field of RELATION_FIELDS) {
-    const v = r[field];
-    if (typeof v === 'number') out[field] = v;
-  }
-  return out;
-}
-
-/** `base` with `field` set to `value` — the one place a `NumericDriverQuantityName` is written
- *  into a fresh `DriverWorkingSet`, so every caller shares the same, single assignment the
- *  compiler checks once. */
-function withNumericField(
-  base: DriverWorkingSet, field: NumericDriverQuantityName, value: number,
-): DriverWorkingSet {
-  const next: DriverWorkingSet = { ...base };
-  next[field] = value;
-  return next;
-}
 
 /** Central-difference step, as a fraction of an input's own half-width: small enough that the
  *  slope is the derivative, large enough to stay clear of float noise. */
@@ -179,6 +146,7 @@ export class DriverEngineImpl implements DriverEngine {
   constructor(
     private readonly routes: RouteGroup,
     private readonly air: DriverAir,
+    private readonly consistency: ConsistencyCheck,
   ) {}
 
   /** Shared with the consistency group and the sweep, so these stay free functions and the
@@ -331,36 +299,6 @@ export class DriverEngineImpl implements DriverEngine {
   }
 
   /**
-   * How far each not-entered quantity in `observed` moves when each entered quantity in
-   * `perturbed` is bumped by its own half-width (`widthOf`), summed: the worst-case width the
-   * entered values' own rounding gives a derived value. A quantity nothing moves is absent.
-   */
-  private inheritedWidths(
-    entered: DriverWorkingSet,
-    resolved: DriverWorkingSet,
-    perturbed: readonly NumericDriverQuantityName[],
-    observed: readonly NumericDriverQuantityName[],
-    widthOf: (field: NumericDriverQuantityName) => number,
-  ): Partial<Record<NumericDriverQuantityName, number>> {
-    const widths: Partial<Record<NumericDriverQuantityName, number>> = {};
-    for (const field of perturbed) {
-      const enteredValue = entered[field];
-      const ownWidth = widthOf(field);
-      if (typeof enteredValue !== 'number' || !(ownWidth > 0)) continue;
-      const bumped = this.solveValues(withNumericField(entered, field, enteredValue + ownWidth));
-      for (const other of observed) {
-        if (entered[other] != null) continue; // only derived quantities inherit a width
-        const moved = bumped[other];
-        const base = resolved[other];
-        if (typeof moved === 'number' && typeof base === 'number' && isFinite(moved - base) && moved !== base) {
-          widths[other] = (widths[other] ?? 0) + Math.abs(moved - base);
-        }
-      }
-    }
-    return widths;
-  }
-
-  /**
    * Each derived quantity's half-width: Σ |∂f/∂x|·d(x) over every entered input x with a
    * half-width d(x) — the guaranteed first-order bound, winisd_tools' former `lib/precision.py`
    * (CALCULATIONS.md §1.3, interval arithmetic). Slopes are central differences through the
@@ -377,8 +315,8 @@ export class DriverEngineImpl implements DriverEngine {
       const d = widthOf(field);
       if (typeof x !== 'number' || !(d > 0)) continue;
       const step = d * DERIVATIVE_STEP;
-      const up = this.solveValues(withNumericField(entered, field, x + step));
-      const down = this.solveValues(withNumericField(entered, field, x - step));
+      const up = this.solveValues(withQuantity(entered, field, x + step));
+      const down = this.solveValues(withQuantity(entered, field, x - step));
       for (const other of NUMERIC_QUANTITY_NAMES) {
         if (entered[other] != null || typeof resolved[other] !== 'number') continue;
         const hi = up[other];
@@ -401,54 +339,8 @@ export class DriverEngineImpl implements DriverEngine {
    * interval is, never recomputed from the resolved number here.
    */
   private checkConsistency(entered: DriverWorkingSet, params: DriverSolverParams): DriverIssue[] {
-    const resolved = this.solveValues(entered);
-
-    // Each field's own uncertainty: an ENTERED field carries its own stated precision (D13); a
-    // COMPUTED one starts at the float-representation floor and accumulates however far each
-    // entered field's own rounding can move it (below).
-    const inherited = this.inheritedWidths(entered, resolved, RELATION_FIELDS, RELATION_FIELDS,
-      field => params[field].precision ?? 0);
-    const delta: Partial<Record<NumericDriverQuantityName, number>> = {};
-    for (const field of RELATION_FIELDS) {
-      const value = resolved[field];
-      if (typeof value !== 'number') continue;
-      delta[field] = entered[field] != null
-        ? (params[field].precision ?? 0)
-        : Math.abs(value) * FLOAT_NOISE + (inherited[field] ?? 0);
-    }
-
-    const resolvedValues = valuesFrom(resolved);
-    const issues: DriverIssue[] = [];
-    for (const rel of DRIVER_RELATIONS) {
-      if (!rel.fields.every(f => typeof resolvedValues[f] === 'number')) continue;
-      const expected = rel.predict(resolvedValues);
-      if (!isFinite(expected)) continue;
-
-      // `rel.target` is always one of `rel.fields` (every relation names its own target among its
-      // fields), and the `.every()` above just confirmed `resolvedValues[rel.target]` — hence
-      // `resolved[rel.target]` — is a number; the population loop above sets `delta[field]` for
-      // every `RELATION_FIELDS` member with a numeric resolved value, so it is already set.
-      let tolerance = delta[rel.target]!;
-      for (const f of rel.fields) {
-        const fieldDelta = delta[f];
-        if (f === rel.target || !(fieldDelta! > 0)) continue;
-        const bumpedValues: Partial<Record<NumericDriverQuantityName, number>> = { ...resolvedValues };
-        bumpedValues[f] = resolvedValues[f]! + fieldDelta!;
-        const moved = rel.predict(bumpedValues);
-        if (isFinite(moved)) tolerance += Math.abs(moved - expected);
-      }
-
-      const actual = resolvedValues[rel.target]!;
-      const residual = Math.abs(expected - actual);
-      if (residual > tolerance) {
-        // `residual` is the gap between the two intervals' CENTRES; `tolerance` is how much of
-        // that gap their own half-widths already close. What is left over — the gap between the
-        // two intervals' NEAREST EDGES — is the genuine, unexplained disagreement.
-        const shortfall = residual - tolerance;
-        issues.push(inconsistentInputs(rel.target, rel.fields, rel.formula, expected, actual,
-          shortfall / Math.max(Math.abs(actual), Math.abs(expected))));
-      }
-    }
+    const issues: DriverIssue[] = this.consistency.check(
+      entered, stated => this.solveValues(stated), field => params[field].precision ?? 0);
 
     // Qts has no route besides Qes+Qms (WinISD has no third input to this triple) — a driver
     // stating fewer than two of the three cannot solve it, and the caller needs to know exactly

@@ -50,7 +50,11 @@ Three kinds of WinISD difference, handled differently:
   itself the bug is the one exception: it stays as WinISD has it, shown yellow), editable only
   where it applies, and looks different from ordinary switches even when off. The error switches
   sit in one group headed "WinISD errors", and each is a visible, listed WinISD issue: the switches
-  are how OpenISD tells users what is wrong in WinISD, and they build trust. Record each as a
+  are how OpenISD tells users what is wrong in WinISD, and they build trust. Which state is the
+  default follows the parity goal: a wrong formula or contradiction proven in WinISD's own outputs
+  defaults to the correct maths; an inaccuracy WinISD may intend (a dropped small term, as in the
+  ABC intra-port velocity) defaults to WinISD's form, ticked and yellow, with the exact formula
+  unticked: convention (accurate) versus WinISD parity (inaccurate). Record each as a
   WinISD bug (a `bugs/BUG_*_winisd-*.md` file, a row in the "fixed by default" section of
   `docs/research/ACCURACY_IMPROVEMENTS.md`, and `docs/research/WINISD_PARITY.md`).
 - **A trigger, linkage or update bug** (an edit that does not recalculate where a load or another

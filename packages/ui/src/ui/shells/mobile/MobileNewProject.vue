@@ -3,6 +3,7 @@
 // Driver -> Num/placement -> Box type + EBP -> Sealed alignment -> Metadata). Uses the SAME
 // useOgNewProject() hook as OriginalNewProject.vue: one wizard implementation, two presentations.
 import { onBeforeUnmount } from 'vue';
+import { ReadoutFormat } from '@openisd/design/fields';
 import { useOgNewProject } from '../../../hooks/OriginalNewProject-hooks.js';
 import { createMobileNewProjectFooter } from '../../../hooks/MobileNewProject-hooks.js';
 import { useEscToClose } from '../../../logic/useEscToClose.js';
@@ -149,7 +150,7 @@ function handleCreate() {
         <div class="ebp-readout-card">
           <div class="ebp-row">
             <span class="ebp-label">EBP:</span>
-            <strong class="ebp-value">{{ ebp !== null ? ebp.toFixed(1) : '--' }}</strong>
+            <strong class="ebp-value">{{ ReadoutFormat.EBP.text(ebp, '--') }}</strong>
           </div>
           <span class="suitability-badge" :class="ebpSuitabilityLabel.toLowerCase().startsWith('sealed') ? 'sealed' : ebpSuitabilityLabel.toLowerCase().startsWith('vented') ? 'vented' : 'either'">
             {{ ebpSuitabilityLabel }}
@@ -182,8 +183,8 @@ function handleCreate() {
           <div class="field-inline"><input type="number" step="0.1" v-limits="{ min: 0.1, max: 100000 }" v-model.number="sealedVolume_L"><span class="unit">l</span></div>
         </div>
         <div class="readout-box">
-          <div class="readout-item"><span>Calculated Qtc:</span> <strong>{{ qtc !== null ? qtc.toFixed(3) : '--' }}</strong></div>
-          <div class="readout-item"><span>EBP:</span> <strong>{{ ebp !== null ? ebp.toFixed(1) : '--' }}</strong></div>
+          <div class="readout-item"><span>Calculated Qtc:</span> <strong>{{ ReadoutFormat.QTC.text(qtc, '--') }}</strong></div>
+          <div class="readout-item"><span>EBP:</span> <strong>{{ ReadoutFormat.EBP.text(ebp, '--') }}</strong></div>
           <div class="readout-item"><span>Recommendation:</span> <strong>{{ ebpSuitabilityLabel }}</strong></div>
         </div>
       </div>
@@ -196,11 +197,11 @@ function handleCreate() {
           </select>
         </div>
         <div class="readout-box">
-          <div class="readout-item"><span>Box volume:</span> <strong>{{ ventedVolume_L.toFixed(1) }} l</strong></div>
+          <div class="readout-item"><span>Box volume:</span> <strong>{{ ReadoutFormat.PROJECT_VOLUME_L.text(ventedVolume_L, '--') }} l</strong></div>
           <div v-if="ventedVolumeWarning" class="readout-warning" role="alert" aria-live="polite" data-testid="np-vented-volume-warning">{{ ventedVolumeWarning }}</div>
-          <div class="readout-item"><span>Tuning frequency:</span> <strong>{{ ventedTuning_hz.toFixed(1) }} Hz</strong></div>
+          <div class="readout-item"><span>Tuning frequency:</span> <strong>{{ ReadoutFormat.TUNING_HZ.text(ventedTuning_hz, '--') }} Hz</strong></div>
           <div v-if="ventedTuningWarning" class="readout-warning" role="alert" aria-live="polite" data-testid="np-vented-tuning-warning">{{ ventedTuningWarning }}</div>
-          <div class="readout-item"><span>EBP:</span> <strong>{{ ebp !== null ? ebp.toFixed(1) : '--' }}</strong></div>
+          <div class="readout-item"><span>EBP:</span> <strong>{{ ReadoutFormat.EBP.text(ebp, '--') }}</strong></div>
           <div class="readout-item"><span>Recommendation:</span> <strong>{{ ebpSuitabilityLabel }}</strong></div>
         </div>
       </div>

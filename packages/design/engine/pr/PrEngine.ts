@@ -5,7 +5,8 @@
  * tuning/added-mass the project has not entered.
  */
 import type {Air} from '../air.js';
-import type {RouteGroup} from '../driver/routes/index.js';
+import type {ConsistencyCheck, RouteGroup, RouteQuantity} from '../driver/routes/index.js';
+import type {DriverWorkingSet} from '../solvers/driverQuantities.js';
 import {solveEnvironment} from '../air.js';
 import type {PrParams} from '../types.js';
 import type {PrSolverParams} from '../solverTypes.js';
@@ -26,6 +27,13 @@ export interface PrSpecValues {
   readonly Cms_m_per_N: number | null;
   readonly Rms_kg_per_s: number | null;
 }
+
+/** Each stated figure's own half-width: the reading's stated precision, or half the last decimal
+ *  it was typed to; 0 for a figure not stated. */
+export type PrSpecPrecision = Readonly<Record<keyof PrSpecValues, number>>;
+
+/** A stated radiator figure that contradicts the relation tying it to the others. */
+export type PrSpecIssue = CalculationIssue<RouteQuantity>;
 
 /** `air` where taken is the PROJECT's own resolved `{ rho, c }` — see `vent/VentEngine.ts`.
  *  `vas`/`cmsFromVas` take none: no environment reaches their call sites, so ρ/c are the
@@ -56,6 +64,10 @@ export interface PrEngine {
    *  the project's `air`: every figure derivable from the stated ones comes back with them, a
    *  stated one unchanged, an underivable one null. Pass only what was entered. */
   solveSpec(stated: PrSpecValues, air: Air): PrSpecValues;
+  /** Where the stated figures contradict each other: the driver's consistency relations among
+   *  Fs, Qms, Vas, Sd, Mms, Cms and Rms, in the project's `air`, each figure judged against its
+   *  own `precision`. Pass only what was entered. Every issue names every field in its relation. */
+  checkSpec(stated: PrSpecValues, precision: PrSpecPrecision, air: Air): PrSpecIssue[];
   /** The PR handle solve (T10/T11): derive whichever of `tuning_goal_hz`/`addedMass_kg` is not
    *  entered plus `resonanceWithAddedMass_hz`/`systemTuning_hz`, write each onto its
    *  `SolverField` via `setCalculated`, and return the issues the stated values carry. An
@@ -68,7 +80,10 @@ export interface PrEngine {
 const PR_GEOMETRY: readonly PrQuantityName[] = Object.freeze(['Vb_m3', 'prMmd_kg', 'prSd_m2', 'prCms_m_per_N']);
 
 export class PrEngineImpl implements PrEngine {
-  constructor(private readonly routes: RouteGroup) {}
+  constructor(
+    private readonly routes: RouteGroup,
+    private readonly consistency: ConsistencyCheck,
+  ) {}
 
   tuning(p: PrParams, air: Air): number {
     const Cab  = p.Vb / (air.rho * air.c * air.c);
@@ -115,16 +130,30 @@ export class PrEngineImpl implements PrEngine {
   }
 
   solveSpec(stated: PrSpecValues, air: Air): PrSpecValues {
+    const solved = this.routes.run(this.workingSet(stated, air));
+    return {
+      Fs_hz: solved.Fs_hz ?? null, Qms: solved.Qms ?? null, Vas_m3: solved.Vas_m3 ?? null, Sd_m2: solved.Sd_m2 ?? null,
+      Mms_kg: solved.Mms_kg ?? null, Cms_m_per_N: solved.Cms_m_per_N ?? null, Rms_kg_per_s: solved.Rms_kg_per_s ?? null,
+    };
+  }
+
+  checkSpec(stated: PrSpecValues, precision: PrSpecPrecision, air: Air): PrSpecIssue[] {
+    const widths: Partial<Record<RouteQuantity, number>> = {
+      Fs_hz: precision.Fs_hz, Qms: precision.Qms, Vas_m3: precision.Vas_m3, Sd_m2: precision.Sd_m2,
+      Mms_kg: precision.Mms_kg, Cms_m_per_N: precision.Cms_m_per_N, Rms_kg_per_s: precision.Rms_kg_per_s,
+    };
+    return this.consistency.check(
+      this.workingSet(stated, air), working => this.routes.run(working), field => widths[field] ?? 0);
+  }
+
+  /** The stated figures and the project's air as the routes read them. */
+  private workingSet(stated: PrSpecValues, air: Air): DriverWorkingSet {
     const orUndefined = (x: number | null): number | undefined => x ?? undefined;
-    const solved = this.routes.run({
+    return {
       Fs_hz: orUndefined(stated.Fs_hz), Qms: orUndefined(stated.Qms), Vas_m3: orUndefined(stated.Vas_m3),
       Sd_m2: orUndefined(stated.Sd_m2), Mms_kg: orUndefined(stated.Mms_kg),
       Cms_m_per_N: orUndefined(stated.Cms_m_per_N), Rms_kg_per_s: orUndefined(stated.Rms_kg_per_s),
       c_m_per_s: air.c, roo_kg_per_m3: air.rho,
-    });
-    return {
-      Fs_hz: solved.Fs_hz ?? null, Qms: solved.Qms ?? null, Vas_m3: solved.Vas_m3 ?? null, Sd_m2: solved.Sd_m2 ?? null,
-      Mms_kg: solved.Mms_kg ?? null, Cms_m_per_N: solved.Cms_m_per_N ?? null, Rms_kg_per_s: solved.Rms_kg_per_s ?? null,
     };
   }
 
