@@ -2,7 +2,8 @@
 /** Lowpass/Highpass Filter Editor — one component for both, since they differ only in leading
  *  word and which side of the family's response they read (`PassFilter` on the engine side).
  *  Display only: every edit is decided by `api.editPass` (the engine's filters area), not here. */
-import {NumberField, PASS_FAMILY_OPTIONS} from '@openisd/design/fields';
+import {NumberField, PASS_FAMILY_OPTIONS, WinisdFilterDeviation} from '@openisd/design/fields';
+import WinisdDeviationCue from '../../../components/WinisdDeviationCue.vue';
 import {selectedOption} from '../../../../logic/domEvents.js';
 import {liveNum, numFrom} from './numericInput.js';
 import type {PassFilter} from '@openisd/design/engine';
@@ -23,6 +24,7 @@ function onFamily(e: Event): void {
         <option v-for="o in PASS_FAMILY_OPTIONS" :key="o.value" :value="o.value">{{ o.label }}</option>
       </select>
     </label>
+    <WinisdDeviationCue v-if="api.deviationShown(WinisdFilterDeviation.BESSEL_HIGHPASS, f)" :deviation="WinisdFilterDeviation.BESSEL_HIGHPASS" />
     <label>Order <input type="number" step="1" v-limits="NumberField.FILTER_ORDER.limits" :value="f.order" @input="liveNum($event, v => api.editPass(f, {order: v}))" @change="api.editPass(f, {order: numFrom($event)})"></label>
     <label>Q <input v-expo-step type="number" step="0.01" v-limits="NumberField.FILTER_Q.limits" :value="f.Q" @input="liveNum($event, v => api.editPass(f, {Q: v}))" @change="api.editPass(f, {Q: numFrom($event)})"></label>
     <label>Cutoff <input v-expo-step type="number" step="1" v-limits="NumberField.FILTER_FC_HZ.limits" :value="f.fc" @input="liveNum($event, v => api.editPass(f, {fc: v}))" @change="api.editPass(f, {fc: numFrom($event)})"> Hz</label>

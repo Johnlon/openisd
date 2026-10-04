@@ -5,6 +5,7 @@ import type {
   ParametricEqFilter, ParametricEqPatch, PassFilter, PassPatch, PeakHighpassFilter, PeakHighpassPatch,
   RaisedCosineFilter, RaisedCosinePatch, ShelfFilter, ShelfPatch, StaticGainFilter, StaticGainPatch,
 } from '@openisd/design/engine';
+import type {WinisdFilterDeviation} from '@openisd/design/fields';
 
 /** What the Filters tab can do — the vocabulary its components speak. Nothing here names the
  *  engine: an edit is one call that decides the new values and stores them. */
@@ -28,6 +29,9 @@ export interface OriginalFiltersAPI {
   editStaticGain(f: StaticGainFilter, patch: StaticGainPatch): void;
   editRaisedCosine(f: RaisedCosineFilter, patch: RaisedCosinePatch): void;
   editShelf(f: ShelfFilter, patch: ShelfPatch): void;
+  /** `f`'s result differs from WinISD's now because OpenISD fixed the WinISD bug `d` names
+   *  (its error switch is off); the editor shows the deviation cue. */
+  deviationShown(d: WinisdFilterDeviation, f: Filter): boolean;
 }
 
 /**
@@ -42,7 +46,7 @@ export class OriginalFilters implements OriginalFiltersAPI {
 
   constructor(
     private readonly project: ComputedRef<OpenISDProject>,
-    changed: Ref<number>,
+    private readonly changed: Ref<number>,
     private readonly engine: FilterEngine,
   ) {
     // Raw reads (`filters.value`) are not Vue-tracked; `project` re-fires only on focus swap,
@@ -81,6 +85,11 @@ export class OriginalFilters implements OriginalFiltersAPI {
   editStaticGain(f: StaticGainFilter, patch: StaticGainPatch): void { this.replace(f, this.engine.editStaticGain(f, patch)); }
   editRaisedCosine(f: RaisedCosineFilter, patch: RaisedCosinePatch): void { this.replace(f, this.engine.editRaisedCosine(f, patch)); }
   editShelf(f: ShelfFilter, patch: ShelfPatch): void { this.replace(f, this.engine.editShelf(f, patch)); }
+
+  deviationShown(d: WinisdFilterDeviation, f: Filter): boolean {
+    void this.changed.value;
+    return d.inEffectFor(this.project.value.errorSwitches, f);
+  }
 
   /** `next` takes `f`'s place in the chain; every other filter is untouched. A filter with no
    *  list id is not in any list yet and has nothing to replace. An edit that changes no field

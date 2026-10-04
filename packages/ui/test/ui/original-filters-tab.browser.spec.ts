@@ -155,3 +155,49 @@ test('the quick-add bar offers every WinISD filter type plus the two shelves, an
   await panel.locator('.filter-del').click();
   expect(await focusedFilterCount(page)).toBe(0);
 });
+
+// WinISD deviation cue: a small button next to a control whose result differs from WinISD because
+// OpenISD fixed a WinISD bug. It opens a dialog naming the bug, its size and the error switch that
+// brings WinISD back; it is hidden while that switch reproduces WinISD.
+test('an allpass above order 1 shows the WinISD deviation cue until "WinISD allpass order" is ticked', async ({page}) => {
+  const panel = page.locator('.content-panel');
+  await panel.locator('.action-btn', {hasText: '+ AP'}).click();
+  const cue = panel.locator('button.winisd-deviation-cue');
+  await expect(cue).toHaveCount(0);
+  await fillAndBlur(editorField(panel, 'Order'), '4');
+  await expect(cue).toBeVisible();
+  await expect(cue).toHaveAttribute('aria-label', /^Differs from WinISD: /);
+
+  await cue.click();
+  const dialog = page.getByRole('dialog', {name: /allpass/i});
+  await expect(dialog).toBeVisible();
+  await expect(dialog).toContainText('t/Q');
+  await expect(dialog).toContainText('5.0 ms');
+  await expect(dialog).toContainText('"WinISD allpass order"');
+  await page.keyboard.press('Escape');
+  await expect(dialog).toHaveCount(0);
+  await cue.focus();
+  await page.keyboard.press('Enter');
+  await expect(dialog).toBeVisible();
+  await dialog.getByRole('button', {name: 'Close'}).click();
+  await expect(dialog).toHaveCount(0);
+
+  await page.locator('li', {hasText: /^Advanced$/}).click();
+  await page.locator('label[data-field-key="winisdAllpassOrder"] input').check();
+  await page.locator('.project-nav li', {hasText: 'Filters'}).click();
+  await expect(panel.locator('.filter-summary')).toContainText('n=4');
+  // The row's editor stays open across the tab switch.
+  await expect(editorField(panel, 'Order')).toHaveValue('4');
+  await expect(cue).toHaveCount(0);
+});
+
+test('a Bessel high-pass shows the WinISD deviation cue by its Subtype', async ({page}) => {
+  const panel = page.locator('.content-panel');
+  await panel.locator('.action-btn', {hasText: '+ HP'}).click();
+  const cue = panel.locator('button.winisd-deviation-cue');
+  await expect(cue).toHaveCount(0);
+  await editorField(panel, 'Subtype').selectOption({label: 'Bessel'});
+  await expect(cue).toBeVisible();
+  await cue.click();
+  await expect(page.getByRole('dialog', {name: /Bessel high-pass/})).toContainText('"WinISD Bessel high-pass"');
+});

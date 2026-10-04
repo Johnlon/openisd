@@ -35,3 +35,19 @@ test('removing a filter clears the list back to empty', async ({ page }) => {
   await page.locator('.filter-del').click();
   await expect(page.getByText('No filters active.')).toBeVisible();
 });
+
+test('an order-4 allpass shows the WinISD deviation cue, and its dialog fits the phone width', async ({ page }) => {
+  await page.getByText('+ AP', { exact: true }).click();
+  const order = page.locator('.filter-edit-body label').filter({ hasText: /^Order\b/ }).locator('input');
+  await order.fill('4');
+  await order.blur();
+  const cue = page.locator('button.winisd-deviation-cue');
+  await expect(cue).toBeVisible();
+  await cue.click();
+  const dialog = page.getByRole('dialog', { name: /allpass/i });
+  await expect(dialog).toContainText('"WinISD allpass order"');
+  const box = (await dialog.boundingBox())!;
+  const width = page.viewportSize()!.width;
+  expect(box.x).toBeGreaterThanOrEqual(0);
+  expect(box.x + box.width).toBeLessThanOrEqual(width);
+});

@@ -60,6 +60,10 @@ Three kinds of WinISD difference, handled differently:
 - **A trigger, linkage or update bug** (an edit that does not recalculate where a load or another
   event does; a crash, hang or data loss) is NEVER copied and gets no switch: there is nothing to
   reproduce on purpose. OpenISD does the correct thing. Record it the same way.
+- **An input WinISD ignores entirely** (the Linkwitz-Riley Order box always draws LR4; Allpass
+  orders above 2 act as 2) is a plain bug, not a calculation bug: no switch. OpenISD honours the
+  input with the correct maths, and a Difference icon by the control opens a popup saying what
+  WinISD does instead. The icon is enough (John, 2026-10-04).
 - **One test that tells them apart:** the same value entered by hand and loaded from a file give
   different results. That is a strong signal of a linkage bug, not a calculation difference. There
   are other tests and signals. It also means OpenISD may already have copied such a bug while

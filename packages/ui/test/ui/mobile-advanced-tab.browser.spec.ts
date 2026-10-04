@@ -59,7 +59,7 @@ test('toggling the "Force flat response" checkbox writes through to the project'
 test('the error switches carry the warning class under a "WinISD errors" heading; the air model does not', async ({ page }) => {
   const group = page.locator('.error-switch-group');
   await expect(group.locator('.error-switch-group-head')).toHaveText('WinISD errors');
-  for (const key of ['winisdDriverModel', 'winisdVaModel', 'winisdAbcIntraPortVelocity', 'winisdPrNprResonance', 'winisdBesselHighpass']) {
+  for (const key of ['winisdDriverModel', 'winisdVaModel', 'winisdAbcIntraPortVelocity', 'winisdPrNprResonance', 'winisdBesselHighpass', 'winisdAllpassOrder']) {
     const label = group.locator(`label[data-field-key="${key}"]`);
     await expect(label, key).toHaveClass(/error-switch-marked/);
     await expect(label, key).toHaveAttribute('title', /^Reproduces a WinISD error\.\n/);
@@ -67,6 +67,7 @@ test('the error switches carry the warning class under a "WinISD errors" heading
   await expect(page.locator('.mob-checkbox-row', { hasText: 'WinISD air model' })).not.toHaveClass(/error-switch-marked/);
   await expect(group.locator('label[data-field-key="winisdAbcIntraPortVelocity"] input')).toBeDisabled();
   await expect(group.locator('label[data-field-key="winisdPrNprResonance"] input')).toBeDisabled();
+  await expect(group.locator('label[data-field-key="winisdAllpassOrder"] input')).toBeDisabled();
 });
 
 // BUG (2026-09-29, John, live on his phone): "environment view needs to scroll... truncation at

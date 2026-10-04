@@ -311,7 +311,7 @@ test.describe('Original Advanced tab', () => {
     test('WinISD Compatibility labels are unclipped and drop the "Use" prefix', async ({ page }) => {
       const panel = page.locator('.sim-options-box', { hasText: 'WinISD Compatibility' });
       const labels = panel.locator('label[data-field-key]');
-      await expect(labels).toHaveText([/WinISD air model/, /WinISD phase wrapping/, /WinISD driver count/, /WinISD flat response/, /WinISD driver model/, /WinISD VA model/, /WinISD ABC intra-port velocity/, /PR Npr resonance/, /WinISD Bessel high-pass/]);
+      await expect(labels).toHaveText([/WinISD air model/, /WinISD phase wrapping/, /WinISD driver count/, /WinISD flat response/, /WinISD driver model/, /WinISD VA model/, /WinISD ABC intra-port velocity/, /PR Npr resonance/, /WinISD Bessel high-pass/, /WinISD allpass order/]);
       const panelBox = (await panel.boundingBox())!;
       const clipRight = await panel.evaluate(el => {
         // The visible right edge: the panel's own, or an ancestor's that clips it first.
@@ -402,11 +402,11 @@ test.describe('Original Advanced tab', () => {
   });
 
   test.describe('WinISD errors group', () => {
-    const ERROR_KEYS = ['winisdDriverModel', 'winisdVaModel', 'winisdAbcIntraPortVelocity', 'winisdPrNprResonance', 'winisdBesselHighpass'];
+    const ERROR_KEYS = ['winisdDriverModel', 'winisdVaModel', 'winisdAbcIntraPortVelocity', 'winisdPrNprResonance', 'winisdBesselHighpass', 'winisdAllpassOrder'];
     /** The box type each error switch acts on; a switch that applies everywhere is shown on an ABC box. */
     const BOX_FOR: Record<string, BoxTypeName> = {winisdPrNprResonance: 'box-passive-radiator'};
-    /** The Bessel switch acts only on a project with a Bessel high-pass filter, so it cannot be ticked here. */
-    const TICKABLE_KEYS = ERROR_KEYS.filter(key => key !== 'winisdBesselHighpass');
+    /** The Bessel and allpass switches act only on a project with that filter, so they cannot be ticked here. */
+    const TICKABLE_KEYS = ERROR_KEYS.filter(key => key !== 'winisdBesselHighpass' && key !== 'winisdAllpassOrder');
     const DESIGN_KEYS = ['useWinisdAirModel', 'winisdWrapPhase', 'winisdDriverCountModel', 'winisdFlatModel'];
 
     test('the error switches carry the warning class, unticked and ticked', async ({page}) => {
@@ -465,6 +465,10 @@ test.describe('Original Advanced tab', () => {
       await expect(label).toHaveClass(/error-switch-na/);
       await expect(label).toHaveClass(/error-switch-marked/);
       await expect(label.locator('.error-switch-mark')).toBeVisible();
+      const allpass = page.locator('label[data-field-key="winisdAllpassOrder"]');
+      await expect(allpass.locator('input')).toBeDisabled();
+      await expect(allpass).toHaveClass(/error-switch-na/);
+      await expect(allpass).toHaveClass(/error-switch-marked/);
     });
 
     test('the PR Npr switch is editable on a passive radiator box only', async ({page}) => {

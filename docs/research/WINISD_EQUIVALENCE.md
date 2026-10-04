@@ -94,7 +94,10 @@ run with the switch on.
 A Bessel high-pass filter matches WinISD's response and group delay with the "WinISD Bessel high-pass" error
 switch on (Reset to WinISD ticks it); off, the default, OpenISD draws the mirror of the low-pass. The
 filter captures run with the switch on.
-By-hand check (QO170, 2026-10-04, WinISD's own window): the Bessel high-pass, the Allpass delay and order, the Linkwitz-Riley and SOS order, the save that drops filters, and the VA chart (Re, Rg twice) were each seen. Allpass and Linkwitz-Riley/SOS stay ✗ until a definition is chosen. No cell count changed.
+An allpass filter matches WinISD with the "WinISD allpass order" error switch on (Reset to WinISD ticks it): orders
+above 2 drawn as 2, delay t/Q. Off, the default, OpenISD draws the order-n Bessel allpass with delay t at every order.
+The allpass captures (`2|0;1;2;0.003;0.6`, `…;3;0.004;0.8`, `…;4;0.002;0.7`) run with the switch on.
+By-hand check (QO170, 2026-10-04, WinISD's own window): the Bessel high-pass, the Allpass delay and order, the Linkwitz-Riley and SOS order, the save that drops filters, and the VA chart (Re, Rg twice) were each seen. Linkwitz-Riley/SOS stays open until a definition is chosen; the Allpass definition is chosen (the order-n Bessel allpass, switch above). No cell count changed.
 Candidates for a conventional switch: [ACCURACY_IMPROVEMENTS.md](ACCURACY_IMPROVEMENTS.md?html).
 
 ---

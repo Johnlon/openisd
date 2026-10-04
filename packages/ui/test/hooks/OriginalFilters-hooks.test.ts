@@ -2,6 +2,7 @@ import {describe, expect, it} from 'vitest';
 import {computed, ref, shallowRef} from 'vue';
 import {createEngine} from '@openisd/design/engine';
 import {ProjectBuilder} from '@openisd/design';
+import {WinisdFilterDeviation} from '@openisd/design/fields';
 import {OriginalFilters} from '../../src/hooks/OriginalFilters-hooks.js';
 
 function setup() {
@@ -72,5 +73,21 @@ describe('OriginalFilters', () => {
     const {api} = setup();
     api.add('staticGain');
     expect(api.caption(api.filters.value[0]!)).toBe('Static gain (Gain=0.00 dB)');
+  });
+
+  it('a WinISD deviation cue shows on an affected filter while its error switch is off, and re-reads on change', () => {
+    const {project, changed, api} = setup();
+    const id = api.add('allpass');
+    const order1 = api.filters.value.find(f => f.id === id)!;
+    expect(api.deviationShown(WinisdFilterDeviation.ALLPASS_ORDER, order1)).toBe(false);
+    if (order1.type !== 'allpass') throw new Error('expected allpass');
+    api.editAllpass(order1, {order: 4});
+    changed.value++;
+    const order4 = api.filters.value.find(f => f.id === id)!;
+    expect(api.deviationShown(WinisdFilterDeviation.ALLPASS_ORDER, order4)).toBe(true);
+    expect(api.deviationShown(WinisdFilterDeviation.BESSEL_HIGHPASS, order4)).toBe(false);
+    project.winisdAllpassOrder.set(true);
+    changed.value++;
+    expect(api.deviationShown(WinisdFilterDeviation.ALLPASS_ORDER, order4)).toBe(false);
   });
 });
