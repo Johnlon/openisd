@@ -1,5 +1,6 @@
 import {readFileSync} from 'node:fs';
-import {expect, type Page, test as base} from '@playwright/test';
+import {expect, type Locator, type Page, test as base} from '@playwright/test';
+import {fillAndBlur} from './fixtures/numField.js';
 import {COMPLETE_DRIVER_PROJECT_OWPR, ensureSampleProject, SAMPLE_PROJECT_OWPR} from './fixtures/sampleProject.js';
 export {COMPLETE_DRIVER_PROJECT_OWPR, SAMPLE_PROJECT_OWPR};
 
@@ -605,6 +606,70 @@ export async function focusedProjectOwpr(page: Page): Promise<unknown> {
     p.save();
     return JSON.parse(p.toOwprText());
   }, '/src/logic/appState.ts');
+}
+
+/** The focused project's driver added cone mass (kg). */
+export async function focusedAddedMass_kg(page: Page): Promise<number> {
+  return page.evaluate(async (path): Promise<number> => {
+    type AppState = typeof import('../src/logic/appState.js');
+    function isAppState(m: unknown): m is AppState {
+      return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
+    }
+    const m: unknown = await import(/* @vite-ignore */ path);
+    if (!isAppState(m)) throw new Error('appState module shape mismatch');
+    return m.requireFocusedProject().driverAddedMass_kg.value;
+  }, '/src/logic/appState.ts');
+}
+
+/** Open the Driver Editor the way a user does: Driver tab, Edit, wait for the body. */
+export async function openDriverEditor(page: Page): Promise<void> {
+  await page.locator('.project-nav li', { hasText: 'Driver' }).click();
+  await page.locator('.edit-btn', { hasText: 'Edit' }).click();
+  await page.locator('.de-body').waitFor({ state: 'visible' });
+}
+
+/** A Driver Editor field box, found by its exact label text. */
+export function driverEditorField(page: Page, label: string): Locator {
+  return page.locator('.de-body .de-fld', { has: page.locator(`label:text-is("${label}")`) }).first();
+}
+
+/** Values the seeded driver enters, in the unit the field displays: one solvable driver, so the
+ *  solver marks a realistic set of fields CALCULATED. */
+const SEED_PARAMETERS: ReadonlyArray<readonly [string, string]> = [
+  ['Fs', '35'], ['Qts', '0.38'], ['Qes', '0.42'], ['Re', '6.4'],
+  ['Vas', '32'], ['Sd', '220'], ['Xmax', '6.5'], ['Pe', '150'],
+  ['Hc', '18'], ['Hg', '8'],
+];
+
+/** Dimensions-tab geometry (mm). DVol is deliberately the ONE unseeded member of the
+ *  DVol/Depth/MagDepth/Magnet lock, so the solver fills it and a CALCULATED geometry field exists. */
+const SEED_DIMENSIONS: ReadonlyArray<readonly [string, string]> = [
+  ['Driver Depth (Depth)', '55'], ['Magnet Depth', '20'],
+  ['Magnet Diameter (Magnet)', '60'], ['Voice Coil Dia (Vcd)', '25'],
+];
+
+/** In the open Driver Editor, enter a solvable driver so the derived fields carry the CALCULATED mark. */
+export async function seedDriverInEditor(page: Page): Promise<void> {
+  await page.getByRole('button', { name: 'Parameters', exact: true }).click();
+  for (const [label, value] of SEED_PARAMETERS) {
+    await fillAndBlur(driverEditorField(page, label).locator('input').first(), value);
+  }
+  await page.getByRole('button', { name: 'Dimensions', exact: true }).click();
+  for (const [label, value] of SEED_DIMENSIONS) {
+    await fillAndBlur(driverEditorField(page, label).locator('input').first(), value);
+  }
+  await page.getByRole('button', { name: 'Parameters', exact: true }).click();
+}
+
+/** Walk every Driver Editor tab, handing the visitor that tab's own field labels WHILE it is on
+ *  screen (collecting them up front would run every assertion against the last tab open). */
+export async function forEachEditorTab(page: Page, visit: (tab: string, labels: string[]) => Promise<void>): Promise<void> {
+  const tabs = (await page.locator('.de-tab').allInnerTexts()).map(s => s.trim());
+  for (const tab of tabs) {
+    await page.getByRole('button', { name: tab, exact: true }).click();
+    const labels = (await page.locator('.de-body .de-fld label').allInnerTexts()).map(s => s.trim());
+    await visit(tab, labels);
+  }
 }
 
 export { expect };

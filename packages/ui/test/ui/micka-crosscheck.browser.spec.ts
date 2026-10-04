@@ -11,7 +11,7 @@
  *   - You add a new scenario to scenarios.js and need to verify the expected values
  *   - You change a formula and want to confirm the new expected values against an
  *     independent implementation
- *   - NOT in normal CI (the OpenISD tests in app.browser.spec.js cover the same
+ *   - NOT in normal CI (the OpenISD tests in original-box-tab.browser.spec.ts cover the same
  *     physics locally without network dependency)
  *
  * Run: npx playwright test test/micka-crosscheck.browser.spec.js

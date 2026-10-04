@@ -1,12 +1,22 @@
+/**
+ * RECORDER, not a test: it types into the Driver Editor and writes five screenshots to
+ * build/ui_frames/ (frame_00.png … frame_04.png) for demos and documentation. It lives here, not
+ * under packages/ui/test, so the browser suite never runs it.
+ *
+ * Run it from the repo root through the tracked probe config, which serves specs from build/tmp:
+ *   cp scripts/research/record-driver-editor-frames.spec.ts build/tmp/record-driver-editor-frames.browser.spec.ts
+ *   npx playwright test -c scripts/playwright.probe.config.mjs build/tmp/record-driver-editor-frames.browser.spec.ts
+ * (build/tmp and scripts/research sit at the same depth, so its relative imports work from both.)
+ */
 import {fileURLToPath} from 'node:url';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import {expect, openAProject, test} from '../fixtures.js';
-import {typeInto} from '../fixtures/numField.js';
+import {expect, openAProject, test} from '../../packages/ui/test/fixtures.js';
+import {typeInto} from '../../packages/ui/test/fixtures/numField.js';
 
-test('record UI browser automation frames in Original WinISD skin', async ({ page }) => {
+test('record Driver Editor typing frames', async ({ page }) => {
   // Repo-local build/, never an OS temp path — AGENTS.md §"Scratch files".
-  const framesDir = fileURLToPath(new URL('../../../../build/ui_frames', import.meta.url));
+  const framesDir = fileURLToPath(new URL('../../build/ui_frames', import.meta.url));
   fs.mkdirSync(framesDir, { recursive: true });  // recursive:true already tolerates an existing dir
 
   await page.goto('/');

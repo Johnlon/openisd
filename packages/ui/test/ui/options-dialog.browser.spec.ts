@@ -49,20 +49,6 @@ async function wizardToVentedAlignment(page: import('playwright').Page) {
   return modal;
 }
 
-/** Walk the wizard to step 4 with a vented box, on the first driver in the library. */
-async function wizardToVentedAlignment(page: import('playwright').Page) {
-  await page.locator('.tb-btn[title*="New project"]').click();
-  const modal = page.locator('.overlay.open');
-  await expect(modal).toContainText('Select driver for project');
-  await modal.locator('.dlist .ditem').first().click();
-  await modal.locator('.use-btn').click();                      // choosing the driver lands step 2
-  await modal.locator('button', { hasText: 'Next' }).click();   // step 3: box type
-  await modal.locator('.field', { hasText: 'Box type' }).locator('select').selectOption('vented');
-  await modal.locator('button', { hasText: 'Next' }).click();   // step 4: vented alignment
-  await expect(modal).toContainText('Tuning frequency');
-  return modal;
-}
-
 test.describe('Options dialog', () => {
   test.describe('with a project open', () => {
     test.beforeEach(async ({ page }) => {
@@ -197,7 +183,7 @@ test.describe('Options dialog', () => {
         await expect(advTemp).toHaveValue('300.00');
       });
 
-      test('the Options Environment tab shows the app default 30 % humidity, unaffected by the open project's own 50 %', async ({ page }) => {
+      test('the Options Environment tab shows the app default 30 % humidity, unaffected by the own 50 % of the open project', async ({ page }) => {
         // The sample project stores its own humidity (50 %) on the PROJECT's Advanced tab. The Options dialog's Environment section is a separate, app-level
         // setting (`appSettingsRepo.envDefaults()`) that a project load never touches (John,
         // 2026-09-21: "the project has no influence on the env tab of the application settings").

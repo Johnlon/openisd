@@ -309,18 +309,3 @@ test('an entered zero for Fs is out of range — red on the field, reverted on b
   await expect(fs).not.toHaveClass(/inp-bad/);
   await expect(okBtn(page)).toBeEnabled();               // still saveable
 });
-
-test('every Parameters input reports its E/C/N state', async ({ page }) => {
-  await openParameters(page);
-  const unstyled = await page.evaluate(() => {
-    const out: string[] = [];
-    document.querySelectorAll('.de-params .de-fld').forEach(f => {
-      const i = f.querySelector('input');
-      // The provenance classes are value-e / value-c / value-n (DriverEditorModal.vue's styles);
-      // st-[ecn] was their old name and matched nothing, so every input read as unstyled.
-      if (i && !/\bvalue-[ecn]\b/.test(i.className)) out.push(f.querySelector('label')?.textContent?.trim() ?? '?');
-    });
-    return out;
-  });
-  expect(unstyled).toEqual([]);
-});

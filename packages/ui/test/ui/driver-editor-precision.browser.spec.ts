@@ -53,3 +53,13 @@ test('Qts calculated from 5-decimal Qes and Qms shows the decimals they support'
   // ±0.000005 on each bounds Qts to about ±0.0000039: known to 6 decimals.
   await expect(inputFor(page, 'Qts')).toHaveValue(/^0\.39\d{4}$/);
 });
+
+test('a typed Vas and Sd show the registry 2 decimals', async ({ page }) => {
+  await openParameters(page);
+  const vas = page.locator('.de-modal').locator('.de-fld', { hasText: 'Vas' }).locator('input').first();
+  await fillAndBlur(vas, '20');
+  await expect(vas).toHaveValue('20.00'); // registry Vas = 2 dp (was a 3-dp literal)
+  const sd = page.locator('.de-modal').locator('.de-fld', { hasText: 'Sd' }).locator('input').first();
+  await fillAndBlur(sd, '130');
+  await expect(sd).toHaveValue('130.00'); // registry Sd = 2 dp (was a 4-dp literal)
+});

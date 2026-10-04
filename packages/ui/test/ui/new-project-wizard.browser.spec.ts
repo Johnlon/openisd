@@ -135,7 +135,7 @@ test.describe('New Project wizard', () => {
     });
 
     test('a new sealed project drives the sealed alignment towards Qt 0.707 and derives its volume', async ({ page }) => {
-      await buildProject(page, 'sealed', 'Sealed project', 'W5-1138SMF');
+      await buildProject(page, 'sealed', 'Sealed project');
       await page.locator('#og-box-type').selectOption('sealed');
 
       const qtc = page.locator('.box-layout .field', { hasText: 'Qtc' }).locator('input');
