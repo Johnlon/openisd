@@ -686,7 +686,9 @@ test.describe('Driver browser', () => {
 
       // OK routed the change into the PROJECT (editor → project.update): the project is now
       // EDITED — Save arms and Revert offers to discard. It did NOT head for My Drivers.
-      await expect(page.locator('.tb-btn.dirty')).toBeVisible();
+      // Save and Save all both light up when a project is edited, so each is named by its title.
+      await expect(page.locator('.tb-btn.dirty[title^="Save - "]')).toBeVisible();
+      await expect(page.locator('.tb-btn.dirty[title^="Save all"]')).toBeVisible();
       // The toolbar's Revert, specifically: the save rail carries a second one with the same
       // title, under every project tab.
       await expect(page.locator('.tb-btn[title^="Revert — discard all unsaved"]')).toBeVisible();
