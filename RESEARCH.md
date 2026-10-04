@@ -16,7 +16,7 @@ Related: [ARCHITECTURE.md](ARCHITECTURE.md) · [gap list](OPENISD_WINISD_GAPS_AN
 | Claus Futtrup, *Driver Parameter Calculator* (DPC): [air.htm](https://www.cfuttrup.com/dpc/air.htm), [airmodel.htm](https://www.cfuttrup.com/dpc/airmodel.htm), [formulas.htm](https://www.cfuttrup.com/dpc/formulas.htm) | WinISD's air model and parameter definitions. WinISD's help names DPC as the source. Its published constants reproduce six WinISD air measurements to 3.3e-15. |
 | [`winisd_research/WINISD_IS_BUILT_ON_DPC.md`](../winisd_research/WINISD_IS_BUILT_ON_DPC.md) | The evidence for the claim above, and the rule that follows: look in DPC before deriving or fitting anything.       |
 | WinISD's own help, [`docs/winisd_helpfiles/help/`](docs/winisd_helpfiles/help/) | Field meanings (`thielesmall.html`, written by Futtrup), box losses, and the DPC citation (`boxdesign.html`).       |
-| WinISD 0.7 screenshots, [`docs/winisd_screenshots/`](docs/winisd_screenshots/) | Every pane, dialog, filter type and chart type WinISD offers.                                                       |
+| WinISD 0.7 screenshots, [`docs/images/winisd/`](docs/images/winisd/) | Every pane, dialog, filter type and chart type WinISD offers.                                                       |
 
 ### Theory canon
 

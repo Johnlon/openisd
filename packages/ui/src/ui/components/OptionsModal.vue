@@ -1,6 +1,6 @@
 <script setup lang="ts">
-// Options dialog — recreates WinISD's "Options" modal (docs/winisd_screenshots/options_general.png,
-// options_plot_window.png), opened via the wrench/tools toolbar icon.
+// Options dialog — recreates WinISD's "Options" modal (docs/images/winisd/options-general.png,
+// options-plot-window.png), opened via the wrench/tools toolbar icon.
 //
 // General tab, top→bottom (matches the WinISD wireframe order):
 //   Username        — free-text app-level identity preference (presentationState.ui.username).

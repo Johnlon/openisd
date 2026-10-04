@@ -337,7 +337,7 @@ test.describe('General: the Comment box fills the bottom of the panel', () => {
 /**
  * Dimensions: a labelled list, not a form with air in it.
  *
- * WinISD's own Dimensions page (docs/winisd_screenshots/edit_driver_pg4_dimensions.png) puts eight rows in
+ * WinISD's own Dimensions page (docs/images/winisd/edit-driver-page4-dimensions.png) puts eight rows in
  * one tight column — the gap between one input and the next is a few pixels, so the eight read
  * as a single list. Padding each row out turns the same eight fields into a page the user has
  * to scan.

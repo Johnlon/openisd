@@ -6,7 +6,7 @@ import {createEngine} from '../../engine/index.js';
 const engine = createEngine();
 
 // Port end correction for a vent flanged at one end (baffle) and free at the other — WinISD's
-// own default (Vents tab "End Correction"; docs/winisd_screenshots/view_3_ported.png), and the
+// own default (Vents tab "End Correction"; docs/images/winisd/vents-tab.png), and the
 // value the engine applies when a caller states none.
 const END_CORRECTION = 0.732;
 

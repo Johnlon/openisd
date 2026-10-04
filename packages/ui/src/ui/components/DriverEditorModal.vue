@@ -1329,7 +1329,7 @@ input.value-n, .de-fld.value-n input, select.value-n { color: var(--mut); }
 /* FOUR field columns, each of four parts: label, input, DQ marker, unit. The parts are real
    grid tracks so `.de-fld` can subgrid onto them — that is what puts every field in a column on
    ONE label edge, ONE input edge and ONE unit edge, the way WinISD's own editor reads
-   (docs/winisd_screenshots/edit_driver_pg2_parameters.png). A field laid out inside a single wide track
+   (docs/images/winisd/edit-driver-page2-parameters.png). A field laid out inside a single wide track
    instead starts its input wherever its own label happens to end, which put "no" and
    "Voicecoils" 40px apart in the same column:
    bugs/archive/BUG_20260817_driver_editor_columns_do_not_share_a_column_edge.md

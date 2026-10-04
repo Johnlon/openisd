@@ -50,11 +50,21 @@ Superseded ones are in [docs/design/_archive/](docs/design/_archive/).
 | [docs/research/WINISD_PARITY.md](docs/research/WINISD_PARITY.md)                   | Field-by-field UI parity, part 2 verified 2026-08-13; superseded by the gap list |
 | [docs/research/COMPETITIVE_LANDSCAPE.md](docs/research/COMPETITIVE_LANDSCAPE.md)   | Other tools in this space                                 |
 | [docs/winisd_helpfiles/](docs/winisd_helpfiles/)                                   | WinISD's own help                                         |
-| [docs/winisd_screenshots/](docs/winisd_screenshots/)                               | WinISD's screens                                          |
+| [docs/images/winisd/](docs/images/winisd/)                               | WinISD's screens                                          |
 | [docs/samples/](docs/samples/)                                                     | Sample `.wdr`/`.wpr` files WinISD wrote                    |
 
 The WinISD reverse-engineering work lives in the sibling `winisd_research` repository; see
 [RESEARCH.md](RESEARCH.md#winisd-behaviour-research).
+
+## Images
+
+- Images live in `docs/images/<topic>/`, named in kebab-case after what they show
+  (`docs/images/winisd/filters-tab-edit-highpass.png`). README images: `docs/images/` and
+  `docs/images/app/`. WinISD's captures: `docs/images/winisd/`. WinISD's own help files keep their
+  images beside the HTML in `docs/winisd_helpfiles/`.
+- An image no doc or code mentions is deleted, not kept.
+- Tests never write images into the tracked tree. Screenshot recorders live in `scripts/research/`
+  and write to `build/`.
 
 ## Plans
 

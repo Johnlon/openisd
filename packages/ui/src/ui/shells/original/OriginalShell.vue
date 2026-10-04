@@ -494,7 +494,7 @@ const {
                 <!-- The target tuning is the port solver's INPUT, so it belongs on this pane as
                      well as the Box tab — you are sizing a vent, and this is the number it is
                      sized to (human ruling QO11). WinISD shows it only on its Box screen
-                     (docs/winisd_screenshots/view_3_ported.png has no tuning field); carrying it here is
+                     (docs/images/winisd/vents-tab.png has no tuning field); carrying it here is
                      deliberately ours. Same tuning target, same E/C state and same setter as the
                      Box tab: ONE stored value with two places to see and edit it.
                      It sits in this column, not beside the other config fields, because the
@@ -552,7 +552,7 @@ const {
                        WinISD labels this "Fs" on its PR screen (docs/winisd_screenshots/view_3_passive_
                        radiator.png: 30.00 Hz), which collides with the DRIVER's Fs; `Fpr` is
                        this app's symbol for it. Distinct from the SYSTEM tuning on the Box tab
-                       (view_2_box.png "Fh": 40.25 Hz on that same project), which is the box
+                       (box-tab.png "Fh": 40.25 Hz on that same project), which is the box
                        compliance in series with the PR's own — two quantities, two readouts. -->
                   <div class="field entered"><label>Fpr</label><NumInput id="og-pr-fs" :model-value="project.box.passiveRadiator.radiator.spec.Fs_hz.value" @update:model-value="(v: number | null) => project.box.passiveRadiator.radiator.spec.Fs_hz.set(v ?? 0)" :field="NumberField.PR_FS_HZ" :precision="NumberField.PR_FS_HZ.precision" /><UnitToggle :field="NumberField.PR_FS_HZ" unit-class="unit unit-cyc" /></div>
                   <div class="field entered"><label>Sd</label><NumInput :model-value="project.box.passiveRadiator.radiator.spec.Sd_m2.value" @update:model-value="(v: number | null) => project.box.passiveRadiator.radiator.spec.Sd_m2.set(v ?? 0)" :field="NumberField.PR_SD_CM2" :precision="NumberField.PR_SD_CM2.precision" /><UnitToggle :field="NumberField.PR_SD_CM2" unit-class="unit unit-cyc" /></div>

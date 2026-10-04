@@ -115,7 +115,7 @@ test('rotating a unit changes the display only — the stored value round-trips'
  * The unit beside each field DEFAULTS to WinISD's own spelling.
  *
  * Read off the two reference captures of the real application:
- * docs/winisd_screenshots/edit_driver_pg2_parameters.png and edit_driver_pg3_advanced_parameters.png.
+ * docs/images/winisd/edit-driver-page2-parameters.png and edit-driver-page3-advanced-parameters.png.
  * Rms/Rme read "Ns/m" while Mcost reads "kg/s" — the same physical dimension spelled two ways.
  * Ledger QO51: all three now carry a click-to-rotate `resistance` unit group (Ns/m <-> kg/s,
  * factor 1) for consistency with every other toggleable field, so this table pins the DEFAULT
