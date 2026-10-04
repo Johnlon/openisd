@@ -151,12 +151,14 @@ const {fieldWithUnit} = useUnitReadouts();
   <div v-else-if="selectedBox === 'box-passive-radiator'" class="mob-panel">
     <div class="mob-panel-head">Passive radiator</div>
     <div class="mob-row">
-      <label class="mob-row-label">PR</label>
-      <span class="mob-pr-name">{{ project.box.passiveRadiator.radiator.model.value || 'Custom PR' }}</span>
+      <div class="mob-pr-id">
+        <span class="mob-pr-label">Passive radiator</span>
+        <span class="mob-pr-name">{{ project.box.passiveRadiator.radiator.model.value || 'Custom PR' }}</span>
+      </div>
     </div>
     <div class="mob-row mob-pr-actions">
       <button class="mob-btn" @click="prBrowseOpen = true">Select PR</button>
-      <button class="mob-btn" @click="prEditOpen = true">&#9998; Edit</button>
+      <button class="mob-btn mob-btn-secondary" @click="prEditOpen = true">Edit</button>
     </div>
     <PRBrowser v-if="prBrowseOpen" @close="prBrowseOpen = false"
       @load="loadPREntry" @load-bundled="loadBundledPassiveRadiatorEntry" @define="defineNewPREntry" />
@@ -268,18 +270,22 @@ const {fieldWithUnit} = useUnitReadouts();
   font: inherit;
   font-size: 14px;
 }
-.mob-pr-name { font-size: 14px; color: var(--fg); }
-.mob-pr-actions { gap: 10px; }
+.mob-pr-id { display: flex; flex-direction: column; gap: 2px; }
+.mob-pr-label { font-size: 13px; color: var(--mut); }
+.mob-pr-name { font-size: 17px; font-weight: 600; }
+.mob-pr-actions { gap: 12px; }
 .mob-btn {
   flex: 1;
-  min-height: 40px;
-  border: 1px solid var(--line);
+  min-height: 44px;
+  border: 1px solid var(--acc);
   border-radius: 4px;
-  background: #fff;
-  color: var(--fg);
+  background: var(--acc);
+  color: #fff;
   font: inherit;
-  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
 }
+.mob-btn-secondary { background: var(--panel); color: var(--acc); }
 
 .mob-field-row {
   display: flex;
