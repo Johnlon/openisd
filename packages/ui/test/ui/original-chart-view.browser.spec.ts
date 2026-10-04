@@ -96,7 +96,7 @@ test.describe('Original chart view', () => {
     await expect.poll(async () => new Set(await lefts()).size).toBe(2);
   });
 
-  test('the chart menu lists only the charts that apply to the current box ', async ({ page }) => {
+  test('the chart menu lists only the charts that apply to the current box', async ({ page }) => {
     const menuItems = () => page.locator('.chart-select .menu-item');
 
     // The sample project opens vented: its own port charts are in the menu, no PR chart.
