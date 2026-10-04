@@ -25,7 +25,8 @@ How OpenISD is tested: the rules, the tiers, the patterns, and what runs when.
    app happened to load.
 7. **Hardcoded expected numbers are verified against the running app**, never hand-derived.
 8. **UI tests are the expensive tier.** Keep them fast and focused: waits sized to real
-   interactions (tens of ms), no inflated timeouts, parallel where the machine allows. While
+   interactions (tens of ms), parallel where the machine allows (timeout limits are a hang
+   guard, see "Timeouts and hangs", not a pace to aim at). While
    fixing a failing set, do not re-run the passing tests. The json reporter records per-test
    durations, so every speed claim can be checked.
 
@@ -99,6 +100,29 @@ so on. The rename of older files is tracked in
 
 Guards: Playwright workers are memory-capped; `maxFailures` stops a collapsed run early; the
 no-skips reporter turns a skip into a failure; the json reporter records durations on every run.
+
+## Timeouts and hangs
+
+A test that keeps making progress is never killed. Only a stuck one fails. (John, 2026-10-04.)
+
+- **Playwright:** the per-step limits are the guard. Each `expect`, each action and each
+  navigation gets 20 s (`playwright.config.js`). A passing step returns the moment its condition
+  holds, so the long limit costs nothing on green; it stops a spec flickering red when other
+  sessions load the machine. A step stuck past 20 s fails and names itself. The whole-test limit
+  (180 s) is a backstop, because Playwright cannot tell progress from a hang.
+- **Vitest:** a per-test limit stays (5 s, or the load-scaled value the pre-commit gate sets),
+  since an `await` that never resolves can only be caught by a timer. The architecture tests run
+  with none: they are synchronous scans, so a timeout there can only mean a busy machine.
+- **Finding what is stuck, not just that something is:**
+
+  | Tool                                                            | Use                                                                                                                                                                                        |
+  |-----------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+  | `blocked-at` (vitest setup `scripts/test-setup/blocked-at.mjs`) | Prints the stack where the event loop was held longer than 1 s. Report only, never fails a test. Off with `OPENISD_BLOCKED_AT=0`; threshold `OPENISD_BLOCKED_AT_MS`. It reports once the loop frees, so a loop that never ends is not reported. |
+  | `kill -USR2 <pid>` on a run started through `quiet-test.sh`     | Writes a node diagnostic report (JS stack, open handles) to `build/test-reports/`. Works on a process waiting on something that never finishes; does not work on one spinning in a sync loop. |
+  | `hanging-process` vitest reporter                               | Names whatever stops a finished run from exiting.                                                                                                                                          |
+  | Playwright trace viewer                                         | The last action before a stuck browser step.                                                                                                                                               |
+
+  For a sync spin that never ends, attach `node --inspect`.
 
 ## Compatibility suite
 
