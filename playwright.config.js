@@ -144,7 +144,9 @@ export default defineConfig({
   workers: WORKERS,
   use: {
     actionTimeout: 20000,
-    navigationTimeout: 20000,
+    // A page load under heavy machine load (other sessions running suites) can take tens of
+    // seconds; 20 s flickered red at load ~18 (John, 2026-10-04: navigation 60 s).
+    navigationTimeout: 60000,
     browserName: 'chromium',
     // `channel: 'chromium'` selects the full browser. WITHOUT it Playwright launches
     // `chrome-headless-shell`, and on this machine that binary is SIGKILLed (exit 137) the

@@ -152,10 +152,11 @@ no-skips reporter turns a skip into a failure; the json reporter records duratio
 
 A test that keeps making progress is never killed. Only a stuck one fails. (John, 2026-10-04.)
 
-- **Playwright:** the per-step limits are the guard. Each `expect`, each action and each
-  navigation gets 20 s (`playwright.config.js`). A passing step returns the moment its condition
+- **Playwright:** the per-step limits are the guard. Each `expect` and each action gets
+  20 s; each navigation (`page.goto`, reload) gets 60 s, because a page load is what stalls first
+  when other sessions load the machine (`playwright.config.js`; John, 2026-10-04). A passing step returns the moment its condition
   holds, so the long limit costs nothing on green; it stops a spec flickering red when other
-  sessions load the machine. A step stuck past 20 s fails and names itself. There is no
+  sessions load the machine. A step stuck past its limit fails and names itself. There is no
   whole-test limit (`timeout: 0`): it cannot tell progress from a hang, so it would kill a test
   that is still moving.
 - **Vitest:** no per-test limit either (`testTimeout: 0`), for the same reason, in the pre-commit
