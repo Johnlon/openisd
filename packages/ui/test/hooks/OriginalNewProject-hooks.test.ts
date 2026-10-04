@@ -277,13 +277,13 @@ describe('useOgNewProject', () => {
     const wizard = useOgNewProject({ passiveRadiators: testPassiveRadiators(), areas: engine, initialDriver: driver });
 
     wizard.selectSealedAlignment(0.707);
-    expect(wizard.sealedVolume_L.value).toBeGreaterThan(0);
+    expect(wizard.sealedVolume_m3.value).toBeGreaterThan(0);
     expect(wizard.qtc.value).toBeCloseTo(0.707, 2);
     expect(wizard.selectedSealedAlignment.value?.value).toBeCloseTo(0.707, 2);
 
     // Editing volume directly updates qtc and closest alignment option
-    wizard.setSealedVolume_L(15);
-    expect(wizard.sealedVolume_L.value).toBe(15);
+    wizard.setSealedVolume_m3(0.015);
+    expect(wizard.sealedVolume_m3.value).toBe(0.015);
     expect(wizard.qtc.value).toBeGreaterThan(0);
     expect(wizard.selectedSealedAlignment.value).not.toBeNull();
   });
@@ -297,21 +297,21 @@ describe('useOgNewProject', () => {
     wizard.projName.value = 'PR';
 
     // Picking the driver derives the 0.707 sealed volume — a different number from the 7 L default.
-    expect(wizard.sealedVolume_L.value).not.toBeCloseTo(7, 3);
-    expect(wizard.vol.value).toBe(7);
+    expect(wizard.sealedVolume_m3.value).not.toBeCloseTo(0.007, 6);
+    expect(wizard.volume_m3.value).toBe(0.007);
 
     const project = wizard.createProject();
     expect(project?.box.passiveRadiator.volume_m3.value).toBeCloseTo(0.007, 6);
   });
 
-  it('rounds the derived sealed volume to 2dp instead of showing the raw calculation', () => {
+  it('rounds the derived sealed volume to the 2dp litres the volume field shows, instead of showing the raw calculation', () => {
     const engine = createEngine();
     const driver = createTestDriver(engine, { Qts: 0.38, Vas_m3: 0.03 });
     const wizard = useOgNewProject({ passiveRadiators: testPassiveRadiators(), areas: engine, initialDriver: driver });
 
     wizard.selectSealedAlignment(0.6);
 
-    expect(wizard.sealedVolume_L.value).toBe(20.09);
+    expect(wizard.sealedVolume_m3.value).toBeCloseTo(0.02009, 9);
   });
 
   it('picking a driver on step 1 moves the wizard on to step 2 — "Use" advances, it does not just arm Next', () => {
@@ -337,8 +337,8 @@ describe('useOgNewProject', () => {
     // Step 3: edit boxType and volume
     wizard.next();
     wizard.boxType.value = 'bandpass4';
-    wizard.vol.value = 25;
-    wizard.frontVol.value = 15;
+    wizard.volume_m3.value = 0.025;
+    wizard.frontVolume_m3.value = 0.015;
 
     // Step 5: edit project name
     wizard.next();
@@ -354,8 +354,8 @@ describe('useOgNewProject', () => {
     expect(wizard.nDrivers.value).toBe(2);
     expect(wizard.wiring.value).toBe('series');
     expect(wizard.boxType.value).toBe('bandpass4');
-    expect(wizard.vol.value).toBe(25);
-    expect(wizard.frontVol.value).toBe(15);
+    expect(wizard.volume_m3.value).toBe(0.025);
+    expect(wizard.frontVolume_m3.value).toBe(0.015);
     expect(wizard.projName.value).toBe('Subwoofer Deluxe');
     expect(wizard.projDescription.value).toBe('Custom 4th order bandpass');
   });
@@ -368,7 +368,7 @@ describe('useOgNewProject', () => {
     wizard.nDrivers.value = 2;
     wizard.wiring.value = 'parallel';
     wizard.boxType.value = 'sealed';
-    wizard.setSealedVolume_L(20);
+    wizard.setSealedVolume_m3(0.02);
     wizard.projName.value = 'My Sealed Sub';
     wizard.projDescription.value = 'Test description';
 

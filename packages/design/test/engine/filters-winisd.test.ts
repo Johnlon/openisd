@@ -31,23 +31,29 @@ const RAW: TestSolverQuantities = {
 const DRV = solveConsistencyGroup(RAW);
 const LE_H = 0.70e-3;
 
-/** This filter alone, at exactly one frequency — `fmin === fmax`, `N: 0` makes `sweep`'s grid
- *  a single point at `f` (`f0 * (f1/f0)^(i/N)`, and `Math.pow(1, NaN)` is 1). */
-/** `allpass`: the "WinISD allpass order" flag, `null` to leave it out of the params. */
-function filterAt(filter: Filter, f: number, allpass: boolean | null = true) {
+/** These filters alone, at exactly one frequency — `fmin === fmax`, `N: 0` makes `sweep`'s grid
+ *  a single point at `f` (`f0 * (f1/f0)^(i/N)`, and `Math.pow(1, NaN)` is 1). The captures are
+ *  WinISD's own, Bessel high-pass error included (`winisdBesselHighpass`). */
+function chainAt(filters: Filter[], f: number) {
   const sw = engine.simulation.sweep(sweepDriver(DRV), LE_H, 'sealed',
-    // The captures are WinISD's own, Bessel high-pass and allpass errors included
-    // (`winisdBesselHighpass`, `winisdAllpassOrder`).
-    {Vb: 0.030, eg: 2.83, fmin: f, fmax: f, N: 0, filters: [filter], winisdBesselHighpass: true,
-      ...(allpass === null ? {} : {winisdAllpassOrder: allpass})}).values!;
+    {Vb: 0.030, eg: 2.83, fmin: f, fmax: f, N: 0, filters, winisdBesselHighpass: true}).values!;
   return {mag: sw.fltMag[0], phase: sw.fltPhase[0], gdMs: sw.fltGd[0]};
+}
+function filterAt(filter: Filter, f: number) { return chainAt([filter], f); }
+
+/** What WinISD draws for an input it ignores (a recorded deviation, OpenISD honours the input):
+ *  an allpass above order 2 is drawn as order 2, a Linkwitz-Riley of any order as order 4. */
+function winisdDrawn(filter: Filter): Filter {
+  if (filter.type === 'allpass' && filter.order > 2) return {...filter, order: 2};
+  if ((filter.type === 'lowpass' || filter.type === 'highpass') && filter.family === 'linkwitzRiley' && filter.order !== 4) return {...filter, order: 4};
+  return filter;
 }
 
 describe('every WinISD filter type, matched to WinISD\'s own logged response', () => {
   for (const capture of WINISD_FILTER_CAPTURES) {
     it(capture.wpr, () => {
       for (const point of capture.points) {
-        const {mag, phase, gdMs} = filterAt(capture.filter, point.f);
+        const {mag, phase, gdMs} = filterAt(winisdDrawn(capture.filter), point.f);
         const magLin = Math.pow(10, mag / 20);
         const actualRe = magLin * Math.cos(phase), actualIm = magLin * Math.sin(phase);
         const expectedMag = Math.hypot(point.re, point.im);
@@ -77,21 +83,33 @@ describe('applyFilters skips a disabled filter', () => {
   });
 });
 
+describe('a capture whose input WinISD ignores is a recorded deviation: OpenISD honours the input', () => {
+  for (const capture of WINISD_FILTER_CAPTURES.filter(c => winisdDrawn(c.filter) !== c.filter)) {
+    it(capture.wpr, () => {
+      const worst = Math.max(...capture.points.map(point => {
+        const {mag, phase} = filterAt(capture.filter, point.f);
+        const m = Math.pow(10, mag / 20);
+        return Math.hypot(m * Math.cos(phase) - point.re, m * Math.sin(phase) - point.im) / Math.hypot(point.re, point.im);
+      }));
+      assert.ok(worst > 1e-3, `${capture.wpr}: OpenISD should differ from WinISD's capture (worst ${worst})`);
+    });
+  }
+});
+
 /**
- * Allpass and the "WinISD allpass order" error switch (`winisdAllpassOrder`).
- * WinISD: order 1 delays t; order 2 and above draw one 2nd-order section with ω0 = 2/t, so the
- * delay is t/Q and orders 3–10 equal order 2 (bugs/archive/BUG_20260927_winisd-allpass-t-not-delay-order-above-2-ignored.md).
- * Off (the default): the order-n Bessel (maximally flat delay) allpass θn(−s·t/2)/θn(s·t/2), its
- * low-frequency delay t at every order; Q is not used.
+ * Allpass. Order 1 delays t (WinISD's and the Bessel allpass agree); order 2 is WinISD's own
+ * 2nd-order section, ω0 = 2/t and Q, delay t/Q. Above order 2 WinISD ignores the order and draws
+ * order 2; OpenISD draws the order-n Bessel (maximally flat delay) allpass θn(−s·t/2)/θn(s·t/2),
+ * delay t, and Q is not used (bugs/archive/BUG_20260927_winisd-allpass-t-not-delay-order-above-2-ignored.md).
  */
-describe('Allpass, switch off: the order-n Bessel allpass, delay t', () => {
+describe('Allpass above order 2: the order-n Bessel allpass, delay t', () => {
   const T = 0.003;
   const allpass = (order: number, Q = 0.6): Filter => ({type: 'allpass', enabled: true, order, t: T, Q});
 
-  it('low-frequency delay is t at every order 1..20 (phase/ω to 1e-6, group delay to 1e-3)', () => {
-    for (let order = 1; order <= 20; order++) {
+  it('low-frequency delay is t at order 1 and every order 3..20 (phase/ω to 1e-6, group delay to 1e-3)', () => {
+    for (const order of [1, ...Array.from({length: 18}, (_, i) => i + 3)]) {
       const f = 0.1;
-      const {mag, phase, gdMs} = filterAt(allpass(order), f, false);
+      const {mag, phase, gdMs} = filterAt(allpass(order), f);
       assert.ok(Math.abs(mag) < 1e-9, `order ${order}: |H| = 1 (got ${mag} dB)`);
       const delay = -phase / (2 * Math.PI * f);
       assert.ok(Math.abs(delay - T) / T < 1e-6, `order ${order}: −φ/ω ${delay}, want ${T}`);
@@ -99,32 +117,43 @@ describe('Allpass, switch off: the order-n Bessel allpass, delay t', () => {
     }
   });
 
-  it('Q is not used', () => {
-    for (const f of [1, 30, 200]) assert.deepEqual(filterAt(allpass(3, 0.6), f, false), filterAt(allpass(3, 2.5), f, false));
+  it('order 2 is WinISD\'s: delay t/Q', () => {
+    const {gdMs} = filterAt(allpass(2), 1);
+    assert.ok(Math.abs(gdMs - 5) < 5e-3, `order 2 delay ${gdMs} ms, want 5 ms (t/Q)`);
+  });
+
+  it('Q is not used above order 2', () => {
+    for (const f of [1, 30, 200]) assert.deepEqual(filterAt(allpass(3, 0.6), f), filterAt(allpass(3, 2.5), f));
   });
 
   it('the order is honoured: order 4 differs from order 2, and a higher order holds the delay to a higher frequency', () => {
-    const at = (order: number, f: number) => filterAt(allpass(order), f, false).gdMs / 1000;
-    assert.ok(Math.abs(filterAt(allpass(4), 100, false).phase - filterAt(allpass(2), 100, false).phase) > 0.01);
-    // At f·t = 0.6 (200 Hz, 3 ms) order 2 has lost more than 30 % of its delay, order 8 under 0.1 %.
-    assert.ok(Math.abs(at(2, 200) - T) / T > 0.3, `order 2 at 200 Hz: ${at(2, 200)}`);
+    const at = (order: number, f: number) => filterAt(allpass(order), f).gdMs / 1000;
+    assert.ok(Math.abs(filterAt(allpass(4), 100).phase - filterAt(allpass(2), 100).phase) > 0.01);
+    // At f·t = 0.6 (200 Hz, 3 ms) order 3 has lost more than 5 % of its delay, order 8 under 0.1 %.
+    assert.ok(Math.abs(at(3, 200) - T) / T > 0.05, `order 3 at 200 Hz: ${at(3, 200)}`);
     assert.ok(Math.abs(at(8, 200) - T) / T < 1e-3, `order 8 at 200 Hz: ${at(8, 200)}`);
-  });
-
-  it('order 1 is WinISD\'s own (switch on and off agree)', () => {
-    for (const f of [1, 30, 200, 2000]) assert.deepEqual(filterAt(allpass(1), f, false), filterAt(allpass(1), f, true));
-  });
-
-  it('absent flag means off', () => {
-    assert.deepEqual(filterAt(allpass(4), 40, null), filterAt(allpass(4), 40, false));
   });
 });
 
-describe('Allpass, switch on: WinISD\'s', () => {
-  it('order 4 draws exactly order 2 (t/Q delay)', () => {
-    const ap = (order: number): Filter => ({type: 'allpass', enabled: true, order, t: 0.003, Q: 0.6});
-    for (const f of [1, 30, 200, 2000]) assert.deepEqual(filterAt(ap(4), f, true), filterAt(ap(2), f, true));
-    const {gdMs} = filterAt(ap(4), 1, true);
-    assert.ok(Math.abs(gdMs - 5) < 5e-3, `order 4 delay ${gdMs} ms, want 5 ms (t/Q)`);
+/** Linkwitz-Riley. WinISD ignores the order and always draws LR4; OpenISD honours it: an LR of even
+ *  order n is Butterworth(n/2) squared (bugs/archive/BUG_20260927_winisd-linkwitz-riley-and-sos-ignore-order.md). */
+describe('Linkwitz-Riley of order n: Butterworth(n/2) squared', () => {
+  for (const type of ['lowpass', 'highpass'] as const) {
+    for (const order of [2, 4, 6, 8]) {
+      it(`${type} LR${order}`, () => {
+        const lr: Filter = {type, enabled: true, family: 'linkwitzRiley', order, fc: 60, Q: 0.707};
+        const bw: Filter = {type, enabled: true, family: 'butterworth', order: order / 2, fc: 60, Q: 0.707};
+        for (const f of [10, 45, 60, 80, 300]) {
+          const a = filterAt(lr, f), b = chainAt([bw, bw], f);
+          assert.ok(Math.abs(a.mag - b.mag) < 1e-9 && Math.abs(a.phase - b.phase) < 1e-9, `${type} LR${order} @ ${f} Hz`);
+        }
+      });
+    }
+  }
+
+  it('LR2 at fc is −6.02 dB, not LR4\'s shape (the order is honoured)', () => {
+    const lr = (order: number): Filter => ({type: 'lowpass', enabled: true, family: 'linkwitzRiley', order, fc: 60, Q: 0.707});
+    assert.ok(Math.abs(filterAt(lr(2), 60).mag + 6.0206) < 1e-3);
+    assert.ok(Math.abs(filterAt(lr(2), 120).mag - filterAt(lr(4), 120).mag) > 1);
   });
 });

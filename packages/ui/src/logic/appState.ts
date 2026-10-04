@@ -43,8 +43,8 @@ import {
     type AppSettingsRepo, copyOfName, createAppSettingsRepo, createMemoryStorage, uniqueName,
     type ViewSnapshot,
 } from '@openisd/persistence';
-import {assignTraceColor, presentationState, unitToken} from './presentationState.js';
-import {BOX_TYPE_OPTIONS, decimalsIn, formatFixed, isTokenIn, NumberField, type SelectorOption, toDisplay, unitFor, type UnitGroup} from '@openisd/design/fields';
+import {assignTraceColor, presentationState} from './presentationState.js';
+import {BOX_TYPE_OPTIONS, NumberField, type SelectorOption} from '@openisd/design/fields';
 import {getOrInit, hmrSlots} from './hmrSingleton.js';
 import {notifyVentChanged, ventSolveSuspended,} from './useVentGroup.js';
 import {notifyPrChanged} from './usePrGroup.js';
@@ -751,29 +751,6 @@ export function applyState(o: { project: OpenISDProject; view: ViewSnapshot }): 
 // A comparison overlay is stored WITHOUT its curves (they are derived, and bulk out every
 // save and share link), so restoring one means re-running its sweep — a row without curves
 // draws nothing, which is the same "loaded but invisible" failure at the overlay level.
-
-// ---- Per-field display units (fields/units.ts) ------------------------------------
-// appState stays SI; formatInUnit only chooses how a CALCULATED value is shown, reading the
-// selected token off presentationState (logic/presentationState.ts owns
-// unitToken/cycleUnitToken/resetUnitTokens — pure view functions, not design state).
-/** Format a CALCULATED (read-only) value in a field's currently-selected unit — the single
- *  source every skin uses to pair a readout with a <UnitToggle>. `si` MUST be the SI value
- *  (m³/m/m²/Hz/kg); a few engine helpers return convenience units (e.g. prVas is litres → pass
- *  value/1000). `baseDp` is the field's base-unit dp from its `NumberField`. Non-finite → '—'. */
-export function formatInUnit(
-  si: number | null | undefined,
-  field: string,
-  group: UnitGroup,
-  baseToken: string,
-  baseDp: number,
-): string {
-  if (si == null || !isFinite(si)) return '—';
-  const tok = unitToken(field, group, baseToken);
-  const u = isTokenIn(group, tok) ? unitFor(group, tok) : unitFor(group, baseToken);
-  const dispVal = toDisplay(u, si);
-  const dp = decimalsIn(u, baseDp);
-  return formatFixed(dispVal, dp);
-}
 
 /**
  * WinISD's "Simulate voice coil inductance" (Advanced pane, `.wpr` VCInd) — an alias over

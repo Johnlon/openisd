@@ -133,17 +133,6 @@ export class ProjectAdvanced {
         };
     }
 
-    /** WinISD Compatibility "WinISD allpass order": allpass filters as WinISD computes them, every
-     *  order above 1 one 2nd-order section with ω0 = 2/t, delay t/Q. Off: the order-n Bessel
-     *  allpass, delay t. Off where a project does not say. */
-    get winisdAllpassOrder(): SimpleField<boolean> {
-        const lens = focus(this.#advanced, 'winisdAllpassOrder');
-        return {
-            get value() { return lens.value ?? false; },
-            set: (on: boolean) => lens.set(on),
-        };
-    }
-
     /** WinISD Compatibility "WinISD phase wrapping": wraps phase curves to [-180°, +180°] (default).
      *  Off: continuous unwrapped phase. On where a project does not say. */
     get winisdWrapPhase(): SimpleField<boolean> {

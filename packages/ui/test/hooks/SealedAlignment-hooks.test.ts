@@ -23,7 +23,7 @@ describe('SealedAlignmentEditor', () => {
 
     editor.openEditor();
     editor.selectQtc(0.707);
-    expect(editor.volume_L.value).toBeGreaterThan(0);
+    expect(editor.volume_m3.value).toBeGreaterThan(0);
     expect(project.box.sealed.volume_m3.value).toBe(0.012);
 
     editor.cancel();
@@ -36,7 +36,7 @@ describe('SealedAlignmentEditor', () => {
     const editor = new SealedAlignmentEditor(computed(() => projectRef.value), ref(0), engine.sealed, engine.driver);
 
     editor.openEditor();
-    editor.volume_L.value = 12;
+    editor.volume_m3.value = 0.012;
     expect(editor.selectedOption.value?.value).toBeCloseTo(0.707, 2);
     editor.accept();
 

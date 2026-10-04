@@ -1,7 +1,7 @@
 import {computed, type ComputedRef, type Ref} from 'vue';
 import type {OpenISDProject} from '@openisd/design';
 import type {
-  AllpassFilter, AllpassPatch, Filter, FilterEngine, FilterType, LinkwitzFilter, LinkwitzPatch,
+  AllpassFilter, AllpassPatch, Filter, FilterEngine, FilterType, LinkwitzFilter, LinkwitzPatch, PassOrderEntry,
   ParametricEqFilter, ParametricEqPatch, PassFilter, PassPatch, PeakHighpassFilter, PeakHighpassPatch,
   RaisedCosineFilter, RaisedCosinePatch, ShelfFilter, ShelfPatch, StaticGainFilter, StaticGainPatch,
 } from '@openisd/design/engine';
@@ -32,6 +32,8 @@ export interface OriginalFiltersAPI {
   /** `f`'s result differs from WinISD's now because OpenISD fixed the WinISD bug `d` names
    *  (its error switch is off); the editor shows the deviation cue. */
   deviationShown(d: WinisdFilterDeviation, f: Filter): boolean;
+  /** How `f`'s Order box takes entry (range, step, whether editable, tooltip). */
+  passOrderEntry(f: PassFilter): PassOrderEntry;
 }
 
 /**
@@ -85,6 +87,8 @@ export class OriginalFilters implements OriginalFiltersAPI {
   editStaticGain(f: StaticGainFilter, patch: StaticGainPatch): void { this.replace(f, this.engine.editStaticGain(f, patch)); }
   editRaisedCosine(f: RaisedCosineFilter, patch: RaisedCosinePatch): void { this.replace(f, this.engine.editRaisedCosine(f, patch)); }
   editShelf(f: ShelfFilter, patch: ShelfPatch): void { this.replace(f, this.engine.editShelf(f, patch)); }
+
+  passOrderEntry(f: PassFilter): PassOrderEntry { return this.engine.passOrderEntry(f); }
 
   deviationShown(d: WinisdFilterDeviation, f: Filter): boolean {
     void this.changed.value;

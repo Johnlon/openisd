@@ -3,7 +3,8 @@
  * chosen by `filterModel()` below. Every formula, evaluation order and quirk (Linkwitz-Riley
  * ignoring its own order field, …) is WinISD behaviour, verified live by debugger and copied
  * exactly onto the class that owns it, except the WinISD calculation errors behind an error
- * switch (`WinisdFilterErrors`: Bessel HP not mirroring its LP, Allpass order above 2): winisd_research/GHIDRA_FINDINGS.md "EQ/Filter
+ * switch (`WinisdFilterErrors`: Bessel HP not mirroring its LP) and the inputs WinISD ignores
+ * (Allpass order above 2, Linkwitz-Riley order), which OpenISD honours: winisd_research/GHIDRA_FINDINGS.md "EQ/Filter
  * chain — every filter type's response and group delay". `.wpr` field names and Add defaults:
  * winisd_research/PROBE_FINDINGS.md "`.wpr` `[Filters]` format".
  */
@@ -44,7 +45,7 @@ export function filterModel(f: Filter, errors: WinisdFilterErrors): FilterModel 
   switch (f.type) {
     case 'lowpass':
     case 'highpass':     return new PassFilterModel(f, errors.besselHighpass);
-    case 'allpass':       return new AllpassFilterModel(f, errors.allpassOrder);
+    case 'allpass':       return new AllpassFilterModel(f);
     case 'linkwitz':      return new LinkwitzFilterModel(f);
     case 'peaking':       return new ParametricEqFilterModel(f);
     case 'peakHighpass':  return new PeakHighpassFilterModel(f);

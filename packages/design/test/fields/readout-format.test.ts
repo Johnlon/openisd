@@ -1,5 +1,5 @@
 import {describe, it, expect} from 'vitest';
-import {ReadoutFormat} from '../../fields/index.js';
+import {NumberField, ReadoutFormat} from '../../fields/index.js';
 
 describe('ReadoutFormat', () => {
   describe('ReadoutFormat — decimals of a readout that is not a registered field', () => {
@@ -29,9 +29,12 @@ describe('ReadoutFormat', () => {
     });
 
     it('a rotated token converts the number and changes the label', () => {
-      expect(ReadoutFormat.TUNING_HZ.textWithUnit(34.56, '—', {Fb: 'kHz'})).toBe('0.0346 kHz');
-      expect(ReadoutFormat.ALIGNMENT_VOLUME_L.text(10, '—', {Vb: 'cm3'})).toBe('10000');
-      expect(ReadoutFormat.ALIGNMENT_VOLUME_L.unitLabel({Vb: 'cm3'})).toBe('cm³');
+      const fbInKhz = NumberField.BOX_FB_HZ.withNextUnit({});
+      expect(ReadoutFormat.TUNING_HZ.textWithUnit(34.56, '—', fbInKhz)).toBe('0.0346 kHz');
+      const vb = NumberField.BOX_VB_L;
+      const vbInCm3 = vb.withNextUnit(vb.withNextUnit(vb.withNextUnit({})));   // L → cu ft → cu in → cm³
+      expect(ReadoutFormat.ALIGNMENT_VOLUME_L.text(10, '—', vbInCm3)).toBe('10000');
+      expect(ReadoutFormat.ALIGNMENT_VOLUME_L.unitLabel(vbInCm3)).toBe('cm³');
     });
 
     it('a missing value shows only the placeholder, no unit', () => {

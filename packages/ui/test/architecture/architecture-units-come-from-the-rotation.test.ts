@@ -21,6 +21,11 @@
  *    unit symbol (`<span class="unit">L</span>`).
  * A static label that is not beside a value and not classed as a unit (a table heading, a help
  * sentence) is not reported: a test cannot tell it from a unit label without a list of files.
+ *
+ * The rotation is keyed by the field itself (`NumberField.unitTokenFor(rotation)`,
+ * `NumberField.withNextUnit(rotation)`), so the compiler checks which rotation a widget follows.
+ * A string naming a rotation (`unit-key="Vb"`, `unitTokens['Fb']`, `unitTokens.Vb`) is reported:
+ * a misspelt one silently follows no rotation at all.
  */
 import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
@@ -148,7 +153,77 @@ function structuralOffences(root: ParentNode): {what: string; line: number}[] {
   return found;
 }
 
+/** Reads or writes of the rotation store by a key of the caller's own: `unitTokens[k]`,
+ *  `unitTokens?.[k]`, `unitTokens.Vb`, and any `unitKey` name. `unitTokens.value` is a ref read. */
+function rotationKeyOffences(source: string): {what: string; line: number}[] {
+  const file = scratch.createSourceFile('source.ts', source, {overwrite: true});
+  const found: {what: string; line: number}[] = [];
+  const isStore = (n: Node) => /(^|\.)unitTokens(\.value)?$/.test(n.getText().replace(/\?\./g, '.').replace(/!$/, ''));
+  for (const access of file.getDescendantsOfKind(SyntaxKind.ElementAccessExpression)) {
+    if (isStore(access.getExpression())) found.push({what: `rotation read by key ${access.getText()}`, line: access.getStartLineNumber()});
+  }
+  for (const access of file.getDescendantsOfKind(SyntaxKind.PropertyAccessExpression)) {
+    if (access.getName() !== 'value' && /(^|\.)unitTokens$/.test(access.getExpression().getText().replace(/\?\./g, '.'))) {
+      found.push({what: `rotation read by key ${access.getText()}`, line: access.getStartLineNumber()});
+    }
+  }
+  for (const id of file.getDescendantsOfKind(SyntaxKind.Identifier)) {
+    if (id.getText() === 'unitKey') found.push({what: 'a `unitKey` names a rotation by string', line: id.getStartLineNumber()});
+  }
+  return found;
+}
+
+/** A `unit-key` / `unitKey` attribute, static or bound, on any element. */
+function unitKeyAttributeOffences(root: ParentNode): {what: string; line: number}[] {
+  const found: {what: string; line: number}[] = [];
+  const visit = (node: ParentNode | TemplateChildNode) => {
+    if (node.type === NodeTypes.ELEMENT) {
+      for (const prop of node.props) {
+        const name = prop.type === NodeTypes.ATTRIBUTE ? prop.name
+          : prop.arg !== undefined && prop.arg.type === NodeTypes.SIMPLE_EXPRESSION ? prop.arg.content : '';
+        if (name === 'unit-key' || name === 'unitKey') found.push({what: `<${node.tag} ${name}>`, line: prop.loc.start.line});
+      }
+    }
+    if ('children' in node) {
+      for (const child of node.children) {
+        if (typeof child === 'string' || typeof child === 'symbol') continue;
+        if (child.type === NodeTypes.SIMPLE_EXPRESSION) continue;
+        visit(child);
+      }
+    }
+  };
+  visit(root);
+  return found;
+}
+
 describe('units come from the rotation', () => {
+  it('no template or hook names a unit rotation by string; the field is the key', () => {
+    const offences: string[] = [];
+    for (const file of filesUnder(UI_SRC, '.vue')) {
+      const {descriptor} = parseSfc(readFileSync(file, 'utf8'));
+      for (const block of [descriptor.script, descriptor.scriptSetup]) {
+        if (block === null) continue;
+        const base = block.loc.start.line - 1;
+        for (const o of rotationKeyOffences(block.content)) offences.push(`${relative(UI_SRC, file)}:${base + o.line} ${o.what}`);
+      }
+      if (descriptor.template === null) continue;
+      const base = descriptor.template.loc.start.line - 1;
+      const root = parseTemplate(descriptor.template.content);
+      for (const {what, line} of unitKeyAttributeOffences(root)) offences.push(`${relative(UI_SRC, file)}:${base + line} ${what}`);
+      for (const {text, line} of expressionsOf(root)) {
+        for (const o of rotationKeyOffences(`(${text});`)) offences.push(`${relative(UI_SRC, file)}:${base + line} ${o.what}`);
+      }
+    }
+    for (const file of filesUnder(UI_SRC, '.ts')) {
+      for (const o of rotationKeyOffences(readFileSync(file, 'utf8'))) offences.push(`${relative(UI_SRC, file)}:${o.line} ${o.what}`);
+    }
+    assert.deepEqual(offences.sort(), [], [
+      'A unit rotation is named by a string. Pass the `NumberField` and let it read the rotation',
+      '(`field.unitTokenFor(rotation)`, `field.withNextUnit(rotation)`), so the compiler checks it.',
+    ].join(' '));
+  });
+
+
   it('no template or hook types a unit beside a shown value', () => {
     const offences: string[] = [];
     for (const file of filesUnder(UI_SRC, '.vue')) {

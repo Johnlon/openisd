@@ -4,12 +4,14 @@
  * State management delegated to useOgNewProject() hook per ui.md.
  */
 import { onBeforeUnmount } from 'vue';
-import { ReadoutFormat } from '@openisd/design/fields';
+import { NumberField, ReadoutFormat } from '@openisd/design/fields';
 import { useOgNewProject } from '../../../hooks/OriginalNewProject-hooks.js';
 import { useUnitReadouts } from '../../../hooks/useUnitReadouts.js';
 import { useEscToClose } from '../../../logic/useEscToClose.js';
 import { useApp } from '../../../logic/app.js';
 import BoxTypeDiagram from '../../components/BoxTypeDiagram.vue';
+import NumInput from '../../components/NumInput.vue';
+import UnitToggle from '../../components/UnitToggle.vue';
 import DriverLibrary from '../../components/DriverLibrary.vue';
 import NewProjectPassiveRadiatorStep from '../../components/NewProjectPassiveRadiatorStep.vue';
 
@@ -39,12 +41,12 @@ const {
 
   boxType,
   BOX_OPTIONS,
-  vol,
-  frontVol,
+  volume_m3,
+  frontVolume_m3,
   isDual,
   isSealed,
   isVented,
-  sealedVolume_L,
+  sealedVolume_m3,
 
   ebp,
   ebpSuitabilityLabel,
@@ -53,6 +55,7 @@ const {
   targetQtc,
   qtc,
   selectSealedAlignment,
+  setSealedVolume_m3,
 
   VENTED_ALIGNMENT_OPTIONS,
   selectedVentedAlignment,
@@ -178,11 +181,11 @@ function handleCreate() {
           <!-- Sealed and vented boxes take their volume from the alignment step; the other types start here. -->
           <div v-if="!isSealed && !isVented" class="volume-fields">
             <template v-if="!isDual">
-              <div class="field-row"><div class="field"><label>Starting volume</label><input type="number" step="0.1" v-limits="{ min: 0.1, max: 100000 }" v-model.number="vol"><span class="unit">{{ ReadoutFormat.PROJECT_VOLUME_L.unitLabel({}) }}</span></div></div>
+              <div class="field-row"><div class="field"><label>Starting volume</label><NumInput id="np-starting-volume" :model-value="volume_m3" @update:model-value="(v: number | null) => { if (v !== null) volume_m3 = v; }" :field="NumberField.BOX_VB_L" :precision="NumberField.BOX_VB_L.precision" /><UnitToggle :field="NumberField.BOX_VB_L" unit-class="unit" /></div></div>
             </template>
             <template v-else>
-              <div class="field-row"><div class="field"><label>Rear chamber volume</label><input type="number" step="0.1" v-limits="{ min: 0.1, max: 100000 }" v-model.number="vol"><span class="unit">{{ ReadoutFormat.PROJECT_VOLUME_L.unitLabel({}) }}</span></div></div>
-              <div class="field-row"><div class="field"><label>Front chamber volume</label><input type="number" step="0.1" v-limits="{ min: 0.1, max: 100000 }" v-model.number="frontVol"><span class="unit">{{ ReadoutFormat.PROJECT_VOLUME_L.unitLabel({}) }}</span></div></div>
+              <div class="field-row"><div class="field"><label>Rear chamber volume</label><NumInput id="np-rear-volume" :model-value="volume_m3" @update:model-value="(v: number | null) => { if (v !== null) volume_m3 = v; }" :field="NumberField.BOX_VB_L" :precision="NumberField.BOX_VB_L.precision" /><UnitToggle :field="NumberField.BOX_VB_L" unit-class="unit" /></div></div>
+              <div class="field-row"><div class="field"><label>Front chamber volume</label><NumInput id="np-front-volume" :model-value="frontVolume_m3" @update:model-value="(v: number | null) => { if (v !== null) frontVolume_m3 = v; }" :field="NumberField.BOX_VF_L" :precision="NumberField.BOX_VF_L.precision" /><UnitToggle :field="NumberField.BOX_VF_L" unit-class="unit" /></div></div>
             </template>
           </div>
         </div>
@@ -199,8 +202,7 @@ function handleCreate() {
 
           <div class="field-row">
             <div class="field"><label>Box volume</label>
-              <input type="number" step="0.1" v-limits="{ min: 0.1, max: 100000 }" v-model.number="sealedVolume_L">
-              <span class="unit">{{ ReadoutFormat.PROJECT_VOLUME_L.unitLabel({}) }}</span>
+              <NumInput id="np-sealed-volume" :model-value="sealedVolume_m3" @update:model-value="(v: number | null) => { if (v !== null) setSealedVolume_m3(v); }" :field="NumberField.BOX_VB_L" :precision="NumberField.BOX_VB_L.precision" /><UnitToggle :field="NumberField.BOX_VB_L" unit-class="unit" />
             </div>
           </div>
 

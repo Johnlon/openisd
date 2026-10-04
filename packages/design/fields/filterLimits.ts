@@ -15,6 +15,8 @@ export interface FieldLimits {
 }
 
 export const FILTER_ORDER_LIMITS: FieldLimits = Object.freeze({min: 1, max: 20});
+/** Linkwitz-Riley: even orders only (Butterworth(n/2) squared), 2..20. */
+export const LINKWITZ_RILEY_ORDER_LIMITS: FieldLimits = Object.freeze({min: 2, max: 20});
 /** The highest order WinISD calculates without overflowing; a `.wpr` export writes no higher. */
 export const WINISD_MAX_FILTER_ORDER = 10;
 export const FILTER_FC_LIMITS: FieldLimits = Object.freeze({min: 1, max: 20000});

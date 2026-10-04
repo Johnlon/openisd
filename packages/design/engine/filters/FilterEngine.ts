@@ -16,9 +16,35 @@ import {
 } from './index.js';
 import {
   FILTER_BW_LIMITS, FILTER_FC_LIMITS, FILTER_GAIN_LIMITS, FILTER_ORDER_LIMITS, FILTER_Q_LIMITS,
-  FILTER_T_LIMITS,
+  FILTER_T_LIMITS, LINKWITZ_RILEY_ORDER_LIMITS, type FieldLimits,
 } from '../../fields/filterLimits.js';
 import {clamp, roundClamp} from './limits.js';
+import {LinkwitzRileyFamily} from './passFamilies/LinkwitzRileyFamily.js';
+
+/** How a low/high-pass filter's Order box takes entry, decided per family. */
+export interface PassOrderEntry {
+  /** The entry range. */
+  readonly limits: FieldLimits;
+  /** The spinner step. */
+  readonly step: number;
+  /** False where the family has one order only (User SOS); the box is shown greyed out. */
+  readonly editable: boolean;
+  /** The box's tooltip. */
+  readonly title: string;
+}
+
+const ORDER_ANY: PassOrderEntry = Object.freeze({
+  limits: FILTER_ORDER_LIMITS, step: 1, editable: true,
+  title: 'Filter order: 1st order = 6 dB/oct, 2nd = 12 dB/oct, 4th = 24 dB/oct. Up to 20.',
+});
+const ORDER_LINKWITZ_RILEY: PassOrderEntry = Object.freeze({
+  limits: LINKWITZ_RILEY_ORDER_LIMITS, step: 2, editable: true,
+  title: 'Linkwitz-Riley order: even orders only, 2 to 20 (Butterworth of half the order, squared).',
+});
+const ORDER_SOS: PassOrderEntry = Object.freeze({
+  limits: FILTER_ORDER_LIMITS, step: 1, editable: false,
+  title: 'A user second-order section is order 2 by definition; its order is not used.',
+});
 
 export interface FilterEngine {
   /** A fresh, enabled filter of `type` with its starting values — WinISD's own Filter Editor
@@ -41,6 +67,8 @@ export interface FilterEngine {
   // (`fields/filterLimits.ts`). A field left out of `patch` passes through unchanged; the
   // variant in is the variant out (bugs/archive/BUG_20260927_filter-editors-hold-domain-logic.md).
   editPass(f: PassFilter, patch: PassPatch): PassFilter;
+  /** How `f`'s Order box takes entry: Linkwitz-Riley even orders only, User SOS fixed. */
+  passOrderEntry(f: PassFilter): PassOrderEntry;
   editAllpass(f: AllpassFilter, patch: AllpassPatch): AllpassFilter;
   editLinkwitz(f: LinkwitzFilter, patch: LinkwitzPatch): LinkwitzFilter;
   editParametricEq(f: ParametricEqFilter, patch: ParametricEqPatch): ParametricEqFilter;
@@ -70,7 +98,7 @@ function defaultedWprFilter(engine: FilterEngine, type: FilterType, fields: read
 }
 
 /** No WinISD filter error reproduced: for a caption or `.wpr` shape, which no response maths reaches. */
-const NO_WINISD_FILTER_ERRORS: WinisdFilterErrors = Object.freeze({besselHighpass: false, allpassOrder: false});
+const NO_WINISD_FILTER_ERRORS: WinisdFilterErrors = Object.freeze({besselHighpass: false});
 
 /** The one implementation. Built by `Engine`; nothing outside the engine names it. */
 export class FilterEngineImpl implements FilterEngine {
@@ -128,12 +156,22 @@ export class FilterEngineImpl implements FilterEngine {
 
   editPass(f: PassFilter, patch: PassPatch): PassFilter {
     const next = {...f, ...patch};
+    const order = roundClamp(next.order, FILTER_ORDER_LIMITS);
     return {
       ...next,
-      order: roundClamp(next.order, FILTER_ORDER_LIMITS),
+      order: next.family === 'linkwitzRiley' ? LinkwitzRileyFamily.evenOrder(order) : order,
       fc: clamp(next.fc, FILTER_FC_LIMITS),
       Q: clamp(next.Q, FILTER_Q_LIMITS),
     };
+  }
+
+  passOrderEntry(f: PassFilter): PassOrderEntry {
+    switch (f.family) {
+      case 'linkwitzRiley': return ORDER_LINKWITZ_RILEY;
+      case 'sos':           return ORDER_SOS;
+      case 'butterworth':
+      case 'bessel':        return ORDER_ANY;
+    }
   }
 
   editAllpass(f: AllpassFilter, patch: AllpassPatch): AllpassFilter {

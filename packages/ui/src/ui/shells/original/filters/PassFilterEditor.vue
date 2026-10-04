@@ -25,7 +25,8 @@ function onFamily(e: Event): void {
       </select>
     </label>
     <WinisdDeviationCue v-if="api.deviationShown(WinisdFilterDeviation.BESSEL_HIGHPASS, f)" :deviation="WinisdFilterDeviation.BESSEL_HIGHPASS" />
-    <label>Order <input type="number" step="1" v-limits="NumberField.FILTER_ORDER.limits" :value="f.order" @input="liveNum($event, v => api.editPass(f, {order: v}))" @change="api.editPass(f, {order: numFrom($event)})"></label>
+    <label :title="api.passOrderEntry(f).title">Order <input type="number" :step="api.passOrderEntry(f).step" v-limits="api.passOrderEntry(f).limits" :disabled="!api.passOrderEntry(f).editable" :value="f.order" @input="liveNum($event, v => api.editPass(f, {order: v}))" @change="api.editPass(f, {order: numFrom($event)})"></label>
+    <WinisdDeviationCue v-if="api.deviationShown(WinisdFilterDeviation.LINKWITZ_RILEY_ORDER, f)" :deviation="WinisdFilterDeviation.LINKWITZ_RILEY_ORDER" />
     <label>Q <input v-expo-step type="number" step="0.01" v-limits="NumberField.FILTER_Q.limits" :value="f.Q" @input="liveNum($event, v => api.editPass(f, {Q: v}))" @change="api.editPass(f, {Q: numFrom($event)})"></label>
     <label>Cutoff <input v-expo-step type="number" step="1" v-limits="NumberField.FILTER_FC_HZ.limits" :value="f.fc" @input="liveNum($event, v => api.editPass(f, {fc: v}))" @change="api.editPass(f, {fc: numFrom($event)})"> Hz</label>
   </div>

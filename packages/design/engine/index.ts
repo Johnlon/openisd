@@ -15,6 +15,7 @@ export type { Engine } from './Engine.js';
 export { createEngine } from './Engine.js';
 // The engine's areas: an interface each, held by `Engine` as a member (`engine.filters`).
 export type { FilterEngine } from './filters/index.js';
+export type { PassOrderEntry } from './filters/FilterEngine.js';
 // A VALUE, not just a type: `LossMode` is a class whose static members ARE the modes
 // (`LossMode.WinisdLossy`, `LossMode.Default`), so a caller cannot pass one without it.
 export type { SealedParams } from './lossMode.js';

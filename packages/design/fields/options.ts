@@ -94,7 +94,7 @@ export const FILTER_TYPE_OPTIONS: readonly SelectorOption<FilterType>[] = Object
 /** WinISD's Lowpass/Highpass Filter Editor "Subtype" choices, its order and wording. */
 export const PASS_FAMILY_OPTIONS: readonly SelectorOption<PassFamily>[] = Object.freeze([
   Object.freeze({ value: 'butterworth',   label: 'Butterworth' }),
-  Object.freeze({ value: 'linkwitzRiley', label: 'Linkwitz-Riley (4th order only)' }),
+  Object.freeze({ value: 'linkwitzRiley', label: 'Linkwitz-Riley' }),
   Object.freeze({ value: 'bessel',        label: 'Bessel' }),
   Object.freeze({ value: 'sos',           label: 'SOS, User specified fc and Q' }),
 ]);

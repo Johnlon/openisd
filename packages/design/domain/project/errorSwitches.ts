@@ -22,8 +22,6 @@ export interface ErrorSwitchStates {
     readonly prNprResonance: ErrorSwitchState;
     /** WinISD Bessel high-pass: not the mirror of the Bessel low-pass. */
     readonly besselHighpass: ErrorSwitchState;
-    /** WinISD allpass order: orders above 2 drawn as 2, and t/Q (not t) the delay from order 2 up. */
-    readonly allpassOrder: ErrorSwitchState;
 }
 
 export interface ErrorSwitchInputs {
@@ -35,9 +33,6 @@ export interface ErrorSwitchInputs {
     readonly winisdBesselHighpass: boolean;
     /** The project has at least one enabled Bessel high-pass filter. */
     readonly hasBesselHighpass: boolean;
-    readonly winisdAllpassOrder: boolean;
-    /** The project has at least one enabled allpass filter of order 2 or more. */
-    readonly hasAllpassAboveOrder1: boolean;
 }
 
 export function errorSwitchStatesOf(i: ErrorSwitchInputs): ErrorSwitchStates {
@@ -46,7 +41,6 @@ export function errorSwitchStatesOf(i: ErrorSwitchInputs): ErrorSwitchStates {
         driverModel: {marked: true, applicable: true, reproducesError: i.winisdDriverModel},
         vaModel: {marked: true, applicable: true, reproducesError: i.winisdVaModel},
         besselHighpass: {marked: true, applicable: i.hasBesselHighpass, reproducesError: i.winisdBesselHighpass},
-        allpassOrder: {marked: true, applicable: i.hasAllpassAboveOrder1, reproducesError: i.winisdAllpassOrder},
         prNprResonance: {marked: true, applicable: i.boxType === 'box-passive-radiator', reproducesError: i.winisdPrNprResonance},
     };
 }

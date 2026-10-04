@@ -1,4 +1,4 @@
-import {curvesSplLength, dirtyFocusedDesign, expect, focusedFilterCount, focusedPowerDrive_W, focusedProjectName, openAProject, test, W5_1138SMF} from '../fixtures.js';
+import {curvesSplLength, dirtyFocusedDesign, expect, focusedBoxVolume, focusedFilterCount, focusedPowerDrive_W, focusedProjectName, openAProject, test, W5_1138SMF} from '../fixtures.js';
 import type {Page} from '@playwright/test';
 import {readFileSync} from 'node:fs';
 import {dirname, join} from 'node:path';
@@ -144,6 +144,29 @@ test.describe('New Project wizard', () => {
 
       const volVal = parseFloat(await page.locator('.box-layout .field', { hasText: 'Volume' }).locator('input').inputValue());
       expect(volVal, `volume derived from alignment, got ${volVal}`).toBeGreaterThan(0.1);
+    });
+
+    test('the sealed volume input follows the volume unit rotation: rotated to cu ft, a typed cu ft value is the created volume', async ({ page }) => {
+      await openWizard(page);
+      const modal = page.locator('.overlay.open');
+      await modal.locator('.dlist .ditem', { hasText: 'Wizard Test RS225' }).first().click();
+      await modal.locator('.use-btn').click();
+      await modal.locator('button', { hasText: 'Next' }).click();
+      await modal.locator('.field', { hasText: 'Box type' }).locator('select').selectOption('sealed');
+      await modal.locator('button', { hasText: 'Next' }).click();
+
+      const volume = modal.locator('#np-sealed-volume');
+      const unit = modal.locator('.field:has(#np-sealed-volume) [role="button"]');
+      await expect(unit).toHaveText('L');
+      await unit.click();
+      await expect(unit).toHaveText('cu ft');
+      await volume.fill('1');
+      await volume.press('Tab');
+      await modal.locator('button', { hasText: 'Next' }).click();
+      await modal.locator('input[type="text"]').fill('Cubic foot');
+      await modal.locator('button', { hasText: 'Create' }).click();
+
+      await expect.poll(() => focusedBoxVolume(page)).toBeCloseTo(1 / 35.3147, 6);
     });
 
     // WinISD's wizard asks for the passive radiator after the box type.

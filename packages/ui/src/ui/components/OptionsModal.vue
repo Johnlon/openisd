@@ -232,30 +232,30 @@ function limitVal(chartId: ChartId, key: 'min' | 'max'): number | undefined {
               <div class="opt-env-col">
                 <div class="opt-fld">
                   <label>Temperature</label>
-                  <NumInput class="opt-num" :model-value="tempK" @update:model-value="(v: number | null) => { if (v !== null) tempK = v; }" :field="NumberField.ADV_TEMP_K" unit-key="advTemp" :precision="2" />
-                  <UnitToggle :field="NumberField.ADV_TEMP_K" unit-key="advTemp" unit-class="opt-unit" />
+                  <NumInput class="opt-num" :model-value="tempK" @update:model-value="(v: number | null) => { if (v !== null) tempK = v; }" :field="NumberField.ADV_TEMP_K" :precision="2" />
+                  <UnitToggle :field="NumberField.ADV_TEMP_K" unit-class="opt-unit" />
                 </div>
                 <div class="opt-fld">
                   <label>Relative humidity</label>
                   <NumInput class="opt-num" :model-value="humidityPct" @update:model-value="(v: number | null) => { if (v !== null) humidityPct = v; }" :field="NumberField.ADV_HUMIDITY_PCT" :precision="2" />
-                  <UnitToggle :field="NumberField.ADV_HUMIDITY_PCT" unit-key="advHumidity" unit-class="opt-unit" />
+                  <UnitToggle :field="NumberField.ADV_HUMIDITY_PCT" unit-class="opt-unit" />
                 </div>
                 <div class="opt-fld">
                   <label>Air pressure</label>
-                  <NumInput class="opt-num" :model-value="pressurePa" @update:model-value="(v: number | null) => { if (v !== null) pressurePa = v; }" :field="NumberField.ADV_PRESSURE_KPA" unit-key="advPressure" :precision="1" />
-                  <UnitToggle :field="NumberField.ADV_PRESSURE_KPA" unit-key="advPressure" unit-class="opt-unit" />
+                  <NumInput class="opt-num" :model-value="pressurePa" @update:model-value="(v: number | null) => { if (v !== null) pressurePa = v; }" :field="NumberField.ADV_PRESSURE_KPA" :precision="1" />
+                  <UnitToggle :field="NumberField.ADV_PRESSURE_KPA" unit-class="opt-unit" />
                 </div>
               </div>
               <div class="opt-env-col opt-env-calculated-col">
                 <div class="opt-fld">
                   <label>Sound velocity</label>
                   <input class="opt-num opt-greyed" type="text" :value="fmt(defaultAir.c, NumberField.ADV_SOUNDVELOCITY_M_PER_S.precision)" readonly disabled aria-label="Sound velocity, calculated" />
-                  <UnitToggle :field="NumberField.ADV_SOUNDVELOCITY_M_PER_S" unit-key="advSoundVelocity" unit-class="opt-unit" />
+                  <UnitToggle :field="NumberField.ADV_SOUNDVELOCITY_M_PER_S" unit-class="opt-unit" />
                 </div>
                 <div class="opt-fld">
                   <label>Air density</label>
                   <input class="opt-num opt-greyed" type="text" :value="fmt(defaultAir.rho, NumberField.ADV_AIRDENSITY_KG_PER_M3.precision)" readonly disabled aria-label="Air density, calculated" />
-                  <UnitToggle :field="NumberField.ADV_AIRDENSITY_KG_PER_M3" unit-key="advAirDensity" unit-class="opt-unit" />
+                  <UnitToggle :field="NumberField.ADV_AIRDENSITY_KG_PER_M3" unit-class="opt-unit" />
                 </div>
               </div>
             </div>
@@ -280,25 +280,25 @@ function limitVal(chartId: ChartId, key: 'min' | 'max'): number | undefined {
               <div class="opt-env-col">
                 <div class="opt-fld">
                   <label>Min box volume</label>
-                  <NumInput id="set-min-volume" class="opt-num" :model-value="minVolume_m3" @update:model-value="(v: number | null) => { if (v !== null) minVolume_m3 = v; }" :field="NumberField.BOX_VB_L" unit-key="Vb" />
-                  <UnitToggle :field="NumberField.BOX_VB_L" unit-key="Vb" unit-class="opt-unit" />
+                  <NumInput id="set-min-volume" class="opt-num" :model-value="minVolume_m3" @update:model-value="(v: number | null) => { if (v !== null) minVolume_m3 = v; }" :field="NumberField.BOX_VB_L" />
+                  <UnitToggle :field="NumberField.BOX_VB_L" unit-class="opt-unit" />
                 </div>
                 <div class="opt-fld">
                   <label>Min tuning</label>
-                  <NumInput id="set-min-tuning" class="opt-num" :model-value="minTuning_hz" @update:model-value="(v: number | null) => { if (v !== null) minTuning_hz = v; }" :field="NumberField.BOX_FB_HZ" unit-key="Fb" />
-                  <UnitToggle :field="NumberField.BOX_FB_HZ" unit-key="Fb" unit-class="opt-unit" />
+                  <NumInput id="set-min-tuning" class="opt-num" :model-value="minTuning_hz" @update:model-value="(v: number | null) => { if (v !== null) minTuning_hz = v; }" :field="NumberField.BOX_FB_HZ" />
+                  <UnitToggle :field="NumberField.BOX_FB_HZ" unit-class="opt-unit" />
                 </div>
               </div>
               <div class="opt-env-col">
                 <div class="opt-fld">
                   <label>Max box volume</label>
-                  <NumInput id="set-max-volume" class="opt-num" :model-value="maxVolume_m3" @update:model-value="(v: number | null) => { if (v !== null) maxVolume_m3 = v; }" :field="NumberField.BOX_VB_L" unit-key="Vb" />
-                  <UnitToggle :field="NumberField.BOX_VB_L" unit-key="Vb" unit-class="opt-unit" />
+                  <NumInput id="set-max-volume" class="opt-num" :model-value="maxVolume_m3" @update:model-value="(v: number | null) => { if (v !== null) maxVolume_m3 = v; }" :field="NumberField.BOX_VB_L" />
+                  <UnitToggle :field="NumberField.BOX_VB_L" unit-class="opt-unit" />
                 </div>
                 <div class="opt-fld">
                   <label>Max tuning</label>
-                  <NumInput id="set-max-tuning" class="opt-num" :model-value="maxTuning_hz" @update:model-value="(v: number | null) => { if (v !== null) maxTuning_hz = v; }" :field="NumberField.BOX_FB_HZ" unit-key="Fb" />
-                  <UnitToggle :field="NumberField.BOX_FB_HZ" unit-key="Fb" unit-class="opt-unit" />
+                  <NumInput id="set-max-tuning" class="opt-num" :model-value="maxTuning_hz" @update:model-value="(v: number | null) => { if (v !== null) maxTuning_hz = v; }" :field="NumberField.BOX_FB_HZ" />
+                  <UnitToggle :field="NumberField.BOX_FB_HZ" unit-class="opt-unit" />
                 </div>
               </div>
             </div>

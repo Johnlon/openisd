@@ -77,17 +77,25 @@ describe('OriginalFilters', () => {
 
   it('a WinISD deviation cue shows on an affected filter while its error switch is off, and re-reads on change', () => {
     const {project, changed, api} = setup();
-    const id = api.add('allpass');
-    const order1 = api.filters.value.find(f => f.id === id)!;
-    expect(api.deviationShown(WinisdFilterDeviation.ALLPASS_ORDER, order1)).toBe(false);
-    if (order1.type !== 'allpass') throw new Error('expected allpass');
-    api.editAllpass(order1, {order: 4});
+    const id = api.add('highpass');
+    const butterworth = api.filters.value.find(f => f.id === id)!;
+    expect(api.deviationShown(WinisdFilterDeviation.BESSEL_HIGHPASS, butterworth)).toBe(false);
+    if (butterworth.type !== 'highpass') throw new Error('expected highpass');
+    api.editPass(butterworth, {family: 'bessel', order: 4});
     changed.value++;
-    const order4 = api.filters.value.find(f => f.id === id)!;
-    expect(api.deviationShown(WinisdFilterDeviation.ALLPASS_ORDER, order4)).toBe(true);
-    expect(api.deviationShown(WinisdFilterDeviation.BESSEL_HIGHPASS, order4)).toBe(false);
-    project.winisdAllpassOrder.set(true);
+    const bessel = api.filters.value.find(f => f.id === id)!;
+    expect(api.deviationShown(WinisdFilterDeviation.BESSEL_HIGHPASS, bessel)).toBe(true);
+    expect(api.deviationShown(WinisdFilterDeviation.ALLPASS_ORDER, bessel)).toBe(false);
+    project.winisdBesselHighpass.set(true);
     changed.value++;
-    expect(api.deviationShown(WinisdFilterDeviation.ALLPASS_ORDER, order4)).toBe(false);
+    expect(api.deviationShown(WinisdFilterDeviation.BESSEL_HIGHPASS, bessel)).toBe(false);
+  });
+
+  it('the Order box entry comes from the engine: even steps for Linkwitz-Riley, fixed for User SOS', () => {
+    const {engine, api} = setup();
+    const lr = {...engine.filters.default('lowpass'), family: 'linkwitzRiley' as const, order: 4};
+    if (lr.type !== 'lowpass') throw new Error('expected lowpass');
+    expect(api.passOrderEntry(lr)).toEqual(engine.filters.passOrderEntry(lr));
+    expect(api.passOrderEntry(lr).step).toBe(2);
   });
 });

@@ -47,23 +47,23 @@ useEscToClose(() => true, close);
         </div>
         <div class="row" data-field-key="prSd" :title="NumberField.PR_SD_CM2.description">
           <label>Sd</label>
-          <NumInput :model-value="radiator.spec.Sd_m2.value" @update:model-value="v => radiator.spec.Sd_m2.set(v ?? 0)" :field="NumberField.PR_SD_CM2" unit-key="prSd" :precision="4" />
-          <UnitToggle :field="NumberField.PR_SD_CM2" unit-key="prSd" unit-class="u" />
+          <NumInput :model-value="radiator.spec.Sd_m2.value" @update:model-value="v => radiator.spec.Sd_m2.set(v ?? 0)" :field="NumberField.PR_SD_CM2" :precision="4" />
+          <UnitToggle :field="NumberField.PR_SD_CM2" unit-class="u" />
         </div>
         <div class="row" data-field-key="prXmax" :title="NumberField.PR_XMAX_MM.description">
           <label>Xmax</label>
-          <NumInput :model-value="radiator.spec.Xmax_m.value" @update:model-value="v => radiator.spec.Xmax_m.set(v ?? 0)" :field="NumberField.PR_XMAX_MM" unit-key="prXmax" :precision="3" />
-          <UnitToggle :field="NumberField.PR_XMAX_MM" unit-key="prXmax" unit-class="u" />
+          <NumInput :model-value="radiator.spec.Xmax_m.value" @update:model-value="v => radiator.spec.Xmax_m.set(v ?? 0)" :field="NumberField.PR_XMAX_MM" :precision="3" />
+          <UnitToggle :field="NumberField.PR_XMAX_MM" unit-class="u" />
         </div>
         <div class="row" data-field-key="prFs" :title="NumberField.PR_FS_HZ.description">
           <label>Fs</label>
           <NumInput :model-value="radiator.spec.Fs_hz.value" :field="NumberField.PR_FS_HZ" :precision="4" @update:model-value="v => radiator.spec.Fs_hz.set(v ?? 0)" />
-          <UnitToggle :field="NumberField.PR_FS_HZ" unit-key="prFs" unit-class="u" />
+          <UnitToggle :field="NumberField.PR_FS_HZ" unit-class="u" />
         </div>
         <div class="row" data-field-key="prFsMass" :title="NumberField.PR_FSMASS_HZ.description">
           <label>Fs (with mass)</label>
           <NumInput :model-value="prFsWithMassShown" :field="NumberField.PR_FSMASS_HZ" :precision="4" readonly />
-          <UnitToggle :field="NumberField.PR_FSMASS_HZ" unit-key="prFsMass" unit-class="u" />
+          <UnitToggle :field="NumberField.PR_FSMASS_HZ" unit-class="u" />
         </div>
         <div class="row" data-field-key="prQms" :title="NumberField.PR_QMS.description">
           <label>Qms</label>
@@ -72,8 +72,8 @@ useEscToClose(() => true, close);
         </div>
         <div class="row" data-field-key="prVas" :title="NumberField.PR_VAS_L.description">
           <label>Vas</label>
-          <NumInput :model-value="radiator.spec.Vas_m3.value" @update:model-value="v => radiator.spec.Vas_m3.set(v ?? 0)" :field="NumberField.PR_VAS_L" unit-key="prVas" :precision="3" />
-          <UnitToggle :field="NumberField.PR_VAS_L" unit-key="prVas" unit-class="u" />
+          <NumInput :model-value="radiator.spec.Vas_m3.value" @update:model-value="v => radiator.spec.Vas_m3.set(v ?? 0)" :field="NumberField.PR_VAS_L" :precision="3" />
+          <UnitToggle :field="NumberField.PR_VAS_L" unit-class="u" />
         </div>
 
         <div class="btns" style="margin-top:8px">

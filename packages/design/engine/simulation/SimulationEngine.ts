@@ -471,7 +471,7 @@ export class SimulationEngineImpl implements SimulationEngine {
     // Filter-chain response, sampled on the same grid. Magnitude in dB, phase wrapped for now
     // (unwrapped after the loop, like `phase`).
     const fltMag: number[] = [], fltPhaseWrapped: number[] = [];
-    const filterErrors: WinisdFilterErrors = {besselHighpass: P.winisdBesselHighpass === true, allpassOrder: P.winisdAllpassOrder === true};
+    const filterErrors: WinisdFilterErrors = {besselHighpass: P.winisdBesselHighpass === true};
     for (let i = 0; i <= N; i++) {
       const f   = f0 * Math.pow(f1 / f0, i / N);
       const s   = solve(f, cq, box, P);

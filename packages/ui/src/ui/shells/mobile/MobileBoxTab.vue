@@ -17,7 +17,7 @@ const {
   activeTuning, fbState, setFbTarget, FB_TARGET_TIP,
   selectBoxType, BOX_TYPE_OPTIONS,
   sealedAlignmentEditor, sealedAlignmentOpen, sealedAlignmentOptions, sealedAlignmentSelected,
-  sealedAlignmentVolume_L, sealedAlignmentEbp, sealedAlignmentSuitability, sealedAlignmentSuitabilityLabel,
+  sealedAlignmentVolume_m3, sealedAlignmentEbp, sealedAlignmentSuitability, sealedAlignmentSuitabilityLabel,
   ventedAlignmentEditor, ventedAlignmentOpen, ventedAlignmentOptions, ventedAlignmentSelected,
   ventedAlignmentVolume_L, ventedAlignmentTuning_hz, ventedAlignmentEbp, ventedAlignmentSuitability,
   ventedAlignmentSuitabilityLabel,
@@ -49,10 +49,10 @@ const { fieldWithUnit, readoutWithUnit } = useUnitReadouts();
         <span class="mob-field-label">Volume</span>
         <span class="mob-field-value">
           <NumInput :model-value="boxVolume_m3" @update:model-value="(v: number | null) => setBoxVolume_m3(v ?? 0)"
-                    :field="NumberField.BOX_VB_L" unit-key="Vb" :precision="NumberField.BOX_VB_L.precision" stepper />
+                    :field="NumberField.BOX_VB_L" :precision="NumberField.BOX_VB_L.precision" stepper />
         </span>
       </div>
-      <UnitToggle :field="NumberField.BOX_VB_L" unit-key="Vb" unit-class="mob-unit" />
+      <UnitToggle :field="NumberField.BOX_VB_L" unit-class="mob-unit" />
     </div>
     <p v-if="boxVolumeDqNote" class="mob-hint mob-hint-warn">{{ boxVolumeDqNote }}</p>
 
@@ -61,23 +61,23 @@ const { fieldWithUnit, readoutWithUnit } = useUnitReadouts();
         <span class="mob-field-label">Frc</span>
         <span class="mob-field-value">
           <NumInput :model-value="frcHz" @update:model-value="(v: number | null) => setFrcHz(v ?? 0)"
-                    :field="NumberField.BOX_FRC_HZ" unit-key="Frc" :precision="NumberField.BOX_FB_HZ.precision" stepper />
+                    :field="NumberField.BOX_FRC_HZ" :precision="NumberField.BOX_FB_HZ.precision" stepper />
         </span>
       </div>
-      <UnitToggle :field="NumberField.BOX_FRC_HZ" unit-key="Frc" unit-class="mob-unit" />
+      <UnitToggle :field="NumberField.BOX_FRC_HZ" unit-class="mob-unit" />
     </div>
     <div v-else-if="selectedBox === 'vented'" class="mob-field-row" :class="fbState !== 'C' ? 'mob-field-entered' : 'mob-field-calculated'">
       <div class="mob-field-main">
         <span class="mob-field-label">Target tuning freq (Fb)</span>
         <span v-if="fbState !== 'C'" class="mob-field-value" :title="FB_TARGET_TIP">
           <NumInput :model-value="activeTuning.value" @update:model-value="setFbTarget"
-                    :field="NumberField.BOX_FB_HZ" unit-key="Fb" :precision="NumberField.BOX_FB_HZ.precision" stepper />
+                    :field="NumberField.BOX_FB_HZ" :precision="NumberField.BOX_FB_HZ.precision" stepper />
         </span>
         <span v-else class="mob-field-value mob-readonly" :title="FB_TARGET_TIP">
-          <NumReadout :value="activeTuning.value" :field="NumberField.BOX_FB_HZ" unit-key="Fb" :precision="NumberField.BOX_FB_HZ.precision" />
+          <NumReadout :value="activeTuning.value" :field="NumberField.BOX_FB_HZ" :precision="NumberField.BOX_FB_HZ.precision" />
         </span>
       </div>
-      <UnitToggle :field="NumberField.BOX_FB_HZ" unit-key="Fb" unit-class="mob-unit" />
+      <UnitToggle :field="NumberField.BOX_FB_HZ" unit-class="mob-unit" />
     </div>
     <div v-else class="mob-field-row mob-field-calculated">
       <div class="mob-field-main">
@@ -109,10 +109,10 @@ const { fieldWithUnit, readoutWithUnit } = useUnitReadouts();
         <span class="mob-field-label">Volume</span>
         <span class="mob-field-value">
           <NumInput :model-value="frontVolume_m3" @update:model-value="(v: number | null) => setFrontVolume_m3(v ?? 0)"
-                    :field="NumberField.BOX_VF_L" unit-key="Vf" :precision="NumberField.BOX_VF_L.precision" stepper />
+                    :field="NumberField.BOX_VF_L" :precision="NumberField.BOX_VF_L.precision" stepper />
         </span>
       </div>
-      <UnitToggle :field="NumberField.BOX_VF_L" unit-key="Vf" unit-class="mob-unit" />
+      <UnitToggle :field="NumberField.BOX_VF_L" unit-class="mob-unit" />
     </div>
   </div>
 
@@ -137,12 +137,11 @@ const { fieldWithUnit, readoutWithUnit } = useUnitReadouts();
         <div class="mob-field-main">
           <span class="mob-field-label">Volume</span>
           <span class="mob-field-value">
-            <input type="number" min="0" step="0.01"
-                   :value="ReadoutFormat.ALIGNMENT_VOLUME_L.text(sealedAlignmentVolume_L, '')"
-                   @input="sealedAlignmentVolume_L = Number(($event.target as HTMLInputElement).value)">
+            <NumInput id="mob-sealed-alignment-volume" :model-value="sealedAlignmentVolume_m3" @update:model-value="(v: number | null) => { sealedAlignmentVolume_m3 = v; }"
+                      :field="NumberField.BOX_VB_L" :precision="NumberField.BOX_VB_L.precision" />
           </span>
         </div>
-        <span class="mob-unit">{{ ReadoutFormat.ALIGNMENT_VOLUME_L.unitLabel({}) }}</span>
+        <UnitToggle :field="NumberField.BOX_VB_L" unit-class="mob-unit" />
       </div>
       <div class="mob-align-readout">
         <span class="mob-align-dot" :class="sealedAlignmentSuitability ?? 'unknown'"></span>

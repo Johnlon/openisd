@@ -748,9 +748,6 @@ const openISDAdvancedJsonSchema = z.preprocess(renameLegacyWinisdDriverModel, z.
     // "WinISD Bessel high-pass": Bessel high-pass filters as WinISD computes them, not the mirror of
     // the low-pass. Optional: absent parses to OFF, the mirror.
     winisdBesselHighpass: z.boolean().optional(),
-    // "WinISD allpass order": allpass filters as WinISD computes them, orders above 2 drawn as 2 and
-    // t/Q the delay. Optional: absent parses to OFF, the order-n Bessel allpass with delay t.
-    winisdAllpassOrder: z.boolean().optional(),
     // "WinISD phase wrapping": wraps phase curves to [-180°, +180°]. Optional: absent parses to ON.
     winisdWrapPhase: z.boolean().optional(),
     // "WinISD driver count": N drivers as WinISD simulates them, each in Vb/N fed P/N; off, the N

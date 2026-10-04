@@ -40,7 +40,7 @@
 import {LossMode} from './lossMode.js';
 import type {FixedUnit, SwitchableUnit, Quantity, TypedEntry} from './dimensions.js';
 import {
-  decimalsIn, parseEntry as parseEntryDim, toDisplay as toDisplayDim, toDisplayDelta as toDisplayDeltaDim,
+  decimalsIn, isTokenIn, parseEntry as parseEntryDim, toDisplay as toDisplayDim, toDisplayDelta as toDisplayDeltaDim,
   toSI as toSIDim, UNIT_GROUPS, unitFor,
 } from './dimensions.js';
 import {knownDecimals} from './precision.js';
@@ -215,10 +215,20 @@ export class NumberField extends Field {
     return groupUnits[nextIdx].token;
   }
 
-  /** Helper to parse presentationState unit store without checking display.kind. */
-  unitTokenFor(unitTokensStore: Record<string, string>, keyOverride?: string): string | undefined {
+  /** The unit the user has rotated this field to, read from the rotation store (keyed by the
+   *  field itself); the base unit until rotated, or when the stored token is not one of this
+   *  field's group. `undefined` for a fixed unit. */
+  unitTokenFor(rotation: Readonly<Record<string, string>>): string | undefined {
     if (this.display.kind === 'fixed') return undefined;
-    return (keyOverride ? unitTokensStore[keyOverride] : undefined) ?? unitTokensStore[this.value] ?? this.display.base;
+    const stored = rotation[this.value];
+    return isTokenIn(this.display.group, stored) ? stored : this.display.base;
+  }
+
+  /** `rotation` with this field moved to its next unit; `rotation` itself for a field with
+   *  nowhere to rotate. */
+  withNextUnit(rotation: Readonly<Record<string, string>>): Readonly<Record<string, string>> {
+    const next = this.nextToken(this.unitTokenFor(rotation));
+    return next === undefined ? rotation : {...rotation, [this.value]: next};
   }
 
   /**
@@ -1310,12 +1320,6 @@ export class ToggleField extends Field {
     value: "adv_WinisdBesselHighpass",
     label: "WinISD Bessel high-pass",
     description: "WinISD Bessel high-pass: affects Bessel high-pass filters in the EQ/Filter chain only; Butterworth, Linkwitz-Riley, SOS and every low-pass are unchanged, and so is a first-order Bessel.\nTicked (as WinISD): the high-pass keeps the low-pass's own denominator with the numerator swapped to (k·s)^n. A WinISD error: that is not the mirror of the Bessel low-pass (order 4, fc 25 Hz: up to 6 % off in complex response).\nUnticked: the mirror of the low-pass, s → 1/s.",
-  });
-
-  static readonly ADV_WINISDALLPASSORDER = new ToggleField({
-    value: "adv_WinisdAllpassOrder",
-    label: "WinISD allpass order",
-    description: "WinISD allpass order: affects allpass filters of order 2 and above in the EQ/Filter chain only; an order-1 allpass is unchanged.\nTicked (as WinISD): every order above 1 is one 2nd-order allpass with ω0 = 2/t and Q, so the delay is t/Q, not t, and orders 3 to 10 draw exactly order 2. A WinISD error (t 3 ms, Q 0.6: 5 ms delay at every order from 2 up).\nUnticked: the order-n Bessel (maximally flat delay) allpass, delay t at every order, flat to a higher frequency as the order rises; Q is not used.",
   });
 
   static readonly ALL: readonly ToggleField[] =

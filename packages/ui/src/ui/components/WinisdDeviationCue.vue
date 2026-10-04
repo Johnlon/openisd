@@ -1,7 +1,7 @@
 <script setup lang="ts">
 // The WinISD deviation cue, in both shells: a small button beside a control whose result differs
-// from WinISD because OpenISD fixed a WinISD bug. It opens a dialog with the bug, its size and the
-// error switch that brings WinISD back. The design package decides what it says
+// from WinISD because OpenISD fixed a WinISD bug. It opens a dialog with the bug, its size and what
+// brings WinISD's behaviour back (an error switch, or nothing for an input WinISD ignores). The design package decides what it says
 // (`WinisdDeviation`) and whether it shows (the caller's hook); this component only renders it.
 import {nextTick, ref} from 'vue';
 import type {WinisdDeviation} from '@openisd/design/fields';
@@ -32,7 +32,7 @@ function hide(): void {
       <div class="winisd-deviation-title">{{ props.deviation.title }}</div>
       <p>{{ props.deviation.explanation }}</p>
       <p><b>Size:</b> {{ props.deviation.size }}</p>
-      <p>Tick "{{ props.deviation.switchLabel }}" under WinISD errors (Advanced) to bring WinISD's behaviour back.</p>
+      <p>{{ props.deviation.remedy }}</p>
       <button type="button" class="winisd-deviation-close" @click="hide">Close</button>
     </div>
   </span>

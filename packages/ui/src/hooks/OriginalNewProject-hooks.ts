@@ -79,8 +79,10 @@ export interface OriginalNewProjectAPI {
   // Step 3: Box type & starting volume (non-sealed types; a sealed box gets its volume from step 4)
   readonly boxType: Ref<BoxType>;
   readonly BOX_OPTIONS: readonly SelectorOption<BoxType>[];
-  readonly vol: Ref<number>;
-  readonly frontVol: Ref<number>;
+  /** Starting (rear-chamber) volume, SI. */
+  readonly volume_m3: Ref<number>;
+  /** Front-chamber volume of a dual-chamber box, SI. */
+  readonly frontVolume_m3: Ref<number>;
   readonly isDual: ComputedRef<boolean>;
   readonly isSealed: ComputedRef<boolean>;
   readonly isVented: ComputedRef<boolean>;
@@ -95,10 +97,10 @@ export interface OriginalNewProjectAPI {
   readonly selectedSealedAlignment: ComputedRef<SelectorOption<number> | null>;
   readonly targetQtc: Ref<number>;
   readonly qtc: ComputedRef<number | null>;
-  /** The sealed box volume: derived from the chosen alignment, editable on step 4. */
-  readonly sealedVolume_L: Ref<number>;
+  /** The sealed box volume, SI: derived from the chosen alignment, editable on step 4. */
+  readonly sealedVolume_m3: Ref<number>;
   selectSealedAlignment(qtc: number): void;
-  setSealedVolume_L(litres: number): void;
+  setSealedVolume_m3(volume_m3: number): void;
 
   // Step 4: Vented Alignment — WinISD's five, designed as its wizard does
   // (docs/research/VENTED_ALIGNMENT_FORMULAS.md)
@@ -178,10 +180,10 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
   const BOX_OPTIONS = newProjectBoxTypeOptions();
   // Starting volume for the non-sealed box types (WinISD's default); a sealed box takes its
   // volume from the alignment on step 4 instead, so the two never overwrite each other.
-  const vol = ref(7);
-  const frontVol = ref(10);
+  const volume_m3 = ref(NumberField.BOX_VB_L.toSI(7));
+  const frontVolume_m3 = ref(NumberField.BOX_VF_L.toSI(10));
   const targetQtc = ref(0.707);
-  const sealedVolume_L = ref(7);
+  const sealedVolume_m3 = ref(NumberField.BOX_VB_L.toSI(7));
   const selectedVentedAlignment = ref<VentedAlignment>(DEFAULT_VENTED_ALIGNMENT);
 
   const projName = ref('');
@@ -260,7 +262,7 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
   const qtc = computed(() => {
     const driver = selectedDriver.value;
     if (!driver) return null;
-    return driver.sealedQtc(NumberField.BOX_VB_L.toSI(sealedVolume_L.value));
+    return driver.sealedQtc(sealedVolume_m3.value);
   });
 
   const selectedSealedAlignment = computed(() => {
@@ -272,7 +274,7 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
   function recomputeSealedVolume(driver: OpenISDDriver, target: number): void {
     const calculated_m3 = driver.sealedVolumeForQtc(target);
     // Vb is a 2dp field everywhere else in the app — match that here instead of showing the solver's raw float.
-    if (calculated_m3 != null) sealedVolume_L.value = Number(NumberField.BOX_VB_L.format(calculated_m3));
+    if (calculated_m3 != null) sealedVolume_m3.value = NumberField.BOX_VB_L.toSI(Number(NumberField.BOX_VB_L.format(calculated_m3)));
   }
 
   function selectDriver(driver: OpenISDDriver): void {
@@ -287,8 +289,8 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
     if (selectedDriver.value) recomputeSealedVolume(selectedDriver.value, target);
   }
 
-  function setSealedVolume_L(litres: number): void {
-    sealedVolume_L.value = litres;
+  function setSealedVolume_m3(v: number): void {
+    sealedVolume_m3.value = v;
   }
 
   function selectVentedAlignment(alignment: VentedAlignment): void {
@@ -430,21 +432,19 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
 
   function createProject(): OpenISDProject | null {
     if (!selectedDriver.value) return null;
-    const volume_m3 = NumberField.BOX_VB_L.toSI(vol.value);
-    const frontVolume_m3 = NumberField.BOX_VB_L.toSI(frontVol.value);
     // The user's choices, and only those; the builder fills the rest with the type's starting
     // values (`OpenISDBox.applyStartingValues`). The vented design is made against the project's
     // OWN Rg and Ql — the preview's constants are pinned to these by test, so the two never
     // disagree.
     const p = createProjectInStore(selectedDriver.value, (b) => {
       switch (boxType.value) {
-        case 'sealed': return b.sealed().volume_m3(NumberField.BOX_VB_L.toSI(sealedVolume_L.value));
+        case 'sealed': return b.sealed().volume_m3(sealedVolume_m3.value);
         case 'vented': return b.vented().alignment(selectedVentedAlignment.value);
         case 'box-passive-radiator': {
-          const pr = b.passiveRadiator().volume_m3(volume_m3);
+          const pr = b.passiveRadiator().volume_m3(volume_m3.value);
           return passiveRadiator.value === null ? pr : pr.radiator(passiveRadiator.value);
         }
-        case 'bandpass4': return b.bandpass4().rearVolume_m3(volume_m3).frontVolume_m3(frontVolume_m3);
+        case 'bandpass4': return b.bandpass4().rearVolume_m3(volume_m3.value).frontVolume_m3(frontVolume_m3.value);
         case 'bandpass6': return b.bandpass6();
         case 'abc': return b.abc();
       }
@@ -485,8 +485,8 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
 
     boxType,
     BOX_OPTIONS,
-    vol,
-    frontVol,
+    volume_m3,
+    frontVolume_m3,
     isDual,
     isSealed,
     isVented,
@@ -499,9 +499,9 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
     selectedSealedAlignment,
     targetQtc,
     qtc,
-    sealedVolume_L,
+    sealedVolume_m3,
     selectSealedAlignment,
-    setSealedVolume_L,
+    setSealedVolume_m3,
 
     VENTED_ALIGNMENT_OPTIONS,
     selectedVentedAlignment,

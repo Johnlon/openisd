@@ -1,5 +1,5 @@
 <script setup lang="ts">
-// The read-only counterpart to NumInput: the SAME field/unitKey-driven SI->display conversion,
+// The read-only counterpart to NumInput: the SAME field-driven SI->display conversion,
 // reformatting live when the paired UnitToggle rotates the unit — just nothing to type into.
 //
 // Every calculated numeric readout must render through this, never a hand-rolled
@@ -10,18 +10,17 @@
 // calculated value is shown, is what NumInput already is for the ENTERED side of the same fields
 // — this is its read-only twin, not a second implementation.
 import {computed} from 'vue';
-import {unitToken, presentationState} from '../../logic/presentationState.js';
+import {presentationState} from '../../logic/presentationState.js';
 import {formatFixed, type NumberField} from '@openisd/design/fields';
 
 const props = withDefaults(defineProps<{
   /** The value in SI — same convention as NumInput's modelValue. */
   value: number | null | undefined;
-  /** Switchable-unit binding, same meaning as NumInput's own `field`/`unitKey` pair: when both
-   *  are given, the shown number converts through the field's registered unit group and
-   *  reformats live when the paired UnitToggle (same unitKey) rotates it. Omit either for a
-   *  field with no alternate units — the SI value is shown unconverted. */
+  /** Switchable-unit binding, same meaning as NumInput's own `field`: the shown number converts
+   *  through the field's registered unit group and reformats live when the paired UnitToggle
+   *  (same field) rotates it. Omit it for a value with no field — the SI value is shown
+   *  unconverted. */
   field?: NumberField;
-  unitKey?: string;
   /** Decimals in the base unit. Defaults to the bound `field`'s own registry precision. */
   precision?: number;
   /** The value's own half-width in SI — typed, or inherited from what it was calculated from.
@@ -40,16 +39,7 @@ const props = withDefaults(defineProps<{
   asInput: false,
 });
 
-const activeToken = computed(() => {
-  if (props.field) {
-    const d = props.field.display;
-    return props.field.unitTokenFor(presentationState.ui.unitTokens ?? {}, props.unitKey) ?? (props.unitKey && d.kind === 'switchable' ? unitToken(props.unitKey, d.group, d.base) : undefined);
-  }
-  if (props.unitKey) {
-    return presentationState.ui.unitTokens?.[props.unitKey];
-  }
-  return undefined;
-});
+const activeToken = computed(() => props.field?.unitTokenFor(presentationState.ui.unitTokens ?? {}));
 
 const text = computed(() => {
   const si = props.value;

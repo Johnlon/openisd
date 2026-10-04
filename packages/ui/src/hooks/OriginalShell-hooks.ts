@@ -27,7 +27,6 @@ import {
     envDefaults,
     focusedProject,
     focusProject,
-    formatInUnit as fmtU,
     isModified,
     markProjectSaved,
     maxData,
@@ -237,7 +236,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   const sealedAlignmentOpen = sealedAlignmentEditor.open;
   const sealedAlignmentOptions = sealedAlignmentEditor.options;
   const sealedAlignmentSelected = sealedAlignmentEditor.selectedOption;
-  const sealedAlignmentVolume_L = sealedAlignmentEditor.volume_L;
+  const sealedAlignmentVolume_m3 = sealedAlignmentEditor.volume_m3;
   const sealedAlignmentEbp = sealedAlignmentEditor.ebp;
   const sealedAlignmentSuitability = sealedAlignmentEditor.ebpSuitability;
   const sealedAlignmentSuitabilityLabel = sealedAlignmentEditor.ebpSuitabilityLabel;
@@ -661,12 +660,12 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     showEnclosureTab, enclosureNavLabel,
     selectedBox, BOX_TYPE_OPTIONS, LOSS_MODE_OPTIONS, lossMode, ARRAY_WIRING_OPTIONS, N_DRIVERS_OPTIONS, applyWinisdSettings, errorSwitches,
      boxVolume_m3, boxVolumeDqNote, setBoxVolume_m3, sealedAlignmentEditor, sealedAlignmentOpen,
-     sealedAlignmentOptions, sealedAlignmentSelected, sealedAlignmentVolume_L, sealedAlignmentEbp,
+     sealedAlignmentOptions, sealedAlignmentSelected, sealedAlignmentVolume_m3, sealedAlignmentEbp,
      sealedAlignmentSuitability, sealedAlignmentSuitabilityLabel, originalFilters,
      ventedAlignmentEditor, ventedAlignmentOpen, ventedAlignmentOptions, ventedAlignmentSelected,
      ventedAlignmentVolume_L, ventedAlignmentTuning_hz, ventedAlignmentEbp, ventedAlignmentSuitability,
      ventedAlignmentSuitabilityLabel,
-    fbState, FB_TARGET_TIP, FH_TARGET_TIP, VENT_GEOMETRY_TIP, fmtU, clearVentFieldOn, enterVentFieldOn,
+    fbState, FB_TARGET_TIP, FH_TARGET_TIP, VENT_GEOMETRY_TIP, clearVentFieldOn, enterVentFieldOn,
     boxResonance, rearQtc, prSystemTuningDq,
     fbUnreachable, fbUnreachableMsg, boxLossesOpen, isDual,
     frontVolume_m3, setFrontVolume_m3, frcHz, setFrcHz, rearResonance, frontChamberTuningLabel,

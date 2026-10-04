@@ -29,6 +29,20 @@ describe('NumberField', () => {
       expect(NumberField.QTS.nextToken()).toBeUndefined(); // fixed unit
     });
 
+    it('the rotation is keyed by the field itself: withNextUnit rotates it, unitTokenFor reads it back', () => {
+      const store = NumberField.BOX_VB_L.withNextUnit({});
+      expect(NumberField.BOX_VB_L.unitTokenFor(store)).toBe('cuft');
+      expect(NumberField.BOX_VF_L.unitTokenFor(store)).toBe('L');
+      expect(NumberField.BOX_VB_L.unitTokenFor({})).toBe('L');
+      expect(NumberField.QTS.unitTokenFor(store)).toBeUndefined();
+      expect(NumberField.QTS.withNextUnit(store)).toBe(store);
+    });
+
+    it('unitTokenFor falls back to the base unit for a stored token outside the field\'s group', () => {
+      // A persisted store is outside data: it can carry a token from another group.
+      expect(NumberField.BOX_VB_L.unitTokenFor({[NumberField.BOX_VB_L.value]: 'kHz'})).toBe('L');
+    });
+
     it('stepAttr produces step string for inputs', () => {
       expect(NumberField.BOX_VB_L.stepAttr('L')).toBe('0.01');
     });

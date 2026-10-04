@@ -1,5 +1,6 @@
 import {readFileSync} from 'node:fs';
 import {expect, type Locator, type Page, test as base} from '@playwright/test';
+import {NumberField} from '@openisd/design/fields';
 import {fillAndBlur} from './fixtures/numField.js';
 import {COMPLETE_DRIVER_PROJECT_OWPR, ensureSampleProject, SAMPLE_PROJECT_OWPR} from './fixtures/sampleProject.js';
 export {COMPLETE_DRIVER_PROJECT_OWPR, SAMPLE_PROJECT_OWPR};
@@ -497,17 +498,18 @@ export async function savedUsername(page: Page): Promise<string | undefined> {
   }, '/src/logic/presentationState.ts');
 }
 
-/** The persisted display-unit token for the box volume field (`Vb`), if the user rotated it. */
+/** The persisted display-unit token for the box volume field (`NumberField.BOX_VB_L`). */
 export async function boxVolumeUnitToken(page: Page): Promise<string | undefined> {
-  return page.evaluate(async (path): Promise<string | undefined> => {
+  const rotation = await page.evaluate(async (path): Promise<Record<string, string>> => {
     type PresentationState = typeof import('../src/logic/presentationState.js');
     function isPresentationState(m: unknown): m is PresentationState {
       return typeof m === 'object' && m !== null && 'presentationState' in m;
     }
     const m: unknown = await import(/* @vite-ignore */ path);
     if (!isPresentationState(m)) throw new Error('presentationState module shape mismatch');
-    return m.presentationState.ui.unitTokens?.Vb;
+    return {...m.presentationState.ui.unitTokens};
   }, '/src/logic/presentationState.ts');
+  return NumberField.BOX_VB_L.unitTokenFor(rotation);
 }
 
 /** Set the app-wide chart frequency sweep range, as a drag-zoom does. */

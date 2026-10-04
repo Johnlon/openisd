@@ -214,8 +214,8 @@ useEscToClose(() => presentationState.editDriver, cancel);
       <div class="tune-fld" title="Net acoustic internal volume — excludes driver displacement, port tube volume and bracing. The same box volume the Box tab edits; Cancel puts it back. WinISD: Vb.">
         <label>Vb</label>
         <div class="tune-unit">
-          <NumInput :model-value="vb_m3" @update:model-value="v => setVb_m3(v ?? 0)" :field="NumberField.BOX_VB_L" unit-key="Vb" :precision="4" />
-          <UnitToggle :field="NumberField.BOX_VB_L" unit-key="Vb" />
+          <NumInput :model-value="vb_m3" @update:model-value="v => setVb_m3(v ?? 0)" :field="NumberField.BOX_VB_L" :precision="4" />
+          <UnitToggle :field="NumberField.BOX_VB_L" />
         </div>
       </div>
     </div>

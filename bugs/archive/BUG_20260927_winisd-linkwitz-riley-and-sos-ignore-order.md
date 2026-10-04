@@ -12,9 +12,19 @@ This is a WinISD bug. Evidence and mechanism: [winisd_research/bugs/BUG_20260927
 
 ## OpenISD
 
-Copied: `filters.ts` `passFilter` keeps the order field (it round-trips through the `.wpr`) and
-ignores it for Linkwitz-Riley and SOS, commit bcb445e5, pinned by `filters-winisd.test.ts`.
-Filters tab caption shows n=4 for Linkwitz-Riley, as WinISD does (`logic/filterCaption.ts`).
+Linkwitz-Riley: fixed by default, no switch: WinISD ignores the input (John, 2026-10-04). OpenISD
+honours the order: a Linkwitz-Riley of even order n is Butterworth(n/2) squared. The Order box
+takes even orders only, 2 to 20 (step 2; a typed odd order rounds to the even one above, 3 → 4); a
+loaded odd order draws the same way. The caption shows the order drawn. The ≠W Difference cue
+beside the Order box shows while the order is not 4 and says WinISD always draws LR4. The WinISD
+captures of LR2 and LR6 are a recorded deviation: they match OpenISD's LR4.
+
+User SOS: a second-order section is order 2 by definition, so OpenISD agrees with WinISD. The
+Order box is greyed out with a tooltip saying so; no cue.
+
+Code: `engine/filters/passFamilies/LinkwitzRileyFamily.ts`, `FilterEngine.passOrderEntry`,
+`fields/winisdDeviation.ts`. Tests: `filters-winisd.test.ts`, `filter-update.test.ts`,
+`filter-caption.test.ts`, `original-filters-tab.browser.spec.ts`.
 
 ## Checked by hand (QO170, 2026-10-04)
 

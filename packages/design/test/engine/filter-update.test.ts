@@ -35,6 +35,25 @@ describe('Engine.updatePassFilter', () => {
     expect(engine.filters.editPass(base, {order: 15}).order).toBe(15);
   });
 
+  it('Linkwitz-Riley takes even orders only: 3 -> 4, 5 -> 6, 1 -> 2, 25 -> 20; switching to it rounds the order to even', () => {
+    const lr: PassFilter = {...base, family: 'linkwitzRiley', order: 4};
+    expect(engine.filters.editPass(lr, {order: 3}).order).toBe(4);
+    expect(engine.filters.editPass(lr, {order: 5}).order).toBe(6);
+    expect(engine.filters.editPass(lr, {order: 1}).order).toBe(2);
+    expect(engine.filters.editPass(lr, {order: 25}).order).toBe(20);
+    expect(engine.filters.editPass({...base, order: 3}, {family: 'linkwitzRiley'}).order).toBe(4);
+  });
+
+  it('the Order box: even steps from 2 for Linkwitz-Riley, fixed for User SOS, 1..20 otherwise', () => {
+    const lr = engine.filters.passOrderEntry({...base, family: 'linkwitzRiley', order: 4});
+    expect({limits: lr.limits, step: lr.step, editable: lr.editable}).toEqual({limits: {min: 2, max: 20}, step: 2, editable: true});
+    const sos = engine.filters.passOrderEntry({...base, family: 'sos'});
+    expect(sos.editable).toBe(false);
+    expect(sos.title).toMatch(/second-order section/);
+    const bw = engine.filters.passOrderEntry(base);
+    expect({limits: bw.limits, step: bw.step, editable: bw.editable}).toEqual({limits: {min: 1, max: 20}, step: 1, editable: true});
+  });
+
   it('clamps order at the 1..20 ceiling: 25 -> 20', () => {
     expect(engine.filters.editPass(base, {order: 25}).order).toBe(20);
   });

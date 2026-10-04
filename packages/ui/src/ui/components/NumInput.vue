@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import {computed, onBeforeUnmount, ref, useAttrs, watch} from 'vue';
-import {unitToken, presentationState} from '../../logic/presentationState.js';
+import {presentationState} from '../../logic/presentationState.js';
 import {formatFixed, type NumberField} from '@openisd/design/fields';
 import type {ProvenanceLetter} from '@openisd/design';
 import {inputFrom} from '../../logic/domEvents.js';
@@ -20,9 +20,6 @@ const props = withDefaults(defineProps<{
   min?: number;
   max?: number;
   field?: NumberField;
-  /** The key this field's SELECTED unit is stored under (`presentationState.unitTokens`), which
-   *  is its own namespace — `Vb`, not `box_Vb_l` — shared with the paired `<UnitToggle>`. */
-  unitKey?: string;
   mandatory?: boolean;
   /** Allow values outside the registry's sanity range so the caller can show a DQ warning. */
   allowOutOfRange?: boolean;
@@ -45,16 +42,7 @@ const emit = defineEmits<{
   'blur-notify': [value: number | null];
 }>();
 
-const activeToken = computed(() => {
-  if (props.field) {
-    const d = props.field.display;
-    return props.field.unitTokenFor(presentationState.ui.unitTokens ?? {}, props.unitKey) ?? (props.unitKey && d.kind === 'switchable' ? unitToken(props.unitKey, d.group, d.base) : undefined);
-  }
-  if (props.unitKey) {
-    return presentationState.ui.unitTokens?.[props.unitKey];
-  }
-  return undefined;
-});
+const activeToken = computed(() => props.field?.unitTokenFor(presentationState.ui.unitTokens ?? {}));
 
 function fmt(v: number | null | undefined): string {
   if (v == null || !isFinite(v)) return '';

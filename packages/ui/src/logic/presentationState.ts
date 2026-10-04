@@ -20,7 +20,6 @@ import {reactive} from 'vue';
 import type {YRange} from '../types.js';
 import type {ChartId} from '@openisd/design/engine';
 import {getOrInit, hmrSlots} from './hmrSingleton.js';
-import {isTokenIn, type UnitGroup} from '@openisd/design/fields';
 import type {OpenISDProject} from '@openisd/design';
 
 /** The palette `assignTraceColor`/`cycleTraceColor` draw from — one project's own
@@ -140,24 +139,9 @@ export function cycleTraceColor(project: OpenISDProject): void {
   project.traceColor.set(TRACE_PALETTE[(idx + 1) % TRACE_PALETTE.length]);
 }
 
-// ---- Per-field display units (fields/units.ts) ------------------------------------
-// The design store stays SI; these only choose how a field is shown/entered. A shell pairs a
-// NumInput (or a calculated readout) with a <UnitToggle> that cycles the field's token; both
-// read the token here so they agree. Keyed by field id, so the same quantity shown in more
-// than one place shares one selected unit. `baseToken` is the field's own default unit (its
-// historic display unit) used until the user rotates it.
-/** The field's currently-selected unit token (its base unit until rotated). */
-export function unitToken(field: string, group: UnitGroup, baseToken: string): string {
-  const stored = presentationState.ui.unitTokens?.[field];
-  if (stored && isTokenIn(group, stored)) {
-    return stored;
-  }
-  if (stored && presentationState.ui.unitTokens) {
-    // Sanitize invalid storage token to group default
-    delete presentationState.ui.unitTokens[field];
-  }
-  return baseToken;
-}
+// ---- Per-field display units ------------------------------------------------------
+// The design store stays SI; `unitTokens` only chooses how a field is shown/entered. It is keyed
+// by the field itself: `NumberField.unitTokenFor(unitTokens)` reads it, `withNextUnit` rotates it.
 /** Reset every field's display unit back to its own default (undoes all unit toggling app-wide
  *  — cm/L/g/Hz/K/Pa etc., whatever each field's `base` prop is), in one action. Does not touch
  *  the design itself — this only affects how values are DISPLAYED, never the stored (SI) design. */

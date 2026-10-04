@@ -65,65 +65,41 @@ describe('errorSwitches', () => {
 
 const ALLPASS_4: Filter = {type: 'allpass', enabled: true, order: 4, t: 0.003, Q: 0.6};
 
-describe('winisdAllpassOrder', () => {
-  it('is off in a freshly imported project; "Reset to WinISD" ticks it; it is saved', () => {
-    const p = abcProject();
-    expect(p.winisdAllpassOrder.value).toBe(false);
-    p.applyWinisdSettings();
-    expect(p.winisdAllpassOrder.value).toBe(true);
-    const back = OpenISDProject.fromOwprText(p.toOwprText(), engine);
-    if (Array.isArray(back)) throw new Error('fromOwprText returned problems: ' + back.join(', '));
-    expect(back.winisdAllpassOrder.value).toBe(true);
-  });
-
-  it('is applicable only while an enabled allpass of order 2 or more exists', () => {
-    const p = abcProject();
-    expect(p.errorSwitches.allpassOrder).toEqual({marked: true, applicable: false, reproducesError: false});
-    p.filters.set([ALLPASS_4]);
-    expect(p.errorSwitches.allpassOrder).toEqual({marked: true, applicable: true, reproducesError: false});
-    p.winisdAllpassOrder.set(true);
-    expect(p.errorSwitches.allpassOrder.reproducesError).toBe(true);
-    p.filters.set([{...ALLPASS_4, enabled: false}]);
-    expect(p.errorSwitches.allpassOrder.applicable).toBe(false);
-    p.filters.set([{...ALLPASS_4, order: 1}]);
-    expect(p.errorSwitches.allpassOrder.applicable).toBe(false);
-  });
-
-  it('moves the system response through an allpass of order 4', () => {
-    const p = abcProject();
-    p.filters.set([ALLPASS_4]);
-    const phaseAt = (): number => {
-      const {values, issues} = p.sweep({fmin: 60, fmax: 60, N: 0});
-      if (values === null) throw new Error('sweep refused: ' + JSON.stringify(issues));
-      return values.fltPhase[0]!;
-    };
-    const off = phaseAt();
-    p.winisdAllpassOrder.set(true);
-    expect(Math.abs(phaseAt() - off)).toBeGreaterThan(0.01);
-  });
-});
-
 describe('WinISD deviation cues', () => {
   it('every deviation names its switch and explains the bug and its size', () => {
     for (const d of [...WinisdDeviation.ALL, ...WinisdFilterDeviation.ALL]) {
       expect(d.title.length, d.title).toBeGreaterThan(0);
       expect(d.explanation.length, d.title).toBeGreaterThan(0);
       expect(d.size.length, d.title).toBeGreaterThan(0);
-      expect(d.switchLabel.length, d.title).toBeGreaterThan(0);
+      expect(d.remedy.length, d.title).toBeGreaterThan(0);
     }
     expect(WinisdDeviation.ALL).toHaveLength(4);
-    expect(WinisdFilterDeviation.ALL).toEqual([WinisdFilterDeviation.ALLPASS_ORDER, WinisdFilterDeviation.BESSEL_HIGHPASS]);
+    expect(WinisdFilterDeviation.ALL).toEqual([WinisdFilterDeviation.ALLPASS_ORDER, WinisdFilterDeviation.LINKWITZ_RILEY_ORDER, WinisdFilterDeviation.BESSEL_HIGHPASS]);
+    expect(WinisdFilterDeviation.BESSEL_HIGHPASS.remedy).toMatch(/"WinISD Bessel high-pass"/);
+    expect(WinisdFilterDeviation.ALLPASS_ORDER.remedy).toMatch(/no switch/);
   });
 
-  it('allpass order: in effect for an enabled allpass of order 2 or more while the switch is off', () => {
+  it('allpass order (no switch): in effect for an enabled allpass above order 2', () => {
     const p = abcProject();
     const cue = WinisdFilterDeviation.ALLPASS_ORDER;
     p.filters.set([ALLPASS_4]);
     expect(cue.inEffectFor(p.errorSwitches, ALLPASS_4)).toBe(true);
-    expect(cue.inEffectFor(p.errorSwitches, {...ALLPASS_4, order: 1})).toBe(false);
+    expect(cue.inEffectFor(p.errorSwitches, {...ALLPASS_4, order: 3})).toBe(true);
+    expect(cue.inEffectFor(p.errorSwitches, {...ALLPASS_4, order: 2})).toBe(false);
     expect(cue.inEffectFor(p.errorSwitches, {...ALLPASS_4, enabled: false})).toBe(false);
-    p.winisdAllpassOrder.set(true);
-    expect(cue.inEffectFor(p.errorSwitches, ALLPASS_4)).toBe(false);
+    p.applyWinisdSettings();
+    expect(cue.inEffectFor(p.errorSwitches, ALLPASS_4)).toBe(true);
+  });
+
+  it('Linkwitz-Riley order (no switch): in effect for an enabled Linkwitz-Riley of order other than 4', () => {
+    const p = abcProject();
+    const cue = WinisdFilterDeviation.LINKWITZ_RILEY_ORDER;
+    const lr: Filter = {type: 'lowpass', enabled: true, family: 'linkwitzRiley', order: 2, fc: 80, Q: 0.707};
+    expect(cue.inEffectFor(p.errorSwitches, lr)).toBe(true);
+    expect(cue.inEffectFor(p.errorSwitches, {...lr, type: 'highpass', order: 8})).toBe(true);
+    expect(cue.inEffectFor(p.errorSwitches, {...lr, order: 4})).toBe(false);
+    expect(cue.inEffectFor(p.errorSwitches, {...lr, family: 'butterworth'})).toBe(false);
+    expect(cue.inEffectFor(p.errorSwitches, {...lr, enabled: false})).toBe(false);
   });
 
   it('Bessel high-pass: in effect for an enabled Bessel high-pass of order 2 or more while the switch is off', () => {

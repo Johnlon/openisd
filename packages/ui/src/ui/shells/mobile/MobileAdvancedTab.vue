@@ -28,9 +28,9 @@ const {
     <div class="mob-panel-head">Environment</div>
     <div class="mob-field-row" :class="[envTempStored ? 'mob-field-entered' : 'mob-field-calculated', { 'mob-field-dq': envTempDq.dq.length > 0 }]" :title="envTempDq.dq.join('; ')">
       <div class="mob-field-main"><span class="mob-field-label">Temperature</span>
-        <span class="mob-field-value"><NumInput v-model="advTemp" :field="NumberField.ADV_TEMP_K" unit-key="advTemp" :precision="2" :allow-out-of-range="true" v-bind="envTempDq" stepper /></span>
+        <span class="mob-field-value"><NumInput v-model="advTemp" :field="NumberField.ADV_TEMP_K" :precision="2" :allow-out-of-range="true" v-bind="envTempDq" stepper /></span>
       </div>
-      <UnitToggle :field="NumberField.ADV_TEMP_K" unit-key="advTemp" unit-class="mob-unit" />
+      <UnitToggle :field="NumberField.ADV_TEMP_K" unit-class="mob-unit" />
     </div>
     <div class="mob-field-row" :class="[envHumidityStored ? 'mob-field-entered' : 'mob-field-calculated', { 'mob-field-dq': envHumidityDq.dq.length > 0 }]" :title="envHumidityDq.dq.join('; ')">
       <div class="mob-field-main"><span class="mob-field-label">Relative humidity</span>
@@ -40,9 +40,9 @@ const {
     </div>
     <div class="mob-field-row" :class="[envPressureStored ? 'mob-field-entered' : 'mob-field-calculated', { 'mob-field-dq': envPressureDq.dq.length > 0 }]" :title="envPressureDq.dq.join('; ')">
       <div class="mob-field-main"><span class="mob-field-label">Air pressure</span>
-        <span class="mob-field-value"><NumInput v-model="advPressure" :field="NumberField.ADV_PRESSURE_KPA" unit-key="advPressure" :precision="1" :allow-out-of-range="true" v-bind="envPressureDq" stepper /></span>
+        <span class="mob-field-value"><NumInput v-model="advPressure" :field="NumberField.ADV_PRESSURE_KPA" :precision="1" :allow-out-of-range="true" v-bind="envPressureDq" stepper /></span>
       </div>
-      <UnitToggle :field="NumberField.ADV_PRESSURE_KPA" unit-key="advPressure" unit-class="mob-unit" />
+      <UnitToggle :field="NumberField.ADV_PRESSURE_KPA" unit-class="mob-unit" />
     </div>
     <div class="mob-field-row mob-field-calculated">
       <div class="mob-field-main"><span class="mob-field-label">Sound velocity</span>
@@ -98,9 +98,6 @@ const {
       </ErrorSwitch>
       <ErrorSwitch as="label" class="mob-row mob-checkbox-row" field-key="winisdBesselHighpass" :marked="errorSwitches.besselHighpass.marked" :applicable="errorSwitches.besselHighpass.applicable" :reproduces-error="errorSwitches.besselHighpass.reproducesError" :title="ToggleField.ADV_WINISDBESSELHIGHPASS.description">
         <input type="checkbox" :checked="project.winisdBesselHighpass.value" :disabled="!errorSwitches.besselHighpass.applicable" @change="e => project.winisdBesselHighpass.set(inputChecked(e))"> {{ ToggleField.ADV_WINISDBESSELHIGHPASS.label }}
-      </ErrorSwitch>
-      <ErrorSwitch as="label" class="mob-row mob-checkbox-row" field-key="winisdAllpassOrder" :marked="errorSwitches.allpassOrder.marked" :applicable="errorSwitches.allpassOrder.applicable" :reproduces-error="errorSwitches.allpassOrder.reproducesError" :title="ToggleField.ADV_WINISDALLPASSORDER.description">
-        <input type="checkbox" :checked="project.winisdAllpassOrder.value" :disabled="!errorSwitches.allpassOrder.applicable" @change="e => project.winisdAllpassOrder.set(inputChecked(e))"> {{ ToggleField.ADV_WINISDALLPASSORDER.label }}
       </ErrorSwitch>
     </ErrorSwitchGroup>
   </div>

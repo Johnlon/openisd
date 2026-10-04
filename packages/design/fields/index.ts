@@ -35,6 +35,7 @@ export { knownDecimals } from './precision.js';
 export {
   type FieldLimits,
   FILTER_ORDER_LIMITS,
+  LINKWITZ_RILEY_ORDER_LIMITS,
   WINISD_MAX_FILTER_ORDER,
   FILTER_FC_LIMITS,
   FILTER_Q_LIMITS,

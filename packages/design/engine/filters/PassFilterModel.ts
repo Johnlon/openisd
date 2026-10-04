@@ -12,7 +12,7 @@ import {SosFamily} from './passFamilies/SosFamily.js';
 function passFamilyModel(family: PassFamily, order: number, Q: number, winisdBesselHighpass: boolean): PassFamilyModel {
   switch (family) {
     case 'butterworth':   return new ButterworthFamily(order);
-    case 'linkwitzRiley': return new LinkwitzRileyFamily();
+    case 'linkwitzRiley': return new LinkwitzRileyFamily(order);
     case 'bessel':        return new BesselFamily(order, winisdBesselHighpass);
     case 'sos':           return new SosFamily(Q);
   }
@@ -58,13 +58,12 @@ export class PassFilterModel implements FilterModel {
     return this.spec.type === 'lowpass' ? this.family.lowpass(x) : this.family.highpass(x);
   }
 
-  /** Lowpass/Highpass share this shape; only the leading word differs. Linkwitz-Riley is 4th
-   *  order only, so its caption always shows n=4 — never the stored `order` — and only the User
-   *  SOS family (fc/Q entered directly, not derived from a Butterworth/Bessel/LR table) states
-   *  Q. */
+  /** Lowpass/Highpass share this shape; only the leading word differs. Linkwitz-Riley shows the
+   *  even order it draws (WinISD always shows n=4), and only the User SOS family (fc/Q entered
+   *  directly, not derived from a Butterworth/Bessel/LR table) states Q. */
   caption(): string {
     const label = this.spec.type === 'lowpass' ? 'Lowpass' : 'Highpass';
-    const n = this.spec.family === 'linkwitzRiley' ? 4 : this.spec.order;
+    const n = this.spec.family === 'linkwitzRiley' ? LinkwitzRileyFamily.evenOrder(this.spec.order) : this.spec.order;
     const q = this.spec.family === 'sos' ? `, Q=${this.spec.Q.toFixed(3)}` : '';
     return `${label} (${this.family.label}, n=${n}, fc=${this.spec.fc.toFixed(2)} Hz${q})`;
   }

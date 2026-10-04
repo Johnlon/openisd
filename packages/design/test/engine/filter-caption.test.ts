@@ -19,9 +19,9 @@ describe('FilterEngine.caption', () => {
     expect(engine.filters.caption(f)).toBe('Lowpass (Butterworth, n=2, fc=50.00 Hz)');
   });
 
-  it('lowpass Linkwitz-Riley always shows n=4, whatever order holds', () => {
+  it('lowpass Linkwitz-Riley shows the order it draws (WinISD always shows n=4; OpenISD honours the order)', () => {
     const f: Filter = {type: 'lowpass', enabled: true, family: 'linkwitzRiley', order: 2, fc: 50, Q: 0.707};
-    expect(engine.filters.caption(f)).toBe('Lowpass (Linkwitz-Riley, n=4, fc=50.00 Hz)');
+    expect(engine.filters.caption(f)).toBe('Lowpass (Linkwitz-Riley, n=2, fc=50.00 Hz)');
   });
 
   it('lowpass User SOS adds Q at 3dp', () => {
@@ -34,8 +34,8 @@ describe('FilterEngine.caption', () => {
     expect(engine.filters.caption(f)).toBe('Highpass (Bessel, n=3, fc=80.00 Hz)');
   });
 
-  it('highpass Linkwitz-Riley forces n=4 too', () => {
-    const f: Filter = {type: 'highpass', enabled: true, family: 'linkwitzRiley', order: 1, fc: 20, Q: 0.707};
+  it('highpass Linkwitz-Riley with an odd stored order shows the even order it draws', () => {
+    const f: Filter = {type: 'highpass', enabled: true, family: 'linkwitzRiley', order: 3, fc: 20, Q: 0.707};
     expect(engine.filters.caption(f)).toBe('Highpass (Linkwitz-Riley, n=4, fc=20.00 Hz)');
   });
 

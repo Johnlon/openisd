@@ -45,7 +45,7 @@ test('an order-4 allpass shows the WinISD deviation cue, and its dialog fits the
   await expect(cue).toBeVisible();
   await cue.click();
   const dialog = page.getByRole('dialog', { name: /allpass/i });
-  await expect(dialog).toContainText('"WinISD allpass order"');
+  await expect(dialog).toContainText('no switch');
   const box = (await dialog.boundingBox())!;
   const width = page.viewportSize()!.width;
   expect(box.x).toBeGreaterThanOrEqual(0);

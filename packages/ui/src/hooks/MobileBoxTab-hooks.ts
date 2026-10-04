@@ -52,7 +52,7 @@ export function useMobileBoxTab() {
   const sealedAlignmentOpen = sealedAlignmentEditor.open;
   const sealedAlignmentOptions = sealedAlignmentEditor.options;
   const sealedAlignmentSelected = sealedAlignmentEditor.selectedOption;
-  const sealedAlignmentVolume_L = sealedAlignmentEditor.volume_L;
+  const sealedAlignmentVolume_m3 = sealedAlignmentEditor.volume_m3;
   const sealedAlignmentEbp = sealedAlignmentEditor.ebp;
   const sealedAlignmentSuitability = sealedAlignmentEditor.ebpSuitability;
   const sealedAlignmentSuitabilityLabel = sealedAlignmentEditor.ebpSuitabilityLabel;
@@ -80,7 +80,7 @@ export function useMobileBoxTab() {
     activeTuning, fbState, setFbTarget, FB_TARGET_TIP,
     selectBoxType, BOX_TYPE_OPTIONS,
     sealedAlignmentEditor, sealedAlignmentOpen, sealedAlignmentOptions, sealedAlignmentSelected,
-    sealedAlignmentVolume_L, sealedAlignmentEbp, sealedAlignmentSuitability, sealedAlignmentSuitabilityLabel,
+    sealedAlignmentVolume_m3, sealedAlignmentEbp, sealedAlignmentSuitability, sealedAlignmentSuitabilityLabel,
     ventedAlignmentEditor, ventedAlignmentOpen, ventedAlignmentOptions, ventedAlignmentSelected,
     ventedAlignmentVolume_L, ventedAlignmentTuning_hz, ventedAlignmentEbp, ventedAlignmentSuitability,
     ventedAlignmentSuitabilityLabel,
