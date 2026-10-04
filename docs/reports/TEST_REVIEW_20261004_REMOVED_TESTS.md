@@ -79,3 +79,9 @@ Kept after review (decided 2026-10-04):
 |---|---|---|
 | mobile-box-tab › switching to a never-used box type defaults its volume instead of showing 0 | DUPLICATE | mobile-box-tab › switching box type › from vented, switching to sealed then passive radiator both work immediately (same seed, COMPLETE_DRIVER_PROJECT_OWPR vented, then select sealed, same not-0.00/not-empty volume assertions, plus the passive radiator leg) |
 | mobile-driver-tab › Select driver opens the driver browser overlay | DUPLICATE | mobile-driver-browser › the driver picker fills the short viewport instead of clamping to a fixed height (taps Select driver, asserts `.overlay.on .wb-modal` visible, then a stronger height assertion) |
+
+## Later the same day
+
+| removed test (file › title) | reason | kept test that covers it, or why it tests nothing |
+|---|---|---|
+| tune-panel-shots › shots: Original Tune panel (its Qts/Qes/Qms assertions) | DUPLICATE | tune-panel › a blank Q autocalculates from the other two, with the editor E/C/N marks and red border (clears Qms then Qes and asserts Qts stays entered, Qes and Qms empty). The screenshots are now a recorder in scripts/research/record-tune-panel-shots.spec.ts writing to build/, and the three unreferenced docs/winisd/view_1_driver_tune_*.png were deleted. |
