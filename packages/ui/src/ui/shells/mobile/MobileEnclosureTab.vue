@@ -157,7 +157,7 @@ const {fieldWithUnit} = useUnitReadouts();
       </div>
     </div>
     <div class="mob-row mob-pr-actions">
-      <button class="mob-btn" @click="prBrowseOpen = true">Select PR</button>
+      <button class="mob-btn" @click="prBrowseOpen = true">Select passive radiator</button>
       <button class="mob-btn mob-btn-secondary" @click="prEditOpen = true">Edit</button>
     </div>
     <PRBrowser v-if="prBrowseOpen" @close="prBrowseOpen = false"
@@ -198,7 +198,7 @@ const {fieldWithUnit} = useUnitReadouts();
 
     <div class="mob-panel-head mob-panel-head-sub">User options</div>
     <div class="mob-field-row mob-field-entered">
-      <div class="mob-field-main"><span class="mob-field-label">Num. of PRs</span>
+      <div class="mob-field-main"><span class="mob-field-label">Number of passive radiators</span>
         <span class="mob-field-value"><select id="mob-pr-count" class="mob-select" :value="project.box.passiveRadiator.count.value" @change="e => { const n = selectedOption(e, PR_COUNT_OPTIONS); if (n !== null) project.box.passiveRadiator.count.set(n); }"><option v-for="o in PR_COUNT_OPTIONS" :key="o.value" :value="o.value">{{ o.label }}</option></select></span>
       </div>
     </div>

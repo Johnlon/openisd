@@ -84,7 +84,7 @@ test('switching to a passive-radiator box shows PR fields and Select PR opens th
   await expect(fieldRow(page, 'Vas')).toBeVisible();
   await expect(fieldRow(page, 'Fpr (with added mass)')).toBeVisible();
 
-  await page.getByText('Select PR', { exact: true }).click();
+  await page.getByText('Select passive radiator', { exact: true }).click();
   await expect(page.getByText('Passive radiator library')).toBeVisible();
   await page.locator('.modal .x').click();
   await expect(page.getByText('Passive radiator library')).toHaveCount(0);

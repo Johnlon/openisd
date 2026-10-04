@@ -12,6 +12,8 @@ interface Props {
   edits: PassiveRadiatorStepEdits;
   /** The PR picker is open over the step. */
   browsing: boolean;
+  /** Spell out "passive radiator" instead of WinISD's "PR" (the mobile skin). */
+  fullNames?: boolean;
 }
 
 defineProps<Props>();
@@ -27,11 +29,11 @@ const emit = defineEmits<{
 <template>
   <div class="np-pr-step">
     <div class="field-row">
-      <div class="field"><label>PR</label>
+      <div class="field"><label>{{ fullNames ? 'Passive radiator' : 'PR' }}</label>
         <input id="np-pr-name" class="np-pr-name" type="text" readonly
           :value="radiator === null ? 'None chosen' : radiator.name">
       </div>
-      <button id="np-pr-select" class="edit-btn" title="Choose a saved or bundled passive radiator, or define a new one." @click="emit('browse')">Select PR</button>
+      <button id="np-pr-select" class="edit-btn" title="Choose a saved or bundled passive radiator, or define a new one." @click="emit('browse')">{{ fullNames ? 'Select passive radiator' : 'Select PR' }}</button>
     </div>
     <PRBrowser v-if="browsing" @close="emit('closeBrowse')"
       @load="id => emit('loadSaved', id)" @load-bundled="id => emit('loadBundled', id)" @define="emit('define')" />
