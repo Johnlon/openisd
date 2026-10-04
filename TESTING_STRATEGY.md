@@ -14,8 +14,8 @@ How OpenISD is tested: the rules, the tiers, the patterns, and what runs when.
    the current UI.
 3. **No silent narrowing.** `test.only` is forbidden; an empty run must fail; a
    `--pass-with-no-tests` outcome is a broken gate, not success.
-4. **Name files by the object under test** (see Naming). A file named after a skin or a layer
-   is wrong.
+4. **Name files by the object under test** (see Naming). A file named only after a skin or a
+   layer is wrong; the skin prefix stays, the rest names what is tested (John, 2026-10-04).
 5. **Features are decoupled at the test level.** A test of one component never drives another
    component's UI to reach its assertion. Setup reaches state through the **domain seam**
    (`appState`), not through a sibling feature. The exception is a test whose intent is to
@@ -87,7 +87,9 @@ Each has a gate test where it can be enforced:
 
 A browser spec is named after the component a user would recognise: `box-tab…`,
 `signal-tab…`, `tune-panel…`, `options-dialog…`, `driver-editor…`, `new-project-wizard…` and
-so on. The rename of older files is tracked in
+so on. There are two skins, so a component that exists in both keeps its skin prefix:
+`original-box-tab…`, `mobile-box-tab…`. The prefix says which skin; the rest says what is
+tested. A component shared by both skins (one `.vue` used by both) carries no prefix. The rename of older files is tracked in
 [docs/plans/PLAN_COMPONENT_TEST_REORG.md](docs/plans/PLAN_COMPONENT_TEST_REORG.md).
 
 ## What runs when

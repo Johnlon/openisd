@@ -9604,7 +9604,7 @@ questions:
     The wizard-defaults fixture-fidelity test now masks every state-C (calculated) value before deep-comparing and closeTo(2)-checks the port length, because strict equality can never pass between the two construction paths. Is that intended (two independent solve orderings, both valid), or should identical entered values always solve bit-identically regardless of construction path? If the latter, it is a vents/box solver ordering bug to fix.
 - id: QO158
   title: Approve the component test reorganisation plan
-  status: open
+  status: decided
   raised: '2026-09-18'
   body: |-
     A plan for reorganising the browser-test files and the testing docs lives at docs/plans/PLAN_COMPONENT_TEST_REORG.md. It proposes:
@@ -9621,6 +9621,8 @@ questions:
   notes:
   - at: '2026-09-18'
     text: MARKED HIGH IMPORTANCE by the human (2026-09-18).
+  - at: '2026-10-04'
+    text: 'John: "can''t drop the original now as we have 2 skins, but yes name things after what they test as a RULE". Rule recorded in TESTING_STRATEGY.md (Naming): skin prefix stays (original-/mobile-), the rest names the object under test; a component shared by both skins has no prefix.'
 - id: QO159
   title: Consolidate driver field naming into one enum — plan written
   status: done

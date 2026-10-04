@@ -1,6 +1,6 @@
 # Plan: component test reorg
 
-**Status:** proposal (awaiting scope decision)
+**Status:** naming rule approved as a rule (John, 2026-10-04, QO158); the skin prefix stays
 **Companion:** this renames/restructures `packages/ui/test/ui/*.browser.spec.ts` around the
 **object under test**, not the skin it renders in.
 
@@ -14,8 +14,9 @@ popup whose behaviour it exercises.
   `driver-editor`, `new-project-wizard`
 - `winisd-shell` / `shell-layout` / `shell-narrow` for the shell's own structural behaviour
 
-Ban the `original` prefix: it names the shell, not what is tested — an anachronism. No new
-file is named after a skin; existing skin-named files are renamed (below).
+The skin prefix stays (John, 2026-10-04: "can't drop the original now as we have 2 skins"):
+`original-box-tab`, `mobile-box-tab`. The prefix names the skin; the rest of the name says
+what is tested. A file named only after a skin (`original-skin`) is renamed after its object.
 
 ## Structural rules (already agreed)
 
