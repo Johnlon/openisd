@@ -17,3 +17,13 @@ Box tab does not update an open Tune panel. Write the failing test in
    identical; resolve that before pinning.
 2. **Alignment Cancel leaves state untouched** (`alignment-popup`). Open, change, Cancel: the
    volume and readouts are unchanged. The current Cancel tests assert only that the popup closes.
+
+## Untested behaviours left by deleted fake tests
+
+`cursor-lock.test.ts` re-implemented these inside the test, so they were never tested. Test the
+real code, at the hook layer (`OriginalShell-hooks.ts`, `DriverEditorModal.vue`'s hook):
+
+1. Clicking the chart locks the cursor at that frequency; clicking elsewhere moves and unlocks it;
+   clicking near the pinned point unlocks it.
+2. The frequency nudge buttons (`spinHz`).
+3. The Driver Editor shows the SKU over the model name (`editorModelValue`).

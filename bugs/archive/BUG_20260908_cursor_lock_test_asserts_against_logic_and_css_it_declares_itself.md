@@ -1,6 +1,6 @@
 # cursor-lock.test.ts asserts against logic and CSS it declares itself, so 7 of its 8 tests prove nothing
 
-Status: OPEN (re-verified 2026-09-26) — `packages/ui/test/logic/cursor-lock.test.ts` still tests logic and CSS copied into the test.
+Status: FIXED 2026-10-04 — the seven self-asserting tests are deleted in the test reorg; the Rg-default test moved to `packages/ui/test/logic/newProject.test.ts`. The behaviours they pretended to cover still need real tests: see `docs/plans/PLAN_COMPONENT_TEST_REORG.md`.
 
 ## Symptom
 
