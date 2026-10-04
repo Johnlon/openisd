@@ -15,7 +15,9 @@ const TAKE_OVER_WAIT_MS = 3000;
 export function createBrowserReleasePort(deps: BrowserReleaseDeps): ReleasePort {
   async function latestVersion(): Promise<string | null> {
     try {
-      const r = await deps.fetch(`${deps.baseUrl}build-info.json`, { cache: 'no-store' });
+      // Detached: a browser's fetch throws "Illegal invocation" when called as `deps.fetch(...)`.
+      const {fetch: fetchBuildInfo} = deps;
+      const r = await fetchBuildInfo(`${deps.baseUrl}build-info.json`, { cache: 'no-store' });
       if (!r.ok) return null;
       const info: unknown = await r.json();
       return info && typeof info === 'object' && 'version' in info && typeof info.version === 'string' ? info.version : null;

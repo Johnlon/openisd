@@ -63,6 +63,16 @@ describe('createBrowserReleasePort.latestVersion', () => {
     expect(fetchFn).toHaveBeenCalledWith('/build-info.json', { cache: 'no-store' });
   });
 
+  it('calls fetch the way a browser requires: not as a method of another object', async () => {
+    // The browser's fetch throws "Illegal invocation" when `this` is anything but the window.
+    const browserLikeFetch: typeof fetch = function (this: unknown) {
+      if (this !== undefined && this !== globalThis) return Promise.reject(new TypeError('Illegal invocation'));
+      return Promise.resolve(new Response(JSON.stringify({ version: 'v9' })));
+    };
+    const p = createBrowserReleasePort({ baseUrl: '/', fetch: browserLikeFetch, serviceWorker: noWorker, location: noReload });
+    expect(await p.latestVersion()).toBe('v9');
+  });
+
   it('is null when the fetch fails, the status is bad, or the body is not a version', async () => {
     const make = (f: typeof fetch) => createBrowserReleasePort({ baseUrl: '/', fetch: f, serviceWorker: noWorker, location: noReload });
     expect(await make(() => Promise.reject(new Error('offline'))).latestVersion()).toBeNull();
