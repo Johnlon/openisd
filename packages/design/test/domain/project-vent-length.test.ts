@@ -1,29 +1,20 @@
 /**
  * A TARGET TUNING THE PORT CANNOT REACH MUST BE REPORTED, NOT ABSORBED.
  *
- * `lengthForTuning_m()` (`box.vented.vent`, `packages/design/domain/openisdDomain.ts`) returns the
- * raw signed root of L = c²·Sp/(4π²·Fb²·V) − k·d, so a target above the ceiling comes back
- * NEGATIVE. The ceiling is the tuning at L = 0: the end correction alone supplies acoustic
- * mass, so a zero-length aperture in this volume through this area already resonates
- * somewhere, and nothing shorter exists.
- *
- * The reachability wrappers (`ventAchievedFb`/`ventMaxReachableFb` on `OpenISDProject`) are
- * live; this file asserts directly against the real, working `lengthForTuning_m()`/
- * `tuningIn_hz()` physics for the geometry-level checks, then against the solver's own
- * `length_m.dq` for the wired-up cascade checks below.
+ * `lengthForTuning_m()` (`box.vented.vent`) returns the raw signed root of
+ * L = c²·Sp/(4π²·Fb²·V) − k·d, so a target above the ceiling comes back NEGATIVE. The ceiling is
+ * the tuning at L = 0: the end correction alone supplies acoustic mass, so a zero-length
+ * aperture in this volume through this area already resonates somewhere, and nothing shorter
+ * exists. The formula itself is pinned in engine/boxDesign.test.ts; these assert the domain
+ * wrapper (project air, vent area, end correction) delivers it.
  *
  * Trial geometry: Vb = 30 L, round vent d = 5 cm, k = 0.6 → L = 0 tunes to 80.79 Hz, so
  * 40 Hz is reachable and 90 Hz is not.
  */
-import {beforeEach, describe, it} from 'vitest';
+import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import {OpenISDDriver, ProjectBuilder} from '@openisd/design';
-import {createEngine} from '@openisd/design/engine';
-import {
-    enterVentField as enterVentFieldOn,
-    ventAchievedFb,
-    ventMaxReachableFb,
-} from '../../src/logic/useVentGroup.js';
+import {OpenISDDriver, ProjectBuilder} from '../../domain/index.js';
+import {createEngine} from '../../engine/index.js';
 
 /** The L = 0 ceiling for the trial geometry — the highest tuning any vent here can deliver.
  *  OpenISD's own computed output, not a WinISD golden — it scales with c² via
@@ -61,7 +52,7 @@ function trial(targetFb: number) {
   return p;
 }
 
-describe('vent target reachability — an unreachable tuning must surface, not hide (direct physics)', () => {
+describe('project vent length — an unreachable tuning must surface, not hide', () => {
   it('a reachable target has a positive solved length', () => {
     const p = trial(40);
     const len = p.box.vented.vent.lengthForTuning_m(0.03, 40);
@@ -117,33 +108,5 @@ describe('vent target reachability — an unreachable tuning must surface, not h
     p.box.bandpass4.chambers.front.volume_m3.set(0.03); // now the unreachable single-chamber case
     const lenHard = p.box.bandpass4.vents.front.lengthForTuning_m(0.03, 90);
     assert.ok(lenHard != null && lenHard < 0);
-  });
-});
-
-function isTargetUnreachable(p: ReturnType<typeof trial>): boolean {
-  return p.box.vented.vent.length_m.dq.some(issue => issue.kind === 'target-unreachable');
-}
-
-describe('vent target reachability — via the store wrappers', () => {
-  beforeEach(() => {});
-
-  it('a reachable target is delivered exactly by the solved length', () => {
-    const p = trial(40);
-    enterVentFieldOn(p, 'Fb', 40);
-    const achieved = ventAchievedFb(p);
-    assert.ok(achieved != null && Math.abs(achieved - 40) < 1e-6);
-    assert.equal(isTargetUnreachable(p), false);
-  });
-
-  it('an ENTERED length is the user\'s own choice — never reported as unreachable', () => {
-    const p = trial(90);
-    enterVentFieldOn(p, 'ventL', 0.005);
-    assert.equal(isTargetUnreachable(p), false);
-  });
-
-  it('reports the ceiling via the wrapper', () => {
-    const p = trial(90);
-    const ceiling = ventMaxReachableFb(p);
-    assert.ok(ceiling != null && Math.abs(ceiling - CEILING_HZ) < 1e-6);
   });
 });

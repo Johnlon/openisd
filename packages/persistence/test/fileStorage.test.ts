@@ -11,7 +11,7 @@
  */
 import {afterEach, beforeEach, describe, it, vi} from 'vitest';
 import assert from 'node:assert/strict';
-import {createFileStorage} from '@openisd/persistence';
+import {createFileStorage} from '../src/storage/fileStorage.js';
 
 /** Exactly the two members `fileStorage.ts`/`fileSave.ts` touch on a picked handle. Declared
  *  here rather than leaning on the DOM lib (which this node-environment suite does not have in

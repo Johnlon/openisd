@@ -46,7 +46,7 @@ Qms: {
   // That ordering mismatch is ruled on separately (QO50: the engine must match WinISD's five
   // routes) -- see
   // bugs/archive/BUG_20260817_engine_is_missing_two_of_winisds_fs_routes_and_has_one_winisd_does_not.md.
-  // provenance-matches-engine.test.ts holds this list to the engine's site count, so a route
+  // provenance.test.ts holds this list to the engine's site count, so a route
   // added to driver.ts fails there until it is declared here too.
 Fs_hz: {
     paths: [

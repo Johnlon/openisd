@@ -16,7 +16,7 @@ import {
   ensureSampleProject,
 } from './sampleProject.js';
 
-describe('browser-spec .owpr fixtures parse under the current schema (QO152)', () => {
+describe('sampleProject — the browser-spec .owpr fixtures parse under the current schema', () => {
   it('sample-project.owpr loads', () => {
     const path = ensureSampleProject();
     const text = readFileSync(path, 'utf8');

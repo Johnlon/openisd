@@ -74,3 +74,20 @@ describe('OpenISDProject — passive radiator field read/write', () => {
     assert.equal(p.box.passiveRadiator.addedMass_kg.value, 0.011);
   });
 });
+
+describe('OpenISDProject.box — each box type keeps its own fields independently of which is active', () => {
+  it('switching boxType does not clobber the volume left behind in the other box type', () => {
+    const p = ventedProject();
+
+    p.box.vented.volume_m3.set(0.041);
+    p.box.boxType.set('sealed');
+    p.box.sealed.volume_m3.set(0.019);
+
+    assert.equal(p.box.vented.volume_m3.value, 0.041,
+      'the vented volume typed in before switching away must survive');
+    assert.equal(p.box.sealed.volume_m3.value, 0.019);
+
+    p.box.boxType.set('vented');
+    assert.equal(p.box.vented.volume_m3.value, 0.041, 'switching back reads the SAME field it read before');
+  });
+});
