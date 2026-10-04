@@ -25,11 +25,11 @@ Every test removed in the test reorg, with the kept test that covers it or why i
 | engine/issueHelpers.test.ts › a driver-field breach names the field and the physical limit | DUPLICATE | engine/issueHelpers › outOfRange › names the field, its value, and the limit it fell below (identical expectation) |
 | engine/issueHelpers.test.ts › a vented-alignment breach names the design band instead | DUPLICATE | engine/dq-issue-text › states the band a value fell outside (asserts the value and both band edges; this one asserted only /plausible/) |
 | engine/dq-issue-text.test.ts › out-of-range names the field, the value and the limit | DUPLICATE | engine/issueHelpers › outOfRange › names the field, its value, and the limit it rose above (exact sentence) |
-Kept, doubtful (not removed):
+Kept after review (decided 2026-10-04):
 
-- domain/winisd-bessel-highpass › moves the system response through a Bessel high-pass, and not without one: engine/bessel-highpass-switch pins the effect, but only through the engine; this is the only test that the project switch reaches the sweep.
+- domain/winisd-bessel-highpass › moves the system response through a Bessel high-pass, and not without one: engine/bessel-highpass-switch pins the effect, but only through the engine; this is the only test that the project switch reaches the sweep. Kept: the domain test proves the switch is connected, the engine test pins the numbers.
 - domain/winisdFlatModel › off: the boost is capped, so 1 Hz stays rolled off, and domain/winisdDriverCountModel › off: two drivers in series show four times the parallel impedance: engine tests pin the engine effect directly; these two prove the project field reaches the engine in the off direction.
-- domain/winisdVaModel › off: ... and domain/winisdWrapPhase › toggles phase wrapping in sweep results: no engine/ test pins these effects.
+- domain/winisdVaModel › off: the only test of that effect, pinned to WinISD's value; kept. domain/winisdWrapPhase › "toggles phase wrapping" never checked the off state: replaced by "on keeps the phase inside ±π; off lets it run past", plus the missing "is saved in the project and read back".
 - engine/dq-issue-text › each factory decides the text at construction: a weaker cross-kind smoke test, overlapped by the per-kind sentence tests; kept because it also covers missingDependencies with an empty route list.
 
 ## uiunit
