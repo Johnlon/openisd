@@ -1,6 +1,6 @@
 /**
  * Runs one `SolverCase` through the engine's driver area the way the app does, and reduces the
- * answer to plain data a golden can hold. Shared by `driver-solver-characterization.test.ts` and
+ * answer to plain data a golden can hold. Shared by `driver-consistency-solver-golden.test.ts` and
  * the one-off generator that produced `driverSolverGolden.ts`.
  */
 import type {Engine} from '../../domain/index.js';

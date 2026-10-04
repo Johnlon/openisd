@@ -41,7 +41,7 @@ How OpenISD is tested: the rules, the tiers, the patterns, and what runs when.
 Decisions belong in hooks (`*-hooks.ts`), not in `.vue` files, so most coverage runs at Tier 2
 speed. The architecture tests enforce the layering that makes this possible:
 
-- `packages/ui/test/ui/architecture.test.ts`: every import points down the layers; a component
+- `packages/ui/test/architecture/architecture.test.ts`: every import points down the layers; a component
   imports no value from the domain; services export factories, not instances or mutable
   bindings; only the approved stores hold state; only licensed logic modules construct an
   `OpenISDDriver`.
@@ -50,7 +50,7 @@ speed. The architecture tests enforce the layering that makes this possible:
 
 ## Goldens and coverage
 
-- `packages/design/test/engine/golden.test.ts` compares engine output with committed fixtures
+- `packages/design/test/engine/sweep-golden-master.test.ts` compares engine output with committed fixtures
   in `packages/design/test/fixtures/golden/`.
 - `packages/design/test/winisd/` compares OpenISD with projects WinISD itself saved (`.wpr`);
   see [RESEARCH.md](RESEARCH.md#methods) for how those files were captured by driving WinISD

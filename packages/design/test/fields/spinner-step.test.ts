@@ -1,5 +1,5 @@
 import {describe, it, expect} from 'vitest';
-import {spinnerStep} from '../fields/spinnerStep.js';
+import {spinnerStep} from '../../fields/spinnerStep.js';
 
 describe('spinnerStep — proportional spinner step from the shown text', () => {
   it('no positive number → "any"', () => {

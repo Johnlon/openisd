@@ -52,7 +52,7 @@ flowchart LR
 | `@openisd/ui`           | The Vue 3 app.                                                      | `design`, `persistence`    |
 
 Inside the packages the main layers are below. The full matrix of legal import edges is
-`ALLOWED_EDGES` in `packages/ui/test/ui/architecture.test.ts`; it also allows hooks, logic and
+`ALLOWED_EDGES` in `packages/ui/test/architecture/architecture.test.ts`; it also allows hooks, logic and
 persistence to import engine types, and logic to import `design/winisd`.
 
 ```mermaid
@@ -82,7 +82,7 @@ flowchart TD
 
 Enforcement, as tests that fail the build:
 
-- `packages/ui/test/ui/architecture.test.ts`:
+- `packages/ui/test/architecture/architecture.test.ts`:
   - a matrix of legal import edges; an edge not on it fails;
   - only the approved stores may hold state;
   - components import no domain values.
@@ -453,10 +453,10 @@ The full strategy is in [TESTING_STRATEGY.md](TESTING_STRATEGY.md).
   - Project fixtures come from the real builder or wizard, so they cannot drift from the app.
   - Parity scenarios name explicit values, never a catalogue driver.
 - **Two kinds of golden:**
-  - **OpenISD's own:** `engine/golden.test.ts` pins sweep output exactly, and guards against
+  - **OpenISD's own:** `engine/sweep-golden-master.test.ts` pins sweep output exactly, and guards against
     regressions.
   - **WinISD's:** `.wpr` files that WinISD itself saved, from explicit scenarios.
-    `winisd-parity-functional.test.ts` diffs OpenISD against them field by field.
+    `winisd-parity-goldens.test.ts` diffs OpenISD against them field by field.
   - WinISD cannot export curves, so the WinISD goldens cover field calculations only.
   - How they are generated is described in [RESEARCH.md](RESEARCH.md#golden-files-from-winisd).
 - **Probing both apps.**

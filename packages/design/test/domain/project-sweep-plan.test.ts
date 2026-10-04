@@ -5,8 +5,8 @@
  */
 import {describe, expect, it} from 'vitest';
 import {type Engine, createEngine} from '@openisd/design/engine';
-import {type FrequencyGrid, ProjectBuilder} from '../domain/index.js';
-import {driverFromSpec} from './fixtures/recordBuilders.js';
+import {type FrequencyGrid, ProjectBuilder} from '../../domain/index.js';
+import {driverFromSpec} from '../fixtures/recordBuilders.js';
 
 const GRID: FrequencyGrid = { fmin: 10, fmax: 1000, N: 100 };
 

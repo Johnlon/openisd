@@ -1,8 +1,8 @@
 import {describe, expect, it} from 'vitest';
 import {
   createEngine, DEFAULT_T_REF_K, DEFAULT_RH_REF_PCT, DEFAULT_P_REF_PA, DEFAULT_VENTED_DESIGN_LIMITS,
-} from '../engine/index.js';
-import {ProjectBuilder} from '../domain/openisdTransforms.js';
+} from '../../engine/index.js';
+import {ProjectBuilder} from '../../domain/openisdTransforms.js';
 
 function isRecord(v: unknown): v is Record<string, unknown> {
   return typeof v === 'object' && v !== null;

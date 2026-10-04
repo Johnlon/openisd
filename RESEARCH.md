@@ -199,9 +199,9 @@ Source: `PROBE_METHOD.md`.
   - The project is then saved.
   - The generator stops at the first scenario WinISD will not answer. It never substitutes an OpenISD value, which would make the test a tautology.
 - **Provenance:** `provenance.json` records the binary's sha256 and the harness commit.
-- **How they are checked:** `winisd-parity-functional.test.ts` runs OpenISD on the same scenarios and diffs field by field.
+- **How they are checked:** `winisd-parity-goldens.test.ts` runs OpenISD on the same scenarios and diffs field by field.
 - **Divergences:** deliberate differences are listed in `divergences.json`.
-- **Limit:** goldens cover field calculations only. WinISD cannot export curves. `engine/golden.test.ts` pins OpenISD's own sweep output exactly, which guards against regressions, not against disagreement with WinISD.
+- **Limit:** goldens cover field calculations only. WinISD cannot export curves. `engine/sweep-golden-master.test.ts` pins OpenISD's own sweep output exactly, which guards against regressions, not against disagreement with WinISD.
 
 ### Oracle tiers
 

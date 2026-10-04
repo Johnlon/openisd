@@ -17,7 +17,7 @@ function workerCap(): number {
 // Architecture tests are synchronous AST scans of the source tree: nothing in them awaits, so a
 // timeout can only fire because the machine is busy, and it then reports no offence at all. They
 // run with no timeout (John, 2026-09-27: "arch tests shouldn't have timeouts").
-const DESIGN_ARCHITECTURE = ['test/architecture*.test.ts', 'test/engine/architecture.test.ts'];
+const DESIGN_ARCHITECTURE = ['test/architecture*.test.ts'];
 // Every other test gets the heavy gate's load-scaled timeout (scripts/hooks-local/heavy-gate-concurrency.sh
 // exports it for the pre-commit run), else none (0): a test that keeps making progress is never cut off, and a stuck run is caught by the
 // idle watchdog in scripts/quiet-test.sh. Set here per project, never as a
@@ -26,7 +26,7 @@ const heavyGateTimeout = Number(process.env.OPENISD_HEAVY_GATE_TEST_TIMEOUT);
 const TEST_TIMEOUT = Number.isFinite(heavyGateTimeout) && heavyGateTimeout > 0 ? heavyGateTimeout : 0;
 // Reports where the event loop is blocked (scripts/test-setup/blocked-at.mjs); never fails a test.
 const BLOCKED_AT_SETUP = [fileURLToPath(new URL('./scripts/test-setup/blocked-at.mjs', import.meta.url))];
-const UI_ARCHITECTURE = ['test/ui/architecture*.test.ts', 'test/ui/import-from-declarer-only.test.ts'];
+const UI_ARCHITECTURE = ['test/architecture/**/*.test.ts'];
 
 // Dedicated root — must NOT inherit vite.config.js's `root: packages/ui`, or the
 // engine suite silently isn't discovered. One project per workspace package.

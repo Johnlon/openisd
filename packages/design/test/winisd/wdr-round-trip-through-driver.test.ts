@@ -14,7 +14,7 @@
  *   - a C value is WinISD's ARITHMETIC. It is recomputed from scratch, so the test of
  *     compatibility is whether our number agrees with WinISD's — the strongest parity check
  *     in the suite, because it runs over every computed field of every real file rather than
- *     the hand-picked cases in `winisd-parity-functional.test.ts`.
+ *     the hand-picked cases in `winisd-parity-goldens.test.ts`.
  *   - an N slot stays N. `N` means "not in play"; inventing a value there is a claim the
  *     source contradicts.
  *
@@ -45,7 +45,7 @@ const files = readdirSync(SAMPLES, { recursive: true })
 /**
  * Agreement band for a RECOMPUTED value against WinISD's own.
  *
- * Not the 1e-9 of `winisd-parity-functional.test.ts`: that compares two calculations, this compares our
+ * Not the 1e-9 of `winisd-parity-goldens.test.ts`: that compares two calculations, this compares our
  * calculation against a DECIMAL STRING WinISD rounded for the file. `Qts=0.358` states the
  * value to 3 places, so it pins the true number no closer than ±5e-4 whatever either side
  * computes. The band therefore has to cover the file's own precision, and 1e-4 relative does

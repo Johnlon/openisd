@@ -117,7 +117,7 @@ export function installAppSettings(repo: AppSettingsRepo): void {
 /** The built-in band — what an unconfigured app reads and what "Reset to defaults" writes.
  *
  *  Published here, not imported from the engine by whoever needs it: `ui/logic` is the layer
- *  the engine edge is ruled legal on (QO80 matrix, `test/ui/architecture.test.ts`), and this
+ *  the engine edge is ruled legal on (QO80 matrix, `test/architecture/architecture.test.ts`), and this
  *  module is already the settings seam every hook reads the band through. */
 export const FACTORY_VENTED_LIMITS: VentedDesignLimits = DEFAULT_VENTED_DESIGN_LIMITS;
 

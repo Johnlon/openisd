@@ -1,5 +1,5 @@
 import {describe, it, expect} from 'vitest';
-import {formatFixed, formatFixedOrDash} from '../fields/format.js';
+import {formatFixed, formatFixedOrDash} from '../../fields/format.js';
 
 describe('fixed-decimal number formatting', () => {
   it('formatFixed: the value to the decimals asked', () => {

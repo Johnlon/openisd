@@ -32,7 +32,7 @@ import {readdirSync, readFileSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 import {dirname, join} from 'node:path';
 
-const SRC_DIR = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'engine');
+const SRC_DIR = join(dirname(fileURLToPath(import.meta.url)), '..', 'engine');
 
 // Browser/UI surfaces the pure engine layer must not touch (AD-3).
 const FORBIDDEN_GLOBALS = ['document', 'window', 'navigator', 'localStorage', 'canvas', 'HTMLElement'];

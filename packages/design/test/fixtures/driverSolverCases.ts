@@ -1,5 +1,5 @@
 /**
- * The inputs of `driver-solver-characterization.test.ts`: a fixed, deterministic grid of stated
+ * The inputs of `driver-consistency-solver-golden.test.ts`: a fixed, deterministic grid of stated
  * driver quantities. The expected outputs are in `driverSolverGolden.ts`, produced once from the
  * solver as it stood before the componentisation (bugs/BUG_20261003_driver-consistency-solver-
  * is-one-925-line-function.md). Adding a case means regenerating its golden entry.

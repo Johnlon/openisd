@@ -80,7 +80,7 @@ to float precision, not a plausibility argument.
 **Verifying Tests**:
 
 - [`packages/design/test/engine/advanced-figures.test.ts`](../../packages/design/test/engine/advanced-figures.test.ts)
-- [`packages/design/test/winisd/winisd-parity-functional.test.ts`](../../packages/design/test/winisd/winisd-parity-functional.test.ts) — `USPL`, `SPLmax`, `Mpow` rows
+- [`packages/design/test/winisd/winisd-parity-goldens.test.ts`](../../packages/design/test/winisd/winisd-parity-goldens.test.ts) — `USPL`, `SPLmax`, `Mpow` rows
 - `bugs/archive/BUG_20260813_uspl-and-splmax-use-formulas-winisd-does-not-2p83-volts-and-a-3db-derating.md`
 - `bugs/archive/BUG_20260813_mpow-uses-sqrt-rme-where-winisd-uses-bl-over-sqrt-re.md`
 

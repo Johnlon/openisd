@@ -51,7 +51,7 @@ export function createSealedReadouts({ project, selectedBox, projectChanged: cha
   const prResonanceMassDq = computed(() => { void changed.value; const f = project.value.box.passiveRadiator?.resonanceWithAddedMass_hz; return f ? dqOfCell(f) : EMPTY_DQ; });
   // box.sealed.resonance_hz / q_tc are the domain's own readouts under the selected loss mode:
   // engine.sealedResonance returns {Fsc, Qtc} together, fed the driver's SOLVED Vas and Qts as
-  // sourceLoadedQts(Rs) loads it (winisd-parity-functional.test.ts "Box.Fr" pins that feed) —
+  // sourceLoadedQts(Rs) loads it (winisd-parity-goldens.test.ts "Box.Fr" pins that feed) —
   // never an inline Cms·Sd²·ρc² reconstruction and never bare Qts.
   const rearQtc = computed<number | null>(() => {
     void changed.value;

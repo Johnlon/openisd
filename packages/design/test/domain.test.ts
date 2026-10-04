@@ -632,7 +632,7 @@ describe('OpenISDBox — every alignment, as a window onto the project record', 
     // Qes=0.450 Qms=2.940 Re=6.6 Rg=0.1 Vb=6 L Ql=10 Qa=100 → Fsc 63.1762 Hz, Qtc 0.5995.
     //
     // This is WinISD SEALED, and the engine already reproduces it: the parity feed
-    // (winisd-parity-functional.test.ts "Box.Fr") passes exactly the driver's stored Vas and
+    // (winisd-parity-goldens.test.ts "Box.Fr") passes exactly the driver's stored Vas and
     // `sourceLoadedQts(Qms, Qes, Re, Rg, Qts)`. The domain must hand the engine the same two
     // facts — THE SOLVED Vas_m3 (entered, not `Cms·Sd²·ρc²`, which this record does not even
     // carry) and Qts as the amplifier's source impedance loads it — instead of the compliance

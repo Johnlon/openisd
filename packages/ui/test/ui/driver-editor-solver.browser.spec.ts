@@ -15,7 +15,7 @@ const COMPLETE = COMPLETE_DRIVER_PROJECT_OWPR;
  * The derivation rules themselves (which field follows from which, route precedence, cascades,
  * zero and contradiction handling) are unit-tested in `packages/design/test/engine/driver.test.ts`
  * and pinned against WinISD's own goldens in
- * `packages/design/test/winisd/winisd-parity-functional.test.ts`. This spec proves only what
+ * `packages/design/test/winisd/winisd-parity-goldens.test.ts`. This spec proves only what
  * a unit test cannot: that typing into the editor reaches the solver, that a solver result
  * reaches the input with its E/C/N class, and that the modal's tabs and buttons carry the
  * draft correctly.

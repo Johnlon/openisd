@@ -19,8 +19,8 @@ import {fileURLToPath} from 'node:url';
 import {dirname, join} from 'node:path';
 
 const here = dirname(fileURLToPath(import.meta.url));
-const DRIVER_SRC = join(here, '..', '..', 'winisd', 'winisdDriver.ts');
-const PROJECT_SRC = join(here, '..', '..', 'winisd', 'winisdProject.ts');
+const DRIVER_SRC = join(here, '..', 'winisd', 'winisdDriver.ts');
+const PROJECT_SRC = join(here, '..', 'winisd', 'winisdProject.ts');
 
 describe('the ini module is the only INI parser these two files use', () => {
   it('winisdDriver.ts imports parseIni/stringifyIni from the ini module', () => {
