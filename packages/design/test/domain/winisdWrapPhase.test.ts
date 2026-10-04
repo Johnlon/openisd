@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { createEngine, OpenISDProject, ProjectBuilder } from '../../domain/index.js';
+import { createEngine, type FrequencyGrid, OpenISDProject, ProjectBuilder } from '../../domain/index.js';
 import { driverFromSpec } from '../fixtures/recordBuilders.js';
 
 const W5 = { Fs_hz: 45, Re_ohm: 3.4, Le_H: 0.00034, BL_Tm: 7.17, Qes: 0.57, Qms: 3.56, Vas_m3: 0.00485, Sd_m2: 0.0094, Pe_W: 40 };
@@ -22,7 +22,7 @@ describe('winisdWrapPhase', () => {
   });
 
   it('on keeps the phase inside ±π; off lets it run past -π where the response turns more than 180°', () => {
-    const grid = { fmin: 1, fmax: 20000, N: 400 };
+    const grid: FrequencyGrid = { fmin: 1, fmax: 20000, N: 400 };
     const wrapped = projectWithWrap(true).sweep(grid).values!.phase;
     const unwrapped = projectWithWrap(false).sweep(grid).values!.phase;
     expect(Math.min(...wrapped)).toBeGreaterThanOrEqual(-Math.PI - 1e-9);
