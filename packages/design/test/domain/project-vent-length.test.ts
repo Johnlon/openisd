@@ -52,65 +52,6 @@ function trial(targetFb: number) {
   return p;
 }
 
-describe('vent target reachability — an unreachable tuning must surface, not hide (direct physics)', () => {
-  it('a reachable target has a positive solved length', () => {
-    const p = trial(40);
-    const len = p.box.vented.vent.lengthForTuning_m(0.03, 40);
-    assert.ok(len != null && len > 0, `solved length ${len} m for 40 Hz must be positive`);
-    const achieved = p.box.vented.vent.tuningIn_hz(0.03);
-    // tuningIn_hz reads the STORED length; write the solved length to check round-trip.
-    p.box.vented.vent.length_m.set(len!);
-    const achievedAfter = p.box.vented.vent.tuningIn_hz(0.03);
-    assert.ok(achievedAfter != null && Math.abs(achievedAfter - 40) < 1e-6,
-      `solved length ${len} m tunes to ${achievedAfter} Hz, target 40`);
-    void achieved;
-  });
-
-  it('THE UNREACHABLE TEST — the solved length goes NEGATIVE for a target above the ceiling', () => {
-    const p = trial(90);
-    const len = p.box.vented.vent.lengthForTuning_m(0.03, 90);
-    assert.ok(len != null && len < 0,
-      `90 Hz needs L = ${len != null ? (len * 1000).toFixed(2) : 'null'} mm — a floor here would hide the failure`);
-  });
-
-  it('names the true ceiling — the L = 0 tuning, not an arbitrary shortest vent', () => {
-    const p = trial(90);
-    p.box.vented.vent.length_m.set(0);
-    const ceiling = p.box.vented.vent.tuningIn_hz(0.03);
-    assert.ok(ceiling != null && Math.abs(ceiling - CEILING_HZ) < 1e-6,
-      `ceiling ${ceiling} Hz, expected ${CEILING_HZ.toFixed(4)}`);
-  });
-
-  it('THE BOUNDARY — just below the ceiling is reachable, just above it is not', () => {
-    const pBelow = trial(CEILING_HZ * 0.999);
-    const lenBelow = pBelow.box.vented.vent.lengthForTuning_m(0.03, CEILING_HZ * 0.999);
-    assert.ok(lenBelow != null && lenBelow > 0, 'just below the ceiling the length is positive');
-
-    const pAbove = trial(CEILING_HZ * 1.001);
-    const lenAbove = pAbove.box.vented.vent.lengthForTuning_m(0.03, CEILING_HZ * 1.001);
-    assert.ok(lenAbove != null && lenAbove < 0, 'just above the ceiling the length is negative');
-  });
-
-  it('the bandpass front chamber is judged on its OWN volume, not the whole box', () => {
-    const engine = createEngine();
-    const driver = OpenISDDriver.fromConformingRecord(blankDriverRecord(), engine);
-    if (Array.isArray(driver)) throw new Error(`blankDriverRecord() does not conform: ${driver.join('; ')}`);
-    const p = new ProjectBuilder(driver, engine).bandpass4().rearVolume_m3(0.03).frontVolume_m3(0.002)
-      .frontTuning_hz(40).build();
-    p.box.bandpass4.chambers.front.volume_m3.set(0.002); // small front chamber → 40 Hz is far easier
-    p.box.bandpass4.vents.front.shape.set('round');
-    p.box.bandpass4.vents.front.diameter_m.set(0.05);
-    p.box.bandpass4.vents.front.endCorrection_m.set(0.6);
-
-    const lenEasy = p.box.bandpass4.vents.front.lengthForTuning_m(0.002, 40);
-    assert.ok(lenEasy != null && lenEasy > 0, `front-chamber solve must use Vf: got L=${lenEasy}`);
-
-    p.box.bandpass4.chambers.front.volume_m3.set(0.03); // now the unreachable single-chamber case
-    const lenHard = p.box.bandpass4.vents.front.lengthForTuning_m(0.03, 90);
-    assert.ok(lenHard != null && lenHard < 0);
-  });
-});
-
 describe('project vent length — an unreachable tuning must surface, not hide', () => {
   it('a reachable target has a positive solved length', () => {
     const p = trial(40);

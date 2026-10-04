@@ -24,7 +24,7 @@ const backup = createBackupRepo(createMemoryStorage());
 beforeAll(() => {
   // shareLink() reads location.{origin,pathname} (the project repo's stateToUrl) and writes to the
   // clipboard/history — none exist in this suite's node environment. Stubbed exactly as
-  // persist.test.ts stubs `location`, plus the two calls shareLink() itself makes.
+  // urlAppState.test.ts stubs `location`, plus the two calls shareLink() itself makes.
   vi.stubGlobal('location', { origin: 'https://openisd.test', pathname: '/' });
   vi.stubGlobal('history', { replaceState: () => {} });
   vi.stubGlobal('navigator', { clipboard: { writeText: () => Promise.resolve() } });
