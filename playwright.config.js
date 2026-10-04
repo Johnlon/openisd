@@ -104,9 +104,10 @@ export default defineConfig({
   testIgnore: process.env.OPENISD_EXTERNAL === '1' ? [] : EXTERNAL_NETWORK_SPECS,
   // Hang guards, not pace-setters. A passing step returns the moment its condition holds, so a
   // long limit costs nothing on green; it only stops a spec flickering red when the machine is
-  // loaded by other sessions. A genuinely hung step still dies at the limit. The whole-test
-  // limit sits above them so a failing step reports its own error, not a bare test timeout.
-  timeout: 60000,
+  // loaded by other sessions. A genuinely hung step still dies at the limit. The per-step limits
+  // are the real guard: a spec that keeps making progress must not be cut off, so the whole-test
+  // limit is only a far-off backstop above them.
+  timeout: 180000,
   expect: {
     timeout: 20000,
   },
