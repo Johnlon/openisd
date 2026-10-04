@@ -19,8 +19,9 @@ This specification defines the electro-acoustic calculation rules, physical form
 
 **Verifying Tests**:
 
-- [`packages/design/test/engine/consistency.test.ts`](../../packages/design/test/engine/consistency.test.ts)
-- [`packages/design/test/engine/driver.test.ts`](../../packages/design/test/engine/driver.test.ts)
+- [`packages/design/test/engine/driver-solve.test.ts`](../../packages/design/test/engine/driver-solve.test.ts)
+- [`packages/design/test/engine/driver-consistency-check.test.ts`](../../packages/design/test/engine/driver-consistency-check.test.ts)
+- [`packages/design/test/engine/driver-route-parity-winisd.test.ts`](../../packages/design/test/engine/driver-route-parity-winisd.test.ts)
 
 ### 1.2 USPL / SPLmax / Mpow — the 2.83 V reference and the 3 dB derating
 
@@ -79,8 +80,13 @@ to float precision, not a plausibility argument.
 
 **Verifying Tests**:
 
-- [`packages/design/test/engine/advanced-figures.test.ts`](../../packages/design/test/engine/advanced-figures.test.ts)
-- [`packages/design/test/winisd/winisd-parity-functional.test.ts`](../../packages/design/test/winisd/winisd-parity-functional.test.ts) — `USPL`, `SPLmax`, `Mpow` rows
+- [`packages/design/test/engine/rme.test.ts`](../../packages/design/test/engine/rme.test.ts)
+- [`packages/design/test/engine/spl-max.test.ts`](../../packages/design/test/engine/spl-max.test.ts)
+- [`packages/design/test/engine/gloss.test.ts`](../../packages/design/test/engine/gloss.test.ts)
+- [`packages/design/test/engine/spl-max-lf.test.ts`](../../packages/design/test/engine/spl-max-lf.test.ts)
+- [`packages/design/test/engine/mcost.test.ts`](../../packages/design/test/engine/mcost.test.ts)
+- [`packages/design/test/engine/xmax-route.test.ts`](../../packages/design/test/engine/xmax-route.test.ts)
+- [`packages/design/test/winisd/winisd-parity-goldens.test.ts`](../../packages/design/test/winisd/winisd-parity-goldens.test.ts) — `USPL`, `SPLmax`, `Mpow` rows
 - `bugs/archive/BUG_20260813_uspl-and-splmax-use-formulas-winisd-does-not-2p83-volts-and-a-3db-derating.md`
 - `bugs/archive/BUG_20260813_mpow-uses-sqrt-rme-where-winisd-uses-bl-over-sqrt-re.md`
 
@@ -325,7 +331,8 @@ to echo.
 **Verifying Tests**:
 
 - [`packages/design/test/winisd/wdr-round-trip.test.ts`](../../packages/design/test/winisd/wdr-round-trip.test.ts)
-- [`packages/design/test/engine/hardening.test.ts`](../../packages/design/test/engine/hardening.test.ts)
+- [`packages/design/test/engine/classify-finite.test.ts`](../../packages/design/test/engine/classify-finite.test.ts)
+- [`packages/design/test/engine/box-params.test.ts`](../../packages/design/test/engine/box-params.test.ts)
 
 ### 4.7 `openisd.json` → `winisd.wdr` projection — the `winisd_tools` entry point
 

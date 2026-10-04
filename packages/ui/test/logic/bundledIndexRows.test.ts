@@ -6,7 +6,7 @@
  * `drivers-index.json` and `passive-radiators-index.json`. They compose the app's own functions —
  * `displayNameOf`, `chipsOf`, `driverHasDqIssues`, `radiatorHasDqIssues`, `dataSource`, the spec
  * fields — so what the picker lists off the index is what it would have computed from the record.
- * A staleness gate (packages/ui/test/persistence/bundled-index-artifacts.test.ts) holds the rows
+ * A staleness gate (packages/ui/test/scripts/bundled-index-artifacts.test.ts) holds the rows
  * the bundler wrote against these.
  */
 import {describe, it} from 'vitest';

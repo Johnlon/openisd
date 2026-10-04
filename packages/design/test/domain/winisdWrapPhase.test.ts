@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'vitest';
-import { createEngine, ProjectBuilder } from '../../domain/index.js';
+import { createEngine, OpenISDProject, ProjectBuilder } from '../../domain/index.js';
 import { driverFromSpec } from '../fixtures/recordBuilders.js';
 
-const W5 = { Fs_hz: 45, Re_ohm: 3.4, Qes: 0.57, Qms: 3.56, Vas_m3: 0.00485, Sd_m2: 0.0094, Pe_W: 40 };
+const W5 = { Fs_hz: 45, Re_ohm: 3.4, Le_H: 0.00034, BL_Tm: 7.17, Qes: 0.57, Qms: 3.56, Vas_m3: 0.00485, Sd_m2: 0.0094, Pe_W: 40 };
 
 function projectWithWrap(winisdWrapPhase?: boolean) {
   const engine = createEngine();
@@ -21,23 +21,20 @@ describe('winisdWrapPhase', () => {
     expect(p.winisdWrapPhase.value).toBe(true);
   });
 
-  it('toggles phase wrapping in sweep results', () => {
-    const wrappedProj = projectWithWrap(true);
-    const unwrappedProj = projectWithWrap(false);
+  it('on keeps the phase inside ±π; off lets it run past -π where the response turns more than 180°', () => {
+    const grid = { fmin: 1, fmax: 20000, N: 400 };
+    const wrapped = projectWithWrap(true).sweep(grid).values!.phase;
+    const unwrapped = projectWithWrap(false).sweep(grid).values!.phase;
+    expect(Math.min(...wrapped)).toBeGreaterThanOrEqual(-Math.PI - 1e-9);
+    expect(Math.max(...wrapped)).toBeLessThanOrEqual(Math.PI + 1e-9);
+    expect(Math.max(...unwrapped.map(Math.abs))).toBeGreaterThan(Math.PI);
+  });
 
-    const swWrapped = wrappedProj.sweep({ fmin: 1, fmax: 200, N: 100 });
-    const swUnwrapped = unwrappedProj.sweep({ fmin: 1, fmax: 200, N: 100 });
-
-    if (!swWrapped.values) console.log('Wrapped issues:', swWrapped.issues);
-
-    expect(swWrapped.values).not.toBeNull();
-    expect(swUnwrapped.values).not.toBeNull();
-
-    // When wrapped (default), all phase values stay within [-PI, +PI]
-    for (const ph of swWrapped.values!.phase) {
-      expect(ph).toBeGreaterThanOrEqual(-Math.PI - 1e-9);
-      expect(ph).toBeLessThanOrEqual(Math.PI + 1e-9);
-    }
+  it('is saved in the project and read back', () => {
+    const p = projectWithWrap(false);
+    const back = OpenISDProject.fromOwprText(p.toOwprText(), createEngine());
+    if (Array.isArray(back)) throw new Error('fromOwprText returned problems: ' + back.join(', '));
+    expect(back.winisdWrapPhase.value).toBe(false);
   });
 
   it('is reset to true by applyWinisdSettings()', () => {

@@ -1,7 +1,7 @@
 /**
  * The golden-master fixture shape (`test/fixtures/golden/*.json`) and its boundary parser.
  *
- * `JSON.parse` returns `any`; every field golden.test.ts/gen-golden.ts read off it used to
+ * `JSON.parse` returns `any`; every field sweep-golden-master.test.ts/gen-golden.ts read off it used to
  * inherit that `any` past the read. This module is the one place that untyped JSON is turned
  * into a typed value — a runtime type guard checks the shape once, here, and every caller gets
  * `GoldenFixture` back instead of `any`.
@@ -10,9 +10,9 @@ import {readFileSync} from 'node:fs';
 import type {BoxType, SweepParams} from '../../engine/index.js';
 
 /** The fixed driver every golden fixture states, in RECORD names (matches WinISD/`.wdr` field
- *  names, not the engine's own `_hz`/`_ohm`-suffixed ones — golden.test.ts/gen-golden.ts convert).
+ *  names, not the engine's own `_hz`/`_ohm`-suffixed ones — sweep-golden-master.test.ts/gen-golden.ts convert).
  *  `Dd`/`BL`/`Mms`/`Cms`/`Rms` are optional: the committed fixtures never state them (the
- *  driver is fully described by the other 11), but golden.test.ts reads them into the same
+ *  driver is fully described by the other 11), but sweep-golden-master.test.ts reads them into the same
  *  solver call every other suite uses, so they stay part of the shape. */
 export interface GoldenDriverRaw {
   Fs: number; Qts: number; Qes: number; Qms: number; Vas: number; Sd: number;
@@ -26,13 +26,13 @@ export interface GoldenDesign {
   P: SweepParams;
 }
 
-/** Only the `SweepResult` fields golden.test.ts actually compares. */
+/** Only the `SweepResult` fields sweep-golden-master.test.ts actually compares. */
 export interface GoldenSweep {
   fs: number[]; spl: number[]; phase: number[]; exc: number[]; excPR: number[];
   pv: number[]; zmag: number[]; zph: number[]; gd: number[];
 }
 
-/** Only the `MaxCurvesResult` fields golden.test.ts actually compares. */
+/** Only the `MaxCurvesResult` fields sweep-golden-master.test.ts actually compares. */
 export interface GoldenMaxCurves {
   maxspl: number[]; maxpwr: number[]; xlim: boolean[];
 }

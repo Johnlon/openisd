@@ -145,7 +145,7 @@ describe('airFor — the single dispatch every sweep and circuit call goes throu
     assert.notEqual(physics.rho, winisd.rho);
   });
 
-  it('useWinisdAirModel still varies with humidity, pressure AND temperature away from the reference conditions — the engine computes from whatever environment the caller supplies (the UI supplies its app-level Options-equivalent in this mode, §12/§13), and divergence from the bridge constant off-defaults is ruled correct, not a defect (QO88)', () => {
+  it('useWinisdAirModel still varies with humidity, pressure AND temperature away from the reference conditions — the engine computes from whatever environment the caller supplies, and divergence from the bridge constant off-defaults is ruled correct, not a defect', () => {
     const atRef = engine.environment.solve({ useWinisdAirModel: true }).values;
     const humid = engine.environment.solve({ useWinisdAirModel: true, humidityPct: 95, pressurePa: 88000 }).values;
     assert.notEqual(humid.rho, atRef.rho, 'humidity/pressure must move the WinISD parity result away from the reference conditions');
@@ -175,7 +175,7 @@ describe('the sweep actually consumes humidity and pressure', () => {
     assert.ok(d > 0.1, `pressure moved SPL by ${d} dB`);
   });
 
-  it('with the WinISD toggle on, the humidity and pressure the sweep is HANDED still move SPL (QO88) — the engine ignores nothing itself; the UI decides which environment (app-level Options-equivalent) reaches it in this mode', () => {
+  it('with the WinISD toggle on, the humidity and pressure the sweep is HANDED still move SPL — the engine ignores nothing itself; the UI decides which environment (app-level Options-equivalent) reaches it in this mode', () => {
     const a = splAt({ ...BASE, useWinisdAirModel: true, humidityPct: 0,   pressurePa: 90000 });
     const b = splAt({ ...BASE, useWinisdAirModel: true, humidityPct: 100, pressurePa: 105000 });
     const d = maxAbsDelta(a, b);

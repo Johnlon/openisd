@@ -134,7 +134,7 @@ export interface OriginalNewProjectAPI {
   readonly projDescription: Ref<string>;
 
   /** Every `<select>` in the wizard resolves its choice against its option list through this —
-   *  the template never parses a select's string itself (see `field-dropdowns.test.ts`). */
+   *  the template never parses a select's string itself (see `field-registry.test.ts and no-handwritten-select-options.test.ts`). */
   readonly selectedOption: typeof selectedOption;
 
   // Controls & Actions

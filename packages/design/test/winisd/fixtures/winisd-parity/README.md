@@ -1,7 +1,7 @@
 # WinISD parity goldens
 
 Every file in `goldens/` is a WinISD project file **WinISD itself saved**, copied out
-unmodified. Nothing in openisd produced any number in them. `../../winisd-parity-functional.test.ts`
+unmodified. Nothing in openisd produced any number in them. `../../winisd-parity-goldens.test.ts`
 runs openisd over the same scenarios and diffs against these.
 
 ---
@@ -35,7 +35,7 @@ Four independent checks, all against `winisd.exe` 0.7.0.0:
    `docs/winisd_helpfiles/help/`, including `graphs.html`, contain no occurrence of
    *export*, *clipboard* or *csv*.
 
-What still guards the curves: `packages/engine/test/golden.test.ts`, which pins openisd's own
+What still guards the curves: `packages/design/test/engine/sweep-golden-master.test.ts`, which pins openisd's own
 sweep output byte for byte. That is a different guarantee — it proves openisd has not changed,
 not that it agrees with WinISD.
 
@@ -98,7 +98,7 @@ Then run the comparison:
 
 ```bash
 cd /home/john/work/winisd/openisd
-npx vitest run --project winisd packages/design/test/winisd/winisd-parity-functional.test.ts
+npx vitest run --project winisd packages/design/test/winisd/winisd-parity-goldens.test.ts
 ```
 
 **One WinISD at a time.** The harness attaches to the app by window title, so a second

@@ -4,12 +4,11 @@
  * list; a sideways drag moves the cursor.
  */
 import {expect, openAMobileProject, test} from '../fixtures.js';
+import {forceMobileSkin} from '../fixtures/mobileSkin.js';
 import type {Page} from '@playwright/test';
 
 test.beforeEach(async ({ page }) => {
-  await page.addInitScript(() => {
-    localStorage.setItem('openisd_view', JSON.stringify({ ui: { splashSeen: true, skinOverride: 'mobile' } }));
-  });
+  await forceMobileSkin(page);
   await page.goto('/');
   await openAMobileProject(page);
   await page.locator('.mob-tab', { hasText: 'Graph' }).click();

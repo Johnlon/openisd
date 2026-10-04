@@ -110,7 +110,7 @@ describe('SPL from η₀ — the constant is DERIVED, never a literal', () => {
     assert.ok(Math.abs(K - 112.2) > 0.04 && Math.abs(K - 112.2) < 0.05, `K−112.2 = ${K - 112.2}`);
   });
 
-  it('K MOVES with the air — a 20 °C → 30 °C change shifts it by ~0.07 dB (QO7: ρ and c vary)', () => {
+  it('K MOVES with the air — a 20 °C → 30 °C change shifts it by ~0.07 dB (ρ and c vary)', () => {
     // Dry air at 1 atm: c = 331.3·√(1+T/273.15), ρ = 1.2041·(293.15/T_K).
     const air = (tC: number) => ({ c: 331.3 * Math.sqrt(1 + tC / 273.15), rho: 1.2041 * (293.15 / (tC + 273.15)) });
     const d = kDb(air(30)) - kDb(air(20));

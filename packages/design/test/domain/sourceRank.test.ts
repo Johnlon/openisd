@@ -1,7 +1,7 @@
 import {describe, expect, it} from 'vitest';
 import {sourceRank} from '../../domain/sourceRank.js';
 
-describe('sourceRank (D10) — how authoritative a document role is, lower = more authoritative', () => {
+describe('sourceRank — how authoritative a document role is, lower = more authoritative', () => {
   it('orders the seven named roles manufacturer-datasheet first, manual last', () => {
     const roles = [
       'manual',

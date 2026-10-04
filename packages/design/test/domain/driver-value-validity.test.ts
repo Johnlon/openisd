@@ -27,7 +27,8 @@ function field(engine: Engine, name: NumSpecField) {
   return driver.specs[name];
 }
 
-describe('driver spec-field value validity — every field has its OWN floor (BUG_20260927)', () => {
+// Regression for bugs/archive/BUG_20260927*.md
+describe('driver spec-field value validity — every field has its OWN floor', () => {
   describe("'positive' floor — zero, negative or non-finite is not physical", () => {
     it.each([
       'Fs_hz', 'Re_ohm', 'fLe_hz', 'Qts', 'Qes', 'Qms', 'Vas_m3', 'Sd_m2', 'BL_Tm', 'Mms_kg',

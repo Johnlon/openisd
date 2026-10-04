@@ -240,7 +240,7 @@ function ventEndCorrections_m(vents: Bandpass6Box['vents']): Pick<SweepParams, '
  *  to run inline for `vented`'s single port, generalised so `bandpass6`/`abc` can run it once per
  *  chamber (each of their two ports is a `VentedChamber`/`Vent` pair on the SAME terms as
  *  `vented`'s own). `solveVent`'s issues deliberately stay empty when NO target is stated at all
- *  (pinned by `engine/vent-pr-consistency.test.ts`: "no target chosen yet" is not a per-field
+ *  (pinned by `engine/vent-consistency.test.ts`: "no target chosen yet" is not a per-field
  *  error), so this guard adds the no-resonance case on top: a port that still has neither
  *  `tuning_goal_hz` nor `length_m` blocks the whole sweep, in the terms the sweep's `Leff`
  *  actually runs by. */
@@ -285,7 +285,7 @@ function ventSweepIssuesOf(source: ProjectSweepSource, box: 'vented' | 'bandpass
 
 /** The PR equivalent of `ventSweepIssuesOf` — the cached issues from `#resolve()`'s own
  *  `solvePr` call. A configured radiator with NEITHER target stated still sweeps — that un-tuned
- *  state is simulable (pinned by `test/engine-wiring.test.ts` "a passive-radiator box
+ *  state is simulable (pinned by `test/domain/project-sweep.test.ts` "a passive-radiator box
  *  simulates"), and `solvePr`'s own issues already stay empty on that terms, so there is
  *  deliberately no extra gate here, unlike `ventSweepIssuesOf`. */
 function prSweepIssuesOf(source: ProjectSweepSource): readonly PrIssue[] {

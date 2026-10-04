@@ -4,7 +4,7 @@ import type {Reading} from '../../domain/corroboration.js';
 
 const reading = (read_value: number, extra: Partial<Reading> = {}): Reading => ({read_value, ...extra});
 
-describe('corroborate (D11) — the cross-source verdict on one field\'s readings', () => {
+describe('corroborate — the cross-source verdict on one field\'s readings', () => {
   it('MATCH — 1.01 g vs 0.995 g, one mass stated to two printed precisions', () => {
     // Each source's own printed rounding (half the last stated decimal place), not a flat
     // tolerance — peerless/pmt-40n25al17-04 (`test_crosscheck_precision.py`).

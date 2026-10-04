@@ -8,7 +8,7 @@ const engine = createEngine();
 const NO_INPUT: SolverInput = Object.freeze({value: null, entered: false});
 const NO_STRING_INPUT: SolverInput<string> = Object.freeze({value: null, entered: false});
 
-describe('solveSealedAlignmentGroup (S2-10: a test-only bag wrapper over Engine.solveSealedAlignment)', () => {
+describe('solveSealedAlignmentGroup (a test-only bag wrapper over Engine.solveSealedAlignment)', () => {
   it('solves Vb from Qts, Vas, and a target Qtc', () => {
     const solved = solveSealedAlignmentGroup({ Qts: 0.4, Vas_m3: 0.03, Qtc: 0.707 });
     expect(solved.Vb_m3).not.toBeUndefined();
@@ -27,7 +27,7 @@ describe('solveSealedAlignmentGroup (S2-10: a test-only bag wrapper over Engine.
   });
 });
 
-describe('checkSealedAlignment (S2-10: a test-only bag wrapper over Engine.solveSealedAlignment)', () => {
+describe('checkSealedAlignment (a test-only bag wrapper over Engine.solveSealedAlignment)', () => {
   it('returns no issues once Vb solves from a complete input set', () => {
     const solved = solveSealedAlignmentGroup({ Qts: 0.4, Vas_m3: 0.03, Qtc: 0.707 });
     expect(checkSealedAlignment(solved)).toEqual([]);
@@ -56,7 +56,7 @@ describe('checkSealedAlignment (S2-10: a test-only bag wrapper over Engine.solve
   });
 });
 
-describe('Engine.solveSealedAlignment — handle solve, values written onto the params (T10/T11)', () => {
+describe('Engine.solveSealedAlignment — handle solve, values written onto the params', () => {
   function params(p: { Qts?: number; Vas_m3?: number; Qtc?: number; Vb_m3?: number }): {
     Qts: SolverField; Vas_m3: SolverField; Fs_hz: SolverInput; Ql: SolverInput; Qa: SolverInput;
     lossMode: SolverInput<string>; Qtc: SolverField; Vb_m3: SolverField;
@@ -125,7 +125,7 @@ describe('Engine.solveSealedAlignment — handle solve, values written onto the 
   });
 });
 
-describe('Engine.solveSealedAlignment — loss-aware Vb→Qtc route (S10)', () => {
+describe('Engine.solveSealedAlignment — loss-aware Vb→Qtc route', () => {
   const Qts = 0.4, Vas_m3 = 0.03, Fs_hz = 30, Vb_m3 = 0.02, Ql = 10, Qa = 100;
 
   it('a caller stating Fs_hz/Ql/Qa/lossMode gets the SAME Qtc the Box tab readout ' +
@@ -142,7 +142,7 @@ describe('Engine.solveSealedAlignment — loss-aware Vb→Qtc route (S10)', () =
     expect(p.Qtc.calculated).toBe(true);
   });
 
-  it('a caller leaving Fs_hz not-entered keeps the pre-S10 lossless ratio, even with Ql/Qa stated', () => {
+  it('a caller leaving Fs_hz not-entered keeps the lossless ratio, even with Ql/Qa stated', () => {
     const p = {
       Qts: fakeSolverField(Qts), Vas_m3: fakeSolverField(Vas_m3),
       Fs_hz: NO_INPUT, Ql: { value: Ql, entered: true }, Qa: { value: Qa, entered: true },

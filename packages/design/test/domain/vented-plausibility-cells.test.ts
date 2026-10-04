@@ -1,35 +1,15 @@
-/**
- * A created project's own vented cells carry the plausibility mark.
- *
- * John's ruling: "keep parity and use dq — this is the way". The designed numbers are WinISD's
- * own extrapolated answers and are NOT changed here; `box.vented.volume_m3` and
- * `box.vented.tuning_goal_hz` simply say so. The band is an application setting, reached through the
- * collaborator `createEngine(settings)` takes, so every test states its own band.
- *
- * Two DIFFERENT marking mechanisms, forced by the two field types:
- *   - `volume_m3` is a `MandatoryField` with no `setDq` — its mark is computed at READ time.
- *   - `tuning_goal_hz` is a paired entry field — its mark is STORED, written by the project's resolve
- *     cascade alongside the vent solver's own mark, which it must not clobber.
- */
 import {describe, expect, it} from 'vitest';
 import assert from 'node:assert/strict';
-import {type Engine, createEngine, DEFAULT_ENV_DEFAULTS, type AppSettings, type EnvDefaults, type VentedDesignLimits} from '@openisd/design/engine';
+import {type Engine, createEngine, DEFAULT_ENV_DEFAULTS, type VentedDesignLimits} from '@openisd/design/engine';
 import {OpenISDDriver, OpenISDProject, ProjectBuilder} from '../../domain/index.js';
 
 const scraped = <T,>(value: T) => ({value});
+
 const spec = (read_value: number) => ({state: 'E' as const, value: read_value, origin: 'scraped', readings: {scraped: {read_value}}});
 
 const NARROW: VentedDesignLimits = {minVb_m3: 0.001, maxVb_m3: 1.0, minFb_hz: 10, maxFb_hz: 150};
-const WIDE: VentedDesignLimits = {minVb_m3: 1e-9, maxVb_m3: 1e9, minFb_hz: 1e-9, maxFb_hz: 1e9};
 
-/** A settings object whose band can be changed after the engine holds it — the Settings tab's
- *  own shape. `ventedLimits()` is a METHOD so the answer is read at call time. */
-class MutableSettings implements AppSettings {
-  constructor(private band: VentedDesignLimits) {}
-  ventedLimits(): VentedDesignLimits { return this.band; }
-  envDefaults(): EnvDefaults { return DEFAULT_ENV_DEFAULTS; }
-  set(band: VentedDesignLimits): void { this.band = band; }
-}
+const WIDE: VentedDesignLimits = {minVb_m3: 1e-9, maxVb_m3: 1e9, minFb_hz: 1e-9, maxFb_hz: 1e9};
 
 function driverFor(engine: Engine): OpenISDDriver {
   const record = {
@@ -103,7 +83,7 @@ describe('vented project cells — plausibility marks', () => {
 
   it('leaves the vented cells of a sealed project alone — no design, nothing to judge', () => {
     // A sealed project's vented chamber sits at its schema default of 0 m³. That is not an
-    // implausible box; it is no box. `cell-dq.test.ts` pins the same expectation.
+    // implausible box; it is no box. `domain/field-dq.test.ts` pins the same expectation.
     const engine = engineWith(NARROW);
     const p = new ProjectBuilder(driverFor(engine), engine).sealed().volume_m3(0.03).build();
     assert.deepEqual(p.box.vented.volume_m3.dq, []);
@@ -111,38 +91,5 @@ describe('vented project cells — plausibility marks', () => {
 
   it('judges by the band its engine is given, not a constant of its own', () => {
     assert.deepEqual(ventedProject(engineWith(WIDE), 1.684, 35).box.vented.volume_m3.dq, []);
-  });
-});
-
-describe('OpenISDProject.appSettingsChanged', () => {
-  it('re-marks every cell against the new band', () => {
-    const settings = new MutableSettings(WIDE);
-    const p = ventedProject(createEngine(settings), 1.684, 5.4);
-    assert.deepEqual(p.box.vented.volume_m3.dq, []);
-    const tuningBefore = p.box.vented.tuning_goal_hz.dq.length;
-
-    settings.set(NARROW);
-    p.appSettingsChanged();
-
-    assert.equal(p.box.vented.volume_m3.dq.length, 1);
-    assert.equal(p.box.vented.tuning_goal_hz.dq.length, tuningBefore + 1);
-  });
-
-  it('notifies, so the app repaints', () => {
-    const settings = new MutableSettings(WIDE);
-    const p = ventedProject(createEngine(settings), 1.684, 5.4);
-    let fired = 0;
-    p.subscribe(() => { fired += 1; });
-    settings.set(NARROW);
-    p.appSettingsChanged();
-    assert.equal(fired, 1);
-  });
-
-  it('does not make the project edited — a settings change is not a design change', () => {
-    const settings = new MutableSettings(WIDE);
-    const p = ventedProject(createEngine(settings), 1.684, 5.4);
-    settings.set(NARROW);
-    p.appSettingsChanged();
-    assert.equal(p.isModified(), false);
   });
 });

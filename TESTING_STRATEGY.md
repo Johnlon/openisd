@@ -41,7 +41,7 @@ How OpenISD is tested: the rules, the tiers, the patterns, and what runs when.
 Decisions belong in hooks (`*-hooks.ts`), not in `.vue` files, so most coverage runs at Tier 2
 speed. The architecture tests enforce the layering that makes this possible:
 
-- `packages/ui/test/ui/architecture.test.ts`: every import points down the layers; a component
+- `packages/ui/test/architecture/architecture.test.ts`: every import points down the layers; a component
   imports no value from the domain; services export factories, not instances or mutable
   bindings; only the approved stores hold state; only licensed logic modules construct an
   `OpenISDDriver`.
@@ -50,7 +50,7 @@ speed. The architecture tests enforce the layering that makes this possible:
 
 ## Goldens and coverage
 
-- `packages/design/test/engine/golden.test.ts` compares engine output with committed fixtures
+- `packages/design/test/engine/sweep-golden-master.test.ts` compares engine output with committed fixtures
   in `packages/design/test/fixtures/golden/`.
 - `packages/design/test/winisd/` compares OpenISD with projects WinISD itself saved (`.wpr`);
   see [RESEARCH.md](RESEARCH.md#methods) for how those files were captured by driving WinISD
@@ -58,19 +58,57 @@ speed. The architecture tests enforce the layering that makes this possible:
 - `npm run coverage:design` reports coverage for `packages/design`. The target is 100% for the
   engine and domain.
 
+## Where a test goes
+
+One file tests one object, and its folder is the layer of that object.
+
+| Folder                              | Holds                                                                  |
+|-------------------------------------|------------------------------------------------------------------------|
+| `packages/design/test/engine/`      | formulas, solvers, the sweep, WinISD parity of engine output           |
+| `packages/design/test/domain/`      | OpenISD objects: project, box, driver, cells, compat-switch plumbing   |
+| `packages/design/test/fields/`      | field registry, limits, unit groups, display precision, formatting     |
+| `packages/design/test/chart/`       | axes, plot data, chart errors                                          |
+| `packages/design/test/winisd/`      | `.wdr` / `.wpr` formats and converters                                 |
+| `packages/design/test/architecture-*` | design-package gates                                                 |
+| `packages/persistence/test/`        | one file per repo (`projectRepo`, `viewStateRepo`, `myDriverRepo`, ...) |
+| `packages/ui/test/logic/`           | `src/logic` modules (`appState`, `useVentGroup`, `provenance`, ...)    |
+| `packages/ui/test/hooks/`           | one file per `*-hooks.ts`                                              |
+| `packages/ui/test/ui/`              | browser specs, one per component; component SFC tests                  |
+| `packages/ui/test/architecture/`    | UI gates and every template/source scan                                |
+| `packages/ui/test/scripts/`         | tests of `scripts/*.mjs` build tooling and `vite.config.js`            |
+
+A recorder or screenshot writer is not a test: it lives in `scripts/`. A spec never writes into
+the tracked tree.
+
 ## Patterns
 
+- **Shape of a file:** one top-level `describe` named after the object; nested `describe`s per
+  behaviour. Titles state the behaviour ("clearing V returns the pair to 1 W"), never a ticket,
+  bug or plan id.
+- **Variants are a table:** the same check per box type, filter type or skin row is one
+  `it.each` / loop, not one file or one copy per variant.
 - **Domain-seam setup:** `page.evaluate` → `/src/logic/appState.ts` →
-  `requireFocusedProject()...set()`, then drive only the object under test through the UI.
+  `requireFocusedProject()...set()`, then drive only the object under test through the UI. Helpers:
+  `packages/ui/test/fixtures.ts` (`openAProject`, `focusedBoxVolume`, `setFocusedBoxVolume`),
+  `fixtures/focusedProjectSeam.ts` (`setFocusedBoxType`, `renameFocusedProject`). The wizard is
+  walked only in the wizard specs.
+- **Mobile specs** force the skin with `forceMobileSkin` (`fixtures/mobileSkin.ts`), never an inline
+  storage script.
 - **Tune is its own feature.** Never open the Tune panel to enter driver parameters for a Box
   test. `tune-panel` specs own the panel's contract: live edits, Cancel/✕/Reset, the Q-group
   completion and two-way sync with the project.
+- **Lowest layer that proves it** (`.claude/rules/tdd.md`). A browser spec proves a seam is wired;
+  it does not re-check maths a unit test already pins.
+- **Compat switches:** the `domain/winisd-*` file tests the switch (default, Reset to WinISD,
+  saved); the `engine/` file tests what the switch does to the numbers. Not both in both.
 - **Generated fixtures.** `sample-project.owpr` is generated at test time by
   `packages/ui/test/fixtures/generateSample.ts`; fix the generator, never the JSON. Reference
   drivers and their expected values are in `packages/ui/test/fixtures/reference-drivers.ts`.
 - **Wiring tests are physics-agnostic.** A test that proves "the readout re-renders when the
   domain moves" compares the rendered number with the live domain value at the field's display
   precision, rather than pinning a value that drifts when the engine changes.
+- **Locators:** exact title or role locators (`getByTitle('Open project', {exact: true})`); no
+  hard-coded counts of toolbar buttons or menu rows unless the count is the thing under test.
 
 ## Anti-patterns
 
@@ -80,8 +118,14 @@ Each has a gate test where it can be enforced:
 - A domain value crossing the component boundary.
 - A module with two responsibilities; mutable module scope; casts and `any`.
 - A test file that spans many objects: split it by object.
-- Sibling-feature UI used as setup.
-- Intended coupling is fine only when it is tested as its own contract.
+- Sibling-feature UI used as setup. Intended coupling is fine only when it is tested as its own
+  contract.
+- **A test that defines what it asserts:** logic re-implemented inside the test, or CSS rules
+  written as strings in the test. It tests nothing; import the real module.
+- **A test of a test helper:** asserting a mock factory's own defaults.
+- **The same behaviour pinned twice at the same layer:** keep the stronger test, remove the other.
+- A file named after a layer ("wiring", "logic", "app", "advanced"), a bug, a ticket or a
+  behaviour sentence ("tab-scroll", "blur-must-notify").
 
 ## Naming
 
@@ -89,8 +133,9 @@ A browser spec is named after the component a user would recognise: `box-tab…`
 `signal-tab…`, `tune-panel…`, `options-dialog…`, `driver-editor…`, `new-project-wizard…` and
 so on. There are two skins, so a component that exists in both keeps its skin prefix:
 `original-box-tab…`, `mobile-box-tab…`. The prefix says which skin; the rest says what is
-tested. A component shared by both skins (one `.vue` used by both) carries no prefix. The rename of older files is tracked in
-[docs/plans/PLAN_COMPONENT_TEST_REORG.md](docs/plans/PLAN_COMPONENT_TEST_REORG.md).
+tested. A component shared by both skins (one `.vue` used by both) carries no prefix. Unit
+tests are named after the module or domain object (`useVentGroup.test.ts`, `projectRepo.test.ts`,
+`vent-length.test.ts`).
 
 ## What runs when
 

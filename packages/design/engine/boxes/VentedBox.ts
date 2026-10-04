@@ -48,7 +48,7 @@ export class VentedBox implements BoxModel {
         // does in the branch above (engine/params.ts's own doc: this solve divides by its inputs
         // unguarded, and `classifyFinite` is the net that catches it) — never a throw, so the
         // engine keeps its no-throw contract whether or not a domain guard ran in front of it
-        // (test/engine/hardening.test.ts "the engine's own net still classifies...").
+        // (test/engine/classify-finite.test.ts "the engine's own net still classifies...").
         const Fb = P.Fb ?? NaN;
         const wb = 2 * Math.PI * Fb;
         const Map = 1 / (wb * wb * Cab);

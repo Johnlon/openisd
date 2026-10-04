@@ -14,7 +14,7 @@ import type {DriverRoute} from './SolveRoute.js';
 /**
  * The driver's 54 routes in the order one pass runs them. The order is the data: it decides which
  * route fills a quantity when several could (WinISD's own site order, FINDING-027/028), so a
- * route is never moved without a case in test/driver-solver-characterization.test.ts failing.
+ * route is never moved without a case in test/domain/driver-consistency-solver-golden.test.ts failing.
  */
 export const DRIVER_ROUTES: readonly DriverRoute[] = Object.freeze([
   ...SD_DD_ROUTES,              // 1

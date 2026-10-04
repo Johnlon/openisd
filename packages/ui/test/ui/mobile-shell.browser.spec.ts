@@ -1,18 +1,18 @@
 /**
  * The mobile shell's navigation and empty state — Phase 1 of the mobile-first skin. Each tab's
  * own field behaviour has its own spec file; this one covers routing, the empty state, and that
- * the bottom tab bar shows/hides the right destinations.
+ * the bottom tab bar shows/hides the right destinations. The top bar, splash and New project wizard
+ * are `mobile-topbar`, `mobile-splash` and `mobile-new-project-wizard`.
  *
  * Every test forces the mobile skin via a persisted override (not a narrow viewport) — deciding
- * WHICH skin renders is `mobile-skin-selection.browser.spec.ts`'s job; these specs assume the
+ * WHICH skin renders is `skin-selection.browser.spec.ts`'s job; these specs assume the
  * mobile skin and test what it does once showing.
  */
 import {expect, openAMobileProject, test} from '../fixtures.js';
+import {forceMobileSkin} from '../fixtures/mobileSkin.js';
 
 test.beforeEach(async ({ page }) => {
-  await page.addInitScript(() => {
-    localStorage.setItem('openisd_view', JSON.stringify({ ui: { splashSeen: true, skinOverride: 'mobile' } }));
-  });
+  await forceMobileSkin(page);
 });
 
 test('a cold start with no project shows the empty state with New/Open actions', async ({ page }) => {
@@ -23,6 +23,7 @@ test('a cold start with no project shows the empty state with New/Open actions',
   await expect(page.getByText('New project')).toBeVisible();
   await expect(page.getByText('Open a file')).toBeVisible();
   await expect(page.locator('.mob-tabbar')).toHaveCount(0);
+  await expect(page.locator('.mob-project-title')).toHaveCount(0);
 });
 
 test('opening a project swaps the empty state for the tab bar, defaulting to the Box tab', async ({ page }) => {
@@ -53,49 +54,4 @@ test('the tab bar switches between Box, Driver, Signal and Graph', async ({ page
 
   await page.locator('.mob-tab', { hasText: 'Box' }).click();
   await expect(page.locator('.mob-panel-head').first()).toHaveText('Box');
-});
-
-test('New project from the empty state opens the mobile wizard', async ({ page }) => {
-  await page.goto('/');
-  await page.getByText('New project').click();
-  // MobileNewProject.vue — the phone-width wizard, not the desktop OriginalNewProject modal. Same
-  // useOgNewProject() state, mobile-only presentation (App.vue picks by activeSkin).
-  await expect(page.locator('.mob-np-overlay .mob-np-title')).toContainText('New project');
-});
-
-// Bug (John, live on his phone, 2026-09-29): "openisd button should just open the splash as full
-// width scrolling it as a popup" — SplashModal.vue (shared with desktop) stays a popup, but its
-// backdrop padding and centred width cap are removed on mobile only (App.vue's .app-root-mobile
-// :deep() override), so it spans the phone pane edge-to-edge instead of floating with grey
-// margins on both sides.
-test('About OpenISD (the splash) fills the phone pane edge-to-edge, not a small centred popup', async ({ page }) => {
-  await page.goto('/');
-  await openAMobileProject(page);
-  await page.locator('.mob-hamburger').click();
-  await page.locator('.mob-menu-item', { hasText: 'About OpenISD' }).click();
-
-  const rootBox = await page.locator('.mobile-root').boundingBox();
-  const splashBox = await page.locator('.sp').boundingBox();
-  expect(rootBox).not.toBeNull();
-  expect(splashBox).not.toBeNull();
-  expect(splashBox!.width).toBeGreaterThanOrEqual(rootBox!.width - 1);
-});
-
-// John, 2026-10-01: the top bar shows the focused project's title.
-test('the top bar shows the open project\'s title and follows a rename', async ({ page }) => {
-  await page.goto('/');
-  await expect(page.locator('.mob-project-title')).toHaveCount(0);
-  await openAMobileProject(page);
-  const title = page.locator('.mob-topbar .mob-project-title');
-  await expect(title).not.toHaveText('');
-  await page.evaluate(async (p) => {
-    type AppState = typeof import('../../src/logic/appState.js');
-    function isAppState(m: unknown): m is AppState {
-      return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
-    }
-    const m: unknown = await import(/* @vite-ignore */ p);
-    if (!isAppState(m)) throw new Error('appState module shape mismatch');
-    m.requireFocusedProject().name.set('Living room sub');
-  }, '/src/logic/appState.ts');
-  await expect(title).toHaveText('Living room sub');
 });

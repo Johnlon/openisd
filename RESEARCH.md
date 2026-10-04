@@ -148,7 +148,7 @@ Paths are in `winisd_research/`.
 |---------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------|
 | BUG-002/003/004: crashes and popup loops on an empty driver, the Box tab or a blank PR volume | A missing input leaves dependent fields N, and the sweep returns a named missing-dependency issue instead of values. |
 | BUG-005: figure-of-merit fields read `0` until any edit                                     | The project solves on construction, so derived fields are present on load.                                          |
-| BUG-009: changing Options leaves the open project's air stale                               | `appSettingsChanged()` re-stamps every unstated environment field; entered ones are kept (`environmentalAxioms.test.ts`). |
+| BUG-009: changing Options leaves the open project's air stale                               | `appSettingsChanged()` re-stamps every unstated environment field; entered ones are kept (`domain/project-environment.test.ts`). |
 | FINDING-009: a wiring change rewrites `Re`/`BL` and keeps the E mark                        | Per-coil `Re`/`BL` stay as entered. `Re_terminal_ohm`/`BL_terminal_Tm` are separate calculated fields (`solver.ts`). |
 | Solver modes A and B: contradictions are never shown                                        | Each member of an inconsistent group carries an `inconsistent-inputs` DQ issue.                                     |
 | BUG-007: a decimal comma is dropped                                                         | Not verified. OpenISD uses `<input type="number">`, so comma handling depends on the browser.                      |
@@ -199,9 +199,9 @@ Source: `PROBE_METHOD.md`.
   - The project is then saved.
   - The generator stops at the first scenario WinISD will not answer. It never substitutes an OpenISD value, which would make the test a tautology.
 - **Provenance:** `provenance.json` records the binary's sha256 and the harness commit.
-- **How they are checked:** `winisd-parity-functional.test.ts` runs OpenISD on the same scenarios and diffs field by field.
+- **How they are checked:** `winisd-parity-goldens.test.ts` runs OpenISD on the same scenarios and diffs field by field.
 - **Divergences:** deliberate differences are listed in `divergences.json`.
-- **Limit:** goldens cover field calculations only. WinISD cannot export curves. `engine/golden.test.ts` pins OpenISD's own sweep output exactly, which guards against regressions, not against disagreement with WinISD.
+- **Limit:** goldens cover field calculations only. WinISD cannot export curves. `engine/sweep-golden-master.test.ts` pins OpenISD's own sweep output exactly, which guards against regressions, not against disagreement with WinISD.
 
 ### Oracle tiers
 

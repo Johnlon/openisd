@@ -23,12 +23,6 @@ function prProject(file: string): OpenISDProject {
   return value;
 }
 
-function zmag(p: OpenISDProject): readonly number[] {
-  const {values, issues} = p.sweep({fmin: 20, fmax: 2000, N: 100});
-  if (values === null) throw new Error('sweep refused: ' + JSON.stringify(issues));
-  return values.zmag;
-}
-
 describe('winisdPrNprResonance', () => {
   it('is off in a freshly imported project', () => {
     expect(prProject('pr-w5-npr-1.wpr').winisdPrNprResonance.value).toBe(false);
@@ -38,17 +32,6 @@ describe('winisdPrNprResonance', () => {
     const p = prProject('pr-w5-npr-1.wpr');
     p.applyWinisdSettings();
     expect(p.winisdPrNprResonance.value).toBe(true);
-  });
-
-  it('moves the Npr 2 impedance, and not the Npr 1 one', () => {
-    const two = prProject('pr-w5-npr-1.wpr');
-    const off = zmag(two);
-    two.winisdPrNprResonance.set(true);
-    expect(Math.max(...zmag(two).map((v, i) => Math.abs(v - off[i]!) / off[i]!))).toBeGreaterThan(1e-3);
-    const one = prProject('pr-w5-1.wpr');
-    const offOne = zmag(one);
-    one.winisdPrNprResonance.set(true);
-    expect(zmag(one)).toEqual(offOne);
   });
 
   it('is saved with the project', () => {

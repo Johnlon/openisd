@@ -1,5 +1,5 @@
 /**
- * Expected outputs of `driver-solver-characterization.test.ts`: what `engine.driver.solveValues`
+ * Expected outputs of `driver-consistency-solver-golden.test.ts`: what `engine.driver.solveValues`
  * and `OpenISDDriver.resolve()` returned for each case in `driverSolverCases.ts`, captured once
  * from the solver as it stood before its componentisation
  * (bugs/BUG_20261003_driver-consistency-solver-is-one-925-line-function.md, 2026-10-03). A diff

@@ -9,7 +9,7 @@
  * The engine has one door (`Engine`); a single filter's own response/group delay is read off
  * `SimulationEngine.sweep`'s "(EQ/Filter)" outputs (`fltMag`/`fltPhase`/`fltGd`) at a one-point grid
  * (`fmin === fmax`, `N: 0`) rather than by importing `evalFilter`/`groupDelayAtMs` past the
- * door — the same pattern `complex.test.ts` uses to reach `cTanh` through `SimulationEngine.sweep`.
+ * door — the same pattern `tl-port-model.test.ts` uses to reach `cTanh` through `SimulationEngine.sweep`.
  * `fltGd` IS `groupDelayAtMs(filterChain, f)` (`sweep.ts`), so this is the same computation the
  * brief names, not an approximation of it.
  */

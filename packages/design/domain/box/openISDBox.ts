@@ -504,7 +504,7 @@ export class OpenISDBox implements Box {
      * engine computes the resonance.
      *
      * The FEED is parity-proven, not guessed: the engine test that matches WinISD's own sealed
-     * `Box.Fr` readout bit-for-bit (`winisd-parity-functional.test.ts` "Box.Fr") passes exactly
+     * `Box.Fr` readout bit-for-bit (`winisd-parity-goldens.test.ts` "Box.Fr") passes exactly
      * the driver's stored Vas and `sourceLoadedQts(Qms, Qes, Re, Rg, Qts)` — never the inline
      * compliance reconstruction `Cms·Sd²·ρc²` and never bare `Qts` (Rg alone moves Fsc by 0.040 Hz
      * on the golden scene; `SEALED_FSC_MODEL.md` §5).

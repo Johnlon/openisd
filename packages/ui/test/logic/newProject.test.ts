@@ -20,6 +20,12 @@ import {
 import {presentationState} from '../../src/logic/presentationState.js';
 
 describe('newProject', () => {
+  it('starts with Rg not at the driver side (WinISD default)', () => {
+    newProject();
+
+    expect(focusedProject()!.rgAtDriverSide.value).toBe(false);
+  });
+
   it('adds one project and focuses it', () => {
     const before = openProjects().length;
 

@@ -4,7 +4,7 @@ How the app behaves when the `openisd_my_drivers` browser-storage bucket, or an 
 it, cannot be read. The seam is `packages/persistence/src/repos/myDriverRepo.ts` — the
 one read/write path for the bucket. uuid identity with the rename question, the blocking
 corruption modal, and every failure surface below are pinned by
-`packages/ui/test/persistence/savedLibrary.test.ts` and exercised by
+`packages/persistence/test/myDriverRepo.test.ts` and exercised by
 `my-drivers-failures.browser.spec.ts`.
 
 ## The governing principle

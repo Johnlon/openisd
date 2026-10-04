@@ -80,7 +80,7 @@ describe('the 0xA4 newline sentinel in a .wdr string field', () => {
   });
 });
 
-describe('CP1252 fallback for a .wdr that is not valid UTF-8 (QO62)', () => {
+describe('CP1252 fallback for a .wdr that is not valid UTF-8', () => {
   it('bytes that are not valid UTF-8 decode whole-file as CP1252, and report that encoding', () => {
     // 0x95 bullet, 0xAE (R), 0xB1 +/-, 0xBD 1/2 - none of these is a valid UTF-8 lead or
     // continuation byte in this arrangement, so a strict UTF-8 decode must fail here.
