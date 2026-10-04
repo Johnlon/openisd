@@ -102,9 +102,10 @@ export default defineConfig({
   testDir: './packages/ui/test',
   testMatch: '**/*.browser.spec.ts',
   testIgnore: process.env.OPENISD_EXTERNAL === '1' ? [] : EXTERNAL_NETWORK_SPECS,
-  // Generous on purpose: the suite shares the machine with other agent sessions, and a spec that
-  // is merely slow under load must not fail. A genuinely broken one still fails, a little later.
-  timeout: 30000,
+  // A hang guard, not a pace-setter: 20s is long, but the suite shares the machine with other agent
+  // sessions and a spec that
+  // is merely slow under load must not flicker red. A genuinely hung one still dies here.
+  timeout: 20000,
   expect: {
     timeout: 5000,
   },
