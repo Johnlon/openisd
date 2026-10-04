@@ -42,8 +42,42 @@ case " $* " in
   *vitest*) ARGS+=(--reporter=dot) ;;
 esac
 
-"${ARGS[@]}" >"$LOG" 2>&1
+# Idle watchdog. No limit is put on how long a run or a test may take: a run that keeps writing
+# output is making progress and is left alone. Only a run whose log has not grown for IDLE_LIMIT_S
+# seconds is treated as stuck: every node process in it writes a diagnostic report
+# (build/test-reports/, JS stack and open handles), then the run is stopped.
+IDLE_LIMIT_S="${OPENISD_IDLE_LIMIT_S:-180}"
+node_descendants() {
+  local parent="$1" child
+  for child in $(pgrep -P "$parent"); do
+    [ "$(ps -o comm= -p "$child")" = "node" ] && echo "$child"
+    node_descendants "$child"
+  done
+}
+"${ARGS[@]}" >"$LOG" 2>&1 &
+RUN_PID=$!
+LAST_SIZE=-1
+IDLE_S=0
+STALLED=0
+while kill -0 "$RUN_PID" 2>/dev/null; do
+  sleep 5
+  SIZE=$(stat -c %s "$LOG" 2>/dev/null || echo 0)
+  if [ "$SIZE" = "$LAST_SIZE" ]; then IDLE_S=$((IDLE_S + 5)); else IDLE_S=0; LAST_SIZE="$SIZE"; fi
+  if [ "$IDLE_S" -ge "$IDLE_LIMIT_S" ]; then
+    STALLED=1
+    for NODE_PID in $( [ "$(ps -o comm= -p "$RUN_PID")" = "node" ] && echo "$RUN_PID"; node_descendants "$RUN_PID"); do kill -USR2 "$NODE_PID" 2>/dev/null; done
+    sleep 3
+    pkill -TERM -P "$RUN_PID" 2>/dev/null
+    kill -TERM "$RUN_PID" 2>/dev/null
+    break
+  fi
+done
+wait "$RUN_PID" 2>/dev/null
 CODE=$?
+if [ "$STALLED" = "1" ]; then
+  echo "quiet-test: STALLED — no output for ${IDLE_LIMIT_S}s, run stopped. Node reports (JS stack, open handles): build/test-reports/" >>"$LOG"
+  CODE=124
+fi
 
 # Passing-test traces: vitest verbose/list (✓ / √), playwright list (✓ N [project] ...),
 # describe headers vitest prints under a passing file, and blank lines.

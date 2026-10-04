@@ -104,10 +104,10 @@ export default defineConfig({
   testIgnore: process.env.OPENISD_EXTERNAL === '1' ? [] : EXTERNAL_NETWORK_SPECS,
   // Hang guards, not pace-setters. A passing step returns the moment its condition holds, so a
   // long limit costs nothing on green; it only stops a spec flickering red when the machine is
-  // loaded by other sessions. A genuinely hung step still dies at the limit. The per-step limits
-  // are the real guard: a spec that keeps making progress must not be cut off, so the whole-test
-  // limit is only a far-off backstop above them.
-  timeout: 180000,
+  // loaded by other sessions. A genuinely hung step still dies at the limit. There is NO whole-test
+  // limit (0): a spec that keeps making progress must never be cut off, and a stuck run is caught
+  // by the idle watchdog in scripts/quiet-test.sh instead.
+  timeout: 0,
   expect: {
     timeout: 20000,
   },

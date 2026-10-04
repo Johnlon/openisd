@@ -108,11 +108,15 @@ A test that keeps making progress is never killed. Only a stuck one fails. (John
 - **Playwright:** the per-step limits are the guard. Each `expect`, each action and each
   navigation gets 20 s (`playwright.config.js`). A passing step returns the moment its condition
   holds, so the long limit costs nothing on green; it stops a spec flickering red when other
-  sessions load the machine. A step stuck past 20 s fails and names itself. The whole-test limit
-  (180 s) is a backstop, because Playwright cannot tell progress from a hang.
-- **Vitest:** a per-test limit stays (5 s, or the load-scaled value the pre-commit gate sets),
-  since an `await` that never resolves can only be caught by a timer. The architecture tests run
-  with none: they are synchronous scans, so a timeout there can only mean a busy machine.
+  sessions load the machine. A step stuck past 20 s fails and names itself. There is no
+  whole-test limit (`timeout: 0`): it cannot tell progress from a hang, so it would kill a test
+  that is still moving.
+- **Vitest:** no per-test limit either (`testTimeout: 0`), for the same reason. The pre-commit
+  gate still passes its own load-scaled value (`OPENISD_HEAVY_GATE_TEST_TIMEOUT`).
+- **Stuck runs: the idle watchdog in `scripts/quiet-test.sh`.** A run that keeps writing output is
+  making progress and is left alone. If its log does not grow for 180 s (`OPENISD_IDLE_LIMIT_S`),
+  every node process in it writes a diagnostic report to `build/test-reports/`, the run is
+  stopped, and the exit code is 124 with a `STALLED` line in the log.
 - **Finding what is stuck, not just that something is:**
 
   | Tool                                                            | Use                                                                                                                                                                                        |
