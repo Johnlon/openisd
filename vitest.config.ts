@@ -1,4 +1,5 @@
 import {cpus, loadavg} from 'node:os';
+import {fileURLToPath} from 'node:url';
 import {configDefaults, defineConfig} from 'vitest/config';
 
 // Worker cap for a run started outside the pre-commit hook (the hook passes --maxWorkers from
@@ -22,6 +23,8 @@ const DESIGN_ARCHITECTURE = ['test/architecture*.test.ts', 'test/engine/architec
 // --testTimeout flag: the flag overrides every project, the architecture ones included.
 const heavyGateTimeout = Number(process.env.OPENISD_HEAVY_GATE_TEST_TIMEOUT);
 const TEST_TIMEOUT = Number.isFinite(heavyGateTimeout) && heavyGateTimeout > 0 ? heavyGateTimeout : 5000;
+// Reports where the event loop is blocked (scripts/test-setup/blocked-at.mjs); never fails a test.
+const BLOCKED_AT_SETUP = [fileURLToPath(new URL('./scripts/test-setup/blocked-at.mjs', import.meta.url))];
 const UI_ARCHITECTURE = ['test/ui/architecture*.test.ts', 'test/ui/import-from-declarer-only.test.ts'];
 
 // Dedicated root — must NOT inherit vite.config.js's `root: packages/ui`, or the
@@ -30,7 +33,8 @@ export default defineConfig({
   test: {
     maxWorkers: workerCap(),
     // A SKIP IS A FAIL — see scripts/test-reporters/no-skips-vitest.ts.
-    reporters: ['default', './scripts/test-reporters/no-skips-vitest.ts'],
+    // hanging-process names whatever keeps a finished run from exiting.
+    reporters: ['default', 'hanging-process', './scripts/test-reporters/no-skips-vitest.ts'],
     coverage: {
       provider: 'v8',
       include: [
@@ -57,6 +61,7 @@ export default defineConfig({
         test: {
           name: 'persistence',
           testTimeout: TEST_TIMEOUT,
+          setupFiles: BLOCKED_AT_SETUP,
           root: './packages/persistence',
           environment: 'node',
           include: ['test/**/*.test.{mjs,ts}'],
@@ -66,6 +71,7 @@ export default defineConfig({
         test: {
           name: 'design',
           testTimeout: TEST_TIMEOUT,
+          setupFiles: BLOCKED_AT_SETUP,
           root: './packages/design',
           environment: 'node',
           include: ['test/**/*.test.{mjs,ts}'],
@@ -85,6 +91,7 @@ export default defineConfig({
         test: {
           name: 'ui',
           testTimeout: TEST_TIMEOUT,
+          setupFiles: BLOCKED_AT_SETUP,
           root: './packages/ui',
           environment: 'node',
           include: ['test/**/*.test.{mjs,ts}'],

@@ -24,6 +24,10 @@ MAX="${QUIET_MAX_LINES:-150}"
 # vitest: quiet reporter unless the caller chose one. NOT done for playwright: a CLI --reporter
 # replaces playwright.config.js's reporters, which would switch off the skip-is-a-fail gate and
 # the json/telemetry reporters — playwright output is only grep-filtered below.
+# A hung run can be inspected without killing it: `kill -USR2 <pid>` makes any node process in
+# the run write a diagnostic report (JS stack, open handles) to build/test-reports/.
+mkdir -p build/test-reports
+export NODE_OPTIONS="${NODE_OPTIONS:-} --report-on-signal --report-signal=SIGUSR2 --report-directory=build/test-reports"
 ARGS=("$@")
 case " $* " in
   *vitest*)
