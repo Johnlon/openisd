@@ -310,7 +310,7 @@ export class OpenISDProject {
         return ProjectAdvanced.wrap(this.#slot('advanced'), this.#slot('filters')).winisdWrapPhase;
     }
 
-    /** WinISD Compatibility "Enable WinISD style per-driver boxes" — see `ProjectAdvanced.winisdDriverCountModel`. */
+    /** WinISD Compatibility "Enable WinISD per-driver boxes bug" — see `ProjectAdvanced.winisdDriverCountModel`. */
     get winisdDriverCountModel(): SimpleField<boolean> {
         return ProjectAdvanced.wrap(this.#slot('advanced'), this.#slot('filters')).winisdDriverCountModel;
     }
@@ -344,6 +344,8 @@ export class OpenISDProject {
             winisdVaModel: this.winisdVaModel.value,
             winisdPrNprResonance: this.winisdPrNprResonance.value,
             winisdBesselHighpass: this.winisdBesselHighpass.value,
+            winisdDriverCountModel: this.winisdDriverCountModel.value,
+            nDrivers: this.nDrivers.value,
             hasBesselHighpass: this.filters.value.some(f => f.type === 'highpass' && f.family === 'bessel' && f.enabled),
         });
     }

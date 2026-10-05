@@ -54,6 +54,27 @@ describe('errorSwitches', () => {
     expect(p.errorSwitches.prNprResonance).toEqual({marked: true, applicable: true, reproducesError: true});
   });
 
+  it('per-driver boxes: marked, applicable with more than one driver only, reproducing the bug only when ticked', () => {
+    const p = abcProject();
+    p.nDrivers.set(1);
+    expect(p.errorSwitches.driverCount).toEqual({marked: true, applicable: false, reproducesError: false});
+    p.nDrivers.set(2);
+    expect(p.errorSwitches.driverCount).toEqual({marked: true, applicable: true, reproducesError: false});
+    p.winisdDriverCountModel.set(true);
+    expect(p.errorSwitches.driverCount).toEqual({marked: true, applicable: true, reproducesError: true});
+  });
+
+  it('per-driver boxes: the deviation cue is in effect with more than one driver while the switch is off', () => {
+    const p = abcProject();
+    p.nDrivers.set(1);
+    expect(WinisdDeviation.DRIVER_COUNT.inEffect(p.errorSwitches)).toBe(false);
+    p.nDrivers.set(2);
+    expect(WinisdDeviation.DRIVER_COUNT.inEffect(p.errorSwitches)).toBe(true);
+    expect(WinisdDeviation.DRIVER_COUNT.remedy).toMatch(/"Enable WinISD per-driver boxes bug"/);
+    p.winisdDriverCountModel.set(true);
+    expect(WinisdDeviation.DRIVER_COUNT.inEffect(p.errorSwitches)).toBe(false);
+  });
+
   it('loss model: not an error switch, whatever the box and model', () => {
     const p = abcProject();
     p.box.boxType.set('box-passive-radiator');
@@ -71,7 +92,7 @@ describe('WinISD deviation cues', () => {
       expect(d.size.length, d.title).toBeGreaterThan(0);
       expect(d.remedy.length, d.title).toBeGreaterThan(0);
     }
-    expect(WinisdDeviation.ALL).toEqual([WinisdDeviation.DRIVER_MODEL, WinisdDeviation.VA_MODEL, WinisdDeviation.PR_NPR_RESONANCE]);
+    expect(WinisdDeviation.ALL).toEqual([WinisdDeviation.DRIVER_MODEL, WinisdDeviation.VA_MODEL, WinisdDeviation.PR_NPR_RESONANCE, WinisdDeviation.DRIVER_COUNT]);
     expect(WinisdFilterDeviation.ALL).toEqual([WinisdFilterDeviation.ALLPASS_ORDER, WinisdFilterDeviation.LINKWITZ_RILEY_ORDER, WinisdFilterDeviation.BESSEL_HIGHPASS]);
     expect(WinisdFilterDeviation.BESSEL_HIGHPASS.remedy).toMatch(/"Enable WinISD Bessel high-pass bug"/);
     expect(WinisdFilterDeviation.ALLPASS_ORDER.remedy).toMatch(/no switch/);

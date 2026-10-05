@@ -20,6 +20,9 @@ export interface ErrorSwitchStates {
     readonly prNprResonance: ErrorSwitchState;
     /** WinISD Bessel high-pass: not the mirror of the Bessel low-pass. */
     readonly besselHighpass: ErrorSwitchState;
+    /** WinISD per-driver boxes: N drivers as N one-driver boxes, so impedance and VA show one
+     *  driver's load. */
+    readonly driverCount: ErrorSwitchState;
 }
 
 export interface ErrorSwitchInputs {
@@ -28,6 +31,9 @@ export interface ErrorSwitchInputs {
     readonly winisdVaModel: boolean;
     readonly winisdPrNprResonance: boolean;
     readonly winisdBesselHighpass: boolean;
+    readonly winisdDriverCountModel: boolean;
+    /** The number of drivers in the box. */
+    readonly nDrivers: number;
     /** The project has at least one enabled Bessel high-pass filter. */
     readonly hasBesselHighpass: boolean;
 }
@@ -38,5 +44,6 @@ export function errorSwitchStatesOf(i: ErrorSwitchInputs): ErrorSwitchStates {
         vaModel: {marked: true, applicable: true, reproducesError: i.winisdVaModel},
         besselHighpass: {marked: true, applicable: i.hasBesselHighpass, reproducesError: i.winisdBesselHighpass},
         prNprResonance: {marked: true, applicable: i.boxType === 'box-passive-radiator', reproducesError: i.winisdPrNprResonance},
+        driverCount: {marked: true, applicable: i.nDrivers > 1, reproducesError: i.winisdDriverCountModel},
     };
 }

@@ -9,16 +9,16 @@ import {sealedProject} from '../fixtures/domainBuilders.js';
 import {createEngine} from '../../engine/index.js';
 
 describe('CompatSwitch', () => {
-  it('lists the four WinISD bugs and the four options', () => {
+  it('lists the five WinISD bugs and the three options', () => {
     expect(CompatSwitch.BUGS.map(s => s.field.label)).toEqual([
       'Enable WinISD two-BL driver bug',
       'Enable WinISD VA model bug',
       'Enable WinISD PR Npr resonance bug',
       'Enable WinISD Bessel high-pass bug',
+      'Enable WinISD per-driver boxes bug',
     ]);
     expect(CompatSwitch.OPTIONS.map(s => s.field.label)).toEqual([
       'Enable WinISD style phase wrapping',
-      'Enable WinISD style per-driver boxes',
       'Enable WinISD style uncapped flat response',
       'Enable WinISD style simplified ABC intra-port velocity',
     ]);

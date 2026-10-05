@@ -184,7 +184,7 @@ export abstract class BoxProjectBuilder {
                 winisdDriverModel: false,
                 winisdVaModel: false,
                 winisdWrapPhase: true,
-                winisdDriverCountModel: true,
+                winisdDriverCountModel: false,
                 winisdFlatModel: true,
             },
             charts: {},

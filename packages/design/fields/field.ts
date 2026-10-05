@@ -1317,16 +1317,17 @@ export class ToggleField extends Field {
     description: "Enable WinISD Bessel high-pass bug: affects Bessel high-pass filters in the EQ/Filter chain only; Butterworth, Linkwitz-Riley, SOS and every low-pass are unchanged, and so is a first-order Bessel.\nTicked (as WinISD): the high-pass keeps the low-pass's own denominator with the numerator swapped to (k·s)^n. That is not the mirror of the Bessel low-pass (order 4, fc 25 Hz: up to 6 % off in complex response).\nUnticked (the default, bug fixed): the mirror of the low-pass, s → 1/s.",
   });
 
+  static readonly ADV_WINISDDRIVERCOUNTMODEL = new ToggleField({
+    value: "adv_WinisdDriverCountModel",
+    label: "Enable WinISD per-driver boxes bug",
+    description: "Enable WinISD per-driver boxes bug: affects designs with more than one driver.\nTicked (as WinISD): N drivers are N copies of one driver, each in Vb/N with 1/N of the port, each fed P/N. The impedance and amplifier VA charts show one driver's load, not the array the amplifier drives; SPL is one driver's + 10·log10(N).\nUnticked (the default, bug fixed): the N voice coils are wired, in parallel or series as the project says, into one load the amplifier sees.",
+  });
+
   // ── WinISD Compatibility: options ("Enable WinISD style <name>"; ticked is WinISD's way) ──────
   static readonly ADV_WINISDWRAPPHASE = new ToggleField({
     value: "adv_WinisdWrapPhase",
     label: "Enable WinISD style phase wrapping",
     description: "Enable WinISD style phase wrapping: affects every phase chart.\nTicked (the default, as WinISD): phase curves wrap at ±180°.\nUnticked: phase curves stay continuous and unwrapped.",
-  });
-  static readonly ADV_WINISDDRIVERCOUNTMODEL = new ToggleField({
-    value: "adv_WinisdDriverCountModel",
-    label: "Enable WinISD style per-driver boxes",
-    description: "Enable WinISD style per-driver boxes: affects designs with more than one driver.\nTicked (the default, as WinISD): N drivers are N copies of one driver, each in Vb/N with 1/N of the port, each fed P/N. Impedance is one driver's; SPL is one driver's + 10·log10(N); maximum power is N times one driver's.\nUnticked: the N voice coils are wired, in parallel or series, into one load the amplifier sees.",
   });
   static readonly ADV_WINISDFLATMODEL = new ToggleField({
     value: "adv_WinisdFlatModel",

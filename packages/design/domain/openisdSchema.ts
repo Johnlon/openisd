@@ -756,8 +756,8 @@ const openISDAdvancedJsonSchema = z.preprocess(renameLegacyWinisdDriverModel, z.
     winisdBesselHighpass: z.boolean().optional(),
     // "Enable WinISD style phase wrapping": wraps phase curves to [-180°, +180°]. Optional: absent parses to ON.
     winisdWrapPhase: z.boolean().optional(),
-    // "Enable WinISD style per-driver boxes": N drivers as WinISD simulates them, each in Vb/N fed P/N; off, the N
-    // coils wired into one terminal impedance. Optional: absent parses to ON.
+    // Bug switch "Enable WinISD per-driver boxes bug": N drivers as WinISD simulates them, each in Vb/N fed P/N; off, the N
+    // coils wired into one terminal impedance. Absent parses to OFF.
     winisdDriverCountModel: z.boolean().optional(),
     // "Enable WinISD style uncapped flat response": force flat as WinISD does it, every point to the TF 0 dB, uncapped;
     // off, boost only to the passband reference, capped. Optional: absent parses to ON.

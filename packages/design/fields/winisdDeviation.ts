@@ -101,6 +101,14 @@ export class WinisdDeviation {
     charts: [],
   });
 
+  static readonly DRIVER_COUNT = new WinisdDeviation({
+    title: 'WinISD simulates each driver alone',
+    explanation: 'With more than one driver, WinISD simulates N copies of one driver, each in Vb/N fed P/N, so its impedance and amplifier VA charts show one driver\'s load, not the array the amplifier drives. OpenISD wires the N voice coils, in parallel or series as the project says, into one load.',
+    size: 'Two 4 Ω drivers in parallel: WinISD shows about 4 Ω where the amplifier sees about 2 Ω; in series, about 8 Ω.',
+    fix: {kind: 'errorSwitch', switchLabel: ToggleField.ADV_WINISDDRIVERCOUNTMODEL.label, switchOf: s => s.driverCount},
+    charts: [],
+  });
+
   /** The project-wide members, by reflection; declared last. */
   static readonly ALL: readonly WinisdDeviation[] =
     Object.freeze(Object.values(WinisdDeviation).filter((v): v is WinisdDeviation => v instanceof WinisdDeviation));

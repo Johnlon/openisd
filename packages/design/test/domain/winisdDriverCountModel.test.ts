@@ -19,8 +19,8 @@ const w5 = (): OpenISDProject => {
 const at = (f: number): FrequencyGrid => ({fmin: f, fmax: f * 1.0001, N: 1});
 
 describe('winisdDriverCountModel', () => {
-  it('defaults on', () => {
-    expect(w5().winisdDriverCountModel.value).toBe(true);
+  it('defaults off: WinISD\'s per-driver boxes are a WinISD bug, fixed by default (John, 2026-10-05)', () => {
+    expect(w5().winisdDriverCountModel.value).toBe(false);
   });
 
   it('off: two drivers in series show four times the parallel impedance at high frequency', () => {
@@ -36,9 +36,9 @@ describe('winisdDriverCountModel', () => {
 
   it('is saved in the project and read back', () => {
     const p = w5();
-    p.winisdDriverCountModel.set(false);
+    p.winisdDriverCountModel.set(true);
     const back = OpenISDProject.fromOwprText(p.toOwprText(), engine);
     if (Array.isArray(back)) throw new Error('fromOwprText returned problems: ' + back.join(', '));
-    expect(back.winisdDriverCountModel.value).toBe(false);
+    expect(back.winisdDriverCountModel.value).toBe(true);
   });
 });

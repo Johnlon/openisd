@@ -21,9 +21,9 @@ export class CompatSwitch {
     static readonly VA_MODEL = new CompatSwitch(ToggleField.ADV_WINISDVAMODEL, 'bug', p => p.winisdVaModel);
     static readonly PR_NPR_RESONANCE = new CompatSwitch(ToggleField.ADV_WINISDPRNPRRESONANCE, 'bug', p => p.winisdPrNprResonance);
     static readonly BESSEL_HIGHPASS = new CompatSwitch(ToggleField.ADV_WINISDBESSELHIGHPASS, 'bug', p => p.winisdBesselHighpass);
+    static readonly DRIVER_COUNT = new CompatSwitch(ToggleField.ADV_WINISDDRIVERCOUNTMODEL, 'bug', p => p.winisdDriverCountModel);
 
     static readonly WRAP_PHASE = new CompatSwitch(ToggleField.ADV_WINISDWRAPPHASE, 'option', p => p.winisdWrapPhase);
-    static readonly DRIVER_COUNT = new CompatSwitch(ToggleField.ADV_WINISDDRIVERCOUNTMODEL, 'option', p => p.winisdDriverCountModel);
     static readonly FLAT_MODEL = new CompatSwitch(ToggleField.ADV_WINISDFLATMODEL, 'option', p => p.winisdFlatModel);
     static readonly ABC_INTRA_PORT_VELOCITY = new CompatSwitch(ToggleField.ADV_WINISDABCINTRAPORTVELOCITY, 'option', p => p.winisdAbcIntraPortVelocity);
 
