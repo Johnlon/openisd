@@ -9200,7 +9200,7 @@ questions:
     text: 'Done: the Open dialog lists saved browser projects with Import from disk at the top (OriginalShell.vue open-project-dialog). Closed by agent (engine) on John''s instruction.'
 - id: QO139
   title: Saved projects keep hidden selectable version history
-  status: open
+  status: decided
   raised: '2026-09-13'
   body: ''
   notes:
@@ -9215,6 +9215,8 @@ questions:
       an old version makes it the focused project; editing and saving it may make that revised version
       the head. No delete controls for history entries. Example: Project A expands to dated selectable
       entries; Project B has no history.'
+  - at: '2026-10-05'
+    text: 'John closed it: the saved-project version-history plan is dropped, not to be implemented.'
 - id: QO140
   title: Choose the W5 sealed comparison Vas source
   status: decided
