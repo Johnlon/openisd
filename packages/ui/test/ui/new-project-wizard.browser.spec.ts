@@ -37,7 +37,7 @@ function footer(page: Page) {
 }
 
 function footerNext(page: Page) {
-  return footer(page).getByRole('button', { name: 'Next >' });
+  return footer(page).getByRole('button', { name: 'Next', exact: true });
 }
 
 /** Background colour of a footer button; the lead is green-dominant, the others grey. */
@@ -98,7 +98,7 @@ test.describe('New Project wizard', () => {
       await openWizard(page);
       const modal = page.locator('.overlay.open');
       await expect(modal.locator('.modal-footer')).toHaveCount(1);
-      await expect(footer(page).getByRole('button', { name: '< Back' })).toBeDisabled();
+      await expect(footer(page).getByRole('button', { name: 'Back', exact: true })).toBeDisabled();
       await expect(footerNext(page)).toBeDisabled();
       await modal.locator('.dlist .ditem', { hasText: 'Wizard Test RS225' }).first().click();
       await expect(footerNext(page)).toBeEnabled();
@@ -110,7 +110,7 @@ test.describe('New Project wizard', () => {
 
       await footerNext(page).click();
       await expect(modal.locator('.np-step')).toContainText('Step 2 of 5');
-      await expect(footer(page).getByRole('button', { name: '< Back' })).toBeEnabled();
+      await expect(footer(page).getByRole('button', { name: 'Back', exact: true })).toBeEnabled();
       expect(await background(footerNext(page))).toMatch(GREEN_FILL);
     });
 
@@ -123,7 +123,7 @@ test.describe('New Project wizard', () => {
       await modal.locator('#np-box-type').selectOption('vented');
       await footerNext(page).click();                           // step 4: vented alignment
       await expect(modal.locator('.np-step')).toContainText('Step 4 of 5');
-      await footer(page).getByRole('button', { name: '< Back' }).click();
+      await footer(page).getByRole('button', { name: 'Back', exact: true }).click();
       await expect(modal.locator('.np-step')).toContainText('Step 3 of 5');
       await expect(modal.locator('#np-box-type')).toHaveValue('vented');
       await expect(modal.locator('.selected-driver-banner')).toContainText('Wizard Test RS225');

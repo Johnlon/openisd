@@ -19,6 +19,8 @@ import {
   FACTORY_ENV_DEFAULTS,
   FACTORY_VENTED_LIMITS,
   setEnvDefaults as setAppEnvDefaults,
+  differenceCuesShown as appDifferenceCuesShown,
+  setDifferenceCuesShown as setAppDifferenceCuesShown,
   setVentedLimits as setAppVentedLimits,
   ventedLimits as appVentedLimits,
 } from '../logic/appState.js';
@@ -30,6 +32,8 @@ export interface OptionsModalDeps {
   setVentedLimits(limits: VentedDesignLimits): void;
   envDefaults(): EnvDefaults;
   setEnvDefaults(defaults: EnvDefaults): void;
+  differenceCuesShown(): boolean;
+  setDifferenceCuesShown(shown: boolean): void;
   /** The air readout's calculator — the environment area, not the whole engine. */
   environment: EnvironmentEngine;
 }
@@ -77,6 +81,8 @@ export interface OptionsModalAPI {
   readonly tempK: Ref<number>;
   readonly humidityPct: Ref<number>;
   readonly pressurePa: Ref<number>;
+  /** "Show WinISD difference markers (≠W)" being edited. Editing it writes nothing. */
+  readonly differenceCuesShown: Ref<boolean>;
   /** The Plot Window frequency-range draft (Start/End, Hz) and its setter — validated by
    *  the same OK that applies the settings. */
   readonly freqRangeDraft: Ref<{fmin: number | string; fmax: number | string}>;
@@ -96,7 +102,9 @@ export interface OptionsModalAPI {
   resetLimits(): void;
   /** Put the factory environment in the draft. Writes nothing. */
   resetEnv(): void;
-  /** Write the draft — both settings — and through them recall every open project. Writes
+  /** Put the factory "shown" in the markers draft. Writes nothing. */
+  resetDifferenceCues(): void;
+  /** Write the draft — every setting — and through them recall every open project. Writes
    *  nothing at all while `error` is set. */
   apply(): void;
 }
@@ -116,6 +124,8 @@ export function useOptionsModal(deps?: OptionsModalDeps): OptionsModalAPI {
     setVentedLimits: setAppVentedLimits,
     envDefaults: appEnvDefaults,
     setEnvDefaults: setAppEnvDefaults,
+    differenceCuesShown: appDifferenceCuesShown,
+    setDifferenceCuesShown: setAppDifferenceCuesShown,
     environment: useApp().engine.environment,
   };
 
@@ -129,6 +139,8 @@ export function useOptionsModal(deps?: OptionsModalDeps): OptionsModalAPI {
   const tempK = ref(env.tempK);
   const humidityPct = ref(env.humidityPct);
   const pressurePa = ref(env.pressurePa);
+
+  const differenceCuesShown = ref(settings.differenceCuesShown());
 
   /** The Plot Window frequency-range draft. Lives here rather than in the .vue so its
    *  validation gates the same OK that applies the settings. */
@@ -219,17 +231,22 @@ export function useOptionsModal(deps?: OptionsModalDeps): OptionsModalAPI {
     pressurePa.value = FACTORY_ENV_DEFAULTS.pressurePa;
   }
 
+  function resetDifferenceCues(): void {
+    differenceCuesShown.value = true;
+  }
+
   function apply(): void {
     if (!canApply.value) return;
+    settings.setDifferenceCuesShown(differenceCuesShown.value);
     settings.setEnvDefaults(editedEnv.value);
     settings.setVentedLimits(editedBand.value);
   }
 
   return {
     minVolume_m3, maxVolume_m3, minTuning_hz, maxTuning_hz,
-    tempK, humidityPct, pressurePa,
+    tempK, humidityPct, pressurePa, differenceCuesShown,
     freqRangeDraft, setFreqRange,
     error, canApply, limitsAreFactory, envIsFactory, defaultAir,
-    resetLimits, resetEnv, apply,
+    resetLimits, resetEnv, resetDifferenceCues, apply,
   };
 }

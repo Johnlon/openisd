@@ -22,24 +22,24 @@ test.beforeEach(async ({ page }) => {
 test('step 1 has one footer, in the list and in the driver preview: Next and Cancel, no Use', async ({ page }) => {
   const footer = page.locator('.mob-np-footer');
   await expect(footer.getByText('Cancel', { exact: true })).toBeVisible();
-  await expect(footer.getByText('Next >')).toBeDisabled();   // nothing chosen or being read yet
+  await expect(footer.getByText('Next', {exact: true})).toBeDisabled();   // nothing chosen or being read yet
   await page.getByText(TEST_DRIVER).click();
   await expect(footer.getByText('Cancel', { exact: true })).toBeVisible();
-  await expect(footer.getByText('Next >')).toBeEnabled();
+  await expect(footer.getByText('Next', {exact: true})).toBeEnabled();
   await expect(page.locator('.prev-footer')).toHaveCount(0);   // the preview's own Use/Cancel pair is gone
   await expect(page.getByText('Use', { exact: true })).toHaveCount(0);
 });
 
 test('Next chooses the driver being read and advances to step 2 with the footer intact', async ({ page }) => {
   await page.getByText(TEST_DRIVER).click();
-  await page.locator('.mob-np-footer').getByText('Next >').click();
+  await page.locator('.mob-np-footer').getByText('Next', {exact: true}).click();
   await expect(page.locator('.np-step')).toContainText('Step 2 of 5');
-  await expect(page.locator('.mob-np-footer').getByText('< Back')).toBeVisible();
+  await expect(page.locator('.mob-np-footer').getByText('Back', {exact: true})).toBeVisible();
 });
 
 test('Next is green', async ({ page }) => {
   await page.getByText(TEST_DRIVER).click();
-  const bg = await page.locator('.mob-np-footer').getByText('Next >').evaluate(el => getComputedStyle(el).backgroundColor);
+  const bg = await page.locator('.mob-np-footer').getByText('Next', {exact: true}).evaluate(el => getComputedStyle(el).backgroundColor);
   expect(bg).not.toBe('rgb(240, 240, 240)');
   expect(bg).toMatch(/^rgb\(\d+, (1[0-9]{2}|[2-9][0-9]), \d+\)$/);   // a green-dominant fill
 });

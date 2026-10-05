@@ -1,7 +1,14 @@
-import type {InjectionKey, ShallowRef} from 'vue';
-import {inject, provide, shallowRef} from 'vue';
+import type {ComputedRef, InjectionKey, ShallowRef} from 'vue';
+import {computed, inject, provide, shallowRef} from 'vue';
 import type {CompatSwitchGroup, WinisdDeviation} from '@openisd/design/fields';
 import {WinisdDifference, WinisdDifferenceSection} from '@openisd/design/fields';
+import {differenceCuesShown as appDifferenceCuesShown} from '../logic/appState.js';
+
+/** The app setting this hook reads — `appState`'s by default, a substitute in a test. */
+export interface WinisdDifferencesModalDeps {
+  /** Options → General "Show WinISD difference markers (≠W)". Reactive. */
+  differenceCuesShown(): boolean;
+}
 
 /** Where the page opens: a section, an entry, or (null) the top. */
 export type WinisdDifferencesTarget = WinisdDifference | WinisdDifferenceSection;
@@ -18,6 +25,8 @@ export interface WinisdDifferencesModalAPI {
   /** A ≠W cue: the page at the cue's entry. */
   showDeviation(d: WinisdDeviation): void;
   close(): void;
+  /** Every ≠W cue renders: the app setting is on. Where each cue sits is its own caller's rule. */
+  readonly cuesShown: ComputedRef<boolean>;
 }
 
 export const WinisdDifferencesModalKey: InjectionKey<WinisdDifferencesModalAPI> = Symbol('WinisdDifferencesModalAPI');
@@ -26,7 +35,9 @@ export const WinisdDifferencesModalKey: InjectionKey<WinisdDifferencesModalAPI> 
  * The help page "OpenISD and WinISD differences". Shallow refs: the entries are design-layer
  * class instances with private fields, which a deep reactive proxy cannot read.
  */
-export function useWinisdDifferencesModal(): WinisdDifferencesModalAPI {
+export function useWinisdDifferencesModal(
+  deps: WinisdDifferencesModalDeps = {differenceCuesShown: appDifferenceCuesShown},
+): WinisdDifferencesModalAPI {
   const open = shallowRef(false);
   const target = shallowRef<WinisdDifferencesTarget | null>(null);
 
@@ -43,6 +54,7 @@ export function useWinisdDifferencesModal(): WinisdDifferencesModalAPI {
     showGroup: g => openAt(WinisdDifferenceSection.forGroup(g)),
     showDeviation: d => openAt(WinisdDifference.forDeviation(d)),
     close: () => { open.value = false; target.value = null; },
+    cuesShown: computed(() => deps.differenceCuesShown()),
   };
 }
 

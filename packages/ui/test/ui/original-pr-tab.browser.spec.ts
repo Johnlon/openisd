@@ -163,13 +163,24 @@ test.describe('Original Passive Radiator tab', () => {
       expect(stored.count).toBe(2);
     });
 
-    // John, 2026-10-05: "PR Vas is disconnected" — a Vas typed on the page must reach the response.
-    test('a Vas typed on the PR page moves the Box tab Fh and the SPL curve', async ({page}) => {
-      await setFocusedBoxType(page, 'box-passive-radiator');
+    // John, 2026-10-05: "PR Vas is disconnected" — a project made by the New Project wizard with
+    // the ND140-PR kept the radiator's catalogue Mms and Cms, so a Vas typed on the page moved nothing.
+    test('a Vas typed on the PR page of a wizard-made ND140-PR project moves Fpr with mass, Fh and the SPL curve', async ({page}) => {
+      await page.locator('.tb-btn[title*="New project"]').click();
+      const wizard = page.locator('.overlay.open');
+      const next = wizard.locator('.modal-footer').getByRole('button', { name: 'Next', exact: true });
+      await wizard.locator('.dlist .ditem').first().click();
+      await next.click();                                        // driver chosen: step 2
+      await next.click();                                        // step 3: box type
+      await wizard.locator('.field', { hasText: 'Box type' }).locator('select').selectOption('box-passive-radiator');
+      await next.click();                                        // step 4: the radiator
+      await wizard.locator('#np-pr-select').click();
+      await page.locator('.pr-lib-item .pr-lib-name', { hasText: 'ND140-PR' }).first().click();
+      await next.click();
+      await wizard.locator('input[type="text"]').fill('ND140-PR from the wizard');
+      await wizard.locator('button', { hasText: 'Create' }).click();
       await page.locator('.project-nav li', {hasText: 'Passive Radiator'}).click();
-      await page.locator('button.edit-btn', { hasText: 'Select passive radiator' }).click();
-      await page.locator('.modal .pr-lib-item .pr-lib-name', { hasText: 'ND140-PR' }).first().click();
-      await expect(page.locator('.pr-lib')).toHaveCount(0);
+      await expect(page.locator('#og-pr-fs')).toHaveValue(/44\./);
       await fillAndCommit(page.locator('#og-pr-madd'), '20');
 
       const readFh = async () => {

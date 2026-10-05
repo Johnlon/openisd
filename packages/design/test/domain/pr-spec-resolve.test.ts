@@ -48,6 +48,28 @@ describe('radiator Mms, Cms and Rms are calculated', () => {
     }
   });
 
+  // John, 2026-10-05: "PR Vas is disconnected" — the New Project wizard builds the project through
+  // ProjectBuilder.radiator(); a catalogue radiator (ND140-PR) also states Mms and Cms, and those
+  // must not freeze the radiator against a later Vas, Fs, Qms or Sd edit.
+  it('a project built with a radiator stating Mms, Cms and Rms lets the four drive them', () => {
+    const engine = createEngine();
+    const driver = driverFromSpec(engine, {
+      Fs_hz: 30, Qes: 0.4, Qms: 4, Qts: 1 / (1 / 4 + 1 / 0.4), Re_ohm: 6.4,
+      Sd_m2: 0.02, Cms_m_per_N: 0.0005, Vas_m3: 0.05, BL_Tm: 8, Mms_kg: 0.05, Xmax_m: 0.008, Pe_W: 100,
+    });
+    const nd140 = radiatorFromSpec(engine, {
+      Fs_hz: 44.2, Qms: 4.02, Vas_m3: 0.0084, Sd_m2: 0.00866, Mms_kg: 0.0164, Cms_m_per_N: 0.00079, Xmax_m: 0.009,
+    });
+    const project = new ProjectBuilder(driver, engine).passiveRadiator().volume_m3(0.01).radiator(nd140).build();
+    const pr = project.box.passiveRadiator;
+    const grid = {fmin: 10, fmax: 1000, N: 50};
+    const cms = pr.radiator.spec.Cms_m_per_N.value;
+    const plan = JSON.stringify(project.sweepPlan(grid));
+    pr.radiator.spec.Vas_m3.set(0.02);
+    expect(pr.radiator.spec.Cms_m_per_N.value).not.toBe(cms);
+    expect(JSON.stringify(project.sweepPlan(grid))).not.toBe(plan);
+  });
+
   it('a record stating only Mms, Cms and Rms keeps them entered and derives Fs', () => {
     const spec = prProject(createEngine(), {Mms_kg: 0.05, Cms_m_per_N: 0.0005, Sd_m2: 0.02}).box.passiveRadiator.radiator.spec;
     expect(spec.Mms_kg.entered).toBe(true);

@@ -4,16 +4,17 @@
 // WinISD differences" centred in the window at this deviation's entry (John, 2026-10-05: a popup
 // beside the cue made the page scroll). Its tooltip stays short: the page carries the detail. The
 // design package decides what it says (`WinisdDeviation`) and whether it shows (the caller's
-// hook); this component only renders it.
+// hook); the app setting "Show WinISD difference markers (≠W)" hides every cue (`cuesShown`).
+// This component only renders it.
 import type {WinisdDeviation} from '@openisd/design/fields';
 import {injectWinisdDifferencesModal} from '../../hooks/WinisdDifferencesModal-hooks.js';
 
 const props = defineProps<{ deviation: WinisdDeviation }>();
-const {showDeviation} = injectWinisdDifferencesModal();
+const {showDeviation, cuesShown} = injectWinisdDifferencesModal();
 </script>
 
 <template>
-  <span class="winisd-deviation">
+  <span v-if="cuesShown" class="winisd-deviation">
     <button type="button" class="winisd-deviation-cue" aria-haspopup="dialog" :aria-label="`Differs from WinISD: ${props.deviation.title}`"
             :title="`Differs from WinISD: ${props.deviation.title}`" @click.stop="showDeviation(props.deviation)">≠W</button>
   </span>

@@ -9,6 +9,8 @@
 //                      edited through `OptionsModal-hooks.ts`: a project reads it for any of the
 //                      three it has not entered itself, as a calculated value; a project's own
 //                      entered value is never touched by editing this.
+//   WinISD differences — "Show WinISD difference markers (≠W)": an app setting, same hook and
+//                      repo; unticked hides every ≠W cue (John, 2026-10-05: default show).
 //   Vented design limits — the band a designed vented box is judged plausible against. Same
 //                      hook, same app settings repo. OpenISD's own, no WinISD counterpart.
 //   Units           — WinISD's own "Reset to Metric (l, mm, …)" button: a one-click GLOBAL
@@ -83,6 +85,7 @@ async function onBackupFile(e: Event) {
 // (BUG_20261001 options-frequency-range-unvalidated-empty-inverted).
 const {
   tempK, humidityPct, pressurePa, defaultAir, envIsFactory, resetEnv,
+  differenceCuesShown, resetDifferenceCues,
   minVolume_m3, maxVolume_m3, minTuning_hz, maxTuning_hz, error: limitsError, limitsAreFactory, resetLimits,
   setFreqRange,
   canApply, apply: applyAppSettings,
@@ -121,6 +124,7 @@ function restoreDefaults() {
   draft.username = '';
   resetEnv();
   resetLimits();
+  resetDifferenceCues();
   draft.chartColors = {};
   draft.unitTokens = {};
   draft.yRanges = {};
@@ -308,6 +312,14 @@ function limitVal(chartId: ChartId, key: 'min' | 'max'): number | undefined {
             <div class="opt-group-actions">
               <button class="opt-reset-btn" data-testid="settings-reset" :disabled="limitsAreFactory" title="Back to the built-in limits. Only this fieldset is affected." @click="resetLimits">Reset to defaults</button>
             </div>
+          </fieldset>
+
+          <fieldset class="opt-group">
+            <legend>WinISD differences</legend>
+            <label class="opt-check-label" data-testid="difference-cues" title="Ticked (the default): a ≠W marker sits by every control and chart whose result differs from WinISD's, and opens the page that explains it. Unticked: no markers; the page stays in the Info menu.">
+              <input type="checkbox" v-model="differenceCuesShown" />
+              Show WinISD difference markers (≠W)
+            </label>
           </fieldset>
 
           <fieldset class="opt-group">

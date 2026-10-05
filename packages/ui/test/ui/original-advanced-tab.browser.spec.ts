@@ -358,12 +358,31 @@ test.describe('Original Advanced tab', () => {
       await expect(cue).toHaveCount(0);
     });
 
-    test('the passive-radiator count carries the ≠W cue while "PR Npr resonance" is off', async ({ page }) => {
+    test('the passive-radiator count carries the ≠W cue at any count while "PR Npr resonance" is off', async ({ page }) => {
       await showAdvancedOn(page, 'box-passive-radiator');
-      const cue = page.locator('.field', { has: page.locator('#og-pr-count') }).locator('.winisd-deviation-cue');
+      const count = page.locator('#og-pr-count');
+      const cue = page.locator('.field', { has: count }).locator('.winisd-deviation-cue');
+      await count.selectOption('1');
+      await expect(cue).toHaveCount(1);
+      await count.selectOption('2');
       await expect(cue).toHaveCount(1);
       await page.locator('[data-field-key="winisdPrNprResonance"] input').check();
       await expect(cue).toHaveCount(0);
+    });
+
+    test('Options "Show WinISD difference markers (≠W)" hides every cue, and ticking it brings them back', async ({ page }) => {
+      await showAdvancedOn(page, 'box-passive-radiator');
+      const cue = page.locator('.field', { has: page.locator('#og-pr-count') }).locator('.winisd-deviation-cue');
+      await expect(cue).toHaveCount(1);
+      const setMarkers = async (on: boolean) => {
+        await page.locator('.tb-btn[title="Options"]').click();
+        await page.locator('[data-testid="difference-cues"] input').setChecked(on);
+        await page.locator('[data-testid="settings-apply"]').click();
+      };
+      await setMarkers(false);
+      await expect(cue).toHaveCount(0);
+      await setMarkers(true);
+      await expect(cue).toHaveCount(1);
     });
 
     for (const [key, titleText] of [
@@ -380,11 +399,12 @@ test.describe('Original Advanced tab', () => {
       });
     }
 
-    test('the driver count carries the ≠W cue with two drivers while "Per-driver impedance" is off', async ({ page }) => {
+    test('the driver count carries the ≠W cue at any count while "Per-driver impedance" is off', async ({ page }) => {
       await page.locator('.project-nav li', { hasText: 'Driver' }).click();
       const drivers = page.locator('.field', { hasText: 'Num. of drivers' });
       const cue = drivers.locator('.winisd-deviation-cue');
-      await expect(cue).toHaveCount(0);
+      await drivers.locator('select').selectOption('1');
+      await expect(cue).toHaveCount(1);
       await drivers.locator('select').selectOption('2');
       await expect(cue).toHaveCount(1);
       await expect(cue).toHaveAttribute('title', /one driver's impedance/);
@@ -511,12 +531,17 @@ test.describe('Original Advanced tab', () => {
       await expect(label).not.toHaveClass(/error-switch-na/);
     });
 
-    test('the PR Npr switch is editable on a passive radiator box only', async ({page}) => {
+    test('the PR Npr switch is editable on a passive radiator box with 2 or more radiators only', async ({page}) => {
       const label = page.locator('label[data-field-key="winisdPrNprResonance"]');
       await showAdvancedOn(page, 'vented');
       await expect(label.locator('input')).toBeDisabled();
       await expect(label).toHaveClass(/error-switch-na/);
       await showAdvancedOn(page, 'box-passive-radiator');
+      const count = page.locator('#og-pr-count');
+      await count.selectOption('1');
+      await expect(label.locator('input')).toBeDisabled();
+      await expect(label).toHaveClass(/error-switch-na/);
+      await count.selectOption('2');
       await expect(label.locator('input')).toBeEnabled();
       await expect(label).not.toHaveClass(/error-switch-na/);
     });

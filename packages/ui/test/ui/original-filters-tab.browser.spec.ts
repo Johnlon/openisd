@@ -94,8 +94,9 @@ test('switching a lowpass Subtype to Bessel keeps order/fc/Q and updates the cap
 
 // BUG_20261001_filter-spinners-do-not-update-charts-live: holding a spinner arrow fires `input` on
 // every step but `change` only on release; the filter must take each step while the arrow is held.
-// Headless Chromium runs no spin arrows on a mouse hold, so the step is what Chromium sends during
-// one: a new value and an `input` event, no `change`.
+// Headless Chromium runs no spin arrows on a mouse hold, so the step is what Chromium does during
+// one: stepUp() and an `input` event, no `change`. Ten steps, so the move shows in the caption
+// (a step is a tenth of the value's decade).
 for (const c of CASES) {
   test(`${c.badge}: a held ${c.editLabel} spinner applies each step before release`, async ({page}) => {
     const panel = page.locator('.content-panel');
@@ -103,9 +104,10 @@ for (const c of CASES) {
     await expect(panel.locator('.filter-summary')).toContainText(c.initialCaption);
 
     await editorField(panel, c.editLabel).evaluate((el: HTMLInputElement) => {
-      const v = Number(el.value);
-      el.value = String(v === 0 ? 1 : v * 2);
-      el.dispatchEvent(new Event('input', {bubbles: true}));
+      for (let i = 0; i < 10; i++) {
+        el.stepUp();
+        el.dispatchEvent(new Event('input', {bubbles: true}));
+      }
     });
     await expect(panel.locator('.filter-summary')).not.toContainText(c.initialCaption);
   });
@@ -136,11 +138,11 @@ test('a held LP Cutoff spinner moves the swept SPL before release', async ({page
 
   for (let step = 0; step < 5; step++) {
     await editorField(panel, 'Cutoff').evaluate((el: HTMLInputElement) => {
-      el.value = String(Number(el.value) - 5);
+      el.stepDown();   // a step is a tenth of the decade: 1 Hz at 50 Hz
       el.dispatchEvent(new Event('input', {bubbles: true}));
     });
   }
-  await expect(panel.locator('.filter-summary')).toContainText('fc=25.00 Hz');
+  await expect(panel.locator('.filter-summary')).toContainText('fc=45.00 Hz');
   await expect.poll(splSum).not.toBe(before);
   expect(errors).toEqual([]);
 });

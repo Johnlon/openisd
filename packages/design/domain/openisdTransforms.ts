@@ -121,7 +121,7 @@ export abstract class BoxProjectBuilder {
             this.engine,
             this.appContext,
         );
-        if (this.radiatorChoice) project.box.passiveRadiator.radiator.update(this.radiatorChoice);
+        if (this.radiatorChoice) project.box.passiveRadiator.configurePR(this.radiatorChoice);
         this.afterWrap(project);
         // Whatever the builder was not told gets the box type's starting values — one
         // implementation, shared with a later box-type switch (`OpenISDBox.applyStartingValues`).
@@ -146,7 +146,7 @@ export abstract class BoxProjectBuilder {
      * like null and I really struggle to understand why so bad given its actually called from the builder
      * and the builder should really be constructing a finished project not this crap - John things it should DIE.
      * And in the builder we have crappy things like this following which instantly overwrites bits of it...
-     * if (this.radiatorChoice) project.box.passiveRadiator.radiator.update(this.radiatorChoice);
+     * if (this.radiatorChoice) project.box.passiveRadiator.configurePR(this.radiatorChoice);
      */
     prototypeProjectJson(driver: DriverDeviceJson): OpenISDProjectJson {
         return {
