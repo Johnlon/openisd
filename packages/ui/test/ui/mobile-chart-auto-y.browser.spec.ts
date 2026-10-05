@@ -23,6 +23,7 @@ test('Auto Y off holds the Y axis through a box volume edit; on rescales it', as
   await volume.fill('0.5');
   await volume.press('Enter');
   await graphTab.click();
+  // eslint-disable-next-line playwright/no-wait-for-timeout
   await page.waitForTimeout(400);
   await expect(panel).toHaveAttribute('data-y-range', before!);
 

@@ -466,6 +466,7 @@ test.describe('Original Advanced tab', () => {
             return {textHeight: text.height, textRight: text.right, labelRight: box.right, labelBottom: box.bottom, groupRight: group.right, paneBottom, fontPx};
           });
           const name = await label.innerText();
+          // eslint-disable-next-line playwright/no-conditional-in-test
           const lines = await label.getAttribute('data-field-key') === 'winisdAbcIntraPortVelocity' ? 2 : 1;
           expect(m.textHeight, `${name}: ${lines} line(s)`).toBeLessThan((lines + 0.5) * 1.3 * m.fontPx);
           expect(m.textRight, `${name}: text inside its label`).toBeLessThanOrEqual(m.labelRight + 1);
@@ -486,6 +487,7 @@ test.describe('Original Advanced tab', () => {
             const r = document.createRange(); r.selectNodeContents(el);
             return [r.getBoundingClientRect().height, parseFloat(getComputedStyle(el).fontSize)];
           });
+          // eslint-disable-next-line playwright/no-conditional-in-test
           const lines = await label.getAttribute('data-field-key') === 'tlPortModel' ? 2 : 1;
           expect(textHeight, `${await label.innerText()}: ${lines} line(s)`).toBeLessThan((lines + 0.5) * 1.3 * fontPx);
         }
