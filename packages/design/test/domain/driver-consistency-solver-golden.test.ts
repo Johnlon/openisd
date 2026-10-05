@@ -4,7 +4,7 @@
  * leave-one-out and leave-two-out of a consistent record, inconsistent records, other air, a
  * radiator's seven figures) and the record cases also through `OpenISDDriver.resolve()`. The
  * expected outputs were captured before the solver was split into relations
- * (bugs/BUG_20261003_driver-consistency-solver-is-one-925-line-function.md). Any change to a route
+ * (bugs/archive/BUG_20261003_driver-consistency-solver-is-one-925-line-function.md). Any change to a route
  * order, a precedence, a formula or a conflict report fails here, by name.
  */
 import {describe, expect, it} from 'vitest';

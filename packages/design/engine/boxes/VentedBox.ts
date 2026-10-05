@@ -12,16 +12,14 @@ export class VentedBox implements BoxModel {
   constructor(private readonly P: SweepParams) {}
 
   solve(q: DriverSideQuantities): BoxOutput {
-    const {w, pg, ZaE, ZaD, Zc, Cab, Ral, Raa, Ql, Qa, lossMode, rho, c} = q;
+    const {w, pg, ZaE, ZaD, Zc, Cab, Ral, Raa, Ql, Qa, loss, rho, c} = q;
     const P = this.P;
 
-    switch (lossMode) {
-      case 'lossless':
-      case 'conventional-lossy': {
+    switch (loss) {
+      case 'lossless': {
         // Port branch — lumped mass Map = ρ·Leff/Sp (Leff = L + END_CORRECTION·d), or a
-        // transmission line when P.tlPortModel is set. See portImpedance(). Ral/Raa are the
-        // same per-frequency Ql/Qa/(ω·Cab) the sealed box's own conventional-lossy branch uses;
-        // for 'lossless' they are effectively absent because Ql/Qa are then ≥1e6.
+        // transmission line when P.tlPortModel is set. See portImpedance(). Ral/Raa are
+        // per-frequency Ql/Qa/(ω·Cab), effectively absent because Ql/Qa are then ≥1e6.
         // https://en.wikipedia.org/wiki/Helmholtz_resonance#Resonant_frequency
         const Zport = portImpedance(w, P);
         const Zbox = cPar(Zc, Ral, Raa, Zport);

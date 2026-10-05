@@ -97,7 +97,7 @@ function polynomialAlignment(poly: VentedPolynomials, Qts: number): AlignmentRat
  * polynomials at any Qts, and so does this.
  *
  * `QtsLoaded` is the SOURCE-LOADED Qts: WinISD folds the project's series resistance Rg into
- * Qes before designing (`sourceLoadedQts()` in `lossMode.ts`). Passing the bare driver Qts
+ * Qes before designing (`sourceLoadedQts()`). Passing the bare driver Qts
  * gives a Vb ~3 % low at Rg = 0.1 Ω / Re = 6 Ω — the wizard's box is for the driver as driven.
  *
  *   BB4/SBB4:              alpha = ¼·(1/Qts' − 1/Ql)²,   h = 1     (Ql read here only)

@@ -11,15 +11,13 @@ export class AbcBox implements BoxModel {
   constructor(private readonly P: SweepParams) {}
 
   solve(q: DriverSideQuantities): BoxOutput {
-    const {w, pg, ZaE, ZaD, Ql, Qa, Cas, Mas, rho, c, lossMode} = q;
+    const {w, pg, ZaE, ZaD, Ql, Qa, Cas, Mas, rho, c, loss} = q;
     const P = this.P;
 
-    switch (lossMode) {
-      case 'lossless':
-      case 'conventional-lossy': {
+    switch (loss) {
+      case 'lossless': {
         // OpenISD's own simple model (not WinISD-captured): each chamber an ordinary vented
-        // compliance with the SHARED Ql/Qa/Qp, port mass from its own tuning target, same
-        // simplification `Bandpass6Box`'s own conventional branch makes. The intra port itself
+        // compliance with the SHARED Ql/Qa/Qp, port mass from its own tuning target. The intra port itself
         // stays (Rai = 0 is a physical fact of this topology, not a loss-Q setting to drop) but
         // without Ricl, the same "no inter-chamber leak" simplification.
         const rc2 = rho * c * c;

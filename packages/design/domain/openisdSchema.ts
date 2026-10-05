@@ -731,11 +731,10 @@ const openISDAdvancedJsonSchema = z.preprocess(renameLegacyWinisdDriverModel, z.
     // `spl` curve. Display only: the unclamped curve still feeds the transfer-function chart, the
     // F3/F6/F10 read-outs and every compare trace regardless.
     splGraphIsXmaxLimited: z.boolean(),
-    // Sealed-box resonance loss model (S10/QO130): which physics model box.sealed's Fsc/Qtc
-    // readout uses. PROJECT-scoped, not a UI singleton (QO130) — two open projects must not
-    // share one loss mode. Wire values mirror `LossMode.ALL`; `OpenISDProject.lossMode`
-    // translates via `LossMode.parse`/`.value` at this boundary. Optional: absent parses to
-    // `LossMode.Default` (winisd-lossy), matching every project saved before S10.
+    // Retired (John, 2026-10-05): the sealed-box loss-model choice is gone; the only model is
+    // WinISD's lossy one and Ql/Qa control the losses. Older files still carry the key, so it
+    // parses; the loader (`retireLossMode`) turns it into Ql/Qa and drops it, and OpenISD never
+    // writes it.
     lossMode: z.enum(['lossless', 'conventional-lossy', 'winisd-lossy']).optional(),
     // The WinISD error switches (straight WinISD bugs) and WinISD-vs-conventional choices below are
     // optional: absent parses to `CompatPreset.DEFAULT` ("WinISD-ish": WinISD's conventions, every

@@ -16,9 +16,7 @@ export { createEngine } from './Engine.js';
 // The engine's areas: an interface each, held by `Engine` as a member (`engine.filters`).
 export type { FilterEngine } from './filters/index.js';
 export type { PassOrderEntry } from './filters/FilterEngine.js';
-// A VALUE, not just a type: `LossMode` is a class whose static members ARE the modes
-// (`LossMode.WinisdLossy`, `LossMode.Default`), so a caller cannot pass one without it.
-export type { SealedParams } from './lossMode.js';
+export type { SealedParams } from './sealedResonance.js';
 export {
   DEFAULT_T_REF_K, DEFAULT_RH_REF_PCT, DEFAULT_P_REF_PA,
   MIN_SUPPORTED_TEMP_K, MAX_SUPPORTED_TEMP_K,
@@ -48,6 +46,7 @@ export type { BoxEngine, ChartId } from './box/BoxEngine.js';
 export type { BoxParamsQuantityName, BoxParamsIssue, BoxParamsSolveResult } from './params.js';
 export type { SignalEngine, SignalQuantityName, SignalIssue } from './signal/SignalEngine.js';
 export type { SimulationEngine, SweepIssue, SweepSolveResult, MaxCurvesSolveResult } from './simulation/SimulationEngine.js';
+export { createSimulationEngine } from './simulation/SimulationEngine.js';
 export type {DriverEngine, DriverQuantityName, DriverIssue, DriverPrerequisite} from './driver/DriverEngine.js';
 export type {EnvironmentEngine} from './environment/EnvironmentEngine.js';
 export type {IssueEngine} from './issues/IssueEngine.js';

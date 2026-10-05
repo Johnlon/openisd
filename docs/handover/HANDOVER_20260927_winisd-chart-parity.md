@@ -97,7 +97,7 @@ Still open for vented:
 - **Vent shape.** Import reads round vents only; WinISD's non-round `Shape` codes are unverified.
 - **Variants.** VC inductance on, Rg at driver side, more than one vent.
 - **Box readouts.** Fb, F3, vent area on the Box tab.
-- Open: [BUG_20260918_no-ui-path-to-enter-a-vent-length](../../bugs/BUG_20260918_no-ui-path-to-enter-a-vent-length.md).
+- Open: [BUG_20260918_no-ui-path-to-enter-a-vent-length](../../bugs/archive/BUG_20260918_no-ui-path-to-enter-a-vent-length.md).
 
 ## Queue (John, 2026-09-27)
 

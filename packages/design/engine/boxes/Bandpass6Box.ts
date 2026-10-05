@@ -10,16 +10,14 @@ export class Bandpass6Box implements BoxModel {
   constructor(private readonly P: SweepParams) {}
 
   solve(q: DriverSideQuantities): BoxOutput {
-    const {w, pg, ZaE, ZaD, Ql, Qa, Cas, Mas, rho, c, lossMode} = q;
+    const {w, pg, ZaE, ZaD, Ql, Qa, Cas, Mas, rho, c, loss} = q;
     const P = this.P;
 
-    switch (lossMode) {
-      case 'lossless':
-      case 'conventional-lossy': {
+    switch (loss) {
+      case 'lossless': {
         // OpenISD's own simple model (not WinISD-captured): each chamber an ordinary vented
         // compliance with the SHARED Ql/Qa/Qp, port mass from its own tuning target (no separate
-        // geometry field for a second port) — no inter-chamber leak, the same simplification
-        // Bandpass4Box's own conventional branch makes by dropping Ricl.
+        // geometry field for a second port) — no inter-chamber leak (Ricl dropped).
         const rc2 = rho * c * c;
         const Qp = P.Qp || 100;
 

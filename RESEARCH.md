@@ -98,9 +98,9 @@ Source: `WINISD_MODEL.md` §"The rule".
 - WinISD's `Fsc` is not the textbook `fs·√(1+Vas/Vb)`.
 - The leak adds a third pole. WinISD solves the resulting cubic and reports `Fsc = |pole|/2π`.
 - So `Fsc` rises as the leakage Q (`QL`) falls, by about 2.8 Hz over the usable range. The textbook value is the `QL → ∞` limit.
-- OpenISD's `LossMode.WinisdLossy` (the default) matches WinISD's `[Box] Fr` to within 5e-5 Hz over a Ql sweep (`loss-mode.test.ts`).
+- OpenISD's sealed resonance (`sealedResonanceWinisd`) matches WinISD's `[Box] Fr` to within 5e-5 Hz over a Ql sweep (`sealed-resonance.test.ts`).
 - `.wpr [Box] Fr` stores this lossy value (FINDING-007).
-- The Qts that feeds Fsc, Qtc and the vented designer is Rg-corrected: `Qes' = Qes·(Re+Rg)/Re`. Without it Fsc is 0.03 Hz low and Vb about 3 % off (`WINISD_MODEL.md` §5; `engine/lossMode.ts` `sourceLoadedQts`).
+- The Qts that feeds Fsc, Qtc and the vented designer is Rg-corrected: `Qes' = Qes·(Re+Rg)/Re`. Without it Fsc is 0.03 Hz low and Vb about 3 % off (`WINISD_MODEL.md` §5; `sourceLoadedQts`).
 
 Source: `WINISD_MODEL.md` §"WinISD's sealed-box resonance".
 

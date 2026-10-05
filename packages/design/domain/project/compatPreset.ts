@@ -1,9 +1,5 @@
-import {LossMode} from '../../fields/lossMode.js';
-
 /** The WinISD-vs-conventional choices: WinISD's convention or another model. None is a WinISD bug. */
 export interface ConventionChoices {
-    /** Sealed-box loss model. */
-    readonly lossMode: LossMode;
     /** "WinISD phase wrapping": phase wrapped to ±180°; off, continuous. */
     readonly winisdWrapPhase: boolean;
     /** "WinISD driver count": N drivers as N single-driver boxes; off, N coils wired into one load. */
@@ -27,7 +23,6 @@ export type CompatChoices = ConventionChoices & ErrorChoices;
 
 /** Per choice, whether two sets agree. A choice added to `CompatChoices` fails to compile here. */
 const SAME: Readonly<{[K in keyof CompatChoices]: (a: CompatChoices, b: CompatChoices) => boolean}> = Object.freeze({
-    lossMode: (a, b) => a.lossMode === b.lossMode,
     winisdWrapPhase: (a, b) => a.winisdWrapPhase === b.winisdWrapPhase,
     winisdDriverCountModel: (a, b) => a.winisdDriverCountModel === b.winisdDriverCountModel,
     winisdFlatModel: (a, b) => a.winisdFlatModel === b.winisdFlatModel,
@@ -39,7 +34,6 @@ const SAME: Readonly<{[K in keyof CompatChoices]: (a: CompatChoices, b: CompatCh
 });
 
 const WINISD_CONVENTIONS: ConventionChoices = Object.freeze({
-    lossMode: LossMode.WinisdLossy,
     winisdWrapPhase: true,
     winisdDriverCountModel: true,
     winisdFlatModel: true,
@@ -63,9 +57,8 @@ export class CompatPreset {
     /** OpenISD's best model for every choice, every WinISD bug fixed. */
     static readonly DEBUGGED = new CompatPreset(
         'Recommended (debugged)',
-        'OpenISD\'s most accurate models throughout (conventional loss model, exact ABC intra-port velocity, wired driver arrays, capped flat response, continuous phase), every known WinISD bug fixed.',
+        'OpenISD\'s most accurate models throughout (exact ABC intra-port velocity, wired driver arrays, capped flat response, continuous phase), every known WinISD bug fixed.',
         Object.freeze({
-            lossMode: LossMode.ConventionalLossy,
             winisdWrapPhase: false,
             winisdDriverCountModel: false,
             winisdFlatModel: false,

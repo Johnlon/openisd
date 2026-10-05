@@ -74,7 +74,7 @@ frequency: `packages/design/engine/circuit.ts` `solve()`, sampled by `sweep.ts` 
 
 n drivers: parallel divides Z by n, series multiplies BL and Re by n.
 
-### 1.2 Sealed box, "WinISD Lossy" loss model (the default)
+### 1.2 Sealed box, WinISD's lossy model
 
     Zbox = Ral ∥ (Raa + 1/(jωCab))
     Cab  = Vb/(ρc²)
@@ -102,7 +102,6 @@ control in the WinISD Compatibility panel (Advanced tab) or the Box losses pane.
 |---|---|---|---|
 | WinISD driver model | Cms from Vas; Mms, Rms from Fs, Qms; damping BL from Qes; **entered** BL for push, impedance, TF reference and CLe | entered Cms, Mms, Rms, BL, one BL throughout | all driver charts |
 | WinISD VA model | VA = P·Re·\|Hf\|²/\|Z + Rg\| | P·(Re + Rg)·\|Hf\|²/\|Z_amp\|, Rg counted once | Amplifier apparent load power |
-| Loss model | WinISD Lossy: §1.2 | Conventional Lossy: Zc ∥ Ql/(ωCab) ∥ Qa/(ωCab), U0 = UD. Lossless: Zbox = Zc | sealed charts |
 
 Native WinISD controls behave as WinISD has them, with no conventional variant:
 

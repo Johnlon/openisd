@@ -1,4 +1,3 @@
-import {LossMode} from '../../fields/lossMode.js';
 import {CompatPreset, type CompatChoices} from './compatPreset.js';
 import {type Engine} from '../../engine/index.js';
 import type { Air, AirEnvironment, BoxParamsIssue, ChartId, DriverError, Filter, MaxCurvesResult, MaxCurvesSolveResult, SweepResult, SweepSolveResult } from '../../engine/index.js';
@@ -138,7 +137,6 @@ export class OpenISDProject {
         return OpenISDBox.wrap(
             focus(root, 'box'), this.#driverOver(root), this.#engine,
             () => root.value.driverEmbedding.Rs_ohm,
-            () => LossMode.parse(root.value.advanced.lossMode),
             () => this.#issues,
             () => this.#issues.ventTuningExtra,
             () => this.#air(root),
@@ -291,14 +289,6 @@ export class OpenISDProject {
         return ProjectAdvanced.wrap(this.#slot('advanced'), this.#slot('filters')).splGraphIsXmaxLimited;
     }
 
-    /** Sealed-box resonance loss model (S10/QO130) — which physics model `box.sealed`'s Fsc/Qtc
-     *  readout uses. PROJECT-scoped, not a UI singleton: two open projects must not share one
-     *  loss mode. `advanced.lossMode` stores the wire string; this is the one boundary that
-     *  translates it via `LossMode.parse`/`.value`, matching the `circuitModel` accessor above. */
-    get lossMode(): SimpleField<LossMode> {
-        return ProjectAdvanced.wrap(this.#slot('advanced'), this.#slot('filters')).lossMode;
-    }
-
     /** WinISD Advanced / Compatibility "Use WinISD driver calculations" — whether engine sweeps
      *  substitute the driver WinISD's own simulation acts on, `Mms = 1/((2π·Fs)²·Cms)`,
      *  `Rms = 2π·Fs·Mms/Qms` and `BL = √(Re/(2π·Fs·Qes·Cms))`, for entered values that conflict
@@ -367,7 +357,6 @@ export class OpenISDProject {
     /** The project's WinISD-vs-conventional choices and WinISD error switches, as one set. */
     get compatChoices(): CompatChoices {
         return {
-            lossMode: this.lossMode.value,
             winisdWrapPhase: this.winisdWrapPhase.value,
             winisdDriverCountModel: this.winisdDriverCountModel.value,
             winisdFlatModel: this.winisdFlatModel.value,
@@ -389,7 +378,6 @@ export class OpenISDProject {
      *  their values. */
     applyCompatPreset(preset: CompatPreset): void {
         const c = preset.choices;
-        this.lossMode.set(c.lossMode);
         this.winisdWrapPhase.set(c.winisdWrapPhase);
         this.winisdDriverCountModel.set(c.winisdDriverCountModel);
         this.winisdFlatModel.set(c.winisdFlatModel);
@@ -426,7 +414,7 @@ export class OpenISDProject {
     /** The graph cursor/selection (S10/QO130) — PROJECT-scoped, reversing QO90: two open
      *  projects must not share one cursor. Written on every mousemove during hover/drag, so
      *  QO168 (John 2026-09-21) keeps these four OUT of the saved record entirely: plain private
-     *  instance fields, never `OpenISDProjectJson`/`.owpr` (unlike `graphs`/`lossMode` above,
+     *  instance fields, never `OpenISDProjectJson`/`.owpr` (unlike `graphs` above,
      *  which DO persist) — a documented exception in
      *  `architecture-project-has-three-fields.test.ts`. `#notify()` alone on write — no
      *  `#slot()`, no `#edited` clone, no `#resolve()` cascade; a mousemove has nothing for the
@@ -779,7 +767,6 @@ export class OpenISDProject {
             winisdAbcIntraPortVelocity: this.winisdAbcIntraPortVelocity,
             winisdPrNprResonance: this.winisdPrNprResonance,
             winisdBesselHighpass: this.winisdBesselHighpass,
-            lossMode: this.lossMode,
             rgAtDriverSide: this.rgAtDriverSide,
             useTransmissionLinePortModel: this.useTransmissionLinePortModel,
             forceFlatResponse: this.forceFlatResponse,

@@ -2,8 +2,8 @@
  * One box topology's own acoustic circuit — Zbox, and the driver/port/net volume velocities it
  * produces at one frequency, given the driver-side quantities `solve()` (`../circuit.ts`)
  * computes once (electrical source `pg`, damping `ZaE`, driver branch `ZaD`, box compliance
- * `Cab`/`Zc`, the loss Qs, the driver's own acoustic elements `Cas`/`Mas`, and the lossMode this
- * sweep selected). A box-specific field (Vb, Vf, Sp, Leff, Fb, pr*, Fr, Qp, tlPortModel, …) is
+ * `Cab`/`Zc`, the loss Qs, the driver's own acoustic elements `Cas`/`Mas`, and whether the
+ * sweep is lossless). A box-specific field (Vb, Vf, Sp, Leff, Fb, pr*, Fr, Qp, tlPortModel, …) is
  * read straight off the `SweepParams` each class is constructed with, not through this record —
  * it is not shared, only that one topology reads it.
  *
@@ -12,11 +12,13 @@
  * `SimulatableBoxType`.
  */
 import type {Complex, Solution} from '../types.js';
-import type {LossModeValue} from '../../fields/lossMode.js';
 
 /** The driver-side circuit quantities every box topology is handed, for one frequency — computed
  *  once by `solve()` and shared across topologies. Not every field is read by every topology:
  *  each class destructures only what its own formulas use. */
+/** Which loss form a box solves under. */
+export type BoxLoss = 'lossless' | 'winisd-lossy';
+
 export interface DriverSideQuantities {
   /** Angular frequency, rad/s (2π·f). */
   readonly w: number;
@@ -46,8 +48,9 @@ export interface DriverSideQuantities {
   readonly rho: number;
   /** Speed of sound, m/s. */
   readonly c: number;
-  /** The loss model this sweep selected (or forced to 'lossless' when Ql/Qa are both ≥1e6). */
-  readonly lossMode: LossModeValue;
+  /** 'lossless' when Ql and Qa are both ≥ the lossless limit (the user entered no losses at all),
+   *  else WinISD's own lossy model. Derived from Ql/Qa; never a user choice. */
+  readonly loss: BoxLoss;
 }
 
 /** What one box topology's circuit produces at one frequency — the same four fields `solve()`

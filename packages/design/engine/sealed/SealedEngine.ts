@@ -1,13 +1,12 @@
 /**
- * The sealed-box area of the engine: system resonance and Q under the chosen loss model, the
+ * The sealed-box area of the engine: system resonance and Q (WinISD's lossy model, and the lossless closed form), the
  * volume for a target Qtc and its inverse, the alignment options a picker offers, and the
  * handle solve that fills in whichever of Qtc/volume the project has not entered.
  */
-import {LossMode} from '../../fields/lossMode.js';
 import {SEALED_ALIGNMENT_OPTIONS} from '../../fields/options.js';
 import type {SealedAlignmentOption} from '../types.js';
-import type {SealedParams} from '../lossMode.js';
-import {LOSSLESS_LIMIT, boxRatio, sealedResonanceWinisd} from '../lossMode.js';
+import type {SealedParams} from '../sealedResonance.js';
+import {sealedResonanceLossless, sealedResonanceWinisd} from '../sealedResonance.js';
 import type {SealedAlignmentSolverParams} from '../solverTypes.js';
 import {missingDependencies} from '../consistency.js';
 import type {CalculationIssue} from '../consistency.js';
@@ -16,9 +15,12 @@ export type SealedAlignmentQuantityName = keyof SealedAlignmentSolverParams;
 export type SealedAlignmentIssue = CalculationIssue<SealedAlignmentQuantityName>;
 
 export interface SealedEngine {
-  /** System resonance Fsc and Q Qtc for the selected loss model — the Box tab readout. Takes
-   *  `Vas` directly. */
-  resonance(mode: LossMode, p: SealedParams): { Fsc: number; Qtc: number };
+  /** System resonance Fsc and Q Qtc under WinISD's lossy model — the Box tab readout. Takes
+   *  `Vas` directly. Ql and Qa at or above the lossless limit give the lossless figure. */
+  resonance(p: SealedParams): { Fsc: number; Qtc: number };
+  /** The lossless textbook Fsc and Qtc, whatever Ql and Qa are. Only for a chamber WinISD itself
+   *  reports lossless (the bandpass4 rear). */
+  losslessResonance(p: SealedParams): { Fsc: number; Qtc: number };
   /** Box volume for a target system Q: `Qtc = Qts·√(1 + Vas/Vb)` → `Vb = Vas/((Qtc/Qts)² − 1)`.
    *  Null when `Qtc ≤ Qts` — no sealed volume reaches it.
    *  https://en.wikipedia.org/wiki/Thiele/Small_parameters#Small_signal_parameters */
@@ -74,23 +76,9 @@ function checkSealedAlignment(p: SealedAlignmentWorkingSet): SealedAlignmentIssu
 }
 
 export class SealedEngineImpl implements SealedEngine {
-  resonance(mode: LossMode, p: SealedParams): { Fsc: number; Qtc: number } {
-    const ratio = boxRatio(p.Vas, p.Vb);
-    const fcLossless = p.Fs * ratio;
-    const qtcLossless = p.Qts * ratio;
+  readonly resonance = sealedResonanceWinisd;
 
-    if (mode === LossMode.Lossless) {
-      return { Fsc: fcLossless, Qtc: qtcLossless };
-    }
-    if (mode === LossMode.ConventionalLossy) {
-      // fc fixed; box losses combine into system Q (Small/Thiele).
-      let invQ = 1 / qtcLossless;
-      if (p.Ql > 0 && p.Ql < LOSSLESS_LIMIT) invQ += 1 / p.Ql;
-      if (p.Qa > 0 && p.Qa < LOSSLESS_LIMIT) invQ += 1 / p.Qa;
-      return { Fsc: fcLossless, Qtc: 1 / invQ };
-    }
-    return sealedResonanceWinisd(p); // WinisdLossy
-  }
+  readonly losslessResonance = sealedResonanceLossless;
 
   volumeForQtc(Qts: number, Vas_m3: number, Qtc: number): number | null {
     const ratio = (Qtc / Qts) ** 2 - 1;
@@ -135,7 +123,7 @@ export class SealedEngineImpl implements SealedEngine {
         // Fs_hz is the gate (S10): only a caller that states it opts into the lossy readout —
         // every pre-S10 caller (Fs_hz absent) keeps the lossless textbook ratio unchanged.
         const v = Fs != null
-          ? this.resonance(LossMode.parse(params.lossMode.value), {
+          ? this.resonance({
               Fs, Vas, Qts, Vb, Ql: params.Ql.value ?? Infinity, Qa: params.Qa.value ?? Infinity,
             }).Qtc
           : this.qtcFromVolume(Qts, Vas, Vb);

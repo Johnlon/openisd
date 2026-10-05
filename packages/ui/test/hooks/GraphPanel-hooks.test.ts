@@ -76,44 +76,43 @@ describe('GraphPanel-hooks', () => {
       expect(api.currentDesign.value.color).toBe('#ff0000');
     });
 
-    describe('clickAt — a click on the chart', () => {
-      function clickHarness() {
-        const project = createTestProject();
-        const api = runHook(computed(() => project), () => useGraphPanel({chartId: 'SPL'}, createEngine()));
-        return {project, api};
-      }
-
-      it('locks the cursor at the clicked frequency', () => {
-        const {project, api} = clickHarness();
-        api.clickAt(100);
-        expect(project.cursorLocked.value).toBe(true);
-        expect(project.pinnedF.value).toBe(100);
-        expect(project.cursorF.value).toBe(100);
-      });
-
-      it('clicking elsewhere while locked moves the cursor there and unlocks it', () => {
-        const {project, api} = clickHarness();
-        api.clickAt(100);
-        api.clickAt(1000);
-        expect(project.cursorLocked.value).toBe(false);
-        expect(project.pinnedF.value).toBe(1000);
-        expect(project.cursorF.value).toBe(1000);
-      });
-
-      it('clicking near the pinned point unlocks it and leaves it where it was', () => {
-        const {project, api} = clickHarness();
-        api.clickAt(100);
-        api.clickAt(102);   // within 0.02 decades of 100
-        expect(project.cursorLocked.value).toBe(false);
-        expect(project.pinnedF.value).toBe(100);
-      });
-    });
-
     it('tracks warningsDismissed state and resets when dismissWarnings is called', async () => {
       const api = await renderHook({chartId: 'SPL'});
       expect(api.warningsDismissed.value).toBe(false);
       api.dismissWarnings();
       expect(api.warningsDismissed.value).toBe(true);
+    });
+    describe('clickCursorAt', () => {
+      function hookOn(project: OpenISDProject) {
+        return runHook(computed(() => project), () => useGraphPanel({chartId: 'SPL'}, createEngine()));
+      }
+
+      it('a click on an unlocked chart locks the cursor at that frequency', () => {
+        const project = createTestProject();
+        hookOn(project).clickCursorAt(200);
+        expect(project.cursorLocked.value).toBe(true);
+        expect(project.pinnedF.value).toBe(200);
+        expect(project.cursorF.value).toBe(200);
+      });
+
+      it('a click elsewhere while locked moves the cursor there and unlocks it', () => {
+        const project = createTestProject();
+        const api = hookOn(project);
+        api.clickCursorAt(200);
+        api.clickCursorAt(2000);
+        expect(project.cursorLocked.value).toBe(false);
+        expect(project.pinnedF.value).toBe(2000);
+        expect(project.cursorF.value).toBe(2000);
+      });
+
+      it('a click near the pinned point while locked unlocks without moving it', () => {
+        const project = createTestProject();
+        const api = hookOn(project);
+        api.clickCursorAt(200);
+        api.clickCursorAt(201);
+        expect(project.cursorLocked.value).toBe(false);
+        expect(project.pinnedF.value).toBe(200);
+      });
     });
   });
 });

@@ -9171,7 +9171,7 @@ questions:
     text: Disabled re-exports architecture gate per John's instruction on 2026-09-09
 - id: QO137
   title: Use explicit project guards or a NullProject singleton
-  status: open
+  status: decided
   raised: '2026-09-13'
   body: ''
   notes:
@@ -9186,6 +9186,8 @@ questions:
       to provide a read only stub in situation where it is safe to do so without corrupting data ro user
       experience and to avoid concurrent error when the focusedProject goes to null. if there is no need
       fo rthis then fine
+  - at: '2026-10-05'
+    text: 'Decided: explicit project guards. requireFocusedProject() throws a deliberate error when no project is open; no NullProject exists, and John''s note said it was not needed.'
 - id: QO138
   title: Open dialog lists browser projects and offers From disk
   status: done
@@ -9200,7 +9202,7 @@ questions:
     text: 'Done: the Open dialog lists saved browser projects with Import from disk at the top (OriginalShell.vue open-project-dialog). Closed by agent (engine) on John''s instruction.'
 - id: QO139
   title: Saved projects keep hidden selectable version history
-  status: open
+  status: decided
   raised: '2026-09-13'
   body: ''
   notes:
@@ -9215,6 +9217,8 @@ questions:
       an old version makes it the focused project; editing and saving it may make that revised version
       the head. No delete controls for history entries. Example: Project A expands to dated selectable
       entries; Project B has no history.'
+  - at: '2026-10-05'
+    text: 'John closed it: the saved-project version-history plan is dropped, not to be implemented.'
 - id: QO140
   title: Choose the W5 sealed comparison Vas source
   status: decided
@@ -9609,7 +9613,7 @@ questions:
       Note: the ruling now references the intended model "app-level C → project C unless locally entered; delete/clear re-derives from app level; WPR export writes the air constants; without ParState a round-trip C becomes an E". None of the three failing env tests pass until that wiring exists.
 - id: QO156
   title: Builder path and New-Project wizard solve the same entered box to different derived floats
-  status: open
+  status: decided
   raised: '2026-09-18'
   body: |-
     While making the standard fixture faithful to wizard output (wizard-defaults.browser.spec.ts :76), the fixture builder (.vented().volume_m3(0.007).tuning_hz(35).build() then vent.diameter_m.set(0.05)) and the New-Project wizard (OpenISDProject.empty then live writes volume->dia->tuning, OgNewProject.vue pickDriver) produce projects with IDENTICAL entered values (5 cm dia but volume 7L / 35Hz / W5 driver) but slightly different SOLVED values:
@@ -9618,6 +9622,9 @@ questions:
     - All other derived box physics drift ~0.02% (impedance curve peaks, port velocity, etc.)
 
     The wizard-defaults fixture-fidelity test now masks every state-C (calculated) value before deep-comparing and closeTo(2)-checks the port length, because strict equality can never pass between the two construction paths. Is that intended (two independent solve orderings, both valid), or should identical entered values always solve bit-identically regardless of construction path? If the latter, it is a vents/box solver ordering bug to fix.
+  notes:
+  - at: '2026-10-05'
+    text: 'Decided: identical entered values solve identically whatever the order they are written. Checked: a vented box with the tuning written before or after the vent diameter gives bit-identical vent lengths (packages/design/test/domain/project-entry-order.test.ts). The wizard no longer writes volume, diameter and tuning live: it builds through ProjectBuilder from a chosen alignment, and the masked fixture spec the question came from is gone.'
 - id: QO158
   title: Approve the component test reorganisation plan
   status: decided
@@ -9681,15 +9688,18 @@ questions:
     text: 'Incident record only; seen, nothing to remedy. Closed by agent (engine) on John''s instruction.'
 - id: QO162
   title: optional port air-velocity (chuffing) limit as a vent constraint, later
-  status: open
+  status: decided
   raised: '2026-09-19'
   body: |-
     Idea (not decided, marked later). In the Vents page, let the designer optionally enter a maximum port air speed (the chuffing limit, conventionally ~17 m/s peak, ~10 m/s for clean, ~5% of Mach). When set, the vent solve is required to keep the computed peak port velocity at the current Signal-tab input level under that limit; when no physically realisable port (area + length that still fits the volume) can do it, the vent tuning target is marked unsolvable / blanked like the existing negative-length unreachable case.
 
     Constraints from discussion: (1) port velocity has no meaning without a reference drive level — it scales with input voltage, so the constraint is "peak port velocity at the current design power <= limit"; (2) this is a feasibility CONSTRAINT, not a target or a result — it only makes target outputs go blank, never appears as an output; plan doc section 2 taxonomy may need a fourth "Constraint (optional)" kind; (3) one direction to explore is velocity falling as port area grows, so the infeasible case is when the required area forces a negative/absurd port length — the solver already knows that failure mode. Related companion idea in QO163 (PR excursion/Xlim). WinISD has no such constraint (parity note). Suggested UX: the constraint solver opens as a popup off the main page, like the existing alignment editor (see QO164).
+  notes:
+  - at: '2026-10-05'
+    text: 'John ruled: no constraint on the vent solve. The port air-velocity limit stays a project field drawn as a red limit line on the port-velocity charts.'
 - id: QO163
   title: PR excursion/Xlim as a tuning constraint or redline, later
-  status: open
+  status: decided
   raised: '2026-09-19'
   body: 'Idea (not decided, marked later). Whether the passive radiator''s excursion limit (Xmax / mechanical
     Xlim) should constrain or flag the tuning target the way negative added mass does today. Discussion
@@ -9704,9 +9714,12 @@ questions:
     level, but needs a reference drive level (the Signal-tab input) and is new solver scope beyond WinISD
     parity. Suggested UX: such a constraint solver opens as a popup off the main page, like the existing
     alignment editor (see QO164).'
+  notes:
+  - at: '2026-10-05'
+    text: 'John ruled: no constraint on the tuning. The passive radiator''s Xmax is drawn as a red limit line on the PR excursion chart, the same red as the driver''s Xmax line.'
 - id: QO164
   title: feasibility/constraint solvers open in a popup like the alignment editor, later
-  status: open
+  status: decided
   raised: '2026-09-19'
   body: 'Idea (not decided, marked later). The feasibility/constraint solvers discussed in QO162 and QO163
     (optional port air-velocity limit, optional PR excursion/Xlim constraint) should not live inline in
@@ -9714,9 +9727,12 @@ questions:
     pattern of the existing alignment editor (the sealed-alignment solver popup). Rationale: keeping the
     constraint machinery out of the main page keeps the primary tuning/geometry fields simple, and a popup
     is a natural place for an iterative "try a constraint, see if it breaks the design" interaction.'
+  notes:
+  - at: '2026-10-05'
+    text: 'John closed it: with no constraint solvers (QO162, QO163) there is nothing to open in a popup.'
 - id: QO165
   title: 'opentui: Windows Terminal hyperlink recognition + force-override env (decide how to ask upstream)'
-  status: open
+  status: decided
   raised: '2026-09-19'
   body: |-
     Investigated why chat file-mentions render as "text (url)" in Windows Terminal instead of a bare clickable filename.
@@ -9728,6 +9744,9 @@ questions:
     - No hyperlink force-override env exists (only OPENTUI_FORCE_WCWIDTH/UNICODE/NOZWJ/EXPLICIT_WIDTH). TERM=xterm-256color is already correct.
 
     Decision needed: raise an opentui feature request (add Windows Terminal to isHyperlinkTerm and/or add an OPENTUI_FORCE_HYPERLINK override env), or live with the (url) suffix / run opencode outside WSL.
+  notes:
+  - at: '2026-10-05'
+    text: 'John closed it: no upstream request; live with the (url) suffix in Windows Terminal.'
 - id: QO169
   title: Saved OpenISD high/low-pass filters after the WinISD filter rework
   status: decided

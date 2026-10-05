@@ -27,7 +27,7 @@
     "coverage:design": "vitest run -c packages/design/vitest.coverage.config.ts --coverage",
     "test:crosscheck": "OPENISD_EXTERNAL=1 bash scripts/test-browser.sh packages/ui/test/ui/micka-crosscheck.browser.spec.ts --timeout=60000",
     "gen-scenarios": "vite-node packages/ui/test/gen-scenarios.ts",
-    "gen-golden": "vite-node packages/engine/test/gen-golden.ts"
+    "gen-golden": "vite-node packages/design/test/engine/gen-golden.ts"
   },
   "keywords": [
     "loudspeaker",

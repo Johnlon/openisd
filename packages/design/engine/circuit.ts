@@ -31,9 +31,9 @@ import {solveEnvironment} from './air.js';
 import {hotRe} from './solvers/driverQuantities.js';
 import {cAdd, cDiv, cInv, cMul, cScale, cx} from './complex.js';
 import type {BoxType, Complex, Solution, SweepParams} from './types.js';
-import type {LossModeValue} from '../fields/lossMode.js';
 import {boxModel} from './boxes/index.js';
-import type {DriverSideQuantities} from './boxes/index.js';
+import type {BoxLoss, DriverSideQuantities} from './boxes/index.js';
+import {LOSSLESS_LIMIT} from './sealedResonance.js';
 
 // Re-exported unchanged: the box-specific box models (`./boxes/`) now own the port branch, but
 // an existing import of `portImpedance`/`portLoss` from `circuit.js` still resolves.
@@ -176,11 +176,11 @@ export function solve(f: number, drv: CircuitQuantities, box: BoxType, P: SweepP
   const Ral = cx(Ql / (w * Cab), 0);
   const Raa = cx(Qa / (w * Cab), 0);
 
-  const lossMode: LossModeValue = (Ql >= 1e6 && Qa >= 1e6) ? 'lossless' : (P.lossMode ?? 'winisd-lossy');
+  const loss: BoxLoss = (Ql >= LOSSLESS_LIMIT && Qa >= LOSSLESS_LIMIT) ? 'lossless' : 'winisd-lossy';
 
   // The one place a `BoxType` becomes a topology's own circuit (`./boxes/`, mirroring
   // `../filters/index.ts`'s `filterModel()`).
-  const shared: DriverSideQuantities = {w, pg, ZaE, ZaD, Cab, Zc, Ral, Raa, Ql, Qa, Cas, Mas, rho, c, lossMode};
+  const shared: DriverSideQuantities = {w, pg, ZaE, ZaD, Cab, Zc, Ral, Raa, Ql, Qa, Cas, Mas, rho, c, loss};
   const {Zbox, UD, UP, U0, UPr, UPi} = boxModel(box, P).solve(shared);
 
   // Electrical input impedance Zel = Ze + Bl²/(Sd²·(ZaD+Zbox)), with the ENTERED BL as WinISD

@@ -63,7 +63,6 @@ export interface TestSealedAlignmentQuantities {
   Fs_hz?: number;
   Ql?: number;
   Qa?: number;
-  lossMode?: string;
 }
 
 const engine = createEngine();
@@ -101,11 +100,6 @@ function fakeInput(value: number | undefined): SolverInput<number> {
   return { value: v, entered: v !== null };
 }
 
-/** `fakeInput`'s string counterpart, for `lossMode`. */
-function fakeStringInput(value: string | undefined): SolverInput<string> {
-  const v = value ?? null;
-  return { value: v, entered: v !== null };
-}
 
 /** Handles built from a plain bag, entered wherever the bag states a value — for a test that
  *  calls `Engine.sweep()`/`maxCurves()` directly (S2-10: they now take handles, not a bag). */
@@ -280,7 +274,6 @@ function sealedAlignmentHandlesFrom(s: TestSealedAlignmentQuantities): SealedAli
     Fs_hz: fakeInput(s.Fs_hz),
     Ql: fakeInput(s.Ql),
     Qa: fakeInput(s.Qa),
-    lossMode: fakeStringInput(s.lossMode),
     Qtc: fakeSolverField(s.Qtc ?? null),
     Vb_m3: fakeSolverField(s.Vb_m3 ?? null),
   };
@@ -291,7 +284,7 @@ function bagFromSealedAlignmentHandles(s: SealedAlignmentSolverParams): TestSeal
     Qts: s.Qts.value ?? undefined, Vas_m3: s.Vas_m3.value ?? undefined,
     Qtc: s.Qtc.value ?? undefined, Vb_m3: s.Vb_m3.value ?? undefined,
     Fs_hz: s.Fs_hz.value ?? undefined, Ql: s.Ql.value ?? undefined,
-    Qa: s.Qa.value ?? undefined, lossMode: s.lossMode.value ?? undefined,
+    Qa: s.Qa.value ?? undefined,
   };
 }
 

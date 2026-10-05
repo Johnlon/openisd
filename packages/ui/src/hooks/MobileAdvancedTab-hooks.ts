@@ -12,7 +12,6 @@ import {useFocusedProject} from '../logic/focusedProjectContext.js';
 import {useApp} from '../logic/app.js';
 import {createEnvironmentAir} from './OriginalShell-hooks.js';
 import {createErrorSwitches} from './errorSwitches.js';
-import {LossMode} from '@openisd/design/fields';
 
 export function useMobileAdvancedTab() {
   const project = useFocusedProject();
@@ -24,11 +23,6 @@ export function useMobileAdvancedTab() {
     resetAirToAppDefaults, advAir,
   } = createEnvironmentAir({ project, projectChanged, envDefaults, environment: engine.environment });
 
-  const LOSS_MODE_OPTIONS = LossMode.OPTIONS;
-  const lossMode = computed<string>({
-    get: () => { void projectChanged.value; return project.value.lossMode.value.value; },
-    set: (v: string) => { project.value.lossMode.set(LossMode.parse(v)); },
-  });
 
   const errorSwitches = createErrorSwitches({project, projectChanged});
   /** "WinISD ABC intra-port velocity" acts on the open box. */
@@ -42,6 +36,6 @@ export function useMobileAdvancedTab() {
     envTempStored, envHumidityStored, envPressureStored, envTempDq, envHumidityDq, envPressureDq,
     advTemp, advHumidity, advPressure,
     resetAirToAppDefaults, advAir,
-    LOSS_MODE_OPTIONS, lossMode, abcVelocityApplies, errorSwitches,
+    abcVelocityApplies, errorSwitches,
   };
 }

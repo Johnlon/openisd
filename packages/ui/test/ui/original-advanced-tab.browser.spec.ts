@@ -241,23 +241,11 @@ test.describe('Original Advanced tab', () => {
   });
 
   test.describe('loss model', () => {
-    test('the Box tab has no loss model selector; it lives in the WinISD Compatibility panel only', async ({ page }) => {
+    test('there is no loss model selector anywhere: Ql and Qa control the losses', async ({ page }) => {
+      await setFocusedBoxType(page, 'sealed');
+      await expect(page.locator('select#adv-lossmode')).toHaveCount(0);
       await page.locator('.project-nav li', { hasText: 'Box' }).click();
       await expect(page.locator('select#lossmode')).toHaveCount(0);
-    });
-
-    test('the WinISD Compatibility loss model selector defaults to WinISD, unlabelled, with three options', async ({ page }) => {
-      await setFocusedBoxType(page, 'sealed');
-      const sel = page.locator('select#adv-lossmode');
-      await expect(sel).toBeVisible();
-      await expect(sel).toHaveValue('winisd-lossy');
-      await expect(sel.locator('option')).toHaveText(['WinISD lossy model', 'Lossless model', 'Conventional lossy model']);
-      await expect(page.locator('.sim-options-box label', { hasText: 'Loss model' })).toHaveCount(0);
-      const help = page.locator('.sim-options-box .field', { has: sel });
-      for (const name of ['WinISD lossy model', 'Lossless model', 'Conventional lossy model']) {
-        await expect(help).toHaveAttribute('title', new RegExp(name));
-      }
-      await expect(help).not.toHaveAttribute('title', /Custom Q|None/);
     });
 
     test('the WinISD Compatibility panel ends just below its last switch', async ({ page }) => {
@@ -266,15 +254,6 @@ test.describe('Original Advanced tab', () => {
       const bottoms = await page.locator('.sim-options-box label[data-field-key]').evaluateAll(
         els => els.map(e => e.getBoundingClientRect().bottom));
       expect(panel.y + panel.height - Math.max(...bottoms)).toBeLessThanOrEqual(10);
-    });
-
-    test('the loss model drop-down is a design choice: it never carries the warning class', async ({page}) => {
-      const frame = page.locator('.sim-options-box .field', {has: page.locator('select#adv-lossmode')});
-      await showAdvancedOn(page, 'box-passive-radiator');
-      for (const mode of ['winisd-lossy', 'lossless', 'conventional-lossy']) {
-        await page.locator('select#adv-lossmode').selectOption(mode);
-        await expect(frame, mode).not.toHaveClass(/error-switch-marked/);
-      }
     });
   });
 

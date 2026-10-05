@@ -10,14 +10,13 @@ export class Bandpass4Box implements BoxModel {
   constructor(private readonly P: SweepParams) {}
 
   solve(q: DriverSideQuantities): BoxOutput {
-    const {w, pg, ZaE, ZaD, Ql, Qa, Cas, Mas, rho, c, lossMode} = q;
+    const {w, pg, ZaE, ZaD, Ql, Qa, Cas, Mas, rho, c, loss} = q;
     const P = this.P;
 
-    switch (lossMode) {
-      case 'lossless':
-      case 'conventional-lossy': {
+    switch (loss) {
+      case 'lossless': {
         // Shared per-frequency Ql/Qa/(ω·Cab) for BOTH chambers (the rear chamber's own, never
-        // the front's — same shared-loss convention the other boxes' conventional branch uses).
+        // the front's).
         // Output is the front port's own current alone.
         const Cabr   = P.Vb / (rho * c * c);
         const Zr     = cPar(cInv(cx(0, w * Cabr)), cx(Ql / (w * Cabr), 0), cx(Qa / (w * Cabr), 0));

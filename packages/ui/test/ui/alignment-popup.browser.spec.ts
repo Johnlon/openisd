@@ -1,4 +1,4 @@
-import {expect, focusedBoxVolume, openAProject, setFocusedBoxType, setFocusedBoxVolume, setFocusedDriverSpecs, test} from '../fixtures.js';
+import {expect, focusedBoxVolume, focusedSealedReadouts, openAProject, setFocusedBoxType, setFocusedDriverSpecs, setFocusedSealedLosses, test} from '../fixtures.js';
 
 /** The Alignment editor opened from the Box tab (a modal shared by the sealed and vented boxes). */
 
@@ -22,29 +22,27 @@ test.describe('Alignment popup', () => {
     await expect(page.locator('.alignment-modal')).toBeHidden();
   });
 
-  test('Cancel after choosing another sealed alignment leaves the volume and the readouts as they were', async ({ page }) => {
+  test('Cancel after changing the alignment leaves the sealed volume and Fsc/Qtc untouched', async ({ page }) => {
+    await setFocusedDriverSpecs(page, { Fs_hz: 37, Qts: 0.38, Vas_m3: 0.030, Qes: null });
     await setFocusedBoxType(page, 'sealed');
-    await setFocusedBoxVolume(page, 0.020);
     await page.locator('.project-nav li', { hasText: 'Box' }).click();
-    const qtcInput = page.locator('.box-layout .field', { hasText: 'Qtc' }).locator('input');
-    const fscInput = page.locator('#og-box-resonance');
-    await expect(fscInput).not.toHaveValue('');
-    const fscBefore = await fscInput.inputValue();
-    const qtcBefore = await qtcInput.inputValue();
+    const volumeBefore = await focusedBoxVolume(page);
+    const readoutsBefore = await focusedSealedReadouts(page);
+    const fscShown = await page.locator('#og-box-resonance').inputValue();
 
     await page.getByRole('button', { name: 'Alignment', exact: true }).click();
-    const modal = page.locator('.alignment-modal');
-    await expect(modal).toBeVisible();
-    const volumeInModal = modal.locator('input[type="number"]');
-    const volumeShown = await volumeInModal.inputValue();
-    await modal.locator('select').selectOption('0.707');
-    await expect(volumeInModal).not.toHaveValue(volumeShown);   // the choice resized the box in the editor
+    const select = page.locator('.alignment-modal select');
+    const current = await select.inputValue();
+    const values = await select.locator('option').evaluateAll(opts => opts.map(o => o.getAttribute('value') ?? ''));
+    const others = values.filter(v => v !== current && v !== '');
+    expect(others.length, 'the Alignment popup offers another alignment').toBeGreaterThan(0);
+    await select.selectOption(others[0]!);
     await page.getByRole('button', { name: 'Cancel', exact: true }).click();
-    await expect(modal).toBeHidden();
+    await expect(page.locator('.alignment-modal')).toBeHidden();
 
-    expect(await focusedBoxVolume(page)).toBeCloseTo(0.020, 9);
-    await expect(fscInput).toHaveValue(fscBefore);
-    await expect(qtcInput).toHaveValue(qtcBefore);
+    expect(await focusedBoxVolume(page)).toBe(volumeBefore);
+    expect(await focusedSealedReadouts(page)).toEqual(readoutsBefore);
+    await expect(page.locator('#og-box-resonance')).toHaveValue(fscShown);
   });
 
   test('vented Box tab opens and cancels the Alignment editor', async ({ page }) => {
@@ -68,10 +66,9 @@ test.describe('Alignment popup', () => {
     // with the Qts the alignment sized the box from.
     await setFocusedDriverSpecs(page, { Fs_hz: 37, Qts: 0.38, Vas_m3: 0.030, Qes: null });
 
-    // Lossless model (WinISD Compatibility panel) for exact formula match, then Box tab, sealed box
-    await page.locator('.project-nav li', { hasText: /^Advanced$/ }).click();
-    await page.locator('#adv-lossmode').selectOption('lossless');
+    // Ql and Qa at the lossless limit for exact formula match, then Box tab, sealed box
     await setFocusedBoxType(page, 'sealed');
+    await setFocusedSealedLosses(page, { Ql: 1e6, Qa: 1e6 });
     await page.locator('.project-nav li', { hasText: 'Box' }).click();
 
     // Open Alignment modal and choose Butterworth 0.707

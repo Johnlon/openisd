@@ -1,7 +1,7 @@
 # The box model has one loss triple; WinISD's bandpass4 has one per chamber
 
 ## Status
-OPEN (re-verified 2026-09-26) — losses are stored and exported per chamber, but `.wpr` import reads no loss keys, so every imported project gets default losses (`packages/design/domain/winIsdProjectConverter.ts`).
+FIXED 2026-10-05 (verified against the code) — losses are per chamber; `winIsdProjectConverter.ts` writes and reads `Qlf`/`Qaf`/`Qpf` and `Qlr`/`Qar`/`Qpr`, and the sweep uses them (`projectSweep.ts`).
 
 ## Symptom
 

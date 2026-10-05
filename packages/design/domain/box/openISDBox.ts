@@ -1,4 +1,3 @@
-import {LossMode} from '../../fields/lossMode.js';
 import {type Engine} from '../../engine/index.js';
 import type { Air, BoxType, DqIssue, VentedAlignment } from '../../engine/index.js';
 import { CalculatedFieldImpl, absentCell, calculatedCell, entryField, focus, pairedField, requiredField, simpleField } from '../cell.js';
@@ -101,17 +100,12 @@ export class OpenISDBox implements Box {
      *  same reason `OpenISDProject.sourceLoadedQts` treats `Rs` as one: the record hear has no
      *  home for it (it lives on the project's driverEmbedding, which the box does not own). */
     readonly #rs: () => number;
-    /** The project's chosen sealed-box loss model (S10/QO130), resolved at CALL time — same
-     *  reason `#rs` is a closure, not a field: `lossMode` lives on `advanced`, which the box
-     *  does not own. */
-    readonly #lossMode: () => LossMode;
 
     private constructor(
         lens: SimpleField<OpenISDBoxJson>,
         driver: OpenISDDriverEmbedded,
         engine: Engine,
         rs: () => number,
-        lossMode: () => LossMode,
         issues: () => ProjectIssues,
         ventTuningExtra: () => DqIssue | null,
         air: () => Air,
@@ -119,7 +113,6 @@ export class OpenISDBox implements Box {
         this.#driver = driver;
         this.#engine = engine;
         this.#rs = rs;
-        this.#lossMode = lossMode;
         const boxType = focus(lens, 'boxType');
         this.boxType = simpleField(() => boxType.value, (type) => {
             boxType.set(type);
@@ -137,7 +130,7 @@ export class OpenISDBox implements Box {
         this.sealed = {
             volume_m3: sealedVolume,
             resonance_hz: new CalculatedFieldImpl<number | null>(() => {
-                const v = this.#sealedResonance(sealedVolume.value, sealedLosses)?.Fsc ?? null;
+                const v = this.#sealedResonance(sealedVolume.value, sealedLosses, 'lossy')?.Fsc ?? null;
                 return v === null
                     ? absentCell<number>('resonance_hz')
                     : calculatedCell<number | null>('resonance_hz', v);
@@ -217,7 +210,7 @@ export class OpenISDBox implements Box {
                     // damping is already carried by Qlr/Qar in the bandpass circuit.
                     resonance_hz: new CalculatedFieldImpl<number | null>(() => {
                         const v = this.#sealedResonance(
-                            focus(bp4Rear, 'volume_m3').value, bp4RearLosses, LossMode.Lossless)?.Fsc ?? null;
+                            focus(bp4Rear, 'volume_m3').value, bp4RearLosses, 'lossless')?.Fsc ?? null;
                         return v === null
                             ? absentCell<number>('resonance_hz')
                             : calculatedCell<number | null>('resonance_hz', v);
@@ -225,7 +218,7 @@ export class OpenISDBox implements Box {
                     // Same lossless chamber model as Frc above, so Qtc = Qts·√(1+Vas/Vr).
                     q_tc: new CalculatedFieldImpl<number | null>(() => {
                         const v = this.#sealedResonance(
-                            focus(bp4Rear, 'volume_m3').value, bp4RearLosses, LossMode.Lossless)?.Qtc ?? null;
+                            focus(bp4Rear, 'volume_m3').value, bp4RearLosses, 'lossless')?.Qtc ?? null;
                         return v === null
                             ? absentCell<number>('q_tc')
                             : calculatedCell<number | null>('q_tc', v);
@@ -485,12 +478,11 @@ export class OpenISDBox implements Box {
         driver: OpenISDDriverEmbedded,
         engine: Engine,
         rs: () => number,
-        lossMode: () => LossMode,
         issues: () => ProjectIssues,
         ventTuningExtra: () => DqIssue | null,
         air: () => Air,
     ): OpenISDBox {
-        return new OpenISDBox(slot, driver, engine, rs, lossMode, issues, ventTuningExtra, air);
+        return new OpenISDBox(slot, driver, engine, rs, issues, ventTuningExtra, air);
     }
 
     /**
@@ -510,22 +502,22 @@ export class OpenISDBox implements Box {
      * on the golden scene; `SEALED_FSC_MODEL.md` §5).
      */
     #sealedResonance(volume_m3: number | null, losses: SealedLosses,
-                     mode: LossMode = this.#lossMode()): { Fsc: number; Qtc: number } | null {
+                     form: 'lossy' | 'lossless'): { Fsc: number; Qtc: number } | null {
         if (volume_m3 === null || !(volume_m3 > 0)) return null;
         const ts = this.#driver.specs;
         const Fs_hz = ts.Fs_hz.value;
         const Vas = ts.Vas_m3.value;
         const QtsLoaded = this.#driver.sourceLoadedQts(this.#rs());
         if (Fs_hz === null || Vas === null || QtsLoaded === null) return null;
-        // The project's own chosen mode (S10/QO130) by default. WinISD displays and saves the
-        // LOSSY figure by default (John 2026-08-27: "default is winisd = Lossy") and it MOVES
-        // with the chamber's losses: measured, `Fr` shifts 5.8 Hz for a `Ql` change at fixed
-        // volume (winisd_research FINDING-007). A caller (bandpass4's rear chamber) may still
-        // override `mode` — that is WinISD's own fixed behaviour for that chamber, not the
-        // project's chosen mode; see that call site's own note.
-        return this.#engine.sealed.resonance(mode, {
+        // WinISD displays and saves the LOSSY figure by default (John 2026-08-27: "default is
+        // winisd = Lossy") and it MOVES with the chamber's losses: measured, `Fr` shifts 5.8 Hz
+        // for a `Ql` change at fixed volume (winisd_research FINDING-007). Ql and Qa at or above
+        // the lossless limit give the lossless figure. The bandpass4 rear chamber asks for
+        // 'lossless' outright: that is WinISD's own fixed behaviour for that chamber.
+        const feed = {
             Fs: Fs_hz, Vas, Qts: QtsLoaded, Vb: volume_m3, Ql: losses.Ql.value, Qa: losses.Qa.value,
-        });
+        };
+        return form === 'lossless' ? this.#engine.sealed.losslessResonance(feed) : this.#engine.sealed.resonance(feed);
     }
 
 }

@@ -19,13 +19,13 @@ describe('boxModel — one class per simulatable box type', () => {
     Sd_m2: 0.0133, Re_ohm: 5.6, Xmax_m: 0.0050, Pe_W: 60, Znom_ohm: 8,
   }));
 
-  // `conventional-lossy` so every branch reads geometry (Sp/Leff, prMmd/prCms/prSd) rather than
-  // a fixed-tuning `Fb`/`Fr` — no need to hand-tune a resonance for a dispatch-only test.
-  const P_SEALED: SweepParams = {Vb: 0.030, eg: 2.83, Ql: 10, fmin: 30, fmax: 300, N: 5, lossMode: 'conventional-lossy'};
+  // Lossless (Ql and Qa at the limit) so every branch reads geometry (Sp/Leff, prMmd/prCms/prSd)
+  // rather than a fixed-tuning `Fb`/`Fr` — no need to hand-tune a resonance for a dispatch-only test.
+  const P_SEALED: SweepParams = {Vb: 0.030, eg: 2.83, Ql: 1e6, Qa: 1e6, fmin: 30, fmax: 300, N: 5};
   const P_VENTED: SweepParams = {...P_SEALED, Sp: Math.PI * 0.025 ** 2, Leff: 0.1366};
   const P_PR: SweepParams = {...P_SEALED, prSd: 0.0133, prNum: 1, prMmd: 0.030, prMadd: 0, prCms: 0.0008, prRms: 1.0};
   const P_BP4: SweepParams = {...P_VENTED, Vf: 0.020};
-  // `bandpass6`/`abc` read Fr/Ff (chamber tuning) for their own port mass in EVERY lossMode,
+  // `bandpass6`/`abc` read Fr/Ff (chamber tuning) for their own port mass under EVERY loss form,
   // never Leff/Sp geometry (`Bandpass6Box.ts`'s own doc) — unlike `vented`/`bandpass4` above,
   // `conventional-lossy` buys nothing here, so a resonance is hand-tuned regardless.
   const P_BP6: SweepParams = {...P_SEALED, Vf: 0.020, Fr: 45, Ff: 60};

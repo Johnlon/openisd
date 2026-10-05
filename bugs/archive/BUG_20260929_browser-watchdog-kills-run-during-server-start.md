@@ -1,6 +1,6 @@
 # BUG_20260929_browser-watchdog-kills-run-during-server-start
 
-**Status:** OPEN
+**Status:** FIXED 2026-10-05 — the abort-on-load symptom is gone: `scripts/test-browser.sh` waits up to 180 s for the first answer from Vite before it counts failures (09c60b00), and the idle watchdog in `scripts/quiet-test.sh` counts log growth, CPU use and lane queueing as progress. Not done, optional speedups only: bundling still runs inside `webServer.command`, and `test-bundle-paths.json` still lists 5 drivers.
 
 ## Symptom
 `scripts/test-browser.sh` aborts with "WATCHDOG: Vite server on port 4100 is unreachable"

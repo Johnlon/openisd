@@ -5,7 +5,6 @@
  * these types describe existing behaviour, they do not change it.
  */
 
-import type {LossModeValue} from '../fields/lossMode.js';
 
 /** A complex number in rectangular form. */
 export interface Complex {
@@ -211,7 +210,6 @@ export interface SweepParams {
    *  (false/absent). */
   winisdBesselHighpass?: boolean;
   // Box losses
-  lossMode?: LossModeValue;
   Ql?: number;
   Qa?: number;
   Qp?: number;
@@ -236,7 +234,7 @@ export interface SweepParams {
    *  / `Bandpass4Box.chambers.front.tuning_goal_hz`) — read ONLY by `circuit.ts`'s vented
    *  `winisd-lossy` branch, whose port mass Map = 1/(ωb²·Cab) comes from `Fb` and never from
    *  `Leff` (winisd_research/GHIDRA_FINDINGS.md "Vented box — `0x456800`"). Absent for any other
-   *  box/lossMode combination, which never reads it. */
+   *  box combination, which never reads it. */
   Fb?: number;
   // Passive radiator
   prSd?: number;
@@ -257,11 +255,11 @@ export interface SweepParams {
    *  `vented`/`bandpass4`, which never read it. */
   Fr?: number;
   // 4th-order bandpass — read ONLY by `Bandpass4Box`'s `winisd-lossy` branch (never
-  // `conventional-lossy`/`lossless`, which keep the shared `Ql`/`Qa`/`Qp` above for the rear
-  // chamber and never read the front chamber's own losses at all). Each is a FIXED resistance
+  // `lossless`, which keeps the shared `Ql`/`Qa`/`Qp` above for the rear
+  // chamber and never reads the front chamber's own losses at all). Each is a FIXED resistance
   // at that chamber's own frequency, never per-sweep-frequency, and never shared between
   // chambers (winisd_research/GHIDRA_FINDINGS.md "4th-order bandpass — `0x457a30`",
-  // bugs/archive/BUG_20260927_bandpass4-box-not-winisd-form.md). Absent for any other box/lossMode
+  // bugs/archive/BUG_20260927_bandpass4-box-not-winisd-form.md). Absent for any other box/loss
   // combination, which never reads them.
   /** Rear (sealed) chamber leakage Q, WinISD `.wpr` `Qlr` — `Bandpass4Box.chambers.rear.losses.Ql`. */
   Qlr?: number;
@@ -353,8 +351,8 @@ export interface Solution {
    *  reports it through `UP`. */
   UPr?: Complex;
   /** ABC's intra-chamber port velocity, WinISD's own chart-21 form (Ricl left out — a WinISD
-   *  wart, `boxes/AbcBox.ts`'s own doc) — `winisd-lossy` only; `undefined` for `lossless`/
-   *  `conventional-lossy` (`AbcBox.solve()` does not compute it there) and for every non-`abc`
+   *  wart, `boxes/AbcBox.ts`'s own doc) — `winisd-lossy` only; `undefined` for `lossless`
+   *  (`AbcBox.solve()` does not compute it there) and for every non-`abc`
    *  box type. */
   UPi?: Complex;
   Zbox: Complex;
@@ -379,7 +377,7 @@ export interface SweepResult {
    *  for every other box type, which has at most one port and reports it through `pv` above. */
   pvRear: number[] | null;
   /** ABC's intra-chamber port velocity, m/s, WinISD's own chart-21 form (`Solution.UPi`'s own
-   *  doc) — `winisd-lossy` only; `null` for `lossless`/`conventional-lossy` and for every
+   *  doc) — `winisd-lossy` only; `null` for `lossless` and for every
    *  non-`abc` box type. */
   pvIntra: number[] | null;
   zmag: number[];

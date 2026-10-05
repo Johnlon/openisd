@@ -20,7 +20,7 @@ const LE_H = 0.5e-3;
 
 const BASE: SweepParams = {
   Vb: 0.01, eg: 2.83, fmin: 20, fmax: 20000, N: 200,
-  lossMode: 'winisd-lossy', Ql: 7, Qa: 30,
+  Ql: 7, Qa: 30,
   prMmd: 0.0164, prMadd: 0, prSd: 0.0095, prCms: 7.9e-4, prRms: 1.13, prNum: 2,
 };
 
@@ -60,7 +60,7 @@ describe('PR box ωr, winisd-lossy', () => {
     expect(sweepWith(true, {prNum: 1}).spl).toEqual(sweepWith(false, {prNum: 1}).spl);
   });
 
-  it('the conventional loss models never read the switch', () => {
-    expect(sweepWith(true, {lossMode: 'conventional-lossy'}).zmag).toEqual(sweepWith(false, {lossMode: 'conventional-lossy'}).zmag);
+  it('the lossless form never reads the switch', () => {
+    expect(sweepWith(true, {Ql: 1e6, Qa: 1e6}).zmag).toEqual(sweepWith(false, {Ql: 1e6, Qa: 1e6}).zmag);
   });
 });

@@ -38,16 +38,16 @@ describe('viewSnapshot — unit choices', () => {
  * the four fast-changing cursor fields (crosshair f, pinnedF, locked, drag-band range) are OUT
  * of the saved record ENTIRELY — never `.owpr`, never a share link, never the view-state
  * autosave (`OpenISDProject.cursorF` etc. are plain in-memory instance state, a documented
- * exception in `architecture-project-has-three-fields.test.ts`). `graphs`/`lossMode` (QO130)
- * are project data now too, persisted via `OpenISDProject.graphs`/`.lossMode` inside
+ * exception in `architecture-project-has-three-fields.test.ts`). `graphs` (QO130)
+ * is project data now too, persisted via `OpenISDProject.graphs` inside
  * `project.toOwprText()` — a share link's project text already carries them, so `ViewSnapshot`
  * does not need to carry them a second time either. `ViewSnapshot` shrinks to `{ ui }` alone.
  */
-describe('viewSnapshot — carries only ui and chart, cursor/graphs/lossMode live on the project', () => {
-  it('currentViewSnapshot() carries no cursor, graphs, or lossMode key', () => {
+describe('viewSnapshot — carries only ui and chart, cursor/graphs live on the project', () => {
+  it('currentViewSnapshot() carries no cursor or graphs key', () => {
     const snapshot = currentViewSnapshot();
     assert.deepEqual(Object.keys(snapshot), ['ui', 'chart'],
-      'cursor is QO168-exempt from every saved record; graphs/lossMode are now project data ' +
+      'cursor is QO168-exempt from every saved record; graphs are now project data ' +
       '(QO130), already carried inside the project text; chart is the app-level sweep/Y ranges ' +
       '(BUG_20260926_sweep-range-and-y-ranges-not-persisted)');
   });

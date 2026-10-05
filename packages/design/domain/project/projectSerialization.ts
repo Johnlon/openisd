@@ -1,6 +1,7 @@
 import { openISDProjectSessionJsonSchema } from '../openisdSchema.js';
 import type { OpenISDProjectJson, OpenISDProjectSessionJson } from '../openisdSchema.js';
 import { parseRepairing, type Repaired } from '../schemaRepair.js';
+import { retireLossMode } from './retiredLossMode.js';
 
 /** Serialises saved and ordinary edited states for persistence. The transient what-if is absent. */
 export function sessionOf(name: string, saved: OpenISDProjectJson, edited: OpenISDProjectJson | null): OpenISDProjectSessionJson {
@@ -33,7 +34,7 @@ export function parseOwprSession(text: string): { session: OpenISDProjectSession
             ? issue.message
             : `'${issue.path.join('.')}': ${issue.message}`)};
     }
-    return {session: result.data};
+    return {session: retireLossMode(result.data).session};
 }
 
 /** `.owpr` text parsed with every failing field removed so its default applies, and which ones
@@ -56,5 +57,8 @@ export function parseOwprSessionRepairing(text: string): Repaired<OpenISDProject
     } catch {
         return ['not valid JSON'];
     }
-    return parseRepairing(openISDProjectSessionJsonSchema, parsed);
+    const repaired = parseRepairing(openISDProjectSessionJsonSchema, parsed);
+    if (Array.isArray(repaired)) return repaired;
+    const retired = retireLossMode(repaired.value);
+    return {value: retired.session, repaired: [...repaired.repaired, ...retired.repaired]};
 }

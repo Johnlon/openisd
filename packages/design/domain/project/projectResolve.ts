@@ -150,7 +150,6 @@ export function resolveProject(ctx: ProjectResolveContext): ProjectIssues {
             Fs_hz: inputOf(() => ts.Fs_hz.value),
             Ql: inputOf(() => box.sealed.losses.Ql.value),
             Qa: inputOf(() => box.sealed.losses.Qa.value),
-            lossMode: inputOf(() => directRoot.value.advanced.lossMode ?? null),
             Qtc: box.sealed.q_tc,
             Vb_m3: sealedVolumeAsSolverField(box.sealed.volume_m3),
         });

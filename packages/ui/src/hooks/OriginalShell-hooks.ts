@@ -52,7 +52,7 @@ import {createToneGenerator, type ToneGenerator} from '../logic/toneGenerator.js
 import {useApp} from '../logic/app.js';
 import {useEscToClose} from '../logic/useEscToClose.js';
 import {injectSplashModal} from './SplashModal-hooks.js';
-import {ARRAY_WIRING_OPTIONS, BOX_TYPE_OPTIONS, END_CORRECTION_OPTIONS, formatFixed, formatFixedOrDash, LossMode, NumberField, ReadoutFormat, VENT_SHAPE_OPTIONS, WinisdDeviation} from '@openisd/design/fields';
+import {ARRAY_WIRING_OPTIONS, BOX_TYPE_OPTIONS, END_CORRECTION_OPTIONS, formatFixed, formatFixedOrDash, NumberField, ReadoutFormat, VENT_SHAPE_OPTIONS, WinisdDeviation} from '@openisd/design/fields';
 import {inputChecked, inputFrom, inputValue, listeningElement, selectedOption, selectValue} from '../logic/domEvents.js';
 import {SealedAlignmentEditor} from './SealedAlignment-hooks.js';
 import {VentedAlignmentEditor} from './VentedAlignment-hooks.js';
@@ -184,13 +184,6 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   const { projectRepo } = useApp();
   const { editProjectDriver } = selection;
 
-  // Sealed loss model (S10/QO130) — PROJECT-scoped, reversing QO90. The picker's list comes
-  // from the enum the setter parses into, so the two cannot disagree.
-  const LOSS_MODE_OPTIONS = LossMode.OPTIONS;
-  const lossMode = computed<string>({
-    get: () => { void projectChanged.value; return project.value.lossMode.value.value; },
-    set: (v: string) => { project.value.lossMode.set(LossMode.parse(v)); },
-  });
   const N_DRIVERS_OPTIONS = NumberField.DRIVER_NDRIVERS.countOptions();
   const VENT_COUNT_OPTIONS = NumberField.VENT_COUNT.countOptions();
   const PR_COUNT_OPTIONS = NumberField.PR_NUM.countOptions();
@@ -660,7 +653,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     genOn, toggleGenerate, genHz,
     boxLabel, pending, openCharts, chartStackEl, chartStackStyle, chartsHigh, CHARTS_HIGH_OPTIONS, overlays, activeTab,
     showEnclosureTab, enclosureNavLabel,
-    selectedBox, BOX_TYPE_OPTIONS, LOSS_MODE_OPTIONS, lossMode, ARRAY_WIRING_OPTIONS, N_DRIVERS_OPTIONS, abcVelocityApplies, errorSwitches, chartDeviations, prNprDeviationShown,
+    selectedBox, BOX_TYPE_OPTIONS, ARRAY_WIRING_OPTIONS, N_DRIVERS_OPTIONS, abcVelocityApplies, errorSwitches, chartDeviations, prNprDeviationShown,
      boxVolume_m3, boxVolumeDqNote, setBoxVolume_m3, sealedAlignmentEditor, sealedAlignmentOpen,
      sealedAlignmentOptions, sealedAlignmentSelected, sealedAlignmentVolume_m3, sealedAlignmentEbp,
      sealedAlignmentSuitability, sealedAlignmentSuitabilityLabel, originalFilters,

@@ -196,7 +196,8 @@ function onPointerUp(e: PointerEvent) {
   if (wasDrag) return; // leave selection visible; cleared on next pointerdown
   project.value.dragRange.set(null);
   const f = freqAt(e.clientX);
-  if (f !== null) graph.clickAt(f);
+  if (f === null) return;
+  graph.clickCursorAt(f);
 }
 
 // Double-click the Y-axis strip resets that chart's level scale to auto; double-click

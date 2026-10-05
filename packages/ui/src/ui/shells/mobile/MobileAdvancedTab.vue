@@ -5,14 +5,13 @@
 // OriginalShell-hooks.ts exports. AdvancedOptions.vue (the simulation-fidelity checkbox column)
 // is reused unchanged — already presentation-only with its own hook.
 import {NumberField, ToggleField} from '@openisd/design/fields';
-import {inputChecked, selectedOption} from '../../../logic/domEvents.js';
+import {inputChecked} from '../../../logic/domEvents.js';
 import NumInput from '../../components/NumInput.vue';
 import UnitToggle from '../../components/UnitToggle.vue';
 import AdvancedOptions from '../../components/AdvancedOptions.vue';
 import ErrorSwitch from '../../components/ErrorSwitch.vue';
 import ErrorSwitchGroup from '../../components/ErrorSwitchGroup.vue';
 import CompatPresets from '../../components/CompatPresets.vue';
-import {LOSS_MODE_TIP} from '../../../hooks/errorSwitches.js';
 import {useMobileAdvancedTab} from '../../../hooks/MobileAdvancedTab-hooks.js';
 
 const {
@@ -20,7 +19,7 @@ const {
   envTempStored, envHumidityStored, envPressureStored, envTempDq, envHumidityDq, envPressureDq,
   advTemp, advHumidity, advPressure,
   resetAirToAppDefaults, advAir,
-  LOSS_MODE_OPTIONS, lossMode, abcVelocityApplies, errorSwitches,
+  abcVelocityApplies, errorSwitches,
 } = useMobileAdvancedTab();
 </script>
 
@@ -70,13 +69,6 @@ const {
   <div class="mob-panel">
     <div class="mob-panel-head">WinISD compatibility</div>
     <div class="mob-row mob-presets-row"><CompatPresets /></div>
-    <div class="mob-row" :title="LOSS_MODE_TIP">
-      <label class="mob-row-label" for="mob-adv-lossmode">Sealed loss model</label>
-      <select id="mob-adv-lossmode" class="mob-select" :value="lossMode"
-              @change="e => { const m = selectedOption(e, LOSS_MODE_OPTIONS); if (m !== null) lossMode = m; }">
-        <option v-for="m in LOSS_MODE_OPTIONS" :key="m.value" :value="m.value">{{ m.label }}</option>
-      </select>
-    </div>
     <div class="mob-row mob-checkbox-row" :class="{ 'mob-row-na': !abcVelocityApplies }">
       <label data-field-key="winisdAbcIntraPortVelocity" :title="ToggleField.ADV_WINISDABCINTRAPORTVELOCITY.description">
         <input type="checkbox" :checked="project.winisdAbcIntraPortVelocity.value" :disabled="!abcVelocityApplies" @change="e => project.winisdAbcIntraPortVelocity.set(inputChecked(e))"> {{ ToggleField.ADV_WINISDABCINTRAPORTVELOCITY.label }}

@@ -1,4 +1,4 @@
-Status: OPEN (re-verified 2026-09-26) — `.wpr` export still writes Nd, Isobarik, alfaVC, dTVC and the filter count as literals.
+Status: FIXED 2026-10-05 (verified against the code) — `WinIsdProjectConverter` writes `Nd`, `Isobarik`, `alfaVC`, `dTVC`, `Rg` and the filter list from the project; the template literals are only defaults the converter overrides.
 
 # `.wpr` export writes fabricated constants over design state the project actually holds
 

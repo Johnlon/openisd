@@ -37,7 +37,6 @@
  * `{group: 'volume', base: 'mm'}` does not compile. A switchable field's on-screen label always
  * comes from `UNIT_GROUPS`, never a second string stated here.
  */
-import {LossMode} from './lossMode.js';
 import type {FixedUnit, SwitchableUnit, Quantity, TypedEntry} from './dimensions.js';
 import {
   decimalsIn, isTokenIn, parseEntry as parseEntryDim, toDisplay as toDisplayDim, toDisplayDelta as toDisplayDeltaDim,
@@ -1194,14 +1193,6 @@ export class EnumField extends Field {
     label: "End Correction",
     options: END_CORRECTION_OPTIONS,
     description: "End Correction Factor\nAccounts for air moving just beyond the duct's physical ends — it extends the port's effective length.\nDepends on how the port terminates: free air, or a flanged baffle.",
-  });
-
-  // ── Losses ────────────────────────────────────────────────────────────────────────────────
-  static readonly LOSS_DAMPINGMODE = new EnumField({
-    value: "loss_DampingMode",
-    label: "Loss model",
-    options: LossMode.OPTIONS,
-    description: "Loss Model\nHow Fsc and Qtc account for box losses.\nNone: ideal, lossless (Q = ∞).\nWinISD default: lossy cubic (Ql=10, Qa=100, Qp=100).\nCustom: your own Ql/Qa/Qp values.",
   });
 
   // ── Driver ────────────────────────────────────────────────────────────────────────────────

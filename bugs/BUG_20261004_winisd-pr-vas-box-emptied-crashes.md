@@ -37,3 +37,4 @@ a bad value when a field is cleared.
   `set(v ?? 0)`. That is a separate open bug and may produce a zero divide in the solver routes.
 
 ## Done
+- Recorded 2026-10-05: a row in `docs/research/ACCURACY_IMPROVEMENTS.md` ("fixed by default", broken links) and a section in `docs/research/WINISD_PARITY.md`.

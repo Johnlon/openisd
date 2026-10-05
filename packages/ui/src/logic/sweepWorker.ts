@@ -1,11 +1,11 @@
 /**
  * The sweep worker: answers each `SweepRequest` with its `SweepReply`, off the main thread. The
- * sweep reads no app setting, so the worker's own default engine gives what the main thread's would.
+ * sweep reads no app setting, so the worker needs the simulation area alone, not the whole engine.
  */
-import {createEngine} from '@openisd/design/engine';
+import {createSimulationEngine} from '@openisd/design/engine';
 import {SweepComputer, type SweepRequest} from './sweepRequest.js';
 
-const computer = new SweepComputer(createEngine().simulation);
+const computer = new SweepComputer(createSimulationEngine());
 addEventListener('message', (e: MessageEvent<SweepRequest>) => {
   postMessage(computer.run(e.data));
 });

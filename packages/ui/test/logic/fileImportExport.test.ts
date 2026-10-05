@@ -114,14 +114,9 @@ describe('fileImportExport — provenance survives a file-save round trip', () =
  * `OpenISDProject`, with no `ViewSnapshot` parameter at all; only `stateToUrl` takes a view,
  * and separately (see the share-link describe block below).
  *
- * QO130 partially reverses QO90's `lossMode` call: the UI-singleton `presentationState.lossMode`
- * this test used to rule out is gone, but `lossMode` now travels as PROJECT data, nested under
- * `advanced` (`OpenISDProject.lossMode`) — a project fact (S10), not a view preference. The key
- * set below still has no bare top-level `lossMode`, which is what this test actually checks.
  */
 describe('fileImportExport — file save carries pure project data, no view', () => {
-  it('the stored payload carries no ui/cursor/graphs, and no view-singleton lossMode ' +
-     '(project-scoped lossMode nests under advanced, QO130)', async () => {
+  it('the stored payload carries no ui/cursor/graphs', async () => {
     const ser = await storedPayload(projectOf('sealed', { name: 'View-free save', creator: 'John', created: '2026-01-01',
       modified: '2026-01-02', description: '' }, sampleDriverRecord()));
     // The whole key set, not four named absences: a view field arriving under a name nobody
@@ -130,7 +125,7 @@ describe('fileImportExport — file save carries pure project data, no view', ()
     // DELIBERATELY, which is the point.
     assert.deepEqual(Object.keys(ser).sort(),
       ['advanced', 'box', 'charts', 'driverEmbedding', 'environment', 'filters', 'meta', 'signal'],
-      'the file wire carries project data only — no ui, cursor, graphs, or top-level lossMode (QO90/QO130)');
+      'the file wire carries project data only — no ui, cursor, or graphs (QO90/QO130)');
     // The project itself still travels.
     assert.equal(ser.meta?.name, 'View-free save');
   });

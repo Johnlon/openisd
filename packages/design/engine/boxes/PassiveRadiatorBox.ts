@@ -12,11 +12,11 @@ export class PassiveRadiatorBox implements BoxModel {
   constructor(private readonly P: SweepParams) {}
 
   solve(q: DriverSideQuantities): BoxOutput {
-    const {w, pg, ZaE, ZaD, Cab, Zc, Ral, Raa, Ql, Qa, lossMode} = q;
+    const {w, pg, ZaE, ZaD, Cab, Zc, Ral, Raa, Ql, Qa, loss} = q;
     const P = this.P;
 
     // n_pr PRs in parallel → combined acoustic impedance = Zpr_single / n_pr. Map/Cap/Rap are
-    // the radiator's own mass/compliance/loss — the same in every lossMode; only the BOX's leak
+    // the radiator's own mass/compliance/loss — the same under either loss form; only the BOX's leak
     // and absorption (Ral/Raa) and how the output is read off Zbox differ below.
     const n_pr = P.prNum || 1;
     // The domain guarantees prMmd/prSd/prCms present before a sweep (engine/params.ts
@@ -28,12 +28,10 @@ export class PassiveRadiatorBox implements BoxModel {
     const Zpr_single = cAdd(cAdd(cx(Rap, 0), cx(0, w * Map)), cInv(cx(0, w * Cap)));
     const Zpr = n_pr !== 1 ? cScale(Zpr_single, 1 / n_pr) : Zpr_single;
 
-    switch (lossMode) {
-      case 'lossless':
-      case 'conventional-lossy': {
-        // Ral/Raa here are the same per-frequency Ql/Qa/(ω·Cab) the sealed box's own
-        // conventional-lossy branch uses; for 'lossless' they are effectively absent because
-        // Ql/Qa are then ≥1e6. Output is cone minus radiator (leak not split out).
+    switch (loss) {
+      case 'lossless': {
+        // Ral/Raa here are the per-frequency Ql/Qa/(ω·Cab); they are effectively
+        // absent because Ql/Qa are then ≥1e6. Output is cone minus radiator (leak not split out).
         const Zbox = cPar(Zc, Ral, Raa, Zpr);
         const UD = cDiv(pg, cAdd(cAdd(ZaE, ZaD), Zbox));
         const UP = cMul(UD, cDiv(Zbox, Zpr));

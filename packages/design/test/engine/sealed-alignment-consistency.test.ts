@@ -1,4 +1,3 @@
-import {LossMode} from '../../fields/lossMode.js';
 import {describe, expect, it} from 'vitest';
 import type {SolverField, SolverInput} from '../../engine/index.js';
 import {createEngine} from '../../engine/index.js';
@@ -6,7 +5,6 @@ import {checkSealedAlignment, fakeSolverField, solveSealedAlignmentGroup} from '
 
 const engine = createEngine();
 const NO_INPUT: SolverInput = Object.freeze({value: null, entered: false});
-const NO_STRING_INPUT: SolverInput<string> = Object.freeze({value: null, entered: false});
 
 describe('solveSealedAlignmentGroup (a test-only bag wrapper over Engine.solveSealedAlignment)', () => {
   it('solves Vb from Qts, Vas, and a target Qtc', () => {
@@ -59,12 +57,12 @@ describe('checkSealedAlignment (a test-only bag wrapper over Engine.solveSealedA
 describe('Engine.solveSealedAlignment — handle solve, values written onto the params', () => {
   function params(p: { Qts?: number; Vas_m3?: number; Qtc?: number; Vb_m3?: number }): {
     Qts: SolverField; Vas_m3: SolverField; Fs_hz: SolverInput; Ql: SolverInput; Qa: SolverInput;
-    lossMode: SolverInput<string>; Qtc: SolverField; Vb_m3: SolverField;
+    Qtc: SolverField; Vb_m3: SolverField;
   } {
     return {
       Qts: fakeSolverField(p.Qts ?? null),
       Vas_m3: fakeSolverField(p.Vas_m3 ?? null),
-      Fs_hz: NO_INPUT, Ql: NO_INPUT, Qa: NO_INPUT, lossMode: NO_STRING_INPUT,
+      Fs_hz: NO_INPUT, Ql: NO_INPUT, Qa: NO_INPUT,
       Qtc: fakeSolverField(p.Qtc ?? null),
       Vb_m3: fakeSolverField(p.Vb_m3 ?? null),
     };
@@ -128,16 +126,16 @@ describe('Engine.solveSealedAlignment — handle solve, values written onto the 
 describe('Engine.solveSealedAlignment — loss-aware Vb→Qtc route', () => {
   const Qts = 0.4, Vas_m3 = 0.03, Fs_hz = 30, Vb_m3 = 0.02, Ql = 10, Qa = 100;
 
-  it('a caller stating Fs_hz/Ql/Qa/lossMode gets the SAME Qtc the Box tab readout ' +
+  it('a caller stating Fs_hz/Ql/Qa gets the SAME Qtc the Box tab readout ' +
      '(engine.sealedResonance) computes for the identical inputs — the wiring this test proves', () => {
     const p = {
       Qts: fakeSolverField(Qts), Vas_m3: fakeSolverField(Vas_m3),
       Fs_hz: { value: Fs_hz, entered: true }, Ql: { value: Ql, entered: true },
-      Qa: { value: Qa, entered: true }, lossMode: { value: LossMode.WinisdLossy.value, entered: true },
+      Qa: { value: Qa, entered: true },
       Qtc: fakeSolverField<number>(null), Vb_m3: fakeSolverField(Vb_m3),
     };
     engine.sealed.solve(p);
-    const want = engine.sealed.resonance(LossMode.WinisdLossy, { Fs: Fs_hz, Vas: Vas_m3, Qts, Vb: Vb_m3, Ql, Qa }).Qtc;
+    const want = engine.sealed.resonance({ Fs: Fs_hz, Vas: Vas_m3, Qts, Vb: Vb_m3, Ql, Qa }).Qtc;
     expect(p.Qtc.value).toBeCloseTo(want, 12);
     expect(p.Qtc.calculated).toBe(true);
   });
@@ -146,7 +144,6 @@ describe('Engine.solveSealedAlignment — loss-aware Vb→Qtc route', () => {
     const p = {
       Qts: fakeSolverField(Qts), Vas_m3: fakeSolverField(Vas_m3),
       Fs_hz: NO_INPUT, Ql: { value: Ql, entered: true }, Qa: { value: Qa, entered: true },
-      lossMode: NO_STRING_INPUT,
       Qtc: fakeSolverField<number>(null), Vb_m3: fakeSolverField(Vb_m3),
     };
     engine.sealed.solve(p);
@@ -154,27 +151,14 @@ describe('Engine.solveSealedAlignment — loss-aware Vb→Qtc route', () => {
     expect(p.Qtc.value).toBeCloseTo(lossless, 12);
   });
 
-  it('an unrecognised/absent lossMode parses to the default (winisd-lossy), same as LossMode.parse', () => {
-    const p = {
-      Qts: fakeSolverField(Qts), Vas_m3: fakeSolverField(Vas_m3),
-      Fs_hz: { value: Fs_hz, entered: true }, Ql: { value: Ql, entered: true },
-      Qa: { value: Qa, entered: true }, lossMode: NO_STRING_INPUT,
-      Qtc: fakeSolverField<number>(null), Vb_m3: fakeSolverField(Vb_m3),
-    };
-    engine.sealed.solve(p);
-    const want = engine.sealed.resonance(LossMode.Default, { Fs: Fs_hz, Vas: Vas_m3, Qts, Vb: Vb_m3, Ql, Qa }).Qtc;
-    expect(p.Qtc.value).toBeCloseTo(want, 12);
-  });
-
   it('a caller stating Fs_hz but leaving Ql/Qa not-entered gets the lossless-limit (Ql=Qa=Infinity) readout', () => {
     const p = {
       Qts: fakeSolverField(Qts), Vas_m3: fakeSolverField(Vas_m3),
       Fs_hz: { value: Fs_hz, entered: true }, Ql: NO_INPUT, Qa: NO_INPUT,
-      lossMode: { value: LossMode.WinisdLossy.value, entered: true },
       Qtc: fakeSolverField<number>(null), Vb_m3: fakeSolverField(Vb_m3),
     };
     engine.sealed.solve(p);
-    const want = engine.sealed.resonance(LossMode.WinisdLossy,
+    const want = engine.sealed.resonance(
       { Fs: Fs_hz, Vas: Vas_m3, Qts, Vb: Vb_m3, Ql: Infinity, Qa: Infinity }).Qtc;
     expect(p.Qtc.value).toBeCloseTo(want, 12);
   });

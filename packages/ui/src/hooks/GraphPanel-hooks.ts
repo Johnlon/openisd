@@ -29,11 +29,11 @@ export interface GraphPanelAPI {
   frequencyAxis(): FrequencyAxis;
   /** Ripple, peak and trough of this chart's trace between two frequencies; null with no trace. */
   rangeStats(fLo: number, fHi: number): RangeStats | null;
+  /** A click on the chart at `f`: locks the cursor there; while locked, a click near the pinned
+   *  point unlocks it, and a click elsewhere moves the cursor there unlocked. */
+  clickCursorAt(f: number): void;
   /** The peak or trough of this chart's trace nearest `f` on one side; null when none. */
   snapFrequency(f: number | null, direction: SnapDirection, extremum: SnapExtremum): number | null;
-  /** A click at `f`: on an unlocked chart it locks the cursor there; near the pinned point it
-   *  unlocks it in place; elsewhere while locked it moves the cursor there, unlocked. */
-  clickAt(f: number): void;
 }
 
 export const GraphPanelKey: InjectionKey<GraphPanelAPI> = Symbol('GraphPanelAPI');
@@ -101,17 +101,20 @@ export function useGraphPanel(props: GraphPanelProps, chartEngine: ChartEngineAr
     return s ? snapFrequency(s.xs, s.ys, f, direction, extremum) : null;
   }
 
-  function clickAt(f: number): void {
+  function clickCursorAt(f: number): void {
     const p = project.value;
-    const wasLocked = p.cursorLocked.value;
     const pinnedF = p.pinnedF.value;
-    if (wasLocked && pinnedF !== null && frequencyAxis().isNear(f, pinnedF)) {
+    if (p.cursorLocked.value && pinnedF !== null && frequencyAxis().isNear(f, pinnedF)) {
       p.cursorLocked.set(false);
-      return;
+    } else if (p.cursorLocked.value) {
+      p.pinnedF.set(f);
+      p.cursorF.set(f);
+      p.cursorLocked.set(false);
+    } else {
+      p.pinnedF.set(f);
+      p.cursorF.set(f);
+      p.cursorLocked.set(true);
     }
-    p.pinnedF.set(f);
-    p.cursorF.set(f);
-    p.cursorLocked.set(!wasLocked);
   }
 
   return {
@@ -124,8 +127,8 @@ export function useGraphPanel(props: GraphPanelProps, chartEngine: ChartEngineAr
     warningsDismissed,
     dismissWarnings,
     frequencyAxis,
+    clickCursorAt,
     rangeStats,
     snapFrequency: snapFrequencyOnTrace,
-    clickAt,
   };
 }

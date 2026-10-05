@@ -7,7 +7,6 @@
 // gets unit-tested without a DOM. This `<script setup>` is nothing but a hook call plus the
 // child-component imports; the template reads the destructured API surface only.
 import {NumberField, ReadoutFormat, ToggleField, WinisdDeviation} from '@openisd/design/fields';
-import {LOSS_MODE_TIP} from '../../../hooks/errorSwitches.js';
 import UnitToggle from '../../components/UnitToggle.vue';
 import NumInput from '../../components/NumInput.vue';
 import NumReadout from '../../components/NumReadout.vue';
@@ -41,7 +40,7 @@ const {
   genOn, toggleGenerate, genHz,
   boxLabel, pending, openCharts, chartStackEl, chartStackStyle, chartsHigh, CHARTS_HIGH_OPTIONS, overlays, activeTab,
   showEnclosureTab, enclosureNavLabel,
-  selectedBox, BOX_TYPE_OPTIONS, LOSS_MODE_OPTIONS, lossMode, ARRAY_WIRING_OPTIONS, N_DRIVERS_OPTIONS, abcVelocityApplies, errorSwitches, chartDeviations, prNprDeviationShown,
+  selectedBox, BOX_TYPE_OPTIONS, ARRAY_WIRING_OPTIONS, N_DRIVERS_OPTIONS, abcVelocityApplies, errorSwitches, chartDeviations, prNprDeviationShown,
   boxVolume_m3, boxVolumeDqNote, setBoxVolume_m3, sealedAlignmentEditor, sealedAlignmentOpen,
   sealedAlignmentOptions, sealedAlignmentSelected, sealedAlignmentVolume_m3, sealedAlignmentEbp,
   sealedAlignmentSuitability, sealedAlignmentSuitabilityLabel, originalFilters,
@@ -648,13 +647,6 @@ const {
               <CompatPresets><span class="sim-options-header">WinISD Compatibility</span></CompatPresets>
               <div class="sim-switches">
                 <div class="sim-switch-col">
-                <div class="field-row" style="flex-wrap: nowrap; margin-bottom: 3px;">
-                <div class="field" style="gap:6px;" :title="LOSS_MODE_TIP">
-                  <select id="adv-lossmode" :value="lossMode" @change="e => { const m = selectedOption(e, LOSS_MODE_OPTIONS); if (m !== null) lossMode = m; }" style="width:150px">
-                    <option v-for="m in LOSS_MODE_OPTIONS" :key="m.value" :value="m.value">{{ m.label }}</option>
-                  </select>
-                </div>
-              </div>
                 <div>
                   <label data-field-key="winisdWrapPhase" style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 12px;" :title="`WinISD phase wrapping: wraps phase curves to [-180°, +180°].\nTicked (default, as WinISD): phase curves wrap at ±180°.\nUnticked (conventional): phase curves stay continuous and unwrapped.`">
                     <input type="checkbox" :checked="project.winisdWrapPhase.value" @change="e => project.winisdWrapPhase.set(inputChecked(e))"> WinISD phase wrapping

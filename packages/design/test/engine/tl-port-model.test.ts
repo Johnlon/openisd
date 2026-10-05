@@ -53,9 +53,9 @@ describe('transmission-line port model', () => {
       // The collapsed port impedance dumps volume velocity through the duct, so the port air
       // velocity is where the difference is unmistakable; the far-field SPL effect is smaller
       // because the driver dominates the total output that far above the passband.
-      // `tlPortModel` only applies under conventional-lossy — winisd-lossy (the default) is
-      // always lumped (circuit.ts, BUG_20260927_vented-box-losses-not-winisd-form.md).
-      const CONV = { ...VENTED, lossMode: 'conventional-lossy' as const };
+      // `tlPortModel` only applies to the lossless form (Ql and Qa at the limit) — WinISD's lossy
+      // model is always lumped (circuit.ts, BUG_20260927_vented-box-losses-not-winisd-form.md).
+      const CONV = { ...VENTED, Ql: 1e6, Qa: 1e6 };
       const lumped = engine.simulation.sweep(DRV, LE_H, 'vented', { ...CONV, tlPortModel: false }).values!;
       const tl     = engine.simulation.sweep(DRV, LE_H, 'vented', { ...CONV, tlPortModel: true  }).values!;
       let worstSpl = 0, worstPv = 0;
@@ -98,12 +98,12 @@ describe('transmission-line port model', () => {
     // Qp far below any realistic port loss (typically ~10-100) — chosen only to push
     // k·Leff/Qp past the guard's threshold at every frequency in the sweep, not as a
     // physically meaningful port.
-    // `tlPortModel` is a conventional-lossy-only option (winisd-lossy is always lumped —
+    // `tlPortModel` is a lossless-form-only option (WinISD's lossy model is always lumped —
     // circuit.ts, BUG_20260927_vented-box-losses-not-winisd-form.md) — this test is about the TL
     // model itself, so it must ask for the branch that has one.
     const HEAVILY_DAMPED: SweepParams = {
       Vb: 0.030, eg: 2.83, Sp: SP, Leff: LEFF, Qp: 0.001, tlPortModel: true,
-      lossMode: 'conventional-lossy', fmin: 10, fmax: 1000, N: 20,
+      Ql: 1e6, Qa: 1e6, fmin: 10, fmax: 1000, N: 20,
     };
 
     it('stays finite across the whole sweep once the line is heavily damped enough to saturate tanh', () => {

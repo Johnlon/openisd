@@ -10,7 +10,7 @@ import {describe, expect, it} from 'vitest';
 import {createEngine} from '../../engine/index.js';
 import {CompatPreset, OpenISDProject} from '../../domain/index.js';
 import {WinIsdProjectConverter} from '../../domain/winIsdProjectConverter.js';
-import {LossMode, WinisdDeviation, WinisdFilterDeviation} from '../../fields/index.js';
+import {WinisdDeviation, WinisdFilterDeviation} from '../../fields/index.js';
 import type {Filter} from '../../engine/index.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -55,7 +55,6 @@ describe('errorSwitches', () => {
 
   it('loss model: not an error switch, whatever the box and model', () => {
     const p = abcProject();
-    p.lossMode.set(LossMode.parse('winisd-lossy'));
     p.box.boxType.set('box-passive-radiator');
     expect('prLossModel' in p.errorSwitches).toBe(false);
   });

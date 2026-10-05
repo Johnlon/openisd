@@ -33,7 +33,7 @@ test('shows the environment fields, calculated readouts, and WinISD-compat contr
   await expect(page.getByText('Force flat response')).toBeVisible();
 
   await expect(page.locator('.mob-panel-head', { hasText: 'WinISD compatibility' })).toBeVisible();
-  await expect(page.locator('#mob-adv-lossmode')).toBeVisible();
+  await expect(page.locator('#mob-adv-lossmode')).toHaveCount(0);
   await expect(page.getByText('WinISD air model')).toHaveCount(0);
   await expect(page.getByText('WinISD driver model')).toBeVisible();
   await expect(page.getByText('WinISD VA model')).toBeVisible();

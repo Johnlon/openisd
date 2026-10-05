@@ -5,7 +5,6 @@
  * does not say, is WinISD-ish.
  */
 import {describe, expect, it} from 'vitest';
-import {LossMode} from '@openisd/design/fields';
 import {CompatPreset, OpenISDProject} from '../../domain/index.js';
 import {sealedProject} from '../fixtures/domainBuilders.js';
 import {createEngine} from '../../engine/index.js';
@@ -93,10 +92,8 @@ describe('CompatPreset', () => {
       p.rgAtDriverSide.set(true);
       p.circuitModel.set('gyrator');
       p.forceFlatResponse.set(true);
-      p.lossMode.set(LossMode.Lossless);
       p.driver.specs.Mms_kg.set(0.04);
       p.applyCompatPreset(preset);
-      expect(p.lossMode.value).toBe(LossMode.Lossless);
       expect(p.rgAtDriverSide.value).toBe(true);
       expect(p.circuitModel.value).toBe('gyrator');
       expect(p.forceFlatResponse.value).toBe(true);

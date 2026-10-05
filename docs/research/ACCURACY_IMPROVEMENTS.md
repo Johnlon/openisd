@@ -29,6 +29,7 @@ ignores an input entirely.
 | WinISD does | OpenISD | Bug |
 |---|---|---|
 | Passive radiator Sd typed in the UI is not linked to the model: the chart does not change, though a file loaded with a different Sd draws a different chart (probe 2026-10-03) | the Sd edit takes effect; PR excursion and PR air velocity scale as 1/Sd | [bug](../../bugs/BUG_20261003_winisd-pr-sd-edit-ignored.md) |
+| Emptying the passive radiator's Vas box makes WinISD die with a floating-point divide by zero (Wine; probe 2026-10-04). A crash, so no switch | a cleared PR field never crashes: a zero in Fs, Qms, Vas or Sd leaves every derived value finite or absent | [bug](../../bugs/BUG_20261004_winisd-pr-vas-box-emptied-crashes.md) |
 | Allpass (row 5): orders above 2 are ignored; order 3–10 draw exactly order 2 (one section, ω0 = 2/t, delay t/Q). By hand 2026-10-04: order 4 pixel-identical to order 2 | an input WinISD ignores (John, 2026-10-04): above order 2 the order-n Bessel allpass, delay t; orders 1 and 2 stay WinISD's. A ≠W Difference cue by the Order box explains it | [bug](../../bugs/archive/BUG_20260927_winisd-allpass-t-not-delay-order-above-2-ignored.md) |
 | Linkwitz-Riley (row 6) ignores the Order box: always LR4; a typed 2 or 6 reopens as 4 (by hand 2026-10-04) | an input WinISD ignores (John, 2026-10-04): LR of even order n = Butterworth(n/2)², even orders only. A ≠W Difference cue by the Order box shows while the order is not 4. User SOS is order 2 by definition (WinISD agrees): its Order box is greyed out | [bug](../../bugs/archive/BUG_20260927_winisd-linkwitz-riley-and-sos-ignore-order.md) |
 
@@ -58,7 +59,7 @@ A simplification WinISD may intend. Not yellow: only a straight WinISD bug is (J
 
 | WinISD does                                                        | Note |
 |--------------------------------------------------------------------|------|
-| Box leak/absorption/port loss as fixed resistances at the tuning (vented, PR) or ωsc (sealed) | This is Small's convention (Q_L defined at Fb). OpenISD's `conventional-lossy` uses per-frequency Q/(ω·C), which is *not* the textbook form — review what that switch should mean before offering it as "more accurate". |
+| Box leak/absorption/port loss as fixed resistances at the tuning (vented, PR) or ωsc (sealed) | This is Small's convention (Q_L defined at Fb), and OpenISD uses it as WinISD does: there is no other loss model, and Ql and Qa control the losses. |
 | Vented port mass from Fb, vent length ignored                       | Same physics when length and Fb are consistent; OpenISD derives one from the other. |
 | Radiated output = cone − leak − port/radiator                       | Correct; OpenISD's old vented/PR output (cone − port) was the error. |
 | Maximum SPL and Maximum power leave the EQ/filter chain out (row 3) | A filter before the driver scales the SPL by \|Hf\| and the voltage the driver limit allows by 1/\|Hf\|: the limit curves are identical with or without the chain (John, 2026-10-04: no change). [bug](../../bugs/archive/BUG_20260927_max-spl-and-max-power-include-the-filter-chain.md) |
