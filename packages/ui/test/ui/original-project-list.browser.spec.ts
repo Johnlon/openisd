@@ -68,6 +68,22 @@ test.describe('Original project list', () => {
     await expect.poll(() => inkColours(page)).toBeGreaterThanOrEqual(shown - 2);
   });
 
+  // bugs/BUG_20261005_project-selection-lost-on-reload.md
+  test('a hidden project is still hidden after a reload, and the chart still leaves its trace out', async ({ page }) => {
+    await addCopies(page, 1);
+    const overlayCheckbox = page.locator('.project-row:not(.selected) input');
+    const shown = await inkColours(page);
+    await overlayCheckbox.click();
+    await expect.poll(() => inkColours(page)).toBeLessThan(shown);
+    const hidden = await inkColours(page);
+
+    await page.reload();
+
+    await expect(page.locator('.project-row')).toHaveCount(2);
+    expect((await rowStates(page)).map(r => r.checked)).toEqual([false, true]);
+    await expect.poll(async () => Math.abs(await inkColours(page) - hidden)).toBeLessThanOrEqual(2);
+  });
+
   test('open projects are never written into the active design (nothing to leak into its file)', async ({ page }) => {
     await addCopies(page, 2);
     await page.locator('.project-row').nth(1).click();          // work in the copy for a moment

@@ -10,6 +10,7 @@
 import {effectScope, nextTick, watch} from 'vue';
 import type {ProjectRepo, ViewStateRepo} from '@openisd/persistence';
 import {applyViewSnapshot, currentViewSnapshot, focusedProject, openProjects, projectChanged, restoreProjects} from './appState.js';
+import {hiddenTraces, traceVisibilityRevision} from './traceVisibility.js';
 
 /** The storage doors the sync reads and writes through. */
 export interface SessionSyncDeps {
@@ -21,7 +22,7 @@ export interface SessionSyncDeps {
  *  restored the session, never before — a save armed during the boot overwrites what it reads. */
 export function startSessionSync(deps: SessionSyncDeps): () => void {
   let adopting = false;
-  const saveProjects = () => { if (!adopting) deps.projectRepo.saveOpenProjects(openProjects(), focusedProject()); };
+  const saveProjects = () => { if (!adopting) deps.projectRepo.saveOpenProjects(openProjects(), focusedProject(), hiddenTraces(openProjects())); };
   const saveView = () => { if (!adopting) deps.viewStateRepo.save(currentViewSnapshot()); };
 
   /** Apply another tab's write, holding saves off until the watchers it sets off have run. */
@@ -39,6 +40,7 @@ export function startSessionSync(deps: SessionSyncDeps): () => void {
   scope.run(() => {
     watch(projectChanged, saveProjects);
     watch(() => [openProjects().length, focusedProject()?.uuid() ?? null], saveProjects);
+    watch(traceVisibilityRevision, saveProjects);
     watch(currentViewSnapshot, saveView, {deep: true});
   });
 
@@ -47,7 +49,7 @@ export function startSessionSync(deps: SessionSyncDeps): () => void {
     // A record another tab wrote that will not read is that tab's to report; this tab keeps
     // what it has rather than dropping its projects for an unreadable record.
     if (session === null || Array.isArray(session)) return;
-    restoreProjects(session.projects, session.focusedIndex);
+    restoreProjects(session.projects, session.focusedIndex, session.traceHidden);
   }));
   const stopView = deps.viewStateRepo.watch(() => void adopt(() => {
     const view = deps.viewStateRepo.load();

@@ -44,6 +44,7 @@ import {
     type ViewSnapshot,
 } from '@openisd/persistence';
 import {assignTraceColor, presentationState} from './presentationState.js';
+import {setTraceVisible} from './traceVisibility.js';
 import {BOX_TYPE_OPTIONS, NumberField, parseUnitRotation, type SelectorOption} from '@openisd/design/fields';
 import {getOrInit, hmrSlots} from './hmrSingleton.js';
 import {notifyVentChanged, ventSolveSuspended,} from './ventGroup.js';
@@ -243,9 +244,13 @@ export function addProject(project: OpenISDProject): void {
   focusedIndex.value = projects.value.length - 1;
 }
 
-/** Replace the open-project registry with a refresh-restored session. */
-export function restoreProjects(restored: OpenISDProject[], requestedFocus: number): void {
-  for (const p of restored) assignTraceColor(p, restored);
+/** Replace the open-project registry with a refresh-restored session; `traceHidden` are the
+ *  restored projects whose trace the session had hidden. */
+export function restoreProjects(restored: OpenISDProject[], requestedFocus: number, traceHidden: ReadonlySet<OpenISDProject>): void {
+  for (const p of restored) {
+    assignTraceColor(p, restored);
+    setTraceVisible(p, !traceHidden.has(p));
+  }
   projects.value = restored.slice();
   focusedIndex.value = restored.length === 0 ? 0 : Math.min(Math.max(requestedFocus, 0), restored.length - 1);
 }

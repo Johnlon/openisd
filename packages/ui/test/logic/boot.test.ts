@@ -14,6 +14,7 @@ import type {OpenProjectSession, ProjectRepo, ViewSnapshot} from '@openisd/persi
 import {bootApplication, type BootDeps} from '../../src/logic/boot.js';
 import {focusedProject, openProjects, removeProject} from '../../src/logic/appState.js';
 import {presentationState} from '../../src/logic/presentationState.js';
+import {isTraceVisible} from '../../src/logic/traceVisibility.js';
 
 const engine = createEngine();
 
@@ -73,11 +74,20 @@ describe('bootApplication', () => {
   });
 
   it('restores the session projects', async () => {
-    const session = {projects: [project('one'), project('two')], focusedIndex: 1, refused: []};
+    const session = {projects: [project('one'), project('two')], focusedIndex: 1, refused: [], traceHidden: new Set<OpenISDProject>()};
     const {deps} = recording({session: () => session});
     await bootApplication(deps);
     expect(openProjects()).toHaveLength(2);
     expect(focusedProject()?.name.value).toBe('two');
+  });
+
+  // bugs/BUG_20261005_project-selection-lost-on-reload.md
+  it('restores which session projects had their trace hidden', async () => {
+    const hidden = project('one');
+    const session = {projects: [hidden, project('two')], focusedIndex: 1, refused: [], traceHidden: new Set([hidden])};
+    const {deps} = recording({session: () => session});
+    await bootApplication(deps);
+    expect(openProjects().map(isTraceVisible)).toEqual([false, true]);
   });
 
   it('keeps a restored session project\'s unsaved edits unsaved, so Revert still works', async () => {
@@ -85,7 +95,7 @@ describe('bootApplication', () => {
     const savedName = edited.name.value;
     edited.name.set('edited, not saved');
     expect(edited.isModified()).toBe(true);
-    const {deps} = recording({session: () => ({projects: [edited], focusedIndex: 0, refused: []})});
+    const {deps} = recording({session: () => ({projects: [edited], focusedIndex: 0, refused: [], traceHidden: new Set<OpenISDProject>()})});
     await bootApplication(deps);
     expect(focusedProject()?.isModified()).toBe(true);
     expect(await focusedProject()?.cancel(async () => true)).toBe(true);
@@ -93,7 +103,7 @@ describe('bootApplication', () => {
   });
 
   it('quarantines a record that held an entry it could not read, and says so', async () => {
-    const session = {projects: [project('one')], focusedIndex: 0, refused: ['entry b: nope']};
+    const session = {projects: [project('one')], focusedIndex: 0, refused: ['entry b: nope'], traceHidden: new Set<OpenISDProject>()};
     const {log, deps} = recording({session: () => session});
     await bootApplication(deps);
     expect(log).toContain('quarantine');
@@ -102,7 +112,7 @@ describe('bootApplication', () => {
   });
 
   it('reopens a panel the stored view left open, once a project is there to open it on', async () => {
-    const session = {projects: [project('one')], focusedIndex: 0, refused: []};
+    const session = {projects: [project('one')], focusedIndex: 0, refused: [], traceHidden: new Set<OpenISDProject>()};
     const {log, deps} = recording({session: () => session, view: () => ({ui: {originalTuneOpen: true, originalEditorOpen: true}})});
     await bootApplication(deps);
     expect(presentationState.editDriver).toBe(true);

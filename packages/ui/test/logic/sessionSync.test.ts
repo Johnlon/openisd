@@ -15,6 +15,7 @@ import {ensureSampleProject, SAMPLE_PROJECT_OWPR} from '../fixtures/sampleProjec
 import {startSessionSync} from '../../src/logic/sessionSync.js';
 import {addProject, openProjects, removeProject, restoreProjects} from '../../src/logic/appState.js';
 import {presentationState} from '../../src/logic/presentationState.js';
+import {isTraceVisible, setTraceVisible} from '../../src/logic/traceVisibility.js';
 
 const engine = createEngine();
 
@@ -47,7 +48,7 @@ describe('startSessionSync', () => {
     const tab = store.tab();
     stop = startSessionSync({projectRepo: createProjectRepo(engine, noFiles, tab), viewStateRepo: createViewStateRepo(tab)});
 
-    otherTab.saveOpenProjects([project('111111'), project('222222')], null);
+    otherTab.saveOpenProjects([project('111111'), project('222222')], null, new Set());
     await nextTick();
 
     expect(openProjects().map(p => p.name.value)).toEqual(['111111', '222222']);
@@ -61,7 +62,7 @@ describe('startSessionSync', () => {
     let heardByOtherTab = 0;
     otherTab.watchOpenProjects(() => { heardByOtherTab++; });
 
-    otherTab.saveOpenProjects([project('111111')], null);
+    otherTab.saveOpenProjects([project('111111')], null, new Set());
     await nextTick();
     await nextTick();
 
@@ -80,6 +81,36 @@ describe('startSessionSync', () => {
     const session = otherTab.loadOpenProjects();
     if (session === null || Array.isArray(session)) throw new Error('expected a session');
     expect(session.projects.map(p => p.name.value)).toEqual(['333333']);
+  });
+
+  // bugs/BUG_20261005_project-selection-lost-on-reload.md
+  it('saves a trace hidden in this tab, so a reload restores it hidden', async () => {
+    const store = createSharedMemoryStorage();
+    const tab = store.tab();
+    stop = startSessionSync({projectRepo: createProjectRepo(engine, noFiles, tab), viewStateRepo: createViewStateRepo(tab)});
+    addProject(project('111111'));
+    addProject(project('222222'));
+    await nextTick();
+
+    setTraceVisible(openProjects()[0], false);
+    await nextTick();
+
+    const session = createProjectRepo(engine, noFiles, store.tab()).loadOpenProjects();
+    if (session === null || Array.isArray(session)) throw new Error('expected a session');
+    expect(session.projects.map(p => session.traceHidden.has(p))).toEqual([true, false]);
+  });
+
+  it('adopts which traces another tab hid', async () => {
+    const store = createSharedMemoryStorage();
+    const otherTab = createProjectRepo(engine, noFiles, store.tab());
+    const tab = store.tab();
+    stop = startSessionSync({projectRepo: createProjectRepo(engine, noFiles, tab), viewStateRepo: createViewStateRepo(tab)});
+    const hidden = project('111111');
+
+    otherTab.saveOpenProjects([hidden, project('222222')], null, new Set([hidden]));
+    await nextTick();
+
+    expect(openProjects().map(isTraceVisible)).toEqual([false, true]);
   });
 
   it('adopts the view another tab saves', async () => {
@@ -139,11 +170,11 @@ describe('startSessionSync — a project imported in one tab', () => {
     if (session === null || Array.isArray(session)) throw new Error('expected a session');
     stop();
     closeAll();
-    restoreProjects(session.projects, session.focusedIndex);
+    restoreProjects(session.projects, session.focusedIndex, session.traceHidden);
     session.projects[session.focusedIndex]?.save(); // the boot commits the restored design
     let heard = 0;
     tab.watch('openisd_open_sessions', () => { heard++; });
-    reader.saveOpenProjects(openProjects(), session.projects[session.focusedIndex] ?? null);
+    reader.saveOpenProjects(openProjects(), session.projects[session.focusedIndex] ?? null, session.traceHidden);
 
     expect(written).not.toBeNull();
     expect(heard).toBe(0);

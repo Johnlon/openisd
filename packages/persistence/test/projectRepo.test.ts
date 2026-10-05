@@ -174,14 +174,14 @@ describe('projectRepo', () => {
       const project = ProjectBuilder.empty(engine);
       project.name.set('unchanged');
       project.save();
-      createProjectRepo(engine, noFiles, otherTab).saveOpenProjects([project], project);
+      createProjectRepo(engine, noFiles, otherTab).saveOpenProjects([project], project, new Set());
       let heard = 0;
       otherTab.watch(OPENISD_OPEN_SESSIONS_KEY, () => { heard++; });
 
       const repo = createProjectRepo(engine, noFiles, thisTab);
       const session = repo.loadOpenProjects();
       if (session === null || Array.isArray(session)) throw new Error('expected a session');
-      repo.saveOpenProjects(session.projects, session.projects[session.focusedIndex] ?? null);
+      repo.saveOpenProjects(session.projects, session.projects[session.focusedIndex] ?? null, session.traceHidden);
 
       expect(heard).toBe(0);
     });
@@ -254,7 +254,7 @@ describe('projectRepo', () => {
       let heard = 0;
       second.watchOpenProjects(() => { heard++; });
 
-      first.saveOpenProjects([project('111111')], null);
+      first.saveOpenProjects([project('111111')], null, new Set());
 
       expect(heard).toBe(1);
     });
@@ -265,7 +265,7 @@ describe('projectRepo', () => {
       let heard = 0;
       repo.watchOpenProjects(() => { heard++; });
 
-      repo.saveOpenProjects([project('111111')], null);
+      repo.saveOpenProjects([project('111111')], null, new Set());
 
       expect(heard).toBe(0);
     });
@@ -278,7 +278,7 @@ describe('projectRepo', () => {
       const stop = second.watchOpenProjects(() => { heard++; });
       stop();
 
-      first.saveOpenProjects([project('111111')], null);
+      first.saveOpenProjects([project('111111')], null, new Set());
 
       expect(heard).toBe(0);
     });
@@ -332,12 +332,48 @@ describe('projectRepo', () => {
       const first = project('Open project one');
       const second = project('Open project two');
 
-      repo.saveOpenProjects([first, second], second);
+      repo.saveOpenProjects([first, second], second, new Set());
 
       const restored = repo.loadOpenProjects();
       assert.ok(restored && !Array.isArray(restored));
       expect(restored.projects.map(p => p.name.value)).toEqual(['Open project one', 'Open project two']);
       expect(restored.focusedIndex).toBe(1);
+    });
+
+    // bugs/BUG_20261005_project-selection-lost-on-reload.md
+    it('restores which open projects had their trace hidden after refresh', () => {
+      const repo = createProjectRepo(engine, noFiles, createMemoryStorage());
+      const first = project('Open project one');
+      const second = project('Open project two');
+
+      repo.saveOpenProjects([first, second], second, new Set([first]));
+
+      const restored = repo.loadOpenProjects();
+      assert.ok(restored && !Array.isArray(restored));
+      expect(restored.projects.map(p => restored.traceHidden.has(p))).toEqual([true, false]);
+    });
+
+    it('a trace shown or hidden is written even when no project changed', () => {
+      const repo = createProjectRepo(engine, noFiles, createMemoryStorage());
+      const only = project('Open project one');
+      repo.saveOpenProjects([only], only, new Set());
+
+      repo.saveOpenProjects([only], only, new Set([only]));
+
+      const restored = repo.loadOpenProjects();
+      assert.ok(restored && !Array.isArray(restored));
+      expect(restored.traceHidden.size).toBe(1);
+    });
+
+    it('a session saved before trace visibility was stored restores every trace shown', () => {
+      const text = project('Old session project').toOwprText();
+      const storage = createMemoryStorage({[OPENISD_OPEN_SESSIONS_KEY]: JSON.stringify({entries: [{id: 'a', text}], focusedId: 'a'})});
+
+      const restored = createProjectRepo(engine, noFiles, storage).loadOpenProjects();
+
+      assert.ok(restored && !Array.isArray(restored));
+      expect(restored.projects).toHaveLength(1);
+      expect(restored.traceHidden.size).toBe(0);
     });
 
     it('reads projects saved under the previous browser-storage keys', () => {

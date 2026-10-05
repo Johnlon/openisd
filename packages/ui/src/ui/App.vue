@@ -21,6 +21,7 @@ import {
 } from '../logic/appState.js';
 import {bootApplication} from '../logic/boot.js';
 import {startSessionSync} from '../logic/sessionSync.js';
+import {hiddenTraces} from '../logic/traceVisibility.js';
 import {presentationState} from '../logic/presentationState.js';
 import {provideFocusedProject} from '../logic/focusedProjectContext.js';
 import {useApp} from '../logic/app.js';
@@ -92,7 +93,7 @@ onMounted(async () => {
     editProjectDriver: () => selection.editProjectDriver(),
   });
   viewStateRepo.save(currentViewSnapshot());
-  projectRepo.saveOpenProjects(openProjects(), focusedProject());
+  projectRepo.saveOpenProjects(openProjects(), focusedProject(), hiddenTraces(openProjects()));
   stopSessionSync = startSessionSync({ projectRepo, viewStateRepo });
   window.addEventListener('hashchange', handleHashChange);
 });

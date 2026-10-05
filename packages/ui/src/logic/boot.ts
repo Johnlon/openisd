@@ -55,7 +55,7 @@ function restoreSession(deps: BootDeps): boolean {
     deps.logging.flash(`Could not restore ${session.refused.length} of your open projects: ` + session.refused.join('; '));
   }
   if (session.projects.length === 0) return false;
-  restoreProjects(session.projects, session.focusedIndex);
+  restoreProjects(session.projects, session.focusedIndex, session.traceHidden);
   return true;
 }
 

@@ -68,8 +68,9 @@ export interface ProjectRepo {
   listStoredProjects(): StoredProjectListing[];
   /** Load one project selected from the browser-storage picker. */
   loadStoredProject(id: string): OpenISDProject | string[];
-  /** Persist the current open-project session for refresh recovery. */
-  saveOpenProjects(projects: readonly OpenISDProject[], focused: OpenISDProject | null): void;
+  /** Persist the current open-project session for refresh recovery, with which of its projects
+   *  have their trace hidden on the charts. */
+  saveOpenProjects(projects: readonly OpenISDProject[], focused: OpenISDProject | null, traceHidden: ReadonlySet<OpenISDProject>): void;
   /** Restore the open-project session, or null when no refresh session exists. A `string[]`
    *  means the record itself is unusable — bad JSON, or not the shape of a session — so there
    *  is nothing to restore from it. An entry that will not read is reported in the session's
@@ -105,6 +106,8 @@ export interface OpenProjectSession {
    *  are in `projects` — a refusal costs its own project, never the others. The record itself
    *  is untouched; `quarantineOpenSession()` copies it aside before anything overwrites it. */
   readonly refused: readonly string[];
+  /** The restored projects whose trace was hidden on the charts. Every other one is shown. */
+  readonly traceHidden: ReadonlySet<OpenISDProject>;
 }
 
 const PROJECT_STORAGE_KEY = OPENISD_STATE_KEY;
@@ -125,8 +128,13 @@ interface StoredProjectsPayload {
   entries: StoredProjectEntry[];
 }
 
+/** One open project as the session stores it: its record, and whether its trace is hidden. */
+interface OpenSessionEntry extends StoredProjectEntry {
+  traceHidden: boolean;
+}
+
 interface OpenSessionPayload {
-  entries: StoredProjectEntry[];
+  entries: OpenSessionEntry[];
   focusedId: string | null;
 }
 
@@ -152,12 +160,14 @@ function storedProjectsPayload(value: unknown): StoredProjectsPayload | null {
 function openSessionPayload(value: unknown): OpenSessionPayload | null {
   if (!value || typeof value !== 'object' || !('entries' in value) || !isUnknownArray(value.entries)) return null;
   if (!('focusedId' in value) || (value.focusedId !== null && typeof value.focusedId !== 'string')) return null;
-  const entries: StoredProjectEntry[] = [];
+  const entries: OpenSessionEntry[] = [];
   for (const entry of value.entries) {
     if (!entry || typeof entry !== 'object') return null;
     if (!('id' in entry) || typeof entry.id !== 'string') return null;
     if (!('text' in entry) || typeof entry.text !== 'string') return null;
-    entries.push({ id: entry.id, text: entry.text, modified: '' });
+    // Absent in a session saved before visibility was stored: the trace is shown.
+    const traceHidden = 'traceHidden' in entry && entry.traceHidden === true;
+    entries.push({ id: entry.id, text: entry.text, modified: '', traceHidden });
   }
   return { entries, focusedId: value.focusedId };
 }
@@ -228,14 +238,15 @@ export function createProjectRepo(
   }
 
   /** Whether the stored open session already holds `entries` focused on `focusedId`. */
-  function storesSameSession(entries: readonly StoredProjectEntry[], focusedId: string | null): boolean {
+  function storesSameSession(entries: readonly OpenSessionEntry[], focusedId: string | null): boolean {
     const text = storage.get(OPEN_SESSION_STORAGE_KEY);
     if (text === null) return false;
     let parsed: unknown;
     try { parsed = JSON.parse(text); } catch { return false; }
     const stored = openSessionPayload(parsed);
     if (!stored || stored.focusedId !== focusedId || stored.entries.length !== entries.length) return false;
-    return stored.entries.every((e, i) => e.id === entries[i].id && OpenISDProject.sameOwprText(e.text, entries[i].text));
+    return stored.entries.every((e, i) => e.id === entries[i].id && e.traceHidden === entries[i].traceHidden
+      && OpenISDProject.sameOwprText(e.text, entries[i].text));
   }
 
   function readStoredEntries(): StoredProjectEntry[] {
@@ -337,11 +348,11 @@ export function createProjectRepo(
       if (!Array.isArray(project)) storedIdentity.set(project, id);
       return project;
     },
-    saveOpenProjects(projects: readonly OpenISDProject[], focused: OpenISDProject | null): void {
-      const entries = projects.map(project => {
+    saveOpenProjects(projects: readonly OpenISDProject[], focused: OpenISDProject | null, traceHidden: ReadonlySet<OpenISDProject>): void {
+      const entries = projects.map((project): OpenSessionEntry => {
         const id = storedIdentity.get(project) ?? project.uuid();
         storedIdentity.set(project, id);
-        return { id, text: project.toOwprText(), modified: '' };
+        return { id, text: project.toOwprText(), modified: '', traceHidden: traceHidden.has(project) };
       });
       const focusedId = focused === null ? null : storedIdentity.get(focused) ?? focused.uuid();
       // Writing the session already stored would still change its text (each read mints the
@@ -358,6 +369,7 @@ export function createProjectRepo(
       if (!payload) return ['open project session has an invalid shape'];
       const projects: OpenISDProject[] = [];
       const refused: string[] = [];
+      const traceHidden = new Set<OpenISDProject>();
       let focusedIndex = 0;
       for (const entry of payload.entries) {
         const project = readRepairing(entry.text, OPEN_SESSION_SOURCE);
@@ -366,10 +378,11 @@ export function createProjectRepo(
           continue;
         }
         storedIdentity.set(project, entry.id);
+        if (entry.traceHidden) traceHidden.add(project);
         if (entry.id === payload.focusedId) focusedIndex = projects.length;
         projects.push(project);
       }
-      return { projects, focusedIndex, refused };
+      return { projects, focusedIndex, refused, traceHidden };
     },
     watchOpenProjects(onChange: () => void): () => void {
       return storage.watch(OPEN_SESSION_STORAGE_KEY, onChange);
