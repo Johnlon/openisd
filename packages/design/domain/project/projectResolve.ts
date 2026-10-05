@@ -31,6 +31,8 @@ export interface ProjectResolveContext {
     readonly envFieldsOver: (environment: SimpleField<OpenISDEnvironmentJson>) => EnvironmentFields;
     readonly powerDriveOver: (root: SimpleField<OpenISDProjectJson>) => DualWriteFieldImpl<number>;
     readonly driveVoltageOver: (root: SimpleField<OpenISDProjectJson>) => DefaultingFieldImpl<number>;
+    /** The series resistance the power/voltage relation counts (Rg, or 0 with WinISD's Re-only readout). */
+    readonly readoutRsOhmOver: (root: SimpleField<OpenISDProjectJson>) => number;
 }
 
 /**
@@ -48,7 +50,7 @@ export interface ProjectResolveContext {
  * flow, same reads, same writes: only the collaborators that were `this.#x` are now `ctx.x`.
  */
 export function resolveProject(ctx: ProjectResolveContext): ProjectIssues {
-    const { directRoot, engine, driverOver, boxOver, air: airOf, envFieldsOver, powerDriveOver, driveVoltageOver } = ctx;
+    const { directRoot, engine, driverOver, boxOver, air: airOf, envFieldsOver, powerDriveOver, driveVoltageOver, readoutRsOhmOver } = ctx;
 
     // Before the driver: its own air falls back to these three conditions, so they must state
     // the app's default by the time `driver.resolve()` reads them.
@@ -64,7 +66,7 @@ export function resolveProject(ctx: ProjectResolveContext): ProjectIssues {
         power_W: powerDriveOver(directRoot),
         Re_ohm: inputOf(() => Re_ohm),
         voltage_V: driveVoltageOver(directRoot),
-        Rs_ohm: inputOf(() => directRoot.value.driverEmbedding.Rs_ohm),
+        Rs_ohm: inputOf(() => readoutRsOhmOver(directRoot)),
         nDrivers: inputOf(() => directRoot.value.driverEmbedding.nDrivers),
     });
 

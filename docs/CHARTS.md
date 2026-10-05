@@ -103,7 +103,7 @@ move driver charts:
 | Switch | Ticked (WinISD) | Unticked (default) | Charts it moves |
 |---|---|---|---|
 | Enable WinISD two-BL driver bug | Cms from Vas; Mms, Rms from Fs, Qms; damping BL from Qes; **entered** BL for push, impedance, TF reference and CLe | entered Cms, Mms, Rms, BL, one BL throughout | all driver charts |
-| Enable WinISD VA model bug | VA = P·Re·\|Hf\|²/\|Z + Rg\| | P·(Re + Rg)·\|Hf\|²/\|Z_amp\|, Rg counted once | Amplifier apparent load power |
+| Enable WinISD Re without Rg bug | VA = P·Re·\|Hf\|²/\|Z + Rg\| | P·(Re + Rg)·\|Hf\|²/\|Z_amp\|, Rg counted once | Amplifier apparent load power |
 | Enable WinISD ABC group delay bug (ABC only) | box stepped to f ± 1e-10 Hz, driver part held at f: the box's phase slope alone | −dφ/dω of the plotted phase | Group delay |
 
 Native WinISD controls behave as WinISD has them, with no switch of their own:
@@ -264,7 +264,7 @@ not implemented in OpenISD.
 - WinISD (`f_46bd30` case 0x14): the chart routine returns Z, and the plot code applies this
   formula. WinISD bug, kept by default: Re where the amplifier's apparent power has Re + Rg, so it
   reads Re/(Re + Rg) low ([bug](../bugs/archive/BUG_20260927_winisd-va-uses-re-not-re-plus-rg.md)).
-  "Enable WinISD VA model bug" off: P·(Re + Rg)·|Hf|²/|Z_amp|.
+  "Enable WinISD Re without Rg bug" off: P·(Re + Rg)·|Hf|²/|Z_amp|.
 - Evidence: `winisd_research/runs/sweep-w5-sealed-va-rg1` (Rg 1 Ω, driver side off) and
   `sweep-w5-sealed-va-rg1-driverside` (driver side on), all 2087 points each to 3e-16.
 

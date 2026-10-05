@@ -1,5 +1,5 @@
 /**
- * "Enable WinISD VA model bug" (`winisdVaModel`): WinISD's amplifier apparent load power is P·Re·|Hf|²/|Z + Rg|
+ * "Enable WinISD Re without Rg bug" (`winisdVaModel`), VA chart half: WinISD's amplifier apparent load power is P·Re·|Hf|²/|Z + Rg|
  * (f_46bd30 case 0x14, BUG_20260927_winisd-va-uses-re-not-re-plus-rg). Off, OpenISD gives the
  * apparent power the amplifier delivers: P·(Re + Rg)·|Hf|²/|Z_amp|, Rg counted once.
  */

@@ -147,4 +147,56 @@ describe('driver count and drive level (W5-1138SMF sealed, 4.48 L per driver)', 
     expect(four.powerDrive_W.value!).toBeCloseTo(4 * one.powerDrive_W.value!, 12);
     expect(splAt1k(four) - splAt1k(one)).toBeCloseTo(20 * Math.log10(4), 9);
   });
+
+  // "Enable WinISD Re without Rg bug" (winisdVaModel): WinISD relates the Signal tab's voltage and
+  // power through Re alone (typed 1.85 V each at 4 drivers reads 4.0 W = 4·1.85²/3.4), while its
+  // SPL chart drives that power into Re + Rg. BUG_20260927_winisd-va-uses-re-not-re-plus-rg.
+  const reOnly = (n: number, on: boolean): OpenISDProject => {
+    const p = project(n);
+    p.winisdVaModel.set(on);
+    return p;
+  };
+
+  it('ticked: 1.85 V each at 4 drivers reads 4·1.85²/3.4 W (WinISD 4.0 W)', () => {
+    const p = reOnly(4, true);
+    p.driveVoltage_V.set(1.85);
+    expect(p.powerDrive_W.value!).toBeCloseTo(4 * 1.85 ** 2 / 3.4, 12);
+  });
+
+  it('1.85 V each at 4 drivers, then ticked: the power readout follows the switch', () => {
+    const p = reOnly(4, false);
+    p.driveVoltage_V.set(1.85);
+    p.winisdVaModel.set(true);
+    expect(p.powerDrive_W.value!).toBeCloseTo(4 * 1.85 ** 2 / 3.4, 12);
+  });
+
+  it('unticked: 1.85 V each at 4 drivers reads 4·1.85²/(3.4 + 0.1) W', () => {
+    const p = reOnly(4, false);
+    p.driveVoltage_V.set(1.85);
+    expect(p.powerDrive_W.value!).toBeCloseTo(4 * 1.85 ** 2 / 3.5, 12);
+  });
+
+  it('ticked: 1 W at 4 drivers reads √(0.25·Re) V each', () => {
+    const p = reOnly(4, true);
+    p.powerDrive_W.set(1);
+    expect(p.driveVoltage_V.value).toBeCloseTo(Math.sqrt(0.25 * 3.4), 12);
+  });
+
+  it('ticked: an entered power drives the SPL as unticked does (power into Re + Rg)', () => {
+    const on = reOnly(4, true);
+    on.powerDrive_W.set(1);
+    const off = reOnly(4, false);
+    off.powerDrive_W.set(1);
+    expect(splAt1k(on)).toBeCloseTo(splAt1k(off), 9);
+  });
+
+  it('ticked: 1.85 V each at 4 drivers sits 10·log10(4·1.85²/3.4) dB over 1 W; WinISD 92.573 dB within 0.03 dB', () => {
+    const watt = reOnly(4, true);
+    watt.powerDrive_W.set(1);
+    const volts = reOnly(4, true);
+    volts.driveVoltage_V.set(1.85);
+    expect(splAt1k(volts) - splAt1k(watt)).toBeCloseTo(10 * Math.log10(4 * 1.85 ** 2 / 3.4), 9);
+    // WinISD carries the power as shown, 4.0 W: 0.028 dB below 4.026 W. Unticked is 0.098 dB low.
+    expect(Math.abs(splAt1k(volts) - 92.573)).toBeLessThan(0.03);
+  });
 });

@@ -73,7 +73,7 @@ Three kinds of WinISD difference, handled differently:
 - Another form of a WinISD calculation sits behind its own option switch in the WinISD
   Compatibility panel. The native control stays as WinISD has it.
 - Switch titles name the kind (John, 2026-10-05): a switch that brings a WinISD bug back reads
-  "Enable WinISD <name> bug" (e.g. "Enable WinISD VA model bug"); a plain WinISD-vs-OpenISD choice
+  "Enable WinISD <name> bug" (e.g. "Enable WinISD Re without Rg bug"); a plain WinISD-vs-OpenISD choice
   reads "Enable WinISD style <name>" (e.g. "Enable WinISD style phase wrapping"). The groups are headed
   "WinISD bugs" and "Options". Titles and tooltips live in `packages/design`
   (`ToggleField`, listed by `CompatSwitch`); each tooltip says in plain words what ticked and

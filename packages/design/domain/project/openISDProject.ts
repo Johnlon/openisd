@@ -297,10 +297,11 @@ export class OpenISDProject {
         return ProjectAdvanced.wrap(this.#slot('advanced'), this.#slot('filters')).winisdDriverModel;
     }
 
-    /** WinISD Compatibility "Enable WinISD VA model bug": the amplifier apparent load power chart as WinISD
-     *  computes it, P·Re·|Hf|²/|Z + Rg| (BUG_20260927_winisd-va-uses-re-not-re-plus-rg). Off: the
-     *  apparent power the amplifier delivers, P·(Re + Rg)·|Hf|²/|Z_amp|. Off where a project does
-     *  not say. */
+    /** WinISD Compatibility "Enable WinISD Re without Rg bug": Re where Re + Rg belongs, as WinISD
+     *  does — the amplifier apparent load power chart P·Re·|Hf|²/|Z + Rg|, and the power/voltage
+     *  relation P = N·V²/Re (BUG_20260927_winisd-va-uses-re-not-re-plus-rg). Off: the apparent
+     *  power the amplifier delivers, P·(Re + Rg)·|Hf|²/|Z_amp|, and P = N·V²/(Re + Rg). Off where
+     *  a project does not say. */
     get winisdVaModel(): SimpleField<boolean> {
         return ProjectAdvanced.wrap(this.#slot('advanced'), this.#slot('filters')).winisdVaModel;
     }
@@ -563,6 +564,7 @@ export class OpenISDProject {
             envFieldsOver: (environment) => envFieldsOver(environment, this.#engine.environment),
             powerDriveOver: (root) => this.#signalOver(root).powerDrive_W,
             driveVoltageOver: (root) => this.#signalOver(root).driveVoltage_V,
+            readoutRsOhmOver: (root) => this.#signalOver(root).readoutRs_ohm,
         });
     }
 
@@ -653,6 +655,7 @@ export class OpenISDProject {
             this.#engine.signal,
             () => usableRe(root, (r) => this.#driverOver(r)),
             () => this.Rs_ohm.value ?? 0,
+            () => this.winisdVaModel.value,
             () => this.nDrivers.value,
             () => this.#issues.signal,
         );
@@ -751,7 +754,7 @@ export class OpenISDProject {
             loading: this.loading,
             alfaVC_per_K: this.alfaVC_per_K,
             sweepN: this.sweepN,
-            driveVoltage_V: this.driveVoltage_V.value,
+            driveVoltage_V: this.#signalOver(root).sweepVoltage_V,
             airEnvironment: this.#airOver(root),
             air: this.#air(root),
             engine: this.#engine,

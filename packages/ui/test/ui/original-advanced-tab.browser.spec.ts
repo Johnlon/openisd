@@ -268,7 +268,7 @@ test.describe('Original Advanced tab', () => {
     test('WinISD Compatibility labels say "optional" or "bug" and are unclipped', async ({ page }) => {
       const panel = page.locator('.sim-options-box', { hasText: 'WinISD Compatibility' });
       const labels = panel.locator('label[data-field-key]');
-      await expect(labels).toHaveText([/Enable WinISD style phase wrapping/, /Enable WinISD style uncapped flat response/, /Enable WinISD style simplified ABC intra-port velocity/, /Enable WinISD two-BL driver bug/, /Enable WinISD VA model bug/, /Enable WinISD PR Npr resonance bug/, /Enable WinISD Bessel high-pass bug/, /Enable WinISD ABC group delay bug/, /Enable WinISD per-driver impedance bug/]);
+      await expect(labels).toHaveText([/Enable WinISD style phase wrapping/, /Enable WinISD style uncapped flat response/, /Enable WinISD style simplified ABC intra-port velocity/, /Enable WinISD two-BL driver bug/, /Enable WinISD Re without Rg bug/, /Enable WinISD PR Npr resonance bug/, /Enable WinISD Bessel high-pass bug/, /Enable WinISD ABC group delay bug/, /Enable WinISD per-driver impedance bug/]);
       const panelBox = (await panel.boundingBox())!;
       const clipRight = await panel.evaluate(el => {
         // The visible right edge: the panel's own, or an ancestor's that clips it first.
@@ -322,10 +322,11 @@ test.describe('Original Advanced tab', () => {
       expect(Math.round(rightLeft - leftRight)).toBe(16);
     });
 
-    test('"Enable WinISD VA model bug" switches the VA chart between WinISD\'s Re and the amplifier\'s Re + Rg (BUG_20260927)', async ({ page }) => {
+    test('"Enable WinISD Re without Rg bug" switches the VA chart and the power readout between WinISD\'s Re and the amplifier\'s Re + Rg (BUG_20260927)', async ({ page }) => {
       const va = page.locator('[data-field-key="winisdVaModel"]');
       await expect(va).toHaveAttribute('title', /Re \+ Rg/);
-      await expect(va).toHaveAttribute('title', /Amplifier apparent load power \(VA\) chart only/);
+      await expect(va).toHaveAttribute('title', /Amplifier apparent load power \(VA\) chart/);
+      await expect(va).toHaveAttribute('title', /P = N·V²\/Re/);
       await expect(va).toHaveAttribute('title', /'Rg is at driver side' on, Z already includes Rg and WinISD adds it again/);
       await expect(va).toHaveAttribute('title', /Z seen by the amplifier/);
       await expect(va.locator('input')).not.toBeChecked();
@@ -335,12 +336,12 @@ test.describe('Original Advanced tab', () => {
       await expect(va.locator('input')).not.toBeChecked();
     });
 
-    test('the VA chart carries the ≠W cue while "Enable WinISD VA model bug" is off', async ({ page }) => {
+    test('the VA chart carries the ≠W cue while "Enable WinISD Re without Rg bug" is off', async ({ page }) => {
       await page.locator('.chart-select').click();
       await page.locator('.chart-item', { hasText: 'Amplifier apparent load power' }).click();
       const cue = page.locator('.chart-deviation-cue');
       await expect(cue).toHaveCount(1);
-      await expect(cue.locator('.winisd-deviation-cue')).toHaveAttribute('title', /WinISD VA uses Re, not Re \+ Rg/);
+      await expect(cue.locator('.winisd-deviation-cue')).toHaveAttribute('title', /WinISD uses Re, not Re \+ Rg/);
       await page.locator('[data-field-key="winisdVaModel"] input').check();
       await expect(cue).toHaveCount(0);
     });
