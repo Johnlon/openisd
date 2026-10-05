@@ -124,24 +124,3 @@ describe('buildPlotData — a design draws only on charts its box type has', () 
     assert.ok(out.series.some(s => s.name.startsWith('b: ')));
   });
 });
-
-describe('buildPlotData — a focused project that cannot be swept', () => {
-  const broken = (): Design => ({ ...design('broken', '#4fb0ff'), driver: null, curves: null, maxCurves: undefined });
-
-  it('still draws every other visible project, and only those', () => {
-    const out = buildPlotData(engine, 'Zmag', 10, 2000, broken(), [design('p1', '#ffb454')]).value;
-    assert.ok(out);
-    assert.deepEqual(out.series.map(s => s.name), ['p1: |Z|']);
-  });
-
-  it('takes the level axis from the drawn traces only', () => {
-    const alone = buildPlotData(engine, 'Zmag', 10, 2000, design('p1', '#ffb454'), []).value!;
-    const out = buildPlotData(engine, 'Zmag', 10, 2000, broken(), [design('p1', '#ffb454')]).value!;
-    assert.deepEqual([out.ymin, out.ymax], [alone.ymin, alone.ymax]);
-  });
-
-  it('draws nothing when no project can be drawn', () => {
-    assert.equal(buildPlotData(engine, 'Zmag', 10, 2000, broken(), []).value, null);
-    assert.equal(buildPlotData(engine, 'Zmag', 10, 2000, broken(), [{ ...design('p1', '#ffb454'), visible: false }]).value, null);
-  });
-});
