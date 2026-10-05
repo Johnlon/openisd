@@ -33,9 +33,10 @@ test.describe('Alignment popup', () => {
     await page.getByRole('button', { name: 'Alignment', exact: true }).click();
     const select = page.locator('.alignment-modal select');
     const current = await select.inputValue();
-    const other = await select.locator('option').evaluateAll(
-      (opts, cur) => (opts as HTMLOptionElement[]).map(o => o.value).find(v => v !== cur && v !== ''), current);
-    await select.selectOption(other!);
+    const values = await select.locator('option').evaluateAll(opts => opts.map(o => o.getAttribute('value') ?? ''));
+    const others = values.filter(v => v !== current && v !== '');
+    expect(others.length, 'the Alignment popup offers another alignment').toBeGreaterThan(0);
+    await select.selectOption(others[0]!);
     await page.getByRole('button', { name: 'Cancel', exact: true }).click();
     await expect(page.locator('.alignment-modal')).toBeHidden();
 
