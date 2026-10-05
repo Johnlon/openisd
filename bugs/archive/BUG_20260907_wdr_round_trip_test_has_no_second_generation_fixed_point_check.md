@@ -1,6 +1,6 @@
 # `.wdr` round-trip test proves one lossy cycle, never that a second cycle is stable
 
-Status: OPEN (re-verified 2026-09-26) — `wdr-openisd-round-trip.test.ts` still cycles each file once.
+Status: FIXED 2026-10-05 — the test now cycles each file twice and requires the second output to be byte-identical to the first. It caught VCCon drifting N → E on the second save; VCCon is now always written E (John, 2026-10-05).
 
 ## Symptom
 
