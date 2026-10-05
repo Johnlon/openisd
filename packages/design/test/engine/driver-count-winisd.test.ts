@@ -6,7 +6,7 @@
 import {readFileSync} from 'node:fs';
 import {dirname, join} from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {describe, it} from 'vitest';
+import {describe, expect, it} from 'vitest';
 import {createEngine} from '../../engine/index.js';
 import type {OpenISDProject} from '../../domain/index.js';
 import {WinIsdProjectConverter} from '../../domain/winIsdProjectConverter.js';
@@ -102,4 +102,49 @@ describe('two drivers match WinISD with the per-driver impedance bug ticked', ()
       }
     });
   }
+});
+
+/** W5-1138SMF sealed, Rg 0.1 Ω, as WinISD showed it by hand (winisd_research runs/nd-1,
+ *  bugs/BUG_20261005_winisd_multi_driver_impedance_is_one_drivers.md): SPL at 1 kHz, cursor
+ *  readout to 3 dp. N drivers each in 4.48 L and fed P/N.
+ *  BUG_20261005_drive-voltage-each-stale-with-driver-count. */
+describe('driver count and drive level (W5-1138SMF sealed, 4.48 L per driver)', () => {
+  const grid = {fmin: 10, fmax: 1000, N: 100};
+  const project = (n: number): OpenISDProject => {
+    const p = setUpProject(CASES[0]);
+    p.nDrivers.set(n);
+    p.box.sealed.volume_m3.set(0.00448 * n);
+    return p;
+  };
+  const splAt1k = (p: OpenISDProject): number => {
+    const sw = p.sweep(grid).values!;
+    return sw.spl[sw.spl.length - 1];
+  };
+
+  it('1 W: 80.532 dB at 1 driver, 86.552 dB at 4 (+6.02)', () => {
+    const one = project(1);
+    one.powerDrive_W.set(1);
+    const four = project(4);
+    four.powerDrive_W.set(1);
+    expect(splAt1k(one)).toBeCloseTo(80.532, 2);
+    expect(splAt1k(four)).toBeCloseTo(86.552, 2);
+    expect(splAt1k(four) - splAt1k(one)).toBeCloseTo(20 * Math.log10(2), 9);
+  });
+
+  it('1 W at 4 drivers: each driver reads √(0.25·(Re+Rg)) V, not √(1·(Re+Rg))', () => {
+    const one = project(1);
+    one.powerDrive_W.set(1);
+    const four = project(4);
+    four.powerDrive_W.set(1);
+    expect(four.driveVoltage_V.value).toBeCloseTo(one.driveVoltage_V.value / 2, 12);
+  });
+
+  it('1.85 V each: P 4× at 4 drivers, SPL +12.04 dB over 1 driver', () => {
+    const one = project(1);
+    one.driveVoltage_V.set(1.85);
+    const four = project(4);
+    four.driveVoltage_V.set(1.85);
+    expect(four.powerDrive_W.value!).toBeCloseTo(4 * one.powerDrive_W.value!, 12);
+    expect(splAt1k(four) - splAt1k(one)).toBeCloseTo(20 * Math.log10(4), 9);
+  });
 });

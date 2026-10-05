@@ -653,12 +653,13 @@ export class OpenISDProject {
             this.#engine.signal,
             () => usableRe(root, (r) => this.#driverOver(r)),
             () => this.Rs_ohm.value ?? 0,
+            () => this.nDrivers.value,
             () => this.#issues.signal,
         );
     }
 
-    /** The drive power — WinISD's Signal-tab "Input Power". While the driver has a usable Re,
-     *  `power_W = voltage_V² / Re` holds and whichever of the pair was entered last is entered;
+    /** The drive power — WinISD's Signal-tab "System input power", shared by all N drivers. While
+     *  the driver has a usable Re, `power_W = N · voltage_V² / Re` holds and whichever of the pair was entered last is entered;
      *  the other is calculated. Without a usable Re it is not available and cannot be entered —
      *  its dq names the missing Re. */
     get powerDrive_W(): Readable<number | null> & Entered & Calculated & Writable<number> & Clearable & Calculatable<number> & Unsolvable {
@@ -666,7 +667,7 @@ export class OpenISDProject {
     }
 
     /**
-     * The drive voltage — the `eg` every sweep runs at. Never absent: an empty slot reads
+     * The drive voltage each driver gets — the `eg` every sweep runs at. Never absent: an empty slot reads
      * the default as calculated, and it is never below 10 mV. Entering it needs no Re.
      * `.clear()` empties the
      * pair; the resolve then fills it back from its defaults.

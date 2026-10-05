@@ -219,12 +219,6 @@ function arrayImpedanceScale(P: SweepParams, n: number): number {
   return P.wiring === 'series' ? n : 1 / n;
 }
 
-/** One of `n` drivers as WinISD simulates it: alone, driven at P/n, in Vb/n with 1/n of the port
- *  area (same length, so the same tuning). */
-function oneOfN(P: SweepParams, n: number): SweepParams {
-  return { ...oneBoxOfN(P, n), eg: P.eg / Math.sqrt(n) };
-}
-
 /** One of `n` drivers' share of the box: Vb/n and, where they exist, Vf/n, every port area /n and prNum/n. */
 function oneBoxOfN(P: SweepParams, n: number): SweepParams {
   return { ...P, nDrivers: 1, Vb: P.Vb / n, ...(P.Vf !== undefined ? { Vf: P.Vf / n } : {}), ...(P.Sp !== undefined ? { Sp: P.Sp / n } : {}), ...(P.prNum !== undefined ? { prNum: P.prNum / n } : {}),
@@ -440,9 +434,9 @@ export class SimulationEngineImpl implements SimulationEngine {
   sweep(drv: SweepDriver, Le_H: number | undefined, box: BoxType, P: SweepParams): SweepSolveResult {
     const n = P.nDrivers || 1;
     if (winisdCountsDrivers(P)) {
-      // WinISD: one driver in Vb/N fed P/N (eg/√N); N of them sum to +20·log10(N) on its SPL and
+      // WinISD: one driver in Vb/N at eg, the voltage each driver gets (P/N each); N of them sum to +20·log10(N) on its SPL and
       // N times its VA (WinISD's VA chart is the array's: 0.968 VA at 1 and 4 drivers, W5 sealed 1 W).
-      const one = this.sweep(drv, Le_H, box, oneOfN(P, n));
+      const one = this.sweep(drv, Le_H, box, oneBoxOfN(P, n));
       if (one.values === null) return one;
       const gain = 20 * Math.log10(n);
       const zScale = arrayImpedanceScale(P, n);

@@ -178,6 +178,7 @@ export type EnclosureParams = Partial<Pick<SweepParams, 'Vb' | 'Vf' | 'Sp' | 'pr
 
 export interface SweepParams {
   Vb: number;
+  /** The voltage each driver gets (V); with `nDrivers` N the array takes N times its power. */
   eg: number;
   // Frequency grid
   fmin?: number;
