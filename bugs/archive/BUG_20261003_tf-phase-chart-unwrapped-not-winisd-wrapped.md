@@ -1,6 +1,6 @@
 # BUG_20261003_tf-phase-chart-unwrapped-not-winisd-wrapped
 
-Status: OPEN
+Status: FIXED 2026-10-05 (verified against the code) — the `winisdWrapPhase` compatibility switch wraps the TF phase to ±180° by default, as WinISD does.
 
 WinISD wraps transfer function phase to [-180°, +180°], so at 20.02 Hz on a sealed W5 box it reports +158.26°. OpenISD outputs continuous unwrapped phase, reporting -201.74°.
 

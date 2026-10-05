@@ -2,7 +2,7 @@
  * Expected outputs of `driver-consistency-solver-golden.test.ts`: what `engine.driver.solveValues`
  * and `OpenISDDriver.resolve()` returned for each case in `driverSolverCases.ts`, captured once
  * from the solver as it stood before its componentisation
- * (bugs/BUG_20261003_driver-consistency-solver-is-one-925-line-function.md, 2026-10-03). A diff
+ * (bugs/archive/BUG_20261003_driver-consistency-solver-is-one-925-line-function.md, 2026-10-03). A diff
  * here means a route order, a precedence or a formula changed. Regenerate only on purpose.
  */
 import type {CaseOutcome} from './driverSolverRun.js';

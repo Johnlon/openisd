@@ -1,6 +1,6 @@
 # BUG_20260918_no-ui-path-to-enter-a-vent-length
 
-Status: OPEN (re-verified 2026-09-26) — the vent length input is editable only when the length is already entered.
+Status: FIXED 2026-10-05 (verified against the code) — both skins have an editable vent length (`OriginalShell.vue`, `MobileEnclosureTab.vue`); it is read-only only while the length is calculated or Fb is entered.
 
 ## Symptom / gap
 The UI offers no way to *type* a port length. A vent is defined by bore (`Vent diameter`) and
