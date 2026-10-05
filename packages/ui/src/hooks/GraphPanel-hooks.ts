@@ -29,6 +29,9 @@ export interface GraphPanelAPI {
   frequencyAxis(): FrequencyAxis;
   /** Ripple, peak and trough of this chart's trace between two frequencies; null with no trace. */
   rangeStats(fLo: number, fHi: number): RangeStats | null;
+  /** A click on the chart at `f`: locks the cursor there; while locked, a click near the pinned
+   *  point unlocks it, and a click elsewhere moves the cursor there unlocked. */
+  clickCursorAt(f: number): void;
   /** The peak or trough of this chart's trace nearest `f` on one side; null when none. */
   snapFrequency(f: number | null, direction: SnapDirection, extremum: SnapExtremum): number | null;
 }
@@ -98,6 +101,22 @@ export function useGraphPanel(props: GraphPanelProps, chartEngine: ChartEngineAr
     return s ? snapFrequency(s.xs, s.ys, f, direction, extremum) : null;
   }
 
+  function clickCursorAt(f: number): void {
+    const p = project.value;
+    const pinnedF = p.pinnedF.value;
+    if (p.cursorLocked.value && pinnedF !== null && frequencyAxis().isNear(f, pinnedF)) {
+      p.cursorLocked.set(false);
+    } else if (p.cursorLocked.value) {
+      p.pinnedF.set(f);
+      p.cursorF.set(f);
+      p.cursorLocked.set(false);
+    } else {
+      p.pinnedF.set(f);
+      p.cursorF.set(f);
+      p.cursorLocked.set(true);
+    }
+  }
+
   return {
     meta,
     currentDesign,
@@ -108,6 +127,7 @@ export function useGraphPanel(props: GraphPanelProps, chartEngine: ChartEngineAr
     warningsDismissed,
     dismissWarnings,
     frequencyAxis,
+    clickCursorAt,
     rangeStats,
     snapFrequency: snapFrequencyOnTrace,
   };

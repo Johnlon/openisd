@@ -1,11 +1,17 @@
 import {describe, expect, it} from 'vitest';
 import {computed, ref, shallowRef} from 'vue';
+import {createApp} from 'vue';
+import {APP_LOGIC} from '../../src/logic/app.js';
+import {FOCUSED_PROJECT} from '../../src/logic/focusedProjectContext.js';
+import {SplashModalKey} from '../../src/hooks/SplashModal-hooks.js';
+import {testAppLogic} from './testAppLogic.js';
 import {createEngine} from '@openisd/design/engine';
 import {OpenISDProject, ProjectBuilder} from '@openisd/design';
 import {
   airFieldDataQuality,
   createEnvironmentAir,
   fillBlankMeta,
+  useOriginalShell,
 } from '../../src/hooks/OriginalShell-hooks.js';
 
 function createCompleteProject() {
@@ -237,6 +243,47 @@ describe('OriginalShell-hooks', () => {
 
       expect(changed).toBe(false);
       expect(project.creator.value).toBe('someone');
+    });
+  });
+
+  describe('frequency nudge buttons (startNudge)', () => {
+    function shellOn(project: OpenISDProject) {
+      const app = createApp({render: () => null});
+      app.provide(APP_LOGIC, testAppLogic());
+      app.provide(FOCUSED_PROJECT, computed(() => project));
+      app.provide(SplashModalKey, {
+        open: computed(() => false), driverCount: ref(null), passiveRadiatorCount: ref(null),
+        dismiss: () => undefined, show: () => undefined,
+      });
+      return app.runWithContext(() => useOriginalShell());
+    }
+
+    it('nudging up from a pinned frequency multiplies it by 1.02 and locks the cursor there', () => {
+      const {project} = createCompleteProject();
+      project.pinnedF.set(100);
+      const shell = shellOn(project);
+      shell.startNudge(1);
+      shell.stopNudge();
+      expect(project.pinnedF.value).toBeCloseTo(102, 10);
+      expect(project.cursorF.value).toBeCloseTo(102, 10);
+      expect(project.cursorLocked.value).toBe(true);
+    });
+
+    it('nudging down divides by 1.02', () => {
+      const {project} = createCompleteProject();
+      project.pinnedF.set(100);
+      const shell = shellOn(project);
+      shell.startNudge(-1);
+      shell.stopNudge();
+      expect(project.pinnedF.value).toBeCloseTo(100 / 1.02, 10);
+    });
+
+    it('nudging up with nothing pinned starts from the geometric mean of the axis', () => {
+      const {project} = createCompleteProject();
+      const shell = shellOn(project);
+      shell.startNudge(1);
+      shell.stopNudge();
+      expect(project.pinnedF.value).toBeCloseTo(Math.sqrt(10 * 1000) * 1.02, 6);
     });
   });
 });

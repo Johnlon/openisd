@@ -82,5 +82,37 @@ describe('GraphPanel-hooks', () => {
       api.dismissWarnings();
       expect(api.warningsDismissed.value).toBe(true);
     });
+    describe('clickCursorAt', () => {
+      function hookOn(project: OpenISDProject) {
+        return runHook(computed(() => project), () => useGraphPanel({chartId: 'SPL'}, createEngine()));
+      }
+
+      it('a click on an unlocked chart locks the cursor at that frequency', () => {
+        const project = createTestProject();
+        hookOn(project).clickCursorAt(200);
+        expect(project.cursorLocked.value).toBe(true);
+        expect(project.pinnedF.value).toBe(200);
+        expect(project.cursorF.value).toBe(200);
+      });
+
+      it('a click elsewhere while locked moves the cursor there and unlocks it', () => {
+        const project = createTestProject();
+        const api = hookOn(project);
+        api.clickCursorAt(200);
+        api.clickCursorAt(2000);
+        expect(project.cursorLocked.value).toBe(false);
+        expect(project.pinnedF.value).toBe(2000);
+        expect(project.cursorF.value).toBe(2000);
+      });
+
+      it('a click near the pinned point while locked unlocks without moving it', () => {
+        const project = createTestProject();
+        const api = hookOn(project);
+        api.clickCursorAt(200);
+        api.clickCursorAt(201);
+        expect(project.cursorLocked.value).toBe(false);
+        expect(project.pinnedF.value).toBe(200);
+      });
+    });
   });
 });

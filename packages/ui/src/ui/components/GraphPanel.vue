@@ -201,19 +201,7 @@ function onPointerUp(e: PointerEvent) {
   // - Clicking somewhere else while locked moves the cursor to the new location UNLOCKED.
   const f = freqAt(e.clientX);
   if (f === null) return;
-  const p = project.value;
-  const pinnedF = p.pinnedF.value;
-  if (p.cursorLocked.value && pinnedF !== null && geoRef?.axis.isNear(f, pinnedF)) {
-    p.cursorLocked.set(false);
-  } else if (p.cursorLocked.value) {
-    p.pinnedF.set(f);
-    p.cursorF.set(f);
-    p.cursorLocked.set(false);
-  } else {
-    p.pinnedF.set(f);
-    p.cursorF.set(f);
-    p.cursorLocked.set(true);
-  }
+  graph.clickCursorAt(f);
 }
 
 // Double-click the Y-axis strip resets that chart's level scale to auto; double-click
