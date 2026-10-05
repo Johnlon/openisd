@@ -10,7 +10,7 @@
  */
 import {describe, expect, it} from 'vitest';
 import {createEngine} from '@openisd/design/engine';
-import {OpenISDDriver} from '../../domain/index.js';
+import {OpenISDDriver, ProjectBuilder} from '../../domain/index.js';
 
 /** A driver with no value stated at all: every derivable quantity is blocked on its inputs. */
 function emptyDriver(): OpenISDDriver {
@@ -62,5 +62,28 @@ describe('a field says whether it is mandatory and unsatisfied', () => {
     const kinds = new Set(driver.issues().map(i => i.kind));
     expect(kinds.has('inconsistent-inputs')).toBe(true);
     expect(driver.specs.Qts.mandatoryAndUnsatisfied).toBe(false);
+  });
+});
+
+describe('the driver embedded in a project says the same', () => {
+  // Tune reads the project's own driver, not a standalone one (OriginalTune-hooks `specField`).
+  function projectWithOnlyQes() {
+    const engine = createEngine();
+    const project = new ProjectBuilder(OpenISDDriver.empty(engine), engine).sealed().volume_m3(0.03).build();
+    project.driver.specs.Qes.set(0.4);
+    return project;
+  }
+
+  it('flags the target and the field a blocked route is missing', () => {
+    const project = projectWithOnlyQes();
+    expect(project.driver.specs.Qts.mandatoryAndUnsatisfied).toBe(true);
+    expect(project.driver.specs.Qms.mandatoryAndUnsatisfied).toBe(true);
+  });
+
+  it('flags the whole Q trio together while fewer than two are stated, and nothing else', () => {
+    // Any two of Qes, Qms, Qts give the third, so stating only Qes still flags Qes with the rest.
+    const specs = projectWithOnlyQes().driver.specs;
+    expect(specs.Qes.mandatoryAndUnsatisfied).toBe(true);
+    expect(specs.Fs_hz.mandatoryAndUnsatisfied).toBe(false);
   });
 });

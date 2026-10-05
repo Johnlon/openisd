@@ -1,6 +1,6 @@
 # BUG 20260916 — OriginalTune mandatory trio reads `driver.issues()` which is claimed to return `[]` for EMBEDDED drivers even when the cascade has issues (worker2 E)
 
-Status: OPEN (re-verified 2026-09-26) — `project.driver.issues()` returns `[]` while `specs.Qts.dq` holds `inconsistent-inputs`; `OriginalTune.vue` reads `issues()`.
+Status: CLOSED 2026-10-05 — claim disproved. `OriginalTune.vue` no longer reads `driver.issues()`; it reads each field's own `mandatoryAndUnsatisfied` (fb92a149). The driver embedded in a project reports it correctly: `field-mandatory-and-unsatisfied.test.ts`, "the driver embedded in a project says the same" (a project with only Qes stated flags Qes, Qms and Qts, not Fs). The Tune pane's red class itself has no browser spec.
 
 ## What worker2 actually said (verbatim, pasted by the human)
 
