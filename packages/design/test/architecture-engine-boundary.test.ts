@@ -117,14 +117,12 @@ describe('the engine is reachable only through its door', () => {
   });
 
   it('the engine is constructed in a composition root, nowhere else', () => {
-    // One `createEngine(` per process: the app's (`appState.ts`), the sweep worker's
-    // (`sweepWorker.ts`), the Python bridge's (`winisd/bridge.ts`) and the compatibility suite
-    // runner's (`compat/run.ts`, its own command-line process). The worker is a second
-    // composition root because it is a second thread, not a loophole. Anything else building its own engine is a component that should
+    // One `createEngine(` per process: the app's (`appState.ts`), the Python bridge's (`winisd/bridge.ts`) and the compatibility suite
+    // runner's (`compat/run.ts`, its own command-line process). Anything else building its own engine is a component that should
     // have been handed one (John, 2026-09-28: "composition in one place"). Tests build what
     // they need.
     const roots = new Set([
-      'packages/ui/src/logic/appState.ts', 'packages/ui/src/logic/sweepWorker.ts', 'packages/design/winisd/bridge.ts',
+      'packages/ui/src/logic/appState.ts', 'packages/design/winisd/bridge.ts',
       'packages/design/compat/run.ts',
     ]);
     // The factory's own definition is not a construction site.
@@ -143,6 +141,15 @@ describe('the engine is reachable only through its door', () => {
       }
     }
     expect(offences, 'Only a composition root constructs the engine; a component receives it.').toEqual([]);
+  });
+
+  it('the sweep worker builds the simulation area alone, not the whole engine', () => {
+    // A thread that only sweeps imports only the area that sweeps (John, 2026-10-05: "the thread
+    // should not need to import a big engine class"). It reads no app setting, so it needs no
+    // `createEngine`.
+    const worker = fs.readFileSync(path.join(repoRoot, 'packages/ui/src/logic/sweepWorker.ts'), 'utf8');
+    expect(worker).not.toMatch(/createEngine/);
+    expect(worker).toMatch(/createSimulationEngine\(\)/);
   });
 
   it('the door exports createEngine, and no loose calculation functions', () => {
@@ -164,7 +171,7 @@ describe('the engine is reachable only through its door', () => {
     expect(valueExports.sort()).toEqual([
       'DEFAULT_ENV_DEFAULTS', 'DEFAULT_P_REF_PA', 'DEFAULT_RH_REF_PCT', 'DEFAULT_T_REF_K',
       'DEFAULT_VENTED_DESIGN_LIMITS',
-      'MAX_SUPPORTED_TEMP_K', 'MIN_SUPPORTED_TEMP_K', 'createEngine',
+      'MAX_SUPPORTED_TEMP_K', 'MIN_SUPPORTED_TEMP_K', 'createEngine', 'createSimulationEngine',
     ]);
   });
 

@@ -46,6 +46,7 @@ export type { BoxEngine, ChartId } from './box/BoxEngine.js';
 export type { BoxParamsQuantityName, BoxParamsIssue, BoxParamsSolveResult } from './params.js';
 export type { SignalEngine, SignalQuantityName, SignalIssue } from './signal/SignalEngine.js';
 export type { SimulationEngine, SweepIssue, SweepSolveResult, MaxCurvesSolveResult } from './simulation/SimulationEngine.js';
+export { createSimulationEngine } from './simulation/SimulationEngine.js';
 export type {DriverEngine, DriverQuantityName, DriverIssue, DriverPrerequisite} from './driver/DriverEngine.js';
 export type {EnvironmentEngine} from './environment/EnvironmentEngine.js';
 export type {IssueEngine} from './issues/IssueEngine.js';

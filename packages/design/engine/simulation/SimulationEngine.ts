@@ -359,6 +359,12 @@ export interface SimulationEngine {
   classifyMaxFinite(mx: MaxCurvesResult): DriverError | null;
 }
 
+/** The simulation area alone, for a thread that only sweeps. It reads no app setting, so it takes none;
+ *  the whole engine comes from `createEngine`. */
+export function createSimulationEngine(): SimulationEngine {
+  return new SimulationEngineImpl();
+}
+
 export class SimulationEngineImpl implements SimulationEngine {
   /**
    * The passband reference level of an SPL curve, in dB — the peak of the real curve,
