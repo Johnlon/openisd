@@ -80,3 +80,6 @@ export { formatFixed, formatFixedOrDash } from './format.js';
 export { ReadoutFormat } from './readoutFormat.js';
 export { parseUnitRotation } from './unitRotation.js';
 export { spinValue, spinStepAttr, shownSpinRule, decimalsSpinRule, type SpinRule, type SpinDirection, type SpinBounds } from './spinnerStep.js';
+
+/** The Tune sheet's rows per box type. */
+export { TuneField, type TuneSlot } from './tuneField.js';

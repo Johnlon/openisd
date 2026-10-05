@@ -37,8 +37,12 @@ export function useMobileChartView() {
   });
   const { el: stackEl, style: stackStyle } = useChartStack(computed(() => openCharts.value.length), chartsHigh, () => 1);
 
+  /** Whether the Tune sheet is open. The chart's Auto Y box shows only then: without Tune there
+   *  is nothing to rescale for (John, 2026-10-05). */
+  const tuneOpen = ref(false);
+
   const traceColour = computed(() => { void projectChanged.value; return traceColor(project.value); });
 
   return { openCharts, chartItems, chartLabel, pickerOpen, togglePicker, showOnly, toggle,
-    chartsHigh, CHARTS_HIGH_OPTIONS, selectedOption, stackEl, stackStyle, traceColour, overlays };
+    chartsHigh, CHARTS_HIGH_OPTIONS, selectedOption, stackEl, stackStyle, traceColour, overlays, tuneOpen };
 }

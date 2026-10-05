@@ -5,6 +5,7 @@ import {cellClassOf} from '../logic/driverCells.js';
 import type {Calculated, Clearable, Entered, Readable, Writable} from '@openisd/design';
 import type {NumSpecField} from '../logic/appState.js';
 import {projectChanged} from '../logic/appState.js';
+import {createTuneSession} from './tuneSession.js';
 
 export type NumKey = NumSpecField;
 export type { NumSpecField };
@@ -30,6 +31,7 @@ export const OriginalTuneKey: InjectionKey<OriginalTuneAPI> = Symbol('OriginalTu
 
 export function useOgTune(): OriginalTuneAPI {
   const project = useFocusedProject();
+  const session = createTuneSession({ project, projectChanged });
 
   function specField(key: NumSpecField):
       Readable<number | null> & Entered & Calculated & Writable<number> & Clearable {
@@ -85,11 +87,11 @@ export function useOgTune(): OriginalTuneAPI {
   }
 
   function cancel() {
-    project.value.cancelWhatIf();
+    session.cancel();
   }
 
   async function reset(): Promise<void> {
-    project.value.resetWhatIf();
+    session.reset();
   }
 
   return {

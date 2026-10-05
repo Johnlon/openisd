@@ -4,11 +4,12 @@
 // GraphPanel's canvas sets touch-action:none (custom pointer gestures); in a stack it is relaxed
 // to pan-y, so a vertical swipe scrolls the list and a sideways drag still moves the cursor.
 import GraphPanel from '../../components/GraphPanel.vue';
+import MobileTuneSheet from './MobileTuneSheet.vue';
 import { useMobileChartView } from '../../../hooks/MobileChartView-hooks.js';
 
 const emit = defineEmits<{ menu: [] }>();
 const { openCharts, chartItems, chartLabel, pickerOpen, togglePicker, showOnly, toggle,
-  chartsHigh, CHARTS_HIGH_OPTIONS, selectedOption, stackEl, stackStyle, traceColour, overlays } = useMobileChartView();
+  chartsHigh, CHARTS_HIGH_OPTIONS, selectedOption, stackEl, stackStyle, traceColour, overlays, tuneOpen } = useMobileChartView();
 </script>
 
 <template>
@@ -36,10 +37,11 @@ const { openCharts, chartItems, chartLabel, pickerOpen, togglePicker, showOnly, 
     </ul>
     <div ref="stackEl" class="mob-chart-stack" :class="{ stacked: openCharts.length > 1 }" :style="stackStyle">
       <div v-for="id in openCharts" :key="id" class="mob-chart-cell">
-        <!-- No Auto Y on mobile until mobile gets Tune (John, 2026-10-05); drop hide-auto-y then. -->
-        <GraphPanel :chart-id="id" :bare="true" :primary-color="traceColour" :overlays="overlays" :hide-auto-y="true" />
+        <!-- Auto Y shows only while Tune is open (John, 2026-10-05). -->
+        <GraphPanel :chart-id="id" :bare="true" :primary-color="traceColour" :overlays="overlays" :hide-auto-y="!tuneOpen" />
       </div>
     </div>
+    <MobileTuneSheet v-model:open="tuneOpen" />
   </div>
 </template>
 
