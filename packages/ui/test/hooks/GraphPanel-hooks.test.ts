@@ -128,6 +128,30 @@ describe('GraphPanel-hooks', () => {
       });
     });
 
+    describe('a focused project that cannot be swept', () => {
+      const awaitSweep = () => new Promise(resolve => setTimeout(resolve, 200));
+
+      it('stays blocked with its error, and every other open project still draws', async () => {
+        presentationState.yRanges = {};
+        const good = createTestProject();
+        addProject(good);
+        const goodApi = runHook(computed(() => good), () => useGraphPanel({chartId: 'SPL'}, createEngine()));
+        await awaitSweep();
+        const overlay = {...goodApi.currentDesign.value, name: 'p1'};
+        expect(overlay.curves).not.toBeNull();
+
+        const broken = createTestProject();
+        broken.driver.specs.Fs_hz.clear();
+        addProject(broken);
+        const api = runHook(computed(() => broken), () =>
+          useGraphPanel({chartId: 'SPL', overlays: [overlay]}, createEngine()));
+        await awaitSweep();
+        expect(api.blocked.value).toBe(true);
+        expect(api.blockErrors.value.length).toBeGreaterThan(0);
+        expect(api.plotData.value?.series.map(s => s.name)).toEqual(['p1: SPL']);
+      });
+    });
+
     describe('clickCursorAt', () => {
       function hookOn(project: OpenISDProject) {
         return runHook(computed(() => project), () => useGraphPanel({chartId: 'SPL'}, createEngine()));

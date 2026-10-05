@@ -448,10 +448,10 @@ export function errorsForChart(chartId: ChartId, errors: DriverError[]): DriverE
 //   value:  the plot-ready series bundle, or null when there is nothing to draw.
 //   errors: the driver-derivation issues (passed through) so the caller can explain
 //           WHY a chart is not drawn — it never has to inspect store internals itself.
-// A chart is not drawable when the derived driver is missing (a required T/S param is
-// invalid) or the sweep results are not ready yet (the debounced sweep hasn't run since
-// the driver last changed). Both collapse to value:null here; the caller distinguishes
-// "blocked" (errors present) from "not ready yet" (errors empty) via the errors array.
+// A design is not drawable when its derived driver is missing (a required T/S param is
+// invalid) or its sweep results are not ready yet; it is then left out and the others
+// draw. value is null only when no design at all can be drawn. The caller shows the
+// errors (the focused project's) on top either way.
 export function buildPlotData(
   engine: ChartEngineAreas,
   chartId: ChartId,
@@ -463,12 +463,10 @@ export function buildPlotData(
   opts: { bare?: boolean; primaryColor?: string } = {},
 ): { value: PlotData | null; errors: DriverError[] } {
   const chartErrors = errorsForChart(chartId, errors);
-  if (!currentDesign.driver || !currentDesign.curves || !currentDesign.maxCurves)
-    return { value: null, errors: chartErrors };
 
   // Compare overlays may be hidden (visible === false) without being removed. Additive:
-  // the current design is always drawn, and any overlay lacking the flag stays visible —
-  // so a design that never sets `visible` is always drawn.
+  // any overlay lacking the flag stays visible — so a design that never sets `visible` is
+  // always drawn.
   //
   // Legend/draw order follows the sidebar's project list order, not "current first"
   // (John, 2026-09-24). `sortIndex` (set by the caller from `openProjects().indexOf(...)`)
@@ -483,10 +481,13 @@ export function buildPlotData(
     .map(([d]) => d);
   const multi = designs.length > 1;
   let out: { series: Series[]; ymin: number; ymax: number; logy: boolean; unit: string } | null = null;
-  if (designs.length === 0) return { value: null, errors: chartErrors };
   for (const [di, d] of designs.entries()) {
+    // A design with no sweep (its driver has an error, or the sweep has not run yet) is
+    // simply absent: every other project still draws, and the caller shows the error.
+    const { driver, curves } = d;
+    if (!driver || !curves || !d.maxCurves) continue;
     const isCurrent = d === currentDesign;
-    const pd = seriesFor(engine, chartId, d.driver!, d.box, d.P, d.curves!, d.maxCurves, opts.bare);
+    const pd = seriesFor(engine, chartId, driver, d.box, d.P, curves, d.maxCurves, opts.bare);
     if (!out) out = { series: [], ymin: pd.ymin, ymax: pd.ymax, logy: pd.logy, unit: pd.unit };
     const prim: Series = { ...pd.series[0] };
     if (multi) {
