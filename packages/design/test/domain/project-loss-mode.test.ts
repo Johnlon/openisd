@@ -30,4 +30,23 @@ describe('OpenISDProject.lossMode — project-scoped, not a UI singleton', () =>
 
     expect(lossy.box.sealed.resonance_hz.value).not.toBeCloseTo(lossless.box.sealed.resonance_hz.value!, 6);
   });
+
+  it('all three loss models give distinct Fsc/Qtc readouts once the box has losses', () => {
+    const readouts = (mode: LossMode) => {
+      const p = project();
+      p.box.lossesOf('sealed')!.Ql.set(10);
+      p.box.lossesOf('sealed')!.Qa.set(100);
+      p.lossMode.set(mode);
+      return {fsc: p.box.sealed.resonance_hz.value!, qtc: p.box.sealed.q_tc.value!};
+    };
+    const lossless = readouts(LossMode.Lossless);
+    const conventional = readouts(LossMode.ConventionalLossy);
+    const winisd = readouts(LossMode.WinisdLossy);
+    // Conventional folds Ql/Qa into Qtc with Fsc fixed; WinISD lossy moves Fsc too.
+    expect(conventional.fsc).toBeCloseTo(lossless.fsc, 9);
+    expect(conventional.qtc).toBeLessThan(lossless.qtc);
+    expect(winisd.fsc).toBeGreaterThan(lossless.fsc);
+    expect(winisd.qtc).not.toBeCloseTo(conventional.qtc, 3);
+    expect(winisd.qtc).not.toBeCloseTo(lossless.qtc, 3);
+  });
 });

@@ -1,4 +1,4 @@
-import {expect, openAProject, setFocusedBoxType, setFocusedDriverSpecs, test} from '../fixtures.js';
+import {expect, focusedBoxVolume, focusedSealedReadouts, openAProject, setFocusedBoxType, setFocusedDriverSpecs, test} from '../fixtures.js';
 
 /** The Alignment editor opened from the Box tab (a modal shared by the sealed and vented boxes). */
 
@@ -20,6 +20,28 @@ test.describe('Alignment popup', () => {
     await expect(page.locator('.alignment-readout')).toContainText(/Either sealed or vented|Suitability unavailable/);
     await page.getByRole('button', { name: 'Cancel', exact: true }).click();
     await expect(page.locator('.alignment-modal')).toBeHidden();
+  });
+
+  test('Cancel after changing the alignment leaves the sealed volume and Fsc/Qtc untouched', async ({ page }) => {
+    await setFocusedDriverSpecs(page, { Fs_hz: 37, Qts: 0.38, Vas_m3: 0.030, Qes: null });
+    await setFocusedBoxType(page, 'sealed');
+    await page.locator('.project-nav li', { hasText: 'Box' }).click();
+    const volumeBefore = await focusedBoxVolume(page);
+    const readoutsBefore = await focusedSealedReadouts(page);
+    const fscShown = await page.locator('#og-box-resonance').inputValue();
+
+    await page.getByRole('button', { name: 'Alignment', exact: true }).click();
+    const select = page.locator('.alignment-modal select');
+    const current = await select.inputValue();
+    const other = await select.locator('option').evaluateAll(
+      (opts, cur) => (opts as HTMLOptionElement[]).map(o => o.value).find(v => v !== cur && v !== ''), current);
+    await select.selectOption(other!);
+    await page.getByRole('button', { name: 'Cancel', exact: true }).click();
+    await expect(page.locator('.alignment-modal')).toBeHidden();
+
+    expect(await focusedBoxVolume(page)).toBe(volumeBefore);
+    expect(await focusedSealedReadouts(page)).toEqual(readoutsBefore);
+    await expect(page.locator('#og-box-resonance')).toHaveValue(fscShown);
   });
 
   test('vented Box tab opens and cancels the Alignment editor', async ({ page }) => {
