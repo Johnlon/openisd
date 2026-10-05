@@ -9613,7 +9613,7 @@ questions:
       Note: the ruling now references the intended model "app-level C → project C unless locally entered; delete/clear re-derives from app level; WPR export writes the air constants; without ParState a round-trip C becomes an E". None of the three failing env tests pass until that wiring exists.
 - id: QO156
   title: Builder path and New-Project wizard solve the same entered box to different derived floats
-  status: open
+  status: decided
   raised: '2026-09-18'
   body: |-
     While making the standard fixture faithful to wizard output (wizard-defaults.browser.spec.ts :76), the fixture builder (.vented().volume_m3(0.007).tuning_hz(35).build() then vent.diameter_m.set(0.05)) and the New-Project wizard (OpenISDProject.empty then live writes volume->dia->tuning, OgNewProject.vue pickDriver) produce projects with IDENTICAL entered values (5 cm dia but volume 7L / 35Hz / W5 driver) but slightly different SOLVED values:
@@ -9622,6 +9622,9 @@ questions:
     - All other derived box physics drift ~0.02% (impedance curve peaks, port velocity, etc.)
 
     The wizard-defaults fixture-fidelity test now masks every state-C (calculated) value before deep-comparing and closeTo(2)-checks the port length, because strict equality can never pass between the two construction paths. Is that intended (two independent solve orderings, both valid), or should identical entered values always solve bit-identically regardless of construction path? If the latter, it is a vents/box solver ordering bug to fix.
+  notes:
+  - at: '2026-10-05'
+    text: 'Decided: identical entered values solve identically whatever the order they are written. Checked: a vented box with the tuning written before or after the vent diameter gives bit-identical vent lengths (packages/design/test/domain/project-entry-order.test.ts). The wizard no longer writes volume, diameter and tuning live: it builds through ProjectBuilder from a chosen alignment, and the masked fixture spec the question came from is gone.'
 - id: QO158
   title: Approve the component test reorganisation plan
   status: decided
