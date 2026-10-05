@@ -78,52 +78,28 @@ export class WinisdFixedBug {
     size: 'Fsc stuck at 120.70 Hz, the 1 L value, after typing 10 L.',
   });
 
-  static readonly DRIVER_WITHOUT_FS_VAS = new WinisdFixedBug({
-    title: 'A driver without Fs or Vas crashes WinISD',
-    winisd: 'WinISD does not work out a missing Fs or Vas when it opens a project: a driver given by Mms, Cms, BL, Re, Qms and Sd alone makes WinISD stop with a divide-by-zero error at the first chart. A driver with no parameters at all stops it with "Invalid floating point operation" on opening the Box tab or the Driver editor.',
-    openisd: 'OpenISD works out the missing parameters from the ones given and never crashes; what cannot be worked out is left blank.',
-    seenIn: 'opening a project or driver file, the Box tab and the Driver editor.',
+  static readonly NO_REFRESH_ON_LOAD = new WinisdFixedBug({
+    title: 'WinISD does not refresh on load',
+    winisd: 'After loading a file, WinISD shows stale calculated values until you edit something: EBP, Rme, gamma, Mpow, SPLmax, SPLmax LF and Gloss read 0.',
+    openisd: 'OpenISD works out every calculated value as soon as a file is loaded.',
+    seenIn: 'the Driver editor\'s Advanced parameters, after opening a file.',
+    size: 'SPLmax reads 0 until an edit, then 111 dB (Beyma 10BR60).',
+  });
+
+  static readonly UNSTABLE_INPUT_FIELDS = new WinisdFixedBug({
+    title: 'WinISD\'s input boxes are unstable',
+    winisd: 'A mistyped character, a decimal comma or a value that divides by zero makes WinISD raise an error popup. Cancel on the popup crashes WinISD; OK brings the same popup back, again and again.',
+    openisd: 'OpenISD rejects or flags a bad entry in its box. It never crashes and never loops.',
+    seenIn: 'any number box.',
     size: 'WinISD closes and unsaved work is lost.',
   });
 
-  static readonly PR_BOX_VOLUME_BLANK = new WinisdFixedBug({
-    title: 'A blank passive radiator box volume traps WinISD in a popup loop',
-    winisd: 'Deleting the Volume on WinISD\'s Box tab for a passive radiator box and leaving the box empty brings up an error popup that keeps coming back.',
-    openisd: 'OpenISD takes an empty volume as no value: readouts that need it are left blank and nothing pops up.',
-    seenIn: 'the Volume box on the Box tab, passive radiator boxes.',
-    size: 'WinISD has to be closed; unsaved work is lost.',
-  });
-
-  static readonly FIGURES_OF_MERIT_ON_LOAD = new WinisdFixedBug({
-    title: 'WinISD shows 0 for a loaded driver\'s figures of merit until you edit something',
-    winisd: 'WinISD does not work out EBP, Rme, gamma, Mpow, SPLmax, SPLmax LF and Gloss when a driver file is opened: they show 0 in the colour of a calculated value until any field is edited.',
-    openisd: 'OpenISD works out every calculated value as soon as the driver is loaded.',
-    seenIn: 'the Driver editor\'s Advanced parameters.',
-    size: 'SPLmax shows 0 until an edit, then 111 dB (Beyma 10BR60).',
-  });
-
-  static readonly DECIMAL_COMMA = new WinisdFixedBug({
-    title: 'WinISD drops what is typed before a decimal comma',
-    winisd: 'WinISD reads a typed "0,1" as 1: the comma and everything before it are dropped, with no warning.',
-    openisd: 'OpenISD reads a comma as the decimal point: "0,1" is 0.1.',
-    seenIn: 'any number box, such as Sd in the Driver editor.',
-    size: 'Sd typed as 0,1 m² becomes 1 m², ten times too large, and Dd, Vd and the SPL follow it.',
-  });
-
-  static readonly COMMENT_CHARACTERS = new WinisdFixedBug({
-    title: 'WinISD loses some characters of a driver comment',
-    winisd: 'WinISD saves a driver comment correctly but cannot read some characters back: ¤ and some Cyrillic and Indian letters come back as "?" and a line break, and saving again writes the damage into the file.',
-    openisd: 'OpenISD reads and writes every character of a comment, and reads WinISD\'s own files the way WinISD reads the ones it handles correctly.',
-    seenIn: 'the Comment box on the Driver editor\'s General tab, after saving and reopening.',
-    size: 'Each affected character becomes "?" and a new line.',
-  });
-
-  static readonly VOICE_COIL_WIRING = new WinisdFixedBug({
-    title: 'WinISD can lose the voice coil wiring',
-    winisd: 'WinISD\'s Driver editor saves Series as Parallel for a single-coil driver. Changing the number of coils after picking Series puts the box back to Parallel but leaves Re and BL at their series values, so the file says parallel beside series values, and picking Series again scales them a second time.',
-    openisd: 'OpenISD keeps the wiring you chose at any number of coils and works out Re and BL from it, so changing the coil count cannot leave them out of step.',
-    seenIn: 'the Voice coil connection and Number of voice coils boxes in the Driver editor, and the saved driver file.',
-    size: 'Two coils, Series then the coil count edited: Re four times and BL twice the parallel value, saved as parallel; Series again makes them 16 and 4 times.',
+  static readonly CHARTS_DO_NOT_REPAINT = new WinisdFixedBug({
+    title: 'WinISD\'s charts disappear',
+    winisd: 'WinISD\'s charts can disappear and stay blank until you change something.',
+    openisd: 'OpenISD always redraws its charts.',
+    seenIn: 'every chart.',
+    size: 'The chart stays blank until the next edit.',
   });
 
   /** Every fixed bug, by reflection; declared last. */
