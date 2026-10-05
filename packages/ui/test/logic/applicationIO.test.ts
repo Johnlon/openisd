@@ -4,7 +4,7 @@ import {readFileSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 import {dirname, join} from 'node:path';
 import {createLogging} from '../../src/logging/flash.js';
-import {createApplicationIO} from '../../src/logic/useApplicationIO.js';
+import {createApplicationIO} from '../../src/logic/applicationIO.js';
 import {DesignFiles} from '../../src/logic/fileImportExport.js';
 import {createBackupRepo, createFileOpen, createFileStorage, createMemoryStorage, type FileOpen, type FilePick, createProjectRepo, type FileStorage} from '@openisd/persistence';
 import {newProject, openProjects, requireFocusedProject} from '../../src/logic/appState.js';

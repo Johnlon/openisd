@@ -7,7 +7,7 @@
 import {boxTypeIsSimulatable, envDefaults, focusedProject, projectChanged} from '../logic/appState.js';
 import {useFocusedProject} from '../logic/focusedProjectContext.js';
 import {useApp} from '../logic/app.js';
-import {VentMember} from '../logic/useVentGroup.js';
+import {VentMember} from '../logic/ventGroup.js';
 import {createEnvironmentAir} from './OriginalShell-hooks.js';
 import {createSealedReadouts, createSelectedBox} from './boxFields.js';
 import {createVentReadouts, FB_TARGET_TIP, VENT_GEOMETRY_TIP} from './ventReadouts.js';

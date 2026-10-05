@@ -9,7 +9,7 @@
  * error here, not a second table to keep in step.
  */
 import type {OpenISDProject} from '@openisd/design';
-import {suspendVentSolve} from './useVentGroup.js';
+import {suspendVentSolve} from './ventGroup.js';
 import type {ProvenanceLetter} from '@openisd/design';
 
 /** The two members tied by the tuning relation, named as the field-table keys them. */

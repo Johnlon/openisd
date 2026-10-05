@@ -24,7 +24,7 @@ import {createLogging} from '../../src/logging/flash.js';
 import {createFaultLog} from '../../src/diagnostics/faultLog.js';
 import {createDriverSelection} from '../../src/logic/driverSelection.js';
 import {createDriverBrowsingState} from '../../src/logic/driverBrowsingState.js';
-import {createApplicationIO} from '../../src/logic/useApplicationIO.js';
+import {createApplicationIO} from '../../src/logic/applicationIO.js';
 import {DesignFiles} from '../../src/logic/fileImportExport.js';
 import {DriverDrafts} from '../../src/logic/driverDraft.js';
 import {appContext} from '../../src/logic/appState.js';

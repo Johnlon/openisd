@@ -6,7 +6,7 @@
  */
 import {computed} from 'vue';
 import type {ComputedRef, Ref} from 'vue';
-import {VentMember} from '../logic/useVentGroup.js';
+import {VentMember} from '../logic/ventGroup.js';
 import type {OpenISDProject} from '@openisd/design';
 import type {BoxType, EnvironmentEngine, VentEngine} from '@openisd/design/engine';
 

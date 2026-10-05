@@ -1,7 +1,7 @@
 import {type App, inject, type InjectionKey} from 'vue';
 import type {DriverBrowsingState} from './driverBrowsingState.js';
 import type {DriverSelection} from './driverSelection.js';
-import type {DesignIO} from './useApplicationIO.js';
+import type {DesignIO} from './applicationIO.js';
 import type {DesignFiles} from './fileImportExport.js';
 import type {DriverDrafts} from './driverDraft.js';
 import type {

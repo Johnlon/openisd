@@ -24,11 +24,11 @@ list is the smaller engineering and UI work items around what already ships.
 | No frequency-range presets on the charts. | `OriginalShell.vue`, `presentationState.ts` |
 | Chart panels cannot be dragged into a different layout. | `GraphPanel.vue`, `OriginalShell.vue` |
 | No dB-per-division gridline setting (spacing is fixed). | `canvas.ts`, `OptionsModal.vue` |
-| Vb/Fb cannot be dragged directly on the enclosure-tuning graph. | `GraphPanel.vue`, `canvas.ts`, `useVentGroup.ts` |
-| The vent solver has no feasible-region chart (diameter vs length, iso-Fb lines, a safe-velocity band). | `series.ts`, `canvas.ts`, `useVentGroup.ts` |
+| Vb/Fb cannot be dragged directly on the enclosure-tuning graph. | `GraphPanel.vue`, `canvas.ts`, `ventGroup.ts` |
+| The vent solver has no feasible-region chart (diameter vs length, iso-Fb lines, a safe-velocity band). | `series.ts`, `canvas.ts`, `ventGroup.ts` |
 | No schematic view of the box/vent/driver layout. | new component |
 | Layout does not adapt to a phone-width screen. | `OriginalShell.vue`, `style.css` |
-| Whether the URL should update live (bookmarkable) or only through Share is undecided. | `useApplicationIO.ts`, `App.vue`, `persistence/projectRepo.ts` |
+| Whether the URL should update live (bookmarkable) or only through Share is undecided. | `applicationIO.ts`, `App.vue`, `persistence/projectRepo.ts` |
 
 ## Files and driver data
 

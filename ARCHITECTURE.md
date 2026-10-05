@@ -384,7 +384,7 @@ the phase before it has returned, and it is the only place that order is stated.
     character whose UTF-8 contains `A4`.
 - **File I/O belongs to the domain.** `OpenISDProject.fromOwprText()`/`toOwprText()` for the
   app's own format; `WinIsdProjectConverter` and `WinIsdDriverConverter` for WinISD's, reached
-  through `ui/logic/fileImportExport.ts`'s `DesignFiles`. `ui/logic/useApplicationIO.ts` only
+  through `ui/logic/fileImportExport.ts`'s `DesignFiles`. `ui/logic/applicationIO.ts` only
   chooses file names, calls those and shows messages.
 
 ## 7. Patterns and coupling rules

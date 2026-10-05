@@ -71,7 +71,7 @@ One file tests one object, and its folder is the layer of that object.
 | `packages/design/test/winisd/`      | `.wdr` / `.wpr` formats and converters                                 |
 | `packages/design/test/architecture-*` | design-package gates                                                 |
 | `packages/persistence/test/`        | one file per repo (`projectRepo`, `viewStateRepo`, `myDriverRepo`, ...) |
-| `packages/ui/test/logic/`           | `src/logic` modules (`appState`, `useVentGroup`, `provenance`, ...)    |
+| `packages/ui/test/logic/`           | `src/logic` modules (`appState`, `ventGroup`, `provenance`, ...)    |
 | `packages/ui/test/hooks/`           | one file per `*-hooks.ts`                                              |
 | `packages/ui/test/ui/`              | browser specs, one per component; component SFC tests                  |
 | `packages/ui/test/architecture/`    | UI gates and every template/source scan                                |
@@ -134,7 +134,7 @@ A browser spec is named after the component a user would recognise: `box-tab…`
 so on. There are two skins, so a component that exists in both keeps its skin prefix:
 `original-box-tab…`, `mobile-box-tab…`. The prefix says which skin; the rest says what is
 tested. A component shared by both skins (one `.vue` used by both) carries no prefix. Unit
-tests are named after the module or domain object (`useVentGroup.test.ts`, `projectRepo.test.ts`,
+tests are named after the module or domain object (`ventGroup.test.ts`, `projectRepo.test.ts`,
 `vent-length.test.ts`).
 
 ## What runs when

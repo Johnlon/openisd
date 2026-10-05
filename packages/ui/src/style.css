@@ -66,7 +66,7 @@ legend { color:var(--acc); font-weight:600; font-size:11px; text-transform:upper
 .row input.inp-bad { border-color:var(--bad); background:rgba(255,107,107,.1); color:var(--bad) }
 .row select { text-align:left; width:auto; flex:1 }
 .row .u { width:34px; color:var(--mut); font-size:11px; text-align:left }
-/* Driver provenance marks — the CellClass values from composables/useDriverCells.ts, styled
+/* Driver provenance marks — the CellClass values from composables/driverCells.ts, styled
    ONCE so the driver editor and Tune can never disagree about what
    Entered / Calculated / Not-entered looks like. Two selector shapes: the class lands on the
    <input> itself (NumInput fallthrough) or on a wrapper around it. */

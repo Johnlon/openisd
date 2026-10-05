@@ -10,7 +10,7 @@
 import type {OpenISDProject} from '@openisd/design';
 import type {ProvenanceLetter} from '@openisd/design';
 
-/** A thin passthrough onto the domain's own reactivity ping (`usePrGroup.ts`'s
+/** A thin passthrough onto the domain's own reactivity ping (`prGroup.ts`'s
  *  `notifyPrChanged` already took this shape). S2-7d2 wires the tuning ↔ vent-length relation
  *  into `OpenISDProject#resolve()` itself, run synchronously by every `.set()`/`.clear()` this
  *  module's own `VentMember` writes already make — so the manual Helmholtz solve

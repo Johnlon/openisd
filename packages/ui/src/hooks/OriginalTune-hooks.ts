@@ -1,7 +1,7 @@
 import type {InjectionKey, Ref} from 'vue';
 import {computed} from 'vue';
 import {useFocusedProject} from '../logic/focusedProjectContext.js';
-import {cellClassOf} from '../logic/useDriverCells.js';
+import {cellClassOf} from '../logic/driverCells.js';
 import type {Calculated, Clearable, Entered, Readable, Writable} from '@openisd/design';
 import type {NumSpecField} from '../logic/appState.js';
 import {projectChanged} from '../logic/appState.js';

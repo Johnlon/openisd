@@ -8,7 +8,7 @@ import {onMounted, onUnmounted, reactive, ref} from 'vue';
 import {presentationState} from '../../../logic/presentationState.js';
 import {useFocusedProject} from '../../../logic/focusedProjectContext.js';
 import {formatFixedOrDash, NumberField} from '@openisd/design/fields';
-import {cellClassOf} from '../../../logic/useDriverCells.js';
+import {cellClassOf} from '../../../logic/driverCells.js';
 import NumInput from '../../components/NumInput.vue';
 import UnitToggle from '../../components/UnitToggle.vue';
 import {inputValue, listeningElement} from '../../../logic/domEvents.js';

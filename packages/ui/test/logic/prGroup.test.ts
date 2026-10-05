@@ -1,5 +1,5 @@
 /**
- * usePrGroup — the passive-radiator group's writes.
+ * prGroup — the passive-radiator group's writes.
  *
  * ONE user action is ONE domain transaction — exactly one notification, one solve.
  * `OpenISDProject.enter()`/`clear()` perform the value write, the provenance mark and the group
@@ -11,7 +11,7 @@
 import {beforeEach, describe, it} from 'vitest';
 import assert from 'node:assert/strict';
 import {newProject, requireFocusedProject} from '../../src/logic/appState.js';
-import {clearPrField as clearPrFieldOn, enterPrField as enterPrFieldOn} from '../../src/logic/usePrGroup.js';
+import {clearPrField as clearPrFieldOn, enterPrField as enterPrFieldOn} from '../../src/logic/prGroup.js';
 
 function countNotifications(fn: () => void): number {
   let count = 0;
@@ -20,7 +20,7 @@ function countNotifications(fn: () => void): number {
   return count;
 }
 
-describe('usePrGroup — one user action is one notification', () => {
+describe('prGroup — one user action is one notification', () => {
   beforeEach(() => {
     newProject();
     requireFocusedProject().box.vented.volume_m3.set(0.02);
@@ -58,12 +58,12 @@ describe('usePrGroup — one user action is one notification', () => {
  * would pass even with a dead store watch), outside any `suspendVentSolve` — so the only thing
  * that can write `prMadd` here is the store's own watch reacting to the live notification.
  */
-// BLOCKED: QO126, like the eight cases in useVentGroup.test.ts. The store's watch DOES fire
+// BLOCKED: QO126, like the eight cases in ventGroup.test.ts. The store's watch DOES fire
 // (BUG_20260822_pr_group_auto_solve_watch_never_fires_after_the_live_repoint.md is RESOLVED);
 // what it calls, `OpenISDProject.notifyPrChanged()`, is an empty stub until the tuning <-> added-mass
 // relation is wired. The assertion is kept as written rather than weakened — one loosened to
 // match a stub would go green and stop describing the behaviour the app is supposed to have.
-describe('usePrGroup — auto-solve watch fires on every requireFocusedProject() notification (BLOCKED: QO126)', () => {
+describe('prGroup — auto-solve watch fires on every requireFocusedProject() notification (BLOCKED: QO126)', () => {
   it('a raw prFp write outside enterPrField/suspension re-solves prMadd', () => {
     newProject();
     requireFocusedProject().box.vented.volume_m3.set(0.02);
