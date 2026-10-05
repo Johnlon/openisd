@@ -30,7 +30,10 @@ test('the empty state shows the app logo and name above the New/Open buttons', a
   await page.goto('/');
   const empty = page.locator('.mob-empty');
   const brand = empty.locator('.mob-empty-brand', { hasText: 'OpenISD' });
-  await expect(brand.locator('img[src="/icon.svg"]')).toBeVisible();
+  // Vite inlines the small icon.svg as a data: URL, so the img is found by place, not by src.
+  const logo = brand.locator('img');
+  await expect(logo).toBeVisible();
+  expect(await logo.evaluate((img: HTMLImageElement) => img.naturalWidth)).toBeGreaterThan(0);
   await expect(brand).toBeVisible();
   const brandBox = await brand.boundingBox();
   const ctaBox = await empty.locator('.mob-cta').first().boundingBox();
