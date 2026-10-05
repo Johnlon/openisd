@@ -27,7 +27,7 @@ test('the Info menu opens the page, with its three sections; Close shuts it', as
   await expect(help).toHaveCount(0);
 });
 
-test('the "Enable WinISD style" group heading\'s help link opens the page at the Options section', async ({page}) => {
+test('the "Enable WinISD-style" group heading\'s help link opens the page at the Options section', async ({page}) => {
   await page.locator('.project-nav li', {hasText: 'Advanced'}).click();
   await page.locator('.option-switch-group .compat-help-link').click();
   const help = page.getByRole('dialog', PAGE);

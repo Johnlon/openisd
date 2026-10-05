@@ -78,14 +78,14 @@ export class ProjectSignal {
         );
     }
 
-    /** The series resistance the power/voltage readout counts: Rg, or 0 with "Enable WinISD Re
-     *  without Rg bug" ticked (WinISD relates them through Re alone). */
+    /** The series resistance the power/voltage readout counts: Rg, or 0 with "Re without Rg"
+     *  bug switch ticked (WinISD relates them through Re alone). */
     get readoutRs_ohm(): number {
         return this.#winisdReWithoutRg() ? 0 : this.#rsOhm();
     }
 
-    /** The voltage each driver gets in the sweep: `driveVoltage_V`, or with "Enable WinISD Re
-     *  without Rg bug" ticked, the voltage that drives the power read into Re + Rg — WinISD's SPL
+    /** The voltage each driver gets in the sweep: `driveVoltage_V`, or with "Re without Rg"
+     *  bug switch ticked, the voltage that drives the power read into Re + Rg — WinISD's SPL
      *  chart drives its Re-only power readout into Re + Rg. */
     get sweepVoltage_V(): number {
         const V = this.driveVoltage_V.value;

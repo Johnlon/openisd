@@ -2,10 +2,10 @@ import type {ErrorSwitchState, ErrorSwitchStates} from '../domain/project/errorS
 import type {ChartId, Filter} from '../engine/index.js';
 import {ToggleField} from './field.js';
 
-/** A WinISD calculation bug: the yellow bug switch in "WinISD bugs" brings it back. */
+/** A WinISD calculation bug: the yellow bug switch under "Enable WinISD bugs" brings it back. */
 export interface ErrorSwitchFix {
   readonly kind: 'errorSwitch';
-  /** The bug switch in "WinISD bugs": its label and its "Seen in" line. */
+  /** The bug switch under "Enable WinISD bugs": its label and its "Seen in" line. */
   readonly switchField: ToggleField;
   /** The bug switch's state in the project's `errorSwitches`. */
   readonly switchOf: (s: ErrorSwitchStates) => ErrorSwitchState;
@@ -158,7 +158,7 @@ function seenInOf(fix: WinisdDeviationFix): string {
 
 function remedyOf(fix: WinisdDeviationFix): string {
   switch (fix.kind) {
-    case 'errorSwitch': return `Tick "${fix.switchField.label}" under WinISD bugs (Advanced) to bring WinISD's behaviour back.`;
+    case 'errorSwitch': return `Tick "${fix.switchField.label}" under Enable WinISD bugs (Advanced) to bring WinISD's behaviour back.`;
     case 'ignoredInput': return 'WinISD ignores this input, so OpenISD has no switch to copy it: set the value WinISD draws to see WinISD\'s result.';
   }
 }

@@ -1223,22 +1223,22 @@ textarea.comment, textarea.description { width:100%; border:1px solid #999; bord
   background: #f4f6f9;
   border-radius: 4px;
   padding: 4px 8px;
-  flex: none;
+  /* Shrinks to its widest group, never below: the groups wrap, the labels never do. */
+  flex: 0 1 auto;
+  min-width: min-content;
   align-self: flex-start;
 }
-/* The options in one column, the WinISD bugs group in a second: the panel stays inside the tab's height and width. */
-.sim-switches { display: flex; flex-direction: row; align-items: flex-start; gap: 8px; }
+/* Options group, then the WinISD bugs group beside it, or below it when the pane is too narrow. */
+.sim-switches { display: flex; flex-flow: row wrap; align-items: flex-start; gap: 4px 12px; }
+.sim-switches label[data-field-key] { white-space: nowrap; }
 .option-switch-group { display: flex; flex-direction: column; gap: 1px; }
 .option-switch-group-headrow { display: flex; align-items: center; gap: 6px; }
 .option-switch-group-head { font-size: 11px; font-weight: 600; color: #555; }
-.sim-switch-col { display: flex; flex-direction: column; gap: 0; width: 170px; }
-/* A fixed width, so a long bug-switch label wraps inside the group and does not widen the panel. */
-.sim-switches :deep(.error-switch-group) { flex: none; width: 160px; }
+.sim-switch-col { display: flex; flex-direction: column; gap: 0; flex: none; }
 /* A short window: the WinISD bugs go in two columns, so the panel stays inside the tab's height. */
 @media (max-height: 600px) {
-  .sim-switch-col + .sim-switch-col { width: auto; }
-  .sim-switches :deep(.error-switch-group) { display: grid; grid-template-columns: 160px 160px; column-gap: 8px; width: auto; }
-  .sim-switches :deep(.error-switch-group-head) { grid-column: 1 / -1; }
+  .sim-switches :deep(.error-switch-group) { display: grid; grid-template-columns: repeat(2, max-content); column-gap: 8px; }
+  .sim-switches :deep(.error-switch-group-headrow) { grid-column: 1 / -1; }
 }
 .sim-options-header { font-weight: 600; font-size: 11px; color: #333; }
 .sim-options-head { margin-bottom: 3px; border-bottom: 1px solid #d0d0d0; padding-bottom: 2px; }

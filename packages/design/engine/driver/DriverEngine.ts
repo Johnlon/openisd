@@ -108,7 +108,7 @@ export interface DriverEngine {
    *  stated `c_m_per_s`/`roo_kg_per_m3`, which come back as `air`'s. The handle solve above runs
    *  this same group. */
   solveValues(stated: DriverWorkingSet, air: Air): DriverWorkingSet;
-  /** `values` as WinISD's own circuit takes them (the "Enable WinISD two-BL driver bug" switch):
+  /** `values` as WinISD's own circuit takes them (the "Two-BL driver" switch):
    *  Cms from Vas and Sd, Mms from Fs and that Cms, Rms from Fs, that Mms and Qms, and the
    *  terminal BL from Re, Fs, Qes and that Cms. Each is replaced only where its own inputs are
    *  positive and the result is positive; otherwise the entered value stands. `air` is the

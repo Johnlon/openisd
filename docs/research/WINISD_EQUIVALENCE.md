@@ -88,17 +88,17 @@ radiator — §3.6, §3.7; BP6/ABC — winisd_research runs `bp6-w5-1`, `abc-w5-
 
 WinISD warts reproduced on purpose (not deviations): PR phase chart plots arg(Upr) without the 90°
 of its magnitude chart; Maximum SPL / Maximum power leave the filter chain out; VA uses Re, not
-Re + Rg; BP6 transfer is rear minus front. ABC intra-port velocity omits the leak term Zf·jωMai/Ricl of the port-mass current (a calculation difference of up to 1.35 dB and 4.6° near 110 Hz): matched by default; unticking the ordinary "Enable WinISD style simplified ABC intra-port velocity" switch (a WinISD option, not a bug) gives the exact current. With the leak made negligible (Qiclfr 1e6, `abc-w5-qicl1e6`) the two agree to 3.3e-6, and WinISD's form to 1e-9
+Re + Rg; BP6 transfer is rear minus front. ABC intra-port velocity omits the leak term Zf·jωMai/Ricl of the port-mass current (a calculation difference of up to 1.35 dB and 4.6° near 110 Hz): matched by default; unticking the ordinary "Simplified ABC intra-port velocity" switch (a WinISD option, not a bug) gives the exact current. With the leak made negligible (Qiclfr 1e6, `abc-w5-qicl1e6`) the two agree to 3.3e-6, and WinISD's form to 1e-9
 ([ACCURACY_IMPROVEMENTS.md](ACCURACY_IMPROVEMENTS.md?html#winisd-conventions--copied-by-default-an-ordinary-switch-gives-the-exact-form)).
 The passive-radiator box with Npr > 1 matches WinISD's impedance, transfer function and excursion with the
-"Enable WinISD PR Npr resonance bug" bug switch ticked: WinISD takes the fixed losses at an ωr Npr times
+"PR Npr resonance" bug switch ticked: WinISD takes the fixed losses at an ωr Npr times
 below the tuning; off, the default, OpenISD uses the tuning. The captures (`pr-w5-npr-1`, `pr-w5-me-npr-1`)
 run with the switch on.
-A Bessel high-pass filter matches WinISD's response and group delay with the "Enable WinISD Bessel high-pass bug" bug
+A Bessel high-pass filter matches WinISD's response and group delay with the "Bessel high-pass" bug
 switch ticked; off, the default, OpenISD draws the mirror of the low-pass. The
 filter captures run with the switch on.
 ABC group delay matches WinISD (≈ 1.03e-3 ms, two 1e-10 Hz staircases, `abc-w5-gd2`) with the
-"Enable WinISD ABC group delay bug" bug switch ticked: WinISD steps the box to f ± δ but holds the
+"ABC group delay" bug switch ticked: WinISD steps the box to f ± δ but holds the
 driver part at f, so its group delay contradicts its own phase chart (1 Hz: −40.96 ms against
 −33.86 ms). Off, the default, OpenISD plots −dφ/dω of the plotted phase.
 BP6 group delay is matched to WinISD's own rounding noise (≈): WinISD's H is right and equals its plotted transfer; above

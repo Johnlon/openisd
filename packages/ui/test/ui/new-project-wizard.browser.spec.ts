@@ -31,6 +31,22 @@ async function choosePassiveRadiator(page: Page): Promise<void> {
   await page.locator('button', { hasText: 'Define new passive radiator' }).click();
 }
 
+/** The wizard's one footer: Back, Next/Create (the green lead), Cancel. */
+function footer(page: Page) {
+  return page.locator('.overlay.open .modal-footer');
+}
+
+function footerNext(page: Page) {
+  return footer(page).getByRole('button', { name: 'Next >' });
+}
+
+/** Background colour of a footer button; the lead is green-dominant, the others grey. */
+async function background(locator: ReturnType<Page['locator']>): Promise<string> {
+  return locator.evaluate(el => getComputedStyle(el).backgroundColor);
+}
+
+const GREEN_FILL = /^rgb\(\d+, (1[0-9]{2}|[2-9][0-9]), \d+\)$/;
+
 /** Open the wizard from the toolbar. */
 async function openWizard(page: Page): Promise<void> {
   await page.locator('.tb-btn[title*="New project"]').click();
@@ -40,15 +56,15 @@ async function openWizard(page: Page): Promise<void> {
 /** Walk the open wizard: driver → num/placement → box type → (alignment or radiator) → name. */
 async function walkWizard(page: Page, boxType: string, name: string, driverText = 'Wizard Test RS225'): Promise<void> {
   const modal = page.locator('.overlay.open');
-  // Step 1 IS the driver library: the list, summary and Use live inside the wizard modal, and
-  // Next only appears once a driver has been chosen.
+  // Step 1 IS the driver library; Next is disabled until a driver is chosen or being read, and
+  // Next chooses the driver being read (landing on step 2).
   await expect(modal.locator('button.pick-btn')).toHaveCount(0);
-  await expect(modal.locator('button', { hasText: 'Next' })).toHaveCount(0);
+  await expect(footerNext(page)).toBeDisabled();
   await expect(modal.locator('.dlist')).toBeVisible();
   await modal.locator('.dlist .ditem', { hasText: driverText }).first().click();
-  await modal.locator('.use-btn').click();
+  await footerNext(page).click();
   await expect(modal.locator('.selected-driver-banner')).toContainText(driverText);
-  await modal.locator('button', { hasText: 'Next' }).click();   // Use lands on step 2 (num/placement); step 3: box type
+  await footerNext(page).click();                               // step 2 (num/placement) -> step 3: box type
   await modal.locator('.field', { hasText: 'Box type' }).locator('select').selectOption(boxType);
   await modal.locator('button', { hasText: 'Next' }).click();
   if (boxType === 'sealed' || boxType === 'vented') {
@@ -76,6 +92,73 @@ test.describe('New Project wizard', () => {
       }, [MY_DRIVERS_KEY, myDriversJson([DRIVER, W5_1138SMF.toSeedDriver()])] as const);
       await page.goto('/');
       await openAProject(page);
+    });
+
+    test('every step has one footer: Back, Next (the green lead), Cancel; step 1 has no Use and one Cancel', async ({ page }) => {
+      await openWizard(page);
+      const modal = page.locator('.overlay.open');
+      await expect(modal.locator('.modal-footer')).toHaveCount(1);
+      await expect(footer(page).getByRole('button', { name: '< Back' })).toBeDisabled();
+      await expect(footerNext(page)).toBeDisabled();
+      await modal.locator('.dlist .ditem', { hasText: 'Wizard Test RS225' }).first().click();
+      await expect(footerNext(page)).toBeEnabled();
+      await expect(modal.getByRole('button', { name: 'Use', exact: true })).toHaveCount(0);
+      await expect(modal.getByRole('button', { name: 'Cancel', exact: true })).toHaveCount(1);
+      await expect(modal.getByRole('button', { name: 'Clone driver' })).toBeVisible();
+      expect(await background(footerNext(page))).toMatch(GREEN_FILL);
+      expect(await background(footer(page).getByRole('button', { name: 'Cancel' }))).not.toMatch(GREEN_FILL);
+
+      await footerNext(page).click();
+      await expect(modal.locator('.np-step')).toContainText('Step 2 of 5');
+      await expect(footer(page).getByRole('button', { name: '< Back' })).toBeEnabled();
+      expect(await background(footerNext(page))).toMatch(GREEN_FILL);
+    });
+
+    test('Back returns to the previous step with its values kept', async ({ page }) => {
+      await openWizard(page);
+      const modal = page.locator('.overlay.open');
+      await modal.locator('.dlist .ditem', { hasText: 'Wizard Test RS225' }).first().click();
+      await footerNext(page).click();                           // step 2
+      await footerNext(page).click();                           // step 3
+      await modal.locator('#np-box-type').selectOption('vented');
+      await footerNext(page).click();                           // step 4: vented alignment
+      await expect(modal.locator('.np-step')).toContainText('Step 4 of 5');
+      await footer(page).getByRole('button', { name: '< Back' }).click();
+      await expect(modal.locator('.np-step')).toContainText('Step 3 of 5');
+      await expect(modal.locator('#np-box-type')).toHaveValue('vented');
+      await expect(modal.locator('.selected-driver-banner')).toContainText('Wizard Test RS225');
+    });
+
+    test('Cancel closes the wizard without creating a project', async ({ page }) => {
+      const rows = page.locator('.projects-list .project-row');
+      const before = await rows.count();
+      await openWizard(page);
+      const modal = page.locator('.overlay.open');
+      await modal.locator('.dlist .ditem', { hasText: 'Wizard Test RS225' }).first().click();
+      await footerNext(page).click();                           // step 2
+      await footer(page).getByRole('button', { name: 'Cancel' }).click();
+      await expect(page.locator('.overlay.open')).toHaveCount(0);
+      await expect(rows).toHaveCount(before);
+    });
+
+    test('the last step\'s green lead is Create, and it creates the project', async ({ page }) => {
+      const rows = page.locator('.projects-list .project-row');
+      const before = await rows.count();
+      await openWizard(page);
+      const modal = page.locator('.overlay.open');
+      await modal.locator('.dlist .ditem', { hasText: 'Wizard Test RS225' }).first().click();
+      await footerNext(page).click();                           // step 2
+      await footerNext(page).click();                           // step 3
+      await footerNext(page).click();                           // step 4: sealed alignment
+      await footerNext(page).click();                           // step 5: name
+      await expect(footerNext(page)).toHaveCount(0);
+      await modal.locator('input[type="text"]').fill('Lead creates');
+      const create = footer(page).getByRole('button', { name: 'Create' });
+      expect(await background(create)).toMatch(GREEN_FILL);
+      await create.click();
+      await expect(page.locator('.overlay.open')).toHaveCount(0);
+      await expect(rows).toHaveCount(before + 1);
+      expect(await focusedProjectName(page)).toBe('Lead creates');
     });
 
     test('walks driver → num/placement → box type → alignment → name, and the name shows in the titlebar', async ({ page }) => {
@@ -150,7 +233,7 @@ test.describe('New Project wizard', () => {
       await openWizard(page);
       const modal = page.locator('.overlay.open');
       await modal.locator('.dlist .ditem', { hasText: 'Wizard Test RS225' }).first().click();
-      await modal.locator('.use-btn').click();
+      await footerNext(page).click();                           // chooses the driver: step 2
       await modal.locator('button', { hasText: 'Next' }).click();
       await modal.locator('.field', { hasText: 'Box type' }).locator('select').selectOption('sealed');
       await modal.locator('button', { hasText: 'Next' }).click();
@@ -175,7 +258,7 @@ test.describe('New Project wizard', () => {
       await page.locator('.tb-btn[title*="New project"]').click();
       const modal = page.locator('.overlay.open');
       await modal.locator('.dlist .ditem', { hasText: 'Wizard Test RS225' }).first().click();
-      await modal.locator('.use-btn').click();
+      await footerNext(page).click();                           // chooses the driver: step 2
       await modal.locator('button', { hasText: 'Next' }).click();
       await modal.locator('.field', { hasText: 'Box type' }).locator('select').selectOption('box-passive-radiator');
       await modal.locator('button', { hasText: 'Next' }).click();

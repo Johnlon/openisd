@@ -1309,54 +1309,54 @@ export class ToggleField extends Field {
     label: "SPL graph is Xmax limited",
     description: "Xmax Limited SPL\nClamps the SPL curve wherever cone excursion would exceed Xmax.",
   });
-  // ── WinISD Compatibility: bugs ("Enable WinISD <name> bug"; ticked brings the WinISD bug back) ──
+  // ── WinISD Compatibility: bugs (under "Enable WinISD bugs", named by the bug; ticked brings the WinISD bug back) ──
   static readonly ADV_WINISDDRIVERMODEL = new ToggleField({
     value: "adv_WinisdDriverModel",
-    label: "Enable WinISD two-BL driver bug",
-    description: "Enable WinISD two-BL driver bug: WinISD mixes the entered BL with the BL implied by Fs, Qes and Vas.\nTicked (as WinISD): the simulation uses two BLs. The damping comes from the driver WinISD acts on: Cms from Vas, then Mms, Rms and BL from Fs, Qms and Qes. The entered BL sets the loudness and, with voice coil inductance on, the inductance roll-off. We judge the two-BL mix a WinISD bug.\nUnticked (the default, bug fixed): the simulation uses the entered datasheet values, one BL throughout.",
+    label: "Two-BL driver",
+    description: "Two-BL driver: WinISD mixes the entered BL with the BL implied by Fs, Qes and Vas.\nTicked (as WinISD): the simulation uses two BLs. The damping comes from the driver WinISD acts on: Cms from Vas, then Mms, Rms and BL from Fs, Qms and Qes. The entered BL sets the loudness and, with voice coil inductance on, the inductance roll-off. We judge the two-BL mix a WinISD bug.\nUnticked (the default, bug fixed): the simulation uses the entered datasheet values, one BL throughout.",
   }, "every chart, only when the entered driver values disagree with Fs, Vas, Qes and Qms. W5-1138SMF (entered BL 7.17, implied 7.384): SPL chart 0.26 dB in the passband; Impedance chart peak about 1.2 Ω (8 %) high; Transfer function magnitude chart 0.51 dB.");
   static readonly ADV_WINISDVAMODEL = new ToggleField({
     value: "adv_WinisdVaModel",
-    label: "Enable WinISD Re without Rg bug",
-    description: "Enable WinISD Re without Rg bug: WinISD uses Re where the amplifier sees Re + Rg. Both give the same result when Rg is 0.\nTicked (as WinISD): VA = P·Re/|Z + Rg|, low by Re/(Re + Rg); with 'Rg is at driver side' on, Z already includes Rg and WinISD adds it again. Power and voltage: P = N·V²/Re, while the SPL chart drives that power into Re + Rg.\nUnticked (the default, bug fixed): Re + Rg throughout. VA = P·(Re + Rg)/|Z seen by the amplifier|, Rg counted once; P = N·V²/(Re + Rg).\nP: input power. V: driver input voltage (each). N: number of drivers. Z: the impedance chart. Rg: the series resistance.",
+    label: "Re without Rg",
+    description: "Re without Rg: WinISD uses Re where the amplifier sees Re + Rg. Both give the same result when Rg is 0.\nTicked (as WinISD): VA = P·Re/|Z + Rg|, low by Re/(Re + Rg); with 'Rg is at driver side' on, Z already includes Rg and WinISD adds it again. Power and voltage: P = N·V²/Re, while the SPL chart drives that power into Re + Rg.\nUnticked (the default, bug fixed): Re + Rg throughout. VA = P·(Re + Rg)/|Z seen by the amplifier|, Rg counted once; P = N·V²/(Re + Rg).\nP: input power. V: driver input voltage (each). N: number of drivers. Z: the impedance chart. Rg: the series resistance.",
   }, "Amplifier apparent load power (VA) chart, about 23 % low at Re 3.4 Ω, Rg 1 Ω; Signal tab System input power readout, 4.0 W against 3.91 W at 1.85 V each × 4 drivers, Re 3.4 Ω, Rg 0.1 Ω; with the voltage typed, the SPL chart about 0.1 dB louder there.");
   static readonly ADV_WINISDPRNPRRESONANCE = new ToggleField({
     value: "adv_WinisdPrNprResonance",
-    label: "Enable WinISD PR Npr resonance bug",
-    description: "Enable WinISD PR Npr resonance bug: WinISD takes the passive radiator box's losses at a frequency Npr times too low.\nTicked (as WinISD): the box's leak and absorption are taken at WinISD's frequency 1/√(Npr·Map·(Cab ∥ Npr·Cap)). The radiator mass is multiplied by Npr where the tuning divides by it.\nUnticked (the default, bug fixed): the same losses taken at the physical tuning 1/√((Map/Npr)·(Cab ∥ Npr·Cap)).",
+    label: "PR Npr resonance",
+    description: "PR Npr resonance: WinISD takes the passive radiator box's losses at a frequency Npr times too low.\nTicked (as WinISD): the box's leak and absorption are taken at WinISD's frequency 1/√(Npr·Map·(Cab ∥ Npr·Cap)). The radiator mass is multiplied by Npr where the tuning divides by it.\nUnticked (the default, bug fixed): the same losses taken at the physical tuning 1/√((Map/Npr)·(Cab ∥ Npr·Cap)).",
   }, "passive radiator box with more than one radiator (Npr > 1), WinISD lossy model; none at Npr = 1. Npr 2, W5 in 10 L, radiator Fs 30 Hz and Vas 4.8 L (WinISD 21 Hz, tuning 42 Hz): Impedance chart up to 1 Ω, Transfer function magnitude chart up to 2 dB.");
   static readonly ADV_WINISDBESSELHIGHPASS = new ToggleField({
     value: "adv_WinisdBesselHighpass",
-    label: "Enable WinISD Bessel high-pass bug",
-    description: "Enable WinISD Bessel high-pass bug: WinISD's Bessel high-pass is not the mirror of its low-pass.\nTicked (as WinISD): the high-pass keeps the low-pass's own denominator with the numerator swapped to (k·s)^n.\nUnticked (the default, bug fixed): the mirror of the low-pass, s → 1/s.",
+    label: "Bessel high-pass",
+    description: "Bessel high-pass: WinISD's Bessel high-pass is not the mirror of its low-pass.\nTicked (as WinISD): the high-pass keeps the low-pass's own denominator with the numerator swapped to (k·s)^n.\nUnticked (the default, bug fixed): the mirror of the low-pass, s → 1/s.",
   }, "Bessel high-pass filters of order 2 or more in the EQ/Filter chain: the three (EQ/Filter) charts and every chart the filter feeds (SPL, Cone excursion, port velocities), up to 6 % in complex response at order 4, fc 25 Hz. Butterworth, Linkwitz-Riley, SOS, every low-pass and a first-order Bessel are unchanged.");
   static readonly ADV_WINISDABCGROUPDELAY = new ToggleField({
     value: "adv_WinisdAbcGroupDelay",
-    label: "Enable WinISD ABC group delay bug",
-    description: "Enable WinISD ABC group delay bug: WinISD's ABC group delay leaves the driver out.\nTicked (as WinISD): the group delay steps the box to f ± 1e-10 Hz but keeps the driver at the chart frequency f, so the driver's own phase slope is left out. It disagrees with WinISD's own phase chart.\nUnticked (the default, bug fixed): the group delay is −dφ/dω of the plotted phase.",
+    label: "ABC group delay",
+    description: "ABC group delay: WinISD's ABC group delay leaves the driver out.\nTicked (as WinISD): the group delay steps the box to f ± 1e-10 Hz but keeps the driver at the chart frequency f, so the driver's own phase slope is left out. It disagrees with WinISD's own phase chart.\nUnticked (the default, bug fixed): the group delay is −dφ/dω of the plotted phase.",
   }, "Group Delay chart of an ABC box only. W5-1138SMF ABC: −41.0 ms against −33.9 ms at 1 Hz, −3.3 ms against +3.6 ms at 10.75 Hz.");
 
   static readonly ADV_WINISDDRIVERCOUNTMODEL = new ToggleField({
     value: "adv_WinisdDriverCountModel",
-    label: "Enable WinISD per-driver impedance bug",
-    description: "Enable WinISD per-driver impedance bug: with more than one driver, WinISD's impedance chart shows one driver's impedance.\nTicked (as WinISD): the impedance chart shows one driver's impedance.\nUnticked (the default, bug fixed): the impedance chart shows the array the amplifier drives, per the project's wiring: one driver's divided by N in parallel, times N in series.",
+    label: "Per-driver impedance",
+    description: "Per-driver impedance: with more than one driver, WinISD's impedance chart shows one driver's impedance.\nTicked (as WinISD): the impedance chart shows one driver's impedance.\nUnticked (the default, bug fixed): the impedance chart shows the array the amplifier drives, per the project's wiring: one driver's divided by N in parallel, times N in series.",
   }, "Impedance chart, designs with more than one driver. W5-1138SMF sealed, 4 drivers in parallel: WinISD peaks at 18.6 Ω, the array at 4.65 Ω. SPL, Cone excursion, Amplifier apparent load power (VA) and Maximum Power are WinISD's either way.");
 
-  // ── WinISD Compatibility: options ("Enable WinISD style <name>"; ticked is WinISD's way) ──────
+  // ── WinISD Compatibility: options (under "Enable WinISD-style", named by the calculation; ticked is WinISD's way) ──────
   static readonly ADV_WINISDWRAPPHASE = new ToggleField({
     value: "adv_WinisdWrapPhase",
-    label: "Enable WinISD style phase wrapping",
-    description: "Enable WinISD style phase wrapping: affects every phase chart.\nTicked (the default, as WinISD): phase curves wrap at ±180°.\nUnticked: phase curves stay continuous and unwrapped.",
+    label: "Phase wrapping",
+    description: "Phase wrapping: affects every phase chart.\nTicked (the default, as WinISD): phase curves wrap at ±180°.\nUnticked: phase curves stay continuous and unwrapped.",
   });
   static readonly ADV_WINISDFLATMODEL = new ToggleField({
     value: "adv_WinisdFlatModel",
-    label: "Enable WinISD style uncapped flat response",
-    description: "Enable WinISD style uncapped flat response: affects 'Force flat response' only.\nTicked (the default, as WinISD): every frequency is set to the transfer function's 0 dB, cut as well as boosted, uncapped; excursion shows what that costs.\nUnticked: boost only, up to the passband level, capped at 20 dB.",
+    label: "Uncapped flat response",
+    description: "Uncapped flat response: affects 'Force flat response' only.\nTicked (the default, as WinISD): every frequency is set to the transfer function's 0 dB, cut as well as boosted, uncapped; excursion shows what that costs.\nUnticked: boost only, up to the passband level, capped at 20 dB.",
   });
   static readonly ADV_WINISDABCINTRAPORTVELOCITY = new ToggleField({
     value: "adv_WinisdAbcIntraPortVelocity",
-    label: "Enable WinISD style simplified ABC intra-port velocity",
-    description: "Enable WinISD style simplified ABC intra-port velocity: affects the ABC box's Intra port velocity chart only.\nTicked (the default, as WinISD): the intra-port velocity leaves out the leak term Zf·jωMai/Ricl.\nUnticked: the exact port-mass current. Differs by up to 1.35 dB and 4.6° near 110 Hz, under 0.1 dB elsewhere (W5-1138SMF, abc-w5-1).\nOnly on an ABC box.",
+    label: "Simplified ABC intra-port velocity",
+    description: "Simplified ABC intra-port velocity: affects the ABC box's Intra port velocity chart only.\nTicked (the default, as WinISD): the intra-port velocity leaves out the leak term Zf·jωMai/Ricl.\nUnticked: the exact port-mass current. Differs by up to 1.35 dB and 4.6° near 110 Hz, under 0.1 dB elsewhere (W5-1138SMF, abc-w5-1).\nOnly on an ABC box.",
   });
 
   static readonly ALL: readonly ToggleField[] =

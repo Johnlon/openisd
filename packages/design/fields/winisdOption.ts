@@ -11,11 +11,11 @@ export interface WinisdOptionSpec {
   readonly seenIn: string;
   /** How large the difference is, for a realistic case. */
   readonly size: string;
-  /** The "Options" switch that picks between the two. */
+  /** The "Enable WinISD-style" switch that picks between the two. */
   readonly switchField: ToggleField;
 }
 
-/** A switch under "Options": WinISD's way of a calculation (ticked, the default) or another valid form. */
+/** A switch under "Enable WinISD-style": WinISD's way of a calculation (ticked, the default) or another valid form. */
 export class WinisdOption {
   readonly title: string;
   readonly winisd: string;

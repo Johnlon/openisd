@@ -46,7 +46,7 @@ async function wizardToVentedAlignment(page: import('playwright').Page) {
   const modal = page.locator('.overlay.open');
   await expect(modal).toContainText('Select driver for project');
   await modal.locator('.dlist .ditem').first().click();
-  await modal.locator('.use-btn').click();                      // choosing the driver lands step 2
+  await modal.locator('.modal-footer button', { hasText: 'Next' }).click();   // Next chooses the driver: step 2
   await modal.locator('button', { hasText: 'Next' }).click();   // step 3: box type
   await modal.locator('.field', { hasText: 'Box type' }).locator('select').selectOption('vented');
   await modal.locator('button', { hasText: 'Next' }).click();   // step 4: vented alignment

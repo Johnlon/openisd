@@ -7,8 +7,8 @@ import type {OpenISDProject} from './openISDProject.js';
 export type CompatSwitchKind = 'bug' | 'option';
 
 /**
- * A WinISD Compatibility switch (John, 2026-10-05): a WinISD bug ("Enable WinISD <name> bug") or a
- * WinISD option ("Enable WinISD style <name>"). Its title and tooltip are `field`'s.
+ * A WinISD Compatibility switch (John, 2026-10-05): a WinISD bug (under "Enable WinISD bugs") or a
+ * WinISD option (under "Enable WinISD-style"). Its title and tooltip are `field`'s.
  */
 export class CompatSwitch {
     private constructor(

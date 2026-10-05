@@ -104,8 +104,8 @@ test.describe('sample project fixture', () => {
     await page.locator('.tb-btn[title*="New project"]').click();
     const modal = page.locator('.overlay.open');
     await modal.locator('.dlist .ditem', { hasText: 'Tang Band W5-1138SMF' }).first().click();  // step 1: driver (embedded library)
-    await modal.locator('.use-btn').click();
-    await modal.locator('button', { hasText: 'Next' }).click();   // Use lands on step 2 (num/placement); step 3: box type
+    await modal.locator('.modal-footer button', { hasText: 'Next' }).click();   // Next chooses the driver: step 2 (num/placement)
+    await modal.locator('button', { hasText: 'Next' }).click();   // step 3: box type
     await modal.locator('.field', { hasText: 'Box type' }).locator('select').selectOption('vented');           // step 3: box type
     await modal.locator('button', { hasText: 'Next' }).click();
     await modal.locator('button', { hasText: 'Next' }).click();   // step 4: vented alignment (docs/research/VENTED_ALIGNMENT_FORMULAS.md)

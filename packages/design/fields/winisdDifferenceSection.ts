@@ -22,12 +22,12 @@ export class WinisdDifferenceSection {
 
   static readonly BUG_SWITCHES = new WinisdDifferenceSection(
     'WinISD bugs you can switch back on',
-    'WinISD gets these calculations wrong. OpenISD does them correctly by default. Each has a yellow switch under "WinISD bugs" on the Advanced tab: tick it to see WinISD\'s result.',
+    'WinISD gets these calculations wrong. OpenISD does them correctly by default. Each has a yellow switch under "Enable WinISD bugs" on the Advanced tab: tick it to see WinISD\'s result.',
     'bug', 'winisd-diff-bugs', CompatSwitchGroup.BUGS, ['bugSwitch']);
 
   static readonly OPTIONS = new WinisdDifferenceSection(
     'Options: WinISD\'s way or another',
-    'Here WinISD makes a valid choice that has another valid form. OpenISD copies WinISD by default; untick the switch under "Options" on the Advanced tab for the other form.',
+    'Here WinISD makes a valid choice that has another valid form. OpenISD copies WinISD by default; untick the switch under "Enable WinISD-style" on the Advanced tab for the other form.',
     'option', 'winisd-diff-options', CompatSwitchGroup.OPTIONS, ['option']);
 
   static readonly FIXED = new WinisdDifferenceSection(

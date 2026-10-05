@@ -62,7 +62,7 @@ export class ProjectAdvanced {
         return focus(this.#advanced, 'splGraphIsXmaxLimited');
     }
 
-    /** WinISD Advanced / Compatibility "Enable WinISD two-BL driver bug" — whether engine sweeps
+    /** WinISD Advanced / Compatibility "Two-BL driver" — whether engine sweeps
      *  substitute the driver WinISD's own simulation acts on, `Mms = 1/((2π·Fs)²·Cms)`,
      *  `Rms = 2π·Fs·Mms/Qms` and `BL = √(Re/(2π·Fs·Qes·Cms))`, for entered values that conflict
      *  with them (measured 2026-09-26, docs/research/WINISD_PARITY.md). A WinISD bug (two BLs);
@@ -75,7 +75,7 @@ export class ProjectAdvanced {
         };
     }
 
-    /** WinISD Compatibility "Enable WinISD Re without Rg bug": Re where Re + Rg belongs, as WinISD
+    /** WinISD Compatibility "Re without Rg": Re where Re + Rg belongs, as WinISD
      *  does — the amplifier apparent load power chart P·Re·|Hf|²/|Z + Rg|, and the power/voltage
      *  relation P = N·V²/Re (BUG_20260927_winisd-va-uses-re-not-re-plus-rg). Off: the apparent
      *  power the amplifier delivers, P·(Re + Rg)·|Hf|²/|Z_amp|, and P = N·V²/(Re + Rg). Off where
@@ -88,7 +88,7 @@ export class ProjectAdvanced {
         };
     }
 
-    /** WinISD Compatibility "Enable WinISD style simplified ABC intra-port velocity": the ABC intra-chamber port velocity
+    /** WinISD Compatibility "Simplified ABC intra-port velocity": the ABC intra-chamber port velocity
      *  chart as WinISD draws it, V/(jωMai + Zf), which omits the leak term Zf·jωMai/Ricl. Off: the
      *  exact current through the port mass, V/[jωMai + Zf·(1 + jωMai/Ricl)]. On (WinISD) where a
      *  project does not say. */
@@ -100,7 +100,7 @@ export class ProjectAdvanced {
         };
     }
 
-    /** WinISD Compatibility "Enable WinISD PR Npr resonance bug": the passive-radiator box's fixed leak and absorption
+    /** WinISD Compatibility "PR Npr resonance": the passive-radiator box's fixed leak and absorption
      *  losses taken at WinISD's ωr = 1/√(Npr·Map·(Cab ∥ Npr·Cap)), Npr times below the tuning. Off:
      *  the physical tuning. Off where a project does not say; no effect at Npr = 1. */
     get winisdPrNprResonance(): SimpleField<boolean> {
@@ -111,7 +111,7 @@ export class ProjectAdvanced {
         };
     }
 
-    /** WinISD Compatibility "Enable WinISD Bessel high-pass bug": Bessel high-pass filters as WinISD computes
+    /** WinISD Compatibility "Bessel high-pass": Bessel high-pass filters as WinISD computes
      *  them, (k·s)^n over the low-pass's own denominator. Off: the mirror of the low-pass (s → 1/s).
      *  Off where a project does not say. */
     get winisdBesselHighpass(): SimpleField<boolean> {
@@ -122,7 +122,7 @@ export class ProjectAdvanced {
         };
     }
 
-    /** WinISD Compatibility "Enable WinISD ABC group delay bug": the ABC group delay as WinISD
+    /** WinISD Compatibility "ABC group delay": the ABC group delay as WinISD
      *  computes it, the box stepped to f ± δ with the driver part held at f, so the driver's own
      *  phase slope is left out. Off: −dφ/dω of the plotted phase. Off where a project does not say. */
     get winisdAbcGroupDelay(): SimpleField<boolean> {
@@ -133,7 +133,7 @@ export class ProjectAdvanced {
         };
     }
 
-    /** WinISD Compatibility "Enable WinISD style phase wrapping": wraps phase curves to [-180°, +180°] (default).
+    /** WinISD Compatibility "Phase wrapping": wraps phase curves to [-180°, +180°] (default).
      *  Off: continuous unwrapped phase. On where a project does not say. */
     get winisdWrapPhase(): SimpleField<boolean> {
         const lens = focus(this.#advanced, 'winisdWrapPhase');
@@ -143,7 +143,7 @@ export class ProjectAdvanced {
         };
     }
 
-    /** WinISD Compatibility "Enable WinISD per-driver impedance bug": the impedance chart shows
+    /** WinISD Compatibility "Per-driver impedance": the impedance chart shows
      *  one driver's impedance, as WinISD does (BUG_20260928_driver-count-not-winisd). Off: the
      *  array the amplifier drives, per `wiring`. Off where a project does not say (John, 2026-10-05). */
     get winisdDriverCountModel(): SimpleField<boolean> {
@@ -154,7 +154,7 @@ export class ProjectAdvanced {
         };
     }
 
-    /** WinISD Compatibility "Enable WinISD style uncapped flat response": "Force flat response" as WinISD does it, every
+    /** WinISD Compatibility "Uncapped flat response": "Force flat response" as WinISD does it, every
      *  point to the transfer function's 0 dB, uncapped (BUG_20260928_force-flat-response-not-winisd).
      *  Off: boost only, up to the passband reference, capped. On where a project does not say. */
     get winisdFlatModel(): SimpleField<boolean> {

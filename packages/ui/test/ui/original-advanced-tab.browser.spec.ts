@@ -5,7 +5,7 @@ import {fillAndBlur, fillAndCommit} from '../fixtures/numField.js';
 
 /**
  * The Original shell's Advanced tab: the air constants and their calculated readouts, the loss
- * model selector, and the WinISD Compatibility panel: the "Enable WinISD style" switches and the "Enable WinISD bugs"
+ * model selector, and the WinISD Compatibility panel: the "Enable WinISD-style" switches and the "Enable WinISD bugs"
  * switch group.
  */
 
@@ -295,11 +295,11 @@ test.describe('Original Advanced tab', () => {
       }
     });
 
-    test('the panel has no preset or reset buttons, only a help link per group: an "Enable WinISD style" group and an "Enable WinISD bugs" group of switches', async ({ page }) => {
+    test('the panel has no preset or reset buttons, only a help link per group: an "Enable WinISD-style" group and an "Enable WinISD bugs" group of switches', async ({ page }) => {
       const panel = page.locator('.sim-options-box', { hasText: 'WinISD Compatibility' });
       await expect(panel.locator('button:not(.compat-help-link)')).toHaveCount(0);
       await expect(panel.locator('button.compat-help-link')).toHaveCount(2);
-      await expect(panel.locator('.option-switch-group-head')).toHaveText('Enable WinISD style');
+      await expect(panel.locator('.option-switch-group-head')).toHaveText('Enable WinISD-style');
       await expect(panel.locator('.error-switch-group-head')).toHaveText('Enable WinISD bugs');
     });
 
@@ -406,18 +406,22 @@ test.describe('Original Advanced tab', () => {
         await showAdvancedOn(page, 'abc');
         const labels = page.locator('.sim-switches label[data-field-key]');
         await expect(labels).toHaveCount(9);
+        await page.screenshot({path: `/tmp/claude-1000/-home-john-work-winisd-openisd/057b137b-339f-489c-9ca5-bfb9cb4c057e/scratchpad/after-${width}x${height}.png`}); // TEMP
         for (const label of await labels.all()) {
           const m = await label.evaluate(el => {
             const r = document.createRange(); r.selectNodeContents(el);
             const text = r.getBoundingClientRect();
             const group = el.closest('.option-switch-group, .error-switch-group')!.getBoundingClientRect();
             const fontPx = parseFloat(getComputedStyle(el).fontSize);
-            return {textHeight: text.height, textRight: text.right, labelRight: el.getBoundingClientRect().right, groupRight: group.right, fontPx};
+            const paneBottom = el.closest('.tab-section')!.getBoundingClientRect().bottom;
+            const box = el.getBoundingClientRect();
+            return {textHeight: text.height, textRight: text.right, labelRight: box.right, labelBottom: box.bottom, groupRight: group.right, paneBottom, fontPx};
           });
           const name = await label.innerText();
           expect(m.textHeight, `${name}: one line`).toBeLessThan(1.5 * 1.3 * m.fontPx);
           expect(m.textRight, `${name}: text inside its label`).toBeLessThanOrEqual(m.labelRight + 1);
           expect(m.labelRight, `${name}: label inside its group`).toBeLessThanOrEqual(m.groupRight + 1);
+          expect(m.labelBottom, `${name}: not cut off by the bottom of the tab`).toBeLessThanOrEqual(m.paneBottom + 1);
         }
       });
     }

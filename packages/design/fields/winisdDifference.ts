@@ -2,13 +2,13 @@ import {WinisdDeviation, WinisdFilterDeviation} from './winisdDeviation.js';
 import {WinisdFixedBug} from './winisdFixedBug.js';
 import {WinisdOption} from './winisdOption.js';
 
-/** A WinISD calculation bug whose yellow switch under "WinISD bugs" brings it back. */
+/** A WinISD calculation bug whose yellow switch under "Enable WinISD bugs" brings it back. */
 export interface BugSwitchSource {
   readonly kind: 'bugSwitch';
   readonly deviation: WinisdDeviation;
 }
 
-/** A switch under "Options". */
+/** A switch under "Enable WinISD-style". */
 export interface OptionSource {
   readonly kind: 'option';
   readonly option: WinisdOption;

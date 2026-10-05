@@ -1,5 +1,5 @@
 <script setup lang="ts">
-// The help link beside a WinISD Compatibility group heading ("WinISD bugs", "Options"), in both
+// The help link beside a WinISD Compatibility group heading ("Enable WinISD bugs", "Enable WinISD-style"), in both
 // skins: it opens "OpenISD and WinISD differences" at that group's section.
 import type {CompatSwitchGroup} from '@openisd/design/fields';
 import {injectWinisdDifferencesModal} from '../../hooks/WinisdDifferencesModal-hooks.js';

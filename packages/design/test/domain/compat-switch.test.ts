@@ -1,7 +1,7 @@
 /**
  * The WinISD Compatibility switches (John, 2026-10-05): each is a WinISD bug or a WinISD option.
  * A bug switch sits under the "Enable WinISD bugs" heading and is named by the bug ("Re without Rg");
- * an option sits under "Enable WinISD style" and is named by the calculation ("Phase wrapping").
+ * an option sits under "Enable WinISD-style" and is named by the calculation ("Phase wrapping").
  * A new project, and a file that does not say, has every bug unticked and every option ticked.
  */
 import {describe, expect, it} from 'vitest';
@@ -31,8 +31,8 @@ describe('CompatSwitch', () => {
   it('the group headings carry "Enable WinISD"; the switch titles do not; each tooltip says what ticked and unticked do', () => {
     expect(CompatSwitchGroup.BUGS.heading).toBe('Enable WinISD bugs');
     expect(CompatSwitchGroup.BUGS.tooltip).toMatch(/^Enable WinISD bugs: /);
-    expect(CompatSwitchGroup.OPTIONS.heading).toBe('Enable WinISD style');
-    expect(CompatSwitchGroup.OPTIONS.tooltip).toMatch(/^Enable WinISD style: /);
+    expect(CompatSwitchGroup.OPTIONS.heading).toBe('Enable WinISD-style');
+    expect(CompatSwitchGroup.OPTIONS.tooltip).toMatch(/^Enable WinISD-style: /);
     for (const s of CompatSwitch.ALL) expect(s.field.label).not.toMatch(/Enable WinISD|bug$/);
     for (const s of CompatSwitch.ALL) {
       expect(s.field.description).toMatch(/\nTicked/);

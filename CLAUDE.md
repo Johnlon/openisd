@@ -51,7 +51,7 @@ Three kinds of WinISD difference, handled differently:
   high-pass, the ABC group delay, the per-driver impedance. The switch is off by default, with no exception, editable only where it applies, and
   looks different from ordinary switches even when off. While it is off, a ≠W Difference cue by
   the affected control (or chart) says what WinISD does. The bug switches sit in one group
-  headed "WinISD bugs", and each is a visible, listed WinISD issue: the switches are how OpenISD
+  headed "Enable WinISD bugs", and each is a visible, listed WinISD issue: the switches are how OpenISD
   tells users what is wrong in WinISD, and they build trust. Record each as a
   WinISD bug (a `bugs/BUG_*_winisd-*.md` file, a row in the "fixed by default" section of
   `docs/research/ACCURACY_IMPROVEMENTS.md`, and `docs/research/WINISD_PARITY.md`).
@@ -72,10 +72,10 @@ Three kinds of WinISD difference, handled differently:
   is at driver side").
 - Another form of a WinISD calculation sits behind its own option switch in the WinISD
   Compatibility panel. The native control stays as WinISD has it.
-- Switch titles name the kind (John, 2026-10-05): a switch that brings a WinISD bug back reads
-  "Enable WinISD <name> bug" (e.g. "Enable WinISD Re without Rg bug"); a plain WinISD-vs-OpenISD choice
-  reads "Enable WinISD style <name>" (e.g. "Enable WinISD style phase wrapping"). The groups are headed
-  "WinISD bugs" and "Options". Titles and tooltips live in `packages/design`
+- Group headings name the kind (John, 2026-10-05): the bug switches sit under the "Enable WinISD
+  bugs" heading and are named by the bug (e.g. "Re without Rg"); the plain WinISD-vs-OpenISD
+  choices sit under "Enable WinISD-style" and are named by the calculation (e.g. "Phase
+  wrapping"). Titles and tooltips live in `packages/design`
   (`ToggleField`, listed by `CompatSwitch`); each tooltip says in plain words what ticked and
   unticked do.
 - The panel has only the individual switches: no presets, no reset button (John, 2026-10-05). A

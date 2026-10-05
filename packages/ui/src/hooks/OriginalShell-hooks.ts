@@ -634,7 +634,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   /** The passive-radiator Npr deviation's cue, by the radiator count, while it is in effect. */
   const prNprDeviationShown = computed(() => projectOpen.value && WinisdDeviation.PR_NPR_RESONANCE.inEffect(errorSwitches.value));
   const driverCountDeviationShown = computed(() => projectOpen.value && WinisdDeviation.DRIVER_COUNT.inEffect(errorSwitches.value));
-  /** "Enable WinISD style simplified ABC intra-port velocity" acts on the open box. */
+  /** "Simplified ABC intra-port velocity" acts on the open box. */
   const abcVelocityApplies = computed(() => {
     void projectChanged.value;
     return project.value.winisdAbcIntraPortVelocityApplies;

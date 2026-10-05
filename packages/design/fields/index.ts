@@ -64,7 +64,7 @@ export {
   WinisdFilterDeviation,
 } from './winisdDeviation.js';
 
-/** The WinISD Compatibility panel's group headings: WinISD bugs, Options. */
+/** The WinISD Compatibility panel's group headings: Enable WinISD bugs, Enable WinISD-style. */
 export { CompatSwitchGroup } from './compatSwitchGroup.js';
 
 /** The in-app help page "OpenISD and WinISD differences": its sections and entries. */

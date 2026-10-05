@@ -70,9 +70,9 @@ test('the bug switches carry the warning class under a "Enable WinISD bugs" head
   await expect(group.locator('label[data-field-key="winisdDriverCountModel"] input')).toBeDisabled();
 });
 
-test('the "Enable WinISD style" group has every WinISD option the desktop has, and each one writes through', async ({ page }) => {
+test('the "Enable WinISD-style" group has every WinISD option the desktop has, and each one writes through', async ({ page }) => {
   const panel = page.locator('.mob-panel', { hasText: 'WinISD compatibility' });
-  await expect(panel.locator('.option-switch-group-head')).toHaveText('Enable WinISD style');
+  await expect(panel.locator('.mob-group-head').first()).toHaveText('Enable WinISD-style');
   for (const key of ['winisdWrapPhase', 'winisdFlatModel']) {
     const checkbox = panel.locator(`label[data-field-key="${key}"] input[type=checkbox]`);
     await expect(checkbox, key).toBeVisible();

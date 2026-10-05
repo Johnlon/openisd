@@ -105,7 +105,7 @@ export class OpenISDProject {
     }
 
     /** The project's own resolved `{rho, c}` — the ONE air every calculation uses: box, vent, PR,
-     *  resolve, sweep, "Enable WinISD two-BL driver bug" taking Cms from Vas. The embedded
+     *  resolve, sweep, "Two-BL driver" taking Cms from Vas. The embedded
      *  driver's own `c_m_per_s`/`roo_kg_per_m3` are never a source for this — see the field
      *  comment on `OpenIsdDriverSpec`'s constructor. */
     #air(root: SimpleField<OpenISDProjectJson>): Air {
@@ -288,7 +288,7 @@ export class OpenISDProject {
         return ProjectAdvanced.wrap(this.#slot('advanced'), this.#slot('filters')).splGraphIsXmaxLimited;
     }
 
-    /** WinISD Advanced / Compatibility "Enable WinISD two-BL driver bug" — whether engine sweeps
+    /** WinISD Advanced / Compatibility "Two-BL driver" — whether engine sweeps
      *  substitute the driver WinISD's own simulation acts on, `Mms = 1/((2π·Fs)²·Cms)`,
      *  `Rms = 2π·Fs·Mms/Qms` and `BL = √(Re/(2π·Fs·Qes·Cms))`, for entered values that conflict
      *  with them (measured 2026-09-26, docs/research/WINISD_PARITY.md). Off where a project does
@@ -297,7 +297,7 @@ export class OpenISDProject {
         return ProjectAdvanced.wrap(this.#slot('advanced'), this.#slot('filters')).winisdDriverModel;
     }
 
-    /** WinISD Compatibility "Enable WinISD Re without Rg bug": Re where Re + Rg belongs, as WinISD
+    /** WinISD Compatibility "Re without Rg": Re where Re + Rg belongs, as WinISD
      *  does — the amplifier apparent load power chart P·Re·|Hf|²/|Z + Rg|, and the power/voltage
      *  relation P = N·V²/Re (BUG_20260927_winisd-va-uses-re-not-re-plus-rg). Off: the apparent
      *  power the amplifier delivers, P·(Re + Rg)·|Hf|²/|Z_amp|, and P = N·V²/(Re + Rg). Off where
@@ -306,37 +306,37 @@ export class OpenISDProject {
         return ProjectAdvanced.wrap(this.#slot('advanced'), this.#slot('filters')).winisdVaModel;
     }
 
-    /** WinISD Compatibility "Enable WinISD style phase wrapping" — see `ProjectAdvanced.winisdWrapPhase`. */
+    /** WinISD Compatibility "Phase wrapping" — see `ProjectAdvanced.winisdWrapPhase`. */
     get winisdWrapPhase(): SimpleField<boolean> {
         return ProjectAdvanced.wrap(this.#slot('advanced'), this.#slot('filters')).winisdWrapPhase;
     }
 
-    /** WinISD Compatibility "Enable WinISD per-driver impedance bug" — see `ProjectAdvanced.winisdDriverCountModel`. */
+    /** WinISD Compatibility "Per-driver impedance" — see `ProjectAdvanced.winisdDriverCountModel`. */
     get winisdDriverCountModel(): SimpleField<boolean> {
         return ProjectAdvanced.wrap(this.#slot('advanced'), this.#slot('filters')).winisdDriverCountModel;
     }
 
-    /** WinISD Compatibility "Enable WinISD style simplified ABC intra-port velocity" — see `ProjectAdvanced.winisdAbcIntraPortVelocity`. */
+    /** WinISD Compatibility "Simplified ABC intra-port velocity" — see `ProjectAdvanced.winisdAbcIntraPortVelocity`. */
     get winisdAbcIntraPortVelocity(): SimpleField<boolean> {
         return ProjectAdvanced.wrap(this.#slot('advanced'), this.#slot('filters')).winisdAbcIntraPortVelocity;
     }
 
-    /** "Enable WinISD style simplified ABC intra-port velocity" acts on the open box: an ABC box only. */
+    /** "Simplified ABC intra-port velocity" acts on the open box: an ABC box only. */
     get winisdAbcIntraPortVelocityApplies(): boolean {
         return this.box.boxType.value === 'abc';
     }
 
-    /** WinISD Compatibility "Enable WinISD PR Npr resonance bug" — see `ProjectAdvanced.winisdPrNprResonance`. */
+    /** WinISD Compatibility "PR Npr resonance" — see `ProjectAdvanced.winisdPrNprResonance`. */
     get winisdPrNprResonance(): SimpleField<boolean> {
         return ProjectAdvanced.wrap(this.#slot('advanced'), this.#slot('filters')).winisdPrNprResonance;
     }
 
-    /** WinISD Compatibility "Enable WinISD Bessel high-pass bug" — see `ProjectAdvanced.winisdBesselHighpass`. */
+    /** WinISD Compatibility "Bessel high-pass" — see `ProjectAdvanced.winisdBesselHighpass`. */
     get winisdBesselHighpass(): SimpleField<boolean> {
         return ProjectAdvanced.wrap(this.#slot('advanced'), this.#slot('filters')).winisdBesselHighpass;
     }
 
-    /** WinISD Compatibility "Enable WinISD ABC group delay bug" — see `ProjectAdvanced.winisdAbcGroupDelay`. */
+    /** WinISD Compatibility "ABC group delay" — see `ProjectAdvanced.winisdAbcGroupDelay`. */
     get winisdAbcGroupDelay(): SimpleField<boolean> {
         return ProjectAdvanced.wrap(this.#slot('advanced'), this.#slot('filters')).winisdAbcGroupDelay;
     }
@@ -357,7 +357,7 @@ export class OpenISDProject {
         });
     }
 
-    /** WinISD Compatibility "Enable WinISD style uncapped flat response" — see `ProjectAdvanced.winisdFlatModel`. */
+    /** WinISD Compatibility "Uncapped flat response" — see `ProjectAdvanced.winisdFlatModel`. */
     get winisdFlatModel(): SimpleField<boolean> {
         return ProjectAdvanced.wrap(this.#slot('advanced'), this.#slot('filters')).winisdFlatModel;
     }
