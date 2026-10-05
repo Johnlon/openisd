@@ -1,4 +1,4 @@
-Status: FIXED (checked 2026-10-05) — no literal box volume, tuning or vent is written any more: `domain/boxDefaults.ts` starts every box at volume 0 with no vent size, and the New Project wizard takes the vented volume and tuning from the driver and the chosen alignment (`OriginalNewProject-hooks.ts`, `driver.ventedDesign`). The 0.05 m vent and 35 Hz tuning named on 2026-09-26 are gone.
+Status: FIXED (checked 2026-10-05) — the New Project wizard asks for the box: sealed volume and vented volume/tuning come from the driver and the chosen alignment (`driver.ventedDesign`); passive-radiator and bandpass volumes are asked for, pre-filled with 7 L (rear) and 10 L (front) (`OriginalNewProject-hooks.ts`). The 0.05 m vent and 35 Hz tuning named on 2026-09-26 are gone. Not checked: whether WinISD pre-fills the same 7 L / 10 L, and whether it fills a 4-inch vent on a new vented box.
 
 # New Project invents box volumes, tunings and vent geometry that WinISD DERIVES from driver + box type + alignment
 
