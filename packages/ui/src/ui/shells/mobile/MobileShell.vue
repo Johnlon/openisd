@@ -13,6 +13,7 @@ import MobileEnclosureTab from './MobileEnclosureTab.vue';
 import MobileAdvancedTab from './MobileAdvancedTab.vue';
 import MobileManageDriversTab from './MobileManageDriversTab.vue';
 import ExportMenu from '../../components/ExportMenu.vue';
+import ToolbarIcon from '../../components/ToolbarIcon.vue';
 import MobilePaneDialog from './MobilePaneDialog.vue';
 import OptionsModal from '../../components/OptionsModal.vue';
 import {injectWinisdDifferencesModal} from '../../../hooks/WinisdDifferencesModal-hooks.js';
@@ -41,9 +42,10 @@ const winisdDifferences = injectWinisdDifferencesModal();
         <span>OpenISD</span>
       </div>
       <p class="mob-empty-title">No project open</p>
-      <button type="button" class="mob-cta" @click="openNewProject">New project</button>
-      <button type="button" class="mob-cta mob-cta-secondary" @click="openProjectDialog">Open project</button>
-      <button type="button" class="mob-cta mob-cta-secondary" @click="fileInput?.click()">Open a file</button>
+      <!-- Same three actions, words and icons as desktop's empty chart (OriginalShell.vue). -->
+      <button type="button" class="mob-cta" @click="openNewProject"><ToolbarIcon name="new" /> <span>New project</span></button>
+      <button type="button" class="mob-cta mob-cta-secondary" @click="openProjectDialog"><ToolbarIcon name="open" /> <span>Open project</span></button>
+      <button type="button" class="mob-cta mob-cta-secondary" @click="fileInput?.click()"><ToolbarIcon name="import" /> <span>Import project</span></button>
       <button type="button" class="mob-link" @click="switchToDesktop">Switch to Desktop view</button>
     </div>
 
@@ -402,6 +404,10 @@ const winisdDifferences = injectWinisdDifferencesModal();
 .mob-empty-brand img { width: 40px; height: 40px; display: block; }
 .mob-empty-title { font-size: 16px; color: var(--mut); margin: 0 0 8px; }
 .mob-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   width: 220px;
   padding: 12px 16px;
   border: 1px solid var(--acc);

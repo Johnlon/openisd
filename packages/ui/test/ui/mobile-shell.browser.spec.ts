@@ -9,7 +9,7 @@
  * mobile skin and test what it does once showing.
  */
 import {expect, openAMobileProject, test} from '../fixtures.js';
-import {forceMobileSkin} from '../fixtures/mobileSkin.js';
+import {forceMobileSkin, tapMobileMenuItem} from '../fixtures/mobileSkin.js';
 
 test.beforeEach(async ({ page }) => {
   await forceMobileSkin(page);
@@ -21,7 +21,8 @@ test('a cold start with no project shows the empty state with New/Open actions',
   await expect(page.locator('.mob-empty')).toBeVisible();
   await expect(page.getByText('No project open')).toBeVisible();
   await expect(page.getByText('New project')).toBeVisible();
-  await expect(page.getByText('Open a file')).toBeVisible();
+  await expect(page.getByText('Open project')).toBeVisible();
+  await expect(page.getByText('Import project')).toBeVisible();
   await expect(page.locator('.mob-tabbar')).toHaveCount(0);
   await expect(page.locator('.mob-project-title')).toHaveCount(0);
 });
@@ -38,6 +39,28 @@ test('the empty state shows the app logo and name above the New/Open buttons', a
   const brandBox = await brand.boundingBox();
   const ctaBox = await empty.locator('.mob-cta').first().boundingBox();
   expect(brandBox && ctaBox && brandBox.y + brandBox.height <= ctaBox.y).toBe(true);
+});
+
+// John, 2026-10-05: "the mobile app chart screen doesn't allow opening from browser storage, only
+// New and Open a file". The empty state now matches desktop's empty chart: New project, Open project
+// (the menu's saved-project sheet), Import project (a file).
+test('the empty state opens a project saved in the browser', async ({ page }) => {
+  await page.goto('/');
+  await openAMobileProject(page);
+  await tapMobileMenuItem(page, /^Save$/);
+  await page.locator('.mob-hamburger').click();
+  await page.locator('.mob-open-project-close').first().click();
+
+  const empty = page.locator('.mob-empty');
+  await expect(empty.locator('button')).toHaveText(['New project', 'Open project', 'Import project', 'Switch to Desktop view']);
+  await empty.getByRole('button', { name: 'Open project' }).click();
+  const sheet = page.locator('.mob-align-sheet');
+  await expect(sheet.locator('.mob-stored-project-row')).toHaveCount(1);
+
+  await sheet.locator('.mob-stored-project-row').click();
+  await expect(sheet).toHaveCount(0);
+  await expect(empty).toHaveCount(0);
+  await expect(page.locator('.mob-tabbar')).toBeVisible();
 });
 
 test('opening a project swaps the empty state for the tab bar, defaulting to the Box tab', async ({ page }) => {
