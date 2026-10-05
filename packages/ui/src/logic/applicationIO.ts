@@ -61,9 +61,9 @@ function sanitizeFilename(name: string | undefined): string {
   return (name || 'design').replace(/[^\w.-]+/g, '_');
 }
 
-// Save/export/share operate on committed project state. An active Tune session is transient, so
+// Save/export/share operate on committed project state. An open What-if? is transient, so
 // these boundaries cancel it before reading or promoting anything.
-function closeTunePanelAfterIO(): void {
+function endWhatIfBeforeIO(): void {
   focusedProject()?.cancelWhatIf();
   presentationState.editDriver = false;
 }
@@ -127,7 +127,7 @@ export function createApplicationIO(deps: { logging: Logging; fileStorage: FileS
 
   /** Save — commit the edited project and refresh the browser-storage copy. */
   async function saveProject(): Promise<boolean> {
-    closeTunePanelAfterIO();
+    endWhatIfBeforeIO();
     const project = currentProject();
     project.save();
     deps.projectRepo.saveToStorage(project);
@@ -137,7 +137,7 @@ export function createApplicationIO(deps: { logging: Logging; fileStorage: FileS
 
   /** Save all — Save for every open project with unsaved edits, not only the focused one. */
   async function saveAllProjects(): Promise<number> {
-    closeTunePanelAfterIO();
+    endWhatIfBeforeIO();
     const dirty = openProjects().filter(p => p.isModified());
     for (const project of dirty) {
       project.cancelWhatIf();
@@ -154,7 +154,7 @@ export function createApplicationIO(deps: { logging: Logging; fileStorage: FileS
    * gives a genuinely new project rather than a second file claiming the same name.
    */
   async function saveProjectAs(): Promise<void> {
-    closeTunePanelAfterIO();
+    endWhatIfBeforeIO();
     const hadOpenFile = deps.fileStorage.openFileName() != null;
     const currentName = currentProject().name.value;
     const suggested = projectFilename(hadOpenFile ? copyOfName(currentName) : currentName);
@@ -186,7 +186,7 @@ export function createApplicationIO(deps: { logging: Logging; fileStorage: FileS
   }
 
   function exportWdr(): void {
-    closeTunePanelAfterIO();
+    endWhatIfBeforeIO();
     const fileName = sanitizeFilename(driverName.value) + '.wdr';
     const { value: bytes, errors } = driverToWdrBytes(requireFocusedProject().driver);
     if (!bytes) { flash(`Could not export ${fileName}: ${errors[0]?.message ?? 'the driver is incomplete'}`); return; }
@@ -195,7 +195,7 @@ export function createApplicationIO(deps: { logging: Logging; fileStorage: FileS
   }
 
   function exportOwdr(): void {
-    closeTunePanelAfterIO();
+    endWhatIfBeforeIO();
     const fileName = sanitizeFilename(driverName.value) + '.owdr';
     download(fileName, driverToOwdrBytes(requireFocusedProject().driver), DriverFileFormat.Owdr.mime);
     flash(`Driver exported as ${fileName}`);
@@ -203,7 +203,7 @@ export function createApplicationIO(deps: { logging: Logging; fileStorage: FileS
 
   /** Export the current design as a WinISD .wpr project (WINISD_WPR_FILE_SCHEMA.md). */
   function exportWpr(): void {
-    closeTunePanelAfterIO();
+    endWhatIfBeforeIO();
     const fileName = sanitizeFilename(driverName.value) + '.wpr';
     const { value: bytes, errors } = deps.files.projectToWprBytes(requireFocusedProject());
     if (!bytes) { flash(`Could not export ${fileName}: ${errors[0]?.message ?? 'the project is incomplete'}`); return; }

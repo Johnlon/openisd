@@ -191,9 +191,9 @@ function setWiring(e: Event) {
   forceUpdate();
 }
 
-// One reach into the DRAFT model (layer 3) — Tune passes the store's effective
+// One reach into the DRAFT model (layer 3) — What-if? passes the store's effective
 // model to the same helpers instead, so the provenance marks and the Q-group rule cannot
-// disagree between this dialog and Tune showing the same driver.
+// disagree between this dialog and What-if? showing the same driver.
 
 
 /** The draft's HANDLE for one field — total over `NumSpecField`, never null
@@ -1390,7 +1390,7 @@ input.value-n, .de-fld.value-n input, select.value-n { color: var(--mut); }
   border-color: #d9381e !important;
   box-shadow: 0 0 0 1px rgba(217, 56, 30, .25) !important;
 }
-/* `.de-dq`, the field-level DQ mark, is styled in style.css — Tune wears the same
+/* `.de-dq`, the field-level DQ mark, is styled in style.css — What-if? wears the same
    mark, so one driver's data quality cannot look different in two places. */
 
 /* One strip, above the footer, naming everything that stops the driver simulating. It never
