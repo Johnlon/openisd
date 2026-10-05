@@ -27,6 +27,7 @@ import BoxTypeDiagram from '../../components/BoxTypeDiagram.vue';
 import SaveToLibraryDialog from '../../components/SaveToLibraryDialog.vue';
 import {useOriginalShell} from '../../../hooks/OriginalShell-hooks.js';
 import {OpenableFiles} from '../../../fileFormat.js';
+import {enterOrClear} from '../../../logic/enterOrClear.js';
 
 const {
   version, toggleDropdown, openDd, openClick, closeDropdown, presentationState, isModified,
@@ -555,8 +556,8 @@ const winisdDifferences = injectWinisdDifferencesModal();
               <div style="--label-w:44px;">
                 <div class="section-header">Passive radiator parameters</div>
                 <div class="field-row">
-                  <div class="field entered"><label>Vas</label><NumInput id="og-pr-vas" :model-value="project.box.passiveRadiator.radiator.spec.Vas_m3.value" @update:model-value="(v: number | null) => project.box.passiveRadiator.radiator.spec.Vas_m3.set(v ?? 0)" :field="NumberField.PR_VAS_L" :precision="NumberField.PR_VAS_L.precision" /><UnitToggle :field="NumberField.PR_VAS_L" unit-class="unit unit-cyc" /></div>
-                  <div class="field entered"><label>Qms</label><NumInput id="og-pr-qms" :model-value="project.box.passiveRadiator.radiator.spec.Qms.value" @update:model-value="(v: number | null) => project.box.passiveRadiator.radiator.spec.Qms.set(v ?? 0)" :field="NumberField.PR_QMS" :precision="NumberField.PR_QMS.precision" /></div>
+                  <div class="field entered"><label>Vas</label><NumInput id="og-pr-vas" :model-value="project.box.passiveRadiator.radiator.spec.Vas_m3.value" @update:model-value="(v: number | null) => enterOrClear(project.box.passiveRadiator.radiator.spec.Vas_m3, v)" :field="NumberField.PR_VAS_L" :precision="NumberField.PR_VAS_L.precision" /><UnitToggle :field="NumberField.PR_VAS_L" unit-class="unit unit-cyc" /></div>
+                  <div class="field entered"><label>Qms</label><NumInput id="og-pr-qms" :model-value="project.box.passiveRadiator.radiator.spec.Qms.value" @update:model-value="(v: number | null) => enterOrClear(project.box.passiveRadiator.radiator.spec.Qms, v)" :field="NumberField.PR_QMS" :precision="NumberField.PR_QMS.precision" /></div>
                 </div>
                 <div class="field-row">
                   <!-- The RADIATOR's own free-air resonance, 1/(2π√(Mmd·Cms)) — no box in it.
@@ -565,11 +566,11 @@ const winisdDifferences = injectWinisdDifferencesModal();
                        this app's symbol for it. Distinct from the SYSTEM tuning on the Box tab
                        (box-tab.png "Fh": 40.25 Hz on that same project), which is the box
                        compliance in series with the PR's own — two quantities, two readouts. -->
-                  <div class="field entered"><label>Fpr</label><NumInput id="og-pr-fs" :model-value="project.box.passiveRadiator.radiator.spec.Fs_hz.value" @update:model-value="(v: number | null) => project.box.passiveRadiator.radiator.spec.Fs_hz.set(v ?? 0)" :field="NumberField.PR_FS_HZ" :precision="NumberField.PR_FS_HZ.precision" /><UnitToggle :field="NumberField.PR_FS_HZ" unit-class="unit unit-cyc" /></div>
-                  <div class="field entered"><label>Sd</label><NumInput :model-value="project.box.passiveRadiator.radiator.spec.Sd_m2.value" @update:model-value="(v: number | null) => project.box.passiveRadiator.radiator.spec.Sd_m2.set(v ?? 0)" :field="NumberField.PR_SD_CM2" :precision="NumberField.PR_SD_CM2.precision" /><UnitToggle :field="NumberField.PR_SD_CM2" unit-class="unit unit-cyc" /></div>
+                  <div class="field entered"><label>Fpr</label><NumInput id="og-pr-fs" :model-value="project.box.passiveRadiator.radiator.spec.Fs_hz.value" @update:model-value="(v: number | null) => enterOrClear(project.box.passiveRadiator.radiator.spec.Fs_hz, v)" :field="NumberField.PR_FS_HZ" :precision="NumberField.PR_FS_HZ.precision" /><UnitToggle :field="NumberField.PR_FS_HZ" unit-class="unit unit-cyc" /></div>
+                  <div class="field entered"><label>Sd</label><NumInput :model-value="project.box.passiveRadiator.radiator.spec.Sd_m2.value" @update:model-value="(v: number | null) => enterOrClear(project.box.passiveRadiator.radiator.spec.Sd_m2, v)" :field="NumberField.PR_SD_CM2" :precision="NumberField.PR_SD_CM2.precision" /><UnitToggle :field="NumberField.PR_SD_CM2" unit-class="unit unit-cyc" /></div>
                 </div>
                 <div class="field-row">
-                  <div class="field entered"><label>Xmax</label><NumInput :model-value="project.box.passiveRadiator.radiator.spec.Xmax_m.value" @update:model-value="(v: number | null) => project.box.passiveRadiator.radiator.spec.Xmax_m.set(v ?? 0)" :field="NumberField.PR_XMAX_MM" :precision="NumberField.PR_XMAX_MM.precision" /><UnitToggle :field="NumberField.PR_XMAX_MM" unit-class="unit unit-cyc" /></div>
+                  <div class="field entered"><label>Xmax</label><NumInput :model-value="project.box.passiveRadiator.radiator.spec.Xmax_m.value" @update:model-value="(v: number | null) => enterOrClear(project.box.passiveRadiator.radiator.spec.Xmax_m, v)" :field="NumberField.PR_XMAX_MM" :precision="NumberField.PR_XMAX_MM.precision" /><UnitToggle :field="NumberField.PR_XMAX_MM" unit-class="unit unit-cyc" /></div>
                 </div>
               </div>
               <div style="--label-w:150px;">
@@ -578,7 +579,7 @@ const winisdDifferences = injectWinisdDifferencesModal();
                 <div style="display:flex; gap:12px; align-items:stretch;">
                   <div>
                 <div class="field-row">
-                  <div :class="['field', 'entered', { 'dq-flag': prTuningDq.dq.length > 0 }]"><label>Target tuning freq (Fh):</label><NumInput id="og-pr-fp" :model-value="project.box.passiveRadiator.tuning_goal_hz.value" @update:model-value="(v: number | null) => project.box.passiveRadiator.tuning_goal_hz.set(v ?? 0)" :field="NumberField.PR_FP_HZ" :precision="NumberField.PR_FP_HZ.precision" :max="prNaturalFh ?? undefined" v-bind="prTuningDq" /><UnitToggle :field="NumberField.PR_FP_HZ" unit-class="unit" /></div>
+                  <div :class="['field', 'entered', { 'dq-flag': prTuningDq.dq.length > 0 }]"><label>Target tuning freq (Fh):</label><NumInput id="og-pr-fp" :model-value="project.box.passiveRadiator.tuning_goal_hz.value" @update:model-value="(v: number | null) => enterOrClear(project.box.passiveRadiator.tuning_goal_hz, v)" :field="NumberField.PR_FP_HZ" :precision="NumberField.PR_FP_HZ.precision" :max="prNaturalFh ?? undefined" v-bind="prTuningDq" /><UnitToggle :field="NumberField.PR_FP_HZ" unit-class="unit" /></div>
                 </div>
                 <div class="field-row">
                   <div :class="['field', 'entered', { 'dq-flag': prAddedMassDq.dq.length > 0 }]"><label>Added mass to cone:</label><NumInput id="og-pr-madd" :model-value="project.box.passiveRadiator.addedMass_kg.value" @update:model-value="(v: number | null) => project.box.passiveRadiator.addedMass_kg.set(v ?? 0)" :field="NumberField.PR_MADD_G" :precision="NumberField.PR_MADD_G.precision" v-bind="prAddedMassDq" /><UnitToggle :field="NumberField.PR_MADD_G" unit-class="unit" /></div>

@@ -7,6 +7,7 @@
 // descendants of .app-root-mobile are already contained to the phone pane (App.vue's own fix).
 import {NumberField, TextField} from '@openisd/design/fields';
 import {inputValue, selectedOption} from '../../../logic/domEvents.js';
+import {enterOrClear} from '../../../logic/enterOrClear.js';
 import NumInput from '../../components/NumInput.vue';
 import NumReadout from '../../components/NumReadout.vue';
 import UnitToggle from '../../components/UnitToggle.vue';
@@ -169,32 +170,32 @@ const {fieldWithUnit} = useUnitReadouts();
 
     <div class="mob-field-row mob-field-entered">
       <div class="mob-field-main"><span class="mob-field-label">Vas</span>
-        <span class="mob-field-value"><NumInput :model-value="project.box.passiveRadiator.radiator.spec.Vas_m3.value" @update:model-value="(v: number | null) => project.box.passiveRadiator.radiator.spec.Vas_m3.set(v ?? 0)" :field="NumberField.PR_VAS_L" :precision="NumberField.PR_VAS_L.precision" stepper /></span>
+        <span class="mob-field-value"><NumInput :model-value="project.box.passiveRadiator.radiator.spec.Vas_m3.value" @update:model-value="(v: number | null) => enterOrClear(project.box.passiveRadiator.radiator.spec.Vas_m3, v)" :field="NumberField.PR_VAS_L" :precision="NumberField.PR_VAS_L.precision" stepper /></span>
       </div>
       <UnitToggle :field="NumberField.PR_VAS_L" unit-class="mob-unit" />
     </div>
     <div class="mob-field-row mob-field-entered">
       <div class="mob-field-main"><span class="mob-field-label">Qms</span>
-        <span class="mob-field-value"><NumInput :model-value="project.box.passiveRadiator.radiator.spec.Qms.value" @update:model-value="(v: number | null) => project.box.passiveRadiator.radiator.spec.Qms.set(v ?? 0)" :field="NumberField.PR_QMS" :precision="NumberField.PR_QMS.precision" stepper /></span>
+        <span class="mob-field-value"><NumInput :model-value="project.box.passiveRadiator.radiator.spec.Qms.value" @update:model-value="(v: number | null) => enterOrClear(project.box.passiveRadiator.radiator.spec.Qms, v)" :field="NumberField.PR_QMS" :precision="NumberField.PR_QMS.precision" stepper /></span>
       </div>
       <!-- An empty unit column, so this row's ▲▼ line up with the rows that have a unit. -->
       <span class="mob-unit" aria-hidden="true"></span>
     </div>
     <div class="mob-field-row mob-field-entered">
       <div class="mob-field-main"><span class="mob-field-label">Fpr</span>
-        <span class="mob-field-value"><NumInput :model-value="project.box.passiveRadiator.radiator.spec.Fs_hz.value" @update:model-value="(v: number | null) => project.box.passiveRadiator.radiator.spec.Fs_hz.set(v ?? 0)" :field="NumberField.PR_FS_HZ" :precision="NumberField.PR_FS_HZ.precision" stepper /></span>
+        <span class="mob-field-value"><NumInput :model-value="project.box.passiveRadiator.radiator.spec.Fs_hz.value" @update:model-value="(v: number | null) => enterOrClear(project.box.passiveRadiator.radiator.spec.Fs_hz, v)" :field="NumberField.PR_FS_HZ" :precision="NumberField.PR_FS_HZ.precision" stepper /></span>
       </div>
       <UnitToggle :field="NumberField.PR_FS_HZ" unit-class="mob-unit" />
     </div>
     <div class="mob-field-row mob-field-entered">
       <div class="mob-field-main"><span class="mob-field-label">Sd</span>
-        <span class="mob-field-value"><NumInput :model-value="project.box.passiveRadiator.radiator.spec.Sd_m2.value" @update:model-value="(v: number | null) => project.box.passiveRadiator.radiator.spec.Sd_m2.set(v ?? 0)" :field="NumberField.PR_SD_CM2" :precision="NumberField.PR_SD_CM2.precision" stepper /></span>
+        <span class="mob-field-value"><NumInput :model-value="project.box.passiveRadiator.radiator.spec.Sd_m2.value" @update:model-value="(v: number | null) => enterOrClear(project.box.passiveRadiator.radiator.spec.Sd_m2, v)" :field="NumberField.PR_SD_CM2" :precision="NumberField.PR_SD_CM2.precision" stepper /></span>
       </div>
       <UnitToggle :field="NumberField.PR_SD_CM2" unit-class="mob-unit" />
     </div>
     <div class="mob-field-row mob-field-entered">
       <div class="mob-field-main"><span class="mob-field-label">Xmax</span>
-        <span class="mob-field-value"><NumInput :model-value="project.box.passiveRadiator.radiator.spec.Xmax_m.value" @update:model-value="(v: number | null) => project.box.passiveRadiator.radiator.spec.Xmax_m.set(v ?? 0)" :field="NumberField.PR_XMAX_MM" :precision="NumberField.PR_XMAX_MM.precision" stepper /></span>
+        <span class="mob-field-value"><NumInput :model-value="project.box.passiveRadiator.radiator.spec.Xmax_m.value" @update:model-value="(v: number | null) => enterOrClear(project.box.passiveRadiator.radiator.spec.Xmax_m, v)" :field="NumberField.PR_XMAX_MM" :precision="NumberField.PR_XMAX_MM.precision" stepper /></span>
       </div>
       <UnitToggle :field="NumberField.PR_XMAX_MM" unit-class="mob-unit" />
     </div>
@@ -207,7 +208,7 @@ const {fieldWithUnit} = useUnitReadouts();
     </div>
     <div class="mob-field-row mob-field-entered" :class="{ 'mob-field-dq': prTuningDq.dq.length > 0 }">
       <div class="mob-field-main"><span class="mob-field-label">Target tuning freq (Fh)</span>
-        <span class="mob-field-value"><NumInput :model-value="project.box.passiveRadiator.tuning_goal_hz.value" @update:model-value="(v: number | null) => project.box.passiveRadiator.tuning_goal_hz.set(v ?? 0)" :field="NumberField.PR_FP_HZ" :precision="NumberField.PR_FP_HZ.precision" v-bind="prTuningDq" stepper /></span>
+        <span class="mob-field-value"><NumInput :model-value="project.box.passiveRadiator.tuning_goal_hz.value" @update:model-value="(v: number | null) => enterOrClear(project.box.passiveRadiator.tuning_goal_hz, v)" :field="NumberField.PR_FP_HZ" :precision="NumberField.PR_FP_HZ.precision" v-bind="prTuningDq" stepper /></span>
       </div>
       <UnitToggle :field="NumberField.PR_FP_HZ" unit-class="mob-unit" />
     </div>

@@ -163,6 +163,27 @@ test.describe('Original Passive Radiator tab', () => {
       expect(stored.count).toBe(2);
     });
 
+    // John, 2026-10-05: emptying PR Vas, Fpr, Sd, Xmax or the target tuning wrote 0 into the project
+    // (BUG_20261005_cleared-pr-field-saved-as-zero). A cleared box clears the field.
+    test('emptying a PR box clears its field rather than storing 0', async ({page}) => {
+      await setFocusedBoxType(page, 'box-passive-radiator');
+      await page.locator('.project-nav li', {hasText: 'Passive Radiator'}).click();
+      const pane = page.locator('.two-col').filter({ has: page.locator('#og-pr-fs') });
+      const boxes = [
+        page.locator('#og-pr-vas'), page.locator('#og-pr-qms'), page.locator('#og-pr-fs'),
+        numInputByLabel(page, 'Sd', pane).first(), numInputByLabel(page, 'Xmax', pane).first(),
+        page.locator('#og-pr-fp'),
+      ];
+      for (const box of boxes) {
+        await fillAndCommit(box, '12');
+        await fillAndCommit(box, '');
+        await expect(box).not.toHaveValue(/^0(\.0*)?$/);
+      }
+
+      const stored = await focusedPassiveRadiatorSpec(page);
+      for (const v of [stored.vas_m3, stored.qms, stored.fs_hz, stored.sd_m2, stored.xmax_m]) expect(v).not.toBe(0);
+    });
+
     // John, 2026-10-05: "PR Vas is disconnected" — a project made by the New Project wizard with
     // the ND140-PR kept the radiator's catalogue Mms and Cms, so a Vas typed on the page moved nothing.
     test('a Vas typed on the PR page of a wizard-made ND140-PR project moves Fpr with mass, Fh and the SPL curve', async ({page}) => {
