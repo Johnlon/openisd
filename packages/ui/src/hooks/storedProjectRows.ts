@@ -6,7 +6,7 @@ import {formatDateTime} from '@openisd/design/fields';
 export interface StoredProjectRow {
   readonly id: string;
   readonly name: string;
-  /** When it was last saved, as "5 Oct 2026, 23:32". */
+  /** When it was last saved, as "2026-10-05 23:32". */
   readonly modified: string;
   /** "Tang Band W5-1138SMF · Vented · 12.0 L"; empty for a record that would not read. */
   readonly summary: string;
