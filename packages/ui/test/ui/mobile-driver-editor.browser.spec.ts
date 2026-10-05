@@ -60,8 +60,8 @@ test('at phone width the Driver Editor fits the screen: first tab, legend one pe
     await expect(button).toBeInViewport({ ratio: 1 });
   }
 
+  await expect(page.locator('.de-legend-item')).toHaveCount(3);
   const items = await page.locator('.de-legend-item').all();
-  expect(items).toHaveLength(3);
   const boxes = await Promise.all(items.map(i => i.boundingBox()));
   for (let i = 1; i < boxes.length; i++) expect(boxes[i]!.y).toBeGreaterThanOrEqual(boxes[i - 1]!.y + boxes[i - 1]!.height - 1);
   const firstButton = await page.locator('.de-btns button').first().boundingBox();

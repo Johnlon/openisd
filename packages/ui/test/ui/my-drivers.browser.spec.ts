@@ -347,7 +347,7 @@ test('Edit is enabled for library driver overview and saving goes to My Drivers 
   await page.locator(`${EDITOR} .de-footer button:has-text("OK")`).click();
 
   // Save to My Drivers prompt dialog should appear with pre-filled Brand/Model
-  const savePanel = page.locator('.de-save-my-panel');
+  const savePanel = page.getByRole('dialog', { name: 'Save to My Drivers' });
   await expect(savePanel).toBeVisible();
 
   // Fill with a new unique brand/model and confirm
@@ -380,7 +380,7 @@ test('editing a library driver\'s overview and saving to My Drivers does not lin
   await expect(page.locator(EDITOR)).toBeVisible();
 
   await page.locator(`${EDITOR} .de-footer button:has-text("OK")`).click();
-  const savePanel = page.locator('.de-save-my-panel');
+  const savePanel = page.getByRole('dialog', { name: 'Save to My Drivers' });
   await expect(savePanel).toBeVisible();
   await page.locator('.save-brand-input').fill('Library');
   await page.locator('.save-model-input').fill('Edited Copy');
