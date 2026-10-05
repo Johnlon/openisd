@@ -16,9 +16,29 @@ test.describe('MobileMenu', () => {
   test.describe('layout', () => {
     // John, 2026-10-04: the three save items sit together, Revert is its own section after them,
     // and a thin separator divides each section.
+    // John, 2026-10-05: "a clear segregation between project things and app things".
+    test('items sit in a Project section and an App section, each under its own heading', async ({ page }) => {
+      await openMobileMenu(page);
+      const sections = page.locator('.mob-menu-section');
+      await expect(sections.locator('.mob-menu-section-head')).toHaveText(['Project', 'App']);
+      const items = (section: string) => page.locator('.mob-menu-section', { has: page.locator('.mob-menu-section-head', { hasText: section }) })
+        .locator('.mob-menu-item').evaluateAll(nodes => nodes.map(n => (n.querySelector('.export-menu-trigger') ?? n).textContent?.trim()));
+      expect(await items('Project')).toEqual([
+        'New project', 'Open project…', 'Open a file', 'Save', 'Save all', 'Save As / Export',
+        'Revert unsaved changes', 'Project details', 'Advanced',
+      ]);
+      await expect(sections.first().locator('.mob-open-project')).toHaveCount(1);
+      expect(await items('App')).toEqual([
+        'Manage Drivers', 'Options', 'OpenISD and WinISD differences', 'About OpenISD', 'Switch to Desktop view',
+      ]);
+      // A visible divider sits between the two sections.
+      const divider = await sections.nth(1).evaluate(el => getComputedStyle(el).borderTopWidth);
+      expect(divider).not.toBe('0px');
+    });
+
     test('Save, Save all and Save As sit together; Revert follows in its own section', async ({ page }) => {
       await openMobileMenu(page);
-      const rows = await page.locator('.mob-menu > .mob-menu-item, .mob-menu > .mob-menu-sep').evaluateAll(
+      const rows = await page.locator('.mob-menu-section > .mob-menu-item, .mob-menu-section > .mob-menu-sep').evaluateAll(
         nodes => nodes.map(n => n.classList.contains('mob-menu-sep') ? '---' : (n.textContent ?? '').trim()));
       const from = rows.indexOf('Open a file');
       expect(rows.slice(from, from + 8)).toEqual([
