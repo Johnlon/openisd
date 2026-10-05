@@ -1308,9 +1308,22 @@ export class ToggleField extends Field {
    *  tooltip ends with it; the ≠W popup shows it too. Null for a switch that is not a bug switch. */
   readonly seenIn: string | null;
 
-  private constructor(spec: FieldSpec, seenIn: string | null = null) {
+  /** The on-screen label as lines (John, 2026-10-05). A line after the first keeps its leading
+   *  space, so the lines joined are `label`. The tooltip keeps the one-line label. */
+  readonly labelLines: readonly string[];
+
+  /** `breakAfter`: the label text a line break follows; null keeps the label one line. */
+  private constructor(spec: FieldSpec, seenIn: string | null = null, breakAfter: string | null = null) {
     super(seenIn === null ? spec : {...spec, description: `${spec.description}\nSeen in: ${seenIn}`});
     this.seenIn = seenIn;
+    if (breakAfter === null) {
+      this.labelLines = Object.freeze([spec.label]);
+    } else {
+      const at = spec.label.indexOf(breakAfter);
+      if (at < 0) throw new Error(`ToggleField ${spec.value}: "${breakAfter}" is not in its label`);
+      const cut = at + breakAfter.length;
+      this.labelLines = Object.freeze([spec.label.slice(0, cut), spec.label.slice(cut)]);
+    }
   }
 
   // ── Advanced ──────────────────────────────────────────────────────────────────────────────
@@ -1328,7 +1341,7 @@ export class ToggleField extends Field {
     value: "adv_TlPortModel",
     label: "Use \"transmission line\"-model for port simulation",
     description: "Transmission Line Port Model\nModels the vent as a distributed transmission line, adding its internal organ-pipe resonances to the response curves.",
-  });
+  }, null, '-model');
   static readonly ADV_RGATDRIVERSIDE = new ToggleField({
     value: "adv_RgAtDriverSide",
     label: "Rg is at driver side",
@@ -1387,7 +1400,7 @@ export class ToggleField extends Field {
     value: "adv_WinisdAbcIntraPortVelocity",
     label: "Simplified ABC intra-port velocity",
     description: "Simplified ABC intra-port velocity: affects the ABC box's Intra port velocity chart only.\nTicked (the default, as WinISD): the intra-port velocity leaves out the leak term Zf·jωMai/Ricl.\nUnticked: the exact port-mass current. Differs by up to 1.35 dB and 4.6° near 110 Hz, under 0.1 dB elsewhere (W5-1138SMF, abc-w5-1).\nOnly on an ABC box.",
-  });
+  }, null, 'intra-port');
 
   static readonly ALL: readonly ToggleField[] =
     Object.freeze(Object.values(ToggleField).filter((v): v is ToggleField => v instanceof ToggleField));

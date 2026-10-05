@@ -11,6 +11,7 @@
  */
 import {ToggleField} from '@openisd/design/fields';
 import {useAdvancedOptions} from '../../hooks/AdvancedOptions-hooks.js';
+import ToggleLabel from './ToggleLabel.vue';
 
 const {project, hasVent, simVcInductance, inputChecked} = useAdvancedOptions();
 </script>
@@ -18,20 +19,20 @@ const {project, hasVent, simVcInductance, inputChecked} = useAdvancedOptions();
 <template>
   <div class="adv-options">
     <label data-field-key="simVcInductance" :title="ToggleField.ADV_SIMVCINDUCTANCE.description">
-      <input type="checkbox" v-model="simVcInductance"> Simulate voice coil inductance
+      <input type="checkbox" v-model="simVcInductance"> <ToggleLabel :field="ToggleField.ADV_SIMVCINDUCTANCE" />
     </label>
     <label data-field-key="forceFlatResponse" :title="ToggleField.ADV_FORCEFLATRESPONSE.description">
-      <input type="checkbox" :checked="project.forceFlatResponse.value" @change="e => project.forceFlatResponse.set(inputChecked(e))"> Force flat response
+      <input type="checkbox" :checked="project.forceFlatResponse.value" @change="e => project.forceFlatResponse.set(inputChecked(e))"> <ToggleLabel :field="ToggleField.ADV_FORCEFLATRESPONSE" />
     </label>
     <label data-field-key="tlPortModel" :title="ToggleField.ADV_TLPORTMODEL.description"
       :class="{ 'na': !hasVent }">
-      <input type="checkbox" :checked="project.useTransmissionLinePortModel.value" @change="e => project.useTransmissionLinePortModel.set(inputChecked(e))" :disabled="!hasVent"> Use "transmission line"-model for port simulation
+      <input type="checkbox" :checked="project.useTransmissionLinePortModel.value" @change="e => project.useTransmissionLinePortModel.set(inputChecked(e))" :disabled="!hasVent"> <ToggleLabel :field="ToggleField.ADV_TLPORTMODEL" />
     </label>
     <label data-field-key="rgAtDriverSide" :title="ToggleField.ADV_RGATDRIVERSIDE.description">
-      <input type="checkbox" :checked="project.rgAtDriverSide.value" @change="e => project.rgAtDriverSide.set(inputChecked(e))"> Rg is at driver side
+      <input type="checkbox" :checked="project.rgAtDriverSide.value" @change="e => project.rgAtDriverSide.set(inputChecked(e))"> <ToggleLabel :field="ToggleField.ADV_RGATDRIVERSIDE" />
     </label>
     <label data-field-key="splXmaxLimited" :title="ToggleField.ADV_SPLXMAXLIMITED.description">
-      <input type="checkbox" :checked="project.splGraphIsXmaxLimited.value" @change="e => project.splGraphIsXmaxLimited.set(inputChecked(e))"> SPL graph is Xmax limited
+      <input type="checkbox" :checked="project.splGraphIsXmaxLimited.value" @change="e => project.splGraphIsXmaxLimited.set(inputChecked(e))"> <ToggleLabel :field="ToggleField.ADV_SPLXMAXLIMITED" />
     </label>
   </div>
 </template>

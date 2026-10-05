@@ -10,8 +10,8 @@ export class CompatSwitchGroup {
         + 'The yellow look marks them.');
 
     static readonly OPTIONS = new CompatSwitchGroup(
-        'Enable WinISD-style',
-        'Enable WinISD-style: each switch picks between WinISD\'s way of a calculation (ticked, the default) '
+        'Enable WinISD-style …',
+        'Enable WinISD-style …: each switch picks between WinISD\'s way of a calculation (ticked, the default) '
         + 'and another valid form (unticked). Neither is a bug.');
 
 }

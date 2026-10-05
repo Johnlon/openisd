@@ -261,7 +261,7 @@ test.describe('Original Advanced tab', () => {
       await expect(page.locator('select#lossmode')).toHaveCount(0);
     });
 
-    test('the WinISD Compatibility panel ends just below its last switch', async ({ page }) => {
+    test('the compatibility box ends just below its last switch', async ({ page }) => {
       const panel = (await page.locator('.sim-options-box').boundingBox())!;
       // The switches sit in two columns: the lowest switch, whichever column it is in.
       const bottoms = await page.locator('.sim-options-box label[data-field-key]').evaluateAll(
@@ -279,9 +279,11 @@ test.describe('Original Advanced tab', () => {
     });
 
     test('WinISD Compatibility labels say "optional" or "bug" and are unclipped', async ({ page }) => {
-      const panel = page.locator('.sim-options-box', { hasText: 'WinISD Compatibility' });
+      const panel = page.locator('.sim-options-box');
       const labels = panel.locator('label[data-field-key]');
       await expect(labels).toHaveText([/Phase wrapping/, /Uncapped flat response/, /Simplified ABC intra-port velocity/, /Two-BL driver/, /Re without Rg/, /PR Npr resonance/, /Bessel high-pass/, /ABC group delay/, /Per-driver impedance/]);
+      // A pane too narrow for every column scrolls sideways: scrolled to its right end, nothing is clipped.
+      await page.locator('.tab-section.active').evaluate(el => { el.scrollLeft = el.scrollWidth; });
       const panelBox = (await panel.boundingBox())!;
       const clipRight = await panel.evaluate(el => {
         // The visible right edge: the panel's own, or an ancestor's that clips it first.
@@ -309,22 +311,36 @@ test.describe('Original Advanced tab', () => {
     });
 
     test('the panel has no preset or reset buttons, only a help link per group: an "Enable WinISD-style" group and an "Enable WinISD bugs" group of switches', async ({ page }) => {
-      const panel = page.locator('.sim-options-box', { hasText: 'WinISD Compatibility' });
+      const panel = page.locator('.sim-options-box');
       await expect(panel.locator('button:not(.compat-help-link)')).toHaveCount(0);
       await expect(panel.locator('button.compat-help-link')).toHaveCount(2);
       await expect(panel.locator('.option-switch-group-head')).toHaveText('Enable WinISD-style …');
       await expect(panel.locator('.error-switch-group-head')).toHaveText('Enable WinISD bugs');
     });
 
-    test('Advanced layout: the transmission-line label wraps before "for"', async ({ page }) => {
-      const label = page.locator('label[data-field-key="tlPortModel"]');
-      const [firstTop, forTop] = await label.evaluate(el => {
-        const text = [...el.childNodes].find(n => n.nodeType === Node.TEXT_NODE && n.textContent!.includes('for port'))!;
-        const at = (i: number) => { const r = document.createRange(); r.setStart(text, i); r.setEnd(text, i + 1); return r.getBoundingClientRect().top; };
-        const s = text.textContent!;
-        return [at(s.indexOf('U')), at(s.indexOf('for port'))];
+    // John, 2026-10-05: 'Use "transmission line"-model' / 'for port simulation'; "Simplified ABC
+    // intra-port" / "velocity". The break is in the label, not from a narrow column.
+    for (const [key, first, second] of [['tlPortModel', 'Use', 'for port'], ['winisdAbcIntraPortVelocity', 'Simplified', 'velocity']] as const) {
+      test(`Advanced layout: the "${key}" label breaks before "${second}"`, async ({ page }) => {
+        await showAdvancedOn(page, 'abc');
+        const label = page.locator(`label[data-field-key="${key}"]`);
+        await expect(label).toHaveText(new RegExp(`${first}.* ${second}`));
+        const [firstTop, secondTop] = await label.evaluate((el, [a, b]) => {
+          const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+          const texts: Text[] = [];
+          for (let n = walker.nextNode(); n; n = walker.nextNode()) if (n instanceof Text) texts.push(n);
+          const top = (word: string) => {
+            const t = texts.find(x => x.data.includes(word))!; const i = t.data.indexOf(word);
+            const r = document.createRange(); r.setStart(t, i); r.setEnd(t, i + 1); return r.getBoundingClientRect().top;
+          };
+          return [top(a), top(b)];
+        }, [first, second] as const);
+        expect(secondTop).toBeGreaterThan(firstTop);
       });
-      expect(forTop).toBeGreaterThan(firstTop);
+    }
+
+    test('the Advanced tab has no "WinISD Compatibility" heading (John, 2026-10-05)', async ({ page }) => {
+      await expect(page.locator('.tab-section.active')).not.toContainText('WinISD Compatibility');
     });
 
     test('Advanced layout: the air readout column sits 16 px from the air-constant column', async ({ page }) => {
@@ -450,7 +466,8 @@ test.describe('Original Advanced tab', () => {
             return {textHeight: text.height, textRight: text.right, labelRight: box.right, labelBottom: box.bottom, groupRight: group.right, paneBottom, fontPx};
           });
           const name = await label.innerText();
-          expect(m.textHeight, `${name}: one line`).toBeLessThan(1.5 * 1.3 * m.fontPx);
+          const lines = await label.getAttribute('data-field-key') === 'winisdAbcIntraPortVelocity' ? 2 : 1;
+          expect(m.textHeight, `${name}: ${lines} line(s)`).toBeLessThan((lines + 0.5) * 1.3 * m.fontPx);
           expect(m.textRight, `${name}: text inside its label`).toBeLessThanOrEqual(m.labelRight + 1);
           expect(m.labelRight, `${name}: label inside its group`).toBeLessThanOrEqual(m.groupRight + 1);
           expect(m.labelBottom, `${name}: not cut off by the bottom of the tab`).toBeLessThanOrEqual(m.paneBottom + 1);
@@ -458,11 +475,23 @@ test.describe('Original Advanced tab', () => {
       });
     }
 
-    // John, 2026-10-05: "Needs to be two cols" — options left, bugs right, one switch per line.
+    // John, 2026-10-05: "Needs to be two cols" — options left, bugs right, one switch per line; the
+    // standard WinISD options left of both, one line each; a narrow pane scrolls sideways.
     for (const [zoom, width, height] of [[100, 1280, 800], [125, 1024, 640], [150, 853, 533]] as const) {
-      test(`at ${zoom}% zoom the options group and the bugs group sit side by side, each one column`, async ({page}) => {
+      test(`at ${zoom}% zoom the standard options, the options group and the bugs group sit side by side, each one column of one-line labels`, async ({page}) => {
         await page.setViewportSize({width, height});
         await showAdvancedOn(page, 'abc');
+        for (const label of await page.locator('.checkbox-col label').all()) {
+          const [textHeight, fontPx] = await label.evaluate(el => {
+            const r = document.createRange(); r.selectNodeContents(el);
+            return [r.getBoundingClientRect().height, parseFloat(getComputedStyle(el).fontSize)];
+          });
+          const lines = await label.getAttribute('data-field-key') === 'tlPortModel' ? 2 : 1;
+          expect(textHeight, `${await label.innerText()}: ${lines} line(s)`).toBeLessThan((lines + 0.5) * 1.3 * fontPx);
+        }
+        const standard = (await page.locator('.checkbox-col').boundingBox())!;
+        const compat = (await page.locator('.sim-options-box').boundingBox())!;
+        expect(compat.x).toBeGreaterThanOrEqual(standard.x + standard.width);
         const options = (await page.locator('.option-switch-group').boundingBox())!;
         const bugs = (await page.locator('.error-switch-group').boundingBox())!;
         expect(bugs.x).toBeGreaterThanOrEqual(options.x + options.width);
@@ -477,7 +506,7 @@ test.describe('Original Advanced tab', () => {
 
     test('the error group fits inside the Compatibility panel', async ({page}) => {
       await showAdvancedOn(page, 'abc');
-      const panel = page.locator('.sim-options-box', {hasText: 'WinISD Compatibility'});
+      const panel = page.locator('.sim-options-box');
       const panelBox = (await panel.boundingBox())!;
       const rights = await panel.locator('.error-switch-group, .error-switch-group *').evaluateAll(
         els => els.map(e => e.getBoundingClientRect().right));

@@ -21,6 +21,7 @@ import ErrorSwitch from '../../components/ErrorSwitch.vue';
 import ErrorSwitchGroup from '../../components/ErrorSwitchGroup.vue';
 import WinisdDeviationCue from '../../components/WinisdDeviationCue.vue';
 import CompatGroupHelpLink from '../../components/CompatGroupHelpLink.vue';
+import ToggleLabel from '../../components/ToggleLabel.vue';
 import {injectWinisdDifferencesModal} from '../../../hooks/WinisdDifferencesModal-hooks.js';
 import BoxTypeDiagram from '../../components/BoxTypeDiagram.vue';
 import {useOriginalShell} from '../../../hooks/OriginalShell-hooks.js';
@@ -646,7 +647,6 @@ const winisdDifferences = injectWinisdDifferencesModal();
               <AdvancedOptions />
             </div>
             <div class="sim-options-box">
-              <div class="sim-options-head"><span class="sim-options-header">WinISD Compatibility</span></div>
               <div class="sim-switches">
                 <div class="sim-switch-col">
                 <div class="option-switch-group" :title="CompatSwitchGroup.OPTIONS.tooltip">
@@ -663,7 +663,7 @@ const winisdDifferences = injectWinisdDifferencesModal();
                 </div>
                 <div>
                   <label data-field-key="winisdAbcIntraPortVelocity" style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 12px;" :class="{ 'compat-switch-na': !abcVelocityApplies }" :title="ToggleField.ADV_WINISDABCINTRAPORTVELOCITY.description">
-                    <input type="checkbox" :checked="project.winisdAbcIntraPortVelocity.value" :disabled="!abcVelocityApplies" @change="e => project.winisdAbcIntraPortVelocity.set(inputChecked(e))"> {{ ToggleField.ADV_WINISDABCINTRAPORTVELOCITY.label }}
+                    <input type="checkbox" :checked="project.winisdAbcIntraPortVelocity.value" :disabled="!abcVelocityApplies" @change="e => project.winisdAbcIntraPortVelocity.set(inputChecked(e))"> <ToggleLabel :field="ToggleField.ADV_WINISDABCINTRAPORTVELOCITY" />
                   </label>
                 </div>
                 </div>
@@ -1216,7 +1216,9 @@ textarea.comment, textarea.description { width:100%; border:1px solid #999; bord
 .checkbox-col label input[type=checkbox] { flex:none; }
 
 .adv-two-col { gap: 8px; align-items: flex-start; }
-.adv-two-col .checkbox-col { margin-left: 0; width: 205px; }
+/* The standard WinISD options: one line each, as wide as the longest (John, 2026-10-05). */
+.adv-two-col .checkbox-col { margin-left: 0; width: max-content; }
+.adv-two-col .checkbox-col :deep(label) { white-space: nowrap; }
 .adv-two-col .side-hint { width: 190px; }
 .adv-two-col .sim-options-box {
   border: 1px solid #c8c8c8;
@@ -1228,18 +1230,13 @@ textarea.comment, textarea.description { width:100%; border:1px solid #999; bord
   min-width: min-content;
   align-self: flex-start;
 }
-/* Options group, then the WinISD bugs group beside it, or below it when the pane is too narrow. */
-.sim-switches { display: flex; flex-flow: row wrap; align-items: flex-start; gap: 4px 12px; }
+/* Options group left, WinISD bugs group right, one switch per line; never stacked: a narrow pane scrolls sideways. */
+.sim-switches { display: flex; flex-flow: row nowrap; align-items: flex-start; gap: 4px 8px; }
 .sim-switches label[data-field-key] { white-space: nowrap; }
 .option-switch-group { display: flex; flex-direction: column; gap: 1px; }
 .option-switch-group-headrow { display: flex; align-items: center; gap: 6px; }
 .option-switch-group-head { font-size: 11px; font-weight: 600; color: #555; }
 .sim-switch-col { display: flex; flex-direction: column; gap: 0; flex: none; }
-/* The WinISD bugs in two columns: below the Options group they still fit the tab's height. */
-.sim-switches :deep(.error-switch-group) { display: grid; grid-template-columns: repeat(2, max-content); column-gap: 8px; }
-.sim-switches :deep(.error-switch-group-headrow) { grid-column: 1 / -1; }
-.sim-options-header { font-weight: 600; font-size: 11px; color: #333; }
-.sim-options-head { margin-bottom: 3px; border-bottom: 1px solid #d0d0d0; padding-bottom: 2px; }
 .compat-switch-na { opacity: 0.45; cursor: default; }
 
 /* filters tab fills the panel */

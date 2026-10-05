@@ -31,8 +31,8 @@ describe('CompatSwitch', () => {
   it('the group headings carry "Enable WinISD"; the switch titles do not; each tooltip says what ticked and unticked do', () => {
     expect(CompatSwitchGroup.BUGS.heading).toBe('Enable WinISD bugs');
     expect(CompatSwitchGroup.BUGS.tooltip).toMatch(/^Enable WinISD bugs: /);
-    expect(CompatSwitchGroup.OPTIONS.heading).toBe('Enable WinISD-style');
-    expect(CompatSwitchGroup.OPTIONS.tooltip).toMatch(/^Enable WinISD-style: /);
+    expect(CompatSwitchGroup.OPTIONS.heading).toBe('Enable WinISD-style …');
+    expect(CompatSwitchGroup.OPTIONS.tooltip).toMatch(/^Enable WinISD-style …: /);
     for (const s of CompatSwitch.ALL) expect(s.field.label).not.toMatch(/Enable WinISD|bug$/);
     for (const s of CompatSwitch.ALL) {
       expect(s.field.description).toMatch(/\nTicked/);

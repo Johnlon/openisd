@@ -12,6 +12,7 @@ import AdvancedOptions from '../../components/AdvancedOptions.vue';
 import ErrorSwitch from '../../components/ErrorSwitch.vue';
 import ErrorSwitchGroup from '../../components/ErrorSwitchGroup.vue';
 import CompatGroupHelpLink from '../../components/CompatGroupHelpLink.vue';
+import ToggleLabel from '../../components/ToggleLabel.vue';
 import {useMobileAdvancedTab} from '../../../hooks/MobileAdvancedTab-hooks.js';
 
 const {
@@ -81,7 +82,7 @@ const {
     </div>
     <div class="mob-row mob-checkbox-row" :class="{ 'mob-row-na': !abcVelocityApplies }">
       <label data-field-key="winisdAbcIntraPortVelocity" :title="ToggleField.ADV_WINISDABCINTRAPORTVELOCITY.description">
-        <input type="checkbox" :checked="project.winisdAbcIntraPortVelocity.value" :disabled="!abcVelocityApplies" @change="e => project.winisdAbcIntraPortVelocity.set(inputChecked(e))"> {{ ToggleField.ADV_WINISDABCINTRAPORTVELOCITY.label }}
+        <input type="checkbox" :checked="project.winisdAbcIntraPortVelocity.value" :disabled="!abcVelocityApplies" @change="e => project.winisdAbcIntraPortVelocity.set(inputChecked(e))"> <ToggleLabel :field="ToggleField.ADV_WINISDABCINTRAPORTVELOCITY" />
       </label>
     </div>
     <ErrorSwitchGroup>
