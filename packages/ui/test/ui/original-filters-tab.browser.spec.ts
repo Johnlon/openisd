@@ -161,14 +161,15 @@ test('the quick-add bar offers every WinISD filter type plus the two shelves, an
 // WinISD deviation cue: a small button next to a control whose result differs from WinISD because
 // OpenISD fixed a WinISD bug. It opens the help page "OpenISD and WinISD differences" at the bug's
 // entry (its size and the bug switch that brings WinISD back); it is hidden while that switch
-// reproduces WinISD.
-test('an allpass above order 2 shows the WinISD deviation cue; WinISD ignores that order, so there is no switch', async ({page}) => {
+// reproduces WinISD. It sits on every filter of the kind the bug concerns, whatever the order
+// (John, 2026-10-05).
+test('an allpass shows the WinISD deviation cue at any order; WinISD ignores orders above 2, so there is no switch', async ({page}) => {
   const panel = page.locator('.content-panel');
   await panel.locator('.action-btn', {hasText: '+ AP'}).click();
-  const cue = panel.locator('button.winisd-deviation-cue');
+  const cue = panel.locator('.filter-edit-body button.winisd-deviation-cue');
   await fillAndBlur(editorField(panel, 'Order'), '2');
   await expect(panel.locator('.filter-summary')).toContainText('n=2');
-  await expect(cue).toHaveCount(0);
+  await expect(cue).toBeVisible();
   await fillAndBlur(editorField(panel, 'Order'), '4');
   await expect(cue).toBeVisible();
   await expect(cue).toHaveAttribute('aria-label', /^Differs from WinISD: /);
@@ -190,12 +191,12 @@ test('an allpass above order 2 shows the WinISD deviation cue; WinISD ignores th
   await expect(dialog).toHaveCount(0);
 });
 
-test('a Linkwitz-Riley takes even orders and shows the WinISD deviation cue unless the order is 4', async ({page}) => {
+test('a Linkwitz-Riley takes even orders and shows the WinISD deviation cue at every order, 4 included', async ({page}) => {
   const panel = page.locator('.content-panel');
   await panel.locator('.action-btn', {hasText: '+ LP'}).click();
   await editorField(panel, 'Subtype').selectOption({label: 'Linkwitz-Riley'});
   const order = editorField(panel, 'Order');
-  const cue = panel.locator('button.winisd-deviation-cue');
+  const cue = panel.locator('.filter-edit-body button.winisd-deviation-cue');
   await expect(order).toHaveAttribute('step', '2');
   await expect(order).toHaveAttribute('min', '2');
   // The new low-pass is order 2, so it becomes LR2: WinISD would draw LR4.
@@ -203,7 +204,7 @@ test('a Linkwitz-Riley takes even orders and shows the WinISD deviation cue unle
   await expect(cue).toBeVisible();
   await fillAndBlur(order, '3');
   await expect(panel.locator('.filter-summary')).toContainText('Linkwitz-Riley, n=4');
-  await expect(cue).toHaveCount(0);
+  await expect(cue).toBeVisible();
   await fillAndBlur(order, '2');
   await expect(panel.locator('.filter-summary')).toContainText('Linkwitz-Riley, n=2');
   await expect(cue).toBeVisible();
@@ -222,7 +223,7 @@ test('a User SOS Order box is greyed out: a second-order section is order 2', as
 test('a Bessel high-pass shows the WinISD deviation cue by its Subtype', async ({page}) => {
   const panel = page.locator('.content-panel');
   await panel.locator('.action-btn', {hasText: '+ HP'}).click();
-  const cue = panel.locator('button.winisd-deviation-cue');
+  const cue = panel.locator('.filter-edit-body button.winisd-deviation-cue');
   await expect(cue).toHaveCount(0);
   await editorField(panel, 'Subtype').selectOption({label: 'Bessel'});
   await expect(cue).toBeVisible();

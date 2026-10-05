@@ -5,7 +5,7 @@
  * (OriginalFilters'/the engine's own spec files cover that).
  */
 import {expect, openAMobileProject, test} from '../fixtures.js';
-import {forceMobileSkin} from '../fixtures/mobileSkin.js';
+import {forceMobileSkin, tapMobileMenuItem} from '../fixtures/mobileSkin.js';
 
 test.beforeEach(async ({ page }) => {
   await forceMobileSkin(page);
@@ -52,4 +52,16 @@ test('an order-4 allpass shows the WinISD deviation cue, and it opens the differ
   const width = page.viewportSize()!.width;
   expect(box.x).toBeGreaterThanOrEqual(0);
   expect(box.x + box.width).toBeLessThanOrEqual(width);
+});
+
+test('Options "Show WinISD difference markers (≠W)" hides the cue, and ticking it brings it back', async ({ page }) => {
+  await page.getByText('+ AP', { exact: true }).click();
+  const cue = page.locator('button.winisd-deviation-cue');
+  await expect(cue).toBeVisible();
+  for (const on of [false, true]) {
+    await tapMobileMenuItem(page, 'Options');
+    await page.locator('[data-testid="difference-cues"] input').setChecked(on);
+    await page.locator('[data-testid="settings-apply"]').click();
+    await expect(cue).toHaveCount(on ? 1 : 0);
+  }
 });

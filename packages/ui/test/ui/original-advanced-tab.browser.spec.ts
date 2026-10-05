@@ -16,6 +16,19 @@ const temperature = (page: Page) => page.locator('.field', { hasText: 'Temperatu
 const pressure = (page: Page) => page.locator('.field', { hasText: 'Air pressure' }).locator('input');
 const advancedTab = (page: Page) => page.locator('li', { hasText: /^Advanced$/ });
 
+/** Set the passive-radiator count on the Passive Radiator tab, then come back to the Advanced tab. */
+async function setPrCount(page: Page, n: number): Promise<void> {
+  await page.locator('.project-nav li', { hasText: 'Passive Radiator' }).click();
+  await page.locator('#og-pr-count').selectOption(String(n));
+  await advancedTab(page).click();
+}
+
+/** The ≠W cue by the passive-radiator count, on the Passive Radiator tab. */
+async function prCountCue(page: Page) {
+  await page.locator('.project-nav li', { hasText: 'Passive Radiator' }).click();
+  return page.locator('.field', { has: page.locator('#og-pr-count') }).locator('.winisd-deviation-cue');
+}
+
 /** Show the Advanced tab for a project whose box is `boxType`; the box is set through the domain. */
 async function showAdvancedOn(page: Page, boxType: BoxTypeName): Promise<void> {
   await setFocusedBoxType(page, boxType);
@@ -299,7 +312,7 @@ test.describe('Original Advanced tab', () => {
       const panel = page.locator('.sim-options-box', { hasText: 'WinISD Compatibility' });
       await expect(panel.locator('button:not(.compat-help-link)')).toHaveCount(0);
       await expect(panel.locator('button.compat-help-link')).toHaveCount(2);
-      await expect(panel.locator('.option-switch-group-head')).toHaveText('Enable WinISD-style');
+      await expect(panel.locator('.option-switch-group-head')).toHaveText('Enable WinISD-style …');
       await expect(panel.locator('.error-switch-group-head')).toHaveText('Enable WinISD bugs');
     });
 
@@ -360,19 +373,19 @@ test.describe('Original Advanced tab', () => {
 
     test('the passive-radiator count carries the ≠W cue at any count while "PR Npr resonance" is off', async ({ page }) => {
       await showAdvancedOn(page, 'box-passive-radiator');
-      const count = page.locator('#og-pr-count');
-      const cue = page.locator('.field', { has: count }).locator('.winisd-deviation-cue');
-      await count.selectOption('1');
+      await setPrCount(page, 1);
+      const cue = await prCountCue(page);
       await expect(cue).toHaveCount(1);
-      await count.selectOption('2');
-      await expect(cue).toHaveCount(1);
+      await setPrCount(page, 2);
+      await expect(await prCountCue(page)).toHaveCount(1);
+      await advancedTab(page).click();
       await page.locator('[data-field-key="winisdPrNprResonance"] input').check();
-      await expect(cue).toHaveCount(0);
+      await expect(await prCountCue(page)).toHaveCount(0);
     });
 
     test('Options "Show WinISD difference markers (≠W)" hides every cue, and ticking it brings them back', async ({ page }) => {
       await showAdvancedOn(page, 'box-passive-radiator');
-      const cue = page.locator('.field', { has: page.locator('#og-pr-count') }).locator('.winisd-deviation-cue');
+      const cue = await prCountCue(page);
       await expect(cue).toHaveCount(1);
       const setMarkers = async (on: boolean) => {
         await page.locator('.tb-btn[title="Options"]').click();
@@ -445,6 +458,23 @@ test.describe('Original Advanced tab', () => {
       });
     }
 
+    // John, 2026-10-05: "Needs to be two cols" — options left, bugs right, one switch per line.
+    for (const [zoom, width, height] of [[100, 1280, 800], [125, 1024, 640], [150, 853, 533]] as const) {
+      test(`at ${zoom}% zoom the options group and the bugs group sit side by side, each one column`, async ({page}) => {
+        await page.setViewportSize({width, height});
+        await showAdvancedOn(page, 'abc');
+        const options = (await page.locator('.option-switch-group').boundingBox())!;
+        const bugs = (await page.locator('.error-switch-group').boundingBox())!;
+        expect(bugs.x).toBeGreaterThanOrEqual(options.x + options.width);
+        expect(Math.abs(bugs.y - options.y)).toBeLessThanOrEqual(1);
+        for (const group of ['.option-switch-group', '.error-switch-group']) {
+          const lefts = await page.locator(`${group} label[data-field-key]`).evaluateAll(
+            els => els.map(e => Math.round(e.getBoundingClientRect().left)));
+          expect(new Set(lefts).size, `${group}: one column`).toBe(1);
+        }
+      });
+    }
+
     test('the error group fits inside the Compatibility panel', async ({page}) => {
       await showAdvancedOn(page, 'abc');
       const panel = page.locator('.sim-options-box', {hasText: 'WinISD Compatibility'});
@@ -466,6 +496,7 @@ test.describe('Original Advanced tab', () => {
     test('the error switches carry the warning class, unticked and ticked', async ({page}) => {
       for (const key of TICKABLE_KEYS) {
         await showAdvancedOn(page, BOX_FOR[key] ?? 'abc');
+        if (key === 'winisdPrNprResonance') await setPrCount(page, 2);
         const label = page.locator(`label[data-field-key="${key}"]`);
         const box = label.locator('input[type=checkbox]');
         await expect(label, key).toHaveClass(/error-switch-marked/);
@@ -537,11 +568,10 @@ test.describe('Original Advanced tab', () => {
       await expect(label.locator('input')).toBeDisabled();
       await expect(label).toHaveClass(/error-switch-na/);
       await showAdvancedOn(page, 'box-passive-radiator');
-      const count = page.locator('#og-pr-count');
-      await count.selectOption('1');
+      await setPrCount(page, 1);
       await expect(label.locator('input')).toBeDisabled();
       await expect(label).toHaveClass(/error-switch-na/);
-      await count.selectOption('2');
+      await setPrCount(page, 2);
       await expect(label.locator('input')).toBeEnabled();
       await expect(label).not.toHaveClass(/error-switch-na/);
     });
