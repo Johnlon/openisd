@@ -31,6 +31,14 @@ describe('date and time formatting', () => {
     expect(before).not.toBe(d.toLocaleString('en-US'));
   });
 
+  // John, 2026-10-05: 05/10/2026 hides the day/month order. A user reads the month as a word.
+  it('names the month in words and never writes a "/"', () => {
+    for (const text of [formatDateTime(new Date(2026, 9, 5, 23, 32)), formatDate(new Date(2026, 1, 3))]) {
+      expect(text).toMatch(/\b(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\b/);
+      expect(text).not.toContain('/');
+    }
+  });
+
   it('formatCount: thousands grouped with commas, whatever the locale', () => {
     expect(formatCount(1234567)).toBe('1,234,567');
     expect(formatCount(42)).toBe('42');
