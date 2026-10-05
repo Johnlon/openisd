@@ -42,6 +42,7 @@ const winisdDifferences = injectWinisdDifferencesModal();
       </div>
       <p class="mob-empty-title">No project open</p>
       <button type="button" class="mob-cta" @click="openNewProject">New project</button>
+      <button type="button" class="mob-cta mob-cta-secondary" @click="openProjectDialog">Open project</button>
       <button type="button" class="mob-cta mob-cta-secondary" @click="fileInput?.click()">Open a file</button>
       <button type="button" class="mob-link" @click="switchToDesktop">Switch to Desktop view</button>
     </div>
@@ -137,22 +138,23 @@ const winisdDifferences = injectWinisdDifferencesModal();
           </section>
         </div>
       </div>
-
-      <div v-if="openDialogOpen" class="mob-align-overlay" @click.self="openDialogOpen = false">
-        <div class="mob-align-sheet">
-          <div class="mob-panel-head mob-panel-head-row">
-            <span>Open project</span>
-            <button class="mob-x" @click="openDialogOpen = false">&#10005;</button>
-          </div>
-          <p v-if="storedProjects.length === 0" class="mob-hint">No saved project yet.</p>
-          <button v-for="p in storedProjects" :key="p.id" type="button" class="mob-stored-project-row"
-            @click="openStoredProject(p.id)">
-            <span class="mob-stored-project-name">{{ p.name }}</span>
-            <span class="mob-stored-project-modified">{{ new Date(p.modified).toLocaleString() }}</span>
-          </button>
-        </div>
-      </div>
     </template>
+
+    <!-- Outside the project template: the empty state opens it too. -->
+    <div v-if="openDialogOpen" class="mob-align-overlay" @click.self="openDialogOpen = false">
+      <div class="mob-align-sheet">
+        <div class="mob-panel-head mob-panel-head-row">
+          <span>Open project</span>
+          <button class="mob-x" @click="openDialogOpen = false">&#10005;</button>
+        </div>
+        <p v-if="storedProjects.length === 0" class="mob-hint">No saved project yet.</p>
+        <button v-for="p in storedProjects" :key="p.id" type="button" class="mob-stored-project-row"
+          @click="openStoredProject(p.id)">
+          <span class="mob-stored-project-name">{{ p.name }}</span>
+          <span class="mob-stored-project-modified">{{ new Date(p.modified).toLocaleString() }}</span>
+        </button>
+      </div>
+    </div>
 
     <OptionsModal v-if="optionsOpen" class="mob-options" @close="optionsOpen = false" />
   </div>
@@ -259,7 +261,9 @@ const winisdDifferences = injectWinisdDifferencesModal();
   top: 0;
   left: 0;
   min-width: 240px;
-  max-width: 80vw;
+  /* % of the phone pane, not vw: on a wide window the pane is narrower than the window, and an
+     80vw drawer covered the whole pane, leaving no overlay to tap to close the menu. */
+  max-width: 80%;
   background: var(--panel);
   border-right: 1px solid var(--line);
   box-shadow: 3px 0 12px rgba(0, 0, 0, 0.25);
