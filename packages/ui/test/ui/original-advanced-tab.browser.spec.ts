@@ -548,10 +548,10 @@ test.describe('Original Advanced tab', () => {
       }
     });
 
-    test('every bug switch tooltip starts "Reproduces a WinISD bug."', async ({page}) => {
+    test('every bug switch tooltip starts "Ticking brings back a WinISD bug."', async ({page}) => {
       await page.locator('li', {hasText: /^Advanced$/}).click();
       for (const key of ERROR_KEYS) {
-        await expect(page.locator(`label[data-field-key="${key}"]`), key).toHaveAttribute('title', /^Reproduces a WinISD bug\.\n/);
+        await expect(page.locator(`label[data-field-key="${key}"]`), key).toHaveAttribute('title', /^Ticking brings back a WinISD bug\.\n/);
       }
     });
 

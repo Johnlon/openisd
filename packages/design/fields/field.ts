@@ -306,7 +306,7 @@ export class NumberField extends Field {
     display: {kind: 'switchable', group: 'volume', base: 'L'},
     limits: {min: 0.0001, max: 100},
     precision: 2,
-    description: "Net Enclosure Volume\nInternal net air volume — the acoustic spring the driver works against.",
+    description: "Net Enclosure Volume\nThe air volume inside the box. This air acts as a spring the cone pushes against.",
   });
   static readonly BOX_VF_L = new NumberField({
     value: "box_Vf_l",
@@ -934,7 +934,7 @@ export class NumberField extends Field {
     floor: "positive",
     precision: 5,
     formula: "gamma = Bl/Mms",
-    description: "Acceleration Factor (gamma)\nMotor force per unit moving mass (Bl/Mms) — initial cone acceleration per amp.",
+    description: "Acceleration Factor (gamma)\nMotor force per unit of moving mass (Bl/Mms): how fast the cone starts to move for each amp.",
   });
   static readonly MPOW_N_PER_SQRTW = new NumberField({
     value: "Mpow_N_per_sqrtW",
@@ -1055,7 +1055,7 @@ export class NumberField extends Field {
     limits: {min: 0, max: 1000},
     floor: "positive",
     precision: 2,
-    description: "Reference Speed of Sound (c)\nSpeed of sound at this driver record's reference conditions. Display only — no calculation reads this field; the project's own air is used everywhere. Purpose unconfirmed: may just record the condition the driver was measured at, or may be meant to adapt the driver's readings to the project's air. Speculation, 2026-09-26.",
+    description: "Reference Speed of Sound (c)\nSpeed of sound in the air this driver record refers to. Shown only: no calculation uses it, and OpenISD uses the project's own air everywhere. Its purpose is not known. It may record the air the driver was measured in, or it may be meant to adjust the driver's values to the project's air (a guess, 2026-09-26).",
   });
   static readonly ROO_KG_PER_M3 = new NumberField({
     value: "roo_kg_per_m3",
@@ -1064,7 +1064,7 @@ export class NumberField extends Field {
     limits: {min: 0, max: 10},
     floor: "positive",
     precision: 5,
-    description: "Reference Air Density (roo)\nAir density at this driver record's reference conditions. Display only — no calculation reads this field; the project's own air is used everywhere. Purpose unconfirmed: may just record the condition the driver was measured at, or may be meant to adapt the driver's readings to the project's air. Speculation, 2026-09-26.",
+    description: "Reference Air Density (roo)\nAir density in the air this driver record refers to. Shown only: no calculation uses it, and OpenISD uses the project's own air everywhere. Its purpose is not known. It may record the air the driver was measured in, or it may be meant to adjust the driver's values to the project's air (a guess, 2026-09-26).",
   });
 
   // ── Box ───────────────────────────────────────────────────────────────────────────────────
@@ -1335,17 +1335,17 @@ export class ToggleField extends Field {
   static readonly ADV_FORCEFLATRESPONSE = new ToggleField({
     value: "adv_ForceFlatResponse",
     label: "Force flat response",
-    description: "Force Flat Response\nApplies auto-equalization, revealing the excursion and port velocity a flat passband would demand.",
+    description: "Force Flat Response\nAdds EQ to make the response flat. The excursion and port velocity charts then show what a flat passband needs.",
   });
   static readonly ADV_TLPORTMODEL = new ToggleField({
     value: "adv_TlPortModel",
     label: "Use \"transmission line\"-model for port simulation",
-    description: "Transmission Line Port Model\nModels the vent as a distributed transmission line, adding its internal organ-pipe resonances to the response curves.",
+    description: "Transmission Line Port Model\nTreats the port as a pipe with length, not a lump of air. The response curves then show the port's own pipe resonances.",
   }, null, '-model');
   static readonly ADV_RGATDRIVERSIDE = new ToggleField({
     value: "adv_RgAtDriverSide",
     label: "Rg is at driver side",
-    description: "Rg Placement\nApplies the series resistance Rg to each driver individually, rather than once at the amplifier output.",
+    description: "Rg Placement\nTicked: each driver gets its own series resistance Rg. Unticked: Rg sits once, at the amplifier output.",
   });
   static readonly ADV_SPLXMAXLIMITED = new ToggleField({
     value: "adv_SplXmaxLimited",
@@ -1356,50 +1356,50 @@ export class ToggleField extends Field {
   static readonly ADV_WINISDDRIVERMODEL = new ToggleField({
     value: "adv_WinisdDriverModel",
     label: "Two-BL driver",
-    description: "Two-BL driver: WinISD mixes the entered BL with the BL implied by Fs, Qes and Vas.\nTicked (as WinISD): the simulation uses two BLs. The damping comes from the driver WinISD acts on: Cms from Vas, then Mms, Rms and BL from Fs, Qms and Qes. The entered BL sets the loudness and, with voice coil inductance on, the inductance roll-off. We judge the two-BL mix a WinISD bug.\nUnticked (the default, bug fixed): the simulation uses the entered datasheet values, one BL throughout.",
-  }, "every chart, only when the entered driver values disagree with Fs, Vas, Qes and Qms. W5-1138SMF (entered BL 7.17, implied 7.384): SPL chart 0.26 dB in the passband; Impedance chart peak about 1.2 Ω (8 %) high; Transfer function magnitude chart 0.51 dB.");
+    description: "Two-BL driver: WinISD mixes the entered BL with the BL that Fs, Qes and Vas imply. We count this as a WinISD bug.\nTicked: OpenISD uses two BLs, as WinISD does. The damping comes from Cms worked out from Vas, then Mms, Rms and BL worked out from Fs, Qms and Qes. The entered BL sets the loudness and, with voice coil inductance on, the inductance roll-off.\nUnticked (default): OpenISD uses the entered datasheet values, with one BL throughout.",
+  }, "every chart, only when the entered driver values disagree with Fs, Vas, Qes and Qms. W5-1138SMF (entered BL 7.17, implied 7.384): the SPL chart differs by 0.26 dB in the passband, the Impedance chart peak is about 1.2 Ω (8 %) high, and the Transfer function magnitude chart differs by 0.51 dB.");
   static readonly ADV_WINISDVAMODEL = new ToggleField({
     value: "adv_WinisdVaModel",
     label: "Re without Rg",
-    description: "Re without Rg: WinISD uses Re where the amplifier sees Re + Rg. Both give the same result when Rg is 0.\nTicked (as WinISD): VA = P·Re/|Z + Rg|, low by Re/(Re + Rg); with 'Rg is at driver side' on, Z already includes Rg and WinISD adds it again. Power and voltage: P = N·V²/Re, while the SPL chart drives that power into Re + Rg.\nUnticked (the default, bug fixed): Re + Rg throughout. VA = P·(Re + Rg)/|Z seen by the amplifier|, Rg counted once; P = N·V²/(Re + Rg).\nP: input power. V: driver input voltage (each). N: number of drivers. Z: the impedance chart. Rg: the series resistance.",
-  }, "Amplifier apparent load power (VA) chart, about 23 % low at Re 3.4 Ω, Rg 1 Ω; Signal tab System input power readout, 4.0 W against 3.91 W at 1.85 V each × 4 drivers, Re 3.4 Ω, Rg 0.1 Ω; with the voltage typed, the SPL chart about 0.1 dB louder there.");
+    description: "Re without Rg: WinISD uses Re where the amplifier sees Re + Rg. With Rg at 0 Ω, both give the same result.\nTicked: OpenISD works as WinISD does. VA = P·Re/|Z + Rg|, which is low by Re/(Re + Rg). With 'Rg is at driver side' on, Z already includes Rg and WinISD adds it again. Power from voltage is P = N·V²/Re, but the SPL chart drives that power into Re + Rg.\nUnticked (default): OpenISD uses Re + Rg throughout. VA = P·(Re + Rg)/|Z seen by the amplifier|, with Rg counted once, and P = N·V²/(Re + Rg).\nP: input power. V: voltage at each driver. N: number of drivers. Z: the impedance chart. Rg: the series resistance.",
+  }, "the Amplifier apparent load power (VA) chart, about 23 % low at Re 3.4 Ω, Rg 1 Ω. The Signal tab's System input power readout, 4.0 W against 3.91 W at 1.85 V each × 4 drivers, Re 3.4 Ω, Rg 0.1 Ω. With the voltage typed in, the SPL chart is about 0.1 dB louder in that case.");
   static readonly ADV_WINISDPRNPRRESONANCE = new ToggleField({
     value: "adv_WinisdPrNprResonance",
     label: "PR Npr resonance",
-    description: "PR Npr resonance: WinISD takes the passive radiator box's losses at a frequency Npr times too low.\nTicked (as WinISD): the box's leak and absorption are taken at WinISD's frequency 1/√(Npr·Map·(Cab ∥ Npr·Cap)). The radiator mass is multiplied by Npr where the tuning divides by it.\nUnticked (the default, bug fixed): the same losses taken at the physical tuning 1/√((Map/Npr)·(Cab ∥ Npr·Cap)).",
-  }, "passive radiator box with more than one radiator (Npr > 1), WinISD lossy model; none at Npr = 1. Npr 2, W5 in 10 L, radiator Fs 30 Hz and Vas 4.8 L (WinISD 21 Hz, tuning 42 Hz): Impedance chart up to 1 Ω, Transfer function magnitude chart up to 2 dB.");
+    description: "PR Npr resonance: WinISD works out the passive radiator box's losses at a frequency Npr times too low.\nTicked: OpenISD takes the box's leak and absorption at WinISD's frequency, 1/√(Npr·Map·(Cab ∥ Npr·Cap)). WinISD multiplies the radiator mass by Npr where the tuning divides by it.\nUnticked (default): OpenISD takes the same losses at the true tuning, 1/√((Map/Npr)·(Cab ∥ Npr·Cap)).",
+  }, "passive radiator boxes with more than one radiator (Npr > 1), with WinISD's lossy model. No change at Npr = 1. Npr 2, W5 in 10 L, radiator Fs 30 Hz and Vas 4.8 L (WinISD 21 Hz, tuning 42 Hz): the Impedance chart differs by up to 1 Ω, the Transfer function magnitude chart by up to 2 dB.");
   static readonly ADV_WINISDBESSELHIGHPASS = new ToggleField({
     value: "adv_WinisdBesselHighpass",
     label: "Bessel high-pass",
-    description: "Bessel high-pass: WinISD's Bessel high-pass is not the mirror of its low-pass.\nTicked (as WinISD): the high-pass keeps the low-pass's own denominator with the numerator swapped to (k·s)^n.\nUnticked (the default, bug fixed): the mirror of the low-pass, s → 1/s.",
-  }, "Bessel high-pass filters of order 2 or more in the EQ/Filter chain: the three (EQ/Filter) charts and every chart the filter feeds (SPL, Cone excursion, port velocities), up to 6 % in complex response at order 4, fc 25 Hz. Butterworth, Linkwitz-Riley, SOS, every low-pass and a first-order Bessel are unchanged.");
+    description: "Bessel high-pass: WinISD's Bessel high-pass is not the mirror image of its low-pass.\nTicked: OpenISD works as WinISD does. The high-pass keeps the low-pass's denominator and swaps the numerator to (k·s)^n.\nUnticked (default): the high-pass is the mirror image of the low-pass (s → 1/s).",
+  }, "Bessel high-pass filters of order 2 or more in the EQ/Filter chain: the three EQ/Filter charts and every chart the filter feeds (SPL, Cone excursion, port velocities). The complex response differs by up to 6 % at order 4, fc 25 Hz. Butterworth, Linkwitz-Riley, SOS, every low-pass and a first-order Bessel do not change.");
   static readonly ADV_WINISDABCGROUPDELAY = new ToggleField({
     value: "adv_WinisdAbcGroupDelay",
     label: "ABC group delay",
-    description: "ABC group delay: WinISD's ABC group delay leaves the driver out.\nTicked (as WinISD): the group delay steps the box to f ± 1e-10 Hz but keeps the driver at the chart frequency f, so the driver's own phase slope is left out. It disagrees with WinISD's own phase chart.\nUnticked (the default, bug fixed): the group delay is −dφ/dω of the plotted phase.",
-  }, "Group Delay chart of an ABC box only. W5-1138SMF ABC: −41.0 ms against −33.9 ms at 1 Hz, −3.3 ms against +3.6 ms at 10.75 Hz.");
+    description: "ABC group delay: WinISD's ABC group delay leaves the driver out.\nTicked: OpenISD works as WinISD does. It steps the box to f ± 1e-10 Hz but keeps the driver at the chart frequency f, so the driver's own phase slope is missing. The result disagrees with WinISD's own phase chart.\nUnticked (default): the group delay is −dφ/dω of the plotted phase.",
+  }, "the Group Delay chart of an ABC box only. W5-1138SMF ABC: −41.0 ms against −33.9 ms at 1 Hz, −3.3 ms against +3.6 ms at 10.75 Hz.");
 
   static readonly ADV_WINISDDRIVERCOUNTMODEL = new ToggleField({
     value: "adv_WinisdDriverCountModel",
     label: "Per-driver impedance",
-    description: "Per-driver impedance: with more than one driver, WinISD's impedance chart shows one driver's impedance.\nTicked (as WinISD): the impedance chart shows one driver's impedance.\nUnticked (the default, bug fixed): the impedance chart shows the array the amplifier drives, per the project's wiring: one driver's divided by N in parallel, times N in series.",
-  }, "Impedance chart, designs with more than one driver. W5-1138SMF sealed, 4 drivers in parallel: WinISD peaks at 18.6 Ω, the array at 4.65 Ω. SPL, Cone excursion, Amplifier apparent load power (VA) and Maximum Power are WinISD's either way.");
+    description: "Per-driver impedance: with more than one driver, WinISD's impedance chart shows one driver's impedance.\nTicked: the impedance chart shows one driver's impedance, as WinISD does.\nUnticked (default): the impedance chart shows all the drivers the amplifier drives, wired as the project says: one driver's impedance divided by N in parallel, times N in series.",
+  }, "the Impedance chart, for designs with more than one driver. W5-1138SMF sealed, 4 drivers in parallel: WinISD peaks at 18.6 Ω, all 4 drivers at 4.65 Ω. SPL, Cone excursion, Amplifier apparent load power (VA) and Maximum Power match WinISD either way.");
 
   // ── WinISD Compatibility: options (under "Enable WinISD-style", named by the calculation; ticked is WinISD's way) ──────
   static readonly ADV_WINISDWRAPPHASE = new ToggleField({
     value: "adv_WinisdWrapPhase",
     label: "Phase wrapping",
-    description: "Phase wrapping: affects every phase chart.\nTicked (the default, as WinISD): phase curves wrap at ±180°.\nUnticked: phase curves stay continuous and unwrapped.",
+    description: "Phase wrapping: changes every phase chart.\nTicked (default, as WinISD): phase curves wrap at ±180°.\nUnticked: phase curves run on without wrapping.",
   });
   static readonly ADV_WINISDFLATMODEL = new ToggleField({
     value: "adv_WinisdFlatModel",
     label: "Uncapped flat response",
-    description: "Uncapped flat response: affects 'Force flat response' only.\nTicked (the default, as WinISD): every frequency is set to the transfer function's 0 dB, cut as well as boosted, uncapped; excursion shows what that costs.\nUnticked: boost only, up to the passband level, capped at 20 dB.",
+    description: "Uncapped flat response: changes 'Force flat response' only.\nTicked (default, as WinISD): OpenISD sets every frequency to the transfer function's 0 dB, cutting as well as boosting, uncapped. The excursion chart shows what that costs.\nUnticked: boost only, up to the passband level, capped at 20 dB.",
   });
   static readonly ADV_WINISDABCINTRAPORTVELOCITY = new ToggleField({
     value: "adv_WinisdAbcIntraPortVelocity",
     label: "Simplified ABC intra-port velocity",
-    description: "Simplified ABC intra-port velocity: affects the ABC box's Intra port velocity chart only.\nTicked (the default, as WinISD): the intra-port velocity leaves out the leak term Zf·jωMai/Ricl.\nUnticked: the exact port-mass current. Differs by up to 1.35 dB and 4.6° near 110 Hz, under 0.1 dB elsewhere (W5-1138SMF, abc-w5-1).\nOnly on an ABC box.",
+    description: "Simplified ABC intra-port velocity: changes the ABC box's Intra port velocity chart only.\nTicked (default, as WinISD): the velocity leaves out the leak term Zf·jωMai/Ricl.\nUnticked: OpenISD uses the exact port-mass current. The two differ by up to 1.35 dB and 4.6° near 110 Hz, and by under 0.1 dB elsewhere (W5-1138SMF).",
   }, null, 'intra-port');
 
   static readonly ALL: readonly ToggleField[] =

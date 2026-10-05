@@ -5,13 +5,13 @@ export class CompatSwitchGroup {
 
     static readonly BUGS = new CompatSwitchGroup(
         'Enable WinISD bugs',
-        'Enable WinISD bugs: each switch makes OpenISD reproduce a known WinISD calculation bug. '
-        + 'Unticked (the default), OpenISD does the correct calculation. Ticked, WinISD\'s own result comes back. '
-        + 'The yellow look marks them.');
+        'Enable WinISD bugs: each switch brings back a known WinISD calculation bug. '
+        + 'Unticked (default): OpenISD does the correct calculation. Ticked: OpenISD gives WinISD\'s result. '
+        + 'A yellow frame marks each bug switch.');
 
     static readonly OPTIONS = new CompatSwitchGroup(
         'Enable WinISD-style …',
-        'Enable WinISD-style …: each switch picks between WinISD\'s way of a calculation (ticked, the default) '
-        + 'and another valid form (unticked). Neither is a bug.');
+        'Enable WinISD-style …: each switch chooses between WinISD\'s way of doing a calculation (ticked, the default) '
+        + 'and another valid way (unticked). Neither is a bug.');
 
 }

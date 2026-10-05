@@ -62,7 +62,7 @@ test('the bug switches carry the warning class under a "Enable WinISD bugs" head
   for (const key of ['winisdDriverModel', 'winisdVaModel', 'winisdPrNprResonance', 'winisdBesselHighpass', 'winisdAbcGroupDelay', 'winisdDriverCountModel']) {
     const label = group.locator(`label[data-field-key="${key}"]`);
     await expect(label, key).toHaveClass(/error-switch-marked/);
-    await expect(label, key).toHaveAttribute('title', /^Reproduces a WinISD bug\.\n/);
+    await expect(label, key).toHaveAttribute('title', /^Ticking brings back a WinISD bug\.\n/);
   }
   await expect(group.locator('label[data-field-key="winisdAbcIntraPortVelocity"]')).toHaveCount(0);
   await expect(page.locator('label[data-field-key="winisdAbcIntraPortVelocity"] input')).toBeDisabled();

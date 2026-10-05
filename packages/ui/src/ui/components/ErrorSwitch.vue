@@ -18,7 +18,7 @@ const props = defineProps<{
   fieldKey?: string;
 }>();
 
-const ERROR_SWITCH_TITLE = 'Reproduces a WinISD bug.';
+const ERROR_SWITCH_TITLE = 'Ticking brings back a WinISD bug.';
 </script>
 
 <template>
