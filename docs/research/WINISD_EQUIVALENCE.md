@@ -33,10 +33,10 @@ driver** (Tang Band W5-1138SMF) — every number below is for that driver only.
 
 | Scope                                | Cells | Matched | Gaps | Deviation (✗) | Unverified (❔) | Missing (⛔) |
 | ------------------------------------ | ----: | ------: | ---: | ------------: | --------------: | -----------: |
-| Table 1 — chart × box, base settings | 76    | 75      | 1    | 1             | 0               | 0            |
+| Table 1 — chart × box, base settings | 76    | 76      | 0    | 0             | 0               | 0            |
 | Table 2 — setting × box              | 100   | 73      | 27   | 0             | 27              | 0            |
 | Table 3 — readouts and tools         | 8     | 3       | 5    | 0             | 5               | 0            |
-| Total                                | 184   | 151     | 33   | 1             | 32              | 0            |
+| Total                                | 184   | 152     | 32   | 0             | 32              | 0            |
 
 Worst matched deviation anywhere, excluding group delay: ≤ 1e-9 (BP6/ABC transfer function
 magnitude, impedance, and rear/front/intrachamber port velocity — `bp6-w5-1`/`abc-w5-1`, exact
@@ -60,7 +60,7 @@ capture (≤ 1e-9); every other chart from runs/bp6-w5-base2 and abc-w5-base2 (2
 | -------------------------------- | ---- | -------- | --------- | ------------ | ---------------- | ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------- |
 | Transfer function magnitude      | dB   | 4.8e-14  | 5.7e-14   | 4.5e-13      | 5.7e-14          | ≤ 1e-9                                                                                           | ≤ 1e-9                                                                                |
 | Transfer function phase          | deg  | 9.1e-13  | 1.3e-12   | 2.3e-12      | 1.4e-12          | ✅ 7.8e-12                                                                                       | ✅ 8.2e-13                                                                            |
-| Group delay                      | ms   | ≈ 6.9e-4 | ≈ 1.0e-3  | ≈ 0.015      | ≈ 8e-4           | ✗ 0.11 ms @ 4 kHz, WinISD rounding noise, no switch [bug](../../bugs/archive/BUG_20260929_bp6-abc-group-delay-not-winisd.md?html) | ≈ 1.0e-3 (bug switch) [bug](../../bugs/archive/BUG_20261005_winisd-abc-group-delay-driver-not-stepped.md?html) |
+| Group delay                      | ms   | ≈ 6.9e-4 | ≈ 1.0e-3  | ≈ 0.015      | ≈ 8e-4           | ≈ 0.11 ms @ 4 kHz, WinISD rounding noise, no switch [bug](../../bugs/archive/BUG_20260929_bp6-abc-group-delay-not-winisd.md?html) | ≈ 1.0e-3 (bug switch) [bug](../../bugs/archive/BUG_20261005_winisd-abc-group-delay-driver-not-stepped.md?html) |
 | Maximum power                    | W    | 8.9e-14  | 9.6e-14   | 9.2e-14      | 8.5e-14          | ✅ 7.8e-14                                                                                       | ✅ 9.2e-14                                                                            |
 | Maximum SPL                      | dB   | 2.8e-14  | 2.8e-14   | 4.3e-13      | 2.8e-14          | ✅ 3.4e-12                                                                                       | ✅ 2.8e-14                                                                            |
 | Amplifier apparent load power    | VA   | 8.9e-14  | 5.5e-14   | 7.3e-14      | 7.8e-14          | ✅ 7.8e-16                                                                                       | ✅ 6.7e-16                                                                            |
@@ -101,10 +101,10 @@ ABC group delay matches WinISD (≈ 1.03e-3 ms, two 1e-10 Hz staircases, `abc-w5
 "Enable WinISD ABC group delay bug" bug switch ticked: WinISD steps the box to f ± δ but holds the
 driver part at f, so its group delay contradicts its own phase chart (1 Hz: −40.96 ms against
 −33.86 ms). Off, the default, OpenISD plots −dφ/dω of the plotted phase.
-BP6 group delay stays a deviation: WinISD's H is right and equals its plotted transfer; above
+BP6 group delay is matched to WinISD's own rounding noise (≈): WinISD's H is right and equals its plotted transfer; above
 ~200 Hz its 1e-10 Hz step turns the rounding of two nearly cancelling compliance currents into noise
 (worst 0.11 ms at 4 kHz, `bp6-w5-gd1`, reproduced bit for bit in x87). OpenISD's doubles give
-noise of the same size but other values. Not copyable; no switch (John, 2026-10-05).
+noise of the same size but other values. Not copyable; no switch; kept as it is (John, 2026-10-05).
 Allpass orders above 2 and Linkwitz-Riley orders other than 4 are inputs WinISD ignores (it draws order 2 and LR4).
 OpenISD honours them (no switch, a ≠W Difference cue explains it), so those captures (`2|0;1;3;0.004;0.8`,
 `2|0;1;4;0.002;0.7`, LR2, LR6) are recorded deviations: they match OpenISD's allpass order 2 and LR4.
