@@ -1,5 +1,5 @@
 import type {Page} from '@playwright/test';
-import {expect, focusedPassiveRadiatorSpec, openAProject, setFocusedBoxType, test} from '../fixtures.js';
+import {curvesSplSum, expect, focusedPassiveRadiatorSpec, openAProject, setFocusedBoxType, test} from '../fixtures.js';
 import {fillAndCommit, numInputByLabel, PageOps} from '../fixtures/numField.js';
 
 /**
@@ -161,6 +161,32 @@ test.describe('Original Passive Radiator tab', () => {
       expect(stored.sd_m2).toBeCloseTo(0.03, 6);      // cm² on screen
       expect(stored.xmax_m).toBeCloseTo(0.012, 6);    // mm on screen
       expect(stored.count).toBe(2);
+    });
+
+    // John, 2026-10-05: "PR Vas is disconnected" — a Vas typed on the page must reach the response.
+    test('a Vas typed on the PR page moves the Box tab Fh and the SPL curve', async ({page}) => {
+      await setFocusedBoxType(page, 'box-passive-radiator');
+      await page.locator('.project-nav li', {hasText: 'Passive Radiator'}).click();
+      await page.locator('button.edit-btn', { hasText: 'Select passive radiator' }).click();
+      await page.locator('.modal .pr-lib-item .pr-lib-name', { hasText: 'ND140-PR' }).first().click();
+      await expect(page.locator('.pr-lib')).toHaveCount(0);
+      await fillAndCommit(page.locator('#og-pr-madd'), '20');
+
+      const readFh = async () => {
+        await page.locator('.project-nav li', { hasText: 'Box' }).first().click();
+        const fh = Number(await page.locator('#og-box-resonance').inputValue());
+        await page.locator('.project-nav li', {hasText: 'Passive Radiator'}).click();
+        return fh;
+      };
+      const fhBefore = await readFh();
+      const fprBefore = await page.locator('#og-pr-fs-mass').inputValue();
+      const splBefore = await curvesSplSum(page);
+
+      await fillAndCommit(page.locator('#og-pr-vas'), '20');
+
+      await expect(page.locator('#og-pr-fs-mass')).not.toHaveValue(fprBefore);
+      await expect.poll(() => curvesSplSum(page)).not.toBe(splBefore);
+      expect(await readFh()).not.toBeCloseTo(fhBefore, 2);
     });
 
     // John, 2026-10-05: the Edit button is swapped for Save to library.

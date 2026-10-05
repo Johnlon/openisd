@@ -77,6 +77,8 @@ export type NumSpecField = NumericDriverSpecFieldName;
  *  Each member's declared type is what its `getOrInit` call site gets back. */
 interface AppStateSingletons {
   appSettings: ShallowRef<AppSettingsRepo>;
+  /** Bumped on every write of a UI-only app setting, so a computed reading it re-derives. */
+  appSettingsTick: Ref<number>;
   engine: Engine;
   projects: ShallowRef<OpenISDProject[]>;
   focusedIndex: Ref<number>;
@@ -105,6 +107,7 @@ const slots = hmrSlots<AppStateSingletons>(
 // exactly what `createAppSettingsRepo` answers over empty storage.
 const appSettings = getOrInit(slots, 'appSettings',
   () => shallowRef<AppSettingsRepo>(createAppSettingsRepo(createMemoryStorage())));
+const appSettingsTick = getOrInit(slots, 'appSettingsTick', () => ref(0));
 
 /** Install the settings store — the composition root's call, once, at startup.
  *
@@ -112,6 +115,19 @@ const appSettings = getOrInit(slots, 'appSettings',
  *  install AFTER the engine was built is not a special case: it is the ordinary one. */
 export function installAppSettings(repo: AppSettingsRepo): void {
   appSettings.value = repo;
+  appSettingsTick.value++;
+}
+
+/** The WinISD difference markers (≠W) show (Options → General). Reactive. */
+export function differenceCuesShown(): boolean {
+  void appSettingsTick.value;
+  return appSettings.value.differenceCuesShown();
+}
+
+/** Show or hide every ≠W marker. A UI preference: no project recalls. */
+export function setDifferenceCuesShown(shown: boolean): void {
+  appSettings.value.setDifferenceCuesShown(shown);
+  appSettingsTick.value++;
 }
 
 /** The built-in band — what an unconfigured app reads and what "Reset to defaults" writes.

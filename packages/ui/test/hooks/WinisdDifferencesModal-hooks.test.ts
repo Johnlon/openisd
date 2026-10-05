@@ -1,4 +1,5 @@
 import {describe, expect, it} from 'vitest';
+import {ref} from 'vue';
 import {CompatSwitchGroup, WinisdDeviation, WinisdDifference, WinisdDifferenceSection, WinisdFilterDeviation} from '@openisd/design/fields';
 import {useWinisdDifferencesModal} from '../../src/hooks/WinisdDifferencesModal-hooks.js';
 
@@ -38,5 +39,15 @@ describe('useWinisdDifferencesModal', () => {
     expect(h.open.value).toBe(false);
     h.show();
     expect(h.target.value).toBeNull();
+  });
+
+  it('the ≠W cues follow the app setting "Show WinISD difference markers"', () => {
+    const shown = ref(true);
+    const h = useWinisdDifferencesModal({differenceCuesShown: () => shown.value});
+    expect(h.cuesShown.value).toBe(true);
+    shown.value = false;
+    expect(h.cuesShown.value).toBe(false);
+    h.show();
+    expect(h.open.value).toBe(true);
   });
 });

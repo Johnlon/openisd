@@ -43,9 +43,6 @@ describe('NumberField', () => {
       expect(NumberField.BOX_VB_L.unitTokenFor({[NumberField.BOX_VB_L.value]: 'kHz'})).toBe('L');
     });
 
-    it('stepAttr produces step string for inputs', () => {
-      expect(NumberField.BOX_VB_L.stepAttr('L')).toBe('0.01');
-    });
   });
 
   describe('NumberField.fixed — a value at the field\'s own registry precision', () => {

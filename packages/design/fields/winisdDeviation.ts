@@ -31,21 +31,27 @@ export interface WinisdDeviationSpec {
   /** How large the difference is, for a realistic case. */
   readonly size: string;
   readonly fix: WinisdDeviationFix;
-  /** The charts whose curves differ from WinISD's while the deviation is in effect; its cue sits by
-   *  the chart picker while one is open. Empty: the cue sits by a control instead. */
+  /** The charts whose curves the bug concerns; its cue sits by the chart picker while one is open.
+   *  Empty: the cue sits by a control instead. */
   readonly charts: readonly ChartId[];
 }
 
-/** A filter deviation's spec: also which filters in the chain it changes. */
+/** A filter deviation's spec: also which filters in the chain it concerns. */
 export interface WinisdFilterDeviationSpec extends WinisdDeviationSpec {
-  /** The filter's own result differs from WinISD's while the deviation is in effect. */
-  readonly affects: (f: Filter) => boolean;
+  /** The filter is of the kind the bug concerns (type and family), whatever its order or enabled
+   *  state: its editor carries the cue. */
+  readonly concerns: (f: Filter) => boolean;
 }
 
 /**
- * A place OpenISD's result differs from WinISD's because OpenISD fixed a WinISD bug. A calculation
- * bug is in effect while its error switch applies and is not reproducing the error; an ignored
- * input is always in effect.
+ * A place OpenISD's result differs from WinISD's because OpenISD fixed a WinISD bug.
+ *
+ * Cue rule (John, 2026-10-05): the ≠W cue shows while the bug is fixed — its error switch is
+ * unticked; an ignored input has no switch and is always fixed — on a project of the kind the bug
+ * concerns: the box type for a box bug, the filter type and family for a filter bug. Counts,
+ * orders and enabled state never hide it, so a cue teaches before the setting that triggers the
+ * bug is reached (Npr 1, one driver, an order-4 Linkwitz-Riley). The switch's own `applicable`
+ * still greys it where it does nothing. The app's Options setting can hide every cue.
  */
 export class WinisdDeviation {
   readonly title: string;
@@ -79,20 +85,20 @@ export class WinisdDeviation {
     return `${this.winisd} ${this.openisd}`;
   }
 
-  /** OpenISD differs from WinISD now. */
-  inEffect(s: ErrorSwitchStates): boolean {
+  /** The cue shows now: the bug is in scope for the open box and its switch is not reproducing it. */
+  cueShown(s: ErrorSwitchStates): boolean {
     switch (this.#fix.kind) {
       case 'errorSwitch': {
         const state = this.#fix.switchOf(s);
-        return state.applicable && !state.reproducesError;
+        return state.inScope && !state.reproducesError;
       }
       case 'ignoredInput': return true;
     }
   }
 
-  /** In effect now and `id`'s curves differ from WinISD's. */
-  inEffectOnChart(s: ErrorSwitchStates, id: ChartId): boolean {
-    return this.#charts.includes(id) && this.inEffect(s);
+  /** The cue shows now and belongs to chart `id`. */
+  cueShownOnChart(s: ErrorSwitchStates, id: ChartId): boolean {
+    return this.#charts.includes(id) && this.cueShown(s);
   }
 
   static readonly DRIVER_MODEL = new WinisdDeviation({
@@ -165,16 +171,16 @@ function remedyOf(fix: WinisdDeviationFix): string {
 
 /** A deviation that changes particular filters in the EQ/Filter chain; its cue sits on the filter. */
 export class WinisdFilterDeviation extends WinisdDeviation {
-  readonly #affects: (f: Filter) => boolean;
+  readonly #concerns: (f: Filter) => boolean;
 
   private constructor(spec: WinisdFilterDeviationSpec) {
     super(spec);
-    this.#affects = spec.affects;
+    this.#concerns = spec.concerns;
   }
 
-  /** OpenISD draws `f` differently from WinISD now: in effect, and `f` is enabled and affected. */
-  inEffectFor(s: ErrorSwitchStates, f: Filter): boolean {
-    return this.inEffect(s) && f.enabled && this.#affects(f);
+  /** `f`'s editor carries the cue now: the cue shows and `f` is of the kind the bug concerns. */
+  cueShownFor(s: ErrorSwitchStates, f: Filter): boolean {
+    return this.cueShown(s) && this.#concerns(f);
   }
 
   static readonly ALLPASS_ORDER = new WinisdFilterDeviation({
@@ -184,7 +190,7 @@ export class WinisdFilterDeviation extends WinisdDeviation {
     size: 't 3 ms, Q 0.6, order 4: WinISD delays 5.0 ms (its order 2); OpenISD 3.0 ms.',
     fix: {kind: 'ignoredInput', seenIn: 'allpass filters of order 3 or more in the EQ/Filter chain: the EQ/Filter phase and group delay charts, and the phase and group delay of every chart the filter feeds. The magnitude is flat either way.'},
     charts: [],
-    affects: f => f.type === 'allpass' && f.order > 2,
+    concerns: f => f.type === 'allpass',
   });
 
   static readonly LINKWITZ_RILEY_ORDER = new WinisdFilterDeviation({
@@ -194,7 +200,7 @@ export class WinisdFilterDeviation extends WinisdDeviation {
     size: 'Low-pass an octave above fc: LR2 −7.0 dB, LR4 (WinISD) −24.6 dB; phase at fc −90° against −180°.',
     fix: {kind: 'ignoredInput', seenIn: 'Linkwitz-Riley low-pass and high-pass filters whose order is not 4: the three EQ/Filter charts and every chart the filter feeds (SPL, Cone excursion, port velocities).'},
     charts: [],
-    affects: f => (f.type === 'lowpass' || f.type === 'highpass') && f.family === 'linkwitzRiley' && f.order !== 4,
+    concerns: f => (f.type === 'lowpass' || f.type === 'highpass') && f.family === 'linkwitzRiley',
   });
 
   static readonly BESSEL_HIGHPASS = new WinisdFilterDeviation({
@@ -204,7 +210,7 @@ export class WinisdFilterDeviation extends WinisdDeviation {
     size: 'Order 4, fc 25 Hz: up to 6 % apart in complex response. Order 1 is the same.',
     fix: {kind: 'errorSwitch', switchField: ToggleField.ADV_WINISDBESSELHIGHPASS, switchOf: s => s.besselHighpass},
     charts: [],
-    affects: f => f.type === 'highpass' && f.family === 'bessel' && f.order >= 2,
+    concerns: f => f.type === 'highpass' && f.family === 'bessel',
   });
 
   /** Every member, by reflection; declared last. */

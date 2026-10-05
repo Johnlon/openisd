@@ -1,47 +1,83 @@
 import type {Directive} from 'vue';
-import {spinnerStep} from '@openisd/design/fields';
+import {shownSpinRule, spinStepAttr, spinValue, type NumberField, type SpinRule} from '@openisd/design/fields';
 
-// v-expo-step — proportional ("exponential") spinner stepping for LIVE-graph number
-// inputs (left-nav + Tune controls). It keeps the element's native `step` at a power
-// of ten one decade below the current |value|, so the up/down arrows (and ArrowUp/Down
-// keys, and wheel) move the value proportionally across scales — ~10–100 steps per decade
-// — instead of by a fixed absolute amount too coarse for milli-scale values and too fine
-// for kilo-scale ones. Direction is left to the native control, so a signed field still
-// increases/decreases correctly; only the step MAGNITUDE is proportional.
+// v-expo-step — the spinner rule (`spinValue`, packages/design/fields/spinnerStep.ts) for RAW
+// number inputs not built on NumInput (left-nav, Tune, filter editors). Bind the input's field
+// (`v-expo-step="NumberField.FILTER_GAIN_DB"`) so counts step by 1 and gain by ≥ 0.1 dB; bare,
+// the input steps by a tenth of its decade, never finer than its shown decimals.
 //
-// A power of ten (not value×0.1) is deliberate: value×0.1 is an arbitrary float,
-// so it compounds into long decimals (50 → 55 → 60.5 → 66.55 → …) and, not being a clean
-// multiple of the min, makes the browser refuse stepDown near min (the "down-arrow sticks"
-// symptom). A power of ten is a clean multiple of 0, so the browser grid-snaps each step to
-// a tidy decimal and stepping never stalls. Mirrors NumInput.vue's stepAttr.
-//
-// Do NOT apply to integer counts (No. of drivers, PR count) or to Define-New panels
-// (those are not live-connected and, per the UX rule, carry no spinners at all).
-function syncStep(el: HTMLInputElement): void {
-  el.step = spinnerStep(el.value);
+// The browser's own step (arrows, wheel, ▲▼) supplies only the direction. A capture-phase
+// `input` listener runs before the element's own handlers and replaces the browser's value with
+// the rule's, so v-model / @input see the rule's value. The native `step` attribute is kept at
+// the upward step, never 'any', so the browser always moves the value.
+
+const STATE = Symbol('expoStepState');
+
+interface ExpoState {
+  readonly onInput: (e: Event) => void;
+  readonly onFocus: () => void;
+  field: NumberField | undefined;
+  prev: string;
 }
 
-const HANDLER = Symbol('expoStepHandler');
+interface ExpoEl extends HTMLInputElement { [STATE]?: ExpoState; }
 
-interface ExpoEl extends HTMLInputElement { [HANDLER]?: () => void; }
+function ruleFor(el: ExpoEl, shown: string): SpinRule {
+  const field = el[STATE]?.field;
+  return field ? field.spinRule() : shownSpinRule(shown);
+}
 
-export const vExpoStep: Directive<ExpoEl> = {
-  mounted(el) {
-    const handler = (): void => syncStep(el);
-    handler();
-    el.addEventListener('input', handler);
-    el.addEventListener('focus', handler);
-    el[HANDLER] = handler;
+function bound(attr: string, fallback: number): number {
+  const v = parseFloat(attr);
+  return isFinite(v) ? v : fallback;
+}
+
+function sync(el: ExpoEl): void {
+  const st = el[STATE];
+  if (st) st.prev = el.value;
+  el.step = spinStepAttr(el.value, ruleFor(el, el.value));
+}
+
+function onInput(el: ExpoEl, e: Event): void {
+  const st = el[STATE];
+  if (!st) return;
+  const textEdit = e instanceof InputEvent && e.inputType !== '';
+  const native = parseFloat(el.value);
+  const prev = parseFloat(st.prev);
+  if (!textEdit && isFinite(native) && isFinite(prev) && native !== prev) {
+    const next = spinValue(st.prev, native > prev ? 1 : -1, ruleFor(el, st.prev), {
+      min: bound(el.min, -Infinity),
+      max: el.max === '' ? undefined : bound(el.max, Infinity),
+    });
+    el.value = String(next);
+  }
+  sync(el);
+}
+
+export const vExpoStep: Directive<ExpoEl, NumberField | undefined> = {
+  mounted(el, binding) {
+    const state: ExpoState = {
+      onInput: (e: Event): void => onInput(el, e),
+      onFocus: (): void => sync(el),
+      field: binding.value,
+      prev: el.value,
+    };
+    el[STATE] = state;
+    el.addEventListener('input', state.onInput, {capture: true});
+    el.addEventListener('focus', state.onFocus);
+    sync(el);
   },
-  updated(el) {
+  updated(el, binding) {
     // Re-sync after a reactive re-render changed the bound value.
-    syncStep(el);
+    const st = el[STATE];
+    if (st) st.field = binding.value;
+    sync(el);
   },
   unmounted(el) {
-    const handler = el[HANDLER];
-    if (handler) {
-      el.removeEventListener('input', handler);
-      el.removeEventListener('focus', handler);
+    const st = el[STATE];
+    if (st) {
+      el.removeEventListener('input', st.onInput, {capture: true});
+      el.removeEventListener('focus', st.onFocus);
     }
   },
 };

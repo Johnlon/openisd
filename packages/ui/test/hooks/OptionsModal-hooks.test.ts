@@ -22,17 +22,22 @@ import {parseChartId} from '@openisd/design/chart';
 function fakeSettings(
   band: VentedDesignLimits = DEFAULT_VENTED_DESIGN_LIMITS,
   env: EnvDefaults = DEFAULT_ENV_DEFAULTS,
+  cuesShown = true,
 ) {
   const bandWrites: VentedDesignLimits[] = [];
   const envWrites: EnvDefaults[] = [];
+  const cueWrites: boolean[] = [];
+  let cues = cuesShown;
   const deps: OptionsModalDeps = {
     ventedLimits: () => band,
     setVentedLimits: (limits) => { band = limits; bandWrites.push(limits); },
     envDefaults: () => env,
     setEnvDefaults: (defaults) => { env = defaults; envWrites.push(defaults); },
+    differenceCuesShown: () => cues,
+    setDifferenceCuesShown: (shown) => { cues = shown; cueWrites.push(shown); },
     environment: createEngine().environment,
   };
-  return {...deps, bandWrites, envWrites};
+  return {...deps, bandWrites, envWrites, cueWrites};
 }
 
 const ARCTIC: EnvDefaults = {tempK: 250, humidityPct: 80, pressurePa: 99000};
@@ -231,5 +236,26 @@ describe('the Plot Window Y-limit rows target charts that exist', () => {
 
   it('has a row for the transfer function magnitude chart', () => {
     assert.ok(LIMIT_ROWS.some(row => row.tab === 'TFMag'));
+  });
+});
+
+describe('useOptionsModal — Show WinISD difference markers (≠W)', () => {
+  it('opens showing the setting in force, and writes it only on apply()', () => {
+    const settings = fakeSettings(DEFAULT_VENTED_DESIGN_LIMITS, DEFAULT_ENV_DEFAULTS, true);
+    const dialog = useOptionsModal(settings);
+    expect(dialog.differenceCuesShown.value).toBe(true);
+    dialog.differenceCuesShown.value = false;
+    expect(settings.cueWrites).toEqual([]);
+    dialog.apply();
+    expect(settings.cueWrites).toEqual([false]);
+  });
+
+  it('restoring defaults puts "shown" back in the draft and writes nothing', () => {
+    const settings = fakeSettings(DEFAULT_VENTED_DESIGN_LIMITS, DEFAULT_ENV_DEFAULTS, false);
+    const dialog = useOptionsModal(settings);
+    expect(dialog.differenceCuesShown.value).toBe(false);
+    dialog.resetDifferenceCues();
+    expect(dialog.differenceCuesShown.value).toBe(true);
+    expect(settings.cueWrites).toEqual([]);
   });
 });

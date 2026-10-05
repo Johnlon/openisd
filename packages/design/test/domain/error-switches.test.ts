@@ -33,50 +33,50 @@ describe('errorSwitches', () => {
     expect(p.winisdAbcIntraPortVelocityApplies).toBe(false);
   });
 
-  it('driver model and VA model: always marked and applicable, reproducing the error while ticked', () => {
+  it('driver model and VA model: always marked, applicable and in scope, reproducing the error while ticked', () => {
     const p = abcProject();
     p.winisdDriverModel.set(true);
     p.winisdVaModel.set(false);
-    expect(p.errorSwitches.driverModel).toEqual({marked: true, applicable: true, reproducesError: true});
-    expect(p.errorSwitches.vaModel).toEqual({marked: true, applicable: true, reproducesError: false});
+    expect(p.errorSwitches.driverModel).toEqual({marked: true, applicable: true, inScope: true, reproducesError: true});
+    expect(p.errorSwitches.vaModel).toEqual({marked: true, applicable: true, inScope: true, reproducesError: false});
     p.winisdVaModel.set(true);
     p.winisdDriverModel.set(false);
     expect(p.errorSwitches.vaModel.reproducesError).toBe(true);
     expect(p.errorSwitches.driverModel.reproducesError).toBe(false);
   });
 
-  it('PR Npr resonance: marked, applicable on a passive radiator box with more than one radiator only, reproducing the error only when ticked', () => {
+  it('PR Npr resonance: in scope on a passive radiator box; applicable there with more than one radiator only; reproducing the error only when ticked', () => {
     const p = abcProject();
-    expect(p.errorSwitches.prNprResonance).toEqual({marked: true, applicable: false, reproducesError: false});
+    expect(p.errorSwitches.prNprResonance).toEqual({marked: true, applicable: false, inScope: false, reproducesError: false});
     p.box.boxType.set('box-passive-radiator');
-    // One radiator: Npr = 1, so WinISD's mass × Npr and the tuning's ÷ Npr agree; the bug does nothing (John, 2026-10-05).
+    // One radiator: Npr = 1, so WinISD's mass × Npr and the tuning's ÷ Npr agree; the switch does nothing (John, 2026-10-05).
     p.box.passiveRadiator.count.set(1);
-    expect(p.errorSwitches.prNprResonance.applicable).toBe(false);
+    expect(p.errorSwitches.prNprResonance).toEqual({marked: true, applicable: false, inScope: true, reproducesError: false});
     p.box.passiveRadiator.count.set(2);
-    expect(p.errorSwitches.prNprResonance).toEqual({marked: true, applicable: true, reproducesError: false});
+    expect(p.errorSwitches.prNprResonance).toEqual({marked: true, applicable: true, inScope: true, reproducesError: false});
     p.winisdPrNprResonance.set(true);
-    expect(p.errorSwitches.prNprResonance).toEqual({marked: true, applicable: true, reproducesError: true});
+    expect(p.errorSwitches.prNprResonance).toEqual({marked: true, applicable: true, inScope: true, reproducesError: true});
   });
 
-  it('per-driver impedance: marked, applicable with more than one driver only, reproducing the bug only when ticked', () => {
+  it('per-driver impedance: in scope on every box; applicable with more than one driver only; reproducing the bug only when ticked', () => {
     const p = abcProject();
     p.nDrivers.set(1);
-    expect(p.errorSwitches.driverCount).toEqual({marked: true, applicable: false, reproducesError: false});
+    expect(p.errorSwitches.driverCount).toEqual({marked: true, applicable: false, inScope: true, reproducesError: false});
     p.nDrivers.set(2);
-    expect(p.errorSwitches.driverCount).toEqual({marked: true, applicable: true, reproducesError: false});
+    expect(p.errorSwitches.driverCount).toEqual({marked: true, applicable: true, inScope: true, reproducesError: false});
     p.winisdDriverCountModel.set(true);
-    expect(p.errorSwitches.driverCount).toEqual({marked: true, applicable: true, reproducesError: true});
+    expect(p.errorSwitches.driverCount).toEqual({marked: true, applicable: true, inScope: true, reproducesError: true});
   });
 
-  it('per-driver impedance: the deviation cue is in effect with more than one driver while the switch is off', () => {
+  it('per-driver impedance: the cue shows at any driver count while the switch is off (John, 2026-10-05)', () => {
     const p = abcProject();
     p.nDrivers.set(1);
-    expect(WinisdDeviation.DRIVER_COUNT.inEffect(p.errorSwitches)).toBe(false);
+    expect(WinisdDeviation.DRIVER_COUNT.cueShown(p.errorSwitches)).toBe(true);
     p.nDrivers.set(2);
-    expect(WinisdDeviation.DRIVER_COUNT.inEffect(p.errorSwitches)).toBe(true);
+    expect(WinisdDeviation.DRIVER_COUNT.cueShown(p.errorSwitches)).toBe(true);
     expect(WinisdDeviation.DRIVER_COUNT.remedy).toMatch(/"Per-driver impedance"/);
     p.winisdDriverCountModel.set(true);
-    expect(WinisdDeviation.DRIVER_COUNT.inEffect(p.errorSwitches)).toBe(false);
+    expect(WinisdDeviation.DRIVER_COUNT.cueShown(p.errorSwitches)).toBe(false);
   });
 
   it('loss model: not an error switch, whatever the box and model', () => {
@@ -102,64 +102,65 @@ describe('WinISD deviation cues', () => {
     expect(WinisdFilterDeviation.ALLPASS_ORDER.remedy).toMatch(/no switch/);
   });
 
-  it('allpass order (no switch): in effect for an enabled allpass above order 2', () => {
+  it('allpass order (no switch): the cue shows on every allpass, whatever its order or enabled state', () => {
     const p = abcProject();
     const cue = WinisdFilterDeviation.ALLPASS_ORDER;
     p.filters.set([ALLPASS_4]);
-    expect(cue.inEffectFor(p.errorSwitches, ALLPASS_4)).toBe(true);
-    expect(cue.inEffectFor(p.errorSwitches, {...ALLPASS_4, order: 3})).toBe(true);
-    expect(cue.inEffectFor(p.errorSwitches, {...ALLPASS_4, order: 2})).toBe(false);
-    expect(cue.inEffectFor(p.errorSwitches, {...ALLPASS_4, enabled: false})).toBe(false);
+    expect(cue.cueShownFor(p.errorSwitches, ALLPASS_4)).toBe(true);
+    expect(cue.cueShownFor(p.errorSwitches, {...ALLPASS_4, order: 2})).toBe(true);
+    expect(cue.cueShownFor(p.errorSwitches, {...ALLPASS_4, enabled: false})).toBe(true);
+    expect(cue.cueShownFor(p.errorSwitches, {type: 'lowpass', enabled: true, family: 'butterworth', order: 2, fc: 80, Q: 0.707})).toBe(false);
     reproduceWinisdBugs(p);
-    expect(cue.inEffectFor(p.errorSwitches, ALLPASS_4)).toBe(true);
+    expect(cue.cueShownFor(p.errorSwitches, ALLPASS_4)).toBe(true);
   });
 
-  it('Linkwitz-Riley order (no switch): in effect for an enabled Linkwitz-Riley of order other than 4', () => {
+  it('Linkwitz-Riley order (no switch): the cue shows on every Linkwitz-Riley low- or high-pass, order 4 included', () => {
     const p = abcProject();
     const cue = WinisdFilterDeviation.LINKWITZ_RILEY_ORDER;
     const lr: Filter = {type: 'lowpass', enabled: true, family: 'linkwitzRiley', order: 2, fc: 80, Q: 0.707};
-    expect(cue.inEffectFor(p.errorSwitches, lr)).toBe(true);
-    expect(cue.inEffectFor(p.errorSwitches, {...lr, type: 'highpass', order: 8})).toBe(true);
-    expect(cue.inEffectFor(p.errorSwitches, {...lr, order: 4})).toBe(false);
-    expect(cue.inEffectFor(p.errorSwitches, {...lr, family: 'butterworth'})).toBe(false);
-    expect(cue.inEffectFor(p.errorSwitches, {...lr, enabled: false})).toBe(false);
+    expect(cue.cueShownFor(p.errorSwitches, lr)).toBe(true);
+    expect(cue.cueShownFor(p.errorSwitches, {...lr, type: 'highpass', order: 8})).toBe(true);
+    expect(cue.cueShownFor(p.errorSwitches, {...lr, order: 4})).toBe(true);
+    expect(cue.cueShownFor(p.errorSwitches, {...lr, enabled: false})).toBe(true);
+    expect(cue.cueShownFor(p.errorSwitches, {...lr, family: 'butterworth'})).toBe(false);
   });
 
-  it('Bessel high-pass: in effect for an enabled Bessel high-pass of order 2 or more while the switch is off', () => {
+  it('Bessel high-pass: the cue shows on every Bessel high-pass, order 1 included, while the switch is off', () => {
     const p = abcProject();
     const cue = WinisdFilterDeviation.BESSEL_HIGHPASS;
     const hp: Filter = {type: 'highpass', enabled: true, family: 'bessel', order: 4, fc: 25, Q: 0.707};
+    expect(cue.cueShownFor(p.errorSwitches, hp)).toBe(true);
+    expect(cue.cueShownFor(p.errorSwitches, {...hp, order: 1})).toBe(true);
+    expect(cue.cueShownFor(p.errorSwitches, {...hp, enabled: false})).toBe(true);
+    expect(cue.cueShownFor(p.errorSwitches, {...hp, family: 'butterworth'})).toBe(false);
+    expect(cue.cueShownFor(p.errorSwitches, {...hp, type: 'lowpass'})).toBe(false);
+    expect(cue.cueShownFor(p.errorSwitches, ALLPASS_4)).toBe(false);
     p.filters.set([hp]);
-    expect(cue.inEffectFor(p.errorSwitches, hp)).toBe(true);
-    expect(cue.inEffectFor(p.errorSwitches, {...hp, order: 1})).toBe(false);
-    expect(cue.inEffectFor(p.errorSwitches, {...hp, family: 'butterworth'})).toBe(false);
-    expect(cue.inEffectFor(p.errorSwitches, {...hp, type: 'lowpass'})).toBe(false);
-    expect(cue.inEffectFor(p.errorSwitches, ALLPASS_4)).toBe(false);
     p.winisdBesselHighpass.set(true);
-    expect(cue.inEffectFor(p.errorSwitches, hp)).toBe(false);
+    expect(cue.cueShownFor(p.errorSwitches, hp)).toBe(false);
   });
 
-  it('VA model: its cue belongs to the VA chart, in effect while the switch is off', () => {
+  it('VA model: its cue belongs to the VA chart, shown while the switch is off', () => {
     const p = abcProject();
     const cue = WinisdDeviation.VA_MODEL;
     p.winisdVaModel.set(false);
-    expect(cue.inEffectOnChart(p.errorSwitches, 'VA')).toBe(true);
-    expect(cue.inEffectOnChart(p.errorSwitches, 'SPL')).toBe(false);
-    expect(WinisdDeviation.PR_NPR_RESONANCE.inEffectOnChart(p.errorSwitches, 'VA')).toBe(false);
+    expect(cue.cueShownOnChart(p.errorSwitches, 'VA')).toBe(true);
+    expect(cue.cueShownOnChart(p.errorSwitches, 'SPL')).toBe(false);
+    expect(WinisdDeviation.PR_NPR_RESONANCE.cueShownOnChart(p.errorSwitches, 'VA')).toBe(false);
     p.winisdVaModel.set(true);
-    expect(cue.inEffectOnChart(p.errorSwitches, 'VA')).toBe(false);
+    expect(cue.cueShownOnChart(p.errorSwitches, 'VA')).toBe(false);
   });
 
-  it('PR Npr resonance: in effect on a passive radiator box with more than one radiator while the switch is off', () => {
+  it('PR Npr resonance: the cue shows on a passive radiator box at any radiator count while the switch is off (John, 2026-10-05)', () => {
     const p = abcProject();
     const cue = WinisdDeviation.PR_NPR_RESONANCE;
-    expect(cue.inEffect(p.errorSwitches)).toBe(false);
+    expect(cue.cueShown(p.errorSwitches)).toBe(false);
     p.box.boxType.set('box-passive-radiator');
     p.box.passiveRadiator.count.set(1);
-    expect(cue.inEffect(p.errorSwitches)).toBe(false);
+    expect(cue.cueShown(p.errorSwitches)).toBe(true);
     p.box.passiveRadiator.count.set(2);
-    expect(cue.inEffect(p.errorSwitches)).toBe(true);
+    expect(cue.cueShown(p.errorSwitches)).toBe(true);
     p.winisdPrNprResonance.set(true);
-    expect(cue.inEffect(p.errorSwitches)).toBe(false);
+    expect(cue.cueShown(p.errorSwitches)).toBe(false);
   });
 });

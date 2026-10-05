@@ -1,11 +1,15 @@
 import type {BoxType} from '../../engine/index.js';
 
 /** One control that can reproduce a known WinISD error.
- *  `marked`: the control carries the warning look. `applicable`: the open box has what the
- *  control acts on. `reproducesError`: the control is reproducing the error now. */
+ *  `marked`: the control carries the warning look. `applicable`: the open box's settings make the
+ *  switch do something (its counts and filters included); the switch is editable only then.
+ *  `inScope`: the open box is of the kind the bug concerns (its box type), whatever its counts;
+ *  the ≠W cue shows while in scope and not reproducing (John, 2026-10-05). `reproducesError`: the
+ *  control is reproducing the error now. */
 export interface ErrorSwitchState {
     readonly marked: boolean;
     readonly applicable: boolean;
+    readonly inScope: boolean;
     readonly reproducesError: boolean;
 }
 
@@ -43,12 +47,14 @@ export interface ErrorSwitchInputs {
 }
 
 export function errorSwitchStatesOf(i: ErrorSwitchInputs): ErrorSwitchStates {
+    const isPr = i.boxType === 'box-passive-radiator';
+    const isAbc = i.boxType === 'abc';
     return {
-        driverModel: {marked: true, applicable: true, reproducesError: i.winisdDriverModel},
-        vaModel: {marked: true, applicable: true, reproducesError: i.winisdVaModel},
-        besselHighpass: {marked: true, applicable: i.hasBesselHighpass, reproducesError: i.winisdBesselHighpass},
-        prNprResonance: {marked: true, applicable: i.boxType === 'box-passive-radiator' && i.nPassiveRadiators > 1, reproducesError: i.winisdPrNprResonance},
-        abcGroupDelay: {marked: true, applicable: i.boxType === 'abc', reproducesError: i.winisdAbcGroupDelay},
-        driverCount: {marked: true, applicable: i.nDrivers > 1, reproducesError: i.winisdDriverCountModel},
+        driverModel: {marked: true, applicable: true, inScope: true, reproducesError: i.winisdDriverModel},
+        vaModel: {marked: true, applicable: true, inScope: true, reproducesError: i.winisdVaModel},
+        besselHighpass: {marked: true, applicable: i.hasBesselHighpass, inScope: true, reproducesError: i.winisdBesselHighpass},
+        prNprResonance: {marked: true, applicable: isPr && i.nPassiveRadiators > 1, inScope: isPr, reproducesError: i.winisdPrNprResonance},
+        abcGroupDelay: {marked: true, applicable: isAbc, inScope: isAbc, reproducesError: i.winisdAbcGroupDelay},
+        driverCount: {marked: true, applicable: i.nDrivers > 1, inScope: true, reproducesError: i.winisdDriverCountModel},
     };
 }

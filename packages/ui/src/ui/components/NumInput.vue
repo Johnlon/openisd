@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import {computed, onBeforeUnmount, ref, useAttrs, watch} from 'vue';
 import {presentationState} from '../../logic/presentationState.js';
-import {formatFixed, type NumberField} from '@openisd/design/fields';
+import {decimalsSpinRule, formatFixed, shownSpinRule, spinStepAttr, spinValue, type NumberField, type SpinDirection, type SpinRule} from '@openisd/design/fields';
 import type {ProvenanceLetter} from '@openisd/design';
 import {inputFrom} from '../../logic/domEvents.js';
 
@@ -102,39 +102,15 @@ const showStepper = computed(() => props.stepper && !isReadonly.value);
 const inputEl = ref<HTMLInputElement | null>(null);
 let repeatTimer: ReturnType<typeof setTimeout> | undefined;
 
-// Drives the IDENTICAL path a real ArrowUp/ArrowDown keypress or the native spinner already
-// does: the browser's own stepUp()/stepDown() against the same `:step`/`:min`/`:max` this
-// input is already bound to (`stepAttr`/`dispMin`/`dispMax` below), then the resulting
-// `input` event runs through the SAME `onInput()` every other path uses — no second rounding
-// or precision rule to keep in sync with the keyboard/spinner behaviour.
-function applyStep(dir: 1 | -1): void {
+// A ▲▼ button drives the same path a real ArrowUp/ArrowDown keypress or the native spinner
+// does: the browser's own stepUp()/stepDown() supplies the direction, and `onInput` replaces the
+// browser's value with the design rule's (`spinValue`). The native `step` is never 'any', so
+// stepUp()/stepDown() never throw.
+function applyStep(dir: SpinDirection): void {
   const el = inputEl.value;
   if (el === null) return;
   typing.value = false;   // a step always reformats, same as the keyboard/wheel paths
-  try {
-    if (dir > 0) el.stepUp(); else el.stepDown();
-  } catch (err) {
-    if (err instanceof DOMException && err.name === 'InvalidStateError') {
-      const stepAttrVal = el.getAttribute('step');
-      const parsedStep = stepAttrVal && stepAttrVal !== 'any' ? parseFloat(stepAttrVal) : NaN;
-      let effectiveStep: number = !isNaN(parsedStep) && parsedStep > 0 ? parsedStep : 1;
-      if (isNaN(parsedStep) && props.field) {
-        const fieldStepStr = props.field.stepAttr(activeToken.value);
-        const parsedFieldStep = parseFloat(fieldStepStr);
-        if (!isNaN(parsedFieldStep) && parsedFieldStep > 0) effectiveStep = parsedFieldStep;
-      } else if (isNaN(parsedStep) && typeof props.precision === 'number') {
-        effectiveStep = 10 ** -props.precision;
-      }
-      const current = parseFloat(display.value) || 0;
-      const next = current + dir * effectiveStep;
-      display.value = fmt(fromDisp(next));
-      el.value = display.value;
-      if (valid(fromDisp(next))) emit('update:modelValue', fromDisp(next), typedPrecision(display.value));
-      el.dispatchEvent(new Event('input', { bubbles: true }));
-      return;
-    }
-    throw err;
-  }
+  if (dir > 0) el.stepUp(); else el.stepDown();
   el.dispatchEvent(new Event('input', { bubbles: true }));
 }
 
@@ -146,7 +122,7 @@ function stopRepeat(): void {
 // The tapped button takes focus (John, 2026-10-02): the press is `.prevent`ed so the browser
 // never focuses it, and the previously focused field kept focus. Focusing the field instead
 // (2026-10-01) popped the phone keyboard on every tap; the button holds focus without one.
-function startRepeat(dir: 1 | -1, e: PointerEvent): void {
+function startRepeat(dir: SpinDirection, e: PointerEvent): void {
   stopRepeat();
   if (e.currentTarget instanceof HTMLElement) e.currentTarget.focus({ preventScroll: true });
   applyStep(dir);
@@ -221,9 +197,16 @@ function onInput(e: Event) {
     return;
   }
   badEntry.value = false;
-  const v = parseFloat(t.value);
+  // A text edit is an InputEvent with an inputType (typing, paste, drop); a spinner step is not.
+  const textEdit = typing.value || (e instanceof InputEvent && e.inputType !== '');
+  const native = parseFloat(t.value);
+  const prev = parseFloat(display.value);
+  // A spinner step: the browser's value gives only the direction; the rule gives the value.
+  const v = !textEdit && isFinite(native) && isFinite(prev) && native !== prev
+    ? spinValue(display.value, native > prev ? 1 : -1, spinRule.value, {min: dispMin.value, max: dispMax.value})
+    : native;
   const si = fromDisp(v);
-  if (typing.value || !isFinite(v)) {
+  if (textEdit || !isFinite(v)) {
     display.value = t.value;
     if (valid(si)) emit('update:modelValue', si, typedPrecision(t.value));
     return;
@@ -275,12 +258,12 @@ const dqTooltip = computed(() => {
 });
 const dqNoteTitle = computed(() => hasDq.value ? `⚠ ${dqTooltip.value}` : '');
 
-const stepAttr = computed<string | number>(() => {
-  if (props.step !== 'any') return props.step;
-  if (props.field) return props.field.stepAttr(activeToken.value);
-  if (typeof props.precision === 'number') return (10 ** -props.precision).toString();
-  return 'any';
+const spinRule = computed<SpinRule>(() => {
+  if (props.field) return props.field.spinRule(activeToken.value);
+  if (typeof props.precision === 'number') return decimalsSpinRule(props.precision);
+  return shownSpinRule(display.value);
 });
+const stepAttr = computed<string>(() => props.step !== 'any' ? props.step : spinStepAttr(display.value, spinRule.value));
 </script>
 
 <template>

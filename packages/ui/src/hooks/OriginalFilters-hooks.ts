@@ -29,8 +29,8 @@ export interface OriginalFiltersAPI {
   editStaticGain(f: StaticGainFilter, patch: StaticGainPatch): void;
   editRaisedCosine(f: RaisedCosineFilter, patch: RaisedCosinePatch): void;
   editShelf(f: ShelfFilter, patch: ShelfPatch): void;
-  /** `f`'s result differs from WinISD's now because OpenISD fixed the WinISD bug `d` names
-   *  (its error switch is off); the editor shows the deviation cue. */
+  /** `f`'s editor shows `d`'s ≠W cue: `f` is of the kind the WinISD bug concerns and OpenISD
+   *  has it fixed (its error switch is off), whatever `f`'s order (`WinisdDeviation` cue rule). */
   deviationShown(d: WinisdFilterDeviation, f: Filter): boolean;
   /** How `f`'s Order box takes entry (range, step, whether editable, tooltip). */
   passOrderEntry(f: PassFilter): PassOrderEntry;
@@ -92,7 +92,7 @@ export class OriginalFilters implements OriginalFiltersAPI {
 
   deviationShown(d: WinisdFilterDeviation, f: Filter): boolean {
     void this.changed.value;
-    return d.inEffectFor(this.project.value.errorSwitches, f);
+    return d.cueShownFor(this.project.value.errorSwitches, f);
   }
 
   /** `next` takes `f`'s place in the chain; every other filter is untouched. A filter with no

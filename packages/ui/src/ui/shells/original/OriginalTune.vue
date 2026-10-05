@@ -195,7 +195,7 @@ useEscToClose(() => presentationState.editDriver, cancel);
       <div v-for="f in MAIN" :key="f.key" class="tune-fld">
         <label>{{ f.label }}</label>
         <div class="tune-unit">
-          <input v-expo-step type="number" v-limits="scaledLimits(f)" :class="fieldClasses(f)" :value="fieldVal(f)" @input="onField(f, $event)" @blur="onBlur(f)">
+          <input v-expo-step="f.def" type="number" v-limits="scaledLimits(f)" :class="fieldClasses(f)" :value="fieldVal(f)" @input="onField(f, $event)" @blur="onBlur(f)">
           <div v-if="dqNote(f.key)" class="dq-tooltip-container">
             <span class="de-dq" role="button" tabindex="0" @mouseenter="showTooltip(f.key, $event)" @mouseleave="hideTooltip(f.key)" @click.stop="togglePin(f.key, $event)" @keydown.enter.stop="togglePin(f.key, $event)">&#9888;</span>
             <Teleport to="body">
@@ -225,7 +225,7 @@ useEscToClose(() => presentationState.editDriver, cancel);
       <div v-for="f in OPTIONAL" :key="f.key" class="tune-fld">
         <label class="opt-lbl">{{ f.label }}</label>
         <div class="tune-unit">
-          <input v-expo-step type="number" v-limits="scaledLimits(f)" :class="fieldClasses(f)" :value="fieldVal(f)" @input="onField(f, $event)" @blur="onBlur(f)">
+          <input v-expo-step="f.def" type="number" v-limits="scaledLimits(f)" :class="fieldClasses(f)" :value="fieldVal(f)" @input="onField(f, $event)" @blur="onBlur(f)">
           <div v-if="dqNote(f.key)" class="dq-tooltip-container">
             <span class="de-dq" role="button" tabindex="0" @mouseenter="showTooltip(f.key, $event)" @mouseleave="hideTooltip(f.key)" @click.stop="togglePin(f.key, $event)" @keydown.enter.stop="togglePin(f.key, $event)">&#9888;</span>
             <Teleport to="body">
@@ -244,7 +244,7 @@ useEscToClose(() => presentationState.editDriver, cancel);
       <div v-for="f in DERIVED" :key="f.key" class="tune-fld" :title="`${f.label} is calculated from the parameters above until you type one — then it overrides them. Clear the field to hand it back to the calculation.`">
         <label>{{ f.label }}</label>
         <div class="tune-unit">
-          <input v-expo-step type="number" v-limits="scaledLimits(f)" :class="fieldClasses(f)" :value="fieldVal(f)" @input="onField(f, $event)" @blur="onBlur(f)">
+          <input v-expo-step="f.def" type="number" v-limits="scaledLimits(f)" :class="fieldClasses(f)" :value="fieldVal(f)" @input="onField(f, $event)" @blur="onBlur(f)">
           <div v-if="dqNote(f.key)" class="dq-tooltip-container">
             <span class="de-dq" role="button" tabindex="0" @mouseenter="showTooltip(f.key, $event)" @mouseleave="hideTooltip(f.key)" @click.stop="togglePin(f.key, $event)" @keydown.enter.stop="togglePin(f.key, $event)">&#9888;</span>
             <Teleport to="body">

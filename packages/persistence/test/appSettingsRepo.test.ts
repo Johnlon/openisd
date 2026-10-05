@@ -114,6 +114,36 @@ describe('createAppSettingsRepo', () => {
     });
   });
 
+  describe('WinISD difference markers (≠W)', () => {
+    const ENV: EnvDefaults = Object.freeze({tempK: 300, humidityPct: 40, pressurePa: 100000});
+
+    it('shows them when nothing is stored (John, 2026-10-05: default show, for education)', () => {
+      assert.equal(createAppSettingsRepo(createMemoryStorage()).differenceCuesShown(), true);
+    });
+
+    it('round-trips hiding them, and keeps the other settings', () => {
+      const storage = createMemoryStorage();
+      createAppSettingsRepo(storage).setVentedLimits(EDITED);
+      createAppSettingsRepo(storage).setEnvDefaults(ENV);
+      createAppSettingsRepo(storage).setDifferenceCuesShown(false);
+      const back = createAppSettingsRepo(storage);
+      assert.equal(back.differenceCuesShown(), false);
+      assert.deepEqual(back.ventedLimits(), EDITED);
+      assert.deepEqual(back.envDefaults(), ENV);
+      back.setEnvDefaults(DEFAULT_ENV_DEFAULTS);
+      back.setVentedLimits(DEFAULT_VENTED_DESIGN_LIMITS);
+      assert.equal(createAppSettingsRepo(storage).differenceCuesShown(), false);
+    });
+
+    it('reads a member that is not a boolean as shown, and reports it', () => {
+      const faults: StoredDataFault[] = [];
+      const text = JSON.stringify({vented: DEFAULT_VENTED_DESIGN_LIMITS, differenceCues: 'no'});
+      const repo = createAppSettingsRepo(createMemoryStorage({[APP_SETTINGS_KEY]: text}), f => faults.push(f));
+      assert.equal(repo.differenceCuesShown(), true);
+      assert.equal(faults.length, 1);
+    });
+  });
+
   describe('repair, never reset (BUG_20261001_view-and-options-bad-value-silently-resets-whole-record)', () => {
     const ENV: EnvDefaults = Object.freeze({tempK: 300, humidityPct: 40, pressurePa: 100000});
 

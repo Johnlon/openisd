@@ -21,6 +21,18 @@ test.describe('Original Signal tab', () => {
     await page.locator('.project-nav li', { hasText: 'Signal' }).click();
   });
 
+  test('System input power spins by a tenth of its decade: 1 W up is 1.1 W, down is 0.99 W', async ({ page }) => {
+    const pow = signalInput(page, 'System input power');
+    await fillAndBlur(pow, '1');
+    await pow.focus();
+    await pow.press('ArrowUp');
+    await expect(pow).toHaveValue('1.10');
+    await pow.press('ArrowDown');
+    await expect(pow).toHaveValue('1.00');
+    await pow.press('ArrowDown');
+    await expect(pow).toHaveValue('0.99');
+  });
+
   test.describe('series resistance', () => {
     test('shows WinISD 3-dp precision (0.100 ohm)', async ({ page }) => {
       await expect(signalInput(page, 'Series resistance')).toHaveValue(/^\d+\.\d{3}$/);

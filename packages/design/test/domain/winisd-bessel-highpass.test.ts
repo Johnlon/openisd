@@ -45,9 +45,9 @@ describe('winisdBesselHighpass', () => {
 
   it('is applicable only while an enabled Bessel high-pass exists', () => {
     const p = project();
-    expect(p.errorSwitches.besselHighpass).toEqual({marked: true, applicable: false, reproducesError: false});
+    expect(p.errorSwitches.besselHighpass).toEqual({marked: true, applicable: false, inScope: true, reproducesError: false});
     p.filters.set([BESSEL_HP]);
-    expect(p.errorSwitches.besselHighpass).toEqual({marked: true, applicable: true, reproducesError: false});
+    expect(p.errorSwitches.besselHighpass).toEqual({marked: true, applicable: true, inScope: true, reproducesError: false});
     p.winisdBesselHighpass.set(true);
     expect(p.errorSwitches.besselHighpass.reproducesError).toBe(true);
     p.filters.set([{...BESSEL_HP, enabled: false}]);

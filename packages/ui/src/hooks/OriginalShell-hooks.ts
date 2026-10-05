@@ -628,12 +628,13 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   });
 
   const errorSwitches = createErrorSwitches({project, projectChanged});
-  /** The WinISD deviations whose cue sits by the chart picker: in effect on an open chart. */
+  /** The WinISD deviations whose cue sits by the chart picker: shown on an open chart. */
   const chartDeviations = computed(() => projectOpen.value ? WinisdDeviation.ALL.filter(
-    d => openCharts.value.some(id => d.inEffectOnChart(errorSwitches.value, id))) : []);
-  /** The passive-radiator Npr deviation's cue, by the radiator count, while it is in effect. */
-  const prNprDeviationShown = computed(() => projectOpen.value && WinisdDeviation.PR_NPR_RESONANCE.inEffect(errorSwitches.value));
-  const driverCountDeviationShown = computed(() => projectOpen.value && WinisdDeviation.DRIVER_COUNT.inEffect(errorSwitches.value));
+    d => openCharts.value.some(id => d.cueShownOnChart(errorSwitches.value, id))) : []);
+  /** The passive-radiator Npr cue by the radiator count, at any count (`WinisdDeviation` cue rule). */
+  const prNprDeviationShown = computed(() => projectOpen.value && WinisdDeviation.PR_NPR_RESONANCE.cueShown(errorSwitches.value));
+  /** The per-driver impedance cue by the driver count, at any count. */
+  const driverCountDeviationShown = computed(() => projectOpen.value && WinisdDeviation.DRIVER_COUNT.cueShown(errorSwitches.value));
   /** "Simplified ABC intra-port velocity" acts on the open box. */
   const abcVelocityApplies = computed(() => {
     void projectChanged.value;

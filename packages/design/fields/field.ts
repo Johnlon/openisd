@@ -50,6 +50,7 @@ import {
   FILTER_T_LIMITS,
 } from './filterLimits.js';
 import type {SelectorOption} from './options.js';
+import type {SpinRule} from './spinnerStep.js';
 import {
   ARRAY_WIRING_OPTIONS, BOX_TYPE_OPTIONS, END_CORRECTION_OPTIONS, FILTER_TYPE_OPTIONS,
   SEALED_ALIGNMENT_OPTIONS, VC_CONNECTION_OPTIONS, VENT_SHAPE_OPTIONS,
@@ -69,6 +70,22 @@ export type FieldKind = 'number' | 'enum' | 'text' | 'toggle' | 'date';
  *   so it can be zero or negative; so can a field whose floor nobody has stated.
  */
 export type ValueFloor = 'positive' | 'non-negative' | 'none';
+
+/**
+ * How a spinner press moves a number field (`spinnerStep.ts`).
+ *
+ * - `decade` — a tenth of the value's decade, down to one unit of the decimals shown.
+ * - `decadeFloored` — the same, never finer than `10^finestExp` in the field's fixed unit: a
+ *   signed level that passes through 0 (gain in dB steps 0 → ±0.1).
+ * - `integer` — a count or an order: every press is 1.
+ */
+export type FieldSpin =
+  | {readonly kind: 'decade'}
+  | {readonly kind: 'decadeFloored'; readonly finestExp: number}
+  | {readonly kind: 'integer'};
+
+const DECADE_SPIN: FieldSpin = Object.freeze({kind: 'decade'});
+const INTEGER_SPIN: FieldSpin = Object.freeze({kind: 'integer'});
 
 interface FieldSpec {
   readonly value: string;
@@ -106,6 +123,7 @@ interface NumberFieldSpec extends FieldSpec {
   readonly formula?: string;
   readonly plausible?: FieldLimits;
   readonly floor?: ValueFloor;
+  readonly spin?: FieldSpin;
 }
 
 /** A field holding a quantity: it has a band, a precision, and a display unit. */
@@ -128,6 +146,8 @@ export class NumberField extends Field {
   readonly plausible: FieldLimits;
   /** Whether zero and negatives are admissible at all. `'none'` where nobody has stated one. */
   readonly floor: ValueFloor;
+  /** How a spinner press moves the value. */
+  readonly spin: FieldSpin;
 
   private constructor(spec: NumberFieldSpec) {
     super(spec);
@@ -137,6 +157,7 @@ export class NumberField extends Field {
     this.formula = spec.formula;
     this.plausible = Object.freeze(spec.plausible ?? spec.limits);
     this.floor = spec.floor ?? 'none';
+    this.spin = spec.spin ?? DECADE_SPIN;
   }
 
   /** Authoritative unit resolution for this field. */
@@ -194,12 +215,15 @@ export class NumberField extends Field {
     return parseEntryDim(this.unitFor(token), typed);
   }
 
-  /** Get step attribute string for NumInput / expoStep. */
-  stepAttr(token?: string): string {
-    const u = this.unitFor(token);
-    const dp = decimalsIn(u, this.precision);
-    if (dp <= 0) return '1';
-    return (1 / Math.pow(10, dp)).toString();
+  /** The spinner rule for this field shown in unit `token`. */
+  spinRule(token?: string): SpinRule {
+    const spin = this.spin;
+    switch (spin.kind) {
+      case 'integer': return {kind: 'integer'};
+      case 'decade': return {kind: 'decade', finestExp: 0 - decimalsIn(this.unitFor(token), this.precision)};
+      case 'decadeFloored':
+        return {kind: 'decade', finestExp: Math.max(spin.finestExp, 0 - decimalsIn(this.unitFor(token), this.precision))};
+    }
   }
 
   /** Rotate unit to next token in group for switchable fields, or undefined for fixed fields. */
@@ -307,6 +331,7 @@ export class NumberField extends Field {
     label: "Number of vents",
     display: {kind: 'fixed', symbol: ''},
     limits: {min: 1, max: 4},
+    spin: INTEGER_SPIN,
     precision: 0,
     description: "Number of Vents\nHow many identical ports share the chamber.\nMore ports need a longer port for the same tuning, since the air-mass term sees the combined opening; end correction stays that of one port.",
   });
@@ -393,6 +418,7 @@ export class NumberField extends Field {
     label: "Num. of PRs",
     display: {kind: 'fixed', symbol: ''},
     limits: {min: 1, max: 4},
+    spin: INTEGER_SPIN,
     precision: 0,
     description: "Passive Radiator Count\nNumber of identical passive radiators in the enclosure.",
   });
@@ -828,6 +854,7 @@ export class NumberField extends Field {
     display: {kind: 'fixed', symbol: ''},
     limits: {min: 1, max: 4},
     floor: "positive",
+    spin: INTEGER_SPIN,
     precision: 0,
     description: "Voice Coil Count\nNumber of independent coil windings on the motor.",
   });
@@ -1072,6 +1099,7 @@ export class NumberField extends Field {
     label: "Num. of drivers",
     display: {kind: 'fixed', symbol: ''},
     limits: {min: 1, max: 64},
+    spin: INTEGER_SPIN,
     precision: 0,
     description: "Driver Count\nHow many drivers are active in the enclosure.",
   });
@@ -1114,6 +1142,7 @@ export class NumberField extends Field {
     label: "Gain",
     display: {kind: 'fixed', symbol: 'dB'},
     limits: FILTER_GAIN_LIMITS,
+    spin: {kind: 'decadeFloored', finestExp: -1},
     precision: 3,
     description: "Filter Gain\nBoost or cut applied by the filter or equalizer, in dB.",
   });
@@ -1122,6 +1151,7 @@ export class NumberField extends Field {
     label: "Order",
     display: {kind: 'fixed', symbol: ''},
     limits: FILTER_ORDER_LIMITS,
+    spin: INTEGER_SPIN,
     precision: 3,
     description: "Filter Order\nFilter steepness: 1st order = 6 dB/oct, 2nd = 12 dB/oct, 4th = 24 dB/oct. Up to 20.\nWinISD stops at order 10 (above that it hits a floating-point overflow error); a project with a higher order shows that error in WinISD.",
   });

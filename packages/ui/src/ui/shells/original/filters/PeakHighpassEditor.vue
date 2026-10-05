@@ -10,7 +10,7 @@ const {f, api} = defineProps<{ f: PeakHighpassFilter; api: OriginalFiltersAPI }>
 
 <template>
   <div class="filter-edit-body">
-    <label>Gpk <input v-expo-step type="number" step="0.5" v-limits="NumberField.FILTER_GAIN_DB.limits" :value="f.gainPk" @input="liveNum($event, v => api.editPeakHighpass(f, {gainPk: v}))" @change="api.editPeakHighpass(f, {gainPk: numFrom($event)})"> dB</label>
-    <label>fpk <input v-expo-step type="number" step="1" v-limits="NumberField.FILTER_FC_HZ.limits" :value="f.fpk" @input="liveNum($event, v => api.editPeakHighpass(f, {fpk: v}))" @change="api.editPeakHighpass(f, {fpk: numFrom($event)})"> Hz</label>
+    <label>Gpk <input v-expo-step="NumberField.FILTER_GAIN_DB" type="number" v-limits="NumberField.FILTER_GAIN_DB.limits" :value="f.gainPk" @input="liveNum($event, v => api.editPeakHighpass(f, {gainPk: v}))" @change="api.editPeakHighpass(f, {gainPk: numFrom($event)})"> dB</label>
+    <label>fpk <input v-expo-step="NumberField.FILTER_FC_HZ" type="number" v-limits="NumberField.FILTER_FC_HZ.limits" :value="f.fpk" @input="liveNum($event, v => api.editPeakHighpass(f, {fpk: v}))" @change="api.editPeakHighpass(f, {fpk: numFrom($event)})"> Hz</label>
   </div>
 </template>

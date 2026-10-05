@@ -23,6 +23,9 @@ export const APP_SETTINGS_KEY = OPENISD_APP_SETTINGS_KEY;
 export interface AppSettingsRepo extends AppSettings {
   setVentedLimits(limits: VentedDesignLimits): void;
   setEnvDefaults(defaults: EnvDefaults): void;
+  /** The WinISD difference markers (≠W) show (Options → General). Shown unless the user hid them. */
+  differenceCuesShown(): boolean;
+  setDifferenceCuesShown(shown: boolean): void;
   /** The stored text verbatim, or null when none — what a backup saves. */
   exportRaw(): string | null;
   /** Forget the stored settings; every setting reads its factory value. */
@@ -34,6 +37,7 @@ export interface AppSettingsRepo extends AppSettings {
 interface StoredAppSettings {
   readonly vented: VentedDesignLimits;
   readonly env?: EnvDefaults;
+  readonly differenceCues?: boolean;
 }
 
 function isPositiveNumber(v: unknown): v is number {
@@ -70,18 +74,30 @@ function parseEnv(raw: unknown): EnvDefaults | null {
 interface ParsedAppSettings {
   readonly vented: VentedDesignLimits | null;
   readonly env: EnvDefaults | null;
+  readonly differenceCues: boolean | null;
   readonly clean: boolean;
 }
 
 function parseStored(text: string | null): ParsedAppSettings {
-  if (text === null) return {vented: null, env: null, clean: true};
+  if (text === null) return {vented: null, env: null, differenceCues: null, clean: true};
   let parsed: unknown;
-  try { parsed = JSON.parse(text); } catch { return {vented: null, env: null, clean: false}; }
-  if (typeof parsed !== 'object' || parsed === null) return {vented: null, env: null, clean: false};
+  try { parsed = JSON.parse(text); } catch { return {vented: null, env: null, differenceCues: null, clean: false}; }
+  if (typeof parsed !== 'object' || parsed === null) return {vented: null, env: null, differenceCues: null, clean: false};
   const vented = 'vented' in parsed ? parseVented(parsed.vented) : null;
   const env = 'env' in parsed ? parseEnv(parsed.env) : null;
-  const clean = ('vented' in parsed) === (vented !== null) && ('env' in parsed) === (env !== null);
-  return {vented, env, clean};
+  const differenceCues = 'differenceCues' in parsed && typeof parsed.differenceCues === 'boolean' ? parsed.differenceCues : null;
+  const clean = ('vented' in parsed) === (vented !== null) && ('env' in parsed) === (env !== null)
+    && ('differenceCues' in parsed) === (differenceCues !== null);
+  return {vented, env, differenceCues, clean};
+}
+
+/** The record to store: the parsed members, an absent one left out (the band always written). */
+function recordOf(p: ParsedAppSettings): StoredAppSettings {
+  return {
+    vented: p.vented ?? DEFAULT_VENTED_DESIGN_LIMITS,
+    ...(p.env === null ? {} : {env: p.env}),
+    ...(p.differenceCues === null ? {} : {differenceCues: p.differenceCues}),
+  };
 }
 
 /** `onUnreadable` hears each distinct stored text that did not parse, once — the composition root
@@ -117,10 +133,16 @@ export function createAppSettingsRepo(
       return readStored().env ?? DEFAULT_ENV_DEFAULTS;
     },
     setVentedLimits(limits: VentedDesignLimits): void {
-      write(current => current.env === null ? {vented: limits} : {vented: limits, env: current.env});
+      write(current => recordOf({...current, vented: limits}));
     },
     setEnvDefaults(defaults: EnvDefaults): void {
-      write(current => ({vented: current.vented ?? DEFAULT_VENTED_DESIGN_LIMITS, env: defaults}));
+      write(current => recordOf({...current, env: defaults}));
+    },
+    differenceCuesShown(): boolean {
+      return readStored().differenceCues ?? true;
+    },
+    setDifferenceCuesShown(shown: boolean): void {
+      write(current => recordOf({...current, differenceCues: shown}));
     },
     exportRaw: () => storage.get(APP_SETTINGS_KEY),
     reset: () => storage.remove(APP_SETTINGS_KEY),
