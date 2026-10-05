@@ -26,8 +26,8 @@ export class WinisdDifferenceSection {
     'bug', 'winisd-diff-bugs', CompatSwitchGroup.BUGS, ['bugSwitch']);
 
   static readonly OPTIONS = new WinisdDifferenceSection(
-    'Options: WinISD\'s way or another',
-    'Here WinISD makes a valid choice that has another valid form. OpenISD copies WinISD by default; untick the switch under "Enable WinISD-style" on the Advanced tab for the other form.',
+    'Options: WinISD\'s way or alternative',
+    'OpenISD copies WinISD by default, however sometimes there is an alternative approach; untick the switch under "Enable WinISD-style" on the Advanced tab for the other form.',
     'option', 'winisd-diff-options', CompatSwitchGroup.OPTIONS, ['option']);
 
   static readonly FIXED = new WinisdDifferenceSection(

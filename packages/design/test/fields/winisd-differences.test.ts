@@ -21,7 +21,7 @@ describe('WinisdDifferenceSection', () => {
   it('has the three sections, in page order', () => {
     expect(WinisdDifferenceSection.ALL.map(s => s.heading)).toEqual([
       'WinISD bugs you can switch back on',
-      'Options: WinISD\'s way or another',
+      'Options: WinISD\'s way or alternative',
       'WinISD bugs OpenISD fixes (no switch)',
     ]);
   });

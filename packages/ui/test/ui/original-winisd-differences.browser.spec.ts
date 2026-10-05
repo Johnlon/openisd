@@ -20,7 +20,7 @@ test('the Info menu opens the page, with its three sections; Close shuts it', as
   await expect(help).toBeVisible();
   await expect(help.locator('.wd-section h3')).toHaveText([
     'WinISD bugs you can switch back on',
-    'Options: WinISD\'s way or another',
+    'Options: WinISD\'s way or alternative',
     'WinISD bugs OpenISD fixes (no switch)',
   ]);
   await help.locator('.wd-footer button', {hasText: 'Close'}).click();
@@ -43,7 +43,7 @@ test('a ≠W cue opens the page centred in the window at that cue\'s entry, with
   const panel = page.locator('.content-panel');
   await panel.locator('.action-btn', {hasText: '+ LP'}).click();
   await panel.locator('.filter-edit-body label').filter({hasText: /^Subtype\b/}).locator('select').selectOption({label: 'Linkwitz-Riley'});
-  const cue = panel.locator('button.winisd-deviation-cue');
+  const cue = panel.locator('.filter-edit-body button.winisd-deviation-cue');
   await expect(cue).toHaveAttribute('title', 'Differs from WinISD: WinISD ignores the Linkwitz-Riley order');
   const scrollSize = () => page.evaluate(() => ({w: document.documentElement.scrollWidth, h: document.documentElement.scrollHeight}));
   const scrollBefore = await scrollSize();
