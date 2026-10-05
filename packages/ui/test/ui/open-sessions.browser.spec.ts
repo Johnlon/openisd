@@ -233,7 +233,6 @@ test.describe('Open sessions', () => {
       const before = await page.locator('.project-row').count();
       await page.locator('.proj-actions button:has-text("Close")').click();
       const discard = page.locator('.close-actions button:has-text("Close without saving")');
-      // eslint-disable-next-line playwright/no-conditional-in-test
       if (await discard.isVisible()) await discard.click();
       await expect(page.locator('.project-row')).toHaveCount(before - 1);
     }
