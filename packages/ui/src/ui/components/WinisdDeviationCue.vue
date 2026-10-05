@@ -32,6 +32,7 @@ function hide(): void {
       <div class="winisd-deviation-title">{{ props.deviation.title }}</div>
       <p>{{ props.deviation.explanation }}</p>
       <p><b>Size:</b> {{ props.deviation.size }}</p>
+      <p v-if="props.deviation.seenIn !== null"><b>Seen in:</b> {{ props.deviation.seenIn }}</p>
       <p>{{ props.deviation.remedy }}</p>
       <button type="button" class="winisd-deviation-close" @click="hide">Close</button>
     </div>

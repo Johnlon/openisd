@@ -27,7 +27,7 @@ the VA numerator uses Re alone.
 
 Ruling, John 2026-09-27: keep WinISD's by default, with a compat switch for the corrected value.
 
-`sweep.ts` `va`: "WinISD VA model" on (default) gives WinISD's P·Re·|Hf|²/|Z + Rg|; off gives
+`sweep.ts` `va`: "WinISD VA model" (now "Enable WinISD Re without Rg bug") on (default) gives WinISD's P·Re·|Hf|²/|Z + Rg|; off gives
 P·(Re + Rg)·|Hf|²/|Z_amp|, Z_amp = Z + Rg at the amplifier, Z alone at the driver side (Zel
 already holds Rg). Reset to WinISD turns it on.
 
@@ -57,3 +57,20 @@ not into Re (5.77 dB), so the VA chart contradicts the SPL chart: a bug, not a d
 Screenshots (`winisd_research/runs/qo170-va2/`): `va_1_rg0.1_va.png` / `va_2_rg3.4_va.png` (look at the flat band of the VA
 chart), `va_1_rg0.1_spl.png` / `va_2_rg3.4_spl.png`, `va_3_rg3.4_atamp_impedance.png` /
 `va_5_rg3.4_driverside_impedance.png`, `va_5_rg3.4_driverside_va.png`.
+
+## The power readout uses Re too (probe winisd_research dad7b82, 2026-10-05)
+
+WinISD's Signal tab relates "System input power" and "Driver input voltage (each)" through Re
+alone: W5-1138SMF, Rg 0.1 Ω, typed 1.85 V each at 4 drivers reads 4.0 W = 4·1.85²/3.4 (Re + Rg
+gives 3.91 W). Its SPL chart still drives that power into Re + Rg, so a typed voltage plays
+10·log10((Re + Rg)/Re) louder than the voltage itself would: about 0.1 dB at Rg 0.1 Ω (WinISD
+92.573 dB at 1 kHz; OpenISD unticked 92.475, ticked 92.601 — WinISD carries the power as shown,
+4.0 W, 0.028 dB below 4.026 W). Evidence: `winisd_research/runs/nd-1/92_nd4_signal_after_volt_edit.png`,
+`93_nd4_spl_1k_after_volt.png`.
+
+Ruling, John 2026-10-05: one switch for this WinISD habit. The switch is now "Enable WinISD Re
+without Rg bug" (field key `winisdVaModel`, unchanged so old files load). Ticked: the VA chart as
+above, and P = N·V²/Re both ways (readout and an entered voltage), the sweep driving the power into
+Re + Rg. Unticked (the default): Re + Rg throughout. Tests: `driver-count-winisd.test.ts`
+("Enable WinISD Re without Rg bug" cases). The switch's tooltip and the ≠W popup carry a "Seen in"
+line naming the VA chart and the power readout with their sizes.

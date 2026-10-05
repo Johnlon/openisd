@@ -5,8 +5,8 @@ import {ToggleField} from './field.js';
 /** A WinISD calculation bug: the yellow bug switch in "WinISD bugs" brings it back. */
 export interface ErrorSwitchFix {
   readonly kind: 'errorSwitch';
-  /** The bug switch's label in "WinISD bugs". */
-  readonly switchLabel: string;
+  /** The bug switch in "WinISD bugs": its label and its "Seen in" line. */
+  readonly switchField: ToggleField;
   /** The bug switch's state in the project's `errorSwitches`. */
   readonly switchOf: (s: ErrorSwitchStates) => ErrorSwitchState;
 }
@@ -49,6 +49,9 @@ export class WinisdDeviation {
   readonly size: string;
   /** What brings WinISD's behaviour back, in plain words. */
   readonly remedy: string;
+  /** The bug switch's "Seen in" line: the charts and readouts the bug shows in, with sizes. Null
+   *  for an ignored input. */
+  readonly seenIn: string | null;
   readonly #fix: WinisdDeviationFix;
   readonly #charts: readonly ChartId[];
 
@@ -59,6 +62,7 @@ export class WinisdDeviation {
     this.#fix = spec.fix;
     this.#charts = spec.charts;
     this.remedy = remedyOf(spec.fix);
+    this.seenIn = spec.fix.kind === 'errorSwitch' ? spec.fix.switchField.seenIn : null;
   }
 
   /** OpenISD differs from WinISD now. */
@@ -81,7 +85,7 @@ export class WinisdDeviation {
     title: 'WinISD mixes two BL values',
     explanation: 'WinISD drives the cone with the entered BL but damps it with the BL implied by Fs, Qes and Vas. OpenISD uses one BL throughout, from the entered datasheet values.',
     size: 'W5-1138SMF (entered BL 7.17, implied 7.384): passband SPL 0.26 dB, impedance peak about 8 % apart.',
-    fix: {kind: 'errorSwitch', switchLabel: ToggleField.ADV_WINISDDRIVERMODEL.label, switchOf: s => s.driverModel},
+    fix: {kind: 'errorSwitch', switchField: ToggleField.ADV_WINISDDRIVERMODEL, switchOf: s => s.driverModel},
     charts: [],
   });
 
@@ -89,7 +93,7 @@ export class WinisdDeviation {
     title: 'WinISD uses Re, not Re + Rg',
     explanation: 'WinISD\'s amplifier load (VA) chart uses Re where the amplifier sees Re + Rg, and with "Rg is at driver side" on it counts Rg twice. Its Signal tab relates power and voltage through Re alone, while its SPL chart drives that power into Re + Rg. OpenISD uses Re + Rg throughout.',
     size: 'VA: Re 3.4 Ω, Rg 1 Ω, WinISD reads 23 % (1.1 dB) low. Power: 1.85 V each at 4 drivers, Rg 0.1 Ω, WinISD reads 4.0 W (OpenISD 3.91 W) and a typed voltage plays about 0.1 dB louder.',
-    fix: {kind: 'errorSwitch', switchLabel: ToggleField.ADV_WINISDVAMODEL.label, switchOf: s => s.vaModel},
+    fix: {kind: 'errorSwitch', switchField: ToggleField.ADV_WINISDVAMODEL, switchOf: s => s.vaModel},
     charts: ['VA'],
   });
 
@@ -97,7 +101,7 @@ export class WinisdDeviation {
     title: 'WinISD takes passive radiator losses at the wrong frequency',
     explanation: 'With more than one passive radiator, WinISD multiplies the radiator mass by Npr where the tuning divides by it, so it takes the box losses at a frequency Npr times too low. OpenISD takes them at the physical tuning.',
     size: 'Npr 2, W5 in 10 L, radiator Fs 30 Hz: WinISD 21 Hz, tuning 42 Hz; impedance up to 1 Ω and transfer function up to 2 dB apart.',
-    fix: {kind: 'errorSwitch', switchLabel: ToggleField.ADV_WINISDPRNPRRESONANCE.label, switchOf: s => s.prNprResonance},
+    fix: {kind: 'errorSwitch', switchField: ToggleField.ADV_WINISDPRNPRRESONANCE, switchOf: s => s.prNprResonance},
     charts: [],
   });
 
@@ -105,7 +109,7 @@ export class WinisdDeviation {
     title: 'WinISD\'s ABC group delay leaves the driver out',
     explanation: 'WinISD steps the ABC box to f ± 1e-10 Hz for the group delay but keeps the driver at the chart frequency f, so its group delay is the phase slope of the box alone and disagrees with its own phase chart. OpenISD plots −dφ/dω of the plotted phase.',
     size: 'W5-1138SMF ABC: WinISD −41.0 ms, phase slope −33.9 ms at 1 Hz; −3.3 ms against +3.6 ms at 10.75 Hz; 1.46 ms against 2.39 ms at 116 Hz.',
-    fix: {kind: 'errorSwitch', switchLabel: ToggleField.ADV_WINISDABCGROUPDELAY.label, switchOf: s => s.abcGroupDelay},
+    fix: {kind: 'errorSwitch', switchField: ToggleField.ADV_WINISDABCGROUPDELAY, switchOf: s => s.abcGroupDelay},
     charts: ['GD'],
   });
 
@@ -113,7 +117,7 @@ export class WinisdDeviation {
     title: 'WinISD shows one driver\'s impedance',
     explanation: 'With more than one driver, WinISD\'s impedance chart shows one driver\'s impedance, not the array the amplifier drives (its SPL, VA and maximum power are the whole array\'s). OpenISD shows the array, per the project\'s series or parallel wiring.',
     size: 'W5-1138SMF sealed, 4 drivers: WinISD peaks at 18.6 Ω, the same as one driver; in parallel the amplifier sees 4.65 Ω.',
-    fix: {kind: 'errorSwitch', switchLabel: ToggleField.ADV_WINISDDRIVERCOUNTMODEL.label, switchOf: s => s.driverCount},
+    fix: {kind: 'errorSwitch', switchField: ToggleField.ADV_WINISDDRIVERCOUNTMODEL, switchOf: s => s.driverCount},
     charts: [],
   });
 
@@ -124,7 +128,7 @@ export class WinisdDeviation {
 
 function remedyOf(fix: WinisdDeviationFix): string {
   switch (fix.kind) {
-    case 'errorSwitch': return `Tick "${fix.switchLabel}" under WinISD bugs (Advanced) to bring WinISD's behaviour back.`;
+    case 'errorSwitch': return `Tick "${fix.switchField.label}" under WinISD bugs (Advanced) to bring WinISD's behaviour back.`;
     case 'ignoredInput': return 'WinISD ignores this input, so OpenISD has no switch to copy it: set the value WinISD draws to see WinISD\'s result.';
   }
 }
@@ -165,7 +169,7 @@ export class WinisdFilterDeviation extends WinisdDeviation {
     title: 'WinISD\'s Bessel high-pass is not the mirror of its low-pass',
     explanation: 'WinISD keeps the Bessel low-pass\'s own denominator and swaps the numerator to (k·s)^n. That is not a Bessel high-pass. OpenISD draws the mirror of the low-pass (s → 1/s).',
     size: 'Order 4, fc 25 Hz: up to 6 % apart in complex response. Order 1 is the same.',
-    fix: {kind: 'errorSwitch', switchLabel: ToggleField.ADV_WINISDBESSELHIGHPASS.label, switchOf: s => s.besselHighpass},
+    fix: {kind: 'errorSwitch', switchField: ToggleField.ADV_WINISDBESSELHIGHPASS, switchOf: s => s.besselHighpass},
     charts: [],
     affects: f => f.type === 'highpass' && f.family === 'bessel' && f.order >= 2,
   });

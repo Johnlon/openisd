@@ -7,6 +7,7 @@ import {describe, expect, it} from 'vitest';
 import {CompatSwitch, OpenISDProject} from '../../domain/index.js';
 import {sealedProject} from '../fixtures/domainBuilders.js';
 import {createEngine} from '../../engine/index.js';
+import {ToggleField, WinisdDeviation} from '../../fields/index.js';
 
 describe('CompatSwitch', () => {
   it('lists the six WinISD bugs and the three options', () => {
@@ -33,6 +34,19 @@ describe('CompatSwitch', () => {
       expect(s.field.description).toMatch(/\nTicked/);
       expect(s.field.description).toMatch(/\nUnticked/);
     }
+  });
+
+  it('every bug switch tooltip ends with where the bug is seen; options have no such line', () => {
+    for (const s of CompatSwitch.BUGS) {
+      expect(s.field.seenIn, s.field.label).not.toBeNull();
+      expect(s.field.description.endsWith(`\nSeen in: ${s.field.seenIn}`), s.field.label).toBe(true);
+    }
+    for (const s of CompatSwitch.OPTIONS) expect(s.field.seenIn, s.field.label).toBeNull();
+  });
+
+  it('a bug\'s ≠W popup shows its switch\'s "Seen in" line', () => {
+    expect(WinisdDeviation.VA_MODEL.seenIn).toBe(ToggleField.ADV_WINISDVAMODEL.seenIn);
+    expect(WinisdDeviation.VA_MODEL.seenIn).toMatch(/Amplifier apparent load power \(VA\) chart.*System input power readout, 4\.0 W against 3\.91 W/);
   });
 
   it('a new project has every bug unticked and every option on WinISD\'s side', () => {
