@@ -1,7 +1,7 @@
 import type {Ref} from 'vue';
 
 /** One name box in SaveToLibraryDialog: a driver asks Brand and Model, a passive radiator its name. */
-export interface SaveToLibraryField {
+export interface SaveNameField {
   readonly label: string;
   readonly placeholder: string;
   /** The caller's ref the box edits. */

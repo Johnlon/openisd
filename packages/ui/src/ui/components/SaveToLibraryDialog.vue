@@ -5,12 +5,12 @@
 // mobile), whatever dialog opened it, so it never inherits a parent's width.
 import {onMounted, ref} from 'vue';
 import {useEscToClose} from '../../logic/useEscToClose.js';
-import type {SaveToLibraryField} from '../../hooks/saveToLibraryField.js';
+import type {SaveNameField} from '../../hooks/saveNameField.js';
 
 const props = defineProps<{
   title: string;
   note: string;
-  fields: readonly SaveToLibraryField[];
+  fields: readonly SaveNameField[];
   canSave: boolean;
   saveLabel: string;
 }>();
