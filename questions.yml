@@ -9716,7 +9716,7 @@ questions:
     is a natural place for an iterative "try a constraint, see if it breaks the design" interaction.'
 - id: QO165
   title: 'opentui: Windows Terminal hyperlink recognition + force-override env (decide how to ask upstream)'
-  status: open
+  status: decided
   raised: '2026-09-19'
   body: |-
     Investigated why chat file-mentions render as "text (url)" in Windows Terminal instead of a bare clickable filename.
@@ -9728,6 +9728,9 @@ questions:
     - No hyperlink force-override env exists (only OPENTUI_FORCE_WCWIDTH/UNICODE/NOZWJ/EXPLICIT_WIDTH). TERM=xterm-256color is already correct.
 
     Decision needed: raise an opentui feature request (add Windows Terminal to isHyperlinkTerm and/or add an OPENTUI_FORCE_HYPERLINK override env), or live with the (url) suffix / run opencode outside WSL.
+  notes:
+  - at: '2026-10-05'
+    text: 'John closed it: no upstream request; live with the (url) suffix in Windows Terminal.'
 - id: QO169
   title: Saved OpenISD high/low-pass filters after the WinISD filter rework
   status: decided
