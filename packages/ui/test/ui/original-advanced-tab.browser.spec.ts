@@ -268,7 +268,7 @@ test.describe('Original Advanced tab', () => {
     test('WinISD Compatibility labels say "optional" or "bug" and are unclipped', async ({ page }) => {
       const panel = page.locator('.sim-options-box', { hasText: 'WinISD Compatibility' });
       const labels = panel.locator('label[data-field-key]');
-      await expect(labels).toHaveText([/Enable WinISD style phase wrapping/, /Enable WinISD style per-driver boxes/, /Enable WinISD style uncapped flat response/, /Enable WinISD style simplified ABC intra-port velocity/, /Enable WinISD two-BL driver bug/, /Enable WinISD VA model bug/, /Enable WinISD PR Npr resonance bug/, /Enable WinISD Bessel high-pass bug/]);
+      await expect(labels).toHaveText([/Enable WinISD style phase wrapping/, /Enable WinISD style per-driver boxes/, /Enable WinISD style uncapped flat response/, /Enable WinISD style simplified ABC intra-port velocity/, /Enable WinISD two-BL driver bug/, /Enable WinISD VA model bug/, /Enable WinISD PR Npr resonance bug/, /Enable WinISD Bessel high-pass bug/, /Enable WinISD ABC group delay bug/]);
       const panelBox = (await panel.boundingBox())!;
       const clipRight = await panel.evaluate(el => {
         // The visible right edge: the panel's own, or an ancestor's that clips it first.
@@ -345,6 +345,17 @@ test.describe('Original Advanced tab', () => {
       await expect(cue).toHaveCount(0);
     });
 
+    test('the ABC group delay chart carries the ≠W cue while "Enable WinISD ABC group delay bug" is off', async ({ page }) => {
+      await showAdvancedOn(page, 'abc');
+      await page.locator('.chart-select').click();
+      await page.locator('.chart-item', { hasText: 'Group delay' }).first().click();
+      const cue = page.locator('.chart-deviation-cue');
+      await expect(cue).toHaveCount(1);
+      await expect(cue.locator('.winisd-deviation-cue')).toHaveAttribute('title', /ABC group delay leaves the driver out/);
+      await page.locator('[data-field-key="winisdAbcGroupDelay"] input').check();
+      await expect(cue).toHaveCount(0);
+    });
+
     test('the passive-radiator count carries the ≠W cue while "Enable WinISD PR Npr resonance bug" is off', async ({ page }) => {
       await showAdvancedOn(page, 'box-passive-radiator');
       const cue = page.locator('.field', { has: page.locator('#og-pr-count') }).locator('.winisd-deviation-cue');
@@ -379,7 +390,7 @@ test.describe('Original Advanced tab', () => {
   });
 
   test.describe('WinISD bugs group', () => {
-    const ERROR_KEYS = ['winisdDriverModel', 'winisdVaModel', 'winisdPrNprResonance', 'winisdBesselHighpass'];
+    const ERROR_KEYS = ['winisdDriverModel', 'winisdVaModel', 'winisdPrNprResonance', 'winisdBesselHighpass', 'winisdAbcGroupDelay'];
     /** The box type each error switch acts on; a switch that applies everywhere is shown on an ABC box. */
     const BOX_FOR: Record<string, BoxTypeName> = {winisdPrNprResonance: 'box-passive-radiator'};
     /** The Bessel switch acts only on a project with a Bessel high-pass filter, so it cannot be ticked here. */
@@ -442,6 +453,16 @@ test.describe('Original Advanced tab', () => {
       await expect(label).toHaveClass(/error-switch-na/);
       await expect(label).toHaveClass(/error-switch-marked/);
       await expect(label.locator('.error-switch-mark')).toBeVisible();
+    });
+
+    test('the ABC group delay switch is editable on an ABC box only', async ({page}) => {
+      const label = page.locator('label[data-field-key="winisdAbcGroupDelay"]');
+      await showAdvancedOn(page, 'bandpass6');
+      await expect(label.locator('input')).toBeDisabled();
+      await expect(label).toHaveClass(/error-switch-na/);
+      await showAdvancedOn(page, 'abc');
+      await expect(label.locator('input')).toBeEnabled();
+      await expect(label).not.toHaveClass(/error-switch-na/);
     });
 
     test('the PR Npr switch is editable on a passive radiator box only', async ({page}) => {

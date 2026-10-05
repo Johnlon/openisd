@@ -1430,3 +1430,13 @@ chain"; `.wpr` `[Filters]` format: `PROBE_FINDINGS.md`. The bugs, one file each:
 | Filter group delay unwraps one direction only | not copied (never triggers) | [bugs/archive/BUG_20260927_winisd-filter-group-delay-unwrap-one-direction.md](../../bugs/archive/BUG_20260927_winisd-filter-group-delay-unwrap-one-direction.md) |
 | `.wpr` with filter order above 10: WinISD hits a floating-point overflow, shown in a modal error dialog (John, 2026-10-01) | not copied; OpenISD allows orders up to 20 | [bugs/archive/BUG_20260927_winisd-wpr-filter-order-12-stops-load.md](../../bugs/archive/BUG_20260927_winisd-wpr-filter-order-12-stops-load.md) |
 | Points where the box value is exactly 0 are skipped, EQ/Filter charts included | open | [bugs/archive/BUG_20260927_winisd-filter-charts-skip-zero-box-points.md](../../bugs/archive/BUG_20260927_winisd-filter-charts-skip-zero-box-points.md) |
+
+## 22. Group delay — 6th-order bandpass and ABC (decoded 2026-10-05)
+
+Both step f ± 1e-10 Hz and difference arg H, as for every box. They differ in H (winisd_research
+`GHIDRA_FINDINGS.md` "Group delay of the 6th-order bandpass and ABC — chart byte 12").
+
+| Box | WinISD | OpenISD | File |
+|---|---|---|---|
+| ABC | a calculation bug: the box is stepped to f ± δ but the output routine passes the chart frequency f to the driver routine, so the driver part is held at f and the group delay is the box's phase slope alone. It contradicts WinISD's own phase chart (W5-1138SMF, 1.005 Hz: −40.96 ms against −33.86 ms) | fixed by default (−dφ/dω of the plotted phase); yellow error switch "Enable WinISD ABC group delay bug" (ABC only) brings WinISD back, within 1.03e-3 ms; a ≠W cue by the Group delay chart explains it | [bugs/archive/BUG_20261005_winisd-abc-group-delay-driver-not-stepped.md](../../bugs/archive/BUG_20261005_winisd-abc-group-delay-driver-not-stepped.md) |
+| BP6 | H is right (equals the plotted transfer); above ~200 Hz the 1e-10 Hz step turns the rounding of two nearly cancelling compliance currents into noise, worst 0.11 ms at 4 kHz | not copied, no switch (John, 2026-10-05): rounding noise cannot be reproduced in doubles; OpenISD's own noise is the same size | [bugs/archive/BUG_20260929_bp6-abc-group-delay-not-winisd.md](../../bugs/archive/BUG_20260929_bp6-abc-group-delay-not-winisd.md) |

@@ -565,7 +565,12 @@ export class SimulationEngineImpl implements SimulationEngine {
     const pressure = (f: number): Complex =>
       cMul(cMul(cx(0, 2 * Math.PI * f), solve(f, cq, box, P).U0), applyFilters(f, P.filters, filterErrors));
     const filterChain = (f: number): Complex => applyFilters(f, P.filters, filterErrors);
-    const gd = fs.map(f => groupDelayAtMs(pressure, f));
+    // WinISD's ABC group delay (winisd_research GHIDRA_FINDINGS.md "Group delay of the 6th-order
+    // bandpass and ABC"): the box at the stepped f', the driver part and jω held at the chart f.
+    const winisdAbcGd = box === 'abc' && P.winisdAbcGroupDelay === true;
+    const pressureDriverAt = (fd: number) => (f: number): Complex =>
+      cMul(cMul(cx(0, 2 * Math.PI * fd), solve(f, cq, box, P, fd).U0), applyFilters(f, P.filters, filterErrors));
+    const gd = fs.map(f => groupDelayAtMs(winisdAbcGd ? pressureDriverAt(f) : pressure, f));
     const fltGd = fs.map(f => groupDelayAtMs(filterChain, f));
 
     // Force flat response (WinISD Advanced) — the inverse filter that lifts every point to the

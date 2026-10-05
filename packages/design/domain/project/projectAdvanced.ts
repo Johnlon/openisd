@@ -121,6 +121,17 @@ export class ProjectAdvanced {
         };
     }
 
+    /** WinISD Compatibility "Enable WinISD ABC group delay bug": the ABC group delay as WinISD
+     *  computes it, the box stepped to f ± δ with the driver part held at f, so the driver's own
+     *  phase slope is left out. Off: −dφ/dω of the plotted phase. Off where a project does not say. */
+    get winisdAbcGroupDelay(): SimpleField<boolean> {
+        const lens = focus(this.#advanced, 'winisdAbcGroupDelay');
+        return {
+            get value() { return lens.value ?? CompatSwitch.ABC_GROUP_DELAY.winisdValue; },
+            set: (on: boolean) => lens.set(on),
+        };
+    }
+
     /** WinISD Compatibility "Enable WinISD style phase wrapping": wraps phase curves to [-180°, +180°] (default).
      *  Off: continuous unwrapped phase. On where a project does not say. */
     get winisdWrapPhase(): SimpleField<boolean> {

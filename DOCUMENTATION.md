@@ -10,7 +10,7 @@
 | [OPENISD_WINISD_GAPS_AND_BUGS.md](OPENISD_WINISD_GAPS_AND_BUGS.md) | Open behaviour differences from WinISD                                           |
 | [FEATURES.md](FEATURES.md)                                         | What ships, and what is planned                                                  |
 | [BACKLOG.md](BACKLOG.md)                                           | Agreed work not yet started                                                      |
-| [BUGS.md](BUGS.md)                                                 | Known open bugs                                                                  |
+| [bugs/](bugs/)                                                     | Known open bugs                                                                  |
 | [TESTING_STRATEGY.md](TESTING_STRATEGY.md)                         | How the app is tested                                                            |
 | [CONTRIBUTING.md](CONTRIBUTING.md)                                 | How to contribute                                                                |
 

@@ -78,11 +78,10 @@ only on Windows, and its source was never released. OpenISD carries the idea for
   - contradictory inputs are marked, not silently discarded;
   - a typed value is never rewritten behind the user's back;
   - each project keeps its own air conditions.
-- **Parity state** (2026-09-29, one driver, W5-1138SMF): 150 of 184 cells in the
+- **Parity state** (2026-10-05, one driver, W5-1138SMF): 152 of 184 cells in the
   [WinISD equivalence register](docs/research/WINISD_EQUIVALENCE.md) match WinISD, most to
   ≤ 1e-12. Every chart exists for every box type.
 - **Remaining gaps:**
-  - differs from WinISD: group delay for 6th-order bandpass and ABC;
   - not yet compared with WinISD:
     - filters for 6th-order bandpass and ABC;
     - amplifier load with Rg 1 Ω for vented, 4th-order bandpass and passive radiator;
@@ -116,7 +115,7 @@ npm test           # the full test gate
 | [RESEARCH.md](RESEARCH.md)                         | The theory, what WinISD is built on, and WinISD's measured behaviour  |
 | [OPENISD_WINISD_GAPS_AND_BUGS.md](OPENISD_WINISD_GAPS_AND_BUGS.md) | Open differences from WinISD                             |
 | [FEATURES.md](FEATURES.md) · [BACKLOG.md](BACKLOG.md) | Features and planned work                                          |
-| [BUGS.md](BUGS.md)                                 | Known open bugs                                                       |
+| [bugs/](bugs/)                                     | Known open bugs                                                       |
 | [TESTING_STRATEGY.md](TESTING_STRATEGY.md)         | How the app is tested                                                 |
 | [CONTRIBUTING.md](CONTRIBUTING.md)                 | How to contribute                                                     |
 | [DOCUMENTATION.md](DOCUMENTATION.md)               | Index of every other document                                         |

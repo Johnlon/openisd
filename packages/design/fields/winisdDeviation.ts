@@ -101,6 +101,14 @@ export class WinisdDeviation {
     charts: [],
   });
 
+  static readonly ABC_GROUP_DELAY = new WinisdDeviation({
+    title: 'WinISD\'s ABC group delay leaves the driver out',
+    explanation: 'WinISD steps the ABC box to f ± 1e-10 Hz for the group delay but keeps the driver at the chart frequency f, so its group delay is the phase slope of the box alone and disagrees with its own phase chart. OpenISD plots −dφ/dω of the plotted phase.',
+    size: 'W5-1138SMF ABC: WinISD −41.0 ms, phase slope −33.9 ms at 1 Hz; −3.3 ms against +3.6 ms at 10.75 Hz; 1.46 ms against 2.39 ms at 116 Hz.',
+    fix: {kind: 'errorSwitch', switchLabel: ToggleField.ADV_WINISDABCGROUPDELAY.label, switchOf: s => s.abcGroupDelay},
+    charts: ['GD'],
+  });
+
   static readonly DRIVER_COUNT = new WinisdDeviation({
     title: 'WinISD simulates each driver alone',
     explanation: 'With more than one driver, WinISD simulates N copies of one driver, each in Vb/N fed P/N, so its impedance and amplifier VA charts show one driver\'s load, not the array the amplifier drives. OpenISD wires the N voice coils, in parallel or series as the project says, into one load.',

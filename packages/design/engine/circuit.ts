@@ -97,8 +97,12 @@ export function hfAsymptotePressure_Pa(drv: CircuitQuantities, P: SweepParams, r
   return rho * pg / (2 * Math.PI * r_m * Mas);
 }
 
-export function solve(f: number, drv: CircuitQuantities, box: BoxType, P: SweepParams): Solution {
+/** The box is solved at `f`; the driver's own elements (coil, push, damping, ZaD) at `fDriver`,
+ *  which is `f` except for WinISD's ABC group delay (`winisdAbcGroupDelay`): there WinISD steps
+ *  the box to f ± δ and keeps the driver at the chart frequency. */
+export function solve(f: number, drv: CircuitQuantities, box: BoxType, P: SweepParams, fDriver: number = f): Solution {
   const w      = 2 * Math.PI * f;
+  const wd     = 2 * Math.PI * fDriver;
   const n      = P.nDrivers || 1;
   const wiring = P.wiring || 'parallel';
   const eg     = P.eg;
@@ -126,7 +130,7 @@ export function solve(f: number, drv: CircuitQuantities, box: BoxType, P: SweepP
   const rgAtDriver = P.rgAtDriverSide !== false;
   const Rdc1 = coilRdc(drv, P);
   const arrayTerminals = (Le_H: number): Complex => {
-    const z1 = cx(Rdc1, w * Le_H);
+    const z1 = cx(Rdc1, wd * Le_H);
     return wiring === 'series' ? cScale(z1, n) : cScale(z1, 1/n);
   };
   const arrayCoil = (Le_H: number): Complex =>
@@ -164,7 +168,7 @@ export function solve(f: number, drv: CircuitQuantities, box: BoxType, P: SweepP
   const Cas = drv.Cms_m_per_N * drv.Sd_m2 * drv.Sd_m2 * n;
   const Mas = drv.Mms_kg / (drv.Sd_m2 * drv.Sd_m2) / n;
   const Ras = drv.Rms_kg_per_s / (drv.Sd_m2 * drv.Sd_m2) / n;
-  const ZaD = cAdd(cAdd(cx(Ras, 0), cx(0, w * Mas)), cInv(cx(0, w * Cas)));
+  const ZaD = cAdd(cAdd(cx(Ras, 0), cx(0, wd * Mas)), cInv(cx(0, wd * Cas)));
 
   // Box acoustic compliance Cab = Vb/(ρc²)
   // Loss resistances in parallel with compliance: Ral (leakage) and Raa (absorption)

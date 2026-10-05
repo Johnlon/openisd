@@ -754,6 +754,9 @@ const openISDAdvancedJsonSchema = z.preprocess(renameLegacyWinisdDriverModel, z.
     // Bug switch "Enable WinISD Bessel high-pass bug": Bessel high-pass filters as WinISD computes them,
     // not the mirror of the low-pass. Absent parses to OFF.
     winisdBesselHighpass: z.boolean().optional(),
+    // Bug switch "Enable WinISD ABC group delay bug": the ABC group delay as WinISD computes it, the
+    // driver part held at the chart frequency while the box is stepped. Absent parses to OFF.
+    winisdAbcGroupDelay: z.boolean().optional(),
     // "Enable WinISD style phase wrapping": wraps phase curves to [-180°, +180°]. Optional: absent parses to ON.
     winisdWrapPhase: z.boolean().optional(),
     // Bug switch "Enable WinISD per-driver boxes bug": N drivers as WinISD simulates them, each in Vb/N fed P/N; off, the N
