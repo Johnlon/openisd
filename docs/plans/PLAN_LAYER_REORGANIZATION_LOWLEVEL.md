@@ -227,7 +227,7 @@ module-level singleton.
 | `logic/bundledIndexRows.ts` | **STAY** | builds UI search rows via `driverDisplay` |
 | `logic/domEvents.ts` | **STAY** | browser event helpers (`HTMLElement`) |
 | `logic/toneGenerator.ts` | **STAY** | WebAudio (`AudioContext`) |
-| `logic/useDriverCells.ts`, `usePrGroup.ts`, `useVentGroup.ts` | **STAY** | the UI-logic layer (concrete hook impls) per John's model |
+| `logic/driverCells.ts`, `prGroup.ts`, `ventGroup.ts` | **STAY** | the UI-logic layer (concrete hook impls) per John's model |
 | `logic/driverSpecFields.ts` | **STAY** | app workflow |
 | `logic/driverDisplay.ts` | **STAY** | ruled display/search logic (§6 of DECOMMISSION plan) |
 | `logic/driverDraft.ts`, `driverSelection.ts`, `fileImportExport.ts`, `driverFileText.ts`, `urlAppState.ts` | **STAY** (fileImportExport loses its codec half to `backend/io`) | app workflow, appState-bound |

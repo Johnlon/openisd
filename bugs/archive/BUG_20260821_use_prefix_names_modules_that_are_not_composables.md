@@ -1,4 +1,4 @@
-Status: OPEN (re-verified 2026-09-26) — modules named `use*` that are not composables still exist.
+Status: FIXED 2026-10-05 — renamed by subject: `useApplicationIO.ts` → `applicationIO.ts`, `useDriverCells.ts` → `driverCells.ts`, `useVentGroup.ts` → `ventGroup.ts`, `usePrGroup.ts` → `prGroup.ts` (and their tests). `useEscToClose.ts` stays: it is a genuine composable.
 
 # The `use` prefix names four modules that are mostly not composables
 

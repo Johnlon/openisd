@@ -1,5 +1,5 @@
 /**
- * useVentGroup — the vent group's E/C/N provenance: which of Vb / ventD / Fb / ventL is HELD and
+ * ventGroup — the vent group's E/C/N provenance: which of Vb / ventD / Fb / ventL is HELD and
  * which is SOLVED.
  *
  * One relation ties all four: Fb = (c/2π)·√(Sp/(Vb·Leff)), Leff = L + k·d. So exactly one
@@ -23,7 +23,7 @@ import {
   ventAchievedFb,
   VentMember,
   ventMaxReachableFb,
-} from '../../src/logic/useVentGroup.js';
+} from '../../src/logic/ventGroup.js';
 
 /** Vb=0.02 m³, round 5 cm vent, k=0.6 — WinISD's own Vents-tab trial. */
 function ventedProject() {
@@ -96,7 +96,7 @@ function countNotifications(fn: () => void): number {
   return count;
 }
 
-describe('useVentGroup', () => {
+describe('ventGroup', () => {
   describe('the entered set decides the direction', () => {
     it('the length the volume/area/tuning actually require matches WinISD\'s published values', () => {
       const p = ventedProject();

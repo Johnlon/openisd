@@ -40,7 +40,7 @@ import {
 } from '../logic/appState.js';
 import {cycleTraceColor, presentationState, setSkinOverride, traceColor} from '../logic/presentationState.js';
 import {useFocusedProject} from '../logic/focusedProjectContext.js';
-import {VentMember} from '../logic/useVentGroup.js';
+import {VentMember} from '../logic/ventGroup.js';
 import {createVentReadouts, FB_TARGET_TIP, FH_TARGET_TIP, VENT_GEOMETRY_TIP} from './ventReadouts.js';
 import {formatDateStamp, parseDateStamp} from '../logic/dateDisplay.js';
 import {createPassiveRadiatorActions} from './passiveRadiatorActions.js';

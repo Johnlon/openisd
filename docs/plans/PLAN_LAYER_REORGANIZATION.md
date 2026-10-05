@@ -25,7 +25,7 @@ Dependency chain: **`design` (leaf, no deps) → `persistence` → `ui`**.
 | Storage ports + impls | `persistence/storage` | Mixed | `KeyValueStorage` (localStorage + memory), `FileStorage`/`FileSave` (File System Access + anchor download) |
 | Composition root | `ui/src/main.ts` | Yes | builds every service, provides `AppLogic` facade |
 | Hooks | `ui/hooks` | Vue-bound | per-component injection keys + facades over `logic/` |
-| UI logic | `ui/logic` | Mostly | `appState`, `useApplicationIO`, `driverSelection`, … but also **pure helpers** (`environment.ebpOf`, `series.ts`) |
+| UI logic | `ui/logic` | Mostly | `appState`, `applicationIO`, `driverSelection`, … but also **pure helpers** (`environment.ebpOf`, `series.ts`) |
 | Components/shells | `ui/ui` | Yes | Vue |
 | UI tests re: persistence | `ui/test/persistence` | — | browser specs about **persistence features** — not unit tests of `@openisd/persistence` |
 

@@ -42,7 +42,7 @@ The doc is an **accretion of dated layers**, not a single snapshot; it self-main
 | C9 | "A sweep never copies upstream DQ messages into its issue list" | :244–245 | Reversed by the appendix itself (:969–974): when `values` is `null`, real upstream issues ARE embedded in `SweepIssue` (`sweep.ts:217`; domain guards `openisdDomain.ts:2767–2768`) | **Self-resolved contradiction** |
 | C10 | Environment projected to "Advanced fields" only | :599–611 | `engine/sweep.ts` reports `environmentIssues(P)` as a blocking sweep issue (:219–220); no Advanced-tab cell reads it (T8 gap, verified) | **Half-true** |
 | C11 | Cell-projection parity per channel | :884–889 | Vent/PR have per-field getters; **sealed-alignment has no domain call site**; signal `solveSignal()` has no production caller | Open (T8) |
-| C12 | UI: `consistencyNote`/`fieldIsMandatoryAndUnsatisfied`/`chartBlockingReasons` collapse into one projection | :570–597, item 15 | `consistencyNote`/`fieldIsMandatoryAndUnsatisfied` read `DriverIssue[]` (`useDriverCells.ts:76,98`); **`useDriverCells.ts:65` hand-rolls `fieldsNamedBy`** — a local copy of engine's exported `issueFields` (`consistency.ts:231, Engine.ts:192`) | **Partial** (duplication worth folding) |
+| C12 | UI: `consistencyNote`/`fieldIsMandatoryAndUnsatisfied`/`chartBlockingReasons` collapse into one projection | :570–597, item 15 | `consistencyNote`/`fieldIsMandatoryAndUnsatisfied` read `DriverIssue[]` (`driverCells.ts:76,98`); **`driverCells.ts:65` hand-rolls `fieldsNamedBy`** — a local copy of engine's exported `issueFields` (`consistency.ts:231, Engine.ts:192`) | **Partial** (duplication worth folding) |
 
 ## 4. What was actually built — critical assessment
 
@@ -109,5 +109,5 @@ The doc is an **accretion of dated layers**, not a single snapshot; it self-main
 3. **Do T4** (ruled, small, closes a live silent-blank-chart gap): push QO145's "Not yet implemented" `DriverError` into the sweep channel at the store when `!boxTypeIsSimulatable` (`appState.ts:473`).
 4. **Do T6 properly** — a real `hardening.test.ts` regression asserting the vent/PR case no longer reaches `classifyFinite`.
 5. **Do T7** — fix Status line, Convergence description, Tests bullet, `SweepCalculationResult` sketch, ground-truth line numbers (C1/C2/C3/C6/C7/C8), add the C5 correction.
-6. **Post-T9 folding:** retire `validateParams()`/`DriverError` in `paramIssues` once QO142-style convergence is ruled for it; have `useDriverCells.ts` use `issueFields` instead of its private `fieldsNamedBy`.
+6. **Post-T9 folding:** retire `validateParams()`/`DriverError` in `paramIssues` once QO142-style convergence is ruled for it; have `driverCells.ts` use `issueFields` instead of its private `fieldsNamedBy`.
 7. **T5** is a data-model change with migration risk (`.owpr` schema drop of `voltage_V`) — plan it as its own session.

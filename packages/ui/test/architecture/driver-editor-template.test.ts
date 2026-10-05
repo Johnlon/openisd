@@ -24,7 +24,7 @@ import {fileURLToPath} from 'node:url';
 import {dirname, join} from 'node:path';
 import type {NumSpecField} from '../../src/logic/appState.js';
 import type {Calculated, Entered, Readable} from '@openisd/design';
-import {CellClass, cellClassOf} from '../../src/logic/useDriverCells.js';
+import {CellClass, cellClassOf} from '../../src/logic/driverCells.js';
 import {OpenISDDriver, VoiceCoilWiring} from '@openisd/design';
 import {createEngine} from '@openisd/design/engine';
 import {DateField, EnumField, Field, NumberField, TextField, ToggleField} from '@openisd/design/fields';

@@ -5,7 +5,7 @@
  * dialog's own Cancel could never plausibly undo.
  *
  * Thin orchestration only: the actual read/write lives in `DesignIO.exportBackup`/`importBackup`
- * (`useApplicationIO.ts`, the one place in `ui/logic` allowed to reach into `@openisd/persistence` —
+ * (`applicationIO.ts`, the one place in `ui/logic` allowed to reach into `@openisd/persistence` —
  * a hook never imports that package directly, QO80's layer-edge matrix).
  */
 import {useApp} from '../logic/app.js';

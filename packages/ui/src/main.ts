@@ -23,7 +23,7 @@ import {createLogging} from './logging/flash.js';
 import {createFaultLog} from './diagnostics/faultLog.js';
 import {createDriverSelection} from './logic/driverSelection.js';
 import {createDriverBrowsingState} from './logic/driverBrowsingState.js';
-import {createApplicationIO} from './logic/useApplicationIO.js';
+import {createApplicationIO} from './logic/applicationIO.js';
 import {DesignFiles} from './logic/fileImportExport.js';
 import {DriverDrafts} from './logic/driverDraft.js';
 import {provideApp} from './logic/app.js';

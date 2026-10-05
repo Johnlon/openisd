@@ -95,7 +95,7 @@ export class ProjectFileFormat {
 export type FileFormat = DriverFileFormat | ProjectFileFormat;
 
 /** What File > Open accepts: every project and driver format, under one named filter. The app
- *  decides what a picked file is by its format (`useApplicationIO.importFile`). */
+ *  decides what a picked file is by its format (`applicationIO.importFile`). */
 export class OpenableFiles {
   private constructor() {}
 

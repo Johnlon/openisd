@@ -9,7 +9,7 @@ import {useApp} from '../../logic/app.js';
 import {wiringOptions} from '../../logic/driverDraft.js';
 import {readDriverFileText} from '../../logic/driverFileText.js';
 import {driverToOwdrBytes, driverToWdrBytes} from '../../logic/fileImportExport.js';
-import {cellClassOf} from '../../logic/useDriverCells.js';
+import {cellClassOf} from '../../logic/driverCells.js';
 import {commitMyDriver, dqNoteFor} from '../../hooks/DriverEditorModal-hooks.js';
 import type {DqReason} from '@openisd/design';
 import type {Calculated, Clearable, Entered, Precise, Readable, Writable} from '@openisd/design';

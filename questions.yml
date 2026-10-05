@@ -836,7 +836,7 @@ questions:
       EBP — so the human's unnamed "0.73" is Bl, not Qts.
 
       WHAT WAS DONE
-      - New composable composables/useDriverCells.ts holds the ONE copy of the E/C/N class mapping
+      - New composable composables/driverCells.ts holds the ONE copy of the E/C/N class mapping
         (CellClass enum + a TOTAL Record<CellState,CellClass>) and the Q-group rule. The editor's
         local cellClass/qIncomplete were DELETED and now read it, so a panel cannot disagree with
         the dialog about the same driver.
@@ -919,7 +919,7 @@ questions:
 
       R6 Entered Fp feeds the port solver equation - MET.
          Chain: OriginalShell.vue:163 enterVentField('Fb', v) -> store.ts:129 passthrough ->
-         useVentGroup.ts:96-104 sets P.entered.Fb + calls solveVentGroup -> useVentGroup.ts:85
+         ventGroup.ts:96-104 sets P.entered.Fb + calls solveVentGroup -> ventGroup.ts:85
          `P.ventL = ventLength(V, P.Fb, Sp, P.endCorrection)` -> engine alignments.ts:79-85 (Helmholtz).
          EXECUTED: `npx vitest run packages/ui/test/logic/vent-group.test.ts` -> 10/10 passed, incl.
          :59 "THE DIRECTION TEST" (entered Fb=40 never rewritten, length absorbs the diameter change)
@@ -5150,7 +5150,7 @@ questions:
       - Their provenance is state.P.entered, a Record<string,true> where presence means
         Entered. That is a SECOND, hand-rolled E/C/N system, unrelated to the driver's
         SpecEntry/origin/readings + cell().state.
-      - Their solving is in logic/useVentGroup.ts (solveVentGroup) and logic/usePrGroup.ts
+      - Their solving is in logic/ventGroup.ts (solveVentGroup) and logic/prGroup.ts
         (solvePrGroup), driven by two watch()ers in store.ts, with enterVentField/
         clearVentField/ventFieldState/ventTargetUnreachable/ventMaxReachableFb and
         enterPrField/clearPrField/prFieldState/prTargetUnreachable wrapping them.
@@ -5170,9 +5170,9 @@ questions:
         driver      ManagedDriver   SpecEntry/origin/       ManagedDriver      solveConsistencyGroup
                                     readings, cell().state  (built, gated)
         vent        NONE            state.P.entered (27x    NONE               solveVentGroup
-                                    in useVentGroup.ts)
+                                    in ventGroup.ts)
         PR          NONE            state.P.entered (13x    ??? see below      solvePrGroup
-                                    in usePrGroup.ts)
+                                    in prGroup.ts)
 
       Three group solvers of the same kind. TWO unrelated provenance mechanisms for one
       E/C/N concept. One facade out of three.
@@ -6684,7 +6684,7 @@ questions:
 
       1. SCOPE CHANGED: QO72 (ruled 2026-08-21, closed) moved the gate from a curated file list to ALL_SRC_FILES (packages/ui/test/ui/architecture.test.ts:864-927) — every production module with a top-level export must now carry its own `export const ALLOWED_GLOBALS = [...]`, human-edit-only, or every export is an offence. Only ONE file in the tree declares one today: packages/ui/src/logic/appState.ts:75-77 (openProjects, focusedProject, focusProject, removeProject, addProject).
 
-      2. ACTUAL COUNT, re-run just now (`npx vitest run packages/ui/test/ui/architecture.test.ts -t ALLOWED_GLOBALS`): 189 offences across 56 files (not 18, not 215 — corrected from an earlier draft of this note that double-counted vitest's ANSI+plain diff output as 378). Top offenders by file: logic/appState.ts 21, persistence/repos/driverRepo.ts 12, logic/useVentGroup.ts 12, logic/prWinIsdFields.ts 8, logic/environment.ts 7, ui/canvas.ts 6, logic/usePrGroup.ts 6, logic/persist.ts 6, logic/fields/units.ts 6, then 30+ more files at 1-5 each (persistence/repos/*, model/src/*, winisd/src/*, logic/app.ts, driverType.ts, driverScope.ts, diagnostics/*, ui/directives/*). Full 56-file breakdown with counts saved at scratchpad qo80_counts.txt this session, not yet committed anywhere in-repo.
+      2. ACTUAL COUNT, re-run just now (`npx vitest run packages/ui/test/ui/architecture.test.ts -t ALLOWED_GLOBALS`): 189 offences across 56 files (not 18, not 215 — corrected from an earlier draft of this note that double-counted vitest's ANSI+plain diff output as 378). Top offenders by file: logic/appState.ts 21, persistence/repos/driverRepo.ts 12, logic/ventGroup.ts 12, logic/prWinIsdFields.ts 8, logic/environment.ts 7, ui/canvas.ts 6, logic/prGroup.ts 6, logic/persist.ts 6, logic/fields/units.ts 6, then 30+ more files at 1-5 each (persistence/repos/*, model/src/*, winisd/src/*, logic/app.ts, driverType.ts, driverScope.ts, diagnostics/*, ui/directives/*). Full 56-file breakdown with counts saved at scratchpad qo80_counts.txt this session, not yet committed anywhere in-repo.
 
       3. THE SPECIFIC 18 NAMES QO80 NAMED NO LONGER MATCH THE TREE: logic/fileStore.ts (createFileStore) does not exist — grep confirms no file of that name anywhere under packages/ui/src. managedDriver.ts's `_driverRecordFromWdrText` does not exist either (managedDriver.ts's current 3 exports are driverFromWdrText, driverFromFileText, driverFromConformingRecord). A7's `recordIsSimulatable` was never the export name — the actual export is `driverIsSimulatable` in model/src/driverSimulatability.ts; `recordStandingIsOk` (model/src/driverStanding.ts) does match. So at least 3 of the original 18 names are grants for code that no longer exists under that name.
 
@@ -8817,7 +8817,7 @@ questions:
   - at: '2026-09-16'
     text: 'Implemented and verified 2026-09-17 by the S2-7 project cascade (commits a113c1b, 97fb4c2):
       the vent and passive-radiator pairs are solved bidirectionally by the project on every write. The
-      UI''s manual Helmholtz workaround in useVentGroup.ts is retired. John acked 2026-09-17.'
+      UI''s manual Helmholtz workaround in ventGroup.ts is retired. John acked 2026-09-17.'
 - id: QO127
   title: 'DECIDED: a spec field with no stated value reads THROUGH the solver — nothing calls the solver
     independently and writes back -'

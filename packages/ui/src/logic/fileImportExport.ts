@@ -6,7 +6,7 @@
  * repo. This module converts text to bytes and problems to `DriverError`s; it never assembles a
  * format object itself.
  *
- * `useApplicationIO.ts` is the only caller: it owns filename bookkeeping and the flash
+ * `applicationIO.ts` is the only caller: it owns filename bookkeeping and the flash
  * messages; this module owns the format conversion. Nothing here touches app state or the
  * DOM.
  */

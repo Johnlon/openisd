@@ -46,8 +46,8 @@ import {
 import {assignTraceColor, presentationState} from './presentationState.js';
 import {BOX_TYPE_OPTIONS, NumberField, parseUnitRotation, type SelectorOption} from '@openisd/design/fields';
 import {getOrInit, hmrSlots} from './hmrSingleton.js';
-import {notifyVentChanged, ventSolveSuspended,} from './useVentGroup.js';
-import {notifyPrChanged} from './usePrGroup.js';
+import {notifyVentChanged, ventSolveSuspended,} from './ventGroup.js';
+import {notifyPrChanged} from './prGroup.js';
 
 /** The driver spec fields the app's UI reads/writes by name — the schema's own spec keys.
  *  Derived, never a hand-maintained copy. */
