@@ -300,7 +300,7 @@ record. `architecture-project-has-three-fields.test.ts` pins the allowed set.
 |--------------|-----------------------------------------------|-----------------------------------|
 | `#saved`     | The project as of the last save.              | `save()` replaces it.             |
 | `#edited`    | Every change since the last save, or `null`.  | `save()` promotes it.             |
-| `#whatif`    | A tuning session (the Tune panel).            | `cancelWhatIf()`, always discarded. |
+| `#whatif`    | A What-if session (the What-if? panel).       | `cancelWhatIf()`, always discarded. |
 
 - **Writes land in the top record layer.** Reads come from `#whatif ?? #edited ?? #saved`.
 - **A what-if never commits.** It explores values that may not match any real part. Making a
@@ -479,7 +479,7 @@ The full strategy is in [TESTING_STRATEGY.md](TESTING_STRATEGY.md).
 | Voice-coil wiring             | A wiring change rewrites `Re` and `BL` and leaves them marked Entered.                      | Per-coil `Re`/`BL` stay as entered. Terminal `Re`/`BL` are separate calculated fields.                                  | A typed value must not change under the user. |
 | Derived fields on load        | Figure-of-merit fields (EBP, Rme, γ, Mpow, SPLmax, SPLmaxLF, Gloss) read `0` until any field is edited. | Solved on load.                                                                                                        | A `0` meaning "not computed" cannot be told apart from a real zero. |
 | Voice-coil inductance         | One switch: Le in both SPL and impedance, or in neither.                                    | `circuitModel`: `winisd` or `gyrator`. Currently inconsistent; see the gap list.                                         | Open. |
-| Tuning (what-if)              | Not present.                                                                                | The Tune panel explores changes on the whole project, and always discards them.                                          | Explore without corrupting real driver data. |
+| Tuning (what-if)              | Not present.                                                                                | The What-if? panel explores changes on the whole project, and always discards them.                                       | Explore without corrupting real driver data. |
 | Drive voltage / power         | A three-way cascade of power, voltage and resistance.                                       | Voltage is never empty. Power is C from V²/Re, or N when Re is missing. Whichever was entered last wins.               | Charts always have a drive level. |
 
 ## 10. Feature comparison with WinISD 0.7

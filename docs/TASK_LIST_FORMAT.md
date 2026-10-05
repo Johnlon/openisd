@@ -14,7 +14,7 @@ Read aloud: "The Save button MUST keep the current project's name when you switc
 
 | Part | What it must be | Example |
 |---|---|---|
-| Subject | a human-recognisable object the user sees or touches — the Graph, the Save button, the project-row checkbox, the Driver Editor, the Options dialog, the Tune panel, the Project list | "The project-row checkbox" |
+| Subject | a human-recognisable object the user sees or touches — the Graph, the Save button, the project-row checkbox, the Driver Editor, the Options dialog, the What-if? panel, the Project list | "The project-row checkbox" |
 | visible behaviour | something a user OBSERVES happening (draw, hide, show, close, save, remember, ask, warn) — never an internal reaction | "MUST hide that project's curve on the Graph" |
 | condition | what the user does, or what happens, that triggers it (when the +Copy button is pressed, when the checkbox is unticked, after the page reloads) | "when the checkbox is unticked" |
 | exception (optional) | the one case it does NOT apply | "except for the currently selected project" |

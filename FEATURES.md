@@ -35,7 +35,7 @@ Other tools in this space are in [docs/research/COMPETITIVE_LANDSCAPE.md](docs/r
 - EBP gauge.
 - Solvers that work in every direction across the T/S relations.
 - Data-quality marks on missing and contradictory inputs.
-- What-if tuning (the Tune panel), which never alters the saved design.
+- What-if? (desktop panel and mobile sheet): try values and watch the charts. It never changes the project; closing it discards the values.
 - Equation inspector showing the formula behind a value.
 
 ### Signal and environment

@@ -94,9 +94,9 @@ the tracked tree.
   walked only in the wizard specs.
 - **Mobile specs** force the skin with `forceMobileSkin` (`fixtures/mobileSkin.ts`), never an inline
   storage script.
-- **Tune is its own feature.** Never open the Tune panel to enter driver parameters for a Box
-  test. `tune-panel` specs own the panel's contract: live edits, Cancel/✕/Reset, the Q-group
-  completion and two-way sync with the project.
+- **What-if? is its own feature.** Never open the What-if? panel to enter driver parameters for
+  a Box test. `what-if-panel` specs own the panel's contract: live edits that never change the
+  project, Close/✕/Reset, the Q-group completion and two-way sync with the project.
 - **Lowest layer that proves it** (`.claude/rules/tdd.md`). A browser spec proves a seam is wired;
   it does not re-check maths a unit test already pins.
 - **WinISD bug and option switches:** the `domain/winisd-*` file tests the switch (default, saved); the `engine/` file tests what the switch does to the numbers. Not both in both.
@@ -129,7 +129,7 @@ Each has a gate test where it can be enforced:
 ## Naming
 
 A browser spec is named after the component a user would recognise: `box-tab…`,
-`signal-tab…`, `tune-panel…`, `options-dialog…`, `driver-editor…`, `new-project-wizard…` and
+`signal-tab…`, `what-if-panel…`, `options-dialog…`, `driver-editor…`, `new-project-wizard…` and
 so on. There are two skins, so a component that exists in both keeps its skin prefix:
 `original-box-tab…`, `mobile-box-tab…`. The prefix says which skin; the rest says what is
 tested. A component shared by both skins (one `.vue` used by both) carries no prefix. Unit
