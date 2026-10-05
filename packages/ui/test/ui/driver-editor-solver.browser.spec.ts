@@ -95,7 +95,10 @@ test.describe('Driver Editor — solver wiring', () => {
     const ddf = page.locator('.de-fld:has-text("Dd") input');
     const initialDd = await ddf.inputValue();
 
+    // A typed value is echoed as typed until the field commits; on blur it shows the
+    // registry precision (fcf7d691: text edits, incl. paste, are not reformatted mid-edit).
     await ddf.fill('999.0');
+    await ddf.blur();
     await expect(ddf).toHaveValue('999.00');
 
     // Click Reset button in modal footer
@@ -153,8 +156,9 @@ test.describe('Driver Editor — solver wiring', () => {
     const ref = page.locator('.de-fld:has-text("Re") input');
     await ref.fill('-8.0');
 
-    // Input stores the entered value -8.000 (state E) and receives .inp-bad class
-    await expect(ref).toHaveValue('-8.000');
+    // While being entered the input echoes the text as typed (fcf7d691: text edits are not
+    // reformatted mid-edit), is state E, and receives the .inp-bad class
+    await expect(ref).toHaveValue('-8.0');
     await expect(ref).toHaveClass(/value-e/);
     await expect(ref).toHaveClass(/inp-bad/);
   });

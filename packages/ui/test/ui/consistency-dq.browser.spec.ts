@@ -78,7 +78,7 @@ test('driver editor: an inconsistent group marks every one of its members, with 
 
   // Nothing is blocked — the ruling was a mark, not a gate.
   await expect(page.locator('.de-modal .de-footer button:has-text("OK")')).toBeEnabled();
-  await expect(page.locator('.de-modal .de-footer button:has-text("Save")')).toBeEnabled();
+  await expect(page.locator('.de-modal .de-footer').getByRole('button', { name: 'Export', exact: true })).toBeEnabled();
 });
 
 // ── The Original skin's docked What-If panel ──────────────────────────────────────────────

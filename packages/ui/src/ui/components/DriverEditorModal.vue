@@ -20,7 +20,7 @@ import {useEscToClose} from '../../logic/useEscToClose.js';
 import {DriverFileFormat} from '../../fileFormat.js';
 import EquationInspectorModal from './EquationInspectorModal.vue';
 import SaveToLibraryDialog from './SaveToLibraryDialog.vue';
-import type {SaveToLibraryField} from '../../hooks/saveToLibraryField.js';
+import type {SaveNameField} from '../../hooks/saveNameField.js';
 import {getProvenanceInfo} from '../../logic/provenance.js';
 import {editableFrom, elementFrom, inputFrom, selectedOption} from '../../logic/domEvents.js';
 
@@ -405,7 +405,7 @@ const saveMyDialogOpen = ref(false);
 const saveBrand = ref('');
 const saveModel = ref('');
 const isCopyAction = ref(false);
-const saveMyFields: readonly SaveToLibraryField[] = [
+const saveMyFields: readonly SaveNameField[] = [
   { label: 'Brand', placeholder: 'Brand name', text: saveBrand, inputClass: 'save-brand-input' },
   { label: 'Model', placeholder: 'Model (e.g. E150HE-44)', text: saveModel, inputClass: 'save-model-input' },
 ];
@@ -536,25 +536,27 @@ function handleFileLoaded(e: Event) {
 
   const format = DriverFileFormat.ofFileName(file.name);
   input.value = '';   // so re-picking the SAME file fires `change` again
-  if (format === null) { alert(`Not a driver file: ${file.name} (expected ${DriverFileFormat.ACCEPT})`); return; }
+  if (format === null) { logging.flash(`Could not import ${file.name}: not a driver file (expected ${DriverFileFormat.ACCEPT})`); return; }
   if (format === DriverFileFormat.Wdr) {
     const ok = confirm("Warning: Importing a legacy WinISD (.wdr) file will trigger parameter derivations that may overwrite or change some parameters. For exact loading, OpenISD (.owdr) format is recommended.\n\nDo you want to continue?");
     if (!ok) return;
   }
 
+  const failed = (why: string) => logging.flash(`Could not import ${file.name}: ${why}`);
   void readDriverFileText(file).then(({ text }) => {
-    if (!text) return;
+    if (!text) { failed('the file is empty'); return; }
     try {
       // A `.wdr` is read as-read by the serialiser then projected into the app's own record;
       // an `.owdr` IS that record already. One reader each, and no second parse invented here.
       const { value: read, errors } = designFiles.driverFromText(text, format);
-      if (!read) { alert('Failed to parse file: ' + (errors[0]?.message ?? 'unreadable')); return; }
+      if (!read) { failed(errors[0]?.message ?? 'unreadable'); return; }
       draft.replace(read);
       forceUpdate();
+      logging.flash(`Driver imported from ${file.name}`);
     } catch (err) {
-      alert('Failed to parse file: ' + (err instanceof Error ? err.message : String(err)));
+      failed(err instanceof Error ? err.message : String(err));
     }
-  }, (err: Error) => { alert('Failed to read file: ' + err.message); });
+  }, (err: Error) => { failed(err.message); });
 }
 
 // Format choice is an in-app panel, not a confirm(): OK/Cancel cannot name two formats, so
@@ -575,14 +577,14 @@ async function writeDriver(format: DriverFileFormat) {
   const { value: body, errors } = format === DriverFileFormat.Owdr
     ? { value: driverToOwdrBytes(draftDriver.value), errors: [] }
     : driverToWdrBytes(draftDriver.value);
-  if (!body) { logging.flash(`Cannot save .${format.value}: ${errors[0]?.message ?? 'the driver is incomplete'}`); return; }
+  if (!body) { logging.flash(`Cannot export .${format.value}: ${errors[0]?.message ?? 'the driver is incomplete'}`); return; }
   // Then the SYSTEM save dialog — the user picks folder and name, as a desktop app would.
   // The MIME must be a CUSTOM type, not application/json or text/plain. The picker unions the
   // extensions we list with every extension registered to that MIME, so `application/json`
   // offered ".owdr, .json" and `text/plain` offered ".wdr, .txt, .text" — a save dialog
   // inviting the user to write a driver to a filename the app will not read back.
   const r = await driverFileStorage.saveAs(body, format.fileName(base), format.mime, format.label, '.' + format.value);
-  if (!r.cancelled) logging.flash(`Driver saved as .${format.value}`);
+  if (!r.cancelled) logging.flash(`Driver exported as ${r.name ?? '.' + format.value}`);
 }
 
 useEscToClose(() => presentationState.editDriverInfo, cancel);
@@ -979,15 +981,21 @@ useEscToClose(() => identityMsgOpen.value, dismissIdentityMsg);
         </div>
         <div class="de-btns">
           <input type="file" ref="fileInput" style="display:none" @change="handleFileLoaded" :accept="DriverFileFormat.ACCEPT">
-          <button class="pri" @click="close" title="Apply changes and close the editor (updates local browser/project)">OK</button>
-          <button class="de-copy-my" @click="copyToMyDrivers"
-                  :title="copiedMsg || 'Copy this driver into My Drivers as an independent copy — no link back to it'">
-            {{ copiedMsg || 'Copy to My Drivers' }}
-          </button>
-          <button @click="requestExport" title="Save this driver to a file — choose the format, then pick where to put it">Save</button>
-          <button @click="triggerLoad" title="Load driver from a .wdr file on disk">Load</button>
-          <button @click="reset" title="Reset fields to the values when the editor was opened">Reset</button>
-          <button @click="cancel" title="Discard edits made in this session and close">Cancel</button>
+          <!-- Two rows on a phone (App.vue mobile rules). Desktop is one line, OK first: the
+               `de-ord-*` classes restore that order there. -->
+          <div class="de-btn-row">
+            <button class="de-ord-3" @click="requestExport" title="Export this driver to a file — choose the format, then where to put it">Export</button>
+            <button class="de-ord-4" @click="triggerLoad" title="Import a driver from a file">Import</button>
+            <button class="de-copy-my de-ord-2" @click="copyToMyDrivers"
+                    :title="copiedMsg || 'Copy this driver into My Drivers as an independent copy — no link back to it'">
+              {{ copiedMsg || 'Copy to My Drivers' }}
+            </button>
+          </div>
+          <div class="de-btn-row">
+            <button class="pri de-ord-1" @click="close" title="Apply changes and close the editor (updates local browser/project)">OK</button>
+            <button class="de-ord-5" @click="reset" title="Reset fields to the values when the editor was opened">Reset</button>
+            <button class="de-ord-6" @click="cancel" title="Discard edits made in this session and close">Cancel</button>
+          </div>
         </div>
       </div>
 
@@ -1242,6 +1250,8 @@ input.value-n, .de-fld.value-n input, select.value-n { color: var(--mut); }
 
 .de-footer { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 14px; border-top: 1px solid var(--line); }
 .de-btns { display: flex; gap: 6px; }
+.de-btn-row { display: contents; }
+.de-ord-1 { order: 1; } .de-ord-2 { order: 2; } .de-ord-3 { order: 3; } .de-ord-4 { order: 4; } .de-ord-5 { order: 5; } .de-ord-6 { order: 6; }
 .de-btns .pri { background: var(--acc); color: #fff; border-color: var(--acc); }
 
 /* ONE FIELD = ONE COMPONENT, four parts: [label] [value] [unit] [alerts]. A unitless field

@@ -136,16 +136,16 @@ function field(page: import('@playwright/test').Page, label: string) {
              .locator('input').first();
 }
 const okBtn   = (page: import('@playwright/test').Page) => page.locator('.de-modal .de-footer button:has-text("OK")');
-const saveBtn = (page: import('@playwright/test').Page) => page.locator('.de-modal .de-footer button:has-text("Save")');
+const exportBtn = (page: import('@playwright/test').Page) => page.locator('.de-modal .de-footer').getByRole('button', { name: 'Export', exact: true });
 const copyBtn = (page: import('@playwright/test').Page) => page.locator('.de-modal .de-footer button:has-text("Copy to My Drivers")');
 
-test('OK, Save and Copy stay live on an incomplete driver, and it commits', async ({ page }) => {
+test('OK, Export and Copy stay live on an incomplete driver, and it commits', async ({ page }) => {
   await openParameters(page);
   for (const f of ['Fs', 'Vas', 'Re', 'Sd', 'Qts', 'Qes', 'Qms']) await field(page, f).fill('');
   await field(page, 'Qms').blur();
 
   await expect(okBtn(page)).toBeEnabled();
-  await expect(saveBtn(page)).toBeEnabled();
+  await expect(exportBtn(page)).toBeEnabled();
   await expect(copyBtn(page)).toBeEnabled();
 
   await okBtn(page).click();
@@ -174,7 +174,7 @@ test('a missing Brand pops a message instead of a dead button, and lands the car
   await expect(page.locator('.de-modal')).toHaveCount(0);  // now it commits
 });
 
-test('Copy to My Drivers and Save are gated the same way', async ({ page }) => {
+test('Copy to My Drivers and Export are gated the same way', async ({ page }) => {
   await openParameters(page);
   await editorTab(page, 'General');
   await brandInputOf(page).fill('');
@@ -183,7 +183,7 @@ test('Copy to My Drivers and Save are gated the same way', async ({ page }) => {
   await expect(page.getByText('Brand and Model are both required')).toBeVisible();
   await page.getByRole('button', { name: 'Fill them in' }).click();
 
-  await saveBtn(page).click();
+  await exportBtn(page).click();
   await expect(page.getByText('Brand and Model are both required')).toBeVisible();
 });
 
@@ -213,7 +213,7 @@ test('a missing Brand raises the IDENTITY strip only, and blanks no chart', asyn
   await expect(page.locator('.de-incomplete', { hasText: 'charts stay blank' })).toHaveCount(0);
 
   await expect(okBtn(page)).toBeEnabled();       // "Saves fine, but..." — it must still save
-  await expect(saveBtn(page)).toBeEnabled();
+  await expect(exportBtn(page)).toBeEnabled();
 });
 
 test('a missing Fs raises the CHART strip only, and the driver can still be filed', async ({ page }) => {

@@ -80,6 +80,27 @@ test('at phone width the Driver Editor fits the screen: first tab, legend one pe
   await screenshotIfAsked(page);
 });
 
+// John, 2026-10-05: the phone footer is two rows — Export, Import, Copy to My Drivers, then
+// OK, Reset, Cancel.
+test('at phone width the Driver Editor footer rows are Export, Import, Copy to My Drivers then OK, Reset, Cancel', async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 812 });
+  await page.getByText('Edit', { exact: true }).click();
+  const footer = page.locator('.de-footer');
+  await expect(footer).toBeVisible();
+  const rows = [['Export', 'Import', 'Copy to My Drivers'], ['OK', 'Reset', 'Cancel']];
+  const boxes = await Promise.all(rows.map(row => Promise.all(row.map(async name =>
+    (await footer.getByRole('button', { name, exact: true }).boundingBox())!))));
+  for (const row of boxes) {
+    for (let i = 1; i < row.length; i++) {
+      expect(row[i].y).toBeCloseTo(row[0].y, 0);
+      expect(row[i].x).toBeGreaterThanOrEqual(row[i - 1].x + row[i - 1].width - 1);
+    }
+  }
+  expect(boxes[1][0].y).toBeGreaterThanOrEqual(boxes[0][0].y + boxes[0][0].height - 1);
+  for (const button of await footer.locator('button').all()) await expect(button).toBeInViewport({ ratio: 1 });
+  expect(await elementsPastScreenEdges(page, '.de-modal')).toEqual([]);
+});
+
 // Bug (John, live on his phone, 2026-10-05): the Save to My Drivers boxes ran past the dialog.
 test('at phone width the Save to My Drivers dialog sits on screen with its boxes inside it', async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 812 });

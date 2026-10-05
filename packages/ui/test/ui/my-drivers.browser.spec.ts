@@ -81,6 +81,7 @@ async function captureSavedFiles(page: Page): Promise<void> {
       value: async (opts?: { suggestedName?: string }) => {
         const name = opts?.suggestedName ?? 'unnamed';
         return {
+          name,
           createWritable: async () => ({
             write: async (t: string) => { files[name] = t; },
             close: async () => { /* nothing to flush — the text is already held */ },
@@ -310,11 +311,12 @@ test('a driver saved to .wdr and loaded back lands in My Drivers', async ({ page
   // 1. Write the file with the app's own writer.
   await page.locator(MY_ROWS, { hasText: SEEDED_MODEL }).locator('.my-edit').click();
   await expect(page.locator(EDITOR)).toBeVisible();
-  await page.locator(`${EDITOR} .de-footer button:has-text("Save")`).click();
+  await page.locator(`${EDITOR} .de-footer`).getByRole('button', { name: 'Export', exact: true }).click();
   await page.locator('.fmt-opt').filter({ hasText: '.wdr' }).click();
   const written = await page.evaluate(() => window.__savedFiles ?? {});
   const fileName = Object.keys(written)[0];
   expect(fileName, 'the driver editor wrote no file').toBe('Spec Fixture.wdr');
+  await expect(page.locator('.flash')).toContainText('Driver exported as Spec Fixture.wdr');
   await page.locator(`${EDITOR} .de-footer button:has-text("Cancel")`).click();
 
   // 2. Remove it, so its reappearance can only come from the file.
@@ -327,6 +329,28 @@ test('a driver saved to .wdr and loaded back lands in My Drivers', async ({ page
   });
   await expect.poll(() => savedIds(page), { message: 'the round-tripped driver did not return to My Drivers' })
     .toEqual([SEEDED_ID]);
+});
+
+// John, 2026-10-05: "when a driver or project has been imported/exported we need a little message".
+test('the Driver Editor says which file it imported a driver from, and says so when it cannot', async ({ page }) => {
+  await captureSavedFiles(page);
+  await seed(page);
+  await openPicker(page);
+  await page.locator(MY_ROWS, { hasText: SEEDED_MODEL }).locator('.my-edit').click();
+  await expect(page.locator(EDITOR)).toBeVisible();
+  await page.locator(`${EDITOR} .de-footer`).getByRole('button', { name: 'Export', exact: true }).click();
+  await page.locator('.fmt-opt').filter({ hasText: '.owdr' }).click();
+  await expect(page.locator('.flash')).toContainText('Driver exported as Spec Fixture.owdr');
+  const written = await page.evaluate(() => window.__savedFiles ?? {});
+
+  const fileInput = page.locator(`${EDITOR} input[type=file]`);
+  await fileInput.setInputFiles({ name: 'junk.owdr', mimeType: 'application/x-openisd-driver', buffer: Buffer.from('not a driver') });
+  await expect(page.locator('.flash')).toContainText('Could not import junk.owdr');
+
+  await fileInput.setInputFiles({
+    name: 'Spec Fixture.owdr', mimeType: 'application/x-openisd-driver', buffer: Buffer.from(written['Spec Fixture.owdr']),
+  });
+  await expect(page.locator('.flash')).toContainText('Driver imported from Spec Fixture.owdr');
 });
 
 // ---- Edit enablement -------------------------------------------------------------------

@@ -210,9 +210,11 @@ onUnmounted(() => {
 .app-root-mobile :deep(.de-tab) { white-space: nowrap; flex-shrink: 0; }
 .app-root-mobile :deep(.de-toolbar) { flex-wrap: wrap; row-gap: 6px; }
 .app-root-mobile :deep(.de-incomplete) { overflow-wrap: anywhere; }
-.app-root-mobile :deep(.de-footer) { align-items: flex-start; }
+.app-root-mobile :deep(.de-footer) { align-items: flex-start; padding-left: 10px; padding-right: 10px; }
 .app-root-mobile :deep(.de-legend2) { flex: none; flex-direction: column; align-items: flex-start; gap: 4px; margin-top: 0; }
-.app-root-mobile :deep(.de-btns) { flex: 1 1 0; min-width: 0; flex-wrap: wrap; justify-content: flex-end; }
+.app-root-mobile :deep(.de-btns) { flex: 1 1 0; min-width: 0; flex-direction: column; align-items: flex-end; gap: 6px; }
+.app-root-mobile :deep(.de-btn-row) { display: flex; gap: 4px; flex-wrap: wrap; justify-content: flex-end; }
+.app-root-mobile :deep(.de-btn-row > button) { order: 0; padding-left: 6px; padding-right: 6px; }
 .app-root-mobile :deep(.de-params) {
   grid-template-columns: minmax(0, max-content) minmax(0, max-content) auto 34px !important;
 }
