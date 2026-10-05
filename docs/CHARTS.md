@@ -172,7 +172,9 @@ not implemented in OpenISD.
 
     τg = −dφ/dω at f, central difference over f·(1 ± 1e-6)
 
-- Source: `sweep.ts` `groupDelayAtMs`, for the system and the EQ/filter chain alike.
+- Source: `SimulationEngine.ts` `groupDelayAtMs`, for the system and the EQ/filter chain alike.
+  A fixed 1e-10 Hz step made OpenISD's own 6th-order bandpass curve noisy above 1.2 kHz (up to
+  0.16 ms; [bug](../bugs/BUG_20261005_bp6-group-delay-noise-above-1k.md)).
 - WinISD (chart 12 of `f_4618f0`): (φ(f−δ) − φ(f+δ))/(2π·2δ), δ = (f + 1e-10) − f. Its 1e-10 Hz
   step turns each rounding step of the phase into 1.77e-4 ms: the staircase in its curve.
 - Evidence: chart review §3, worst 0.00049 ms, about 3 of WinISD's rounding steps. Copying WinISD's

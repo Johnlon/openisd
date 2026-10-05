@@ -103,8 +103,8 @@ driver part at f, so its group delay contradicts its own phase chart (1 Hz: −4
 −33.86 ms). Off, the default, OpenISD plots −dφ/dω of the plotted phase.
 BP6 group delay is matched to WinISD's own rounding noise (≈): WinISD's H is right and equals its plotted transfer; above
 ~200 Hz its 1e-10 Hz step turns the rounding of two nearly cancelling compliance currents into noise
-(worst 0.11 ms at 4 kHz, `bp6-w5-gd1`, reproduced bit for bit in x87). OpenISD's doubles give
-noise of the same size but other values. Not copyable; no switch; kept as it is (John, 2026-10-05).
+(worst 0.11 ms at 4 kHz, `bp6-w5-gd1`, reproduced bit for bit in x87). OpenISD steps f·(1 ± 1e-6)
+and draws the smooth curve. Not copyable; no switch; kept as it is (John, 2026-10-05).
 Allpass orders above 2 and Linkwitz-Riley orders other than 4 are inputs WinISD ignores (it draws order 2 and LR4).
 OpenISD honours them (no switch, a ≠W Difference cue explains it), so those captures (`2|0;1;3;0.004;0.8`,
 `2|0;1;4;0.002;0.7`, LR2, LR6) are recorded deviations: they match OpenISD's allpass order 2 and LR4.

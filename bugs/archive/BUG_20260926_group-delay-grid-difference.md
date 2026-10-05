@@ -39,4 +39,5 @@ Copying the 1e-10 step in double gives 0.0018 ms. `winisdDriverModel.test.ts`: 1
 
 Ruling, John 2026-09-26: accepted. WinISD's operation order rounding noise is not emulated.
 
-Updated 2026-10-03: Adopted WinISD's exact `1e-10 Hz` fixed step (`WINISD_GROUP_DELAY_STEP_HZ = 1e-10`) in `SimulationEngine.ts#groupDelayAtMs` to align with WinISD's low-frequency woofer design focus (1–200 Hz). The ~0.0005 ms high-frequency numerical noise floor introduced is invisible on chart plots and UI readouts, while low-frequency readouts (like 1.99 Hz) match WinISD exactly.
+Step: f·(1 ± 1e-6). WinISD's fixed 1e-10 Hz step (used 2026-10-03 to 2026-10-05) made the
+6th-order bandpass curve noisy above 1.2 kHz: BUG_20261005_bp6-group-delay-noise-above-1k.
