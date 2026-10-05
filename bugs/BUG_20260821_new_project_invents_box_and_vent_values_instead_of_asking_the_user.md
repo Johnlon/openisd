@@ -1,4 +1,4 @@
-Status: OPEN (re-verified 2026-09-26) — partly fixed: the wizard still writes a 0.05 m vent and a 35 Hz tuning as literals (`packages/ui/src/hooks/OriginalNewProject-hooks.ts`).
+Status: FIXED (checked 2026-10-05) — no literal box volume, tuning or vent is written any more: `domain/boxDefaults.ts` starts every box at volume 0 with no vent size, and the New Project wizard takes the vented volume and tuning from the driver and the chosen alignment (`OriginalNewProject-hooks.ts`, `driver.ventedDesign`). The 0.05 m vent and 35 Hz tuning named on 2026-09-26 are gone.
 
 # New Project invents box volumes, tunings and vent geometry that WinISD DERIVES from driver + box type + alignment
 
