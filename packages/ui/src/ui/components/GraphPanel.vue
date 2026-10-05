@@ -17,7 +17,8 @@ import {inputChecked} from '../../logic/domEvents.js';
 // caller wants seen alongside this one (the Original skin's open project rows). A design
 // never holds another design to get it drawn, so there is no default set to fall back to:
 // no overlays passed means this project is drawn alone.
-const props = defineProps<{ chartId: ChartId; bare?: boolean; primaryColor?: string; overlays?: Design[] }>();
+// `hideAutoY` drops the Auto Y switch: the caller decides (the mobile Graph page sets it).
+const props = defineProps<{ chartId: ChartId; bare?: boolean; primaryColor?: string; overlays?: Design[]; hideAutoY?: boolean }>();
 
 const project = useFocusedProject();
 const graph = useGraphPanel(props, useApp().engine);
@@ -291,7 +292,7 @@ watch([viewPlot, effectiveF, localDragRange, blocked, canvasStyles], redraw, { f
             @dblclick="onDblClick"
             @contextmenu="onContextMenu" />
     <div class="gtitle">{{ meta.name }}</div>
-    <label v-if="!blocked" class="gautoy"
+    <label v-if="!blocked && !hideAutoY" class="gautoy"
            title="Auto Y: ticked, the Y axis rescales to fit the curves after every edit. Unticked, the Y axis stays at the range shown when you unticked it, and edits never rescale it; the range is this chart's Y-axis limit in Options, where Reset to auto-scale ticks this again.">
       <input type="checkbox" :checked="autoY" aria-label="Auto Y" @change="graph.setAutoY(inputChecked($event))">
       <span>Auto Y</span>

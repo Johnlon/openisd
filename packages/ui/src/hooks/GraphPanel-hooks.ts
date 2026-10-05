@@ -14,6 +14,8 @@ export interface GraphPanelProps {
   bare?: boolean;
   primaryColor?: string;
   overlays?: Design[];
+  /** True drops the chart's Auto Y switch (the mobile skin, which has no Tune yet). */
+  hideAutoY?: boolean;
 }
 
 export interface GraphPanelAPI {

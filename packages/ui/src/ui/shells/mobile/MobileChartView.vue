@@ -36,7 +36,8 @@ const { openCharts, chartItems, chartLabel, pickerOpen, togglePicker, showOnly, 
     </ul>
     <div ref="stackEl" class="mob-chart-stack" :class="{ stacked: openCharts.length > 1 }" :style="stackStyle">
       <div v-for="id in openCharts" :key="id" class="mob-chart-cell">
-        <GraphPanel :chart-id="id" :bare="true" :primary-color="traceColour" :overlays="overlays" />
+        <!-- No Auto Y on mobile until mobile gets Tune (John, 2026-10-05); drop hide-auto-y then. -->
+        <GraphPanel :chart-id="id" :bare="true" :primary-color="traceColour" :overlays="overlays" :hide-auto-y="true" />
       </div>
     </div>
   </div>
