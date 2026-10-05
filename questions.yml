@@ -9171,7 +9171,7 @@ questions:
     text: Disabled re-exports architecture gate per John's instruction on 2026-09-09
 - id: QO137
   title: Use explicit project guards or a NullProject singleton
-  status: open
+  status: decided
   raised: '2026-09-13'
   body: ''
   notes:
@@ -9186,6 +9186,8 @@ questions:
       to provide a read only stub in situation where it is safe to do so without corrupting data ro user
       experience and to avoid concurrent error when the focusedProject goes to null. if there is no need
       fo rthis then fine
+  - at: '2026-10-05'
+    text: 'Decided: explicit project guards. requireFocusedProject() throws a deliberate error when no project is open; no NullProject exists, and John''s note said it was not needed.'
 - id: QO138
   title: Open dialog lists browser projects and offers From disk
   status: done
