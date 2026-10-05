@@ -13,6 +13,10 @@ import {forceMobileSkin} from '../fixtures/mobileSkin.js';
 /** Where to save a screenshot of the editor at phone width; no screenshot when unset. */
 const SCREENSHOT_PATH = process.env.DRIVER_EDITOR_SCREENSHOT;
 
+async function screenshotIfAsked(page: import('@playwright/test').Page): Promise<void> {
+  if (SCREENSHOT_PATH) await page.screenshot({ path: SCREENSHOT_PATH });
+}
+
 test.beforeEach(async ({ page }) => {
   await forceMobileSkin(page);
   await page.goto('/');
@@ -73,7 +77,7 @@ test('at phone width the Driver Editor fits the screen: first tab, legend one pe
     expect(b.x).toBeGreaterThanOrEqual(legend.x + legend.width - 1);
     expect(b.x + b.width).toBeLessThanOrEqual(412 + 1);
   }
-  if (SCREENSHOT_PATH) await page.screenshot({ path: SCREENSHOT_PATH });
+  await screenshotIfAsked(page);
 });
 
 // Bug (John, live on his phone, 2026-10-05): the Save to My Drivers boxes ran past the dialog.
