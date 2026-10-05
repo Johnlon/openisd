@@ -9,8 +9,8 @@ Other tools in this space are in [docs/research/COMPETITIVE_LANDSCAPE.md](docs/r
 ### Enclosures
 
 - **Box types:** sealed, vented, 4th-order bandpass, passive radiator.
-- **Box losses:** leakage Ql, absorption Qa and port loss Qp, with the sealed-box loss model
-  selectable (WinISD's lossy cubic, conventional, lossless).
+- **Box losses:** leakage Ql, absorption Qa and port loss Qp, in WinISD's lossy model; Ql and Qa
+  of 10⁶ or more give the lossless result.
 - **Vents:** round or slotted, with a count and end correction; a
   transmission-line port model is available.
 - **Drivers:** several drivers in one box, wired in series or parallel; dual voice coils.

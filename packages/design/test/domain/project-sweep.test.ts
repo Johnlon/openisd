@@ -51,7 +51,6 @@ describe('OpenISDProject sweep', () => {
         Vb: 0.03, eg: project.driveVoltage_V.value!, fmin: 10, fmax: 1000, N: 100,
         Ql: project.box.sealed.losses.Ql.value, Qa: project.box.sealed.losses.Qa.value,
         Rs: project.Rs_ohm.value,
-        lossMode: project.lossMode.value.value,
         useWinisdAirModel: project.envUseWinisdAirModel.value,
       },
     ).values!;

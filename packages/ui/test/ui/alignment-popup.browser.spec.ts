@@ -1,4 +1,4 @@
-import {expect, focusedBoxVolume, focusedSealedReadouts, openAProject, setFocusedBoxType, setFocusedDriverSpecs, test} from '../fixtures.js';
+import {expect, focusedBoxVolume, focusedSealedReadouts, openAProject, setFocusedBoxType, setFocusedDriverSpecs, setFocusedSealedLosses, test} from '../fixtures.js';
 
 /** The Alignment editor opened from the Box tab (a modal shared by the sealed and vented boxes). */
 
@@ -66,10 +66,9 @@ test.describe('Alignment popup', () => {
     // with the Qts the alignment sized the box from.
     await setFocusedDriverSpecs(page, { Fs_hz: 37, Qts: 0.38, Vas_m3: 0.030, Qes: null });
 
-    // Lossless model (WinISD Compatibility panel) for exact formula match, then Box tab, sealed box
-    await page.locator('.project-nav li', { hasText: /^Advanced$/ }).click();
-    await page.locator('#adv-lossmode').selectOption('lossless');
+    // Ql and Qa at the lossless limit for exact formula match, then Box tab, sealed box
     await setFocusedBoxType(page, 'sealed');
+    await setFocusedSealedLosses(page, { Ql: 1e6, Qa: 1e6 });
     await page.locator('.project-nav li', { hasText: 'Box' }).click();
 
     // Open Alignment modal and choose Butterworth 0.707

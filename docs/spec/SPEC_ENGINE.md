@@ -406,10 +406,10 @@ A legitimately-calculated `0` is still a calculated value and stays **C**, never
 follows whether a calculation produced the value — never the magnitude of the answer.
 
 **R4's scope, stated rather than assumed.** No field among the 48 numerics is box-dependent —
-`LossMode` / `sealedResonanceWinisd` compute sealed-box Fsc/Qtc, and a driver `.wdr` carries no
+`sealedResonanceWinisd` computes sealed-box Fsc/Qtc, and a driver `.wdr` carries no
 enclosure. So R4 binds no field of _this_ projection today; it governs any future quantity here
-whose value depends on a box model, and it forbids reaching for the lossless or
-conventional-lossy variant when one is added. Flagged as a live question rather than silently
+whose value depends on a box model, and it forbids reaching for the lossless closed form when
+one is added. Flagged as a live question rather than silently
 treated as satisfied.
 
 **(a) The field set is FIXED — 56 fields, always, in this exact order** (R1, from
@@ -438,9 +438,9 @@ A `0` on a line is therefore ambiguous on its own and must be read together with
 slot: `C` ⇒ calculated, and the answer was genuinely zero; `N` ⇒ not calculatable, so the line
 carries the default. What a `0` never means is "calculation not attempted".
 
-**(c) Where a value depends on a box model, use WinISD's lossy one** (R4) — `LossMode` /
-`sealedResonanceWinisd()` (`packages/design/engine/lossMode.ts`), never the lossless closed form
-or the conventional-lossy variant. See the scope note under the requirements: no field of this
+**(c) Where a value depends on a box model, use WinISD's lossy one** (R4) —
+`sealedResonanceWinisd()` (`packages/design/engine/sealedResonance.ts`), never the lossless
+closed form. See the scope note under the requirements: no field of this
 projection is box-dependent today, so this constrains future additions rather than current
 output.
 

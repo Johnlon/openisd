@@ -17,7 +17,6 @@
  * re-assembly of the formulas here. A test that reimplemented the derivation would prove
  * only that the test agrees with itself.
  */
-import {LossMode} from '@openisd/design/fields';
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
 import { readFileSync, existsSync } from 'node:fs';
@@ -493,7 +492,7 @@ describe('WinISD parity (functional) — field calculations against goldens WinI
           assert.ok(fs !== null && vas !== null && qts !== null && re !== null,
             `${s.id}: openisd cannot form Fsc — Fs/Vas/Qts/Re missing`);
           const engine = createEngine();
-          const openisd = engine.sealed.resonance(LossMode.WinisdLossy, {
+          const openisd = engine.sealed.resonance({
             Fs: fs, Vas: vas, Vb: s.box.Vr, Ql: s.box.Qlr, Qa: s.box.Qar,
             // WinISD's readout is Qts recomputed with Re+Rg, not bare Qts (WINE_HARNESS.md).
             Qts: engine.driver.sourceLoadedQts(qms ?? NaN, qes ?? NaN, re, s.signal.Rg, qts),

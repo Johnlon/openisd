@@ -97,24 +97,4 @@ describe('circuit — acoustic circuit branches', () => {
     assert.notEqual(engine.simulation.classifyFinite(result.values!), null,
       'a design missing Fr/Ff must be classified as non-finite, not silently drawn');
   });
-
-  it('sealed box lossMode: "winisd-lossy" produces higher low-frequency group delay than "conventional-lossy"', () => {
-    const pWinisd: SweepParams = { ...P_SEALED, lossMode: 'winisd-lossy', fmin: 10, fmax: 50, N: 50 };
-    const pConv: SweepParams = { ...P_SEALED, lossMode: 'conventional-lossy', fmin: 10, fmax: 50, N: 50 };
-    const swWinisd = engine.simulation.sweep(DRV, LE_H, 'sealed', pWinisd).values!;
-    const swConv = engine.simulation.sweep(DRV, LE_H, 'sealed', pConv).values!;
-
-    // At 10 Hz, WinISD lossy model's leak subtraction raises group delay (>4 ms vs ~3 ms)
-    assert.ok(swWinisd.gd[0] > swConv.gd[0] + 0.5,
-      `winisd-lossy GD@10Hz (${swWinisd.gd[0].toFixed(2)} ms) should exceed conventional-lossy GD@10Hz (${swConv.gd[0].toFixed(2)} ms)`);
-  });
-
-  it('sealed box lossMode: "lossless" ignores Ql/Qa losses and matches lossless sweep', () => {
-    const pLosslessMode: SweepParams = { ...P_SEALED, lossMode: 'lossless' };
-    const pLosslessQ: SweepParams = { ...P_SEALED, lossMode: 'lossless', Ql: 1e6, Qa: 1e6 };
-    const sw1 = engine.simulation.sweep(DRV, LE_H, 'sealed', pLosslessMode).values!;
-    const sw2 = engine.simulation.sweep(DRV, LE_H, 'sealed', pLosslessQ).values!;
-
-    assert.deepEqual(sw1.spl, sw2.spl, 'lossMode "lossless" must produce identical SPL to infinite Ql/Qa');
-  });
 });

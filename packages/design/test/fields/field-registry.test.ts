@@ -13,7 +13,7 @@ import assert from 'node:assert/strict';
 import {createEngine} from '../../engine/index.js';
 import {VoiceCoilWiring} from '../../domain/index.js';
 import {
-  ALL_FIELDS, DateField, EnumField, Field, LossMode, NumberField, TextField, ToggleField,
+  ALL_FIELDS, DateField, EnumField, Field, NumberField, TextField, ToggleField,
 } from '../../fields/index.js';
 
 const KINDS = [NumberField, EnumField, TextField, ToggleField, DateField];
@@ -106,11 +106,6 @@ describe('every dropdown is an EnumField carrying SelectorOption[]', () => {
     const options = optionsOf(EnumField.BOX_QTC);
     assert.equal(options.length, 9);
     assert.deepEqual(options, createEngine().sealed.alignmentOptions());
-  });
-
-  it('loss_DampingMode lists the engine loss modes, values being the tokens the project stores', () => {
-    assert.deepEqual(optionsOf(EnumField.LOSS_DAMPINGMODE), LossMode.OPTIONS);
-    assert.ok(optionsOf(EnumField.LOSS_DAMPINGMODE).some(o => o.value === 'winisd-lossy'));
   });
 
   it('filter_Type lists every WinISD filter type plus the two OpenISD-only shelves', () => {

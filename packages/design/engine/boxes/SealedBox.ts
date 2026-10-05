@@ -1,5 +1,5 @@
 /**
- * Sealed box — WinISD's three loss models on the box's own compliance Cab.
+ * Sealed box — lossless, or WinISD's lossy model, on the box's own compliance Cab.
  * Small, R.H. "Closed-Box Loudspeaker Systems — Part I." JAES 20(10) 1972.
  * https://aes.org/e-lib/browse.cfm?elib=2062
  */
@@ -8,17 +8,12 @@ import type {BoxModel, BoxOutput, DriverSideQuantities} from './BoxModel.js';
 
 export class SealedBox implements BoxModel {
   solve(q: DriverSideQuantities): BoxOutput {
-    const {pg, ZaE, ZaD, Zc, Cab, Cas, Mas, Ql, Qa, Ral, Raa, lossMode} = q;
+    const {pg, ZaE, ZaD, Zc, Cab, Cas, Mas, Ql, Qa, loss} = q;
     const zero = cx(0, 0);
 
-    switch (lossMode) {
+    switch (loss) {
       case 'lossless': {
         const Zbox = Zc;
-        const UD = cDiv(pg, cAdd(cAdd(ZaE, ZaD), Zbox));
-        return {Zbox, UD, UP: zero, U0: UD};
-      }
-      case 'conventional-lossy': {
-        const Zbox = cPar(Zc, Ral, Raa);
         const UD = cDiv(pg, cAdd(cAdd(ZaE, ZaD), Zbox));
         return {Zbox, UD, UP: zero, U0: UD};
       }

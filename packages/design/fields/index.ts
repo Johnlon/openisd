@@ -65,7 +65,7 @@ export {
 } from './winisdDeviation.js';
 
 /** The sealed-box loss model — a field's closed value set. */
-export { type LossModeValue, LossMode } from './lossMode.js';
+export { LOSSLESS_Q } from './losslessQ.js';
 
 export { formatFixed, formatFixedOrDash } from './format.js';
 export { ReadoutFormat } from './readoutFormat.js';

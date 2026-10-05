@@ -34,9 +34,9 @@ function decodeShare(url: string): DecodedShare {
  * A share link is a COMPLETE description of the session: the recipient lands on exactly what
  * the sender was looking at. Nothing is stripped — not the open-panel flags, and not the
  * recipient-preference fields, even though they are preferences rather than design data
- * (human ruling 2026-08-14). Cursor/graphs/lossMode are excluded per QO130/QO168 above — not a
+ * (human ruling 2026-08-14). Cursor/graphs are excluded per QO130/QO168 above — not a
  * strip of session fidelity, since the project text (also in the share link) already carries
- * graphs/lossMode, and the cursor was ruled out of every saved record, share links included.
+ * graphs, and the cursor was ruled out of every saved record, share links included.
  */
 describe('urlAppState — share link carries the whole state, stripped of nothing', () => {
   const uiView: ViewSnapshot = {

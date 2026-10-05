@@ -443,7 +443,7 @@ export class SimulationEngineImpl implements SimulationEngine {
     const va: number[] = [];
     // `bandpass6`/`abc`'s own rear-port and (ABC only) intra-port velocities — `null` unless the
     // box actually has that port (`SweepResult.pvRear`/`pvIntra` doc), decided once after the loop
-    // from whether `s.UPr`/`s.UPi` came back defined (box/lossMode are fixed for the whole sweep,
+    // from whether `s.UPr`/`s.UPi` came back defined (box is fixed for the whole sweep,
     // so every point agrees).
     const pvRear: number[] = [], pvIntra: number[] = [];
     let hasUPr = false, hasUPi = false;

@@ -3,7 +3,6 @@
  * reverse-engineering + live gdb capture (research repo SEALED_FSC_MODEL.md §4). The reference
  * driver is Fs=40, Vas=7.47 L, with the Qts WinISD derives for it (0.395643).
  */
-import {LossMode} from '../../fields/lossMode.js';
 import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
 import type {SealedParams} from '../../engine/index.js';
@@ -12,8 +11,8 @@ import {createEngine} from '../../engine/index.js';
 /** The engine's one door: every calculation below is a method on this object. */
 const engine = createEngine();
 
-/** WinISD's lossy sealed-box readout — the mode `LossMode.WinisdLossy` selects. */
-const winisdLossy = (q: SealedParams) => engine.sealed.resonance(LossMode.WinisdLossy, q);
+/** WinISD's lossy sealed-box readout. */
+const winisdLossy = (q: SealedParams) => engine.sealed.resonance(q);
 /** Its pole frequency alone. */
 const winisdFsc = (q: SealedParams) => winisdLossy(q).Fsc;
 
@@ -27,7 +26,7 @@ function closeTo(got: number, want: number, digits: number, msg: string) {
     `${msg}: got ${got}, expected ${want} ±${tol}`);
 }
 
-describe('Sealed-Box Resonance Loss Models', () => {
+describe('Sealed-Box Resonance', () => {
   describe('WinisdLossy — bit-exact to WinISD readout', () => {
     // WinISD [Box] Fr at Vb=6 L, QA=10000, over the QL sweep (SEALED_FSC_MODEL.md §6).
     const oracle: [number, number][] = [
@@ -118,52 +117,14 @@ describe('Sealed-Box Resonance Loss Models', () => {
     });
   });
 
-  describe('Lossless mode = textbook sealed resonance', () => {
+  describe('losslessResonance = textbook sealed resonance', () => {
     it('Fsc = fs·√(1+Vas/Vb), independent of Ql/Qa', () => {
-      const r1 = engine.sealed.resonance(LossMode.Lossless, p(0.006, 10));
-      const r2 = engine.sealed.resonance(LossMode.Lossless, p(0.006, 2));
+      const r1 = engine.sealed.losslessResonance(p(0.006, 10));
+      const r2 = engine.sealed.losslessResonance(p(0.006, 2));
       const expected = 40 * Math.sqrt(1 + 0.00747 / 0.006);
       closeTo(r1.Fsc, expected, 9, 'Fsc at Ql=10');
       closeTo(r2.Fsc, expected, 9, 'Fsc at Ql=2 — Ql does not move it');
       closeTo(r1.Qtc, 0.395643 * Math.sqrt(1 + 0.00747 / 0.006), 9, 'Qtc');
-    });
-  });
-
-  describe('ConventionalLossy keeps fc fixed, folds losses into Q', () => {
-    const qtcLossless = 0.395643 * Math.sqrt(1 + 0.00747 / 0.006);
-
-    it('Fsc equals lossless; Qtc combines 1/Qtc + 1/Ql + 1/Qa', () => {
-      const r = engine.sealed.resonance(LossMode.ConventionalLossy, p(0.006, 10, 100));
-      const lossless = 40 * Math.sqrt(1 + 0.00747 / 0.006);
-      closeTo(r.Fsc, lossless, 9, 'Fsc — frequency unchanged');
-      closeTo(r.Qtc, 1 / (1 / qtcLossless + 1 / 10 + 1 / 100), 9, 'Qtc');
-    });
-
-    it('ignores a non-positive Ql — no leak term folded into Q', () => {
-      const r = engine.sealed.resonance(LossMode.ConventionalLossy, p(0.006, 0, 100));
-      closeTo(r.Qtc, 1 / (1 / qtcLossless + 1 / 100), 9, 'Qtc — Ql term skipped');
-    });
-
-    it('ignores a non-positive Qa — no absorption term folded into Q', () => {
-      const r = engine.sealed.resonance(LossMode.ConventionalLossy, p(0.006, 10, 0));
-      closeTo(r.Qtc, 1 / (1 / qtcLossless + 1 / 10), 9, 'Qtc — Qa term skipped');
-    });
-  });
-
-  describe('LossMode enum', () => {
-    it('has exactly three members with WinISD as default', () => {
-      assert.deepEqual(LossMode.ALL.map(m => m.value),
-        ['winisd-lossy', 'lossless', 'conventional-lossy']);
-      assert.equal(LossMode.Default, LossMode.WinisdLossy);
-    });
-    it('parses wire values and falls back to the default', () => {
-      assert.equal(LossMode.parse('lossless'), LossMode.Lossless);
-      assert.equal(LossMode.parse('winisd-lossy'), LossMode.WinisdLossy);
-      assert.equal(LossMode.parse('nonsense'), LossMode.Default);
-      assert.equal(LossMode.parse(null), LossMode.Default);
-    });
-    it('toString returns its wire value, so a member round-trips through parse', () => {
-      for (const m of LossMode.ALL) assert.equal(LossMode.parse(m.toString()), m);
     });
   });
 
@@ -183,22 +144,22 @@ describe('Sealed-Box Resonance Loss Models', () => {
     const QTS_WINISD = 0.3952; // WinISD's derived Qts for this driver (Re_eff convention)
 
     it('reproduces WinISD lossy 63.17 Hz / 0.599 with WinISD-derived Qts', () => {
-      const r = engine.sealed.resonance(LossMode.WinisdLossy, { ...box, Qts: QTS_WINISD });
+      const r = engine.sealed.resonance({ ...box, Qts: QTS_WINISD });
       closeTo(r.Fsc, 63.17, 2, 'Fsc');
       closeTo(r.Qtc, 0.599, 3, 'Qtc');
     });
     it('reproduces WinISD lossless 60.32 Hz / 0.596 with WinISD-derived Qts', () => {
-      const r = engine.sealed.resonance(LossMode.Lossless, { ...box, Qts: QTS_WINISD });
+      const r = engine.sealed.losslessResonance({ ...box, Qts: QTS_WINISD });
       closeTo(r.Fsc, 60.32, 2, 'Fsc');
       closeTo(r.Qtc, 0.596, 3, 'Qtc');
     });
-    it('every mode returns a physical resonance, never the 20 kHz impedance-peak artifact', () => {
+    it('both forms return a physical resonance, never the 20 kHz impedance-peak artifact', () => {
       for (const q of [0.39, QTS_WINISD]) {
-        for (const m of LossMode.ALL) {
-          const r = engine.sealed.resonance(m, { ...box, Qts: q });
-          assert.ok(r.Fsc > 40, `${m.value} Fsc must exceed Fs (Qts=${q})`);
-          assert.ok(r.Fsc < 100, `${m.value} Fsc must not be the ~20 kHz artifact (Qts=${q})`);
-          assert.ok(r.Qtc > 0.4, `${m.value} Qtc must not collapse to 0 (Qts=${q})`);
+        for (const [form, resonance] of [['lossy', engine.sealed.resonance(
+          { ...box, Qts: q })], ['lossless', engine.sealed.losslessResonance({ ...box, Qts: q })]] as const) {
+          assert.ok(resonance.Fsc > 40, `${form} Fsc must exceed Fs (Qts=${q})`);
+          assert.ok(resonance.Fsc < 100, `${form} Fsc must not be the ~20 kHz artifact (Qts=${q})`);
+          assert.ok(resonance.Qtc > 0.4, `${form} Qtc must not collapse to 0 (Qts=${q})`);
         }
       }
     });
@@ -219,7 +180,7 @@ describe('Sealed-Box Resonance Loss Models', () => {
 
     it('--fs 40 --vas 7.65 --qes 0.450 --qms 2.940 --re 6.6 --rg 0.1 --vb 6 --ql 10 --qa 100 → Fsc=63.1762Hz Qtc=0.5995', () => {
       const qts = engine.driver.sourceLoadedQts(Qms, Qes, Re, Rg, qtsNominal);
-      const r = engine.sealed.resonance(LossMode.WinisdLossy, { Fs, Vas, Qts: qts, Vb, Ql, Qa });
+      const r = engine.sealed.resonance({ Fs, Vas, Qts: qts, Vb, Ql, Qa });
       closeTo(r.Fsc, 63.1762, 3, 'Fsc');
       closeTo(r.Qtc, 0.5995, 3, 'Qtc');
     });

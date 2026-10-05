@@ -21,7 +21,7 @@ import {Bandpass4Box} from './Bandpass4Box.js';
 import {Bandpass6Box} from './Bandpass6Box.js';
 import {AbcBox} from './AbcBox.js';
 
-export type {BoxModel, BoxOutput, DriverSideQuantities} from './BoxModel.js';
+export type {BoxLoss, BoxModel, BoxOutput, DriverSideQuantities} from './BoxModel.js';
 export {SealedBox} from './SealedBox.js';
 export {VentedBox} from './VentedBox.js';
 export {PassiveRadiatorBox} from './PassiveRadiatorBox.js';

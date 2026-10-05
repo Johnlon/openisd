@@ -3,7 +3,6 @@ import type {
     SweepDriver, SweepIssue, SweepParams, SweepSolveResult, VentIssue,
 } from '../../engine/index.js';
 import type { Filter, EnclosureParams } from '../../engine/index.js';
-import type { LossMode } from '../../fields/lossMode.js';
 import { CalculatedFieldImpl, absentCell, calculatedCell } from '../cell.js';
 import type { Calculated, Readable, SimpleField } from '../cell.js';
 import type { Box } from '../box/box.js';
@@ -38,7 +37,6 @@ export interface ProjectSweepSource {
     readonly winisdAbcIntraPortVelocity: SimpleField<boolean>;
     readonly winisdPrNprResonance: SimpleField<boolean>;
     readonly winisdBesselHighpass: SimpleField<boolean>;
-    readonly lossMode: SimpleField<LossMode>;
     readonly rgAtDriverSide: SimpleField<boolean>;
     readonly useTransmissionLinePortModel: SimpleField<boolean>;
     readonly forceFlatResponse: SimpleField<boolean>;
@@ -79,7 +77,7 @@ function sweepParamsOf(source: ProjectSweepSource, P: FrequencyGrid, eg: number,
         // Same "rear chamber feeds the shared slot" convention as `bandpass4` above — the
         // `winisd-lossy` branch never reads this shared `Ql`/`Qa` at all (it reads each
         // chamber's own `Qlr`/`Qar`/`Qlf`/`Qaf` off `boxSpecificParamsOf` below); this only
-        // backstops `lossless`/`conventional-lossy`.
+        // backstops `lossless`.
         case 'bandpass6': losses = {Ql: box.bandpass6.chambers.rear.losses.Ql.value, Qa: box.bandpass6.chambers.rear.losses.Qa.value}; break;
         case 'abc': losses = {Ql: box.abc.chambers.rear.losses.Ql.value, Qa: box.abc.chambers.rear.losses.Qa.value}; break;
     }
@@ -100,7 +98,6 @@ function sweepParamsOf(source: ProjectSweepSource, P: FrequencyGrid, eg: number,
         winisdAbcIntraPortVelocity: source.winisdAbcIntraPortVelocity.value,
         winisdPrNprResonance: source.winisdPrNprResonance.value,
         winisdBesselHighpass: source.winisdBesselHighpass.value,
-        lossMode: source.lossMode.value.value,
         Ql: losses.Ql, Qa: losses.Qa, Qp: losses.Qp,
         ...boxSpecificParamsOf(source, boxType),
         ...source.airEnvironment,

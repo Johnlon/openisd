@@ -107,7 +107,7 @@ Enforcement, as tests that fail the build:
 | `signal`                                    | Drive voltage and input power.                                                                |
 | `driverEmbedding`                           | Driver count, wiring, series resistance, voice-coil temperature rise.                         |
 | environment                                 | Temperature, humidity, pressure, and the choice of air model.                                  |
-| filters, charts, metadata                   | The filter chain, open charts and loss model, and name and description.                        |
+| filters, charts, metadata                   | The filter chain, open charts, and name and description.                        |
 
 - **Switching box type deletes nothing.** The other sections go dormant. Only the `.wpr` writer
   leaves them out, because WinISD's format cannot hold them.
@@ -421,7 +421,7 @@ the phase before it has returned, and it is the only place that order is stated.
   - this keeps most UI coverage in fast node tests;
   - it keeps the markup a thin binding.
 - **Types carry the facts:**
-  - closed sets are sum types or Java-style enum classes, such as `LossMode` and `DriverType`;
+  - closed sets are sum types or Java-style enum classes, such as `DriverType`;
   - matches over them are exhaustive;
   - semantic primitives are branded;
   - there are no casts and no `any` in `design` (tested); `ui` has two DOM-event casts;
@@ -478,7 +478,6 @@ The full strategy is in [TESTING_STRATEGY.md](TESTING_STRATEGY.md).
 | Contradictory inputs          | The losing route is dropped without notice; disagreeing entered values are never compared.  | Every member of an inconsistent group is marked with a DQ issue. Entered values are never changed.                      | The disagreement is information. |
 | Voice-coil wiring             | A wiring change rewrites `Re` and `BL` and leaves them marked Entered.                      | Per-coil `Re`/`BL` stay as entered. Terminal `Re`/`BL` are separate calculated fields.                                  | A typed value must not change under the user. |
 | Derived fields on load        | Figure-of-merit fields (EBP, Rme, γ, Mpow, SPLmax, SPLmaxLF, Gloss) read `0` until any field is edited. | Solved on load.                                                                                                        | A `0` meaning "not computed" cannot be told apart from a real zero. |
-| Sealed-box loss model         | One model: the lossy cubic.                                                                 | Three to choose from: WinISD's lossy cubic (default), conventional, lossless.                                           | Comparison with textbook results. |
 | Voice-coil inductance         | One switch: Le in both SPL and impedance, or in neither.                                    | `circuitModel`: `winisd` or `gyrator`. Currently inconsistent; see the gap list.                                         | Open. |
 | Tuning (what-if)              | Not present.                                                                                | The Tune panel explores changes on the whole project, and always discards them.                                          | Explore without corrupting real driver data. |
 | Drive voltage / power         | A three-way cascade of power, voltage and resistance.                                       | Voltage is never empty. Power is C from V²/Re, or N when Re is missing. Whichever was entered last wins.               | Charts always have a drive level. |

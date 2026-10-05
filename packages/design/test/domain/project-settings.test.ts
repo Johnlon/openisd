@@ -1,5 +1,4 @@
 import {describe, expect, it} from 'vitest';
-import {LossMode} from '@openisd/design/fields';
 import {type Engine, createEngine, DEFAULT_VENTED_DESIGN_LIMITS} from '@openisd/design/engine';
 import {OpenISDProject, ProjectBuilder, type FrequencyGrid} from '../../domain/index.js';
 import {fixedAppContext, specSection, driverFrom, sealedProject} from '../fixtures/domainBuilders.js';
@@ -81,13 +80,11 @@ describe('OpenISDProject settings', () => {
 
     it('applyWinisdSettings sets the compat switches to WinISD', () => {
       const p = sealedProject();
-      p.lossMode.set(LossMode.parse('conventional-lossy'));
       p.envUseWinisdAirModel.set(false);
       p.winisdDriverModel.set(false);
 
       p.applyWinisdSettings();
 
-      expect(p.lossMode.value.value).toBe('winisd-lossy');
       expect(p.envUseWinisdAirModel.value).toBe(true);
       expect(p.winisdDriverModel.value).toBe(true);
     });

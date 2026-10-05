@@ -1,4 +1,3 @@
-import {LossMode} from '../../fields/lossMode.js';
 import { focus } from '../cell.js';
 import type { SimpleField } from '../cell.js';
 import type { Filter } from '../../engine/index.js';
@@ -60,18 +59,6 @@ export class ProjectAdvanced {
      *  Xmax-backed-off curve instead of the unclamped one. Display only. */
     get splGraphIsXmaxLimited(): SimpleField<boolean> {
         return focus(this.#advanced, 'splGraphIsXmaxLimited');
-    }
-
-    /** Sealed-box resonance loss model (S10/QO130) — which physics model `box.sealed`'s Fsc/Qtc
-     *  readout uses. PROJECT-scoped, not a UI singleton: two open projects must not share one
-     *  loss mode. `advanced.lossMode` stores the wire string; this is the one boundary that
-     *  translates it via `LossMode.parse`/`.value`, matching the `circuitModel` accessor above. */
-    get lossMode(): SimpleField<LossMode> {
-        const lens = focus(this.#advanced, 'lossMode');
-        return {
-            get value() { return LossMode.parse(lens.value); },
-            set: (mode: LossMode) => lens.set(mode.value),
-        };
     }
 
     /** WinISD Advanced / Compatibility "Use WinISD driver calculations" — whether engine sweeps

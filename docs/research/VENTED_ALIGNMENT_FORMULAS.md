@@ -43,7 +43,7 @@ Fb = h · Fs
 
 | Input  | Where it comes from in OpenISD                                                              | Used by  |
 |--------|---------------------------------------------------------------------------------------------|----------|
-| `Qts'` | `sourceLoadedQts(Qms, Qes, Re, Rg, Qts)` in `engine/lossMode.ts`, as the sealed wizard uses | all 5    |
+| `Qts'` | `sourceLoadedQts(Qms, Qes, Re, Rg, Qts)`, as the sealed wizard uses | all 5    |
 | `Rg`   | project `Rs_ohm` (Signal tab "Series resistance"; `.wpr` `[SignalSource] Rg`), 0.1 default  | via Qts' |
 | `Ql`   | box losses `box.vented.losses.Ql`, default 10 (§4)                                          | BB4 only |
 

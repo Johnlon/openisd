@@ -678,7 +678,7 @@ export const projectChanged = computed<number>(() => changeTicks.value);
 
 /** The live presentation state as the repo's view shape — read directly by the share-link
  *  doors and by the view-state autosave (QO90 — view/UI preferences persist under their own
- *  storage key, independent of the project). `lossMode`/`graphs` moved onto the focused
+ *  storage key, independent of the project). `graphs` moved onto the focused
  *  project (QO130) and travel inside its own `.owpr` text instead; the cursor moved there too,
  *  but QO168 keeps it out of every saved record, this snapshot included. */
 export function currentViewSnapshot(): ViewSnapshot {

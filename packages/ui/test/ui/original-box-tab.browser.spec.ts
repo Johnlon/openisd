@@ -147,25 +147,6 @@ test.describe('Original Box tab', () => {
     expect(parseFloat(await qtcInput(page).inputValue())).toBeCloseTo(0.5995, 2);
   });
 
-  test('switching the loss model on the Advanced tab changes the sealed Fsc/Qtc readouts', async ({ page }) => {
-    await setFocusedBoxType(page, 'sealed');
-    await setFocusedSealedLosses(page, { Ql: 10, Qa: 100 });
-    const readAt = async (mode: string) => {
-      await page.locator('.project-nav li', { hasText: /^Advanced$/ }).click();
-      await page.locator('#adv-lossmode').selectOption(mode);
-      await boxTab(page).click();
-      return { fsc: await fscInput(page).inputValue(), qtc: await qtcInput(page).inputValue() };
-    };
-    const lossless = await readAt('lossless');
-    const conventional = await readAt('conventional-lossy');
-    const winisd = await readAt('winisd-lossy');
-    expect(conventional.fsc).toBe(lossless.fsc);
-    expect(conventional.qtc).not.toBe(lossless.qtc);
-    expect(winisd.fsc).not.toBe(lossless.fsc);
-    expect(winisd.qtc).not.toBe(conventional.qtc);
-    await expectReadoutTracks(page, 'after loss-model switches');
-  });
-
   test('sealed Fsc/Qtc readouts re-render after volume, losses and driver swap', async ({ page }) => {
     await setFocusedBoxType(page, 'sealed');
     await boxTab(page).click();

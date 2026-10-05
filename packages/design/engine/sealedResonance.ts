@@ -1,23 +1,19 @@
 
 /**
- * Sealed-box resonance under each loss model — controls both the Box tab single-number readout (Fsc/Qtc)
- * AND the frequency-sweep acoustic circuit calculations in `circuit.ts`.
+ * Sealed-box resonance: WinISD's lossy readout (Fsc/Qtc), and the lossless closed form.
  *
- * Spec: openspec/specs/core-engine/spec.md "Sealed-Box Resonance Loss Models".
- *
- * - Lossless          Box tab: Fsc = Fs·√(1+Vas/Vb), Qtc = Qts·√(1+Vas/Vb) (textbook, no losses)
- *                     Sweep: Zbox = Zc (no Ql/Qa damping or leak subtraction)
- * - ConventionalLossy Box tab: Fsc = Lossless (unchanged); box losses fold into Q only (Small/Thiele):
- *                     1/Qtc_total = 1/Qtc + 1/QL + 1/QA
- *                     Sweep: Zbox = parallel(Zc, Ral, Raa), U0 = UD (frequency-dependent damping)
- * - WinisdLossy       Box tab: Fsc = pole frequency of WinISD's lossy 3rd-order model (SEALED_FSC_MODEL.md)
- *                     Sweep: Zbox = Ral_const ∥ (Raa_series + Zc), Raa_series = ωsc·Mas/Qa,
- *                     U0 = UD - Uleak (leak volume velocity subtraction); docs/CHARTS.md §1.2
+ * - Lossy    Box tab: Fsc = pole frequency of WinISD's lossy 3rd-order model (SEALED_FSC_MODEL.md)
+ *            Sweep: Zbox = Ral_const ∥ (Raa_series + Zc), Raa_series = ωsc·Mas/Qa,
+ *            U0 = UD - Uleak (leak volume velocity subtraction); docs/CHARTS.md §1.2
+ * - Lossless Fsc = Fs·√(1+Vas/Vb), Qtc = Qts·√(1+Vas/Vb). Reached through Ql and Qa at or above
+ *            `LOSSLESS_Q` (the lossy model converges to it), or called directly where WinISD itself
+ *            shows the lossless figure (the bandpass4 rear chamber).
  *
  * The WinISD pole is INVARIANT to ρ and c (ρc² cancels in the cubic), so this module needs no
  * air constants — it uses acoustic compliances with ρc²=1 (Cas=Vas, Ccab=Vb), which gives the
  * identical pole frequency.
  */
+import {LOSSLESS_Q} from '../fields/losslessQ.js';
 
 export interface SealedParams {
   Fs: number;
@@ -30,10 +26,10 @@ export interface SealedParams {
   Qa: number;
 }
 
-export const LOSSLESS_LIMIT = 1e6;
+export const LOSSLESS_LIMIT = LOSSLESS_Q;
 
 
-/** Lossless multiplier √(1+Vas/Vb), shared by every mode's lossless baseline. */
+/** Lossless multiplier √(1+Vas/Vb). */
 export function boxRatio(vas: number, vb: number): number {
   return Math.sqrt(1 + vas / vb);
 }
@@ -108,3 +104,9 @@ export function sealedResonanceWinisd(p: SealedParams): { Fsc: number; Qtc: numb
   return { Fsc: Math.sqrt(r0 * r1) / (2 * Math.PI), Qtc: Math.sqrt(r0 * r1) / (r0 + r1) };
 }
 
+
+/** The lossless textbook readout: Fsc = Fs·√(1+Vas/Vb), Qtc = Qts·√(1+Vas/Vb). */
+export function sealedResonanceLossless(p: SealedParams): { Fsc: number; Qtc: number } {
+  const ratio = boxRatio(p.Vas, p.Vb);
+  return { Fsc: p.Fs * ratio, Qtc: p.Qts * ratio };
+}

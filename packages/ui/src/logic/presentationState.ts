@@ -5,10 +5,9 @@
  * metadata and every other design input live on `managedProject`/`appState.ts` and are read
  * through them, never copied here.
  *
- * The graph cursor (crosshair/pinned/locked/drag-band), open charts (`graphs`) and the sealed
- * loss-model select (`lossMode`) used to live here — QO130 made them PROJECT-scoped instead (two
- * open projects must not share one cursor), so they moved onto `OpenISDProject` itself
- * (`.cursorF`/`.pinnedF`/`.cursorLocked`/`.dragRange`/`.graphs`/`.lossMode`). The cursor fields
+ * The graph cursor (crosshair/pinned/locked/drag-band) and open charts (`graphs`) used to
+ * live here — QO130 made them PROJECT-scoped instead (two open projects must not share one cursor), so they moved onto `OpenISDProject` itself
+ * (`.cursorF`/`.pinnedF`/`.cursorLocked`/`.dragRange`/`.graphs`). The cursor fields
  * went further under QO168: a documented exception in
  * `architecture-project-has-three-fields.test.ts`, never serialized anywhere.
  *

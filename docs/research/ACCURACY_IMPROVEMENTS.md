@@ -46,7 +46,7 @@ Rows 1 and 2 (VA) and 8 (two BLs) above are error switches too.
 
 | WinISD does                                                        | Note |
 |--------------------------------------------------------------------|------|
-| Box leak/absorption/port loss as fixed resistances at the tuning (vented, PR) or ωsc (sealed) | This is Small's convention (Q_L defined at Fb). OpenISD's `conventional-lossy` uses per-frequency Q/(ω·C), which is *not* the textbook form — review what that switch should mean before offering it as "more accurate". |
+| Box leak/absorption/port loss as fixed resistances at the tuning (vented, PR) or ωsc (sealed) | This is Small's convention (Q_L defined at Fb), and OpenISD uses it as WinISD does: there is no other loss model, and Ql and Qa control the losses. |
 | Vented port mass from Fb, vent length ignored                       | Same physics when length and Fb are consistent; OpenISD derives one from the other. |
 | Radiated output = cone − leak − port/radiator                       | Correct; OpenISD's old vented/PR output (cone − port) was the error. |
 | Maximum SPL and Maximum power leave the EQ/filter chain out (row 3) | A filter before the driver scales the SPL by \|Hf\| and the voltage the driver limit allows by 1/\|Hf\|: the limit curves are identical with or without the chain (John, 2026-10-04: no change). [bug](../../bugs/archive/BUG_20260927_max-spl-and-max-power-include-the-filter-chain.md) |
