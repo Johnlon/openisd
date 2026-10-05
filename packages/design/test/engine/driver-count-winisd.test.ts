@@ -8,7 +8,7 @@ import {dirname, join} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {describe, expect, it} from 'vitest';
 import {createEngine} from '../../engine/index.js';
-import type {OpenISDProject} from '../../domain/index.js';
+import type {FrequencyGrid, OpenISDProject} from '../../domain/index.js';
 import {WinIsdProjectConverter} from '../../domain/winIsdProjectConverter.js';
 import {type CaptureCheck as Check, absolute, assertMatchesCapture, relative} from '../fixtures/winisdCaptureCheck.js';
 import {WINISD_TWO_DRIVERS_CAPTURE as SEALED, type WinIsdPlottedPoint} from '../fixtures/winisdTwoDriversCapture.js';
@@ -109,7 +109,7 @@ describe('two drivers match WinISD with the per-driver impedance bug ticked', ()
  *  readout to 3 dp. N drivers each in 4.48 L and fed P/N.
  *  BUG_20261005_drive-voltage-each-stale-with-driver-count. */
 describe('driver count and drive level (W5-1138SMF sealed, 4.48 L per driver)', () => {
-  const grid = {fmin: 10, fmax: 1000, N: 100};
+  const grid: FrequencyGrid = {fmin: 10, fmax: 1000, N: 100};
   const project = (n: number): OpenISDProject => {
     const p = setUpProject(CASES[0]);
     p.nDrivers.set(n);
