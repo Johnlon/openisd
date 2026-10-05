@@ -153,9 +153,10 @@ describe('driver Fs and Vas route parity with WinISD', () => {
     const W5 = {
       Fs_hz: 45, Qes: 0.57, Qms: 3.56, Cms_m_per_N: 0.00036872, Sd_m2: 0.0094,
       Mms_kg: 0.02881, BL_Tm: 7.17, Re_ohm: 3.4, Znom: 4, Le_H: 0.00034, Xmax_m: 0.00925,
-      // The W5 .wdr states its own air (winisd_drivers db), and WinISD's saved Vas was computed in it.
-      c_m_per_s: 343.6826980479399, roo_kg_per_m3: 1.2009621215255684,
     } as const;
+    // The air WinISD's saved Vas was computed in. OpenISD takes air from the project, never from
+    // the record (John, 2026-10-05), so it is handed in as the project's.
+    const W5_AIR = { c: 343.6826980479399, rho: 1.2009621215255684 } as const;
     // WinISD's own stored efficiency value for this record (the W5 save), as a FRACTION.
     const NO_WINISD = 0.000895200585183395;
 
@@ -170,7 +171,7 @@ describe('driver Fs and Vas route parity with WinISD', () => {
     const VAS_COMPLIANCE  = 0.004621649972016005;
 
     it('a cleared Vas refills via rel 14 (no/Qes/Fs), beating rel 10 (Cms/Sd) when `no` is entered — FINDING-027', () => {
-      const res = solveConsistencyGroup({ ...W5, no: NO_WINISD });
+      const res = solveConsistencyGroup({ ...W5, no: NO_WINISD }, W5_AIR);
       assert.ok(Math.abs(num(res.Vas_m3) - VAS_EFF_ENTERED) <= VAS_EFF_ENTERED * 1e-12,
         `Vas must solve to rel 14 ${VAS_EFF_ENTERED}, got ${res.Vas_m3}`);
       assert.notEqual(Math.round(num(res.Vas_m3) * 1e3), Math.round(VAS_COMPLIANCE * 1e3),
@@ -178,7 +179,7 @@ describe('driver Fs and Vas route parity with WinISD', () => {
     });
 
     it('a `no`-less driver with BL/Sd/Mms/Re present derives `no` via rel 15, THEN Vas via rel 14 — FINDING-028 no_absent_full', () => {
-      const res = solveConsistencyGroup({ ...W5 });
+      const res = solveConsistencyGroup({ ...W5 }, W5_AIR);
       assert.ok(res.no != null, 'no must be derivable from BL/Sd/Mms/Re even when absent (rel 15)');
       assert.ok(Math.abs(num(res.no) - NO_RE15) <= NO_RE15 * 1e-12,
         `no must come from rel 15 (BL/Sd/Mms/Re) = ${NO_RE15}, got ${res.no}`);

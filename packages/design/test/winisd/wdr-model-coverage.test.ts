@@ -84,8 +84,10 @@ describe('every .wdr field has a home in the OpenISD model', () => {
         }
     });
 
-    it('c and roo round-trip like any other entered field', () => {
-        // Synthetic values on purpose — only "survives unchanged" matters.
+    it('a record\'s own c and roo export as the air the driver used, marked calculated', () => {
+        // John, 2026-10-05: a driver record's own c/roo feed no calculation; the export writes
+        // the air actually used. Synthetic values on purpose — they must not survive.
+        const {c: refC, rho: refRho} = createEngine().environment.solve({}).values;
         const record = {
             uuid: {value: '00000000-0000-4000-8000-000000000000'},
             manufacturer: scraped('Acme'), brand: scraped('Acme'), model: scraped('Widget'),
@@ -103,10 +105,10 @@ describe('every .wdr field has a home in the OpenISD model', () => {
         if (Array.isArray(driver)) throw new Error(`fixture is not a valid driver: ${driver.join(', ')}`);
 
         const wdr = openIsdDriverToWinIsdDriver(driver, []);
-        assert.equal(wdr.cell('c').state, 'entered');
-        assert.equal(wdr.cell('c').value, '111111');
-        assert.equal(wdr.cell('roo').state, 'entered');
-        assert.equal(wdr.cell('roo').value, '222222');
+        assert.equal(wdr.cell('c').state, 'calculated');
+        assert.equal(Number(wdr.cell('c').value), refC);
+        assert.equal(wdr.cell('roo').state, 'calculated');
+        assert.equal(Number(wdr.cell('roo').value), refRho);
     });
 
     it('c and roo, unentered, read as the reference-environment values', () => {
@@ -136,7 +138,7 @@ describe('every .wdr field has a home in the OpenISD model', () => {
         assert.equal(Number(wdr.cell('roo').value), refRho);
     });
 
-    it('entered then cleared c/roo: entered reads back, cleared reverts to the reference value', () => {
+    it('set then cleared c/roo: both read the driver\'s air, never the value set', () => {
         const {c: refC, rho: refRho} = createEngine().environment.solve({}).values;
         const record = {
             uuid: {value: '00000000-0000-4000-8000-000000000000'},
@@ -157,8 +159,8 @@ describe('every .wdr field has a home in the OpenISD model', () => {
 
         section.c_m_per_s.set(400);
         section.roo_kg_per_m3.set(1.5);
-        assertReads(section.c_m_per_s, 400, 'entered');
-        assertReads(section.roo_kg_per_m3, 1.5, 'entered');
+        assertReads(section.c_m_per_s, refC, 'calculated');
+        assertReads(section.roo_kg_per_m3, refRho, 'calculated');
 
         section.c_m_per_s.clear();
         section.roo_kg_per_m3.clear();

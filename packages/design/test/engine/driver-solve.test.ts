@@ -1,6 +1,6 @@
 import {describe, expect, it, vi} from 'vitest';
 import type {DriverSolverParams, SolverField} from '../../engine/index.js';
-import {DEFAULT_P_REF_PA, createEngine} from '../../engine/index.js';
+import {createEngine} from '../../engine/index.js';
 import type {TestSolverQuantities} from './testSolver.js';
 import {checkConsistency, fakeSolverField, solveConsistencyGroup} from './testSolver.js';
 import assert from 'node:assert/strict';
@@ -166,34 +166,21 @@ describe('Engine.solveDriver', () => {
       expect(p.roo_kg_per_m3.value).toBe(AIR.rho);
     });
 
-    it('an entered c_m_per_s is never overwritten by the given air', () => {
-      const p = driverParams({ c_m_per_s: 111111 });
+    it('an entered c_m_per_s/roo_kg_per_m3 is replaced by the given air, written as calculated', () => {
+      // John, 2026-10-05: a driver record's own c and roo feed no calculation.
+      const p = driverParams({ c_m_per_s: 111111, roo_kg_per_m3: 2.5 });
       engine.driver.solve(p, AIR);
-      expect(p.c_m_per_s.value).toBe(111111);
-      expect(p.c_m_per_s.entered).toBe(true);
-    });
-  });
-
-  // The outer `air` parameter only ever pre-fills a NOT-ENTERED c_m_per_s/roo_kg_per_m3 (always
-  // positive), so driverC/driverRho's own fallback arms — reached when a record enters one of
-  // these as non-positive — are otherwise dead from `solveDriver`'s call site alone.
-  describe('Engine.solveDriver — driverC/driverRho reference-air fallback', () => {
-    it('recomputes c from an entered roo when c_m_per_s is entered non-positive', () => {
-      const GAMMA = 1.4; // local oracle — engine/index.ts never re-exports the private air constant (air.test.ts precedent).
-      const roo = 1.1, Vas_m3 = 0.05, Cms_m_per_N = 0.0009;
-      const p = driverParams({ c_m_per_s: 0, roo_kg_per_m3: roo, Vas_m3, Cms_m_per_N });
-      engine.driver.solve(p, AIR);
-      // roo·c² collapses to γ·Pref regardless of roo once c = √(γ·Pref/roo), so Sd is predictable
-      // without importing the private GAMMA/efficiency formulas.
-      expect(p.Sd_m2.value).toBeCloseTo(Math.sqrt(Vas_m3 / (GAMMA * DEFAULT_P_REF_PA * Cms_m_per_N)), 9);
+      expect(p.c_m_per_s.value).toBe(AIR.c);
+      expect(p.c_m_per_s.entered).toBe(false);
+      expect(p.roo_kg_per_m3.value).toBe(AIR.rho);
+      expect(p.roo_kg_per_m3.entered).toBe(false);
     });
 
-    it('falls back to the reference environment when both c_m_per_s and roo_kg_per_m3 are entered non-positive', () => {
-      const ref = engine.environment.solve({}).values;
+    it('derives Sd from Vas and Cms in the given air, whatever c and roo the record enters', () => {
       const Vas_m3 = 0.05, Cms_m_per_N = 0.0009;
-      const p = driverParams({ c_m_per_s: 0, roo_kg_per_m3: 0, Vas_m3, Cms_m_per_N });
+      const p = driverParams({ c_m_per_s: 0, roo_kg_per_m3: 7, Vas_m3, Cms_m_per_N });
       engine.driver.solve(p, AIR);
-      expect(p.Sd_m2.value).toBeCloseTo(Math.sqrt(Vas_m3 / (ref.rho * ref.c * ref.c * Cms_m_per_N)), 9);
+      expect(p.Sd_m2.value).toBeCloseTo(Math.sqrt(Vas_m3 / (AIR.rho * AIR.c * AIR.c * Cms_m_per_N)), 12);
     });
   });
 

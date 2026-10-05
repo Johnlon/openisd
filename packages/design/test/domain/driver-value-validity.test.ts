@@ -34,7 +34,7 @@ describe('driver spec-field value validity — every field has its OWN floor', (
       'Fs_hz', 'Re_ohm', 'fLe_hz', 'Qts', 'Qes', 'Qms', 'Vas_m3', 'Sd_m2', 'BL_Tm', 'Mms_kg',
       'Cms_m_per_N', 'Rms_kg_per_s', 'Xmax_m', 'Xlim_m', 'Pe_W', 'Dd_m', 'EBP_hz', 'numVC',
       'Dia_m', 'Vd_m3', 'no', 'Rt_K_per_W', 'Ct_J_per_K', 'gamma_m_per_s2_A', 'Rme_kg_per_s',
-      'Mpow_N_per_sqrtW', 'Mcost_kg_per_s', 'Gloss', 'c_m_per_s', 'roo_kg_per_m3', 'Vcd_m',
+      'Mpow_N_per_sqrtW', 'Mcost_kg_per_s', 'Gloss', 'Vcd_m',
       'Hg_m', 'Hc_m', 'freq_low_hz', 'freq_high_hz', 'power_peak_W', 'weight_kg', 'Thick_m',
       'Depth_m', 'MagDepth_m', 'Magnet_m', 'Basket_m', 'Outer_m', 'OuterX_m', 'OuterY_m',
       'DVol_m3',
@@ -44,6 +44,21 @@ describe('driver spec-field value validity — every field has its OWN floor', (
         const f = field(engine, name);
         f.set(value);
         expect(f.dq).toContainEqual(engine.issues.positiveValueIssue(value));
+      }
+    });
+  });
+
+  // John, 2026-10-05: c and roo show the driver's air and feed no calculation. A value set into
+  // them is replaced by that air on the next resolve, so no bad value stays to be marked.
+  describe('c and roo — a set value is replaced by the driver\'s air, so no bad value stays', () => {
+    it.each(['c_m_per_s', 'roo_kg_per_m3'] satisfies NumSpecField[])('%s', (name) => {
+      const engine = createEngine();
+      const air = engine.environment.solve(engine.environment.defaults()).values;
+      for (const value of [0, -1, NaN]) {
+        const f = field(engine, name);
+        f.set(value);
+        expect(f.value).toBe(name === 'c_m_per_s' ? air.c : air.rho);
+        expect(f.dq).not.toContainEqual(expect.objectContaining({kind: 'invalid-value'}));
       }
     });
   });

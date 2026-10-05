@@ -103,32 +103,36 @@ describe('every spec field supports get/set/get/clear/get — clear() actually c
             'VCCon must revert to the calculated default parallel after clear() — clear() must not throw');
     });
 
-    it('c_m_per_s: get=calculated air-model default, set=allowed, get=new value, clear=allowed, get=calculated default again', () => {
+    it('c_m_per_s: get=calculated air-model default, set=allowed, get=the air again, clear=allowed, get=calculated default again', () => {
         const section = freshSection();
         const referenceC = createEngine().environment.solve({}).values.c;
 
         assertReads(section.c_m_per_s, referenceC, 'calculated',
             'c_m_per_s must start at the live reference-air speed of sound on a fresh section, not absent');
 
+        // John, 2026-10-05: a driver record's own c/roo feed no calculation, so the field shows
+        // the driver's air (here the app's environment defaults) whatever is set into it.
         section.c_m_per_s.set(340);
-        assertReads(section.c_m_per_s, 340, 'entered',
-            'c_m_per_s must read back exactly what was just set');
+        assertReads(section.c_m_per_s, referenceC, 'calculated',
+            'c_m_per_s must show the driver\'s air, not the value just set');
 
         section.c_m_per_s.clear();
         assertReads(section.c_m_per_s, referenceC, 'calculated',
             'c_m_per_s must revert to the calculated reference-air default after clear() — clear() must not throw');
     });
 
-    it('roo_kg_per_m3: get=calculated air-model default, set=allowed, get=new value, clear=allowed, get=calculated default again', () => {
+    it('roo_kg_per_m3: get=calculated air-model default, set=allowed, get=the air again, clear=allowed, get=calculated default again', () => {
         const section = freshSection();
         const referenceRho = createEngine().environment.solve({}).values.rho;
 
         assertReads(section.roo_kg_per_m3, referenceRho, 'calculated',
             'roo_kg_per_m3 must start at the live reference-air density on a fresh section, not absent');
 
+        // John, 2026-10-05: a driver record's own c/roo feed no calculation, so the field shows
+        // the driver's air (here the app's environment defaults) whatever is set into it.
         section.roo_kg_per_m3.set(1.25);
-        assertReads(section.roo_kg_per_m3, 1.25, 'entered',
-            'roo_kg_per_m3 must read back exactly what was just set');
+        assertReads(section.roo_kg_per_m3, referenceRho, 'calculated',
+            'roo_kg_per_m3 must show the driver\'s air, not the value just set');
 
         section.roo_kg_per_m3.clear();
         assertReads(section.roo_kg_per_m3, referenceRho, 'calculated',

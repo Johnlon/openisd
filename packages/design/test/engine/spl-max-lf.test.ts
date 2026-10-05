@@ -6,6 +6,7 @@ import {readFileSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 import {dirname, join} from 'node:path';
 import {createEngine} from '../../engine/index.js';
+import type {Air} from '../../engine/index.js';
 
 /** The engine's one door: every calculation below is a method on this object. */
 const engine = createEngine();
@@ -13,8 +14,8 @@ const engine = createEngine();
 // TYPED, not `Record<string, number>` with a cast on each end. The cast this replaces made every
 // name in this file invisible to the compiler: stale keys went in, matched nothing, and every
 // derived figure came back `undefined` while the suite still built.
-const solve = (d: TestSolverQuantities): Readonly<TestSolverQuantities> =>
-  solveConsistencyGroup(d);
+const solve = (d: TestSolverQuantities, air?: Air): Readonly<TestSolverQuantities> =>
+  solveConsistencyGroup(d, air);
 
 const here = dirname(fileURLToPath(import.meta.url));
 
@@ -64,13 +65,15 @@ describe('SPLmaxLF', () => {
         `SPLmaxLF = ${r.SPLmaxLF_dB}, WinISD wrote ${ORACLE.SPLmaxLF} (relative ${rel(derived(r.SPLmaxLF_dB, 'SPLmaxLF_dB'), ORACLE.SPLmaxLF)})`);
     });
 
-    it('tracks the ρ₀ the record carries — it is not a hardcoded 1.20095', () => {
+    it('tracks the ρ₀ of the air it is solved in — it is not a hardcoded 1.20095', () => {
       // Probes `splmaxlf_roo0.9` / `splmaxlf_roo1.5`: identical drivers, `roo` alone changed.
       // WinISD moves SPLmaxLF by 20·log₁₀(ρ ratio), so a constant baked into the formula would
-      // print the same number twice.
-      const base = { Fs_hz: 40, Xmax_m: 0.0067, Sd_m2: 0.022, Vd_m3: 0.0001474, Mms_kg: 0.00194848430081419, Qes: 0.19251724527664, Re_ohm: 14.1525718647402, c_m_per_s: 343.684120962153 };
-      const light = solve({ ...base, roo_kg_per_m3: 0.9 });
-      const heavy = solve({ ...base, roo_kg_per_m3: 1.5 });
+      // print the same number twice. OpenISD takes that air from the project, never the record
+      // (John, 2026-10-05), so the probes' air is handed in as the project's.
+      const base = { Fs_hz: 40, Xmax_m: 0.0067, Sd_m2: 0.022, Vd_m3: 0.0001474, Mms_kg: 0.00194848430081419, Qes: 0.19251724527664, Re_ohm: 14.1525718647402 };
+      const c = 343.684120962153;
+      const light = solve(base, { c, rho: 0.9 });
+      const heavy = solve(base, { c, rho: 1.5 });
       assert.ok(rel(derived(light.SPLmaxLF_dB, 'SPLmaxLF_dB'), 81.4286971830493) < 1e-12, `ρ₀=0.9 → ${light.SPLmaxLF_dB}`);
       assert.ok(rel(derived(heavy.SPLmaxLF_dB, 'SPLmaxLF_dB'), 85.8656721753764) < 1e-12, `ρ₀=1.5 → ${heavy.SPLmaxLF_dB}`);
     });

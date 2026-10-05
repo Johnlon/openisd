@@ -123,8 +123,10 @@ function pairs(text: string): Map<string, string> {
 }
 
 /**
- * Keys the file marks `E` whose value does not come back. Nothing is excluded: every `.wdr`
- * field has a home in the model, so any loss at all is a defect this must name.
+ * Keys the file marks `E` whose value does not come back. Every `.wdr` field has a home in the
+ * model, so any loss is a defect this must name — except `c` and `roo`: a driver file's own air
+ * feeds no calculation and the export writes the air the driver used (John, 2026-10-05), which
+ * `the file's own c and roo are replaced by the air used` below pins.
  *
  * Compared as NUMBERS, not strings: WinISD itself renormalises its own decimals — the
  * hand-authored `inconsistency-test.wdr` states `Qts=0.500`, and `inconsistency-test-saved.wdr`
@@ -141,6 +143,7 @@ function lostEntered(file: string, src: string): string[] {
     // "numVC — read on mark, value checked". Not a loss: the original survives as
     // `actual_reading`, and this check only sees the two round-tripped .wdr keys.
     if (key === 'numVC' && !['1', '2', '3', '4'].includes(cell.value.trim())) continue;
+    if (key === 'c' || key === 'roo') continue;
     const back = after.cell(key);
     if (Number(back.value) !== Number(cell.value)) {
       lost.push(`${file} ${key}: "${cell.value}" -> "${back.value}"`);
@@ -175,6 +178,15 @@ describe('a .wdr survives the round trip THROUGH OpenISDDriver', () => {
     if (!state) continue;   // no ParState: nothing states which values are E, C or N.
 
     const before = WinISDDriver.fromWdrIni(src);
+
+    it(`${file} — the file's own c and roo are replaced by the air used, marked C`, () => {
+      const after = WinISDDriver.fromWdrIni(cycle(src));
+      const air = createEngine().environment.solve({}).values;
+      assert.equal(Number(after.cell('c').value), air.c);
+      assert.equal(after.cell('c').state, 'calculated');
+      assert.equal(Number(after.cell('roo').value), air.rho);
+      assert.equal(after.cell('roo').state, 'calculated');
+    });
 
     it(`${file} — entered values are never touched`, () => {
       assert.deepEqual(lostEntered(file, src), [],
