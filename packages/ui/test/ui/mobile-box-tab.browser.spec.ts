@@ -112,7 +112,8 @@ test.describe('MobileBoxTab', () => {
       await page.locator('#mob-box-type').selectOption('box-passive-radiator');
       await expect(volumeInput(page)).not.toHaveValue('0.00');
       await page.locator('.mob-tab', { hasText: 'Passive Radiator' }).click();
-      await expect(page.getByText('ReplaceMe')).toBeVisible();
+      // The PR name is an editable box since 1b15a8f9, so it is a value, not page text.
+      await expect(page.locator('#mob-pr-name')).toHaveValue('ReplaceMe');
       await expect(mobileFieldRow(page, 'Sd').locator('input')).not.toHaveValue('0.00');
     }
 
