@@ -135,12 +135,7 @@ const divergences: KnownDivergence[] = asKnownDivergences(parsedDivergencesFile.
  * OTHER missing golden still fails loudly via the guard test below; this list is the one
  * sanctioned exception, and the second guard test keeps it honest if a golden ever does land.
  */
-const UNCAPTURABLE: { id: string; reference: string }[] = [
-  {
-    id: 'solve-from-mms-cms',
-    reference: 'bugs/BUG_20260813_winisd-will-not-open-the-solve-from-mms-cms-parity-project-so-that-golden-cannot-be-captured.md',
-  },
-];
+const UNCAPTURABLE: { id: string; reference: string }[] = [];
 const uncapturableIds = new Set(UNCAPTURABLE.map(u => u.id));
 
 /** Parse a WinISD `.wpr`/`.wdr`: flat INI, `[Section]` headers, `key=value`, no comments. */

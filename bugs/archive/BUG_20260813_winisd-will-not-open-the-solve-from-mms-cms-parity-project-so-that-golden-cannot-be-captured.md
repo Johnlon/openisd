@@ -1,7 +1,9 @@
 # No parity golden for `solve-from-mms-cms` — WinISD crashes capturing it
 
 ## Status
-OPEN (re-verified 2026-09-26) — WinISD still crashes capturing this scenario; the parity test excuses it in `packages/design/test/winisd/winisd-parity-functional.test.ts`.
+FIXED 2026-10-05 — the golden exists (`goldens/solve-from-mms-cms.wpr`, captured by WinISD itself through
+the standalone Driver editor) and the parity tests compare it. WinISD's crash on loading such a
+driver is its own bug: `bugs/BUG_20261005_winisd-driver-without-fs-vas-crashes-on-load.md`.
 
 ## Symptom
 
@@ -23,23 +25,14 @@ Its forward twin `solve-from-q-pair` captures cleanly in ~15 s on the same wine 
 `winisd.exe` (0.7.0.0, sha256 `a7dab233…6df386ae`).
 
 ## Cause
-
-`scripts/qo8_parity_generator.py` opens the Driver Editor as the first step of its capture
-procedure. On this scenario the driver still has unresolved T/S fields at that point, which is
-`BUG-004`'s exact trigger (`winisd_research/DISCOVERIES.md:41`). The result is an unrecoverable
-crash:
-
-    WinISDDied: winisd exited rc=40; log tail:
-      err:seh:dispatch_user_callback ignoring exception c000008e
-      err:seh:NtRaiseException Exception frame is not in stack limits => unable to dispatch exception.
-
-Wine cannot unwind an exception raised inside a nested callback stack, so the process is gone.
-`BUG-004`'s own recovery note (`DISCOVERIES.md:47`) records that OK does not recover. There is no
-dialog to dismiss and no harness change that can make this clickable.
-
-The driver is still unresolved when the editor opens because WinISD's own recalc does not finish
-deriving the reverse-solve fields — it reaches `Vas` and traps before `Fs` and everything
-downstream of it.
+Not the Driver editor. WinISD dies when it LOADS a project whose driver has Fs and Vas at 0, at the
+first chart draw, because nothing derives the missing fields on load (rc=40, c000008e; the capture
+script's generated input crashes the same way with nothing typed). The editor route works: load a
+`.wdr` holding only the scenario's entered values into the toolbar's blank standalone Driver editor
+(it draws no chart), retype `Le` as itself, and WinISD's solver fills in Fs, Qes, Qts, Rms, Vas and
+the advanced fields without faulting. Evidence: `winisd_research/runs/mms_cms_golden/`,
+`runs/sweep-mms-cms-load-crash.json`, `runs/sweep-mms-cms-golden-editor-route.json`, and
+`PROBE_FINDINGS.md` "FINDING 2026-10-05: solve-from-mms-cms".
 
 ## Two things that must not be done
 

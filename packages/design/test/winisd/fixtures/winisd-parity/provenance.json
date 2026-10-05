@@ -109,6 +109,14 @@
       "attempts": 1
     },
     {
+      "id": "solve-from-mms-cms",
+      "inputSha256": "86bd1178ad2b138cd33064c4fd596083234917cff5974191ddf6af9a040bb0eb",
+      "goldenSha256": "be6ae43d43a01cd5053b4eac06052ff6561990735f949c54fae599c2b2eb7224",
+      "seconds": 18.1,
+      "at": "2026-10-05T16:57:00+0100",
+      "attempts": 1
+    },
+    {
       "id": "gap-geometry",
       "inputSha256": "851e8769b86ecaa4e1f6f8e64dee2552ce182da8b9ccc17951ec15051fd31b15",
       "goldenSha256": "b68a704e4b6ea6330af5e17bf1268e285097c6c7e8d9826ef1c29719bb934f47",

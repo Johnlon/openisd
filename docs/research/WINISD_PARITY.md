@@ -1307,6 +1307,15 @@ keystroke and divides by the value, the same class as the Box Volume field. Real
 tested. OpenISD does not copy it: a zero in Fs, Qms, Vas or Sd leaves every derived value finite or
 absent (`pr-spec-resolve.test.ts`). Bug: [BUG_20261004_winisd-pr-vas-box-emptied-crashes.md](../../bugs/BUG_20261004_winisd-pr-vas-box-emptied-crashes.md?html).
 
+### Loading a driver with Fs and Vas at 0 crashes WinISD (probed 2026-10-05)
+
+A crash, not a calculation difference. A project whose driver states Mms, Cms, BL, Re, Qms and Sd and
+leaves Fs, Qes, Qts, Rms and Vas to be derived kills WinISD about 1.5 s after load, at the first chart
+draw: a divide by zero at `0x462636` (`Cas` = 0; `winisd_research/runs/sweep-mms-cms-load-crash.json`).
+Entering the same values in the standalone Driver editor works, and WinISD derives Fs 37.2 and the rest;
+that route made the `solve-from-mms-cms` golden. OpenISD derives the fields and does not crash. Bug:
+[BUG_20261005_winisd-driver-without-fs-vas-crashes-on-load.md](../../bugs/BUG_20261005_winisd-driver-without-fs-vas-crashes-on-load.md?html).
+
 ## 19. WinISD parameter entry — community best practices (a second source)
 
 **Source:** mtg90 ("Matt") via AVS Forum
