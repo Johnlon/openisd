@@ -30,11 +30,8 @@ test.describe('Original Passive Radiator tab', () => {
       const nd140Row = prBrowser.locator('.pr-lib-item .pr-lib-name', { hasText: 'ND140-PR' });
       await expect(nd140Row).toBeVisible();
       await nd140Row.click();
-      // Loading a bundled PR closes the browser and opens the radiator editor for review
-      const prEditor = page.locator('.modal');
-      await expect(prEditor.locator('h2')).toHaveText(/Edit passive radiator/);
-      await prEditor.getByRole('button', { name: 'Done' }).click();
-      await expect(prEditor.locator('h2')).toBeHidden();
+      // Loading a bundled PR closes the library and opens no editor: every field is on the page
+      await expect(page.locator('.pr-lib')).toHaveCount(0);
 
       // The loaded radiator fills the pane with its stored spec
       const paneFpr = parseFloat(await page.locator('#og-pr-fs').inputValue());
@@ -70,9 +67,7 @@ test.describe('Original Passive Radiator tab', () => {
       await page.locator('button.edit-btn', { hasText: 'Select passive radiator' }).click();
       const lib = page.locator('.modal');
       await lib.locator('.pr-lib-item .pr-lib-name', { hasText: 'ND140-PR' }).first().click();
-      // The radiator editor opens for review; Done confirms the load.
-      const editor = page.locator('.modal');
-      await editor.getByRole('button', { name: 'Done' }).click();
+      await expect(page.locator('.pr-lib')).toHaveCount(0);
       await expect(page.locator('#og-pr-fs')).toHaveValue(/44\./); // ND140 free-air Fpr loaded
 
       // The Box tab's Fh is the PR SYSTEM tuning; it tracks the radiator's added mass.
@@ -139,6 +134,45 @@ test.describe('Original Passive Radiator tab', () => {
       const stored = await focusedPassiveRadiatorSpec(page);
       expect(stored.vas_m3).toBeCloseTo(0.0075, 6);   // the field shows litres
       expect(stored.qms).toBeCloseTo(12.25, 3);
+    });
+
+    // John, 2026-10-05: every PR field is editable on the page, so the page has no Edit button.
+    test('the PR page has no Edit button and edits every passive radiator field in place', async ({page}) => {
+      await setFocusedBoxType(page, 'box-passive-radiator');
+      await page.locator('.project-nav li', {hasText: 'Passive Radiator'}).click();
+      const pane = page.locator('.two-col').filter({ has: page.locator('#og-pr-fs') });
+
+      const header = page.locator('.driver-id-row').filter({ has: page.locator('#og-pr-name') });
+      await expect(header.locator('button')).toHaveText(['Select passive radiator', 'Save to library']);
+
+      await page.locator('#og-pr-name').fill('Bench PR 12');
+      await fillAndCommit(page.locator('#og-pr-vas'), '7.5');
+      await fillAndCommit(page.locator('#og-pr-qms'), '12.25');
+      await fillAndCommit(page.locator('#og-pr-fs'), '21.5');
+      await fillAndCommit(numInputByLabel(page, 'Sd', pane).first(), '300');
+      await fillAndCommit(numInputByLabel(page, 'Xmax', pane).first(), '12');
+      await page.locator('#og-pr-count').selectOption('2');
+
+      const stored = await focusedPassiveRadiatorSpec(page);
+      expect(stored.name).toBe('Bench PR 12');
+      expect(stored.vas_m3).toBeCloseTo(0.0075, 6);   // litres on screen
+      expect(stored.qms).toBeCloseTo(12.25, 3);
+      expect(stored.fs_hz).toBeCloseTo(21.5, 3);
+      expect(stored.sd_m2).toBeCloseTo(0.03, 6);      // cm² on screen
+      expect(stored.xmax_m).toBeCloseTo(0.012, 6);    // mm on screen
+      expect(stored.count).toBe(2);
+    });
+
+    // John, 2026-10-05: the Edit button is swapped for Save to library.
+    test('Save to library puts the page\'s passive radiator in the library under its name', async ({page}) => {
+      await setFocusedBoxType(page, 'box-passive-radiator');
+      await page.locator('.project-nav li', {hasText: 'Passive Radiator'}).click();
+
+      await page.locator('#og-pr-name').fill('Saved Bench PR');
+      await page.locator('button.edit-btn', { hasText: 'Save to library' }).click();
+
+      await page.locator('button.edit-btn', { hasText: 'Select passive radiator' }).click();
+      await expect(page.locator('.pr-lib-item .pr-lib-name', { hasText: 'Saved Bench PR' })).toBeVisible();
     });
   });
 });

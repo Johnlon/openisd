@@ -81,8 +81,10 @@ test('the Options group has every WinISD option the desktop has, and each one wr
   }
 });
 
-test('the compatibility panel has no buttons, only switches', async ({ page }) => {
-  await expect(page.locator('.mob-panel', { hasText: 'WinISD compatibility' }).locator('button')).toHaveCount(0);
+test('the compatibility panel has no preset or reset buttons, only switches and a help link per group', async ({ page }) => {
+  const panel = page.locator('.mob-panel', { hasText: 'WinISD compatibility' });
+  await expect(panel.locator('button:not(.compat-help-link)')).toHaveCount(0);
+  await expect(panel.locator('button.compat-help-link')).toHaveCount(2);
 });
 
 // BUG (2026-09-29, John, live on his phone): "environment view needs to scroll... truncation at

@@ -11,6 +11,7 @@ import UnitToggle from '../../components/UnitToggle.vue';
 import AdvancedOptions from '../../components/AdvancedOptions.vue';
 import ErrorSwitch from '../../components/ErrorSwitch.vue';
 import ErrorSwitchGroup from '../../components/ErrorSwitchGroup.vue';
+import CompatGroupHelpLink from '../../components/CompatGroupHelpLink.vue';
 import {useMobileAdvancedTab} from '../../../hooks/MobileAdvancedTab-hooks.js';
 
 const {
@@ -67,7 +68,7 @@ const {
 
   <div class="mob-panel">
     <div class="mob-panel-head">WinISD compatibility</div>
-    <div class="mob-row mob-group-head" :title="CompatSwitchGroup.OPTIONS.tooltip">{{ CompatSwitchGroup.OPTIONS.heading }}</div>
+    <div class="mob-row mob-group-headrow"><span class="mob-group-head" :title="CompatSwitchGroup.OPTIONS.tooltip">{{ CompatSwitchGroup.OPTIONS.heading }}</span><CompatGroupHelpLink :group="CompatSwitchGroup.OPTIONS" /></div>
     <div class="mob-row mob-checkbox-row">
       <label data-field-key="winisdWrapPhase" :title="ToggleField.ADV_WINISDWRAPPHASE.description">
         <input type="checkbox" :checked="project.winisdWrapPhase.value" @change="e => project.winisdWrapPhase.set(inputChecked(e))"> {{ ToggleField.ADV_WINISDWRAPPHASE.label }}
@@ -158,7 +159,8 @@ const {
   font: inherit;
   font-size: 14px;
 }
-.mob-group-head { min-height: 0; padding: 6px 12px; font-size: 12px; font-weight: 600; color: var(--mut); }
+.mob-group-headrow { min-height: 0; display: flex; align-items: center; gap: 8px; padding: 6px 12px; }
+.mob-group-head { font-size: 12px; font-weight: 600; color: var(--mut); }
 .mob-row-na { opacity: 0.45; }
 .mob-adv-options { padding: 10px 12px; }
 .mob-adv-options :deep(.adv-options) { gap: 12px; }

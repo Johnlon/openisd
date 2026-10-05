@@ -5,8 +5,10 @@
 // (`WinisdDeviation`) and whether it shows (the caller's hook); this component only renders it.
 import {nextTick, ref} from 'vue';
 import type {WinisdDeviation} from '@openisd/design/fields';
+import {injectWinisdDifferencesModal} from '../../hooks/WinisdDifferencesModal-hooks.js';
 
 const props = defineProps<{ deviation: WinisdDeviation }>();
+const {showDeviation} = injectWinisdDifferencesModal();
 
 /** Whether the dialog is open — presentation state, this cue's alone. */
 const open = ref(false);
@@ -22,6 +24,11 @@ function hide(): void {
   open.value = false;
   button.value?.focus();
 }
+/** "More…": close this popup and open the help page at this deviation's entry. */
+function more(): void {
+  open.value = false;
+  showDeviation(props.deviation);
+}
 </script>
 
 <template>
@@ -32,9 +39,12 @@ function hide(): void {
       <div class="winisd-deviation-title">{{ props.deviation.title }}</div>
       <p>{{ props.deviation.explanation }}</p>
       <p><b>Size:</b> {{ props.deviation.size }}</p>
-      <p v-if="props.deviation.seenIn !== null"><b>Seen in:</b> {{ props.deviation.seenIn }}</p>
+      <p><b>Seen in:</b> {{ props.deviation.seenIn }}</p>
       <p>{{ props.deviation.remedy }}</p>
-      <button type="button" class="winisd-deviation-close" @click="hide">Close</button>
+      <div class="winisd-deviation-actions">
+        <button type="button" class="winisd-deviation-more" @click="more">More…</button>
+        <button type="button" class="winisd-deviation-close" @click="hide">Close</button>
+      </div>
     </div>
   </span>
 </template>
@@ -46,5 +56,6 @@ function hide(): void {
 .winisd-deviation-dialog { position: absolute; z-index: 50; top: calc(100% + 4px); left: 0; width: min(320px, 80vw); padding: 8px 10px; background: #fff; border: 1px solid #3a6fb0; border-radius: 4px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2); font-size: 12px; color: #222; text-align: left; white-space: normal; }
 .winisd-deviation-dialog p { margin: 6px 0; }
 .winisd-deviation-title { font-weight: 600; color: #23548f; }
-.winisd-deviation-close { font: inherit; padding: 2px 8px; }
+.winisd-deviation-actions { display: flex; gap: 6px; }
+.winisd-deviation-close, .winisd-deviation-more { font: inherit; padding: 2px 8px; }
 </style>

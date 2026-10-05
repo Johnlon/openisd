@@ -1259,6 +1259,13 @@ export class TextField extends Field {
     description: "Driver Notes\nFree-text engineering notes on this driver record.",
   });
 
+  // ── Passive radiator ──────────────────────────────────────────────────────────────────────
+  static readonly PR_NAME = new TextField({
+    value: "pr_name",
+    label: "Passive radiator",
+    description: "Passive radiator name\nThe name it is saved under in your passive radiator library.\nExample: Dayton SD270A-88",
+  });
+
   static readonly ALL: readonly TextField[] =
     Object.freeze(Object.values(TextField).filter((v): v is TextField => v instanceof TextField));
 }

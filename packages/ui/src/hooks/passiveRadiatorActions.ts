@@ -1,8 +1,8 @@
 /**
- * Passive-radiator selection actions (Enclosure tab, PR box type) — loading a saved PR, a bundled
- * catalogue entry (which only publishes Sd/Cms, so the editor opens for the rest), or defining a
- * new one. Skin-neutral: shared by every shell's PR browser/editor header (one implementation,
- * two presentations), rather than each shell re-deriving the same three actions.
+ * Passive-radiator actions on the PR page (Enclosure tab, PR box type) — loading a saved PR or a
+ * bundled catalogue entry, defining a new one, and saving the page's PR to My passive radiators.
+ * Skin-neutral: shared by every shell's PR page (one implementation, two presentations).
+ * Every PR field, the name included, is edited on the page itself; there is no separate editor.
  */
 import {ref} from 'vue';
 import type {ComputedRef} from 'vue';
@@ -18,7 +18,6 @@ export interface PassiveRadiatorActionsDeps {
 
 export function createPassiveRadiatorActions({ project, myPassiveRadiators, bundledPassiveRadiators }: PassiveRadiatorActionsDeps) {
   const prBrowseOpen = ref(false);
-  const prEditOpen = ref(false);
   function loadPREntry(uuid: string) {
     const entry = myPassiveRadiators.list().find(e => e.uuid === uuid);
     if (!entry) return;
@@ -29,12 +28,14 @@ export function createPassiveRadiatorActions({ project, myPassiveRadiators, bund
     const pr = await bundledPassiveRadiators.load(uuid);
     project.value.box.passiveRadiator.configurePR(pr);
     prBrowseOpen.value = false;
-    prEditOpen.value = true;
   }
   function defineNewPREntry() {
     definePassiveRadiator();
     prBrowseOpen.value = false;
-    prEditOpen.value = true;
   }
-  return { prBrowseOpen, prEditOpen, loadPREntry, loadBundledPassiveRadiatorEntry, defineNewPREntry };
+  /** Saves the project's passive radiator to My passive radiators under its current name. */
+  function saveToLibrary(): void {
+    myPassiveRadiators.upsert(project.value.box.passiveRadiator.radiator.detach());
+  }
+  return { prBrowseOpen, loadPREntry, loadBundledPassiveRadiatorEntry, defineNewPREntry, saveToLibrary };
 }

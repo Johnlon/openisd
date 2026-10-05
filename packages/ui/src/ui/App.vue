@@ -10,6 +10,7 @@ import DriverEditorModal from './components/DriverEditorModal.vue';
 import Flash from './components/Flash.vue';
 import DiagnosticsModal from './components/DiagnosticsModal.vue';
 import SplashModal from './components/SplashModal.vue';
+import WinisdDifferencesModal from './components/WinisdDifferencesModal.vue';
 import {
   applyState,
   currentViewSnapshot,
@@ -24,6 +25,7 @@ import {presentationState} from '../logic/presentationState.js';
 import {provideFocusedProject} from '../logic/focusedProjectContext.js';
 import {useApp} from '../logic/app.js';
 import {provideSplashModal} from '../hooks/SplashModal-hooks.js';
+import {provideWinisdDifferencesModal} from '../hooks/WinisdDifferencesModal-hooks.js';
 import {createViewportWatch} from '../logic/viewport.js';
 
 const { projectRepo, viewStateRepo, logging, selection, bundledDrivers, bundledPassiveRadiators } = useApp();
@@ -63,6 +65,10 @@ provideSplashModal(presentationState, {
   driverCount: async () => (await bundledDrivers.index()).length,
   passiveRadiatorCount: async () => (await bundledPassiveRadiators.index()).length,
 });
+
+// One help page "OpenISD and WinISD differences": the Help menus, the WinISD Compatibility group
+// headings and the ≠W cues all open this instance.
+provideWinisdDifferencesModal();
 
 /** Whether a project is focused right now. The overlays below are project-bound: the shell
  *  renders without one, they must not. */
@@ -130,6 +136,8 @@ onUnmounted(() => {
     <DiagnosticsModal />
     <!-- What OpenISD is — raised for a first visitor, reopened from Info → About OpenISD. -->
     <SplashModal />
+    <!-- Help → "OpenISD and WinISD differences"; also opened by the group headings and ≠W cues. -->
+    <WinisdDifferencesModal />
   </div>
 </template>
 
@@ -156,6 +164,16 @@ onUnmounted(() => {
    itself is shared with desktop, where the centred/padded look is unchanged. */
 .app-root-mobile :deep(.sp-backdrop) {
   padding: 0;
+}
+.app-root-mobile :deep(.wd-overlay) {
+  padding: 0;
+}
+.app-root-mobile :deep(.wd-modal) {
+  width: 100%;
+  height: 100%;
+  max-height: 100%;
+  border-radius: 0;
+  border: none;
 }
 .app-root-mobile :deep(.sp) {
   width: 100%;

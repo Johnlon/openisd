@@ -6,7 +6,7 @@
 // src/hooks/OriginalShell-hooks.ts (`useOriginalShell`), where it is a plain composable that
 // gets unit-tested without a DOM. This `<script setup>` is nothing but a hook call plus the
 // child-component imports; the template reads the destructured API surface only.
-import {CompatSwitchGroup, NumberField, ReadoutFormat, ToggleField, WinisdDeviation} from '@openisd/design/fields';
+import {CompatSwitchGroup, NumberField, ReadoutFormat, TextField, ToggleField, WinisdDeviation} from '@openisd/design/fields';
 import UnitToggle from '../../components/UnitToggle.vue';
 import NumInput from '../../components/NumInput.vue';
 import NumReadout from '../../components/NumReadout.vue';
@@ -15,12 +15,13 @@ import ExportMenu from '../../components/ExportMenu.vue';
 import ToolbarIcon from '../../components/ToolbarIcon.vue';
 import OriginalFilters from './OriginalFilters.vue';
 import PRBrowser from '../../components/PRBrowser.vue';
-import PREditModal from '../../components/PREditModal.vue';
 import OptionsModal from '../../components/OptionsModal.vue';
 import AdvancedOptions from '../../components/AdvancedOptions.vue';
 import ErrorSwitch from '../../components/ErrorSwitch.vue';
 import ErrorSwitchGroup from '../../components/ErrorSwitchGroup.vue';
 import WinisdDeviationCue from '../../components/WinisdDeviationCue.vue';
+import CompatGroupHelpLink from '../../components/CompatGroupHelpLink.vue';
+import {injectWinisdDifferencesModal} from '../../../hooks/WinisdDifferencesModal-hooks.js';
 import BoxTypeDiagram from '../../components/BoxTypeDiagram.vue';
 import {useOriginalShell} from '../../../hooks/OriginalShell-hooks.js';
 import {OpenableFiles} from '../../../fileFormat.js';
@@ -52,7 +53,7 @@ const {
   frontVolume_m3, setFrontVolume_m3, frcHz, setFrcHz, rearResonance, frontChamberTuningLabel,
   model, startEdit, startTune, placement,
   activeVent, END_CORRECTION_OPTIONS, VENT_SHAPE_OPTIONS, VENT_COUNT_OPTIONS, PR_COUNT_OPTIONS, ventLState, portPipeResonance_hz,
-  prBrowseOpen, prEditOpen, loadPREntry, loadBundledPassiveRadiatorEntry, defineNewPREntry,
+  prBrowseOpen, loadPREntry, loadBundledPassiveRadiatorEntry, defineNewPREntry, saveToLibrary,
   prAddedMassDq, prTuningDq, prResonanceMassDq, prFsMass_hz, dqOfCell, fmt,
   driveV, rsOhm, advTemp, advHumidity, advPressure, advAir,
   envTempStored, envHumidityStored, envPressureStored, envTempDq, envHumidityDq, envPressureDq,
@@ -63,6 +64,7 @@ const {
   boxQl, setBoxQl, boxQa, setBoxQa, boxQp, setBoxQp,
   onFile, fileInput,
 } = useOriginalShell();
+const winisdDifferences = injectWinisdDifferencesModal();
 </script>
 
 <template>
@@ -100,6 +102,7 @@ const {
           <span class="caret" style="position:absolute;bottom:2px;right:2px;">&#9662;</span>
           <div class="dropdown-menu" :class="{ open: openDd === 'info-dropdown' }" @click.stop>
             <div class="menu-item" @click="about(); closeDropdown()">About OpenISD</div>
+            <div class="menu-item" title="Where OpenISD differs from WinISD: the WinISD bugs it fixes, and the options." @click="winisdDifferences.show(); closeDropdown()">OpenISD and WinISD differences</div>
             <div class="menu-item" title="Switch to a phone-friendly layout. Remembered on this device — use the same menu there to switch back." @click="switchToMobile(); closeDropdown()">Switch to Mobile view</div>
           </div>
         </div>
@@ -535,13 +538,12 @@ const {
           <!-- passive radiator -->
           <div v-else-if="selectedBox === 'box-passive-radiator'">
             <div class="field-row driver-id-row" style="--label-w:36px; margin-bottom:8px;">
-              <div class="field tight"><label>Passive radiator</label><input type="text" style="width:220px" :value="(project.box.passiveRadiator.radiator.model.value) || 'Custom passive radiator'" readonly></div>
+              <div class="field tight entered" :title="TextField.PR_NAME.description"><label>{{ TextField.PR_NAME.label }}</label><input id="og-pr-name" type="text" style="width:220px" :value="project.box.passiveRadiator.radiator.model.value" @input="e => project.box.passiveRadiator.radiator.model.set(inputValue(e))"></div>
               <button class="edit-btn" title="Browse bundled + saved passive radiators — click one to load it into this project." @click="prBrowseOpen = true">Select passive radiator</button>
-              <button class="edit-btn" title="Edit this passive radiator's own specs — Sd/Fs/Qms/Vas/Xmax." @click="prEditOpen = true">&#9998; Edit</button>
+              <button class="edit-btn" title="Save these passive radiator parameters to your library under the current passive radiator name" @click="saveToLibrary">Save to library</button>
             </div>
             <PRBrowser v-if="prBrowseOpen" @close="prBrowseOpen = false"
               @load="loadPREntry" @load-bundled="loadBundledPassiveRadiatorEntry" @define="defineNewPREntry" />
-            <PREditModal v-if="prEditOpen" @close="prEditOpen = false" @browse="prEditOpen = false; prBrowseOpen = true" />
             <div class="two-col">
               <div style="--label-w:44px;">
                 <div class="section-header">Passive radiator parameters</div>
@@ -648,7 +650,7 @@ const {
               <div class="sim-switches">
                 <div class="sim-switch-col">
                 <div class="option-switch-group" :title="CompatSwitchGroup.OPTIONS.tooltip">
-                <div class="option-switch-group-head">{{ CompatSwitchGroup.OPTIONS.heading }}</div>
+                <div class="option-switch-group-headrow"><div class="option-switch-group-head">{{ CompatSwitchGroup.OPTIONS.heading }}</div><CompatGroupHelpLink :group="CompatSwitchGroup.OPTIONS" /></div>
                 <div>
                   <label data-field-key="winisdWrapPhase" style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 12px;" :title="ToggleField.ADV_WINISDWRAPPHASE.description">
                     <input type="checkbox" :checked="project.winisdWrapPhase.value" @change="e => project.winisdWrapPhase.set(inputChecked(e))"> {{ ToggleField.ADV_WINISDWRAPPHASE.label }}
@@ -1227,6 +1229,7 @@ textarea.comment, textarea.description { width:100%; border:1px solid #999; bord
 /* The options in one column, the WinISD bugs group in a second: the panel stays inside the tab's height and width. */
 .sim-switches { display: flex; flex-direction: row; align-items: flex-start; gap: 8px; }
 .option-switch-group { display: flex; flex-direction: column; gap: 1px; }
+.option-switch-group-headrow { display: flex; align-items: center; gap: 6px; }
 .option-switch-group-head { font-size: 11px; font-weight: 600; color: #555; }
 .sim-switch-col { display: flex; flex-direction: column; gap: 0; width: 170px; }
 /* A fixed width, so a long bug-switch label wraps inside the group and does not widen the panel. */

@@ -15,6 +15,7 @@ import MobileManageDriversTab from './MobileManageDriversTab.vue';
 import ExportMenu from '../../components/ExportMenu.vue';
 import MobilePaneDialog from './MobilePaneDialog.vue';
 import OptionsModal from '../../components/OptionsModal.vue';
+import {injectWinisdDifferencesModal} from '../../../hooks/WinisdDifferencesModal-hooks.js';
 import { useMobileShell } from '../../../hooks/MobileShell-hooks.js';
 import {OpenableFiles} from '../../../fileFormat.js';
 import {inputChecked} from '../../../logic/domEvents.js';
@@ -27,6 +28,7 @@ const {
   username, appVersion, openDialogOpen, storedProjects, openProjectDialog, openStoredProject,
   openProjectRows, selectOpenProject, setOpenProjectTraceVisible, cycleOpenProjectColour, closeOpenProject,
 } = useMobileShell();
+const winisdDifferences = injectWinisdDifferencesModal();
 </script>
 
 <template>
@@ -107,6 +109,7 @@ const {
           <button type="button" class="mob-menu-item" @click="browseDrivers">Manage Drivers</button>
           <button type="button" class="mob-menu-item" @click="openOptions">Options</button>
           <button type="button" class="mob-menu-item" @click="about(); closeMenu()">About OpenISD</button>
+          <button type="button" class="mob-menu-item" @click="winisdDifferences.show(); closeMenu()">OpenISD and WinISD differences</button>
           <div class="mob-menu-sep"></div>
           <button type="button" class="mob-menu-item" @click="switchToDesktop">Switch to Desktop view</button>
           <div class="mob-menu-sep"></div>

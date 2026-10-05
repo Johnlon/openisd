@@ -416,8 +416,18 @@ export async function focusedBandpass6RearTuning(page: Page): Promise<number> {
   }, '/src/logic/appState.ts');
 }
 
-/** The focused project's passive-radiator Vas (m³) and Qms. */
-export async function focusedPassiveRadiatorSpec(page: Page): Promise<{vas_m3: number | null; qms: number | null}> {
+/** The focused project's passive radiator: its name, count and spec cells (SI units). */
+export interface FocusedPassiveRadiatorSpec {
+  name: string;
+  count: number;
+  vas_m3: number | null;
+  qms: number | null;
+  fs_hz: number | null;
+  sd_m2: number | null;
+  xmax_m: number | null;
+}
+
+export async function focusedPassiveRadiatorSpec(page: Page): Promise<FocusedPassiveRadiatorSpec> {
   return page.evaluate(async (path) => {
     type AppState = typeof import('../src/logic/appState.js');
     function isAppState(m: unknown): m is AppState {
@@ -425,8 +435,13 @@ export async function focusedPassiveRadiatorSpec(page: Page): Promise<{vas_m3: n
     }
     const m: unknown = await import(/* @vite-ignore */ path);
     if (!isAppState(m)) throw new Error('appState module shape mismatch');
-    const spec = m.requireFocusedProject().box.passiveRadiator.radiator.spec;
-    return {vas_m3: spec.Vas_m3.value, qms: spec.Qms.value};
+    const pr = m.requireFocusedProject().box.passiveRadiator;
+    const spec = pr.radiator.spec;
+    return {
+      name: pr.radiator.model.value, count: pr.count.value,
+      vas_m3: spec.Vas_m3.value, qms: spec.Qms.value, fs_hz: spec.Fs_hz.value,
+      sd_m2: spec.Sd_m2.value, xmax_m: spec.Xmax_m.value,
+    };
   }, '/src/logic/appState.ts');
 }
 

@@ -67,6 +67,12 @@ export {
 /** The WinISD Compatibility panel's group headings: WinISD bugs, Options. */
 export { CompatSwitchGroup } from './compatSwitchGroup.js';
 
+/** The in-app help page "OpenISD and WinISD differences": its sections and entries. */
+export { WinisdOption } from './winisdOption.js';
+export { WinisdFixedBug } from './winisdFixedBug.js';
+export { WinisdDifference } from './winisdDifference.js';
+export { WinisdDifferenceSection, type WinisdDifferenceTone } from './winisdDifferenceSection.js';
+
 /** The sealed-box loss model — a field's closed value set. */
 export { LOSSLESS_Q } from './losslessQ.js';
 

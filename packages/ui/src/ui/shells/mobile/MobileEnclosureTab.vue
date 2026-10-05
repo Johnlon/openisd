@@ -2,16 +2,15 @@
 // The mobile Enclosure tab — vent (port) fields for vented/bandpass4, passive-radiator fields for
 // box-passive-radiator, and the bandpass6/abc placeholder. Thin: all state and domain reads/writes
 // live in useMobileEnclosureTab() (src/hooks/MobileEnclosureTab-hooks.ts), which calls the SAME
-// field-wiring factories OriginalShell-hooks.ts exports. PRBrowser/PREditModal are the app's
-// existing global-style overlays, reused unchanged (not duplicated per skin) — position:fixed
+// field-wiring factories OriginalShell-hooks.ts exports. PRBrowser is the app's
+// existing global-style overlay, reused unchanged (not duplicated per skin) — position:fixed
 // descendants of .app-root-mobile are already contained to the phone pane (App.vue's own fix).
-import {NumberField} from '@openisd/design/fields';
-import {selectedOption} from '../../../logic/domEvents.js';
+import {NumberField, TextField} from '@openisd/design/fields';
+import {inputValue, selectedOption} from '../../../logic/domEvents.js';
 import NumInput from '../../components/NumInput.vue';
 import NumReadout from '../../components/NumReadout.vue';
 import UnitToggle from '../../components/UnitToggle.vue';
 import PRBrowser from '../../components/PRBrowser.vue';
-import PREditModal from '../../components/PREditModal.vue';
 import {useMobileEnclosureTab} from '../../../hooks/MobileEnclosureTab-hooks.js';
 import {useUnitReadouts} from '../../../hooks/useUnitReadouts.js';
 
@@ -19,7 +18,7 @@ const {
   project, selectedBox,
   activeVent, activeTuning, portPipeResonance_hz, fbState, ventLState, fbUnreachable, fbUnreachableMsg, frontChamberTuningLabel,
   prAddedMassDq, prTuningDq, prResonanceMassDq, prFsMass_hz,
-  prBrowseOpen, prEditOpen, loadPREntry, loadBundledPassiveRadiatorEntry, defineNewPREntry,
+  prBrowseOpen, loadPREntry, loadBundledPassiveRadiatorEntry, defineNewPREntry, saveToLibrary,
   setVentWidth, setVentHeight, setVentDiameter, setVentLength, setFbTarget,
   VENT_SHAPE_OPTIONS, END_CORRECTION_OPTIONS, VENT_COUNT_OPTIONS, PR_COUNT_OPTIONS,
   FB_TARGET_TIP, VENT_GEOMETRY_TIP,
@@ -152,17 +151,16 @@ const {fieldWithUnit} = useUnitReadouts();
     <div class="mob-panel-head">Passive radiator</div>
     <div class="mob-row">
       <div class="mob-pr-id">
-        <span class="mob-pr-label">Passive radiator</span>
-        <span class="mob-pr-name">{{ project.box.passiveRadiator.radiator.model.value || 'Custom passive radiator' }}</span>
+        <label class="mob-pr-label" for="mob-pr-name">{{ TextField.PR_NAME.label }}</label>
+        <input id="mob-pr-name" class="mob-pr-name" type="text" :title="TextField.PR_NAME.description" :value="project.box.passiveRadiator.radiator.model.value" @input="e => project.box.passiveRadiator.radiator.model.set(inputValue(e))">
       </div>
     </div>
     <div class="mob-row mob-pr-actions">
       <button class="mob-btn" @click="prBrowseOpen = true">Select passive radiator</button>
-      <button class="mob-btn mob-btn-secondary" @click="prEditOpen = true">Edit</button>
+      <button class="mob-btn mob-btn-secondary" title="Save these passive radiator parameters to your library under the current passive radiator name" @click="saveToLibrary">Save to library</button>
     </div>
     <PRBrowser v-if="prBrowseOpen" @close="prBrowseOpen = false"
       @load="loadPREntry" @load-bundled="loadBundledPassiveRadiatorEntry" @define="defineNewPREntry" />
-    <PREditModal v-if="prEditOpen" @close="prEditOpen = false" @browse="prEditOpen = false; prBrowseOpen = true" />
 
     <div class="mob-field-row mob-field-entered">
       <div class="mob-field-main"><span class="mob-field-label">Vas</span>
@@ -272,7 +270,7 @@ const {fieldWithUnit} = useUnitReadouts();
 }
 .mob-pr-id { display: flex; flex-direction: column; gap: 2px; }
 .mob-pr-label { font-size: 13px; color: var(--mut); }
-.mob-pr-name { font-size: 17px; font-weight: 600; }
+.mob-pr-name { font-size: 17px; font-weight: 600; padding: 6px 8px; border: 1px solid var(--line); border-radius: 6px; }
 .mob-pr-actions { gap: 12px; }
 .mob-btn {
   flex: 1;

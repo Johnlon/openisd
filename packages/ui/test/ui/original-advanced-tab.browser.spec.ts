@@ -295,9 +295,10 @@ test.describe('Original Advanced tab', () => {
       }
     });
 
-    test('the panel has no buttons: an "Options" group and a "WinISD bugs" group of switches', async ({ page }) => {
+    test('the panel has no preset or reset buttons, only a help link per group: an "Options" group and a "WinISD bugs" group of switches', async ({ page }) => {
       const panel = page.locator('.sim-options-box', { hasText: 'WinISD Compatibility' });
-      await expect(panel.locator('button')).toHaveCount(0);
+      await expect(panel.locator('button:not(.compat-help-link)')).toHaveCount(0);
+      await expect(panel.locator('button.compat-help-link')).toHaveCount(2);
       await expect(panel.locator('.option-switch-group-head')).toHaveText('Options');
       await expect(panel.locator('.error-switch-group-head')).toHaveText('WinISD bugs');
     });

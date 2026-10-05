@@ -8,6 +8,12 @@ could be, with the size of the difference a user would see. Each is a candidate 
 option switch in the WinISD Compatibility panel. Items whose effect cannot be seen
 on a chart are listed at the end and not planned.
 
+The user-facing list is the in-app Help page "OpenISD and WinISD differences" (Info menu on desktop,
+the menu on mobile; also the "?" by each WinISD Compatibility group and "More…" in every ≠W popup).
+It is built from the switches, the ≠W cues and `WinisdOption`/`WinisdFixedBug` in
+`packages/design/fields`; a new switch, cue or fixed bug needs its entry there, and
+`winisd-differences.test.ts` fails without it.
+
 Rule for adding a row: name the WinISD behaviour, the better behaviour, and a measured or
 calculated size of the difference for a realistic case. Claims about WinISD were checked by hand in its own window on 2026-10-04 (QO170); see each bug file.
 

@@ -49,26 +49,6 @@ test.describe('Modal behaviour', () => {
       );
     });
 
-    test('the PR editor is a true modal — the project rows are unclickable while it is open', async ({ page }) => {
-      await page.goto('/');
-      await openAProject(page);
-
-      await assertTrueModal(
-        page,
-        page.locator('.overlay.on'),
-        async () => {
-          await setFocusedBoxType(page, 'box-passive-radiator');
-          await page.locator('li', { hasText: 'Passive Radiator' }).click();
-          await page.locator('button.edit-btn[title*="Edit this passive radiator"]').click();
-          await expect(page.locator('.overlay.on')).toContainText('Edit passive radiator');
-        },
-        async () => {
-          await page.keyboard.press('Escape');
-          await expect(page.locator('.overlay.on')).toHaveCount(0);
-        },
-      );
-    });
-
     test('the driver library is a true modal — the project rows are unclickable while it is open', async ({ page }) => {
       await page.goto('/');
       await openAProject(page);
