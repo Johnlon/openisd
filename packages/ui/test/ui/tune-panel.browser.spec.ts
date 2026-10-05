@@ -1,4 +1,4 @@
-import {COMPLETE_DRIVER_PROJECT_OWPR, duplicateFocusedProject, expect, focusedBoxVolume, focusedDriverSpec, openAProject, setFocusedBoxType, test} from '../fixtures.js';
+import {COMPLETE_DRIVER_PROJECT_OWPR, duplicateFocusedProject, expect, focusedBoxVolume, focusedDriverSpec, openAProject, setFocusedBoxType, setFocusedBoxVolume, setFocusedDriverSpecs, test} from '../fixtures.js';
 import type {Page} from '@playwright/test';
 
 /**
@@ -296,6 +296,45 @@ test.describe('Tune panel', () => {
       await tune.locator('button', { hasText: 'Cancel' }).click();
       await expect(tune).toBeHidden();
       expect(await focusedBoxVolume(page)).toBeCloseTo(before, 6);  // Cancel reverts the box change too
+    });
+
+    test('a box volume changed outside the open Tune panel shows in the panel', async ({ page }) => {
+      await openTune(page, COMPLETE_DRIVER_PROJECT_OWPR);
+      const vb = tuneField(page, 'Vb').locator('input');
+      await setFocusedBoxVolume(page, 0.0777);
+      await expect(vb).toHaveValue(/77\.7/);
+    });
+
+    test('a driver spec changed outside the open Tune panel shows in the panel', async ({ page }) => {
+      await openTune(page, COMPLETE_DRIVER_PROJECT_OWPR);
+      const fs = tuneField(page, 'Fs').locator('input');
+      await setFocusedDriverSpecs(page, { Fs_hz: 61.5 });
+      await expect(fs).toHaveValue(/61\.5/);
+    });
+
+    test('a box volume typed on the Box tab shows in the open Tune panel', async ({ page }) => {
+      await openTune(page, COMPLETE_DRIVER_PROJECT_OWPR);
+      await page.locator('.project-nav li', { hasText: 'Box' }).first().click();
+      const boxVol = page.locator('.field', { has: page.locator('label', { hasText: /^Volume$/ }) }).locator('input').first();
+      await boxVol.click();
+      await boxVol.press('Control+a');
+      await boxVol.pressSequentially('55');
+      await expect(tuneField(page, 'Vb').locator('input')).toHaveValue(/55/);
+    });
+
+    test('after editing in the Tune panel, a later Box tab edit still shows in the panel', async ({ page }) => {
+      await openTune(page, COMPLETE_DRIVER_PROJECT_OWPR);
+      const tuneVb = tuneField(page, 'Vb').locator('input');
+      await tuneVb.click();
+      await tuneVb.press('Control+a');
+      await tuneVb.pressSequentially('42');
+      await tuneVb.blur();
+      await page.locator('.project-nav li', { hasText: 'Box' }).first().click();
+      const boxVol = page.locator('.field', { has: page.locator('label', { hasText: /^Volume$/ }) }).locator('input').first();
+      await boxVol.click();
+      await boxVol.press('Control+a');
+      await boxVol.pressSequentially('55');
+      await expect(tuneVb).toHaveValue(/55/);
     });
   });
 });
