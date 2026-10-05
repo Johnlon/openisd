@@ -1,6 +1,6 @@
 # BUG_20260927_ui_constructs_ten_more_engines_beside_the_one
 
-**Status:** OPEN
+**Status:** FIXED 2026-10-05 — one engine in `logic/appState.ts`, one in `logic/sweepWorker.ts` (its own thread). `packages/ui/test/architecture/one-engine.test.ts` fails on any other `createEngine(` or `new Engine(` under `packages/ui/src`.
 
 ## Symptom
 
