@@ -604,7 +604,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   // ---- PR selection header (Enclosure tab, PR box type) --------------------------
   // Delegated to the unit-tested `createPassiveRadiatorActions` above.
   const { prBrowseOpen, loadPREntry, loadBundledPassiveRadiatorEntry, defineNewPREntry,
-    prSaveOpen, prSaveName, prSaveCanSave, openPRSave, cancelPRSave, confirmPRSave } =
+    prSaveOpen, prSaveFields, prSaveCanSave, openPRSave, cancelPRSave, confirmPRSave } =
     createPassiveRadiatorActions({ project, myPassiveRadiators, bundledPassiveRadiators });
   function startEdit() { editProjectDriver(); }
 
@@ -670,7 +670,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     model, startEdit, startTune, placement,
     activeVent, activeTuning, END_CORRECTION_OPTIONS, VENT_SHAPE_OPTIONS, VENT_COUNT_OPTIONS, PR_COUNT_OPTIONS, ventLState, portPipeResonance_hz,
     prBrowseOpen, loadPREntry, loadBundledPassiveRadiatorEntry, defineNewPREntry,
-    prSaveOpen, prSaveName, prSaveCanSave, openPRSave, cancelPRSave, confirmPRSave,
+    prSaveOpen, prSaveFields, prSaveCanSave, openPRSave, cancelPRSave, confirmPRSave,
     prAddedMassDq, prTuningDq, prResonanceMassDq, prFsMass_hz, prNaturalFh,
     dqOfCell: (field: Readable<unknown>) => dqOfCell(field),
     fmt,

@@ -9,6 +9,7 @@ import {computed, ref} from 'vue';
 import type {ComputedRef} from 'vue';
 import {definePassiveRadiator} from '../logic/appState.js';
 import type {OpenISDProject} from '@openisd/design';
+import type {SaveToLibraryField} from './saveToLibraryField.js';
 import type {BundledPassiveRadiatorRepo, MyPassiveRadiatorRepo} from '@openisd/persistence';
 
 export interface PassiveRadiatorActionsDeps {
@@ -42,6 +43,9 @@ export function createPassiveRadiatorActions({ project, myPassiveRadiators, bund
   const prSaveOpen = ref(false);
   const prSaveName = ref('');
   const prSaveCanSave = computed(() => prSaveName.value.trim() !== '');
+  const prSaveFields: readonly SaveToLibraryField[] = [
+    { label: 'Name', placeholder: 'Passive radiator name', text: prSaveName, inputClass: 'pr-save-name' },
+  ];
   function openPRSave(): void {
     prSaveName.value = project.value.box.passiveRadiator.radiator.model.value;
     prSaveOpen.value = true;
@@ -58,6 +62,6 @@ export function createPassiveRadiatorActions({ project, myPassiveRadiators, bund
   }
   return {
     prBrowseOpen, loadPREntry, loadBundledPassiveRadiatorEntry, defineNewPREntry,
-    prSaveOpen, prSaveName, prSaveCanSave, openPRSave, cancelPRSave, confirmPRSave,
+    prSaveOpen, prSaveName, prSaveFields, prSaveCanSave, openPRSave, cancelPRSave, confirmPRSave,
   };
 }

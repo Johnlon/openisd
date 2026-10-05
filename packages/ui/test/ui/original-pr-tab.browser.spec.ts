@@ -200,16 +200,24 @@ test.describe('Original Passive Radiator tab', () => {
       expect(await readFh()).not.toBeCloseTo(fhBefore, 2);
     });
 
-    // John, 2026-10-05: the Edit button is swapped for Save to library.
-    test('Save to library puts the page\'s passive radiator in the library under its name', async ({page}) => {
+    // John, 2026-10-05: "Save PR to library needs to ask for a name confirmation dialog." The
+    // name typed there names the library copy only; the project's radiator keeps its own name.
+    test('Save to library asks for a name, prefilled, and saves a copy under the typed name', async ({page}) => {
       await setFocusedBoxType(page, 'box-passive-radiator');
       await page.locator('.project-nav li', {hasText: 'Passive Radiator'}).click();
 
-      await page.locator('#og-pr-name').fill('Saved Bench PR');
+      await page.locator('#og-pr-name').fill('Bench PR');
       await page.locator('button.edit-btn', { hasText: 'Save to library' }).click();
+      const dialog = page.getByRole('dialog', { name: 'Save passive radiator to library' });
+      const name = dialog.locator('input');
+      await expect(name).toHaveValue('Bench PR');
+      await name.fill('Library Bench PR');
+      await dialog.getByRole('button', { name: 'Save' }).click();
+      await expect(dialog).toHaveCount(0);
 
+      await expect(page.locator('#og-pr-name')).toHaveValue('Bench PR');
       await page.locator('button.edit-btn', { hasText: 'Select passive radiator' }).click();
-      await expect(page.locator('.pr-lib-item .pr-lib-name', { hasText: 'Saved Bench PR' })).toBeVisible();
+      await expect(page.locator('.pr-lib-item .pr-lib-name', { hasText: 'Library Bench PR' })).toBeVisible();
     });
   });
 });

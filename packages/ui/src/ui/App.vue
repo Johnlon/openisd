@@ -199,6 +199,20 @@ onUnmounted(() => {
   min-height: 0 !important;
   border-radius: 0 !important;
 }
+/* Bug (John, live on his phone, 2026-10-05: "that screen is really broken due to the bottom
+   bar"): the footer's legend and seven buttons, the tab row and long DQ formulas did not wrap,
+   so their width pushed the editor past both screen edges. On a phone the editor is the screen's
+   width: tabs scroll sideways inside it, the legend is one item per line above the buttons, the
+   buttons wrap, and long formulas break. */
+.app-root-mobile :deep(.de-modal) { min-width: 0 !important; }
+.app-root-mobile :deep(.de-modal > *) { min-width: 0; }
+.app-root-mobile :deep(.de-tabs) { overflow-x: auto; flex-shrink: 0; }
+.app-root-mobile :deep(.de-tab) { white-space: nowrap; flex-shrink: 0; }
+.app-root-mobile :deep(.de-toolbar) { flex-wrap: wrap; row-gap: 6px; }
+.app-root-mobile :deep(.de-incomplete) { overflow-wrap: anywhere; }
+.app-root-mobile :deep(.de-footer) { flex-direction: column; align-items: stretch; }
+.app-root-mobile :deep(.de-legend2) { flex-direction: column; align-items: flex-start; gap: 4px; margin-top: 0; }
+.app-root-mobile :deep(.de-btns) { flex-wrap: wrap; }
 .app-root-mobile :deep(.de-params) {
   grid-template-columns: minmax(0, max-content) minmax(0, max-content) auto 34px !important;
 }

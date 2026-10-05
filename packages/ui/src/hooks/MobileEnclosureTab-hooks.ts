@@ -29,7 +29,7 @@ export function useMobileEnclosureTab() {
   const { prAddedMassDq, prTuningDq, prResonanceMassDq, prFsMass_hz } =
     createSealedReadouts({ project, selectedBox, projectChanged });
   const { prBrowseOpen, loadPREntry, loadBundledPassiveRadiatorEntry, defineNewPREntry,
-    prSaveOpen, prSaveName, prSaveCanSave, openPRSave, cancelPRSave, confirmPRSave } =
+    prSaveOpen, prSaveFields, prSaveCanSave, openPRSave, cancelPRSave, confirmPRSave } =
     createPassiveRadiatorActions({ project, myPassiveRadiators, bundledPassiveRadiators });
 
   // Same field-id dispatch the desktop template uses inline — kept here so both shells share one
@@ -47,7 +47,7 @@ export function useMobileEnclosureTab() {
     activeVent, activeTuning, portPipeResonance_hz, fbState, ventLState, fbUnreachable, fbUnreachableMsg, frontChamberTuningLabel,
     prAddedMassDq, prTuningDq, prResonanceMassDq, prFsMass_hz,
     prBrowseOpen, loadPREntry, loadBundledPassiveRadiatorEntry, defineNewPREntry,
-    prSaveOpen, prSaveName, prSaveCanSave, openPRSave, cancelPRSave, confirmPRSave,
+    prSaveOpen, prSaveFields, prSaveCanSave, openPRSave, cancelPRSave, confirmPRSave,
     setVentWidth, setVentHeight, setVentDiameter, setVentLength, setFbTarget,
     VENT_SHAPE_OPTIONS, END_CORRECTION_OPTIONS, VENT_COUNT_OPTIONS, PR_COUNT_OPTIONS,
     FB_TARGET_TIP, VENT_GEOMETRY_TIP,

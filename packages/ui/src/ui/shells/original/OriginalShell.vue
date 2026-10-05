@@ -24,6 +24,7 @@ import CompatGroupHelpLink from '../../components/CompatGroupHelpLink.vue';
 import ToggleLabel from '../../components/ToggleLabel.vue';
 import {injectWinisdDifferencesModal} from '../../../hooks/WinisdDifferencesModal-hooks.js';
 import BoxTypeDiagram from '../../components/BoxTypeDiagram.vue';
+import SaveToLibraryDialog from '../../components/SaveToLibraryDialog.vue';
 import {useOriginalShell} from '../../../hooks/OriginalShell-hooks.js';
 import {OpenableFiles} from '../../../fileFormat.js';
 
@@ -55,7 +56,7 @@ const {
   model, startEdit, startTune, placement,
   activeVent, END_CORRECTION_OPTIONS, VENT_SHAPE_OPTIONS, VENT_COUNT_OPTIONS, PR_COUNT_OPTIONS, ventLState, portPipeResonance_hz,
   prBrowseOpen, loadPREntry, loadBundledPassiveRadiatorEntry, defineNewPREntry,
-  prSaveOpen, prSaveName, prSaveCanSave, openPRSave, cancelPRSave, confirmPRSave,
+  prSaveOpen, prSaveFields, prSaveCanSave, openPRSave, cancelPRSave, confirmPRSave,
   prAddedMassDq, prTuningDq, prResonanceMassDq, prFsMass_hz, dqOfCell, fmt,
   driveV, rsOhm, advTemp, advHumidity, advPressure, advAir,
   envTempStored, envHumidityStored, envPressureStored, envTempDq, envHumidityDq, envPressureDq,
@@ -861,20 +862,9 @@ const winisdDifferences = injectWinisdDifferencesModal();
       </div>
     </div>
 
-    <div v-if="prSaveOpen" class="overlay on pr-save-dialog" @click.self="cancelPRSave">
-      <div class="modal narrow" role="dialog" aria-label="Save passive radiator to library">
-        <div class="modal-titlebar">
-          <div class="tb-left"><span class="app-icon"></span><span>Save passive radiator to library</span></div>
-          <div class="win-controls"><span class="close-btn" @click="cancelPRSave">&#10005;</span></div>
-        </div>
-        <div class="modal-body">
-          <div class="field-row"><div class="field"><label for="og-pr-save-name">Name</label>
-            <input id="og-pr-save-name" v-model="prSaveName" type="text" style="width:260px" title="The name the copy has in your library. The project's passive radiator keeps its own name." @keydown.enter="confirmPRSave">
-          </div></div>
-        </div>
-        <div class="modal-footer"><div></div><div class="footer-buttons"><button class="cancel-btn" @click="cancelPRSave">Cancel</button><button class="ok-btn" :disabled="!prSaveCanSave" @click="confirmPRSave">Save</button></div></div>
-      </div>
-    </div>
+    <SaveToLibraryDialog v-if="prSaveOpen" title="Save passive radiator to library"
+      note="The name the copy has in your library. The project's passive radiator keeps its own name."
+      :fields="prSaveFields" :can-save="prSaveCanSave" save-label="Save" @save="confirmPRSave" @cancel="cancelPRSave" />
 
     <input ref="fileInput" type="file" :accept="OpenableFiles.ACCEPT" style="display:none" @change="onFile">
   </div>

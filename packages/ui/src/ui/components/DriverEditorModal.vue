@@ -19,6 +19,8 @@ import NumReadout from './NumReadout.vue';
 import {useEscToClose} from '../../logic/useEscToClose.js';
 import {DriverFileFormat} from '../../fileFormat.js';
 import EquationInspectorModal from './EquationInspectorModal.vue';
+import SaveToLibraryDialog from './SaveToLibraryDialog.vue';
+import type {SaveToLibraryField} from '../../hooks/saveToLibraryField.js';
 import {getProvenanceInfo} from '../../logic/provenance.js';
 import {editableFrom, elementFrom, inputFrom, selectedOption} from '../../logic/domEvents.js';
 
@@ -403,6 +405,10 @@ const saveMyDialogOpen = ref(false);
 const saveBrand = ref('');
 const saveModel = ref('');
 const isCopyAction = ref(false);
+const saveMyFields: readonly SaveToLibraryField[] = [
+  { label: 'Brand', placeholder: 'Brand name', text: saveBrand, inputClass: 'save-brand-input' },
+  { label: 'Model', placeholder: 'Model (e.g. E150HE-44)', text: saveModel, inputClass: 'save-model-input' },
+];
 
 
 // Same-name drivers COEXIST under uuid identity (QO81): a name collision overwrites nothing,
@@ -415,9 +421,6 @@ function openSaveMyDialog(forCopy: boolean = false) {
   saveModel.value = driverRaw.value.model || '';
   isCopyAction.value = forCopy;
   saveMyDialogOpen.value = true;
-  nextTick(() => {
-    document.querySelector<HTMLInputElement>('.save-model-input')?.focus();
-  });
 }
 
 function confirmSaveToMyDrivers() {
@@ -588,7 +591,6 @@ useEscToClose(() => presentationState.editDriverInfo, cancel);
 // panel would close the whole editor and discard the session's edits.
 useEscToClose(() => exportPickerOpen.value, () => { exportPickerOpen.value = false; });
 useEscToClose(() => identityMsgOpen.value, dismissIdentityMsg);
-useEscToClose(() => saveMyDialogOpen.value, () => { saveMyDialogOpen.value = false; });
 </script>
 
 <template>
@@ -971,9 +973,9 @@ useEscToClose(() => saveMyDialogOpen.value, () => { saveMyDialogOpen.value = fal
 
       <div class="de-footer">
         <div class="de-legend2">
-          <span class="de-sw value-e"></span>Entered
-          <span class="de-sw value-c"></span>Calculated
-          <span class="de-sw value-n"></span>Not entered
+          <span class="de-legend-item"><span class="de-sw value-e"></span>Entered</span>
+          <span class="de-legend-item"><span class="de-sw value-c"></span>Calculated</span>
+          <span class="de-legend-item"><span class="de-sw value-n"></span>Not entered</span>
         </div>
         <div class="de-btns">
           <input type="file" ref="fileInput" style="display:none" @change="handleFileLoaded" :accept="DriverFileFormat.ACCEPT">
@@ -1039,28 +1041,10 @@ useEscToClose(() => saveMyDialogOpen.value, () => { saveMyDialogOpen.value = fal
           </div>
         </div>
       </div>
-      <div v-if="saveMyDialogOpen" class="fmt-scrim de-save-my-panel" @click.self="saveMyDialogOpen = false">
-        <div class="fmt-panel" role="dialog" aria-label="Save to My Drivers">
-          <h3>Save to My Drivers</h3>
-          <p class="fmt-note">
-            Confirm or update the Brand and Model to save this driver in My Drivers:
-          </p>
-          <div class="save-fld" style="margin-top: 10px;">
-            <label>Brand</label>
-            <input type="text" class="save-brand-input" v-model="saveBrand" placeholder="Brand name">
-          </div>
-          <div class="save-fld" style="margin-top: 8px;">
-            <label>Model</label>
-            <input type="text" class="save-model-input" v-model="saveModel" placeholder="Model slug (e.g. E150HE-44)">
-          </div>
-          <div class="fmt-foot" style="margin-top: 14px;">
-            <button class="pri save-confirm-btn" :disabled="!saveBrand.trim() || !saveModel.trim()" @click="confirmSaveToMyDrivers">
-              Save to My Drivers
-            </button>
-            <button class="save-cancel-btn" @click="saveMyDialogOpen = false">Cancel</button>
-          </div>
-        </div>
-      </div>
+      <SaveToLibraryDialog v-if="saveMyDialogOpen" title="Save to My Drivers"
+        note="Confirm or update the Brand and Model to save this driver in My Drivers."
+        :fields="saveMyFields" :can-save="!!saveBrand.trim() && !!saveModel.trim()" save-label="Save to My Drivers"
+        @save="confirmSaveToMyDrivers" @cancel="saveMyDialogOpen = false" />
     </div>
     <EquationInspectorModal
       :open="inspectProvenance && inspectedField !== null"
@@ -1198,6 +1182,8 @@ useEscToClose(() => saveMyDialogOpen.value, () => { saveMyDialogOpen.value = fal
 .de-legend, .de-legend2 { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--mut); margin-top: 6px; }
 .de-sw { width: 14px; height: 14px; border: 1px solid var(--line); border-radius: 2px; display: inline-block; margin-left: 8px; }
 .de-legend .de-sw:first-child, .de-legend2 .de-sw:first-child { margin-left: 0; }
+.de-legend2 { gap: 14px; }
+.de-legend-item { display: inline-flex; align-items: center; gap: 6px; }
 .de-sw.value-e { background: var(--good); }
 .de-sw.value-c { background: var(--acc); }
 .de-sw.value-n { background: #333; }
@@ -1384,39 +1370,6 @@ input.value-n, .de-fld.value-n input, select.value-n { color: var(--mut); }
 .de-id-panel { width: 380px; }
 .de-id-panel h3 { color: #d9381e; }
 
-.de-save-my-panel .fmt-panel {
-  width: 540px !important;
-  max-width: 95% !important;
-}
-.de-save-my-panel .save-fld {
-  display: flex !important;
-  flex-direction: row !important;
-  align-items: center !important;
-  gap: 10px !important;
-  width: 100% !important;
-  box-sizing: border-box !important;
-}
-.de-save-my-panel .save-fld label {
-  width: 55px !important;
-  flex: 0 0 55px !important;
-  text-align: right !important;
-  font-weight: 600 !important;
-  font-size: 12px !important;
-  color: var(--mut);
-}
-.de-save-my-panel .save-brand-input,
-.de-save-my-panel .save-model-input {
-  flex: 1 1 auto !important;
-  width: 100% !important;
-  min-width: 320px !important;
-  padding: 6px 10px !important;
-  font-size: 13px !important;
-  box-sizing: border-box !important;
-  border: 1px solid var(--line);
-  border-radius: 4px;
-  background: var(--panel);
-  color: var(--fg);
-}
 
 /* ── DQ indicators ──────────────────────────────────────────────────────────── */
 /* Mandatory fields have bold border always, and red outline when empty. */
