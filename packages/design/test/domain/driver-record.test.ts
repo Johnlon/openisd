@@ -1,7 +1,7 @@
 import {describe, expect, it, vi} from 'vitest';
 import {type DriverIssue, createEngine} from '@openisd/design/engine';
 import {OpenISDDriver, ProjectBuilder, VoiceCoilWiring} from '../../domain/index.js';
-import {fixedAppContext, scraped, wooferOf, specSection, tuneSpec, prSpecSection, driverFrom, driverJson} from '../fixtures/domainBuilders.js';
+import {fixedAppContext, scraped, wooferOf, specSection, whatIfSpec, prSpecSection, driverFrom, driverJson} from '../fixtures/domainBuilders.js';
 
 describe('OpenISDDriver record', () => {
   describe('OpenISDDriver.cloneDriver() — the persistence layer\'s one seam onto the raw record', () => {
@@ -39,7 +39,7 @@ describe('OpenISDDriver record', () => {
     it('reports no issues for a driver whose stated Qes/Qms are mutually consistent', () => {
       const driver = driverFrom({
         brand: 'Dayton', model: 'RS225', section: 'woofer',
-        spec: tuneSpec({ Fs_hz: 40, Vas_m3: 0.00765, Qes: 0.45, Qms: 2.94, Re_ohm: 6.6 }),
+        spec: whatIfSpec({ Fs_hz: 40, Vas_m3: 0.00765, Qes: 0.45, Qms: 2.94, Re_ohm: 6.6 }),
       });
       const issues: readonly DriverIssue[] = driver.issues();
       expect(issues).toEqual([]);
@@ -67,7 +67,7 @@ describe('OpenISDDriver record', () => {
       'still agrees with itself rather than reporting the solved Qts as a contradiction of Qes/Qms', () => {
       const driver = driverFrom({
         brand: 'Dayton', model: 'RS225', section: 'woofer',
-        spec: tuneSpec({ Fs_hz: 40, Vas_m3: 0.00765, Qes: 0.45, Qms: 2.94, Re_ohm: 6.6 }),
+        spec: whatIfSpec({ Fs_hz: 40, Vas_m3: 0.00765, Qes: 0.45, Qms: 2.94, Re_ohm: 6.6 }),
       });
       // S2-10: there is no longer a separate what-if `solveConsistencyGroup()` — `driverFrom()`'s
       // own `resolve()` (S2-7c, run once on load) already wrote the derived Qts back as 'C'.

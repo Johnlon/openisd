@@ -79,7 +79,7 @@ function restoreView(deps: BootDeps): void {
  *  without one — the view outlives the project it was stored with. */
 function restorePanels(deps: BootDeps): void {
   if (focusedProject() === null) return;
-  if (presentationState.ui.originalTuneOpen === true) presentationState.editDriver = true;
+  if (presentationState.ui.originalWhatIfOpen === true) presentationState.editDriver = true;
   if (presentationState.ui.originalEditorOpen === true && !presentationState.editDriverInfo) deps.editProjectDriver();
 }
 

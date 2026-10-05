@@ -4,7 +4,7 @@ import OriginalShell from './shells/original/OriginalShell.vue';
 import MobileShell from './shells/mobile/MobileShell.vue';
 import OriginalNewProject from './shells/original/OriginalNewProject.vue';
 import MobileNewProject from './shells/mobile/MobileNewProject.vue';
-import OriginalTune from './shells/original/OriginalTune.vue';
+import OriginalWhatIf from './shells/original/OriginalWhatIf.vue';
 import DriverBrowser from './components/DriverBrowser.vue';
 import DriverEditorModal from './components/DriverEditorModal.vue';
 import Flash from './components/Flash.vue';
@@ -129,7 +129,7 @@ onUnmounted(() => {
     <!-- Both read the focused project, so neither may mount without one — whatever set the
          flag. The shell itself renders with no project; these do not. -->
     <DriverEditorModal v-if="presentationState.editDriverInfo && projectOpen" @close="presentationState.editDriverInfo = false" />
-    <OriginalTune v-if="presentationState.editDriver && projectOpen" />
+    <OriginalWhatIf v-if="presentationState.editDriver && projectOpen" />
     <!-- The wizard's step-1 driver picker sits ON TOP of the wizard modal (both z-index 100). -->
     <DriverBrowser />
     <Flash />

@@ -40,9 +40,11 @@ test.describe('No-project shell', () => {
       await coldStart(page);
 
       const empty = page.locator('.graph-empty');
-      const logo = empty.locator('.graph-empty-brand img[src="/icon.svg"]');
+      // Vite inlines the small icon.svg as a data: URL, so the img is found by place, not by src.
+      const logo = empty.locator('.graph-empty-brand img');
       const name = empty.locator('.graph-empty-brand', { hasText: 'OpenISD' });
       await expect(logo).toBeVisible();
+      expect(await logo.evaluate((img: HTMLImageElement) => img.naturalWidth)).toBeGreaterThan(0);
       await expect(name).toBeVisible();
       const brandBox = await name.boundingBox();
       const actionsBox = await empty.locator('.graph-empty-actions').boundingBox();
@@ -233,7 +235,7 @@ test.describe('No-project shell', () => {
 
   test.describe('stored panels', () => {
     /**
-     * A stored view can say the Tune panel or the Driver Editor was open. Reloading with no
+     * A stored view can say the What-if? panel or the Driver Editor was open. Reloading with no
      * project open must not reopen them: both read the focused project, and there is none, so
      * they threw `no project is focused` through the top-level gate's computed and left the
      * fault dialog up. Reported from https://openisd.app/ on 2026-09-25.
@@ -251,9 +253,9 @@ test.describe('No-project shell', () => {
       await expect(page.locator('.original-root')).toBeVisible();
     }
 
-    test('a stored open Tune panel does not reopen when no project is open', async ({page}) => {
-      await bootWith(page, 'originalTuneOpen');
-      await expect(page.locator('.tune-panel')).toHaveCount(0);
+    test('a stored open What-if? panel does not reopen when no project is open', async ({page}) => {
+      await bootWith(page, 'originalWhatIfOpen');
+      await expect(page.locator('.what-if-panel')).toHaveCount(0);
     });
 
     test('a stored open Driver Editor does not reopen when no project is open', async ({page}) => {

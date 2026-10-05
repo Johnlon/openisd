@@ -37,7 +37,7 @@ const {
   startNudge, stopNudge, cursorVal, cursorHzText, unitTokens, chartMeta, inputChecked, selectedOption,
   WINISD_TRACE, cycleColor, resetChartView, chartMax,
   mainEl, navCollapsed, bottomCollapsed, mainStyle, onNavSplitDown, onBottomSplitDown,
-  projectList, isTraceVisible, setTraceVisible, projectDisplayName, projectHasUnsavedChanges, selectProject, project, focused, projectOpen, whatIfActive,
+  projectList, isTraceVisible, setTraceVisible, projectDisplayName, projectHasUnsavedChanges, selectProject, project, focused, projectOpen,
   copyCurrentProject, requestCloseProject, closeChallenge, saveThenClose, closeProject,
   genOn, toggleGenerate, genHz,
   boxLabel, pending, openCharts, chartStackEl, chartStackStyle, chartsHigh, CHARTS_HIGH_OPTIONS, overlays, activeTab,
@@ -53,7 +53,7 @@ const {
   boxResonance, rearQtc, prSystemTuningDq, prNaturalFh,
   fbUnreachable, fbUnreachableMsg, boxLossesOpen, isDual,
   frontVolume_m3, setFrontVolume_m3, frcHz, setFrcHz, rearResonance, frontChamberTuningLabel,
-  model, startEdit, startTune, placement,
+  model, startEdit, startWhatIf, placement,
   activeVent, END_CORRECTION_OPTIONS, VENT_SHAPE_OPTIONS, VENT_COUNT_OPTIONS, PR_COUNT_OPTIONS, ventLState, portPipeResonance_hz,
   prBrowseOpen, loadPREntry, loadBundledPassiveRadiatorEntry, defineNewPREntry,
   prSaveOpen, prSaveFields, prSaveCanSave, openPRSave, cancelPRSave, confirmPRSave,
@@ -738,7 +738,7 @@ const winisdDifferences = injectWinisdDifferencesModal();
             <span><i class="legend-swatch legend-calculated"></i>App level / calculated</span>
             <span><i class="legend-swatch legend-normal"></i>Normal</span>
           </div>
-          <button v-if="projectOpen" class="edit-btn tune-btn" :title="whatIfActive ? 'What-if is active — reopen the transient tuning layer.' : 'Open a transient what-if tuning layer.'" @click="startTune">&#9835; What-if?</button>
+          <button v-if="projectOpen" class="edit-btn what-if-btn" title="Try other values and watch the charts. The project is not changed." @click="startWhatIf">&#9835; What-if?</button>
           <button v-if="projectOpen" class="edit-btn revert-btn" :disabled="!isModified" :title="isModified ? 'Revert — discard all unsaved changes and return to the last saved version.' : 'Revert — no unsaved changes to discard.'" @click="resetProjectToGround(confirmDiscard)">Revert</button>
         </div>
         </template>
@@ -789,7 +789,7 @@ const winisdDifferences = injectWinisdDifferencesModal();
       </div>
     </div>
 
-    <!-- The Tune panel (`<OriginalTune>`) is rendered by App.vue, not here, so it survives a box-type
+    <!-- The What-if? panel (`<OriginalWhatIf>`) is rendered by App.vue, not here, so it survives a box-type
          change that re-renders this shell's enclosure pane (QO134). Its open/close state and
          refresh persistence stay on `presentationState.editDriver`, watched below. -->
     <div v-if="sealedAlignmentOpen" class="overlay on alignment-overlay">
@@ -1197,8 +1197,8 @@ textarea.comment, textarea.description { width:100%; border:1px solid #999; bord
 .edit-btn, .link-btn, .action-btn { background:#f0f0f0; border:1px solid #999; border-radius:3px; padding:4px 10px; cursor:pointer; }
 .edit-btn:hover, .link-btn:hover, .action-btn:hover { background:#dbeaff; border-color:#7fb3ff; }
 /* What-if? — the one coloured button on this rail. */
-.tune-btn { background:#2f76d6; border-color:#2a68bd; color:#fff; }
-.tune-btn:hover { background:#4189e8; border-color:#2a68bd; }
+.what-if-btn { background:#2f76d6; border-color:#2a68bd; color:#fff; }
+.what-if-btn:hover { background:#4189e8; border-color:#2a68bd; }
 .link-btn { background:none; border:none; color:#1868d1; text-decoration:underline; padding:2px 0; }
 .link-btn:disabled { color:#999; cursor:default; text-decoration:none; opacity:.6; }
 /* The tab pane's no-project placeholder — the lower-right quadrant stays in the grid and

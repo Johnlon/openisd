@@ -1,7 +1,7 @@
 import {describe, expect, it} from 'vitest';
 import {createEngine} from '@openisd/design/engine';
 import {OpenISDPassiveRadiatorStandalone, OpenISDProject, ProjectBuilder} from '../../domain/index.js';
-import {tuneSpec, prSpecSection, driverFrom, driverJson} from '../fixtures/domainBuilders.js';
+import {whatIfSpec, prSpecSection, driverFrom, driverJson} from '../fixtures/domainBuilders.js';
 
 describe('OpenISDProject sweep guards', () => {
   describe('the vent/PR sweep-level guards', () => {
@@ -14,7 +14,7 @@ describe('OpenISDProject sweep guards', () => {
       if (box === 'pr') {
         p = new ProjectBuilder(driverFrom({
           brand: 'Dayton', model: 'RS225', section: 'woofer',
-          spec: tuneSpec({ Fs_hz: 37, Vas_m3: 0.0300, Qes: 0.40, Qms: 7.0, Re_ohm: 5.6 }),
+          spec: whatIfSpec({ Fs_hz: 37, Vas_m3: 0.0300, Qes: 0.40, Qms: 7.0, Re_ohm: 5.6 }),
         }), createEngine())
           .passiveRadiator().volume_m3(0.05).tuning_goal_hz(45)
           .radiator(radiator())
@@ -22,7 +22,7 @@ describe('OpenISDProject sweep guards', () => {
       } else {
         p = new ProjectBuilder(driverFrom({
           brand: 'Dayton', model: 'RS225', section: 'woofer',
-          spec: tuneSpec({ Fs_hz: 37, Vas_m3: 0.0300, Qes: 0.40, Qms: 7.0, Re_ohm: 5.6 }),
+          spec: whatIfSpec({ Fs_hz: 37, Vas_m3: 0.0300, Qes: 0.40, Qms: 7.0, Re_ohm: 5.6 }),
         }), createEngine()).vented().volume_m3(0.05).tuning_goal_hz(40).build();
       }
       const w = p.driver.specs;
@@ -79,7 +79,7 @@ describe('OpenISDProject sweep guards', () => {
     it('ventAchievedFb/ventMaxReachableFb answer not-available when the box is not vented', () => {
       const p = new ProjectBuilder(driverFrom({
         brand: 'Dayton', model: 'RS225', section: 'woofer',
-        spec: tuneSpec({ Fs_hz: 37, Vas_m3: 0.0300, Qes: 0.40, Qms: 7.0, Re_ohm: 5.6 }),
+        spec: whatIfSpec({ Fs_hz: 37, Vas_m3: 0.0300, Qes: 0.40, Qms: 7.0, Re_ohm: 5.6 }),
       }), createEngine()).sealed().volume_m3(0.02).build();
 
       expect(p.ventAchievedFb.value).toBeNull();
@@ -211,7 +211,7 @@ describe('OpenISDProject sweep guards', () => {
     const circuitCompleteDriver = () => {
       const driver = driverFrom({
         brand: 'Dayton', model: 'RS225', section: 'woofer',
-        spec: tuneSpec({ Fs_hz: 37, Vas_m3: 0.0300, Qes: 0.40, Qms: 7.0, Re_ohm: 5.6 }),
+        spec: whatIfSpec({ Fs_hz: 37, Vas_m3: 0.0300, Qes: 0.40, Qms: 7.0, Re_ohm: 5.6 }),
       });
       driver.specs.Sd_m2.set(0.0133);
       driver.specs.Le_H.set(0.70e-3);

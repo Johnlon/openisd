@@ -42,7 +42,7 @@ describe('urlAppState — share link carries the whole state, stripped of nothin
   const uiView: ViewSnapshot = {
     ui: {
       originalProjectTab: 'signal', originalChartTab: 'Excursion', originalChartLabel: 'Cone excursion',
-      originalTuneOpen: true, originalEditorOpen: true,
+      originalWhatIfOpen: true, originalEditorOpen: true,
       originalNavW: 320, originalBottomH: 200, originalNavCollapsed: true,
       originalBottomCollapsed: true, originalChartMax: true,
       username: 'johnl',
@@ -85,7 +85,7 @@ describe('urlAppState — share link carries the whole state, stripped of nothin
 
     // WHICH PANELS WERE OPEN — this is app state the URL is meant to encapsulate, not
     // "personal working state" to be hidden.
-    assert.equal(ui!.originalTuneOpen, true);
+    assert.equal(ui!.originalWhatIfOpen, true);
     assert.equal(ui!.originalEditorOpen, true);
 
     // Layout and preferences. Kept for fidelity: a link that differs from what the sender saw

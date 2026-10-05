@@ -1,7 +1,7 @@
 import {describe, expect, it, vi} from 'vitest';
 import {createEngine} from '@openisd/design/engine';
 import {OpenISDProject, ProjectBuilder} from '../../domain/index.js';
-import {isRecord, at, ignoredIssue, specSection, specSectionNoRms, tuneSpec, driverFrom} from '../fixtures/domainBuilders.js';
+import {isRecord, at, ignoredIssue, specSection, specSectionNoRms, whatIfSpec, driverFrom} from '../fixtures/domainBuilders.js';
 
 describe('OpenISDBox alignments', () => {
   describe('OpenISDBox — every alignment, as a window onto the project record', () => {
@@ -126,7 +126,7 @@ describe('OpenISDBox alignments', () => {
       // this record at all (Sd/Cms are null), so today the cell reads not-available:
       const p = new ProjectBuilder(driverFrom({
         brand: 'Dayton', model: 'E150HE', section: 'woofer',
-        spec: tuneSpec({Fs_hz: 40, Vas_m3: 0.00765, Qes: 0.45, Qms: 2.94, Re_ohm: 6.6}),
+        spec: whatIfSpec({Fs_hz: 40, Vas_m3: 0.00765, Qes: 0.45, Qms: 2.94, Re_ohm: 6.6}),
       }), createEngine()).sealed().volume_m3(0.006).build();
       p.Rs_ohm.set(0.1);
       p.box.sealed.losses.Ql.set(10);
@@ -229,7 +229,7 @@ describe('OpenISDBox alignments', () => {
       });
       expect(() => new ProjectBuilder(driverFrom({
         brand: 'Dayton', model: 'RS225', section: 'woofer',
-        spec: tuneSpec({Fs_hz: 40, Vas_m3: 0.00765, Qes: 0.45, Qms: 2.94, Re_ohm: 8}),
+        spec: whatIfSpec({Fs_hz: 40, Vas_m3: 0.00765, Qes: 0.45, Qms: 2.94, Re_ohm: 8}),
       }), engine).sealed().volume_m3(0.03).build()).toThrow(/structurally unreachable/);
       expect(solve).toHaveBeenCalled();
     });
@@ -246,7 +246,7 @@ describe('OpenISDBox alignments', () => {
       const engine = createEngine();
       const p = new ProjectBuilder(driverFrom({
         brand: 'Dayton', model: 'RS225', section: 'woofer',
-        spec: tuneSpec({Fs_hz: 40, Vas_m3: 0.00765, Qes: 0.45, Qms: 2.94, Re_ohm: 8}),
+        spec: whatIfSpec({Fs_hz: 40, Vas_m3: 0.00765, Qes: 0.45, Qms: 2.94, Re_ohm: 8}),
       }), engine).sealed().volume_m3(0.03).build();
       const mark = ignoredIssue('power_W');
 

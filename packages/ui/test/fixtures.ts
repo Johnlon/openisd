@@ -308,7 +308,7 @@ export async function clearFocusedEnvironment(page: Page): Promise<void> {
 export type DriverSpecEntries = Partial<Record<'Fs_hz' | 'Qes' | 'Qms' | 'Qts' | 'Vas_m3' | 'Re_ohm', number | null>>;
 
 /** Set (or clear) driver parameters on the focused project through the domain, as typing them in
- *  the Tune panel would. */
+ *  the What-if? panel would. */
 export async function setFocusedDriverSpecs(page: Page, entries: DriverSpecEntries): Promise<void> {
   await page.evaluate(async ({path, values}) => {
     type AppState = typeof import('../src/logic/appState.js');
@@ -578,6 +578,19 @@ export async function focusedPowerDrive_W(page: Page): Promise<number> {
     const value = m.requireFocusedProject().powerDrive_W.value;
     if (value === null) throw new Error('powerDrive_W has no value');
     return value;
+  }, '/src/logic/appState.ts');
+}
+
+/** Whether the focused project has unsaved changes — the flag behind every unsaved marker. */
+export async function focusedIsModified(page: Page): Promise<boolean> {
+  return page.evaluate(async (path): Promise<boolean> => {
+    type AppState = typeof import('../src/logic/appState.js');
+    function isAppState(m: unknown): m is AppState {
+      return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
+    }
+    const m: unknown = await import(/* @vite-ignore */ path);
+    if (!isAppState(m)) throw new Error('appState module shape mismatch');
+    return m.requireFocusedProject().isModified();
   }, '/src/logic/appState.ts');
 }
 

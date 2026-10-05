@@ -2,7 +2,7 @@ import type {ProvenanceLetter, Readable} from '@openisd/design';
 
 /**
  * Driver provenance PRESENTATION — how a field's provenance letter becomes a CSS class. The
- * driver editor and Tune both read it, so Tune cannot style the same driver differently from
+ * driver editor and What-if? both read it, so What-if? cannot style the same driver differently from
  * the dialog. Whether a value is entered, calculated or absent is the field's own answer
  * (`Readable.provenance`), never decided here.
  */

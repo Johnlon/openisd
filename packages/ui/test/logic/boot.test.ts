@@ -55,7 +55,7 @@ beforeEach(() => {
   while (openProjects().length > 0) removeProject(openProjects().length - 1);
   presentationState.editDriver = false;
   presentationState.editDriverInfo = false;
-  presentationState.ui.originalTuneOpen = false;
+  presentationState.ui.originalWhatIfOpen = false;
   presentationState.ui.originalEditorOpen = false;
 });
 
@@ -113,14 +113,14 @@ describe('bootApplication', () => {
 
   it('reopens a panel the stored view left open, once a project is there to open it on', async () => {
     const session = {projects: [project('one')], focusedIndex: 0, refused: [], traceHidden: new Set<OpenISDProject>()};
-    const {log, deps} = recording({session: () => session, view: () => ({ui: {originalTuneOpen: true, originalEditorOpen: true}})});
+    const {log, deps} = recording({session: () => session, view: () => ({ui: {originalWhatIfOpen: true, originalEditorOpen: true}})});
     await bootApplication(deps);
     expect(presentationState.editDriver).toBe(true);
     expect(log.indexOf('view')).toBeLessThan(log.indexOf('open-editor'));
   });
 
   it('opens no panel when the boot ended with no project', async () => {
-    const {deps} = recording({view: () => ({ui: {originalTuneOpen: true, originalEditorOpen: true}})});
+    const {deps} = recording({view: () => ({ui: {originalWhatIfOpen: true, originalEditorOpen: true}})});
     await bootApplication(deps);
     expect(presentationState.editDriver).toBe(false);
     expect(presentationState.editDriverInfo).toBe(false);

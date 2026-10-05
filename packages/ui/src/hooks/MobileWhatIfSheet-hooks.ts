@@ -1,21 +1,22 @@
 /**
- * `MobileTuneSheet.vue`'s hook — the Tune bottom sheet on the mobile Graph page. Closed, it is a
- * pull-tab; tapped or dragged up, the sheet opens, a what-if begins, and the charts above stay
- * live. The drag handle sets the sheet's height; dragging it down far enough closes it. The
- * rows and the what-if come from the skin-neutral `createTuneSession`, shared with desktop Tune.
+ * `MobileWhatIfSheet.vue`'s hook — the What-if? bottom sheet on the mobile Graph page. Closed, it
+ * is a pull-tab; tapped or dragged up, the sheet opens, a What-if begins, and the charts above
+ * stay live. The drag handle sets the sheet's height; dragging it down far enough closes it. The
+ * rows and the What-if come from the skin-neutral `createWhatIfSession`, shared with desktop.
  *
- * Done closes the sheet and keeps the what-if on the charts; Cancel discards it and closes;
- * Reset puts the committed design back and keeps tuning.
+ * The What-if never changes the project. Every way out (Close, dragging the sheet down) ends it,
+ * and the charts show the project's own values again. Reset puts the project's values back and
+ * keeps the sheet open.
  */
 import {computed, ref} from 'vue';
 import type {ComputedRef, Ref} from 'vue';
 import {projectChanged} from '../logic/appState.js';
 import {useFocusedProject} from '../logic/focusedProjectContext.js';
-import {createTuneSession, type TuneRow} from './tuneSession.js';
-import type {TuneField} from '@openisd/design/fields';
+import {createWhatIfSession, type WhatIfRow} from './whatIfSession.js';
+import type {WhatIfField} from '@openisd/design/fields';
 
 /** The sheet's open state, owned by the chart view (its Auto Y box follows it). */
-export interface MobileTuneSheetDeps {
+export interface MobileWhatIfSheetDeps {
   open: () => boolean;
   setOpen: (open: boolean) => void;
 }
@@ -35,16 +36,16 @@ interface DragStart {
   readonly max: number;
 }
 
-export interface MobileTuneSheetAPI {
+export interface MobileWhatIfSheetAPI {
   readonly isOpen: ComputedRef<boolean>;
-  readonly rows: ComputedRef<readonly TuneRow[]>;
+  readonly rows: ComputedRef<readonly WhatIfRow[]>;
   readonly sheetEl: Ref<HTMLElement | null>;
   /** The sheet's inline height: its default (CSS) until dragged. */
   readonly sheetStyle: ComputedRef<string>;
-  setValue(tune: TuneField, v: number | null): void;
+  setValue(field: WhatIfField, v: number | null): void;
   openSheet(): void;
-  done(): void;
-  cancel(): void;
+  /** Close the sheet and end the What-if. */
+  close(): void;
   reset(): void;
   onTabDown(e: PointerEvent): void;
   onTabUp(e: PointerEvent): void;
@@ -53,18 +54,18 @@ export interface MobileTuneSheetAPI {
   onHandleUp(): void;
 }
 
-export function useMobileTuneSheet({ open, setOpen }: MobileTuneSheetDeps): MobileTuneSheetAPI {
+export function useMobileWhatIfSheet({ open, setOpen }: MobileWhatIfSheetDeps): MobileWhatIfSheetAPI {
   const project = useFocusedProject();
-  const session = createTuneSession({ project, projectChanged });
+  const session = createWhatIfSession({ project, projectChanged });
 
   const isOpen = computed(() => open());
   const sheetEl = ref<HTMLElement | null>(null);
   const height = ref<number | null>(null);
   const sheetStyle = computed(() => height.value === null ? '' : `height: ${height.value}px`);
 
-  /** An emptied field is left alone: every Tune slot holds a value. */
-  function setValue(tune: TuneField, v: number | null): void {
-    if (v !== null) session.set(tune, v);
+  /** An emptied field is left alone: every What-if slot holds a value. */
+  function setValue(field: WhatIfField, v: number | null): void {
+    if (v !== null) session.set(field, v);
   }
 
   function openSheet(): void {
@@ -72,11 +73,10 @@ export function useMobileTuneSheet({ open, setOpen }: MobileTuneSheetDeps): Mobi
     setOpen(true);
   }
   function close(): void {
+    session.close();
     height.value = null;
     setOpen(false);
   }
-  function done(): void { close(); }
-  function cancel(): void { session.cancel(); close(); }
   function reset(): void { session.reset(); }
 
   // Pull-tab: a tap opens (click); an upward drag also sizes the sheet to where the finger went.
@@ -105,11 +105,11 @@ export function useMobileTuneSheet({ open, setOpen }: MobileTuneSheetDeps): Mobi
   function onHandleUp(): void {
     if (drag === null) return;
     drag = null;
-    if (height.value !== null && height.value < CLOSE_BELOW_PX) done();
+    if (height.value !== null && height.value < CLOSE_BELOW_PX) close();
   }
 
   return {
-    isOpen, rows: session.rows, sheetEl, sheetStyle, setValue, openSheet, done, cancel, reset,
+    isOpen, rows: session.rows, sheetEl, sheetStyle, setValue, openSheet, close, reset,
     onTabDown, onTabUp, onHandleDown, onHandleMove, onHandleUp,
   };
 }

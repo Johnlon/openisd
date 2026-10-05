@@ -129,7 +129,7 @@ describe('projectRegistry', () => {
       assert.equal(openProjects().length, before);
     });
 
-    it('focusProject(index) closes Tune on the project being left', () => {
+    it('focusProject(index) closes What-if? on the project being left', () => {
       newProject();
       newProject();
       const a = openProjects()[openProjects().length - 2];
@@ -143,7 +143,7 @@ describe('projectRegistry', () => {
       focusProject(iB);
 
       assert.equal(focusedProject(), b);
-      assert.equal(presentationState.editDriver, false, 'Tune closes on focus switch');
+      assert.equal(presentationState.editDriver, false, 'What-if? closes on focus switch');
     });
 
     it('focusProject(index) closes the Driver Editor modal on focus switch', () => {

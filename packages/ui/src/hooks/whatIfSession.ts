@@ -1,42 +1,43 @@
 /**
- * The Tune session, skin-neutral: the focused project's transient what-if layer (begin, reset,
- * cancel) and the rows the Tune sheet edits on it (`TuneField.forBox`). Every write lands in the
- * what-if layer, so Cancel or Reset puts the design back (docs/design/STATE_MODEL.md rule 3).
- * Each row writes through the same path its home tab uses: the vent tuning and port diameter go
- * through `VentMember`, so the port length follows them.
+ * The What-if? session, skin-neutral: the focused project's What-if layer (begin, reset, close)
+ * and the rows the What-if? sheet edits on it (`WhatIfField.forBox`). Every write lands in the
+ * What-if layer and never in the project. Closing, or the panel going away, discards it; Reset
+ * puts the project's values back (docs/design/STATE_MODEL.md rule 3). Each row writes through the
+ * same path its home tab uses: the vent tuning and port diameter go through `VentMember`, so the
+ * port length follows them.
  */
 import type {ComputedRef, Ref} from 'vue';
-import {computed} from 'vue';
+import {computed, getCurrentScope, onScopeDispose} from 'vue';
 import type {OpenISDProject} from '@openisd/design';
 import type {BoxType} from '@openisd/design/engine';
-import {TuneField, type TuneSlot} from '@openisd/design/fields';
+import {WhatIfField, type WhatIfSlot} from '@openisd/design/fields';
 import {VentMember} from '../logic/ventGroup.js';
 
-export interface TuneSessionDeps {
+export interface WhatIfSessionDeps {
   project: ComputedRef<OpenISDProject>;
   projectChanged: Ref<number>;
 }
 
-/** One Tune row: the field and its current value in SI, or null when it has none. */
-export interface TuneRow {
-  readonly tune: TuneField;
+/** One What-if? row: the field and its current value in SI, or null when it has none. */
+export interface WhatIfRow {
+  readonly field: WhatIfField;
   readonly value: number | null;
 }
 
-export interface TuneSession {
+export interface WhatIfSession {
   /** The rows for the focused project's box type, with live values. */
-  readonly rows: ComputedRef<readonly TuneRow[]>;
-  /** Start the what-if layer; a no-op while one is active. */
+  readonly rows: ComputedRef<readonly WhatIfRow[]>;
+  /** Start the What-if layer; a no-op while one is active. */
   begin(): void;
-  /** Write `v` (SI) to the row's slot, in the what-if layer. */
-  set(tune: TuneField, v: number): void;
-  /** Put the what-if back to the committed design and keep tuning. */
+  /** Write `v` (SI) to the row's slot, in the What-if layer. */
+  set(field: WhatIfField, v: number): void;
+  /** Put the project's own values back and keep the What-if open. */
   reset(): void;
-  /** Discard the what-if layer. */
-  cancel(): void;
+  /** End the What-if: its values are discarded, the project is as it was. */
+  close(): void;
 }
 
-function read(p: OpenISDProject, type: BoxType, slot: TuneSlot): number | null {
+function read(p: OpenISDProject, type: BoxType, slot: WhatIfSlot): number | null {
   switch (slot) {
     case 'volume': return p.box.volumeOf(type).value;
     case 'frontVolume': return p.box.frontVolumeOf(type)?.value ?? null;
@@ -53,7 +54,7 @@ function read(p: OpenISDProject, type: BoxType, slot: TuneSlot): number | null {
   }
 }
 
-function write(p: OpenISDProject, type: BoxType, slot: TuneSlot, v: number): void {
+function write(p: OpenISDProject, type: BoxType, slot: WhatIfSlot, v: number): void {
   switch (slot) {
     case 'volume': p.box.volumeOf(type).set(v); return;
     case 'frontVolume': p.box.frontVolumeOf(type)?.set(v); return;
@@ -70,26 +71,28 @@ function write(p: OpenISDProject, type: BoxType, slot: TuneSlot, v: number): voi
   }
 }
 
-export function createTuneSession({ project, projectChanged }: TuneSessionDeps): TuneSession {
-  const rows = computed<readonly TuneRow[]>(() => {
+export function createWhatIfSession({ project, projectChanged }: WhatIfSessionDeps): WhatIfSession {
+  const rows = computed<readonly WhatIfRow[]>(() => {
     void projectChanged.value;
     const p = project.value;
     const type = p.box.boxType.value;
-    return TuneField.forBox(type).map(tune => ({ tune, value: read(p, type, tune.slot) }));
+    return WhatIfField.forBox(type).map(field => ({ field, value: read(p, type, field.slot) }));
   });
 
   function begin(): void { project.value.beginWhatIf(); }
 
-  function set(tune: TuneField, v: number): void {
+  function set(field: WhatIfField, v: number): void {
     const p = project.value;
-    // A focus change or file open ends the what-if under an open sheet; a write must never
-    // land in the ordinary edit layer, so it starts a new one.
+    // A focus change or file open ends the What-if under an open sheet; a write must never
+    // land in the project, so it starts a new one.
     p.beginWhatIf();
-    write(p, p.box.boxType.value, tune.slot, v);
+    write(p, p.box.boxType.value, field.slot, v);
   }
 
   function reset(): void { project.value.resetWhatIf(); }
-  function cancel(): void { project.value.cancelWhatIf(); }
+  function close(): void { project.value.cancelWhatIf(); }
+  // The panel or sheet going away (leaving the Graph page, a skin change) is a way out too.
+  if (getCurrentScope() !== undefined) onScopeDispose(close);
 
-  return { rows, begin, set, reset, cancel };
+  return { rows, begin, set, reset, close };
 }

@@ -4,12 +4,12 @@
 // GraphPanel's canvas sets touch-action:none (custom pointer gestures); in a stack it is relaxed
 // to pan-y, so a vertical swipe scrolls the list and a sideways drag still moves the cursor.
 import GraphPanel from '../../components/GraphPanel.vue';
-import MobileTuneSheet from './MobileTuneSheet.vue';
+import MobileWhatIfSheet from './MobileWhatIfSheet.vue';
 import { useMobileChartView } from '../../../hooks/MobileChartView-hooks.js';
 
 const emit = defineEmits<{ menu: [] }>();
 const { openCharts, chartItems, chartLabel, pickerOpen, togglePicker, showOnly, toggle,
-  chartsHigh, CHARTS_HIGH_OPTIONS, selectedOption, stackEl, stackStyle, traceColour, overlays, tuneOpen } = useMobileChartView();
+  chartsHigh, CHARTS_HIGH_OPTIONS, selectedOption, stackEl, stackStyle, traceColour, overlays, whatIfOpen } = useMobileChartView();
 </script>
 
 <template>
@@ -37,11 +37,11 @@ const { openCharts, chartItems, chartLabel, pickerOpen, togglePicker, showOnly, 
     </ul>
     <div ref="stackEl" class="mob-chart-stack" :class="{ stacked: openCharts.length > 1 }" :style="stackStyle">
       <div v-for="id in openCharts" :key="id" class="mob-chart-cell">
-        <!-- Auto Y shows only while Tune is open (John, 2026-10-05). -->
-        <GraphPanel :chart-id="id" :bare="true" :primary-color="traceColour" :overlays="overlays" :hide-auto-y="!tuneOpen" />
+        <!-- Auto Y shows only while What-if? is open (John, 2026-10-05). -->
+        <GraphPanel :chart-id="id" :bare="true" :primary-color="traceColour" :overlays="overlays" :hide-auto-y="!whatIfOpen" />
       </div>
     </div>
-    <MobileTuneSheet v-model:open="tuneOpen" />
+    <MobileWhatIfSheet v-model:open="whatIfOpen" />
   </div>
 </template>
 

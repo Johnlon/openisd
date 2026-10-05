@@ -594,9 +594,9 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   const boxLossesOpen = ref(false);
   const optionsOpen = ref(false);
 
-  // Tune owns a project-level transient what-if. Ordinary edits remain underneath it and are not
-  // affected when the Tune panel is cancelled.
-  function startTune() {
+  // What-if? opens the project's What-if layer. The project's own values stay underneath it,
+  // untouched; closing the panel discards the What-if.
+  function startWhatIf() {
     project.value.beginWhatIf();
     presentationState.editDriver = true;
   }
@@ -608,12 +608,12 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     createPassiveRadiatorActions({ project, myPassiveRadiators, bundledPassiveRadiators });
   function startEdit() { editProjectDriver(); }
 
-  // R1 refresh fidelity — RECORD an open Tune / Driver Editor so a reload can restore it.
+  // R1 refresh fidelity — RECORD an open What-if? panel / Driver Editor so a reload can restore it.
   // Restoring is the boot's own phase (`logic/boot.ts`), which runs it after the project and
   // the view are in place; a watcher here would fire on whatever order the flags happened to
   // arrive in, which is how a panel came to mount with no project (openisd.app 2026-09-25).
   watch(() => presentationState.editDriver, (active) => {
-    presentationState.ui.originalTuneOpen = active;
+    presentationState.ui.originalWhatIfOpen = active;
   });
 
   // Same for the Driver Editor modal — recorded here, restored by the boot.
@@ -623,10 +623,6 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
    *  buttons and the placeholders to stand in for the chart, tab pane and project list. */
   const focused = computed(() => focusedProject());
   const projectOpen = computed(() => focusedProject() != null);
-  const whatIfActive = computed(() => {
-    void projectChanged.value;
-    return project.value.isWhatIfActive();
-  });
 
   const errorSwitches = createErrorSwitches({project, projectChanged});
   /** The WinISD deviations whose cue sits by the chart picker: shown on an open chart. */
@@ -651,7 +647,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     startNudge, stopNudge, cursorHz, cursorVal, cursorHzText, unitTokens, chartMeta, inputChecked, selectValue, selectedOption,
     WINISD_TRACE, cycleColor, resetChartView, chartMax,
     mainEl, navCollapsed, bottomCollapsed, mainStyle, onNavSplitDown, onBottomSplitDown,
-    projectList, isTraceVisible, setTraceVisible, projectDisplayName, projectHasUnsavedChanges, selectProject, project, focused, projectOpen, whatIfActive,
+    projectList, isTraceVisible, setTraceVisible, projectDisplayName, projectHasUnsavedChanges, selectProject, project, focused, projectOpen,
     copyCurrentProject, requestCloseProject, closeChallenge, saveThenClose, closeProject,
     genOn, toggleGenerate, genHz,
     boxLabel, pending, openCharts, chartStackEl, chartStackStyle, chartsHigh, CHARTS_HIGH_OPTIONS, overlays, activeTab,
@@ -667,7 +663,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     boxResonance, rearQtc, prSystemTuningDq,
     fbUnreachable, fbUnreachableMsg, boxLossesOpen, isDual,
     frontVolume_m3, setFrontVolume_m3, frcHz, setFrcHz, rearResonance, frontChamberTuningLabel,
-    model, startEdit, startTune, placement,
+    model, startEdit, startWhatIf, placement,
     activeVent, activeTuning, END_CORRECTION_OPTIONS, VENT_SHAPE_OPTIONS, VENT_COUNT_OPTIONS, PR_COUNT_OPTIONS, ventLState, portPipeResonance_hz,
     prBrowseOpen, loadPREntry, loadBundledPassiveRadiatorEntry, defineNewPREntry,
     prSaveOpen, prSaveFields, prSaveCanSave, openPRSave, cancelPRSave, confirmPRSave,

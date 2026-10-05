@@ -1,16 +1,21 @@
-import type {InjectionKey, Ref} from 'vue';
+import type {Ref} from 'vue';
 import {computed} from 'vue';
 import {useFocusedProject} from '../logic/focusedProjectContext.js';
 import {cellClassOf} from '../logic/driverCells.js';
 import type {Calculated, Clearable, Entered, Readable, Writable} from '@openisd/design';
 import type {NumSpecField} from '../logic/appState.js';
 import {projectChanged} from '../logic/appState.js';
-import {createTuneSession} from './tuneSession.js';
+import {createWhatIfSession} from './whatIfSession.js';
 
 export type NumKey = NumSpecField;
 export type { NumSpecField };
 
-export interface OriginalTuneAPI {
+/**
+ * The desktop What-if? panel's hook. Every write lands in the focused project's What-if layer,
+ * never in the project: a write with no What-if open (the panel restored by a reload) starts
+ * one. `close` ends it and the project is as it was; `reset` puts the project's values back.
+ */
+export interface OriginalWhatIfAPI {
   readonly ebp: Readonly<Ref<number | null>>;
   readonly vb_m3: Readonly<Ref<number | null>>;
 
@@ -24,14 +29,13 @@ export interface OriginalTuneAPI {
   clearField(key: NumSpecField): void;
   setVb_m3(v: number): void;
   reset(): Promise<void>;
-  cancel(): void;
+  /** End the What-if: its values are discarded. */
+  close(): void;
 }
 
-export const OriginalTuneKey: InjectionKey<OriginalTuneAPI> = Symbol('OriginalTuneAPI');
-
-export function useOgTune(): OriginalTuneAPI {
+export function useOriginalWhatIf(): OriginalWhatIfAPI {
   const project = useFocusedProject();
-  const session = createTuneSession({ project, projectChanged });
+  const session = createWhatIfSession({ project, projectChanged });
 
   function specField(key: NumSpecField):
       Readable<number | null> & Entered & Calculated & Writable<number> & Clearable {
@@ -55,6 +59,7 @@ export function useOgTune(): OriginalTuneAPI {
   });
 
   function setVb_m3(v: number): void {
+    session.begin();
     const box = project.value.box;
     box.volumeOf(box.boxType.value).set(v);
   }
@@ -79,15 +84,13 @@ export function useOgTune(): OriginalTuneAPI {
   }
 
   function enterField(key: NumSpecField, v: number, precision?: number): void {
+    session.begin();
     specField(key).set(v, precision);
   }
 
   function clearField(key: NumSpecField): void {
+    session.begin();
     specField(key).clear();
-  }
-
-  function cancel() {
-    session.cancel();
   }
 
   async function reset(): Promise<void> {
@@ -104,7 +107,7 @@ export function useOgTune(): OriginalTuneAPI {
     enterField,
     clearField,
     setVb_m3,
-    cancel,
+    close: session.close,
     reset,
   };
 }

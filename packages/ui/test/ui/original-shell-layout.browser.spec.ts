@@ -78,17 +78,17 @@ test.describe('Original shell layout', () => {
       await expect(page.locator('.content-panel')).toContainText('Description');
     });
 
-    test('Tune is below the right-edge legend, not in the Driver row', async ({ page }) => {
+    test('What-if? is below the right-edge legend, not in the Driver row', async ({ page }) => {
       const legend = page.locator('.value-legend');
-      const tune = page.locator('.save-rail .tune-btn');
+      const whatIf = page.locator('.save-rail .what-if-btn');
 
       await expect(legend).toBeVisible();
-      await expect(tune).toHaveCount(1);
-      await expect(page.locator('.driver-id-row .tune-btn')).toHaveCount(0);
+      await expect(whatIf).toHaveCount(1);
+      await expect(page.locator('.driver-id-row .what-if-btn')).toHaveCount(0);
 
       const legendBottom = await legend.evaluate(element => element.getBoundingClientRect().bottom);
-      const tuneTop = await tune.evaluate(element => element.getBoundingClientRect().top);
-      expect(tuneTop).toBeGreaterThanOrEqual(legendBottom);
+      const whatIfTop = await whatIf.evaluate(element => element.getBoundingClientRect().top);
+      expect(whatIfTop).toBeGreaterThanOrEqual(legendBottom);
     });
 
     test('Original save buttons sit in a right-edge rail beside the tabs (no vertical space consumed)', async ({ page }) => {

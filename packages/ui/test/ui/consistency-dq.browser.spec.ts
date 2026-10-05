@@ -21,16 +21,16 @@ const COMPLETE_OWPR = COMPLETE_DRIVER_PROJECT_OWPR;
 // Fs implied by Mms and Cms is ~26.6 Hz.
 const IMPOSSIBLE_MMS_G = '30';
 
-async function openTune(page: Page) {
+async function openWhatIf(page: Page) {
   await page.goto('/');
   await openAProject(page, COMPLETE_OWPR);
   await page.locator('.project-nav li', { hasText: 'Driver' }).click();
   await page.locator('.edit-btn', { hasText: 'What-if' }).click();
-  await expect(page.locator('.tune-panel')).toBeVisible();
+  await expect(page.locator('.what-if-panel')).toBeVisible();
 }
 
-const tuneField = (page: Page, label: string) =>
-  page.locator('.tune-panel .tune-fld').filter({ has: page.locator('label', { hasText: new RegExp(`^${label}$`) }) });
+const whatIfField = (page: Page, label: string) =>
+  page.locator('.what-if-panel .what-if-fld').filter({ has: page.locator('label', { hasText: new RegExp(`^${label}$`) }) });
 
 async function openEditorParameters(page: Page) {
   await page.goto('/');
@@ -82,24 +82,24 @@ test('driver editor: an inconsistent group marks every one of its members, with 
 });
 
 // ── The Original skin's docked What-If panel ──────────────────────────────────────────────
-test('Tune what-if: the same mark appears on every member of the group as the driver is scrubbed', async ({ page }) => {
-  await openTune(page);
+test('What-if?: the same mark appears on every member of the group as the driver is scrubbed', async ({ page }) => {
+  await openWhatIf(page);
 
-  await expect(page.locator('.tune-panel .de-dq')).toHaveCount(0);
+  await expect(page.locator('.what-if-panel .de-dq')).toHaveCount(0);
 
-  const mms = tuneField(page, 'Mms').locator('input');
+  const mms = whatIfField(page, 'Mms').locator('input');
   await mms.click();
   await mms.press('Control+a');
   await mms.pressSequentially(IMPOSSIBLE_MMS_G);
   await mms.blur();
 
-  // Fs and Mms are both on this panel and both carry it. (Cms is a member too, but the Tune
+  // Fs and Mms are both on this panel and both carry it. (Cms is a member too, but the What-if?
   // panel does not show Cms — a mark can only appear beside a field that is on screen.)
-  await expect(tuneField(page, 'Fs').locator('.de-dq')).toHaveCount(1);
-  await expect(tuneField(page, 'Mms').locator('.de-dq')).toHaveCount(1);
-  await expect(tuneField(page, 'Re').locator('.de-dq')).toHaveCount(0);
+  await expect(whatIfField(page, 'Fs').locator('.de-dq')).toHaveCount(1);
+  await expect(whatIfField(page, 'Mms').locator('.de-dq')).toHaveCount(1);
+  await expect(whatIfField(page, 'Re').locator('.de-dq')).toHaveCount(0);
 
-  const dqIcon = tuneField(page, 'Mms').locator('.de-dq');
+  const dqIcon = whatIfField(page, 'Mms').locator('.de-dq');
   const tooltip = page.locator('body > .dq-tooltip-box-Mms_kg');
   await dqIcon.hover();
   await expect(tooltip).toBeVisible();
@@ -111,20 +111,20 @@ test('Tune what-if: the same mark appears on every member of the group as the dr
   await mms.press('Control+a');
   await mms.press('Delete');
   await mms.blur();
-  await expect(page.locator('.tune-panel .de-dq')).toHaveCount(0);
+  await expect(page.locator('.what-if-panel .de-dq')).toHaveCount(0);
 });
 
 
-test('Tune what-if: hovering or clicking the alert icon displays the custom formatted tooltip', async ({ page }) => {
-  await openTune(page);
+test('What-if?: hovering or clicking the alert icon displays the custom formatted tooltip', async ({ page }) => {
+  await openWhatIf(page);
 
-  const mms = tuneField(page, 'Mms').locator('input');
+  const mms = whatIfField(page, 'Mms').locator('input');
   await mms.click();
   await mms.press('Control+a');
   await mms.pressSequentially(IMPOSSIBLE_MMS_G);
   await mms.blur();
 
-  const dqIcon = tuneField(page, 'Mms').locator('.de-dq');
+  const dqIcon = whatIfField(page, 'Mms').locator('.de-dq');
   await expect(dqIcon).toBeVisible();
 
   // Tooltip box should not be visible initially
@@ -147,7 +147,7 @@ test('Tune what-if: hovering or clicking the alert icon displays the custom form
   expect(box!.y + box!.height).toBeLessThanOrEqual(viewport!.height);
 
   // Mouse leave should hide it
-  await page.locator('.tune-panel .tune-titlebar').hover(); // Hover elsewhere
+  await page.locator('.what-if-panel .what-if-titlebar').hover(); // Hover elsewhere
   await expect(tooltip).toBeHidden();
 
   // Clicking should toggle the tooltip
@@ -155,7 +155,7 @@ test('Tune what-if: hovering or clicking the alert icon displays the custom form
   await expect(tooltip).toBeVisible();
 
   // Clicking outside should close it
-  await page.locator('.tune-panel .tune-titlebar').click();
+  await page.locator('.what-if-panel .what-if-titlebar').click();
   await expect(tooltip).toBeHidden();
 });
 

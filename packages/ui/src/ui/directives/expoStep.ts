@@ -2,7 +2,7 @@ import type {Directive} from 'vue';
 import {shownSpinRule, spinStepAttr, spinValue, type NumberField, type SpinRule} from '@openisd/design/fields';
 
 // v-expo-step — the spinner rule (`spinValue`, packages/design/fields/spinnerStep.ts) for RAW
-// number inputs not built on NumInput (left-nav, Tune, filter editors). Bind the input's field
+// number inputs not built on NumInput (left-nav, What-if?, filter editors). Bind the input's field
 // (`v-expo-step="NumberField.FILTER_GAIN_DB"`) so counts step by 1 and gain by ≥ 0.1 dB; bare,
 // the input steps by a tenth of its decade, never finer than its shown decimals.
 //

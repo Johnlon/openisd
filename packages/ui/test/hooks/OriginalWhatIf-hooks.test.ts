@@ -1,11 +1,11 @@
 import {describe, expect, it} from 'vitest';
-import {computed, defineComponent, h} from 'vue';
+import {computed, defineComponent, effectScope, h} from 'vue';
 import {renderToString} from 'vue/server-renderer';
 import {createEngine} from '@openisd/design/engine';
 import {ProjectBuilder} from '@openisd/design';
 import {addProject, removeProject, openProjects} from '../../src/logic/appState.js';
 import {provideFocusedProject} from '../../src/logic/focusedProjectContext.js';
-import {useOgTune, type OriginalTuneAPI} from '../../src/hooks/OriginalTune-hooks.js';
+import {useOriginalWhatIf, type OriginalWhatIfAPI} from '../../src/hooks/OriginalWhatIf-hooks.js';
 import {runHook} from './runHook.js';
 
 function createProject() {
@@ -20,11 +20,11 @@ function createProject() {
   return project;
 }
 
-async function renderHook(project = createProject()): Promise<OriginalTuneAPI> {
-  let api!: OriginalTuneAPI;
+async function renderHook(project = createProject()): Promise<OriginalWhatIfAPI> {
+  let api!: OriginalWhatIfAPI;
   const Child = defineComponent({
     setup() {
-      api = useOgTune();
+      api = useOriginalWhatIf();
       return () => null;
     },
   });
@@ -38,7 +38,64 @@ async function renderHook(project = createProject()): Promise<OriginalTuneAPI> {
   return api;
 }
 
-describe('OriginalTune-hooks', () => {
+describe('OriginalWhatIf-hooks', () => {
+  it('a write with no What-if open starts one, so the project stays unmodified', async () => {
+    const project = createProject();
+    project.save();
+    const api = await renderHook(project);
+
+    api.enterField('Fs_hz', 55);
+    api.clearField('Qes');
+    api.setVb_m3(0.02);
+
+    expect(project.isWhatIfActive()).toBe(true);
+    expect(project.driver.specs.Fs_hz.value).toBe(55);
+    expect(project.isModified()).toBe(false);
+  });
+
+  it('close ends the What-if: the project values are as before and not modified', async () => {
+    const project = createProject();
+    project.save();
+    const before = project.cloneSession();
+    const api = await renderHook(project);
+
+    api.enterField('Fs_hz', 55);
+    api.setVb_m3(0.02);
+    api.close();
+
+    expect(project.isWhatIfActive()).toBe(false);
+    expect(project.driver.specs.Fs_hz.value).toBe(40);
+    expect(project.box.sealed.volume_m3.value).toBe(0.012);
+    expect(project.isModified()).toBe(false);
+    expect(project.cloneSession()).toEqual(before);
+  });
+
+  it('unmounting the panel ends the What-if', () => {
+    const project = createProject();
+    project.save();
+    const scope = effectScope();
+    const api = scope.run(() => runHook(computed(() => project), useOriginalWhatIf));
+    if (api === undefined) throw new Error('the hook did not run');
+    api.enterField('Fs_hz', 55);
+    scope.stop();
+    expect(project.isWhatIfActive()).toBe(false);
+    expect(project.driver.specs.Fs_hz.value).toBe(40);
+    expect(project.isModified()).toBe(false);
+  });
+
+  it('reset puts the project values back and keeps the What-if open', async () => {
+    const project = createProject();
+    project.save();
+    const api = await renderHook(project);
+
+    api.enterField('Fs_hz', 55);
+    await api.reset();
+
+    expect(project.isWhatIfActive()).toBe(true);
+    expect(project.driver.specs.Fs_hz.value).toBe(40);
+    expect(project.isModified()).toBe(false);
+  });
+
   it('reads numeric driver fields and calculates ebp', async () => {
     const api = await renderHook();
     expect(api.cellVal('Fs_hz')).toBe(40);
@@ -130,7 +187,7 @@ describe('OriginalTune-hooks', () => {
     expect(api.vb_m3.value).toBeCloseTo(0.012345678, 12);
   });
 
-  it('keeps a Vb typed in Tune when the what-if layer is active', async () => {
+  it('keeps a Vb typed in What-if? when the What-if layer is active', async () => {
     const project = createProject();
     project.beginWhatIf();
     const api = await renderHook(project);
@@ -140,7 +197,7 @@ describe('OriginalTune-hooks', () => {
     expect(project.isWhatIfActive()).toBe(true);
 
     // Blurring the field is a pure display event — nothing the panel does after a write may
-    // put the committed volume back.
+    // put the project's volume back.
     api.enterField('Fs_hz', 55);
     expect(api.vb_m3.value).toBeCloseTo(0.02, 9);
   });
@@ -177,7 +234,7 @@ describe('OriginalTune-hooks', () => {
     addProject(project);
     try {
       // runHook, not renderToString: only a client-side computed caches, so only it can go stale.
-      const api = runHook(computed(() => project), useOgTune);
+      const api = runHook(computed(() => project), useOriginalWhatIf);
       expect(api.vb_m3.value).toBeCloseTo(0.012, 9);
       project.box.sealed.volume_m3.set(0.027);
       expect(api.vb_m3.value).toBeCloseTo(0.027, 9);

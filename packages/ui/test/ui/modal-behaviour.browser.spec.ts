@@ -6,7 +6,7 @@ test.describe('Modal behaviour', () => {
     // QO157 (human ruling 2026-09-18): the editor/library overlays are TRUE full-screen modals
     // (position:fixed inset:0), so while one is open the project rows sit UNDER it — a real user
     // cannot click another row to switch focus. That is the intended design, not a bug. The
-    // focus-switch-closes rule applies only to DOCKED panels (the Tune panel); a true modal must
+    // focus-switch-closes rule applies only to DOCKED panels (the What-if? panel); a true modal must
     // be dismissed (Escape / its close button) before focus can change.
 
     /** Assert the true-modal contract for one overlay: while it is open a click aimed at a project

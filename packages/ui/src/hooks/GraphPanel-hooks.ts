@@ -14,7 +14,7 @@ export interface GraphPanelProps {
   bare?: boolean;
   primaryColor?: string;
   overlays?: Design[];
-  /** True drops the chart's Auto Y switch (the mobile skin, which has no Tune yet). */
+  /** True drops the chart's Auto Y switch (the mobile skin while What-if? is closed). */
   hideAutoY?: boolean;
 }
 

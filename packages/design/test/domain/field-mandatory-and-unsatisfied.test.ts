@@ -1,6 +1,6 @@
 /**
  * `Readable.mandatoryAndUnsatisfied` — whether the driver still needs this field and cannot
- * derive it. The driver editor and Tune both mark such a cell, and both ask the cell, so neither
+ * derive it. The driver editor and What-if? both mark such a cell, and both ask the cell, so neither
  * can decide it differently from the other.
  *
  * It reads the `missing-dependencies` issues already on the field's own `dq`, which
@@ -66,7 +66,7 @@ describe('a field says whether it is mandatory and unsatisfied', () => {
 });
 
 describe('the driver embedded in a project says the same', () => {
-  // Tune reads the project's own driver, not a standalone one (OriginalTune-hooks `specField`).
+  // What-if? reads the project's own driver, not a standalone one (OriginalWhatIf-hooks `specField`).
   function projectWithOnlyQes() {
     const engine = createEngine();
     const project = new ProjectBuilder(OpenISDDriver.empty(engine), engine).sealed().volume_m3(0.03).build();

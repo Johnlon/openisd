@@ -210,7 +210,7 @@ export function focusedProject(): OpenISDProject | null {
 /** Move focus to the project at `index` — called when the user changes the active project in
  *  the UI's project list. Out-of-range indices are ignored.
  *
- *  Closes Tune and the Driver Editor modal on the project being left, BEFORE moving focus
+ *  Closes What-if? and the Driver Editor modal on the project being left, BEFORE moving focus
  *  (`presentationState.editDriver = false`/`editDriverInfo = false`) — same "any focus-
  *  changing action closes what was open" pattern as `openDriverPicker()` above. */
 export function focusProject(index: number): void {

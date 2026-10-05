@@ -62,7 +62,7 @@ export interface PresentationState {
   newProjectOpen: boolean;
   /** The Browse Drivers modal is open. */
   browseOpen: boolean;
-  /** The Tune panel is open. */
+  /** The What-if? panel is open. */
   editDriver: boolean;
   /** The Driver Editor modal (Brand/Model/Comment/Provided by) is open. */
   editDriverInfo: boolean;
