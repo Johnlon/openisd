@@ -7,7 +7,8 @@ probed 2026-10-05. OpenISD does not copy it.
 WinISD's voice-coil connection combo (`edConMode`) and the file's `VCCon` can disagree:
 
 1. **One coil:** with `numVC=1`, picking Series shows Series, but the saved file has `VCCon=1` and
-   reloads as Parallel. Nothing else changes, because the wiring factor is 1.
+   reloads as Parallel: the user's wiring is lost. The wiring has no effect on the numbers with one
+   coil (the factor is 1), but it is still the user's input and must be kept (John, 2026-10-05).
 2. **Coil-count edit:** picking Series rescales `Re` ×numVC² and `BL` ×numVC. Editing `numVC`
    afterwards resets the combo to Parallel without undoing that rescale, so the file says parallel
    beside series-scaled values. Choosing Series again rescales a second time.
@@ -22,5 +23,5 @@ Series; loading never rescales `Re`/`BL`; ParState slot 46 stays `N` whatever th
 
 ## OpenISD
 Stores `Re`/`BL` per coil and derives the terminal values from the wiring, so a coil-count edit
-cannot leave them out of step; writes the wiring the user chose; always marks `VCCon` `E`.
+cannot leave them out of step; keeps and writes the wiring the user chose at any coil count; always marks `VCCon` `E`.
 `docs/research/WINISD_PARITY.md` §12.

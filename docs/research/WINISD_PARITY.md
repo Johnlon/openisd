@@ -1050,8 +1050,9 @@ Probe `winisd_research/toys/probe_vccon_save_load.py`, runs in
 
 - **No save bug and no load bug.** The June 2026 claim "the dropdown always writes `VCCon=1`" came
   from a file saved in the third row's order: the combo already read Parallel when it was saved.
-- **Editor bug 1 — one coil:** with `numVC=1` the combo shows Series but the file stores 1. Nothing
-  else changes, because the wiring factor is 1.
+- **Editor bug 1 — one coil:** with `numVC=1` the combo shows Series but the file stores 1, so the
+  user's wiring is lost on save. With one coil the wiring has no effect on the numbers, but it is
+  still an input to keep (John, 2026-10-05). WinISD cannot save a one-coil driver as series.
 - **Editor bug 2 — numVC edit:** editing `numVC` resets the combo to Parallel without undoing the
   `Re`/`BL` rescale the Series choice made. The file then says parallel beside series-scaled values.
 - **Loading never rescales** `Re` or `BL`; the stored values are kept.
