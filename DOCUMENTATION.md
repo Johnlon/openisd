@@ -80,7 +80,6 @@ Active plans are in [docs/plans/](docs/plans/); finished or superseded ones are 
 | [PLAN_LAYER_REORGANIZATION_LOWLEVEL.md](docs/plans/PLAN_LAYER_REORGANIZATION_LOWLEVEL.md) | Layer reorganisation, execution steps            |
 | [PLAN_FIELD_KEY_CONSOLIDATION.md](docs/plans/PLAN_FIELD_KEY_CONSOLIDATION.md)      | One domain-named field-key enum                         |
 | [PLAN_RETIRE_CALCS_FROM_SCRAPERS.md](docs/plans/PLAN_RETIRE_CALCS_FROM_SCRAPERS.md) | Move calculation and DQ out of the scrapers           |
-| [PLAN_COMPONENT_TEST_REORG.md](docs/plans/PLAN_COMPONENT_TEST_REORG.md)            | Browser-spec naming and decoupling                      |
 | [PLAN_QO129_BROWSER_EVALUATION_TO_VITEST.md](docs/plans/PLAN_QO129_BROWSER_EVALUATION_TO_VITEST.md) | Move arithmetic checks from Playwright to Vitest |
 | [PLAN_DOMAIN_REFACTOR.md](docs/plans/PLAN_DOMAIN_REFACTOR.md)                      | `openisdDomain.ts` symbol-by-symbol task queue          |
 
