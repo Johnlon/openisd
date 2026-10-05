@@ -1285,6 +1285,15 @@ after a forced redraw (`winisd_research/runs/pr-sd-edit-1`, `-2`, `pr-sd-load-1`
 file-load route moves both PR charts (`runs/pr-Vas-load-1`); emptying the Vas box crashes WinISD (`runs/pr-Vas-ui-crash1`). Not yet probed: the cut-and-paste
 trigger above. Bug: [BUG_20261003_winisd-pr-sd-edit-ignored.md](../../bugs/BUG_20261003_winisd-pr-sd-edit-ignored.md?html).
 
+### Emptying the PR Vas box crashes WinISD (probed 2026-10-04)
+
+A crash, not a calculation difference. Clicking into the passive radiator's Vas box and deleting its
+digits until it is empty makes WinISD die with a floating-point divide by zero (under Wine the main
+window vanishes; `winisd_research/runs/pr-Vas-ui-crash1`). The box's change handler runs on every
+keystroke and divides by the value, the same class as the Box Volume field. Real Windows was not
+tested. OpenISD does not copy it: a zero in Fs, Qms, Vas or Sd leaves every derived value finite or
+absent (`pr-spec-resolve.test.ts`). Bug: [BUG_20261004_winisd-pr-vas-box-emptied-crashes.md](../../bugs/BUG_20261004_winisd-pr-vas-box-emptied-crashes.md?html).
+
 ## 19. WinISD parameter entry — community best practices (a second source)
 
 **Source:** mtg90 ("Matt") via AVS Forum
