@@ -26,6 +26,17 @@ test('a cold start with no project shows the empty state with New/Open actions',
   await expect(page.locator('.mob-project-title')).toHaveCount(0);
 });
 
+test('the empty state shows the app logo and name above the New/Open buttons', async ({ page }) => {
+  await page.goto('/');
+  const empty = page.locator('.mob-empty');
+  const brand = empty.locator('.mob-empty-brand', { hasText: 'OpenISD' });
+  await expect(brand.locator('img[src="/icon.svg"]')).toBeVisible();
+  await expect(brand).toBeVisible();
+  const brandBox = await brand.boundingBox();
+  const ctaBox = await empty.locator('.mob-cta').first().boundingBox();
+  expect(brandBox && ctaBox && brandBox.y + brandBox.height <= ctaBox.y).toBe(true);
+});
+
 test('opening a project swaps the empty state for the tab bar, defaulting to the Box tab', async ({ page }) => {
   await page.goto('/');
   await openAMobileProject(page);

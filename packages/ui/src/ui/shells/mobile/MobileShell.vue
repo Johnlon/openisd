@@ -36,6 +36,10 @@ const winisdDifferences = injectWinisdDifferencesModal();
     <input ref="fileInput" type="file" :accept="OpenableFiles.ACCEPT" style="display:none" @change="openImportedFile">
 
     <div v-if="!projectOpen" class="mob-empty">
+      <div class="mob-empty-brand">
+        <img src="/icon.svg" alt="" aria-hidden="true">
+        <span>OpenISD</span>
+      </div>
       <p class="mob-empty-title">No project open</p>
       <button type="button" class="mob-cta" @click="openNewProject">New project</button>
       <button type="button" class="mob-cta mob-cta-secondary" @click="fileInput?.click()">Open a file</button>
@@ -93,39 +97,44 @@ const winisdDifferences = injectWinisdDifferencesModal();
               <span v-if="username" class="mob-menu-username">{{ username }}</span>
             </div>
           </div>
-          <div class="mob-menu-sep"></div>
-          <button type="button" class="mob-menu-item" @click="openNewProject">New project</button>
-          <button type="button" class="mob-menu-item" @click="openProjectDialog">Open project…</button>
-          <button type="button" class="mob-menu-item" @click="openFromDisk">Open a file</button>
-          <div class="mob-menu-sep"></div>
-          <button type="button" class="mob-menu-item" :class="{ dirty: isModified }" @click="saveProject(); closeMenu()">Save</button>
-          <button type="button" class="mob-menu-item" :disabled="!anyUnsaved" @click="saveAllProjects(); closeMenu()">Save all</button>
-          <ExportMenu class="mob-menu-item mob-menu-export">Save As / Export</ExportMenu>
-          <div class="mob-menu-sep"></div>
-          <button type="button" class="mob-menu-item" :disabled="!isModified" @click="revertProject">Revert unsaved changes</button>
-          <div class="mob-menu-sep"></div>
-          <button type="button" class="mob-menu-item" @click="goToProject">Project details</button>
-          <button type="button" class="mob-menu-item" @click="goToAdvanced">Advanced</button>
-          <button type="button" class="mob-menu-item" @click="browseDrivers">Manage Drivers</button>
-          <button type="button" class="mob-menu-item" @click="openOptions">Options</button>
-          <button type="button" class="mob-menu-item" @click="about(); closeMenu()">About OpenISD</button>
-          <button type="button" class="mob-menu-item" @click="winisdDifferences.show(); closeMenu()">OpenISD and WinISD differences</button>
-          <div class="mob-menu-sep"></div>
-          <button type="button" class="mob-menu-item" @click="switchToDesktop">Switch to Desktop view</button>
-          <div class="mob-menu-sep"></div>
-          <div class="mob-menu-heading">Open projects</div>
-          <div v-for="(row, i) in openProjectRows" :key="i" class="mob-open-project" :class="{ focused: row.focused }">
-            <input type="checkbox" class="mob-open-project-show" :checked="row.traceVisible"
-                   :aria-label="'Show ' + row.name + ' on the graphs'" title="Show/hide this project's trace on the graphs"
-                   @change="setOpenProjectTraceVisible(row, inputChecked($event))">
-            <button type="button" class="mob-open-project-colour" :style="{ background: row.colour }"
-                    :aria-label="'Change the colour of ' + row.name" title="Tap to change this project's curve colour"
-                    @click="cycleOpenProjectColour(row)"></button>
-            <button type="button" class="mob-open-project-name" :title="row.name" @click="selectOpenProject(row)">
-              <span v-if="row.unsaved" class="mob-open-project-dot" title="Unsaved changes"></span>{{ row.name }}
-            </button>
-            <button type="button" class="mob-open-project-close" :aria-label="'Close ' + row.name" @click="closeOpenProject(row)">&#10005;</button>
-          </div>
+          <!-- Project: what changes or files the open projects. App: the app and its library. -->
+          <section class="mob-menu-section" aria-labelledby="mob-menu-head-project">
+            <div id="mob-menu-head-project" class="mob-menu-section-head">Project</div>
+            <button type="button" class="mob-menu-item" @click="openNewProject">New project</button>
+            <button type="button" class="mob-menu-item" @click="openProjectDialog">Open project…</button>
+            <button type="button" class="mob-menu-item" @click="openFromDisk">Open a file</button>
+            <div class="mob-menu-sep"></div>
+            <button type="button" class="mob-menu-item" :class="{ dirty: isModified }" @click="saveProject(); closeMenu()">Save</button>
+            <button type="button" class="mob-menu-item" :disabled="!anyUnsaved" @click="saveAllProjects(); closeMenu()">Save all</button>
+            <ExportMenu class="mob-menu-item mob-menu-export">Save As / Export</ExportMenu>
+            <div class="mob-menu-sep"></div>
+            <button type="button" class="mob-menu-item" :disabled="!isModified" @click="revertProject">Revert unsaved changes</button>
+            <div class="mob-menu-sep"></div>
+            <button type="button" class="mob-menu-item" @click="goToProject">Project details</button>
+            <button type="button" class="mob-menu-item" @click="goToAdvanced">Advanced</button>
+            <div class="mob-menu-sep"></div>
+            <div class="mob-menu-heading">Open projects</div>
+            <div v-for="(row, i) in openProjectRows" :key="i" class="mob-open-project" :class="{ focused: row.focused }">
+              <input type="checkbox" class="mob-open-project-show" :checked="row.traceVisible"
+                     :aria-label="'Show ' + row.name + ' on the graphs'" title="Show/hide this project's trace on the graphs"
+                     @change="setOpenProjectTraceVisible(row, inputChecked($event))">
+              <button type="button" class="mob-open-project-colour" :style="{ background: row.colour }"
+                      :aria-label="'Change the colour of ' + row.name" title="Tap to change this project's curve colour"
+                      @click="cycleOpenProjectColour(row)"></button>
+              <button type="button" class="mob-open-project-name" :title="row.name" @click="selectOpenProject(row)">
+                <span v-if="row.unsaved" class="mob-open-project-dot" title="Unsaved changes"></span>{{ row.name }}
+              </button>
+              <button type="button" class="mob-open-project-close" :aria-label="'Close ' + row.name" @click="closeOpenProject(row)">&#10005;</button>
+            </div>
+          </section>
+          <section class="mob-menu-section" aria-labelledby="mob-menu-head-app">
+            <div id="mob-menu-head-app" class="mob-menu-section-head">App</div>
+            <button type="button" class="mob-menu-item" @click="browseDrivers">Manage Drivers</button>
+            <button type="button" class="mob-menu-item" @click="openOptions">Options</button>
+            <button type="button" class="mob-menu-item" @click="winisdDifferences.show(); closeMenu()">OpenISD and WinISD differences</button>
+            <button type="button" class="mob-menu-item" @click="about(); closeMenu()">About OpenISD</button>
+            <button type="button" class="mob-menu-item" @click="switchToDesktop">Switch to Desktop view</button>
+          </section>
         </div>
       </div>
 
@@ -303,6 +312,8 @@ const winisdDifferences = injectWinisdDifferencesModal();
 .mob-menu-export :deep(.export-menu-list) { position: static; box-shadow: none; border: none; border-top: 1px solid var(--line); border-radius: 0; margin-top: 0; }
 .mob-menu-export :deep(.export-menu-list button) { padding: 7px 28px; font-size: 14px; }
 .mob-menu-sep { height: 1px; background: var(--line); margin: 4px 0; }
+.mob-menu-section { border-top: 2px solid var(--line); padding: 4px 0; }
+.mob-menu-section-head { padding: 4px 18px 2px; font-size: 13px; font-weight: 700; color: var(--acc); }
 .mob-menu-heading { padding: 2px 18px; font-size: 12px; color: var(--mut); text-transform: uppercase; letter-spacing: 0.04em; }
 .mob-open-project { display: flex; align-items: center; }
 .mob-open-project-show { flex: none; margin: 0 0 0 18px; width: 18px; height: 18px; }
@@ -383,6 +394,8 @@ const winisdDifferences = injectWinisdDifferencesModal();
   padding: 24px;
   text-align: center;
 }
+.mob-empty-brand { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 24px; }
+.mob-empty-brand img { width: 40px; height: 40px; display: block; }
 .mob-empty-title { font-size: 16px; color: var(--mut); margin: 0 0 8px; }
 .mob-cta {
   width: 220px;

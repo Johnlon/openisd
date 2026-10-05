@@ -233,6 +233,10 @@ const winisdDifferences = injectWinisdDifferencesModal();
             </template>
           </div>
           <div v-else class="graph-empty">
+            <div class="graph-empty-brand">
+              <img src="/icon.svg" alt="" aria-hidden="true">
+              <span>OpenISD</span>
+            </div>
             <div class="graph-empty-h">Open or Create a project for charts</div>
             <div class="graph-empty-actions">
               <button class="graph-empty-link" @click="presentationState.newProjectOpen = true"><ToolbarIcon name="new" /> <span>New project</span></button>
@@ -1079,6 +1083,8 @@ const winisdDifferences = injectWinisdDifferencesModal();
 .dropdown-menu .chart-item input { margin:0; cursor:pointer; }
 .dropdown-menu .chart-item::before { display:none !important; }
 .graph-empty { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:24px; color:#777; gap:6px; }
+.graph-empty-brand { display:flex; align-items:center; gap:8px; margin-bottom:10px; font-size:22px; font-weight:600; color:#333; }
+.graph-empty-brand img { width:36px; height:36px; display:block; }
 .graph-empty-h { font-size:16px; font-weight:600; color:#333; }
 .graph-empty-actions { display:flex; gap:12px; margin-top:4px; }
 .graph-empty-link { display:inline-flex; align-items:center; gap:5px; border:0; padding:2px 4px; background:transparent; color:var(--acc); text-decoration:underline; cursor:pointer; }

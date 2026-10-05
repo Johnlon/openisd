@@ -36,6 +36,19 @@ test.describe('No-project shell', () => {
       await expect(page.locator('.projects-list')).toContainText('No projects open');
     });
 
+    test('the empty chart shows the app logo and name above the open-project buttons', async ({ page }) => {
+      await coldStart(page);
+
+      const empty = page.locator('.graph-empty');
+      const logo = empty.locator('.graph-empty-brand img[src="/icon.svg"]');
+      const name = empty.locator('.graph-empty-brand', { hasText: 'OpenISD' });
+      await expect(logo).toBeVisible();
+      await expect(name).toBeVisible();
+      const brandBox = await name.boundingBox();
+      const actionsBox = await empty.locator('.graph-empty-actions').boundingBox();
+      expect(brandBox && actionsBox && brandBox.y + brandBox.height <= actionsBox.y).toBe(true);
+    });
+
     test('no project does not wall off the toolbar’s global actions', async ({ page }) => {
       await coldStart(page);
 
