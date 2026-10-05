@@ -26,7 +26,7 @@ const DRIVER = {
 async function choosePassiveRadiator(page: Page): Promise<void> {
   const modal = page.locator('.overlay.open');
   await expect(modal).toContainText('Passive Radiator');
-  await expect(modal.locator('button', { hasText: 'Next' })).toHaveCount(0);
+  await expect(footerNext(page)).toBeDisabled();
   await modal.locator('#np-pr-select').click();
   await page.locator('button', { hasText: 'Define new passive radiator' }).click();
 }

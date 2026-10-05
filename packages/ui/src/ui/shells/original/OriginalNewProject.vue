@@ -7,6 +7,7 @@ import { onBeforeUnmount } from 'vue';
 import { NumberField, ReadoutFormat } from '@openisd/design/fields';
 import { useOgNewProject } from '../../../hooks/OriginalNewProject-hooks.js';
 import { useUnitReadouts } from '../../../hooks/useUnitReadouts.js';
+import { createNewProjectFooter } from '../../../hooks/NewProjectFooter-hooks.js';
 import { useEscToClose } from '../../../logic/useEscToClose.js';
 import { useApp } from '../../../logic/app.js';
 import BoxTypeDiagram from '../../components/BoxTypeDiagram.vue';
@@ -78,14 +79,14 @@ const {
 
   selectedOption,
 
-  canNext,
   canBack,
   canCreate,
-  next,
   back,
   createProject,
   cancel,
 } = wizard;
+
+const { canGoNext, leadIsCreate, goNext } = createNewProjectFooter(wizard, driverBrowsing);
 
 function handleCancel() {
   cancel();
@@ -94,7 +95,7 @@ function handleCancel() {
 
 useEscToClose(() => true, handleCancel);
 
-// Step 1 IS the driver library (FIX_WIZARD_SEALED Q1): "Use" hands the driver to the wizard
+// Step 1 IS the driver library (FIX_WIZARD_SEALED Q1): choosing a driver hands it to the wizard
 // for as long as the wizard is open; closing the wizard disarms that handoff.
 driverBrowsing.embedLibrary(driver => selectDriver(driver));
 onBeforeUnmount(() => driverBrowsing.closeLibrary());
@@ -125,9 +126,9 @@ function handleCreate() {
           <span class="driver-specs-preview"><span v-for="line in selectedDriverSpecs" :key="line">{{ line }}</span></span>
         </div>
 
-        <!-- Step 1: the driver library itself (Q1). A row summarises, Use chooses. -->
+        <!-- Step 1: the driver library itself (Q1). A row summarises; the footer's Next chooses it. -->
         <div v-if="step === 1" class="step-content">
-          <DriverLibrary class="np-library" show-name />
+          <DriverLibrary class="np-library" show-name host-footer />
         </div>
 
         <!-- Step 2: Driver count & placement -->
@@ -258,11 +259,13 @@ function handleCreate() {
         </div>
       </div>
 
+      <!-- One footer on every step, step 1 included: Back, the green lead (Next, or Create on the
+           last step), Cancel — the same set as the mobile wizard. -->
       <div class="modal-footer">
         <div class="footer-buttons">
-          <button v-if="canBack" class="cancel-btn" title="Back to the previous step" @click="back">&lt; Back</button>
-          <button v-if="canNext" class="ok-btn" @click="next">Next &gt;</button>
-          <button v-if="step === 5" class="ok-btn" :disabled="!canCreate" @click="handleCreate">Create</button>
+          <button class="back-btn" :disabled="!canBack" title="Back to the previous step" @click="back">&lt; Back</button>
+          <button v-if="!leadIsCreate" class="ok-btn" :disabled="!canGoNext" @click="goNext">Next &gt;</button>
+          <button v-else class="ok-btn" :disabled="!canCreate" @click="handleCreate">Create</button>
           <button class="cancel-btn" @click="handleCancel">Cancel</button>
         </div>
       </div>
@@ -312,7 +315,8 @@ function handleCreate() {
 .footer-buttons button:hover:not(:disabled) { background: #dbeaff; border-color: #7fb3ff; }
 .footer-buttons button:disabled { opacity: 0.5; cursor: not-allowed; }
 .footer-buttons button.cancel-btn { color: #b02a2a; }
-.footer-buttons button.ok-btn { color: #1b7d1b; }
+.footer-buttons button.ok-btn { background: #2e7d32; border-color: #2e7d32; color: #fff; font-weight: 600; }
+.footer-buttons button.ok-btn:hover:not(:disabled) { background: #256b29; border-color: #256b29; }
 .action-btn { border: 1px solid #999; background: #f5f5f5; border-radius: 3px; padding: 4px 10px; cursor: pointer; font-size: 12.5px; }
 .action-btn:hover { background: #e8e8e8; }
 </style>

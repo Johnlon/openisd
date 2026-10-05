@@ -6,7 +6,7 @@ import { onBeforeUnmount } from 'vue';
 import { NumberField, ReadoutFormat } from '@openisd/design/fields';
 import { useOgNewProject } from '../../../hooks/OriginalNewProject-hooks.js';
 import { useUnitReadouts } from '../../../hooks/useUnitReadouts.js';
-import { createMobileNewProjectFooter } from '../../../hooks/MobileNewProject-hooks.js';
+import { createNewProjectFooter } from '../../../hooks/NewProjectFooter-hooks.js';
 import { useEscToClose } from '../../../logic/useEscToClose.js';
 import { useApp } from '../../../logic/app.js';
 import BoxTypeDiagram from '../../components/BoxTypeDiagram.vue';
@@ -85,7 +85,7 @@ const {
   cancel,
 } = wizard;
 
-const { canGoNext, goNext } = createMobileNewProjectFooter(wizard, driverBrowsing);
+const { canGoNext, leadIsCreate, goNext } = createNewProjectFooter(wizard, driverBrowsing);
 
 function handleCancel() {
   cancel();
@@ -234,8 +234,8 @@ function handleCreate() {
          place. On step 1 Next chooses the driver being read; the preview has no buttons of its own. -->
     <div class="mob-np-footer">
       <button class="cancel-btn" :disabled="!canBack" @click="back">&lt; Back</button>
-      <button v-if="step < 5" class="ok-btn" :disabled="!canGoNext" @click="goNext">Next &gt;</button>
-      <button v-if="step === 5" class="ok-btn" :disabled="!canCreate" @click="handleCreate">Create</button>
+      <button v-if="!leadIsCreate" class="ok-btn" :disabled="!canGoNext" @click="goNext">Next &gt;</button>
+      <button v-else class="ok-btn" :disabled="!canCreate" @click="handleCreate">Create</button>
       <button class="cancel-btn" @click="handleCancel">Cancel</button>
     </div>
   </div>

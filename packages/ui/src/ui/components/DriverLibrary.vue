@@ -12,7 +12,7 @@ import {DriverFileFormat} from '../../fileFormat.js';
 //
 // `showName`: the overlay puts the summarised driver's name in its own title bar; a host with
 // no title bar asks for it inline above the summary.
-// `hostFooter`: the host (the mobile wizard) draws the page's own buttons, so the summary shows
+// `hostFooter`: the host (the New Project wizard, both skins) draws the page's own buttons, so the summary shows
 // no Use/Cancel pair of its own.
 const props = defineProps<{ showName?: boolean; hostFooter?: boolean }>();
 
