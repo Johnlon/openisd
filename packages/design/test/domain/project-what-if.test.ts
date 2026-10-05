@@ -5,10 +5,10 @@
  */
 import {describe, expect, it} from 'vitest';
 import {createEngine} from '@openisd/design/engine';
-import {ProjectBuilder} from '../../domain/index.js';
+import {type FrequencyGrid, ProjectBuilder} from '../../domain/index.js';
 import {driverFrom, whatIfSpec} from '../fixtures/domainBuilders.js';
 
-const GRID = { fmin: 10, fmax: 1000, N: 50 };
+const GRID: FrequencyGrid = { fmin: 10, fmax: 1000, N: 50 };
 
 function savedSealedProject() {
   const project = new ProjectBuilder(driverFrom({
