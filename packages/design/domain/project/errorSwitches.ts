@@ -16,7 +16,7 @@ export interface ErrorSwitchStates {
     /** WinISD Re without Rg: Re where the amplifier sees Re + Rg (VA chart, power/voltage readout). */
     readonly vaModel: ErrorSwitchState;
     /** PR Npr resonance: the passive-radiator box's fixed losses at an ωr that uses Npr where the
-     *  tuning divides by it. */
+     *  tuning divides by it. Applies with more than one radiator: at Npr 1 the two agree. */
     readonly prNprResonance: ErrorSwitchState;
     /** WinISD Bessel high-pass: not the mirror of the Bessel low-pass. */
     readonly besselHighpass: ErrorSwitchState;
@@ -35,6 +35,8 @@ export interface ErrorSwitchInputs {
     readonly winisdDriverCountModel: boolean;
     /** The number of drivers in the box. */
     readonly nDrivers: number;
+    /** The number of passive radiators (Npr). */
+    readonly nPassiveRadiators: number;
     /** The project has at least one enabled Bessel high-pass filter. */
     readonly hasBesselHighpass: boolean;
     readonly winisdAbcGroupDelay: boolean;
@@ -45,7 +47,7 @@ export function errorSwitchStatesOf(i: ErrorSwitchInputs): ErrorSwitchStates {
         driverModel: {marked: true, applicable: true, reproducesError: i.winisdDriverModel},
         vaModel: {marked: true, applicable: true, reproducesError: i.winisdVaModel},
         besselHighpass: {marked: true, applicable: i.hasBesselHighpass, reproducesError: i.winisdBesselHighpass},
-        prNprResonance: {marked: true, applicable: i.boxType === 'box-passive-radiator', reproducesError: i.winisdPrNprResonance},
+        prNprResonance: {marked: true, applicable: i.boxType === 'box-passive-radiator' && i.nPassiveRadiators > 1, reproducesError: i.winisdPrNprResonance},
         abcGroupDelay: {marked: true, applicable: i.boxType === 'abc', reproducesError: i.winisdAbcGroupDelay},
         driverCount: {marked: true, applicable: i.nDrivers > 1, reproducesError: i.winisdDriverCountModel},
     };

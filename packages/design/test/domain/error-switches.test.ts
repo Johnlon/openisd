@@ -45,10 +45,14 @@ describe('errorSwitches', () => {
     expect(p.errorSwitches.driverModel.reproducesError).toBe(false);
   });
 
-  it('PR Npr resonance: marked and applicable on a passive radiator box only, reproducing the error only when ticked', () => {
+  it('PR Npr resonance: marked, applicable on a passive radiator box with more than one radiator only, reproducing the error only when ticked', () => {
     const p = abcProject();
     expect(p.errorSwitches.prNprResonance).toEqual({marked: true, applicable: false, reproducesError: false});
     p.box.boxType.set('box-passive-radiator');
+    // One radiator: Npr = 1, so WinISD's mass × Npr and the tuning's ÷ Npr agree; the bug does nothing (John, 2026-10-05).
+    p.box.passiveRadiator.count.set(1);
+    expect(p.errorSwitches.prNprResonance.applicable).toBe(false);
+    p.box.passiveRadiator.count.set(2);
     expect(p.errorSwitches.prNprResonance).toEqual({marked: true, applicable: true, reproducesError: false});
     p.winisdPrNprResonance.set(true);
     expect(p.errorSwitches.prNprResonance).toEqual({marked: true, applicable: true, reproducesError: true});
@@ -146,11 +150,14 @@ describe('WinISD deviation cues', () => {
     expect(cue.inEffectOnChart(p.errorSwitches, 'VA')).toBe(false);
   });
 
-  it('PR Npr resonance: in effect on a passive radiator box while the switch is off', () => {
+  it('PR Npr resonance: in effect on a passive radiator box with more than one radiator while the switch is off', () => {
     const p = abcProject();
     const cue = WinisdDeviation.PR_NPR_RESONANCE;
     expect(cue.inEffect(p.errorSwitches)).toBe(false);
     p.box.boxType.set('box-passive-radiator');
+    p.box.passiveRadiator.count.set(1);
+    expect(cue.inEffect(p.errorSwitches)).toBe(false);
+    p.box.passiveRadiator.count.set(2);
     expect(cue.inEffect(p.errorSwitches)).toBe(true);
     p.winisdPrNprResonance.set(true);
     expect(cue.inEffect(p.errorSwitches)).toBe(false);

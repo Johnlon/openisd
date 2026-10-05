@@ -352,6 +352,7 @@ export class OpenISDProject {
             winisdBesselHighpass: this.winisdBesselHighpass.value,
             winisdDriverCountModel: this.winisdDriverCountModel.value,
             nDrivers: this.nDrivers.value,
+            nPassiveRadiators: this.box.passiveRadiator.count.value,
             hasBesselHighpass: this.filters.value.some(f => f.type === 'highpass' && f.family === 'bessel' && f.enabled),
             winisdAbcGroupDelay: this.winisdAbcGroupDelay.value,
         });
