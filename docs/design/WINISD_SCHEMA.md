@@ -205,8 +205,9 @@ control. `Xlim` is simply absent from the list of keys the save routine writes.
 **Xlim save bug:** `s-xlim-123.wdr` (Xlim set to 123, then saved) contains no `Xlim=` line and
 every numeric line still `0`, with slot 11 = `E`. Compare `s-fs.wdr`, the same experiment on a
 field that works: `Fs=123` written AND slot 2 = `E`. The `.wpr` behaves the same way —
-`docs/winisd_screenshots/sample_project_Epique15_-_pr.wpr` has no `Xlim=` key in its `[Driver]` section
-either, though that sample's slot 11 is `N`, so it is not a positive test. Verified 2026-08-16.
+none of the 15 WinISD-saved goldens in
+`packages/design/test/winisd/fixtures/winisd-parity/goldens/` has an `Xlim=` key, though none of them
+states Xlim either, so it is not a positive test. Verified 2026-08-16, goldens re-checked 2026-10-05.
 
 ### <a id="grp-coilgap"></a>3.7 Voice coil and gap geometry
 
@@ -1146,8 +1147,8 @@ both for editing on the driver, saves what is typed, and MARKS IT AS ENTERED.
 `s-roo-set400-and-c-set2.wdr` states `c=400` and `roo=2` with **ParState slots 48 and 49 = `E`**
 — every other file in the corpus ends `CC`. So the default pair is WinISD's own computation
 from its environment defaults, and a typed value overrides it as a stated fact. The `.wpr`
-agrees: in `docs/winisd_screenshots/sample_project_Epique15_-_pr.wpr`
-they appear at lines 53-54, **inside the `[Driver]` section**, not in `[ProjectInfo]`,
+agrees: in every WinISD-saved golden in `packages/design/test/winisd/fixtures/winisd-parity/goldens/`
+(e.g. `bandpass4.wpr`) they appear **inside the `[Driver]` section**, not in `[ProjectInfo]`,
 `[SimulatorOptions]` or any other project-level section.
 
 What they MEAN per driver is not documented in any WinISD material held here. The plausible

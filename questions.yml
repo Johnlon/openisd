@@ -518,6 +518,12 @@ questions:
         sample5    full recompute via Fs at T=303.15; c/roo unmoved; SPL follows the unchanged K
         sample6    single-line diff from baseline, T only; every other byte identical
         sample7    c/roo deleted and recomputed at T=303.15; they come back as the 20 C values
+  - at: '2026-10-05'
+    text: |-
+      2026-10-05: CIPM-2007 removed, WinISD model only (John). The two differed by ~8 ppm in rho and
+      ~4 ppm in c, invisible on any chart. The useWinisdAirModel switch is gone; a saved project that
+      still carries it loads and the value is ignored. Temperature, humidity and pressure still feed
+      WinISD's model.
   answer:
     at: '2026-08-16'
     text: |-
@@ -7386,6 +7392,12 @@ questions:
       the comment. Help text rewritten in AdvancedOptions.vue and fieldRegistry.ts to say plainly that
       it makes no audible difference and exists for completeness and interest, and that NEITHER setting
       discards an input. 2119 tests pass.
+  - at: '2026-10-05'
+    text: |-
+      2026-10-05: CIPM-2007 removed, WinISD model only (John). The two differed by ~8 ppm in rho and
+      ~4 ppm in c, invisible on any chart. The useWinisdAirModel switch is gone; a saved project that
+      still carries it loads and the value is ignored. Temperature, humidity and pressure still feed
+      WinISD's model.
   answer:
     at: '2026-09-04'
     text: 'Already implemented and ruled 2026-08-28: WinISD default, CIPM-2007 checkbox opt-in, difference
@@ -9205,7 +9217,7 @@ questions:
       entries; Project B has no history.'
 - id: QO140
   title: Choose the W5 sealed comparison Vas source
-  status: open
+  status: decided
   raised: '2026-09-13'
   body: ''
   notes:
@@ -9215,6 +9227,10 @@ questions:
       relation. Which should the sealed 6 L / 1 W chart comparison use: the authoritative bundled manufacturer
       record (4.85 L), or a separate WinISD-parity comparison fixture carrying the recalculated 5.758061995
       L? The driver record itself will not be overwritten without this ruling.'
+  - at: '2026-10-05'
+    text: 'John ruled: a W5 reference comparison uses the real W5 values (bundled Vas 4.85 L), never the
+      recalculated 5.758 L. A comparison that needs a different second reference uses the Epique 150HE,
+      not a W5 variant. The W5 driver record is unchanged.'
 - id: QO141
   title: Verify WinISD behavior behind unverified tooltips
   status: decided
@@ -9700,7 +9716,7 @@ questions:
     is a natural place for an iterative "try a constraint, see if it breaks the design" interaction.'
 - id: QO165
   title: 'opentui: Windows Terminal hyperlink recognition + force-override env (decide how to ask upstream)'
-  status: open
+  status: decided
   raised: '2026-09-19'
   body: |-
     Investigated why chat file-mentions render as "text (url)" in Windows Terminal instead of a bare clickable filename.
@@ -9712,6 +9728,9 @@ questions:
     - No hyperlink force-override env exists (only OPENTUI_FORCE_WCWIDTH/UNICODE/NOZWJ/EXPLICIT_WIDTH). TERM=xterm-256color is already correct.
 
     Decision needed: raise an opentui feature request (add Windows Terminal to isHyperlinkTerm and/or add an OPENTUI_FORCE_HYPERLINK override env), or live with the (url) suffix / run opencode outside WSL.
+  notes:
+  - at: '2026-10-05'
+    text: 'John closed it: no upstream request; live with the (url) suffix in Windows Terminal.'
 - id: QO169
   title: Saved OpenISD high/low-pass filters after the WinISD filter rework
   status: decided
