@@ -1,6 +1,6 @@
 <script setup lang="ts">
 // Full-screen dialog frame in the Options style: title with a top-right ✕, a scrolling body,
-// and a footer with one Close button. Fixed to the whole screen so its size never depends on
+// and a footer with one Close button (a `footer` slot replaces it, e.g. Cancel and Save). Fixed to the whole screen so its size never depends on
 // its content.
 import {useEscToClose} from '../../../logic/useEscToClose.js';
 
@@ -18,7 +18,7 @@ useEscToClose(() => true, () => emit('close'));
     </div>
     <div class="mob-dlg-body"><slot /></div>
     <div class="mob-dlg-footer">
-      <button type="button" class="mob-dlg-ok" @click="emit('close')">Close</button>
+      <slot name="footer"><button type="button" class="mob-dlg-ok" @click="emit('close')">Close</button></slot>
     </div>
   </div>
 </template>

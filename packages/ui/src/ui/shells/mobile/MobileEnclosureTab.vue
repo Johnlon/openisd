@@ -11,6 +11,7 @@ import NumInput from '../../components/NumInput.vue';
 import NumReadout from '../../components/NumReadout.vue';
 import UnitToggle from '../../components/UnitToggle.vue';
 import PRBrowser from '../../components/PRBrowser.vue';
+import MobilePaneDialog from './MobilePaneDialog.vue';
 import {useMobileEnclosureTab} from '../../../hooks/MobileEnclosureTab-hooks.js';
 import {useUnitReadouts} from '../../../hooks/useUnitReadouts.js';
 
@@ -18,7 +19,8 @@ const {
   project, selectedBox,
   activeVent, activeTuning, portPipeResonance_hz, fbState, ventLState, fbUnreachable, fbUnreachableMsg, frontChamberTuningLabel,
   prAddedMassDq, prTuningDq, prResonanceMassDq, prFsMass_hz,
-  prBrowseOpen, loadPREntry, loadBundledPassiveRadiatorEntry, defineNewPREntry, saveToLibrary,
+  prBrowseOpen, loadPREntry, loadBundledPassiveRadiatorEntry, defineNewPREntry,
+  prSaveOpen, prSaveName, prSaveCanSave, openPRSave, cancelPRSave, confirmPRSave,
   setVentWidth, setVentHeight, setVentDiameter, setVentLength, setFbTarget,
   VENT_SHAPE_OPTIONS, END_CORRECTION_OPTIONS, VENT_COUNT_OPTIONS, PR_COUNT_OPTIONS,
   FB_TARGET_TIP, VENT_GEOMETRY_TIP,
@@ -157,8 +159,22 @@ const {fieldWithUnit} = useUnitReadouts();
     </div>
     <div class="mob-row mob-pr-actions">
       <button class="mob-btn" @click="prBrowseOpen = true">Select passive radiator</button>
-      <button class="mob-btn mob-btn-secondary" title="Save these passive radiator parameters to your library under the current passive radiator name" @click="saveToLibrary">Save to library</button>
+      <button class="mob-btn mob-btn-secondary" title="Save a copy of this passive radiator to your library, under a name you choose" @click="openPRSave">Save to library</button>
     </div>
+    <MobilePaneDialog v-if="prSaveOpen" title="Save passive radiator to library" @close="cancelPRSave">
+      <div class="mob-panel">
+        <div class="mob-row">
+          <div class="mob-pr-id">
+            <label class="mob-pr-label" for="mob-pr-save-name">Name</label>
+            <input id="mob-pr-save-name" v-model="prSaveName" class="mob-pr-name" type="text" title="The name the copy has in your library. The project's passive radiator keeps its own name." @keydown.enter="confirmPRSave">
+          </div>
+        </div>
+      </div>
+      <template #footer>
+        <button type="button" class="mob-btn mob-btn-secondary" @click="cancelPRSave">Cancel</button>
+        <button type="button" class="mob-btn" :disabled="!prSaveCanSave" @click="confirmPRSave">Save</button>
+      </template>
+    </MobilePaneDialog>
     <PRBrowser v-if="prBrowseOpen" @close="prBrowseOpen = false"
       @load="loadPREntry" @load-bundled="loadBundledPassiveRadiatorEntry" @define="defineNewPREntry" />
 

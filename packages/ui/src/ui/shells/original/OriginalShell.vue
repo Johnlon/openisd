@@ -54,7 +54,8 @@ const {
   frontVolume_m3, setFrontVolume_m3, frcHz, setFrcHz, rearResonance, frontChamberTuningLabel,
   model, startEdit, startTune, placement,
   activeVent, END_CORRECTION_OPTIONS, VENT_SHAPE_OPTIONS, VENT_COUNT_OPTIONS, PR_COUNT_OPTIONS, ventLState, portPipeResonance_hz,
-  prBrowseOpen, loadPREntry, loadBundledPassiveRadiatorEntry, defineNewPREntry, saveToLibrary,
+  prBrowseOpen, loadPREntry, loadBundledPassiveRadiatorEntry, defineNewPREntry,
+  prSaveOpen, prSaveName, prSaveCanSave, openPRSave, cancelPRSave, confirmPRSave,
   prAddedMassDq, prTuningDq, prResonanceMassDq, prFsMass_hz, dqOfCell, fmt,
   driveV, rsOhm, advTemp, advHumidity, advPressure, advAir,
   envTempStored, envHumidityStored, envPressureStored, envTempDq, envHumidityDq, envPressureDq,
@@ -545,7 +546,7 @@ const winisdDifferences = injectWinisdDifferencesModal();
             <div class="field-row driver-id-row" style="--label-w:36px; margin-bottom:8px;">
               <div class="field tight entered" :title="TextField.PR_NAME.description"><label>{{ TextField.PR_NAME.label }}</label><input id="og-pr-name" type="text" style="width:220px" :value="project.box.passiveRadiator.radiator.model.value" @input="e => project.box.passiveRadiator.radiator.model.set(inputValue(e))"></div>
               <button class="edit-btn" title="Browse bundled + saved passive radiators — click one to load it into this project." @click="prBrowseOpen = true">Select passive radiator</button>
-              <button class="edit-btn" title="Save these passive radiator parameters to your library under the current passive radiator name" @click="saveToLibrary">Save to library</button>
+              <button class="edit-btn" title="Save a copy of this passive radiator to your library, under a name you choose" @click="openPRSave">Save to library</button>
             </div>
             <PRBrowser v-if="prBrowseOpen" @close="prBrowseOpen = false"
               @load="loadPREntry" @load-bundled="loadBundledPassiveRadiatorEntry" @define="defineNewPREntry" />
@@ -857,6 +858,21 @@ const winisdDifferences = injectWinisdDifferencesModal();
             </button>
           </div>
         </div>
+      </div>
+    </div>
+
+    <div v-if="prSaveOpen" class="overlay on pr-save-dialog" @click.self="cancelPRSave">
+      <div class="modal narrow" role="dialog" aria-label="Save passive radiator to library">
+        <div class="modal-titlebar">
+          <div class="tb-left"><span class="app-icon"></span><span>Save passive radiator to library</span></div>
+          <div class="win-controls"><span class="close-btn" @click="cancelPRSave">&#10005;</span></div>
+        </div>
+        <div class="modal-body">
+          <div class="field-row"><div class="field"><label for="og-pr-save-name">Name</label>
+            <input id="og-pr-save-name" v-model="prSaveName" type="text" style="width:260px" title="The name the copy has in your library. The project's passive radiator keeps its own name." @keydown.enter="confirmPRSave">
+          </div></div>
+        </div>
+        <div class="modal-footer"><div></div><div class="footer-buttons"><button class="cancel-btn" @click="cancelPRSave">Cancel</button><button class="ok-btn" :disabled="!prSaveCanSave" @click="confirmPRSave">Save</button></div></div>
       </div>
     </div>
 
