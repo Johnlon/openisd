@@ -60,7 +60,6 @@ const FORWARDS_BASELINE: ReadonlySet<string> = new Set([
   "packages/design/domain/project/openISDProject.ts#OpenISDProject.setEnvHumidityPct",
   "packages/design/domain/project/openISDProject.ts#OpenISDProject.setEnvPressurePa",
   "packages/design/domain/project/openISDProject.ts#OpenISDProject.setEnvTempK",
-  "packages/design/domain/project/openISDProject.ts#OpenISDProject.setEnvUseWinisdAirModel",
   "packages/design/domain/project/projectListeners.ts#ProjectListeners.add",
   "packages/design/domain/project/projectListeners.ts#ProjectListeners.delete",
   "packages/ui/src/logic/appState.ts#currentProject",

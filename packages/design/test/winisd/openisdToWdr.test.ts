@@ -150,8 +150,8 @@ describe('openisd.json → winisd.wdr — format conformance (oracle: drivers/my
     // record's own values) and ParState (asserted separately).
     const HEADER = new Set(['Brand', 'Model', 'Manufacturer', 'ProvidedBy', 'Comment',
       'DateAdded', 'DateModified', 'ParState']);
-    // c/roo: openisd computes both live from the CIPM-2007 moist-air model at the reference
-    // environment (packages/engine/src/air.ts) rather than holding WinISD's stored literal —
+    // c/roo: openisd computes both live from WinISD's air model at the reference
+    // environment (packages/design/engine/air.ts) rather than holding WinISD's stored literal —
     // there is no frozen constant anywhere (AGENTS.md 'Calculation logic — permission gate'
     // sign-off 2026-08-19). Bounded agreement instead of byte equality; same mechanism as
     // divergences.json's "*"/c and "*"/roo entries in winisd-parity-goldens.test.ts.

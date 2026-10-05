@@ -68,8 +68,9 @@ async function onBackupFile(e: Event) {
   input.value = '';
   if (!file) return;
   if (!confirm(
-    'Restoring a backup REPLACES all projects, My Drivers, My Passive Radiators, and preferences '
-    + 'with what is in this file — anything not in the file is removed. This cannot be undone. Continue?',
+    'Restore will overwrite, at once, everything the application holds in memory: all projects, '
+    + 'My Drivers, My Passive Radiators and preferences are replaced by what is in this file. '
+    + 'Anything not in the file is lost. This cannot be undone. Continue?',
   )) return;
   const result = await restoreFromFile(file);
   if (!result.ok) { alert(`Could not restore: ${result.reason}`); return; }
@@ -87,7 +88,7 @@ const {
   canApply, apply: applyAppSettings,
 } = useOptionsModal();
 
-type Tab = 'General' | 'Plot Window';
+type Tab = 'General' | 'Plot Window' | 'Backup';
 const limitsMoreOpen = ref(false);
 const tab = reactive<{ v: Tab }>({ v: 'General' });
 
@@ -216,6 +217,7 @@ function limitVal(chartId: ChartId, key: 'min' | 'max'): number | undefined {
       <div class="opt-tabs">
         <button class="opt-tab" :class="{ on: tab.v === 'General' }" @click="tab.v = 'General'">General</button>
         <button class="opt-tab" :class="{ on: tab.v === 'Plot Window' }" @click="tab.v = 'Plot Window'">Plot Window</button>
+        <button class="opt-tab" :class="{ on: tab.v === 'Backup' }" @click="tab.v = 'Backup'">Backup</button>
       </div>
 
       <div class="opt-body">
@@ -314,7 +316,9 @@ function limitVal(chartId: ChartId, key: 'min' | 'max'): number | undefined {
               Reset to Metric (l, mm, …)
             </button>
           </fieldset>
+        </template>
 
+        <template v-else-if="tab.v === 'Backup'">
           <fieldset class="opt-group">
             <legend>Backup</legend>
             <p class="opt-help">

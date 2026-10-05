@@ -645,10 +645,7 @@ const {
               <AdvancedOptions />
             </div>
             <div class="sim-options-box">
-              <div class="sim-options-header">
-                <span>WinISD Compatibility</span>
-              </div>
-              <CompatPresets />
+              <CompatPresets><span class="sim-options-header">WinISD Compatibility</span></CompatPresets>
               <div class="sim-switches">
                 <div class="sim-switch-col">
                 <div class="field-row" style="flex-wrap: nowrap; margin-bottom: 3px;">
@@ -658,11 +655,6 @@ const {
                   </select>
                 </div>
               </div>
-                <div>
-                  <label data-field-key="useWinisdAirModel" style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 12px;" :title="ToggleField.ADV_USEWINISDAIRMODEL.description">
-                    <input type="checkbox" :checked="project.envUseWinisdAirModel.value" @change="e => project.envUseWinisdAirModel.set(inputChecked(e))"> WinISD air model
-                  </label>
-                </div>
                 <div>
                   <label data-field-key="winisdWrapPhase" style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 12px;" :title="`WinISD phase wrapping: wraps phase curves to [-180°, +180°].\nTicked (default, as WinISD): phase curves wrap at ±180°.\nUnticked (conventional): phase curves stay continuous and unwrapped.`">
                     <input type="checkbox" :checked="project.winisdWrapPhase.value" @change="e => project.winisdWrapPhase.set(inputChecked(e))"> WinISD phase wrapping
@@ -678,12 +670,8 @@ const {
                     <input type="checkbox" :checked="project.winisdFlatModel.value" @change="e => project.winisdFlatModel.set(inputChecked(e))"> WinISD flat response
                   </label>
                 </div>
-                <div>
-                  <label data-field-key="winisdAbcIntraPortVelocity" style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 12px;" :class="{ 'compat-switch-na': !abcVelocityApplies }" :title="ToggleField.ADV_WINISDABCINTRAPORTVELOCITY.description">
-                    <input type="checkbox" :checked="project.winisdAbcIntraPortVelocity.value" :disabled="!abcVelocityApplies" @change="e => project.winisdAbcIntraPortVelocity.set(inputChecked(e))"> {{ ToggleField.ADV_WINISDABCINTRAPORTVELOCITY.label }}
-                  </label>
                 </div>
-                </div>
+                <div class="sim-switch-col">
                 <ErrorSwitchGroup>
                   <div>
                     <ErrorSwitch as="label" field-key="winisdDriverModel" style="font-size: 12px;" :marked="errorSwitches.driverModel.marked" :applicable="errorSwitches.driverModel.applicable" :reproduces-error="errorSwitches.driverModel.reproducesError" :title="`WinISD Driver Model\nTicked (as WinISD): the simulation uses two BLs, as WinISD does. The damping comes from the driver WinISD acts on: Cms from Vas, then Mms, Rms and BL from Fs, Qms and Qes. The entered BL sets the loudness and, with voice coil inductance on, the inductance roll-off. We judge the two-BL mix a WinISD bug.\nUnticked (the default, corrected): the simulation uses the entered datasheet values, one BL throughout.\nThe two differ only when the entered values disagree with Fs, Vas, Qes and Qms.`">
@@ -706,6 +694,12 @@ const {
                     </ErrorSwitch>
                   </div>
                 </ErrorSwitchGroup>
+                <div class="sim-switch-after-group">
+                  <label data-field-key="winisdAbcIntraPortVelocity" style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 12px;" :class="{ 'compat-switch-na': !abcVelocityApplies }" :title="ToggleField.ADV_WINISDABCINTRAPORTVELOCITY.description">
+                    <input type="checkbox" :checked="project.winisdAbcIntraPortVelocity.value" :disabled="!abcVelocityApplies" @change="e => project.winisdAbcIntraPortVelocity.set(inputChecked(e))"> {{ ToggleField.ADV_WINISDABCINTRAPORTVELOCITY.label }}
+                  </label>
+                </div>
+                </div>
               </div>
             </div>
           </div>
@@ -1237,17 +1231,8 @@ textarea.comment, textarea.description { width:100%; border:1px solid #999; bord
 .sim-options-box :deep(.compat-presets) { max-width: 338px; }
 /* A fixed width, so a long error-switch label wraps inside the group and does not widen the panel. */
 .sim-switches :deep(.error-switch-group) { flex: none; width: 160px; }
-.sim-options-header {
-  font-weight: 600;
-  font-size: 11px;
-  color: #333;
-  margin-bottom: 3px;
-  border-bottom: 1px solid #d0d0d0;
-  padding-bottom: 2px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
+.sim-options-header { font-weight: 600; font-size: 11px; color: #333; }
+.sim-options-box :deep(.compat-presets-head) { border-bottom: 1px solid #d0d0d0; padding-bottom: 2px; }
 .compat-switch-na { opacity: 0.45; cursor: default; }
 
 /* filters tab fills the panel */

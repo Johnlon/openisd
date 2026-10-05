@@ -102,7 +102,6 @@ control in the WinISD Compatibility panel (Advanced tab) or the Box losses pane.
 |---|---|---|---|
 | WinISD driver model | Cms from Vas; Mms, Rms from Fs, Qms; damping BL from Qes; **entered** BL for push, impedance, TF reference and CLe | entered Cms, Mms, Rms, BL, one BL throughout | all driver charts |
 | WinISD VA model | VA = P·Re·\|Hf\|²/\|Z + Rg\| | P·(Re + Rg)·\|Hf\|²/\|Z_amp\|, Rg counted once | Amplifier apparent load power |
-| WinISD air model | WinISD's air equations: Hyland-Wexler vapour pressure, no enhancement factor, ρ from γ·p/c² | CIPM-2007 moist air | all (ppm level) |
 | Loss model | WinISD Lossy: §1.2 | Conventional Lossy: Zc ∥ Ql/(ωCab) ∥ Qa/(ωCab), U0 = UD. Lossless: Zbox = Zc | sealed charts |
 
 Native WinISD controls behave as WinISD has them, with no conventional variant:

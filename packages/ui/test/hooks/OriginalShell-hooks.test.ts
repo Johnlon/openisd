@@ -177,20 +177,6 @@ describe('OriginalShell-hooks', () => {
 
       expect(after).not.toEqual(before);
     });
-
-    it('advAir follows the useWinisdAirModel flag through to the engine', () => {
-      const {project} = createCompleteProject();
-      const {tick, advAir} = harness(project);
-
-      project.envUseWinisdAirModel.set(false);
-      tick();
-      const withoutWinisd = advAir.value;
-      project.envUseWinisdAirModel.set(true);
-      tick();
-      const withWinisd = advAir.value;
-
-      expect(withWinisd).not.toEqual(withoutWinisd);
-    });
   });
 
   describe('fillBlankMeta', () => {

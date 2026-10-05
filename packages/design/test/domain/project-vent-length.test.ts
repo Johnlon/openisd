@@ -22,7 +22,7 @@ import {createEngine} from '../../engine/index.js';
  *  or reference conditions change. Rebaselined 2026-09-26 at the project's default air
  *  (WinISD model, reference environment; `packages/design/engine/air.ts`), after
  *  BUG_20260924_driver-solve-and-sweep-use-different-air-models moved the vent's air off the
- *  embedded driver's own (CIPM-2007-defaulted) field and onto the project's canonical air. */
+ *  embedded driver's own field and onto the project's canonical air. */
 const CEILING_HZ = 80.79291711567225;
 
 function blankDriverRecord(): unknown {

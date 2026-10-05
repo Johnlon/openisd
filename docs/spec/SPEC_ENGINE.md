@@ -198,17 +198,11 @@ required, plus the derived quantities `Cms`/`Mms`/`Rms`/`Bl` (formulas: §1.1).
 **There are no frozen ρ/c constants** — not in WinISD and not here (machine-verified against
 WinISD 2026-08-20, `docs/design/WINISD_SCHEMA.md` §12; `engine/air.ts`'s module docstring).
 Air density and sound velocity are always computed from the environment (T, RH, p) through
-`engine/air.ts`:
-
-- **Default (CIPM-2007 moist air)** — `moistAirDensity` / `moistAirSoundVelocity`. The
-  metrological standard, and the better description of real air.
-- **WinISD parity model** (`useWinisdAirModel: true`, the DEFAULT for new projects since
-  QO95) — WinISD's own formula set: Hyland–Wexler vapour pressure, ideal-gas moist mixing for
-  c, density derived as `γ·p/c²`. Reproduces live-probed WinISD output to ≤ 2.5e-15 relative
-  across six controlled environments (QO93, FINDING-008).
-
-Both models consume all three of temperature, humidity, and pressure — neither discards an
-input. `sweep`/`circuit` compute ρ/c from the `SweepParams` environment directly (§4.3);
+`engine/air.ts`, with WinISD's own formula set: Hyland–Wexler vapour pressure, ideal-gas moist
+mixing for c, density derived as `γ·p/c²`. It reproduces live-probed WinISD output to
+≤ 2.5e-15 relative across six controlled environments (QO93, FINDING-008). It is the only air
+model (the CIPM-2007 alternative was removed 2026-10-05), and it consumes all three of
+temperature, humidity and pressure. `sweep`/`circuit` compute ρ/c from the `SweepParams` environment directly (§4.3);
 there is no rescale step. The `c`/`roo` provenance (measured rule and version history)
 is consolidated in `docs/research/C_ROO_PROVENANCE.md`.
 
@@ -236,9 +230,8 @@ non-positive is a blocking `DriverError`, not a silently-substituted default (`v
 | `N`                 | integer                  | 400                      | Number of frequency points                                                                                                        |
 | `filters`           | `Filter[]`               | `[]`                     | Signal-chain filters (`SPEC_UI.md` §3.2)                                                                                          |
 | `tempK`             | K                        | 293.15                   | Ambient temperature — one of the three environment inputs ρ/c are computed from (`engine/air.ts`, §4.2) |
-| `humidityPct`       | % (0–100)                | 30                       | Relative humidity — moves ρ and c; consumed by the engine in BOTH air models (QO88/QO95)                    |
-| `pressurePa`        | Pa                       | 101325                   | Static air pressure — moves ρ and c; consumed by the engine in BOTH air models (QO88/QO95)                  |
-| `useWinisdAirModel` | boolean                  | `true` (QO95)            | `true`: WinISD's parity air formula set. `false`: CIPM-2007 moist air. Neither discards an input (§4.2)     |
+| `humidityPct`       | % (0–100)                | 30                       | Relative humidity — moves ρ and c; consumed by the engine (QO88)                                           |
+| `pressurePa`        | Pa                       | 101325                   | Static air pressure — moves ρ and c; consumed by the engine (QO88)                                         |
 | `driverAddedMass`   | kg                       | 0 (no-op)                | Added mass to the cone — raises Mms, lowers Fs                                                                                    |
 | `vcTempRise`        | K                        | 0 (no-op)                | Coil temperature rise → hot Re, combined with `alfaVC`                                                                            |
 | `alfaVC`            | /K                       | 0 (no-op)                | Copper thermal coefficient for `vcTempRise`                                                                                       |

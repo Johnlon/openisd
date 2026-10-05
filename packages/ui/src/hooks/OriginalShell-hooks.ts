@@ -154,7 +154,6 @@ export function createEnvironmentAir({ project, projectChanged: changed, envDefa
     void changed.value;
     return environment.solve({
       tempK: advTemp.value ?? undefined, humidityPct: advHumidity.value ?? undefined, pressurePa: advPressure.value ?? undefined,
-      useWinisdAirModel: project.value.envUseWinisdAirModel.value,
     }).values;
   });
   return {

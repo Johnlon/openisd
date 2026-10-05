@@ -6,6 +6,7 @@ import {ProjectBuilder} from '@openisd/design';
 import {addProject, removeProject, openProjects} from '../../src/logic/appState.js';
 import {provideFocusedProject} from '../../src/logic/focusedProjectContext.js';
 import {useOgTune, type OriginalTuneAPI} from '../../src/hooks/OriginalTune-hooks.js';
+import {runHook} from './runHook.js';
 
 function createProject() {
   const engine = createEngine();
@@ -164,6 +165,22 @@ describe('OriginalTune-hooks', () => {
       expect(api.vb_m3.value).toBeCloseTo(0.012, 9);
       api.setVb_m3(0.02);
       expect(api.vb_m3.value).toBeCloseTo(0.02, 9);
+    } finally {
+      removeProject(openProjects().length - 1);
+      expect(openProjects().length).toBe(opened);
+    }
+  });
+
+  it('shows a volume written by another panel, as the Box tab writes it', async () => {
+    const project = createProject();
+    const opened = openProjects().length;
+    addProject(project);
+    try {
+      // runHook, not renderToString: only a client-side computed caches, so only it can go stale.
+      const api = runHook(computed(() => project), useOgTune);
+      expect(api.vb_m3.value).toBeCloseTo(0.012, 9);
+      project.box.sealed.volume_m3.set(0.027);
+      expect(api.vb_m3.value).toBeCloseTo(0.027, 9);
     } finally {
       removeProject(openProjects().length - 1);
       expect(openProjects().length).toBe(opened);

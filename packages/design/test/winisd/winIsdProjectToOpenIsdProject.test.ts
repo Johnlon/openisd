@@ -381,6 +381,45 @@ describe('winIsdProjectToOpenIsdProject', () => {
     });
   });
 
+  // BUG_20261005_port-length-hand-vs-file: WinISD writes a port's `len` as a readout and tunes
+  // from [Box] Fr/Ff on load (debugger fit, winisd_research GHIDRA_FINDINGS "[VentRear] len is not
+  // used"). A length typed by hand reaches a file as the tuning it gives, so it must load back
+  // unchanged; a lone `len` that contradicts the tuning loads as WinISD loads it.
+  describe('winIsdProjectToOpenIsdProject — a port length typed by hand vs the file\'s len', () => {
+    for (const [label, file, setLength, read] of [
+      ['vented', 'vented-small.wpr',
+        (p: OpenISDProject) => p.box.vented.vent.length_m.set(0.25),
+        (p: OpenISDProject) => [p.box.vented.tuning_goal_hz.value, p.box.vented.vent.length_m.value]],
+      ['bandpass4 front', 'bandpass4.wpr',
+        (p: OpenISDProject) => p.box.bandpass4.vents.front.length_m.set(0.1),
+        (p: OpenISDProject) => [p.box.bandpass4.chambers.front.tuning_goal_hz.value, p.box.bandpass4.vents.front.length_m.value]],
+    ] as const) {
+      it(`${label}: a hand-typed length saved and loaded gives the same tuning and length`, () => {
+        const converter = new WinIsdProjectConverter(createEngine());
+        const {value: hand} = converter.winIsdProjectToOpenIsdProject(readFileSync(join(GOLDENS_DIR, file), 'utf8'));
+        if (!hand) throw new Error('expected a project');
+        setLength(hand);
+        const {value: wpr} = converter.openIsdProjectToWinIsdProject(hand);
+        if (!wpr) throw new Error('expected a .wpr');
+        const {value: loaded, errors} = converter.winIsdProjectToOpenIsdProject(wpr.toWpr());
+        assert.equal(errors.length, 0, JSON.stringify(errors));
+        if (!loaded) throw new Error('expected a project');
+        const [handTuning, handLength] = read(hand);
+        const [loadedTuning, loadedLength] = read(loaded);
+        assert.ok(handTuning !== null && loadedTuning !== null && handLength !== null && loadedLength !== null);
+        assert.ok(Math.abs(loadedTuning - handTuning) < 1e-9 * handTuning, `tuning ${loadedTuning} vs ${handTuning}`);
+        assert.ok(Math.abs(loadedLength - handLength) < 1e-9 * handLength, `length ${loadedLength} vs ${handLength}`);
+      });
+    }
+
+    it('vented: a lone len that contradicts Fr is a readout; the tuning stays Fr, as WinISD loads it', () => {
+      const text = readFileSync(join(GOLDENS_DIR, 'vented-small.wpr'), 'utf8').replace(/^len=.*$/m, 'len=0.25');
+      const {value: project} = new WinIsdProjectConverter(createEngine()).winIsdProjectToOpenIsdProject(text);
+      if (!project) throw new Error('expected a project');
+      assert.equal(project.box.vented.tuning_goal_hz.value, Number(goldenField(join(GOLDENS_DIR, 'vented-small.wpr'), 'Box', 'Fr')));
+    });
+  });
+
   describe('bandpass6 and ABC boxes', () => {
   for (const [label, kind, boxType, bType, captureWpr, sampleWpr] of [
     ['bandpass6', 'bandpass6', 'bandpass6', 3, CAPTURE_BP6_WPR, SAMPLE_BP6_WPR],

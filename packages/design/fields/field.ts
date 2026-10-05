@@ -1304,11 +1304,6 @@ export class ToggleField extends Field {
     label: "SPL graph is Xmax limited",
     description: "Xmax Limited SPL\nClamps the SPL curve wherever cone excursion would exceed Xmax.",
   });
-  static readonly ADV_USEWINISDAIRMODEL = new ToggleField({
-    value: "adv_UseWinisdAirModel",
-    label: "WinISD air model",
-    description: "WinISD Air Model\nTicked (WinISD): WinISD's own air equations: Hyland-Wexler vapour pressure with no enhancement factor, density from γ·p/c², at this project's temperature, humidity and pressure.\nUnticked (conventional): the CIPM-2007 moist-air standard (BIPM), with the speed of sound from Laplace's adiabatic relation.",
-  });
   static readonly ADV_WINISDABCINTRAPORTVELOCITY = new ToggleField({
     value: "adv_WinisdAbcIntraPortVelocity",
     label: "WinISD ABC intra-port velocity",

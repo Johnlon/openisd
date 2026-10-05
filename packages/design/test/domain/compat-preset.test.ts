@@ -13,7 +13,6 @@ import {createEngine} from '../../engine/index.js';
 describe('CompatPreset', () => {
   it('Recommended (debugged): every choice on OpenISD\'s best model, every WinISD error off', () => {
     expect(CompatPreset.DEBUGGED.choices).toEqual({
-      lossMode: LossMode.ConventionalLossy,
       winisdWrapPhase: false,
       winisdDriverCountModel: false,
       winisdFlatModel: false,
@@ -27,7 +26,6 @@ describe('CompatPreset', () => {
 
   it('WinISD-ish: every choice on WinISD\'s side, every WinISD error off', () => {
     expect(CompatPreset.WINISD_ISH.choices).toEqual({
-      lossMode: LossMode.WinisdLossy,
       winisdWrapPhase: true,
       winisdDriverCountModel: true,
       winisdFlatModel: true,
@@ -95,8 +93,10 @@ describe('CompatPreset', () => {
       p.rgAtDriverSide.set(true);
       p.circuitModel.set('gyrator');
       p.forceFlatResponse.set(true);
+      p.lossMode.set(LossMode.Lossless);
       p.driver.specs.Mms_kg.set(0.04);
       p.applyCompatPreset(preset);
+      expect(p.lossMode.value).toBe(LossMode.Lossless);
       expect(p.rgAtDriverSide.value).toBe(true);
       expect(p.circuitModel.value).toBe('gyrator');
       expect(p.forceFlatResponse.value).toBe(true);

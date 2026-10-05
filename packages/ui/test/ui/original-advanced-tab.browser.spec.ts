@@ -178,29 +178,6 @@ test.describe('Original Advanced tab', () => {
 
       await expect(humidity(page)).toHaveValue('55.00');
     });
-
-    test('unticking "WinISD air model" switches the readouts to the moist-air physics model', async ({ page }) => {
-      const useWinisd = page.locator('label', { hasText: 'WinISD air model' }).locator('input[type=checkbox]');
-      await expect(useWinisd).toBeChecked();   // WinISD parity by default (QO95)
-
-      // The sample project stores 20 °C / RH 50 / 101325 Pa, where the two models agree at
-      // display precision (343.99 / 1.19885 both ways) — an untick there is invisible. Saturate
-      // the air first: at RH 100 the models part ways (rho 1.19360 WinISD vs 1.19358 moist).
-      await humidity(page).fill('100');
-      await humidity(page).blur();
-      await expect(airDensity(page)).toHaveValue('1.19360');
-
-      await page.locator('label', { hasText: 'WinISD air model' }).click();
-
-      await expect(airDensity(page)).toHaveValue('1.19358');
-      await expect(soundVelocity(page)).toHaveValue('344.74');
-
-      // And the readouts keep tracking the moist-air model after the switch.
-      await humidity(page).fill('30');
-      await humidity(page).blur();
-      await expect(airDensity(page)).toHaveValue('1.20096');
-      await expect(soundVelocity(page)).toHaveValue('343.68');
-    });
   });
 
   test.describe('a project with no stored environment', () => {
@@ -248,13 +225,11 @@ test.describe('Original Advanced tab', () => {
       const vel = soundVelocity(page);
       const density = airDensity(page);
 
-      // A fresh project matches WinISD out of the box (QO95): parity air model on, ρ/c at WinISD's
-      // own 1.20095 / 343.68. (The sample project stores an environment where the models differ by 8.3 ppm.)
-      await expect(page.locator('label', { hasText: 'WinISD air model' }).locator('input[type=checkbox]')).toBeChecked();
+      // A fresh project matches WinISD: ρ/c at WinISD's own 1.20095 / 343.68.
       await expect(density).toHaveValue(/1\.20095/);
       await expect(vel).toHaveValue(/343\.68/);
 
-      // ρ·c² = γ·p holds in both air models, so ρ scales with p while c stays flat.
+      // ρ·c² = γ·p, so ρ scales with p while c stays flat.
       await fillAndBlur(pres, '110000');
       await expect(pres).toHaveValue(/110000/);
       await expect(density).toHaveValue(/1\.30404/);
@@ -314,7 +289,7 @@ test.describe('Original Advanced tab', () => {
     test('WinISD Compatibility labels are unclipped and drop the "Use" prefix', async ({ page }) => {
       const panel = page.locator('.sim-options-box', { hasText: 'WinISD Compatibility' });
       const labels = panel.locator('label[data-field-key]');
-      await expect(labels).toHaveText([/WinISD air model/, /WinISD phase wrapping/, /WinISD driver count/, /WinISD flat response/, /WinISD ABC intra-port velocity/, /WinISD driver model/, /WinISD VA model/, /PR Npr resonance/, /WinISD Bessel high-pass/]);
+      await expect(labels).toHaveText([/WinISD phase wrapping/, /WinISD driver count/, /WinISD flat response/, /WinISD driver model/, /WinISD VA model/, /PR Npr resonance/, /WinISD Bessel high-pass/, /WinISD ABC intra-port velocity/]);
       const panelBox = (await panel.boundingBox())!;
       const clipRight = await panel.evaluate(el => {
         // The visible right edge: the panel's own, or an ancestor's that clips it first.
@@ -440,7 +415,7 @@ test.describe('Original Advanced tab', () => {
     const BOX_FOR: Record<string, BoxTypeName> = {winisdPrNprResonance: 'box-passive-radiator'};
     /** The Bessel switch acts only on a project with a Bessel high-pass filter, so it cannot be ticked here. */
     const TICKABLE_KEYS = ERROR_KEYS.filter(key => key !== 'winisdBesselHighpass');
-    const DESIGN_KEYS = ['useWinisdAirModel', 'winisdWrapPhase', 'winisdDriverCountModel', 'winisdFlatModel', 'winisdAbcIntraPortVelocity'];
+    const DESIGN_KEYS = ['winisdWrapPhase', 'winisdDriverCountModel', 'winisdFlatModel', 'winisdAbcIntraPortVelocity'];
 
     test('the error switches carry the warning class, unticked and ticked', async ({page}) => {
       for (const key of TICKABLE_KEYS) {

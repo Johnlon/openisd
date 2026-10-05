@@ -47,17 +47,4 @@ export class ProjectEnvironment {
     get pressurePa(): EnvironmentField {
         return envFieldsOver(this.#lens, this.#engine).pressurePa;
     }
-
-    /** Which air formula this project's sweeps use — WinISD's parity model when true, OpenISD's
-     *  physical CIPM-2007 model when false. Null reads as true (QO95): a new project matches
-     *  WinISD out of the box. See `engine/air.ts` for the two models. */
-    get useWinisdAirModel(): SimpleField<boolean> {
-        const slot = this.#lens;
-        return {
-            get value() { return slot.value.useWinisdAirModel ?? true; },
-            set: (useWinisdAirModel: boolean) => {
-                slot.set({ ...slot.value, useWinisdAirModel });
-            },
-        };
-    }
 }

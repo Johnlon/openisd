@@ -41,7 +41,7 @@ Third-party competitor tools (00 Simulator, SpeakerDesign.dev, SpeakerBoxLite, S
 | **Acoustic Inductance ($L_e$)** | Has the same option: **Simulate voice coil inductance** on the Advanced pane (`advanced-tab.png`), stored as `[SimulatorOptions] VCInd` in the `.wpr`, **default off**. Off, $L_e$ is excluded from the acoustic circuit ($Z_{\text{coil,AC}} = R_e + R_s$) and the response is flat above the passband; on, it rolls off — measured 2026-09-26 on the W5-1138SMF ($L_e = 0.34$ mH, $R_e = 3.4\,\Omega$): −1.21 dB at 1 kHz, −10.62 dB at 5 kHz, −22.31 dB at 20 kHz. | Same option, same default: **Simulate voice coil inductance** (`circuitModel`, `'winisd'` off / `'gyrator'` on) in the middle options column of the Advanced tab. Its sub-option **WinISD-compatible inductance** (`'winisdGyrator'`) reproduces WinISD's inductance-on roll-off; unchecked, the roll-off is textbook first-order ([bug record](../../bugs/archive/BUG_20260926_gyrator-rolloff-shallower-than-winisd.md)). | Nothing to match — leave it as it is. |
 | **Rg in the impedance chart** | The impedance chart includes Rg only when **Rg is at driver side** is on: off, Z is the driver alone and Rg changes nothing; on, Z = Z(off) + Rg exactly — measured 2026-09-26 by debugger on the W5-1138SMF at Rg 0 and 10 Ω ([records](http://localhost:8000/winisd/winisd_research/runs/sweep-w5-sealed-impedance-rg10-vcind1-driverside-off.json)). | Same behavior: `Zel` excludes Rg when **Rg is at driver side** is off, includes it when on — [fixed 2026-09-26](../../bugs/archive/BUG_20260926_impedance-includes-rg-when-rg-is-not-at-driver-side.md). | Nothing to match — leave it as it is. |
 | **Sealed Box Losses** | Subtracts leak volume velocity $U_{\text{leak}}$ evaluated at $F_{sc}$ ($R_{al}$ constant). | Supports `'winisd-lossy'`, `'conventional-lossy'`, and `'lossless'`. | Set **Loss model** (`lossMode`) to `WinISD default` (`'winisd-lossy'`) inside the WinISD Compatibility box on the Advanced tab (default in OpenISD). |
-| **Air model** | No option — always derives $c$ and $\rho$ from the Advanced pane's temperature, humidity and pressure with its own 0.7 formulas ($c = 343.68$ m/s, $\rho = 1.20095$ kg/m³ at 293.15 K / 30% / 101325 Pa). | Defaults to WinISD's formulas (QO95). The CIPM-2007 real-gas equations, which disagree with WinISD's at the same conditions, are the conventional option. | Untick **Use WinISD air model** (`envUseWinisdAirModel`) inside the WinISD Compatibility box on the Advanced tab for CIPM-2007. The compatibility presets leave it as it is. OpenISD-only switch — WinISD has no counterpart. |
+| **Air model** | No option — always derives $c$ and $\rho$ from the Advanced pane's temperature, humidity and pressure with its own 0.7 formulas ($c = 343.68$ m/s, $\rho = 1.20095$ kg/m³ at 293.15 K / 30% / 101325 Pa). | WinISD's formulas, the only air model: they reproduce real WinISD to double precision at six measured environments. | No switch. The CIPM-2007 alternative was removed 2026-10-05 (John): ~8 ppm off in ρ, ~4 ppm in c, invisible on any chart. A saved project still carrying `useWinisdAirModel` loads; the value is ignored. |
 
 ## Platform & access
 
@@ -392,10 +392,14 @@ was accurate.
 
 WinISD's Advanced pane derives, from **Temperature 293.15 K (20 °C)**, 30 % RH, 101325 Pa:
 
-- **Sound velocity c = 343.68 m/s**
-- **Air density ρ = 1.20095 kg/m³**
+- **Sound velocity c = 343.684120962152 m/s**
+- **Air density ρ = 1.20095217714682 kg/m³**
 
-OpenISD matches both exactly: `constants.ts` sets `C = 343.68`, `RHO = 1.20095`.
+Neither is a stored constant. OpenISD computes both with WinISD's own model, `winisdAir()` in
+`packages/design/engine/air.ts` (Hyland–Wexler vapour pressure, no enhancement factor,
+`ρ = γ·p/c²`), from the project's temperature, humidity and pressure. It reproduces six
+measured WinISD environments to double precision (`air.test.ts`). It is the only air model:
+CIPM-2007 was removed 2026-10-05.
 
 ---
 

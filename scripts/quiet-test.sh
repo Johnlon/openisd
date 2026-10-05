@@ -42,11 +42,23 @@ case " $* " in
   *vitest*) ARGS+=(--reporter=dot) ;;
 esac
 
-# Idle watchdog. No limit is put on how long a run or a test may take: a run that keeps writing
-# output is making progress and is left alone. Only a run whose log has not grown for IDLE_LIMIT_S
-# seconds is treated as stuck: every node process in it writes a diagnostic report
-# (build/test-reports/, JS stack and open handles), then the run is stopped.
+# Idle watchdog. No limit is put on how long a run or a test may take. Progress is any of: the log
+# grew, the run's processes used CPU, or the run is queued for a heavy-test lane. Only a run that
+# shows none of these for IDLE_LIMIT_S seconds is treated as stuck: every node process in it
+# writes a diagnostic report (build/test-reports/, JS stack and open handles), then the run is
+# stopped. (A quiet typecheck on a busy machine prints nothing for minutes but burns CPU; a run
+# waiting for a lane prints one line and then sleeps. Neither is stuck.)
 IDLE_LIMIT_S="${OPENISD_IDLE_LIMIT_S:-180}"
+# CPU time (clock ticks) used so far by the process and everything under it.
+tree_cpu_ticks() {
+  local pid="$1" child total=0 fields
+  if fields=$(cut -d')' -f2- "/proc/$pid/stat" 2>/dev/null); then
+    set -- $fields
+    total=$(( ${12:-0} + ${13:-0} ))
+  fi
+  for child in $(pgrep -P "$pid"); do total=$(( total + $(tree_cpu_ticks "$child") )); done
+  echo "$total"
+}
 node_descendants() {
   local parent="$1" child
   for child in $(pgrep -P "$parent"); do
@@ -57,12 +69,19 @@ node_descendants() {
 "${ARGS[@]}" >"$LOG" 2>&1 &
 RUN_PID=$!
 LAST_SIZE=-1
+LAST_CPU=-1
 IDLE_S=0
 STALLED=0
 while kill -0 "$RUN_PID" 2>/dev/null; do
   sleep 5
   SIZE=$(stat -c %s "$LOG" 2>/dev/null || echo 0)
-  if [ "$SIZE" = "$LAST_SIZE" ]; then IDLE_S=$((IDLE_S + 5)); else IDLE_S=0; LAST_SIZE="$SIZE"; fi
+  CPU=$(tree_cpu_ticks "$RUN_PID")
+  # Ticks are 100/s; more than 5 ticks in 5 s is a process doing work, not an idle one.
+  if [ "$LAST_CPU" -ge 0 ] && [ $((CPU - LAST_CPU)) -gt 5 ]; then PROGRESS=1; else PROGRESS=0; fi
+  tail -n 1 "$LOG" 2>/dev/null | grep -q "waiting up to" && PROGRESS=1
+  [ "$SIZE" != "$LAST_SIZE" ] && PROGRESS=1
+  LAST_SIZE="$SIZE"; LAST_CPU="$CPU"
+  if [ "$PROGRESS" = "1" ]; then IDLE_S=0; else IDLE_S=$((IDLE_S + 5)); fi
   if [ "$IDLE_S" -ge "$IDLE_LIMIT_S" ]; then
     STALLED=1
     for NODE_PID in $( [ "$(ps -o comm= -p "$RUN_PID")" = "node" ] && echo "$RUN_PID"; node_descendants "$RUN_PID"); do kill -USR2 "$NODE_PID" 2>/dev/null; done
@@ -75,7 +94,7 @@ done
 wait "$RUN_PID" 2>/dev/null
 CODE=$?
 if [ "$STALLED" = "1" ]; then
-  echo "quiet-test: STALLED — no output for ${IDLE_LIMIT_S}s, run stopped. Node reports (JS stack, open handles): build/test-reports/" >>"$LOG"
+  echo "quiet-test: STALLED — no output, CPU use or queue wait for ${IDLE_LIMIT_S}s, run stopped. Node reports (JS stack, open handles): build/test-reports/" >>"$LOG"
   CODE=124
 fi
 

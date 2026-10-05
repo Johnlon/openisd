@@ -3,6 +3,7 @@ import {
   createEngine, DEFAULT_T_REF_K, DEFAULT_RH_REF_PCT, DEFAULT_P_REF_PA, DEFAULT_VENTED_DESIGN_LIMITS,
 } from '../../engine/index.js';
 import {ProjectBuilder} from '../../domain/openisdTransforms.js';
+import {OpenISDProject} from '../../domain/index.js';
 
 function isRecord(v: unknown): v is Record<string, unknown> {
   return typeof v === 'object' && v !== null;
@@ -130,36 +131,34 @@ describe('Phase 1: Environmental Axioms', () => {
     expect(project.envHumidityPct.entered).toBe(true);
   });
 
-  it('envUseWinisdAirModel provides SimpleField<boolean> behavior defaulting to true', () => {
+  it('a project saved with the removed useWinisdAirModel key (true, false or null) opens, the key ignored', () => {
     const engine = createEngine();
     const project = ProjectBuilder.empty(engine);
-
-    // Default out-of-the-box matches WinISD (QO95)
-    expect(project.envUseWinisdAirModel.value).toBe(true);
-
-    // Setting false
-    project.envUseWinisdAirModel.set(false);
-    expect(project.envUseWinisdAirModel.value).toBe(false);
-
-    // Backward compat alias
-    project.setEnvUseWinisdAirModel(true);
-    expect(project.envUseWinisdAirModel.value).toBe(true);
+    project.envTempK.set(250);
+    const text = project.toOwprText();
+    expect(text).not.toContain('useWinisdAirModel');
+    for (const legacy of ['true', 'false', 'null']) {
+      const old = text.replaceAll('"environment": {', `"environment": {"useWinisdAirModel": ${legacy},`);
+      expect(old).toContain('useWinisdAirModel');
+      const back = OpenISDProject.fromOwprText(old, engine);
+      if (Array.isArray(back)) throw new Error(`fromOwprText returned problems for ${legacy}: ` + back.join(', '));
+      expect(back.envTempK.value).toBe(250);
+      expect(back.toOwprText()).not.toContain('useWinisdAirModel');
+    }
   });
 
   // Regression for bugs/archive/BUG_20260924*.md
-  it('the embedded driver resolves air the same way the project/sweep does, with useWinisdAirModel unset', () => {
+  it('the embedded driver resolves air the same way the project/sweep does', () => {
     const engine = createEngine();
     const project = ProjectBuilder.empty(engine);
 
-    // Away from reference conditions, so the physical and WinISD air models diverge visibly —
-    // and envUseWinisdAirModel is left UNSET (defaults to true, QO95), so both sides must apply
-    // the same default.
+    // Away from reference conditions, so a driver left on reference air would differ visibly.
     project.envTempK.set(250);
     project.envHumidityPct.set(80);
     project.envPressurePa.set(90000);
 
     const expected = engine.environment.solve({
-      tempK: 250, humidityPct: 80, pressurePa: 90000, useWinisdAirModel: true,
+      tempK: 250, humidityPct: 80, pressurePa: 90000,
     }).values;
 
     expect(project.driver.specs.c_m_per_s.value).toBeCloseTo(expected.c, 9);

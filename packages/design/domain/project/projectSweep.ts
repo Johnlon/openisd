@@ -19,7 +19,7 @@ import type { OpenISDDriverEmbedded } from '../driver/openISDDriverEmbedded.js';
  *  fresh one on every sweep/maxCurves/boxParamsIssues/ventAchievedFb/ventMaxReachableFb call, the
  *  same "built fresh" reasoning `driver`/`box` already follow.
  *
- *  `air`/`airEnvironment`/`useWinisdAirModel`/`driveVoltage_V` are already-read VALUES, not
+ *  `air`/`airEnvironment`/`driveVoltage_V` are already-read VALUES, not
  *  fields or closures: the original private methods read them once per call too (`this.#air(this
  *  .#root())` inside `#sweepParams`/`sweep`/`maxCurves`/`ventMaxReachableFb`), so reading them
  *  once while building the source changes nothing. */
@@ -50,7 +50,6 @@ export interface ProjectSweepSource {
     readonly sweepN: SimpleField<number | null>;
     readonly driveVoltage_V: number;
     readonly airEnvironment: AirEnvironment;
-    readonly useWinisdAirModel: boolean;
     readonly air: Air;
     readonly engine: Engine;
     readonly ventIssues: readonly VentIssue[];
@@ -104,7 +103,6 @@ function sweepParamsOf(source: ProjectSweepSource, P: FrequencyGrid, eg: number,
         Ql: losses.Ql, Qa: losses.Qa, Qp: losses.Qp,
         ...boxSpecificParamsOf(source, boxType),
         ...source.airEnvironment,
-        useWinisdAirModel: source.useWinisdAirModel,
         driverAddedMass: source.driverAddedMass_kg.value,
         vcTempRise: source.vcTempRise_K.value,
         loading: source.loading.value,

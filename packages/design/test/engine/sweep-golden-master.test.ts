@@ -33,9 +33,8 @@ const cmpArray = (label: string, got: unknown, exp: unknown[]) => {
 };
 
 describe('golden-master — engine reproduces committed fixtures exactly', () => {
-  /* ρ and c follow temperature, humidity and pressure (air.ts), and `useWinisdAirModel`
-   * switches to WinISD's parity model instead of the physical one — so a fixture that does not
-   * name its environment does not say what it is a snapshot OF. Every one must carry all four,
+  /* ρ and c follow temperature, humidity and pressure (air.ts), so a fixture that does not
+   * name its environment does not say what it is a snapshot OF. Every one must carry all three,
    * explicitly, rather than inheriting whatever the engine's defaults happen to be on the day. */
   for (const name of NAMES) {
     it(`${name} — states the air it was produced in`, () => {
@@ -43,8 +42,6 @@ describe('golden-master — engine reproduces committed fixtures exactly', () =>
       assert.equal(P.tempK, 293.15, `${name}: fixture does not state its temperature`);
       assert.equal(P.humidityPct, 30, `${name}: fixture does not state its relative humidity`);
       assert.equal(P.pressurePa, 101325, `${name}: fixture does not state its air pressure`);
-      assert.equal(P.useWinisdAirModel, false,
-        `${name}: fixture does not state whether it was produced in openisd's physical air or WinISD's`);
     });
   }
 

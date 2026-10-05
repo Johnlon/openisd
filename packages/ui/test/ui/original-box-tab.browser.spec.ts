@@ -147,6 +147,28 @@ test.describe('Original Box tab', () => {
     expect(parseFloat(await qtcInput(page).inputValue())).toBeCloseTo(0.5995, 2);
   });
 
+  test('the three loss models give three different Fsc/Qtc readouts for the same driver and box', async ({ page }) => {
+    // Lossless and Conventional lossy share Fsc by design (the conventional model folds the
+    // losses into Q only), so the pair, not Fsc alone, is what must differ.
+    await setFocusedDriverSpecs(page, { Fs_hz: 40, Qes: 0.450, Qms: 2.940, Vas_m3: 0.00765, Re_ohm: 6.6 });
+    await setFocusedBoxType(page, 'sealed');
+    await setFocusedSealedLosses(page, { Ql: 10, Qa: 100 });
+    await boxTab(page).click();
+    await fillAndCommit(numInputByLabel(page, 'Volume').first(), '6');
+
+    const pairs: string[] = [];
+    for (const mode of ['winisd-lossy', 'lossless', 'conventional-lossy']) {
+      // The loss model lives in the WinISD Compatibility panel on the Advanced tab.
+      await page.locator('.project-nav li', { hasText: /^Advanced$/ }).click();
+      await page.locator('#adv-lossmode').selectOption(mode);
+      await boxTab(page).click();
+      await expect(fscInput(page)).not.toHaveValue('');
+      await expectReadoutTracks(page, mode);
+      pairs.push(`${await fscInput(page).inputValue()} / ${await qtcInput(page).inputValue()}`);
+    }
+    expect(new Set(pairs).size, pairs.join(', ')).toBe(3);
+  });
+
   test('sealed Fsc/Qtc readouts re-render after volume, losses and driver swap', async ({ page }) => {
     await setFocusedBoxType(page, 'sealed');
     await boxTab(page).click();

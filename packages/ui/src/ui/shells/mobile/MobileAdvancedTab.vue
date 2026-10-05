@@ -77,11 +77,6 @@ const {
         <option v-for="m in LOSS_MODE_OPTIONS" :key="m.value" :value="m.value">{{ m.label }}</option>
       </select>
     </div>
-    <div class="mob-row mob-checkbox-row">
-      <label :title="ToggleField.ADV_USEWINISDAIRMODEL.description">
-        <input type="checkbox" :checked="project.envUseWinisdAirModel.value" @change="e => project.envUseWinisdAirModel.set(inputChecked(e))"> WinISD air model
-      </label>
-    </div>
     <div class="mob-row mob-checkbox-row" :class="{ 'mob-row-na': !abcVelocityApplies }">
       <label data-field-key="winisdAbcIntraPortVelocity" :title="ToggleField.ADV_WINISDABCINTRAPORTVELOCITY.description">
         <input type="checkbox" :checked="project.winisdAbcIntraPortVelocity.value" :disabled="!abcVelocityApplies" @change="e => project.winisdAbcIntraPortVelocity.set(inputChecked(e))"> {{ ToggleField.ADV_WINISDABCINTRAPORTVELOCITY.label }}

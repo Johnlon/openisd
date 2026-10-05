@@ -49,7 +49,7 @@ Every curve redraws as you type. There is no Calculate button.
 - **Driver library.** 1,603 drivers and 79 passive radiators come bundled, with source links,
   alongside your own saved drivers.
 - **Air per project.** Each project has its own temperature, humidity and pressure, which set
-  the speed of sound and the air density. WinISD's air model is the default.
+  the speed of sound and the air density through WinISD's own air model.
 - **Files and sharing:**
   - WinISD `.wdr` and `.wpr`, and OpenISD's own `.owpr` and `.owdr`;
   - share a design as a link;

@@ -152,6 +152,33 @@ test.describe('Original chart view', () => {
     await expect(page.locator('.ro-val')).toHaveText(/^\d+\.\d{3} VA$/);
   });
 
+  test('the ◄ and ► nudge buttons step the cursor frequency down and up by 2 %', async ({ page }) => {
+    const hz = page.locator('.ro-hz-input');
+    await hz.fill('100');
+    await hz.press('Enter');
+    await expect(hz).toHaveValue('100.00');
+
+    await page.locator('.nudge-btn', { hasText: '►' }).click();
+    await expect(hz).toHaveValue('102.00');
+    await page.locator('.nudge-btn', { hasText: '◄' }).click();
+    await expect(hz).toHaveValue('100.00');
+    await page.locator('.nudge-btn', { hasText: '◄' }).click();
+    await expect(hz).toHaveValue('98.04');
+  });
+
+  test('a click on the chart locks the cursor: moving the pointer afterwards leaves it put', async ({ page }) => {
+    const box = (await page.locator('.graph-wrap canvas').boundingBox())!;
+    const y = box.y + box.height * 0.5;
+    const hz = page.locator('.ro-hz-input');
+
+    await page.mouse.click(box.x + box.width * 0.5, y);
+    await expect(hz).not.toHaveValue('');
+    const locked = await hz.inputValue();
+
+    await page.mouse.move(box.x + box.width * 0.75, y, { steps: 4 });
+    await expect(hz).toHaveValue(locked);
+  });
+
   test('the chart drop-down is a fixed width, and the longest chart name fits in it on one line', async ({ page }) => {
     const select = page.locator('.chart-select');
     const name = page.locator('.chart-select .chart-name');

@@ -34,7 +34,7 @@ test('shows the environment fields, calculated readouts, and WinISD-compat contr
 
   await expect(page.locator('.mob-panel-head', { hasText: 'WinISD compatibility' })).toBeVisible();
   await expect(page.locator('#mob-adv-lossmode')).toBeVisible();
-  await expect(page.getByText('WinISD air model')).toBeVisible();
+  await expect(page.getByText('WinISD air model')).toHaveCount(0);
   await expect(page.getByText('WinISD driver model')).toBeVisible();
   await expect(page.getByText('WinISD VA model')).toBeVisible();
 });
@@ -56,7 +56,7 @@ test('toggling the "Force flat response" checkbox writes through to the project'
   await expect(checkbox).toBeChecked({ checked: !before });
 });
 
-test('the error switches carry the warning class under a "WinISD errors" heading; the air model does not', async ({ page }) => {
+test('the error switches carry the warning class under a "WinISD errors" heading', async ({ page }) => {
   const group = page.locator('.error-switch-group');
   await expect(group.locator('.error-switch-group-head')).toHaveText('WinISD errors');
   for (const key of ['winisdDriverModel', 'winisdVaModel', 'winisdPrNprResonance', 'winisdBesselHighpass']) {
@@ -64,7 +64,6 @@ test('the error switches carry the warning class under a "WinISD errors" heading
     await expect(label, key).toHaveClass(/error-switch-marked/);
     await expect(label, key).toHaveAttribute('title', /^Reproduces a WinISD error\.\n/);
   }
-  await expect(page.locator('.mob-checkbox-row', { hasText: 'WinISD air model' })).not.toHaveClass(/error-switch-marked/);
   await expect(group.locator('label[data-field-key="winisdAbcIntraPortVelocity"]')).toHaveCount(0);
   await expect(page.locator('label[data-field-key="winisdAbcIntraPortVelocity"] input')).toBeDisabled();
   await expect(group.locator('label[data-field-key="winisdPrNprResonance"] input')).toBeDisabled();

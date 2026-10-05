@@ -464,17 +464,12 @@ describe('WinISD parity (functional) — field calculations against goldens WinI
         compare(s.id, 'EBP', winisd, createEngine().driver.ebp(fs, qes));
       });
 
-      it('air — openisd in WinISD-compatibility mode against the pair WinISD stored', () => {
-        // QO7: the parity suite runs with `useWinisdAirModel: true`, i.e. WinISD's own air model.
-        // With it false, openisd derives rho and c from T/RH/p — physically right, and a
-        // permanent ~0.07 dB divergence that would teach everyone to ignore this suite.
-        //
+      it('air — openisd against the pair WinISD stored', () => {
         // The goldens were captured with the environment at factory defaults, so the harness
         // feeds the reference values directly into the engine. The project's temperature stays
         // its own — the env-t-303 divergence entry bounds that leg.
         const air = createEngine().environment.solve({
           tempK: s.environment.T,
-          useWinisdAirModel: true,
         }).values;
         for (const [key, got] of [['c', air.c], ['roo', air.rho]] as const) {
           compare(s.id, `air.${key}`, parseFloat(golden.Driver[key]), got);

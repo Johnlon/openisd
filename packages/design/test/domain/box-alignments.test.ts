@@ -350,19 +350,16 @@ describe('OpenISDBox alignments', () => {
       expect(p.driver.specs.roo_kg_per_m3.entered).toBe(false);
 
       // The box's own calculation reaches the project's air directly, not through the driver —
-      // flipping the project's air model changes the port length, and matches the engine's own
-      // resolve for that model exactly.
-      p.envUseWinisdAirModel.set(false);
-      const physical = engine.environment.solve({ useWinisdAirModel: false }).values;
-      const lengthPhysical = p.box.vented.vent.length_m.value;
-      p.envUseWinisdAirModel.set(true);
-      const winisd = engine.environment.solve({ useWinisdAirModel: true }).values;
-      const lengthWinisd = p.box.vented.vent.length_m.value;
+      // changing the project's temperature changes the port length, and the driver's air
+      // matches the engine's own resolve for that environment exactly.
+      const lengthAtRef = p.box.vented.vent.length_m.value;
+      p.envTempK.set(303.15);
+      const warm = engine.environment.solve({ tempK: 303.15, humidityPct: p.envHumidityPct.value, pressurePa: p.envPressurePa.value }).values;
+      const lengthWarm = p.box.vented.vent.length_m.value;
 
-      expect(physical).not.toEqual(winisd);
-      expect(lengthPhysical).not.toBeCloseTo(lengthWinisd!, 12);
-      expect(p.driver.specs.c_m_per_s.value).toBeCloseTo(winisd.c, 9);
-      expect(p.driver.specs.roo_kg_per_m3.value).toBeCloseTo(winisd.rho, 9);
+      expect(lengthAtRef).not.toBeCloseTo(lengthWarm!, 12);
+      expect(p.driver.specs.c_m_per_s.value).toBeCloseTo(warm.c, 9);
+      expect(p.driver.specs.roo_kg_per_m3.value).toBeCloseTo(warm.rho, 9);
     });
 
     it('two ports of the same size need a LONGER port than one for the same tuning', () => {

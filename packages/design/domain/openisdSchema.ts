@@ -632,13 +632,18 @@ export type OpenISDBoxJson = z.infer<typeof openISDBoxJsonSchema>;
  * `@openisd/engine` (`air.ts`'s `T_REF_K`/`RH_REF_PCT`/`P_REF_PA`) — a second copy here would
  * drift from them silently.
  */
-const openISDEnvironmentJsonSchema = z.strictObject({
+/** Projects saved before 2026-10-05 carry `useWinisdAirModel`, the switch for the removed
+ *  CIPM-2007 air model. WinISD's air model is now the only one, so the value is dropped. */
+function dropLegacyUseWinisdAirModel(value: unknown): unknown {
+    if (typeof value !== 'object' || value === null || !('useWinisdAirModel' in value)) return value;
+    const {useWinisdAirModel: _dropped, ...rest} = value;
+    return rest;
+}
+const openISDEnvironmentJsonSchema = z.preprocess(dropLegacyUseWinisdAirModel, z.strictObject({
     temperature_K: specEntryJsonSchema.optional(),
     humidity_pct: specEntryJsonSchema.optional(),
     pressure_Pa: specEntryJsonSchema.optional(),
-    // Null reads as true (QO95): a new project matches WinISD's own air model out of the box.
-    useWinisdAirModel: z.boolean().nullable(),
-});
+}));
 export type OpenISDEnvironmentJson = z.infer<typeof openISDEnvironmentJsonSchema>;
 
 /** The three air conditions a project states, each an entry like any spec quantity. */

@@ -80,9 +80,9 @@ ruling before implementation.
 - `packages/design/engine/air.ts` `winisdAir(tempK, humidityPct, pressurePa)` implements
   the measured model exactly (Hyland–Wexler, moist mixing, `ρ = γ·p/c²`); it reproduces
   all six probed environments to ≤ 2.5e-15 relative (`air.test.ts` pins every row).
-- `useWinisdAirModel` defaults to **true** (QO95, reversing QO7): a new project matches
-  WinISD out of the box. The physical CIPM-2007 model remains the alternative; the two
-  are a physics/parity pair, not right/wrong.
+- `winisdAir` is the only air model. The CIPM-2007 alternative and its `useWinisdAirModel`
+  switch (QO7, QO95) were removed 2026-10-05: ~8 ppm off in ρ and ~4 ppm in c, invisible on
+  any chart. A saved project still carrying `useWinisdAirModel` loads; the value is ignored.
 - There is **no frozen ρ/c constant anywhere** — not in WinISD, not here. The module
   docstring in `air.ts` states this; `docs/spec/SPEC_ENGINE.md` §4.2 pins it.
 - OpenISD's per-project environment is the stand-in for the environment WinISD reads

@@ -306,12 +306,6 @@ export interface SweepParams {
   humidityPct?: number;
   /** Static air pressure, Pa. Absent → `P_REF_PA` (101325). */
   pressurePa?: number;
-  /**
-   * Selects the FORMULA for ρ/c: absent/false uses OpenISD's own CIPM-2007 moist-air model;
-   * true uses WinISD's own simpler formula instead. Neither setting discards humidity or
-   * pressure — both still fully affect the result either way. See air.ts's WinISD-parity doc.
-   */
-  useWinisdAirModel?: boolean;
   // Driver-side added mass to cone (kg) — raises Mms, lowers Fs. 0/absent = no-op. docs/research/WINISD_PARITY.md.
   driverAddedMass?: number;
   // Thermal power compression: coil temp rise ΔT (K) × alfaVC (SI /K) → hot Re. 0/absent = no-op.

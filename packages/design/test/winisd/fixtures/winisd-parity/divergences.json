@@ -23,34 +23,6 @@
     },
     {
       "scenario": "*",
-      "field": "c",
-      "maxRelative": 5e-6,
-      "cause": "The driver's own [Driver].c field, filled by OpenISDDriver's #deriveEnteredOnly() when unentered: the pure CIPM-2007 moist-air value at the reference environment, 4.1e-6 relative from WinISD's stored literal (343.684120962153 m/s). Driver derivation does not use winisdAir()'s anchored model, so this leg still differs where the harness's own air.c/air.roo (which do) now agree.",
-      "reference": "bugs/archive/BUG_20260819_engine_speed_of_sound_constant_disagrees_with_wdr_default_in_last_digit.md"
-    },
-    {
-      "scenario": "*",
-      "field": "roo",
-      "maxRelative": 9e-6,
-      "cause": "Same mechanism as the 'c' entry, for [Driver].roo.",
-      "reference": "bugs/archive/BUG_20260819_engine_speed_of_sound_constant_disagrees_with_wdr_default_in_last_digit.md"
-    },
-    {
-      "scenario": "*",
-      "field": "SPLmaxLF",
-      "maxRelative": 1e-6,
-      "cause": "SPLmaxLF's p20 term is driven by driverC()/driverRho(), so the live-CIPM-vs-stored-literal c/roo difference propagates into it at a much smaller relative magnitude (SPLmaxLF depends on c/roo only weakly).",
-      "reference": "bugs/archive/BUG_20260819_engine_speed_of_sound_constant_disagrees_with_wdr_default_in_last_digit.md"
-    },
-    {
-      "scenario": "*",
-      "field": "no",
-      "maxRelative": 2e-5,
-      "cause": "Reference efficiency no = (4π²/c³)·Fs³·Vas/Qes is cubic in c, so the live-CIPM-vs-stored-literal difference in c (≈4.14e-6) is amplified roughly 3x here.",
-      "reference": "bugs/archive/BUG_20260819_engine_speed_of_sound_constant_disagrees_with_wdr_default_in_last_digit.md"
-    },
-    {
-      "scenario": "*",
       "field": "ParState[6]",
       "cause": "fLe has no route from a scenario's 22-key .wdr: openisd never computes it (no formula takes fLe from the T/S set) and no scenario ever enters it, so cell() reads N. Every golden marks the slot E with fLe=0 regardless — WinISD's own 'declined-but-defaulted' convention for a field it opened from a foreign file rather than its own New dialog (contrast drivers/mysamples/winisd/john-all-defaults.wdr, a real New->Save, which marks the same class of field N). Confirmed on every golden with a ParState (all but solve-from-mms-cms, which has none) — see bugs/archive/BUG_20260813_parstate-writer-emits-n-for-the-34-slots-the-driver-does-not-model.md 'Reverified 2026-08-14'.",
       "reference": "bugs/archive/BUG_20260813_parstate-writer-emits-n-for-the-34-slots-the-driver-does-not-model.md"

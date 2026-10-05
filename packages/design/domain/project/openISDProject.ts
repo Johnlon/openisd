@@ -114,12 +114,11 @@ export class OpenISDProject {
         return this.#engine.environment.solve(this.#airOver(root)).values;
     }
 
-    /** The four air conditions `root` reads as — each E or C, never absent. */
+    /** The three air conditions `root` reads as — each E or C, never absent. */
     #airOver(root: SimpleField<OpenISDProjectJson>): AirEnvironment {
         const env = envFieldsOver(focus(root, 'environment'), this.#engine.environment);
         return {
             tempK: env.tempK.value, humidityPct: env.humidityPct.value, pressurePa: env.pressurePa.value,
-            useWinisdAirModel: root.value.environment.useWinisdAirModel ?? true,
         };
     }
 
@@ -750,18 +749,6 @@ export class OpenISDProject {
         this.envPressurePa.set(pressurePa);
     }
 
-    /** Which air formula this project's sweeps use — WinISD's parity model when true, OpenISD's
-     *  physical CIPM-2007 model when false. Null reads as true (QO95): a new project matches
-     *  WinISD out of the box. See `engine/air.ts` for the two models. */
-    get envUseWinisdAirModel(): SimpleField<boolean> {
-        return new ProjectEnvironment(this.#slot('environment'), this.#engine.environment).useWinisdAirModel;
-    }
-
-    /** @deprecated Use `project.envUseWinisdAirModel.set(useWinisdAirModel)` instead. */
-    setEnvUseWinisdAirModel(useWinisdAirModel: boolean): void {
-        this.envUseWinisdAirModel.set(useWinisdAirModel);
-    }
-
     // ── SIMULATION — the engine's sweep, run on THIS project's driver and box ──────────────────
     //
     // Everything the engine's `SweepParams` needs beyond the frequency grid is already stored
@@ -804,7 +791,6 @@ export class OpenISDProject {
             sweepN: this.sweepN,
             driveVoltage_V: this.driveVoltage_V.value,
             airEnvironment: this.#airOver(root),
-            useWinisdAirModel: this.#current().environment.useWinisdAirModel ?? true,
             air: this.#air(root),
             engine: this.#engine,
             ventIssues: this.#issues.vent,

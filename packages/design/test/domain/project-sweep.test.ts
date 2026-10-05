@@ -52,7 +52,6 @@ describe('OpenISDProject sweep', () => {
         Ql: project.box.sealed.losses.Ql.value, Qa: project.box.sealed.losses.Qa.value,
         Rs: project.Rs_ohm.value,
         lossMode: project.lossMode.value.value,
-        useWinisdAirModel: project.envUseWinisdAirModel.value,
       },
     ).values!;
     expect(mine!.spl).toEqual(theirs.spl);

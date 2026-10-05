@@ -22,6 +22,11 @@ async function openPlotWindow(page: Page): Promise<void> {
   await page.locator('.opt-tab', { hasText: 'Plot Window' }).click();
 }
 
+async function openBackupTab(page: Page): Promise<void> {
+  await openOptions(page);
+  await page.locator('.opt-tab', { hasText: 'Backup' }).click();
+}
+
 async function openOptions(page: Page): Promise<void> {
   await page.goto('/');
   await expect(page.locator('.original-root')).toBeVisible();
@@ -404,8 +409,15 @@ test.describe('Options dialog', () => {
     });
 
     test.describe('Backup', () => {
-      test('the Backup section downloads a JSON snapshot of this browser\'s storage', async ({ page }) => {
+      test('Backup and restore live on their own tab, not on General', async ({ page }) => {
         await openOptions(page);
+        await expect(page.locator('.opt-group', { has: page.locator('legend', { hasText: 'Backup' }) })).toHaveCount(0);
+        await page.locator('.opt-tab', { hasText: 'Backup' }).click();
+        await expect(page.locator('.opt-group', { has: page.locator('legend', { hasText: 'Backup' }) })).toBeVisible();
+      });
+
+      test('the Backup section downloads a JSON snapshot of this browser\'s storage', async ({ page }) => {
+        await openBackupTab(page);
         const legend = page.locator('.opt-group', { has: page.locator('legend', { hasText: 'Backup' }) });
         await expect(legend).toBeVisible();
 
@@ -421,7 +433,7 @@ test.describe('Options dialog', () => {
       });
 
       test('restoring a backup asks for confirmation, then reloads the page', async ({ page }) => {
-        await openOptions(page);
+        await openBackupTab(page);
         const legend = page.locator('.opt-group', { has: page.locator('legend', { hasText: 'Backup' }) });
 
         // Confirm, then the post-restore reload notice — both native dialogs this flow raises.
@@ -429,10 +441,11 @@ test.describe('Options dialog', () => {
         // window.location.reload() actually runs, which is the last thing the success path does —
         // waiting on it (not just the two dialogs) is what proves the reload happened at all.
         let confirmSeen = false;
+        let confirmText = '';
         let alertSeen = false;
         let reloaded = false;
         page.on('dialog', async (dialog) => {
-          if (dialog.type() === 'confirm') { confirmSeen = true; await dialog.accept(); return; }
+          if (dialog.type() === 'confirm') { confirmSeen = true; confirmText = dialog.message(); await dialog.accept(); return; }
           alertSeen = true;
           await dialog.accept();
         });
@@ -449,11 +462,12 @@ test.describe('Options dialog', () => {
 
         await expect.poll(() => reloaded).toBe(true);
         expect(confirmSeen).toBe(true);
+        for (const named of ['overwrite', 'in memory', 'projects', 'My Drivers', 'My Passive Radiators']) expect(confirmText).toContain(named);
         expect(alertSeen).toBe(true);
       });
 
       test('restoring an invalid file reports the error and does not reload', async ({ page }) => {
-        await openOptions(page);
+        await openBackupTab(page);
         const legend = page.locator('.opt-group', { has: page.locator('legend', { hasText: 'Backup' }) });
 
         let sawInvalidAlert = false;

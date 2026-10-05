@@ -163,7 +163,7 @@ export abstract class BoxProjectBuilder {
             box: this.emptyBox(),
             // The three conditions state nothing; the project's first resolve stamps the app's
             // Options → Environment value into each as a 'C' entry.
-            environment: {useWinisdAirModel: null},
+            environment: {},
             signal: {},
             meta: {
                 name: '',

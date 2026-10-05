@@ -31,6 +31,9 @@ export interface GraphPanelAPI {
   rangeStats(fLo: number, fHi: number): RangeStats | null;
   /** The peak or trough of this chart's trace nearest `f` on one side; null when none. */
   snapFrequency(f: number | null, direction: SnapDirection, extremum: SnapExtremum): number | null;
+  /** A click at `f`: on an unlocked chart it locks the cursor there; near the pinned point it
+   *  unlocks it in place; elsewhere while locked it moves the cursor there, unlocked. */
+  clickAt(f: number): void;
 }
 
 export const GraphPanelKey: InjectionKey<GraphPanelAPI> = Symbol('GraphPanelAPI');
@@ -98,6 +101,19 @@ export function useGraphPanel(props: GraphPanelProps, chartEngine: ChartEngineAr
     return s ? snapFrequency(s.xs, s.ys, f, direction, extremum) : null;
   }
 
+  function clickAt(f: number): void {
+    const p = project.value;
+    const wasLocked = p.cursorLocked.value;
+    const pinnedF = p.pinnedF.value;
+    if (wasLocked && pinnedF !== null && frequencyAxis().isNear(f, pinnedF)) {
+      p.cursorLocked.set(false);
+      return;
+    }
+    p.pinnedF.set(f);
+    p.cursorF.set(f);
+    p.cursorLocked.set(!wasLocked);
+  }
+
   return {
     meta,
     currentDesign,
@@ -110,5 +126,6 @@ export function useGraphPanel(props: GraphPanelProps, chartEngine: ChartEngineAr
     frequencyAxis,
     rangeStats,
     snapFrequency: snapFrequencyOnTrace,
+    clickAt,
   };
 }

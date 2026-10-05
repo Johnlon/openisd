@@ -195,25 +195,8 @@ function onPointerUp(e: PointerEvent) {
   dragOrigin = null;
   if (wasDrag) return; // leave selection visible; cleared on next pointerdown
   project.value.dragRange.set(null);
-  // Click locks or moves the marker:
-  // - Clicking an unlocked chart locks the cursor at that frequency.
-  // - Clicking near the already pinned location unlocks it.
-  // - Clicking somewhere else while locked moves the cursor to the new location UNLOCKED.
   const f = freqAt(e.clientX);
-  if (f === null) return;
-  const p = project.value;
-  const pinnedF = p.pinnedF.value;
-  if (p.cursorLocked.value && pinnedF !== null && geoRef?.axis.isNear(f, pinnedF)) {
-    p.cursorLocked.set(false);
-  } else if (p.cursorLocked.value) {
-    p.pinnedF.set(f);
-    p.cursorF.set(f);
-    p.cursorLocked.set(false);
-  } else {
-    p.pinnedF.set(f);
-    p.cursorF.set(f);
-    p.cursorLocked.set(true);
-  }
+  if (f !== null) graph.clickAt(f);
 }
 
 // Double-click the Y-axis strip resets that chart's level scale to auto; double-click

@@ -1,4 +1,4 @@
-import {expect, openAProject, setFocusedBoxType, setFocusedDriverSpecs, test} from '../fixtures.js';
+import {expect, focusedBoxVolume, openAProject, setFocusedBoxType, setFocusedBoxVolume, setFocusedDriverSpecs, test} from '../fixtures.js';
 
 /** The Alignment editor opened from the Box tab (a modal shared by the sealed and vented boxes). */
 
@@ -20,6 +20,31 @@ test.describe('Alignment popup', () => {
     await expect(page.locator('.alignment-readout')).toContainText(/Either sealed or vented|Suitability unavailable/);
     await page.getByRole('button', { name: 'Cancel', exact: true }).click();
     await expect(page.locator('.alignment-modal')).toBeHidden();
+  });
+
+  test('Cancel after choosing another sealed alignment leaves the volume and the readouts as they were', async ({ page }) => {
+    await setFocusedBoxType(page, 'sealed');
+    await setFocusedBoxVolume(page, 0.020);
+    await page.locator('.project-nav li', { hasText: 'Box' }).click();
+    const qtcInput = page.locator('.box-layout .field', { hasText: 'Qtc' }).locator('input');
+    const fscInput = page.locator('#og-box-resonance');
+    await expect(fscInput).not.toHaveValue('');
+    const fscBefore = await fscInput.inputValue();
+    const qtcBefore = await qtcInput.inputValue();
+
+    await page.getByRole('button', { name: 'Alignment', exact: true }).click();
+    const modal = page.locator('.alignment-modal');
+    await expect(modal).toBeVisible();
+    const volumeInModal = modal.locator('input[type="number"]');
+    const volumeShown = await volumeInModal.inputValue();
+    await modal.locator('select').selectOption('0.707');
+    await expect(volumeInModal).not.toHaveValue(volumeShown);   // the choice resized the box in the editor
+    await page.getByRole('button', { name: 'Cancel', exact: true }).click();
+    await expect(modal).toBeHidden();
+
+    expect(await focusedBoxVolume(page)).toBeCloseTo(0.020, 9);
+    await expect(fscInput).toHaveValue(fscBefore);
+    await expect(qtcInput).toHaveValue(qtcBefore);
   });
 
   test('vented Box tab opens and cancels the Alignment editor', async ({ page }) => {

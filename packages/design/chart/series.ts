@@ -27,6 +27,9 @@ import {FrequencyAxis, LevelAxis} from './axis.js';
 
 export const DPAL = ['#4fb0ff','#ffb454','#5ad17a','#ff6b6b','#c08bff'];
 
+/** Every limit line (driver Xmax, passive radiator Xmax, port air velocity): a trace touching it is over its limit. */
+const REDLINE = '#ff6b6b';
+
 
 interface TabMeta { id: ChartId; name: string; unit: string; color: string }
 
@@ -154,7 +157,7 @@ function portVelocityBuild({ meta, sw, pick, P }: CurveCtx, vel: number[]): Curv
   // The project's port air-velocity limit (`OpenISDProject.portVelocityLimit_m_per_s`).
   const limit = P.portVelocityLimit_m_per_s;
   if (limit !== undefined) {
-    series.push({ xs: sw.fs, ys: sw.fs.map(() => limit), color:'#ffb454', name:`${limit} m/s`, dash:true });
+    series.push({ xs: sw.fs, ys: sw.fs.map(() => limit), color: REDLINE, name:`${limit} m/s`, dash:true });
   }
   return { series, ymin: 0, ymax: Math.max(20, Math.max(...vel) * 1.1, (limit ?? 0) * 1.1) };
 }
@@ -247,7 +250,7 @@ const CURVE_BUILDERS: Record<ChartId, (c: CurveCtx) => CurveBuild> = {
     // the missing line is surfaced to the user as a dismissable issue elsewhere).
     const drvXmax_m = drv.values.Xmax_m;
     const xm = drvXmax_m != null && drvXmax_m > 0 ? NumberField.XMAX_M.toDisplay(drvXmax_m, 'mm') : null;
-    if (xm != null) series.push({ xs: sw.fs, ys: sw.fs.map(() => xm), color:'#ff6b6b', name:'Xmax', dash:true });
+    if (xm != null) series.push({ xs: sw.fs, ys: sw.fs.map(() => xm), color: REDLINE, name:'Xmax', dash:true });
     const top = Math.max((xm || 0) * 1.4, Math.max(...sw.exc.slice(0, 20)) * 1.1);
     return { series, ymin: 0, ymax: top };
   },
@@ -258,7 +261,7 @@ const CURVE_BUILDERS: Record<ChartId, (c: CurveCtx) => CurveBuild> = {
     const xmp = NumberField.XMAX_M.toDisplay(P.prXmax || 0.01, 'mm');
     const series: Series[] = [
       { xs: sw.fs, ys: sw.excPR, color: meta.color, name: 'PR' },
-      { xs: sw.fs, ys: sw.fs.map(() => xmp), color: '#9ad17a', name: 'PR Xmax', dash: true },
+      { xs: sw.fs, ys: sw.fs.map(() => xmp), color: REDLINE, name: 'PR Xmax', dash: true },
     ];
     const top = Math.max(xmp * 1.3, Math.max(...sw.excPR.slice(0, 30)) * 1.1);
     return { series, ymin: 0, ymax: top };

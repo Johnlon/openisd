@@ -146,8 +146,8 @@ describe('openIsdProjectToWinIsdProject', () => {
 
       // Fr is WinISD's own computed resonance, so this is the parity assertion of the sealed case
       // and it matches to floating point: 6e-14 Hz. The tolerance is tight on purpose — a loose one
-      // here hid a 0.044 Hz error for weeks, the resonance being computed in CIPM-2007 air while
-      // the project asked for WinISD's.
+      // here hid a 0.044 Hz error for weeks, the resonance being computed in air other than the
+      // project's.
       const FR_TOLERANCE_HZ = 1e-9;
       const match = text.match(/\[Box\][\s\S]*?\nFr=([\d.]+)\n/);
       assert.ok(match, 'bridge output has a [Box] Fr= line');

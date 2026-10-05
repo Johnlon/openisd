@@ -108,7 +108,7 @@ describe('editing a driver — copy, then update or drop', () => {
 
     expect(project.driver.specs.c_m_per_s.calculated).toBe(true);
     expect(project.driver.specs.roo_kg_per_m3.calculated).toBe(true);
-    const projectAir = createEngine().environment.solve({ tempK: 250, humidityPct: 80, pressurePa: 90000, useWinisdAirModel: true }).values;
+    const projectAir = createEngine().environment.solve({ tempK: 250, humidityPct: 80, pressurePa: 90000 }).values;
     expect(project.driver.specs.c_m_per_s.value).toBeCloseTo(projectAir.c, 6);
     expect(project.driver.specs.roo_kg_per_m3.value).toBeCloseTo(projectAir.rho, 6);
     // Never 999/5 — the driver's own stated pair must not survive embedding.
@@ -136,7 +136,7 @@ describe('editing a driver — copy, then update or drop', () => {
     project.driver.specs.c_m_per_s.set(999);
     project.driver.specs.roo_kg_per_m3.set(5);
 
-    const projectAir = createEngine().environment.solve({ tempK: 250, humidityPct: 80, pressurePa: 90000, useWinisdAirModel: true }).values;
+    const projectAir = createEngine().environment.solve({ tempK: 250, humidityPct: 80, pressurePa: 90000 }).values;
     const ts = project.driver.specs;
     expect(ts.c_m_per_s.value).toBeCloseTo(projectAir.c, 6);
     expect(ts.roo_kg_per_m3.value).toBeCloseTo(projectAir.rho, 6);

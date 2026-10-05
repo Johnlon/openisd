@@ -72,9 +72,7 @@ describe('radiator Mms, Cms and Rms are calculated', () => {
   it('uses the project air (ρc² follows pressure)', () => {
     const cool = prProject(createEngine(), four);
     const hot = prProject(createEngine(), four);
-    hot.envUseWinisdAirModel.set(false);
     hot.envPressurePa.set(90000);
-    cool.envUseWinisdAirModel.set(false);
     expect(hot.box.passiveRadiator.radiator.spec.Cms_m_per_N.value)
       .not.toBe(cool.box.passiveRadiator.radiator.spec.Cms_m_per_N.value);
   });

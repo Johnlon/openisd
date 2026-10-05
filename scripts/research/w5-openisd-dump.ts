@@ -3,7 +3,7 @@
 // equivalence settings, writes the project out as .owpr and sweeps what reads back — so the
 // numbers compared against WinISD are the saved project's, not the imported one's.
 // Usage: npx tsx scripts/research/w5-openisd-dump.ts <in.wpr> <freqs.json> <out.json> [key=value ...]
-// Keys: circuitModel, rgAtDriverSide, winisdDriverModel, Rs_ohm, envUseWinisdAirModel.
+// Keys: circuitModel, rgAtDriverSide, winisdDriverModel, Rs_ohm.
 import {readFileSync, writeFileSync} from 'node:fs';
 import {createEngine} from '../../packages/design/engine/index.ts';
 import {defaultAppSettings} from '../../packages/design/engine/appSettings.ts';
@@ -38,8 +38,6 @@ const winisdDriverModel = opts.get('winisdDriverModel');
 if (winisdDriverModel) project.winisdDriverModel.set(winisdDriverModel === 'true');
 const Rs_ohm = opts.get('Rs_ohm');
 if (Rs_ohm) project.Rs_ohm.set(Number(Rs_ohm));
-const envUseWinisdAirModel = opts.get('envUseWinisdAirModel');
-if (envUseWinisdAirModel) project.envUseWinisdAirModel.set(envUseWinisdAirModel === 'true');
 
 const owprText = project.toOwprText();
 writeFileSync(outPath.replace(/\.json$/, '.owpr'), owprText);

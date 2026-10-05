@@ -57,6 +57,9 @@ Use a value that differs from the file's own, or the case moves nothing and prov
 `wprFile` is relative to the goldens folder, so a fixture beside it is `'../../bp6-w5-1.wpr'`. A field
 whose `.wpr` value is text (a filter's `;`-joined params) uses a `TextConsistencyCase`: `rawValue`
 instead of `value`, and `hand: (project, engine)` builds the edited value (see `areas/filters.ts`).
+A key WinISD writes as a readout and ignores on load (a tuned port's `len`) is a
+`ReadoutConsistencyCase` in `readoutCases`: its file route saves the hand-edited project and loads
+it back (see `areas/vents.ts`).
 
 ## Add a WinISD consistency probe
 

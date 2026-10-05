@@ -76,6 +76,39 @@ describe('GraphPanel-hooks', () => {
       expect(api.currentDesign.value.color).toBe('#ff0000');
     });
 
+    describe('clickAt — a click on the chart', () => {
+      function clickHarness() {
+        const project = createTestProject();
+        const api = runHook(computed(() => project), () => useGraphPanel({chartId: 'SPL'}, createEngine()));
+        return {project, api};
+      }
+
+      it('locks the cursor at the clicked frequency', () => {
+        const {project, api} = clickHarness();
+        api.clickAt(100);
+        expect(project.cursorLocked.value).toBe(true);
+        expect(project.pinnedF.value).toBe(100);
+        expect(project.cursorF.value).toBe(100);
+      });
+
+      it('clicking elsewhere while locked moves the cursor there and unlocks it', () => {
+        const {project, api} = clickHarness();
+        api.clickAt(100);
+        api.clickAt(1000);
+        expect(project.cursorLocked.value).toBe(false);
+        expect(project.pinnedF.value).toBe(1000);
+        expect(project.cursorF.value).toBe(1000);
+      });
+
+      it('clicking near the pinned point unlocks it and leaves it where it was', () => {
+        const {project, api} = clickHarness();
+        api.clickAt(100);
+        api.clickAt(102);   // within 0.02 decades of 100
+        expect(project.cursorLocked.value).toBe(false);
+        expect(project.pinnedF.value).toBe(100);
+      });
+    });
+
     it('tracks warningsDismissed state and resets when dismissWarnings is called', async () => {
       const api = await renderHook({chartId: 'SPL'});
       expect(api.warningsDismissed.value).toBe(false);

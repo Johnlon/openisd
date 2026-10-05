@@ -16,7 +16,7 @@ function num(v: number | undefined): number {
   return v;
 }
 
-// A driver record stating no `c`/`roo` of its own takes the live physical model at the
+// A driver record stating no `c`/`roo` of its own takes WinISD's air model at the
 // reference environment — the same air `airFor({})` reports.
 const driverC   = (): number => engine.environment.solve({}).values.c;
 
@@ -153,11 +153,13 @@ describe('driver Fs and Vas route parity with WinISD', () => {
     const W5 = {
       Fs_hz: 45, Qes: 0.57, Qms: 3.56, Cms_m_per_N: 0.00036872, Sd_m2: 0.0094,
       Mms_kg: 0.02881, BL_Tm: 7.17, Re_ohm: 3.4, Znom: 4, Le_H: 0.00034, Xmax_m: 0.00925,
+      // The W5 .wdr states its own air (winisd_drivers db), and WinISD's saved Vas was computed in it.
+      c_m_per_s: 343.6826980479399, roo_kg_per_m3: 1.2009621215255684,
     } as const;
     // WinISD's own stored efficiency value for this record (the W5 save), as a FRACTION.
     const NO_WINISD = 0.000895200585183395;
 
-    // Oracle literals at the engine's default air (airFor({}) = c 343.6826980479.../rho 1.2009621215):
+    // Oracle literals at the record's own air (c 343.6826980479.../rho 1.2009621215):
     //   rel 14 (entered no): V = no·Qes/(K(c)·Fs³)        = 0.005757990477296902 m³ (WinISD saved 5.7579904772969 L)
     //   rel 15 (BL/Sd/Mms/Re): no = ρ/(2πc)·BL²·Sd²/(Re·Mms²) = 0.0008952005851833956
     //   rel 14 (from rel-15 no):                          = 0.005757990477296906

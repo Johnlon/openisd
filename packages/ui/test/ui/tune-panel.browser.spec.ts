@@ -1,5 +1,6 @@
 import {COMPLETE_DRIVER_PROJECT_OWPR, duplicateFocusedProject, expect, focusedBoxVolume, focusedDriverSpec, openAProject, setFocusedBoxType, test} from '../fixtures.js';
 import type {Page} from '@playwright/test';
+import {fillAndCommit, numInputByLabel} from '../fixtures/numField.js';
 
 /**
  * The docked Tune panel (OriginalTune.vue): a what-if over the focused project's driver (T/S
@@ -296,6 +297,17 @@ test.describe('Tune panel', () => {
       await tune.locator('button', { hasText: 'Cancel' }).click();
       await expect(tune).toBeHidden();
       expect(await focusedBoxVolume(page)).toBeCloseTo(before, 6);  // Cancel reverts the box change too
+    });
+
+    test('a volume typed on the Box tab shows in the open Tune panel', async ({ page }) => {
+      await openTune(page, COMPLETE_DRIVER_PROJECT_OWPR);
+      const vb = tuneField(page, 'Vb').locator('input');
+
+      await page.locator('.project-nav li', { hasText: /^Box$/ }).click();
+      await fillAndCommit(numInputByLabel(page, 'Volume', page.locator('.box-layout')).first(), '27');
+      expect(await focusedBoxVolume(page)).toBeCloseTo(0.027, 6);
+
+      await expect(vb).toHaveValue(/^27(\.0+)?$/);
     });
   });
 });

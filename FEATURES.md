@@ -44,7 +44,7 @@ Other tools in this space are in [docs/research/COMPETITIVE_LANDSCAPE.md](docs/r
 - Filters: high-pass, low-pass, Linkwitz transform, parametric EQ, low shelf, high shelf.
 - Voice-coil temperature rise, and added mass on the cone.
 - Force flat response, and Xmax-limited SPL.
-- Temperature, humidity and pressure per project, with WinISD's or the CIPM-2007 air model.
+- Temperature, humidity and pressure per project, through WinISD's air model.
 - Signal generator that plays a tone.
 
 ### Drivers and data

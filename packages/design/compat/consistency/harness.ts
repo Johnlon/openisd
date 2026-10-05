@@ -34,11 +34,23 @@ export interface TextConsistencyCase {
   readonly hand: (project: OpenISDProject, engine: Engine) => void;
 }
 
+/** A field WinISD writes to the `.wpr` as a readout and ignores on load (a port's `len`: WinISD
+ *  tunes from [Box] Fr/Ff). Writing the key alone makes a file WinISD never writes, so the file
+ *  route is the hand-edited project saved to `.wpr` and loaded back. */
+export interface ReadoutConsistencyCase {
+  readonly label: string;
+  readonly wprFile: string;
+  readonly readout: true;
+  readonly value: number;
+  readonly hand: (project: OpenISDProject, value: number) => void;
+}
+
 export interface CompatArea {
   readonly name: string;
   readonly summary: string;
   readonly cases: readonly ConsistencyCase[];
   readonly textCases?: readonly TextConsistencyCase[];
+  readonly readoutCases?: readonly ReadoutConsistencyCase[];
 }
 
 export interface CaseResult {
@@ -95,15 +107,22 @@ function worstRelative(a: readonly number[], b: readonly number[]): number {
   return worst;
 }
 
-export function runCase(engine: Engine, c: ConsistencyCase | TextConsistencyCase): CaseResult {
+function savedAndLoaded(engine: Engine, project: OpenISDProject): OpenISDProject {
+  const saved = new WinIsdProjectConverter(engine).openIsdProjectToWinIsdProject(project);
+  if (saved.value === null) throw new Error(saved.errors.map(e => e.message).join('; '));
+  return loadProject(engine, saved.value.toWpr());
+}
+
+export function runCase(engine: Engine, c: ConsistencyCase | TextConsistencyCase | ReadoutConsistencyCase): CaseResult {
   try {
     const text = readFileSync(join(GOLDENS_DIR, c.wprFile), 'utf8');
     const base = numbersOf(loadProject(engine, text));
-    const fileValue = 'rawValue' in c ? c.rawValue : c.value;
-    const loaded = numbersOf(loadProject(engine, withKey(text, c.section, c.key, fileValue)));
     const handProject = loadProject(engine, text);
     if ('rawValue' in c) c.hand(handProject, engine); else c.hand(handProject, c.value);
     const hand = numbersOf(handProject);
+    const loaded = numbersOf('readout' in c
+      ? savedAndLoaded(engine, handProject)
+      : loadProject(engine, withKey(text, c.section, c.key, 'rawValue' in c ? c.rawValue : c.value)));
     return {
       label: c.label, error: null,
       handMoves: worstRelative(base, hand) > SAME,

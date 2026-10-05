@@ -15,7 +15,8 @@ export class ReleaseWatch {
   readonly newVersionAvailable = ref(false);
 
   /** `runningVersion` is the version baked into this build; '' (dev server) disables the check. */
-  constructor(private readonly runningVersion: string, private readonly port: ReleasePort) {}
+  /** The version baked into this build; '' on a dev server. */
+  constructor(readonly runningVersion: string, private readonly port: ReleasePort) {}
 
   async check(): Promise<void> {
     if (this.runningVersion === '') return;
