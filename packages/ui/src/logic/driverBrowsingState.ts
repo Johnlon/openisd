@@ -449,31 +449,31 @@ export function createDriverBrowsingState(deps: DriverBrowsingStateDeps): Driver
     if (input === null) return;
     const file = input.files?.[0];
     if (!file) return;
+    const failed = (reason: string): void => {
+      statusErr.value = true;
+      statusMsg.value = `Could not import ${file.name}: ${reason}`;
+      logging.flash(statusMsg.value);
+    };
     void readDriverFileText(file).then(({ text }) => {
       // Clear the input whatever happened, so picking the SAME file again still fires `change`.
       input.value = '';
-      if (!text) { statusErr.value = true; statusMsg.value = `${file.name} is empty`; return; }
+      if (!text) { failed('it is empty'); return; }
       const format = DriverFileFormat.ofFileName(file.name) ?? sniff(new TextEncoder().encode(text));
-      if (!(format instanceof DriverFileFormat)) {
-        statusErr.value = true;
-        statusMsg.value = `${file.name} is not a driver file (expected .wdr or .owdr)`;
-        return;
-      }
+      if (!(format instanceof DriverFileFormat)) { failed('it is not a driver file (expected .wdr or .owdr)'); return; }
       const res = driverFromFileText(deps.files, text, format, file.name);
-      if (!res.ok) { statusErr.value = true; statusMsg.value = res.error; return; }
+      if (!res.ok) { failed(res.error); return; }
       // A FILE IMPORT always mints a fresh identity (QO81): the file's own uuid is provenance,
       // never the store key — importing twice yields two entries.
       const saved = myDriverRepo.upsert(res.driver);
       reloadMyDrivers();
-      if (!saved) { statusErr.value = true; statusMsg.value = 'Saved drivers are read-only until the storage problem is resolved'; return; }
+      if (!saved) { failed('saved drivers are read-only until the storage problem is resolved'); return; }
       statusErr.value = false;
       statusMsg.value = '';
-      logging.flash('Loaded into My Drivers');
+      logging.flash(`Driver imported to My Drivers: ${displayNameOf(res.driver)}`);
       previewDriver.value = res.driver;
     }, (err: Error) => {
       input.value = '';
-      statusErr.value = true;
-      statusMsg.value = err.message;
+      failed(err.message);
     });
   }
 

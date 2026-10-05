@@ -1,10 +1,11 @@
-import {beforeAll, describe, it, vi} from 'vitest';
+import {beforeAll, describe, expect, it, vi} from 'vitest';
+import {ref} from 'vue';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 import {dirname, join} from 'node:path';
-import {createLogging} from '../../src/logging/flash.js';
-import {createApplicationIO} from '../../src/logic/applicationIO.js';
+import {createLogging, type Logging} from '../../src/logging/flash.js';
+import {createApplicationIO, type DesignIO} from '../../src/logic/applicationIO.js';
 import {DesignFiles} from '../../src/logic/fileImportExport.js';
 import {createBackupRepo, createFileOpen, createFileStorage, createMemoryStorage, type FileOpen, type FilePick, createProjectRepo, type FileStorage} from '@openisd/persistence';
 import {newProject, openProjects, requireFocusedProject} from '../../src/logic/appState.js';
@@ -140,10 +141,8 @@ describe('.wpr import syncs state.project from the file, and export round-trips 
     }
   });
 
-  it('an .owpr that is not a project logs the FULL parse error list to the console, before the alert (QO152)', async () => {
-    const alerts: string[] = [];
+  it('an .owpr that is not a project logs the FULL parse error list to the console, before the message (QO152)', async () => {
     const consoleErrors: unknown[][] = [];
-    vi.stubGlobal('alert', (msg: string) => { alerts.push(msg); });
     vi.spyOn(console, 'error').mockImplementation((...args: unknown[]) => { consoleErrors.push(args); });
     vi.stubGlobal('FileReader', class {
       onload: null | (() => void) = null;
@@ -159,7 +158,8 @@ describe('.wpr import syncs state.project from the file, and export round-trips 
     try {
       const engine = createEngine();
       const repo = createProjectRepo(engine, createFileStorage(), createMemoryStorage());
-      const io = createApplicationIO({ logging: createLogging(), fileStorage: createFileStorage(), fileOpen: createFileOpen(), projectRepo: repo, files: new DesignFiles(engine, repo), backup });
+      const logging = createLogging();
+      const io = createApplicationIO({ logging, fileStorage: createFileStorage(), fileOpen: createFileOpen(), projectRepo: repo, files: new DesignFiles(engine, repo), backup });
 
       // Not a project at all — every required top-level member is missing — so there is nothing a
       // field-level repair can keep (a project with bad fields loads repaired instead; John,
@@ -169,7 +169,7 @@ describe('.wpr import syncs state.project from the file, and export round-trips 
       await new Promise(resolve => setTimeout(resolve, 0));
       await new Promise(resolve => setTimeout(resolve, 0));
 
-      assert.equal(alerts.length, 1, 'the malformed file must still alert the user');
+      assert.match(logging.message.value, /^Could not import broken\.owpr: /, 'the malformed file must still tell the user');
       assert.equal(consoleErrors.length, 1, 'the malformed file must log to the console exactly once');
       const [, loggedRaw] = consoleErrors[0];
       if (typeof loggedRaw !== 'string') throw new Error('console.error\'s second argument must be the error text');
@@ -287,5 +287,136 @@ describe('openFromDisk — one named filter, fallback to the file input', () => 
     const fallback = vi.fn();
     await ioPicking({ kind: 'cancelled' }, []).openFromDisk(fallback);
     assert.equal(fallback.mock.calls.length, 0);
+  });
+});
+
+/** John, 2026-10-05: "when a driver or project has been imported/exported we need a little
+ *  message". Every export, Save As and import says what it did, naming the thing and the file. */
+describe('every import and export says what it did', () => {
+  const here = dirname(fileURLToPath(import.meta.url));
+  const GOLDEN_SEALED = join(here, '..', '..', '..', 'design', 'test', 'winisd', 'fixtures', 'winisd-parity', 'goldens', 'sealed-small.wpr');
+
+  function stubDom(downloads: { name: string; body: string | Uint8Array }[]): void {
+    let pending: string | Uint8Array = '';
+    vi.stubGlobal('alert', () => { throw new Error('no import or export may raise an alert'); });
+    vi.stubGlobal('URL', { createObjectURL: () => 'blob:x', revokeObjectURL: () => {} });
+    vi.stubGlobal('Blob', class {
+      constructor(parts: unknown[]) {
+        const part = parts[0];
+        if (typeof part !== 'string' && !(part instanceof Uint8Array)) throw new Error('download a string or bytes');
+        pending = part;
+      }
+    });
+    vi.stubGlobal('document', {
+      createElement: () => {
+        const a = { href: '', download: '', click: () => { downloads.push({ name: a.download, body: pending }); } };
+        return a;
+      },
+    });
+    vi.stubGlobal('FileReader', class {
+      onload: null | (() => void) = null;
+      onerror: null | (() => void) = null;
+      result: ArrayBuffer | null = null;
+      readAsArrayBuffer(file: File): void {
+        void file.arrayBuffer().then(buf => { this.result = buf; queueMicrotask(() => this.onload?.()); });
+      }
+    });
+  }
+
+  function restoreGlobals(): void {
+    vi.unstubAllGlobals();
+    vi.stubGlobal('location', { origin: 'https://openisd.test', pathname: '/' });
+    vi.stubGlobal('history', { replaceState: () => {} });
+    vi.stubGlobal('navigator', { clipboard: { writeText: () => Promise.resolve() } });
+  }
+
+  async function settle(): Promise<void> {
+    await new Promise(resolve => setTimeout(resolve, 0));
+    await new Promise(resolve => setTimeout(resolve, 0));
+  }
+
+  function ioWith(fileStorage: FileStorage) {
+    const logging: Logging = { message: ref(''), flash: vi.fn() };
+    const engine = createEngine();
+    const repo = createProjectRepo(engine, fileStorage, createMemoryStorage());
+    const io = createApplicationIO({ logging, fileStorage, fileOpen: createFileOpen(), projectRepo: repo, files: new DesignFiles(engine, repo), backup });
+    return { io, flash: logging.flash };
+  }
+
+  function fakeFileStorage(result: { name: string | null; cancelled: boolean; written: boolean }): FileStorage {
+    return { save: async () => result, saveAs: async () => result, openFileName: () => null, forget: () => {} };
+  }
+
+  async function importGolden(io: DesignIO): Promise<void> {
+    io.importFile(new File([readFileSync(GOLDEN_SEALED)], 'MyBox.wpr'));
+    await settle();
+    requireFocusedProject().driver.brand.set('Tang Band');
+    requireFocusedProject().driver.model.set('W5-1138SMF');
+  }
+
+  it('project import, .wpr export, .wdr and .owdr export, and a driver import each flash', async () => {
+    const downloads: { name: string; body: string | Uint8Array }[] = [];
+    stubDom(downloads);
+    try {
+      const { io, flash } = ioWith(createFileStorage());
+      await importGolden(io);
+      expect(flash).toHaveBeenCalledWith('Project imported from MyBox.wpr');
+
+      io.exportWpr();
+      expect(flash).toHaveBeenLastCalledWith('Project exported as Tang_Band_W5-1138SMF.wpr');
+      io.exportWdr();
+      expect(flash).toHaveBeenLastCalledWith('Driver exported as Tang_Band_W5-1138SMF.wdr');
+      io.exportOwdr();
+      expect(flash).toHaveBeenLastCalledWith('Driver exported as Tang_Band_W5-1138SMF.owdr');
+
+      const wdr = downloads.find(d => d.name.endsWith('.wdr'));
+      if (!wdr) throw new Error('exportWdr must download a .wdr');
+      io.importFile(new File([typeof wdr.body === 'string' ? wdr.body : new Uint8Array(wdr.body)], 'probe.wdr'));
+      await settle();
+      expect(flash).toHaveBeenLastCalledWith('Driver imported from probe.wdr: Tang Band W5-1138SMF');
+
+      io.exportBackup();
+      expect(flash).toHaveBeenLastCalledWith(expect.stringMatching(/^Backup downloaded as openisd-backup-\d{4}-\d{2}-\d{2}\.json$/));
+    } finally { restoreGlobals(); }
+  });
+
+  it('a .wpr export that had to change the design still says it exported', async () => {
+    stubDom([]);
+    try {
+      const { io, flash } = ioWith(createFileStorage());
+      await importGolden(io);
+      requireFocusedProject().filters.set(
+        [{type: 'lowpass', enabled: true, family: 'butterworth', order: 15, fc: 50, Q: 0.707}]);
+      requireFocusedProject().save();
+      io.exportWpr();
+      expect(flash).toHaveBeenLastCalledWith(expect.stringMatching(/^Project exported as Tang_Band_W5-1138SMF\.wpr: .*lowpass order 15 written as order 10/));
+    } finally { restoreGlobals(); }
+  });
+
+  it('a file that cannot be read flashes why, naming the file', async () => {
+    stubDom([]);
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      const { io, flash } = ioWith(createFileStorage());
+      io.importFile(new File([new TextEncoder().encode('{}')], 'broken.owpr'));
+      await settle();
+      expect(flash).toHaveBeenCalledWith(expect.stringMatching(/^Could not import broken\.owpr: /));
+    } finally { vi.restoreAllMocks(); restoreGlobals(); }
+  });
+
+  it('Save As names the file written, or says the download is unconfirmed', async () => {
+    newProject();
+    requireFocusedProject().name.set('MyBox');
+    const written = ioWith(fakeFileStorage({ name: 'MyBox.owpr', cancelled: false, written: true }));
+    await written.io.saveProjectAs();
+    expect(written.flash).toHaveBeenCalledWith('Project saved as MyBox.owpr');
+
+    const downloaded = ioWith(fakeFileStorage({ name: null, cancelled: false, written: false }));
+    await downloaded.io.saveProjectAs();
+    expect(downloaded.flash).toHaveBeenCalledWith('Project downloaded as MyBox.owpr. It stays marked unsaved.');
+
+    const cancelled = ioWith(fakeFileStorage({ name: null, cancelled: true, written: false }));
+    await cancelled.io.saveProjectAs();
+    expect(cancelled.flash).not.toHaveBeenCalled();
   });
 });

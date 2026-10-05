@@ -54,6 +54,7 @@ import {
 import {setShareUrl} from './urlAppState.js';
 import type {Logging} from '../logging/flash.js';
 import {readDriverFileText} from './driverFileText.js';
+import {displayNameOf} from './driverDisplay.js';
 import {DriverFileFormat, formatOf, OpenableFiles, ProjectFileFormat, sniff} from '../fileFormat.js';
 
 function sanitizeFilename(name: string | undefined): string {
@@ -160,12 +161,13 @@ export function createApplicationIO(deps: { logging: Logging; fileStorage: FileS
     const result = await deps.projectRepo.saveToNewFile(currentProject(), owprNaming(suggested));
     if (result.cancelled) return;
     adoptFileName(result.name, suggested);
+    const fileName = result.name ?? suggested;
     if (!result.written) {
-      flash('Project downloaded — the browser cannot confirm it was written, so it is still marked unsaved');
+      flash(`Project downloaded as ${fileName}. It stays marked unsaved.`);
       return;
     }
     markProjectSaved();
-    flash('Project saved');
+    flash(`Project saved as ${fileName}`);
   }
 
   // shareLink() carries the WHOLE app state (human ruling 2026-08-14, persist.ts's
@@ -185,30 +187,35 @@ export function createApplicationIO(deps: { logging: Logging; fileStorage: FileS
 
   function exportWdr(): void {
     closeTunePanelAfterIO();
+    const fileName = sanitizeFilename(driverName.value) + '.wdr';
     const { value: bytes, errors } = driverToWdrBytes(requireFocusedProject().driver);
-    if (!bytes) { flash(`Cannot export .wdr: ${errors[0]?.message ?? 'incomplete'}`); return; }
-    download(sanitizeFilename(driverName.value) + '.wdr', bytes, DriverFileFormat.Wdr.mime);
+    if (!bytes) { flash(`Could not export ${fileName}: ${errors[0]?.message ?? 'the driver is incomplete'}`); return; }
+    download(fileName, bytes, DriverFileFormat.Wdr.mime);
+    flash(`Driver exported as ${fileName}`);
   }
 
   function exportOwdr(): void {
     closeTunePanelAfterIO();
-    const bytes = driverToOwdrBytes(requireFocusedProject().driver);
-    download(sanitizeFilename(driverName.value) + '.owdr', bytes, DriverFileFormat.Owdr.mime);
+    const fileName = sanitizeFilename(driverName.value) + '.owdr';
+    download(fileName, driverToOwdrBytes(requireFocusedProject().driver), DriverFileFormat.Owdr.mime);
+    flash(`Driver exported as ${fileName}`);
   }
 
   /** Export the current design as a WinISD .wpr project (WINISD_WPR_FILE_SCHEMA.md). */
   function exportWpr(): void {
     closeTunePanelAfterIO();
+    const fileName = sanitizeFilename(driverName.value) + '.wpr';
     const { value: bytes, errors } = deps.files.projectToWprBytes(requireFocusedProject());
-    if (!bytes) { flash(`Cannot export .wpr: ${errors[0]?.message ?? 'incomplete'}`); return; }
-    download(sanitizeFilename(driverName.value) + '.wpr', bytes, ProjectFileFormat.Wpr.mime);
+    if (!bytes) { flash(`Could not export ${fileName}: ${errors[0]?.message ?? 'the project is incomplete'}`); return; }
+    download(fileName, bytes, ProjectFileFormat.Wpr.mime);
     // What the export changed to keep WinISD working (e.g. a filter order clamped to 10).
     const filterWarnings = errors.filter(e => e.field === 'Filters');
-    if (filterWarnings.length) flash(`Exported .wpr: ${filterWarnings.map(e => e.message).join('; ')}`);
+    flash(`Project exported as ${fileName}` + (filterWarnings.length ? `: ${filterWarnings.map(e => e.message).join('; ')}` : ''));
   }
 
   /** Load a driver/design from a picked File. */
   function importFile(f: File): void {
+    const failed = (reason: string) => flash(`Could not import ${f.name}: ${reason}`);
     void readDriverFileText(f).then(({ text }) => {
       try {
         const format = formatOf(f.name) ?? sniff(new TextEncoder().encode(text));
@@ -226,6 +233,9 @@ export function createApplicationIO(deps: { logging: Logging; fileStorage: FileS
             newProjectDriver.value = driver;
             presentationState.newProjectOpen = true;
           }
+          deps.fileStorage.forget();
+          flash(`Driver imported from ${f.name}: ${displayNameOf(driver)}`);
+          return;
         } else if (format === ProjectFileFormat.Wpr) {
           const { value: project, errors } = deps.files.projectFromText(text, ProjectFileFormat.Wpr);
           if (!project) throw new Error(errors[0]?.message ?? 'could not read .wpr');
@@ -241,7 +251,7 @@ export function createApplicationIO(deps: { logging: Logging; fileStorage: FileS
         } else if (format === ProjectFileFormat.Owpr || /^\s*\{/.test(text)) {
           const { value: project, errors } = deps.files.projectFromText(text, ProjectFileFormat.Owpr);
           if (!project) {
-            // `errors[0]` alone is what the alert shows — one line is all a modal has room for —
+            // `errors[0]` alone is what the message shows — one line is all a toast has room for —
             // but a schema mismatch commonly raises several field-level issues at once (QO152),
             // and the FIRST one is rarely the most informative. Logging every one to the console
             // is what turns "the browser suite times out for 60s" into a diagnosable failure.
@@ -253,12 +263,12 @@ export function createApplicationIO(deps: { logging: Logging; fileStorage: FileS
           project.save();   // the loaded design is the ground state — see the .wpr branch above
           addProject(project);
         } else {
-          throw new Error('Unsupported or unrecognized file format');
+          throw new Error('it is not an OpenISD or WinISD file');
         }
         deps.fileStorage.forget();
-        flash('Opened ' + f.name);
-      } catch (err) { alert('Could not read "' + f.name + '": ' + (err instanceof Error ? err.message : String(err))); }
-    }, (err: Error) => { alert('Could not read "' + f.name + '": ' + err.message); });
+        flash(`Project imported from ${f.name}`);
+      } catch (err) { failed(err instanceof Error ? err.message : String(err)); }
+    }, (err: Error) => { failed(err.message); });
   }
 
   async function openFromDisk(fallback: () => void): Promise<void> {
@@ -271,8 +281,9 @@ export function createApplicationIO(deps: { logging: Logging; fileStorage: FileS
   }
 
   function exportBackup(): void {
-    const stamp = new Date().toISOString().slice(0, 10);
-    download(`openisd-backup-${stamp}.json`, deps.backup.exportAll(), 'application/json');
+    const fileName = `openisd-backup-${new Date().toISOString().slice(0, 10)}.json`;
+    download(fileName, deps.backup.exportAll(), 'application/json');
+    flash(`Backup downloaded as ${fileName}`);
   }
 
   function importBackup(json: string): RestoreResult {
