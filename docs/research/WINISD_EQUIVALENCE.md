@@ -48,7 +48,10 @@ figure not yet recorded here). Next best, and worst among the boxes measured bef
 ## Table 1 — chart × box (base settings)
 
 Base settings: W5-1138SMF, 1 W, Rg 0.1 Ω not at driver side, VCInd off, winisd-lossy losses, the
-4-filter chain of CHART_REVIEW §3.4 (sealed also without filters: the larger of the two is shown).
+4-filter chain of CHART_REVIEW §3.4 (sealed also without filters: the larger of the two is shown),
+and the "WinISD incl. bugs" compatibility preset: every WinISD convention and every WinISD error
+switch ticked. Since 2026-10-04 a new project is "WinISD-ish" (error switches off), so its charts
+differ from WinISD wherever an error switch acts; the cells measure exact reproduction.
 BP6 and ABC: landed 2026-09-28 (merge `df81902c`, box `356c5234`). Transfer function magnitude,
 impedance, and rear/front/intrachamber port air velocity are measured against a real WinISD
 capture (≤ 1e-9); every other chart from runs/bp6-w5-base2 and abc-w5-base2 (2026-09-29).
@@ -85,14 +88,14 @@ radiator — §3.6, §3.7; BP6/ABC — winisd_research runs `bp6-w5-1`, `abc-w5-
 
 WinISD warts reproduced on purpose (not deviations): PR phase chart plots arg(Upr) without the 90°
 of its magnitude chart; Maximum SPL / Maximum power leave the filter chain out; VA uses Re, not
-Re + Rg; BP6 transfer is rear minus front. ABC intra-port velocity omits the leak term Zf·jωMai/Ricl of the port-mass current (a calculation difference of up to 1.35 dB and 4.6° near 110 Hz): matched by default; unticking the yellow "WinISD ABC intra-port velocity" error switch gives the exact current. With the leak made negligible (Qiclfr 1e6, `abc-w5-qicl1e6`) the two agree to 3.3e-6, and WinISD's form to 1e-9
-([ACCURACY_IMPROVEMENTS.md](ACCURACY_IMPROVEMENTS.md?html#winisd-calculation-errors--correct-by-default-an-error-switch-brings-winisd-back)).
+Re + Rg; BP6 transfer is rear minus front. ABC intra-port velocity omits the leak term Zf·jωMai/Ricl of the port-mass current (a calculation difference of up to 1.35 dB and 4.6° near 110 Hz): matched by default; unticking the ordinary "WinISD ABC intra-port velocity" switch (a WinISD convention, not a bug; "Recommended (debugged)" unticks it) gives the exact current. With the leak made negligible (Qiclfr 1e6, `abc-w5-qicl1e6`) the two agree to 3.3e-6, and WinISD's form to 1e-9
+([ACCURACY_IMPROVEMENTS.md](ACCURACY_IMPROVEMENTS.md?html#winisd-conventions--copied-by-default-an-ordinary-switch-gives-the-exact-form)).
 The passive-radiator box with Npr > 1 matches WinISD's impedance, transfer function and excursion with the
-"PR Npr resonance" error switch on (Reset to WinISD ticks it): WinISD takes the fixed losses at an ωr Npr times
+"PR Npr resonance" error switch on (the "WinISD incl. bugs" preset ticks it): WinISD takes the fixed losses at an ωr Npr times
 below the tuning; off, the default, OpenISD uses the tuning. The captures (`pr-w5-npr-1`, `pr-w5-me-npr-1`)
 run with the switch on.
 A Bessel high-pass filter matches WinISD's response and group delay with the "WinISD Bessel high-pass" error
-switch on (Reset to WinISD ticks it); off, the default, OpenISD draws the mirror of the low-pass. The
+switch on (the "WinISD incl. bugs" preset ticks it); off, the default, OpenISD draws the mirror of the low-pass. The
 filter captures run with the switch on.
 Allpass orders above 2 and Linkwitz-Riley orders other than 4 are inputs WinISD ignores (it draws order 2 and LR4).
 OpenISD honours them (no switch, a ≠W Difference cue explains it), so those captures (`2|0;1;3;0.004;0.8`,

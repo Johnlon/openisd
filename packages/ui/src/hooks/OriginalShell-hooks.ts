@@ -52,7 +52,7 @@ import {createToneGenerator, type ToneGenerator} from '../logic/toneGenerator.js
 import {useApp} from '../logic/app.js';
 import {useEscToClose} from '../logic/useEscToClose.js';
 import {injectSplashModal} from './SplashModal-hooks.js';
-import {ARRAY_WIRING_OPTIONS, BOX_TYPE_OPTIONS, END_CORRECTION_OPTIONS, formatFixed, formatFixedOrDash, NumberField, ReadoutFormat, VENT_SHAPE_OPTIONS} from '@openisd/design/fields';
+import {ARRAY_WIRING_OPTIONS, BOX_TYPE_OPTIONS, END_CORRECTION_OPTIONS, formatFixed, formatFixedOrDash, NumberField, ReadoutFormat, VENT_SHAPE_OPTIONS, WinisdDeviation} from '@openisd/design/fields';
 import {inputChecked, inputFrom, inputValue, listeningElement, selectedOption, selectValue} from '../logic/domEvents.js';
 import {SealedAlignmentEditor} from './SealedAlignment-hooks.js';
 import {VentedAlignmentEditor} from './VentedAlignment-hooks.js';
@@ -628,11 +628,17 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     return project.value.isWhatIfActive();
   });
 
-  const applyWinisdSettings = () => {
-    project.value.applyWinisdSettings();
-  };
-
   const errorSwitches = createErrorSwitches({project, projectChanged});
+  /** The WinISD deviations whose cue sits by the chart picker: in effect on an open chart. */
+  const chartDeviations = computed(() => projectOpen.value ? WinisdDeviation.ALL.filter(
+    d => openCharts.value.some(id => d.inEffectOnChart(errorSwitches.value, id))) : []);
+  /** The passive-radiator Npr deviation's cue, by the radiator count, while it is in effect. */
+  const prNprDeviationShown = computed(() => projectOpen.value && WinisdDeviation.PR_NPR_RESONANCE.inEffect(errorSwitches.value));
+  /** "WinISD ABC intra-port velocity" acts on the open box. */
+  const abcVelocityApplies = computed(() => {
+    void projectChanged.value;
+    return project.value.winisdAbcIntraPortVelocityApplies;
+  });
 
   return {
     version, toggleDropdown, openDd, openClick, closeDropdown, presentationState, isModified,
@@ -648,7 +654,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     genOn, toggleGenerate, genHz,
     boxLabel, pending, openCharts, chartStackEl, chartStackStyle, chartsHigh, CHARTS_HIGH_OPTIONS, overlays, activeTab,
     showEnclosureTab, enclosureNavLabel,
-    selectedBox, BOX_TYPE_OPTIONS, ARRAY_WIRING_OPTIONS, N_DRIVERS_OPTIONS, applyWinisdSettings, errorSwitches,
+    selectedBox, BOX_TYPE_OPTIONS, ARRAY_WIRING_OPTIONS, N_DRIVERS_OPTIONS, abcVelocityApplies, errorSwitches, chartDeviations, prNprDeviationShown,
      boxVolume_m3, boxVolumeDqNote, setBoxVolume_m3, sealedAlignmentEditor, sealedAlignmentOpen,
      sealedAlignmentOptions, sealedAlignmentSelected, sealedAlignmentVolume_m3, sealedAlignmentEbp,
      sealedAlignmentSuitability, sealedAlignmentSuitabilityLabel, originalFilters,

@@ -11,8 +11,6 @@ export interface ErrorSwitchState {
 
 /** The error switches, one member each. */
 export interface ErrorSwitchStates {
-    /** WinISD ABC intra-port velocity: the chart omits the leak term Zf·jωMai/Ricl (ticked, the default). */
-    readonly abcIntraPortVelocity: ErrorSwitchState;
     /** WinISD driver model: two BLs. */
     readonly driverModel: ErrorSwitchState;
     /** WinISD VA model: Re where the amplifier sees Re + Rg. */
@@ -28,7 +26,6 @@ export interface ErrorSwitchInputs {
     readonly boxType: BoxType;
     readonly winisdDriverModel: boolean;
     readonly winisdVaModel: boolean;
-    readonly winisdAbcIntraPortVelocity: boolean;
     readonly winisdPrNprResonance: boolean;
     readonly winisdBesselHighpass: boolean;
     /** The project has at least one enabled Bessel high-pass filter. */
@@ -37,7 +34,6 @@ export interface ErrorSwitchInputs {
 
 export function errorSwitchStatesOf(i: ErrorSwitchInputs): ErrorSwitchStates {
     return {
-        abcIntraPortVelocity: {marked: true, applicable: i.boxType === 'abc', reproducesError: i.winisdAbcIntraPortVelocity},
         driverModel: {marked: true, applicable: true, reproducesError: i.winisdDriverModel},
         vaModel: {marked: true, applicable: true, reproducesError: i.winisdVaModel},
         besselHighpass: {marked: true, applicable: i.hasBesselHighpass, reproducesError: i.winisdBesselHighpass},

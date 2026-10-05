@@ -731,21 +731,23 @@ const openISDAdvancedJsonSchema = z.preprocess(renameLegacyWinisdDriverModel, z.
     // parses; the loader (`retireLossMode`) turns it into Ql/Qa and drops it, and OpenISD never
     // writes it.
     lossMode: z.enum(['lossless', 'conventional-lossy', 'winisd-lossy']).optional(),
-    // WinISD driver derivation toggle: whether engine sweeps calculate Mms/BL/Rms via WinISD formulas
-    // instead of using entered datasheet values directly. Optional: absent parses to ON, WinISD's
-    // own behaviour, matching every project saved before the default was corrected.
+    // The WinISD error switches (straight WinISD bugs) and WinISD-vs-conventional choices below are
+    // optional: absent parses to `CompatPreset.DEFAULT` ("WinISD-ish": WinISD's conventions, every
+    // WinISD bug fixed), so an absent error switch is OFF and an absent convention is WinISD's.
+    // Error switch "WinISD driver model": the simulation mixes the entered BL with the BL implied
+    // by Fs, Qes and Vas, as WinISD does. Absent parses to OFF.
     winisdDriverModel: z.boolean().optional(),
-    // "WinISD VA model": the amplifier apparent load power chart as WinISD computes it,
-    // P·Re·|Hf|²/|Z + Rg|. Optional: absent parses to ON, WinISD's own behaviour.
+    // Error switch "WinISD VA model": the amplifier apparent load power chart as WinISD computes
+    // it, P·Re·|Hf|²/|Z + Rg|. Absent parses to OFF.
     winisdVaModel: z.boolean().optional(),
-    // "WinISD ABC intra-port velocity": the ABC intra-port velocity chart as WinISD draws it, Ricl
-    // left out of the divider. Optional: absent parses to OFF, the correct flow through the port.
+    // Convention "WinISD ABC intra-port velocity": the ABC intra-port velocity chart as WinISD
+    // draws it, the leak term left out. Absent parses to ON, WinISD's convention.
     winisdAbcIntraPortVelocity: z.boolean().optional(),
-    // "PR Npr resonance": the passive-radiator box's fixed-loss frequency as WinISD computes it,
-    // Npr times below the tuning. Optional: absent parses to OFF, the physical tuning.
+    // Error switch "PR Npr resonance": the passive-radiator box's fixed-loss frequency as WinISD
+    // computes it, Npr times below the tuning. Absent parses to OFF.
     winisdPrNprResonance: z.boolean().optional(),
-    // "WinISD Bessel high-pass": Bessel high-pass filters as WinISD computes them, not the mirror of
-    // the low-pass. Optional: absent parses to OFF, the mirror.
+    // Error switch "WinISD Bessel high-pass": Bessel high-pass filters as WinISD computes them,
+    // not the mirror of the low-pass. Absent parses to OFF.
     winisdBesselHighpass: z.boolean().optional(),
     // "WinISD phase wrapping": wraps phase curves to [-180°, +180°]. Optional: absent parses to ON.
     winisdWrapPhase: z.boolean().optional(),

@@ -6,6 +6,7 @@
  * column (`AdvancedOptions.vue`) is reused unchanged — it's already presentation-only with its
  * own hook, so it needs no mobile-specific copy.
  */
+import {computed} from 'vue';
 import {envDefaults, projectChanged} from '../logic/appState.js';
 import {useFocusedProject} from '../logic/focusedProjectContext.js';
 import {useApp} from '../logic/app.js';
@@ -22,15 +23,19 @@ export function useMobileAdvancedTab() {
     resetAirToAppDefaults, advAir,
   } = createEnvironmentAir({ project, projectChanged, envDefaults, environment: engine.environment });
 
-  function applyWinisdSettings(): void { project.value.applyWinisdSettings(); }
 
   const errorSwitches = createErrorSwitches({project, projectChanged});
+  /** "WinISD ABC intra-port velocity" acts on the open box. */
+  const abcVelocityApplies = computed(() => {
+    void projectChanged.value;
+    return project.value.winisdAbcIntraPortVelocityApplies;
+  });
 
   return {
     project,
     envTempStored, envHumidityStored, envPressureStored, envTempDq, envHumidityDq, envPressureDq,
     advTemp, advHumidity, advPressure,
     resetAirToAppDefaults, advAir,
-    applyWinisdSettings, errorSwitches,
+    abcVelocityApplies, errorSwitches,
   };
 }

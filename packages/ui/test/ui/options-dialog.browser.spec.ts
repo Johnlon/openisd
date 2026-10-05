@@ -224,9 +224,10 @@ test.describe('Options dialog', () => {
         await page.locator('.tb-btn[title="Options"]').click();
         await expect(page.locator('.opt-modal')).toBeVisible();
         await page.getByRole('button', { name: 'Reset to Metric (l, mm, …)' }).click();
-        await page.locator('.opt-modal .opt-ok').click();
+        await expect(unit).toHaveText('g');             // reverted at once, before OK
+        await page.locator('.opt-modal').getByRole('button', { name: 'Cancel' }).click();
 
-        await expect(unit).toHaveText('g');             // reverted to the field's default unit
+        await expect(unit).toHaveText('g');             // Cancel does not bring the old unit back
         // The stored value is untouched by the unit switch and the metric reset: flip back to kg and the
         // same number is there. A reset changes which unit is SHOWN, never what is held.
         await unit.click(); // flip back to kg

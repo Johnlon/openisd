@@ -41,20 +41,19 @@ education.
 Three kinds of WinISD difference, handled differently:
 
 - **A different calculation** (the maths differs: another formula, loss model, convention, or a
-  consistent calculation error such as the passive-radiator ωr using Npr where the tuning divides
-  by it) is copied by default. The conventional maths sits behind a compat switch, or behind an
-  existing switch whose tooltip is extended to name the case.
+  simplification WinISD may intend, such as the ABC intra-port velocity dropping a small leak
+  term) is copied by default. The conventional maths sits behind an ordinary compat switch, or
+  behind an existing switch whose tooltip is extended to name the case. A convention is never
+  yellow.
 - **A calculation bug** (a wrong formula, or a value that contradicts WinISD's own other charts)
   can be reproduced: OpenISD does the correct thing by default and provides a yellow error switch
-  that makes WinISD's calculation come back. The switch is off by default (a WinISD default that is
-  itself the bug is the one exception: it stays as WinISD has it, shown yellow), editable only
-  where it applies, and looks different from ordinary switches even when off. The error switches
-  sit in one group headed "WinISD errors", and each is a visible, listed WinISD issue: the switches
-  are how OpenISD tells users what is wrong in WinISD, and they build trust. Which state is the
-  default follows the parity goal: a wrong formula or contradiction proven in WinISD's own outputs
-  defaults to the correct maths; an inaccuracy WinISD may intend (a dropped small term, as in the
-  ABC intra-port velocity) defaults to WinISD's form, ticked and yellow, with the exact formula
-  unticked: convention (accurate) versus WinISD parity (inaccurate). Record each as a
+  that makes WinISD's calculation come back. Only a straight WinISD bug is yellow (John,
+  2026-10-04): the driver model (two BLs), the VA model, the PR Npr resonance, the Bessel
+  high-pass. The switch is off by default, with no exception, editable only where it applies, and
+  looks different from ordinary switches even when off. While it is off, a ≠W Difference cue by
+  the affected control (or chart) says what WinISD does. The error switches sit in one group
+  headed "WinISD errors", and each is a visible, listed WinISD issue: the switches are how OpenISD
+  tells users what is wrong in WinISD, and they build trust. Record each as a
   WinISD bug (a `bugs/BUG_*_winisd-*.md` file, a row in the "fixed by default" section of
   `docs/research/ACCURACY_IMPROVEMENTS.md`, and `docs/research/WINISD_PARITY.md`).
 - **A trigger, linkage or update bug** (an edit that does not recalculate where a load or another
@@ -77,10 +76,20 @@ Three kinds of WinISD difference, handled differently:
   The native control stays as WinISD has it. (Splitting the native control's "on" state into a
   drop-down, "off / on – WinISD / on – Conventional", is also permitted, but separate controls
   are the pattern in use.)
-- "Reset to WinISD" changes only the WinISD-vs-conventional choice. It never changes whether a
-  native control is on or off, and never changes project data.
+- Three presets in the WinISD Compatibility panel replace "Reset to WinISD" (John, 2026-10-04:
+  "I want folk to be able to reproduce WinISD views, but I don't want to encourage their use"):
+  - **Recommended (debugged)**: OpenISD's best model for every choice, every error switch off.
+  - **WinISD-ish**: every convention on WinISD's side, every error switch off. A new project, and
+    a file that does not say, is WinISD-ish.
+  - **WinISD incl. bugs**: every convention on WinISD's side and every error switch ticked: exact
+    WinISD reproduction.
+  The panel shows which preset the settings match, or "Custom". The presets are `CompatPreset`
+  in `packages/design`; each must assign every switch, so a new switch does not compile until it
+  does. A preset changes only WinISD-vs-conventional choices and error switches: never whether a
+  native control is on or off, and never project data. Ignored-input bugs have no switch and no
+  preset copies them.
 
-(John, 2026-09-26.)
+(John, 2026-09-26; presets 2026-10-04.)
 
 ## Communication — plain bug statements
 

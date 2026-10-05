@@ -112,8 +112,8 @@ function onFreqChange() {
 const unitsResetPending = ref(false);
 
 function resetUnitsDraft() {
-  unitsResetPending.value = true;
   draft.unitTokens = {};
+  resetUnitTokens();
 }
 
 function restoreDefaults() {

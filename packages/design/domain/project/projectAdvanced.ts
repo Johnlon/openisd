@@ -1,3 +1,4 @@
+import {CompatPreset} from './compatPreset.js';
 import { focus } from '../cell.js';
 import type { SimpleField } from '../cell.js';
 import type { Filter } from '../../engine/index.js';
@@ -64,24 +65,24 @@ export class ProjectAdvanced {
     /** WinISD Advanced / Compatibility "Use WinISD driver calculations" — whether engine sweeps
      *  substitute the driver WinISD's own simulation acts on, `Mms = 1/((2π·Fs)²·Cms)`,
      *  `Rms = 2π·Fs·Mms/Qms` and `BL = √(Re/(2π·Fs·Qes·Cms))`, for entered values that conflict
-     *  with them (measured 2026-09-26, docs/research/WINISD_PARITY.md). On where a project does
-     *  not say, per the README: untouched, OpenISD gives WinISD's answer. */
+     *  with them (measured 2026-09-26, docs/research/WINISD_PARITY.md). A WinISD bug (two BLs);
+     *  off where a project does not say. */
     get winisdDriverModel(): SimpleField<boolean> {
         const lens = focus(this.#advanced, 'winisdDriverModel');
         return {
-            get value() { return lens.value ?? true; },
+            get value() { return lens.value ?? CompatPreset.DEFAULT.choices.winisdDriverModel; },
             set: (on: boolean) => lens.set(on),
         };
     }
 
     /** WinISD Compatibility "WinISD VA model": the amplifier apparent load power chart as WinISD
      *  computes it, P·Re·|Hf|²/|Z + Rg| (BUG_20260927_winisd-va-uses-re-not-re-plus-rg). Off: the
-     *  apparent power the amplifier delivers, P·(Re + Rg)·|Hf|²/|Z_amp|. On where a project does
+     *  apparent power the amplifier delivers, P·(Re + Rg)·|Hf|²/|Z_amp|. Off where a project does
      *  not say. */
     get winisdVaModel(): SimpleField<boolean> {
         const lens = focus(this.#advanced, 'winisdVaModel');
         return {
-            get value() { return lens.value ?? true; },
+            get value() { return lens.value ?? CompatPreset.DEFAULT.choices.winisdVaModel; },
             set: (on: boolean) => lens.set(on),
         };
     }
@@ -93,7 +94,7 @@ export class ProjectAdvanced {
     get winisdAbcIntraPortVelocity(): SimpleField<boolean> {
         const lens = focus(this.#advanced, 'winisdAbcIntraPortVelocity');
         return {
-            get value() { return lens.value ?? true; },
+            get value() { return lens.value ?? CompatPreset.DEFAULT.choices.winisdAbcIntraPortVelocity; },
             set: (on: boolean) => lens.set(on),
         };
     }
@@ -104,7 +105,7 @@ export class ProjectAdvanced {
     get winisdPrNprResonance(): SimpleField<boolean> {
         const lens = focus(this.#advanced, 'winisdPrNprResonance');
         return {
-            get value() { return lens.value ?? false; },
+            get value() { return lens.value ?? CompatPreset.DEFAULT.choices.winisdPrNprResonance; },
             set: (on: boolean) => lens.set(on),
         };
     }
@@ -115,7 +116,7 @@ export class ProjectAdvanced {
     get winisdBesselHighpass(): SimpleField<boolean> {
         const lens = focus(this.#advanced, 'winisdBesselHighpass');
         return {
-            get value() { return lens.value ?? false; },
+            get value() { return lens.value ?? CompatPreset.DEFAULT.choices.winisdBesselHighpass; },
             set: (on: boolean) => lens.set(on),
         };
     }
@@ -125,7 +126,7 @@ export class ProjectAdvanced {
     get winisdWrapPhase(): SimpleField<boolean> {
         const lens = focus(this.#advanced, 'winisdWrapPhase');
         return {
-            get value() { return lens.value ?? true; },
+            get value() { return lens.value ?? CompatPreset.DEFAULT.choices.winisdWrapPhase; },
             set: (on: boolean) => lens.set(on),
         };
     }
@@ -136,7 +137,7 @@ export class ProjectAdvanced {
     get winisdDriverCountModel(): SimpleField<boolean> {
         const lens = focus(this.#advanced, 'winisdDriverCountModel');
         return {
-            get value() { return lens.value ?? true; },
+            get value() { return lens.value ?? CompatPreset.DEFAULT.choices.winisdDriverCountModel; },
             set: (on: boolean) => lens.set(on),
         };
     }
@@ -147,7 +148,7 @@ export class ProjectAdvanced {
     get winisdFlatModel(): SimpleField<boolean> {
         const lens = focus(this.#advanced, 'winisdFlatModel');
         return {
-            get value() { return lens.value ?? true; },
+            get value() { return lens.value ?? CompatPreset.DEFAULT.choices.winisdFlatModel; },
             set: (on: boolean) => lens.set(on),
         };
     }

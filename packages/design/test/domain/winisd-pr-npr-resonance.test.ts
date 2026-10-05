@@ -1,5 +1,5 @@
 /**
- * "PR Npr resonance" (`winisdPrNprResonance`): off by default, ticked by "Reset to WinISD", saved
+ * "PR Npr resonance" (`winisdPrNprResonance`): off by default, ticked by "WinISD incl. bugs", saved
  * with the project, applicable on a passive radiator box only. Parity with WinISD's charts at
  * Npr > 1 needs it ticked (passive-radiator-count-winisd.test.ts).
  */
@@ -8,7 +8,7 @@ import {dirname, join} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {describe, expect, it} from 'vitest';
 import {createEngine} from '../../engine/index.js';
-import {OpenISDProject} from '../../domain/index.js';
+import {OpenISDProject, CompatPreset} from '../../domain/index.js';
 import {WinIsdProjectConverter} from '../../domain/winIsdProjectConverter.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -28,9 +28,9 @@ describe('winisdPrNprResonance', () => {
     expect(prProject('pr-w5-npr-1.wpr').winisdPrNprResonance.value).toBe(false);
   });
 
-  it('"Reset to WinISD" ticks it', () => {
+  it('"WinISD incl. bugs" ticks it', () => {
     const p = prProject('pr-w5-npr-1.wpr');
-    p.applyWinisdSettings();
+    p.applyCompatPreset(CompatPreset.WINISD_WITH_BUGS);
     expect(p.winisdPrNprResonance.value).toBe(true);
   });
 

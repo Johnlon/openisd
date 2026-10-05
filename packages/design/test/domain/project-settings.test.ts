@@ -1,6 +1,6 @@
 import {describe, expect, it} from 'vitest';
 import {type Engine, createEngine, DEFAULT_VENTED_DESIGN_LIMITS} from '@openisd/design/engine';
-import {OpenISDProject, ProjectBuilder, type FrequencyGrid} from '../../domain/index.js';
+import {CompatPreset, OpenISDProject, ProjectBuilder, type FrequencyGrid} from '../../domain/index.js';
 import {fixedAppContext, specSection, driverFrom, sealedProject} from '../fixtures/domainBuilders.js';
 
 describe('OpenISDProject settings', () => {
@@ -78,40 +78,16 @@ describe('OpenISDProject settings', () => {
       expect(back.circuitModel.value).toBe('winisdGyrator');
     });
 
-    it('applyWinisdSettings sets the compat switches to WinISD', () => {
-      const p = sealedProject();
-      p.envUseWinisdAirModel.set(false);
-      p.winisdDriverModel.set(false);
-
-      p.applyWinisdSettings();
-
-      expect(p.envUseWinisdAirModel.value).toBe(true);
-      expect(p.winisdDriverModel.value).toBe(true);
-    });
-
-    it('applyWinisdSettings leaves native WinISD controls and project data as they were (John, 2026-09-26)', () => {
-      for (const rgAtDriverSide of [true, false]) {
-        const p = sealedProject();
-        p.rgAtDriverSide.set(rgAtDriverSide);
-        p.driver.specs.Mms_kg.set(0.04);
-
-        p.applyWinisdSettings();
-
-        expect(p.rgAtDriverSide.value).toBe(rgAtDriverSide);
-        expect(p.driver.specs.Mms_kg.entered).toBe(true);
-      }
-    });
-
-    it('applyWinisdSettings keeps voice coil inductance on or off — the driver-calculations switch picks WinISD\'s inductance model', () => {
+    it('"WinISD incl. bugs" keeps voice coil inductance on or off — the driver-model switch picks WinISD\'s inductance model', () => {
       const off = sealedProject();
       off.circuitModel.set('winisd');
-      off.applyWinisdSettings();
+      off.applyCompatPreset(CompatPreset.WINISD_WITH_BUGS);
       expect(off.circuitModel.value).toBe('winisd');
 
       const on = sealedProject();
       on.circuitModel.set('gyrator');
       on.winisdDriverModel.set(false);
-      on.applyWinisdSettings();
+      on.applyCompatPreset(CompatPreset.WINISD_WITH_BUGS);
       expect(on.circuitModel.value).toBe('gyrator');
       expect(on.winisdDriverModel.value).toBe(true);
     });

@@ -8,7 +8,7 @@ import {dirname, join} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {describe, expect, it} from 'vitest';
 import {createEngine} from '../../engine/index.js';
-import {OpenISDProject} from '../../domain/index.js';
+import {CompatPreset, OpenISDProject} from '../../domain/index.js';
 import {WinIsdProjectConverter} from '../../domain/winIsdProjectConverter.js';
 import {WinisdDeviation, WinisdFilterDeviation} from '../../fields/index.js';
 import type {Filter} from '../../engine/index.js';
@@ -24,14 +24,12 @@ function abcProject(): OpenISDProject {
 }
 
 describe('errorSwitches', () => {
-  it('ABC velocity: marked, applicable on an ABC box only, reproducing the error while ticked (the default)', () => {
+  it('ABC velocity: a WinISD convention, not an error switch; its switch acts on an ABC box only', () => {
     const p = abcProject();
-    expect(p.errorSwitches.abcIntraPortVelocity).toEqual({marked: true, applicable: true, reproducesError: true});
-    p.winisdAbcIntraPortVelocity.set(false);
-    expect(p.errorSwitches.abcIntraPortVelocity).toEqual({marked: true, applicable: true, reproducesError: false});
+    expect('abcIntraPortVelocity' in p.errorSwitches).toBe(false);
+    expect(p.winisdAbcIntraPortVelocityApplies).toBe(true);
     p.box.boxType.set('vented');
-    expect(p.errorSwitches.abcIntraPortVelocity.applicable).toBe(false);
-    expect(p.errorSwitches.abcIntraPortVelocity.marked).toBe(true);
+    expect(p.winisdAbcIntraPortVelocityApplies).toBe(false);
   });
 
   it('driver model and VA model: always marked and applicable, reproducing the error while ticked', () => {
@@ -72,7 +70,7 @@ describe('WinISD deviation cues', () => {
       expect(d.size.length, d.title).toBeGreaterThan(0);
       expect(d.remedy.length, d.title).toBeGreaterThan(0);
     }
-    expect(WinisdDeviation.ALL).toHaveLength(4);
+    expect(WinisdDeviation.ALL).toEqual([WinisdDeviation.DRIVER_MODEL, WinisdDeviation.VA_MODEL, WinisdDeviation.PR_NPR_RESONANCE]);
     expect(WinisdFilterDeviation.ALL).toEqual([WinisdFilterDeviation.ALLPASS_ORDER, WinisdFilterDeviation.LINKWITZ_RILEY_ORDER, WinisdFilterDeviation.BESSEL_HIGHPASS]);
     expect(WinisdFilterDeviation.BESSEL_HIGHPASS.remedy).toMatch(/"WinISD Bessel high-pass"/);
     expect(WinisdFilterDeviation.ALLPASS_ORDER.remedy).toMatch(/no switch/);
@@ -86,7 +84,7 @@ describe('WinISD deviation cues', () => {
     expect(cue.inEffectFor(p.errorSwitches, {...ALLPASS_4, order: 3})).toBe(true);
     expect(cue.inEffectFor(p.errorSwitches, {...ALLPASS_4, order: 2})).toBe(false);
     expect(cue.inEffectFor(p.errorSwitches, {...ALLPASS_4, enabled: false})).toBe(false);
-    p.applyWinisdSettings();
+    p.applyCompatPreset(CompatPreset.WINISD_WITH_BUGS);
     expect(cue.inEffectFor(p.errorSwitches, ALLPASS_4)).toBe(true);
   });
 
@@ -113,6 +111,17 @@ describe('WinISD deviation cues', () => {
     expect(cue.inEffectFor(p.errorSwitches, ALLPASS_4)).toBe(false);
     p.winisdBesselHighpass.set(true);
     expect(cue.inEffectFor(p.errorSwitches, hp)).toBe(false);
+  });
+
+  it('VA model: its cue belongs to the VA chart, in effect while the switch is off', () => {
+    const p = abcProject();
+    const cue = WinisdDeviation.VA_MODEL;
+    p.winisdVaModel.set(false);
+    expect(cue.inEffectOnChart(p.errorSwitches, 'VA')).toBe(true);
+    expect(cue.inEffectOnChart(p.errorSwitches, 'SPL')).toBe(false);
+    expect(WinisdDeviation.PR_NPR_RESONANCE.inEffectOnChart(p.errorSwitches, 'VA')).toBe(false);
+    p.winisdVaModel.set(true);
+    expect(cue.inEffectOnChart(p.errorSwitches, 'VA')).toBe(false);
   });
 
   it('PR Npr resonance: in effect on a passive radiator box while the switch is off', () => {

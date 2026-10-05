@@ -4,7 +4,7 @@
  * apparent power the amplifier delivers: P·(Re + Rg)·|Hf|²/|Z_amp|, Rg counted once.
  */
 import {describe, expect, it} from 'vitest';
-import {createEngine, type FrequencyGrid, OpenISDProject, ProjectBuilder} from '../../domain/index.js';
+import {createEngine, type FrequencyGrid, OpenISDProject, ProjectBuilder, CompatPreset} from '../../domain/index.js';
 import {driverFromSpec} from '../fixtures/recordBuilders.js';
 
 const W5 = {
@@ -15,6 +15,7 @@ const W5 = {
 const engine = createEngine();
 const w5 = (): OpenISDProject => {
   const project = new ProjectBuilder(driverFromSpec(engine, W5), engine).sealed().volume_m3(0.00448).build();
+  project.applyCompatPreset(CompatPreset.WINISD_WITH_BUGS);
   project.powerDrive_W.set(1);
   project.Rs_ohm.set(1);
   project.rgAtDriverSide.set(false);
@@ -24,8 +25,8 @@ const at = (f: number): FrequencyGrid => ({fmin: f, fmax: f * 1.0001, N: 1});
 const va = (p: OpenISDProject, f: number): number => p.sweep(at(f)).values!.va[0];
 
 describe('winisdVaModel', () => {
-  it('defaults on: WinISD\'s VA', () => {
-    expect(w5().winisdVaModel.value).toBe(true);
+  it('defaults off: the amplifier\'s VA, WinISD\'s bug fixed', () => {
+    expect(new ProjectBuilder(driverFromSpec(engine, W5), engine).sealed().volume_m3(0.00448).build().winisdVaModel.value).toBe(false);
   });
 
   it('off: (Re + Rg)/Re times WinISD\'s VA, Rg 1 Ω at the amplifier (WinISD 0.7690233575004378 VA at 1 Hz)', () => {
@@ -40,10 +41,10 @@ describe('winisdVaModel', () => {
     expect(va(drv, 65.36) / va(amp, 65.36)).toBeCloseTo(1, 12);
   });
 
-  it('Reset to WinISD turns it on', () => {
+  it('"WinISD incl. bugs" turns it on', () => {
     const p = w5();
     p.winisdVaModel.set(false);
-    p.applyWinisdSettings();
+    p.applyCompatPreset(CompatPreset.WINISD_WITH_BUGS);
     expect(p.winisdVaModel.value).toBe(true);
   });
 

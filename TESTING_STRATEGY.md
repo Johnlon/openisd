@@ -99,7 +99,7 @@ the tracked tree.
   completion and two-way sync with the project.
 - **Lowest layer that proves it** (`.claude/rules/tdd.md`). A browser spec proves a seam is wired;
   it does not re-check maths a unit test already pins.
-- **Compat switches:** the `domain/winisd-*` file tests the switch (default, Reset to WinISD,
+- **Compat switches:** the `domain/winisd-*` file tests the switch (default, the compatibility presets,
   saved); the `engine/` file tests what the switch does to the numbers. Not both in both.
 - **Generated fixtures.** `sample-project.owpr` is generated at test time by
   `packages/ui/test/fixtures/generateSample.ts`; fix the generator, never the JSON. Reference
