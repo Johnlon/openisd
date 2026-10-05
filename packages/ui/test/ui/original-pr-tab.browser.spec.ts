@@ -168,7 +168,7 @@ test.describe('Original Passive Radiator tab', () => {
     test('a Vas typed on the PR page of a wizard-made ND140-PR project moves Fpr with mass, Fh and the SPL curve', async ({page}) => {
       await page.locator('.tb-btn[title*="New project"]').click();
       const wizard = page.locator('.overlay.open');
-      const next = wizard.locator('.modal-footer').getByRole('button', { name: 'Next', exact: true });
+      const next = wizard.locator('.modal-footer button.ok-btn');   // the green lead: Next, then Create
       await wizard.locator('.dlist .ditem').first().click();
       await next.click();                                        // driver chosen: step 2
       await next.click();                                        // step 3: box type
@@ -178,7 +178,7 @@ test.describe('Original Passive Radiator tab', () => {
       await page.locator('.pr-lib-item .pr-lib-name', { hasText: 'ND140-PR' }).first().click();
       await next.click();
       await wizard.locator('input[type="text"]').fill('ND140-PR from the wizard');
-      await wizard.locator('button', { hasText: 'Create' }).click();
+      await next.click();                                        // Create
       await page.locator('.project-nav li', {hasText: 'Passive Radiator'}).click();
       await expect(page.locator('#og-pr-fs')).toHaveValue(/44\./);
       await fillAndCommit(page.locator('#og-pr-madd'), '20');

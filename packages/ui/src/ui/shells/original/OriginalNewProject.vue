@@ -263,8 +263,8 @@ function handleCreate() {
            last step), Cancel — the same set as the mobile wizard. -->
       <div class="modal-footer">
         <div class="footer-buttons">
-          <button class="back-btn" :disabled="!canBack" title="Back to the previous step" @click="back">&lt; Back</button>
-          <button v-if="!leadIsCreate" class="ok-btn" :disabled="!canGoNext" @click="goNext">Next &gt;</button>
+          <button class="back-btn" :disabled="!canBack" title="Back to the previous step" @click="back">Back</button>
+          <button v-if="!leadIsCreate" class="ok-btn" :disabled="!canGoNext" @click="goNext">Next</button>
           <button v-else class="ok-btn" :disabled="!canCreate" @click="handleCreate">Create</button>
           <button class="cancel-btn" @click="handleCancel">Cancel</button>
         </div>

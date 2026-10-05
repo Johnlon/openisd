@@ -233,8 +233,8 @@ function handleCreate() {
     <!-- One footer on every step, step 1 included: Back, Next (green), Cancel, always in the same
          place. On step 1 Next chooses the driver being read; the preview has no buttons of its own. -->
     <div class="mob-np-footer">
-      <button class="cancel-btn" :disabled="!canBack" @click="back">&lt; Back</button>
-      <button v-if="!leadIsCreate" class="ok-btn" :disabled="!canGoNext" @click="goNext">Next &gt;</button>
+      <button class="cancel-btn" :disabled="!canBack" @click="back">Back</button>
+      <button v-if="!leadIsCreate" class="ok-btn" :disabled="!canGoNext" @click="goNext">Next</button>
       <button v-else class="ok-btn" :disabled="!canCreate" @click="handleCreate">Create</button>
       <button class="cancel-btn" @click="handleCancel">Cancel</button>
     </div>
