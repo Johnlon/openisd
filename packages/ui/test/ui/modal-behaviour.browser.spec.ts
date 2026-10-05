@@ -1,4 +1,4 @@
-import {duplicateFocusedProject, expect, openAProject, setFocusedBoxType, test} from '../fixtures.js';
+import {duplicateFocusedProject, expect, openAProject, test} from '../fixtures.js';
 import type {Locator, Page} from '@playwright/test';
 
 test.describe('Modal behaviour', () => {
