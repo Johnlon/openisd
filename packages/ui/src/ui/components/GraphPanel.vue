@@ -9,6 +9,7 @@ import type {ChartId} from '@openisd/design/engine';
 import {drawOne} from '../canvas.js';
 import {useGraphPanel} from '../../hooks/GraphPanel-hooks.js';
 import {useApp} from '../../logic/app.js';
+import {inputChecked} from '../../logic/domEvents.js';
 
 // `bare`/`primaryColor` are the WinISD chart mode: a clean single trace with no
 // F3/F6/F10 reference lines or legend, coloured to match the shell's Color swatch.
@@ -24,25 +25,17 @@ const graph = useGraphPanel(props, useApp().engine);
 const canvasEl = ref<HTMLCanvasElement | null>(null);
 const readEl   = ref<HTMLElement | null>(null);
 const meta = graph.meta;
-const plotData = graph.plotData;
 const blockErrors = graph.blockErrors;
 const blocked = graph.blocked;
 const warnings = graph.warnings;
 const warningsDismissed = graph.warningsDismissed;
 
-// Per-chart Y-axis (level) override — the vertical half of "zoom out/in". Absent =
-// auto-scale to fit the data. When set, it replaces the auto ymin/ymax on the drawn
-// plot only; series data and cursor stats are untouched.
-const yOverride = computed(() => presentationState.yRanges[props.chartId] || null);
-const viewPlot  = computed(() => {
-  const p = plotData.value;
-  if (!p) return p;
-  const ov = yOverride.value;
-  const axis = ov ? p.levelAxis.overridden(ov.min, ov.max) : null;
-  return axis ? { ...p, ymin: axis.min, ymax: axis.max, levelAxis: axis } : p;
-});
+// The drawn plot (with this chart's Y-axis override, when it has one) and the Auto Y switch.
+const viewPlot = graph.viewPlot;
+const autoY = graph.autoY;
+const yRangeLabel = graph.yRangeLabel;
 // Reset a chart's Y scale to auto (invoked by double-clicking its axis).
-function resetY() { delete presentationState.yRanges[props.chartId]; }
+function resetY() { graph.setAutoY(true); }
 
 const effectiveF = computed(() => {
   void projectChanged.value;
@@ -287,7 +280,7 @@ watch([viewPlot, effectiveF, localDragRange, blocked, canvasStyles], redraw, { f
 </script>
 
 <template>
-  <div class="gpanel" :class="{ 'y-manual': !!yOverride }">
+  <div class="gpanel" :class="{ 'y-manual': !autoY }" :data-y-range="yRangeLabel">
     <canvas ref="canvasEl"
             :style="canvasStyles"
             @pointerdown="onPointerDown"
@@ -298,6 +291,11 @@ watch([viewPlot, effectiveF, localDragRange, blocked, canvasStyles], redraw, { f
             @dblclick="onDblClick"
             @contextmenu="onContextMenu" />
     <div class="gtitle">{{ meta.name }}</div>
+    <label v-if="!blocked" class="gautoy"
+           title="Auto Y: ticked, the Y axis rescales to fit the curves after every edit. Unticked, the Y axis stays at the range shown when you unticked it, and edits never rescale it; the range is this chart's Y-axis limit in Options, where Reset to auto-scale ticks this again.">
+      <input type="checkbox" :checked="autoY" aria-label="Auto Y" @change="graph.setAutoY(inputChecked($event))">
+      <span>Auto Y</span>
+    </label>
     <div v-if="warnings.length && !warningsDismissed" class="gwarn gwarn-pill" :title="warnings.map(w => w.message).join('\n')">
       <span class="gwarn-icon">⚠</span>
       <span class="gwarn-text">{{ warnings[0].message }}</span>
@@ -330,6 +328,22 @@ watch([viewPlot, effectiveF, localDragRange, blocked, canvasStyles], redraw, { f
 canvas { touch-action: none; }
 
 .gpanel { position: relative; }
+
+/* Auto Y switch: the empty corner left of the frequency labels, below the level labels. */
+.gautoy {
+  position: absolute;
+  left: 2px;
+  bottom: 1px;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 9.5px;
+  color: var(--chart-text, var(--mut));
+  cursor: pointer;
+  user-select: none;
+}
+.gautoy input { margin: 0; width: 11px; height: 11px; cursor: pointer; }
 
 /* Blocking message shown in place of the chart when the driver has no derivable
    value (a core T/S parameter is missing). Opaque so any stale curve is hidden. */

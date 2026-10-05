@@ -11,6 +11,7 @@ import {
 } from '../../src/hooks/GraphPanel-hooks.js';
 import {DPAL, TAB_META} from '@openisd/design/chart';
 import {addProject} from '../../src/logic/appState.js';
+import {presentationState} from '../../src/logic/presentationState.js';
 import {runHook} from './runHook.js';
 
 function createTestProject(): OpenISDProject {
@@ -82,6 +83,51 @@ describe('GraphPanel-hooks', () => {
       api.dismissWarnings();
       expect(api.warningsDismissed.value).toBe(true);
     });
+    describe('Auto Y', () => {
+      // Past the sweep's settle run (`SweepScheduler`), so the curves for the last edit have landed.
+      const awaitSweep = () => new Promise(resolve => setTimeout(resolve, 200));
+
+      it('off freezes the shown Y range as the chart override; a data change keeps it; on clears it', async () => {
+        presentationState.yRanges = {};
+        const project = createTestProject();
+        project.driver.specs.Sd_m2.set(0.0094);
+        project.driver.specs.Re_ohm.set(3.4);
+        project.driver.specs.Le_H.set(0.34e-3);
+        project.driver.specs.Xmax_m.set(0.00925);
+        project.driver.specs.Pe_W.set(80);
+        addProject(project);
+        const api = runHook(computed(() => project), () => useGraphPanel({chartId: 'SPL'}, createEngine()));
+        await awaitSweep();
+        expect(api.autoY.value).toBe(true);
+        const shown = api.viewPlot.value!.levelAxis;
+        const label = api.yRangeLabel.value;
+
+        api.setAutoY(false);
+        expect(api.autoY.value).toBe(false);
+        expect(presentationState.yRanges.SPL).toEqual({min: shown.min, max: shown.max});
+
+        project.box.sealed.volume_m3.set(0.002);
+        await awaitSweep();
+        expect(presentationState.yRanges.SPL).toEqual({min: shown.min, max: shown.max});
+        expect(api.viewPlot.value!.levelAxis.min).toBe(shown.min);
+        expect(api.viewPlot.value!.levelAxis.max).toBe(shown.max);
+        expect(api.yRangeLabel.value).toBe(label);
+
+        api.setAutoY(true);
+        expect(api.autoY.value).toBe(true);
+        expect(presentationState.yRanges.SPL).toBeUndefined();
+      });
+
+      it('Reset to auto-scale (the override removed elsewhere) turns Auto Y back on', () => {
+        presentationState.yRanges = {SPL: {min: 0, max: 100}};
+        const project = createTestProject();
+        const api = runHook(computed(() => project), () => useGraphPanel({chartId: 'SPL'}, createEngine()));
+        expect(api.autoY.value).toBe(false);
+        delete presentationState.yRanges.SPL;
+        expect(api.autoY.value).toBe(true);
+      });
+    });
+
     describe('clickCursorAt', () => {
       function hookOn(project: OpenISDProject) {
         return runHook(computed(() => project), () => useGraphPanel({chartId: 'SPL'}, createEngine()));

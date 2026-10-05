@@ -2,6 +2,7 @@ import type {InjectionKey, Ref} from 'vue';
 import {computed, ref, watch} from 'vue';
 import {allIssues, curvesData, driverName, maxData, openProjects, syncedP} from '../logic/appState.js';
 import {useFocusedProject} from '../logic/focusedProjectContext.js';
+import {presentationState} from '../logic/presentationState.js';
 import {
   buildPlotData, type ChartEngineAreas, type Design, DPAL, FrequencyAxis, type PlotData, rangeStatsOf, type RangeStats,
   type SnapDirection, type SnapExtremum, snapFrequency, TAB_META,
@@ -23,8 +24,17 @@ export interface GraphPanelAPI {
   readonly blocked: Readonly<Ref<boolean>>;
   readonly warnings: Readonly<Ref<DriverError[]>>;
   readonly warningsDismissed: Readonly<Ref<boolean>>;
+  /** The plot as drawn: `plotData` with this chart's Y-axis override applied, when it has one. */
+  readonly viewPlot: Readonly<Ref<PlotData | null>>;
+  /** True while this chart has no Y-axis override, so its Y axis fits the data. */
+  readonly autoY: Readonly<Ref<boolean>>;
+  /** The drawn Y range as axis labels, `min to max`; empty with no plot. */
+  readonly yRangeLabel: Readonly<Ref<string>>;
 
   dismissWarnings(): void;
+  /** Off stores the Y range drawn now as this chart's override, so later data changes never
+   *  rescale it; on removes the override. */
+  setAutoY(on: boolean): void;
   /** The frequency axis as the sweep range sets it now — the starting point of an axis drag. */
   frequencyAxis(): FrequencyAxis;
   /** Ripple, peak and trough of this chart's trace between two frequencies; null with no trace. */
@@ -87,6 +97,25 @@ export function useGraphPanel(props: GraphPanelProps, chartEngine: ChartEngineAr
     warningsDismissed.value = true;
   }
 
+  const yOverride = computed(() => presentationState.yRanges[props.chartId] ?? null);
+  const viewPlot = computed<PlotData | null>(() => {
+    const p = plotData.value;
+    const ov = yOverride.value;
+    const axis = p && ov ? p.levelAxis.overridden(ov.min, ov.max) : null;
+    return p && axis ? {...p, ymin: axis.min, ymax: axis.max, levelAxis: axis} : p;
+  });
+  const autoY = computed(() => yOverride.value === null);
+  const yRangeLabel = computed(() => {
+    const axis = viewPlot.value?.levelAxis;
+    return axis ? `${axis.tickLabel(axis.min)} to ${axis.tickLabel(axis.max)}` : '';
+  });
+
+  function setAutoY(on: boolean): void {
+    if (on) { delete presentationState.yRanges[props.chartId]; return; }
+    const axis = viewPlot.value?.levelAxis;
+    if (axis) presentationState.yRanges[props.chartId] = {min: axis.min, max: axis.max};
+  }
+
   function frequencyAxis(): FrequencyAxis {
     return new FrequencyAxis(syncedP.value.fmin, syncedP.value.fmax);
   }
@@ -125,7 +154,11 @@ export function useGraphPanel(props: GraphPanelProps, chartEngine: ChartEngineAr
     blocked,
     warnings,
     warningsDismissed,
+    viewPlot,
+    autoY,
+    yRangeLabel,
     dismissWarnings,
+    setAutoY,
     frequencyAxis,
     clickCursorAt,
     rangeStats,
