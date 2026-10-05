@@ -62,19 +62,26 @@ test('the bug switches carry the warning class under a "WinISD bugs" heading', a
   for (const key of ['winisdDriverModel', 'winisdVaModel', 'winisdPrNprResonance', 'winisdBesselHighpass']) {
     const label = group.locator(`label[data-field-key="${key}"]`);
     await expect(label, key).toHaveClass(/error-switch-marked/);
-    await expect(label, key).toHaveAttribute('title', /^Reproduces a WinISD error\.\n/);
+    await expect(label, key).toHaveAttribute('title', /^Reproduces a WinISD bug\.\n/);
   }
   await expect(group.locator('label[data-field-key="winisdAbcIntraPortVelocity"]')).toHaveCount(0);
   await expect(page.locator('label[data-field-key="winisdAbcIntraPortVelocity"] input')).toBeDisabled();
   await expect(group.locator('label[data-field-key="winisdPrNprResonance"] input')).toBeDisabled();
 });
 
-test('"Reset to WinISD" unticks a ticked bug', async ({ page }) => {
-  await expect(page.locator('.compat-preset-btn')).toHaveCount(0);
-  const va = page.locator('label[data-field-key="winisdVaModel"] input');
-  await va.check();
-  await page.locator('.compat-reset-btn', { hasText: 'Reset to WinISD' }).click();
-  await expect(va).not.toBeChecked();
+test('the Options group has every WinISD option the desktop has, and each one writes through', async ({ page }) => {
+  const panel = page.locator('.mob-panel', { hasText: 'WinISD compatibility' });
+  for (const key of ['winisdWrapPhase', 'winisdDriverCountModel', 'winisdFlatModel']) {
+    const checkbox = panel.locator(`label[data-field-key="${key}"] input[type=checkbox]`);
+    await expect(checkbox, key).toBeVisible();
+    const before = await checkbox.isChecked();
+    await checkbox.click();
+    await expect(checkbox, key).toBeChecked({ checked: !before });
+  }
+});
+
+test('the compatibility panel has no buttons, only switches', async ({ page }) => {
+  await expect(page.locator('.mob-panel', { hasText: 'WinISD compatibility' }).locator('button')).toHaveCount(0);
 });
 
 // BUG (2026-09-29, John, live on his phone): "environment view needs to scroll... truncation at
