@@ -69,7 +69,7 @@ The switch sits under "WinISD options"; "Reset to WinISD" ticks it.
 
 | WinISD does                                                          | Why omitted |
 |----------------------------------------------------------------------|-------------|
-| Group delay by 1e-10 Hz central difference                             | Noise floor ≈ 1.8e-4 ms; invisible on the chart. |
-| 6th-order bandpass group delay: the 1e-10 Hz step magnifies rounding where the two compliance currents nearly cancel (κ 19 at 200 Hz, ~500 above 4 kHz) | WinISD's H is right; above ~200 Hz its group delay is rounding noise, worst 0.11 ms at 4.0 kHz (bp6-w5-gd1). OpenISD (doubles, same step) has noise of the same size but not the same values (1.24 kHz: exact 0.0178 ms, WinISD −0.0254, OpenISD 0.0344). Cannot be copied; no switch (John, 2026-10-05). [bug](../../bugs/archive/BUG_20260929_bp6-abc-group-delay-not-winisd.md) |
+| Group delay by 1e-10 Hz central difference                             | Noise floor ≈ 1.8e-4 ms; invisible on the chart. OpenISD steps f·(1 ± 1e-6): no staircase. |
+| 6th-order bandpass group delay: the 1e-10 Hz step magnifies rounding where the two compliance currents nearly cancel (κ 19 at 200 Hz, ~500 above 4 kHz) | WinISD's H is right; above ~200 Hz its group delay is rounding noise, worst 0.11 ms at 4.0 kHz (bp6-w5-gd1). Cannot be copied; no switch (John, 2026-10-05). OpenISD steps f·(1 ± 1e-6) and draws the smooth curve (1.24 kHz: exact 0.0178 ms, WinISD −0.0254, OpenISD 0.01776). [bug](../../bugs/archive/BUG_20260929_bp6-abc-group-delay-not-winisd.md), [bug](../../bugs/BUG_20261005_bp6-group-delay-noise-above-1k.md) |
 | Group-delay unwrap fixes a −2π jump only                             | Hit only when a phase wrap lies within 1e-10 Hz of a grid point. |
 | EQ/filter charts skip points where the box impedance is 0            | Needs \|Z\| exactly 0 at a grid point; not seen in any capture. |

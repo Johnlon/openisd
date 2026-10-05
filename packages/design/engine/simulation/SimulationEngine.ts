@@ -102,22 +102,26 @@ export function unwrap(p: number[]): number[] {
   return o;
 }
 
-/** WinISD's fixed frequency step (1e-10 Hz) for group delay differentiation (`f_4618f0` chart 12).
- *  Adopted to match WinISD's low-frequency woofer design focus (1–200 Hz) exact numbers.
- *  The ~0.0005 ms high-frequency numerical noise floor introduced is invisible on chart plots. */
-const WINISD_GROUP_DELAY_STEP_HZ = 1e-10;
+/** Group delay central-difference half-step, relative to `f`. WinISD (`f_4618f0` chart 12) steps
+ *  a fixed 1e-10 Hz, which divides the response's rounding error by 2π·2e-10 Hz: ~3e-4 ms of
+ *  staircase on every box and up to 0.16 ms on the 6th-order bandpass above 1.2 kHz
+ *  (bugs/BUG_20261005_bp6-group-delay-noise-above-1k.md). */
+const GROUP_DELAY_RELATIVE_STEP = 1e-6;
+/** Floor on the half-step, so `f` = 0 still has a non-zero span. */
+const GROUP_DELAY_MIN_STEP_HZ = 1e-10;
 
 /**
  * Group delay in ms of the response `h` at `f` (Hz): τg = −dφ/dω, as the phase slope AT `f`,
- * by central difference over f ± 1e-10 Hz, exactly as WinISD 0.7 computes it (`f_4618f0`).
+ * by central difference over f ± 1e-6·f, the phase step read as arg(H(f+δ)/H(f−δ)).
  *   https://en.wikipedia.org/wiki/Group_delay_and_phase_delay
  *
  * ONE definition, shared by the system group delay (`gd`) and the filter-chain group
  * delay (`fltGd`) — the two charts must not be able to disagree about what τg means.
  */
 export function groupDelayAtMs(h: (f: number) => Complex, f: number): number {
-  const fAbove = f + WINISD_GROUP_DELAY_STEP_HZ;
-  const fBelow = Math.max(1e-12, f - WINISD_GROUP_DELAY_STEP_HZ);
+  const step = Math.max(GROUP_DELAY_MIN_STEP_HZ, f * GROUP_DELAY_RELATIVE_STEP);
+  const fAbove = f + step;
+  const fBelow = Math.max(1e-12, f - step);
   const deltaF = fAbove - fBelow;
   const above = h(fAbove), below = h(fBelow);
   // No signal, no phase: a silent response (eg = 0) has no delay, as its phase reads 0.
