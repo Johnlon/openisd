@@ -9711,7 +9711,7 @@ questions:
     alignment editor (see QO164).'
   notes:
   - at: '2026-10-05'
-    text: 'John ruled: no constraint on the tuning. The passive radiator''s Xmax is drawn as a red limit line on the PR excursion chart, the same red as the driver's Xmax line.'
+    text: 'John ruled: no constraint on the tuning. The passive radiator''s Xmax is drawn as a red limit line on the PR excursion chart, the same red as the driver''s Xmax line.'
 - id: QO164
   title: feasibility/constraint solvers open in a popup like the alignment editor, later
   status: decided
