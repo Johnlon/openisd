@@ -103,45 +103,45 @@ export class WinisdDeviation {
 
   static readonly DRIVER_MODEL = new WinisdDeviation({
     title: 'WinISD mixes two BL values',
-    winisd: 'WinISD drives the cone with the entered BL but damps it with the BL implied by Fs, Qes and Vas.',
-    openisd: 'OpenISD uses one BL throughout, from the entered datasheet values.',
-    size: 'W5-1138SMF (entered BL 7.17, implied 7.384): passband SPL 0.26 dB, impedance peak about 8 % apart.',
+    winisd: 'WinISD uses two different BL values. It drives the cone with the BL you entered, but works out the damping from the BL implied by Fs, Qes and Vas.',
+    openisd: 'OpenISD uses one BL everywhere: the one from the datasheet values you entered.',
+    size: 'W5-1138SMF (entered BL 7.17, implied BL 7.384): the passband SPL differs by 0.26 dB and the impedance peak by about 8 %.',
     fix: {kind: 'errorSwitch', switchField: ToggleField.ADV_WINISDDRIVERMODEL, switchOf: s => s.driverModel},
     charts: [],
   });
 
   static readonly VA_MODEL = new WinisdDeviation({
     title: 'WinISD uses Re, not Re + Rg',
-    winisd: 'WinISD\'s amplifier load (VA) chart uses Re where the amplifier sees Re + Rg, and with "Rg is at driver side" on it counts Rg twice. Its Signal tab relates power and voltage through Re alone, while its SPL chart drives that power into Re + Rg.',
-    openisd: 'OpenISD uses Re + Rg throughout.',
-    size: 'VA: Re 3.4 Ω, Rg 1 Ω, WinISD reads 23 % (1.1 dB) low. Power: 1.85 V each at 4 drivers, Rg 0.1 Ω, WinISD reads 4.0 W (OpenISD 3.91 W) and a typed voltage plays about 0.1 dB louder.',
+    winisd: 'WinISD\'s amplifier load (VA) chart uses Re, but the amplifier sees Re + Rg. With "Rg is at driver side" ticked, WinISD counts Rg twice. On the Signal tab, WinISD works out power from voltage with Re alone, but its SPL chart drives that power into Re + Rg.',
+    openisd: 'OpenISD uses Re + Rg everywhere.',
+    size: 'VA chart: with Re 3.4 Ω and Rg 1 Ω, WinISD reads 23 % (1.1 dB) low. Power: at 1.85 V per driver, 4 drivers and Rg 0.1 Ω, WinISD shows 4.0 W and OpenISD 3.91 W. A typed voltage plays about 0.1 dB louder in WinISD.',
     fix: {kind: 'errorSwitch', switchField: ToggleField.ADV_WINISDVAMODEL, switchOf: s => s.vaModel},
     charts: ['VA'],
   });
 
   static readonly PR_NPR_RESONANCE = new WinisdDeviation({
     title: 'WinISD takes passive radiator losses at the wrong frequency',
-    winisd: 'With more than one passive radiator, WinISD multiplies the radiator mass by Npr where the tuning divides by it, so it takes the box losses at a frequency Npr times too low.',
-    openisd: 'OpenISD takes them at the physical tuning.',
-    size: 'Npr 2, W5 in 10 L, radiator Fs 30 Hz: WinISD 21 Hz, tuning 42 Hz; impedance up to 1 Ω and transfer function up to 2 dB apart.',
+    winisd: 'With more than one passive radiator, WinISD multiplies the radiator mass by the number of radiators (Npr) where it should divide by it. So it works out the box losses at a frequency Npr times too low.',
+    openisd: 'OpenISD works out the box losses at the true tuning frequency.',
+    size: 'Npr 2, W5 in 10 L, radiator Fs 30 Hz: WinISD uses 21 Hz, but the tuning is 42 Hz. The impedance differs by up to 1 Ω and the transfer function by up to 2 dB.',
     fix: {kind: 'errorSwitch', switchField: ToggleField.ADV_WINISDPRNPRRESONANCE, switchOf: s => s.prNprResonance},
     charts: [],
   });
 
   static readonly ABC_GROUP_DELAY = new WinisdDeviation({
     title: 'WinISD\'s ABC group delay leaves the driver out',
-    winisd: 'WinISD steps the ABC box to f ± 1e-10 Hz for the group delay but keeps the driver at the chart frequency f, so its group delay is the phase slope of the box alone and disagrees with its own phase chart.',
-    openisd: 'OpenISD plots −dφ/dω of the plotted phase.',
-    size: 'W5-1138SMF ABC: WinISD −41.0 ms, phase slope −33.9 ms at 1 Hz; −3.3 ms against +3.6 ms at 10.75 Hz; 1.46 ms against 2.39 ms at 116 Hz.',
+    winisd: 'For the group delay of an ABC box, WinISD moves the box to f ± 1e-10 Hz but leaves the driver at the chart frequency f. So its group delay shows the box alone, and it does not match WinISD\'s own phase chart.',
+    openisd: 'OpenISD works out the group delay from the slope of the phase it plots.',
+    size: 'W5-1138SMF ABC box: at 1 Hz WinISD shows −41.0 ms where the phase slope gives −33.9 ms. At 10.75 Hz: −3.3 ms against +3.6 ms. At 116 Hz: 1.46 ms against 2.39 ms.',
     fix: {kind: 'errorSwitch', switchField: ToggleField.ADV_WINISDABCGROUPDELAY, switchOf: s => s.abcGroupDelay},
     charts: ['GD'],
   });
 
   static readonly DRIVER_COUNT = new WinisdDeviation({
     title: 'WinISD shows one driver\'s impedance',
-    winisd: 'With more than one driver, WinISD\'s impedance chart shows one driver\'s impedance, not the array the amplifier drives (its SPL, VA and maximum power are the whole array\'s).',
-    openisd: 'OpenISD shows the array, per the project\'s series or parallel wiring.',
-    size: 'W5-1138SMF sealed, 4 drivers: WinISD peaks at 18.6 Ω, the same as one driver; in parallel the amplifier sees 4.65 Ω.',
+    winisd: 'With more than one driver, WinISD\'s impedance chart shows the impedance of one driver, not of all the drivers the amplifier drives. Its SPL, VA and maximum power charts do show all the drivers.',
+    openisd: 'OpenISD shows the impedance of all the drivers, wired in series or parallel as the project says.',
+    size: 'W5-1138SMF, sealed, 4 drivers: WinISD peaks at 18.6 Ω, the same as one driver. Wired in parallel, the amplifier sees 4.65 Ω.',
     fix: {kind: 'errorSwitch', switchField: ToggleField.ADV_WINISDDRIVERCOUNTMODEL, switchOf: s => s.driverCount},
     charts: [],
   });
@@ -165,7 +165,7 @@ function seenInOf(fix: WinisdDeviationFix): string {
 function remedyOf(fix: WinisdDeviationFix): string {
   switch (fix.kind) {
     case 'errorSwitch': return `Tick "${fix.switchField.label}" under Enable WinISD bugs (Advanced) to bring WinISD's behaviour back.`;
-    case 'ignoredInput': return 'WinISD ignores this input, so OpenISD has no switch to copy it: set the value WinISD draws to see WinISD\'s result.';
+    case 'ignoredInput': return 'WinISD ignores this input, so OpenISD has no switch to copy it. Set the value WinISD draws to see WinISD\'s result.';
   }
 }
 
@@ -185,29 +185,29 @@ export class WinisdFilterDeviation extends WinisdDeviation {
 
   static readonly ALLPASS_ORDER = new WinisdFilterDeviation({
     title: 'WinISD ignores allpass orders above 2',
-    winisd: 'WinISD draws an allpass of order 3 or more exactly as order 2: one 2nd-order section with ω0 = 2/t, delay t/Q.',
-    openisd: 'OpenISD honours the order: above 2 it draws the order-n Bessel (maximally flat delay) allpass, delay t, flat to a higher frequency as the order rises; Q is not used there. Orders 1 and 2 are WinISD\'s own.',
-    size: 't 3 ms, Q 0.6, order 4: WinISD delays 5.0 ms (its order 2); OpenISD 3.0 ms.',
-    fix: {kind: 'ignoredInput', seenIn: 'allpass filters of order 3 or more in the EQ/Filter chain: the EQ/Filter phase and group delay charts, and the phase and group delay of every chart the filter feeds. The magnitude is flat either way.'},
+    winisd: 'WinISD draws an allpass filter of order 3 or more exactly as order 2: one 2nd-order section with ω0 = 2/t and a delay of t/Q.',
+    openisd: 'OpenISD uses the order you set. Above order 2 it draws a Bessel allpass of that order with a delay of t. The delay stays flat to a higher frequency as the order rises. Q is not used there. Orders 1 and 2 are the same as in WinISD.',
+    size: 't 3 ms, Q 0.6, order 4: WinISD delays 5.0 ms (as order 2), OpenISD 3.0 ms.',
+    fix: {kind: 'ignoredInput', seenIn: 'allpass filters of order 3 or more in the EQ/Filter chain. The EQ/Filter phase and group delay charts change, and so do the phase and group delay of every chart the filter feeds. The magnitude is flat either way.'},
     charts: [],
     concerns: f => f.type === 'allpass',
   });
 
   static readonly LINKWITZ_RILEY_ORDER = new WinisdFilterDeviation({
     title: 'WinISD ignores the Linkwitz-Riley order',
-    winisd: 'WinISD always draws a 4th-order Linkwitz-Riley, whatever the Order box says (a typed 2 or 6 reopens as 4).',
-    openisd: 'OpenISD honours the order: a Linkwitz-Riley of even order n is Butterworth(n/2) squared.',
-    size: 'Low-pass an octave above fc: LR2 −7.0 dB, LR4 (WinISD) −24.6 dB; phase at fc −90° against −180°.',
-    fix: {kind: 'ignoredInput', seenIn: 'Linkwitz-Riley low-pass and high-pass filters whose order is not 4: the three EQ/Filter charts and every chart the filter feeds (SPL, Cone excursion, port velocities).'},
+    winisd: 'WinISD always draws a 4th-order Linkwitz-Riley filter, whatever the Order box says. A typed 2 or 6 reopens as 4.',
+    openisd: 'OpenISD uses the order you set. A Linkwitz-Riley filter of even order n is two Butterworth filters of order n/2 in a row.',
+    size: 'Low-pass, one octave above fc: LR2 −7.0 dB, LR4 (WinISD) −24.6 dB. Phase at fc: −90° against −180°.',
+    fix: {kind: 'ignoredInput', seenIn: 'Linkwitz-Riley low-pass and high-pass filters whose order is not 4. The three EQ/Filter charts change, and so does every chart the filter feeds (SPL, Cone excursion, port velocities).'},
     charts: [],
     concerns: f => (f.type === 'lowpass' || f.type === 'highpass') && f.family === 'linkwitzRiley',
   });
 
   static readonly BESSEL_HIGHPASS = new WinisdFilterDeviation({
     title: 'WinISD\'s Bessel high-pass is not the mirror of its low-pass',
-    winisd: 'WinISD keeps the Bessel low-pass\'s own denominator and swaps the numerator to (k·s)^n. That is not a Bessel high-pass.',
-    openisd: 'OpenISD draws the mirror of the low-pass (s → 1/s).',
-    size: 'Order 4, fc 25 Hz: up to 6 % apart in complex response. Order 1 is the same.',
+    winisd: 'WinISD makes its Bessel high-pass by keeping the low-pass denominator and changing only the numerator to (k·s)^n. That is not a Bessel high-pass.',
+    openisd: 'OpenISD draws the mirror image of the low-pass (s → 1/s).',
+    size: 'Order 4, fc 25 Hz: magnitude and phase together differ by up to 6 %. Order 1 is the same in both.',
     fix: {kind: 'errorSwitch', switchField: ToggleField.ADV_WINISDBESSELHIGHPASS, switchOf: s => s.besselHighpass},
     charts: [],
     concerns: f => f.type === 'highpass' && f.family === 'bessel',

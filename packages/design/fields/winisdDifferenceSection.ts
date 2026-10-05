@@ -22,17 +22,17 @@ export class WinisdDifferenceSection {
 
   static readonly BUG_SWITCHES = new WinisdDifferenceSection(
     'WinISD bugs you can switch back on',
-    'WinISD gets these calculations wrong. OpenISD does them correctly by default. Each has a yellow switch under "Enable WinISD bugs" on the Advanced tab: tick it to see WinISD\'s result.',
+    'WinISD gets these calculations wrong. OpenISD gets them right by default. Each one has a yellow switch under "Enable WinISD bugs" on the Advanced tab. Tick it to see WinISD\'s result.',
     'bug', 'winisd-diff-bugs', CompatSwitchGroup.BUGS, ['bugSwitch']);
 
   static readonly OPTIONS = new WinisdDifferenceSection(
     'Options: WinISD\'s way or alternative',
-    'OpenISD copies WinISD by default, however sometimes there is an alternative approach; untick the switch under "Enable WinISD-style" on the Advanced tab for the other form.',
+    'OpenISD copies WinISD by default. However, sometimes there is an alternative approach: untick the switch under "Enable WinISD-style" on the Advanced tab for the other form.',
     'option', 'winisd-diff-options', CompatSwitchGroup.OPTIONS, ['option']);
 
   static readonly FIXED = new WinisdDifferenceSection(
     'WinISD bugs OpenISD fixes (no switch)',
-    'WinISD ignores an input, misses an update, crashes or loses data. OpenISD does the right thing and has no switch to copy these: there is nothing to reproduce on purpose.',
+    'Here WinISD ignores an input, fails to update, crashes or loses data. OpenISD does the right thing. There is no switch, because there is nothing here worth copying.',
     'fixed', 'winisd-diff-fixed', null, ['ignoredInput', 'fixedBug']);
 
   /** Every section, in page order; declared last. */

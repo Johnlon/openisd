@@ -35,28 +35,28 @@ export class WinisdOption {
 
   static readonly WRAP_PHASE = new WinisdOption({
     title: 'Phase wrapping',
-    winisd: 'WinISD wraps every phase curve at ±180°, so the curve jumps by 360° where it crosses.',
-    openisd: 'Unticked, OpenISD draws the phase continuous, without the jumps.',
+    winisd: 'WinISD keeps every phase curve between −180° and +180°, so the curve jumps by 360° where it reaches that limit.',
+    openisd: 'Unticked, OpenISD draws the phase as one smooth curve with no jumps.',
     seenIn: 'every phase chart.',
-    size: 'Display only: the curve is shifted by whole turns of 360°; no value changes.',
+    size: 'Display only: the curve moves by whole steps of 360°. No value changes.',
     switchField: ToggleField.ADV_WINISDWRAPPHASE,
   });
 
   static readonly FLAT_MODEL = new WinisdOption({
     title: 'Uncapped flat response',
-    winisd: 'With "Force flat response" on, WinISD equalises every frequency to the transfer function\'s 0 dB, cutting as well as boosting, with no limit.',
-    openisd: 'Unticked, OpenISD boosts only, up to the passband level, and stops at 20 dB of boost.',
-    seenIn: 'every chart, only with "Force flat response" on; Cone excursion and the port velocities show what the boost costs.',
-    size: 'Below the box\'s roll-off WinISD\'s boost keeps rising as the frequency falls; unticked it stops at 20 dB.',
+    winisd: 'With "Force flat response" ticked, WinISD cuts or boosts every frequency to the 0 dB line of the transfer function, with no limit.',
+    openisd: 'Unticked, OpenISD only boosts, up to the passband level, and never by more than 20 dB.',
+    seenIn: 'every chart, only with "Force flat response" ticked. The Cone excursion and port velocity charts show what the boost costs.',
+    size: 'Below the box roll-off, WinISD\'s boost keeps rising as the frequency falls. Unticked, OpenISD stops at 20 dB.',
     switchField: ToggleField.ADV_WINISDFLATMODEL,
   });
 
   static readonly ABC_INTRA_PORT_VELOCITY = new WinisdOption({
     title: 'Simplified ABC intra-port velocity',
-    winisd: 'WinISD\'s intra-port velocity of an ABC box leaves out a small leak term of the air flow through the port.',
+    winisd: 'WinISD\'s intra-port velocity chart for an ABC box leaves out a small leak term in the air flow through the port.',
     openisd: 'Unticked, OpenISD draws the exact air flow through the port.',
-    seenIn: 'the Intra port velocity chart of an ABC box only.',
-    size: 'W5-1138SMF ABC: up to 1.35 dB and 4.6° near 110 Hz, under 0.1 dB elsewhere.',
+    seenIn: 'the Intra port velocity chart, ABC boxes only.',
+    size: 'W5-1138SMF ABC box: up to 1.35 dB and 4.6° near 110 Hz, under 0.1 dB elsewhere.',
     switchField: ToggleField.ADV_WINISDABCINTRAPORTVELOCITY,
   });
 
