@@ -101,6 +101,14 @@ export class WinisdDeviation {
     charts: [],
   });
 
+  static readonly ABC_GROUP_DELAY = new WinisdDeviation({
+    title: 'WinISD\'s ABC group delay leaves the driver out',
+    explanation: 'WinISD steps the ABC box to f ± 1e-10 Hz for the group delay but keeps the driver at the chart frequency f, so its group delay is the phase slope of the box alone and disagrees with its own phase chart. OpenISD plots −dφ/dω of the plotted phase.',
+    size: 'W5-1138SMF ABC: WinISD −41.0 ms, phase slope −33.9 ms at 1 Hz; −3.3 ms against +3.6 ms at 10.75 Hz; 1.46 ms against 2.39 ms at 116 Hz.',
+    fix: {kind: 'errorSwitch', switchLabel: ToggleField.ADV_WINISDABCGROUPDELAY.label, switchOf: s => s.abcGroupDelay},
+    charts: ['GD'],
+  });
+
   /** The project-wide members, by reflection; declared last. */
   static readonly ALL: readonly WinisdDeviation[] =
     Object.freeze(Object.values(WinisdDeviation).filter((v): v is WinisdDeviation => v instanceof WinisdDeviation));

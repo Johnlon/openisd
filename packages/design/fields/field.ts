@@ -1316,6 +1316,11 @@ export class ToggleField extends Field {
     label: "Enable WinISD Bessel high-pass bug",
     description: "Enable WinISD Bessel high-pass bug: affects Bessel high-pass filters in the EQ/Filter chain only; Butterworth, Linkwitz-Riley, SOS and every low-pass are unchanged, and so is a first-order Bessel.\nTicked (as WinISD): the high-pass keeps the low-pass's own denominator with the numerator swapped to (k·s)^n. That is not the mirror of the Bessel low-pass (order 4, fc 25 Hz: up to 6 % off in complex response).\nUnticked (the default, bug fixed): the mirror of the low-pass, s → 1/s.",
   });
+  static readonly ADV_WINISDABCGROUPDELAY = new ToggleField({
+    value: "adv_WinisdAbcGroupDelay",
+    label: "Enable WinISD ABC group delay bug",
+    description: "Enable WinISD ABC group delay bug: affects the ABC box's Group delay chart only.\nTicked (as WinISD): the group delay steps the box to f ± 1e-10 Hz but keeps the driver at the chart frequency f, so the driver's own phase slope is left out. It disagrees with WinISD's own phase chart (W5-1138SMF ABC: −41.0 ms against −33.9 ms at 1 Hz, −3.3 ms against +3.6 ms at 10.75 Hz).\nUnticked (the default, bug fixed): the group delay is −dφ/dω of the plotted phase.\nOnly on an ABC box.",
+  });
 
   // ── WinISD Compatibility: options ("Enable optional <name>"; ticked is WinISD's way) ──────
   static readonly ADV_WINISDWRAPPHASE = new ToggleField({

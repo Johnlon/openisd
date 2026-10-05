@@ -336,6 +336,11 @@ export class OpenISDProject {
         return ProjectAdvanced.wrap(this.#slot('advanced'), this.#slot('filters')).winisdBesselHighpass;
     }
 
+    /** WinISD Compatibility "Enable WinISD ABC group delay bug" — see `ProjectAdvanced.winisdAbcGroupDelay`. */
+    get winisdAbcGroupDelay(): SimpleField<boolean> {
+        return ProjectAdvanced.wrap(this.#slot('advanced'), this.#slot('filters')).winisdAbcGroupDelay;
+    }
+
     /** The controls that reproduce a known WinISD error: which carry the warning look, whether each
      *  applies to the open box, and whether it is reproducing the error now. */
     get errorSwitches(): ErrorSwitchStates {
@@ -346,6 +351,7 @@ export class OpenISDProject {
             winisdPrNprResonance: this.winisdPrNprResonance.value,
             winisdBesselHighpass: this.winisdBesselHighpass.value,
             hasBesselHighpass: this.filters.value.some(f => f.type === 'highpass' && f.family === 'bessel' && f.enabled),
+            winisdAbcGroupDelay: this.winisdAbcGroupDelay.value,
         });
     }
 
@@ -740,6 +746,7 @@ export class OpenISDProject {
             winisdAbcIntraPortVelocity: this.winisdAbcIntraPortVelocity,
             winisdPrNprResonance: this.winisdPrNprResonance,
             winisdBesselHighpass: this.winisdBesselHighpass,
+            winisdAbcGroupDelay: this.winisdAbcGroupDelay,
             rgAtDriverSide: this.rgAtDriverSide,
             useTransmissionLinePortModel: this.useTransmissionLinePortModel,
             forceFlatResponse: this.forceFlatResponse,

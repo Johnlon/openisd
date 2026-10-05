@@ -209,6 +209,10 @@ export interface SweepParams {
    *  which is not the mirror of the low-pass (true), or the mirror, the low-pass with s → 1/s
    *  (false/absent). */
   winisdBesselHighpass?: boolean;
+  /** ABC group delay as WinISD computes it: the box stepped to f ± δ with the driver part held at
+   *  f, the driver's own phase slope left out (true), or −dφ/dω of the plotted phase (false/absent).
+   *  ABC only. */
+  winisdAbcGroupDelay?: boolean;
   // Box losses
   Ql?: number;
   Qa?: number;

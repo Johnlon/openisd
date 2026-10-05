@@ -102,6 +102,7 @@ control in the WinISD Compatibility panel (Advanced tab) or the Box losses pane.
 |---|---|---|---|
 | Enable WinISD two-BL driver bug | Cms from Vas; Mms, Rms from Fs, Qms; damping BL from Qes; **entered** BL for push, impedance, TF reference and CLe | entered Cms, Mms, Rms, BL, one BL throughout | all driver charts |
 | Enable WinISD VA model bug | VA = P·Re·\|Hf\|²/\|Z + Rg\| | P·(Re + Rg)·\|Hf\|²/\|Z_amp\|, Rg counted once | Amplifier apparent load power |
+| Enable WinISD ABC group delay bug (ABC only) | box stepped to f ± 1e-10 Hz, driver part held at f: the box's phase slope alone | −dφ/dω of the plotted phase | Group delay |
 
 Native WinISD controls behave as WinISD has them, with no conventional variant:
 

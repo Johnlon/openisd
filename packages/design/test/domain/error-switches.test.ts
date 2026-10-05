@@ -71,7 +71,7 @@ describe('WinISD deviation cues', () => {
       expect(d.size.length, d.title).toBeGreaterThan(0);
       expect(d.remedy.length, d.title).toBeGreaterThan(0);
     }
-    expect(WinisdDeviation.ALL).toEqual([WinisdDeviation.DRIVER_MODEL, WinisdDeviation.VA_MODEL, WinisdDeviation.PR_NPR_RESONANCE]);
+    expect(WinisdDeviation.ALL).toEqual([WinisdDeviation.DRIVER_MODEL, WinisdDeviation.VA_MODEL, WinisdDeviation.PR_NPR_RESONANCE, WinisdDeviation.ABC_GROUP_DELAY]);
     expect(WinisdFilterDeviation.ALL).toEqual([WinisdFilterDeviation.ALLPASS_ORDER, WinisdFilterDeviation.LINKWITZ_RILEY_ORDER, WinisdFilterDeviation.BESSEL_HIGHPASS]);
     expect(WinisdFilterDeviation.BESSEL_HIGHPASS.remedy).toMatch(/"Enable WinISD Bessel high-pass bug"/);
     expect(WinisdFilterDeviation.ALLPASS_ORDER.remedy).toMatch(/no switch/);
