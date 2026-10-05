@@ -36,7 +36,7 @@ test('removing a filter clears the list back to empty', async ({ page }) => {
   await expect(page.getByText('No filters active.')).toBeVisible();
 });
 
-test('an order-4 allpass shows the WinISD deviation cue, and its dialog fits the phone width', async ({ page }) => {
+test('an order-4 allpass shows the WinISD deviation cue, and it opens the differences page at its entry, within the phone width', async ({ page }) => {
   await page.getByText('+ AP', { exact: true }).click();
   const order = page.locator('.filter-edit-body label').filter({ hasText: /^Order\b/ }).locator('input');
   await order.fill('4');
@@ -44,8 +44,10 @@ test('an order-4 allpass shows the WinISD deviation cue, and its dialog fits the
   const cue = page.locator('button.winisd-deviation-cue');
   await expect(cue).toBeVisible();
   await cue.click();
-  const dialog = page.getByRole('dialog', { name: /allpass/i });
-  await expect(dialog).toContainText('no switch');
+  const dialog = page.getByRole('dialog', { name: 'OpenISD and WinISD differences' });
+  const entry = dialog.locator('.wd-entry.current');
+  await expect(entry.locator('h4')).toHaveText('WinISD ignores allpass orders above 2');
+  await expect(entry.locator('dt', { hasText: 'Switch' })).toHaveCount(0);
   const box = (await dialog.boundingBox())!;
   const width = page.viewportSize()!.width;
   expect(box.x).toBeGreaterThanOrEqual(0);

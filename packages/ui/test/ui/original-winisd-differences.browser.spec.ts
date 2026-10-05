@@ -1,7 +1,7 @@
 /**
  * The help page "OpenISD and WinISD differences" in the desktop skin: the Info menu opens it, a
- * WinISD Compatibility group heading's help link opens it at that group's section, and a ≠W cue's
- * "More…" opens it at the cue's entry. What the page lists is proven in the design package
+ * WinISD Compatibility group heading's help link opens it at that group's section, and a ≠W cue
+ * opens it at the cue's entry. What the page lists is proven in the design package
  * (`winisd-differences.test.ts`); these specs prove the entry points reach it.
  */
 import {expect, openAProject, test} from '../fixtures.js';
@@ -27,7 +27,7 @@ test('the Info menu opens the page, with its three sections; Close shuts it', as
   await expect(help).toHaveCount(0);
 });
 
-test('the "Options" group heading\'s help link opens the page at the Options section', async ({page}) => {
+test('the "Enable WinISD style" group heading\'s help link opens the page at the Options section', async ({page}) => {
   await page.locator('.project-nav li', {hasText: 'Advanced'}).click();
   await page.locator('.option-switch-group .compat-help-link').click();
   const help = page.getByRole('dialog', PAGE);
@@ -36,14 +36,25 @@ test('the "Options" group heading\'s help link opens the page at the Options sec
   await expect(section).toBeInViewport();
 });
 
-test('a ≠W cue\'s "More…" opens the page at that cue\'s entry', async ({page}) => {
+// John, 2026-10-05: a popup beside the cue made the page scroll. The cue opens the help page
+// itself, centred in the window at the cue's entry, and opening it never changes the page's scroll size.
+test('a ≠W cue opens the page centred in the window at that cue\'s entry, without scrolling the page', async ({page}) => {
   await page.locator('.project-nav li', {hasText: 'Filters'}).click();
   const panel = page.locator('.content-panel');
   await panel.locator('.action-btn', {hasText: '+ LP'}).click();
   await panel.locator('.filter-edit-body label').filter({hasText: /^Subtype\b/}).locator('select').selectOption({label: 'Linkwitz-Riley'});
-  await panel.locator('button.winisd-deviation-cue').click();
-  await page.getByRole('dialog', {name: /Linkwitz-Riley/}).getByRole('button', {name: 'More…'}).click();
+  const cue = panel.locator('button.winisd-deviation-cue');
+  await expect(cue).toHaveAttribute('title', 'Differs from WinISD: WinISD ignores the Linkwitz-Riley order');
+  const scrollSize = () => page.evaluate(() => ({w: document.documentElement.scrollWidth, h: document.documentElement.scrollHeight}));
+  const scrollBefore = await scrollSize();
+  await cue.click();
   const help = page.getByRole('dialog', PAGE);
+  await expect(help).toBeVisible();
+  const box = (await help.boundingBox())!;
+  const view = page.viewportSize()!;
+  expect(Math.abs(box.x + box.width / 2 - view.width / 2)).toBeLessThan(2);
+  expect(Math.abs(box.y + box.height / 2 - view.height / 2)).toBeLessThan(2);
+  expect(await scrollSize()).toEqual(scrollBefore);
   const entry = help.locator('.wd-entry.current');
   await expect(entry).toHaveCount(1);
   await expect(entry.locator('h4')).toHaveText('WinISD ignores the Linkwitz-Riley order');

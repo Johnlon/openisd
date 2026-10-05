@@ -1,5 +1,5 @@
 /**
- * Passive-radiator box, winisd-lossy: the fixed-loss frequency ωr and the "Enable WinISD PR Npr resonance bug" switch.
+ * Passive-radiator box, winisd-lossy: the fixed-loss frequency ωr and the "PR Npr resonance" switch.
  *
  * WinISD takes ωr = 1/√(Npr·Map·(Cab ∥ Npr·Cap)), Npr times below the physical tuning
  * 1/√((Map/Npr)·(Cab ∥ Npr·Cap)); the two coincide at Npr = 1. `winisdPrNprResonance` off (the

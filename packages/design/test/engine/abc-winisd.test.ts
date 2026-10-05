@@ -48,7 +48,7 @@ function setUpProject(wprFile: string): OpenISDProject {
   const {value: project, errors} = new WinIsdProjectConverter(engine).winIsdProjectToOpenIsdProject(text);
   if (project === null) throw new Error('winIsdProjectToOpenIsdProject returned problems: ' + JSON.stringify(errors));
   // The capture's own condition (this file's header, and the fixture's own doc comment): VCInd
-  // off, "Enable WinISD two-BL driver bug" on, winisd-lossy, WinISD's own air model, Rg NOT at
+  // off, "Two-BL driver" on, winisd-lossy, WinISD's own air model, Rg NOT at
   // driver side. `reproduceWinisdBugs` covers every one of those except `rgAtDriverSide`
   // (a native control it deliberately leaves alone — its own doc comment).
   reproduceWinisdBugs(project);

@@ -148,7 +148,7 @@ describe('driver count and drive level (W5-1138SMF sealed, 4.48 L per driver)', 
     expect(splAt1k(four) - splAt1k(one)).toBeCloseTo(20 * Math.log10(4), 9);
   });
 
-  // "Enable WinISD Re without Rg bug" (winisdVaModel): WinISD relates the Signal tab's voltage and
+  // "Re without Rg" (winisdVaModel): WinISD relates the Signal tab's voltage and
   // power through Re alone (typed 1.85 V each at 4 drivers reads 4.0 W = 4·1.85²/3.4), while its
   // SPL chart drives that power into Re + Rg. BUG_20260927_winisd-va-uses-re-not-re-plus-rg.
   const reOnly = (n: number, on: boolean): OpenISDProject => {

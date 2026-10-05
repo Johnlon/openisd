@@ -1,35 +1,39 @@
 /**
  * The WinISD Compatibility switches (John, 2026-10-05): each is a WinISD bug or a WinISD option.
- * A bug switch's title reads "Enable WinISD <name> bug"; an option's "Enable WinISD style <name>".
+ * A bug switch sits under the "Enable WinISD bugs" heading and is named by the bug ("Re without Rg");
+ * an option sits under "Enable WinISD style" and is named by the calculation ("Phase wrapping").
  * A new project, and a file that does not say, has every bug unticked and every option ticked.
  */
 import {describe, expect, it} from 'vitest';
 import {CompatSwitch, OpenISDProject} from '../../domain/index.js';
 import {sealedProject} from '../fixtures/domainBuilders.js';
 import {createEngine} from '../../engine/index.js';
-import {ToggleField, WinisdDeviation} from '../../fields/index.js';
+import {CompatSwitchGroup, ToggleField, WinisdDeviation} from '../../fields/index.js';
 
 describe('CompatSwitch', () => {
   it('lists the six WinISD bugs and the three options', () => {
     expect(CompatSwitch.BUGS.map(s => s.field.label)).toEqual([
-      'Enable WinISD two-BL driver bug',
-      'Enable WinISD Re without Rg bug',
-      'Enable WinISD PR Npr resonance bug',
-      'Enable WinISD Bessel high-pass bug',
-      'Enable WinISD ABC group delay bug',
-      'Enable WinISD per-driver impedance bug',
+      'Two-BL driver',
+      'Re without Rg',
+      'PR Npr resonance',
+      'Bessel high-pass',
+      'ABC group delay',
+      'Per-driver impedance',
     ]);
     expect(CompatSwitch.OPTIONS.map(s => s.field.label)).toEqual([
-      'Enable WinISD style phase wrapping',
-      'Enable WinISD style uncapped flat response',
-      'Enable WinISD style simplified ABC intra-port velocity',
+      'Phase wrapping',
+      'Uncapped flat response',
+      'Simplified ABC intra-port velocity',
     ]);
     expect(CompatSwitch.ALL).toEqual([...CompatSwitch.BUGS, ...CompatSwitch.OPTIONS]);
   });
 
-  it('a bug title says "bug", an option title says "optional", and each tooltip says what ticked and unticked do', () => {
-    for (const s of CompatSwitch.BUGS) expect(s.field.label).toMatch(/^Enable WinISD .+ bug$/);
-    for (const s of CompatSwitch.OPTIONS) expect(s.field.label).toMatch(/^Enable WinISD style .+$/);
+  it('the group headings carry "Enable WinISD"; the switch titles do not; each tooltip says what ticked and unticked do', () => {
+    expect(CompatSwitchGroup.BUGS.heading).toBe('Enable WinISD bugs');
+    expect(CompatSwitchGroup.BUGS.tooltip).toMatch(/^Enable WinISD bugs: /);
+    expect(CompatSwitchGroup.OPTIONS.heading).toBe('Enable WinISD style');
+    expect(CompatSwitchGroup.OPTIONS.tooltip).toMatch(/^Enable WinISD style: /);
+    for (const s of CompatSwitch.ALL) expect(s.field.label).not.toMatch(/Enable WinISD|bug$/);
     for (const s of CompatSwitch.ALL) {
       expect(s.field.description).toMatch(/\nTicked/);
       expect(s.field.description).toMatch(/\nUnticked/);

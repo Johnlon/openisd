@@ -1,5 +1,5 @@
 /**
- * "Enable WinISD Bessel high-pass bug" (`winisdBesselHighpass`): off by default,
+ * "Bessel high-pass" (`winisdBesselHighpass`): off by default,
  * saved with the project, applicable only while an enabled Bessel high-pass filter exists.
  */
 import {readFileSync} from 'node:fs';

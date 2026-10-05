@@ -1,5 +1,5 @@
 /**
- * "Enable WinISD PR Npr resonance bug" (`winisdPrNprResonance`): off by default, saved
+ * "PR Npr resonance" (`winisdPrNprResonance`): off by default, saved
  * with the project, applicable on a passive radiator box only. Parity with WinISD's charts at
  * Npr > 1 needs it ticked (passive-radiator-count-winisd.test.ts).
  */

@@ -1,5 +1,5 @@
 /**
- * "Enable WinISD ABC group delay bug" (`winisdAbcGroupDelay`): off by default, unticked by "Reset to
+ * "ABC group delay" (`winisdAbcGroupDelay`): off by default, unticked by "Reset to
  * WinISD", saved with the project, applicable on an ABC box only; while off on an ABC box its
  * cue sits by the group delay chart.
  */
@@ -62,7 +62,7 @@ describe('winisdAbcGroupDelay', () => {
     const cue = WinisdDeviation.ABC_GROUP_DELAY;
     expect(cue.inEffectOnChart(p.errorSwitches, 'GD')).toBe(true);
     expect(cue.inEffectOnChart(p.errorSwitches, 'Phase')).toBe(false);
-    expect(cue.remedy).toMatch(/"Enable WinISD ABC group delay bug"/);
+    expect(cue.remedy).toMatch(/"ABC group delay"/);
     p.winisdAbcGroupDelay.set(true);
     expect(cue.inEffectOnChart(p.errorSwitches, 'GD')).toBe(false);
     p.winisdAbcGroupDelay.set(false);

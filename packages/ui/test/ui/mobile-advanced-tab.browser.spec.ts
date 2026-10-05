@@ -35,8 +35,8 @@ test('shows the environment fields, calculated readouts, and WinISD-compat contr
   await expect(page.locator('.mob-panel-head', { hasText: 'WinISD compatibility' })).toBeVisible();
   await expect(page.locator('#mob-adv-lossmode')).toHaveCount(0);
   await expect(page.getByText('WinISD air model')).toHaveCount(0);
-  await expect(page.getByText('Enable WinISD two-BL driver bug')).toBeVisible();
-  await expect(page.getByText('Enable WinISD Re without Rg bug')).toBeVisible();
+  await expect(page.getByText('Two-BL driver')).toBeVisible();
+  await expect(page.getByText('Re without Rg')).toBeVisible();
 });
 
 test('editing the temperature writes through and clearing it falls back to the app default', async ({ page }) => {
@@ -56,9 +56,9 @@ test('toggling the "Force flat response" checkbox writes through to the project'
   await expect(checkbox).toBeChecked({ checked: !before });
 });
 
-test('the bug switches carry the warning class under a "WinISD bugs" heading', async ({ page }) => {
+test('the bug switches carry the warning class under a "Enable WinISD bugs" heading', async ({ page }) => {
   const group = page.locator('.error-switch-group');
-  await expect(group.locator('.error-switch-group-head')).toHaveText('WinISD bugs');
+  await expect(group.locator('.error-switch-group-head')).toHaveText('Enable WinISD bugs');
   for (const key of ['winisdDriverModel', 'winisdVaModel', 'winisdPrNprResonance', 'winisdBesselHighpass', 'winisdAbcGroupDelay', 'winisdDriverCountModel']) {
     const label = group.locator(`label[data-field-key="${key}"]`);
     await expect(label, key).toHaveClass(/error-switch-marked/);
@@ -70,8 +70,9 @@ test('the bug switches carry the warning class under a "WinISD bugs" heading', a
   await expect(group.locator('label[data-field-key="winisdDriverCountModel"] input')).toBeDisabled();
 });
 
-test('the Options group has every WinISD option the desktop has, and each one writes through', async ({ page }) => {
+test('the "Enable WinISD style" group has every WinISD option the desktop has, and each one writes through', async ({ page }) => {
   const panel = page.locator('.mob-panel', { hasText: 'WinISD compatibility' });
+  await expect(panel.locator('.option-switch-group-head')).toHaveText('Enable WinISD style');
   for (const key of ['winisdWrapPhase', 'winisdFlatModel']) {
     const checkbox = panel.locator(`label[data-field-key="${key}"] input[type=checkbox]`);
     await expect(checkbox, key).toBeVisible();
@@ -98,7 +99,7 @@ test('the compatibility panel has no preset or reset buttons, only switches and 
 test('scrolls to its last control instead of clipping it', async ({ page }) => {
   await page.setViewportSize({ width: 412, height: 700 });
 
-  const lastControl = page.getByText('Enable WinISD Re without Rg bug');
+  const lastControl = page.getByText('Re without Rg');
   await lastControl.scrollIntoViewIfNeeded();
   await expect(lastControl).toBeVisible();
 

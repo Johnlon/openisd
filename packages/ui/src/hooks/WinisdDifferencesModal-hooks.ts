@@ -15,7 +15,7 @@ export interface WinisdDifferencesModalAPI {
   show(): void;
   /** A WinISD Compatibility group heading's help link: the page at the group's section. */
   showGroup(g: CompatSwitchGroup): void;
-  /** A ≠W cue's "More…": the page at the cue's entry. */
+  /** A ≠W cue: the page at the cue's entry. */
   showDeviation(d: WinisdDeviation): void;
   close(): void;
 }

@@ -5,7 +5,7 @@ import {fillAndBlur, fillAndCommit} from '../fixtures/numField.js';
 
 /**
  * The Original shell's Advanced tab: the air constants and their calculated readouts, the loss
- * model selector, and the WinISD Compatibility panel: the "Options" switches and the "WinISD bugs"
+ * model selector, and the WinISD Compatibility panel: the "Enable WinISD style" switches and the "Enable WinISD bugs"
  * switch group.
  */
 
@@ -258,7 +258,7 @@ test.describe('Original Advanced tab', () => {
   });
 
   test.describe('WinISD Compatibility panel', () => {
-    test('WinISD\'s inductance model has no switch of its own — "Enable WinISD two-BL driver bug" covers it (John, 2026-09-26)', async ({ page }) => {
+    test('WinISD\'s inductance model has no switch of its own — "Two-BL driver" covers it (John, 2026-09-26)', async ({ page }) => {
       await expect(page.locator('[data-field-key="winisdInductance"]')).toHaveCount(0);
       const driverCalcs = page.locator('[data-field-key="winisdDriverModel"]');
       await expect(driverCalcs).toHaveAttribute('title', /inductance/);
@@ -268,7 +268,7 @@ test.describe('Original Advanced tab', () => {
     test('WinISD Compatibility labels say "optional" or "bug" and are unclipped', async ({ page }) => {
       const panel = page.locator('.sim-options-box', { hasText: 'WinISD Compatibility' });
       const labels = panel.locator('label[data-field-key]');
-      await expect(labels).toHaveText([/Enable WinISD style phase wrapping/, /Enable WinISD style uncapped flat response/, /Enable WinISD style simplified ABC intra-port velocity/, /Enable WinISD two-BL driver bug/, /Enable WinISD Re without Rg bug/, /Enable WinISD PR Npr resonance bug/, /Enable WinISD Bessel high-pass bug/, /Enable WinISD ABC group delay bug/, /Enable WinISD per-driver impedance bug/]);
+      await expect(labels).toHaveText([/Phase wrapping/, /Uncapped flat response/, /Simplified ABC intra-port velocity/, /Two-BL driver/, /Re without Rg/, /PR Npr resonance/, /Bessel high-pass/, /ABC group delay/, /Per-driver impedance/]);
       const panelBox = (await panel.boundingBox())!;
       const clipRight = await panel.evaluate(el => {
         // The visible right edge: the panel's own, or an ancestor's that clips it first.
@@ -295,12 +295,12 @@ test.describe('Original Advanced tab', () => {
       }
     });
 
-    test('the panel has no preset or reset buttons, only a help link per group: an "Options" group and a "WinISD bugs" group of switches', async ({ page }) => {
+    test('the panel has no preset or reset buttons, only a help link per group: an "Enable WinISD style" group and an "Enable WinISD bugs" group of switches', async ({ page }) => {
       const panel = page.locator('.sim-options-box', { hasText: 'WinISD Compatibility' });
       await expect(panel.locator('button:not(.compat-help-link)')).toHaveCount(0);
       await expect(panel.locator('button.compat-help-link')).toHaveCount(2);
-      await expect(panel.locator('.option-switch-group-head')).toHaveText('Options');
-      await expect(panel.locator('.error-switch-group-head')).toHaveText('WinISD bugs');
+      await expect(panel.locator('.option-switch-group-head')).toHaveText('Enable WinISD style');
+      await expect(panel.locator('.error-switch-group-head')).toHaveText('Enable WinISD bugs');
     });
 
     test('Advanced layout: the transmission-line label wraps before "for"', async ({ page }) => {
@@ -323,7 +323,7 @@ test.describe('Original Advanced tab', () => {
       expect(Math.round(rightLeft - leftRight)).toBe(16);
     });
 
-    test('"Enable WinISD Re without Rg bug" switches the VA chart and the power readout between WinISD\'s Re and the amplifier\'s Re + Rg (BUG_20260927)', async ({ page }) => {
+    test('"Re without Rg" switches the VA chart and the power readout between WinISD\'s Re and the amplifier\'s Re + Rg (BUG_20260927)', async ({ page }) => {
       const va = page.locator('[data-field-key="winisdVaModel"]');
       await expect(va).toHaveAttribute('title', /Re \+ Rg/);
       await expect(va).toHaveAttribute('title', /Amplifier apparent load power \(VA\) chart/);
@@ -337,7 +337,7 @@ test.describe('Original Advanced tab', () => {
       await expect(va.locator('input')).not.toBeChecked();
     });
 
-    test('the VA chart carries the ≠W cue while "Enable WinISD Re without Rg bug" is off', async ({ page }) => {
+    test('the VA chart carries the ≠W cue while "Re without Rg" is off', async ({ page }) => {
       await page.locator('.chart-select').click();
       await page.locator('.chart-item', { hasText: 'Amplifier apparent load power' }).click();
       const cue = page.locator('.chart-deviation-cue');
@@ -347,7 +347,7 @@ test.describe('Original Advanced tab', () => {
       await expect(cue).toHaveCount(0);
     });
 
-    test('the ABC group delay chart carries the ≠W cue while "Enable WinISD ABC group delay bug" is off', async ({ page }) => {
+    test('the ABC group delay chart carries the ≠W cue while "ABC group delay" is off', async ({ page }) => {
       await showAdvancedOn(page, 'abc');
       await page.locator('.chart-select').click();
       await page.locator('.chart-item', { hasText: 'Group delay' }).first().click();
@@ -358,7 +358,7 @@ test.describe('Original Advanced tab', () => {
       await expect(cue).toHaveCount(0);
     });
 
-    test('the passive-radiator count carries the ≠W cue while "Enable WinISD PR Npr resonance bug" is off', async ({ page }) => {
+    test('the passive-radiator count carries the ≠W cue while "PR Npr resonance" is off', async ({ page }) => {
       await showAdvancedOn(page, 'box-passive-radiator');
       const cue = page.locator('.field', { has: page.locator('#og-pr-count') }).locator('.winisd-deviation-cue');
       await expect(cue).toHaveCount(1);
@@ -380,7 +380,7 @@ test.describe('Original Advanced tab', () => {
       });
     }
 
-    test('the driver count carries the ≠W cue with two drivers while "Enable WinISD per-driver impedance bug" is off', async ({ page }) => {
+    test('the driver count carries the ≠W cue with two drivers while "Per-driver impedance" is off', async ({ page }) => {
       await page.locator('.project-nav li', { hasText: 'Driver' }).click();
       const drivers = page.locator('.field', { hasText: 'Num. of drivers' });
       const cue = drivers.locator('.winisd-deviation-cue');
@@ -397,6 +397,30 @@ test.describe('Original Advanced tab', () => {
       await page.locator('.project-nav li', { hasText: 'Driver' }).click();
       await expect(cue).toHaveCount(0);
     });
+
+    // John, 2026-10-05: at a large browser zoom every switch label wrapped onto 2-3 lines. A page
+    // zoom of Z on a 1280×800 window lays out as a (1280/Z)×(800/Z) CSS-px viewport.
+    for (const [zoom, width, height] of [[100, 1280, 800], [125, 1024, 640], [150, 853, 533]] as const) {
+      test(`at ${zoom}% zoom every switch label is one line and stays inside its group`, async ({page}) => {
+        await page.setViewportSize({width, height});
+        await showAdvancedOn(page, 'abc');
+        const labels = page.locator('.sim-switches label[data-field-key]');
+        await expect(labels).toHaveCount(9);
+        for (const label of await labels.all()) {
+          const m = await label.evaluate(el => {
+            const r = document.createRange(); r.selectNodeContents(el);
+            const text = r.getBoundingClientRect();
+            const group = el.closest('.option-switch-group, .error-switch-group')!.getBoundingClientRect();
+            const fontPx = parseFloat(getComputedStyle(el).fontSize);
+            return {textHeight: text.height, textRight: text.right, labelRight: el.getBoundingClientRect().right, groupRight: group.right, fontPx};
+          });
+          const name = await label.innerText();
+          expect(m.textHeight, `${name}: one line`).toBeLessThan(1.5 * 1.3 * m.fontPx);
+          expect(m.textRight, `${name}: text inside its label`).toBeLessThanOrEqual(m.labelRight + 1);
+          expect(m.labelRight, `${name}: label inside its group`).toBeLessThanOrEqual(m.groupRight + 1);
+        }
+      });
+    }
 
     test('the error group fits inside the Compatibility panel', async ({page}) => {
       await showAdvancedOn(page, 'abc');
@@ -445,12 +469,12 @@ test.describe('Original Advanced tab', () => {
       }
     });
 
-    test('the bug switches sit under one "WinISD bugs" heading with its own tooltip', async ({page}) => {
+    test('the bug switches sit under one "Enable WinISD bugs" heading with its own tooltip', async ({page}) => {
       await page.locator('li', {hasText: /^Advanced$/}).click();
       const group = page.locator('.error-switch-group');
       await expect(group).toHaveCount(1);
-      await expect(group.locator('.error-switch-group-head')).toHaveText('WinISD bugs');
-      await expect(group).toHaveAttribute('title', /^WinISD bugs: /);
+      await expect(group.locator('.error-switch-group-head')).toHaveText('Enable WinISD bugs');
+      await expect(group).toHaveAttribute('title', /^Enable WinISD bugs: /);
       for (const key of ERROR_KEYS) await expect(group.locator(`label[data-field-key="${key}"]`)).toHaveCount(1);
       for (const key of DESIGN_KEYS) await expect(group.locator(`label[data-field-key="${key}"]`)).toHaveCount(0);
     });

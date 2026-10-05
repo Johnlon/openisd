@@ -1,5 +1,5 @@
 /**
- * ABC group delay and the "Enable WinISD ABC group delay bug" switch (`winisdAbcGroupDelay`).
+ * ABC group delay and the "ABC group delay" switch (`winisdAbcGroupDelay`).
  *
  * WinISD's ABC group delay (routine 0x4591b0, chart byte 12) steps the box to f ± 1e-10 Hz but
  * hands the driver routine the project frequency f, so the driver part stays at f and the group

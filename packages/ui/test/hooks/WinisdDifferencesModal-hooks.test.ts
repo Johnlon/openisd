@@ -23,7 +23,7 @@ describe('useWinisdDifferencesModal', () => {
     expect(h.target.value).toBe(WinisdDifferenceSection.OPTIONS);
   });
 
-  it('a ≠W cue\'s "More…" opens the page at that cue\'s entry', () => {
+  it('a ≠W cue opens the page at that cue\'s entry', () => {
     const h = useWinisdDifferencesModal();
     h.showDeviation(WinisdFilterDeviation.LINKWITZ_RILEY_ORDER);
     expect(h.target.value).toBe(WinisdDifference.forDeviation(WinisdFilterDeviation.LINKWITZ_RILEY_ORDER));

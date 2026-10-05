@@ -157,8 +157,9 @@ test('the quick-add bar offers every WinISD filter type plus the two shelves, an
 });
 
 // WinISD deviation cue: a small button next to a control whose result differs from WinISD because
-// OpenISD fixed a WinISD bug. It opens a dialog naming the bug, its size and the error switch that
-// brings WinISD back; it is hidden while that switch reproduces WinISD.
+// OpenISD fixed a WinISD bug. It opens the help page "OpenISD and WinISD differences" at the bug's
+// entry (its size and the bug switch that brings WinISD back); it is hidden while that switch
+// reproduces WinISD.
 test('an allpass above order 2 shows the WinISD deviation cue; WinISD ignores that order, so there is no switch', async ({page}) => {
   const panel = page.locator('.content-panel');
   await panel.locator('.action-btn', {hasText: '+ AP'}).click();
@@ -171,17 +172,19 @@ test('an allpass above order 2 shows the WinISD deviation cue; WinISD ignores th
   await expect(cue).toHaveAttribute('aria-label', /^Differs from WinISD: /);
 
   await cue.click();
-  const dialog = page.getByRole('dialog', {name: /allpass/i});
+  const dialog = page.getByRole('dialog', {name: 'OpenISD and WinISD differences'});
   await expect(dialog).toBeVisible();
-  await expect(dialog).toContainText('t/Q');
-  await expect(dialog).toContainText('5.0 ms');
-  await expect(dialog).toContainText('no switch');
+  const entry = dialog.locator('.wd-entry.current');
+  await expect(entry.locator('h4')).toHaveText('WinISD ignores allpass orders above 2');
+  await expect(entry).toContainText('t/Q');
+  await expect(entry).toContainText('5.0 ms');
+  await expect(entry.locator('dt', {hasText: 'Switch'})).toHaveCount(0);
   await page.keyboard.press('Escape');
   await expect(dialog).toHaveCount(0);
   await cue.focus();
   await page.keyboard.press('Enter');
   await expect(dialog).toBeVisible();
-  await dialog.getByRole('button', {name: 'Close'}).click();
+  await dialog.locator('.wd-footer').getByRole('button', {name: 'Close'}).click();
   await expect(dialog).toHaveCount(0);
 });
 
@@ -203,7 +206,7 @@ test('a Linkwitz-Riley takes even orders and shows the WinISD deviation cue unle
   await expect(panel.locator('.filter-summary')).toContainText('Linkwitz-Riley, n=2');
   await expect(cue).toBeVisible();
   await cue.click();
-  await expect(page.getByRole('dialog', {name: /Linkwitz-Riley/})).toContainText('always draws a 4th-order');
+  await expect(page.getByRole('dialog', {name: 'OpenISD and WinISD differences'}).locator('.wd-entry.current')).toContainText('always draws a 4th-order');
 });
 
 test('a User SOS Order box is greyed out: a second-order section is order 2', async ({page}) => {
@@ -222,5 +225,5 @@ test('a Bessel high-pass shows the WinISD deviation cue by its Subtype', async (
   await editorField(panel, 'Subtype').selectOption({label: 'Bessel'});
   await expect(cue).toBeVisible();
   await cue.click();
-  await expect(page.getByRole('dialog', {name: /Bessel high-pass/})).toContainText('"Enable WinISD Bessel high-pass bug"');
+  await expect(page.getByRole('dialog', {name: 'OpenISD and WinISD differences'}).locator('.wd-entry.current')).toContainText('"Bessel high-pass"');
 });

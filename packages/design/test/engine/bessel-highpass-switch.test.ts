@@ -1,5 +1,5 @@
 /**
- * Bessel high-pass and the "Enable WinISD Bessel high-pass bug" error switch (`winisdBesselHighpass`).
+ * Bessel high-pass and the "Bessel high-pass" error switch (`winisdBesselHighpass`).
  *
  * WinISD's Bessel high-pass keeps the low-pass's own denominator and swaps the numerator to
  * (k·s)^n, which is not the mirror of its low-pass (a Bessel high-pass is the low-pass with

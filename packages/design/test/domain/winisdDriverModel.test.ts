@@ -1,5 +1,5 @@
 /**
- * "Enable WinISD two-BL driver bug" (`winisdDriverModel`) on a driver whose entered `Mms`, `BL`
+ * "Two-BL driver" (`winisdDriverModel`) on a driver whose entered `Mms`, `BL`
  * and `Rms` disagree with its own `Fs`, `Cms`, `Qes` and `Qms`.
  *
  * WinISD 0.7.0.950, probed under wine 2026-09-26 (`winisd_research/PROBE_FINDINGS.md`), keeps all

@@ -70,7 +70,7 @@ describe('errorSwitches', () => {
     expect(WinisdDeviation.DRIVER_COUNT.inEffect(p.errorSwitches)).toBe(false);
     p.nDrivers.set(2);
     expect(WinisdDeviation.DRIVER_COUNT.inEffect(p.errorSwitches)).toBe(true);
-    expect(WinisdDeviation.DRIVER_COUNT.remedy).toMatch(/"Enable WinISD per-driver impedance bug"/);
+    expect(WinisdDeviation.DRIVER_COUNT.remedy).toMatch(/"Per-driver impedance"/);
     p.winisdDriverCountModel.set(true);
     expect(WinisdDeviation.DRIVER_COUNT.inEffect(p.errorSwitches)).toBe(false);
   });
@@ -94,7 +94,7 @@ describe('WinISD deviation cues', () => {
     }
     expect(WinisdDeviation.ALL).toEqual([WinisdDeviation.DRIVER_MODEL, WinisdDeviation.VA_MODEL, WinisdDeviation.PR_NPR_RESONANCE, WinisdDeviation.ABC_GROUP_DELAY, WinisdDeviation.DRIVER_COUNT]);
     expect(WinisdFilterDeviation.ALL).toEqual([WinisdFilterDeviation.ALLPASS_ORDER, WinisdFilterDeviation.LINKWITZ_RILEY_ORDER, WinisdFilterDeviation.BESSEL_HIGHPASS]);
-    expect(WinisdFilterDeviation.BESSEL_HIGHPASS.remedy).toMatch(/"Enable WinISD Bessel high-pass bug"/);
+    expect(WinisdFilterDeviation.BESSEL_HIGHPASS.remedy).toMatch(/"Bessel high-pass"/);
     expect(WinisdFilterDeviation.ALLPASS_ORDER.remedy).toMatch(/no switch/);
   });
 
