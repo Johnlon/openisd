@@ -336,27 +336,19 @@ type OpenisdRecordResult =
  *
  * `1` = parallel, `2` = series: `docs/design/WINISD_SCHEMA.md` §3.2, ParState slot 46.
  *
- * Under normal circumstances WinIsd always writes N and never E or C, even when VCCon is entered in WinIsd.
- * The only observed cases where an E would be emitted is
- * - if loading a WDR that has no Parstate and then resaving then it is written as E,
- * or
- * - if we manually tweaked slot 46 to E, then loaded and resave the file.
- *
- * We will use E in the serialization to WDR because OpenIsd only loads E values and not N or C.
- * If we use N like WinIsd then a non-default value like Series will fail to load into OpenIsd.
- * Given that we know that WinIsd preserves the N/E then this should enable roundtripping VCCon
- * via WDR successfully.
+ * Always marked E (John, 2026-10-05). WinISD writes N here whatever the wiring, so the mark carries
+ * nothing and the reader takes the value on presence as entered (`winIsdDriverImport.ts`). Writing
+ * N for a default would make the second save differ from the first: the reader turns the written
+ * `1` into an entered parallel, which the next save marks E. Writing E every time is a fixed point.
  */
 function wdrVCCon(spec: DriverSpec): WdrCell {
   const cell = spec.VCCon;
   // A resolved driver always states a wiring — `resolve()` stores `calcVCCon()`'s default as a
   // 'C' entry — so the exporter asks the driver and does not decide this fact itself; a null
   // could only reach here from an unresolved record, and writes parallel, the same default.
-  // The .wdr mark still follows WinISD's own observed behaviour (comment above): entered stays
-  // E, the calculated default is written N, never C.
   return {
     value: cell.value === "series" ? "2" : "1",
-    state: cell.entered ? "entered" : "not-available",
+    state: "entered",
   };
 }
 
@@ -373,7 +365,7 @@ function wdrVCCon(spec: DriverSpec): WdrCell {
  * Exceptions (handled before the main loop, in file order):
  *   VCCon entered parallel   →  1,  mark E
  *   VCCon entered series     →  2,  mark E
- *   VCCon not-available      →  1,  mark N
+ *   VCCon calculated default →  1,  mark E
  *   numVC entered            →  stated count,  mark E
  *   numVC not-available      →  1,             mark C  (OpenISD's own default, not the record's)
  *   Xlim  entered            →  no key written, mark E on slot 10 only

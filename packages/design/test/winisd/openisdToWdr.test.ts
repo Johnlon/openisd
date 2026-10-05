@@ -185,8 +185,12 @@ describe('openisd.json → winisd.wdr — format conformance (oracle: drivers/my
     assert.equal(oracle[23], 'E', 'the oracle claims E');
     assert.equal(got.numVC, '1');
 
+    // Slot 46 `VCCon` is always E (John, 2026-10-05) where WinISD writes N; see `wdrVCCon`.
+    assert.equal(got.ParState[46], 'E', 'VCCon, always E');
+    assert.equal(oracle[46], 'N', 'WinISD leaves slot 46 N');
+
     // Every other slot matches WinISD byte for byte.
-    const mask = (p: string) => p.slice(0, 23) + p.slice(24);
+    const mask = (p: string) => p.slice(0, 23) + p.slice(24, 46) + p.slice(47);
     assert.equal(mask(got.ParState), mask(oracle));
   });
 
@@ -225,10 +229,9 @@ describe('openisd.json → winisd.wdr — format conformance (oracle: drivers/my
     //   slot 44 `Vcd`  E, was N — this record STATES the voice coil diameter (38 mm). The old
     //                  fixture held it under the pre-B10 key `voice_coil_dia_mm`, which nothing
     //                  read, so the value was silently absent from the file.
-    //   slot 46 `VCCon` N, was E — the record states no wiring, and WinISD's own New → Save
-    //                  leaves slot 46 unmarked (`john-all-defaults.wdr`). Claiming E would assert
-    //                  a wiring nobody stated.
-    assert.equal(f.ParState, 'EEEEEENNEENEEEECEECENCCENNCCCNNNCCCCNCNNNNNNENNCC');
+    //   slot 46 `VCCon` E — always E (John, 2026-10-05): the reader takes the value as entered,
+    //                  so an N here would turn into E on the next save.
+    assert.equal(f.ParState, 'EEEEEENNEENEEEECEECENCCENNCCCNNNCCCCNCNNNNNNENECC');
   });
 });
 

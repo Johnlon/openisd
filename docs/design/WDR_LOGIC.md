@@ -50,7 +50,7 @@ We have no concrete evidence that WinISD assigns a ParState slot to `VCCon` (slo
 | anything else  | entered, value `1`, original kept as `actual_reading`, `vccon-coerced` in `dq_calculated` |
 | key absent     | — nothing                                                                                 |
 
-Because a reader trusts the value over the mark, when an unstated wiring (`not-available`) is saved to `.wdr` as a default `1`, reading that `.wdr` back promotes it to `entered`. This is a documented, one-time gain of certainty on round-trip.
+OpenISD always writes `VCCon` marked `E`, the default `1` included (John, 2026-10-05). The reader takes the value as entered whatever its mark, so writing `N` for a default would turn into `E` on the next save; always `E` makes a second save identical to the first.
 
 ### `numVC` — read on mark, value checked
 

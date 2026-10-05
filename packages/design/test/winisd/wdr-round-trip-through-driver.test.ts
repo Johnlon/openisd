@@ -152,14 +152,18 @@ function lostEntered(file: string, src: string): string[] {
   return lost;
 }
 
-/** text → WinISDDriver → OpenISDDriver → WinISDDriver → text. */
-function cycle(src: string): string {
-  const engine = createEngine();
-  const imported = new WinIsdDriverConverter(engine).winIsdDriverToOpenIsdDriver(src);
+/** text → WinISDDriver → OpenISDDriver. */
+function importDriver(src: string) {
+  const imported = new WinIsdDriverConverter(createEngine()).winIsdDriverToOpenIsdDriver(src);
   if (imported.value === null) {
     assert.fail(`driver text rejected: ${imported.errors.map(error => error.message).join('; ')}`);
   }
-  const exported = imported.value.toWdrIniText();
+  return imported.value;
+}
+
+/** text → WinISDDriver → OpenISDDriver → WinISDDriver → text. */
+function cycle(src: string): string {
+  const exported = importDriver(src).toWdrIniText();
   if (exported.value === null) {
     assert.fail(`driver text could not be exported: ${exported.errors.map(error => error.message).join('; ')}`);
   }
@@ -258,6 +262,8 @@ describe('a .wdr survives the round trip THROUGH OpenISDDriver', () => {
       for (const [key, cell] of before.rows()) {
         const outCell = after.cell(key);
         if (cell.state !== 'not-available' || outCell.state === 'not-available') continue;
+        // VCCon is always written E (John, 2026-10-05): a stated wiring, never an invented one.
+        if (key === 'VCCon') continue;
         const sourceValue = Number(cell.value);
         const derived = Number(outCell.value) !== sourceValue;
         // A nonzero value already in the source is real data under a stale N mark, not
@@ -271,6 +277,17 @@ describe('a .wdr survives the round trip THROUGH OpenISDDriver', () => {
 
       assert.deepEqual([...pairs(out).keys()], [...pairs(src).keys()],
         'the projection must write WinISD\'s key set, in WinISD\'s order');
+    });
+
+    // The first cycle may lose named information (C values recomputed, c/roo replaced by the
+    // air used); every cycle after it must lose nothing. A second generation that differs from
+    // the first is drift that grows each time OpenISD re-saves the driver.
+    it(`${file} — a second cycle changes nothing: the first output is a fixed point`, () => {
+      const wdr2 = cycle(src);
+      const wdr3 = cycle(wdr2);
+      assert.equal(wdr3, wdr2, 'the .wdr written from a re-imported .wdr must be byte-identical');
+      assert.equal(importDriver(wdr3).toOwdrText(), importDriver(wdr2).toOwdrText(),
+        'the OpenISD driver built from each generation must be the same');
     });
   }
 });
