@@ -91,10 +91,11 @@ byte-compatible: the writer emits the terminal values, exactly what WinISD would
 See `docs/research/WINISD_PARITY.md` §11b and ledger QO96.
 
 **Reading a WinISD file back.** A `.wdr` carries one `Re`, always the terminal value, and its
-`VCCon` cannot be trusted — WinISD's own dropdown writes `1` whatever you selected. OpenISD trusts
+`VCCon` can disagree with that `Re`: editing `numVC` in WinISD's editor resets the combo to parallel
+without undoing the rescale (`WINISD_PARITY.md` §12). OpenISD trusts
 the file's `VCCon` anyway, and that is safe because the same factor is applied on the way in and
 on the way back out, so it cancels: the terminal `Re` reaching the simulation is the file's own
-`Re` byte for byte, and a file read then rewritten is unchanged. **The only thing a mis-saved
+`Re` byte for byte, and a file read then rewritten is unchanged. **The only thing a mismatched
 `VCCon` affects is the per-coil figure shown on screen**, and only when `numVC` is above 1 — for a
 single-coil driver the factor is 1 and there is nothing to get wrong. Ledger QO97.
 

@@ -140,32 +140,24 @@ trust the `s-magnet.wdr` filename — read the file.
 `Thick=1 … DVol=8` (the "12345678" in the name encodes those values, not a driver id), and
 `Magnet=4` lights up slot 41 alongside the rest.
 
-### VCCon — resolved slot (46), behaviour still only partly understood
+### VCCon — saved and loaded correctly (probe 2026-10-05)
 
-`VCCon` (1=parallel, 2=serial) is a WDR field. Six connection probes exist; only two of them
-are trustworthy single-variable captures:
+`VCCon` (1=parallel, 2=serial) is a WDR field; ParState slot 46 is its slot and stays `N` whatever
+the wiring. The 2026-10-05 probe (`winisd_research/runs/vccon-probe-20261005/`,
+`docs/research/WINISD_PARITY.md` §12) settled the files below:
 
-| File                                  | VCCon | Correct for its name? |
-| -------------------------------------- | :---: | ---------------------- |
-| `s-connection-parallel.wdr`            |   1   | ✅ (comment: "conn changed to serial then back to parallel") |
-| `s-connection-parallel-2vc.wdr`        |   1   | ✅                      |
-| `s-connection-serial.wdr`              |   2   | ✅                      |
-| `s-connection-serial-3vc.wdr`          |   2   | ✅                      |
-| `s-connection-serial-2vc.wdr`          |   1   | ❌ named serial, stores parallel — byte-identical to `s-connection-parallel-2vc.wdr` |
-| `s-connection-serial-a.wdr`            |   1   | ❌ no field is actually set — byte-identical to the blank baseline `s_autocalc-no.wdr` |
+| File                                  | VCCon | Why                                                                     |
+| ------------------------------------- | :---: | ----------------------------------------------------------------------- |
+| `s-connection-parallel.wdr`           |   1   | parallel                                                                |
+| `s-connection-parallel-2vc.wdr`       |   1   | parallel                                                                |
+| `s-connection-serial.wdr`             |   2   | serial                                                                  |
+| `s-connection-serial-3vc.wdr`         |   2   | serial                                                                  |
+| `s-connection-serial-2vc.wdr`         |   1   | serial picked, then numVC edited: WinISD resets the combo to parallel   |
+| `s-connection-serial-a.wdr`           |   1   | no field set — byte-identical to the blank baseline `s_autocalc-no.wdr` |
 
-**This supersedes an earlier claim in this README that "WinISD always writes `VCCon=1`
-regardless of the UI setting."** That conclusion was drawn from the two mislabeled files
-above; the two correctly-captured pairs (`s-connection-serial.wdr` / `s-connection-parallel.wdr`,
-and the `*-2vc`/`*-3vc` variants) show VCCon saves correctly in both directions. Reading is
-also correct — a hand-edited `VCCon=2` file does display as serial.
-
-What genuinely is unresolved: **no connection probe, correct or not, ever shows a new `E` in
-ParState.** All six are byte-for-byte identical to the blank driver in their `ParState=`
-string. Black-box probing therefore still supports "VCCon has no observable ParState
-transition via the connection UI." `PARSTATE-FINDINGS.md` (via decompiling `winisd.exe`)
-separately identifies ParState **slot 46 as WinISD's internal VCCon slot** — so the slot's
-*identity* is known, but why the UI never marks it `E` is not explained by anything held here.
+WinISD has no VCCon save or load bug. Its editor has two: with numVC 1 a Series choice saves as 1,
+and editing numVC resets the combo to parallel without undoing the Re/BL rescale
+(`bugs/BUG_20261005_winisd-vccon-editor-combo.md`).
 
 ---
 
