@@ -19,6 +19,7 @@ export class ProjectSignal {
     readonly #engine: SignalEngine;
     readonly #usableRe: () => number | null;
     readonly #rsOhm: () => number;
+    readonly #winisdReWithoutRg: () => boolean;
     readonly #nDrivers: () => number;
     readonly #signalIssues: () => readonly SignalIssue[];
 
@@ -27,6 +28,7 @@ export class ProjectSignal {
         engine: SignalEngine,
         usableRe: () => number | null,
         rsOhm: () => number,
+        winisdReWithoutRg: () => boolean,
         nDrivers: () => number,
         signalIssues: () => readonly SignalIssue[],
     ) {
@@ -34,6 +36,7 @@ export class ProjectSignal {
         this.#engine = engine;
         this.#usableRe = usableRe;
         this.#rsOhm = rsOhm;
+        this.#winisdReWithoutRg = winisdReWithoutRg;
         this.#nDrivers = nDrivers;
         this.#signalIssues = signalIssues;
     }
@@ -58,8 +61,7 @@ export class ProjectSignal {
                     if (Re_ohm === null) {
                         throw new Error('powerDrive_W cannot be entered: the driver has no usable Re_ohm yet.');
                     }
-                    const Rs_ohm = this.#rsOhm();
-                    if (!(v > 0 && this.#engine.driveVoltage(v / this.#nDrivers(), Re_ohm, Rs_ohm) >= MIN_DRIVE_VOLTAGE_V)) {
+                    if (!(v > 0 && this.#engine.driveVoltage(v / this.#nDrivers(), Re_ohm, this.readoutRs_ohm) >= MIN_DRIVE_VOLTAGE_V)) {
                         throw new RangeError(`powerDrive_W ${v} W drives below the 10 mV minimum voltage.`);
                     }
                     signal.set({...signal.value, power_W: enteredEntry(v), voltage_V: undefined});
@@ -76,8 +78,25 @@ export class ProjectSignal {
         );
     }
 
+    /** The series resistance the power/voltage readout counts: Rg, or 0 with "Enable WinISD Re
+     *  without Rg bug" ticked (WinISD relates them through Re alone). */
+    get readoutRs_ohm(): number {
+        return this.#winisdReWithoutRg() ? 0 : this.#rsOhm();
+    }
+
+    /** The voltage each driver gets in the sweep: `driveVoltage_V`, or with "Enable WinISD Re
+     *  without Rg bug" ticked, the voltage that drives the power read into Re + Rg — WinISD's SPL
+     *  chart drives its Re-only power readout into Re + Rg. */
+    get sweepVoltage_V(): number {
+        const V = this.driveVoltage_V.value;
+        const Re_ohm = this.#usableRe();
+        const power_W = this.powerDrive_W.value;
+        if (!this.#winisdReWithoutRg() || Re_ohm === null || power_W === null) return V;
+        return this.#engine.driveVoltage(power_W / this.#nDrivers(), Re_ohm, this.#rsOhm());
+    }
+
     /**
-     * The drive voltage each driver gets — the `eg` every sweep runs at. Never absent: an empty slot reads
+     * The drive voltage each driver gets — the `eg` every sweep runs at (see `sweepVoltage_V`). Never absent: an empty slot reads
      * `DEFAULT_DRIVE_VOLTAGE_V` as calculated, and it is never below 10 mV. Entering it needs no
      * Re. `.clear()` empties the pair; the resolve then fills it back from its defaults.
      */

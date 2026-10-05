@@ -1303,8 +1303,8 @@ export class ToggleField extends Field {
   });
   static readonly ADV_WINISDVAMODEL = new ToggleField({
     value: "adv_WinisdVaModel",
-    label: "Enable WinISD VA model bug",
-    description: "Enable WinISD VA model bug: affects the Amplifier apparent load power (VA) chart only.\nTicked (as WinISD): VA = P·Re/|Z + Rg|. It uses Re where the amplifier sees Re + Rg, so it reads low by Re/(Re + Rg). With 'Rg is at driver side' on, Z already includes Rg and WinISD adds it again.\nUnticked (the default, bug fixed): VA = P·(Re + Rg)/|Z seen by the amplifier|, Rg counted once.\nBoth give the same result when Rg is 0. P: input power. Z: the impedance chart. Rg: the series resistance.",
+    label: "Enable WinISD Re without Rg bug",
+    description: "Enable WinISD Re without Rg bug: affects the Amplifier apparent load power (VA) chart, and the Signal tab's power and voltage. Both give the same result when Rg is 0.\nTicked (as WinISD): Re where the amplifier sees Re + Rg. VA = P·Re/|Z + Rg|, low by Re/(Re + Rg): about 23 % at Re 3.4 Ω, Rg 1 Ω; with 'Rg is at driver side' on, Z already includes Rg and WinISD adds it again. Power and voltage: P = N·V²/Re, while the SPL chart drives that power into Re + Rg: 1.85 V each at 4 drivers, Re 3.4 Ω, Rg 0.1 Ω reads 4.0 W (Re + Rg: 3.91 W), and a typed voltage plays about 0.1 dB louder.\nUnticked (the default, bug fixed): Re + Rg throughout. VA = P·(Re + Rg)/|Z seen by the amplifier|, Rg counted once; P = N·V²/(Re + Rg).\nP: input power. V: driver input voltage (each). N: number of drivers. Z: the impedance chart. Rg: the series resistance.",
   });
   static readonly ADV_WINISDPRNPRRESONANCE = new ToggleField({
     value: "adv_WinisdPrNprResonance",

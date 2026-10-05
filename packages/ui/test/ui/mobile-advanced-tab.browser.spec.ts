@@ -36,7 +36,7 @@ test('shows the environment fields, calculated readouts, and WinISD-compat contr
   await expect(page.locator('#mob-adv-lossmode')).toHaveCount(0);
   await expect(page.getByText('WinISD air model')).toHaveCount(0);
   await expect(page.getByText('Enable WinISD two-BL driver bug')).toBeVisible();
-  await expect(page.getByText('Enable WinISD VA model bug')).toBeVisible();
+  await expect(page.getByText('Enable WinISD Re without Rg bug')).toBeVisible();
 });
 
 test('editing the temperature writes through and clearing it falls back to the app default', async ({ page }) => {
@@ -96,7 +96,7 @@ test('the compatibility panel has no buttons, only switches', async ({ page }) =
 test('scrolls to its last control instead of clipping it', async ({ page }) => {
   await page.setViewportSize({ width: 412, height: 700 });
 
-  const lastControl = page.getByText('Enable WinISD VA model bug');
+  const lastControl = page.getByText('Enable WinISD Re without Rg bug');
   await lastControl.scrollIntoViewIfNeeded();
   await expect(lastControl).toBeVisible();
 

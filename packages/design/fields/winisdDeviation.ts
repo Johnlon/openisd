@@ -86,9 +86,9 @@ export class WinisdDeviation {
   });
 
   static readonly VA_MODEL = new WinisdDeviation({
-    title: 'WinISD VA uses Re, not Re + Rg',
-    explanation: 'WinISD\'s amplifier load (VA) chart uses Re where the amplifier sees Re + Rg, and with "Rg is at driver side" on it counts Rg twice. OpenISD counts Rg once.',
-    size: 'Re 3.4 Ω, Rg 1 Ω: WinISD reads 23 % (1.1 dB) low.',
+    title: 'WinISD uses Re, not Re + Rg',
+    explanation: 'WinISD\'s amplifier load (VA) chart uses Re where the amplifier sees Re + Rg, and with "Rg is at driver side" on it counts Rg twice. Its Signal tab relates power and voltage through Re alone, while its SPL chart drives that power into Re + Rg. OpenISD uses Re + Rg throughout.',
+    size: 'VA: Re 3.4 Ω, Rg 1 Ω, WinISD reads 23 % (1.1 dB) low. Power: 1.85 V each at 4 drivers, Rg 0.1 Ω, WinISD reads 4.0 W (OpenISD 3.91 W) and a typed voltage plays about 0.1 dB louder.',
     fix: {kind: 'errorSwitch', switchLabel: ToggleField.ADV_WINISDVAMODEL.label, switchOf: s => s.vaModel},
     charts: ['VA'],
   });

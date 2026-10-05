@@ -75,10 +75,11 @@ export class ProjectAdvanced {
         };
     }
 
-    /** WinISD Compatibility "Enable WinISD VA model bug": the amplifier apparent load power chart as WinISD
-     *  computes it, P·Re·|Hf|²/|Z + Rg| (BUG_20260927_winisd-va-uses-re-not-re-plus-rg). Off: the
-     *  apparent power the amplifier delivers, P·(Re + Rg)·|Hf|²/|Z_amp|. Off where a project does
-     *  not say. */
+    /** WinISD Compatibility "Enable WinISD Re without Rg bug": Re where Re + Rg belongs, as WinISD
+     *  does — the amplifier apparent load power chart P·Re·|Hf|²/|Z + Rg|, and the power/voltage
+     *  relation P = N·V²/Re (BUG_20260927_winisd-va-uses-re-not-re-plus-rg). Off: the apparent
+     *  power the amplifier delivers, P·(Re + Rg)·|Hf|²/|Z_amp|, and P = N·V²/(Re + Rg). Off where
+     *  a project does not say. */
     get winisdVaModel(): SimpleField<boolean> {
         const lens = focus(this.#advanced, 'winisdVaModel');
         return {

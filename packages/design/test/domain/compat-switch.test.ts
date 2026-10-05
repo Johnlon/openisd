@@ -12,7 +12,7 @@ describe('CompatSwitch', () => {
   it('lists the six WinISD bugs and the three options', () => {
     expect(CompatSwitch.BUGS.map(s => s.field.label)).toEqual([
       'Enable WinISD two-BL driver bug',
-      'Enable WinISD VA model bug',
+      'Enable WinISD Re without Rg bug',
       'Enable WinISD PR Npr resonance bug',
       'Enable WinISD Bessel high-pass bug',
       'Enable WinISD ABC group delay bug',

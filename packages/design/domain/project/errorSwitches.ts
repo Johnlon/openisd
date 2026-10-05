@@ -13,7 +13,7 @@ export interface ErrorSwitchState {
 export interface ErrorSwitchStates {
     /** WinISD driver model: two BLs. */
     readonly driverModel: ErrorSwitchState;
-    /** WinISD VA model: Re where the amplifier sees Re + Rg. */
+    /** WinISD Re without Rg: Re where the amplifier sees Re + Rg (VA chart, power/voltage readout). */
     readonly vaModel: ErrorSwitchState;
     /** PR Npr resonance: the passive-radiator box's fixed losses at an ωr that uses Npr where the
      *  tuning divides by it. */

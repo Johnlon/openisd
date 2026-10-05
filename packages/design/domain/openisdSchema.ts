@@ -742,8 +742,9 @@ const openISDAdvancedJsonSchema = z.preprocess(renameLegacyWinisdDriverModel, z.
     // Bug switch "Enable WinISD two-BL driver bug": the simulation mixes the entered BL with the BL implied
     // by Fs, Qes and Vas, as WinISD does. Absent parses to OFF.
     winisdDriverModel: z.boolean().optional(),
-    // Bug switch "Enable WinISD VA model bug": the amplifier apparent load power chart as WinISD computes
-    // it, P·Re·|Hf|²/|Z + Rg|. Absent parses to OFF.
+    // Bug switch "Enable WinISD Re without Rg bug": Re where Re + Rg belongs, as WinISD does: the
+    // amplifier apparent load power chart P·Re·|Hf|²/|Z + Rg|, and the power/voltage relation
+    // P = N·V²/Re. Absent parses to OFF.
     winisdVaModel: z.boolean().optional(),
     // Option "Enable WinISD style simplified ABC intra-port velocity": the ABC intra-port velocity chart as WinISD
     // draws it, the leak term left out. Absent parses to ON, WinISD's convention.
