@@ -3,7 +3,7 @@
  * (Manage Drivers, Options, Project details, Advanced). The open-project ROWS at the bottom of the
  * menu are `mobile-project-list`'s.
  */
-import {expect, openAMobileProject, test} from '../fixtures.js';
+import {duplicateFocusedProject, expect, openAMobileProject, setFocusedBoxType, setFocusedBoxVolume, test} from '../fixtures.js';
 import {forceMobileSkin, openMobileMenu, tapMobileMenuItem} from '../fixtures/mobileSkin.js';
 
 test.beforeEach(async ({ page }) => {
@@ -68,8 +68,8 @@ test.describe('MobileMenu', () => {
   test.describe('Open project…', () => {
     test('lists nothing yet before anything has been saved', async ({ page }) => {
       await tapMobileMenuItem(page, 'Open project…');
-      await expect(page.locator('.mob-align-sheet')).toBeVisible();
-      await expect(page.locator('.mob-align-sheet')).toContainText('No saved project yet');
+      await expect(page.locator('.mob-open-project-sheet')).toBeVisible();
+      await expect(page.locator('.mob-open-project-sheet')).toContainText('No saved project yet');
     });
 
     test('Save, then "Open project…" lists it and reopens it', async ({ page }) => {
@@ -78,7 +78,7 @@ test.describe('MobileMenu', () => {
       await tapMobileMenuItem(page, /^Save$/);
 
       await tapMobileMenuItem(page, 'Open project…');
-      const sheet = page.locator('.mob-align-sheet');
+      const sheet = page.locator('.mob-open-project-sheet');
       await expect(sheet).toBeVisible();
       await expect(sheet.locator('.mob-stored-project-row')).toHaveCount(1);
 
@@ -87,6 +87,35 @@ test.describe('MobileMenu', () => {
       // Reopening the same project lands back on the Box tab with the same value — a real
       // re-load, not a no-op that merely closed the sheet.
       await expect(page.locator('.mob-field-row.mob-field-entered .mob-field-value input').first()).toHaveValue(before);
+    });
+
+    // John, 2026-10-05: "can the Open project action show the driver name, and volume and type?"
+    test('each saved project shows its driver, box type and volume under its name', async ({ page }) => {
+      await setFocusedBoxType(page, 'vented');
+      await setFocusedBoxVolume(page, 0.012);
+      await tapMobileMenuItem(page, /^Save$/);
+      await duplicateFocusedProject(page, 'Second');
+      await setFocusedBoxType(page, 'sealed');
+      await setFocusedBoxVolume(page, 0.02);
+      await tapMobileMenuItem(page, /^Save$/);
+
+      await tapMobileMenuItem(page, 'Open project…');
+      const rows = page.locator('.mob-open-project-sheet .mob-stored-project-row');
+      await expect(rows).toHaveCount(2);
+      await expect(rows.locator('.mob-stored-project-name')).toHaveText(['Second', 'sample-project']);
+      await expect(rows.locator('.mob-stored-project-summary')).toHaveText([
+        'Tang Band W5-1138SMF · Closed · 20.0 L',
+        'Tang Band W5-1138SMF · Vented · 12.0 L',
+      ]);
+    });
+
+    // John, 2026-10-05: "the Open project popup doesn't cover the entire screen — it should".
+    test('the sheet fills the whole screen', async ({ page }) => {
+      await page.setViewportSize({ width: 412, height: 915 });
+      await tapMobileMenuItem(page, 'Open project…');
+      const box = await page.locator('.mob-open-project-sheet').boundingBox();
+      expect(box).toEqual({ x: 0, y: 0, width: 412, height: 915 });
+      await expect(page.locator('.mob-open-project-sheet .mob-dlg-footer').getByRole('button', { name: 'Close' })).toBeVisible();
     });
   });
 

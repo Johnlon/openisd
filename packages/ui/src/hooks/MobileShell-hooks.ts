@@ -16,7 +16,7 @@ import {inputFrom} from '../logic/domEvents.js';
 import {injectSplashModal} from './SplashModal-hooks.js';
 import type {TabId} from '../logic/tabId.js';
 import {createSelectedBox} from './boxFields.js';
-import type {StoredProjectListing} from '@openisd/persistence';
+import {storedProjectRows, type StoredProjectRow} from './storedProjectRows.js';
 
 /** The mobile shell's own destinations: the same tab ids the desktop shell's content panel
  *  uses (so a shared field-wiring caller never has to ask "which shell is this"), plus `graph`
@@ -91,7 +91,7 @@ export interface MobileShellApi {
    *  `storedProjects`/`openStoredProject` (OriginalShell-hooks.ts), mobile had no equivalent
    *  (John, 2026-10-02: "the file menu offer no way to save and reopen projects"). */
   openDialogOpen: import('vue').Ref<boolean>;
-  storedProjects: import('vue').Ref<StoredProjectListing[]>;
+  storedProjects: import('vue').Ref<StoredProjectRow[]>;
   openProjectDialog: () => void;
   openStoredProject: (id: string) => void;
   /** Every open project, saved or not — the same registry as desktop's Projects panel. */
@@ -153,9 +153,9 @@ export function useMobileShell(): MobileShellApi {
   // own openDialogOpen/storedProjects/openStoredProject (OriginalShell-hooks.ts); mobile had no
   // equivalent (John, 2026-10-02: "the file menu offer no way to save and reopen projects").
   const openDialogOpen = ref(false);
-  const storedProjects = ref<StoredProjectListing[]>([]);
+  const storedProjects = ref<StoredProjectRow[]>([]);
   function openProjectDialog(): void {
-    storedProjects.value = projectRepo.listStoredProjects();
+    storedProjects.value = storedProjectRows(projectRepo.listStoredProjects(), presentationState.ui.unitTokens ?? {});
     openDialogOpen.value = true;
     closeMenu();
   }

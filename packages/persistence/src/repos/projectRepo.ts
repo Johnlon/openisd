@@ -4,7 +4,7 @@
  *  validation and reconstruction are entirely `@openisd/design`'s
  *  (`OpenISDProject.fromOwprText()` — QO116: one whole-record `.safeParse()` at the load
  *  boundary). This file supplies no shape of its own and never holds the project's record. */
-import {OpenISDProject, type FieldPath} from '@openisd/design';
+import {OpenISDProject, ProjectSummary, type FieldPath} from '@openisd/design';
 import type {Engine} from '@openisd/design/engine';
 import type {FileStorage, SaveResult} from '../storage/fileStorage.js';
 import type {KeyValueStorage} from '../storage/keyValueStorage.js';
@@ -93,7 +93,20 @@ export interface ProjectRepairReport {
   readonly backupKey: string | null;
 }
 
-export interface StoredProjectListing {
+/** One project saved in browser storage, as the Open project list shows it. An entry whose text
+ *  would not read even after repair is `unreadable`: it has a name but no summary. */
+export type StoredProjectListing = ReadableStoredProject | UnreadableStoredProject;
+
+export interface ReadableStoredProject {
+  readonly kind: 'readable';
+  readonly id: string;
+  readonly name: string;
+  readonly modified: string;
+  readonly summary: ProjectSummary;
+}
+
+export interface UnreadableStoredProject {
+  readonly kind: 'unreadable';
   readonly id: string;
   readonly name: string;
   readonly modified: string;
@@ -334,11 +347,11 @@ export function createProjectRepo(
       return project;
     },
     listStoredProjects(): StoredProjectListing[] {
-      return readStoredEntries().map(entry => {
+      return readStoredEntries().map((entry): StoredProjectListing => {
         const project = this.readProjectText(entry.text);
         return Array.isArray(project)
-          ? { id: entry.id, name: 'Unreadable project', modified: entry.modified }
-          : { id: entry.id, name: project.name.value, modified: entry.modified };
+          ? { kind: 'unreadable', id: entry.id, name: 'Unreadable project', modified: entry.modified }
+          : { kind: 'readable', id: entry.id, name: project.name.value, modified: entry.modified, summary: ProjectSummary.of(project) };
       }).sort((a, b) => b.modified.localeCompare(a.modified));
     },
     loadStoredProject(id: string): OpenISDProject | string[] {

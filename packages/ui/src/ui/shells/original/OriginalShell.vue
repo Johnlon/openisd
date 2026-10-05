@@ -854,8 +854,9 @@ const winisdDifferences = injectWinisdDifferencesModal();
           <div class="open-project-list">
             <p v-if="storedProjects.length === 0" class="hint">No saved project yet</p>
             <button v-for="projectEntry in storedProjects" :key="projectEntry.id" class="stored-project-row" @click="openStoredProject(projectEntry.id)">
-              <span>{{ projectEntry.name }}</span>
-              <small>{{ new Date(projectEntry.modified).toLocaleString() }}</small>
+              <span class="stored-project-name">{{ projectEntry.name }}</span>
+              <small class="stored-project-modified">{{ new Date(projectEntry.modified).toLocaleString() }}</small>
+              <small class="stored-project-summary">{{ projectEntry.summary }}</small>
             </button>
           </div>
         </div>
@@ -1290,7 +1291,8 @@ textarea.comment, textarea.description { width:100%; border:1px solid #999; bord
 .open-project-body { display:flex; flex-direction:column; gap:10px; }
 .open-from-disk { align-self:stretch; text-align:left; padding:8px 10px; font-weight:600; }
 .open-project-list { display:flex; flex-direction:column; gap:4px; max-height:42vh; overflow-y:auto; border-top:1px solid #ccc; padding-top:8px; }
-.stored-project-row { display:flex; justify-content:space-between; gap:12px; border:0; background:transparent; padding:8px 6px; text-align:left; cursor:pointer; }
+.stored-project-row { display:grid; grid-template-columns:1fr auto; column-gap:12px; row-gap:2px; border:0; background:transparent; padding:8px 6px; text-align:left; cursor:pointer; }
+.stored-project-summary { grid-column:1 / -1; font-size:11px; }
 .stored-project-row:hover { background:#dbeafe; }
 .stored-project-row small { color:#666; white-space:nowrap; }
 .modal-footer { display:flex; align-items:center; justify-content:space-between; border-top:1px solid #ccc; padding:10px 20px; background:#eee; }

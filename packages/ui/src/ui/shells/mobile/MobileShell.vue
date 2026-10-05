@@ -143,20 +143,15 @@ const winisdDifferences = injectWinisdDifferencesModal();
     </template>
 
     <!-- Outside the project template: the empty state opens it too. -->
-    <div v-if="openDialogOpen" class="mob-align-overlay" @click.self="openDialogOpen = false">
-      <div class="mob-align-sheet">
-        <div class="mob-panel-head mob-panel-head-row">
-          <span>Open project</span>
-          <button class="mob-x" @click="openDialogOpen = false">&#10005;</button>
-        </div>
-        <p v-if="storedProjects.length === 0" class="mob-hint">No saved project yet.</p>
-        <button v-for="p in storedProjects" :key="p.id" type="button" class="mob-stored-project-row"
-          @click="openStoredProject(p.id)">
-          <span class="mob-stored-project-name">{{ p.name }}</span>
-          <span class="mob-stored-project-modified">{{ new Date(p.modified).toLocaleString() }}</span>
-        </button>
-      </div>
-    </div>
+    <MobilePaneDialog v-if="openDialogOpen" class="mob-open-project-sheet" title="Open project" @close="openDialogOpen = false">
+      <p v-if="storedProjects.length === 0" class="mob-hint">No saved project yet.</p>
+      <button v-for="p in storedProjects" :key="p.id" type="button" class="mob-stored-project-row"
+        @click="openStoredProject(p.id)">
+        <span class="mob-stored-project-name">{{ p.name }}</span>
+        <span class="mob-stored-project-summary">{{ p.summary }}</span>
+        <span class="mob-stored-project-modified">{{ new Date(p.modified).toLocaleString() }}</span>
+      </button>
+    </MobilePaneDialog>
 
     <OptionsModal v-if="optionsOpen" class="mob-options" @close="optionsOpen = false" />
   </div>
@@ -345,35 +340,6 @@ const winisdDifferences = injectWinisdDifferencesModal();
 .mob-open-project-dot { flex: none; width: 7px; height: 7px; border-radius: 50%; background: var(--acc2); }
 .mob-open-project-close { all: unset; box-sizing: border-box; flex: none; padding: 6px 14px; font-size: 13px; color: var(--mut); cursor: pointer; }
 
-/* The "Open project" sheet — same sheet chrome as MobileBoxTab.vue's own .mob-align-overlay/
-   .mob-align-sheet (that file's own copy, not shared; this is the established per-component
-   duplication pattern for these classes, not introduced here). */
-.mob-align-overlay {
-  position: absolute;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.35);
-  z-index: 210;
-  display: flex;
-  align-items: flex-end;
-}
-.mob-align-sheet {
-  width: 100%;
-  max-height: 80%;
-  overflow-y: auto;
-  background: var(--panel);
-  border-top: 1px solid var(--line);
-  border-radius: 8px 8px 0 0;
-}
-.mob-panel-head {
-  padding: 10px 12px;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--mut);
-  border-bottom: 1px solid var(--line);
-  background: var(--panel2);
-}
-.mob-panel-head-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-.mob-x { all: unset; cursor: pointer; padding: 4px 8px; font-size: 14px; color: var(--mut); }
 .mob-hint { margin: 8px 16px; font-size: 12.5px; color: var(--mut); line-height: 1.4; }
 .mob-stored-project-row {
   all: unset;
@@ -388,6 +354,7 @@ const winisdDifferences = injectWinisdDifferencesModal();
 }
 .mob-stored-project-row:first-of-type { border-top: none; }
 .mob-stored-project-name { font-size: 15px; color: var(--fg); }
+.mob-stored-project-summary { font-size: 13px; color: var(--mut); }
 .mob-stored-project-modified { font-size: 12px; color: var(--mut); }
 
 .mob-empty {

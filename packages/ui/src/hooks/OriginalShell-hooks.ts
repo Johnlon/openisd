@@ -63,7 +63,7 @@ import {isTabId, type TabId} from '../logic/tabId.js';
 import {createBoxVolume, createChamberFields, createSealedReadouts, createSelectedBox} from './boxFields.js';
 import {createDriveSignal} from './driveSignal.js';
 import {createErrorSwitches} from './errorSwitches.js';
-import type {StoredProjectListing} from '@openisd/persistence';
+import {storedProjectRows, type StoredProjectRow} from './storedProjectRows.js';
 import type {ChartId, EnvDefaults, EnvironmentEngine} from '@openisd/design/engine';
 import {isTraceVisible, setTraceVisible} from '../logic/traceVisibility.js';
 import {useCompareOverlays} from './compareOverlays.js';
@@ -330,9 +330,9 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   // toolbar file input (Open…)
   const fileInput = ref<HTMLInputElement | null>(null);
   const openDialogOpen = ref(false);
-  const storedProjects = ref<StoredProjectListing[]>([]);
+  const storedProjects = ref<StoredProjectRow[]>([]);
   function openClick() {
-    storedProjects.value = projectRepo.listStoredProjects();
+    storedProjects.value = storedProjectRows(projectRepo.listStoredProjects(), presentationState.ui.unitTokens ?? {});
     openDialogOpen.value = true;
   }
   function openFromDisk() {
