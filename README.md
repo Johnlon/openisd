@@ -116,7 +116,7 @@ npm test           # the full test gate
 | [RESEARCH.md](RESEARCH.md)                         | The theory, what WinISD is built on, and WinISD's measured behaviour  |
 | [OPENISD_WINISD_GAPS_AND_BUGS.md](OPENISD_WINISD_GAPS_AND_BUGS.md) | Open differences from WinISD                             |
 | [FEATURES.md](FEATURES.md) · [BACKLOG.md](BACKLOG.md) | Features and planned work                                          |
-| [BUGS.md](BUGS.md)                                 | Known open bugs                                                       |
+| [bugs/](bugs/)                                     | Known open bugs                                                       |
 | [TESTING_STRATEGY.md](TESTING_STRATEGY.md)         | How the app is tested                                                 |
 | [CONTRIBUTING.md](CONTRIBUTING.md)                 | How to contribute                                                     |
 | [DOCUMENTATION.md](DOCUMENTATION.md)               | Index of every other document                                         |
