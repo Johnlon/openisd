@@ -964,9 +964,10 @@ The arithmetic is correct physics: `N` coils of resistance `r` give `r/N` in par
 series, with force factor `bl` and `N·bl` respectively.
 
 **What WinISD gets wrong is the bookkeeping.** The rewritten value keeps its `E` (Entered) mark,
-so the file asserts the user typed a number the app computed. Combined with §12's save bug below
-— the dropdown always writes `VCCon=1` — a user can quadruple their driver twice without warning:
-set series (`Re`×4, file says parallel), reload, set series again (`Re`×16).
+so the file asserts the user typed a number the app computed. Combined with §12's editor bug
+below — editing `numVC` resets the combo to parallel without scaling `Re`/`BL` back — a user can
+quadruple their driver twice without warning: set series (`Re`×4), edit `numVC` (combo back to
+parallel, `Re` still ×4, file says parallel), set series again (`Re`×16).
 
 **OPENISD DEVIATES, on John's ruling 2026-08-28 ("evil", "make it two"):**
 
@@ -988,8 +989,8 @@ unrecoverable — the user cannot get 6.4 back out of 25.6 without knowing what 
 
 A `.wdr`/`.wpr` carries ONE `Re`, and it is always the TERMINAL value — what the amplifier sees.
 OpenISD stores `Re` PER COIL, so the reader must divide by the wiring factor. And the file's
-`VCCon` cannot be trusted, because WinISD's own dropdown always writes `1` whatever was selected
-(§12 below).
+`VCCon` can disagree with the `Re` beside it, because editing `numVC` in WinISD's editor resets the
+combo to parallel without undoing the rescale (§12 below).
 
 **The rule (ledger QO97): trust the file's stated `VCCon` anyway.**
 
@@ -1027,32 +1028,39 @@ the file does not.
 
 Tracked as ledger QO96 (the two-field design) and QO97 (this reader rule).
 
-## 12. VCCon — confirmed save bug (verified 2026-06-26)
+## 12. VCCon — saved and loaded correctly; two editor bugs (probe 2026-10-05)
 
-**VCCon** is the voice coil connection field (parallel vs series). Its WDR encoding is:
+**VCCon** is the voice coil connection field. Its WDR encoding is:
 
 | VCCon value | Meaning                                               |
 | :---------: | ----------------------------------------------------- |
 |      1      | Parallel (default; single-VC drivers always use this) |
 |      2      | Series                                                |
 
-**Save bug:** WinISD does not correctly persist the connection type on save. When you select serial in the UI and save,
-the file is always written with `VCCon=1` (parallel) regardless of UI selection. Verified by creating two files — one
-with serial selected, one with parallel — and observing identical byte output in both.
+Probe `winisd_research/toys/probe_vccon_save_load.py`, runs in
+`winisd_research/runs/vccon-probe-20261005/`, finding "FINDING 2026-10-05: VCCon save/load" in
+`winisd_research/PROBE_FINDINGS.md`:
 
-**Read is correct:** If `VCCon=2` is placed in the file by hand-editing, WinISD opens it and correctly displays serial
-connection. Subsequent saves **preserve** the `VCCon=2` value — the bug only affects setting it via the UI dropdown.
-Once `VCCon=2` is in the file, WinISD keeps it.
+| Case                                         | Combo shown | VCCon saved | Reloads as |
+| -------------------------------------------- | ----------- | :---------: | ---------- |
+| numVC 2, 3 or 4, then Series                 | Series      |      2      | Series     |
+| numVC 1, then Series                         | Series      |    **1**    | Parallel   |
+| Series, then numVC edited to 2               | **Parallel**|      1      | Parallel   |
+| hand-edited `VCCon=2`                        | —           |      2      | Series     |
 
-**ParState:** VCCon has **no ParState position** — confirmed by exhaustive single-param probe methodology (
-drivers/mysamples/README.md). Even with all T/S params present and VCCon=1 in the file, no ParState position changes. VCCon
-is pure WDR metadata, not part of WinISD's 49-position internal state machine.
+- **No save bug and no load bug.** The June 2026 claim "the dropdown always writes `VCCon=1`" came
+  from a file saved in the third row's order: the combo already read Parallel when it was saved.
+- **Editor bug 1 — one coil:** with `numVC=1` the combo shows Series but the file stores 1. Nothing
+  else changes, because the wiring factor is 1.
+- **Editor bug 2 — numVC edit:** editing `numVC` resets the combo to Parallel without undoing the
+  `Re`/`BL` rescale the Series choice made. The file then says parallel beside series-scaled values.
+- **Loading never rescales** `Re` or `BL`; the stored values are kept.
+- **ParState:** slot 46 is `N` in every file, saved or re-saved, whatever the wiring.
 
-**Implication for scraper:** Always write `VCCon=1`. Correct for all single-VC drivers and matches what WinISD writes.
-
-**TODO — OpenISD WDR writer (future):** When OpenISD gains the ability to write WDR files, it must write `VCCon=2`
-when the user has selected series wiring. The save bug is WinISD-specific — OpenISD's own writer should write the
-correct value. See BACKLOG.md.
+OpenISD copies neither editor bug: it stores `Re`/`BL` per coil and derives the terminal values
+from the wiring, so a coil-count edit cannot leave them out of step, and it writes the wiring the
+user chose. OpenISD always marks `VCCon` `E` (John, 2026-10-05). WinISD bug record:
+[BUG_20261005_winisd-vccon-editor-combo](../../bugs/BUG_20261005_winisd-vccon-editor-combo.md).
 
 ## 13. Suggested default units — frequency analysis from datasheets
 
@@ -1265,7 +1273,7 @@ DVC drivers (`numVC=2`) allow voice coil connections to be wired in Series or Pa
 - **Dropdown Parameter Scaling:** Switching the connection dropdown in WinISD's driver editor scales the displayed driver parameters:
   - Switching from **Parallel** to **Series** multiplies $R_e$ by 4 and $BL$ by 2.
   - Switching from **Series** to **Parallel** divides $R_e$ by 4 and $BL$ by 2.
-- **The VCCon Save Bug:** Classic WinISD has a known project writer bug where it always exports `VCCon=1` (Parallel) to the `.wpr` project file, regardless of the user's selected dropdown option. However, the simulation calculations remain correct as long as the parameters loaded into the solver match the active configuration.
+- **VCCon is saved and loaded correctly** (probe 2026-10-05, §12). Two editor bugs can still leave a file whose `VCCon` disagrees with what the user saw; the simulation is unaffected, because it reads the stored `Re`/`BL`.
 
 ## 18. WinISD Auto-Calculation Update Bug (UI update lag)
 
