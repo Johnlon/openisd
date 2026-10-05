@@ -75,15 +75,15 @@ test.describe('Driver Editor — solver wiring', () => {
     await expect(qtsf).toHaveClass(/value-n/);
   });
 
-  test('UI preserves solver state across Parameters and Advanced parameters tab switches', async ({ page }) => {
+  test('UI preserves solver state across Parameters and Advanced tab switches', async ({ page }) => {
     const qtsf = page.locator('.de-fld:has-text("Qts") input');
     await qtsf.fill('');
     await page.locator('.de-fld:has-text("Qes") input').fill('0.400');
     await page.locator('.de-fld:has-text("Qms") input').fill('4.000');
     await expect(qtsf).toHaveValue('0.3636');
 
-    // Switch to Advanced parameters tab and back
-    await page.getByRole('button', { name: 'Advanced parameters', exact: true }).click();
+    // Switch to Advanced tab and back
+    await page.getByRole('button', { name: 'Advanced', exact: true }).click();
     await page.getByRole('button', { name: 'Parameters', exact: true }).click();
 
     // Value and state class must persist

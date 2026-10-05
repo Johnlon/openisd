@@ -131,16 +131,16 @@ const WINISD_UNITS: Array<{ tab: string; label: string; unit: string }> = [
   { tab: 'Parameters', label: 'Pe', unit: 'W' },
   { tab: 'Parameters', label: 'η₀', unit: '%' },
   { tab: 'Parameters', label: 'Znom', unit: 'ohm' },
-  { tab: 'Advanced parameters', label: 'R(t)', unit: 'K/W' },
-  { tab: 'Advanced parameters', label: 'C(t)', unit: 'J/K' },
-  { tab: 'Advanced parameters', label: 'Rme', unit: 'Ns/m' },
-  { tab: 'Advanced parameters', label: 'gamma', unit: 'N/(A·kg)' },
-  { tab: 'Advanced parameters', label: 'Mpow', unit: 'N/√W' },
-  { tab: 'Advanced parameters', label: 'Mcost', unit: 'kg/s' },
-  { tab: 'Advanced parameters', label: 'Gloss', unit: '%' },
+  { tab: 'Advanced', label: 'R(t)', unit: 'K/W' },
+  { tab: 'Advanced', label: 'C(t)', unit: 'J/K' },
+  { tab: 'Advanced', label: 'Rme', unit: 'Ns/m' },
+  { tab: 'Advanced', label: 'gamma', unit: 'N/(A·kg)' },
+  { tab: 'Advanced', label: 'Mpow', unit: 'N/√W' },
+  { tab: 'Advanced', label: 'Mcost', unit: 'kg/s' },
+  { tab: 'Advanced', label: 'Gloss', unit: '%' },
 ];
 
-for (const tab of ['Parameters', 'Advanced parameters']) {
+for (const tab of ['Parameters', 'Advanced']) {
   test(`${tab}: each field carries WinISD's own unit`, async ({ page }) => {
     await openEditorOn(page, tab);
     const want = WINISD_UNITS.filter(u => u.tab === tab);
@@ -164,8 +164,8 @@ for (const tab of ['Parameters', 'Advanced parameters']) {
  */
 const RESISTANCE_FIELDS: Array<{ tab: string; label: string; defaultUnit: string; otherUnit: string }> = [
   { tab: 'Parameters', label: 'Rms', defaultUnit: 'Ns/m', otherUnit: 'kg/s' },
-  { tab: 'Advanced parameters', label: 'Rme', defaultUnit: 'Ns/m', otherUnit: 'kg/s' },
-  { tab: 'Advanced parameters', label: 'Mcost', defaultUnit: 'kg/s', otherUnit: 'Ns/m' },
+  { tab: 'Advanced', label: 'Rme', defaultUnit: 'Ns/m', otherUnit: 'kg/s' },
+  { tab: 'Advanced', label: 'Mcost', defaultUnit: 'kg/s', otherUnit: 'Ns/m' },
 ];
 
 for (const { tab, label, defaultUnit, otherUnit } of RESISTANCE_FIELDS) {

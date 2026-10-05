@@ -31,7 +31,7 @@ function cellOf(field: NumSpecField): Readable<number | null> & Entered & Calcul
 const { selection, myDrivers, logging, driverFileStorage, designFiles, driverDrafts } = useApp();
 
 // Driver editor — a modal. Recreates WinISD's "Driver editor" dialog (docs/winisd_screenshots/edit_driver_pg*.png):
-// 4 tabs — General / Parameters / Advanced parameters / Dimension
+// 4 tabs — General / Parameters / Advanced / Dimension
 //
 // Layered Memory architecture:
 // - Layer 1: Disk/File/Library (WDR, OWDR)
@@ -47,8 +47,8 @@ const { selection, myDrivers, logging, driverFileStorage, designFiles, driverDra
 
 const emit = defineEmits<{ close: [] }>();
 
-type Tab = 'General' | 'Parameters' | 'Advanced parameters' | 'Dimensions';
-const TABS: Tab[] = ['General', 'Parameters', 'Advanced parameters', 'Dimensions'];
+type Tab = 'General' | 'Parameters' | 'Advanced' | 'Dimensions';
+const TABS: Tab[] = ['General', 'Parameters', 'Advanced', 'Dimensions'];
 
 // What subject is open, fixed for the dialog's whole lifetime (selection is not consulted
 // again until this dialog closes).
@@ -824,7 +824,7 @@ useEscToClose(() => identityMsgOpen.value, dismissIdentityMsg);
         </div>
 
         <!-- ============================= Advanced parameters ============================= -->
-        <div v-if="tab === 'Advanced parameters'" class="de-params">
+        <div v-if="tab === 'Advanced'" class="de-params">
           <div class="de-group">
             <div class="de-hdr">Thermal parameters</div>
             <div class="de-cols">

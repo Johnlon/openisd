@@ -89,9 +89,9 @@ test.describe('Driver Editor E/C/N Provenance Class Audit', () => {
   });
 
   test('All input fields on Advanced tab render valid E/C/N provenance classes', async ({ page }) => {
-    await page.getByRole('button', { name: 'Advanced parameters', exact: true }).click();
+    await page.getByRole('button', { name: 'Advanced', exact: true }).click();
 
-    expect(await editorInputs(page).count(), 'Advanced parameters tab must have fields').toBeGreaterThan(5);
+    expect(await editorInputs(page).count(), 'Advanced tab must have fields').toBeGreaterThan(5);
 
     expect(await unclassified(page), 'Advanced parameters inputs missing value-e / value-c / value-n').toEqual([]);
   });

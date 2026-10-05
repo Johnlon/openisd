@@ -75,7 +75,7 @@ async function fields(page: import('@playwright/test').Page, scope: string) {
   }, scope);
 }
 
-for (const tab of ['Parameters', 'Advanced parameters', 'Dimensions']) {
+for (const tab of ['Parameters', 'Advanced', 'Dimensions']) {
   test(`${tab}: no label is clipped or overflowing its box`, async ({ page }) => {
     await openEditor(page, tab);
     const bad = (await fields(page, '.de-body')).filter(f => f.clipped > 1);
@@ -127,7 +127,7 @@ for (const tab of ['Parameters', 'Advanced parameters', 'Dimensions']) {
  * reads as scattered even though every individual field is correct. WinISD's own editor lines
  * its labels, inputs and units up down each column, and this is the assertion that keeps it so.
  */
-for (const tab of ['Parameters', 'Advanced parameters']) {
+for (const tab of ['Parameters', 'Advanced']) {
   test(`${tab}: fields in the same column share one edge`, async ({ page }) => {
     await openEditor(page, tab);
     const bad = await page.evaluate(() => {

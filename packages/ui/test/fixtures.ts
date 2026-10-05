@@ -182,7 +182,7 @@ export async function openAMobileProject(page: Page, owprPath: string = SAMPLE_P
  * may assert it; every other test switches to the tab it intends, whatever tab is showing.
  *
  * Scoped to `.de-modal` and matched by exact accessible name, because "Parameters" is a prefix
- * of "Advanced parameters". Already-active is left alone: clicking a tab that is already on is
+ * of "Advanced". Already-active is left alone: clicking a tab that is already on is
  * a no-op the modal does not need, and it can be intercepted when the picker sits behind.
  */
 export async function editorTab(page: Page, tab: EditorTab): Promise<void> {
@@ -192,7 +192,7 @@ export async function editorTab(page: Page, tab: EditorTab): Promise<void> {
   await expect(button).toHaveClass(/\bon\b/);
 }
 
-export type EditorTab = 'General' | 'Parameters' | 'Advanced parameters' | 'Dimensions';
+export type EditorTab = 'General' | 'Parameters' | 'Advanced' | 'Dimensions';
 
 /** The focused project's main (box) volume, read through the app's own state module, which the
  *  dev server serves — the app ships no debug handle for this. */
