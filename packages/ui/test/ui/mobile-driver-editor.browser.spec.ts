@@ -117,3 +117,31 @@ test('at phone width the Save to My Drivers dialog sits on screen with its boxes
     expect(r.x + r.width).toBeLessThanOrEqual(p.x + p.width);
   }
 });
+
+// Bug (John, live on his phone, 2026-10-05): tapping a field's ⚠ cycled its unit instead of showing
+// why it is flagged, and the value boxes changed width with the unit.
+// bugs/BUG_20261005_driver-editor-dq-tap-cycles-unit-and-fields-resize.md
+test.describe('touch', () => {
+  test.use({ hasTouch: true, isMobile: true });
+
+  test('tapping a field\'s ⚠ shows the reason and leaves the unit alone; the box keeps one width in every unit', async ({ page }) => {
+    await page.setViewportSize({ width: 412, height: 900 });
+    await page.getByText('Edit', { exact: true }).click();
+    const vasField = page.locator('.de-fld[data-field-key="Vas_m3"]');
+    await vasField.locator('input').fill('900');
+    await vasField.locator('input').press('Tab');
+
+    const unit = vasField.locator('.u');
+    const unitBefore = await unit.textContent();
+    await vasField.locator('.de-dq button').tap();
+    await expect(unit).toHaveText(unitBefore!);
+    await expect(vasField.locator('.dq-mark-note')).toContainText('Vas_m3');
+
+    const width = async () => (await vasField.locator('input').boundingBox())!.width;
+    const first = await width();
+    for (let i = 0; i < 4; i++) {
+      await unit.tap();
+      expect(await width()).toBe(first);
+    }
+  });
+});

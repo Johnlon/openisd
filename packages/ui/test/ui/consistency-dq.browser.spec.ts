@@ -66,7 +66,7 @@ test('driver editor: an inconsistent group marks every one of its members, with 
   }
 
   // The tooltip names the group and how far out it is; "inconsistent" alone is not actionable.
-  const note = await editorField(page, 'Fs').locator('.de-dq').getAttribute('title');
+  const note = await editorField(page, 'Fs').locator('.de-dq button').getAttribute('title');
   expect(note).toContain('Fs_hz');
   expect(note).toContain('Mms_kg');
   expect(note).toContain('Cms_m_per_N');
