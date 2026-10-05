@@ -83,6 +83,23 @@ describe('buildPlotData — comparing two or more designs', () => {
   });
 });
 
+// bugs/BUG_20261005_focused-project-trace-ignores-its-checkbox.md
+describe('buildPlotData — a hidden design is not drawn, focused or not', () => {
+  const hidden = (d: Design): Design => ({...d, visible: false});
+
+  it('a hidden focused design leaves only the shown overlay', () => {
+    const out = buildPlotData(engine, 'Zmag', 10, 2000, hidden(design('W5 sealed', '#4fb0ff')), [design('p1', '#ffb454')]).value!;
+    assert.deepEqual(out.series.map(s => s.name), ['|Z|']);
+    assert.equal(out.series[0].color, '#ffb454');
+  });
+
+  it('every design hidden still draws the axes, with no trace', () => {
+    const out = buildPlotData(engine, 'Zmag', 10, 2000, hidden(design('W5 sealed', '#4fb0ff')), [hidden(design('p1', '#ffb454'))]).value!;
+    assert.deepEqual(out.series, []);
+    assert.deepEqual([out.freqAxis.fmin, out.freqAxis.fmax], [10, 2000]);
+  });
+});
+
 describe('buildPlotData — levels below −190 dB are real points, not silence', () => {
   // LP Butterworth n=10 at 50 Hz takes the transfer function well below −190 dB inside the sweep
   // (BUG_20261001_transfer-function-jumps-80db-where-spl-drops-below-190db).

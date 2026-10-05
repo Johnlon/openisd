@@ -13,6 +13,7 @@ import {DPAL, TAB_META} from '@openisd/design/chart';
 import {addProject} from '../../src/logic/appState.js';
 import {presentationState} from '../../src/logic/presentationState.js';
 import {runHook} from './runHook.js';
+import {setTraceVisible} from '../../src/logic/traceVisibility.js';
 
 function createTestProject(): OpenISDProject {
   const engine = createEngine();
@@ -70,6 +71,16 @@ describe('GraphPanel-hooks', () => {
       expect(api.currentDesign.value.color).toBe(DPAL[0]);
       expect(api.currentDesign.value.name).toBe('W5 sealed');
       expect(api.currentDesign.value.driver?.values.Fs_hz).toBe(40);
+    });
+
+    // bugs/BUG_20261005_focused-project-trace-ignores-its-checkbox.md
+    it('currentDesign carries the focused project\'s show-on-graphs flag', () => {
+      const project = createTestProject();
+      addProject(project);
+      const api = runHook(computed(() => project), () => useGraphPanel({chartId: 'SPL'}, createEngine()));
+      expect(api.currentDesign.value.visible).toBe(true);
+      setTraceVisible(project, false);
+      expect(api.currentDesign.value.visible).toBe(false);
     });
 
     it('honours custom primaryColor when provided in props', async () => {

@@ -61,8 +61,8 @@ export interface Design {
   maxCurves: MaxCurvesResult | undefined;
   name?: string;
   color?: string;
-  /** Trace visibility for compare overlays. Absent/true = shown; false = hidden from
-   * the graph. Additive: a design without this field is always drawn. */
+  /** Trace visibility, the current design's or an overlay's. Absent/true = shown; false =
+   * hidden from the graph. A design without this field is always drawn. */
   visible?: boolean;
   project?: { name: string; creator?: string; created?: string; modified?: string; description?: string };
   ground?: string;
