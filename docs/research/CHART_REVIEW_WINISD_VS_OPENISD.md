@@ -103,7 +103,7 @@ Which half each program simulates:
 - **WinISD** builds its circuit from Fs, Vas, Qes, Qms, Sd, Re: Cms from Vas, Mms from Fs and
   Cms, Rms from Qms, the damping from Qes. The **entered** BL sets the push, the impedance's
   motional term and the TF reference (§4).
-- **OpenISD** with "WinISD driver model" on (the default) does the same.
+- **OpenISD** with "Enable WinISD two-BL driver bug" on (the default) does the same.
 
 The closed form in
 [`toys/w5_fresh_model_check.py`](http://localhost:8000/winisd/winisd_research/toys/w5_fresh_model_check.py)

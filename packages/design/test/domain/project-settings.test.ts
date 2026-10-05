@@ -1,7 +1,7 @@
 import {describe, expect, it} from 'vitest';
 import {type Engine, createEngine, DEFAULT_VENTED_DESIGN_LIMITS} from '@openisd/design/engine';
-import {CompatPreset, OpenISDProject, ProjectBuilder, type FrequencyGrid} from '../../domain/index.js';
-import {fixedAppContext, specSection, driverFrom, sealedProject} from '../fixtures/domainBuilders.js';
+import {OpenISDProject, ProjectBuilder, type FrequencyGrid} from '../../domain/index.js';
+import {fixedAppContext, specSection, driverFrom, reproduceWinisdBugs, sealedProject} from '../fixtures/domainBuilders.js';
 
 describe('OpenISDProject settings', () => {
     it('sweep() reads Options → Environment for an unstated environment — the same SPL as entering those values', () => {
@@ -78,16 +78,16 @@ describe('OpenISDProject settings', () => {
       expect(back.circuitModel.value).toBe('winisdGyrator');
     });
 
-    it('"WinISD incl. bugs" keeps voice coil inductance on or off — the driver-model switch picks WinISD\'s inductance model', () => {
+    it('Every WinISD bug ticked keeps voice coil inductance on or off — the driver-model switch picks WinISD\'s inductance model', () => {
       const off = sealedProject();
       off.circuitModel.set('winisd');
-      off.applyCompatPreset(CompatPreset.WINISD_WITH_BUGS);
+      reproduceWinisdBugs(off);
       expect(off.circuitModel.value).toBe('winisd');
 
       const on = sealedProject();
       on.circuitModel.set('gyrator');
       on.winisdDriverModel.set(false);
-      on.applyCompatPreset(CompatPreset.WINISD_WITH_BUGS);
+      reproduceWinisdBugs(on);
       expect(on.circuitModel.value).toBe('gyrator');
       expect(on.winisdDriverModel.value).toBe(true);
     });

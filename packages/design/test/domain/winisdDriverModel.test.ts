@@ -1,5 +1,5 @@
 /**
- * "Use WinISD driver calculations" (`winisdDriverModel`) on a driver whose entered `Mms`, `BL`
+ * "Enable WinISD two-BL driver bug" (`winisdDriverModel`) on a driver whose entered `Mms`, `BL`
  * and `Rms` disagree with its own `Fs`, `Cms`, `Qes` and `Qms`.
  *
  * WinISD 0.7.0.950, probed under wine 2026-09-26 (`winisd_research/PROBE_FINDINGS.md`), keeps all
@@ -9,8 +9,9 @@
  * imply, and with it clear it must sweep as its entered values say.
  */
 import {describe, expect, it} from 'vitest';
-import {type Engine, CompatPreset, createEngine, type FrequencyGrid, OpenISDProject, ProjectBuilder} from '../../domain/index.js';
+import {type Engine, createEngine, type FrequencyGrid, OpenISDProject, ProjectBuilder} from '../../domain/index.js';
 import {driverFromSpec} from '../fixtures/recordBuilders.js';
+import {reproduceWinisdBugs} from '../fixtures/domainBuilders.js';
 
 describe('winisdDriverModel — the whole WinISD parameter set, not Mms alone', () => {
   // The probe driver. Fs/Cms imply Mms = 0.04346 kg, not the 0.060 entered; Fs/Qms/Mms imply
@@ -27,7 +28,7 @@ describe('winisdDriverModel — the whole WinISD parameter set, not Mms alone', 
   const projectOn = (engine: Engine, spec: Record<string, number>): OpenISDProject => {
     const project = new ProjectBuilder(driverFromSpec(engine, spec), engine)
       .sealed().volume_m3(0.021).build();
-    project.applyCompatPreset(CompatPreset.WINISD_WITH_BUGS);
+    reproduceWinisdBugs(project);
     project.powerDrive_W.set(1);
     return project;
   };
@@ -117,7 +118,7 @@ describe('winisdDriverModel — the whole WinISD parameter set, not Mms alone', 
     expect(a.spl.some((db, i) => Math.abs(db - b.spl[i]) > 0.01)).toBe(true);
   });
 
-  it('defaults off — a new project is WinISD-ish: WinISD\'s two-BL bug fixed (John, 2026-10-04)', () => {
+  it('defaults off — a new project has WinISD\'s two-BL bug fixed (John, 2026-10-04)', () => {
     const engine = createEngine();
     expect(new ProjectBuilder(driverFromSpec(engine, SHARED), engine).sealed().volume_m3(0.021).build().winisdDriverModel.value).toBe(false);
   });
@@ -146,7 +147,7 @@ describe('winisdDriverModel — the whole WinISD parameter set, not Mms alone', 
     const w5 = (engine: Engine): OpenISDProject => {
       const project = new ProjectBuilder(driverFromSpec(engine, W5), engine)
         .sealed().volume_m3(0.00448).build();
-      project.applyCompatPreset(CompatPreset.WINISD_WITH_BUGS);
+      reproduceWinisdBugs(project);
       project.powerDrive_W.set(1);
       project.Rs_ohm.set(0.1);
       project.rgAtDriverSide.set(false);

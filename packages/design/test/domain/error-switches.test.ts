@@ -8,7 +8,8 @@ import {dirname, join} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {describe, expect, it} from 'vitest';
 import {createEngine} from '../../engine/index.js';
-import {CompatPreset, OpenISDProject} from '../../domain/index.js';
+import {OpenISDProject} from '../../domain/index.js';
+import {reproduceWinisdBugs} from '../fixtures/domainBuilders.js';
 import {WinIsdProjectConverter} from '../../domain/winIsdProjectConverter.js';
 import {WinisdDeviation, WinisdFilterDeviation} from '../../fields/index.js';
 import type {Filter} from '../../engine/index.js';
@@ -72,7 +73,7 @@ describe('WinISD deviation cues', () => {
     }
     expect(WinisdDeviation.ALL).toEqual([WinisdDeviation.DRIVER_MODEL, WinisdDeviation.VA_MODEL, WinisdDeviation.PR_NPR_RESONANCE]);
     expect(WinisdFilterDeviation.ALL).toEqual([WinisdFilterDeviation.ALLPASS_ORDER, WinisdFilterDeviation.LINKWITZ_RILEY_ORDER, WinisdFilterDeviation.BESSEL_HIGHPASS]);
-    expect(WinisdFilterDeviation.BESSEL_HIGHPASS.remedy).toMatch(/"WinISD Bessel high-pass"/);
+    expect(WinisdFilterDeviation.BESSEL_HIGHPASS.remedy).toMatch(/"Enable WinISD Bessel high-pass bug"/);
     expect(WinisdFilterDeviation.ALLPASS_ORDER.remedy).toMatch(/no switch/);
   });
 
@@ -84,7 +85,7 @@ describe('WinISD deviation cues', () => {
     expect(cue.inEffectFor(p.errorSwitches, {...ALLPASS_4, order: 3})).toBe(true);
     expect(cue.inEffectFor(p.errorSwitches, {...ALLPASS_4, order: 2})).toBe(false);
     expect(cue.inEffectFor(p.errorSwitches, {...ALLPASS_4, enabled: false})).toBe(false);
-    p.applyCompatPreset(CompatPreset.WINISD_WITH_BUGS);
+    reproduceWinisdBugs(p);
     expect(cue.inEffectFor(p.errorSwitches, ALLPASS_4)).toBe(true);
   });
 

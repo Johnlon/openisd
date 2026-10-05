@@ -1295,22 +1295,48 @@ export class ToggleField extends Field {
     label: "SPL graph is Xmax limited",
     description: "Xmax Limited SPL\nClamps the SPL curve wherever cone excursion would exceed Xmax.",
   });
-  static readonly ADV_WINISDABCINTRAPORTVELOCITY = new ToggleField({
-    value: "adv_WinisdAbcIntraPortVelocity",
-    label: "WinISD ABC intra-port velocity",
-    description: "WinISD ABC intra-port velocity: affects the ABC box's Intra port velocity chart only.\nTicked (WinISD, the default): the intra-port velocity leaves out the leak term Zf·jωMai/Ricl.\nUnticked: the exact port-mass current. Differs by up to 1.35 dB and 4.6° near 110 Hz, under 0.1 dB elsewhere (W5-1138SMF, abc-w5-1).\nOnly on an ABC box.",
+  // ── WinISD Compatibility: bugs ("Enable WinISD <name> bug"; ticked brings the WinISD bug back) ──
+  static readonly ADV_WINISDDRIVERMODEL = new ToggleField({
+    value: "adv_WinisdDriverModel",
+    label: "Enable WinISD two-BL driver bug",
+    description: "Enable WinISD two-BL driver bug: affects every chart, and only when the entered driver values disagree with Fs, Vas, Qes and Qms.\nTicked (as WinISD): the simulation uses two BLs. The damping comes from the driver WinISD acts on: Cms from Vas, then Mms, Rms and BL from Fs, Qms and Qes. The entered BL sets the loudness and, with voice coil inductance on, the inductance roll-off. We judge the two-BL mix a WinISD bug.\nUnticked (the default, bug fixed): the simulation uses the entered datasheet values, one BL throughout.",
   });
-
+  static readonly ADV_WINISDVAMODEL = new ToggleField({
+    value: "adv_WinisdVaModel",
+    label: "Enable WinISD VA model bug",
+    description: "Enable WinISD VA model bug: affects the Amplifier apparent load power (VA) chart only.\nTicked (as WinISD): VA = P·Re/|Z + Rg|. It uses Re where the amplifier sees Re + Rg, so it reads low by Re/(Re + Rg). With 'Rg is at driver side' on, Z already includes Rg and WinISD adds it again.\nUnticked (the default, bug fixed): VA = P·(Re + Rg)/|Z seen by the amplifier|, Rg counted once.\nBoth give the same result when Rg is 0. P: input power. Z: the impedance chart. Rg: the series resistance.",
+  });
   static readonly ADV_WINISDPRNPRRESONANCE = new ToggleField({
     value: "adv_WinisdPrNprResonance",
-    label: "PR Npr resonance",
-    description: "PR Npr resonance: affects the passive radiator box with more than one radiator (Npr > 1) in the WinISD lossy model; no effect at Npr = 1.\nTicked (as WinISD): the box's leak and absorption are taken at WinISD's frequency 1/√(Npr·Map·(Cab ∥ Npr·Cap)). A WinISD error: the radiator mass is multiplied by Npr where the tuning divides by it, so that frequency is Npr times too low (Npr 2, W5 in 10 L, radiator Fs 30 Hz and Vas 4.8 L: WinISD 21 Hz, tuning 42 Hz; impedance up to 1 Ω and transfer function up to 2 dB off).\nUnticked: the same losses taken at the physical tuning 1/√((Map/Npr)·(Cab ∥ Npr·Cap)).",
+    label: "Enable WinISD PR Npr resonance bug",
+    description: "Enable WinISD PR Npr resonance bug: affects the passive radiator box with more than one radiator (Npr > 1) in the WinISD lossy model; no effect at Npr = 1.\nTicked (as WinISD): the box's leak and absorption are taken at WinISD's frequency 1/√(Npr·Map·(Cab ∥ Npr·Cap)). The radiator mass is multiplied by Npr where the tuning divides by it, so that frequency is Npr times too low (Npr 2, W5 in 10 L, radiator Fs 30 Hz and Vas 4.8 L: WinISD 21 Hz, tuning 42 Hz; impedance up to 1 Ω and transfer function up to 2 dB off).\nUnticked (the default, bug fixed): the same losses taken at the physical tuning 1/√((Map/Npr)·(Cab ∥ Npr·Cap)).",
   });
-
   static readonly ADV_WINISDBESSELHIGHPASS = new ToggleField({
     value: "adv_WinisdBesselHighpass",
-    label: "WinISD Bessel high-pass",
-    description: "WinISD Bessel high-pass: affects Bessel high-pass filters in the EQ/Filter chain only; Butterworth, Linkwitz-Riley, SOS and every low-pass are unchanged, and so is a first-order Bessel.\nTicked (as WinISD): the high-pass keeps the low-pass's own denominator with the numerator swapped to (k·s)^n. A WinISD error: that is not the mirror of the Bessel low-pass (order 4, fc 25 Hz: up to 6 % off in complex response).\nUnticked: the mirror of the low-pass, s → 1/s.",
+    label: "Enable WinISD Bessel high-pass bug",
+    description: "Enable WinISD Bessel high-pass bug: affects Bessel high-pass filters in the EQ/Filter chain only; Butterworth, Linkwitz-Riley, SOS and every low-pass are unchanged, and so is a first-order Bessel.\nTicked (as WinISD): the high-pass keeps the low-pass's own denominator with the numerator swapped to (k·s)^n. That is not the mirror of the Bessel low-pass (order 4, fc 25 Hz: up to 6 % off in complex response).\nUnticked (the default, bug fixed): the mirror of the low-pass, s → 1/s.",
+  });
+
+  // ── WinISD Compatibility: options ("Enable optional <name>"; ticked is WinISD's way) ──────
+  static readonly ADV_WINISDWRAPPHASE = new ToggleField({
+    value: "adv_WinisdWrapPhase",
+    label: "Enable optional phase wrapping",
+    description: "Enable optional phase wrapping: affects every phase chart.\nTicked (the default, as WinISD): phase curves wrap at ±180°.\nUnticked: phase curves stay continuous and unwrapped.",
+  });
+  static readonly ADV_WINISDDRIVERCOUNTMODEL = new ToggleField({
+    value: "adv_WinisdDriverCountModel",
+    label: "Enable optional per-driver boxes",
+    description: "Enable optional per-driver boxes: affects designs with more than one driver.\nTicked (the default, as WinISD): N drivers are N copies of one driver, each in Vb/N with 1/N of the port, each fed P/N. Impedance is one driver's; SPL is one driver's + 10·log10(N); maximum power is N times one driver's.\nUnticked: the N voice coils are wired, in parallel or series, into one load the amplifier sees.",
+  });
+  static readonly ADV_WINISDFLATMODEL = new ToggleField({
+    value: "adv_WinisdFlatModel",
+    label: "Enable optional uncapped flat response",
+    description: "Enable optional uncapped flat response: affects 'Force flat response' only.\nTicked (the default, as WinISD): every frequency is set to the transfer function's 0 dB, cut as well as boosted, uncapped; excursion shows what that costs.\nUnticked: boost only, up to the passband level, capped at 20 dB.",
+  });
+  static readonly ADV_WINISDABCINTRAPORTVELOCITY = new ToggleField({
+    value: "adv_WinisdAbcIntraPortVelocity",
+    label: "Enable optional simplified ABC intra-port velocity",
+    description: "Enable optional simplified ABC intra-port velocity: affects the ABC box's Intra port velocity chart only.\nTicked (the default, as WinISD): the intra-port velocity leaves out the leak term Zf·jωMai/Ricl.\nUnticked: the exact port-mass current. Differs by up to 1.35 dB and 4.6° near 110 Hz, under 0.1 dB elsewhere (W5-1138SMF, abc-w5-1).\nOnly on an ABC box.",
   });
 
   static readonly ALL: readonly ToggleField[] =

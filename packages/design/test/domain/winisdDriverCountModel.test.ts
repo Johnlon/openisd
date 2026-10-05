@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import {createEngine, type FrequencyGrid, OpenISDProject, ProjectBuilder, CompatPreset} from '../../domain/index.js';
+import {createEngine, type FrequencyGrid, OpenISDProject, ProjectBuilder} from '../../domain/index.js';
 import {driverFromSpec} from '../fixtures/recordBuilders.js';
 
 const W5 = {
@@ -33,10 +33,10 @@ describe('winisdDriverCountModel', () => {
     expect(p.sweep(at(20000)).values!.zmag[0] / parallel).toBeCloseTo(4, 2);
   });
 
-  it('the WinISD-ish preset turns it on', () => {
+  it('"Reset to WinISD" turns it on', () => {
     const p = w5();
     p.winisdDriverCountModel.set(false);
-    p.applyCompatPreset(CompatPreset.WINISD_ISH);
+    p.resetToWinisd();
     expect(p.winisdDriverCountModel.value).toBe(true);
   });
 

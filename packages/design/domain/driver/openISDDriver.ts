@@ -98,10 +98,10 @@ export abstract class OpenISDDriver extends OpenISDDevice {
     /** A driver's record is never absent, so this stays non-null for everything below. */
     protected readonly record: SimpleField<DriverDeviceJson>;
 
-    /** The air THIS driver falls back to when it states no `c`/`roo` of its own — an embedded
-     *  driver's is the project's own live environment (`OpenISDDriverEmbedded.wrap()`); a
-     *  standalone driver's defaults to the reference condition. `resolve()` reads it fresh on
-     *  every call, so a project's environment changing is picked up the next time it runs. */
+    /** The air every calculation of THIS driver uses — its own `c`/`roo` never feed one (John,
+     *  2026-10-05). An embedded driver's is the project's live environment
+     *  (`OpenISDDriverEmbedded.wrap()`); a standalone driver's is the app's environment defaults.
+     *  `resolve()` reads it fresh on every call. */
     protected readonly airProvider: () => AirEnvironment;
 
     /** The one calculation surface. INJECTED, exactly as `OpenISDProject`'s is — a driver reports
@@ -402,14 +402,9 @@ export class OpenISDDriverStandalone extends OpenISDDriver {
         return this.#autoCalculate ? super.resolve() : this.issues();
     }
 
-    /** `airProvider` defaults to the reference environment — every existing caller
-     *  (`conformingRecordToDriver`, tests, `winIsdDriverConverter.ts`) passes none. A caller
-     *  holding an app-level environment (the UI, constructing a My Drivers row) passes its own. */
-    static wrap(
-        json: DriverDeviceJson,
-        engine: Engine,
-        airProvider: () => AirEnvironment = () => ({}),
-    ): OpenISDDriverStandalone {
+    /** A driver in no project uses the project's delegate: the app's environment defaults, the
+     *  air a new project would get (John, 2026-10-05). */
+    static wrap(json: DriverDeviceJson, engine: Engine): OpenISDDriverStandalone {
         let current = json;
         const raw: SimpleField<DriverDeviceJson> = {
             get value() { return current; },
@@ -425,7 +420,7 @@ export class OpenISDDriverStandalone extends OpenISDDriver {
         // eslint-disable-next-line prefer-const
         let driver!: OpenISDDriverStandalone;
         const record = resolvingField(raw, () => driver.resolve());
-        driver = new OpenISDDriverStandalone(record, engine, airProvider);
+        driver = new OpenISDDriverStandalone(record, engine, () => engine.environment.defaults());
         // The one-shot cache-on-load (S7-d): a standalone driver is a genuine single long-lived
         // instance, so — unlike an embedded one, rebuilt fresh on every access — resolving once
         // here is exactly the "'C' is a cache, recomputed on load" contract, not a write-on-read

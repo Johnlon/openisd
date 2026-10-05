@@ -1,15 +1,15 @@
 <script setup lang="ts">
-// The group the error switches sit in, in both shells: a heading and a tooltip saying what the
-// group is. Which controls belong in it is decided in the design package (`OpenISDProject
-// .errorSwitches`), not here.
-const GROUP_TITLE = 'WinISD errors: each switch makes OpenISD reproduce a known WinISD calculation error. '
-  + 'Off, OpenISD does the correct calculation. On, WinISD\'s own result comes back. '
-  + 'The yellow look marks them.';
+// The group the WinISD bug switches sit in, in both shells: a heading and a tooltip saying what the
+// group is (`CompatSwitchGroup.BUGS`). Which controls belong in it is decided in the design package
+// (`CompatSwitch.BUGS`, `OpenISDProject.errorSwitches`), not here.
+import {CompatSwitchGroup} from '@openisd/design/fields';
+
+const group = CompatSwitchGroup.BUGS;
 </script>
 
 <template>
-  <div class="error-switch-group" :title="GROUP_TITLE">
-    <div class="error-switch-group-head">WinISD errors</div>
+  <div class="error-switch-group" :title="group.tooltip">
+    <div class="error-switch-group-head">{{ group.heading }}</div>
     <slot />
   </div>
 </template>

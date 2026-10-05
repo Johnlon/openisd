@@ -52,7 +52,7 @@ Three kinds of WinISD difference, handled differently:
   high-pass. The switch is off by default, with no exception, editable only where it applies, and
   looks different from ordinary switches even when off. While it is off, a ≠W Difference cue by
   the affected control (or chart) says what WinISD does. The error switches sit in one group
-  headed "WinISD errors", and each is a visible, listed WinISD issue: the switches are how OpenISD
+  headed "WinISD bugs", and each is a visible, listed WinISD issue: the switches are how OpenISD
   tells users what is wrong in WinISD, and they build trust. Record each as a
   WinISD bug (a `bugs/BUG_*_winisd-*.md` file, a row in the "fixed by default" section of
   `docs/research/ACCURACY_IMPROVEMENTS.md`, and `docs/research/WINISD_PARITY.md`).
@@ -76,20 +76,19 @@ Three kinds of WinISD difference, handled differently:
   The native control stays as WinISD has it. (Splitting the native control's "on" state into a
   drop-down, "off / on – WinISD / on – Conventional", is also permitted, but separate controls
   are the pattern in use.)
-- Three presets in the WinISD Compatibility panel replace "Reset to WinISD" (John, 2026-10-04:
-  "I want folk to be able to reproduce WinISD views, but I don't want to encourage their use"):
-  - **Recommended (debugged)**: OpenISD's best model for every choice, every error switch off.
-  - **WinISD-ish**: every convention on WinISD's side, every error switch off. A new project, and
-    a file that does not say, is WinISD-ish.
-  - **WinISD incl. bugs**: every convention on WinISD's side and every error switch ticked: exact
-    WinISD reproduction.
-  The panel shows which preset the settings match, or "Custom". The presets are `CompatPreset`
-  in `packages/design`; each must assign every switch, so a new switch does not compile until it
-  does. A preset changes only WinISD-vs-conventional choices and error switches: never whether a
-  native control is on or off, and never project data. Ignored-input bugs have no switch and no
-  preset copies them.
+- Switch titles name the kind (John, 2026-10-05): a switch that brings a WinISD bug back reads
+  "Enable WinISD <name> bug" (e.g. "Enable WinISD VA model bug"); a plain WinISD-vs-OpenISD choice
+  reads "Enable optional <name>" (e.g. "Enable optional phase wrapping"). The groups are headed
+  "WinISD bugs" and "WinISD options". Titles and tooltips live in `packages/design`
+  (`ToggleField`, listed by `CompatSwitch`); each tooltip says in plain words what ticked and
+  unticked do.
+- One "Reset to WinISD" button in the WinISD Compatibility panel (John, 2026-10-05; it replaced
+  the three presets of 2026-10-04): it ticks every WinISD option (WinISD's way) and unticks every
+  WinISD bug (bug fixed). It never ticks a bug, never changes a native WinISD control on or off,
+  never changes project data. A new project, and a file that does not say, has the same values.
+  Ignored-input bugs have no switch.
 
-(John, 2026-09-26; presets 2026-10-04.)
+(John, 2026-09-26; Reset to WinISD and switch titles 2026-10-05.)
 
 ## Communication — plain bug statements
 

@@ -1,9 +1,9 @@
 # Accuracy improvements over WinISD — candidates for switches
 
-OpenISD copies WinISD's conventions by default and fixes its bugs ("WinISD-ish"); the WinISD
-Compatibility panel's presets switch everything at once: "Recommended (debugged)" (OpenISD's best
-model for every choice, every bug fixed), "WinISD-ish" (the default) and "WinISD incl. bugs" (exact
-WinISD reproduction, every error switch ticked). This log lists places where WinISD is less accurate than it
+OpenISD copies WinISD's options by default and fixes its bugs. In the WinISD Compatibility panel a
+bug switch reads "Enable WinISD <name> bug" (group "WinISD bugs") and an option reads "Enable
+optional <name>" (group "WinISD options"); "Reset to WinISD" ticks every option and unticks every
+bug (the default). This log lists places where WinISD is less accurate than it
 could be, with the size of the difference a user would see. Each is a candidate for its own
 WinISD-vs-conventional switch in the WinISD Compatibility panel. Items whose effect cannot be seen
 on a chart are listed at the end and not planned.
@@ -15,10 +15,10 @@ calculated size of the difference for a realistic case. Claims about WinISD were
 
 | # | WinISD does                                                                 | Better                                              | Visible effect (example)                                                                                                   | Switch | Source |
 |---|-----------------------------------------------------------------------------|-----------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------|--------|--------|
-| 1 | VA chart: P·Re·\|Hf\|²/\|Z + Rg\| — Re where the source power is into Re + Rg | P·(Re + Rg)·\|Hf\|²/\|Z + Rg\|                      | VA low by Re/(Re + Rg): Re 3.4 Ω, Rg 0.1 Ω → −2.9 % (−0.13 dB); Rg 1 Ω → −23 % (−1.1 dB)                                      | exists ("WinISD VA model") | [bug](../../bugs/archive/BUG_20260927_winisd-va-uses-re-not-re-plus-rg.md); by hand: flat-band VA 0.97 at Rg 0.1 Ω, 0.50 at Rg 3.4 Ω |
-| 2 | VA with "Rg is at driver side" on: Rg counted twice (Z already holds Rg)     | count Rg once                                       | Rg 1 Ω, Re 3.4 Ω at 20 kHz, 1 W: WinISD 0.63 VA; Rg once and Re + Rg in the numerator (#1) → 1.0 VA (−37 %)                  | exists ("WinISD VA model"): off counts Rg once, at the driver side or at the amplifier (`winisdVaModel.test.ts`) | same bug; by hand: driver side ticked, VA 0.336 = 3.4/(6.8+3.4) |
+| 1 | VA chart: P·Re·\|Hf\|²/\|Z + Rg\| — Re where the source power is into Re + Rg | P·(Re + Rg)·\|Hf\|²/\|Z + Rg\|                      | VA low by Re/(Re + Rg): Re 3.4 Ω, Rg 0.1 Ω → −2.9 % (−0.13 dB); Rg 1 Ω → −23 % (−1.1 dB)                                      | exists ("Enable WinISD VA model bug") | [bug](../../bugs/archive/BUG_20260927_winisd-va-uses-re-not-re-plus-rg.md); by hand: flat-band VA 0.97 at Rg 0.1 Ω, 0.50 at Rg 3.4 Ω |
+| 2 | VA with "Rg is at driver side" on: Rg counted twice (Z already holds Rg)     | count Rg once                                       | Rg 1 Ω, Re 3.4 Ω at 20 kHz, 1 W: WinISD 0.63 VA; Rg once and Re + Rg in the numerator (#1) → 1.0 VA (−37 %)                  | exists ("Enable WinISD VA model bug"): off counts Rg once, at the driver side or at the amplifier (`winisdVaModel.test.ts`) | same bug; by hand: driver side ticked, VA 0.336 = 3.4/(6.8+3.4) |
 | 7 | New vent end correction 0.6 (OpenISD's default 0.732)                        | one agreed default, stated                          | Vent length readout: Δ = 0.132·D; 5 cm port, 20 L, 40 Hz → 6.6 mm on 154 mm (4 %). Charts unaffected (they use Fb)            | none   | handover "Still open for vented" |
-| 8 | Mixes an entered BL (drive push, CLe inductance corner) with a Qes-derived BL (acoustic damping) instead of one consistent value | use one consistent BL throughout | W5-1138SMF (entered 7.17, Qes-implied 7.384): SPL passband +0.256 dB, impedance peak ~1.23 Ω (8 %) high, TF reference off by 0.507 dB, inductance-on rolloff corner off by 0.56 dB at 20 kHz — all the same (7.384/7.17)² factor | yellow error switch "WinISD driver model", off by default since 2026-10-04 (it also drops the Mms/Rms substitutions) | [bug](../../bugs/archive/BUG_20260926_winisd-spl-level-uses-entered-bl.md), [bug](../../bugs/archive/BUG_20260926_winisd-impedance-uses-entered-bl.md), [bug](../../bugs/archive/BUG_20260926_winisd-tf-reference.md), [bug](../../bugs/archive/BUG_20260926_gyrator-rolloff-shallower-than-winisd.md) |
+| 8 | Mixes an entered BL (drive push, CLe inductance corner) with a Qes-derived BL (acoustic damping) instead of one consistent value | use one consistent BL throughout | W5-1138SMF (entered 7.17, Qes-implied 7.384): SPL passband +0.256 dB, impedance peak ~1.23 Ω (8 %) high, TF reference off by 0.507 dB, inductance-on rolloff corner off by 0.56 dB at 20 kHz — all the same (7.384/7.17)² factor | yellow error switch "Enable WinISD two-BL driver bug", off by default since 2026-10-04 (it also drops the Mms/Rms substitutions) | [bug](../../bugs/archive/BUG_20260926_winisd-spl-level-uses-entered-bl.md), [bug](../../bugs/archive/BUG_20260926_winisd-impedance-uses-entered-bl.md), [bug](../../bugs/archive/BUG_20260926_winisd-tf-reference.md), [bug](../../bugs/archive/BUG_20260926_gyrator-rolloff-shallower-than-winisd.md) |
 | 11 | Filter order capped at 10: its filter calculation overflows (floating point) above that | orders up to 20, calculated without overflow | An order 12–20 low/high-pass (Butterworth, Bessel) cannot be entered in WinISD; OpenISD draws it, −3.01 dB at fc for Butterworth n = 20 | none — fixed by default (an overflow is a crash, not a calculation wart to copy) | [bug](../../bugs/archive/BUG_20260927_winisd-wpr-filter-order-12-stops-load.md) |
 
 ## WinISD bugs fixed by default — broken links, not calculation differences
@@ -37,23 +37,23 @@ ignores an input entirely.
 
 A wrong formula, or a value that contradicts WinISD's own other charts. OpenISD does the correct
 thing by default. A yellow "error switch", editable only where it applies, makes WinISD's
-calculation come back. The error switches sit under "WinISD errors" in the Compatibility panel.
+calculation come back. The bug switches sit under "WinISD bugs" in the Compatibility panel.
 Rows 1 and 2 (VA) and 8 (two BLs) above are error switches too, off by default since 2026-10-04
 (they were on, as WinISD has them, until then).
 
 | WinISD does | OpenISD default | Switch | Bug |
 |---|---|---|---|
-| Passive-radiator box: fixed-loss frequency ωr = 1/√(Npr·Map·(Cab ∥ Npr·Cap)) — the branch mass is multiplied by Npr where the true tuning divides by it, so ωr is Npr times too low (invisible at Npr = 1). Npr 2, W5 in 10 L, radiator Fs 30 Hz/Vas 4.8 L: WinISD ωr → 21.0 Hz, true 42 Hz; impedance up to 1 Ω and TF up to 2 dB off at Npr = 2 (chart review) | ωr = the physical tuning, 1/√((Map/Npr)·(Cab ∥ Npr·Cap)) | "PR Npr resonance", off by default, passive radiator boxes only; no effect at Npr = 1 | [bug](../../bugs/archive/BUG_20260928_pr-added-mass-or-count-not-winisd.md) |
-| Bessel high-pass = (k·s)ⁿ/Σ cm(k·s)ᵐ, not the mirror of its low-pass; order 4, fc 25 Hz: up to 6 % off in complex response. Butterworth, SOS, Linkwitz-Riley, every low-pass and a first-order Bessel are unaffected. seen by hand 2026-10-04 (high-pass −1.25 dB at 50 Hz, low-pass −1.67 dB at 12.5 Hz) | the mirror of the Bessel low-pass, s → 1/s | "WinISD Bessel high-pass", off by default, active only while an enabled Bessel high-pass filter exists | [bug](../../bugs/archive/BUG_20260927_winisd-bessel-highpass-not-mirror-of-lowpass.md) |
+| Passive-radiator box: fixed-loss frequency ωr = 1/√(Npr·Map·(Cab ∥ Npr·Cap)) — the branch mass is multiplied by Npr where the true tuning divides by it, so ωr is Npr times too low (invisible at Npr = 1). Npr 2, W5 in 10 L, radiator Fs 30 Hz/Vas 4.8 L: WinISD ωr → 21.0 Hz, true 42 Hz; impedance up to 1 Ω and TF up to 2 dB off at Npr = 2 (chart review) | ωr = the physical tuning, 1/√((Map/Npr)·(Cab ∥ Npr·Cap)) | "Enable WinISD PR Npr resonance bug", off by default, passive radiator boxes only; no effect at Npr = 1 | [bug](../../bugs/archive/BUG_20260928_pr-added-mass-or-count-not-winisd.md) |
+| Bessel high-pass = (k·s)ⁿ/Σ cm(k·s)ᵐ, not the mirror of its low-pass; order 4, fc 25 Hz: up to 6 % off in complex response. Butterworth, SOS, Linkwitz-Riley, every low-pass and a first-order Bessel are unaffected. seen by hand 2026-10-04 (high-pass −1.25 dB at 50 Hz, low-pass −1.67 dB at 12.5 Hz) | the mirror of the Bessel low-pass, s → 1/s | "Enable WinISD Bessel high-pass bug", off by default, active only while an enabled Bessel high-pass filter exists | [bug](../../bugs/archive/BUG_20260927_winisd-bessel-highpass-not-mirror-of-lowpass.md) |
 
 ## WinISD conventions — copied by default, an ordinary switch gives the exact form
 
 A simplification WinISD may intend. Not yellow: only a straight WinISD bug is (John, 2026-10-04).
-"Recommended (debugged)" unticks it.
+The switch sits under "WinISD options"; "Reset to WinISD" ticks it.
 
 | WinISD does | OpenISD default | Switch | Source |
 |---|---|---|---|
-| ABC box: intra-chamber port velocity chart is V/(jωMai + Zf): it leaves out the leak term Zf·jωMai/Ricl of the current through the port mass. Up to 1.35 dB and 4.6° near 110 Hz, under 0.1 dB elsewhere (W5-1138SMF, abc-w5-1); the two agree when the inter-chamber leak Q is very large (Qiclfr 1e6: 3.3e-6) | WinISD's chart (ticked, the default) | ordinary switch "WinISD ABC intra-port velocity", unticked = exact current V/[jωMai + Zf(1 + jωMai/Ricl)] | winisd_research/PROBE_FINDINGS.md abc velocity self-consistency; [note](../../bugs/archive/BUG_20261003_winisd-abc-intra-port-velocity-drops-ricl.md) |
+| ABC box: intra-chamber port velocity chart is V/(jωMai + Zf): it leaves out the leak term Zf·jωMai/Ricl of the current through the port mass. Up to 1.35 dB and 4.6° near 110 Hz, under 0.1 dB elsewhere (W5-1138SMF, abc-w5-1); the two agree when the inter-chamber leak Q is very large (Qiclfr 1e6: 3.3e-6) | WinISD's chart (ticked, the default) | ordinary switch "Enable optional simplified ABC intra-port velocity", unticked = exact current V/[jωMai + Zf(1 + jωMai/Ricl)] | winisd_research/PROBE_FINDINGS.md abc velocity self-consistency; [note](../../bugs/archive/BUG_20261003_winisd-abc-intra-port-velocity-drops-ricl.md) |
 
 ## Not an improvement — WinISD matches the textbook
 

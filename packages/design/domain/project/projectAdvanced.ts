@@ -1,4 +1,4 @@
-import {CompatPreset} from './compatPreset.js';
+import {CompatSwitch} from './compatSwitch.js';
 import { focus } from '../cell.js';
 import type { SimpleField } from '../cell.js';
 import type { Filter } from '../../engine/index.js';
@@ -62,7 +62,7 @@ export class ProjectAdvanced {
         return focus(this.#advanced, 'splGraphIsXmaxLimited');
     }
 
-    /** WinISD Advanced / Compatibility "Use WinISD driver calculations" — whether engine sweeps
+    /** WinISD Advanced / Compatibility "Enable WinISD two-BL driver bug" — whether engine sweeps
      *  substitute the driver WinISD's own simulation acts on, `Mms = 1/((2π·Fs)²·Cms)`,
      *  `Rms = 2π·Fs·Mms/Qms` and `BL = √(Re/(2π·Fs·Qes·Cms))`, for entered values that conflict
      *  with them (measured 2026-09-26, docs/research/WINISD_PARITY.md). A WinISD bug (two BLs);
@@ -70,85 +70,85 @@ export class ProjectAdvanced {
     get winisdDriverModel(): SimpleField<boolean> {
         const lens = focus(this.#advanced, 'winisdDriverModel');
         return {
-            get value() { return lens.value ?? CompatPreset.DEFAULT.choices.winisdDriverModel; },
+            get value() { return lens.value ?? CompatSwitch.DRIVER_MODEL.winisdValue; },
             set: (on: boolean) => lens.set(on),
         };
     }
 
-    /** WinISD Compatibility "WinISD VA model": the amplifier apparent load power chart as WinISD
+    /** WinISD Compatibility "Enable WinISD VA model bug": the amplifier apparent load power chart as WinISD
      *  computes it, P·Re·|Hf|²/|Z + Rg| (BUG_20260927_winisd-va-uses-re-not-re-plus-rg). Off: the
      *  apparent power the amplifier delivers, P·(Re + Rg)·|Hf|²/|Z_amp|. Off where a project does
      *  not say. */
     get winisdVaModel(): SimpleField<boolean> {
         const lens = focus(this.#advanced, 'winisdVaModel');
         return {
-            get value() { return lens.value ?? CompatPreset.DEFAULT.choices.winisdVaModel; },
+            get value() { return lens.value ?? CompatSwitch.VA_MODEL.winisdValue; },
             set: (on: boolean) => lens.set(on),
         };
     }
 
-    /** WinISD Compatibility "WinISD ABC intra-port velocity": the ABC intra-chamber port velocity
+    /** WinISD Compatibility "Enable optional simplified ABC intra-port velocity": the ABC intra-chamber port velocity
      *  chart as WinISD draws it, V/(jωMai + Zf), which omits the leak term Zf·jωMai/Ricl. Off: the
      *  exact current through the port mass, V/[jωMai + Zf·(1 + jωMai/Ricl)]. On (WinISD) where a
      *  project does not say. */
     get winisdAbcIntraPortVelocity(): SimpleField<boolean> {
         const lens = focus(this.#advanced, 'winisdAbcIntraPortVelocity');
         return {
-            get value() { return lens.value ?? CompatPreset.DEFAULT.choices.winisdAbcIntraPortVelocity; },
+            get value() { return lens.value ?? CompatSwitch.ABC_INTRA_PORT_VELOCITY.winisdValue; },
             set: (on: boolean) => lens.set(on),
         };
     }
 
-    /** WinISD Compatibility "PR Npr resonance": the passive-radiator box's fixed leak and absorption
+    /** WinISD Compatibility "Enable WinISD PR Npr resonance bug": the passive-radiator box's fixed leak and absorption
      *  losses taken at WinISD's ωr = 1/√(Npr·Map·(Cab ∥ Npr·Cap)), Npr times below the tuning. Off:
      *  the physical tuning. Off where a project does not say; no effect at Npr = 1. */
     get winisdPrNprResonance(): SimpleField<boolean> {
         const lens = focus(this.#advanced, 'winisdPrNprResonance');
         return {
-            get value() { return lens.value ?? CompatPreset.DEFAULT.choices.winisdPrNprResonance; },
+            get value() { return lens.value ?? CompatSwitch.PR_NPR_RESONANCE.winisdValue; },
             set: (on: boolean) => lens.set(on),
         };
     }
 
-    /** WinISD Compatibility "WinISD Bessel high-pass": Bessel high-pass filters as WinISD computes
+    /** WinISD Compatibility "Enable WinISD Bessel high-pass bug": Bessel high-pass filters as WinISD computes
      *  them, (k·s)^n over the low-pass's own denominator. Off: the mirror of the low-pass (s → 1/s).
      *  Off where a project does not say. */
     get winisdBesselHighpass(): SimpleField<boolean> {
         const lens = focus(this.#advanced, 'winisdBesselHighpass');
         return {
-            get value() { return lens.value ?? CompatPreset.DEFAULT.choices.winisdBesselHighpass; },
+            get value() { return lens.value ?? CompatSwitch.BESSEL_HIGHPASS.winisdValue; },
             set: (on: boolean) => lens.set(on),
         };
     }
 
-    /** WinISD Compatibility "WinISD phase wrapping": wraps phase curves to [-180°, +180°] (default).
+    /** WinISD Compatibility "Enable optional phase wrapping": wraps phase curves to [-180°, +180°] (default).
      *  Off: continuous unwrapped phase. On where a project does not say. */
     get winisdWrapPhase(): SimpleField<boolean> {
         const lens = focus(this.#advanced, 'winisdWrapPhase');
         return {
-            get value() { return lens.value ?? CompatPreset.DEFAULT.choices.winisdWrapPhase; },
+            get value() { return lens.value ?? CompatSwitch.WRAP_PHASE.winisdValue; },
             set: (on: boolean) => lens.set(on),
         };
     }
 
-    /** WinISD Compatibility "WinISD driver count": N drivers as WinISD simulates them, each alone
+    /** WinISD Compatibility "Enable optional per-driver boxes": N drivers as WinISD simulates them, each alone
      *  in Vb/N fed P/N (BUG_20260928_driver-count-not-winisd). Off: the N coils wired by `wiring`
      *  into one terminal impedance. On where a project does not say. */
     get winisdDriverCountModel(): SimpleField<boolean> {
         const lens = focus(this.#advanced, 'winisdDriverCountModel');
         return {
-            get value() { return lens.value ?? CompatPreset.DEFAULT.choices.winisdDriverCountModel; },
+            get value() { return lens.value ?? CompatSwitch.DRIVER_COUNT.winisdValue; },
             set: (on: boolean) => lens.set(on),
         };
     }
 
-    /** WinISD Compatibility "WinISD flat response": "Force flat response" as WinISD does it, every
+    /** WinISD Compatibility "Enable optional uncapped flat response": "Force flat response" as WinISD does it, every
      *  point to the transfer function's 0 dB, uncapped (BUG_20260928_force-flat-response-not-winisd).
      *  Off: boost only, up to the passband reference, capped. On where a project does not say. */
     get winisdFlatModel(): SimpleField<boolean> {
         const lens = focus(this.#advanced, 'winisdFlatModel');
         return {
-            get value() { return lens.value ?? CompatPreset.DEFAULT.choices.winisdFlatModel; },
+            get value() { return lens.value ?? CompatSwitch.FLAT_MODEL.winisdValue; },
             set: (on: boolean) => lens.set(on),
         };
     }

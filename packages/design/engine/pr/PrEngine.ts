@@ -130,7 +130,7 @@ export class PrEngineImpl implements PrEngine {
   }
 
   solveSpec(stated: PrSpecValues, air: Air): PrSpecValues {
-    const solved = this.routes.run(this.workingSet(stated, air));
+    const solved = this.routes.run(this.workingSet(stated, air), air);
     return {
       Fs_hz: solved.Fs_hz ?? null, Qms: solved.Qms ?? null, Vas_m3: solved.Vas_m3 ?? null, Sd_m2: solved.Sd_m2 ?? null,
       Mms_kg: solved.Mms_kg ?? null, Cms_m_per_N: solved.Cms_m_per_N ?? null, Rms_kg_per_s: solved.Rms_kg_per_s ?? null,
@@ -143,7 +143,7 @@ export class PrEngineImpl implements PrEngine {
       Mms_kg: precision.Mms_kg, Cms_m_per_N: precision.Cms_m_per_N, Rms_kg_per_s: precision.Rms_kg_per_s,
     };
     return this.consistency.check(
-      this.workingSet(stated, air), working => this.routes.run(working), field => widths[field] ?? 0);
+      this.workingSet(stated, air), working => this.routes.run(working, air), field => widths[field] ?? 0);
   }
 
   /** The stated figures and the project's air as the routes read them. */

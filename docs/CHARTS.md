@@ -65,7 +65,7 @@ frequency: `packages/design/engine/circuit.ts` `solve()`, sampled by `sweep.ts` 
 
 | Element | Formula | Notes |
 |---|---|---|
-| Cas | Cms·Sd² | Cms = Vas/(ρc²·Sd²) under "WinISD driver model" |
+| Cas | Cms·Sd² | Cms = Vas/(ρc²·Sd²) under "Enable WinISD two-BL driver bug" |
 | Mas | Mms/Sd² | Mms = 1/((2πFs)²·Cms) under the switch |
 | Ras | Rms/Sd² | Rms = 2πFs·Mms/Qms under the switch |
 | Rae (damping) | BL_d²/(Sd²·(Re+Rg)) | BL_d² = Re/(2πFs·Qes·Cms) under the switch, so Rae = 1/(2πFs·Qes'·Cas), Qes' = Qes·(Re+Rg)/Re |
@@ -100,15 +100,15 @@ control in the WinISD Compatibility panel (Advanced tab) or the Box losses pane.
 
 | Control | WinISD (default) | Conventional | Charts it moves |
 |---|---|---|---|
-| WinISD driver model | Cms from Vas; Mms, Rms from Fs, Qms; damping BL from Qes; **entered** BL for push, impedance, TF reference and CLe | entered Cms, Mms, Rms, BL, one BL throughout | all driver charts |
-| WinISD VA model | VA = P·Re·\|Hf\|²/\|Z + Rg\| | P·(Re + Rg)·\|Hf\|²/\|Z_amp\|, Rg counted once | Amplifier apparent load power |
+| Enable WinISD two-BL driver bug | Cms from Vas; Mms, Rms from Fs, Qms; damping BL from Qes; **entered** BL for push, impedance, TF reference and CLe | entered Cms, Mms, Rms, BL, one BL throughout | all driver charts |
+| Enable WinISD VA model bug | VA = P·Re·\|Hf\|²/\|Z + Rg\| | P·(Re + Rg)·\|Hf\|²/\|Z_amp\|, Rg counted once | Amplifier apparent load power |
 
 Native WinISD controls behave as WinISD has them, with no conventional variant:
 
 | Control | Effect |
 |---|---|
 | Rg is at driver side | on: Rg belongs to each coil and shows in the impedance. Off: one Rg at the amplifier, in the drive but not in the impedance |
-| Simulate voice coil inductance | off: Le is left out of both the circuit and the impedance. On: Le in the circuit and impedance; with "WinISD driver model" on, the acoustic side uses Le·(BL_d/BL)², WinISD's CLe = Sd²·Le/BL² from the entered BL |
+| Simulate voice coil inductance | off: Le is left out of both the circuit and the impedance. On: Le in the circuit and impedance; with "Enable WinISD two-BL driver bug" on, the acoustic side uses Le·(BL_d/BL)², WinISD's CLe = Sd²·Le/BL² from the entered BL |
 | SPL graph is Xmax limited | SPL chart shows the Xmax-clamped curve |
 | Force flat response | inverse gain lifts SPL to the passband, capped at the max boost |
 
@@ -124,7 +124,7 @@ The driver has two BLs when its entered BL disagrees with Fs, Vas, Qes and Re. W
 | TF 0 dB reference | entered | TF magnitude |
 | Inductance CLe | entered | all, with inductance on |
 
-We judge the two-BL mix a WinISD bug; "WinISD driver model" off gives one BL throughout.
+We judge the two-BL mix a WinISD bug; "Enable WinISD two-BL driver bug" off gives one BL throughout.
 Bugs: [spl-level](../bugs/archive/BUG_20260926_winisd-spl-level-uses-entered-bl.md),
 [impedance](../bugs/archive/BUG_20260926_winisd-impedance-uses-entered-bl.md),
 [tf-reference](../bugs/archive/BUG_20260926_winisd-tf-reference.md).
@@ -259,7 +259,7 @@ not implemented in OpenISD.
 - WinISD (`f_46bd30` case 0x14): the chart routine returns Z, and the plot code applies this
   formula. WinISD bug, kept by default: Re where the amplifier's apparent power has Re + Rg, so it
   reads Re/(Re + Rg) low ([bug](../bugs/archive/BUG_20260927_winisd-va-uses-re-not-re-plus-rg.md)).
-  "WinISD VA model" off: P·(Re + Rg)·|Hf|²/|Z_amp|.
+  "Enable WinISD VA model bug" off: P·(Re + Rg)·|Hf|²/|Z_amp|.
 - Evidence: `winisd_research/runs/sweep-w5-sealed-va-rg1` (Rg 1 Ω, driver side off) and
   `sweep-w5-sealed-va-rg1-driverside` (driver side on), all 2087 points each to 3e-16.
 

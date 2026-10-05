@@ -30,7 +30,7 @@ import type {DriverWorkingSet} from '../solvers/driverQuantities.js';
 import {hotRe, terminalBL_Tm, terminalRe_ohm} from '../solvers/driverQuantities.js';
 import type {EbpSuitability, SweepResult, Wiring} from '../types.js';
 import {
-  CMS_FROM_VAS_SD_ROUTE, type ConsistencyCheck, DriverAir, MMS_FROM_FS_CMS_ROUTE,
+  CMS_FROM_VAS_SD_ROUTE, type ConsistencyCheck, MMS_FROM_FS_CMS_ROUTE,
   RMS_FROM_FS_MMS_QMS_ROUTE, RouteGroup, withQuantity,
 } from './routes/index.js';
 import type {DriverRoute} from './routes/index.js';
@@ -98,20 +98,22 @@ export interface DriverEngine {
   /** The one driver call to reach for (T10/T11): every entered T/S value's own handle, read
    *  into a private working set, solved and checked by the consistency group, with every derived
    *  value written back onto its handle via `setCalculated` (or `setNotAvailable`). Entered
-   *  values — including `wiring` — are never overwritten. `air` is the project's own resolved
-   *  `{ rho, c }`; a not-entered `c_m_per_s`/`roo_kg_per_m3` defaults to it and writes back as
-   *  `'C'`. */
+   *  values — including `wiring` — are never overwritten. `air` is the project's resolved
+   *  `{ rho, c }` (or, with no project, the app's environment defaults): every calculation uses
+   *  it, and `c_m_per_s`/`roo_kg_per_m3` are written back as `'C'` showing it, an entered pair
+   *  included — a driver record's own c and roo feed no calculation (John, 2026-10-05). */
   solve(params: DriverSolverParams, air: Air): DriverIssue[];
-  /** The consistency relations over plain values: every quantity derivable from the stated ones,
-   *  returned with the stated ones. A stated value is never overwritten. The handle solve above
-   *  runs this same group. */
-  solveValues(stated: DriverWorkingSet): DriverWorkingSet;
-  /** `values` as WinISD's own circuit takes them (the "Use WinISD driver calculations" switch):
+  /** The consistency relations over plain values, in `air`: every quantity derivable from the
+   *  stated ones, returned with the stated ones. A stated value is never overwritten, except a
+   *  stated `c_m_per_s`/`roo_kg_per_m3`, which come back as `air`'s. The handle solve above runs
+   *  this same group. */
+  solveValues(stated: DriverWorkingSet, air: Air): DriverWorkingSet;
+  /** `values` as WinISD's own circuit takes them (the "Enable WinISD two-BL driver bug" switch):
    *  Cms from Vas and Sd, Mms from Fs and that Cms, Rms from Fs, that Mms and Qms, and the
    *  terminal BL from Re, Fs, Qes and that Cms. Each is replaced only where its own inputs are
    *  positive and the result is positive; otherwise the entered value stands. `air` is the
-   *  project's; with none, Cms stays as entered and so do the three that follow it. */
-  winisdCircuitValues(values: DriverValues, air: Air | null): DriverValues;
+   *  project's. */
+  winisdCircuitValues(values: DriverValues, air: Air): DriverValues;
   /** Efficiency bandwidth product — Fs/Qes, the sealed-vs-vented indicator. */
   ebp(Fs_hz: number, Qes: number): number;
   /** The enclosure type an EBP points at: below 50 sealed, above 100 vented, else either. */
@@ -145,7 +147,6 @@ export interface DriverEngine {
 export class DriverEngineImpl implements DriverEngine {
   constructor(
     private readonly routes: RouteGroup,
-    private readonly air: DriverAir,
     private readonly consistency: ConsistencyCheck,
   ) {}
 
@@ -157,14 +158,14 @@ export class DriverEngineImpl implements DriverEngine {
   readonly terminalBL_Tm = terminalBL_Tm;
   readonly isPhysicallyPlausible = isPhysicallyPlausible;
 
-  winisdCircuitValues(values: DriverValues, air: Air | null): DriverValues {
+  winisdCircuitValues(values: DriverValues, air: Air): DriverValues {
     const positive = (x: number | null | undefined): x is number => typeof x === 'number' && Number.isFinite(x) && x > 0;
     const {Fs_hz, Qms, Qes, Vas_m3, Sd_m2} = values;
     const routeValue = (route: DriverRoute, working: DriverWorkingSet): number | null => {
-      const v = route.value(working, this.air);
+      const v = route.value(working, air);
       return positive(v) ? v : null;
     };
-    const Cms = air !== null && positive(air.c) && positive(air.rho) && positive(Vas_m3) && positive(Sd_m2)
+    const Cms = positive(air.c) && positive(air.rho) && positive(Vas_m3) && positive(Sd_m2)
       ? routeValue(CMS_FROM_VAS_SD_ROUTE, {Vas_m3, Sd_m2, c_m_per_s: air.c, roo_kg_per_m3: air.rho}) : null;
     const Cms_m_per_N = Cms ?? values.Cms_m_per_N;
     const Mms = positive(Fs_hz) && positive(Cms_m_per_N)
@@ -185,9 +186,9 @@ export class DriverEngineImpl implements DriverEngine {
    *  set from the handles, run `solveValues`/`checkConsistency` on it unchanged, write
    *  every derived (non-entered) value back via `setCalculated` (or `setNotAvailable` when it
    *  cannot solve), and return the issues. `wiring` is a discrete entered input, never derived, so
-   *  it is read but never written back. `air` is the project's own resolved `{ rho, c }` — a
-   *  not-entered `c_m_per_s`/`roo_kg_per_m3` defaults to it (matching `VentEngine.solve`/`PrEngine.solve`'s own
-   *  `air` parameter), and the default then writes back as `'C'`. */
+   *  it is read but never written back. `air` is the air every calculation uses (matching
+   *  `VentEngine.solve`/`PrEngine.solve`'s own `air` parameter); `c_m_per_s`/`roo_kg_per_m3` write
+   *  back as `'C'` showing it, an entered pair included. */
   solve(params: DriverSolverParams, air: Air): DriverIssue[] {
     const working: DriverWorkingSet = {
       Fs_hz: enteredDriverValue(params.Fs_hz), Re_ohm: enteredDriverValue(params.Re_ohm),
@@ -206,16 +207,15 @@ export class DriverEngineImpl implements DriverEngine {
       gamma_m_per_s2_A: enteredDriverValue(params.gamma_m_per_s2_A), Gloss: enteredDriverValue(params.Gloss),
       Vcd_m: enteredDriverValue(params.Vcd_m), Depth_m: enteredDriverValue(params.Depth_m), MagDepth_m: enteredDriverValue(params.MagDepth_m),
       Magnet_m: enteredDriverValue(params.Magnet_m), DVol_m3: enteredDriverValue(params.DVol_m3),
-      c_m_per_s: enteredDriverValue(params.c_m_per_s) ?? air.c,
-      roo_kg_per_m3: enteredDriverValue(params.roo_kg_per_m3) ?? air.rho,
+      c_m_per_s: air.c, roo_kg_per_m3: air.rho,
       Re_terminal_ohm: enteredDriverValue(params.Re_terminal_ohm),
       BL_terminal_Tm: enteredDriverValue(params.BL_terminal_Tm), numVC: enteredDriverValue(params.numVC),
       wiring: params.wiring.value ?? undefined,
     };
 
-    const solved = this.solveValues(working);
-    const issues: DriverIssue[] = [...this.checkConsistency(working, params), ...checkRange(params)];
-    const widths = this.calculatedWidths(working, solved, field => params[field].precision ?? 0);
+    const solved = this.solveValues(working, air);
+    const issues: DriverIssue[] = [...this.checkConsistency(working, params, air), ...checkRange(params)];
+    const widths = this.calculatedWidths(working, solved, air, field => params[field].precision ?? 0);
 
     writeDriverBack(params.Fs_hz, solved.Fs_hz, widths.Fs_hz); writeDriverBack(params.Re_ohm, solved.Re_ohm, widths.Re_ohm);
     writeDriverBack(params.Znom_ohm, solved.Znom_ohm, widths.Znom_ohm); writeDriverBack(params.Le_H, solved.Le_H, widths.Le_H);
@@ -234,8 +234,8 @@ export class DriverEngineImpl implements DriverEngine {
     writeDriverBack(params.Vcd_m, solved.Vcd_m, widths.Vcd_m); writeDriverBack(params.Depth_m, solved.Depth_m, widths.Depth_m); writeDriverBack(params.MagDepth_m, solved.MagDepth_m, widths.MagDepth_m);
     writeDriverBack(params.Magnet_m, solved.Magnet_m, widths.Magnet_m); writeDriverBack(params.DVol_m3, solved.DVol_m3, widths.DVol_m3); writeDriverBack(params.Re_terminal_ohm, solved.Re_terminal_ohm, widths.Re_terminal_ohm);
     writeDriverBack(params.BL_terminal_Tm, solved.BL_terminal_Tm, widths.BL_terminal_Tm);
-    if (!params.c_m_per_s.entered) params.c_m_per_s.setCalculated(air.c);
-    if (!params.roo_kg_per_m3.entered) params.roo_kg_per_m3.setCalculated(air.rho);
+    params.c_m_per_s.setCalculated(air.c);
+    params.roo_kg_per_m3.setCalculated(air.rho);
 
     return issues;
   }
@@ -254,23 +254,9 @@ export class DriverEngineImpl implements DriverEngine {
    * solver derived. `numVC` and `wiring` ride along untouched: the solver READS them, to finish the
    * terminal values below, and never consumes them; dropping them would make re-solving lossy.
    */
-  solveValues(p: DriverWorkingSet): DriverWorkingSet {
-    const r = this.routes.run(p);
-
-    // The air a record carries is itself a derivable field, exactly like any other: entered
-    // (a .wdr's own c/roo) wins, else recomputed exactly as `DriverAir` does —
-    // surfacing it here in the output record is what lets every caller treat c/roo through the
-    // SAME entered-or-computed path as Fs/Qes/EBP, with no special case anywhere above this module.
-    //
-    // The two guards below are unreachable and deleted: `solveValues` is module-private,
-    // and its only two call sites (`checkConsistency`'s direct call, and the `bumped` recompute
-    // inside it) both pass a working set that ultimately traces back to `solveDriver`'s own
-    // construction of `working`, which ALWAYS pre-fills `c_m_per_s: enteredDriverValue(...) ??
-    // air.c` and `roo_kg_per_m3: enteredDriverValue(...) ?? air.rho` — and `Air.c`/`Air.rho`
-    // (air.ts) are non-optional `number`, never null/undefined. So `r.c_m_per_s`/`r.roo_kg_per_m3`
-    // are never null by the time this function is reached through any current call path.
-    r.c_m_per_s = this.air.c(r);
-    r.roo_kg_per_m3 = this.air.rho(r);
+  solveValues(p: DriverWorkingSet, air: Air): DriverWorkingSet {
+    // `run` puts `air` into the working set's c/roo, so the result shows the air used.
+    const r = this.routes.run(p, air);
 
     // EBP (Fs/Qes) likewise: a real derivable field, computed once every input it needs is
     // available, through the SAME `ebp` formula the area publishes for every other caller —
@@ -307,6 +293,7 @@ export class DriverEngineImpl implements DriverEngine {
   private calculatedWidths(
     entered: DriverWorkingSet,
     resolved: DriverWorkingSet,
+    air: Air,
     widthOf: (field: NumericDriverQuantityName) => number,
   ): Partial<Record<NumericDriverQuantityName, number>> {
     const widths: Partial<Record<NumericDriverQuantityName, number>> = {};
@@ -315,8 +302,8 @@ export class DriverEngineImpl implements DriverEngine {
       const d = widthOf(field);
       if (typeof x !== 'number' || !(d > 0)) continue;
       const step = d * DERIVATIVE_STEP;
-      const up = this.solveValues(withQuantity(entered, field, x + step));
-      const down = this.solveValues(withQuantity(entered, field, x - step));
+      const up = this.solveValues(withQuantity(entered, field, x + step), air);
+      const down = this.solveValues(withQuantity(entered, field, x - step), air);
       for (const other of NUMERIC_QUANTITY_NAMES) {
         if (entered[other] != null || typeof resolved[other] !== 'number') continue;
         const hi = up[other];
@@ -338,9 +325,9 @@ export class DriverEngineImpl implements DriverEngine {
    * decimal it was typed to) — the source of truth for how wide that field's own rounding
    * interval is, never recomputed from the resolved number here.
    */
-  private checkConsistency(entered: DriverWorkingSet, params: DriverSolverParams): DriverIssue[] {
+  private checkConsistency(entered: DriverWorkingSet, params: DriverSolverParams, air: Air): DriverIssue[] {
     const issues: DriverIssue[] = this.consistency.check(
-      entered, stated => this.solveValues(stated), field => params[field].precision ?? 0);
+      entered, stated => this.solveValues(stated, air), field => params[field].precision ?? 0);
 
     // Qts has no route besides Qes+Qms (WinISD has no third input to this triple) — a driver
     // stating fewer than two of the three cannot solve it, and the caller needs to know exactly

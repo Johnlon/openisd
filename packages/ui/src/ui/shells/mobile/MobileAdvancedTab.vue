@@ -4,14 +4,14 @@
 // (src/hooks/MobileAdvancedTab-hooks.ts), which calls the SAME field-wiring factory
 // OriginalShell-hooks.ts exports. AdvancedOptions.vue (the simulation-fidelity checkbox column)
 // is reused unchanged — already presentation-only with its own hook.
-import {NumberField, ToggleField} from '@openisd/design/fields';
+import {CompatSwitchGroup, NumberField, ToggleField} from '@openisd/design/fields';
 import {inputChecked} from '../../../logic/domEvents.js';
 import NumInput from '../../components/NumInput.vue';
 import UnitToggle from '../../components/UnitToggle.vue';
 import AdvancedOptions from '../../components/AdvancedOptions.vue';
 import ErrorSwitch from '../../components/ErrorSwitch.vue';
 import ErrorSwitchGroup from '../../components/ErrorSwitchGroup.vue';
-import CompatPresets from '../../components/CompatPresets.vue';
+import ResetToWinisd from '../../components/ResetToWinisd.vue';
 import {useMobileAdvancedTab} from '../../../hooks/MobileAdvancedTab-hooks.js';
 
 const {
@@ -68,18 +68,19 @@ const {
 
   <div class="mob-panel">
     <div class="mob-panel-head">WinISD compatibility</div>
-    <div class="mob-row mob-presets-row"><CompatPresets /></div>
+    <div class="mob-row mob-reset-row"><ResetToWinisd /></div>
+    <div class="mob-row mob-group-head" :title="CompatSwitchGroup.OPTIONS.tooltip">{{ CompatSwitchGroup.OPTIONS.heading }}</div>
     <div class="mob-row mob-checkbox-row" :class="{ 'mob-row-na': !abcVelocityApplies }">
       <label data-field-key="winisdAbcIntraPortVelocity" :title="ToggleField.ADV_WINISDABCINTRAPORTVELOCITY.description">
         <input type="checkbox" :checked="project.winisdAbcIntraPortVelocity.value" :disabled="!abcVelocityApplies" @change="e => project.winisdAbcIntraPortVelocity.set(inputChecked(e))"> {{ ToggleField.ADV_WINISDABCINTRAPORTVELOCITY.label }}
       </label>
     </div>
     <ErrorSwitchGroup>
-      <ErrorSwitch as="label" class="mob-row mob-checkbox-row" field-key="winisdDriverModel" :marked="errorSwitches.driverModel.marked" :applicable="errorSwitches.driverModel.applicable" :reproduces-error="errorSwitches.driverModel.reproducesError" title="Ticked (as WinISD): the simulation uses two BLs, as WinISD does. Unticked (the default, corrected): one BL throughout, from the entered datasheet values.">
-        <input type="checkbox" :checked="project.winisdDriverModel.value" @change="e => project.winisdDriverModel.set(inputChecked(e))"> WinISD driver model
+      <ErrorSwitch as="label" class="mob-row mob-checkbox-row" field-key="winisdDriverModel" :marked="errorSwitches.driverModel.marked" :applicable="errorSwitches.driverModel.applicable" :reproduces-error="errorSwitches.driverModel.reproducesError" :title="ToggleField.ADV_WINISDDRIVERMODEL.description">
+        <input type="checkbox" :checked="project.winisdDriverModel.value" @change="e => project.winisdDriverModel.set(inputChecked(e))"> {{ ToggleField.ADV_WINISDDRIVERMODEL.label }}
       </ErrorSwitch>
-      <ErrorSwitch as="label" class="mob-row mob-checkbox-row" field-key="winisdVaModel" :marked="errorSwitches.vaModel.marked" :applicable="errorSwitches.vaModel.applicable" :reproduces-error="errorSwitches.vaModel.reproducesError" title="Affects the Amplifier apparent load power (VA) chart only — see the desktop tooltip for the formula difference.">
-        <input type="checkbox" :checked="project.winisdVaModel.value" @change="e => project.winisdVaModel.set(inputChecked(e))"> WinISD VA model
+      <ErrorSwitch as="label" class="mob-row mob-checkbox-row" field-key="winisdVaModel" :marked="errorSwitches.vaModel.marked" :applicable="errorSwitches.vaModel.applicable" :reproduces-error="errorSwitches.vaModel.reproducesError" :title="ToggleField.ADV_WINISDVAMODEL.description">
+        <input type="checkbox" :checked="project.winisdVaModel.value" @change="e => project.winisdVaModel.set(inputChecked(e))"> {{ ToggleField.ADV_WINISDVAMODEL.label }}
       </ErrorSwitch>
       <ErrorSwitch as="label" class="mob-row mob-checkbox-row" field-key="winisdPrNprResonance" :marked="errorSwitches.prNprResonance.marked" :applicable="errorSwitches.prNprResonance.applicable" :reproduces-error="errorSwitches.prNprResonance.reproducesError" :title="ToggleField.ADV_WINISDPRNPRRESONANCE.description">
         <input type="checkbox" :checked="project.winisdPrNprResonance.value" :disabled="!errorSwitches.prNprResonance.applicable" @change="e => project.winisdPrNprResonance.set(inputChecked(e))"> {{ ToggleField.ADV_WINISDPRNPRRESONANCE.label }}
@@ -143,8 +144,9 @@ const {
   font: inherit;
   font-size: 14px;
 }
-.mob-presets-row { display: block; }
-.mob-presets-row :deep(.compat-preset-btn) { min-height: 36px; font-size: 13px; }
+.mob-reset-row { display: block; }
+.mob-reset-row :deep(.compat-reset-btn) { min-height: 36px; font-size: 13px; }
+.mob-group-head { min-height: 0; padding: 6px 12px; font-size: 12px; font-weight: 600; color: var(--mut); }
 .mob-row-na { opacity: 0.45; }
 .mob-adv-options { padding: 10px 12px; }
 .mob-adv-options :deep(.adv-options) { gap: 12px; }

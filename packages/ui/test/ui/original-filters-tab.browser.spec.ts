@@ -222,5 +222,5 @@ test('a Bessel high-pass shows the WinISD deviation cue by its Subtype', async (
   await editorField(panel, 'Subtype').selectOption({label: 'Bessel'});
   await expect(cue).toBeVisible();
   await cue.click();
-  await expect(page.getByRole('dialog', {name: /Bessel high-pass/})).toContainText('"WinISD Bessel high-pass"');
+  await expect(page.getByRole('dialog', {name: /Bessel high-pass/})).toContainText('"Enable WinISD Bessel high-pass bug"');
 });

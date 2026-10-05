@@ -1,5 +1,5 @@
 import type {DriverWorkingSet} from '../../solvers/driverQuantities.js';
-import type {DriverAir} from './DriverAir.js';
+import type {Air} from '../../air.js';
 import type {Relation} from './Relation.js';
 
 /** A quantity a route can produce or read: every numeric member of the working set. */
@@ -20,14 +20,14 @@ export interface DriverRoute {
   readonly relation: Relation | null;
   /** What this route gives `working`: null where it does not apply, that is the target is already
    *  set, an input is missing, or the route's own guard fails. */
-  value(working: Readonly<DriverWorkingSet>, air: DriverAir): number | null;
+  value(working: Readonly<DriverWorkingSet>, air: Air): number | null;
 }
 
 export class SolveRoute<I extends RouteQuantity> implements DriverRoute {
   constructor(
     readonly target: RouteQuantity,
     private readonly inputs: readonly I[],
-    private readonly formula: (v: WithInputs<I>, air: DriverAir) => number | null,
+    private readonly formula: (v: WithInputs<I>, air: Air) => number | null,
     private readonly guard: (v: WithInputs<I>) => boolean = () => true,
     readonly keepsNonPositive: boolean = false,
     readonly relation: Relation | null = null,
@@ -42,7 +42,7 @@ export class SolveRoute<I extends RouteQuantity> implements DriverRoute {
     return working[this.target] == null && this.inputs.every(input => working[input] != null);
   }
 
-  value(working: Readonly<DriverWorkingSet>, air: DriverAir): number | null {
+  value(working: Readonly<DriverWorkingSet>, air: Air): number | null {
     return this.ready(working) && this.guard(working) ? this.formula(working, air) : null;
   }
 }

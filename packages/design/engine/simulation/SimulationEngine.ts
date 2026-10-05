@@ -240,7 +240,7 @@ function circuitQuantities(q: ReturnType<typeof withAddedMass>, Le_H: number | u
 }
 
 /** The BL the driver STATES (typed, not calculated), at the terminals. `BL_terminal_Tm` is the BL
- *  the circuit's damping runs on, which "Use WinISD driver calculations" replaces with the
+ *  the circuit's damping runs on, which "Enable WinISD two-BL driver bug" replaces with the
  *  Qes-derived one; WinISD keeps reading the typed figure for the motor's push and in `CLe`.
  *  Falls back to `BL_terminal_Tm` where no BL is typed: WinISD's own calculated BL is the
  *  Qes-derived one, so there is no second BL to disagree with. */

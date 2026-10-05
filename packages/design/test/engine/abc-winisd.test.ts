@@ -25,7 +25,8 @@ import {fileURLToPath} from 'node:url';
 import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
 import {createEngine} from '../../engine/index.js';
-import {OpenISDProject, CompatPreset} from '../../domain/index.js';
+import {OpenISDProject} from '../../domain/index.js';
+import {reproduceWinisdBugs} from '../fixtures/domainBuilders.js';
 import {WINISD_ABC_CAPTURE} from '../fixtures/winisdAbcCapture.js';
 import type {WinIsdComplexPoint} from '../fixtures/winisdVentedCapture.js';
 import {WinIsdProjectConverter} from '../../domain/winIsdProjectConverter.js';
@@ -47,10 +48,10 @@ function setUpProject(wprFile: string): OpenISDProject {
   const {value: project, errors} = new WinIsdProjectConverter(engine).winIsdProjectToOpenIsdProject(text);
   if (project === null) throw new Error('winIsdProjectToOpenIsdProject returned problems: ' + JSON.stringify(errors));
   // The capture's own condition (this file's header, and the fixture's own doc comment): VCInd
-  // off, "Use WinISD driver calculations" on, winisd-lossy, WinISD's own air model, Rg NOT at
-  // driver side. `CompatPreset.WINISD_WITH_BUGS` covers every one of those except `rgAtDriverSide`
+  // off, "Enable WinISD two-BL driver bug" on, winisd-lossy, WinISD's own air model, Rg NOT at
+  // driver side. `reproduceWinisdBugs` covers every one of those except `rgAtDriverSide`
   // (a native control it deliberately leaves alone — its own doc comment).
-  project.applyCompatPreset(CompatPreset.WINISD_WITH_BUGS);
+  reproduceWinisdBugs(project);
   project.rgAtDriverSide.set(false);
   assert.equal(project.winisdAbcIntraPortVelocity.value, true, 'WinISD\'s intra-port chart needs the switch on');
   return project;

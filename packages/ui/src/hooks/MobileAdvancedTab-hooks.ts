@@ -25,7 +25,7 @@ export function useMobileAdvancedTab() {
 
 
   const errorSwitches = createErrorSwitches({project, projectChanged});
-  /** "WinISD ABC intra-port velocity" acts on the open box. */
+  /** "Enable optional simplified ABC intra-port velocity" acts on the open box. */
   const abcVelocityApplies = computed(() => {
     void projectChanged.value;
     return project.value.winisdAbcIntraPortVelocityApplies;

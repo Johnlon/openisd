@@ -12,7 +12,7 @@ import {EnvironmentEngineImpl} from './environment/EnvironmentEngine.js';
 import type {DriverEngine} from './driver/DriverEngine.js';
 import {DriverEngineImpl} from './driver/DriverEngine.js';
 import {
-  ConsistencyCheck, DRIVER_RELATIONS, DRIVER_ROUTES, DriverAir, RADIATOR_RELATIONS, RADIATOR_ROUTES, RouteGroup,
+  ConsistencyCheck, DRIVER_RELATIONS, DRIVER_ROUTES, RADIATOR_RELATIONS, RADIATOR_ROUTES, RouteGroup,
 } from './driver/routes/index.js';
 import type {SignalEngine} from './signal/SignalEngine.js';
 import {SignalEngineImpl} from './signal/SignalEngine.js';
@@ -61,16 +61,15 @@ export interface Engine {
 
 class EngineImpl implements Engine {
   readonly environment: EnvironmentEngine;
-  private readonly driverAir = new DriverAir();
   readonly driver: DriverEngine = new DriverEngineImpl(
-    new RouteGroup(DRIVER_ROUTES, this.driverAir), this.driverAir, new ConsistencyCheck(DRIVER_RELATIONS));
+    new RouteGroup(DRIVER_ROUTES), new ConsistencyCheck(DRIVER_RELATIONS));
   readonly signal: SignalEngine = new SignalEngineImpl();
   readonly issues: IssueEngine = new IssueEngineImpl();
   readonly sealed: SealedEngine = new SealedEngineImpl();
   readonly vented: VentedEngine;
   readonly vent: VentEngine = new VentEngineImpl();
   readonly pr: PrEngine = new PrEngineImpl(
-    new RouteGroup(RADIATOR_ROUTES, this.driverAir), new ConsistencyCheck(RADIATOR_RELATIONS));
+    new RouteGroup(RADIATOR_ROUTES), new ConsistencyCheck(RADIATOR_RELATIONS));
   readonly filters: FilterEngine = new FilterEngineImpl();
   readonly simulation: SimulationEngine = new SimulationEngineImpl();
   readonly box: BoxEngine = new BoxEngineImpl();

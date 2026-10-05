@@ -5,8 +5,8 @@ import {fillAndBlur, fillAndCommit} from '../fixtures/numField.js';
 
 /**
  * The Original shell's Advanced tab: the air constants and their calculated readouts, the loss
- * model selector, and the WinISD Compatibility panel: its presets, the WinISD-vs-conventional
- * switches and the "WinISD errors" switch group.
+ * model selector, and the WinISD Compatibility panel: its "Reset to WinISD" button, the "WinISD
+ * options" switches and the "WinISD bugs" switch group.
  */
 
 const soundVelocity = (page: Page) => page.locator('.field', { hasText: 'Sound velocity' }).locator('input');
@@ -258,17 +258,17 @@ test.describe('Original Advanced tab', () => {
   });
 
   test.describe('WinISD Compatibility panel', () => {
-    test('WinISD\'s inductance model has no switch of its own — "WinISD driver model" covers it (John, 2026-09-26)', async ({ page }) => {
+    test('WinISD\'s inductance model has no switch of its own — "Enable WinISD two-BL driver bug" covers it (John, 2026-09-26)', async ({ page }) => {
       await expect(page.locator('[data-field-key="winisdInductance"]')).toHaveCount(0);
       const driverCalcs = page.locator('[data-field-key="winisdDriverModel"]');
       await expect(driverCalcs).toHaveAttribute('title', /inductance/);
       await expect(driverCalcs).toHaveAttribute('title', /WinISD bug/);
     });
 
-    test('WinISD Compatibility labels are unclipped and drop the "Use" prefix', async ({ page }) => {
+    test('WinISD Compatibility labels say "optional" or "bug" and are unclipped', async ({ page }) => {
       const panel = page.locator('.sim-options-box', { hasText: 'WinISD Compatibility' });
       const labels = panel.locator('label[data-field-key]');
-      await expect(labels).toHaveText([/WinISD phase wrapping/, /WinISD driver count/, /WinISD flat response/, /WinISD driver model/, /WinISD VA model/, /PR Npr resonance/, /WinISD Bessel high-pass/, /WinISD ABC intra-port velocity/]);
+      await expect(labels).toHaveText([/Enable optional phase wrapping/, /Enable optional per-driver boxes/, /Enable optional uncapped flat response/, /Enable optional simplified ABC intra-port velocity/, /Enable WinISD two-BL driver bug/, /Enable WinISD VA model bug/, /Enable WinISD PR Npr resonance bug/, /Enable WinISD Bessel high-pass bug/]);
       const panelBox = (await panel.boundingBox())!;
       const clipRight = await panel.evaluate(el => {
         // The visible right edge: the panel's own, or an ancestor's that clips it first.
@@ -295,21 +295,22 @@ test.describe('Original Advanced tab', () => {
       }
     });
 
-    test('the three presets sit in the WinISD Compatibility panel and show which one the project matches', async ({ page }) => {
+    test('"Reset to WinISD" is the panel\'s one button: options back to WinISD\'s side, bugs unticked, "Rg is at driver side" kept', async ({ page }) => {
       const panel = page.locator('.sim-options-box', { hasText: 'WinISD Compatibility' });
-      const presets = panel.locator('.compat-preset-btn');
-      await expect(presets).toHaveText(['Recommended (debugged)', 'WinISD-ish', 'WinISD incl. bugs']);
-      const now = panel.locator('.compat-preset-match-label');
-      await expect(now).toHaveText('WinISD-ish');
-      await expect(presets.nth(1)).toHaveAttribute('aria-pressed', 'true');
-      await presets.nth(0).click();
-      await expect(now).toHaveText('Recommended (debugged)');
-      await expect(page.locator('[data-field-key="winisdDriverCountModel"] input')).not.toBeChecked();
-      await presets.nth(2).click();
-      await expect(now).toHaveText('WinISD incl. bugs');
-      await expect(page.locator('[data-field-key="winisdDriverModel"] input')).toBeChecked();
+      await expect(panel.locator('.compat-preset-btn')).toHaveCount(0);
+      await expect(panel.locator('.option-switch-group-head')).toHaveText('WinISD options');
+      const reset = panel.locator('.compat-reset-btn');
+      await expect(reset).toHaveText('Reset to WinISD');
+      await expect(reset).toHaveAttribute('title', /never ticks a bug/i);
+      const rg = page.locator('[data-field-key="rgAtDriverSide"] input');
+      const rgBefore = await rg.isChecked();
+      await rg.setChecked(!rgBefore);
       await page.locator('[data-field-key="winisdWrapPhase"] input').uncheck();
-      await expect(now).toHaveText('Custom');
+      await page.locator('[data-field-key="winisdDriverModel"] input').check();
+      await reset.click();
+      await expect(page.locator('[data-field-key="winisdWrapPhase"] input')).toBeChecked();
+      await expect(page.locator('[data-field-key="winisdDriverModel"] input')).not.toBeChecked();
+      await expect(rg).toBeChecked({ checked: !rgBefore });
     });
 
     test('Advanced layout: the transmission-line label wraps before "for"', async ({ page }) => {
@@ -332,20 +333,20 @@ test.describe('Original Advanced tab', () => {
       expect(Math.round(rightLeft - leftRight)).toBe(16);
     });
 
-    test('"WinISD VA model" switches the VA chart between WinISD\'s Re and the amplifier\'s Re + Rg (BUG_20260927)', async ({ page }) => {
+    test('"Enable WinISD VA model bug" switches the VA chart between WinISD\'s Re and the amplifier\'s Re + Rg (BUG_20260927)', async ({ page }) => {
       const va = page.locator('[data-field-key="winisdVaModel"]');
       await expect(va).toHaveAttribute('title', /Re \+ Rg/);
       await expect(va).toHaveAttribute('title', /Amplifier apparent load power \(VA\) chart only/);
       await expect(va).toHaveAttribute('title', /'Rg is at driver side' on, Z already includes Rg and WinISD adds it again/);
       await expect(va).toHaveAttribute('title', /Z seen by the amplifier/);
       await expect(va.locator('input')).not.toBeChecked();
-      await page.locator('.compat-preset-btn', { hasText: 'WinISD incl. bugs' }).click();
+      await va.locator('input').check();
       await expect(va.locator('input')).toBeChecked();
-      await page.locator('.compat-preset-btn', { hasText: 'WinISD-ish' }).click();
+      await page.locator('.compat-reset-btn').click();
       await expect(va.locator('input')).not.toBeChecked();
     });
 
-    test('the VA chart carries the ≠W cue while "WinISD VA model" is off', async ({ page }) => {
+    test('the VA chart carries the ≠W cue while "Enable WinISD VA model bug" is off', async ({ page }) => {
       await page.locator('.chart-select').click();
       await page.locator('.chart-item', { hasText: 'Amplifier apparent load power' }).click();
       const cue = page.locator('.chart-deviation-cue');
@@ -355,7 +356,7 @@ test.describe('Original Advanced tab', () => {
       await expect(cue).toHaveCount(0);
     });
 
-    test('the passive-radiator count carries the ≠W cue while "PR Npr resonance" is off', async ({ page }) => {
+    test('the passive-radiator count carries the ≠W cue while "Enable WinISD PR Npr resonance bug" is off', async ({ page }) => {
       await showAdvancedOn(page, 'box-passive-radiator');
       const cue = page.locator('.field', { has: page.locator('#og-pr-count') }).locator('.winisd-deviation-cue');
       await expect(cue).toHaveCount(1);
@@ -367,13 +368,13 @@ test.describe('Original Advanced tab', () => {
       ['winisdDriverCountModel', /each in Vb\/N/],
       ['winisdFlatModel', /uncapped/],
     ] as const) {
-      test(`"${key}" is on by default, can be switched off, and WinISD-ish turns it back on`, async ({ page }) => {
+      test(`"${key}" is on by default, can be switched off, and "Reset to WinISD" turns it back on`, async ({ page }) => {
         const box = page.locator(`[data-field-key="${key}"]`);
         await expect(box).toHaveAttribute('title', titleText);
         await expect(box.locator('input')).toBeChecked();
         await box.locator('input').uncheck();
         await expect(box.locator('input')).not.toBeChecked();
-        await page.locator('.compat-preset-btn', { hasText: 'WinISD-ish' }).click();
+        await page.locator('.compat-reset-btn').click();
         await expect(box.locator('input')).toBeChecked();
       });
     }
@@ -388,7 +389,7 @@ test.describe('Original Advanced tab', () => {
     });
   });
 
-  test.describe('WinISD errors group', () => {
+  test.describe('WinISD bugs group', () => {
     const ERROR_KEYS = ['winisdDriverModel', 'winisdVaModel', 'winisdPrNprResonance', 'winisdBesselHighpass'];
     /** The box type each error switch acts on; a switch that applies everywhere is shown on an ABC box. */
     const BOX_FOR: Record<string, BoxTypeName> = {winisdPrNprResonance: 'box-passive-radiator'};
@@ -425,12 +426,12 @@ test.describe('Original Advanced tab', () => {
       }
     });
 
-    test('the error switches sit under one "WinISD errors" heading with its own tooltip', async ({page}) => {
+    test('the bug switches sit under one "WinISD bugs" heading with its own tooltip', async ({page}) => {
       await page.locator('li', {hasText: /^Advanced$/}).click();
       const group = page.locator('.error-switch-group');
       await expect(group).toHaveCount(1);
-      await expect(group.locator('.error-switch-group-head')).toHaveText('WinISD errors');
-      await expect(group).toHaveAttribute('title', /^WinISD errors: /);
+      await expect(group.locator('.error-switch-group-head')).toHaveText('WinISD bugs');
+      await expect(group).toHaveAttribute('title', /^WinISD bugs: /);
       for (const key of ERROR_KEYS) await expect(group.locator(`label[data-field-key="${key}"]`)).toHaveCount(1);
       for (const key of DESIGN_KEYS) await expect(group.locator(`label[data-field-key="${key}"]`)).toHaveCount(0);
     });

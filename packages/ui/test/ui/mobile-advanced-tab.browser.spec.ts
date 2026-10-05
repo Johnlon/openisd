@@ -35,8 +35,8 @@ test('shows the environment fields, calculated readouts, and WinISD-compat contr
   await expect(page.locator('.mob-panel-head', { hasText: 'WinISD compatibility' })).toBeVisible();
   await expect(page.locator('#mob-adv-lossmode')).toHaveCount(0);
   await expect(page.getByText('WinISD air model')).toHaveCount(0);
-  await expect(page.getByText('WinISD driver model')).toBeVisible();
-  await expect(page.getByText('WinISD VA model')).toBeVisible();
+  await expect(page.getByText('Enable WinISD two-BL driver bug')).toBeVisible();
+  await expect(page.getByText('Enable WinISD VA model bug')).toBeVisible();
 });
 
 test('editing the temperature writes through and clearing it falls back to the app default', async ({ page }) => {
@@ -56,9 +56,9 @@ test('toggling the "Force flat response" checkbox writes through to the project'
   await expect(checkbox).toBeChecked({ checked: !before });
 });
 
-test('the error switches carry the warning class under a "WinISD errors" heading', async ({ page }) => {
+test('the bug switches carry the warning class under a "WinISD bugs" heading', async ({ page }) => {
   const group = page.locator('.error-switch-group');
-  await expect(group.locator('.error-switch-group-head')).toHaveText('WinISD errors');
+  await expect(group.locator('.error-switch-group-head')).toHaveText('WinISD bugs');
   for (const key of ['winisdDriverModel', 'winisdVaModel', 'winisdPrNprResonance', 'winisdBesselHighpass']) {
     const label = group.locator(`label[data-field-key="${key}"]`);
     await expect(label, key).toHaveClass(/error-switch-marked/);
@@ -69,15 +69,12 @@ test('the error switches carry the warning class under a "WinISD errors" heading
   await expect(group.locator('label[data-field-key="winisdPrNprResonance"] input')).toBeDisabled();
 });
 
-test('the three presets apply and show which one the project matches', async ({ page }) => {
-  const now = page.locator('.compat-preset-match-label');
-  await expect(now).toHaveText('WinISD-ish');
-  await page.locator('.compat-preset-btn', { hasText: 'WinISD incl. bugs' }).click();
-  await expect(now).toHaveText('WinISD incl. bugs');
-  await expect(page.locator('label[data-field-key="winisdVaModel"] input')).toBeChecked();
-  await page.locator('.compat-preset-btn', { hasText: 'Recommended (debugged)' }).click();
-  await expect(now).toHaveText('Recommended (debugged)');
-  await expect(page.locator('label[data-field-key="winisdVaModel"] input')).not.toBeChecked();
+test('"Reset to WinISD" unticks a ticked bug', async ({ page }) => {
+  await expect(page.locator('.compat-preset-btn')).toHaveCount(0);
+  const va = page.locator('label[data-field-key="winisdVaModel"] input');
+  await va.check();
+  await page.locator('.compat-reset-btn', { hasText: 'Reset to WinISD' }).click();
+  await expect(va).not.toBeChecked();
 });
 
 // BUG (2026-09-29, John, live on his phone): "environment view needs to scroll... truncation at
@@ -91,7 +88,7 @@ test('the three presets apply and show which one the project matches', async ({ 
 test('scrolls to its last control instead of clipping it', async ({ page }) => {
   await page.setViewportSize({ width: 412, height: 700 });
 
-  const lastControl = page.getByText('WinISD VA model');
+  const lastControl = page.getByText('Enable WinISD VA model bug');
   await lastControl.scrollIntoViewIfNeeded();
   await expect(lastControl).toBeVisible();
 

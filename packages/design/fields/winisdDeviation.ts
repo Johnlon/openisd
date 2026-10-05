@@ -2,10 +2,10 @@ import type {ErrorSwitchState, ErrorSwitchStates} from '../domain/project/errorS
 import type {ChartId, Filter} from '../engine/index.js';
 import {ToggleField} from './field.js';
 
-/** A WinISD calculation bug: the yellow error switch in "WinISD errors" brings it back. */
+/** A WinISD calculation bug: the yellow error switch in "WinISD bugs" brings it back. */
 export interface ErrorSwitchFix {
   readonly kind: 'errorSwitch';
-  /** The error switch's label in "WinISD errors". */
+  /** The error switch's label in "WinISD bugs". */
   readonly switchLabel: string;
   /** The error switch's state in the project's `errorSwitches`. */
   readonly switchOf: (s: ErrorSwitchStates) => ErrorSwitchState;
@@ -81,7 +81,7 @@ export class WinisdDeviation {
     title: 'WinISD mixes two BL values',
     explanation: 'WinISD drives the cone with the entered BL but damps it with the BL implied by Fs, Qes and Vas. OpenISD uses one BL throughout, from the entered datasheet values.',
     size: 'W5-1138SMF (entered BL 7.17, implied 7.384): passband SPL 0.26 dB, impedance peak about 8 % apart.',
-    fix: {kind: 'errorSwitch', switchLabel: 'WinISD driver model', switchOf: s => s.driverModel},
+    fix: {kind: 'errorSwitch', switchLabel: ToggleField.ADV_WINISDDRIVERMODEL.label, switchOf: s => s.driverModel},
     charts: [],
   });
 
@@ -89,7 +89,7 @@ export class WinisdDeviation {
     title: 'WinISD VA uses Re, not Re + Rg',
     explanation: 'WinISD\'s amplifier load (VA) chart uses Re where the amplifier sees Re + Rg, and with "Rg is at driver side" on it counts Rg twice. OpenISD counts Rg once.',
     size: 'Re 3.4 Ω, Rg 1 Ω: WinISD reads 23 % (1.1 dB) low.',
-    fix: {kind: 'errorSwitch', switchLabel: 'WinISD VA model', switchOf: s => s.vaModel},
+    fix: {kind: 'errorSwitch', switchLabel: ToggleField.ADV_WINISDVAMODEL.label, switchOf: s => s.vaModel},
     charts: ['VA'],
   });
 
@@ -108,7 +108,7 @@ export class WinisdDeviation {
 
 function remedyOf(fix: WinisdDeviationFix): string {
   switch (fix.kind) {
-    case 'errorSwitch': return `Tick "${fix.switchLabel}" under WinISD errors (Advanced) to bring WinISD's behaviour back.`;
+    case 'errorSwitch': return `Tick "${fix.switchLabel}" under WinISD bugs (Advanced) to bring WinISD's behaviour back.`;
     case 'ignoredInput': return 'WinISD ignores this input, so OpenISD has no switch to copy it: set the value WinISD draws to see WinISD\'s result.';
   }
 }

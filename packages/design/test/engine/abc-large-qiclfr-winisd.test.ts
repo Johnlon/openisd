@@ -17,7 +17,8 @@ import {fileURLToPath} from 'node:url';
 import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
 import {createEngine} from '../../engine/index.js';
-import {type FrequencyGrid, OpenISDProject, CompatPreset} from '../../domain/index.js';
+import {type FrequencyGrid, OpenISDProject} from '../../domain/index.js';
+import {reproduceWinisdBugs} from '../fixtures/domainBuilders.js';
 import {WINISD_ABC_CAPTURE} from '../fixtures/winisdAbcCapture.js';
 import {WINISD_ABC_HUGE_QICL_CAPTURE} from '../fixtures/winisdAbcHugeQiclCapture.js';
 import type {WinIsdComplexPoint} from '../fixtures/winisdVentedCapture.js';
@@ -30,7 +31,7 @@ function setUpProject(wprFile: string, winisdChart: boolean, Qicl: number | null
   const text = readFileSync(join(here, '..', 'winisd', 'fixtures', wprFile), 'utf8');
   const {value: project, errors} = new WinIsdProjectConverter(engine).winIsdProjectToOpenIsdProject(text);
   if (project === null) throw new Error('winIsdProjectToOpenIsdProject returned problems: ' + JSON.stringify(errors));
-  project.applyCompatPreset(CompatPreset.WINISD_WITH_BUGS);
+  reproduceWinisdBugs(project);
   project.rgAtDriverSide.set(false);
   project.winisdAbcIntraPortVelocity.set(winisdChart);
   if (Qicl !== null) project.box.abc.chambers.rear.losses.Qicl.set(Qicl);

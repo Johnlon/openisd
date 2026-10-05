@@ -56,7 +56,9 @@ function outcomeOfIssue(issue: DriverIssue): IssueOutcome {
 }
 
 export function runCase(engine: Engine, testCase: SolverCase): CaseOutcome {
-  const solved = engine.driver.solveValues(testCase.stated);
+  // No project: the project's delegate, the app's environment defaults (John, 2026-10-05).
+  const air = engine.environment.solve(engine.environment.defaults()).values;
+  const solved = engine.driver.solveValues(testCase.stated, air);
   const values: ValueOutcome[] = [];
   for (const field of SOLVED_FIELDS) {
     const value = solved[field];

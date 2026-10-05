@@ -6,7 +6,7 @@
 // src/hooks/OriginalShell-hooks.ts (`useOriginalShell`), where it is a plain composable that
 // gets unit-tested without a DOM. This `<script setup>` is nothing but a hook call plus the
 // child-component imports; the template reads the destructured API surface only.
-import {NumberField, ReadoutFormat, ToggleField, WinisdDeviation} from '@openisd/design/fields';
+import {CompatSwitchGroup, NumberField, ReadoutFormat, ToggleField, WinisdDeviation} from '@openisd/design/fields';
 import UnitToggle from '../../components/UnitToggle.vue';
 import NumInput from '../../components/NumInput.vue';
 import NumReadout from '../../components/NumReadout.vue';
@@ -20,7 +20,7 @@ import OptionsModal from '../../components/OptionsModal.vue';
 import AdvancedOptions from '../../components/AdvancedOptions.vue';
 import ErrorSwitch from '../../components/ErrorSwitch.vue';
 import ErrorSwitchGroup from '../../components/ErrorSwitchGroup.vue';
-import CompatPresets from '../../components/CompatPresets.vue';
+import ResetToWinisd from '../../components/ResetToWinisd.vue';
 import WinisdDeviationCue from '../../components/WinisdDeviationCue.vue';
 import BoxTypeDiagram from '../../components/BoxTypeDiagram.vue';
 import {useOriginalShell} from '../../../hooks/OriginalShell-hooks.js';
@@ -644,35 +644,43 @@ const {
               <AdvancedOptions />
             </div>
             <div class="sim-options-box">
-              <CompatPresets><span class="sim-options-header">WinISD Compatibility</span></CompatPresets>
+              <ResetToWinisd><span class="sim-options-header">WinISD Compatibility</span></ResetToWinisd>
               <div class="sim-switches">
                 <div class="sim-switch-col">
+                <div class="option-switch-group" :title="CompatSwitchGroup.OPTIONS.tooltip">
+                <div class="option-switch-group-head">{{ CompatSwitchGroup.OPTIONS.heading }}</div>
                 <div>
-                  <label data-field-key="winisdWrapPhase" style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 12px;" :title="`WinISD phase wrapping: wraps phase curves to [-180°, +180°].\nTicked (default, as WinISD): phase curves wrap at ±180°.\nUnticked (conventional): phase curves stay continuous and unwrapped.`">
-                    <input type="checkbox" :checked="project.winisdWrapPhase.value" @change="e => project.winisdWrapPhase.set(inputChecked(e))"> WinISD phase wrapping
+                  <label data-field-key="winisdWrapPhase" style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 12px;" :title="ToggleField.ADV_WINISDWRAPPHASE.description">
+                    <input type="checkbox" :checked="project.winisdWrapPhase.value" @change="e => project.winisdWrapPhase.set(inputChecked(e))"> {{ ToggleField.ADV_WINISDWRAPPHASE.label }}
                   </label>
                 </div>
                 <div>
-                  <label data-field-key="winisdDriverCountModel" style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 12px;" :title="`WinISD driver count: affects designs with more than one driver.\nTicked (default, as WinISD): N drivers are N copies of one driver, each in Vb/N with 1/N of the port, each fed P/N. Impedance is one driver's; SPL is one driver's + 10·log10(N); maximum power is N times one driver's.\nUnticked (conventional): the N voice coils are wired, in parallel or series, into one load the amplifier sees.`">
-                    <input type="checkbox" :checked="project.winisdDriverCountModel.value" @change="e => project.winisdDriverCountModel.set(inputChecked(e))"> WinISD driver count
+                  <label data-field-key="winisdDriverCountModel" style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 12px;" :title="ToggleField.ADV_WINISDDRIVERCOUNTMODEL.description">
+                    <input type="checkbox" :checked="project.winisdDriverCountModel.value" @change="e => project.winisdDriverCountModel.set(inputChecked(e))"> {{ ToggleField.ADV_WINISDDRIVERCOUNTMODEL.label }}
                   </label>
                 </div>
                 <div>
-                  <label data-field-key="winisdFlatModel" style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 12px;" :title="`WinISD flat response: affects 'Force flat response' only.\nTicked (default, as WinISD): every frequency is set to the transfer function's 0 dB, cut as well as boosted, uncapped; excursion shows what that costs.\nUnticked (conventional): boost only, up to the passband level, capped at 20 dB.`">
-                    <input type="checkbox" :checked="project.winisdFlatModel.value" @change="e => project.winisdFlatModel.set(inputChecked(e))"> WinISD flat response
+                  <label data-field-key="winisdFlatModel" style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 12px;" :title="ToggleField.ADV_WINISDFLATMODEL.description">
+                    <input type="checkbox" :checked="project.winisdFlatModel.value" @change="e => project.winisdFlatModel.set(inputChecked(e))"> {{ ToggleField.ADV_WINISDFLATMODEL.label }}
                   </label>
+                </div>
+                <div>
+                  <label data-field-key="winisdAbcIntraPortVelocity" style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 12px;" :class="{ 'compat-switch-na': !abcVelocityApplies }" :title="ToggleField.ADV_WINISDABCINTRAPORTVELOCITY.description">
+                    <input type="checkbox" :checked="project.winisdAbcIntraPortVelocity.value" :disabled="!abcVelocityApplies" @change="e => project.winisdAbcIntraPortVelocity.set(inputChecked(e))"> {{ ToggleField.ADV_WINISDABCINTRAPORTVELOCITY.label }}
+                  </label>
+                </div>
                 </div>
                 </div>
                 <div class="sim-switch-col">
                 <ErrorSwitchGroup>
                   <div>
-                    <ErrorSwitch as="label" field-key="winisdDriverModel" style="font-size: 12px;" :marked="errorSwitches.driverModel.marked" :applicable="errorSwitches.driverModel.applicable" :reproduces-error="errorSwitches.driverModel.reproducesError" :title="`WinISD Driver Model\nTicked (as WinISD): the simulation uses two BLs, as WinISD does. The damping comes from the driver WinISD acts on: Cms from Vas, then Mms, Rms and BL from Fs, Qms and Qes. The entered BL sets the loudness and, with voice coil inductance on, the inductance roll-off. We judge the two-BL mix a WinISD bug.\nUnticked (the default, corrected): the simulation uses the entered datasheet values, one BL throughout.\nThe two differ only when the entered values disagree with Fs, Vas, Qes and Qms.`">
-                      <input type="checkbox" :checked="project.winisdDriverModel.value" @change="e => project.winisdDriverModel.set(inputChecked(e))"> WinISD driver model
+                    <ErrorSwitch as="label" field-key="winisdDriverModel" style="font-size: 12px;" :marked="errorSwitches.driverModel.marked" :applicable="errorSwitches.driverModel.applicable" :reproduces-error="errorSwitches.driverModel.reproducesError" :title="ToggleField.ADV_WINISDDRIVERMODEL.description">
+                      <input type="checkbox" :checked="project.winisdDriverModel.value" @change="e => project.winisdDriverModel.set(inputChecked(e))"> {{ ToggleField.ADV_WINISDDRIVERMODEL.label }}
                     </ErrorSwitch>
                   </div>
                   <div>
-                    <ErrorSwitch as="label" field-key="winisdVaModel" style="font-size: 12px;" :marked="errorSwitches.vaModel.marked" :applicable="errorSwitches.vaModel.applicable" :reproduces-error="errorSwitches.vaModel.reproducesError" :title="`WinISD VA model: affects the Amplifier apparent load power (VA) chart only.\nTicked (as WinISD): VA = P·Re/|Z + Rg|. A WinISD bug: it uses Re where the amplifier sees Re + Rg, so it reads low by Re/(Re + Rg). With 'Rg is at driver side' on, Z already includes Rg and WinISD adds it again.\nUnticked (the default, corrected): VA = P·(Re + Rg)/|Z seen by the amplifier|, Rg counted once.\nBoth give the same result when Rg is 0.\nP: input power. Z: the impedance chart. Rg: the series resistance.`">
-                      <input type="checkbox" :checked="project.winisdVaModel.value" @change="e => project.winisdVaModel.set(inputChecked(e))"> WinISD VA model
+                    <ErrorSwitch as="label" field-key="winisdVaModel" style="font-size: 12px;" :marked="errorSwitches.vaModel.marked" :applicable="errorSwitches.vaModel.applicable" :reproduces-error="errorSwitches.vaModel.reproducesError" :title="ToggleField.ADV_WINISDVAMODEL.description">
+                      <input type="checkbox" :checked="project.winisdVaModel.value" @change="e => project.winisdVaModel.set(inputChecked(e))"> {{ ToggleField.ADV_WINISDVAMODEL.label }}
                     </ErrorSwitch>
                   </div>
                   <div>
@@ -686,11 +694,6 @@ const {
                     </ErrorSwitch>
                   </div>
                 </ErrorSwitchGroup>
-                <div class="sim-switch-after-group">
-                  <label data-field-key="winisdAbcIntraPortVelocity" style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 12px;" :class="{ 'compat-switch-na': !abcVelocityApplies }" :title="ToggleField.ADV_WINISDABCINTRAPORTVELOCITY.description">
-                    <input type="checkbox" :checked="project.winisdAbcIntraPortVelocity.value" :disabled="!abcVelocityApplies" @change="e => project.winisdAbcIntraPortVelocity.set(inputChecked(e))"> {{ ToggleField.ADV_WINISDABCINTRAPORTVELOCITY.label }}
-                  </label>
-                </div>
                 </div>
               </div>
             </div>
@@ -1216,15 +1219,17 @@ textarea.comment, textarea.description { width:100%; border:1px solid #999; bord
   flex: none;
   align-self: flex-start;
 }
-/* Plain switches in one column, the WinISD errors group in a second: the panel stays inside the tab's height and width. */
+/* The WinISD options in one column, the WinISD bugs group in a second: the panel stays inside the tab's height and width. */
 .sim-switches { display: flex; flex-direction: row; align-items: flex-start; gap: 8px; }
+.option-switch-group { display: flex; flex-direction: column; gap: 1px; }
+.option-switch-group-head { font-size: 11px; font-weight: 600; color: #555; }
 .sim-switch-col { display: flex; flex-direction: column; gap: 0; width: 170px; }
-/* The preset buttons wrap within the two switch columns' width. */
-.sim-options-box :deep(.compat-presets) { max-width: 338px; }
+/* The reset row spans the two switch columns' width. */
+.sim-options-box :deep(.compat-reset) { max-width: 338px; }
 /* A fixed width, so a long error-switch label wraps inside the group and does not widen the panel. */
 .sim-switches :deep(.error-switch-group) { flex: none; width: 160px; }
 .sim-options-header { font-weight: 600; font-size: 11px; color: #333; }
-.sim-options-box :deep(.compat-presets-head) { border-bottom: 1px solid #d0d0d0; padding-bottom: 2px; }
+.sim-options-box :deep(.compat-reset) { border-bottom: 1px solid #d0d0d0; padding-bottom: 2px; }
 .compat-switch-na { opacity: 0.45; cursor: default; }
 
 /* filters tab fills the panel */

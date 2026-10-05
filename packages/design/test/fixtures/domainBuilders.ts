@@ -1,5 +1,5 @@
 import {type DqIssue, createEngine} from '@openisd/design/engine';
-import {type AppContext, OpenISDDriver, ProjectBuilder} from '../../domain/index.js';
+import {type AppContext, CompatSwitch, OpenISDDriver, type OpenISDProject, ProjectBuilder} from '../../domain/index.js';
 
 export function fixedAppContext(id: string, isoDate = '2026-01-01T00:00:00.000Z', platformUser: string | null = null): AppContext {
   return { newId: () => id, now: () => new Date(isoDate), platformUser: () => platformUser };
@@ -154,6 +154,12 @@ export function driverJson(p: {
 
 /** A sealed 30 L project on a plain RS225 woofer with Re unstated — the starting point for the
  *  project-settings and signal scenarios. */
+/** `p` set to reproduce WinISD exactly: "Reset to WinISD", then every WinISD bug ticked. */
+export function reproduceWinisdBugs(p: OpenISDProject): void {
+  p.resetToWinisd();
+  for (const s of CompatSwitch.BUGS) s.of(p).set(true);
+}
+
 export function sealedProject() {
   return new ProjectBuilder(driverFrom({
     brand: 'Dayton', model: 'RS225', section: 'woofer',

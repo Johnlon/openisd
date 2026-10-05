@@ -633,7 +633,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     d => openCharts.value.some(id => d.inEffectOnChart(errorSwitches.value, id))) : []);
   /** The passive-radiator Npr deviation's cue, by the radiator count, while it is in effect. */
   const prNprDeviationShown = computed(() => projectOpen.value && WinisdDeviation.PR_NPR_RESONANCE.inEffect(errorSwitches.value));
-  /** "WinISD ABC intra-port velocity" acts on the open box. */
+  /** "Enable optional simplified ABC intra-port velocity" acts on the open box. */
   const abcVelocityApplies = computed(() => {
     void projectChanged.value;
     return project.value.winisdAbcIntraPortVelocityApplies;

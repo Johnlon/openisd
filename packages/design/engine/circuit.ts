@@ -135,7 +135,7 @@ export function solve(f: number, drv: CircuitQuantities, box: BoxType, P: SweepP
   const Zcoil   = arrayCoil(Le);
   const Bl = wiring === 'series' ? drv.BL_terminal_Tm * n : drv.BL_terminal_Tm;
   // The motor's push uses the ENTERED BL; the damping (ZaE) uses `BL_terminal_Tm`. The two differ
-  // only under "Use WinISD driver calculations", where WinISD takes its level from the entered BL
+  // only under "Enable WinISD two-BL driver bug", where WinISD takes its level from the entered BL
   // and its damping from Qes (debugger: entered BL 7.17 → 5.0 moves every SPL point by
   // 20·log10(5/7.17), BUG_20260926_winisd-spl-level-uses-entered-bl).
   const BlPush = wiring === 'series' ? drv.BL_entered_Tm * n : drv.BL_entered_Tm;
