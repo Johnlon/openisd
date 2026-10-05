@@ -1,7 +1,7 @@
 import {readFileSync} from 'node:fs';
 import {dirname, join} from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {COMPLETE_DRIVER_PROJECT_OWPR, expect, openAProject, test} from '../fixtures.js';
+import {COMPLETE_DRIVER_PROJECT_OWPR, expect, focusedBoxVolume, openAProject, setFocusedBoxVolume, test} from '../fixtures.js';
 import {fillAndBlur} from '../fixtures/numField.js';
 
 // The build (scripts/version-info.mjs → packages/ui/public/build-info.json) is the on-disk source
@@ -81,6 +81,27 @@ test.describe('Original toolbar', () => {
 
     // 4. Name should revert back to original
     await expect(nameInput).toHaveValue(originalName);
+    await expect(revertBtn).toHaveClass(/disabled/);
+  });
+
+  test('a reload keeps unsaved edits unsaved, and Revert still restores the saved value', async ({ page }) => {
+    await page.goto('/');
+    await openAProject(page);
+    page.on('dialog', (d) => d.accept().catch(() => {}));
+    const saved = await focusedBoxVolume(page);
+    await setFocusedBoxVolume(page, 0.0333333);
+    const revertBtn = page.locator('.tb-btn[title^="Revert"]');
+    await expect(revertBtn).not.toHaveClass(/disabled/);
+    // The open-session record is written on a change; wait for it before reloading.
+    await expect.poll(() => page.evaluate(() => localStorage.getItem('openisd_open_sessions') ?? '')).toContain('0.0333333');
+
+    await page.reload();
+
+    await expect(page.locator('.unsaved-label')).toBeVisible();
+    await expect(revertBtn).not.toHaveClass(/disabled/);
+    expect(await focusedBoxVolume(page)).toBeCloseTo(0.0333333, 9);
+    await revertBtn.click();
+    await expect.poll(() => focusedBoxVolume(page)).toBeCloseTo(saved, 9);
     await expect(revertBtn).toHaveClass(/disabled/);
   });
 

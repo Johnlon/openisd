@@ -93,8 +93,11 @@ export async function bootApplication(deps: BootDeps): Promise<void> {
     markProjectSaved();
     return;
   }
-  if (!restoreSession(deps)) restoreLegacyProject(deps);
+  const sessionRestored = restoreSession(deps);
+  if (!sessionRestored) restoreLegacyProject(deps);
   restoreView(deps);
   restorePanels(deps);
-  markProjectSaved();   // the just-restored design is the ground state (clean, not modified)
+  // A restored session carries each project's own saved and edited layers, so its unsaved edits
+  // stay unsaved. Only the single legacy project has no such layers: it is the ground state.
+  if (!sessionRestored) markProjectSaved();
 }
