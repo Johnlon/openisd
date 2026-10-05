@@ -310,7 +310,7 @@ export class OpenISDProject {
         return ProjectAdvanced.wrap(this.#slot('advanced'), this.#slot('filters')).winisdWrapPhase;
     }
 
-    /** WinISD Compatibility "Enable WinISD per-driver boxes bug" — see `ProjectAdvanced.winisdDriverCountModel`. */
+    /** WinISD Compatibility "Enable WinISD per-driver impedance bug" — see `ProjectAdvanced.winisdDriverCountModel`. */
     get winisdDriverCountModel(): SimpleField<boolean> {
         return ProjectAdvanced.wrap(this.#slot('advanced'), this.#slot('filters')).winisdDriverCountModel;
     }

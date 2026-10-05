@@ -74,11 +74,6 @@ const {
       </label>
     </div>
     <div class="mob-row mob-checkbox-row">
-      <label data-field-key="winisdDriverCountModel" :title="ToggleField.ADV_WINISDDRIVERCOUNTMODEL.description">
-        <input type="checkbox" :checked="project.winisdDriverCountModel.value" @change="e => project.winisdDriverCountModel.set(inputChecked(e))"> {{ ToggleField.ADV_WINISDDRIVERCOUNTMODEL.label }}
-      </label>
-    </div>
-    <div class="mob-row mob-checkbox-row">
       <label data-field-key="winisdFlatModel" :title="ToggleField.ADV_WINISDFLATMODEL.description">
         <input type="checkbox" :checked="project.winisdFlatModel.value" @change="e => project.winisdFlatModel.set(inputChecked(e))"> {{ ToggleField.ADV_WINISDFLATMODEL.label }}
       </label>
@@ -103,6 +98,9 @@ const {
       </ErrorSwitch>
       <ErrorSwitch as="label" class="mob-row mob-checkbox-row" field-key="winisdAbcGroupDelay" :marked="errorSwitches.abcGroupDelay.marked" :applicable="errorSwitches.abcGroupDelay.applicable" :reproduces-error="errorSwitches.abcGroupDelay.reproducesError" :title="ToggleField.ADV_WINISDABCGROUPDELAY.description">
         <input type="checkbox" :checked="project.winisdAbcGroupDelay.value" :disabled="!errorSwitches.abcGroupDelay.applicable" @change="e => project.winisdAbcGroupDelay.set(inputChecked(e))"> {{ ToggleField.ADV_WINISDABCGROUPDELAY.label }}
+      </ErrorSwitch>
+      <ErrorSwitch as="label" class="mob-row mob-checkbox-row" field-key="winisdDriverCountModel" :marked="errorSwitches.driverCount.marked" :applicable="errorSwitches.driverCount.applicable" :reproduces-error="errorSwitches.driverCount.reproducesError" :title="ToggleField.ADV_WINISDDRIVERCOUNTMODEL.description">
+        <input type="checkbox" :checked="project.winisdDriverCountModel.value" :disabled="!errorSwitches.driverCount.applicable" @change="e => project.winisdDriverCountModel.set(inputChecked(e))"> {{ ToggleField.ADV_WINISDDRIVERCOUNTMODEL.label }}
       </ErrorSwitch>
     </ErrorSwitchGroup>
   </div>

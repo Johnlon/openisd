@@ -16,7 +16,7 @@ describe('CompatSwitch', () => {
       'Enable WinISD PR Npr resonance bug',
       'Enable WinISD Bessel high-pass bug',
       'Enable WinISD ABC group delay bug',
-      'Enable WinISD per-driver boxes bug',
+      'Enable WinISD per-driver impedance bug',
     ]);
     expect(CompatSwitch.OPTIONS.map(s => s.field.label)).toEqual([
       'Enable WinISD style phase wrapping',

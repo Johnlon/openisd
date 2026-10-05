@@ -201,10 +201,18 @@ function driverValues(v: DriverValues) {
   };
 }
 
-/** WinISD's driver-count model applies: more than one driver, the model on, every box type
- *  (runs/sealed-w5-nd2, vented-, bp4-, pr-, bp6- and abc-w5-nd2). */
+/** WinISD's driver-count model: more than one driver, every box type (runs/sealed-w5-nd2,
+ *  vented-, bp4-, pr-, bp6- and abc-w5-nd2). SPL, excursion, VA and maximum power follow it. */
 function winisdCountsDrivers(P: SweepParams): boolean {
-  return (P.nDrivers || 1) > 1 && P.winisdDriverCountModel !== false;
+  return (P.nDrivers || 1) > 1;
+}
+
+/** The impedance chart's factor over one driver's: 1 with WinISD's per-driver impedance bug
+ *  (`winisdDriverCountModel` true or absent); otherwise the array the amplifier drives, N for N
+ *  drivers in series, 1/N in parallel (John, 2026-10-05). */
+function arrayImpedanceScale(P: SweepParams, n: number): number {
+  if (P.winisdDriverCountModel !== false) return 1;
+  return P.wiring === 'series' ? n : 1 / n;
 }
 
 /** One of `n` drivers as WinISD simulates it: alone, driven at P/n, in Vb/n with 1/n of the port
@@ -428,11 +436,16 @@ export class SimulationEngineImpl implements SimulationEngine {
   sweep(drv: SweepDriver, Le_H: number | undefined, box: BoxType, P: SweepParams): SweepSolveResult {
     const n = P.nDrivers || 1;
     if (winisdCountsDrivers(P)) {
-      // WinISD: one driver in Vb/N fed P/N (eg/√N); N of them sum to +20·log10(N) on its SPL.
+      // WinISD: one driver in Vb/N fed P/N (eg/√N); N of them sum to +20·log10(N) on its SPL and
+      // N times its VA (WinISD's VA chart is the array's: 0.968 VA at 1 and 4 drivers, W5 sealed 1 W).
       const one = this.sweep(drv, Le_H, box, oneOfN(P, n));
       if (one.values === null) return one;
       const gain = 20 * Math.log10(n);
-      return { ...one, values: { ...one.values, spl: one.values.spl.map((v) => isSilence(v) ? v : v + gain) } };
+      const zScale = arrayImpedanceScale(P, n);
+      return { ...one, values: { ...one.values,
+        spl: one.values.spl.map((v) => isSilence(v) ? v : v + gain),
+        va: one.values.va.map((v) => v * n),
+        zmag: one.values.zmag.map((z) => z * zScale) } };
     }
     // Driver-side added mass (docs/research/WINISD_PARITY.md) shifts Mms/Fs/Q's before the circuit sees it.
     // 0/absent → withAddedMass returns the driver unchanged, so goldens are byte-identical.

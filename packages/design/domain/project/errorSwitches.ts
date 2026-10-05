@@ -22,8 +22,7 @@ export interface ErrorSwitchStates {
     readonly besselHighpass: ErrorSwitchState;
     /** WinISD ABC group delay: the driver part held at the chart frequency while the box is stepped. */
     readonly abcGroupDelay: ErrorSwitchState;
-    /** WinISD per-driver boxes: N drivers as N one-driver boxes, so impedance and VA show one
-     *  driver's load. */
+    /** WinISD per-driver impedance: the impedance chart shows one driver's, not the array's. */
     readonly driverCount: ErrorSwitchState;
 }
 

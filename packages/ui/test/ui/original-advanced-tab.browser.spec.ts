@@ -268,7 +268,7 @@ test.describe('Original Advanced tab', () => {
     test('WinISD Compatibility labels say "optional" or "bug" and are unclipped', async ({ page }) => {
       const panel = page.locator('.sim-options-box', { hasText: 'WinISD Compatibility' });
       const labels = panel.locator('label[data-field-key]');
-      await expect(labels).toHaveText([/Enable WinISD style phase wrapping/, /Enable WinISD style per-driver boxes/, /Enable WinISD style uncapped flat response/, /Enable WinISD style simplified ABC intra-port velocity/, /Enable WinISD two-BL driver bug/, /Enable WinISD VA model bug/, /Enable WinISD PR Npr resonance bug/, /Enable WinISD Bessel high-pass bug/, /Enable WinISD ABC group delay bug/]);
+      await expect(labels).toHaveText([/Enable WinISD style phase wrapping/, /Enable WinISD style uncapped flat response/, /Enable WinISD style simplified ABC intra-port velocity/, /Enable WinISD two-BL driver bug/, /Enable WinISD VA model bug/, /Enable WinISD PR Npr resonance bug/, /Enable WinISD Bessel high-pass bug/, /Enable WinISD ABC group delay bug/, /Enable WinISD per-driver impedance bug/]);
       const panelBox = (await panel.boundingBox())!;
       const clipRight = await panel.evaluate(el => {
         // The visible right edge: the panel's own, or an ancestor's that clips it first.
@@ -365,7 +365,6 @@ test.describe('Original Advanced tab', () => {
     });
 
     for (const [key, titleText] of [
-      ['winisdDriverCountModel', /each in Vb\/N/],
       ['winisdFlatModel', /uncapped/],
     ] as const) {
       test(`"${key}" is on by default, and can be switched off and on`, async ({ page }) => {
@@ -379,6 +378,24 @@ test.describe('Original Advanced tab', () => {
       });
     }
 
+    test('the driver count carries the ≠W cue with two drivers while "Enable WinISD per-driver impedance bug" is off', async ({ page }) => {
+      await page.locator('.project-nav li', { hasText: 'Driver' }).click();
+      const drivers = page.locator('.field', { hasText: 'Num. of drivers' });
+      const cue = drivers.locator('.winisd-deviation-cue');
+      await expect(cue).toHaveCount(0);
+      await drivers.locator('select').selectOption('2');
+      await expect(cue).toHaveCount(1);
+      await expect(cue).toHaveAttribute('title', /one driver's impedance/);
+      await page.locator('li', { hasText: /^Advanced$/ }).click();
+      const sw = page.locator('[data-field-key="winisdDriverCountModel"]');
+      await expect(sw).toHaveClass(/error-switch-marked/);
+      await expect(sw.locator('input')).toBeEnabled();
+      await expect(sw.locator('input')).not.toBeChecked();
+      await sw.locator('input').check();
+      await page.locator('.project-nav li', { hasText: 'Driver' }).click();
+      await expect(cue).toHaveCount(0);
+    });
+
     test('the error group fits inside the Compatibility panel', async ({page}) => {
       await showAdvancedOn(page, 'abc');
       const panel = page.locator('.sim-options-box', {hasText: 'WinISD Compatibility'});
@@ -390,12 +407,12 @@ test.describe('Original Advanced tab', () => {
   });
 
   test.describe('WinISD bugs group', () => {
-    const ERROR_KEYS = ['winisdDriverModel', 'winisdVaModel', 'winisdPrNprResonance', 'winisdBesselHighpass', 'winisdAbcGroupDelay'];
+    const ERROR_KEYS = ['winisdDriverModel', 'winisdVaModel', 'winisdPrNprResonance', 'winisdBesselHighpass', 'winisdAbcGroupDelay', 'winisdDriverCountModel'];
     /** The box type each error switch acts on; a switch that applies everywhere is shown on an ABC box. */
     const BOX_FOR: Record<string, BoxTypeName> = {winisdPrNprResonance: 'box-passive-radiator'};
     /** The Bessel switch acts only on a project with a Bessel high-pass filter, so it cannot be ticked here. */
-    const TICKABLE_KEYS = ERROR_KEYS.filter(key => key !== 'winisdBesselHighpass');
-    const DESIGN_KEYS = ['winisdWrapPhase', 'winisdDriverCountModel', 'winisdFlatModel', 'winisdAbcIntraPortVelocity'];
+    const TICKABLE_KEYS = ERROR_KEYS.filter(key => key !== 'winisdBesselHighpass' && key !== 'winisdDriverCountModel');
+    const DESIGN_KEYS = ['winisdWrapPhase', 'winisdFlatModel', 'winisdAbcIntraPortVelocity'];
 
     test('the error switches carry the warning class, unticked and ticked', async ({page}) => {
       for (const key of TICKABLE_KEYS) {

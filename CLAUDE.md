@@ -48,7 +48,7 @@ Three kinds of WinISD difference, handled differently:
   can be reproduced: OpenISD does the correct thing by default and provides a yellow bug switch
   that makes WinISD's calculation come back. Only a straight WinISD bug is yellow (John,
   2026-10-04): the driver model (two BLs), the VA model, the PR Npr resonance, the Bessel
-  high-pass. The switch is off by default, with no exception, editable only where it applies, and
+  high-pass, the ABC group delay, the per-driver impedance. The switch is off by default, with no exception, editable only where it applies, and
   looks different from ordinary switches even when off. While it is off, a ≠W Difference cue by
   the affected control (or chart) says what WinISD does. The bug switches sit in one group
   headed "WinISD bugs", and each is a visible, listed WinISD issue: the switches are how OpenISD

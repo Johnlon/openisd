@@ -142,9 +142,9 @@ export class ProjectAdvanced {
         };
     }
 
-    /** WinISD Compatibility "Enable WinISD style per-driver boxes": N drivers as WinISD simulates them, each alone
-     *  in Vb/N fed P/N (BUG_20260928_driver-count-not-winisd). Off: the N coils wired by `wiring`
-     *  into one terminal impedance. On where a project does not say. */
+    /** WinISD Compatibility "Enable WinISD per-driver impedance bug": the impedance chart shows
+     *  one driver's impedance, as WinISD does (BUG_20260928_driver-count-not-winisd). Off: the
+     *  array the amplifier drives, per `wiring`. Off where a project does not say (John, 2026-10-05). */
     get winisdDriverCountModel(): SimpleField<boolean> {
         const lens = focus(this.#advanced, 'winisdDriverCountModel');
         return {

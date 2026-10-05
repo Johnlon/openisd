@@ -54,16 +54,19 @@ describe('Rg placement', () => {
       }
     });
 
-    it('two drivers in parallel: Rg at the amplifier is the heavier loss, so SPL is lower', () => {
-      // At the driver side each driver carries its own Rg, so the array's series resistance
-      // is Rg/2. At the amplifier one Rg carries the whole current — 2× the series resistance.
-      // OpenISD's wiring model: WinISD's own driver count has no array resistance to share.
-      const P = { nDrivers: 2, wiring: 'parallel' as const, winisdDriverCountModel: false };
-      const atDriver = engine.simulation.sweep(DRV, LE_H, 'sealed', base({ ...P, rgAtDriverSide: true })).values!;
-      const atAmp    = engine.simulation.sweep(DRV, LE_H, 'sealed', base({ ...P, rgAtDriverSide: false })).values!;
-      for (let i = 0; i < atDriver.fs.length; i++)
-        assert.ok(atAmp.spl[i] < atDriver.spl[i],
-          `at ${atDriver.fs[i].toFixed(1)} Hz: amp-side SPL ${atAmp.spl[i]} should be below driver-side ${atDriver.spl[i]}`);
+    it('two drivers: the per-driver impedance bug switch moves the impedance only, never the SPL (John, 2026-10-05)', () => {
+      // WinISD simulates each of N drivers alone in Vb/N fed P/N; OpenISD keeps that for SPL,
+      // excursion, VA and maximum power. Only the impedance chart differs: the array the amplifier
+      // drives (unticked) or one driver's (WinISD's bug, ticked).
+      for (const rgAtDriverSide of [true, false]) {
+        const P = { nDrivers: 2, wiring: 'parallel' as const, rgAtDriverSide };
+        const fixed = engine.simulation.sweep(DRV, LE_H, 'sealed', base({ ...P, winisdDriverCountModel: false })).values!;
+        const bug   = engine.simulation.sweep(DRV, LE_H, 'sealed', base({ ...P, winisdDriverCountModel: true })).values!;
+        for (let i = 0; i < fixed.fs.length; i++) {
+          assert.equal(fixed.spl[i], bug.spl[i], `spl[${i}]`);
+          assert.ok(Math.abs(fixed.zmag[i] - bug.zmag[i] / 2) < 1e-12, `zmag[${i}]`);
+        }
+      }
     });
 
     it('defaults to the driver side when unspecified (backward compatible)', () => {

@@ -19,7 +19,7 @@ const w5 = (): OpenISDProject => {
 const at = (f: number): FrequencyGrid => ({fmin: f, fmax: f * 1.0001, N: 1});
 
 describe('winisdDriverCountModel', () => {
-  it('defaults off: WinISD\'s per-driver boxes are a WinISD bug, fixed by default (John, 2026-10-05)', () => {
+  it('defaults off: WinISD\'s per-driver impedance is a WinISD bug, fixed by default (John, 2026-10-05)', () => {
     expect(w5().winisdDriverCountModel.value).toBe(false);
   });
 
@@ -33,6 +33,37 @@ describe('winisdDriverCountModel', () => {
     expect(p.sweep(at(20000)).values!.zmag[0] / parallel).toBeCloseTo(4, 2);
   });
 
+
+  // WinISD probe, W5 sealed, 1 W, 1 → 4 drivers (winisd_research
+  // bugs/BUG_20261005_winisd_multi_driver_impedance_is_one_drivers.md): the impedance chart shows
+  // one driver's (the bug); the VA chart shows the whole array's, the same 0.968 VA at 1 and 4.
+  const four = (bug: boolean, wiring: 'series' | 'parallel' = 'parallel'): OpenISDProject => {
+    const p = w5();
+    p.nDrivers.set(4);
+    p.wiring.set(wiring);
+    p.winisdDriverCountModel.set(bug);
+    return p;
+  };
+
+  it('VA is the whole array\'s in both states, not one driver\'s (WinISD probe: 0.968 VA at 1 and 4 drivers)', () => {
+    const one = w5().sweep(at(20000)).values!.va[0];
+    for (const bug of [true, false]) {
+      expect(four(bug).sweep(at(20000)).values!.va[0] / one, `bug ${bug}`).toBeCloseTo(1, 3);
+    }
+  });
+
+  it('ticked: the impedance chart is one driver\'s (WinISD); unticked: the array per the wiring', () => {
+    const one = w5().sweep(at(20000)).values!.zmag[0];
+    expect(four(true).sweep(at(20000)).values!.zmag[0] / one).toBeCloseTo(1, 3);
+    expect(four(false, 'parallel').sweep(at(20000)).values!.zmag[0] / one).toBeCloseTo(1 / 4, 3);
+    expect(four(false, 'series').sweep(at(20000)).values!.zmag[0] / one).toBeCloseTo(4, 3);
+  });
+
+  it('SPL is WinISD\'s in both states: the array of four, +12.04 dB over one driver in a quarter of the box at P/4', () => {
+    const a = four(true).sweep(at(1000)).values!.spl[0];
+    const b = four(false).sweep(at(1000)).values!.spl[0];
+    expect(b).toBeCloseTo(a, 9);
+  });
 
   it('is saved in the project and read back', () => {
     const p = w5();

@@ -1324,8 +1324,8 @@ export class ToggleField extends Field {
 
   static readonly ADV_WINISDDRIVERCOUNTMODEL = new ToggleField({
     value: "adv_WinisdDriverCountModel",
-    label: "Enable WinISD per-driver boxes bug",
-    description: "Enable WinISD per-driver boxes bug: affects designs with more than one driver.\nTicked (as WinISD): N drivers are N copies of one driver, each in Vb/N with 1/N of the port, each fed P/N. The impedance and amplifier VA charts show one driver's load, not the array the amplifier drives; SPL is one driver's + 10·log10(N).\nUnticked (the default, bug fixed): the N voice coils are wired, in parallel or series as the project says, into one load the amplifier sees.",
+    label: "Enable WinISD per-driver impedance bug",
+    description: "Enable WinISD per-driver impedance bug: affects the impedance chart of designs with more than one driver. SPL, excursion, amplifier VA and maximum power are WinISD's either way (each driver in Vb/N fed P/N, summed).\nTicked (as WinISD): the impedance chart shows one driver's impedance.\nUnticked (the default, bug fixed): the impedance chart shows the array the amplifier drives, per the project's wiring: one driver's divided by N in parallel, times N in series.",
   });
 
   // ── WinISD Compatibility: options ("Enable WinISD style <name>"; ticked is WinISD's way) ──────

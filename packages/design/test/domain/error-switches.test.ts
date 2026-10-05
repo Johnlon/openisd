@@ -54,7 +54,7 @@ describe('errorSwitches', () => {
     expect(p.errorSwitches.prNprResonance).toEqual({marked: true, applicable: true, reproducesError: true});
   });
 
-  it('per-driver boxes: marked, applicable with more than one driver only, reproducing the bug only when ticked', () => {
+  it('per-driver impedance: marked, applicable with more than one driver only, reproducing the bug only when ticked', () => {
     const p = abcProject();
     p.nDrivers.set(1);
     expect(p.errorSwitches.driverCount).toEqual({marked: true, applicable: false, reproducesError: false});
@@ -64,13 +64,13 @@ describe('errorSwitches', () => {
     expect(p.errorSwitches.driverCount).toEqual({marked: true, applicable: true, reproducesError: true});
   });
 
-  it('per-driver boxes: the deviation cue is in effect with more than one driver while the switch is off', () => {
+  it('per-driver impedance: the deviation cue is in effect with more than one driver while the switch is off', () => {
     const p = abcProject();
     p.nDrivers.set(1);
     expect(WinisdDeviation.DRIVER_COUNT.inEffect(p.errorSwitches)).toBe(false);
     p.nDrivers.set(2);
     expect(WinisdDeviation.DRIVER_COUNT.inEffect(p.errorSwitches)).toBe(true);
-    expect(WinisdDeviation.DRIVER_COUNT.remedy).toMatch(/"Enable WinISD per-driver boxes bug"/);
+    expect(WinisdDeviation.DRIVER_COUNT.remedy).toMatch(/"Enable WinISD per-driver impedance bug"/);
     p.winisdDriverCountModel.set(true);
     expect(WinisdDeviation.DRIVER_COUNT.inEffect(p.errorSwitches)).toBe(false);
   });
