@@ -406,7 +406,6 @@ test.describe('Original Advanced tab', () => {
         await showAdvancedOn(page, 'abc');
         const labels = page.locator('.sim-switches label[data-field-key]');
         await expect(labels).toHaveCount(9);
-        await page.screenshot({path: `/tmp/claude-1000/-home-john-work-winisd-openisd/057b137b-339f-489c-9ca5-bfb9cb4c057e/scratchpad/after-${width}x${height}.png`}); // TEMP
         for (const label of await labels.all()) {
           const m = await label.evaluate(el => {
             const r = document.createRange(); r.selectNodeContents(el);

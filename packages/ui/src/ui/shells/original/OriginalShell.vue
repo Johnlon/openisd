@@ -1235,11 +1235,9 @@ textarea.comment, textarea.description { width:100%; border:1px solid #999; bord
 .option-switch-group-headrow { display: flex; align-items: center; gap: 6px; }
 .option-switch-group-head { font-size: 11px; font-weight: 600; color: #555; }
 .sim-switch-col { display: flex; flex-direction: column; gap: 0; flex: none; }
-/* A short window: the WinISD bugs go in two columns, so the panel stays inside the tab's height. */
-@media (max-height: 600px) {
-  .sim-switches :deep(.error-switch-group) { display: grid; grid-template-columns: repeat(2, max-content); column-gap: 8px; }
-  .sim-switches :deep(.error-switch-group-headrow) { grid-column: 1 / -1; }
-}
+/* The WinISD bugs in two columns: below the Options group they still fit the tab's height. */
+.sim-switches :deep(.error-switch-group) { display: grid; grid-template-columns: repeat(2, max-content); column-gap: 8px; }
+.sim-switches :deep(.error-switch-group-headrow) { grid-column: 1 / -1; }
 .sim-options-header { font-weight: 600; font-size: 11px; color: #333; }
 .sim-options-head { margin-bottom: 3px; border-bottom: 1px solid #d0d0d0; padding-bottom: 2px; }
 .compat-switch-na { opacity: 0.45; cursor: default; }
