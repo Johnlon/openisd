@@ -851,12 +851,12 @@ const winisdDifferences = injectWinisdDifferencesModal();
           <div class="win-controls"><span class="close-btn" @click="openDialogOpen = false">&#10005;</span></div>
         </div>
         <div class="modal-body open-project-body">
-          <button class="open-from-disk" @click="openFromDisk">Import from disk</button>
+          <button class="open-from-disk" @click="openFromDisk">Import project</button>
           <div class="open-project-list">
             <p v-if="storedProjects.length === 0" class="hint">No saved project yet</p>
             <button v-for="projectEntry in storedProjects" :key="projectEntry.id" class="stored-project-row" @click="openStoredProject(projectEntry.id)">
               <span class="stored-project-name">{{ projectEntry.name }}</span>
-              <small class="stored-project-modified">{{ new Date(projectEntry.modified).toLocaleString() }}</small>
+              <small class="stored-project-modified">{{ projectEntry.modified }}</small>
               <small class="stored-project-summary">{{ projectEntry.summary }}</small>
             </button>
           </div>

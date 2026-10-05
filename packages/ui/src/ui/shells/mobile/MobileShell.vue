@@ -149,7 +149,7 @@ const winisdDifferences = injectWinisdDifferencesModal();
         @click="openStoredProject(p.id)">
         <span class="mob-stored-project-name">{{ p.name }}</span>
         <span class="mob-stored-project-summary">{{ p.summary }}</span>
-        <span class="mob-stored-project-modified">{{ new Date(p.modified).toLocaleString() }}</span>
+        <span class="mob-stored-project-modified">{{ p.modified }}</span>
       </button>
     </MobilePaneDialog>
 

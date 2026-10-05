@@ -190,19 +190,19 @@ test.describe('No-project shell', () => {
       await expect(page.locator('.projects-list')).toContainText('sample-project');
     });
 
-    test('Open shows saved browser projects with Import from disk first', async ({ page }) => {
+    test('Open shows saved browser projects with Import project first', async ({ page }) => {
       await page.goto('/');
 
       await page.getByTitle('Open project', {exact: true}).click();
       const dialog = page.locator('.open-project-dialog');
       await expect(dialog).toBeVisible();
-      await expect(dialog.locator('button').first()).toHaveText('Import from disk');
+      await expect(dialog.locator('button').first()).toHaveText('Import project');
       await expect(dialog.locator('.open-project-list')).toContainText('No saved project yet');
     });
 
-    // bugs/archive/BUG_20260929_file-open-dialog-seeded-to-winisd.md — Import from disk opens the system
+    // bugs/archive/BUG_20260929_file-open-dialog-seeded-to-winisd.md — Import project opens the system
     // dialog with our own "OpenISD and WinISD files" filter, and the picked file opens as a project.
-    test('Import from disk asks the system dialog for one OpenISD and WinISD filter and opens the pick', async ({ page }) => {
+    test('Import project asks the system dialog for one OpenISD and WinISD filter and opens the pick', async ({ page }) => {
       await page.addInitScript((owpr: string) => {
         Object.assign(window, {
           showOpenFilePicker: async (options: unknown) => {
@@ -214,7 +214,7 @@ test.describe('No-project shell', () => {
       await page.goto('/');
 
       await page.getByTitle('Open project', {exact: true}).click();
-      await page.locator('.open-project-dialog').getByRole('button', { name: 'Import from disk' }).click();
+      await page.locator('.open-project-dialog').getByRole('button', { name: 'Import project' }).click();
 
       await expect(page.locator('.projects-list')).toContainText('picked-design');
       const options: unknown = JSON.parse(await page.locator('html').getAttribute('data-picker-options') ?? 'null');

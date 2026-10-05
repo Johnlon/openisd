@@ -107,6 +107,10 @@ test.describe('MobileMenu', () => {
         'Tang Band W5-1138SMF · Closed · 20.0 L',
         'Tang Band W5-1138SMF · Vented · 12.0 L',
       ]);
+      // John, 2026-10-05: never US style. "5 Oct 2026, 23:32", whatever the browser locale.
+      for (const modified of await rows.locator('.mob-stored-project-modified').allTextContents()) {
+        expect(modified).toMatch(/^\d{1,2} (Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) \d{4}, \d{2}:\d{2}$/);
+      }
     });
 
     // John, 2026-10-05: "the Open project popup doesn't cover the entire screen — it should".

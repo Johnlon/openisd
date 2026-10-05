@@ -8,6 +8,7 @@
  * becomes a second copy of a fact.
  */
 import {computed} from 'vue';
+import {formatCount} from '@openisd/design/fields';
 import {injectSplashModal} from '../../hooks/SplashModal-hooks.js';
 
 const REPO = 'https://github.com/Johnlon/openisd';
@@ -16,8 +17,8 @@ const {open, dismiss, driverCount, passiveRadiatorCount} = injectSplashModal();
 /** What the bundled library holds, stated only for the counts the catalogue actually gave us. */
 const libraryLine = computed(() => {
   const parts: string[] = [];
-  if (driverCount.value !== null) parts.push(`${driverCount.value.toLocaleString()} drivers`);
-  if (passiveRadiatorCount.value !== null) parts.push(`${passiveRadiatorCount.value.toLocaleString()} passive radiators`);
+  if (driverCount.value !== null) parts.push(`${formatCount(driverCount.value)} drivers`);
+  if (passiveRadiatorCount.value !== null) parts.push(`${formatCount(passiveRadiatorCount.value)} passive radiators`);
   return parts.length === 0 ? '' : `${parts.join(' and ')} are bundled with the app, ready to load.`;
 });
 </script>
@@ -56,7 +57,7 @@ const libraryLine = computed(() => {
           <li><strong>No install, no licence, no platform</strong> — a browser is the whole requirement, and it installs for offline use as a PWA.</li>
           <li><strong>Checked, in public</strong> — every model is tested against the closed-form maths, in CI, on every commit.</li>
           <li><strong>Community-owned</strong> — MIT licensed, open repository, open backlog. It has to survive its author losing interest.</li>
-          <li><strong>Open data</strong> — a shared driver library anyone can contribute a spec sheet to.<template v-if="driverCount !== null"> It holds {{ driverCount.toLocaleString() }} drivers today.</template></li>
+          <li><strong>Open data</strong> — a shared driver library anyone can contribute a spec sheet to.<template v-if="driverCount !== null"> It holds {{ formatCount(driverCount) }} drivers today.</template></li>
         </ul>
       </section>
 

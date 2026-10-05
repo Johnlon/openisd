@@ -76,6 +76,20 @@ const FILTER_EXTRACT_SELECTORS = [{
   message: 'A Filter variant already has a name in packages/design/engine/types.ts (PassFilter, ShelfFilter, …). Use it.',
 }];
 
+// Dates, times and counts a user sees go through `@openisd/design/fields` (`formatDateTime`,
+// `formatDate`, `formatCount`), never the browser locale (John, 2026-10-05: "never never never
+// use US style" dates).
+const LOCALE_FORMAT_SELECTORS = [
+  {
+    selector: 'CallExpression[callee.property.name=/^toLocale(Date|Time)?String$/]',
+    message: 'No locale formatting in the UI. Use formatDateTime / formatDate / formatCount from @openisd/design/fields.',
+  },
+  {
+    selector: 'MemberExpression[object.name="Intl"][property.name="DateTimeFormat"]',
+    message: 'No locale formatting in the UI. Use formatDateTime / formatDate from @openisd/design/fields.',
+  },
+];
+
 export default [
   // ── Ignore generated and dependency directories ──────────────────────────
   // dist-electron/ is the optional desktop shell's build output — same minified bundle as
@@ -335,8 +349,14 @@ export default [
           selector: 'Literal[value=1.2041], Literal[value=343.235], Literal[value=343.2]',
           message: 'Air density and speed of sound are design constants. Read them from packages/design.',
         },
+        ...LOCALE_FORMAT_SELECTORS,
       ],
     },
+  },
+  // Templates too: `{{ x.toLocaleString() }}` showed US dates ("10/5/2026, 11:32:00 PM").
+  {
+    files: ['packages/ui/src/**/*.vue'],
+    rules: { 'vue/no-restricted-syntax': ['error', ...LOCALE_FORMAT_SELECTORS] },
   },
 
   // ── Playwright tests: packages/ui/test/*.browser.spec.ts ─────────────────
