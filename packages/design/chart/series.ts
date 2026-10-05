@@ -466,10 +466,9 @@ export function buildPlotData(
   if (!currentDesign.driver || !currentDesign.curves || !currentDesign.maxCurves)
     return { value: null, errors: chartErrors };
 
-  // Any design, the current one included, may be hidden (visible === false) without being
-  // removed; a design lacking the flag is drawn. With every design hidden the chart keeps the
-  // current design's axes and draws no trace.
-  // bugs/BUG_20261005_focused-project-trace-ignores-its-checkbox.md
+  // Compare overlays may be hidden (visible === false) without being removed. Additive:
+  // the current design is always drawn, and any overlay lacking the flag stays visible —
+  // so a design that never sets `visible` is always drawn.
   //
   // Legend/draw order follows the sidebar's project list order, not "current first"
   // (John, 2026-09-24). `sortIndex` (set by the caller from `openProjects().indexOf(...)`)
@@ -477,20 +476,14 @@ export function buildPlotData(
   // by its position in this call's own arguments.
   // A design draws only on a chart its own box type has: a PR box has no port, so it draws
   // nothing on a port-velocity chart (BUG_20261001_port-velocity-chart-draws-a-pr-box-overlay).
-  const designs = [currentDesign, ...compare]
-    .filter(d => d.visible !== false)
+  const designs = [currentDesign, ...compare.filter(d => d.visible !== false)]
     .filter(d => engine.box.chartsFor(d.box).includes(chartId))
     .map((d, i) => [d, d.sortIndex ?? i] as const)
     .sort((a, b) => a[1] - b[1])
     .map(([d]) => d);
   const multi = designs.length > 1;
   let out: { series: Series[]; ymin: number; ymax: number; logy: boolean; unit: string } | null = null;
-  if (designs.length === 0) {
-    if (currentDesign.visible !== false || !engine.box.chartsFor(currentDesign.box).includes(chartId))
-      return { value: null, errors: chartErrors };
-    const pd = seriesFor(engine, chartId, currentDesign.driver, currentDesign.box, currentDesign.P, currentDesign.curves, currentDesign.maxCurves, opts.bare);
-    out = { series: [], ymin: pd.ymin, ymax: pd.ymax, logy: pd.logy, unit: pd.unit };
-  }
+  if (designs.length === 0) return { value: null, errors: chartErrors };
   for (const [di, d] of designs.entries()) {
     const isCurrent = d === currentDesign;
     const pd = seriesFor(engine, chartId, d.driver!, d.box, d.P, d.curves!, d.maxCurves, opts.bare);
@@ -501,8 +494,6 @@ export function buildPlotData(
       if (!isCurrent) delete prim.xlim; // compare overlays: solid color, no segmented coloring
       else prim.current = true; // the focused project's own trace, drawn emphasized
     }
-    // An overlay drawn alone (the current design hidden) keeps its own project colour.
-    if (!isCurrent && d.color) prim.color = d.color;
     // WinISD trace colour for the active project — matches its Color swatch.
     if (isCurrent && opts.primaryColor) prim.color = opts.primaryColor;
     out.series.push(prim);

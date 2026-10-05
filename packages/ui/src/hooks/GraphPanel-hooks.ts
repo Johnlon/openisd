@@ -3,7 +3,6 @@ import {computed, ref, watch} from 'vue';
 import {allIssues, curvesData, driverName, maxData, openProjects, syncedP} from '../logic/appState.js';
 import {useFocusedProject} from '../logic/focusedProjectContext.js';
 import {presentationState} from '../logic/presentationState.js';
-import {isTraceVisible, traceVisibilityRevision} from '../logic/traceVisibility.js';
 import {
   buildPlotData, type ChartEngineAreas, type Design, DPAL, FrequencyAxis, type PlotData, rangeStatsOf, type RangeStats,
   type SnapDirection, type SnapExtremum, snapFrequency, TAB_META,
@@ -57,9 +56,7 @@ export function useGraphPanel(props: GraphPanelProps, chartEngine: ChartEngineAr
 
   const meta = computed(() => TAB_META[props.chartId]);
 
-  const currentDesign = computed<Design>(() => {
-    void traceVisibilityRevision.value;   // a show/hide toggle recomputes the design (`traceVisibility.ts`)
-    return {
+  const currentDesign = computed<Design>(() => ({
     driver: project.value.driver.specs.sweepDriver(),
     box: project.value.box.boxType.value,
     P: syncedP.value,
@@ -69,11 +66,9 @@ export function useGraphPanel(props: GraphPanelProps, chartEngine: ChartEngineAr
     // `buildPlotData`) — this project's own real name/driver, not the literal word "Current".
     name: project.value.name.value || driverName.value,
     color: props.primaryColor || DPAL[0],
-    visible: isTraceVisible(project.value),
     // Legend/draw order follows the sidebar's project list order, not "current first".
     sortIndex: openProjects().indexOf(project.value),
-    };
-  });
+  }));
 
   const plot = computed(() =>
     buildPlotData(
