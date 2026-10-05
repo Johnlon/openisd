@@ -527,6 +527,7 @@ test.describe('Original Advanced tab', () => {
     test('the error switches carry the warning class, unticked and ticked', async ({page}) => {
       for (const key of TICKABLE_KEYS) {
         await showAdvancedOn(page, BOX_FOR[key] ?? 'abc');
+        // eslint-disable-next-line playwright/no-conditional-in-test
         if (key === 'winisdPrNprResonance') await setPrCount(page, 2);
         const label = page.locator(`label[data-field-key="${key}"]`);
         const box = label.locator('input[type=checkbox]');
