@@ -47,7 +47,7 @@ value). Both boxes step f ± δ, δ = 1e-10 Hz, as every box does. They differ i
 | 3996.92    | 0.034264    | 0.004314      | 0.052306           |
 
 OpenISD differentiates in doubles with the same 1e-10 Hz step, so its BP6 group delay above ~200 Hz
-is rounding noise of the same size as WinISD's, at other values. WinISD's noise cannot be copied.
+is rounding noise of the same size as WinISD's, at other values. WinISD's noise cannot be copied. Kept as it is: the step size is copied and the noise is not emulated (John, 2026-10-05).
 
 ## Fix
 - ABC: correct by default; yellow error switch "Enable WinISD ABC group delay bug"
