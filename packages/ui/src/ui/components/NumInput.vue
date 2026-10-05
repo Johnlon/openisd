@@ -4,6 +4,7 @@ import {presentationState} from '../../logic/presentationState.js';
 import {decimalsSpinRule, formatFixed, shownSpinRule, spinStepAttr, spinValue, type NumberField, type SpinDirection, type SpinRule} from '@openisd/design/fields';
 import type {ProvenanceLetter} from '@openisd/design';
 import {inputFrom} from '../../logic/domEvents.js';
+import {dqReason} from '../../logic/cellDataQuality.js';
 
 // The DQ note makes this a fragment root, so attrs (id, class, …) are not auto-inherited —
 // bind them to the INPUT explicitly (never the ⚠ note).
@@ -249,13 +250,7 @@ const classes = computed(() => {
 const hasDq = computed(() => props.dq != null && props.dq.length > 0);
 const isRootCause = computed(() => hasDq.value && props.dqState === 'E');
 const isSymptom = computed(() => hasDq.value && props.dqState === 'C');
-const dqTooltip = computed(() => {
-  if (!hasDq.value) return props.dq ?? [];
-  const dq = props.dq!.join('; ');
-  if (isRootCause.value) return `This entered value is the problem: ${dq}`;
-  if (isSymptom.value) return `This calculated value is bad because of the flagged input — fix the entered field: ${dq}`;
-  return dq;
-});
+const dqTooltip = computed(() => dqReason({ dq: props.dq ?? [], dqState: props.dqState ?? 'N' }));
 const dqNoteTitle = computed(() => hasDq.value ? `⚠ ${dqTooltip.value}` : '');
 
 const spinRule = computed<SpinRule>(() => {

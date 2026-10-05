@@ -53,9 +53,10 @@ test('every unit with alternates is a working toggle, and every other unit is a 
   await forEachEditorTab(page, async (tab, labels) => {
     for (const label of labels) {
       const fld = driverEditorField(page, label);
-      const unitEl = fld.locator('.u').first();
+      const unitEl = fld.locator('.ui-field-unit, .u').first();
       if (!(await unitEl.count())) continue;                       // no unit — nothing to rotate
       const shownUnit = (await unitEl.innerText()).trim();
+      if (shownUnit === '') continue;                              // a unitless field keeps an empty unit slot
       const spec = convertible[shownUnit];
 
       if (!spec) {
@@ -98,7 +99,7 @@ test('rotating a unit changes the display only — the stored value round-trips'
   await page.getByRole('button', { name: 'Dimensions', exact: true }).click();
   const fld = driverEditorField(page, 'Basket Diameter (Basket)');
   const input = fld.locator('input').first();
-  const unit = fld.locator('.u').first();
+  const unit = fld.locator('.ui-field-unit, .u').first();
 
   await fillAndBlur(input, '165');            // 165 mm
   await unit.click();                 // mm → in
@@ -149,7 +150,7 @@ for (const tab of ['Parameters', 'Advanced']) {
       for (const wanted of labels) {
         const fld = [...document.querySelectorAll<HTMLElement>('.de-body .de-fld')]
           .find(f => (f.querySelector('label')?.textContent || '').trim() === wanted);
-        out[wanted] = fld ? ((fld.querySelector('.u')?.textContent || '').trim() || null) : null;
+        out[wanted] = fld ? ((fld.querySelector('.ui-field-unit, .u')?.textContent || '').trim() || null) : null;
       }
       return out;
     }, want.map(u => u.label));
@@ -172,7 +173,7 @@ for (const { tab, label, defaultUnit, otherUnit } of RESISTANCE_FIELDS) {
   test(`${label}: the resistance unit toggle rotates the label and never the value`, async ({ page }) => {
     await openEditorOn(page, tab);
     const fld = page.locator('.de-body .de-fld', { has: page.locator('label', { hasText: label }) }).first();
-    const unit = fld.locator('.u').first();
+    const unit = fld.locator('.ui-field-unit, .u').first();
     const input = fld.locator('input').first();
 
     await expect(unit).toHaveText(defaultUnit);
@@ -192,7 +193,7 @@ for (const { tab, label, defaultUnit, otherUnit } of RESISTANCE_FIELDS) {
 test('every unit label occupies the same width, whatever it says', async ({ page }) => {
   await openEditorOn(page, 'Dimensions');
   const widths = await page.evaluate(() =>
-    [...document.querySelectorAll<HTMLElement>('.de-body .u, .de-body .unit-toggle')]
+    [...document.querySelectorAll<HTMLElement>('.de-body .ui-field-unit, .de-body .u, .de-body .unit-toggle')]
       .map(u => ({ text: (u.textContent || '').trim(), w: Math.round(u.getBoundingClientRect().width) })));
   expect(widths.length, 'the tab must actually render unit labels').toBeGreaterThan(3);
   const distinct = [...new Set(widths.map(w => w.w))];

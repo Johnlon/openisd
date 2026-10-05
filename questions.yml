@@ -1,5 +1,5 @@
 prefix: QO
-next: 173
+next: 174
 questions:
 - id: QO168
   title: graph cursor/drag-selection exempted from the OpenISDProject three-field architecture gate (S10/QO130)
@@ -6950,9 +6950,15 @@ questions:
       widths through formulas (full interval arithmetic) rather than the current perturbation-based delta
       accumulation; and what the UI shows when a verdict is precision-marginal. Cycle 2+; no schedule.'
   - at: '2026-10-04'
-    text: 'Still deferred. ConsistencyCheck.ts already compares intervals, but derived widths come from nudging each input (perturbation), not full interval arithmetic, which is what this question asks about; John''s answer stands: not now.'
+    text: 'Still deferred. ConsistencyCheck.ts already compares intervals, but derived widths come from
+      nudging each input (perturbation), not full interval arithmetic, which is what this question asks
+      about; John''s answer stands: not now.'
   - at: '2026-10-04'
-    text: 'Correction, DONE (checked with John): the week of 2026-09-29 landed it. Every value carries a half-width: entered from its stated or typed precision, calculated as the first-order bound sum |df/dx|*d(x) over entered inputs (DriverEngine.calculatedWidths, the same bound precision.py used; slopes by central difference). Widths are stored on E and C entries, shown via Field.format(), and the consistency check compares intervals. The earlier still-deferred note was wrong.'
+    text: 'Correction, DONE (checked with John): the week of 2026-09-29 landed it. Every value carries
+      a half-width: entered from its stated or typed precision, calculated as the first-order bound sum
+      |df/dx|*d(x) over entered inputs (DriverEngine.calculatedWidths, the same bound precision.py used;
+      slopes by central difference). Widths are stored on E and C entries, shown via Field.format(), and
+      the consistency check compares intervals. The earlier still-deferred note was wrong.'
   tag: precision
   answer:
     at: '2026-09-04'
@@ -8674,7 +8680,8 @@ questions:
   body: ''
   notes:
   - at: '2026-10-04'
-    text: 'appState.ts no longer has a state/state.box/state.project object; the app is project-or-no-project. Closed by agent (engine) on John''s instruction.'
+    text: appState.ts no longer has a state/state.box/state.project object; the app is project-or-no-project.
+      Closed by agent (engine) on John's instruction.
 - id: QO122
   title: PR editor drops datasheet-vocabulary re-solve; binds canonical spec fields directly
   status: decided
@@ -8947,7 +8954,8 @@ questions:
       - Added 100% Vitest unit test coverage for all active hooks in packages/ui/test/hooks/ (10 test suites, 32 tests passing in <6s).
       - Direction recorded: avoid artificial 1:1 X-hooks.ts per .vue file; prefer in-memory @vue/test-utils with Vitest for fast component logic testing without browser startup costs.
   - at: '2026-10-04'
-    text: 'Done: hook layer in place (one *-hooks.ts per component); the rule is codified in .claude/rules/ui.md and enforced by lint and the architecture test. Closed by agent (engine) on John''s instruction.'
+    text: 'Done: hook layer in place (one *-hooks.ts per component); the rule is codified in .claude/rules/ui.md
+      and enforced by lint and the architecture test. Closed by agent (engine) on John''s instruction.'
 - id: QO130
   title: Which of ViewSnapshot's fields belong to the project and which to the user
   status: decided
@@ -9114,7 +9122,9 @@ questions:
     text: 'HOLD (John, 2026-09-12): Let us get the app working and then reinvestigate this Bandpass4 3Hz
       discrepancy.'
   - at: '2026-10-04'
-    text: 'Resolved: WinISD computes the bandpass4 rear Fr on the lossless model; OpenISD now does too (58.3392 Hz). Pinned against bandpass4.wpr to 1e-9 Hz in winIsdProjectConverter.test.ts (passing). Bug archived 2026-09-09. Closed by agent (engine) on John''s instruction.'
+    text: 'Resolved: WinISD computes the bandpass4 rear Fr on the lossless model; OpenISD now does too
+      (58.3392 Hz). Pinned against bandpass4.wpr to 1e-9 Hz in winIsdProjectConverter.test.ts (passing).
+      Bug archived 2026-09-09. Closed by agent (engine) on John''s instruction.'
 - id: QO134
   title: Tune popup must be a child of a higher component, independent of the box view it was opened from
   status: decided
@@ -9187,7 +9197,8 @@ questions:
       experience and to avoid concurrent error when the focusedProject goes to null. if there is no need
       fo rthis then fine
   - at: '2026-10-05'
-    text: 'Decided: explicit project guards. requireFocusedProject() throws a deliberate error when no project is open; no NullProject exists, and John''s note said it was not needed.'
+    text: 'Decided: explicit project guards. requireFocusedProject() throws a deliberate error when no
+      project is open; no NullProject exists, and John''s note said it was not needed.'
 - id: QO138
   title: Open dialog lists browser projects and offers From disk
   status: done
@@ -9199,7 +9210,8 @@ questions:
       newest first, provides a scrollbar when needed, and puts From disk... at the top; From disk accepts
       .owpr and .wpr, transforming .wpr on import.
   - at: '2026-10-04'
-    text: 'Done: the Open dialog lists saved browser projects with Import from disk at the top (OriginalShell.vue open-project-dialog). Closed by agent (engine) on John''s instruction.'
+    text: 'Done: the Open dialog lists saved browser projects with Import from disk at the top (OriginalShell.vue
+      open-project-dialog). Closed by agent (engine) on John''s instruction.'
 - id: QO139
   title: Saved projects keep hidden selectable version history
   status: decided
@@ -9424,7 +9436,7 @@ questions:
     WHAT IS STILL OPEN FOR YOU, not part of this record but the reason the night ended early: the test suite has 98 failing tests at HEAD out of 284, and its 50 minute running time is almost entirely those failures timing out. Measuring speed further is close to pointless until that is dealt with, and it needs a quiet machine.
   notes:
   - at: '2026-10-04'
-    text: 'Incident record only; seen, nothing to remedy. Closed by agent (engine) on John''s instruction.'
+    text: Incident record only; seen, nothing to remedy. Closed by agent (engine) on John's instruction.
 - id: QO147
   title: 'Saved files: keep or strip the calculated values the solver now writes into the record'
   status: decided
@@ -9552,7 +9564,8 @@ questions:
     defer, which to wontfix. You can ack individual items, fix them, or defer.
   notes:
   - at: '2026-10-04'
-    text: 'Superseded: ASSESSMENT.md was archived to docs/_archive/root/; its findings were worked through the bug list. Closed by agent (engine) on John''s instruction.'
+    text: 'Superseded: ASSESSMENT.md was archived to docs/_archive/root/; its findings were worked through
+      the bug list. Closed by agent (engine) on John''s instruction.'
 - id: QO154
   title: Fixture regeneration needs a ruling — keep new bytes or restore committed sample-project.owpr?
   status: decided
@@ -9624,7 +9637,11 @@ questions:
     The wizard-defaults fixture-fidelity test now masks every state-C (calculated) value before deep-comparing and closeTo(2)-checks the port length, because strict equality can never pass between the two construction paths. Is that intended (two independent solve orderings, both valid), or should identical entered values always solve bit-identically regardless of construction path? If the latter, it is a vents/box solver ordering bug to fix.
   notes:
   - at: '2026-10-05'
-    text: 'Decided: identical entered values solve identically whatever the order they are written. Checked: a vented box with the tuning written before or after the vent diameter gives bit-identical vent lengths (packages/design/test/domain/project-entry-order.test.ts). The wizard no longer writes volume, diameter and tuning live: it builds through ProjectBuilder from a chosen alignment, and the masked fixture spec the question came from is gone.'
+    text: 'Decided: identical entered values solve identically whatever the order they are written. Checked:
+      a vented box with the tuning written before or after the vent diameter gives bit-identical vent
+      lengths (packages/design/test/domain/project-entry-order.test.ts). The wizard no longer writes volume,
+      diameter and tuning live: it builds through ProjectBuilder from a chosen alignment, and the masked
+      fixture spec the question came from is gone.'
 - id: QO158
   title: Approve the component test reorganisation plan
   status: decided
@@ -9645,7 +9662,9 @@ questions:
   - at: '2026-09-18'
     text: MARKED HIGH IMPORTANCE by the human (2026-09-18).
   - at: '2026-10-04'
-    text: 'John: "can''t drop the original now as we have 2 skins, but yes name things after what they test as a RULE". Rule recorded in TESTING_STRATEGY.md (Naming): skin prefix stays (original-/mobile-), the rest names the object under test; a component shared by both skins has no prefix.'
+    text: 'John: "can''t drop the original now as we have 2 skins, but yes name things after what they
+      test as a RULE". Rule recorded in TESTING_STRATEGY.md (Naming): skin prefix stays (original-/mobile-),
+      the rest names the object under test; a component shared by both skins has no prefix.'
 - id: QO159
   title: Consolidate driver field naming into one enum — plan written
   status: done
@@ -9658,7 +9677,8 @@ questions:
     NEEDS FROM YOU: proceed with the consolidation now (it is the proper fix for the failing provenance tests), or park it and land a minimal fix so the failing suite goes green this pass.
   notes:
   - at: '2026-10-04'
-    text: 'Done: driver fields are one static enumeration (Field, packages/design/fields/field.ts); the plan file is retired. Closed by agent (engine) on John''s instruction.'
+    text: 'Done: driver fields are one static enumeration (Field, packages/design/fields/field.ts); the
+      plan file is retired. Closed by agent (engine) on John''s instruction.'
 - id: QO160
   title: 'improvement: fill+blur on a locator should be one intent-named helper'
   status: done
@@ -9677,7 +9697,8 @@ questions:
     so a reader follows the intent ("set this field to 0") instead of the mechanics (fill, then blur, re-resolving the same selector). Sweep the browser specs for the fill-then-blur idiom and route it through a shared intent-named helper (the label-based `numInputByLabel`/`fillAndCommit`/`setNumField` already exist in packages/ui/test/fixtures/numField.ts; the id/selector-based case is still raw).
   notes:
   - at: '2026-10-04'
-    text: 'Done: fillAndCommit / fillAndBlur helpers in packages/ui/test/fixtures/numField.ts. Closed by agent (engine) on John''s instruction.'
+    text: 'Done: fillAndCommit / fillAndBlur helpers in packages/ui/test/fixtures/numField.ts. Closed
+      by agent (engine) on John''s instruction.'
 - id: QO161
   title: Attempted git restore --staged on another session's staged deletions
   status: done
@@ -9685,7 +9706,7 @@ questions:
   body: ''
   notes:
   - at: '2026-10-04'
-    text: 'Incident record only; seen, nothing to remedy. Closed by agent (engine) on John''s instruction.'
+    text: Incident record only; seen, nothing to remedy. Closed by agent (engine) on John's instruction.
 - id: QO162
   title: optional port air-velocity (chuffing) limit as a vent constraint, later
   status: decided
@@ -9696,7 +9717,8 @@ questions:
     Constraints from discussion: (1) port velocity has no meaning without a reference drive level — it scales with input voltage, so the constraint is "peak port velocity at the current design power <= limit"; (2) this is a feasibility CONSTRAINT, not a target or a result — it only makes target outputs go blank, never appears as an output; plan doc section 2 taxonomy may need a fourth "Constraint (optional)" kind; (3) one direction to explore is velocity falling as port area grows, so the infeasible case is when the required area forces a negative/absurd port length — the solver already knows that failure mode. Related companion idea in QO163 (PR excursion/Xlim). WinISD has no such constraint (parity note). Suggested UX: the constraint solver opens as a popup off the main page, like the existing alignment editor (see QO164).
   notes:
   - at: '2026-10-05'
-    text: 'John ruled: no constraint on the vent solve. The port air-velocity limit stays a project field drawn as a red limit line on the port-velocity charts.'
+    text: 'John ruled: no constraint on the vent solve. The port air-velocity limit stays a project field
+      drawn as a red limit line on the port-velocity charts.'
 - id: QO163
   title: PR excursion/Xlim as a tuning constraint or redline, later
   status: decided
@@ -9716,7 +9738,8 @@ questions:
     alignment editor (see QO164).'
   notes:
   - at: '2026-10-05'
-    text: 'John ruled: no constraint on the tuning. The passive radiator''s Xmax is drawn as a red limit line on the PR excursion chart, the same red as the driver''s Xmax line.'
+    text: 'John ruled: no constraint on the tuning. The passive radiator''s Xmax is drawn as a red limit
+      line on the PR excursion chart, the same red as the driver''s Xmax line.'
 - id: QO164
   title: feasibility/constraint solvers open in a popup like the alignment editor, later
   status: decided
@@ -9785,8 +9808,14 @@ questions:
     text: 'Item 6 confirmed by John: WinISD gets a floating-point overflow above order 10, shown in a
       modal error dialog (what looked like a hang). OpenISD now allows orders up to 20.'
   - at: '2026-10-04'
-    text: 'Re-checked by hand in WinISD under Wine, with before/after screenshots. SEEN: items 1 (save drops filters), 2 (Bessel high-pass), 3 (Allpass t/Q, order 4 = order 2), 4 (LR and SOS ignore the order; the editor rewrites a typed LR order to 4); VA rows 1 and 2 (flat band 0.97 at Rg 0.1 ohm, 0.50 at 3.4 ohm; driver side 0.336). PARTLY: item 7 (zero-box skip is on the group-delay charts only, not every chart). NOT SEEN, not reachable by hand: item 5 (unwrap needs a point within 1e-10 Hz of a wrap); stays disassembly-only. Evidence: winisd_research/PROBE_FINDINGS.md, section QO170, and each bug file. Still open and John-decided, not part of this check: the Allpass definition (row 5) and what Linkwitz-Riley / SOS orders mean (row 6), so no switch yet.'
-
+    text: 'Re-checked by hand in WinISD under Wine, with before/after screenshots. SEEN: items 1 (save
+      drops filters), 2 (Bessel high-pass), 3 (Allpass t/Q, order 4 = order 2), 4 (LR and SOS ignore the
+      order; the editor rewrites a typed LR order to 4); VA rows 1 and 2 (flat band 0.97 at Rg 0.1 ohm,
+      0.50 at 3.4 ohm; driver side 0.336). PARTLY: item 7 (zero-box skip is on the group-delay charts
+      only, not every chart). NOT SEEN, not reachable by hand: item 5 (unwrap needs a point within 1e-10
+      Hz of a wrap); stays disassembly-only. Evidence: winisd_research/PROBE_FINDINGS.md, section QO170,
+      and each bug file. Still open and John-decided, not part of this check: the Allpass definition (row
+      5) and what Linkwitz-Riley / SOS orders mean (row 6), so no switch yet.'
 - id: QO171
   title: Filter edit rework started then abandoned after a wrong review
   status: done
@@ -9801,7 +9830,8 @@ questions:
     Decided with: John (the correction), the worker (stopped on request, discarded nothing). Nothing needs doing unless you want the set-aside branch deleted.
   notes:
   - at: '2026-10-04'
-    text: 'Resolved: the set-aside branch wip-filter-edit-rework was deleted 2026-10-04 (kept as tag archive/wip-filter-edit-rework); the good version is on main. Closed by agent (engine) on John''s instruction.'
+    text: 'Resolved: the set-aside branch wip-filter-edit-rework was deleted 2026-10-04 (kept as tag archive/wip-filter-edit-rework);
+      the good version is on main. Closed by agent (engine) on John''s instruction.'
 - id: QO172
   title: An agent went around the reset guard after the history rewrite
   status: done
@@ -9816,4 +9846,21 @@ questions:
     Coordinated with: the other sessions were idle under a freeze at the time and were released afterwards. Nothing to do unless John wants the checkout handled differently.
   notes:
   - at: '2026-10-04'
-    text: 'Closed by John after discussion: no damage, nothing to remedy. Lesson saved: a blocked command means stop and report.'
+    text: 'Closed by John after discussion: no damage, nothing to remedy. Lesson saved: a blocked command
+      means stop and report.'
+- id: QO173
+  title: UIField may take a domain cell as a prop
+  status: decided
+  raised: '2026-10-06'
+  body: |-
+    The new shared number-field component (UIField: label, value box, warning mark, unit) reads and writes a
+    domain cell directly - the project's or driver's own field object - instead of a copy made for the screen.
+
+    A project rule, checked automatically before every commit, says a screen component must never take a domain
+    object as an input, so the screen does not depend on the domain's shape. The check blocked the commit.
+
+    The choice was: let UIField take the cell (simple, one place reads it), or put a small screen-only copy in
+    between (more code, keeps the rule with no exception).
+  answer:
+    at: '2026-10-06'
+    text: coupling the cell is cool

@@ -87,49 +87,31 @@ const RESISTANCE_FIELDS = [
   NumberField.RMS_KG_PER_S, NumberField.RME_KG_PER_S, NumberField.MCOST_KG_PER_S,
 ] as const;
 
-/** Every `.de-fld` block in the editor template that binds a NumInput to a driver cell. */
+/** Every `<UIField>` in the editor template bound to a driver cell. A `UIField` takes its label,
+ *  precision and unit from the ONE `:field` registry member it binds, so those are read off that
+ *  member — the same resolver UIField/NumInput/UnitToggle use at runtime. */
 function boundFields(): Bound[] {
   const out: Bound[] = [];
-  // Split on the field wrapper; each chunk runs to the start of the next field.
-  for (const chunk of src.split('<div class="de-fld"').slice(1)) {
-    const binding = /<label>\{\{ (\w+Field)\.([A-Z0-9_]+)\.label \}\}<\/label>/.exec(chunk);
-    const label = binding ? memberNamed(binding[1], binding[2]).label
-      : /<label>([^<]*)<\/label>/.exec(chunk)?.[1]?.trim();
-    const field = /<NumInput[^>]*:model-value="cellVal\('([^']+)'\)"/.exec(chunk)?.[1];
-    if (!label || !field) continue;                       // read-only readout or a text input
-    const numInput = /<NumInput[\s\S]*?>/.exec(chunk)![0];
-    const regMatch = /:field="(\w+Field)\.([A-Z0-9_]+)"/.exec(numInput);
-    const regField = regMatch ? memberNamed(regMatch[1], regMatch[2]) : null;
-    const precisionExpr = /:precision="([^"]+)"/.exec(numInput)?.[1]
-      ?? (regMatch ? `${regMatch[1]}.${regMatch[2]}.precision` : '');
+  for (const tag of src.match(/<UIField\b[^>]*\/>/g) ?? []) {
+    const regMatch = /:field="(\w+Field)\.([A-Z0-9_]+)"/.exec(tag);
+    const field = /:cell="fieldOf\('([^']+)'\)"/.exec(tag)?.[1];
+    if (!regMatch || !field) continue;
+    const regField = memberNamed(regMatch[1], regMatch[2]);
+    if (!(regField instanceof NumberField)) assert.fail(`${regMatch[1]}.${regMatch[2]} is not a NumberField`);
+    const precisionExpr = `${regMatch[1]}.${regMatch[2]}.precision`;
 
-    // A field with a click-to-rotate unit is SWITCHABLE on its own registry entry — the template
-    // carries only `:field=`, never a separate `group=`/`base=` (BUG_20260928, "NumInput's
-    // group/base props are a fourth table"; the field states its display once, as
-    // `NumberField.display`). Its unit label lives inside UnitToggle.vue's own template, not
-    // literally in this file's source, so `unitDef()` — the same resolver NumInput/UnitToggle use
-    // at runtime — is asked for the field's BASE token, giving the exact label/factor a fresh
-    // render shows.
-    if (regField instanceof NumberField && regField.display.kind === 'switchable') {
+    // A click-to-rotate unit is SWITCHABLE on the field's own registry entry (BUG_20260928,
+    // "NumInput's group/base props are a fourth table"): a fresh render shows its BASE token.
+    if (regField.display.kind === 'switchable') {
       const {group, base} = regField.display;
       const def = unitDef(group, base);
       const scale = def.kind === 'switchable' ? def.factor : 1;
-      out.push({ label, field, scale, precision: evalNum(precisionExpr, 2), unit: def.label, precisionExpr, toggleable: true, regField });
+      out.push({ label: regField.label, field, scale, precision: evalNum(precisionExpr, 2), unit: def.label, precisionExpr, toggleable: true, regField });
       continue;
     }
-
-    const scaleExpr = /:scale="([^"]+)"/.exec(numInput)?.[1] ?? '';
     out.push({
-      label,
-      field,
-      scale: evalNum(scaleExpr, 1),
-      precision: evalNum(precisionExpr, 2),
-      // A fixed-unit field's label is the registry symbol, drawn by UnitToggle (no literal here).
-      unit: regField instanceof NumberField && /<UnitToggle[^>]*:field=/.test(chunk) ? regField.unitLabel()
-        : /<span class="u">([^<]*)<\/span>/.exec(chunk)?.[1]?.trim() ?? '',
-      precisionExpr,
-      toggleable: false,
-      regField,
+      label: regField.label, field, scale: 1, precision: evalNum(precisionExpr, 2),
+      unit: regField.unitLabel(), precisionExpr, toggleable: false, regField,
     });
   }
   return out;

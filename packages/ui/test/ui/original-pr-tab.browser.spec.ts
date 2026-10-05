@@ -323,7 +323,7 @@ test.describe('Original Passive Radiator tab data quality', () => {
     const fpInput = page.locator('#og-pr-fp');
     await expect(fpInput).toHaveClass(/dq-root/);
     await expect(fpInput.locator('xpath=following-sibling::*[1]')).toHaveText('⚠');
-    await expect(fpInput).toHaveAttribute('title', /is the problem/);
+    await expect(fpInput).toHaveAttribute('title', /Conflicts with other values/);
 
     // The DERIVED mass is the symptom: dq-flag, not dq-root. The solve for it would be negative,
     // which is not a mass, so the field is left unavailable (solver.ts `target-unreachable`)

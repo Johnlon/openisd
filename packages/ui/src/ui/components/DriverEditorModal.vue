@@ -10,12 +10,12 @@ import {wiringOptions} from '../../logic/driverDraft.js';
 import {readDriverFileText} from '../../logic/driverFileText.js';
 import {driverToOwdrBytes, driverToWdrBytes} from '../../logic/fileImportExport.js';
 import {cellClassOf} from '../../logic/driverCells.js';
-import {commitMyDriver, dqNoteFor} from '../../hooks/DriverEditorModal-hooks.js';
+import {commitMyDriver} from '../../hooks/DriverEditorModal-hooks.js';
 import type {DqReason} from '@openisd/design';
 import type {Calculated, Clearable, Entered, Precise, Readable, Writable} from '@openisd/design';
-import NumInput from './NumInput.vue';
 import UnitToggle from './UnitToggle.vue';
-import DqMark from './DqMark.vue';
+import UIField from './UIField.vue';
+import {provideCellScope} from './cellScope.js';
 import NumReadout from './NumReadout.vue';
 import {useEscToClose} from '../../logic/useEscToClose.js';
 import {DriverFileFormat} from '../../fileFormat.js';
@@ -68,6 +68,7 @@ const editorTitle = subject.kind === 'myDriver' ? 'Edit My Driver' : "Edit Proje
 const draft = driverDrafts.open(subject, () => project.value.driver);
 const trigger = ref(0);
 function forceUpdate() { trigger.value++; }
+provideCellScope({ revision: trigger, written: forceUpdate });
 const draftDriver = computed(() => { void trigger.value; return draft.driver; });
 
 /** OK on a myDriver subject: save the draft under its uuid — in place, same identity. A save
@@ -162,15 +163,6 @@ function setText(field: 'brand' | 'model' | 'providedBy' | 'comment' | 'manufact
  *  appears as a public parameter on `OpenISDDriver` itself (human ruling 2026-08-24,
  *  ENCAPSULATION_AND_LAYERING.md); this is the one UI-layer dispatch point for the editor's
  *  data-driven field table. */
-/** `precision` is what the typed characters STATE, in SI (NumInput's own second emit argument) —
- *  carried into the record so the consistency check widens this input by what the human wrote,
- *  not by the decimals the SI number happens to print with. */
-function setNum(field: NumSpecField, v: number | null, precision?: number) {
-  const handle = fieldOf(field);
-  if (!handle) return;
-  if (v == null) handle.clear(); else handle.set(v, precision);
-  forceUpdate();
-}
 
 /** The voice-coil wiring, which is a NAME rather than a number and so has its own entry point —
  *  `setNum`'s table is numeric, and routing a wiring through it would put a 1 or a 2 where the
@@ -205,16 +197,6 @@ function setWiring(e: Event) {
 function fieldOf(field: NumSpecField): Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable {
   void trigger.value;
   return draftDriver.value.specField(field);
-}
-
-function cellClass(field: NumSpecField): string {
-  return cellClassOf(cellOf(field));
-}
-
-/** The half-width the cell's value is known to — typed, or inherited from what it was
- *  calculated from — so the field shows the decimals it supports. */
-function cellWidth(field: NumSpecField): number | null {
-  return fieldOf(field).precision;
 }
 
 function cellVal(field: NumSpecField): number | null {
@@ -341,12 +323,6 @@ function handleBodyClickOrFocus(e: Event) {
 // contradict each other beyond their own precision. The ADT decides; every member of the
 // group is marked, because none of them is more wrong than the others. Like every other DQ
 // state here it blocks nothing: the driver still simulates, saves and exports.
-/** The one DQ mark per field: its reason, or '' when there is nothing to say. Reads the CELL's
- *  own DQ (S2-12) — each issue carries its own sentence, so this is a thin read, not a second
- *  derivation of which issue names this field. */
-function dqNote(field: NumSpecField): string {
-  return dqNoteFor(cellOf, field);
-}
 
 // Three lists, never merged: a missing Brand does not blank a chart, a missing Fs does not stop
 // the driver being filed, and values that disagree with each other do neither — every one of
@@ -385,8 +361,6 @@ const inconsistentInputReasons = computed<readonly DqReason[]>(() => {
   return draftDriver.value.inconsistentInputReasons();
 });
 
-// The field answers this itself, off the same draft the rest of the dialog edits.
-const mandatory = (field: NumSpecField) => { void trigger.value; return cellOf(field).mandatoryAndUnsatisfied; };
 
 /** The full-text tooltip for a `.de-incomplete` strip — one line per reason, subject and text
  *  rejoined, since a native `title` attribute cannot render `<strong>`. */
@@ -649,179 +623,59 @@ useEscToClose(() => identityMsgOpen.value, dismissIdentityMsg);
           <div class="de-group">
             <div class="de-hdr">Thiele/Small parameters</div>
             <div class="de-cols">
-              <div class="de-fld" data-field-key="Qes" :style="getFieldStyle('Qes')" :title="NumberField.QES.description">
-                <label>{{ NumberField.QES.label }}</label>
-                <NumInput :class="cellClass('Qes')" :mandatory="mandatory('Qes')" :model-value="cellVal('Qes')" :field="NumberField.QES" :half-width="cellWidth('Qes')" @update:model-value="(v, p) => setNum('Qes', v, p)">
-                </NumInput><DqMark v-if="dqNote('Qes')" :note="dqNote('Qes')" />
-              </div>
-              <div class="de-fld" data-field-key="Qms" :style="getFieldStyle('Qms')" :title="NumberField.QMS.description">
-                <label>{{ NumberField.QMS.label }}</label>
-                <NumInput :class="cellClass('Qms')" :mandatory="mandatory('Qms')" :model-value="cellVal('Qms')" :field="NumberField.QMS" :half-width="cellWidth('Qms')" @update:model-value="(v, p) => setNum('Qms', v, p)">
-                </NumInput><DqMark v-if="dqNote('Qms')" :note="dqNote('Qms')" />
-              </div>
-              <div class="de-fld" data-field-key="Qts" :style="getFieldStyle('Qts')" :title="NumberField.QTS.description">
-                <label>{{ NumberField.QTS.label }}</label>
-                <NumInput :class="cellClass('Qts')" :mandatory="mandatory('Qts')" :model-value="cellVal('Qts')" :field="NumberField.QTS" :half-width="cellWidth('Qts')" @update:model-value="(v, p) => setNum('Qts', v, p)">
-                </NumInput><DqMark v-if="dqNote('Qts')" :note="dqNote('Qts')" />
-              </div>
-              <div class="de-fld" data-field-key="Fs_hz" :style="getFieldStyle('Fs_hz')" :title="NumberField.FS_HZ.description">
-                <label>{{ NumberField.FS_HZ.label }}</label>
-                <NumInput :class="cellClass('Fs_hz')" :mandatory="true" :model-value="cellVal('Fs_hz')" :field="NumberField.FS_HZ" :half-width="cellWidth('Fs_hz')" @update:model-value="(v, p) => setNum('Fs_hz', v, p)">
-                </NumInput><DqMark v-if="dqNote('Fs_hz')" :note="dqNote('Fs_hz')" />
-                <UnitToggle :field="NumberField.FS_HZ" unit-class="u" />
-              </div>
-              <div class="de-fld" data-field-key="Vas_m3" :style="getFieldStyle('Vas_m3')" :title="NumberField.VAS_M3.description">
-                <label>{{ NumberField.VAS_M3.label }}</label>
-                <NumInput :class="cellClass('Vas_m3')" :mandatory="true" :model-value="cellVal('Vas_m3')" :field="NumberField.VAS_M3" :half-width="cellWidth('Vas_m3')" @update:model-value="(v, p) => setNum('Vas_m3', v, p)">
-                </NumInput><DqMark v-if="dqNote('Vas_m3')" :note="dqNote('Vas_m3')" />
-                <UnitToggle :field="NumberField.VAS_M3" unit-class="u" />
-              </div>
+              <UIField class="de-fld" data-field-key="Qes" :style="getFieldStyle('Qes')" :field="NumberField.QES" :cell="fieldOf('Qes')" />
+              <UIField class="de-fld" data-field-key="Qms" :style="getFieldStyle('Qms')" :field="NumberField.QMS" :cell="fieldOf('Qms')" />
+              <UIField class="de-fld" data-field-key="Qts" :style="getFieldStyle('Qts')" :field="NumberField.QTS" :cell="fieldOf('Qts')" />
+              <UIField class="de-fld" data-field-key="Fs_hz" :style="getFieldStyle('Fs_hz')" :field="NumberField.FS_HZ" :cell="fieldOf('Fs_hz')" required />
+              <UIField class="de-fld" data-field-key="Vas_m3" :style="getFieldStyle('Vas_m3')" :field="NumberField.VAS_M3" :cell="fieldOf('Vas_m3')" required />
             </div>
           </div>
 
           <div class="de-group">
             <div class="de-hdr">Electro-Mechanical parameters</div>
             <div class="de-cols">
-              <div class="de-fld" data-field-key="Mms_kg" :style="getFieldStyle('Mms_kg')" :title="NumberField.MMS_KG.description">
-                <label>{{ NumberField.MMS_KG.label }}</label>
-                <NumInput :class="cellClass('Mms_kg')" :model-value="cellVal('Mms_kg')" :field="NumberField.MMS_KG" :half-width="cellWidth('Mms_kg')" @update:model-value="(v, p) => setNum('Mms_kg', v, p)">
-                </NumInput><DqMark v-if="dqNote('Mms_kg')" :note="dqNote('Mms_kg')" />
-                <UnitToggle :field="NumberField.MMS_KG" unit-class="u" />
-              </div>
-              <div class="de-fld" data-field-key="Cms_m_per_N" :style="getFieldStyle('Cms_m_per_N')" :title="NumberField.CMS_M_PER_N.description">
-                <label>{{ NumberField.CMS_M_PER_N.label }}</label>
-                <NumInput :class="cellClass('Cms_m_per_N')" :model-value="cellVal('Cms_m_per_N')" :field="NumberField.CMS_M_PER_N" :half-width="cellWidth('Cms_m_per_N')" @update:model-value="(v, p) => setNum('Cms_m_per_N', v, p)">
-                </NumInput><DqMark v-if="dqNote('Cms_m_per_N')" :note="dqNote('Cms_m_per_N')" />
-                <UnitToggle :field="NumberField.CMS_M_PER_N" unit-class="u" />
-              </div>
-              <div class="de-fld" data-field-key="Rms_kg_per_s" :style="getFieldStyle('Rms_kg_per_s')" :title="NumberField.RMS_KG_PER_S.description">
-                <label>{{ NumberField.RMS_KG_PER_S.label }}</label>
-                <NumInput :class="cellClass('Rms_kg_per_s')" :model-value="cellVal('Rms_kg_per_s')" :field="NumberField.RMS_KG_PER_S" :half-width="cellWidth('Rms_kg_per_s')" @update:model-value="(v, p) => setNum('Rms_kg_per_s', v, p)">
-                </NumInput><DqMark v-if="dqNote('Rms_kg_per_s')" :note="dqNote('Rms_kg_per_s')" />
-                <UnitToggle :field="NumberField.RMS_KG_PER_S" unit-class="u" />
-              </div>
-              <div class="de-fld" data-field-key="Re_ohm" :style="getFieldStyle('Re_ohm')" :title="NumberField.RE_OHM.description">
-                <label>{{ NumberField.RE_OHM.label }}</label>
-                <NumInput :class="cellClass('Re_ohm')" :mandatory="true" :model-value="cellVal('Re_ohm')" :field="NumberField.RE_OHM" :half-width="cellWidth('Re_ohm')" @update:model-value="(v, p) => setNum('Re_ohm', v, p)">
-                </NumInput><DqMark v-if="dqNote('Re_ohm')" :note="dqNote('Re_ohm')" />
-                <UnitToggle :field="NumberField.RE_OHM" unit-class="u" />
-              </div>
-              <div class="de-fld" data-field-key="BL_Tm" :style="getFieldStyle('BL_Tm')" :title="NumberField.BL_TM.description">
-                <label>{{ NumberField.BL_TM.label }}</label>
-                <NumInput :class="cellClass('BL_Tm')" :model-value="cellVal('BL_Tm')" :field="NumberField.BL_TM" :half-width="cellWidth('BL_Tm')" @update:model-value="(v, p) => setNum('BL_Tm', v, p)">
-                </NumInput><DqMark v-if="dqNote('BL_Tm')" :note="dqNote('BL_Tm')" />
-                <UnitToggle :field="NumberField.BL_TM" unit-class="u" />
-              </div>
-              <div class="de-fld" data-field-key="Dd_m" :style="getFieldStyle('Dd_m')" :title="NumberField.DD_M.description">
-                <label>{{ NumberField.DD_M.label }}</label>
-                <NumInput :class="cellClass('Dd_m')" :model-value="cellVal('Dd_m')" :field="NumberField.DD_M" :half-width="cellWidth('Dd_m')" @update:model-value="(v, p) => setNum('Dd_m', v, p)"></NumInput><DqMark v-if="dqNote('Dd_m')" :note="dqNote('Dd_m')" />
-                <UnitToggle :field="NumberField.DD_M" unit-class="u" />
-              </div>
-              <div class="de-fld" data-field-key="Le_H" :style="getFieldStyle('Le_H')" :title="NumberField.LE_H.description">
-                <label>{{ NumberField.LE_H.label }}</label>
-                <NumInput :class="cellClass('Le_H')" :model-value="cellVal('Le_H')" :field="NumberField.LE_H" :half-width="cellWidth('Le_H')" @update:model-value="(v, p) => setNum('Le_H', v, p)">
-                </NumInput><DqMark v-if="dqNote('Le_H')" :note="dqNote('Le_H')" />
-                <UnitToggle :field="NumberField.LE_H" unit-class="u" />
-              </div>
-              <div class="de-fld" data-field-key="Sd_m2" :style="getFieldStyle('Sd_m2')" :title="NumberField.SD_M2.description">
-                <label>{{ NumberField.SD_M2.label }}</label>
-                <NumInput :class="cellClass('Sd_m2')" :mandatory="true" :model-value="cellVal('Sd_m2')" :field="NumberField.SD_M2" :half-width="cellWidth('Sd_m2')" @update:model-value="(v, p) => setNum('Sd_m2', v, p)">
-                </NumInput><DqMark v-if="dqNote('Sd_m2')" :note="dqNote('Sd_m2')" />
-                <UnitToggle :field="NumberField.SD_M2" unit-class="u" />
-              </div>
+              <UIField class="de-fld" data-field-key="Mms_kg" :style="getFieldStyle('Mms_kg')" :field="NumberField.MMS_KG" :cell="fieldOf('Mms_kg')" />
+              <UIField class="de-fld" data-field-key="Cms_m_per_N" :style="getFieldStyle('Cms_m_per_N')" :field="NumberField.CMS_M_PER_N" :cell="fieldOf('Cms_m_per_N')" />
+              <UIField class="de-fld" data-field-key="Rms_kg_per_s" :style="getFieldStyle('Rms_kg_per_s')" :field="NumberField.RMS_KG_PER_S" :cell="fieldOf('Rms_kg_per_s')" />
+              <UIField class="de-fld" data-field-key="Re_ohm" :style="getFieldStyle('Re_ohm')" :field="NumberField.RE_OHM" :cell="fieldOf('Re_ohm')" required />
+              <UIField class="de-fld" data-field-key="BL_Tm" :style="getFieldStyle('BL_Tm')" :field="NumberField.BL_TM" :cell="fieldOf('BL_Tm')" />
+              <UIField class="de-fld" data-field-key="Dd_m" :style="getFieldStyle('Dd_m')" :field="NumberField.DD_M" :cell="fieldOf('Dd_m')" />
+              <UIField class="de-fld" data-field-key="Le_H" :style="getFieldStyle('Le_H')" :field="NumberField.LE_H" :cell="fieldOf('Le_H')" />
+              <UIField class="de-fld" data-field-key="Sd_m2" :style="getFieldStyle('Sd_m2')" :field="NumberField.SD_M2" :cell="fieldOf('Sd_m2')" required />
               <!-- fLe is STORED IN HERTZ (docs/design/WINISD_SCHEMA.md) and shown in kHz, so the
                    scale DIVIDES by 1000. NumInput renders `SI × scale`, so a ×1000 here read
                    Hz as kHz and put the field out by 1e6. -->
-              <div class="de-fld" data-field-key="fLe_hz" :style="getFieldStyle('fLe_hz')" :title="NumberField.FLE_HZ.description">
-                <label>{{ NumberField.FLE_HZ.label }}</label>
-                <NumInput :class="cellClass('fLe_hz')" :model-value="cellVal('fLe_hz')" :field="NumberField.FLE_HZ" :half-width="cellWidth('fLe_hz')" @update:model-value="(v, p) => setNum('fLe_hz', v, p)"></NumInput><DqMark v-if="dqNote('fLe_hz')" :note="dqNote('fLe_hz')" />
-                <UnitToggle :field="NumberField.FLE_HZ" unit-class="u" />
-              </div>
-              <div class="de-fld" data-field-key="KLe_H_sqrtHz" :style="getFieldStyle('KLe_H_sqrtHz')" :title="NumberField.KLE_H_SQRTHZ.description">
-                <label>{{ NumberField.KLE_H_SQRTHZ.label }}</label>
-                <NumInput :class="cellClass('KLe_H_sqrtHz')" :model-value="cellVal('KLe_H_sqrtHz')" :field="NumberField.KLE_H_SQRTHZ" :half-width="cellWidth('KLe_H_sqrtHz')" @update:model-value="(v, p) => setNum('KLe_H_sqrtHz', v, p)"></NumInput><DqMark v-if="dqNote('KLe_H_sqrtHz')" :note="dqNote('KLe_H_sqrtHz')" />
-                <UnitToggle :field="NumberField.KLE_H_SQRTHZ" unit-class="u" />
-              </div>
+              <UIField class="de-fld" data-field-key="fLe_hz" :style="getFieldStyle('fLe_hz')" :field="NumberField.FLE_HZ" :cell="fieldOf('fLe_hz')" />
+              <UIField class="de-fld" data-field-key="KLe_H_sqrtHz" :style="getFieldStyle('KLe_H_sqrtHz')" :field="NumberField.KLE_H_SQRTHZ" :cell="fieldOf('KLe_H_sqrtHz')" />
             </div>
           </div>
 
           <div class="de-group">
             <div class="de-hdr">Large-Signal parameters</div>
             <div class="de-cols">
-              <div class="de-fld" data-field-key="Xmax_m" :style="getFieldStyle('Xmax_m')" :title="NumberField.XMAX_M.description">
-                <label>{{ NumberField.XMAX_M.label }}</label>
-                <NumInput :class="cellClass('Xmax_m')" :model-value="cellVal('Xmax_m')" :field="NumberField.XMAX_M" :half-width="cellWidth('Xmax_m')" @update:model-value="(v, p) => setNum('Xmax_m', v, p)">
-                </NumInput><DqMark v-if="dqNote('Xmax_m')" :note="dqNote('Xmax_m')" />
-                <UnitToggle :field="NumberField.XMAX_M" unit-class="u" />
-              </div>
-              <div class="de-fld" data-field-key="Hc_m" :style="getFieldStyle('Hc_m')" :title="NumberField.HC_M.description">
-                <label>{{ NumberField.HC_M.label }}</label>
-                <NumInput :class="cellClass('Hc_m')" :model-value="cellVal('Hc_m')" :field="NumberField.HC_M" :half-width="cellWidth('Hc_m')" @update:model-value="(v, p) => setNum('Hc_m', v, p)"></NumInput><DqMark v-if="dqNote('Hc_m')" :note="dqNote('Hc_m')" />
-                <UnitToggle :field="NumberField.HC_M" unit-class="u" />
-              </div>
-              <div class="de-fld" data-field-key="Hg_m" :style="getFieldStyle('Hg_m')" :title="NumberField.HG_M.description">
-                <label>{{ NumberField.HG_M.label }}</label>
-                <NumInput :class="cellClass('Hg_m')" :model-value="cellVal('Hg_m')" :field="NumberField.HG_M" :half-width="cellWidth('Hg_m')" @update:model-value="(v, p) => setNum('Hg_m', v, p)"></NumInput><DqMark v-if="dqNote('Hg_m')" :note="dqNote('Hg_m')" />
-                <UnitToggle :field="NumberField.HG_M" unit-class="u" />
-              </div>
+              <UIField class="de-fld" data-field-key="Xmax_m" :style="getFieldStyle('Xmax_m')" :field="NumberField.XMAX_M" :cell="fieldOf('Xmax_m')" />
+              <UIField class="de-fld" data-field-key="Hc_m" :style="getFieldStyle('Hc_m')" :field="NumberField.HC_M" :cell="fieldOf('Hc_m')" />
+              <UIField class="de-fld" data-field-key="Hg_m" :style="getFieldStyle('Hg_m')" :field="NumberField.HG_M" :cell="fieldOf('Hg_m')" />
 
-              <div class="de-fld" data-field-key="Vd_m3" :style="getFieldStyle('Vd_m3')" :title="NumberField.VD_M3.description">
-                <label>{{ NumberField.VD_M3.label }}</label>
-                <NumInput :class="cellClass('Vd_m3')" :model-value="cellVal('Vd_m3')" :field="NumberField.VD_M3" :half-width="cellWidth('Vd_m3')" @update:model-value="(v, p) => setNum('Vd_m3', v, p)"></NumInput><DqMark v-if="dqNote('Vd_m3')" :note="dqNote('Vd_m3')" />
-                <UnitToggle :field="NumberField.VD_M3" unit-class="u" />
-              </div>
-              <div class="de-fld" data-field-key="Xlim_m" :style="getFieldStyle('Xlim_m')" :title="NumberField.XLIM_M.description">
-                <label>{{ NumberField.XLIM_M.label }}</label>
-                <NumInput :class="cellClass('Xlim_m')" :model-value="cellVal('Xlim_m')" :field="NumberField.XLIM_M" :half-width="cellWidth('Xlim_m')" @update:model-value="(v, p) => setNum('Xlim_m', v, p)"></NumInput><DqMark v-if="dqNote('Xlim_m')" :note="dqNote('Xlim_m')" />
-                <UnitToggle :field="NumberField.XLIM_M" unit-class="u" />
-              </div>
-              <div class="de-fld" data-field-key="Pe_W" :style="getFieldStyle('Pe_W')" :title="NumberField.PE_W.description">
-                <label>{{ NumberField.PE_W.label }}</label>
-                <NumInput :class="cellClass('Pe_W')" :model-value="cellVal('Pe_W')" :field="NumberField.PE_W" :half-width="cellWidth('Pe_W')" @update:model-value="(v, p) => setNum('Pe_W', v, p)">
-                </NumInput><DqMark v-if="dqNote('Pe_W')" :note="dqNote('Pe_W')" />
-                <UnitToggle :field="NumberField.PE_W" unit-class="u" />
-              </div>
+              <UIField class="de-fld" data-field-key="Vd_m3" :style="getFieldStyle('Vd_m3')" :field="NumberField.VD_M3" :cell="fieldOf('Vd_m3')" />
+              <UIField class="de-fld" data-field-key="Xlim_m" :style="getFieldStyle('Xlim_m')" :field="NumberField.XLIM_M" :cell="fieldOf('Xlim_m')" />
+              <UIField class="de-fld" data-field-key="Pe_W" :style="getFieldStyle('Pe_W')" :field="NumberField.PE_W" :cell="fieldOf('Pe_W')" />
             </div>
           </div>
 
           <div class="de-group">
             <div class="de-hdr">Miscellaneous parameters</div>
             <div class="de-cols">
-              <div class="de-fld" data-field-key="no" :style="getFieldStyle('no')" :title="NumberField.NO.description">
-                <label>{{ NumberField.NO.label }}</label>
-                <NumInput :class="cellClass('no')" :model-value="cellVal('no')" :field="NumberField.NO" :half-width="cellWidth('no')" @update:model-value="(v, p) => setNum('no', v, p)"></NumInput><DqMark v-if="dqNote('no')" :note="dqNote('no')" />
-                <UnitToggle :field="NumberField.NO" unit-class="u" />
-              </div>
-              <div class="de-fld" data-field-key="Znom_ohm" :style="getFieldStyle('Znom_ohm')" :title="NumberField.ZNOM_OHM.description">
-                <label>{{ NumberField.ZNOM_OHM.label }}</label>
-                <NumInput :class="cellClass('Znom_ohm')" :model-value="cellVal('Znom_ohm')" :field="NumberField.ZNOM_OHM" :half-width="cellWidth('Znom_ohm')" @update:model-value="(v, p) => setNum('Znom_ohm', v, p)">
-                </NumInput><DqMark v-if="dqNote('Znom_ohm')" :note="dqNote('Znom_ohm')" />
-                <UnitToggle :field="NumberField.ZNOM_OHM" unit-class="u" />
-              </div>
-              <div class="de-fld" data-field-key="USPL_dB" :style="getFieldStyle('USPL_dB')" :title="NumberField.USPL_DB.description">
-                <label>{{ NumberField.USPL_DB.label }}</label>
-                <NumInput :class="cellClass('USPL_dB')" :model-value="cellVal('USPL_dB')" :field="NumberField.USPL_DB" :half-width="cellWidth('USPL_dB')" @update:model-value="(v, p) => setNum('USPL_dB', v, p)"></NumInput><DqMark v-if="dqNote('USPL_dB')" :note="dqNote('USPL_dB')" />
-                <UnitToggle :field="NumberField.USPL_DB" unit-class="u" />
-              </div>
-              <div class="de-fld" data-field-key="SPL_dB" :style="getFieldStyle('SPL_dB')" :title="NumberField.SPL_DB.description">
-                <label>{{ NumberField.SPL_DB.label }}</label>
-                <NumInput :class="cellClass('SPL_dB')" :model-value="cellVal('SPL_dB')" :field="NumberField.SPL_DB" :half-width="cellWidth('SPL_dB')" @update:model-value="(v, p) => setNum('SPL_dB', v, p)"></NumInput><DqMark v-if="dqNote('SPL_dB')" :note="dqNote('SPL_dB')" />
-                <UnitToggle :field="NumberField.SPL_DB" unit-class="u" />
-              </div>
-              <div class="de-fld" data-field-key="numVC" :style="getFieldStyle('numVC')" :title="NumberField.NUMVC.description">
-                <label>{{ NumberField.NUMVC.label }}</label>
-                <NumInput :class="cellClass('numVC')" :model-value="cellVal('numVC')" :field="NumberField.NUMVC" :half-width="cellWidth('numVC')" @update:model-value="(v, p) => setNum('numVC', v, p)"></NumInput><DqMark v-if="dqNote('numVC')" :note="dqNote('numVC')" />
-              </div>
+              <UIField class="de-fld" data-field-key="no" :style="getFieldStyle('no')" :field="NumberField.NO" :cell="fieldOf('no')" />
+              <UIField class="de-fld" data-field-key="Znom_ohm" :style="getFieldStyle('Znom_ohm')" :field="NumberField.ZNOM_OHM" :cell="fieldOf('Znom_ohm')" />
+              <UIField class="de-fld" data-field-key="USPL_dB" :style="getFieldStyle('USPL_dB')" :field="NumberField.USPL_DB" :cell="fieldOf('USPL_dB')" />
+              <UIField class="de-fld" data-field-key="SPL_dB" :style="getFieldStyle('SPL_dB')" :field="NumberField.SPL_DB" :cell="fieldOf('SPL_dB')" />
+              <UIField class="de-fld" data-field-key="numVC" :style="getFieldStyle('numVC')" :field="NumberField.NUMVC" :cell="fieldOf('numVC')" />
               <div class="de-fld de-conn" data-field-key="VCCon" :title="EnumField.VCCON.description">
                 <label>{{ EnumField.VCCON.label }}</label>
                 <select class="de-conn-sel" :class="wiringClass" :value="driverRaw.VCCon ?? 'parallel'" @change="setWiring"><option v-for="o in WIRING_OPTIONS" :key="o.value" :value="o.value">{{ o.label }}</option></select>
               </div>
-              <div class="de-fld" data-field-key="power_peak_W" :style="getFieldStyle('power_peak_W')" :title="NumberField.POWER_PEAK_W.description">
-                <label>{{ NumberField.POWER_PEAK_W.label }}</label>
-                <NumInput :class="cellClass('power_peak_W')" :model-value="cellVal('power_peak_W')" :field="NumberField.POWER_PEAK_W" :half-width="cellWidth('power_peak_W')" @update:model-value="(v, p) => setNum('power_peak_W', v, p)">
-                </NumInput><DqMark v-if="dqNote('power_peak_W')" :note="dqNote('power_peak_W')" />
-                <UnitToggle :field="NumberField.POWER_PEAK_W" unit-class="u" />
-              </div>
+              <UIField class="de-fld" data-field-key="power_peak_W" :style="getFieldStyle('power_peak_W')" :field="NumberField.POWER_PEAK_W" :cell="fieldOf('power_peak_W')" />
             </div>
           </div>
         </div>
@@ -831,69 +685,25 @@ useEscToClose(() => identityMsgOpen.value, dismissIdentityMsg);
           <div class="de-group">
             <div class="de-hdr">Thermal parameters</div>
             <div class="de-cols">
-              <div class="de-fld" data-field-key="alfaVC_per_K" :style="getFieldStyle('alfaVC_per_K')" :title="NumberField.ALFAVC_PER_K.description">
-                <label>{{ NumberField.ALFAVC_PER_K.label }}</label>
-                <NumInput :class="cellClass('alfaVC_per_K')" :model-value="cellVal('alfaVC_per_K')" :field="NumberField.ALFAVC_PER_K" :half-width="cellWidth('alfaVC_per_K')" @update:model-value="(v, p) => setNum('alfaVC_per_K', v, p)"></NumInput><DqMark v-if="dqNote('alfaVC_per_K')" :note="dqNote('alfaVC_per_K')" />
-                <UnitToggle :field="NumberField.ALFAVC_PER_K" unit-class="u" />
-              </div>
-              <div class="de-fld" data-field-key="Rt_K_per_W" :style="getFieldStyle('Rt_K_per_W')" :title="NumberField.RT_K_PER_W.description">
-                <label>{{ NumberField.RT_K_PER_W.label }}</label>
-                <NumInput :class="cellClass('Rt_K_per_W')" :model-value="cellVal('Rt_K_per_W')" :field="NumberField.RT_K_PER_W" :half-width="cellWidth('Rt_K_per_W')" @update:model-value="(v, p) => setNum('Rt_K_per_W', v, p)"></NumInput><DqMark v-if="dqNote('Rt_K_per_W')" :note="dqNote('Rt_K_per_W')" />
-                <UnitToggle :field="NumberField.RT_K_PER_W" unit-class="u" />
-              </div>
-              <div class="de-fld" data-field-key="Ct_J_per_K" :style="getFieldStyle('Ct_J_per_K')" :title="NumberField.CT_J_PER_K.description">
-                <label>{{ NumberField.CT_J_PER_K.label }}</label>
-                <NumInput :class="cellClass('Ct_J_per_K')" :model-value="cellVal('Ct_J_per_K')" :field="NumberField.CT_J_PER_K" :half-width="cellWidth('Ct_J_per_K')" @update:model-value="(v, p) => setNum('Ct_J_per_K', v, p)"></NumInput><DqMark v-if="dqNote('Ct_J_per_K')" :note="dqNote('Ct_J_per_K')" />
-                <UnitToggle :field="NumberField.CT_J_PER_K" unit-class="u" />
-              </div>
+              <UIField class="de-fld" data-field-key="alfaVC_per_K" :style="getFieldStyle('alfaVC_per_K')" :field="NumberField.ALFAVC_PER_K" :cell="fieldOf('alfaVC_per_K')" />
+              <UIField class="de-fld" data-field-key="Rt_K_per_W" :style="getFieldStyle('Rt_K_per_W')" :field="NumberField.RT_K_PER_W" :cell="fieldOf('Rt_K_per_W')" />
+              <UIField class="de-fld" data-field-key="Ct_J_per_K" :style="getFieldStyle('Ct_J_per_K')" :field="NumberField.CT_J_PER_K" :cell="fieldOf('Ct_J_per_K')" />
             </div>
           </div>
 
           <div class="de-group">
             <div class="de-hdr">Figure of merits</div>
             <div class="de-cols">
-              <div class="de-fld" data-field-key="SPLmaxLF_dB" :style="getFieldStyle('SPLmaxLF_dB')" :title="NumberField.SPLMAXLF_DB.description">
-                <label>{{ NumberField.SPLMAXLF_DB.label }}</label>
-                <NumInput :class="cellClass('SPLmaxLF_dB')" :model-value="cellVal('SPLmaxLF_dB')" :field="NumberField.SPLMAXLF_DB" :half-width="cellWidth('SPLmaxLF_dB')" @update:model-value="(v, p) => setNum('SPLmaxLF_dB', v, p)"></NumInput><DqMark v-if="dqNote('SPLmaxLF_dB')" :note="dqNote('SPLmaxLF_dB')" />
-                <UnitToggle :field="NumberField.SPLMAXLF_DB" unit-class="u" />
-              </div>
-              <div class="de-fld" data-field-key="SPLmax_dB" :style="getFieldStyle('SPLmax_dB')" :title="NumberField.SPLMAX_DB.description">
-                <label>{{ NumberField.SPLMAX_DB.label }}</label>
-                <NumInput :class="cellClass('SPLmax_dB')" :model-value="cellVal('SPLmax_dB')" :field="NumberField.SPLMAX_DB" :half-width="cellWidth('SPLmax_dB')" @update:model-value="(v, p) => setNum('SPLmax_dB', v, p)"></NumInput><DqMark v-if="dqNote('SPLmax_dB')" :note="dqNote('SPLmax_dB')" />
-                <UnitToggle :field="NumberField.SPLMAX_DB" unit-class="u" />
-              </div>
-              <div class="de-fld" data-field-key="Rme_kg_per_s" :style="getFieldStyle('Rme_kg_per_s')" :title="NumberField.RME_KG_PER_S.description">
-                <label>{{ NumberField.RME_KG_PER_S.label }}</label>
-                <NumInput :class="cellClass('Rme_kg_per_s')" :model-value="cellVal('Rme_kg_per_s')" :field="NumberField.RME_KG_PER_S" :half-width="cellWidth('Rme_kg_per_s')" @update:model-value="(v, p) => setNum('Rme_kg_per_s', v, p)"></NumInput><DqMark v-if="dqNote('Rme_kg_per_s')" :note="dqNote('Rme_kg_per_s')" />
-                <UnitToggle :field="NumberField.RME_KG_PER_S" unit-class="u" />
-              </div>
-              <div class="de-fld" data-field-key="gamma_m_per_s2_A" :style="getFieldStyle('gamma_m_per_s2_A')" :title="NumberField.GAMMA_M_PER_S2_A.description">
-                <label>{{ NumberField.GAMMA_M_PER_S2_A.label }}</label>
-                <NumInput :class="cellClass('gamma_m_per_s2_A')" :model-value="cellVal('gamma_m_per_s2_A')" :field="NumberField.GAMMA_M_PER_S2_A" :half-width="cellWidth('gamma_m_per_s2_A')" @update:model-value="(v, p) => setNum('gamma_m_per_s2_A', v, p)"></NumInput><DqMark v-if="dqNote('gamma_m_per_s2_A')" :note="dqNote('gamma_m_per_s2_A')" />
-                <UnitToggle :field="NumberField.GAMMA_M_PER_S2_A" unit-class="u" />
-              </div>
-              <div class="de-fld" data-field-key="Mpow_N_per_sqrtW" :style="getFieldStyle('Mpow_N_per_sqrtW')" :title="NumberField.MPOW_N_PER_SQRTW.description">
-                <label>{{ NumberField.MPOW_N_PER_SQRTW.label }}</label>
-                <NumInput :class="cellClass('Mpow_N_per_sqrtW')" :model-value="cellVal('Mpow_N_per_sqrtW')" :field="NumberField.MPOW_N_PER_SQRTW" :half-width="cellWidth('Mpow_N_per_sqrtW')" @update:model-value="(v, p) => setNum('Mpow_N_per_sqrtW', v, p)"></NumInput><DqMark v-if="dqNote('Mpow_N_per_sqrtW')" :note="dqNote('Mpow_N_per_sqrtW')" />
-                <UnitToggle :field="NumberField.MPOW_N_PER_SQRTW" unit-class="u" />
-              </div>
-              <div class="de-fld" data-field-key="Mcost_kg_per_s" :style="getFieldStyle('Mcost_kg_per_s')" :title="NumberField.MCOST_KG_PER_S.description">
-                <label>{{ NumberField.MCOST_KG_PER_S.label }}</label>
-                <NumInput :class="cellClass('Mcost_kg_per_s')" :model-value="cellVal('Mcost_kg_per_s')" :field="NumberField.MCOST_KG_PER_S" :half-width="cellWidth('Mcost_kg_per_s')" @update:model-value="(v, p) => setNum('Mcost_kg_per_s', v, p)"></NumInput><DqMark v-if="dqNote('Mcost_kg_per_s')" :note="dqNote('Mcost_kg_per_s')" />
-                <UnitToggle :field="NumberField.MCOST_KG_PER_S" unit-class="u" />
-              </div>
-              <div class="de-fld" data-field-key="EBP_hz" :style="getFieldStyle('EBP_hz')" :title="NumberField.EBP_HZ.description">
-                <label>{{ NumberField.EBP_HZ.label }}</label>
-                <NumInput :class="cellClass('EBP_hz')" :model-value="cellVal('EBP_hz')" :field="NumberField.EBP_HZ" :half-width="cellWidth('EBP_hz')" @update:model-value="(v, p) => setNum('EBP_hz', v, p)"></NumInput><DqMark v-if="dqNote('EBP_hz')" :note="dqNote('EBP_hz')" />
-                <UnitToggle :field="NumberField.EBP_HZ" unit-class="u" />
-              </div>
+              <UIField class="de-fld" data-field-key="SPLmaxLF_dB" :style="getFieldStyle('SPLmaxLF_dB')" :field="NumberField.SPLMAXLF_DB" :cell="fieldOf('SPLmaxLF_dB')" />
+              <UIField class="de-fld" data-field-key="SPLmax_dB" :style="getFieldStyle('SPLmax_dB')" :field="NumberField.SPLMAX_DB" :cell="fieldOf('SPLmax_dB')" />
+              <UIField class="de-fld" data-field-key="Rme_kg_per_s" :style="getFieldStyle('Rme_kg_per_s')" :field="NumberField.RME_KG_PER_S" :cell="fieldOf('Rme_kg_per_s')" />
+              <UIField class="de-fld" data-field-key="gamma_m_per_s2_A" :style="getFieldStyle('gamma_m_per_s2_A')" :field="NumberField.GAMMA_M_PER_S2_A" :cell="fieldOf('gamma_m_per_s2_A')" />
+              <UIField class="de-fld" data-field-key="Mpow_N_per_sqrtW" :style="getFieldStyle('Mpow_N_per_sqrtW')" :field="NumberField.MPOW_N_PER_SQRTW" :cell="fieldOf('Mpow_N_per_sqrtW')" />
+              <UIField class="de-fld" data-field-key="Mcost_kg_per_s" :style="getFieldStyle('Mcost_kg_per_s')" :field="NumberField.MCOST_KG_PER_S" :cell="fieldOf('Mcost_kg_per_s')" />
+              <UIField class="de-fld" data-field-key="EBP_hz" :style="getFieldStyle('EBP_hz')" :field="NumberField.EBP_HZ" :cell="fieldOf('EBP_hz')" />
               <!-- The model holds the FRACTION the .wdr carries; WinISD's pane prints a
                    percentage. The `percent` unit group is the ONE place that ×100 lives. -->
-              <div class="de-fld" data-field-key="Gloss" :style="getFieldStyle('Gloss')" :title="NumberField.GLOSS.description">
-                <label>{{ NumberField.GLOSS.label }}</label>
-                <NumInput :class="cellClass('Gloss')" :model-value="cellVal('Gloss')" :field="NumberField.GLOSS" :half-width="cellWidth('Gloss')" @update:model-value="(v, p) => setNum('Gloss', v, p)"></NumInput><DqMark v-if="dqNote('Gloss')" :note="dqNote('Gloss')" />
-                <UnitToggle :field="NumberField.GLOSS" unit-class="u" />
-              </div>
+              <UIField class="de-fld" data-field-key="Gloss" :style="getFieldStyle('Gloss')" :field="NumberField.GLOSS" :cell="fieldOf('Gloss')" />
             </div>
           </div>
 
@@ -920,14 +730,14 @@ useEscToClose(() => identityMsgOpen.value, dismissIdentityMsg);
                  the same unit the Parameters tab uses for Xmax/Hc/Hg/Dd, and one of the units
                  WinISD offers on each of these fields. Unscaled, a 6.5" basket read "0.17";
                  Thick read a metre value under an inches label. -->
-            <div class="de-fld" data-field-key="Thick_m" :title="NumberField.THICK_M.description"><label>{{ NumberField.THICK_M.label }}</label><NumInput :class="cellClass('Thick_m')" :model-value="cellVal('Thick_m')" :field="NumberField.THICK_M" :half-width="cellWidth('Thick_m')" @update:model-value="(v, p) => setNum('Thick_m', v, p)"></NumInput><DqMark v-if="dqNote('Thick_m')" :note="dqNote('Thick_m')" /><UnitToggle :field="NumberField.THICK_M" unit-class="u" /></div>
-            <div class="de-fld" data-field-key="Depth_m" :style="getFieldStyle('Depth_m')" :title="NumberField.DEPTH_M.description"><label>{{ NumberField.DEPTH_M.label }}</label><NumInput :class="cellClass('Depth_m')" :model-value="cellVal('Depth_m')" :field="NumberField.DEPTH_M" :half-width="cellWidth('Depth_m')" @update:model-value="(v, p) => setNum('Depth_m', v, p)"></NumInput><DqMark v-if="dqNote('Depth_m')" :note="dqNote('Depth_m')" /><UnitToggle :field="NumberField.DEPTH_M" unit-class="u" /></div>
-            <div class="de-fld" data-field-key="MagDepth_m" :style="getFieldStyle('MagDepth_m')" :title="NumberField.MAGDEPTH_M.description"><label>{{ NumberField.MAGDEPTH_M.label }}</label><NumInput :class="cellClass('MagDepth_m')" :model-value="cellVal('MagDepth_m')" :field="NumberField.MAGDEPTH_M" :half-width="cellWidth('MagDepth_m')" @update:model-value="(v, p) => setNum('MagDepth_m', v, p)"></NumInput><DqMark v-if="dqNote('MagDepth_m')" :note="dqNote('MagDepth_m')" /><UnitToggle :field="NumberField.MAGDEPTH_M" unit-class="u" /></div>
-            <div class="de-fld" data-field-key="Magnet_m" :style="getFieldStyle('Magnet_m')" :title="NumberField.MAGNET_M.description"><label>{{ NumberField.MAGNET_M.label }}</label><NumInput :class="cellClass('Magnet_m')" :model-value="cellVal('Magnet_m')" :field="NumberField.MAGNET_M" :half-width="cellWidth('Magnet_m')" @update:model-value="(v, p) => setNum('Magnet_m', v, p)"></NumInput><DqMark v-if="dqNote('Magnet_m')" :note="dqNote('Magnet_m')" /><UnitToggle :field="NumberField.MAGNET_M" unit-class="u" /></div>
-            <div class="de-fld" data-field-key="Basket_m" :title="NumberField.BASKET_M.description"><label>{{ NumberField.BASKET_M.label }}</label><NumInput :class="cellClass('Basket_m')" :model-value="cellVal('Basket_m')" :field="NumberField.BASKET_M" :half-width="cellWidth('Basket_m')" @update:model-value="(v, p) => setNum('Basket_m', v, p)"></NumInput><DqMark v-if="dqNote('Basket_m')" :note="dqNote('Basket_m')" /><UnitToggle :field="NumberField.BASKET_M" unit-class="u" /></div>
-            <div class="de-fld" data-field-key="Outer_m" :title="NumberField.OUTER_M.description"><label>{{ NumberField.OUTER_M.label }}</label><NumInput :class="cellClass('Outer_m')" :model-value="cellVal('Outer_m')" :field="NumberField.OUTER_M" :half-width="cellWidth('Outer_m')" @update:model-value="(v, p) => setNum('Outer_m', v, p)"></NumInput><DqMark v-if="dqNote('Outer_m')" :note="dqNote('Outer_m')" /><UnitToggle :field="NumberField.OUTER_M" unit-class="u" /></div>
-            <div class="de-fld" data-field-key="Vcd_m" :title="NumberField.VCD_M.description"><label>{{ NumberField.VCD_M.label }}</label><NumInput :class="cellClass('Vcd_m')" :model-value="cellVal('Vcd_m')" :field="NumberField.VCD_M" :half-width="cellWidth('Vcd_m')" @update:model-value="(v, p) => setNum('Vcd_m', v, p)"></NumInput><DqMark v-if="dqNote('Vcd_m')" :note="dqNote('Vcd_m')" /><UnitToggle :field="NumberField.VCD_M" unit-class="u" /></div>
-            <div class="de-fld" data-field-key="DVol_m3" :style="getFieldStyle('DVol_m3')" :title="NumberField.DVOL_M3.description"><label>{{ NumberField.DVOL_M3.label }}</label><NumInput :class="cellClass('DVol_m3')" :model-value="cellVal('DVol_m3')" :field="NumberField.DVOL_M3" :half-width="cellWidth('DVol_m3')" @update:model-value="(v, p) => setNum('DVol_m3', v, p)"></NumInput><DqMark v-if="dqNote('DVol_m3')" :note="dqNote('DVol_m3')" /><UnitToggle :field="NumberField.DVOL_M3" unit-class="u" /></div>
+            <UIField class="de-fld" data-field-key="Thick_m" :field="NumberField.THICK_M" :cell="fieldOf('Thick_m')" />
+            <UIField class="de-fld" data-field-key="Depth_m" :style="getFieldStyle('Depth_m')" :field="NumberField.DEPTH_M" :cell="fieldOf('Depth_m')" />
+            <UIField class="de-fld" data-field-key="MagDepth_m" :style="getFieldStyle('MagDepth_m')" :field="NumberField.MAGDEPTH_M" :cell="fieldOf('MagDepth_m')" />
+            <UIField class="de-fld" data-field-key="Magnet_m" :style="getFieldStyle('Magnet_m')" :field="NumberField.MAGNET_M" :cell="fieldOf('Magnet_m')" />
+            <UIField class="de-fld" data-field-key="Basket_m" :field="NumberField.BASKET_M" :cell="fieldOf('Basket_m')" />
+            <UIField class="de-fld" data-field-key="Outer_m" :field="NumberField.OUTER_M" :cell="fieldOf('Outer_m')" />
+            <UIField class="de-fld" data-field-key="Vcd_m" :field="NumberField.VCD_M" :cell="fieldOf('Vcd_m')" />
+            <UIField class="de-fld" data-field-key="DVol_m3" :style="getFieldStyle('DVol_m3')" :field="NumberField.DVOL_M3" :cell="fieldOf('DVol_m3')" />
           </div>
 
           <div class="de-diagram" aria-hidden="true" title="Driver cross-section (reference diagram — dimensions not modelled)">
@@ -1118,7 +928,7 @@ useEscToClose(() => identityMsgOpen.value, dismissIdentityMsg);
 .de-body { display: flex; flex-direction: column; gap: 6px; flex: 1 !important; }
 
 .de-fld { display: flex; flex-direction: column; gap: 2px; margin-bottom: 3px; width: fit-content; justify-self: start; position: relative; }
-.de-fld label { font-size: 11px; color: var(--mut); white-space: nowrap; }
+.de-fld :deep(label) { font-size: 11px; color: var(--mut); white-space: nowrap; }
 .de-fld input, .de-fld select { padding: 2px 5px; border: 1px solid var(--line); border-radius: 3px; font: inherit; background: var(--panel); color: var(--fg); width: 110px; }
 .de-fld .u, .u {
   font-size: 11px; color: var(--mut); white-space: nowrap !important; display: inline-block;

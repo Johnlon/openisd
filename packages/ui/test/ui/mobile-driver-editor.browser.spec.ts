@@ -131,11 +131,11 @@ test.describe('touch', () => {
     await vasField.locator('input').fill('900');
     await vasField.locator('input').press('Tab');
 
-    const unit = vasField.locator('.u');
+    const unit = vasField.locator('.ui-field-unit');
     const unitBefore = await unit.textContent();
-    await vasField.locator('.de-dq button').tap();
+    await vasField.locator('.ui-field-dq-btn').tap();
     await expect(unit).toHaveText(unitBefore!);
-    await expect(vasField.locator('.dq-mark-note')).toContainText('Vas_m3');
+    await expect(vasField.locator('.ui-field-note')).toContainText('Vas_m3');
 
     const width = async () => (await vasField.locator('input').boundingBox())!.width;
     const first = await width();

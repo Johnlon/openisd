@@ -241,7 +241,7 @@ test.describe('Driver Editor provenance map and field boxes', () => {
           const label = f.querySelector('label')?.textContent?.trim() ?? '?';
           for (const [part, el] of [['label', f.querySelector('label')],
                                     ['input', f.querySelector('input, select, textarea')],
-                                    ['unit', f.querySelector('.u')]] as const) {
+                                    ['unit', f.querySelector('.ui-field-unit, .u')]] as const) {
             if (!el) continue;
             const r = el.getBoundingClientRect();
             // 1 px of sub-pixel rounding is not an escape; more than that is outside the box.

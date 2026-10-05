@@ -33,9 +33,9 @@
  * unexamined. Such a call fails the gate rather than being skipped, because a check that goes
  * quiet on the shapes it cannot read reports absence of evidence as evidence of absence.
  *
- * EXEMPTIONS: none. The list below is empty and stays empty — a component that genuinely needs a
- * domain object is a design question for the human, so it is reported as a finding and ruled on,
- * never absorbed by adding a row here.
+ * EXEMPTIONS: only by the human's ruling. A component that genuinely needs a domain object is a
+ * design question for the human, so it is reported as a finding and ruled on. An agent never adds
+ * a row on its own judgement; each row names the ledger entry holding the human's ruling.
  */
 import {describe, it, vi} from 'vitest';
 import assert from 'node:assert/strict';
@@ -51,8 +51,12 @@ const PACKAGES = join(UI_PKG, '..');
 const REPO_ROOT = join(PACKAGES, '..');
 const DOMAIN_ROOT = join(PACKAGES, 'design', 'domain');
 
-/** Empty by ruling. A component needing a domain object is a finding for the human. */
-const EXEMPT_COMPONENTS: readonly string[] = [];
+/** One row per human ruling, each naming its ledger entry. */
+const EXEMPT_COMPONENTS: readonly string[] = [
+  // QO173 (John, 2026-10-06: "coupling the cell is cool"): the one number field binds the domain
+  // cell it reads and writes, so value, provenance, precision and DQ have a single reader.
+  'packages/ui/src/ui/components/UIField.vue',
+];
 
 const COMPONENT_ROOT = join(UI_PKG, 'src');
 

@@ -1,7 +1,7 @@
 import {describe, expect, it} from 'vitest';
 import {createEngine} from '@openisd/design/engine';
 import {ProjectBuilder} from '@openisd/design';
-import {dqOfCell} from '../../src/logic/cellDataQuality.js';
+import {dqOfCell, dqReason} from '../../src/logic/cellDataQuality.js';
 
 function createCompleteProject() {
   const engine = createEngine();
@@ -48,6 +48,28 @@ describe('cellDataQuality', () => {
       project.driver.specs.Re_ohm.set(8);
       expect(dqOfCell(project.powerDrive_W)).toEqual({dq: [], dqState: 'E'});
       expect(dqOfCell(project.driveVoltage_V)).toEqual({dq: [], dqState: 'C'});
+    });
+  });
+
+  // The sentence a field's ⚠ opens (UIField). It renders the cell's own `.dq` and never judges
+  // the value itself: a bad value (≤ 0) is the DOMAIN's mark (BUG_20260927_driver-bad-value-decided-in-ui).
+  describe('dqReason', () => {
+    const engine = createEngine();
+
+    it("names an entered value as one in conflict, with the domain's own invalid-value mark", () => {
+      const mark = engine.issues.positiveValueIssue(0);
+      if (mark === null) throw new Error('0 must carry the domain\'s invalid-value mark');
+      expect(dqReason({dq: [mark.text], dqState: 'E'})).toBe(`Conflicts with other values: ${mark.text}`);
+    });
+
+    it('names a calculated value as derived from flagged values', () => {
+      const text = engine.issues.targetUnreachable('Fs_hz', 35).text;
+      expect(dqReason({dq: [text], dqState: 'C'})).toBe(`Calculated from flagged values: ${text}`);
+    });
+
+    it('joins several marks and is empty when there are none', () => {
+      expect(dqReason({dq: ['a', 'b'], dqState: 'N'})).toBe('a; b');
+      expect(dqReason({dq: [], dqState: 'E'})).toBe('');
     });
   });
 });

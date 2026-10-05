@@ -51,7 +51,7 @@ test('driver editor: an inconsistent group marks every one of its members, with 
   // The demo driver reconciles, so nothing is marked to begin with — a mark on every driver
   // would be wallpaper, and the whole point is that it means something.
   for (const f of ['Fs', 'Mms', 'Cms']) {
-    await expect(editorField(page, f).locator('.de-dq')).toHaveCount(0);
+    await expect(editorField(page, f).locator('.ui-field-dq-btn')).toHaveCount(0);
   }
 
   const mms = editorField(page, 'Mms').locator('input').first();
@@ -62,11 +62,11 @@ test('driver editor: an inconsistent group marks every one of its members, with 
 
   // Fs, Mms AND Cms — the group is the unit, not the field that was typed.
   for (const f of ['Fs', 'Mms', 'Cms']) {
-    await expect(editorField(page, f).locator('.de-dq')).toHaveCount(1);
+    await expect(editorField(page, f).locator('.ui-field-dq-btn')).toHaveCount(1);
   }
 
   // The tooltip names the group and how far out it is; "inconsistent" alone is not actionable.
-  const note = await editorField(page, 'Fs').locator('.de-dq button').getAttribute('title');
+  const note = await editorField(page, 'Fs').locator('.ui-field-dq-btn').getAttribute('title');
   expect(note).toContain('Fs_hz');
   expect(note).toContain('Mms_kg');
   expect(note).toContain('Cms_m_per_N');
@@ -74,7 +74,7 @@ test('driver editor: an inconsistent group marks every one of its members, with 
   expect(note).toContain('Fs = 1/(2π·√(Mms·Cms))');
 
   // A field outside the group is NOT marked.
-  await expect(editorField(page, 'Re').locator('.de-dq')).toHaveCount(0);
+  await expect(editorField(page, 'Re').locator('.ui-field-dq-btn')).toHaveCount(0);
 
   // Nothing is blocked — the ruling was a mark, not a gate.
   await expect(page.locator('.de-modal .de-footer button:has-text("OK")')).toBeEnabled();

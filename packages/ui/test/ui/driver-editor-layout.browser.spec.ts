@@ -226,7 +226,7 @@ test('Dimensions: cycling a unit does not move the columns', async ({ page }) =>
     }));
 
   const before = await geometry();
-  const unit = page.locator('.de-body .u, .de-body .unit-toggle').first();
+  const unit = page.locator('.de-body .ui-field-unit, .de-body .u, .de-body .unit-toggle').first();
   await expect(unit).toBeVisible();
   const wasText = (await unit.textContent())?.trim();
 
