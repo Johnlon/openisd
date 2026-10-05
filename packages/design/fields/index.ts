@@ -64,7 +64,7 @@ export {
   WinisdFilterDeviation,
 } from './winisdDeviation.js';
 
-/** The WinISD Compatibility panel's headings: WinISD bugs, WinISD options, Reset to WinISD. */
+/** The WinISD Compatibility panel's group headings: WinISD bugs, Options. */
 export { CompatSwitchGroup } from './compatSwitchGroup.js';
 
 /** The sealed-box loss model — a field's closed value set. */

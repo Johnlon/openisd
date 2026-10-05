@@ -1,5 +1,5 @@
 /**
- * "Enable WinISD Bessel high-pass bug" (`winisdBesselHighpass`): off by default, unticked by "Reset to WinISD",
+ * "Enable WinISD Bessel high-pass bug" (`winisdBesselHighpass`): off by default,
  * saved with the project, applicable only while an enabled Bessel high-pass filter exists.
  */
 import {readFileSync} from 'node:fs';
@@ -34,12 +34,6 @@ describe('winisdBesselHighpass', () => {
     expect(project().winisdBesselHighpass.value).toBe(false);
   });
 
-  it('"Reset to WinISD" unticks it', () => {
-    const p = project();
-    p.winisdBesselHighpass.set(true);
-    p.resetToWinisd();
-    expect(p.winisdBesselHighpass.value).toBe(false);
-  });
 
   it('is saved with the project', () => {
     const p = project();

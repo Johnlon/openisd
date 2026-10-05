@@ -30,12 +30,6 @@ describe('winisdFlatModel', () => {
     expect(p.sweep(at(1)).values!.tfMag[0]).toBeLessThan(-20);
   });
 
-  it('"Reset to WinISD" turns it on', () => {
-    const p = w5();
-    p.winisdFlatModel.set(false);
-    p.resetToWinisd();
-    expect(p.winisdFlatModel.value).toBe(true);
-  });
 
   it('is saved in the project and read back', () => {
     const p = w5();

@@ -745,7 +745,7 @@ const openISDAdvancedJsonSchema = z.preprocess(renameLegacyWinisdDriverModel, z.
     // Bug switch "Enable WinISD VA model bug": the amplifier apparent load power chart as WinISD computes
     // it, P·Re·|Hf|²/|Z + Rg|. Absent parses to OFF.
     winisdVaModel: z.boolean().optional(),
-    // Option "Enable optional simplified ABC intra-port velocity": the ABC intra-port velocity chart as WinISD
+    // Option "Enable WinISD style simplified ABC intra-port velocity": the ABC intra-port velocity chart as WinISD
     // draws it, the leak term left out. Absent parses to ON, WinISD's convention.
     winisdAbcIntraPortVelocity: z.boolean().optional(),
     // Bug switch "Enable WinISD PR Npr resonance bug": the passive-radiator box's fixed-loss frequency as WinISD
@@ -754,12 +754,12 @@ const openISDAdvancedJsonSchema = z.preprocess(renameLegacyWinisdDriverModel, z.
     // Bug switch "Enable WinISD Bessel high-pass bug": Bessel high-pass filters as WinISD computes them,
     // not the mirror of the low-pass. Absent parses to OFF.
     winisdBesselHighpass: z.boolean().optional(),
-    // "Enable optional phase wrapping": wraps phase curves to [-180°, +180°]. Optional: absent parses to ON.
+    // "Enable WinISD style phase wrapping": wraps phase curves to [-180°, +180°]. Optional: absent parses to ON.
     winisdWrapPhase: z.boolean().optional(),
-    // "Enable optional per-driver boxes": N drivers as WinISD simulates them, each in Vb/N fed P/N; off, the N
+    // "Enable WinISD style per-driver boxes": N drivers as WinISD simulates them, each in Vb/N fed P/N; off, the N
     // coils wired into one terminal impedance. Optional: absent parses to ON.
     winisdDriverCountModel: z.boolean().optional(),
-    // "Enable optional uncapped flat response": force flat as WinISD does it, every point to the TF 0 dB, uncapped;
+    // "Enable WinISD style uncapped flat response": force flat as WinISD does it, every point to the TF 0 dB, uncapped;
     // off, boost only to the passband reference, capped. Optional: absent parses to ON.
     winisdFlatModel: z.boolean().optional(),
 }));

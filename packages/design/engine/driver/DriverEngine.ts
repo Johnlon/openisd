@@ -118,9 +118,7 @@ export interface DriverEngine {
   ebp(Fs_hz: number, Qes: number): number;
   /** The enclosure type an EBP points at: below 50 sealed, above 100 vented, else either. */
   ebpSuitability(EBP_hz: number): EbpSuitability;
-  /** Reference efficiency, in the stated air. Takes `Air` — the DERIVED pair — because a driver
-   *  record can state its own ρ and c directly (`.wdr` allows arbitrary values), and no
-   *  temperature/humidity/pressure triple reproduces an arbitrary pair. */
+  /** Reference efficiency, in the stated air. */
   referenceEfficiency(Fs: number, Vas: number, Qes: number, air: Air): number;
   /** SPL for a given efficiency, in the stated air. */
   splFromEfficiency(no: number, air: Air): number;

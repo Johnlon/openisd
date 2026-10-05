@@ -42,16 +42,15 @@ Three kinds of WinISD difference, handled differently:
 
 - **A different calculation** (the maths differs: another formula, loss model, convention, or a
   simplification WinISD may intend, such as the ABC intra-port velocity dropping a small leak
-  term) is copied by default. The conventional maths sits behind an ordinary compat switch, or
-  behind an existing switch whose tooltip is extended to name the case. A convention is never
-  yellow.
+  term) is copied by default. The other form sits behind an option switch, or behind an existing
+  switch whose tooltip is extended to name the case. An option is never yellow.
 - **A calculation bug** (a wrong formula, or a value that contradicts WinISD's own other charts)
-  can be reproduced: OpenISD does the correct thing by default and provides a yellow error switch
+  can be reproduced: OpenISD does the correct thing by default and provides a yellow bug switch
   that makes WinISD's calculation come back. Only a straight WinISD bug is yellow (John,
   2026-10-04): the driver model (two BLs), the VA model, the PR Npr resonance, the Bessel
   high-pass. The switch is off by default, with no exception, editable only where it applies, and
   looks different from ordinary switches even when off. While it is off, a ≠W Difference cue by
-  the affected control (or chart) says what WinISD does. The error switches sit in one group
+  the affected control (or chart) says what WinISD does. The bug switches sit in one group
   headed "WinISD bugs", and each is a visible, listed WinISD issue: the switches are how OpenISD
   tells users what is wrong in WinISD, and they build trust. Record each as a
   WinISD bug (a `bugs/BUG_*_winisd-*.md` file, a row in the "fixed by default" section of
@@ -71,24 +70,19 @@ Three kinds of WinISD difference, handled differently:
 
 - Every control OpenISD shares with WinISD behaves exactly as WinISD does, by default (e.g. "Rg
   is at driver side").
-- A conventional variant sits behind its own WinISD-vs-conventional control in the WinISD
-  Compatibility panel: a checkbox ("WinISD inductance model") or a drop-down (the loss model).
-  The native control stays as WinISD has it. (Splitting the native control's "on" state into a
-  drop-down, "off / on – WinISD / on – Conventional", is also permitted, but separate controls
-  are the pattern in use.)
+- Another form of a WinISD calculation sits behind its own option switch in the WinISD
+  Compatibility panel. The native control stays as WinISD has it.
 - Switch titles name the kind (John, 2026-10-05): a switch that brings a WinISD bug back reads
   "Enable WinISD <name> bug" (e.g. "Enable WinISD VA model bug"); a plain WinISD-vs-OpenISD choice
-  reads "Enable optional <name>" (e.g. "Enable optional phase wrapping"). The groups are headed
-  "WinISD bugs" and "WinISD options". Titles and tooltips live in `packages/design`
+  reads "Enable WinISD style <name>" (e.g. "Enable WinISD style phase wrapping"). The groups are headed
+  "WinISD bugs" and "Options". Titles and tooltips live in `packages/design`
   (`ToggleField`, listed by `CompatSwitch`); each tooltip says in plain words what ticked and
   unticked do.
-- One "Reset to WinISD" button in the WinISD Compatibility panel (John, 2026-10-05; it replaced
-  the three presets of 2026-10-04): it ticks every WinISD option (WinISD's way) and unticks every
-  WinISD bug (bug fixed). It never ticks a bug, never changes a native WinISD control on or off,
-  never changes project data. A new project, and a file that does not say, has the same values.
-  Ignored-input bugs have no switch.
+- The panel has only the individual switches: no presets, no reset button (John, 2026-10-05). A
+  new project, and a file that does not say, has every bug unticked and every option ticked
+  (WinISD's way). Ignored-input bugs have no switch.
 
-(John, 2026-09-26; Reset to WinISD and switch titles 2026-10-05.)
+(John, 2026-09-26; switch titles and no reset 2026-10-05.)
 
 ## Communication — plain bug statements
 

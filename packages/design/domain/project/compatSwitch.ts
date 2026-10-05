@@ -8,7 +8,7 @@ export type CompatSwitchKind = 'bug' | 'option';
 
 /**
  * A WinISD Compatibility switch (John, 2026-10-05): a WinISD bug ("Enable WinISD <name> bug") or a
- * WinISD option ("Enable optional <name>"). Its title and tooltip are `field`'s.
+ * WinISD option ("Enable WinISD style <name>"). Its title and tooltip are `field`'s.
  */
 export class CompatSwitch {
     private constructor(
@@ -27,7 +27,7 @@ export class CompatSwitch {
     static readonly FLAT_MODEL = new CompatSwitch(ToggleField.ADV_WINISDFLATMODEL, 'option', p => p.winisdFlatModel);
     static readonly ABC_INTRA_PORT_VELOCITY = new CompatSwitch(ToggleField.ADV_WINISDABCINTRAPORTVELOCITY, 'option', p => p.winisdAbcIntraPortVelocity);
 
-    /** The value "Reset to WinISD" sets, and what a new project or a file that does not say has:
+    /** What a new project, or a file that does not say, has:
      *  a bug unticked (fixed), an option ticked (WinISD's way). */
     get winisdValue(): boolean {
         switch (this.kind) {

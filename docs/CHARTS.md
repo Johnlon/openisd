@@ -95,15 +95,17 @@ Solved exactly from WinISD's own complex impedance output (chart review §4).
 
 ## 2. WinISD compatibility controls
 
-The default is WinISD's behaviour, bugs included. Each conventional variant sits behind its own
-control in the WinISD Compatibility panel (Advanced tab) or the Box losses pane.
+The WinISD Compatibility panel (Advanced tab) holds two groups of switches: "WinISD bugs" (yellow,
+unticked by default: OpenISD does the correct calculation; ticked brings WinISD's bug back) and
+"Options" (ticked by default: WinISD's way; unticked gives the other form). The bug switches that
+move driver charts:
 
-| Control | WinISD (default) | Conventional | Charts it moves |
+| Switch | Ticked (WinISD) | Unticked (default) | Charts it moves |
 |---|---|---|---|
 | Enable WinISD two-BL driver bug | Cms from Vas; Mms, Rms from Fs, Qms; damping BL from Qes; **entered** BL for push, impedance, TF reference and CLe | entered Cms, Mms, Rms, BL, one BL throughout | all driver charts |
 | Enable WinISD VA model bug | VA = P·Re·\|Hf\|²/\|Z + Rg\| | P·(Re + Rg)·\|Hf\|²/\|Z_amp\|, Rg counted once | Amplifier apparent load power |
 
-Native WinISD controls behave as WinISD has them, with no conventional variant:
+Native WinISD controls behave as WinISD has them, with no switch of their own:
 
 | Control | Effect |
 |---|---|

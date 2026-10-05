@@ -1,4 +1,4 @@
-Status: OPEN (re-verified 2026-09-26) — `packages/design/engine/solver.ts` still recomputes c from Roo; `wdr-openisd-round-trip.test.ts` excuses the difference.
+Status: CLOSED 2026-10-05 by John's ruling — a driver file's own `c`/`roo` feed no calculation, so no c is recomputed from roo at all.
 
 # BUG: `drivers/mysamples/winisd/s-roo.wdr` contradicts the researched c-from-roo recompute rule
 
@@ -40,13 +40,16 @@ Two candidates, neither confirmed:
 
 ## Fix
 
-Not fixed. Needs a fresh wine-harness probe of `roo` values across a physically-plausible range
-(e.g. `0.5`, `1.2`, `2.0`, `123`) with `c` absent, to determine whether WinISD clamps/validates
-`roo` before the `c=√(γp/roo)` recompute. Until then, `driverC()`'s recompute formula is treated
-as correct for the plausible range the matrix actually tested, and `s-roo.wdr`'s `c` field is
-excluded from the automated oracle comparison (see `WRONG_BY_DESIGN`-style exclusion in
-`wdr-openisd-round-trip.test.ts`) rather than silently accepted or the formula silently changed.
+Closed by ruling, not by a probe (John, 2026-10-05): "driver air c and roo should not be used, use
+project or project delegate." The recompute `c = √(γ·p/roo)` is deleted with the `DriverAir` class.
+Every driver calculation takes one injected `Air`: the project's (T/RH/p through the WinISD air
+model), or with no project the app's environment defaults. A record's `c`/`roo` are written back as
+that air, marked C, and a `.wdr` export writes them so. `s-roo.wdr` (roo=123) now exports
+c=343.684120962152-equivalent reference air, matching WinISD's own stored c; its roo is written as
+the air used, not 123.
 
 ## Verification
 
-N/A — open.
+`packages/design/test/domain/driver-air-is-the-projects.test.ts`;
+`packages/design/test/winisd/wdr-round-trip-through-driver.test.ts` ("the file's own c and roo are
+replaced by the air used") over the sample corpus, `s-roo.wdr` included.

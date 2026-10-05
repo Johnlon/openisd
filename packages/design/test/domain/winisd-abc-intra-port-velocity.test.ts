@@ -1,6 +1,6 @@
 /**
- * "Enable optional simplified ABC intra-port velocity" (`winisdAbcIntraPortVelocity`): on by default (WinISD's chart),
- * a WinISD convention (not a WinISD bug): ticked by "Reset to WinISD", saved with the project, applicable on an ABC box only.
+ * "Enable WinISD style simplified ABC intra-port velocity" (`winisdAbcIntraPortVelocity`): on by default (WinISD's chart),
+ * an option (not a WinISD bug), saved with the project, applicable on an ABC box only.
  * Sizes are from the abc-w5-1 capture (bugs/BUG_20261003_winisd-abc-intra-port-velocity-drops-ricl.md).
  */
 import {readFileSync} from 'node:fs';
@@ -31,12 +31,6 @@ describe('winisdAbcIntraPortVelocity', () => {
     expect(value!.winisdAbcIntraPortVelocity.value).toBe(true);
   });
 
-  it('"Reset to WinISD" ticks it', () => {
-    const p = abcProject();
-    p.winisdAbcIntraPortVelocity.set(false);
-    p.resetToWinisd();
-    expect(p.winisdAbcIntraPortVelocity.value).toBe(true);
-  });
 
   it('is saved with the project and read back', () => {
     const p = abcProject();

@@ -2,12 +2,12 @@ import type {ErrorSwitchState, ErrorSwitchStates} from '../domain/project/errorS
 import type {ChartId, Filter} from '../engine/index.js';
 import {ToggleField} from './field.js';
 
-/** A WinISD calculation bug: the yellow error switch in "WinISD bugs" brings it back. */
+/** A WinISD calculation bug: the yellow bug switch in "WinISD bugs" brings it back. */
 export interface ErrorSwitchFix {
   readonly kind: 'errorSwitch';
-  /** The error switch's label in "WinISD bugs". */
+  /** The bug switch's label in "WinISD bugs". */
   readonly switchLabel: string;
-  /** The error switch's state in the project's `errorSwitches`. */
+  /** The bug switch's state in the project's `errorSwitches`. */
   readonly switchOf: (s: ErrorSwitchStates) => ErrorSwitchState;
 }
 

@@ -20,7 +20,6 @@ import OptionsModal from '../../components/OptionsModal.vue';
 import AdvancedOptions from '../../components/AdvancedOptions.vue';
 import ErrorSwitch from '../../components/ErrorSwitch.vue';
 import ErrorSwitchGroup from '../../components/ErrorSwitchGroup.vue';
-import ResetToWinisd from '../../components/ResetToWinisd.vue';
 import WinisdDeviationCue from '../../components/WinisdDeviationCue.vue';
 import BoxTypeDiagram from '../../components/BoxTypeDiagram.vue';
 import {useOriginalShell} from '../../../hooks/OriginalShell-hooks.js';
@@ -644,7 +643,7 @@ const {
               <AdvancedOptions />
             </div>
             <div class="sim-options-box">
-              <ResetToWinisd><span class="sim-options-header">WinISD Compatibility</span></ResetToWinisd>
+              <div class="sim-options-head"><span class="sim-options-header">WinISD Compatibility</span></div>
               <div class="sim-switches">
                 <div class="sim-switch-col">
                 <div class="option-switch-group" :title="CompatSwitchGroup.OPTIONS.tooltip">
@@ -1219,17 +1218,15 @@ textarea.comment, textarea.description { width:100%; border:1px solid #999; bord
   flex: none;
   align-self: flex-start;
 }
-/* The WinISD options in one column, the WinISD bugs group in a second: the panel stays inside the tab's height and width. */
+/* The options in one column, the WinISD bugs group in a second: the panel stays inside the tab's height and width. */
 .sim-switches { display: flex; flex-direction: row; align-items: flex-start; gap: 8px; }
 .option-switch-group { display: flex; flex-direction: column; gap: 1px; }
 .option-switch-group-head { font-size: 11px; font-weight: 600; color: #555; }
 .sim-switch-col { display: flex; flex-direction: column; gap: 0; width: 170px; }
-/* The reset row spans the two switch columns' width. */
-.sim-options-box :deep(.compat-reset) { max-width: 338px; }
 /* A fixed width, so a long error-switch label wraps inside the group and does not widen the panel. */
 .sim-switches :deep(.error-switch-group) { flex: none; width: 160px; }
 .sim-options-header { font-weight: 600; font-size: 11px; color: #333; }
-.sim-options-box :deep(.compat-reset) { border-bottom: 1px solid #d0d0d0; padding-bottom: 2px; }
+.sim-options-head { margin-bottom: 3px; border-bottom: 1px solid #d0d0d0; padding-bottom: 2px; }
 .compat-switch-na { opacity: 0.45; cursor: default; }
 
 /* filters tab fills the panel */

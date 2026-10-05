@@ -1317,26 +1317,26 @@ export class ToggleField extends Field {
     description: "Enable WinISD Bessel high-pass bug: affects Bessel high-pass filters in the EQ/Filter chain only; Butterworth, Linkwitz-Riley, SOS and every low-pass are unchanged, and so is a first-order Bessel.\nTicked (as WinISD): the high-pass keeps the low-pass's own denominator with the numerator swapped to (k·s)^n. That is not the mirror of the Bessel low-pass (order 4, fc 25 Hz: up to 6 % off in complex response).\nUnticked (the default, bug fixed): the mirror of the low-pass, s → 1/s.",
   });
 
-  // ── WinISD Compatibility: options ("Enable optional <name>"; ticked is WinISD's way) ──────
+  // ── WinISD Compatibility: options ("Enable WinISD style <name>"; ticked is WinISD's way) ──────
   static readonly ADV_WINISDWRAPPHASE = new ToggleField({
     value: "adv_WinisdWrapPhase",
-    label: "Enable optional phase wrapping",
-    description: "Enable optional phase wrapping: affects every phase chart.\nTicked (the default, as WinISD): phase curves wrap at ±180°.\nUnticked: phase curves stay continuous and unwrapped.",
+    label: "Enable WinISD style phase wrapping",
+    description: "Enable WinISD style phase wrapping: affects every phase chart.\nTicked (the default, as WinISD): phase curves wrap at ±180°.\nUnticked: phase curves stay continuous and unwrapped.",
   });
   static readonly ADV_WINISDDRIVERCOUNTMODEL = new ToggleField({
     value: "adv_WinisdDriverCountModel",
-    label: "Enable optional per-driver boxes",
-    description: "Enable optional per-driver boxes: affects designs with more than one driver.\nTicked (the default, as WinISD): N drivers are N copies of one driver, each in Vb/N with 1/N of the port, each fed P/N. Impedance is one driver's; SPL is one driver's + 10·log10(N); maximum power is N times one driver's.\nUnticked: the N voice coils are wired, in parallel or series, into one load the amplifier sees.",
+    label: "Enable WinISD style per-driver boxes",
+    description: "Enable WinISD style per-driver boxes: affects designs with more than one driver.\nTicked (the default, as WinISD): N drivers are N copies of one driver, each in Vb/N with 1/N of the port, each fed P/N. Impedance is one driver's; SPL is one driver's + 10·log10(N); maximum power is N times one driver's.\nUnticked: the N voice coils are wired, in parallel or series, into one load the amplifier sees.",
   });
   static readonly ADV_WINISDFLATMODEL = new ToggleField({
     value: "adv_WinisdFlatModel",
-    label: "Enable optional uncapped flat response",
-    description: "Enable optional uncapped flat response: affects 'Force flat response' only.\nTicked (the default, as WinISD): every frequency is set to the transfer function's 0 dB, cut as well as boosted, uncapped; excursion shows what that costs.\nUnticked: boost only, up to the passband level, capped at 20 dB.",
+    label: "Enable WinISD style uncapped flat response",
+    description: "Enable WinISD style uncapped flat response: affects 'Force flat response' only.\nTicked (the default, as WinISD): every frequency is set to the transfer function's 0 dB, cut as well as boosted, uncapped; excursion shows what that costs.\nUnticked: boost only, up to the passband level, capped at 20 dB.",
   });
   static readonly ADV_WINISDABCINTRAPORTVELOCITY = new ToggleField({
     value: "adv_WinisdAbcIntraPortVelocity",
-    label: "Enable optional simplified ABC intra-port velocity",
-    description: "Enable optional simplified ABC intra-port velocity: affects the ABC box's Intra port velocity chart only.\nTicked (the default, as WinISD): the intra-port velocity leaves out the leak term Zf·jωMai/Ricl.\nUnticked: the exact port-mass current. Differs by up to 1.35 dB and 4.6° near 110 Hz, under 0.1 dB elsewhere (W5-1138SMF, abc-w5-1).\nOnly on an ABC box.",
+    label: "Enable WinISD style simplified ABC intra-port velocity",
+    description: "Enable WinISD style simplified ABC intra-port velocity: affects the ABC box's Intra port velocity chart only.\nTicked (the default, as WinISD): the intra-port velocity leaves out the leak term Zf·jωMai/Ricl.\nUnticked: the exact port-mass current. Differs by up to 1.35 dB and 4.6° near 110 Hz, under 0.1 dB elsewhere (W5-1138SMF, abc-w5-1).\nOnly on an ABC box.",
   });
 
   static readonly ALL: readonly ToggleField[] =

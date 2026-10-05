@@ -33,12 +33,6 @@ describe('winisdDriverCountModel', () => {
     expect(p.sweep(at(20000)).values!.zmag[0] / parallel).toBeCloseTo(4, 2);
   });
 
-  it('"Reset to WinISD" turns it on', () => {
-    const p = w5();
-    p.winisdDriverCountModel.set(false);
-    p.resetToWinisd();
-    expect(p.winisdDriverCountModel.value).toBe(true);
-  });
 
   it('is saved in the project and read back', () => {
     const p = w5();
