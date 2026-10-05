@@ -154,10 +154,9 @@ export function driverJson(p: {
 
 /** A sealed 30 L project on a plain RS225 woofer with Re unstated — the starting point for the
  *  project-settings and signal scenarios. */
-/** `p` set to reproduce WinISD exactly: "Reset to WinISD", then every WinISD bug ticked. */
+/** `p` set to reproduce WinISD exactly: every option and every WinISD bug ticked. */
 export function reproduceWinisdBugs(p: OpenISDProject): void {
-  p.resetToWinisd();
-  for (const s of CompatSwitch.BUGS) s.of(p).set(true);
+  for (const s of CompatSwitch.ALL) s.of(p).set(true);
 }
 
 export function sealedProject() {

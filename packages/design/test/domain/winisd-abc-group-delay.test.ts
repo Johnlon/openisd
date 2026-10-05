@@ -28,13 +28,6 @@ describe('winisdAbcGroupDelay', () => {
     expect(abcProject().winisdAbcGroupDelay.value).toBe(false);
   });
 
-  it('"Reset to WinISD" unticks it', () => {
-    const p = abcProject();
-    p.winisdAbcGroupDelay.set(true);
-    p.resetToWinisd();
-    expect(p.winisdAbcGroupDelay.value).toBe(false);
-  });
-
   it('is saved with the project', () => {
     const p = abcProject();
     p.winisdAbcGroupDelay.set(true);

@@ -1322,26 +1322,27 @@ export class ToggleField extends Field {
     description: "Enable WinISD ABC group delay bug: affects the ABC box's Group delay chart only.\nTicked (as WinISD): the group delay steps the box to f ± 1e-10 Hz but keeps the driver at the chart frequency f, so the driver's own phase slope is left out. It disagrees with WinISD's own phase chart (W5-1138SMF ABC: −41.0 ms against −33.9 ms at 1 Hz, −3.3 ms against +3.6 ms at 10.75 Hz).\nUnticked (the default, bug fixed): the group delay is −dφ/dω of the plotted phase.\nOnly on an ABC box.",
   });
 
-  // ── WinISD Compatibility: options ("Enable optional <name>"; ticked is WinISD's way) ──────
-  static readonly ADV_WINISDWRAPPHASE = new ToggleField({
-    value: "adv_WinisdWrapPhase",
-    label: "Enable optional phase wrapping",
-    description: "Enable optional phase wrapping: affects every phase chart.\nTicked (the default, as WinISD): phase curves wrap at ±180°.\nUnticked: phase curves stay continuous and unwrapped.",
-  });
   static readonly ADV_WINISDDRIVERCOUNTMODEL = new ToggleField({
     value: "adv_WinisdDriverCountModel",
-    label: "Enable optional per-driver boxes",
-    description: "Enable optional per-driver boxes: affects designs with more than one driver.\nTicked (the default, as WinISD): N drivers are N copies of one driver, each in Vb/N with 1/N of the port, each fed P/N. Impedance is one driver's; SPL is one driver's + 10·log10(N); maximum power is N times one driver's.\nUnticked: the N voice coils are wired, in parallel or series, into one load the amplifier sees.",
+    label: "Enable WinISD per-driver impedance bug",
+    description: "Enable WinISD per-driver impedance bug: affects the impedance chart of designs with more than one driver. SPL, excursion, amplifier VA and maximum power are WinISD's either way (each driver in Vb/N fed P/N, summed).\nTicked (as WinISD): the impedance chart shows one driver's impedance.\nUnticked (the default, bug fixed): the impedance chart shows the array the amplifier drives, per the project's wiring: one driver's divided by N in parallel, times N in series.",
+  });
+
+  // ── WinISD Compatibility: options ("Enable WinISD style <name>"; ticked is WinISD's way) ──────
+  static readonly ADV_WINISDWRAPPHASE = new ToggleField({
+    value: "adv_WinisdWrapPhase",
+    label: "Enable WinISD style phase wrapping",
+    description: "Enable WinISD style phase wrapping: affects every phase chart.\nTicked (the default, as WinISD): phase curves wrap at ±180°.\nUnticked: phase curves stay continuous and unwrapped.",
   });
   static readonly ADV_WINISDFLATMODEL = new ToggleField({
     value: "adv_WinisdFlatModel",
-    label: "Enable optional uncapped flat response",
-    description: "Enable optional uncapped flat response: affects 'Force flat response' only.\nTicked (the default, as WinISD): every frequency is set to the transfer function's 0 dB, cut as well as boosted, uncapped; excursion shows what that costs.\nUnticked: boost only, up to the passband level, capped at 20 dB.",
+    label: "Enable WinISD style uncapped flat response",
+    description: "Enable WinISD style uncapped flat response: affects 'Force flat response' only.\nTicked (the default, as WinISD): every frequency is set to the transfer function's 0 dB, cut as well as boosted, uncapped; excursion shows what that costs.\nUnticked: boost only, up to the passband level, capped at 20 dB.",
   });
   static readonly ADV_WINISDABCINTRAPORTVELOCITY = new ToggleField({
     value: "adv_WinisdAbcIntraPortVelocity",
-    label: "Enable optional simplified ABC intra-port velocity",
-    description: "Enable optional simplified ABC intra-port velocity: affects the ABC box's Intra port velocity chart only.\nTicked (the default, as WinISD): the intra-port velocity leaves out the leak term Zf·jωMai/Ricl.\nUnticked: the exact port-mass current. Differs by up to 1.35 dB and 4.6° near 110 Hz, under 0.1 dB elsewhere (W5-1138SMF, abc-w5-1).\nOnly on an ABC box.",
+    label: "Enable WinISD style simplified ABC intra-port velocity",
+    description: "Enable WinISD style simplified ABC intra-port velocity: affects the ABC box's Intra port velocity chart only.\nTicked (the default, as WinISD): the intra-port velocity leaves out the leak term Zf·jωMai/Ricl.\nUnticked: the exact port-mass current. Differs by up to 1.35 dB and 4.6° near 110 Hz, under 0.1 dB elsewhere (W5-1138SMF, abc-w5-1).\nOnly on an ABC box.",
   });
 
   static readonly ALL: readonly ToggleField[] =

@@ -102,22 +102,26 @@ export function unwrap(p: number[]): number[] {
   return o;
 }
 
-/** WinISD's fixed frequency step (1e-10 Hz) for group delay differentiation (`f_4618f0` chart 12).
- *  Adopted to match WinISD's low-frequency woofer design focus (1–200 Hz) exact numbers.
- *  The ~0.0005 ms high-frequency numerical noise floor introduced is invisible on chart plots. */
-const WINISD_GROUP_DELAY_STEP_HZ = 1e-10;
+/** Group delay central-difference half-step, relative to `f`. WinISD (`f_4618f0` chart 12) steps
+ *  a fixed 1e-10 Hz, which divides the response's rounding error by 2π·2e-10 Hz: ~3e-4 ms of
+ *  staircase on every box and up to 0.16 ms on the 6th-order bandpass above 1.2 kHz
+ *  (bugs/BUG_20261005_bp6-group-delay-noise-above-1k.md). */
+const GROUP_DELAY_RELATIVE_STEP = 1e-6;
+/** Floor on the half-step, so `f` = 0 still has a non-zero span. */
+const GROUP_DELAY_MIN_STEP_HZ = 1e-10;
 
 /**
  * Group delay in ms of the response `h` at `f` (Hz): τg = −dφ/dω, as the phase slope AT `f`,
- * by central difference over f ± 1e-10 Hz, exactly as WinISD 0.7 computes it (`f_4618f0`).
+ * by central difference over f ± 1e-6·f, the phase step read as arg(H(f+δ)/H(f−δ)).
  *   https://en.wikipedia.org/wiki/Group_delay_and_phase_delay
  *
  * ONE definition, shared by the system group delay (`gd`) and the filter-chain group
  * delay (`fltGd`) — the two charts must not be able to disagree about what τg means.
  */
 export function groupDelayAtMs(h: (f: number) => Complex, f: number): number {
-  const fAbove = f + WINISD_GROUP_DELAY_STEP_HZ;
-  const fBelow = Math.max(1e-12, f - WINISD_GROUP_DELAY_STEP_HZ);
+  const step = Math.max(GROUP_DELAY_MIN_STEP_HZ, f * GROUP_DELAY_RELATIVE_STEP);
+  const fAbove = f + step;
+  const fBelow = Math.max(1e-12, f - step);
   const deltaF = fAbove - fBelow;
   const above = h(fAbove), below = h(fBelow);
   // No signal, no phase: a silent response (eg = 0) has no delay, as its phase reads 0.
@@ -201,16 +205,18 @@ function driverValues(v: DriverValues) {
   };
 }
 
-/** WinISD's driver-count model applies: more than one driver, the model on, every box type
- *  (runs/sealed-w5-nd2, vented-, bp4-, pr-, bp6- and abc-w5-nd2). */
+/** WinISD's driver-count model: more than one driver, every box type (runs/sealed-w5-nd2,
+ *  vented-, bp4-, pr-, bp6- and abc-w5-nd2). SPL, excursion, VA and maximum power follow it. */
 function winisdCountsDrivers(P: SweepParams): boolean {
-  return (P.nDrivers || 1) > 1 && P.winisdDriverCountModel !== false;
+  return (P.nDrivers || 1) > 1;
 }
 
-/** One of `n` drivers as WinISD simulates it: alone, driven at P/n, in Vb/n with 1/n of the port
- *  area (same length, so the same tuning). */
-function oneOfN(P: SweepParams, n: number): SweepParams {
-  return { ...oneBoxOfN(P, n), eg: P.eg / Math.sqrt(n) };
+/** The impedance chart's factor over one driver's: 1 with WinISD's per-driver impedance bug
+ *  (`winisdDriverCountModel` true or absent); otherwise the array the amplifier drives, N for N
+ *  drivers in series, 1/N in parallel (John, 2026-10-05). */
+function arrayImpedanceScale(P: SweepParams, n: number): number {
+  if (P.winisdDriverCountModel !== false) return 1;
+  return P.wiring === 'series' ? n : 1 / n;
 }
 
 /** One of `n` drivers' share of the box: Vb/n and, where they exist, Vf/n, every port area /n and prNum/n. */
@@ -428,11 +434,16 @@ export class SimulationEngineImpl implements SimulationEngine {
   sweep(drv: SweepDriver, Le_H: number | undefined, box: BoxType, P: SweepParams): SweepSolveResult {
     const n = P.nDrivers || 1;
     if (winisdCountsDrivers(P)) {
-      // WinISD: one driver in Vb/N fed P/N (eg/√N); N of them sum to +20·log10(N) on its SPL.
-      const one = this.sweep(drv, Le_H, box, oneOfN(P, n));
+      // WinISD: one driver in Vb/N at eg, the voltage each driver gets (P/N each); N of them sum to +20·log10(N) on its SPL and
+      // N times its VA (WinISD's VA chart is the array's: 0.968 VA at 1 and 4 drivers, W5 sealed 1 W).
+      const one = this.sweep(drv, Le_H, box, oneBoxOfN(P, n));
       if (one.values === null) return one;
       const gain = 20 * Math.log10(n);
-      return { ...one, values: { ...one.values, spl: one.values.spl.map((v) => isSilence(v) ? v : v + gain) } };
+      const zScale = arrayImpedanceScale(P, n);
+      return { ...one, values: { ...one.values,
+        spl: one.values.spl.map((v) => isSilence(v) ? v : v + gain),
+        va: one.values.va.map((v) => v * n),
+        zmag: one.values.zmag.map((z) => z * zScale) } };
     }
     // Driver-side added mass (docs/research/WINISD_PARITY.md) shifts Mms/Fs/Q's before the circuit sees it.
     // 0/absent → withAddedMass returns the driver unchanged, so goldens are byte-identical.

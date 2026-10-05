@@ -77,16 +77,6 @@ const UNSOLVED: readonly string[] = ['KLe', 'Qms'];
 const WRONG_BY_DESIGN = new Set(['inconsistency-test-qts-C.wdr']);
 
 /**
- * `file:key` pairs excluded from the C-value agreement check for a reason narrower than a
- * whole file. `s-roo.wdr:c` — WinISD's stored `c` (343.684..., the standard-air default) does
- * not match `c = √(γ·p_ref/roo)` for its own stated `roo=123`, contradicting the c-from-roo
- * recompute rule `docs/design/WINISD_SCHEMA.md` §12 established from a distinct, plausible-range
- * probe matrix. Whether WinISD clamps/rejects an out-of-range `roo` before recomputing `c` is
- * unresolved. See `bugs/BUG_20260820_s-roo_wdr_oracle_contradicts_the_c-from-roo_recompute_rule.md`.
- */
-const FIELD_DISAGREEMENT_EXCUSED = new Set(['s-roo.wdr:c']);
-
-/**
  * `[ENV T=<kelvin> p=<pascal> RH=<percent>]` in `Comment=` — the environment WinISD's own `c`/
  * `roo` were computed under, for a driver-only `.wdr` (no `[Box]` section, so no other field
  * carries it). Real WinISD never writes this tag; it is a human annotation added to a specific
@@ -205,7 +195,6 @@ describe('a .wdr survives the round trip THROUGH OpenISDDriver', () => {
       for (const [key, cell] of before.rows()) {
         if (cell.state !== 'calculated') continue;
         if (UNSOLVED.includes(key) || WRONG_BY_DESIGN.has(file)) continue;
-        if (FIELD_DISAGREEMENT_EXCUSED.has(`${file}:${key}`)) continue;
         const theirs = Number(cell.value);
         // `c`/`roo` on a file carrying an `[ENV]` tag: our own writer always recomputes them at
         // the app default environment (nothing in a driver-only `.wdr` carries the real one), so

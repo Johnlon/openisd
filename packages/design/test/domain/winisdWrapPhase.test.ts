@@ -37,10 +37,4 @@ describe('winisdWrapPhase', () => {
     expect(back.winisdWrapPhase.value).toBe(false);
   });
 
-  it('is set to true by "Reset to WinISD"', () => {
-    const p = projectWithWrap(false);
-    expect(p.winisdWrapPhase.value).toBe(false);
-    p.resetToWinisd();
-    expect(p.winisdWrapPhase.value).toBe(true);
-  });
 });

@@ -95,16 +95,18 @@ Solved exactly from WinISD's own complex impedance output (chart review §4).
 
 ## 2. WinISD compatibility controls
 
-The default is WinISD's behaviour, bugs included. Each conventional variant sits behind its own
-control in the WinISD Compatibility panel (Advanced tab) or the Box losses pane.
+The WinISD Compatibility panel (Advanced tab) holds two groups of switches: "WinISD bugs" (yellow,
+unticked by default: OpenISD does the correct calculation; ticked brings WinISD's bug back) and
+"Options" (ticked by default: WinISD's way; unticked gives the other form). The bug switches that
+move driver charts:
 
-| Control | WinISD (default) | Conventional | Charts it moves |
+| Switch | Ticked (WinISD) | Unticked (default) | Charts it moves |
 |---|---|---|---|
 | Enable WinISD two-BL driver bug | Cms from Vas; Mms, Rms from Fs, Qms; damping BL from Qes; **entered** BL for push, impedance, TF reference and CLe | entered Cms, Mms, Rms, BL, one BL throughout | all driver charts |
 | Enable WinISD VA model bug | VA = P·Re·\|Hf\|²/\|Z + Rg\| | P·(Re + Rg)·\|Hf\|²/\|Z_amp\|, Rg counted once | Amplifier apparent load power |
 | Enable WinISD ABC group delay bug (ABC only) | box stepped to f ± 1e-10 Hz, driver part held at f: the box's phase slope alone | −dφ/dω of the plotted phase | Group delay |
 
-Native WinISD controls behave as WinISD has them, with no conventional variant:
+Native WinISD controls behave as WinISD has them, with no switch of their own:
 
 | Control | Effect |
 |---|---|
@@ -170,7 +172,9 @@ not implemented in OpenISD.
 
     τg = −dφ/dω at f, central difference over f·(1 ± 1e-6)
 
-- Source: `sweep.ts` `groupDelayAtMs`, for the system and the EQ/filter chain alike.
+- Source: `SimulationEngine.ts` `groupDelayAtMs`, for the system and the EQ/filter chain alike.
+  A fixed 1e-10 Hz step made OpenISD's own 6th-order bandpass curve noisy above 1.2 kHz (up to
+  0.16 ms; [bug](../bugs/BUG_20261005_bp6-group-delay-noise-above-1k.md)).
 - WinISD (chart 12 of `f_4618f0`): (φ(f−δ) − φ(f+δ))/(2π·2δ), δ = (f + 1e-10) − f. Its 1e-10 Hz
   step turns each rounding step of the phase into 1.77e-4 ms: the staircase in its curve.
 - Evidence: chart review §3, worst 0.00049 ms, about 3 of WinISD's rounding steps. Copying WinISD's

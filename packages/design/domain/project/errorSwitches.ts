@@ -22,6 +22,8 @@ export interface ErrorSwitchStates {
     readonly besselHighpass: ErrorSwitchState;
     /** WinISD ABC group delay: the driver part held at the chart frequency while the box is stepped. */
     readonly abcGroupDelay: ErrorSwitchState;
+    /** WinISD per-driver impedance: the impedance chart shows one driver's, not the array's. */
+    readonly driverCount: ErrorSwitchState;
 }
 
 export interface ErrorSwitchInputs {
@@ -30,6 +32,9 @@ export interface ErrorSwitchInputs {
     readonly winisdVaModel: boolean;
     readonly winisdPrNprResonance: boolean;
     readonly winisdBesselHighpass: boolean;
+    readonly winisdDriverCountModel: boolean;
+    /** The number of drivers in the box. */
+    readonly nDrivers: number;
     /** The project has at least one enabled Bessel high-pass filter. */
     readonly hasBesselHighpass: boolean;
     readonly winisdAbcGroupDelay: boolean;
@@ -42,5 +47,6 @@ export function errorSwitchStatesOf(i: ErrorSwitchInputs): ErrorSwitchStates {
         besselHighpass: {marked: true, applicable: i.hasBesselHighpass, reproducesError: i.winisdBesselHighpass},
         prNprResonance: {marked: true, applicable: i.boxType === 'box-passive-radiator', reproducesError: i.winisdPrNprResonance},
         abcGroupDelay: {marked: true, applicable: i.boxType === 'abc', reproducesError: i.winisdAbcGroupDelay},
+        driverCount: {marked: true, applicable: i.nDrivers > 1, reproducesError: i.winisdDriverCountModel},
     };
 }

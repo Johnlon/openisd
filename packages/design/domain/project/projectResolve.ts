@@ -65,6 +65,7 @@ export function resolveProject(ctx: ProjectResolveContext): ProjectIssues {
         Re_ohm: inputOf(() => Re_ohm),
         voltage_V: driveVoltageOver(directRoot),
         Rs_ohm: inputOf(() => directRoot.value.driverEmbedding.Rs_ohm),
+        nDrivers: inputOf(() => directRoot.value.driverEmbedding.nDrivers),
     });
 
     // The project's own air — the driver's OWN c_m_per_s/roo_kg_per_m3 are display-only and feed

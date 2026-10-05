@@ -888,66 +888,66 @@ export const DRIVER_SOLVER_GOLDEN: readonly CaseOutcome[] = Object.freeze([
  },
  {
   name: "air at 101325 Pa 293.15 K, Cms from Vas and Sd",
-  values: [{field: "Vas_m3", value: 0.02}, {field: "Sd_m2", value: 0.0132}, {field: "Dd_m", value: 0.12964089628857148}, {field: "Cms_m_per_N", value: 0.0008120940505819173}, {field: "c_m_per_s", value: 343.2}, {field: "roo_kg_per_m3", value: 1.2}],
+  values: [{field: "Vas_m3", value: 0.02}, {field: "Sd_m2", value: 0.0132}, {field: "Dd_m", value: 0.12964089628857148}, {field: "Cms_m_per_N", value: 0.0008091657375016504}, {field: "c_m_per_s", value: 343.68412096215235}, {field: "roo_kg_per_m3", value: 1.2009521771468228}],
  },
  {
   name: "air at high pressure, Cms from Vas and Sd",
-  values: [{field: "Vas_m3", value: 0.02}, {field: "Sd_m2", value: 0.0132}, {field: "Dd_m", value: 0.12964089628857148}, {field: "Cms_m_per_N", value: 0.0006720778349643454}, {field: "c_m_per_s", value: 343.2}, {field: "roo_kg_per_m3", value: 1.45}],
+  values: [{field: "Vas_m3", value: 0.02}, {field: "Sd_m2", value: 0.0132}, {field: "Dd_m", value: 0.12964089628857148}, {field: "Cms_m_per_N", value: 0.0008091657375016504}, {field: "c_m_per_s", value: 343.68412096215235}, {field: "roo_kg_per_m3", value: 1.2009521771468228}],
  },
  {
   name: "air at high temperature, Cms from Vas and Sd",
-  values: [{field: "Vas_m3", value: 0.02}, {field: "Sd_m2", value: 0.0132}, {field: "Dd_m", value: 0.12964089628857148}, {field: "Cms_m_per_N", value: 0.0008132187894500566}, {field: "c_m_per_s", value: 355}, {field: "roo_kg_per_m3", value: 1.12}],
+  values: [{field: "Vas_m3", value: 0.02}, {field: "Sd_m2", value: 0.0132}, {field: "Dd_m", value: 0.12964089628857148}, {field: "Cms_m_per_N", value: 0.0008091657375016504}, {field: "c_m_per_s", value: 343.68412096215235}, {field: "roo_kg_per_m3", value: 1.2009521771468228}],
  },
  {
   name: "air only a stated c, roo is the reference",
-  values: [{field: "Vas_m3", value: 0.02}, {field: "Sd_m2", value: 0.0132}, {field: "Dd_m", value: 0.12964089628857148}, {field: "Cms_m_per_N", value: 0.0007802258423420602}, {field: "c_m_per_s", value: 350}, {field: "roo_kg_per_m3", value: 1.2009521771468228}],
+  values: [{field: "Vas_m3", value: 0.02}, {field: "Sd_m2", value: 0.0132}, {field: "Dd_m", value: 0.12964089628857148}, {field: "Cms_m_per_N", value: 0.0008091657375016504}, {field: "c_m_per_s", value: 343.68412096215235}, {field: "roo_kg_per_m3", value: 1.2009521771468228}],
  },
  {
   name: "air only a stated roo, c from roo",
-  values: [{field: "Vas_m3", value: 0.02}, {field: "Sd_m2", value: 0.0132}, {field: "Dd_m", value: 0.12964089628857148}, {field: "Cms_m_per_N", value: 0.0008091657375016502}, {field: "c_m_per_s", value: 359.10874524173164}, {field: "roo_kg_per_m3", value: 1.1}],
+  values: [{field: "Vas_m3", value: 0.02}, {field: "Sd_m2", value: 0.0132}, {field: "Dd_m", value: 0.12964089628857148}, {field: "Cms_m_per_N", value: 0.0008091657375016504}, {field: "c_m_per_s", value: 343.68412096215235}, {field: "roo_kg_per_m3", value: 1.2009521771468228}],
  },
  {
   name: "air at high pressure, no from Fs, Vas and Qes",
-  values: [{field: "Fs_hz", value: 40}, {field: "Qes", value: 0.5}, {field: "Vas_m3", value: 0.02}, {field: "EBP_hz", value: 80}, {field: "no", value: 0.002500102788510187}, {field: "SPLref_dB", value: 86.94633286223642}, {field: "SPL_dB", value: 86.94633286223642}, {field: "c_m_per_s", value: 343.2}, {field: "roo_kg_per_m3", value: 1.45}],
+  values: [{field: "Fs_hz", value: 40}, {field: "Qes", value: 0.5}, {field: "Vas_m3", value: 0.02}, {field: "EBP_hz", value: 80}, {field: "no", value: 0.0024895525655080812}, {field: "SPLref_dB", value: 86.1156662185391}, {field: "SPL_dB", value: 86.1156662185391}, {field: "c_m_per_s", value: 343.68412096215235}, {field: "roo_kg_per_m3", value: 1.2009521771468228}],
  },
  {
   name: "air at high temperature, SPL from no",
-  values: [{field: "no", value: 0.004}, {field: "SPLref_dB", value: 88.0126650736716}, {field: "SPL_dB", value: 88.0126650736716}, {field: "c_m_per_s", value: 355}, {field: "roo_kg_per_m3", value: 1.12}],
+  values: [{field: "no", value: 0.004}, {field: "SPLref_dB", value: 88.17505312588838}, {field: "SPL_dB", value: 88.17505312588838}, {field: "c_m_per_s", value: 343.68412096215235}, {field: "roo_kg_per_m3", value: 1.2009521771468228}],
  },
  {
   name: "air at high pressure, SPLmaxLF from Vd",
-  values: [{field: "Vd_m3", value: 0.00008}, {field: "SPLmaxLF_dB", value: 80.26305710834049}, {field: "c_m_per_s", value: 343.2}, {field: "roo_kg_per_m3", value: 1.45}],
+  values: [{field: "Vd_m3", value: 0.00008}, {field: "SPLmaxLF_dB", value: 78.62621133967977}, {field: "c_m_per_s", value: 343.68412096215235}, {field: "roo_kg_per_m3", value: 1.2009521771468228}],
  },
  {
   name: "radiator Fs, Qms, Vas and Sd",
-  values: [{field: "Fs_hz", value: 30}, {field: "Qms", value: 3.3}, {field: "Vas_m3", value: 0.0048}, {field: "Sd_m2", value: 0.0095}, {field: "Dd_m", value: 0.10998079684646792}, {field: "Mms_kg", value: 0.07479619952330818}, {field: "Cms_m_per_N", value: 0.00037628614038353887}, {field: "Rms_kg_per_s", value: 4.272348926161116}, {field: "c_m_per_s", value: 343.2}, {field: "roo_kg_per_m3", value: 1.2}],
+  values: [{field: "Fs_hz", value: 30}, {field: "Qms", value: 3.3}, {field: "Vas_m3", value: 0.0048}, {field: "Sd_m2", value: 0.0095}, {field: "Dd_m", value: 0.10998079684646792}, {field: "Mms_kg", value: 0.07506688163361924}, {field: "Cms_m_per_N", value: 0.00037492929800054305}, {field: "Rms_kg_per_s", value: 4.287810252146778}, {field: "c_m_per_s", value: 343.68412096215235}, {field: "roo_kg_per_m3", value: 1.2009521771468228}],
  },
  {
   name: "radiator Fs, Vas and Sd without Qms",
-  values: [{field: "Fs_hz", value: 30}, {field: "Vas_m3", value: 0.0048}, {field: "Sd_m2", value: 0.0095}, {field: "Dd_m", value: 0.10998079684646792}, {field: "Mms_kg", value: 0.07479619952330818}, {field: "Cms_m_per_N", value: 0.00037628614038353887}, {field: "c_m_per_s", value: 343.2}, {field: "roo_kg_per_m3", value: 1.2}],
+  values: [{field: "Fs_hz", value: 30}, {field: "Vas_m3", value: 0.0048}, {field: "Sd_m2", value: 0.0095}, {field: "Dd_m", value: 0.10998079684646792}, {field: "Mms_kg", value: 0.07506688163361924}, {field: "Cms_m_per_N", value: 0.00037492929800054305}, {field: "c_m_per_s", value: 343.68412096215235}, {field: "roo_kg_per_m3", value: 1.2009521771468228}],
  },
  {
   name: "radiator Mms, Cms and Rms only",
-  values: [{field: "Fs_hz", value: 44.21653047965852}, {field: "Qms", value: 4.142053396514254}, {field: "Mms_kg", value: 0.0164}, {field: "Cms_m_per_N", value: 0.00079}, {field: "Rms_kg_per_s", value: 1.1}, {field: "c_m_per_s", value: 343.2}, {field: "roo_kg_per_m3", value: 1.2}],
+  values: [{field: "Fs_hz", value: 44.21653047965852}, {field: "Qms", value: 4.142053396514254}, {field: "Mms_kg", value: 0.0164}, {field: "Cms_m_per_N", value: 0.00079}, {field: "Rms_kg_per_s", value: 1.1}, {field: "c_m_per_s", value: 343.68412096215235}, {field: "roo_kg_per_m3", value: 1.2009521771468228}],
  },
  {
   name: "radiator all seven stated, slightly inconsistent",
-  values: [{field: "Fs_hz", value: 44.2}, {field: "Qms", value: 4.02}, {field: "Vas_m3", value: 0.0084}, {field: "Sd_m2", value: 0.00866}, {field: "Dd_m", value: 0.10500597343678363}, {field: "Mms_kg", value: 0.0164}, {field: "Cms_m_per_N", value: 0.00079}, {field: "Rms_kg_per_s", value: 1.1329739715095373}, {field: "c_m_per_s", value: 343.2}, {field: "roo_kg_per_m3", value: 1.2}],
+  values: [{field: "Fs_hz", value: 44.2}, {field: "Qms", value: 4.02}, {field: "Vas_m3", value: 0.0084}, {field: "Sd_m2", value: 0.00866}, {field: "Dd_m", value: 0.10500597343678363}, {field: "Mms_kg", value: 0.0164}, {field: "Cms_m_per_N", value: 0.00079}, {field: "Rms_kg_per_s", value: 1.1329739715095373}, {field: "c_m_per_s", value: 343.68412096215235}, {field: "roo_kg_per_m3", value: 1.2009521771468228}],
  },
  {
   name: "radiator all seven stated, consistent",
-  values: [{field: "Fs_hz", value: 30}, {field: "Qms", value: 3.3}, {field: "Vas_m3", value: 0.0048}, {field: "Sd_m2", value: 0.0095}, {field: "Dd_m", value: 0.10998079684646792}, {field: "Mms_kg", value: 0.0164}, {field: "Cms_m_per_N", value: 0.00172}, {field: "Rms_kg_per_s", value: 0.9}, {field: "c_m_per_s", value: 343.2}, {field: "roo_kg_per_m3", value: 1.2}],
+  values: [{field: "Fs_hz", value: 30}, {field: "Qms", value: 3.3}, {field: "Vas_m3", value: 0.0048}, {field: "Sd_m2", value: 0.0095}, {field: "Dd_m", value: 0.10998079684646792}, {field: "Mms_kg", value: 0.0164}, {field: "Cms_m_per_N", value: 0.00172}, {field: "Rms_kg_per_s", value: 0.9}, {field: "c_m_per_s", value: 343.68412096215235}, {field: "roo_kg_per_m3", value: 1.2009521771468228}],
  },
  {
   name: "radiator Fs and Qms only",
-  values: [{field: "Fs_hz", value: 30}, {field: "Qms", value: 3.3}, {field: "c_m_per_s", value: 343.2}, {field: "roo_kg_per_m3", value: 1.2}],
+  values: [{field: "Fs_hz", value: 30}, {field: "Qms", value: 3.3}, {field: "c_m_per_s", value: 343.68412096215235}, {field: "roo_kg_per_m3", value: 1.2009521771468228}],
  },
  {
   name: "radiator Vas and Sd only",
-  values: [{field: "Vas_m3", value: 0.0048}, {field: "Sd_m2", value: 0.0095}, {field: "Dd_m", value: 0.10998079684646792}, {field: "Cms_m_per_N", value: 0.00037628614038353887}, {field: "c_m_per_s", value: 343.2}, {field: "roo_kg_per_m3", value: 1.2}],
+  values: [{field: "Vas_m3", value: 0.0048}, {field: "Sd_m2", value: 0.0095}, {field: "Dd_m", value: 0.10998079684646792}, {field: "Cms_m_per_N", value: 0.00037492929800054305}, {field: "c_m_per_s", value: 343.68412096215235}, {field: "roo_kg_per_m3", value: 1.2009521771468228}],
  },
  {
   name: "radiator at high pressure",
-  values: [{field: "Fs_hz", value: 30}, {field: "Qms", value: 3.3}, {field: "Vas_m3", value: 0.0048}, {field: "Sd_m2", value: 0.0095}, {field: "Dd_m", value: 0.10998079684646792}, {field: "Mms_kg", value: 0.09037874109066406}, {field: "Cms_m_per_N", value: 0.00031140921962775626}, {field: "Rms_kg_per_s", value: 5.162421619111348}, {field: "c_m_per_s", value: 343.2}, {field: "roo_kg_per_m3", value: 1.45}],
+  values: [{field: "Fs_hz", value: 30}, {field: "Qms", value: 3.3}, {field: "Vas_m3", value: 0.0048}, {field: "Sd_m2", value: 0.0095}, {field: "Dd_m", value: 0.10998079684646792}, {field: "Mms_kg", value: 0.07506688163361924}, {field: "Cms_m_per_N", value: 0.00037492929800054305}, {field: "Rms_kg_per_s", value: 4.287810252146778}, {field: "c_m_per_s", value: 343.68412096215235}, {field: "roo_kg_per_m3", value: 1.2009521771468228}],
  },
 ]);

@@ -320,18 +320,9 @@ export class OpenIsdDriverSpec {
         this.Mpow_N_per_sqrtW = f('Mpow_N_per_sqrtW');
         this.Mcost_kg_per_s = f('Mcost_kg_per_s');
         this.Gloss = f('Gloss');
-        // The air THIS DRIVER states, entry-backed like every other quantity: a not-entered
-        // c_m_per_s/roo_kg_per_m3 no longer needs a live read-time fallback — `resolve()`'s own
-        // working set defaults it to the driver's `air` and writes the default back as `'C'`
-        // (engine `consistency.ts#solveDriver`), so the record always carries a real value by
-        // the time anything outside this constructor can read it.
-        //
-        // Purpose unconfirmed (John, 2026-09-26, speculation): this may just record the
-        // condition the driver was measured at, in which case no calculation should ever read
-        // it — or it may be meant to let a calculation adapt the driver's measured readings to
-        // the project's own air. Until decided, treat it as display-only: every real
-        // calculation (box, vent, PR, sweep) reads the project's air, never this field
-        // (BUG_20260924_driver-solve-and-sweep-use-different-air-models.md).
+        // The air this driver's calculations used, written back by `resolve()` as `'C'`: the
+        // project's, or with no project the app's environment defaults. A record's own c/roo feed
+        // no calculation (John, 2026-10-05).
         this.c_m_per_s = f('c_m_per_s');
         this.roo_kg_per_m3 = f('roo_kg_per_m3');
         this.Vcd_m = f('Vcd_m');

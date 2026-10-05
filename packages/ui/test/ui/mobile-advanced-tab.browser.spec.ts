@@ -59,7 +59,7 @@ test('toggling the "Force flat response" checkbox writes through to the project'
 test('the bug switches carry the warning class under a "WinISD bugs" heading', async ({ page }) => {
   const group = page.locator('.error-switch-group');
   await expect(group.locator('.error-switch-group-head')).toHaveText('WinISD bugs');
-  for (const key of ['winisdDriverModel', 'winisdVaModel', 'winisdPrNprResonance', 'winisdBesselHighpass', 'winisdAbcGroupDelay']) {
+  for (const key of ['winisdDriverModel', 'winisdVaModel', 'winisdPrNprResonance', 'winisdBesselHighpass', 'winisdAbcGroupDelay', 'winisdDriverCountModel']) {
     const label = group.locator(`label[data-field-key="${key}"]`);
     await expect(label, key).toHaveClass(/error-switch-marked/);
     await expect(label, key).toHaveAttribute('title', /^Reproduces a WinISD bug\.\n/);
@@ -67,11 +67,12 @@ test('the bug switches carry the warning class under a "WinISD bugs" heading', a
   await expect(group.locator('label[data-field-key="winisdAbcIntraPortVelocity"]')).toHaveCount(0);
   await expect(page.locator('label[data-field-key="winisdAbcIntraPortVelocity"] input')).toBeDisabled();
   await expect(group.locator('label[data-field-key="winisdPrNprResonance"] input')).toBeDisabled();
+  await expect(group.locator('label[data-field-key="winisdDriverCountModel"] input')).toBeDisabled();
 });
 
 test('the Options group has every WinISD option the desktop has, and each one writes through', async ({ page }) => {
   const panel = page.locator('.mob-panel', { hasText: 'WinISD compatibility' });
-  for (const key of ['winisdWrapPhase', 'winisdDriverCountModel', 'winisdFlatModel']) {
+  for (const key of ['winisdWrapPhase', 'winisdFlatModel']) {
     const checkbox = panel.locator(`label[data-field-key="${key}"] input[type=checkbox]`);
     await expect(checkbox, key).toBeVisible();
     const before = await checkbox.isChecked();

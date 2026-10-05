@@ -2,12 +2,12 @@ import type {ErrorSwitchState, ErrorSwitchStates} from '../domain/project/errorS
 import type {ChartId, Filter} from '../engine/index.js';
 import {ToggleField} from './field.js';
 
-/** A WinISD calculation bug: the yellow error switch in "WinISD bugs" brings it back. */
+/** A WinISD calculation bug: the yellow bug switch in "WinISD bugs" brings it back. */
 export interface ErrorSwitchFix {
   readonly kind: 'errorSwitch';
-  /** The error switch's label in "WinISD bugs". */
+  /** The bug switch's label in "WinISD bugs". */
   readonly switchLabel: string;
-  /** The error switch's state in the project's `errorSwitches`. */
+  /** The bug switch's state in the project's `errorSwitches`. */
   readonly switchOf: (s: ErrorSwitchStates) => ErrorSwitchState;
 }
 
@@ -107,6 +107,14 @@ export class WinisdDeviation {
     size: 'W5-1138SMF ABC: WinISD −41.0 ms, phase slope −33.9 ms at 1 Hz; −3.3 ms against +3.6 ms at 10.75 Hz; 1.46 ms against 2.39 ms at 116 Hz.',
     fix: {kind: 'errorSwitch', switchLabel: ToggleField.ADV_WINISDABCGROUPDELAY.label, switchOf: s => s.abcGroupDelay},
     charts: ['GD'],
+  });
+
+  static readonly DRIVER_COUNT = new WinisdDeviation({
+    title: 'WinISD shows one driver\'s impedance',
+    explanation: 'With more than one driver, WinISD\'s impedance chart shows one driver\'s impedance, not the array the amplifier drives (its SPL, VA and maximum power are the whole array\'s). OpenISD shows the array, per the project\'s series or parallel wiring.',
+    size: 'W5-1138SMF sealed, 4 drivers: WinISD peaks at 18.6 Ω, the same as one driver; in parallel the amplifier sees 4.65 Ω.',
+    fix: {kind: 'errorSwitch', switchLabel: ToggleField.ADV_WINISDDRIVERCOUNTMODEL.label, switchOf: s => s.driverCount},
+    charts: [],
   });
 
   /** The project-wide members, by reflection; declared last. */

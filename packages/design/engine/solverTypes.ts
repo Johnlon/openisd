@@ -104,6 +104,8 @@ export interface SignalSolverParams {
   Re_ohm: SolverInput;
   voltage_V: PresentSolverField;
   Rs_ohm?: SolverInput;
+  /** Drivers sharing `power_W`; each gets `power_W / nDrivers` at `voltage_V`. Absent: 1. */
+  nDrivers?: SolverInput;
 }
 
 /** A `SolverField` handle for every driver T/S quantity. Pass this directly to

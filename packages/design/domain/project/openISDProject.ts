@@ -1,4 +1,3 @@
-import {CompatSwitch} from './compatSwitch.js';
 import {type Engine} from '../../engine/index.js';
 import type { Air, AirEnvironment, BoxParamsIssue, ChartId, DriverError, Filter, MaxCurvesResult, MaxCurvesSolveResult, SweepResult, SweepSolveResult } from '../../engine/index.js';
 import { dateStamp, realAppContext } from '../appContext.js';
@@ -306,22 +305,22 @@ export class OpenISDProject {
         return ProjectAdvanced.wrap(this.#slot('advanced'), this.#slot('filters')).winisdVaModel;
     }
 
-    /** WinISD Compatibility "Enable optional phase wrapping" — see `ProjectAdvanced.winisdWrapPhase`. */
+    /** WinISD Compatibility "Enable WinISD style phase wrapping" — see `ProjectAdvanced.winisdWrapPhase`. */
     get winisdWrapPhase(): SimpleField<boolean> {
         return ProjectAdvanced.wrap(this.#slot('advanced'), this.#slot('filters')).winisdWrapPhase;
     }
 
-    /** WinISD Compatibility "Enable optional per-driver boxes" — see `ProjectAdvanced.winisdDriverCountModel`. */
+    /** WinISD Compatibility "Enable WinISD per-driver impedance bug" — see `ProjectAdvanced.winisdDriverCountModel`. */
     get winisdDriverCountModel(): SimpleField<boolean> {
         return ProjectAdvanced.wrap(this.#slot('advanced'), this.#slot('filters')).winisdDriverCountModel;
     }
 
-    /** WinISD Compatibility "Enable optional simplified ABC intra-port velocity" — see `ProjectAdvanced.winisdAbcIntraPortVelocity`. */
+    /** WinISD Compatibility "Enable WinISD style simplified ABC intra-port velocity" — see `ProjectAdvanced.winisdAbcIntraPortVelocity`. */
     get winisdAbcIntraPortVelocity(): SimpleField<boolean> {
         return ProjectAdvanced.wrap(this.#slot('advanced'), this.#slot('filters')).winisdAbcIntraPortVelocity;
     }
 
-    /** "Enable optional simplified ABC intra-port velocity" acts on the open box: an ABC box only. */
+    /** "Enable WinISD style simplified ABC intra-port velocity" acts on the open box: an ABC box only. */
     get winisdAbcIntraPortVelocityApplies(): boolean {
         return this.box.boxType.value === 'abc';
     }
@@ -350,21 +349,16 @@ export class OpenISDProject {
             winisdVaModel: this.winisdVaModel.value,
             winisdPrNprResonance: this.winisdPrNprResonance.value,
             winisdBesselHighpass: this.winisdBesselHighpass.value,
+            winisdDriverCountModel: this.winisdDriverCountModel.value,
+            nDrivers: this.nDrivers.value,
             hasBesselHighpass: this.filters.value.some(f => f.type === 'highpass' && f.family === 'bessel' && f.enabled),
             winisdAbcGroupDelay: this.winisdAbcGroupDelay.value,
         });
     }
 
-    /** WinISD Compatibility "Enable optional uncapped flat response" — see `ProjectAdvanced.winisdFlatModel`. */
+    /** WinISD Compatibility "Enable WinISD style uncapped flat response" — see `ProjectAdvanced.winisdFlatModel`. */
     get winisdFlatModel(): SimpleField<boolean> {
         return ProjectAdvanced.wrap(this.#slot('advanced'), this.#slot('filters')).winisdFlatModel;
-    }
-
-    /** "Reset to WinISD": every WinISD option to WinISD's side, every WinISD bug unticked (fixed).
-     *  Never ticks a bug. Native WinISD controls ("Rg is at driver side", voice coil inductance,
-     *  ...) and project data keep their values. */
-    resetToWinisd(): void {
-        for (const s of CompatSwitch.ALL) s.of(this).set(s.winisdValue);
     }
 
     /** Which charts are open (S10/QO130) — PROJECT-scoped, reversing QO90 for this field.
@@ -659,12 +653,13 @@ export class OpenISDProject {
             this.#engine.signal,
             () => usableRe(root, (r) => this.#driverOver(r)),
             () => this.Rs_ohm.value ?? 0,
+            () => this.nDrivers.value,
             () => this.#issues.signal,
         );
     }
 
-    /** The drive power — WinISD's Signal-tab "Input Power". While the driver has a usable Re,
-     *  `power_W = voltage_V² / Re` holds and whichever of the pair was entered last is entered;
+    /** The drive power — WinISD's Signal-tab "System input power", shared by all N drivers. While
+     *  the driver has a usable Re, `power_W = N · voltage_V² / Re` holds and whichever of the pair was entered last is entered;
      *  the other is calculated. Without a usable Re it is not available and cannot be entered —
      *  its dq names the missing Re. */
     get powerDrive_W(): Readable<number | null> & Entered & Calculated & Writable<number> & Clearable & Calculatable<number> & Unsolvable {
@@ -672,7 +667,7 @@ export class OpenISDProject {
     }
 
     /**
-     * The drive voltage — the `eg` every sweep runs at. Never absent: an empty slot reads
+     * The drive voltage each driver gets — the `eg` every sweep runs at. Never absent: an empty slot reads
      * the default as calculated, and it is never below 10 mV. Entering it needs no Re.
      * `.clear()` empties the
      * pair; the resolve then fills it back from its defaults.

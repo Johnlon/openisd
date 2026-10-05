@@ -20,7 +20,6 @@ import OptionsModal from '../../components/OptionsModal.vue';
 import AdvancedOptions from '../../components/AdvancedOptions.vue';
 import ErrorSwitch from '../../components/ErrorSwitch.vue';
 import ErrorSwitchGroup from '../../components/ErrorSwitchGroup.vue';
-import ResetToWinisd from '../../components/ResetToWinisd.vue';
 import WinisdDeviationCue from '../../components/WinisdDeviationCue.vue';
 import BoxTypeDiagram from '../../components/BoxTypeDiagram.vue';
 import {useOriginalShell} from '../../../hooks/OriginalShell-hooks.js';
@@ -40,7 +39,7 @@ const {
   genOn, toggleGenerate, genHz,
   boxLabel, pending, openCharts, chartStackEl, chartStackStyle, chartsHigh, CHARTS_HIGH_OPTIONS, overlays, activeTab,
   showEnclosureTab, enclosureNavLabel,
-  selectedBox, BOX_TYPE_OPTIONS, ARRAY_WIRING_OPTIONS, N_DRIVERS_OPTIONS, abcVelocityApplies, errorSwitches, chartDeviations, prNprDeviationShown,
+  selectedBox, BOX_TYPE_OPTIONS, ARRAY_WIRING_OPTIONS, N_DRIVERS_OPTIONS, abcVelocityApplies, errorSwitches, chartDeviations, prNprDeviationShown, driverCountDeviationShown,
   boxVolume_m3, boxVolumeDqNote, setBoxVolume_m3, sealedAlignmentEditor, sealedAlignmentOpen,
   sealedAlignmentOptions, sealedAlignmentSelected, sealedAlignmentVolume_m3, sealedAlignmentEbp,
   sealedAlignmentSuitability, sealedAlignmentSuitabilityLabel, originalFilters,
@@ -380,6 +379,7 @@ const {
                 <div class="field"><label>Num. of drivers</label>
                   <select :value="project.nDrivers.value" @change="e => { const n = selectedOption(e, N_DRIVERS_OPTIONS); if (n !== null) project.nDrivers.set(n); }"><option v-for="o in N_DRIVERS_OPTIONS" :key="o.value" :value="o.value">{{ o.label }}</option></select>
                   <span>driver(s)</span>
+                  <WinisdDeviationCue v-if="driverCountDeviationShown" :deviation="WinisdDeviation.DRIVER_COUNT" />
                 </div>
               </div>
               <div class="radio-group field-row">
@@ -644,7 +644,7 @@ const {
               <AdvancedOptions />
             </div>
             <div class="sim-options-box">
-              <ResetToWinisd><span class="sim-options-header">WinISD Compatibility</span></ResetToWinisd>
+              <div class="sim-options-head"><span class="sim-options-header">WinISD Compatibility</span></div>
               <div class="sim-switches">
                 <div class="sim-switch-col">
                 <div class="option-switch-group" :title="CompatSwitchGroup.OPTIONS.tooltip">
@@ -652,11 +652,6 @@ const {
                 <div>
                   <label data-field-key="winisdWrapPhase" style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 12px;" :title="ToggleField.ADV_WINISDWRAPPHASE.description">
                     <input type="checkbox" :checked="project.winisdWrapPhase.value" @change="e => project.winisdWrapPhase.set(inputChecked(e))"> {{ ToggleField.ADV_WINISDWRAPPHASE.label }}
-                  </label>
-                </div>
-                <div>
-                  <label data-field-key="winisdDriverCountModel" style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 12px;" :title="ToggleField.ADV_WINISDDRIVERCOUNTMODEL.description">
-                    <input type="checkbox" :checked="project.winisdDriverCountModel.value" @change="e => project.winisdDriverCountModel.set(inputChecked(e))"> {{ ToggleField.ADV_WINISDDRIVERCOUNTMODEL.label }}
                   </label>
                 </div>
                 <div>
@@ -696,6 +691,11 @@ const {
                   <div>
                     <ErrorSwitch as="label" field-key="winisdAbcGroupDelay" style="font-size: 12px;" :marked="errorSwitches.abcGroupDelay.marked" :applicable="errorSwitches.abcGroupDelay.applicable" :reproduces-error="errorSwitches.abcGroupDelay.reproducesError" :title="ToggleField.ADV_WINISDABCGROUPDELAY.description">
                       <input type="checkbox" :checked="project.winisdAbcGroupDelay.value" :disabled="!errorSwitches.abcGroupDelay.applicable" @change="e => project.winisdAbcGroupDelay.set(inputChecked(e))"> {{ ToggleField.ADV_WINISDABCGROUPDELAY.label }}
+                    </ErrorSwitch>
+                  </div>
+                  <div>
+                    <ErrorSwitch as="label" field-key="winisdDriverCountModel" style="font-size: 12px;" :marked="errorSwitches.driverCount.marked" :applicable="errorSwitches.driverCount.applicable" :reproduces-error="errorSwitches.driverCount.reproducesError" :title="ToggleField.ADV_WINISDDRIVERCOUNTMODEL.description">
+                      <input type="checkbox" :checked="project.winisdDriverCountModel.value" :disabled="!errorSwitches.driverCount.applicable" @change="e => project.winisdDriverCountModel.set(inputChecked(e))"> {{ ToggleField.ADV_WINISDDRIVERCOUNTMODEL.label }}
                     </ErrorSwitch>
                   </div>
                 </ErrorSwitchGroup>
@@ -1224,17 +1224,21 @@ textarea.comment, textarea.description { width:100%; border:1px solid #999; bord
   flex: none;
   align-self: flex-start;
 }
-/* The WinISD options in one column, the WinISD bugs group in a second: the panel stays inside the tab's height and width. */
+/* The options in one column, the WinISD bugs group in a second: the panel stays inside the tab's height and width. */
 .sim-switches { display: flex; flex-direction: row; align-items: flex-start; gap: 8px; }
 .option-switch-group { display: flex; flex-direction: column; gap: 1px; }
 .option-switch-group-head { font-size: 11px; font-weight: 600; color: #555; }
 .sim-switch-col { display: flex; flex-direction: column; gap: 0; width: 170px; }
-/* The reset row spans the two switch columns' width. */
-.sim-options-box :deep(.compat-reset) { max-width: 338px; }
-/* A fixed width, so a long error-switch label wraps inside the group and does not widen the panel. */
+/* A fixed width, so a long bug-switch label wraps inside the group and does not widen the panel. */
 .sim-switches :deep(.error-switch-group) { flex: none; width: 160px; }
+/* A short window: the WinISD bugs go in two columns, so the panel stays inside the tab's height. */
+@media (max-height: 600px) {
+  .sim-switch-col + .sim-switch-col { width: auto; }
+  .sim-switches :deep(.error-switch-group) { display: grid; grid-template-columns: 160px 160px; column-gap: 8px; width: auto; }
+  .sim-switches :deep(.error-switch-group-head) { grid-column: 1 / -1; }
+}
 .sim-options-header { font-weight: 600; font-size: 11px; color: #333; }
-.sim-options-box :deep(.compat-reset) { border-bottom: 1px solid #d0d0d0; padding-bottom: 2px; }
+.sim-options-head { margin-bottom: 3px; border-bottom: 1px solid #d0d0d0; padding-bottom: 2px; }
 .compat-switch-na { opacity: 0.45; cursor: default; }
 
 /* filters tab fills the panel */

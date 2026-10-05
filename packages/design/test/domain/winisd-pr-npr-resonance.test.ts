@@ -1,5 +1,5 @@
 /**
- * "Enable WinISD PR Npr resonance bug" (`winisdPrNprResonance`): off by default, unticked by "Reset to WinISD", saved
+ * "Enable WinISD PR Npr resonance bug" (`winisdPrNprResonance`): off by default, saved
  * with the project, applicable on a passive radiator box only. Parity with WinISD's charts at
  * Npr > 1 needs it ticked (passive-radiator-count-winisd.test.ts).
  */
@@ -28,12 +28,6 @@ describe('winisdPrNprResonance', () => {
     expect(prProject('pr-w5-npr-1.wpr').winisdPrNprResonance.value).toBe(false);
   });
 
-  it('"Reset to WinISD" unticks it', () => {
-    const p = prProject('pr-w5-npr-1.wpr');
-    p.winisdPrNprResonance.set(true);
-    p.resetToWinisd();
-    expect(p.winisdPrNprResonance.value).toBe(false);
-  });
 
   it('is saved with the project', () => {
     const p = prProject('pr-w5-npr-1.wpr');

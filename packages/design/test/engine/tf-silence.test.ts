@@ -54,7 +54,8 @@ describe('levels below −190 dB in a real sweep', () => {
 
   it('WinISD driver count adds 20·log10(N) to levels below −190 dB too', () => {
     const two = sweep({ ...SEALED, Vb: 0.060, nDrivers: 2 });
-    const one = sweep({ ...SEALED, eg: 2.83 / Math.SQRT2 });
+    // `eg` is the voltage each driver gets, so one driver at the same eg is one of the two.
+    const one = sweep({ ...SEALED });
     for (let i = 0; i < two.fs.length; i++)
       expect(two.spl[i] - one.spl[i], `${two.fs[i].toFixed(0)} Hz`).toBeCloseTo(20 * Math.log10(2), 9);
   });

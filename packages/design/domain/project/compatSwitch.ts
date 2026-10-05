@@ -8,7 +8,7 @@ export type CompatSwitchKind = 'bug' | 'option';
 
 /**
  * A WinISD Compatibility switch (John, 2026-10-05): a WinISD bug ("Enable WinISD <name> bug") or a
- * WinISD option ("Enable optional <name>"). Its title and tooltip are `field`'s.
+ * WinISD option ("Enable WinISD style <name>"). Its title and tooltip are `field`'s.
  */
 export class CompatSwitch {
     private constructor(
@@ -22,13 +22,13 @@ export class CompatSwitch {
     static readonly PR_NPR_RESONANCE = new CompatSwitch(ToggleField.ADV_WINISDPRNPRRESONANCE, 'bug', p => p.winisdPrNprResonance);
     static readonly BESSEL_HIGHPASS = new CompatSwitch(ToggleField.ADV_WINISDBESSELHIGHPASS, 'bug', p => p.winisdBesselHighpass);
     static readonly ABC_GROUP_DELAY = new CompatSwitch(ToggleField.ADV_WINISDABCGROUPDELAY, 'bug', p => p.winisdAbcGroupDelay);
+    static readonly DRIVER_COUNT = new CompatSwitch(ToggleField.ADV_WINISDDRIVERCOUNTMODEL, 'bug', p => p.winisdDriverCountModel);
 
     static readonly WRAP_PHASE = new CompatSwitch(ToggleField.ADV_WINISDWRAPPHASE, 'option', p => p.winisdWrapPhase);
-    static readonly DRIVER_COUNT = new CompatSwitch(ToggleField.ADV_WINISDDRIVERCOUNTMODEL, 'option', p => p.winisdDriverCountModel);
     static readonly FLAT_MODEL = new CompatSwitch(ToggleField.ADV_WINISDFLATMODEL, 'option', p => p.winisdFlatModel);
     static readonly ABC_INTRA_PORT_VELOCITY = new CompatSwitch(ToggleField.ADV_WINISDABCINTRAPORTVELOCITY, 'option', p => p.winisdAbcIntraPortVelocity);
 
-    /** The value "Reset to WinISD" sets, and what a new project or a file that does not say has:
+    /** What a new project, or a file that does not say, has:
      *  a bug unticked (fixed), an option ticked (WinISD's way). */
     get winisdValue(): boolean {
         switch (this.kind) {

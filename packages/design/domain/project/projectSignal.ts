@@ -19,6 +19,7 @@ export class ProjectSignal {
     readonly #engine: SignalEngine;
     readonly #usableRe: () => number | null;
     readonly #rsOhm: () => number;
+    readonly #nDrivers: () => number;
     readonly #signalIssues: () => readonly SignalIssue[];
 
     constructor(
@@ -26,17 +27,19 @@ export class ProjectSignal {
         engine: SignalEngine,
         usableRe: () => number | null,
         rsOhm: () => number,
+        nDrivers: () => number,
         signalIssues: () => readonly SignalIssue[],
     ) {
         this.#lens = lens;
         this.#engine = engine;
         this.#usableRe = usableRe;
         this.#rsOhm = rsOhm;
+        this.#nDrivers = nDrivers;
         this.#signalIssues = signalIssues;
     }
 
-    /** The drive power — WinISD's Signal-tab "Input Power". While the driver has a usable Re,
-     *  `power_W = voltage_V² / Re` holds and whichever of the pair was entered last is entered;
+    /** The drive power — WinISD's Signal-tab "System input power", shared by all N drivers. While
+     *  the driver has a usable Re, `power_W = N · voltage_V² / Re` holds and whichever of the pair was entered last is entered;
      *  the other is calculated. Without a usable Re it is not available and cannot be entered —
      *  its dq names the missing Re. */
     get powerDrive_W(): DualWriteFieldImpl<number> {
@@ -56,7 +59,7 @@ export class ProjectSignal {
                         throw new Error('powerDrive_W cannot be entered: the driver has no usable Re_ohm yet.');
                     }
                     const Rs_ohm = this.#rsOhm();
-                    if (!(v > 0 && this.#engine.driveVoltage(v, Re_ohm, Rs_ohm) >= MIN_DRIVE_VOLTAGE_V)) {
+                    if (!(v > 0 && this.#engine.driveVoltage(v / this.#nDrivers(), Re_ohm, Rs_ohm) >= MIN_DRIVE_VOLTAGE_V)) {
                         throw new RangeError(`powerDrive_W ${v} W drives below the 10 mV minimum voltage.`);
                     }
                     signal.set({...signal.value, power_W: enteredEntry(v), voltage_V: undefined});
@@ -74,7 +77,7 @@ export class ProjectSignal {
     }
 
     /**
-     * The drive voltage — the `eg` every sweep runs at. Never absent: an empty slot reads
+     * The drive voltage each driver gets — the `eg` every sweep runs at. Never absent: an empty slot reads
      * `DEFAULT_DRIVE_VOLTAGE_V` as calculated, and it is never below 10 mV. Entering it needs no
      * Re. `.clear()` empties the pair; the resolve then fills it back from its defaults.
      */

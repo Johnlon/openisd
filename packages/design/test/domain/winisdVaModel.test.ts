@@ -42,12 +42,6 @@ describe('winisdVaModel', () => {
     expect(va(drv, 65.36) / va(amp, 65.36)).toBeCloseTo(1, 12);
   });
 
-  it('"Reset to WinISD" turns it off', () => {
-    const p = w5();
-    p.winisdVaModel.set(true);
-    p.resetToWinisd();
-    expect(p.winisdVaModel.value).toBe(false);
-  });
 
   it('is saved in the project and read back', () => {
     const p = w5();

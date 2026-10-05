@@ -87,7 +87,7 @@ export class ProjectAdvanced {
         };
     }
 
-    /** WinISD Compatibility "Enable optional simplified ABC intra-port velocity": the ABC intra-chamber port velocity
+    /** WinISD Compatibility "Enable WinISD style simplified ABC intra-port velocity": the ABC intra-chamber port velocity
      *  chart as WinISD draws it, V/(jωMai + Zf), which omits the leak term Zf·jωMai/Ricl. Off: the
      *  exact current through the port mass, V/[jωMai + Zf·(1 + jωMai/Ricl)]. On (WinISD) where a
      *  project does not say. */
@@ -132,7 +132,7 @@ export class ProjectAdvanced {
         };
     }
 
-    /** WinISD Compatibility "Enable optional phase wrapping": wraps phase curves to [-180°, +180°] (default).
+    /** WinISD Compatibility "Enable WinISD style phase wrapping": wraps phase curves to [-180°, +180°] (default).
      *  Off: continuous unwrapped phase. On where a project does not say. */
     get winisdWrapPhase(): SimpleField<boolean> {
         const lens = focus(this.#advanced, 'winisdWrapPhase');
@@ -142,9 +142,9 @@ export class ProjectAdvanced {
         };
     }
 
-    /** WinISD Compatibility "Enable optional per-driver boxes": N drivers as WinISD simulates them, each alone
-     *  in Vb/N fed P/N (BUG_20260928_driver-count-not-winisd). Off: the N coils wired by `wiring`
-     *  into one terminal impedance. On where a project does not say. */
+    /** WinISD Compatibility "Enable WinISD per-driver impedance bug": the impedance chart shows
+     *  one driver's impedance, as WinISD does (BUG_20260928_driver-count-not-winisd). Off: the
+     *  array the amplifier drives, per `wiring`. Off where a project does not say (John, 2026-10-05). */
     get winisdDriverCountModel(): SimpleField<boolean> {
         const lens = focus(this.#advanced, 'winisdDriverCountModel');
         return {
@@ -153,7 +153,7 @@ export class ProjectAdvanced {
         };
     }
 
-    /** WinISD Compatibility "Enable optional uncapped flat response": "Force flat response" as WinISD does it, every
+    /** WinISD Compatibility "Enable WinISD style uncapped flat response": "Force flat response" as WinISD does it, every
      *  point to the transfer function's 0 dB, uncapped (BUG_20260928_force-flat-response-not-winisd).
      *  Off: boost only, up to the passband reference, capped. On where a project does not say. */
     get winisdFlatModel(): SimpleField<boolean> {

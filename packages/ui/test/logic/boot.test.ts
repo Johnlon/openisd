@@ -80,6 +80,18 @@ describe('bootApplication', () => {
     expect(focusedProject()?.name.value).toBe('two');
   });
 
+  it('keeps a restored session project\'s unsaved edits unsaved, so Revert still works', async () => {
+    const edited = project('edited');
+    const savedName = edited.name.value;
+    edited.name.set('edited, not saved');
+    expect(edited.isModified()).toBe(true);
+    const {deps} = recording({session: () => ({projects: [edited], focusedIndex: 0, refused: []})});
+    await bootApplication(deps);
+    expect(focusedProject()?.isModified()).toBe(true);
+    expect(await focusedProject()?.cancel(async () => true)).toBe(true);
+    expect(focusedProject()?.name.value).toBe(savedName);
+  });
+
   it('quarantines a record that held an entry it could not read, and says so', async () => {
     const session = {projects: [project('one')], focusedIndex: 0, refused: ['entry b: nope']};
     const {log, deps} = recording({session: () => session});

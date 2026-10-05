@@ -1,6 +1,6 @@
 # BUG_20261001_boot-commits-unsaved-edits-unsaved-mark-lost-on-refresh
 
-**Status:** OPEN — not to be fixed until John rules (product behaviour; WinISD parity unverified)
+**Status:** FIXED 2026-10-05 — boot no longer calls markProjectSaved() after restoring an open-project session; only the legacy single-project and share-link paths do. A reload keeps unsaved edits unsaved (John ruled 2026-10-05).
 
 ## Symptom
 Reloading the page silently marks the focused project's real unsaved edits as saved. After a
