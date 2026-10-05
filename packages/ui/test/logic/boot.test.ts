@@ -119,6 +119,14 @@ describe('bootApplication', () => {
     expect(log.indexOf('view')).toBeLessThan(log.indexOf('open-editor'));
   });
 
+  // John 2026-10-05: close the last project, reload, and the last project came back.
+  it('a stored session with no open projects opens nothing — the stored project is not reopened', async () => {
+    const {log, deps} = recording({session: () => ({projects: [], focusedIndex: 0, refused: [], traceHidden: new Set<OpenISDProject>()})});
+    await bootApplication(deps);
+    expect(log).not.toContain('legacy');
+    expect(openProjects()).toHaveLength(0);
+  });
+
   it('opens no panel when the boot ended with no project', async () => {
     const {deps} = recording({view: () => ({ui: {originalWhatIfOpen: true, originalEditorOpen: true}})});
     await bootApplication(deps);

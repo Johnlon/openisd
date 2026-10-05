@@ -225,4 +225,45 @@ test.describe('Open sessions', () => {
       await expect(page.locator('.project-nav').first()).toHaveText(name ?? '');
     });
   });
+
+  test.describe('closing projects', () => {
+    // John 2026-10-05: "if I close the last project then I see the init screen, but if I refresh
+    // then the last project comes back". Closing empties the open list; the saved copy stays.
+    async function closeFocused(page: Page): Promise<void> {
+      const before = await page.locator('.project-row').count();
+      await page.locator('.proj-actions button:has-text("Close")').click();
+      const discard = page.locator('.close-actions button:has-text("Close without saving")');
+      // eslint-disable-next-line playwright/no-conditional-in-test
+      if (await discard.isVisible()) await discard.click();
+      await expect(page.locator('.project-row')).toHaveCount(before - 1);
+    }
+
+    test('closing the last project stays closed after a reload, and Open project still lists it', async ({ page }) => {
+      await page.goto('/');
+      await openAProject(page);
+      await page.locator('.tb-btn[title^="Save - "]').click();
+      await closeFocused(page);
+
+      await page.reload();
+
+      const emptyState = page.locator('.graph-empty');
+      await expect(emptyState.getByRole('button', { name: 'New project' })).toBeVisible();
+      await expect(emptyState.getByRole('button', { name: 'Import project' })).toBeVisible();
+      await expect(page.locator('.project-row')).toHaveCount(0);
+      await emptyState.getByRole('button', { name: 'Open project' }).click();
+      await expect(page.locator('.open-project-dialog .stored-project-row')).toHaveCount(1);
+    });
+
+    test('closing one of two projects leaves one open after a reload', async ({ page }) => {
+      await page.goto('/');
+      await openAProject(page);
+      await page.locator('.proj-actions button:has-text("Copy")').click();
+      await expect(page.locator('.project-row')).toHaveCount(2);
+      await closeFocused(page);
+
+      await page.reload();
+
+      await expect(page.locator('.project-row')).toHaveCount(1);
+    });
+  });
 });

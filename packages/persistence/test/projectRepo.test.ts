@@ -340,6 +340,21 @@ describe('projectRepo', () => {
       expect(restored.focusedIndex).toBe(1);
     });
 
+    it('closing every project stores an empty session and keeps the project in storage', () => {
+      const repo = createProjectRepo(engine, noFiles, createMemoryStorage());
+      const only = project('Closed project');
+      repo.saveToStorage(only);
+      repo.saveOpenProjects([only], only, new Set());
+
+      repo.saveOpenProjects([], null, new Set());
+
+      const restored = repo.loadOpenProjects();
+      assert.ok(restored && !Array.isArray(restored));
+      expect(restored.projects).toHaveLength(0);
+      expect(restored.refused).toHaveLength(0);
+      expect(repo.listStoredProjects().map(entry => entry.name)).toEqual(['Closed project']);
+    });
+
     // bugs/BUG_20261005_project-selection-lost-on-reload.md
     it('restores which open projects had their trace hidden after refresh', () => {
       const repo = createProjectRepo(engine, noFiles, createMemoryStorage());

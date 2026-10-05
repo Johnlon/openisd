@@ -39,27 +39,38 @@ async function restoreFromShareLink(deps: BootDeps): Promise<boolean> {
   return true;
 }
 
+/** What the open-project session record said about which projects to open. */
+type SessionRestore =
+  /** No record, or one that will not read: the session says nothing. */
+  | 'none'
+  /** A readable record listing no project: the user closed them all, so nothing opens. */
+  | 'empty'
+  /** The record's projects are open again. */
+  | 'restored';
+
 /** Every project that was open at the last refresh. An entry that will not read costs its own
  *  project and no other; the record holding it is copied to quarantine first, so the next save
  *  cannot take the refused entries with it. */
-function restoreSession(deps: BootDeps): boolean {
+function restoreSession(deps: BootDeps): SessionRestore {
   const session: OpenProjectSession | string[] | null = deps.projectRepo.loadOpenProjects();
-  if (session === null) return false;
+  if (session === null) return 'none';
   if (Array.isArray(session)) {
     deps.projectRepo.quarantineOpenSession();
     deps.logging.flash('Could not restore open projects: ' + session.join('; '));
-    return false;
+    return 'none';
   }
   if (session.refused.length > 0) {
     deps.projectRepo.quarantineOpenSession();
     deps.logging.flash(`Could not restore ${session.refused.length} of your open projects: ` + session.refused.join('; '));
   }
-  if (session.projects.length === 0) return false;
+  // Every entry refused: the record could not say what was open, so it says nothing.
+  if (session.projects.length === 0) return session.refused.length > 0 ? 'none' : 'empty';
   restoreProjects(session.projects, session.focusedIndex, session.traceHidden);
-  return true;
+  return 'restored';
 }
 
-/** The single project older sessions saved, before the open-project session existed. */
+/** The single project older sessions saved, before the open-project session existed. Read only
+ *  when there is no session record: a session that lists no project is the user's own choice. */
 function restoreLegacyProject(deps: BootDeps): void {
   const stored = deps.projectRepo.loadFromStorage();
   if (Array.isArray(stored)) {
@@ -93,11 +104,11 @@ export async function bootApplication(deps: BootDeps): Promise<void> {
     markProjectSaved();
     return;
   }
-  const sessionRestored = restoreSession(deps);
-  if (!sessionRestored) restoreLegacyProject(deps);
+  const session = restoreSession(deps);
+  if (session === 'none') restoreLegacyProject(deps);
   restoreView(deps);
   restorePanels(deps);
   // A restored session carries each project's own saved and edited layers, so its unsaved edits
   // stay unsaved. Only the single legacy project has no such layers: it is the ground state.
-  if (!sessionRestored) markProjectSaved();
+  if (session !== 'restored') markProjectSaved();
 }

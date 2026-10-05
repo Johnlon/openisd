@@ -63,6 +63,25 @@ test('the empty state opens a project saved in the browser', async ({ page }) =>
   await expect(page.locator('.mob-tabbar')).toBeVisible();
 });
 
+// John 2026-10-05: "if I close the last project then I see the init screen, but if I refresh then
+// the last project comes back". Closing empties the open list; the saved copy stays.
+test('closing the last project stays closed after a reload, and Open project still lists it', async ({ page }) => {
+  await page.goto('/');
+  await openAMobileProject(page);
+  await tapMobileMenuItem(page, /^Save$/);
+  await page.locator('.mob-hamburger').click();
+  await page.locator('.mob-open-project-close').first().click();
+  await expect(page.locator('.mob-empty')).toBeVisible();
+
+  await page.reload();
+
+  const empty = page.locator('.mob-empty');
+  await expect(empty.locator('button')).toHaveText(['New project', 'Open project', 'Import project', 'Switch to Desktop view']);
+  await expect(page.locator('.mob-tabbar')).toHaveCount(0);
+  await empty.getByRole('button', { name: 'Open project' }).click();
+  await expect(page.locator('.mob-align-sheet .mob-stored-project-row')).toHaveCount(1);
+});
+
 test('opening a project swaps the empty state for the tab bar, defaulting to the Box tab', async ({ page }) => {
   await page.goto('/');
   await openAMobileProject(page);
