@@ -74,6 +74,10 @@ Step 1 done: `4c41761a`. `UIField` taking a domain cell is allowed by ruling QO1
   `runs/vr_zero_load/`): WinISD opens the sealed, vented and PR sample projects with `Vr=0` without crashing or
   a dialog; the PR response draws as a flat 0 dB line. The `.wpr` `[Box]` section has no ParState, so there is
   no N mark to write for the volume.
+- Driver values at 0 with mark N (same probe, `winisd_research/PROBE_FINDINGS.md` BUG-014): a `.wdr` with Vas, Fs
+  or Re = 0 loads, survives editor Save and a recalc, and saves. A project with `Vas=0` then CRASHES WinISD on
+  open (divide by zero); `Fs=0` and `Re=0` reopen fine. So an export must never write `Vas=0`. Other driver
+  fields at 0 not yet tested.
 
 ## Temporary debt — remove when the last screen uses UIField
 `NumInput` still draws its own ⚠ (`dq-note`, `dq`/`dqState` props) for the screens not yet moved, and
