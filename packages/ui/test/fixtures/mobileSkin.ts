@@ -19,7 +19,9 @@ export async function tapMobileMenuItem(page: Page, item: string | RegExp): Prom
   await page.locator('.mob-menu-item', { hasText: item }).click();
 }
 
-/** The mobile field row with the given label. */
+/** The mobile field row with the given label: a hand-built `.mob-field-row`, or a `UIField`
+ *  (whose label is its own `<label>`) on a screen already moved to it. */
 export function mobileFieldRow(page: Page, label: string): Locator {
-  return page.locator('.mob-field-row', { has: page.locator('.mob-field-label', { hasText: label }) });
+  return page.locator('.mob-field-row, .ui-field')
+    .filter({ has: page.locator('.mob-field-label, .ui-field-label', { hasText: label }) });
 }

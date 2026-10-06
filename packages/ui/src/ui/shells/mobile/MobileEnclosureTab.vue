@@ -7,7 +7,7 @@
 // descendants of .app-root-mobile are already contained to the phone pane (App.vue's own fix).
 import {NumberField, TextField} from '@openisd/design/fields';
 import {inputValue, selectedOption} from '../../../logic/domEvents.js';
-import {enterOrClear} from '../../../logic/enterOrClear.js';
+import UIField from '../../components/UIField.vue';
 import NumInput from '../../components/NumInput.vue';
 import NumReadout from '../../components/NumReadout.vue';
 import UnitToggle from '../../components/UnitToggle.vue';
@@ -19,7 +19,7 @@ import {useUnitReadouts} from '../../../hooks/useUnitReadouts.js';
 const {
   project, selectedBox,
   activeVent, activeTuning, portPipeResonance_hz, fbState, ventLState, fbUnreachable, fbUnreachableMsg, frontChamberTuningLabel,
-  prAddedMassDq, prTuningDq, prResonanceMassDq, prFsMass_hz,
+  prResonanceMassDq, prFsMass_hz, prNaturalFh,
   prBrowseOpen, loadPREntry, loadBundledPassiveRadiatorEntry, defineNewPREntry,
   prSaveOpen, prSaveFields, prSaveCanSave, openPRSave, cancelPRSave, confirmPRSave,
   setVentWidth, setVentHeight, setVentDiameter, setVentLength, setFbTarget,
@@ -92,16 +92,14 @@ const {fieldWithUnit} = useUnitReadouts();
          valid length (impossible — stays readonly, the `fbState === 'E'` guard below), or
          NOTHING entered on either side (truly blank — must stay editable so the user has a way
          back in, QO139). -->
-    <div class="mob-field-row" :class="(ventLState !== 'C' && fbState !== 'E') ? 'mob-field-entered' : 'mob-field-calculated'">
+    <div class="mob-field-row" :class="ventLState === 'C' ? 'mob-field-calculated' : 'mob-field-entered'">
       <div class="mob-field-main">
         <span class="mob-field-label">Vent length</span>
-        <span v-if="ventLState !== 'C' && fbState !== 'E'" class="mob-field-value">
-          <NumInput :model-value="activeVent.length_m.value"
+        <!-- Always editable: typing a length makes the target tuning the calculated side. -->
+        <span class="mob-field-value" :class="{ 'mob-impossible': ventLState !== 'E' && fbState === 'E' && activeVent.length_m.value === null }">
+          <NumInput :class="`value-${ventLState.toLowerCase()}`" :model-value="activeVent.length_m.value"
                     @update:model-value="setVentLength"
                     :field="NumberField.VENT_L_CM" :precision="NumberField.VENT_L_CM.precision" stepper />
-        </span>
-        <span v-else class="mob-field-value mob-readonly" :class="{ 'mob-impossible': activeVent.length_m.value === null }">
-          <NumReadout :value="activeVent.length_m.value" :field="NumberField.VENT_L_CM" :precision="NumberField.VENT_L_CM.precision" />
         </span>
       </div>
       <UnitToggle :field="NumberField.VENT_L_CM" unit-class="mob-unit" />
@@ -168,37 +166,11 @@ const {fieldWithUnit} = useUnitReadouts();
     <PRBrowser v-if="prBrowseOpen" @close="prBrowseOpen = false"
       @load="loadPREntry" @load-bundled="loadBundledPassiveRadiatorEntry" @define="defineNewPREntry" />
 
-    <div class="mob-field-row mob-field-entered">
-      <div class="mob-field-main"><span class="mob-field-label">Vas</span>
-        <span class="mob-field-value"><NumInput :model-value="project.box.passiveRadiator.radiator.spec.Vas_m3.value" @update:model-value="(v: number | null) => enterOrClear(project.box.passiveRadiator.radiator.spec.Vas_m3, v)" :field="NumberField.PR_VAS_L" :precision="NumberField.PR_VAS_L.precision" stepper /></span>
-      </div>
-      <UnitToggle :field="NumberField.PR_VAS_L" unit-class="mob-unit" />
-    </div>
-    <div class="mob-field-row mob-field-entered">
-      <div class="mob-field-main"><span class="mob-field-label">Qms</span>
-        <span class="mob-field-value"><NumInput :model-value="project.box.passiveRadiator.radiator.spec.Qms.value" @update:model-value="(v: number | null) => enterOrClear(project.box.passiveRadiator.radiator.spec.Qms, v)" :field="NumberField.PR_QMS" :precision="NumberField.PR_QMS.precision" stepper /></span>
-      </div>
-      <!-- An empty unit column, so this row's ▲▼ line up with the rows that have a unit. -->
-      <span class="mob-unit" aria-hidden="true"></span>
-    </div>
-    <div class="mob-field-row mob-field-entered">
-      <div class="mob-field-main"><span class="mob-field-label">Fpr</span>
-        <span class="mob-field-value"><NumInput :model-value="project.box.passiveRadiator.radiator.spec.Fs_hz.value" @update:model-value="(v: number | null) => enterOrClear(project.box.passiveRadiator.radiator.spec.Fs_hz, v)" :field="NumberField.PR_FS_HZ" :precision="NumberField.PR_FS_HZ.precision" stepper /></span>
-      </div>
-      <UnitToggle :field="NumberField.PR_FS_HZ" unit-class="mob-unit" />
-    </div>
-    <div class="mob-field-row mob-field-entered">
-      <div class="mob-field-main"><span class="mob-field-label">Sd</span>
-        <span class="mob-field-value"><NumInput :model-value="project.box.passiveRadiator.radiator.spec.Sd_m2.value" @update:model-value="(v: number | null) => enterOrClear(project.box.passiveRadiator.radiator.spec.Sd_m2, v)" :field="NumberField.PR_SD_CM2" :precision="NumberField.PR_SD_CM2.precision" stepper /></span>
-      </div>
-      <UnitToggle :field="NumberField.PR_SD_CM2" unit-class="mob-unit" />
-    </div>
-    <div class="mob-field-row mob-field-entered">
-      <div class="mob-field-main"><span class="mob-field-label">Xmax</span>
-        <span class="mob-field-value"><NumInput :model-value="project.box.passiveRadiator.radiator.spec.Xmax_m.value" @update:model-value="(v: number | null) => enterOrClear(project.box.passiveRadiator.radiator.spec.Xmax_m, v)" :field="NumberField.PR_XMAX_MM" :precision="NumberField.PR_XMAX_MM.precision" stepper /></span>
-      </div>
-      <UnitToggle :field="NumberField.PR_XMAX_MM" unit-class="mob-unit" />
-    </div>
+    <UIField class="mob-ui-field" :field="NumberField.PR_VAS_L" :cell="project.box.passiveRadiator.radiator.spec.Vas_m3" stepper />
+    <UIField class="mob-ui-field" :field="NumberField.PR_QMS" :cell="project.box.passiveRadiator.radiator.spec.Qms" stepper />
+    <UIField class="mob-ui-field" :field="NumberField.PR_FS_HZ" :cell="project.box.passiveRadiator.radiator.spec.Fs_hz" stepper />
+    <UIField class="mob-ui-field" :field="NumberField.PR_SD_CM2" :cell="project.box.passiveRadiator.radiator.spec.Sd_m2" stepper />
+    <UIField class="mob-ui-field" :field="NumberField.PR_XMAX_MM" :cell="project.box.passiveRadiator.radiator.spec.Xmax_m" stepper />
 
     <div class="mob-panel-head mob-panel-head-sub">User options</div>
     <div class="mob-field-row mob-field-entered">
@@ -206,18 +178,8 @@ const {fieldWithUnit} = useUnitReadouts();
         <span class="mob-field-value"><select id="mob-pr-count" class="mob-select" :value="project.box.passiveRadiator.count.value" @change="e => { const n = selectedOption(e, PR_COUNT_OPTIONS); if (n !== null) project.box.passiveRadiator.count.set(n); }"><option v-for="o in PR_COUNT_OPTIONS" :key="o.value" :value="o.value">{{ o.label }}</option></select></span>
       </div>
     </div>
-    <div class="mob-field-row mob-field-entered" :class="{ 'mob-field-dq': prTuningDq.dq.length > 0 }">
-      <div class="mob-field-main"><span class="mob-field-label">Target tuning freq (Fh)</span>
-        <span class="mob-field-value"><NumInput :model-value="project.box.passiveRadiator.tuning_goal_hz.value" @update:model-value="(v: number | null) => enterOrClear(project.box.passiveRadiator.tuning_goal_hz, v)" :field="NumberField.PR_FP_HZ" :precision="NumberField.PR_FP_HZ.precision" v-bind="prTuningDq" stepper /></span>
-      </div>
-      <UnitToggle :field="NumberField.PR_FP_HZ" unit-class="mob-unit" />
-    </div>
-    <div class="mob-field-row mob-field-entered" :class="{ 'mob-field-dq': prAddedMassDq.dq.length > 0 }">
-      <div class="mob-field-main"><span class="mob-field-label">Added mass to cone</span>
-        <span class="mob-field-value"><NumInput :model-value="project.box.passiveRadiator.addedMass_kg.value" @update:model-value="(v: number | null) => project.box.passiveRadiator.addedMass_kg.set(v ?? 0)" :field="NumberField.PR_MADD_G" :precision="NumberField.PR_MADD_G.precision" v-bind="prAddedMassDq" stepper /></span>
-      </div>
-      <UnitToggle :field="NumberField.PR_MADD_G" unit-class="mob-unit" />
-    </div>
+    <UIField class="mob-ui-field" :field="NumberField.PR_FP_HZ" :cell="project.box.passiveRadiator.tuning_goal_hz" :max="prNaturalFh ?? undefined" stepper />
+    <UIField class="mob-ui-field" :field="NumberField.PR_MADD_G" :cell="project.box.passiveRadiator.addedMass_kg" stepper />
     <div class="mob-field-row mob-field-calculated" :class="{ 'mob-field-dq': prResonanceMassDq.dq.length > 0 }" :title="prResonanceMassDq.dq.length > 0 ? prResonanceMassDq.dq.join('; ') : ''">
       <div class="mob-field-main"><span class="mob-field-label">Fpr (with added mass)</span>
         <span class="mob-field-value mob-readonly">{{ fieldWithUnit(NumberField.PR_FSMASS_HZ, prFsMass_hz, '—') }}</span>
@@ -302,6 +264,14 @@ const {fieldWithUnit} = useUnitReadouts();
   border-top: 1px solid var(--line);
 }
 .mob-field-entered { border-left-color: var(--good); }
+/* A UIField as a phone row: same padding, divider and height as `.mob-field-row`; the label
+   column takes the slack so the box, ⚠ and unit line up at the right edge. */
+.mob-ui-field {
+  grid-template-columns: 1fr max-content 16px 34px;
+  padding: 10px 12px 10px 14px; min-height: 48px;
+  border-left: 3px solid transparent; border-top: 1px solid var(--line);
+}
+.mob-ui-field :deep(label) { font-size: 13px; color: var(--mut); white-space: normal; }
 .mob-field-calculated { border-left-color: var(--acc); }
 .mob-field-dq { border-left-color: var(--acc2); }
 .mob-field-main { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }

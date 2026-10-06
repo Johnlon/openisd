@@ -18,6 +18,8 @@ import MobilePaneDialog from './MobilePaneDialog.vue';
 import OptionsModal from '../../components/OptionsModal.vue';
 import {injectWinisdDifferencesModal} from '../../../hooks/WinisdDifferencesModal-hooks.js';
 import { useMobileShell } from '../../../hooks/MobileShell-hooks.js';
+import {provideCellScope} from '../../components/cellScope.js';
+import {projectChanged} from '../../../logic/appState.js';
 import {OpenableFiles} from '../../../fileFormat.js';
 import {inputChecked} from '../../../logic/domEvents.js';
 
@@ -29,6 +31,8 @@ const {
   username, appVersion, openDialogOpen, storedProjects, openProjectDialog, openStoredProject,
   openProjectRows, selectOpenProject, setOpenProjectTraceVisible, cycleOpenProjectColour, closeOpenProject,
 } = useMobileShell();
+// The project announces its own writes (`projectChanged`), so a UIField has nothing to add.
+provideCellScope({ revision: projectChanged, written: () => {} });
 const winisdDifferences = injectWinisdDifferencesModal();
 </script>
 

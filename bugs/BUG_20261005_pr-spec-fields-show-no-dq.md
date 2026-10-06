@@ -1,6 +1,6 @@
 # BUG_20261005_pr-spec-fields-show-no-dq
 
-**Status:** OPEN
+**Status:** RESOLVED
 
 ## Symptom
 The passive radiator's own fields (Vas, Qms, Fpr, Sd) never show a data-quality flag or reason, in either
@@ -25,3 +25,13 @@ Bind them on the Vas/Qms/Fpr/Sd `NumInput`s in both shells.
 ## Verification
 Browser spec: load a radiator whose stated Fs/Qms/Vas/Sd contradict each other. The conflicting boxes must
 carry a `dq-` class and a title that gives the reason. A consistent radiator must show no `dq-` class.
+
+## Resolution (2026-10-06)
+- The PR pane's fields (Vas, Qms, Fpr, Sd, Xmax, target tuning, added mass) are `UIField`s in both shells, so
+  every one shows its cell's DQ as a tappable ⚠.
+- A blank figure the simulation needs is now flagged ("just show errors"): `PrEngine.checkSpec` adds the first of
+  Cms, Mms, Rms the stated figures cannot give, as a `missing-dependencies` issue naming what to state. Only the
+  root is reported (a blank Vas flags "Cms needs Vas", not Mms and Rms too).
+- Mobile target tuning now has the same natural-tuning ceiling as desktop.
+- Verified: `original-pr-tab` "emptying the PR Vas flags it…", `pr-consistency` / `pr-spec-conflict` unit tests,
+  and the PR, mobile PR/box and stepper specs pass.

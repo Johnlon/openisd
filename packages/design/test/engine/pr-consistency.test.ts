@@ -120,9 +120,16 @@ describe('passive radiator consistency', () => {
       expect(rms?.fields).toEqual(expect.arrayContaining(['Rms_kg_per_s', 'Fs_hz', 'Mms_kg', 'Qms']));
     });
 
-    it('a blank Qms leaves Rms unstated and raises nothing', () => {
+    it('a blank Qms leaves Rms unstated and names Qms as what Rms needs', () => {
       const {Qms: _q, ...rest} = engine.pr.solveSpec(four, air);
-      expect(engine.pr.checkSpec({...rest, Qms: null, Rms_kg_per_s: null}, exact, air)).toEqual([]);
+      const issues = engine.pr.checkSpec({...rest, Qms: null, Rms_kg_per_s: null}, exact, air);
+      expect(issues.map(i => [i.kind, i.target])).toEqual([['missing-dependencies', 'Rms_kg_per_s']]);
+    });
+
+    it('a blank Vas and Cms report only the root: Cms needs Vas, not Mms and Rms as well', () => {
+      const all = engine.pr.solveSpec(four, air);
+      const issues = engine.pr.checkSpec({...all, Vas_m3: null, Cms_m_per_N: null, Mms_kg: null, Rms_kg_per_s: null}, exact, air);
+      expect(issues.map(i => [i.kind, i.target])).toEqual([['missing-dependencies', 'Cms_m_per_N']]);
     });
 
     it('the shipped ND140-PR figures agree within their own stated precision', () => {

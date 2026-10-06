@@ -78,6 +78,10 @@ Step 1 done: `4c41761a`. `UIField` taking a domain cell is allowed by ruling QO1
   or Re = 0 loads, survives editor Save and a recalc, and saves. A project with `Vas=0` then CRASHES WinISD on
   open (divide by zero); `Fs=0` and `Re=0` reopen fine. So an export must never write `Vas=0`. Other driver
   fields at 0 not yet tested.
+- "just save 1 as vas and vol if not stated", then option B: a blank Vas or box volume exports as 1 L
+  (`0.001` m³) in both `.wpr` and `.wdr`, Vas still marked N, with an export warning ("Vas was blank; written as
+  1 L so WinISD can open the file"). Re-importing reads it as an entered 1 L (`N + nonzero → entered`); the
+  warning is what tells the user.
 
 ## Temporary debt — remove when the last screen uses UIField
 `NumInput` still draws its own ⚠ (`dq-note`, `dq`/`dqState` props) for the screens not yet moved, and

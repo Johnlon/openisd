@@ -66,7 +66,9 @@ export interface PrEngine {
   solveSpec(stated: PrSpecValues, air: Air): PrSpecValues;
   /** Where the stated figures contradict each other: the driver's consistency relations among
    *  Fs, Qms, Vas, Sd, Mms, Cms and Rms, in the project's `air`, each figure judged against its
-   *  own `precision`. Pass only what was entered. Every issue names every field in its relation. */
+   *  own `precision`. Pass only what was entered. Every issue names every field in its relation.
+   *  Also the first of Cms, Mms, Rms the simulation needs and the stated figures cannot give, as
+   *  a `missing-dependencies` issue naming what to state. */
   checkSpec(stated: PrSpecValues, precision: PrSpecPrecision, air: Air): PrSpecIssue[];
   /** The PR handle solve (T10/T11): derive whichever of `tuning_goal_hz`/`addedMass_kg` is not
    *  entered plus `resonanceWithAddedMass_hz`/`systemTuning_hz`, write each onto its
@@ -142,8 +144,31 @@ export class PrEngineImpl implements PrEngine {
       Fs_hz: precision.Fs_hz, Qms: precision.Qms, Vas_m3: precision.Vas_m3, Sd_m2: precision.Sd_m2,
       Mms_kg: precision.Mms_kg, Cms_m_per_N: precision.Cms_m_per_N, Rms_kg_per_s: precision.Rms_kg_per_s,
     };
-    return this.consistency.check(
+    const conflicts = this.consistency.check(
       this.workingSet(stated, air), working => this.routes.run(working, air), field => widths[field] ?? 0);
+    const missing = this.firstMissing(this.solveSpec(stated, air));
+    return missing === null ? conflicts : [...conflicts, missing];
+  }
+
+  /** The first of the three mechanical figures the simulation needs (Cms, then Mms, then Rms)
+   *  that the stated ones cannot give, as the route that would give it and what that route still
+   *  lacks. Only the first: a missing Cms is why Mms and Rms are missing too, and one ⚠ naming
+   *  the root is what the user can act on. Null when all three are known. */
+  private firstMissing(solved: PrSpecValues): PrSpecIssue | null {
+    const lacking = (fields: readonly (keyof PrSpecValues)[]): (keyof PrSpecValues)[] => fields.filter(f => solved[f] === null);
+    if (solved.Cms_m_per_N === null) {
+      return missingDependencies<RouteQuantity>('Cms_m_per_N',
+        [{formula: 'Cms = Vas/(ρ·c²·Sd²)', required: ['Vas_m3', 'Sd_m2'], missing: lacking(['Vas_m3', 'Sd_m2'])}]);
+    }
+    if (solved.Mms_kg === null) {
+      return missingDependencies<RouteQuantity>('Mms_kg',
+        [{formula: 'Mms = 1/((2π·Fs)²·Cms)', required: ['Fs_hz', 'Cms_m_per_N'], missing: lacking(['Fs_hz'])}]);
+    }
+    if (solved.Rms_kg_per_s === null) {
+      return missingDependencies<RouteQuantity>('Rms_kg_per_s',
+        [{formula: 'Rms = √(Mms/Cms)/Qms', required: ['Qms', 'Mms_kg', 'Cms_m_per_N'], missing: lacking(['Qms'])}]);
+    }
+    return null;
   }
 
   /** The stated figures and the project's air as the routes read them. */

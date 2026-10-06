@@ -34,6 +34,6 @@ test.describe('MobileEnclosureTab', () => {
     await tuning.fill('47.8');
     await tuning.blur();
     await expect(tuning).toHaveValue(/47\.8/);
-    await expect(mobileFieldRow(page, 'Vent length').locator('.mob-field-value')).toHaveText(/\d/);
+    await expect(mobileFieldRow(page, 'Vent length').locator('input')).toHaveValue(/\d/);
   });
 });

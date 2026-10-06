@@ -26,7 +26,7 @@ export function useMobileEnclosureTab() {
   const {
     activeVent, activeTuning, portPipeResonance_hz, fbState, ventLState, fbUnreachable, fbUnreachableMsg, frontChamberTuningLabel, setFbTarget,
   } = createVentReadouts({ project, projectChanged, selectedBox, air: advAir, vent: engine.vent });
-  const { prAddedMassDq, prTuningDq, prResonanceMassDq, prFsMass_hz } =
+  const { prResonanceMassDq, prFsMass_hz, prNaturalFh } =
     createSealedReadouts({ project, selectedBox, projectChanged });
   const { prBrowseOpen, loadPREntry, loadBundledPassiveRadiatorEntry, defineNewPREntry,
     prSaveOpen, prSaveFields, prSaveCanSave, openPRSave, cancelPRSave, confirmPRSave } =
@@ -45,7 +45,7 @@ export function useMobileEnclosureTab() {
   return {
     project, selectedBox,
     activeVent, activeTuning, portPipeResonance_hz, fbState, ventLState, fbUnreachable, fbUnreachableMsg, frontChamberTuningLabel,
-    prAddedMassDq, prTuningDq, prResonanceMassDq, prFsMass_hz,
+    prResonanceMassDq, prFsMass_hz, prNaturalFh,
     prBrowseOpen, loadPREntry, loadBundledPassiveRadiatorEntry, defineNewPREntry,
     prSaveOpen, prSaveFields, prSaveCanSave, openPRSave, cancelPRSave, confirmPRSave,
     setVentWidth, setVentHeight, setVentDiameter, setVentLength, setFbTarget,

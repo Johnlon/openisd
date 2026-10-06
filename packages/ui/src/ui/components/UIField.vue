@@ -82,7 +82,7 @@ function write(v: number | null, precision?: number): void {
 
 <template>
   <div class="ui-field">
-    <label :for="id" :title="field.description || undefined">{{ field.label }}</label>
+    <label class="ui-field-label" :for="id" :title="field.description || undefined">{{ field.label }}</label>
     <span class="ui-field-value">
       <NumInput :id="id" :class="[view.provenanceClass, view.dqClasses]" :model-value="view.value" :field="field"
         :half-width="view.precision" :mandatory="view.mandatory" :max="max" :stepper="stepper" hide-mark

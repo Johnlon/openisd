@@ -94,7 +94,7 @@ test.describe('Original Passive Radiator tab', () => {
       await setFocusedBoxType(page, 'box-passive-radiator');
       await page.locator('.project-nav li', { hasText: 'Passive Radiator' }).click();
 
-      await expect(page.locator('#og-pr-fs').locator('xpath=preceding-sibling::label[1]'))
+      await expect(page.locator('.ui-field', { has: page.locator('#og-pr-fs') }).locator('> label'))
         .toHaveText('Fpr');
       await expect(page.locator('#og-pr-fs-mass').locator('xpath=preceding-sibling::label[1]'))
         .toHaveText('Fpr (with added mass):');
@@ -182,6 +182,19 @@ test.describe('Original Passive Radiator tab', () => {
 
       const stored = await focusedPassiveRadiatorSpec(page);
       for (const v of [stored.vas_m3, stored.qms, stored.fs_hz, stored.sd_m2, stored.xmax_m]) expect(v).not.toBe(0);
+    });
+
+    // John, 2026-10-06: "blanking vas on pr screen gives no dq". An emptied Vas is flagged, and
+    // the ⚠ opens its reason on a click (BUG_20261005_pr-spec-fields-show-no-dq).
+    test('emptying the PR Vas flags it with a reason that names what to state', async ({page}) => {
+      await setFocusedBoxType(page, 'box-passive-radiator');
+      await page.locator('.project-nav li', {hasText: 'Passive Radiator'}).click();
+      const vas = page.locator('#og-pr-vas');
+      const field = page.locator('.ui-field', { has: vas });
+      await fillAndCommit(vas, '');
+      await expect(vas).toHaveClass(/dq-flag/);
+      await field.locator('.ui-field-dq-btn').click();
+      await expect(field.locator('.ui-field-note')).toHaveText(/cannot be calculated yet.*needs Vas_m3/);
     });
 
     // John, 2026-10-05: "PR Vas is disconnected" — a project made by the New Project wizard with
@@ -322,7 +335,7 @@ test.describe('Original Passive Radiator tab data quality', () => {
     // The INPUT (entered Fp) is the real problem: dq-root + the ⚠ note.
     const fpInput = page.locator('#og-pr-fp');
     await expect(fpInput).toHaveClass(/dq-root/);
-    await expect(fpInput.locator('xpath=following-sibling::*[1]')).toHaveText('⚠');
+    await expect(page.locator('.ui-field', { has: fpInput }).locator('.ui-field-dq-btn')).toHaveText('⚠');
     await expect(fpInput).toHaveAttribute('title', /Conflicts with other values/);
 
     // The DERIVED mass is the symptom: dq-flag, not dq-root. The solve for it would be negative,

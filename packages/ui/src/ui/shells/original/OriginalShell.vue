@@ -9,6 +9,9 @@
 import {CompatSwitchGroup, NumberField, ReadoutFormat, TextField, ToggleField, WinisdDeviation} from '@openisd/design/fields';
 import UnitToggle from '../../components/UnitToggle.vue';
 import NumInput from '../../components/NumInput.vue';
+import UIField from '../../components/UIField.vue';
+import {provideCellScope} from '../../components/cellScope.js';
+import {projectChanged} from '../../../logic/appState.js';
 import NumReadout from '../../components/NumReadout.vue';
 import GraphPanel from '../../components/GraphPanel.vue';
 import ExportMenu from '../../components/ExportMenu.vue';
@@ -27,7 +30,6 @@ import BoxTypeDiagram from '../../components/BoxTypeDiagram.vue';
 import SaveToLibraryDialog from '../../components/SaveToLibraryDialog.vue';
 import {useOriginalShell} from '../../../hooks/OriginalShell-hooks.js';
 import {OpenableFiles} from '../../../fileFormat.js';
-import {enterOrClear} from '../../../logic/enterOrClear.js';
 
 const {
   version, toggleDropdown, openDd, openClick, closeDropdown, presentationState, isModified,
@@ -58,7 +60,7 @@ const {
   activeVent, END_CORRECTION_OPTIONS, VENT_SHAPE_OPTIONS, VENT_COUNT_OPTIONS, PR_COUNT_OPTIONS, ventLState, portPipeResonance_hz,
   prBrowseOpen, loadPREntry, loadBundledPassiveRadiatorEntry, defineNewPREntry,
   prSaveOpen, prSaveFields, prSaveCanSave, openPRSave, cancelPRSave, confirmPRSave,
-  prAddedMassDq, prTuningDq, prResonanceMassDq, prFsMass_hz, dqOfCell, fmt,
+  prResonanceMassDq, prFsMass_hz, dqOfCell, fmt,
   driveV, rsOhm, advTemp, advHumidity, advPressure, advAir,
   envTempStored, envHumidityStored, envPressureStored, envTempDq, envHumidityDq, envPressureDq,
   resetAirToAppDefaults,
@@ -69,6 +71,8 @@ const {
   onFile, fileInput,
 } = useOriginalShell();
 const winisdDifferences = injectWinisdDifferencesModal();
+// The project announces its own writes (`projectChanged`), so a UIField has nothing to add.
+provideCellScope({ revision: projectChanged, written: () => {} });
 </script>
 
 <template>
@@ -483,20 +487,13 @@ const winisdDifferences = injectWinisdDifferencesModal();
                 </div>
 
                 <div class="field-row">
-                  <!-- `ventLState === 'N'` means two different things: Fb is entered but the
-                       solver found no valid length (impossible — stays readonly, the `fbState
-                       === 'E'` guard below), or NOTHING is entered on either side (truly blank —
-                       must stay editable so the user has a way back in, QO139). -->
-                  <div v-if="ventLState !== 'C' && fbState !== 'E'" class="field entered">
+                  <!-- Always editable (John, 2026-10-06: "vent length should be editable"). Typing a
+                       length makes it the pair's entered side and the target tuning the calculated
+                       one; `ventLState` only colours it. Blank and marked `impossible` when the target
+                       tuning is beyond what this vent can reach: the solver writes no length. -->
+                  <div class="field" :class="ventLState === 'C' ? 'calculated' : 'entered'">
                     <label>Vent length</label>
-                    <NumInput :model-value="activeVent.length_m.value" @update:model-value="(v: number | null) => { if (v == null || isNaN(v) || v <= 0) VentMember.LENGTH.clear(project); else VentMember.LENGTH.enter(project, v); }" :field="NumberField.VENT_L_CM" :precision="NumberField.VENT_L_CM.precision" />
-                    <UnitToggle :field="NumberField.VENT_L_CM" unit-class="unit unit-cyc" />
-                  </div>
-                  <div v-else class="field">
-                    <label>Vent length</label>
-                    <!-- Blank when the target tuning is beyond what this vent can reach: the
-                         solver writes no length, and the dq message beside it names the ceiling. -->
-                    <NumReadout as-input id="og-vent-length-ro" class="calculated greyed" :class="{ impossible: activeVent.length_m.value === null }" :field="NumberField.VENT_L_CM" :value="activeVent.length_m.value" />
+                    <NumInput id="og-vent-length" :class="[`value-${ventLState.toLowerCase()}`, { impossible: ventLState !== 'E' && fbState === 'E' && activeVent.length_m.value === null }]" :model-value="activeVent.length_m.value" @update:model-value="(v: number | null) => { if (v == null || isNaN(v) || v <= 0) VentMember.LENGTH.clear(project); else VentMember.LENGTH.enter(project, v); }" :field="NumberField.VENT_L_CM" :precision="NumberField.VENT_L_CM.precision" />
                     <UnitToggle :field="NumberField.VENT_L_CM" unit-class="unit unit-cyc" />
                   </div>
                 </div>
@@ -556,8 +553,8 @@ const winisdDifferences = injectWinisdDifferencesModal();
               <div style="--label-w:44px;">
                 <div class="section-header">Passive radiator parameters</div>
                 <div class="field-row">
-                  <div class="field entered"><label>Vas</label><NumInput id="og-pr-vas" :model-value="project.box.passiveRadiator.radiator.spec.Vas_m3.value" @update:model-value="(v: number | null) => enterOrClear(project.box.passiveRadiator.radiator.spec.Vas_m3, v)" :field="NumberField.PR_VAS_L" :precision="NumberField.PR_VAS_L.precision" /><UnitToggle :field="NumberField.PR_VAS_L" unit-class="unit unit-cyc" /></div>
-                  <div class="field entered"><label>Qms</label><NumInput id="og-pr-qms" :model-value="project.box.passiveRadiator.radiator.spec.Qms.value" @update:model-value="(v: number | null) => enterOrClear(project.box.passiveRadiator.radiator.spec.Qms, v)" :field="NumberField.PR_QMS" :precision="NumberField.PR_QMS.precision" /></div>
+                  <UIField class="field" input-id="og-pr-vas" :field="NumberField.PR_VAS_L" :cell="project.box.passiveRadiator.radiator.spec.Vas_m3" />
+                  <UIField class="field" input-id="og-pr-qms" :field="NumberField.PR_QMS" :cell="project.box.passiveRadiator.radiator.spec.Qms" />
                 </div>
                 <div class="field-row">
                   <!-- The RADIATOR's own free-air resonance, 1/(2π√(Mmd·Cms)) — no box in it.
@@ -566,11 +563,11 @@ const winisdDifferences = injectWinisdDifferencesModal();
                        this app's symbol for it. Distinct from the SYSTEM tuning on the Box tab
                        (box-tab.png "Fh": 40.25 Hz on that same project), which is the box
                        compliance in series with the PR's own — two quantities, two readouts. -->
-                  <div class="field entered"><label>Fpr</label><NumInput id="og-pr-fs" :model-value="project.box.passiveRadiator.radiator.spec.Fs_hz.value" @update:model-value="(v: number | null) => enterOrClear(project.box.passiveRadiator.radiator.spec.Fs_hz, v)" :field="NumberField.PR_FS_HZ" :precision="NumberField.PR_FS_HZ.precision" /><UnitToggle :field="NumberField.PR_FS_HZ" unit-class="unit unit-cyc" /></div>
-                  <div class="field entered"><label>Sd</label><NumInput :model-value="project.box.passiveRadiator.radiator.spec.Sd_m2.value" @update:model-value="(v: number | null) => enterOrClear(project.box.passiveRadiator.radiator.spec.Sd_m2, v)" :field="NumberField.PR_SD_CM2" :precision="NumberField.PR_SD_CM2.precision" /><UnitToggle :field="NumberField.PR_SD_CM2" unit-class="unit unit-cyc" /></div>
+                  <UIField class="field" input-id="og-pr-fs" :field="NumberField.PR_FS_HZ" :cell="project.box.passiveRadiator.radiator.spec.Fs_hz" />
+                  <UIField class="field" :field="NumberField.PR_SD_CM2" :cell="project.box.passiveRadiator.radiator.spec.Sd_m2" />
                 </div>
                 <div class="field-row">
-                  <div class="field entered"><label>Xmax</label><NumInput :model-value="project.box.passiveRadiator.radiator.spec.Xmax_m.value" @update:model-value="(v: number | null) => enterOrClear(project.box.passiveRadiator.radiator.spec.Xmax_m, v)" :field="NumberField.PR_XMAX_MM" :precision="NumberField.PR_XMAX_MM.precision" /><UnitToggle :field="NumberField.PR_XMAX_MM" unit-class="unit unit-cyc" /></div>
+                  <UIField class="field" :field="NumberField.PR_XMAX_MM" :cell="project.box.passiveRadiator.radiator.spec.Xmax_m" />
                 </div>
               </div>
               <div style="--label-w:150px;">
@@ -579,10 +576,10 @@ const winisdDifferences = injectWinisdDifferencesModal();
                 <div style="display:flex; gap:12px; align-items:stretch;">
                   <div>
                 <div class="field-row">
-                  <div :class="['field', 'entered', { 'dq-flag': prTuningDq.dq.length > 0 }]"><label>Target tuning freq (Fh):</label><NumInput id="og-pr-fp" :model-value="project.box.passiveRadiator.tuning_goal_hz.value" @update:model-value="(v: number | null) => enterOrClear(project.box.passiveRadiator.tuning_goal_hz, v)" :field="NumberField.PR_FP_HZ" :precision="NumberField.PR_FP_HZ.precision" :max="prNaturalFh ?? undefined" v-bind="prTuningDq" /><UnitToggle :field="NumberField.PR_FP_HZ" unit-class="unit" /></div>
+                  <UIField class="field" input-id="og-pr-fp" :field="NumberField.PR_FP_HZ" :cell="project.box.passiveRadiator.tuning_goal_hz" :max="prNaturalFh ?? undefined" />
                 </div>
                 <div class="field-row">
-                  <div :class="['field', 'entered', { 'dq-flag': prAddedMassDq.dq.length > 0 }]"><label>Added mass to cone:</label><NumInput id="og-pr-madd" :model-value="project.box.passiveRadiator.addedMass_kg.value" @update:model-value="(v: number | null) => project.box.passiveRadiator.addedMass_kg.set(v ?? 0)" :field="NumberField.PR_MADD_G" :precision="NumberField.PR_MADD_G.precision" v-bind="prAddedMassDq" /><UnitToggle :field="NumberField.PR_MADD_G" unit-class="unit" /></div>
+                  <UIField class="field" input-id="og-pr-madd" :field="NumberField.PR_MADD_G" :cell="project.box.passiveRadiator.addedMass_kg" />
                 </div>
                 <div class="field-row"><div :class="['field', { 'dq-flag': prResonanceMassDq.dq.length > 0 }]" :title="prResonanceMassDq.dq.length > 0 ? prResonanceMassDq.dq.join('; ') : ''"><label>Fpr (with added mass):</label><NumReadout as-input id="og-pr-fs-mass" class="calculated greyed" :field="NumberField.PR_FSMASS_HZ" :value="prFsMass_hz" /><UnitToggle :field="NumberField.PR_FSMASS_HZ" unit-class="unit" /></div></div>
                   </div>

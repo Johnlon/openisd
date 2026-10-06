@@ -14,7 +14,7 @@
  * needs the real narrow layout, not a wide window with the mobile skin switched on.
  */
 import {expect, openAMobileProject, test} from '../fixtures.js';
-import {forceMobileSkin} from '../fixtures/mobileSkin.js';
+import {forceMobileSkin, mobileFieldRow} from '../fixtures/mobileSkin.js';
 
 test.beforeEach(async ({ page }) => {
   await page.setViewportSize({ width: 412, height: 900 });
@@ -24,7 +24,7 @@ test.beforeEach(async ({ page }) => {
 });
 
 function fieldRow(page: import('playwright').Page, label: string) {
-  return page.locator('.mob-field-row', { has: page.locator('.mob-field-label', { hasText: label }) });
+  return mobileFieldRow(page, label);
 }
 
 test('a step button click moves the value by the exact same amount as an ArrowUp keypress', async ({ page }) => {

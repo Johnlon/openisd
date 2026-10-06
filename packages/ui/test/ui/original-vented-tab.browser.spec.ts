@@ -31,7 +31,7 @@ test.describe('Original Vented tab', () => {
 
     test('picking two vents makes the solved port length longer than with one', async ({ page }) => {
       await openVentedTab(page);
-      const length = page.locator('#og-vent-length-ro');
+      const length = page.locator('#og-vent-length');
       await expect(length).not.toHaveValue(/^[—\s]*$/);
       const one = parseFloat(await length.inputValue());
       expect(one).toBeGreaterThan(0);
@@ -88,8 +88,8 @@ test.describe('Original Vented tab', () => {
       // The failure is SHOWN, not hidden behind a buildable-looking floor: the solve would be a
       // negative length, which is not a length, so the readout is left unavailable, redlined (the
       // `.impossible` class), and the DQ flag is genuinely set in the model.
-      await expect(page.locator('#og-vent-length-ro')).toHaveValue('—');
-      await expect(page.locator('#og-vent-length-ro')).toHaveClass(/impossible/);
+      await expect(page.locator('#og-vent-length')).toHaveValue('');
+      await expect(page.locator('#og-vent-length')).toHaveClass(/impossible/);
       // The mark sits on the field the solve FAILED to produce — the vent's own length — not on
       // the target that was asked for.
       const dq = await focusedVentLengthDq(page);
@@ -122,8 +122,24 @@ test.describe('Original Vented tab', () => {
 
       // Vent length is the pair's now-calculated side — a real length, not the '—'/impossible mark.
       await page.locator('.project-nav li', { hasText: 'Vented' }).click();
-      await expect(page.locator('#og-vent-length-ro')).not.toHaveValue('—');
-      await expect(page.locator('#og-vent-length-ro')).not.toHaveClass(/impossible/);
+      await expect(page.locator('#og-vent-length')).not.toHaveValue('');
+      await expect(page.locator('#og-vent-length')).not.toHaveClass(/impossible/);
+    });
+
+    // John, 2026-10-06: "vent length should be editable". Typing a length while the target tuning
+    // is entered makes the length the entered side and the tuning the calculated one.
+    test('vent length is editable while the target tuning is entered, and moves the tuning', async ({ page }) => {
+      const pageOps = new PageOps(page);
+      await pageOps.setNum('#og-fb-target', '40');
+      await page.locator('.project-nav li', { hasText: 'Vented' }).click();
+      const length = page.locator('#og-vent-length');
+      await expect(length).toBeEditable();
+      const before = Number(await length.inputValue());
+      await fillAndCommit(length, String(Math.round(before * 2)));
+      await expect(length).toHaveClass(/value-e/);
+      await page.locator('.project-nav li', { hasText: 'Box' }).first().click();
+      await expect.poll(async () => Number(await page.locator('#og-fb-target-field input').inputValue()),
+        'a longer vent must lower the tuning').toBeLessThan(40);
     });
 
     // The human's QO11 ruling: the target tuning is the port solver's INPUT, so it belongs on the
@@ -140,9 +156,9 @@ test.describe('Original Vented tab', () => {
       await expect(page.locator('#og-vent-fb-target')).toHaveValue('42.00');
 
       // Vents → Box: editing here must move the Box tab's field AND re-solve the vent length.
-      const lenBefore = await page.locator('#og-vent-length-ro').inputValue();
+      const lenBefore = await page.locator('#og-vent-length').inputValue();
       await pageOps.setNum('#og-vent-fb-target', '30');
-      const lenAfter = await page.locator('#og-vent-length-ro').inputValue();
+      const lenAfter = await page.locator('#og-vent-length').inputValue();
       expect(Number(lenAfter), 'a lower target must lengthen the vent').toBeGreaterThan(Number(lenBefore));
 
       await page.locator('.project-nav li', { hasText: 'Box' }).first().click();
@@ -168,7 +184,7 @@ test.describe('Original Vented tab', () => {
       await fillAndCommit(page.locator('#og-vent-fb-target'), '37.9');
 
       // Helmholtz resonator: Fb = (C/2π)·√(Sp/(Leff·Vb)); Sp = π·0.025², Leff = L + end correction.
-      const ventLReadout = page.locator('#og-vent-length-ro');
+      const ventLReadout = page.locator('#og-vent-length');
       await expect(ventLReadout).not.toHaveValue('');
       const length = parseFloat(await ventLReadout.inputValue());
       expect(length).toBeCloseTo(10.6, 1);
@@ -182,10 +198,10 @@ test.describe('Original Vented tab', () => {
       // original target restores the original length.
       await page.locator('.project-nav li', { hasText: 'Vented' }).click();
       await fillAndCommit(page.locator('#og-vent-fb-target'), '32.0');
-      const retuned = parseFloat(await page.locator('#og-vent-length-ro').inputValue());
+      const retuned = parseFloat(await page.locator('#og-vent-length').inputValue());
       expect(retuned).not.toBeCloseTo(10.6, 1);
       await fillAndCommit(page.locator('#og-vent-fb-target'), '37.9');
-      const restored = parseFloat(await page.locator('#og-vent-length-ro').inputValue());
+      const restored = parseFloat(await page.locator('#og-vent-length').inputValue());
       expect(restored).toBeCloseTo(10.6, 1);
     });
 

@@ -46,10 +46,19 @@ describe('radiator figure conflicts reach the fields', () => {
     for (const f of [spec.Fs_hz, spec.Mms_kg, spec.Cms_m_per_N]) expect(marked(f)).toBe(false);
   });
 
-  it('a field left blank carries no mark', () => {
+  // "just show errors" (John, 2026-10-06, bugs/BUG_20261005_no-common-ui-field-component.md): a
+  // blank figure the simulation needs is flagged, naming what to state.
+  it('a blank Qms is flagged as what Rms still needs', () => {
     const {Qms: _q, ...noQms} = four;
     const spec = prProject(createEngine(), noQms).box.passiveRadiator.radiator.spec;
-    expect(spec.Qms.dq).toEqual([]);
-    expect(spec.Rms_kg_per_s.dq).toEqual([]);
+    expect(spec.Qms.mandatoryAndUnsatisfied).toBe(true);
+    expect(spec.Qms.dq.map(i => i.text).join()).toMatch(/Rms_kg_per_s cannot be calculated yet.*needs Qms/);
+  });
+
+  it('a blank Vas is flagged as what Cms still needs', () => {
+    const {Vas_m3: _v, ...noVas} = four;
+    const spec = prProject(createEngine(), noVas).box.passiveRadiator.radiator.spec;
+    expect(spec.Vas_m3.mandatoryAndUnsatisfied).toBe(true);
+    expect(spec.Vas_m3.dq.map(i => i.text).join()).toMatch(/Cms_m_per_N cannot be calculated yet.*needs Vas_m3/);
   });
 });

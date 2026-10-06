@@ -30,11 +30,15 @@ function prPane(file: string): string {
   return src.slice(start, end < 0 ? undefined : end);
 }
 
-/** Every registry member bound as `:field` on a NumInput in the given pane. */
+/** Every number-entry tag on a pane: a bare `NumInput`, or a `UIField` (which hands its `field`
+ *  to the `NumInput` inside it). */
+const ENTRY_TAG = /<(?:NumInput|UIField)[\s\S]*?\/>/g;
+
+/** Every registry member bound as `:field` on an entry tag in the given pane. */
 function boundFields(file: string): Field[] {
   const src = prPane(file);
   const members = new Map(Object.entries(NumberField).filter((e): e is [string, Field] => e[1] instanceof Field));
-  const tags = [...src.matchAll(/<NumInput[\s\S]*?\/>/g)].map((m) => m[0]);
+  const tags = [...src.matchAll(ENTRY_TAG)].map((m) => m[0]);
   return tags.flatMap((tag) => [...tag.matchAll(/:field="NumberField\.([A-Z0-9_]+)"/g)]).map((m) => {
     const f = members.get(m[1]);
     assert.ok(f, `${file} binds NumberField.${m[1]}, which is not a registry member`);
@@ -44,15 +48,15 @@ function boundFields(file: string): Field[] {
 
 describe('PR page — every numeric entry is bounded by the registry', () => {
   for (const file of ['original/OriginalShell.vue', 'mobile/MobileEnclosureTab.vue']) {
-    it(`${file}: every NumInput binds a registry field`, () => {
+    it(`${file}: every number entry binds a registry field`, () => {
       const src = prPane(file);
-      const inputs = [...src.matchAll(/<NumInput[\s\S]*?\/>/g)].map((m) => m[0]);
-      assert.ok(inputs.length > 0, `${file} has no NumInput on its PR pane — has the pane been restructured?`);
+      const inputs = [...src.matchAll(ENTRY_TAG)].map((m) => m[0]);
+      assert.ok(inputs.length > 0, `${file} has no number entry on its PR pane — has the pane been restructured?`);
       for (const tag of inputs) {
         assert.match(
           tag,
           /:field="\w+Field\.[A-Z0-9_]+"/,
-          `${file} has a NumInput bound to no registry field, so its min/max never reach ` +
+          `${file} has a number entry bound to no registry field, so its min/max never reach ` +
             `it and the entry is unbounded:\n  ${tag.replace(/\s+/g, ' ').slice(0, 160)}`,
         );
       }
