@@ -69,6 +69,12 @@ Step 1 done: `4c41761a`. `UIField` taking a domain cell is allowed by ruling QO1
   stored; meanwhile the charts use the last stored value. Two error sources: the box (typed text invalid,
   from the registry limits) and the domain (stored values missing or in conflict, from `cell.dq`).
 
+- WinISD export of a blank box volume: "wpr export 0 and N" — the `.wpr` gets 0 for a blank volume; the export
+  is not refused. Checked 2026-10-06 under wine (`winisd_research/toys/vr_zero_load_probe.py`, results in
+  `runs/vr_zero_load/`): WinISD opens the sealed, vented and PR sample projects with `Vr=0` without crashing or
+  a dialog; the PR response draws as a flat 0 dB line. The `.wpr` `[Box]` section has no ParState, so there is
+  no N mark to write for the volume.
+
 ## Temporary debt — remove when the last screen uses UIField
 `NumInput` still draws its own ⚠ (`dq-note`, `dq`/`dqState` props) for the screens not yet moved, and
 `UIField` turns that off with `hideMark`. That is `NumInput` doing two jobs. Once every screen uses `UIField`:
