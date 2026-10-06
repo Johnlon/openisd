@@ -33,6 +33,12 @@ test.describe('Original Signal tab', () => {
     await expect(pow).toHaveValue('0.99');
   });
 
+  test('System input power is a UIField: label, box, ⚠ slot and unit in one row', async ({ page }) => {
+    const row = page.locator('.ui-field', { hasText: 'System input power' });
+    await expect(row.locator('input')).toHaveValue(/\d/);
+    await expect(row.locator('.ui-field-unit')).toHaveText('W');
+  });
+
   test.describe('series resistance', () => {
     test('shows WinISD 3-dp precision (0.100 ohm)', async ({ page }) => {
       await expect(signalInput(page, 'Series resistance')).toHaveValue(/^\d+\.\d{3}$/);

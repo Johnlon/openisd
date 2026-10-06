@@ -37,11 +37,14 @@ const props = withDefaults(defineProps<{
   max?: number;
   /** ▲▼ buttons beside the box (the phone layout). */
   stepper?: boolean;
+  /** Shown but not editable, e.g. a value another field is deriving. */
+  readonly?: boolean;
 }>(), {
   required: false,
   inputId: undefined,
   max: undefined,
   stepper: false,
+  readonly: false,
 });
 
 const scope = useCellScope();
@@ -85,7 +88,7 @@ function write(v: number | null, precision?: number): void {
     <label class="ui-field-label" :for="id" :title="field.description || undefined">{{ field.label }}</label>
     <span class="ui-field-value">
       <NumInput :id="id" :class="[view.provenanceClass, view.dqClasses]" :model-value="view.value" :field="field"
-        :half-width="view.precision" :mandatory="view.mandatory" :max="max" :stepper="stepper" hide-mark
+        :half-width="view.precision" :mandatory="view.mandatory" :max="max" :stepper="stepper" :readonly="readonly" hide-mark
         @update:model-value="write" @refusal="text => refusal = text" />
     </span>
     <span class="ui-field-dq">

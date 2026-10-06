@@ -3,7 +3,7 @@ import type { Air, AirEnvironment, BoxParamsIssue, ChartId, DriverError, Filter,
 import { dateStamp, realAppContext } from '../appContext.js';
 import type { AppContext } from '../appContext.js';
 import { focus, simpleField } from '../cell.js';
-import type { Calculatable, Calculated, Clearable, Entered, Readable, SimpleField, Unsolvable, Writable } from '../cell.js';
+import type { Calculatable, Calculated, Clearable, Entered, Precise, Readable, SimpleField, Unsolvable, Writable } from '../cell.js';
 import { newUuid } from '../newUuid.js';
 import type { OpenISDProjectJson, OpenISDProjectSessionJson } from '../openisdSchema.js';
 import type { Box } from '../box/box.js';
@@ -666,7 +666,7 @@ export class OpenISDProject {
      *  the driver has a usable Re, `power_W = N · voltage_V² / Re` holds and whichever of the pair was entered last is entered;
      *  the other is calculated. Without a usable Re it is not available and cannot be entered —
      *  its dq names the missing Re. */
-    get powerDrive_W(): Readable<number | null> & Entered & Calculated & Writable<number> & Clearable & Calculatable<number> & Unsolvable {
+    get powerDrive_W(): Readable<number | null> & Precise & Entered & Calculated & Writable<number> & Clearable & Calculatable<number> & Unsolvable {
         return this.#signalOver(this.#root()).powerDrive_W;
     }
 

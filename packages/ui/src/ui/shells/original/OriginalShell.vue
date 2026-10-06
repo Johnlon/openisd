@@ -620,7 +620,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
             </div>
             <div style="--label-w:186px;">
               <div class="section-header">Signal source</div>
-              <div class="field-row"><div :class="['field', 'entered', { 'dq-flag': project.powerDrive_W.dq.length > 0 }]"><label>System input power</label><NumInput :field="NumberField.SIGNAL_PIN_W" :readonly="powerLocked" :model-value="project.powerDrive_W.value" @update:model-value="(v: number | null) => v == null ? project.powerDrive_W.clear() : project.powerDrive_W.set(v)" :precision="NumberField.SIGNAL_PIN_W.precision" v-bind="dqOfCell(project.powerDrive_W)" /><span class="unit">{{ NumberField.SIGNAL_PIN_W.unitLabel() }}</span></div></div>
+              <div class="field-row"><UIField class="field" :field="NumberField.SIGNAL_PIN_W" :cell="project.powerDrive_W" :readonly="powerLocked" /></div>
               <div class="field-row"><div :class="['field', 'entered', { 'dq-flag': project.driveVoltage_V.dq.length > 0 }]"><label>Driver input voltage (each)</label><NumInput :field="NumberField.SIGNAL_DRIVEV_V" v-model="driveV" :precision="NumberField.SIGNAL_DRIVEV_V.precision" v-bind="dqOfCell(project.driveVoltage_V)" @blur-notify="reconcileDriveV" /><span class="unit">{{ NumberField.SIGNAL_DRIVEV_V.unitLabel() }}</span></div></div>
               <div class="field-row"><div class="field entered"><label>Series resistance</label><NumInput v-model="rsOhm" :precision="NumberField.SIGNAL_RS_OHM.precision" /><span class="unit">{{ NumberField.SIGNAL_RS_OHM.unitLabel() }}</span></div></div>
             </div>
@@ -751,12 +751,13 @@ provideCellScope({ revision: projectChanged, written: () => {} });
             <div class="field-row"><div class="field entered" style="--label-w:130px"><label>Leakage Ql</label><NumInput :model-value="g.Ql" @update:model-value="(v: number | null) => g.setQl(v ?? 0)" :precision="NumberField.LOSS_QL.precision" /></div></div>
             <div class="field-row"><div class="field entered" style="--label-w:130px"><label>Absorption Qa</label><NumInput :model-value="g.Qa" @update:model-value="(v: number | null) => g.setQa(v ?? 0)" :precision="NumberField.LOSS_QA.precision" /></div></div>
             <div class="field-row" v-if="g.Qp !== null"><div class="field entered" style="--label-w:130px"><label>Port Qp</label><NumInput :model-value="g.Qp" @update:model-value="(v: number | null) => g.setQp(v ?? 0)" :precision="NumberField.LOSS_QP.precision" /></div></div>
+            <div class="field-row" v-if="g.Qicl !== null"><div class="field entered" style="--label-w:130px"><label>{{ NumberField.LOSS_QICL.label }}</label><NumInput :model-value="g.Qicl" @update:model-value="(v: number | null) => g.setQicl(v ?? 0)" :precision="NumberField.LOSS_QICL.precision" /></div></div>
           </template>
-          <p class="hint">Qa (stuffing): 100 = none · 20–50 = light · 5–10 = heavy. WinISD defaults: Ql=10, Qa=100, Qp=100.</p>
+          <p class="hint">Qa (stuffing): 100 = none · 20–50 = light · 5–10 = heavy. WinISD defaults: Ql=10, Qa=100, Qp=100, Qicl=100.</p>
         </div>
         <div class="modal-footer">
           <span class="hint">Changes apply live to the graph.</span>
-          <div class="footer-buttons"><button id="og-box-losses-reset" class="ok-btn" title="Back to WinISD's defaults: Ql 10, Qa 100, Qp 100" @click="resetBoxLosses">Reset</button><button class="ok-btn" @click="boxLossesOpen = false">OK</button></div>
+          <div class="footer-buttons"><button id="og-box-losses-reset" class="ok-btn" title="Back to WinISD's defaults: Ql 10, Qa 100, Qp 100, Qicl 100" @click="resetBoxLosses">Reset</button><button class="ok-btn" @click="boxLossesOpen = false">OK</button></div>
         </div>
       </div>
     </div>
