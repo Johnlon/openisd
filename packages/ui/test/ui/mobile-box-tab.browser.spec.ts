@@ -38,6 +38,7 @@ test.describe('MobileBoxTab', () => {
     };
     expect(await edges('Volume')).toEqual(await edges('Target tuning'));
   });
+
   // bugs/BUG_20261005_no-common-ui-field-component.md: "just show errors" + "yes press alignment".
   test('emptying the box volume leaves it blank with a ⚠ that names the Alignment button', async ({ page }) => {
     const row = mobileFieldRow(page, 'Volume').first();

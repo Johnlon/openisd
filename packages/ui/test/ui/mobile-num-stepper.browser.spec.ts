@@ -74,7 +74,7 @@ test('a long hold on ▲ takes 10 % steps and lands on a round value when releas
   expect(box).not.toBeNull();
   await page.mouse.move(box!.x + box!.width / 2, box!.y + box!.height / 2);
   await page.mouse.down();
-  await page.waitForTimeout(2200);
+  await expect.poll(async () => Number(await input.inputValue()), { timeout: 8000 }).toBeGreaterThan(start * 1.3);
   await page.mouse.up();
 
   const end = Number(await input.inputValue());
