@@ -118,6 +118,15 @@ export default defineConfig(({ command }) => ({
     // Explicit, so the desktop build lands beside the web build rather than replacing it.
     outDir: ELECTRON ? 'dist-electron' : 'dist',
     emptyOutDir: true,
+    // The public about and install pages (https://openisd.app/about/, /install/) sit beside the
+    // app. The desktop build is the app alone.
+    rollupOptions: ELECTRON ? {} : {
+      input: {
+        main: join(UI_ROOT, 'index.html'),
+        about: join(UI_ROOT, 'about', 'index.html'),
+        install: join(UI_ROOT, 'install', 'index.html'),
+      },
+    },
   },
   plugins: [
     clearSwInDev,
@@ -146,6 +155,9 @@ export default defineConfig(({ command }) => ({
         // registerType 'autoUpdate' reloads open pages onto a new build.
         globPatterns: ['**/*.{js,css,html,svg,ico}'],
         globIgnores: ['drivers/**', 'drivers-index.json', 'passive-radiators-index.json'],
+        // /about/ and /install/ are pages of their own: without this an installed app answers
+        // them with the app shell. They are precached, so they still open offline.
+        navigateFallbackDenylist: [/^\/about\//, /^\/install\//],
         // A RegExp, not a function: workbox serialises this into sw.js, where a closure over
         // this file's variables would not exist.
         runtimeCaching: [{

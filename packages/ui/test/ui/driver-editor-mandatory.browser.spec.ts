@@ -288,7 +288,7 @@ test('two of Qts/Qes/Qms are needed to simulate — the trio is flagged as a GRO
   await expect(okBtn(page)).toBeEnabled();
 });
 
-test('an entered zero for Fs is out of range — red on the field, reverted on blur (QO11.5)', async ({ page }) => {
+test('an entered zero for Fs is out of range — red on the field, kept until Esc (QO11.5)', async ({ page }) => {
   await openParameters(page);
   const fs = field(page, 'Fs');
   const good = await fs.inputValue();
@@ -304,8 +304,13 @@ test('an entered zero for Fs is out of range — red on the field, reverted on b
   await expect(fs).toHaveClass(/inp-bad/);
   await expect(fs).toBeFocused();
 
+  // Ruling "b" (John, 2026-10-06): leaving keeps the refused entry; Esc restores the stored one.
   await fs.blur();
-  await expect(fs).toHaveValue(good);                    // reverted to the last good value
+  await expect(fs).toHaveValue('0');
+  await expect(fs).toHaveClass(/inp-bad/);
+  await fs.focus();
+  await fs.press('Escape');
+  await expect(fs).toHaveValue(good);
   await expect(fs).not.toHaveClass(/inp-bad/);
   await expect(okBtn(page)).toBeEnabled();               // still saveable
 });

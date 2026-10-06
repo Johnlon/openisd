@@ -174,11 +174,16 @@ export function invalidValue(value: number): InvalidValueIssue {
   };
 }
 
+/** How a blank required value can be filled other than by typing it — the sealed and vented box
+ *  volume's Alignment button (John, 2026-10-06: "yes press alignment"). */
+export type FillRoute = 'none' | 'alignment';
+
 /** `label` left blank; nothing can be calculated from it until it is entered. */
-export function requiredValue(label: string): RequiredValueIssue {
+export function requiredValue(label: string, fill: FillRoute): RequiredValueIssue {
+  const how = fill === 'alignment' ? 'enter a value above 0, or calculate one with the Alignment button' : 'enter a value above 0';
   return {
     kind: 'required-value',
-    text: `${label} is blank - enter a value above 0. Nothing that depends on it can be calculated until then.`,
+    text: `${label} is blank - ${how}. Nothing that depends on it can be calculated until then.`,
   };
 }
 
@@ -213,8 +218,8 @@ export function positiveValueIssue(value: number): InvalidValueIssue | null {
 }
 
 /** The positive floor for a value that may also be blank: blank is `requiredValue(label)`. */
-export function requiredPositiveIssue(label: string, value: number | null): RequiredValueIssue | InvalidValueIssue | null {
-  return value === null ? requiredValue(label) : positiveValueIssue(value);
+export function requiredPositiveIssue(label: string, value: number | null, fill: FillRoute = 'none'): RequiredValueIssue | InvalidValueIssue | null {
+  return value === null ? requiredValue(label, fill) : positiveValueIssue(value);
 }
 
 /** The weaker floor: negative or not a finite number is not physical, but zero is a legitimate

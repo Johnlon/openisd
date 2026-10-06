@@ -5,7 +5,7 @@
  * inside the engine calls them directly; this area publishes them, unchanged, as the door.
  */
 import type {
-  CalculationIssue, InvalidValueIssue, NegativeValueIssue, OutOfRangeIssue, RequiredValueIssue, SolveRoute,
+  CalculationIssue, FillRoute, InvalidValueIssue, NegativeValueIssue, OutOfRangeIssue, RequiredValueIssue, SolveRoute,
   TargetUnreachableIssue,
 } from '../consistency.js';
 import {
@@ -37,8 +37,8 @@ export interface IssueEngine {
    *  design band on top of this floor — `VentedEngine.volumeIssue`, which is not this. */
   positiveValueIssue(value: number): InvalidValueIssue | null;
   /** `positiveValueIssue` for a value the owner must state and has left blank: blank says so,
-   *  naming `label` and what to enter. Every box volume. */
-  requiredPositiveIssue(label: string, value: number | null): RequiredValueIssue | InvalidValueIssue | null;
+   *  naming `label` and what to enter — and, for `fill: 'alignment'`, the Alignment button. Every box volume. */
+  requiredPositiveIssue(label: string, value: number | null, fill?: FillRoute): RequiredValueIssue | InvalidValueIssue | null;
   /** The weaker floor some driver fields carry instead: negative or non-finite is not physical,
    *  but zero is a legitimate stated value. Which floor applies to which field is the field's own
    *  `NumberField.floor`. */

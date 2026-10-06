@@ -81,6 +81,11 @@ describe('buildPlotData — comparing two or more designs', () => {
     assert.equal(out.series[1].name, 'W5 sealed: |Z|');
     assert.equal(out.series[1].current, true);
   });
+
+  it('lists the 0 dB and −3 dB lines below every project entry', () => {
+    const out = buildPlotData(engine, 'TFMag', 10, 2000, design('W5 sealed', '#4fb0ff', 0), [design('p1', '#ffb454', 1)]).value!;
+    assert.deepEqual(out.series.map(s => s.name), ['W5 sealed: Transfer function', 'p1: Transfer function', '0 dB', '−3 dB']);
+  });
 });
 
 describe('buildPlotData — levels below −190 dB are real points, not silence', () => {

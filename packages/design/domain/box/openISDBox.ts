@@ -131,7 +131,7 @@ export class OpenISDBox implements Box {
         // computing its own reference-condition fallback.
 
         const sealedLens = focus(lens, 'sealed');
-        const sealedVolume = nullableField(sealedLens, 'volume_m3', (v) => engine.issues.requiredPositiveIssue('Box volume', v));
+        const sealedVolume = nullableField(sealedLens, 'volume_m3', (v) => engine.issues.requiredPositiveIssue('Box volume', v, 'alignment'));
         const sealedLosses = new SealedLossesWindow(focus(sealedLens, 'losses'));
         this.sealed = {
             volume_m3: sealedVolume,
@@ -176,7 +176,7 @@ export class OpenISDBox implements Box {
                 // not an implausible design — it is no design. The resolve cascade draws the
                 // same line, solving the vent only for the box type in play.
                 if (lens.value.boxType !== 'vented') return null;
-                if (v === null) return engine.issues.requiredPositiveIssue('Box volume', v);
+                if (v === null) return engine.issues.requiredPositiveIssue('Box volume', v, 'alignment');
                 return engine.vented.volumeIssue(v);
             }),
             tuning_goal_hz: ventedTuningField,

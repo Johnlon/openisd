@@ -68,3 +68,18 @@ test('Info -> About OpenISD reopens it', async ({page}) => {
   await page.getByText('About OpenISD').click();
   await expect(page.locator('.sp')).toBeVisible();
 });
+
+test('it says there are desktop and mobile versions, both offline, and links to how to install', async ({page}) => {
+  await firstVisit(page);
+  await page.goto('/');
+  const splash = page.locator('.sp');
+  await expect(splash).toContainText('one made for the desktop and one made for the phone');
+  await expect(splash).toContainText('both work offline');
+  await expect(splash.locator('a[href="https://openisd.app/install/"]')).toBeVisible();
+});
+
+test('the Info menu links to how to add the app to the desktop', async ({page}) => {
+  await page.goto('/');
+  await page.locator('.tb-btn[title="Info"]').click();
+  await expect(page.locator('a.menu-item[href="https://openisd.app/install/"]')).toBeVisible();
+});

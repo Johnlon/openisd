@@ -5,5 +5,5 @@
     "types": ["vite/client", "node"],
     "jsx": "preserve"
   },
-  "include": ["src/**/*.js", "src/**/*.ts", "src/**/*.vue", "test/**/*.ts"]
+  "include": ["src/**/*.js", "src/**/*.ts", "src/**/*.vue", "about/**/*.ts", "about/**/*.vue", "test/**/*.ts"]
 }

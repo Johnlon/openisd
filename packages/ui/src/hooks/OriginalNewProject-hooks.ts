@@ -6,6 +6,7 @@ import type { BundledPassiveRadiatorRepo, MyPassiveRadiatorRepo } from '@openisd
 import type { BoxType, EbpSuitability, SealedEngine, VentedAlignment, VentedEngine, Wiring } from '@openisd/design/engine';
 import {ARRAY_WIRING_OPTIONS, DEFAULT_NEW_PROJECT_VENTED_QL, DEFAULT_SOURCE_RESISTANCE_OHM, DEFAULT_VENTED_ALIGNMENT, NumberField, SEALED_ALIGNMENT_OPTIONS, VENTED_ALIGNMENT_OPTIONS, type SelectorOption} from '@openisd/design/fields';
 import {
+  boxTypeIsImplemented,
   createProject as createProjectInStore,
   isModified,
   newProjectBoxTypeOptions,
@@ -79,6 +80,8 @@ export interface OriginalNewProjectAPI {
   // Step 3: Box type & starting volume (non-sealed types; a sealed box gets its volume from step 4)
   readonly boxType: Ref<BoxType>;
   readonly BOX_OPTIONS: readonly SelectorOption<BoxType>[];
+  /** False for a type OpenISD has not finished; its row is dimmed. */
+  readonly boxTypeIsImplemented: (box: BoxType) => boolean;
   /** Starting (rear-chamber) volume, SI. */
   readonly volume_m3: Ref<number>;
   /** Front-chamber volume of a dual-chamber box, SI. */
@@ -485,6 +488,7 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
 
     boxType,
     BOX_OPTIONS,
+    boxTypeIsImplemented,
     volume_m3,
     frontVolume_m3,
     isDual,

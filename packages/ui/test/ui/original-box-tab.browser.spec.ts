@@ -45,6 +45,22 @@ async function expectReadoutTracks(page: Page, message: string): Promise<void> {
   }
 }
 
+// bugs/BUG_20261005_no-common-ui-field-component.md: "just show errors" + "yes press alignment".
+test('emptying the box volume leaves it blank with a ⚠ that names the Alignment button', async ({ page }) => {
+  await page.locator('.project-nav li', { hasText: 'Box' }).click();
+  const vol = page.locator('#og-box-volume');
+  const field = page.locator('.ui-field', { has: vol });
+  await vol.fill('');
+  await vol.blur();
+  await expect(vol).toHaveValue('');
+  await field.locator('.ui-field-dq-btn').click();
+  await expect(field.locator('.ui-field-note')).toContainText('Box volume is blank');
+  await expect(field.locator('.ui-field-note')).toContainText('Alignment');
+  await vol.fill('20');
+  await vol.blur();
+  await expect(field.locator('.ui-field-dq-btn')).toHaveCount(0);
+});
+
 test.describe('Original Box tab', () => {
   test('the Box tab owns the box-type selector', async ({ page }) => {
     await boxTab(page).click();

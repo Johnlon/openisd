@@ -261,25 +261,22 @@ function onBlur(e: Event) {
   if (props.modelValue !== entryValue.value) emit('blur-notify', props.modelValue);
 }
 
-/** What is wrong with the text in the box, '' when it may be stored (or is empty). */
+/** What is wrong with the text in the box, '' when it may be stored (or is empty). Only a typed
+ *  entry is refused: the stored value showing unchanged is never refused, even when a limit has
+ *  since moved past it (a bigger box lowering the PR's Fp ceiling) — that is the domain's ⚠. */
 const refusal = computed<string>(() => {
   if (props.allowOutOfRange) return '';
   if (badEntry.value) return entryRefusal(bounds.value, { kind: 'not-a-number' });
   if (display.value === '' || display.value === '-') return '';
+  if (display.value === fmt(props.modelValue)) return '';
   return entryRefusal(bounds.value, { kind: 'number', si: fromDisp(parseFloat(display.value)) });
 });
 watch(refusal, text => emit('refusal', text));
 
-const invalid = computed(() => {
-  if (badEntry.value) return true;
-  if (display.value === '' || display.value === '-') return false;
-  return !valid(fromDisp(parseFloat(display.value)));
-});
-
 const classes = computed(() => {
   const isEmp = props.modelValue == null || props.modelValue <= 0 || display.value === '';
   return {
-    'inp-bad': invalid.value,
+    'inp-bad': refusal.value !== '',
     'de-input-mandatory': props.mandatory,
     'de-input-empty': props.mandatory && isEmp,
     'dq-flag': hasDq.value,

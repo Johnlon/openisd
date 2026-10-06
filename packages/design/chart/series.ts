@@ -483,6 +483,9 @@ export function buildPlotData(
     .map(([d]) => d);
   const multi = designs.length > 1;
   let out: { series: Series[]; ymin: number; ymax: number; logy: boolean; unit: string } | null = null;
+  // The focused design's reference lines (0 dB, −3 dB, F3 …) go after every project's entry,
+  // so the legend lists the projects first.
+  const references: Series[] = [];
   if (designs.length === 0) return { value: null, errors: chartErrors };
   for (const [di, d] of designs.entries()) {
     const isCurrent = d === currentDesign;
@@ -497,11 +500,12 @@ export function buildPlotData(
     // WinISD trace colour for the active project — matches its Color swatch.
     if (isCurrent && opts.primaryColor) prim.color = opts.primaryColor;
     out.series.push(prim);
-    if (isCurrent) for (let k = 1; k < pd.series.length; k++) out.series.push(pd.series[k]);
+    if (isCurrent) references.push(...pd.series.slice(1));
     out.ymin = Math.min(out.ymin, pd.ymin); out.ymax = Math.max(out.ymax, pd.ymax);
     out.logy = out.logy || pd.logy;
   }
   if (!out) return { value: null, errors: chartErrors };
+  out.series.push(...references);
   const value: PlotData = {
     ...out, fmin, fmax,
     freqAxis: new FrequencyAxis(fmin || 10, fmax || 1000),

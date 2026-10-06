@@ -23,18 +23,29 @@ test.beforeEach(async ({ page }) => {
 });
 
 function volumeInput(page: Page) {
-  return page.locator('.mob-field-row.mob-field-entered .mob-field-value input').first();
+  return mobileFieldRow(page, 'Volume').locator('input').first();
 }
 
 test.describe('MobileBoxTab', () => {
+  // bugs/BUG_20261005_no-common-ui-field-component.md: "just show errors" + "yes press alignment".
+  test('emptying the box volume leaves it blank with a ⚠ that names the Alignment button', async ({ page }) => {
+    const row = mobileFieldRow(page, 'Volume').first();
+    await row.locator('input').fill('');
+    await row.locator('input').blur();
+    await expect(row.locator('input')).toHaveValue('');
+    await row.locator('.ui-field-dq-btn').click();
+    await expect(row.locator('.ui-field-note')).toContainText('Box volume is blank');
+    await expect(row.locator('.ui-field-note')).toContainText('Alignment');
+  });
+
   test('shows the box-type select, the enclosure diagram, and a volume field', async ({ page }) => {
     await expect(page.locator('#mob-box-type')).toBeVisible();
     await expect(page.locator('.mob-diagram')).toBeVisible();
-    await expect(page.locator('.mob-field-label', { hasText: 'Volume' })).toBeVisible();
+    await expect(page.locator('.ui-field-label', { hasText: 'Volume' }).first()).toBeVisible();
   });
 
   test('editing the volume writes the value through to the field', async ({ page }) => {
-    const input = page.locator('.mob-field-entered .mob-field-value input').first();
+    const input = mobileFieldRow(page, 'Volume').locator('input').first();
     await input.fill('40');
     await input.blur();
     await expect(input).toHaveValue(/40/);

@@ -17,6 +17,19 @@ list is the smaller engineering and UI work items around what already ships.
 | The driver editor has mandatory-field marks but no step-by-step guided entry flow. | `DriverEditorModal.vue` |
 | Decisions the app makes silently (alignment seeding, auto-calculated fields) have no on-screen explanation beyond the EBP badge and DQ marks. | `OriginalNewProject.vue`, `OriginalShell.vue` |
 
+## Box types not yet implemented
+
+6th-order bandpass and ABC. The engine models both and matches WinISD's charts; the screens
+around them are unfinished. Their rows in the box-type pickers are dimmed until these are done
+(`BoxEngine.implemented`).
+
+| Item | Files |
+|---|---|
+| Box page, Vents pane: the 6th-order bandpass and ABC vent fields are fixed placeholder values, not wired to the project's rear, front and intra-chamber vents. The "Response model pending" note there is out of date. | `OriginalShell.vue`, `boxFields.ts` |
+| New Project wizard: choosing either type creates the box from starting values; there is no step for the chamber volumes and tunings. | `OriginalNewProject.vue`, `OriginalNewProject-hooks.ts` |
+| Mobile skin: the Box and Enclosure tabs show only the placeholder note for both types. | `MobileBoxTab.vue`, `MobileEnclosureTab.vue` |
+| Set `BoxEngine.implemented` to true for each type once the items above are done. | `packages/design/engine/box/BoxEngine.ts` |
+
 ## Charts and UI
 
 | Item | Files |

@@ -131,7 +131,7 @@ describe('boxFields', () => {
       const cell = volumeOf(project, 'sealed');
       cell.clear();
       expect(cell.value).toBeNull();
-      expect(cell.dq).toEqual([engine.issues.requiredPositiveIssue('Box volume', null)]);
+      expect(cell.dq).toEqual([engine.issues.requiredPositiveIssue('Box volume', null, 'alignment')]);
       expect(cell.mandatoryAndUnsatisfied).toBe(true);
     });
   });

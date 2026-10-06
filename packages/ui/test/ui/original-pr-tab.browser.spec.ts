@@ -335,8 +335,11 @@ test.describe('Original Passive Radiator tab data quality', () => {
     // The INPUT (entered Fp) is the real problem: dq-root + the ⚠ note.
     const fpInput = page.locator('#og-pr-fp');
     await expect(fpInput).toHaveClass(/dq-root/);
-    await expect(page.locator('.ui-field', { has: fpInput }).locator('.ui-field-dq-btn')).toHaveText('⚠');
-    await expect(fpInput).toHaveAttribute('title', /Conflicts with other values/);
+    const fpMark = page.locator('.ui-field', { has: fpInput }).locator('.ui-field-dq-btn');
+    await expect(fpMark).toHaveText('⚠');
+    await expect(fpMark).toHaveAttribute('title', /Conflicts with other values/);
+    // The stored Fp is not a refused entry: the ceiling moved past it, the box never refused it.
+    await expect(fpInput).not.toHaveClass(/inp-bad/);
 
     // The DERIVED mass is the symptom: dq-flag, not dq-root. The solve for it would be negative,
     // which is not a mass, so the field is left unavailable (solver.ts `target-unreachable`)
@@ -345,7 +348,8 @@ test.describe('Original Passive Radiator tab data quality', () => {
     await expect(maddInput).toHaveClass(/dq-flag/);
     await expect(maddInput).not.toHaveClass(/dq-root/);
     await expect(maddInput).toHaveValue('');
-    await expect(maddInput).toHaveAttribute('title', /cannot be higher than|cannot reach this target/);
+    await expect(page.locator('.ui-field', { has: maddInput }).locator('.ui-field-dq-btn'))
+      .toHaveAttribute('title', /cannot be higher than|cannot reach this target/);
 
     // The readout outputs are redlined too.
     await expect(page.locator('#og-pr-fs-mass').locator('xpath=ancestor::div[contains(@class,"field")][1]'))

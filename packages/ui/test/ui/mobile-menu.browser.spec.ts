@@ -3,6 +3,7 @@
  * (Manage Drivers, Options, Project details, Advanced). The open-project ROWS at the bottom of the
  * menu are `mobile-project-list`'s.
  */
+import {mobileFieldRow} from '../fixtures/mobileSkin.js';
 import {duplicateFocusedProject, expect, openAMobileProject, setFocusedBoxType, setFocusedBoxVolume, test} from '../fixtures.js';
 import {forceMobileSkin, openMobileMenu, tapMobileMenuItem} from '../fixtures/mobileSkin.js';
 
@@ -73,7 +74,7 @@ test.describe('MobileMenu', () => {
     });
 
     test('Save, then "Open project…" lists it and reopens it', async ({ page }) => {
-      const before = await page.locator('.mob-field-row.mob-field-entered .mob-field-value input').first().inputValue();
+      const before = await mobileFieldRow(page, 'Volume').locator('input').first().inputValue();
 
       await tapMobileMenuItem(page, /^Save$/);
 
@@ -86,7 +87,7 @@ test.describe('MobileMenu', () => {
       await expect(sheet).toHaveCount(0);
       // Reopening the same project lands back on the Box tab with the same value — a real
       // re-load, not a no-op that merely closed the sheet.
-      await expect(page.locator('.mob-field-row.mob-field-entered .mob-field-value input').first()).toHaveValue(before);
+      await expect(mobileFieldRow(page, 'Volume').locator('input').first()).toHaveValue(before);
     });
 
     // John, 2026-10-05: "can the Open project action show the driver name, and volume and type?"
