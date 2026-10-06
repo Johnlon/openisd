@@ -47,6 +47,7 @@ export {
 /** The field registry — every field OpenISD has, one class per kind. */
 export {
   type FieldKind,
+  type ValueFloor,
   Field,
   NumberField,
   EnumField,

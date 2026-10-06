@@ -5,6 +5,7 @@ import {decimalsSpinRule, formatFixed, shownSpinRule, spinStepAttr, spinValue, t
 import type {ProvenanceLetter} from '@openisd/design';
 import {inputFrom} from '../../logic/domEvents.js';
 import {dqReason} from '../../logic/cellDataQuality.js';
+import {entryRefusal, type EntryBounds} from '../../logic/entryRefusal.js';
 
 // The DQ note makes this a fragment root, so attrs (id, class, …) are not auto-inherited —
 // bind them to the INPUT explicitly (never the ⚠ note).
@@ -27,6 +28,8 @@ const props = withDefaults(defineProps<{
   dq?: readonly string[];
   dqState?: ProvenanceLetter;
   stepper?: boolean;
+  /** The host draws the ⚠ itself (`UIField`), so this box draws no mark of its own. */
+  hideMark?: boolean;
 }>(), {
   modelValue: null,
   precision: undefined,
@@ -35,12 +38,15 @@ const props = withDefaults(defineProps<{
   mandatory: false,
   allowOutOfRange: false,
   stepper: false,
+  hideMark: false,
 });
 
 const emit = defineEmits<{
   'update:modelValue': [value: number | null, precision?: number];
   blur: [];
   'blur-notify': [value: number | null];
+  /** What is wrong with the text in the box and what to enter instead; '' when it is acceptable. */
+  refusal: [text: string];
 }>();
 
 const activeToken = computed(() => props.field?.unitTokenFor(presentationState.ui.unitTokens ?? {}));
@@ -61,7 +67,7 @@ const entryValue = ref<number | null | undefined>(props.modelValue);
 const display = ref(fmt(props.modelValue));
 
 watch(() => props.modelValue, (v) => {
-  if (!focused.value) display.value = fmt(v);
+  if (!focused.value && refusal.value === '') display.value = fmt(v);
 });
 watch(activeToken, (newToken, oldToken) => {
   if (!focused.value) {
@@ -78,6 +84,7 @@ watch(activeToken, (newToken, oldToken) => {
 function onFocus() {
   focused.value = true;
   typing.value = false;   // a step done right after focusing must still reformat
+  if (refusal.value !== '') return;   // a refused entry stays as typed until fixed or Esc
   badEntry.value = false;
   entryValue.value = props.modelValue;
   // Switch to unformatted string so toPrecision doesn't fight the user's keystrokes
@@ -86,6 +93,16 @@ function onFocus() {
 
 // Text-editing keys mean "typing" → echo raw. Arrow up/down are spinner steps → reformat.
 function onKeydown(e: KeyboardEvent) {
+  if (e.key === 'Escape' && refusal.value !== '') {
+    // Esc puts the stored value back over a refused entry — and only that: the press does not
+    // also reach a dialog's own Esc-to-close.
+    e.preventDefault();
+    e.stopPropagation();
+    badEntry.value = false;
+    display.value = fmt(props.modelValue);
+    if (e.target instanceof HTMLInputElement) e.target.value = display.value;
+    return;
+  }
   typing.value = e.key !== 'ArrowUp' && e.key !== 'ArrowDown';
 }
 function onWheel() { typing.value = false; }   // wheel over the field is a step → reformat
@@ -171,9 +188,19 @@ const helpText = computed<string | undefined>(() =>
 const effMin = computed<number>(() => props.min ?? props.field?.limits.min ?? 0);
 const effMax = computed<number | undefined>(() => props.max ?? props.field?.limits.max);
 
+/** The box's accepted values: the field's floor and band, or the caller's own `min`/`max`. */
+const bounds = computed<EntryBounds>(() => ({
+  label: props.field?.label ?? 'This value',
+  unit: props.field?.unitLabel(activeToken.value) ?? '',
+  floor: props.field?.floor ?? 'none',
+  min: effMin.value,
+  max: effMax.value,
+  show: si => props.field ? props.field.format(si, null, activeToken.value) : formatFixed(si, props.precision ?? 2),
+}));
+
 function valid(si: number): boolean {
   if (props.allowOutOfRange) return isFinite(si);
-  return isFinite(si) && si >= effMin.value && (effMax.value === undefined || si <= effMax.value);
+  return entryRefusal(bounds.value, { kind: 'number', si }) === '';
 }
 
 const dispMin = computed(() => toDisp(effMin.value));
@@ -220,6 +247,11 @@ function onInput(e: Event) {
 
 function onBlur(e: Event) {
   focused.value = false;
+  if (refusal.value !== '') {
+    // Ruling "b": leaving the box keeps the refused entry and its ⚠; nothing was stored.
+    emit('blur');
+    return;
+  }
   badEntry.value = false;
   display.value = fmt(props.modelValue);
   const t = inputFrom(e);
@@ -228,6 +260,15 @@ function onBlur(e: Event) {
   emit('blur');
   if (props.modelValue !== entryValue.value) emit('blur-notify', props.modelValue);
 }
+
+/** What is wrong with the text in the box, '' when it may be stored (or is empty). */
+const refusal = computed<string>(() => {
+  if (props.allowOutOfRange) return '';
+  if (badEntry.value) return entryRefusal(bounds.value, { kind: 'not-a-number' });
+  if (display.value === '' || display.value === '-') return '';
+  return entryRefusal(bounds.value, { kind: 'number', si: fromDisp(parseFloat(display.value)) });
+});
+watch(refusal, text => emit('refusal', text));
 
 const invalid = computed(() => {
   if (badEntry.value) return true;
@@ -263,9 +304,9 @@ const stepAttr = computed<string>(() => props.step !== 'any' ? props.step : spin
 
 <template>
   <input ref="inputEl" v-bind="$attrs" type="number" :step="stepAttr" :min="dispMin" :max="dispMax" :value="display"
-    :class="classes" :title="hasDq ? `${helpText ?? ''}${helpText ? ' — ' : ''}${dqTooltip}` : helpText"
+    :class="classes" :title="refusal !== '' ? refusal : hasDq ? `${helpText ?? ''}${helpText ? ' — ' : ''}${dqTooltip}` : helpText"
     @focus="onFocus" @keydown="onKeydown" @wheel="onWheel" @pointerdown="onPointerDown" @input="onInput" @blur="onBlur">
-  <span v-if="hasDq" class="dq-note" :class="{ 'dq-note-root': isRootCause, 'dq-note-symptom': isSymptom }" :title="dqNoteTitle">⚠</span>
+  <span v-if="hasDq || (refusal !== '' && !hideMark)" class="dq-note" :class="{ 'dq-note-root': isRootCause || refusal !== '', 'dq-note-symptom': isSymptom }" :title="refusal !== '' ? `⚠ ${refusal}` : dqNoteTitle">⚠</span>
   <span v-if="showStepper" class="num-stepper">
     <button type="button" class="num-stepper-btn" tabindex="-1" title="Increase"
       @pointerdown.prevent="startRepeat(1, $event)" @pointerup="stopRepeat" @pointerleave="stopRepeat" @pointercancel="stopRepeat">▲</button>

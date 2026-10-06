@@ -68,6 +68,11 @@ const view = computed(() => {
 });
 
 const reasonOpen = ref(false);
+/** What is wrong with the text in the box, from the box itself; '' when it may be stored. A
+ *  refused entry was never stored, so the cell's own DQ cannot know about it. */
+const refusal = ref('');
+/** The ⚠ sentence: a refused entry first, since it is what the person is looking at. */
+const reason = computed(() => refusal.value !== '' ? refusal.value : view.value.reason);
 
 function write(v: number | null, precision?: number): void {
   if (v === null) props.cell.clear(); else props.cell.set(v, precision);
@@ -80,15 +85,15 @@ function write(v: number | null, precision?: number): void {
     <label :for="id" :title="field.description || undefined">{{ field.label }}</label>
     <span class="ui-field-value">
       <NumInput :id="id" :class="[view.provenanceClass, view.dqClasses]" :model-value="view.value" :field="field"
-        :half-width="view.precision" :mandatory="view.mandatory" :max="max" :stepper="stepper"
-        @update:model-value="write" />
+        :half-width="view.precision" :mandatory="view.mandatory" :max="max" :stepper="stepper" hide-mark
+        @update:model-value="write" @refusal="text => refusal = text" />
     </span>
     <span class="ui-field-dq">
-      <button v-if="view.reason" type="button" class="ui-field-dq-btn" :title="view.reason" :aria-expanded="reasonOpen"
+      <button v-if="reason" type="button" class="ui-field-dq-btn" :title="reason" :aria-expanded="reasonOpen"
         aria-label="Why this value is flagged" @click.stop="reasonOpen = !reasonOpen">&#9888;</button>
     </span>
     <UnitToggle :field="field" unit-class="ui-field-unit" />
-    <span v-if="reasonOpen && view.reason" class="ui-field-note" role="note" @click.stop="reasonOpen = false">{{ view.reason }}</span>
+    <span v-if="(reasonOpen || refusal !== '') && reason" class="ui-field-note" role="note" @click.stop="reasonOpen = false">{{ reason }}</span>
   </div>
 </template>
 

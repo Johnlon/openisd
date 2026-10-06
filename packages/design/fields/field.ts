@@ -321,6 +321,7 @@ export class NumberField extends Field {
     label: "Target Tuning Freq (Fb)",
     display: {kind: 'switchable', group: 'freq', base: 'Hz'},
     limits: {min: 0, max: 1000},
+    floor: "positive",
     precision: 2,
     description: "Box Tuning Frequency (Fb)\nHelmholtz resonance of the vented enclosure, set by port dimensions and box volume.",
   });
@@ -374,6 +375,7 @@ export class NumberField extends Field {
     // 2026-10-01: "on the vented view the default unit must be cm and cm2".
     display: {kind: 'switchable', group: 'area', base: 'cm2'},
     limits: {min: 0, max: 10},
+    floor: "positive",
     precision: 2,
     formula: "π·(ventD/2)²",
     description: "Vent Cross-Sectional Area\nTotal internal cross-sectional area of the port.",
@@ -410,6 +412,7 @@ export class NumberField extends Field {
     label: "Xmax",
     display: {kind: 'switchable', group: 'length', base: 'mm'},
     limits: {min: 0, max: 0.5},
+    floor: "positive",
     precision: 2,
     description: "Passive Radiator Excursion Limit\nMaximum peak linear displacement of the passive radiator diaphragm.\nDraws the PR excursion limit line; it does not change the response curves.",
   });
