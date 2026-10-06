@@ -3,13 +3,13 @@
  * the SAME field-wiring factories `boxFields.ts` exports — one implementation of
  * "what does the Box tab's Volume field do", asked by both shells.
  */
-import {computed, ref} from 'vue';
+import {ref} from 'vue';
 import {IMPLEMENTED_BOX_TYPES, boxTypeIsSimulatable, envDefaults, focusedProject, projectChanged} from '../logic/appState.js';
 import {useFocusedProject} from '../logic/focusedProjectContext.js';
 import {useApp} from '../logic/app.js';
 import {createEnvironmentAir} from './OriginalShell-hooks.js';
 import {createVentReadouts, FB_TARGET_TIP} from './ventReadouts.js';
-import {createBoxVolume, createChamberFields, createSealedReadouts, createSelectedBox} from './boxFields.js';
+import {createBoxLosses, createBoxVolume, createChamberFields, createSealedReadouts, createSelectedBox} from './boxFields.js';
 import {SealedAlignmentEditor} from './SealedAlignment-hooks.js';
 import {VentedAlignmentEditor} from './VentedAlignment-hooks.js';
 import {BOX_TYPE_OPTIONS} from '@openisd/design/fields';
@@ -26,24 +26,8 @@ export function useMobileBoxTab() {
   const { activeTuning, fbState, setFbTarget } = createVentReadouts({ project, projectChanged, selectedBox, air: advAir, vent: engine.vent });
   const { boxVolumeCell } = createBoxVolume({ project, selectedBox, projectChanged });
   const { frontVolumeCell, frcHz, setFrcHz } = createChamberFields({ project, selectedBox, projectChanged });
-  // Box-losses (Ql/Qa/Qp) — the per-box-type dispatch now lives in the domain
-  // (OpenISDBox.lossesOf, beside volumeOf/frontVolumeOf/rearTuningOf), so this is a one-liner
-  // each, mirroring OriginalShell-hooks.ts's own boxQl/boxQa/boxQp: never switch on box type in a
-  // mobile hook. null means the type has no such field; Qp null means no port.
-  //
-  // `void projectChanged.value` in each getter: reading `focusedProject()` alone does not
-  // register a dependency on the project's OWN field mutations (only on focus changing), so
-  // without this the readout freezes at whatever it was on mount instead of updating after
-  // `setBoxQl`/etc — the same staleness class the file's own top comment on `changeTicks`
-  // documents elsewhere. Desktop's current boxQl/boxQa/boxQp lack this too (same bug, not fixed
-  // here — flagged to engine, that file's in flux).
-  const boxQl = computed<number | null>(() => { void projectChanged.value; return focusedProject()?.box.lossesOf(selectedBox.value)?.Ql.value ?? null; });
-  function setBoxQl(v: number): void { project.value.box.lossesOf(selectedBox.value)?.Ql.set(v); }
-  const boxQa = computed<number | null>(() => { void projectChanged.value; return focusedProject()?.box.lossesOf(selectedBox.value)?.Qa.value ?? null; });
-  function setBoxQa(v: number): void { project.value.box.lossesOf(selectedBox.value)?.Qa.set(v); }
-  const boxQp = computed<number | null>(() => { void projectChanged.value; return focusedProject()?.box.lossesOf(selectedBox.value)?.Qp?.value ?? null; });
-  function setBoxQp(v: number): void { project.value.box.lossesOf(selectedBox.value)?.Qp?.set(v); }
-  function resetBoxLosses(): void { project.value.box.resetLossesOf(selectedBox.value); }
+  // Box losses popup: one row set per chamber, the same hook the desktop shell uses.
+  const { boxLossGroups, resetBoxLosses } = createBoxLosses({ project, selectedBox, projectChanged, focusedProject });
   const boxLossesOpen = ref(false);
 
   // Same skin-neutral class the desktop shell uses (SealedAlignment-hooks.ts) — one editor, not
@@ -85,6 +69,6 @@ export function useMobileBoxTab() {
     ventedAlignmentEditor, ventedAlignmentOpen, ventedAlignmentOptions, ventedAlignmentSelected,
     ventedAlignmentVolume_L, ventedAlignmentTuning_hz, ventedAlignmentEbp, ventedAlignmentSuitability,
     ventedAlignmentSuitabilityLabel,
-    boxQl, setBoxQl, boxQa, setBoxQa, boxQp, setBoxQp, resetBoxLosses, boxLossesOpen,
+    boxLossGroups, resetBoxLosses, boxLossesOpen,
   };
 }

@@ -16,8 +16,8 @@ const engine = createEngine();
 function sealedProject(): OpenISDProject {
   const driver = driverFromSpec(engine, {Fs_hz: 30, Qes: 0.4, Qms: 4, Sd_m2: 0.02, Cms_m_per_N: 0.0005, Re_ohm: 6});
   const p = new ProjectBuilder(driver, engine).sealed().volume_m3(0.03).build();
-  p.box.lossesOf('sealed')!.Ql.set(10);
-  p.box.lossesOf('sealed')!.Qa.set(100);
+  p.box.lossGroupsOf('sealed')[0]!.Ql.set(10);
+  p.box.lossGroupsOf('sealed')[0]!.Qa.set(100);
   p.save();
   return p;
 }
@@ -43,7 +43,7 @@ describe('a saved lossMode is repaired on load', () => {
 
   it("'lossless' loads with Ql and Qa at the lossless sentinel, giving the textbook Fsc", () => {
     const {project, repaired} = load(legacyText('lossless'));
-    const losses = project.box.lossesOf('sealed')!;
+    const losses = project.box.lossGroupsOf('sealed')[0]!;
     expect(losses.Ql.value).toBe(1e6);
     expect(losses.Qa.value).toBe(1e6);
     expect(project.box.sealed.resonance_hz.value).toBeCloseTo(winisd.driver.specs.Fs_hz.value! * ratio, 9);
@@ -52,7 +52,7 @@ describe('a saved lossMode is repaired on load', () => {
 
   it("'conventional-lossy' loads as WinISD lossy with the project's own Ql/Qa", () => {
     const {project, repaired} = load(legacyText('conventional-lossy'));
-    const losses = project.box.lossesOf('sealed')!;
+    const losses = project.box.lossGroupsOf('sealed')[0]!;
     expect(losses.Ql.value).toBe(10);
     expect(losses.Qa.value).toBe(100);
     expect(project.box.sealed.resonance_hz.value).toBe(winisd.box.sealed.resonance_hz.value);
@@ -69,7 +69,7 @@ describe('a saved lossMode is repaired on load', () => {
   it('the plain loader also accepts the old key', () => {
     const project = OpenISDProject.fromOwprText(legacyText('lossless'), engine);
     if (Array.isArray(project)) throw new Error(project.join('; '));
-    expect(project.box.lossesOf('sealed')!.Ql.value).toBe(1e6);
+    expect(project.box.lossGroupsOf('sealed')[0]!.Ql.value).toBe(1e6);
   });
 
   it('the writer no longer states lossMode', () => {

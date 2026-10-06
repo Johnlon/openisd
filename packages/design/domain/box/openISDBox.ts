@@ -13,7 +13,7 @@ import type { ProjectIssues } from '../project/projectIssues.js';
 import type { AbcBox } from './abcBox.js';
 import type { Bandpass4Box } from './bandpass4Box.js';
 import type { Bandpass6Box } from './bandpass6Box.js';
-import type { Box, BoxLosses, TuningField, VentGroup } from './box.js';
+import type { Box, BoxLossGroup, TuningField, VentGroup } from './box.js';
 import type { Vent } from '../vent.js';
 import { CoupledSealedLossesWindow } from './coupledSealedLossesWindow.js';
 import { CoupledVentedLossesWindow } from './coupledVentedLossesWindow.js';
@@ -22,6 +22,7 @@ import type { SealedBox } from './sealedBox.js';
 import { SealedLossesWindow } from './sealedLossesWindow.js';
 import { VentWindow } from './ventWindow.js';
 import type { VentedBox } from './ventedBox.js';
+import type { VentedChamber } from './ventedChamber.js';
 import { VentedChamberWindow } from './ventedChamberWindow.js';
 import { VentedLossesWindow } from './ventedLossesWindow.js';
 
@@ -85,6 +86,16 @@ function startVentGeometry(vent: Vent, driverDd_m: number | null): void {
  *  record holds, is not — `applyStartingValues` fills those. */
 function isStated(volume_m3: number | null): volume_m3 is number {
     return volume_m3 !== null && volume_m3 > 0;
+}
+
+/** The Box losses popup of a box with two ported chambers: one set per chamber, as WinISD gives
+ *  each chamber panel its own Advanced-> losses. */
+function chamberLossGroups(chambers: {readonly rear: VentedChamber; readonly front: VentedChamber}): readonly BoxLossGroup[] {
+    const {rear, front} = chambers;
+    return [
+        {heading: 'Rear chamber', Ql: rear.losses.Ql, Qa: rear.losses.Qa, Qp: rear.losses.Qp},
+        {heading: 'Front chamber', Ql: front.losses.Ql, Qa: front.losses.Qa, Qp: front.losses.Qp},
+    ];
 }
 
 export class OpenISDBox implements Box {
@@ -379,27 +390,26 @@ export class OpenISDBox implements Box {
         return this.vented;
     }
 
-    lossesOf(type: BoxType): BoxLosses | null {
+    lossGroupsOf(type: BoxType): readonly BoxLossGroup[] {
         switch (type) {
-            case 'sealed': return {Ql: this.sealed.losses.Ql, Qa: this.sealed.losses.Qa, Qp: null};
-            case 'vented': return {Ql: this.vented.losses.Ql, Qa: this.vented.losses.Qa, Qp: this.vented.losses.Qp};
+            case 'sealed': return [{heading: null, Ql: this.sealed.losses.Ql, Qa: this.sealed.losses.Qa, Qp: null}];
+            case 'vented': return [{heading: null, Ql: this.vented.losses.Ql, Qa: this.vented.losses.Qa, Qp: this.vented.losses.Qp}];
             case 'bandpass4': {
                 const {rear, front} = this.bandpass4.chambers;
-                return {Ql: rear.losses.Ql, Qa: rear.losses.Qa, Qp: front.losses.Qp};
+                return [{heading: null, Ql: rear.losses.Ql, Qa: rear.losses.Qa, Qp: front.losses.Qp}];
             }
-            case 'box-passive-radiator': return {Ql: this.passiveRadiator.losses.Ql, Qa: this.passiveRadiator.losses.Qa, Qp: null};
-            case 'bandpass6':
-            case 'abc':
-                return null;
+            case 'box-passive-radiator': return [{heading: null, Ql: this.passiveRadiator.losses.Ql, Qa: this.passiveRadiator.losses.Qa, Qp: null}];
+            case 'bandpass6': return chamberLossGroups(this.bandpass6.chambers);
+            case 'abc': return chamberLossGroups(this.abc.chambers);
         }
     }
 
     resetLossesOf(type: BoxType): void {
-        const losses = this.lossesOf(type);
-        if (losses === null) return;
-        losses.Ql.set(WINISD_BOX_LOSSES.Ql);
-        losses.Qa.set(WINISD_BOX_LOSSES.Qa);
-        losses.Qp?.set(WINISD_BOX_LOSSES.Qp);
+        for (const losses of this.lossGroupsOf(type)) {
+            losses.Ql.set(WINISD_BOX_LOSSES.Ql);
+            losses.Qa.set(WINISD_BOX_LOSSES.Qa);
+            losses.Qp?.set(WINISD_BOX_LOSSES.Qp);
+        }
     }
 
     /** Give the active box type its starting values where nothing is entered yet: sealed gets the

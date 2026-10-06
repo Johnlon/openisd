@@ -3,6 +3,7 @@ import {computed, nextTick, ref, shallowRef} from 'vue';
 import {createEngine, type BoxType} from '@openisd/design/engine';
 import {ProjectBuilder} from '@openisd/design';
 import {
+  createBoxLosses,
   createBoxVolume,
   createSealedReadouts,
   createSelectedBox,
@@ -208,6 +209,41 @@ describe('boxFields', () => {
       expect(showEnclosureTab.value).toBe(false);
       selectedBox.value = 'vented';
       expect(showEnclosureTab.value).toBe(true);
+    });
+  });
+
+  // bugs/BUG_20261006_box-losses-popup-blank-for-6th-and-abc.md
+  describe('createBoxLosses', () => {
+    function losses(type: BoxType) {
+      const {project} = createCompleteProject();
+      const projectChanged = ref(0);
+      const hook = createBoxLosses({project: computed(() => project), selectedBox: ref<BoxType>(type), projectChanged, focusedProject: () => project});
+      return {project, projectChanged, hook};
+    }
+    it('sealed: one untitled set, Ql and Qa, no Qp', () => {
+      const {hook} = losses('sealed');
+      expect(hook.boxLossGroups.value).toHaveLength(1);
+      const [g] = hook.boxLossGroups.value;
+      expect(g!.heading).toBeNull();
+      expect(g!.Qp).toBeNull();
+    });
+    it('bandpass6: a Rear chamber set and a Front chamber set; an edit reaches that chamber and the readout follows', () => {
+      const {project, projectChanged, hook} = losses('bandpass6');
+      expect(hook.boxLossGroups.value.map(g => g.heading)).toEqual(['Rear chamber', 'Front chamber']);
+      hook.boxLossGroups.value[1]!.setQl(9);
+      projectChanged.value++;
+      expect(project.box.bandpass6.chambers.front.losses.Ql.value).toBe(9);
+      expect(hook.boxLossGroups.value[1]!.Ql).toBe(9);
+      expect(hook.boxLossGroups.value[0]!.Ql).toBe(10);
+    });
+    it('abc: Reset puts both chambers back to WinISD\'s defaults', () => {
+      const {project, projectChanged, hook} = losses('abc');
+      for (const g of hook.boxLossGroups.value) { g.setQl(3); g.setQa(4); g.setQp(5); }
+      hook.resetBoxLosses();
+      projectChanged.value++;
+      const {rear, front} = project.box.abc.chambers;
+      expect([rear.losses.Ql.value, rear.losses.Qa.value, rear.losses.Qp.value]).toEqual([10, 100, 100]);
+      expect([front.losses.Ql.value, front.losses.Qa.value, front.losses.Qp.value]).toEqual([10, 100, 100]);
     });
   });
 });

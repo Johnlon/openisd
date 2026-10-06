@@ -1,6 +1,6 @@
 # BUG_20261006_box-losses-popup-blank-for-6th-and-abc
 
-**Status:** OPEN
+**Status:** RESOLVED 2026-10-07
 
 ## Symptom
 On a 6th-order bandpass or ABC box, the Box losses popup (Box tab "Advanced->", mobile "Box losses ->")
@@ -19,10 +19,16 @@ These two box types have two sets of losses, one per chamber. The popup has room
 `lossesOf` answers "none".
 
 ## Fix
-Show the popup per chamber for these types: a Rear row set and a Front row set (Qicl too if WinISD's dialog
-has it). Which fields WinISD's own dialog shows for these types is ⚠ unverified; check under wine before
-building. Part of the "Box types not yet implemented" work in BACKLOG.md.
+`Box.lossesOf` is replaced by `Box.lossGroupsOf(type)`, which returns one row set per chamber: one untitled
+set for most types, a "Rear chamber" and a "Front chamber" set for `bandpass6` and `abc`.
+`resetLossesOf` resets every set. `createBoxLosses` (`packages/ui/src/hooks/boxFields.ts`) serves both shells,
+and both popups loop over the sets. Qicl (the leak between chambers) has no row: no WinISD screen has
+shown one. WinISD's own dialog contents for these types were not probed under wine.
 
 ## Verification
-Browser spec: on a 6th-order bandpass and on ABC, the popup shows each chamber's stored losses, an edit
-reaches that chamber, and Reset restores WinISD's defaults in both.
+- `packages/design/test/domain/box-volume-of.test.ts`, `retired-loss-mode.test.ts`
+- `packages/ui/test/hooks/boxFields.test.ts`
+- `packages/ui/test/ui/box-losses-popup.browser.spec.ts`, `mobile-box-losses-popup.browser.spec.ts`: on
+  `bandpass6` and `abc` the popup shows both chamber sets, an edit reaches that chamber, Reset restores
+  the defaults in both.
+Passed 2026-10-07.

@@ -351,7 +351,7 @@ export async function setFocusedSealedLosses(page: Page, losses: {Ql: number; Qa
     }
     const m: unknown = await import(/* @vite-ignore */ path);
     if (!isAppState(m)) throw new Error('appState module shape mismatch');
-    const sealed = m.requireFocusedProject().box.lossesOf('sealed');
+    const [sealed] = m.requireFocusedProject().box.lossGroupsOf('sealed');
     if (!sealed) throw new Error('a sealed box has losses');
     sealed.Ql.set(values.Ql);
     sealed.Qa.set(values.Qa);

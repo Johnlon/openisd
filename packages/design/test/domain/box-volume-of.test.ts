@@ -43,7 +43,7 @@ describe('OpenISDBox.volumeOf(boxType) — the box type\'s own main-volume field
   }
 });
 
-describe('OpenISDBox.frontVolumeOf / rearTuningOf / lossesOf — the other per-type fields the box tab shows', () => {
+describe('OpenISDBox.frontVolumeOf / rearTuningOf / lossGroupsOf — the other per-type fields the box tab shows', () => {
   it('front volume: the two-chamber types have one, the others none', () => {
     const box = project().box;
     box.frontVolumeOf('bandpass4')!.set(0.01);
@@ -62,22 +62,44 @@ describe('OpenISDBox.frontVolumeOf / rearTuningOf / lossesOf — the other per-t
     expect(box.abc.chambers.rear.tuning_goal_hz.value).toBe(45);
     for (const type of ['sealed', 'vented', 'bandpass4', 'box-passive-radiator'] as const) expect(box.rearTuningOf(type)).toBeNull();
   });
-  it('losses: Ql/Qa of the one cabinet or rear chamber, Qp of the ported one; none for bandpass6/abc', () => {
+  it('losses: one set for the one-cabinet types and bandpass4, Ql/Qa of the cabinet or rear chamber, Qp of the ported one', () => {
     const box = project().box;
-    const sealed = box.lossesOf('sealed')!;
-    sealed.Ql.set(7); sealed.Qa.set(50);
+    const [sealed] = box.lossGroupsOf('sealed');
+    expect(box.lossGroupsOf('sealed')).toHaveLength(1);
+    expect(sealed!.heading).toBeNull();
+    sealed!.Ql.set(7); sealed!.Qa.set(50);
     expect(box.sealed.losses.Ql.value).toBe(7);
     expect(box.sealed.losses.Qa.value).toBe(50);
-    expect(sealed.Qp).toBeNull();
-    const vented = box.lossesOf('vented')!;
-    vented.Qp!.set(80);
+    expect(sealed!.Qp).toBeNull();
+    const [vented] = box.lossGroupsOf('vented');
+    vented!.Qp!.set(80);
     expect(box.vented.losses.Qp.value).toBe(80);
-    const bp4 = box.lossesOf('bandpass4')!;
-    bp4.Ql.set(9); bp4.Qp!.set(90);
+    const [bp4] = box.lossGroupsOf('bandpass4');
+    expect(box.lossGroupsOf('bandpass4')).toHaveLength(1);
+    bp4!.Ql.set(9); bp4!.Qp!.set(90);
     expect(box.bandpass4.chambers.rear.losses.Ql.value).toBe(9);
     expect(box.bandpass4.chambers.front.losses.Qp.value).toBe(90);
-    expect(box.lossesOf('box-passive-radiator')!.Qp).toBeNull();
-    expect(box.lossesOf('bandpass6')).toBeNull();
-    expect(box.lossesOf('abc')).toBeNull();
+    expect(box.lossGroupsOf('box-passive-radiator')[0]!.Qp).toBeNull();
   });
+  // bugs/BUG_20261006_box-losses-popup-blank-for-6th-and-abc.md: WinISD gives each chamber its own losses.
+  for (const type of ['bandpass6', 'abc'] as const) {
+    it(`losses: ${type} has a Rear chamber set and a Front chamber set, each with Ql, Qa and Qp`, () => {
+      const box = project().box;
+      const [rear, front] = box.lossGroupsOf(type);
+      expect(box.lossGroupsOf(type)).toHaveLength(2);
+      expect(rear!.heading).toBe('Rear chamber');
+      expect(front!.heading).toBe('Front chamber');
+      rear!.Ql.set(7); rear!.Qa.set(30); rear!.Qp!.set(40);
+      front!.Ql.set(9); front!.Qa.set(50); front!.Qp!.set(60);
+      const chambers = box[type].chambers;
+      expect([chambers.rear.losses.Ql.value, chambers.rear.losses.Qa.value, chambers.rear.losses.Qp.value]).toEqual([7, 30, 40]);
+      expect([chambers.front.losses.Ql.value, chambers.front.losses.Qa.value, chambers.front.losses.Qp.value]).toEqual([9, 50, 60]);
+    });
+    it(`resetLossesOf(${type}) puts both chambers back to WinISD's defaults`, () => {
+      const box = project().box;
+      for (const g of box.lossGroupsOf(type)) { g.Ql.set(3); g.Qa.set(4); g.Qp!.set(5); }
+      box.resetLossesOf(type);
+      for (const g of box.lossGroupsOf(type)) expect([g.Ql.value, g.Qa.value, g.Qp!.value]).toEqual([10, 100, 100]);
+    });
+  }
 });

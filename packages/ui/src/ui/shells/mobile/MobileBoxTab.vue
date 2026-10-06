@@ -21,7 +21,7 @@ const {
   ventedAlignmentEditor, ventedAlignmentOpen, ventedAlignmentOptions, ventedAlignmentSelected,
   ventedAlignmentVolume_L, ventedAlignmentTuning_hz, ventedAlignmentEbp, ventedAlignmentSuitability,
   ventedAlignmentSuitabilityLabel,
-  boxQl, setBoxQl, boxQa, setBoxQa, boxQp, setBoxQp, resetBoxLosses, boxLossesOpen,
+  boxLossGroups, resetBoxLosses, boxLossesOpen,
 } = useMobileBoxTab();
 const { fieldWithUnit, readoutWithUnit } = useUnitReadouts();
 </script>
@@ -174,32 +174,35 @@ const { fieldWithUnit, readoutWithUnit } = useUnitReadouts();
         <span>Box losses</span>
         <button class="mob-x" @click="boxLossesOpen = false">&#10005;</button>
       </div>
-      <div class="mob-field-row mob-field-entered">
-        <div class="mob-field-main">
-          <span class="mob-field-label">Leakage Ql</span>
-          <span class="mob-field-value">
-            <NumInput :model-value="boxQl" @update:model-value="(v: number | null) => setBoxQl(v ?? 0)" :precision="NumberField.LOSS_QL.precision" stepper />
-          </span>
+      <template v-for="g in boxLossGroups" :key="g.heading ?? ''">
+        <div v-if="g.heading !== null" class="mob-panel-head">{{ g.heading }}</div>
+        <div class="mob-field-row mob-field-entered">
+          <div class="mob-field-main">
+            <span class="mob-field-label">Leakage Ql</span>
+            <span class="mob-field-value">
+              <NumInput :model-value="g.Ql" @update:model-value="(v: number | null) => g.setQl(v ?? 0)" :precision="NumberField.LOSS_QL.precision" stepper />
+            </span>
+          </div>
+          <!-- An empty unit column, so this row's ▲▼ line up with the rows that have a unit. -->
+          <span class="mob-unit" aria-hidden="true"></span>
         </div>
-        <!-- An empty unit column, so this row's ▲▼ line up with the rows that have a unit. -->
-        <span class="mob-unit" aria-hidden="true"></span>
-      </div>
-      <div class="mob-field-row mob-field-entered">
-        <div class="mob-field-main">
-          <span class="mob-field-label">Absorption Qa</span>
-          <span class="mob-field-value">
-            <NumInput :model-value="boxQa" @update:model-value="(v: number | null) => setBoxQa(v ?? 0)" :precision="NumberField.LOSS_QA.precision" stepper />
-          </span>
+        <div class="mob-field-row mob-field-entered">
+          <div class="mob-field-main">
+            <span class="mob-field-label">Absorption Qa</span>
+            <span class="mob-field-value">
+              <NumInput :model-value="g.Qa" @update:model-value="(v: number | null) => g.setQa(v ?? 0)" :precision="NumberField.LOSS_QA.precision" stepper />
+            </span>
+          </div>
         </div>
-      </div>
-      <div v-if="boxQp !== null" class="mob-field-row mob-field-entered">
-        <div class="mob-field-main">
-          <span class="mob-field-label">Port Qp</span>
-          <span class="mob-field-value">
-            <NumInput :model-value="boxQp" @update:model-value="(v: number | null) => setBoxQp(v ?? 0)" :precision="NumberField.LOSS_QP.precision" stepper />
-          </span>
+        <div v-if="g.Qp !== null" class="mob-field-row mob-field-entered">
+          <div class="mob-field-main">
+            <span class="mob-field-label">Port Qp</span>
+            <span class="mob-field-value">
+              <NumInput :model-value="g.Qp" @update:model-value="(v: number | null) => g.setQp(v ?? 0)" :precision="NumberField.LOSS_QP.precision" stepper />
+            </span>
+          </div>
         </div>
-      </div>
+      </template>
       <p class="mob-hint">Qa (stuffing): 100 = none · 20–50 = light · 5–10 = heavy. WinISD defaults: Ql=10, Qa=100, Qp=100.</p>
       <div class="mob-align-footer">
         <button id="mob-box-losses-reset" class="mob-btn" title="Back to WinISD's defaults: Ql 10, Qa 100, Qp 100" @click="resetBoxLosses">Reset</button>

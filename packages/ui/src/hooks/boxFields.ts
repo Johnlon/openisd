@@ -113,6 +113,45 @@ export function createChamberFields({ project, selectedBox, projectChanged: chan
   return { frontVolumeCell, frcHz, setFrcHz };
 }
 
+// ---- Box losses popup (unit-testable, real domain) ----------------------------
+// One row set per chamber the box gives (`Box.lossGroupsOf`): one for most types, a Rear and a
+// Front chamber set for bandpass6/abc. Each set carries its own setters, so a shell never
+// switches on box type or chamber.
+export interface BoxLossRows {
+  readonly heading: string | null;
+  readonly Ql: number;
+  readonly Qa: number;
+  /** null: the chamber has no port, so the popup shows no Qp row. */
+  readonly Qp: number | null;
+  setQl(v: number): void;
+  setQa(v: number): void;
+  setQp(v: number): void;
+}
+
+export interface BoxLossesDeps extends BoxVolumeDeps {
+  /** null while no project is open: the shell renders then, with no loss rows. */
+  focusedProject: () => OpenISDProject | null;
+}
+
+export function createBoxLosses({ project, selectedBox, projectChanged: changed, focusedProject }: BoxLossesDeps) {
+  const boxLossGroups = computed<readonly BoxLossRows[]>(() => {
+    void changed.value;
+    const open = focusedProject();
+    if (!open) return [];
+    return open.box.lossGroupsOf(selectedBox.value).map((g) => ({
+      heading: g.heading,
+      Ql: g.Ql.value,
+      Qa: g.Qa.value,
+      Qp: g.Qp?.value ?? null,
+      setQl: (v: number) => g.Ql.set(v),
+      setQa: (v: number) => g.Qa.set(v),
+      setQp: (v: number) => g.Qp?.set(v),
+    }));
+  });
+  function resetBoxLosses(): void { project.value.box.resetLossesOf(selectedBox.value); }
+  return { boxLossGroups, resetBoxLosses };
+}
+
 export interface SelectedBoxDeps {
   focusedProject: () => OpenISDProject | null;
   projectChanged: Ref<number>;

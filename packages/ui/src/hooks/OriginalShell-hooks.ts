@@ -61,7 +61,7 @@ import {OriginalFilters} from './OriginalFilters-hooks.js';
 import type {Calculated, Clearable, Entered, OpenISDProject, Readable, Writable} from '@openisd/design';
 import {dqOfCell, type DqReadout} from '../logic/cellDataQuality.js';
 import {isTabId, type TabId} from '../logic/tabId.js';
-import {createBoxVolume, createChamberFields, createSealedReadouts, createSelectedBox} from './boxFields.js';
+import {createBoxLosses, createBoxVolume, createChamberFields, createSealedReadouts, createSelectedBox} from './boxFields.js';
 import {createDriveSignal} from './driveSignal.js';
 import {createErrorSwitches} from './errorSwitches.js';
 import {storedProjectRows, type StoredProjectRow} from './storedProjectRows.js';
@@ -248,15 +248,9 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   const { boxVolumeCell } = createBoxVolume({ project, selectedBox, projectChanged });
   // Front-chamber volume (WinISD "Vf"), rear-chamber tuning (WinISD "Frc") and the box-level
   // losses: which field each box type has is the box's own knowledge (`Box.frontVolumeOf`,
-  // `rearTuningOf`, `lossesOf`); this reads and writes whatever it hands back.
+  // `rearTuningOf`, `lossGroupsOf`); this reads and writes whatever it hands back.
   const { frontVolumeCell, frcHz, setFrcHz } = createChamberFields({ project, selectedBox, projectChanged });
-  const boxQl = computed<number | null>(() => { void projectChanged.value; return focusedProject()?.box.lossesOf(selectedBox.value)?.Ql.value ?? null; });
-  function setBoxQl(v: number): void { project.value.box.lossesOf(selectedBox.value)?.Ql.set(v); }
-  const boxQa = computed<number | null>(() => { void projectChanged.value; return focusedProject()?.box.lossesOf(selectedBox.value)?.Qa.value ?? null; });
-  function setBoxQa(v: number): void { project.value.box.lossesOf(selectedBox.value)?.Qa.set(v); }
-  const boxQp = computed<number | null>(() => { void projectChanged.value; return focusedProject()?.box.lossesOf(selectedBox.value)?.Qp?.value ?? null; });
-  function setBoxQp(v: number): void { project.value.box.lossesOf(selectedBox.value)?.Qp?.set(v); }
-  function resetBoxLosses(): void { project.value.box.resetLossesOf(selectedBox.value); }
+  const { boxLossGroups, resetBoxLosses } = createBoxLosses({ project, selectedBox, projectChanged, focusedProject });
   async function confirmDiscard(): Promise<boolean> {
     return globalThis.confirm('Discard all unsaved changes and return to the last saved version?');
   }
@@ -678,7 +672,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     reconcileDriveV,
     powerLocked,
     projectName, projectCreator, projectCreated, projectModified, projectDescription,
-    boxQl, setBoxQl, boxQa, setBoxQa, boxQp, setBoxQp, resetBoxLosses,
+    boxLossGroups, resetBoxLosses,
     onFile, fileInput,
   };
 }

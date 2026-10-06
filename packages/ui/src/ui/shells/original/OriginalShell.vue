@@ -68,7 +68,7 @@ const {
   reconcileDriveV,
   powerLocked,
   projectName, projectCreator, projectCreated, projectModified, projectDescription,
-  boxQl, setBoxQl, boxQa, setBoxQa, boxQp, setBoxQp, resetBoxLosses,
+  boxLossGroups, resetBoxLosses,
   onFile, fileInput,
 } = useOriginalShell();
 const winisdDifferences = injectWinisdDifferencesModal();
@@ -746,9 +746,12 @@ provideCellScope({ revision: projectChanged, written: () => {} });
           <div class="win-controls"><span class="close-btn" @click="boxLossesOpen = false">&#10005;</span></div>
         </div>
         <div class="modal-body">
-          <div class="field-row"><div class="field entered" style="--label-w:130px"><label>Leakage Ql</label><NumInput :model-value="boxQl" @update:model-value="(v: number | null) => setBoxQl(v ?? 0)" :precision="NumberField.LOSS_QL.precision" /></div></div>
-          <div class="field-row"><div class="field entered" style="--label-w:130px"><label>Absorption Qa</label><NumInput :model-value="boxQa" @update:model-value="(v: number | null) => setBoxQa(v ?? 0)" :precision="NumberField.LOSS_QA.precision" /></div></div>
-          <div class="field-row" v-if="selectedBox === 'vented' || selectedBox === 'bandpass4'"><div class="field entered" style="--label-w:130px"><label>Port Qp</label><NumInput :model-value="boxQp" @update:model-value="(v: number | null) => setBoxQp(v ?? 0)" :precision="NumberField.LOSS_QP.precision" /></div></div>
+          <template v-for="g in boxLossGroups" :key="g.heading ?? ''">
+            <div v-if="g.heading !== null" class="section-header">{{ g.heading }}</div>
+            <div class="field-row"><div class="field entered" style="--label-w:130px"><label>Leakage Ql</label><NumInput :model-value="g.Ql" @update:model-value="(v: number | null) => g.setQl(v ?? 0)" :precision="NumberField.LOSS_QL.precision" /></div></div>
+            <div class="field-row"><div class="field entered" style="--label-w:130px"><label>Absorption Qa</label><NumInput :model-value="g.Qa" @update:model-value="(v: number | null) => g.setQa(v ?? 0)" :precision="NumberField.LOSS_QA.precision" /></div></div>
+            <div class="field-row" v-if="g.Qp !== null"><div class="field entered" style="--label-w:130px"><label>Port Qp</label><NumInput :model-value="g.Qp" @update:model-value="(v: number | null) => g.setQp(v ?? 0)" :precision="NumberField.LOSS_QP.precision" /></div></div>
+          </template>
           <p class="hint">Qa (stuffing): 100 = none · 20–50 = light · 5–10 = heavy. WinISD defaults: Ql=10, Qa=100, Qp=100.</p>
         </div>
         <div class="modal-footer">

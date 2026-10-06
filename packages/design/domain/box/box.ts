@@ -33,12 +33,13 @@ export interface Box {
      *  other type answers the vented box's group (dormant data, as `volumeOf` is for a type the
      *  project has not adopted). `type` is passed, not read from `boxType`, for the same reason. */
     ventGroupOf(type: BoxType): VentGroup;
-    /** The box-level losses WinISD's Box losses dialog edits for `type`: Ql/Qa of the one
-     *  cabinet (or the rear chamber of a 4th-order bandpass), Qp of the ported chamber, null
-     *  where the type has no port. Null for bandpass6/abc, whose losses are per chamber. */
-    lossesOf(type: BoxType): BoxLosses | null;
-    /** Put `lossesOf(type)` back to WinISD's defaults (Ql 10, Qa 100, Qp 100 where there is a
-     *  port). Nothing for bandpass6/abc, which have no box-level losses. */
+    /** The loss sets WinISD's Box losses popup edits for `type`, one per chamber panel: one
+     *  untitled set (Ql/Qa of the one cabinet or the rear chamber of a 4th-order bandpass, Qp of
+     *  the ported chamber, null where the type has no port), or a Rear chamber and a Front
+     *  chamber set for bandpass6/abc, whose chambers are both ported. */
+    lossGroupsOf(type: BoxType): readonly BoxLossGroup[];
+    /** Put every set of `lossGroupsOf(type)` back to WinISD's defaults (Ql 10, Qa 100, Qp 100
+     *  where there is a port). */
     resetLossesOf(type: BoxType): void;
     /** Give the active type its starting values where nothing is entered yet; nothing entered is
      *  overwritten. Runs on `boxType.set()` and at `ProjectBuilder.build()`. */
@@ -60,7 +61,10 @@ export interface VentGroup {
 
 export type TuningField = Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;
 
-export interface BoxLosses {
+/** One set of rows in the Box losses popup. */
+export interface BoxLossGroup {
+    /** The chamber the set belongs to, shown above its rows; null when the type has one set. */
+    readonly heading: string | null;
     readonly Ql: SimpleField<number>;
     readonly Qa: SimpleField<number>;
     readonly Qp: SimpleField<number> | null;
