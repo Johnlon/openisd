@@ -142,6 +142,26 @@ test.describe('Original Vented tab', () => {
         'a longer vent must lower the tuning').toBeLessThan(40);
     });
 
+    // John, 2026-10-06: "target freq and vent len editable, relative to each other with fixed dim
+    // port". Whichever was typed last is entered; the other is recalculated; the port's
+    // cross-section never moves.
+    test('target tuning and vent length each recalculate the other, the port size fixed', async ({ page }) => {
+      await page.locator('.project-nav li', { hasText: 'Vented' }).click();
+      const fb = page.locator('#og-vent-fb-target'), len = page.locator('#og-vent-length');
+      const area = async () => page.locator('.field', { hasText: 'Cross area' }).locator('input').inputValue();
+      const area0 = await area();
+      await fillAndCommit(fb, '40');
+      await expect(fb).toHaveClass(/value-e/); await expect(len).toHaveClass(/value-c/);
+      const lenAt40 = Number(await len.inputValue());
+      await fillAndCommit(len, String(Math.round(lenAt40 * 2)));
+      await expect(len).toHaveClass(/value-e/); await expect(fb).toHaveClass(/value-c/);
+      expect(Number(await fb.inputValue()), 'a longer vent lowers the tuning').toBeLessThan(40);
+      await fillAndCommit(fb, '45');
+      await expect(fb).toHaveClass(/value-e/); await expect(len).toHaveClass(/value-c/);
+      expect(Number(await len.inputValue()), 'a higher tuning shortens the vent').toBeLessThan(lenAt40);
+      expect(await area()).toBe(area0);
+    });
+
     // The human's QO11 ruling: the target tuning is the port solver's INPUT, so it belongs on the
     // Vents pane as well as the Box tab — the user sizing a vent must see, and be able to change,
     // the target those dimensions were solved for. WinISD shows it only on its Box screen; this is

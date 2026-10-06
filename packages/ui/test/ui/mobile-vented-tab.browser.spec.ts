@@ -60,8 +60,8 @@ test.describe('MobileVentedTab', () => {
     expect(fb).toBeGreaterThan(0);
     expect(fb, 'a different design, not the stale 40 surviving the clear').not.toBeCloseTo(40, 1);
 
-    // Vent length is the pair's now-calculated side — a real length, not the '—' impossible mark.
-    await expect(mobileFieldRow(page, 'Vent length').locator('.mob-readonly')).not.toHaveText('—');
+    // Vent length is the pair's now-calculated side — a real length, not the blank impossible mark.
+    await expect(mobileFieldRow(page, 'Vent length').locator('input')).toHaveValue(/\d/);
   });
 
   // John, 2026-10-01: the port velocity limit sits on the vent section in both layouts.

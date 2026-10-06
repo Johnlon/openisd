@@ -138,14 +138,17 @@ describe('ventGroup', () => {
       assert.equal(VentMember.LENGTH.state(p), 'C');
     });
 
-    it('entering the second of the pair locks it E; clearing it returns it to C', () => {
+    // John, 2026-10-06: tuning and length are relative to each other — typing one makes the other
+    // the calculated side; clearing the calculated side changes nothing.
+    it('entering the second of the pair makes it E and the first C; clearing the C side keeps both', () => {
       VentMember.LENGTH.enter(p, 0.154);
-      assert.equal(VentMember.TUNING.state(p), 'E');
+      assert.equal(VentMember.TUNING.state(p), 'C');
       assert.equal(VentMember.LENGTH.state(p), 'E');
 
       VentMember.TUNING.clear(p);
       assert.equal(VentMember.TUNING.state(p), 'C');
       assert.equal(VentMember.LENGTH.state(p), 'E');
+      assert.equal(p.box.vented.vent.length_m.value, 0.154);
     });
 
     it('THE DIRECTION TEST — changing vent diameter holds the tuning and moves the length', () => {

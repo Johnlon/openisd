@@ -105,16 +105,12 @@ const {fieldWithUnit} = useUnitReadouts();
       <UnitToggle :field="NumberField.VENT_L_CM" unit-class="mob-unit" />
     </div>
 
-    <div class="mob-field-row" :class="fbState !== 'C' ? 'mob-field-entered' : 'mob-field-calculated'">
+    <div class="mob-field-row" :class="fbState === 'C' ? 'mob-field-calculated' : 'mob-field-entered'">
       <div class="mob-field-main">
         <span class="mob-field-label">{{ frontChamberTuningLabel }}</span>
-        <span v-if="fbState !== 'C'" class="mob-field-value" :title="FB_TARGET_TIP">
-          <NumInput :model-value="activeTuning.value"
-                    @update:model-value="setFbTarget"
+        <span class="mob-field-value" :title="FB_TARGET_TIP">
+          <NumInput :class="`value-${fbState.toLowerCase()}`" :model-value="activeTuning.value" @update:model-value="setFbTarget"
                     :field="NumberField.BOX_FB_HZ" :precision="NumberField.BOX_FB_HZ.precision" stepper />
-        </span>
-        <span v-else class="mob-field-value mob-readonly" :title="FB_TARGET_TIP">
-          <NumReadout :value="activeTuning.value" :field="NumberField.BOX_FB_HZ" :precision="NumberField.BOX_FB_HZ.precision" />
         </span>
       </div>
       <UnitToggle :field="NumberField.BOX_FB_HZ" unit-class="mob-unit" />

@@ -9,9 +9,11 @@ import type {Directive} from 'vue';
 // `NumberField.X.limits` when the input edits the model unit directly, or explicit numbers where the
 // input works in a scaled display unit. The directive:
 //   1. stamps native min/max attributes (so the spinner/arrow keys can never leave the range);
-//   2. clamps any typed out-of-range value on 'input' and re-dispatches the corrected value,
-//      so a v-model written BEFORE this listener ran is immediately overwritten with the
-//      clamped value — the model can never retain an out-of-range number.
+//   2. clamps a typed value ABOVE max on 'input', and below min only on 'change' (leaving the
+//      box, or Enter), re-dispatching the corrected value so a v-model written BEFORE this
+//      listener ran is overwritten with the clamped one. Below min is not clamped mid-typing:
+//      it is usually a number on its way somewhere — deleting the 7 of a Q of 0.7 leaves 0,
+//      and clamping that to 0.1 made the box impossible to clear (John, 2026-10-06, LT filter).
 // A transient empty/partial entry ('' or '-') is left alone so typing isn't fought mid-keystroke.
 type Limits = { min?: number; max?: number };
 
@@ -20,7 +22,7 @@ const LIMITS = Symbol('limitsValue');
 const REENTRY = Symbol('limitsReentry');
 
 interface LimitsEl extends HTMLInputElement {
-  [HANDLER]?: () => void;
+  [HANDLER]?: { readonly onInput: () => void; readonly onChange: () => void };
   [LIMITS]?: Limits;
   [REENTRY]?: boolean;
 }
@@ -39,7 +41,8 @@ function applyAttrs(el: LimitsEl, lim: Limits | undefined): void {
   if (lim.max !== undefined) el.max = String(lim.max); else el.removeAttribute('max');
 }
 
-function clampNow(el: LimitsEl): void {
+/** `typing`: the 'input' event of a keystroke, which clamps only above max. */
+function clampNow(el: LimitsEl, typing: boolean): void {
   if (el[REENTRY]) return;
   const lim = el[LIMITS] ?? {};
   const raw = el.value;
@@ -47,7 +50,7 @@ function clampNow(el: LimitsEl): void {
   const v = parseFloat(raw);
   if (!isFinite(v)) return;
   let c = v;
-  if (lim.min !== undefined && c < lim.min) c = lim.min;
+  if (!typing && lim.min !== undefined && c < lim.min) c = lim.min;
   if (lim.max !== undefined && c > lim.max) c = lim.max;
   if (c === v) return;
   el.value = String(c);
@@ -61,10 +64,11 @@ function clampNow(el: LimitsEl): void {
 export const vLimits: Directive<LimitsEl, Limits | undefined> = {
   mounted(el, binding) {
     applyAttrs(el, binding.value);
-    const handler = (): void => clampNow(el);
-    el.addEventListener('input', handler);
-    el.addEventListener('change', handler);
-    el[HANDLER] = handler;
+    const onInput = (): void => clampNow(el, true);
+    const onChange = (): void => clampNow(el, false);
+    el.addEventListener('input', onInput);
+    el.addEventListener('change', onChange);
+    el[HANDLER] = {onInput, onChange};
   },
   updated(el, binding) {
     applyAttrs(el, binding.value);
@@ -72,8 +76,8 @@ export const vLimits: Directive<LimitsEl, Limits | undefined> = {
   unmounted(el) {
     const handler = el[HANDLER];
     if (handler) {
-      el.removeEventListener('input', handler);
-      el.removeEventListener('change', handler);
+      el.removeEventListener('input', handler.onInput);
+      el.removeEventListener('change', handler.onChange);
     }
   },
 };

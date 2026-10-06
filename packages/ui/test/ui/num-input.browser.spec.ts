@@ -131,14 +131,21 @@ test.describe('NumInput', () => {
 
   test('negative or out-of-range entry is rejected, flagged or clamped, per the field contract', async ({ page }) => {
     // 1. NumInput (registry-bound): typing a negative into Box Volume must flag it and NOT
-    //    reach the model; blur reverts to the last valid value.
+    //    reach the model. Ruling "b" (John, 2026-10-06): leaving the box keeps the refused entry
+    //    and its flag; Esc puts the stored value back.
     await page.locator('.project-nav li', { hasText: 'Box' }).click();
     const vb = page.locator('.tab-section.active .field', { hasText: 'Volume' }).locator('input').first();
     const before = await vb.inputValue();
+    const goodVb = await focusedBoxVolume(page);
     await vb.fill('-5');
     await expect(vb).toHaveClass(/inp-bad/); // rejected, red-flagged
     await vb.blur();
-    await expect(vb).toHaveValue(before);    // model never took the negative
+    await expect(vb).toHaveValue('-5');      // the refused entry stays, still flagged
+    await expect(vb).toHaveClass(/inp-bad/);
+    expect(await focusedBoxVolume(page)).toBeCloseTo(goodVb, 9);  // model never took the negative
+    await vb.focus();
+    await vb.press('Escape');
+    await expect(vb).toHaveValue(before);
     // 2. Air fields are DIFFERENT by design (human ruling 2026-09-17): they accept the
     //    out-of-range entry and signal it with a dq-flag + tooltip rather than clamping
     //    (OriginalShell.vue :allow-out-of-range="true" — the app's chosen contract).
@@ -149,11 +156,13 @@ test.describe('NumInput', () => {
     await expect(rh).toHaveAttribute('title', /outside the sane range/);
     await rh.fill('250');
     await expect(rh).toHaveClass(/dq-flag/);           // ceiling too, not just the floor
-    // 3. What-if? panel (scaled registry bounds): Fs typed negative clamps to the 1 Hz floor.
+    // 3. What-if? panel (scaled registry bounds): Fs typed negative clamps to the 1 Hz floor when
+    //    the entry is committed — not mid-typing, where a below-floor value may be half a number.
     await page.locator('.project-nav li', { hasText: 'Driver' }).click();
     await page.locator('.save-rail .what-if-btn').click();
     const fs = page.locator('.what-if-panel .what-if-fld', { hasText: 'Fs' }).first().locator('input');
     await fs.fill('-40');
+    await fs.press('Enter');
     await expect(fs).toHaveValue('1');
     await page.locator('.what-if-panel .close-btn').click();
   });
@@ -184,7 +193,11 @@ test.describe('NumInput', () => {
     expect(await focusedBoxVolume(page)).toBeCloseTo(goodVb, 9);  // ...and the bad value never reached the model
 
     await vb.blur();
-    await expect(vb).toHaveValue(before);               // blur reverts to the last good value
+    await expect(vb).toHaveValue('-5');                 // ruling "b": leaving keeps the refused entry
+    await expect(vb).toHaveClass(/inp-bad/);
+    await vb.focus();
+    await vb.press('Escape');                           // Esc restores the last good value
+    await expect(vb).toHaveValue(before);
     await expect(vb).not.toHaveClass(/inp-bad/);
   });
 

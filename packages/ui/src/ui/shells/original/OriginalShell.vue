@@ -305,8 +305,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
                      from it. A sealed chamber has no port, so Fsc is fully determined by Vb
                      and the driver — calculated, nothing to type. Per-chamber, not per-box. -->
                 <template v-if="selectedBox === 'vented'">
-                  <div v-if="fbState !== 'C'" id="og-fb-target-field" class="field entered" :title="FB_TARGET_TIP"><label>Target Tuning Freq</label><NumInput id="og-fb-target" :model-value="activeTuning.value" @update:model-value="(v: number | null) => { if (v == null || isNaN(v) || v <= 0) VentMember.TUNING.clear(project); else VentMember.TUNING.enter(project, v); }" :field="NumberField.BOX_FB_HZ" :precision="NumberField.BOX_FB_HZ.precision" /><UnitToggle :field="NumberField.BOX_FB_HZ" unit-class="unit unit-cyc" /></div>
-                  <div v-else id="og-fb-target-field" class="field" :title="FB_TARGET_TIP"><label>Target Tuning Freq</label><NumReadout as-input class="calculated greyed" :field="NumberField.BOX_FB_HZ" :value="activeTuning.value" /><UnitToggle :field="NumberField.BOX_FB_HZ" unit-class="unit unit-cyc" /></div>
+                  <div id="og-fb-target-field" class="field" :class="fbState === 'C' ? 'calculated' : 'entered'" :title="FB_TARGET_TIP"><label>Target Tuning Freq</label><NumInput id="og-fb-target" :class="`value-${fbState.toLowerCase()}`" :model-value="activeTuning.value" @update:model-value="(v: number | null) => { if (v == null || isNaN(v) || v <= 0) VentMember.TUNING.clear(project); else VentMember.TUNING.enter(project, v); }" :field="NumberField.BOX_FB_HZ" :precision="NumberField.BOX_FB_HZ.precision" /><UnitToggle :field="NumberField.BOX_FB_HZ" unit-class="unit unit-cyc" /></div>
                 </template>
                 <template v-else-if="selectedBox === 'sealed'">
                   <div class="field"><label>Fsc</label><NumReadout as-input id="og-box-resonance" class="calculated greyed" :field="NumberField.BOX_RESONANCE_HZ" :value="boxResonance" /><UnitToggle :field="NumberField.BOX_RESONANCE_HZ" unit-class="unit unit-cyc" style="min-width: auto;" /></div>
@@ -343,14 +342,9 @@ provideCellScope({ revision: projectChanged, written: () => {} });
                 <div class="section-header">Front chamber</div>
                 <div class="field-row"><div class="field entered"><label>Volume</label><NumInput :model-value="frontVolume_m3" @update:model-value="(v: number | null) => setFrontVolume_m3(v ?? 0)" :field="NumberField.BOX_VF_L" :precision="NumberField.BOX_VF_L.precision" /><UnitToggle :field="NumberField.BOX_VF_L" unit-class="unit unit-cyc" /></div></div>
                 <div class="field-row">
-                  <div v-if="fbState !== 'C'" id="og-ffc-target-field" class="field entered" :title="FB_TARGET_TIP">
+                  <div id="og-ffc-target-field" class="field" :class="fbState === 'C' ? 'calculated' : 'entered'" :title="FB_TARGET_TIP">
                     <label>{{ frontChamberTuningLabel }}</label>
-                    <NumInput id="og-ffc-target" :model-value="activeTuning.value" @update:model-value="(v: number | null) => { if (v == null || isNaN(v) || v <= 0) VentMember.TUNING.clear(project); else VentMember.TUNING.enter(project, v); }" :field="NumberField.BOX_FB_HZ" :precision="NumberField.BOX_FB_HZ.precision" />
-                    <UnitToggle :field="NumberField.BOX_FB_HZ" unit-class="unit unit-cyc" />
-                  </div>
-                  <div v-else id="og-ffc-target-field" class="field" :title="FB_TARGET_TIP">
-                    <label>{{ frontChamberTuningLabel }}</label>
-                    <NumReadout as-input class="calculated greyed" :field="NumberField.BOX_FB_HZ" :value="activeTuning.value" />
+                    <NumInput id="og-ffc-target" :class="`value-${fbState.toLowerCase()}`" :model-value="activeTuning.value" @update:model-value="(v: number | null) => { if (v == null || isNaN(v) || v <= 0) VentMember.TUNING.clear(project); else VentMember.TUNING.enter(project, v); }" :field="NumberField.BOX_FB_HZ" :precision="NumberField.BOX_FB_HZ.precision" />
                     <UnitToggle :field="NumberField.BOX_FB_HZ" unit-class="unit unit-cyc" />
                   </div>
                 </div>
@@ -512,14 +506,9 @@ provideCellScope({ revision: projectChanged, written: () => {} });
                      first two overflows the panel for the round or the slotted shape
                      (test/ui/original-shell-layout.browser.spec.ts). Here every shape stays at three. -->
                 <div class="field-row">
-                  <div v-if="fbState !== 'C'" id="og-vent-fb-target-field" class="field entered" :title="FB_TARGET_TIP">
+                  <div id="og-vent-fb-target-field" class="field" :class="fbState === 'C' ? 'calculated' : 'entered'" :title="FB_TARGET_TIP">
                     <label>Target Tuning Freq</label>
-                    <NumInput id="og-vent-fb-target" :model-value="activeTuning.value" @update:model-value="(v: number | null) => { if (v == null || isNaN(v) || v <= 0) VentMember.TUNING.clear(project); else VentMember.TUNING.enter(project, v); }" :field="NumberField.BOX_FB_HZ" :precision="NumberField.BOX_FB_HZ.precision" />
-                    <UnitToggle :field="NumberField.BOX_FB_HZ" unit-class="unit unit-cyc" />
-                  </div>
-                  <div v-else id="og-vent-fb-target-field" class="field" :title="FB_TARGET_TIP">
-                    <label>Target Tuning Freq</label>
-                    <NumReadout as-input id="og-vent-fb-target" class="calculated greyed" :field="NumberField.BOX_FB_HZ" :value="activeTuning.value" />
+                    <NumInput id="og-vent-fb-target" :class="`value-${fbState.toLowerCase()}`" :model-value="activeTuning.value" @update:model-value="(v: number | null) => { if (v == null || isNaN(v) || v <= 0) VentMember.TUNING.clear(project); else VentMember.TUNING.enter(project, v); }" :field="NumberField.BOX_FB_HZ" :precision="NumberField.BOX_FB_HZ.precision" />
                     <UnitToggle :field="NumberField.BOX_FB_HZ" unit-class="unit unit-cyc" />
                   </div>
                 </div>

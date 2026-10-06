@@ -5,7 +5,6 @@
 import {NumberField, ReadoutFormat} from '@openisd/design/fields';
 import {selectedOption} from '../../../logic/domEvents.js';
 import BoxTypeDiagram from '../../components/BoxTypeDiagram.vue';
-import NumReadout from '../../components/NumReadout.vue';
 import NumInput from '../../components/NumInput.vue';
 import UnitToggle from '../../components/UnitToggle.vue';
 import { useMobileBoxTab } from '../../../hooks/MobileBoxTab-hooks.js';
@@ -66,15 +65,12 @@ const { fieldWithUnit, readoutWithUnit } = useUnitReadouts();
       </div>
       <UnitToggle :field="NumberField.BOX_FRC_HZ" unit-class="mob-unit" />
     </div>
-    <div v-else-if="selectedBox === 'vented'" class="mob-field-row" :class="fbState !== 'C' ? 'mob-field-entered' : 'mob-field-calculated'">
+    <div v-else-if="selectedBox === 'vented'" class="mob-field-row" :class="fbState === 'C' ? 'mob-field-calculated' : 'mob-field-entered'">
       <div class="mob-field-main">
         <span class="mob-field-label">Target tuning freq (Fb)</span>
-        <span v-if="fbState !== 'C'" class="mob-field-value" :title="FB_TARGET_TIP">
-          <NumInput :model-value="activeTuning.value" @update:model-value="setFbTarget"
+        <span class="mob-field-value" :title="FB_TARGET_TIP">
+          <NumInput :class="`value-${fbState.toLowerCase()}`" :model-value="activeTuning.value" @update:model-value="setFbTarget"
                     :field="NumberField.BOX_FB_HZ" :precision="NumberField.BOX_FB_HZ.precision" stepper />
-        </span>
-        <span v-else class="mob-field-value mob-readonly" :title="FB_TARGET_TIP">
-          <NumReadout :value="activeTuning.value" :field="NumberField.BOX_FB_HZ" :precision="NumberField.BOX_FB_HZ.precision" />
         </span>
       </div>
       <UnitToggle :field="NumberField.BOX_FB_HZ" unit-class="mob-unit" />
