@@ -218,7 +218,7 @@ const { fieldWithUnit, readoutWithUnit } = useUnitReadouts();
           </span>
         </div>
       </div>
-      <p class="mob-hint">100 = no stuffing · 20–50 = light · 5–10 = heavy. WinISD defaults: Ql=10, Qa=100, Qp=100.</p>
+      <p class="mob-hint">Qa (stuffing): 100 = none · 20–50 = light · 5–10 = heavy. WinISD defaults: Ql=10, Qa=100, Qp=100.</p>
       <div class="mob-align-footer">
         <button class="mob-btn mob-btn-primary" @click="boxLossesOpen = false">OK</button>
       </div>
