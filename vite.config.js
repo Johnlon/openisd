@@ -157,7 +157,7 @@ export default defineConfig(({ command }) => ({
         globIgnores: ['drivers/**', 'drivers-index.json', 'passive-radiators-index.json'],
         // /about/ and /install/ are pages of their own: without this an installed app answers
         // them with the app shell. They are precached, so they still open offline.
-        navigateFallbackDenylist: [/^\/about\//, /^\/install\//],
+        navigateFallbackDenylist: [/^\/(about|install)(\/|$)/],
         // A RegExp, not a function: workbox serialises this into sw.js, where a closure over
         // this file's variables would not exist.
         runtimeCaching: [{
