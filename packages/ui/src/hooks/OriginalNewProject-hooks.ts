@@ -81,7 +81,7 @@ export interface OriginalNewProjectAPI {
   readonly boxType: Ref<BoxType>;
   readonly BOX_OPTIONS: readonly SelectorOption<BoxType>[];
   /** False for a type OpenISD has not finished; its row is dimmed. */
-  readonly IMPLEMENTED_BOX_TYPES: ReadonlySet<BoxType>;
+  readonly IMPLEMENTED_BOX_TYPES: readonly BoxType[];
   /** Starting (rear-chamber) volume, SI. */
   readonly volume_m3: Ref<number>;
   /** Front-chamber volume of a dual-chamber box, SI. */

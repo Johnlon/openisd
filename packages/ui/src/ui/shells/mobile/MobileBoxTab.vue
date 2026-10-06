@@ -33,7 +33,7 @@ const { fieldWithUnit, readoutWithUnit } = useUnitReadouts();
       <label class="mob-row-label" for="mob-box-type">Box type</label>
       <select id="mob-box-type" class="mob-select" :value="selectedBox"
               @change="e => selectBoxType((e.target as HTMLSelectElement).value)">
-        <option v-for="o in BOX_TYPE_OPTIONS" :key="o.value" :value="o.value" :class="{ 'not-implemented': !IMPLEMENTED_BOX_TYPES.has(o.value) }">{{ o.label }}</option>
+        <option v-for="o in BOX_TYPE_OPTIONS" :key="o.value" :value="o.value" :class="{ 'not-implemented': !IMPLEMENTED_BOX_TYPES.includes(o.value) }">{{ o.label }}</option>
       </select>
     </div>
     <p v-if="pending" class="mob-hint mob-hint-warn">

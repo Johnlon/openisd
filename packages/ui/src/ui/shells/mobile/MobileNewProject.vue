@@ -149,7 +149,7 @@ function handleCreate() {
       <div v-else-if="step === 3" class="step-content">
         <div class="field"><label>Box type</label>
           <select id="np-box-type" :value="boxType" @change="e => { const b = selectedOption(e, BOX_OPTIONS); if (b !== null) boxType = b; }">
-            <option v-for="o in BOX_OPTIONS" :key="o.value" :value="o.value" :class="{ 'not-implemented': !IMPLEMENTED_BOX_TYPES.has(o.value) }">{{ o.label }}</option>
+            <option v-for="o in BOX_OPTIONS" :key="o.value" :value="o.value" :class="{ 'not-implemented': !IMPLEMENTED_BOX_TYPES.includes(o.value) }">{{ o.label }}</option>
           </select>
         </div>
 

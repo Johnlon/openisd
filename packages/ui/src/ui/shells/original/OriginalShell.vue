@@ -288,7 +288,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
           <div class="field-row" style="flex-wrap: nowrap;">
             <div class="field" style="gap:8px;"><label style="width:auto;">Box Type</label>
               <select id="og-box-type" :value="selectedBox" @change="e => { const b = selectedOption(e, BOX_TYPE_OPTIONS); if (b !== null) selectedBox = b; }" style="width:170px">
-                <option v-for="o in BOX_TYPE_OPTIONS" :key="o.value" :value="o.value" :class="{ 'not-implemented': !IMPLEMENTED_BOX_TYPES.has(o.value) }">{{ o.label }}</option>
+                <option v-for="o in BOX_TYPE_OPTIONS" :key="o.value" :value="o.value" :class="{ 'not-implemented': !IMPLEMENTED_BOX_TYPES.includes(o.value) }">{{ o.label }}</option>
               </select>
             </div>
           </div>

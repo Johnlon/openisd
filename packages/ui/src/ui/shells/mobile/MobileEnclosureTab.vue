@@ -262,12 +262,6 @@ const {fieldWithUnit} = useUnitReadouts();
 .mob-field-entered { border-left-color: var(--good); }
 /* A UIField as a phone row: same padding, divider and height as `.mob-field-row`; the label
    column takes the slack so the box, ⚠ and unit line up at the right edge. */
-.mob-ui-field {
-  grid-template-columns: 1fr max-content 16px 34px;
-  padding: 10px 12px 10px 14px; min-height: 48px;
-  border-left: 3px solid transparent; border-top: 1px solid var(--line);
-}
-.mob-ui-field :deep(label) { font-size: 13px; color: var(--mut); white-space: normal; }
 .mob-field-calculated { border-left-color: var(--acc); }
 .mob-field-dq { border-left-color: var(--acc2); }
 .mob-field-main { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
