@@ -27,6 +27,17 @@ function volumeInput(page: Page) {
 }
 
 test.describe('MobileBoxTab', () => {
+  // John, 2026-10-06: "does it line up on the screen". A UIField row (Volume) and an older row
+  // (Target tuning) put the box, ▲▼ and unit at the same x.
+  test('the Volume row lines up with the Target tuning row below it', async ({ page }) => {
+    const edges = async (label: string) => {
+      const row = page.locator('.mob-ui-field, .mob-field-row').filter({ hasText: label }).first();
+      const box = async (sel: string) => (await row.locator(sel).first().boundingBox()) ?? { x: NaN, width: NaN };
+      const input = await box('input'), up = await box('button:has-text("▲")'), unit = await box('.ui-field-unit, .mob-unit');
+      return [input.x, input.x + input.width, up.x, unit.x].map(Math.round);
+    };
+    expect(await edges('Volume')).toEqual(await edges('Target tuning'));
+  });
   // bugs/BUG_20261005_no-common-ui-field-component.md: "just show errors" + "yes press alignment".
   test('emptying the box volume leaves it blank with a ⚠ that names the Alignment button', async ({ page }) => {
     const row = mobileFieldRow(page, 'Volume').first();

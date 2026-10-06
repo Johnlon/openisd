@@ -177,15 +177,17 @@ a { color:var(--acc) }
    in one tab's scoped style, so every mobile tab gets the same row; `.mob-ui-field.ui-field` outranks
    UIField's own scoped desktop grid. */
 .mob-ui-field.ui-field {
-  grid-template-columns: 1fr 16px 34px;
-  row-gap: 2px;
+  /* value | ⚠ | unit, sized so the ▲▼ end and the unit start where the older .mob-field-row rows put
+     them (value area ends 40px from the edge, unit 30px wide): the two kinds of row line up. */
+  grid-template-columns: 1fr 10px 30px;
+  column-gap: 0; row-gap: 2px;
   padding: 10px 12px 10px 14px; min-height: 48px;
   border-left: 3px solid transparent; border-top: 1px solid var(--line);
 }
 .mob-ui-field.ui-field > label { grid-column: 1 / -1; font-size: 13px; color: var(--mut); white-space: normal; }
-.mob-ui-field.ui-field .ui-field-value { grid-column: 1; display: flex; min-width: 0; }
+.mob-ui-field.ui-field .ui-field-value { grid-column: 1; display: flex; gap: 6px; min-width: 0; }
 .mob-ui-field.ui-field .ui-field-dq { grid-column: 2; }
-.mob-ui-field.ui-field .ui-field-unit { grid-column: 3; font-size: 13px; }
+.mob-ui-field.ui-field .ui-field-unit { grid-column: 3; width: 30px; font-size: 13px; }
 .mob-ui-field.ui-field .ui-field-value input {
   flex: 1 1 auto; width: auto; min-width: 0; min-height: 32px;
   font-size: 18px; padding: 2px 8px; border: 1px solid var(--line); border-radius: 6px; background: #fff;
