@@ -20,4 +20,6 @@ test('the install page names each browser and links back to the app', async ({pa
   await expect(page.locator('main')).toContainText('Install and create shortcut');
   await expect(page.locator('main')).toContainText('Add to Home Screen');
   await expect(page.locator('a[href="/"]').first()).toBeVisible();
+  await expect(page.locator('img.shot')).toBeVisible();
+  expect(await page.locator('img.shot').evaluate((img: HTMLImageElement) => img.naturalWidth)).toBeGreaterThan(0);
 });
