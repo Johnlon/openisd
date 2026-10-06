@@ -26,6 +26,7 @@ around them are unfinished. Their rows in the box-type pickers are dimmed until 
 | Item | Files |
 |---|---|
 | Box page, Vents pane: the 6th-order bandpass and ABC vent fields are fixed placeholder values, not wired to the project's rear, front and intra-chamber vents. The "Response model pending" note there is out of date. | `OriginalShell.vue`, `boxFields.ts` |
+| Box losses popup is blank for both types: their losses are per chamber and the popup shows one set. Check WinISD's own dialog under wine first ([bug](bugs/BUG_20261006_box-losses-popup-blank-for-6th-and-abc.md)). | `OriginalShell.vue`, `box.ts` |
 | New Project wizard: choosing either type creates the box from starting values; there is no step for the chamber volumes and tunings. | `OriginalNewProject.vue`, `OriginalNewProject-hooks.ts` |
 | Mobile skin: the Box and Enclosure tabs show only the placeholder note for both types. | `MobileBoxTab.vue`, `MobileEnclosureTab.vue` |
 | Set `BoxEngine.implemented` to true for each type once the items above are done. | `packages/design/engine/box/BoxEngine.ts` |
