@@ -11,10 +11,14 @@ It is free, open source and needs no install.
 
 > ### ▶ [Launch OpenISD](https://openisd.app/)
 >
-> To install it for offline use:
+> There is a desktop version and a mobile version, and both work offline once opened, so there is
+> nothing to install. To add it as an app anyway ([all browsers](https://openisd.app/install/)):
 >
-> - **Chrome, Edge or Android:** use the install icon in the address bar.
+> - **Chrome or Edge on a computer:** click the install icon at the right end of the address bar.
+> - **Chrome on Android:** menu, then Install and create shortcut.
 > - **iOS Safari:** choose Share, then Add to Home Screen.
+>
+> ![Chrome's address bar on openisd.app with the install icon ringed in green](docs/images/app/chrome-install-icon.png)
 
 ![Two designs overlaid: a 60 L sealed box and a 35 L vented box tuned to 36 Hz, with the box controls below](docs/images/app/simulator.png)
 
