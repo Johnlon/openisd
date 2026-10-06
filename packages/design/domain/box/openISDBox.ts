@@ -3,6 +3,7 @@ import type { Air, BoxType, DqIssue, VentedAlignment } from '../../engine/index.
 import { CalculatedFieldImpl, absentCell, calculatedCell, entryField, focus, nullableField, pairedField, simpleField } from '../cell.js';
 import type { Clearable, Entered, Precise, Readable, SimpleField, Writable } from '../cell.js';
 import type { SealedLosses } from '../losses.js';
+import { WINISD_BOX_LOSSES } from '../boxDefaults.js';
 import type { OpenISDBoxJson, SpecEntryJson } from '../openisdSchema.js';
 import { OpenISDDriverEmbedded } from '../driver/openISDDriverEmbedded.js';
 import { OpenISDPassiveRadiatorEmbedded } from '../passiveRadiator/openISDPassiveRadiatorEmbedded.js';
@@ -391,6 +392,14 @@ export class OpenISDBox implements Box {
             case 'abc':
                 return null;
         }
+    }
+
+    resetLossesOf(type: BoxType): void {
+        const losses = this.lossesOf(type);
+        if (losses === null) return;
+        losses.Ql.set(WINISD_BOX_LOSSES.Ql);
+        losses.Qa.set(WINISD_BOX_LOSSES.Qa);
+        losses.Qp?.set(WINISD_BOX_LOSSES.Qp);
     }
 
     /** Give the active box type its starting values where nothing is entered yet: sealed gets the

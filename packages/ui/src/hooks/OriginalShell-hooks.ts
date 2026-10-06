@@ -256,6 +256,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   function setBoxQa(v: number): void { project.value.box.lossesOf(selectedBox.value)?.Qa.set(v); }
   const boxQp = computed<number | null>(() => { void projectChanged.value; return focusedProject()?.box.lossesOf(selectedBox.value)?.Qp?.value ?? null; });
   function setBoxQp(v: number): void { project.value.box.lossesOf(selectedBox.value)?.Qp?.set(v); }
+  function resetBoxLosses(): void { project.value.box.resetLossesOf(selectedBox.value); }
   async function confirmDiscard(): Promise<boolean> {
     return globalThis.confirm('Discard all unsaved changes and return to the last saved version?');
   }
@@ -677,7 +678,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     reconcileDriveV,
     powerLocked,
     projectName, projectCreator, projectCreated, projectModified, projectDescription,
-    boxQl, setBoxQl, boxQa, setBoxQa, boxQp, setBoxQp,
+    boxQl, setBoxQl, boxQa, setBoxQa, boxQp, setBoxQp, resetBoxLosses,
     onFile, fileInput,
   };
 }

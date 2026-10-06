@@ -37,6 +37,9 @@ export interface Box {
      *  cabinet (or the rear chamber of a 4th-order bandpass), Qp of the ported chamber, null
      *  where the type has no port. Null for bandpass6/abc, whose losses are per chamber. */
     lossesOf(type: BoxType): BoxLosses | null;
+    /** Put `lossesOf(type)` back to WinISD's defaults (Ql 10, Qa 100, Qp 100 where there is a
+     *  port). Nothing for bandpass6/abc, which have no box-level losses. */
+    resetLossesOf(type: BoxType): void;
     /** Give the active type its starting values where nothing is entered yet; nothing entered is
      *  overwritten. Runs on `boxType.set()` and at `ProjectBuilder.build()`. */
     applyStartingValues(): void;

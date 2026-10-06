@@ -21,7 +21,7 @@ const {
   ventedAlignmentEditor, ventedAlignmentOpen, ventedAlignmentOptions, ventedAlignmentSelected,
   ventedAlignmentVolume_L, ventedAlignmentTuning_hz, ventedAlignmentEbp, ventedAlignmentSuitability,
   ventedAlignmentSuitabilityLabel,
-  boxQl, setBoxQl, boxQa, setBoxQa, boxQp, setBoxQp, boxLossesOpen,
+  boxQl, setBoxQl, boxQa, setBoxQa, boxQp, setBoxQp, resetBoxLosses, boxLossesOpen,
 } = useMobileBoxTab();
 const { fieldWithUnit, readoutWithUnit } = useUnitReadouts();
 </script>
@@ -202,6 +202,7 @@ const { fieldWithUnit, readoutWithUnit } = useUnitReadouts();
       </div>
       <p class="mob-hint">Qa (stuffing): 100 = none · 20–50 = light · 5–10 = heavy. WinISD defaults: Ql=10, Qa=100, Qp=100.</p>
       <div class="mob-align-footer">
+        <button id="mob-box-losses-reset" class="mob-btn" title="Back to WinISD's defaults: Ql 10, Qa 100, Qp 100" @click="resetBoxLosses">Reset</button>
         <button class="mob-btn mob-btn-primary" @click="boxLossesOpen = false">OK</button>
       </div>
     </div>

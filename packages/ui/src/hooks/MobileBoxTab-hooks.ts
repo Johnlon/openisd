@@ -43,6 +43,7 @@ export function useMobileBoxTab() {
   function setBoxQa(v: number): void { project.value.box.lossesOf(selectedBox.value)?.Qa.set(v); }
   const boxQp = computed<number | null>(() => { void projectChanged.value; return focusedProject()?.box.lossesOf(selectedBox.value)?.Qp?.value ?? null; });
   function setBoxQp(v: number): void { project.value.box.lossesOf(selectedBox.value)?.Qp?.set(v); }
+  function resetBoxLosses(): void { project.value.box.resetLossesOf(selectedBox.value); }
   const boxLossesOpen = ref(false);
 
   // Same skin-neutral class the desktop shell uses (SealedAlignment-hooks.ts) — one editor, not
@@ -84,6 +85,6 @@ export function useMobileBoxTab() {
     ventedAlignmentEditor, ventedAlignmentOpen, ventedAlignmentOptions, ventedAlignmentSelected,
     ventedAlignmentVolume_L, ventedAlignmentTuning_hz, ventedAlignmentEbp, ventedAlignmentSuitability,
     ventedAlignmentSuitabilityLabel,
-    boxQl, setBoxQl, boxQa, setBoxQa, boxQp, setBoxQp, boxLossesOpen,
+    boxQl, setBoxQl, boxQa, setBoxQa, boxQp, setBoxQp, resetBoxLosses, boxLossesOpen,
   };
 }

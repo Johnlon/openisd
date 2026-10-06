@@ -68,7 +68,7 @@ const {
   reconcileDriveV,
   powerLocked,
   projectName, projectCreator, projectCreated, projectModified, projectDescription,
-  boxQl, setBoxQl, boxQa, setBoxQa, boxQp, setBoxQp,
+  boxQl, setBoxQl, boxQa, setBoxQa, boxQp, setBoxQp, resetBoxLosses,
   onFile, fileInput,
 } = useOriginalShell();
 const winisdDifferences = injectWinisdDifferencesModal();
@@ -753,7 +753,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
         </div>
         <div class="modal-footer">
           <span class="hint">Changes apply live to the graph.</span>
-          <div class="footer-buttons"><button class="ok-btn" @click="boxLossesOpen = false">OK</button></div>
+          <div class="footer-buttons"><button id="og-box-losses-reset" class="ok-btn" title="Back to WinISD's defaults: Ql 10, Qa 100, Qp 100" @click="resetBoxLosses">Reset</button><button class="ok-btn" @click="boxLossesOpen = false">OK</button></div>
         </div>
       </div>
     </div>
