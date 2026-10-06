@@ -67,8 +67,9 @@ Other tools in this space are in [docs/research/COMPETITIVE_LANDSCAPE.md](docs/r
 
 ### Simulation
 
-- 6th-order bandpass, ABC and isobaric loading. These are already stored; they need their
-  circuits.
+- Isobaric loading.
+- 6th-order bandpass and ABC: the engine models both and matches WinISD's charts; the box
+  page, wizard and mobile screens are unfinished ([BACKLOG.md](BACKLOG.md#box-types-not-yet-implemented)).
 - Transmission line and quarter-wave enclosures; horns.
 - Listening distance and off-axis angle (currently fixed at 1 m, on axis).
 - Amplifier load (VA) chart, port gain, and radiator transfer function charts.
