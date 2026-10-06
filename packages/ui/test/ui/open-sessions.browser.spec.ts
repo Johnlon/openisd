@@ -82,7 +82,7 @@ test.describe('Open sessions', () => {
       const other = await context.newPage();
       await other.goto('/');
       await expect(other.locator('.project-row')).toHaveCount(1);
-      const volumeUnit = (p: Page) => p.locator('.tab-section.active .field', { hasText: 'Volume' }).first().locator('.unit-cyc');
+      const volumeUnit = (p: Page) => p.locator('.tab-section.active .ui-field', { hasText: 'Volume' }).first().locator('.ui-field-unit');
       await page.locator('.project-nav li', { hasText: 'Box' }).click();
       await other.locator('.project-nav li', { hasText: 'Box' }).click();
       await expect(volumeUnit(other)).toHaveText('L');

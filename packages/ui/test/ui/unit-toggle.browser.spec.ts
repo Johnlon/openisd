@@ -15,9 +15,9 @@ test.describe('Unit toggle', () => {
 
   test('clicking an entered field\'s unit label rescales the DISPLAY and keeps the model SI', async ({ page }) => {
     await page.locator('.project-nav li', { hasText: 'Box' }).click();
-    const field = page.locator('.tab-section.active .field', { hasText: 'Volume' }).first();
+    const field = page.locator('.tab-section.active .ui-field', { hasText: 'Volume' }).first();
     const vol = field.locator('input').first();
-    const label = field.locator('.unit-cyc');
+    const label = field.locator('.ui-field-unit');
 
     await vol.click();
     await fillAndBlur(vol, '6');            // 6 L

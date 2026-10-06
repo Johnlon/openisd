@@ -47,6 +47,8 @@ function normalize(json: unknown): unknown {
   if (isRecord(device)) {
     if (device.uuid) device.uuid = 'normalized';
     if (device.added) device.added = 'normalized';
+    // Retired field: the app never writes it, but a driver record from before it was retired still carries it.
+    delete device.authoritative;
   }
   const component = getPath(clone, 'box', 'passiveRadiator', 'component');
   if (isRecord(component)) {

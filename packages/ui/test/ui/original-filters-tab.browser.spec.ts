@@ -138,11 +138,11 @@ test('a held LP Cutoff spinner moves the swept SPL before release', async ({page
 
   for (let step = 0; step < 5; step++) {
     await editorField(panel, 'Cutoff').evaluate((el: HTMLInputElement) => {
-      el.stepDown();   // a step is a tenth of the decade: 1 Hz at 50 Hz
+      el.stepDown();   // a tap is about 1 %: 0.1 Hz at 50 Hz
       el.dispatchEvent(new Event('input', {bubbles: true}));
     });
   }
-  await expect(panel.locator('.filter-summary')).toContainText('fc=45.00 Hz');
+  await expect(panel.locator('.filter-summary')).toContainText('fc=49.50 Hz');
   await expect.poll(splSum).not.toBe(before);
   expect(errors).toEqual([]);
 });
