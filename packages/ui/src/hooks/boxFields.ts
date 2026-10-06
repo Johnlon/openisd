@@ -92,35 +92,17 @@ export interface BoxVolumeDeps {
 // directly by `OriginalShell-hooks.ts`'s own `frontChamberTuningLabel`.
 export const DUAL_CHAMBER = new Set<BoxType>(['bandpass4', 'bandpass6', 'abc']);
 
-export function createBoxVolume({ project, selectedBox, projectChanged: changed }: BoxVolumeDeps) {
-  const boxVolume_m3 = computed<number | null>(() => {
-    void changed.value;
-    void project.value;
-    return project.value.box.volumeOf(selectedBox.value).value;
-  });
-  const boxVolumeDqNote = computed<string>(() => {
-    void changed.value;
-    void project.value;
-    const field = project.value.box.volumeOf(selectedBox.value);
-    return field.dq.map((issue) => issue.text).join(' ');
-  });
-  function setBoxVolume_m3(v: number): void {
-    project.value.box.volumeOf(selectedBox.value).set(v);
-  }
-  return { boxVolume_m3, boxVolumeDqNote, setBoxVolume_m3 };
+// The cell itself, for a `UIField`: it reads the value, the ⚠ and blank-ness, and writes or clears.
+export function createBoxVolume({ project, selectedBox }: BoxVolumeDeps) {
+  const boxVolumeCell = computed(() => project.value.box.volumeOf(selectedBox.value));
+  return { boxVolumeCell };
 }
 
 // Front-chamber volume (WinISD "Vf") and rear-chamber tuning (WinISD "Frc"): which field each box
 // type has is the box's own knowledge (`Box.frontVolumeOf`, `rearTuningOf`); null = the type has
 // no such field. Both shells' Box tabs call this.
 export function createChamberFields({ project, selectedBox, projectChanged: changed }: BoxVolumeDeps) {
-  const frontVolume_m3 = computed<number | null>(() => {
-    void changed.value; void project.value;
-    return project.value.box.frontVolumeOf(selectedBox.value)?.value ?? null;
-  });
-  function setFrontVolume_m3(v: number): void {
-    project.value.box.frontVolumeOf(selectedBox.value)?.set(v);
-  }
+  const frontVolumeCell = computed(() => project.value.box.frontVolumeOf(selectedBox.value));
   const frcHz = computed<number | null>(() => {
     void changed.value; void project.value;
     return project.value.box.rearTuningOf(selectedBox.value)?.value ?? null;
@@ -128,7 +110,7 @@ export function createChamberFields({ project, selectedBox, projectChanged: chan
   function setFrcHz(v: number): void {
     project.value.box.rearTuningOf(selectedBox.value)?.set(v);
   }
-  return { frontVolume_m3, setFrontVolume_m3, frcHz, setFrcHz };
+  return { frontVolumeCell, frcHz, setFrcHz };
 }
 
 export interface SelectedBoxDeps {

@@ -25,7 +25,7 @@ function project(): OpenISDProject {
 /** The field each box type calls its main volume: the one cabinet for sealed, vented and PR, the
  *  rear chamber for the two-chamber boxes. */
 describe('OpenISDBox.volumeOf(boxType) — the box type\'s own main-volume field', () => {
-  const cases: readonly [BoxType, (box: OpenISDProject['box']) => {value: number}][] = [
+  const cases: readonly [BoxType, (box: OpenISDProject['box']) => {value: number | null}][] = [
     ['sealed', b => b.sealed.volume_m3],
     ['vented', b => b.vented.volume_m3],
     ['bandpass4', b => b.bandpass4.chambers.rear.volume_m3],

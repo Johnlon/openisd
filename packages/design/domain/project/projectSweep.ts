@@ -60,13 +60,13 @@ export interface ProjectSweepSource {
  *  `boxParamsIssuesOf` for why this is separate from `sweepParamsOf`. */
 function enclosureParamsOf(source: ProjectSweepSource, boxType: SimulatableBoxType): EnclosureParams {
     const {Vf, Sp, prSd, prCms, prMmd} = boxSpecificParamsOf(source, boxType);
-    return {Vb: boxVolume_m3Of(source, boxType), Vf, Sp, prSd, prCms, prMmd};
+    return {Vb: boxVolume_m3Of(source, boxType) ?? undefined, Vf, Sp, prSd, prCms, prMmd};
 }
 
 /** `eg` is the drive voltage the sweep runs at: `sweepOf` passes the solved `driveVoltage_V`
- *  (gated non-null first), `maxCurvesOf` the 2.83 V reference the engine runs those curves at. */
-function sweepParamsOf(source: ProjectSweepSource, P: FrequencyGrid, eg: number, boxType: SimulatableBoxType): SweepParams {
-    const Vb = boxVolume_m3Of(source, boxType);
+ *  (gated non-null first), `maxCurvesOf` the 2.83 V reference the engine runs those curves at.
+ *  `Vb` is the box volume, already gated non-null by `sweepPlanOf`. */
+function sweepParamsOf(source: ProjectSweepSource, P: FrequencyGrid, eg: number, boxType: SimulatableBoxType, Vb: number): SweepParams {
     const box = source.box;
     let losses: {Ql?: number; Qa?: number; Qp?: number} = {};
     switch (boxType) {
@@ -114,8 +114,9 @@ function sweepParamsOf(source: ProjectSweepSource, P: FrequencyGrid, eg: number,
 }
 
 /** This project's box volume, WHICHEVER topology is active — `Vb` in `SweepParams` is always the
- *  driver-side chamber's own volume, sealed or the equivalent for every other topology. */
-function boxVolume_m3Of(source: ProjectSweepSource, boxType: SimulatableBoxType): number {
+ *  driver-side chamber's own volume, sealed or the equivalent for every other topology. `null`
+ *  when the owner left it blank. */
+function boxVolume_m3Of(source: ProjectSweepSource, boxType: SimulatableBoxType): number | null {
     const box = source.box;
     switch (boxType) {
         case 'sealed': return box.sealed.volume_m3.value;
@@ -152,7 +153,7 @@ function boxSpecificParamsOf(source: ProjectSweepSource, boxType: SimulatableBox
             // the front's own tuning — never the shared Ql/Qa/Qp above (engine/types.ts
             // `SweepParams.Qlr` doc, bugs/archive/BUG_20260927_bandpass4-box-not-winisd-form.md).
             return {
-                Vf: front.volume_m3.value, Sp: Sp ?? undefined, Leff: Leff ?? undefined,
+                Vf: front.volume_m3.value ?? undefined, Sp: Sp ?? undefined, Leff: Leff ?? undefined,
                 Qlr: rear.Ql.value, Qar: rear.Qa.value, Qiclfr: rear.Qicl.value,
                 Qlf: front.losses.Ql.value, Qaf: front.losses.Qa.value, Qpf: front.losses.Qp.value,
                 Ff: front.tuning_goal_hz.value ?? undefined,
@@ -185,7 +186,7 @@ function boxSpecificParamsOf(source: ProjectSweepSource, boxType: SimulatableBox
             // `bandpass4` above — `Bandpass6Box`'s `winisd-lossy` branch reads these directly
             // (`SweepParams.Qpr`'s own doc).
             return {
-                Vf: front.volume_m3.value, Sp: Sp ?? undefined, Spr: Spr ?? undefined,
+                Vf: front.volume_m3.value ?? undefined, Sp: Sp ?? undefined, Spr: Spr ?? undefined,
                 Qlr: rear.losses.Ql.value, Qar: rear.losses.Qa.value, Qpr: rear.losses.Qp.value,
                 Qiclfr: rear.losses.Qicl.value,
                 Qlf: front.losses.Ql.value, Qaf: front.losses.Qa.value, Qpf: front.losses.Qp.value,
@@ -202,7 +203,7 @@ function boxSpecificParamsOf(source: ProjectSweepSource, boxType: SimulatableBox
             const LeffIntra = box.abc.vents.intra.effectiveLength_m();
             const ends = ventEndCorrections_m(box.abc.vents);
             return {
-                Vf: front.volume_m3.value, Sp: Sp ?? undefined, Spr: Spr ?? undefined,
+                Vf: front.volume_m3.value ?? undefined, Sp: Sp ?? undefined, Spr: Spr ?? undefined,
                 Qlr: rear.losses.Ql.value, Qar: rear.losses.Qa.value, Qpr: rear.losses.Qp.value,
                 Qiclfr: rear.losses.Qicl.value,
                 Qlf: front.losses.Ql.value, Qaf: front.losses.Qa.value, Qpf: front.losses.Qp.value,
@@ -329,12 +330,15 @@ export function sweepPlanOf(source: ProjectSweepSource, P: FrequencyGrid): Sweep
     if (!box) return {kind: 'blocked', issues: []};
     const boxIssues = boxSweepIssuesOf(source, box);
     if (boxIssues.length) return {kind: 'blocked', issues: boxIssues};
+    // A blank box volume: the engine's own "Box volume (Vb) must be greater than zero" names it.
+    const Vb = boxVolume_m3Of(source, box);
+    if (Vb === null) return {kind: 'blocked', issues: boxParamsIssuesOf(source)};
     return {kind: 'ready', job: {
         driver: sweepDriverOf(source),
         Le_H: source.driver.specs.Le_H.value ?? undefined,
         box,
-        sweep: sweepParamsOf(source, P, source.driveVoltage_V, box),
-        maxCurves: sweepParamsOf(source, P, 2.83, box),
+        sweep: sweepParamsOf(source, P, source.driveVoltage_V, box, Vb),
+        maxCurves: sweepParamsOf(source, P, 2.83, box, Vb),
     }};
 }
 
@@ -392,7 +396,7 @@ export function ventMaxReachableFbOf(source: ProjectSweepSource): Readable<numbe
         }
         const Vb = source.box.vented.volume_m3.value;
         const Sp = source.box.vented.vent.area_m2.value;
-        if (!(Vb > 0) || Sp === null) {
+        if (Vb === null || !(Vb > 0) || Sp === null) {
             return absentCell<number>('ventMaxReachableFb');
         }
         const count = source.box.vented.vent.count.value;

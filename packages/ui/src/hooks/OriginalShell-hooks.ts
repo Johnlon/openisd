@@ -244,11 +244,11 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
 
   // Box-type-generic rear-chamber volume (WinISD "Vb") — the Box tab's single "Volume" field
   // dispatches through the unit-tested `createBoxVolume` (`boxFields.ts`).
-  const { boxVolume_m3, boxVolumeDqNote, setBoxVolume_m3 } = createBoxVolume({ project, selectedBox, projectChanged });
+  const { boxVolumeCell } = createBoxVolume({ project, selectedBox, projectChanged });
   // Front-chamber volume (WinISD "Vf"), rear-chamber tuning (WinISD "Frc") and the box-level
   // losses: which field each box type has is the box's own knowledge (`Box.frontVolumeOf`,
   // `rearTuningOf`, `lossesOf`); this reads and writes whatever it hands back.
-  const { frontVolume_m3, setFrontVolume_m3, frcHz, setFrcHz } = createChamberFields({ project, selectedBox, projectChanged });
+  const { frontVolumeCell, frcHz, setFrcHz } = createChamberFields({ project, selectedBox, projectChanged });
   const boxQl = computed<number | null>(() => { void projectChanged.value; return focusedProject()?.box.lossesOf(selectedBox.value)?.Ql.value ?? null; });
   function setBoxQl(v: number): void { project.value.box.lossesOf(selectedBox.value)?.Ql.set(v); }
   const boxQa = computed<number | null>(() => { void projectChanged.value; return focusedProject()?.box.lossesOf(selectedBox.value)?.Qa.value ?? null; });
@@ -653,7 +653,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     boxLabel, pending, openCharts, chartStackEl, chartStackStyle, chartsHigh, CHARTS_HIGH_OPTIONS, overlays, activeTab,
     showEnclosureTab, enclosureNavLabel,
     selectedBox, BOX_TYPE_OPTIONS, ARRAY_WIRING_OPTIONS, N_DRIVERS_OPTIONS, abcVelocityApplies, errorSwitches, chartDeviations, prNprDeviationShown, driverCountDeviationShown,
-     boxVolume_m3, boxVolumeDqNote, setBoxVolume_m3, sealedAlignmentEditor, sealedAlignmentOpen,
+     boxVolumeCell, sealedAlignmentEditor, sealedAlignmentOpen,
      sealedAlignmentOptions, sealedAlignmentSelected, sealedAlignmentVolume_m3, sealedAlignmentEbp,
      sealedAlignmentSuitability, sealedAlignmentSuitabilityLabel, originalFilters,
      ventedAlignmentEditor, ventedAlignmentOpen, ventedAlignmentOptions, ventedAlignmentSelected,
@@ -662,7 +662,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     fbState, FB_TARGET_TIP, FH_TARGET_TIP, VENT_GEOMETRY_TIP, VentMember,
     boxResonance, rearQtc, prSystemTuningDq,
     fbUnreachable, fbUnreachableMsg, boxLossesOpen, isDual,
-    frontVolume_m3, setFrontVolume_m3, frcHz, setFrcHz, rearResonance, frontChamberTuningLabel,
+    frontVolumeCell, frcHz, setFrcHz, rearResonance, frontChamberTuningLabel,
     model, startEdit, startWhatIf, placement,
     activeVent, activeTuning, END_CORRECTION_OPTIONS, VENT_SHAPE_OPTIONS, VENT_COUNT_OPTIONS, PR_COUNT_OPTIONS, ventLState, portPipeResonance_hz,
     prBrowseOpen, loadPREntry, loadBundledPassiveRadiatorEntry, defineNewPREntry,

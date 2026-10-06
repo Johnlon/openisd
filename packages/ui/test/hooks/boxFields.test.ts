@@ -97,68 +97,42 @@ describe('boxFields', () => {
 
   describe('createBoxVolume', () => {
     const boxTypes: BoxType[] = ['sealed', 'vented', 'bandpass4', 'bandpass6', 'abc', 'box-passive-radiator'];
+    const volumeOf = (project: ReturnType<typeof createCompleteProject>['project'], boxType: BoxType) =>
+      createBoxVolume({project: computed(() => project), selectedBox: ref<BoxType>(boxType), projectChanged: ref(0)}).boxVolumeCell.value;
 
     it.each(boxTypes)('writes and reads back the %s box volume', (boxType) => {
       const {project} = createCompleteProject();
       project.box.boxType.set(boxType);
-      const projectRef = shallowRef(project);
-      const selectedBox = ref<BoxType>(boxType);
-      const projectChanged = ref(0);
-
-      const {boxVolume_m3, setBoxVolume_m3} = createBoxVolume({
-        project: computed(() => projectRef.value),
-        selectedBox,
-        projectChanged,
-      });
-
-      setBoxVolume_m3(0.02);
-      expect(boxVolume_m3.value).toBeCloseTo(0.02, 9);
+      const cell = volumeOf(project, boxType);
+      cell.set(0.02);
+      expect(cell.value).toBeCloseTo(0.02, 9);
     });
 
     it('keeps full precision across write and read', () => {
       const {project} = createCompleteProject();
-      const projectRef = shallowRef(project);
-      const selectedBox = ref<BoxType>('sealed');
-      const projectChanged = ref(0);
-
-      const {boxVolume_m3, setBoxVolume_m3} = createBoxVolume({
-        project: computed(() => projectRef.value),
-        selectedBox,
-        projectChanged,
-      });
-
-      setBoxVolume_m3(0.012345678);
-      expect(boxVolume_m3.value).toBeCloseTo(0.012345678, 12);
+      const cell = volumeOf(project, 'sealed');
+      cell.set(0.012345678);
+      expect(cell.value).toBeCloseTo(0.012345678, 12);
     });
 
-    it('keeps a zero-or-less volume as entered and reports the domain\'s own note via boxVolumeDqNote, never coerced', () => {
+    it('keeps a zero-or-less volume as entered with the domain\'s own ⚠, never coerced', () => {
       const {engine, project} = createCompleteProject();
-      const projectRef = shallowRef(project);
-      const selectedBox = ref<BoxType>('sealed');
-      const projectChanged = ref(0);
-      const zeroVolumeMark = engine.issues.positiveValueIssue(0);
-      if (zeroVolumeMark === null) throw new Error('0 must carry the positive-value mark');
-      const expectedNote = zeroVolumeMark.text;
+      const cell = volumeOf(project, 'sealed');
+      cell.set(0);
+      expect(cell.value).toBe(0);
+      expect(cell.dq).toEqual([engine.issues.positiveValueIssue(0)]);
+      cell.set(0.02);
+      expect(cell.dq).toEqual([]);
+    });
 
-      const {boxVolume_m3, setBoxVolume_m3, boxVolumeDqNote} = createBoxVolume({
-        project: computed(() => projectRef.value),
-        selectedBox,
-        projectChanged,
-      });
-
-      setBoxVolume_m3(0);
-      projectChanged.value++;
-      expect(boxVolume_m3.value).toBe(0);
-      expect(boxVolumeDqNote.value).toBe(expectedNote);
-
-      setBoxVolume_m3(-1);
-      projectChanged.value++;
-      expect(boxVolume_m3.value).toBe(-1);
-      expect(boxVolumeDqNote.value).toBe(expectedNote);
-
-      setBoxVolume_m3(0.02);
-      projectChanged.value++;
-      expect(boxVolumeDqNote.value).toBe('');
+    // bugs/BUG_20261005_no-common-ui-field-component.md, "just show errors".
+    it('a cleared volume stays blank, with a ⚠ that marks it mandatory', () => {
+      const {engine, project} = createCompleteProject();
+      const cell = volumeOf(project, 'sealed');
+      cell.clear();
+      expect(cell.value).toBeNull();
+      expect(cell.dq).toEqual([engine.issues.requiredPositiveIssue('Box volume', null)]);
+      expect(cell.mandatoryAndUnsatisfied).toBe(true);
     });
   });
 

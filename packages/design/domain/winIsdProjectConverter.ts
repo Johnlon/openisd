@@ -43,13 +43,27 @@ type WprValues = Record<string, Record<string, string | number>>;
 
 
 
-/** `[Box]`'s own values, per box type — every `BoxType` is covered. */
+/** What a blank volume is written as: 1 L. WinISD opens a project with `Vr=0`, but a volume of 0
+ *  is not a box, and WinISD has no way to mark a box value as not stated (its `[Box]` section has
+ *  no ParState). John, 2026-10-06, option B: "just save 1 as vas and vol if not stated". */
+const BLANK_VOLUME_EXPORT_M3 = 0.001;
+
+/** `volume_m3` as `.wpr` writes it, warning in `errors` when it is blank. */
+function exportVolume(key: 'Vr' | 'Vf', volume_m3: number | null, errors: DriverError[]): number {
+  if (volume_m3 !== null) return volume_m3;
+  const name = key === 'Vr' ? 'Box volume' : 'Front chamber volume';
+  errors.push({level: 'warn', field: `Box ${key}`, message: `${name} was blank; written as 1 L so WinISD can open the file`});
+  return BLANK_VOLUME_EXPORT_M3;
+}
+
+/** `[Box]`'s own values, per box type — every `BoxType` is covered. A blank volume is written as
+ *  1 L with a warning in `errors`. */
 function boxSectionValues(
-  box: Box, boxType: Box['boxType']['value'],
+  box: Box, boxType: Box['boxType']['value'], errors: DriverError[],
 ): Record<string, string | number> {
   switch (boxType) {
     case 'sealed': {
-      const v: Record<string, string | number> = {BType: 0, Vr: box.sealed.volume_m3.value};
+      const v: Record<string, string | number> = {BType: 0, Vr: exportVolume('Vr', box.sealed.volume_m3.value, errors)};
       const fr = box.sealed.resonance_hz.value;
       if (fr != null) v.Fr = fr;
       v.Qlr = box.sealed.losses.Ql.value;
@@ -59,7 +73,7 @@ function boxSectionValues(
     case 'vented': {
       const v: Record<string, string | number> = {
         BType: 1,
-        Vr: box.vented.volume_m3.value,
+        Vr: exportVolume('Vr', box.vented.volume_m3.value, errors),
         Fr: box.vented.tuning_goal_hz.value ?? 0,
       };
       v.Qlr = box.vented.losses.Ql.value;
@@ -72,8 +86,8 @@ function boxSectionValues(
     case 'bandpass4': {
       const v: Record<string, string | number> = {
         BType: 2,
-        Vr: box.bandpass4.chambers.rear.volume_m3.value,
-        Vf: box.bandpass4.chambers.front.volume_m3.value,
+        Vr: exportVolume('Vr', box.bandpass4.chambers.rear.volume_m3.value, errors),
+        Vf: exportVolume('Vf', box.bandpass4.chambers.front.volume_m3.value, errors),
         Ff: box.bandpass4.chambers.front.tuning_goal_hz.value ?? 0,
       };
       const frc = box.bandpass4.chambers.rear.resonance_hz.value;
@@ -91,7 +105,7 @@ function boxSectionValues(
     case 'box-passive-radiator': {
       const v: Record<string, string | number> = {
         BType: 4,
-        Vr: box.passiveRadiator.volume_m3.value,
+        Vr: exportVolume('Vr', box.passiveRadiator.volume_m3.value, errors),
         Npr: box.passiveRadiator.count.value,
       };
       const fr = box.passiveRadiator.systemTuning_hz.value;
@@ -103,9 +117,9 @@ function boxSectionValues(
     case 'bandpass6': {
       const v: Record<string, string | number> = {
         BType: 3,
-        Vr: box.bandpass6.chambers.rear.volume_m3.value,
+        Vr: exportVolume('Vr', box.bandpass6.chambers.rear.volume_m3.value, errors),
         Fr: box.bandpass6.chambers.rear.tuning_goal_hz.value ?? 0,
-        Vf: box.bandpass6.chambers.front.volume_m3.value,
+        Vf: exportVolume('Vf', box.bandpass6.chambers.front.volume_m3.value, errors),
         Ff: box.bandpass6.chambers.front.tuning_goal_hz.value ?? 0,
       };
       v.Qlr = box.bandpass6.chambers.rear.losses.Ql.value;
@@ -124,9 +138,9 @@ function boxSectionValues(
     case 'abc': {
       const v: Record<string, string | number> = {
         BType: 5,
-        Vr: box.abc.chambers.rear.volume_m3.value,
+        Vr: exportVolume('Vr', box.abc.chambers.rear.volume_m3.value, errors),
         Fr: box.abc.chambers.rear.tuning_goal_hz.value ?? 0,
-        Vf: box.abc.chambers.front.volume_m3.value,
+        Vf: exportVolume('Vf', box.abc.chambers.front.volume_m3.value, errors),
         Ff: box.abc.chambers.front.tuning_goal_hz.value ?? 0,
       };
       v.Qlr = box.abc.chambers.rear.losses.Ql.value;
@@ -246,7 +260,7 @@ export class WinIsdProjectConverter {
 
     const box = project.box;
     const boxType = box.boxType.value;
-    const boxValues = boxSectionValues(box, boxType);
+    const boxValues = boxSectionValues(box, boxType, errors);
 
     // No usable Re, no power: P is left out rather than invented.
     const power_W = project.powerDrive_W.value;

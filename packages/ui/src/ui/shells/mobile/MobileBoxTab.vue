@@ -6,13 +6,14 @@ import {NumberField, ReadoutFormat} from '@openisd/design/fields';
 import {selectedOption} from '../../../logic/domEvents.js';
 import BoxTypeDiagram from '../../components/BoxTypeDiagram.vue';
 import NumInput from '../../components/NumInput.vue';
+import UIField from '../../components/UIField.vue';
 import UnitToggle from '../../components/UnitToggle.vue';
 import { useMobileBoxTab } from '../../../hooks/MobileBoxTab-hooks.js';
 import { useUnitReadouts } from '../../../hooks/useUnitReadouts.js';
 
 const {
-  selectedBox, pending, isDual, frontVolume_m3, setFrontVolume_m3, frcHz, setFrcHz, boxLabel, showEnclosureTab, enclosureNavLabel,
-  boxResonance, rearQtc, boxVolume_m3, boxVolumeDqNote, setBoxVolume_m3,
+  selectedBox, pending, isDual, frontVolumeCell, frcHz, setFrcHz, boxLabel, showEnclosureTab, enclosureNavLabel,
+  boxResonance, rearQtc, boxVolumeCell,
   activeTuning, fbState, setFbTarget, FB_TARGET_TIP,
   selectBoxType, BOX_TYPE_OPTIONS,
   sealedAlignmentEditor, sealedAlignmentOpen, sealedAlignmentOptions, sealedAlignmentSelected,
@@ -43,17 +44,7 @@ const { fieldWithUnit, readoutWithUnit } = useUnitReadouts();
 
   <div class="mob-panel">
     <div class="mob-panel-head">Rear chamber</div>
-    <div class="mob-field-row mob-field-entered">
-      <div class="mob-field-main">
-        <span class="mob-field-label">Volume</span>
-        <span class="mob-field-value">
-          <NumInput :model-value="boxVolume_m3" @update:model-value="(v: number | null) => setBoxVolume_m3(v ?? 0)"
-                    :field="NumberField.BOX_VB_L" :precision="NumberField.BOX_VB_L.precision" stepper />
-        </span>
-      </div>
-      <UnitToggle :field="NumberField.BOX_VB_L" unit-class="mob-unit" />
-    </div>
-    <p v-if="boxVolumeDqNote" class="mob-hint mob-hint-warn">{{ boxVolumeDqNote }}</p>
+    <UIField class="mob-ui-field" :field="NumberField.BOX_VB_L" :cell="boxVolumeCell" stepper />
 
     <div v-if="selectedBox === 'bandpass6' || selectedBox === 'abc'" class="mob-field-row mob-field-entered">
       <div class="mob-field-main">
@@ -100,16 +91,7 @@ const { fieldWithUnit, readoutWithUnit } = useUnitReadouts();
 
   <div v-if="isDual" class="mob-panel">
     <div class="mob-panel-head">Front chamber</div>
-    <div class="mob-field-row mob-field-entered">
-      <div class="mob-field-main">
-        <span class="mob-field-label">Volume</span>
-        <span class="mob-field-value">
-          <NumInput :model-value="frontVolume_m3" @update:model-value="(v: number | null) => setFrontVolume_m3(v ?? 0)"
-                    :field="NumberField.BOX_VF_L" :precision="NumberField.BOX_VF_L.precision" stepper />
-        </span>
-      </div>
-      <UnitToggle :field="NumberField.BOX_VF_L" unit-class="mob-unit" />
-    </div>
+    <UIField v-if="frontVolumeCell" class="mob-ui-field" :field="NumberField.BOX_VF_L" :cell="frontVolumeCell" stepper />
   </div>
 
   <p v-if="showEnclosureTab" class="mob-hint">

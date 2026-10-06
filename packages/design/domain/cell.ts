@@ -134,13 +134,13 @@ export class ReadableFieldImpl<V> implements Readable<V> {
   }
   get dq(): readonly DqIssue[] { return this.readCell().dq; }
   get mandatoryAndUnsatisfied(): boolean {
-    return this.dq.some(issue => issue.kind === 'missing-dependencies');
+    return this.dq.some(issue => issue.kind === 'missing-dependencies' || issue.kind === 'required-value');
   }
 }
 
 /** A stated-or-absent fact: entered by the project owner, never derived. `clear()` empties the
  *  slot to `null`. */
-export class EnteredFieldImpl<T> extends ReadableFieldImpl<T | null> implements Entered, Writable<T>, Clearable {
+export class EnteredFieldImpl<T> extends ReadableFieldImpl<T | null> implements Entered, Precise, Writable<T>, Clearable {
   constructor(
     readCell: () => FieldCell<T | null>,
     private readonly writes: Enterable<T> & Clearable,
@@ -149,6 +149,7 @@ export class EnteredFieldImpl<T> extends ReadableFieldImpl<T | null> implements 
   }
 
   get entered(): boolean { return this.readCell().entered; }
+  get precision(): number | null { return this.readCell().precision; }
   set(v: T, precision?: number): void { this.writes.entered(v, precision); }
   clear(): void { this.writes.clear(); }
 }
@@ -281,7 +282,7 @@ export function nullableField<K extends PropertyKey, T extends Record<K, number 
   field: SimpleField<T>,
   key: K,
   getDq?: (value: number | null) => DqIssue | null,
-): Readable<number | null> & Entered & Writable<number> & Clearable {
+): Readable<number | null> & Entered & Precise & Writable<number> & Clearable {
   return new EnteredFieldImpl<number>(
     () => {
       const v = field.value[key];
@@ -415,6 +416,7 @@ function issueMark(issue: DqIssue, detail: string): DqMark {
     case 'target-unreachable':
     case 'invalid-value':
     case 'negative-value':
+    case 'required-value':
       return { kind: 'calc', severity: 'error', rule: 'issue', params: {}, detail };
   }
 }

@@ -5,10 +5,11 @@ import {decimalsIn} from '../../fields/dimensions.js';
 import {formatFixed} from '../../fields/format.js';
 import type {OpenISDProject} from './openISDProject.js';
 
-/** The box's air volume: one cabinet, or the rear and front chambers of a two-chamber box. */
+/** The box's air volume: one cabinet, or the rear and front chambers of a two-chamber box.
+ *  `null` is a volume the owner left blank. */
 export type SummaryVolume =
-    | { readonly kind: 'one'; readonly volume_m3: number }
-    | { readonly kind: 'two'; readonly rear_m3: number; readonly front_m3: number };
+    | { readonly kind: 'one'; readonly volume_m3: number | null }
+    | { readonly kind: 'two'; readonly rear_m3: number | null; readonly front_m3: number | null };
 
 /** Places shown for a volume in litres; other units scale from it. */
 const VOLUME_DECIMALS_IN_LITRES = 1;
@@ -40,7 +41,7 @@ export class ProjectSummary {
         const field = NumberField.BOX_VB_L;
         const token = field.unitTokenFor(unitTokens);
         const decimals = decimalsIn(field.unitFor(token), VOLUME_DECIMALS_IN_LITRES);
-        const shown = (v_m3: number): string => isFinite(v_m3) ? formatFixed(field.toDisplay(v_m3, token), decimals) : '—';
+        const shown = (v_m3: number | null): string => v_m3 !== null && isFinite(v_m3) ? formatFixed(field.toDisplay(v_m3, token), decimals) : '—';
         const amount = this.volume.kind === 'one'
             ? shown(this.volume.volume_m3)
             : `${shown(this.volume.rear_m3)} + ${shown(this.volume.front_m3)}`;

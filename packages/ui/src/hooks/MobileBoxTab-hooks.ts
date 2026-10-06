@@ -24,8 +24,8 @@ export function useMobileBoxTab() {
   const { boxResonance, rearQtc } = createSealedReadouts({ project, selectedBox, projectChanged });
   const { advAir } = createEnvironmentAir({ project, projectChanged, envDefaults, environment: engine.environment });
   const { activeTuning, fbState, setFbTarget } = createVentReadouts({ project, projectChanged, selectedBox, air: advAir, vent: engine.vent });
-  const { boxVolume_m3, boxVolumeDqNote, setBoxVolume_m3 } = createBoxVolume({ project, selectedBox, projectChanged });
-  const { frontVolume_m3, setFrontVolume_m3, frcHz, setFrcHz } = createChamberFields({ project, selectedBox, projectChanged });
+  const { boxVolumeCell } = createBoxVolume({ project, selectedBox, projectChanged });
+  const { frontVolumeCell, frcHz, setFrcHz } = createChamberFields({ project, selectedBox, projectChanged });
   // Box-losses (Ql/Qa/Qp) — the per-box-type dispatch now lives in the domain
   // (OpenISDBox.lossesOf, beside volumeOf/frontVolumeOf/rearTuningOf), so this is a one-liner
   // each, mirroring OriginalShell-hooks.ts's own boxQl/boxQa/boxQp: never switch on box type in a
@@ -75,8 +75,8 @@ export function useMobileBoxTab() {
   }
 
   return {
-    project, selectedBox, pending, isDual, boxLabel, frontVolume_m3, setFrontVolume_m3, frcHz, setFrcHz, showEnclosureTab, enclosureNavLabel,
-    boxResonance, rearQtc, boxVolume_m3, boxVolumeDqNote, setBoxVolume_m3,
+    project, selectedBox, pending, isDual, boxLabel, frontVolumeCell, frcHz, setFrcHz, showEnclosureTab, enclosureNavLabel,
+    boxResonance, rearQtc, boxVolumeCell,
     activeTuning, fbState, setFbTarget, FB_TARGET_TIP,
     selectBoxType, BOX_TYPE_OPTIONS,
     sealedAlignmentEditor, sealedAlignmentOpen, sealedAlignmentOptions, sealedAlignmentSelected,

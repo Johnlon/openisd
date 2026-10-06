@@ -102,7 +102,14 @@ export interface NegativeValueIssue {
  *  plain `string` here, not a domain's own quantity-name union — `Readable<V>.dq` is shared
  *  across every domain and carries no quantity-name type parameter of its own, and a
  *  `CalculationIssue<Q>` for any `Q extends string` widens to this without a cast. */
-export type DqIssue = CalculationIssue<string> | VentedPlausibilityIssue | TargetUnreachableIssue | OutOfRangeIssue | InvalidValueIssue | NegativeValueIssue;
+/** A value only the project owner can state — never calculated — left blank. The ⚠ says so and
+ *  what to enter (bugs/BUG_20261005_no-common-ui-field-component.md, "just show errors"). */
+export interface RequiredValueIssue {
+  readonly kind: 'required-value';
+  readonly text: string;
+}
+
+export type DqIssue = CalculationIssue<string> | VentedPlausibilityIssue | TargetUnreachableIssue | OutOfRangeIssue | InvalidValueIssue | NegativeValueIssue | RequiredValueIssue;
 
 // ───────────────────────────── Issues, each carrying its own sentence ───────────────────────────
 //
@@ -167,6 +174,14 @@ export function invalidValue(value: number): InvalidValueIssue {
   };
 }
 
+/** `label` left blank; nothing can be calculated from it until it is entered. */
+export function requiredValue(label: string): RequiredValueIssue {
+  return {
+    kind: 'required-value',
+    text: `${label} is blank - enter a value above 0. Nothing that depends on it can be calculated until then.`,
+  };
+}
+
 /** Negative or not finite where zero is a legitimate stated value. */
 export function negativeValue(value: number): NegativeValueIssue {
   return {
@@ -195,6 +210,11 @@ export function issueFormula<Q extends string>(issue: CalculationIssue<Q>): stri
  *  passing this check. */
 export function positiveValueIssue(value: number): InvalidValueIssue | null {
   return Number.isFinite(value) && value > 0 ? null : invalidValue(value);
+}
+
+/** The positive floor for a value that may also be blank: blank is `requiredValue(label)`. */
+export function requiredPositiveIssue(label: string, value: number | null): RequiredValueIssue | InvalidValueIssue | null {
+  return value === null ? requiredValue(label) : positiveValueIssue(value);
 }
 
 /** The weaker floor: negative or not a finite number is not physical, but zero is a legitimate

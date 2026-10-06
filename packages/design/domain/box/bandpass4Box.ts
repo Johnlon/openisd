@@ -11,7 +11,7 @@ export interface Bandpass4Box {
         /** rear = the chamber the driver protrudes into, SEALED — no port, so no `vents.rear`, and
          *  a read-only calculated `resonance_hz` (WinISD's "Frc") instead of a tuning to enter. */
         readonly rear: {
-            readonly volume_m3: Readable<number> & Entered & Writable<number>;
+            readonly volume_m3: Readable<number | null> & Entered & Precise & Writable<number> & Clearable;
             readonly resonance_hz: Readable<number | null> & Calculated;
             /** The rear chamber's system Q, under the same lossless model as `resonance_hz`. */
             readonly q_tc: Readable<number | null> & Calculated;
@@ -19,7 +19,7 @@ export interface Bandpass4Box {
         };
         /** front = vented; its volume (`Vf`) has a Field readout like every other chamber. */
         readonly front: {
-            readonly volume_m3: Readable<number> & Entered & Writable<number>;
+            readonly volume_m3: Readable<number | null> & Entered & Precise & Writable<number> & Clearable;
             readonly tuning_goal_hz: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;
             readonly losses: CoupledVentedLosses;
         };

@@ -7,7 +7,7 @@ export interface PassiveRadiatorBox {
     /** Mandatory: judged by `Engine.positiveValueIssue` on read, box-agnostic
      *  (BUG_20260927_box-volume-validity-decided-in-ui.md) — zero, negative or non-finite marks
      *  the field's own `.dq` rather than being coerced. No solve relation otherwise. */
-    readonly volume_m3: Readable<number> & Entered & Writable<number>;
+    readonly volume_m3: Readable<number | null> & Entered & Precise & Writable<number> & Clearable;
     readonly tuning_goal_hz: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;     // WinISD: Fp
     readonly count: SimpleField<number>;            // no solve relation, dimensionless
     readonly addedMass_kg: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;

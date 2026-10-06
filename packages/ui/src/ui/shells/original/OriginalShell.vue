@@ -46,7 +46,7 @@ const {
   boxLabel, pending, openCharts, chartStackEl, chartStackStyle, chartsHigh, CHARTS_HIGH_OPTIONS, overlays, activeTab,
   showEnclosureTab, enclosureNavLabel,
   selectedBox, BOX_TYPE_OPTIONS, ARRAY_WIRING_OPTIONS, N_DRIVERS_OPTIONS, abcVelocityApplies, errorSwitches, chartDeviations, prNprDeviationShown, driverCountDeviationShown,
-  boxVolume_m3, boxVolumeDqNote, setBoxVolume_m3, sealedAlignmentEditor, sealedAlignmentOpen,
+  boxVolumeCell, sealedAlignmentEditor, sealedAlignmentOpen,
   sealedAlignmentOptions, sealedAlignmentSelected, sealedAlignmentVolume_m3, sealedAlignmentEbp,
   sealedAlignmentSuitability, sealedAlignmentSuitabilityLabel, originalFilters,
   ventedAlignmentEditor, ventedAlignmentOpen, ventedAlignmentOptions, ventedAlignmentSelected,
@@ -55,7 +55,7 @@ const {
   activeTuning, fbState, FB_TARGET_TIP, FH_TARGET_TIP, VENT_GEOMETRY_TIP, VentMember,
   boxResonance, rearQtc, prSystemTuningDq, prNaturalFh,
   fbUnreachable, fbUnreachableMsg, boxLossesOpen, isDual,
-  frontVolume_m3, setFrontVolume_m3, frcHz, setFrcHz, rearResonance, frontChamberTuningLabel,
+  frontVolumeCell, frcHz, setFrcHz, rearResonance, frontChamberTuningLabel,
   model, startEdit, startWhatIf, placement,
   activeVent, END_CORRECTION_OPTIONS, VENT_SHAPE_OPTIONS, VENT_COUNT_OPTIONS, PR_COUNT_OPTIONS, ventLState, portPipeResonance_hz,
   prBrowseOpen, loadPREntry, loadBundledPassiveRadiatorEntry, defineNewPREntry,
@@ -295,7 +295,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
             <div v-if="!isDual" class="box-fields-col" style="width: 412px;">
               <div class="section-header">Rear chamber</div>
               <div class="field-row">
-                <div class="field entered"><label>Volume</label><NumInput :model-value="boxVolume_m3" @update:model-value="(v: number | null) => setBoxVolume_m3(v ?? 0)" :field="NumberField.BOX_VB_L" :precision="NumberField.BOX_VB_L.precision" /><span v-if="boxVolumeDqNote" class="de-dq" :title="boxVolumeDqNote">&#9888;</span><UnitToggle :field="NumberField.BOX_VB_L" unit-class="unit unit-cyc" /></div>
+                <UIField class="field" input-id="og-box-volume" :field="NumberField.BOX_VB_L" :cell="boxVolumeCell" />
                 <button v-if="selectedBox === 'sealed'" class="link-btn" title="Choose a sealed-box alignment and calculate its volume" @click="sealedAlignmentEditor.openEditor">Alignment</button>
                 <button v-if="selectedBox === 'vented'" class="link-btn" title="Choose a vented-box alignment and calculate its volume and tuning" @click="ventedAlignmentEditor.openEditor">Alignment</button>
               </div>
@@ -320,7 +320,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
             <template v-else>
               <div class="box-fields-col">
                 <div class="section-header">Rear chamber</div>
-                <div class="field-row"><div class="field entered"><label>Volume</label><NumInput :model-value="boxVolume_m3" @update:model-value="(v: number | null) => setBoxVolume_m3(v ?? 0)" :field="NumberField.BOX_VB_L" :precision="NumberField.BOX_VB_L.precision" /><span v-if="boxVolumeDqNote" class="de-dq" :title="boxVolumeDqNote">&#9888;</span><UnitToggle :field="NumberField.BOX_VB_L" unit-class="unit unit-cyc" /></div></div>
+                <div class="field-row"><UIField class="field" input-id="og-box-volume" :field="NumberField.BOX_VB_L" :cell="boxVolumeCell" /></div>
                 <div class="field-row">
                   <div v-if="selectedBox === 'bandpass6' || selectedBox === 'abc'" class="field entered">
                     <label>Tuning freq (Frc)</label>
@@ -340,7 +340,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
               </div>
               <div class="box-fields-col">
                 <div class="section-header">Front chamber</div>
-                <div class="field-row"><div class="field entered"><label>Volume</label><NumInput :model-value="frontVolume_m3" @update:model-value="(v: number | null) => setFrontVolume_m3(v ?? 0)" :field="NumberField.BOX_VF_L" :precision="NumberField.BOX_VF_L.precision" /><UnitToggle :field="NumberField.BOX_VF_L" unit-class="unit unit-cyc" /></div></div>
+                <div class="field-row"><UIField v-if="frontVolumeCell" class="field" input-id="og-front-volume" :field="NumberField.BOX_VF_L" :cell="frontVolumeCell" /></div>
                 <div class="field-row">
                   <div id="og-ffc-target-field" class="field" :class="fbState === 'C' ? 'calculated' : 'entered'" :title="FB_TARGET_TIP">
                     <label>{{ frontChamberTuningLabel }}</label>

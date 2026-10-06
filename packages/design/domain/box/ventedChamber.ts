@@ -2,7 +2,7 @@ import type { Calculatable, Calculated, Clearable, Entered, Precise, Readable, U
 import type { CoupledVentedLosses } from '../losses.js';
 
 export interface VentedChamber {
-    readonly volume_m3: Readable<number> & Entered & Writable<number>;
+    readonly volume_m3: Readable<number | null> & Entered & Precise & Writable<number> & Clearable;
     readonly tuning_goal_hz: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;
     readonly losses: CoupledVentedLosses;
 }

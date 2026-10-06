@@ -548,7 +548,8 @@ export type CoupledVentedLossesJson = z.infer<typeof coupledVentedLossesJsonSche
 /** A chamber with its own volume and tuning, parameterised by which loss shape it has — bandpass4's
  *  rear (sealed, coupled) and front (vented, coupled) need different shapes from the same box. */
 const chamberJsonSchemaOf = <L extends z.ZodType>(losses: L) => z.strictObject({
-    volume_m3: z.number(),
+    // `null`: left blank by the owner — shown with a ⚠, and nothing that needs it is calculated.
+    volume_m3: z.number().nullable(),
     // A solver-set slot (S7-a) — see `ventJsonSchema.length_m`'s note.
     tuning_goal_hz: specEntryJsonSchema.optional(),
     losses,
@@ -562,7 +563,7 @@ export type CoupledVentedChamberJson = z.infer<typeof coupledVentedChamberJsonSc
 /** The passive-radiator box's own record — its own schema (a PR is a different device), so no
  *  `wdr` and not a driver spec field. */
 const passiveRadiatorJsonSchema = z.strictObject({
-    volume_m3: z.number(),
+    volume_m3: z.number().nullable(),
     // A solver-set slot (S7-a) — see `ventJsonSchema.length_m`'s note.
     tuning_goal_hz: specEntryJsonSchema.optional(),
     count: z.number(),
@@ -592,7 +593,7 @@ const openISDBoxJsonSchema = z.strictObject({
     // (John, 2026-10-01). Optional: absent reads as 17 m/s, matching every project saved before it.
     portVelocityLimit_m_per_s: z.number().optional(),
     sealed: z.strictObject({
-        volume_m3: z.number(), losses: sealedLossesJsonSchema,
+        volume_m3: z.number().nullable(), losses: sealedLossesJsonSchema,
         // A solver-set slot (S7-a) — see `ventJsonSchema.length_m`'s note; a slot for the
         // sealed-alignment solve to write, wired up in S2-7d.
         Qtc: specEntryJsonSchema.optional(),

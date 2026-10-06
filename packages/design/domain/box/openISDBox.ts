@@ -1,7 +1,7 @@
 import {type Engine} from '../../engine/index.js';
 import type { Air, BoxType, DqIssue, VentedAlignment } from '../../engine/index.js';
-import { CalculatedFieldImpl, absentCell, calculatedCell, entryField, focus, pairedField, requiredField, simpleField } from '../cell.js';
-import type { Entered, Readable, SimpleField, Writable } from '../cell.js';
+import { CalculatedFieldImpl, absentCell, calculatedCell, entryField, focus, nullableField, pairedField, simpleField } from '../cell.js';
+import type { Clearable, Entered, Precise, Readable, SimpleField, Writable } from '../cell.js';
 import type { SealedLosses } from '../losses.js';
 import type { OpenISDBoxJson, SpecEntryJson } from '../openisdSchema.js';
 import { OpenISDDriverEmbedded } from '../driver/openISDDriverEmbedded.js';
@@ -80,6 +80,12 @@ function startVentGeometry(vent: Vent, driverDd_m: number | null): void {
  * The box reaches the driver through its PUBLIC surface (`project.driver.Fs_hz.value`), never
  * through the record — the privacy rule holds inside the module too.
  */
+/** A volume a box can be built with: entered and above 0. Blank, or the 0 an unused box type's
+ *  record holds, is not — `applyStartingValues` fills those. */
+function isStated(volume_m3: number | null): volume_m3 is number {
+    return volume_m3 !== null && volume_m3 > 0;
+}
+
 export class OpenISDBox implements Box {
     readonly boxType: SimpleField<BoxType>;
 
@@ -125,7 +131,7 @@ export class OpenISDBox implements Box {
         // computing its own reference-condition fallback.
 
         const sealedLens = focus(lens, 'sealed');
-        const sealedVolume = requiredField(sealedLens, 'volume_m3', (v) => engine.issues.positiveValueIssue(v));
+        const sealedVolume = nullableField(sealedLens, 'volume_m3', (v) => engine.issues.requiredPositiveIssue('Box volume', v));
         const sealedLosses = new SealedLossesWindow(focus(sealedLens, 'losses'));
         this.sealed = {
             volume_m3: sealedVolume,
@@ -164,12 +170,13 @@ export class OpenISDBox implements Box {
             // has no `setDq` for a resolve to write through, and the band it is judged against is an
             // application setting the user can change under an already-open project. Reading it
             // now is what makes a Settings edit land without the record being rewritten.
-            volume_m3: requiredField(ventedChamber, 'volume_m3', (v) => {
+            volume_m3: nullableField(ventedChamber, 'volume_m3', (v) => {
                 // Only the ACTIVE box type has a design to judge. Every other box's record sits
                 // at its schema default (a 0 m³ vented chamber under a sealed project), which is
                 // not an implausible design — it is no design. The resolve cascade draws the
                 // same line, solving the vent only for the box type in play.
                 if (lens.value.boxType !== 'vented') return null;
+                if (v === null) return engine.issues.requiredPositiveIssue('Box volume', v);
                 return engine.vented.volumeIssue(v);
             }),
             tuning_goal_hz: ventedTuningField,
@@ -200,7 +207,7 @@ export class OpenISDBox implements Box {
                 // rear is SEALED — no port, so no `vents.rear`, and a read-only calculated
                 // `resonance_hz()` (WinISD's "Frc") stands in for the tuning it cannot be given.
                 rear: {
-                    volume_m3: requiredField(bp4Rear, 'volume_m3', (v) => engine.issues.positiveValueIssue(v)),
+                    volume_m3: nullableField(bp4Rear, 'volume_m3', (v) => engine.issues.requiredPositiveIssue('Rear chamber volume', v)),
                     // LOSSLESS here, unlike the plain sealed box above, because that is what
                     // WinISD itself writes for a bandpass4 rear chamber. Two goldens written by
                     // the same winisd.exe 89 seconds apart with the identical driver, identical
@@ -227,7 +234,7 @@ export class OpenISDBox implements Box {
                 },
                 // front's volume is a Field, consistent with the rear chamber.
                 front: {
-                    volume_m3: requiredField(bp4Front, 'volume_m3', (v) => engine.issues.positiveValueIssue(v)),
+                    volume_m3: nullableField(bp4Front, 'volume_m3', (v) => engine.issues.requiredPositiveIssue('Front chamber volume', v)),
                     tuning_goal_hz: bp4FrontTuningField,
                     losses: new CoupledVentedLossesWindow(focus(bp4Front, 'losses')),
                 },
@@ -238,8 +245,8 @@ export class OpenISDBox implements Box {
         const bp6 = focus(lens, 'bandpass6');
         this.bandpass6 = {
             chambers: {
-                rear: new VentedChamberWindow(focus(bp6, 'rear'), engine.issues),
-                front: new VentedChamberWindow(focus(bp6, 'front'), engine.issues),
+                rear: new VentedChamberWindow(focus(bp6, 'rear'), 'Rear chamber volume', engine.issues),
+                front: new VentedChamberWindow(focus(bp6, 'front'), 'Front chamber volume', engine.issues),
             },
             vents: {
                 rear: new VentWindow(focus(bp6, 'rearVent'), engine.vent, air),
@@ -250,8 +257,8 @@ export class OpenISDBox implements Box {
         const abc = focus(lens, 'abc');
         this.abc = {
             chambers: {
-                rear: new VentedChamberWindow(focus(abc, 'rear'), engine.issues),
-                front: new VentedChamberWindow(focus(abc, 'front'), engine.issues),
+                rear: new VentedChamberWindow(focus(abc, 'rear'), 'Rear chamber volume', engine.issues),
+                front: new VentedChamberWindow(focus(abc, 'front'), 'Front chamber volume', engine.issues),
             },
             // Three ports, flat siblings: rear's and front's own ports to outside air, plus the
             // connecting port between the chambers — owned by neither, which is why it sits here and
@@ -268,7 +275,7 @@ export class OpenISDBox implements Box {
         const getRadiator = (): OpenISDPassiveRadiatorEmbedded => {
             return new OpenISDPassiveRadiatorEmbedded(prSlot, () => issues().radiator);
         };
-        const prVolume = requiredField(pr, 'volume_m3', (v) => engine.issues.positiveValueIssue(v));
+        const prVolume = nullableField(pr, 'volume_m3', (v) => engine.issues.requiredPositiveIssue('Box volume', v));
         const prAddedMassEntry = entryField(focus(pr, 'addedMass_kg'), 'addedMass_kg', () => groupDq(issues().pr));
         const prTuningEntry = entryField(focus(pr, 'tuning_goal_hz'), 'tuning_goal_hz', () => groupDq(issues().pr));
         const prTuningField = pairedField(
@@ -300,7 +307,7 @@ export class OpenISDBox implements Box {
             systemTuning_hz: entryField(focus(pr, 'systemTuning_hz'), 'systemTuning_hz', () => groupDq(issues().pr)),
             resonanceWithAddedMass_hz: entryField(focus(pr, 'resonanceWithAddedMass_hz'), 'resonanceWithAddedMass_hz', () => groupDq(issues().pr)),
             naturalTuning_hz: new CalculatedFieldImpl<number | null>(() => {
-                const Vb = prVolume.value || this.vented.volume_m3.value;
+                const Vb = prVolume.value;
                 const r = getRadiator();
                 const mech = {Mms_kg: r.spec.Mms_kg.value, Cms_m_per_N: r.spec.Cms_m_per_N.value};
                 const prSd = r.spec.Sd_m2.value;
@@ -319,7 +326,7 @@ export class OpenISDBox implements Box {
              *  ever have carried in practice (the missing-dependencies branch always paired with a
              *  null answer, which the not-available branch below already reports with no DQ to lose). */
             addedMassForTuning_kg: (fp_hz: number) => new CalculatedFieldImpl<number | null>(() => {
-                const Vb = prVolume.value || this.vented.volume_m3.value;
+                const Vb = prVolume.value;
                 const r = getRadiator();
                 const prMmd = r.spec.Mms_kg.value;
                 const prSd = r.spec.Sd_m2.value;
@@ -339,7 +346,7 @@ export class OpenISDBox implements Box {
         };
     }
 
-        frontVolumeOf(type: BoxType): (Readable<number> & Entered & Writable<number>) | null {
+        frontVolumeOf(type: BoxType): (Readable<number | null> & Entered & Precise & Writable<number> & Clearable) | null {
         switch (type) {
             case 'bandpass4': return this.bandpass4.chambers.front.volume_m3;
             case 'bandpass6': return this.bandpass6.chambers.front.volume_m3;
@@ -397,13 +404,13 @@ export class OpenISDBox implements Box {
     applyStartingValues(): void {
         switch (this.boxType.value) {
             case 'sealed': {
-                if (this.sealed.volume_m3.value > 0) return;
+                if (isStated(this.sealed.volume_m3.value)) return;
                 const Vb = this.#driver.sealedVolumeForQtc(STARTING.sealedQtc);
                 if (Vb !== null && Vb > 0) this.sealed.volume_m3.set(Vb);
                 return;
             }
             case 'vented': {
-                if (this.vented.volume_m3.value <= 0) {
+                if (!isStated(this.vented.volume_m3.value)) {
                     const design = this.#driver.ventedDesign(STARTING.ventedAlignment, this.#rs(), this.vented.losses.Ql.value);
                     if (design) {
                         this.vented.volume_m3.set(design.Vb);
@@ -415,7 +422,7 @@ export class OpenISDBox implements Box {
             }
             case 'box-passive-radiator': {
                 const pr = this.passiveRadiator;
-                if (pr.volume_m3.value <= 0) pr.volume_m3.set(STARTING.volume_m3);
+                if (!isStated(pr.volume_m3.value)) pr.volume_m3.set(STARTING.volume_m3);
                 // No mass added to the radiator cone (John, 2026-10-01); the tuning is calculated from it.
                 if (!pr.addedMass_kg.entered && !pr.tuning_goal_hz.entered) pr.addedMass_kg.set(0);
                 if (pr.radiator.brand.value === '') pr.radiator.brand.set(STARTING.radiatorBrand);
@@ -438,8 +445,8 @@ export class OpenISDBox implements Box {
             }
             case 'bandpass4': {
                 const {chambers, vents} = this.bandpass4;
-                if (chambers.rear.volume_m3.value <= 0) chambers.rear.volume_m3.set(STARTING.volume_m3);
-                if (chambers.front.volume_m3.value <= 0) chambers.front.volume_m3.set(STARTING.bandpass4FrontVolume_m3);
+                if (!isStated(chambers.rear.volume_m3.value)) chambers.rear.volume_m3.set(STARTING.volume_m3);
+                if (!isStated(chambers.front.volume_m3.value)) chambers.front.volume_m3.set(STARTING.bandpass4FrontVolume_m3);
                 if (chambers.front.tuning_goal_hz.value === null) chambers.front.tuning_goal_hz.set(STARTING.tuning_hz);
                 startVentGeometry(vents.front, this.#driver.specs.Dd_m.value);
                 return;
@@ -460,7 +467,7 @@ export class OpenISDBox implements Box {
         }
     }
 
-    volumeOf(type: BoxType): Readable<number> & Entered & Writable<number> {
+    volumeOf(type: BoxType): Readable<number | null> & Entered & Precise & Writable<number> & Clearable {
         switch (type) {
             case 'sealed': return this.sealed.volume_m3;
             case 'vented': return this.vented.volume_m3;

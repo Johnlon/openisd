@@ -205,7 +205,9 @@ export async function focusedBoxVolume(page: Page): Promise<number> {
     const m: unknown = await import(/* @vite-ignore */ path);
     if (!isAppState(m)) throw new Error('appState module shape mismatch');
     const box = m.requireFocusedProject().box;
-    return box.volumeOf(box.boxType.value).value;
+    const v = box.volumeOf(box.boxType.value).value;
+    if (v === null) throw new Error('the focused project\'s box volume is blank');
+    return v;
   }, '/src/logic/appState.ts');
 }
 

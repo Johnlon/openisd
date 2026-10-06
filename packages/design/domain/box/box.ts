@@ -22,9 +22,9 @@ export interface Box {
     /** The main-volume field of `type`: the one cabinet of a sealed, vented or passive-radiator
      *  box, the rear chamber of a two-chamber box. `type` is passed, not read from `boxType`,
      *  because a shell's box selector may hold a type the project has not adopted yet. */
-    volumeOf(type: BoxType): Readable<number> & Entered & Writable<number>;
+    volumeOf(type: BoxType): Readable<number | null> & Entered & Precise & Writable<number> & Clearable;
     /** The front-chamber volume field of a two-chamber `type`; null for the one-cabinet types. */
-    frontVolumeOf(type: BoxType): (Readable<number> & Entered & Writable<number>) | null;
+    frontVolumeOf(type: BoxType): (Readable<number | null> & Entered & Precise & Writable<number> & Clearable) | null;
     /** The rear-chamber tuning field of a `type` that tunes its rear chamber (bandpass6, abc);
      *  null otherwise. */
     rearTuningOf(type: BoxType): TuningField | null;
@@ -50,7 +50,7 @@ export interface Box {
 }
 
 export interface VentGroup {
-    readonly volume_m3: Readable<number> & Entered & Writable<number>;
+    readonly volume_m3: Readable<number | null> & Entered & Precise & Writable<number> & Clearable;
     readonly tuning_goal_hz: TuningField;
     readonly vent: Vent;
 }
