@@ -627,11 +627,10 @@ export function boxTypeIsSimulatable(boxType: BoxType): boolean {
   return engine.box.simulatableBoxType(boxType) !== null;
 }
 
-/** Whether OpenISD has finished this enclosure type — the domain's answer. The box-type pickers
+/** The enclosure types OpenISD has finished — the domain's answer, per type. The box-type pickers
  *  dim an unfinished type's row but still let it be picked. */
-export function boxTypeIsImplemented(boxType: BoxType): boolean {
-  return engine.box.implemented(boxType);
-}
+export const IMPLEMENTED_BOX_TYPES: ReadonlySet<BoxType> =
+  new Set(BOX_TYPE_OPTIONS.map(o => o.value).filter(b => engine.box.implemented(b)));
 
 /** The enclosure types the New Project wizard offers: the registry's list (`box_Type`),
  *  narrowed to what the solver models, so the wizard never starts a project it cannot run. */

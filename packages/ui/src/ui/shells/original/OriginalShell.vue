@@ -46,7 +46,7 @@ const {
   genOn, toggleGenerate, genHz,
   boxLabel, pending, openCharts, chartStackEl, chartStackStyle, chartsHigh, CHARTS_HIGH_OPTIONS, overlays, activeTab,
   showEnclosureTab, enclosureNavLabel,
-  selectedBox, BOX_TYPE_OPTIONS, boxTypeIsImplemented, ARRAY_WIRING_OPTIONS, N_DRIVERS_OPTIONS, abcVelocityApplies, errorSwitches, chartDeviations, prNprDeviationShown, driverCountDeviationShown,
+  selectedBox, BOX_TYPE_OPTIONS, IMPLEMENTED_BOX_TYPES, ARRAY_WIRING_OPTIONS, N_DRIVERS_OPTIONS, abcVelocityApplies, errorSwitches, chartDeviations, prNprDeviationShown, driverCountDeviationShown,
   boxVolumeCell, sealedAlignmentEditor, sealedAlignmentOpen,
   sealedAlignmentOptions, sealedAlignmentSelected, sealedAlignmentVolume_m3, sealedAlignmentEbp,
   sealedAlignmentSuitability, sealedAlignmentSuitabilityLabel, originalFilters,
@@ -288,7 +288,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
           <div class="field-row" style="flex-wrap: nowrap;">
             <div class="field" style="gap:8px;"><label style="width:auto;">Box Type</label>
               <select id="og-box-type" :value="selectedBox" @change="e => { const b = selectedOption(e, BOX_TYPE_OPTIONS); if (b !== null) selectedBox = b; }" style="width:170px">
-                <option v-for="o in BOX_TYPE_OPTIONS" :key="o.value" :value="o.value" :class="{ 'not-implemented': !boxTypeIsImplemented(o.value) }">{{ o.label }}</option>
+                <option v-for="o in BOX_TYPE_OPTIONS" :key="o.value" :value="o.value" :class="{ 'not-implemented': !IMPLEMENTED_BOX_TYPES.has(o.value) }">{{ o.label }}</option>
               </select>
             </div>
           </div>

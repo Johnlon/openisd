@@ -15,7 +15,7 @@ const {
   selectedBox, pending, isDual, frontVolumeCell, frcHz, setFrcHz, boxLabel, showEnclosureTab, enclosureNavLabel,
   boxResonance, rearQtc, boxVolumeCell,
   activeTuning, fbState, setFbTarget, FB_TARGET_TIP,
-  selectBoxType, BOX_TYPE_OPTIONS, boxTypeIsImplemented,
+  selectBoxType, BOX_TYPE_OPTIONS, IMPLEMENTED_BOX_TYPES,
   sealedAlignmentEditor, sealedAlignmentOpen, sealedAlignmentOptions, sealedAlignmentSelected,
   sealedAlignmentVolume_m3, sealedAlignmentEbp, sealedAlignmentSuitability, sealedAlignmentSuitabilityLabel,
   ventedAlignmentEditor, ventedAlignmentOpen, ventedAlignmentOptions, ventedAlignmentSelected,
@@ -33,7 +33,7 @@ const { fieldWithUnit, readoutWithUnit } = useUnitReadouts();
       <label class="mob-row-label" for="mob-box-type">Box type</label>
       <select id="mob-box-type" class="mob-select" :value="selectedBox"
               @change="e => selectBoxType((e.target as HTMLSelectElement).value)">
-        <option v-for="o in BOX_TYPE_OPTIONS" :key="o.value" :value="o.value" :class="{ 'not-implemented': !boxTypeIsImplemented(o.value) }">{{ o.label }}</option>
+        <option v-for="o in BOX_TYPE_OPTIONS" :key="o.value" :value="o.value" :class="{ 'not-implemented': !IMPLEMENTED_BOX_TYPES.has(o.value) }">{{ o.label }}</option>
       </select>
     </div>
     <p v-if="pending" class="mob-hint mob-hint-warn">

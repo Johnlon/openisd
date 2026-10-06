@@ -4,7 +4,7 @@
  * "what does the Box tab's Volume field do", asked by both shells.
  */
 import {computed, ref} from 'vue';
-import {boxTypeIsImplemented, boxTypeIsSimulatable, envDefaults, focusedProject, projectChanged} from '../logic/appState.js';
+import {IMPLEMENTED_BOX_TYPES, boxTypeIsSimulatable, envDefaults, focusedProject, projectChanged} from '../logic/appState.js';
 import {useFocusedProject} from '../logic/focusedProjectContext.js';
 import {useApp} from '../logic/app.js';
 import {createEnvironmentAir} from './OriginalShell-hooks.js';
@@ -78,7 +78,7 @@ export function useMobileBoxTab() {
     project, selectedBox, pending, isDual, boxLabel, frontVolumeCell, frcHz, setFrcHz, showEnclosureTab, enclosureNavLabel,
     boxResonance, rearQtc, boxVolumeCell,
     activeTuning, fbState, setFbTarget, FB_TARGET_TIP,
-    selectBoxType, BOX_TYPE_OPTIONS, boxTypeIsImplemented,
+    selectBoxType, BOX_TYPE_OPTIONS, IMPLEMENTED_BOX_TYPES,
     sealedAlignmentEditor, sealedAlignmentOpen, sealedAlignmentOptions, sealedAlignmentSelected,
     sealedAlignmentVolume_m3, sealedAlignmentEbp, sealedAlignmentSuitability, sealedAlignmentSuitabilityLabel,
     ventedAlignmentEditor, ventedAlignmentOpen, ventedAlignmentOptions, ventedAlignmentSelected,

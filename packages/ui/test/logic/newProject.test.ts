@@ -11,7 +11,7 @@
  */
 import {describe, expect, it} from 'vitest';
 import {
-    boxTypeIsImplemented,
+    IMPLEMENTED_BOX_TYPES,
     boxTypeIsSimulatable,
     definePassiveRadiator,
     focusedProject,
@@ -133,11 +133,11 @@ describe('boxTypeIsSimulatable', () => {
   });
 });
 
-describe('boxTypeIsImplemented', () => {
+describe('IMPLEMENTED_BOX_TYPES', () => {
   it('is false for 6th-order bandpass and ABC only — the pickers dim those rows', () => {
     for (const box of ['sealed', 'vented', 'bandpass4', 'box-passive-radiator'] as const)
-      expect(boxTypeIsImplemented(box), box).toBe(true);
+      expect(IMPLEMENTED_BOX_TYPES.has(box), box).toBe(true);
     for (const box of ['bandpass6', 'abc'] as const)
-      expect(boxTypeIsImplemented(box), box).toBe(false);
+      expect(IMPLEMENTED_BOX_TYPES.has(box), box).toBe(false);
   });
 });

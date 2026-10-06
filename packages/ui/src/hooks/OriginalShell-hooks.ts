@@ -19,7 +19,7 @@ import {computed, onMounted, onUnmounted, ref, shallowRef, watch} from 'vue';
 import {
     addProject,
     allIssues,
-    boxTypeIsImplemented,
+    IMPLEMENTED_BOX_TYPES,
     boxTypeIsSimulatable,
     copyProjectName,
     curvesData,
@@ -653,7 +653,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     genOn, toggleGenerate, genHz,
     boxLabel, pending, openCharts, chartStackEl, chartStackStyle, chartsHigh, CHARTS_HIGH_OPTIONS, overlays, activeTab,
     showEnclosureTab, enclosureNavLabel,
-    selectedBox, BOX_TYPE_OPTIONS, boxTypeIsImplemented, ARRAY_WIRING_OPTIONS, N_DRIVERS_OPTIONS, abcVelocityApplies, errorSwitches, chartDeviations, prNprDeviationShown, driverCountDeviationShown,
+    selectedBox, BOX_TYPE_OPTIONS, IMPLEMENTED_BOX_TYPES, ARRAY_WIRING_OPTIONS, N_DRIVERS_OPTIONS, abcVelocityApplies, errorSwitches, chartDeviations, prNprDeviationShown, driverCountDeviationShown,
      boxVolumeCell, sealedAlignmentEditor, sealedAlignmentOpen,
      sealedAlignmentOptions, sealedAlignmentSelected, sealedAlignmentVolume_m3, sealedAlignmentEbp,
      sealedAlignmentSuitability, sealedAlignmentSuitabilityLabel, originalFilters,
