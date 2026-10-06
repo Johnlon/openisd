@@ -63,6 +63,25 @@ test('the down button undoes the up button exactly — same step size, opposite 
   expect(down).toBeCloseTo(start, 9);
 });
 
+test('a long hold on ▲ takes 10 % steps and lands on a round value when released', async ({ page }) => {
+  await page.locator('.mob-tab', { hasText: 'Signal' }).click();
+  const row = fieldRow(page, 'Series resistance');
+  const input = row.locator('input');
+  const upBtn = row.locator('.num-stepper-btn').first();
+
+  const start = Number(await input.inputValue());
+  const box = await upBtn.boundingBox();
+  expect(box).not.toBeNull();
+  await page.mouse.move(box!.x + box!.width / 2, box!.y + box!.height / 2);
+  await page.mouse.down();
+  await page.waitForTimeout(2200);
+  await page.mouse.up();
+
+  const end = Number(await input.inputValue());
+  expect(end).toBeGreaterThan(start * 1.3);   // fine steps alone (~1 % each) could not get this far
+  expect(Number(end.toPrecision(2))).toBe(end);   // two significant digits at most
+});
+
 test('the stepper buttons meet a touch-sized minimum at phone width', async ({ page }) => {
   await page.locator('.mob-tab', { hasText: 'Box' }).click();
   const btn = fieldRow(page, 'Volume').locator('.num-stepper-btn').first();

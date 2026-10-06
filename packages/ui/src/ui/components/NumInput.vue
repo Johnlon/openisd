@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import {computed, onBeforeUnmount, ref, useAttrs, watch} from 'vue';
 import {presentationState} from '../../logic/presentationState.js';
-import {decimalsSpinRule, formatFixed, shownSpinRule, spinStepAttr, spinValue, type NumberField, type SpinDirection, type SpinRule} from '@openisd/design/fields';
+import {decimalsSpinRule, formatFixed, HOLD_START_MS, holdStage, roundSpun, shownSpinRule, spinStepAttr, spinValue, type HoldStage, type NumberField, type SpinDirection, type SpinRule, type SpinSpeed} from '@openisd/design/fields';
 import type {ProvenanceLetter} from '@openisd/design';
 import {inputFrom} from '../../logic/domEvents.js';
 import {dqReason} from '../../logic/cellDataQuality.js';
@@ -124,30 +124,48 @@ let repeatTimer: ReturnType<typeof setTimeout> | undefined;
 // does: the browser's own stepUp()/stepDown() supplies the direction, and `onInput` replaces the
 // browser's value with the design rule's (`spinValue`). The native `step` is never 'any', so
 // stepUp()/stepDown() never throw.
-function applyStep(dir: SpinDirection): void {
+// The press size for the step in flight: `onInput` reads it, so keyboard, wheel and native
+// spinner steps (which never set it) stay fine.
+let pressSpeed: SpinSpeed = 'fine';
+function applyStep(dir: SpinDirection, speed: SpinSpeed): void {
   const el = inputEl.value;
   if (el === null) return;
   typing.value = false;   // a step always reformats, same as the keyboard/wheel paths
+  pressSpeed = speed;
   if (dir > 0) el.stepUp(); else el.stepDown();
   el.dispatchEvent(new Event('input', { bubbles: true }));
+  pressSpeed = 'fine';
 }
 
+let heldSince = 0;
+let heldStage: HoldStage | undefined;
 function stopRepeat(): void {
   if (repeatTimer !== undefined) { clearTimeout(repeatTimer); repeatTimer = undefined; }
 }
-// Hold-to-repeat: one immediate step, then a pause before repeating (so a single tap never
-// double-fires), then a faster repeat while held — the common native-spinner feel.
+// Releasing a long hold lands the value on a round number (John, 2026-10-06).
+function releaseRepeat(): void {
+  const rounds = repeatTimer !== undefined && heldStage?.roundsOnRelease === true;
+  stopRepeat();
+  if (!rounds) return;
+  const v = roundSpun(parseFloat(display.value), spinRule.value, {min: dispMin.value, max: dispMax.value});
+  if (isFinite(v)) commitSpun(v);
+}
+// Hold-to-repeat: one immediate fine step, then a pause before repeating (so a single tap never
+// double-fires), then the speed ladder of `holdStage` while held.
 // The tapped button takes focus (John, 2026-10-02): the press is `.prevent`ed so the browser
 // never focuses it, and the previously focused field kept focus. Focusing the field instead
 // (2026-10-01) popped the phone keyboard on every tap; the button holds focus without one.
 function startRepeat(dir: SpinDirection, e: PointerEvent): void {
   stopRepeat();
   if (e.currentTarget instanceof HTMLElement) e.currentTarget.focus({ preventScroll: true });
-  applyStep(dir);
+  heldSince = performance.now();
+  heldStage = holdStage(0);
+  applyStep(dir, heldStage.speed);
   repeatTimer = setTimeout(function tick() {
-    applyStep(dir);
-    repeatTimer = setTimeout(tick, 80);
-  }, 450);
+    heldStage = holdStage(performance.now() - heldSince);
+    applyStep(dir, heldStage.speed);
+    repeatTimer = setTimeout(tick, heldStage.repeatMs);
+  }, HOLD_START_MS);
 }
 onBeforeUnmount(stopRepeat);
 
@@ -231,17 +249,23 @@ function onInput(e: Event) {
   const prev = parseFloat(display.value);
   // A spinner step: the browser's value gives only the direction; the rule gives the value.
   const v = !textEdit && isFinite(native) && isFinite(prev) && native !== prev
-    ? spinValue(display.value, native > prev ? 1 : -1, spinRule.value, {min: dispMin.value, max: dispMax.value})
+    ? spinValue(display.value, native > prev ? 1 : -1, spinRule.value, {min: dispMin.value, max: dispMax.value}, pressSpeed)
     : native;
-  const si = fromDisp(v);
   if (textEdit || !isFinite(v)) {
     display.value = t.value;
-    if (valid(si)) emit('update:modelValue', si, typedPrecision(t.value));
+    const typed = fromDisp(v);
+    if (valid(typed)) emit('update:modelValue', typed, typedPrecision(t.value));
     return;
   }
+  commitSpun(v);
+}
+
+/** Shows and stores a stepped value `v` (display units). */
+function commitSpun(v: number): void {
+  const si = fromDisp(v);
   const s = fmt(si);
   display.value = s;
-  t.value = s;
+  if (inputEl.value !== null) inputEl.value.value = s;
   if (valid(si)) emit('update:modelValue', si, typedPrecision(s));
 }
 
@@ -306,9 +330,9 @@ const stepAttr = computed<string>(() => props.step !== 'any' ? props.step : spin
   <span v-if="hasDq || (refusal !== '' && !hideMark)" class="dq-note" :class="{ 'dq-note-root': isRootCause || refusal !== '', 'dq-note-symptom': isSymptom }" :title="refusal !== '' ? `⚠ ${refusal}` : dqNoteTitle">⚠</span>
   <span v-if="showStepper" class="num-stepper">
     <button type="button" class="num-stepper-btn" tabindex="-1" title="Increase"
-      @pointerdown.prevent="startRepeat(1, $event)" @pointerup="stopRepeat" @pointerleave="stopRepeat" @pointercancel="stopRepeat">▲</button>
+      @pointerdown.prevent="startRepeat(1, $event)" @pointerup="releaseRepeat" @pointerleave="releaseRepeat" @pointercancel="releaseRepeat">▲</button>
     <button type="button" class="num-stepper-btn" tabindex="-1" title="Decrease"
-      @pointerdown.prevent="startRepeat(-1, $event)" @pointerup="stopRepeat" @pointerleave="stopRepeat" @pointercancel="stopRepeat">▼</button>
+      @pointerdown.prevent="startRepeat(-1, $event)" @pointerup="releaseRepeat" @pointerleave="releaseRepeat" @pointercancel="releaseRepeat">▼</button>
   </span>
 </template>
 

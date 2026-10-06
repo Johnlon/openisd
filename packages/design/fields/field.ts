@@ -74,17 +74,18 @@ export type ValueFloor = 'positive' | 'non-negative' | 'none';
 /**
  * How a spinner press moves a number field (`spinnerStep.ts`).
  *
- * - `decade` — a tenth of the value's decade, down to one unit of the decimals shown.
- * - `decadeFloored` — the same, never finer than `10^finestExp` in the field's fixed unit: a
+ * - `proportional` — steps that scale with the value (`spinnerStep.ts`), down to one unit of the
+ *   decimals shown.
+ * - `proportionalFloored` — the same, never finer than `10^finestExp` in the field's fixed unit: a
  *   signed level that passes through 0 (gain in dB steps 0 → ±0.1).
  * - `integer` — a count or an order: every press is 1.
  */
 export type FieldSpin =
-  | {readonly kind: 'decade'}
-  | {readonly kind: 'decadeFloored'; readonly finestExp: number}
+  | {readonly kind: 'proportional'}
+  | {readonly kind: 'proportionalFloored'; readonly finestExp: number}
   | {readonly kind: 'integer'};
 
-const DECADE_SPIN: FieldSpin = Object.freeze({kind: 'decade'});
+const PROPORTIONAL_SPIN: FieldSpin = Object.freeze({kind: 'proportional'});
 const INTEGER_SPIN: FieldSpin = Object.freeze({kind: 'integer'});
 
 interface FieldSpec {
@@ -157,7 +158,7 @@ export class NumberField extends Field {
     this.formula = spec.formula;
     this.plausible = Object.freeze(spec.plausible ?? spec.limits);
     this.floor = spec.floor ?? 'none';
-    this.spin = spec.spin ?? DECADE_SPIN;
+    this.spin = spec.spin ?? PROPORTIONAL_SPIN;
   }
 
   /** Authoritative unit resolution for this field. */
@@ -220,9 +221,9 @@ export class NumberField extends Field {
     const spin = this.spin;
     switch (spin.kind) {
       case 'integer': return {kind: 'integer'};
-      case 'decade': return {kind: 'decade', finestExp: 0 - decimalsIn(this.unitFor(token), this.precision)};
-      case 'decadeFloored':
-        return {kind: 'decade', finestExp: Math.max(spin.finestExp, 0 - decimalsIn(this.unitFor(token), this.precision))};
+      case 'proportional': return {kind: 'proportional', finestExp: 0 - decimalsIn(this.unitFor(token), this.precision)};
+      case 'proportionalFloored':
+        return {kind: 'proportional', finestExp: Math.max(spin.finestExp, 0 - decimalsIn(this.unitFor(token), this.precision))};
     }
   }
 
@@ -1145,7 +1146,7 @@ export class NumberField extends Field {
     label: "Gain",
     display: {kind: 'fixed', symbol: 'dB'},
     limits: FILTER_GAIN_LIMITS,
-    spin: {kind: 'decadeFloored', finestExp: -1},
+    spin: {kind: 'proportionalFloored', finestExp: -1},
     precision: 3,
     description: "Filter Gain\nBoost or cut applied by the filter or equalizer, in dB.",
   });
