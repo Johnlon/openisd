@@ -26,6 +26,14 @@ if [ -z "${OPENISD_IN_OWN_GROUP:-}" ]; then
   exec setsid --fork --wait bash "$0" "$@"
 fi
 
+# A run with no spec arguments is the full browser suite: a slow run, so it waits in the
+# machine-wide queue (scripts/slow-run/queue.sh; John, 2026-10-07: concurrent slow runs kill the
+# machine). Under a slow run that already holds the queue (pre-push, health-check) this passes
+# straight through. A run naming specs is targeted and never queues.
+# shellcheck source=./slow-run/queue.sh
+. "$SCRIPT_DIR/slow-run/queue.sh"
+if [ "$#" -eq 0 ]; then slow_queue_enter "full browser suite"; fi
+
 # shellcheck source=./test-concurrency.sh
 source "$SCRIPT_DIR/test-concurrency.sh"
 reserve_test_slot   # sets OPENISD_TEST_WORKERS, OPENISD_TEST_PORT — see that file for why this
@@ -43,6 +51,7 @@ group_others() {
 cleanup() {
   local status=$?
   release_test_slot
+  slow_queue_leave
   # Ignore TERM in THIS shell so a descendant re-signalling the group can't cut this trap off
   # before the follow-up KILL runs.
   trap '' TERM

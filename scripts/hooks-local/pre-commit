@@ -1,49 +1,22 @@
 #!/bin/sh
-# Fast gate on EVERY commit — lint + typecheck + design/persistence unit tests. Blocks the commit
-# on any red so a failure cannot ride along commit-to-commit.
+# Gate on EVERY commit — lint + typecheck + unit (incl. golden). Blocks the commit on any red so
+# a failure cannot ride along commit-to-commit (the "an issue from hours ago persisted" failure
+# mode). The full suite — browser tests too — runs at pre-push and via scripts/health-check.sh.
 #
-# The slow UI tests (packages/ui) are NOT run here (John, 2026-10-07: hooks that run them overlap
-# between agents and cause problems). The agent rules decide what to test and when: a targeted
-# spec after each change and a message to the other agents before any slow run
-# (.claude/rules/verify.md), the full suite at pre-push and via scripts/health-check.sh, which you
-# MUST run before claiming a change "done". A green pre-commit is necessary, not sufficient.
+# This is a slow run (John, 2026-10-07), so it goes through scripts/slow-run/slow-run.sh:
+#   - it waits in the machine-wide queue: no two slow runs overlap on this machine;
+#   - it tests the STAGED INDEX, exported to a temp copy outside the repo, so another session's
+#     unstaged edits in the shared tree never reach the run;
+#   - a few failing spec files are rerun once; passing on the rerun logs them as FLAKY.
 #
-# Exception: a commit that touches ONLY *.md files cannot change runtime behaviour,
-# so the unit/browser suites add no diff-level signal — skip them. But typecheck and
-# lint are whole-project checks, so they STILL run: a doc-only commit on a branch
-# that is already red (pre-existing type/lint failures) must not ride those failures
-# along commit-to-commit. Any commit that touches even one non-.md file runs the
-# full gate as normal.
+# Exception: a commit that touches ONLY *.md files cannot change runtime behaviour, so the unit
+# suite adds no diff-level signal — skip it. But typecheck and lint are whole-project checks, so
+# they STILL run: a doc-only commit on a branch that is already red must not ride those failures
+# along commit-to-commit.
 set -e
-. "$(git rev-parse --show-toplevel)/scripts/hooks-local/heavy-gate-concurrency.sh"
-reserve_heavy_gate_slot
-trap release_heavy_gate_slot EXIT
-# heavy.sh runs a command inside heavy.slice (systemd, MemoryMax'd, CPU-weighted): the kernel
-# reclaims/throttles inside that slice under pressure instead of the box's own memory budget
-# running out and SIGKILLing whatever process it likes, ours included — this is a DIFFERENT
-# protection from reserve_heavy_gate_slot above (that shares CPU/timeout fairly among gate runs;
-# this stops an unrelated process elsewhere on the box from taking this one down). Falls back to
-# running directly if heavy.sh isn't installed, so this hook still works on a box without it.
-HEAVY="$HOME/.claude/bin/heavy.sh"
-[ -x "$HEAVY" ] || HEAVY=""
+top="$(git rev-parse --show-toplevel)"
 changed=$(git diff --cached --name-only --diff-filter=ACMR)
 if [ -n "$changed" ] && ! printf '%s\n' "$changed" | grep -qv '\.md$'; then
-  echo "[pre-commit] doc-only commit (*.md) — skipping unit; typecheck + lint still run to block a red branch…"
-  $HEAVY npm run typecheck
-  npm run lint
-  echo "[pre-commit] doc-only + typecheck/lint green ✓"
-  exit 0
+  exec bash "$top/scripts/slow-run/slow-run.sh" pre-commit --doc-only
 fi
-echo "[pre-commit] lint + typecheck + design/persistence unit — blocking commit on any red…"
-npm run lint
-$HEAVY npm run typecheck
-# PRECOMMIT=1: the born-red CHECKLIST gates (PrivateAllow / ALLOWED_GLOBALS / no-re-exports)
-# self-skip, loudly — their offence lists are the human's to-do list, enforced at
-# ci/health-check and A10's byte-identical allow-list check, not per commit. Every
-# behavioural test still blocks. See the checklistDescribe guards in
-# packages/ui/test/architecture/architecture.test.ts and architecture-no-reexports.test.ts.
-# No test time limit: a test that keeps making progress is never killed. The run goes through
-# quiet-test.sh for its idle watchdog, which stops a run that writes nothing for 180 s and
-# writes node reports to build/test-reports/ (docs: TESTING_STRATEGY.md, "Timeouts and hangs").
-PRECOMMIT=1 OPENISD_FULL_GATE=1 $HEAVY bash scripts/quiet-test.sh npx vitest run packages/design packages/persistence --maxWorkers="$OPENISD_HEAVY_GATE_WORKERS" --reporter=dot
-echo "[pre-commit] all green ✓ (checklist gates deferred to ci/A10)"
+exec bash "$top/scripts/slow-run/slow-run.sh" pre-commit

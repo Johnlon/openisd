@@ -48,8 +48,29 @@ export SLOW_RUN_LABEL="$LABEL"
 
 slow_queue_enter "$LABEL"
 DEST=""
+# The steps run as one background job in their own process group (set -m below), so a cancelled
+# run stops everything it started: lint, typecheck, vitest, browsers and what those spawned.
+# John, 2026-10-07: a killed push left `npm run test` and its browser stage running for 20 minutes.
+BODY=""
+# TERM the group, then KILL it after 5 s if anything ignored the TERM. No polling: a background
+# killer sleeps, and is cancelled once the group is gone.
+stop_steps() {
+  [ -n "$BODY" ] || return 0
+  local body="$BODY" killer
+  BODY=""
+  kill -TERM -- "-$body" 2>/dev/null || true
+  ( sleep 5; kill -KILL -- "-$body" 2>/dev/null ) &
+  killer=$!
+  wait "$body" 2>/dev/null || true
+  if kill -0 -- "-$body" 2>/dev/null; then
+    wait "$killer" 2>/dev/null || true
+  else
+    kill "$killer" 2>/dev/null || true
+  fi
+}
 cleanup() {
   local status=$?
+  stop_steps
   cd "$SRC" || true
   [ -n "$DEST" ] && clean_copy_remove "$SRC" "$DEST"
   type release_heavy_gate_slot >/dev/null 2>&1 && release_heavy_gate_slot
@@ -59,6 +80,7 @@ cleanup() {
 trap cleanup EXIT
 trap 'exit 130' INT
 trap 'exit 143' TERM
+trap 'exit 129' HUP
 
 # Worker tuning for the one run that now holds the queue (see heavy-gate-concurrency.sh).
 . "$SRC/scripts/hooks-local/heavy-gate-concurrency.sh"
@@ -70,6 +92,7 @@ if [ "$MODE" = "pre-commit" ]; then
 else
   clean_copy_from_commit "$SRC" "$SHA" "$DEST" || exit 1
 fi
+run_steps() {
 echo "[slow-run] $LABEL: testing a clean copy at $DEST"
 cd "$DEST" || exit 1
 # A hook's git variables point at the main checkout; nothing in the copy may follow them.
@@ -139,3 +162,15 @@ case "$MODE" in
     [ "$FAIL" -eq 0 ]
     ;;
 esac
+}
+
+# Own process group, so stop_steps can signal the whole tree. The subshell drops this shell's
+# traps; cleanup stays with this shell.
+set -m
+( trap - EXIT INT TERM HUP; run_steps ) &
+BODY=$!
+set +m
+wait "$BODY"
+status=$?
+BODY=""
+exit "$status"
