@@ -419,6 +419,22 @@ function wdrRow(
   return [wdrName, { value: String(cell.value), state }];
 }
 
+/**
+ * What `Comment=` holds before any `[DQ]` lines: the driver's own comment when it has one (an
+ * incoming `.wdr` Comment returns unchanged), else its source URL — the manufacturer datasheet,
+ * else the product page, else the listing page — else nothing.
+ */
+function wdrCommentOf(driver: OpenISDDriver): string {
+  const own = driver.comment.value;
+  if (own !== null && own !== "") return own;
+  return (
+    driver.dataSource("manufacturer_datasheet") ??
+    driver.dataSource("manufacturer_product_page") ??
+    driver.dataSource("manufacturer_listing_page") ??
+    ""
+  );
+}
+
 export function openIsdDriverToWinIsdDriver(
   driver: OpenISDDriver,
   errors: DriverError[],
@@ -429,7 +445,7 @@ export function openIsdDriverToWinIsdDriver(
     model: driver.model.value,
     manufacturer: driver.manufacturer.value,
     providedBy: driver.providedBy.value ?? "",
-    comment: driver.comment.value ?? "",
+    comment: wdrCommentOf(driver),
     dateAdded: driver.added.value ?? "",
   };
 
