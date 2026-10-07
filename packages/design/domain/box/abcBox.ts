@@ -1,5 +1,5 @@
 import type { Vent } from '../vent.js';
-import type { VentedChamber } from './ventedChamber.js';
+import type { CoupledVentedChamber, VentedChamber } from './ventedChamber.js';
 
 /**
  * "Aperiodic BI-Chamber" — TWO chambers (rear, front — same shape as bandpass6's, no vent nested
@@ -15,7 +15,7 @@ import type { VentedChamber } from './ventedChamber.js';
  */
 export interface AbcBox {
     readonly chambers: {
-        readonly rear: VentedChamber;
+        readonly rear: CoupledVentedChamber;
         readonly front: VentedChamber;
     };
     readonly vents: {

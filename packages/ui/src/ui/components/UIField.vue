@@ -15,16 +15,21 @@
  * bugs/BUG_20261005_no-common-ui-field-component.md
  */
 import {computed, ref, useId} from 'vue';
-import type {Clearable, Precise, Readable, Writable} from '@openisd/design';
+import type {Clearable, Precise, Readable, SimpleField, Writable} from '@openisd/design';
 import type {NumberField} from '@openisd/design/fields';
 import NumInput from './NumInput.vue';
 import UnitToggle from './UnitToggle.vue';
 import {useCellScope} from './cellScope.js';
-import {cellClassOf} from '../../logic/driverCells.js';
+import {CellClass, cellClassOf} from '../../logic/driverCells.js';
 import {dqOfCell, dqReason} from '../../logic/cellDataQuality.js';
 
-/** What a `UIField` reads and writes: a number a person can enter, clear and state the precision of. */
-export type UICell = Readable<number | null> & Precise & Writable<number> & Clearable;
+/** A number a person can enter, clear and state the precision of: an emptied box clears it. */
+export type ClearableUICell = Readable<number | null> & Precise & Writable<number> & Clearable;
+/** A number that is always there (a box loss): no provenance, no flags, no `clear`. An emptied box
+ *  is refused, never stored. `clear?: undefined` is what tells the two kinds apart. */
+export type FixedUICell = SimpleField<number> & {readonly clear?: undefined};
+/** What a `UIField` reads and writes. */
+export type UICell = ClearableUICell | FixedUICell;
 
 const props = withDefaults(defineProps<{
   field: NumberField;
@@ -55,6 +60,12 @@ const id = computed(() => props.inputId ?? generatedId);
 const view = computed(() => {
   void scope.revision.value;
   const cell = props.cell;
+  if (cell.clear === undefined) {
+    return {
+      value: cell.value, precision: null, provenanceClass: CellClass.Entered, mandatory: false, reason: '',
+      dqClasses: {'dq-flag': false, 'dq-root': false, 'dq-symptom': false},
+    };
+  }
   const readout = dqOfCell(cell);
   return {
     value: cell.value,
@@ -78,7 +89,15 @@ const refusal = ref('');
 const reason = computed(() => refusal.value !== '' ? refusal.value : view.value.reason);
 
 function write(v: number | null, precision?: number): void {
-  if (v === null) props.cell.clear(); else props.cell.set(v, precision);
+  const cell = props.cell;
+  if (v === null) {
+    if (cell.clear === undefined) return;   // a fixed cell: the box shows the refusal, nothing is stored
+    cell.clear();
+  } else if (cell.clear === undefined) {
+    cell.set(v);
+  } else {
+    cell.set(v, precision);
+  }
   scope.written();
 }
 </script>
@@ -88,7 +107,7 @@ function write(v: number | null, precision?: number): void {
     <label class="ui-field-label" :for="id" :title="field.description || undefined">{{ field.label }}</label>
     <span class="ui-field-value">
       <NumInput :id="id" :class="[view.provenanceClass, view.dqClasses]" :model-value="view.value" :field="field"
-        :half-width="view.precision" :mandatory="view.mandatory" :max="max" :stepper="stepper" :readonly="readonly" hide-mark
+        :half-width="view.precision" :mandatory="view.mandatory" :max="max" :stepper="stepper" :readonly="readonly" :blank-refused="props.cell.clear === undefined" hide-mark
         @update:model-value="write" @refusal="text => refusal = text" />
     </span>
     <span class="ui-field-dq">

@@ -212,7 +212,8 @@ describe('boxFields', () => {
     });
   });
 
-  // bugs/BUG_20261006_box-losses-popup-blank-for-6th-and-abc.md
+  // bugs/BUG_20261006_box-losses-popup-blank-for-6th-and-abc.md,
+  // bugs/BUG_20261007_advanced-link-opens-every-chamber-losses.md: the popup shows the one open set.
   describe('createBoxLosses', () => {
     function losses(type: BoxType) {
       const {project} = createCompleteProject();
@@ -220,44 +221,52 @@ describe('boxFields', () => {
       const hook = createBoxLosses({project: computed(() => project), selectedBox: ref<BoxType>(type), projectChanged, focusedProject: () => project});
       return {project, projectChanged, hook};
     }
-    it('sealed: one untitled set, Ql and Qa, no Qp', () => {
+    it('nothing is open until a chamber link opens it', () => {
+      const {hook} = losses('bandpass6');
+      expect(hook.openLossGroup.value).toBeNull();
+    });
+    it('sealed: the whole set is untitled with Ql and Qa, no Qp and no Qicl', () => {
       const {hook} = losses('sealed');
-      expect(hook.boxLossGroups.value).toHaveLength(1);
-      const [g] = hook.boxLossGroups.value;
+      hook.lossesOpen.value = 'whole';
+      const g = hook.openLossGroup.value;
       expect(g!.heading).toBeNull();
       expect(g!.Qp).toBeNull();
+      expect(g!.Qicl).toBeNull();
     });
-    it('bandpass6: a Rear chamber set and a Front chamber set; an edit reaches that chamber and the readout follows', () => {
-      const {project, projectChanged, hook} = losses('bandpass6');
-      expect(hook.boxLossGroups.value.map(g => g.heading)).toEqual(['Rear chamber', 'Front chamber']);
-      hook.boxLossGroups.value[1]!.setQl(9);
-      projectChanged.value++;
+    it('bandpass6: the rear link shows the Rear chamber set only, the front link the Front set only', () => {
+      const {hook} = losses('bandpass6');
+      hook.lossesOpen.value = 'rear';
+      expect(hook.openLossGroup.value!.heading).toBe('Rear chamber');
+      hook.lossesOpen.value = 'front';
+      expect(hook.openLossGroup.value!.heading).toBe('Front chamber');
+    });
+    it('bandpass6: an edit in the open set reaches that chamber only', () => {
+      const {project, hook} = losses('bandpass6');
+      hook.lossesOpen.value = 'front';
+      hook.openLossGroup.value!.Ql.set(9);
       expect(project.box.bandpass6.chambers.front.losses.Ql.value).toBe(9);
-      expect(hook.boxLossGroups.value[1]!.Ql).toBe(9);
-      expect(hook.boxLossGroups.value[0]!.Ql).toBe(10);
+      expect(project.box.bandpass6.chambers.rear.losses.Ql.value).toBe(10);
     });
-    it('bandpass4: a Rear set with no Qp and a Front set with Qp; Qicl is one value shown in both', () => {
-      const {project, projectChanged, hook} = losses('bandpass4');
-      const [rear, front] = hook.boxLossGroups.value;
-      expect(hook.boxLossGroups.value.map(g => g.heading)).toEqual(['Rear chamber', 'Front chamber']);
-      expect(rear!.Qp).toBeNull();
-      expect(front!.Qp).toBe(100);
-      front!.setQicl(42);
-      projectChanged.value++;
+    it('bandpass4: the rear set has no Qp, the front set has one; both carry the one Qicl', () => {
+      const {project, hook} = losses('bandpass4');
+      hook.lossesOpen.value = 'rear';
+      expect(hook.openLossGroup.value!.Qp).toBeNull();
+      hook.lossesOpen.value = 'front';
+      expect(hook.openLossGroup.value!.Qp!.value).toBe(100);
+      hook.openLossGroup.value!.Qicl!.set(42);
       expect(project.box.bandpass4.chambers.rear.losses.Qicl.value).toBe(42);
-      expect(hook.boxLossGroups.value.map(g => g.Qicl)).toEqual([42, 42]);
     });
-    it('sealed: no Qicl row', () => {
-      expect(losses('sealed').hook.boxLossGroups.value[0]!.Qicl).toBeNull();
-    });
-    it('abc: Reset puts both chambers back to WinISD\'s defaults', () => {
-      const {project, projectChanged, hook} = losses('abc');
-      for (const g of hook.boxLossGroups.value) { g.setQl(3); g.setQa(4); g.setQp(5); }
+    it('abc: Reset puts the open chamber back to WinISD\'s defaults and leaves the other', () => {
+      const {project, hook} = losses('abc');
+      for (const chamber of ['rear', 'front'] as const) {
+        hook.lossesOpen.value = chamber;
+        const g = hook.openLossGroup.value!;
+        g.Ql.set(3); g.Qa.set(4); g.Qp!.set(5);
+      }
       hook.resetBoxLosses();
-      projectChanged.value++;
       const {rear, front} = project.box.abc.chambers;
-      expect([rear.losses.Ql.value, rear.losses.Qa.value, rear.losses.Qp.value]).toEqual([10, 100, 100]);
       expect([front.losses.Ql.value, front.losses.Qa.value, front.losses.Qp.value]).toEqual([10, 100, 100]);
+      expect([rear.losses.Ql.value, rear.losses.Qa.value, rear.losses.Qp.value]).toEqual([3, 4, 5]);
     });
   });
 });

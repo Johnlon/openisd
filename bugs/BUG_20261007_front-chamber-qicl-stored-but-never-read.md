@@ -1,6 +1,6 @@
 # BUG_20261007_front-chamber-qicl-stored-but-never-read
 
-**Status:** OPEN
+**Status:** RESOLVED 2026-10-07
 
 ## Symptom
 A 4th-order bandpass, 6th-order bandpass or ABC project stores a Qicl on each chamber, but WinISD has one (`Qiclfr`)
@@ -12,8 +12,13 @@ Checked 2026-10-07: `projectSweep.ts` and `winIsdProjectConverter.ts` read and w
 (`Qiclfr`); WinISD probe e7c754c shows one Qicl in both chamber panels.
 
 ## Fix
-Drop `Qicl` from the front chamber's stored losses (schema, `CoupledVentedLosses` window, defaults) so the model has
-one Qicl; load of an older file ignores the front value.
+A front chamber (bandpass4, bandpass6, ABC) stores Ql, Qa and Qp only: its schema is the plain vented chamber, and
+the types are split into `VentedChamber` (front) and `CoupledVentedChamber` (rear, with the box's one Qicl). An
+`.owpr` from before, with a front Qicl, loads: `retiredFrontQicl.ts` drops the key before validation in both
+readers, with no number changed and nothing reported. The .wpr `Qiclfr` still maps to and from the rear chamber.
 
 ## Verification
-Unit: the front chamber has no Qicl field; an older file with a front Qicl still loads and the sweep is unchanged.
+`packages/design/test/domain/front-chamber-qicl.test.ts`: front chambers hold no Qicl; an old file with a front
+Qicl loads by the repairing and the plain reader, the other values are unchanged and a re-save has no front Qicl;
+.wpr `Qiclfr` imports to the rear Qicl and exports from it. `packages/ui/test/fixtures/sampleProject.test.ts` passes.
+Passed 2026-10-07.

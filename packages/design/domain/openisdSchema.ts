@@ -602,19 +602,19 @@ const openISDBoxJsonSchema = z.strictObject({
     bandpass4: z.strictObject({
         // rear is sealed but coupled to front through the shared wall — Qicl, no Qp.
         rear: coupledSealedChamberJsonSchema,
-        // front is vented and coupled — both Qp and Qicl.
-        front: coupledVentedChamberJsonSchema,
+        // front is vented — Qp, and no Qicl: WinISD's one Qicl is the rear chamber's.
+        front: ventedChamberJsonSchema,
         frontVent: ventJsonSchema,
     }),
     bandpass6: z.strictObject({
         rear: coupledVentedChamberJsonSchema,
-        front: coupledVentedChamberJsonSchema,
+        front: ventedChamberJsonSchema,
         rearVent: ventJsonSchema,
         frontVent: ventJsonSchema,
     }),
     abc: z.strictObject({
         rear: coupledVentedChamberJsonSchema,
-        front: coupledVentedChamberJsonSchema,
+        front: ventedChamberJsonSchema,
         rearVent: ventJsonSchema,
         frontVent: ventJsonSchema,
         // The connecting port between rear and front. No live WinISD evidence was ever captured

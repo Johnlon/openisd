@@ -23,6 +23,8 @@ const props = withDefaults(defineProps<{
   max?: number;
   field?: NumberField;
   mandatory?: boolean;
+  /** An emptied box is a refused entry (the model can never be blank), not an entry of nothing. */
+  blankRefused?: boolean;
   /** Allow values outside the registry's sanity range so the caller can show a DQ warning. */
   allowOutOfRange?: boolean;
   dq?: readonly string[];
@@ -36,6 +38,7 @@ const props = withDefaults(defineProps<{
   halfWidth: null,
   step: 'any',
   mandatory: false,
+  blankRefused: false,
   allowOutOfRange: false,
   stepper: false,
   hideMark: false,
@@ -291,6 +294,7 @@ function onBlur(e: Event) {
 const refusal = computed<string>(() => {
   if (props.allowOutOfRange) return '';
   if (badEntry.value) return entryRefusal(bounds.value, { kind: 'not-a-number' });
+  if (display.value === '' && props.blankRefused) return entryRefusal(bounds.value, { kind: 'not-a-number' });
   if (display.value === '' || display.value === '-') return '';
   if (display.value === fmt(props.modelValue)) return '';
   return entryRefusal(bounds.value, { kind: 'number', si: fromDisp(parseFloat(display.value)) });

@@ -1,5 +1,5 @@
 import type { Calculatable, Calculated, Clearable, Entered, Precise, Readable, Unsolvable, Writable } from '../cell.js';
-import type { CoupledSealedLosses, CoupledVentedLosses } from '../losses.js';
+import type { CoupledSealedLosses, VentedLosses } from '../losses.js';
 import type { Vent } from '../vent.js';
 
 // Chambers and vents (ports) are two SEPARATE, sibling groupings — never one bundled into the
@@ -21,7 +21,7 @@ export interface Bandpass4Box {
         readonly front: {
             readonly volume_m3: Readable<number | null> & Entered & Precise & Writable<number> & Clearable;
             readonly tuning_goal_hz: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;
-            readonly losses: CoupledVentedLosses;
+            readonly losses: VentedLosses;
         };
     };
     readonly vents: {

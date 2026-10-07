@@ -55,7 +55,7 @@ const {
   ventedAlignmentSuitabilityLabel,
   activeTuning, fbState, FB_TARGET_TIP, FH_TARGET_TIP, VENT_GEOMETRY_TIP, VentMember,
   boxResonance, rearQtc, prSystemTuningDq, prNaturalFh,
-  fbUnreachable, fbUnreachableMsg, boxLossesOpen, isDual,
+  fbUnreachable, fbUnreachableMsg, isDual,
   frontVolumeCell, frcHz, setFrcHz, rearResonance, frontChamberTuningLabel,
   model, startEdit, startWhatIf, placement,
   activeVent, END_CORRECTION_OPTIONS, VENT_SHAPE_OPTIONS, VENT_COUNT_OPTIONS, PR_COUNT_OPTIONS, ventLState, portPipeResonance_hz,
@@ -68,7 +68,7 @@ const {
   reconcileDriveV,
   powerLocked,
   projectName, projectCreator, projectCreated, projectModified, projectDescription,
-  boxLossGroups, resetBoxLosses,
+  lossesOpen, openLossGroup, resetBoxLosses,
   onFile, fileInput,
 } = useOriginalShell();
 const winisdDifferences = injectWinisdDifferencesModal();
@@ -316,7 +316,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
                 <div v-else :class="['field', { 'dq-flag': selectedBox === 'box-passive-radiator' && prSystemTuningDq.dq.length > 0 }]" :title="selectedBox === 'box-passive-radiator' ? (prSystemTuningDq.dq.length > 0 ? prSystemTuningDq.dq.join('; ') + '\n\n' + FH_TARGET_TIP : FH_TARGET_TIP) : ''"><label>Fh</label><NumReadout as-input id="og-box-resonance" class="calculated greyed" :field="NumberField.BOX_RESONANCE_HZ" :value="boxResonance" /><UnitToggle :field="NumberField.BOX_RESONANCE_HZ" unit-class="unit unit-cyc" /></div>
               </div>
               <p v-if="selectedBox === 'vented' && fbUnreachable" id="og-fb-unreachable" class="hint" style="color:#a11;">{{ fbUnreachableMsg }}</p>
-              <button class="link-btn" @click="boxLossesOpen = true">Advanced-&gt;</button>
+              <button class="link-btn" @click="lossesOpen = 'whole'">Advanced-&gt;</button>
             </div>
 
             <template v-else>
@@ -338,7 +338,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
                 <div v-if="selectedBox === 'bandpass4'" class="field-row">
                   <div class="field"><label>Qtc</label><input class="calculated greyed" :value="ReadoutFormat.QTC.text(rearQtc, '')" readonly></div>
                 </div>
-                <button class="link-btn" @click="boxLossesOpen = true">Advanced-&gt;</button>
+                <button class="link-btn" @click="lossesOpen = 'rear'">Advanced-&gt;</button>
               </div>
               <div class="box-fields-col">
                 <div class="section-header">Front chamber</div>
@@ -351,6 +351,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
                   </div>
                 </div>
                 <p v-if="fbUnreachable" id="og-ffc-unreachable" class="hint" style="color:#a11;">{{ fbUnreachableMsg }}</p>
+                <button class="link-btn" @click="lossesOpen = 'front'">Advanced-&gt;</button>
               </div>
             </template>
 
@@ -738,26 +739,26 @@ provideCellScope({ revision: projectChanged, written: () => {} });
       </div>
     </div>
 
-    <!-- ===== Box losses modal (real: Ql / Qa / Qp) ===== -->
-    <div class="overlay" :class="{ open: boxLossesOpen }" @click.self="boxLossesOpen = false">
+    <!-- ===== Box losses modal: the one chamber set whose Advanced-> opened it ===== -->
+    <div class="overlay" :class="{ open: lossesOpen !== null }" @click.self="lossesOpen = null">
       <div class="modal narrow">
         <div class="modal-titlebar">
           <div class="tb-left"><span class="app-icon"></span><span>Box losses</span></div>
-          <div class="win-controls"><span class="close-btn" @click="boxLossesOpen = false">&#10005;</span></div>
+          <div class="win-controls"><span class="close-btn" @click="lossesOpen = null">&#10005;</span></div>
         </div>
         <div class="modal-body">
-          <template v-for="g in boxLossGroups" :key="g.heading ?? ''">
-            <div v-if="g.heading !== null" class="section-header">{{ g.heading }}</div>
-            <div class="field-row"><div class="field entered" style="--label-w:130px"><label>Leakage Ql</label><NumInput :model-value="g.Ql" @update:model-value="(v: number | null) => g.setQl(v ?? 0)" :precision="NumberField.LOSS_QL.precision" /></div></div>
-            <div class="field-row"><div class="field entered" style="--label-w:130px"><label>Absorption Qa</label><NumInput :model-value="g.Qa" @update:model-value="(v: number | null) => g.setQa(v ?? 0)" :precision="NumberField.LOSS_QA.precision" /></div></div>
-            <div class="field-row" v-if="g.Qp !== null"><div class="field entered" style="--label-w:130px"><label>Port Qp</label><NumInput :model-value="g.Qp" @update:model-value="(v: number | null) => g.setQp(v ?? 0)" :precision="NumberField.LOSS_QP.precision" /></div></div>
-            <div class="field-row" v-if="g.Qicl !== null"><div class="field entered" style="--label-w:130px"><label>{{ NumberField.LOSS_QICL.label }}</label><NumInput :model-value="g.Qicl" @update:model-value="(v: number | null) => g.setQicl(v ?? 0)" :precision="NumberField.LOSS_QICL.precision" /></div></div>
+          <template v-if="openLossGroup !== null">
+            <div v-if="openLossGroup.heading !== null" class="section-header">{{ openLossGroup.heading }}</div>
+            <div class="field-row"><UIField class="field" :field="NumberField.LOSS_QL" :cell="openLossGroup.Ql" /></div>
+            <div class="field-row"><UIField class="field" :field="NumberField.LOSS_QA" :cell="openLossGroup.Qa" /></div>
+            <div class="field-row" v-if="openLossGroup.Qp !== null"><UIField class="field" :field="NumberField.LOSS_QP" :cell="openLossGroup.Qp" /></div>
+            <div class="field-row" v-if="openLossGroup.Qicl !== null"><UIField class="field" :field="NumberField.LOSS_QICL" :cell="openLossGroup.Qicl" /></div>
           </template>
           <p class="hint">Qa (stuffing): 100 = none · 20–50 = light · 5–10 = heavy. WinISD defaults: Ql=10, Qa=100, Qp=100, Qicl=100.</p>
         </div>
         <div class="modal-footer">
           <span class="hint">Changes apply live to the graph.</span>
-          <div class="footer-buttons"><button id="og-box-losses-reset" class="ok-btn" title="Back to WinISD's defaults: Ql 10, Qa 100, Qp 100, Qicl 100" @click="resetBoxLosses">Reset</button><button class="ok-btn" @click="boxLossesOpen = false">OK</button></div>
+          <div class="footer-buttons"><button id="og-box-losses-reset" class="ok-btn" title="Back to WinISD's defaults: Ql 10, Qa 100, Qp 100, Qicl 100" @click="resetBoxLosses">Reset</button><button class="ok-btn" @click="lossesOpen = null">OK</button></div>
         </div>
       </div>
     </div>

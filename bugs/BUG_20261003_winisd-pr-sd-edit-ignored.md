@@ -21,6 +21,11 @@ A PR Sd edit takes effect. With Fs, Qms and Vas fixed the PR's mass, compliance 
 change, so Transfer function and SPL stay put; Cone excursion (PR) and the PR air velocity chart
 scale as 1/Sd.
 
+Probed 2026-10-07 (bug walk, scratch Playwright spec, ND140-PR in a 30 L PR box, Sd 86.6 → 173.2 cm²): typed and
+file-loaded edits both take effect. PR excursion peak 0.98177 → 0.49089 mm and `pv` peak 0.30144 → 0.15072 m/s
+(ratio 0.5 = 1/Sd); driver excursion and SPL unchanged; the box kept 173.20 (no snap-back). No test in the tree covers
+a PR Sd edit: add one.
+
 ## Other fields (probe `winisd_research/toys/probe_pr_sd_edit.py field=...`)
 - Fs: LINKED. Typing 30 → 20 changes Transfer function (PR) at once and both PR charts after a
   redraw (`runs/pr-Fs-edit-1`).

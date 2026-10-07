@@ -6,7 +6,7 @@
  */
 import type {ComputedRef, Ref} from 'vue';
 import {computed, ref, watch} from 'vue';
-import type {OpenISDProject} from '@openisd/design';
+import type {BoxLossGroup, LossChamber, OpenISDProject} from '@openisd/design';
 import type {BoxType} from '@openisd/design/engine';
 import {BOX_TYPE_OPTIONS} from '@openisd/design/fields';
 import {dqOfCell, type DqReadout} from '../logic/cellDataQuality.js';
@@ -114,47 +114,27 @@ export function createChamberFields({ project, selectedBox, projectChanged: chan
 }
 
 // ---- Box losses popup (unit-testable, real domain) ----------------------------
-// One row set per chamber the box gives (`Box.lossGroupsOf`): one for most types, a Rear and a
-// Front chamber set for bandpass6/abc. Each set carries its own setters, so a shell never
-// switches on box type or chamber.
-export interface BoxLossRows {
-  readonly heading: string | null;
-  readonly Ql: number;
-  readonly Qa: number;
-  /** null: the chamber has no port, so the popup shows no Qp row. */
-  readonly Qp: number | null;
-  /** null: the type has one chamber, so the popup shows no Qicl row. One value across the sets. */
-  readonly Qicl: number | null;
-  setQl(v: number): void;
-  setQa(v: number): void;
-  setQp(v: number): void;
-  setQicl(v: number): void;
-}
-
+// Each chamber panel's Advanced-> opens the popup for its own chamber (`LossChamber`); the popup
+// shows that one set from `Box.lossGroupsOf` and Reset puts only that set back. `null`: closed.
 export interface BoxLossesDeps extends BoxVolumeDeps {
   /** null while no project is open: the shell renders then, with no loss rows. */
   focusedProject: () => OpenISDProject | null;
 }
 
 export function createBoxLosses({ project, selectedBox, projectChanged: changed, focusedProject }: BoxLossesDeps) {
-  const boxLossGroups = computed<readonly BoxLossRows[]>(() => {
+  const lossesOpen = ref<LossChamber | null>(null);
+  const openLossGroup = computed<BoxLossGroup | null>(() => {
     void changed.value;
     const open = focusedProject();
-    if (!open) return [];
-    return open.box.lossGroupsOf(selectedBox.value).map((g) => ({
-      heading: g.heading,
-      Ql: g.Ql.value,
-      Qa: g.Qa.value,
-      Qp: g.Qp?.value ?? null,
-      Qicl: g.Qicl?.value ?? null,
-      setQl: (v: number) => g.Ql.set(v),
-      setQa: (v: number) => g.Qa.set(v),
-      setQp: (v: number) => g.Qp?.set(v),
-      setQicl: (v: number) => g.Qicl?.set(v),
-    }));
+    const chamber = lossesOpen.value;
+    if (!open || chamber === null) return null;
+    return open.box.lossGroupsOf(selectedBox.value).find(g => g.chamber === chamber) ?? null;
   });
-  function resetBoxLosses(): void { project.value.box.resetLossesOf(selectedBox.value); }
-  return { boxLossGroups, resetBoxLosses };
+  function resetBoxLosses(): void {
+    const chamber = lossesOpen.value;
+    if (chamber !== null) project.value.box.resetLossesOf(selectedBox.value, chamber);
+  }
+  return { lossesOpen, openLossGroup, resetBoxLosses };
 }
 
 export interface SelectedBoxDeps {

@@ -3,7 +3,6 @@
  * the SAME field-wiring factories `boxFields.ts` exports — one implementation of
  * "what does the Box tab's Volume field do", asked by both shells.
  */
-import {ref} from 'vue';
 import {IMPLEMENTED_BOX_TYPES, boxTypeIsSimulatable, envDefaults, focusedProject, projectChanged} from '../logic/appState.js';
 import {useFocusedProject} from '../logic/focusedProjectContext.js';
 import {useApp} from '../logic/app.js';
@@ -27,8 +26,7 @@ export function useMobileBoxTab() {
   const { boxVolumeCell } = createBoxVolume({ project, selectedBox, projectChanged });
   const { frontVolumeCell, frcHz, setFrcHz } = createChamberFields({ project, selectedBox, projectChanged });
   // Box losses popup: one row set per chamber, the same hook the desktop shell uses.
-  const { boxLossGroups, resetBoxLosses } = createBoxLosses({ project, selectedBox, projectChanged, focusedProject });
-  const boxLossesOpen = ref(false);
+  const { lossesOpen, openLossGroup, resetBoxLosses } = createBoxLosses({ project, selectedBox, projectChanged, focusedProject });
 
   // Same skin-neutral class the desktop shell uses (SealedAlignment-hooks.ts) — one editor, not
   // a mobile copy. It takes only the two engine areas it needs (sealed, driver), never the
@@ -69,6 +67,6 @@ export function useMobileBoxTab() {
     ventedAlignmentEditor, ventedAlignmentOpen, ventedAlignmentOptions, ventedAlignmentSelected,
     ventedAlignmentVolume_L, ventedAlignmentTuning_hz, ventedAlignmentEbp, ventedAlignmentSuitability,
     ventedAlignmentSuitabilityLabel,
-    boxLossGroups, resetBoxLosses, boxLossesOpen,
+    lossesOpen, openLossGroup, resetBoxLosses,
   };
 }

@@ -21,7 +21,7 @@ const {
   ventedAlignmentEditor, ventedAlignmentOpen, ventedAlignmentOptions, ventedAlignmentSelected,
   ventedAlignmentVolume_L, ventedAlignmentTuning_hz, ventedAlignmentEbp, ventedAlignmentSuitability,
   ventedAlignmentSuitabilityLabel,
-  boxLossGroups, resetBoxLosses, boxLossesOpen,
+  lossesOpen, openLossGroup, resetBoxLosses,
 } = useMobileBoxTab();
 const { fieldWithUnit, readoutWithUnit } = useUnitReadouts();
 </script>
@@ -85,13 +85,16 @@ const { fieldWithUnit, readoutWithUnit } = useUnitReadouts();
       <button class="mob-btn" @click="ventedAlignmentEditor.openEditor">Choose alignment</button>
     </div>
     <div class="mob-row">
-      <button class="mob-btn" @click="boxLossesOpen = true">Box losses -&gt;</button>
+      <button class="mob-btn" @click="lossesOpen = isDual ? 'rear' : 'whole'">Box losses -&gt;</button>
     </div>
   </div>
 
   <div v-if="isDual" class="mob-panel">
     <div class="mob-panel-head">Front chamber</div>
     <UIField v-if="frontVolumeCell" class="mob-ui-field" :field="NumberField.BOX_VF_L" :cell="frontVolumeCell" stepper />
+    <div class="mob-row">
+      <button class="mob-btn" @click="lossesOpen = 'front'">Box losses -&gt;</button>
+    </div>
   </div>
 
   <p v-if="showEnclosureTab" class="mob-hint">
@@ -168,53 +171,23 @@ const { fieldWithUnit, readoutWithUnit } = useUnitReadouts();
     </div>
   </div>
 
-  <div v-if="boxLossesOpen" class="mob-align-overlay" @click.self="boxLossesOpen = false">
+  <div v-if="lossesOpen !== null" class="mob-align-overlay" @click.self="lossesOpen = null">
     <div class="mob-align-sheet">
       <div class="mob-panel-head mob-panel-head-row">
         <span>Box losses</span>
-        <button class="mob-x" @click="boxLossesOpen = false">&#10005;</button>
+        <button class="mob-x" @click="lossesOpen = null">&#10005;</button>
       </div>
-      <template v-for="g in boxLossGroups" :key="g.heading ?? ''">
-        <div v-if="g.heading !== null" class="mob-panel-head">{{ g.heading }}</div>
-        <div class="mob-field-row mob-field-entered">
-          <div class="mob-field-main">
-            <span class="mob-field-label">Leakage Ql</span>
-            <span class="mob-field-value">
-              <NumInput :model-value="g.Ql" @update:model-value="(v: number | null) => g.setQl(v ?? 0)" :precision="NumberField.LOSS_QL.precision" stepper />
-            </span>
-          </div>
-          <!-- An empty unit column, so this row's ▲▼ line up with the rows that have a unit. -->
-          <span class="mob-unit" aria-hidden="true"></span>
-        </div>
-        <div class="mob-field-row mob-field-entered">
-          <div class="mob-field-main">
-            <span class="mob-field-label">Absorption Qa</span>
-            <span class="mob-field-value">
-              <NumInput :model-value="g.Qa" @update:model-value="(v: number | null) => g.setQa(v ?? 0)" :precision="NumberField.LOSS_QA.precision" stepper />
-            </span>
-          </div>
-        </div>
-        <div v-if="g.Qp !== null" class="mob-field-row mob-field-entered">
-          <div class="mob-field-main">
-            <span class="mob-field-label">Port Qp</span>
-            <span class="mob-field-value">
-              <NumInput :model-value="g.Qp" @update:model-value="(v: number | null) => g.setQp(v ?? 0)" :precision="NumberField.LOSS_QP.precision" stepper />
-            </span>
-          </div>
-        </div>
-        <div v-if="g.Qicl !== null" class="mob-field-row mob-field-entered">
-          <div class="mob-field-main">
-            <span class="mob-field-label">{{ NumberField.LOSS_QICL.label }}</span>
-            <span class="mob-field-value">
-              <NumInput :model-value="g.Qicl" @update:model-value="(v: number | null) => g.setQicl(v ?? 0)" :precision="NumberField.LOSS_QICL.precision" stepper />
-            </span>
-          </div>
-        </div>
+      <template v-if="openLossGroup !== null">
+        <div v-if="openLossGroup.heading !== null" class="mob-panel-head">{{ openLossGroup.heading }}</div>
+        <UIField class="mob-ui-field" :field="NumberField.LOSS_QL" :cell="openLossGroup.Ql" stepper />
+        <UIField class="mob-ui-field" :field="NumberField.LOSS_QA" :cell="openLossGroup.Qa" stepper />
+        <UIField v-if="openLossGroup.Qp !== null" class="mob-ui-field" :field="NumberField.LOSS_QP" :cell="openLossGroup.Qp" stepper />
+        <UIField v-if="openLossGroup.Qicl !== null" class="mob-ui-field" :field="NumberField.LOSS_QICL" :cell="openLossGroup.Qicl" stepper />
       </template>
       <p class="mob-hint">Qa (stuffing): 100 = none · 20–50 = light · 5–10 = heavy. WinISD defaults: Ql=10, Qa=100, Qp=100, Qicl=100.</p>
       <div class="mob-align-footer">
         <button id="mob-box-losses-reset" class="mob-btn" title="Back to WinISD's defaults: Ql 10, Qa 100, Qp 100, Qicl 100" @click="resetBoxLosses">Reset</button>
-        <button class="mob-btn mob-btn-primary" @click="boxLossesOpen = false">OK</button>
+        <button class="mob-btn mob-btn-primary" @click="lossesOpen = null">OK</button>
       </div>
     </div>
   </div>

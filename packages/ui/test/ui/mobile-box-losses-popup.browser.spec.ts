@@ -2,6 +2,7 @@
  * The mobile "Box losses" sheet, opened from the Box tab: Ql and Qa always, Qp only for a vented box.
  */
 import {expect, openAMobileProject, test} from '../fixtures.js';
+import type {Locator, Page} from '@playwright/test';
 import {forceMobileSkin} from '../fixtures/mobileSkin.js';
 
 test.beforeEach(async ({ page }) => {
@@ -42,38 +43,42 @@ test.describe('MobileBoxLossesPopup', () => {
     await expect(q('Port Qp')).toHaveValue(/^100(\.0+)?$/);
   });
 
-  // bugs/BUG_20261007_4th-order-bandpass-merges-per-chamber-losses.md; WinISD probe e7c754c
-  for (const [type, ports] of [['bandpass4', 1], ['bandpass6', 2], ['abc', 2]] as const) {
-    test(`${type}: each chamber set has the one Qicl, and ${ports} Port Qp row(s)`, async ({ page }) => {
+  // bugs/BUG_20261007_advanced-link-opens-every-chamber-losses.md: a two-chamber box has one
+  // "Box losses" button per chamber panel, each opening that chamber's set only.
+  for (const [type, rearPorts] of [['bandpass4', 0], ['bandpass6', 1], ['abc', 1]] as const) {
+    const openFor = async (page: Page, chamber: 'Rear' | 'Front') => {
+      await page.locator('.mob-panel', { has: page.locator('.mob-panel-head', { hasText: `${chamber} chamber` }) })
+        .locator('.mob-btn', { hasText: 'Box losses' }).click();
+      return page.locator('.mob-align-sheet');
+    };
+    test(`${type}: each chamber panel's button opens only that chamber's set`, async ({ page }) => {
       await page.locator('#mob-box-type').selectOption(type);
-      await page.locator('.mob-btn', { hasText: 'Box losses' }).click();
-      const sheet = page.locator('.mob-align-sheet');
-      await expect(sheet.locator('.mob-panel-head', { hasText: 'chamber' })).toHaveText(['Rear chamber', 'Front chamber']);
-      await expect(sheet.locator('.mob-field-label', { hasText: 'Port Qp' })).toHaveCount(ports);
-      const qicl = sheet.locator('.mob-field-row', { has: page.locator('.mob-field-label', { hasText: 'Interchamber Qicl' }) }).locator('input');
-      await expect(qicl).toHaveCount(2);
-      await qicl.nth(1).fill('42'); await qicl.nth(1).blur();
-      await expect(qicl.nth(0)).toHaveValue(/^42(\.0+)?$/);
-      await page.locator('#mob-box-losses-reset').click();
-      await expect(qicl.nth(0)).toHaveValue(/^100(\.0+)?$/);
+      const rear = await openFor(page, 'Rear');
+      await expect(rear.locator('.mob-panel-head', { hasText: 'chamber' })).toHaveText(['Rear chamber']);
+      await expect(rear.locator('.mob-field-label', { hasText: 'Port Qp' })).toHaveCount(rearPorts);
+      await expect(rear.locator('.mob-field-label', { hasText: 'Interchamber Qicl' })).toHaveCount(1);
+      await rear.locator('.mob-align-footer .mob-btn', { hasText: 'OK' }).click();
+      const front = await openFor(page, 'Front');
+      await expect(front.locator('.mob-panel-head', { hasText: 'chamber' })).toHaveText(['Front chamber']);
+      await expect(front.locator('.mob-field-label', { hasText: 'Port Qp' })).toHaveCount(1);
     });
-  }
-
-  // bugs/BUG_20261006_box-losses-popup-blank-for-6th-and-abc.md
-  for (const type of ['bandpass6', 'abc'] as const) {
-    test(`${type}: the sheet shows a Rear and a Front chamber set; edits and Reset reach both`, async ({ page }) => {
+    test(`${type}: Reset puts only the open chamber back; the Qicl is one value for both`, async ({ page }) => {
       await page.locator('#mob-box-type').selectOption(type);
-      await page.locator('.mob-btn', { hasText: 'Box losses' }).click();
-      const sheet = page.locator('.mob-align-sheet');
-      await expect(sheet.locator('.mob-panel-head', { hasText: 'chamber' })).toHaveText(['Rear chamber', 'Front chamber']);
-      const ql = sheet.locator('.mob-field-row', { has: page.locator('.mob-field-label', { hasText: 'Leakage Ql' }) }).locator('input');
-      await expect(ql).toHaveCount(2);
-      await expect(ql.nth(0)).toHaveValue(/^10(\.0+)?$/);
-      await ql.nth(1).fill('7'); await ql.nth(1).blur();
-      await expect(ql.nth(1)).toHaveValue(/^7(\.0+)?$/);
-      await expect(ql.nth(0)).toHaveValue(/^10(\.0+)?$/);
+      const q = (sheet: Locator, label: string) =>
+        sheet.locator('.mob-field-row', { has: page.locator('.mob-field-label', { hasText: label }) }).locator('input');
+      let sheet = await openFor(page, 'Front');
+      await q(sheet, 'Leakage Ql').fill('7'); await q(sheet, 'Leakage Ql').blur();
+      await q(sheet, 'Interchamber Qicl').fill('42'); await q(sheet, 'Interchamber Qicl').blur();
+      await sheet.locator('.mob-align-footer .mob-btn', { hasText: 'OK' }).click();
+      sheet = await openFor(page, 'Rear');
+      await expect(q(sheet, 'Leakage Ql')).toHaveValue(/^10(\.0+)?$/);
+      await expect(q(sheet, 'Interchamber Qicl')).toHaveValue(/^42(\.0+)?$/);
+      await q(sheet, 'Leakage Ql').fill('8'); await q(sheet, 'Leakage Ql').blur();
       await page.locator('#mob-box-losses-reset').click();
-      await expect(ql.nth(1)).toHaveValue(/^10(\.0+)?$/);
+      await expect(q(sheet, 'Leakage Ql')).toHaveValue(/^10(\.0+)?$/);
+      await sheet.locator('.mob-align-footer .mob-btn', { hasText: 'OK' }).click();
+      sheet = await openFor(page, 'Front');
+      await expect(q(sheet, 'Leakage Ql')).toHaveValue(/^7(\.0+)?$/);
     });
   }
 });

@@ -250,7 +250,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   // losses: which field each box type has is the box's own knowledge (`Box.frontVolumeOf`,
   // `rearTuningOf`, `lossGroupsOf`); this reads and writes whatever it hands back.
   const { frontVolumeCell, frcHz, setFrcHz } = createChamberFields({ project, selectedBox, projectChanged });
-  const { boxLossGroups, resetBoxLosses } = createBoxLosses({ project, selectedBox, projectChanged, focusedProject });
+  const { lossesOpen, openLossGroup, resetBoxLosses } = createBoxLosses({ project, selectedBox, projectChanged, focusedProject });
   async function confirmDiscard(): Promise<boolean> {
     return globalThis.confirm('Discard all unsaved changes and return to the last saved version?');
   }
@@ -587,7 +587,6 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   const placement = ref<'standard' | 'iso'>('standard');
 
   // ---- Box losses (real: Ql/Qa/Qp) + docked/modal editors ------------------------
-  const boxLossesOpen = ref(false);
   const optionsOpen = ref(false);
 
   // What-if? opens the project's What-if layer. The project's own values stay underneath it,
@@ -657,7 +656,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
      ventedAlignmentSuitabilityLabel,
     fbState, FB_TARGET_TIP, FH_TARGET_TIP, VENT_GEOMETRY_TIP, VentMember,
     boxResonance, rearQtc, prSystemTuningDq,
-    fbUnreachable, fbUnreachableMsg, boxLossesOpen, isDual,
+    fbUnreachable, fbUnreachableMsg, isDual,
     frontVolumeCell, frcHz, setFrcHz, rearResonance, frontChamberTuningLabel,
     model, startEdit, startWhatIf, placement,
     activeVent, activeTuning, END_CORRECTION_OPTIONS, VENT_SHAPE_OPTIONS, VENT_COUNT_OPTIONS, PR_COUNT_OPTIONS, ventLState, portPipeResonance_hz,
@@ -672,7 +671,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     reconcileDriveV,
     powerLocked,
     projectName, projectCreator, projectCreated, projectModified, projectDescription,
-    boxLossGroups, resetBoxLosses,
+    lossesOpen, openLossGroup, resetBoxLosses,
     onFile, fileInput,
   };
 }
