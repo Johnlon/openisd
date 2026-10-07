@@ -19,7 +19,6 @@ import {createEngine} from '@openisd/design/engine';
 import {newProject, requireFocusedProject} from '../../src/logic/appState.js';
 import {
   notifyVentChanged,
-  resetVentGroupState,
   ventAchievedFb,
   VentMember,
   ventMaxReachableFb,
@@ -131,7 +130,7 @@ describe('ventGroup', () => {
   // old test asserting that state persisted is gone, replaced below.
   describe('notifyVentChanged() re-derives the calculated member', () => {
     let p: ReturnType<typeof ventedProject>;
-    beforeEach(() => { resetVentGroupState(); p = ventedProject(); });
+    beforeEach(() => { p = ventedProject(); });
 
     it('ships WinISD\'s direction: tuning entered, vent length calculated', () => {
       assert.equal(VentMember.TUNING.state(p), 'E');
@@ -177,6 +176,19 @@ describe('ventGroup', () => {
       assert.equal(p.box.vented.vent.length_m.value, 0.999, 'the entered length is held exactly');
       assert.equal(p.box.vented.tuning_goal_hz.calculated, true, 'the domain re-derives tuning, not the UI');
       assert.notEqual(p.box.vented.tuning_goal_hz.value, 40, 'the old entered tuning target is gone, not held alongside it');
+    });
+  });
+
+  // The pair's entered side lives on the project's own cells, so one project's entry never changes
+  // what another project reports (no module-level state).
+  describe('the pair state belongs to the project', () => {
+    it('a length entered on one project does not make another project\'s tuning calculated', () => {
+      const first = ventedProject();
+      VentMember.LENGTH.enter(first, 0.154);
+      assert.equal(VentMember.TUNING.state(first), 'C');
+      const second = ventedProject();
+      assert.equal(VentMember.TUNING.state(second), 'E');
+      assert.equal(VentMember.LENGTH.state(second), 'C');
     });
   });
 

@@ -35,16 +35,6 @@ function fallBackToStartingAlignment(p: OpenISDProject): void {
   if (p.box.boxType.value !== 'bandpass4') p.box.resetVentedAlignment();
 }
 
-/** Which side of the tuning / vent-length pair the user stated last. The two are relative to each
- *  other with the port's cross-section fixed (John, 2026-10-06): typing one makes the other the
- *  calculated side, so only one is ever entered. */
-type EnteredPair = 'tuning' | 'length';
-let userEnteredPair: EnteredPair = 'tuning';
-
-export function resetVentGroupState(): void {
-  userEnteredPair = 'tuning';
-}
-
 /** One user action, one solve: the domain solves inside the write, and the suspension parks the
  *  auto-solve watch. */
 function act(p: OpenISDProject, write: () => void): void {
@@ -89,45 +79,30 @@ export class VentMember {
   });
 
   static readonly TUNING: VentInput & VentClearable & VentBadged = Object.freeze({
-    enter: (p: OpenISDProject, value: number) => act(p, () => {
-      group(p).tuning_goal_hz.set(value);
-      userEnteredPair = 'tuning';
-    }),
+    enter: (p: OpenISDProject, value: number) => act(p, () => group(p).tuning_goal_hz.set(value)),
     clear: (p: OpenISDProject) => act(p, () => {
-      // Clearing the calculated side changes nothing: it is recalculated from the entered one.
-      if (userEnteredPair === 'length' && group(p).vent.length_m.value !== null) return;
+      // The pair is relative (John, 2026-10-06): typing one makes the other the calculated side.
+      // Clearing the side that is not entered changes nothing: it is recalculated from the other.
+      if (group(p).tuning_goal_hz.provenance !== 'E' && group(p).vent.length_m.value !== null) return;
       // Clearing the entered side leaves nothing on either side of the pair — rather than leave
       // both blank (John, 2026-10-01: "unrecoverable"), fall back to the same QB3-style alignment
       // a fresh box gets. The tuning is the alignment's own entered side, same as a new box.
       group(p).tuning_goal_hz.clear();
       group(p).vent.length_m.clear();
       fallBackToStartingAlignment(p);
-      userEnteredPair = 'tuning';
     }),
-    state: (p: OpenISDProject): ProvenanceLetter => {
-      if (group(p).tuning_goal_hz.value === null) return 'N';
-      if (userEnteredPair === 'length' && group(p).vent.length_m.value !== null) return 'C';
-      return 'E';
-    },
+    state: (p: OpenISDProject): ProvenanceLetter => group(p).tuning_goal_hz.provenance,
   });
 
   static readonly LENGTH: VentInput & VentClearable & VentBadged = Object.freeze({
-    enter: (p: OpenISDProject, value: number) => act(p, () => {
-      group(p).vent.length_m.set(value);
-      userEnteredPair = 'length';
-    }),
+    enter: (p: OpenISDProject, value: number) => act(p, () => group(p).vent.length_m.set(value)),
     clear: (p: OpenISDProject) => act(p, () => {
-      if (userEnteredPair === 'tuning' && group(p).tuning_goal_hz.value !== null) return;
+      if (group(p).vent.length_m.provenance !== 'E' && group(p).tuning_goal_hz.value !== null) return;
       group(p).vent.length_m.clear();
       group(p).tuning_goal_hz.clear();
       fallBackToStartingAlignment(p);
-      userEnteredPair = 'tuning';
     }),
-    state: (p: OpenISDProject): ProvenanceLetter => {
-      if (group(p).vent.length_m.value === null) return 'N';
-      if (userEnteredPair === 'tuning' && group(p).tuning_goal_hz.value !== null) return 'C';
-      return 'E';
-    },
+    state: (p: OpenISDProject): ProvenanceLetter => group(p).vent.length_m.provenance,
   });
 
   static readonly WIDTH: VentInput = Object.freeze({
