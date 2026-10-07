@@ -74,6 +74,9 @@ function maskDerived(json: unknown): unknown {
       const o = node;
       const out: Record<string, unknown> = {};
       for (const [k, v] of Object.entries(o)) {
+        // An entered value's precision is how many decimals it was stated to (the wizard states the
+        // starting Fb to 0.01 Hz; a builder-written value states none): display metadata, not structure.
+        if (k === 'precision' && o.state === 'E') continue;
         if ((k === 'value' || k === 'precision') && o.state === 'C') { out[k] = 'derived'; continue; }
         out[k] = walk(v);
       }
