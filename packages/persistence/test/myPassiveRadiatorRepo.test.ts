@@ -39,7 +39,6 @@ function passiveRadiatorRecord() {
     sku: { value: 'TEST-PR-SKU', grounds: [{ origin: 'manufacturer_datasheet', reading: 'TEST-PR-SKU' }] },
     driver_type: scraped('passive-radiator'),
     data_sources: { value: { manufacturer_datasheet: 'https://example.invalid/pr.pdf' } },
-    authoritative: { value: 'manufacturer_datasheet' },
     quality: {
       confirmed_fields: [], fields_with_issues: [], missing: [], invalid: [],
       parse_errors: [], cross_source_only: [],

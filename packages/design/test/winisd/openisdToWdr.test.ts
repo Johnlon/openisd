@@ -94,7 +94,6 @@ model: {value: Widget, origin: entered}
 sku: {value: acme-widget, grounds: [{origin: entered, reading: acme-widget}]}
 driver_type: {value: woofer, origin: entered}
 data_sources: {value: {}}
-authoritative: {value: entered}
 provided_by: {value: '', origin: entered}
 comment: {value: '', origin: entered}
 added: {value: '2026-09-01', origin: entered}
@@ -115,7 +114,6 @@ model: {value: Widget, origin: entered}
 sku: {value: acme-widget, grounds: [{origin: entered, reading: acme-widget}]}
 driver_type: {value: woofer, origin: entered}
 data_sources: {value: {}}
-authoritative: {value: entered}
 provided_by: {value: '', origin: entered}
 comment: {value: '', origin: entered}
 added: {value: '2026-09-01', origin: entered}

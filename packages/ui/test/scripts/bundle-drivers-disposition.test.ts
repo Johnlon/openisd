@@ -50,8 +50,6 @@ driver_type:
   value: full-range
 data_sources:
   value: {}
-authoritative:
-  value: openisd
 specs:
   woofer:
     Fs_hz:
@@ -91,8 +89,6 @@ driver_type:
   value: full-range
 data_sources:
   value: {}
-authoritative:
-  value: openisd
 specs:
   woofer: {}
 `);
@@ -174,8 +170,6 @@ driver_type:
   value: full-range
 data_sources:
   value: {}
-authoritative:
-  value: openisd
 specs:
   woofer:
     Fs_hz:
@@ -215,8 +209,6 @@ driver_type:
   value: passive-radiator
 data_sources:
   value: {}
-authoritative:
-  value: openisd
 specs:
   passive-radiator:
     Fs_hz:

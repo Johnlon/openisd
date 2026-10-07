@@ -72,10 +72,6 @@ data_sources:
     manufacturer_product_page: https://daytonaudio.com/product/1917/ce28n-4-1-neo-extended-range-speaker-driver-2w-4-ohm
   definition: the record-wide provenance index — every source role used anywhere in this file resolves
     to a URL here
-authoritative:
-  value: manufacturer_product_page
-  definition: which indexed source wins the datasheet waterfall for this record — the document the specs
-    are extracted from; other sources only corroborate
 product_image:
   value: https://www.daytonaudio.com/images/product/large/1917.jpg
   origin: manufacturer_product_page

@@ -56,7 +56,6 @@ model: {value: Widget, origin: manufacturer_datasheet, definition: d}
 sku: {value: acme-widget, grounds: [{origin: manufacturer_datasheet, reading: acme-widget}]}
 driver_type: {value: woofer, origin: manufacturer_datasheet, definition: d}
 data_sources: {value: {manufacturer_datasheet: 'https://example.invalid/ds.pdf'}}
-authoritative: {value: manufacturer_datasheet}
 provided_by: {value: '', origin: manufacturer_datasheet}
 comment: {value: "first line\\nsecond line", origin: manufacturer_datasheet}
 added: {value: '2026-09-01', origin: manufacturer_datasheet}
@@ -333,7 +332,6 @@ model: {value: Widget, origin: manufacturer_datasheet, definition: d}
 sku: {value: acme-widget, grounds: [{origin: manufacturer_datasheet, reading: acme-widget}]}
 driver_type: {value: woofer, origin: manufacturer_datasheet, definition: d}
 data_sources: {value: {manufacturer_datasheet: 'https://example.invalid/ds.pdf'}}
-authoritative: {value: manufacturer_datasheet}
 provided_by: {value: '', origin: manufacturer_datasheet}
 comment: {value: '', origin: manufacturer_datasheet}
 added: {value: '2026-09-01', origin: manufacturer_datasheet}

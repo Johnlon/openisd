@@ -50,10 +50,6 @@ data_sources:
     manufacturer_product_page: https://www.scan-speak.dk/product/r1904-613001/
   definition: the record-wide provenance index — every source role used anywhere in this file resolves
     to a URL here
-authoritative:
-  value: manufacturer_datasheet
-  definition: which indexed source wins the datasheet waterfall for this record — the document the specs
-    are extracted from; other sources only corroborate
 product_image:
   value: https://www.scan-speak.dk/wp-content/uploads/2019/01/R1904-613001-1200x800.jpg
   origin: manufacturer_product_page
