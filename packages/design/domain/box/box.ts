@@ -34,12 +34,12 @@ export interface Box {
      *  project has not adopted). `type` is passed, not read from `boxType`, for the same reason. */
     ventGroupOf(type: BoxType): VentGroup;
     /** The loss sets WinISD's Box losses popup edits for `type`, one per chamber panel: one
-     *  untitled set (Ql/Qa of the one cabinet or the rear chamber of a 4th-order bandpass, Qp of
-     *  the ported chamber, null where the type has no port), or a Rear chamber and a Front
-     *  chamber set for bandpass6/abc, whose chambers are both ported. */
+     *  untitled set (Ql/Qa of the one cabinet, Qp of a ported one) or, for a two-chamber type, a
+     *  Rear chamber and a Front chamber set. Both sets of a two-chamber type carry the same Qicl
+     *  field (WinISD's one Qiclfr); the rear chamber of a 4th-order bandpass has no Qp. */
     lossGroupsOf(type: BoxType): readonly BoxLossGroup[];
     /** Put every set of `lossGroupsOf(type)` back to WinISD's defaults (Ql 10, Qa 100, Qp 100
-     *  where there is a port). */
+     *  where there is a port, Qicl 100 where there is one). */
     resetLossesOf(type: BoxType): void;
     /** Give the active type its starting values where nothing is entered yet; nothing entered is
      *  overwritten. Runs on `boxType.set()` and at `ProjectBuilder.build()`. */
@@ -68,4 +68,7 @@ export interface BoxLossGroup {
     readonly Ql: SimpleField<number>;
     readonly Qa: SimpleField<number>;
     readonly Qp: SimpleField<number> | null;
+    /** The interchamber Qicl, one value shared by every set of a two-chamber type; null where the
+     *  type has one chamber. */
+    readonly Qicl: SimpleField<number> | null;
 }

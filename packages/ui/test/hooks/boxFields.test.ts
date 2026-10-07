@@ -236,6 +236,20 @@ describe('boxFields', () => {
       expect(hook.boxLossGroups.value[1]!.Ql).toBe(9);
       expect(hook.boxLossGroups.value[0]!.Ql).toBe(10);
     });
+    it('bandpass4: a Rear set with no Qp and a Front set with Qp; Qicl is one value shown in both', () => {
+      const {project, projectChanged, hook} = losses('bandpass4');
+      const [rear, front] = hook.boxLossGroups.value;
+      expect(hook.boxLossGroups.value.map(g => g.heading)).toEqual(['Rear chamber', 'Front chamber']);
+      expect(rear!.Qp).toBeNull();
+      expect(front!.Qp).toBe(100);
+      front!.setQicl(42);
+      projectChanged.value++;
+      expect(project.box.bandpass4.chambers.rear.losses.Qicl.value).toBe(42);
+      expect(hook.boxLossGroups.value.map(g => g.Qicl)).toEqual([42, 42]);
+    });
+    it('sealed: no Qicl row', () => {
+      expect(losses('sealed').hook.boxLossGroups.value[0]!.Qicl).toBeNull();
+    });
     it('abc: Reset puts both chambers back to WinISD\'s defaults', () => {
       const {project, projectChanged, hook} = losses('abc');
       for (const g of hook.boxLossGroups.value) { g.setQl(3); g.setQa(4); g.setQp(5); }

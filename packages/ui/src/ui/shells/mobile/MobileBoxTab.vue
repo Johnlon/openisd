@@ -202,10 +202,18 @@ const { fieldWithUnit, readoutWithUnit } = useUnitReadouts();
             </span>
           </div>
         </div>
+        <div v-if="g.Qicl !== null" class="mob-field-row mob-field-entered">
+          <div class="mob-field-main">
+            <span class="mob-field-label">{{ NumberField.LOSS_QICL.label }}</span>
+            <span class="mob-field-value">
+              <NumInput :model-value="g.Qicl" @update:model-value="(v: number | null) => g.setQicl(v ?? 0)" :precision="NumberField.LOSS_QICL.precision" stepper />
+            </span>
+          </div>
+        </div>
       </template>
-      <p class="mob-hint">Qa (stuffing): 100 = none · 20–50 = light · 5–10 = heavy. WinISD defaults: Ql=10, Qa=100, Qp=100.</p>
+      <p class="mob-hint">Qa (stuffing): 100 = none · 20–50 = light · 5–10 = heavy. WinISD defaults: Ql=10, Qa=100, Qp=100, Qicl=100.</p>
       <div class="mob-align-footer">
-        <button id="mob-box-losses-reset" class="mob-btn" title="Back to WinISD's defaults: Ql 10, Qa 100, Qp 100" @click="resetBoxLosses">Reset</button>
+        <button id="mob-box-losses-reset" class="mob-btn" title="Back to WinISD's defaults: Ql 10, Qa 100, Qp 100, Qicl 100" @click="resetBoxLosses">Reset</button>
         <button class="mob-btn mob-btn-primary" @click="boxLossesOpen = false">OK</button>
       </div>
     </div>

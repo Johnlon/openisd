@@ -2,7 +2,7 @@ import {type Engine} from '../../engine/index.js';
 import type { Air, BoxType, DqIssue, VentedAlignment } from '../../engine/index.js';
 import { CalculatedFieldImpl, absentCell, calculatedCell, entryField, focus, nullableField, pairedField, simpleField } from '../cell.js';
 import type { Clearable, Entered, Precise, Readable, SimpleField, Writable } from '../cell.js';
-import type { SealedLosses } from '../losses.js';
+import type { CoupledSealedLosses, SealedLosses } from '../losses.js';
 import { WINISD_BOX_LOSSES } from '../boxDefaults.js';
 import type { OpenISDBoxJson, SpecEntryJson } from '../openisdSchema.js';
 import { OpenISDDriverEmbedded } from '../driver/openISDDriverEmbedded.js';
@@ -22,7 +22,6 @@ import type { SealedBox } from './sealedBox.js';
 import { SealedLossesWindow } from './sealedLossesWindow.js';
 import { VentWindow } from './ventWindow.js';
 import type { VentedBox } from './ventedBox.js';
-import type { VentedChamber } from './ventedChamber.js';
 import { VentedChamberWindow } from './ventedChamberWindow.js';
 import { VentedLossesWindow } from './ventedLossesWindow.js';
 
@@ -88,13 +87,16 @@ function isStated(volume_m3: number | null): volume_m3 is number {
     return volume_m3 !== null && volume_m3 > 0;
 }
 
-/** The Box losses popup of a box with two ported chambers: one set per chamber, as WinISD gives
- *  each chamber panel its own Advanced-> losses. */
-function chamberLossGroups(chambers: {readonly rear: VentedChamber; readonly front: VentedChamber}): readonly BoxLossGroup[] {
-    const {rear, front} = chambers;
+/** The Box losses popup of a two-chamber box: one set per chamber, as WinISD gives each chamber
+ *  panel its own Advanced-> losses. Both sets carry the rear chamber's Qicl, the one the sweep
+ *  reads as WinISD's Qiclfr. */
+function chamberLossGroups(
+    rear: CoupledSealedLosses, rearQp: SimpleField<number> | null,
+    front: CoupledSealedLosses, frontQp: SimpleField<number>,
+): readonly BoxLossGroup[] {
     return [
-        {heading: 'Rear chamber', Ql: rear.losses.Ql, Qa: rear.losses.Qa, Qp: rear.losses.Qp},
-        {heading: 'Front chamber', Ql: front.losses.Ql, Qa: front.losses.Qa, Qp: front.losses.Qp},
+        {heading: 'Rear chamber', Ql: rear.Ql, Qa: rear.Qa, Qp: rearQp, Qicl: rear.Qicl},
+        {heading: 'Front chamber', Ql: front.Ql, Qa: front.Qa, Qp: frontQp, Qicl: rear.Qicl},
     ];
 }
 
@@ -392,15 +394,21 @@ export class OpenISDBox implements Box {
 
     lossGroupsOf(type: BoxType): readonly BoxLossGroup[] {
         switch (type) {
-            case 'sealed': return [{heading: null, Ql: this.sealed.losses.Ql, Qa: this.sealed.losses.Qa, Qp: null}];
-            case 'vented': return [{heading: null, Ql: this.vented.losses.Ql, Qa: this.vented.losses.Qa, Qp: this.vented.losses.Qp}];
+            case 'sealed': return [{heading: null, Ql: this.sealed.losses.Ql, Qa: this.sealed.losses.Qa, Qp: null, Qicl: null}];
+            case 'vented': return [{heading: null, Ql: this.vented.losses.Ql, Qa: this.vented.losses.Qa, Qp: this.vented.losses.Qp, Qicl: null}];
             case 'bandpass4': {
                 const {rear, front} = this.bandpass4.chambers;
-                return [{heading: null, Ql: rear.losses.Ql, Qa: rear.losses.Qa, Qp: front.losses.Qp}];
+                return chamberLossGroups(rear.losses, null, front.losses, front.losses.Qp);
             }
-            case 'box-passive-radiator': return [{heading: null, Ql: this.passiveRadiator.losses.Ql, Qa: this.passiveRadiator.losses.Qa, Qp: null}];
-            case 'bandpass6': return chamberLossGroups(this.bandpass6.chambers);
-            case 'abc': return chamberLossGroups(this.abc.chambers);
+            case 'box-passive-radiator': return [{heading: null, Ql: this.passiveRadiator.losses.Ql, Qa: this.passiveRadiator.losses.Qa, Qp: null, Qicl: null}];
+            case 'bandpass6': {
+                const {rear, front} = this.bandpass6.chambers;
+                return chamberLossGroups(rear.losses, rear.losses.Qp, front.losses, front.losses.Qp);
+            }
+            case 'abc': {
+                const {rear, front} = this.abc.chambers;
+                return chamberLossGroups(rear.losses, rear.losses.Qp, front.losses, front.losses.Qp);
+            }
         }
     }
 
@@ -409,6 +417,7 @@ export class OpenISDBox implements Box {
             losses.Ql.set(WINISD_BOX_LOSSES.Ql);
             losses.Qa.set(WINISD_BOX_LOSSES.Qa);
             losses.Qp?.set(WINISD_BOX_LOSSES.Qp);
+            losses.Qicl?.set(WINISD_BOX_LOSSES.Qicl);
         }
     }
 

@@ -8,11 +8,10 @@ import type { VentedChamber } from './ventedChamber.js';
  * `vents.rear`/`vents.front`, owned by neither chamber (no `chambers.intra`, no third air
  * volume).
  *
- * The connecting port has NO losses of its own here, deliberately. An earlier cut carried an
- * `intraLosses` field, inferred from the `Qiclfr`/`Qiclfc`/`Qiclcr` names in WinISD's own `.wpr`
- * format — but inference is not evidence: no WinISD screen shows losses for that port, and the
- * live probe (BUG_20260824) never captured an Advanced popup for it, if one even exists. A
- * field with no evidence behind it is a fabrication, so it is gone until a probe finds one.
+ * The connecting port has no losses of its own here. WinISD's Advanced-> in each chamber panel shows
+ * one interchamber Qicl, the `.wpr` `Qiclfr` (probe e7c754c, `winisd_research/PROBE_FINDINGS.md`);
+ * it is stored on `chambers.rear.losses.Qicl`, the value the sweep reads. No WinISD screen shows
+ * the `Qiclfc`/`Qiclcr` names, so no field is kept for them.
  */
 export interface AbcBox {
     readonly chambers: {

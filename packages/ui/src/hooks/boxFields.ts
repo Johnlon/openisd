@@ -123,9 +123,12 @@ export interface BoxLossRows {
   readonly Qa: number;
   /** null: the chamber has no port, so the popup shows no Qp row. */
   readonly Qp: number | null;
+  /** null: the type has one chamber, so the popup shows no Qicl row. One value across the sets. */
+  readonly Qicl: number | null;
   setQl(v: number): void;
   setQa(v: number): void;
   setQp(v: number): void;
+  setQicl(v: number): void;
 }
 
 export interface BoxLossesDeps extends BoxVolumeDeps {
@@ -143,9 +146,11 @@ export function createBoxLosses({ project, selectedBox, projectChanged: changed,
       Ql: g.Ql.value,
       Qa: g.Qa.value,
       Qp: g.Qp?.value ?? null,
+      Qicl: g.Qicl?.value ?? null,
       setQl: (v: number) => g.Ql.set(v),
       setQa: (v: number) => g.Qa.set(v),
       setQp: (v: number) => g.Qp?.set(v),
+      setQicl: (v: number) => g.Qicl?.set(v),
     }));
   });
   function resetBoxLosses(): void { project.value.box.resetLossesOf(selectedBox.value); }

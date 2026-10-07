@@ -17,9 +17,9 @@ import {DEFAULT_NEW_PROJECT_VENTED_QL} from '../fields/defaults.js';
 // packages/design/AGENTS.md "Keep module-scoped state immutable". Every use still SPREADS the
 // value (`{ ...NO_VENTED_CHAMBER }`) so the object reaching a project record is always a fresh
 // copy, never the shared one.
-/** The Box losses dialog's values in WinISD for a new box: Ql 10, Qa 100, Qp 100 — what its
- *  Reset button puts back (bugs/BUG_20261005_no-common-ui-field-component.md). */
-export const WINISD_BOX_LOSSES = Object.freeze({Ql: DEFAULT_NEW_PROJECT_VENTED_QL, Qa: 100, Qp: 100});
+/** The Box losses dialog's values in WinISD for a new box: Ql 10, Qa 100, Qp 100, Qicl 100 — what
+ *  Reset puts back (bugs/BUG_20261005_no-common-ui-field-component.md). */
+export const WINISD_BOX_LOSSES = Object.freeze({Ql: DEFAULT_NEW_PROJECT_VENTED_QL, Qa: 100, Qp: 100, Qicl: 100});
 
 const NO_SEALED_LOSSES: SealedLossesJson = Object.freeze({Ql: DEFAULT_NEW_PROJECT_VENTED_QL, Qa: 100});
 const NO_VENTED_LOSSES: VentedLossesJson =

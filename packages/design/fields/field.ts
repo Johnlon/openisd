@@ -555,6 +555,14 @@ export class NumberField extends Field {
     precision: 2,
     description: "Port Friction Loss Q\nAir friction and viscous boundary losses inside the vent.",
   });
+  static readonly LOSS_QICL = new NumberField({
+    value: "loss_Qicl",
+    label: "Interchamber Qicl",
+    display: {kind: 'fixed', symbol: ''},
+    limits: {min: 0.1, max: 1000},
+    precision: 2,
+    description: "Interchamber Loss Q\nAcoustic energy lost through the wall between the two chambers; one value for both.",
+  });
 
   // ── Advanced ──────────────────────────────────────────────────────────────────────────────
   static readonly ADV_TEMP_K = new NumberField({

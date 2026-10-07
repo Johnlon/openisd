@@ -62,7 +62,7 @@ describe('OpenISDBox.frontVolumeOf / rearTuningOf / lossGroupsOf — the other p
     expect(box.abc.chambers.rear.tuning_goal_hz.value).toBe(45);
     for (const type of ['sealed', 'vented', 'bandpass4', 'box-passive-radiator'] as const) expect(box.rearTuningOf(type)).toBeNull();
   });
-  it('losses: one set for the one-cabinet types and bandpass4, Ql/Qa of the cabinet or rear chamber, Qp of the ported one', () => {
+  it('losses: one set for the one-cabinet types, Ql/Qa of the cabinet, Qp of the ported one, no Qicl', () => {
     const box = project().box;
     const [sealed] = box.lossGroupsOf('sealed');
     expect(box.lossGroupsOf('sealed')).toHaveLength(1);
@@ -74,13 +74,43 @@ describe('OpenISDBox.frontVolumeOf / rearTuningOf / lossGroupsOf — the other p
     const [vented] = box.lossGroupsOf('vented');
     vented!.Qp!.set(80);
     expect(box.vented.losses.Qp.value).toBe(80);
-    const [bp4] = box.lossGroupsOf('bandpass4');
-    expect(box.lossGroupsOf('bandpass4')).toHaveLength(1);
-    bp4!.Ql.set(9); bp4!.Qp!.set(90);
-    expect(box.bandpass4.chambers.rear.losses.Ql.value).toBe(9);
-    expect(box.bandpass4.chambers.front.losses.Qp.value).toBe(90);
     expect(box.lossGroupsOf('box-passive-radiator')[0]!.Qp).toBeNull();
+    for (const type of ['sealed', 'vented', 'box-passive-radiator'] as const) expect(box.lossGroupsOf(type)[0]!.Qicl).toBeNull();
   });
+  // bugs/BUG_20261007_4th-order-bandpass-merges-per-chamber-losses.md; WinISD probe e7c754c:
+  // the rear chamber panel has Ql, Qa, Qicl (no Qp), the front has Ql, Qa, Qp, Qicl.
+  it('losses: bandpass4 has a Rear chamber set (Ql, Qa, no Qp) and a Front chamber set (Ql, Qa, Qp)', () => {
+    const box = project().box;
+    const [rear, front] = box.lossGroupsOf('bandpass4');
+    expect(box.lossGroupsOf('bandpass4')).toHaveLength(2);
+    expect(rear!.heading).toBe('Rear chamber');
+    expect(front!.heading).toBe('Front chamber');
+    expect(rear!.Qp).toBeNull();
+    rear!.Ql.set(7); rear!.Qa.set(30);
+    front!.Ql.set(9); front!.Qa.set(50); front!.Qp!.set(60);
+    const {rear: r, front: f} = box.bandpass4.chambers;
+    expect([r.losses.Ql.value, r.losses.Qa.value]).toEqual([7, 30]);
+    expect([f.losses.Ql.value, f.losses.Qa.value, f.losses.Qp.value]).toEqual([9, 50, 60]);
+  });
+  it('resetLossesOf(bandpass4) puts both chambers back to WinISD\'s defaults', () => {
+    const box = project().box;
+    for (const g of box.lossGroupsOf('bandpass4')) { g.Ql.set(3); g.Qa.set(4); g.Qp?.set(5); g.Qicl!.set(6); }
+    box.resetLossesOf('bandpass4');
+    const [rear, front] = box.lossGroupsOf('bandpass4');
+    expect([rear!.Ql.value, rear!.Qa.value, rear!.Qicl!.value]).toEqual([10, 100, 100]);
+    expect([front!.Ql.value, front!.Qa.value, front!.Qp!.value, front!.Qicl!.value]).toEqual([10, 100, 100, 100]);
+  });
+  // WinISD shows ONE Qicl (its Qiclfr) in every chamber panel; the engine reads the rear chamber's.
+  for (const type of ['bandpass4', 'bandpass6', 'abc'] as const) {
+    it(`losses: ${type}'s Rear and Front sets edit the one Qicl the sweep reads (the rear chamber's)`, () => {
+      const box = project().box;
+      const [rear, front] = box.lossGroupsOf(type);
+      expect(front!.Qicl).toBe(rear!.Qicl);
+      front!.Qicl!.set(42);
+      expect(box[type].chambers.rear.losses.Qicl.value).toBe(42);
+      expect(rear!.Qicl!.value).toBe(42);
+    });
+  }
   // bugs/BUG_20261006_box-losses-popup-blank-for-6th-and-abc.md: WinISD gives each chamber its own losses.
   for (const type of ['bandpass6', 'abc'] as const) {
     it(`losses: ${type} has a Rear chamber set and a Front chamber set, each with Ql, Qa and Qp`, () => {
@@ -97,9 +127,9 @@ describe('OpenISDBox.frontVolumeOf / rearTuningOf / lossGroupsOf — the other p
     });
     it(`resetLossesOf(${type}) puts both chambers back to WinISD's defaults`, () => {
       const box = project().box;
-      for (const g of box.lossGroupsOf(type)) { g.Ql.set(3); g.Qa.set(4); g.Qp!.set(5); }
+      for (const g of box.lossGroupsOf(type)) { g.Ql.set(3); g.Qa.set(4); g.Qp!.set(5); g.Qicl!.set(6); }
       box.resetLossesOf(type);
-      for (const g of box.lossGroupsOf(type)) expect([g.Ql.value, g.Qa.value, g.Qp!.value]).toEqual([10, 100, 100]);
+      for (const g of box.lossGroupsOf(type)) expect([g.Ql.value, g.Qa.value, g.Qp!.value, g.Qicl!.value]).toEqual([10, 100, 100, 100]);
     });
   }
 });
