@@ -409,9 +409,9 @@ provideCellScope({ revision: projectChanged, written: () => {} });
               <div class="section-header">Advanced options</div>
               <div class="beside-hint">
                 <div>
-                  <div class="field-row"><div class="field entered"><label>Voice coil temp rise</label><NumInput :model-value="project.vcTempRise_K.value" @update:model-value="(v: number | null) => project.vcTempRise_K.set(v ?? 0)" :field="NumberField.DRIVER_VCTEMPRISE_K" :precision="NumberField.DRIVER_VCTEMPRISE_K.precision" /><UnitToggle :field="NumberField.DRIVER_VCTEMPRISE_K" unit-class="unit" /></div></div>
+                  <div class="field-row"><UIFixedField class="field" :field="NumberField.DRIVER_VCTEMPRISE_K" :cell="project.vcTempRise_K" /></div>
                   <div class="field-row"><div class="field entered"><label>Voice coil resistance TC</label><NumInput :model-value="project.alfaVC_per_K.value" @update:model-value="(v: number | null) => project.alfaVC_per_K.set(v ?? 0)" :field="NumberField.ALFAVC_PER_K" :precision="NumberField.ALFAVC_PER_K.precision" /><UnitToggle :field="NumberField.ALFAVC_PER_K" unit-class="unit" /></div></div>
-                  <div class="field-row"><div class="field entered"><label>Added mass to cone</label><NumInput :model-value="project.driverAddedMass_kg.value" @update:model-value="(v: number | null) => project.driverAddedMass_kg.set(v ?? 0)" :field="NumberField.DRIVER_ADDEDMASS_G" :precision="NumberField.DRIVER_ADDEDMASS_G.precision" /><UnitToggle :field="NumberField.DRIVER_ADDEDMASS_G" unit-class="unit" /></div></div>
+                  <div class="field-row"><UIFixedField class="field" :field="NumberField.DRIVER_ADDEDMASS_G" :cell="project.driverAddedMass_kg" /></div>
                 </div>
                 <p class="hint side-hint">Temp rise × resistance TC model voice-coil power compression; added mass raises Mms (lowers Fs). WinISD parity.</p>
               </div>
@@ -523,7 +523,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
                   <div class="field"><label>1st port resonance</label><NumReadout as-input class="calculated greyed" :field="NumberField.VENT_1STPORTRESONANCE_HZ" :value="portPipeResonance_hz" /><UnitToggle :field="NumberField.VENT_1STPORTRESONANCE_HZ" unit-class="unit unit-cyc" /></div>
                 </div>
                 <div class="field-row">
-                  <div class="field entered" :title="NumberField.VENT_PORTVELOCITYLIMIT_M_PER_S.description"><label>Port velocity limit</label><NumInput id="og-vent-velocity-limit" :model-value="project.portVelocityLimit_m_per_s.value" @update:model-value="(v: number | null) => { if (v != null) project.portVelocityLimit_m_per_s.set(v); }" :field="NumberField.VENT_PORTVELOCITYLIMIT_M_PER_S" :precision="NumberField.VENT_PORTVELOCITYLIMIT_M_PER_S.precision" /><UnitToggle :field="NumberField.VENT_PORTVELOCITYLIMIT_M_PER_S" unit-class="unit" /></div>
+                  <UIFixedField class="field" input-id="og-vent-velocity-limit" :field="NumberField.VENT_PORTVELOCITYLIMIT_M_PER_S" :cell="project.portVelocityLimit_m_per_s" />
                 </div>
               </div>
             </div>

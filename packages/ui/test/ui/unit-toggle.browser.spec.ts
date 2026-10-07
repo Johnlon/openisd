@@ -58,7 +58,7 @@ test.describe('Unit toggle', () => {
     await page.locator('.project-nav li', { hasText: 'Driver' }).click();
     const field = page.locator('.field', { hasText: 'Added mass to cone' });
     const amc = field.locator('input');
-    const unit = field.locator('.unit');
+    const unit = field.locator('.ui-field-unit');
 
     await amc.fill('100');
     await amc.dispatchEvent('input');
@@ -97,7 +97,7 @@ test.describe('Unit toggle', () => {
     // the Advanced tab's ABSOLUTE temperature, which needs the −273.15 offset).
     const riseField = page.locator('.field', { hasText: 'Voice coil temp rise' });
     const rise = riseField.locator('input');
-    const riseUnit = riseField.locator('.unit');
+    const riseUnit = riseField.locator('.ui-field-unit');
     await rise.fill('40');
     await rise.dispatchEvent('input');
     await rise.blur();
@@ -122,7 +122,7 @@ test.describe('Unit toggle', () => {
     // 2026-09-25: "the display resolution must track the absolute precision we want to support").
     const maddField = page.locator('.field', { hasText: 'Added mass to cone' });
     const madd = maddField.locator('input');
-    const maddUnit = maddField.locator('.unit');
+    const maddUnit = maddField.locator('.ui-field-unit');
     await madd.fill('100');
     await madd.dispatchEvent('input');
     await madd.blur();
