@@ -1,6 +1,6 @@
 # BUG_20261007_browser-processes-die-mid-suite
 
-**Status:** OPEN. Chrome aborts itself in launch bursts (see Cause); a launch wait is PROVISIONAL (below).
+**Status:** OPEN. Chrome aborts itself in launch bursts (see Cause); a launch wait is PROVISIONAL (below); concurrency is suspected, not proven.
 
 ## Symptom
 During a full browser suite (the pre-push hook), Chrome processes die and a large block of tests fails at once with
@@ -42,6 +42,13 @@ browser has been closed`. A rerun of the same tests passes. Twice on 2026-10-07.
 7. The 180 counts match: every bulk death hit `maxFailures: 180` (playwright.config.js). 5 of 8 pre-push and
    health-check runs died on 2026-10-07 (05:30, 07:54, 08:06, 08:33, 09:09); 3 passed (two health checks, 08:49).
 
+8. Suspicion, not proven: concurrent Chrome launches trigger the burst. Two targeted browser runs of mine
+   (alignment-popup, box-losses-popup, what-if-panel; 09:21 and 09:24) each hit a burst (the 09:24 one lasted
+   about 90 s on two workers, 126 launch retries) while bob's pre-push suite was probably running; the targeted run
+   that passed clean (09:28) had no overlap that I know of. Targeted runs do not queue, so they can overlap a
+   push or health check. Rule from lots: no browser specs, not even targeted ones, while a push or health check
+   runs; unit specs are fine.
+
 ## Cause
 Chrome aborts itself (SIGABRT) in a burst of about 40 s during launches under WSL2; why is not known. Not another
 process, load, memory or the shell environment: the hook's environment matches the shell's. The failure cap turns
@@ -53,3 +60,9 @@ moment. Until then a broad `has been closed` failure is rerun whole, never read 
 
 ## Verification
 A full browser suite run 5 times without a mass browser death, or a captured cause.
+
+## Fix (PROVISIONAL)
+`packages/ui/test/fixtures.ts` overrides the worker's `browser`: a launch counts once Chrome has stayed up 3 s and
+loaded `about:blank` twice; failures retry every second for up to 180 s, each logged `CHROME-OUTAGE`; the first worker
+to give up writes a stamp so the others of that run fail fast. Test bodies are not retried; `retries: 0` and
+`maxFailures: 180` stay (BUG_20260909 ruling). Unit test: `packages/ui/test/fixtures/chromeOutage.test.ts`.
