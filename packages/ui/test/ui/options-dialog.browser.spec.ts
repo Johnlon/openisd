@@ -203,7 +203,7 @@ test.describe('Options dialog', () => {
         await page.locator('.project-nav li', { hasText: 'Driver' }).click();
         const field = page.locator('.field').filter({ has: page.locator('label', { hasText: /^Added mass to cone$/ }) });
         const amc = field.locator('input');
-        const unit = field.locator('.unit');
+        const unit = field.locator('.ui-field-unit');
 
         // beforeEach clears localStorage, so the app starts on its metric ground state.
         await expect(unit).toHaveText('g');
