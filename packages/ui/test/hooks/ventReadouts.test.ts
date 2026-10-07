@@ -10,14 +10,15 @@ function readoutsFor(type: 'bandpass6' | 'abc') {
   const builder = new ProjectBuilder(OpenISDDriver.empty(engine), engine);
   const project = type === 'bandpass6' ? builder.bandpass6().build() : builder.abc().build();
   const projectRef = shallowRef(project);
+  const projectChanged = ref(0);
   const readouts = createVentReadouts({
     project: computed(() => projectRef.value),
-    projectChanged: ref(0),
+    projectChanged,
     selectedBox: ref<BoxType>(type),
     air: computed(() => engine.environment.solve({}).values),
     vent: engine.vent,
   });
-  return {project, readouts};
+  return {project, readouts, projectChanged};
 }
 
 describe('createVentReadouts on a two-chamber box with a ported front', () => {
@@ -33,4 +34,25 @@ describe('createVentReadouts on a two-chamber box with a ported front', () => {
       expect(project.box.vented.tuning_goal_hz.value).not.toBe(31.3131);
     });
   }
+
+  it('abc: ventPorts lists Rear, Front and Intra, each with its own first port resonance', () => {
+    const {project, readouts} = readoutsFor('abc');
+    const ports = readouts.ventPorts.value;
+    expect(ports.map(port => port.name)).toEqual(['Rear', 'Front', 'Intra']);
+    expect(ports[0]?.portPipeResonance_hz).not.toBeNull();
+    expect(ports[0]?.portPipeResonance_hz).not.toBe(ports[1]?.portPipeResonance_hz);
+    ports[2]?.vent.length_m.set(0.0777);
+    expect(project.box.abc.vents.intra.length_m.value).toBe(0.0777);
+  });
+
+  it('a port whose tuning has no positive length says so on that port only', () => {
+    const {readouts, projectChanged} = readoutsFor('bandpass6');
+    readouts.ventPorts.value[0]?.tuning_goal_hz?.set(2000);
+    projectChanged.value++;
+    const [rear, front] = readouts.ventPorts.value;
+    expect(rear?.unreachable).toBe(true);
+    expect(rear?.unreachableMsg).not.toBe('');
+    expect(front?.unreachable).toBe(false);
+  });
 });
+

@@ -33,6 +33,10 @@ export interface Box {
      *  other type answers the vented box's group (dormant data, as `volumeOf` is for a type the
      *  project has not adopted). `type` is passed, not read from `boxType`, for the same reason. */
     ventGroupOf(type: BoxType): VentGroup;
+    /** The ports `type` draws, in WinISD's column order: a Vent for the vented box, a Front for
+     *  bandpass4, Rear and Front for bandpass6, Rear, Front and Intra for ABC; none for sealed and
+     *  passive-radiator. The Intra port has no tuning of its own. */
+    ventPortsOf(type: BoxType): readonly VentPort[];
     /** The rear chamber's vent group of a `type` whose rear chamber is ported (bandpass6, abc);
      *  null otherwise. */
     rearVentGroupOf(type: BoxType): VentGroup | null;
@@ -61,6 +65,13 @@ export interface VentGroup {
     readonly volume_m3: Readable<number | null> & Entered & Precise & Writable<number> & Clearable;
     readonly tuning_goal_hz: TuningField;
     readonly vent: Vent;
+}
+
+/** One port of a box: its vent and, where the port is tuned by a chamber, that chamber's tuning. */
+export interface VentPort {
+    readonly name: 'Vent' | 'Rear' | 'Front' | 'Intra';
+    readonly vent: Vent;
+    readonly tuning_goal_hz: TuningField | null;
 }
 
 export type TuningField = Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;

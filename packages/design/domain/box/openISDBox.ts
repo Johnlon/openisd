@@ -15,7 +15,7 @@ import type { ProjectIssues } from '../project/projectIssues.js';
 import type { AbcBox } from './abcBox.js';
 import type { Bandpass4Box } from './bandpass4Box.js';
 import type { Bandpass6Box } from './bandpass6Box.js';
-import type { Box, BoxLossGroup, LossChamber, TuningField, VentGroup } from './box.js';
+import type { Box, BoxLossGroup, LossChamber, TuningField, VentGroup, VentPort } from './box.js';
 import type { Vent } from '../vent.js';
 import { CoupledSealedLossesWindow } from './coupledSealedLossesWindow.js';
 import type { PassiveRadiatorBox } from './passiveRadiatorBox.js';
@@ -451,6 +451,25 @@ export class OpenISDBox implements Box {
             case 'vented':
             case 'box-passive-radiator':
                 return this.vented;
+        }
+    }
+
+    ventPortsOf(type: BoxType): readonly VentPort[] {
+        switch (type) {
+            case 'vented': return [{name: 'Vent', vent: this.vented.vent, tuning_goal_hz: this.vented.tuning_goal_hz}];
+            case 'bandpass4': return [{name: 'Front', vent: this.bandpass4.vents.front, tuning_goal_hz: this.bandpass4.chambers.front.tuning_goal_hz}];
+            case 'bandpass6': return [
+                {name: 'Rear', vent: this.bandpass6.vents.rear, tuning_goal_hz: this.bandpass6.chambers.rear.tuning_goal_hz},
+                {name: 'Front', vent: this.bandpass6.vents.front, tuning_goal_hz: this.bandpass6.chambers.front.tuning_goal_hz},
+            ];
+            case 'abc': return [
+                {name: 'Rear', vent: this.abc.vents.rear, tuning_goal_hz: this.abc.chambers.rear.tuning_goal_hz},
+                {name: 'Front', vent: this.abc.vents.front, tuning_goal_hz: this.abc.chambers.front.tuning_goal_hz},
+                {name: 'Intra', vent: this.abc.vents.intra, tuning_goal_hz: null},
+            ];
+            case 'sealed':
+            case 'box-passive-radiator':
+                return [];
         }
     }
 

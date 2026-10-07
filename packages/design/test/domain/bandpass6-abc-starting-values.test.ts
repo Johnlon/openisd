@@ -123,3 +123,34 @@ describe('bandpass6 and ABC vent lengths', () => {
     });
   }
 });
+
+describe('the vent ports of a box', () => {
+  it('bandpass6 has a Rear and a Front port, each with its own vent and tuning', () => {
+    const p = built('bandpass6');
+    const ports = p.box.ventPortsOf('bandpass6');
+    assert.deepEqual(ports.map(port => port.name), ['Rear', 'Front']);
+    ports[0]?.vent.diameter_m.set(0.0611);
+    ports[1]?.vent.diameter_m.set(0.0722);
+    assert.equal(p.box.bandpass6.vents.rear.diameter_m.value, 0.0611);
+    assert.equal(p.box.bandpass6.vents.front.diameter_m.value, 0.0722);
+    ports[0]?.tuning_goal_hz?.set(33.3333);
+    assert.equal(p.box.bandpass6.chambers.rear.tuning_goal_hz.value, 33.3333);
+  });
+
+  it('abc has a Rear, a Front and an Intra port; the Intra port has no tuning of its own', () => {
+    const p = built('abc');
+    const ports = p.box.ventPortsOf('abc');
+    assert.deepEqual(ports.map(port => port.name), ['Rear', 'Front', 'Intra']);
+    assert.equal(ports[2]?.tuning_goal_hz, null);
+    ports[2]?.vent.length_m.set(0.0777);
+    assert.equal(p.box.abc.vents.intra.length_m.value, 0.0777);
+  });
+
+  it('bandpass4 has a Front port, vented a Vent port, sealed and passive-radiator none', () => {
+    const p = built('bandpass6');
+    assert.deepEqual(p.box.ventPortsOf('bandpass4').map(port => port.name), ['Front']);
+    assert.deepEqual(p.box.ventPortsOf('vented').map(port => port.name), ['Vent']);
+    assert.deepEqual(p.box.ventPortsOf('sealed'), []);
+    assert.deepEqual(p.box.ventPortsOf('box-passive-radiator'), []);
+  });
+});

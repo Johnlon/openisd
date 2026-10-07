@@ -74,5 +74,22 @@ export function createVentReadouts({ project, projectChanged: changed, selectedB
   /** The front chamber of a bandpass is vented on its OWN volume, so it carries its own symbol. */
   const tuningField = computed(() => DUAL_CHAMBER.has(selectedBox.value) ? NumberField.BOX_FFC_HZ : NumberField.BOX_FB_HZ);
 
-  return { activeVent, activeTuning, portPipeResonance_hz, fbUnreachable, fbUnreachableMsg, tuningField };
+  /** Every port the selected box draws, each with its own first port resonance and unreachable
+   *  mark (the single-port readouts above are the active port's). */
+  const ventPorts = computed(() => {
+    void changed.value;
+    void project.value;
+    return project.value.box.ventPortsOf(selectedBox.value).map(port => {
+      const L = port.vent.length_m.value;
+      const issue = port.vent.length_m.dq.find(i => i.kind === 'target-unreachable') ?? null;
+      return {
+        ...port,
+        portPipeResonance_hz: L == null ? null : vent.firstResonance_hz(L, air.value),
+        unreachable: issue !== null,
+        unreachableMsg: issue === null ? '' : issue.text,
+      };
+    });
+  });
+
+  return { activeVent, activeTuning, ventPorts, portPipeResonance_hz, fbUnreachable, fbUnreachableMsg, tuningField };
 }
