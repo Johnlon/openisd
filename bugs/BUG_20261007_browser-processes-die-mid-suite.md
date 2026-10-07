@@ -1,6 +1,6 @@
 # BUG_20261007_browser-processes-die-mid-suite
 
-**Status:** OPEN. Cause unknown; WSL is a suspect, but no evidence ties it to either failure.
+**Status:** OPEN. Chrome aborts itself in launch bursts (see Cause); a launch wait is PROVISIONAL (below).
 
 ## Symptom
 During a full browser suite (the pre-push hook), Chrome processes die and a large block of tests fails at once with
@@ -33,8 +33,19 @@ browser has been closed`. A rerun of the same tests passes. Twice on 2026-10-07.
    separate `vite --port 4101` from the shared tree had run for 7 h (not this run's). Unproven whether leaked
    servers contribute to the Chrome deaths.
 
+6. Caught in the act (reads-schema push, 09:09:58 to 09:16, a 1 s sampler of Chrome count, MemAvailable, load, `ps`,
+   `dmesg`): Chrome count was steady at 18-20 for 3 min; at 09:13:06 every Chrome process died inside one second
+   (MemAvailable +750 MB), then for 40 s (to 09:13:46) the count flipped between 0 and 5-20 every 1-3 s: launch, die,
+   launch, die. The 180 failures happened inside that burst, 4-30 ms each, and `maxFailures: 180` ended the run. The
+   Playwright runner stayed alive; no `kill`/`pkill`, no new process, load 9-10, 7-8 GB free. `dmesg` holds one crash
+   today: `chrome: potentially unexpected fatal signal 6` at 08:39:11 (pid 9185), inside the 08:33 failed run.
+7. The 180 counts match: every bulk death hit `maxFailures: 180` (playwright.config.js). 5 of 8 pre-push and
+   health-check runs died on 2026-10-07 (05:30, 07:54, 08:06, 08:33, 09:09); 3 passed (two health checks, 08:49).
+
 ## Cause
-Not known.
+Chrome aborts itself (SIGABRT) in a burst of about 40 s during launches under WSL2; why is not known. Not another
+process, load, memory or the shell environment: the hook's environment matches the shell's. The failure cap turns
+the burst into a failed run.
 
 ## Fix
 Catch it in the act: when a run starts to fail, record `ps` for chrome, `dmesg` and `journalctl`/WSL state at that
