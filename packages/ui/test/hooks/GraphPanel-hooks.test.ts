@@ -1,4 +1,4 @@
-import {describe, expect, it} from 'vitest';
+import {describe, expect, it, vi} from 'vitest';
 import {computed, defineComponent, h} from 'vue';
 import {renderToString} from 'vue/server-renderer';
 import {createEngine} from '@openisd/design/engine';
@@ -10,7 +10,7 @@ import {
   type GraphPanelProps,
 } from '../../src/hooks/GraphPanel-hooks.js';
 import {DPAL, TAB_META} from '@openisd/design/chart';
-import {addProject} from '../../src/logic/appState.js';
+import {addProject, curvesData} from '../../src/logic/appState.js';
 import {presentationState} from '../../src/logic/presentationState.js';
 import {runHook} from './runHook.js';
 
@@ -84,8 +84,9 @@ describe('GraphPanel-hooks', () => {
       expect(api.warningsDismissed.value).toBe(true);
     });
     describe('Auto Y', () => {
-      // Past the sweep's settle run (`SweepScheduler`), so the curves for the last edit have landed.
-      const awaitSweep = () => new Promise(resolve => setTimeout(resolve, 200));
+      // Waits for the condition, never a fixed sleep: the store's sweep has landed the curves for
+      // the last edit once `curvesData` holds a new value.
+      const curvesLanded = (before: unknown) => vi.waitFor(() => expect(curvesData.value).not.toBe(before), {timeout: 30_000});
 
       it('off freezes the shown Y range as the chart override; a data change keeps it; on clears it', async () => {
         presentationState.yRanges = {};
@@ -95,9 +96,11 @@ describe('GraphPanel-hooks', () => {
         project.driver.specs.Le_H.set(0.34e-3);
         project.driver.specs.Xmax_m.set(0.00925);
         project.driver.specs.Pe_W.set(80);
+        const beforeAdd = curvesData.value;
         addProject(project);
         const api = runHook(computed(() => project), () => useGraphPanel({chartId: 'SPL'}, createEngine()));
-        await awaitSweep();
+        await curvesLanded(beforeAdd);
+        await vi.waitFor(() => expect(api.viewPlot.value).not.toBeNull(), {timeout: 30_000});
         expect(api.autoY.value).toBe(true);
         const shown = api.viewPlot.value!.levelAxis;
         const label = api.yRangeLabel.value;
@@ -106,8 +109,9 @@ describe('GraphPanel-hooks', () => {
         expect(api.autoY.value).toBe(false);
         expect(presentationState.yRanges.SPL).toEqual({min: shown.min, max: shown.max});
 
+        const beforeEdit = curvesData.value;
         project.box.sealed.volume_m3.set(0.002);
-        await awaitSweep();
+        await curvesLanded(beforeEdit);
         expect(presentationState.yRanges.SPL).toEqual({min: shown.min, max: shown.max});
         expect(api.viewPlot.value!.levelAxis.min).toBe(shown.min);
         expect(api.viewPlot.value!.levelAxis.max).toBe(shown.max);

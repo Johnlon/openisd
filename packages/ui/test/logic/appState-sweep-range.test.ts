@@ -4,16 +4,23 @@
  * that widened the axis but left the curves starting at 10 Hz (John, 2026-09-24: "a complete
  * blank below 10hz") was the store sweeping a fixed 10 Hz–20 kHz grid of its own.
  */
-import {describe, it} from 'vitest';
+import {afterEach, beforeEach, describe, it, vi} from 'vitest';
 import assert from 'node:assert/strict';
 import {curvesData, maxData, newProject, requireFocusedProject, syncedP} from '../../src/logic/appState.js';
 import {presentationState} from '../../src/logic/presentationState.js';
 
-/** Past `scheduleSweep`'s throttle window (`SWEEP_MS`), so the re-sweep has landed. */
-// Past the sweep's settle run (`SweepScheduler`, 150 ms after the last edit), which brings the
-// max curves and their issues up to date after a burst of edits.
+// Fake timers, so the sweep's settle run (`SweepScheduler`, 150 ms after the last edit) is stepped
+// through, never slept through: no wall-clock wait, so no flake on a loaded machine.
+beforeEach(() => {
+  vi.useFakeTimers();
+});
+afterEach(() => {
+  vi.useRealTimers();
+});
+
+/** Past the sweep's settle run, which brings the max curves and their issues up to date after a burst of edits. */
 async function awaitSweepThrottle(): Promise<void> {
-  await new Promise(resolve => setTimeout(resolve, 200));
+  await vi.advanceTimersByTimeAsync(200);
 }
 
 function aSimulatableSealedProject(): void {
