@@ -13,16 +13,19 @@ const read = (value: number | null, literal: string, precision: number | null = 
   ({actual_reading: literal, read_value: value, read_precision: value === null ? null : precision});
 
 describe('Reader — the closed set of readers, by wire value', () => {
-  it('has the six wire values of the contract', () => {
+  it('has the five wire values of the contract', () => {
     expect(Reader.ALL.map(r => r.value)).toEqual(
-      ['text_layer', 'type3_decode', 'pymupdf4llm', 'ocr_tesseract', 'ocr_rapidocr', 'ocr_pymupdf4llm']);
+      ['text_layer', 'type3_decode', 'pymupdf4llm', 'ocr_tesseract', 'ocr_rapidocr']);
+  });
+  it('refuses ocr_pymupdf4llm: winisd_tools dropped that reader', () => {
+    expect(() => Reader.parse('ocr_pymupdf4llm')).toThrow();
   });
   it('parse is the one string-to-member boundary, and refuses an unknown reader', () => {
     expect(Reader.parse('ocr_rapidocr')).toBe(Reader.OCR_RAPIDOCR);
     expect(() => Reader.parse('tea_leaves')).toThrow();
   });
-  it('the three OCR readers are OCR; the three text readers are not', () => {
-    expect(Reader.ALL.filter(r => r.isOcr).map(r => r.value)).toEqual(['ocr_tesseract', 'ocr_rapidocr', 'ocr_pymupdf4llm']);
+  it('the two OCR readers are OCR; the three text readers are not', () => {
+    expect(Reader.ALL.filter(r => r.isOcr).map(r => r.value)).toEqual(['ocr_tesseract', 'ocr_rapidocr']);
   });
 });
 
@@ -43,7 +46,6 @@ describe('readerVerdict — agreement derived from reads', () => {
     const verdict = readerVerdict({
       ocr_tesseract: read(8.3, '8.3 N/A'),
       ocr_rapidocr: read(8.3, '8.3 N/A'),
-      ocr_pymupdf4llm: read(8.3, '8.3 N/A'),
     });
     expect(verdict.agreement).toBe(ReaderAgreement.Agree);
     expect(verdict.unverified).toBe(true);
@@ -52,7 +54,7 @@ describe('readerVerdict — agreement derived from reads', () => {
 
   it('names the readers that gave a number, in reader order, and leaves out a read with no number', () => {
     const verdict = readerVerdict({
-      ocr_rapidocr: read(8.3, '8.3'), ocr_tesseract: read(8.3, '8.3'), ocr_pymupdf4llm: read(null, '—'),
+      ocr_rapidocr: read(8.3, '8.3'), ocr_tesseract: read(8.3, '8.3'), type3_decode: read(null, '—'),
     });
     expect(verdict.numbered).toEqual(['ocr_tesseract', 'ocr_rapidocr']);
   });

@@ -80,8 +80,8 @@ describe('driver.yml readings with reads', () => {
   });
 
   it('a single OCR read is flagged the same way', () => {
-    const {errors} = convert(ymlWithFsReads({ocr_pymupdf4llm: cell(456, '456 Hz')}));
-    expect(errors.find(e => e.message.includes('no text layer'))?.message).toContain('ocr_pymupdf4llm');
+    const {errors} = convert(ymlWithFsReads({ocr_rapidocr: cell(456, '456 Hz')}));
+    expect(errors.find(e => e.message.includes('no text layer'))?.message).toContain('ocr_rapidocr');
   });
 
   it('OCR readers that disagree raise both warnings', () => {

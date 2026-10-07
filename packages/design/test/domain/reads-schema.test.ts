@@ -18,7 +18,6 @@ const exampleB = {
   reads: {
     ocr_tesseract: {actual_reading: '8.3 N/A', read_value: 8.3, read_precision: 0.05},
     ocr_rapidocr: {actual_reading: '8.3 N/A', read_value: 8.3, read_precision: 0.05},
-    ocr_pymupdf4llm: {actual_reading: '8.3 N/A', read_value: 8.3, read_precision: 0.05},
   },
 };
 const exampleC = {
