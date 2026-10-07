@@ -60,8 +60,6 @@ const {fieldWithUnit} = useUnitReadouts();
       <UIField class="mob-ui-field" :title="VENT_GEOMETRY_TIP" :field="NumberField.VENT_H_CM" :cell="activeVent.height_m" stepper />
     </template>
     <UIField v-else class="mob-ui-field" :title="VENT_GEOMETRY_TIP" :field="NumberField.VENT_D_CM" :cell="activeVent.diameter_m" stepper />
-      <UnitToggle :field="NumberField.VENT_D_CM" unit-class="mob-unit" />
-    </div>
 
     <!-- `ventLState === 'N'` means two different things: Fb entered but the solver found no
          valid length (impossible — stays readonly, the `fbState === 'E'` guard below), or

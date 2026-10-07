@@ -69,7 +69,7 @@ const {
   reconcileDriveV,
   powerLocked,
   projectName, projectCreator, projectCreated, projectModified, projectDescription,
-  lossesOpen, openLossGroup, resetBoxLosses,
+  lossesOpen, openLossGroups, resetBoxLosses,
   onFile, fileInput,
 } = useOriginalShell();
 const winisdDifferences = injectWinisdDifferencesModal();
@@ -409,9 +409,9 @@ provideCellScope({ revision: projectChanged, written: () => {} });
               <div class="section-header">Advanced options</div>
               <div class="beside-hint">
                 <div>
-                  <div class="field-row"><UIFixedField class="field" :field="NumberField.DRIVER_VCTEMPRISE_K" :cell="project.vcTempRise_K" /></div>
+                  <div class="field-row"><UIFixedField class="field" :field="NumberField.DRIVER_VCTEMPRISE_K" :value="project.vcTempRise_K.value" @update:value="v => project.vcTempRise_K.set(v)" /></div>
                   <div class="field-row"><div class="field entered"><label>Voice coil resistance TC</label><NumInput :model-value="project.alfaVC_per_K.value" @update:model-value="(v: number | null) => project.alfaVC_per_K.set(v ?? 0)" :field="NumberField.ALFAVC_PER_K" :precision="NumberField.ALFAVC_PER_K.precision" /><UnitToggle :field="NumberField.ALFAVC_PER_K" unit-class="unit" /></div></div>
-                  <div class="field-row"><UIFixedField class="field" :field="NumberField.DRIVER_ADDEDMASS_G" :cell="project.driverAddedMass_kg" /></div>
+                  <div class="field-row"><UIFixedField class="field" :field="NumberField.DRIVER_ADDEDMASS_G" :value="project.driverAddedMass_kg.value" @update:value="v => project.driverAddedMass_kg.set(v)" /></div>
                 </div>
                 <p class="hint side-hint">Temp rise × resistance TC model voice-coil power compression; added mass raises Mms (lowers Fs). WinISD parity.</p>
               </div>
@@ -511,7 +511,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
                   <div class="field"><label>1st port resonance</label><NumReadout as-input class="calculated greyed" :field="NumberField.VENT_1STPORTRESONANCE_HZ" :value="portPipeResonance_hz" /><UnitToggle :field="NumberField.VENT_1STPORTRESONANCE_HZ" unit-class="unit unit-cyc" /></div>
                 </div>
                 <div class="field-row">
-                  <UIFixedField class="field" input-id="og-vent-velocity-limit" :field="NumberField.VENT_PORTVELOCITYLIMIT_M_PER_S" :cell="project.portVelocityLimit_m_per_s" />
+                  <UIFixedField class="field" input-id="og-vent-velocity-limit" :field="NumberField.VENT_PORTVELOCITYLIMIT_M_PER_S" :value="project.portVelocityLimit_m_per_s.value" @update:value="v => project.portVelocityLimit_m_per_s.set(v)" />
                 </div>
               </div>
             </div>
@@ -736,12 +736,12 @@ provideCellScope({ revision: projectChanged, written: () => {} });
           <div class="win-controls"><span class="close-btn" @click="lossesOpen = null">&#10005;</span></div>
         </div>
         <div class="modal-body">
-          <template v-if="openLossGroup !== null">
-            <div v-if="openLossGroup.heading !== null" class="section-header">{{ openLossGroup.heading }}</div>
-            <div class="field-row"><UIFixedField class="field" :field="NumberField.LOSS_QL" :cell="openLossGroup.Ql" /></div>
-            <div class="field-row"><UIFixedField class="field" :field="NumberField.LOSS_QA" :cell="openLossGroup.Qa" /></div>
-            <div class="field-row" v-if="openLossGroup.Qp !== null"><UIFixedField class="field" :field="NumberField.LOSS_QP" :cell="openLossGroup.Qp" /></div>
-            <div class="field-row" v-if="openLossGroup.Qicl !== null"><UIFixedField class="field" :field="NumberField.LOSS_QICL" :cell="openLossGroup.Qicl" /></div>
+          <template v-for="g in openLossGroups" :key="g.chamber">
+            <div v-if="g.heading !== null" class="section-header">{{ g.heading }}</div>
+            <div class="field-row"><UIFixedField class="field" :field="NumberField.LOSS_QL" :value="g.Ql.value" @update:value="v => g.Ql.set(v)" /></div>
+            <div class="field-row"><UIFixedField class="field" :field="NumberField.LOSS_QA" :value="g.Qa.value" @update:value="v => g.Qa.set(v)" /></div>
+            <div class="field-row" v-if="g.Qp !== null"><UIFixedField class="field" :field="NumberField.LOSS_QP" :value="g.Qp.value" @update:value="v => g.Qp?.set(v)" /></div>
+            <div class="field-row" v-if="g.Qicl !== null"><UIFixedField class="field" :field="NumberField.LOSS_QICL" :value="g.Qicl.value" @update:value="v => g.Qicl?.set(v)" /></div>
           </template>
           <p class="hint">Qa (stuffing): 100 = none · 20–50 = light · 5–10 = heavy. WinISD defaults: Ql=10, Qa=100, Qp=100, Qicl=100.</p>
         </div>

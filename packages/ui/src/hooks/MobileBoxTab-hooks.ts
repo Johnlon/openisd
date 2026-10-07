@@ -26,7 +26,7 @@ export function useMobileBoxTab() {
   const { boxVolumeCell } = createBoxVolume({ project, selectedBox, projectChanged });
   const { frontVolumeCell, frcHz, setFrcHz } = createChamberFields({ project, selectedBox, projectChanged });
   // Box losses popup: one row set per chamber, the same hook the desktop shell uses.
-  const { lossesOpen, openLossGroup, resetBoxLosses } = createBoxLosses({ project, selectedBox, projectChanged, focusedProject });
+  const { lossesOpen, openLossGroups, resetBoxLosses } = createBoxLosses({ project, selectedBox, projectChanged, focusedProject });
 
   // Same skin-neutral class the desktop shell uses (SealedAlignment-hooks.ts) — one editor, not
   // a mobile copy. It takes only the two engine areas it needs (sealed, driver), never the
@@ -67,6 +67,6 @@ export function useMobileBoxTab() {
     ventedAlignmentEditor, ventedAlignmentOpen, ventedAlignmentOptions, ventedAlignmentSelected,
     ventedAlignmentVolume_L, ventedAlignmentTuning_hz, ventedAlignmentEbp, ventedAlignmentSuitability,
     ventedAlignmentSuitabilityLabel,
-    lossesOpen, openLossGroup, resetBoxLosses,
+    lossesOpen, openLossGroups, resetBoxLosses,
   };
 }

@@ -22,7 +22,7 @@ const {
   ventedAlignmentEditor, ventedAlignmentOpen, ventedAlignmentOptions, ventedAlignmentSelected,
   ventedAlignmentVolume_L, ventedAlignmentTuning_hz, ventedAlignmentEbp, ventedAlignmentSuitability,
   ventedAlignmentSuitabilityLabel,
-  lossesOpen, openLossGroup, resetBoxLosses,
+  lossesOpen, openLossGroups, resetBoxLosses,
 } = useMobileBoxTab();
 const { fieldWithUnit, readoutWithUnit } = useUnitReadouts();
 </script>
@@ -178,12 +178,12 @@ const { fieldWithUnit, readoutWithUnit } = useUnitReadouts();
         <span>Box losses</span>
         <button class="mob-x" @click="lossesOpen = null">&#10005;</button>
       </div>
-      <template v-if="openLossGroup !== null">
-        <div v-if="openLossGroup.heading !== null" class="mob-panel-head">{{ openLossGroup.heading }}</div>
-        <UIFixedField class="mob-ui-field" :field="NumberField.LOSS_QL" :cell="openLossGroup.Ql" stepper />
-        <UIFixedField class="mob-ui-field" :field="NumberField.LOSS_QA" :cell="openLossGroup.Qa" stepper />
-        <UIFixedField v-if="openLossGroup.Qp !== null" class="mob-ui-field" :field="NumberField.LOSS_QP" :cell="openLossGroup.Qp" stepper />
-        <UIFixedField v-if="openLossGroup.Qicl !== null" class="mob-ui-field" :field="NumberField.LOSS_QICL" :cell="openLossGroup.Qicl" stepper />
+      <template v-for="g in openLossGroups" :key="g.chamber">
+        <div v-if="g.heading !== null" class="mob-panel-head">{{ g.heading }}</div>
+        <UIFixedField class="mob-ui-field" :field="NumberField.LOSS_QL" :value="g.Ql.value" @update:value="v => g.Ql.set(v)" stepper />
+        <UIFixedField class="mob-ui-field" :field="NumberField.LOSS_QA" :value="g.Qa.value" @update:value="v => g.Qa.set(v)" stepper />
+        <UIFixedField v-if="g.Qp !== null" class="mob-ui-field" :field="NumberField.LOSS_QP" :value="g.Qp.value" @update:value="v => g.Qp?.set(v)" stepper />
+        <UIFixedField v-if="g.Qicl !== null" class="mob-ui-field" :field="NumberField.LOSS_QICL" :value="g.Qicl.value" @update:value="v => g.Qicl?.set(v)" stepper />
       </template>
       <p class="mob-hint">Qa (stuffing): 100 = none · 20–50 = light · 5–10 = heavy. WinISD defaults: Ql=10, Qa=100, Qp=100, Qicl=100.</p>
       <div class="mob-align-footer">

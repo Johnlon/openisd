@@ -134,7 +134,9 @@ export function createBoxLosses({ project, selectedBox, projectChanged: changed,
     const chamber = lossesOpen.value;
     if (chamber !== null) project.value.box.resetLossesOf(selectedBox.value, chamber);
   }
-  return { lossesOpen, openLossGroup, resetBoxLosses };
+  /** `openLossGroup` as a list of at most one, for a template's `v-for` to bind the set to a name. */
+  const openLossGroups = computed<readonly BoxLossGroup[]>(() => openLossGroup.value === null ? [] : [openLossGroup.value]);
+  return { lossesOpen, openLossGroup, openLossGroups, resetBoxLosses };
 }
 
 export interface SelectedBoxDeps {

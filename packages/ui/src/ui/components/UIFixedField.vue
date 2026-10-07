@@ -1,12 +1,19 @@
 <script setup lang="ts">
-/** A field row bound to a cell that always holds a number (a box loss): an emptied box is refused,
- *  never stored. See `UIFieldBody`. */
+/** A field row for a number that is always there (a box loss): an emptied box is refused, never
+ *  stored. Takes the number and reports a new one; see `UIFieldBody`. */
+import {computed} from 'vue';
 import UIFieldBody from './UIFieldBody.vue';
-import type {FixedUICell, UIFieldCommon} from './uiFieldBinding.js';
+import type {UIBinding, UIFieldCommon} from './uiFieldBinding.js';
 
-defineProps<UIFieldCommon & {cell: FixedUICell}>();
+const props = defineProps<UIFieldCommon & {value: number}>();
+const emit = defineEmits<{'update:value': [v: number]}>();
+
+const binding = computed<UIBinding>(() => ({
+  kind: 'fixed',
+  cell: {value: props.value, set: (v: number) => emit('update:value', v)},
+}));
 </script>
 
 <template>
-  <UIFieldBody v-bind="$props" :binding="{kind: 'fixed', cell}" />
+  <UIFieldBody :field="field" :required="required" :input-id="inputId" :max="max" :stepper="stepper" :readonly="readonly" :binding="binding" />
 </template>

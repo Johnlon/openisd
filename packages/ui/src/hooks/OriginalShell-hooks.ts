@@ -250,7 +250,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   // losses: which field each box type has is the box's own knowledge (`Box.frontVolumeOf`,
   // `rearTuningOf`, `lossGroupsOf`); this reads and writes whatever it hands back.
   const { frontVolumeCell, frcHz, setFrcHz } = createChamberFields({ project, selectedBox, projectChanged });
-  const { lossesOpen, openLossGroup, resetBoxLosses } = createBoxLosses({ project, selectedBox, projectChanged, focusedProject });
+  const { lossesOpen, openLossGroups, resetBoxLosses } = createBoxLosses({ project, selectedBox, projectChanged, focusedProject });
   async function confirmDiscard(): Promise<boolean> {
     return globalThis.confirm('Discard all unsaved changes and return to the last saved version?');
   }
@@ -671,7 +671,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     reconcileDriveV,
     powerLocked,
     projectName, projectCreator, projectCreated, projectModified, projectDescription,
-    lossesOpen, openLossGroup, resetBoxLosses,
+    lossesOpen, openLossGroups, resetBoxLosses,
     onFile, fileInput,
   };
 }
