@@ -57,7 +57,7 @@ const {
   activeTuning, fbState, FB_TARGET_TIP, FH_TARGET_TIP, VENT_GEOMETRY_TIP, VentMember,
   boxResonance, rearQtc, prSystemTuningDq, prNaturalFh,
   fbUnreachable, fbUnreachableMsg, isDual,
-  frontVolumeCell, frcHz, setFrcHz, rearResonance, frontChamberTuningLabel,
+  frontVolumeCell, rearTuningCell, rearResonance, frontChamberTuningLabel,
   model, startEdit, startWhatIf, placement,
   activeVent, END_CORRECTION_OPTIONS, VENT_SHAPE_OPTIONS, VENT_COUNT_OPTIONS, PR_COUNT_OPTIONS, ventLState, portPipeResonance_hz,
   prBrowseOpen, loadPREntry, loadBundledPassiveRadiatorEntry, defineNewPREntry,
@@ -325,11 +325,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
                 <div class="section-header">Rear chamber</div>
                 <div class="field-row"><UIField class="field" input-id="og-box-volume" :field="NumberField.BOX_VB_L" :cell="boxVolumeCell" /></div>
                 <div class="field-row">
-                  <div v-if="selectedBox === 'bandpass6' || selectedBox === 'abc'" class="field entered">
-                    <label>Tuning freq (Frc)</label>
-                    <NumInput :model-value="frcHz" @update:model-value="(v: number | null) => setFrcHz(v ?? 0)" :field="NumberField.BOX_FRC_HZ" :precision="NumberField.BOX_FB_HZ.precision" />
-                    <UnitToggle :field="NumberField.BOX_FRC_HZ" unit-class="unit unit-cyc" />
-                  </div>
+                  <UIField v-if="rearTuningCell && (selectedBox === 'bandpass6' || selectedBox === 'abc')" class="field" :field="NumberField.BOX_FRC_HZ" :cell="rearTuningCell" />
                   <div v-else class="field">
                     <label>{{ selectedBox === 'bandpass4' ? 'Frc' : 'Tuning freq' }}</label>
                     <NumReadout as-input class="calculated greyed" :field="NumberField.BOX_REARRESONANCE_HZ" :value="rearResonance" />

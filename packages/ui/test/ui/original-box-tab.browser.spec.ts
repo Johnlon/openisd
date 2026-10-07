@@ -140,6 +140,15 @@ test.describe('Original Box tab', () => {
     expect(stored).toBe(2222); // model actually holds it, not just the local input's own state
   });
 
+  // bugs/BUG_20261005_no-common-ui-field-component.md: an emptied Frc clears; it is never stored as 0.
+  test('the 6th-order bandpass Frc field stays blank when emptied instead of becoming 0', async ({ page }) => {
+    await page.locator('.project-nav li', { hasText: 'Box' }).click();
+    await page.locator('select#og-box-type').selectOption('bandpass6');
+    const frc = page.locator('.ui-field', { hasText: 'Tuning freq (Frc)' }).locator('input');
+    await fillAndBlur(frc, '');
+    await expect(frc).toHaveValue('');
+  });
+
   test('sealed box: Fs=37Hz, Qts=0.38, Vas=30L driver in a 20L box shows the WinISD-lossy Qtc and fc', async ({ page }) => {
     // Qtc = Qts × √(1 + Vas/Vb), fc = Fs × √(1 + Vas/Vb) in the lossless model; the default
     // WinISD-lossy model reads them from the loss-mode cubic, so the expected numbers come from

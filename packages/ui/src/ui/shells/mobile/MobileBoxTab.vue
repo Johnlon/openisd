@@ -13,7 +13,7 @@ import { useMobileBoxTab } from '../../../hooks/MobileBoxTab-hooks.js';
 import { useUnitReadouts } from '../../../hooks/useUnitReadouts.js';
 
 const {
-  selectedBox, pending, isDual, frontVolumeCell, frcHz, setFrcHz, boxLabel, showEnclosureTab, enclosureNavLabel,
+  selectedBox, pending, isDual, frontVolumeCell, rearTuningCell, boxLabel, showEnclosureTab, enclosureNavLabel,
   boxResonance, rearQtc, boxVolumeCell,
   activeTuning, fbState, setFbTarget, FB_TARGET_TIP,
   selectBoxType, BOX_TYPE_OPTIONS, IMPLEMENTED_BOX_TYPES,
@@ -47,16 +47,7 @@ const { fieldWithUnit, readoutWithUnit } = useUnitReadouts();
     <div class="mob-panel-head">Rear chamber</div>
     <UIField class="mob-ui-field" :field="NumberField.BOX_VB_L" :cell="boxVolumeCell" stepper />
 
-    <div v-if="selectedBox === 'bandpass6' || selectedBox === 'abc'" class="mob-field-row mob-field-entered">
-      <div class="mob-field-main">
-        <span class="mob-field-label">Frc</span>
-        <span class="mob-field-value">
-          <NumInput :model-value="frcHz" @update:model-value="(v: number | null) => setFrcHz(v ?? 0)"
-                    :field="NumberField.BOX_FRC_HZ" :precision="NumberField.BOX_FB_HZ.precision" stepper />
-        </span>
-      </div>
-      <UnitToggle :field="NumberField.BOX_FRC_HZ" unit-class="mob-unit" />
-    </div>
+    <UIField v-if="rearTuningCell && (selectedBox === 'bandpass6' || selectedBox === 'abc')" class="mob-ui-field" :field="NumberField.BOX_FRC_HZ" :cell="rearTuningCell" stepper />
     <div v-else-if="selectedBox === 'vented'" class="mob-field-row" :class="fbState === 'C' ? 'mob-field-calculated' : 'mob-field-entered'">
       <div class="mob-field-main">
         <span class="mob-field-label">Target tuning freq (Fb)</span>

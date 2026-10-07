@@ -249,7 +249,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   // Front-chamber volume (WinISD "Vf"), rear-chamber tuning (WinISD "Frc") and the box-level
   // losses: which field each box type has is the box's own knowledge (`Box.frontVolumeOf`,
   // `rearTuningOf`, `lossGroupsOf`); this reads and writes whatever it hands back.
-  const { frontVolumeCell, frcHz, setFrcHz } = createChamberFields({ project, selectedBox, projectChanged });
+  const { frontVolumeCell, rearTuningCell } = createChamberFields({ project, selectedBox, projectChanged });
   const { lossesOpen, openLossGroups, resetBoxLosses } = createBoxLosses({ project, selectedBox, projectChanged, focusedProject });
   async function confirmDiscard(): Promise<boolean> {
     return globalThis.confirm('Discard all unsaved changes and return to the last saved version?');
@@ -657,7 +657,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     fbState, FB_TARGET_TIP, FH_TARGET_TIP, VENT_GEOMETRY_TIP, VentMember,
     boxResonance, rearQtc, prSystemTuningDq,
     fbUnreachable, fbUnreachableMsg, isDual,
-    frontVolumeCell, frcHz, setFrcHz, rearResonance, frontChamberTuningLabel,
+    frontVolumeCell, rearTuningCell, rearResonance, frontChamberTuningLabel,
     model, startEdit, startWhatIf, placement,
     activeVent, activeTuning, END_CORRECTION_OPTIONS, VENT_SHAPE_OPTIONS, VENT_COUNT_OPTIONS, PR_COUNT_OPTIONS, ventLState, portPipeResonance_hz,
     prBrowseOpen, loadPREntry, loadBundledPassiveRadiatorEntry, defineNewPREntry,

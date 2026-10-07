@@ -101,16 +101,10 @@ export function createBoxVolume({ project, selectedBox }: BoxVolumeDeps) {
 // Front-chamber volume (WinISD "Vf") and rear-chamber tuning (WinISD "Frc"): which field each box
 // type has is the box's own knowledge (`Box.frontVolumeOf`, `rearTuningOf`); null = the type has
 // no such field. Both shells' Box tabs call this.
-export function createChamberFields({ project, selectedBox, projectChanged: changed }: BoxVolumeDeps) {
+export function createChamberFields({ project, selectedBox }: BoxVolumeDeps) {
   const frontVolumeCell = computed(() => project.value.box.frontVolumeOf(selectedBox.value));
-  const frcHz = computed<number | null>(() => {
-    void changed.value; void project.value;
-    return project.value.box.rearTuningOf(selectedBox.value)?.value ?? null;
-  });
-  function setFrcHz(v: number): void {
-    project.value.box.rearTuningOf(selectedBox.value)?.set(v);
-  }
-  return { frontVolumeCell, frcHz, setFrcHz };
+  const rearTuningCell = computed(() => project.value.box.rearTuningOf(selectedBox.value));
+  return { frontVolumeCell, rearTuningCell };
 }
 
 // ---- Box losses popup (unit-testable, real domain) ----------------------------

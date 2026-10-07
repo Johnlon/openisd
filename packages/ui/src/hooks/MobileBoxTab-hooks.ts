@@ -24,7 +24,7 @@ export function useMobileBoxTab() {
   const { advAir } = createEnvironmentAir({ project, projectChanged, envDefaults, environment: engine.environment });
   const { activeTuning, fbState, setFbTarget } = createVentReadouts({ project, projectChanged, selectedBox, air: advAir, vent: engine.vent });
   const { boxVolumeCell } = createBoxVolume({ project, selectedBox, projectChanged });
-  const { frontVolumeCell, frcHz, setFrcHz } = createChamberFields({ project, selectedBox, projectChanged });
+  const { frontVolumeCell, rearTuningCell } = createChamberFields({ project, selectedBox, projectChanged });
   // Box losses popup: one row set per chamber, the same hook the desktop shell uses.
   const { lossesOpen, openLossGroups, resetBoxLosses } = createBoxLosses({ project, selectedBox, projectChanged, focusedProject });
 
@@ -58,7 +58,7 @@ export function useMobileBoxTab() {
   }
 
   return {
-    project, selectedBox, pending, isDual, boxLabel, frontVolumeCell, frcHz, setFrcHz, showEnclosureTab, enclosureNavLabel,
+    project, selectedBox, pending, isDual, boxLabel, frontVolumeCell, rearTuningCell, showEnclosureTab, enclosureNavLabel,
     boxResonance, rearQtc, boxVolumeCell,
     activeTuning, fbState, setFbTarget, FB_TARGET_TIP,
     selectBoxType, BOX_TYPE_OPTIONS, IMPLEMENTED_BOX_TYPES,
