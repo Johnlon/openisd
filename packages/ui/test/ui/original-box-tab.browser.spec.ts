@@ -1,5 +1,5 @@
 import {
-  expect, focusedBandpass6RearTuning, focusedBoxType, focusedSealedReadouts, openAProject, setFocusedBoxType,
+  expect, focusedBandpass6RearTuning, focusedBandpass6Tunings, focusedBoxType, focusedSealedReadouts, openAProject, setFocusedBoxType,
   setFocusedDriverSpecs, setFocusedSealedLosses, setFocusedSeriesResistance, test, W5_1138SMF,
 } from '../fixtures.js';
 import type {Page} from '@playwright/test';
@@ -138,6 +138,18 @@ test.describe('Original Box tab', () => {
     await expect(frc).toHaveValue(/^2222(\.0+)?$/); // 2-dp display formatting, not the bug
     const stored = await focusedBandpass6RearTuning(page);
     expect(stored).toBe(2222); // model actually holds it, not just the local input's own state
+  });
+
+  // bugs/BUG_20261007_bp6-abc-front-tuning-edits-the-vented-box.md
+  test('the 6th-order bandpass Ffc field edits the front chamber, not the vented box', async ({ page }) => {
+    await page.locator('.project-nav li', { hasText: 'Box' }).click();
+    await page.locator('select#og-box-type').selectOption('bandpass6');
+    const before = await focusedBandpass6Tunings(page);
+    const ffc = page.locator('#og-ffc-target');
+    await fillAndBlur(ffc, '31.5');
+    const after = await focusedBandpass6Tunings(page);
+    expect(after.front).toBe(31.5);
+    expect(after.vented).toBe(before.vented);
   });
 
   // bugs/BUG_20261005_no-common-ui-field-component.md: an emptied Frc clears; it is never stored as 0.

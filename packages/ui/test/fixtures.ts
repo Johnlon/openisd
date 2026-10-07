@@ -418,6 +418,20 @@ export async function focusedBandpass6RearTuning(page: Page): Promise<number> {
   }, '/src/logic/appState.ts');
 }
 
+/** The focused bandpass6 front chamber's tuning goal (Hz) and the vented box's tuning goal (Hz, null when blank). */
+export async function focusedBandpass6Tunings(page: Page): Promise<{front: number | null; vented: number | null}> {
+  return page.evaluate(async (path): Promise<{front: number | null; vented: number | null}> => {
+    type AppState = typeof import('../src/logic/appState.js');
+    function isAppState(m: unknown): m is AppState {
+      return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
+    }
+    const m: unknown = await import(/* @vite-ignore */ path);
+    if (!isAppState(m)) throw new Error('appState module shape mismatch');
+    const box = m.requireFocusedProject().box;
+    return {front: box.bandpass6.chambers.front.tuning_goal_hz.value, vented: box.vented.tuning_goal_hz.value};
+  }, '/src/logic/appState.ts');
+}
+
 /** The focused project's passive radiator: its name, count and spec cells (SI units). */
 export interface FocusedPassiveRadiatorSpec {
   name: string;

@@ -29,10 +29,13 @@ export interface Box {
      *  null otherwise. */
     rearTuningOf(type: BoxType): TuningField | null;
     /** The ported chamber's vent group — the volume, tuning goal and vent tied by the Helmholtz
-     *  relation: the FRONT chamber of a 4th-order bandpass, the one cabinet of a vented box. Every
+     *  relation: the FRONT chamber of a two-chamber type, the one cabinet of a vented box. Every
      *  other type answers the vented box's group (dormant data, as `volumeOf` is for a type the
      *  project has not adopted). `type` is passed, not read from `boxType`, for the same reason. */
     ventGroupOf(type: BoxType): VentGroup;
+    /** The rear chamber's vent group of a `type` whose rear chamber is ported (bandpass6, abc);
+     *  null otherwise. */
+    rearVentGroupOf(type: BoxType): VentGroup | null;
     /** The loss sets WinISD's Box losses popup edits for `type`, one per chamber panel: one
      *  untitled set (Ql/Qa of the one cabinet, Qp of a ported one) or, for a two-chamber type, a
      *  Rear chamber and a Front chamber set. Both sets of a two-chamber type carry the same Qicl

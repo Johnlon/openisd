@@ -398,11 +398,42 @@ export class OpenISDBox implements Box {
     }
 
     ventGroupOf(type: BoxType): VentGroup {
-        if (type === 'bandpass4') {
-            const front = this.bandpass4.chambers.front;
-            return { volume_m3: front.volume_m3, tuning_goal_hz: front.tuning_goal_hz, vent: this.bandpass4.vents.front };
+        switch (type) {
+            case 'bandpass4': {
+                const front = this.bandpass4.chambers.front;
+                return { volume_m3: front.volume_m3, tuning_goal_hz: front.tuning_goal_hz, vent: this.bandpass4.vents.front };
+            }
+            case 'bandpass6': {
+                const front = this.bandpass6.chambers.front;
+                return { volume_m3: front.volume_m3, tuning_goal_hz: front.tuning_goal_hz, vent: this.bandpass6.vents.front };
+            }
+            case 'abc': {
+                const front = this.abc.chambers.front;
+                return { volume_m3: front.volume_m3, tuning_goal_hz: front.tuning_goal_hz, vent: this.abc.vents.front };
+            }
+            case 'sealed':
+            case 'vented':
+            case 'box-passive-radiator':
+                return this.vented;
         }
-        return this.vented;
+    }
+
+    rearVentGroupOf(type: BoxType): VentGroup | null {
+        switch (type) {
+            case 'bandpass6': {
+                const rear = this.bandpass6.chambers.rear;
+                return { volume_m3: rear.volume_m3, tuning_goal_hz: rear.tuning_goal_hz, vent: this.bandpass6.vents.rear };
+            }
+            case 'abc': {
+                const rear = this.abc.chambers.rear;
+                return { volume_m3: rear.volume_m3, tuning_goal_hz: rear.tuning_goal_hz, vent: this.abc.vents.rear };
+            }
+            case 'sealed':
+            case 'vented':
+            case 'bandpass4':
+            case 'box-passive-radiator':
+                return null;
+        }
     }
 
     lossGroupsOf(type: BoxType): readonly BoxLossGroup[] {

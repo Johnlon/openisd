@@ -46,3 +46,41 @@ describe('bandpass6 and ABC starting values', () => {
     assert.equal(p.box.bandpass6.chambers.front.tuning_goal_hz.value, 44.4444);
   });
 });
+
+describe('the vent group of a bandpass6 or ABC box', () => {
+  for (const type of ['bandpass6', 'abc'] as const) {
+    it(`${type}: ventGroupOf is the front chamber's own cells, not the vented box's`, () => {
+      const p = built(type);
+      const chambers = type === 'bandpass6' ? p.box.bandpass6.chambers : p.box.abc.chambers;
+      const vents = type === 'bandpass6' ? p.box.bandpass6.vents : p.box.abc.vents;
+      const group = p.box.ventGroupOf(type);
+      group.volume_m3.set(0.0444);
+      group.vent.diameter_m.set(0.0777);
+      assert.equal(chambers.front.volume_m3.value, 0.0444);
+      assert.equal(vents.front.diameter_m.value, 0.0777);
+      group.tuning_goal_hz.set(31.3131);
+      assert.equal(chambers.front.tuning_goal_hz.value, 31.3131);
+      assert.notEqual(p.box.vented.tuning_goal_hz.value, 31.3131);
+    });
+
+    it(`${type}: rearVentGroupOf is the rear chamber's own cells`, () => {
+      const p = built(type);
+      const chambers = type === 'bandpass6' ? p.box.bandpass6.chambers : p.box.abc.chambers;
+      const vents = type === 'bandpass6' ? p.box.bandpass6.vents : p.box.abc.vents;
+      const group = p.box.rearVentGroupOf(type);
+      assert.ok(group);
+      group.tuning_goal_hz.set(32.3232);
+      group.volume_m3.set(0.0555);
+      group.vent.diameter_m.set(0.0888);
+      assert.equal(chambers.rear.tuning_goal_hz.value, 32.3232);
+      assert.equal(chambers.rear.volume_m3.value, 0.0555);
+      assert.equal(vents.rear.diameter_m.value, 0.0888);
+    });
+  }
+
+  it('a box with no ported rear chamber has no rear vent group', () => {
+    const p = built('bandpass6');
+    assert.equal(p.box.rearVentGroupOf('vented'), null);
+    assert.equal(p.box.rearVentGroupOf('bandpass4'), null);
+  });
+});
