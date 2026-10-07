@@ -33,6 +33,8 @@ test.describe('What-if? panel', () => {
     test('the What-if? changes the charts but never the project, and Close puts the curve back', async ({ page }) => {
       expect(await focusedIsModified(page)).toBe(false);
       const volume = await focusedBoxVolume(page);
+      // The charts draw after the project opens; under load the first read is 0, and Close would then be compared to it.
+      await expect.poll(() => curvesSplSum(page)).toBeGreaterThan(0);
       const spl = await curvesSplSum(page);
 
       await page.locator('.project-nav li', { hasText: 'Driver' }).click();
