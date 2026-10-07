@@ -12,21 +12,25 @@
  * because nothing has chosen them (TODO(box-wizard) there). So a test that needs a design
  * which raises no precondition issue SIZES THE BOX ITSELF, inline, and says what it set.
  */
-import {describe, it} from 'vitest';
+import {describe, it, vi} from 'vitest';
 import assert from 'node:assert/strict';
 import {allIssues, curvesData, newProject, paramIssues, requireFocusedProject} from '../../src/logic/appState.js';
 
 /** `sweepErrors`'s re-sweep is throttled (`scheduleSweep`, `SWEEP_MS` — docs/design/
  *  REACTIVITY.md): a burst of synchronous `.set()`/`.clear()` calls lands well inside one
- *  throttle window, so a test that needs `allIssues` to reflect them must wait past it —
- *  exactly as a real user's edits, spread over multiple frames, naturally would. Reading
- *  `allIssues.value` synchronously right after a change proves nothing either way: a
- *  test that never awaits this can pass whether or not the channel ever actually recomputed. */
-// Past the sweep's settle run (`SweepScheduler`, 150 ms after the last edit), which brings the
-// max curves and their issues up to date after a burst of edits.
-async function awaitSweepThrottle(): Promise<void> {
-  await new Promise(resolve => setTimeout(resolve, 200));
+ *  throttle window, so a test that needs `allIssues` to reflect them must wait for the sweep
+ *  to land — exactly as a real user's edits, spread over multiple frames, naturally would.
+ *  Reading `allIssues.value` synchronously right after a change proves nothing either way: a
+ *  test that never waits can pass whether or not the channel ever actually recomputed.
+ *
+ *  Waits for the state the test needs, never a fixed sleep: `landed` says what the issue list
+ *  or the curves look like once the sweep for the last edit is in. */
+async function awaitSweep(landed: () => boolean, what: string): Promise<void> {
+  await vi.waitFor(() => assert.ok(landed(), `the sweep has not landed: ${what}`), {timeout: 30_000});
 }
+
+const noErrors = (): boolean => !allIssues.value.some(e => e.level === 'error');
+const hasIssue = (field: string): boolean => allIssues.value.some(e => e.field === field);
 
 describe('the store unions every hardening layer into one issue list', () => {
   it('a fully specified design is clean — no layer reports a false positive', async () => {
@@ -46,7 +50,7 @@ describe('the store unions every hardening layer into one issue list', () => {
     requireFocusedProject().box.vented.volume_m3.set(0.030);
     requireFocusedProject().box.vented.tuning_goal_hz.set(37);
     requireFocusedProject().box.vented.vent.diameter_m.set(0.102);
-    await awaitSweepThrottle();
+    await awaitSweep(() => noErrors() && curvesData.value !== null, 'a valid design has curves and no error');
 
     // Proves this reflects a genuinely fresh, successful sweep — not a vacuously-empty
     // channel that was never recomputed at all (an empty array passes either way).
@@ -133,7 +137,7 @@ describe('the store unions every hardening layer into one issue list', () => {
     driver.Vas_m3.set(0.0300);
     driver.Sd_m2.set(0.0133);
     requireFocusedProject().box.sealed.volume_m3.set(0.030);
-    await awaitSweepThrottle();
+    await awaitSweep(noErrors, 'the valid circuit reports no error');
     assert.deepEqual(allIssues.value.filter(e => e.level === 'error'), [],
       'precondition: the circuit must be genuinely valid before this test breaks it');
 
@@ -144,7 +148,7 @@ describe('the store unions every hardening layer into one issue list', () => {
     driver.Qms.clear();
     driver.Vas_m3.clear();
     driver.Sd_m2.clear();
-    await awaitSweepThrottle();
+    await awaitSweep(() => hasIssue('Mms_kg'), 'the broken circuit reports its missing fields');
 
     for (const field of ['Sd_m2', 'Re_terminal_ohm', 'BL_terminal_Tm', 'Cms_m_per_N', 'Mms_kg', 'Rms_kg_per_s']) {
       const failure = allIssues.value.find(issue => issue.field === field);
@@ -171,7 +175,7 @@ describe('the store unions every hardening layer into one issue list', () => {
     requireFocusedProject().box.vented.tuning_goal_hz.set(37);
     requireFocusedProject().box.vented.vent.diameter_m.set(0.102);
 
-    await awaitSweepThrottle();
+    await awaitSweep(() => hasIssue('maxspl'), 'the unbounded max-SPL advisory is reported');
 
     assert.deepEqual(allIssues.value.filter(e => e.level === 'error'), [],
       'unbounded is a valid answer, not a blocking error');
@@ -203,7 +207,7 @@ it('an unsized vent port surfaces a tuning_goal_hz/length_m error through allIss
     // state T1 adds a specific error for, instead of the generic no-values consequence.
     requireFocusedProject().box.vented.volume_m3.set(0.030);
     requireFocusedProject().box.vented.vent.diameter_m.set(0.102);
-    await awaitSweepThrottle();
+    await awaitSweep(() => hasIssue('tuning_goal_hz') || hasIssue('length_m'), 'the unsized vent is reported');
 
     const vent = allIssues.value.find(e => e.field === 'tuning_goal_hz' || e.field === 'length_m');
     assert.ok(vent, `the unsized vent must surface through allIssues; got: ${allIssues.value.map(e => e.field).join(', ')}`);
@@ -215,7 +219,7 @@ it('an unsized vent port surfaces a tuning_goal_hz/length_m error through allIss
     // The live recovery half of the transition: stating a tuning must clear the guard
     // and put curves back.
     requireFocusedProject().box.vented.tuning_goal_hz.set(37);
-    await awaitSweepThrottle();
+    await awaitSweep(() => noErrors() && curvesData.value !== null, 'the stated tuning clears the guard and curves return');
     assert.deepEqual(allIssues.value.filter(e => e.level === 'error'), [],
       'stating a tuning must clear the vent sweep guard');
     assert.ok(curvesData.value, 'stating a tuning must yield a sweep again');
@@ -230,7 +234,8 @@ it('an unsized vent port surfaces a tuning_goal_hz/length_m error through allIss
     // chosen yet" sweep-only guard `#ventSweepIssues` adds on top of an empty cascade result),
     // so the SAME issue instance reaches both the sweep channel and the cell's own DQ.
     requireFocusedProject().box.vented.tuning_goal_hz.set(0);
-    await awaitSweepThrottle();
+    await awaitSweep(() => allIssues.value.some(e => e.field === 'tuning_goal_hz' && e.level === 'error'),
+      'the non-physical tuning is reported');
 
     const tuningCell = requireFocusedProject().box.vented.tuning_goal_hz;
     assert.ok(tuningCell.dq.length > 0, 'precondition: the cell must actually carry a DQ');
@@ -246,7 +251,7 @@ it('an unsized vent port surfaces a tuning_goal_hz/length_m error through allIss
   it('a new bandpass6 project simulates, with both chamber volumes stated', async () => {
     newProject();
     requireFocusedProject().box.boxType.set('bandpass6');
-    await awaitSweepThrottle();
+    await awaitSweep(() => hasIssue('Sd_m2'), 'the sweep for the blank driver has run');
 
     assert.equal(allIssues.value.find(e => /not yet implemented/i.test(e.message)), undefined,
       `bandpass6 is simulatable; got: ${allIssues.value.map(e => e.message).join(', ')}`);
@@ -258,7 +263,7 @@ it('an unsized vent port surfaces a tuning_goal_hz/length_m error through allIss
   it('a new abc project simulates, with both chamber volumes stated', async () => {
     newProject();
     requireFocusedProject().box.boxType.set('abc');
-    await awaitSweepThrottle();
+    await awaitSweep(() => hasIssue('Sd_m2'), 'the sweep for the blank driver has run');
 
     assert.equal(allIssues.value.find(e => /not yet implemented/i.test(e.message)), undefined,
       `abc is simulatable; got: ${allIssues.value.map(e => e.message).join(', ')}`);
