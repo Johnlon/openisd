@@ -41,7 +41,8 @@ import {winISDDriverToOpenISDDeviceJson} from "./winIsdDriverImport.js";
 import {sortKeysDeep} from "./openIsdDeviceJsonIo.js";
 import {dqMarks} from "./specEntry.js";
 import {selectOrigin} from "./selectOrigin.js";
-import {Corroboration, corroborate, type Reading} from "./corroboration.js";
+import {Corroboration, ReaderAgreement, corroborate, readerVerdict, type Reading} from "./corroboration.js";
+import {Reader} from "./reader.js";
 import {DriverRoundTripCheck} from "./driverRoundTripDiffs.js";
 
 /** Both derived artefacts and every problem found producing them. `openisd`/`wdr` are null when a
@@ -803,6 +804,33 @@ export class WinIsdDriverConverter {
         field: `${section}.${field}`,
         message: `sources disagree: ${parts}`,
       });
+    }
+
+    // Reader agreement is derived from each datasheet reading's `reads` and never stored. Readers
+    // that disagree are a DQ warning showing every reader's read; a value only OCR read, with no
+    // text layer behind it, is a warning that it is unverified.
+    for (const [role, reading] of Object.entries(readings).sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))) {
+      const reads = reading.reads;
+      if (reads === undefined) continue;
+      const verdict = readerVerdict(reads);
+      if (verdict.agreement === ReaderAgreement.Disagree) {
+        const shown = Reader.ALL.flatMap((reader) => {
+          const read = reads[reader.value];
+          return read === undefined ? [] : [`${reader.value}=${read.actual_reading}`];
+        }).join(", ");
+        warnings.push({
+          level: "warn",
+          field: `${section}.${field}`,
+          message: `readers disagree on ${role}: ${shown}`,
+        });
+      }
+      if (verdict.unverified) {
+        warnings.push({
+          level: "warn",
+          field: `${section}.${field}`,
+          message: `${role} read by OCR only (${verdict.numbered.join(", ")}): no text layer confirmed it`,
+        });
+      }
     }
 
     const projected: Record<string, unknown> = {

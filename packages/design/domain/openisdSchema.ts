@@ -11,7 +11,7 @@
  * DATA SHAPES ONLY: the zod schemas, their inferred types, and the small hand-written interfaces
  * (`Reading`, `DriverSpecsSection`, `PassiveRadiatorSpecsSection`) that describe the same shapes
  * the schemas validate. The logic that reads or builds these shapes — voice-coil wiring
- * (`voiceCoilWiring.ts`), spec-entry helpers (`specEntry.ts`), `.wdr` import
+ * (`voiceCoilWiring.ts`), spec-entry helpers (`specEntry.ts`), `.wdr` importimport
  * (`winIsdDriverImport.ts`), a brand-new box's defaults (`boxDefaults.ts`) and
  * `OpenISDDeviceJson`'s own parse/serialise boundary (`openIsdDeviceJsonIo.ts`) — lives in its own
  * module, named for what it does, and imports the type it needs from here.
@@ -26,6 +26,7 @@
  * of a silent loss.
  */
 import {z} from 'zod';
+import {READER_VALUES} from './reader.js';
 import type {OpenISDDriver} from './driver/openISDDriver.js';
 import type {BoxType, Filter, PassFamily} from '../engine/index.js';
 import type {VentShape} from './vent.js';
@@ -163,6 +164,15 @@ export interface PassiveRadiatorSpecsSection {
 /** One source's reading of one parameter. `read_value` is the number; the rest annotate it.
  *  Exported so `winIsdDriverConverter.ts` can validate a scraper's driver.yml readings against
  *  the SAME shape this record stores, rather than a hand-duplicated copy free to drift. */
+/** One reader's read of one datasheet cell: the cell as that reader read it, verbatim, and the
+ *  number and half-width it gave. Both are null exactly when the cell holds no number. */
+const readerReadJsonSchema = z.strictObject({
+    actual_reading: z.string(),
+    read_value: z.number().nullable(),
+    read_precision: z.number().nullable(),
+}).refine(r => r.read_value !== null || r.read_precision === null, 'read_precision needs a read_value');
+export type ReaderReadJson = z.infer<typeof readerReadJsonSchema>;
+
 export const readingJsonSchema = z.strictObject({
     // `_KEY_PRIORITY_LIST` (`model_driver.py:1509`) is the canonical key order — the emitter's
     // own, applied by `canonical_yaml`. Not the pydantic class's field order, which differs.
@@ -183,6 +193,11 @@ export const readingJsonSchema = z.strictObject({
     // It qualifies THAT source's number: a sensitivity taken at 2.83 V/1 m is 3 dB louder than
     // the same driver at 1 W/1 m on 4 ohms (`model_driver.py`).
     note: z.string().optional(),
+    // Every reader's read of this datasheet cell; the fields above are the preferred reader's. Only
+    // a datasheet reading has it. Agreement between the readers is derived from it
+    // (`readerVerdict`) and never stored.
+    reads: z.partialRecord(z.enum(READER_VALUES), readerReadJsonSchema).refine(
+        r => Object.keys(r).length > 0, 'expected at least one reader').optional(),
 });
 /** The corroboration verdict a scraped entry's readings settled on (D11) — `Corroboration.ALL`'s
  *  wire values. Absent on a hand-typed entry and on any entry with fewer than two usable readings

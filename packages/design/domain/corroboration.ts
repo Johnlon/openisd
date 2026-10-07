@@ -11,6 +11,9 @@
  * quantities. Otherwise MATCH requires EVERY pair to reconcile.
  */
 
+import {Reader} from './reader.js';
+import type {ReaderValue} from './reader.js';
+
 /** One source's reading, as far as corroboration cares — the numeric side of the record's own
  *  `readingJsonSchema` shape (`openisdSchema.ts`), not a second definition of it. */
 export interface Reading {
@@ -92,4 +95,66 @@ export function corroborate(readings: Readonly<Record<string, Reading>>): Corrob
         }
     }
     return Corroboration.Match;
+}
+
+
+/** One reader's read of a datasheet cell, as the record's `reads` stores it. */
+export interface ReaderRead {
+    readonly actual_reading: string;
+    readonly read_value: number | null;
+    readonly read_precision: number | null;
+}
+
+/** The readers that read one cell, keyed by wire value; a reader that found no cell has no key. */
+export type ReaderReads = Partial<Record<ReaderValue, ReaderRead>>;
+
+const _readerAgreementValues = ['AGREE', 'DISAGREE', 'SINGLE'] as const;
+export type ReaderAgreementValue = typeof _readerAgreementValues[number];
+
+/** The closed set of reader-agreement verdicts. Derived from `reads` on every use; never stored. */
+export class ReaderAgreement {
+    private constructor(readonly value: ReaderAgreementValue) {}
+
+    /** Every pair of readers that gave a number agrees. */
+    static readonly Agree = new ReaderAgreement('AGREE');
+    /** Some pair of readers gave numbers that do not agree: a DQ issue. */
+    static readonly Disagree = new ReaderAgreement('DISAGREE');
+    /** Fewer than two readers gave a number: nothing to compare. */
+    static readonly Single = new ReaderAgreement('SINGLE');
+
+    toString(): string {
+        return this.value;
+    }
+}
+
+export interface ReaderVerdict {
+    readonly agreement: ReaderAgreement;
+    /** Every reader that gave a number is an OCR reader: the value has no text-layer read behind it. */
+    readonly unverified: boolean;
+    /** The readers that gave a number, in `Reader.ALL` order. */
+    readonly numbered: readonly ReaderValue[];
+    /** The first pair that disagree, in `Reader.ALL` order; null unless the agreement is Disagree. */
+    readonly disagreeing: readonly [ReaderValue, ReaderValue] | null;
+}
+
+/** Reader agreement for one datasheet cell, from its `reads`. A read with no number is not a side.
+ *  Two reads agree by `readingsAgree`, the one formula; there is no second copy of it. */
+export function readerVerdict(reads: ReaderReads): ReaderVerdict {
+    const numbered: {readonly reader: Reader; readonly reading: Reading}[] = [];
+    for (const reader of Reader.ALL) {
+        const read = reads[reader.value];
+        if (read === undefined || read.read_value === null) continue;
+        numbered.push({reader, reading: {read_value: read.read_value, read_precision: read.read_precision ?? undefined}});
+    }
+    const unverified = numbered.length > 0 && numbered.every(n => n.reader.isOcr);
+    const readers = numbered.map(n => n.reader.value);
+    for (let i = 0; i < numbered.length; i++) {
+        for (let j = i + 1; j < numbered.length; j++) {
+            if (!readingsAgree(numbered[i].reading, numbered[j].reading)) {
+                return {agreement: ReaderAgreement.Disagree, unverified, numbered: readers, disagreeing: [numbered[i].reader.value, numbered[j].reader.value]};
+            }
+        }
+    }
+    const agreement = numbered.length < 2 ? ReaderAgreement.Single : ReaderAgreement.Agree;
+    return {agreement, unverified, numbered: readers, disagreeing: null};
 }
