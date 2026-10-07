@@ -13,13 +13,13 @@ test.beforeEach(async ({ page }) => {
 
 test.describe('MobileBoxLossesPopup', () => {
   test('edits Ql/Qa, and Qp only for a vented box', async ({ page }) => {
-    await expect(page.locator('.mob-field-label', { hasText: 'Port Qp' })).toHaveCount(0);
+    await expect(page.locator('.ui-field-label', { hasText: 'Port Qp' })).toHaveCount(0);
     await page.locator('.mob-btn', { hasText: 'Box losses' }).click();
-    await expect(page.locator('.mob-field-label', { hasText: 'Leakage Ql' })).toBeVisible();
-    await expect(page.locator('.mob-field-label', { hasText: 'Absorption Qa' })).toBeVisible();
-    await expect(page.locator('.mob-field-label', { hasText: 'Port Qp' })).toBeVisible();
+    await expect(page.locator('.ui-field-label', { hasText: 'Leakage Ql' })).toBeVisible();
+    await expect(page.locator('.ui-field-label', { hasText: 'Absorption Qa' })).toBeVisible();
+    await expect(page.locator('.ui-field-label', { hasText: 'Port Qp' })).toBeVisible();
 
-    const qlInput = page.locator('.mob-field-row', { has: page.locator('.mob-field-label', { hasText: 'Leakage Ql' }) }).locator('input');
+    const qlInput = page.locator('.mob-ui-field', { hasText: 'Leakage Ql' }).locator('input');
     await qlInput.fill('12');
     await qlInput.blur();
     await expect(qlInput).toHaveValue(/12/);
@@ -29,12 +29,12 @@ test.describe('MobileBoxLossesPopup', () => {
 
     await page.locator('#mob-box-type').selectOption('sealed');
     await page.locator('.mob-btn', { hasText: 'Box losses' }).click();
-    await expect(page.locator('.mob-field-label', { hasText: 'Port Qp' })).toHaveCount(0);
+    await expect(page.locator('.ui-field-label', { hasText: 'Port Qp' })).toHaveCount(0);
   });
 
   test('Reset puts Ql, Qa and Qp back to WinISD\'s defaults', async ({ page }) => {
     await page.locator('.mob-btn', { hasText: 'Box losses' }).click();
-    const q = (label: string) => page.locator('.mob-field-row', { has: page.locator('.mob-field-label', { hasText: label }) }).locator('input');
+    const q = (label: string) => page.locator('.mob-ui-field', { hasText: label }).locator('input');
     await q('Leakage Ql').fill('7'); await q('Leakage Ql').blur();
     await q('Absorption Qa').fill('20'); await q('Absorption Qa').blur();
     await page.locator('#mob-box-losses-reset').click();
@@ -55,17 +55,17 @@ test.describe('MobileBoxLossesPopup', () => {
       await page.locator('#mob-box-type').selectOption(type);
       const rear = await openFor(page, 'Rear');
       await expect(rear.locator('.mob-panel-head', { hasText: 'chamber' })).toHaveText(['Rear chamber']);
-      await expect(rear.locator('.mob-field-label', { hasText: 'Port Qp' })).toHaveCount(rearPorts);
-      await expect(rear.locator('.mob-field-label', { hasText: 'Interchamber Qicl' })).toHaveCount(1);
+      await expect(rear.locator('.ui-field-label', { hasText: 'Port Qp' })).toHaveCount(rearPorts);
+      await expect(rear.locator('.ui-field-label', { hasText: 'Interchamber Qicl' })).toHaveCount(1);
       await rear.locator('.mob-align-footer .mob-btn', { hasText: 'OK' }).click();
       const front = await openFor(page, 'Front');
       await expect(front.locator('.mob-panel-head', { hasText: 'chamber' })).toHaveText(['Front chamber']);
-      await expect(front.locator('.mob-field-label', { hasText: 'Port Qp' })).toHaveCount(1);
+      await expect(front.locator('.ui-field-label', { hasText: 'Port Qp' })).toHaveCount(1);
     });
     test(`${type}: Reset puts only the open chamber back; the Qicl is one value for both`, async ({ page }) => {
       await page.locator('#mob-box-type').selectOption(type);
       const q = (sheet: Locator, label: string) =>
-        sheet.locator('.mob-field-row', { has: page.locator('.mob-field-label', { hasText: label }) }).locator('input');
+        sheet.locator('.mob-ui-field', { hasText: label }).locator('input');
       let sheet = await openFor(page, 'Front');
       await q(sheet, 'Leakage Ql').fill('7'); await q(sheet, 'Leakage Ql').blur();
       await q(sheet, 'Interchamber Qicl').fill('42'); await q(sheet, 'Interchamber Qicl').blur();
