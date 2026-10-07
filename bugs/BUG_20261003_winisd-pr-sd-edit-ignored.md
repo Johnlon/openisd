@@ -1,7 +1,6 @@
 # BUG_20261003_winisd-pr-sd-edit-ignored
 
-Status: WinISD bug (broken internal link, NOT a calculation difference), probed 2026-10-03. OpenISD
-does not copy it: a typed PR Sd takes effect.
+**Status:** RECORDED — WinISD bug (broken internal link, not a calculation difference), probed 2026-10-03. Not copied: a typed PR Sd takes effect.
 
 ## What it is
 WinISD's PR Sd edit box is not linked to the model. Its excursion calculation does use Sd: the same
