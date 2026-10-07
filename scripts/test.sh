@@ -67,7 +67,10 @@ EOF
     exit 1
   fi
   bash "$SCRIPT_DIR/quiet-test.sh" npx vitest run
-  bash "$SCRIPT_DIR/quiet-test.sh" bash "$SCRIPT_DIR/test-browser.sh"
+  # The browser stage reruns a few failing spec files once (John, 2026-10-07): 1-10 failing files are
+  # rerun alone, all passing on the rerun means a pass logged FLAKY in build/test-logs/flaky.log, more
+  # than 10 fails at once. See scripts/slow-run/rerun.mjs.
+  node "$SCRIPT_DIR/slow-run/rerun.mjs" playwright
   exit 0
 fi
 

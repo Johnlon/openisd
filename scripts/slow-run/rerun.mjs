@@ -177,10 +177,7 @@ function runVitest(targets) {
 /** @param {string[]} targets @returns {{ exit: number; failing: string[] }} */
 function runPlaywright(targets) {
   rmSync(PW_JSON, { force: true });
-  // OPENISD_NO_INNER_RETRY: test-browser.sh's own --last-failed retries would hide the flakiness
-  // this script logs; here the one rerun below is the retry.
-  const exit = run(['bash', 'scripts/quiet-test.sh', 'bash', 'scripts/test-browser.sh', ...targets],
-    { OPENISD_NO_INNER_RETRY: '1' });
+  const exit = run(['bash', 'scripts/quiet-test.sh', 'bash', 'scripts/test-browser.sh', ...targets]);
   const report = parsePlaywrightReport(readJson(PW_JSON));
   return { exit, failing: report ? failingPlaywrightFiles(report) : [] };
 }

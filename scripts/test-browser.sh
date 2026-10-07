@@ -131,20 +131,4 @@ run_with_watchdog() {
 run_with_watchdog "$OPENISD_TEST_PORT" "$@"
 STATUS=$?
 
-if [ $STATUS -ne 0 ]; then
-  echo ""
-  echo "⚠️ Playwright suite interrupted/failed (exit code $STATUS). Retrying remaining/failed tests with --last-failed..." >&2
-  bash "$SCRIPT_DIR/kill-http.sh" "$OPENISD_TEST_PORT"
-  run_with_watchdog "$OPENISD_TEST_PORT" --last-failed "$@"
-  STATUS=$?
-fi
-
-if [ $STATUS -ne 0 ]; then
-  echo ""
-  echo "⚠️ Secondary retry failed (exit code $STATUS). Final fallback with --last-failed (workers=1)..." >&2
-  bash "$SCRIPT_DIR/kill-http.sh" "$OPENISD_TEST_PORT"
-  run_with_watchdog "$OPENISD_TEST_PORT" --last-failed --workers=1 "$@"
-  STATUS=$?
-fi
-
 exit $STATUS
