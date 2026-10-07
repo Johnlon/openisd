@@ -10,6 +10,7 @@ import {CompatSwitchGroup, NumberField, ReadoutFormat, TextField, ToggleField, W
 import UnitToggle from '../../components/UnitToggle.vue';
 import NumInput from '../../components/NumInput.vue';
 import UIField from '../../components/UIField.vue';
+import UIFixedField from '../../components/UIFixedField.vue';
 import {provideCellScope} from '../../components/cellScope.js';
 import {projectChanged} from '../../../logic/appState.js';
 import NumReadout from '../../components/NumReadout.vue';
@@ -749,10 +750,10 @@ provideCellScope({ revision: projectChanged, written: () => {} });
         <div class="modal-body">
           <template v-if="openLossGroup !== null">
             <div v-if="openLossGroup.heading !== null" class="section-header">{{ openLossGroup.heading }}</div>
-            <div class="field-row"><UIField class="field" :field="NumberField.LOSS_QL" :cell="openLossGroup.Ql" /></div>
-            <div class="field-row"><UIField class="field" :field="NumberField.LOSS_QA" :cell="openLossGroup.Qa" /></div>
-            <div class="field-row" v-if="openLossGroup.Qp !== null"><UIField class="field" :field="NumberField.LOSS_QP" :cell="openLossGroup.Qp" /></div>
-            <div class="field-row" v-if="openLossGroup.Qicl !== null"><UIField class="field" :field="NumberField.LOSS_QICL" :cell="openLossGroup.Qicl" /></div>
+            <div class="field-row"><UIFixedField class="field" :field="NumberField.LOSS_QL" :cell="openLossGroup.Ql" /></div>
+            <div class="field-row"><UIFixedField class="field" :field="NumberField.LOSS_QA" :cell="openLossGroup.Qa" /></div>
+            <div class="field-row" v-if="openLossGroup.Qp !== null"><UIFixedField class="field" :field="NumberField.LOSS_QP" :cell="openLossGroup.Qp" /></div>
+            <div class="field-row" v-if="openLossGroup.Qicl !== null"><UIFixedField class="field" :field="NumberField.LOSS_QICL" :cell="openLossGroup.Qicl" /></div>
           </template>
           <p class="hint">Qa (stuffing): 100 = none · 20–50 = light · 5–10 = heavy. WinISD defaults: Ql=10, Qa=100, Qp=100, Qicl=100.</p>
         </div>

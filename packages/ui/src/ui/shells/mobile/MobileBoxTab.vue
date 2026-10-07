@@ -7,6 +7,7 @@ import {selectedOption} from '../../../logic/domEvents.js';
 import BoxTypeDiagram from '../../components/BoxTypeDiagram.vue';
 import NumInput from '../../components/NumInput.vue';
 import UIField from '../../components/UIField.vue';
+import UIFixedField from '../../components/UIFixedField.vue';
 import UnitToggle from '../../components/UnitToggle.vue';
 import { useMobileBoxTab } from '../../../hooks/MobileBoxTab-hooks.js';
 import { useUnitReadouts } from '../../../hooks/useUnitReadouts.js';
@@ -179,10 +180,10 @@ const { fieldWithUnit, readoutWithUnit } = useUnitReadouts();
       </div>
       <template v-if="openLossGroup !== null">
         <div v-if="openLossGroup.heading !== null" class="mob-panel-head">{{ openLossGroup.heading }}</div>
-        <UIField class="mob-ui-field" :field="NumberField.LOSS_QL" :cell="openLossGroup.Ql" stepper />
-        <UIField class="mob-ui-field" :field="NumberField.LOSS_QA" :cell="openLossGroup.Qa" stepper />
-        <UIField v-if="openLossGroup.Qp !== null" class="mob-ui-field" :field="NumberField.LOSS_QP" :cell="openLossGroup.Qp" stepper />
-        <UIField v-if="openLossGroup.Qicl !== null" class="mob-ui-field" :field="NumberField.LOSS_QICL" :cell="openLossGroup.Qicl" stepper />
+        <UIFixedField class="mob-ui-field" :field="NumberField.LOSS_QL" :cell="openLossGroup.Ql" stepper />
+        <UIFixedField class="mob-ui-field" :field="NumberField.LOSS_QA" :cell="openLossGroup.Qa" stepper />
+        <UIFixedField v-if="openLossGroup.Qp !== null" class="mob-ui-field" :field="NumberField.LOSS_QP" :cell="openLossGroup.Qp" stepper />
+        <UIFixedField v-if="openLossGroup.Qicl !== null" class="mob-ui-field" :field="NumberField.LOSS_QICL" :cell="openLossGroup.Qicl" stepper />
       </template>
       <p class="mob-hint">Qa (stuffing): 100 = none · 20–50 = light · 5–10 = heavy. WinISD defaults: Ql=10, Qa=100, Qp=100, Qicl=100.</p>
       <div class="mob-align-footer">
