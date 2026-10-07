@@ -676,7 +676,7 @@ export class OpenISDProject {
      * `.clear()` empties the
      * pair; the resolve then fills it back from its defaults.
      */
-    get driveVoltage_V(): Readable<number> & Entered & Calculated & Writable<number> & Clearable & Calculatable<number> {
+    get driveVoltage_V(): Readable<number> & Entered & Precise & Calculated & Writable<number> & Clearable & Calculatable<number> {
         return this.#signalOver(this.#root()).driveVoltage_V;
     }
 

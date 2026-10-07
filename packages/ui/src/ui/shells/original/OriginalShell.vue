@@ -62,12 +62,11 @@ const {
   activeVent, END_CORRECTION_OPTIONS, VENT_SHAPE_OPTIONS, VENT_COUNT_OPTIONS, PR_COUNT_OPTIONS, ventLState, portPipeResonance_hz,
   prBrowseOpen, loadPREntry, loadBundledPassiveRadiatorEntry, defineNewPREntry,
   prSaveOpen, prSaveFields, prSaveCanSave, openPRSave, cancelPRSave, confirmPRSave,
-  prResonanceMassDq, prFsMass_hz, dqOfCell, fmt,
-  driveV, rsOhm, advTemp, advHumidity, advPressure, advAir,
+  prResonanceMassDq, prFsMass_hz, fmt,
+  advTemp, advHumidity, advPressure, advAir,
   envTempStored, envHumidityStored, envPressureStored, envTempDq, envHumidityDq, envPressureDq,
   resetAirToAppDefaults,
-  reconcileDriveV,
-  powerLocked,
+  powerLocked, rsOhm,
   projectName, projectCreator, projectCreated, projectModified, projectDescription,
   lossesOpen, openLossGroups, resetBoxLosses,
   onFile, fileInput,
@@ -607,8 +606,8 @@ provideCellScope({ revision: projectChanged, written: () => {} });
             <div style="--label-w:186px;">
               <div class="section-header">Signal source</div>
               <div class="field-row"><UIField class="field" :field="NumberField.SIGNAL_PIN_W" :cell="project.powerDrive_W" :readonly="powerLocked" /></div>
-              <div class="field-row"><div :class="['field', 'entered', { 'dq-flag': project.driveVoltage_V.dq.length > 0 }]"><label>Driver input voltage (each)</label><NumInput :field="NumberField.SIGNAL_DRIVEV_V" v-model="driveV" :precision="NumberField.SIGNAL_DRIVEV_V.precision" v-bind="dqOfCell(project.driveVoltage_V)" @blur-notify="reconcileDriveV" /><span class="unit">{{ NumberField.SIGNAL_DRIVEV_V.unitLabel() }}</span></div></div>
-              <div class="field-row"><div class="field entered"><label>Series resistance</label><NumInput v-model="rsOhm" :precision="NumberField.SIGNAL_RS_OHM.precision" /><span class="unit">{{ NumberField.SIGNAL_RS_OHM.unitLabel() }}</span></div></div>
+              <div class="field-row"><UIField class="field" :field="NumberField.SIGNAL_DRIVEV_V" :cell="project.driveVoltage_V" /></div>
+              <div class="field-row"><UIFixedField class="field" :field="NumberField.SIGNAL_RS_OHM" :value="rsOhm" @update:value="v => project.Rs_ohm.set(v)" /></div>
             </div>
           </div>
         </section>

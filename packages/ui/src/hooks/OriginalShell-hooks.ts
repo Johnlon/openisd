@@ -59,7 +59,7 @@ import {SealedAlignmentEditor} from './SealedAlignment-hooks.js';
 import {VentedAlignmentEditor} from './VentedAlignment-hooks.js';
 import {OriginalFilters} from './OriginalFilters-hooks.js';
 import type {Calculated, Clearable, Entered, OpenISDProject, Readable, Writable} from '@openisd/design';
-import {dqOfCell, type DqReadout} from '../logic/cellDataQuality.js';
+import type {DqReadout} from '../logic/cellDataQuality.js';
 import {isTabId, type TabId} from '../logic/tabId.js';
 import {createBoxLosses, createBoxVolume, createChamberFields, createSealedReadouts, createSelectedBox} from './boxFields.js';
 import {createDriveSignal} from './driveSignal.js';
@@ -567,7 +567,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
 
   // ---- Signal tab: drive voltage = √(Pin × Re) per driver, plus series resistance ------------
   // Delegated to the unit-tested `createDriveSignal` (`driveSignal.ts`).
-  const { driveV, reconcileDriveV, powerLocked, rsOhm } = createDriveSignal({ project, projectChanged });
+  const { powerLocked, rsOhm } = createDriveSignal({ project, projectChanged });
 
   // ---- Advanced tab: environment ------------------------------------------------
   // Delegated to the unit-tested `createEnvironmentAir` above.
@@ -663,13 +663,11 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     prBrowseOpen, loadPREntry, loadBundledPassiveRadiatorEntry, defineNewPREntry,
     prSaveOpen, prSaveFields, prSaveCanSave, openPRSave, cancelPRSave, confirmPRSave,
     prAddedMassDq, prTuningDq, prResonanceMassDq, prFsMass_hz, prNaturalFh,
-    dqOfCell: (field: Readable<unknown>) => dqOfCell(field),
     fmt,
-    driveV, rsOhm, advTemp, advHumidity, advPressure, advAir,
+    advTemp, advHumidity, advPressure, advAir,
     envTempDq, envHumidityDq, envPressureDq, resetAirToAppDefaults,
     envTempStored, envHumidityStored, envPressureStored,
-    reconcileDriveV,
-    powerLocked,
+    powerLocked, rsOhm,
     projectName, projectCreator, projectCreated, projectModified, projectDescription,
     lossesOpen, openLossGroups, resetBoxLosses,
     onFile, fileInput,

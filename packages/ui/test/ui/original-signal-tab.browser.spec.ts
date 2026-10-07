@@ -53,6 +53,27 @@ test.describe('Original Signal tab', () => {
     });
   });
 
+  test.describe('UIField rows (bugs/BUG_20261005_no-common-ui-field-component.md)', () => {
+    test('series resistance: an emptied box is refused with a ⚠ and Esc restores the stored value', async ({ page }) => {
+      const row = page.locator('.ui-field', { hasText: 'Series resistance' });
+      const box = row.locator('input');
+      await fillAndBlur(box, '0.5');
+      await box.fill('');
+      await expect(box).toHaveValue('');
+      await expect(row.locator('.ui-field-dq-btn')).toBeVisible();
+      await box.press('Escape');
+      await expect(box).toHaveValue(/^0\.5/);
+    });
+
+    test('driver input voltage is a UIField row; emptied, it goes back to a calculated value', async ({ page }) => {
+      const row = page.locator('.ui-field', { hasText: 'Driver input voltage' });
+      const box = row.locator('input');
+      await fillAndBlur(box, '12');
+      await fillAndBlur(box, '');
+      await expect(box).toHaveValue(/\d/);
+    });
+  });
+
   test.describe('power and voltage pair', () => {
     test('both cells are filled from the stored 1 W reference and explain their law', async ({ page }) => {
       const pow = signalInput(page, 'System input power');

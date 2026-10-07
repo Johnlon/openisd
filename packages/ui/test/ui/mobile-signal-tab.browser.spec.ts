@@ -4,6 +4,7 @@
  * UI is wired to it, not that the coupling formula is correct.
  */
 import {expect, openAMobileProject, test} from '../fixtures.js';
+import {fillAndBlur} from '../fixtures/numField.js';
 import {forceMobileSkin} from '../fixtures/mobileSkin.js';
 
 test.beforeEach(async ({ page }) => {
@@ -14,13 +15,13 @@ test.beforeEach(async ({ page }) => {
 });
 
 test('shows power, voltage and series resistance fields', async ({ page }) => {
-  await expect(page.locator('.mob-field-label', { hasText: 'System input power' })).toBeVisible();
-  await expect(page.locator('.mob-field-label', { hasText: 'Driver input voltage' })).toBeVisible();
-  await expect(page.locator('.mob-field-label', { hasText: 'Series resistance' })).toBeVisible();
+  await expect(page.locator('.ui-field-label', { hasText: 'System input power' })).toBeVisible();
+  await expect(page.locator('.ui-field-label', { hasText: 'Driver input voltage' })).toBeVisible();
+  await expect(page.locator('.ui-field-label', { hasText: 'Series resistance' })).toBeVisible();
 });
 
 function rowInput(page: import('@playwright/test').Page, label: string) {
-  return page.locator('.mob-field-row', { has: page.locator('.mob-field-label', { hasText: label }) }).locator('input');
+  return page.locator('.mob-ui-field', { hasText: label }).locator('input');
 }
 
 test('typing a drive voltage moves the derived input power', async ({ page }) => {
@@ -37,8 +38,7 @@ test('typing a drive voltage moves the derived input power', async ({ page }) =>
 
 test('editing series resistance persists the typed value', async ({ page }) => {
   const rsInput = rowInput(page, 'Series resistance');
-  await rsInput.fill('0.5');
-  await rsInput.blur();
+  await fillAndBlur(rsInput, '0.5');
   await expect(rsInput).toHaveValue(/0\.5/);
 });
 
@@ -49,7 +49,7 @@ test('System input power spins by about 1 % a tap: 1 W up is 1.01 W, by key and 
   await pow.focus();
   await pow.press('ArrowUp');
   await expect(pow).toHaveValue('1.01');
-  const [upBtn, downBtn] = await page.locator('.mob-field-row', { has: page.locator('.mob-field-label', { hasText: 'System input power' }) })
+  const [upBtn, downBtn] = await page.locator('.mob-ui-field', { hasText: 'System input power' })
     .locator('.num-stepper-btn').all();   // [▲, ▼] order
   await downBtn.click();
   await expect(pow).toHaveValue('1.00');

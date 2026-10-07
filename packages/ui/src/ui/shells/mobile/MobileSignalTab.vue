@@ -1,44 +1,20 @@
 <script setup lang="ts">
-// The mobile Signal tab — input power, drive voltage, series resistance. Thin: all state and
-// domain reads/writes live in useMobileSignalTab() (src/hooks/MobileSignalTab-hooks.ts).
+// The mobile Signal tab — input power, drive voltage, series resistance, each a UIField row.
+// Thin: domain reads/writes live in useMobileSignalTab() (src/hooks/MobileSignalTab-hooks.ts).
 import {NumberField} from '@openisd/design/fields';
-import NumInput from '../../components/NumInput.vue';
+import UIField from '../../components/UIField.vue';
+import UIFixedField from '../../components/UIFixedField.vue';
 import { useMobileSignalTab } from '../../../hooks/MobileSignalTab-hooks.js';
 
-const { driveV, reconcileDriveV, powerLocked, rsOhm, powerDq, voltageDq, power_W, setPower } = useMobileSignalTab();
+const { project, powerLocked, rsOhm } = useMobileSignalTab();
 </script>
 
 <template>
   <div class="mob-panel">
     <div class="mob-panel-head">Signal</div>
-    <div class="mob-field-row mob-field-entered" :class="{ 'mob-field-dq': powerDq.dq.length > 0 }">
-      <div class="mob-field-main">
-        <span class="mob-field-label">System input power</span>
-        <span class="mob-field-value">
-          <NumInput :field="NumberField.SIGNAL_PIN_W" :readonly="powerLocked" :model-value="power_W" @update:model-value="setPower" :precision="NumberField.SIGNAL_PIN_W.precision" stepper />
-        </span>
-        <span v-if="powerDq.dq.length" class="mob-field-dq-note">{{ powerDq.dq[0] }}</span>
-      </div>
-      <span class="mob-unit">{{ NumberField.SIGNAL_PIN_W.unitLabel() }}</span>
-    </div>
-
-    <div class="mob-field-row mob-field-entered" :class="{ 'mob-field-dq': voltageDq.dq.length > 0 }">
-      <div class="mob-field-main">
-        <span class="mob-field-label">Driver input voltage (each)</span>
-        <span class="mob-field-value">
-          <NumInput :field="NumberField.SIGNAL_DRIVEV_V" v-model="driveV" :precision="NumberField.SIGNAL_DRIVEV_V.precision" @blur-notify="reconcileDriveV" stepper />
-        </span>
-      </div>
-      <span class="mob-unit">{{ NumberField.SIGNAL_DRIVEV_V.unitLabel() }}</span>
-    </div>
-
-    <div class="mob-field-row mob-field-entered">
-      <div class="mob-field-main">
-        <span class="mob-field-label">Series resistance</span>
-        <span class="mob-field-value"><NumInput v-model="rsOhm" :precision="NumberField.SIGNAL_RS_OHM.precision" stepper /></span>
-      </div>
-      <span class="mob-unit">{{ NumberField.SIGNAL_RS_OHM.unitLabel() }}</span>
-    </div>
+    <UIField class="mob-ui-field" :field="NumberField.SIGNAL_PIN_W" :cell="project.powerDrive_W" :readonly="powerLocked" stepper />
+    <UIField class="mob-ui-field" :field="NumberField.SIGNAL_DRIVEV_V" :cell="project.driveVoltage_V" stepper />
+    <UIFixedField class="mob-ui-field" :field="NumberField.SIGNAL_RS_OHM" :value="rsOhm" stepper @update:value="v => project.Rs_ohm.set(v)" />
   </div>
 </template>
 
@@ -58,44 +34,4 @@ const { driveV, reconcileDriveV, powerLocked, rsOhm, powerDq, voltageDq, power_W
   border-bottom: 1px solid var(--line);
   background: var(--panel2);
 }
-.mob-field-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  padding: 10px 12px 10px 14px;
-  min-height: 48px;
-  border-left: 3px solid transparent;
-  border-top: 1px solid var(--line);
-}
-.mob-field-row:first-of-type { border-top: none; }
-.mob-field-entered { border-left-color: var(--good); }
-.mob-field-dq { border-left-color: var(--acc2); }
-.mob-field-main { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
-.mob-field-label { font-size: 13px; color: var(--mut); }
-.mob-field-value { font-size: 18px; font-variant-numeric: tabular-nums; display: flex; align-items: center; gap: 6px; }
-.mob-field-value :deep(input) {
-  border: none;
-  background: transparent;
-  font: inherit;
-  font-size: 18px;
-  color: var(--fg);
-  padding: 0;
-  flex: 1 1 auto;
-  min-width: 0;
-  min-height: 32px;
-}
-/* An editable value looks like an input box; a read-only one stays flat text. */
-.mob-field-value :deep(input:not([readonly])) {
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  background: #fff;
-  padding: 2px 8px;
-}
-.mob-field-value :deep(input:not([readonly]):focus) {
-  border-color: var(--acc);
-  outline: none;
-}
-.mob-field-dq-note { font-size: 12px; color: var(--acc2); }
-.mob-unit { font-size: 13px; color: var(--mut); min-width: 30px; flex-shrink: 0; }
 </style>
