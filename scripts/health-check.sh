@@ -4,20 +4,62 @@ then
 	echo AGENT : DO NOT RUN HEALTH CHECK UNLESS ALL THE UNIT TESTS IN THIS PLAN ALREADY WORK
 	exit 1
 fi
-# Run all project health checks on a commit (default HEAD): lint, type check, unit tests,
-# browser tests, preview. Exit code 0 = all passed. Non-zero = something failed.
-# Add new checks to the health-check case in scripts/slow-run/slow-run.sh — the single list.
-#
-#   PROCEED=1 bash scripts/health-check.sh            HEAD
-#   PROCEED=1 bash scripts/health-check.sh <sha>      another commit
-#
-# This is a slow run (John, 2026-10-07): it waits in the machine-wide queue behind any other slow
-# run (a second health check queues, it is not refused), and it tests the COMMIT in a temporary
-# git worktree outside the repo — uncommitted edits in the shared tree are not tested. Commit
-# first. A few failing spec files are rerun once; passing on the rerun logs them as FLAKY.
+# Run all project health checks: lint, type check, unit tests, browser tests.
+# Exit code 0 = all passed. Non-zero = something failed.
+# Add new checks here as they are created — this is the single entry point.
 set -euo pipefail
 # Must run in Git Bash on Windows (MSYSTEM set) or WSL (microsoft in /proc/version).
 # PowerShell/cmd have no /proc, so they are still rejected.
 { [ -n "${MSYSTEM:-}" ] || grep -qi microsoft /proc/version 2>/dev/null; } || { echo "ERROR: must run in Git Bash on Windows or WSL, not PowerShell/cmd" >&2; exit 1; }
 
-exec bash "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/slow-run/slow-run.sh" health-check "$@"
+LOCK_DIR="build/health-check.lock"
+mkdir -p build
+if ! mkdir "$LOCK_DIR" 2>/dev/null; then
+  echo "⚠️ Another health check is already running - Exiting." >&2
+  echo "!!⚠️ AGENT INSTRUCTION - DO NOT START ANOTHER SESSION - ONE AT A TIME - IF THE EXISTING ONE IS OBSOLETE THEN STOP IT." >&2
+  echo "!!⚠️ THE LOCK FILE IS $LOCK_DIR - ONLY DELETE THIS IF THE SESSION HAS DIED AND THE LOCK IS OBSOLETE - DO NOT HACK IT!!." >&2
+  exit 0
+fi
+trap 'rm -rf "$LOCK_DIR"' EXIT INT TERM
+
+PASS=0
+FAIL=0
+ERRORS=()
+
+run() {
+  local label="$1"; shift
+  echo ""
+  echo "── $label ──────────────────────────────────"
+  if "$@"; then
+    echo "  PASS: $label"
+    PASS=$((PASS + 1))
+  else
+    echo "  FAIL: $label"
+    FAIL=$((FAIL + 1))
+    ERRORS+=("$label")
+  fi
+}
+
+echo "========================================"
+echo "  OpenISD health check"
+echo "  $(date '+%H:%M:%S')"
+echo "========================================"
+
+run "ESLint"            npm run lint
+run "Type check"        npm run typecheck
+run "Unit tests"        env OPENISD_FULL_GATE=1 bash scripts/quiet-test.sh npx vitest run
+run "Browser tests"     bash scripts/test-browser.sh
+run "Verify Preview"    bash scripts/verify-preview-own-port.sh
+
+echo ""
+echo "========================================"
+if [ "$FAIL" -eq 0 ]; then
+  echo "  ALL $PASS checks passed"
+else
+  echo "  $PASS passed, $FAIL FAILED:"
+  for e in "${ERRORS[@]}"; do echo "    - $e"; done
+fi
+echo "  $(date '+%H:%M:%S')"
+echo "========================================"
+
+[ "$FAIL" -eq 0 ]

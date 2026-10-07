@@ -1,21 +1,20 @@
 #!/bin/sh
-# Worker tuning for the one slow run (pre-commit gate, pre-push suite, health check) that holds
-# the machine-wide slow-run queue.
+# Fair-share concurrency for the heavy lint+typecheck+test gate (pre-commit, pre-push).
 #
-# The rule (John, 2026-10-07: concurrent slow runs kill the machine): slow runs never overlap.
-# scripts/slow-run/queue.sh serialises whole slow runs in one FIFO queue shared by every repo on
-# the machine; a second slow run waits. This file no longer shares CPU among concurrent gates —
-# there are none. It still sizes the single run's vitest workers and typecheck processes to the
-# box's real load, because the box is never idle: targeted test runs in other sessions' TDD loops
-# (never queued — they must never block), wine, builds. Before 2026-10-07 gates overlapped and
-# shared CPU here; four or five at once drove load average to 26 on a 10-core box and forced an
-# emergency `killall node` (2026-09-26).
+# Several agent sessions committing around the same time each spawned a full, unthrottled
+# tsc/vue-tsc/vitest tree; four or five of those at once drove load average to 26 on a 10-core
+# box and forced an emergency `killall node` (2026-09-26). The fix is NOT a mutex: a session
+# doing a single targeted `vitest run <file>` during its TDD loop must never queue behind
+# another session's full gate — this script is never sourced by that path at all, only by the
+# full pre-commit/pre-push gate. Among THOSE, every session still gets to run immediately; what
+# shrinks under contention is how many workers each one gets, shared out by how many gates are
+# active right now — same reservation-accounting shape as scripts/test-concurrency.sh (CPU here,
+# memory there).
 #
 # Source it, don't exec it — the reservation is keyed on this shell's own PID ($$), so
-# release_heavy_gate_slot must run in the SAME shell that reserved it. scripts/slow-run/slow-run.sh
-# does this after it reaches the head of the queue:
+# release_heavy_gate_slot must run in the SAME shell that reserved it:
 #
-#   . "$SRC/scripts/hooks-local/heavy-gate-concurrency.sh"
+#   . "$(git rev-parse --show-toplevel)/scripts/hooks-local/heavy-gate-concurrency.sh"
 #   reserve_heavy_gate_slot
 #   trap release_heavy_gate_slot EXIT
 #
@@ -60,7 +59,7 @@ reserve_heavy_gate_slot() {
   local f pid active cores budget my_workers load1 load_centi cores_centi load_workers my_typecheck_concurrency
 
   # This lock guards only the bookkeeping below (read the reservation dir, write our own file) —
-  # a few milliseconds. Serialising the runs themselves is the slow-run queue's job.
+  # a few milliseconds — never the heavy commands themselves. Runs are free to overlap fully.
   exec 9>"$OPENISD_HEAVY_GATE_ACCOUNTING_LOCK"
   flock 9
 
