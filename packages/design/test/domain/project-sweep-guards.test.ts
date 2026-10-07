@@ -47,7 +47,11 @@ describe('OpenISDProject sweep guards', () => {
       // while zmag/zph/exc went NaN, and only the UI's generic classifyFinite postcondition ever
       // complained. The sweep must name the unstated vent target itself.
       const p = project('vented');
+      // Clearing the entered tuning of a driver with a design falls back to the starting
+      // alignment (John, 2026-10-01); a blank pair is what a driver with no design leaves.
+      p.driver.specs.Vas_m3.clear();
       p.box.vented.tuning_goal_hz.clear();
+      p.driver.specs.Vas_m3.set(0.03);
       p.box.vented.vent.shape.set('round');
       p.box.vented.vent.diameter_m.set(0.1);
 

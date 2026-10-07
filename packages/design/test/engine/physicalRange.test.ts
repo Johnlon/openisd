@@ -34,6 +34,20 @@ describe('checkRange (D5/O4)', () => {
     expect(rangeIssues({ Gloss: -50 })).toEqual([engine.issues.outOfRange('Gloss', -50, 0, 'below')]);
   });
 
+  // Bands the scraper's deleted `semantic_dq` held that openisd lacked
+  // (winisd_tools BUG_20260823_f4-deleted-semantic-dq-range-calc-marks-no-longer-stamped).
+  it('holds an entered speed of sound to 300 - 360 m/s', () => {
+    expect(rangeIssues({ c_m_per_s: 250 })).toEqual([engine.issues.outOfRange('c_m_per_s', 250, 300, 'below')]);
+  });
+
+  it('holds an entered air density to 0.9 - 1.5 kg/m³', () => {
+    expect(rangeIssues({ roo_kg_per_m3: 2 })).toEqual([engine.issues.outOfRange('roo_kg_per_m3', 2, 1.5, 'above')]);
+  });
+
+  it('holds an entered reference efficiency to a fraction no greater than 1', () => {
+    expect(rangeIssues({ no: 3 })).toEqual([engine.issues.outOfRange('no', 3, 1, 'above')]);
+  });
+
   it('skips zero — the .wdr not-present sentinel, never a real physical value', () => {
     expect(rangeIssues({ Hc_m: 0 })).toEqual([]);
   });

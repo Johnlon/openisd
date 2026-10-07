@@ -631,7 +631,7 @@ export class WinIsdDriverConverter {
     const exported = driverOrErrors.toOpenIsdDeviceJson();
     const openisd = JSON.stringify(sortKeysDeep(exported), null, 2);
 
-    const errors: DriverError[] = [...parsed.warnings];
+    const errors: DriverError[] = [...parsed.warnings, ...driverOrErrors.dataQualityWarnings()];
     // The `.wdr` comment carries the SAME marks the openisd.yml does — the app's, not the parsed
     // driver.yml's — so the two derived files never disagree about a record's quality.
     const wdrDriver = openIsdDriverToWinIsdDriver(

@@ -127,6 +127,21 @@ describe('Engine.checkConsistency', () => {
       return engine.driver.solve(p, AIR).filter((i): i is DriverIssue => i.kind === 'inconsistent-inputs');
     }
 
+    // η₀ = 4π²·Fs³·Vas/(c³·Qes), the scraper's deleted `no` consistency rule
+    // (winisd_tools BUG_20260823_f4-deleted-semantic-dq-range-calc-marks-no-longer-stamped).
+    // Fs/Vas/Qes are Visaton GF 200's datasheet figures; they imply η₀ ≈ 0.0048.
+    it('a stated η₀ that Fs/Vas/Qes contradict is reported against no', () => {
+      const p = driverParams({ no: 0.02, Fs_hz: 30, Vas_m3: 0.068, Qes: 0.37 });
+      const issues = engine.driver.solve(p, engine.environment.solve({}).values);
+      expect(issues.filter(i => i.kind === 'inconsistent-inputs')).toMatchObject([{ target: 'no' }]);
+    });
+
+    it('a stated η₀ that Fs/Vas/Qes imply to its printed precision is not reported', () => {
+      const p = driverParams({ no: 0.0048, Fs_hz: 30, Vas_m3: 0.068, Qes: 0.37 });
+      const issues = engine.driver.solve(p, engine.environment.solve({}).values);
+      expect(issues.filter(i => i.kind === 'inconsistent-inputs')).toEqual([]);
+    });
+
     it('a coarse-precision stated Vas is absorbed by Sd/Cms rounding — no issue', () => {
       const p = driverParams(
         { Vas_m3: 0.0180, Sd_m2: 0.013, Cms_m_per_N: 0.0007 },

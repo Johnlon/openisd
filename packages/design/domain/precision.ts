@@ -1,3 +1,5 @@
+import type {NumberField} from '../fields/field.js';
+
 /**
  * Half the last decimal place `v`'s own printed form was written to: `0.0355` -> 0.00005,
  * `37` -> 0.5. The half-width of the rounding interval a value was entered to when no reading's
@@ -22,4 +24,9 @@ export function halfUlp(v: number): number {
   const dot = s.indexOf('.');
   const decimals = dot === -1 ? 0 : s.length - dot - 1;
   return 0.5 * Math.pow(10, -decimals);
+}
+
+/** Half of the last decimal `field` displays, in SI: what a value shown to that many decimals states. */
+export function displayedHalfWidth(field: NumberField): number {
+  return field.toSI(0.5 * Math.pow(10, -field.precision));
 }

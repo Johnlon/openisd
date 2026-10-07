@@ -8,6 +8,8 @@ import type { OpenISDBoxJson, SpecEntryJson } from '../openisdSchema.js';
 import { OpenISDDriverEmbedded } from '../driver/openISDDriverEmbedded.js';
 import { OpenISDPassiveRadiatorEmbedded } from '../passiveRadiator/openISDPassiveRadiatorEmbedded.js';
 import { OpenISDPassiveRadiatorStandalone } from '../passiveRadiator/openISDPassiveRadiatorStandalone.js';
+import { NumberField } from '../../fields/field.js';
+import { displayedHalfWidth } from '../precision.js';
 import { groupDq } from '../project/groupDq.js';
 import type { ProjectIssues } from '../project/projectIssues.js';
 import type { AbcBox } from './abcBox.js';
@@ -444,7 +446,7 @@ export class OpenISDBox implements Box {
                     const design = this.#driver.ventedDesign(STARTING.ventedAlignment, this.#rs(), this.vented.losses.Ql.value);
                     if (design) {
                         this.vented.volume_m3.set(design.Vb);
-                        this.vented.tuning_goal_hz.set(design.Fb);
+                        this.vented.tuning_goal_hz.set(design.Fb, displayedHalfWidth(NumberField.BOX_FB_HZ));
                     }
                 }
                 startVentGeometry(this.vented.vent, this.#driver.specs.Dd_m.value);
@@ -493,7 +495,7 @@ export class OpenISDBox implements Box {
         const design = this.#driver.ventedDesign(alignment, this.#rs(), this.vented.losses.Ql.value);
         if (design) {
             this.vented.volume_m3.set(design.Vb);
-            this.vented.tuning_goal_hz.set(design.Fb);
+            this.vented.tuning_goal_hz.set(design.Fb, displayedHalfWidth(NumberField.BOX_FB_HZ));
         }
     }
 

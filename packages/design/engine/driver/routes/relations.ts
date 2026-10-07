@@ -1,5 +1,6 @@
 import {Relation} from './Relation.js';
 import {TAU} from './constants.js';
+import {referenceEfficiency} from '../../efficiency.js';
 
 export const Q_PARALLEL = Object.freeze(new Relation('Qts = Qes·Qms/(Qes+Qms)', 'Qts', Object.freeze(['Qts', 'Qes', 'Qms']),
   (v) => v.Qes! * v.Qms! / (v.Qes! + v.Qms!)));
@@ -29,6 +30,11 @@ export const VAS_FROM_COMPLIANCE = Object.freeze(new Relation('Vas = ρ·c²·Sd
 export const EBP_FROM_Q = Object.freeze(new Relation('EBP = Fs/Qes', 'EBP_hz', Object.freeze(['EBP_hz', 'Fs_hz', 'Qes']),
   (v) => v.Fs_hz! / v.Qes!));
 
+/** η₀ from Fs/Vas/Qes (rel 14), c the driver's own resolved air. Ports the scraper's deleted `no`
+ *  consistency rule (winisd_tools BUG_20260823_f4-deleted-semantic-dq-range-calc-marks-no-longer-stamped). */
+export const NO_FROM_VAS = Object.freeze(new Relation('no = 4π²·Fs³·Vas/(c³·Qes)', 'no', Object.freeze(['no', 'Fs_hz', 'Vas_m3', 'Qes', 'c_m_per_s']),
+  (v) => referenceEfficiency(v.Fs_hz!, v.Vas_m3!, v.Qes!, v.c_m_per_s!)));
+
 /** The relations the consistency check reports, in report order. */
 export const DRIVER_RELATIONS: readonly Relation[] = Object.freeze([
   Q_PARALLEL,
@@ -44,4 +50,5 @@ export const DRIVER_RELATIONS: readonly Relation[] = Object.freeze([
   VD_FROM_EXCURSION,
   VAS_FROM_COMPLIANCE,
   EBP_FROM_Q,
+  NO_FROM_VAS,
 ]);

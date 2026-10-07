@@ -509,7 +509,7 @@ export function pairedField(
     }
   }
   return new PairedField(() => ownEntry, {
-    entered: (v: number) => commitPair({ state: 'E', value: v }),
+    entered: (v: number, precision?: number) => commitPair({ state: 'E', value: v, precision }),
     clear: () => ownEntry.clear(),
     calculated: (v: number) => ownEntry.setCalculated(v),
     dq: (list) => ownEntry.setDq([...list]),

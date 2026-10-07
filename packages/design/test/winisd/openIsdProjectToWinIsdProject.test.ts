@@ -382,7 +382,11 @@ describe('openIsdProjectToWinIsdProject', () => {
     });
 
     it('vented [Box]/[VentRear] Fr/Fb fall back to 0 once tuning_goal_hz is cleared', () => {
-      const project = aProject((p) => p.vented().volume_m3(0.03).tuning_goal_hz(40).build());
+      // A driver with a design falls back to the starting alignment on clear (John, 2026-10-01);
+      // a driver that states nothing has none, so the tuning stays cleared.
+      const engine = createEngine();
+      const project = new ProjectBuilder(OpenISDDriver.empty(engine), engine).vented().volume_m3(0.03).tuning_goal_hz(40).build();
+      project.driver.specs.Re_ohm.set(6);
       project.box.vented.tuning_goal_hz.clear();
 
       const { value: wpr, errors } = new WinIsdProjectConverter(createEngine()).openIsdProjectToWinIsdProject(project);

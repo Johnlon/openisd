@@ -9,6 +9,8 @@ import {
 } from './openisdSchema.js';
 import {emptyBoxJson} from './boxDefaults.js';
 import {enteredEntry} from './specEntry.js';
+import {displayedHalfWidth} from './precision.js';
+import {NumberField} from '../fields/field.js';
 import {OpenISDDriver} from './driver/openISDDriver.js';
 import {OpenISDPassiveRadiatorStandalone} from './passiveRadiator/openISDPassiveRadiatorStandalone.js';
 import {OpenISDProject} from './project/openISDProject.js';
@@ -246,7 +248,7 @@ class VentedProjectBuilder extends BoxProjectBuilder {
         const design = project.driver.ventedDesign(this.#alignment, project.Rs_ohm.value, project.box.vented.losses.Ql.value);
         if (!design) return;
         project.box.vented.volume_m3.set(design.Vb);
-        project.box.vented.tuning_goal_hz.set(design.Fb);
+        project.box.vented.tuning_goal_hz.set(design.Fb, displayedHalfWidth(NumberField.BOX_FB_HZ));
     }
 
     protected boxRecord(): OpenISDBoxJson {

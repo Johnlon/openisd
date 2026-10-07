@@ -848,6 +848,7 @@ export class NumberField extends Field {
     limits: {min: 0, max: 100},
     floor: "positive",
     precision: 4,
+    plausible: {min: 0.0, max: 1.0},
     description: "Reference Efficiency (η₀)\nHow much of the electrical power reaching the driver becomes acoustic power (η₀ = P_acc / P_elec × 100%).",
   });
   static readonly USPL_DB = new NumberField({
@@ -1077,6 +1078,7 @@ export class NumberField extends Field {
     limits: {min: 0, max: 1000},
     floor: "positive",
     precision: 2,
+    plausible: {min: 300.0, max: 360.0},
     description: "Reference Speed of Sound (c)\nSpeed of sound in the air this driver record refers to. Shown only: no calculation uses it, and OpenISD uses the project's own air everywhere. Its purpose is not known. It may record the air the driver was measured in, or it may be meant to adjust the driver's values to the project's air (a guess, 2026-09-26).",
   });
   static readonly ROO_KG_PER_M3 = new NumberField({
@@ -1086,6 +1088,7 @@ export class NumberField extends Field {
     limits: {min: 0, max: 10},
     floor: "positive",
     precision: 5,
+    plausible: {min: 0.9, max: 1.5},
     description: "Reference Air Density (roo)\nAir density in the air this driver record refers to. Shown only: no calculation uses it, and OpenISD uses the project's own air everywhere. Its purpose is not known. It may record the air the driver was measured in, or it may be meant to adjust the driver's values to the project's air (a guess, 2026-09-26).",
   });
 

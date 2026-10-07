@@ -238,6 +238,23 @@ export abstract class OpenISDDriver extends OpenISDDevice {
         });
     }
 
+    /** The range and calc quality checks (a value outside its field's plausible band; stated
+     *  values that disagree beyond their printed precision) as `warn` entries, one per issue,
+     *  named by the field it is about. A blank a solve still needs is not a quality finding and is
+     *  left out. */
+    dataQualityWarnings(): DriverError[] {
+        return this.issues().flatMap((issue): DriverError[] => {
+            switch (issue.kind) {
+                case 'out-of-range':
+                    return [{level: 'warn', field: issue.field, message: issue.text}];
+                case 'inconsistent-inputs':
+                    return [{level: 'warn', field: issue.target, message: issue.text}];
+                case 'missing-dependencies':
+                    return [];
+            }
+        });
+    }
+
     /** An INDEPENDENT driver carrying this one's current values — and, with `update()`, the whole
      *  of how an editor works: take a copy, let the user edit THAT, and on OK write it back with
      *  `update()`; on Cancel simply drop it. The original never sees an intermediate value, so

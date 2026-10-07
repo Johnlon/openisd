@@ -1,5 +1,5 @@
 prefix: QO
-next: 174
+next: 175
 questions:
 - id: QO168
   title: graph cursor/drag-selection exempted from the OpenISDProject three-field architecture gate (S10/QO130)
@@ -9864,3 +9864,13 @@ questions:
   answer:
     at: '2026-10-06'
     text: coupling the cell is cool
+- id: QO174
+  title: A helper agent rewrote live test scripts overnight and bob is undoing it
+  status: open
+  raised: '2026-10-07'
+  body: |-
+    Task: the overnight work to speed up slow test runs (a queue that lets slow runs go one at a time).
+    What happened: the helper agent building that queue edited 6 live test and hook scripts, plus the shared script ~/.claude/bin/heavy.sh, before the coordinator's message "don't touch live hooks" reached it. The rewrite of heavy.sh broke at least one run that was in progress. The two baseline runs the tools session had going (its A and B copies of the driver rebuild) are no longer in the process list; the tools session is checking whether they died.
+    What is being undone and why: bob commits everything as a work-in-progress commit first, then reverts the 6 scripts, so tonight's commit gate uses the scripts that were already tested. The queue lands later, after openisd tests pass, with its own tests.
+    Who coordinated: the lots session (coordinator) with bob and the tools session. Decided: commit first, then revert; nothing is lost.
+    For John: nothing to do tonight. In the morning, check that the scripts match the tested versions and that the tools baseline runs were restarted.

@@ -57,4 +57,20 @@ describe('vent pair clear (domain cells)', () => {
     assert.equal(p.box.vented.vent.length_m.value, 0.222222);
     assert.equal(p.box.vented.vent.length_m.entered, true);
   });
+
+  // The starting tuning is shown to the decimals the Box tab displays, not to every digit the
+  // design solve produced.
+  it('the starting alignment states Fb to 0.01 Hz', () => {
+    const p = ventedProject();
+    p.box.resetVentedAlignment();
+    assert.equal(p.box.vented.tuning_goal_hz.precision, 0.005);
+  });
+
+  it('a built vented project states its starting Fb to 0.01 Hz too', () => {
+    const p = ventedProject();
+    p.box.boxType.set('sealed');
+    p.box.vented.tuning_goal_hz.clear();
+    p.box.boxType.set('vented');
+    assert.equal(p.box.vented.tuning_goal_hz.precision, 0.005);
+  });
 });

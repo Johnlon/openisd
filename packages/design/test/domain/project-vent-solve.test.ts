@@ -66,8 +66,9 @@ describe('OpenISDProject vent solve', () => {
       p.notifyVentChanged();
       expect(p.box.vented.vent.length_m.calculated).toBe(true);
 
-      // Clear required input (tuning_goal_hz)
-      p.box.vented.tuning_goal_hz.clear();
+      // Clear a required input (the vent's size). Clearing the tuning would instead fall back to
+      // the starting alignment (John, 2026-10-01), so the length would still solve.
+      p.box.vented.vent.diameter_m.clear();
       p.notifyVentChanged();
 
       // length_m should transition from C -> N (not-available)

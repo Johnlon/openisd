@@ -320,7 +320,12 @@ describe('classifyFinite', () => {
       p.box.vented.vent.diameter_m.set(0.05);
       // The builder requires an initial tuning_goal_hz to construct at all — cleared right back off so
       // NEITHER tuning_goal_hz nor vent.length_m is stated, same as domain/project-sweep-guards.test.ts's fixture.
+      // With a driver that has a design, clearing falls back to the starting alignment (John,
+      // 2026-10-01), so the driver states no Qts while the tuning is cleared.
+      const Qts = p.driver.specs.Qts.value;
+      p.driver.specs.Qts.clear();
       p.box.vented.tuning_goal_hz.clear();
+      if (Qts !== null) p.driver.specs.Qts.set(Qts);
 
       const result = p.sweep({ fmin: 10, fmax: 100, N: 10 });
       assert.equal(result.values, null, 'precondition: nothing to classify — the guard must have blocked it');

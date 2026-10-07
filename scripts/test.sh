@@ -66,6 +66,12 @@ The full suite runs in the pre-commit hook and scripts/health-check.sh only
 EOF
     exit 1
   fi
+  # The full gate is a slow run: it waits in the machine-wide queue (scripts/slow-run/queue.sh;
+  # John, 2026-10-07). Under a hook or health check that already holds the queue it passes through.
+  # shellcheck source=./slow-run/queue.sh
+  . "$SCRIPT_DIR/slow-run/queue.sh"
+  slow_queue_enter "npm test (full)"
+  trap slow_queue_leave EXIT
   bash "$SCRIPT_DIR/quiet-test.sh" npx vitest run
   bash "$SCRIPT_DIR/quiet-test.sh" bash "$SCRIPT_DIR/test-browser.sh"
   exit 0

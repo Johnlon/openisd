@@ -138,11 +138,26 @@ tests are named after the module or domain object (`ventGroup.test.ts`, `project
 
 ## What runs when
 
-| When        | Runs                                                                                  |
-|-------------|---------------------------------------------------------------------------------------|
-| Pre-commit  | Lint, typecheck, Tier 1 and 2. A commit of `.md` files only runs lint and typecheck.  |
-| Pre-push    | `npm run ci`: lint, typecheck, then every Tier 1, 2 and 3 test. Doc-only pushes run lint and typecheck. |
-| `npm test`  | Every Vitest test, then every browser spec.                                           |
+| When         | Runs                                                                                                     |
+|--------------|----------------------------------------------------------------------------------------------------------|
+| Pre-commit   | Lint, typecheck, Tier 1 and 2, on the staged index. A commit of `.md` files only runs lint and typecheck. |
+| Pre-push     | Lint, typecheck, then every Tier 1, 2 and 3 test, on each pushed commit. Doc-only pushes run lint and typecheck. |
+| Health check | Lint, typecheck, every Vitest test, every browser spec, the preview build, on HEAD (or a named commit).  |
+| `npm test`   | Every Vitest test, then every browser spec.                                                              |
+
+These are slow runs (`scripts/slow-run/`; John, 2026-10-07: concurrent slow runs kill the
+machine):
+
+- **One at a time, machine-wide.** A slow run waits in one FIFO queue shared by every repo on the
+  machine (winisd_tools corpus runs join it with `heavy.sh --slow`) and prints one line naming
+  the run it waits behind. Targeted runs (`bash scripts/test.sh <spec>`) never queue.
+- **A clean copy, not the shared tree.** Pre-commit tests the staged index, exported to
+  `../.slowrun/<id>`; pre-push and the health check test the commit in a temporary git worktree
+  there. Other sessions' uncommitted edits never reach the run. The copy is removed afterwards.
+- **One rerun of a few failing specs.** If 1-10 spec files fail, only those are rerun, once, in
+  the same copy. All pass: the run passes, and each file gets a `FLAKY` line in
+  `build/test-logs/flaky.log`. Any still fail: the run fails, naming them. More than 10: the run
+  fails at once.
 
 Guards: Playwright workers are memory-capped; `maxFailures` stops a collapsed run early; the
 no-skips reporter turns a skip into a failure; the json reporter records durations on every run.

@@ -78,7 +78,7 @@ test.describe('Original Vented tab', () => {
   test.describe('target tuning', () => {
     test('the vented box calls Fb the TARGET, and says what it drives', async ({ page }) => {
       const field = page.locator('#og-fb-target-field');
-      await expect(field.locator('label')).toHaveText('Target Tuning Freq');
+      await expect(field.locator('label')).toHaveText('Target Tuning Freq (Fb)');
       await expect(field).toHaveAttribute('title', /port dimension/i);
     });
 
@@ -98,10 +98,10 @@ test.describe('Original Vented tab', () => {
       await page.locator('.project-nav li', { hasText: 'Vented' }).click();
       await expect(page.locator('#og-vent-unreachable')).toBeVisible();
       // The failure is SHOWN, not hidden behind a buildable-looking floor: the solve would be a
-      // negative length, which is not a length, so the readout is left unavailable, redlined (the
-      // `.impossible` class), and the DQ flag is genuinely set in the model.
+      // negative length, which is not a length, so the readout is left unavailable, marked with
+      // the row's ⚠, and the DQ flag is genuinely set in the model.
       await expect(page.locator('#og-vent-length')).toHaveValue('');
-      await expect(page.locator('#og-vent-length')).toHaveClass(/impossible/);
+      await expect(page.locator('.ui-field', { has: page.locator('#og-vent-length') }).locator('.ui-field-dq-btn')).toBeVisible();
       // The mark sits on the field the solve FAILED to produce — the vent's own length — not on
       // the target that was asked for.
       const dq = await focusedVentLengthDq(page);
@@ -132,10 +132,10 @@ test.describe('Original Vented tab', () => {
       expect(fb).toBeGreaterThan(0);
       expect(fb, 'a different design, not the stale 40 surviving the clear').not.toBeCloseTo(40, 1);
 
-      // Vent length is the pair's now-calculated side — a real length, not the '—'/impossible mark.
+      // Vent length is the pair's now-calculated side — a real length, not the blank ⚠ mark.
       await page.locator('.project-nav li', { hasText: 'Vented' }).click();
       await expect(page.locator('#og-vent-length')).not.toHaveValue('');
-      await expect(page.locator('#og-vent-length')).not.toHaveClass(/impossible/);
+      await expect(page.locator('.ui-field', { has: page.locator('#og-vent-length') }).locator('.ui-field-dq-btn')).toHaveCount(0);
     });
 
     // John, 2026-10-06: "vent length should be editable". Typing a length while the target tuning
@@ -184,7 +184,7 @@ test.describe('Original Vented tab', () => {
 
       await page.locator('.project-nav li', { hasText: 'Vented' }).click();
       const ventField = page.locator('#og-vent-fb-target-field');
-      await expect(ventField.locator('label')).toHaveText('Target Tuning Freq');
+      await expect(ventField.locator('label')).toHaveText('Target Tuning Freq (Fb)');
       await expect(page.locator('#og-vent-fb-target')).toHaveValue('42.00');
 
       // Vents → Box: editing here must move the Box tab's field AND re-solve the vent length.
