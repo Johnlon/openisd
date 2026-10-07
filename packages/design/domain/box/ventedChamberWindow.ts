@@ -1,7 +1,8 @@
 import type {IssueEngine} from '../../engine/index.js';
-import { entryField, focus, nullableField } from '../cell.js';
+import { focus, nullableField } from '../cell.js';
 import type { Calculatable, Calculated, Clearable, Entered, Precise, Readable, SimpleField, Unsolvable, Writable } from '../cell.js';
 import type { VentedLosses } from '../losses.js';
+import type { VentedChamber } from './ventedChamber.js';
 import type { ChamberJson } from '../openisdSchema.js';
 import { VentedLossesWindow } from './ventedLossesWindow.js';
 
@@ -13,9 +14,14 @@ export class VentedChamberWindow {
     readonly losses: VentedLosses;
 
     /** `volumeLabel`: what the ⚠ of a blank volume calls it, e.g. 'Front chamber volume'. */
-    constructor(lens: SimpleField<ChamberJson>, volumeLabel: string, issues: IssueEngine) {
+    constructor(
+        lens: SimpleField<ChamberJson>,
+        /** The tuning target, paired with the chamber's vent length by the box that owns both. */
+        tuning: VentedChamber['tuning_goal_hz'],
+        volumeLabel: string, issues: IssueEngine,
+    ) {
         this.volume_m3 = nullableField(lens, 'volume_m3', (v) => issues.requiredPositiveIssue(volumeLabel, v));
-        this.tuning_goal_hz = entryField(focus(lens, 'tuning_goal_hz'), 'tuning_goal_hz');
+        this.tuning_goal_hz = tuning;
         this.losses = new VentedLossesWindow(focus(lens, 'losses'));
     }
 }

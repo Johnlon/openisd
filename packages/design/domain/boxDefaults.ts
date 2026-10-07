@@ -36,6 +36,9 @@ const NO_VENT: VentJson = Object.freeze({
     // of the UI's END_CORRECTION_OPTIONS, so the select rendered blank (BUG_20260912 #10).
     endCorrection_m: 0.613,
 });
+/** The vents of a 6th-order bandpass or ABC: WinISD's wizard gives them "One flanged end" (0.732),
+ *  not the vented box's two free ends (capture bp6_abc_wizard_defaults). */
+const NO_TWO_CHAMBER_VENT: VentJson = Object.freeze({...NO_VENT, endCorrection_m: 0.732});
 const NO_VENTED_CHAMBER: ChamberJson =
     Object.freeze({volume_m3: 0, losses: NO_VENTED_LOSSES});
 const NO_COUPLED_SEALED_CHAMBER =
@@ -55,15 +58,15 @@ export function emptyBoxJson(radiator: RadiatorDeviceJson): OpenISDBoxJson {
         bandpass6: {
             rear: NO_COUPLED_VENTED_CHAMBER,
             front: NO_VENTED_CHAMBER,
-            rearVent: NO_VENT,
-            frontVent: NO_VENT,
+            rearVent: NO_TWO_CHAMBER_VENT,
+            frontVent: NO_TWO_CHAMBER_VENT,
         },
         abc: {
             rear: NO_COUPLED_VENTED_CHAMBER,
             front: NO_VENTED_CHAMBER,
-            rearVent: NO_VENT,
-            frontVent: NO_VENT,
-            intraVent: NO_VENT,
+            rearVent: NO_TWO_CHAMBER_VENT,
+            frontVent: NO_TWO_CHAMBER_VENT,
+            intraVent: NO_TWO_CHAMBER_VENT,
         },
         passiveRadiator: {
             volume_m3: 0,

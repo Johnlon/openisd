@@ -84,3 +84,42 @@ describe('the vent group of a bandpass6 or ABC box', () => {
     assert.equal(p.box.rearVentGroupOf('bandpass4'), null);
   });
 });
+
+/** Plan step 2: the rear and front vents solve tuning ↔ length like the vented box's. The two
+ *  lengths are WinISD's own, read from the saved wizard project (bp6_project.wpr / abc_project.wpr,
+ *  capture bp6_abc_wizard_defaults): Vr 0.03 m³ at 35 Hz → 0.5906 m, Vf 0.02 m³ at 25 Hz → 1.8812 m,
+ *  both 0.102 m round with end correction 0.732. */
+describe('bandpass6 and ABC vent lengths', () => {
+  for (const type of ['bandpass6', 'abc'] as const) {
+    const vents = (p: ReturnType<typeof built>) => (type === 'bandpass6' ? p.box.bandpass6.vents : p.box.abc.vents);
+    const chambers = (p: ReturnType<typeof built>) => (type === 'bandpass6' ? p.box.bandpass6.chambers : p.box.abc.chambers);
+
+    it(`${type}: a new project's vent lengths are WinISD's 0.5906 m rear and 1.8812 m front`, () => {
+      const p = built(type);
+      assert.ok(Math.abs((vents(p).rear.length_m.value ?? NaN) - 0.5906) < 1e-4, `rear ${vents(p).rear.length_m.value}`);
+      assert.ok(Math.abs((vents(p).front.length_m.value ?? NaN) - 1.8812) < 1e-4, `front ${vents(p).front.length_m.value}`);
+    });
+
+    it(`${type}: entering a rear length calculates the rear tuning and leaves the front alone`, () => {
+      const p = built(type);
+      const frontLength = vents(p).front.length_m.value;
+      vents(p).rear.length_m.set(0.3);
+      assert.equal(vents(p).rear.length_m.value, 0.3);
+      assert.equal(chambers(p).rear.tuning_goal_hz.entered, false);
+      const Fr = chambers(p).rear.tuning_goal_hz.value ?? NaN;
+      assert.ok(Fr > 35, `a shorter vent tunes higher; got ${Fr}`);
+      assert.equal(chambers(p).front.tuning_goal_hz.value, 25);
+      assert.equal(vents(p).front.length_m.value, frontLength);
+    });
+
+    it(`${type}: entering a front tuning calculates the front length and leaves the rear alone`, () => {
+      const p = built(type);
+      const rearLength = vents(p).rear.length_m.value;
+      chambers(p).front.tuning_goal_hz.set(50);
+      assert.equal(vents(p).front.length_m.entered, false);
+      assert.ok((vents(p).front.length_m.value ?? NaN) < 1.8812);
+      assert.equal(vents(p).rear.length_m.value, rearLength);
+      assert.equal(chambers(p).rear.tuning_goal_hz.value, 35);
+    });
+  }
+});

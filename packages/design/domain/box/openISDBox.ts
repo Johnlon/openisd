@@ -62,6 +62,20 @@ const STARTING = Object.freeze({
     radiatorMms_kg: 0.05,
 } as const);
 
+/** A chamber's tuning target and its vent's length as the pair they are: entering one writes it
+ *  and clears the other in `commit`'s single record write, so no resolve runs between. Used where
+ *  retracting a member leaves the pair blank (`noStartingAlignment`); the vented box adds its own
+ *  fallback instead. */
+function ventTuningPair(
+    commit: (tuning: SpecEntryJson | undefined, length: SpecEntryJson | undefined) => void,
+    tuningEntry: TuningField, lengthEntry: TuningField,
+): {readonly tuning: TuningField; readonly length: TuningField} {
+    const settle = (): void => {};
+    const tuning: TuningField = pairedField((entry) => commit(entry, undefined), tuningEntry, { siblingEmpty: () => length.value === null, settle });
+    const length: TuningField = pairedField((entry) => commit(undefined, entry), lengthEntry, { siblingEmpty: () => tuning.value === null, settle });
+    return {tuning, length};
+}
+
 /** Fill the geometry pair a vent's `shape` uses, where unset. */
 function startVentGeometry(vent: Vent, driverDd_m: number | null, roundDiameter_m: number = STARTING.ventDiameter_m): void {
     if (vent.shape.value === 'slotted') {
@@ -225,10 +239,8 @@ export class OpenISDBox implements Box {
                 frontVent: { ...cur.frontVent, length_m: length },
             });
         };
-        const noStartingAlignment = (): void => {};
-        const bp4FrontTuningField = pairedField((entry) => commitBp4FrontPair(entry, undefined), bp4FrontTuningEntry, { siblingEmpty: () => bp4FrontLengthField.value === null, settle: noStartingAlignment });
-        const bp4FrontLengthField = pairedField((entry) => commitBp4FrontPair(undefined, entry), bp4FrontLengthEntry, { siblingEmpty: () => bp4FrontTuningField.value === null, settle: noStartingAlignment });
-        const bp4FrontVent = new VentWindow(bp4FrontVentLens, engine.vent, air, bp4FrontLengthField);
+        const bp4FrontPair = ventTuningPair(commitBp4FrontPair, bp4FrontTuningEntry, bp4FrontLengthEntry);
+        const bp4FrontVent = new VentWindow(bp4FrontVentLens, engine.vent, air, bp4FrontPair.length);
         this.bandpass4 = {
             chambers: {
                 // rear is SEALED — no port, so no `vents.rear`, and a read-only calculated
@@ -262,7 +274,7 @@ export class OpenISDBox implements Box {
                 // front's volume is a Field, consistent with the rear chamber.
                 front: {
                     volume_m3: nullableField(bp4Front, 'volume_m3', (v) => engine.issues.requiredPositiveIssue('Front chamber volume', v)),
-                    tuning_goal_hz: bp4FrontTuningField,
+                    tuning_goal_hz: bp4FrontPair.tuning,
                     losses: new VentedLossesWindow(focus(bp4Front, 'losses')),
                 },
             },
@@ -270,29 +282,53 @@ export class OpenISDBox implements Box {
         };
 
         const bp6 = focus(lens, 'bandpass6');
+        const bp6Rear = focus(bp6, 'rear');
+        const bp6Front = focus(bp6, 'front');
+        const bp6RearVent = focus(bp6, 'rearVent');
+        const bp6FrontVent = focus(bp6, 'frontVent');
+        const bp6RearPair = ventTuningPair(
+            (tuning, length) => { const cur = bp6.value; bp6.set({...cur, rear: {...cur.rear, tuning_goal_hz: tuning}, rearVent: {...cur.rearVent, length_m: length}}); },
+            entryField(focus(bp6Rear, 'tuning_goal_hz'), 'tuning_goal_hz', () => groupDq(issues().rearVent)),
+            entryField(focus(bp6RearVent, 'length_m'), 'length_m', () => groupDq(issues().rearVent)));
+        const bp6FrontPair = ventTuningPair(
+            (tuning, length) => { const cur = bp6.value; bp6.set({...cur, front: {...cur.front, tuning_goal_hz: tuning}, frontVent: {...cur.frontVent, length_m: length}}); },
+            entryField(focus(bp6Front, 'tuning_goal_hz'), 'tuning_goal_hz', () => groupDq(issues().vent)),
+            entryField(focus(bp6FrontVent, 'length_m'), 'length_m', () => groupDq(issues().vent)));
         this.bandpass6 = {
             chambers: {
-                rear: new CoupledVentedChamberWindow(focus(bp6, 'rear'), 'Rear chamber volume', engine.issues),
-                front: new VentedChamberWindow(focus(bp6, 'front'), 'Front chamber volume', engine.issues),
+                rear: new CoupledVentedChamberWindow(bp6Rear, bp6RearPair.tuning, 'Rear chamber volume', engine.issues),
+                front: new VentedChamberWindow(bp6Front, bp6FrontPair.tuning, 'Front chamber volume', engine.issues),
             },
             vents: {
-                rear: new VentWindow(focus(bp6, 'rearVent'), engine.vent, air),
-                front: new VentWindow(focus(bp6, 'frontVent'), engine.vent, air),
+                rear: new VentWindow(bp6RearVent, engine.vent, air, bp6RearPair.length),
+                front: new VentWindow(bp6FrontVent, engine.vent, air, bp6FrontPair.length),
             },
         };
 
         const abc = focus(lens, 'abc');
+        const abcRear = focus(abc, 'rear');
+        const abcFront = focus(abc, 'front');
+        const abcRearVent = focus(abc, 'rearVent');
+        const abcFrontVent = focus(abc, 'frontVent');
+        const abcRearPair = ventTuningPair(
+            (tuning, length) => { const cur = abc.value; abc.set({...cur, rear: {...cur.rear, tuning_goal_hz: tuning}, rearVent: {...cur.rearVent, length_m: length}}); },
+            entryField(focus(abcRear, 'tuning_goal_hz'), 'tuning_goal_hz', () => groupDq(issues().rearVent)),
+            entryField(focus(abcRearVent, 'length_m'), 'length_m', () => groupDq(issues().rearVent)));
+        const abcFrontPair = ventTuningPair(
+            (tuning, length) => { const cur = abc.value; abc.set({...cur, front: {...cur.front, tuning_goal_hz: tuning}, frontVent: {...cur.frontVent, length_m: length}}); },
+            entryField(focus(abcFront, 'tuning_goal_hz'), 'tuning_goal_hz', () => groupDq(issues().vent)),
+            entryField(focus(abcFrontVent, 'length_m'), 'length_m', () => groupDq(issues().vent)));
         this.abc = {
             chambers: {
-                rear: new CoupledVentedChamberWindow(focus(abc, 'rear'), 'Rear chamber volume', engine.issues),
-                front: new VentedChamberWindow(focus(abc, 'front'), 'Front chamber volume', engine.issues),
+                rear: new CoupledVentedChamberWindow(abcRear, abcRearPair.tuning, 'Rear chamber volume', engine.issues),
+                front: new VentedChamberWindow(abcFront, abcFrontPair.tuning, 'Front chamber volume', engine.issues),
             },
             // Three ports, flat siblings: rear's and front's own ports to outside air, plus the
             // connecting port between the chambers — owned by neither, which is why it sits here and
             // not inside a chamber.
             vents: {
-                rear: new VentWindow(focus(abc, 'rearVent'), engine.vent, air),
-                front: new VentWindow(focus(abc, 'frontVent'), engine.vent, air),
+                rear: new VentWindow(abcRearVent, engine.vent, air, abcRearPair.length),
+                front: new VentWindow(abcFrontVent, engine.vent, air, abcFrontPair.length),
                 intra: new VentWindow(focus(abc, 'intraVent'), engine.vent, air),
             },
         };

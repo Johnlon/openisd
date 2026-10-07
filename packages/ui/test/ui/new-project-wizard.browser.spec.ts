@@ -180,7 +180,7 @@ test.describe('New Project wizard', () => {
 
     test('a wizard-created project draws a chart for every simulatable box type', async ({ page }) => {
       test.setTimeout(30000);
-      for (const box of ['sealed', 'vented', 'box-passive-radiator', 'bandpass4']) {
+      for (const box of ['sealed', 'vented', 'box-passive-radiator', 'bandpass4', 'bandpass6', 'abc']) {
         await buildProject(page, box);
         await expect.poll(() => curvesSplLength(page)).toBeGreaterThan(0);
       }

@@ -90,6 +90,7 @@ export function resolveProject(ctx: ProjectResolveContext): ProjectIssues {
     }
     const boxType = directRoot.value.box.boxType;
     let vent: readonly VentIssue[] = [];
+    let rearVent: readonly VentIssue[] = [];
     let pr: readonly PrIssue[] = [];
     let radiator: readonly PrSpecIssue[] = [];
     let sealed: readonly SealedAlignmentIssue[] = [];
@@ -119,6 +120,18 @@ export function resolveProject(ctx: ProjectResolveContext): ProjectIssues {
             count: inputOf(() => box.bandpass4.vents.front.count.value),
             endCorrection_m: inputOf(() => box.bandpass4.vents.front.endCorrection_m.value),
         }, air);
+    } else if (boxType === 'bandpass6' || boxType === 'abc') {
+        const {chambers, vents} = boxType === 'abc' ? box.abc : box.bandpass6;
+        const solvePort = (chamber: typeof chambers.front, port: typeof vents.front): readonly VentIssue[] => engine.vent.solve({
+            tuning_goal_hz: chamber.tuning_goal_hz,
+            length_m: port.length_m,
+            Vb_m3: inputOf(() => chamber.volume_m3.value),
+            area_m2: inputOf(() => port.area_m2.value),
+            count: inputOf(() => port.count.value),
+            endCorrection_m: inputOf(() => port.endCorrection_m.value),
+        }, air);
+        rearVent = solvePort(chambers.rear, vents.rear);
+        vent = solvePort(chambers.front, vents.front);
     } else if (boxType === 'box-passive-radiator') {
         const p = box.passiveRadiator;
         const r = p.radiator;
@@ -158,7 +171,7 @@ export function resolveProject(ctx: ProjectResolveContext): ProjectIssues {
         });
     }
 
-    return { driver: driverIssues, signal, vent, pr, radiator, sealed, ventTuningExtra };
+    return { driver: driverIssues, signal, vent, rearVent, pr, radiator, sealed, ventTuningExtra };
 }
 
 /** The driver's Re at the project's coil temperature rise, or null when Re is unusable — read

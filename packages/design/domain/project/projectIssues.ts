@@ -5,7 +5,10 @@ import type { DqIssue, DriverIssue, PrIssue, PrSpecIssue, SealedAlignmentIssue, 
 export interface ProjectIssues {
     readonly driver: readonly DriverIssue[];
     readonly signal: readonly SignalIssue[];
+    /** The vented box's vent; bandpass4's, bandpass6's and ABC's front vent. */
     readonly vent: readonly VentIssue[];
+    /** bandpass6's and ABC's rear vent. */
+    readonly rearVent: readonly VentIssue[];
     readonly pr: readonly PrIssue[];
     /** The radiator's stated figures that contradict each other, each issue naming every figure in
      *  its relation. */
