@@ -20,7 +20,7 @@
 OPENISD_RESERVATION_DIR="${OPENISD_RESERVATION_DIR:-/tmp/openisd-ui-test-reservations}"
 OPENISD_RESERVATION_LOCK="${OPENISD_RESERVATION_DIR}.lock"
 OPENISD_PORT_POOL_START=4100
-OPENISD_PORT_POOL_SIZE=8
+OPENISD_PORT_POOL_SIZE=90   # 4100-4189; never reaches 4000 (John's preview) or the 4200+ ad-hoc range
 # Same figures as playwright.config.js's MEM_PER_WORKER_GB / RESERVE_GB — see that file for how
 # 0.7 was measured (PSS, not summed RSS). Kept independent rather than shared: this is bash,
 # that's a Node config, and duplicating two numbers is cheaper than a cross-language config load.
@@ -29,6 +29,11 @@ OPENISD_RESERVE_GB="2"
 OPENISD_MAX_WORKERS=2
 
 mkdir -p "$OPENISD_RESERVATION_DIR"
+
+# True when something is already listening on the port (any process, reserved by us or not).
+port_is_listening() {
+  ss -ltnH "sport = :$1" 2>/dev/null | grep -q .
+}
 
 reserve_test_slot() {
   local f pid w p mem_avail_gb reserved_gb nproc_val cpu_cap my_workers my_port i port_ok
@@ -83,6 +88,7 @@ reserve_test_slot() {
     for p in $used_ports; do
       if [ "$p" = "$my_port" ]; then port_ok=0; break; fi
     done
+    port_is_listening "$my_port" && port_ok=0
     [ "$port_ok" -eq 1 ] && break
   done
   if [ "$port_ok" -ne 1 ]; then

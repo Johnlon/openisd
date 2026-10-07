@@ -50,7 +50,7 @@ const WORKERS = process.env.OPENISD_TEST_WORKERS ? Number(process.env.OPENISD_TE
 // `kill-http.sh <PORT>`, so it SHOT DOWN a coordinated run's server and that run failed in a
 // scattered, irreproducible way (bugs/BUG_20260926_browser-specs-fail-in-company-pass-alone.md).
 // An uncoordinated run now takes a free port well above the pool and cannot touch anyone else.
-const COORDINATED_POOL_END = 4107;
+const COORDINATED_POOL_END = 4189;
 const ADHOC_POOL_START = 4200;
 const ADHOC_POOL_END = 4399;
 
@@ -172,7 +172,9 @@ export default defineConfig({
     // tracked one by scripts/test-bundle.mjs — no corpus needed) and runs no file watcher.
     command: `bash scripts/kill-http.sh ${PORT} && node scripts/version-info.mjs && node scripts/test-bundle.mjs build/test-bundle && OPENISD_DRIVERS_BUNDLE_DIR=build/test-bundle OPENISD_TEST_SERVER=1 npx vite --port ${PORT}`,
     url: `http://localhost:${PORT}`,
-    reuseExistingServer: true,
+    // Never latch onto a server already on this port: it belongs to another run. test-browser.sh frees
+    // the reserved port first, so a busy port here is a collision and must fail, not be shared.
+    reuseExistingServer: false,
     timeout: 120000,
   },
 

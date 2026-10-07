@@ -1,31 +1,33 @@
 #!/usr/bin/env bash
-# Verify that the live Vite development server on port 4000 is serving the working tree.
+# Verify that a live Vite development server is serving the working tree.
+# Port: OPENISD_PREVIEW_PORT, default 4000 (John's preview). The health check passes its own port.
 set -euo pipefail
+PORT="${OPENISD_PREVIEW_PORT:-4000}"
 
 # Environment guard
 { [ -n "${MSYSTEM:-}" ] || grep -qi microsoft /proc/version 2>/dev/null; } || { echo "ERROR: must run in Git Bash on Windows or WSL, not PowerShell/cmd" >&2; exit 1; }
 
-echo "Verifying that http://localhost:4000/ is the live Vite app, and that it works..."
+echo "Verifying that http://localhost:$PORT/ is the live Vite app, and that it works..."
 
 # 1. Check HTTP response code
-HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:4000/ || echo "000")
+HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:$PORT/ || echo "000")
 if [ "$HTTP_STATUS" -ne 200 ]; then
-  echo "ERROR: Server on port 4000 is not responding with HTTP 200 (status code: $HTTP_STATUS)." >&2
+  echo "ERROR: Server on port $PORT is not responding with HTTP 200 (status code: $HTTP_STATUS)." >&2
   exit 1
 fi
 
 # 2. The live app must expose Vite's development client. A static dist server is wrong here.
-VITE_STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:4000/@vite/client || echo "000")
+VITE_STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:$PORT/@vite/client || echo "000")
 if [ "$VITE_STATUS" -ne 200 ]; then
-  echo "ERROR: Port 4000 is not serving the Vite development client (status: $VITE_STATUS)." >&2
+  echo "ERROR: Port $PORT is not serving the Vite development client (status: $VITE_STATUS)." >&2
   echo "Start it with: bash scripts/preview-4000.sh" >&2
   exit 1
 fi
 
 # 3. Confirm the HTML is the development document, not a production asset manifest.
-HTML_CONTENT=$(curl -s http://localhost:4000/)
+HTML_CONTENT=$(curl -s http://localhost:$PORT/)
 if ! printf '%s' "$HTML_CONTENT" | grep -q '/@vite/client'; then
-  echo "ERROR: Port 4000 returned HTML without Vite's live client." >&2
+  echo "ERROR: Port $PORT returned HTML without Vite's live client." >&2
   exit 1
 fi
 
@@ -37,7 +39,7 @@ echo "Vite development server is live. Now checking that the app actually RUNS..
 # are CORRECT, and they certified a build whose every driver-panel computation threw on load
 # (bugs/BUG_20260817_deploy_verifies_asset_freshness_but_never_that_the_app_runs.md). HTTP 200
 # is the SERVER answering, not the app working.
-node "$(dirname "$0")/verify-app-runs.mjs" http://localhost:4000/
+node "$(dirname "$0")/verify-app-runs.mjs" http://localhost:$PORT/
 
-echo "SUCCESS: Port 4000 is serving the live working tree, and the app runs."
+echo "SUCCESS: Port $PORT is serving the live working tree, and the app runs."
 exit 0

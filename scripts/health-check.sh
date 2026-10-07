@@ -49,7 +49,7 @@ run "ESLint"            npm run lint
 run "Type check"        npm run typecheck
 run "Unit tests"        env OPENISD_FULL_GATE=1 bash scripts/quiet-test.sh npx vitest run
 run "Browser tests"     bash scripts/test-browser.sh
-run "Verify Preview"    bash scripts/verify-preview.sh
+run "Verify Preview"    bash scripts/verify-preview-own-port.sh
 
 echo ""
 echo "========================================"
