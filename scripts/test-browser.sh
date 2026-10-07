@@ -94,34 +94,8 @@ run_with_watchdog() {
   set -e
 
   # Start the watchdog in the background
-  (
-    # Cold Vite start-up under load takes well over 30s: give it up to 180s to answer ONCE
-    # before failures start counting, so a slow start is not mistaken for a dead server.
-    local waited=0
-    while [ "$waited" -lt 180 ] && ! curl -s -f -m 2 -o /dev/null "http://localhost:$port"; do
-      kill -0 "$test_pid" 2>/dev/null || break
-      sleep 5; waited=$((waited + 5))
-    done
-    local failures=0
-    while true; do
-      if ! curl -s -f -m 2 -o /dev/null "http://localhost:$port"; then
-        failures=$((failures + 1))
-        if [ "$failures" -ge 3 ]; then
-          echo "" >&2
-          echo "🚨 WATCHDOG: Vite server on port $port is unreachable. Aborting Playwright run early!" >&2
-          kill -TERM "$test_pid" 2>/dev/null || true
-          break
-        fi
-      else
-        failures=0
-      fi
-      sleep 5
-      # Exit if playwright is no longer running
-      if ! kill -0 "$test_pid" 2>/dev/null; then
-        break
-      fi
-    done
-  ) &
+  # Aborts the run only when the server is gone: no listener, or listening but silent for 60 s.
+  bash "$SCRIPT_DIR/vite-watchdog.sh" "$port" "$test_pid" &
   local watchdog_pid=$!
 
   # Wait for playwright to finish (or be killed by watchdog)

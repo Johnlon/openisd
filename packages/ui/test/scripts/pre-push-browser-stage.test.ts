@@ -59,7 +59,7 @@ describe('scripts/test-browser.sh', () => {
     const queue = join(dir, 'queue');
     mkdirSync(join(dir, 'scripts', 'slow-run'), {recursive: true});
     mkdirSync(bin);
-    for (const name of ['test-browser.sh', 'test-concurrency.sh', 'kill-http.sh']) {
+    for (const name of ['test-browser.sh', 'test-concurrency.sh', 'kill-http.sh', 'vite-watchdog.sh']) {
       copyFileSync(join(ROOT, 'scripts', name), join(dir, 'scripts', name));
     }
     copyFileSync(join(ROOT, 'scripts', 'slow-run', 'queue.sh'), join(dir, 'scripts', 'slow-run', 'queue.sh'));
