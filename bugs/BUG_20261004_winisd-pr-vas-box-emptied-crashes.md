@@ -32,9 +32,8 @@ runs on every keystroke and divides by the value.
 A crash is a trigger bug under the project rule: never copied, no switch. OpenISD must not crash or write
 a bad value when a field is cleared.
 
-## OpenISD to check
-- Clear the PR Vas box (and Fs, Qms, Sd) in OpenISD. Earlier notes say a cleared PR field writes 0 through
-  `set(v ?? 0)`. That is a separate open bug and may produce a zero divide in the solver routes.
-
 ## Done
 - Recorded 2026-10-05: a row in `docs/research/ACCURACY_IMPROVEMENTS.md` ("fixed by default", broken links) and a section in `docs/research/WINISD_PARITY.md`.
+
+## Ruling (John, 2026-10-07, bug walk)
+Acked as recorded: trigger bug, no switch. OpenISD keeps an emptied PR Vas box blank with a warning (ruling 2026-10-06).

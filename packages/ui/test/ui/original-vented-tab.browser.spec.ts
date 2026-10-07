@@ -61,6 +61,18 @@ test.describe('Original Vented tab', () => {
       await fillAndBlur(width, '5');
       await expect(width).toHaveValue(/5/);
     });
+
+    // bugs/BUG_20261005_no-common-ui-field-component.md: an emptied box clears the value, never stores 0.
+    test('emptied vent dimensions stay blank instead of becoming 0', async ({ page }) => {
+      await page.locator('.project-nav li', { hasText: 'Vented' }).click();
+      const diameter = page.locator('.ui-field', { hasText: 'Vent diameter' }).locator('input');
+      await fillAndBlur(diameter, '');
+      await expect(diameter).toHaveValue('');
+      await page.locator('.field', { hasText: 'Shape' }).locator('select').selectOption('slotted');
+      const width = page.locator('.ui-field', { hasText: 'Slot width' }).locator('input');
+      await fillAndBlur(width, '');
+      await expect(width).toHaveValue('');
+    });
   });
 
   test.describe('target tuning', () => {

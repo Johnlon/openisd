@@ -36,4 +36,13 @@ test.describe('MobileEnclosureTab', () => {
     await expect(tuning).toHaveValue(/47\.8/);
     await expect(mobileFieldRow(page, 'Vent length').locator('input')).toHaveValue(/\d/);
   });
+
+  // bugs/BUG_20261005_no-common-ui-field-component.md: an emptied vent dimension clears, never stores 0.
+  test('an emptied vent diameter stays blank instead of becoming 0', async ({ page }) => {
+    await page.locator('.mob-tab', { hasText: 'Vented' }).click();
+    const diameter = page.locator('.ui-field', { hasText: 'Vent diameter' }).locator('input');
+    await diameter.fill('');
+    await diameter.blur();
+    await expect(diameter).toHaveValue('');
+  });
 });

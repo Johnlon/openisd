@@ -5,7 +5,7 @@ export type VentShape = 'round' | 'slotted';
 export interface Vent {
   readonly shape: SimpleField<VentShape>;
   readonly diameter_m: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;
-  readonly width_m: Readable<number | null> & Entered & Writable<number> & Clearable;
+  readonly width_m: Readable<number | null> & Entered & Precise & Writable<number> & Clearable;
   readonly height_m: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;
   readonly length_m: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;
   /** How many identical ports share the chamber (WinISD `[VentRear] Num`). Never N: C one port

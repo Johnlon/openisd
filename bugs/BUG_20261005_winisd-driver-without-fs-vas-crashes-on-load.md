@@ -25,3 +25,6 @@ OpenISD derives the missing fields from the entered ones and never crashes.
 ## Evidence
 `winisd_research`: `runs/sweep-mms-cms-load-crash.json`, `PROBE_FINDINGS.md` "FINDING 2026-10-05:
 solve-from-mms-cms". Golden: `packages/design/test/winisd/fixtures/winisd-parity/goldens/solve-from-mms-cms.wpr`.
+
+## Ruling (John, 2026-10-07, bug walk)
+Acked as a WinISD bug: trigger bug, never copied, no switch. Follow-ups sent to the coordinator: in-app help entry (`WinisdFixedBug`), and a test that loads `solve-from-mms-cms.wpr` and checks every derived value is finite.

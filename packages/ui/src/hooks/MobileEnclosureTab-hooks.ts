@@ -34,9 +34,6 @@ export function useMobileEnclosureTab() {
 
   // Same field-id dispatch the desktop template uses inline — kept here so both shells share one
   // "what does typing/clearing a vent field do" answer.
-  function setVentWidth(v: number | null): void { VentMember.WIDTH.enter(project.value, v ?? 0); }
-  function setVentHeight(v: number | null): void { VentMember.HEIGHT.enter(project.value, v ?? 0); }
-  function setVentDiameter(v: number | null): void { VentMember.DIAMETER.enter(project.value, v ?? 0); }
   function setVentLength(v: number | null): void {
     if (v == null || Number.isNaN(v) || v <= 0) VentMember.LENGTH.clear(project.value);
     else VentMember.LENGTH.enter(project.value, v);
@@ -48,7 +45,7 @@ export function useMobileEnclosureTab() {
     prResonanceMassDq, prFsMass_hz, prNaturalFh,
     prBrowseOpen, loadPREntry, loadBundledPassiveRadiatorEntry, defineNewPREntry,
     prSaveOpen, prSaveFields, prSaveCanSave, openPRSave, cancelPRSave, confirmPRSave,
-    setVentWidth, setVentHeight, setVentDiameter, setVentLength, setFbTarget,
+    setVentLength, setFbTarget,
     VENT_SHAPE_OPTIONS, END_CORRECTION_OPTIONS, VENT_COUNT_OPTIONS, PR_COUNT_OPTIONS,
     FB_TARGET_TIP, VENT_GEOMETRY_TIP,
   };

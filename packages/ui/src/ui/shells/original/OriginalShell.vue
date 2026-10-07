@@ -460,27 +460,15 @@ provideCellScope({ revision: projectChanged, written: () => {} });
               <div class="vent-dims-col">
                 <div v-if="activeVent.shape.value === 'slotted'">
                   <div class="field-row">
-                    <div class="field entered" :title="VENT_GEOMETRY_TIP">
-                      <label>Slot width</label>
-                      <NumInput :model-value="activeVent.width_m.value" @update:model-value="(v: number | null) => VentMember.WIDTH.enter(project, v ?? 0)" :field="NumberField.VENT_W_CM" :precision="NumberField.VENT_W_CM.precision" />
-                      <UnitToggle :field="NumberField.VENT_W_CM" unit-class="unit unit-cyc" />
-                    </div>
+                    <UIField class="field" :title="VENT_GEOMETRY_TIP" :field="NumberField.VENT_W_CM" :cell="activeVent.width_m" />
                   </div>
                   <div class="field-row">
-                    <div class="field entered" :title="VENT_GEOMETRY_TIP">
-                      <label>Slot height</label>
-                      <NumInput :model-value="activeVent.height_m.value" @update:model-value="(v: number | null) => VentMember.HEIGHT.enter(project, v ?? 0)" :field="NumberField.VENT_H_CM" :precision="NumberField.VENT_H_CM.precision" />
-                      <UnitToggle :field="NumberField.VENT_H_CM" unit-class="unit unit-cyc" />
-                    </div>
+                    <UIField class="field" :title="VENT_GEOMETRY_TIP" :field="NumberField.VENT_H_CM" :cell="activeVent.height_m" />
                   </div>
                 </div>
                 <div v-else>
                   <div class="field-row">
-                    <div class="field entered" :title="VENT_GEOMETRY_TIP">
-                      <label>Vent diameter</label>
-                      <NumInput :model-value="activeVent.diameter_m.value" @update:model-value="(v: number | null) => VentMember.DIAMETER.enter(project, v ?? 0)" :field="NumberField.VENT_D_CM" :precision="NumberField.VENT_D_CM.precision" />
-                      <UnitToggle :field="NumberField.VENT_D_CM" unit-class="unit unit-cyc" />
-                    </div>
+                    <UIField class="field" :title="VENT_GEOMETRY_TIP" :field="NumberField.VENT_D_CM" :cell="activeVent.diameter_m" />
                   </div>
                 </div>
 

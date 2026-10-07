@@ -22,7 +22,7 @@ const {
   prResonanceMassDq, prFsMass_hz, prNaturalFh,
   prBrowseOpen, loadPREntry, loadBundledPassiveRadiatorEntry, defineNewPREntry,
   prSaveOpen, prSaveFields, prSaveCanSave, openPRSave, cancelPRSave, confirmPRSave,
-  setVentWidth, setVentHeight, setVentDiameter, setVentLength, setFbTarget,
+  setVentLength, setFbTarget,
   VENT_SHAPE_OPTIONS, END_CORRECTION_OPTIONS, VENT_COUNT_OPTIONS, PR_COUNT_OPTIONS,
   FB_TARGET_TIP, VENT_GEOMETRY_TIP,
 } = useMobileEnclosureTab();
@@ -56,35 +56,10 @@ const {fieldWithUnit} = useUnitReadouts();
     </div>
 
     <template v-if="activeVent.shape.value === 'slotted'">
-      <div class="mob-field-row mob-field-entered">
-        <div class="mob-field-main">
-          <span class="mob-field-label">Slot width</span>
-          <span class="mob-field-value" :title="VENT_GEOMETRY_TIP">
-            <NumInput :model-value="activeVent.width_m.value" @update:model-value="setVentWidth"
-                      :field="NumberField.VENT_W_CM" :precision="NumberField.VENT_W_CM.precision" stepper />
-          </span>
-        </div>
-        <UnitToggle :field="NumberField.VENT_W_CM" unit-class="mob-unit" />
-      </div>
-      <div class="mob-field-row mob-field-entered">
-        <div class="mob-field-main">
-          <span class="mob-field-label">Slot height</span>
-          <span class="mob-field-value" :title="VENT_GEOMETRY_TIP">
-            <NumInput :model-value="activeVent.height_m.value" @update:model-value="setVentHeight"
-                      :field="NumberField.VENT_H_CM" :precision="NumberField.VENT_H_CM.precision" stepper />
-          </span>
-        </div>
-        <UnitToggle :field="NumberField.VENT_H_CM" unit-class="mob-unit" />
-      </div>
+      <UIField class="mob-ui-field" :title="VENT_GEOMETRY_TIP" :field="NumberField.VENT_W_CM" :cell="activeVent.width_m" stepper />
+      <UIField class="mob-ui-field" :title="VENT_GEOMETRY_TIP" :field="NumberField.VENT_H_CM" :cell="activeVent.height_m" stepper />
     </template>
-    <div v-else class="mob-field-row mob-field-entered">
-      <div class="mob-field-main">
-        <span class="mob-field-label">Vent diameter</span>
-        <span class="mob-field-value" :title="VENT_GEOMETRY_TIP">
-          <NumInput :model-value="activeVent.diameter_m.value" @update:model-value="setVentDiameter"
-                    :field="NumberField.VENT_D_CM" :precision="NumberField.VENT_D_CM.precision" stepper />
-        </span>
-      </div>
+    <UIField v-else class="mob-ui-field" :title="VENT_GEOMETRY_TIP" :field="NumberField.VENT_D_CM" :cell="activeVent.diameter_m" stepper />
       <UnitToggle :field="NumberField.VENT_D_CM" unit-class="mob-unit" />
     </div>
 

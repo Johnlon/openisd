@@ -7,7 +7,7 @@ import {createEngine} from '@openisd/design/engine';
 import {readFileSync} from 'node:fs';
 import {dirname, join} from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {OpenISDPassiveRadiatorStandalone, ProjectBuilder} from '../../domain/index.js';
+import {OpenISDPassiveRadiatorStandalone, ProjectBuilder, type FrequencyGrid} from '../../domain/index.js';
 import {driverFromSpec} from '../fixtures/recordBuilders.js';
 
 const nd140Path = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..', 'ui', 'public', 'drivers', 'dayton-audio', 'nd140-pr.json');
@@ -30,7 +30,7 @@ describe('passive radiator Sd edit', () => {
     project.box.passiveRadiator.losses.Ql.set(7);
     project.box.passiveRadiator.losses.Qa.set(30);
 
-    const grid = {fmin: 10, fmax: 1000, N: 50};
+    const grid: FrequencyGrid = {fmin: 10, fmax: 1000, N: 50};
     const before = project.sweep(grid).values;
     project.box.passiveRadiator.radiator.spec.Sd_m2.set(project.box.passiveRadiator.radiator.spec.Sd_m2.value! * 2);
     const after = project.sweep(grid).values;

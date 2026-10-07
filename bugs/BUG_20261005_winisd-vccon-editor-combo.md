@@ -25,3 +25,6 @@ Series; loading never rescales `Re`/`BL`; ParState slot 46 stays `N` whatever th
 Stores `Re`/`BL` per coil and derives the terminal values from the wiring, so a coil-count edit
 cannot leave them out of step; keeps and writes the wiring the user chose at any coil count; always marks `VCCon` `E`.
 `docs/research/WINISD_PARITY.md` §12.
+
+## Ruling (John, 2026-10-07, bug walk)
+Acked as a WinISD bug: linkage bug, never copied, no switch. Recorded in ACCURACY_IMPROVEMENTS.md and WINISD_PARITY.md (already). Still to add for publicity: the in-app help entry (`WinisdFixedBug`), plus a one-coil Series round-trip test.

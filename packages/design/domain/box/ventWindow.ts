@@ -21,7 +21,7 @@ export class VentWindow implements Vent {
     readonly endCorrection_m: SimpleField<number>;
 
     readonly diameter_m: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;
-    readonly width_m: Readable<number | null> & Entered & Writable<number> & Clearable;
+    readonly width_m: Readable<number | null> & Entered & Precise & Writable<number> & Clearable;
     readonly height_m: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;
     readonly length_m: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;
     readonly count: Readable<number> & Entered & Calculated & Writable<number> & Clearable & Calculatable<number>;
