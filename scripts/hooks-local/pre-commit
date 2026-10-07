@@ -1,11 +1,12 @@
 #!/bin/sh
-# Fast gate on EVERY commit — lint + unit + golden tests. Blocks the commit on any
-# red so a failure cannot ride along commit-to-commit (the "an issue from hours ago
-# persisted" failure mode). These are all fast (no browser, no network, no python).
+# Fast gate on EVERY commit — lint + typecheck + design/persistence unit tests. Blocks the commit
+# on any red so a failure cannot ride along commit-to-commit.
 #
-# The FULL suite — browser tests, DQ, scraper tests — runs at pre-push
-# (npm run ci) and via scripts/health-check.sh, which you MUST run before claiming
-# a change "done". A green pre-commit is necessary, not sufficient.
+# The slow UI tests (packages/ui) are NOT run here (John, 2026-10-07: hooks that run them overlap
+# between agents and cause problems). The agent rules decide what to test and when: a targeted
+# spec after each change and a message to the other agents before any slow run
+# (.claude/rules/verify.md), the full suite at pre-push and via scripts/health-check.sh, which you
+# MUST run before claiming a change "done". A green pre-commit is necessary, not sufficient.
 #
 # Exception: a commit that touches ONLY *.md files cannot change runtime behaviour,
 # so the unit/browser suites add no diff-level signal — skip them. But typecheck and
@@ -33,7 +34,7 @@ if [ -n "$changed" ] && ! printf '%s\n' "$changed" | grep -qv '\.md$'; then
   echo "[pre-commit] doc-only + typecheck/lint green ✓"
   exit 0
 fi
-echo "[pre-commit] lint + typecheck + unit (incl. golden) — blocking commit on any red…"
+echo "[pre-commit] lint + typecheck + design/persistence unit — blocking commit on any red…"
 npm run lint
 $HEAVY npm run typecheck
 # PRECOMMIT=1: the born-red CHECKLIST gates (PrivateAllow / ALLOWED_GLOBALS / no-re-exports)
@@ -44,5 +45,5 @@ $HEAVY npm run typecheck
 # No test time limit: a test that keeps making progress is never killed. The run goes through
 # quiet-test.sh for its idle watchdog, which stops a run that writes nothing for 180 s and
 # writes node reports to build/test-reports/ (docs: TESTING_STRATEGY.md, "Timeouts and hangs").
-PRECOMMIT=1 OPENISD_FULL_GATE=1 $HEAVY bash scripts/quiet-test.sh npx vitest run packages/design packages/persistence packages/ui --maxWorkers="$OPENISD_HEAVY_GATE_WORKERS" --reporter=dot
+PRECOMMIT=1 OPENISD_FULL_GATE=1 $HEAVY bash scripts/quiet-test.sh npx vitest run packages/design packages/persistence --maxWorkers="$OPENISD_HEAVY_GATE_WORKERS" --reporter=dot
 echo "[pre-commit] all green ✓ (checklist gates deferred to ci/A10)"
