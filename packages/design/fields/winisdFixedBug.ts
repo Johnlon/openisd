@@ -102,6 +102,22 @@ export class WinisdFixedBug {
     size: 'The chart stays blank until the next edit.',
   });
 
+  static readonly DRIVER_WITHOUT_FS_VAS_CRASHES = new WinisdFixedBug({
+    title: 'WinISD crashes loading a driver with no Fs or Vas',
+    winisd: 'WinISD stops about 1.5 seconds after loading a project whose driver has Fs and Vas at 0, with only Mms, Cms, BL, Re, Qms and Sd entered. It does not work them out on load.',
+    openisd: 'OpenISD works out Fs, Vas and the other missing values from the ones entered, and loads the project.',
+    seenIn: 'opening a project file.',
+    size: 'WinISD closes and you lose unsaved work. Entering the fields in the Driver editor first avoids it.',
+  });
+
+  static readonly VOICE_COIL_CONNECTION_LOST = new WinisdFixedBug({
+    title: 'WinISD forgets a one-coil driver\'s Series wiring',
+    winisd: 'With one voice coil, WinISD shows Series after you pick it, but saves the file as Parallel, so it reloads as Parallel. With more coils, changing the coil count afterwards resets the connection to Parallel but keeps the Series Re and BL.',
+    openisd: 'OpenISD keeps the wiring you chose at any coil count, and always works Re and BL out from the wiring, so they cannot fall out of step.',
+    seenIn: 'the voice coil connection box in the Driver editor, and saved driver files.',
+    size: 'With one coil the numbers do not change, but the wiring you chose is lost.',
+  });
+
   /** Every fixed bug, by reflection; declared last. */
   static readonly ALL: readonly WinisdFixedBug[] =
     Object.freeze(Object.values(WinisdFixedBug).filter((v): v is WinisdFixedBug => v instanceof WinisdFixedBug));
