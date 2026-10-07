@@ -4,8 +4,13 @@
  */
 import {describe, expect, it} from 'vitest';
 import {createEngine} from '@openisd/design/engine';
-import {ProjectBuilder} from '../../domain/index.js';
-import {driverFromSpec, radiatorFromSpec} from '../fixtures/recordBuilders.js';
+import {readFileSync} from 'node:fs';
+import {dirname, join} from 'node:path';
+import {fileURLToPath} from 'node:url';
+import {OpenISDPassiveRadiatorStandalone, ProjectBuilder} from '../../domain/index.js';
+import {driverFromSpec} from '../fixtures/recordBuilders.js';
+
+const nd140Path = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..', 'ui', 'public', 'drivers', 'dayton-audio', 'nd140-pr.json');
 
 describe('passive radiator Sd edit', () => {
   it('doubling Sd halves PR excursion and PR velocity, at the same frequency', () => {
@@ -17,16 +22,17 @@ describe('passive radiator Sd edit', () => {
     const project = new ProjectBuilder(driver, engine).sealed().volume_m3(0.03).build();
     project.powerDrive_W.set(1);
     project.box.boxType.set('box-passive-radiator');
-    project.box.passiveRadiator.configurePR(radiatorFromSpec(engine, {
-      Fs_hz: 12, Qms: 4, Vas_m3: 0.03, Sd_m2: 0.025, Xmax_m: 0.015,
-    }));
+    const nd140: unknown = JSON.parse(readFileSync(nd140Path, 'utf8'));
+    const radiator = OpenISDPassiveRadiatorStandalone.fromConformingRecord(nd140);
+    if (Array.isArray(radiator)) throw new Error(`ND140-PR is invalid: ${radiator.join(', ')}`);
+    project.box.passiveRadiator.configurePR(radiator);
     project.box.passiveRadiator.count.set(1);
     project.box.passiveRadiator.losses.Ql.set(7);
     project.box.passiveRadiator.losses.Qa.set(30);
 
     const grid = {fmin: 10, fmax: 1000, N: 50};
     const before = project.sweep(grid).values;
-    project.box.passiveRadiator.radiator.spec.Sd_m2.set(0.05);
+    project.box.passiveRadiator.radiator.spec.Sd_m2.set(project.box.passiveRadiator.radiator.spec.Sd_m2.value! * 2);
     const after = project.sweep(grid).values;
     if (before === null || after === null) throw new Error('sweep did not run');
 
