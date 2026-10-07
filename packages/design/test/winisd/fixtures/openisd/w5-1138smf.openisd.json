@@ -3,9 +3,6 @@
     "origin": "openisd",
     "value": "2026-08-31"
   },
-  "authoritative": {
-    "value": "manufacturer_datasheet"
-  },
   "brand": {
     "origin": "manufacturer_product_page",
     "value": "Tang Band"

@@ -3,9 +3,6 @@
     "origin": "openisd",
     "value": "2026-09-01"
   },
-  "authoritative": {
-    "value": "manufacturer_product_page"
-  },
   "brand": {
     "origin": "manufacturer_product_page",
     "value": "Dayton Audio"
