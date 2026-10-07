@@ -72,15 +72,17 @@ describe('OpenISDProject sweep', () => {
     expect(project.sweep({}).values).toBeNull();
   });
 
-  it('sweep() is null for a topology the engine has no model for, and NOT for one it has', () => {
+  it('sweep() is null for a box with a chamber volume missing, and NOT for a stated one', () => {
     const engine = createEngine();
     const project = drivenSealed(engine, 0.03);
     const P: FrequencyGrid = { fmin: 10, fmax: 1000, N: 50 };
 
     expect(project.sweep(P).values).not.toBeNull();
 
-    // bandpass6 is a topology the domain names and the engine does not simulate.
+    // A new bandpass6 states its starting volumes; with the rear one retracted there is nothing to simulate.
     project.box.boxType.set('bandpass6');
+    expect(project.sweep(P).values).not.toBeNull();
+    project.box.bandpass6.chambers.rear.volume_m3.clear();
     expect(project.sweep(P).values).toBeNull();
   });
 

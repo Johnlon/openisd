@@ -52,6 +52,7 @@ describe('OpenISDProject.sweepPlan', () => {
   it('a box the sweep cannot run is blocked with the issues sweep() reports', () => {
     const project = sealed(createEngine());
     project.box.boxType.set('bandpass6');
+    project.box.bandpass6.chambers.rear.volume_m3.clear();
     const plan = project.sweepPlan(GRID);
     if (plan.kind !== 'blocked') throw new Error('expected a blocked plan');
     expect(project.sweep(GRID)).toEqual({values: null, issues: plan.issues});

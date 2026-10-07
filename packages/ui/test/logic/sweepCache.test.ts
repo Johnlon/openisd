@@ -67,6 +67,7 @@ describe('SweepCache', () => {
     const { cache } = setup();
     const p = project();
     p.box.boxType.set('bandpass6');
+    p.box.bandpass6.chambers.rear.volume_m3.clear();
     expect(cache.sweep(p, GRID)).toBeNull();
   });
 });

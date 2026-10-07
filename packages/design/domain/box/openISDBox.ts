@@ -42,6 +42,15 @@ const STARTING = Object.freeze({
     volume_m3: 0.007,
     bandpass4FrontVolume_m3: 0.01,
     tuning_hz: 35,
+    /** Bandpass6 and ABC, as WinISD's wizard writes them (capture bp6_abc_wizard_defaults): a
+     *  30 L rear chamber at 35 Hz, a 20 L front chamber at 25 Hz, round vents 102 mm across, and an
+     *  ABC connecting vent 50 mm long. */
+    twoPortRearVolume_m3: 0.03,
+    twoPortRearTuning_hz: 35,
+    twoPortFrontVolume_m3: 0.02,
+    twoPortFrontTuning_hz: 25,
+    twoPortVentDiameter_m: 0.102,
+    abcIntraVentLength_m: 0.05,
     /** A chart-ready radiator (BUG_20260912: Fh must resolve instead of "--"), named so it reads
      *  as a stand-in, never a spec sheet (John 2026-09-29): Sd the driver's own when known, Xmax
      *  twice the driver's — a radiator has no motor, so it needs more excursion than the driver. */
@@ -54,12 +63,12 @@ const STARTING = Object.freeze({
 } as const);
 
 /** Fill the geometry pair a vent's `shape` uses, where unset. */
-function startVentGeometry(vent: Vent, driverDd_m: number | null): void {
+function startVentGeometry(vent: Vent, driverDd_m: number | null, roundDiameter_m: number = STARTING.ventDiameter_m): void {
     if (vent.shape.value === 'slotted') {
         if ((vent.width_m.value ?? 0) <= 0) vent.width_m.set(driverDd_m !== null && driverDd_m > 0 ? driverDd_m : STARTING.ventSlotWidth_m);
         if ((vent.height_m.value ?? 0) <= 0) vent.height_m.set(STARTING.ventSlotHeight_m);
     } else if ((vent.diameter_m.value ?? 0) <= 0) {
-        vent.diameter_m.set(STARTING.ventDiameter_m);
+        vent.diameter_m.set(roundDiameter_m);
     }
 }
 
@@ -429,7 +438,7 @@ export class OpenISDBox implements Box {
      *  flat-alignment volume, vented the QB3 design for the driver as driven plus vent geometry for
      *  its shape (50 mm round; a slot the driver's diameter wide and 3 cm high), a passive-radiator
      *  box 7 L with no mass added to a placeholder radiator sized off the driver, bandpass4 a 7 L rear and
-     *  a 10 L front at 35 Hz through the same vent geometry. Bandpass6 and ABC have none.
+     *  a 10 L front at 35 Hz through the same vent geometry, bandpass6 and ABC the WinISD wizard's volumes, tunings and 102 mm vents (plus the ABC connecting vent's 50 mm length).
      *  Called by `boxType.set()` and by every `ProjectBuilder` at build; every write is gated on
      *  its own field being unset, so nothing entered is ever overwritten. A driver without the
      *  specs a design needs leaves that value alone. */
@@ -484,8 +493,21 @@ export class OpenISDBox implements Box {
                 return;
             }
             case 'bandpass6':
-            case 'abc':
+            case 'abc': {
+                const {chambers, vents} = this.boxType.value === 'abc' ? this.abc : this.bandpass6;
+                if (!isStated(chambers.rear.volume_m3.value)) chambers.rear.volume_m3.set(STARTING.twoPortRearVolume_m3);
+                if (!isStated(chambers.front.volume_m3.value)) chambers.front.volume_m3.set(STARTING.twoPortFrontVolume_m3);
+                if (chambers.rear.tuning_goal_hz.value === null) chambers.rear.tuning_goal_hz.set(STARTING.twoPortRearTuning_hz);
+                if (chambers.front.tuning_goal_hz.value === null) chambers.front.tuning_goal_hz.set(STARTING.twoPortFrontTuning_hz);
+                const Dd_m = this.#driver.specs.Dd_m.value;
+                startVentGeometry(vents.rear, Dd_m, STARTING.twoPortVentDiameter_m);
+                startVentGeometry(vents.front, Dd_m, STARTING.twoPortVentDiameter_m);
+                if (this.boxType.value === 'abc') {
+                    startVentGeometry(this.abc.vents.intra, Dd_m, STARTING.twoPortVentDiameter_m);
+                    if (this.abc.vents.intra.length_m.value === null) this.abc.vents.intra.length_m.set(STARTING.abcIntraVentLength_m);
+                }
                 return;
+            }
         }
     }
 

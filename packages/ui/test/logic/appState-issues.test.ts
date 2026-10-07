@@ -243,7 +243,7 @@ it('an unsized vent port surfaces a tuning_goal_hz/length_m error through allIss
       `the sweep channel message must be one of the vent cell's own DQ sentences; cell has: ${tuningCellMessages.join(' | ')}`);
   });
 
-  it('a new bandpass6 project simulates, and names its missing chamber volumes instead of a blank chart', async () => {
+  it('a new bandpass6 project simulates, with both chamber volumes stated', async () => {
     newProject();
     requireFocusedProject().box.boxType.set('bandpass6');
     await awaitSweepThrottle();
@@ -251,11 +251,11 @@ it('an unsized vent port surfaces a tuning_goal_hz/length_m error through allIss
     assert.equal(allIssues.value.find(e => /not yet implemented/i.test(e.message)), undefined,
       `bandpass6 is simulatable; got: ${allIssues.value.map(e => e.message).join(', ')}`);
     const fields = allIssues.value.filter(e => e.level === 'error').map(e => e.field);
-    assert.ok(fields.includes('Vb') && fields.includes('Vf'),
-      `allIssues must name both empty chamber volumes; got: ${fields.join(', ')}`);
+    assert.ok(!fields.includes('Vb') && !fields.includes('Vf'),
+      `a new project states both chamber volumes, so neither is named; got: ${fields.join(', ')}`);
   });
 
-  it('a new abc project simulates, and names its missing chamber volumes instead of a blank chart', async () => {
+  it('a new abc project simulates, with both chamber volumes stated', async () => {
     newProject();
     requireFocusedProject().box.boxType.set('abc');
     await awaitSweepThrottle();
@@ -263,7 +263,7 @@ it('an unsized vent port surfaces a tuning_goal_hz/length_m error through allIss
     assert.equal(allIssues.value.find(e => /not yet implemented/i.test(e.message)), undefined,
       `abc is simulatable; got: ${allIssues.value.map(e => e.message).join(', ')}`);
     const fields = allIssues.value.filter(e => e.level === 'error').map(e => e.field);
-    assert.ok(fields.includes('Vb') && fields.includes('Vf'),
-      `allIssues must name both empty chamber volumes; got: ${fields.join(', ')}`);
+    assert.ok(!fields.includes('Vb') && !fields.includes('Vf'),
+      `a new project states both chamber volumes, so neither is named; got: ${fields.join(', ')}`);
   });
 });
