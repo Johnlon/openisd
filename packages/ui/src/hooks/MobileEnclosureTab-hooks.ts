@@ -7,7 +7,6 @@
 import {boxTypeIsSimulatable, envDefaults, focusedProject, projectChanged} from '../logic/appState.js';
 import {useFocusedProject} from '../logic/focusedProjectContext.js';
 import {useApp} from '../logic/app.js';
-import {VentMember} from '../logic/ventGroup.js';
 import {createEnvironmentAir} from './OriginalShell-hooks.js';
 import {createSealedReadouts, createSelectedBox} from './boxFields.js';
 import {createVentReadouts, FB_TARGET_TIP, VENT_GEOMETRY_TIP} from './ventReadouts.js';
@@ -24,7 +23,7 @@ export function useMobileEnclosureTab() {
   const { selectedBox } = createSelectedBox({ focusedProject, projectChanged, isSimulatable: boxTypeIsSimulatable });
   const { advAir } = createEnvironmentAir({ project, projectChanged, envDefaults, environment: engine.environment });
   const {
-    activeVent, activeTuning, portPipeResonance_hz, fbState, ventLState, fbUnreachable, fbUnreachableMsg, frontChamberTuningLabel, setFbTarget,
+    activeVent, activeTuning, portPipeResonance_hz, fbUnreachable, fbUnreachableMsg, tuningField,
   } = createVentReadouts({ project, projectChanged, selectedBox, air: advAir, vent: engine.vent });
   const { prResonanceMassDq, prFsMass_hz, prNaturalFh } =
     createSealedReadouts({ project, selectedBox, projectChanged });
@@ -32,20 +31,12 @@ export function useMobileEnclosureTab() {
     prSaveOpen, prSaveFields, prSaveCanSave, openPRSave, cancelPRSave, confirmPRSave } =
     createPassiveRadiatorActions({ project, myPassiveRadiators, bundledPassiveRadiators });
 
-  // Same field-id dispatch the desktop template uses inline — kept here so both shells share one
-  // "what does typing/clearing a vent field do" answer.
-  function setVentLength(v: number | null): void {
-    if (v == null || Number.isNaN(v) || v <= 0) VentMember.LENGTH.clear(project.value);
-    else VentMember.LENGTH.enter(project.value, v);
-  }
-
   return {
     project, selectedBox,
-    activeVent, activeTuning, portPipeResonance_hz, fbState, ventLState, fbUnreachable, fbUnreachableMsg, frontChamberTuningLabel,
+    activeVent, activeTuning, portPipeResonance_hz, fbUnreachable, fbUnreachableMsg, tuningField,
     prResonanceMassDq, prFsMass_hz, prNaturalFh,
     prBrowseOpen, loadPREntry, loadBundledPassiveRadiatorEntry, defineNewPREntry,
     prSaveOpen, prSaveFields, prSaveCanSave, openPRSave, cancelPRSave, confirmPRSave,
-    setVentLength, setFbTarget,
     VENT_SHAPE_OPTIONS, END_CORRECTION_OPTIONS, VENT_COUNT_OPTIONS, PR_COUNT_OPTIONS,
     FB_TARGET_TIP, VENT_GEOMETRY_TIP,
   };

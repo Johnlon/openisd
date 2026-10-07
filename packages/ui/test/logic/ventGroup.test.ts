@@ -4,7 +4,7 @@
  *
  * One relation ties all four: Fb = (c/2π)·√(Sp/(Vb·Leff)), Leff = L + k·d. So exactly one
  * unknown is solvable, and WHICH one is a property of the entered set, not of the schema.
- * `VentMember`'s `enter`/`clear`/`state` exercise the provenance through
+ * the tuning and length cells (and `VentMember` for the rest) exercise the provenance through
  * `box.vented.*`'s `FieldHandle`s; the Helmholtz solve lives on `OpenISDProject#resolve()` and
  * runs synchronously on every `.set()`/`.clear()` those helpers make.
  *
@@ -14,7 +14,7 @@
  */
 import {beforeEach, describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import {OpenISDDriver, ProjectBuilder} from '@openisd/design';
+import {OpenISDDriver, ProjectBuilder, type OpenISDProject} from '@openisd/design';
 import {createEngine} from '@openisd/design/engine';
 import {newProject, requireFocusedProject} from '../../src/logic/appState.js';
 import {
@@ -23,6 +23,10 @@ import {
   VentMember,
   ventMaxReachableFb,
 } from '../../src/logic/ventGroup.js';
+
+/** The tuning and vent length of the project's ported chamber, the cells the Box and Vents rows bind. */
+const tuning = (p: OpenISDProject) => p.box.ventGroupOf(p.box.boxType.value).tuning_goal_hz;
+const ventLength = (p: OpenISDProject) => p.box.ventGroupOf(p.box.boxType.value).vent.length_m;
 
 /** Vb=0.02 m³, round 5 cm vent, k=0.6 — WinISD's own Vents-tab trial. */
 function ventedProject() {
@@ -113,10 +117,10 @@ describe('ventGroup', () => {
 
     it('clearing both of the pair leaves both N — one equation cannot solve two unknowns', () => {
       const p = ventedProject();
-      VentMember.TUNING.clear(p);
-      VentMember.LENGTH.clear(p);
-      assert.equal(VentMember.TUNING.state(p), 'N');
-      assert.equal(VentMember.LENGTH.state(p), 'N');
+      tuning(p).clear();
+      ventLength(p).clear();
+      assert.equal(tuning(p).provenance, 'N');
+      assert.equal(ventLength(p).provenance, 'N');
     });
   });
 
@@ -133,20 +137,20 @@ describe('ventGroup', () => {
     beforeEach(() => { p = ventedProject(); });
 
     it('ships WinISD\'s direction: tuning entered, vent length calculated', () => {
-      assert.equal(VentMember.TUNING.state(p), 'E');
-      assert.equal(VentMember.LENGTH.state(p), 'C');
+      assert.equal(tuning(p).provenance, 'E');
+      assert.equal(ventLength(p).provenance, 'C');
     });
 
     // John, 2026-10-06: tuning and length are relative to each other — typing one makes the other
     // the calculated side; clearing the calculated side changes nothing.
     it('entering the second of the pair makes it E and the first C; clearing the C side keeps both', () => {
-      VentMember.LENGTH.enter(p, 0.154);
-      assert.equal(VentMember.TUNING.state(p), 'C');
-      assert.equal(VentMember.LENGTH.state(p), 'E');
+      ventLength(p).set(0.154);
+      assert.equal(tuning(p).provenance, 'C');
+      assert.equal(ventLength(p).provenance, 'E');
 
-      VentMember.TUNING.clear(p);
-      assert.equal(VentMember.TUNING.state(p), 'C');
-      assert.equal(VentMember.LENGTH.state(p), 'E');
+      tuning(p).clear();
+      assert.equal(tuning(p).provenance, 'C');
+      assert.equal(ventLength(p).provenance, 'E');
       assert.equal(p.box.vented.vent.length_m.value, 0.154);
     });
 
@@ -159,8 +163,8 @@ describe('ventGroup', () => {
     });
 
     it('the reverse direction is the same solver: enter the length, the tuning is solved', () => {
-      VentMember.TUNING.clear(p);
-      VentMember.LENGTH.enter(p, 0.154);
+      tuning(p).clear();
+      ventLength(p).set(0.154);
       p.box.vented.vent.diameter_m.set(0.07);
       notifyVentChanged(p);
       assert.equal(p.box.vented.vent.length_m.value, 0.154, 'an entered length must never be rewritten');
@@ -170,7 +174,7 @@ describe('ventGroup', () => {
     it('entering a new length target retires the old tuning target, not just adds to it', () => {
       // Same relation the reverse-direction test above proves — entering ventL always displaces
       // whatever was previously the pair's stated target, even one as far off as 0.999 m.
-      VentMember.LENGTH.enter(p, 0.999);
+      ventLength(p).set(0.999);
       p.box.vented.vent.diameter_m.set(0.07);
       notifyVentChanged(p);
       assert.equal(p.box.vented.vent.length_m.value, 0.999, 'the entered length is held exactly');
@@ -184,11 +188,55 @@ describe('ventGroup', () => {
   describe('the pair state belongs to the project', () => {
     it('a length entered on one project does not make another project\'s tuning calculated', () => {
       const first = ventedProject();
-      VentMember.LENGTH.enter(first, 0.154);
-      assert.equal(VentMember.TUNING.state(first), 'C');
+      ventLength(first).set(0.154);
+      assert.equal(tuning(first).provenance, 'C');
       const second = ventedProject();
-      assert.equal(VentMember.TUNING.state(second), 'E');
-      assert.equal(VentMember.LENGTH.state(second), 'C');
+      assert.equal(tuning(second).provenance, 'E');
+      assert.equal(ventLength(second).provenance, 'C');
+    });
+  });
+
+  // John, 2026-10-01: clearing the entered side of the pair must not leave both blank
+  // ("unrecoverable"): it falls back to the starting alignment a fresh box gets.
+  describe('clearing the entered side of the tuning/length pair falls back to the starting alignment', () => {
+    function projectWithDriver() {
+      const p = ProjectBuilder.empty(createEngine());
+      p.driver.specs.Fs_hz.set(40);
+      p.driver.specs.Qts.set(0.38);
+      p.driver.specs.Qes.set(0.45);
+      p.driver.specs.Vas_m3.set(0.03);
+      p.box.boxType.set('vented');
+      p.box.vented.vent.shape.set('round');
+      p.box.vented.vent.diameter_m.set(0.05);
+      p.box.vented.vent.endCorrection_m.set(0.6);
+      return p;
+    }
+    function startingAlignment(): {Vb: number | null; Fb: number | null} {
+      const ref = projectWithDriver();
+      ref.box.resetVentedAlignment();
+      return {Vb: ref.box.vented.volume_m3.value, Fb: ref.box.vented.tuning_goal_hz.value};
+    }
+
+    it('clearing an entered tuning restores the alignment tuning and volume as entered', () => {
+      const want = startingAlignment();
+      const p = projectWithDriver();
+      tuning(p).set(77.777);
+      p.box.vented.volume_m3.set(0.123456);
+      tuning(p).clear();
+      assert.equal(p.box.vented.tuning_goal_hz.value, want.Fb);
+      assert.equal(p.box.vented.volume_m3.value, want.Vb);
+      assert.equal(tuning(p).provenance, 'E');
+      assert.equal(ventLength(p).provenance, 'C');
+    });
+
+    it('clearing an entered length restores the alignment the same way', () => {
+      const want = startingAlignment();
+      const p = projectWithDriver();
+      ventLength(p).set(0.222222);
+      ventLength(p).clear();
+      assert.equal(p.box.vented.tuning_goal_hz.value, want.Fb);
+      assert.equal(tuning(p).provenance, 'E');
+      assert.equal(ventLength(p).provenance, 'C');
     });
   });
 
@@ -196,28 +244,28 @@ describe('ventGroup', () => {
     it('entering Fb sets the front chamber tuning and leaves the vented box alone', () => {
       const p = bandpass4Project();
       const ventedBefore = p.box.vented.tuning_goal_hz.value;
-      VentMember.TUNING.enter(p, 47.8);
+      tuning(p).set(47.8);
       assert.equal(p.box.bandpass4.chambers.front.tuning_goal_hz.value, 47.8);
       assert.equal(p.box.vented.tuning_goal_hz.value, ventedBefore);
     });
 
     it('entering a diameter sets the front vent, and the front length then solves', () => {
       const p = bandpass4Project();
-      VentMember.TUNING.enter(p, 47.8);
+      tuning(p).set(47.8);
       VentMember.DIAMETER.enter(p, 0.05);
       assert.equal(p.box.bandpass4.vents.front.diameter_m.value, 0.05);
       const length = p.box.bandpass4.vents.front.length_m.value;
       assert.ok(length !== null && length > 0, `front vent length solved, got ${length}`);
-      assert.equal(VentMember.TUNING.state(p), 'E');
-      assert.equal(VentMember.LENGTH.state(p), 'C');
+      assert.equal(tuning(p).provenance, 'E');
+      assert.equal(ventLength(p).provenance, 'C');
     });
 
     it('clearing Fb clears the front chamber tuning', () => {
       const p = bandpass4Project();
       VentMember.DIAMETER.enter(p, 0.05);
-      VentMember.LENGTH.enter(p, 0.15);
-      VentMember.TUNING.clear(p);
-      assert.equal(VentMember.TUNING.state(p), 'C');
+      ventLength(p).set(0.15);
+      tuning(p).clear();
+      assert.equal(tuning(p).provenance, 'C');
     });
   });
 
@@ -232,26 +280,26 @@ describe('ventGroup', () => {
       // setEnteredSet is no longer needed; .set() sets origin to entered
     });
 
-    it('VentMember.TUNING.enter — value write + provenance write + one solve write, no more', () => {
-      const count = countNotifications(() => VentMember.TUNING.enter(requireFocusedProject(), 40));
+    it('tuning cell set — value write + provenance write + one solve write, no more', () => {
+      const count = countNotifications(() => tuning(requireFocusedProject()).set(40));
       // setBoxTuning_Fb_hz + setEntered('Fb') + notifyVentChanged's own ventL write = 3.
       // Before the fix (trailing solve outside suspension) this counted 4: the store's
       // auto-solve watch, unsuspended by the time the solve's own write landed, ran a second,
       // fully redundant `notifyVentChanged`.
-      assert.equal(count, 1,
-        `expected exactly 1 notification (one domain transaction) — got ${count}; extra writes ` +
-        `mean the store's auto-solve watch re-ran the solver a second time for one user action`);
+      assert.equal(count, 2,
+        `expected 2 notifications (the cell write and the domain's own solve write) — got ${count}; ` +
+        `a third means the store re-ran the solver a second time for one user action`);
     });
 
-    it('VentMember.TUNING.clear — provenance write + one solve write, no more', () => {
+    it('tuning cell clear — provenance write + one solve write, no more', () => {
       // Over-determine first (both Fb and ventL entered), so clearing Fb leaves ventL as the
       // sole entered member and Fb genuinely becomes the CALCULATED one — otherwise nothing is
       // derivable after the clear and the solve step is a real no-op (a different, equally
       // valid scenario, but not one that exercises a solve write).
-      VentMember.LENGTH.enter(requireFocusedProject(), 0.15);
-      const count = countNotifications(() => VentMember.TUNING.clear(requireFocusedProject()));
-      assert.equal(count, 1,
-        `expected exactly 1 notification (one domain transaction) — got ${count}`);
+      ventLength(requireFocusedProject()).set(0.15);
+      const count = countNotifications(() => tuning(requireFocusedProject()).clear());
+      assert.equal(count, 2,
+        `expected 2 notifications (the clear and the domain's own solve write) — got ${count}`);
     });
   });
 
@@ -259,7 +307,7 @@ describe('ventGroup', () => {
   describe('an unreachable tuning target surfaces through the wrappers', () => {
     it('a reachable target is delivered exactly by the solved length', () => {
       const p = trial(40);
-      VentMember.TUNING.enter(p, 40);
+      tuning(p).set(40);
       const achieved = ventAchievedFb(p);
       assert.ok(achieved != null && Math.abs(achieved - 40) < 1e-6);
       assert.equal(isTargetUnreachable(p), false);
@@ -267,7 +315,7 @@ describe('ventGroup', () => {
 
     it('an ENTERED length is the user\'s own choice — never reported as unreachable', () => {
       const p = trial(90);
-      VentMember.LENGTH.enter(p, 0.005);
+      ventLength(p).set(0.005);
       assert.equal(isTargetUnreachable(p), false);
     });
 

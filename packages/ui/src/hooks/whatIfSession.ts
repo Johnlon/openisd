@@ -58,7 +58,7 @@ function write(p: OpenISDProject, type: BoxType, slot: WhatIfSlot, v: number): v
   switch (slot) {
     case 'volume': p.box.volumeOf(type).set(v); return;
     case 'frontVolume': p.box.frontVolumeOf(type)?.set(v); return;
-    case 'ventTuning': VentMember.TUNING.enter(p, v); return;
+    case 'ventTuning': p.box.ventGroupOf(type).tuning_goal_hz.set(v); return;
     case 'rearTuning': p.box.rearTuningOf(type)?.set(v); return;
     case 'ventDiameter': VentMember.DIAMETER.enter(p, v); return;
     case 'prAddedMass': p.box.passiveRadiator.addedMass_kg.set(v); return;

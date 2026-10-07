@@ -327,6 +327,16 @@ export class NumberField extends Field {
     description: "Box Tuning Frequency (Fb)\nHelmholtz resonance of the vented enclosure, set by port dimensions and box volume.",
   });
 
+  static readonly BOX_FFC_HZ = new NumberField({
+    value: "box_Ffc_hz",
+    label: "Target Tuning Freq (Ffc)",
+    display: {kind: 'switchable', group: 'freq', base: 'Hz'},
+    limits: {min: 0, max: 1000},
+    floor: "positive",
+    precision: 2,
+    description: "Front Chamber Tuning Frequency (Ffc)\nHelmholtz resonance of the front, vented chamber of a 4th-order bandpass box, set by port dimensions and chamber volume.",
+  });
+
   // ── Vent ──────────────────────────────────────────────────────────────────────────────────
   static readonly VENT_COUNT = new NumberField({
     value: "vent_Count",

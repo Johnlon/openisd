@@ -41,7 +41,6 @@ import {
 } from '../logic/appState.js';
 import {cycleTraceColor, presentationState, setSkinOverride, traceColor} from '../logic/presentationState.js';
 import {useFocusedProject} from '../logic/focusedProjectContext.js';
-import {VentMember} from '../logic/ventGroup.js';
 import {createVentReadouts, FB_TARGET_TIP, FH_TARGET_TIP, VENT_GEOMETRY_TIP} from './ventReadouts.js';
 import {formatDateStamp, parseDateStamp} from '../logic/dateDisplay.js';
 import {createPassiveRadiatorActions} from './passiveRadiatorActions.js';
@@ -580,8 +579,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   // ---- Enclosure tab: vent (port) readouts ---------------------------------------
   // Delegated to the unit-tested `createVentReadouts` above — needs `advAir`, hence placed here.
   const {
-    activeVent, activeTuning, portPipeResonance_hz, fbState, ventLState, fbUnreachable, fbUnreachableMsg,
-    frontChamberTuningLabel,
+    activeVent, activeTuning, portPipeResonance_hz, fbUnreachable, fbUnreachableMsg,
   } = createVentReadouts({ project, projectChanged, selectedBox, air: advAir, vent: engine.vent });
 
   const placement = ref<'standard' | 'iso'>('standard');
@@ -654,12 +652,12 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
      ventedAlignmentEditor, ventedAlignmentOpen, ventedAlignmentOptions, ventedAlignmentSelected,
      ventedAlignmentVolume_L, ventedAlignmentTuning_hz, ventedAlignmentEbp, ventedAlignmentSuitability,
      ventedAlignmentSuitabilityLabel,
-    fbState, FB_TARGET_TIP, FH_TARGET_TIP, VENT_GEOMETRY_TIP, VentMember,
+    FB_TARGET_TIP, FH_TARGET_TIP, VENT_GEOMETRY_TIP,
     boxResonance, rearQtc, prSystemTuningDq,
     fbUnreachable, fbUnreachableMsg, isDual,
-    frontVolumeCell, rearTuningCell, rearResonance, frontChamberTuningLabel,
+    frontVolumeCell, rearTuningCell, rearResonance,
     model, startEdit, startWhatIf, placement,
-    activeVent, activeTuning, END_CORRECTION_OPTIONS, VENT_SHAPE_OPTIONS, VENT_COUNT_OPTIONS, PR_COUNT_OPTIONS, ventLState, portPipeResonance_hz,
+    activeVent, activeTuning, END_CORRECTION_OPTIONS, VENT_SHAPE_OPTIONS, VENT_COUNT_OPTIONS, PR_COUNT_OPTIONS, portPipeResonance_hz,
     prBrowseOpen, loadPREntry, loadBundledPassiveRadiatorEntry, defineNewPREntry,
     prSaveOpen, prSaveFields, prSaveCanSave, openPRSave, cancelPRSave, confirmPRSave,
     prAddedMassDq, prTuningDq, prResonanceMassDq, prFsMass_hz, prNaturalFh,

@@ -15,7 +15,7 @@ import { useUnitReadouts } from '../../../hooks/useUnitReadouts.js';
 const {
   selectedBox, pending, isDual, frontVolumeCell, rearTuningCell, boxLabel, showEnclosureTab, enclosureNavLabel,
   boxResonance, rearQtc, boxVolumeCell,
-  activeTuning, fbState, setFbTarget, FB_TARGET_TIP,
+  activeTuning, FB_TARGET_TIP,
   selectBoxType, BOX_TYPE_OPTIONS, IMPLEMENTED_BOX_TYPES,
   sealedAlignmentEditor, sealedAlignmentOpen, sealedAlignmentOptions, sealedAlignmentSelected,
   sealedAlignmentVolume_m3, sealedAlignmentEbp, sealedAlignmentSuitability, sealedAlignmentSuitabilityLabel,
@@ -48,16 +48,7 @@ const { fieldWithUnit, readoutWithUnit } = useUnitReadouts();
     <UIField class="mob-ui-field" :field="NumberField.BOX_VB_L" :cell="boxVolumeCell" stepper />
 
     <UIField v-if="rearTuningCell && (selectedBox === 'bandpass6' || selectedBox === 'abc')" class="mob-ui-field" :field="NumberField.BOX_FRC_HZ" :cell="rearTuningCell" stepper />
-    <div v-else-if="selectedBox === 'vented'" class="mob-field-row" :class="fbState === 'C' ? 'mob-field-calculated' : 'mob-field-entered'">
-      <div class="mob-field-main">
-        <span class="mob-field-label">Target tuning freq (Fb)</span>
-        <span class="mob-field-value" :title="FB_TARGET_TIP">
-          <NumInput :class="`value-${fbState.toLowerCase()}`" :model-value="activeTuning.value" @update:model-value="setFbTarget"
-                    :field="NumberField.BOX_FB_HZ" :precision="NumberField.BOX_FB_HZ.precision" stepper />
-        </span>
-      </div>
-      <UnitToggle :field="NumberField.BOX_FB_HZ" unit-class="mob-unit" />
-    </div>
+    <UIField v-else-if="selectedBox === 'vented'" class="mob-ui-field" :title="FB_TARGET_TIP" :field="NumberField.BOX_FB_HZ" :cell="activeTuning" stepper />
     <div v-else class="mob-field-row mob-field-calculated">
       <div class="mob-field-main">
         <span class="mob-field-label">{{ selectedBox === 'box-passive-radiator' ? 'Fh' : 'Fsc' }}</span>

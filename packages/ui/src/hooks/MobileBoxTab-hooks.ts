@@ -22,7 +22,7 @@ export function useMobileBoxTab() {
     createSelectedBox({ focusedProject, projectChanged, isSimulatable });
   const { boxResonance, rearQtc } = createSealedReadouts({ project, selectedBox, projectChanged });
   const { advAir } = createEnvironmentAir({ project, projectChanged, envDefaults, environment: engine.environment });
-  const { activeTuning, fbState, setFbTarget } = createVentReadouts({ project, projectChanged, selectedBox, air: advAir, vent: engine.vent });
+  const { activeTuning } = createVentReadouts({ project, projectChanged, selectedBox, air: advAir, vent: engine.vent });
   const { boxVolumeCell } = createBoxVolume({ project, selectedBox, projectChanged });
   const { frontVolumeCell, rearTuningCell } = createChamberFields({ project, selectedBox, projectChanged });
   // Box losses popup: one row set per chamber, the same hook the desktop shell uses.
@@ -60,7 +60,7 @@ export function useMobileBoxTab() {
   return {
     project, selectedBox, pending, isDual, boxLabel, frontVolumeCell, rearTuningCell, showEnclosureTab, enclosureNavLabel,
     boxResonance, rearQtc, boxVolumeCell,
-    activeTuning, fbState, setFbTarget, FB_TARGET_TIP,
+    activeTuning, FB_TARGET_TIP,
     selectBoxType, BOX_TYPE_OPTIONS, IMPLEMENTED_BOX_TYPES,
     sealedAlignmentEditor, sealedAlignmentOpen, sealedAlignmentOptions, sealedAlignmentSelected,
     sealedAlignmentVolume_m3, sealedAlignmentEbp, sealedAlignmentSuitability, sealedAlignmentSuitabilityLabel,

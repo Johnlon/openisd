@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import {Project, SyntaxKind, type VariableDeclaration} from 'ts-morph';
+import {type CallExpression, Node, Project, SyntaxKind, type VariableDeclaration} from 'ts-morph';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 
@@ -29,15 +29,32 @@ const TAKES_QUANTITIES = [
 ];
 
 /** Parsed ONCE. Building the ts-morph project is the expensive part — several seconds — and doing
- *  it per test case pushed this suite past vitest's default timeout as the package grew. */
+ *  it per test case pushed this suite past vitest's default timeout as the package grew. The
+ *  test files' imports are resolved too: the advice is read from the called method's own
+ *  declaration, which lives in the source the tests import. */
 const PARSED = (() => {
-  const project = new Project({ skipAddingFilesFromTsConfig: true, skipFileDependencyResolution: true });
+  const project = new Project({ skipAddingFilesFromTsConfig: true });
   project.addSourceFilesAtPaths(path.join(packageRoot, 'test', '**', '*.ts'));
+  project.resolveSourceFileDependencies();
   return project;
 })();
 
-function unannotatedFixtures(): string[] {
-  const project = PARSED;
+/** The type the called function or method declares for parameter `index`, as written in its
+ *  declaration — so the advice is whatever that receiver actually takes (`project.sweep` takes a
+ *  `FrequencyGrid`, the engine's `sweep` a `SweepDriver` first and `SweepParams` last). */
+function declaredParameterType(call: CallExpression, index: number): string {
+  const symbol = call.getExpression().getSymbol();
+  const target = symbol?.isAlias() ? symbol.getAliasedSymbol() : symbol;
+  for (const decl of target?.getDeclarations() ?? []) {
+    if (!Node.isMethodDeclaration(decl) && !Node.isFunctionDeclaration(decl)
+        && !Node.isMethodSignature(decl)) continue;
+    const typeNode = decl.getParameters()[index]?.getTypeNode();
+    if (typeNode) return typeNode.getText();
+  }
+  return `the type ${call.getExpression().getText()}() declares (its declaration did not resolve)`;
+}
+
+function unannotatedFixtures(project: Project = PARSED, root: string = packageRoot): string[] {
   const offenders: string[] = [];
   for (const file of project.getSourceFiles()) {
     for (const call of file.getDescendantsOfKind(SyntaxKind.CallExpression)) {
@@ -62,17 +79,11 @@ function unannotatedFixtures(): string[] {
         if (init?.isKind(SyntaxKind.SatisfiesExpression)) continue;
         if (init?.isKind(SyntaxKind.ObjectLiteralExpression) !== true) continue;
 
-        // Which type it should have been depends on WHOSE method this is. The engine takes the
-        // quantity bag first and the sweep parameters last; a project already knows its own
-        // driver, so `project.sweep(P)` takes the parameters FIRST. Reading the position without
-        // the receiver gives confident, wrong advice.
-        const onEngine = /(^|\.)engine$/.test(callee.slice(0, callee.lastIndexOf('.')));
-        const wanted = !onEngine ? 'SweepParams'
-          : index === 0 ? 'DriverSolverQuantities'
-          : index === 3 ? 'SweepParams'
-          : 'its declared type';
+        // Which type it should have been depends on WHOSE method this is, so it is read from
+        // that method's declaration rather than guessed from the name and position.
+        const wanted = declaredParameterType(call, index);
         offenders.push(
-          `${path.relative(packageRoot, file.getFilePath())}:${decl.getStartLineNumber()}` +
+          `${path.relative(root, file.getFilePath())}:${decl.getStartLineNumber()}` +
           `  ${decl.getName()} → ${method}() arg ${index}, should be \`: ${wanted}\``);
       }
     }
@@ -93,12 +104,50 @@ describe('a fixture handed to the engine says what it is', () => {
   // 30s, not the 5s default: resolving each argument to its DECLARATION is a real type-checker
   // query, and that is exactly what makes this a gate rather than a name-matching heuristic —
   // it follows the identifier to the `const` that defines it, wherever that is.
-  it('every quantity bag passed to the engine is a declared DriverSolverQuantities', () => {
+  it('every quantity bag passed to the engine declares its type', () => {
     expect(unannotatedFixtures(), [
       'Each of these is an object literal in an un-annotated `const`, handed to the engine.',
       'TypeScript will not check its keys, and every field it is meant to have is optional, so',
       'a stale or misspelled name compiles and silently supplies nothing. Declare the variable',
       'with the type named beside it and the compiler reports the wrong key instead.',
     ].join(' ')).toEqual([]);
+  });
+});
+
+describe('the advice names the type the called method declares', () => {
+  // A project knows its own driver, so `project.sweep(grid)` takes a `FrequencyGrid` — not the
+  // engine's `SweepParams` — and the engine's first parameter is a `SweepDriver`. Advice that
+  // names a type the method does not take sends the reader to the wrong fix.
+  function adviceFor(caller: string): string[] {
+    const project = new Project({useInMemoryFileSystem: true});
+    project.createSourceFile('/src/types.ts', `
+      export interface FrequencyGrid { fMin?: number }
+      export interface SweepDriver { Fs_hz?: number }
+      export interface SweepParams { fMin?: number }
+      export class OpenISDProject { sweep(P: FrequencyGrid): void {} }
+      export class Engine {
+        sweep(drv: SweepDriver, Le_H: number | undefined, box: string, P: SweepParams): void {}
+      }`);
+    project.createSourceFile('/test/caller.test.ts',
+      `import {OpenISDProject, Engine} from '../src/types';\n${caller}`);
+    return unannotatedFixtures(project, '/');
+  }
+
+  it('a project sweep is told FrequencyGrid', () => {
+    expect(adviceFor(`
+      const project = new OpenISDProject();
+      const grid = {fMin: 10};
+      project.sweep(grid);`)).toEqual(['test/caller.test.ts:4  grid → sweep() arg 0, should be `: FrequencyGrid`']);
+  });
+
+  it('an engine sweep is told SweepDriver for the driver and SweepParams for the grid', () => {
+    expect(adviceFor(`
+      const engine = new Engine();
+      const drv = {Fs_hz: 40};
+      const P = {fMin: 10};
+      engine.sweep(drv, undefined, 'sealed', P);`)).toEqual([
+      'test/caller.test.ts:4  drv → sweep() arg 0, should be `: SweepDriver`',
+      'test/caller.test.ts:5  P → sweep() arg 3, should be `: SweepParams`',
+    ]);
   });
 });

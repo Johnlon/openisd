@@ -29,12 +29,6 @@ function group(p: OpenISDProject) {
   return p.box.ventGroupOf(p.box.boxType.value);
 }
 
-/** Clearing both of the pair falls back to the vented starting alignment; a bandpass front
- *  chamber has none and is left as cleared. */
-function fallBackToStartingAlignment(p: OpenISDProject): void {
-  if (p.box.boxType.value !== 'bandpass4') p.box.resetVentedAlignment();
-}
-
 /** One user action, one solve: the domain solves inside the write, and the suspension parks the
  *  auto-solve watch. */
 function act(p: OpenISDProject, write: () => void): void {
@@ -76,33 +70,6 @@ export class VentMember {
     enter: (p: OpenISDProject, value: number) => act(p, () => group(p).vent.diameter_m.set(value)),
     clear: (p: OpenISDProject) => act(p, () => group(p).vent.diameter_m.clear()),
     state: (p: OpenISDProject) => group(p).vent.diameter_m.provenance,
-  });
-
-  static readonly TUNING: VentInput & VentClearable & VentBadged = Object.freeze({
-    enter: (p: OpenISDProject, value: number) => act(p, () => group(p).tuning_goal_hz.set(value)),
-    clear: (p: OpenISDProject) => act(p, () => {
-      // The pair is relative (John, 2026-10-06): typing one makes the other the calculated side.
-      // Clearing the side that is not entered changes nothing: it is recalculated from the other.
-      if (group(p).tuning_goal_hz.provenance !== 'E' && group(p).vent.length_m.value !== null) return;
-      // Clearing the entered side leaves nothing on either side of the pair — rather than leave
-      // both blank (John, 2026-10-01: "unrecoverable"), fall back to the same QB3-style alignment
-      // a fresh box gets. The tuning is the alignment's own entered side, same as a new box.
-      group(p).tuning_goal_hz.clear();
-      group(p).vent.length_m.clear();
-      fallBackToStartingAlignment(p);
-    }),
-    state: (p: OpenISDProject): ProvenanceLetter => group(p).tuning_goal_hz.provenance,
-  });
-
-  static readonly LENGTH: VentInput & VentClearable & VentBadged = Object.freeze({
-    enter: (p: OpenISDProject, value: number) => act(p, () => group(p).vent.length_m.set(value)),
-    clear: (p: OpenISDProject) => act(p, () => {
-      if (group(p).vent.length_m.provenance !== 'E' && group(p).tuning_goal_hz.value !== null) return;
-      group(p).vent.length_m.clear();
-      group(p).tuning_goal_hz.clear();
-      fallBackToStartingAlignment(p);
-    }),
-    state: (p: OpenISDProject): ProvenanceLetter => group(p).vent.length_m.provenance,
   });
 
   static readonly WIDTH: VentInput = Object.freeze({

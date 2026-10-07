@@ -176,8 +176,9 @@ export class OpenISDBox implements Box {
                 vent: { ...cur.vent, length_m: length },
             });
         };
-        const ventedTuningField = pairedField((entry) => commitVentedPair(entry, undefined), ventedTuningEntry);
-        const ventedLengthField = pairedField((entry) => commitVentedPair(undefined, entry), ventedLengthEntry);
+        const settleVentedPair = (): void => this.resetVentedAlignment();
+        const ventedTuningField = pairedField((entry) => commitVentedPair(entry, undefined), ventedTuningEntry, { siblingEmpty: () => ventedLengthField.value === null, settle: settleVentedPair });
+        const ventedLengthField = pairedField((entry) => commitVentedPair(undefined, entry), ventedLengthEntry, { siblingEmpty: () => ventedTuningField.value === null, settle: settleVentedPair });
         const ventWindow = new VentWindow(ventedVentLens, engine.vent, air, ventedLengthField);
         this.vented = {
             // The plausibility mark is computed at READ time, not stored: a mandatory volume field
@@ -213,8 +214,9 @@ export class OpenISDBox implements Box {
                 frontVent: { ...cur.frontVent, length_m: length },
             });
         };
-        const bp4FrontTuningField = pairedField((entry) => commitBp4FrontPair(entry, undefined), bp4FrontTuningEntry);
-        const bp4FrontLengthField = pairedField((entry) => commitBp4FrontPair(undefined, entry), bp4FrontLengthEntry);
+        const noStartingAlignment = (): void => {};
+        const bp4FrontTuningField = pairedField((entry) => commitBp4FrontPair(entry, undefined), bp4FrontTuningEntry, { siblingEmpty: () => bp4FrontLengthField.value === null, settle: noStartingAlignment });
+        const bp4FrontLengthField = pairedField((entry) => commitBp4FrontPair(undefined, entry), bp4FrontLengthEntry, { siblingEmpty: () => bp4FrontTuningField.value === null, settle: noStartingAlignment });
         const bp4FrontVent = new VentWindow(bp4FrontVentLens, engine.vent, air, bp4FrontLengthField);
         this.bandpass4 = {
             chambers: {

@@ -495,11 +495,17 @@ export function inputOf<T>(read: () => T | null): SolverInput<T> {
 export function pairedField(
   commitPair: (entry: SpecEntryJson | undefined) => void,
   ownEntry: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable,
+  /** A pair that must not stay blank: when the sibling holds no value, a retraction runs
+   *  `settle` after the pair is cleared (the vented box falls back to its starting alignment,
+   *  John 2026-10-01). */
+  whenEmpty?: { readonly siblingEmpty: () => boolean; readonly settle: () => void },
 ): Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable {
   class PairedField extends DualWriteFieldImpl<number> {
     override clear(): void {
-      if (this.entered) commitPair(undefined);
-      else ownEntry.clear();
+      if (this.entered || whenEmpty?.siblingEmpty()) {
+        commitPair(undefined);
+        whenEmpty?.settle();
+      } else ownEntry.clear();
     }
   }
   return new PairedField(() => ownEntry, {

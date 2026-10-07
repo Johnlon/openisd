@@ -47,7 +47,7 @@ import {assignTraceColor, presentationState} from './presentationState.js';
 import {setTraceVisible} from './traceVisibility.js';
 import {BOX_TYPE_OPTIONS, NumberField, parseUnitRotation, type SelectorOption} from '@openisd/design/fields';
 import {getOrInit, hmrSlots} from './hmrSingleton.js';
-import {notifyVentChanged, ventSolveSuspended,} from './ventGroup.js';
+import {ventSolveSuspended} from './ventGroup.js';
 import {notifyPrChanged} from './prGroup.js';
 
 /** The driver spec fields the app's UI reads/writes by name — the schema's own spec keys.
@@ -321,38 +321,19 @@ const live: ShallowRef<OpenISDProject | null> = getOrInit(slots, 'live', () => {
 });
 
 
-// ---- Vent group: keep the calculated member solved while the user edits ------------------
-// `live` (above) already fires on every focused-project mutation — box/vent/PR fields
-// included — so it is the one reactive dependency this needs; the group itself decides,
-// field by field, whether there is anything to solve (`ventDerivable`). Two guards:
-//   solvingVent  — the solver's own write must not re-enter the watcher: `live` firing
-//                   again from inside `notifyVentChanged`'s own mutation would otherwise recurse.
-//   ventSolveSuspended() — a restore assigns a whole persisted snapshot and must be adopted
-//                   verbatim (docs/design/STATE_MODEL.md rule 3, "Cancel means byte-identical").
+// ---- Vent group ------------------------------------------------------------------------------
+// No watch: the domain solves the tuning ↔ vent-length pair synchronously inside every write
+// (`OpenISDProject#resolve()`), so a store-side re-solve adds only a redundant second solve.
+//
+// `solvingVent` / `ventSolveSuspended()` guard the PR watch below the same way: the solver's own
+// write must not re-enter the watcher, and a restore assigns a whole persisted snapshot that must
+// be adopted verbatim (docs/design/STATE_MODEL.md rule 3, "Cancel means byte-identical").
 // `live` is a shallow ref whose `.value` is the SAME focused-project reference on every
-// notification, so the watch below passes `live` itself, never a getter that reads
-// `live.value` — a getter source is gated on Vue's `hasChanged(newValue, oldValue)`, which an
-// invariant reference always fails, so the callback would never run. Passing the ref directly
-// sets `forceTrigger`, which fires on every `triggerRef` unconditionally, matching the "run on
-// every notification" intent
+// notification, so a watch passes `live` itself, never a getter that reads `live.value` — a
+// getter source is gated on Vue's `hasChanged(newValue, oldValue)`, which an invariant
+// reference always fails, so the callback would never run
 // (`BUG_20260822_pr_group_auto_solve_watch_never_fires_after_the_live_repoint.md`).
 let solvingVent = false;
-watch(
-  live,
-  () => {
-    if (solvingVent || ventSolveSuspended()) return;
-    const p = live.value;
-    if (!p) return;
-    solvingVent = true;
-    try { notifyVentChanged(p); } finally { solvingVent = false; }
-  },
-  // flush:'sync' is REQUIRED, not a preference. Vue's default 'pre' defers the callback to
-  // the next tick, by which time suspendVentSolve() has already returned and cleared its
-  // flag — the suspension would be a no-op and a restore would still be re-solved (and so
-  // still drift). Synchronous flush makes the guard actually cover the assignment. The
-  // callback is a few arithmetic ops; the expensive re-sweep is throttled separately.
-  { flush: 'sync' },
-);
 
 // ---- PR tuning group: added mass ↔ system tuning -----------------------------------------
 // Shares the vent group's suspension flag and the same `live` dependency.

@@ -6,7 +6,7 @@
  */
 import {computed} from 'vue';
 import type {ComputedRef, Ref} from 'vue';
-import {VentMember} from '../logic/ventGroup.js';
+import {NumberField} from '@openisd/design/fields';
 import type {OpenISDProject} from '@openisd/design';
 import type {BoxType, EnvironmentEngine, VentEngine} from '@openisd/design/engine';
 
@@ -58,11 +58,6 @@ export function createVentReadouts({ project, projectChanged: changed, selectedB
     if (L == null) return null;
     return vent.firstResonance_hz(L, air.value);
   });
-  // Single-chamber vented tuning uses Vb (the whole box); the bandpass front chamber tunes on
-  // its own front volume Vf. The four below are READ-ONLY derived values shown in more than one
-  // place (E/C/N badges, warning banners) — genuinely DERIVED state.
-  const fbState    = computed<'E' | 'C' | 'N'>(() => { void changed.value; void project.value; return VentMember.TUNING.state(project.value); });
-  const ventLState = computed<'E' | 'C' | 'N'>(() => { void changed.value; void project.value; return VentMember.LENGTH.state(project.value); });
   /** The vent's own dq — a `target-unreachable` mark means the entered tuning has no positive
    *  port length in this volume/area; the solver already wrote `length_m` null. */
   const fbUnreachableIssue = computed(() => {
@@ -77,13 +72,7 @@ export function createVentReadouts({ project, projectChanged: changed, selectedB
     return issue === null ? '' : issue.text;
   });
   /** The front chamber of a bandpass is vented on its OWN volume, so it carries its own symbol. */
-  const frontChamberTuningLabel = computed(() =>
-    DUAL_CHAMBER.has(selectedBox.value) ? 'Target Tuning Freq (Ffc)' : 'Target Tuning Freq');
-  /** Typing a tuning enters it; clearing it (or a non-positive value) hands it back to the solver. */
-  function setFbTarget(v: number | null): void {
-    if (v == null || Number.isNaN(v) || v <= 0) VentMember.TUNING.clear(project.value);
-    else VentMember.TUNING.enter(project.value, v);
-  }
+  const tuningField = computed(() => DUAL_CHAMBER.has(selectedBox.value) ? NumberField.BOX_FFC_HZ : NumberField.BOX_FB_HZ);
 
-  return { activeVent, activeTuning, portPipeResonance_hz, fbState, ventLState, fbUnreachable, fbUnreachableMsg, frontChamberTuningLabel, setFbTarget };
+  return { activeVent, activeTuning, portPipeResonance_hz, fbUnreachable, fbUnreachableMsg, tuningField };
 }

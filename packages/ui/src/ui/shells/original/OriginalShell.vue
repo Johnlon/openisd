@@ -54,12 +54,12 @@ const {
   ventedAlignmentEditor, ventedAlignmentOpen, ventedAlignmentOptions, ventedAlignmentSelected,
   ventedAlignmentVolume_L, ventedAlignmentTuning_hz, ventedAlignmentEbp, ventedAlignmentSuitability,
   ventedAlignmentSuitabilityLabel,
-  activeTuning, fbState, FB_TARGET_TIP, FH_TARGET_TIP, VENT_GEOMETRY_TIP, VentMember,
+  activeTuning, FB_TARGET_TIP, FH_TARGET_TIP, VENT_GEOMETRY_TIP,
   boxResonance, rearQtc, prSystemTuningDq, prNaturalFh,
   fbUnreachable, fbUnreachableMsg, isDual,
-  frontVolumeCell, rearTuningCell, rearResonance, frontChamberTuningLabel,
+  frontVolumeCell, rearTuningCell, rearResonance,
   model, startEdit, startWhatIf, placement,
-  activeVent, END_CORRECTION_OPTIONS, VENT_SHAPE_OPTIONS, VENT_COUNT_OPTIONS, PR_COUNT_OPTIONS, ventLState, portPipeResonance_hz,
+  activeVent, END_CORRECTION_OPTIONS, VENT_SHAPE_OPTIONS, VENT_COUNT_OPTIONS, PR_COUNT_OPTIONS, portPipeResonance_hz,
   prBrowseOpen, loadPREntry, loadBundledPassiveRadiatorEntry, defineNewPREntry,
   prSaveOpen, prSaveFields, prSaveCanSave, openPRSave, cancelPRSave, confirmPRSave,
   prResonanceMassDq, prFsMass_hz, fmt,
@@ -307,7 +307,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
                      from it. A sealed chamber has no port, so Fsc is fully determined by Vb
                      and the driver — calculated, nothing to type. Per-chamber, not per-box. -->
                 <template v-if="selectedBox === 'vented'">
-                  <div id="og-fb-target-field" class="field" :class="fbState === 'C' ? 'calculated' : 'entered'" :title="FB_TARGET_TIP"><label>Target Tuning Freq</label><NumInput id="og-fb-target" :class="`value-${fbState.toLowerCase()}`" :model-value="activeTuning.value" @update:model-value="(v: number | null) => { if (v == null || isNaN(v) || v <= 0) VentMember.TUNING.clear(project); else VentMember.TUNING.enter(project, v); }" :field="NumberField.BOX_FB_HZ" :precision="NumberField.BOX_FB_HZ.precision" /><UnitToggle :field="NumberField.BOX_FB_HZ" unit-class="unit unit-cyc" /></div>
+                  <UIField id="og-fb-target-field" class="field" input-id="og-fb-target" :title="FB_TARGET_TIP" :field="NumberField.BOX_FB_HZ" :cell="activeTuning" />
                 </template>
                 <template v-else-if="selectedBox === 'sealed'">
                   <div class="field"><label>Fsc</label><NumReadout as-input id="og-box-resonance" class="calculated greyed" :field="NumberField.BOX_RESONANCE_HZ" :value="boxResonance" /><UnitToggle :field="NumberField.BOX_RESONANCE_HZ" unit-class="unit unit-cyc" style="min-width: auto;" /></div>
@@ -340,11 +340,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
                 <div class="section-header">Front chamber</div>
                 <div class="field-row"><UIField v-if="frontVolumeCell" class="field" input-id="og-front-volume" :field="NumberField.BOX_VF_L" :cell="frontVolumeCell" /></div>
                 <div class="field-row">
-                  <div id="og-ffc-target-field" class="field" :class="fbState === 'C' ? 'calculated' : 'entered'" :title="FB_TARGET_TIP">
-                    <label>{{ frontChamberTuningLabel }}</label>
-                    <NumInput id="og-ffc-target" :class="`value-${fbState.toLowerCase()}`" :model-value="activeTuning.value" @update:model-value="(v: number | null) => { if (v == null || isNaN(v) || v <= 0) VentMember.TUNING.clear(project); else VentMember.TUNING.enter(project, v); }" :field="NumberField.BOX_FB_HZ" :precision="NumberField.BOX_FB_HZ.precision" />
-                    <UnitToggle :field="NumberField.BOX_FB_HZ" unit-class="unit unit-cyc" />
-                  </div>
+                  <UIField id="og-ffc-target-field" class="field" input-id="og-ffc-target" :title="FB_TARGET_TIP" :field="NumberField.BOX_FFC_HZ" :cell="activeTuning" />
                 </div>
                 <p v-if="fbUnreachable" id="og-ffc-unreachable" class="hint" style="color:#a11;">{{ fbUnreachableMsg }}</p>
                 <button class="link-btn" @click="lossesOpen = 'front'">Advanced-&gt;</button>
@@ -472,11 +468,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
                        length makes it the pair's entered side and the target tuning the calculated
                        one; `ventLState` only colours it. Blank and marked `impossible` when the target
                        tuning is beyond what this vent can reach: the solver writes no length. -->
-                  <div class="field" :class="ventLState === 'C' ? 'calculated' : 'entered'">
-                    <label>Vent length</label>
-                    <NumInput id="og-vent-length" :class="[`value-${ventLState.toLowerCase()}`, { impossible: ventLState !== 'E' && fbState === 'E' && activeVent.length_m.value === null }]" :model-value="activeVent.length_m.value" @update:model-value="(v: number | null) => { if (v == null || isNaN(v) || v <= 0) VentMember.LENGTH.clear(project); else VentMember.LENGTH.enter(project, v); }" :field="NumberField.VENT_L_CM" :precision="NumberField.VENT_L_CM.precision" />
-                    <UnitToggle :field="NumberField.VENT_L_CM" unit-class="unit unit-cyc" />
-                  </div>
+                  <UIField class="field" input-id="og-vent-length" :field="NumberField.VENT_L_CM" :cell="activeVent.length_m" />
                 </div>
               </div>
 
@@ -493,11 +485,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
                      first two overflows the panel for the round or the slotted shape
                      (test/ui/original-shell-layout.browser.spec.ts). Here every shape stays at three. -->
                 <div class="field-row">
-                  <div id="og-vent-fb-target-field" class="field" :class="fbState === 'C' ? 'calculated' : 'entered'" :title="FB_TARGET_TIP">
-                    <label>Target Tuning Freq</label>
-                    <NumInput id="og-vent-fb-target" :class="`value-${fbState.toLowerCase()}`" :model-value="activeTuning.value" @update:model-value="(v: number | null) => { if (v == null || isNaN(v) || v <= 0) VentMember.TUNING.clear(project); else VentMember.TUNING.enter(project, v); }" :field="NumberField.BOX_FB_HZ" :precision="NumberField.BOX_FB_HZ.precision" />
-                    <UnitToggle :field="NumberField.BOX_FB_HZ" unit-class="unit unit-cyc" />
-                  </div>
+                  <UIField id="og-vent-fb-target-field" class="field" input-id="og-vent-fb-target" :title="FB_TARGET_TIP" :field="NumberField.BOX_FB_HZ" :cell="activeTuning" />
                 </div>
                 <div class="field-row">
                   <div class="field" :title="VENT_GEOMETRY_TIP"><label>Cross area</label><NumReadout as-input class="calculated greyed" :field="NumberField.VENT_CROSSAREA_M2" :value="activeVent.area_m2.value" /><UnitToggle :field="NumberField.VENT_CROSSAREA_M2" unit-class="unit" /></div>

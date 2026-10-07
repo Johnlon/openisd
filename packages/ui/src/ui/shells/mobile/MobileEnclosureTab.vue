@@ -18,11 +18,10 @@ import {useUnitReadouts} from '../../../hooks/useUnitReadouts.js';
 
 const {
   project, selectedBox,
-  activeVent, activeTuning, portPipeResonance_hz, fbState, ventLState, fbUnreachable, fbUnreachableMsg, frontChamberTuningLabel,
+  activeVent, activeTuning, portPipeResonance_hz, fbUnreachable, fbUnreachableMsg, tuningField,
   prResonanceMassDq, prFsMass_hz, prNaturalFh,
   prBrowseOpen, loadPREntry, loadBundledPassiveRadiatorEntry, defineNewPREntry,
   prSaveOpen, prSaveFields, prSaveCanSave, openPRSave, cancelPRSave, confirmPRSave,
-  setVentLength, setFbTarget,
   VENT_SHAPE_OPTIONS, END_CORRECTION_OPTIONS, VENT_COUNT_OPTIONS, PR_COUNT_OPTIONS,
   FB_TARGET_TIP, VENT_GEOMETRY_TIP,
 } = useMobileEnclosureTab();
@@ -61,33 +60,8 @@ const {fieldWithUnit} = useUnitReadouts();
     </template>
     <UIField v-else class="mob-ui-field" :title="VENT_GEOMETRY_TIP" :field="NumberField.VENT_D_CM" :cell="activeVent.diameter_m" stepper />
 
-    <!-- `ventLState === 'N'` means two different things: Fb entered but the solver found no
-         valid length (impossible — stays readonly, the `fbState === 'E'` guard below), or
-         NOTHING entered on either side (truly blank — must stay editable so the user has a way
-         back in, QO139). -->
-    <div class="mob-field-row" :class="ventLState === 'C' ? 'mob-field-calculated' : 'mob-field-entered'">
-      <div class="mob-field-main">
-        <span class="mob-field-label">Vent length</span>
-        <!-- Always editable: typing a length makes the target tuning the calculated side. -->
-        <span class="mob-field-value" :class="{ 'mob-impossible': ventLState !== 'E' && fbState === 'E' && activeVent.length_m.value === null }">
-          <NumInput :class="`value-${ventLState.toLowerCase()}`" :model-value="activeVent.length_m.value"
-                    @update:model-value="setVentLength"
-                    :field="NumberField.VENT_L_CM" :precision="NumberField.VENT_L_CM.precision" stepper />
-        </span>
-      </div>
-      <UnitToggle :field="NumberField.VENT_L_CM" unit-class="mob-unit" />
-    </div>
-
-    <div class="mob-field-row" :class="fbState === 'C' ? 'mob-field-calculated' : 'mob-field-entered'">
-      <div class="mob-field-main">
-        <span class="mob-field-label">{{ frontChamberTuningLabel }}</span>
-        <span class="mob-field-value" :title="FB_TARGET_TIP">
-          <NumInput :class="`value-${fbState.toLowerCase()}`" :model-value="activeTuning.value" @update:model-value="setFbTarget"
-                    :field="NumberField.BOX_FB_HZ" :precision="NumberField.BOX_FB_HZ.precision" stepper />
-        </span>
-      </div>
-      <UnitToggle :field="NumberField.BOX_FB_HZ" unit-class="mob-unit" />
-    </div>
+    <UIField class="mob-ui-field" :field="NumberField.VENT_L_CM" :cell="activeVent.length_m" stepper />
+    <UIField class="mob-ui-field" :title="FB_TARGET_TIP" :field="tuningField" :cell="activeTuning" stepper />
 
     <div class="mob-field-row mob-field-calculated">
       <div class="mob-field-main">
