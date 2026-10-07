@@ -54,5 +54,14 @@ describe('createVentReadouts on a two-chamber box with a ported front', () => {
     expect(rear?.unreachableMsg).not.toBe('');
     expect(front?.unreachable).toBe(false);
   });
+
+  it('shownPort is the first port until one is picked, and the first again if the picked one is gone', () => {
+    const {readouts} = readoutsFor('abc');
+    expect(readouts.shownPort.value?.name).toBe('Rear');
+    readouts.selectedPortName.value = 'Intra';
+    expect(readouts.shownPort.value?.name).toBe('Intra');
+    readouts.selectedPortName.value = 'Vent';
+    expect(readouts.shownPort.value?.name).toBe('Rear');
+  });
 });
 

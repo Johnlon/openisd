@@ -579,7 +579,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   // ---- Enclosure tab: vent (port) readouts ---------------------------------------
   // Delegated to the unit-tested `createVentReadouts` above — needs `advAir`, hence placed here.
   const {
-    activeVent, activeTuning, portPipeResonance_hz, fbUnreachable, fbUnreachableMsg,
+    activeVent, activeTuning, ventPorts, selectedPortName, shownPort, portPipeResonance_hz, fbUnreachable, fbUnreachableMsg,
   } = createVentReadouts({ project, projectChanged, selectedBox, air: advAir, vent: engine.vent });
 
   const placement = ref<'standard' | 'iso'>('standard');
@@ -657,7 +657,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     fbUnreachable, fbUnreachableMsg, isDual,
     frontVolumeCell, rearTuningCell, rearResonance,
     model, startEdit, startWhatIf, placement,
-    activeVent, activeTuning, END_CORRECTION_OPTIONS, VENT_SHAPE_OPTIONS, VENT_COUNT_OPTIONS, PR_COUNT_OPTIONS, portPipeResonance_hz,
+    activeVent, activeTuning, ventPorts, selectedPortName, shownPort, END_CORRECTION_OPTIONS, VENT_SHAPE_OPTIONS, VENT_COUNT_OPTIONS, PR_COUNT_OPTIONS, portPipeResonance_hz,
     prBrowseOpen, loadPREntry, loadBundledPassiveRadiatorEntry, defineNewPREntry,
     prSaveOpen, prSaveFields, prSaveCanSave, openPRSave, cancelPRSave, confirmPRSave,
     prAddedMassDq, prTuningDq, prResonanceMassDq, prFsMass_hz, prNaturalFh,

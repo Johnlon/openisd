@@ -4,7 +4,7 @@
  * tab call this SAME factory (one implementation, two presentations) rather than each shell
  * re-deriving "what does the vent group's E/C/N state and 1st-port-resonance mean".
  */
-import {computed} from 'vue';
+import {computed, ref} from 'vue';
 import type {ComputedRef, Ref} from 'vue';
 import {NumberField} from '@openisd/design/fields';
 import type {OpenISDProject} from '@openisd/design';
@@ -36,6 +36,8 @@ export const FH_TARGET_TIP = 'Fh (Helmholtz Frequency):\n'
   + 'It represents the Helmholtz resonance of the box volume (Vb) coupled to the passive radiator mass and suspension compliance.\n'
   + 'Formula: Fh = Fs_pr · √(1 + Vas_pr / Vb)';
 
+
+type VentPortName = ReturnType<OpenISDProject['box']['ventPortsOf']>[number]['name'];
 
 export function createVentReadouts({ project, projectChanged: changed, selectedBox, air, vent }: VentReadoutsDeps) {
   const activeVent = computed(() => {
@@ -91,5 +93,9 @@ export function createVentReadouts({ project, projectChanged: changed, selectedB
     });
   });
 
-  return { activeVent, activeTuning, ventPorts, portPipeResonance_hz, fbUnreachable, fbUnreachableMsg, tuningField };
+  /** Which port the Vents pane shows when a box has several (the pane fits one at a time). */
+  const selectedPortName = ref<VentPortName | null>(null);
+  const shownPort = computed(() => ventPorts.value.find(port => port.name === selectedPortName.value) ?? ventPorts.value[0] ?? null);
+
+  return { activeVent, activeTuning, ventPorts, selectedPortName, shownPort, portPipeResonance_hz, fbUnreachable, fbUnreachableMsg, tuningField };
 }

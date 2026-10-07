@@ -486,6 +486,29 @@ export async function focusedBandpass6Tunings(page: Page): Promise<{front: numbe
   }, '/src/logic/appState.ts');
 }
 
+/** The focused bandpass6 or ABC project's vent diameters and lengths (SI, null when blank), by port. */
+export interface FocusedPortVents {
+  rear: {diameter: number | null; length: number | null};
+  front: {diameter: number | null; length: number | null};
+  intra: {diameter: number | null; length: number | null} | null;
+}
+
+export async function focusedPortVents(page: Page): Promise<FocusedPortVents> {
+  return page.evaluate(async (path): Promise<FocusedPortVents> => {
+    type AppState = typeof import('../src/logic/appState.js');
+    function isAppState(m: unknown): m is AppState {
+      return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
+    }
+    const m: unknown = await import(/* @vite-ignore */ path);
+    if (!isAppState(m)) throw new Error('appState module shape mismatch');
+    const box = m.requireFocusedProject().box;
+    const abc = box.boxType.value === 'abc';
+    const vents = abc ? box.abc.vents : box.bandpass6.vents;
+    const read = (v: typeof vents.rear) => ({diameter: v.diameter_m.value, length: v.length_m.value});
+    return {rear: read(vents.rear), front: read(vents.front), intra: abc ? read(box.abc.vents.intra) : null};
+  }, '/src/logic/appState.ts');
+}
+
 /** The focused project's passive radiator: its name, count and spec cells (SI units). */
 export interface FocusedPassiveRadiatorSpec {
   name: string;
