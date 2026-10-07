@@ -57,6 +57,7 @@ test.describe('Box losses popup', () => {
         .locator('.link-btn', { hasText: 'Advanced' }).click();
       return page.locator('.overlay.open');
     };
+
     test(`${type}: the rear link shows only the Rear chamber set, the front link only the Front set`, async ({ page }) => {
       await page.locator('.project-nav li', { hasText: 'Box' }).click();
       await page.locator('select#og-box-type').selectOption(type);
@@ -70,6 +71,7 @@ test.describe('Box losses popup', () => {
       await expect(front.locator('.ui-field', { hasText: 'Port Qp' })).toHaveCount(1);
       await expect(front.locator('.ui-field', { hasText: 'Interchamber Qicl' })).toHaveCount(1);
     });
+
     test(`${type}: Reset puts only the open chamber back; the Qicl is one value for both`, async ({ page }) => {
       await page.locator('.project-nav li', { hasText: 'Box' }).click();
       await page.locator('select#og-box-type').selectOption(type);

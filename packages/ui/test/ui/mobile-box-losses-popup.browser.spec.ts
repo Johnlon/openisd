@@ -51,6 +51,7 @@ test.describe('MobileBoxLossesPopup', () => {
         .locator('.mob-btn', { hasText: 'Box losses' }).click();
       return page.locator('.mob-align-sheet');
     };
+
     test(`${type}: each chamber panel's button opens only that chamber's set`, async ({ page }) => {
       await page.locator('#mob-box-type').selectOption(type);
       const rear = await openFor(page, 'Rear');
@@ -62,6 +63,7 @@ test.describe('MobileBoxLossesPopup', () => {
       await expect(front.locator('.mob-panel-head', { hasText: 'chamber' })).toHaveText(['Front chamber']);
       await expect(front.locator('.ui-field-label', { hasText: 'Port Qp' })).toHaveCount(1);
     });
+
     test(`${type}: Reset puts only the open chamber back; the Qicl is one value for both`, async ({ page }) => {
       await page.locator('#mob-box-type').selectOption(type);
       const q = (sheet: Locator, label: string) =>
