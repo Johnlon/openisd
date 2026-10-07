@@ -1,6 +1,6 @@
 # BUG_20261007_browser-processes-die-mid-suite
 
-**Status:** OPEN. Chrome aborts itself in launch bursts (see Cause); a launch wait is PROVISIONAL (below); concurrency is suspected, not proven.
+**Status:** OPEN. Chrome processes die in launch bursts; the probable cause is winisd_tools' watchdog killing them (see Probable cause); a launch wait is PROVISIONAL (below).
 
 ## Symptom
 During a full browser suite (the pre-push hook), Chrome processes die and a large block of tests fails at once with
@@ -49,7 +49,18 @@ browser has been closed`. A rerun of the same tests passes. Twice on 2026-10-07.
    push or health check. Rule from lots: no browser specs, not even targeted ones, while a push or health check
    runs; unit specs are fine.
 
-## Cause
+## Probable cause (reported by lots, not yet matched to our burst times)
+winisd_tools' `unit_pool` resource watchdog SIGKILLs every process on the machine whose name contains `chrome`,
+`chromium` or `tesseract` and that is not its own child. One tools run logged 364 "Killing orphaned background
+process chrome" lines in 5 minutes. tools is fixing it and checking whether its runs line up with the burst times
+above (05:30, 07:54, 08:06, 08:33, 09:09, the 09:13 burst, my 09:21 and 09:24 targeted runs). This fits the
+sampler: every Chrome process gone inside one second, the Playwright runner untouched, no `kill` visible in `ps`
+(a SIGKILL from a process that has already exited leaves no trace). It also fits the 40 s of launch, die, launch,
+die (a watchdog sweeping on a timer). It does not yet explain the `dmesg` lines `chrome: potentially unexpected
+fatal signal 6` (08:19:55 and 08:39:11): a SIGKILLed zygote could make the remaining Chrome processes abort, but that
+is not shown. Until tools' log lines match the burst times, this stays probable.
+
+## Cause as first read from the sampler
 Chrome aborts itself (SIGABRT) in a burst of about 40 s during launches under WSL2; why is not known. Not another
 process, load, memory or the shell environment: the hook's environment matches the shell's. The failure cap turns
 the burst into a failed run.
