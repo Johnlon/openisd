@@ -23,7 +23,7 @@ export type {
   CoupledSealedLosses,
   CoupledVentedLosses,
 } from './losses.js';
-export type { Box, BoxLossGroup, TuningField } from './box/box.js';
+export type { Box, BoxLossGroup, LossChamber, TuningField } from './box/box.js';
 export type { SealedBox } from './box/sealedBox.js';
 export type { VentedBox } from './box/ventedBox.js';
 export type { Bandpass4Box } from './box/bandpass4Box.js';
@@ -31,7 +31,7 @@ export type { Bandpass6Box } from './box/bandpass6Box.js';
 export type { AbcBox } from './box/abcBox.js';
 export type { PassiveRadiatorBox } from './box/passiveRadiatorBox.js';
 export type { OpenIsdPassiveRadiatorSpec } from './passiveRadiator/openIsdPassiveRadiatorSpec.js';
-export type { VentedChamber } from './box/ventedChamber.js';
+export type { CoupledVentedChamber, VentedChamber } from './box/ventedChamber.js';
 export type { FrequencyGrid } from './box/frequencyGrid.js';
 export type { SweepJob, SweepPlan } from './project/projectSweep.js';
 export type { ErrorSwitchState, ErrorSwitchStates } from './project/errorSwitches.js';

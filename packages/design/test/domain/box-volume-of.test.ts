@@ -92,13 +92,29 @@ describe('OpenISDBox.frontVolumeOf / rearTuningOf / lossGroupsOf — the other p
     expect([r.losses.Ql.value, r.losses.Qa.value]).toEqual([7, 30]);
     expect([f.losses.Ql.value, f.losses.Qa.value, f.losses.Qp.value]).toEqual([9, 50, 60]);
   });
-  it('resetLossesOf(bandpass4) puts both chambers back to WinISD\'s defaults', () => {
+  // bugs/BUG_20261007_advanced-link-opens-every-chamber-losses.md: each chamber panel opens only its own set.
+  it('each loss set names its chamber: one cabinet is whole, a two-chamber type is rear then front', () => {
+    const box = project().box;
+    expect(box.lossGroupsOf('sealed').map(g => g.chamber)).toEqual(['whole']);
+    expect(box.lossGroupsOf('vented').map(g => g.chamber)).toEqual(['whole']);
+    for (const type of ['bandpass4', 'bandpass6', 'abc'] as const) {
+      expect(box.lossGroupsOf(type).map(g => g.chamber)).toEqual(['rear', 'front']);
+    }
+  });
+  it('resetLossesOf(bandpass4, front) resets the front set and the shared Qicl, and leaves the rear Ql and Qa', () => {
     const box = project().box;
     for (const g of box.lossGroupsOf('bandpass4')) { g.Ql.set(3); g.Qa.set(4); g.Qp?.set(5); g.Qicl!.set(6); }
-    box.resetLossesOf('bandpass4');
+    box.resetLossesOf('bandpass4', 'front');
     const [rear, front] = box.lossGroupsOf('bandpass4');
-    expect([rear!.Ql.value, rear!.Qa.value, rear!.Qicl!.value]).toEqual([10, 100, 100]);
+    expect([rear!.Ql.value, rear!.Qa.value]).toEqual([3, 4]);
     expect([front!.Ql.value, front!.Qa.value, front!.Qp!.value, front!.Qicl!.value]).toEqual([10, 100, 100, 100]);
+  });
+  it('resetLossesOf(sealed, whole) puts the one set back to WinISD\'s defaults', () => {
+    const box = project().box;
+    const [g] = box.lossGroupsOf('sealed');
+    g!.Ql.set(3); g!.Qa.set(4);
+    box.resetLossesOf('sealed', 'whole');
+    expect([g!.Ql.value, g!.Qa.value]).toEqual([10, 100]);
   });
   // WinISD shows ONE Qicl (its Qiclfr) in every chamber panel; the engine reads the rear chamber's.
   for (const type of ['bandpass4', 'bandpass6', 'abc'] as const) {
@@ -125,10 +141,11 @@ describe('OpenISDBox.frontVolumeOf / rearTuningOf / lossGroupsOf — the other p
       expect([chambers.rear.losses.Ql.value, chambers.rear.losses.Qa.value, chambers.rear.losses.Qp.value]).toEqual([7, 30, 40]);
       expect([chambers.front.losses.Ql.value, chambers.front.losses.Qa.value, chambers.front.losses.Qp.value]).toEqual([9, 50, 60]);
     });
-    it(`resetLossesOf(${type}) puts both chambers back to WinISD's defaults`, () => {
+    it(`resetLossesOf(${type}) of the rear, then of the front, puts both back to WinISD's defaults`, () => {
       const box = project().box;
       for (const g of box.lossGroupsOf(type)) { g.Ql.set(3); g.Qa.set(4); g.Qp!.set(5); g.Qicl!.set(6); }
-      box.resetLossesOf(type);
+      box.resetLossesOf(type, 'rear');
+      box.resetLossesOf(type, 'front');
       for (const g of box.lossGroupsOf(type)) expect([g.Ql.value, g.Qa.value, g.Qp!.value, g.Qicl!.value]).toEqual([10, 100, 100, 100]);
     });
   }

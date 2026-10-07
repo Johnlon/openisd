@@ -38,9 +38,10 @@ export interface Box {
      *  Rear chamber and a Front chamber set. Both sets of a two-chamber type carry the same Qicl
      *  field (WinISD's one Qiclfr); the rear chamber of a 4th-order bandpass has no Qp. */
     lossGroupsOf(type: BoxType): readonly BoxLossGroup[];
-    /** Put every set of `lossGroupsOf(type)` back to WinISD's defaults (Ql 10, Qa 100, Qp 100
-     *  where there is a port, Qicl 100 where there is one). */
-    resetLossesOf(type: BoxType): void;
+    /** Put the `chamber` set of `lossGroupsOf(type)` back to WinISD's defaults (Ql 10, Qa 100,
+     *  Qp 100 where there is a port, Qicl 100 where there is one; the Qicl is shared, so a reset
+     *  of either chamber resets it). */
+    resetLossesOf(type: BoxType, chamber: LossChamber): void;
     /** Give the active type its starting values where nothing is entered yet; nothing entered is
      *  overwritten. Runs on `boxType.set()` and at `ProjectBuilder.build()`. */
     applyStartingValues(): void;
@@ -61,8 +62,12 @@ export interface VentGroup {
 
 export type TuningField = Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;
 
+/** Which part of the box a loss set belongs to: the one cabinet, or a chamber of a two-chamber type. */
+export type LossChamber = 'whole' | 'rear' | 'front';
+
 /** One set of rows in the Box losses popup. */
 export interface BoxLossGroup {
+    readonly chamber: LossChamber;
     /** The chamber the set belongs to, shown above its rows; null when the type has one set. */
     readonly heading: string | null;
     readonly Ql: SimpleField<number>;
