@@ -14,6 +14,13 @@ const engine = createEngine();
 const goldenPath = join(here, '..', 'winisd', 'fixtures', 'winisd-parity', 'goldens', 'solve-from-mms-cms.wpr');
 const DERIVED = ['Fs_hz', 'Vas_m3', 'Qts', 'Qes', 'Rms_kg_per_s', 'Cms_m_per_N', 'EBP_hz'] as const;
 
+/** Narrows a driver value to a finite positive number, or says which one was not. */
+function expectFinitePositive(name: string, v: number | null): void {
+  if (v === null) throw new Error(`${name} is not derived`);
+  expect(Number.isFinite(v), name).toBe(true);
+  expect(v, name).toBeGreaterThan(0);
+}
+
 function load(text: string) {
   const {value, errors} = new WinIsdProjectConverter(engine).winIsdProjectToOpenIsdProject(text);
   if (value === null) throw new Error('import failed: ' + JSON.stringify(errors));
@@ -24,10 +31,7 @@ describe('solve-from-mms-cms project loads', () => {
   it('every derived driver value is finite and positive', () => {
     const driver = load(readFileSync(goldenPath, 'utf8')).driver;
     for (const name of DERIVED) {
-      const v = driver.specs[name].value;
-      expect(v, name).not.toBeNull();
-      expect(Number.isFinite(v), name).toBe(true);
-      expect(v as number, name).toBeGreaterThan(0);
+      expectFinitePositive(name, driver.specs[name].value);
     }
   });
 
@@ -36,8 +40,7 @@ describe('solve-from-mms-cms project loads', () => {
       .replace(/^(Fs|Vas|Qts|Qes|Rms)=.*$/gm, '$1=0');
     const driver = load(zeroed).driver;
     for (const name of ['Fs_hz', 'Vas_m3', 'Qts', 'Qes', 'Rms_kg_per_s'] as const) {
-      const v = driver.specs[name].value;
-      expect(Number.isFinite(v) && (v as number) > 0, `${name}=${String(v)}`).toBe(true);
+      expectFinitePositive(name, driver.specs[name].value);
     }
   });
 });
