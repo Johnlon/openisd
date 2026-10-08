@@ -263,8 +263,6 @@ for (const port of PORTS) {
   });
 
   describe(`${port.name}: .owpr`, () => {
-    // Both sides claiming E is a defect, not pinned here: see
-    // bugs/BUG_20261008_vent-pair-both-entered-after-owpr-edit.md.
     it('both sides absent: loads without a crash, and keeps what the record says', () => {
       const text = editedText(port.build(), port, {tuning: 'remove', length: 'remove'});
       const p = load(text);
@@ -284,6 +282,22 @@ for (const port of PORTS) {
       const q = load(editedText(p0, port, {tuning: 'remove', length: 'keep'}));
       assert.equal(state(port, q), 'C/E');
       assert.equal(port.length(q).value, 0.27);
+    });
+
+    it('both sides entered (QO178): the tuning stays entered, the length entry is dropped and calculated', () => {
+      const p0 = tuningEntered(port, 44);
+      const implied = port.length(p0).value;
+      assert.ok(implied !== null && implied > 0, 'a calculated length exists');
+      const text = editedText(p0, port, {tuning: 'keep', length: {state: 'E', value: 2 * implied}});
+      const loaded = [load(text), loadRepairing(text)];
+      for (const q of loaded) {
+        assert.equal(state(port, q), 'E/C');
+        assert.equal(port.tuning(q).value, 44);
+        near(port.length(q).value, implied, 'length implied by the tuning');
+        port.volume(q).set(0.0617);
+        assert.equal(state(port, q), 'E/C', 'still tuning-entered after a volume change');
+        assert.equal(port.tuning(q).value, 44);
+      }
     });
 
     it('only the tuning present (E): the state survives, the length is calculated', () => {
@@ -343,6 +357,12 @@ function load(text: string): OpenISDProject {
   const p = OpenISDProject.fromOwprText(text, createEngine());
   if (Array.isArray(p)) throw new Error(p.join('; '));
   return p;
+}
+
+function loadRepairing(text: string): OpenISDProject {
+  const r = OpenISDProject.fromOwprTextRepairing(text, createEngine());
+  if (Array.isArray(r)) throw new Error(r.join('; '));
+  return r.project;
 }
 
 type EntryEdit = 'keep' | 'remove' | {readonly state: 'E' | 'C'; readonly value: number};

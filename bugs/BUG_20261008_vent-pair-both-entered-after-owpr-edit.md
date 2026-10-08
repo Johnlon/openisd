@@ -1,6 +1,6 @@
 # BUG_20261008_vent-pair-both-entered-after-owpr-edit
 
-**Status:** OPEN
+**Status:** RESOLVED 2026-10-09 (T016)
 
 ## Symptom
 A `.owpr` file whose record states BOTH a port's tuning and its vent length as `E` loads as two entered values
@@ -24,5 +24,4 @@ The `.owpr` loader (`openisdSchema.ts`) accepts any pair of entries; nothing enf
 pair is `E`". Only hand-edited or foreign-written files carry it.
 
 ## Fix
-Not done. Options: on load, keep one side as `E` (the tuning, as a `.wpr` import does) and drop the other
-entry so the solver calculates it; or flag the pair with a data-quality issue. Needs John's ruling on which side wins.
+John ruled "tuning" (QO178, 2026-10-09). On load, a pair with both sides `E` keeps the tuning entered and loses the length entry, so the solver calculates the length. `packages/design/domain/project/singleEnteredVentPairs.ts`, called from both `.owpr` parsers; the repairing loader lists each dropped length field. Proved by `vent-pair-states.test.ts`, all six pairs.

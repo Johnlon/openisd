@@ -3,6 +3,7 @@ import { withoutFrontQicl } from './retiredFrontQicl.js';
 import type { OpenISDProjectJson, OpenISDProjectSessionJson } from '../openisdSchema.js';
 import { parseRepairing, type Repaired } from '../schemaRepair.js';
 import { retireLossMode } from './retiredLossMode.js';
+import { singleEnteredVentPairs } from './singleEnteredVentPairs.js';
 
 /** Serialises saved and ordinary edited states for persistence. The transient what-if is absent. */
 export function sessionOf(name: string, saved: OpenISDProjectJson, edited: OpenISDProjectJson | null): OpenISDProjectSessionJson {
@@ -35,7 +36,7 @@ export function parseOwprSession(text: string): { session: OpenISDProjectSession
             ? issue.message
             : `'${issue.path.join('.')}': ${issue.message}`)};
     }
-    return {session: retireLossMode(result.data).session};
+    return {session: singleEnteredVentPairs(retireLossMode(result.data).session).session};
 }
 
 /** `.owpr` text parsed with every failing field removed so its default applies, and which ones
@@ -61,5 +62,6 @@ export function parseOwprSessionRepairing(text: string): Repaired<OpenISDProject
     const repaired = parseRepairing(openISDProjectSessionJsonSchema, withoutFrontQicl(parsed));
     if (Array.isArray(repaired)) return repaired;
     const retired = retireLossMode(repaired.value);
-    return {value: retired.session, repaired: [...repaired.repaired, ...retired.repaired]};
+    const paired = singleEnteredVentPairs(retired.session);
+    return {value: paired.session, repaired: [...repaired.repaired, ...retired.repaired, ...paired.repaired]};
 }

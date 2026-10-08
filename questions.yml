@@ -9906,6 +9906,8 @@ questions:
       lots' shape: Reading = Usable {actual_reading, read_value} | Rejected {actual_reading?, rejected}; never a dropped reading, never NaN. Fix after step 6 and the decoupling.
 - id: QO178
   title: A hand-edited .owpr marks both vent tuning and vent length as entered. Which wins on load?
-  status: open
+  status: decided
   raised: '2026-10-08'
   body: 'bugs/BUG_20261008_vent-pair-both-entered-after-owpr-edit.md. The two values disagree and survive every recalculation unflagged. lots recommends: the tuning stays entered and the length becomes calculated, repaired at load (as .wpr import and WinISD do).'
+  decided: '2026-10-09'
+  decision: 'John: "tuning". The tuning stays entered and the length becomes calculated, repaired at load. Landed as T016.'
