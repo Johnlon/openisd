@@ -1,0 +1,26 @@
+id: T001
+repo: openisd
+owner: maryu
+status: open
+phase: P1
+goal: scripts/land.sh lands one task's branch onto main serially, running only the fast gates, and is the only path to main.
+done_test: timeout 600 bash scripts/land/test/land.e2e.test.sh
+locked:
+  - path: scripts/land/test/land.e2e.test.sh
+    sha256: 9f28ca65c09bbb43bf1470f66cf6d1df963ca009b0285ba9599e979be0a825b9
+# land.e2e asserts, in a scratch repo with real processes:
+#  - two concurrent land.sh calls both land, one after the other (flock), main = both commits
+#  - a rebase conflict aborts the rebase, sets status: blocked, leaves the worktree committed
+#  - each gate (lint, typecheck, done_test, attribution) failing refuses the land; a gate
+#    sleeping past its deadline refuses (fail closed), never lets it through
+#  - a branch that changed a locked file or its own done_test line is refused
+#  - an open fixes task refuses any land not labelled fixes
+#  - no process started by land.sh survives it (checked by recorded pgid)
+#  - the lint gate lints only the files the branch changed against origin/main (asserted from the file list it passes to eslint, not by timing)
+files:
+  - scripts/land/core/**
+  - scripts/land/test/fixtures/**
+  - scripts/land.sh
+note2: lint gate is diff-scoped, no persistent cache (full lint runs in CI stage A). Typecheck gate is plain tsc; measure it at normal load first, and change it only if it takes minutes.
+blocks: [T002, T003, T004]
+note: openisd owns the shared land implementation; winisd_tools vendors it by pinned sha (T005).

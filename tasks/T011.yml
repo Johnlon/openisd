@@ -1,0 +1,26 @@
+id: T011
+repo: openisd
+owner: maryu
+status: open
+phase: P1b
+goal: Every heavy job on this machine, from any repo, hook or shell, runs only with an admission slot from scripts/admit.sh; there is one slot, FIFO, and land.sh fast gates never need one.
+done_test: timeout 600 bash scripts/land/test/admit.e2e.test.sh
+locked:
+  - path: scripts/land/test/admit.e2e.test.sh
+    sha256: pending
+  - path: /home/john/work/winisd/tests/test_gates_admission.py
+    sha256: pending
+# admit.e2e asserts:
+#  - a second heavy start blocks FIFO and prints the job it waits behind
+#  - a slot whose owner pid (plus start time) is dead is freed by the housekeeper, and the waiter runs
+#  - a land.sh fast gate (diff lint, typecheck, targeted spec, attribution) runs while the slot is held
+#  - heavy.sh --slow, quiet-test full runs, both repos' hooks' heavy stages all go through admit.sh
+# test_gates_admission asserts: gates.py rejects vitest/playwright/full eslint/full tsc/pytest suite/
+#  heavy.sh/rebuild without a valid admission token, naming admit.sh; accepts with one; accepts targeted runs
+files:
+  - scripts/admit.sh
+  - scripts/admit/**
+  - scripts/housekeeping.sh
+  - /home/john/work/winisd/gates.py
+note: replaces the slow-run queue as the machine-wide admission (P4 deletes the queue only after T011 carries traffic); heavy.sh's 4 lanes become 1 slot.
+needs: [T001, T004]

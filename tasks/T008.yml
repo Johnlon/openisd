@@ -1,0 +1,17 @@
+id: T008
+repo: openisd
+owner: maryu
+status: open
+phase: P4
+goal: The slow-run queue, commit marker, tested-tree skip, rerun.mjs and vite watchdog are deleted, and the hooks are only the fast gates.
+done_test: timeout 600 bash scripts/land/test/old-machinery-gone.test.sh
+locked:
+  - path: scripts/land/test/old-machinery-gone.test.sh
+    sha256: pending
+start_when: 12 real landings through T001-T003
+files:
+  - scripts/slow-run/**
+  - scripts/vite-watchdog.sh
+  - scripts/hooks-local/**
+  - .claude/rules/verify.md
+  - .claude/rules/processes.md

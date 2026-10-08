@@ -1,0 +1,13 @@
+id: T006
+repo: openisd
+owner: maryu
+status: open
+phase: P2
+goal: GitHub runs lint, typecheck and unit tests green, with the winisd_drivers fixtures supplied automatically, and deploy needs those jobs.
+done_test: test "$(gh run list -w ci --commit "$LANDED_SHA" --json conclusion -q '.[0].conclusion')" = success   # LANDED_SHA set by land.sh
+locked: []
+# acceptance also: a deliberately red unit test on a throwaway branch blocks deploy (evidence in the task's landing note)
+files:
+  - .github/workflows/**
+  - scripts/ci/**
+  - packages/*/test/fixtures/drivers/**

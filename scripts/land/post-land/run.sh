@@ -56,7 +56,7 @@ flock -n 9 || { echo "post-land: waiting for another post-land run"; flock 9; }
 git worktree add -q --detach "$COPY" "$SHA" || { echo "post-land: cannot check out $SHA" >&2; exit 2; }
 echo "post-land: running the full suite on ${SHA:0:10}"
 set -m
-( cd "$COPY" && exec bash -c "$FULL_SUITE_CMD" ) > "$OUT" 2>&1 &
+( cd "$COPY" && export POST_LAND_SRC="$ROOT" && exec bash -c "$FULL_SUITE_CMD" ) > "$OUT" 2>&1 &
 BODY=$!
 set +m
 wait "$BODY"

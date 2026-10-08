@@ -1,0 +1,24 @@
+id: T010
+repo: winisd_tools
+owner: tools
+status: open
+phase: finish-line
+goal: One final online rebuild into a scratch db, with every live record rebuilt or named in expected_drops.yml, and one per-driver better/worse report for John to approve the db swap.
+done_test: timeout 600 bash tools/land/test/final-rebuild-acceptance.sh
+locked:
+  - path: tools/land/test/final-rebuild-acceptance.sh
+    sha256: pending
+# acceptance asserts:
+#  - rebuild exit 0, the live-drop guard green (no unexplained missing live record)
+#  - no vendor failed silently: every vendor's stage log shows completion, record counts per vendor in the report
+#  - report exists with one row per driver (live vs new: added / removed / changed fields), closing QT75's census request too
+#  - nothing written to winisd_drivers/db (scratch only); swap is John's, not this task's
+before_start:
+  - title-line reader landed (7 SEAS typed), pymupdf full suite green
+  - QT73's four classes (seas old-code dirs, grs face-plate relics, visaton w-100-x-2-x-4-ohm, eminence odeum-8n) put to John once, together
+files:
+  - scrapers/**
+  - lib/**
+  - framework/**
+  - expected_drops.yml
+  - brain/REPORT_*_final_rebuild*.md

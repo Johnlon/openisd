@@ -1,0 +1,17 @@
+id: T004
+repo: openisd
+owner: maryu
+status: open
+phase: P1
+goal: The rule docs describe land.sh and the post-land run and nothing of the queue, the pre-commit unit run or announcing slow runs; lands together with T001-T003 going live.
+done_test: timeout 600 bash scripts/land/test/rules-docs.test.sh
+locked:
+  - path: scripts/land/test/rules-docs.test.sh
+    sha256: 7ecec29f87b450402b75ed366504f0d861dd67d7f04ec11f6f1c0604ef69ab4d
+files:
+  - .claude/rules/verify.md
+  - .claude/rules/processes.md
+  - docs/DEV_PROCESS.md
+  - scripts/hooks-local/**
+needs: [T001, T002, T003]
+note: Wiring the hooks in is this task; John's own rule text in verify.md is changed only with his approval of the diff.

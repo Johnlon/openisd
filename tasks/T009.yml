@@ -1,0 +1,13 @@
+id: T009
+repo: openisd
+owner: maryu
+status: backlog
+phase: P5
+goal: Importing the engine door loads fewer than N modules (today 436; N set by lots from maryu's measurement), keeping the single engine door.
+done_test: bash scripts/test.sh packages/design/test/engine-door-module-count.test.ts
+locked:
+  - path: packages/design/test/engine-door-module-count.test.ts
+    sha256: pending
+files:
+  - packages/design/engine/index.ts
+  - packages/design/engine/**/index.ts

@@ -1,0 +1,13 @@
+id: T005
+repo: winisd_tools
+owner: maryu
+status: open
+phase: P1
+goal: winisd_tools lands through a vendored copy of openisd's land.sh (pinned sha) with its own config and its own lock.
+done_test: timeout 600 bash tools/land/test/land.e2e.test.sh
+locked:
+  - path: tools/land/test/land.e2e.test.sh
+    sha256: pending
+files:
+  - tools/land/**
+needs: [T001]

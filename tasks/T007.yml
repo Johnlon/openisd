@@ -1,0 +1,13 @@
+id: T007
+repo: openisd
+owner: maryu
+status: open
+phase: P3
+timebox: 2 days
+goal: Find out whether the browser suite runs green on GitHub runners; if not within the time box, record the fallback and stop.
+done_test: grep -qE '^Verdict: (green|fallback-self-hosted|fallback-local)$' docs/research/CI_BROWSER_SPIKE.md
+locked: []
+files:
+  - .github/workflows/ci-browser.yml
+  - docs/research/CI_BROWSER_SPIKE.md
+needs: [T006]
