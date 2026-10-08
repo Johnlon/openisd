@@ -161,9 +161,6 @@ export interface PassiveRadiatorSpecsSection {
 }
 
 
-/** One source's reading of one parameter. `read_value` is the number; the rest annotate it.
- *  Exported so `winIsdDriverConverter.ts` can validate a scraper's driver.yml readings against
- *  the SAME shape this record stores, rather than a hand-duplicated copy free to drift. */
 /** One reader's read of one datasheet cell: the cell as that reader read it, verbatim, and the
  *  number and half-width it gave. Both are null exactly when the cell holds no number. */
 const readerReadJsonSchema = z.strictObject({
@@ -173,7 +170,9 @@ const readerReadJsonSchema = z.strictObject({
 }).refine(r => r.read_value !== null || r.read_precision === null, 'read_precision needs a read_value');
 export type ReaderReadJson = z.infer<typeof readerReadJsonSchema>;
 
-export const readingJsonSchema = z.strictObject({
+/** The fields both kinds of reading carry. A spread of this shape, not an extended class: the two
+ *  variants below are strict objects, so a key one variant lacks is refused there. */
+const readingCommonShape = {
     // `_KEY_PRIORITY_LIST` (`model_driver.py:1509`) is the canonical key order — the emitter's
     // own, applied by `canonical_yaml`. Not the pydantic class's field order, which differs.
     // What the source PRINTED comes first, then any repair of it, then the numbers parsed out,
@@ -184,11 +183,8 @@ export const readingJsonSchema = z.strictObject({
     // to the literal they qualify, so "this is not what the page printed" is read in one glance.
     conformed_reading: z.string().optional(),
     conformed_by: z.string().optional(),
-    read_value: z.number(),
-    read_precision: z.number().optional(),
-    // Why this source's reading was thrown out, e.g. `ohm-glyph-merged-as-digit` — immediately
-    // after the numbers it disqualifies, so a refused read cannot be skim-read as a usable one.
-    rejected: z.string().optional(),
+};
+const readingTailShape = {
     // THE MEASUREMENT CONDITION, on a closed vocabulary (`record_registries.MeasurementNote`).
     // It qualifies THAT source's number: a sensitivity taken at 2.83 V/1 m is 3 dB louder than
     // the same driver at 1 W/1 m on 4 ohms (`model_driver.py`).
@@ -198,7 +194,49 @@ export const readingJsonSchema = z.strictObject({
     // (`readerVerdict`) and never stored.
     reads: z.partialRecord(z.enum(READER_VALUES), readerReadJsonSchema).refine(
         r => Object.keys(r).length > 0, 'expected at least one reader').optional(),
+};
+
+/** A reading with a number: `read_value` is a number, and `read_precision` is its half-width. */
+const usableReadingJsonSchema = z.strictObject({
+    ...readingCommonShape,
+    read_value: z.number(),
+    read_precision: z.number().optional(),
+    ...readingTailShape,
 });
+/** A reading the source printed but that gives no usable number. `rejected` says why. It has no
+ *  `read_value`, so no consumer can take a number from it. */
+const rejectedReadingJsonSchema = z.strictObject({
+    ...readingCommonShape,
+    rejected: z.string(),
+    ...readingTailShape,
+});
+
+/**
+ * One source's reading of one parameter: either Usable or Rejected, never both.
+ *
+ * - Usable `{actual_reading?, read_value: number}`: the printed text parsed to a number.
+ * - Rejected `{actual_reading?, rejected: string}`: the source printed something, or the scraper
+ *   refused the number. The printed text is kept in `actual_reading` and `rejected` says why.
+ *   A rejected reading has no `read_value`.
+ *
+ * A spec reading keeps the text the source printed, even when it is not a number
+ * (John, 2026-10-08: "a spec that says N/A or banana should store the read value as that value").
+ *
+ * Worked examples:
+ * - Sd printed "N/A": Rejected `{actual_reading: 'N/A', rejected: …}`.
+ * - Sd printed "banana": Rejected `{actual_reading: 'banana', rejected: …}`.
+ * - Sd printed "143c cm²": Rejected `{actual_reading: '143c cm²', rejected: …}`.
+ * - A field nobody printed: no reading at all, not a Rejected one.
+ * - Fs printed "21 Hz": Usable `{actual_reading: '21 Hz', read_value: 21}`.
+ *
+ * Exported so `winIsdDriverConverter.ts` validates a scraper's driver.yml readings against the
+ * SAME shape this record stores, rather than a hand-duplicated copy free to drift.
+ */
+export const readingJsonSchema = z.union([usableReadingJsonSchema, rejectedReadingJsonSchema]);
+export type ReadingJson = z.infer<typeof readingJsonSchema>;
+export type UsableReadingJson = z.infer<typeof usableReadingJsonSchema>;
+export type RejectedReadingJson = z.infer<typeof rejectedReadingJsonSchema>;
+
 /** The corroboration verdict a scraped entry's readings settled on (D11) — `Corroboration.ALL`'s
  *  wire values. Absent on a hand-typed entry and on any entry with fewer than two usable readings
  *  (`UNMATCHED` is itself a verdict and is always written, so absence here means "no readings to

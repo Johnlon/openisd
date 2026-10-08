@@ -337,8 +337,8 @@ describe('OpenISDDriver record', () => {
       const result = OpenISDDriver.fromConformingRecord(record, createEngine());
 
       expect(result).toEqual(expect.arrayContaining([
-        expect.stringContaining('specs.woofer.Fs_hz.readings.datasheet.read_value'),
-        expect.stringContaining('specs.woofer.Fs_hz.readings.measured.read_value'),
+        expect.stringContaining('specs.woofer.Fs_hz.readings.datasheet'),
+        expect.stringContaining('specs.woofer.Fs_hz.readings.measured'),
       ]));
     });
 

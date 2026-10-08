@@ -19,6 +19,10 @@ Sd:
   definition: 'effective piston area — stored in m², not cm²'
 ```
 
+A reading that is not a number (`N/A`, `banana`) keeps its printed text as a Rejected reading:
+see the doc comment on `readingJsonSchema` in
+[`packages/design/domain/openisdSchema.ts`](../packages/design/domain/openisdSchema.ts).
+
 ## Sources
 
 | Tag | Source |

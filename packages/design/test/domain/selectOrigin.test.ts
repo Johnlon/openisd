@@ -25,15 +25,15 @@ describe('selectOrigin — which source wins a field, three tiers', () => {
 
   it('tier 1 fallback: every survivor rejected — falls back to every reading, ranked', () => {
     const readings = {
-      distributor_datasheet: {read_value: 40, rejected: 'glyph'},
-      manufacturer_datasheet: {read_value: 41, rejected: 'glyph'},
+      distributor_datasheet: {actual_reading: 'N/A', rejected: 'glyph'},
+      manufacturer_datasheet: {actual_reading: 'banana', rejected: 'glyph'},
     };
     expect(selectOrigin(readings, 'Fs_hz', alwaysPlausible)).toBe('manufacturer_datasheet');
   });
 
   it('a rejected reading never wins over a usable one, whatever its rank', () => {
     const readings = {
-      manufacturer_datasheet: {read_value: 40, rejected: 'glyph'},
+      manufacturer_datasheet: {actual_reading: 'N/A', rejected: 'glyph'},
       manual: {read_value: 41},
     };
     expect(selectOrigin(readings, 'Fs_hz', alwaysPlausible)).toBe('manual');

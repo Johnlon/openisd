@@ -1,0 +1,35 @@
+id: T017
+repo: openisd
+owner: bob
+status: open
+goal: A reading keeps its printed text even when it is not a number (QO177; winisd_tools QT86, John 2026-10-08 "a spec that says N/A or banana should store the read value as that value"). Reading is a discriminated union, Usable {actual_reading, read_value} | Rejected {actual_reading?, rejected}; the schema accepts Rejected, the converter keeps rejected readings with their text, a .wdr text cell becomes a Rejected reading and never NaN. The union's doc comment states the rule with worked examples (Sd "N/A", "banana", "143c cm²", a field nobody printed, "21 Hz"); docs/FIELD_REFERENCE.md links to it.
+done_test: bash scripts/test.sh packages/design/test/domain/reads-schema.test.ts
+files:
+  - packages/design/domain/openisdSchema.ts
+  - packages/design/domain/winIsdDriverConverter.ts
+  - packages/design/domain/winIsdDriverImport.ts
+  - packages/design/domain/corroboration.ts
+  - packages/design/domain/winIsdProjectConverter.ts
+  - packages/design/domain/selectOrigin.ts
+  - docs/FIELD_REFERENCE.md
+  - packages/design/test/domain/reads-schema.test.ts
+  - packages/design/test/domain/corroboration.test.ts
+  - packages/design/test/domain/driver-record.test.ts
+  - packages/design/test/domain/spec-entry-json-schema.test.ts
+  - packages/design/test/domain/selectOrigin.test.ts
+  - packages/design/test/winisd/driverYmlToOpenisdAndWdr.test.ts
+  - packages/design/test/winisd/wdr-diff.test.ts
+  - packages/ui/test/fixtures/persistedProject.ts
+  - packages/ui/test/fixtures/seedMyDrivers.ts
+  - packages/ui/test/fixtures/generateSample.ts
+  - packages/ui/test/logic/driverDisplay.test.ts
+  - packages/ui/test/logic/driverDraft.test.ts
+  - packages/ui/test/logic/searchSubject.test.ts
+  - packages/ui/test/logic/bundledIndexRows.test.ts
+  - packages/design/domain/cell.ts
+  - packages/design/test/fixtures/corpus/**
+  - packages/design/test/winisd/wdr-parstate-load-table.test.ts
+  - packages/design/test/winisd/wdr-vccon-numvc-import.test.ts
+  - bugs/**
+  - tasks/T017.yml
+needs: [T016]

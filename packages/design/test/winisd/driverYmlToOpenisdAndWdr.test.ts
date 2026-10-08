@@ -7,6 +7,8 @@ import {parse, stringify as stringifyYaml} from 'yaml';
 import {WinIsdDriverConverter} from '../../domain/winIsdDriverConverter.js';
 import {OpenISDDriver, OpenISDPassiveRadiatorStandalone} from '../../domain/index.js';
 import {createEngine} from '../../engine/index.js';
+import {WinISDDriver} from '@openisd/design/winisd';
+import {winISDDriverToOpenISDDeviceJson} from '../../domain/winIsdDriverImport.js';
 import {checkOpenisdRoundTrip} from '../../../../scripts/roundTripGate.mjs';
 
 function isRecord(v: unknown): v is Record<string, unknown> {
@@ -81,31 +83,35 @@ describe('driverYmlToOpenisdAndWdr', () => {
         'top-level keys are alphabetical');
     });
 
-    it('drops a rejected reading from a multi-source spec entry (John, 2026-09-05)', () => {
-      // Real record: Scan-Speak 15W/4424G00. Re has three sources; the datasheet's own OCR
-      // misread the ohm glyph as a digit, so that ONE reading is `rejected:
-      // ohm-glyph-merged-as-digit` while the listing and product pages agree on the true value.
-      // A rejected reading is scraper diagnostic evidence for `driver.yml` — never a value the
-      // app should see, so it must not survive into openisd.yml at all.
-      const source = readFileSync(
-        join(FIXTURES, 'scanspeak-15w-4424g00.driver.yml'), 'utf8');
-      assert.ok(source.includes('rejected: ohm-glyph-merged-as-digit'),
-        'the fixture must carry a rejected reading, or this proves nothing');
+    it('keeps a rejected reading with its printed text, beside the usable ones (QO177)', () => {
+      // Synthetic Re entry: one usable reading, one source that printed N/A.
+      const record: unknown = parse(daytonDriverYml());
+      const woofer = at(record, 'specs', 'woofer');
+      if (!isRecord(woofer)) throw new Error('expected specs.woofer');
+      woofer.Re_ohm = {
+        readings: {
+          manufacturer_listing_page: {actual_reading: '3.1 Ω', read_value: 3.1},
+          manufacturer_datasheet: {actual_reading: 'N/A', rejected: 'synthetic-not-a-number'},
+        },
+      };
+      const { openisd, errors } = new WinIsdDriverConverter(engine).driverYmlToOpenisdAndWdr(stringifyYaml(record));
+      assert.ok(openisd !== null, `a readable record produces openisd.yml; errors: ${JSON.stringify(errors)}`);
 
-      const { openisd } = new WinIsdDriverConverter(engine).driverYmlToOpenisdAndWdr(source);
-      assert.ok(openisd !== null, 'a readable record produces openisd.yml');
+      const reReadings = at(parse(openisd), 'specs', 'woofer', 'Re_ohm', 'readings');
+      assert.deepEqual(reReadings, {
+        manufacturer_listing_page: {actual_reading: '3.1 Ω', read_value: 3.1},
+        manufacturer_datasheet: {actual_reading: 'N/A', rejected: 'synthetic-not-a-number'},
+      });
+      assert.equal(at(parse(openisd), 'specs', 'woofer', 'Re_ohm', 'value'), 3.1);
+    });
 
-      assert.ok(!openisd.includes('rejected'),
-        'a rejected reading must not survive into openisd.yml');
-      assert.ok(!openisd.includes('ohm-glyph-merged-as-digit'),
-        'the rejected reading\'s own entry must be dropped entirely, not just its `rejected` key');
-
-      const parsedOpenisd: unknown = parse(openisd);
-      const reReadings = at(parsedOpenisd, 'specs', 'woofer', 'Re_ohm', 'readings');
-      if (!isRecord(reReadings)) throw new Error('expected specs.woofer.Re_ohm.readings to be an object');
-      assert.deepEqual(Object.keys(reReadings).sort(),
-        ['manufacturer_listing_page', 'manufacturer_product_page'],
-        'the two USABLE readings survive; only the rejected one is removed');
+    it('a .wdr text cell never becomes NaN: the entry is left out and a warning names the printed text', () => {
+      const wdr = WinISDDriver.fromWdrIni(
+        readFileSync(join(FIXTURES, '..', '..', '..', '..', '..', 'drivers', 'myprobes', 'inconsistencies', 'inconsistency-test-qts-C.wdr'), 'utf8')
+          .replace('Fs=38', 'Fs=banana'));
+      const { record, warnings } = winISDDriverToOpenISDDeviceJson(wdr);
+      assert.equal(at(record, 'specs', 'woofer', 'Fs_hz'), undefined, 'no Fs entry, so no NaN value');
+      assert.ok(warnings.some(w => w.message.includes('banana')), 'a warning carries the printed text');
     });
 
     it('emits a .wdr whose [Driver] section carries the record brand and model', () => {
