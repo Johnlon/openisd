@@ -9,10 +9,12 @@ import {createEngine} from '../../engine/index.js';
 import {ProjectBuilder} from '../../domain/index.js';
 import type {FrequencyGrid} from '../../domain/index.js';
 import {seriesFor} from '../../chart/index.js';
+import type {PlotParams} from '../../chart/index.js';
 import {driverFrom, whatIfSpec} from '../fixtures/domainBuilders.js';
 
 const engine = createEngine();
 const GRID: FrequencyGrid = {fmin: 10, fmax: 2000, N: 100};
+const PLOT: PlotParams = {fmin: 10, fmax: 2000};
 
 for (const type of ['bandpass6', 'abc'] as const) {
   describe(`${type}: a built project's sweep draws every listed chart`, () => {
@@ -35,7 +37,7 @@ for (const type of ['bandpass6', 'abc'] as const) {
     for (const id of engine.box.chartsFor(type)) {
       it(`${id} has finite plotted points`, () => {
         assert.ok(sweep.values && max.values);
-        const bundle = seriesFor(engine, id, project.driver.specs.sweepDriver(), type, GRID, sweep.values, max.values);
+        const bundle = seriesFor(engine, id, project.driver.specs.sweepDriver(), type, PLOT, sweep.values, max.values);
         const s = bundle.series.find(x => !x.phantom);
         assert.ok(s && s.xs.length > 0, `${id}: no primary series`);
         assert.ok(s.ys.every(v => Number.isFinite(v)), `${id}: non-finite value`);
