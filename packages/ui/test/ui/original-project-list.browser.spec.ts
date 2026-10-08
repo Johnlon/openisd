@@ -20,6 +20,18 @@ const inkColours = (page: Page) => page.evaluate(() => {
   return seen.size;
 });
 
+/** Ink count once the chart has finished drawing: non-zero, and two reads (a poll interval apart) agree. */
+async function settledInk(page: Page): Promise<number> {
+  let previous = -1;
+  await expect.poll(async () => {
+    const now = await inkColours(page);
+    const stable = now > 0 && now === previous;
+    previous = now;
+    return stable;
+  }).toBe(true);
+  return previous;
+}
+
 async function addCopies(page: Page, n: number) {
   for (let i = 0; i < n; i++) {
     await page.locator('.proj-actions button:has-text("Copy")').click();
@@ -54,10 +66,12 @@ test.describe('Original project list', () => {
     // non-selected comparison overlay, and its trace is what this row's show/hide checkbox controls.
     const overlayCheckbox = page.locator('.project-row:not(.selected) input');
 
-    const shown = await inkColours(page);
+    await expect(overlayCheckbox).toBeChecked();
+    const shown = await settledInk(page);
     await overlayCheckbox.click();
+    await expect(overlayCheckbox).not.toBeChecked();
     await expect.poll(() => inkColours(page)).toBeLessThan(shown);
-    const hidden = await inkColours(page);
+    const hidden = await settledInk(page);
 
     // Back to the two-trace level. NOT an exact match: this census counts every distinct
     // antialiased shade, and a curve repainted after a hide lands a shade or two apart from its
@@ -72,10 +86,12 @@ test.describe('Original project list', () => {
   test('a hidden project is still hidden after a reload, and the chart still leaves its trace out', async ({ page }) => {
     await addCopies(page, 1);
     const overlayCheckbox = page.locator('.project-row:not(.selected) input');
-    const shown = await inkColours(page);
+    await expect(overlayCheckbox).toBeChecked();
+    const shown = await settledInk(page);
     await overlayCheckbox.click();
+    await expect(overlayCheckbox).not.toBeChecked();
     await expect.poll(() => inkColours(page)).toBeLessThan(shown);
-    const hidden = await inkColours(page);
+    const hidden = await settledInk(page);
 
     await page.reload();
 
