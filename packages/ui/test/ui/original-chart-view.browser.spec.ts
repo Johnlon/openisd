@@ -36,6 +36,19 @@ async function levelLineClusters(page: Page): Promise<number> {
   });
 }
 
+// True once the graph canvas is sized and has had pixels drawn. The panel ignores a pointerdown
+// until its first draw has set its plot geometry (GraphPanel.vue onPointerDown: `!geoRef`), and
+// that geometry is not exposed in the DOM; drawn pixels are the observable proof it exists.
+async function graphCanvasDrawn(page: Page): Promise<boolean> {
+  return page.evaluate(() => {
+    const c = document.querySelector('.graph-wrap canvas');
+    if (!(c instanceof HTMLCanvasElement) || c.width === 0 || c.height === 0) return false;
+    const data = c.getContext('2d')!.getImageData(0, 0, c.width, c.height).data;
+    for (let i = 3; i < data.length; i += 4) if (data[i] > 0) return true;
+    return false;
+  });
+}
+
 test.describe('Original chart view', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
@@ -167,6 +180,8 @@ test.describe('Original chart view', () => {
   });
 
   test('a click on the chart locks the cursor: moving the pointer afterwards leaves it put', async ({ page }) => {
+    // A click before the first draw is ignored by the panel, so wait for the drawn chart first.
+    await expect.poll(() => graphCanvasDrawn(page)).toBe(true);
     const box = (await page.locator('.graph-wrap canvas').boundingBox())!;
     const y = box.y + box.height * 0.5;
     const hz = page.locator('.ro-hz-input');
