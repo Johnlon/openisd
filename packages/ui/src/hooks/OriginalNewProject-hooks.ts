@@ -1,7 +1,7 @@
-import { computed, type ComputedRef, ref, type Ref, shallowRef, triggerRef } from 'vue';
+import { computed, type ComputedRef, ref, type Ref, shallowRef, triggerRef, watch } from 'vue';
 // Type-only: the store constructs projects (`newProject()`) and owns the engine instance; this
 // hook only names their shapes, so neither import is a layering edge (QO80).
-import { type OpenISDDriver, type OpenISDProject, OpenISDPassiveRadiatorStandalone } from '@openisd/design';
+import { type OpenISDDriver, type OpenISDProject, OpenISDPassiveRadiatorStandalone, startingChambersOf, takesChamberTunings } from '@openisd/design';
 import type { BundledPassiveRadiatorRepo, MyPassiveRadiatorRepo } from '@openisd/persistence';
 import type { BoxType, EbpSuitability, SealedEngine, VentedAlignment, VentedEngine, Wiring } from '@openisd/design/engine';
 import {ARRAY_WIRING_OPTIONS, DEFAULT_NEW_PROJECT_VENTED_QL, DEFAULT_SOURCE_RESISTANCE_OHM, DEFAULT_VENTED_ALIGNMENT, NumberField, SEALED_ALIGNMENT_OPTIONS, VENTED_ALIGNMENT_OPTIONS, type SelectorOption} from '@openisd/design/fields';
@@ -190,10 +190,20 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
   const BOX_OPTIONS = newProjectBoxTypeOptions();
   // Starting volume for the non-sealed box types (WinISD's default); a sealed box takes its
   // volume from the alignment on step 4 instead, so the two never overwrite each other.
-  const volume_m3 = ref(NumberField.BOX_VB_L.toSI(7));
-  const frontVolume_m3 = ref(NumberField.BOX_VF_L.toSI(10));
-  const rearTuning_hz = ref(35);
-  const frontTuning_hz = ref(25);
+  const startChambers = startingChambersOf('bandpass4');
+  const volume_m3 = ref(startChambers.rearVolume_m3);
+  const frontVolume_m3 = ref(startChambers.frontVolume_m3);
+  const rearTuning_hz = ref(startingChambersOf('bandpass6').rearTuning_hz ?? startChambers.frontTuning_hz);
+  const frontTuning_hz = ref(startChambers.frontTuning_hz);
+  // A new dual-chamber type starts from its own chambers; an unchanged type keeps the user's edits.
+  watch(boxType, (type) => {
+    if (type !== 'bandpass4' && type !== 'bandpass6' && type !== 'abc') return;
+    const start = startingChambersOf(type);
+    volume_m3.value = start.rearVolume_m3;
+    frontVolume_m3.value = start.frontVolume_m3;
+    rearTuning_hz.value = start.rearTuning_hz ?? rearTuning_hz.value;
+    frontTuning_hz.value = start.frontTuning_hz;
+  }, { flush: 'sync' });
   const targetQtc = ref(0.707);
   const sealedVolume_m3 = ref(NumberField.BOX_VB_L.toSI(7));
   const selectedVentedAlignment = ref<VentedAlignment>(DEFAULT_VENTED_ALIGNMENT);
@@ -206,7 +216,7 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
   const hadUnsaved = computed(() => isModified.value);
 
   const isDual = computed(() => DUAL_CHAMBER.has(boxType.value));
-  const hasTunings = computed(() => boxType.value === 'bandpass6' || boxType.value === 'abc');
+  const hasTunings = computed(() => takesChamberTunings(boxType.value));
   const isSealed = computed(() => boxType.value === 'sealed');
   const isVented = computed(() => boxType.value === 'vented');
   const isPassiveRadiator = computed(() => boxType.value === 'box-passive-radiator');

@@ -334,7 +334,7 @@ export class NumberField extends Field {
     limits: {min: 0, max: 1000},
     floor: "positive",
     precision: 2,
-    description: "Front Chamber Tuning Frequency (Ffc)\nHelmholtz resonance of the front, vented chamber of a 4th-order bandpass box, set by port dimensions and chamber volume.",
+    description: "Front Chamber Tuning Frequency (Ffc)\nHelmholtz resonance of the front, vented chamber of a 4th-order bandpass, 6th-order bandpass or ABC box, set by port dimensions and chamber volume.",
   });
 
   // ── Vent ──────────────────────────────────────────────────────────────────────────────────

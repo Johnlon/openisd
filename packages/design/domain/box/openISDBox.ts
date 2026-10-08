@@ -21,6 +21,7 @@ import { CoupledSealedLossesWindow } from './coupledSealedLossesWindow.js';
 import type { PassiveRadiatorBox } from './passiveRadiatorBox.js';
 import type { SealedBox } from './sealedBox.js';
 import { SealedLossesWindow } from './sealedLossesWindow.js';
+import { STARTING_SHARED_VOLUME_M3, startingChambersOf } from './startingChambers.js';
 import { VentWindow } from './ventWindow.js';
 import type { VentedBox } from './ventedBox.js';
 import { CoupledVentedChamberWindow } from './coupledVentedChamberWindow.js';
@@ -39,16 +40,9 @@ const STARTING = Object.freeze({
     ventSlotWidth_m: 0.1,
     ventSlotHeight_m: 0.03,
     /** Passive radiator and bandpass4 rear chamber. */
-    volume_m3: 0.007,
-    bandpass4FrontVolume_m3: 0.01,
-    tuning_hz: 35,
     /** Bandpass6 and ABC, as WinISD's wizard writes them (capture bp6_abc_wizard_defaults): a
      *  30 L rear chamber at 35 Hz, a 20 L front chamber at 25 Hz, round vents 102 mm across, and an
      *  ABC connecting vent 50 mm long. */
-    twoPortRearVolume_m3: 0.03,
-    twoPortRearTuning_hz: 35,
-    twoPortFrontVolume_m3: 0.02,
-    twoPortFrontTuning_hz: 25,
     twoPortVentDiameter_m: 0.102,
     abcIntraVentLength_m: 0.05,
     /** A chart-ready radiator (BUG_20260912: Fh must resolve instead of "--"), named so it reads
@@ -549,7 +543,7 @@ export class OpenISDBox implements Box {
             }
             case 'box-passive-radiator': {
                 const pr = this.passiveRadiator;
-                if (!isStated(pr.volume_m3.value)) pr.volume_m3.set(STARTING.volume_m3);
+                if (!isStated(pr.volume_m3.value)) pr.volume_m3.set(STARTING_SHARED_VOLUME_M3);
                 // No mass added to the radiator cone (John, 2026-10-01); the tuning is calculated from it.
                 if (!pr.addedMass_kg.entered && !pr.tuning_goal_hz.entered) pr.addedMass_kg.set(0);
                 if (pr.radiator.brand.value === '') pr.radiator.brand.set(STARTING.radiatorBrand);
@@ -572,19 +566,21 @@ export class OpenISDBox implements Box {
             }
             case 'bandpass4': {
                 const {chambers, vents} = this.bandpass4;
-                if (!isStated(chambers.rear.volume_m3.value)) chambers.rear.volume_m3.set(STARTING.volume_m3);
-                if (!isStated(chambers.front.volume_m3.value)) chambers.front.volume_m3.set(STARTING.bandpass4FrontVolume_m3);
-                if (chambers.front.tuning_goal_hz.value === null) chambers.front.tuning_goal_hz.set(STARTING.tuning_hz);
+                const start = startingChambersOf('bandpass4');
+                if (!isStated(chambers.rear.volume_m3.value)) chambers.rear.volume_m3.set(start.rearVolume_m3);
+                if (!isStated(chambers.front.volume_m3.value)) chambers.front.volume_m3.set(start.frontVolume_m3);
+                if (chambers.front.tuning_goal_hz.value === null) chambers.front.tuning_goal_hz.set(start.frontTuning_hz);
                 startVentGeometry(vents.front, this.#driver.specs.Dd_m.value);
                 return;
             }
             case 'bandpass6':
             case 'abc': {
                 const {chambers, vents} = this.boxType.value === 'abc' ? this.abc : this.bandpass6;
-                if (!isStated(chambers.rear.volume_m3.value)) chambers.rear.volume_m3.set(STARTING.twoPortRearVolume_m3);
-                if (!isStated(chambers.front.volume_m3.value)) chambers.front.volume_m3.set(STARTING.twoPortFrontVolume_m3);
-                if (chambers.rear.tuning_goal_hz.value === null) chambers.rear.tuning_goal_hz.set(STARTING.twoPortRearTuning_hz);
-                if (chambers.front.tuning_goal_hz.value === null) chambers.front.tuning_goal_hz.set(STARTING.twoPortFrontTuning_hz);
+                const start = startingChambersOf(this.boxType.value === 'abc' ? 'abc' : 'bandpass6');
+                if (!isStated(chambers.rear.volume_m3.value)) chambers.rear.volume_m3.set(start.rearVolume_m3);
+                if (!isStated(chambers.front.volume_m3.value)) chambers.front.volume_m3.set(start.frontVolume_m3);
+                if (start.rearTuning_hz !== null && chambers.rear.tuning_goal_hz.value === null) chambers.rear.tuning_goal_hz.set(start.rearTuning_hz);
+                if (chambers.front.tuning_goal_hz.value === null) chambers.front.tuning_goal_hz.set(start.frontTuning_hz);
                 const Dd_m = this.#driver.specs.Dd_m.value;
                 startVentGeometry(vents.rear, Dd_m, STARTING.twoPortVentDiameter_m);
                 startVentGeometry(vents.front, Dd_m, STARTING.twoPortVentDiameter_m);

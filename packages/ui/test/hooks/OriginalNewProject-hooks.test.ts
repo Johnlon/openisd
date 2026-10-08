@@ -1,10 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import {DEFAULT_ENV_DEFAULTS, type Engine, createEngine, type VentedDesignLimits} from '@openisd/design/engine';
-import { OpenISDDriver } from '@openisd/design';
+import { OpenISDDriver, ProjectBuilder } from '@openisd/design';
 import { NEW_PROJECT_VENTED_QL, type NewProjectPassiveRadiatorRepos, useOgNewProject } from '../../src/hooks/OriginalNewProject-hooks.js';
 import { OpenISDPassiveRadiatorStandalone } from '@openisd/design';
 import { type BundledPassiveRadiatorRepo, createMemoryStorage, createMyPassiveRadiatorRepo } from '@openisd/persistence';
 import { vi } from 'vitest';
+import { nextTick } from 'vue';
 
 /** No bundled catalogue: a test that reaches it has gone somewhere it did not mean to. */
 const noBundled: BundledPassiveRadiatorRepo = {
@@ -416,6 +417,60 @@ describe('useOgNewProject — bandpass6 and ABC take both chambers and both tuni
     expect(wizard.hasTunings.value).toBe(false);
     wizard.boxType.value = 'bandpass6';
     expect(wizard.hasTunings.value).toBe(true);
+  });
+});
+
+describe('useOgNewProject — dual-chamber starting values come from the design package', () => {
+  function wizardOf() {
+    const engine = createEngine();
+    return useOgNewProject({ passiveRadiators: testPassiveRadiators(), areas: engine, initialDriver: createTestDriver(engine) });
+  }
+
+  for (const type of ['bandpass6', 'abc'] as const) {
+    it(`${type}: starts at 30 L / 20 L, 35 Hz / 25 Hz and builds what box.boxType.set gives`, async () => {
+      const wizard = wizardOf();
+      wizard.boxType.value = type;
+      await nextTick();
+      expect(wizard.volume_m3.value).toBe(0.03);
+      expect(wizard.frontVolume_m3.value).toBe(0.02);
+      expect(wizard.rearTuning_hz.value).toBe(35);
+      expect(wizard.frontTuning_hz.value).toBe(25);
+
+      const project = wizard.createProject();
+      expect(project).not.toBeNull();
+      if (!project) return;
+      const engine = createEngine();
+      const reference = new ProjectBuilder(createTestDriver(engine), engine).sealed().build();
+      reference.box.boxType.set(type);
+      const got = type === 'bandpass6' ? project.box.bandpass6.chambers : project.box.abc.chambers;
+      const want = type === 'bandpass6' ? reference.box.bandpass6.chambers : reference.box.abc.chambers;
+      expect(got.rear.volume_m3.value).toBe(want.rear.volume_m3.value);
+      expect(got.front.volume_m3.value).toBe(want.front.volume_m3.value);
+      expect(got.rear.tuning_goal_hz.value).toBe(want.rear.tuning_goal_hz.value);
+      expect(got.front.tuning_goal_hz.value).toBe(want.front.tuning_goal_hz.value);
+    });
+  }
+
+  it('bandpass4 starts at 7 L / 10 L; switching to bandpass6 resets the volumes to 30 L / 20 L', async () => {
+    const wizard = wizardOf();
+    wizard.boxType.value = 'bandpass4';
+    await nextTick();
+    expect(wizard.volume_m3.value).toBe(0.007);
+    expect(wizard.frontVolume_m3.value).toBe(0.01);
+    wizard.boxType.value = 'bandpass6';
+    await nextTick();
+    expect(wizard.volume_m3.value).toBe(0.03);
+    expect(wizard.frontVolume_m3.value).toBe(0.02);
+  });
+
+  it('an edit survives a re-set of the same type', async () => {
+    const wizard = wizardOf();
+    wizard.boxType.value = 'bandpass6';
+    await nextTick();
+    wizard.volume_m3.value = 0.041;
+    wizard.boxType.value = 'bandpass6';
+    await nextTick();
+    expect(wizard.volume_m3.value).toBe(0.041);
   });
 });
 
