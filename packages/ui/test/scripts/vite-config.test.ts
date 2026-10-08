@@ -29,6 +29,14 @@ describe('vite.config.js', () => {
       'space, and a write there would otherwise trigger a full-page reload.'
     );
   });
+
+  it('allows the host name "lap" so the dev server answers when opened by that name', () => {
+    assert.match(
+      viteConfig,
+      /allowedHosts:\s*\[[^\]]*['"]lap['"]/,
+      'vite.config.js server.allowedHosts must list "lap"; Vite refuses any other host name.'
+    );
+  });
 });
 
 // ── .gitignore ───────────────────────────────────────────────────────────────

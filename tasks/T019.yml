@@ -1,0 +1,10 @@
+id: T019
+repo: openisd
+owner: bob
+status: open
+goal: The dev server accepts requests addressed to the host name "lap" (John 2026-10-09, "do it add lap"), so the app loads at http://lap:4000.
+done_test: bash scripts/test.sh packages/ui/test/scripts/vite-config.test.ts
+files:
+  - vite.config.js
+  - packages/ui/test/scripts/vite-config.test.ts
+  - tasks/T019.yml

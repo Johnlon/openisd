@@ -92,6 +92,8 @@ export default defineConfig(({ command }) => ({
   base,
   define: { 'import.meta.env.VITE_BUILD_VERSION': JSON.stringify(buildVersion()) },
   server: {
+    // Host names the dev server answers to besides localhost and IP addresses; Vite refuses any other.
+    allowedHosts: ['lap'],
     // Native inotify is reliable on this WSL2 (native ext4, kernel 6.18) and costs ~0% CPU
     // idle — polling the ~2,000-file catalogue at 100ms burned ~29% CPU for nothing. The
     // polling path stays reachable via OPENISD_POLL_WATCH=1 for any mount where inotify is
