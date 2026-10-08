@@ -10,6 +10,10 @@
 #   5. green: fast-forwards branch `release` on origin to <sha> (only if <sha> descends from it);
 #      red: leaves `release` alone, pushes tasks/fixes/F<n>.yml (status: open, sha, the failing
 #      output's last lines) to main, exit 1. The next landing is refused while that task is open.
+# Runs coalesce: a run registers in ${POST_LAND_LOCK}.pending before it waits for the lock. When it gets its
+# turn and a NEWER run is already waiting (its record is flock'ed by a live process), it ends "superseded
+# by <sha>" with exit 0 without running the suite; the newest run tests the latest sha. A red lists every
+# commit since the last green (origin/release) in its fixes task.
 # Config in land.conf: FULL_SUITE_CMD, POST_LAND_LOCK, POST_LAND_DIR.
 # NO_RELEASE_PUSH=1 in the environment: a green run is reported but `release` is not moved (a red run
 # still opens its fixes task).
@@ -44,7 +48,7 @@ cleanup() {
   git -C "$ROOT" worktree remove --force "$COPY" 2>/dev/null || rm -rf "$COPY"
   [ -z "$FIX" ] || { git -C "$ROOT" worktree remove --force "$FIX" 2>/dev/null; rm -rf "$FIX"; }
   git -C "$ROOT" worktree prune
-  rm -f "$OUT"
+  rm -f "$OUT" "${MINE:-}"
   exit "$status"
 }
 trap cleanup EXIT
@@ -52,8 +56,22 @@ trap 'exit 130' INT
 trap 'exit 143' TERM
 trap 'exit 129' HUP
 
+PENDING="${POST_LAND_LOCK}.pending"
+mkdir -p "$PENDING"
+MINE="$PENDING/$(date +%s%N)-$SHA"
+exec 8> "$MINE"
+flock -n 8
 exec 9> "$POST_LAND_LOCK"
 flock -n 9 || { echo "post-land: waiting for another post-land run"; flock 9; }
+
+# A newer run that is still waiting (live owner) will test a later sha: this one is superseded.
+for rec in "$PENDING"/*; do
+  [ -e "$rec" ] && [ "$rec" != "$MINE" ] || continue
+  [[ "$(basename "$rec")" > "$(basename "$MINE")" ]] || continue
+  if ! ( flock -n 7 ) 7< "$rec" 2> /dev/null; then
+    newer="$(basename "$rec")"; echo "post-land: superseded by ${newer#*-}"; exit 0
+  fi
+done
 
 git worktree add -q --detach "$COPY" "$SHA" || { echo "post-land: cannot check out $SHA" >&2; exit 2; }
 echo "post-land: running the full suite on ${SHA:0:10}"
@@ -103,6 +121,9 @@ for attempt in 1 2 3; do
   {
     printf 'id: F%s\nowner: post-land\nstatus: open\nsha: %s\n' "$n" "$SHA"
     printf 'goal: main is red at %s; make the full suite pass again\n' "${SHA:0:10}"
+    printf 'commits: |\n'
+    if git rev-parse --verify -q origin/release > /dev/null; then range="origin/release..$SHA"; else range="-n 20 $SHA"; fi
+    git log --abbrev=10 --format='  %h %s' $range
     printf 'output: |\n'
     tail -n 40 "$OUT" | sed 's/^/  /'
   } > "$FIX/tasks/fixes/F$n.yml"

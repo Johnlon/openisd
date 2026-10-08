@@ -18,5 +18,9 @@ done
 # POST_LAND_DIR, so link that sibling to the starting clone's: read only, nothing is written to it.
 copy_parent="$(dirname "$PWD")"
 [ -e "$copy_parent/winisd_drivers" ] || ln -s "$(dirname "$src")/winisd_drivers" "$copy_parent/winisd_drivers"
-npx vitest run
-bash scripts/test-browser.sh
+# Both halves always run: a red unit half must not hide the browser half. Red when either failed.
+unit=0; browser=0
+npx vitest run || unit=$?
+bash scripts/test-browser.sh || browser=$?
+echo "suite: unit exit $unit, browser exit $browser"
+[ "$unit" = 0 ] && [ "$browser" = 0 ]
