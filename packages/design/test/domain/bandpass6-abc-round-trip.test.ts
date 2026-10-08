@@ -31,12 +31,16 @@ function parts(p: OpenISDProject, type: Type) {
   };
 }
 
+function isRecord(v: unknown): v is Record<string, unknown> {
+  return v !== null && typeof v === 'object';
+}
+
 function near(a: unknown, b: unknown, path: string): void {
   if (typeof a === 'number' && typeof b === 'number') {
     assert.ok(Math.abs(a - b) <= 1e-9 * Math.max(1, Math.abs(a)), `${path}: ${a} vs ${b}`);
-  } else if (a !== null && typeof a === 'object' && b !== null && typeof b === 'object') {
+  } else if (isRecord(a) && isRecord(b)) {
     assert.deepEqual(Object.keys(a).sort(), Object.keys(b).sort(), `${path}: keys`);
-    for (const [k, v] of Object.entries(a)) near(v, (b as Record<string, unknown>)[k], `${path}.${k}`);
+    for (const [k, v] of Object.entries(a)) near(v, b[k], `${path}.${k}`);
   } else {
     assert.equal(a, b, path);
   }
