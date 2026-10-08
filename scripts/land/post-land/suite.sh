@@ -3,6 +3,11 @@
 # Runs in the clean copy, which has no node_modules; run.sh exports POST_LAND_SRC, the clone that
 # started the run, and its node_modules are hardlinked in (no install, no network).
 set -euo pipefail
+# The full suite is a heavy job: it runs in the machine's one admission slot (scripts/admit.sh).
+# admit.sh exports ADMIT_TOKEN, so the re-run below does not queue a second time.
+if [ -z "${ADMIT_TOKEN:-}" ]; then
+  exec bash scripts/admit.sh "post-land suite $(basename "$PWD")" -- bash "$0" "$@"
+fi
 src="${POST_LAND_SRC:?POST_LAND_SRC not set: start this through scripts/land/post-land/run.sh}"
 [ "$(stat -c %d "$src")" = "$(stat -c %d .)" ] \
   || { echo "suite: $PWD and $src are on different filesystems, so node_modules cannot be hardlinked; put POST_LAND_DIR beside the clones" >&2; exit 2; }

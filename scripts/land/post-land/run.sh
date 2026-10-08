@@ -11,6 +11,8 @@
 #      red: leaves `release` alone, pushes tasks/fixes/F<n>.yml (status: open, sha, the failing
 #      output's last lines) to main, exit 1. The next landing is refused while that task is open.
 # Config in land.conf: FULL_SUITE_CMD, POST_LAND_LOCK, POST_LAND_DIR.
+# NO_RELEASE_PUSH=1 in the environment: a green run is reported but `release` is not moved (a red run
+# still opens its fixes task).
 set -uo pipefail
 
 SHA_ARG="${1:?usage: run.sh <sha>}"
@@ -68,6 +70,8 @@ git fetch -q origin || { echo "post-land: fetch failed" >&2; exit 2; }
 if [ "$rc" = 0 ]; then
   if git merge-base --is-ancestor "$SHA" origin/release 2>/dev/null; then
     echo "post-land: green; ${SHA:0:10} is already in release"
+  elif [ "${NO_RELEASE_PUSH:-}" = 1 ]; then
+    echo "post-land: green; NO_RELEASE_PUSH=1, release left alone"
   elif ! git rev-parse --verify -q origin/release > /dev/null \
        || git merge-base --is-ancestor origin/release "$SHA"; then
     git push -q origin "$SHA:refs/heads/release" && echo "post-land: green; release is now ${SHA:0:10}"

@@ -13,5 +13,6 @@ The script sends SIGTERM and returns. The test read `/proc/<pid>/stat` one time 
 load the signal has not been delivered yet. The test depended on how fast the machine is.
 
 ## Fix
-The test looks again, up to 200 times 10 ms apart (a count of looks, no deadline), until the process
-is gone or a zombie. The script is unchanged.
+The test runs the watchdog asynchronously and awaits the stand-in process's `exit` event: no deadline,
+no count of looks; a stop that never comes ends at the test timeout. A run that must not be stopped
+is checked still alive when the watchdog ends. The script is unchanged.

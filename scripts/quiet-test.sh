@@ -16,7 +16,7 @@ if [ "$#" -eq 0 ]; then
 fi
 
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
-LOG_DIR="build/test-logs"
+LOG_DIR="${QUIET_LOG_DIR:-build/test-logs}"
 mkdir -p "$LOG_DIR"
 LOG="$LOG_DIR/$(date +%Y%m%d-%H%M%S)-$$.log"
 MAX="${QUIET_MAX_LINES:-150}"
@@ -37,6 +37,20 @@ case " $* " in
     fi
     ;;
 esac
+# Heavy commands (no named target) go through the machine's one admission slot (scripts/admit.sh);
+# admit.sh exports ADMIT_TOKEN, so the re-exec happens once. Targeted runs go at once.
+has_target() { printf '%s\n' "$@" | grep -qE '\.(test|spec)\.(ts|js|mjs)$|/test/'; }
+needs_slot() {
+  case "$1 ${2:-} ${3:-}" in
+    "npm run typecheck"|"npm run lint"|"npm run test"|"npm run check"|"npm run ci"|"npm test"*|"npx tsc"*) return 0 ;;
+    "npx playwright test"*) has_target "$@" && return 1; return 0 ;;
+    "npx vitest"*|"vitest "*) has_target "$@" && return 1; return 0 ;;
+  esac
+  return 1
+}
+if [ -z "${ADMIT_TOKEN:-}" ] && needs_slot "$@"; then
+  exec bash scripts/admit.sh "quiet-test $*" -- bash "$0" "$@"
+fi
 case " $* " in
   *" --reporter"*) ;;
   *vitest*) ARGS+=(--reporter=dot) ;;
@@ -66,6 +80,12 @@ node_descendants() {
     node_descendants "$child"
   done
 }
+source scripts/lib/progress.sh
+POLL_S="${QUIET_POLL_S:-5}"
+BEAT_EVERY=$(( ${QUIET_HEARTBEAT_S:-30} / POLL_S ))
+[ "$BEAT_EVERY" -ge 1 ] || BEAT_EVERY=1
+BEAT=0
+STARTED=$SECONDS
 "${ARGS[@]}" >"$LOG" 2>&1 &
 RUN_PID=$!
 LAST_SIZE=-1
@@ -73,7 +93,7 @@ LAST_CPU=-1
 IDLE_S=0
 STALLED=0
 while kill -0 "$RUN_PID" 2>/dev/null; do
-  sleep 5
+  sleep "$POLL_S"
   SIZE=$(stat -c %s "$LOG" 2>/dev/null || echo 0)
   CPU=$(tree_cpu_ticks "$RUN_PID")
   # Ticks are 100/s; more than 5 ticks in 5 s is a process doing work, not an idle one.
@@ -81,7 +101,13 @@ while kill -0 "$RUN_PID" 2>/dev/null; do
   tail -n 1 "$LOG" 2>/dev/null | grep -q "waiting up to" && PROGRESS=1
   [ "$SIZE" != "$LAST_SIZE" ] && PROGRESS=1
   LAST_SIZE="$SIZE"; LAST_CPU="$CPU"
-  if [ "$PROGRESS" = "1" ]; then IDLE_S=0; else IDLE_S=$((IDLE_S + 5)); fi
+  if [ "$PROGRESS" = "1" ]; then IDLE_S=0; else IDLE_S=$((IDLE_S + POLL_S)); fi
+  BEAT=$((BEAT + 1))
+  if [ "$BEAT" -ge "$BEAT_EVERY" ]; then
+    BEAT=0
+    if [ "$IDLE_S" -gt 0 ]; then echo "quiet-test: IDLE for $IDLE_S s (stalls at $IDLE_LIMIT_S s)" >&2
+    else echo "quiet-test: working, elapsed $(progress_duration $((SECONDS - STARTED))), idle 0 s, log $((SIZE / 1024)) KB" >&2; fi
+  fi
   if [ "$IDLE_S" -ge "$IDLE_LIMIT_S" ]; then
     STALLED=1
     for NODE_PID in $( [ "$(ps -o comm= -p "$RUN_PID")" = "node" ] && echo "$RUN_PID"; node_descendants "$RUN_PID"); do kill -USR2 "$NODE_PID" 2>/dev/null; done
@@ -97,6 +123,7 @@ if [ "$STALLED" = "1" ]; then
   echo "quiet-test: STALLED — no output, CPU use or queue wait for ${IDLE_LIMIT_S}s, run stopped. Node reports (JS stack, open handles): build/test-reports/" >>"$LOG"
   CODE=124
 fi
+progress_end_line quiet-test "$CODE" $((SECONDS - STARTED)) >&2
 
 # Passing-test traces: vitest verbose/list (✓ / √), playwright list (✓ N [project] ...),
 # describe headers vitest prints under a passing file, and blank lines.
