@@ -1,0 +1,46 @@
+id: F2
+owner: post-land
+status: open
+sha: e3be1afde607ab38c062b081883e5fbe35bf5b01
+goal: main is red at e3be1afde6; make the full suite pass again
+output: |
+  
+  ⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+  
+   FAIL  |design-architecture| test/architecture-fixtures-are-typed.test.ts > a fixture handed to the engine says what it is > every quantity bag passed to the engine declares its type
+  AssertionError: Each of these is an object literal in an un-annotated `const`, handed to the engine. TypeScript will not check its keys, and every field it is meant to have is optional, so a stale or misspelled name compiles and silently supplies nothing. Declare the variable with the type named beside it and the compiler reports the wrong key instead.: expected [ …(2) ] to deeply equal []
+  
+  - Expected
+  + Received
+  
+  - []
+  + [
+  +   "test/domain/bandpass6-abc-charts.test.ts:14  GRID → maxCurves() arg 0, should be `: FrequencyGrid`",
+  +   "test/domain/bandpass6-abc-charts.test.ts:14  GRID → sweep() arg 0, should be `: FrequencyGrid`",
+  + ]
+  
+   ❯ test/architecture-fixtures-are-typed.test.ts:113:18
+      111|       'a stale or misspelled name compiles and silently supplies nothi…
+      112|       'with the type named beside it and the compiler reports the wron…
+      113|     ].join(' ')).toEqual([]);
+         |                  ^
+      114|   });
+      115| });
+  
+  ⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+  
+  
+   Test Files  1 failed | 355 passed (356)
+        Tests  1 failed | 4322 passed (4323)
+     Start at  00:19:19
+     Duration  794.70s (import 69%, tests 20%, transform 9%, setup 2%)
+  
+       Import  |design| 446 modules were evaluated 22862 times · 2015.50s total, 70% of tracked time
+               ~383.12s faster with isolate: false — shared modules are evaluated once per worker instead of once per file
+               learn more: https://vitest.dev/guide/improving-performance#test-isolation
+  
+       Import  |ui| 346 modules were evaluated 9128 times · 365.54s total, 77% of tracked time
+               ~63.15s faster with isolate: false — shared modules are evaluated once per worker instead of once per file
+               learn more: https://vitest.dev/guide/improving-performance#test-isolation
+  
+  post-land suite 8987-e3be1afde6 finished: FAILED (exit 1) after 13m21s
