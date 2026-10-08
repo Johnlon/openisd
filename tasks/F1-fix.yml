@@ -1,0 +1,13 @@
+id: F1-fix
+repo: openisd
+owner: maryu
+status: open
+label: fixes
+goal: Close F1: the two browser specs that failed under load wait on state, not time.
+done_test: bash scripts/test.sh packages/ui/test/ui/original-chart-view.browser.spec.ts packages/ui/test/ui/original-project-list.browser.spec.ts
+files:
+  - packages/ui/test/ui/original-chart-view.browser.spec.ts
+  - packages/ui/test/ui/original-project-list.browser.spec.ts
+  - tasks/fixes/F1.yml
+  - tasks/F1-fix.yml
+note: F1.yml itself has no done_test (the post-land run opened it), so land.sh cannot take it as the task file; this file is the task, F1.yml is only closed.

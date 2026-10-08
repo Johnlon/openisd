@@ -3,12 +3,6 @@ owner: post-land
 status: closed
 sha: f6709b16e3866410adc000de24508b5069820f4e
 goal: main is red at f6709b16e3; make the full suite pass again
-label: fixes
-done_test: bash scripts/test.sh packages/ui/test/ui/original-chart-view.browser.spec.ts packages/ui/test/ui/original-project-list.browser.spec.ts
-files:
-  - packages/ui/test/ui/original-chart-view.browser.spec.ts
-  - packages/ui/test/ui/original-project-list.browser.spec.ts
-  - tasks/fixes/F1.yml
 output: |
       [2m       - unexpected value ""[22m
   
