@@ -1,0 +1,13 @@
+id: T021
+repo: openisd
+owner: maryu
+status: open
+goal: A landed commit on main says what landed - its subject is the task's id and goal, never "work in progress, committed by land.sh".
+done_test: bash scripts/land/test/land-subject.test.sh
+files:
+  - scripts/land.sh
+  - scripts/land/core/**
+  - scripts/land/test/land-subject.test.sh
+  - bugs/BUG_20261009_land-commit-subject-says-work-in-progress.md
+  - tasks/T021.yml
+needs: [T020]

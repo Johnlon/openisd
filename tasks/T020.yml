@@ -1,0 +1,14 @@
+id: T020
+repo: openisd
+owner: maryu
+status: open
+goal: Post-land runs coalesce to the latest pushed commit (a run superseded by a newer waiting one ends cleanly, and a red names every commit since the last green), and a red unit half never skips the browser half.
+done_test: bash scripts/land/test/post-land-coalesce.test.sh && bash scripts/land/test/suite-both-halves.test.sh
+files:
+  - scripts/land/post-land/run.sh
+  - scripts/land/post-land/suite.sh
+  - scripts/land/test/post-land-coalesce.test.sh
+  - scripts/land/test/suite-both-halves.test.sh
+  - bugs/BUG_20261009_post-land-unit-red-skips-browser-specs.md
+  - bugs/BUG_20261009_land-commit-subject-says-work-in-progress.md
+  - tasks/T020.yml
