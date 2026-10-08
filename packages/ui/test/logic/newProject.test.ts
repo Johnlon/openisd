@@ -134,10 +134,8 @@ describe('boxTypeIsSimulatable', () => {
 });
 
 describe('IMPLEMENTED_BOX_TYPES', () => {
-  it('is false for 6th-order bandpass and ABC only — the pickers dim those rows', () => {
-    for (const box of ['sealed', 'vented', 'bandpass4', 'box-passive-radiator'] as const)
+  it('lists every box type — no picker row is dimmed', () => {
+    for (const box of ['sealed', 'vented', 'bandpass4', 'bandpass6', 'abc', 'box-passive-radiator'] as const)
       expect(IMPLEMENTED_BOX_TYPES.includes(box), box).toBe(true);
-    for (const box of ['bandpass6', 'abc'] as const)
-      expect(IMPLEMENTED_BOX_TYPES.includes(box), box).toBe(false);
   });
 });

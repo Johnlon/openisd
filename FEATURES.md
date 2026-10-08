@@ -8,7 +8,7 @@ Other tools in this space are in [docs/research/COMPETITIVE_LANDSCAPE.md](docs/r
 
 ### Enclosures
 
-- **Box types:** sealed, vented, 4th-order bandpass, passive radiator.
+- **Box types:** sealed, vented, 4th-order bandpass, 6th-order bandpass, ABC, passive radiator.
 - **Box losses:** leakage Ql, absorption Qa and port loss Qp, in WinISD's lossy model; Ql and Qa
   of 10⁶ or more give the lossless result.
 - **Vents:** round or slotted, with a count and end correction; a
@@ -68,8 +68,6 @@ Other tools in this space are in [docs/research/COMPETITIVE_LANDSCAPE.md](docs/r
 ### Simulation
 
 - Isobaric loading.
-- 6th-order bandpass and ABC: the engine models both and matches WinISD's charts; the box
-  page, wizard and mobile screens are unfinished ([BACKLOG.md](BACKLOG.md#box-types-not-yet-implemented)).
 - Transmission line and quarter-wave enclosures; horns.
 - Listening distance and off-axis angle (currently fixed at 1 m, on axis).
 - Amplifier load (VA) chart, port gain, and radiator transfer function charts.

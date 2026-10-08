@@ -48,8 +48,8 @@ export interface BoxEngine {
    *  simulatable today, so this never actually returns null; the return type stays `| null`
    *  because the two sets are declared separately on purpose (`SimulatableBoxType`'s own doc). */
   simulatableBoxType(box: BoxType): SimulatableBoxType | null;
-  /** Whether OpenISD has finished this box type. False for 6th-order bandpass and ABC: the
-   *  pickers still offer them, shown dimmed (BACKLOG.md "Box types not yet implemented"). */
+  /** Whether OpenISD has finished this box type. A type that is not finished is still offered
+   *  by the pickers, shown dimmed. */
   implemented(box: BoxType): boolean;
   /** The charts a project with this box type shows, in WinISD's own chart-menu order — port
    *  charts only for a ported box, PR charts only for a radiator, the ten system charts and the
@@ -71,11 +71,10 @@ export class BoxEngineImpl implements BoxEngine {
       case 'sealed':
       case 'vented':
       case 'bandpass4':
-      case 'box-passive-radiator':
-        return true;
       case 'bandpass6':
       case 'abc':
-        return false;
+      case 'box-passive-radiator':
+        return true;
     }
   }
 

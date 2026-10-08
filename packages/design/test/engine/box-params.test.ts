@@ -88,11 +88,9 @@ describe('Engine.solveBoxParams', () => {
         assert.notEqual(engine.box.simulatableBoxType(box), null, `${box} must remain simulatable`);
     });
 
-    it('6th-order bandpass and ABC are not implemented yet; every other box type is', () => {
-      for (const box of ['sealed', 'vented', 'bandpass4', 'box-passive-radiator'] as const)
+    it('every box type is implemented', () => {
+      for (const box of ['sealed', 'vented', 'bandpass4', 'box-passive-radiator', 'bandpass6', 'abc'] as const)
         assert.equal(engine.box.implemented(box), true, box);
-      for (const box of ['bandpass6', 'abc'] as const)
-        assert.equal(engine.box.implemented(box), false, box);
     });
 
     it('a vented box with no vent area is rejected, naming Sp', () => {

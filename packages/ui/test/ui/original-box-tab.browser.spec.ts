@@ -67,13 +67,11 @@ test.describe('Original Box tab', () => {
     await expect(page.locator('#og-box-type')).toBeVisible();
   });
 
-  test('6th-order bandpass and ABC rows are dim grey but still selectable', async ({ page }) => {
+  test('no box type row is dim grey, and 6th-order bandpass and ABC are selectable', async ({ page }) => {
     await boxTab(page).click();
     const dim = 'rgb(153, 153, 153)';
     const sel = page.locator('select#og-box-type');
-    for (const box of ['bandpass6', 'abc'])
-      await expect(sel.locator(`option[value="${box}"]`)).toHaveCSS('color', dim);
-    for (const box of ['sealed', 'vented', 'bandpass4', 'box-passive-radiator'])
+    for (const box of ['sealed', 'vented', 'bandpass4', 'box-passive-radiator', 'bandpass6', 'abc'])
       await expect(sel.locator(`option[value="${box}"]`)).not.toHaveCSS('color', dim);
     await sel.selectOption('abc');
     await expect(sel).toHaveValue('abc');
