@@ -1,22 +1,5 @@
 #!/bin/sh
-# Gate on EVERY commit — lint + typecheck + unit (incl. golden). Blocks the commit on any red so
-# a failure cannot ride along commit-to-commit (the "an issue from hours ago persisted" failure
-# mode). The full suite — browser tests too — runs at pre-push and via scripts/health-check.sh.
-#
-# This is a slow run (John, 2026-10-07), so it goes through scripts/slow-run/slow-run.sh:
-#   - it waits in the machine-wide queue: no two slow runs overlap on this machine;
-#   - it tests the STAGED INDEX, exported to a temp copy outside the repo, so another session's
-#     unstaged edits in the shared tree never reach the run;
-#   - a few failing spec files are rerun once; passing on the rerun logs them as FLAKY.
-#
-# Exception: a commit that touches ONLY *.md files cannot change runtime behaviour, so the unit
-# suite adds no diff-level signal — skip it. But typecheck and lint are whole-project checks, so
-# they STILL run: a doc-only commit on a branch that is already red must not ride those failures
-# along commit-to-commit.
-set -e
-top="$(git rev-parse --show-toplevel)"
-changed=$(git diff --cached --name-only --diff-filter=ACMR)
-if [ -n "$changed" ] && ! printf '%s\n' "$changed" | grep -qv '\.md$'; then
-  exec bash "$top/scripts/slow-run/slow-run.sh" pre-commit --doc-only
-fi
-exec bash "$top/scripts/slow-run/slow-run.sh" pre-commit
+# Fast gate on every commit: with a claimed task (.task), the staged files must be inside that
+# task's `files` allowlist. No test suite runs here; the fast gates and the done_test run in
+# scripts/land.sh, the full suite in the post-land run (docs/DEV_PROCESS.md).
+exec bash "$(git rev-parse --show-toplevel)/scripts/land/task-gates/check-commit.sh"

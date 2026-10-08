@@ -1,9 +1,7 @@
 /**
- * The commit and push hooks are slow runs (John, 2026-10-07: concurrent slow runs kill the machine).
- * Each goes through scripts/slow-run/slow-run.sh, which takes a ticket in the machine-wide queue
- * before it runs anything, so two never overlap. Here the real hooks, slow-run.sh, queue.sh and
- * clean-copy.sh run in a temp git repo beside a fake `npm` and `node`, and each fake records how many
- * tickets the queue holds at that moment.
+ * Cancelling a slow run (scripts/slow-run/slow-run.sh) stops everything it started, releases its
+ * ticket and removes its clean copy. The hooks no longer run slow-run.sh (docs/DEV_PROCESS.md), so
+ * only the cancel cases remain; the whole file goes when the old machinery is deleted.
  */
 import {describe, it, onTestFinished} from 'vitest';
 import assert from 'node:assert/strict';
@@ -71,39 +69,6 @@ function fixture(): Fixture {
   git(repo, env, 'add', 'a.ts');
   return {repo, queue, events, env};
 }
-
-function seen(events: string): string[] {
-  return readFileSync(events, 'utf8').split('\n').filter(l => l !== '');
-}
-
-describe('the hooks take a queue ticket', () => {
-  it('pre-commit: lint, typecheck and the unit rerun each run while the run holds a ticket, and the ticket is released after', () => {
-    const {repo, queue, events, env} = fixture();
-    const done = spawnSync('sh', ['scripts/hooks-local/pre-commit'], {cwd: repo, env: {...process.env, ...env}, encoding: 'utf8'});
-    assert.equal(done.status, 0, done.stdout + done.stderr);
-    const lines = seen(events);
-    assert.deepEqual(lines.map(l => l.replace(/^(\w+ \S+ \S+).*( tickets=\d+)$/, '$1$2')).slice(0, 2),
-      ['npm run lint tickets=1', 'npm run typecheck tickets=1']);
-    assert.ok(lines.some(l => l.startsWith('node ') && l.includes('rerun.mjs vitest') && l.endsWith(' tickets=1')), lines.join('\n'));
-    assert.deepEqual(readdirSync(join(queue, 'q')), []);
-  });
-
-  it('pre-push: lint, typecheck and both reruns run while the run holds a ticket, and the ticket is released after', () => {
-    const {repo, queue, events, env} = fixture();
-    const sha = git(repo, env, 'rev-parse', 'HEAD');
-    const zero = '0'.repeat(40);
-    const done = spawnSync('sh', ['scripts/hooks-local/pre-push'], {
-      cwd: repo, env: {...process.env, ...env}, encoding: 'utf8', input: `refs/heads/main ${sha} refs/heads/main ${zero}\n`,
-    });
-    assert.equal(done.status, 0, done.stdout + done.stderr);
-    const lines = seen(events);
-    assert.ok(lines.some(l => l === 'npm run lint tickets=1'), lines.join('\n'));
-    assert.ok(lines.some(l => l === 'npm run typecheck tickets=1'), lines.join('\n'));
-    assert.ok(lines.some(l => l.includes('rerun.mjs vitest') && l.endsWith(' tickets=1')), lines.join('\n'));
-    assert.ok(lines.some(l => l.includes('rerun.mjs playwright') && l.endsWith(' tickets=1')), lines.join('\n'));
-    assert.deepEqual(readdirSync(join(queue, 'q')), []);
-  });
-});
 
 function alive(pid: number): boolean {
   try {
