@@ -67,7 +67,9 @@ trap 'exit 129' HUP
 
 # 1. commit everything
 if [ -n "$(git status --porcelain)" ]; then
-  git add -A && git commit -q -m "$ID: work in progress, committed by land.sh" || { echo "land: commit failed" >&2; exit 2; }
+  # The subject says what landed: the task's goal (the id alone when the task file has none).
+  goal="$(task_field "$TASK" goal)"
+  git add -A && git commit -q -m "$ID${goal:+: $goal}" || { echo "land: commit failed" >&2; exit 2; }
 fi
 
 # One landing at a time. The lock is released when this process ends, however it ends.
