@@ -42,9 +42,9 @@ const valueOf = node => (node && typeof node === 'object' && 'value' in node ? n
  *  throw downstream in `readCell`/`OpenISDDriver`
  *  (open: `bugs/BUG_20260822_openisddriver_getters_throw_on_a_record_that_has_specs_but_not_the_spec_entry_shape.md`). */
 export function project(record) {
-  if (!recordConforms(record)) return { record, driverType: undefined, name: '', structurallyReadable: false };
+  if (!recordConforms(record)) return { record, driverTypes: undefined, name: '', structurallyReadable: false };
 
-  const driverType = valueOf(record.driver_type);
+  const driverTypes = valueOf(record.driver_type);
 
   const brand = valueOf(record.brand);
   const rawModel = valueOf(record.model);
@@ -58,7 +58,7 @@ export function project(record) {
   const parts = [lead, series, modelSlug].filter(Boolean);
   const name = parts.join(' - ').trim();
 
-  return { record, driverType, name, structurallyReadable: true };
+  return { record, driverTypes, name, structurallyReadable: true };
 }
 
 /**

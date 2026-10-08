@@ -264,15 +264,14 @@ export function chipsOf(driver: OpenISDDriver): { types: string[]; canonical: st
   const spec = driver.specs;
   const Fs = spec.Fs_hz.value;
   const Sd = spec.Sd_m2.value;
-  const driverType = driver.driverType();
+  const roles = DriverType.parseRoles(driver.driverTypes());
 
   const of = (t: DriverType) => ({ types: t.chips.map(c => c.value), canonical: t.display });
 
   // 1. The scraper-written `driver_type` is authoritative when it is a canonical
   //    DriverType — project it onto the chips the member itself carries and stop.
   //    Never compare against a bare string; DriverType.parse is the one boundary.
-  const dt = DriverType.parse(driverType);
-  if (dt !== null && dt !== DriverType.Unclassified) return of(dt);
+  if (roles.length > 0) return { types: DriverType.chipValuesOf(roles), canonical: DriverType.displayOf(roles) };
 
   // 2. No usable driver_type — most bundled records carry `driver_type: null` — so
   //    fall back to the product name, then to T/S parameters.

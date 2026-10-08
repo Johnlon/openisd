@@ -140,18 +140,20 @@ const DRIVERTYPE_TAG = /\[DRIVERTYPE ([^\]]+)\]/;
 
 /** `Comment=` with a `[DRIVERTYPE ...]` line appended, same shape as `commentWithEnv`. Absent
  *  `driverType`, or `base` already carrying the tag, leaves the text byte-identical. */
-function commentWithDriverType(base: string, driverType: string | undefined): string {
-    if (driverType === undefined || DRIVERTYPE_TAG.test(base)) return base;
-    const tag = `[DRIVERTYPE ${driverType}]`;
+function commentWithDriverType(base: string, roles: readonly string[] | undefined): string {
+    if (roles === undefined || roles.length === 0 || DRIVERTYPE_TAG.test(base)) return base;
+    const tag = `[DRIVERTYPE ${roles.join(',')}]`;
     return [base, tag].filter(l => l.length > 0).join('\n');
 }
 
-/** `[DRIVERTYPE ...]` parsed out of a `Comment=` value, or `undefined` if the value carries
- *  none. */
-function driverTypeFromComment(comment: string | undefined): string | undefined {
+/** The roles of `[DRIVERTYPE a,b]` parsed out of a `Comment=` value, or `undefined` if the value
+ *  carries none. An old file's single-value tag is a one-role list. */
+function driverTypesFromComment(comment: string | undefined): readonly string[] | undefined {
     if (comment === undefined) return undefined;
     const m = DRIVERTYPE_TAG.exec(comment);
-    return m ? m[1] : undefined;
+    if (!m) return undefined;
+    const roles = m[1].split(',').map(r => r.trim()).filter(r => r.length > 0);
+    return roles.length > 0 ? roles : undefined;
 }
 
 /** A string field's value as one PHYSICAL line: every newline becomes the sentinel the format
@@ -169,17 +171,17 @@ export class WinISDDriver {
 
     readonly #env: WdrEnv | undefined;
 
-    readonly #driverType: string | undefined;
+    readonly #driverTypes: readonly string[] | undefined;
 
     private constructor(
         header: WdrHeader, cells: WdrCells, dqLines: readonly string[], env?: WdrEnv,
-        driverType?: string,
+        driverTypes?: readonly string[],
     ) {
         this.#header = header;
         this.#cells = cells;
         this.#dqLines = dqLines;
         this.#env = env;
-        this.#driverType = driverType;
+        this.#driverTypes = driverTypes;
     }
 
     /**
@@ -192,9 +194,9 @@ export class WinISDDriver {
         cells: WdrCells,
         dqLines: readonly string[] = [],
         env?: WdrEnv,
-        driverType?: string,
+        driverTypes?: readonly string[],
     ): WinISDDriver {
-        return new WinISDDriver(header, cells, dqLines, env, driverType);
+        return new WinISDDriver(header, cells, dqLines, env, driverTypes);
     }
 
     // ── IMPORT — `.wdr` text → WinISDDriver, as read (no derivation) ─────────────────────
@@ -308,7 +310,7 @@ export class WinISDDriver {
         // (John, 2026-09-02): `.wdr` has no extension mechanism, so a foreign key is a corrupt or
         // non-WinISD file, not a field to preserve.
         return new WinISDDriver(
-            header, cells, [], envFromComment(header.comment), driverTypeFromComment(header.comment),
+            header, cells, [], envFromComment(header.comment), driverTypesFromComment(header.comment),
         );
     }
 
@@ -333,7 +335,7 @@ export class WinISDDriver {
             ProvidedBy: oneLine(h.providedBy ?? ''),
             Comment: oneLine(commentWithDriverType(
                 commentWithEnv(commentWithDq(h.comment ?? '', this.#dqLines), this.#env),
-                this.#driverType,
+                this.#driverTypes,
             )),
             DateAdded: oneLine(h.dateAdded ?? ''),
             DateModified: oneLine(h.dateModified ?? ''),
@@ -372,8 +374,8 @@ export class WinISDDriver {
 
     /** The OID `driver_type` this `.wdr` was written from, if `Comment=` carries a
      *  `[DRIVERTYPE ...]` tag. */
-    driverType(): string | undefined {
-        return this.#driverType;
+    driverTypes(): readonly string[] | undefined {
+        return this.#driverTypes;
     }
 
     #parState(): string {

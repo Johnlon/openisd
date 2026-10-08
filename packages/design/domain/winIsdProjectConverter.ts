@@ -453,7 +453,7 @@ export class WinIsdProjectConverter {
         // The .wpr states only Vas/Qms/Fs/Sd/Xmax; the project's resolve derives Mms, Cms and Rms.
         const radiatorRecord: RadiatorDeviceJson = {
           brand: {value: 'WinISD import'}, model: {value: 'passive-radiator'},
-          manufacturer: {value: 'WinISD import'}, driver_type: {value: 'passive-radiator'},
+          manufacturer: {value: 'WinISD import'}, driver_type: {value: ['passive-radiator']},
           uuid: {value: '00000000-0000-4000-8000-000000000002'},
           sku: {value: 'WPR-IMPORT', grounds: [{origin: 'manual', reading: 'WPR-IMPORT'}]},
           data_sources: {value: {}},

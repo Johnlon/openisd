@@ -33,7 +33,7 @@ const driver: OpenISDDriver = (() => {
     manufacturer: scraped('Tang Band'), brand: scraped('Tang Band'), model: scraped('W5-1138SMF'),
     provided_by: scraped('test'), comment: scraped(''), added: scraped('2026-01-01'),
     sku: { value: '', grounds: [{ origin: 'manufacturer_datasheet', reading: '' }] },
-    driver_type: scraped('subwoofer'),
+    driver_type: scraped(['subwoofer']),
     data_sources: { value: {} },
     quality: { confirmed_fields: [], fields_with_issues: [], missing: [], invalid: [], parse_errors: [], cross_source_only: [] },
     specs: { woofer: { Fs_hz: spec(45), Sd_m2: spec(0.0075), Znom_ohm: spec(4) } },

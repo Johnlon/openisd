@@ -41,7 +41,7 @@
   },
   "driver_type": {
     "origin": "manufacturer_product_page",
-    "value": "woofer"
+    "value": ["woofer"]
   },
   "manufacturer": {
     "origin": "manufacturer_product_page",

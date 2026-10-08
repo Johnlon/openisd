@@ -54,7 +54,7 @@ manufacturer: {value: Acme, origin: manufacturer_datasheet, definition: d}
 brand: {value: Acme, origin: manufacturer_datasheet, definition: d}
 model: {value: Widget, origin: manufacturer_datasheet, definition: d}
 sku: {value: acme-widget, grounds: [{origin: manufacturer_datasheet, reading: acme-widget}]}
-driver_type: {value: woofer, origin: manufacturer_datasheet, definition: d}
+driver_type: {value: [woofer], origin: manufacturer_datasheet, definition: d}
 data_sources: {value: {manufacturer_datasheet: 'https://example.invalid/ds.pdf'}}
 provided_by: {value: '', origin: manufacturer_datasheet}
 comment: {value: "first line\\nsecond line", origin: manufacturer_datasheet}
@@ -330,7 +330,7 @@ manufacturer: {value: Acme, origin: manufacturer_datasheet, definition: d}
 brand: {value: Acme, origin: manufacturer_datasheet, definition: d}
 model: {value: Widget, origin: manufacturer_datasheet, definition: d}
 sku: {value: acme-widget, grounds: [{origin: manufacturer_datasheet, reading: acme-widget}]}
-driver_type: {value: woofer, origin: manufacturer_datasheet, definition: d}
+driver_type: {value: [woofer], origin: manufacturer_datasheet, definition: d}
 data_sources: {value: {manufacturer_datasheet: 'https://example.invalid/ds.pdf'}}
 provided_by: {value: '', origin: manufacturer_datasheet}
 comment: {value: '', origin: manufacturer_datasheet}

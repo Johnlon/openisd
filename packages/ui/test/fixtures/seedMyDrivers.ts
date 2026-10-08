@@ -89,7 +89,7 @@ export function deviceRecord(d: SeedDriver, recordUuid: string): unknown {
     brand: { value: d.brand },
     model: { value: d.model },
     sku: { value: '', grounds: [{ origin: 'manual', reading: '' }] },
-    driver_type: { value: (d.driverType ?? DriverType.Woofer).value },
+    driver_type: { value: [(d.driverType ?? DriverType.Woofer).value] },
     data_sources: { value: {} },
     specs: { woofer: specEntries },
   };

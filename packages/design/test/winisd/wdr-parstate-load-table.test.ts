@@ -129,7 +129,7 @@ describe('winISDDriverFromOpenISDDeviceJson', () => {
     const a = winISDDriverToOpenISDDeviceJson(wdr).record;
     const b = winISDDriverToOpenISDDeviceJson(wdr).record;
 
-    assert.equal(a.driver_type.value, 'woofer');
+    assert.deepEqual(a.driver_type.value, ['woofer']);
     assert.notEqual(a.uuid.value, b.uuid.value, 'each import mints its own record identity');
     assert.doesNotThrow(() => openISDDeviceJsonSchema.parse(a));
   });

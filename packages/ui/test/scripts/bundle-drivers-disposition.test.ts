@@ -47,7 +47,7 @@ sku:
     - origin: manufacturer_product_page
       reading: 8fr-8
 driver_type:
-  value: full-range
+  value: [full-range]
 data_sources:
   value: {}
 specs:
@@ -86,7 +86,7 @@ sku:
     - origin: manufacturer_product_page
       reading: 8fr-8
 driver_type:
-  value: full-range
+  value: [full-range]
 data_sources:
   value: {}
 specs:
@@ -129,7 +129,7 @@ model:
 sku:
   value: 8fr-8
 driver_type:
-  value: full-range
+  value: [full-range]
 specs:
   woofer:
     Fs_hz:
@@ -167,7 +167,7 @@ sku:
     - origin: manufacturer_product_page
       reading: 8fr-8
 driver_type:
-  value: full-range
+  value: [full-range]
 data_sources:
   value: {}
 specs:
@@ -206,7 +206,7 @@ sku:
     - origin: manufacturer_product_page
       reading: nd140-pr
 driver_type:
-  value: passive-radiator
+  value: [passive-radiator]
 data_sources:
   value: {}
 specs:

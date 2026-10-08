@@ -23,7 +23,7 @@
   },
   "driver_type": {
     "origin": "manufacturer_product_page",
-    "value": "subwoofer"
+    "value": ["subwoofer"]
   },
   "manufacturer": {
     "origin": "manufacturer_product_page",

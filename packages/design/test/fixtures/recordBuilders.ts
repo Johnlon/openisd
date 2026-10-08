@@ -38,7 +38,7 @@ export function driverFromSpec(engine: Engine, spec: Record<string, number | Voi
     // `sku` is a DERIVED field: no origin, but `grounds` carrying the evidence it was
     // derived from, at least one entry.
     sku: { value: 'TEST-SKU', grounds: [{ origin: 'manufacturer_datasheet', reading: 'TEST-SKU' }] },
-    driver_type: scraped('woofer'),
+    driver_type: scraped(['woofer']),
     data_sources: { value: { manufacturer_datasheet: 'https://example.invalid/ds.pdf' } },
     quality: {
       confirmed_fields: [], fields_with_issues: [], missing: [], invalid: [],
@@ -62,7 +62,7 @@ export function radiatorFromSpec(engine: Engine, spec: Record<string, number>): 
     provided_by: scraped('test'), comment: scraped(''), added: scraped('2026-01-01'),
     uuid: { value: '00000000-0000-4000-8000-000000000001' },
     sku: { value: 'TEST-PR-SKU', grounds: [{ origin: 'manufacturer_datasheet', reading: 'TEST-PR-SKU' }] },
-    driver_type: scraped('passive-radiator'),
+    driver_type: scraped(['passive-radiator']),
     data_sources: { value: { manufacturer_datasheet: 'https://example.invalid/pr.pdf' } },
     quality: {
       confirmed_fields: [], fields_with_issues: [], missing: [], invalid: [],

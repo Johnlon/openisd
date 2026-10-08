@@ -31,7 +31,7 @@ function driverOf(p: {
     manufacturer: scraped(p.brand), brand: scraped(p.brand), model: scraped(p.model),
     provided_by: scraped('test'), comment: scraped(''), added: scraped('2026-01-01'),
     sku: { value: '', grounds: [{ origin: 'manufacturer_datasheet', reading: '' }] },
-    driver_type: scraped(p.driverType ?? ''),
+    driver_type: scraped([p.driverType ?? '']),
     data_sources: { value: {} },
     quality: {
       confirmed_fields: [], fields_with_issues: [], missing: [], invalid: [],
@@ -93,7 +93,7 @@ describe('passiveRadiatorRows — the PR browser row view model', () => {
     manufacturer: scraped(p.brand), brand: scraped(p.brand), model: scraped(p.model),
     provided_by: scraped('test'), comment: scraped(''), added: scraped('2026-01-01'),
     sku: { value: '', grounds: [{ origin: 'manufacturer_datasheet', reading: '' }] },
-    driver_type: scraped('passive-radiator'),
+    driver_type: scraped(['passive-radiator']),
     data_sources: { value: {} },
     quality: {
       confirmed_fields: [], fields_with_issues: [], missing: [], invalid: [],
@@ -241,7 +241,7 @@ function driverOfType(name: string, driverType: string): OpenISDDriver {
     manufacturer: scraped(''), brand: scraped(''), model: scraped(name),
     provided_by: scraped('test'), comment: scraped(''), added: scraped('2026-01-01'),
     sku: { value: '', grounds: [{ origin: 'manufacturer_datasheet', reading: '' }] },
-    driver_type: scraped(driverType),
+    driver_type: scraped([driverType]),
     data_sources: { value: {} },
     quality: {
       confirmed_fields: [], fields_with_issues: [], missing: [], invalid: [],

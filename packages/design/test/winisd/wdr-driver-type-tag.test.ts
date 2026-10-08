@@ -19,18 +19,45 @@ import {createEngine} from '../../engine/index.js';
 describe('WinISDDriver [DRIVERTYPE] tag — read side (winISDDriverToOpenISDDeviceJson)', () => {
   it('a .wdr reads back with woofer section', () => {
     const written = WinISDDriver.build(
-      { comment: 'a note' }, allNotAvailableCells(), [], undefined, 'woofer',
+      { comment: 'a note' }, allNotAvailableCells(), [], undefined, ['woofer'],
     ).toWdrIni();
     const wdr = WinISDDriver.fromWdrIni(written);
     const { record } = winISDDriverToOpenISDDeviceJson(wdr);
-    assert.equal(record.driver_type.value, 'woofer');
+    assert.deepEqual(record.driver_type.value, ['woofer']);
     assert.ok(driverSpecsOf(record)?.woofer, 'record.specs.woofer must be populated for a driver record');
+  });
+
+  it('a single role round-trips through the tag', () => {
+    const written = WinISDDriver.build(
+      { comment: 'a note' }, allNotAvailableCells(), [], undefined, ['midrange'],
+    ).toWdrIni();
+    assert.match(written, /\[DRIVERTYPE midrange\]/);
+    const { record } = winISDDriverToOpenISDDeviceJson(WinISDDriver.fromWdrIni(written));
+    assert.deepEqual(record.driver_type.value, ['midrange']);
+  });
+
+  it('[midrange, tweeter] round-trips as one comma-joined tag', () => {
+    const written = WinISDDriver.build(
+      { comment: 'a note' }, allNotAvailableCells(), [], undefined, ['midrange', 'tweeter'],
+    ).toWdrIni();
+    assert.match(written, /\[DRIVERTYPE midrange,tweeter\]/);
+    const wdr = WinISDDriver.fromWdrIni(written);
+    assert.deepEqual(wdr.driverTypes(), ['midrange', 'tweeter']);
+    const { record } = winISDDriverToOpenISDDeviceJson(wdr);
+    assert.deepEqual(record.driver_type.value, ['midrange', 'tweeter']);
+  });
+
+  it('an old single-value [DRIVERTYPE tweeter] file still loads', () => {
+    const old = WinISDDriver.build({ comment: 'a note\n[DRIVERTYPE tweeter]' }, allNotAvailableCells(), []).toWdrIni();
+    const wdr = WinISDDriver.fromWdrIni(old);
+    assert.deepEqual(wdr.driverTypes(), ['tweeter']);
+    assert.deepEqual(winISDDriverToOpenISDDeviceJson(wdr).record.driver_type.value, ['tweeter']);
   });
 
   it('a .wdr with no [DRIVERTYPE] tag falls back to woofer', () => {
     const wdr = WinISDDriver.build({ comment: 'an ordinary note' }, allNotAvailableCells(), []);
     const { record } = winISDDriverToOpenISDDeviceJson(wdr);
-    assert.equal(record.driver_type.value, 'woofer');
+    assert.deepEqual(record.driver_type.value, ['woofer']);
     assert.ok(driverSpecsOf(record)?.woofer, 'record.specs.woofer must be populated by default');
   });
 });
@@ -48,7 +75,7 @@ describe('refusal of tweeter record', () => {
       brand: { value: 'Acme' },
       model: { value: 'T-1' },
       sku: { value: 'T-1', grounds: [{ origin: 'manual' as const, reading: 'T-1' }] },
-      driver_type: { value: 'tweeter' },
+      driver_type: { value: ['tweeter'] },
       data_sources: { value: {} },
       specs: { tweeter: {} },
     };

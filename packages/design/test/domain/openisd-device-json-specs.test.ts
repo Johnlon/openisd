@@ -21,7 +21,7 @@ function record(specs: unknown): unknown {
     quality: {confirmed_fields: [], fields_with_issues: [], missing: [], invalid: [], parse_errors: [], cross_source_only: []},
     manufacturer: {value: 'Dayton'}, brand: {value: 'Dayton'}, model: {value: 'RS225'},
     sku: {value: 'RS225', grounds: [{origin: 'manual', reading: 'RS225'}]},
-    driver_type: {value: 'woofer'},
+    driver_type: {value: ['woofer']},
     data_sources: {value: {}},
     specs,
   };

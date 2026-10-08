@@ -212,7 +212,7 @@ export function winISDDriverToOpenISDDeviceJson(wdr: WinISDDriver):
         brand: {value: brand},
         model: {value: model},
         sku: {value: model, grounds: [{origin: 'manual', reading: model}]},
-        driver_type: {value: 'woofer'},
+        driver_type: {value: [...(wdr.driverTypes() ?? ['woofer'])]},
         data_sources: {value: {}},
         ...(providedBy ? {provided_by: providedBy} : {}),
         ...(comment ? {comment} : {}),

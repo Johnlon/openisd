@@ -96,7 +96,7 @@ describe('OpenISDDriver record', () => {
         spec: specSection({ Fs_hz: 30, Qts: 0.4, Sd_m2: 0.02, Cms_m_per_N: 0.0005, Mmd_kg: 0.05, Rms_Ns_per_m: 2, Xmax_m: 0.008 }),
       });
 
-      expect(driver.driverType()).toBe('woofer');
+      expect(driver.driverTypes()).toEqual(['woofer']);
     });
 
     it('the handle a caller holds survives every layer transition', async () => {
@@ -314,7 +314,7 @@ describe('OpenISDDriver record', () => {
         manufacturer: { value: 'Dayton' },
         uuid: { value: '00000000-0000-4000-8000-000000000000' },
         sku: { value: 'TEST-SKU', grounds: [{ origin: 'manufacturer_datasheet', reading: 'TEST-SKU' }] },
-        driver_type: { value: 'woofer' },
+        driver_type: {value: ['woofer']},
         data_sources: { value: { manufacturer_datasheet: 'https://example.invalid/ds.pdf' } },
         quality: {
           confirmed_fields: [], fields_with_issues: [], missing: [], invalid: [],

@@ -313,6 +313,15 @@ const bookkeepingFieldOf = <T extends z.ZodType>(value: T) => z.strictObject({
 
 const textField = scrapedFieldOf(z.string());
 
+/** A driver's roles: one or more, each once (`DriverRoles`, winisd_tools QT84). The scraper stores
+ *  them in `DriverType` declaration order, so one record has one canonical list. */
+const driverRolesField = scrapedFieldOf(
+    z.string().array().min(1).refine(roles => new Set(roles).size === roles.length, {message: 'a role appears twice'}),
+);
+
+/** Every category the manufacturer publishes the driver under, each with its listing page URL. */
+const categoriesField = scrapedFieldOf(z.strictObject({label: z.string(), url: z.string()}).array().min(1));
+
 
 // ── THE SPEC SECTIONS, BY NAME ────────────────────────────────────────────────────────────────
 //
@@ -426,7 +435,8 @@ export const openISDDeviceJsonSchema = z.strictObject({
     brand: textField,
     model: textField,
     sku: derivedFieldOf(z.string()),
-    driver_type: textField,
+    driver_type: driverRolesField,
+    categories: categoriesField.optional(),
     series: textField.optional(),
     nominal_size_cm: scrapedFieldOf(z.number()).optional(),
     data_sources: bookkeepingFieldOf(z.strictObject({
