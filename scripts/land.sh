@@ -20,7 +20,8 @@
 #   6. push to origin main, then start the post-land full run on the pushed commit, detached
 #      (scripts/land/post-land/run.sh; only when land.conf sets FULL_SUITE_CMD)
 #
-# land.conf (next to this file, else at the repo root) sets LINT_CMD, TYPECHECK_CMD, ATTRIBUTION_CMD, GATE_DEADLINE_S, LAND_LOCK.
+# land.conf (next to this file, else at the repo root) sets LINT_CMD, optionally LINT_REQUIRES (paths
+# that must exist before lint runs), TYPECHECK_CMD, ATTRIBUTION_CMD, GATE_DEADLINE_S, LAND_LOCK.
 set -uo pipefail
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -96,6 +97,9 @@ if [ "$(task_field "$TASK" label)" != "fixes" ]; then
 fi
 
 # 5. the gates
+for required in ${LINT_REQUIRES:-}; do
+  [ -e "$required" ] || { GATE_OUT=/dev/null; refuse lint "$required is missing in $ROOT, so lint would run with whatever tool the path finds. Create worktrees with _agent_files/bin/new-worktree.sh, which links it in."; }
+done
 mapfile -t changed < <(git diff --name-only --diff-filter=ACMR origin/main HEAD)
 run_gate lint /dev/null "$LINT_CMD" "${changed[@]}"
 run_gate typecheck /dev/null "$TYPECHECK_CMD"
