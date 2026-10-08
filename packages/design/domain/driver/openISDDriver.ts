@@ -15,7 +15,7 @@ import type { NumericDriverSpecFieldName } from './driverSpecFieldName.js';
 import { OpenIsdDriverSpec } from './openIsdDriverSpec.js';
 
 /**
- * A real, playable driver — its record has a `woofer` or `tweeter` section.
+ * A real, playable driver — its record has a `woofer` section (a coaxial has a `tweeter` section beside it).
  *
  * ABSTRACT, with two concrete kinds, because "a driver in a project" and "a driver on its own"
  * are genuinely different things and the type should say so rather than one class carrying a
@@ -26,7 +26,7 @@ import { OpenIsdDriverSpec } from './openIsdDriverSpec.js';
  *     project, because it is not in one.
  * Both are WINDOWS onto a record living wherever their owner keeps it — never an internal copy.
  *
- * Neither constructs from a record with no woofer/tweeter section: a record that incomplete
+ * Neither constructs from a record with no woofer section: a record that incomplete
  * never becomes a driver at all, it is rejected before a window is opened onto it. (Flagging
  * such a record in the driver list and refusing selection is the app's job, outside this
  * package — this refusal is the safety net that check relies on, not a duplicate of it.) So

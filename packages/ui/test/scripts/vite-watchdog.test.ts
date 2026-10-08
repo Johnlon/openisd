@@ -25,6 +25,23 @@ interface Outcome {
   readonly stopped: boolean;
 }
 
+const LOOKS = 200;
+
+/** The process state letter from /proc, or 'gone'; looks up to LOOKS times, 10 ms apart, until it is gone or a zombie. */
+function stateAfterStop(pid: number | undefined): string {
+  let state = 'gone';
+  for (let look = 0; look < LOOKS; look++) {
+    try {
+      state = readFileSync(`/proc/${pid}/stat`, 'utf8').split(') ')[1]!.charAt(0);
+    } catch {
+      return 'gone';
+    }
+    if (state === 'Z') return state;
+    Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 10);
+  }
+  return state;
+}
+
 /** Runs the watchdog against a stand-in test process; `answers` is what each curl call returns in turn (the last repeats). */
 function watch(answers: ReadonlyArray<'ok' | 'fail'>, listening: boolean, silentPolls: number): Outcome {
   const dir = mkdtempSync(join(tmpdir(), 'vite-watchdog-test-'));
@@ -58,13 +75,10 @@ function watch(answers: ReadonlyArray<'ok' | 'fail'>, listening: boolean, silent
     encoding: 'utf8',
   });
   // spawnSync blocks the event loop, so the exit event is not seen yet and a killed child is still
-  // a zombie: read its state from the OS.
-  let state = 'gone';
-  try {
-    state = readFileSync(`/proc/${testProcess.pid}/stat`, 'utf8').split(') ')[1]!.charAt(0);
-  } catch {
-    // no such process
-  }
+  // a zombie: read its state from the OS. The watchdog sends SIGTERM and returns; under load the
+  // child can still be running when we look. Look again a bounded number of times (a count of
+  // looks, not a deadline) before concluding it was not stopped.
+  const state = stateAfterStop(testProcess.pid);
   return {output: done.stdout + done.stderr, stopped: state === 'gone' || state === 'Z' || ended};
 }
 
