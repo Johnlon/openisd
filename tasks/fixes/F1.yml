@@ -1,0 +1,46 @@
+id: F1
+owner: post-land
+status: open
+sha: f6709b16e3866410adc000de24508b5069820f4e
+goal: main is red at f6709b16e3; make the full suite pass again
+output: |
+      [2m       - unexpected value ""[22m
+  
+  
+      [0m [90m 173 |[39m
+       [90m 174 |[39m     [36mawait[39m page[33m.[39mmouse[33m.[39mclick(box[33m.[39mx [33m+[39m box[33m.[39mwidth [33m*[39m [35m0.5[39m[33m,[39m y)[33m;[39m
+      [31m[1m>[22m[39m[90m 175 |[39m     [36mawait[39m expect(hz)[33m.[39mnot[33m.[39mtoHaveValue([32m''[39m)[33m;[39m
+       [90m     |[39m                          [31m[1m^[22m[39m
+       [90m 176 |[39m     [36mconst[39m locked [33m=[39m [36mawait[39m hz[33m.[39minputValue()[33m;[39m
+       [90m 177 |[39m
+       [90m 178 |[39m     [36mawait[39m page[33m.[39mmouse[33m.[39mmove(box[33m.[39mx [33m+[39m box[33m.[39mwidth [33m*[39m [35m0.75[39m[33m,[39m y[33m,[39m { steps[33m:[39m [35m4[39m })[33m;[39m[0m
+      [2m    at /home/john/work/winisd/.postland/3085790-f6709b16e3/packages/ui/test/ui/original-chart-view.browser.spec.ts:175:26[22m
+  
+  [2m    Error Context: test-results/ui-original-chart-view.bro-d4087-er-afterwards-leaves-it-put/error-context.md[22m
+  
+  [31m  2) packages/ui/test/ui/original-project-list.browser.spec.ts:72:3 › Original project list › a hidden project is still hidden after a reload, and the chart still leaves its trace out [39m
+  
+      Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBeLessThan[2m([22m[32mexpected[39m[2m)[22m
+  
+      Expected: < [32m0[39m
+      Received:   [31m45[39m
+  
+      Call Log:
+      - Timeout 20000ms exceeded while waiting on the predicate
+  
+      [0m [90m 75 |[39m     [36mconst[39m shown [33m=[39m [36mawait[39m inkColours(page)[33m;[39m
+       [90m 76 |[39m     [36mawait[39m overlayCheckbox[33m.[39mclick()[33m;[39m
+      [31m[1m>[22m[39m[90m 77 |[39m     [36mawait[39m expect[33m.[39mpoll(() [33m=>[39m inkColours(page))[33m.[39mtoBeLessThan(shown)[33m;[39m
+       [90m    |[39m                                               [31m[1m^[22m[39m
+       [90m 78 |[39m     [36mconst[39m hidden [33m=[39m [36mawait[39m inkColours(page)[33m;[39m
+       [90m 79 |[39m
+       [90m 80 |[39m     [36mawait[39m page[33m.[39mreload()[33m;[39m[0m
+      [2m    at /home/john/work/winisd/.postland/3085790-f6709b16e3/packages/ui/test/ui/original-project-list.browser.spec.ts:77:47[22m
+  
+  [2m    Error Context: test-results/ui-original-project-list.b-6a375--still-leaves-its-trace-out/error-context.md[22m
+  
+  [31m  2 failed[39m
+  [31m    packages/ui/test/ui/original-chart-view.browser.spec.ts:169:3 › Original chart view › a click on the chart locks the cursor: moving the pointer afterwards leaves it put [39m
+  [31m    packages/ui/test/ui/original-project-list.browser.spec.ts:72:3 › Original project list › a hidden project is still hidden after a reload, and the chart still leaves its trace out [39m
+  [32m  580 passed[39m[2m (41.8m)[22m
+  post-land suite 3085790-f6709b16e3 finished: FAILED (exit 1) after 1h22m36s
