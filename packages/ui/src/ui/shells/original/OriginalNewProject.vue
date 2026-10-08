@@ -45,7 +45,7 @@ const {
   IMPLEMENTED_BOX_TYPES,
   volume_m3,
   frontVolume_m3,
-  isDual,
+  isDual, hasTunings, rearTuning_hz, frontTuning_hz,
   isSealed,
   isVented,
   sealedVolume_m3,
@@ -188,6 +188,10 @@ function handleCreate() {
             <template v-else>
               <div class="field-row"><div class="field"><label>Rear chamber volume</label><NumInput id="np-rear-volume" :model-value="volume_m3" @update:model-value="(v: number | null) => { if (v !== null) volume_m3 = v; }" :field="NumberField.BOX_VB_L" :precision="NumberField.BOX_VB_L.precision" /><UnitToggle :field="NumberField.BOX_VB_L" unit-class="unit" /></div></div>
               <div class="field-row"><div class="field"><label>Front chamber volume</label><NumInput id="np-front-volume" :model-value="frontVolume_m3" @update:model-value="(v: number | null) => { if (v !== null) frontVolume_m3 = v; }" :field="NumberField.BOX_VF_L" :precision="NumberField.BOX_VF_L.precision" /><UnitToggle :field="NumberField.BOX_VF_L" unit-class="unit" /></div></div>
+              <template v-if="hasTunings">
+              <div class="field-row"><div class="field"><label>Rear chamber tuning</label><NumInput id="np-rear-tuning" :model-value="rearTuning_hz" @update:model-value="(v: number | null) => { if (v !== null) rearTuning_hz = v; }" :field="NumberField.BOX_FRC_HZ" :precision="NumberField.BOX_FRC_HZ.precision" /><UnitToggle :field="NumberField.BOX_FRC_HZ" unit-class="unit" /></div></div>
+              <div class="field-row"><div class="field"><label>Front chamber tuning</label><NumInput id="np-front-tuning" :model-value="frontTuning_hz" @update:model-value="(v: number | null) => { if (v !== null) frontTuning_hz = v; }" :field="NumberField.BOX_FFC_HZ" :precision="NumberField.BOX_FFC_HZ.precision" /><UnitToggle :field="NumberField.BOX_FFC_HZ" unit-class="unit" /></div></div>
+              </template>
             </template>
           </div>
         </div>

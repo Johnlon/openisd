@@ -385,6 +385,40 @@ describe('useOgNewProject', () => {
   });
 });
 
+describe('useOgNewProject — bandpass6 and ABC take both chambers and both tunings', () => {
+  for (const type of ['bandpass6', 'abc'] as const) {
+    it(`${type}: is dual, and the project carries the entered volumes and tunings`, () => {
+      const engine = createEngine();
+      const wizard = useOgNewProject({ passiveRadiators: testPassiveRadiators(), areas: engine, initialDriver: createTestDriver(engine) });
+      wizard.boxType.value = type;
+      expect(wizard.isDual.value).toBe(true);
+      wizard.volume_m3.value = 0.031;
+      wizard.frontVolume_m3.value = 0.017;
+      wizard.rearTuning_hz.value = 41.5;
+      wizard.frontTuning_hz.value = 52.5;
+
+      const project = wizard.createProject();
+      expect(project).not.toBeNull();
+      if (!project) return;
+      const chambers = type === 'bandpass6' ? project.box.bandpass6.chambers : project.box.abc.chambers;
+      expect(chambers.rear.volume_m3.value).toBe(0.031);
+      expect(chambers.front.volume_m3.value).toBe(0.017);
+      expect(chambers.rear.tuning_goal_hz.value).toBe(41.5);
+      expect(chambers.front.tuning_goal_hz.value).toBe(52.5);
+    });
+  }
+
+  it('bandpass4 is dual and has no tuning inputs in its project', () => {
+    const engine = createEngine();
+    const wizard = useOgNewProject({ passiveRadiators: testPassiveRadiators(), areas: engine, initialDriver: createTestDriver(engine) });
+    wizard.boxType.value = 'bandpass4';
+    expect(wizard.isDual.value).toBe(true);
+    expect(wizard.hasTunings.value).toBe(false);
+    wizard.boxType.value = 'bandpass6';
+    expect(wizard.hasTunings.value).toBe(true);
+  });
+});
+
 /**
  * Step 4's vented readout says when the designed box is implausible.
  *

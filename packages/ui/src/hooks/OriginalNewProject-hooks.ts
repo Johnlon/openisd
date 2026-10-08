@@ -12,6 +12,7 @@ import {
   newProjectBoxTypeOptions,
   newProjectDriver,
 } from '../logic/appState.js';
+import {DUAL_CHAMBER} from './boxFields.js';
 import {useApp} from '../logic/app.js';
 import { selectedOption } from '../logic/domEvents.js';
 
@@ -87,6 +88,12 @@ export interface OriginalNewProjectAPI {
   /** Front-chamber volume of a dual-chamber box, SI. */
   readonly frontVolume_m3: Ref<number>;
   readonly isDual: ComputedRef<boolean>;
+  /** True when the dual-chamber type takes tunings on this step (bandpass6 and ABC). */
+  readonly hasTunings: ComputedRef<boolean>;
+  /** Rear-chamber tuning of a bandpass6 or ABC box, Hz. */
+  readonly rearTuning_hz: Ref<number>;
+  /** Front-chamber tuning of a bandpass6 or ABC box, Hz. */
+  readonly frontTuning_hz: Ref<number>;
   readonly isSealed: ComputedRef<boolean>;
   readonly isVented: ComputedRef<boolean>;
 
@@ -185,6 +192,8 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
   // volume from the alignment on step 4 instead, so the two never overwrite each other.
   const volume_m3 = ref(NumberField.BOX_VB_L.toSI(7));
   const frontVolume_m3 = ref(NumberField.BOX_VF_L.toSI(10));
+  const rearTuning_hz = ref(35);
+  const frontTuning_hz = ref(25);
   const targetQtc = ref(0.707);
   const sealedVolume_m3 = ref(NumberField.BOX_VB_L.toSI(7));
   const selectedVentedAlignment = ref<VentedAlignment>(DEFAULT_VENTED_ALIGNMENT);
@@ -196,7 +205,8 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
 
   const hadUnsaved = computed(() => isModified.value);
 
-  const isDual = computed(() => boxType.value === 'bandpass4');
+  const isDual = computed(() => DUAL_CHAMBER.has(boxType.value));
+  const hasTunings = computed(() => boxType.value === 'bandpass6' || boxType.value === 'abc');
   const isSealed = computed(() => boxType.value === 'sealed');
   const isVented = computed(() => boxType.value === 'vented');
   const isPassiveRadiator = computed(() => boxType.value === 'box-passive-radiator');
@@ -448,8 +458,8 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
           return passiveRadiator.value === null ? pr : pr.radiator(passiveRadiator.value);
         }
         case 'bandpass4': return b.bandpass4().rearVolume_m3(volume_m3.value).frontVolume_m3(frontVolume_m3.value);
-        case 'bandpass6': return b.bandpass6();
-        case 'abc': return b.abc();
+        case 'bandpass6': return b.bandpass6().rearVolume_m3(volume_m3.value).frontVolume_m3(frontVolume_m3.value).rearTuning_hz(rearTuning_hz.value).frontTuning_hz(frontTuning_hz.value);
+        case 'abc': return b.abc().rearVolume_m3(volume_m3.value).frontVolume_m3(frontVolume_m3.value).rearTuning_hz(rearTuning_hz.value).frontTuning_hz(frontTuning_hz.value);
       }
     });
     p.name.set(projName.value.trim() || 'Unnamed project');
@@ -492,6 +502,9 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
     volume_m3,
     frontVolume_m3,
     isDual,
+    hasTunings,
+    rearTuning_hz,
+    frontTuning_hz,
     isSealed,
     isVented,
 
