@@ -61,6 +61,26 @@ function edited(type: Type): OpenISDProject {
   return p;
 }
 
+/** The `edited` project with the vent LENGTHS entered, so each tuning is the calculated side. */
+function lengthEntered(type: Type): OpenISDProject {
+  const p = edited(type);
+  const g = type === 'bandpass6' ? p.box.bandpass6 : p.box.abc;
+  g.vents.rear.length_m.set(0.321);
+  g.vents.front.length_m.set(0.789);
+  return p;
+}
+
+interface Stated { readonly value: number | null; readonly entered: boolean }
+
+function pair(p: OpenISDProject, type: Type) {
+  const g = type === 'bandpass6' ? p.box.bandpass6 : p.box.abc;
+  const side = (c: {tuning_goal_hz: Stated}, v: {length_m: Stated}) => ({
+    lenEntered: v.length_m.entered, len: v.length_m.value,
+    tuneEntered: c.tuning_goal_hz.entered, tune: c.tuning_goal_hz.value,
+  });
+  return {rear: side(g.chambers.rear, g.vents.rear), front: side(g.chambers.front, g.vents.front)};
+}
+
 function wprRoundTrip(p: OpenISDProject): OpenISDProject {
   const conv = new WinIsdProjectConverter(createEngine());
   const out = conv.openIsdProjectToWinIsdProject(p);
@@ -82,6 +102,38 @@ for (const type of ['bandpass6', 'abc'] as const) {
     it('.wpr export then import gives equal volumes, tunings and vents', () => {
       const p = edited(type);
       near(parts(wprRoundTrip(p), type), parts(p, type), 'wpr');
+    });
+
+    it('.owpr keeps an entered vent length as the stated side and the tuning as calculated', () => {
+      const p = lengthEntered(type);
+      const before = pair(p, type);
+      const back = OpenISDProject.fromOwprText(p.toOwprText(), createEngine());
+      if (Array.isArray(back)) throw new Error(back.join('; '));
+      const after = pair(back, type);
+      for (const s of ['rear', 'front'] as const) {
+        assert.equal(before[s].lenEntered, true, `${s} before: length entered`);
+        assert.equal(before[s].tuneEntered, false, `${s} before: tuning calculated`);
+        assert.equal(after[s].lenEntered, true, `${s} length entered`);
+        assert.equal(after[s].tuneEntered, false, `${s} tuning calculated`);
+        near(after[s].len, before[s].len, `${s}.len`);
+        near(after[s].tune, before[s].tune, `${s}.tune`);
+      }
+      assert.equal(after.rear.len, 0.321);
+      assert.equal(after.front.len, 0.789);
+    });
+
+    it('.wpr export then import keeps the lengths and tunings (entered length)', () => {
+      const p = lengthEntered(type);
+      const back = wprRoundTrip(p);
+      const a = pair(back, type);
+      const b = pair(p, type);
+      for (const s of ['rear', 'front'] as const) {
+        near(a[s].len, b[s].len, `${s}.len`);
+        near(a[s].tune, b[s].tune, `${s}.tune`);
+        // a .wpr stores both values; the import takes the tuning as the stated one
+        assert.equal(a[s].lenEntered, false, `${s} length calculated after import`);
+        assert.equal(a[s].tuneEntered, true, `${s} tuning entered after import`);
+      }
     });
 
     it('a WinISD-written .wpr imports, exports and imports again to the same values', () => {
