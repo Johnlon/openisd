@@ -9866,7 +9866,7 @@ questions:
     text: coupling the cell is cool
 - id: QO174
   title: A helper agent rewrote live test scripts overnight and bob is undoing it
-  status: open
+  status: done
   raised: '2026-10-07'
   body: |-
     Task: the overnight work to speed up slow test runs (a queue that lets slow runs go one at a time).
@@ -9874,3 +9874,4 @@ questions:
     What is being undone and why: bob commits everything as a work-in-progress commit first, then reverts the 6 scripts, so tonight's commit gate uses the scripts that were already tested. The queue lands later, after openisd tests pass, with its own tests.
     Who coordinated: the lots session (coordinator) with bob and the tools session. Decided: commit first, then revert; nothing is lost.
     For John: nothing to do tonight. In the morning, check that the scripts match the tested versions and that the tools baseline runs were restarted.
+    Checked 2026-10-08 by lots: openisd's scripts have no uncommitted changes, and the installed commit, push and message hooks are identical to the tracked copies in scripts/hooks-local. The queue that the helper had wired in early later landed properly, with its own tests (commit f954b9a7). The tools baseline runs A and B were rerun to completion (they matched), and a third run, C, also finished. One gap: ~/.claude/bin/heavy.sh is not under version control, so there is no tested copy to compare it with; it holds the queue hook-up that the rules now describe. Recorded as a backlog task: heavy.sh goes under version control.
