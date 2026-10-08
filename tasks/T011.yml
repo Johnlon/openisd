@@ -20,5 +20,6 @@ files:
   - scripts/admit/**
   - scripts/housekeeping.sh
   - /home/john/work/winisd/gates.py
+  - bugs/BUG_20261009_wsl-mirrored-route-churn-aborts-browser-specs.md
 note: replaces the slow-run queue as the machine-wide admission (P4 deletes the queue only after T011 carries traffic); heavy.sh's 4 lanes become 1 slot.
 needs: [T001, T004]
