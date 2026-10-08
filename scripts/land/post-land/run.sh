@@ -81,12 +81,22 @@ if [ "$rc" = 0 ]; then
   exit 0
 fi
 
-# Red: open a fixes task on main. The push can lose a race with a landing, so recompute and retry.
+# Red: open a fixes task on top of the tested commit. The push can lose a race with a landing, so recompute and retry.
 FIX="$(mktemp -d "${TMPDIR:-/tmp}/post-land-fix.XXXXXX")"
 for attempt in 1 2 3; do
   git fetch -q origin main
+  # The fixes commit goes on top of the tested commit. When origin/main already holds it, that is
+  # origin/main. When origin/main is behind it (main is ahead of origin), it is the tested commit
+  # itself, and the push is a fast-forward carrying the tested history with it. When origin/main
+  # has moved on without it, nothing is pushed.
+  if git merge-base --is-ancestor "$SHA" origin/main; then base=origin/main
+  elif git merge-base --is-ancestor origin/main "$SHA"; then base="$SHA"
+  else
+    echo "post-land: RED at ${SHA:0:10} but origin/main has diverged from it (cannot fast-forward); nothing pushed" >&2
+    exit 1
+  fi
   git -C "$ROOT" worktree remove --force "$FIX" 2>/dev/null; rm -rf "$FIX"
-  git worktree add -q --detach "$FIX" origin/main || exit 2
+  git worktree add -q --detach "$FIX" "$base" || exit 2
   mkdir -p "$FIX/tasks/fixes"
   last="$(ls "$FIX/tasks/fixes" 2>/dev/null | sed -n 's/^F\([0-9][0-9]*\)\.yml$/\1/p' | sort -n | tail -n 1)"
   n=$(( ${last:-0} + 1 ))
