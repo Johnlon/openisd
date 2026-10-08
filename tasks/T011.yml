@@ -8,14 +8,12 @@ done_test: timeout 600 bash scripts/land/test/admit.e2e.test.sh
 locked:
   - path: scripts/land/test/admit.e2e.test.sh
     sha256: a36d542bf5875d2a76620c4f7f670b1089a40b708824dd323c7a1fa7379eca0a
-  - path: /home/john/work/winisd/tests/test_gates_admission.py
-    sha256: 07000f1ecf697db36a9f5095cb318065eea0e2f7296baecb2fc6a83a164d761f
 # admit.e2e asserts:
 #  - a second heavy start blocks FIFO and prints the job it waits behind
 #  - a slot whose owner pid (plus start time) is dead is freed by the housekeeper, and the waiter runs
 #  - a land.sh fast gate (diff lint, typecheck, targeted spec, attribution) runs while the slot is held
 #  - heavy.sh --slow, quiet-test full runs, both repos' hooks' heavy stages all go through admit.sh
-# test_gates_admission asserts: gates.py rejects vitest/playwright/full eslint/full tsc/pytest suite/
+# test_gates_admission (workspace repo; locked by the workspace's own landing, gates-admit) asserts: gates.py rejects vitest/playwright/full eslint/full tsc/pytest suite/
 #  heavy.sh/rebuild without a valid admission token, naming admit.sh; accepts with one; accepts targeted runs
 files:
   - scripts/admit.sh

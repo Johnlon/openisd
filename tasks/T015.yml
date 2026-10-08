@@ -1,0 +1,9 @@
+id: T015
+repo: openisd
+owner: lots
+status: open
+goal: Task-file maintenance by the coordinator. T011 drops a locked entry that points outside this repo (the workspace's test_gates_admission.py, which land.sh can never read here; it is locked by the workspace repo's own landing).
+done_test: bash scripts/land.sh --self-check
+files:
+  - tasks/T011.yml
+  - tasks/T015.yml
