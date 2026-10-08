@@ -1,0 +1,16 @@
+id: T014
+repo: openisd
+owner: lots
+status: open
+goal: bp6/ABC step 12 (PLAN_20261007_bp6_abc_complete) — the 6th-order bandpass and ABC box types are switched on (BoxEngine.implemented is true for every type); FEATURES and BACKLOG say so.
+done_test: bash scripts/test.sh packages/design/test/engine/box-params.test.ts packages/ui/test/logic/newProject.test.ts
+files:
+  - BACKLOG.md
+  - FEATURES.md
+  - packages/design/engine/box/BoxEngine.ts
+  - packages/design/test/engine/box-params.test.ts
+  - packages/ui/test/logic/newProject.test.ts
+  - packages/ui/test/ui/original-box-tab.browser.spec.ts
+  - tasks/T014.yml
+note: the original-box-tab dim-row browser spec is proven by the post-land run, not the done_test (the browser slot is held by post-land).
+needs: [T013]
