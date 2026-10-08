@@ -23,7 +23,7 @@ export function useMobileEnclosureTab() {
   const { selectedBox } = createSelectedBox({ focusedProject, projectChanged, isSimulatable: boxTypeIsSimulatable });
   const { advAir } = createEnvironmentAir({ project, projectChanged, envDefaults, environment: engine.environment });
   const {
-    activeVent, activeTuning, portPipeResonance_hz, fbUnreachable, fbUnreachableMsg, tuningField,
+    activeVent, activeTuning, ventPorts, portPipeResonance_hz, fbUnreachable, fbUnreachableMsg, tuningField,
   } = createVentReadouts({ project, projectChanged, selectedBox, air: advAir, vent: engine.vent });
   const { prResonanceMassDq, prFsMass_hz, prNaturalFh } =
     createSealedReadouts({ project, selectedBox, projectChanged });
@@ -33,7 +33,7 @@ export function useMobileEnclosureTab() {
 
   return {
     project, selectedBox,
-    activeVent, activeTuning, portPipeResonance_hz, fbUnreachable, fbUnreachableMsg, tuningField,
+    activeVent, activeTuning, ventPorts, portPipeResonance_hz, fbUnreachable, fbUnreachableMsg, tuningField,
     prResonanceMassDq, prFsMass_hz, prNaturalFh,
     prBrowseOpen, loadPREntry, loadBundledPassiveRadiatorEntry, defineNewPREntry,
     prSaveOpen, prSaveFields, prSaveCanSave, openPRSave, cancelPRSave, confirmPRSave,

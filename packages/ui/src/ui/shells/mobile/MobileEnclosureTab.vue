@@ -1,6 +1,6 @@
 <script setup lang="ts">
-// The mobile Enclosure tab — vent (port) fields for vented/bandpass4, passive-radiator fields for
-// box-passive-radiator, and the bandpass6/abc placeholder. Thin: all state and domain reads/writes
+// The mobile Enclosure tab — vent (port) fields for vented/bandpass4, one vent panel per port for
+// bandpass6/abc, and passive-radiator fields for box-passive-radiator. Thin: all state and domain reads/writes
 // live in useMobileEnclosureTab() (src/hooks/MobileEnclosureTab-hooks.ts), which calls the SAME
 // field-wiring factories OriginalShell-hooks.ts exports. PRBrowser is the app's
 // existing global-style overlay, reused unchanged (not duplicated per skin) — position:fixed
@@ -18,7 +18,7 @@ import {useUnitReadouts} from '../../../hooks/useUnitReadouts.js';
 
 const {
   project, selectedBox,
-  activeVent, activeTuning, portPipeResonance_hz, fbUnreachable, fbUnreachableMsg, tuningField,
+  activeVent, activeTuning, ventPorts, portPipeResonance_hz, fbUnreachable, fbUnreachableMsg, tuningField,
   prResonanceMassDq, prFsMass_hz, prNaturalFh,
   prBrowseOpen, loadPREntry, loadBundledPassiveRadiatorEntry, defineNewPREntry,
   prSaveOpen, prSaveFields, prSaveCanSave, openPRSave, cancelPRSave, confirmPRSave,
@@ -130,12 +130,54 @@ const {fieldWithUnit} = useUnitReadouts();
     </div>
   </div>
 
-  <div v-else-if="selectedBox === 'bandpass6' || selectedBox === 'abc'" class="mob-panel">
-    <div class="mob-panel-head">Vents</div>
-    <p class="mob-hint mob-hint-warn">
-      <b>Response model pending.</b> These vent fields are shown for parity but are not yet wired to the engine for this enclosure type.
-    </p>
-  </div>
+  <template v-else-if="selectedBox === 'bandpass6' || selectedBox === 'abc'">
+    <div v-for="port in ventPorts" :key="port.name" class="mob-panel">
+      <div class="mob-panel-head">{{ port.name }} vent</div>
+      <div v-if="port.name === 'Intra'" class="mob-hint">Connects the chambers — not open to the outside.</div>
+      <div class="mob-row">
+        <label class="mob-row-label">Number of Vents</label>
+        <select class="mob-select" :value="port.vent.count.value"
+                @change="e => { const n = selectedOption(e, VENT_COUNT_OPTIONS); if (n !== null) port.vent.count.set(n); }">
+          <option v-for="o in VENT_COUNT_OPTIONS" :key="o.value" :value="o.value">{{ o.label }}</option>
+        </select>
+      </div>
+      <div class="mob-row">
+        <label class="mob-row-label">Shape</label>
+        <select class="mob-select" :value="port.vent.shape.value"
+                @change="e => { const shape = selectedOption(e, VENT_SHAPE_OPTIONS); if (shape !== null) port.vent.shape.set(shape); }">
+          <option v-for="o in VENT_SHAPE_OPTIONS" :key="o.value" :value="o.value">{{ o.label }}</option>
+        </select>
+      </div>
+      <div class="mob-row">
+        <label class="mob-row-label">End Correction</label>
+        <select class="mob-select" :value="port.vent.endCorrection_m.value"
+                @change="e => { const k = selectedOption(e, END_CORRECTION_OPTIONS); if (k !== null) port.vent.endCorrection_m.set(k); }">
+          <option v-for="o in END_CORRECTION_OPTIONS" :key="o.value" :value="o.value">{{ o.label }} ({{ o.value }})</option>
+        </select>
+      </div>
+      <template v-if="port.vent.shape.value === 'slotted'">
+        <UIField class="mob-ui-field" :title="VENT_GEOMETRY_TIP" :field="NumberField.VENT_W_CM" :cell="port.vent.width_m" stepper />
+        <UIField class="mob-ui-field" :title="VENT_GEOMETRY_TIP" :field="NumberField.VENT_H_CM" :cell="port.vent.height_m" stepper />
+      </template>
+      <UIField v-else class="mob-ui-field" :title="VENT_GEOMETRY_TIP" :field="NumberField.VENT_D_CM" :cell="port.vent.diameter_m" stepper />
+      <UIField class="mob-ui-field" :field="NumberField.VENT_L_CM" :cell="port.vent.length_m" stepper />
+      <div class="mob-field-row mob-field-calculated">
+        <div class="mob-field-main">
+          <span class="mob-field-label">Cross area</span>
+          <span class="mob-field-value mob-readonly"><NumReadout :value="port.vent.area_m2.value" :field="NumberField.VENT_CROSSAREA_M2" :precision="NumberField.VENT_CROSSAREA_M2.precision" /></span>
+        </div>
+        <UnitToggle :field="NumberField.VENT_CROSSAREA_M2" unit-class="mob-unit" />
+      </div>
+      <div class="mob-field-row mob-field-calculated">
+        <div class="mob-field-main">
+          <span class="mob-field-label">1st port resonance</span>
+          <span class="mob-field-value mob-readonly"><NumReadout :value="port.portPipeResonance_hz" :field="NumberField.VENT_1STPORTRESONANCE_HZ" :precision="NumberField.VENT_1STPORTRESONANCE_HZ.precision" /></span>
+        </div>
+        <UnitToggle :field="NumberField.VENT_1STPORTRESONANCE_HZ" unit-class="mob-unit" />
+      </div>
+      <p v-if="port.unreachable" class="mob-hint mob-hint-warn">{{ port.unreachableMsg }}</p>
+    </div>
+  </template>
 </template>
 
 <style scoped>

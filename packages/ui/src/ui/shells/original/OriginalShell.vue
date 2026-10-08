@@ -59,7 +59,7 @@ const {
   fbUnreachable, fbUnreachableMsg, isDual,
   frontVolumeCell, rearTuningCell, rearResonance,
   model, startEdit, startWhatIf, placement,
-  activeVent, ventPorts, selectedPortName, shownPort, END_CORRECTION_OPTIONS, VENT_SHAPE_OPTIONS, VENT_COUNT_OPTIONS, PR_COUNT_OPTIONS, portPipeResonance_hz,
+  activeVent, ventPorts, END_CORRECTION_OPTIONS, VENT_SHAPE_OPTIONS, VENT_COUNT_OPTIONS, PR_COUNT_OPTIONS, portPipeResonance_hz,
   prBrowseOpen, loadPREntry, loadBundledPassiveRadiatorEntry, defineNewPREntry,
   prSaveOpen, prSaveFields, prSaveCanSave, openPRSave, cancelPRSave, confirmPRSave,
   prResonanceMassDq, prFsMass_hz, fmt,
@@ -556,60 +556,49 @@ provideCellScope({ revision: projectChanged, written: () => {} });
 
 <!-- Closed (sealed) has NO enclosure pane: the Box tab is the single home of
                Volume + Fsc, and showEnclosureTab drops the nav entry for sealed. -->
-          <div v-else-if="selectedBox === 'bandpass6' || selectedBox === 'abc'">
-            <!-- One port at a time: three ports of seven rows each do not fit the fixed bottom
-                 panel (original-shell-layout.browser.spec.ts), so a port selector picks the vent
-                 and its fields use the same three-column layout as the vented pane. -->
-            <div class="section-header vent-port-header">
-              <span>Vents</span>
-              <button v-for="port in ventPorts" :key="port.name" type="button" class="edit-btn vent-port-tab" :class="{ active: shownPort?.name === port.name }" :id="`og-vent-port-${port.name.toLowerCase()}`" @click="selectedPortName = port.name">{{ port.name }}</button>
-            </div>
-            <div v-if="shownPort" class="two-col">
-              <div class="vent-config-col">
-                <div v-if="shownPort.name === 'Intra'" class="vent-col-hint">Connects the chambers — not open to the outside.</div>
-                <div class="field-row">
+          <div v-else-if="selectedBox === 'bandpass6' || selectedBox === 'abc'" class="vent-pane-tight">
+            <!-- WinISD's own layout (capture bp6_abc_wizard_defaults): one column per port, Rear,
+                 Front, then Intra, each four rows of up to two fields. -->
+            <div class="vent-groups">
+              <div v-for="port in ventPorts" :key="port.name" class="vent-col">
+                <div class="vent-col-title">{{ port.name }}</div>
+                <div class="vent-port-row">
                   <div class="field">
-                    <label>Number of Vents</label>
-                    <select :id="`og-vent-count-${shownPort.name.toLowerCase()}`" :value="shownPort.vent.count.value" @change="e => { const n = selectedOption(e, VENT_COUNT_OPTIONS); if (n !== null) shownPort!.vent.count.set(n); }">
+                    <label>Number</label>
+                    <select :id="`og-vent-count-${port.name.toLowerCase()}`" :value="port.vent.count.value" @change="e => { const n = selectedOption(e, VENT_COUNT_OPTIONS); if (n !== null) port.vent.count.set(n); }">
                       <option v-for="o in VENT_COUNT_OPTIONS" :key="o.value" :value="o.value">{{ o.label }}</option>
                     </select>
                   </div>
-                </div>
-                <div class="field-row">
                   <div class="field">
                     <label>Shape</label>
-                    <select :id="`og-vent-shape-${shownPort.name.toLowerCase()}`" :value="shownPort.vent.shape.value" @change="e => { const shape = selectedOption(e, VENT_SHAPE_OPTIONS); if (shape !== null) shownPort!.vent.shape.set(shape); }" style="width:135px">
+                    <select :id="`og-vent-shape-${port.name.toLowerCase()}`" :value="port.vent.shape.value" @change="e => { const shape = selectedOption(e, VENT_SHAPE_OPTIONS); if (shape !== null) port.vent.shape.set(shape); }">
                       <option v-for="o in VENT_SHAPE_OPTIONS" :key="o.value" :value="o.value">{{ o.label }}</option>
                     </select>
                   </div>
                 </div>
-                <div class="field-row">
+                <div class="vent-port-row">
+                  <template v-if="port.vent.shape.value === 'slotted'">
+                    <UIField class="field" :title="VENT_GEOMETRY_TIP" :input-id="`og-vent-width-${port.name.toLowerCase()}`" :field="NumberField.VENT_W_CM" :cell="port.vent.width_m" />
+                    <UIField class="field" :title="VENT_GEOMETRY_TIP" :input-id="`og-vent-height-${port.name.toLowerCase()}`" :field="NumberField.VENT_H_CM" :cell="port.vent.height_m" />
+                  </template>
+                  <UIField v-else class="field" :title="VENT_GEOMETRY_TIP" :input-id="`og-vent-diameter-${port.name.toLowerCase()}`" :field="NumberField.VENT_D_CM" :cell="port.vent.diameter_m" />
+                </div>
+                <div class="vent-port-row">
+                  <UIField class="field" :input-id="`og-vent-length-${port.name.toLowerCase()}`" :field="NumberField.VENT_L_CM" :cell="port.vent.length_m" />
                   <div class="field">
                     <label>End Correction</label>
-                    <select :value="shownPort.vent.endCorrection_m.value" @change="e => { const k = selectedOption(e, END_CORRECTION_OPTIONS); if (k !== null) shownPort!.vent.endCorrection_m.set(k); }" style="width:190px">
+                    <select :value="port.vent.endCorrection_m.value" @change="e => { const k = selectedOption(e, END_CORRECTION_OPTIONS); if (k !== null) port.vent.endCorrection_m.set(k); }">
                       <option v-for="o in END_CORRECTION_OPTIONS" :key="o.value" :value="o.value">{{ o.label }} ({{ o.value }})</option>
                     </select>
                   </div>
                 </div>
-              </div>
-              <div class="vent-dims-col">
-                <div v-if="shownPort.vent.shape.value === 'slotted'">
-                  <div class="field-row"><UIField class="field" :title="VENT_GEOMETRY_TIP" :input-id="`og-vent-width-${shownPort.name.toLowerCase()}`" :field="NumberField.VENT_W_CM" :cell="shownPort.vent.width_m" /></div>
-                  <div class="field-row"><UIField class="field" :title="VENT_GEOMETRY_TIP" :input-id="`og-vent-height-${shownPort.name.toLowerCase()}`" :field="NumberField.VENT_H_CM" :cell="shownPort.vent.height_m" /></div>
+                <div class="vent-port-row">
+                  <div class="field" :title="VENT_GEOMETRY_TIP"><label>Cross area</label><NumReadout as-input class="calculated greyed" :field="NumberField.VENT_CROSSAREA_M2" :value="port.vent.area_m2.value" /><UnitToggle :field="NumberField.VENT_CROSSAREA_M2" unit-class="unit" /></div>
+                  <div class="field"><label>1st port resonance</label><NumReadout as-input class="calculated greyed" :field="NumberField.VENT_1STPORTRESONANCE_HZ" :value="port.portPipeResonance_hz" /><UnitToggle :field="NumberField.VENT_1STPORTRESONANCE_HZ" unit-class="unit unit-cyc" /></div>
                 </div>
-                <div v-else class="field-row"><UIField class="field" :title="VENT_GEOMETRY_TIP" :input-id="`og-vent-diameter-${shownPort.name.toLowerCase()}`" :field="NumberField.VENT_D_CM" :cell="shownPort.vent.diameter_m" /></div>
-                <div class="field-row"><UIField class="field" :input-id="`og-vent-length-${shownPort.name.toLowerCase()}`" :field="NumberField.VENT_L_CM" :cell="shownPort.vent.length_m" /></div>
-              </div>
-              <div>
-                <div class="field-row">
-                  <div class="field" :title="VENT_GEOMETRY_TIP"><label>Cross area</label><NumReadout as-input class="calculated greyed" :field="NumberField.VENT_CROSSAREA_M2" :value="shownPort.vent.area_m2.value" /><UnitToggle :field="NumberField.VENT_CROSSAREA_M2" unit-class="unit" /></div>
-                </div>
-                <div class="field-row">
-                  <div class="field"><label>1st port resonance</label><NumReadout as-input class="calculated greyed" :field="NumberField.VENT_1STPORTRESONANCE_HZ" :value="shownPort.portPipeResonance_hz" /><UnitToggle :field="NumberField.VENT_1STPORTRESONANCE_HZ" unit-class="unit unit-cyc" /></div>
-                </div>
+                <p v-if="port.unreachable" class="hint" style="color:#a11;">{{ port.unreachableMsg }}</p>
               </div>
             </div>
-            <p v-if="shownPort?.unreachable" class="hint" style="color:#a11;">{{ shownPort.unreachableMsg }}</p>
           </div>
         </section>
 
@@ -1143,12 +1132,21 @@ provideCellScope({ revision: projectChanged, written: () => {} });
 .box-notes-col { flex:1 1 240px; min-width:170px; max-width:340px; display:flex; flex-direction:column; gap:8px; }
 .box-notes-col .hint { margin:0; }
 .pending-note { color:#7a5b1a; }
-.vent-port-header { display:flex; align-items:center; gap:8px; }
-.vent-port-tab.active { font-weight:700; text-decoration:underline; }
+.vent-groups { display:flex; gap:20px; }
+.vent-port-row { display:flex; gap:12px; margin-bottom:2px; }
+.vent-pane-tight .vent-col-title { margin-bottom:2px; }
+.vent-pane-tight { --label-w:86px; }
+.vent-pane-tight .vent-port-row { gap:8px; }
+.vent-pane-tight .field { display:grid; grid-template-rows:auto auto; justify-content:start; align-items:center; column-gap:4px; row-gap:0; }
+.vent-pane-tight .field > :deep(*:not(label)) { grid-row:2; }
+.vent-pane-tight .field > :deep(label), .vent-pane-tight .field > label { grid-row:1; grid-column:1 / span 4; width:auto; }
+.vent-pane-tight .field input[type=text], .vent-pane-tight .field select, .vent-pane-tight .field :deep(input) { width:70px; padding:1px 4px; }
+.vent-pane-tight .field > label, .vent-pane-tight .field > :deep(label) { font-size:11px; line-height:12px; }
+.vent-pane-tight .vent-groups { gap:8px; }
 .vent-col { flex:none; }
 .vent-col-title { font-weight:600; color:#444; margin-bottom:4px; }
 .vent-col-hint { color:#888; font-size:11px; font-style:italic; margin-bottom:4px; }
-.vent-col .field label { width:110px; }
+.vent-col .field label { width:auto; }
 .project-tab .field label { width: 70px; }
 .vent-config-col .field label {
   width: 130px;

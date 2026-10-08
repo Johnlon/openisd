@@ -75,6 +75,7 @@ const { fieldWithUnit, readoutWithUnit } = useUnitReadouts();
   <div v-if="isDual" class="mob-panel">
     <div class="mob-panel-head">Front chamber</div>
     <UIField v-if="frontVolumeCell" class="mob-ui-field" :field="NumberField.BOX_VF_L" :cell="frontVolumeCell" stepper />
+    <UIField v-if="selectedBox === 'bandpass6' || selectedBox === 'abc'" class="mob-ui-field" :title="FB_TARGET_TIP" :field="NumberField.BOX_FFC_HZ" :cell="activeTuning" stepper />
     <div class="mob-row">
       <button class="mob-btn" @click="lossesOpen = 'front'">Box losses -&gt;</button>
     </div>

@@ -88,8 +88,9 @@ test.describe('MobileBoxTab', () => {
     test(`${boxType}: the Box tab has a Front chamber volume that steps`, async ({ page }) => {
       await page.locator('#mob-box-type').selectOption(boxType);
       const panel = page.locator('.mob-panel', { has: page.locator('.mob-panel-head', { hasText: 'Front chamber' }) });
-      const input = panel.locator('input');
-      await expect(input).toHaveCount(1);
+      // The 6th-order and ABC front chamber also carries its tuning row, below the volume.
+      await expect(panel.locator('input')).toHaveCount(boxType === 'bandpass4' ? 1 : 2);
+      const input = panel.locator('input').first();
       const before = Number(await input.inputValue());
       await panel.locator('.num-stepper-btn').first().click();
       expect(Number(await input.inputValue())).toBeGreaterThan(before);
