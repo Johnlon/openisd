@@ -1,0 +1,17 @@
+id: T012
+repo: openisd
+owner: lots
+status: open
+goal: bp6/ABC step 9 (PLAN_20261007_bp6_abc_complete) — the New Project wizard treats bandpass6 and ABC as dual-chamber with rear and front tunings, and both the wizard and the box type take their starting volumes and tunings from one design source (startingChambersOf).
+done_test: bash scripts/test.sh packages/design/test/domain/starting-chambers.test.ts packages/ui/test/hooks/OriginalNewProject-hooks.test.ts
+files:
+  - packages/design/domain/box/openISDBox.ts
+  - packages/design/domain/box/startingChambers.ts
+  - packages/design/domain/index.ts
+  - packages/design/fields/field.ts
+  - packages/design/test/domain/starting-chambers.test.ts
+  - packages/ui/src/hooks/OriginalNewProject-hooks.ts
+  - packages/ui/src/ui/shells/mobile/MobileNewProject.vue
+  - packages/ui/src/ui/shells/original/OriginalNewProject.vue
+  - packages/ui/test/hooks/OriginalNewProject-hooks.test.ts
+  - tasks/T012.yml
