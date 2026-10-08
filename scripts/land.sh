@@ -2,6 +2,7 @@
 # The only path to main: land one task's branch.
 #
 #   bash scripts/land.sh <task-id>      run from the worker's own clone of the repo
+#   bash scripts/land.sh --self-check   every locked sha256 in tasks/*.yml matches its file
 #
 #   exit 0  landed: origin/main is this branch rebased onto origin/main, pushed
 #   exit 1  refused by a gate; main untouched; the message names the gate
@@ -25,12 +26,8 @@
 set -uo pipefail
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ID="${1:?usage: land.sh <task-id>}"
 ROOT="$(git rev-parse --show-toplevel)" || exit 2
 cd "$ROOT" || exit 2
-TASK="tasks/$ID.yml"
-[ -f "$TASK" ] || { echo "land: no task file $TASK" >&2; exit 2; }
-
 # This file is vendored byte for byte into winisd_tools (tools/land/land.sh), so it finds its parts
 # by where it sits: the core next to it (tools/land/core) or under land/ (scripts/land/core), and
 # land.conf next to it (tools/land/land.conf) or at the repo root.
@@ -44,6 +41,16 @@ if [ -f "$HERE/land.conf" ]; then CONF="$HERE/land.conf"; else CONF="$ROOT/land.
 . "$CORE/task.sh"
 # shellcheck source=./land/core/gate.sh
 . "$CORE/gate.sh"
+
+# --self-check: every locked sha256 in tasks/*.yml matches its file (T000's done_test); nothing lands.
+if [ "${1:-}" = "--self-check" ]; then
+  task_self_check tasks
+  exit $?
+fi
+
+ID="${1:?usage: land.sh <task-id> | land.sh --self-check}"
+TASK="tasks/$ID.yml"
+[ -f "$TASK" ] || { echo "land: no task file $TASK" >&2; exit 2; }
 
 WORK="$(mktemp -d "${TMPDIR:-/tmp}/land.XXXXXX")"
 GATE_OUT="$WORK/gate.out"
