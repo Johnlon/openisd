@@ -1,0 +1,14 @@
+id: T013
+repo: openisd
+owner: lots
+status: open
+goal: bp6/ABC steps 10 and 11 (PLAN_20261007_bp6_abc_complete) — design specs pin the .owpr and .wpr round trip of volumes, tunings and vents (entered length included), every reachable vent tuning/length state per port, and every chart drawing finite points for both box types.
+done_test: bash scripts/test.sh packages/design/test/domain/bandpass6-abc-round-trip.test.ts packages/design/test/domain/bandpass6-abc-charts.test.ts packages/design/test/domain/vent-pair-states.test.ts
+files:
+  - bugs/BUG_20261008_vent-pair-both-entered-after-owpr-edit.md
+  - docs/research/WINISD_PARITY.md
+  - packages/design/test/domain/bandpass6-abc-charts.test.ts
+  - packages/design/test/domain/bandpass6-abc-round-trip.test.ts
+  - packages/design/test/domain/vent-pair-states.test.ts
+  - tasks/T013.yml
+needs: [T012]
