@@ -7,11 +7,12 @@ import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
 import {createEngine} from '../../engine/index.js';
 import {ProjectBuilder} from '../../domain/index.js';
+import type {FrequencyGrid} from '../../domain/index.js';
 import {seriesFor} from '../../chart/index.js';
 import {driverFrom, whatIfSpec} from '../fixtures/domainBuilders.js';
 
 const engine = createEngine();
-const GRID = {fmin: 10, fmax: 2000, N: 100};
+const GRID: FrequencyGrid = {fmin: 10, fmax: 2000, N: 100};
 
 for (const type of ['bandpass6', 'abc'] as const) {
   describe(`${type}: a built project's sweep draws every listed chart`, () => {

@@ -1,6 +1,6 @@
 id: F2
 owner: post-land
-status: open
+status: closed
 sha: e3be1afde607ab38c062b081883e5fbe35bf5b01
 goal: main is red at e3be1afde6; make the full suite pass again
 output: |
