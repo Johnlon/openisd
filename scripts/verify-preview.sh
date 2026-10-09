@@ -5,7 +5,7 @@ set -euo pipefail
 PORT="${OPENISD_PREVIEW_PORT:-4000}"
 
 # Environment guard
-{ [ -n "${MSYSTEM:-}" ] || grep -qi microsoft /proc/version 2>/dev/null; } || { echo "ERROR: must run in Git Bash on Windows or WSL, not PowerShell/cmd" >&2; exit 1; }
+{ [ -n "${MSYSTEM:-}" ] || [ "$(uname -s)" = Linux ]; } || { echo "ERROR: must run in Git Bash on Windows, WSL or Linux, not PowerShell/cmd" >&2; exit 1; }
 
 echo "Verifying that http://localhost:$PORT/ is the live Vite app, and that it works..."
 

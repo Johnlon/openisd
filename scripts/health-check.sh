@@ -18,6 +18,6 @@ fi
 set -euo pipefail
 # Must run in Git Bash on Windows (MSYSTEM set) or WSL (microsoft in /proc/version).
 # PowerShell/cmd have no /proc, so they are still rejected.
-{ [ -n "${MSYSTEM:-}" ] || grep -qi microsoft /proc/version 2>/dev/null; } || { echo "ERROR: must run in Git Bash on Windows or WSL, not PowerShell/cmd" >&2; exit 1; }
+{ [ -n "${MSYSTEM:-}" ] || [ "$(uname -s)" = Linux ]; } || { echo "ERROR: must run in Git Bash on Windows, WSL or Linux, not PowerShell/cmd" >&2; exit 1; }
 
 exec bash "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/slow-run/slow-run.sh" health-check "$@"

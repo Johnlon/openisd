@@ -1,0 +1,10 @@
+id: F3-fix
+repo: openisd
+owner: agy
+status: open
+label: fixes
+goal: CI on release is green. The scripts' environment check accepts a plain Linux shell (the CI runner), not only Git Bash on Windows or WSL.
+done_test: bash scripts/test.sh packages/ui/test/scripts/pre-push-browser-stage.test.ts
+files:
+  - scripts/*.sh
+  - tasks/F3-fix.yml
