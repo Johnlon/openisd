@@ -9,6 +9,7 @@ import {createHash} from 'node:crypto';
 import {readdirSync, readFileSync} from 'node:fs';
 import {dirname, join} from 'node:path';
 import {fileURLToPath} from 'node:url';
+import {z} from 'zod';
 
 const REPO = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..', '..');
 const FIXTURES = join(REPO, 'packages', 'design', 'test', 'fixtures', 'driver-snapshot');
@@ -22,19 +23,16 @@ function filesUnder(dir: string, prefix = ''): string[] {
     e.isDirectory() ? filesUnder(join(dir, e.name), `${prefix}${e.name}/`) : [`${prefix}${e.name}`]);
 }
 
-interface Pin { winisd_drivers_commit: string; fixtures: Record<string, string>; bundle_sha256: string }
+const pinSchema = z.strictObject({
+  winisd_drivers_commit: z.string(),
+  fixtures: z.record(z.string(), z.string()),
+  bundle_sha256: z.string(),
+});
 
-function readPin(): Pin {
-  const raw: unknown = JSON.parse(readFileSync(join(REPO, 'scripts', 'driver-snapshot.pin'), 'utf8'));
-  if (typeof raw !== 'object' || raw === null) throw new Error(`driver-snapshot.pin is not an object: ${FIX}`);
-  const {winisd_drivers_commit, fixtures, bundle_sha256} = raw as Record<string, unknown>;
-  if (typeof winisd_drivers_commit !== 'string' || typeof bundle_sha256 !== 'string'
-    || typeof fixtures !== 'object' || fixtures === null) throw new Error(`driver-snapshot.pin is malformed: ${FIX}`);
-  const entries = Object.entries(fixtures).map(([k, v]): [string, string] => {
-    if (typeof v !== 'string') throw new Error(`driver-snapshot.pin fixture ${k} is not a hash: ${FIX}`);
-    return [k, v];
-  });
-  return {winisd_drivers_commit, fixtures: Object.fromEntries(entries), bundle_sha256};
+function readPin(): z.infer<typeof pinSchema> {
+  const parsed = pinSchema.safeParse(JSON.parse(readFileSync(join(REPO, 'scripts', 'driver-snapshot.pin'), 'utf8')));
+  if (!parsed.success) throw new Error(`driver-snapshot.pin is malformed (${parsed.error.message}): ${FIX}`);
+  return parsed.data;
 }
 
 describe('driver snapshot pin', () => {
