@@ -9,6 +9,7 @@
 import {describe, expect, it, vi} from 'vitest';
 import assert from 'node:assert/strict';
 import {createProjectRepo, type ProjectRepairReport} from '../src/repos/projectRepo.js';
+import {isStoredDataFault} from '../src/repos/storedDataFault.js';
 import type {FileStorage} from '../src/storage/fileStorage.js';
 import {createMemoryStorage, createSharedMemoryStorage, type KeyValueStorage} from '../src/storage/keyValueStorage.js';
 import {
@@ -520,5 +521,65 @@ describe('projectRepo', () => {
       expect(listing[0].name).toBe('test-repair');
       expect(onRepaired).not.toHaveBeenCalled();
     });
+
+    it('a store with the same project 3 times AND front.losses.Qicl: after start-up the backup holds all 3 original copies (with Qicl), the store holds 1 entry without Qicl; a second start-up changes nothing (backup unchanged)', () => {
+      const qiclProject = projectWithFrontQicl('mine');
+      const storage = createMemoryStorage({
+        [OPENISD_PROJECTS_KEY]: JSON.stringify({
+          version: 1,
+          entries: [
+            { id: 'id-1', text: qiclProject, modified: '2026-01-01T00:00:00Z' },
+            { id: 'id-2', text: qiclProject, modified: '2026-01-02T00:00:00Z' },
+            { id: 'id-3', text: qiclProject, modified: '2026-01-03T00:00:00Z' },
+          ],
+        }),
+      });
+
+      // Start-up 1
+      createProjectRepo(engine, noFiles, storage);
+
+      const backupText = storage.get(OPENISD_BACKUP_KEYS.projects);
+      assert.ok(backupText !== null, 'backup must be present after repair');
+      expect(backupText).toContain('"id":"id-1"');
+      expect(backupText).toContain('"id":"id-2"');
+      expect(backupText).toContain('"id":"id-3"');
+      expect(backupText).toContain('Qicl');
+
+      const parsedBackup = JSON.parse(backupText);
+      expect(parsedBackup.entries).toHaveLength(3);
+      expect(parsedBackup.entries[0].text).toContain('"Qicl": 77');
+      expect(parsedBackup.entries[1].text).toContain('"Qicl": 77');
+      expect(parsedBackup.entries[2].text).toContain('"Qicl": 77');
+
+      const storeText = storage.get(OPENISD_PROJECTS_KEY);
+      assert.ok(storeText !== null);
+      expect(storeText).not.toContain('"Qicl"');
+      const parsedStore = JSON.parse(storeText);
+      expect(parsedStore.entries).toHaveLength(1);
+      expect(parsedStore.entries[0].id).toBe('id-3');
+
+      // Start-up 2
+      createProjectRepo(engine, noFiles, storage);
+
+      const backupText2 = storage.get(OPENISD_BACKUP_KEYS.projects);
+      expect(backupText2).toBe(backupText);
+      const storeText2 = storage.get(OPENISD_PROJECTS_KEY);
+      expect(storeText2).toBe(storeText);
+    });
+
+    it('non-JSON stored projects text is left untouched and records a fault', () => {
+      const storage = createMemoryStorage({
+        [OPENISD_PROJECTS_KEY]: 'this is not valid json',
+      });
+      const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      createProjectRepo(engine, noFiles, storage);
+      expect(storage.get(OPENISD_PROJECTS_KEY)).toBe('this is not valid json');
+      expect(errorSpy).toHaveBeenCalled();
+      const calledWith = errorSpy.mock.calls[0][0];
+      expect(isStoredDataFault(calledWith)).toBe(true);
+      expect(calledWith.store).toBe('project');
+      errorSpy.mockRestore();
+    });
   });
 });
+

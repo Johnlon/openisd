@@ -10,6 +10,7 @@ import type {FileStorage, SaveResult} from '../storage/fileStorage.js';
 import type {KeyValueStorage} from '../storage/keyValueStorage.js';
 import {OPENISD_OPEN_SESSIONS_KEY, OPENISD_PROJECTS_KEY, OPENISD_QUARANTINE_SESSION_KEY, OPENISD_STATE_KEY, OPENISD_BACKUP_KEYS} from './storageKeys.js';
 import {createProjectSchemaUpgrade} from './projectSchemaUpgrade.js';
+import {createStoredDataFault} from './storedDataFault.js';
 
 export interface FileNaming { suggestedName: string; mime: string; label: string; ext: string }
 
@@ -267,49 +268,46 @@ function projectNameOf(text: string): string | null {
     const parsed: unknown = JSON.parse(text);
     if (!parsed || typeof parsed !== 'object') return null;
     if ('label' in parsed && typeof parsed.label === 'string') return parsed.label;
-    if ('saved' in parsed && parsed.saved && typeof parsed.saved === 'object' && 'meta' in parsed.saved && parsed.saved.meta && typeof parsed.saved.meta === 'object' && 'name' in parsed.saved.meta && typeof parsed.saved.meta.name === 'string') {
+    if ('saved' in parsed && isRecord(parsed.saved) && isRecord(parsed.saved.meta) && typeof parsed.saved.meta.name === 'string') {
       return parsed.saved.meta.name;
     }
-    if ('project' in parsed && parsed.project && typeof parsed.project === 'object' && 'name' in parsed.project && typeof parsed.project.name === 'string') {
+    if ('project' in parsed && isRecord(parsed.project) && typeof parsed.project.name === 'string') {
       return parsed.project.name;
     }
-    if ('meta' in parsed && parsed.meta && typeof parsed.meta === 'object' && 'name' in parsed.meta && typeof parsed.meta.name === 'string') {
+    if ('meta' in parsed && isRecord(parsed.meta) && typeof parsed.meta.name === 'string') {
       return parsed.meta.name;
     }
     return null;
-  } catch {
+  } catch (err) {
+    console.error(createStoredDataFault('project', `stored project text is not valid JSON: ${err instanceof Error ? err.message : String(err)}`));
     return null;
   }
 }
 
-  function deduplicateEntries(entries: StoredProjectEntry[], rawOriginalText: string | null): StoredProjectEntry[] {
-    const byName = new Map<string, StoredProjectEntry[]>();
-    const anonymous: StoredProjectEntry[] = [];
-    for (const entry of entries) {
-      const name = projectNameOf(entry.text);
-      if (name === null) {
-        anonymous.push(entry);
-      } else {
-        const list = byName.get(name);
-        if (list) list.push(entry);
-        else byName.set(name, [entry]);
-      }
+function deduplicateProjectEntries(entries: readonly StoredProjectEntry[]): { entries: StoredProjectEntry[]; changed: boolean } {
+  const byName = new Map<string, StoredProjectEntry[]>();
+  const anonymous: StoredProjectEntry[] = [];
+  for (const entry of entries) {
+    const name = projectNameOf(entry.text);
+    if (name === null) {
+      anonymous.push(entry);
+    } else {
+      const list = byName.get(name);
+      if (list) list.push(entry);
+      else byName.set(name, [entry]);
     }
-    let hadDuplicates = false;
-    const merged: StoredProjectEntry[] = [...anonymous];
-    for (const [, list] of byName) {
-      if (list.length > 1) {
-        hadDuplicates = true;
-        list.sort((a, b) => b.modified.localeCompare(a.modified));
-      }
-      merged.push(list[0]);
-    }
-    if (hadDuplicates && rawOriginalText !== null) {
-      storage.set(OPENISD_BACKUP_KEYS.projects, rawOriginalText);
-      writeStoredEntries(merged);
-    }
-    return merged;
   }
+  let changed = false;
+  const merged: StoredProjectEntry[] = [...anonymous];
+  for (const [, list] of byName) {
+    if (list.length > 1) {
+      changed = true;
+      list.sort((a, b) => b.modified.localeCompare(a.modified));
+    }
+    merged.push(list[0]);
+  }
+  return { entries: merged, changed };
+}
 
   function readStoredEntries(): StoredProjectEntry[] {
     for (const key of [PROJECTS_STORAGE_KEY, LEGACY_PROJECTS_STORAGE_KEY]) {
@@ -318,7 +316,7 @@ function projectNameOf(text: string): string | null {
       try {
         const parsed: unknown = JSON.parse(collectionText);
         const payload = storedProjectsPayload(parsed);
-        if (payload && payload.entries.length > 0) return deduplicateEntries(payload.entries, collectionText);
+        if (payload && payload.entries.length > 0) return payload.entries;
       } catch { /* fall through to the legacy single-project key */ }
     }
     for (const key of [PROJECT_STORAGE_KEY, LEGACY_PROJECT_STORAGE_KEY]) {
@@ -369,8 +367,20 @@ function migratePayloadText(text: string): { text: string; changed: boolean } {
     if (dropRetiredFields(parsed)) {
       return { text: JSON.stringify(parsed), changed: true };
     }
-  } catch { /* ignore non-JSON */ }
+  } catch (err) {
+    console.error(createStoredDataFault('project', `stored project payload is not valid JSON: ${err instanceof Error ? err.message : String(err)}`));
+  }
   return { text, changed: false };
+}
+
+function migrateEntries<T extends { text: string }>(entries: readonly T[]): { entries: T[]; changed: boolean } {
+  let changed = false;
+  const migrated = entries.map(entry => {
+    const res = migratePayloadText(entry.text);
+    if (res.changed) changed = true;
+    return { ...entry, text: res.text };
+  });
+  return { entries: migrated, changed };
 }
 
   function migrateStoredProjects(): void {
@@ -379,18 +389,19 @@ function migratePayloadText(text: string): { text: string; changed: boolean } {
     try {
       const parsed: unknown = JSON.parse(text);
       const payload = storedProjectsPayload(parsed);
-      if (!payload) return;
-      let changed = false;
-      const entries = payload.entries.map(e => {
-        const res = migratePayloadText(e.text);
-        if (res.changed) changed = true;
-        return { ...e, text: res.text };
-      });
-      if (changed) {
-        storage.set(OPENISD_BACKUP_KEYS.projects, text);
-        writeStoredEntries(entries);
+      if (!payload) {
+        console.error(createStoredDataFault('project', 'stored projects collection has an invalid shape'));
+        return;
       }
-    } catch { /* ignore */ }
+      const dedup = deduplicateProjectEntries(payload.entries);
+      const migrated = migrateEntries(dedup.entries);
+      if (dedup.changed || migrated.changed) {
+        storage.set(OPENISD_BACKUP_KEYS.projects, text);
+        writeStoredEntries(migrated.entries);
+      }
+    } catch (err) {
+      console.error(createStoredDataFault('project', `stored projects collection is not valid JSON: ${err instanceof Error ? err.message : String(err)}`));
+    }
   }
 
   function migrateOpenSessions(): void {
@@ -399,18 +410,18 @@ function migratePayloadText(text: string): { text: string; changed: boolean } {
     try {
       const parsed: unknown = JSON.parse(text);
       const payload = openSessionPayload(parsed);
-      if (!payload) return;
-      let changed = false;
-      const entries = payload.entries.map(e => {
-        const res = migratePayloadText(e.text);
-        if (res.changed) changed = true;
-        return { ...e, text: res.text };
-      });
-      if (changed) {
-        storage.set(OPENISD_BACKUP_KEYS.openSessions, text);
-        storage.set(OPEN_SESSION_STORAGE_KEY, JSON.stringify({ entries, focusedId: payload.focusedId } satisfies OpenSessionPayload));
+      if (!payload) {
+        console.error(createStoredDataFault('project', 'open project session has an invalid shape'));
+        return;
       }
-    } catch { /* ignore */ }
+      const migrated = migrateEntries(payload.entries);
+      if (migrated.changed) {
+        storage.set(OPENISD_BACKUP_KEYS.openSessions, text);
+        storage.set(OPEN_SESSION_STORAGE_KEY, JSON.stringify({ entries: migrated.entries, focusedId: payload.focusedId } satisfies OpenSessionPayload));
+      }
+    } catch (err) {
+      console.error(createStoredDataFault('project', `open project session is not valid JSON: ${err instanceof Error ? err.message : String(err)}`));
+    }
   }
 
   function migrateAutosaveState(): void {
@@ -430,17 +441,13 @@ function migratePayloadText(text: string): { text: string; changed: boolean } {
         const parsed: unknown = JSON.parse(projectsBackup);
         const payload = storedProjectsPayload(parsed);
         if (payload) {
-          let changed = false;
-          const entries = payload.entries.map(e => {
-            const res = migratePayloadText(e.text);
-            if (res.changed) changed = true;
-            return { ...e, text: res.text };
-          });
-          if (changed) {
-            storage.set(OPENISD_BACKUP_KEYS.projects, JSON.stringify({ version: 1, entries } satisfies StoredProjectsPayload));
-          }
+          migrateEntries(payload.entries);
+        } else {
+          console.error(createStoredDataFault('project', 'projects backup has an invalid shape'));
         }
-      } catch { /* ignore */ }
+      } catch (err) {
+        console.error(createStoredDataFault('project', `projects backup is not valid JSON: ${err instanceof Error ? err.message : String(err)}`));
+      }
     }
 
     const sessionsBackup = storage.get(OPENISD_BACKUP_KEYS.openSessions);
@@ -449,34 +456,27 @@ function migratePayloadText(text: string): { text: string; changed: boolean } {
         const parsed: unknown = JSON.parse(sessionsBackup);
         const payload = openSessionPayload(parsed);
         if (payload) {
-          let changed = false;
-          const entries = payload.entries.map(e => {
-            const res = migratePayloadText(e.text);
-            if (res.changed) changed = true;
-            return { ...e, text: res.text };
-          });
-          if (changed) {
-            storage.set(OPENISD_BACKUP_KEYS.openSessions, JSON.stringify({ entries, focusedId: payload.focusedId } satisfies OpenSessionPayload));
-          }
+          migrateEntries(payload.entries);
+        } else {
+          console.error(createStoredDataFault('project', 'open sessions backup has an invalid shape'));
         }
-      } catch { /* ignore */ }
+      } catch (err) {
+        console.error(createStoredDataFault('project', `open sessions backup is not valid JSON: ${err instanceof Error ? err.message : String(err)}`));
+      }
     }
 
     const stateBackup = storage.get(OPENISD_BACKUP_KEYS.state);
     if (stateBackup !== null) {
-      const res = migratePayloadText(stateBackup);
-      if (res.changed) {
-        storage.set(OPENISD_BACKUP_KEYS.state, res.text);
-      }
+      migratePayloadText(stateBackup);
     }
   }
 
-  // Merge stored duplicate copies and migrate stored projects, sessions and backups at startup
+  // Start-up repair: takes ONE backup of each store's original text, before any change,
+  // and never overwrites a backup within the same repair; then merge and migrate run on the data.
   migrateStoredProjects();
   migrateOpenSessions();
   migrateAutosaveState();
   migrateBackups();
-  readStoredEntries();
 
   return {
     async stateToUrl(project: OpenISDProject, view: ViewSnapshot): Promise<string> {
