@@ -28,11 +28,11 @@ await_recs() { local i; for i in $(seq 1 50); do [ "$(nrec)" -ge "$1" ] && retur
 grep -q 'admit.sh' "$QT" && ok "script mentions admit.sh" || fail "script does not mention admit.sh"
 
 # (a) heavy takes the slot while it runs, and frees it after
-FAKE_SLEEP=6 bash "$QT" npm run lint > "$SCRATCH/h1.out" 2> "$SCRATCH/h1.err" &
+FAKE_SLEEP=6 bash "$QT" npm test > "$SCRATCH/h1.out" 2> "$SCRATCH/h1.err" &
 H1=$!; PIDS+=("$H1")
 await_recs 1 && ok "heavy run has a record in the queue" || fail "no admission record while heavy runs"
 # (b) second heavy waits behind it; targeted runs at once
-FAKE_SLEEP=1 bash "$QT" npm run typecheck > "$SCRATCH/h2.out" 2> "$SCRATCH/h2.err" &
+FAKE_SLEEP=1 bash "$QT" npm run test > "$SCRATCH/h2.out" 2> "$SCRATCH/h2.err" &
 H2=$!; PIDS+=("$H2")
 await_recs 2 && ok "second heavy queues behind the first" || fail "second heavy has no record"
 bash "$QT" bash -c 'echo hi' > "$SCRATCH/t.out" 2> "$SCRATCH/t.err"; tcode=$?
@@ -47,11 +47,11 @@ eq "second heavy exit code 0" "$c2" 0
 eq "slot freed after the runs" "$(nrec)" 0
 
 # (c) failing exit codes pass through, heavy and targeted
-FAKE_EXIT=4 FAKE_SLEEP=0 bash "$QT" npm run lint > /dev/null 2>&1; eq "heavy exit code 4" "$?" 4
+FAKE_EXIT=4 FAKE_SLEEP=0 bash "$QT" npm test > /dev/null 2>&1; eq "heavy exit code 4" "$?" 4
 bash "$QT" bash -c 'exit 3' > "$SCRATCH/f.out" 2> "$SCRATCH/f.err"; eq "targeted exit code 3" "$?" 3
 
 # (d) ADMIT_TOKEN set: no second admit
-ADMIT_TOKEN=x FAKE_SLEEP=2 bash "$QT" npm run lint > /dev/null 2>&1 &
+ADMIT_TOKEN=x FAKE_SLEEP=2 bash "$QT" npm test > /dev/null 2>&1 &
 H3=$!; PIDS+=("$H3")
 sleep 0.7
 eq "no admission record when ADMIT_TOKEN is set" "$(nrec)" 0
