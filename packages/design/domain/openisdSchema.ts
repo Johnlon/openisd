@@ -203,39 +203,93 @@ const usableReadingJsonSchema = z.strictObject({
     read_precision: z.number().optional(),
     ...readingTailShape,
 });
-/** A reading the source printed but that gives no usable number. `rejected` says why. It has no
- *  `read_value`, so no consumer can take a number from it. */
-const rejectedReadingJsonSchema = z.strictObject({
+/** Why a reading has NO number: the source printed no numeric value. One list per variant; add a
+ *  reason here and every exhaustive match sees it. */
+export const UNPARSED_REJECTION_REASONS = ['no-numeric-value'] as const;
+/** Why a number WAS read but is refused. */
+export const PARSED_REJECTION_REASONS = ['ohm-glyph-merged-as-digit'] as const;
+export type UnparsedRejectionReason = typeof UNPARSED_REJECTION_REASONS[number];
+export type ParsedRejectionReason = typeof PARSED_REJECTION_REASONS[number];
+
+/** Rejected, no number read: the printed text ("N/A", "banana") is in `actual_reading`. */
+const rejectedUnparsedReadingJsonSchema = z.strictObject({
     ...readingCommonShape,
-    rejected: z.string(),
+    rejected: z.enum(UNPARSED_REJECTION_REASONS),
+    ...readingTailShape,
+});
+/** Rejected, a number was read but is refused: `read_value` is what was read. */
+const rejectedParsedReadingJsonSchema = z.strictObject({
+    actual_reading: z.string(),
+    conformed_reading: z.string().optional(),
+    conformed_by: z.string().optional(),
+    read_value: z.number(),
+    read_precision: z.number().optional(),
+    rejected: z.enum(PARSED_REJECTION_REASONS),
+    ...readingTailShape,
+});
+
+/** A reason string no list above names. A newer scraper may write one; the loader keeps the
+ *  reading and its raw reason (repair, never reset) and the converter raises one named warning. */
+const unrecognisedReason = z.string().refine(
+    reason => !isKnownRejectionReason(reason), 'a recognised rejection reason belongs to its own variant');
+function isKnownRejectionReason(reason: string): boolean {
+    return [...UNPARSED_REJECTION_REASONS, ...PARSED_REJECTION_REASONS].some(known => known === reason);
+}
+/** Rejected for a reason this app does not know, no number read. */
+const rejectedUnrecognisedUnparsedReadingJsonSchema = z.strictObject({
+    ...readingCommonShape,
+    rejected: unrecognisedReason,
+    ...readingTailShape,
+});
+/** Rejected for a reason this app does not know, a number was read. */
+const rejectedUnrecognisedParsedReadingJsonSchema = z.strictObject({
+    actual_reading: z.string(),
+    conformed_reading: z.string().optional(),
+    conformed_by: z.string().optional(),
+    read_value: z.number(),
+    read_precision: z.number().optional(),
+    rejected: unrecognisedReason,
     ...readingTailShape,
 });
 
 /**
- * One source's reading of one parameter: either Usable or Rejected, never both.
+ * One source's reading of one parameter: Usable, RejectedParsed or RejectedUnparsed (or, for a
+ * reason this app does not know, the same two with an Unrecognised reason, kept as written).
  *
  * - Usable `{actual_reading?, read_value: number}`: the printed text parsed to a number.
- * - Rejected `{actual_reading?, rejected: string}`: the source printed something, or the scraper
- *   refused the number. The printed text is kept in `actual_reading` and `rejected` says why.
- *   A rejected reading has no `read_value`.
+ * - RejectedParsed `{actual_reading, read_value, rejected}`: a number was read and refused, e.g.
+ *   `ohm-glyph-merged-as-digit`.
+ * - RejectedUnparsed `{actual_reading?, rejected}`: no number was read, e.g. `no-numeric-value`.
+ *   It has no `read_value`.
  *
- * A spec reading keeps the text the source printed, even when it is not a number
- * (John, 2026-10-08: "a spec that says N/A or banana should store the read value as that value").
+ * The reason decides the variant, and a reason on the wrong variant is refused. A spec reading
+ * keeps the text the source printed, even when it is not a number (John, 2026-10-08: "a spec that
+ * says N/A or banana should store the read value as that value").
  *
  * Worked examples:
- * - Sd printed "N/A": Rejected `{actual_reading: 'N/A', rejected: …}`.
- * - Sd printed "banana": Rejected `{actual_reading: 'banana', rejected: …}`.
- * - Sd printed "143c cm²": Rejected `{actual_reading: '143c cm²', rejected: …}`.
+ * - Sd printed "N/A": RejectedUnparsed `{actual_reading: 'N/A', rejected: 'no-numeric-value'}`.
+ * - Sd printed "banana": RejectedUnparsed `{actual_reading: 'banana', rejected: 'no-numeric-value'}`.
+ * - Sd printed "143c cm²": RejectedUnparsed `{actual_reading: '143c cm²', rejected: 'no-numeric-value'}`.
  * - A field nobody printed: no reading at all, not a Rejected one.
  * - Fs printed "21 Hz": Usable `{actual_reading: '21 Hz', read_value: 21}`.
  *
  * Exported so `winIsdDriverConverter.ts` validates a scraper's driver.yml readings against the
  * SAME shape this record stores, rather than a hand-duplicated copy free to drift.
  */
-export const readingJsonSchema = z.union([usableReadingJsonSchema, rejectedReadingJsonSchema]);
+export const readingJsonSchema = z.union([
+    usableReadingJsonSchema, rejectedParsedReadingJsonSchema, rejectedUnparsedReadingJsonSchema,
+    rejectedUnrecognisedParsedReadingJsonSchema, rejectedUnrecognisedUnparsedReadingJsonSchema,
+]);
 export type ReadingJson = z.infer<typeof readingJsonSchema>;
 export type UsableReadingJson = z.infer<typeof usableReadingJsonSchema>;
-export type RejectedReadingJson = z.infer<typeof rejectedReadingJsonSchema>;
+export type RejectedParsedReadingJson = z.infer<typeof rejectedParsedReadingJsonSchema>;
+export type RejectedUnparsedReadingJson = z.infer<typeof rejectedUnparsedReadingJsonSchema>;
+export type RejectedUnrecognisedParsedReadingJson = z.infer<typeof rejectedUnrecognisedParsedReadingJsonSchema>;
+export type RejectedUnrecognisedUnparsedReadingJson = z.infer<typeof rejectedUnrecognisedUnparsedReadingJsonSchema>;
+/** Every rejected reading: a number read or not, a reason known or not. */
+export type RejectedReadingJson =
+    | RejectedParsedReadingJson | RejectedUnparsedReadingJson
+    | RejectedUnrecognisedParsedReadingJson | RejectedUnrecognisedUnparsedReadingJson;
 
 /** The corroboration verdict a scraped entry's readings settled on (D11) — `Corroboration.ALL`'s
  *  wire values. Absent on a hand-typed entry and on any entry with fewer than two usable readings
@@ -277,6 +331,19 @@ const calculatedEntrySchema = z.strictObject({
     dq_calculated: dqMarks(),
 });
 
+/** A spec field a source printed but gave no usable number ("N/A", "banana"): `state:'N'`, no
+ *  `value`, and the printed text kept in `readings`, every one of them Rejected. The field reads
+ *  as not available; the text survives so nothing the source said is lost. */
+const notAvailableEntrySchema = z.strictObject({
+    state: z.literal('N'),
+    readings: z.record(z.string(), z.union([
+        rejectedParsedReadingJsonSchema, rejectedUnparsedReadingJsonSchema,
+        rejectedUnrecognisedParsedReadingJsonSchema, rejectedUnrecognisedUnparsedReadingJsonSchema,
+    ])).refine(
+        r => Object.keys(r).length > 0, 'expected at least one reading'),
+    dq_scraper: dqMarks(),
+});
+
 /**
  * A spec field: `value` + `state` (T11), `origin`/`readings` riding beside an entered value as
  * provenance only. `dq_scraper` and `dq_calculated` are split BY PRODUCER: a scraper finds
@@ -302,7 +369,7 @@ const calculatedEntrySchema = z.strictObject({
  * a shape to be silently upgraded.
  */
 export const specEntryJsonSchema =
-    z.discriminatedUnion('state', [enteredEntrySchema, calculatedEntrySchema]);
+    z.discriminatedUnion('state', [enteredEntrySchema, calculatedEntrySchema, notAvailableEntrySchema]);
 
 export type SpecEntryJson = z.infer<typeof specEntryJsonSchema>;
 

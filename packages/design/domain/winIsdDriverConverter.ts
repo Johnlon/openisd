@@ -41,7 +41,7 @@ import {winISDDriverToOpenISDDeviceJson} from "./winIsdDriverImport.js";
 import {sortKeysDeep} from "./openIsdDeviceJsonIo.js";
 import {dqMarks} from "./specEntry.js";
 import {selectOrigin} from "./selectOrigin.js";
-import {Corroboration, ReaderAgreement, corroborate, isUsable, readerVerdict, type Reading} from "./corroboration.js";
+import {Corroboration, ReaderAgreement, corroborate, isRecognisedRejection, isUsable, readerVerdict, type Reading} from "./corroboration.js";
 import {Reader} from "./reader.js";
 import {DriverRoundTripCheck} from "./driverRoundTripDiffs.js";
 
@@ -271,7 +271,7 @@ function dqCommentLines(record: DriverDeviceJson): string[] {
 
   for (const section of sections) {
     for (const [field, entry] of Object.entries(section)) {
-      if (entry === undefined) continue;
+      if (entry === undefined || entry.state === "N") continue;
 
       const value = entry.value;
       // `dq_scraper` only ever rides on an entered value — nothing was scraped for one the
@@ -736,7 +736,6 @@ export class WinIsdDriverConverter {
       const fields: Record<string, unknown> = {};
       for (const [field, entry] of Object.entries(section)) {
         const projected = this.#projectScraperEntry(entry, sectionKey, field,  warnings);
-        if (projected === undefined) continue;
         fields[field] = entryWithoutAppOnlyKeys(projected);
       }
       sections[sectionKey] = fields;
@@ -780,19 +779,6 @@ export class WinIsdDriverConverter {
     // `origin` always names one of `readings`' own keys — `selectOrigin` picks it FROM this same
     // object — so this lookup can never miss.
     const winner = readings[origin];
-    if (!isUsable(winner)) {
-      const printed = Object.entries(readings)
-        .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
-        .map(([role, r]) => `${role}=${readingLiteral(r)}`)
-        .join(", ");
-      warnings.push({
-        level: "warn",
-        field: `${section}.${field}`,
-        message: `no usable reading, field left out: ${printed}`,
-      });
-      return undefined;
-    }
-
     if (corroboration === Corroboration.Mismatch) {
       const parts = Object.entries(readings)
         .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
@@ -832,6 +818,23 @@ export class WinIsdDriverConverter {
       }
     }
 
+    for (const [role, r] of Object.entries(readings).sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))) {
+      if (!isUsable(r) && !isRecognisedRejection(r)) {
+        warnings.push({
+          level: "warn",
+          field: `${section}.${field}`,
+          message: `unrecognised rejection reason on ${role}: "${r.rejected}" (reading kept as written)`,
+        });
+      }
+    }
+
+    if (!isUsable(winner)) {
+      // Every reading is rejected: no number to be the value, so the field is not available and
+      // keeps its readings, so the printed text survives.
+      const notAvailable: Record<string, unknown> = {state: "N", readings};
+      if (dq_scraper !== undefined) notAvailable.dq_scraper = dq_scraper;
+      return notAvailable;
+    }
     const projected: Record<string, unknown> = {
       state: "E",
       value: winner.read_value,

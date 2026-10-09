@@ -63,26 +63,44 @@ describe('readingJsonSchema — reads', () => {
   });
 });
 
-describe('readingJsonSchema — Usable | Rejected', () => {
-  it('accepts a Rejected reading that keeps its printed text: N/A', () => {
-    const rejected = {actual_reading: 'N/A', rejected: 'not-a-number'};
-    expect(readingJsonSchema.parse(rejected)).toEqual(rejected);
+describe('readingJsonSchema — Usable | RejectedParsed | RejectedUnparsed | Unrecognised', () => {
+  const unparsed = {actual_reading: 'N/A', rejected: 'no-numeric-value'};
+  const parsed = {actual_reading: '3.19', read_value: 3.19, rejected: 'ohm-glyph-merged-as-digit'};
+
+  it('accepts a RejectedUnparsed reading that keeps its printed text: N/A', () => {
+    expect(readingJsonSchema.parse(unparsed)).toEqual(unparsed);
   });
 
-  it('accepts a Rejected reading with no printed text', () => {
-    expect(readingJsonSchema.safeParse({rejected: 'cell-empty'}).success).toBe(true);
+  it('accepts a RejectedUnparsed reading with no printed text', () => {
+    expect(readingJsonSchema.safeParse({rejected: 'no-numeric-value'}).success).toBe(true);
+  });
+
+  it('accepts a RejectedParsed reading', () => {
+    expect(readingJsonSchema.parse(parsed)).toEqual(parsed);
   });
 
   it('refuses a Usable reading without read_value', () => {
     expect(readingJsonSchema.safeParse({actual_reading: '21 Hz'}).success).toBe(false);
   });
 
-  it('refuses a reading with both read_value and rejected', () => {
-    const both = {actual_reading: '21 Hz', read_value: 21, rejected: 'synthetic-reason'};
-    expect(readingJsonSchema.safeParse(both).success).toBe(false);
+  it('refuses read_value beside the no-numeric-value reason, as a known reason', () => {
+    const wrong = {actual_reading: 'N/A', read_value: 1, rejected: 'no-numeric-value'};
+    expect(readingJsonSchema.safeParse(wrong).success).toBe(false);
   });
 
-  it('refuses a Rejected reading that carries a read_value of NaN', () => {
+  it('refuses the ohm-glyph reason without read_value', () => {
+    const wrong = {actual_reading: '3.19', rejected: 'ohm-glyph-merged-as-digit'};
+    expect(readingJsonSchema.safeParse(wrong).success).toBe(false);
+  });
+
+  it('refuses a read_value of NaN', () => {
     expect(readingJsonSchema.safeParse({actual_reading: 'banana', read_value: NaN}).success).toBe(false);
+  });
+
+  it('keeps a reading with an unknown reason, with its raw text, number present or not', () => {
+    const noNumber = {actual_reading: 'tbd', rejected: 'synthetic-new-reason'};
+    const number = {actual_reading: '5', read_value: 5, rejected: 'synthetic-new-reason'};
+    expect(readingJsonSchema.parse(noNumber)).toEqual(noNumber);
+    expect(readingJsonSchema.parse(number)).toEqual(number);
   });
 });

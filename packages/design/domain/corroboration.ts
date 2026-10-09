@@ -11,7 +11,8 @@
  * quantities. Otherwise MATCH requires EVERY pair to reconcile.
  */
 
-import type {ReadingJson, UsableReadingJson} from './openisdSchema.js';
+import type {ReadingJson, RejectedReadingJson, UsableReadingJson} from './openisdSchema.js';
+import {PARSED_REJECTION_REASONS, UNPARSED_REJECTION_REASONS} from './openisdSchema.js';
 import {Reader} from './reader.js';
 import type {ReaderValue} from './reader.js';
 
@@ -19,9 +20,15 @@ import type {ReaderValue} from './reader.js';
  *  second definition of it. */
 export type Reading = ReadingJson;
 
-/** A Usable reading: it has a number. A Rejected one has none, and takes no part in corroboration. */
+/** A Usable reading: it carries no `rejected`. A Rejected one, with a number or without, takes no part in corroboration. */
 export function isUsable(reading: ReadingJson): reading is UsableReadingJson {
-    return 'read_value' in reading;
+    return !('rejected' in reading);
+}
+
+/** Is this rejected reading's reason one the app knows (`UNPARSED_REJECTION_REASONS` or
+ *  `PARSED_REJECTION_REASONS`)? */
+export function isRecognisedRejection(reading: RejectedReadingJson): boolean {
+    return [...UNPARSED_REJECTION_REASONS, ...PARSED_REJECTION_REASONS].some(reason => reason === reading.rejected);
 }
 
 const _corroborationValues = ['MATCH', 'MISMATCH', 'NOT_MATCHABLE', 'UNMATCHED'] as const;

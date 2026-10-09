@@ -91,7 +91,7 @@ describe('driverYmlToOpenisdAndWdr', () => {
       woofer.Re_ohm = {
         readings: {
           manufacturer_listing_page: {actual_reading: '3.1 Ω', read_value: 3.1},
-          manufacturer_datasheet: {actual_reading: 'N/A', rejected: 'synthetic-not-a-number'},
+          manufacturer_datasheet: {actual_reading: 'N/A', rejected: 'no-numeric-value'},
         },
       };
       const { openisd, errors } = new WinIsdDriverConverter(engine).driverYmlToOpenisdAndWdr(stringifyYaml(record));
@@ -100,18 +100,52 @@ describe('driverYmlToOpenisdAndWdr', () => {
       const reReadings = at(parse(openisd), 'specs', 'woofer', 'Re_ohm', 'readings');
       assert.deepEqual(reReadings, {
         manufacturer_listing_page: {actual_reading: '3.1 Ω', read_value: 3.1},
-        manufacturer_datasheet: {actual_reading: 'N/A', rejected: 'synthetic-not-a-number'},
+        manufacturer_datasheet: {actual_reading: 'N/A', rejected: 'no-numeric-value'},
       });
       assert.equal(at(parse(openisd), 'specs', 'woofer', 'Re_ohm', 'value'), 3.1);
     });
 
-    it('a .wdr text cell never becomes NaN: the entry is left out and a warning names the printed text', () => {
+    it('a .wdr text cell "N/A" becomes a not-available entry keeping a Rejected reading', () => {
       const wdr = WinISDDriver.fromWdrIni(
         readFileSync(join(FIXTURES, '..', '..', '..', '..', '..', 'drivers', 'myprobes', 'inconsistencies', 'inconsistency-test-qts-C.wdr'), 'utf8')
-          .replace('Fs=38', 'Fs=banana'));
-      const { record, warnings } = winISDDriverToOpenISDDeviceJson(wdr);
-      assert.equal(at(record, 'specs', 'woofer', 'Fs_hz'), undefined, 'no Fs entry, so no NaN value');
-      assert.ok(warnings.some(w => w.message.includes('banana')), 'a warning carries the printed text');
+          .replace('Fs=38', 'Fs=N/A'));
+      const { record } = winISDDriverToOpenISDDeviceJson(wdr);
+      assert.deepEqual(at(record, 'specs', 'woofer', 'Fs_hz'), {
+        state: 'N',
+        readings: {manual: {actual_reading: 'N/A', rejected: 'no-numeric-value'}},
+      });
+      const again: unknown = JSON.parse(JSON.stringify(record));
+      assert.deepEqual(at(again, 'specs', 'woofer', 'Fs_hz', 'readings', 'manual', 'actual_reading'), 'N/A');
+    });
+
+    it('a scraper entry with every reading rejected is not available and keeps the text', () => {
+      const record: unknown = parse(daytonDriverYml());
+      const woofer = at(record, 'specs', 'woofer');
+      if (!isRecord(woofer)) throw new Error('expected specs.woofer');
+      woofer.Xlim_m = {readings: {manufacturer_datasheet: {actual_reading: 'banana', rejected: 'no-numeric-value'}}};
+      const { openisd, errors } = new WinIsdDriverConverter(engine).driverYmlToOpenisdAndWdr(stringifyYaml(record));
+      assert.ok(openisd !== null, `errors: ${JSON.stringify(errors)}`);
+      const re = at(parse(openisd), 'specs', 'woofer', 'Xlim_m');
+      assert.equal(at(re, 'state'), 'N');
+      assert.equal(at(re, 'value'), undefined);
+      assert.equal(at(re, 'readings', 'manufacturer_datasheet', 'actual_reading'), 'banana');
+    });
+
+    it('an unknown rejection reason loads, keeps the reading and raw reason, and raises one named warning', () => {
+      const record: unknown = parse(daytonDriverYml());
+      const woofer = at(record, 'specs', 'woofer');
+      if (!isRecord(woofer)) throw new Error('expected specs.woofer');
+      woofer.Re_ohm = {readings: {
+        manufacturer_listing_page: {actual_reading: '3.1 Ω', read_value: 3.1},
+        manufacturer_datasheet: {actual_reading: 'tbd', rejected: 'synthetic-new-reason'},
+      }};
+      const { openisd, errors } = new WinIsdDriverConverter(engine).driverYmlToOpenisdAndWdr(stringifyYaml(record));
+      assert.ok(openisd !== null, `errors: ${JSON.stringify(errors)}`);
+      assert.deepEqual(at(parse(openisd), 'specs', 'woofer', 'Re_ohm', 'readings', 'manufacturer_datasheet'),
+        {actual_reading: 'tbd', rejected: 'synthetic-new-reason'});
+      const named = errors.filter(e => e.message.includes('unrecognised rejection reason'));
+      assert.equal(named.length, 1);
+      assert.ok(named[0].message.includes('synthetic-new-reason'));
     });
 
     it('emits a .wdr whose [Driver] section carries the record brand and model', () => {
