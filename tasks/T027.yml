@@ -1,0 +1,10 @@
+id: T027
+repo: openisd
+owner: lots
+status: open
+goal: The site deploys from main, and GitHub runs no tests (John 2026-10-09 - "I just want main and I don't care about the tests in gh at all, I only care about the tests running locally").
+done_test: grep -q 'branches: \[main\]' .github/workflows/deploy.yml && test ! -e .github/workflows/ci.yml
+files:
+  - .github/workflows/deploy.yml
+  - .github/workflows/ci.yml
+  - tasks/T027.yml
