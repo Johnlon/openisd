@@ -1,0 +1,50 @@
+id: F3
+owner: post-land
+status: open
+sha: 6a9de9eac02f11a48763ca199614d7a717af77a2
+goal: main is red at 6a9de9eac0; make the full suite pass again
+commits: |
+  6a9de9eac0 (auto) F3: the scripts' environment check accepts a plain Linux shell (CI runner), not only Git Bash on Windows or WSL; task F3-fix
+  3fcd226106 T024: A project already open is never opened twice (opening it again switches to it), Save writes that one project in place, and the stored-project list sorts newest first.
+  cff401e8d7 (auto) T024: a project already open is opened once; Save writes it in place; stored list newest first
+output: |
+  
+  
+        55 |     await openMobileMenu(page);
+        56 |     const rows = page.locator('.mob-open-project');
+      > 57 |     await expect(rows).toHaveCount(2);
+           |                        ^
+        58 |     await expect(rows.nth(1)).toHaveClass(/focused/);
+        59 |     await rows.nth(0).locator('.mob-open-project-name').click();
+        60 |     await expect(page.locator('.mob-menu')).toHaveCount(0);
+          at /home/john/work/winisd/.postland/504385-6a9de9eac0/packages/ui/test/ui/mobile-project-list.browser.spec.ts:57:24
+  
+      Error Context: test-results/ui-mobile-project-list.bro-dd359--and-a-tap-on-it-focuses-it/error-context.md
+  
+    2) packages/ui/test/ui/mobile-project-list.browser.spec.ts:66:3 › MobileProjectList › a hidden project is still hidden after a reload, and the chart still leaves its trace out 
+  
+      Error: expect(received).toBeLessThan(expected)
+  
+      Expected: < 28
+      Received:   28
+  
+      Call Log:
+      - Timeout 20000ms exceeded while waiting on the predicate
+  
+        74 |     await closeMenu(page);
+        75 |     await graphTab(page).click();
+      > 76 |     await expect.poll(() => inkColours(page)).toBeLessThan(shown);
+           |                                               ^
+        77 |     const hidden = await inkColours(page);
+        78 |
+        79 |     await page.reload();
+          at /home/john/work/winisd/.postland/504385-6a9de9eac0/packages/ui/test/ui/mobile-project-list.browser.spec.ts:76:47
+  
+      Error Context: test-results/ui-mobile-project-list.bro-afc0d--still-leaves-its-trace-out/error-context.md
+  
+    2 failed
+      packages/ui/test/ui/mobile-project-list.browser.spec.ts:53:3 › MobileProjectList › a second open project gets its own row, and a tap on it focuses it 
+      packages/ui/test/ui/mobile-project-list.browser.spec.ts:66:3 › MobileProjectList › a hidden project is still hidden after a reload, and the chart still leaves its trace out 
+    580 passed (12.2m)
+  suite: unit exit 0, browser exit 1
+  post-land suite 504385-6a9de9eac0 finished: FAILED (exit 1) after 19m50s
