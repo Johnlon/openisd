@@ -1,0 +1,10 @@
+id: T025
+repo: openisd
+owner: lots
+status: open
+goal: The consolidated plan and the app-work list are on main, so any agent can resume the work.
+done_test: test -s docs/plans/PLAN_20261009_CONSOLIDATED.md && test -s docs/plans/PLAN_20261009_APP_WORK.md
+files:
+  - docs/plans/PLAN_20261009_CONSOLIDATED.md
+  - docs/plans/PLAN_20261009_APP_WORK.md
+  - tasks/T025.yml
