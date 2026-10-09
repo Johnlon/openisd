@@ -2,7 +2,7 @@
  * The open-project rows at the bottom of the mobile hamburger menu: one row per open project, with
  * a show-on-graphs checkbox, a focus tap and a colour swatch.
  */
-import {expect, openAMobileProject, test} from '../fixtures.js';
+import {COMPLETE_DRIVER_PROJECT_OWPR, expect, openAMobileProject, test} from '../fixtures.js';
 import {forceMobileSkin, openMobileMenu} from '../fixtures/mobileSkin.js';
 import type {Page} from '@playwright/test';
 
@@ -50,8 +50,16 @@ test.describe('MobileProjectList', () => {
     await expect(page.locator('.mob-open-project-show').first()).not.toBeChecked();
   });
 
-  test('a second open project gets its own row, and a tap on it focuses it', async ({ page }) => {
+  test('opening the same project twice leaves one row', async ({ page }) => {
     await openAMobileProject(page);
+    await openMobileMenu(page);
+    const rows = page.locator('.mob-open-project');
+    await expect(rows).toHaveCount(1);
+    await expect(rows.first()).toHaveClass(/focused/);
+  });
+
+  test('a second open project gets its own row, and a tap on it focuses it', async ({ page }) => {
+    await openAMobileProject(page, COMPLETE_DRIVER_PROJECT_OWPR);
     await openMobileMenu(page);
     const rows = page.locator('.mob-open-project');
     await expect(rows).toHaveCount(2);
@@ -64,7 +72,7 @@ test.describe('MobileProjectList', () => {
 
   // bugs/BUG_20261005_project-selection-lost-on-reload.md
   test('a hidden project is still hidden after a reload, and the chart still leaves its trace out', async ({ page }) => {
-    await openAMobileProject(page);
+    await openAMobileProject(page, COMPLETE_DRIVER_PROJECT_OWPR);
     await graphTab(page).click();
     await expect.poll(() => inkColours(page)).toBeGreaterThan(0);
     const shown = await inkColours(page);

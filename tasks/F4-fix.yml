@@ -1,0 +1,13 @@
+id: F4-fix
+repo: openisd
+owner: lots
+status: open
+label: fixes
+goal: Close F3 and F4: tests open distinct sample projects when expecting multiple open projects, preserving the open-once rule.
+done_test: bash scripts/test.sh packages/ui/test/ui/mobile-project-list.browser.spec.ts
+files:
+  - packages/ui/test/ui/mobile-project-list.browser.spec.ts
+  - packages/ui/test/fixtures.ts
+  - tasks/F4-fix.yml
+  - tasks/fixes/F3.yml
+  - tasks/fixes/F4.yml

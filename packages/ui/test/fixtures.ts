@@ -1,6 +1,6 @@
 import {existsSync, readFileSync, statSync, writeFileSync} from 'node:fs';
 import {tmpdir} from 'node:os';
-import {join} from 'node:path';
+import {basename, join} from 'node:path';
 import {type Browser, expect, type Locator, type Page, test as base} from '@playwright/test';
 import {NumberField} from '@openisd/design/fields';
 import {CHROME_OUTAGE_POLICY, CHROME_STABLE_MS, type OutageClock, waitOutOutage} from './fixtures/chromeOutage.js';
@@ -198,10 +198,10 @@ export const test = base.extend<{ browserLog: BrowserLog }, { browser: Browser }
   }, { auto: true }],
 });
 
-export async function openAProject(page: Page, owprPath: string = SAMPLE_PROJECT_OWPR): Promise<void> {
+export async function openAProject(page: Page, owprPath: string = SAMPLE_PROJECT_OWPR, name: string = basename(owprPath)): Promise<void> {
   ensureSampleProject();
   await page.locator('.original-root input[type=file]').setInputFiles({
-    name: 'sample-project.owpr',
+    name,
     mimeType: 'application/json',
     buffer: readFileSync(owprPath),
   });
@@ -214,10 +214,10 @@ export async function openAProject(page: Page, owprPath: string = SAMPLE_PROJECT
  * showing. Waits for `.mob-tabbar` specifically (not just `.mobile-root`, which is also the
  * empty-state root) — that's the readiness signal a project has actually loaded.
  */
-export async function openAMobileProject(page: Page, owprPath: string = SAMPLE_PROJECT_OWPR): Promise<void> {
+export async function openAMobileProject(page: Page, owprPath: string = SAMPLE_PROJECT_OWPR, name: string = basename(owprPath)): Promise<void> {
   ensureSampleProject();
   await page.locator('.mobile-root input[type=file]').setInputFiles({
-    name: 'sample-project.owpr',
+    name,
     mimeType: 'application/json',
     buffer: readFileSync(owprPath),
   });
