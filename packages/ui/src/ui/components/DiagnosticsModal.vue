@@ -10,8 +10,8 @@
  * unexpected app state is still the user's work, and wiping it also destroys the evidence
  * needed to fix the cause.
  */
-import {useDiagnosticsModal} from '../../hooks/DiagnosticsModal-hooks.js';
-const {faultLog, open, outcome, copied, applyFix, downloadOriginal, reload, copyReport} = useDiagnosticsModal();
+import {injectDiagnosticsModal} from '../../hooks/DiagnosticsModal-hooks.js';
+const {faultLog, open, outcome, copied, applyFix, downloadOriginal, reload, copyReport} = injectDiagnosticsModal();
 </script>
 
 <template>

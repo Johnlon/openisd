@@ -17,6 +17,7 @@ import ToolbarIcon from '../../components/ToolbarIcon.vue';
 import MobilePaneDialog from './MobilePaneDialog.vue';
 import OptionsModal from '../../components/OptionsModal.vue';
 import {injectWinisdDifferencesModal} from '../../../hooks/WinisdDifferencesModal-hooks.js';
+import {injectDiagnosticsModal} from '../../../hooks/DiagnosticsModal-hooks.js';
 import { useMobileShell } from '../../../hooks/MobileShell-hooks.js';
 import {provideCellScope} from '../../components/cellScope.js';
 import {projectChanged} from '../../../logic/appState.js';
@@ -34,6 +35,7 @@ const {
 // The project announces its own writes (`projectChanged`), so a UIField has nothing to add.
 provideCellScope({ revision: projectChanged, written: () => {} });
 const winisdDifferences = injectWinisdDifferencesModal();
+const diagnostics = injectDiagnosticsModal();
 </script>
 
 <template>
@@ -139,6 +141,7 @@ const winisdDifferences = injectWinisdDifferencesModal();
             <button type="button" class="mob-menu-item" @click="browseDrivers">Manage Drivers</button>
             <button type="button" class="mob-menu-item" @click="openOptions">Options</button>
             <button type="button" class="mob-menu-item" @click="winisdDifferences.show(); closeMenu()">OpenISD and WinISD differences</button>
+            <button type="button" class="mob-menu-item" @click="diagnostics.show(); closeMenu()">Diagnostics</button>
             <button type="button" class="mob-menu-item" @click="about(); closeMenu()">About OpenISD</button>
             <button type="button" class="mob-menu-item" @click="switchToDesktop">Switch to Desktop view</button>
           </section>
@@ -290,7 +293,7 @@ const winisdDifferences = injectWinisdDifferencesModal();
   all: unset;
   box-sizing: border-box;
   width: 100%;
-  padding: 6px 18px;
+  padding: 5px 18px;
   font: inherit;
   font-size: 14px;
   color: var(--fg);
@@ -307,7 +310,7 @@ const winisdDifferences = injectWinisdDifferencesModal();
   box-sizing: border-box;
   width: 100%;
   display: block;
-  padding: 7px 18px;
+  padding: 5px 18px;
   font: inherit;
   font-size: 14px;
   color: var(--fg);

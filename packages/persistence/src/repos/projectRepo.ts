@@ -238,13 +238,13 @@ export function createProjectRepo(
     if (Array.isArray(current)) return current;
     const result = OpenISDProject.fromOwprTextRepairing(current, engine);
     if (Array.isArray(result)) return result;
-    if (result.repaired.length > 0) {
-      const original = source === null ? null : storage.get(source.key);
-      if (source !== null && original !== null) storage.set(source.backupKey, original);
+    if (result.repaired.length > 0 && source !== null) {
+      const original = storage.get(source.key);
+      if (original !== null) storage.set(source.backupKey, original);
       onRepaired({
         projectName: result.project.name.value,
         repaired: result.repaired,
-        backupKey: source === null || original === null ? null : source.backupKey,
+        backupKey: original === null ? null : source.backupKey,
       });
     }
     return result.project;

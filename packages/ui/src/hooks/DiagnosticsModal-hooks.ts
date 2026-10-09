@@ -1,5 +1,5 @@
 import type {InjectionKey, Ref} from 'vue';
-import {ref} from 'vue';
+import {inject, provide, ref} from 'vue';
 import {useApp} from '../logic/app.js';
 import type {QuickFix, RepairNotice} from '../diagnostics/faultLog.js';
 
@@ -8,6 +8,8 @@ export interface DiagnosticsModalAPI {
   readonly outcome: Ref<string | null>;
   readonly copied: Ref<boolean>;
   readonly faultLog: ReturnType<typeof useApp>['faultLog'];
+  show(): void;
+  close(): void;
   applyFix(fix: QuickFix): void;
   downloadOriginal(notice: RepairNotice): void;
   reload(): void;
@@ -30,6 +32,14 @@ export function useDiagnosticsModal(): DiagnosticsModalAPI {
   });
   // A repair recorded during boot, before this dialog existed, is shown as soon as it mounts.
   if (faultLog.repairs.length > 0) open.value = true;
+
+  function show(): void {
+    open.value = true;
+  }
+
+  function close(): void {
+    open.value = false;
+  }
 
   function downloadOriginal(notice: RepairNotice): void {
     outcome.value = faultLog.downloadOriginal(notice)
@@ -63,9 +73,23 @@ export function useDiagnosticsModal(): DiagnosticsModalAPI {
     outcome,
     copied,
     faultLog,
+    show,
+    close,
     applyFix,
     downloadOriginal,
     reload,
     copyReport,
   };
+}
+
+export function provideDiagnosticsModal(): DiagnosticsModalAPI {
+  const api = useDiagnosticsModal();
+  provide(DiagnosticsModalKey, api);
+  return api;
+}
+
+export function injectDiagnosticsModal(): DiagnosticsModalAPI {
+  const api = inject(DiagnosticsModalKey);
+  if (!api) throw new Error('DiagnosticsModal: no provider — App.vue must call provideDiagnosticsModal()');
+  return api;
 }

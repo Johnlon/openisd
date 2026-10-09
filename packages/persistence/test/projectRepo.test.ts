@@ -501,5 +501,24 @@ describe('projectRepo', () => {
       assert.ok(backupSession !== null);
       expect(backupSession).toContain('"id":"s-1"');
     });
+
+    it('listStoredProjects does not notify onRepaired for projects with repaired fields', () => {
+      const brokenText = projectWithABadField('test-repair');
+
+      const storage = createMemoryStorage({
+        [OPENISD_PROJECTS_KEY]: JSON.stringify({
+          version: 1,
+          entries: [{ id: 'p-broken', text: brokenText, modified: '2026-01-01T00:00:00Z' }],
+        }),
+      });
+
+      const onRepaired = vi.fn<(report: ProjectRepairReport) => void>();
+      const repo = createProjectRepo(engine, noFiles, storage, onRepaired);
+
+      const listing = repo.listStoredProjects();
+      expect(listing).toHaveLength(1);
+      expect(listing[0].name).toBe('test-repair');
+      expect(onRepaired).not.toHaveBeenCalled();
+    });
   });
 });

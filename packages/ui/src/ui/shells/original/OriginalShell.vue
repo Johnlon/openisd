@@ -27,6 +27,7 @@ import WinisdDeviationCue from '../../components/WinisdDeviationCue.vue';
 import CompatGroupHelpLink from '../../components/CompatGroupHelpLink.vue';
 import ToggleLabel from '../../components/ToggleLabel.vue';
 import {injectWinisdDifferencesModal} from '../../../hooks/WinisdDifferencesModal-hooks.js';
+import {injectDiagnosticsModal} from '../../../hooks/DiagnosticsModal-hooks.js';
 import BoxTypeDiagram from '../../components/BoxTypeDiagram.vue';
 import SaveToLibraryDialog from '../../components/SaveToLibraryDialog.vue';
 import {useOriginalShell} from '../../../hooks/OriginalShell-hooks.js';
@@ -72,6 +73,7 @@ const {
   onFile, fileInput,
 } = useOriginalShell();
 const winisdDifferences = injectWinisdDifferencesModal();
+const diagnostics = injectDiagnosticsModal();
 // The project announces its own writes (`projectChanged`), so a UIField has nothing to add.
 provideCellScope({ revision: projectChanged, written: () => {} });
 </script>
@@ -113,6 +115,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
             <div class="menu-item" @click="about(); closeDropdown()">About OpenISD</div>
             <a class="menu-item" :href="INSTALL_URL" target="_blank" rel="noopener" title="How to add OpenISD to your desktop or dock as an app." @click="closeDropdown()">Add to desktop as an app</a>
             <div class="menu-item" title="Where OpenISD differs from WinISD: the WinISD bugs it fixes, and the options." @click="winisdDifferences.show(); closeDropdown()">OpenISD and WinISD differences</div>
+            <div class="menu-item" title="Diagnostic report and stored data health." @click="diagnostics.show(); closeDropdown()">Diagnostics</div>
             <div class="menu-item" title="Switch to a phone-friendly layout. Remembered on this device — use the same menu there to switch back." @click="switchToMobile(); closeDropdown()">Switch to Mobile view</div>
           </div>
         </div>

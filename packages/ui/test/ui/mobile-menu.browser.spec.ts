@@ -30,7 +30,7 @@ test.describe('MobileMenu', () => {
       ]);
       await expect(sections.first().locator('.mob-open-project')).toHaveCount(1);
       expect(await items('App')).toEqual([
-        'Manage Drivers', 'Options', 'OpenISD and WinISD differences', 'About OpenISD', 'Switch to Desktop view',
+        'Manage Drivers', 'Options', 'OpenISD and WinISD differences', 'Diagnostics', 'About OpenISD', 'Switch to Desktop view',
       ]);
       // A visible divider sits between the two sections.
       const divider = await sections.nth(1).evaluate(el => getComputedStyle(el).borderTopWidth);

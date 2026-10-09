@@ -27,6 +27,7 @@ import {provideFocusedProject} from '../logic/focusedProjectContext.js';
 import {useApp} from '../logic/app.js';
 import {provideSplashModal} from '../hooks/SplashModal-hooks.js';
 import {provideWinisdDifferencesModal} from '../hooks/WinisdDifferencesModal-hooks.js';
+import {provideDiagnosticsModal} from '../hooks/DiagnosticsModal-hooks.js';
 import {createViewportWatch} from '../logic/viewport.js';
 
 const { projectRepo, viewStateRepo, logging, selection, bundledDrivers, bundledPassiveRadiators } = useApp();
@@ -70,6 +71,9 @@ provideSplashModal(presentationState, {
 // One help page "OpenISD and WinISD differences": the Help menus, the WinISD Compatibility group
 // headings and the ≠W cues all open this instance.
 provideWinisdDifferencesModal();
+
+// One diagnostics modal for the whole app.
+provideDiagnosticsModal();
 
 /** Whether a project is focused right now. The overlays below are project-bound: the shell
  *  renders without one, they must not. */
