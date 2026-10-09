@@ -3,35 +3,32 @@
  * (`Qiclfr`), the rear chamber's, and the sweep never read a front chamber's, so the front value
  * is dropped, with no number changed and nothing to report.
  */
-import {z} from 'zod';
-
-const recordSchema = z.record(z.string(), z.unknown());
-
-/** The record at `key`, or null when `parent` has no record there. */
-function recordAt(parent: Record<string, unknown>, key: string): Record<string, unknown> | null {
-    const found = recordSchema.safeParse(parent[key]);
-    return found.success ? found.data : null;
+function isRecord(v: unknown): v is Record<string, unknown> {
+    return typeof v === 'object' && v !== null && !Array.isArray(v);
 }
 
 function dropFrontQicl(project: unknown): void {
-    const root = recordSchema.safeParse(project);
-    if (!root.success) return;
-    const box = recordAt(root.data, 'box');
-    if (box === null) return;
+    if (!isRecord(project)) return;
+    const box = project.box;
+    if (!isRecord(box)) return;
     for (const type of ['bandpass4', 'bandpass6', 'abc']) {
-        const chambers = recordAt(box, type);
-        const front = chambers === null ? null : recordAt(chambers, 'front');
-        const losses = front === null ? null : recordAt(front, 'losses');
-        if (losses !== null) Reflect.deleteProperty(losses, 'Qicl');
+        const bp = box[type];
+        if (!isRecord(bp)) continue;
+        const front = bp.front;
+        if (!isRecord(front)) continue;
+        const losses = front.losses;
+        if (isRecord(losses) && 'Qicl' in losses) {
+            Reflect.deleteProperty(losses, 'Qicl');
+        }
     }
 }
 
 /** `session`, parsed from JSON text and not yet validated, with every front chamber's Qicl removed
  *  from both the saved and the edited project. Changes `session` in place. */
 export function withoutFrontQicl(session: unknown): unknown {
-    const root = recordSchema.safeParse(session);
-    if (!root.success) return session;
-    dropFrontQicl(root.data.saved);
-    dropFrontQicl(root.data.edited);
+    if (!isRecord(session)) return session;
+    dropFrontQicl(session.saved);
+    dropFrontQicl(session.edited);
+    dropFrontQicl(session);
     return session;
 }

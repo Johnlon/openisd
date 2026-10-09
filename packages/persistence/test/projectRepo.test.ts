@@ -39,6 +39,20 @@ function projectWithABadField(name: string): string {
   return broken;
 }
 
+/** A bandpass4 project carrying retired front chamber losses.Qicl. */
+function projectWithFrontQicl(name: string): string {
+  const project = new ProjectBuilder(OpenISDDriver.empty(engine), engine).bandpass4().build();
+  project.name.set(name);
+  project.save();
+  const text = project.toOwprText();
+  const broken = text.replace(
+    /"front":\s*\{([^}]*"losses":\s*\{)/,
+    '"front": {$1 "Qicl": 77, '
+  );
+  if (broken === text) throw new Error('fixture did not inject front Qicl');
+  return broken;
+}
+
 function isRecord(v: unknown): v is Record<string, unknown> {
   return typeof v === 'object' && v !== null;
 }
@@ -436,6 +450,56 @@ describe('projectRepo', () => {
       assert.ok(!Array.isArray(p2));
       repo.saveToStorage(p2);
       expect(repo.listStoredProjects().filter(e => e.name === 'twice')).toHaveLength(1);
+    });
+  });
+
+  describe('retired field migration (BUG_20261009_retired-field-reset-notice-on-every-load)', () => {
+    it('a stored project with front.losses.Qicl loads with no notice and is stored without it; a second load shows nothing', () => {
+      const legacy = projectWithFrontQicl('bp4');
+      expect(legacy).toContain('"Qicl": 77');
+
+      const storage = createMemoryStorage({
+        [OPENISD_PROJECTS_KEY]: JSON.stringify({
+          version: 1,
+          entries: [{ id: 'p-1', text: legacy, modified: '2026-01-01T00:00:00Z' }],
+        }),
+      });
+
+      const onRepaired = vi.fn<(report: ProjectRepairReport) => void>();
+      const repo = createProjectRepo(engine, noFiles, storage, onRepaired);
+
+      // First load: loads with no notice
+      const loaded = repo.loadStoredProject('p-1');
+      assert.ok(!Array.isArray(loaded) && loaded);
+      expect(loaded.name.value).toBe('bp4');
+      expect(onRepaired).not.toHaveBeenCalled();
+
+      // And is stored without it:
+      const storedAfter = storage.get(OPENISD_PROJECTS_KEY);
+      assert.ok(storedAfter !== null);
+      expect(storedAfter).not.toContain('"Qicl": 77');
+
+      // A second load shows nothing
+      const loadedAgain = repo.loadStoredProject('p-1');
+      assert.ok(!Array.isArray(loadedAgain) && loadedAgain);
+      expect(onRepaired).not.toHaveBeenCalled();
+    });
+
+    it('at start-up open sessions and backups are migrated and written back (backup updated first)', () => {
+      const legacy = projectWithFrontQicl('bp4');
+      const storage = createMemoryStorage({
+        [OPENISD_OPEN_SESSIONS_KEY]: JSON.stringify({
+          entries: [{ id: 's-1', text: legacy, modified: '', traceHidden: false }],
+          focusedId: 's-1',
+        }),
+      });
+      createProjectRepo(engine, noFiles, storage);
+      const sessionStored = storage.get(OPENISD_OPEN_SESSIONS_KEY);
+      assert.ok(sessionStored !== null);
+      expect(sessionStored).not.toContain('"Qicl": 77');
+      const backupSession = storage.get(OPENISD_BACKUP_KEYS.openSessions);
+      assert.ok(backupSession !== null);
+      expect(backupSession).toContain('"id":"s-1"');
     });
   });
 });

@@ -333,7 +333,149 @@ function projectNameOf(text: string): string | null {
     storage.set(PROJECTS_STORAGE_KEY, JSON.stringify(payload));
   }
 
-  // Merge stored duplicate copies at startup
+function isRecord(v: unknown): v is Record<string, unknown> {
+  return typeof v === 'object' && v !== null && !Array.isArray(v);
+}
+
+function dropRetiredFields(root: unknown): boolean {
+  if (!isRecord(root)) return false;
+  let changed = false;
+  const targets: Record<string, unknown>[] = [];
+  if (isRecord(root.saved)) targets.push(root.saved);
+  if (isRecord(root.edited)) targets.push(root.edited);
+  if (isRecord(root.box)) targets.push(root);
+
+  for (const target of targets) {
+    const box = target.box;
+    if (!isRecord(box)) continue;
+    for (const type of ['bandpass4', 'bandpass6', 'abc']) {
+      const bp = box[type];
+      if (!isRecord(bp)) continue;
+      const front = bp.front;
+      if (!isRecord(front)) continue;
+      const losses = front.losses;
+      if (isRecord(losses) && 'Qicl' in losses) {
+        Reflect.deleteProperty(losses, 'Qicl');
+        changed = true;
+      }
+    }
+  }
+  return changed;
+}
+
+function migratePayloadText(text: string): { text: string; changed: boolean } {
+  try {
+    const parsed: unknown = JSON.parse(text);
+    if (dropRetiredFields(parsed)) {
+      return { text: JSON.stringify(parsed), changed: true };
+    }
+  } catch { /* ignore non-JSON */ }
+  return { text, changed: false };
+}
+
+  function migrateStoredProjects(): void {
+    const text = storage.get(PROJECTS_STORAGE_KEY);
+    if (text === null) return;
+    try {
+      const parsed: unknown = JSON.parse(text);
+      const payload = storedProjectsPayload(parsed);
+      if (!payload) return;
+      let changed = false;
+      const entries = payload.entries.map(e => {
+        const res = migratePayloadText(e.text);
+        if (res.changed) changed = true;
+        return { ...e, text: res.text };
+      });
+      if (changed) {
+        storage.set(OPENISD_BACKUP_KEYS.projects, text);
+        writeStoredEntries(entries);
+      }
+    } catch { /* ignore */ }
+  }
+
+  function migrateOpenSessions(): void {
+    const text = storage.get(OPEN_SESSION_STORAGE_KEY);
+    if (text === null) return;
+    try {
+      const parsed: unknown = JSON.parse(text);
+      const payload = openSessionPayload(parsed);
+      if (!payload) return;
+      let changed = false;
+      const entries = payload.entries.map(e => {
+        const res = migratePayloadText(e.text);
+        if (res.changed) changed = true;
+        return { ...e, text: res.text };
+      });
+      if (changed) {
+        storage.set(OPENISD_BACKUP_KEYS.openSessions, text);
+        storage.set(OPEN_SESSION_STORAGE_KEY, JSON.stringify({ entries, focusedId: payload.focusedId } satisfies OpenSessionPayload));
+      }
+    } catch { /* ignore */ }
+  }
+
+  function migrateAutosaveState(): void {
+    const text = storage.get(PROJECT_STORAGE_KEY);
+    if (text === null) return;
+    const res = migratePayloadText(text);
+    if (res.changed) {
+      storage.set(OPENISD_BACKUP_KEYS.state, text);
+      storage.set(PROJECT_STORAGE_KEY, res.text);
+    }
+  }
+
+  function migrateBackups(): void {
+    const projectsBackup = storage.get(OPENISD_BACKUP_KEYS.projects);
+    if (projectsBackup !== null) {
+      try {
+        const parsed: unknown = JSON.parse(projectsBackup);
+        const payload = storedProjectsPayload(parsed);
+        if (payload) {
+          let changed = false;
+          const entries = payload.entries.map(e => {
+            const res = migratePayloadText(e.text);
+            if (res.changed) changed = true;
+            return { ...e, text: res.text };
+          });
+          if (changed) {
+            storage.set(OPENISD_BACKUP_KEYS.projects, JSON.stringify({ version: 1, entries } satisfies StoredProjectsPayload));
+          }
+        }
+      } catch { /* ignore */ }
+    }
+
+    const sessionsBackup = storage.get(OPENISD_BACKUP_KEYS.openSessions);
+    if (sessionsBackup !== null) {
+      try {
+        const parsed: unknown = JSON.parse(sessionsBackup);
+        const payload = openSessionPayload(parsed);
+        if (payload) {
+          let changed = false;
+          const entries = payload.entries.map(e => {
+            const res = migratePayloadText(e.text);
+            if (res.changed) changed = true;
+            return { ...e, text: res.text };
+          });
+          if (changed) {
+            storage.set(OPENISD_BACKUP_KEYS.openSessions, JSON.stringify({ entries, focusedId: payload.focusedId } satisfies OpenSessionPayload));
+          }
+        }
+      } catch { /* ignore */ }
+    }
+
+    const stateBackup = storage.get(OPENISD_BACKUP_KEYS.state);
+    if (stateBackup !== null) {
+      const res = migratePayloadText(stateBackup);
+      if (res.changed) {
+        storage.set(OPENISD_BACKUP_KEYS.state, res.text);
+      }
+    }
+  }
+
+  // Merge stored duplicate copies and migrate stored projects, sessions and backups at startup
+  migrateStoredProjects();
+  migrateOpenSessions();
+  migrateAutosaveState();
+  migrateBackups();
   readStoredEntries();
 
   return {
