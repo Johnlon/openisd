@@ -16,7 +16,7 @@ John, 9 Oct 2026, mobile (openisd.app): every saved project shows, on every load
 
 ## Fix
 - `packages/design/domain/project/retiredFrontQicl.ts`: Replaced Zod copying with direct, typed in-place removal of `front.losses.Qicl`, allowing retired fields to be dropped silently without being reported as schema resets.
-- `packages/persistence/src/repos/projectRepo.ts`: At start-up, every stored project, open session, and backup is migrated and written back, with existing backups updated first so nothing is lost.
+- `packages/persistence/src/repos/projectRepo.ts`: At start-up, every stored project, open session and the autosave is migrated and written back. Each store's original text is backed up once, before any change, and backups are never migrated or overwritten within the same repair, so they stay the original.
 
 ## Verification
 - Unit test in `packages/persistence/test/projectRepo.test.ts` ("retired field migration (BUG_20261009_retired-field-reset-notice-on-every-load)"):

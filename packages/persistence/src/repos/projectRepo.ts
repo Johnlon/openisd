@@ -434,49 +434,11 @@ function migrateEntries<T extends { text: string }>(entries: readonly T[]): { en
     }
   }
 
-  function migrateBackups(): void {
-    const projectsBackup = storage.get(OPENISD_BACKUP_KEYS.projects);
-    if (projectsBackup !== null) {
-      try {
-        const parsed: unknown = JSON.parse(projectsBackup);
-        const payload = storedProjectsPayload(parsed);
-        if (payload) {
-          migrateEntries(payload.entries);
-        } else {
-          console.error(createStoredDataFault('project', 'projects backup has an invalid shape'));
-        }
-      } catch (err) {
-        console.error(createStoredDataFault('project', `projects backup is not valid JSON: ${err instanceof Error ? err.message : String(err)}`));
-      }
-    }
-
-    const sessionsBackup = storage.get(OPENISD_BACKUP_KEYS.openSessions);
-    if (sessionsBackup !== null) {
-      try {
-        const parsed: unknown = JSON.parse(sessionsBackup);
-        const payload = openSessionPayload(parsed);
-        if (payload) {
-          migrateEntries(payload.entries);
-        } else {
-          console.error(createStoredDataFault('project', 'open sessions backup has an invalid shape'));
-        }
-      } catch (err) {
-        console.error(createStoredDataFault('project', `open sessions backup is not valid JSON: ${err instanceof Error ? err.message : String(err)}`));
-      }
-    }
-
-    const stateBackup = storage.get(OPENISD_BACKUP_KEYS.state);
-    if (stateBackup !== null) {
-      migratePayloadText(stateBackup);
-    }
-  }
-
   // Start-up repair: takes ONE backup of each store's original text, before any change,
   // and never overwrites a backup within the same repair; then merge and migrate run on the data.
   migrateStoredProjects();
   migrateOpenSessions();
   migrateAutosaveState();
-  migrateBackups();
 
   return {
     async stateToUrl(project: OpenISDProject, view: ViewSnapshot): Promise<string> {

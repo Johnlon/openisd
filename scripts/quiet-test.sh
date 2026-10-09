@@ -37,14 +37,14 @@ case " $* " in
     fi
     ;;
 esac
-# Heavy commands (no named target) go through the machine's one admission slot (scripts/admit.sh);
-# admit.sh exports ADMIT_TOKEN, so the re-exec happens once. Targeted runs go at once.
+# Only commands that start Chromium go through the machine's one admission slot (scripts/admit.sh):
+# concurrent browser runs harm each other. Lint, typecheck and unit tests conflict with nothing and
+# run at once. admit.sh exports ADMIT_TOKEN, so the re-exec happens once.
 has_target() { printf '%s\n' "$@" | grep -qE '\.(test|spec)\.(ts|js|mjs)$|/test/'; }
 needs_slot() {
   case "$1 ${2:-} ${3:-}" in
-    "npm run typecheck"|"npm run lint"|"npm run test"|"npm run check"|"npm run ci"|"npm test"*|"npx tsc"*) return 0 ;;
+    "npm run test"|"npm run ci"|"npm test"*) return 0 ;;
     "npx playwright test"*) has_target "$@" && return 1; return 0 ;;
-    "npx vitest"*|"vitest "*) has_target "$@" && return 1; return 0 ;;
   esac
   return 1
 }
