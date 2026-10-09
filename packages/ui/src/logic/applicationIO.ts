@@ -28,12 +28,12 @@ import {
  */
 import {watch} from 'vue';
 import {
-  addProject,
   currentProject,
   currentViewSnapshot,
   driverName,
   focusedProject,
   markProjectSaved,
+  openProjectOnce,
   openProjects,
   newProjectDriver,
   requireFocusedProject,
@@ -239,15 +239,16 @@ export function createApplicationIO(deps: { logging: Logging; fileStorage: FileS
         } else if (format === ProjectFileFormat.Wpr) {
           const { value: project, errors } = deps.files.projectFromText(text, ProjectFileFormat.Wpr);
           if (!project) throw new Error(errors[0]?.message ?? 'could not read .wpr');
-          // Opening a project file is opening a NEW project — it never folds into whatever is
-          // already open (a project already open keeps its own tab and contents).
           project.name.set(projectNameFromFilename(f.name));
           // Naming it after the file it came from is part of LOADING it, not a user edit: the
           // loaded design is the ground state, so it is committed before the project is opened.
           // Without this every opened project reads as unsaved — Revert armed, the unsaved dot
           // lit, and closing it challenges the user over changes nobody made.
           project.save();
-          addProject(project);
+          // The open is IDENTIFIED by the file it came from (its name and exact content): opening
+          // the SAME file again switches to the tab already holding it instead of adding a second
+          // (BUG_20261009_same-project-opens-many-times).
+          openProjectOnce(project, {kind: 'file', name: f.name, content: text});
         } else if (format === ProjectFileFormat.Owpr || /^\s*\{/.test(text)) {
           const { value: project, errors } = deps.files.projectFromText(text, ProjectFileFormat.Owpr);
           if (!project) {
@@ -261,7 +262,7 @@ export function createApplicationIO(deps: { logging: Logging; fileStorage: FileS
           }
           project.name.set(projectNameFromFilename(f.name));
           project.save();   // the loaded design is the ground state — see the .wpr branch above
-          addProject(project);
+          openProjectOnce(project, {kind: 'file', name: f.name, content: text});
         } else {
           throw new Error('it is not an OpenISD or WinISD file');
         }

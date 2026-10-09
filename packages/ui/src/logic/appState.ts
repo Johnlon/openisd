@@ -74,6 +74,25 @@ export type NumSpecField = NumericDriverSpecFieldName;
 // what-if overlay fires live), and the computeds below touch `live.value` so they re-derive
 // exactly then. @openisd/model stays Vue-free — the arrow points up, never down.
 
+/** How an OPEN project is recognised so that opening it again switches to its tab instead of
+ *  adding a second one (BUG_20261009_same-project-opens-many-times). A stored project is known
+ *  by the store id it was loaded from; a file-opened project by the exact name and content it
+ *  was opened from. Recorded AT OPEN TIME and never recomputed from a project that may since
+ *  have been edited (human ruling, John 9 Oct 2026: "the stored project id if it has one, else
+ *  the file name + content"). */
+export interface StoredProjectIdentity {
+  readonly kind: 'stored';
+  readonly id: string;
+}
+
+export interface FileProjectIdentity {
+  readonly kind: 'file';
+  readonly name: string;
+  readonly content: string;
+}
+
+export type OpenProjectIdentity = StoredProjectIdentity | FileProjectIdentity;
+
 /** This module's hot-reload-surviving singletons, one typed member each (`hmrSingleton.ts`).
  *  Each member's declared type is what its `getOrInit` call site gets back. */
 interface AppStateSingletons {
@@ -82,6 +101,8 @@ interface AppStateSingletons {
   appSettingsTick: Ref<number>;
   engine: Engine;
   projects: ShallowRef<OpenISDProject[]>;
+  /** Each open project's identity, for deciding whether an incoming open is already open. */
+  openIdentities: WeakMap<OpenISDProject, OpenProjectIdentity>;
   focusedIndex: Ref<number>;
   changeTicks: Ref<number>;
   live: ShallowRef<OpenISDProject | null>;
@@ -198,6 +219,8 @@ export const appContext: AppContext = Object.freeze({
  */
 const projects = getOrInit(slots, 'projects', () => shallowRef<OpenISDProject[]>([]));
 const focusedIndex = getOrInit(slots, 'focusedIndex', () => ref(0));
+const openIdentities = getOrInit(slots, 'openIdentities',
+  () => new WeakMap<OpenISDProject, OpenProjectIdentity>());
 
 /** Every open project. Empty array if none are open. */
 export function openProjects(): OpenISDProject[] { return projects.value; }
@@ -242,6 +265,38 @@ export function addProject(project: OpenISDProject): void {
   assignTraceColor(project, projects.value);
   projects.value = [...projects.value, project];
   focusedIndex.value = projects.value.length - 1;
+}
+
+/** Whether two identities name the SAME project. */
+function sameOpenIdentity(a: OpenProjectIdentity, b: OpenProjectIdentity): boolean {
+  if (a.kind === 'stored' && b.kind === 'stored') return a.id === b.id;
+  if (a.kind === 'file' && b.kind === 'file') return a.name === b.name && a.content === b.content;
+  return false;
+}
+
+/** The open project carrying `identity`, or null. Registry bookkeeping — the identity was
+ *  recorded when the project was opened, never derived from its (possibly edited) contents now. */
+export function openProjectByIdentity(identity: OpenProjectIdentity): OpenISDProject | null {
+  return projects.value.find(project => {
+    const recorded = openIdentities.get(project);
+    return recorded !== undefined && sameOpenIdentity(recorded, identity);
+  }) ?? null;
+}
+
+/** Open `project` — the ONE door the stored-project dialog and the file import go through, so a
+ *  project that is already open is never opened a second time. When a project with `identity` is
+ *  already open, focus that one and discard `project` (the freshly loaded duplicate); otherwise
+ *  record `identity`, add `project` and focus it. New projects, copies, share links and session
+ *  restores call `addProject` directly: they have no existing identity to collide with. */
+export function openProjectOnce(project: OpenISDProject, identity: OpenProjectIdentity): OpenISDProject {
+  const existing = openProjectByIdentity(identity);
+  if (existing) {
+    focusProject(projects.value.indexOf(existing));
+    return existing;
+  }
+  openIdentities.set(project, identity);
+  addProject(project);
+  return project;
 }
 
 /** Replace the open-project registry with a refresh-restored session; `traceHidden` are the

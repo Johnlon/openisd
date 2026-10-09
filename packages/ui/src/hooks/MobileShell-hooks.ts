@@ -5,7 +5,7 @@
  */
 import {computed, nextTick, onMounted, onUnmounted, ref, watch} from 'vue';
 import {
-  addProject, boxTypeIsSimulatable, focusedProject, focusProject, isModified, openProjects, projectChanged,
+  boxTypeIsSimulatable, focusedProject, focusProject, isModified, openProjects, projectChanged,
   projectDisplayName, projectHasUnsavedChanges, removeProject, resetProjectToGround,
 } from '../logic/appState.js';
 import {isTraceVisible, setTraceVisible, traceVisibilityRevision} from '../logic/traceVisibility.js';
@@ -17,6 +17,7 @@ import {injectSplashModal} from './SplashModal-hooks.js';
 import type {TabId} from '../logic/tabId.js';
 import {createSelectedBox} from './boxFields.js';
 import {storedProjectRows, type StoredProjectRow} from './storedProjectRows.js';
+import {openStoredProject as openStoredProjectFromStore} from '../logic/storedProjectOpen.js';
 
 /** The mobile shell's own destinations: the same tab ids the desktop shell's content panel
  *  uses (so a shared field-wiring caller never has to ask "which shell is this"), plus `graph`
@@ -160,12 +161,11 @@ export function useMobileShell(): MobileShellApi {
     closeMenu();
   }
   function openStoredProject(id: string): void {
-    const result = projectRepo.loadStoredProject(id);
-    if (Array.isArray(result)) {
-      alert('Could not open the saved project: ' + result.join('; '));
+    const result = openStoredProjectFromStore(projectRepo, id);
+    if (result.kind === 'refused') {
+      alert('Could not open the saved project: ' + result.errors.join('; '));
       return;
     }
-    addProject(result);
     openDialogOpen.value = false;
   }
 

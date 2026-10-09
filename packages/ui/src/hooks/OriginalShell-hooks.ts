@@ -17,7 +17,6 @@
 import type {ComputedRef, Ref} from 'vue';
 import {computed, onMounted, onUnmounted, ref, shallowRef, watch} from 'vue';
 import {
-    addProject,
     allIssues,
     IMPLEMENTED_BOX_TYPES,
     boxTypeIsSimulatable,
@@ -39,6 +38,7 @@ import {
     resetProjectToGround,
     syncedP,
 } from '../logic/appState.js';
+import {openStoredProject as openStoredProjectFromStore} from '../logic/storedProjectOpen.js';
 import {cycleTraceColor, presentationState, setSkinOverride, traceColor} from '../logic/presentationState.js';
 import {useFocusedProject} from '../logic/focusedProjectContext.js';
 import {createVentReadouts, FB_TARGET_TIP, FH_TARGET_TIP, VENT_GEOMETRY_TIP} from './ventReadouts.js';
@@ -335,12 +335,11 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     void designIO.openFromDisk(() => fileInput.value?.click());
   }
   function openStoredProject(id: string) {
-    const result = projectRepo.loadStoredProject(id);
-    if (Array.isArray(result)) {
-      alert('Could not open the saved project: ' + result.join('; '));
+    const result = openStoredProjectFromStore(projectRepo, id);
+    if (result.kind === 'refused') {
+      alert('Could not open the saved project: ' + result.errors.join('; '));
       return;
     }
-    addProject(result);
     openDialogOpen.value = false;
   }
   function onFile(e: Event) {

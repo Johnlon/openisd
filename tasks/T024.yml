@@ -1,0 +1,13 @@
+id: T024
+repo: openisd
+owner: lots
+status: open
+goal: Project open and load behave - a project already open is never opened twice and Save writes it in place; the file-open list sorts newest first; retired fields migrate silently and a repaired project is written back once; the mobile file-open dialog shows files, not diagnostics.
+done_test: bash scripts/test.sh packages/ui/test/logic/project-open-once.test.ts
+files:
+  - packages/design/**
+  - packages/ui/src/**
+  - packages/ui/test/logic/project-open-once.test.ts
+  - bugs/**
+  - packages/ui/test/**
+  - tasks/T024.yml
