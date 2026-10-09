@@ -9,7 +9,7 @@ fails=0; ok() { echo "ok   $1"; }; fail() { echo "FAIL $1"; fails=$((fails + 1))
 
 export ADMIT_DIR="$SCRATCH/admit"
 SRC="$SCRATCH/clone"; COPY="$SCRATCH/copies/c1"
-mkdir -p "$SRC/node_modules" "$SCRATCH/winisd_drivers" "$COPY/scripts/land/post-land" "$SCRATCH/bin"
+mkdir -p "$SRC/node_modules" "$COPY/scripts/land/post-land" "$SCRATCH/bin"
 cp -r "$REPO/scripts/admit" "$REPO/scripts/lib" "$COPY/scripts/"
 cp "$REPO/scripts/admit.sh" "$COPY/scripts/"
 cp "$REPO/scripts/land/post-land/suite.sh" "$COPY/scripts/land/post-land/"

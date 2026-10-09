@@ -41,9 +41,8 @@ const TEST_DIR = dirname(fileURLToPath(import.meta.url));
 const DESIGN_PKG_ROOT = join(TEST_DIR, '..', '..');
 const REPO_ROOT = join(DESIGN_PKG_ROOT, '..', '..');
 const BRIDGE_CONFIG = join(DESIGN_PKG_ROOT, 'vite.bridge.config.ts');
-const REAL_DRIVER_JSON = join(
-  REPO_ROOT, '..', 'winisd_drivers', 'db', 'datasheets', 'accuton', 'bd90-6-727', 'driver.json',
-);
+// Vendored, pinned copy of a corpus record (scripts/sync-driver-snapshot.sh refreshes it).
+const REAL_DRIVER_JSON = join(TEST_DIR, '..', 'fixtures', 'driver-snapshot', 'accuton', 'bd90-6-727', 'driver.json');
 
 /** A minimal conforming record whose comment runs to two lines — the one thing that puts a
  *  newline INSIDE a .wdr value, which is what the 0xA4 marker byte exists for. */

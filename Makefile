@@ -31,7 +31,7 @@ start-fast: start
 
 # Rebuild the driver bundle only (~5s, skip --force to skip the stamp check).
 drivers:
-	npx tsx scripts/bundle-drivers.mjs --force
+	bash scripts/sync-driver-snapshot.sh
 
 .PHONY: start-4000
 start-4000:

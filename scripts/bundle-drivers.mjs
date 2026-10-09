@@ -2,10 +2,10 @@
 /**
  * bundle-drivers.mjs — writes the bundled driver catalogue the app serves and fetches.
  *
- *   npx tsx scripts/bundle-drivers.mjs [--force]
+ *   npx tsx scripts/bundle-drivers.mjs --corpus <datasheets-dir> [--force]
  *
- * Design: docs/design/BUNDLED_CATALOGUE_API.md. The corpus is the sibling
- * `winisd_drivers/db/datasheets` checkout; each `<brand>/<sku>/openisd.json` is the canonical
+ * Design: docs/design/BUNDLED_CATALOGUE_API.md. The corpus is `--corpus <dir>` (required;
+ * only scripts/sync-driver-snapshot.sh passes it, from a clean winisd_drivers checkout); each `<brand>/<sku>/openisd.json` is the canonical
  * driver record (ARCHITECTURE.md AD-8), written by winisd_tools. Nothing else is read.
  *
  * Outputs, all under packages/ui/public/ and all tracked in git (CI has no corpus checkout):
@@ -25,21 +25,20 @@
  *
  * Skips the walk when nothing has changed: the fingerprint of every corpus record plus every
  * source file that shapes a row or record is kept in build/drivers-bundle.stamp and compared
- * first (scripts/bundleStamp.mjs; scripts/bundle-drivers-if-changed.mjs does the same check
- * under plain node, which is what predev/prebuild call). `--force` rebuilds regardless.
+ * first (scripts/bundleStamp.mjs). `--force` rebuilds regardless. predev/prebuild call
+ * scripts/bundle-drivers-if-changed.mjs, which only checks the committed outputs exist.
  *
  * Runs under tsx (predev/prebuild) because the packages export TypeScript source.
  */
 
 import {mkdirSync, readFileSync, rmSync, statSync, writeFileSync} from 'fs';
-import {dirname, join, relative} from 'path';
+import {dirname, join, relative, resolve} from 'path';
 import {fileURLToPath} from 'url';
 import {isBundlable, project} from './bundleProjection.mjs';
 import {checkOpenisdRoundTrip} from './roundTripGate.mjs';
 import {
     bundleFingerprintOnDisk,
     bundleOutputsPresent,
-    CORPUS_RELATIVE,
     readStamp,
     STAMP,
     walkFiles
@@ -50,12 +49,22 @@ import {OpenISDPassiveRadiatorStandalone} from '@openisd/design';
 const RECORD_FILE = 'openisd.json';
 
 const ROOT = join(fileURLToPath(import.meta.url), '..', '..');
-const CORPUS = join(ROOT, ...CORPUS_RELATIVE);
+const CORPUS = corpusArg(process.argv);
 const PUBLIC = join(ROOT, 'packages', 'ui', 'public');
 const DRIVER_INDEX = join(PUBLIC, 'drivers-index.json');
 const RADIATOR_INDEX = join(PUBLIC, 'passive-radiators-index.json');
 const RECORDS_DIR = join(PUBLIC, 'drivers');
 const STAMP_FILE = join(ROOT, STAMP);
+
+function corpusArg(argv) {
+  const i = argv.indexOf('--corpus');
+  const dir = i >= 0 ? argv[i + 1] : undefined;
+  if (!dir) {
+    console.error('bundle-drivers: --corpus <dir> is required (the datasheets directory). The live driver db is read only by scripts/sync-driver-snapshot.sh; run that to refresh the bundle.');
+    process.exit(2);
+  }
+  return resolve(dir);
+}
 
 function walkRecords(dir) {
   return walkFiles(dir, name => name.toLowerCase() === RECORD_FILE);
@@ -75,7 +84,7 @@ function main() {
   catch { throw new Error(`driver source path is not checked out: ${CORPUS}`); }
   console.log(`  found ${rawFiles.length} ${RECORD_FILE} files`);
 
-  const fingerprint = bundleFingerprintOnDisk(ROOT);
+  const fingerprint = bundleFingerprintOnDisk(ROOT, CORPUS);
   if (!force && bundleOutputsPresent(ROOT) && readStamp(ROOT) === fingerprint) {
     console.log(`  unchanged since the last run (build/drivers-bundle.stamp) — nothing rewritten; --force to rebuild`);
     return;

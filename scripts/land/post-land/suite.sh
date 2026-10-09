@@ -14,10 +14,6 @@ src="${POST_LAND_SRC:?POST_LAND_SRC not set: start this through scripts/land/pos
 for dir in $(cd "$src" && ls -d node_modules packages/*/node_modules 2> /dev/null); do
   [ -e "$dir" ] || { mkdir -p "$(dirname "$dir")"; cp -al "$src/$dir" "$dir"; }
 done
-# Tests find the corpus as a sibling of the repo (../winisd_drivers). The clean copy sits in
-# POST_LAND_DIR, so link that sibling to the starting clone's: read only, nothing is written to it.
-copy_parent="$(dirname "$PWD")"
-[ -e "$copy_parent/winisd_drivers" ] || ln -s "$(dirname "$src")/winisd_drivers" "$copy_parent/winisd_drivers"
 # Both halves always run: a red unit half must not hide the browser half. Red when either failed.
 unit=0; browser=0
 npx vitest run || unit=$?

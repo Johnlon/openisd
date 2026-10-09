@@ -9,7 +9,7 @@ trap 'rm -rf "$SCRATCH"' EXIT
 fails=0; ok() { echo "ok   $1"; }; fail() { echo "FAIL $1"; fails=$((fails + 1)); }
 
 SRC="$SCRATCH/clone"; COPY="$SCRATCH/copies/c1"
-mkdir -p "$SRC/node_modules" "$SCRATCH/winisd_drivers" "$COPY/scripts/land/post-land" "$SCRATCH/bin" "$SCRATCH/seen"
+mkdir -p "$SRC/node_modules" "$COPY/scripts/land/post-land" "$SCRATCH/bin" "$SCRATCH/seen"
 cp "$REPO/scripts/land/post-land/suite.sh" "$COPY/scripts/land/post-land/"
 export SEEN="$SCRATCH/seen" ADMIT_TOKEN=test-token PATH="$SCRATCH/bin:$PATH"
 # the unit half (fake npx) and the browser half each leave a marker, and fail when told to

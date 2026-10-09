@@ -40,8 +40,9 @@ function wdrTextFor(record: unknown): { value: string | null; errors: DriverErro
 }
 
 const here = dirname(fileURLToPath(import.meta.url));
-const CORPUS_DIR = join(here, '..', '..', '..', '..', '..', 'winisd_drivers', 'db', 'datasheets', 'accuton', 'bd90-6-727');
-const REAL_OPENISD_JSON = join(CORPUS_DIR, 'openisd.json');
+// Vendored, pinned copies of two corpus records (scripts/sync-driver-snapshot.sh refreshes them).
+const SNAPSHOT_DIR = join(here, '..', '..', '..', 'design', 'test', 'fixtures', 'driver-snapshot');
+const REAL_OPENISD_JSON = join(SNAPSHOT_DIR, 'accuton', 'bd90-6-727', 'openisd.json');
 
 function realRecord(): unknown {
   assert.equal(existsSync(REAL_OPENISD_JSON), true, `fixture missing: ${REAL_OPENISD_JSON}`);
@@ -79,8 +80,7 @@ describe('checkOpenisdRoundTrip', () => {
     // by winisd_tools) disagrees with the app's own referenceEfficiency() recompute at the
     // 1-ULP level (0.003922639268191504 vs ...505) — this is what predev's full-corpus
     // bundle-drivers.mjs scan currently throws on, with no equivalent unit-test coverage.
-    const here = dirname(fileURLToPath(import.meta.url));
-    const path = join(here, '..', '..', '..', '..', '..', 'winisd_drivers', 'db', 'datasheets', 'dayton-audio', 'da215-8', 'openisd.json');
+    const path = join(SNAPSHOT_DIR, 'dayton-audio', 'da215-8', 'openisd.json');
     assert.equal(existsSync(path), true, `fixture missing: ${path}`);
     const record: unknown = JSON.parse(readFileSync(path, 'utf8'));
     const result = checkOpenisdRoundTrip(record, 'dayton-audio/da215-8/openisd.json');

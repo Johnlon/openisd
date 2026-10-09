@@ -12,8 +12,8 @@ import {createHash} from 'node:crypto';
 import {existsSync, readdirSync, readFileSync, statSync} from 'node:fs';
 import {join, relative} from 'node:path';
 
-/** Where the catalogue's inputs and outputs live, relative to the repo root. */
-export const CORPUS_RELATIVE = ['..', 'winisd_drivers', 'db', 'datasheets'];
+/** Where the catalogue's outputs live, relative to the repo root. The corpus has no default
+ *  location: callers pass its directory (scripts/sync-driver-snapshot.sh is the only one that has it). */
 export const OUTPUTS = ['packages/ui/public/drivers-index.json', 'packages/ui/public/passive-radiators-index.json', 'packages/ui/public/drivers'];
 export const STAMP = 'build/drivers-bundle.stamp';
 /** Source files whose change alters a row or a record's shape — part of the fingerprint. */
@@ -62,10 +62,9 @@ export function walkFiles(dir, keep) {
   return files;
 }
 
-/** The fingerprint of the catalogue's inputs as they are on disk now. Throws if the corpus is
+/** The fingerprint of the catalogue's inputs as they are on disk now. Throws if `corpus` is
  *  not checked out. */
-export function bundleFingerprintOnDisk(root) {
-  const corpus = join(root, ...CORPUS_RELATIVE);
+export function bundleFingerprintOnDisk(root, corpus) {
   const inputs = walkFiles(corpus, name => name.toLowerCase() === 'openisd.json').map(f => {
     const st = statSync(f);
     return new BundleInput(relative(corpus, f).replace(/\\/g, '/'), st.mtimeMs, st.size);
@@ -85,11 +84,9 @@ export function bundleOutputsPresent(root) {
   return OUTPUTS.every(p => existsSync(join(root, p)));
 }
 
-/** Whether the driver corpus is checked out beside this repo. It is a SEPARATE repository
- *  (`winisd_drivers`), so a CI checkout of this one alone does not have it — and does not need
- *  it, because `OUTPUTS` are committed. */
-export function corpusPresent(root) {
-  return existsSync(join(root, ...CORPUS_RELATIVE));
+/** Whether the driver corpus directory exists. */
+export function corpusPresent(corpus) {
+  return existsSync(corpus);
 }
 
 /** The stamp of the last run, or null when there was none. */

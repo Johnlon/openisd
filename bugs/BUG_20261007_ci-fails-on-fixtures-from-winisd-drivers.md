@@ -1,6 +1,6 @@
 # BUG_20261007_ci-fails-on-fixtures-from-winisd-drivers
 
-**Status:** OPEN (proposal with lots, workflows not changed)
+**Status:** RESOLVED (T022): the fixtures are vendored under packages/design/test/fixtures/driver-snapshot and pinned in scripts/driver-snapshot.pin; no test or build reads ../winisd_drivers. The deploy gate (fix 2) is not part of T022.
 
 ## Symptom
 GitHub CI (`ci.yml`, job `test`, step `npm run test:unit`) has failed on every push today, run 37602023432 and

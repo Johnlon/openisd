@@ -1,0 +1,22 @@
+id: T022
+repo: openisd
+owner: maryu
+status: open
+goal: openisd never reads ../winisd_drivers outside one explicit sync script; tests and builds use a pinned snapshot (vendored fixtures + the committed bundle) named by a PIN that records the winisd_drivers commit (John 2026-10-08, decouple).
+done_test: bash scripts/test.sh packages/design/test/scripts/driver-snapshot-pin.test.ts packages/design/test/winisd/bridge-bundle.test.ts packages/ui/test/scripts/round-trip-gate.test.ts && bash scripts/land/test/sync-driver-snapshot.test.sh && bash scripts/land/test/suite-admit.test.sh
+files:
+  - scripts/sync-driver-snapshot.sh
+  - scripts/driver-snapshot.pin
+  - packages/design/test/fixtures/driver-snapshot/**
+  - scripts/bundleStamp.mjs
+  - scripts/bundle-drivers.mjs
+  - scripts/bundle-drivers-if-changed.mjs
+  - packages/ui/test/scripts/round-trip-gate.test.ts
+  - packages/design/test/winisd/bridge-bundle.test.ts
+  - packages/design/test/scripts/driver-snapshot-pin.test.ts
+  - scripts/land/test/sync-driver-snapshot.test.sh
+  - scripts/land/post-land/suite.sh
+  - scripts/land/test/suite-admit.test.sh
+  - bugs/BUG_20261007_ci-fails-on-fixtures-from-winisd-drivers.md
+  - docs/DEV_PROCESS.md
+  - tasks/T022.yml

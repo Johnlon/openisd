@@ -71,3 +71,10 @@ Config: `land.conf` at the repo root.
 | pre-push   | attribution guard on every commit being pushed    |
 
 No hook runs a test suite. `--no-verify` only on John's word, per commit.
+
+## Driver snapshot
+
+- Tests and builds never read the live driver db (`../winisd_drivers`). The committed bundle (`packages/ui/public/drivers/**`, `drivers-index.json`, `passive-radiators-index.json`) and the three fixtures in `packages/design/test/fixtures/driver-snapshot/` are the pinned snapshot.
+- `scripts/driver-snapshot.pin` records the winisd_drivers commit and the sha256 of every fixture and of the bundle; `packages/design/test/scripts/driver-snapshot-pin.test.ts` fails on drift.
+- `scripts/sync-driver-snapshot.sh` is the only reader of the live db. It refuses a dirty or non-git checkout.
+- Bump the pin: run it on a clean winisd_drivers and commit everything it changed.
