@@ -336,13 +336,18 @@ export class OpenISDBox implements Box {
         const prVolume = nullableField(pr, 'volume_m3', (v) => engine.issues.requiredPositiveIssue('Box volume', v));
         const prAddedMassEntry = entryField(focus(pr, 'addedMass_kg'), 'addedMass_kg', () => groupDq(issues().pr));
         const prTuningEntry = entryField(focus(pr, 'tuning_goal_hz'), 'tuning_goal_hz', () => groupDq(issues().pr));
-        const prTuningField = pairedField(
+        // A cleared pair never stays blank: the added mass falls back to 0 (John, 2026-10-09), and
+        // the tuning is calculated from it.
+        const settlePr = (): void => prAddedMassField.set(0);
+        const prTuningField: ReturnType<typeof pairedField> = pairedField(
             (entry) => pr.set({ ...pr.value, tuning_goal_hz: entry, addedMass_kg: undefined }),
             prTuningEntry,
+            { siblingEmpty: () => prAddedMassField.value === null, settle: settlePr },
         );
-        const prAddedMassField = pairedField(
+        const prAddedMassField: ReturnType<typeof pairedField> = pairedField(
             (entry) => pr.set({ ...pr.value, addedMass_kg: entry, tuning_goal_hz: undefined }),
             prAddedMassEntry,
+            { siblingEmpty: () => prTuningField.value === null, settle: settlePr },
         );
         this.passiveRadiator = {
             volume_m3: prVolume,
