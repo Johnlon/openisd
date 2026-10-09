@@ -1,6 +1,6 @@
 # BUG_20261009_stored-project-list-holds-copies
 
-**Status:** OPEN
+**Status:** RESOLVED
 
 ## Symptom
 John, 9 Oct 2026: "I've seen my projects list multiple times". The stored project list (File → Open dialog) shows the same project as several separate entries, one per time a file was opened and saved across app reloads.
@@ -13,16 +13,19 @@ John, 9 Oct 2026: "I've seen my projects list multiple times". The stored projec
    - Expected: one entry.
 
 ## Evidence
-Re-checked in this change:
-- `packages/persistence/src/repos/projectRepo.ts:330` — a save keys the entry by `storedIdentity.get(project) ?? project.uuid()`.
-- `packages/design/domain/project/openISDProject.ts:446` — a file parse (`wrap`) mints a fresh `appContext.newId()`; a file-opened project is never given a store identity until it is saved.
-- So each fresh parse of the same file saves under a new id: `readStoredEntries()` (`projectRepo.ts:265`) returns every entry and nothing merges them.
+- `packages/persistence/src/repos/projectRepo.ts:330` previously minted a fresh `project.uuid()` on save whenever `storedIdentity.get(project)` was unset.
+- `packages/design/domain/project/openISDProject.ts:446` file parsing (`wrap`) mints a fresh id per read, leaving file-opened projects with no store identity until saved.
+- `readStoredEntries()` returned all entries verbatim with no deduplication or merge step.
 
 ## Cause
-The store has no way to recognise that a newly parsed file is the same project as an entry it already holds: the file carries no store id, and no read/start-up step merges entries that name the same project.
+The store had no identity linking a freshly wrapped project to an existing stored project with the same name, and no start-up or read step deduplicated entries that named the same project.
 
 ## Fix
-Merge stored duplicates of one project into a single entry at start-up (and on read), keeping the newest by last modified, with every dropped copy copied to the backup key first. This is a persistence change (`packages/persistence`), outside T024's file allowance.
+- `saveToStorage` in `packages/persistence/src/repos/projectRepo.ts` matches incoming projects by name against existing stored entries before generating a new id, updating the existing entry in place.
+- `readStoredEntries` deduplicates stored entries with the same project name at start-up and on read, keeping the newest by `modified` and backing up the original collection to `OPENISD_BACKUP_KEYS.projects` before writing the merged entries.
 
 ## Verification
-A store holding the same project three times loads as one entry (the newest by modified), and the backup key holds all three originals.
+- Vitest suite in `packages/persistence/test/projectRepo.test.ts` ("stored duplicate project copies (BUG_20261009_stored-project-list-holds-copies)"):
+  - Verified a store with the same project 3 times loads as 1 entry and the backup key holds all 3 originals.
+  - Verified saving twice (both direct and after reopening the same project from text) leaves exactly 1 entry.
+- `bash scripts/test.sh packages/persistence/test/projectRepo.test.ts` passed (30/30 passed).

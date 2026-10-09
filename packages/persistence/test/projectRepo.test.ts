@@ -12,7 +12,7 @@ import {createProjectRepo, type ProjectRepairReport} from '../src/repos/projectR
 import type {FileStorage} from '../src/storage/fileStorage.js';
 import {createMemoryStorage, createSharedMemoryStorage, type KeyValueStorage} from '../src/storage/keyValueStorage.js';
 import {
-  OPENISD_BACKUP_KEYS, OPENISD_OPEN_SESSIONS_KEY, OPENISD_QUARANTINE_SESSION_KEY, OPENISD_STATE_KEY,
+  OPENISD_BACKUP_KEYS, OPENISD_OPEN_SESSIONS_KEY, OPENISD_PROJECTS_KEY, OPENISD_QUARANTINE_SESSION_KEY, OPENISD_STATE_KEY,
 } from '../src/repos/storageKeys.js';
 import {OpenISDDriver, OpenISDProject, ProjectBuilder} from '@openisd/design';
 import {createEngine} from '@openisd/design/engine';
@@ -397,6 +397,45 @@ describe('projectRepo', () => {
 
       assert.ok(!Array.isArray(restored) && restored);
       expect(restored.name.value).toBe('Legacy saved project');
+    });
+  });
+
+  describe('stored duplicate project copies (BUG_20261009_stored-project-list-holds-copies)', () => {
+    it('a store with the same project 3 times loads as 1 entry and the backup holds all 3', () => {
+      const storage = createMemoryStorage({
+        [OPENISD_PROJECTS_KEY]: JSON.stringify({
+          version: 1,
+          entries: [
+            { id: 'id-1', text: goodProjectText('mine'), modified: '2026-01-01T00:00:00Z' },
+            { id: 'id-2', text: goodProjectText('mine'), modified: '2026-01-02T00:00:00Z' },
+            { id: 'id-3', text: goodProjectText('mine'), modified: '2026-01-03T00:00:00Z' },
+          ],
+        }),
+      });
+      const repo = createProjectRepo(engine, noFiles, storage);
+      const list = repo.listStoredProjects();
+      expect(list).toHaveLength(1);
+      expect(list[0].id).toBe('id-3');
+      const backupText = storage.get(OPENISD_BACKUP_KEYS.projects);
+      assert.ok(backupText !== null, 'backup must be written when copies are merged');
+      expect(backupText).toContain('"id":"id-1"');
+      expect(backupText).toContain('"id":"id-2"');
+      expect(backupText).toContain('"id":"id-3"');
+    });
+
+    it('saving twice leaves 1 entry', () => {
+      const storage = createMemoryStorage();
+      const repo = createProjectRepo(engine, noFiles, storage);
+      const p1 = project('twice');
+      repo.saveToStorage(p1);
+      repo.saveToStorage(p1);
+      expect(repo.listStoredProjects().filter(e => e.name === 'twice')).toHaveLength(1);
+
+      // Re-opening the same project from file text and saving again also preserves the 1 entry
+      const p2 = OpenISDProject.fromOwprText(p1.toOwprText(), engine);
+      assert.ok(!Array.isArray(p2));
+      repo.saveToStorage(p2);
+      expect(repo.listStoredProjects().filter(e => e.name === 'twice')).toHaveLength(1);
     });
   });
 });

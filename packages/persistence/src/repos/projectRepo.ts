@@ -262,6 +262,55 @@ export function createProjectRepo(
       && OpenISDProject.sameOwprText(e.text, entries[i].text));
   }
 
+function projectNameOf(text: string): string | null {
+  try {
+    const parsed: unknown = JSON.parse(text);
+    if (!parsed || typeof parsed !== 'object') return null;
+    if ('label' in parsed && typeof parsed.label === 'string') return parsed.label;
+    if ('saved' in parsed && parsed.saved && typeof parsed.saved === 'object' && 'meta' in parsed.saved && parsed.saved.meta && typeof parsed.saved.meta === 'object' && 'name' in parsed.saved.meta && typeof parsed.saved.meta.name === 'string') {
+      return parsed.saved.meta.name;
+    }
+    if ('project' in parsed && parsed.project && typeof parsed.project === 'object' && 'name' in parsed.project && typeof parsed.project.name === 'string') {
+      return parsed.project.name;
+    }
+    if ('meta' in parsed && parsed.meta && typeof parsed.meta === 'object' && 'name' in parsed.meta && typeof parsed.meta.name === 'string') {
+      return parsed.meta.name;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+  function deduplicateEntries(entries: StoredProjectEntry[], rawOriginalText: string | null): StoredProjectEntry[] {
+    const byName = new Map<string, StoredProjectEntry[]>();
+    const anonymous: StoredProjectEntry[] = [];
+    for (const entry of entries) {
+      const name = projectNameOf(entry.text);
+      if (name === null) {
+        anonymous.push(entry);
+      } else {
+        const list = byName.get(name);
+        if (list) list.push(entry);
+        else byName.set(name, [entry]);
+      }
+    }
+    let hadDuplicates = false;
+    const merged: StoredProjectEntry[] = [...anonymous];
+    for (const [, list] of byName) {
+      if (list.length > 1) {
+        hadDuplicates = true;
+        list.sort((a, b) => b.modified.localeCompare(a.modified));
+      }
+      merged.push(list[0]);
+    }
+    if (hadDuplicates && rawOriginalText !== null) {
+      storage.set(OPENISD_BACKUP_KEYS.projects, rawOriginalText);
+      writeStoredEntries(merged);
+    }
+    return merged;
+  }
+
   function readStoredEntries(): StoredProjectEntry[] {
     for (const key of [PROJECTS_STORAGE_KEY, LEGACY_PROJECTS_STORAGE_KEY]) {
       const collectionText = storage.get(key);
@@ -269,7 +318,7 @@ export function createProjectRepo(
       try {
         const parsed: unknown = JSON.parse(collectionText);
         const payload = storedProjectsPayload(parsed);
-        if (payload && payload.entries.length > 0) return payload.entries;
+        if (payload && payload.entries.length > 0) return deduplicateEntries(payload.entries, collectionText);
       } catch { /* fall through to the legacy single-project key */ }
     }
     for (const key of [PROJECT_STORAGE_KEY, LEGACY_PROJECT_STORAGE_KEY]) {
@@ -283,6 +332,9 @@ export function createProjectRepo(
     const payload: StoredProjectsPayload = { version: 1, entries };
     storage.set(PROJECTS_STORAGE_KEY, JSON.stringify(payload));
   }
+
+  // Merge stored duplicate copies at startup
+  readStoredEntries();
 
   return {
     async stateToUrl(project: OpenISDProject, view: ViewSnapshot): Promise<string> {
@@ -327,11 +379,15 @@ export function createProjectRepo(
 
     saveToStorage(project: OpenISDProject): void {
       const entries = readStoredEntries();
-      const id = storedIdentity.get(project) ?? project.uuid();
+      const existing = entries.find(e => {
+        const name = projectNameOf(e.text);
+        return name !== null && name === project.name.value;
+      });
+      const id = storedIdentity.get(project) ?? existing?.id ?? project.uuid();
       const now = Math.max(Date.now(), lastSavedAt + 1);
       lastSavedAt = now;
       const entry: StoredProjectEntry = { id, text: project.toOwprText(), modified: new Date(now).toISOString() };
-      writeStoredEntries([entry, ...entries.filter(existing => existing.id !== id)]);
+      writeStoredEntries([entry, ...entries.filter(candidate => candidate.id !== id)]);
       storage.set(PROJECT_STORAGE_KEY, entry.text);
       storedIdentity.set(project, id);
     },
