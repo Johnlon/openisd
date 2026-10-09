@@ -21,7 +21,7 @@ import type { PassiveRadiatorBox } from './passiveRadiatorBox.js';
 import type { SealedBox } from './sealedBox.js';
 import { SealedLossesWindow } from './sealedLossesWindow.js';
 import { STARTING_SHARED_VOLUME_M3, startingChambersOf } from './startingChambers.js';
-import { VentWindow } from './ventWindow.js';
+import { VentWindow, type VentStart } from './ventWindow.js';
 import type { VentedBox } from './ventedBox.js';
 import { VentedChamberWindow } from './ventedChamberWindow.js';
 import { VentedLossesWindow } from './ventedLossesWindow.js';
@@ -68,10 +68,15 @@ function ventTuningPair(
     return {tuning, length};
 }
 
+/** A slotted vent's starting width: the driver's diaphragm diameter when known. */
+function startSlotWidth(driverDd_m: number | null): number {
+    return driverDd_m !== null && driverDd_m > 0 ? driverDd_m : STARTING.ventSlotWidth_m;
+}
+
 /** Fill the geometry pair a vent's `shape` uses, where unset. */
 function startVentGeometry(vent: Vent, driverDd_m: number | null, roundDiameter_m: number = STARTING.ventDiameter_m): void {
     if (vent.shape.value === 'slotted') {
-        if ((vent.width_m.value ?? 0) <= 0) vent.width_m.set(driverDd_m !== null && driverDd_m > 0 ? driverDd_m : STARTING.ventSlotWidth_m);
+        if ((vent.width_m.value ?? 0) <= 0) vent.width_m.set(startSlotWidth(driverDd_m));
         if ((vent.height_m.value ?? 0) <= 0) vent.height_m.set(STARTING.ventSlotHeight_m);
     } else if ((vent.diameter_m.value ?? 0) <= 0) {
         vent.diameter_m.set(roundDiameter_m);
@@ -196,7 +201,12 @@ export class OpenISDBox implements Box {
         const settleVentedPair = (): void => this.resetVentedAlignment();
         const ventedTuningField = pairedField((entry) => commitVentedPair(entry, undefined), ventedTuningEntry, { siblingEmpty: () => ventedLengthField.value === null, settle: settleVentedPair });
         const ventedLengthField = pairedField((entry) => commitVentedPair(undefined, entry), ventedLengthEntry, { siblingEmpty: () => ventedTuningField.value === null, settle: settleVentedPair });
-        const ventWindow = new VentWindow(ventedVentLens, engine.vent, air, ventedLengthField);
+        // A cleared port dimension settles to the starting port (John, 2026-10-09).
+        const ventedStart: VentStart = {
+            geometry: (vent) => startVentGeometry(vent, driver.specs.Dd_m.value),
+            slotWidth_m: () => startSlotWidth(driver.specs.Dd_m.value),
+        };
+        const ventWindow = new VentWindow(ventedVentLens, engine.vent, air, ventedLengthField, ventedStart);
         this.vented = {
             // The plausibility mark is computed at READ time, not stored: a mandatory volume field
             // has no `setDq` for a resolve to write through, and the band it is judged against is an

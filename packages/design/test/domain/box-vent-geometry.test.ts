@@ -55,7 +55,7 @@ describe('OpenISDBox vent geometry', () => {
 
     expect(p.box.vented.vent.lengthForTuning_m(null, 30)).toBeNull();
     expect(p.box.vented.vent.lengthForTuning_m(0.03, 0)).toBeNull();
-    p.box.vented.vent.diameter_m.clear();
+    p.box.vented.vent.shape.set('slotted');   // a slot with no dimensions stated
     expect(p.box.vented.vent.lengthForTuning_m(0.03, 30)).toBeNull();
   });
 
@@ -74,9 +74,10 @@ describe('OpenISDBox vent geometry', () => {
   it('a port with no dimensions reports null, and so does a zero-volume box', () => {
     const engine = createEngine();
     const p = project(engine);
-    p.box.vented.vent.diameter_m.clear();   // the build gave it the 50 mm starting diameter
+    p.box.vented.vent.shape.set('slotted');   // a slot with no dimensions stated
 
     expect(p.box.vented.vent.effectiveLength_m()).toBeNull();
+    p.box.vented.vent.shape.set('round');
     p.box.vented.vent.diameter_m.set(0.1);
     p.box.vented.vent.length_m.set(0.2);
     expect(p.box.vented.vent.tuningIn_hz(0)).toBeNull();

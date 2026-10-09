@@ -283,6 +283,17 @@ export function nullableField<K extends PropertyKey, T extends Record<K, number 
   key: K,
   getDq?: (value: number | null) => DqIssue | null,
 ): Readable<number | null> & Entered & Precise & Writable<number> & Clearable {
+  return settlingNullableField(field, key, () => null, getDq);
+}
+
+/** `nullableField` for a box that must not stay empty: a clear writes `settle()` as the entered
+ *  value (`null` leaves it blank). */
+export function settlingNullableField<K extends PropertyKey, T extends Record<K, number | null>>(
+  field: SimpleField<T>,
+  key: K,
+  settle: () => number | null,
+  getDq?: (value: number | null) => DqIssue | null,
+): Readable<number | null> & Entered & Precise & Writable<number> & Clearable {
   return new EnteredFieldImpl<number>(
     () => {
       const v = field.value[key];
@@ -295,9 +306,18 @@ export function nullableField<K extends PropertyKey, T extends Record<K, number 
     },
     {
       entered: (v) => field.set({ ...field.value, [key]: v }),
-      clear: () => field.set({ ...field.value, [key]: null }),
+      clear: () => field.set({ ...field.value, [key]: settle() }),
     },
   );
+}
+
+/** A stored value a person can empty without it going blank: a clear writes `fallback`. */
+export function defaultedField<T>(field: SimpleField<T>, fallback: T): SimpleField<T> & Clearable {
+  return {
+    get value() { return field.value; },
+    set: (v) => field.set(v),
+    clear: () => field.set(fallback),
+  };
 }
 
 export function requiredField<K extends PropertyKey, T extends Record<K, number>>(

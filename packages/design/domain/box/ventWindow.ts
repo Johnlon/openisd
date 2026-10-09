@@ -1,9 +1,17 @@
 import type { Air, VentEngine } from '../../engine/index.js';
-import { defaultingEntryField, entryField, focus, nullableField, pairedField } from '../cell.js';
+import { defaultingEntryField, entryField, focus, pairedField, settlingNullableField } from '../cell.js';
 import type { Calculatable, Calculated, Clearable, Entered, Precise, Readable, SimpleField, Unsolvable, Writable } from '../cell.js';
 import { calcVentCount } from '../specEntry.js';
 import type { VentJson } from '../openisdSchema.js';
 import type { Vent, VentShape } from '../vent.js';
+
+/** What a cleared port dimension settles to, so the box never stays blank (John, 2026-10-09). */
+export interface VentStart {
+    /** Fill the geometry pair the vent's `shape` uses, where unset. */
+    readonly geometry: (vent: Vent) => void;
+    /** The width a cleared width box goes back to. */
+    readonly slotWidth_m: () => number;
+}
 
 /** One port. `area_m2` follows `shape` — a solved pair with `diameter_m` when round, with
  *  `height_m` (against the live `width_m`) when slotted — so switching shape changes which pair
@@ -38,13 +46,15 @@ export class VentWindow implements Vent {
          *  middle of retracting (S2-7d2 — replaces the earlier `ventContext` bag, which fed a
          *  live read-time solve `#resolve()` now owns). */
         lengthField?: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable,
+        /** What a cleared dimension settles to. Without one a cleared dimension stays blank. */
+        start?: VentStart,
     ) {
         this.#lens = lens;
         this.#vent = vent;
         this.#air = air;
         this.shape = focus(lens, 'shape');
         this.endCorrection_m = focus(lens, 'endCorrection_m');
-        this.width_m = nullableField(lens, 'width_m');
+        this.width_m = settlingNullableField(lens, 'width_m', () => start?.slotWidth_m() ?? null);
         this.length_m = lengthField ?? entryField(focus(lens, 'length_m'), 'length_m');
 
         // Two solved pairs sharing this one record: `diameter_m` ↔ `area_m2` (round), `height_m`
@@ -55,13 +65,17 @@ export class VentWindow implements Vent {
         const diameterEntry = entryField(focus(lens, 'diameter_m'), 'diameter_m');
         const heightEntry = entryField(focus(lens, 'height_m'), 'height_m');
         const areaEntry = entryField(focus(lens, 'area_m2'), 'area_m2');
+        const settle = (siblingEmpty: () => boolean): { readonly siblingEmpty: () => boolean; readonly settle: () => void } | undefined =>
+            start === undefined ? undefined : { siblingEmpty, settle: () => start.geometry(this) };
         this.diameter_m = pairedField(
             (entry) => lens.set({ ...lens.value, diameter_m: entry, area_m2: undefined }),
             diameterEntry,
+            settle(() => this.area_m2.value === null),
         );
         this.height_m = pairedField(
             (entry) => lens.set({ ...lens.value, height_m: entry, area_m2: undefined }),
             heightEntry,
+            settle(() => this.area_m2.value === null),
         );
         this.area_m2 = pairedField(
             (entry) => {
@@ -69,6 +83,7 @@ export class VentWindow implements Vent {
                 else lens.set({ ...lens.value, area_m2: entry, height_m: undefined });
             },
             areaEntry,
+            settle(() => (lens.value.shape === 'round' ? this.diameter_m : this.height_m).value === null),
         );
 
         /** Never N: an empty slot reads `calcVentCount()` as C; `OpenISDProject#resolveVentCount`
