@@ -1,0 +1,12 @@
+id: T026
+repo: openisd
+owner: lots
+status: open
+goal: Save reuses existing store IDs and merges copies on start-up, retired front Qicl migrates silently at boot, and mobile file-open shows the file list without diagnostics.
+done_test: bash scripts/test.sh packages/persistence/test/projectRepo.test.ts packages/design/test/domain/front-chamber-qicl.test.ts && bash scripts/test.sh packages/ui/test/ui/mobile-file-open.browser.spec.ts
+files:
+  - packages/design/**
+  - packages/persistence/**
+  - packages/ui/**
+  - bugs/**
+  - tasks/T026.yml
