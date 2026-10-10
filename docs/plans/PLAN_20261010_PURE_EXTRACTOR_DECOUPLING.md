@@ -1,6 +1,6 @@
 # Plan: Pure Evidence Extractor, Pipeline Consolidation & Downstream Parsing
 
-## 0. Rulings (John 2026-10-10: "yes stop dead work") — these override the schema below
+## 0. Proposed changes — NOT agreed by John (10 Oct: "we haven't agreed it yet"; "I decided nothing")
 
 1. Every reading is kept: `SpecEntry.readings` is a LIST of `RawReading`, each carrying its own `origin: SourceRole`, the document URL, and the reader (text layer or OCR). Two datasheets, or two readers of one sheet, are two readings.
 2. Every URL is kept: `data_sources` is a list of `{role, url}`, not one URL per role.
