@@ -1,5 +1,11 @@
 import type {ReleasePort} from './releaseWatch.js';
 
+/** Minimal sessionStorage-like interface for testing and private-browsing safety. */
+export interface SessionStorageLike {
+  getItem(key: string): string | null;
+  setItem(key: string, value: string): void;
+}
+
 /** The slice of the browser the port uses, handed in so a test can fake it. */
 export interface BrowserReleaseDeps {
   readonly baseUrl: string;
@@ -7,7 +13,10 @@ export interface BrowserReleaseDeps {
   /** `navigator.serviceWorker`; undefined where the browser has none. */
   readonly serviceWorker: Pick<ServiceWorkerContainer, 'getRegistration' | 'addEventListener'> | undefined;
   readonly location: Pick<Location, 'reload'>;
+  readonly sessionStorage: SessionStorageLike;
 }
+
+const STORAGE_KEY = 'openisd-reloaded-version';
 
 /** How long to wait for the new service worker to take over before reloading anyway. */
 const TAKE_OVER_WAIT_MS = 3000;
@@ -41,5 +50,21 @@ export function createBrowserReleasePort(deps: BrowserReleaseDeps): ReleasePort 
     deps.location.reload();
   }
 
-  return { latestVersion, reloadOntoLatest };
+  function getRecordedReloadedVersion(): string | null {
+    try {
+      return deps.sessionStorage.getItem(STORAGE_KEY);
+    } catch {
+      return null;
+    }
+  }
+
+  function recordReloadedVersion(version: string): void {
+    try {
+      deps.sessionStorage.setItem(STORAGE_KEY, version);
+    } catch {
+      // Ignore: private browsing, quota exceeded, etc.
+    }
+  }
+
+  return { latestVersion, reloadOntoLatest, getRecordedReloadedVersion, recordReloadedVersion };
 }

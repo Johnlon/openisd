@@ -68,7 +68,12 @@ export function testAppLogic(overrides: Partial<AppLogic> = {}): AppLogic {
     engine, logging, driverBrowsing, selection, designIO, designFiles, driverDrafts,
     myPassiveRadiators, prefs, bundledPassiveRadiators, bundledDrivers: driverRepo, myDrivers: myDriverRepo,
     driverFileStorage, faultLog, projectRepo, viewStateRepo,
-    releases: new ReleaseWatch('', { latestVersion: () => Promise.resolve(null), reloadOntoLatest: () => Promise.resolve() }),
+    releases: new ReleaseWatch('', {
+      latestVersion: () => Promise.resolve(null),
+      reloadOntoLatest: () => Promise.resolve(),
+      getRecordedReloadedVersion: () => null,
+      recordReloadedVersion: () => {},
+    }, { log: () => {} }),
   };
   return Object.assign({}, base, overrides);
 }

@@ -1,5 +1,5 @@
-import {ReleaseWatch} from './logic/releaseWatch.js';
-import {createBrowserReleasePort} from './logic/browserReleasePort.js';
+import {ReleaseWatch, type Logger} from './logic/releaseWatch.js';
+import {createBrowserReleasePort, type SessionStorageLike} from './logic/browserReleasePort.js';
 import {createLoadingOverlay} from './logic/loadingOverlay.js';
 import {createApp} from 'vue';
 import App from './ui/App.vue';
@@ -110,12 +110,34 @@ const viewStateRepo = createViewStateRepo(storage);
 const backup = createBackupRepo(storage);
 const designIO = createApplicationIO({ engine, logging, fileStorage, fileOpen: createFileOpen(), projectRepo, files: designFiles, backup });
 
+// sessionStorage wrapper for release watch (survives page reload, not browser restart)
+const releaseSessionStorage: SessionStorageLike = {
+  getItem: (key: string) => {
+    try { return sessionStorage.getItem(key); } catch { return null; }
+  },
+  setItem: (key: string, value: string) => {
+    try { sessionStorage.setItem(key, value); } catch { /* ignore: private browsing, quota */ }
+  },
+};
+
+// Logger for release watch (avoids direct console in logic)
+const releaseLogger: Logger = {
+  log: (msg: string) => console.error(msg),
+};
+
 // The running build's version is baked in at build time; a dev server has none, which turns the
 // check off. Narrowed, not cast: the env value is untyped.
 const bakedVersion: unknown = import.meta.env.VITE_BUILD_VERSION;
 const releases = new ReleaseWatch(
   typeof bakedVersion === 'string' ? bakedVersion : '',
-  createBrowserReleasePort({ baseUrl: import.meta.env.BASE_URL, fetch, serviceWorker: navigator.serviceWorker, location }),
+  createBrowserReleasePort({
+    baseUrl: import.meta.env.BASE_URL,
+    fetch,
+    serviceWorker: navigator.serviceWorker,
+    location,
+    sessionStorage: releaseSessionStorage,
+  }),
+  releaseLogger,
 );
 
 const app = createApp(App)

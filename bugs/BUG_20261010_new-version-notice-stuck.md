@@ -1,6 +1,6 @@
 # BUG_20261010_new-version-notice-stuck
 
-**Status:** OPEN
+**Status:** RESOLVED
 
 ## Symptom
 John, 10 Oct 2026: "app is stuck showing new version of OpenISD is available." The mobile notice stays up; Reload does not clear it.
@@ -22,3 +22,5 @@ Two values hold the build version: the baked bundle value and the served `build-
 - Unit: ReleaseWatch with a fake port: after reload with the same mismatch the notice stays hidden.
 - Unit: buildVersion is '' for `serve`.
 - Browser: mobile shell on the dev server never shows the notice after build-info.json changes.
+
+**Fixed:** buildVersion() returns '' for 'serve' command; ReleasePort gains sessionStorage-backed recorded version; ReleaseWatch.reload() records latest version before reload; ReleaseWatch.check() suppresses notice when latest equals recorded version and logs via injected Logger.

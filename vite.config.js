@@ -26,7 +26,9 @@ const base = resolveBase();
 
 // The build's own version (scripts/version-info.mjs writes it before every build), baked into the
 // bundle so a running app can tell when a newer build is published. '' when the file is absent.
-function buildVersion() {
+// In dev mode ('serve') the check is off per ReleaseWatch, so return '' to avoid false mismatches.
+export function buildVersion(command) {
+  if (command === 'serve') return '';
   try {
     const info = JSON.parse(readFileSync(join(fileURLToPath(import.meta.url), '..', 'packages', 'ui', 'public', 'build-info.json'), 'utf8'));
     return typeof info.version === 'string' ? info.version : '';
@@ -90,7 +92,7 @@ const WATCH_IGNORED = [
 export default defineConfig(({ command }) => ({
   root: UI_ROOT,
   base,
-  define: { 'import.meta.env.VITE_BUILD_VERSION': JSON.stringify(buildVersion()) },
+  define: { 'import.meta.env.VITE_BUILD_VERSION': JSON.stringify(buildVersion(command)) },
   server: {
     // Host names the dev server answers to besides localhost and IP addresses; Vite refuses any other.
     allowedHosts: ['lap'],
