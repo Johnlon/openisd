@@ -1036,9 +1036,10 @@ provideCellScope({ revision: projectChanged, written: () => {} });
   width: 100%;
 }
 .project-nav li {
-  padding: 2px 6px;
+  padding: 3px 6px;
   text-align: center;
-  font-size: 12px;
+  font-size: 13px;
+  font-weight: 500;
   border: none;
   border-radius: 4px;
   background: transparent;
@@ -1048,7 +1049,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
   box-sizing: border-box;
   transition: all 0.2s ease;
   list-style-type: none;
-  line-height: 1.2;
+  line-height: 1.25;
 }
 .project-nav li:hover {
   background: #eef2f7;
