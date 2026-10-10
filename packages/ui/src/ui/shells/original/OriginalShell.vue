@@ -526,22 +526,22 @@ provideCellScope({ revision: projectChanged, written: () => {} });
               </div>
               <div style="--label-w:180px;">
                 <div class="section-header">User options</div>
-                <UIFixedField class="field entered" input-id="og-pr-count" :field="NumberField.PR_NUM" :value="project.box.passiveRadiator.count.value" :deviation="prNprDeviationShown ? WinisdDeviation.PR_NPR_RESONANCE : undefined">
+                <div class="field-row"><UIFixedField class="field entered" input-id="og-pr-count" :field="NumberField.PR_NUM" :value="project.box.passiveRadiator.count.value" :deviation="prNprDeviationShown ? WinisdDeviation.PR_NPR_RESONANCE : undefined">
                   <template #value="{id}">
                     <select :id="id" :value="project.box.passiveRadiator.count.value" @change="e => { const n = selectedOption(e, PR_COUNT_OPTIONS); if (n !== null) project.box.passiveRadiator.count.set(n); }">
                       <option v-for="o in PR_COUNT_OPTIONS" :key="o.value" :value="o.value">{{ o.label }}</option>
                     </select>
                   </template>
-                </UIFixedField>
+                </UIFixedField></div>
                 <div class="field-row" style="flex-wrap: wrap;">
                   <UIField class="field" input-id="og-pr-fp" :field="NumberField.PR_FP_HZ" :cell="project.box.passiveRadiator.tuning_goal_hz" />
                   <UIField class="field" style="--label-w:135px" input-id="og-pr-madd" :field="NumberField.PR_MADD_G" :cell="project.box.passiveRadiator.addedMass_kg" />
                 </div>
-                <UIFixedField class="field" input-id="og-pr-fs-mass" :field="NumberField.PR_FSMASS_HZ" :value="prFsMass_hz" :dq="prResonanceMassDq.dq">
+                <div class="field-row"><UIFixedField class="field" input-id="og-pr-fs-mass" :field="NumberField.PR_FSMASS_HZ" :value="prFsMass_hz" :dq="prResonanceMassDq.dq">
                   <template #value="{id}">
                     <NumReadout as-input :id="id" class="calculated greyed" :field="NumberField.PR_FSMASS_HZ" :value="prFsMass_hz" />
                   </template>
-                </UIFixedField>
+                </UIFixedField></div>
               </div>
             </div>
           </div>

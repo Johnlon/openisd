@@ -10,7 +10,7 @@ const emit = defineEmits<{'update:value': [v: number]}>();
 
 const binding = computed<UIBinding>(() => ({
   kind: 'fixed',
-  cell: {value: props.value, set: (v: number) => emit('update:value', v)} as any,
+  cell: {value: props.value, set: (v: number | null) => { if (v !== null) emit('update:value', v); }},
 }));
 </script>
 
