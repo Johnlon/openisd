@@ -399,10 +399,10 @@ provideCellScope({ revision: projectChanged, written: () => {} });
             <div style="--label-w:172px;">
               <div class="section-header">Advanced options</div>
               <div class="beside-hint">
-                <div style="display: flex; flex-direction: column; gap: 6px; --label-w: 160px;">
-                  <UIFixedField class="field" :field="NumberField.DRIVER_VCTEMPRISE_K" :value="project.vcTempRise_K.value" @update:value="v => project.vcTempRise_K.set(v)" />
-                  <UIFixedField class="field" :field="NumberField.DRIVER_ADDEDMASS_G" :value="project.driverAddedMass_kg.value" @update:value="v => project.driverAddedMass_kg.set(v)" />
-                  <UIFixedField class="field" :field="NumberField.ALFAVC_PER_K" :value="project.alfaVC_per_K.value" @update:value="v => project.alfaVC_per_K.set(v)" />
+                <div style="display: grid; grid-template-columns: max-content max-content; column-gap: 16px; row-gap: 6px; --label-w: 160px;">
+                  <UIFixedField class="field" style="grid-column: 1; grid-row: 1;" :field="NumberField.DRIVER_VCTEMPRISE_K" :value="project.vcTempRise_K.value" @update:value="v => project.vcTempRise_K.set(v)" />
+                  <UIFixedField class="field" style="grid-column: 2; grid-row: 1;" :field="NumberField.DRIVER_ADDEDMASS_G" :value="project.driverAddedMass_kg.value" @update:value="v => project.driverAddedMass_kg.set(v)" />
+                  <UIFixedField class="field" style="grid-column: 2; grid-row: 2;" :field="NumberField.ALFAVC_PER_K" :value="project.alfaVC_per_K.value" @update:value="v => project.alfaVC_per_K.set(v)" />
                 </div>
                 <p class="hint side-hint">Temp rise × resistance TC model voice-coil power compression; added mass raises Mms (lowers Fs). WinISD parity.</p>
               </div>
