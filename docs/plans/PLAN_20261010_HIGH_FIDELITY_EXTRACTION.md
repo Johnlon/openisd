@@ -95,6 +95,12 @@ All of it in a pair of worktrees, one per repo, kept off main until it works. Th
 - Full suites: once before the parity run, once after the switch.
 - Delegated CLIs do the coding: small briefs, one piece at a time, quota reset times recorded in the work list.
 
+## 6a. No AI attribution, anywhere
+
+- Commits and PR descriptions carry John's authorship only: no `Co-Authored-By` naming an AI or tool, no `Claude-Session`, no "Generated with" lines (John, 10 Oct: "no AI attributions!", "and no attribution in commits").
+- Documents carry no agent bylines ("written by lots" and the like).
+- Every brief to an external CLI says so; the briefing session checks each commit before landing; openisd's commit-msg and pre-push hooks refuse attribution.
+
 ## 7. Open for John
 
 - Confirm this plan, or change it.
