@@ -1131,6 +1131,13 @@ input.value-n, .de-fld.value-n input, select.value-n { color: var(--mut); }
   flex: none !important;
 }
 .de-general .de-fld :deep(input),
+.de-general .de-fld select,
+.de-general input,
+.de-general textarea {
+  background: #ffffff !important;
+  color: #000000 !important;
+}
+.de-general .de-fld :deep(input),
 .de-general .de-fld select {
   width: 110px !important;
 }

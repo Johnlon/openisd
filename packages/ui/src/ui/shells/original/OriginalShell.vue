@@ -448,7 +448,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
               </div>
 
               <!-- Column 2: Dimensions -->
-              <div class="vent-dims-col">
+              <div class="vent-dims-col" style="--label-w:85px;">
                 <div v-if="activeVent.shape.value === 'slotted'">
                   <div class="field-row">
                     <UIField class="field" :title="VENT_GEOMETRY_TIP" :field="NumberField.VENT_W_CM" :cell="activeVent.width_m" />
@@ -987,8 +987,8 @@ provideCellScope({ revision: projectChanged, written: () => {} });
   background: #fcfcfc;
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  padding: 6px 6px;
+  gap: 2px;
+  padding: 2px 4px;
   border-right: none;
   min-height: 0;
   min-width: 0;
@@ -997,9 +997,9 @@ provideCellScope({ revision: projectChanged, written: () => {} });
 }
 .quad-bottomleft .panel-title {
   color: #1a5fa6;
-  font-size: 14px;
+  font-size: 11px;
   font-weight: bold;
-  margin-bottom: 4px;
+  margin-bottom: 2px;
   margin-right: 0;
 }
 .panel-title { color:#7d9fc9; font-weight:600; margin-bottom:2px; }
@@ -1036,9 +1036,9 @@ provideCellScope({ revision: projectChanged, written: () => {} });
   width: 100%;
 }
 .project-nav li {
-  padding: 3px 8px;
+  padding: 2px 6px;
   text-align: center;
-  font-size: 13px;
+  font-size: 12px;
   border: none;
   border-radius: 4px;
   background: transparent;
@@ -1048,7 +1048,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
   box-sizing: border-box;
   transition: all 0.2s ease;
   list-style-type: none;
-  line-height: 1.25;
+  line-height: 1.2;
 }
 .project-nav li:hover {
   background: #eef2f7;
