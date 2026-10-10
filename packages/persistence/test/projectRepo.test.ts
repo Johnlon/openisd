@@ -18,6 +18,34 @@ import {
 import {OpenISDDriver, OpenISDProject, ProjectBuilder} from '@openisd/design';
 import {createEngine} from '@openisd/design/engine';
 
+interface StoredProjectEntry {
+  id: string;
+  text: string;
+  modified: string;
+}
+
+interface StoredProjectsPayload {
+  version: 1;
+  entries: StoredProjectEntry[];
+}
+
+function isUnknownArray(value: unknown): value is readonly unknown[] {
+  return Array.isArray(value);
+}
+
+function storedProjectsPayload(value: unknown): StoredProjectsPayload | null {
+  if (!value || typeof value !== 'object' || !('entries' in value) || !isUnknownArray(value.entries)) return null;
+  const entries: StoredProjectEntry[] = [];
+  for (const entry of value.entries) {
+    if (!entry || typeof entry !== 'object') return null;
+    if (!('id' in entry) || typeof entry.id !== 'string') return null;
+    if (!('text' in entry) || typeof entry.text !== 'string') return null;
+    if (!('modified' in entry) || typeof entry.modified !== 'string') return null;
+    entries.push({ id: entry.id, text: entry.text, modified: entry.modified });
+  }
+  return { version: 1, entries };
+}
+
 const engine = createEngine();
 
 /** No file is ever written by these tests; the repo only needs the collaborator to exist. */
@@ -545,7 +573,9 @@ describe('projectRepo', () => {
       expect(backupText).toContain('"id":"id-3"');
       expect(backupText).toContain('Qicl');
 
-      const parsedBackup = JSON.parse(backupText);
+      const parsedBackupRaw: unknown = JSON.parse(backupText);
+      const parsedBackup = storedProjectsPayload(parsedBackupRaw);
+      assert.ok(parsedBackup !== null, 'backup must be valid stored projects payload');
       expect(parsedBackup.entries).toHaveLength(3);
       expect(parsedBackup.entries[0].text).toContain('"Qicl": 77');
       expect(parsedBackup.entries[1].text).toContain('"Qicl": 77');
@@ -554,7 +584,9 @@ describe('projectRepo', () => {
       const storeText = storage.get(OPENISD_PROJECTS_KEY);
       assert.ok(storeText !== null);
       expect(storeText).not.toContain('"Qicl"');
-      const parsedStore = JSON.parse(storeText);
+      const parsedStoreRaw: unknown = JSON.parse(storeText);
+      const parsedStore = storedProjectsPayload(parsedStoreRaw);
+      assert.ok(parsedStore !== null, 'store must be valid stored projects payload');
       expect(parsedStore.entries).toHaveLength(1);
       expect(parsedStore.entries[0].id).toBe('id-3');
 
@@ -575,9 +607,11 @@ describe('projectRepo', () => {
       createProjectRepo(engine, noFiles, storage);
       expect(storage.get(OPENISD_PROJECTS_KEY)).toBe('this is not valid json');
       expect(errorSpy).toHaveBeenCalled();
-      const calledWith = errorSpy.mock.calls[0][0];
+      const calledWith: unknown = errorSpy.mock.calls[0][0];
       expect(isStoredDataFault(calledWith)).toBe(true);
-      expect(calledWith.store).toBe('project');
+      if (isStoredDataFault(calledWith)) {
+        expect(calledWith.store).toBe('project');
+      }
       errorSpy.mockRestore();
     });
   });
