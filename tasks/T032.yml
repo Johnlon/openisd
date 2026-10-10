@@ -21,6 +21,8 @@ files:
   - packages/ui/test/ui/original-toolbar.browser.spec.ts
   - packages/ui/test/ui/mobile-menu.browser.spec.ts
   - packages/design/domain/**
+  - packages/design/fields/**
+  - packages/design/test/fields/**
   - packages/design/test/domain/**
   - bugs/BUG_20261010_new-version-notice-stuck.md
   - tasks/T032.yml
