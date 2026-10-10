@@ -95,11 +95,11 @@ function write(v: number | null, precision?: number): void {
         :half-width="view.precision" :mandatory="view.mandatory" :max="max" :stepper="stepper" :readonly="readonly" :blank-refused="binding.kind === 'fixed'" hide-mark
         @update:model-value="write" @refusal="text => refusal = text" />
     </span>
+    <UnitToggle :field="field" unit-class="ui-field-unit" />
     <span class="ui-field-dq">
       <button v-if="reason" type="button" class="ui-field-dq-btn" :title="reason" :aria-expanded="reasonOpen"
         aria-label="Why this value is flagged" @click.stop="reasonOpen = !reasonOpen">&#9888;</button>
     </span>
-    <UnitToggle :field="field" unit-class="ui-field-unit" />
     <span v-if="(reasonOpen || refusal !== '') && reason" class="ui-field-note" role="note" @click.stop="reasonOpen = false">{{ reason }}</span>
   </div>
 </template>
