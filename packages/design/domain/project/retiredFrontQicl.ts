@@ -3,28 +3,21 @@
  * (`Qiclfr`) stored at the Box level. We migrate any chamber `Qicl` up to `box[type].Qiclfr`,
  * dropping front and rear `losses.Qicl` losslessly without error.
  */
-import {z} from 'zod';
-
-const recordSchema = z.record(z.string(), z.unknown());
-
-/** The record at `key`, or null when `parent` has no record there. */
-function recordAt(parent: Record<string, unknown>, key: string): Record<string, unknown> | null {
-    const found = recordSchema.safeParse(parent[key]);
-    return found.success ? found.data : null;
+function isRecord(v: unknown): v is Record<string, unknown> {
+    return typeof v === 'object' && v !== null && !Array.isArray(v);
 }
 
 function migrateChamberQicl(project: unknown): void {
-    const root = recordSchema.safeParse(project);
-    if (!root.success) return;
-    const box = recordAt(root.data, 'box');
+    if (!isRecord(project)) return;
+    const box = isRecord(project.box) ? project.box : null;
     if (box === null) return;
     for (const type of ['bandpass4', 'bandpass6', 'abc']) {
-        const typeBox = recordAt(box, type);
+        const typeBox = isRecord(box[type]) ? box[type] : null;
         if (typeBox === null) continue;
-        const rear = recordAt(typeBox, 'rear');
-        const rearLosses = rear === null ? null : recordAt(rear, 'losses');
-        const front = recordAt(typeBox, 'front');
-        const frontLosses = front === null ? null : recordAt(front, 'losses');
+        const rear = isRecord(typeBox.rear) ? typeBox.rear : null;
+        const rearLosses = rear !== null && isRecord(rear.losses) ? rear.losses : null;
+        const front = isRecord(typeBox.front) ? typeBox.front : null;
+        const frontLosses = front !== null && isRecord(front.losses) ? front.losses : null;
 
         const rearQicl = rearLosses !== null && typeof rearLosses.Qicl === 'number' ? rearLosses.Qicl : undefined;
         const frontQicl = frontLosses !== null && typeof frontLosses.Qicl === 'number' ? frontLosses.Qicl : undefined;
@@ -34,17 +27,16 @@ function migrateChamberQicl(project: unknown): void {
             typeBox.Qiclfr = val ?? 100;
         }
 
-        if (frontLosses !== null) Reflect.deleteProperty(frontLosses, 'Qicl');
-        if (rearLosses !== null) Reflect.deleteProperty(rearLosses, 'Qicl');
+        if (frontLosses !== null) delete frontLosses.Qicl;
+        if (rearLosses !== null) delete rearLosses.Qicl;
     }
 }
 
 /** `session`, parsed from JSON text and not yet validated, with legacy chamber Qicl moved to
  *  `box[type].Qiclfr` in both saved and edited projects. Changes `session` in place. */
 export function withoutFrontQicl(session: unknown): unknown {
-    const root = recordSchema.safeParse(session);
-    if (!root.success) return session;
-    migrateChamberQicl(root.data.saved);
-    migrateChamberQicl(root.data.edited);
+    if (!isRecord(session)) return session;
+    migrateChamberQicl(session.saved);
+    migrateChamberQicl(session.edited);
     return session;
 }

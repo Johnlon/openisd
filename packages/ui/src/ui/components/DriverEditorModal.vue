@@ -1027,10 +1027,12 @@ input.value-n, .de-fld.value-n input, select.value-n { color: var(--mut); }
      subgrids across 4 of them (one field-slot); with only 4 tracks total here, every field
      spanned the whole row and the tab rendered as one field per line instead of four. */
   grid-template-columns: repeat(4, max-content max-content 34px 16px) !important;
-  gap: 3px 12px !important;
+  gap: 3px 6px !important;
   align-items: center !important;
   align-content: start !important;
   justify-content: start !important;
+  max-width: 100% !important;
+  overflow-x: hidden !important;
 }
 .de-params > .de-group,
 .de-params .de-cols { display: contents !important; }
@@ -1038,7 +1040,7 @@ input.value-n, .de-fld.value-n input, select.value-n { color: var(--mut); }
 .de-hdr { background: var(--panel2); text-align: center; font-size: 11px; padding: 1px 0; border-radius: 3px; margin-bottom: 2px; color: var(--mut); }
 .de-col { display: flex; flex-direction: column; }
 
-.de-dims { display: flex; gap: 24px; align-items: flex-start; }
+.de-dims { display: flex; gap: 20px; align-items: flex-start; height: 100%; flex: 1 1 auto; }
 .de-dimlist {
   /* Sized by its widest row, not a fixed 200px — the labels alone are wider than that, which
      is what forced them over their inputs. `max-content` on the label track keeps every row
@@ -1055,8 +1057,8 @@ input.value-n, .de-fld.value-n input, select.value-n { color: var(--mut); }
   flex-shrink: 0;
 }
 .de-note { font-size: 11px; color: var(--mut); font-style: italic; margin-top: 4px; }
-.de-diagram { flex: 1; display: flex; justify-content: center; padding-top: 0; }
-.de-diagram :deep(.dd-dim-svg) { color: var(--fg); }
+.de-diagram { flex: 1 1 auto; display: flex; justify-content: center; align-items: center; min-width: 260px; height: 100%; }
+.de-diagram :deep(.dd-dim-svg) { width: 100%; max-width: 440px; max-height: 350px; height: auto; color: var(--fg); }
 .de-diagram :deep(text) { fill: var(--fg); }
 
 .de-footer { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 14px; border-top: 1px solid var(--line); }
