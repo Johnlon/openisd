@@ -54,15 +54,6 @@ Give this file to one agent. It runs bucket R first, then the other buckets. Buc
 
 Rules that save the most: one targeted spec per change; typecheck only through `land.sh`; a red post-land run is fixed by an F task (label `fixes`), never rerun; batch small landings so one post-land run covers several.
 
-## Bucket R — release (do first, small)
-
-Two things stop a release. The last published release is `v20261007T222530Z`.
-
-1. **GitHub Pages refuses branch `release`.** The deploy job fails with "Branch release is not allowed to deploy to github-pages due to environment protection rules". Fix (John, in GitHub, 1 minute): Settings → Environments → github-pages → Deployment branches → add `release`. Agents cannot do this.
-2. **CI on `release` is red**: `packages/ui/test/scripts/pre-push-browser-stage.test.ts`, 4 tests, "must run in Git Bash on Windows or WSL, not PowerShell/cmd" on the Linux runner. Task (F3, label fixes): the environment check accepts a plain Linux shell (CI); test: that spec. Land, let post-land move `release`, confirm the deploy run publishes a new `v<UTC stamp>` tag.
-
-Done when: a new `v…` tag exists and the deploy run on it is green.
-
 ## Bucket A — openisd app (packages/design, packages/ui)
 
 In order:
@@ -102,4 +93,3 @@ In order; each batch = one brief, before/after diff over every cached input, rev
 
 - A3 (bridge `printed`) needs T's step 1, which is done.
 - T11 needs T10. A1–A5 and I do not depend on T.
-- R2 must land before any other openisd landing tonight, so the next post-land run can release.

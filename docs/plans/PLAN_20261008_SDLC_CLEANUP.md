@@ -105,9 +105,8 @@ Worker loop: claim → edit only listed files → run `done_test` until green �
   serialized by the land flock. Red → auto-opens a top-priority fixes task; next land refuses
   while it is open. Post-land holds no tree, so collisions cost nothing even while suites are
   local. No auto-rerun of flaky specs: a flake is a red, it opens a fixes task naming the spec.
-- **Deploy stops tracking main**: `deploy.yml` triggers on the `release` branch;
-  the post-land run fast-forwards `release` on green. A red build never deploys, pushes are
-  never blocked, and nothing waits on CI being green. P2 replaces this with a `needs:` gate.
+- **Release**: a release is the GitHub Pages deploy on every push to main. There is no release
+  branch and no tag; post-land is the local full run, and a red opens a fixes task.
 - Rules docs change in the same landing as the scripts: verify.md and processes.md stop
   describing the queue, the pre-commit unit run and "announce slow runs", and describe
   land.sh and the post-land run instead. Two live rule sets is how agents follow both.
@@ -204,7 +203,7 @@ one's proof is in. Status: `todo` · `doing` · `done (proof)`.
 | 3 | Gate bug: `run_gates.py` checks only the repo a command touches; a worktree without a venv never blocks other sessions (still fails closed for its own repo) | maryu | locked test + commit | todo |
 | 4 | tools full suite on 0d256b6e, box quiet | tools | pytest exit code + summary + log path | todo |
 | 5 | T000: `openisd-land` rebased on main, verify.md T011 interim bullet added, committed through the full old hook once, ff to main, pushed | maryu | sha on origin/main | todo |
-| 6 | Post-land full run on that sha (unit + browser), no rerun | maryu | log path, exit 0 → `release` moved | todo |
+| 6 | Post-land full run on that sha (unit + browser), no rerun | maryu | log path, exit 0 → green sha recorded | todo |
 | 7 | CI stage A: push `ci-stage-a` branch, iterate to green lint+typecheck+unit | maryu | run URL at the pushed sha | todo |
 | 8 | Land CI stage A + deploy `needs:` via land.sh | maryu | sha + green run | todo |
 | 9 | T011 admission control (one slot, gates.py enforced) | maryu | admit.e2e + test_gates_admission green | todo |
