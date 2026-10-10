@@ -8,6 +8,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
+cd "$SCRIPT_DIR/.."
 bash "$SCRIPT_DIR/kill-http.sh" 4000
 sleep 2
-npx vite --host 0.0.0.0 --port 4000 --strictPort
+exec npx vite --host 0.0.0.0 --port 4000 --strictPort

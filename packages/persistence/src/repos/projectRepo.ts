@@ -230,7 +230,7 @@ export function createProjectRepo(
   /** Upgrade and parse `text`, resetting any field the schema refuses. When a field was reset,
    *  the stored record it came from is backed up (before anything can write over it) and the
    *  repair is reported. `source` is null for a file or a link, which still hold the original. */
-  function readRepairing(text: string, source: StoredSource | null): OpenISDProject | string[] {
+  function readRepairing(text: string, source: StoredSource | null, reportRepairs = true): OpenISDProject | string[] {
     let parsed: unknown;
     try { parsed = JSON.parse(text); } catch { return ['not valid JSON']; }
     // The same upgrade every door applies, so a design saved by an older build opens anywhere.
@@ -238,7 +238,7 @@ export function createProjectRepo(
     if (Array.isArray(current)) return current;
     const result = OpenISDProject.fromOwprTextRepairing(current, engine);
     if (Array.isArray(result)) return result;
-    if (result.repaired.length > 0) {
+    if (result.repaired.length > 0 && reportRepairs) {
       const original = source === null ? null : storage.get(source.key);
       if (source !== null && original !== null) storage.set(source.backupKey, original);
       onRepaired({
@@ -348,7 +348,7 @@ export function createProjectRepo(
     },
     listStoredProjects(): StoredProjectListing[] {
       return readStoredEntries().map((entry): StoredProjectListing => {
-        const project = this.readProjectText(entry.text);
+        const project = readRepairing(entry.text, null, false);
         return Array.isArray(project)
           ? { kind: 'unreadable', id: entry.id, name: 'Unreadable project', modified: entry.modified }
           : { kind: 'readable', id: entry.id, name: project.name.value, modified: entry.modified, summary: ProjectSummary.of(project) };

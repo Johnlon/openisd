@@ -171,8 +171,8 @@ omitted (already the rule).
 ## 4. WP-T — `winisd_tools`
 
 Worktree: `git worktree add ../winisd_tools-retire-calcs -b retire-calcs-from-scrapers main`
-(from `/home/john/work/winisd/winisd_tools`). Run Python through `.venv` only. Test command:
-`make test` (= `.venv/bin/python -m pytest scrapers/tests`). Test-first for every step
+(from `/home/john/work/winisd/winisd_tools`). Run Python through the shared workspace venv (`/home/john/work/winisd/.venv`) only. Test command:
+`make test` (= `../.venv/bin/python -m pytest scrapers/tests`). Test-first for every step
 (AGENTS.md §"Test-first for generation and transformation code"): write/adjust the test, watch it
 fail, change code, watch it pass.
 

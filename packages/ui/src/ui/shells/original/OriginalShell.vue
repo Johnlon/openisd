@@ -448,7 +448,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
               </div>
 
               <!-- Column 2: Dimensions -->
-              <div class="vent-dims-col" style="--label-w:85px;">
+              <div class="vent-dims-col" style="--label-w:100px;">
                 <div v-if="activeVent.shape.value === 'slotted'">
                   <div class="field-row">
                     <UIField class="field" :title="VENT_GEOMETRY_TIP" :field="NumberField.VENT_W_CM" :cell="activeVent.width_m" />
@@ -538,8 +538,8 @@ provideCellScope({ revision: projectChanged, written: () => {} });
                 <div class="field-row" style="margin-bottom:3px;">
                   <UIField class="field" input-id="og-pr-fp" :field="NumberField.PR_FP_HZ" :cell="project.box.passiveRadiator.tuning_goal_hz" />
                 </div>
-                <div class="field-row" style="margin-bottom:3px;">
-                  <UIField class="field" input-id="og-pr-madd" :field="NumberField.PR_MADD_G" :cell="project.box.passiveRadiator.addedMass_kg" />
+                <div class="field-row" style="margin-bottom:3px; gap:8px;">
+                  <UIField class="field" style="--label-w:145px; grid-template-columns: 145px 90px 34px 0px 0px;" input-id="og-pr-madd" :field="NumberField.PR_MADD_G" :cell="project.box.passiveRadiator.addedMass_kg" />
                   <UIFixedField class="field" style="--label-w:145px;" input-id="og-pr-fs-mass" :field="NumberField.PR_FSMASS_HZ" :value="prFsMass_hz" :dq="prResonanceMassDq.dq">
                     <template #value="{id}">
                       <NumReadout as-input :id="id" class="calculated greyed" :field="NumberField.PR_FSMASS_HZ" :value="prFsMass_hz" />
@@ -968,7 +968,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
 .split-v:hover, .split-h:hover { background:#cfe0f5; }
 .split-toggle { position:absolute; display:grid; place-items:center; background:#f0f0f0; border:1px solid #aaa; color:#555; border-radius:4px; cursor:pointer; font-size:9px; line-height:1; padding:0; }
 .split-v .split-toggle { top:8px; left:50%; transform:translateX(-50%); width:15px; height:34px; }
-.split-h .split-toggle { left:8px; top:50%; transform:translateY(-50%); height:15px; width:34px; }
+.split-h .split-toggle { left:190px; top:50%; transform:translateY(-50%); height:15px; width:34px; }
 .split-toggle:hover { background:#dbeaff; border-color:#7fb3ff; color:#1868d1; }
 /* collapsed panels: the grid track is 0px (mainStyle); hide the content so padding
    doesn't leave a sliver. The splitter (with its expand toggle) stays visible. */
@@ -992,8 +992,8 @@ provideCellScope({ revision: projectChanged, written: () => {} });
   background: #fcfcfc;
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  padding: 2px 4px;
+  gap: 0px;
+  padding: 0px 10px 2px 10px;
   border-right: none;
   min-height: 0;
   min-width: 0;
@@ -1001,13 +1001,11 @@ provideCellScope({ revision: projectChanged, written: () => {} });
   z-index: 3;
 }
 .quad-bottomleft .panel-title {
-  color: #1a5fa6;
-  font-size: 11px;
-  font-weight: bold;
-  margin-bottom: 2px;
-  margin-right: 0;
+  margin-top: 2px;
+  margin-bottom: 1px;
+  line-height: 1.15;
 }
-.panel-title { color:#7d9fc9; font-weight:600; margin-bottom:2px; }
+.panel-title { color:#7d9fc9; font-weight:600; margin-bottom:4px; font-size:14px; }
 .quad-projects-wrap { flex:1 1 auto; min-height:0; display:flex; flex-direction:column; }
 .quad-signalgen-wrap { flex:none; }
 .projects-list { flex:1 1 auto; min-height:60px; border:1px solid #bbb; background:#fff; overflow-y:auto; }
@@ -1041,7 +1039,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
   width: 100%;
 }
 .project-nav li {
-  padding: 3px 6px;
+  padding: 2px 6px;
   text-align: center;
   font-size: 13px;
   font-weight: 500;
@@ -1054,7 +1052,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
   box-sizing: border-box;
   transition: all 0.2s ease;
   list-style-type: none;
-  line-height: 1.25;
+  line-height: 1.2;
 }
 .project-nav li:hover {
   background: #eef2f7;
@@ -1135,23 +1133,31 @@ provideCellScope({ revision: projectChanged, written: () => {} });
 .vent-pane-tight .vent-col-title { margin-bottom:2px; }
 .vent-pane-tight { --label-w:86px; }
 .vent-pane-tight .vent-port-row { gap:8px; }
-.vent-pane-tight .field { display:grid; grid-template-rows:auto auto; justify-content:start; align-items:center; column-gap:4px; row-gap:0; }
+.vent-pane-tight .vent-port-row > .field { display:grid; grid-template-rows:auto auto; justify-content:start; align-items:center; column-gap:4px; row-gap:0; }
 .vent-pane-tight .field > :deep(*:not(label)) { grid-row:2; }
 .vent-pane-tight .field > :deep(label), .vent-pane-tight .field > label { grid-row:1; grid-column:1 / span 4; width:auto; }
 .vent-pane-tight .field input[type=text], .vent-pane-tight .field select, .vent-pane-tight .field :deep(input) { width:70px; padding:1px 4px; }
 .vent-pane-tight .field > label, .vent-pane-tight .field > :deep(label) { font-size:11px; line-height:12px; }
 .vent-pane-tight .vent-groups { gap:8px; }
+/* UIField reserves a label-width first column; here the label sits above, so value, unit and
+   data-quality dot start at the left edge. */
+.vent-pane-tight .vent-port-row > .ui-field { grid-template-columns:70px auto 16px; }
+.vent-pane-tight .vent-port-row > .ui-field :deep(.ui-field-value) { grid-column:1; }
+.vent-pane-tight .vent-port-row > .ui-field :deep(.ui-field-unit) { grid-column:2; }
+.vent-pane-tight .vent-port-row > .ui-field :deep(.ui-field-dq) { grid-column:3; }
+.vent-pane-tight .vent-port-row > .field select { width:100px; }
+.vent-pane-tight .vent-port-row { display:grid; grid-template-columns:130px 130px; gap:8px; }
 .vent-col { flex:none; }
 .vent-col-title { font-weight:600; color:#444; margin-bottom:4px; }
 .vent-col-hint { color:#888; font-size:11px; font-style:italic; margin-bottom:4px; }
 .vent-col .field label { width:auto; }
 .project-tab .field label { width: 70px; }
 .vent-config-col .field label {
-  width: 130px;
+  width: 100px;
   margin-right: 6px;
 }
 .vent-dims-col .field label {
-  width: 110px;
+  width: 100px;
   margin-right: 6px;
 }
 .field-row { display:flex; align-items:baseline; gap:8px; margin-bottom:6px; flex-wrap:nowrap; justify-content:flex-start; }
