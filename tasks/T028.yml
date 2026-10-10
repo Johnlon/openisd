@@ -6,4 +6,5 @@ goal: The consolidated work list is current as of 10 Oct (done, in flight, waiti
 done_test: grep -q "State at 10 Oct" docs/plans/PLAN_20261009_CONSOLIDATED.md
 files:
   - docs/plans/PLAN_20261009_CONSOLIDATED.md
+  - docs/plans/PLAN_20261010_PURE_EXTRACTOR_DECOUPLING.md
   - tasks/T028.yml

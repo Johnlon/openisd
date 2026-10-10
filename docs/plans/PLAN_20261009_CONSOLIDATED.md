@@ -12,6 +12,8 @@ Give this file to one agent. It runs bucket R first, then the other buckets. Buc
 - **T026** (worktree `openisd-t024`, reviewed, committed c7a51e67): stored copies merged into one (backup keeps all), retired front Qicl dropped silently at start-up, mobile file-open shows files. Lands after F3/F4 close.
 - maryu: remove the release-branch push and NO_RELEASE_PUSH from post-land/run.sh (an opencode run in `openisd-norel`, branch drop-release); the clear-defaults rulings job (re-briefing on another model).
 
+### Decided by John (10 Oct): pure-extractor plan GO, with the rulings in its section 0; dead work stopped
+
 ### Waiting on John
 - **PLAN_20261010_PURE_EXTRACTOR_DECOUPLING.md** (author unknown, 46e31b58): go/no-go. lots' review: right direction; schema must keep every reading (a list, not one per source role), every URL, a locator and the printed label on each reading, and drop sku/manufacturer per QT93; Phase 4 test = per-reading SI match or listed change, not bit-for-bit. If go: stop Python lib batches and QT93 step 2 for good; split the plan into tools tasks and openisd tasks.
 - "Restore from backup" action: add or not.
