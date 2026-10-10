@@ -1,5 +1,6 @@
 import {ReleaseWatch} from './logic/releaseWatch.js';
 import {createBrowserReleasePort} from './logic/browserReleasePort.js';
+import {createLoadingOverlay} from './logic/loadingOverlay.js';
 import {createApp} from 'vue';
 import App from './ui/App.vue';
 import {vExpoStep} from './ui/directives/expoStep.js';
@@ -32,6 +33,21 @@ import '@fontsource/inter/400.css';
 import '@fontsource/inter/600.css';
 import '@fontsource/inter/700.css';
 import './style.css';
+
+const overlayElement = document.getElementById('loading-overlay');
+const loadingOverlay = overlayElement
+  ? createLoadingOverlay({
+      element: overlayElement,
+      visibilityTarget: document,
+      clock: {
+        now: () => Date.now(),
+        schedule: (fn, ms) => {
+          const timer = setTimeout(fn, ms);
+          return () => clearTimeout(timer);
+        },
+      },
+    })
+  : null;
 
 // THE COMPOSITION ROOT (ARCHITECTURE.md §2).
 //
@@ -125,3 +141,4 @@ app.config.errorHandler = (err, instance, info) => {
 };
 
 app.mount('#app');
+loadingOverlay?.onAppMounted();

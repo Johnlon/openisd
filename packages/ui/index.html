@@ -5,8 +5,26 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>OpenISD — Open Loudspeaker Enclosure Simulator</title>
   <link rel="icon" href="/icon.svg" type="image/svg+xml">
+  <style>
+    #loading-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 99999;
+      background: #11151c;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    #loading-overlay img {
+      width: 96px;
+      height: 96px;
+    }
+  </style>
 </head>
 <body>
+  <div id="loading-overlay">
+    <img src="/icon.svg" alt="OpenISD">
+  </div>
   <div id="app"></div>
   <script type="module" src="/src/main.ts"></script>
 </body>
