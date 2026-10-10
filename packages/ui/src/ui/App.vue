@@ -216,7 +216,7 @@ onUnmounted(() => {
 .app-root-mobile :deep(.de-btn-row) { display: flex; gap: 4px; flex-wrap: wrap; justify-content: flex-end; }
 .app-root-mobile :deep(.de-btn-row > button) { order: 0; padding-left: 6px; padding-right: 6px; }
 .app-root-mobile :deep(.de-params) {
-  grid-template-columns: minmax(0, max-content) minmax(0, max-content) 34px 16px !important;
+  grid-template-columns: max-content max-content 34px 16px !important;
 }
 .app-root-mobile :deep(.de-dims) {
   flex-direction: column !important;

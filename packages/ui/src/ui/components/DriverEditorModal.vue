@@ -1026,7 +1026,7 @@ input.value-n, .de-fld.value-n input, select.value-n { color: var(--mut); }
   /* 4 field-slots per row, 4 tracks each (label/value/unit/alert) = 16 tracks. A `.de-fld`
      subgrids across 4 of them (one field-slot); with only 4 tracks total here, every field
      spanned the whole row and the tab rendered as one field per line instead of four. */
-  grid-template-columns: repeat(4, minmax(0, max-content) minmax(0, max-content) 34px 16px) !important;
+  grid-template-columns: repeat(4, max-content max-content 34px 16px) !important;
   gap: 3px 12px !important;
   align-items: center !important;
   align-content: start !important;
@@ -1149,7 +1149,7 @@ input.value-n, .de-fld.value-n input, select.value-n { color: var(--mut); }
    columns of them overran the modal and forced a sideways scroll. */
 .de-cols {
   display: grid !important;
-  grid-template-columns: repeat(4, minmax(0, max-content) minmax(0, max-content) 34px 16px) !important;
+  grid-template-columns: repeat(4, max-content max-content 34px 16px) !important;
   gap: 6px 12px !important;
   align-items: center !important;
 }
