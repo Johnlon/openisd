@@ -534,12 +534,14 @@ provideCellScope({ revision: projectChanged, written: () => {} });
                   </template>
                 </UIFixedField></div>
                 <div class="field-row"><UIField class="field" input-id="og-pr-fp" :field="NumberField.PR_FP_HZ" :cell="project.box.passiveRadiator.tuning_goal_hz" /></div>
-                <div class="field-row"><UIField class="field" input-id="og-pr-madd" :field="NumberField.PR_MADD_G" :cell="project.box.passiveRadiator.addedMass_kg" /></div>
-                <div class="field-row"><UIFixedField class="field" input-id="og-pr-fs-mass" :field="NumberField.PR_FSMASS_HZ" :value="prFsMass_hz" :dq="prResonanceMassDq.dq">
-                  <template #value="{id}">
-                    <NumReadout as-input :id="id" class="calculated greyed" :field="NumberField.PR_FSMASS_HZ" :value="prFsMass_hz" />
-                  </template>
-                </UIFixedField></div>
+                <div class="field-row">
+                  <UIField class="field" style="--label-w:125px;" input-id="og-pr-madd" :field="NumberField.PR_MADD_G" :cell="project.box.passiveRadiator.addedMass_kg" />
+                  <UIFixedField class="field" style="--label-w:135px;" input-id="og-pr-fs-mass" :field="NumberField.PR_FSMASS_HZ" :value="prFsMass_hz" :dq="prResonanceMassDq.dq">
+                    <template #value="{id}">
+                      <NumReadout as-input :id="id" class="calculated greyed" :field="NumberField.PR_FSMASS_HZ" :value="prFsMass_hz" />
+                    </template>
+                  </UIFixedField>
+                </div>
               </div>
             </div>
           </div>
