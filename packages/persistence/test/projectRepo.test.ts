@@ -8,7 +8,7 @@
  */
 import {describe, expect, it, vi} from 'vitest';
 import assert from 'node:assert/strict';
-import {createProjectRepo, type ProjectRepairReport} from '../src/repos/projectRepo.js';
+import {createProjectRepo, type ProjectRepairReport, storedProjectsPayload} from '../src/repos/projectRepo.js';
 import {isStoredDataFault} from '../src/repos/storedDataFault.js';
 import type {FileStorage} from '../src/storage/fileStorage.js';
 import {createMemoryStorage, createSharedMemoryStorage, type KeyValueStorage} from '../src/storage/keyValueStorage.js';
@@ -17,34 +17,6 @@ import {
 } from '../src/repos/storageKeys.js';
 import {OpenISDDriver, OpenISDProject, ProjectBuilder} from '@openisd/design';
 import {createEngine} from '@openisd/design/engine';
-
-interface StoredProjectEntry {
-  id: string;
-  text: string;
-  modified: string;
-}
-
-interface StoredProjectsPayload {
-  version: 1;
-  entries: StoredProjectEntry[];
-}
-
-function isUnknownArray(value: unknown): value is readonly unknown[] {
-  return Array.isArray(value);
-}
-
-function storedProjectsPayload(value: unknown): StoredProjectsPayload | null {
-  if (!value || typeof value !== 'object' || !('entries' in value) || !isUnknownArray(value.entries)) return null;
-  const entries: StoredProjectEntry[] = [];
-  for (const entry of value.entries) {
-    if (!entry || typeof entry !== 'object') return null;
-    if (!('id' in entry) || typeof entry.id !== 'string') return null;
-    if (!('text' in entry) || typeof entry.text !== 'string') return null;
-    if (!('modified' in entry) || typeof entry.modified !== 'string') return null;
-    entries.push({ id: entry.id, text: entry.text, modified: entry.modified });
-  }
-  return { version: 1, entries };
-}
 
 const engine = createEngine();
 
@@ -608,10 +580,8 @@ describe('projectRepo', () => {
       expect(storage.get(OPENISD_PROJECTS_KEY)).toBe('this is not valid json');
       expect(errorSpy).toHaveBeenCalled();
       const calledWith: unknown = errorSpy.mock.calls[0][0];
-      expect(isStoredDataFault(calledWith)).toBe(true);
-      if (isStoredDataFault(calledWith)) {
-        expect(calledWith.store).toBe('project');
-      }
+      assert.ok(isStoredDataFault(calledWith));
+      expect(calledWith.store).toBe('project');
       errorSpy.mockRestore();
     });
   });

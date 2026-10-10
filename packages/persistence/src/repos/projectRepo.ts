@@ -131,13 +131,13 @@ const QUARANTINE_SESSION_STORAGE_KEY = OPENISD_QUARANTINE_SESSION_KEY;
 const LEGACY_PROJECT_STORAGE_KEY = 'openisd.project';
 const LEGACY_PROJECTS_STORAGE_KEY = 'openisd.projects';
 
-interface StoredProjectEntry {
+export interface StoredProjectEntry {
   id: string;
   text: string;
   modified: string;
 }
 
-interface StoredProjectsPayload {
+export interface StoredProjectsPayload {
   version: 1;
   entries: StoredProjectEntry[];
 }
@@ -154,11 +154,11 @@ interface OpenSessionPayload {
 
 /** `Array.isArray` on an `unknown` narrows it to `any[]`, and every read off an element is then
  *  unchecked. This says what is actually known: a list, of things not yet identified. */
-function isUnknownArray(value: unknown): value is readonly unknown[] {
+export function isUnknownArray(value: unknown): value is readonly unknown[] {
   return Array.isArray(value);
 }
 
-function storedProjectsPayload(value: unknown): StoredProjectsPayload | null {
+export function storedProjectsPayload(value: unknown): StoredProjectsPayload | null {
   if (!value || typeof value !== 'object' || !('entries' in value) || !isUnknownArray(value.entries)) return null;
   const entries: StoredProjectEntry[] = [];
   for (const entry of value.entries) {
