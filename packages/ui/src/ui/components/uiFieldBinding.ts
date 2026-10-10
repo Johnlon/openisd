@@ -1,11 +1,11 @@
 import type {Clearable, Entered, Precise, Readable, SimpleField, Writable} from '@openisd/design';
-import type {NumberField} from '@openisd/design/fields';
+import type {NumberField, WinisdDeviation} from '@openisd/design/fields';
 
 /** A number a person can enter, clear and state the precision of: an emptied box clears it. */
 export type ClearableUICell = Readable<number | null> & Entered & Precise & Writable<number> & Clearable;
 
 /** A number that is always there (a box loss): no provenance, no flags, no `clear`. */
-export type FixedUICell = SimpleField<number>;
+export type FixedUICell = SimpleField<number | null>;
 
 /** What a field row is bound to, told apart by `kind`: `UIField` builds the first, `UIFixedField` the second. */
 export type UIBinding =
@@ -25,4 +25,8 @@ export interface UIFieldCommon {
   stepper?: boolean;
   /** Shown but not editable, e.g. a value another field is deriving. */
   readonly?: boolean;
+  /** WinISD deviation cue to show next to the field. */
+  deviation?: WinisdDeviation;
+  /** Custom DQ flags to display for fixed fields or readouts. */
+  dq?: readonly string[];
 }
