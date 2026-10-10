@@ -1,6 +1,7 @@
 // Copies the driver records the tests use from winisd_drivers/db into test-fixtures/db-import.
 // Reads the db; writes only under test-fixtures/db-import. Runs in every local predev/prebuild;
-// where the db is absent (CI) it does nothing and the committed copies stand.
+// where the db is absent it fails, except under CI (GitHub sets CI=true), where the committed
+// copies stand.
 import {copyFileSync, existsSync, mkdirSync} from 'node:fs';
 import {dirname, join} from 'node:path';
 import {fileURLToPath} from 'node:url';
@@ -16,7 +17,8 @@ const RECORDS = [
 ];
 
 if (!existsSync(dbDir)) {
-  console.log('no winisd_drivers db here: keeping committed test fixtures');
+  if (process.env.CI !== 'true') throw new Error(`winisd_drivers db missing: ${dbDir}`);
+  console.log('CI: no winisd_drivers db, keeping committed test fixtures');
   process.exit(0);
 }
 
