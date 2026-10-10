@@ -85,9 +85,9 @@ describe('.wpr import syncs state.project from the file, and export round-trips 
     });
     try {
       const engine = createEngine();
-      const repo = createProjectRepo(engine, createFileStorage(), createMemoryStorage());
+      const repo = createProjectRepo(engine, createFileStorage(), createMemoryStorage(), 'http://localhost');
       const logging = createLogging();
-      const io = createApplicationIO({ logging, fileStorage: createFileStorage(), fileOpen: createFileOpen(), projectRepo: repo, files: new DesignFiles(engine, repo), backup });
+      const io = createApplicationIO({ engine,  logging, fileStorage: createFileStorage(), fileOpen: createFileOpen(), projectRepo: repo, files: new DesignFiles(engine, repo), backup });
 
       // A DIFFERENT project is open before the import — these exact values must all be gone
       // after. The app starts with NO project (QO121), so this opens the one it then dirties.
@@ -157,9 +157,9 @@ describe('.wpr import syncs state.project from the file, and export round-trips 
     });
     try {
       const engine = createEngine();
-      const repo = createProjectRepo(engine, createFileStorage(), createMemoryStorage());
+      const repo = createProjectRepo(engine, createFileStorage(), createMemoryStorage(), 'http://localhost');
       const logging = createLogging();
-      const io = createApplicationIO({ logging, fileStorage: createFileStorage(), fileOpen: createFileOpen(), projectRepo: repo, files: new DesignFiles(engine, repo), backup });
+      const io = createApplicationIO({ engine,  logging, fileStorage: createFileStorage(), fileOpen: createFileOpen(), projectRepo: repo, files: new DesignFiles(engine, repo), backup });
 
       // Not a project at all — every required top-level member is missing — so there is nothing a
       // field-level repair can keep (a project with bad fields loads repaired instead; John,
@@ -194,8 +194,8 @@ describe('.wpr import syncs state.project from the file, and export round-trips 
       forget: () => {},
     };
     const engine = createEngine();
-    const repo = createProjectRepo(engine, fileStorage, storage);
-    const io = createApplicationIO({ logging: createLogging(), fileStorage, fileOpen: createFileOpen(), projectRepo: repo, files: new DesignFiles(engine, repo), backup });
+    const repo = createProjectRepo(engine, fileStorage, storage, 'http://localhost');
+    const io = createApplicationIO({ engine,  logging: createLogging(), fileStorage, fileOpen: createFileOpen(), projectRepo: repo, files: new DesignFiles(engine, repo), backup });
 
     newProject();
     requireFocusedProject().name.set('Saved from toolbar');
@@ -216,8 +216,8 @@ describe('.wpr import syncs state.project from the file, and export round-trips 
       forget: () => {},
     };
     const engine = createEngine();
-    const repo = createProjectRepo(engine, fileStorage, storage);
-    const io = createApplicationIO({ logging: createLogging(), fileStorage, fileOpen: createFileOpen(), projectRepo: repo, files: new DesignFiles(engine, repo), backup });
+    const repo = createProjectRepo(engine, fileStorage, storage, 'http://localhost');
+    const io = createApplicationIO({ engine,  logging: createLogging(), fileStorage, fileOpen: createFileOpen(), projectRepo: repo, files: new DesignFiles(engine, repo), backup });
 
     newProject();
     requireFocusedProject().name.set('First of two');
@@ -239,8 +239,8 @@ describe('openFromDisk — one named filter, fallback to the file input', () => 
   function ioPicking(pick: FilePick, filters: unknown[]) {
     const fileOpen: FileOpen = { pickFile: async (filter) => { filters.push(filter); return pick; } };
     const engine = createEngine();
-    const repo = createProjectRepo(engine, createFileStorage(), createMemoryStorage());
-    return createApplicationIO({ logging: createLogging(), fileStorage: createFileStorage(), fileOpen, projectRepo: repo, files: new DesignFiles(engine, repo), backup });
+    const repo = createProjectRepo(engine, createFileStorage(), createMemoryStorage(), 'http://localhost');
+    return createApplicationIO({ engine,  logging: createLogging(), fileStorage: createFileStorage(), fileOpen, projectRepo: repo, files: new DesignFiles(engine, repo), backup });
   }
 
   it('asks the dialog for all four formats under one filter, and imports the picked file', async () => {
@@ -338,8 +338,8 @@ describe('every import and export says what it did', () => {
   function ioWith(fileStorage: FileStorage) {
     const logging: Logging = { message: ref(''), flash: vi.fn() };
     const engine = createEngine();
-    const repo = createProjectRepo(engine, fileStorage, createMemoryStorage());
-    const io = createApplicationIO({ logging, fileStorage, fileOpen: createFileOpen(), projectRepo: repo, files: new DesignFiles(engine, repo), backup });
+    const repo = createProjectRepo(engine, fileStorage, createMemoryStorage(), 'http://localhost');
+    const io = createApplicationIO({ engine,  logging, fileStorage, fileOpen: createFileOpen(), projectRepo: repo, files: new DesignFiles(engine, repo), backup });
     return { io, flash: logging.flash };
   }
 

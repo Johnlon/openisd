@@ -30,6 +30,7 @@ export type MobileDestination = Extract<TabId, 'box' | 'driver' | 'signal' | 'fi
 export type MobilePane = 'project' | 'advanced' | 'drivers';
 
 export interface MobileShellApi {
+  storeLabel: string;
   projectOpen: import('vue').ComputedRef<boolean>;
   /** The focused project's title for the top bar; '' with no project open. */
   projectTitle: import('vue').ComputedRef<string>;
@@ -41,6 +42,7 @@ export interface MobileShellApi {
   menuOpen: import('vue').Ref<boolean>;
   toggleMenu: () => void;
   closeMenu: () => void;
+  exportProjectsArchive: () => void;
   openFromDisk: () => void;
   isModified: import('vue').ComputedRef<boolean>;
   saveProject: () => Promise<unknown>;
@@ -310,11 +312,11 @@ export function useMobileShell(): MobileShellApi {
 
   return {
     projectOpen, projectTitle, destination, fileInput, openImportedFile, openNewProject, switchToDesktop,
-    menuOpen, toggleMenu, closeMenu, openFromDisk, isModified,
+    menuOpen, toggleMenu, closeMenu, exportProjectsArchive: () => designIO.exportProjectsArchive(), openFromDisk, isModified,
     saveProject, saveAllProjects, anyUnsaved, updateBannerVisible, reloadForUpdate, dismissUpdateBanner, revertProject, browseDrivers, optionsOpen, openOptions, about, goToProject,
     contentEl, canScrollUp, canScrollDown, updateScrollEdges, username, appVersion: releases.runningVersion,
     goToAdvanced, pane, closePane, viewportHeightPx, showEnclosureTab, enclosureNavLabel,
-    openDialogOpen, storedProjects, openProjectDialog, openStoredProject,
+    openDialogOpen, storedProjects, storeLabel: projectRepo.storeLabel, openProjectDialog, openStoredProject,
     openProjectRows, selectOpenProject, setOpenProjectTraceVisible, cycleOpenProjectColour, closeOpenProject,
   };
 }

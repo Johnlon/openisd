@@ -1,3 +1,6 @@
+
+import type { Engine } from '@openisd/design/engine';
+import { OpenISDProject } from '@openisd/design';
 import {
   type DesignFiles,
   driverToOwdrBytes,
@@ -48,7 +51,7 @@ import {
   type FileStorage,
   projectFilename,
   projectNameFromFilename,
-  type ProjectRepo,
+  type ProjectRepo, buildProjectsArchive, parseProjectsArchive,
   type RestoreResult
 } from '@openisd/persistence';
 import {setShareUrl} from './urlAppState.js';
@@ -87,6 +90,7 @@ export interface DesignIO {
    *  the Options dialog's "Backup" section. Not project-scoped like everything else here, but
    *  the same one-shot-download shape as `exportWdr`/`exportWpr`, so it reuses this module's
    *  `download` rather than a second `FileSave` instance. */
+  exportProjectsArchive(): void;
   exportBackup(): void;
   /** Restore every persisted key from a previously-downloaded backup file. Pure pass-through to
    *  `BackupRepo.importAll` — confirming with the user and reloading afterwards is the Options
@@ -101,7 +105,8 @@ export interface DesignIO {
  * Save in the toolbar would track different files. Session-only either way — the File System
  * Access API does not persist handles across a page load.
  */
-export function createApplicationIO(deps: { logging: Logging; fileStorage: FileStorage; fileOpen: FileOpen; projectRepo: ProjectRepo; files: DesignFiles; backup: BackupRepo }): DesignIO {
+function isRec(v: unknown): v is Record<string, unknown> { return typeof v === 'object' && v !== null && !Array.isArray(v); }
+export function createApplicationIO(deps: { engine: Engine; logging: Logging; fileStorage: FileStorage; fileOpen: FileOpen; projectRepo: ProjectRepo; files: DesignFiles; backup: BackupRepo }): DesignIO {
   const flash = (msg: string) => deps.logging.flash(msg);
   const { download } = createFileSave();
 
@@ -125,12 +130,43 @@ export function createApplicationIO(deps: { logging: Logging; fileStorage: FileS
     requireFocusedProject().name.set(projectNameFromFilename(fileName || fallbackFilename));
   }
 
+  function exportProjectsArchive(): void {
+    const fileName = `openisd-projects-${new Date().toISOString().slice(0, 10)}.json`;
+    const projects = deps.projectRepo.listStoredProjects()
+      .map(p => deps.projectRepo.loadStoredProject(p.id))
+      .filter((p): p is OpenISDProject => !Array.isArray(p));
+    
+    // add currently open projects not yet saved
+    const open = openProjects();
+    const all = [...projects];
+    for (const p of open) {
+      if (!all.some(a => a.uuid() === p.uuid() || a.name.value === p.name.value)) {
+        all.push(p);
+      }
+    }
+    
+    download(fileName, buildProjectsArchive(all), 'application/json');
+    flash(`Projects exported as ${fileName}`);
+  }
+
+  async function handleSaveFailure(): Promise<void> {
+    if (confirm('Could not save: browser storage is full.\n\nExport all projects to a file?')) {
+      exportProjectsArchive();
+    } else {
+      flash('Could not save: browser storage is full');
+    }
+  }
+
   /** Save — commit the edited project and refresh the browser-storage copy. */
   async function saveProject(): Promise<boolean> {
     endWhatIfBeforeIO();
     const project = currentProject();
     project.save();
-    deps.projectRepo.saveToStorage(project);
+    const result = deps.projectRepo.saveToStorage(project);
+    if (result.kind === 'failed') {
+      await handleSaveFailure();
+      return false;
+    }
     markProjectSaved();
     return true;
   }
@@ -139,13 +175,19 @@ export function createApplicationIO(deps: { logging: Logging; fileStorage: FileS
   async function saveAllProjects(): Promise<number> {
     endWhatIfBeforeIO();
     const dirty = openProjects().filter(p => p.isModified());
+    let savedCount = 0;
     for (const project of dirty) {
       project.cancelWhatIf();
       project.save();
-      deps.projectRepo.saveToStorage(project);
+      const result = deps.projectRepo.saveToStorage(project);
+      if (result.kind === 'failed') {
+        await handleSaveFailure();
+        return savedCount; // stop saving on failure
+      }
+      savedCount++;
     }
-    flash(dirty.length === 0 ? 'Nothing to save' : `Saved projects: ${dirty.length}`);
-    return dirty.length;
+    flash(savedCount === 0 ? 'Nothing to save' : `Saved projects: ${savedCount}`);
+    return savedCount;
   }
 
   /**
@@ -250,6 +292,24 @@ export function createApplicationIO(deps: { logging: Logging; fileStorage: FileS
           // (BUG_20261009_same-project-opens-many-times).
           openProjectOnce(project, {kind: 'file', name: f.name, content: text});
         } else if (format === ProjectFileFormat.Owpr || /^\s*\{/.test(text)) {
+          
+          let isArchive = false;
+          try {
+            const parsed: unknown = JSON.parse(text);
+            isArchive = isRec(parsed) && 'projects' in parsed && Array.isArray(parsed.projects);
+          } catch { /* not json */ }
+
+          if (isArchive) {
+            const result = parseProjectsArchive(text, deps.engine);
+            if (result.kind === 'failed') {
+              throw new Error(result.reason);
+            }
+            const { added } = deps.projectRepo.importArchive(result.projects);
+            flash(`Imported ${added} projects from ${f.name}`);
+            deps.fileStorage.forget();
+            return;
+          }
+
           const { value: project, errors } = deps.files.projectFromText(text, ProjectFileFormat.Owpr);
           if (!project) {
             // `errors[0]` alone is what the message shows — one line is all a toast has room for —
@@ -292,7 +352,7 @@ export function createApplicationIO(deps: { logging: Logging; fileStorage: FileS
   }
 
   return {
-    saveProject, saveAllProjects, saveProjectAs, shareLink, exportWdr, exportWpr, exportOwdr, importFile, openFromDisk,
+    saveProject, saveAllProjects, saveProjectAs, shareLink, exportWdr, exportWpr, exportOwdr, importFile, openFromDisk, exportProjectsArchive,
     exportBackup, importBackup,
   };
 }

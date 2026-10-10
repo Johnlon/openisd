@@ -10,7 +10,7 @@ import {createEngine} from '@openisd/design/engine';
 import {createMemoryStorage, createProjectRepo, type ViewSnapshot} from '@openisd/persistence';
 import {noFilePicker, parseSavedProject, projectOf, sampleDriverRecord, type FixtureMeta} from '../fixtures/persistedProject.js';
 
-const repo = createProjectRepo(createEngine(), noFilePicker, createMemoryStorage());
+const repo = createProjectRepo(createEngine(), noFilePicker, createMemoryStorage(), 'http://localhost');
 
 /** The share-link payload, decoded independently of the app's own `stateToUrl`/gzip path —
  *  what a real browser would decode a link to. */

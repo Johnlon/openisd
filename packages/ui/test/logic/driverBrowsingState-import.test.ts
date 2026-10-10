@@ -31,7 +31,7 @@ describe('My Drivers Load File flashes what it did', () => {
   function setUp() {
     const engine = createEngine();
     const storage = createMemoryStorage();
-    const files = new DesignFiles(engine, createProjectRepo(engine, createFileStorage(), storage));
+    const files = new DesignFiles(engine, createProjectRepo(engine, createFileStorage(), storage, 'http://localhost'));
     const logging: Logging = { message: ref(''), flash: vi.fn() };
     const browsing = createDriverBrowsingState({
       driverRepo: createBundledDriverRepo({

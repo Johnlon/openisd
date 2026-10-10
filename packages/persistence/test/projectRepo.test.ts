@@ -59,7 +59,7 @@ function isRecord(v: unknown): v is Record<string, unknown> {
 }
 
 function repo() {
-  return createProjectRepo(engine, noFiles, createMemoryStorage());
+  return createProjectRepo(engine, noFiles, createMemoryStorage(), 'http://localhost');
 }
 
 const scraped = <T,>(value: T) => ({ value });
@@ -122,7 +122,7 @@ function goodProjectText(name: string): string {
 function seeded(record: string): {repo: ReturnType<typeof createProjectRepo>; storage: KeyValueStorage} {
   const storage = createMemoryStorage();
   storage.set(OPENISD_OPEN_SESSIONS_KEY, record);
-  return {repo: createProjectRepo(engine, noFiles, storage), storage};
+  return {repo: createProjectRepo(engine, noFiles, storage, 'http://localhost'), storage};
 }
 
 function project(name: string): OpenISDProject {
@@ -139,7 +139,7 @@ describe('projectRepo', () => {
       const storage = createMemoryStorage({[OPENISD_OPEN_SESSIONS_KEY]: record});
       const onRepaired = vi.fn<(report: ProjectRepairReport) => void>();
 
-      const session = createProjectRepo(engine, noFiles, storage, onRepaired).loadOpenProjects();
+      const session = createProjectRepo(engine, noFiles, storage, 'http://localhost', onRepaired).loadOpenProjects();
       if (Array.isArray(session) || session === null) throw new Error('expected a session');
 
       expect(session.projects.map(p => p.name.value)).toEqual(['mine']);
@@ -158,7 +158,7 @@ describe('projectRepo', () => {
       const storage = createMemoryStorage({[OPENISD_STATE_KEY]: text});
       const onRepaired = vi.fn<(report: ProjectRepairReport) => void>();
 
-      const project = createProjectRepo(engine, noFiles, storage, onRepaired).loadFromStorage();
+      const project = createProjectRepo(engine, noFiles, storage, 'http://localhost', onRepaired).loadFromStorage();
       if (project === null || Array.isArray(project)) throw new Error('expected a project');
 
       expect(project.name.value).toBe('autosaved');
@@ -172,7 +172,7 @@ describe('projectRepo', () => {
       const storage = createMemoryStorage({[OPENISD_STATE_KEY]: project.toOwprText()});
       const onRepaired = vi.fn<(report: ProjectRepairReport) => void>();
 
-      createProjectRepo(engine, noFiles, storage, onRepaired).loadFromStorage();
+      createProjectRepo(engine, noFiles, storage, 'http://localhost', onRepaired).loadFromStorage();
 
       expect(onRepaired).not.toHaveBeenCalled();
       expect(storage.get(OPENISD_BACKUP_KEYS.state)).toBeNull();
@@ -188,11 +188,11 @@ describe('projectRepo', () => {
       const project = ProjectBuilder.empty(engine);
       project.name.set('unchanged');
       project.save();
-      createProjectRepo(engine, noFiles, otherTab).saveOpenProjects([project], project, new Set());
+      createProjectRepo(engine, noFiles, otherTab, 'http://localhost').saveOpenProjects([project], project, new Set());
       let heard = 0;
       otherTab.watch(OPENISD_OPEN_SESSIONS_KEY, () => { heard++; });
 
-      const repo = createProjectRepo(engine, noFiles, thisTab);
+      const repo = createProjectRepo(engine, noFiles, thisTab, 'http://localhost');
       const session = repo.loadOpenProjects();
       if (session === null || Array.isArray(session)) throw new Error('expected a session');
       repo.saveOpenProjects(session.projects, session.projects[session.focusedIndex] ?? null, session.traceHidden);
@@ -263,8 +263,8 @@ describe('projectRepo', () => {
   describe('open projects shared between tabs', () => {
     it('a tab hears another tab save its open projects', () => {
       const store = createSharedMemoryStorage();
-      const first = createProjectRepo(engine, noFiles, store.tab());
-      const second = createProjectRepo(engine, noFiles, store.tab());
+      const first = createProjectRepo(engine, noFiles, store.tab(), 'http://localhost');
+      const second = createProjectRepo(engine, noFiles, store.tab(), 'http://localhost');
       let heard = 0;
       second.watchOpenProjects(() => { heard++; });
 
@@ -275,7 +275,7 @@ describe('projectRepo', () => {
 
     it('a tab does not hear its own save', () => {
       const store = createSharedMemoryStorage();
-      const repo = createProjectRepo(engine, noFiles, store.tab());
+      const repo = createProjectRepo(engine, noFiles, store.tab(), 'http://localhost');
       let heard = 0;
       repo.watchOpenProjects(() => { heard++; });
 
@@ -286,8 +286,8 @@ describe('projectRepo', () => {
 
     it('a tab stops hearing once it unsubscribes', () => {
       const store = createSharedMemoryStorage();
-      const first = createProjectRepo(engine, noFiles, store.tab());
-      const second = createProjectRepo(engine, noFiles, store.tab());
+      const first = createProjectRepo(engine, noFiles, store.tab(), 'http://localhost');
+      const second = createProjectRepo(engine, noFiles, store.tab(), 'http://localhost');
       let heard = 0;
       const stop = second.watchOpenProjects(() => { heard++; });
       stop();
@@ -301,7 +301,7 @@ describe('projectRepo', () => {
 
   describe('browser storage project door', () => {
     it('saves and restores the committed project without view state', () => {
-      const repo = createProjectRepo(engine, noFiles, createMemoryStorage());
+      const repo = createProjectRepo(engine, noFiles, createMemoryStorage(), 'http://localhost');
       repo.saveToStorage(project('Browser storage fixture'));
 
       const loaded = repo.loadFromStorage();
@@ -311,7 +311,7 @@ describe('projectRepo', () => {
     });
 
     it('lists every saved project newest first and loads the selected project', () => {
-      const repo = createProjectRepo(engine, noFiles, createMemoryStorage());
+      const repo = createProjectRepo(engine, noFiles, createMemoryStorage(), 'http://localhost');
       const older = project('Older browser project');
       older.modified.set('2026-01-02');
       older.save();
@@ -330,7 +330,7 @@ describe('projectRepo', () => {
     });
 
     it('saving a project opened from browser storage updates its entry', () => {
-      const repo = createProjectRepo(engine, noFiles, createMemoryStorage());
+      const repo = createProjectRepo(engine, noFiles, createMemoryStorage(), 'http://localhost');
       repo.saveToStorage(project('Stored project to reopen'));
       const reopened = repo.loadStoredProject(repo.listStoredProjects()[0].id);
       assert.ok(!Array.isArray(reopened) && reopened);
@@ -342,7 +342,7 @@ describe('projectRepo', () => {
     });
 
     it('restores every open project and the focused project after refresh', () => {
-      const repo = createProjectRepo(engine, noFiles, createMemoryStorage());
+      const repo = createProjectRepo(engine, noFiles, createMemoryStorage(), 'http://localhost');
       const first = project('Open project one');
       const second = project('Open project two');
 
@@ -355,7 +355,7 @@ describe('projectRepo', () => {
     });
 
     it('closing every project stores an empty session and keeps the project in storage', () => {
-      const repo = createProjectRepo(engine, noFiles, createMemoryStorage());
+      const repo = createProjectRepo(engine, noFiles, createMemoryStorage(), 'http://localhost');
       const only = project('Closed project');
       repo.saveToStorage(only);
       repo.saveOpenProjects([only], only, new Set());
@@ -371,7 +371,7 @@ describe('projectRepo', () => {
 
     // bugs/BUG_20261005_project-selection-lost-on-reload.md
     it('restores which open projects had their trace hidden after refresh', () => {
-      const repo = createProjectRepo(engine, noFiles, createMemoryStorage());
+      const repo = createProjectRepo(engine, noFiles, createMemoryStorage(), 'http://localhost');
       const first = project('Open project one');
       const second = project('Open project two');
 
@@ -383,7 +383,7 @@ describe('projectRepo', () => {
     });
 
     it('a trace shown or hidden is written even when no project changed', () => {
-      const repo = createProjectRepo(engine, noFiles, createMemoryStorage());
+      const repo = createProjectRepo(engine, noFiles, createMemoryStorage(), 'http://localhost');
       const only = project('Open project one');
       repo.saveOpenProjects([only], only, new Set());
 
@@ -398,7 +398,7 @@ describe('projectRepo', () => {
       const text = project('Old session project').toOwprText();
       const storage = createMemoryStorage({[OPENISD_OPEN_SESSIONS_KEY]: JSON.stringify({entries: [{id: 'a', text}], focusedId: 'a'})});
 
-      const restored = createProjectRepo(engine, noFiles, storage).loadOpenProjects();
+      const restored = createProjectRepo(engine, noFiles, storage, 'http://localhost').loadOpenProjects();
 
       assert.ok(restored && !Array.isArray(restored));
       expect(restored.projects).toHaveLength(1);
@@ -408,7 +408,7 @@ describe('projectRepo', () => {
     it('reads projects saved under the previous browser-storage keys', () => {
       const storage = createMemoryStorage({'openisd.project': project('Legacy saved project').toOwprText()});
 
-      const restored = createProjectRepo(engine, noFiles, storage).loadFromStorage();
+      const restored = createProjectRepo(engine, noFiles, storage, 'http://localhost').loadFromStorage();
 
       assert.ok(!Array.isArray(restored) && restored);
       expect(restored.name.value).toBe('Legacy saved project');
@@ -427,7 +427,7 @@ describe('projectRepo', () => {
           ],
         }),
       });
-      const repo = createProjectRepo(engine, noFiles, storage);
+      const repo = createProjectRepo(engine, noFiles, storage, 'http://localhost');
       const list = repo.listStoredProjects();
       expect(list).toHaveLength(1);
       expect(list[0].id).toBe('id-3');
@@ -440,7 +440,7 @@ describe('projectRepo', () => {
 
     it('saving twice leaves 1 entry', () => {
       const storage = createMemoryStorage();
-      const repo = createProjectRepo(engine, noFiles, storage);
+      const repo = createProjectRepo(engine, noFiles, storage, 'http://localhost');
       const p1 = project('twice');
       repo.saveToStorage(p1);
       repo.saveToStorage(p1);
@@ -467,7 +467,7 @@ describe('projectRepo', () => {
       });
 
       const onRepaired = vi.fn<(report: ProjectRepairReport) => void>();
-      const repo = createProjectRepo(engine, noFiles, storage, onRepaired);
+      const repo = createProjectRepo(engine, noFiles, storage, 'http://localhost', onRepaired);
 
       // First load: loads with no notice
       const loaded = repo.loadStoredProject('p-1');
@@ -494,7 +494,7 @@ describe('projectRepo', () => {
           focusedId: 's-1',
         }),
       });
-      createProjectRepo(engine, noFiles, storage);
+      createProjectRepo(engine, noFiles, storage, 'http://localhost');
       const sessionStored = storage.get(OPENISD_OPEN_SESSIONS_KEY);
       assert.ok(sessionStored !== null);
       expect(sessionStored).not.toContain('"Qicl": 77');
@@ -514,7 +514,7 @@ describe('projectRepo', () => {
       });
 
       const onRepaired = vi.fn<(report: ProjectRepairReport) => void>();
-      const repo = createProjectRepo(engine, noFiles, storage, onRepaired);
+      const repo = createProjectRepo(engine, noFiles, storage, 'http://localhost', onRepaired);
 
       const listing = repo.listStoredProjects();
       expect(listing).toHaveLength(1);
@@ -536,7 +536,7 @@ describe('projectRepo', () => {
       });
 
       // Start-up 1
-      createProjectRepo(engine, noFiles, storage);
+      createProjectRepo(engine, noFiles, storage, 'http://localhost');
 
       const backupText = storage.get(OPENISD_BACKUP_KEYS.projects);
       assert.ok(backupText !== null, 'backup must be present after repair');
@@ -563,7 +563,7 @@ describe('projectRepo', () => {
       expect(parsedStore.entries[0].id).toBe('id-3');
 
       // Start-up 2
-      createProjectRepo(engine, noFiles, storage);
+      createProjectRepo(engine, noFiles, storage, 'http://localhost');
 
       const backupText2 = storage.get(OPENISD_BACKUP_KEYS.projects);
       expect(backupText2).toBe(backupText);
@@ -576,13 +576,31 @@ describe('projectRepo', () => {
         [OPENISD_PROJECTS_KEY]: 'this is not valid json',
       });
       const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-      createProjectRepo(engine, noFiles, storage);
+      createProjectRepo(engine, noFiles, storage, 'http://localhost');
       expect(storage.get(OPENISD_PROJECTS_KEY)).toBe('this is not valid json');
       expect(errorSpy).toHaveBeenCalled();
       const calledWith: unknown = errorSpy.mock.calls[0][0];
       assert.ok(isStoredDataFault(calledWith));
       expect(calledWith.store).toBe('project');
       errorSpy.mockRestore();
+    });
+  });
+
+  describe('save failure', () => {
+    it('returns a failed result when storage throws', () => {
+      const storage = createMemoryStorage();
+      storage.set = () => { throw new Error('Quota full'); };
+      const repo = createProjectRepo(engine, noFiles, storage, 'http://localhost');
+      
+      const p = ProjectBuilder.empty(engine);
+      p.name.set('Test Project');
+      p.save();
+      
+      const result = repo.saveToStorage(p);
+      expect(result.kind).toBe('failed');
+      if (result.kind === 'failed') {
+        expect(result.reason).toContain('Quota full');
+      }
     });
   });
 });

@@ -26,10 +26,10 @@ import {inputChecked} from '../../../logic/domEvents.js';
 
 const {
   projectOpen, destination, fileInput, openImportedFile, openNewProject, switchToDesktop,
-  menuOpen, toggleMenu, closeMenu, openFromDisk, isModified, saveProject, saveAllProjects, anyUnsaved, updateBannerVisible, reloadForUpdate, dismissUpdateBanner, revertProject, projectTitle,
+  menuOpen, toggleMenu, closeMenu, exportProjectsArchive, openFromDisk, isModified, saveProject, saveAllProjects, anyUnsaved, updateBannerVisible, reloadForUpdate, dismissUpdateBanner, revertProject, projectTitle,
   browseDrivers, optionsOpen, openOptions, about, goToProject, goToAdvanced, pane, closePane, viewportHeightPx,
   showEnclosureTab, enclosureNavLabel, contentEl, canScrollUp, canScrollDown, updateScrollEdges,
-  username, appVersion, openDialogOpen, storedProjects, openProjectDialog, openStoredProject,
+  username, appVersion, openDialogOpen, storedProjects, storeLabel, openProjectDialog, openStoredProject,
   openProjectRows, selectOpenProject, setOpenProjectTraceVisible, cycleOpenProjectColour, closeOpenProject,
 } = useMobileShell();
 // The project announces its own writes (`projectChanged`), so a UIField has nothing to add.
@@ -151,6 +151,8 @@ const diagnostics = injectDiagnosticsModal();
 
     <!-- Outside the project template: the empty state opens it too. -->
     <MobilePaneDialog v-if="openDialogOpen" class="mob-open-project-sheet" title="Open project" @close="openDialogOpen = false">
+      <p class="store-label">{{ storeLabel }}</p>
+      <button type="button" class="mob-cta mob-cta-secondary mob-export-projects" @click="exportProjectsArchive">Export all projects</button>
       <p v-if="storedProjects.length === 0" class="mob-hint">No saved project yet.</p>
       <button v-for="p in storedProjects" :key="p.id" type="button" class="mob-stored-project-row"
         @click="openStoredProject(p.id)">

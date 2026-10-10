@@ -19,7 +19,7 @@ const capturingPicker: FileStorage = {
   openFileName: () => 'p.owpr',
   forget: () => {},
 };
-const fileRepo = createProjectRepo(createEngine(), capturingPicker, createMemoryStorage());
+const fileRepo = createProjectRepo(createEngine(), capturingPicker, createMemoryStorage(), 'http://localhost');
 const owprNaming = { suggestedName: 'p.owpr', mime: 'application/json', label: 'OpenISD project', ext: '.owpr' };
 
 /** The bytes the FILE door writes, decoded independently. */

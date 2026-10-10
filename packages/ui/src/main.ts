@@ -99,7 +99,7 @@ const driverFileStorage = createFileStorage();
 
 // --- application layer: the app's state and what it does next ---
 const selection = createDriverSelection();
-const projectRepo = createProjectRepo(engine, fileStorage, storage, report => faultLog.recordRepair(report));
+const projectRepo = createProjectRepo(engine, fileStorage, storage, window.location.origin, report => faultLog.recordRepair(report));
 const designFiles = new DesignFiles(engine, projectRepo);
 const driverDrafts = new DriverDrafts(engine, appContext);
 const driverBrowsing = createDriverBrowsingState({
@@ -108,7 +108,7 @@ const driverBrowsing = createDriverBrowsingState({
 });
 const viewStateRepo = createViewStateRepo(storage);
 const backup = createBackupRepo(storage);
-const designIO = createApplicationIO({ logging, fileStorage, fileOpen: createFileOpen(), projectRepo, files: designFiles, backup });
+const designIO = createApplicationIO({ engine, logging, fileStorage, fileOpen: createFileOpen(), projectRepo, files: designFiles, backup });
 
 // The running build's version is baked in at build time; a dev server has none, which turns the
 // check off. Narrowed, not cast: the env value is untyped.

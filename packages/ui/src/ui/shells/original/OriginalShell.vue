@@ -36,7 +36,7 @@ import {INSTALL_URL} from '../../siteLinks.js';
 
 const {
   version, toggleDropdown, openDd, openClick, closeDropdown, presentationState, isModified,
-  openDialogOpen, storedProjects, openFromDisk, openStoredProject, switchToMobile,
+  openDialogOpen, storedProjects, storeLabel, exportProjectsArchive, openFromDisk, openStoredProject, switchToMobile,
   saveProject, saveAllProjects, anyUnsaved, resetProjectToGround, confirmDiscard, about, optionsOpen,
   chartLabel, chartItems, selectChart, toggleChart,
   hzInputText, inputValue, onHzInputFocus, onHzInputBlur, onHzKeydown, onHzWheel,
@@ -844,8 +844,9 @@ provideCellScope({ revision: projectChanged, written: () => {} });
           <div class="win-controls"><span class="close-btn" @click="openDialogOpen = false">&#10005;</span></div>
         </div>
         <div class="modal-body open-project-body">
-          <button class="open-from-disk" @click="openFromDisk">Import project</button>
+          <button class="open-from-disk" @click="openFromDisk">Import project</button> <button class="export-projects" @click="exportProjectsArchive">Export all projects</button>
           <div class="open-project-list">
+            <p class="store-label">{{ storeLabel }}</p>
             <p v-if="storedProjects.length === 0" class="hint">No saved project yet</p>
             <button v-for="projectEntry in storedProjects" :key="projectEntry.id" class="stored-project-row" @click="openStoredProject(projectEntry.id)">
               <span class="stored-project-name">{{ projectEntry.name }}</span>

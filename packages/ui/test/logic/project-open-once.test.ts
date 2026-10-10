@@ -52,8 +52,8 @@ beforeEach(() => {
 });
 
 function ioOver(storage = createMemoryStorage()): { io: DesignIO; repo: ProjectRepo } {
-  const repo = createProjectRepo(engine, createFileStorage(), storage);
-  const io = createApplicationIO({
+  const repo = createProjectRepo(engine, createFileStorage(), storage, 'http://localhost');
+  const io = createApplicationIO({ engine, 
     logging: createLogging(),
     fileStorage: createFileStorage(),
     fileOpen: createFileOpen(),

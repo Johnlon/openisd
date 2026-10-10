@@ -44,6 +44,7 @@ export {
   type ViewSnapshot,
   type ProjectRepo, type StoredProjectListing, type OpenProjectSession, type FileNaming, type ProjectRepairReport,
   createProjectRepo,
+
   PROJECT_EXT, projectNameFromFilename, projectFilename, copyOfName, uniqueName,
 } from './repos/projectRepo.js';
 
@@ -56,3 +57,4 @@ export {
 } from './repos/backupRepo.js';
 
 export { type StoreName, type StoredDataFault, createStoredDataFault, isStoredDataFault } from './repos/storedDataFault.js';
+export { buildProjectsArchive, parseProjectsArchive, type ArchiveParseResult } from './repos/projectsArchive.js';

@@ -47,7 +47,13 @@ export interface ChartView {
   yRanges: Record<string, ViewRange>;
 }
 
+export type StorageSaveResult = { kind: 'saved' } | { kind: 'failed', reason: string };
+
 export interface ProjectRepo {
+  /** The address of the browser storage this repo writes to. */
+  readonly storeAddress: string;
+  /** "Projects saved in this browser at <address>" */
+  readonly storeLabel: string;
   /** A URL carrying the whole session — project and view together (human ruling 2026-08-14). */
   stateToUrl(project: OpenISDProject, view: ViewSnapshot): Promise<string>;
   /** The session in the current location hash, or null when the hash carries none, or the
@@ -62,7 +68,9 @@ export interface ProjectRepo {
   /** Always prompt for a new location. */
   saveToNewFile(project: OpenISDProject, naming: FileNaming): Promise<SaveResult>;
   /** Save the committed project to browser storage. View state has its own repository/key. */
-  saveToStorage(project: OpenISDProject): void;
+  saveToStorage(project: OpenISDProject): StorageSaveResult;
+  /** Imports projects from an archive, merging by unique name. */
+  importArchive(imported: readonly OpenISDProject[]): { added: number };
   /** Restore the committed project from browser storage, or return null when none exists. */
   loadFromStorage(): OpenISDProject | string[] | null;
   /** List all projects saved in browser storage, newest save first. */
@@ -221,7 +229,7 @@ const OPEN_SESSION_SOURCE: StoredSource = { key: OPENISD_OPEN_SESSIONS_KEY, back
 
 export function createProjectRepo(
   engine: Engine, fileStorage: FileStorage,
-  storage: KeyValueStorage,
+  storage: KeyValueStorage, storeAddress: string,
   onRepaired: (report: ProjectRepairReport) => void = () => undefined,
 ): ProjectRepo {
   const upgrade = createProjectSchemaUpgrade(engine);
@@ -328,7 +336,11 @@ function deduplicateProjectEntries(entries: readonly StoredProjectEntry[]): { en
 
   function writeStoredEntries(entries: StoredProjectEntry[]): void {
     const payload: StoredProjectsPayload = { version: 1, entries };
-    storage.set(PROJECTS_STORAGE_KEY, JSON.stringify(payload));
+    const text = JSON.stringify(payload);
+    storage.set(PROJECTS_STORAGE_KEY, text);
+    if (storage.get(PROJECTS_STORAGE_KEY) !== text) {
+      throw new Error('browser storage is full');
+    }
   }
 
 function isRecord(v: unknown): v is Record<string, unknown> {
@@ -441,6 +453,8 @@ function migrateEntries<T extends { text: string }>(entries: readonly T[]): { en
   migrateAutosaveState();
 
   return {
+    storeAddress,
+    storeLabel: `Projects saved in this browser at ${storeAddress}`,
     async stateToUrl(project: OpenISDProject, view: ViewSnapshot): Promise<string> {
       // The project travels as `.owpr` TEXT, exactly as it does to a file — one serialised form
       // for every door, so a share link and a saved file hold the same bytes for the same design.
@@ -481,7 +495,7 @@ function migrateEntries<T extends { text: string }>(entries: readonly T[]): { en
         naming.suggestedName, naming.mime, naming.label, naming.ext);
     },
 
-    saveToStorage(project: OpenISDProject): void {
+    saveToStorage(project: OpenISDProject): StorageSaveResult {
       const entries = readStoredEntries();
       const existing = entries.find(e => {
         const name = projectNameOf(e.text);
@@ -491,9 +505,43 @@ function migrateEntries<T extends { text: string }>(entries: readonly T[]): { en
       const now = Math.max(Date.now(), lastSavedAt + 1);
       lastSavedAt = now;
       const entry: StoredProjectEntry = { id, text: project.toOwprText(), modified: new Date(now).toISOString() };
-      writeStoredEntries([entry, ...entries.filter(candidate => candidate.id !== id)]);
-      storage.set(PROJECT_STORAGE_KEY, entry.text);
+      
+      try {
+        writeStoredEntries([entry, ...entries.filter(candidate => candidate.id !== id)]);
+        storage.set(PROJECT_STORAGE_KEY, entry.text);
+        if (storage.get(PROJECT_STORAGE_KEY) !== entry.text) {
+          throw new Error('browser storage is full');
+        }
+      } catch (e) {
+        return { kind: 'failed', reason: String(e) };
+      }
+      
       storedIdentity.set(project, id);
+      return { kind: 'saved' };
+    },
+    
+    importArchive(imported: readonly OpenISDProject[]): { added: number } {
+      const entries = readStoredEntries();
+      const existingNames = entries.map(e => projectNameOf(e.text)).filter((n): n is string => n !== null);
+      const addedEntries: StoredProjectEntry[] = [];
+      let now = Math.max(Date.now(), lastSavedAt + 1);
+      
+      for (const project of imported) {
+        const originalName = project.name.value;
+        let finalName = originalName;
+        if (existingNames.includes(finalName)) {
+          finalName = uniqueName(copyOfName(originalName), existingNames);
+        }
+        existingNames.push(finalName);
+        
+        project.name.set(finalName);
+        addedEntries.push({ id: crypto.randomUUID(), text: project.toOwprText(), modified: new Date(now++).toISOString() });
+      }
+      if (addedEntries.length > 0) {
+        lastSavedAt = now;
+        writeStoredEntries([...addedEntries, ...entries]);
+      }
+      return { added: addedEntries.length };
     },
 
     loadFromStorage(): OpenISDProject | string[] | null {

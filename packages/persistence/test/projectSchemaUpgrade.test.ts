@@ -18,7 +18,7 @@ const noFilePicker: FileStorage = {
   openFileName: () => null,
   forget: () => {},
 };
-const repo = createProjectRepo(createEngine(), noFilePicker, createMemoryStorage());
+const repo = createProjectRepo(createEngine(), noFilePicker, createMemoryStorage(), 'http://localhost');
 
 /** A conforming driver RECORD — the form a driver takes inside a serialised payload. Every key
  *  the schema requires is present; the values are deliberately synthetic, since these tests are

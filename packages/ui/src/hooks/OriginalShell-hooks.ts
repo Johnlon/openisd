@@ -632,7 +632,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
 
   return {
     version, toggleDropdown, openDd, openClick, closeDropdown, presentationState, isModified,
-    openDialogOpen, storedProjects, openFromDisk, openStoredProject, switchToMobile,
+    openDialogOpen, storedProjects, storeLabel: projectRepo.storeLabel, exportProjectsArchive: () => designIO.exportProjectsArchive(), openFromDisk, openStoredProject, switchToMobile,
     saveProject, saveAllProjects, anyUnsaved, resetProjectToGround, confirmDiscard, about, optionsOpen,
     chartLabel, chartItems, selectChart, toggleChart,
     hzInputText, inputValue, onHzInputFocus, onHzInputBlur, onHzKeydown, onHzWheel,

@@ -53,7 +53,7 @@ export function testAppLogic(overrides: Partial<AppLogic> = {}): AppLogic {
   const fileStorage = createFileStorage();
   const driverFileStorage = createFileStorage();
   const selection = createDriverSelection();
-  const projectRepo = createProjectRepo(engine, fileStorage, storage);
+  const projectRepo = createProjectRepo(engine, fileStorage, storage, 'http://localhost');
   const designFiles = new DesignFiles(engine, projectRepo);
   const driverDrafts = new DriverDrafts(engine, appContext);
   const driverBrowsing = createDriverBrowsingState({
@@ -62,7 +62,7 @@ export function testAppLogic(overrides: Partial<AppLogic> = {}): AppLogic {
   });
   const viewStateRepo = createViewStateRepo(storage);
   const backup = createBackupRepo(storage);
-  const designIO = createApplicationIO({ logging, fileStorage, fileOpen: createFileOpen(), projectRepo, files: designFiles, backup });
+  const designIO = createApplicationIO({ engine,  logging, fileStorage, fileOpen: createFileOpen(), projectRepo, files: designFiles, backup });
 
   const base: AppLogic = {
     engine, logging, driverBrowsing, selection, designIO, designFiles, driverDrafts,
