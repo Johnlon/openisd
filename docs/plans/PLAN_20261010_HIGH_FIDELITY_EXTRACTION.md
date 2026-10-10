@@ -10,6 +10,7 @@ John, 10 Oct 2026:
 - "we have too much Manu specific duplicates — consider it a single unit of work with unit tests ... 100pc up front as the goal"
 - "obviously do this on a worktree of both projects, it's a big piece and I don't want it in the way of small fixes"
 - "exclusions during record write seem late"; "logging is good"
+- "we need to avoid duplicate logic between openisd and python too, so beware"
 
 ## 1. Goal
 
@@ -41,7 +42,7 @@ Per **document**: URL, role, fetch time, title, breadcrumb and categories in ord
 
 Per **record**: brand, model, the record directory name (unchanged for existing records), `added` (first appearance; a harvest fact), every document, every reading, the product's scope log (section 4).
 
-Schema rules: Pydantic v2 with unknown fields refused; a matching Zod schema in openisd (`packages/design/domain/driverSpecSchema.ts`); a parity test fails if the two differ; `schema_version` is checked on every read.
+Schema rules: ONE source — a JSON Schema file (`driver_spec.schema.json`, kept in openisd `packages/design`). The Python model and the Zod schema are generated from it, never hand-written twice; a test fails if a generated file is stale. Unknown fields are refused; `schema_version` is checked on every read.
 
 ## 3. Who does what
 
@@ -55,6 +56,13 @@ Schema rules: Pydantic v2 with unknown fields refused; a matching Zod schema in 
 | roles (the `driver_type` structure)               | —                   | yes, from categories and type words                                     |
 | corroboration, winning reading                    | —                   | yes (exclude impossible, then majority of more than half, then precedence) |
 | `openisd.json` + `.wdr`                           | calls the bridge    | the bridge builds them                                                  |
+
+## 3a. No logic in both languages
+
+- Every rule lives in exactly one repo: reading and scope in Python; every interpretation in TypeScript (section 3).
+- When a rule moves (e.g. text → SI from `lib/units.py`), the Python copy is deleted in the same change; its tests move with it.
+- The old pipeline runs beside the new one only until parity passes (step 5); it is then deleted, not kept.
+- An architecture test in tools fails if tools code parses a number or maps a label once the move is done.
 
 ## 4. Scope: one rule, decided early, always logged
 
