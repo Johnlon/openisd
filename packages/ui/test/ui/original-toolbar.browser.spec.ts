@@ -5,8 +5,9 @@ import {COMPLETE_DRIVER_PROJECT_OWPR, expect, focusedBoxVolume, openAProject, se
 import {fillAndBlur} from '../fixtures/numField.js';
 
 // The build (scripts/version-info.mjs → packages/ui/public/build-info.json) is the on-disk source
-// of truth for the toolbar version. The dev/preview server serves THAT file at /build-info.json,
-// so this assertion proves the app shows exactly what the last build wrote.
+// of truth for the published version. In dev mode (vite serve), the app shows a dev version
+// (git sha + dirty state) instead, since build-info.json is rewritten on every build and does
+// not describe the running dev server code.
 const BUILD_INFO = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'public', 'build-info.json');
 
 /** Widths a browser window realistically reaches; the toolbar must never overlap at any. */
@@ -23,7 +24,7 @@ function readBuildInfo(): { version: string } {
 }
 
 test.describe('Original toolbar', () => {
-  test('toolbar shows the exact version stored in build-info.json', async ({ page }) => {
+  test('toolbar shows the correct version for the running environment', async ({ page }) => {
     const onDisk = readBuildInfo();
     expect(onDisk.version).toMatch(/^v\d{8}T\d{6}Z$/);
 
@@ -32,7 +33,12 @@ test.describe('Original toolbar', () => {
 
     const brand = page.locator('.app-brand');
     await expect(brand).toContainText('OpenISD');
-    await expect(brand.locator('.version-chip')).toHaveText(`(${onDisk.version})`);
+
+    // In dev mode (vite serve), the version chip shows "dev <sha> + changes" format.
+    // In production, it would show the published version from build-info.json.
+    // The browser test runs against the dev server, so expect the dev format.
+    const versionChip = brand.locator('.version-chip');
+    await expect(versionChip).toHaveText(/^\(dev [a-f0-9]{7,8}( \+ changes)?\)$/);
     // The brand icon renders either from the public /icon.svg or inline as a data-URI SVG
     // (the shell embeds the loudspeaker mark directly) — assert the icon exists and is SVG.
     await expect(brand.locator('img')).toHaveAttribute('src', /^data:image\/svg\+xml|\/icon\.svg$/);

@@ -17,11 +17,14 @@ function createFakeSessionStorage() {
 
 function createFakePort(overrides: Partial<ReleasePort> = {}): ReleasePort {
   const recordedVersion: { current: string | null } = { current: null };
+  const dismissedVersion: { current: string | null } = { current: null };
   return {
     latestVersion: () => Promise.resolve(null),
     reloadOntoLatest: () => Promise.resolve(),
     getRecordedReloadedVersion: () => recordedVersion.current,
     recordReloadedVersion: (v: string) => { recordedVersion.current = v; },
+    getDismissedVersion: () => dismissedVersion.current,
+    recordDismissedVersion: (v: string) => { dismissedVersion.current = v; },
     ...overrides,
   };
 }
@@ -110,6 +113,54 @@ describe('ReleaseWatch', () => {
     await watch.check();
     expect(watch.newVersionAvailable.value).toBe(true);
   });
+
+  it('dismisses the notice for the current published version', async () => {
+    const logger = createFakeLogger();
+    const port = createFakePort({ latestVersion: () => Promise.resolve('v2') });
+    const watch = new ReleaseWatch('v1', port, logger);
+    await watch.check();
+    expect(watch.newVersionAvailable.value).toBe(true);
+    await watch.dismiss();
+    expect(watch.newVersionAvailable.value).toBe(false);
+    expect(port.getDismissedVersion()).toBe('v2');
+  });
+
+  it('after dismiss, same version stays hidden (persists across reload)', async () => {
+    const logger = createFakeLogger();
+    const dismissedVersion: { current: string | null } = { current: null };
+    const port = createFakePort({
+      latestVersion: () => Promise.resolve('v2'),
+      getDismissedVersion: () => dismissedVersion.current,
+      recordDismissedVersion: (v: string) => { dismissedVersion.current = v; },
+    });
+    const watch = new ReleaseWatch('v1', port, logger);
+    await watch.check();
+    await watch.dismiss();
+    expect(watch.newVersionAvailable.value).toBe(false);
+    // Simulate a fresh ReleaseWatch over the same storage (page reload)
+    const watch2 = new ReleaseWatch('v1', port, logger);
+    await watch2.check();
+    expect(watch2.newVersionAvailable.value).toBe(false);
+    expect(logger.logs).toContain('[release] published version v2 was dismissed');
+  });
+
+  it('a newer version shows the notice again after dismiss', async () => {
+    const logger = createFakeLogger();
+    const dismissedVersion: { current: string | null } = { current: null };
+    const port = createFakePort({
+      latestVersion: () => Promise.resolve('v2'),
+      getDismissedVersion: () => dismissedVersion.current,
+      recordDismissedVersion: (v: string) => { dismissedVersion.current = v; },
+    });
+    const watch = new ReleaseWatch('v1', port, logger);
+    await watch.check();
+    await watch.dismiss();
+    expect(watch.newVersionAvailable.value).toBe(false);
+    // Now a newer version v3 is published
+    port.latestVersion = () => Promise.resolve('v3');
+    await watch.check();
+    expect(watch.newVersionAvailable.value).toBe(true);
+  });
 });
 
 describe('createBrowserReleasePort.latestVersion', () => {
@@ -139,5 +190,66 @@ describe('createBrowserReleasePort.latestVersion', () => {
     expect(await make(() => Promise.reject(new Error('offline'))).latestVersion()).toBeNull();
     expect(await make(() => Promise.resolve(new Response('', { status: 404 }))).latestVersion()).toBeNull();
     expect(await make(() => Promise.resolve(new Response('{"nope":1}'))).latestVersion()).toBeNull();
+  });
+});
+
+describe('createBrowserReleasePort dismissed version', () => {
+  const noReload = { reload: () => undefined };
+  const noWorker = undefined;
+
+  it('getDismissedVersion returns null initially', async () => {
+    const sessionStorage = createFakeSessionStorage();
+    const p = createBrowserReleasePort({
+      baseUrl: '/',
+      fetch: () => Promise.resolve(new Response('{}')),
+      serviceWorker: noWorker,
+      location: noReload,
+      sessionStorage,
+    });
+    expect(p.getDismissedVersion()).toBeNull();
+  });
+
+  it('recordDismissedVersion stores the version in sessionStorage', async () => {
+    const sessionStorage = createFakeSessionStorage();
+    const p = createBrowserReleasePort({
+      baseUrl: '/',
+      fetch: () => Promise.resolve(new Response('{}')),
+      serviceWorker: noWorker,
+      location: noReload,
+      sessionStorage,
+    });
+    p.recordDismissedVersion('v2');
+    expect(sessionStorage.setItem).toHaveBeenCalledWith('openisd-dismissed-version', 'v2');
+    expect(p.getDismissedVersion()).toBe('v2');
+  });
+
+  it('getDismissedVersion returns stored version after reload', async () => {
+    const sessionStorage = createFakeSessionStorage();
+    sessionStorage.getItem.mockReturnValueOnce('v2');
+    const p = createBrowserReleasePort({
+      baseUrl: '/',
+      fetch: () => Promise.resolve(new Response('{}')),
+      serviceWorker: noWorker,
+      location: noReload,
+      sessionStorage,
+    });
+    expect(p.getDismissedVersion()).toBe('v2');
+  });
+
+  it('handles sessionStorage that throws (private browsing, quota exceeded)', async () => {
+    const throwingStorage = {
+      getItem: vi.fn(() => { throw new Error('SecurityError'); }),
+      setItem: vi.fn(() => { throw new Error('QuotaExceededError'); }),
+    };
+    const p = createBrowserReleasePort({
+      baseUrl: '/',
+      fetch: () => Promise.resolve(new Response('{}')),
+      serviceWorker: noWorker,
+      location: noReload,
+      sessionStorage: throwingStorage,
+    });
+    expect(p.getDismissedVersion()).toBeNull();
+    expect(() => p.recordDismissedVersion('v2')).not.toThrow();
+    expect(p.getDismissedVersion()).toBeNull();
   });
 });

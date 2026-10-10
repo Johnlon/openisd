@@ -4,6 +4,7 @@ import {VitePWA} from 'vite-plugin-pwa';
 import {fileURLToPath} from 'url';
 import {join} from 'path';
 import {createReadStream, existsSync, readFileSync} from 'fs';
+import {execFileSync} from 'child_process';
 
 // Optional desktop target, built by `make electron`. It shares the entire UI and engine
 // with the web app and differs only in how the assets are addressed and cached:
@@ -89,6 +90,36 @@ const WATCH_IGNORED = [
   '**/packages/ui/public/**',
 ];
 
+// Dev-version middleware factory: returns a plugin that serves /dev-version.json only in dev mode.
+function createServeDevVersion(command) {
+  const REPO_ROOT = join(fileURLToPath(import.meta.url), '..');
+  return {
+    name: 'serve-dev-version',
+    configureServer(server) {
+      if (command !== 'serve') return;
+      server.middlewares.use((req, res, next) => {
+        const url = (req.url ?? '').split('?')[0];
+        if (url !== '/dev-version.json') return next();
+        let sha = 'unknown';
+        let hasChanges = false;
+        try {
+          sha = execFileSync('git', ['rev-parse', '--short', 'HEAD'], { cwd: REPO_ROOT, encoding: 'utf8' }).trim();
+        } catch {
+          sha = 'unknown';
+        }
+        try {
+          const status = execFileSync('git', ['status', '--porcelain'], { cwd: REPO_ROOT, encoding: 'utf8' }).trim();
+          hasChanges = status.length > 0;
+        } catch {
+          hasChanges = false;
+        }
+        res.setHeader('Content-Type', 'application/json');
+        res.end(JSON.stringify({ sha, hasChanges }));
+      });
+    },
+  };
+}
+
 export default defineConfig(({ command }) => ({
   root: UI_ROOT,
   base,
@@ -135,6 +166,7 @@ export default defineConfig(({ command }) => ({
   plugins: [
     clearSwInDev,
     serveCatalogue,
+    ...(command === 'serve' ? [createServeDevVersion(command)] : []),
     vue(),
     ...(ELECTRON || command === 'serve' ? [] : [VitePWA({
       registerType: 'autoUpdate',

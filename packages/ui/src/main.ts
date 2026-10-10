@@ -29,6 +29,7 @@ import {DesignFiles} from './logic/fileImportExport.js';
 import {DriverDrafts} from './logic/driverDraft.js';
 import {provideApp} from './logic/app.js';
 import {appContext, engine, installAppSettings, NoFocusedProjectError} from './logic/appState.js';
+import {createDevVersionPort, createAppVersionPort} from './logic/appVersion.js';
 import '@fontsource/inter/400.css';
 import '@fontsource/inter/600.css';
 import '@fontsource/inter/700.css';
@@ -128,6 +129,7 @@ const releaseLogger: Logger = {
 // The running build's version is baked in at build time; a dev server has none, which turns the
 // check off. Narrowed, not cast: the env value is untyped.
 const bakedVersion: unknown = import.meta.env.VITE_BUILD_VERSION;
+const isDev = import.meta.env.DEV;
 const releases = new ReleaseWatch(
   typeof bakedVersion === 'string' ? bakedVersion : '',
   createBrowserReleasePort({
@@ -140,6 +142,10 @@ const releases = new ReleaseWatch(
   releaseLogger,
 );
 
+// App version port: in dev mode fetch from /dev-version.json, in production use baked version.
+const devPort = isDev ? createDevVersionPort(import.meta.env.BASE_URL, fetch) : null;
+const appVersion = createAppVersionPort(isDev, typeof bakedVersion === 'string' ? bakedVersion : '', devPort);
+
 const app = createApp(App)
   .directive('expo-step', vExpoStep)
   .directive('limits', vLimits);
@@ -147,7 +153,7 @@ const app = createApp(App)
 provideApp(app, {
   engine, logging, driverBrowsing, selection, designIO, designFiles, driverDrafts, myPassiveRadiators, prefs,
   bundledPassiveRadiators: bundledPRs, bundledDrivers: driverRepo, myDrivers: myDriverRepo,
-  driverFileStorage, faultLog, projectRepo, viewStateRepo, releases,
+  driverFileStorage, faultLog, projectRepo, viewStateRepo, releases, appVersion,
 });
 
 // Visibility only, not a recovery mechanism (PROMPT_RELEASE_HARDENING plan): a

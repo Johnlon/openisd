@@ -50,6 +50,7 @@ import {chartColumnsFit, CHARTS_HIGH_OPTIONS, ORIGINAL_CHARTS_HIGH} from './char
 import {offeredChartsHigh, useChartStack} from './chartStack.js';
 import {createToneGenerator, type ToneGenerator} from '../logic/toneGenerator.js';
 import {useApp} from '../logic/app.js';
+import {formatAppVersion} from '@openisd/design/fields';
 import {useEscToClose} from '../logic/useEscToClose.js';
 import {injectSplashModal} from './SplashModal-hooks.js';
 import {ARRAY_WIRING_OPTIONS, BOX_TYPE_OPTIONS, END_CORRECTION_OPTIONS, formatFixed, formatFixedOrDash, NumberField, ReadoutFormat, VENT_SHAPE_OPTIONS, WinisdDeviation} from '@openisd/design/fields';
@@ -286,22 +287,13 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   function closeDropdown() { openDd.value = null; }
   function onDocClick() { closeDropdown(); }
 
-  // ---- Toolbar version — the build (scripts/version-info.mjs) writes build-info.json. The
-  // on-disk file is the single source of truth; no version on fetch failure.
+  // ---- Toolbar version — shared source from appVersion port, formatted by design.
+  const { appVersion } = useApp();
   const version = ref('');
-  async function fetchVersion(): Promise<void> {
-    try {
-      const r = await fetch(`${import.meta.env.BASE_URL}build-info.json`, { cache: 'no-store' });
-      if (!r.ok) return;
-      // Narrow via the `in` operator, never a cast — the repository bans casts. `r.json()` is
-      // typed `any`, so it is taken as `unknown` and proved to be an object here.
-      const info: unknown = await r.json();
-      if (info && typeof info === 'object' && 'version' in info && typeof info.version === 'string') {
-        version.value = info.version;
-      }
-    } catch { /* network offline — show no version rather than fail the app */ }
-  }
-  onMounted(() => { void fetchVersion(); });
+  onMounted(async () => {
+    const v = await appVersion.getVersion();
+    version.value = formatAppVersion(v);
+  });
 
   // Fire the fixup fill the FIRST time a project is available — at mount when one is already
   // open, or when one arrives LATER on a project-less boot (an auto-restored save, a File →

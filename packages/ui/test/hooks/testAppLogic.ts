@@ -30,6 +30,7 @@ import {DriverDrafts} from '../../src/logic/driverDraft.js';
 import {appContext} from '../../src/logic/appState.js';
 import type {AppLogic} from '../../src/logic/app.js';
 import {ReleaseWatch} from '../../src/logic/releaseWatch.js';
+import {createAppVersionPort} from '../../src/logic/appVersion.js';
 
 const CATALOGUE_MAX_AGE_MS = 60 * 60 * 1000;
 const unusedFetch: typeof fetch = () => Promise.reject(new Error('fetch not used in this test'));
@@ -73,7 +74,10 @@ export function testAppLogic(overrides: Partial<AppLogic> = {}): AppLogic {
       reloadOntoLatest: () => Promise.resolve(),
       getRecordedReloadedVersion: () => null,
       recordReloadedVersion: () => {},
+      getDismissedVersion: () => null,
+      recordDismissedVersion: () => {},
     }, { log: () => {} }),
+    appVersion: createAppVersionPort(false, '', null),
   };
   return Object.assign({}, base, overrides);
 }

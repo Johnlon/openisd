@@ -17,6 +17,7 @@ export interface BrowserReleaseDeps {
 }
 
 const STORAGE_KEY = 'openisd-reloaded-version';
+const DISMISSED_KEY = 'openisd-dismissed-version';
 
 /** How long to wait for the new service worker to take over before reloading anyway. */
 const TAKE_OVER_WAIT_MS = 3000;
@@ -66,5 +67,21 @@ export function createBrowserReleasePort(deps: BrowserReleaseDeps): ReleasePort 
     }
   }
 
-  return { latestVersion, reloadOntoLatest, getRecordedReloadedVersion, recordReloadedVersion };
+  function getDismissedVersion(): string | null {
+    try {
+      return deps.sessionStorage.getItem(DISMISSED_KEY);
+    } catch {
+      return null;
+    }
+  }
+
+  function recordDismissedVersion(version: string): void {
+    try {
+      deps.sessionStorage.setItem(DISMISSED_KEY, version);
+    } catch {
+      // Ignore: private browsing, quota exceeded, etc.
+    }
+  }
+
+  return { latestVersion, reloadOntoLatest, getRecordedReloadedVersion, recordReloadedVersion, getDismissedVersion, recordDismissedVersion };
 }

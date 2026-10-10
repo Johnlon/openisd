@@ -55,7 +55,7 @@ export interface MobileShellApi {
   /** Reload onto the newer build. */
   reloadForUpdate: () => Promise<void>;
   /** Hide the notice until the next visit. */
-  dismissUpdateBanner: () => void;
+  dismissUpdateBanner: () => Promise<void>;
   revertProject: () => void;
   browseDrivers: () => void;
   optionsOpen: import('vue').Ref<boolean>;
@@ -88,7 +88,7 @@ export interface MobileShellApi {
   /** The menu drawer's identity line — null until the user sets one (Options → Username). */
   username: import('vue').ComputedRef<string | null>;
   /** The version of the running build, shown in the menu; '' on a dev server. */
-  appVersion: string;
+  appVersion: import('vue').Ref<string>;
   /** The "Open project" sheet — previously-SAVED projects (browser storage), distinct from
    *  "Open a file" (`openFromDisk`, a disk import). Desktop's own `openDialogOpen`/
    *  `storedProjects`/`openStoredProject` (OriginalShell-hooks.ts), mobile had no equivalent
@@ -118,7 +118,7 @@ export interface OpenProjectRow {
 }
 
 export function useMobileShell(): MobileShellApi {
-  const { designIO, projectRepo, releases } = useApp();
+  const { designIO, projectRepo, releases, appVersion } = useApp();
   const { saveProject, saveAllProjects } = designIO;
   const { show: about } = injectSplashModal();
   const projectOpen = computed(() => focusedProject() != null);
@@ -134,6 +134,14 @@ export function useMobileShell(): MobileShellApi {
   // synced to the project the same way (see createSelectedBox's own comment).
   const { showEnclosureTab, enclosureNavLabel } =
     createSelectedBox({ focusedProject, projectChanged, isSimulatable: boxTypeIsSimulatable });
+
+  // App version — shared source from appVersion port, formatted by design.
+  const appVersionLabel = ref('');
+  onMounted(async () => {
+    const { formatAppVersion } = await import('@openisd/design/fields');
+    const v = await appVersion.getVersion();
+    appVersionLabel.value = formatAppVersion(v);
+  });
 
   const fileInput = ref<HTMLInputElement | null>(null);
   function openImportedFile(e: Event): void {
@@ -187,10 +195,9 @@ export function useMobileShell(): MobileShellApi {
   });
   // New-version notice: checked on start, whenever the app comes back to the foreground, and every
   // few minutes while it stays open.
-  const updateDismissed = ref(false);
-  const updateBannerVisible = computed(() => releases.newVersionAvailable.value && !updateDismissed.value);
+  const updateBannerVisible = computed(() => releases.newVersionAvailable.value);
   const reloadForUpdate = (): Promise<void> => releases.reload();
-  function dismissUpdateBanner(): void { updateDismissed.value = true; }
+  const dismissUpdateBanner = (): Promise<void> => releases.dismiss();
   const UPDATE_CHECK_INTERVAL_MS = 5 * 60 * 1000;
   let updateTimer: ReturnType<typeof setInterval> | undefined;
   function checkForUpdate(): void { if (document.visibilityState === 'visible') void releases.check(); }
@@ -314,7 +321,7 @@ export function useMobileShell(): MobileShellApi {
     projectOpen, projectTitle, destination, fileInput, openImportedFile, openNewProject, switchToDesktop,
     menuOpen, toggleMenu, closeMenu, exportProjectsArchive: () => designIO.exportProjectsArchive(), openFromDisk, isModified,
     saveProject, saveAllProjects, anyUnsaved, updateBannerVisible, reloadForUpdate, dismissUpdateBanner, revertProject, browseDrivers, optionsOpen, openOptions, about, goToProject,
-    contentEl, canScrollUp, canScrollDown, updateScrollEdges, username, appVersion: releases.runningVersion,
+    contentEl, canScrollUp, canScrollDown, updateScrollEdges, username, appVersion: appVersionLabel,
     goToAdvanced, pane, closePane, viewportHeightPx, showEnclosureTab, enclosureNavLabel,
     openDialogOpen, storedProjects, storeLabel: projectRepo.storeLabel, openProjectDialog, openStoredProject,
     openProjectRows, selectOpenProject, setOpenProjectTraceVisible, cycleOpenProjectColour, closeOpenProject,

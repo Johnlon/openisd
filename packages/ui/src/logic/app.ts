@@ -18,6 +18,7 @@ import type {Logging} from '../logging/flash.js';
 import type {FaultLog} from '../diagnostics/faultLog.js';
 import type {Engine} from '@openisd/design/engine';
 import type {ReleaseWatch} from './releaseWatch.js';
+import type {AppVersionPort} from './appVersion.js';
 
 /**
  * What the presentation layer is given.
@@ -53,6 +54,7 @@ export interface AppLogic {
   viewStateRepo: ViewStateRepo;
   faultLog: FaultLog;
   releases: ReleaseWatch;
+  appVersion: AppVersionPort;
 }
 
 export const APP_LOGIC: InjectionKey<AppLogic> = Symbol('openisd.app');

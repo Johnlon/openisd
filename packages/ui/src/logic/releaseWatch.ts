@@ -16,6 +16,10 @@ export interface ReleasePort {
   getRecordedReloadedVersion(): string | null;
   /** Record that the user has reloaded onto the given version. */
   recordReloadedVersion(version: string): void;
+  /** Get the published version the user has dismissed, if any. */
+  getDismissedVersion(): string | null;
+  /** Record that the user has dismissed the notice for the given published version. */
+  recordDismissedVersion(version: string): void;
 }
 
 /** Tells the running app whether a newer build has been published. */
@@ -40,6 +44,11 @@ export class ReleaseWatch {
       this.logger.log(`[release] bundle still differs from published version ${latest} (already reloaded)`);
       return;
     }
+    const dismissed = this.port.getDismissedVersion();
+    if (dismissed === latest) {
+      this.logger.log(`[release] published version ${latest} was dismissed`);
+      return;
+    }
     this.newVersionAvailable.value = true;
   }
 
@@ -48,6 +57,13 @@ export class ReleaseWatch {
     const latest = await this.port.latestVersion();
     if (latest !== null) this.port.recordReloadedVersion(latest);
     await this.port.reloadOntoLatest();
+    this.newVersionAvailable.value = false;
+  }
+
+  /** Dismisses the notice for the currently published version. */
+  async dismiss(): Promise<void> {
+    const latest = await this.port.latestVersion();
+    if (latest !== null) this.port.recordDismissedVersion(latest);
     this.newVersionAvailable.value = false;
   }
 }
