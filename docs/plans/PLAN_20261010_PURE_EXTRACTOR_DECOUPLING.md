@@ -6,7 +6,8 @@
 2. Every URL is kept: `data_sources` is a list of `{role, url}`, not one URL per role.
 3. Every reading has a `locator` (table/row/column or page/line), like `PrintedItem`.
 4. Every reading keeps `label`, the row label as printed, so the label-to-key mapping can be checked and redone.
-5. `sku` and `manufacturer` are dropped as fields (QT93 delete list); identity is brand + model. The record directory name stays the existing slug, derived from brand + model, unchanged for existing records.
+5. The scraper writes a NEW file, `driver_spec.json`, holding the raw facts it read (John 2026-10-10). It keeps every field it reads, including ones earlier rulings had listed for deletion (sku, manufacturer, title, description and the like): raw facts are never dropped. The record directory keeps its existing name.
+5a. openisd's bridge still creates `openisd.json` from `driver_spec.json`, in the new driver-type structure (sections plus the role list).
 6. Phase 4 is not "bit-for-bit identical": for every reading, the SI value the bridge derives equals the legacy value, or the change is listed and explained.
 7. Dead work, stopped: further Python lib parsing batches, and QT93 step 2 on the old `DriverFile`. openisd's bridge `printed` job is replaced by Phase 2.
 8. Ownership: Phases 1 and 3 are winisd_tools tasks (tools); Phase 2 is openisd tasks (bob; T017/T018 are reshaped into it: the Usable/Rejected union is the output of the openisd parser).
