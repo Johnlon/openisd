@@ -1,0 +1,28 @@
+id: T034
+repo: openisd
+owner: bob
+status: open
+goal: No logic or component calls the browser's confirm(). One injected confirm port and one in-app confirm dialog, used by both skins, for every question the app asks (BUG_20261011_native-confirm-called-from-logic).
+done_test: bash scripts/test.sh packages/ui/test/logic/confirmPort.test.ts packages/ui/test/architecture-no-native-confirm.test.ts packages/ui/test/ui/confirm-dialog.browser.spec.ts
+files:
+  - packages/ui/src/logic/confirmPort.ts
+  - packages/ui/src/logic/applicationIO.ts
+  - packages/ui/src/logic/driverBrowsingState.ts
+  - packages/ui/src/logic/app.ts
+  - packages/ui/src/main.ts
+  - packages/ui/src/hooks/OriginalShell-hooks.ts
+  - packages/ui/src/hooks/MobileShell-hooks.ts
+  - packages/ui/src/hooks/useBackupSettings.ts
+  - packages/ui/src/ui/App.vue
+  - packages/ui/src/ui/components/ConfirmDialog.vue
+  - packages/ui/src/ui/components/DriverEditorModal.vue
+  - packages/ui/src/ui/components/OptionsModal.vue
+  - packages/ui/src/style.css
+  - packages/ui/test/logic/**
+  - packages/ui/test/hooks/**
+  - packages/ui/test/architecture-no-native-confirm.test.ts
+  - packages/ui/test/ui/confirm-dialog.browser.spec.ts
+  - packages/ui/test/ui/**
+  - packages/ui/test/fixtures/**
+  - bugs/BUG_20261011_native-confirm-called-from-logic.md
+  - tasks/T034.yml
