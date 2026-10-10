@@ -9,6 +9,11 @@ import type {Page} from '@playwright/test';
 import {expect, test} from '../fixtures.js';
 import {forceMobileSkin} from '../fixtures/mobileSkin.js';
 
+interface OverlaySeen {atPaint: boolean; hiddenAtMs: number | null}
+declare global {
+  interface Window { __overlaySeen: OverlaySeen }
+}
+
 async function simulateVisibility(page: Page, hiddenDurationMs: number): Promise<void> {
   await page.evaluate((duration) => {
     const baseNow = Date.now();
@@ -27,11 +32,26 @@ async function simulateVisibility(page: Page, hiddenDurationMs: number): Promise
 
 test.describe('loading overlay — Original desktop skin', () => {
   test('overlays the app initially, hides after mount and >= 0.7 s, and re-appears after > 30 s hidden', async ({page}) => {
+    await page.addInitScript(() => {
+      const seen: OverlaySeen = {atPaint: false, hiddenAtMs: null};
+      Object.defineProperty(window, '__overlaySeen', {value: seen});
+      document.addEventListener('DOMContentLoaded', () => {
+        const el = document.getElementById('loading-overlay');
+        if (!el) return;
+        seen.atPaint = getComputedStyle(el).display !== 'none';
+        new MutationObserver(() => {
+          if (el.style.display === 'none' && seen.hiddenAtMs === null) seen.hiddenAtMs = performance.now();
+        }).observe(el, {attributes: true, attributeFilter: ['style']});
+      });
+    });
     await page.goto('/');
 
     const overlay = page.locator('#loading-overlay');
     // Overlay must eventually hide after mount and at least 0.7 s
     await expect(overlay).toBeHidden();
+    const seen = await page.evaluate(() => window.__overlaySeen);
+    expect(seen.atPaint).toBe(true);
+    expect(seen.hiddenAtMs).toBeGreaterThanOrEqual(700);
 
     // Hiding for <= 30 s (e.g. 10 s) does NOT trigger redisplay
     await simulateVisibility(page, 10_000);

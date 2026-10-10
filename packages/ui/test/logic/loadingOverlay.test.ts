@@ -231,3 +231,26 @@ describe('LoadingOverlay wiring', () => {
     expect(clock.pendingCount()).toBe(0);
   });
 });
+
+describe('LoadingOverlay hide timer', () => {
+  it('hides on a later look when its timer fires before 0.7 s have passed on the clock', () => {
+    let now = 0;
+    const pending: (() => void)[] = [];
+    const clock: OverlayClock = {
+      now: () => now,
+      schedule: fn => { pending.push(fn); return () => undefined; },
+    };
+    const element: LoadingOverlayElement = {style: {display: 'flex'}};
+    const overlay = createLoadingOverlay({element, visibilityTarget: new FakeVisibilityTarget(), clock, initialShownAt: 0});
+
+    overlay.onAppMounted();
+    now = 699;
+    pending.shift()?.();
+    expect(element.style.display).toBe('flex');
+    expect(pending).toHaveLength(1);
+
+    now = 700;
+    pending.shift()?.();
+    expect(element.style.display).toBe('none');
+  });
+});

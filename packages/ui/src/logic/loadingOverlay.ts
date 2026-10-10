@@ -52,6 +52,8 @@ export function createLoadingOverlay(deps: LoadingOverlayDeps): LoadingOverlay {
       cancelHide?.();
       cancelHide = null;
       hide();
+    } else if (isMounted) {
+      scheduleHide();
     }
   }
 
@@ -84,13 +86,7 @@ export function createLoadingOverlay(deps: LoadingOverlayDeps): LoadingOverlay {
   return {
     onAppMounted(): void {
       isMounted = true;
-      if (mayOverlayHide(shownAt, deps.clock.now(), isMounted)) {
-        cancelHide?.();
-        cancelHide = null;
-        hide();
-      } else {
-        scheduleHide();
-      }
+      tryHide();
     },
     dispose(): void {
       deps.visibilityTarget.removeEventListener('visibilitychange', onVisibilityChange);
