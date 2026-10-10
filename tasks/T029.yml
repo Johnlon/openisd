@@ -1,7 +1,7 @@
 id: T029
 repo: openisd
 owner: maryu
-status: open
+status: blocked
 goal: There is no release branch - a green post-land run records its sha in ${POST_LAND_LOCK}.green and a red lists the commits since it; the site deploys from main (John 2026-10-10, "I decided to ditch the release branch").
 done_test: bash scripts/land/test/post-land-coalesce.test.sh && bash scripts/land/test/post-land-red-base.test.sh && bash scripts/land/test/post-land.e2e.test.sh && bash scripts/land.sh --self-check
 files:
@@ -14,3 +14,4 @@ files:
   - .claude/rules/verify.md
   - tasks/T003.yml
   - tasks/T029.yml
+blocked_reason: rebase onto origin/main conflicts in: docs/plans/PLAN_20261009_CONSOLIDATED.md 
