@@ -124,6 +124,10 @@ inside `scripts/`: Vite then finds no config and serves 404 on every page.
 Run every test/typecheck/gate via `bash scripts/quiet-test.sh <command>`; it hides passing lines and
 logs the full output to `build/test-logs/`. Rule: `.claude/rules/verify.md`.
 
+## UI Layout Safety — No clipped controls or unwanted scrollbars
+
+All agent changes to UI components, shells, and dialogs MUST be verified to ensure controls NEVER disappear or get clipped off the bottom or sides of the screen, NOR cause unwanted horizontal or vertical scrollbars to appear.
+
 ## Loaded on demand
 
 The rest of the project's working conventions live in path-scoped rules and docs so they only

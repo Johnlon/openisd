@@ -516,7 +516,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
             <div class="two-col">
               <div style="--label-w:48px;">
                 <div class="section-header">Passive radiator parameters</div>
-                <div style="display: grid; grid-template-columns: auto auto; column-gap: 16px; row-gap: 6px; margin-bottom: 6px;">
+                <div style="display: grid; grid-template-columns: auto auto; column-gap: 16px; row-gap: 4px; margin-bottom: 4px;">
                   <UIField class="field" input-id="og-pr-vas" :field="NumberField.PR_VAS_L" :cell="project.box.passiveRadiator.radiator.spec.Vas_m3" />
                   <UIField class="field" input-id="og-pr-qms" :field="NumberField.PR_QMS" :cell="project.box.passiveRadiator.radiator.spec.Qms" />
                   <UIField class="field" input-id="og-pr-fs" :field="NumberField.PR_FS_HZ" :cell="project.box.passiveRadiator.radiator.spec.Fs_hz" />
@@ -526,16 +526,16 @@ provideCellScope({ revision: projectChanged, written: () => {} });
               </div>
               <div style="--label-w:155px;">
                 <div class="section-header">User options</div>
-                <div class="field-row"><UIFixedField class="field entered" input-id="og-pr-count" :field="NumberField.PR_NUM" :value="project.box.passiveRadiator.count.value" :deviation="prNprDeviationShown ? WinisdDeviation.PR_NPR_RESONANCE : undefined">
+                <div class="field-row" style="margin-bottom:4px;"><UIFixedField class="field entered" input-id="og-pr-count" :field="NumberField.PR_NUM" :value="project.box.passiveRadiator.count.value" :deviation="prNprDeviationShown ? WinisdDeviation.PR_NPR_RESONANCE : undefined">
                   <template #value="{id}">
                     <select :id="id" :value="project.box.passiveRadiator.count.value" @change="e => { const n = selectedOption(e, PR_COUNT_OPTIONS); if (n !== null) project.box.passiveRadiator.count.set(n); }">
                       <option v-for="o in PR_COUNT_OPTIONS" :key="o.value" :value="o.value">{{ o.label }}</option>
                     </select>
                   </template>
                 </UIFixedField></div>
-                <div class="field-row"><UIField class="field" input-id="og-pr-fp" :field="NumberField.PR_FP_HZ" :cell="project.box.passiveRadiator.tuning_goal_hz" /></div>
-                <div class="field-row">
-                  <UIField class="field" style="--label-w:125px;" input-id="og-pr-madd" :field="NumberField.PR_MADD_G" :cell="project.box.passiveRadiator.addedMass_kg" />
+                <div class="field-row" style="margin-bottom:4px;"><UIField class="field" input-id="og-pr-fp" :field="NumberField.PR_FP_HZ" :cell="project.box.passiveRadiator.tuning_goal_hz" /></div>
+                <div class="field-row" style="margin-bottom:4px;">
+                  <UIField class="field" input-id="og-pr-madd" :field="NumberField.PR_MADD_G" :cell="project.box.passiveRadiator.addedMass_kg" />
                   <UIFixedField class="field" style="--label-w:135px;" input-id="og-pr-fs-mass" :field="NumberField.PR_FSMASS_HZ" :value="prFsMass_hz" :dq="prResonanceMassDq.dq">
                     <template #value="{id}">
                       <NumReadout as-input :id="id" class="calculated greyed" :field="NumberField.PR_FSMASS_HZ" :value="prFsMass_hz" />
