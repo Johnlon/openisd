@@ -2,18 +2,30 @@
 
 Give this file to one agent. It runs bucket R first, then the other buckets. Buckets A, I and T touch disjoint files and repos, so they can run in parallel when credit allows; when only one agent runs, the order is R → A → I → T.
 
-## State at 11:45, 9 Oct (update this section after every step)
+## State at 10 Oct (lots keeps this section current — John: "the work list it MUST maintain")
 
-- Claude credit is nearly out. Agents bob, maryu, tools and fab have done nothing since about 02:00. No agy/opencode/freebuff job ran overnight; tools' QT93 step 2 agy job produced nothing (no report, no commit after b93d47a6).
-- openisd main = b669f97c (T022). `release` = b669f97c (post-land green). GitHub: CI on release red (R2), deploy refused (R1). Last published release: v20261007T222530Z.
-- **T024 running**: opencode (model opencode/big-pickle) in worktree `/home/john/work/winisd/openisd-t024` (branch t024-open-once), brief `scratchpad/t024-brief.md`, log `scratchpad/t024.log` (lots' scratchpad). It fixes the first bug below; then the next brief does the rest. Review the diff, then `bash scripts/land.sh T024` from that worktree.
-- New bug files, all in that worktree's `bugs/`, all in T024's scope:
-  - BUG_20261009_same-project-opens-many-times — the same project opens again and again; the stored list holds duplicates (merge to newest, copies to backup); Save must write in place; the open list sorts newest first.
-  - BUG_20261009_retired-field-reset-notice-on-every-load — the "3 field(s) reset to the default … front.losses.Qicl" notice on every load: retired fields must migrate silently, and the stored database itself is repaired and written back once.
-  - BUG_20261009_file-open-shows-diagnostics-on-mobile — the mobile file-open dialog shows the diagnostics dump; storage is 2.7 MB of ~5 MB.
-  - BUG_20261009_projects-look-lost-across-addresses — each address (openisd.app, localhost:4000, lap:4000, the Tailscale IP, the installed app) has its own project store; show which, add export/import of all projects, a failed save must say so. After T024.
-- Open question for John: add "restore from backup" (today a backup can only be downloaded).
-- Not started: bucket A items 1–5 (T017 WIP 65da80bf in openisd-t017; clear defaults WIP in openisd-coal; bridge `printed`; loading icon).
+### Done since 9 Oct
+- T024 open-once (3fcd2261), T025 plans, T027 deploy from main + GitHub CI deleted (0b542728). A release = the GitHub Pages deploy on every push to main; no release branch, no tags (John). Buckets R1/R2 are moot.
+
+### In flight
+- **F3/F4** (post-land red after T024: mobile-project-list spec opened the same project twice): fix in `openisd-f4`, being landed/run by maryu (217ddec3). Blocks every other landing until closed.
+- **T026** (worktree `openisd-t024`, reviewed, committed c7a51e67): stored copies merged into one (backup keeps all), retired front Qicl dropped silently at start-up, mobile file-open shows files. Lands after F3/F4 close.
+- maryu: remove the release-branch push and NO_RELEASE_PUSH from post-land/run.sh (an opencode run in `openisd-norel`, branch drop-release); the clear-defaults rulings job (re-briefing on another model).
+
+### Waiting on John
+- **PLAN_20261010_PURE_EXTRACTOR_DECOUPLING.md** (author unknown, 46e31b58): go/no-go. lots' review: right direction; schema must keep every reading (a list, not one per source role), every URL, a locator and the printed label on each reading, and drop sku/manufacturer per QT93; Phase 4 test = per-reading SI match or listed change, not bit-for-bit. If go: stop Python lib batches and QT93 step 2 for good; split the plan into tools tasks and openisd tasks.
+- "Restore from backup" action: add or not.
+
+### No worker today (tools)
+- Complete-loudspeaker refusal (8 Visaton items) — killed on John's order, tree clean.
+- Identity fixes (#105).
+- QT93 step 2 — held for the pure-extractor decision.
+
+### Delegated CLIs — what we know (10 Oct)
+- **agy (Gemini)**: good output (batch 3 verify + 3 real defects; T026 code needed one review round for a data-loss bug). Quota per model, short: default model reset 4h42m, gemini-3.8-flash-high 2h12m, both used up in one morning. Throughput ≈ one agy job per quota window.
+- **opencode**: big-pickle gave a sound T024 fix; one run died on "cannot connect to API"; one run timed out at 45 min (maryu). Other runs were killed by holds, untested.
+- **freebuff**: never used.
+- **Needed**: a quota-aware plan — one job per tool at a time, small briefs, rotate agy models → opencode free models → freebuff; record each quota reset time here.
 
 ## How every agent works
 
