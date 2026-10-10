@@ -30,6 +30,7 @@ around them are unfinished. Their rows in the box-type pickers are dimmed until 
 | New Project wizard: choosing either type creates the box from starting values; there is no step for the chamber volumes and tunings. | `OriginalNewProject.vue`, `OriginalNewProject-hooks.ts` |
 | Mobile skin: the Box and Enclosure tabs show only the placeholder note for both types. | `MobileBoxTab.vue`, `MobileEnclosureTab.vue` |
 | Set `BoxEngine.implemented` to true for each type once the items above are done. | `packages/design/engine/box/BoxEngine.ts` |
+| 3-chamber boxes: WinISD stubbed center chamber keys (`Vc`, `Fc`, `Qlc`, `Qac`, `Qpc`, `Qiclfc`, `Qiclcr`) in its `.wpr` format but never implemented them. Model 3-chamber topologies and interchamber leaks. | `packages/design/domain/box`, `packages/design/engine/boxes` |
 
 ## Charts and UI
 
