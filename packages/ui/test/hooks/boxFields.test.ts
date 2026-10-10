@@ -254,7 +254,7 @@ describe('boxFields', () => {
       hook.lossesOpen.value = 'front';
       expect(hook.openLossGroup.value!.Qp!.value).toBe(100);
       hook.openLossGroup.value!.Qicl!.set(42);
-      expect(project.box.bandpass4.chambers.rear.losses.Qicl.value).toBe(42);
+      expect(project.box.bandpass4.Qiclfr.value).toBe(42);
     });
     it('abc: Reset puts the open chamber back to WinISD\'s defaults and leaves the other', () => {
       const {project, hook} = losses('abc');

@@ -546,7 +546,7 @@ describe('openIsdProjectToWinIsdProject', () => {
         b.chambers.rear.losses.Ql.set(6);
         b.chambers.rear.losses.Qa.set(29);
         b.chambers.rear.losses.Qp.set(11);
-        b.chambers.rear.losses.Qicl.set(18);
+        b.Qiclfr.set(18);
         b.chambers.front.losses.Ql.set(8);
         b.chambers.front.losses.Qa.set(38);
         b.chambers.front.losses.Qp.set(14);
@@ -571,7 +571,7 @@ describe('openIsdProjectToWinIsdProject', () => {
         assert.equal(rb.chambers.rear.losses.Ql.value, 6);
         assert.equal(rb.chambers.rear.losses.Qa.value, 29);
         assert.equal(rb.chambers.rear.losses.Qp.value, 11);
-        assert.equal(rb.chambers.rear.losses.Qicl.value, 18);
+        assert.equal(rb.Qiclfr.value, 18);
         assert.equal(rb.chambers.front.losses.Ql.value, 8);
         assert.equal(rb.chambers.front.losses.Qa.value, 38);
         assert.equal(rb.chambers.front.losses.Qp.value, 14);

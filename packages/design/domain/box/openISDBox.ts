@@ -2,7 +2,7 @@ import {type Engine} from '../../engine/index.js';
 import type { Air, BoxType, DqIssue, VentedAlignment } from '../../engine/index.js';
 import { CalculatedFieldImpl, absentCell, calculatedCell, entryField, focus, nullableField, pairedField, simpleField } from '../cell.js';
 import type { Clearable, Entered, Precise, Readable, SimpleField, Writable } from '../cell.js';
-import type { CoupledSealedLosses, SealedLosses } from '../losses.js';
+import type { SealedLosses } from '../losses.js';
 import { WINISD_BOX_LOSSES } from '../boxDefaults.js';
 import type { OpenISDBoxJson, SpecEntryJson } from '../openisdSchema.js';
 import { OpenISDDriverEmbedded } from '../driver/openISDDriverEmbedded.js';
@@ -17,13 +17,11 @@ import type { Bandpass4Box } from './bandpass4Box.js';
 import type { Bandpass6Box } from './bandpass6Box.js';
 import type { Box, BoxLossGroup, LossChamber, TuningField, VentGroup, VentPort } from './box.js';
 import type { Vent } from '../vent.js';
-import { CoupledSealedLossesWindow } from './coupledSealedLossesWindow.js';
 import type { PassiveRadiatorBox } from './passiveRadiatorBox.js';
 import type { SealedBox } from './sealedBox.js';
 import { SealedLossesWindow } from './sealedLossesWindow.js';
 import { VentWindow } from './ventWindow.js';
 import type { VentedBox } from './ventedBox.js';
-import { CoupledVentedChamberWindow } from './coupledVentedChamberWindow.js';
 import { VentedChamberWindow } from './ventedChamberWindow.js';
 import { VentedLossesWindow } from './ventedLossesWindow.js';
 
@@ -113,15 +111,15 @@ function isStated(volume_m3: number | null): volume_m3 is number {
 }
 
 /** The Box losses popup of a two-chamber box: one set per chamber, as WinISD gives each chamber
- *  panel its own Advanced-> losses. Both sets carry the rear chamber's Qicl, the one the sweep
- *  reads as WinISD's Qiclfr. */
+ *  panel its own Advanced-> losses. Both sets carry the box's one Qiclfr. */
 function chamberLossGroups(
-    rear: CoupledSealedLosses, rearQp: SimpleField<number> | null,
+    rear: SealedLosses, rearQp: SimpleField<number> | null,
     front: SealedLosses, frontQp: SimpleField<number>,
+    Qicl: SimpleField<number>,
 ): readonly BoxLossGroup[] {
     return [
-        {chamber: 'rear', heading: 'Rear chamber', Ql: rear.Ql, Qa: rear.Qa, Qp: rearQp, Qicl: rear.Qicl},
-        {chamber: 'front', heading: 'Front chamber', Ql: front.Ql, Qa: front.Qa, Qp: frontQp, Qicl: rear.Qicl},
+        {chamber: 'rear', heading: 'Rear chamber', Ql: rear.Ql, Qa: rear.Qa, Qp: rearQp, Qicl},
+        {chamber: 'front', heading: 'Front chamber', Ql: front.Ql, Qa: front.Qa, Qp: frontQp, Qicl},
     ];
 }
 
@@ -226,7 +224,7 @@ export class OpenISDBox implements Box {
 
         const bp4 = focus(lens, 'bandpass4');
         const bp4Rear = focus(bp4, 'rear');
-        const bp4RearLosses = new CoupledSealedLossesWindow(focus(bp4Rear, 'losses'));
+        const bp4RearLosses = new SealedLossesWindow(focus(bp4Rear, 'losses'));
         const bp4Front = focus(bp4, 'front');
         const bp4FrontTuningEntry = entryField(focus(bp4Front, 'tuning_goal_hz'), 'tuning_goal_hz', () => groupDq(issues().vent));
         const bp4FrontVentLens = focus(bp4, 'frontVent');
@@ -279,6 +277,7 @@ export class OpenISDBox implements Box {
                 },
             },
             vents: {front: bp4FrontVent},
+            Qiclfr: focus(bp4, 'Qiclfr'),
         };
 
         const bp6 = focus(lens, 'bandpass6');
@@ -296,13 +295,14 @@ export class OpenISDBox implements Box {
             entryField(focus(bp6FrontVent, 'length_m'), 'length_m', () => groupDq(issues().vent)));
         this.bandpass6 = {
             chambers: {
-                rear: new CoupledVentedChamberWindow(bp6Rear, bp6RearPair.tuning, 'Rear chamber volume', engine.issues),
+                rear: new VentedChamberWindow(bp6Rear, bp6RearPair.tuning, 'Rear chamber volume', engine.issues),
                 front: new VentedChamberWindow(bp6Front, bp6FrontPair.tuning, 'Front chamber volume', engine.issues),
             },
             vents: {
                 rear: new VentWindow(bp6RearVent, engine.vent, air, bp6RearPair.length),
                 front: new VentWindow(bp6FrontVent, engine.vent, air, bp6FrontPair.length),
             },
+            Qiclfr: focus(bp6, 'Qiclfr'),
         };
 
         const abc = focus(lens, 'abc');
@@ -320,7 +320,7 @@ export class OpenISDBox implements Box {
             entryField(focus(abcFrontVent, 'length_m'), 'length_m', () => groupDq(issues().vent)));
         this.abc = {
             chambers: {
-                rear: new CoupledVentedChamberWindow(abcRear, abcRearPair.tuning, 'Rear chamber volume', engine.issues),
+                rear: new VentedChamberWindow(abcRear, abcRearPair.tuning, 'Rear chamber volume', engine.issues),
                 front: new VentedChamberWindow(abcFront, abcFrontPair.tuning, 'Front chamber volume', engine.issues),
             },
             // Three ports, flat siblings: rear's and front's own ports to outside air, plus the
@@ -331,6 +331,7 @@ export class OpenISDBox implements Box {
                 front: new VentWindow(abcFrontVent, engine.vent, air, abcFrontPair.length),
                 intra: new VentWindow(focus(abc, 'intraVent'), engine.vent, air),
             },
+            Qiclfr: focus(abc, 'Qiclfr'),
         };
 
         const pr = focus(lens, 'passiveRadiator');
@@ -497,16 +498,16 @@ export class OpenISDBox implements Box {
             case 'vented': return [{chamber: 'whole', heading: null, Ql: this.vented.losses.Ql, Qa: this.vented.losses.Qa, Qp: this.vented.losses.Qp, Qicl: null}];
             case 'bandpass4': {
                 const {rear, front} = this.bandpass4.chambers;
-                return chamberLossGroups(rear.losses, null, front.losses, front.losses.Qp);
+                return chamberLossGroups(rear.losses, null, front.losses, front.losses.Qp, this.bandpass4.Qiclfr);
             }
             case 'box-passive-radiator': return [{chamber: 'whole', heading: null, Ql: this.passiveRadiator.losses.Ql, Qa: this.passiveRadiator.losses.Qa, Qp: null, Qicl: null}];
             case 'bandpass6': {
                 const {rear, front} = this.bandpass6.chambers;
-                return chamberLossGroups(rear.losses, rear.losses.Qp, front.losses, front.losses.Qp);
+                return chamberLossGroups(rear.losses, rear.losses.Qp, front.losses, front.losses.Qp, this.bandpass6.Qiclfr);
             }
             case 'abc': {
                 const {rear, front} = this.abc.chambers;
-                return chamberLossGroups(rear.losses, rear.losses.Qp, front.losses, front.losses.Qp);
+                return chamberLossGroups(rear.losses, rear.losses.Qp, front.losses, front.losses.Qp, this.abc.Qiclfr);
             }
         }
     }

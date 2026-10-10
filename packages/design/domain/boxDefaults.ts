@@ -4,7 +4,7 @@
  * and how they compose into a box with nothing designed yet.
  */
 import type {
-    ChamberJson, CoupledSealedLossesJson, CoupledVentedLossesJson, OpenISDBoxJson,
+    ChamberJson, OpenISDBoxJson,
     RadiatorDeviceJson, SealedLossesJson, VentedLossesJson, VentJson,
 } from './openisdSchema.js';
 import {DEFAULT_NEW_PROJECT_VENTED_QL} from '../fields/defaults.js';
@@ -24,10 +24,6 @@ export const WINISD_BOX_LOSSES = Object.freeze({Ql: DEFAULT_NEW_PROJECT_VENTED_Q
 const NO_SEALED_LOSSES: SealedLossesJson = Object.freeze({Ql: DEFAULT_NEW_PROJECT_VENTED_QL, Qa: 100});
 const NO_VENTED_LOSSES: VentedLossesJson =
     Object.freeze({Ql: DEFAULT_NEW_PROJECT_VENTED_QL, Qa: 100, Qp: 100});
-const NO_COUPLED_SEALED_LOSSES: CoupledSealedLossesJson =
-    Object.freeze({Ql: 10, Qa: 100, Qicl: 100});
-const NO_COUPLED_VENTED_LOSSES: CoupledVentedLossesJson =
-    Object.freeze({Ql: 10, Qa: 100, Qp: 100, Qicl: 100});
 const NO_VENT: VentJson = Object.freeze({
     shape: 'round',
     width_m: null,
@@ -39,12 +35,10 @@ const NO_VENT: VentJson = Object.freeze({
 /** The vents of a 6th-order bandpass or ABC: WinISD's wizard gives them "One flanged end" (0.732),
  *  not the vented box's two free ends (capture bp6_abc_wizard_defaults). */
 const NO_TWO_CHAMBER_VENT: VentJson = Object.freeze({...NO_VENT, endCorrection_m: 0.732});
+const NO_SEALED_CHAMBER =
+    Object.freeze({volume_m3: 0, losses: NO_SEALED_LOSSES});
 const NO_VENTED_CHAMBER: ChamberJson =
     Object.freeze({volume_m3: 0, losses: NO_VENTED_LOSSES});
-const NO_COUPLED_SEALED_CHAMBER =
-    Object.freeze({volume_m3: 0, losses: NO_COUPLED_SEALED_LOSSES});
-const NO_COUPLED_VENTED_CHAMBER =
-    Object.freeze({volume_m3: 0, losses: NO_COUPLED_VENTED_LOSSES});
 
 /** A box with nothing designed yet — every box type present and inert, matching the
  *  dormant-data rule (the box holds EVERY box type at once and names which is active, rather
@@ -54,19 +48,21 @@ export function emptyBoxJson(radiator: RadiatorDeviceJson): OpenISDBoxJson {
         boxType: 'sealed',
         sealed: {volume_m3: 0, losses: NO_SEALED_LOSSES},
         vented: {chamber: NO_VENTED_CHAMBER, vent: NO_VENT},
-        bandpass4: {rear: NO_COUPLED_SEALED_CHAMBER, front: NO_VENTED_CHAMBER, frontVent: NO_VENT},
+        bandpass4: {rear: NO_SEALED_CHAMBER, front: NO_VENTED_CHAMBER, frontVent: NO_VENT, Qiclfr: 100},
         bandpass6: {
-            rear: NO_COUPLED_VENTED_CHAMBER,
+            rear: NO_VENTED_CHAMBER,
             front: NO_VENTED_CHAMBER,
             rearVent: NO_TWO_CHAMBER_VENT,
             frontVent: NO_TWO_CHAMBER_VENT,
+            Qiclfr: 100,
         },
         abc: {
-            rear: NO_COUPLED_VENTED_CHAMBER,
+            rear: NO_VENTED_CHAMBER,
             front: NO_VENTED_CHAMBER,
             rearVent: NO_TWO_CHAMBER_VENT,
             frontVent: NO_TWO_CHAMBER_VENT,
             intraVent: NO_TWO_CHAMBER_VENT,
+            Qiclfr: 100,
         },
         passiveRadiator: {
             volume_m3: 0,

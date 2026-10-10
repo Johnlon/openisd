@@ -513,10 +513,10 @@ provideCellScope({ revision: projectChanged, written: () => {} });
             </div>
             <PRBrowser v-if="prBrowseOpen" @close="prBrowseOpen = false"
               @load="loadPREntry" @load-bundled="loadBundledPassiveRadiatorEntry" @define="defineNewPREntry" />
-            <div class="two-col">
-              <div style="--label-w:48px;">
+            <div class="two-col" style="gap:12px;">
+              <div style="--label-w:36px;">
                 <div class="section-header">Passive radiator parameters</div>
-                <div style="display: grid; grid-template-columns: auto auto; column-gap: 16px; row-gap: 4px; margin-bottom: 4px;">
+                <div style="display: grid; grid-template-columns: auto auto; column-gap: 4px; row-gap: 3px; margin-bottom: 4px;">
                   <UIField class="field" input-id="og-pr-vas" :field="NumberField.PR_VAS_L" :cell="project.box.passiveRadiator.radiator.spec.Vas_m3" />
                   <UIField class="field" input-id="og-pr-qms" :field="NumberField.PR_QMS" :cell="project.box.passiveRadiator.radiator.spec.Qms" />
                   <UIField class="field" input-id="og-pr-fs" :field="NumberField.PR_FS_HZ" :cell="project.box.passiveRadiator.radiator.spec.Fs_hz" />
@@ -524,9 +524,9 @@ provideCellScope({ revision: projectChanged, written: () => {} });
                   <UIField class="field" :field="NumberField.PR_XMAX_MM" :cell="project.box.passiveRadiator.radiator.spec.Xmax_m" />
                 </div>
               </div>
-              <div style="--label-w:155px;">
+              <div style="--label-w:145px;">
                 <div class="section-header">User options</div>
-                <div style="display: grid; grid-template-columns: auto; row-gap: 4px; margin-bottom: 4px;">
+                <div class="field-row" style="margin-bottom:3px;">
                   <UIFixedField class="field entered" input-id="og-pr-count" :field="NumberField.PR_NUM" :value="project.box.passiveRadiator.count.value" :deviation="prNprDeviationShown ? WinisdDeviation.PR_NPR_RESONANCE : undefined">
                     <template #value="{id}">
                       <select :id="id" :value="project.box.passiveRadiator.count.value" @change="e => { const n = selectedOption(e, PR_COUNT_OPTIONS); if (n !== null) project.box.passiveRadiator.count.set(n); }">
@@ -534,15 +534,17 @@ provideCellScope({ revision: projectChanged, written: () => {} });
                       </select>
                     </template>
                   </UIFixedField>
+                </div>
+                <div class="field-row" style="margin-bottom:3px;">
                   <UIField class="field" input-id="og-pr-fp" :field="NumberField.PR_FP_HZ" :cell="project.box.passiveRadiator.tuning_goal_hz" />
-                  <div style="display: flex; align-items: baseline; gap: 8px;">
-                    <UIField class="field" input-id="og-pr-madd" :field="NumberField.PR_MADD_G" :cell="project.box.passiveRadiator.addedMass_kg" />
-                    <UIFixedField class="field" style="--label-w:135px;" input-id="og-pr-fs-mass" :field="NumberField.PR_FSMASS_HZ" :value="prFsMass_hz" :dq="prResonanceMassDq.dq">
-                      <template #value="{id}">
-                        <NumReadout as-input :id="id" class="calculated greyed" :field="NumberField.PR_FSMASS_HZ" :value="prFsMass_hz" />
-                      </template>
-                    </UIFixedField>
-                  </div>
+                </div>
+                <div class="field-row" style="margin-bottom:3px;">
+                  <UIField class="field" input-id="og-pr-madd" :field="NumberField.PR_MADD_G" :cell="project.box.passiveRadiator.addedMass_kg" />
+                  <UIFixedField class="field" style="--label-w:145px;" input-id="og-pr-fs-mass" :field="NumberField.PR_FSMASS_HZ" :value="prFsMass_hz" :dq="prResonanceMassDq.dq">
+                    <template #value="{id}">
+                      <NumReadout as-input :id="id" class="calculated greyed" :field="NumberField.PR_FSMASS_HZ" :value="prFsMass_hz" />
+                    </template>
+                  </UIFixedField>
                 </div>
               </div>
             </div>

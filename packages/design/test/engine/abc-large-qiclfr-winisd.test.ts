@@ -34,7 +34,7 @@ function setUpProject(wprFile: string, winisdChart: boolean, Qicl: number | null
   reproduceWinisdBugs(project);
   project.rgAtDriverSide.set(false);
   project.winisdAbcIntraPortVelocity.set(winisdChart);
-  if (Qicl !== null) project.box.abc.chambers.rear.losses.Qicl.set(Qicl);
+  if (Qicl !== null) project.box.abc.Qiclfr.set(Qicl);
   return project;
 }
 

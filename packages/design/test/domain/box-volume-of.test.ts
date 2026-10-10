@@ -123,7 +123,7 @@ describe('OpenISDBox.frontVolumeOf / rearTuningOf / lossGroupsOf — the other p
       const [rear, front] = box.lossGroupsOf(type);
       expect(front!.Qicl).toBe(rear!.Qicl);
       front!.Qicl!.set(42);
-      expect(box[type].chambers.rear.losses.Qicl.value).toBe(42);
+      expect(box[type].Qiclfr.value).toBe(42);
       expect(rear!.Qicl!.value).toBe(42);
     });
   }

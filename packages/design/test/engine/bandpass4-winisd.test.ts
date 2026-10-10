@@ -53,7 +53,7 @@ describe('bandpass4 box, winisd-lossy: import gives the fixture\'s own numbers',
     assert.equal(front.tuning_goal_hz.value, 60);
     assert.equal(rear.losses.Ql.value, 7);
     assert.equal(rear.losses.Qa.value, 30);
-    assert.equal(rear.losses.Qicl.value, 20);
+    assert.equal(project.box.bandpass4.Qiclfr.value, 20);
     assert.equal(front.losses.Ql.value, 9);
     assert.equal(front.losses.Qa.value, 40);
     assert.equal(front.losses.Qp.value, 15);

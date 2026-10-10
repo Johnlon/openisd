@@ -71,11 +71,11 @@ describe('an .owpr from before, with a front Qicl, still loads', () => {
     const original = abcProject();
     const result = OpenISDProject.fromOwprTextRepairing(legacyText(original), engine);
     if (Array.isArray(result)) throw new Error('refused: ' + result.join('; '));
-    const {front, rear} = result.project.box.abc.chambers;
+    const {front} = result.project.box.abc.chambers;
     const was = original.box.abc.chambers;
     expect([front.losses.Ql.value, front.losses.Qa.value, front.losses.Qp.value])
       .toEqual([was.front.losses.Ql.value, was.front.losses.Qa.value, was.front.losses.Qp.value]);
-    expect(rear.losses.Qicl.value).toBe(was.rear.losses.Qicl.value);
+    expect(result.project.box.abc.Qiclfr.value).toBe(original.box.abc.Qiclfr.value);
     expect(frontQiclKeys(result.project.toOwprText())).toBe(0);
   });
 
@@ -87,10 +87,10 @@ describe('an .owpr from before, with a front Qicl, still loads', () => {
 });
 
 describe('the .wpr Qiclfr still goes in and out', () => {
-  it('imports as the rear chamber\'s Qicl and exports from it', () => {
+  it('imports as the box Qiclfr and exports from it', () => {
     const project = abcProject();
-    expect(project.box.abc.chambers.rear.losses.Qicl.value).toBe(20);
-    project.box.abc.chambers.rear.losses.Qicl.set(33);
+    expect(project.box.abc.Qiclfr.value).toBe(20);
+    project.box.abc.Qiclfr.set(33);
     const {value, errors} = new WinIsdProjectConverter(engine).openIsdProjectToWinIsdProject(project);
     if (value === null) throw new Error('export failed: ' + JSON.stringify(errors));
     expect(value.toWpr()).toMatch(/^Qiclfr=33$/m);

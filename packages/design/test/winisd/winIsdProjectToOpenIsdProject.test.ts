@@ -310,7 +310,7 @@ describe('winIsdProjectToOpenIsdProject', () => {
       const front = project.box.bandpass4.chambers.front.losses;
       assert.equal(rear.Ql.value, 6);
       assert.equal(rear.Qa.value, 66);
-      assert.equal(rear.Qicl.value, 44);
+      assert.equal(project.box.bandpass4.Qiclfr.value, 44);
       assert.equal(front.Ql.value, 9);
       assert.equal(front.Qa.value, 88);
       assert.equal(front.Qp.value, 77);
@@ -444,7 +444,7 @@ describe('winIsdProjectToOpenIsdProject', () => {
           assert.equal(b.chambers.rear.losses.Ql.value, Number(goldenField(file, 'Box', 'Qlr')));
           assert.equal(b.chambers.rear.losses.Qa.value, Number(goldenField(file, 'Box', 'Qar')));
           assert.equal(b.chambers.rear.losses.Qp.value, Number(goldenField(file, 'Box', 'Qpr')));
-          assert.equal(b.chambers.rear.losses.Qicl.value, Number(goldenField(file, 'Box', 'Qiclfr')));
+          assert.equal(b.Qiclfr.value, Number(goldenField(file, 'Box', 'Qiclfr')));
           assert.equal(b.chambers.front.losses.Ql.value, Number(goldenField(file, 'Box', 'Qlf')));
           assert.equal(b.chambers.front.losses.Qa.value, Number(goldenField(file, 'Box', 'Qaf')));
           assert.equal(b.chambers.front.losses.Qp.value, Number(goldenField(file, 'Box', 'Qpf')));
