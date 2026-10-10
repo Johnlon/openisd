@@ -11,7 +11,7 @@
 
 ## 2. The Formal Pydantic Schema (`model_evidence.py`)
 
-This strict schema defines the exact structure of the new raw evidence format. **During the transition, this will be saved as `evidence.json` (replacing `driver.json` once fully migrated) to prevent breaking legacy test fixtures and goldens.**
+This strict schema defines the exact structure of the new raw evidence format. **During the transition, this will be saved as `driver_spec.json` (replacing `driver.json` once fully migrated) to prevent breaking legacy test fixtures and goldens.**
 
 ```python
 from __future__ import annotations
@@ -143,11 +143,11 @@ flowchart TD
         S1["Stage 1: Discover (URLs)"] --> S2["Stage 2: Route (Distributors)"]
         S2 --> S3["Stage 3: Locate (Datasheets & Pages)"]
         S3 --> S4["Stage 4: Extract & Save (extract.py)"]
-        S4 -->|Directly validates DriverEvidenceFile & writes| DB["evidence.json (in winisd_drivers/db)"]
+        S4 -->|Directly validates DriverEvidenceFile & writes| DB["driver_spec.json (in winisd_drivers/db)"]
     end
 
     subgraph bridge ["Stage 5: Embedded V8 Bridge (openisd-bridge.js / winIsdDriverConverter.ts)"]
-        DB -->|ctx.call('evidenceJsonToOpenisdAndWdr', [rawJson])| BR_ENTRY["bridge.ts / winIsdDriverConverter.ts"]
+        DB -->|ctx.call('driverSpecJsonToOpenisdAndWdr', [rawJson])| BR_ENTRY["bridge.ts / winIsdDriverConverter.ts"]
         BR_ENTRY --> U["domain/units.ts (Parse raw text -> SI)"]
         BR_ENTRY --> R["domain/publishedRoles.ts (Resolve roles from printed & metadata)"]
         U --> SEL["selectOrigin.ts & corroboration.ts"]
@@ -157,11 +157,11 @@ flowchart TD
 ```
 
 ### The Boundary Contract:
-- **`winisd_tools` output (`evidence.json`)**:
+- **`winisd_tools` output (`driver_spec.json`)**:
   - Validated strictly by `DriverEvidenceFile` (`extra="forbid"`).
   - No `read_value`, no float calculations, no `rejected` status.
 - **`openisd-bridge.js` input & responsibilities**:
-  - Receives raw `evidence.json` text across the embedded V8 boundary.
+  - Receives raw `driver_spec.json` text across the embedded V8 boundary.
   - Runs `domain/units.ts` to parse raw strings into canonical SI numbers for simulation.
   - Runs `domain/publishedRoles.ts` to resolve `driver_type` role collections from `printed` categories/type words and top-level metadata.
   - Handles non-numeric values (`"N/A"`, `"-"`) by assigning domain states (`state: 'N'`).
@@ -176,16 +176,16 @@ Because `DriverEvidenceFile` is a completely new file format, its schemas must b
 
 1. **Author Python Pydantic Schema (`model_evidence.py`)**:
    - Define `DriverEvidenceFile` and all sub-models as `extra="forbid"`.
-   - Use this to eventually serialize `evidence.json`.
+   - Use this to eventually serialize `driver_spec.json`.
 2. **Author TypeScript Zod Schema (`openisdSchema.ts`)**:
-   - Align `packages/design/domain/openisdSchema.ts` to strictly validate `evidence.json` via Zod.
+   - Align `packages/design/domain/openisdSchema.ts` to strictly validate `driver_spec.json` via Zod.
 3. **Migration Strategy & Goldens**:
-   - Establish that the new format will be named `evidence.json` to prevent breaking existing `driver.json` test fixtures during the transition.
+   - Establish that the new format will be named `driver_spec.json` to prevent breaking existing `driver.json` test fixtures during the transition.
 
 ---
 
 ### Phase 2: Build Downstream Parser in `openisd` Bridge (TDD First)
-Before changing the scrapers, equip `openisd-bridge.js` to ingest `evidence.json`:
+Before changing the scrapers, equip `openisd-bridge.js` to ingest `driver_spec.json`:
 
 1. **Port unit test cases to TypeScript**:
    - Port `winisd_tools/scrapers/tests/lib/test_units.py` to `openisd/packages/design/test/domain/units.test.ts`.
@@ -194,7 +194,7 @@ Before changing the scrapers, equip `openisd-bridge.js` to ingest `evidence.json
 3. **Port `published_roles.py` to TypeScript**:
    - Create `packages/design/domain/publishedRoles.ts`. Resolve `driver_type` roles.
 4. **Wire into `winIsdDriverConverter.ts` & `bridge.ts`**:
-   - Update the bridge converter to accept `evidence.json` using the new Zod schema.
+   - Update the bridge converter to accept `driver_spec.json` using the new Zod schema.
    - Rebuild `packages/design/dist/openisd-bridge.js`.
 
 ---
@@ -203,8 +203,8 @@ Before changing the scrapers, equip `openisd-bridge.js` to ingest `evidence.json
 1. **Stage 4 Returns Typed Pydantic Models**:
    - Modify vendor extractors (Stage 4) to output structured Pydantic models (`TransducerSection`, `Specs`), not untyped flat dictionaries.
    - Extractors automatically route all unmapped rows, categories, and extra specs into `printed: list[PrintedItem]`.
-2. **Validate & Write `evidence.json` Directly**:
-   - Validate with `DriverEvidenceFile` and write `evidence.json` at the conclusion of Stage 4.
+2. **Validate & Write `driver_spec.json` Directly**:
+   - Validate with `DriverEvidenceFile` and write `driver_spec.json` at the conclusion of Stage 4.
    - Delete all 17 custom `emit.py` files.
    - Remove legacy Stage 5 from `framework.py` and rename Stage 6 (Project) to Stage 5.
    - Eliminate temporary `_work/extracted/` queues.
@@ -213,6 +213,6 @@ Before changing the scrapers, equip `openisd-bridge.js` to ingest `evidence.json
 
 ### Phase 4: Full End-to-End Verification
 1. **Bridge Parity Verification**:
-   - Verify that parsing the new `evidence.json` through the bridge produces bit-for-bit identical `openisd.json` and `.wdr` files as the legacy pipeline.
+   - Verify that parsing the new `driver_spec.json` through the bridge produces bit-for-bit identical `openisd.json` and `.wdr` files as the legacy pipeline.
 2. **Corpus Rebuild**:
-   - Rebuild corpus into a scratch database to verify all 17 vendor pipelines run cleanly and produce accurate `evidence.json` outputs.
+   - Rebuild corpus into a scratch database to verify all 17 vendor pipelines run cleanly and produce accurate `driver_spec.json` outputs.
