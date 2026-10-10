@@ -9,7 +9,7 @@ John, 10 Oct 2026: "app is stuck showing new version of OpenISD is available." T
 - `ReleaseWatch.check()` (packages/ui/src/logic/releaseWatch.ts) shows the notice whenever `build-info.json` differs from the version baked into the bundle (`VITE_BUILD_VERSION`, vite.config.js `buildVersion()`).
 - `buildVersion()` reads `packages/ui/public/build-info.json` in dev mode too, although the comment says the check is off on a dev server ('').
 - Every build and every Playwright run rewrites that file in the same checkout (scripts/version-info.mjs), so a running dev server (preview-4000) serves a newer file than the version it baked: the notice shows, and Reload reloads the same stale bundle, so it shows again.
-- John confirmed it was lap:4000 (the dev server, preview-4000.sh).
+- John confirmed it was lap:4000 (the dev server, preview-4000.sh). His app showed v20261010T122643Z (baked when the dev server started) while build-info.json held v20261010T190411Z. Closing the notice did not stick, and Reload went round in a loop. Restarting preview-4000.sh made the two match (22:20).
 
 ## Cause
 Two values hold the build version: the baked bundle value and the served `build-info.json`. On a dev server they drift apart and Reload cannot reconcile them.
