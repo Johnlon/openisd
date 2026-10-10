@@ -1,0 +1,23 @@
+id: T031
+repo: openisd
+owner: bob
+status: open
+goal: The open dialog and the project list name the browser store the projects come from ("Projects saved in this browser at <address>"); one step exports every project to a file and one step imports that file; a save that fails (storage full) says so and offers the export, never silently (BUG_20261009_projects-look-lost-across-addresses).
+done_test: bash scripts/test.sh packages/persistence/test/projectsArchive.test.ts packages/ui/test/logic/projectsArchive.test.ts packages/ui/test/ui/projects-across-addresses.browser.spec.ts
+files:
+  - packages/persistence/src/**
+  - packages/persistence/test/**
+  - packages/design/domain/**
+  - packages/design/test/domain/**
+  - packages/ui/src/hooks/**
+  - packages/ui/src/logic/**
+  - packages/ui/src/ui/**
+  - packages/ui/test/hooks/**
+  - packages/ui/test/logic/**
+  - packages/ui/test/ui/projects-across-addresses.browser.spec.ts
+  - packages/ui/test/ui/open-project-list.browser.spec.ts
+  - packages/ui/test/ui/original-project-list.browser.spec.ts
+  - packages/ui/test/ui/mobile-project-list.browser.spec.ts
+  - packages/ui/test/fixtures/**
+  - bugs/BUG_20261009_projects-look-lost-across-addresses.md
+  - tasks/T031.yml
