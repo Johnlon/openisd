@@ -4,6 +4,10 @@ on:
   push:
   pull_request:
 
+# The local gate scripts accept only WSL or Git Bash (MSYSTEM set); a runner is neither.
+env:
+  MSYSTEM: github-runner
+
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
@@ -34,8 +38,7 @@ jobs:
       - uses: actions/setup-node@v4
         with: {node-version: '22', cache: npm}
       - run: npm ci || npm install
-      # pre-push-browser-stage tests the local gate scripts (WSL/Git Bash only).
-      - run: npx vitest run --maxWorkers=4 --exclude '**/pre-push-browser-stage.test.ts' --exclude '**/node_modules/**'
+      - run: npx vitest run --maxWorkers=4
 
   browser:
     runs-on: ubuntu-latest
