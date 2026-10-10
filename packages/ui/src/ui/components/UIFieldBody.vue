@@ -107,22 +107,22 @@ function write(v: number | null, precision?: number): void {
 <style scoped>
 .ui-field {
   display: grid;
-  grid-template-columns: max-content max-content 16px 34px;
+  grid-template-columns: var(--label-w, 150px) 90px 16px 34px;
   column-gap: 4px;
   align-items: center;
   position: relative;
 }
 .ui-field > label { grid-column: 1; white-space: nowrap; }
-.ui-field-value { grid-column: 2; display: inline-flex; align-items: center; gap: 2px; }
+.ui-field-value { display: inline-flex; align-items: center; gap: 2px; width: 90px; flex: none; }
 /* FIXED width, the same in every unit: the box never resizes when its unit is cycled. Wide
    enough for the longest value any field shows in any unit (a Vas in cu in, a Vd in cu ft). */
 .ui-field-value :deep(input) { width: 90px; box-sizing: border-box; }
-.ui-field-dq { grid-column: 3; display: inline-flex; justify-content: center; }
+.ui-field-dq { display: inline-flex; justify-content: center; width: 16px; flex: none; }
 .ui-field-dq-btn {
   border: none; background: none; padding: 0 2px; margin: 0;
   font: inherit; font-size: 12px; line-height: 1; color: #d68a00; cursor: help;
 }
-.ui-field-unit {
+.ui-field-unit { flex: none; 
   grid-column: 4; width: 34px; box-sizing: border-box;
   font-size: 11px; color: var(--mut); white-space: nowrap; text-align: left;
 }

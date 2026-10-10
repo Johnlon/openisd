@@ -1461,3 +1461,28 @@ Both step f ± 1e-10 Hz and difference arg H, as for every box. They differ in H
 |---|---|---|---|
 | ABC | a calculation bug: the box is stepped to f ± δ but the output routine passes the chart frequency f to the driver routine, so the driver part is held at f and the group delay is the box's phase slope alone. It contradicts WinISD's own phase chart (W5-1138SMF, 1.005 Hz: −40.96 ms against −33.86 ms) | fixed by default (−dφ/dω of the plotted phase); yellow error switch "ABC group delay" (ABC only) brings WinISD back, within 1.03e-3 ms; a ≠W cue by the Group delay chart explains it | [bugs/archive/BUG_20261005_winisd-abc-group-delay-driver-not-stepped.md](../../bugs/archive/BUG_20261005_winisd-abc-group-delay-driver-not-stepped.md) |
 | BP6 | H is right (equals the plotted transfer); above ~200 Hz the 1e-10 Hz step turns the rounding of two nearly cancelling compliance currents into noise, worst 0.11 ms at 4 kHz | not copied, no switch (John, 2026-10-05): rounding noise cannot be reproduced in doubles; OpenISD's own noise is the same size | [bugs/archive/BUG_20260929_bp6-abc-group-delay-not-winisd.md](../../bugs/archive/BUG_20260929_bp6-abc-group-delay-not-winisd.md) |
+
+## 23. Vented box alignment polynomials — provenance, accuracy, and pathologies (verified 2026-10-10)
+
+WinISD (0.7.x) implements its vented box wizard presets (QB3, EBS3, EBS6, C4/SC4) not via an analytical alignment solver, but by evaluating fixed polynomials in $x = \ln(Q_{ts}')$:
+$$\alpha = \exp(P_\alpha(x)), \quad V_b = V_{as} / \alpha$$
+$$h = \exp(P_h(x)), \quad F_b = h \cdot F_s$$
+
+### Provenance & Literature Origin
+- **Source**: Fitted to Robert M. Bullock III's alignment lookup tables published in *Speaker Builder* (1980–1981) and *Bullock on Boxes* (1991), which reproduced Richard H. Small's tables from *"Vented-Box Loudspeaker Systems Part I & II"* (JAES, 1973) calculated at $Q_L = 7$.
+- **In-range accuracy ($Q_{ts}' \in [0.25, 0.50]$)**: Matches Small (1973) and Bullock (1981) tabulated values to $\le 0.18\%$ on $\alpha$ and $\le 0.42\%$ on $h$.
+
+### Out-of-Range Extrapolation Pathologies
+WinISD evaluates these polynomials without bounds-clamping across any driver $Q_{ts}'$. Because $x = \ln(Q_{ts}')$ is fed into 4th- to 7th-degree polynomials, extrapolation exhibits severe mathematical and physical failures:
+
+1. **QB3 Volume Inversion ($Q_{ts}' > 0.646$)**:
+   - $\frac{dP_\alpha}{dx} = 0$ at $x = -0.4373$ ($Q_{ts}' \approx 0.6458$).
+   - For $Q_{ts}' > 0.65$, higher-$Q_{ts}'$ drivers paradoxically demand a *smaller* enclosure ($\alpha$ climbs from $0.279$ at $0.60$ to $15.1$ at $1.0$, shrinking $V_b$ from $3.6\,V_{as}$ down to $0.066\,V_{as}$).
+2. **C4/SC4 Polynomial Runaway ($Q_{ts}' < 0.20$ and $Q_{ts}' > 1.0$)**:
+   - The degree 6 polynomial explodes for low $Q_{ts}'$ ($\alpha > 10^4$ at $0.15$; $\alpha > 10^{27}$ at $0.10$).
+   - At high $Q_{ts}'$, $\alpha \to 0$ and $h \to 0$, creating unrealistically massive cabinets ($V_b = 68.2\,V_{as}$ and $F_b = 0.155\,F_s$ at $Q_{ts}' = 1.00$).
+3. **EBS3 Tuning Inversion ($Q_{ts}' > 1.07$)**:
+   - Degree 4 polynomial $P_h$ reaches a local minimum at $Q_{ts}' = 1.069$ ($h = 0.464$) and rises again ($h = 0.504$ at $Q_{ts}' = 1.5$), reversing the rule that higher driver $Q$ requires lower box tuning.
+4. **$Q_L$ Loss Ignored**:
+   - The polynomials ignore $Q_L$ entirely (fixed at Small's nominal $Q_L = 7$ assumption). Real enclosures with $Q_L \in [5, 10]$ differ from lossless targets by 15–38% in $V_b$.
+

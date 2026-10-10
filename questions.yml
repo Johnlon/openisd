@@ -1,5 +1,5 @@
 prefix: QO
-next: 175
+next: 179
 questions:
 - id: QO168
   title: graph cursor/drag-selection exempted from the OpenISDProject three-field architecture gate (S10/QO130)
@@ -9875,3 +9875,37 @@ questions:
     Who coordinated: the lots session (coordinator) with bob and the tools session. Decided: commit first, then revert; nothing is lost.
     For John: nothing to do tonight. In the morning, check that the scripts match the tested versions and that the tools baseline runs were restarted.
     Checked 2026-10-08 by lots: openisd's scripts have no uncommitted changes, and the installed commit, push and message hooks are identical to the tracked copies in scripts/hooks-local. The queue that the helper had wired in early later landed properly, with its own tests (commit f954b9a7). The tools baseline runs A and B were rerun to completion (they matched), and a third run, C, also finished. One gap: ~/.claude/bin/heavy.sh is not under version control, so there is no tested copy to compare it with; it holds the queue hook-up that the rules now describe. Recorded as a backlog task: heavy.sh goes under version control.
+- id: QO175
+  title: Keep the fast commit checks (T004 hooks)?
+  status: decided
+  raised: '2026-10-08'
+  body: 'lots installed the T004 hooks (pre-commit = task allowlist check, pre-push = attribution only); the old hooks ran the full suite at 30+ min per commit.'
+  answer:
+    at: '2026-10-08'
+    text: |-
+      John, 2026-10-08: "fast". The fast hooks stay; the full suite runs post-land. Old hooks kept as .git/hooks/*.pre-land-20261008.
+- id: QO176
+  title: openisd must not depend on winisd_tools
+  status: decided
+  raised: '2026-10-08'
+  body: 'Same ruling as winisd_tools QT89.'
+  answer:
+    at: '2026-10-08'
+    text: |-
+      John, 2026-10-08: "nothing going on in tools should have any impact on progress of openisd, entirely decouple please".
+      openisd tests and builds read a pinned, vendored driver snapshot, never the live db; openisd-roles lands when openisd bumps its pin.
+- id: QO177
+  title: A reading's printed text is kept even when it is not a number
+  status: decided
+  raised: '2026-10-08'
+  body: 'openisdSchema.ts requires read_value: number, so a reading printed "N/A" cannot be stored; the converter drops rejected readings; .wdr import writes NaN for a text cell.'
+  answer:
+    at: '2026-10-08'
+    text: |-
+      John, 2026-10-08 (winisd_tools QT86): "a spec that says N/A or banana should store the read value as that value".
+      lots' shape: Reading = Usable {actual_reading, read_value} | Rejected {actual_reading?, rejected}; never a dropped reading, never NaN. Fix after step 6 and the decoupling.
+- id: QO178
+  title: A hand-edited .owpr marks both vent tuning and vent length as entered. Which wins on load?
+  status: open
+  raised: '2026-10-08'
+  body: 'bugs/BUG_20261008_vent-pair-both-entered-after-owpr-edit.md. The two values disagree and survive every recalculation unflagged. lots recommends: the tuning stays entered and the length becomes calculated, repaired at load (as .wpr import and WinISD do).'

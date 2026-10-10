@@ -199,10 +199,10 @@ one's proof is in. Status: `todo` · `doing` · `done (proof)`.
 
 | # | Task | Owner | Proof | Status |
 |---|---|---|---|---|
-| 1 | Commit the shared tree's 3 paths (plan, bob's plan, questions.yml) | lots | commit sha | todo |
-| 2 | Commit `openisd-queue` and `openisd-ci-b` as WIP on their own branches (nothing lost; not landed) | maryu | 2 shas | todo |
-| 3 | Gate bug: `run_gates.py` checks only the repo a command touches; a worktree without a venv never blocks other sessions (still fails closed for its own repo) | maryu | locked test + commit | todo |
-| 4 | tools full suite on 0d256b6e, box quiet | tools | pytest exit code + summary + log path | todo |
+| 1 | Commit the shared tree's 3 paths (plan, bob's plan, questions.yml) | lots | commit sha | done (1ae9f933) |
+| 2 | Commit `openisd-queue`, `openisd-ci-a`, `openisd-ci-b`, `openisd-land` as WIP on their own branches (nothing lost; not landed) | maryu | 4 shas | done (bc9ece80, 8cd6d447, 405c1cda, e81e0e9c) |
+| 3 | Gate bug: `run_gates.py` checks only the repo a command touches; a worktree without a venv never blocks other sessions (still fails closed for its own repo) | maryu | locked test + commit | done (workspace 6b26fbf1, 9/9 new tests; land.sh lint refuses without node_modules 4f77672b) |
+| 4 | tools full suite on 0d256b6e, box quiet | tools | pytest exit code + summary + log path | doing |
 | 5 | T000: `openisd-land` rebased on main, verify.md T011 interim bullet added, committed through the full old hook once, ff to main, pushed | maryu | sha on origin/main | todo |
 | 6 | Post-land full run on that sha (unit + browser), no rerun | maryu | log path, exit 0 → `release` moved | todo |
 | 7 | CI stage A: push `ci-stage-a` branch, iterate to green lint+typecheck+unit | maryu | run URL at the pushed sha | todo |
@@ -214,6 +214,14 @@ one's proof is in. Status: `todo` · `doing` · `done (proof)`.
 
 Green build = step 6 passes on origin/main and step 8's CI run is green.
 
-### Open for John (one word each)
+### Backlog (not on the path to green)
 
-- QT73 item 2: `exotic-f8` is a different driver (SEAS X1-04, 4 Ω, appnote only) from `exotic-f8-8` (X1-08, 8 Ω). Keep it? (rec: keep)
+- `~/.claude/bin/heavy.sh` under version control.
+- Workspace repo: add `.gitattributes` (`*.sh eol=lf`); `core.autocrlf=true` turns fresh `.sh` checkouts CRLF.
+- A worktree's hardlinked winisd_tools `.venv` resolves project imports to the main checkout: T005 fixes it before its tests count.
+- `run_gates.py` was edited live (6b26fbf1) — proven by temp-workspace tests and use since.
+- QT73 items 1, 3, 5 executed by tools after step 12's prerequisites: item 1 conditions pass (73/73), item 3 = W8 woofer by SEAS menu, item 5: visaton k-28-40-h-8-ohm is live → regenerate; GRS pages inconclusive.
+
+### Rulings recorded
+
+- QT73 item 2: John 2026-10-08 "keep" — `exotic-f8` (X1-04) and `exotic-f8-8` (X1-08) both stay (e474ba67).
