@@ -524,17 +524,17 @@ provideCellScope({ revision: projectChanged, written: () => {} });
                   <UIField class="field" :field="NumberField.PR_XMAX_MM" :cell="project.box.passiveRadiator.radiator.spec.Xmax_m" />
                 </div>
               </div>
-              <div style="--label-w:155px;">
+              <div style="--label-w:155px; display: flex; flex-direction: column; gap: 4px;">
                 <div class="section-header">User options</div>
-                <div class="field-row" style="margin-bottom:4px;"><UIFixedField class="field entered" input-id="og-pr-count" :field="NumberField.PR_NUM" :value="project.box.passiveRadiator.count.value" :deviation="prNprDeviationShown ? WinisdDeviation.PR_NPR_RESONANCE : undefined">
+                <UIFixedField class="field entered" input-id="og-pr-count" :field="NumberField.PR_NUM" :value="project.box.passiveRadiator.count.value" :deviation="prNprDeviationShown ? WinisdDeviation.PR_NPR_RESONANCE : undefined">
                   <template #value="{id}">
                     <select :id="id" :value="project.box.passiveRadiator.count.value" @change="e => { const n = selectedOption(e, PR_COUNT_OPTIONS); if (n !== null) project.box.passiveRadiator.count.set(n); }">
                       <option v-for="o in PR_COUNT_OPTIONS" :key="o.value" :value="o.value">{{ o.label }}</option>
                     </select>
                   </template>
-                </UIFixedField></div>
-                <div class="field-row" style="margin-bottom:4px;"><UIField class="field" input-id="og-pr-fp" :field="NumberField.PR_FP_HZ" :cell="project.box.passiveRadiator.tuning_goal_hz" /></div>
-                <div class="field-row" style="margin-bottom:4px;">
+                </UIFixedField>
+                <UIField class="field" input-id="og-pr-fp" :field="NumberField.PR_FP_HZ" :cell="project.box.passiveRadiator.tuning_goal_hz" />
+                <div style="display: flex; align-items: baseline; gap: 8px;">
                   <UIField class="field" input-id="og-pr-madd" :field="NumberField.PR_MADD_G" :cell="project.box.passiveRadiator.addedMass_kg" />
                   <UIFixedField class="field" style="--label-w:135px;" input-id="og-pr-fs-mass" :field="NumberField.PR_FSMASS_HZ" :value="prFsMass_hz" :dq="prResonanceMassDq.dq">
                     <template #value="{id}">
@@ -1102,7 +1102,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
    letting the PANE scroll when the sum no longer fits. `overflow:auto` on both axes is
    what makes the clipped content still reachable, which a Win32 window cannot offer. */
 .tab-section.active { display:block; flex:1 1 auto; min-height:0; overflow-x:auto; overflow-y:auto; }
-.section-header { background:#e2e2e2; border:1px solid #ccc; padding:4px 10px; font-weight:600; margin-bottom:8px; }
+.section-header { background:#e2e2e2; border:1px solid #ccc; padding:2px 8px; font-weight:600; line-height:1.25; margin-bottom:4px; }
 /* Columns keep their natural width and never shrink below their contents. A shrinking
    column (`flex:0 1 auto` with `min-width:0`) let the next column's origin slide left
    while this one's controls kept their own width, so the two painted on top of each
@@ -1116,7 +1116,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
    instead of being pushed to the far right whenever the fields need less room. */
 .box-tab-row { display:flex; gap:24px; align-items:flex-start; --box-col-w:194px; --box-col-gap:24px; }
 .box-tab-row .field-row { margin-bottom: 4px; }
-.box-tab-row .section-header { margin-bottom: 4px; padding: 2px 10px; }
+.box-tab-row .section-header { margin-bottom: 4px; padding: 2px 8px; }
 .box-tab-main { flex:none; width:calc(var(--box-col-w) * 2 + var(--box-col-gap)); }
 /* Width tracks the diagrams' own scale (each SVG height is 0.7 of its drawn size), so the
    column stays snug around the widest cut-through rather than padding it with slack. */
