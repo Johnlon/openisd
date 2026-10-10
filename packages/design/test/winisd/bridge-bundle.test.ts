@@ -42,7 +42,7 @@ const DESIGN_PKG_ROOT = join(TEST_DIR, '..', '..');
 const REPO_ROOT = join(DESIGN_PKG_ROOT, '..', '..');
 const BRIDGE_CONFIG = join(DESIGN_PKG_ROOT, 'vite.bridge.config.ts');
 const REAL_DRIVER_JSON = join(
-  REPO_ROOT, '..', 'winisd_drivers', 'db', 'datasheets', 'accuton', 'bd90-6-727', 'driver.json',
+  REPO_ROOT, 'test-fixtures', 'db-import', 'datasheets', 'accuton', 'bd90-6-727', 'driver.json',
 );
 
 /** A minimal conforming record whose comment runs to two lines — the one thing that puts a

@@ -40,7 +40,7 @@ function wdrTextFor(record: unknown): { value: string | null; errors: DriverErro
 }
 
 const here = dirname(fileURLToPath(import.meta.url));
-const CORPUS_DIR = join(here, '..', '..', '..', '..', '..', 'winisd_drivers', 'db', 'datasheets', 'accuton', 'bd90-6-727');
+const CORPUS_DIR = join(here, '..', '..', '..', '..', 'test-fixtures', 'db-import', 'datasheets', 'accuton', 'bd90-6-727');
 const REAL_OPENISD_JSON = join(CORPUS_DIR, 'openisd.json');
 
 function realRecord(): unknown {
@@ -80,7 +80,7 @@ describe('checkOpenisdRoundTrip', () => {
     // 1-ULP level (0.003922639268191504 vs ...505) — this is what predev's full-corpus
     // bundle-drivers.mjs scan currently throws on, with no equivalent unit-test coverage.
     const here = dirname(fileURLToPath(import.meta.url));
-    const path = join(here, '..', '..', '..', '..', '..', 'winisd_drivers', 'db', 'datasheets', 'dayton-audio', 'da215-8', 'openisd.json');
+    const path = join(here, '..', '..', '..', '..', 'test-fixtures', 'db-import', 'datasheets', 'dayton-audio', 'da215-8', 'openisd.json');
     assert.equal(existsSync(path), true, `fixture missing: ${path}`);
     const record: unknown = JSON.parse(readFileSync(path, 'utf8'));
     const result = checkOpenisdRoundTrip(record, 'dayton-audio/da215-8/openisd.json');
