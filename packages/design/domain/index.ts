@@ -81,3 +81,11 @@ export { createEngine } from '../engine/index.js';
 
 export type { DiscardChallenge } from './project/discardChallenge.js';
 export type { DriverSpecFieldName, NumericDriverSpecFieldName } from './driver/driverSpecFieldName.js';
+export {
+  OVERLAY_MIN_DISPLAY_MS,
+  OVERLAY_HIDDEN_THRESHOLD_MS,
+  isOverlayDueToShow,
+  mayOverlayHide,
+  overlayRemainingDisplayMs,
+} from './loadingOverlay.js';
+

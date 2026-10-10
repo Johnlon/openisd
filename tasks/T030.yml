@@ -1,0 +1,16 @@
+id: T030
+repo: openisd
+owner: bob
+status: open
+goal: The OpenISD icon shows over the app from first paint until it has mounted (at least 0.7 s), and again when the app becomes visible after more than 30 s hidden, on both skins.
+done_test: bash scripts/test.sh packages/ui/test/logic/loadingOverlay.test.ts packages/ui/test/ui/loading-overlay.browser.spec.ts
+files:
+  - packages/ui/index.html
+  - packages/ui/src/main.ts
+  - packages/ui/src/style.css
+  - packages/ui/src/logic/loadingOverlay.ts
+  - packages/ui/test/logic/loadingOverlay.test.ts
+  - packages/ui/test/ui/loading-overlay.browser.spec.ts
+  - packages/ui/public/**
+  - packages/design/**
+  - tasks/T030.yml
