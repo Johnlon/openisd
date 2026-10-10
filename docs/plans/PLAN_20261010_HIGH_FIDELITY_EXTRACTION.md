@@ -1,6 +1,6 @@
 # Plan: high-fidelity extraction and a strict transfer file
 
-**Status: PROPOSED — not agreed by John.** Written by lots, 10 Oct 2026, from John's words in that day's conversation. It replaces the earlier pure-extractor plan (in git history). Nothing here is decided until John says so about this plan.
+**Status: PROPOSED — not agreed by John.** 10 Oct 2026, from John's words that day. It replaces the earlier pure-extractor plan (in git history). Nothing here is decided until John says so about this plan.
 
 John, 10 Oct 2026:
 - "it is obvious to me that the data the scrapers pull needs to be recorded in higher fidelity than it is at present and in the transfer file with a strong schema"
