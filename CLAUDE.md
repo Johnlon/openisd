@@ -123,6 +123,8 @@ inside `scripts/`: Vite then finds no config and serves 404 on every page.
 
 Run every test/typecheck/gate via `bash scripts/quiet-test.sh <command>`; it hides passing lines and
 logs the full output to `build/test-logs/`. Rule: `.claude/rules/verify.md`.
+Unit tests, linting, typechecks, and targeted singleton browser specs (`bash scripts/test.sh <spec>`)
+run immediately without queueing. Only untargeted/heavy Chromium sweeps queue for the admission slot.
 
 ## Loaded on demand
 

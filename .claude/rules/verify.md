@@ -3,14 +3,16 @@ description: Always typecheck and unit-test after any code change
 globs: *
 ---
 # Verify — always, no exceptions
-- Type checking is seconds. ALWAYS run it after any code change, no matter how small (`npm run typecheck`).
-- Unit tests are seconds. ALWAYS run them after any code change.
+- Type checking and lint are NOT heavy. They run immediately without queueing (`npm run typecheck`, `npm run lint`).
+- Unit tests are fast and non-conflicting. They run immediately without queueing.
+- **Targeted singleton Chromium tests are NOT queued**: running a single targeted browser test (`bash scripts/test.sh <file.browser.spec.ts>`) runs immediately.
+- **Heavy work is wide Chromium sweeps & untargeted full test suites**: only full test suites (`npm run test`, `npm run ci`) and untargeted browser runs (`npx playwright test`) take the admission slot (`scripts/admit.sh`). Never queue light or non-conflicting tasks.
 - **Ad-hoc runners are blocked. `bash scripts/test.sh <spec…>` is the only way to run tests** (unit or browser; it routes through `quiet-test.sh`, caps workers by load, and refuses a run with no target). A bare `npx vitest`, `vitest`, `npx playwright test`, `npm test` or `npm run test:unit` typed at the shell is rejected by `gates.py`. The full suite runs only in the post-land run.
 - **Typecheck and other gates go through `bash scripts/quiet-test.sh <command>`** (e.g. `bash scripts/test.sh <file>`, `bash scripts/quiet-test.sh npm run typecheck`, `bash scripts/test.sh <spec>`). It drops every passing-test line, prints the failures and summary, and saves the full log under `build/test-logs/`. Never run bare vitest/playwright/typecheck in the foreground: passing traces flood context. Open the log only for a named failing test.
 - **Targeted spec execution & output filtering**: Run only the affected test files (e.g. `bash scripts/test.sh packages/design/test/engine/circuit.test.ts`). Never dump bare passing test traces into context.
 - A change is not "done" — and is not committed — until both pass. "It's only a rename/comment/one-line" is never a reason to skip them.
 - **Never run the entire test suite while iterating: run only the targeted specs for the change.** The full suite runs once per landed commit, in the post-land run.
-- **Until `scripts/admit.sh` (T011) is live, no heavy job (full suite, full lint, browser batch, rebuild, corpus run) starts without the coordinator's clearance.**
+- **Queueing / admission control is strictly for heavy concurrent browser sweeps (`scripts/admit.sh`), never for unit tests, lint, typecheck, or targeted singleton browser specs.**
 - **One path to main: `bash scripts/land.sh T<nnn>`** (John, 2026-10-08). It commits everything in the worktree, rebases onto origin/main, runs the fast gates (lint on the changed files, typecheck, the task's `done_test`, the attribution guard), each with its own deadline, and pushes. Exit 0 landed, 1 a gate refused (it names the gate), 3 blocked by a rebase conflict (the task file says why). Landings run one at a time. Nothing else moves main. Process: `docs/DEV_PROCESS.md`.
 - **The full run is post-land.** After each push `scripts/land/post-land/run.sh` runs the full suite (unit and browser) once on the pushed commit, in a clean copy, one run at a time, with no rerun: a flaky spec is a red. Green moves branch `release` (the only branch that deploys). Red opens `tasks/fixes/F<n>.yml`, and `land.sh` refuses every landing, except one labelled `fixes`, until it is closed.
 - **The hooks are fast.** pre-commit checks the staged files against the claimed task's allowlist; commit-msg and pre-push run the attribution guard. No hook runs a test suite.
