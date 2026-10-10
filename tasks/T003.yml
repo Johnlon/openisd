@@ -3,14 +3,14 @@ repo: openisd
 owner: maryu
 status: open
 phase: P1
-goal: After every land, one full unit and browser run on the landed sha, one at a time, fast-forwards the release branch on green and opens a fixes task on red, with no rerun.
+goal: After every land, one full unit and browser run on the landed sha, one at a time, records the green sha and opens (amended by lots, 10 Oct: no release branch) a fixes task on red, with no rerun.
 done_test: timeout 600 bash scripts/land/test/post-land.e2e.test.sh
 locked:
   - path: scripts/land/test/post-land.e2e.test.sh
-    sha256: 66e9b90d57c6d3d06358b54c1ea8264508f312707efae454fb4b477ce4a92017
-# asserts: green run ffs release; red run (incl. a spec that fails once then passes) opens
-# tasks/fixes/F<n>.yml naming the spec, release unmoved; runs on a clean copy, holds no tree;
-# second land queues on the flock; deploy.yml triggers on release only.
+    sha256: 6fdff796e9a3bb21de0c4fd2197c2b3761c2816ab0cf23f354680738d77e577a
+# asserts: green run records its sha; red run (incl. a spec that fails once then passes) opens
+# tasks/fixes/F<n>.yml naming the spec,  runs on a clean copy, holds no tree;
+# second land queues on the flock; deploy.yml triggers on main.
 files:
   - scripts/land/post-land/**
   - .github/workflows/deploy.yml

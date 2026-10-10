@@ -12,4 +12,5 @@ files:
   - scripts/land/test/post-land.e2e.test.sh
   - docs/DEV_PROCESS.md
   - .claude/rules/verify.md
+  - tasks/T003.yml
   - tasks/T029.yml

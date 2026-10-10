@@ -7,11 +7,12 @@
 #       sibling POST_LAND_LOCK (flock), so post-land runs go one at a time. Builds a clean copy of
 #       <sha> outside every clone (git worktree or clone into POST_LAND_DIR), runs FULL_SUITE_CMD
 #       there once, with no rerun, then removes the copy.
-#       green: fast-forwards branch `release` on origin to <sha> (only if <sha> descends from it).
-#       red:   leaves `release` alone and commits + pushes tasks/fixes/F<n>.yml to main with
+#       green: records <sha> in ${POST_LAND_LOCK}.green.
+#       red:   commits + pushes tasks/fixes/F<n>.yml to main with
 #              status: open, sha: <sha>, and the failing output's last lines; exit 1.
 #   Config in land.conf: FULL_SUITE_CMD, POST_LAND_LOCK, POST_LAND_DIR.
-#   .github/workflows/deploy.yml triggers on push to branch release only.
+#   .github/workflows/deploy.yml triggers on push to main.
+#   (Amended by lots, 10 Oct: no release branch. Cases 1, 4 and 5 changed; nothing else.)
 set -uo pipefail
 # Independent of the user's git config (core.autocrlf=true would check scripts out with CRLF).
 GITCFG="$(mktemp "${TMPDIR:-/tmp}/land-gitconfig.XXXXXX")"
@@ -52,12 +53,13 @@ EOF
 commit_push() { echo "$1" >> f.txt; [ -n "${2:-}" ] && touch "$2"; git add -A; git commit -qm "$1"; git push -q origin main; git rev-parse HEAD; }
 post() { timeout 120 bash scripts/land/post-land/run.sh "$1" > "$SCRATCH/out.$2" 2>&1; }
 release() { git -C "$SCRATCH/w/origin.git" rev-parse release; }
+green() { cat "$SCRATCH/post.lock.green" 2>/dev/null; }
 
-# 1. green moves release to the sha, in a clean copy that is removed afterwards
+# 1. green records the sha as the last green, in a clean copy that is removed afterwards
 setup; s=$(commit_push one); post "$s" a; r=$?
 cwd=$(cat "$SUITE_LOG"/cwd.* 2>/dev/null | head -1)
-if [ $r = 0 ] && [ "$(release)" = "$s" ] && [ -n "$cwd" ] && [ "$cwd" != "$SCRATCH/w/c" ] && [ ! -d "$cwd" ]; then
-    ok "green moves release, clean copy removed"; else fail "green (r=$r cwd=$cwd)"; fi
+if [ $r = 0 ] && [ "$(green)" = "$s" ] && [ -n "$cwd" ] && [ "$cwd" != "$SCRATCH/w/c" ] && [ ! -d "$cwd" ]; then
+    ok "green records the sha, clean copy removed"; else fail "green (r=$r cwd=$cwd)"; fi
 
 # 2. red leaves release, opens a fixes task naming the spec and sha
 setup; before=$(release); s=$(commit_push two FAIL); post "$s" a; r=$?
@@ -76,13 +78,13 @@ setup; s1=$(commit_push four SLOW); s2=$(commit_push five)
 post "$s1" a & p1=$!; post "$s2" b & p2=$!; wait $p1; wait $p2
 n=$(ls "$SUITE_LOG"/cwd.* 2>/dev/null | wc -l)
 seq=$(tr '\n' ' ' < "$SUITE_LOG/seq")
-if [ "$n" = 2 ] && [ "$seq" = "start end start end " ] && [ "$(release)" = "$s2" ] && ! grep -q . <(ls "$SCRATCH/copies" 2>/dev/null); then
+if [ "$n" = 2 ] && [ "$seq" = "start end start end " ] && [ "$(green)" = "$s2" ] && ! grep -q . <(ls "$SCRATCH/copies" 2>/dev/null); then
     ok "post-land runs serialised"; else fail "serialised (n=$n seq=$seq)"; fi
 
-# 5. deploy.yml in the repo under test deploys only from release
-if grep -Eq 'branches: *\[ *release *\]' "$REPO/.github/workflows/deploy.yml" \
-   && ! grep -Eq 'branches: *\[ *main *\]' "$REPO/.github/workflows/deploy.yml"; then
-    ok "deploy triggers on release only"; else fail "deploy trigger"; fi
+# 5. deploy.yml in the repo under test deploys from main
+if grep -Eq 'branches: *\[ *main *\]' "$REPO/.github/workflows/deploy.yml" \
+   && ! grep -Eq 'branches: *\[ *release *\]' "$REPO/.github/workflows/deploy.yml"; then
+    ok "deploy triggers on main"; else fail "deploy trigger"; fi
 
 [ $fails = 0 ] && { echo "post-land.e2e: all passed"; exit 0; }
 echo "post-land.e2e: $fails failed"; exit 1
