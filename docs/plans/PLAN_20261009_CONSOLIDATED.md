@@ -15,7 +15,7 @@ Give this file to one agent. It runs bucket R first, then the other buckets. Buc
 ### Pure-extractor plan: NOT agreed by John; nothing decided. Work it touches is held, not killed
 
 ### Waiting on John
-- **PLAN_20261010_PURE_EXTRACTOR_DECOUPLING.md** (author unknown, 46e31b58): go/no-go. lots' review: right direction; schema must keep every reading (a list, not one per source role), every URL, a locator and the printed label on each reading, and drop sku/manufacturer per QT93; Phase 4 test = per-reading SI match or listed change, not bit-for-bit. If go: stop Python lib batches and QT93 step 2 for good; split the plan into tools tasks and openisd tasks.
+- **PLAN_20261010_HIGH_FIDELITY_EXTRACTION.md** (author unknown, 46e31b58): go/no-go. lots' review: right direction; schema must keep every reading (a list, not one per source role), every URL, a locator and the printed label on each reading, and drop sku/manufacturer per QT93; Phase 4 test = per-reading SI match or listed change, not bit-for-bit. If go: stop Python lib batches and QT93 step 2 for good; split the plan into tools tasks and openisd tasks.
 - "Restore from backup" action: add or not.
 
 ### No worker today (tools)
