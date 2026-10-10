@@ -1,0 +1,50 @@
+id: F5
+owner: post-land
+status: open
+sha: 231f8ad81d24e350eb21bec2705689a083f630ae
+goal: main is red at 231f8ad81d; make the full suite pass again
+commits: |
+  231f8ad81d T030: The OpenISD icon shows over the app from first paint until it has mounted (at least 0.7 s), and again when the app becomes visible after more than 30 s hidden, on both skins.
+  9d365bb813 WIP T030 loading overlay: UI wiring, unit test, browser spec (agy; not landed)
+  0de31cc6d4 WIP T030 loading overlay: design module, its test, task file (not landed)
+output: |
+        26 |     await page.mouse.click(box.x + box.width * 0.5, box.y + box.height * 0.5);
+        27 |     const hz = (await page.locator('.cursor-readout .ro-hz').textContent())!.trim();
+      > 28 |     expect(hz).not.toContain('—'); // a real pinned frequency, e.g. "43.30 Hz"
+           |                    ^
+        29 |
+        30 |     await page.locator('#btnExportMenu').click();
+        31 |     await page.locator('#btnShare').click();
+          at /home/john/work/winisd/.postland/1403182-231f8ad81d/packages/ui/test/ui/share-link.browser.spec.ts:28:20
+  
+      Error Context: test-results/ui-share-link.browser-Shar-d3faa-s-session-only-never-saved-/error-context.md
+  
+    7) packages/ui/test/ui/share-link.browser.spec.ts:48:3 › Share link › a dragged frequency band selection does NOT survive the share link (the cursor is session-only, never saved) 
+  
+      Error: expect(received).toMatch(expected)
+  
+      Expected pattern: /Hz.*–.*Hz/
+      Received string:  ""
+  
+        56 |     await page.mouse.up();
+        57 |     const readout = (await page.locator('.gread').textContent())!.trim();
+      > 58 |     expect(readout).toMatch(/Hz.*–.*Hz/); // e.g. "31.6 Hz – 100 Hz  Δ …"
+           |                     ^
+        59 |
+        60 |     await page.locator('#btnExportMenu').click();
+        61 |     await page.locator('#btnShare').click();
+          at /home/john/work/winisd/.postland/1403182-231f8ad81d/packages/ui/test/ui/share-link.browser.spec.ts:58:21
+  
+      Error Context: test-results/ui-share-link.browser-Shar-6421a-s-session-only-never-saved-/error-context.md
+  
+    7 failed
+      packages/ui/test/ui/original-chart-view.browser.spec.ts:182:3 › Original chart view › a click on the chart locks the cursor: moving the pointer afterwards leaves it put 
+      packages/ui/test/ui/original-chart-view.browser.spec.ts:226:3 › Original chart view › hovering the chart draws ONE horizontal level line where the cursor crosses the curve 
+      packages/ui/test/ui/original-chart-view.browser.spec.ts:234:3 › Original chart view › a drag-select draws a horizontal level line for BOTH selection cursors 
+      packages/ui/test/ui/original-shell-layout.browser.spec.ts:129:5 › Original shell layout › splitters › the left panel resizes by dragging the vertical splitter 
+      packages/ui/test/ui/original-shell-layout.browser.spec.ts:150:5 › Original shell layout › splitters › the bottom section resizes by dragging the horizontal splitter 
+      packages/ui/test/ui/share-link.browser.spec.ts:18:3 › Share link › a pinned graph cursor does NOT survive the share link (the cursor is session-only, never saved) 
+      packages/ui/test/ui/share-link.browser.spec.ts:48:3 › Share link › a dragged frequency band selection does NOT survive the share link (the cursor is session-only, never saved) 
+    578 passed (12.9m)
+  suite: unit exit 0, browser exit 1
+  post-land suite 1403182-231f8ad81d finished: FAILED (exit 1) after 20m34s
