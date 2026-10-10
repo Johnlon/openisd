@@ -58,9 +58,11 @@ Config: `land.conf` at the repo root.
 
 - checks the sha out as a clean copy outside every clone, runs the full suite once (unit and
   browser), removes the copy; no rerun, so a flaky spec is a red;
-- green: fast-forwards branch `release` to the sha. `deploy.yml` triggers on `release` only;
-- red: leaves `release`, pushes `tasks/fixes/F<n>.yml` (`status: open`, the sha, the failing
-  output) to main. `land.sh` then refuses every landing except one labelled `fixes`.
+- green: records the sha as the last green and prints `post-land: green at <sha>`. A release is the
+  GitHub Pages deploy on every push to main (`deploy.yml` triggers on main); post-land is the local
+  full run;
+- red: pushes `tasks/fixes/F<n>.yml` (`status: open`, the sha, the failing output, and every commit
+  since the last green) to main. `land.sh` then refuses every landing except one labelled `fixes`.
 
 ## Hooks
 

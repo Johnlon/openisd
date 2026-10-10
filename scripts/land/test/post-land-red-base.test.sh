@@ -22,7 +22,7 @@ setup() {
     cp -r "$REPO/scripts/land" scripts/
     printf '#!/usr/bin/env bash\n[ -f FAIL ] && { echo "spec broken.spec.ts failed"; exit 1; }\nexit 0\n' > suite.sh
     printf 'FULL_SUITE_CMD="bash suite.sh"\nPOST_LAND_LOCK="%s/post.lock"\nPOST_LAND_DIR="%s/copies"\n' "$SCRATCH" "$SCRATCH" > land.conf
-    git add -A; git commit -qm base; git push -q origin main; git push -q origin main:release
+    git add -A; git commit -qm base; git push -q origin main
 }
 local_commit() { echo "$1" >> f.txt; [ -n "${2:-}" ] && touch "$2"; git add -A; git commit -qm "$1"; git rev-parse HEAD; }
 origin_main() { git -C "$SCRATCH/w/origin.git" rev-parse main; }

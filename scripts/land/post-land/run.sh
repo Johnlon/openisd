@@ -7,16 +7,15 @@
 #   2. checks <sha> out as a clean copy under POST_LAND_DIR, outside every clone;
 #   3. runs FULL_SUITE_CMD in the copy once. There is no rerun: a flake is a red;
 #   4. removes the copy;
-#   5. green: fast-forwards branch `release` on origin to <sha> (only if <sha> descends from it);
-#      red: leaves `release` alone, pushes tasks/fixes/F<n>.yml (status: open, sha, the failing
-#      output's last lines) to main, exit 1. The next landing is refused while that task is open.
+#   5. green: records <sha> as the last green in ${POST_LAND_LOCK}.green (written atomically) and
+#      prints "post-land: green at <sha>"; red: pushes tasks/fixes/F<n>.yml (status: open, sha, the
+#      failing output's last lines) to main, exit 1. The next landing is refused while that task is open.
 # Runs coalesce: a run registers in ${POST_LAND_LOCK}.pending before it waits for the lock. When it gets its
 # turn and a NEWER run is already waiting (its record is flock'ed by a live process), it ends "superseded
 # by <sha>" with exit 0 without running the suite; the newest run tests the latest sha. A red lists every
-# commit since the last green (origin/release) in its fixes task.
+# commit since the last green in its fixes task.
 # Config in land.conf: FULL_SUITE_CMD, POST_LAND_LOCK, POST_LAND_DIR.
-# NO_RELEASE_PUSH=1 in the environment: a green run is reported but `release` is not moved (a red run
-# still opens its fixes task).
+# A release is the GitHub Pages deploy on every push to main; post-land is the local full run.
 set -uo pipefail
 
 SHA_ARG="${1:?usage: run.sh <sha>}"
@@ -83,19 +82,9 @@ wait "$BODY"
 rc=$?
 BODY=""
 
-git fetch -q origin || { echo "post-land: fetch failed" >&2; exit 2; }
-
 if [ "$rc" = 0 ]; then
-  if git merge-base --is-ancestor "$SHA" origin/release 2>/dev/null; then
-    echo "post-land: green; ${SHA:0:10} is already in release"
-  elif [ "${NO_RELEASE_PUSH:-}" = 1 ]; then
-    echo "post-land: green; NO_RELEASE_PUSH=1, release left alone"
-  elif ! git rev-parse --verify -q origin/release > /dev/null \
-       || git merge-base --is-ancestor origin/release "$SHA"; then
-    git push -q origin "$SHA:refs/heads/release" && echo "post-land: green; release is now ${SHA:0:10}"
-  else
-    echo "post-land: green; ${SHA:0:10} does not descend from release, release left alone"
-  fi
+  printf '%s\n' "$SHA" > "${POST_LAND_LOCK}.green.$$" && mv -f "${POST_LAND_LOCK}.green.$$" "${POST_LAND_LOCK}.green"
+  echo "post-land: green at ${SHA:0:10}"
   exit 0
 fi
 
@@ -122,7 +111,8 @@ for attempt in 1 2 3; do
     printf 'id: F%s\nowner: post-land\nstatus: open\nsha: %s\n' "$n" "$SHA"
     printf 'goal: main is red at %s; make the full suite pass again\n' "${SHA:0:10}"
     printf 'commits: |\n'
-    if git rev-parse --verify -q origin/release > /dev/null; then range="origin/release..$SHA"; else range="-n 20 $SHA"; fi
+    green="$(cat "${POST_LAND_LOCK}.green" 2>/dev/null)"
+    if [ -n "$green" ] && git merge-base --is-ancestor "$green" "$SHA" 2>/dev/null; then range="$green..$SHA"; else range="-n 20 $SHA"; fi
     git log --abbrev=10 --format='  %h %s' $range
     printf 'output: |\n'
     tail -n 40 "$OUT" | sed 's/^/  /'
