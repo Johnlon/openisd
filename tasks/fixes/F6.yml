@@ -1,0 +1,60 @@
+id: F6
+owner: post-land
+status: open
+sha: 45051ecb16fa8896c762ff9d97db90d78c501b3d
+goal: main is red at 45051ecb16; make the full suite pass again
+commits: |
+  45051ecb16 Fix duplicated parser in projectRepo test
+  2339ed6234 Fix lint errors in projectRepo.test.ts
+  3ba8cbf1d7 (auto) clarify non-queued test execution vs heavy chromium sweeps
+  f4ecacf7f8 (auto) Align quiet-test test suite with unqueued lint, typecheck, and unit test policy
+  d498cdb789 (auto) Remove migrateBackups, update bug doc, and avoid admission queue for non-browser checks
+  6dd47e4dbc (auto) Fix start-up repair backup overwrite data loss, silent catches, and duplicate migration loops
+  145dd24d8f (auto) T026: task file for project copies merge, retired field migration, and mobile file-open diagnostics fix
+  cf635e9310 (auto) BUG_20261009_file-open-shows-diagnostics-on-mobile: listStoredProjects ignores repairs; diagnostics modal opened via explicit menu action
+  2b8e83a17a (auto) BUG_20261009_retired-field-reset-notice-on-every-load: Retired front Qicl dropped in place silently; stored database, sessions and backups migrated at start-up
+  4a64f54ab6 (auto) BUG_20261009_stored-project-list-holds-copies: Save reuses existing store id for stored projects; start-up merges copies into newest entry
+  231f8ad81d T030: The OpenISD icon shows over the app from first paint until it has mounted (at least 0.7 s), and again when the app becomes visible after more than 30 s hidden, on both skins.
+  9d365bb813 WIP T030 loading overlay: UI wiring, unit test, browser spec (agy; not landed)
+  0de31cc6d4 WIP T030 loading overlay: design module, its test, task file (not landed)
+output: |
+      Received:   175
+  
+        135 |       await page.mouse.up();
+        136 |       const after = (await page.locator('.quad-topleft').boundingBox())!;
+      > 137 |       expect(after.width).toBeGreaterThan(before.width + 50);
+            |                           ^
+        138 |     });
+        139 |
+        140 |     test('the bottom section collapses (chart grows) and expands via the splitter toggle', async ({ page }) => {
+          at /home/john/work/winisd/.postland/1435311-45051ecb16/packages/ui/test/ui/original-shell-layout.browser.spec.ts:137:27
+  
+      Error Context: test-results/ui-original-shell-layout.b-f8139-gging-the-vertical-splitter/error-context.md
+  
+    5) packages/ui/test/ui/share-link.browser.spec.ts:48:3 › Share link › a dragged frequency band selection does NOT survive the share link (the cursor is session-only, never saved) 
+  
+      Error: expect(received).toMatch(expected)
+  
+      Expected pattern: /Hz.*–.*Hz/
+      Received string:  "1296Hz 81.5 dB"
+  
+        56 |     await page.mouse.up();
+        57 |     const readout = (await page.locator('.gread').textContent())!.trim();
+      > 58 |     expect(readout).toMatch(/Hz.*–.*Hz/); // e.g. "31.6 Hz – 100 Hz  Δ …"
+           |                     ^
+        59 |
+        60 |     await page.locator('#btnExportMenu').click();
+        61 |     await page.locator('#btnShare').click();
+          at /home/john/work/winisd/.postland/1435311-45051ecb16/packages/ui/test/ui/share-link.browser.spec.ts:58:21
+  
+      Error Context: test-results/ui-share-link.browser-Shar-6421a-s-session-only-never-saved-/error-context.md
+  
+    5 failed
+      packages/ui/test/ui/original-chart-view.browser.spec.ts:182:3 › Original chart view › a click on the chart locks the cursor: moving the pointer afterwards leaves it put 
+      packages/ui/test/ui/original-chart-view.browser.spec.ts:226:3 › Original chart view › hovering the chart draws ONE horizontal level line where the cursor crosses the curve 
+      packages/ui/test/ui/original-chart-view.browser.spec.ts:234:3 › Original chart view › a drag-select draws a horizontal level line for BOTH selection cursors 
+      packages/ui/test/ui/original-shell-layout.browser.spec.ts:129:5 › Original shell layout › splitters › the left panel resizes by dragging the vertical splitter 
+      packages/ui/test/ui/share-link.browser.spec.ts:48:3 › Share link › a dragged frequency band selection does NOT survive the share link (the cursor is session-only, never saved) 
+    581 passed (14.3m)
+  suite: unit exit 0, browser exit 1
+  post-land suite 1435311-45051ecb16 finished: FAILED (exit 1) after 25m25s
