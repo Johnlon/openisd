@@ -47,6 +47,8 @@ test.describe('loading overlay — Original desktop skin', () => {
     await page.goto('/');
 
     const overlay = page.locator('#loading-overlay');
+    // The overlay is cosmetic: it never takes a click or drag meant for the app under it
+    await expect(overlay).toHaveCSS('pointer-events', 'none');
     // Overlay must eventually hide after mount and at least 0.7 s
     await expect(overlay).toBeHidden();
     const seen = await page.evaluate(() => window.__overlaySeen);

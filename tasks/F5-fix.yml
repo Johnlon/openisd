@@ -1,0 +1,12 @@
+id: F5-fix
+repo: openisd
+owner: bob
+status: open
+label: fixes
+goal: Close F5. The loading overlay never intercepts the pointer, so tests (and users) that click or drag before it hides reach the app, as before T030.
+done_test: bash scripts/test.sh packages/ui/test/ui/loading-overlay.browser.spec.ts packages/ui/test/ui/share-link.browser.spec.ts
+files:
+  - packages/ui/index.html
+  - packages/ui/test/ui/loading-overlay.browser.spec.ts
+  - tasks/fixes/F5.yml
+  - tasks/F5-fix.yml
