@@ -376,21 +376,21 @@ provideCellScope({ revision: projectChanged, written: () => {} });
             <button class="edit-btn" title="Swap in a different driver for this project." @click="presentationState.browseOpen = true">Select Driver</button>
             <button class="edit-btn" title="Full editor for this driver in the current project." @click="startEdit">&#9998; Edit</button>
           </div>
-          <div class="two-col" style="margin-top:10px;">
+          <div class="two-col" style="margin-top:6px;">
             <div style="--label-w:150px;">
-              <div class="section-header">Placement</div>
-              <div class="field-row">
+              <div class="section-header" style="margin-bottom:4px;">Placement</div>
+              <div class="field-row" style="margin-bottom:4px;">
                 <div class="field"><label>Num. of drivers</label>
                   <select :value="project.nDrivers.value" @change="e => { const n = selectedOption(e, N_DRIVERS_OPTIONS); if (n !== null) project.nDrivers.set(n); }"><option v-for="o in N_DRIVERS_OPTIONS" :key="o.value" :value="o.value">{{ o.label }}</option></select>
                   <span>driver(s)</span>
                   <WinisdDeviationCue v-if="driverCountDeviationShown" :deviation="WinisdDeviation.DRIVER_COUNT" />
                 </div>
               </div>
-              <div class="radio-group field-row">
+              <div class="radio-group field-row" style="margin-bottom:4px;">
                 <label><input type="radio" name="og-placement" value="standard" v-model="placement"> Standard</label>
                 <label><input type="radio" name="og-placement" value="iso" v-model="placement" disabled> Iso-Barik <em style="color:#999">(not modelled)</em></label>
               </div>
-              <div class="field-row">
+              <div class="field-row" style="margin-bottom:4px;">
                 <div class="field"><label>Voice coil connection</label>
                   <select :value="project.wiring.value" @change="e => { const w = selectedOption(e, ARRAY_WIRING_OPTIONS); if (w !== null) project.wiring.set(w); }"><option v-for="o in ARRAY_WIRING_OPTIONS" :key="o.value" :value="o.value">{{ o.label }}</option></select>
                 </div>
@@ -1100,7 +1100,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
    that by keeping every control at its natural width (the `flex:none` rules below) and
    letting the PANE scroll when the sum no longer fits. `overflow:auto` on both axes is
    what makes the clipped content still reachable, which a Win32 window cannot offer. */
-.tab-section.active { display:block; flex:1 1 auto; min-height:0; overflow-x:auto; overflow-y:hidden; }
+.tab-section.active { display:block; flex:1 1 auto; min-height:0; overflow-x:auto; overflow-y:auto; }
 .section-header { background:#e2e2e2; border:1px solid #ccc; padding:4px 10px; font-weight:600; margin-bottom:8px; }
 /* Columns keep their natural width and never shrink below their contents. A shrinking
    column (`flex:0 1 auto` with `min-width:0`) let the next column's origin slide left
