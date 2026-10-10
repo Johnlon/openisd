@@ -1,0 +1,10 @@
+id: F6-fix
+repo: openisd
+owner: bob
+status: open
+label: fixes
+goal: Close F6. The full suite is green again on e4f26ba8e2 (post-land run, "green; release is now e4f26ba8e2"), which contains 45051ecb16; the failure F6 reported does not reproduce on main.
+done_test: bash scripts/test.sh packages/persistence/test/projectRepo.test.ts
+files:
+  - tasks/fixes/F6.yml
+  - tasks/F6-fix.yml

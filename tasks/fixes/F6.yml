@@ -1,6 +1,6 @@
 id: F6
 owner: post-land
-status: open
+status: closed
 sha: 45051ecb16fa8896c762ff9d97db90d78c501b3d
 goal: main is red at 45051ecb16; make the full suite pass again
 commits: |
@@ -58,3 +58,4 @@ output: |
     581 passed (14.3m)
   suite: unit exit 0, browser exit 1
   post-land suite 1435311-45051ecb16 finished: FAILED (exit 1) after 25m25s
+# closed by F6-fix: post-land run on e4f26ba8e2 was green and moved release; e4f26ba8e2 contains 45051ecb16.
