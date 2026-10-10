@@ -11,6 +11,7 @@ files:
   - packages/design/test/domain/**
   - packages/ui/src/hooks/**
   - packages/ui/src/logic/**
+  - packages/ui/src/main.ts
   - packages/ui/src/ui/**
   - packages/ui/test/hooks/**
   - packages/ui/test/logic/**
