@@ -57,10 +57,16 @@ EOF
 #!/usr/bin/env bash
 ! grep -qi '^co-authored-by:.*claude'
 EOF
+    cat > gates/unit.sh <<'EOF'
+#!/usr/bin/env bash
+printf '%s\n' "$@" > "$GATE_LOG/unit.args"
+[ -f "$GATE_LOG/unit.fail" ] && exit 1; exit 0
+EOF
     chmod +x gates/*.sh
     cat > land.conf <<EOF
 LINT_CMD="bash gates/lint.sh"
 TYPECHECK_CMD="bash gates/typecheck.sh"
+UNIT_CMD="bash gates/unit.sh"
 ATTRIBUTION_CMD="bash gates/attribution.sh"
 GATE_DEADLINE_S=5
 LAND_LOCK="$SCRATCH/land.lock"
@@ -133,7 +139,7 @@ if [ $r = 3 ] && [ "$(origin_head)" = "$before" ] \
 else fail "conflict (r=$r)"; fi
 
 # 4. each gate failing refuses and names the gate
-for g in lint typecheck; do
+for g in lint typecheck unit; do
     setup; task w1 T1 a.txt; edit w1 a.txt x; git -C "$SCRATCH/w/w1" commit -qam x
     touch "$GATE_LOG/$g.fail"; before=$(origin_head)
     land w1 T1; r=$?
@@ -159,11 +165,27 @@ alive=0; for pid in $(cat "$GATE_LOG/pids" 2>/dev/null); do kill -0 "$pid" 2>/de
 if [ $r = 1 ] && [ "$(origin_head)" = "$before" ] && [ $alive = 0 ]; then
     ok "hung gate refused at deadline, killed"; else fail "hung gate (r=$r alive=$alive)"; fi
 
-# 6. lint gets exactly the changed files
+# 6. lint and unit get exactly the changed files
 setup; task w1 T1 a.txt; edit w1 a.txt x; git -C "$SCRATCH/w/w1" commit -qam x
 land w1 T1
 if diff <(printf 'a.txt\ntasks/T1.yml\n') <(sort "$GATE_LOG/lint.args") >/dev/null; then
     ok "lint scoped to changed files"; else fail "lint args: $(tr '\n' ' ' < "$GATE_LOG/lint.args")"; fi
+if diff <(printf 'a.txt\ntasks/T1.yml\n') <(sort "$GATE_LOG/unit.args") >/dev/null; then
+    ok "unit gate gets the changed files"; else fail "unit args: $(tr '\n' ' ' < "$GATE_LOG/unit.args" 2>/dev/null)"; fi
+
+# 6b. the unit gate is mandatory (SDLC S1): a land.conf without UNIT_CMD refuses, main untouched
+setup; task w1 T1 a.txt; edit w1 a.txt x; git -C "$SCRATCH/w/w1" commit -qam x
+sed -i '/^UNIT_CMD=/d' "$SCRATCH/w/w1/land.conf"
+before=$(origin_head); land w1 T1; r=$?
+if [ $r = 1 ] && [ "$(origin_head)" = "$before" ] && grep -q "UNIT_CMD" "$SCRATCH/out.w1"; then
+    ok "missing UNIT_CMD refuses"; else fail "missing UNIT_CMD (r=$r)"; fi
+
+# 6c. a done_test that names a browser spec is refused before it runs (T036, 11 Oct 2026)
+setup; task w1 T1 a.txt "bash scripts/test.sh packages/ui/test/ui/x.browser.spec.ts"
+edit w1 a.txt x; git -C "$SCRATCH/w/w1" commit -qam x
+before=$(origin_head); land w1 T1; r=$?
+if [ $r = 1 ] && [ "$(origin_head)" = "$before" ] && grep -q "browser spec" "$SCRATCH/out.w1"; then
+    ok "browser spec in done_test refused"; else fail "browser done_test (r=$r)"; fi
 
 # 7. a branch that changed a locked file or its own done_test is refused
 setup; task w1 T1 "*"; edit w1 spec.sh weakened; git -C "$SCRATCH/w/w1" commit -qam weaken

@@ -16,8 +16,9 @@
 #   3. the task's contract is intact: locked files match their hash, done_test and locked entries
 #      are what origin/main has
 #   4. no open tasks/fixes/*.yml, unless this task is labelled `fixes`
-#   5. lint (the changed files as arguments), typecheck, done_test, attribution (each new commit's
-#      message on stdin), each within GATE_DEADLINE_S
+#   5. lint (the changed files as arguments), typecheck, unit (the changed files as arguments; every
+#      unit test the change reaches, within UNIT_DEADLINE_S), done_test (never a browser spec),
+#      attribution (each new commit's message on stdin), each within GATE_DEADLINE_S
 #   6. push to origin main, then start the post-land full run on the pushed commit, detached
 #      (scripts/land/post-land/run.sh; only when land.conf sets FULL_SUITE_CMD)
 #
@@ -114,7 +115,18 @@ done
 mapfile -t changed < <(git diff --name-only --diff-filter=ACMR origin/main HEAD)
 run_gate lint /dev/null "$LINT_CMD" "${changed[@]}"
 run_gate typecheck /dev/null "$TYPECHECK_CMD"
-run_gate done_test /dev/null "$(task_field "$TASK" done_test)"
+# The unit half of every test the change can reach runs HERE, before the push (SDLC S1): a unit
+# failure found post-land costs every landing until it is fixed. Its own deadline: a unit run is
+# longer than lint.
+[ -n "${UNIT_CMD:-}" ] || { GATE_OUT=/dev/null; refuse unit "UNIT_CMD is not set in land.conf; the unit tests of the change must run before a push"; }
+GATE_DEADLINE_S="${UNIT_DEADLINE_S:-$GATE_DEADLINE_S}" run_gate unit /dev/null "$UNIT_CMD" "${changed[@]}"
+# A browser spec takes minutes under load and overran the gate deadline (T036, 11 Oct 2026): the
+# browser half runs post-land, never as a task's done_test.
+done_test="$(task_field "$TASK" done_test)"
+case "$done_test" in
+  *.browser.spec.ts*) GATE_OUT=/dev/null; refuse done_test "names a browser spec ($done_test); browser specs run post-land, name a unit spec" ;;
+esac
+run_gate done_test /dev/null "$done_test"
 for sha in $(git rev-list origin/main..HEAD); do
   git log -1 --format=%B "$sha" > "$WORK/message"
   run_gate attribution "$WORK/message" "$ATTRIBUTION_CMD"
