@@ -155,6 +155,8 @@ All of it in a pair of worktrees, one per repo, kept off main until it works. Th
 
 ## 8. Later work
 
+- **Python to TypeScript** (John, 2026-10-11): things are moving to TypeScript, and the whole winisd_tools Python code may one day be replaced by Node code. That is not this plan's work; for now only the schema alignment is done.
+
 ### 8a. The AI review file and the decision log: `driver_ai.md`, `driver_decision.md`
 
 Later work, not part of this plan's work (John, 2026-10-11: "this is a later feature … not this ticket, log it for later work in the plan").
