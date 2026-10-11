@@ -42,6 +42,8 @@ Per **document**: URL, role, fetch time, title, breadcrumb and categories in ord
 
 Per **record**: brand, model, the record directory name (unchanged for existing records), `added` (first appearance; a harvest fact), every document, every reading, the product's scope log (section 4).
 
+Today the `driver.json` schema is written twice, by hand: Python in winisd_tools `scrapers/scrapers/lib/model_driver.py`, and Zod in openisd `packages/design/domain/openisdSchema.ts`. John, 2026-10-11: "we now have two versions of the driver.json schema - in TS and python which is bad". The single JSON Schema below replaces both, and both hand-written copies are deleted in the change that generates their replacements.
+
 Schema rules: ONE source — a JSON Schema file (`driver_spec.schema.json`, kept in openisd `packages/design`). The Python model and the Zod schema are generated from it, never hand-written twice; a test fails if a generated file is stale. Unknown fields are refused; `schema_version` is checked on every read.
 
 ## 2a. The human decision file: `driver_human.json`
