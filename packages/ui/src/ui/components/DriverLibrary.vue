@@ -12,8 +12,6 @@ import {DriverFileFormat} from '../../fileFormat.js';
 //
 // `showName`: the overlay puts the summarised driver's name in its own title bar; a host with
 // no title bar asks for it inline above the summary.
-// `showName`: the overlay puts the summarised driver's name in its own title bar; a host with
-// no title bar asks for it inline above the summary.
 // `host`: 'manage' (the driver manager: DriverBrowser overlay and MobileManageDriversTab)
 // or 'pick' (step 1 of the New Project wizard, both skins). 'pick' hides the summary's
 // Edit and Clone driver buttons, and suppresses the summary's own Cancel/Use footer
