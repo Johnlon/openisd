@@ -44,7 +44,6 @@ test.beforeEach(async ({ page }) => {
 });
 
 test('every unit with alternates is a working toggle, and every other unit is a plain label', async ({ page }) => {
-  test.setTimeout(30000);
   await openDriverEditor(page);
   await seedDriverInEditor(page);
   const convertible = unitTable();

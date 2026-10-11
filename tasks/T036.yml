@@ -1,0 +1,74 @@
+id: T036
+repo: openisd
+owner: claude
+status: open
+goal: integrate fix/move-qiclfr (PR panel layout, User Options spacing, Qicl move, shell-layout fixes)
+done_test: bash scripts/test.sh packages/ui/test/ui/original-shell-layout.browser.spec.ts packages/ui/test/ui/original-pr-tab.browser.spec.ts packages/ui/test/architecture/no-whole-test-timeouts.test.ts packages/design/test/domain/front-chamber-qicl.test.ts packages/ui/test/hooks/boxFields.test.ts
+files:
+  - tasks/T036.yml
+  - .claude/rules/links.md
+  - BACKLOG.md
+  - CLAUDE.md
+  - app.html
+  - bugs/BUG_20261009_wsl-mirrored-route-churn-aborts-browser-specs.md
+  - bugs/BUG_20261010_new-version-notice-stuck.md
+  - docs/plans/PLAN_20261008_SDLC_CLEANUP.md
+  - docs/plans/PLAN_20261009_APP_WORK.md
+  - docs/plans/PLAN_20261009_CONSOLIDATED.md
+  - docs/plans/PLAN_20261010_PURE_EXTRACTOR_DECOUPLING.md
+  - docs/plans/PLAN_RETIRE_CALCS_FROM_SCRAPERS.md
+  - docs/research/WINISD_PARITY.md
+  - dump.js
+  - package-lock.json
+  - packages/design/compat/consistency/areas/abc.ts
+  - packages/design/compat/consistency/areas/bandpass4.ts
+  - packages/design/compat/consistency/areas/bandpass6.ts
+  - packages/design/domain/box/abcBox.ts
+  - packages/design/domain/box/bandpass4Box.ts
+  - packages/design/domain/box/bandpass6Box.ts
+  - packages/design/domain/box/coupledSealedLossesWindow.ts
+  - packages/design/domain/box/coupledVentedChamberWindow.ts
+  - packages/design/domain/box/coupledVentedLossesWindow.ts
+  - packages/design/domain/box/openISDBox.ts
+  - packages/design/domain/boxDefaults.ts
+  - packages/design/domain/openisdSchema.ts
+  - packages/design/domain/project/projectSweep.ts
+  - packages/design/domain/project/retiredFrontQicl.ts
+  - packages/design/domain/winIsdProjectConverter.ts
+  - packages/design/test/architecture-no-record-types-in-barrel.test.ts
+  - packages/design/test/domain/box-volume-of.test.ts
+  - packages/design/test/domain/front-chamber-qicl.test.ts
+  - packages/design/test/engine/abc-large-qiclfr-winisd.test.ts
+  - packages/design/test/engine/bandpass4-winisd.test.ts
+  - packages/design/test/winisd/openIsdProjectToWinIsdProject.test.ts
+  - packages/design/test/winisd/winIsdProjectToOpenIsdProject.test.ts
+  - packages/persistence/src/repos/projectRepo.ts
+  - packages/ui/package.json
+  - packages/ui/src/style.css
+  - packages/ui/src/ui/App.vue
+  - packages/ui/src/ui/components/DriverEditorModal.vue
+  - packages/ui/src/ui/components/UIField.vue
+  - packages/ui/src/ui/components/UIFieldBody.vue
+  - packages/ui/src/ui/components/UIFixedField.vue
+  - packages/ui/src/ui/components/uiFieldBinding.ts
+  - packages/ui/src/ui/shells/mobile/MobileEnclosureTab.vue
+  - packages/ui/src/ui/shells/original/OriginalShell.vue
+  - packages/ui/test/architecture/no-whole-test-timeouts.test.ts
+  - packages/ui/test/hooks/boxFields.test.ts
+  - packages/ui/test/ui/driver-browser.browser.spec.ts
+  - packages/ui/test/ui/driver-editor-layout.browser.spec.ts
+  - packages/ui/test/ui/driver-editor-precision.browser.spec.ts
+  - packages/ui/test/ui/driver-editor-units.browser.spec.ts
+  - packages/ui/test/ui/mobile-num-stepper.browser.spec.ts
+  - packages/ui/test/ui/new-project-wizard.browser.spec.ts
+  - packages/ui/test/ui/num-input.browser.spec.ts
+  - packages/ui/test/ui/open-sessions.browser.spec.ts
+  - packages/ui/test/ui/original-pr-tab.browser.spec.ts
+  - packages/ui/test/ui/original-shell-layout.browser.spec.ts
+  - packages/ui/test/ui/unit-toggle.browser.spec.ts
+  - packages/ui/test/ui/what-if-panel.browser.spec.ts
+  - questions.yml
+  - screenshot.js
+  - screenshot.png
+  - scripts/preview-4000.sh
+  - vite.config.js

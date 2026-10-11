@@ -145,7 +145,7 @@ test.describe('What-if? panel', () => {
       await page.locator('.save-rail .what-if-btn').click();
 
       await page.waitForFunction(() => (localStorage.getItem('openisd_view') || '').includes('originalWhatIfOpen'),
-        undefined, { timeout: 5000 }); // the open-panel flag is persisted
+        undefined); // the open-panel flag is persisted
       await page.reload({ waitUntil: 'domcontentloaded' });
 
       await expect(page.locator('.what-if-panel')).toBeVisible();          // What-if? reopened

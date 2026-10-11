@@ -281,7 +281,6 @@ test.describe('Original shell layout', () => {
     });
 
     test('bottom panels at a short window height never get scrollbars and contents do not overflow', async ({ page }) => {
-      test.setTimeout(30000);
       const boxTypes = ['vented', 'sealed', 'bandpass4', 'bandpass6', 'abc'] as const;
   
       for (const boxType of boxTypes) {

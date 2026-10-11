@@ -231,7 +231,7 @@ test('Dimensions: cycling a unit does not move the columns', async ({ page }) =>
   const wasText = (await unit.textContent())?.trim();
 
   await unit.click();
-  await expect(unit).not.toHaveText(wasText ?? '', { timeout: 2000 });   // it really did cycle
+  await expect(unit).not.toHaveText(wasText ?? '');   // it really did cycle
 
   expect(await geometry(), `cycling the unit from "${wasText}" reflowed the panel`)
     .toEqual(before);

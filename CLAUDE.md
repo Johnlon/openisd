@@ -5,7 +5,7 @@
 Base link-formatting rules are always active: `.claude/rules/links.md` (Claude Code) /
 `.opencode/rules/links.md` (OpenCode). Project-specific additions:
 
-- Server: `/home/john/work/agentutils/httpd/`, base `http://localhost:8000`. Usage spec:
+- Server: `/home/john/work/agentutils/httpd/`, base `http://lap:8000`. Usage spec:
   `/home/john/work/agentutils/specs/SPEC_HTTPD.md`.
 - This repo's mount: `/winisd/openisd/...`.
 - For `.md` docs ALWAYS add `?html` before the anchor (`…doc.md?html#L<n>`) — without it the
@@ -125,6 +125,10 @@ Run every test/typecheck/gate via `bash scripts/quiet-test.sh <command>`; it hid
 logs the full output to `build/test-logs/`. Rule: `.claude/rules/verify.md`.
 Unit tests, linting, typechecks, and targeted singleton browser specs (`bash scripts/test.sh <spec>`)
 run immediately without queueing. Only untargeted/heavy Chromium sweeps queue for the admission slot.
+
+## UI Layout Safety — No clipped controls or unwanted scrollbars
+
+All agent changes to UI components, shells, and dialogs MUST be verified to ensure controls NEVER disappear or get clipped off the bottom or sides of the screen, NOR cause unwanted horizontal or vertical scrollbars to appear.
 
 ## Loaded on demand
 

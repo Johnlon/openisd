@@ -96,8 +96,8 @@ test.describe('Original Passive Radiator tab', () => {
 
       await expect(page.locator('.ui-field', { has: page.locator('#og-pr-fs') }).locator('> label'))
         .toHaveText('Fpr');
-      await expect(page.locator('#og-pr-fs-mass').locator('xpath=preceding-sibling::label[1]'))
-        .toHaveText('Fpr (with added mass):');
+      await expect(page.locator('.ui-field', { has: page.locator('#og-pr-fs-mass') }).locator('> label'))
+        .toHaveText('Fpr (with added mass)');
 
       // The two are different quantities and must stay on different readouts: the Box tab's Fh is
       // the system tuning (box compliance in series with the PR's own), so it must NOT equal the

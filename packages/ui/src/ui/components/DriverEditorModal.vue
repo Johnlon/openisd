@@ -892,7 +892,7 @@ useEscToClose(() => identityMsgOpen.value, dismissIdentityMsg);
 /* position: relative anchors the format picker's scrim to the editor, not the viewport. */
 .de-modal { position: relative !important; display: flex !important; flex-direction: column !important; width: 850px !important; max-width: 96vw !important; min-height: 550px !important; max-height: 96vh !important; flex-shrink: 0 !important; overflow: hidden !important; }
 .de-tabs { display: flex; gap: 2px; padding: 6px 12px 0; border-bottom: 1px solid var(--line); }
-.de-tab { padding: 4px 10px; border: 1px solid var(--line); border-bottom: none; border-radius: 3px 3px 0 0; background: var(--panel2); color: var(--fg); cursor: pointer; font: inherit; font-size: 13px; }
+.de-tab { padding: 5px 12px; border: 1px solid var(--line); border-bottom: none; border-radius: 3px 3px 0 0; background: var(--panel2); color: var(--fg); cursor: pointer; font: inherit; font-size: 14px; font-weight: 500; }
 .de-tab.on { background: var(--panel); font-weight: 600; }
 .de-toolbar {
   display: flex;
@@ -1026,11 +1026,13 @@ input.value-n, .de-fld.value-n input, select.value-n { color: var(--mut); }
   /* 4 field-slots per row, 4 tracks each (label/value/unit/alert) = 16 tracks. A `.de-fld`
      subgrids across 4 of them (one field-slot); with only 4 tracks total here, every field
      spanned the whole row and the tab rendered as one field per line instead of four. */
-  grid-template-columns: repeat(4, minmax(0, max-content) minmax(0, max-content) auto 34px) !important;
-  gap: 3px 12px !important;
+  grid-template-columns: repeat(4, max-content max-content 34px 16px) !important;
+  gap: 3px 6px !important;
   align-items: center !important;
   align-content: start !important;
   justify-content: start !important;
+  max-width: 100% !important;
+  overflow-x: hidden !important;
 }
 .de-params > .de-group,
 .de-params .de-cols { display: contents !important; }
@@ -1038,14 +1040,14 @@ input.value-n, .de-fld.value-n input, select.value-n { color: var(--mut); }
 .de-hdr { background: var(--panel2); text-align: center; font-size: 11px; padding: 1px 0; border-radius: 3px; margin-bottom: 2px; color: var(--mut); }
 .de-col { display: flex; flex-direction: column; }
 
-.de-dims { display: flex; gap: 24px; align-items: flex-start; }
+.de-dims { display: flex; gap: 20px; align-items: flex-start; height: 100%; flex: 1 1 auto; }
 .de-dimlist {
   /* Sized by its widest row, not a fixed 200px — the labels alone are wider than that, which
      is what forced them over their inputs. `max-content` on the label track keeps every row
-     on one column edge. FOUR tracks: label, input, DQ marker, unit — the marker needs a track
+     on one column edge. FOUR tracks: label, input, unit, DQ marker — the marker needs a track
      of its own or the row it appears on wraps and stops matching the rows around it. */
   display: grid;
-  grid-template-columns: max-content max-content auto 34px;
+  grid-template-columns: max-content max-content 34px 16px;
   align-items: center;
   /* A tight row pitch: eight fields read as ONE list, as they do in WinISD's own Dimensions
      page. Row spacing lives HERE and nowhere else — a per-field margin on top of it stacked
@@ -1055,8 +1057,8 @@ input.value-n, .de-fld.value-n input, select.value-n { color: var(--mut); }
   flex-shrink: 0;
 }
 .de-note { font-size: 11px; color: var(--mut); font-style: italic; margin-top: 4px; }
-.de-diagram { flex: 1; display: flex; justify-content: center; padding-top: 0; }
-.de-diagram :deep(.dd-dim-svg) { color: var(--fg); }
+.de-diagram { flex: 1 1 auto; display: flex; justify-content: center; align-items: center; min-width: 260px; height: 100%; }
+.de-diagram :deep(.dd-dim-svg) { width: 100%; max-width: 440px; max-height: 350px; height: auto; color: var(--fg); }
 .de-diagram :deep(text) { fill: var(--fg); }
 
 .de-footer { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 14px; border-top: 1px solid var(--line); }
@@ -1131,6 +1133,13 @@ input.value-n, .de-fld.value-n input, select.value-n { color: var(--mut); }
   flex: none !important;
 }
 .de-general .de-fld :deep(input),
+.de-general .de-fld select,
+.de-general input,
+.de-general textarea {
+  background: #ffffff !important;
+  color: #000000 !important;
+}
+.de-general .de-fld :deep(input),
 .de-general .de-fld select {
   width: 110px !important;
 }
@@ -1149,7 +1158,7 @@ input.value-n, .de-fld.value-n input, select.value-n { color: var(--mut); }
    columns of them overran the modal and forced a sideways scroll. */
 .de-cols {
   display: grid !important;
-  grid-template-columns: repeat(4, minmax(0, max-content) minmax(0, max-content) auto 34px) !important;
+  grid-template-columns: repeat(4, max-content max-content 34px 16px) !important;
   gap: 6px 12px !important;
   align-items: center !important;
 }
@@ -1157,18 +1166,26 @@ input.value-n, .de-fld.value-n input, select.value-n { color: var(--mut); }
    slide its unit into the marker's track and break the column it shares. */
 .de-cols .de-fld > label,
 .de-dimlist .de-fld > label { grid-column: 1 !important; }
+
+.de-cols .de-fld > .ui-field-value,
+.de-dimlist .de-fld > .ui-field-value,
 .de-cols .de-fld > :deep(input), .de-cols .de-fld > select,
 .de-dimlist .de-fld > :deep(input), .de-dimlist .de-fld > select { grid-column: 2 !important; }
+
+.de-cols .de-fld > .ui-field-unit,
+.de-dimlist .de-fld > .ui-field-unit,
+.de-cols .de-fld > .u,
+.de-dimlist .de-fld > .u { grid-column: 3 !important; }
+
+.de-cols .de-fld > .ui-field-dq,
+.de-dimlist .de-fld > .ui-field-dq,
 .de-cols .de-fld > .de-dq,
 .de-dimlist .de-fld > .de-dq {
-  grid-column: 3 !important;
-  /* The DQ track sits right against the input with no padding of its own, so the triangle
-     glyph rendered flush on the input's edge. A small left margin only, so it does not also
-     widen the label→input gap the alert-marker column has nothing to do with. */
+  grid-column: 4 !important;
+  /* The DQ track sits right against the input/unit with no padding of its own, so the triangle
+     glyph renders flush on the unit's edge. A small left margin only. */
   margin-left: 4px !important;
 }
-.de-cols .de-fld > .u,
-.de-dimlist .de-fld > .u { grid-column: 4 !important; }
 
 /* Format picker — scoped to the editor, not the page, so it reads as part of the editor. */
 .fmt-scrim {

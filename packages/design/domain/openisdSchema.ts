@@ -545,23 +545,7 @@ const ventedLossesJsonSchema = z.strictObject({
 });
 export type VentedLossesJson = z.infer<typeof ventedLossesJsonSchema>;
 
-const coupledSealedLossesJsonSchema = z.strictObject({
-    Ql: z.number(),
-    Qa: z.number(),
-    Qicl: z.number(),
-});
-export type CoupledSealedLossesJson = z.infer<typeof coupledSealedLossesJsonSchema>;
-
-const coupledVentedLossesJsonSchema = z.strictObject({
-    Ql: z.number(),
-    Qa: z.number(),
-    Qp: z.number(),
-    Qicl: z.number(),
-});
-export type CoupledVentedLossesJson = z.infer<typeof coupledVentedLossesJsonSchema>;
-
-/** A chamber with its own volume and tuning, parameterised by which loss shape it has — bandpass4's
- *  rear (sealed, coupled) and front (vented, coupled) need different shapes from the same box. */
+/** A chamber with its own volume and tuning, parameterised by which loss shape it has. */
 const chamberJsonSchemaOf = <L extends z.ZodType>(losses: L) => z.strictObject({
     // `null`: left blank by the owner — shown with a ⚠, and nothing that needs it is calculated.
     volume_m3: z.number().nullable(),
@@ -571,9 +555,6 @@ const chamberJsonSchemaOf = <L extends z.ZodType>(losses: L) => z.strictObject({
 });
 const ventedChamberJsonSchema = chamberJsonSchemaOf(ventedLossesJsonSchema);
 export type ChamberJson = z.infer<typeof ventedChamberJsonSchema>;
-const coupledSealedChamberJsonSchema = chamberJsonSchemaOf(coupledSealedLossesJsonSchema);
-const coupledVentedChamberJsonSchema = chamberJsonSchemaOf(coupledVentedLossesJsonSchema);
-export type CoupledVentedChamberJson = z.infer<typeof coupledVentedChamberJsonSchema>;
 
 /** The passive-radiator box's own record — its own schema (a PR is a different device), so no
  *  `wdr` and not a driver spec field. */
@@ -615,20 +596,20 @@ const openISDBoxJsonSchema = z.strictObject({
     }),
     vented: z.strictObject({ chamber: ventedChamberJsonSchema, vent: ventJsonSchema }),
     bandpass4: z.strictObject({
-        // rear is sealed but coupled to front through the shared wall — Qicl, no Qp.
-        rear: coupledSealedChamberJsonSchema,
-        // front is vented — Qp, and no Qicl: WinISD's one Qicl is the rear chamber's.
+        rear: chamberJsonSchemaOf(sealedLossesJsonSchema),
         front: ventedChamberJsonSchema,
         frontVent: ventJsonSchema,
+        Qiclfr: z.number(),
     }),
     bandpass6: z.strictObject({
-        rear: coupledVentedChamberJsonSchema,
+        rear: ventedChamberJsonSchema,
         front: ventedChamberJsonSchema,
         rearVent: ventJsonSchema,
         frontVent: ventJsonSchema,
+        Qiclfr: z.number(),
     }),
     abc: z.strictObject({
-        rear: coupledVentedChamberJsonSchema,
+        rear: ventedChamberJsonSchema,
         front: ventedChamberJsonSchema,
         rearVent: ventJsonSchema,
         frontVent: ventJsonSchema,
@@ -636,6 +617,7 @@ const openISDBoxJsonSchema = z.strictObject({
         // for its own loss controls (BUG_20260824) — it stores no losses of its own here, and
         // none should be invented without that evidence.
         intraVent: ventJsonSchema,
+        Qiclfr: z.number(),
     }),
     passiveRadiator: passiveRadiatorJsonSchema,
 });

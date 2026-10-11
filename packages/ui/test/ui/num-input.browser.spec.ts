@@ -102,7 +102,6 @@ test.describe('NumInput', () => {
   });
 
   test('no spinner gains decimal places while spinning (all fields, all box types)', async ({ page }) => {
-    test.setTimeout(120_000); // exhaustive sweep: 4 box types × every tab × 18 key-presses per field
     // Box tab across every box type — exposes the type-specific spinners (vents, PR, chambers)
     // as well as the shared Volume/Signal/Advanced fields. Covers NumInput and v-expo-step at once.
     let checked = 0;

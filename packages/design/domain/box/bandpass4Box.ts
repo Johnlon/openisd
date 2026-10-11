@@ -1,5 +1,5 @@
-import type { Calculatable, Calculated, Clearable, Entered, Precise, Readable, Unsolvable, Writable } from '../cell.js';
-import type { CoupledSealedLosses, VentedLosses } from '../losses.js';
+import type { Calculatable, Calculated, Clearable, Entered, Precise, Readable, SimpleField, Unsolvable, Writable } from '../cell.js';
+import type { SealedLosses, VentedLosses } from '../losses.js';
 import type { Vent } from '../vent.js';
 
 // Chambers and vents (ports) are two SEPARATE, sibling groupings — never one bundled into the
@@ -15,7 +15,7 @@ export interface Bandpass4Box {
             readonly resonance_hz: Readable<number | null> & Calculated;
             /** The rear chamber's system Q, under the same lossless model as `resonance_hz`. */
             readonly q_tc: Readable<number | null> & Calculated;
-            readonly losses: CoupledSealedLosses;
+            readonly losses: SealedLosses;
         };
         /** front = vented; its volume (`Vf`) has a Field readout like every other chamber. */
         readonly front: {
@@ -27,4 +27,5 @@ export interface Bandpass4Box {
     readonly vents: {
         readonly front: Vent;
     };
+    readonly Qiclfr: SimpleField<number>;
 }

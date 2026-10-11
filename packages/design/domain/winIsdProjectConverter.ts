@@ -94,7 +94,7 @@ function boxSectionValues(
       if (frc != null) v.Fr = frc;
       v.Qlr = box.bandpass4.chambers.rear.losses.Ql.value;
       v.Qar = box.bandpass4.chambers.rear.losses.Qa.value;
-      v.Qiclfr = box.bandpass4.chambers.rear.losses.Qicl.value;
+      v.Qiclfr = box.bandpass4.Qiclfr.value;
       v.Qlf = box.bandpass4.chambers.front.losses.Ql.value;
       v.Qaf = box.bandpass4.chambers.front.losses.Qa.value;
       v.Qpf = box.bandpass4.chambers.front.losses.Qp.value;
@@ -125,7 +125,7 @@ function boxSectionValues(
       v.Qlr = box.bandpass6.chambers.rear.losses.Ql.value;
       v.Qar = box.bandpass6.chambers.rear.losses.Qa.value;
       v.Qpr = box.bandpass6.chambers.rear.losses.Qp.value;
-      v.Qiclfr = box.bandpass6.chambers.rear.losses.Qicl.value;
+      v.Qiclfr = box.bandpass6.Qiclfr.value;
       v.Qlf = box.bandpass6.chambers.front.losses.Ql.value;
       v.Qaf = box.bandpass6.chambers.front.losses.Qa.value;
       v.Qpf = box.bandpass6.chambers.front.losses.Qp.value;
@@ -146,7 +146,7 @@ function boxSectionValues(
       v.Qlr = box.abc.chambers.rear.losses.Ql.value;
       v.Qar = box.abc.chambers.rear.losses.Qa.value;
       v.Qpr = box.abc.chambers.rear.losses.Qp.value;
-      v.Qiclfr = box.abc.chambers.rear.losses.Qicl.value;
+      v.Qiclfr = box.abc.Qiclfr.value;
       v.Qlf = box.abc.chambers.front.losses.Ql.value;
       v.Qaf = box.abc.chambers.front.losses.Qa.value;
       v.Qpf = box.abc.chambers.front.losses.Qp.value;
@@ -419,7 +419,7 @@ export class WinIsdProjectConverter {
         const Qar = wpr.number('Box', 'Qar');
         if (Qar != null) rearLosses.Qa.set(Qar);
         const Qiclfr = wpr.number('Box', 'Qiclfr');
-        if (Qiclfr != null) rearLosses.Qicl.set(Qiclfr);
+        if (Qiclfr != null) project.box.bandpass4.Qiclfr.set(Qiclfr);
         const frontLosses = project.box.bandpass4.chambers.front.losses;
         const Qlf = wpr.number('Box', 'Qlf');
         if (Qlf != null) frontLosses.Ql.set(Qlf);
@@ -507,7 +507,7 @@ export class WinIsdProjectConverter {
         const Qlr = wpr.number('Box', 'Qlr'); if (Qlr != null) rearLosses.Ql.set(Qlr);
         const Qar = wpr.number('Box', 'Qar'); if (Qar != null) rearLosses.Qa.set(Qar);
         const Qpr = wpr.number('Box', 'Qpr'); if (Qpr != null) rearLosses.Qp.set(Qpr);
-        const Qiclfr = wpr.number('Box', 'Qiclfr'); if (Qiclfr != null) rearLosses.Qicl.set(Qiclfr);
+        const Qiclfr = wpr.number('Box', 'Qiclfr'); if (Qiclfr != null) project.box.bandpass6.Qiclfr.set(Qiclfr);
         const frontLosses = project.box.bandpass6.chambers.front.losses;
         const Qlf = wpr.number('Box', 'Qlf'); if (Qlf != null) frontLosses.Ql.set(Qlf);
         const Qaf = wpr.number('Box', 'Qaf'); if (Qaf != null) frontLosses.Qa.set(Qaf);
@@ -537,7 +537,7 @@ export class WinIsdProjectConverter {
         const Qlr = wpr.number('Box', 'Qlr'); if (Qlr != null) rearLosses.Ql.set(Qlr);
         const Qar = wpr.number('Box', 'Qar'); if (Qar != null) rearLosses.Qa.set(Qar);
         const Qpr = wpr.number('Box', 'Qpr'); if (Qpr != null) rearLosses.Qp.set(Qpr);
-        const Qiclfr = wpr.number('Box', 'Qiclfr'); if (Qiclfr != null) rearLosses.Qicl.set(Qiclfr);
+        const Qiclfr = wpr.number('Box', 'Qiclfr'); if (Qiclfr != null) project.box.abc.Qiclfr.set(Qiclfr);
         const frontLosses = project.box.abc.chambers.front.losses;
         const Qlf = wpr.number('Box', 'Qlf'); if (Qlf != null) frontLosses.Ql.set(Qlf);
         const Qaf = wpr.number('Box', 'Qaf'); if (Qaf != null) frontLosses.Qa.set(Qaf);

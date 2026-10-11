@@ -19,7 +19,7 @@ import {useUnitReadouts} from '../../../hooks/useUnitReadouts.js';
 const {
   project, selectedBox,
   activeVent, activeTuning, ventPorts, portPipeResonance_hz, fbUnreachable, fbUnreachableMsg, tuningField,
-  prResonanceMassDq, prFsMass_hz, prNaturalFh,
+  prResonanceMassDq, prFsMass_hz,
   prBrowseOpen, loadPREntry, loadBundledPassiveRadiatorEntry, defineNewPREntry,
   prSaveOpen, prSaveFields, prSaveCanSave, openPRSave, cancelPRSave, confirmPRSave,
   VENT_SHAPE_OPTIONS, END_CORRECTION_OPTIONS, VENT_COUNT_OPTIONS, PR_COUNT_OPTIONS,
@@ -121,7 +121,7 @@ const {fieldWithUnit} = useUnitReadouts();
         <span class="mob-field-value"><select id="mob-pr-count" class="mob-select" :value="project.box.passiveRadiator.count.value" @change="e => { const n = selectedOption(e, PR_COUNT_OPTIONS); if (n !== null) project.box.passiveRadiator.count.set(n); }"><option v-for="o in PR_COUNT_OPTIONS" :key="o.value" :value="o.value">{{ o.label }}</option></select></span>
       </div>
     </div>
-    <UIField class="mob-ui-field" :field="NumberField.PR_FP_HZ" :cell="project.box.passiveRadiator.tuning_goal_hz" :max="prNaturalFh ?? undefined" stepper />
+    <UIField class="mob-ui-field" :field="NumberField.PR_FP_HZ" :cell="project.box.passiveRadiator.tuning_goal_hz" stepper />
     <UIField class="mob-ui-field" :field="NumberField.PR_MADD_G" :cell="project.box.passiveRadiator.addedMass_kg" stepper />
     <div class="mob-field-row mob-field-calculated" :class="{ 'mob-field-dq': prResonanceMassDq.dq.length > 0 }" :title="prResonanceMassDq.dq.length > 0 ? prResonanceMassDq.dq.join('; ') : ''">
       <div class="mob-field-main"><span class="mob-field-label">Fpr (with added mass)</span>

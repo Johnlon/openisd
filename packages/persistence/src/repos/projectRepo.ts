@@ -556,7 +556,7 @@ function migrateEntries<T extends { text: string }>(entries: readonly T[]): { en
     },
     listStoredProjects(): StoredProjectListing[] {
       return readStoredEntries().map((entry): StoredProjectListing => {
-        const project = this.readProjectText(entry.text);
+        const project = readRepairing(entry.text, null);
         return Array.isArray(project)
           ? { kind: 'unreadable', id: entry.id, name: 'Unreadable project', modified: entry.modified }
           : { kind: 'readable', id: entry.id, name: project.name.value, modified: entry.modified, summary: ProjectSummary.of(project) };

@@ -186,7 +186,7 @@ test.describe('Open sessions', () => {
 
       await openAProject(page);
 
-      await expect.poll(() => storedSession(page), {timeout: 5000}).not.toBe(UNREADABLE);
+      await expect.poll(() => storedSession(page)).not.toBe(UNREADABLE);
       expect(await storedSession(page)).toContain('entries');
     });
   });

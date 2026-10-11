@@ -178,13 +178,14 @@ test.describe('New Project wizard', () => {
       expect(await focusedPowerDrive_W(page), 'default 1 W reference — not the previous 250').toBe(1);
     });
 
-    test('a wizard-created project draws a chart for every simulatable box type', async ({ page }) => {
-      test.setTimeout(30000);
-      for (const box of ['sealed', 'vented', 'box-passive-radiator', 'bandpass4', 'bandpass6', 'abc']) {
+    // One test per box type: each wizard walk has its own time limit, so a slow machine never
+    // fails the sixth walk for the time the first five took.
+    for (const box of ['sealed', 'vented', 'box-passive-radiator', 'bandpass4', 'bandpass6', 'abc']) {
+      test(`a wizard-created ${box} project draws a chart`, async ({ page }) => {
         await buildProject(page, box);
         await expect.poll(() => curvesSplLength(page)).toBeGreaterThan(0);
-      }
-    });
+      });
+    }
 
     test('wizard-created vented project has a vent diameter and a tuning; the PR project has a radiator', async ({ page }) => {
       await buildProject(page, 'vented');
@@ -201,7 +202,7 @@ test.describe('New Project wizard', () => {
 
       await buildProject(page, 'box-passive-radiator');
       await page.locator('.project-nav li', { hasText: 'Box' }).first().click();
-      await expect.poll(async () => page.locator('#og-box-resonance').inputValue(), { timeout: 8000 })
+      await expect.poll(async () => page.locator('#og-box-resonance').inputValue())
         .not.toBe('');
     });
 
@@ -212,7 +213,7 @@ test.describe('New Project wizard', () => {
       await page.locator('.project-nav li', { hasText: 'Driver' }).click();
 
       // Voice coil resistance TC should default to copper (3.9000 in 1000/K)
-      const tcField = page.locator('.field', { hasText: 'Voice coil resistance TC' });
+      const tcField = page.locator('.field', { hasText: 'AlfaVC' });
       const tc = tcField.locator('input');
       await expect(tc).toHaveValue('3.9000');
     });
@@ -222,7 +223,7 @@ test.describe('New Project wizard', () => {
       await page.locator('#og-box-type').selectOption('sealed');
 
       const qtc = page.locator('.box-layout .field', { hasText: 'Qtc' }).locator('input');
-      await expect.poll(() => qtc.inputValue(), { timeout: 8000 }).not.toBe('');
+      await expect.poll(() => qtc.inputValue()).not.toBe('');
       expect(Math.abs(parseFloat(await qtc.inputValue()) - 0.707)).toBeLessThan(0.1);
 
       const volVal = parseFloat(await page.locator('.box-layout .field', { hasText: 'Volume' }).locator('input').inputValue());

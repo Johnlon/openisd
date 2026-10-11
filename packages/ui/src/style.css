@@ -185,7 +185,7 @@ a { color:var(--acc) }
   border-left: 3px solid transparent; border-top: 1px solid var(--line);
 }
 .mob-ui-field.ui-field > label { grid-column: 1 / -1; font-size: 13px; color: var(--mut); white-space: normal; }
-.mob-ui-field.ui-field .ui-field-value { grid-column: 1; display: flex; gap: 6px; min-width: 0; }
+.mob-ui-field.ui-field .ui-field-value { grid-column: 1; display: flex; gap: 6px; width: auto; min-width: 0; }
 .mob-ui-field.ui-field .ui-field-dq { grid-column: 2; }
 .mob-ui-field.ui-field .ui-field-unit { grid-column: 3; width: 30px; font-size: 13px; }
 .mob-ui-field.ui-field .ui-field-value input {

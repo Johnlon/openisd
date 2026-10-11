@@ -310,7 +310,7 @@ test.describe('Driver browser', () => {
       console.log('CHIPS COUNT:', count);
       const firstVisible = await chips.first().isVisible();
       console.log('FIRST VISIBLE?', firstVisible);
-      await expect(chips.first(), 'no chips rendered in the picker').toBeVisible({ timeout: 1000 });
+      await expect(chips.first(), 'no chips rendered in the picker').toBeVisible();
       const labels = await chips.allTextContents();
       expect(labels.map(s => s.trim())).toEqual(Chip.ALL.map(c => c.label));
     });
@@ -638,7 +638,7 @@ test.describe('Driver browser', () => {
       await page.locator('.my-ditem b', { hasText: PICKED }).click();
       // A row click summarises; "Use" is what chooses.
       const use = page.locator('.use-btn');
-      await use.waitFor({ state: 'visible', timeout: 3000 }).catch(() => {});
+      await use.waitFor({ state: 'visible' }).catch(() => {});
       if (await use.isVisible()) await use.click();
     }
 

@@ -7,8 +7,12 @@
   "private": true,
   "dependencies": {
     "@fontsource/inter": "^5.2.8",
+    "@openisd/design": "*",
     "@openisd/persistence": "*",
-    "vue": "^3.5.38",
-    "@openisd/design": "*"
+    "vue": "^3.5.38"
+  },
+  "devDependencies": {
+    "@vue/test-utils": "^2.5.1",
+    "jsdom": "^30.1.2"
   }
 }

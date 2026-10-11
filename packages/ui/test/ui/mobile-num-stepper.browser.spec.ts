@@ -74,7 +74,7 @@ test('a long hold on ▲ takes 10 % steps and lands on a round value when releas
   expect(box).not.toBeNull();
   await page.mouse.move(box!.x + box!.width / 2, box!.y + box!.height / 2);
   await page.mouse.down();
-  await expect.poll(async () => Number(await input.inputValue()), { timeout: 8000 }).toBeGreaterThan(start * 1.3);
+  await expect.poll(async () => Number(await input.inputValue())).toBeGreaterThan(start * 1.3);
   await page.mouse.up();
 
   const end = Number(await input.inputValue());
@@ -122,7 +122,7 @@ test('holding the button repeats the step, not just one click\'s worth of moveme
   // Poll (not a fixed sleep) until the hold has clearly moved the value past one step's worth —
   // proof the repeat fired again, not just the initial press — within a generous budget past
   // the 450ms initial delay plus a few 80ms repeats (NumInput.vue's startRepeat).
-  await expect.poll(async () => Number(await input.inputValue()), { timeout: 2000 })
+  await expect.poll(async () => Number(await input.inputValue()))
     .toBeGreaterThan(afterOneClick + oneStep);
   await page.mouse.up();
 });

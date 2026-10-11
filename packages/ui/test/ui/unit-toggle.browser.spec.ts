@@ -107,9 +107,9 @@ test.describe('Unit toggle', () => {
     expect(parseFloat(await rise.inputValue())).toBeCloseTo(72, 3); // 40 K rise = 72 °F rise
 
     // Voice coil resistance TC: 1000/K → %/K → 1/K.
-    const tcField = page.locator('.field', { hasText: 'Voice coil resistance TC' });
+    const tcField = page.locator('.field', { hasText: 'AlfaVC' });
     const tc = tcField.locator('input');
-    const tcUnit = tcField.locator('.unit');
+    const tcUnit = tcField.locator('.ui-field-unit');
     await expect(tcUnit).toHaveText('1000/K');
     await expect(tc).toHaveValue('3.9000');
     await tcUnit.click();                         // 1000/K → %/K

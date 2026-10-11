@@ -7,5 +7,7 @@ defineProps<UIFieldCommon & {cell: ClearableUICell}>();
 </script>
 
 <template>
-  <UIFieldBody v-bind="$props" :binding="{kind: 'clearable', cell}" />
+  <UIFieldBody v-bind="$props" :binding="{kind: 'clearable', cell}">
+    <template v-for="(_, name) in $slots" #[name]="slotData"><slot :name="name" v-bind="slotData" /></template>
+  </UIFieldBody>
 </template>

@@ -154,7 +154,7 @@ function boxSpecificParamsOf(source: ProjectSweepSource, boxType: SimulatableBox
             // `SweepParams.Qlr` doc, bugs/archive/BUG_20260927_bandpass4-box-not-winisd-form.md).
             return {
                 Vf: front.volume_m3.value ?? undefined, Sp: Sp ?? undefined, Leff: Leff ?? undefined,
-                Qlr: rear.Ql.value, Qar: rear.Qa.value, Qiclfr: rear.Qicl.value,
+                Qlr: rear.Ql.value, Qar: rear.Qa.value, Qiclfr: box.bandpass4.Qiclfr.value,
                 Qlf: front.losses.Ql.value, Qaf: front.losses.Qa.value, Qpf: front.losses.Qp.value,
                 Ff: front.tuning_goal_hz.value ?? undefined,
                 portEndCorrection_m: box.bandpass4.vents.front.endCorrectionLength_m() ?? undefined,
@@ -188,7 +188,7 @@ function boxSpecificParamsOf(source: ProjectSweepSource, boxType: SimulatableBox
             return {
                 Vf: front.volume_m3.value ?? undefined, Sp: Sp ?? undefined, Spr: Spr ?? undefined,
                 Qlr: rear.losses.Ql.value, Qar: rear.losses.Qa.value, Qpr: rear.losses.Qp.value,
-                Qiclfr: rear.losses.Qicl.value,
+                Qiclfr: box.bandpass6.Qiclfr.value,
                 Qlf: front.losses.Ql.value, Qaf: front.losses.Qa.value, Qpf: front.losses.Qp.value,
                 Fr: rear.tuning_goal_hz.value ?? undefined, Ff: front.tuning_goal_hz.value ?? undefined,
                 ...ends,
@@ -205,7 +205,7 @@ function boxSpecificParamsOf(source: ProjectSweepSource, boxType: SimulatableBox
             return {
                 Vf: front.volume_m3.value ?? undefined, Sp: Sp ?? undefined, Spr: Spr ?? undefined,
                 Qlr: rear.losses.Ql.value, Qar: rear.losses.Qa.value, Qpr: rear.losses.Qp.value,
-                Qiclfr: rear.losses.Qicl.value,
+                Qiclfr: box.abc.Qiclfr.value,
                 Qlf: front.losses.Ql.value, Qaf: front.losses.Qa.value, Qpf: front.losses.Qp.value,
                 Fr: rear.tuning_goal_hz.value ?? undefined, Ff: front.tuning_goal_hz.value ?? undefined,
                 SpIntra: SpIntra ?? undefined, LeffIntra: LeffIntra ?? undefined,
