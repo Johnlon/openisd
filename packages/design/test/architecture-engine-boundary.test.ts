@@ -93,6 +93,9 @@ describe('the engine is reachable only through its door', () => {
     const offences: string[] = [];
 
     for (const file of sourceFiles()) {
+      // A unit test imports the file it tests, never a barrel (QO179, John 2026-10-11: "they
+      // should import the file they test"). The door rule is for production code.
+      if (/\/test\/|\.test\.|\.spec\./.test(path.relative(repoRoot, file))) continue;
       // A file INSIDE the engine may import its siblings — that is the implementation talking
       // to itself, which the door exists to hide, not to prevent.
       if (file.startsWith(engineDir + path.sep)) continue;
