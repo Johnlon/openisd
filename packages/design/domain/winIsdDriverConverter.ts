@@ -423,11 +423,13 @@ function rejectedReadingCommentLines(driver: OpenISDDriver): string[] {
         if (diff !== 0) return diff;
         return a.localeCompare(b);
       });
-      const bestRole = roles[0];
-      const winner = bestRole ? readings[bestRole] : undefined;
-      const text = winner?.actual_reading ?? (winner && "rejected" in winner ? String(winner.rejected) : "");
-      if (text) {
-        lines.push(`${field}: ${text}`);
+      for (const role of roles) {
+        const r = readings[role];
+        if (!r) continue;
+        const reason = !isUsable(r) ? r.rejected : `impossible for ${field}`;
+        const textOrValue = r.actual_reading ?? (isUsable(r) || "read_value" in r ? String(r.read_value) : "");
+        const printedPart = textOrValue ? ` ${textOrValue}` : "";
+        lines.push(`${field}: ${role}${printedPart} — ${reason}`);
       }
     }
   }

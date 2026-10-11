@@ -1,18 +1,31 @@
 /**
- * D9 — which source's reading becomes a spec entry's `origin`, ported verbatim from
- * `winisd_tools/scrapers/scrapers/lib/crosscheck.py`'s winner-selection block (lines 258–296).
+ * D9 — which source's reading becomes a spec entry's `origin`.
  *
- * Three tiers, in rank order. TIER 1 drops a rejected reading and one physically impossible for
- * the field (D5's own band, reached only through the `isPlausible` collaborator — nothing
- * outside `Engine` may know that table, `test/architecture-engine-boundary.test.ts`). Every
- * survivor disqualified there falls back to "every non-rejected reading", then to "every reading
- * at all": rank cannot restore a value physics rules out, but some origin must still be named.
- * TIER 2 is a STRICT majority on `read_value` among the survivors — two independent readers
- * agreeing outranks any one document's authority; a tied count proves nothing and falls through.
- * TIER 3 is source rank (D10), tie-broken alphabetically on role name.
+ * Four tiers, in rank order (John, 2026-08-30 + 2026-10-11):
+ * (1) IMPOSSIBLE or REJECTED readings are dropped first (impossible = not isPlausible for the
+ *     field; Rejected = a rejected reading from T017, including text-only ones).
+ * (2) Among the survivors, a STRICT majority (more than half of the survivors, not just the
+ *     biggest group) on the value wins; 2/1/1 is NOT a majority and falls to (3).
+ * (3) Otherwise source rank (sourceRank.ts), ties alphabetical on role name.
+ * (4) When every reading is impossible or rejected, NO reading wins: selectOrigin returns no
+ *     winner (`{kind: 'none'}`).
+ *
+ * Worked examples:
+ * - 2/1/1: Four surviving readings — manufacturer_product_page states 41, distributor_datasheet
+ *   states 41, distributor_product_page states 42, manual states 43. The count for 41 is 2 out of
+ *   4 (50%), which is not strictly more than half (> 2), so 2/1/1 is not a strict majority and
+ *   falls through to step (3) (source rank), where manufacturer_product_page wins.
+ * - All-rejected: Two readings — distributor_datasheet has actual_reading 'N/A' (rejected:
+ *   'no-numeric-value'), manufacturer_datasheet has actual_reading 'banana' (rejected:
+ *   'no-numeric-value'). Both are rejected, leaving zero survivors, so step (4) applies and
+ *   selectOrigin returns `{kind: 'none'}`.
  */
 import {isUsable, type Reading} from './corroboration.js';
 import {sourceRank} from './sourceRank.js';
+
+export type OriginResult =
+  | { readonly kind: 'winner'; readonly role: string }
+  | { readonly kind: 'none' };
 
 type RoleReading = readonly [string, Reading];
 
@@ -29,37 +42,29 @@ export function selectOrigin(
   readings: Readonly<Record<string, Reading>>,
   field: string,
   isPlausible: (field: string, value: number) => boolean,
-): string {
+): OriginResult {
   const ranked = Object.entries(readings).sort(byRankThenRole);
 
-  let candidates = ranked.filter(
+  const survivors = ranked.filter(
     ([, r]) => isUsable(r) && isPlausible(field, r.read_value)
   );
-  if (candidates.length === 0) {
-    candidates = ranked.filter(([, r]) => isUsable(r));
-  }
-  if (candidates.length === 0) {
-    candidates = ranked;
+
+  if (survivors.length === 0) {
+    return { kind: 'none' };
   }
 
   const counts = new Map<number, number>();
-  for (const [, r] of candidates) {
+  for (const [, r] of survivors) {
     if (isUsable(r)) counts.set(r.read_value, (counts.get(r.read_value) ?? 0) + 1);
   }
-  const tallied = [...counts.entries()];
-  const bestCount = Math.max(...tallied.map(([, n]) => n));
-  const mostAgreedOn = tallied.filter(([, n]) => n === bestCount);
 
-  if (bestCount > 1 && mostAgreedOn.length === 1) {
-    const [[bestValue]] = mostAgreedOn;
-    // `candidates` is rank-sorted, so the first matching role is also the most authoritative one
-    // among the (possibly several) sources that share the winning value. `bestValue` came FROM
-    // `candidates`, so a match always exists — falling through to tier 3 is what the compiler
-    // gets instead of an assertion it cannot check.
-    const agreed = candidates.find(([, r]) => isUsable(r) && r.read_value === bestValue);
-    if (agreed) return agreed[0];
+  const majorityThreshold = survivors.length / 2;
+  for (const [val, count] of counts.entries()) {
+    if (count > majorityThreshold) {
+      const agreed = survivors.find(([, r]) => isUsable(r) && r.read_value === val);
+      if (agreed) return { kind: 'winner', role: agreed[0] };
+    }
   }
-  // TIER 3 — candidates is already rank-sorted, so the first entry is the most authoritative
-  // surviving source.
-  return candidates[0][0];
+
+  return { kind: 'winner', role: survivors[0][0] };
 }
