@@ -445,6 +445,7 @@ test.describe('Options dialog', () => {
         let alertSeen = false;
         let reloaded = false;
         page.on('dialog', async (dialog) => {
+          // The in-app dialog is used instead of native confirm
           if (dialog.type() === 'confirm') { confirmSeen = true; confirmText = dialog.message(); await dialog.accept(); return; }
           alertSeen = true;
           await dialog.accept();
@@ -459,6 +460,11 @@ test.describe('Options dialog', () => {
         await legend.locator('button', { hasText: 'Restore from file' }).click();
         const chooser = await fileChooserPromise;
         await chooser.setFiles({ name: 'openisd-backup-test.json', mimeType: 'application/json', buffer: Buffer.from(backupJson) });
+
+        // Click the in-app confirm dialog's Restore button
+        await expect(page.locator('.confirm-overlay')).toBeVisible();
+        await page.locator('.confirm-dialog-confirm').click();
+        await expect(page.locator('.confirm-overlay')).toHaveCount(0);
 
         await expect.poll(() => reloaded).toBe(true);
         expect(confirmSeen).toBe(true);
@@ -481,6 +487,11 @@ test.describe('Options dialog', () => {
         await legend.locator('button', { hasText: 'Restore from file' }).click();
         const chooser = await fileChooserPromise;
         await chooser.setFiles({ name: 'not-a-backup.json', mimeType: 'application/json', buffer: Buffer.from('{"nope":true}') });
+
+        // Click the in-app confirm dialog's Restore button
+        await expect(page.locator('.confirm-overlay')).toBeVisible();
+        await page.locator('.confirm-dialog-confirm').click();
+        await expect(page.locator('.confirm-overlay')).toHaveCount(0);
 
         await expect.poll(() => sawInvalidAlert).toBe(true);
         // The dialog is still open — a failed restore did not navigate away.

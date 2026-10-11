@@ -174,7 +174,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   // sourced from `appState.ts`'s own focus-aware `live` bridge.
   const project = useFocusedProject();
 
-  const { engine, designIO, selection, myPassiveRadiators, bundledPassiveRadiators } = useApp();
+  const { engine, designIO, selection, myPassiveRadiators, bundledPassiveRadiators, confirmPort } = useApp();
   const { saveProject, saveAllProjects, importFile } = designIO;
   // The Info menu's "About OpenISD" opens the splash — the one place that text lives.
   const { show: about } = injectSplashModal();
@@ -251,7 +251,12 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   const { frontVolumeCell, rearTuningCell } = createChamberFields({ project, selectedBox, projectChanged });
   const { lossesOpen, openLossGroups, resetBoxLosses } = createBoxLosses({ project, selectedBox, projectChanged, focusedProject });
   async function confirmDiscard(): Promise<boolean> {
-    return globalThis.confirm('Discard all unsaved changes and return to the last saved version?');
+    return confirmPort.port.ask({
+      title: 'Discard changes?',
+      message: 'Discard all unsaved changes and return to the last saved version?',
+      confirmLabel: 'Discard',
+      cancelLabel: 'Keep',
+    });
   }
   // Delegated to the unit-tested `createVentReadouts` above — needs `advAir`, so the call sits
   // just after `createEnvironmentAir` below, but the destructured names read the same everywhere

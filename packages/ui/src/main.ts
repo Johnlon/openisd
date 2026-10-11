@@ -27,6 +27,7 @@ import {createDriverBrowsingState} from './logic/driverBrowsingState.js';
 import {createApplicationIO} from './logic/applicationIO.js';
 import {DesignFiles} from './logic/fileImportExport.js';
 import {DriverDrafts} from './logic/driverDraft.js';
+import {createConfirmPort} from './logic/confirmPort.js';
 import {provideApp} from './logic/app.js';
 import {appContext, engine, installAppSettings, NoFocusedProjectError} from './logic/appState.js';
 import {createDevVersionPort, createAppVersionPort, type HotUpdateSource} from './logic/appVersion.js';
@@ -104,13 +105,14 @@ const selection = createDriverSelection();
 const projectRepo = createProjectRepo(engine, fileStorage, storage, window.location.origin, report => faultLog.recordRepair(report));
 const designFiles = new DesignFiles(engine, projectRepo);
 const driverDrafts = new DriverDrafts(engine, appContext);
+const confirmPort = createConfirmPort();
 const driverBrowsing = createDriverBrowsingState({
   driverRepo, myDriverRepo, prefs, logging, selection, files: designFiles,
-  confirmReset: (question) => confirm(question),
+  confirmReset: confirmPort.port,
 });
 const viewStateRepo = createViewStateRepo(storage);
 const backup = createBackupRepo(storage);
-const designIO = createApplicationIO({ engine, logging, fileStorage, fileOpen: createFileOpen(), projectRepo, files: designFiles, backup });
+const designIO = createApplicationIO({ engine, logging, fileStorage, fileOpen: createFileOpen(), projectRepo, files: designFiles, backup, confirmPort: confirmPort.port });
 
 // sessionStorage wrapper for release watch (survives page reload, not browser restart)
 const releaseSessionStorage: SessionStorageLike = {
@@ -174,6 +176,7 @@ provideApp(app, {
   engine, logging, driverBrowsing, selection, designIO, designFiles, driverDrafts, myPassiveRadiators, prefs,
   bundledPassiveRadiators: bundledPRs, bundledDrivers: driverRepo, myDrivers: myDriverRepo,
   driverFileStorage, faultLog, projectRepo, viewStateRepo, releases, appVersion,
+  confirmPort,
 });
 
 // Visibility only, not a recovery mechanism (PROMPT_RELEASE_HARDENING plan): a

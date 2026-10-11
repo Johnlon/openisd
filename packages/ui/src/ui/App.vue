@@ -11,6 +11,7 @@ import Flash from './components/Flash.vue';
 import DiagnosticsModal from './components/DiagnosticsModal.vue';
 import SplashModal from './components/SplashModal.vue';
 import WinisdDifferencesModal from './components/WinisdDifferencesModal.vue';
+import ConfirmDialog from './components/ConfirmDialog.vue';
 import {
   applyState,
   currentViewSnapshot,
@@ -30,7 +31,8 @@ import {provideWinisdDifferencesModal} from '../hooks/WinisdDifferencesModal-hoo
 import {provideDiagnosticsModal} from '../hooks/DiagnosticsModal-hooks.js';
 import {createViewportWatch} from '../logic/viewport.js';
 
-const { projectRepo, viewStateRepo, logging, selection, bundledDrivers, bundledPassiveRadiators } = useApp();
+const { projectRepo, viewStateRepo, logging, selection, bundledDrivers, bundledPassiveRadiators, confirmPort } = useApp();
+const { state: confirmState } = confirmPort;
 
 // The automatic half of the skin switch. Read `matchMedia` SYNCHRONOUSLY here — before this
 // component's first render — so a phone loads straight into the mobile shell with no
@@ -143,6 +145,8 @@ onUnmounted(() => {
     <SplashModal />
     <!-- Help → "OpenISD and WinISD differences"; also opened by the group headings and ≠W cues. -->
     <WinisdDifferencesModal />
+    <!-- In-app confirm dialog, hosted once for both skins. -->
+    <ConfirmDialog :state="confirmState" />
   </div>
 </template>
 

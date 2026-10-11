@@ -27,6 +27,7 @@ import {createDriverBrowsingState} from '../../src/logic/driverBrowsingState.js'
 import {createApplicationIO} from '../../src/logic/applicationIO.js';
 import {DesignFiles} from '../../src/logic/fileImportExport.js';
 import {DriverDrafts} from '../../src/logic/driverDraft.js';
+import {createConfirmPort, type ConfirmPort} from '../../src/logic/confirmPort.js';
 import {appContext} from '../../src/logic/appState.js';
 import type {AppLogic} from '../../src/logic/app.js';
 import {ReleaseWatch} from '../../src/logic/releaseWatch.js';
@@ -37,6 +38,11 @@ const unusedFetch: typeof fetch = () => Promise.reject(new Error('fetch not used
 const testLocalTime = (epochMs: number) => {
   const d = new Date(epochMs);
   return { monthIndex: d.getMonth(), day: d.getDate(), hour: d.getHours(), minute: d.getMinutes() };
+};
+
+// Fake confirm port for tests — always confirms
+const fakeConfirmPort: ConfirmPort = {
+  ask: async () => true,
 };
 
 export function testAppLogic(overrides: Partial<AppLogic> = {}): AppLogic {
@@ -61,13 +67,14 @@ export function testAppLogic(overrides: Partial<AppLogic> = {}): AppLogic {
   const projectRepo = createProjectRepo(engine, fileStorage, storage, 'http://localhost');
   const designFiles = new DesignFiles(engine, projectRepo);
   const driverDrafts = new DriverDrafts(engine, appContext);
+  const confirmPort = createConfirmPort();
   const driverBrowsing = createDriverBrowsingState({
     driverRepo, myDriverRepo, prefs, logging, selection, files: designFiles,
-    confirmReset: () => true,
+    confirmReset: fakeConfirmPort,
   });
   const viewStateRepo = createViewStateRepo(storage);
   const backup = createBackupRepo(storage);
-  const designIO = createApplicationIO({ engine,  logging, fileStorage, fileOpen: createFileOpen(), projectRepo, files: designFiles, backup });
+  const designIO = createApplicationIO({ engine,  logging, fileStorage, fileOpen: createFileOpen(), projectRepo, files: designFiles, backup, confirmPort: fakeConfirmPort });
 
   const base: AppLogic = {
     engine, logging, driverBrowsing, selection, designIO, designFiles, driverDrafts,
@@ -82,6 +89,7 @@ export function testAppLogic(overrides: Partial<AppLogic> = {}): AppLogic {
       recordDismissedVersion: () => {},
     }, { log: () => {} }),
     appVersion: createAppVersionPort(false, '', null, testLocalTime),
+    confirmPort,
   };
   return Object.assign({}, base, overrides);
 }

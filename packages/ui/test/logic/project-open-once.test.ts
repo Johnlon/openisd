@@ -14,6 +14,7 @@ import {readFileSync} from 'node:fs';
 import {createLogging} from '../../src/logging/flash.js';
 import {createApplicationIO, type DesignIO} from '../../src/logic/applicationIO.js';
 import {DesignFiles} from '../../src/logic/fileImportExport.js';
+import type {ConfirmPort} from '../../src/logic/confirmPort.js';
 import {
   createBackupRepo,
   createFileOpen,
@@ -53,6 +54,7 @@ beforeEach(() => {
 
 function ioOver(storage = createMemoryStorage()): { io: DesignIO; repo: ProjectRepo } {
   const repo = createProjectRepo(engine, createFileStorage(), storage, 'http://localhost');
+  const fakeConfirmPort: ConfirmPort = { ask: async () => true };
   const io = createApplicationIO({ engine, 
     logging: createLogging(),
     fileStorage: createFileStorage(),
@@ -60,6 +62,7 @@ function ioOver(storage = createMemoryStorage()): { io: DesignIO; repo: ProjectR
     projectRepo: repo,
     files: new DesignFiles(engine, repo),
     backup: createBackupRepo(createMemoryStorage()),
+    confirmPort: fakeConfirmPort,
   });
   return { io, repo };
 }

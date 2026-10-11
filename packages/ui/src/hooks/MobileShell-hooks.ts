@@ -118,7 +118,7 @@ export interface OpenProjectRow {
 }
 
 export function useMobileShell(): MobileShellApi {
-  const { designIO, projectRepo, releases, appVersion } = useApp();
+  const { designIO, projectRepo, releases, appVersion, confirmPort } = useApp();
   const { saveProject, saveAllProjects } = designIO;
   const { show: about } = injectSplashModal();
   const projectOpen = computed(() => focusedProject() != null);
@@ -215,14 +215,27 @@ export function useMobileShell(): MobileShellApi {
     setTraceVisible(row.project, visible);
   }
   function cycleOpenProjectColour(row: OpenProjectRow): void { cycleTraceColor(row.project); }
-  function closeOpenProject(row: OpenProjectRow): void {
-    if (row.unsaved && !globalThis.confirm(`"${row.name}" has unsaved changes. Close it without saving?`)) return;
+  async function closeOpenProject(row: OpenProjectRow): Promise<void> {
+    if (row.unsaved) {
+      const confirmed = await confirmPort.port.ask({
+        title: 'Close project?',
+        message: `"${row.name}" has unsaved changes. Close it without saving?`,
+        confirmLabel: 'Close',
+        cancelLabel: 'Cancel',
+      });
+      if (!confirmed) return;
+    }
     const index = openProjects().indexOf(row.project);
     if (index >= 0) removeProject(index);
   }
 
   async function confirmDiscard(): Promise<boolean> {
-    return globalThis.confirm('Discard all unsaved changes and return to the last saved version?');
+    return confirmPort.port.ask({
+      title: 'Discard changes?',
+      message: 'Discard all unsaved changes and return to the last saved version?',
+      confirmLabel: 'Discard',
+      cancelLabel: 'Keep',
+    });
   }
   function revertProject(): void {
     if (isModified.value) resetProjectToGround(confirmDiscard);
