@@ -29,7 +29,7 @@ function cellOf(field: NumSpecField): Readable<number | null> & Entered & Calcul
   return fieldOf(field);
 }
 
-const { selection, myDrivers, logging, driverFileStorage, designFiles, driverDrafts } = useApp();
+const { selection, myDrivers, logging, driverFileStorage, designFiles, driverDrafts, confirmPort } = useApp();
 
 // Driver editor — a modal. Recreates WinISD's "Driver editor" dialog (docs/winisd_screenshots/edit_driver_pg*.png):
 // 4 tabs — General / Parameters / Advanced / Dimension
@@ -503,7 +503,7 @@ function triggerLoad() {
   fileInput.value?.click();
 }
 
-function handleFileLoaded(e: Event) {
+async function handleFileLoaded(e: Event) {
   const input = inputFrom(e);
   if (input === null) return;
   const file = input.files?.[0];
@@ -513,7 +513,12 @@ function handleFileLoaded(e: Event) {
   input.value = '';   // so re-picking the SAME file fires `change` again
   if (format === null) { logging.flash(`Could not import ${file.name}: not a driver file (expected ${DriverFileFormat.ACCEPT})`); return; }
   if (format === DriverFileFormat.Wdr) {
-    const ok = confirm("Warning: Importing a legacy WinISD (.wdr) file will trigger parameter derivations that may overwrite or change some parameters. For exact loading, OpenISD (.owdr) format is recommended.\n\nDo you want to continue?");
+    const ok = await confirmPort.port.ask({
+      title: 'Legacy driver import',
+      message: 'Warning: Importing a legacy WinISD (.wdr) file will trigger parameter derivations that may overwrite or change some parameters. For exact loading, OpenISD (.owdr) format is recommended.\n\nDo you want to continue?',
+      confirmLabel: 'Continue',
+      cancelLabel: 'Cancel',
+    });
     if (!ok) return;
   }
 

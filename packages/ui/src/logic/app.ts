@@ -4,6 +4,7 @@ import type {DriverSelection} from './driverSelection.js';
 import type {DesignIO} from './applicationIO.js';
 import type {DesignFiles} from './fileImportExport.js';
 import type {DriverDrafts} from './driverDraft.js';
+import type {ConfirmPort, ConfirmDialogState} from './confirmPort.js';
 import type {
     BundledDriverRepo,
     BundledPassiveRadiatorRepo,
@@ -53,6 +54,7 @@ export interface AppLogic {
   viewStateRepo: ViewStateRepo;
   faultLog: FaultLog;
   releases: ReleaseWatch;
+  confirmPort: { port: ConfirmPort; state: ConfirmDialogState };
 }
 
 export const APP_LOGIC: InjectionKey<AppLogic> = Symbol('openisd.app');

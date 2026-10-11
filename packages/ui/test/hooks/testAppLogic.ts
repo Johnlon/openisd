@@ -27,12 +27,18 @@ import {createDriverBrowsingState} from '../../src/logic/driverBrowsingState.js'
 import {createApplicationIO} from '../../src/logic/applicationIO.js';
 import {DesignFiles} from '../../src/logic/fileImportExport.js';
 import {DriverDrafts} from '../../src/logic/driverDraft.js';
+import {createConfirmPort, type ConfirmPort} from '../../src/logic/confirmPort.js';
 import {appContext} from '../../src/logic/appState.js';
 import type {AppLogic} from '../../src/logic/app.js';
 import {ReleaseWatch} from '../../src/logic/releaseWatch.js';
 
 const CATALOGUE_MAX_AGE_MS = 60 * 60 * 1000;
 const unusedFetch: typeof fetch = () => Promise.reject(new Error('fetch not used in this test'));
+
+// Fake confirm port for tests — always confirms
+const fakeConfirmPort: ConfirmPort = {
+  ask: async () => true,
+};
 
 export function testAppLogic(overrides: Partial<AppLogic> = {}): AppLogic {
   const engine = createEngine();
@@ -56,19 +62,21 @@ export function testAppLogic(overrides: Partial<AppLogic> = {}): AppLogic {
   const projectRepo = createProjectRepo(engine, fileStorage, storage, 'http://localhost');
   const designFiles = new DesignFiles(engine, projectRepo);
   const driverDrafts = new DriverDrafts(engine, appContext);
+  const confirmPort = createConfirmPort();
   const driverBrowsing = createDriverBrowsingState({
     driverRepo, myDriverRepo, prefs, logging, selection, files: designFiles,
-    confirmReset: () => true,
+    confirmReset: fakeConfirmPort,
   });
   const viewStateRepo = createViewStateRepo(storage);
   const backup = createBackupRepo(storage);
-  const designIO = createApplicationIO({ engine,  logging, fileStorage, fileOpen: createFileOpen(), projectRepo, files: designFiles, backup });
+  const designIO = createApplicationIO({ engine,  logging, fileStorage, fileOpen: createFileOpen(), projectRepo, files: designFiles, backup, confirmPort: fakeConfirmPort });
 
   const base: AppLogic = {
     engine, logging, driverBrowsing, selection, designIO, designFiles, driverDrafts,
     myPassiveRadiators, prefs, bundledPassiveRadiators, bundledDrivers: driverRepo, myDrivers: myDriverRepo,
     driverFileStorage, faultLog, projectRepo, viewStateRepo,
     releases: new ReleaseWatch('', { latestVersion: () => Promise.resolve(null), reloadOntoLatest: () => Promise.resolve() }),
+    confirmPort,
   };
   return Object.assign({}, base, overrides);
 }

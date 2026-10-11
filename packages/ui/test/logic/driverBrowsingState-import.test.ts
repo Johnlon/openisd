@@ -17,6 +17,7 @@ import {createDriverSelection} from '../../src/logic/driverSelection.js';
 import {createDriverBrowsingState} from '../../src/logic/driverBrowsingState.js';
 import {DesignFiles, driverToWdrBytes} from '../../src/logic/fileImportExport.js';
 import {ProjectFileFormat} from '../../src/fileFormat.js';
+import type {ConfirmPort} from '../../src/logic/confirmPort.js';
 
 /** John, 2026-10-05: a driver file loaded into My Drivers says so, naming the driver; one that
  *  cannot be loaded says why, naming the file. */
@@ -28,6 +29,8 @@ describe('My Drivers Load File flashes what it did', () => {
 
   afterEach(() => { vi.unstubAllGlobals(); });
 
+  const fakeConfirmPort: ConfirmPort = { ask: async () => true };
+
   function setUp() {
     const engine = createEngine();
     const storage = createMemoryStorage();
@@ -38,7 +41,7 @@ describe('My Drivers Load File flashes what it did', () => {
         fetch: () => Promise.reject(new Error('fetch not used')), baseUrl: '/', engine, maxAge_ms: 1, now: Date.now,
       }),
       myDriverRepo: createMyDriverRepo(storage, engine), prefs: createPrefsRepo(storage), logging,
-      selection: createDriverSelection(), files, confirmReset: () => true,
+      selection: createDriverSelection(), files, confirmReset: fakeConfirmPort,
     });
     vi.stubGlobal('HTMLInputElement', FakeInput);
     vi.stubGlobal('FileReader', class {

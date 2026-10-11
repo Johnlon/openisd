@@ -6,6 +6,7 @@ import {readDriverFileText} from './driverFileText.js';
 import {DriverFileFormat, sniff} from '../fileFormat.js';
 import {DriverScope} from '../driverScope.js';
 import type {Logging} from '../logging/flash.js';
+import type {ConfirmPort} from './confirmPort.js';
 import type {
     BrokenEntry,
     BundledDriverIndexRow,
@@ -143,7 +144,7 @@ export interface DriverBrowsingState {
   editOverviewDriver(d: OpenISDDriver): Promise<{ ok: boolean; error?: string }>;
   reloadMyDrivers(): void;
   deleteMyDriver(uuid: string): void;
-  clearMyDrivers(): void;
+  clearMyDrivers(): Promise<void>;
   previewDriver: Ref<OpenISDDriver | null>;
   previewData: ComputedRef<PreviewVM | null>;
   /** Preview a domain object — a My Drivers row — or clear the preview with null. */
@@ -169,8 +170,8 @@ export interface DriverBrowsingStateDeps {
   logging: Logging;
   selection: DriverSelection;
   files: DesignFiles;
-  /** Asks the user to confirm a destructive action. The browser's `confirm` in the app. */
-  confirmReset: (question: string) => boolean;
+  /** Asks the user to confirm a destructive action. The injected confirm port. */
+  confirmReset: ConfirmPort;
 }
 
 export function createDriverBrowsingState(deps: DriverBrowsingStateDeps): DriverBrowsingState {
@@ -353,8 +354,14 @@ export function createDriverBrowsingState(deps: DriverBrowsingStateDeps): Driver
   }
 
   /** Empty the user's saved-driver list, back to the built-in demo samples. */
-  function clearMyDrivers(): void {
-    if (!deps.confirmReset('Reset your custom drivers list back to the default demo samples?')) return;
+  async function clearMyDrivers(): Promise<void> {
+    const confirmed = await deps.confirmReset.ask({
+      title: 'Reset drivers?',
+      message: 'Reset your custom drivers list back to the default demo samples?',
+      confirmLabel: 'Reset',
+      cancelLabel: 'Cancel',
+    });
+    if (!confirmed) return;
     myDriverRepo.replaceAll([]);
     reloadMyDrivers();
   }

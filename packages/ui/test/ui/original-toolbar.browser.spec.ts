@@ -64,7 +64,6 @@ test.describe('Original toolbar', () => {
   test('Revert is disabled until the project is modified, then restores the saved state', async ({ page }) => {
     await page.goto('/');
     await openAProject(page);
-    page.on('dialog', (d) => d.accept().catch(() => {}));
     // 1. Click Revert button when not modified (should be disabled)
     const revertBtn = page.locator('.tb-btn[title^="Revert"]');
     await expect(revertBtn).toHaveClass(/disabled/);
@@ -79,7 +78,12 @@ test.describe('Original toolbar', () => {
     await expect(revertBtn).not.toHaveClass(/disabled/);
     await revertBtn.click();
 
-    // 4. Name should revert back to original
+    // 4. In-app dialog should appear, click Discard
+    await expect(page.locator('.confirm-overlay')).toBeVisible();
+    await page.locator('.confirm-dialog-confirm').click();
+    await expect(page.locator('.confirm-overlay')).toHaveCount(0);
+
+    // 5. Name should revert back to original
     await expect(nameInput).toHaveValue(originalName);
     await expect(revertBtn).toHaveClass(/disabled/);
   });
@@ -87,7 +91,6 @@ test.describe('Original toolbar', () => {
   test('a reload keeps unsaved edits unsaved, and Revert still restores the saved value', async ({ page }) => {
     await page.goto('/');
     await openAProject(page);
-    page.on('dialog', (d) => d.accept().catch(() => {}));
     const saved = await focusedBoxVolume(page);
     await setFocusedBoxVolume(page, 0.0333333);
     const revertBtn = page.locator('.tb-btn[title^="Revert"]');
@@ -101,6 +104,12 @@ test.describe('Original toolbar', () => {
     await expect(revertBtn).not.toHaveClass(/disabled/);
     expect(await focusedBoxVolume(page)).toBeCloseTo(0.0333333, 9);
     await revertBtn.click();
+
+    // In-app dialog should appear, click Discard
+    await expect(page.locator('.confirm-overlay')).toBeVisible();
+    await page.locator('.confirm-dialog-confirm').click();
+    await expect(page.locator('.confirm-overlay')).toHaveCount(0);
+
     await expect.poll(() => focusedBoxVolume(page)).toBeCloseTo(saved, 9);
     await expect(revertBtn).toHaveClass(/disabled/);
   });

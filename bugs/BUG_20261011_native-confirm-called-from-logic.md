@@ -1,6 +1,8 @@
 # BUG_20261011_native-confirm-called-from-logic
 
-**Status:** OPEN
+**Status:** RESOLVED
+
+**Fix:** Implemented a typed `ConfirmPort` with queue-backed implementation (`packages/ui/src/logic/confirmPort.ts`), an in-app `ConfirmDialog.vue` component hosted once in `App.vue`, and updated all call sites to use the injected port. Added architecture test `architecture-no-native-confirm.test.ts` and browser test `confirm-dialog.browser.spec.ts`. Updated existing browser tests (`original-toolbar.browser.spec.ts`) to click the in-app dialog buttons instead of accepting native dialogs.
 
 ## Symptom
 Several actions ask the user with the browser's own `confirm()` box: a plain grey system dialog that looks

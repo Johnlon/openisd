@@ -6,6 +6,7 @@ import {
   driverToOwdrBytes,
   driverToWdrBytes,
 } from './fileImportExport.js';
+import type {ConfirmPort} from './confirmPort.js';
 /**
  * Design I/O orchestration — Save the committed project to browser storage, Save As the project
  * (.owpr) to the filesystem,
@@ -106,7 +107,7 @@ export interface DesignIO {
  * Access API does not persist handles across a page load.
  */
 function isRec(v: unknown): v is Record<string, unknown> { return typeof v === 'object' && v !== null && !Array.isArray(v); }
-export function createApplicationIO(deps: { engine: Engine; logging: Logging; fileStorage: FileStorage; fileOpen: FileOpen; projectRepo: ProjectRepo; files: DesignFiles; backup: BackupRepo }): DesignIO {
+export function createApplicationIO(deps: { engine: Engine; logging: Logging; fileStorage: FileStorage; fileOpen: FileOpen; projectRepo: ProjectRepo; files: DesignFiles; backup: BackupRepo; confirmPort: ConfirmPort }): DesignIO {
   const flash = (msg: string) => deps.logging.flash(msg);
   const { download } = createFileSave();
 
@@ -150,7 +151,13 @@ export function createApplicationIO(deps: { engine: Engine; logging: Logging; fi
   }
 
   async function handleSaveFailure(): Promise<void> {
-    if (confirm('Could not save: browser storage is full.\n\nExport all projects to a file?')) {
+    const confirmed = await deps.confirmPort.ask({
+      title: 'Could not save',
+      message: 'Browser storage is full. Export all projects to a file?',
+      confirmLabel: 'Export',
+      cancelLabel: 'Not now',
+    });
+    if (confirmed) {
       exportProjectsArchive();
     } else {
       flash('Could not save: browser storage is full');

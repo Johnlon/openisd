@@ -51,6 +51,7 @@ import {presentationState, resetUnitTokens} from '../../logic/presentationState.
 import {useEscToClose} from '../../logic/useEscToClose.js';
 import {LIMIT_ROWS, useOptionsModal} from '../../hooks/OptionsModal-hooks.js';
 import {useBackupSettings} from '../../hooks/useBackupSettings.js';
+import {useApp} from '../../logic/app.js';
 import type {ChartId} from '@openisd/design/engine';
 import NumInput from './NumInput.vue';
 import UnitToggle from './UnitToggle.vue';
@@ -61,6 +62,7 @@ function close() { emit('close'); }
 function onBackdrop(e: MouseEvent) { if (e.target === e.currentTarget) close(); }
 useEscToClose(() => true, close);
 
+const { confirmPort } = useApp();
 const { downloadBackup, restoreFromFile } = useBackupSettings();
 const backupFileInput = ref<HTMLInputElement | null>(null);
 function pickBackupFile() { backupFileInput.value?.click(); }
@@ -69,11 +71,15 @@ async function onBackupFile(e: Event) {
   const file = input.files?.[0];
   input.value = '';
   if (!file) return;
-  if (!confirm(
-    'Restore will overwrite, at once, everything the application holds in memory: all projects, '
-    + 'My Drivers, My Passive Radiators and preferences are replaced by what is in this file. '
-    + 'Anything not in the file is lost. This cannot be undone. Continue?',
-  )) return;
+  const confirmed = await confirmPort.port.ask({
+    title: 'Restore from backup?',
+    message: 'Restore will overwrite, at once, everything the application holds in memory: all projects, '
+      + 'My Drivers, My Passive Radiators and preferences are replaced by what is in this file. '
+      + 'Anything not in the file is lost. This cannot be undone. Continue?',
+    confirmLabel: 'Restore',
+    cancelLabel: 'Cancel',
+  });
+  if (!confirmed) return;
   const result = await restoreFromFile(file);
   if (!result.ok) { alert(`Could not restore: ${result.reason}`); return; }
   alert(`Backup restored (${result.keysRestored} item${result.keysRestored === 1 ? '' : 's'}). The app will now reload.`);
