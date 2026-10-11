@@ -54,6 +54,8 @@ tested, with commit), **to build**, **John** (needs a ruling).
 | 8 | Each landing after a red reran the full suite and opened a new F (F7, F8, F9 for one fault) | three F files for one fault | post-land appends to the open F instead of opening a new one; the F names the first red commit's author as owner | L2 | post-land e2e | **to build** |
 | 9 | F files kept only the log tail, so failing spec names were lost | an hour rerunning to find them | post-land writes every vitest `FAIL` and Playwright `✘` line into the F | L2 | post-land e2e with a failing stub | **to build** |
 | 10 | A delegated job ended without its tests passing (T040) and could have been landed on trust | risk of an unproven landing | `land.sh` runs `done_test` itself (live); `zoo-run.sh` marks the result "tests unproven" unless the log shows the brief's test command exiting 0 | L2 | zoo test | gate **live**; mark **to build** |
+| 35 | A browser spec in T036's `done_test` overran the 300 s gate | ~30 min of retries | `new-task.sh` and `land.sh` refuse a `done_test` that names a `*.browser.spec.ts`; browser specs run in the gate's dependant set (7) with their own deadline | L2 | land e2e | **to build** |
+| 36 | An integration rebase hit many conflicts; resolving them by `checkout --ours` was blocked mid-rebase | ~20 min; the redo was a squash merge | integrations go through `scripts/integrate.sh <branch>`: a squash merge in a fresh worktree, conflicts listed in the task file for an edit-by-hand resolution, never a side-picking command | L2 | integrate e2e | **to build** |
 
 ### Test runs, queues and slots
 
