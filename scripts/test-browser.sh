@@ -74,7 +74,7 @@ bash "$SCRIPT_DIR/kill-http.sh" "$OPENISD_TEST_PORT"
 # rather than "this gate matches no files any more". Collect first and refuse up front, naming
 # the args, so a gate pointing at a moved spec is unmistakable.
 set +e
-LIST_OUT="$(npx playwright test --list "$@" 2>&1)"
+LIST_OUT="$(node_modules/.bin/playwright test --list "$@" 2>&1)"
 set -e
 if ! printf '%s' "$LIST_OUT" | grep -qE '^Total: [1-9][0-9]* test'; then
   printf '%s\n' "$LIST_OUT" >&2
@@ -89,7 +89,7 @@ run_with_watchdog() {
 
   # Run playwright in the background to capture its exact PID
   set +e
-  npx playwright test "$@" &
+  node_modules/.bin/playwright test "$@" &
   local test_pid=$!
   set -e
 

@@ -35,6 +35,11 @@ MAX="${QUIET_MAX_LINES:-150}"
 mkdir -p build/test-reports
 export NODE_OPTIONS="${NODE_OPTIONS:-} --report-on-signal --report-signal=SIGUSR2 --report-directory=build/test-reports"
 ARGS=("$@")
+# Inside heavy.slice the funnel has done its work: `npx <tool>` would only add ~5 s of npm start-up
+# (measured 7.9 s against 2.3 s for the binary, 11 Oct 2026, SDLC S9). Call the installed binary.
+if [ "${ARGS[0]:-}" = npx ] && [ -x "node_modules/.bin/${ARGS[1]:-}" ]; then
+  ARGS=("node_modules/.bin/${ARGS[1]}" "${ARGS[@]:2}")
+fi
 case " $* " in
   *vitest*)
     if [ "${OPENISD_FULL_GATE:-}" != "1" ] && ! printf '%s\n' "$@" | grep -qE '\.(test|spec)\.(ts|js|mjs)$|/test/'; then

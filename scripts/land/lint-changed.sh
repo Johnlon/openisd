@@ -19,4 +19,4 @@ for f in "$@"; do
   esac
 done
 [ "${#files[@]}" -gt 0 ] || { echo "lint: no lintable file changed"; exit 0; }
-exec npx eslint --max-warnings 0 --no-warn-ignored "${files[@]}"
+exec node_modules/.bin/eslint --max-warnings 0 --no-warn-ignored "${files[@]}"

@@ -19,7 +19,7 @@ for dir in $(cd "$src" && ls -d node_modules packages/*/node_modules 2> /dev/nul
 done
 # Both halves always run: a red unit half must not hide the browser half. Red when either failed.
 unit=0; browser=0
-npx vitest run || unit=$?
+node_modules/.bin/vitest run || unit=$?
 bash scripts/test-browser.sh || browser=$?
 echo "suite: unit exit $unit, browser exit $browser"
 [ "$unit" = 0 ] && [ "$browser" = 0 ]
