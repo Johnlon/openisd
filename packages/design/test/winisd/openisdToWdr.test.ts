@@ -325,7 +325,7 @@ describe('openisd.json → winisd.wdr — Xlim is a ParState mark, never a key',
 
 const WITH_XLIM = recordWith(`  woofer:
     Xlim_m:
-      readings: {manual: {read_value: 12.5}}
+      readings: {manual: {read_value: 0.0125}}
 `);
 
 describe('openisd.json → winisd.wdr — DQ marks travel into Comment= ', () => {

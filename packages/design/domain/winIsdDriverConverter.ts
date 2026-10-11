@@ -801,6 +801,14 @@ export class WinIsdDriverConverter {
 
     const { readings, dq_scraper } = parsed.data;
     const originResult = selectOrigin(readings, field, (f, v) => this.engine.driver.isPhysicallyPlausible(f, v));
+    // A reading outside the field's physical band never becomes a value (T018: the field is N
+    // and the .wdr comment lists it), but the tools still read the range mark as a warning
+    // (winisd_tools BUG_20260823 range/calc marks; AI triage of calculation-field failures).
+    for (const [, r] of Object.entries(readings).sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))) {
+      if (!isUsable(r)) continue;
+      const issue = this.engine.driver.rangeIssue(field, r.read_value);
+      if (issue) warnings.push({ level: "warn", field, message: issue.text });
+    }
     const corroboration = corroborate(readings);
     if (corroboration === Corroboration.Mismatch) {
       const parts = Object.entries(readings)

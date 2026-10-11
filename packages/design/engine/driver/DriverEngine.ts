@@ -25,7 +25,7 @@ import type {
 } from '../solverTypes.js';
 import {missingDependencies} from '../consistency.js';
 import type {CalculationIssue, CalculationPrerequisite, OutOfRangeIssue} from '../consistency.js';
-import {checkRange, isPhysicallyPlausible} from '../physicalRange.js';
+import {checkRange, isPhysicallyPlausible, rangeIssue} from '../physicalRange.js';
 import type {DriverWorkingSet} from '../solvers/driverQuantities.js';
 import {hotRe, terminalBL_Tm, terminalRe_ohm} from '../solvers/driverQuantities.js';
 import type {EbpSuitability, SweepResult, Wiring} from '../types.js';
@@ -138,6 +138,8 @@ export interface DriverEngine {
   /** Whether a single RAW value would sit inside `PHYSICAL_RANGE`'s band for `field` (D9
    *  tier 1) — the domain's one door into that table. */
   isPhysicallyPlausible(field: string, value: number): boolean;
+  /** The out-of-range issue one RAW reading of `field` raises (limit and side), or nothing. */
+  rangeIssue(field: string, value: number): OutOfRangeIssue | undefined;
   /** Sealed resonance and Qtc read off a swept impedance curve, rather than computed. */
   findImpedancePeak(result: SweepResult | null, Re: number): { Fsc: number; Qtc: number } | null;
 }
@@ -155,6 +157,7 @@ export class DriverEngineImpl implements DriverEngine {
   readonly hotRe = hotRe;
   readonly terminalBL_Tm = terminalBL_Tm;
   readonly isPhysicallyPlausible = isPhysicallyPlausible;
+  readonly rangeIssue = rangeIssue;
 
   winisdCircuitValues(values: DriverValues, air: Air): DriverValues {
     const positive = (x: number | null | undefined): x is number => typeof x === 'number' && Number.isFinite(x) && x > 0;
