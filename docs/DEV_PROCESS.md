@@ -50,7 +50,12 @@ One landing at a time (flock `LAND_LOCK`). In order:
    and killed.
 6. Push to main, then start the post-land run, detached.
 
-Config: `land.conf` at the repo root.
+Config: `land.conf` at the repo root. Lock paths (`LAND_LOCK`, `POST_LAND_LOCK`) and all other
+runtime directories (`OPENISD_HEAVY_GATE_DIR`, `OPENISD_RESERVATION_DIR`, `SLOW_RUN_DIR`,
+admit slots, matt restore) are derived from a single runtime root
+`$OPENISD_RUNTIME_DIR` (default `$XDG_RUNTIME_DIR/openisd` or `/run/user/<uid>/openisd`), set in
+`scripts/paths.sh` and sourced by every script. The old `/tmp/openisd-*` paths are no longer used;
+they must never both be live at once.
 
 ## Post-land run
 

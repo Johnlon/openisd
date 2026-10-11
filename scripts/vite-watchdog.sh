@@ -14,6 +14,8 @@
 # may take before counting starts), WATCHDOG_MAX_POLLS (0: no limit).
 set -uo pipefail
 
+cd "$(dirname "${BASH_SOURCE[0]}")/.." || exit 1
+
 port="$1"
 test_pid="$2"
 poll="${WATCHDOG_POLL_S:-5}"

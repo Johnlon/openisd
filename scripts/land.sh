@@ -36,6 +36,8 @@ if [ -f "$HERE/land.conf" ]; then CONF="$HERE/land.conf"; else CONF="$ROOT/land.
 [ -f "$CONF" ] || { echo "land: no land.conf next to land.sh or in $ROOT" >&2; exit 2; }
 
 # shellcheck source=/dev/null
+. "$HERE/paths.sh"
+# shellcheck source=/dev/null
 . "$CONF"
 # shellcheck source=./land/core/task.sh
 . "$CORE/task.sh"

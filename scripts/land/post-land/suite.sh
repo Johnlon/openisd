@@ -3,6 +3,9 @@
 # Runs in the clean copy, which has no node_modules; run.sh exports POST_LAND_SRC, the clone that
 # started the run, and its node_modules are hardlinked in (no install, no network).
 set -euo pipefail
+
+cd "$(dirname "${BASH_SOURCE[0]}")/../.." || exit 1
+
 # The full suite is a heavy job: it runs in the machine's one admission slot (scripts/admit.sh).
 # admit.sh exports ADMIT_TOKEN, so the re-run below does not queue a second time.
 if [ -z "${ADMIT_TOKEN:-}" ]; then

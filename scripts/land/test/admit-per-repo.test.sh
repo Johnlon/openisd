@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 # One admission slot PER REPO (John 2026-10-08: nothing in tools may slow openisd).
-# With ADMIT_DIR unset, the slot directory is /tmp/<repo>-admit, where <repo> is the directory name
-# of the repo the command runs in (a git worktree maps to its main repo). A slot held in one repo
-# never makes a run in another repo wait; two runs in the same repo still queue. Not a locked spec.
+# With ADMIT_DIR unset, the slot directory is $OPENISD_RUNTIME_DIR/admit/<repo>, where <repo> is the
+# directory name of the repo the command runs in (a git worktree maps to its main repo). A slot held
+# in one repo never makes a run in another repo wait; two runs in the same repo still queue. Not a
+# locked spec.
 set -uo pipefail
 GITCFG="$(mktemp "${TMPDIR:-/tmp}/admit-repo-gitconfig.XXXXXX")"
 printf '[user]\n\tname = t\n\temail = t@t\n[init]\n\tdefaultBranch = main\n' > "$GITCFG"
@@ -12,7 +13,7 @@ SCRATCH="$(mktemp -d "${TMPDIR:-/tmp}/admit-per-repo.XXXXXX")"
 NAME_A="zz-admit-a-$$"
 NAME_B="zz-admit-b-$$"
 fails=0
-trap 'rm -rf "$SCRATCH" "$GITCFG" "/tmp/$NAME_A-admit" "/tmp/$NAME_B-admit"' EXIT
+trap 'rm -rf "$SCRATCH" "$GITCFG"' EXIT
 ok()   { echo "ok   $1"; }
 fail() { echo "FAIL $1"; fails=$((fails + 1)); }
 
@@ -20,20 +21,22 @@ unset ADMIT_DIR ADMIT_TOKEN
 for n in "$NAME_A" "$NAME_B"; do
     mkdir -p "$SCRATCH/$n"; git -C "$SCRATCH/$n" init -q
     git -C "$SCRATCH/$n" commit -q --allow-empty -m base
-    mkdir -p "$SCRATCH/$n/scripts"; cp -r "$REPO/scripts/admit" "$REPO/scripts/lib" "$REPO/scripts/admit.sh" "$SCRATCH/$n/scripts/"
+    mkdir -p "$SCRATCH/$n/scripts"; cp -r "$REPO/scripts/admit" "$REPO/scripts/lib" "$REPO/scripts/admit.sh" "$REPO/scripts/paths.sh" "$SCRATCH/$n/scripts/"
 done
 git -C "$SCRATCH/$NAME_A" worktree add -q "$SCRATCH/wt-of-a" -b other 2>/dev/null
 cp -r "$SCRATCH/$NAME_A/scripts" "$SCRATCH/wt-of-a/" 2>/dev/null
+cp "$REPO/scripts/paths.sh" "$SCRATCH/wt-of-a/scripts/" 2>/dev/null
 
 run_in() { # run_in <dir> <label> <command...>: admit.sh from that dir
     local d=$1 label=$2; shift 2
     ( cd "$d" && exec bash scripts/admit.sh "$label" -- "$@" )
 }
 
-# 1. the slot directory is named after the repo
+# 1. the slot directory is named after the repo under OPENISD_RUNTIME_DIR/admit/
 run_in "$SCRATCH/$NAME_A" hold true > /dev/null 2>&1
-[ -d "/tmp/$NAME_A-admit" ] && ok "slot dir is /tmp/<repo>-admit" || fail "no /tmp/$NAME_A-admit"
-[ ! -d /tmp/openisd-admit/q/zz ] && true
+RUNTIME_DIR="${OPENISD_RUNTIME_DIR:-${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/openisd}"
+[ -d "$RUNTIME_DIR/admit/$NAME_A" ] && ok "slot dir is \$OPENISD_RUNTIME_DIR/admit/<repo>" || fail "no $RUNTIME_DIR/admit/$NAME_A"
+[ ! -d "/tmp/openisd-admit/q/zz" ] && true
 
 # 2. a slot held in repo A: a run in repo B starts at once
 run_in "$SCRATCH/$NAME_A" holder sleep 20 > /dev/null 2>&1 & holder=$!

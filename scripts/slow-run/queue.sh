@@ -23,10 +23,11 @@
 # straight through: SLOW_RUN_TICKET is exported to children, and a live ticket there means the
 # caller already holds the queue.
 #
-# Env: SLOW_RUN_DIR (default /tmp/slow-run-queue, shared by every repo on the machine),
+# Env: SLOW_RUN_DIR (default $OPENISD_RUNTIME_DIR/slow-run-queue, shared by every repo on the machine),
 # SLOW_RUN_OWNER (who to name in the waiting line; default user@repo), SLOW_RUN_POLL_S (2).
 
-SLOW_RUN_DIR="${SLOW_RUN_DIR:-/tmp/slow-run-queue}"
+. "$(dirname "${BASH_SOURCE[0]}")/../paths.sh"
+mkdir -p "$SLOW_RUN_DIR/q"
 
 # Start time of a process in clock ticks since boot (field 22 of /proc/<pid>/stat). The fields
 # after the ")" that closes the command name start at field 3, so field 22 is the 20th of them.

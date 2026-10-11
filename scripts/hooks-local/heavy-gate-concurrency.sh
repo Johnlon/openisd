@@ -52,8 +52,9 @@
 # (John, 2026-09-26): "we really don't want to kill stuff, we just want to keep it under control
 # and making efficient progress."
 
-OPENISD_HEAVY_GATE_DIR="${OPENISD_HEAVY_GATE_DIR:-/tmp/openisd-heavy-gate-reservations}"
-OPENISD_HEAVY_GATE_ACCOUNTING_LOCK="${OPENISD_HEAVY_GATE_DIR}.lock"
+cd "$(dirname "${BASH_SOURCE[0]}")/../.." || exit 1
+
+. "$(dirname "${BASH_SOURCE[0]}")/../paths.sh"
 mkdir -p "$OPENISD_HEAVY_GATE_DIR"
 
 reserve_heavy_gate_slot() {

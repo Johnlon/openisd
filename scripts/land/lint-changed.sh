@@ -3,6 +3,9 @@
 # Lints only the changed files that ESLint covers (ts, vue, js, mjs); anything else is skipped.
 # The full lint runs in CI and the post-land run.
 set -uo pipefail
+
+cd "$(dirname "${BASH_SOURCE[0]}")/../.." || exit 1
+
 files=()
 for f in "$@"; do
   case "$f" in

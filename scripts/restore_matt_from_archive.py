@@ -31,7 +31,7 @@ from pathlib import Path
 
 MATT_DIR = "/mnt/c/Users/johnl/work/resonate/drivers/matt"
 ZIP_PATH = os.path.join(MATT_DIR, "mtg90's winisd drivers.zip")
-ARCHIVE_EXTRACT = "/tmp/matt_restore_work"
+ARCHIVE_EXTRACT = os.environ.get("MATT_RESTORE_DIR", "/run/user/{}/openisd/matt-restore".format(os.getuid()))
 
 def strip_00_prefix(text):
     """Remove '00 ' prefix if present."""

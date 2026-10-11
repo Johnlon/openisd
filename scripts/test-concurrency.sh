@@ -17,8 +17,10 @@
 # shell process that called `reserve_test_slot` — sourcing (not exec-ing) this file into the
 # caller's shell, as above, is what makes that true.
 
-OPENISD_RESERVATION_DIR="${OPENISD_RESERVATION_DIR:-/tmp/openisd-ui-test-reservations}"
-OPENISD_RESERVATION_LOCK="${OPENISD_RESERVATION_DIR}.lock"
+cd "$(dirname "${BASH_SOURCE[0]}")/.." || exit 1
+
+. "$(dirname "${BASH_SOURCE[0]}")/paths.sh"
+mkdir -p "$OPENISD_RESERVATION_DIR"
 OPENISD_PORT_POOL_START=4100
 OPENISD_PORT_POOL_SIZE=90   # 4100-4189; never reaches 4000 (John's preview) or the 4200+ ad-hoc range
 # Same figures as playwright.config.js's MEM_PER_WORKER_GB / RESERVE_GB — see that file for how
@@ -27,8 +29,6 @@ OPENISD_PORT_POOL_SIZE=90   # 4100-4189; never reaches 4000 (John's preview) or 
 OPENISD_MEM_PER_WORKER_GB="0.7"
 OPENISD_RESERVE_GB="2"
 OPENISD_MAX_WORKERS=2
-
-mkdir -p "$OPENISD_RESERVATION_DIR"
 
 # True when something is already listening on the port (any process, reserved by us or not).
 port_is_listening() {

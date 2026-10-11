@@ -6,6 +6,8 @@ set -euo pipefail
 # PowerShell/cmd have no /proc, so they are still rejected.
 { [ -n "${MSYSTEM:-}" ] || [ "$(uname -s)" = Linux ]; } || { echo "ERROR: must run in Git Bash on Windows, WSL or Linux, not PowerShell/cmd" >&2; exit 1; }
 
+cd "$(dirname "${BASH_SOURCE[0]}")/.." || exit 1
+
 echo "========================================"
 echo "  Release build — $(date '+%H:%M:%S')"
 echo "========================================"

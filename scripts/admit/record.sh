@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 # The admission slot's on-disk format, shared by scripts/admit.sh and scripts/housekeeping.sh.
 #
-#   $ADMIT_DIR (default /tmp/<repo>-admit, <repo> = directory name of the main repo of the cwd, so a
-#   slot held in one repo never delays another repo, and a git worktree counts as its main repo)
+#   $ADMIT_DIR (default $OPENISD_RUNTIME_DIR/admit/<repo>, <repo> = directory name of the main repo
+#   of the cwd, so a slot held in one repo never delays another repo, and a git worktree counts as
+#   its main repo). ADMIT_DIR env still overrides fully.
 #     next.lock        flock'ed while a ticket is taken
 #     next             the last ticket number handed out
 #     q/<number>.rec   one file per admitted-or-waiting job, number = 8 digits, FIFO by number
@@ -16,6 +17,8 @@
 #   - a waiter is first when no lower-numbered record has a live owner.
 # scripts/housekeeping.sh removes the records of dead owners and logs each one.
 
+. "$(dirname "${BASH_SOURCE[0]}")/../paths.sh"
+
 admit_repo_name() { # the main repo's directory name for the cwd (the script'"'"'s own repo outside any repo)
   local common
   common=$(git rev-parse --path-format=absolute --git-common-dir 2> /dev/null) \
@@ -25,7 +28,7 @@ admit_repo_name() { # the main repo's directory name for the cwd (the script'"'"
 }
 
 admit_dir() {
-  if [ -n "${ADMIT_DIR:-}" ]; then printf '%s\n' "$ADMIT_DIR"; else printf '/tmp/%s-admit\n' "$(admit_repo_name)"; fi
+  if [ -n "${ADMIT_DIR:-}" ]; then printf '%s\n' "$ADMIT_DIR"; else printf '%s/admit/%s\n' "$OPENISD_RUNTIME_DIR" "$(admit_repo_name)"; fi
 }
 
 admit_field() { # admit_field <rec-file> <key>
