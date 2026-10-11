@@ -1,4 +1,4 @@
-import {COMPLETE_DRIVER_PROJECT_OWPR, expect, openAProject, openAMobileProject, test} from '../fixtures.js';
+import {COMPLETE_DRIVER_PROJECT_OWPR, expect, openAProject, test} from '../fixtures.js';
 
 test.describe('In-app confirm dialog', () => {
   test.describe('Original skin', () => {
