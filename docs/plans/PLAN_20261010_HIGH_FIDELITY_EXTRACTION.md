@@ -73,6 +73,16 @@ Today about 22 places in 4 stages decide scope, with per-manufacturer copies of 
 - Every refusal is logged: product, URL, rule, the words that triggered it.
 - Per-manufacturer filters are deleted once the shared check covers them.
 
+## 4a. AI triage after every extraction, and a cycle of improvements
+
+John, 2026-10-11: "we need AI triage of all fails relating to non optional fields that affect calculations like TS and mechanical params, these must be part of an ai post extract review process and a cycle of process improvements, and I want the code concentrated in one place to make this viable".
+
+- **What is triaged:** every failure on a required field that a calculation uses: the Thiele/Small and mechanical parameters. A failure is a field with no value, a rejected reading, an impossible value, or readers that disagree.
+- **When:** a review step after every extraction run. An AI reviewer reads each failure with its evidence (the cached document, the reader outputs, the rejected text) and gives one verdict per failure: reader fault, rule fault, datasheet fault, or a correct refusal.
+- **The cycle:** each reader fault and rule fault becomes a work item that changes the shared extraction code or its rule data, plus a test case taken from the failure. The next run is triaged again, and the failure count for those fields is tracked from run to run.
+- **One place:** the reading, interpretation and scope code is in the one shared extraction (section 5) and the one openisd parser, never per manufacturer. That way a triage verdict leads to one change that fixes every manufacturer.
+- **Open:** where the triage step and its verdicts live (tools or openisd), and which model runs it.
+
 ## 5. Work
 
 All of it in a pair of worktrees, one per repo, kept off main until it works. The tools worktree calls the bridge built in the paired openisd worktree.
@@ -88,6 +98,7 @@ All of it in a pair of worktrees, one per repo, kept off main until it works. Th
    - **A reading keeps its datasheet text** (John, 2026-10-11): "N/A", "banana" and "143c cm²" are stored as printed, as a rejected reading with its reason.
    - **`.wdr` cannot hold a rejected reading** (John, 2026-10-11): a `.wdr` field is a flag and a number only. A rejected reading is written to `.wdr` as N (not available), value 0, and a comment carrying the printed text. Loading a `.wdr` never makes a rejected reading. T017's "a .wdr text cell becomes a rejected reading" is wrong and is replaced by this.
    - T017's first worker stopped at its usage limit mid-change; another worker finishes it.
+   - **No winner means no value** (John, 2026-10-11): when every reading is impossible or rejected, the field gets no value and the comment records every value seen and why each was rejected. T018 carries this.
 5. **Parity**: both pipelines over every cached input. For every reading, the SI value matches the old pipeline, or the change is listed and explained. The old pipeline stays until this passes.
 6. **Switch**: delete the old record writing and the 17 per-manufacturer `emit.py` files; rename `driver_spec.json` to `driver.json`; rebuild the corpus (John clears it), then the swap.
 
