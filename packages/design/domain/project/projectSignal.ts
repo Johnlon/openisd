@@ -50,7 +50,7 @@ export class ProjectSignal {
         return new DualWriteFieldImpl<number>(
             () => {
                 const entry = signal.value.power_W;
-                if (entry === undefined) return absentCell<number>('power_W', this.#signalIssues());
+                if (entry === undefined || entry.state === 'N') return absentCell<number>('power_W', this.#signalIssues());
                 return entry.state === 'E'
                     ? enteredCell<number | null>('power_W', entry.value)
                     : calculatedCell<number | null>('power_W', entry.value);
@@ -69,7 +69,7 @@ export class ProjectSignal {
                 // With Re known, the voltage stays as it reads and becomes the entered one.
                 clear: () => {
                     const {voltage_V} = signal.value;
-                    const keepVoltage = this.#usableRe() !== null && voltage_V !== undefined;
+                    const keepVoltage = this.#usableRe() !== null && voltage_V !== undefined && voltage_V.state !== 'N';
                     signal.set({...signal.value, power_W: undefined, voltage_V: keepVoltage ? enteredEntry(voltage_V.value) : voltage_V});
                 },
                 calculated: (v: number) => signal.set({...signal.value, power_W: calculatedEntry(v)}),
@@ -105,7 +105,7 @@ export class ProjectSignal {
         return new DefaultingFieldImpl<number>(
             () => {
                 const entry = signal.value.voltage_V;
-                if (entry === undefined) return calculatedCell('voltage_V', DEFAULT_DRIVE_VOLTAGE_V);
+                if (entry === undefined || entry.state === 'N') return calculatedCell('voltage_V', DEFAULT_DRIVE_VOLTAGE_V);
                 return entry.state === 'E'
                     ? enteredCell('voltage_V', entry.value)
                     : calculatedCell('voltage_V', entry.value);

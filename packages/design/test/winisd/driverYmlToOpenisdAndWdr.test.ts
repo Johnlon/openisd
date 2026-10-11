@@ -124,7 +124,7 @@ describe('driverYmlToOpenisdAndWdr', () => {
       const parsedWdr = WinISDDriver.fromWdrIni(wdr);
       assert.equal(parsedWdr.cell('Xlim').state, 'not-available');
       const commentLine = wdr.split(/\r?\n/).find(l => l.startsWith('Comment='));
-      assert.ok(commentLine !== undefined && commentLine.includes('Xlim: banana'), `comment contains Xlim: banana, got: ${commentLine}`);
+      assert.ok(commentLine !== undefined && commentLine.includes('Xlim_m: banana'), `comment contains Xlim_m: banana, got: ${commentLine}`);
     });
 
     it('writing a rejected reading on a numeric field writes value 0, state N, and printed text in comment', () => {
@@ -138,7 +138,7 @@ describe('driverYmlToOpenisdAndWdr', () => {
       assert.equal(parsedWdr.cell('Hg').value, '0');
       assert.equal(parsedWdr.cell('Hg').state, 'not-available');
       const commentLine = wdr.split(/\r?\n/).find(l => l.startsWith('Comment='));
-      assert.ok(commentLine !== undefined && commentLine.includes('Hg: 143c cm²'), `comment contains Hg: 143c cm², got: ${commentLine}`);
+      assert.ok(commentLine !== undefined && commentLine.includes('Hg_m: 143c cm²'), `comment contains Hg_m: 143c cm², got: ${commentLine}`);
     });
 
     it('a scraper entry with every reading rejected is not available and keeps the text', () => {

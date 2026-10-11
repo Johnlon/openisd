@@ -257,7 +257,7 @@ export class OpenIsdDriverSpec {
         this.VCCon = new DualWriteFieldImpl<VoiceCoilWiring>(
             () => {
                 const entry = wiringSlot.value;
-                if (entry === undefined) return absentCell<VoiceCoilWiring>('VCCon', wiringDq);
+                if (entry === undefined || entry.state === 'N') return absentCell<VoiceCoilWiring>('VCCon', wiringDq);
                 const wiring = wiringFromRecord(entry.value);
                 if (wiring === null) return absentCell<VoiceCoilWiring>('VCCon', wiringDq);
                 return entry.state === 'E'

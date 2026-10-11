@@ -82,7 +82,9 @@ describe('openISDDeviceJsonSchema.specs — a driver OR a radiator, never both, 
     assert.ok(!('woofer' in radiator.specs));
     assert.ok('passive-radiator' in radiator.specs);
     if ('woofer' in driver.specs) {
-      assert.equal(driver.specs.woofer.Fs_hz?.value, 30);
+      const fs = driver.specs.woofer.Fs_hz;
+      assert.ok(fs !== undefined && fs.state !== 'N');
+      assert.equal(fs.value, 30);
     }
   });
 });
