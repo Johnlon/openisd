@@ -1,0 +1,11 @@
+id: T042
+repo: openisd
+owner: claude
+status: open
+goal: A wiped admit queue cannot let a second run in while the first holds the slot - admission also checks the holder by pid and start time (a holder file beside the queue directory); a TERM to an admitted run's process group stops every member and frees the slot (regression test).
+done_test: bash scripts/land/test/admit-holder.test.sh && bash scripts/land/test/admit-term-group.test.sh && bash scripts/land/test/admit.e2e.test.sh
+files:
+  - tasks/T042.yml
+  - scripts/admit.sh
+  - scripts/land/test/admit-holder.test.sh
+  - scripts/land/test/admit-term-group.test.sh

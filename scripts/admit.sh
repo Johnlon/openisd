@@ -20,11 +20,22 @@ shift 2
 dir=$(admit_dir)
 rec=""
 child=""
+# The running job's pid, start time and label, kept beside the queue directory (not in it) so a
+# queue that is wiped or reset while a job runs cannot let a second run in: a run starts only when
+# this names no other live process, checked by pid and start time. Under ADMIT_DIR (tests) it is a
+# sibling file; otherwise it lives in the state directory.
+if [ -n "${ADMIT_DIR:-}" ]; then
+  holder="$ADMIT_DIR.holder"
+else
+  holder="${XDG_STATE_HOME:-$HOME/.local/state}/openisd/admit-holder-$(admit_repo_name)"
+fi
+holds=0
 
 # Runs on every exit: stop the job if a signal arrived mid-run, then free the slot.
 # The record is removed while fd 9 is still open, so the slot never looks held-but-unlisted.
 cleanup() {
   [ -z "$child" ] || kill "$child" 2> /dev/null
+  [ "$holds" = 0 ] || [ "$(admit_field "$holder" pid)" != "$$" ] || rm -f "$holder"
   [ -z "$rec" ] || rm -f "$rec"
 }
 trap cleanup EXIT
@@ -62,15 +73,44 @@ scan_ahead() {
   done
 }
 
+# True when the holder file names a live process other than this one (same pid and start time).
+holder_alive() {
+  local pid start
+  pid=$(admit_field "$holder" pid)
+  start=$(admit_field "$holder" start)
+  [ -n "$pid" ] && [ "$pid" != "$$" ] && [ -n "$start" ] && [ "$(admit_starttime "$pid")" = "$start" ]
+}
+
+# Takes the holder file unless a live process has it. The check and the write share one lock.
+claim_holder() {
+  mkdir -p "$(dirname "$holder")" || die "cannot create $(dirname "$holder")"
+  exec 7> "$holder.lock" || die "cannot open $holder.lock"
+  flock -x 7 || die "cannot lock $holder.lock"
+  if holder_alive; then
+    exec 7>&-
+    return 1
+  fi
+  printf 'pid=%s\nstart=%s\nlabel=%s\n' "$$" "$(admit_starttime $$)" "$label" > "$holder" || die "cannot write $holder"
+  holds=1
+  exec 7>&-
+}
+
 wait_for_turn() {
   local began=$SECONDS ahead first_live
   while :; do
     scan_ahead
-    [ "$ahead" -gt 0 ] || return 0
-    progress_waiting_line "$label" "$ahead" "$(admit_field "$first_live" label)" $((SECONDS - began)) >&2
-    # The kernel wakes us the moment the holder dies; 30 s caps the wait so we re-scan and report.
-    # A vanished record makes flock fail at once; the next scan then ignores it.
-    flock -w 30 "$first_live" true 2> /dev/null || true
+    if [ "$ahead" -gt 0 ]; then
+      progress_waiting_line "$label" "$ahead" "$(admit_field "$first_live" label)" $((SECONDS - began)) >&2
+      # The kernel wakes us the moment the holder dies; 30 s caps the wait so we re-scan and report.
+      # A vanished record makes flock fail at once; the next scan then ignores it.
+      flock -w 30 "$first_live" true 2> /dev/null || true
+    elif claim_holder; then
+      return 0
+    else
+      progress_waiting_line "$label" 1 "$(admit_field "$holder" label)" $((SECONDS - began)) >&2
+      # A holder with no ticket (its queue was wiped): wait for its pid to end, re-checking every 30 s.
+      timeout 30 tail --pid="$(admit_field "$holder" pid)" -f /dev/null 2> /dev/null || true
+    fi
   done
 }
 
