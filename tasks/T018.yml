@@ -1,0 +1,11 @@
+id: T018
+repo: openisd
+owner: bob
+status: open
+goal: The reading picker follows John's rule (2026-08-30, "impossible - exclude / majority - wins / otherwise precedence"); Rejected readings are dropped first, majority means more than half of the surviving readings (2/1/1 falls to precedence), and selectOrigin.ts's doc comment is the one statement of the rule.
+done_test: bash scripts/test.sh packages/design/test/domain/selectOrigin.test.ts
+files:
+  - packages/design/domain/selectOrigin.ts
+  - packages/design/test/domain/selectOrigin.test.ts
+  - tasks/T018.yml
+needs: [T017]
