@@ -50,7 +50,8 @@ Schema rules (John, 2026-10-11: "the reconciliation programme writes the other s
 - **When it stops, an AI steps in** (John, 2026-10-11: "and then the AI steps in to figure out the fuck-up"): it reads the named construct or input and finds the cause. The fix is to the translator program, to the master, or to the data. The program then runs again and must reach 100%. The AI never hand-edits the generated copy.
 - **Where it runs:** on every landing in either repo that touches the master, and as a test that fails if the generated copy is stale.
 - **Covers** the transfer file `driver_spec.json` and `driver_human.json`, which uses the same schema. Unknown fields are refused, and `schema_version` is checked on every read.
-- **Open for John:** which side is the master. Recommendation: the Zod schema in openisd, because openisd owns the format and its Zod is the stricter of the two today.
+- **Master: the Zod schema** (decided 2026-10-11 by the design agent, as John asked). The Zod record schema is short and declarative, with a few one-expression refinements, so a bounded translator can read it as code. `model_driver.py` mixes the schema with emitter logic and arbitrary validator bodies. openisd is the format's reader, so its acceptance is the definition. Long term, a full move to TypeScript removes the pydantic copy altogether.
+- **Built:** `scripts/schemagen/` (run `npx tsx scripts/schemagen/main.ts`) writes `scripts/schemagen/out/driver_model.py`. Proof on 2026-10-11: 5382 cases (every driver.json and openisd.json in the catalogue, the fixtures, 97 edge cases), 0 differences. `packages/design/test/schemagen/driver-model-is-current.test.ts` fails when the generated module is stale. Still to do: tools switches from the hand-written `model_driver.py` to the generated module.
 
 ## 2a. The human decision file: `driver_human.json`
 
