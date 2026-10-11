@@ -42,15 +42,14 @@ Per **document**: URL, role, fetch time, title, breadcrumb and categories in ord
 
 Per **record**: brand, model, the record directory name (unchanged for existing records), `added` (first appearance; a harvest fact), every document, every reading, the product's scope log (section 4).
 
-Schema rules: the schema is written twice by hand, on purpose, and a cross-check holds the two copies together (John, 2026-10-11: "rather than delete … a cross check that finds inconsistencies, having them manually maintained has one small benefit that it records the understanding that the code base has").
+Schema rules (John, 2026-10-11: "the reconciliation programme writes the other schema from the master and stops if it cannot get 100 same output"):
 
-- **The two copies:** Python in winisd_tools (`scrapers/scrapers/lib/model_driver.py`, pydantic) and Zod in openisd (`packages/design/domain/openisdSchema.ts`). Each states its own repo's understanding of the format.
-- **The cross-check:** a parity test exports each copy to JSON Schema (pydantic `model_json_schema()`, Zod 4 `z.toJSONSchema()`), normalises them, and fails on every difference: a field one side lacks, a different type, optional on one side and required on the other, or a different enum member. It names each difference.
-- **Only two schemata** (John, 2026-10-11: "generating them loses that … only 2 schemata"): the JSON Schema exports exist only while the check runs. No third schema file is kept, and nothing is generated over a hand-written copy.
-- **Reconciliation is a program** (John, 2026-10-11: "you can write whatever parser you want"; "write a program"): it parses both hand-written schemas as code (the TypeScript AST of the Zod file, the Python AST of the pydantic file), refinement and validator bodies included, into one neutral model. It compares the two models and, for each difference, writes the translated edit for the side it thinks is behind. A person or an agent applies it, so each copy stays written down as its own codebase's understanding. The schemas use a small set of patterns (uniqueness, bounds, non-empty, cross-field comparisons), and the translator covers each one. A construct it does not know fails the check by name, and the translator is extended; there is no LLM step.
-- **Where it runs:** in tools, reading openisd's export from the paired worktree, as `test_driver_type_enum_parity.py` already does for the role enum. It runs on every landing in either repo that touches either schema.
-- **Rules JSON Schema cannot express** (checks that span several fields) are listed beside the test as known extra rules for each side, so a gap is a decision, not an accident.
-- The same holds for the transfer file, `driver_spec.json`, and for `driver_human.json`, which uses the same schema. Unknown fields are refused, and `schema_version` is checked on every read.
+- **One master, one generated copy.** The two schemas are Zod in openisd (`packages/design/domain/openisdSchema.ts`) and pydantic in winisd_tools (`scrapers/scrapers/lib/model_driver.py`). One is the master and is hand-written; the reconciliation program writes the other from it, validation rules included. Nobody edits the generated copy.
+- **The program** parses the master as code (its AST, refinement and validator bodies included) and writes the other schema in the other language. It is a program, not an LLM step (John: "write a program").
+- **100% or stop.** After writing, the program proves the two schemas give the same output: the same accept or refuse verdict, the same parsed result and the same problem paths, over every corpus record, every test fixture and generated edge cases. A construct it cannot translate, or any difference in output, stops it with the construct or the input named. It never writes a partial copy.
+- **Where it runs:** on every landing in either repo that touches the master, and as a test that fails if the generated copy is stale.
+- **Covers** the transfer file `driver_spec.json` and `driver_human.json`, which uses the same schema. Unknown fields are refused, and `schema_version` is checked on every read.
+- **Open for John:** which side is the master. Recommendation: the Zod schema in openisd, because openisd owns the format and its Zod is the stricter of the two today.
 
 ## 2a. The human decision file: `driver_human.json`
 
