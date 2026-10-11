@@ -1,0 +1,67 @@
+id: F9
+owner: post-land
+status: open
+sha: a02d6d789598521557d5a918c4a18c243c9607a4
+goal: main is red at a02d6d7895; make the full suite pass again
+commits: |
+  a02d6d7895 T042: admission checks the live holder by pid and start time; TERM-to-group regression test
+  2d44861caa T041: type the fixture test's JSON reads
+  82851e829d T041: stored pre-T036 projects load; start-up uses the one Qicl move; real fixtures guard it
+  dffbd0b881 T039: move a chamber Qicl to the box Qiclfr on load instead of dropping it
+  de5a277b02 T036: done_test is the fast unit specs; browser specs run post-land
+  6c206a1af6 T036: drop stray root scratch files (dump.js, screenshot.js, screenshot.png)
+  2dbeca0134 T036: integrate fix/move-qiclfr
+  9845228988 WIP openisd-t032-r4 (agy, not reviewed)
+  4a1bb01462 WIP openisd-t032-r3 (agy, not reviewed)
+  4a752b8b03 T032: allowlist for round 3 (version label formatter in design/fields)
+  6f6a7e8608 WIP T032 round 2 (opencode, not reviewed): running-code version, dismissal per version
+  d22b577f67 WIP T032 round 1 (opencode, reviewed): dev server bakes no version; reload and logger recorded in ReleaseWatch. Allowlist amended for round 2. Not landed.
+  43f1dbb6bd T032: task file and bug (new-version notice stuck on the dev server)
+  ac55b894fa T029: There is no release branch - a green post-land run records its sha in ${POST_LAND_LOCK}.green and a red lists the commits since it; the site deploys from main (John 2026-10-10, "I decided to ditch the release branch").
+  6ba333a5c0 T029: blocked, rebase onto origin/main conflicts
+  097e0b4ba6 T029: amend the post-land e2e spec for no release branch (3 cases), re-hash T003
+  a657898d65 Plans: drop the release branch and release tag text (John: release is the Pages deploy on main)
+  dfa8305b30 Post-land: no release branch, no NO_RELEASE_PUSH; green records the last green sha, red lists commits since it (John: release is the Pages deploy on main)
+  8cf5fc86aa T031: The open dialog and the project list name the browser store the projects come from ("Projects saved in this browser at <address>"); one step exports every project to a file and one step imports that file; a save that fails (storage full) says so and offers the export, never silently (BUG_20261009_projects-look-lost-across-addresses).
+  8b1b7557f0 WIP T031 round 2 (agy, not reviewed): store address, projects archive export/import, failed save shown; agy's fix_*.js scratch scripts included, to delete in review
+output: |
+    ✓  560 packages/ui/test/ui/skin-selection.browser.spec.ts:18:1 › a phone-width viewport auto-detects into the mobile shell, with no desktop root in the DOM (5.0s)
+    ✓  561 packages/ui/test/ui/skin-selection.browser.spec.ts:25:1 › a viewport right at the breakpoint boundary: 600px is mobile, 601px is desktop (9.5s)
+    ✓  562 packages/ui/test/ui/skin-selection.browser.spec.ts:35:1 › the Info menu's "Switch to Mobile view" overrides a wide viewport, and the choice survives a reload (9.2s)
+    ✓  564 packages/ui/test/ui/splash.browser.spec.ts:21:1 › a first visitor gets the splash, and it credits WinISD and links to the project (4.9s)
+    ✓  563 packages/ui/test/ui/skin-selection.browser.spec.ts:49:1 › the mobile shell's "Switch to Desktop view" overrides a narrow viewport, and the choice survives a reload (8.9s)
+    ✓  565 packages/ui/test/ui/splash.browser.spec.ts:34:1 › it states how many devices the bundled catalogue holds (4.8s)
+    ✓  566 packages/ui/test/ui/splash.browser.spec.ts:42:1 › dismissing it keeps it shut across a reload (9.4s)
+    ✓  567 packages/ui/test/ui/splash.browser.spec.ts:52:1 › the close button at the top dismisses it too — the text is long enough that the bottom one is a scroll away (9.6s)
+    ✓  568 packages/ui/test/ui/splash.browser.spec.ts:62:1 › Info -> About OpenISD reopens it (5.6s)
+    ✓  569 packages/ui/test/ui/splash.browser.spec.ts:72:1 › it says there are desktop and mobile versions, both offline, and links to how to install (5.4s)
+    ✓  570 packages/ui/test/ui/splash.browser.spec.ts:81:1 › the Info menu links to how to add the app to the desktop (5.5s)
+    ✓  571 packages/ui/test/ui/ui-field-refusal.browser.spec.ts:20:1 › typing 0 into a positive field is refused, explained, kept on leaving, and Esc restores (7.2s)
+    ✓  572 packages/ui/test/ui/unit-toggle.browser.spec.ts:16:3 › Unit toggle › clicking an entered field's unit label rescales the DISPLAY and keeps the model SI (7.3s)
+    ✓  573 packages/ui/test/ui/unit-toggle.browser.spec.ts:39:3 › Unit toggle › a calculated readout also rescales when its unit is rotated (Hz → kHz) (7.0s)
+    ✓  574 packages/ui/test/ui/unit-toggle.browser.spec.ts:57:3 › Unit toggle › Added mass to cone: clicking the unit converts g → kg; the model stays SI (kg) (7.0s)
+    ✓  575 packages/ui/test/ui/unit-toggle.browser.spec.ts:76:3 › Unit toggle › Advanced Temperature: K → °C converts via OFFSET; the model stays in kelvin (6.4s)
+    ✓  576 packages/ui/test/ui/unit-toggle.browser.spec.ts:93:3 › Unit toggle › Voice coil temp rise, resistance TC, and added mass all convert, each keeping its own resolution (8.2s)
+    ✓  578 packages/ui/test/ui/what-if-panel.browser.spec.ts:68:5 › What-if? panel › on the sample project › the What-if? Reset puts the project values back and stays open (7.8s)
+    ✓  577 packages/ui/test/ui/what-if-panel.browser.spec.ts:33:5 › What-if? panel › on the sample project › the What-if? changes the charts but never the project, and Close puts the curve back (11.8s)
+    ✓  579 packages/ui/test/ui/what-if-panel.browser.spec.ts:87:5 › What-if? panel › on the sample project › closing the What-if? via the titlebar ✕ discards the What-if, same as Close (7.5s)
+    ✓  580 packages/ui/test/ui/what-if-panel.browser.spec.ts:107:5 › What-if? panel › on the sample project › closing the What-if? does not corrupt the saved Mms value (6.9s)
+    ✓  581 packages/ui/test/ui/what-if-panel.browser.spec.ts:123:5 › What-if? panel › on the sample project › Escape closes the What-if? (6.6s)
+    ✓  582 packages/ui/test/ui/what-if-panel.browser.spec.ts:131:5 › What-if? panel › on the sample project › the What-if? fields accept multi-character typing (no reformat-while-typing clobber) (7.0s)
+    ✓  584 packages/ui/test/ui/what-if-panel.browser.spec.ts:154:5 › What-if? panel › on the sample project › the What-if? panel stays open when the box type changes underneath it (7.1s)
+    ✓  583 packages/ui/test/ui/what-if-panel.browser.spec.ts:143:5 › What-if? panel › on the sample project › an open What-if? panel stays open across a reload (10.9s)
+    ✓  585 packages/ui/test/ui/what-if-panel.browser.spec.ts:166:5 › What-if? panel › on the sample project › the What-if? panel stays open across project tab changes (7.5s)
+    ✓  586 packages/ui/test/ui/what-if-panel.browser.spec.ts:179:5 › What-if? panel › on the sample project › What-if? keeps the Vb typed into it when the field loses focus (6.8s)
+    ✓  587 packages/ui/test/ui/what-if-panel.browser.spec.ts:192:5 › What-if? panel › on the sample project › switching focus to a different open project closes an open What-if? panel (7.9s)
+    ✓  588 packages/ui/test/ui/what-if-panel.browser.spec.ts:224:5 › What-if? panel › on the complete driver project › Mms and Bl are editable and override the calculation; clearing returns them to Calculated (8.4s)
+    ✓  589 packages/ui/test/ui/what-if-panel.browser.spec.ts:254:5 › What-if? panel › on the complete driver project › numeric fields are narrow and uniform, not stretched to fill the column (6.8s)
+    ✓  590 packages/ui/test/ui/what-if-panel.browser.spec.ts:268:5 › What-if? panel › on the complete driver project › a blank Q autocalculates from the other two, with the editor E/C/N marks and red border (8.8s)
+    ✓  591 packages/ui/test/ui/what-if-panel.browser.spec.ts:311:5 › What-if? panel › on the complete driver project › box volume is on the panel, shows on the charts, and Close puts it back (7.3s)
+    ✓  592 packages/ui/test/ui/what-if-panel.browser.spec.ts:328:5 › What-if? panel › on the complete driver project › a box volume changed outside the open What-if? panel shows in the panel (6.7s)
+    ✓  593 packages/ui/test/ui/what-if-panel.browser.spec.ts:335:5 › What-if? panel › on the complete driver project › a driver spec changed outside the open What-if? panel shows in the panel (7.0s)
+    ✓  594 packages/ui/test/ui/what-if-panel.browser.spec.ts:342:5 › What-if? panel › on the complete driver project › a box volume typed on the Box tab shows in the open What-if? panel (7.6s)
+    ✓  595 packages/ui/test/ui/what-if-panel.browser.spec.ts:352:5 › What-if? panel › on the complete driver project › after editing in the What-if? panel, a later Box tab edit still shows in the panel (6.7s)
+  
+    595 passed (38.5m)
+  suite: unit exit 1, browser exit 0
+  post-land suite 2519746-a02d6d7895 finished: FAILED (exit 1) after 3h43m08s
