@@ -44,6 +44,18 @@ Per **record**: brand, model, the record directory name (unchanged for existing 
 
 Schema rules: ONE source — a JSON Schema file (`driver_spec.schema.json`, kept in openisd `packages/design`). The Python model and the Zod schema are generated from it, never hand-written twice; a test fails if a generated file is stale. Unknown fields are refused; `schema_version` is checked on every read.
 
+## 2a. The human decision file: `driver_human.json`
+
+John, 2026-10-11: "all values in the driver need provenance so we still have manual or human as a very reliable overriding source … a means for the human to provide an opinion for the driver outcome in the bridge … a completely new file, driver_human.json that is a DECISION overarching anything logic in openisd or data present from the scraper".
+
+- **Where:** a new file in the record directory, beside `driver.json`. Only a human writes it; the scraper never writes or deletes it, and a rebuild of the corpus keeps it.
+- **What it holds:** decisions on the driver's outcome. Examples: a field's value, a role list, "this reading is right" or "this one is wrong", "not a driver". Each decision gives who made it, when, and why.
+- **Rank:** a decision overrides everything else. That covers the scraper's readings, openisd's interpretation and picker, the Fs role bands and any triage verdict. The bridge applies it last.
+- **Provenance:** every value in `openisd.json` names its source. A value set by a decision names `human` as its source; the existing manual/human origin stays the most reliable source.
+- **Schema:** its own strict, versioned JSON Schema, kept beside `driver_spec.schema.json` under the same rules (one source, generated models, unknown fields refused).
+- **Triage link:** a triage item marked as needing a human decision (section 4a), such as an Unclassified driver, is resolved by writing a decision here. The next run then applies it and no longer reports that item.
+- **Stale decisions:** a decision that no longer matches its record (the field has gone, or the reading it names has changed) is reported in triage, never silently dropped.
+
 ## 3. Who does what
 
 | step                                              | winisd_tools        | openisd                                                                 |
@@ -56,6 +68,7 @@ Schema rules: ONE source — a JSON Schema file (`driver_spec.schema.json`, kept
 | roles (the `driver_type` structure)               | —                   | yes, from categories and type words                                     |
 | corroboration, winning reading                    | —                   | yes (exclude impossible, then majority of more than half, then precedence) |
 | `openisd.json` + `.wdr`                           | calls the bridge    | the bridge builds them                                                  |
+| human decisions (`driver_human.json`)            | never writes it     | the bridge applies them last; they override everything (section 2a)    |
 
 ## 3a. No logic in both languages
 
