@@ -5,8 +5,8 @@ review all your failures and make sure every one of them is impossible in future
 failure and strong solution using tools that agents cannot ignore or screw up".
 
 How work reaches main: [DEV_PROCESS.md](DEV_PROCESS.md). This file is the failure register and the
-enforcement for each failure. Evidence: lots's own record, bob's and maryu's reports, tools's
-delegation log.
+enforcement for each failure. Evidence: lots's own record, and reports from bob, maryu and tools
+(with `zoo/DELEGATION_LOG.md`).
 
 ## The rule
 
@@ -77,10 +77,15 @@ tested, with commit), **to build**, **John** (needs a ruling).
 | 19 | Blockers were delegated to slow free models (T044 at first; the watchdog's round 1) | hours; the watchdog round produced nothing | `zoo-run.sh` refuses a brief whose task has `label: fixes` or `critical: true`, or that blocks an open F | L1 | zoo test | **to build** |
 | 20 | A free-model job ran 2½ h on a small task (T034) | landing delayed | `zoo-run.sh` timebox per brief (default 45 min): commits WIP, stops the job, alerts the briefer | L3 | zoo test | **to build** |
 | 21 | WIP commits swept 196 runtime files (`zoo/state/*`) into git | noise; possible secrets | runtime folders are in `.gitignore`; L1 refuses `git add` of them | L1, L2 | `git status` clean after a job | **to build** |
-| 22 | Two agents used the same task id (T035, T041, T042, T043) | crossed reports | `scripts/new-task.sh` takes the next id under a lock and pushes the task file at once; `land.sh` refuses an id already on main from another branch | L2 | concurrency test | **to build** |
+| 22 | Two agents used the same task id (T035, T040, T041, T042, T043); tools and openisd kept two separate T counters | crossed reports | `scripts/new-task.sh` takes the next id under a lock and pushes the task file at once; `land.sh` refuses an id already on main from another branch | L2 | concurrency test | **to build** |
 | 23 | Two maryu sessions ran under one name; the wrong one was nearly kept | risk of losing a session's work | `agents-into-tmux.sh` refuses a name that already has a live session (pid and start time in `~/.claude/sessions`) | L1 | script test | **to build** |
 | 24 | 43 stale worktrees piled up | clutter; stale bases | prune merged clean worktrees on the watchdog timer | L3 | prune test | **to build** |
 | 25 | `~/.claude/githooks` was deleted, so hooks silently stopped in three repos | no attribution or allowlist checks | `run_gates.py` fails on a missing `core.hooksPath` folder; hooks in `_agent_files/githooks` | L2 | gates test | **live** (0fd70dd) |
+| 37 | A tools test rewrote the real `core.hooksPath`; the gate then blocked every tool until John repaired it by hand | tools stopped; John's time | tests that touch git config run on a scratch repo with `GIT_CONFIG_GLOBAL` and `HOME` pointed at a temp folder; L1 refuses `git config --global` from any test | L1 | gate test | installer fixed; gate **to build** |
+| 38 | `new-worktree.sh` based worktrees on origin/main, missing local main's commits, so they were red from birth and blocked the gate 4+ times | each needed John to `rm` a folder; T043 blocked from ~11:35 | `new-worktree.sh` bases on the newer of local main and origin/main and refuses if they have diverged; a worktree failing the gate at birth is reported, never left | L2 | worktree test | **to build** |
+| 39 | Briefs left the same defect open across rounds (T035 3 rounds, T032 4; r3 still had a polling loop the brief forbade); review rounds were never recorded | 77–158 min per round | `zoo-run.sh` records each round and its findings; a brief for round N+1 must list round N's findings, each with a test that fails on it; L1 lint rejects banned patterns (polling loops) in the job's diff before the result is sent | L1, L2 | zoo test | **to build** |
+| 40 | agy at its cap moved T035 r3 to opencode with nobody told | wrong model; unseen | `zoo-run.sh` writes every reroute to the result and to STATUS, and alerts the briefer | L3 | zoo test | **to build** |
+| 41 | Time lost to gate blocks was never measured | failures could not be costed | `gates.py` and `land.sh` log every refusal with its cause and duration to `build/test-logs/blocks.log`; STATUS sums them per day | L1, L2 | log test | **to build** |
 
 ### Supervision
 
@@ -89,7 +94,7 @@ tested, with commit), **to build**, **John** (needs a ruling).
 | 26 | Nobody noticed open F files, stuck landings or silent agents for hours | every landing blocked; John found it first | watchdog alerts by tmux send-keys into the owner's window in tmux session `agents` (John's choice), repeated every 30 min; STATUS shows a main-branch panel | L3 | e2e: an open F types into the owner's window | **to build** |
 | 27 | lots, tools and bob ran outside tmux, so no alert could reach them | alerts would go nowhere | `agents-into-tmux.sh` moves each session, resumed, into `agents`; the watchdog writes ASK.md when a window is missing | L3 | script test | **to build** (John runs it once) |
 | 28 | lots scheduled its own timed checks in-session; they fire only when idle and die with the session | no check-ins | timed duties live only in systemd timers | L3 | — | **to build** |
-| 29 | Instructions to agents changed repeatedly (T038 scope; order T038→T034→T035 reversed; the freeze) | re-planning; T034 never got its browser specs | one ordered list, `tasks/QUEUE.yml`, written only by the leader; `land.sh` lands in queue order and refuses a task not on it | L2 | land e2e | **to build** |
+| 29 | Instructions to agents changed repeatedly (T038 scope; order T038→T034→T035 reversed; the freeze; the watchdog's scope 4 times in an hour) | re-planning; T034 never got its browser specs | one ordered list, `tasks/QUEUE.yml`, written only by the leader; `land.sh` lands in queue order and refuses a task not on it | L2 | land e2e | **to build** |
 | 30 | A known gate defect (lint queued for lanes) was parked "after the storage proof" instead of fixed at once | ~7 h; written in 35 min once ordered | the watchdog opens an F when a gate is refused for its deadline twice in an hour; the F blocks landings, so the fault is fixed first | L2, L3 | watchdog e2e | **to build** |
 | 31 | lots's briefs carried wrong instructions (T032 r2 kept the mobile top-bar version John had moved) | a wasted round | a brief quotes John's words with the date; `zoo-run.sh` refuses a UI or rules brief with no `John:` line | L1 | zoo test | **to build** |
 | 32 | lots proposed a 5-minute dev-server restart (T033) when the server already reloads on change | John: "why is it needed" | a task file needs a `cause:` line naming the observed fault; `new-task.sh` refuses one without | L2 | new-task test | **to build** |
