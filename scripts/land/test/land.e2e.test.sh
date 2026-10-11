@@ -115,6 +115,16 @@ if [ $r1 = 0 ] && [ $r2 = 0 ] && origin_has "w1 change" && origin_has "w2 change
     ok "concurrent landings both land, linear history"
 else fail "concurrent landings (r1=$r1 r2=$r2)"; fi
 
+# 1b. a branch already on top of origin/main, with a merge commit in its history, lands without a rebase
+setup
+task w1 T1 a.txt; edit w1 a.txt one; git -C "$SCRATCH/w/w1" commit -qam "w1 change"
+git -C "$SCRATCH/w/w1" checkout -qb side HEAD~1; edit w1 b.txt side; git -C "$SCRATCH/w/w1" commit -qam "side change"
+git -C "$SCRATCH/w/w1" checkout -q main; git -C "$SCRATCH/w/w1" merge -q --no-ff -m "merge side" side
+land w1 T1; r=$?
+if [ $r = 0 ] && [ "$(origin_head)" = "$(git -C "$SCRATCH/w/w1" rev-parse HEAD)" ] && origin_has "merge side"; then
+    ok "a branch on top of origin/main lands as a fast-forward, merges kept"
+else fail "fast-forward branch (r=$r): $(tr '\n' ' ' < "$SCRATCH/out.w1" | cut -c1-200)"; fi
+
 # 2. uncommitted work is committed, never discarded
 setup
 task w1 T1 a.txt; edit w1 a.txt uncommitted

@@ -81,7 +81,10 @@ flock -n 9 || { echo "land: waiting for another landing"; flock 9; }
 
 # 2. rebase onto origin/main
 git fetch -q origin main || { echo "land: fetch failed" >&2; exit 2; }
-if ! git rebase -q origin/main > "$WORK/rebase.out" 2>&1; then
+# A branch already on top of origin/main needs no rebase: replaying its history (merges included)
+# conflicted on old commits and blocked a branch that was a plain fast-forward (T046, 11 Oct).
+if git merge-base --is-ancestor origin/main HEAD; then :
+elif ! git rebase -q origin/main > "$WORK/rebase.out" 2>&1; then
   conflicts="$(git diff --name-only --diff-filter=U | tr '\n' ' ')"
   git rebase --abort
   task_mark_blocked "$TASK" "rebase onto origin/main conflicts in: ${conflicts:-unknown files}"
