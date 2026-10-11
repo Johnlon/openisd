@@ -22,7 +22,7 @@ describe('the generated pydantic driver model', () => {
     });
 
     it('reads a bare-string role as a one-role list, as the master\'s union does', () => {
-        assert.match(text, /role = out\n\s+return \[role\]/);
+        assert.match(text, /\(role\):\n\s+return \[role\]/);
     });
 
     it('dispatches specs on the section key present, as the master\'s transform does', () => {

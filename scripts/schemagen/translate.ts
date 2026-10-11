@@ -167,9 +167,17 @@ export class ZodTranslator {
 
     #object(arg: Expression, env: Env): PyObject {
         if (!Node.isObjectLiteralExpression(arg)) throw new Untranslated(arg, 'strictObject argument');
+        return {kind: 'object', hint: '', fields: this.#fieldsOf(arg, env), checks: []};
+    }
+
+    /** The fields of a shape literal; `...name` spreads a const holding another shape literal. */
+    #fieldsOf(shape: Expression, env: Env): PyField[] {
+        if (!Node.isObjectLiteralExpression(shape)) throw new Untranslated(shape, 'expected a shape literal');
         const fields: PyField[] = [];
-        for (const prop of arg.getProperties()) {
-            if (Node.isPropertyAssignment(prop)) {
+        for (const prop of shape.getProperties()) {
+            if (Node.isSpreadAssignment(prop)) {
+                fields.push(...this.#fieldsOf(this.#declarationOf(prop.getExpression()).getInitializerOrThrow(), new Map()));
+            } else if (Node.isPropertyAssignment(prop)) {
                 const nameNode = prop.getNameNode();
                 const name = Node.isStringLiteral(nameNode) ? nameNode.getLiteralText() : nameNode.getText();
                 fields.push(this.#field(name, this.#translate(prop.getInitializerOrThrow(), env, name)));
@@ -178,7 +186,7 @@ export class ZodTranslator {
                 fields.push(this.#field(name, this.#identifier(prop.getNameNode(), env, name)));
             } else throw new Untranslated(prop, 'object property');
         }
-        return {kind: 'object', hint: '', fields, checks: []};
+        return fields;
     }
 
     #field(name: string, type: PyType | Optional): PyField {
@@ -213,7 +221,7 @@ export class ZodTranslator {
         if (r.kind === 'unknown' && Node.isBlock(body)) return this.#dispatch(arrow, env);
         if (!Node.isExpression(body)) throw new Untranslated(body, 'transform body');
         const param = arrow.getParameters()[0].getName();
-        return {kind: 'piped', hint: '', members: [{type: r, transform: {param, expr: this.#pyExpr(body, param, param)}}], target: {kind: 'unknown'}};
+        return {kind: 'piped', hint: '', members: [{type: r, transform: {param, expr: this.#pyExpr(body, new Map([[param, param]]))}}], target: {kind: 'unknown'}};
     }
 
     /**
@@ -289,25 +297,42 @@ export class ZodTranslator {
         const text = Node.isObjectLiteralExpression(message)
             ? this.#messageIn(message, env)
             : this.#stringOf(message, env);
-        return {param, expr: this.#pyExpr(body, param, param), selfExpr: this.#pyExpr(body, param, 'self'), message: text};
+        return {param, expr: this.#pyExpr(body, new Map([[param, param]])), selfExpr: this.#pyExpr(body, new Map([[param, 'self']])), message: text};
     }
 
-    /** A refine/transform body as a python expression. `param` is the arrow's parameter; it reads
-     *  as `pyParam` in the output. Only the operators and calls our bodies use. */
-    #pyExpr(e: Expression, param: string, pyParam: string): string {
-        const sub = (x: Expression) => this.#pyExpr(x, param, pyParam);
+    /** A refine/transform body as a python expression. `bound` maps each TypeScript name in scope
+     *  (the arrow's parameter, a called function's parameters) to its python spelling. Only the
+     *  operators and calls our bodies use; a free name resolves only to an `as const` string list. */
+    #pyExpr(e: Expression, bound: ReadonlyMap<string, string>): string {
+        const sub = (x: Expression) => this.#pyExpr(x, bound);
         if (Node.isParenthesizedExpression(e)) return `(${sub(e.getExpression())})`;
         if (Node.isNullLiteral(e)) return 'None';
         if (Node.isNumericLiteral(e)) return e.getText();
         if (Node.isStringLiteral(e)) return JSON.stringify(e.getLiteralText());
         if (Node.isIdentifier(e)) {
-            if (e.getText() === param) return pyParam;
-            throw new Untranslated(e, 'free identifier in a refine body');
+            const name = bound.get(e.getText());
+            if (name !== undefined) return name;
+            return `[${this.#stringsOf(e, new Map()).map(v => JSON.stringify(v)).join(', ')}]`;
         }
-        if (Node.isArrayLiteralExpression(e)) return `[${e.getElements().map(sub).join(', ')}]`;
+        if (Node.isArrayLiteralExpression(e)) {
+            return `[${e.getElements().map(x => (Node.isSpreadElement(x) ? `*${sub(x.getExpression())}` : sub(x))).join(', ')}]`;
+        }
         if (Node.isPrefixUnaryExpression(e) && e.getOperatorToken() === SyntaxKind.ExclamationToken) return `(not ${sub(e.getOperand())})`;
         if (Node.isNewExpression(e) && e.getExpression().getText() === 'Set') return `set(${sub(this.#argument(e.getArguments()[0]))})`;
-        if (Node.isCallExpression(e) && e.getExpression().getText() === 'Object.keys') return `list(${sub(this.#argument(e.getArguments()[0]))})`;
+        if (Node.isCallExpression(e)) {
+            const callee = e.getExpression();
+            if (callee.getText() === 'Object.keys') return `list(${sub(this.#argument(e.getArguments()[0]))})`;
+            if (Node.isPropertyAccessExpression(callee) && callee.getName() === 'some') {
+                const pred = this.#arrow(this.#argument(e.getArguments()[0]));
+                const body = pred.getBody();
+                if (!Node.isExpression(body)) throw new Untranslated(body, '.some predicate body');
+                const item = pred.getParameters()[0].getName();
+                const inner = new Map(bound);
+                inner.set(item, item);
+                return `any(${this.#pyExpr(body, inner)} for ${item} in ${sub(callee.getExpression())})`;
+            }
+            if (Node.isIdentifier(callee)) return this.#inlinedCall(callee, e.getArguments().map(a => sub(this.#argument(a))));
+        }
         if (Node.isPropertyAccessExpression(e)) {
             const name = e.getName();
             if (name === 'length' || name === 'size') return `len(${sub(e.getExpression())})`;
@@ -328,6 +353,22 @@ export class ZodTranslator {
             }
         }
         throw new Untranslated(e, 'expression in a refine body');
+    }
+
+    /** A call to a module function whose body is one `return`: its expression, with the
+     *  parameters bound to the already-translated arguments. */
+    #inlinedCall(callee: Node, args: readonly string[]): string {
+        if (!Node.isIdentifier(callee)) throw new Untranslated(callee, 'called name');
+        const fn = callee.getDefinitionNodes().find(d => Node.isFunctionDeclaration(d));
+        if (fn === undefined || !Node.isFunctionDeclaration(fn)) throw new Untranslated(callee, 'call to something other than a module function');
+        const statements = fn.getStatements();
+        const only = statements[0];
+        if (statements.length !== 1 || !Node.isReturnStatement(only)) throw new Untranslated(fn, 'function body is not one return');
+        const params = fn.getParameters();
+        if (params.length !== args.length) throw new Untranslated(callee, 'argument count');
+        const bound = new Map<string, string>();
+        params.forEach((p, i) => bound.set(p.getName(), args[i]));
+        return `(${this.#pyExpr(only.getExpressionOrThrow(), bound)})`;
     }
 
     #stringOf(e: Expression, env: Env): string {
@@ -379,9 +420,30 @@ export class PythonEmitter {
             '# An optional key has the default None but its type does not admit None: pydantic does not validate',
             '# defaults, and `model_dump(exclude_unset=True)` leaves an absent key absent, as Zod does.',
             'from typing import Annotated, Literal, Union',
-            'from pydantic import AfterValidator, BaseModel, BeforeValidator, ConfigDict, Discriminator, Field, Tag, TypeAdapter, model_validator',
+            'from pydantic import AfterValidator, BaseModel, BeforeValidator, ConfigDict, Discriminator, Field, Tag, TypeAdapter, ValidationError, model_validator',
+            'from pydantic_core import PydanticCustomError',
             '',
             'Number = Annotated[float, Field(allow_inf_nan=False)]',
+            '',
+            '# Zod 4 reports a failed union as the issues of the ONE member whose issues are all continuable',
+            '# (a refinement, a size bound, an unrecognised key); with none or several such members it reports',
+            '# one invalid_union at the union. A wrong type, a wrong literal or a missing key aborts a member.',
+            'CONTINUABLE = frozenset({"value_error", "too_short", "too_long", "greater_than", "extra_forbidden"})',
+            '',
+            'def _continuable(err):',
+            "    return err['type'] in CONTINUABLE or (err['type'] == 'literal_error' and err['loc'][-1:] == ('[key]',))",
+            '',
+            'def _union(v, members):',
+            '    survivors = []',
+            '    for adapter, finish in members:',
+            '        try:',
+            '            return finish(adapter.validate_python(v))',
+            '        except ValidationError as e:',
+            '            if all(_continuable(err) for err in e.errors()):',
+            '                survivors.append(e)',
+            '    if len(survivors) == 1:',
+            '        raise survivors[0]',
+            "    raise PydanticCustomError('invalid_union', 'Invalid input')",
             '',
             'class Strict(BaseModel):',
             "    model_config = ConfigDict(extra='forbid', strict=True)",
@@ -487,24 +549,21 @@ export class PythonEmitter {
         return `Annotated[Union[${members.map(m => `Annotated[${m.cls}, Tag(${py(m.tag)})]`).join(', ')}], Discriminator(${fn})]`;
     }
 
-    /** `z.union([...]).pipe(target)`: a BeforeValidator that tries each member in order, as Zod
-     *  does, applies that member's transform, and refuses at the field when none fits. */
+    /** `z.union([...])`, piped or not: a BeforeValidator over `_union`, which tries each member in
+     *  order as Zod does, applies that member's transform, and reports a failure as Zod 4 does. */
     #piped(t: Extract<PyType, {kind: 'piped'}>, hint: string): string {
         const fn = this.#fn(`union_${hint}`);
-        const adapters = t.members.map((m, i) => {
-            const name = `${fn}_member_${i}`;
-            this.#lines.push(`${name} = TypeAdapter(${this.#annotation(m.type, hint)}, config=ConfigDict(strict=True))`);
-            return name;
+        const members = t.members.map((m, i) => {
+            const adapter = `${fn}_member_${i}`;
+            const config = m.type.kind === 'object' ? '' : ', config=ConfigDict(strict=True)';
+            this.#lines.push(`${adapter} = TypeAdapter(${this.#annotation(m.type, hint)}${config})`);
+            const finish = `${fn}_finish_${i}`;
+            if (m.transform !== null) this.#lines.push(`def ${finish}(${m.transform.param}):`, `    return ${m.transform.expr}`);
+            else if (m.type.kind === 'object') this.#lines.push(`def ${finish}(out):`, '    return out.model_dump(by_alias=True, exclude_unset=True)');
+            else this.#lines.push(`def ${finish}(out):`, '    return out');
+            return `(${adapter}, ${finish})`;
         });
-        const lines = [`def ${fn}(v):`];
-        t.members.forEach((m, i) => {
-            lines.push('    try:', `        out = ${adapters[i]}.validate_python(v)`);
-            if (m.transform !== null) lines.push(`        ${m.transform.param} = out`, `        return ${m.transform.expr}`);
-            else lines.push('        return out');
-            lines.push('    except ValueError:', '        pass');
-        });
-        lines.push(`    raise ValueError('Invalid input')`, '');
-        this.#lines.push(...lines);
+        this.#lines.push(`def ${fn}(v):`, `    return _union(v, [${members.join(', ')}])`, '');
         return `Annotated[${this.#annotation(t.target, hint)}, BeforeValidator(${fn})]`;
     }
 
