@@ -87,7 +87,7 @@ export interface FixtureMeta {
 export function sampleDriverRecord(): unknown {
   return {
     brand: {value: 'test'}, model: {value: 'test'}, manufacturer: {value: 'test'},
-    uuid: {value: '00000000-0000-4000-8000-000000000000'}, driver_type: {value: 'woofer'},
+    uuid: {value: '00000000-0000-4000-8000-000000000000'}, driver_type: {value: ['woofer']},
     sku: {value: 'test', grounds: [{origin: 'manual', reading: 'test'}]},
     quality: {
       confirmed_fields: [], fields_with_issues: [], missing: [], invalid: [],

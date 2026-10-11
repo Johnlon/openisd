@@ -70,7 +70,7 @@ function blankDriverRecord(): unknown {
     },
     manufacturer: { value: '' }, brand: { value: '' }, model: { value: '' },
     sku: { value: '', grounds: [{ origin: 'entered', reading: '' }] },
-    driver_type: { value: 'woofer' },
+    driver_type: {value: ['woofer']},
     data_sources: { value: {} },
     specs: { woofer: {} },
   };

@@ -26,7 +26,7 @@ function aDriver(brand: string, model: string): OpenISDDriver {
     manufacturer: scraped(brand), brand: scraped(brand), model: scraped(model),
     provided_by: scraped('test'), comment: scraped(''), added: scraped('2026-01-01'),
     sku: { value: '', grounds: [{ origin: 'manufacturer_datasheet', reading: '' }] },
-    driver_type: scraped('woofer'),
+    driver_type: scraped(['woofer']),
     data_sources: { value: {} },
     quality: {
       confirmed_fields: [], fields_with_issues: [], missing: [], invalid: [],

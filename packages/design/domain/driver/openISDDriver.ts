@@ -77,7 +77,7 @@ export abstract class OpenISDDriver extends OpenISDDevice {
      *  structurally satisfies `DriverSolverParams` (44 `Field`s + `wiring`). */
     readonly specs: OpenIsdDriverSpec;
 
-    /** The scraper-stated classification string — driver only, so it lives here rather than on
+    /** The scraper-stated roles, one or more — driver only, so it lives here rather than on
      *  `OpenISDDevice` alongside `brand`/`model`, which a box or radiator also carries. Read-only:
      *  a plain accessor, not a `Field`, because nothing writes this — it is scraper-owned data
      *  (`scrapedFieldOf`), not a value an editor enters.
@@ -91,7 +91,7 @@ export abstract class OpenISDDriver extends OpenISDDevice {
      *  scraper the way `filter/driverType.ts` keeps `DriverType`/`Chip` in parity with
      *  `test_driver_type_enum_parity.py`, this method returns that domain type instead of the raw
      *  string — not `packages/design/filter`'s `DriverType`, which is a UI/search-only concept. */
-    driverType(): string {
+    driverTypes(): readonly string[] {
         return this.record.value.driver_type.value;
     }
 

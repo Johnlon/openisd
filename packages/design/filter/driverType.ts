@@ -97,6 +97,25 @@ export class DriverType {
     return token ? (DriverType.ALL.find((d) => d.value === token) ?? null) : null;
   }
 
+  /** The members a record's role list names, in list order. A role the enum does not declare, and
+   *  `unclassified`, name no member and are left out. */
+  static parseRoles(raw: readonly string[]): DriverType[] {
+    return raw.flatMap((r) => {
+      const t = DriverType.parse(r);
+      return t === null || t === DriverType.Unclassified ? [] : [t];
+    });
+  }
+
+  /** The chip values a set of roles answers to: the union, each once, in first-seen order. */
+  static chipValuesOf(roles: readonly DriverType[]): string[] {
+    return [...new Set(roles.flatMap((t) => t.chips.map((c) => c.value)))];
+  }
+
+  /** One label for a set of roles: each role's display text, joined by " / ". */
+  static displayOf(roles: readonly DriverType[]): string {
+    return roles.map((t) => t.display).join(' / ');
+  }
+
   toString(): string { return this.value; }
   toJSON(): string { return this.value; }
 }

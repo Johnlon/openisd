@@ -42,7 +42,7 @@ sku:
     reading: https://www.scan-speak.dk/product/15w-4424g00/
     definition: the source URL that corroborated the derivation
 driver_type:
-  value: mid-woofer
+  value: [mid-woofer]
   origin: manufacturer_product_page
   definition: what kind of driver this is (closed vocabulary); decides which specs section applies
 data_sources:

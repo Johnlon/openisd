@@ -22,7 +22,7 @@ function passiveRadiatorRecord() {
     added: { value: '2026-01-01' },
     uuid: { value: PR_UUID },
     sku: { value: 'TEST-PR', grounds: [{ origin: 'manufacturer_datasheet', reading: 'TEST-PR' }] },
-    driver_type: { value: 'passive-radiator' },
+    driver_type: {value: ['passive-radiator']},
     data_sources: { value: {} },
     quality: {
       confirmed_fields: [], fields_with_issues: [], missing: [], invalid: [],

@@ -29,7 +29,7 @@
   "driver_type": {
     "definition": "what kind of driver this is (closed vocabulary); decides which specs section applies",
     "origin": "manufacturer_product_page",
-    "value": "woofer"
+    "value": ["woofer"]
   },
   "manufacturer": {
     "definition": "the company that makes the driver; a second-order descriptive field, shown only when it differs from the brand",

@@ -37,7 +37,7 @@ function recordDriver() {
     manufacturer: scraped('Acme'), brand: scraped('Acme'), model: scraped('Widget'),
     provided_by: scraped('test'), comment: scraped(''), added: scraped('2026-01-01'),
     sku: { value: 'ACME-WIDGET', grounds: [{ origin: 'manufacturer_datasheet', reading: 'ACME-WIDGET' }] },
-    driver_type: scraped('woofer'),
+    driver_type: scraped(['woofer']),
     data_sources: { value: { manufacturer_datasheet: 'https://example.invalid/ds.pdf' } },
     quality: {
       confirmed_fields: [], fields_with_issues: [], missing: [], invalid: [],

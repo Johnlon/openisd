@@ -37,7 +37,7 @@ export function blankDeviceRecord<S extends DriverSpecsJson | RadiatorSpecsJson>
         model: {value: ''},
         sku: {value: '', grounds: [{origin: 'manual', reading: ''}]},
         data_sources: {value: {}},
-        driver_type: {value: section},
+        driver_type: {value: [section]},
         specs,
         added: {value: dateStamp(appContext.now()), origin: 'entered'},
         // Omitted, not `''`, when nobody is known — `#buildMeta` reads a missing key as absent.

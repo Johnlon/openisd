@@ -26,7 +26,7 @@ describe('every spec field supports get/set/get/clear/get — clear() actually c
             manufacturer: scraped(''), brand: scraped(''), model: scraped(''),
             provided_by: scraped('test'), comment: scraped(''), added: scraped('2026-01-01'),
             sku: {value: '', grounds: [{origin: 'manufacturer_datasheet', reading: ''}]},
-            driver_type: scraped('woofer'),
+            driver_type: scraped(['woofer']),
             data_sources: {value: {}},
             quality: {
                 confirmed_fields: [], fields_with_issues: [], missing: [], invalid: [],

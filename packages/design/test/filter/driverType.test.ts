@@ -44,3 +44,17 @@ describe('DriverType — the wire value a record states', () => {
     expect(JSON.stringify({ driver_type: DriverType.Tweeter })).toBe('{"driver_type":"tweeter"}');
   });
 });
+
+describe('DriverType — a record with several roles', () => {
+  it('parseRoles keeps declared roles in list order and drops unknown and unclassified ones', () => {
+    expect(DriverType.parseRoles(['midrange', 'bogus', 'tweeter', 'unclassified'])).toEqual([DriverType.Midrange, DriverType.Tweeter]);
+  });
+
+  it('chipValuesOf is the union of the roles chips, each once', () => {
+    expect(DriverType.chipValuesOf([DriverType.Midrange, DriverType.Tweeter])).toEqual(['mid', 'woofer', 'tweet']);
+  });
+
+  it('displayOf joins the role labels', () => {
+    expect(DriverType.displayOf([DriverType.Midrange, DriverType.Tweeter])).toBe('Midrange / Tweeter');
+  });
+});

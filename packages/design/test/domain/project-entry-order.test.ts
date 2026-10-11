@@ -16,7 +16,7 @@ function blankDriverRecord(): unknown {
     quality: {confirmed_fields: [], fields_with_issues: [], missing: [], invalid: [], parse_errors: [], cross_source_only: []},
     manufacturer: {value: ''}, brand: {value: ''}, model: {value: ''},
     sku: {value: '', grounds: [{origin: 'entered', reading: ''}]},
-    driver_type: {value: 'woofer'},
+    driver_type: {value: ['woofer']},
     data_sources: {value: {}},
     specs: {woofer: {}},
   };

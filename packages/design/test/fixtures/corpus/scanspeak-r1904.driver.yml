@@ -40,7 +40,7 @@ sku:
     reading: https://www.scan-speak.dk/product/r1904-613001/
     definition: the source URL that corroborated the derivation
 driver_type:
-  value: tweeter
+  value: [tweeter]
   origin: manufacturer_product_page
   definition: what kind of driver this is (closed vocabulary); decides which specs section applies
 data_sources:

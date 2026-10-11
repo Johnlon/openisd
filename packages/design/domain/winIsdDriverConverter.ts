@@ -102,6 +102,7 @@ const METADATA_FIELDS_WITH_DEAD_ORIGIN: readonly string[] = Object.freeze([
   "brand",
   "model",
   "driver_type",
+  "categories",
   "series",
   "nominal_size_cm",
   "product_image",

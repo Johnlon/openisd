@@ -17,7 +17,7 @@ function driverFor(engine: Engine): OpenISDDriver {
     manufacturer: scraped('Dayton'), brand: scraped('Dayton'), model: scraped('RS225'),
     provided_by: scraped('test'), comment: scraped(''), added: scraped('2026-01-01'),
     sku: {value: 'TEST-SKU', grounds: [{origin: 'manufacturer_datasheet', reading: 'TEST-SKU'}]},
-    driver_type: scraped('woofer'),
+    driver_type: scraped(['woofer']),
     data_sources: {value: {manufacturer_datasheet: 'https://example.invalid/ds.pdf'}},
     quality: {
       confirmed_fields: [], fields_with_issues: [], missing: [], invalid: [],

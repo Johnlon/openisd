@@ -25,7 +25,7 @@ manufacturer: {value: Acme, origin: entered}
 brand: {value: Acme, origin: entered}
 model: {value: Widget, origin: entered}
 sku: {value: acme-widget, grounds: [{origin: entered, reading: acme-widget}]}
-driver_type: {value: woofer, origin: entered}
+driver_type: {value: [woofer], origin: entered}
 data_sources: {value: ${sources}}
 provided_by: {value: '', origin: entered}
 comment: {value: '${comment}', origin: entered}
