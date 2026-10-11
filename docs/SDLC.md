@@ -2,6 +2,14 @@
 
 John, 11 Oct 2026: "write this up as an SDLC with tooling to enforce it as I have no trust in you,
 review all your failures and make sure every one of them is impossible in future"; "I need solutions."
+Later the same day, after the venv gate stopped two sessions again (R0): "this is a critical
+fault, critical, keeps happening and cause total mess"; "totally unacceptable"; "your ai process
+is a total waste of time and has to be fixed".
+
+The verdict this report accepts: the process as run 8–11 Oct cost more than it produced. Every
+hour of agent time below was spent on the process (queues, gates, stalls, re-planning, hand
+repairs by John), not on the product. The fix is not more agents or more rules; it is S0–S8,
+each a script with a test, built in the order given, starting with S0 today.
 
 Solutions first. The register at the end is the evidence, nothing more. The system the solutions
 add up to: [SDLC_DESIGN.md](SDLC_DESIGN.md). How work reaches main today: [DEV_PROCESS.md](DEV_PROCESS.md).
