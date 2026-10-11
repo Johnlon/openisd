@@ -1,142 +1,202 @@
-# SDLC — every failure made impossible by a tool
+# SDLC — what went wrong 8–11 Oct 2026, and the tools that stop it
 
 John, 11 Oct 2026: "write this up as an SDLC with tooling to enforce it as I have no trust in you,
+review all your failures and make sure every one of them is impossible in future"; "I need solutions."
 
-The system that enforces all of this, tools only: [SDLC_DESIGN.md](SDLC_DESIGN.md).
-review all your failures and make sure every one of them is impossible in future"; "include all
-failure and strong solution using tools that agents cannot ignore or screw up".
+Solutions first. The register at the end is the evidence, nothing more. The system the solutions
+add up to: [SDLC_DESIGN.md](SDLC_DESIGN.md). How work reaches main today: [DEV_PROCESS.md](DEV_PROCESS.md).
 
-How work reaches main: [DEV_PROCESS.md](DEV_PROCESS.md). This file is the failure register and the
-enforcement for each failure. Evidence: lots's own record, and reports from bob, maryu and tools
-(with `zoo/DELEGATION_LOG.md`).
+Evidence sources: git history (openisd, winisd_tools), `tasks/fixes/F*.yml`, `zoo/ASK.md`,
+`zoo/DELEGATION_LOG.md`, `.postland/post-land.log`, the session transcripts (times below are local,
+BST), and the written answers of bob, lots and openisd-c5 (tools did not answer in time; its
+transcript was used instead).
 
-## The rule
+## Root causes, ranked by cost
 
-No duty may rest on an agent remembering, choosing or being honest. Each rule is enforced in one
-of four layers. An agent cannot get round a layer, and cannot turn it off.
+| # | Root cause | Cost seen | Fixed by |
+|---|---|---|---|
+| R1 | The landing gate never ran the unit tests. Five landings pushed 14 unit failures in 7 files; post-land found them 2–4 h later and opened F7, F8, F9 | every landing refused 01:00–12:40 11 Oct (~11 h); 3 full runs of 2–4 h each wasted | S1 |
+| R2 | One queue for everything. Lint, typecheck and single specs waited behind full suites in 4 lanes; the 300 s gate deadline ran out in the queue | T038 green at ~03:00, refused 6 times, landed 11:38 (~8 h); T040 refused; T034 typecheck stalled 600 s twice | S2 (live) |
+| R3 | Nothing kills a superseded or hung run. Up to 4 full post-land runs at once; one at 0 % CPU for 1 h 31 m; the agent could not kill (classifier), handed John a `kill` twice, the second hit "no such process" | all lanes held ~3 h; John's time; wrong "hung" diagnosis | S2, S3 |
+| R4 | Nothing watches. No timer, no heartbeat, no re-alert. 12 delegated results sat "NOT DELIVERED" (ASK.md); the coordinator's half-hourly check ran only when idle | agents idle ~1–3 h per result; stuck runs unseen for hours; John found every stall first | S3 |
+| R5 | Integration by hand, without the branch's tests. "Main wins" in T036 threw away the Qicl move; a second Qicl drop at start-up lost values for good; the roles merge changed `driver_type` under every stored driver | saved projects refused in prod (John, 11 Oct 03:28); ~2 h recovery (T039, T041); 40 min for roles | S4 |
+| R6 | Fragile environment: fixed `/tmp` paths wiped mid-run (two runs held ticket 1); a per-worktree `.venv` the gate demanded but no worktree had (30+ refusals in tools); the hooks folder deleted; a test rewrote the real `core.hooksPath`; the main folder left on another agent's branch; `lap` not an allowed host | each stopped every tool call in a session until John fixed it by hand (10 Oct 18:50, 23:10) | S5 |
+| R7 | Delegated work counted as done on trust. No record of rounds (T032 4 rounds, 164 min; T035 3 rounds; T034 158 min); results overwritten (T041); briefs violated (polling loop in T035 r3); 196 runtime files swept into a WIP commit; task ids used twice (T035, T040–T043) | ~4 review rounds of 30–60 min each; a lost review; crossed reports | S6, S7 |
+| R8 | Credit and tokens. Three Claude sessions cut off at the usage limit (8 Oct 23:58); "run out of credit again" (9 Oct); work moved to slow free models with no timebox | days of slow progress (John, 11 Oct 12:56: "token burning") | S7, S8 |
 
-| Layer | What it is | Why an agent cannot dodge it |
+## Solutions, ranked by value per effort
+
+Each is one task. "Proof" is the test that must pass before the row is live. State: **live** (commit
+named) or **to build**.
+
+### S1 — the landing gate runs the unit tests (R1) — to build, effort S
+
+- What: `land.sh` runs the unit half of every package the change touches, plus every existing spec
+  that imports a changed file (import graph), before the push. `done_test` may not name a
+  `*.browser.spec.ts`; browser specs run post-land with their own deadline.
+- Where: `scripts/land.sh`, `scripts/land/core/`, `scripts/land/test/land.e2e.test.sh`.
+- Stops: a unit failure reaching main (F2, F7–F9); a task passing its own spec and breaking a
+  neighbour (F5); a browser spec overrunning the 300 s gate (T036, ~30 min of retries).
+- Proof: land e2e cases "unit failure in a touched package is refused", "shared-component change
+  runs its dependants", "browser spec in done_test is refused".
+- Brief-ready: yes. Owner: a Claude session (gate code is never delegated to a free model).
+
+### S2 — one scheduler, light commands never wait, newer run cancels older (R2, R3)
+
+- Live: gates and targeted runs enter `heavy.slice` with no lane (T044, 33ff0645, proof
+  `heavy-no-lane.test.sh`); admission holder checked by pid and start time (T042, a02d6d78);
+  every lock and queue under `$XDG_RUNTIME_DIR/openisd`, never `/tmp` (T035, a4f9b60a).
+- To build, effort S: post-land coalesce with a kill. When a newer sha starts, the older run's
+  process group is killed by recorded pgid and its grant freed. `admit` prints what it is waiting
+  behind every 30 s and logs the wait.
+- Where: `scripts/land/post-land/run.sh`, `scripts/admit.sh`, `scripts/land/test/post-land-coalesce.test.sh`.
+- Proof: scratch-repo e2e, two runs started 10 s apart, the first is dead within 30 s.
+
+### S3 — a watchdog on a systemd timer, alerts typed into the agent's window (R3, R4) — to build, effort M
+
+- What: `scripts/watchdog.sh` every 5 min: kills a run with no log growth and ~0 % CPU for
+  20 min (by recorded pid and start time); frees grants held by dead pids; re-alerts an
+  unacknowledged `zoo-run.sh` result every 30 min; alerts on an open F older than 30 min with no
+  owner; opens an `infra` F when the same gate is refused twice in an hour; prunes merged clean
+  worktrees. Alerts go by `tmux send-keys` into the owner's window in session `agents` (John's
+  choice); no window, a line in `zoo/ASK.md`. The watchdog never asks John to run a command.
+- Where: `scripts/watchdog.sh`, `~/.config/systemd/user/openisd-watchdog.{service,timer}`,
+  `scripts/agents-into-tmux.sh` (one live session per name; refuses a duplicate name — two
+  maryus ran at once on 10 Oct 20:39).
+- Stops: hung runs holding lanes for hours; results nobody reads; "I will check every 30 min"
+  promises; an agent diagnosing "hung" by eye.
+- Proof: scratch-repo e2e with a stub run at 0 % CPU and an unacked result; both produce a
+  kill and a typed alert.
+- Brief-ready: yes. Depends on nothing. `gates.py` refuses `systemctl --user stop|disable|mask`
+  on the timer.
+
+### S4 — `integrate.sh`: merges run the branch's tests and the stored-data corpus (R5) — to build, effort M
+
+- What: the only merge path. Squash-merge in a fresh worktree; conflicts are listed in the task
+  file for an edit-by-hand resolution (no `--ours`/`--theirs`); refuses if any test file the branch
+  added or changed is deleted or fails after the merge; runs the unit half (S1); on any change to
+  `openisdSchema.ts`, `projectRepo.ts`, a loader or `driver_type`, runs the corpus check: every
+  bundled driver, every stored-project fixture (`packages/persistence/test/fixtures/stored-pre-t036`,
+  82851e82) and the sample projects must still parse.
+- Where: `scripts/integrate.sh`, `scripts/land/test/integrate.e2e.test.sh`; the schema generator's
+  test (`scripts/schemagen`) runs in the same gate so an unhandled construct refuses the landing.
+- Stops: "main wins" data loss; a schema change refusing every saved project or driver; a merge
+  freeze with no gates (11 Oct 11:40: four branches merged, one 4-file conflict, one typecheck
+  error fixed by hand on main).
+- Proof: e2e: an integration that drops a branch test is refused; a breaking schema change is refused.
+
+### S5 — environment is self-checking (R6) — mostly live, effort S each
+
+| Fault | Tool | State |
 |---|---|---|
-| **L1 command gate** | `gates.py`, the Claude Code PreToolUse hook every Claude session runs; `zoo-run.sh` wraps agy/opencode in the same checks | the command is refused before it runs; L1 also refuses edits to the enforcement files |
-| **L2 git gates** | git hooks plus `land.sh`, the only path to main | a commit, switch or push that breaks a rule is refused; `--no-verify` is refused by L1 and caught by pre-push |
-| **L3 timers** | systemd user timers: the watchdog and housekeeping | run every 5 min whether or not any agent is alive or remembers; L1 refuses `systemctl --user stop/disable/mask` on them |
-| **L4 GitHub** | branch ruleset on `main`, and the Pages deploy workflow | runs off this machine; no local agent can change it |
+| fixed `/tmp` names | `scripts/paths.sh`, one runtime root | live a4f9b60a |
+| per-worktree `.venv` demanded | one shared venv at the workspace root, `make setup` | live 43cf2b76 (tools) |
+| hooks folder deleted | `run_gates.py` fails on a missing `core.hooksPath`; hooks in `_agent_files/githooks` | live 0fd70dd |
+| a test rewrote the real `core.hooksPath` | tests that touch git config run with `HOME` and `GIT_CONFIG_GLOBAL` in a temp dir; `gates.py` refuses `git config --global` from any test | to build |
+| main folder on another branch; :4000 served the wrong tree | keep-alive as a systemd unit, `cd` into the main folder, fast-forward each minute; `gates.py` refuses edit, commit or `git switch` with cwd = main folder | daemon live; gate to build |
+| worktree born red (based on origin/main behind local main); nested node_modules | `new-worktree.sh` bases on the newer of local and origin main, refuses if diverged, links node_modules once | to build |
+| `lap` refused by Vite | `allowedHosts` in `vite.config.js` | live a4f9b60a |
 
-Enforcement files (protected by L1, changed only by a task labelled `infra` that John approves in
-its task file): `gates.py`, `scripts/land.sh` and `scripts/land/**`, `scripts/admit*`,
-`scripts/heavy.sh`, `~/.claude/bin/heavy.sh`, `~/bin/npx`, the watchdog and its units,
-`_agent_files/bin/zoo-run.sh`, `land.conf`, `.github/workflows/**`, this file.
+### S6 — delegated work is proven, recorded and lint-checked before it is delivered (R7) — to build, effort M
 
-## Roles
+- What, in `zoo-run.sh`: marks a result "tests unproven" unless the log shows the brief's test
+  command exiting 0; lints the job's diff for banned patterns (sleep/polling loops, `!` assertions,
+  `console.log`, casts) and sends the findings with the result; records every round (model, minutes,
+  tokens, findings) in `zoo/DELEGATION_LOG.md`; a brief for round N+1 must list round N's findings;
+  refuses a brief whose task is `label: fixes`, `critical: true` or blocks an open F; timebox per
+  brief (default 45 min: commits WIP, stops, alerts the briefer); logs every reroute (agy at its cap
+  moved T035 r3 to opencode unseen); runtime folders (`zoo/state/*`) gitignored and refused by
+  `git add`.
+- Live already: summary to `<job>.summary.md`, never over the report (39f976d); `land.sh` runs
+  `done_test` itself.
+- Where: `_agent_files/bin/zoo-run.sh`, its tests.
+- Stops: 158 min jobs on a small task; four rounds on one defect; a blocker on a free model;
+  WIP sweeps of 196 files.
+- Proof: zoo tests for each refusal; a stub job with a polling loop is reported.
 
-| Who | Does | Never does |
+### S7 — one task counter, one queue, one event log (R7, R8) — to build, effort S
+
+- What: `scripts/new-task.sh` takes the next id under a lock across both repos and pushes the
+  task file at once; `land.sh` refuses an id already on main from another branch. `tasks/QUEUE.yml`
+  is the one ordered list, written by the leader only; `land.sh` lands the head or a
+  `fixes`/`infra` task. Every script appends to `zoo/events.log` (actor, task, event, duration,
+  tokens); `gates.py` and `land.sh` log every refusal with cause and duration; `status.sh` renders
+  STATUS from the log only.
+- Stops: id clashes (5 in one night); orders changed four times in an hour; failures that cannot be
+  costed; token burn nobody measured.
+- Proof: concurrency test on the counter; land e2e "not queue head is refused"; log test.
+
+### S8 — deploy only from a green run (R1, R8) — John's decision, effort S
+
+- What: post-land tags `green/<sha>` on green; `deploy.yml` runs on that tag, never on a push to
+  main; the GitHub ruleset lets only that workflow deploy.
+- Stops: broken code on openisd.app minutes after a landing (the data-loss bug reached prod).
+- John ruled on 10 Oct "release is the Pages deploy on main". This row needs him to change that.
+
+### Not a tool: credit
+
+R8 has no gate. The policy already stands (Claude sessions brief, review, land; free models do the
+work). S6's timebox and S7's token log make the cost visible per task; a token budget per task
+(`budget:` in the task file, `blocked` when exceeded) is in SDLC_DESIGN.md and needs John's numbers.
+
+## Ready to brief now
+
+| Order | Task | Effort | Unblocks |
+|---|---|---|---|
+| 1 | S1 unit half + dependants in the landing gate | S | every F of the R1 kind |
+| 2 | S3 watchdog timer + tmux alerts + one-session-per-name | M | every stall and undelivered result |
+| 3 | S2 post-land coalesce with kill | S | lanes held by dead runs |
+| 4 | S4 `integrate.sh` with branch tests and corpus check | M | merge data loss |
+| 5 | S6 `zoo-run.sh` proof, lint, rounds, timebox, refusals | M | wasted delegation rounds |
+| 6 | S7 counter, queue, event log | S | id clashes, order churn, measurement |
+| 7 | S5 remaining rows (config sandbox, main-folder gate, new-worktree.sh) | S each | per-session stops |
+| 8 | S8 green tag deploy | S | needs John's ruling |
+
+## Register — evidence only
+
+Merged by root cause. Times local. "Evidence" names a commit, file or transcript (session prefix,
+time).
+
+| # | When | Who | Failure | Cost | Evidence | Fix |
+|---|---|---|---|---|---|---|
+| 1 | 11 Oct 01:00–12:40 | all | 14 unit failures in 7 files reached main from 5 landings; F7, F8, F9 opened for one fault | every landing refused ~11 h | F7–F9 (`tasks/fixes`), 2a9df7be, post-land.log "RED at dffbd0b881/2d44861caa/a02d6d7895" | S1, S3 |
+| 2 | 11 Oct 03:00–11:38 | bob | lint gate "no result within its 300 s deadline; all 4 lanes busy", T038 refused 6×, T040 1× | T038 ~8 h unlanded | 5656885f 02:35, 03:06, 04:07; bob.md item 1 | S2 live 33ff0645 |
+| 3 | 11 Oct 02:20–05:10 | lots | four full post-land runs at once (de5a277b 1 h 56 m, dffbd0b8, 2d44861c, a02d6d78); one at 0 % CPU 1 h 31 m; `kill` denied by the classifier; John handed `! kill -KILL …` twice; "no such process" | lanes held ~3 h; John's time | 450fcd94 04:07, 04:33, 05:01; 11:25 John "no such process"; post-land.log F7–F9 runs 2 h 16 m–3 h 43 m | S2, S3 |
+| 4 | 11 Oct 02:00 | lots | `/tmp` admission queue reset mid-run, two runs held ticket 1 | a second full run let in | 450fcd94 04:04; T042 a02d6d78 | S2 live |
+| 5 | 10 Oct 19:00–11 Oct 13:44 | tools | 12 delegated results "NOT DELIVERED" (T031 r2 ~3 h, T034 ~1 h, T035 r1–r3, T040, T041, T017 r2) | sessions idle on finished work | `zoo/ASK.md` | S3, S6 |
+| 6 | 11 Oct 05:00–11:30 | lots | stalls unseen; half-hourly check promised in-session, fires only when idle | John found every stall first; "you are not monitoring" 11:27 | 450fcd94 11:30, 11:32 | S3 |
+| 7 | 11 Oct ~02:17 | lots, maryu | T036 conflicts resolved "main wins"; the Qicl move lost; a second Qicl drop at start-up lost values; branch deleted | saved projects refused in prod; ~2 h recovery | John 03:17 "mistake", 03:28 "this can never happen"; T039 dffbd0b8, T041 82851e82 | S4 |
+| 8 | 11 Oct 12:40–13:00 | maryu | roles merge turned `driver_type` into a list; every bundled driver and saved project still held the string | ~40 min; caught by the post-merge unit run | 85de7771 | S4 |
+| 9 | 11 Oct 11:40 | maryu | merge freeze: four branches merged with no gates; a 4-file conflict and a typecheck error fixed by hand on main | unverified code on main | cd987973, 814ab391, 5fbf617c, 7ec635c5 | S4, S1 |
+| 10 | 10 Oct 13:00–19:30 | tools | gate demanded `<worktree>/.venv/bin/python`; no worktree had one; 30+ refusals; John copied scripts by hand | tools stopped ~1 h; John's time | 4118f56b, f4ee80a8 gate errors; John 19:23 "stop why does it need a venv", 19:50 "I've done the cp" | S5 live 43cf2b76 |
+| 11 | 10 Oct 23:00–00:10 | tools, bob | a tools test rewrote the real `core.hooksPath`; "git hooks are missing" blocked every tool call in three repos until John repaired it | all sessions stopped ~1 h | f4ee80a8 00:10 "GATE FAILED: git hooks are missing"; John 00:11 "fragile shit like /tmp", 00:13 snapshot rule; 0fd70dd | S5 |
+| 12 | 10 Oct all day | lots | main `openisd` folder on `fix/move-qiclfr`; :4000 served it, then `/tmp`, then a stale tree; a separate `openisd-lap` branch | wrong code shown to John; ~1 h | HANDOVER_lots.md "Known loose ends"; John 03:07–03:10 "why do we have a separate branch for lap4000"; lots.md row 1 | S5 |
+| 13 | 10 Oct 21:00–11 Oct 02:37 | bob, lots | stuck "new version" notice, reload loop on :4000; T032 took 4 rounds (21+77+36+30 min) | app unusable; 164 min of jobs | John 21:00, 22:16, 23:00 "wtf !!"; DELEGATION_LOG; 98452289 | S6 |
+| 14 | 11 Oct 03:19–05:40 | bob | T034 ran 158 min on a free model for a small task; T035 three rounds, r3 still had the polling loop the brief forbade; r2 loosened assertions | ~4 review rounds | DELEGATION_LOG; bob.md item 12 | S6 |
+| 15 | 11 Oct 05:04 | tools | `zoo-run.sh` summary overwrote the T041 review report | review redone | lots.md; 39f976d | S6 live |
+| 16 | 11 Oct 12:34 | tools | WIP commit swept 196 runtime files (`zoo/state/*`) | noise | lots.md row 14 | S6 |
+| 17 | 11 Oct 04:30–11:30 | lots, tools | task ids used twice: T035, T040, T041, T042, T043 | crossed reports, renames | lots.md; `tasks/` (no T043–T045 files on main) | S7 |
+| 18 | 11 Oct 11:00–11:30 | lots | orders changed repeatedly: T038 hold→finish; order T038/T034/T035 reversed; delegate→do it yourself; then the freeze | re-planning; T034 never ran its browser specs | bob.md item 13; 450fcd94 11:29–11:36 | S7 |
+| 19 | 10 Oct 20:39 | lots | two `maryu` sessions under one name; John asked lots to find the right one and kill the other | risk to a session's work | John 20:39; 5656885f 20:33 "There are two maryus" | S3 |
+| 20 | 11 Oct 02:16–02:51 | lots | 43 stale worktrees and 30+ junk branches; deletion blocked by the classifier; John deleted them by hand | John's time | John 02:16 "remove the 23", 02:31 `git branch -D …`; 450fcd94 02:28 | S3 |
+| 21 | 10 Oct 20:47, 21:46 | bob | T030 overlay caught other specs' clicks (F5); F2 a fixture typing error | two fix landings, ~2 h | F5, F2; e4f26ba8 | S1 |
+| 22 | 8 Oct 19:00–21:30 | all | commit hooks ran full test runs; five commits queued at 30 min each; load 37; tools' commit refused twice by a 60 s duplicate-code test | ~3 h; "we have been stuck for 2 days" (John 22:06) | John 21:25; 450fcd94 19:29, 20:08; T004 fast hooks 20:26 | fixed (fast hooks, T004) |
+| 23 | 8 Oct 02:00–02:30 | all | attribution guard waited on stdin, two stuck processes; sessions could not message or spawn (gate) | ~30 min | 450fcd94 02:23, 03:14; BUG_20261008_attribution-guard-* | fixed |
+| 24 | 8 Oct 23:58; 9 Oct 01:40 | 3 sessions | usage limit cut-offs; "run out of credit again" | work moved to free models; slow rounds | transcript system notes 23:58 (5656885f, d9bb959c, ee0f8a32); John 9 Oct 01:40 | policy; S6, S7 |
+| 25 | 11 Oct 03:00 | lots | a slow run reported as "hung"; a later kill hit nothing | wrong report to John | 450fcd94 04:03; John 04:02 "why test hung", 11:25 | S3 (only the watchdog says "hung") |
+
+## Agent answers
+
+| Agent | Answered | Used |
 |---|---|---|
-| leader (maryu since 11 Oct 2026) | approves tasks, sets `tasks/QUEUE.yml`, acts on watchdog alerts | hands-on work; hands John chores |
-| Claude sessions (bob, tools, …) | fix blockers themselves; brief, review and land delegated work | delegate a blocker |
-| agy, opencode (via `zoo-run.sh`) | off-critical-path work only | push, land, full suites |
-| watchdog (L3) | kills superseded and hung runs; alerts agents | depend on an agent |
-| John | rulings, permissions, deploy policy | run commands an agent should run |
-
-## Failure register
-
-All failures seen 8–11 Oct 2026. "Layer" is where the fix is enforced. State: **live** (built and
-tested, with commit), **to build**, **John** (needs a ruling).
-
-### Landing and main
-
-| # | Failure | Cost | Fix | Layer | Proof | State |
-|---|---|---|---|---|---|---|
-| 1 | The main `openisd` folder sat on another agent's branch for days | lap:4000 served the wrong code | keep-alive fast-forwards it each minute; L1 refuses any edit, commit or `git switch` whose cwd is the main folder; a `post-checkout` hook there switches back to main and alerts | L1, L2, L3 | gate test; hook test | daemon **live**; gate and hook **to build** |
-| 2 | T036 integration resolved conflicts "main wins" and threw away the branch's purpose (the Qicl move) | every saved project refused on load, in prod | a task with `integrates: <branch>` must list that branch's own test files in `done_test`; `land.sh` refuses the landing if any is deleted or fails after the rebase | L2 | land e2e: integration that drops a branch test is refused | **to build** |
-| 3 | A schema change refused every saved project; a second Qicl drop at start-up lost front-only values for good | data loss for users | real projects saved by older builds are fixtures (`packages/persistence/test/fixtures/stored-pre-t036`); `land.sh` always runs their test when a change touches `openisdSchema.ts`, `projectRepo.ts` or any loader | L2 | fixtures test 9/9; land rule test | fixtures **live** (82851e82); rule **to build** |
-| 4 | Broken code reached openisd.app minutes after landing, before any full run | users hit the data-loss bug | post-land pushes tag `green/<sha>` only on a green run; `deploy.yml` runs on that tag, never on a push to main; GitHub ruleset lets only that workflow deploy | L4 | deploy dry-run on a red sha deploys nothing | **John** (you ruled "release is the Pages deploy on main") |
-| 5 | Main carried "WIP … (agy, not reviewed)" commits | unreadable history | `land.sh` squashes each landing into one commit whose message is the task's `goal`; it refuses a `WIP` subject reaching main | L2 | land e2e | **to build** |
-| 6 | Stray scratch files (dump.js, screenshot.png, fix_*.js) reached main | junk in the repo | `land.sh` refuses files outside the task's `files` allowlist; `zoo-run.sh` lists new root files | L2 | land e2e | **live** |
-| 7 | T030 passed its own spec but turned main red: its overlay caught other specs' clicks (F5) | main red; landings blocked | `land.sh` adds every existing spec that imports or mounts a changed file (import graph) to the gate | L2 | land e2e: a shared-component change runs its dependants | **to build** |
-| 8 | Each landing after a red reran the full suite and opened a new F (F7, F8, F9 for one fault: 14 unit failures in 7 files) | three F files for one fault | post-land appends to the open F instead of opening a new one; the F names the first red commit's author as owner | L2 | post-land e2e | **to build** |
-| 9 | F files kept only the log tail, so failing spec names were lost | a 38 min full unit run to find them | post-land writes every vitest `FAIL` and Playwright `✘` line into the F | L2 | post-land e2e with a failing stub | **to build** |
-| 10 | A delegated job ended without its tests passing (T040) and could have been landed on trust | risk of an unproven landing | `land.sh` runs `done_test` itself (live); `zoo-run.sh` marks the result "tests unproven" unless the log shows the brief's test command exiting 0 | L2 | zoo test | gate **live**; mark **to build** |
-| 35 | A browser spec in T036's `done_test` overran the 300 s gate | ~30 min of retries | `new-task.sh` and `land.sh` refuse a `done_test` that names a `*.browser.spec.ts`; browser specs run in the gate's dependant set (7) with their own deadline | L2 | land e2e | **to build** |
-| 36 | An integration rebase hit many conflicts; resolving them by `checkout --ours` was blocked mid-rebase | ~20 min; the redo was a squash merge | integrations go through `scripts/integrate.sh <branch>`: a squash merge in a fresh worktree, conflicts listed in the task file for an edit-by-hand resolution, never a side-picking command | L2 | integrate e2e | **to build** |
-
-### Test runs, queues and slots
-
-| # | Failure | Cost | Fix | Layer | Proof | State |
-|---|---|---|---|---|---|---|
-| 11 | Up to four full post-land runs ran at once; the `/tmp` queue was reset mid-run, so two runs held ticket 1 | every slot full for hours | admission checks a live holder by pid and start time (T042); queue and locks outside `/tmp` (T035); a newer post-land cancels an older one (coalesce) | L2, L3 | admit e2e; coalesce test | holder **live** (a02d6d78); paths **live** (a4f9b60a); coalesce **to build** |
-| 12 | Hung and superseded runs held the slots for hours; nobody killed them | landings blocked ~3 h | watchdog every 5 min kills a superseded post-land run, and any run with no log growth and ~0 % CPU for 20 min, by recorded pid and start time; post-land and heavy lanes record pid and start time | L3 | scratch-repo e2e, two concurrent runs | **to build** |
-| 13 | Lint, typecheck and single specs waited behind full suites: T038 refused 4 times, T040 once | T038 green but unlanded ~8 h | gates and targeted runs enter the heavy slice with no lane (T044) | L2 | `heavy-no-lane.test.sh` holds all 4 lanes; gates still finish | **live** (a4f9b60a) |
-| 14 | A targeted spec waited silently for a lane; the idle watchdog killed it with no output | lost runs, no clue why | same fix as 13 | L2 | same test | **live** |
-| 15 | lots said a run was "hung" when it was slow; a later kill hit nothing ("no such process") | wrong diagnosis to John | "hung" is the watchdog's metric, not an agent's call; only the watchdog kills | L3 | with 12 | **to build** |
-| 16 | A blocked kill was handed to John as a command, twice | John's time; stalls | the watchdog does all killing (12) | L3 | with 12 | **to build** |
-
-### Delegation and agents
-
-| # | Failure | Cost | Fix | Layer | Proof | State |
-|---|---|---|---|---|---|---|
-| 17 | Results not delivered (T031 r2 ~3 h, T034 ~1 h, T035 r1/r2) | agents idle on finished work | `zoo-run.sh` sends the result; watchdog re-alerts by tmux every 30 min until `zoo-run.sh ack`; STATUS shows it red | L3 | zoo e2e: an unacked job re-alerts | sender **live**; re-alert **to build** |
-| 18 | `zoo-run.sh` overwrote the agent's report with its own summary | T041 review lost, redone | summary goes to `<job>.summary.md` | L2 | zoo test | **live** (39f976d) |
-| 19 | Blockers were delegated to slow free models (T044 at first; the watchdog's round 1) | hours; the watchdog round produced nothing | `zoo-run.sh` refuses a brief whose task has `label: fixes` or `critical: true`, or that blocks an open F | L1 | zoo test | **to build** |
-| 20 | A free-model job ran 2½ h on a small task (T034) | landing delayed | `zoo-run.sh` timebox per brief (default 45 min): commits WIP, stops the job, alerts the briefer | L3 | zoo test | **to build** |
-| 21 | WIP commits swept 196 runtime files (`zoo/state/*`) into git | noise; possible secrets | runtime folders are in `.gitignore`; L1 refuses `git add` of them | L1, L2 | `git status` clean after a job | **to build** |
-| 22 | Two agents used the same task id (T035, T040, T041, T042, T043); tools and openisd kept two separate T counters | crossed reports | `scripts/new-task.sh` takes the next id under a lock and pushes the task file at once; `land.sh` refuses an id already on main from another branch | L2 | concurrency test | **to build** |
-| 23 | Two maryu sessions ran under one name; the wrong one was nearly kept | risk of losing a session's work | `agents-into-tmux.sh` refuses a name that already has a live session (pid and start time in `~/.claude/sessions`) | L1 | script test | **to build** |
-| 24 | 43 stale worktrees piled up | clutter; stale bases | prune merged clean worktrees on the watchdog timer | L3 | prune test | **to build** |
-| 25 | `~/.claude/githooks` was deleted, so hooks silently stopped in three repos | no attribution or allowlist checks | `run_gates.py` fails on a missing `core.hooksPath` folder; hooks in `_agent_files/githooks` | L2 | gates test | **live** (0fd70dd) |
-| 37 | A tools test rewrote the real `core.hooksPath`; the gate then blocked every tool until John repaired it by hand | tools stopped; John's time | tests that touch git config run on a scratch repo with `GIT_CONFIG_GLOBAL` and `HOME` pointed at a temp folder; L1 refuses `git config --global` from any test | L1 | gate test | installer fixed; gate **to build** |
-| 38 | `new-worktree.sh` based worktrees on origin/main, missing local main's commits, so they were red from birth and blocked the gate 4+ times | each needed John to `rm` a folder; T043 blocked from ~11:35 | `new-worktree.sh` bases on the newer of local main and origin/main and refuses if they have diverged; a worktree failing the gate at birth is reported, never left | L2 | worktree test | **to build** |
-| 39 | Briefs left the same defect open across rounds (T035 3 rounds, T032 4; r3 still had a polling loop the brief forbade); review rounds were never recorded | 77–158 min per round | `zoo-run.sh` records each round and its findings; a brief for round N+1 must list round N's findings, each with a test that fails on it; L1 lint rejects banned patterns (polling loops) in the job's diff before the result is sent | L1, L2 | zoo test | **to build** |
-| 40 | agy at its cap moved T035 r3 to opencode with nobody told | wrong model; unseen | `zoo-run.sh` writes every reroute to the result and to STATUS, and alerts the briefer | L3 | zoo test | **to build** |
-| 41 | Time lost to gate blocks was never measured | failures could not be costed | `gates.py` and `land.sh` log every refusal with its cause and duration to `build/test-logs/blocks.log`; STATUS sums them per day | L1, L2 | log test | **to build** |
-| 42 | 14 unit failures in 7 files reached main from merges landed without the unit half (T031, T034, T035, T040, T041) | every landing blocked 01:00–12:40 11 Oct | `land.sh` runs the unit half of every package a change touches, in the gate, before the push; post-land only adds the browser half | L2 | land e2e: a unit failure in a touched package is refused | **to build** |
-| 43 | openisd-roles changed `driver_type` to a list; every bundled driver and every saved project still held the string, so the app would have refused all of them | ~40 min; caught only by the post-merge unit run | `land.sh` runs the corpus check on any schema change: every bundled driver, every stored fixture and the sample projects must still parse (fixtures from row 3 plus `drivers-index.json`) | L2 | land e2e with a breaking schema change | **to build** |
-| 44 | `test.sh` refuses a directory target, so a package run needs every spec named (372 args) | two wasted starts | `test.sh` accepts a package or folder and expands it; still refuses an empty target | L2 | test.sh test | **to build** |
-| 45 | The merge freeze merged four branches with no gates: one 4-file conflict, one typecheck error after | fixed by hand on main | the freeze is the cost of 42; with 42 live, `integrate.sh` (row 36) is the only merge path and runs the unit half | L2 | with 36, 42 | **to build** |
-| 46 | The schema reconciliation generator (`scripts/schemagen`) stops on a construct it does not handle (T017's object spread), leaving the generated pydantic stale | tools' records drift from openisd's schema | the generator's test runs in `land.sh` for any schema change; an unhandled construct refuses the landing, so the generator is extended in the same task | L2 | land e2e | **to build** |
-
-### Supervision
-
-| # | Failure | Cost | Fix | Layer | Proof | State |
-|---|---|---|---|---|---|---|
-| 26 | Nobody noticed open F files, stuck landings or silent agents for hours | every landing blocked; John found it first | watchdog alerts by tmux send-keys into the owner's window in tmux session `agents` (John's choice), repeated every 30 min; STATUS shows a main-branch panel | L3 | e2e: an open F types into the owner's window | **to build** |
-| 27 | lots, tools and bob ran outside tmux, so no alert could reach them | alerts would go nowhere | `agents-into-tmux.sh` moves each session, resumed, into `agents`; the watchdog writes ASK.md when a window is missing | L3 | script test | **to build** (John runs it once) |
-| 28 | lots scheduled its own timed checks in-session; they fire only when idle and die with the session | no check-ins | timed duties live only in systemd timers | L3 | — | **to build** |
-| 29 | Instructions to agents changed repeatedly (T038 scope; order T038→T034→T035 reversed; the freeze; the watchdog's scope 4 times in an hour) | re-planning; T034 never got its browser specs | one ordered list, `tasks/QUEUE.yml`, written only by the leader; `land.sh` lands in queue order and refuses a task not on it | L2 | land e2e | **to build** |
-| 30 | A known gate defect (lint queued for lanes) was parked "after the storage proof" instead of fixed at once | ~7 h; written in 35 min once ordered | the watchdog opens an F when a gate is refused for its deadline twice in an hour; the F blocks landings, so the fault is fixed first | L2, L3 | watchdog e2e | **to build** |
-| 31 | lots's briefs carried wrong instructions (T032 r2 kept the mobile top-bar version John had moved) | a wasted round | a brief quotes John's words with the date; `zoo-run.sh` refuses a UI or rules brief with no `John:` line | L1 | zoo test | **to build** |
-| 32 | lots proposed a 5-minute dev-server restart (T033) when the server already reloads on change | John: "why is it needed" | a task file needs a `cause:` line naming the observed fault; `new-task.sh` refuses one without | L2 | new-task test | **to build** |
-
-### Serving and versions
-
-| # | Failure | Cost | Fix | Layer | Proof | State |
-|---|---|---|---|---|---|---|
-| 33 | lap:4000 ran from `/tmp`, the shared tree and another agent's branch; the keep-alive died when started by hand | wrong code shown to John | keep-alive is a systemd user unit and `cd`s into the main folder | L3 | unit status; `/dev-version.json` sha equals origin/main | **live** |
-| 34 | The dev server showed a "new version" notice it could never clear, then reloaded in a loop | app unusable on :4000 | `/dev-version.json` from the running code; dismissal per version (T032) | L2 | T032 specs | **live** (98452289) |
-
-## Competence failures by lots (10–11 Oct 2026)
-
-John removed lots as coordinator on 11 Oct 2026 ("you have failed"; "sacked for negligence"; "and
-incompetence"). maryu is session leader. No tool fixes judgement, so each is routed to a gate:
-
-| Failure | Cost | Caught now by row |
-|---|---|---|
-| Ruled "main wins" in T036 without reading the branch's purpose, then deleted the branch | saved projects refused in prod | 2, 3 |
-| Relayed messages instead of fixing causes | landings blocked 3–8 h | 12, 13, 26, 30 |
-| Handed John commands instead of solving the block | John's time | 16 |
-| Called a slow run "hung" | wrong diagnosis | 15 |
-| Let delegated work count as done before its tests ran | risk of a bad landing | 10 |
-| Allowed task-id clashes three times | crossed reports | 22 |
-| Delegated blockers to slow free models | hours lost | 19, 20 |
-| Promised timed check-ins it could not keep | stuck jobs unseen | 26, 28 |
-| Changed agents' instructions repeatedly | re-planning; skipped specs | 29 |
+| bob | yes, 15 items with times and costs | rows 2, 3, 5, 11, 13, 14, 18, 21 |
+| lots | yes, 16 rows | rows 3–7, 12, 15–20 |
+| openisd-c5 | yes: no failures hit (one Vite edit) | row 12 (branch observation) |
+| tools | no answer within the window | its transcript: rows 10, 11, 15, 16 |
 
 ## Decisions for John
 
-1. **Row 4:** deploy openisd.app only from a green tag, not on every push to main.
-2. **Enforcement files:** confirm that only an `infra` task you approve may change them.
-
-## State
-
-All work on these rows is paused during maryu's merge freeze (11 Oct 2026); maryu assigns owners
-after the merge. Once the watchdog is live, it lists rows still **to build** after 24 h in STATUS
-and alerts their owner. A row becomes **live** only with its commit and a passing proof test.
+1. S8: deploy openisd.app only from a green tag, not on every push to main.
+2. Budgets: default 45 min and 2 rounds per delegated job; a token budget per task.
+3. Confirm the enforcement files (`gates.py`, `scripts/land.sh`, `scripts/land/**`, `scripts/admit*`,
+   the watchdog units, `zoo-run.sh`, `.github/workflows/**`) change only by an `infra` task you approve.
