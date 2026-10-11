@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
-# Post-land runs coalesce (John 2026-10-08, throughput): when a run gets its turn and a NEWER run is
-# already waiting, it does not run its suite; it ends "superseded by <sha>" with exit 0. The newest
-# waiting run tests the latest sha. A red names EVERY commit since the last green.
+# Post-land runs coalesce (John 2026-10-08, throughput; kill added 2026-10-11, SDLC S2): a run on an
+# older commit is killed by the next run; a run that gets its turn when a NEWER run is waiting, or when a
+# newer commit was already tested, ends "superseded by <sha>" with exit 0 without running its suite. The
+# newest run tests the latest sha. A red names EVERY commit since the last green.
 # Not one of the locked specs.
 set -uo pipefail
 GITCFG="$(mktemp "${TMPDIR:-/tmp}/land-gitconfig.XXXXXX")"
@@ -42,22 +43,41 @@ green() { cat "$SCRATCH/post.lock.green" 2>/dev/null; }
 start() { timeout 120 bash scripts/land/post-land/run.sh "$1" > "$SCRATCH/out.$2" 2>&1; echo $? > "$SCRATCH/rc.$2"; }
 await_line() { timeout 30 tail -n +1 -f "$2" 2> /dev/null | grep -q -m1 -- "$1"; }  # file $2 shows line $1 (bounded)
 
-# 1. run A holds the lock on an older commit; B arrives and KILLS it (SDLC S2); C arrives while B
-#    waits, so B is superseded by C. Only C's suite completes; A's was stopped; green = latest.
+# 1. run A holds the lock on an older commit; B arrives and KILLS it (SDLC S2) and runs; C arrives and
+#    kills B. Every suite started, none but C's finished; green = latest.
 setup; a=$(commit_push one HOLD)
 start "$a" a & pa=$!
-await_line holding "$SUITE_LOG/holding" 2> /dev/null || true
+await_line "running the full suite on ${a:0:10}" "$SCRATCH/out.a"
 b=$(commit_push two); c=$(commit_push three)
-start "$b" b & pb=$!; await_line "killed the run on ${a:0:10}" "$SCRATCH/out.b"
+start "$b" b & pb=$!; await_line "running the full suite on ${b:0:10}" "$SCRATCH/out.b"
 wait $pa
 start "$c" c & pc=$!
 wait $pb $pc
 ran=$(tr '\n' ' ' < "$SUITE_LOG/ran")
-if [ "$ran" = "$a $c " ] && [ "$(cat "$SCRATCH/rc.a")" = 0 ] && grep -q "superseded by ${b:0:10}; killed" "$SCRATCH/out.a" \
-   && [ "$(cat "$SCRATCH/rc.b")" = 0 ] && grep -q "superseded by ${c:0:10}" "$SCRATCH/out.b" \
-   && [ "$(green)" = "$c" ]; then
-    ok "a run on an older commit is killed by the next; the waiting middle run is superseded; green = latest"
-else fail "coalesce (ran='$ran' rc.a=$(cat "$SCRATCH/rc.a") rc.b=$(cat "$SCRATCH/rc.b") green=$(green | cut -c1-8)): a: $(tr '\n' ' ' < "$SCRATCH/out.a" | cut -c1-160) b: $(tr '\n' ' ' < "$SCRATCH/out.b" | cut -c1-160)"; fi
+if [ "$ran" = "$a $b $c " ] && [ "$(cat "$SCRATCH/rc.a")" = 0 ] && grep -q "superseded by ${b:0:10}; killed" "$SCRATCH/out.a" \
+   && [ "$(cat "$SCRATCH/rc.b")" = 0 ] && grep -q "superseded by ${c:0:10}; killed" "$SCRATCH/out.b" \
+   && grep -q "killed the run on ${a:0:10}" "$SCRATCH/out.b" && [ "$(green)" = "$c" ]; then
+    ok "a run on an older commit is killed by the next run; green = latest"
+else fail "kill (ran='$ran' rc.a=$(cat "$SCRATCH/rc.a") rc.b=$(cat "$SCRATCH/rc.b") green=$(green | cut -c1-8)): a: $(tr '\n' ' ' < "$SCRATCH/out.a" | cut -c1-200) b: $(tr '\n' ' ' < "$SCRATCH/out.b" | cut -c1-200)"; fi
+
+# 1b. a run on a commit older than the last tested one does not run its suite
+: > "$SUITE_LOG/ran"; start "$b" b2
+if [ ! -s "$SUITE_LOG/ran" ] && [ "$(cat "$SCRATCH/rc.b2")" = 0 ] && grep -q "superseded by ${c:0:10} (already tested)" "$SCRATCH/out.b2"; then
+    ok "a run on an already-covered commit is superseded without running"
+else fail "already tested (rc=$(cat "$SCRATCH/rc.b2")): $(cat "$SCRATCH/out.b2" | tr '\n' ' ' | cut -c1-200)"; fi
+
+# 1c. two runs waiting behind a holder: the older waiting run is superseded by the newer waiting run
+setup; a=$(commit_push one HOLD)
+start "$a" a & pa=$!
+await_line "running the full suite on ${a:0:10}" "$SCRATCH/out.a"
+# B and C start while A's suite holds; both kill A, then queue for the lock in either order.
+b=$(commit_push two); c=$(commit_push three)
+start "$b" b & pb=$!; start "$c" c & pc=$!
+wait $pa $pb $pc
+if [ "$(green)" = "$c" ] && [ "$(cat "$SCRATCH/rc.b")" = 0 ] && [ "$(cat "$SCRATCH/rc.c")" = 0 ] \
+   && { ! grep -q "running the full suite on ${b:0:10}" "$SCRATCH/out.b" || grep -q "superseded by ${c:0:10}; killed" "$SCRATCH/out.b"; }; then
+    ok "with two runs queued behind a holder only the newest result counts; green = latest"
+else fail "queue (green=$(green | cut -c1-8) rc.b=$(cat "$SCRATCH/rc.b") rc.c=$(cat "$SCRATCH/rc.c")) b: $(tr '\n' ' ' < "$SCRATCH/out.b" | cut -c1-200) c: $(tr '\n' ' ' < "$SCRATCH/out.c" | cut -c1-200)"; fi
 
 # 2. the latest is red: the fixes task names every commit since the last green and has an owner and the failing spec
 setup; a=$(commit_push one); start "$a" a

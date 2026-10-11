@@ -100,7 +100,7 @@ EOF
 }
 edit() { echo "$3" >> "$SCRATCH/w/$1/$2"; }
 land() { (cd "$SCRATCH/w/$1" && timeout 120 bash scripts/land.sh "$2" >"$SCRATCH/out.$1" 2>&1); }
-origin_has() { git -C "$SCRATCH/w/origin.git" log --format=%s main | grep -qF "$1"; }
+origin_has() { git -C "$SCRATCH/w/origin.git" log --format=%s main | grep -F "$1" > /dev/null; }  # not -q: with pipefail a -q early exit SIGPIPEs git
 origin_head() { git -C "$SCRATCH/w/origin.git" rev-parse main; }
 
 # 1. two concurrent landings both land, one after the other

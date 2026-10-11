@@ -16,7 +16,8 @@
 # turn and a NEWER run is already waiting (its record is flock'ed by a live process), it ends "superseded
 # by <sha>" with exit 0 without running the suite; the newest run tests the latest sha. A run that finds an
 # OLDER commit's suite running (${POST_LAND_LOCK}.holder: pid, start time, sha) kills it by pid; the killed
-# run ends "superseded by <sha>; killed", exit 0. A red lists every commit since the last green in its F.
+# run ends "superseded by <sha>; killed", exit 0. A run whose sha is an ancestor of the last tested sha
+# (${POST_LAND_LOCK}.tested) ends "superseded by <sha> (already tested)", exit 0. A red lists every commit since the last green in its F.
 # Config in land.conf: FULL_SUITE_CMD, POST_LAND_LOCK, POST_LAND_DIR.
 # A release is the GitHub Pages deploy on every push to main; post-land is the local full run.
 set -uo pipefail
@@ -77,8 +78,9 @@ flock -n 8
 # start time, never by name) and takes its turn. Four full runs once ran side by side for hours,
 # each on a commit the next had already replaced (11 Oct 2026, SDLC R3/S2).
 starttime() { awk '{print $22}' "/proc/$1/stat" 2>/dev/null; }
-read -r hpid hstart hsha < "$HOLDER" 2>/dev/null || true
-if [ -n "${hpid:-}" ] && [ "$hpid" != "$$" ] && [ "$(starttime "$hpid")" = "${hstart:-}" ] \
+hpid=""; hstart=""; hsha=""
+[ -f "$HOLDER" ] && { read -r hpid hstart hsha < "$HOLDER" || true; }
+if [ -n "$hpid" ] && [ "$hpid" != "$$" ] && [ "$(starttime "$hpid")" = "${hstart:-}" ] \
    && [ "$hsha" != "$SHA" ] && git merge-base --is-ancestor "$hsha" "$SHA" 2>/dev/null; then
   printf '%s\n' "${SHA:0:10}" > "$SUPERSEDE"
   kill -TERM "$hpid" 2>/dev/null || true
@@ -88,6 +90,11 @@ exec 9> "$POST_LAND_LOCK"
 flock -n 9 || { echo "post-land: waiting for another post-land run"; flock 9; }
 trap superseded TERM
 
+# A later commit has already been tested (${POST_LAND_LOCK}.tested): this run's result is stale.
+tested="$(cat "${POST_LAND_LOCK}.tested" 2>/dev/null)"
+if [ -n "$tested" ] && [ "$tested" != "$SHA" ] && git merge-base --is-ancestor "$SHA" "$tested" 2>/dev/null; then
+  echo "post-land: superseded by ${tested:0:10} (already tested)"; exit 0
+fi
 # A newer run that is still waiting (live owner) will test a later sha: this one is superseded.
 for rec in "$PENDING"/*; do
   [ -e "$rec" ] && [ "$rec" != "$MINE" ] || continue
@@ -108,6 +115,8 @@ set +m
 wait "$BODY"
 rc=$?
 BODY=""
+trap 'exit 143' TERM
+printf '%s\n' "$SHA" > "${POST_LAND_LOCK}.tested.$$" && mv -f "${POST_LAND_LOCK}.tested.$$" "${POST_LAND_LOCK}.tested"
 
 if [ "$rc" = 0 ]; then
   printf '%s\n' "$SHA" > "${POST_LAND_LOCK}.green.$$" && mv -f "${POST_LAND_LOCK}.green.$$" "${POST_LAND_LOCK}.green"
