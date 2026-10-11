@@ -138,9 +138,7 @@ export function useMobileShell(): MobileShellApi {
   // App version — shared source from appVersion port, formatted by design.
   const appVersionLabel = ref('');
   onMounted(async () => {
-    const { formatAppVersion } = await import('@openisd/design/fields');
-    const v = await appVersion.getVersion();
-    appVersionLabel.value = formatAppVersion(v);
+    appVersionLabel.value = await appVersion.getVersionLabel();
   });
 
   const fileInput = ref<HTMLInputElement | null>(null);

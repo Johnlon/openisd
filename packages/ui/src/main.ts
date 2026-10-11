@@ -30,6 +30,7 @@ import {DriverDrafts} from './logic/driverDraft.js';
 import {provideApp} from './logic/app.js';
 import {appContext, engine, installAppSettings, NoFocusedProjectError} from './logic/appState.js';
 import {createDevVersionPort, createAppVersionPort} from './logic/appVersion.js';
+import type {LocalTimeParts, ToLocalTime} from '@openisd/design/fields';
 import '@fontsource/inter/400.css';
 import '@fontsource/inter/600.css';
 import '@fontsource/inter/700.css';
@@ -142,9 +143,20 @@ const releases = new ReleaseWatch(
   releaseLogger,
 );
 
+// Local-time conversion for published build timestamp formatting (supplied once at composition root).
+const toLocalTime: ToLocalTime = (epochMs: number): LocalTimeParts => {
+  const d = new Date(epochMs);
+  return {
+    monthIndex: d.getMonth(),
+    day: d.getDate(),
+    hour: d.getHours(),
+    minute: d.getMinutes(),
+  };
+};
+
 // App version port: in dev mode fetch from /dev-version.json, in production use baked version.
 const devPort = isDev ? createDevVersionPort(import.meta.env.BASE_URL, fetch) : null;
-const appVersion = createAppVersionPort(isDev, typeof bakedVersion === 'string' ? bakedVersion : '', devPort);
+const appVersion = createAppVersionPort(isDev, typeof bakedVersion === 'string' ? bakedVersion : '', devPort, toLocalTime);
 
 const app = createApp(App)
   .directive('expo-step', vExpoStep)

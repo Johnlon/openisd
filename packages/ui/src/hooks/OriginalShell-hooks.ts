@@ -50,7 +50,6 @@ import {chartColumnsFit, CHARTS_HIGH_OPTIONS, ORIGINAL_CHARTS_HIGH} from './char
 import {offeredChartsHigh, useChartStack} from './chartStack.js';
 import {createToneGenerator, type ToneGenerator} from '../logic/toneGenerator.js';
 import {useApp} from '../logic/app.js';
-import {formatAppVersion} from '@openisd/design/fields';
 import {useEscToClose} from '../logic/useEscToClose.js';
 import {injectSplashModal} from './SplashModal-hooks.js';
 import {ARRAY_WIRING_OPTIONS, BOX_TYPE_OPTIONS, END_CORRECTION_OPTIONS, formatFixed, formatFixedOrDash, NumberField, ReadoutFormat, VENT_SHAPE_OPTIONS, WinisdDeviation} from '@openisd/design/fields';
@@ -291,8 +290,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   const { appVersion } = useApp();
   const version = ref('');
   onMounted(async () => {
-    const v = await appVersion.getVersion();
-    version.value = formatAppVersion(v);
+    version.value = await appVersion.getVersionLabel();
   });
 
   // Fire the fixup fill the FIRST time a project is available — at mount when one is already

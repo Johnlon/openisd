@@ -1,4 +1,5 @@
-import type {AppVersion} from '@openisd/design/fields';
+import type {AppVersion, LocalTimeParts, ToLocalTime} from '@openisd/design/fields';
+import {formatAppVersion} from '@openisd/design/fields';
 
 /** Minimal port for fetching the dev version from the vite dev server. */
 export interface DevVersionPort {
@@ -10,7 +11,19 @@ export interface DevVersionPort {
 export interface AppVersionPort {
   /** Get the version of the running app. */
   getVersion(): Promise<AppVersion>;
+  /** Get the formatted version label for the running app. */
+  getVersionLabel(): Promise<string>;
 }
+
+const defaultLocalTime: ToLocalTime = (epochMs: number): LocalTimeParts => {
+  const d = new Date(epochMs);
+  return {
+    monthIndex: d.getMonth(),
+    day: d.getDate(),
+    hour: d.getHours(),
+    minute: d.getMinutes(),
+  };
+};
 
 /** Parse a raw dev-version JSON response into the typed sum type. */
 export function parseDevVersion(raw: unknown): AppVersion {
@@ -55,7 +68,8 @@ export function createDevVersionPort(baseUrl: string, fetchFn: typeof fetch): De
 export function createAppVersionPort(
   isDev: boolean,
   bakedVersion: string,
-  devPort: DevVersionPort | null
+  devPort: DevVersionPort | null,
+  toLocalTime: ToLocalTime = defaultLocalTime,
 ): AppVersionPort {
   async function getVersion(): Promise<AppVersion> {
     if (isDev) {
@@ -65,5 +79,11 @@ export function createAppVersionPort(
     }
     return createPublishedVersion(bakedVersion);
   }
-  return { getVersion };
+
+  async function getVersionLabel(): Promise<string> {
+    const v = await getVersion();
+    return formatAppVersion(v, toLocalTime);
+  }
+
+  return { getVersion, getVersionLabel };
 }

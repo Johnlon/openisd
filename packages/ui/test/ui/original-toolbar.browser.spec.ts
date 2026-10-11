@@ -23,6 +23,20 @@ function readBuildInfo(): { version: string } {
   return parsed;
 }
 
+async function computeExpectedPublishedLabel(page: import('@playwright/test').Page, version: string): Promise<string> {
+  return page.evaluate((ver) => {
+    const match = /^v?(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})Z$/.exec(ver);
+    if (!match) return ver;
+    const d = new Date(Date.UTC(+match[1], +match[2] - 1, +match[3], +match[4], +match[5], +match[6]));
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const mon = months[d.getMonth()];
+    const day = String(d.getDate()).padStart(2, '0');
+    const hr = String(d.getHours()).padStart(2, '0');
+    const min = String(d.getMinutes()).padStart(2, '0');
+    return `${mon} ${day} ${hr}:${min}`;
+  }, version);
+}
+
 test.describe('Original toolbar', () => {
   test('toolbar shows the correct version for the running environment', async ({ page }) => {
     const onDisk = readBuildInfo();
@@ -35,10 +49,11 @@ test.describe('Original toolbar', () => {
     await expect(brand).toContainText('OpenISD');
 
     // In dev mode (vite serve), the version chip shows "dev <sha> + changes" format.
-    // In production, it would show the published version from build-info.json.
-    // The browser test runs against the dev server, so expect the dev format.
+    // In production, it shows the published version from build-info.json in browser local time.
     const versionChip = brand.locator('.version-chip');
-    await expect(versionChip).toHaveText(/^\(dev [a-f0-9]{7,8}( \+ changes)?\)$/);
+    const expectedPublished = await computeExpectedPublishedLabel(page, onDisk.version);
+    const escaped = expectedPublished.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    await expect(versionChip).toHaveText(new RegExp(`^(?:\\(dev [a-f0-9]{7,8}(?: \\+ changes)?\\)|\\(${escaped}\\))$`));
     // The brand icon renders either from the public /icon.svg or inline as a data-URI SVG
     // (the shell embeds the loudspeaker mark directly) — assert the icon exists and is SVG.
     await expect(brand.locator('img')).toHaveAttribute('src', /^data:image\/svg\+xml|\/icon\.svg$/);

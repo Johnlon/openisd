@@ -3,9 +3,38 @@
  * (Manage Drivers, Options, Project details, Advanced). The open-project ROWS at the bottom of the
  * menu are `mobile-project-list`'s.
  */
+import {readFileSync} from 'node:fs';
+import {dirname, join} from 'node:path';
+import {fileURLToPath} from 'node:url';
 import {mobileFieldRow} from '../fixtures/mobileSkin.js';
 import {duplicateFocusedProject, expect, openAMobileProject, setFocusedBoxType, setFocusedBoxVolume, test} from '../fixtures.js';
 import {forceMobileSkin, openMobileMenu, tapMobileMenuItem} from '../fixtures/mobileSkin.js';
+
+const BUILD_INFO = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'public', 'build-info.json');
+
+function isBuildInfo(v: unknown): v is { version: string } {
+  return typeof v === 'object' && v !== null && 'version' in v && typeof v.version === 'string';
+}
+
+function readBuildInfo(): { version: string } {
+  const parsed: unknown = JSON.parse(readFileSync(BUILD_INFO, 'utf8'));
+  if (!isBuildInfo(parsed)) throw new Error(`build-info.json has no string "version": ${JSON.stringify(parsed)}`);
+  return parsed;
+}
+
+async function computeExpectedPublishedLabel(page: import('@playwright/test').Page, version: string): Promise<string> {
+  return page.evaluate((ver) => {
+    const match = /^v?(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})Z$/.exec(ver);
+    if (!match) return ver;
+    const d = new Date(Date.UTC(+match[1], +match[2] - 1, +match[3], +match[4], +match[5], +match[6]));
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const mon = months[d.getMonth()];
+    const day = String(d.getDate()).padStart(2, '0');
+    const hr = String(d.getHours()).padStart(2, '0');
+    const min = String(d.getMinutes()).padStart(2, '0');
+    return `${mon} ${day} ${hr}:${min}`;
+  }, version);
+}
 
 test.beforeEach(async ({ page }) => {
   await forceMobileSkin(page);
@@ -15,6 +44,18 @@ test.beforeEach(async ({ page }) => {
 
 test.describe('MobileMenu', () => {
   test.describe('layout', () => {
+    test('brand shows the version for the running environment', async ({ page }) => {
+      await openMobileMenu(page);
+      const onDisk = readBuildInfo();
+      expect(onDisk.version).toMatch(/^v\d{8}T\d{6}Z$/);
+      const expectedPublished = await computeExpectedPublishedLabel(page, onDisk.version);
+
+      const versionEl = page.locator('.mob-menu-version');
+      await expect(versionEl).toBeVisible();
+      const escaped = expectedPublished.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      await expect(versionEl).toHaveText(new RegExp(`^(?:dev [a-f0-9]{7,8}(?: \\+ changes)?|${escaped})$`));
+    });
+
     // John, 2026-10-04: the three save items sit together, Revert is its own section after them,
     // and a thin separator divides each section.
     // John, 2026-10-05: "a clear segregation between project things and app things".

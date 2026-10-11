@@ -147,4 +147,31 @@ describe('createAppVersionPort', () => {
     const version = await port.getVersion();
     expect(version).toEqual({ kind: 'unknown' });
   });
+
+  it('returns formatted label in dev mode', async () => {
+    const devPort: DevVersionPort = {
+      fetchDevVersion: () => Promise.resolve({ sha: '5a3f9c1', hasChanges: true }),
+    };
+    const port = createAppVersionPort(true, '', devPort);
+    expect(await port.getVersionLabel()).toBe('dev 5a3f9c1 + changes');
+  });
+
+  it('returns formatted label in production mode using supplied toLocalTime', async () => {
+    const fakeUtcZero = (epochMs: number) => {
+      const d = new Date(epochMs);
+      return {
+        monthIndex: d.getUTCMonth(),
+        day: d.getUTCDate(),
+        hour: d.getUTCHours(),
+        minute: d.getUTCMinutes(),
+      };
+    };
+    const port = createAppVersionPort(false, 'v20261009T234100Z', null, fakeUtcZero);
+    expect(await port.getVersionLabel()).toBe('Oct 09 23:41');
+  });
+
+  it('returns unparseable version verbatim in getVersionLabel', async () => {
+    const port = createAppVersionPort(false, 'custom-version', null);
+    expect(await port.getVersionLabel()).toBe('custom-version');
+  });
 });
