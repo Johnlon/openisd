@@ -15,12 +15,13 @@ transcript was used instead).
 
 | # | Root cause | Cost seen | Fixed by |
 |---|---|---|---|
+| **R0 CRITICAL** | **A gate that stops every tool call in every session over one stale folder.** `gates.py` demands `<worktree>/.venv/bin/python` for worktrees the session is not even in. A stale worktree with no venv refuses every command, including the one that would delete it, and the agent ends by telling John to type `rm`. Happened 10 Oct (30+ refusals, John copied files by hand) and again 11 Oct ~14:30 (tools and maryu both dead; John ran the command; two parts of it failed). John: "keeps happening and cause total mess"; "totally unacceptable" | every session stopped until John acts, each time | **S0, do first** |
 | R1 | The landing gate never ran the unit tests. Five landings pushed 14 unit failures in 7 files; post-land found them 2–4 h later and opened F7, F8, F9 | every landing refused 01:00–12:40 11 Oct (~11 h); 3 full runs of 2–4 h each wasted | S1 |
 | R2 | One queue for everything. Lint, typecheck and single specs waited behind full suites in 4 lanes; the 300 s gate deadline ran out in the queue | T038 green at ~03:00, refused 6 times, landed 11:38 (~8 h); T040 refused; T034 typecheck stalled 600 s twice | S2 (live) |
 | R3 | Nothing kills a superseded or hung run. Up to 4 full post-land runs at once; one at 0 % CPU for 1 h 31 m; the agent could not kill (classifier), handed John a `kill` twice, the second hit "no such process" | all lanes held ~3 h; John's time; wrong "hung" diagnosis | S2, S3 |
 | R4 | Nothing watches. No timer, no heartbeat, no re-alert. 12 delegated results sat "NOT DELIVERED" (ASK.md); the coordinator's half-hourly check ran only when idle | agents idle ~1–3 h per result; stuck runs unseen for hours; John found every stall first | S3 |
 | R5 | Integration by hand, without the branch's tests. "Main wins" in T036 threw away the Qicl move; a second Qicl drop at start-up lost values for good; the roles merge changed `driver_type` under every stored driver | saved projects refused in prod (John, 11 Oct 03:28); ~2 h recovery (T039, T041); 40 min for roles | S4 |
-| R6 | Fragile environment: fixed `/tmp` paths wiped mid-run (two runs held ticket 1); a per-worktree `.venv` the gate demanded but no worktree had (30+ refusals in tools); the hooks folder deleted; a test rewrote the real `core.hooksPath`; the main folder left on another agent's branch; `lap` not an allowed host | each stopped every tool call in a session until John fixed it by hand (10 Oct 18:50, 23:10) | S5 |
+| R6 | Fragile environment: fixed `/tmp` paths wiped mid-run (two runs held ticket 1); a per-worktree `.venv` the gate demanded but no worktree had (30+ refusals in tools on 10 Oct; again 11 Oct ~14:30, two stale worktrees blocked tools' and maryu's sessions and John had to `rm` them); the hooks folder deleted; a test rewrote the real `core.hooksPath`; the main folder left on another agent's branch; `lap` not an allowed host | each stopped every tool call in a session until John fixed it by hand (10 Oct 18:50, 23:10; 11 Oct ~14:30) | S5, S3 |
 | R7 | Delegated work counted as done on trust. No record of rounds (T032 4 rounds, 164 min; T035 3 rounds; T034 158 min); results overwritten (T041); briefs violated (polling loop in T035 r3); 196 runtime files swept into a WIP commit; task ids used twice (T035, T040–T043) | ~4 review rounds of 30–60 min each; a lost review; crossed reports | S6, S7 |
 | R8 | Credit and tokens. Three Claude sessions cut off at the usage limit (8 Oct 23:58); "run out of credit again" (9 Oct); work moved to slow free models with no timebox | days of slow progress (John, 11 Oct 12:56: "token burning") | S7, S8 |
 
@@ -28,6 +29,25 @@ transcript was used instead).
 
 Each is one task. "Proof" is the test that must pass before the row is live. State: **live** (commit
 named) or **to build**.
+
+### S0 — CRITICAL: a gate may refuse one command, never a session (R0) — to build today, effort S
+
+- What, in `gates.py` (`_agent_files/bin/run_gates.py`):
+  1. Checks only the repo the command runs in (cwd). No sibling worktree, no other repo, ever
+     enters a check.
+  2. The venv it checks is the one shared venv at the workspace root (`/home/john/work/winisd/.venv`,
+     43cf2b76). It never looks for `<worktree>/.venv`.
+  3. A failed environment check refuses only commands that need that environment (python,
+     pytest, make); it never refuses Read, Write, SendMessage, `git worktree remove`, `rm -rf`
+     of a worktree with no uncommitted files, or any shell command outside the repo.
+  4. A refusal names one command the agent itself may run to repair, and that command passes
+     the gate. A gate that can only be cleared by John is a bug in the gate.
+  5. `new-worktree.sh` creates nothing the gate will refuse (shared venv, hooks path), and
+     registers the worktree so the watchdog (S3) removes it when its branch is merged or deleted.
+- Proof (gate test, scratch workspace): a stale worktree with no venv; a session in another
+  worktree runs Read, Bash `ls`, SendMessage and `git worktree remove` of the stale one; all
+  pass. A python command in the stale worktree is refused with a repair command that passes.
+- Brief-ready: yes. `infra`, a Claude session. Before anything else in this list.
 
 ### S1 — the landing gate runs the unit tests (R1) — to build, effort S
 
@@ -90,7 +110,7 @@ named) or **to build**.
 | Fault | Tool | State |
 |---|---|---|
 | fixed `/tmp` names | `scripts/paths.sh`, one runtime root | live a4f9b60a |
-| per-worktree `.venv` demanded | one shared venv at the workspace root, `make setup` | live 43cf2b76 (tools) |
+| per-worktree `.venv` demanded; a stale worktree blocks every session | **S0 (critical)** | shared venv live 43cf2b76; gate **to build** |
 | hooks folder deleted | `run_gates.py` fails on a missing `core.hooksPath`; hooks in `_agent_files/githooks` | live 0fd70dd |
 | a test rewrote the real `core.hooksPath` | tests that touch git config run with `HOME` and `GIT_CONFIG_GLOBAL` in a temp dir; `gates.py` refuses `git config --global` from any test | to build |
 | main folder on another branch; :4000 served the wrong tree | keep-alive as a systemd unit, `cd` into the main folder, fast-forward each minute; `gates.py` refuses edit, commit or `git switch` with cwd = main folder | daemon live; gate to build |
@@ -143,13 +163,14 @@ work). S6's timebox and S7's token log make the cost visible per task; a token b
 
 | Order | Task | Effort | Unblocks |
 |---|---|---|---|
+| 0 | **S0 gates.py: cwd repo only, shared venv, never refuses the repair; CRITICAL, today** | S | every session, every time a worktree goes stale |
 | 1 | S1 unit half + dependants in the landing gate | S | every F of the R1 kind |
 | 2 | S3 watchdog timer + tmux alerts + one-session-per-name | M | every stall and undelivered result |
 | 3 | S2 post-land coalesce with kill | S | lanes held by dead runs |
 | 4 | S4 `integrate.sh` with branch tests and corpus check | M | merge data loss |
 | 5 | S6 `zoo-run.sh` proof, lint, rounds, timebox, refusals | M | wasted delegation rounds |
 | 6 | S7 counter, queue, event log | S | id clashes, order churn, measurement |
-| 7 | S5 remaining rows (config sandbox, main-folder gate, new-worktree.sh) | S each | per-session stops |
+| 7 | S5 remaining rows: config sandbox; main-folder gate; `new-worktree.sh` based on local main | S each | per-session stops; John typing `rm` |
 | 8 | S8 green tag deploy | S | needs John's ruling |
 
 ## Register — evidence only
@@ -184,6 +205,7 @@ time).
 | 23 | 8 Oct 02:00–02:30 | all | attribution guard waited on stdin, two stuck processes; sessions could not message or spawn (gate) | ~30 min | 450fcd94 02:23, 03:14; BUG_20261008_attribution-guard-* | fixed |
 | 24 | 8 Oct 23:58; 9 Oct 01:40 | 3 sessions | usage limit cut-offs; "run out of credit again" | work moved to free models; slow rounds | transcript system notes 23:58 (5656885f, d9bb959c, ee0f8a32); John 9 Oct 01:40 | policy; S6, S7 |
 | 25 | 11 Oct 03:00 | lots | a slow run reported as "hung"; a later kill hit nothing | wrong report to John | 450fcd94 04:03; John 04:02 "why test hung", 11:25 | S3 (only the watchdog says "hung") |
+| 26 | 11 Oct ~14:30 | tools, maryu | two stale worktrees from `new-worktree.sh` (`winisd_tools-t036`, `winisd_ws-t037`) had no `.venv`; `gates.py` refused every tool call in tools' session and then in maryu's ("…t036/.venv/bin/python is missing"), including the call that would delete them; tools handed John a `! rm -rf …` command; its `worktree remove` and `branch -D` parts failed (already gone; stale record) until maryu pruned by hand | both sessions stopped; John ran the command; John: "another ai mess I have to fix" | maryu's report 11 Oct; John's pasted text; row 10 (same gate, 10 Oct) | **S0 critical**, S3 (prune on the timer) |
 
 ## Agent answers
 
