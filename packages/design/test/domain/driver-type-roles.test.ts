@@ -65,7 +65,9 @@ describe('driver_type roles — the bridge', () => {
     assert.ok(result.openisd !== null);
     const out: unknown = JSON.parse(result.openisd);
     assert.ok(typeof out === 'object' && out !== null && 'driver_type' in out && 'categories' in out);
-    assert.deepEqual(JSON.parse(JSON.stringify(out.driver_type)).value, ['woofer', 'midrange']);
+    const driverType = out.driver_type;
+    assert.ok(typeof driverType === 'object' && driverType !== null && 'value' in driverType);
+    assert.deepEqual(driverType.value, ['woofer', 'midrange']);
   });
 
   it('refuses an empty role list with an error entry and no wdr', () => {
