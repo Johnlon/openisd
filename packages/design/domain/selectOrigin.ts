@@ -11,7 +11,7 @@
  * agreeing outranks any one document's authority; a tied count proves nothing and falls through.
  * TIER 3 is source rank (D10), tie-broken alphabetically on role name.
  */
-import type {Reading} from './corroboration.js';
+import {isUsable, type Reading} from './corroboration.js';
 import {sourceRank} from './sourceRank.js';
 
 type RoleReading = readonly [string, Reading];
@@ -33,17 +33,19 @@ export function selectOrigin(
   const ranked = Object.entries(readings).sort(byRankThenRole);
 
   let candidates = ranked.filter(
-    ([, r]) => r.rejected === undefined && isPlausible(field, r.read_value)
+    ([, r]) => isUsable(r) && isPlausible(field, r.read_value)
   );
   if (candidates.length === 0) {
-    candidates = ranked.filter(([, r]) => r.rejected === undefined);
+    candidates = ranked.filter(([, r]) => isUsable(r));
   }
   if (candidates.length === 0) {
     candidates = ranked;
   }
 
   const counts = new Map<number, number>();
-  for (const [, r] of candidates) counts.set(r.read_value, (counts.get(r.read_value) ?? 0) + 1);
+  for (const [, r] of candidates) {
+    if (isUsable(r)) counts.set(r.read_value, (counts.get(r.read_value) ?? 0) + 1);
+  }
   const tallied = [...counts.entries()];
   const bestCount = Math.max(...tallied.map(([, n]) => n));
   const mostAgreedOn = tallied.filter(([, n]) => n === bestCount);
@@ -54,7 +56,7 @@ export function selectOrigin(
     // among the (possibly several) sources that share the winning value. `bestValue` came FROM
     // `candidates`, so a match always exists — falling through to tier 3 is what the compiler
     // gets instead of an assertion it cannot check.
-    const agreed = candidates.find(([, r]) => r.read_value === bestValue);
+    const agreed = candidates.find(([, r]) => isUsable(r) && r.read_value === bestValue);
     if (agreed) return agreed[0];
   }
   // TIER 3 — candidates is already rank-sorted, so the first entry is the most authoritative

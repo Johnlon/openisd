@@ -112,6 +112,13 @@ function readSpecEntryInto(
         || (cell.state === 'not-available' && isFinite(numValue) && numValue !== 0)
         || wdrKey === 'VCCon';
     if (!shouldImport) return;
+    if (!isFinite(numValue) && wdrKey !== 'VCCon') {
+        warnings.push({
+            level: 'warn', field: wdrKey,
+            message: `${wdrKey} is "${cell.value}", not a number: left out`,
+        });
+        return;
+    }
     if (wdrKey === 'VCCon') {
         const entry = wdrVCConEntry(cell, warnings);
         if (entry) entries[schemaKey] = entry;

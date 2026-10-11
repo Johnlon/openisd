@@ -11,16 +11,24 @@
  * quantities. Otherwise MATCH requires EVERY pair to reconcile.
  */
 
+import type {ReadingJson, RejectedReadingJson, UsableReadingJson} from './openisdSchema.js';
+import {PARSED_REJECTION_REASONS, UNPARSED_REJECTION_REASONS} from './openisdSchema.js';
 import {Reader} from './reader.js';
 import type {ReaderValue} from './reader.js';
 
-/** One source's reading, as far as corroboration cares — the numeric side of the record's own
- *  `readingJsonSchema` shape (`openisdSchema.ts`), not a second definition of it. */
-export interface Reading {
-    readonly read_value: number;
-    readonly read_precision?: number;
-    readonly rejected?: string;
-    readonly note?: string;
+/** One source's reading: the record's own `readingJsonSchema` type (`openisdSchema.ts`), not a
+ *  second definition of it. */
+export type Reading = ReadingJson;
+
+/** A Usable reading: it carries no `rejected`. A Rejected one, with a number or without, takes no part in corroboration. */
+export function isUsable(reading: ReadingJson): reading is UsableReadingJson {
+    return !('rejected' in reading);
+}
+
+/** Is this rejected reading's reason one the app knows (`UNPARSED_REJECTION_REASONS` or
+ *  `PARSED_REJECTION_REASONS`)? */
+export function isRecognisedRejection(reading: RejectedReadingJson): boolean {
+    return [...UNPARSED_REJECTION_REASONS, ...PARSED_REJECTION_REASONS].some(reason => reason === reading.rejected);
 }
 
 const _corroborationValues = ['MATCH', 'MISMATCH', 'NOT_MATCHABLE', 'UNMATCHED'] as const;
@@ -63,7 +71,7 @@ const AGREE_REL_TOL = 0.01;
 /** Do two sources' readings of one field agree? Each source's OWN printed precision, not a flat
  *  tolerance: `|a-b| < precision(a) + precision(b) + 0.01·max(|a|,|b|)`. A reading with no stated
  *  `read_precision` is treated as exact (precision 0) — no rounding information to extend it. */
-function readingsAgree(a: Reading, b: Reading): boolean {
+function readingsAgree(a: UsableReadingJson, b: UsableReadingJson): boolean {
     const budget = (a.read_precision ?? 0) + (b.read_precision ?? 0)
         + AGREE_REL_TOL * Math.max(Math.abs(a.read_value), Math.abs(b.read_value));
     return Math.abs(a.read_value - b.read_value) < budget;
@@ -72,7 +80,7 @@ function readingsAgree(a: Reading, b: Reading): boolean {
 /** Do these two readings state UNLIKE measurement conditions? Two STATED conditions that differ
  *  are always unlike. Silence is not a competing claim: a silent side is unlike ONLY when the
  *  numbers also fail to line up (`unlike_conditions`, `model_driver.py`). */
-function unlikeConditions(a: Reading, b: Reading): boolean {
+function unlikeConditions(a: UsableReadingJson, b: UsableReadingJson): boolean {
     if ((a.note ?? null) === (b.note ?? null)) return false;
     if (a.note !== undefined && b.note !== undefined) return true;
     return !readingsAgree(a, b);
@@ -82,7 +90,7 @@ function unlikeConditions(a: Reading, b: Reading): boolean {
  *  `model_driver.py`). `readings` is keyed by source role — the same shape `SpecEntryJson`'s
  *  `readings` carries — but the key names play no part in the verdict itself. */
 export function corroborate(readings: Readonly<Record<string, Reading>>): Corroboration {
-    const usable = Object.values(readings).filter(r => r.rejected === undefined);
+    const usable = Object.values(readings).filter(isUsable);
     if (usable.length < 2) return Corroboration.Unmatched;
     for (let i = 0; i < usable.length; i++) {
         for (let j = i + 1; j < usable.length; j++) {
@@ -140,7 +148,7 @@ export interface ReaderVerdict {
 /** Reader agreement for one datasheet cell, from its `reads`. A read with no number is not a side.
  *  Two reads agree by `readingsAgree`, the one formula; there is no second copy of it. */
 export function readerVerdict(reads: ReaderReads): ReaderVerdict {
-    const numbered: {readonly reader: Reader; readonly reading: Reading}[] = [];
+    const numbered: {readonly reader: Reader; readonly reading: UsableReadingJson}[] = [];
     for (const reader of Reader.ALL) {
         const read = reads[reader.value];
         if (read === undefined || read.read_value === null) continue;

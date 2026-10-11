@@ -52,7 +52,7 @@ describe('corroborate — the cross-source verdict on one field\'s readings', ()
   it('UNMATCHED — a rejected reading does not count toward usable readings', () => {
     const verdict = corroborate({
       a: reading(1.0),
-      b: reading(5.0, {rejected: 'ohm-glyph-merged-as-digit'}),
+      b: {actual_reading: '5.0 Ω', rejected: 'no-numeric-value'},
     });
     expect(verdict).toBe(Corroboration.Unmatched);
   });

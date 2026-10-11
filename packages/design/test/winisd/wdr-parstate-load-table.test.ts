@@ -16,6 +16,7 @@
  * ParState row: 'N' everywhere except the one slot the test cares about, by that key's own
  * position in `POS_TO_WDRKEY`.
  */
+import {isUsable} from '../../domain/corroboration.js';
 import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
 import {WinISDDriver} from '../../winisd/winisdDriver.js';
@@ -40,7 +41,9 @@ describe('winISDDriverFromOpenISDDeviceJson', () => {
     assert.ok(fs, 'expected a Fs spec entry');
     if (fs.state !== 'E') throw new Error('expected an entered entry');
     assert.equal(fs.origin, 'manual');
-    assert.equal(fs.readings?.manual?.read_value, 37.5);
+    const manual = fs.readings?.manual;
+    assert.ok(manual !== undefined && isUsable(manual), 'expected a usable manual reading');
+    assert.equal(manual.read_value, 37.5);
   });
 
   it('a CALCULATED cell produces no spec entry — a calculated value is never stored', () => {
@@ -72,7 +75,9 @@ describe('winISDDriverFromOpenISDDeviceJson', () => {
     const fs = driverSpecsOf(record)?.woofer.Fs_hz;
     assert.ok(fs, 'N+nonzero must produce a spec entry — the mark is unreliable, the value is real');
     if (fs.state !== 'E') throw new Error('expected an entered entry');
-    assert.equal(fs.readings?.manual?.read_value, 37.5);
+    const manual = fs.readings?.manual;
+    assert.ok(manual !== undefined && isUsable(manual), 'expected a usable manual reading');
+    assert.equal(manual.read_value, 37.5);
   });
 
   it('Xlim never becomes a spec entry — its cell carries a mark and no real value', () => {

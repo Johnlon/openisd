@@ -41,7 +41,8 @@ import {winISDDriverToOpenISDDeviceJson} from "./winIsdDriverImport.js";
 import {sortKeysDeep} from "./openIsdDeviceJsonIo.js";
 import {dqMarks} from "./specEntry.js";
 import {selectOrigin} from "./selectOrigin.js";
-import {Corroboration, ReaderAgreement, corroborate, readerVerdict, type Reading} from "./corroboration.js";
+import {sourceRank} from "./sourceRank.js";
+import {Corroboration, ReaderAgreement, corroborate, isRecognisedRejection, isUsable, readerVerdict, type Reading} from "./corroboration.js";
 import {Reader} from "./reader.js";
 import {DriverRoundTripCheck} from "./driverRoundTripDiffs.js";
 
@@ -138,25 +139,10 @@ function stripMetadataOrigin(
   return out;
 }
 
-/** A spec entry's `readings` with every REJECTED reading removed (John, 2026-09-05): `rejected`
- *  marks a reading a scraper must not use — evidence for a human auditing `driver.yml`, never a
- *  value the app should see. `origin` may not name a rejected reading (the pydantic record
- *  guard already enforces that), so dropping it here can never remove the entry's winning value —
- *  only a reading that was already excluded from winning. */
 /** A plain keyed object — what `Object.entries` yields for any non-null object value. Written as
  *  a guard rather than a cast so the compiler PROVES the shape instead of being told it. */
 function isKeyedObject(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
-}
-
-/** One spec entry with its rejected readings dropped. Returns the entry unchanged when it carries
- *  no `readings` object — the shape this walk makes no claim about. */
-function entryWithoutRejectedReadings(entry: unknown): unknown {
-  if (!isKeyedObject(entry) || !isKeyedObject(entry.readings)) return entry;
-  const kept = Object.entries(entry.readings).filter(
-    ([, reading]) => !isKeyedObject(reading) || !("rejected" in reading)
-  );
-  return { ...entry, readings: Object.fromEntries(kept) };
 }
 
 /** One spec entry without the app-only key (`APP_ONLY_SPEC_ENTRY_KEY`). Rebuilt, not deleted
@@ -202,8 +188,9 @@ const scraperEntrySchema = z.strictObject({
 
 /** A literal worth putting in a MISMATCH warning: what the source actually printed when we have
  *  it, the parsed number otherwise. */
-function readingLiteral(r: Reading & { readonly actual_reading?: string }): string {
-  return r.actual_reading ?? String(r.read_value);
+function readingLiteral(r: Reading): string {
+  if (r.actual_reading !== undefined) return r.actual_reading;
+  return isUsable(r) ? String(r.read_value) : r.rejected;
 }
 
 
@@ -286,7 +273,7 @@ function dqCommentLines(record: DriverDeviceJson): string[] {
 
   for (const section of sections) {
     for (const [field, entry] of Object.entries(section)) {
-      if (entry === undefined) continue;
+      if (entry === undefined || entry.state === "N") continue;
 
       const value = entry.value;
       // `dq_scraper` only ever rides on an entered value — nothing was scraped for one the
@@ -421,20 +408,51 @@ function wdrRow(
   return [wdrName, { value: String(cell.value), state }];
 }
 
+function rejectedReadingCommentLines(driver: OpenISDDriver): string[] {
+  const record = driver.toOpenIsdDeviceJson();
+  const specs = record.specs;
+  const sections = [specs.woofer, ...(specs.tweeter ? [specs.tweeter] : [])];
+  const lines: string[] = [];
+  for (const section of sections) {
+    for (const [field, entry] of Object.entries(section)) {
+      if (entry === undefined || entry.state !== "N") continue;
+      const readings = entry.readings;
+      if (!readings) continue;
+      const roles = Object.keys(readings).sort((a, b) => {
+        const diff = sourceRank(a) - sourceRank(b);
+        if (diff !== 0) return diff;
+        return a.localeCompare(b);
+      });
+      const bestRole = roles[0];
+      const winner = bestRole ? readings[bestRole] : undefined;
+      const text = winner?.actual_reading ?? (winner && "rejected" in winner ? String(winner.rejected) : "");
+      if (text) {
+        lines.push(`${field}: ${text}`);
+      }
+    }
+  }
+  return lines;
+}
+
 /**
  * What `Comment=` holds before any `[DQ]` lines: the driver's own comment when it has one (an
  * incoming `.wdr` Comment returns unchanged), else its source URL — the manufacturer datasheet,
- * else the product page, else the listing page — else nothing.
+ * else the product page, else the listing page — else nothing; plus any rejected readings
+ * (one line per field, plain text).
  */
 function wdrCommentOf(driver: OpenISDDriver): string {
   const own = driver.comment.value;
-  if (own !== null && own !== "") return own;
-  return (
-    driver.dataSource("manufacturer_datasheet") ??
-    driver.dataSource("manufacturer_product_page") ??
-    driver.dataSource("manufacturer_listing_page") ??
-    ""
-  );
+  const baseComment =
+    own !== null && own !== ""
+      ? own
+      : (driver.dataSource("manufacturer_datasheet") ??
+        driver.dataSource("manufacturer_product_page") ??
+        driver.dataSource("manufacturer_listing_page") ??
+        "");
+  const rejectedLines = rejectedReadingCommentLines(driver);
+  const missingLines = rejectedLines.filter((l) => !baseComment.includes(l));
+  if (missingLines.length === 0) return baseComment;
+  return baseComment ? `${baseComment}\n${missingLines.join("\n")}` : missingLines.join("\n");
 }
 
 export function openIsdDriverToWinIsdDriver(
@@ -564,15 +582,6 @@ export function openIsdDriverToWinIsdDriver(
     ["Xlim", { value: "", state: wdrStateOf(xlim) }],
   ];
 
-  // NO `[DRIVERTYPE ...]` TAG IS EVER WRITTEN HERE: `driver: OpenISDDriver`'s own `section` is
-  // `readonly section = 'woofer' as const` — the only type this function's parameter accepts —
-  // so a tag naming any OTHER type could never be produced (deleted 2026-09-22 rather than
-  // carried as permanently-dead code: proved via the class's own literal field, not argued). The
-  // tag mechanism itself still exists and is still read back (`winISDDriverToOpenISDDeviceJson`
-  // recovers it from `Comment=` when present) — a driver-only `.wdr` has no dedicated field for
-  // the type (bugs/archive/BUG_20260907_driver_type_has_no_wdr_slot_so_every_loaded_driver_becomes_a_woofer.md),
-  // so `Comment=` is where it would ride — but nothing on THIS write side ever has a non-woofer
-  // `OpenISDDriver` to tag.
   return WinISDDriver.build(header, wdrCells, dqLines);
 }
 
@@ -751,7 +760,7 @@ export class WinIsdDriverConverter {
       const fields: Record<string, unknown> = {};
       for (const [field, entry] of Object.entries(section)) {
         const projected = this.#projectScraperEntry(entry, sectionKey, field,  warnings);
-        fields[field] = entryWithoutAppOnlyKeys(entryWithoutRejectedReadings(projected));
+        fields[field] = entryWithoutAppOnlyKeys(projected);
       }
       sections[sectionKey] = fields;
     }
@@ -794,7 +803,6 @@ export class WinIsdDriverConverter {
     // `origin` always names one of `readings`' own keys — `selectOrigin` picks it FROM this same
     // object — so this lookup can never miss.
     const winner = readings[origin];
-
     if (corroboration === Corroboration.Mismatch) {
       const parts = Object.entries(readings)
         .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
@@ -834,6 +842,23 @@ export class WinIsdDriverConverter {
       }
     }
 
+    for (const [role, r] of Object.entries(readings).sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))) {
+      if (!isUsable(r) && !isRecognisedRejection(r)) {
+        warnings.push({
+          level: "warn",
+          field: `${section}.${field}`,
+          message: `unrecognised rejection reason on ${role}: "${r.rejected}" (reading kept as written)`,
+        });
+      }
+    }
+
+    if (!isUsable(winner)) {
+      // Every reading is rejected: no number to be the value, so the field is not available and
+      // keeps its readings, so the printed text survives.
+      const notAvailable: Record<string, unknown> = {state: "N", readings};
+      if (dq_scraper !== undefined) notAvailable.dq_scraper = dq_scraper;
+      return notAvailable;
+    }
     const projected: Record<string, unknown> = {
       state: "E",
       value: winner.read_value,

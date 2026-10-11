@@ -1,6 +1,7 @@
 import type {DqIssue, SolverField, SolverInput} from '@openisd/design/engine';
 import type {SpecEntryJson} from './openisdSchema.js';
 import type {DqMark} from './specEntry.js';
+import {isUsable} from './corroboration.js';
 import {halfUlp} from './precision.js';
 
 // ───────────────────────────────── Capability atoms ─────────────────────────────────────────────
@@ -111,6 +112,7 @@ export interface Enterable<V> {
 export interface SolverWritable<V> {
   calculated(v: V, precision?: number): void;
   dq(dq: readonly DqIssue[]): void;
+  notAvailable?(): void;
 }
 
 // ───────────────────────────────── Implementations ──────────────────────────────────────────────
@@ -180,7 +182,11 @@ export class DualWriteFieldImpl<T> extends ReadableFieldImpl<T | null>
   /** Never removes an entered value — only the project itself retracts a stated fact; the
    *  solver merely reports that it could not derive one. */
   setNotAvailable(): void {
-    if (!this.entered) this.writes.clear();
+    if (this.writes.notAvailable) {
+      this.writes.notAvailable();
+    } else if (!this.entered) {
+      this.writes.clear();
+    }
   }
 
   setCalculated(value: T, dq?: readonly DqIssue[], precision?: number): void {
@@ -369,7 +375,7 @@ export function entryField(
   const readCell = (): FieldCell<number | null> => {
     const entry = slot.value;
     const dq = issuesSource ? issuesSource() : liveDq;
-    if (entry === undefined) return absentCell<number>(name, dq);
+    if (entry === undefined || entry.state === 'N') return absentCell<number>(name, dq);
     const extra = getDq ? getDq(entry.value) : null;
     const fullDq = extra ? [...dq, extra] : dq;
     return entry.state === 'E'
@@ -381,6 +387,12 @@ export function entryField(
     clear: () => { liveDq = []; slot.set(undefined); },
     calculated: (v, precision) => { liveDq = []; slot.set({ state: 'C', value: v, precision }); },
     dq: (list) => { liveDq = list; writeEntryDq(slot, list); },
+    notAvailable: () => {
+      liveDq = [];
+      if (slot.value?.state === 'C') {
+        slot.set(undefined);
+      }
+    },
   });
 }
 
@@ -396,7 +408,8 @@ export function entryField(
  *     value that arrived as a number in a file and never went through a field. */
 function entryPrecision(entry: Extract<SpecEntryJson, {state: 'E'}>): number {
   const reading = entry.origin !== undefined ? entry.readings?.[entry.origin] : undefined;
-  return reading?.read_precision ?? entry.precision ?? halfUlp(entry.value);
+  const precision = reading !== undefined && isUsable(reading) ? reading.read_precision : undefined;
+  return precision ?? entry.precision ?? halfUlp(entry.value);
 }
 
 /** One `DqIssue` as the debug-trail mark it becomes (D14/D14a) — `params` carries the finding
@@ -451,7 +464,7 @@ export function defaultingEntryField(
   let liveDq: readonly DqIssue[] = [];
   return new DefaultingFieldImpl<number>(() => {
     const entry = slot.value;
-    if (entry === undefined) return calculatedCell(name, fallback(), liveDq);
+    if (entry === undefined || entry.state === 'N') return calculatedCell(name, fallback(), liveDq);
     return entry.state === 'E' ? enteredCell(name, entry.value, liveDq) : calculatedCell(name, entry.value, liveDq);
   }, {
     entered: (v, precision) => { liveDq = []; slot.set({ state: 'E', value: v, precision }); },
@@ -469,7 +482,7 @@ export function writeEntryDq(
   list: readonly DqIssue[],
 ): void {
   const current = slot.value;
-  if (current === undefined) return;
+  if (current === undefined || current.state === 'N') return;
   slot.set({
     ...current,
     dq_calculated: list.map(issue => issueMark(issue, issue.text)),
@@ -533,5 +546,6 @@ export function pairedField(
     clear: () => ownEntry.clear(),
     calculated: (v: number) => ownEntry.setCalculated(v),
     dq: (list) => ownEntry.setDq([...list]),
+    notAvailable: () => ownEntry.setNotAvailable(),
   });
 }
