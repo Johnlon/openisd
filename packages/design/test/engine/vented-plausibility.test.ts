@@ -15,9 +15,9 @@
  */
 import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import {
-  DEFAULT_ENV_DEFAULTS, DEFAULT_VENTED_DESIGN_LIMITS, createEngine, type AppSettings, type Engine, type VentedDesignLimits,
-} from '../../engine/index.js';
+import {DEFAULT_ENV_DEFAULTS, DEFAULT_VENTED_DESIGN_LIMITS, type AppSettings} from '../../engine/appSettings.js';
+import {createEngine, type Engine} from '../../engine/Engine.js';
+import type {VentedDesignLimits} from '../../engine/plausibility.js';
 
 /** The band is an application SETTING, so an engine is constructed with the settings under
  *  test — the same seam the composition root uses (`createEngine(appSettingsRepo)`). */

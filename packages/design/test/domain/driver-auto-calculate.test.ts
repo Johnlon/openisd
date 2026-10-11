@@ -1,7 +1,6 @@
 import {describe, expect, it} from 'vitest';
 import {type Engine, createEngine} from '@openisd/design/engine';
-import {OpenISDDriver, OpenISDDriverStandalone} from '../../domain/index.js';
-
+import {OpenISDDriver, OpenISDDriverStandalone} from '../../domain/driver/openISDDriver.js';
 describe('OpenISDDriverStandalone.setAutoCalculate — freezes the resolve cascade (driver editor only)', () => {
   function standaloneEmpty(engine: Engine): OpenISDDriverStandalone {
     const d = OpenISDDriver.empty(engine);

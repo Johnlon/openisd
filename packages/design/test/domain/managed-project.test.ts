@@ -1,6 +1,7 @@
 import {describe, expect, it} from 'vitest';
 import {createEngine} from '@openisd/design/engine';
-import {OpenISDDriver, ProjectBuilder} from '../../domain/index.js';
+import {OpenISDDriver} from '../../domain/driver/openISDDriver.js';
+import {ProjectBuilder} from '../../domain/openisdTransforms.js';
 import {specSection, driverFrom} from '../fixtures/domainBuilders.js';
 
 describe('ManagedProject — the layers', () => {

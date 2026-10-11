@@ -7,11 +7,11 @@ import {readFileSync} from 'node:fs';
 import {dirname, join} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {describe, expect, it} from 'vitest';
-import {createEngine} from '../../engine/index.js';
-import {CompatSwitch, OpenISDProject} from '../../domain/index.js';
+import {createEngine} from '../../engine/Engine.js';
+import {CompatSwitch} from '../../domain/project/compatSwitch.js';
+import {OpenISDProject} from '../../domain/project/openISDProject.js';
 import {WinIsdProjectConverter} from '../../domain/winIsdProjectConverter.js';
-import {WinisdDeviation} from '../../fields/index.js';
-
+import {WinisdDeviation} from '../../fields/winisdDeviation.js';
 const here = dirname(fileURLToPath(import.meta.url));
 const engine = createEngine();
 

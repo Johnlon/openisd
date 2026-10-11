@@ -8,8 +8,9 @@
  * refuses).
  */
 import {type Engine} from '@openisd/design/engine';
-import {OpenISDDriver, OpenISDPassiveRadiatorStandalone, VoiceCoilWiring,} from '../../domain/index.js';
-
+import {OpenISDDriver} from '../../domain/driver/openISDDriver.js';
+import {OpenISDPassiveRadiatorStandalone} from '../../domain/passiveRadiator/openISDPassiveRadiatorStandalone.js';
+import {VoiceCoilWiring} from '../../domain/voiceCoilWiring.js';
 const scraped = <T,>(value: T) => ({ value });
 
 /** A conforming driver record. Structural plumbing only — every meaningful value is passed in

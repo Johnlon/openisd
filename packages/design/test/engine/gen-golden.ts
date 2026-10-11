@@ -3,7 +3,7 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import type { TestSolverQuantities } from './testSolver.js';
 import { sweepDriver, solveConsistencyGroup } from './testSolver.js';
-import {createEngine} from '../../engine/index.js';
+import {createEngine} from '../../engine/Engine.js';
 import {readGoldenFixture} from '../fixtures/goldenFixture.js';
 
 const here = dirname(fileURLToPath(import.meta.url));

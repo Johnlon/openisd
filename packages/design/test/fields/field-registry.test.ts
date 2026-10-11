@@ -10,12 +10,9 @@
  */
 import {describe, expect, it} from 'vitest';
 import assert from 'node:assert/strict';
-import {createEngine} from '../../engine/index.js';
-import {VoiceCoilWiring} from '../../domain/index.js';
-import {
-  ALL_FIELDS, DateField, EnumField, Field, NumberField, TextField, ToggleField,
-} from '../../fields/index.js';
-
+import {createEngine} from '../../engine/Engine.js';
+import {VoiceCoilWiring} from '../../domain/voiceCoilWiring.js';
+import {ALL_FIELDS, DateField, EnumField, Field, NumberField, TextField, ToggleField} from '../../fields/field.js';
 const KINDS = [NumberField, EnumField, TextField, ToggleField, DateField];
 
 describe('field-registry — the field registry', () => {

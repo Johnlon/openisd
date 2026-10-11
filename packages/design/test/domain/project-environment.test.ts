@@ -1,9 +1,9 @@
 import {describe, expect, it} from 'vitest';
-import {
-  createEngine, DEFAULT_T_REF_K, DEFAULT_RH_REF_PCT, DEFAULT_P_REF_PA, DEFAULT_VENTED_DESIGN_LIMITS,
-} from '../../engine/index.js';
+import {DEFAULT_T_REF_K, DEFAULT_RH_REF_PCT, DEFAULT_P_REF_PA} from '../../engine/air.js';
+import {DEFAULT_VENTED_DESIGN_LIMITS} from '../../engine/appSettings.js';
+import {createEngine} from '../../engine/Engine.js';
 import {ProjectBuilder} from '../../domain/openisdTransforms.js';
-import {OpenISDProject} from '../../domain/index.js';
+import {OpenISDProject} from '../../domain/project/openISDProject.js';
 
 function isRecord(v: unknown): v is Record<string, unknown> {
   return typeof v === 'object' && v !== null;

@@ -18,8 +18,8 @@ import {dirname, join} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import {createEngine} from '../../engine/index.js';
-import {OpenISDProject} from '../../domain/index.js';
+import {createEngine} from '../../engine/Engine.js';
+import {OpenISDProject} from '../../domain/project/openISDProject.js';
 import {WINISD_BP4_PORT_GAIN_CAPTURE} from '../fixtures/winisdBp4PortGainCapture.js';
 import {WinIsdProjectConverter} from '../../domain/winIsdProjectConverter.js';
 

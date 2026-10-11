@@ -1,6 +1,7 @@
 import {describe, expect, it, vi} from 'vitest';
 import {createEngine} from '@openisd/design/engine';
-import {OpenISDProject, ProjectBuilder} from '../../domain/index.js';
+import {ProjectBuilder} from '../../domain/openisdTransforms.js';
+import {OpenISDProject} from '../../domain/project/openISDProject.js';
 import {isRecord, at, ignoredIssue, specSection, specSectionNoRms, whatIfSpec, driverFrom} from '../fixtures/domainBuilders.js';
 
 describe('OpenISDBox alignments', () => {

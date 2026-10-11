@@ -1,6 +1,6 @@
 import {describe, it, expect} from 'vitest';
-import {NumberField, ReadoutFormat} from '../../fields/index.js';
-
+import {NumberField} from '../../fields/field.js';
+import {ReadoutFormat} from '../../fields/readoutFormat.js';
 describe('ReadoutFormat', () => {
   describe('ReadoutFormat — decimals of a readout that is not a registered field', () => {
     it('each member shows its own decimals', () => {

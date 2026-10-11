@@ -1,6 +1,6 @@
 import {describe, expect, it} from 'vitest';
-import type {SolverField} from '../../engine/index.js';
-import {createEngine} from '../../engine/index.js';
+import type {SolverField} from '../../engine/solverTypes.js';
+import {createEngine} from '../../engine/Engine.js';
 import {checkVentConsistency, fakeSolverField, solveVentConsistencyGroup} from './testSolver.js';
 
 const engine = createEngine();

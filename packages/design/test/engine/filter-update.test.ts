@@ -10,9 +10,8 @@
  * clamp needed); 0 rounds to 0, then clamps up to the 1 floor.
  */
 import {describe, expect, it} from 'vitest';
-import {createEngine} from '../../engine/index.js';
-import type {AllpassFilter, LinkwitzFilter, ParametricEqFilter, PassFilter, PeakHighpassFilter, RaisedCosineFilter, ShelfFilter, StaticGainFilter} from '../../engine/index.js';
-
+import {createEngine} from '../../engine/Engine.js';
+import type {AllpassFilter, LinkwitzFilter, ParametricEqFilter, PassFilter, PeakHighpassFilter, RaisedCosineFilter, ShelfFilter, StaticGainFilter} from '../../engine/types.js';
 const engine = createEngine();
 
 describe('Engine.updatePassFilter', () => {

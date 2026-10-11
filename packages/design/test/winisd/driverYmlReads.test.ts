@@ -9,8 +9,7 @@ import {fileURLToPath} from 'node:url';
 import {dirname, join} from 'node:path';
 import {parse, stringify} from 'yaml';
 import {WinIsdDriverConverter} from '../../domain/winIsdDriverConverter.js';
-import {createEngine} from '../../engine/index.js';
-
+import {createEngine} from '../../engine/Engine.js';
 const engine = createEngine();
 const FIXTURE = join(dirname(fileURLToPath(import.meta.url)), '..', 'fixtures', 'corpus', 'dayton-ce28n-4.driver.yml');
 function isRecord(v: unknown): v is Record<string, unknown> {

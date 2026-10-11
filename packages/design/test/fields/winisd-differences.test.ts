@@ -4,17 +4,13 @@
  * entry fails here.
  */
 import {describe, expect, it} from 'vitest';
-import {CompatSwitch} from '../../domain/index.js';
-import {
-  CompatSwitchGroup,
-  WinisdDeviation,
-  WinisdDifference,
-  WinisdDifferenceSection,
-  WinisdFilterDeviation,
-  WinisdFixedBug,
-  WinisdOption,
-} from '../../fields/index.js';
-
+import {CompatSwitch} from '../../domain/project/compatSwitch.js';
+import {CompatSwitchGroup} from '../../fields/compatSwitchGroup.js';
+import {WinisdDeviation, WinisdFilterDeviation} from '../../fields/winisdDeviation.js';
+import {WinisdDifference} from '../../fields/winisdDifference.js';
+import {WinisdDifferenceSection} from '../../fields/winisdDifferenceSection.js';
+import {WinisdFixedBug} from '../../fields/winisdFixedBug.js';
+import {WinisdOption} from '../../fields/winisdOption.js';
 const CUES: readonly WinisdDeviation[] = [...WinisdDeviation.ALL, ...WinisdFilterDeviation.ALL];
 
 describe('WinisdDifferenceSection', () => {

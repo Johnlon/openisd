@@ -1,6 +1,6 @@
 import {describe, expect, it} from 'vitest';
 import {createEngine} from '@openisd/design/engine';
-import {ProjectBuilder} from '../../domain/index.js';
+import {ProjectBuilder} from '../../domain/openisdTransforms.js';
 import {DEFAULT_SOURCE_RESISTANCE_OHM} from '../../fields/defaults.js';
 import {driverFromSpec} from '../fixtures/recordBuilders.js';
 

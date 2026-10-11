@@ -1,7 +1,6 @@
 import {describe, expect, it} from 'vitest';
 import {createEngine} from '@openisd/design/engine';
-import {createEngine as rootCreateEngine} from '../../domain/index.js';
-
+import {createEngine as rootCreateEngine} from '../../engine/Engine.js';
 describe('root barrel engine door', () => {
   it('@openisd/design (the root barrel) re-exports createEngine — the same factory the engine door exports', () => {
     // `.` in the design package exports map resolves to `domain/index.ts`, so a consumer that

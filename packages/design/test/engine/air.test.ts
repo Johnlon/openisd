@@ -15,9 +15,9 @@ import {sweepDriver, solveConsistencyGroup} from './testSolver.js';
  */
 import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import type {SweepParams} from '../../engine/index.js';
-import {createEngine, MAX_SUPPORTED_TEMP_K, MIN_SUPPORTED_TEMP_K} from '../../engine/index.js';
-
+import type {SweepParams} from '../../engine/types.js';
+import {MAX_SUPPORTED_TEMP_K, MIN_SUPPORTED_TEMP_K} from '../../engine/air.js';
+import {createEngine} from '../../engine/Engine.js';
 /** Voice-coil inductance for the fixtures below. Not a solver quantity — nothing
  *  derives it — so it reaches `sweep` on its own, and only the impedance plot reads it. */
 const LE_H = undefined;

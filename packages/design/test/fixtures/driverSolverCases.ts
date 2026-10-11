@@ -1,11 +1,4 @@
-/**
- * The inputs of `driver-consistency-solver-golden.test.ts`: a fixed, deterministic grid of stated
- * driver quantities. The expected outputs are in `driverSolverGolden.ts`, produced once from the
- * solver as it stood before the componentisation (bugs/BUG_20261003_driver-consistency-solver-
- * is-one-925-line-function.md). Adding a case means regenerating its golden entry.
- */
-import type {Engine} from '../../domain/index.js';
-
+import type {Engine} from '../../engine/Engine.js';
 /** Plain stated quantities, SI, as `engine.driver.solveValues` takes them. */
 export type StatedQuantities = Parameters<Engine['driver']['solveValues']>[0];
 

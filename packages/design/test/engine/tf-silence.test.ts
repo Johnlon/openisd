@@ -3,7 +3,8 @@
  * filter reaches (BUG_20261001_transfer-function-jumps-80db-where-spl-drops-below-190db).
  */
 import {describe, expect, it} from 'vitest';
-import {createEngine, type Filter, type SweepParams} from '../../engine/index.js';
+import {createEngine} from '../../engine/Engine.js';
+import type {Filter, SweepParams} from '../../engine/types.js';
 import {sweepDriver, solveConsistencyGroup} from './testSolver.js';
 
 const engine = createEngine();

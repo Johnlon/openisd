@@ -1,7 +1,7 @@
 import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import type {SweepParams} from '../../engine/index.js';
-import {createEngine} from '../../engine/index.js';
+import type {SweepParams} from '../../engine/types.js';
+import {createEngine} from '../../engine/Engine.js';
 import type {TestSolverQuantities} from './testSolver.js';
 import {sweepDriver} from './testSolver.js';
 

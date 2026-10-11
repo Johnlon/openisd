@@ -1,6 +1,8 @@
 import {describe, expect, it} from 'vitest';
 import {createEngine} from '@openisd/design/engine';
-import {OpenISDPassiveRadiatorStandalone, OpenISDProject, ProjectBuilder} from '../../domain/index.js';
+import {ProjectBuilder} from '../../domain/openisdTransforms.js';
+import {OpenISDPassiveRadiatorStandalone} from '../../domain/passiveRadiator/openISDPassiveRadiatorStandalone.js';
+import {OpenISDProject} from '../../domain/project/openISDProject.js';
 import {whatIfSpec, prSpecSection, driverFrom, driverJson} from '../fixtures/domainBuilders.js';
 
 describe('OpenISDProject sweep guards', () => {

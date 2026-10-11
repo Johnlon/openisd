@@ -1,8 +1,9 @@
 import {describe, expect, it} from 'vitest';
 import assert from 'node:assert/strict';
 import {type Engine, createEngine, DEFAULT_ENV_DEFAULTS, type VentedDesignLimits} from '@openisd/design/engine';
-import {OpenISDDriver, OpenISDProject, ProjectBuilder} from '../../domain/index.js';
-
+import {OpenISDDriver} from '../../domain/driver/openISDDriver.js';
+import {ProjectBuilder} from '../../domain/openisdTransforms.js';
+import {OpenISDProject} from '../../domain/project/openISDProject.js';
 const scraped = <T,>(value: T) => ({value});
 
 const spec = (read_value: number) => ({state: 'E' as const, value: read_value, origin: 'scraped', readings: {scraped: {read_value}}});

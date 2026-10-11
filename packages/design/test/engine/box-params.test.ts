@@ -1,8 +1,7 @@
 import {describe, it, expect} from 'vitest';
 import assert from 'node:assert/strict';
-import type {SimulatableBoxType, SweepParams} from '../../engine/index.js';
-import {createEngine} from '../../engine/index.js';
-
+import type {SimulatableBoxType, SweepParams} from '../../engine/types.js';
+import {createEngine} from '../../engine/Engine.js';
 /** The engine's one door: every calculation below is a method on this object. */
 const engine = createEngine();
 

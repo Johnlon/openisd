@@ -1,6 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import {createEngine} from '../../engine/index.js';
-
+import {createEngine} from '../../engine/Engine.js';
 /**
  * `Engine.isPhysicallyPlausible` — D9 tier 1's one door into D5's `PHYSICAL_RANGE` table. The
  * domain layer (`selectOrigin`, `domain/selectOrigin.ts`) needs to ask "is this raw scraper

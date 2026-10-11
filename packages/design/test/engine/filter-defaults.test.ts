@@ -7,9 +7,8 @@
  * Linkwitz transform and the two OpenISD-only shelves keep the values OpenISD already shipped.
  */
 import {describe, expect, it} from 'vitest';
-import {createEngine} from '../../engine/index.js';
-import type {FilterType} from '../../engine/index.js';
-
+import {createEngine} from '../../engine/Engine.js';
+import type {FilterType} from '../../engine/types.js';
 const ALL: readonly FilterType[] = [
   'lowpass', 'highpass', 'allpass', 'linkwitz', 'peaking',
   'peakHighpass', 'staticGain', 'raisedCosine', 'lowshelf', 'highshelf',

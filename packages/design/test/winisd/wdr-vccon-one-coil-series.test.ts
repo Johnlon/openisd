@@ -3,7 +3,7 @@
  * VCCon=1, so it reloads as Parallel. OpenISD writes VCCon=2 and reloads Series.
  */
 import {describe, expect, it} from 'vitest';
-import {createEngine} from '../../engine/index.js';
+import {createEngine} from '../../engine/Engine.js';
 import {WinIsdDriverConverter} from '../../domain/winIsdDriverConverter.js';
 import {VoiceCoilWiring} from '../../domain/voiceCoilWiring.js';
 import {driverFromSpec} from '../fixtures/recordBuilders.js';

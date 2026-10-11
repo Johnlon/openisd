@@ -12,8 +12,8 @@
  * Goes through the engine's door (`engine.simulation.sweep`) with a driver from the test solver.
  */
 import {describe, expect, it} from 'vitest';
-import {createEngine} from '../../engine/index.js';
-import type {SweepParams, SweepResult} from '../../engine/index.js';
+import {createEngine} from '../../engine/Engine.js';
+import type {SweepParams, SweepResult} from '../../engine/types.js';
 import {solveConsistencyGroup, sweepDriver} from './testSolver.js';
 import type {TestSolverQuantities} from './testSolver.js';
 

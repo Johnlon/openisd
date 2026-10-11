@@ -1,8 +1,10 @@
 import {describe, expect, it} from 'vitest';
 import {type BoxType, createEngine} from '@openisd/design/engine';
-import {OpenISDDriver, OpenISDProject, ProjectBuilder, ProjectSummary} from '../../domain/index.js';
-import {NumberField} from '../../fields/index.js';
-
+import {OpenISDDriver} from '../../domain/driver/openISDDriver.js';
+import {ProjectBuilder} from '../../domain/openisdTransforms.js';
+import {OpenISDProject} from '../../domain/project/openISDProject.js';
+import {ProjectSummary} from '../../domain/project/projectSummary.js';
+import {NumberField} from '../../fields/field.js';
 const scraped = <T,>(value: T) => ({value});
 const spec = (read_value: number) => ({state: 'E' as const, value: read_value, origin: 'scraped', readings: {scraped: {read_value}}});
 

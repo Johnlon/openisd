@@ -7,9 +7,8 @@ import {sweepDriver, solveConsistencyGroup} from './testSolver.js';
  */
 import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import type {SweepParams, SweepResult} from '../../engine/index.js';
-import {createEngine} from '../../engine/index.js';
-
+import type {SweepParams, SweepResult} from '../../engine/types.js';
+import {createEngine} from '../../engine/Engine.js';
 /** Voice-coil inductance for the fixtures below. Not a solver quantity — nothing
  *  derives it — so it reaches `sweep` on its own, and only the impedance plot reads it. */
 const LE_H = 0.5e-3;

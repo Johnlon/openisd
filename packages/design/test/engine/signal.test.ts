@@ -1,6 +1,6 @@
 import {describe, expect, it} from 'vitest';
-import type {PresentSolverField, SignalSolverParams} from '../../engine/index.js';
-import {createEngine} from '../../engine/index.js';
+import type {PresentSolverField, SignalSolverParams} from '../../engine/solverTypes.js';
+import {createEngine} from '../../engine/Engine.js';
 import {fakeSolverField} from './testSolver.js';
 
 const engine = createEngine();

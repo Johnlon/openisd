@@ -1,8 +1,8 @@
 import {sweepDriver, solveConsistencyGroup} from './testSolver.js';
 import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import type {SweepParams} from '../../engine/index.js';
-import {createEngine} from '../../engine/index.js';
+import type {SweepParams} from '../../engine/types.js';
+import {createEngine} from '../../engine/Engine.js';
 import {OpenISDDriver} from '../../domain/driver/openISDDriver.js';
 import {ProjectBuilder} from '../../domain/openisdTransforms.js';
 

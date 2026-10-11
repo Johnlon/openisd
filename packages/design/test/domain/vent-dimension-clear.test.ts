@@ -1,6 +1,6 @@
 import {describe, expect, it} from 'vitest';
 import {createEngine} from '@openisd/design/engine';
-import {ProjectBuilder} from '../../domain/index.js';
+import {ProjectBuilder} from '../../domain/openisdTransforms.js';
 import {driverFromSpec} from '../fixtures/recordBuilders.js';
 
 /** A cleared port dimension on the vented box never stays blank (John, 2026-10-09,

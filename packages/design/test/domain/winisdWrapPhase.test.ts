@@ -1,5 +1,8 @@
 import { describe, it, expect } from 'vitest';
-import { createEngine, type FrequencyGrid, OpenISDProject, ProjectBuilder} from '../../domain/index.js';
+import type {FrequencyGrid} from '../../domain/box/frequencyGrid.js';
+import {ProjectBuilder} from '../../domain/openisdTransforms.js';
+import {OpenISDProject} from '../../domain/project/openISDProject.js';
+import {createEngine} from '../../engine/Engine.js';
 import { driverFromSpec } from '../fixtures/recordBuilders.js';
 
 const W5 = { Fs_hz: 45, Re_ohm: 3.4, Le_H: 0.00034, BL_Tm: 7.17, Qes: 0.57, Qms: 3.56, Vas_m3: 0.00485, Sd_m2: 0.0094, Pe_W: 40 };

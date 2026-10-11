@@ -1,6 +1,8 @@
 import {describe, expect, it} from 'vitest';
-import {OpenISDDriver, OpenISDProject, ProjectBuilder} from '../../domain/index.js';
-import {createEngine} from '../../engine/index.js';
+import {OpenISDDriver} from '../../domain/driver/openISDDriver.js';
+import {ProjectBuilder} from '../../domain/openisdTransforms.js';
+import {OpenISDProject} from '../../domain/project/openISDProject.js';
+import {createEngine} from '../../engine/Engine.js';
 import {DEFAULT_SOURCE_RESISTANCE_OHM} from '../../fields/defaults.js';
 
 function driver(): OpenISDDriver {

@@ -9,8 +9,9 @@ import {dirname, join} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import {createEngine} from '../../engine/index.js';
-import {OpenISDProject, ProjectBuilder} from '../../domain/index.js';
+import {createEngine} from '../../engine/Engine.js';
+import {ProjectBuilder} from '../../domain/openisdTransforms.js';
+import {OpenISDProject} from '../../domain/project/openISDProject.js';
 import {WinIsdProjectConverter} from '../../domain/winIsdProjectConverter.js';
 import {driverFrom, whatIfSpec} from '../fixtures/domainBuilders.js';
 

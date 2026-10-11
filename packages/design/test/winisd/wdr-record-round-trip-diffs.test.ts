@@ -5,8 +5,8 @@ import {fileURLToPath} from 'node:url';
 import {dirname, join} from 'node:path';
 import {WinIsdDriverConverter} from '../../domain/winIsdDriverConverter.js';
 import {DriverRoundTripCheck} from '../../domain/driverRoundTripDiffs.js';
-import {OpenISDDriver} from '../../domain/index.js';
-import {createEngine} from '../../engine/index.js';
+import {OpenISDDriver} from '../../domain/driver/openISDDriver.js';
+import {createEngine} from '../../engine/Engine.js';
 import {type WdrHeader, WinISDDriver} from '../../winisd/winisdDriver.js';
 
 const FIXTURES = join(dirname(fileURLToPath(import.meta.url)), '..', 'fixtures', 'corpus');

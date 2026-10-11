@@ -8,8 +8,8 @@
  * (BUG_20260924_inconsistent-inputs-claims-charts-blank). The two lists are never merged.
  */
 import {describe, expect, it} from 'vitest';
-import {OpenISDDriver} from '../../domain/index.js';
-import {createEngine} from '../../engine/index.js';
+import {OpenISDDriver} from '../../domain/driver/openISDDriver.js';
+import {createEngine} from '../../engine/Engine.js';
 
 function completeDriver(): OpenISDDriver {
   const driver = OpenISDDriver.empty(createEngine());

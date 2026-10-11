@@ -7,8 +7,8 @@
  */
 import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import {NumberField, toSI, unitFor, type UnitGroup} from '../../fields/index.js';
-
+import {toSI, unitFor, type UnitGroup} from '../../fields/dimensions.js';
+import {NumberField} from '../../fields/field.js';
 const fromDisplay = (val: number, group: UnitGroup, token: string) => toSI(unitFor(group, token), val);
 
 describe('PR entry limits', () => {

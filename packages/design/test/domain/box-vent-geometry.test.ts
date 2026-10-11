@@ -1,6 +1,7 @@
 import {describe, expect, it} from 'vitest';
 import {type Engine, createEngine} from '@openisd/design/engine';
-import {ProjectBuilder, type FrequencyGrid} from '../../domain/index.js';
+import type {FrequencyGrid} from '../../domain/box/frequencyGrid.js';
+import {ProjectBuilder} from '../../domain/openisdTransforms.js';
 import {driverFromSpec} from '../fixtures/recordBuilders.js';
 
 describe('OpenISDBox vent geometry', () => {

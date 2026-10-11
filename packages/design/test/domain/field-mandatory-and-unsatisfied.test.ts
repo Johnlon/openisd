@@ -10,7 +10,8 @@
  */
 import {describe, expect, it} from 'vitest';
 import {createEngine} from '@openisd/design/engine';
-import {OpenISDDriver, ProjectBuilder} from '../../domain/index.js';
+import {OpenISDDriver} from '../../domain/driver/openISDDriver.js';
+import {ProjectBuilder} from '../../domain/openisdTransforms.js';
 
 /** A driver with no value stated at all: every derivable quantity is blocked on its inputs. */
 function emptyDriver(): OpenISDDriver {

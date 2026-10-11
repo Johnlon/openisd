@@ -10,8 +10,7 @@
  */
 import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import {createEngine} from '../../engine/index.js';
-
+import {createEngine} from '../../engine/Engine.js';
 const engine = createEngine();
 const air = engine.environment.solve({}).values;
 

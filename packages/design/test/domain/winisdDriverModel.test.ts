@@ -9,7 +9,10 @@
  * imply, and with it clear it must sweep as its entered values say.
  */
 import {describe, expect, it} from 'vitest';
-import {type Engine, createEngine, type FrequencyGrid, OpenISDProject, ProjectBuilder} from '../../domain/index.js';
+import type {FrequencyGrid} from '../../domain/box/frequencyGrid.js';
+import {ProjectBuilder} from '../../domain/openisdTransforms.js';
+import {OpenISDProject} from '../../domain/project/openISDProject.js';
+import {type Engine, createEngine} from '../../engine/Engine.js';
 import {driverFromSpec} from '../fixtures/recordBuilders.js';
 import {reproduceWinisdBugs} from '../fixtures/domainBuilders.js';
 

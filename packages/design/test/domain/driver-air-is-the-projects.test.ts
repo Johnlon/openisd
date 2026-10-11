@@ -5,8 +5,9 @@
  * bugs/BUG_20260820_s-roo_wdr_oracle_contradicts_the_c-from-roo_recompute_rule.md.
  */
 import {describe, expect, it} from 'vitest';
-import {createEngine, DEFAULT_VENTED_DESIGN_LIMITS} from '../../engine/index.js';
-import type {Engine} from '../../engine/index.js';
+import {DEFAULT_VENTED_DESIGN_LIMITS} from '../../engine/appSettings.js';
+import {createEngine} from '../../engine/Engine.js';
+import type {Engine} from '../../engine/Engine.js';
 import {ProjectBuilder} from '../../domain/openisdTransforms.js';
 import {driverFromSpec} from '../fixtures/recordBuilders.js';
 

@@ -9,9 +9,10 @@
  */
 import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import {createEngine} from '../../engine/index.js';
-import {OpenISDProject, ProjectBuilder} from '../../domain/index.js';
-import type {FrequencyGrid} from '../../domain/index.js';
+import {createEngine} from '../../engine/Engine.js';
+import {ProjectBuilder} from '../../domain/openisdTransforms.js';
+import {OpenISDProject} from '../../domain/project/openISDProject.js';
+import type {FrequencyGrid} from '../../domain/box/frequencyGrid.js';
 import {at, driverFrom, isRecord, whatIfSpec} from '../fixtures/domainBuilders.js';
 
 const GRID: FrequencyGrid = {fmin: 10, fmax: 1000, N: 50};

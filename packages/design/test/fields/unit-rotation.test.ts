@@ -5,8 +5,8 @@
  * cannot read is dropped, never an error (repair, not reset).
  */
 import {describe, expect, it} from 'vitest';
-import {NumberField, parseUnitRotation} from '../../fields/index.js';
-
+import {NumberField} from '../../fields/field.js';
+import {parseUnitRotation} from '../../fields/unitRotation.js';
 describe('parseUnitRotation', () => {
   it('a legacy key carries the chosen unit over to its field: stored {Vb: cuft} shows the box volume in cu ft', () => {
     const rotation = parseUnitRotation({Vb: 'cuft'});

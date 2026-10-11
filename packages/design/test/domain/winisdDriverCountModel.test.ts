@@ -1,5 +1,8 @@
 import {describe, expect, it} from 'vitest';
-import {createEngine, type FrequencyGrid, OpenISDProject, ProjectBuilder} from '../../domain/index.js';
+import type {FrequencyGrid} from '../../domain/box/frequencyGrid.js';
+import {ProjectBuilder} from '../../domain/openisdTransforms.js';
+import {OpenISDProject} from '../../domain/project/openISDProject.js';
+import {createEngine} from '../../engine/Engine.js';
 import {driverFromSpec} from '../fixtures/recordBuilders.js';
 
 const W5 = {

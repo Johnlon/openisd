@@ -6,8 +6,8 @@
  */
 import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import {ProjectBuilder} from '../../domain/index.js';
-import {createEngine} from '../../engine/index.js';
+import {ProjectBuilder} from '../../domain/openisdTransforms.js';
+import {createEngine} from '../../engine/Engine.js';
 
 function ventedProject() {
   const p = ProjectBuilder.empty(createEngine());

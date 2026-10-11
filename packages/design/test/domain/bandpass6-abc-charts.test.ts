@@ -5,11 +5,11 @@
  */
 import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import {createEngine} from '../../engine/index.js';
-import {ProjectBuilder} from '../../domain/index.js';
-import type {FrequencyGrid} from '../../domain/index.js';
-import {seriesFor} from '../../chart/index.js';
-import type {PlotParams} from '../../chart/index.js';
+import {createEngine} from '../../engine/Engine.js';
+import {ProjectBuilder} from '../../domain/openisdTransforms.js';
+import type {FrequencyGrid} from '../../domain/box/frequencyGrid.js';
+import {seriesFor} from '../../chart/series.js';
+import type {PlotParams} from '../../chart/types.js';
 import {driverFrom, whatIfSpec} from '../fixtures/domainBuilders.js';
 
 const engine = createEngine();

@@ -1,6 +1,7 @@
 import {describe, expect, it} from 'vitest';
 import {createEngine} from '@openisd/design/engine';
-import {OpenISDPassiveRadiatorStandalone, ProjectBuilder} from '../../domain/index.js';
+import {ProjectBuilder} from '../../domain/openisdTransforms.js';
+import {OpenISDPassiveRadiatorStandalone} from '../../domain/passiveRadiator/openISDPassiveRadiatorStandalone.js';
 import {driverJson, prSpecSection, sealedProject} from '../fixtures/domainBuilders.js';
 
 /** The radiator the PR scenario fits to the box. */

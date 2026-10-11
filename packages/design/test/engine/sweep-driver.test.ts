@@ -4,8 +4,10 @@
  * boundary (structured clone) and the sweep it gives is unchanged.
  */
 import {describe, expect, it} from 'vitest';
-import {createEngine, type SweepDriver, type SweepParams} from '../../engine/index.js';
-import {ProjectBuilder} from '../../domain/index.js';
+import {createEngine} from '../../engine/Engine.js';
+import type {SweepDriver} from '../../engine/solverTypes.js';
+import type {SweepParams} from '../../engine/types.js';
+import {ProjectBuilder} from '../../domain/openisdTransforms.js';
 import {solveConsistencyGroup, sweepDriver} from './testSolver.js';
 
 const engine = createEngine();

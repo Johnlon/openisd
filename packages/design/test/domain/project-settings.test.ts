@@ -1,6 +1,8 @@
 import {describe, expect, it} from 'vitest';
 import {type Engine, createEngine, DEFAULT_VENTED_DESIGN_LIMITS} from '@openisd/design/engine';
-import {OpenISDProject, ProjectBuilder, type FrequencyGrid} from '../../domain/index.js';
+import type {FrequencyGrid} from '../../domain/box/frequencyGrid.js';
+import {ProjectBuilder} from '../../domain/openisdTransforms.js';
+import {OpenISDProject} from '../../domain/project/openISDProject.js';
 import {fixedAppContext, specSection, driverFrom, reproduceWinisdBugs, sealedProject} from '../fixtures/domainBuilders.js';
 
 describe('OpenISDProject settings', () => {

@@ -1,8 +1,7 @@
 import {describe, it, expect} from 'vitest';
 import assert from 'node:assert/strict';
-import {createEngine} from '../../engine/index.js';
-import type {CalculationIssue} from '../../engine/index.js';
-
+import {createEngine} from '../../engine/Engine.js';
+import type {CalculationIssue} from '../../engine/consistency.js';
 const engine = createEngine();
 
 describe('DqIssue text', () => {

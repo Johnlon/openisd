@@ -5,9 +5,8 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 import {dirname, join} from 'node:path';
-import {createEngine} from '../../engine/index.js';
-import type {Air} from '../../engine/index.js';
-
+import {createEngine} from '../../engine/Engine.js';
+import type {Air} from '../../engine/air.js';
 /** The engine's one door: every calculation below is a method on this object. */
 const engine = createEngine();
 

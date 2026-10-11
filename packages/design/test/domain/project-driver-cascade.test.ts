@@ -1,6 +1,9 @@
 import {describe, expect, it, vi} from 'vitest';
 import {type Engine, createEngine} from '@openisd/design/engine';
-import {OpenISDDriver, OpenISDPassiveRadiatorStandalone, OpenISDProject, ProjectBuilder} from '../../domain/index.js';
+import {OpenISDDriver} from '../../domain/driver/openISDDriver.js';
+import {ProjectBuilder} from '../../domain/openisdTransforms.js';
+import {OpenISDPassiveRadiatorStandalone} from '../../domain/passiveRadiator/openISDPassiveRadiatorStandalone.js';
+import {OpenISDProject} from '../../domain/project/openISDProject.js';
 import {fixtureEngine, specSection, prSpecSection, driverFrom, driverJson} from '../fixtures/domainBuilders.js';
 
 describe('OpenISDProject driver cascade', () => {

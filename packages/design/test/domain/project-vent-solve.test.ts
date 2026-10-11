@@ -1,6 +1,6 @@
 import {describe, expect, it} from 'vitest';
 import {createEngine} from '@openisd/design/engine';
-import {ProjectBuilder} from '../../domain/index.js';
+import {ProjectBuilder} from '../../domain/openisdTransforms.js';
 import {driverFrom, sealedProject, specSection} from '../fixtures/domainBuilders.js';
 
 /** The sealed RS225 project the vent scenarios start from, switched to a vented 30 L box tuned to 35 Hz. */

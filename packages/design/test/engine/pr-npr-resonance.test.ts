@@ -11,8 +11,8 @@
  * Ql·Npr and Qa/Npr.
  */
 import {describe, expect, it} from 'vitest';
-import {createEngine} from '../../engine/index.js';
-import type {SweepParams, SweepResult} from '../../engine/index.js';
+import {createEngine} from '../../engine/Engine.js';
+import type {SweepParams, SweepResult} from '../../engine/types.js';
 import {solveConsistencyGroup, sweepDriver} from './testSolver.js';
 
 const engine = createEngine();

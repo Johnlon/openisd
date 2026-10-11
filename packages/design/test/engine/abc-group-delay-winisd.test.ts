@@ -17,8 +17,9 @@ import {readFileSync} from 'node:fs';
 import {dirname, join} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {describe, expect, it} from 'vitest';
-import {createEngine} from '../../engine/index.js';
-import {OpenISDProject, type FrequencyGrid} from '../../domain/index.js';
+import {createEngine} from '../../engine/Engine.js';
+import type {FrequencyGrid} from '../../domain/box/frequencyGrid.js';
+import {OpenISDProject} from '../../domain/project/openISDProject.js';
 import {WinIsdProjectConverter} from '../../domain/winIsdProjectConverter.js';
 
 const FIXTURES = join(dirname(fileURLToPath(import.meta.url)), '..', 'winisd', 'fixtures');

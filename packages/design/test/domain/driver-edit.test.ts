@@ -2,7 +2,10 @@ import {describe, expect, it} from 'vitest';
 import {type DriverError, createEngine} from '@openisd/design/engine';
 import {WinIsdDriverConverter} from '../../domain/winIsdDriverConverter.js';
 import {WinIsdProjectConverter} from '../../domain/winIsdProjectConverter.js';
-import {OpenISDDriver, OpenISDPassiveRadiatorStandalone, OpenISDProject, ProjectBuilder} from '../../domain/index.js';
+import {OpenISDDriver} from '../../domain/driver/openISDDriver.js';
+import {ProjectBuilder} from '../../domain/openisdTransforms.js';
+import {OpenISDPassiveRadiatorStandalone} from '../../domain/passiveRadiator/openISDPassiveRadiatorStandalone.js';
+import {OpenISDProject} from '../../domain/project/openISDProject.js';
 import {isRecord, at, specSection, prSpecSection, driverFrom, driverJson} from '../fixtures/domainBuilders.js';
 
 describe('editing a driver — copy, then update or drop', () => {

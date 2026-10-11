@@ -4,7 +4,7 @@
  */
 import {describe, expect, it} from 'vitest';
 import {type Engine, createEngine} from '@openisd/design/engine';
-import {ProjectBuilder} from '../../domain/index.js';
+import {ProjectBuilder} from '../../domain/openisdTransforms.js';
 import {driverFromSpec, radiatorFromSpec} from '../fixtures/recordBuilders.js';
 
 const prProject = (engine: Engine, radiator: Record<string, number>) => {

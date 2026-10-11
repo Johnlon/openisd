@@ -1,6 +1,29 @@
 prefix: QO
-next: 179
+next: 180
 questions:
+- id: QO179
+  title: unit tests import the file they test; one test file per source file, never a barrel
+  status: decided
+  raised: '2026-10-11'
+  body: 'The full unit run took 38 min for 373 files, 69 % of it import time: 438 test-file imports name
+    a barrel (engine/index.js, domain/index.js, @openisd/design, @openisd/design/engine) and every
+    isolated worker reloads the whole engine and domain graph per file. The 27 Aug 2026 ruling (engine
+    has one door, "tests are not an exception") stood in the way of importing the leaf module.'
+  answer:
+    at: '2026-10-11'
+    text: |-
+      HUMAN RULING (John, 2026-10-11, via maryu, verbatim): "unit tests should take milliseconds";
+      "these are not unit tests if they do that, jesus Christ unit test load a microscopic unit and
+      test it"; "they should import the file they test"; "I want a direct correlation between files
+      and test files like any other languages unit test suit".
+
+      DECIDED:
+      - A test file imports the source file it tests, by its own path, never a barrel. This
+        supersedes "tests are not an exception" in the 27 Aug engine one-door ruling for test
+        files only; production code still uses the door.
+      - One test file per source file, named for it (architecture-test-files-name-their-object).
+      - An architecture test refuses a barrel import under test/.
+      - Owner: fable (SDLC S9).
 - id: QO168
   title: graph cursor/drag-selection exempted from the OpenISDProject three-field architecture gate (S10/QO130)
   status: decided

@@ -4,9 +4,9 @@
  * bugs/BUG_20261007_wdr-comment-lost-on-round-trip.md
  */
 import {describe, expect, it} from 'vitest';
-import {createEngine} from '../../engine/index.js';
+import {createEngine} from '../../engine/Engine.js';
 import {WinIsdDriverConverter} from '../../domain/winIsdDriverConverter.js';
-import {WINISD_NEWLINE_SENTINEL} from '../../winisd/index.js';
+import {WINISD_NEWLINE_SENTINEL} from '../../winisd/winisdBytes.js';
 import {driverFromSpec} from '../fixtures/recordBuilders.js';
 
 const engine = createEngine();

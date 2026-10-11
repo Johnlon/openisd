@@ -9,8 +9,7 @@ import {fileURLToPath} from 'node:url';
 import {dirname, join} from 'node:path';
 import {OpenISDDeviceJson} from '../../domain/openIsdDeviceJsonIo.js';
 import {WinIsdDriverConverter} from '../../domain/winIsdDriverConverter.js';
-import {createEngine} from '../../engine/index.js';
-
+import {createEngine} from '../../engine/Engine.js';
 const FIXTURE = join(dirname(fileURLToPath(import.meta.url)), '..', 'fixtures', 'corpus',
   'visaton-paw-25-8-ohm.roles.driver.json');
 

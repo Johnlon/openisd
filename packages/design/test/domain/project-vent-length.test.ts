@@ -13,9 +13,9 @@
  */
 import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import {OpenISDDriver, ProjectBuilder} from '../../domain/index.js';
-import {createEngine} from '../../engine/index.js';
-
+import {OpenISDDriver} from '../../domain/driver/openISDDriver.js';
+import {ProjectBuilder} from '../../domain/openisdTransforms.js';
+import {createEngine} from '../../engine/Engine.js';
 /** The L = 0 ceiling for the trial geometry — the highest tuning any vent here can deliver.
  *  OpenISD's own computed output, not a WinISD golden — it scales with c² via
  *  L = c²·Sp/(4π²·Fb²·V) − k·d, so it shifts by a few ppm whenever the project's air model

@@ -3,9 +3,8 @@ import {describe, expect, it} from 'vitest';
 import type {Calculated, Entered, Readable, SimpleField} from '../../domain/cell.js';
 import {CalculatedFieldImpl, calculatedCell, entryField, inputOf, nullableField, pairedField, ReadableFieldImpl, requiredField, resolvingField, DefaultingFieldImpl, enteredCell} from '../../domain/cell.js';
 import type {SpecEntryJson} from '../../domain/openisdSchema.js';
-import type {DqIssue} from '../../engine/index.js';
-import {createEngine} from '../../engine/index.js';
-
+import type {DqIssue} from '../../engine/consistency.js';
+import {createEngine} from '../../engine/Engine.js';
 const engine = createEngine();
 
 /** A distinct, hand-constructible `DqIssue` for fixtures — a target-unreachable issue is the

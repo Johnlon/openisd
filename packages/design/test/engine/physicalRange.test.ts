@@ -1,6 +1,7 @@
 import {describe, expect, it} from 'vitest';
-import type {DriverIssue, OutOfRangeIssue} from '../../engine/index.js';
-import {createEngine} from '../../engine/index.js';
+import type {OutOfRangeIssue} from '../../engine/consistency.js';
+import type {DriverIssue} from '../../engine/driver/DriverEngine.js';
+import {createEngine} from '../../engine/Engine.js';
 import {checkConsistency, driverParams} from './testSolver.js';
 
 const engine = createEngine();

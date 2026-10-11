@@ -1,6 +1,7 @@
 import {describe, expect, test} from 'vitest';
 import {buildProjectsArchive, parseProjectsArchive} from '../../domain/project/projectsArchive.js';
-import {OpenISDProject, ProjectBuilder} from '../../domain/index.js';
+import {ProjectBuilder} from '../../domain/openisdTransforms.js';
+import {OpenISDProject} from '../../domain/project/openISDProject.js';
 import {createEngine} from '@openisd/design/engine';
 
 describe('projectsArchive', () => {

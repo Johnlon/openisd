@@ -14,10 +14,9 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 import {dirname, join} from 'node:path';
-import {WinISDDriver} from '../../winisd/index.js';
-import {OpenISDDriver} from '../../domain/index.js';
-import {createEngine} from '../../engine/index.js';
-
+import {WinISDDriver} from '../../winisd/winisdDriver.js';
+import {OpenISDDriver} from '../../domain/driver/openISDDriver.js';
+import {createEngine} from '../../engine/Engine.js';
 const here = dirname(fileURLToPath(import.meta.url));
 
 /** A driver with every core T/S parameter present, in SI. */

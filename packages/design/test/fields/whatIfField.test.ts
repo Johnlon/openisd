@@ -3,9 +3,10 @@
  * input power, the driver what-if (Fs, Qts, Vas) and the number of drivers.
  */
 import {describe, expect, it} from 'vitest';
-import type {BoxType} from '../../engine/index.js';
-import {BOX_TYPE_OPTIONS, NumberField, WhatIfField} from '../../fields/index.js';
-
+import type {BoxType} from '../../engine/types.js';
+import {NumberField} from '../../fields/field.js';
+import {BOX_TYPE_OPTIONS} from '../../fields/options.js';
+import {WhatIfField} from '../../fields/whatIfField.js';
 const COMMON = [WhatIfField.INPUT_POWER, WhatIfField.DRIVER_FS, WhatIfField.DRIVER_QTS, WhatIfField.DRIVER_VAS, WhatIfField.DRIVER_COUNT];
 
 const EXPECTED: Readonly<Record<BoxType, readonly WhatIfField[]>> = {

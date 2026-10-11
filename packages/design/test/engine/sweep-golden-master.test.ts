@@ -9,7 +9,7 @@ import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
 import {fileURLToPath} from 'node:url';
 import {dirname, join} from 'node:path';
-import {createEngine} from '../../engine/index.js';
+import {createEngine} from '../../engine/Engine.js';
 import {readGoldenFixture} from '../fixtures/goldenFixture.js';
 
 

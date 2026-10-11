@@ -8,8 +8,8 @@ import {dirname, join} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import {createEngine} from '../../engine/index.js';
-import {OpenISDProject} from '../../domain/index.js';
+import {createEngine} from '../../engine/Engine.js';
+import {OpenISDProject} from '../../domain/project/openISDProject.js';
 import {WINISD_FLAT_RESPONSE_CAPTURE as CAP, type WinIsdPlottedPoint} from '../fixtures/winisdFlatResponseCapture.js';
 import {WinIsdProjectConverter} from '../../domain/winIsdProjectConverter.js';
 

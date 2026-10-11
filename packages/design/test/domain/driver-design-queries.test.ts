@@ -4,8 +4,8 @@
  * design for an alignment. Null whenever the spec the answer needs is not resolved.
  */
 import {describe, expect, it} from 'vitest';
-import {OpenISDDriver} from '../../domain/index.js';
-import {createEngine} from '../../engine/index.js';
+import {OpenISDDriver} from '../../domain/driver/openISDDriver.js';
+import {createEngine} from '../../engine/Engine.js';
 
 function driver(): OpenISDDriver {
   const d = OpenISDDriver.empty(createEngine());

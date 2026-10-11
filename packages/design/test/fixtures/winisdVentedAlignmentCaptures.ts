@@ -1,14 +1,4 @@
-/**
- * WinISD 0.7.0.950 New Project wizard — vented alignment captures.
- *
- * Source: winisd_research/runs/vented_alignments.jsonl (60 wizard runs, Qts 0.15–1.0, one fresh WinISD per
- * run, `.wpr` saved and parsed). Every row: Fs 40 Hz, Vas 0.02 m³, Qms 4.0, Re 6 Ω, project
- * Rg 0.1 Ω, Ql 10, Qa 100, Qp 100. `Vb`/`Fb` are the 15-significant-digit `Box.Vr`/`Box.Fr`
- * WinISD wrote. Reproduction to ~1e-15 by the decompiled designer:
- * winisd_research/GHIDRA_FINDINGS.md "VENTED ALIGNMENT MECHANISM FOUND — 0x46afd0".
- */
-import type {VentedAlignment} from '../../engine/index.js';
-
+import type {VentedAlignment} from '../../engine/types.js';
 export interface WinIsdVentedAlignmentCapture {
   readonly alignment: VentedAlignment;
   /** Driver Qes as written to the seed `.wdr` (six decimals); Qms is 4.0 for every row. */

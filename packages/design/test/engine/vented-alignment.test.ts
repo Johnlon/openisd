@@ -13,8 +13,8 @@
  */
 import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import {createEngine} from '../../engine/index.js';
-import {VENTED_ALIGNMENT_OPTIONS} from '../../fields/index.js';
+import {createEngine} from '../../engine/Engine.js';
+import {VENTED_ALIGNMENT_OPTIONS} from '../../fields/options.js';
 import {
   WINISD_VENTED_ALIGNMENT_CAPTURES, WINISD_VENTED_CAPTURE_DRIVER,
 } from '../fixtures/winisdVentedAlignmentCaptures.js';

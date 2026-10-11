@@ -1,7 +1,6 @@
 import {describe, expect, it} from 'vitest';
-import type {CalculationIssue} from '../../engine/index.js';
-import {createEngine} from '../../engine/index.js';
-
+import type {CalculationIssue} from '../../engine/consistency.js';
+import {createEngine} from '../../engine/Engine.js';
 type Q = 'a' | 'b' | 'c' | 'd';
 
 const engine = createEngine();

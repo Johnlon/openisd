@@ -8,8 +8,8 @@
  */
 import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import {NumberField, toDisplay as toDispCore, UNIT_GROUPS, unitFor, type UnitGroup} from '../../fields/index.js';
-
+import {toDisplay as toDispCore, UNIT_GROUPS, unitFor, type UnitGroup} from '../../fields/dimensions.js';
+import {NumberField} from '../../fields/field.js';
 const toDisplay = (val: number, group: UnitGroup, token: string) => toDispCore(unitFor(group, token), val);
 const nextToken = (group: UnitGroup, token: string) => { const grp = UNIT_GROUPS[group]; const idx = grp.findIndex(u => u.token === token); return grp[(idx + 1) % grp.length].token; };
 const RESISTANCE_FIELDS = [

@@ -4,10 +4,10 @@
  */
 import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import {createEngine, createSimulationEngine} from '../../engine/index.js';
-import type {SweepParams} from '../../engine/index.js';
-import {ProjectBuilder} from '../../domain/index.js';
-
+import {createEngine} from '../../engine/Engine.js';
+import {createSimulationEngine} from '../../engine/simulation/SimulationEngine.js';
+import type {SweepParams} from '../../engine/types.js';
+import {ProjectBuilder} from '../../domain/openisdTransforms.js';
 const engine = createEngine();
 const LE_H = 0.70e-3;
 const SP: SweepParams = {Vb: 0.030, eg: 2.83, fmin: 10, fmax: 2000, N: 50, filters: []};

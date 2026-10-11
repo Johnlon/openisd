@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { createEngine } from '../../engine/index.js';
-import { OpenISDDriver } from '../../domain/index.js';
+import {createEngine} from '../../engine/Engine.js';
+import {OpenISDDriver} from '../../domain/driver/openISDDriver.js';
 
 function driver(): OpenISDDriver {
   const d = OpenISDDriver.empty(createEngine());

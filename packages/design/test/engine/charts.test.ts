@@ -5,7 +5,7 @@
  */
 import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import {createEngine} from '../../engine/index.js';
+import {createEngine} from '../../engine/Engine.js';
 import {openISDProjectJsonSchema} from '../../domain/openisdSchema.js';
 
 const engine = createEngine();

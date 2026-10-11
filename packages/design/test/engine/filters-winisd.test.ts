@@ -17,8 +17,8 @@ import type {TestSolverQuantities} from './testSolver.js';
 import {sweepDriver, solveConsistencyGroup} from './testSolver.js';
 import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import type {Filter} from '../../engine/index.js';
-import {createEngine} from '../../engine/index.js';
+import type {Filter} from '../../engine/types.js';
+import {createEngine} from '../../engine/Engine.js';
 import {WINISD_FILTER_CAPTURES} from '../fixtures/winisdFilterCaptures.js';
 
 const engine = createEngine();

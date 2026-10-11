@@ -1,6 +1,6 @@
 import {describe, expect, it, vi} from 'vitest';
-import type {DriverSolverParams, SolverField} from '../../engine/index.js';
-import {createEngine} from '../../engine/index.js';
+import type {DriverSolverParams, SolverField} from '../../engine/solverTypes.js';
+import {createEngine} from '../../engine/Engine.js';
 import type {TestSolverQuantities} from './testSolver.js';
 import {checkConsistency, fakeSolverField, solveConsistencyGroup} from './testSolver.js';
 import assert from 'node:assert/strict';

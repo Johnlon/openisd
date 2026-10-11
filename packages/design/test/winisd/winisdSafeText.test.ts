@@ -7,7 +7,7 @@ import {fileURLToPath} from 'node:url';
 import {dirname, join} from 'node:path';
 import {parse, stringify as stringifyYaml} from 'yaml';
 import {WinIsdDriverConverter} from '../../domain/winIsdDriverConverter.js';
-import {createEngine} from '../../engine/index.js';
+import {createEngine} from '../../engine/Engine.js';
 
 function isRecord(v: unknown): v is Record<string, unknown> {
   return typeof v === 'object' && v !== null;

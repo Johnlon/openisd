@@ -3,8 +3,7 @@
  * the lines are the label; the tooltip keeps the one-line label.
  */
 import {describe, expect, it} from 'vitest';
-import {ToggleField} from '../../fields/index.js';
-
+import {ToggleField} from '../../fields/field.js';
 describe('ToggleField.labelLines', () => {
   it('breaks the transmission-line label after "-model"', () => {
     expect(ToggleField.ADV_TLPORTMODEL.labelLines).toEqual(['Use "transmission line"-model', ' for port simulation']);

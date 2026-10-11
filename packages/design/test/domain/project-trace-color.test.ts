@@ -1,5 +1,7 @@
 import {describe, expect, it} from 'vitest';
-import {createEngine, OpenISDProject, ProjectBuilder} from '../../domain/index.js';
+import {ProjectBuilder} from '../../domain/openisdTransforms.js';
+import {OpenISDProject} from '../../domain/project/openISDProject.js';
+import {createEngine} from '../../engine/Engine.js';
 import {driverFromSpec} from '../fixtures/recordBuilders.js';
 
 const engine = createEngine();

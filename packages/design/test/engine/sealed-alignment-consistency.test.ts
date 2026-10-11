@@ -1,6 +1,6 @@
 import {describe, expect, it} from 'vitest';
-import type {SolverField, SolverInput} from '../../engine/index.js';
-import {createEngine} from '../../engine/index.js';
+import type {SolverField, SolverInput} from '../../engine/solverTypes.js';
+import {createEngine} from '../../engine/Engine.js';
 import {checkSealedAlignment, fakeSolverField, solveSealedAlignmentGroup} from './testSolver.js';
 
 const engine = createEngine();

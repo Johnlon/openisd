@@ -7,7 +7,9 @@ import {createEngine} from '@openisd/design/engine';
 import {readFileSync} from 'node:fs';
 import {dirname, join} from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {OpenISDPassiveRadiatorStandalone, ProjectBuilder, type FrequencyGrid} from '../../domain/index.js';
+import type {FrequencyGrid} from '../../domain/box/frequencyGrid.js';
+import {ProjectBuilder} from '../../domain/openisdTransforms.js';
+import {OpenISDPassiveRadiatorStandalone} from '../../domain/passiveRadiator/openISDPassiveRadiatorStandalone.js';
 import {driverFromSpec} from '../fixtures/recordBuilders.js';
 
 const nd140Path = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..', 'ui', 'public', 'drivers', 'dayton-audio', 'nd140-pr.json');

@@ -13,9 +13,8 @@ import {WinISDDriver} from '../../winisd/winisdDriver.js';
 import {allNotAvailableCells} from './wdrFixture.js';
 import {driverSpecsOf} from '../../domain/openisdSchema.js';
 import {winISDDriverToOpenISDDeviceJson} from '../../domain/winIsdDriverImport.js';
-import {OpenISDDriver} from '../../domain/index.js';
-import {createEngine} from '../../engine/index.js';
-
+import {OpenISDDriver} from '../../domain/driver/openISDDriver.js';
+import {createEngine} from '../../engine/Engine.js';
 describe('WinISDDriver [DRIVERTYPE] tag — read side (winISDDriverToOpenISDDeviceJson)', () => {
   it('a .wdr reads back with woofer section', () => {
     const written = WinISDDriver.build(

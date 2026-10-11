@@ -9,8 +9,8 @@
  * captures pinned in filters-winisd.test.ts (which run with the switch on).
  */
 import {describe, expect, it} from 'vitest';
-import type {Filter, SweepParams} from '../../engine/index.js';
-import {createEngine} from '../../engine/index.js';
+import type {Filter, SweepParams} from '../../engine/types.js';
+import {createEngine} from '../../engine/Engine.js';
 import {solveConsistencyGroup, sweepDriver} from './testSolver.js';
 
 const engine = createEngine();

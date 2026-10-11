@@ -8,7 +8,7 @@
  * order, a precedence, a formula or a conflict report fails here, by name.
  */
 import {describe, expect, it} from 'vitest';
-import {createEngine} from '../../domain/index.js';
+import {createEngine} from '../../engine/Engine.js';
 import {SOLVER_CASES} from '../fixtures/driverSolverCases.js';
 import {DRIVER_SOLVER_GOLDEN} from '../fixtures/driverSolverGolden.js';
 import {runCase} from '../fixtures/driverSolverRun.js';

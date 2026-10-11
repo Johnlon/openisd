@@ -5,11 +5,13 @@
  * A new project, and a file that does not say, has every bug unticked and every option ticked.
  */
 import {describe, expect, it} from 'vitest';
-import {CompatSwitch, OpenISDProject} from '../../domain/index.js';
+import {CompatSwitch} from '../../domain/project/compatSwitch.js';
+import {OpenISDProject} from '../../domain/project/openISDProject.js';
 import {sealedProject} from '../fixtures/domainBuilders.js';
-import {createEngine} from '../../engine/index.js';
-import {CompatSwitchGroup, ToggleField, WinisdDeviation} from '../../fields/index.js';
-
+import {createEngine} from '../../engine/Engine.js';
+import {CompatSwitchGroup} from '../../fields/compatSwitchGroup.js';
+import {ToggleField} from '../../fields/field.js';
+import {WinisdDeviation} from '../../fields/winisdDeviation.js';
 describe('CompatSwitch', () => {
   it('lists the six WinISD bugs and the three options', () => {
     expect(CompatSwitch.BUGS.map(s => s.field.label)).toEqual([

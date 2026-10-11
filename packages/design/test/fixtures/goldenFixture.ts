@@ -7,7 +7,7 @@
  * `GoldenFixture` back instead of `any`.
  */
 import {readFileSync} from 'node:fs';
-import type {BoxType, SweepParams} from '../../engine/index.js';
+import type {BoxType, SweepParams} from '../../engine/types.js';
 
 /** The fixed driver every golden fixture states, in RECORD names (matches WinISD/`.wdr` field
  *  names, not the engine's own `_hz`/`_ohm`-suffixed ones — sweep-golden-master.test.ts/gen-golden.ts convert).

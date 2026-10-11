@@ -4,9 +4,10 @@
  */
 import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import {OpenISDDriver, ProjectBuilder} from '../../domain/index.js';
+import {OpenISDDriver} from '../../domain/driver/openISDDriver.js';
+import {ProjectBuilder} from '../../domain/openisdTransforms.js';
 import {startingChambersOf, takesChamberTunings} from '../../domain/box/startingChambers.js';
-import {createEngine} from '../../engine/index.js';
+import {createEngine} from '../../engine/Engine.js';
 
 function builder() {
   const engine = createEngine();

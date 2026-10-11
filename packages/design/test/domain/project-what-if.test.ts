@@ -5,7 +5,8 @@
  */
 import {describe, expect, it} from 'vitest';
 import {createEngine} from '@openisd/design/engine';
-import {type FrequencyGrid, ProjectBuilder} from '../../domain/index.js';
+import type {FrequencyGrid} from '../../domain/box/frequencyGrid.js';
+import {ProjectBuilder} from '../../domain/openisdTransforms.js';
 import {driverFrom, whatIfSpec} from '../fixtures/domainBuilders.js';
 
 const GRID: FrequencyGrid = { fmin: 10, fmax: 1000, N: 50 };

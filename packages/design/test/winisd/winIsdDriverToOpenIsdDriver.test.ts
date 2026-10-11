@@ -4,8 +4,7 @@ import {readFileSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 import {dirname, join} from 'node:path';
 import {WinIsdDriverConverter} from '../../domain/winIsdDriverConverter.js';
-import {createEngine} from '../../engine/index.js';
-
+import {createEngine} from '../../engine/Engine.js';
 const FIXTURES = join(dirname(fileURLToPath(import.meta.url)), '..', 'fixtures', 'corpus');
 
 /** A real `driver.yml`: Dayton CE28N-4, a woofer-section record carrying `scraper_meta`. */

@@ -1,6 +1,7 @@
 import {describe, expect, it} from 'vitest';
-import type {DriverIssue, DriverSolverParams, SolverField} from '../../engine/index.js';
-import {createEngine} from '../../engine/index.js';
+import type {DriverIssue} from '../../engine/driver/DriverEngine.js';
+import type {DriverSolverParams, SolverField} from '../../engine/solverTypes.js';
+import {createEngine} from '../../engine/Engine.js';
 import {checkConsistency, fakeSolverField} from './testSolver.js';
 
 const engine = createEngine();

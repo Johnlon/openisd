@@ -1,6 +1,9 @@
 import {describe, expect, it} from 'vitest';
 import {createEngine} from '@openisd/design/engine';
-import {OpenISDDriver, OpenISDPassiveRadiatorStandalone, ProjectBuilder, VoiceCoilWiring} from '../../domain/index.js';
+import {OpenISDDriver} from '../../domain/driver/openISDDriver.js';
+import {ProjectBuilder} from '../../domain/openisdTransforms.js';
+import {OpenISDPassiveRadiatorStandalone} from '../../domain/passiveRadiator/openISDPassiveRadiatorStandalone.js';
+import {VoiceCoilWiring} from '../../domain/voiceCoilWiring.js';
 import {fixedAppContext, ignoredIssue, wooferOf} from '../fixtures/domainBuilders.js';
 
 describe('OpenISDProject new-project defaults', () => {

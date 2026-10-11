@@ -13,9 +13,8 @@
  */
 import {describe, expect, it} from 'vitest';
 import {type Engine, createEngine} from '@openisd/design/engine';
-import {OpenISDDriver} from '../../domain/index.js';
-import type {DriverSpecFieldName} from '../../domain/index.js';
-
+import {OpenISDDriver} from '../../domain/driver/openISDDriver.js';
+import type {DriverSpecFieldName} from '../../domain/driver/driverSpecFieldName.js';
 type NumSpecField = Exclude<DriverSpecFieldName, 'VCCon'>;
 
 /** `toContainEqual`, not `toEqual`: setting one field can also disturb OTHERS' own

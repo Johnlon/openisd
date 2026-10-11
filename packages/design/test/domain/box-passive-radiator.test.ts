@@ -1,7 +1,8 @@
 import {describe, expect, it} from 'vitest';
 import {createEngine} from '@openisd/design/engine';
 import {radiatorFromSpec} from '../fixtures/recordBuilders.js';
-import {OpenISDPassiveRadiatorStandalone, ProjectBuilder} from '../../domain/index.js';
+import {ProjectBuilder} from '../../domain/openisdTransforms.js';
+import {OpenISDPassiveRadiatorStandalone} from '../../domain/passiveRadiator/openISDPassiveRadiatorStandalone.js';
 import {fixedAppContext, fixtureEngine, specSection, prSpecSection, driverFrom, driverJson} from '../fixtures/domainBuilders.js';
 
 describe('the passive radiator a box holds', () => {

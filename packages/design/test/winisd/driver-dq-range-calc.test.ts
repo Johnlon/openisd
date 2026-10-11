@@ -9,8 +9,7 @@ import {readFileSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 import {dirname, join} from 'node:path';
 import {WinIsdDriverConverter} from '../../domain/winIsdDriverConverter.js';
-import {createEngine} from '../../engine/index.js';
-
+import {createEngine} from '../../engine/Engine.js';
 const FIXTURE = join(dirname(fileURLToPath(import.meta.url)), '..', 'fixtures', 'corpus',
   'visaton-gf-200-2-x-4-ohm.driver.json');
 

@@ -1,6 +1,6 @@
 import {describe, expect, it} from 'vitest';
 import {createEngine} from '@openisd/design/engine';
-import {ProjectBuilder} from '../../domain/index.js';
+import {ProjectBuilder} from '../../domain/openisdTransforms.js';
 import {at, specSection, driverFrom} from '../fixtures/domainBuilders.js';
 
 describe('OpenISDProject graphs/cursor — project-scoped, not a UI singleton', () => {

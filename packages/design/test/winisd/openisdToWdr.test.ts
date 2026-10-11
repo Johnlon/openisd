@@ -25,13 +25,11 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 import {dirname, join} from 'node:path';
-import {createEngine} from '../../engine/index.js';
-
+import {createEngine} from '../../engine/Engine.js';
 import type {DriverError} from '@openisd/design/engine';
-import {WINISD_NEWLINE_SENTINEL} from '../../winisd/index.js';
+import {WINISD_NEWLINE_SENTINEL} from '../../winisd/winisdBytes.js';
 import {WinIsdDriverConverter} from '../../domain/winIsdDriverConverter.js';
-import {OpenISDDriver} from '../../domain/index.js';
-
+import {OpenISDDriver} from '../../domain/driver/openISDDriver.js';
 const engine = createEngine();
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..', '..');
