@@ -8,6 +8,7 @@ import {readdirSync, readFileSync} from 'node:fs';
 import {dirname, join} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {describe, expect, it, vi} from 'vitest';
+import {z} from 'zod';
 import {createProjectRepo, type ProjectRepairReport} from '../src/repos/projectRepo.js';
 import type {FileStorage} from '../src/storage/fileStorage.js';
 import {createMemoryStorage} from '../src/storage/keyValueStorage.js';
@@ -22,6 +23,19 @@ const FIXTURE_DIR = join(dirname(fileURLToPath(import.meta.url)), 'fixtures', 's
 const fixtures = readdirSync(FIXTURE_DIR).filter(f => f.endsWith('.owpr')).sort()
   .map(f => ({id: f.replace('.owpr', ''), text: readFileSync(join(FIXTURE_DIR, f), 'utf8')}));
 const REFUSED = '{}';
+const entriesSchema = z.object({entries: z.array(z.object({id: z.string(), text: z.string()}))});
+/** The text stored for entry `id` in a stored list or session record. */
+function storedText(record: string | null, id: string): string | undefined {
+  return entriesSchema.parse(JSON.parse(record ?? '{}')).entries.find(e => e.id === id)?.text;
+}
+function isRecord(v: unknown): v is Record<string, unknown> {
+  return typeof v === 'object' && v !== null && !Array.isArray(v);
+}
+function recordAt(v: unknown, key: string): Record<string, unknown> {
+  const child = isRecord(v) ? v[key] : undefined;
+  if (!isRecord(child)) throw new Error(`no object at '${key}'`);
+  return child;
+}
 const MODIFIED = '2026-10-01T00:00:00Z';
 
 const noFiles: FileStorage = {
@@ -95,13 +109,12 @@ describe('an open session from before T036', () => {
 function frontOnlyQicl(value: number): string {
   const bandpass4 = fixtures.find(f => f.id === 'bandpass4');
   if (bandpass4 === undefined) throw new Error('no bandpass4 fixture');
-  const session = JSON.parse(bandpass4.text);
+  const session: unknown = JSON.parse(bandpass4.text);
   for (const where of ['saved', 'edited']) {
-    const rec = session[where];
-    if (rec === null || rec === undefined) continue;
-    const bp = rec.box.bandpass4;
-    delete bp.rear.losses.Qicl;
-    bp.front.losses.Qicl = value;
+    if (!isRecord(session) || session[where] === null || session[where] === undefined) continue;
+    const bp = recordAt(recordAt(session[where], 'box'), 'bandpass4');
+    Reflect.deleteProperty(recordAt(recordAt(bp, 'rear'), 'losses'), 'Qicl');
+    recordAt(recordAt(bp, 'front'), 'losses').Qicl = value;
   }
   return JSON.stringify(session);
 }
@@ -122,10 +135,7 @@ describe('an entry the build refuses stays byte-identical in storage', () => {
   it('in the project list, through a boot and a save', () => {
     const storage = createMemoryStorage({[OPENISD_PROJECTS_KEY]: storedList([{id: 'refused', text: REFUSED}])});
     const repo = createProjectRepo(engine, noFiles, storage, 'http://localhost');
-    const stored = (): string | undefined => {
-      const payload = JSON.parse(storage.get(OPENISD_PROJECTS_KEY) ?? '{}');
-      return payload.entries.find((e: {id: string}) => e.id === 'refused')?.text;
-    };
+    const stored = (): string | undefined => storedText(storage.get(OPENISD_PROJECTS_KEY), 'refused');
     expect(stored()).toBe(REFUSED);
     const fresh = ProjectBuilder.empty(engine);
     fresh.name.set('a new design');
@@ -143,7 +153,6 @@ describe('an entry the build refuses stays byte-identical in storage', () => {
     expect(session.refused).toHaveLength(1);
     repo.quarantineOpenSession();
     repo.saveOpenProjects(session.projects, session.projects[0] ?? null, new Set());
-    const quarantined = JSON.parse(storage.get(OPENISD_QUARANTINE_SESSION_KEY) ?? '{}');
-    expect(quarantined.entries.find((e: {id: string}) => e.id === 'refused')?.text).toBe(REFUSED);
+    expect(storedText(storage.get(OPENISD_QUARANTINE_SESSION_KEY), 'refused')).toBe(REFUSED);
   });
 });
