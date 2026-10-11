@@ -113,12 +113,10 @@ function readSpecEntryInto(
         || wdrKey === 'VCCon';
     if (!shouldImport) return;
     if (!isFinite(numValue) && wdrKey !== 'VCCon') {
-        // A text cell ("N/A", "banana"): no number, so the entry is not available, and the printed
-        // text is kept as a Rejected reading.
-        entries[schemaKey] = {
-            state: 'N',
-            readings: {manual: {actual_reading: cell.value, rejected: 'no-numeric-value'}},
-        };
+        warnings.push({
+            level: 'warn', field: wdrKey,
+            message: `${wdrKey} is "${cell.value}", not a number: left out`,
+        });
         return;
     }
     if (wdrKey === 'VCCon') {

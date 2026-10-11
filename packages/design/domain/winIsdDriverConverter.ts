@@ -35,12 +35,14 @@ import type {CellState} from "../winisd/cellState.js";
 import {
   type DriverSpec,
   type DriverDeviceJson,
+  type DriverSpecsSection,
   readingJsonSchema,
 } from "./openisdSchema.js";
 import {winISDDriverToOpenISDDeviceJson} from "./winIsdDriverImport.js";
 import {sortKeysDeep} from "./openIsdDeviceJsonIo.js";
 import {dqMarks} from "./specEntry.js";
 import {selectOrigin} from "./selectOrigin.js";
+import {sourceRank} from "./sourceRank.js";
 import {Corroboration, ReaderAgreement, corroborate, isRecognisedRejection, isUsable, readerVerdict, type Reading} from "./corroboration.js";
 import {Reader} from "./reader.js";
 import {DriverRoundTripCheck} from "./driverRoundTripDiffs.js";
@@ -406,20 +408,108 @@ function wdrRow(
   return [wdrName, { value: String(cell.value), state }];
 }
 
+const SPEC_FIELD_TO_WDR_NAME: Readonly<Record<string, string>> = Object.freeze({
+  Znom_ohm: "Znom",
+  Fs_hz: "Fs",
+  Pe_W: "Pe",
+  SPL_dB: "SPL",
+  Re_ohm: "Re",
+  Le_H: "Le",
+  fLe_hz: "fLe",
+  KLe_H_sqrtHz: "KLe",
+  BL_Tm: "BL",
+  Xmax_m: "Xmax",
+  Cms_m_per_N: "Cms",
+  Qms: "Qms",
+  Qes: "Qes",
+  Qts: "Qts",
+  Rms_kg_per_s: "Rms",
+  Mms_kg: "Mms",
+  Sd_m2: "Sd",
+  Vas_m3: "Vas",
+  Dia_m: "Dia",
+  Vd_m3: "Vd",
+  no: "no",
+  Dd_m: "Dd",
+  EBP_hz: "EBP",
+  numVC: "numVC",
+  Hc_m: "Hc",
+  Hg_m: "Hg",
+  SPLmax_dB: "SPLmax",
+  SPLmaxLF_dB: "SPLmaxLF",
+  USPL_dB: "USPL",
+  alfaVC_per_K: "alfaVC",
+  Rt_K_per_W: "Rt",
+  Ct_J_per_K: "Ct",
+  gamma_m_per_s2_A: "gamma",
+  Rme_kg_per_s: "Rme",
+  Mpow_N_per_sqrtW: "Mpow",
+  Mcost_kg_per_s: "Mcost",
+  Gloss: "Gloss",
+  VCCon: "VCCon",
+  c_m_per_s: "c",
+  roo_kg_per_m3: "roo",
+  Thick_m: "Thick",
+  Depth_m: "Depth",
+  MagDepth_m: "MagDepth",
+  Magnet_m: "Magnet",
+  Basket_m: "Basket",
+  Outer_m: "Outer",
+  Vcd_m: "Vcd",
+  DVol_m3: "DVol",
+  Xlim_m: "Xlim",
+});
+
+const WDR_NAME_TO_SCHEMA_KEY: Readonly<Record<string, keyof DriverSpecsSection>> = Object.freeze(
+  Object.fromEntries(Object.entries(SPEC_FIELD_TO_WDR_NAME).map(([k, v]) => [v, k]))
+);
+
+function rejectedReadingCommentLines(driver: OpenISDDriver): string[] {
+  const record = driver.toOpenIsdDeviceJson();
+  const specs = record.specs;
+  const sections = [specs.woofer, ...(specs.tweeter ? [specs.tweeter] : [])];
+  const lines: string[] = [];
+  for (const section of sections) {
+    for (const [field, entry] of Object.entries(section)) {
+      if (entry === undefined || entry.state !== "N") continue;
+      const readings = entry.readings;
+      if (!readings) continue;
+      const roles = Object.keys(readings).sort((a, b) => {
+        const diff = sourceRank(a) - sourceRank(b);
+        if (diff !== 0) return diff;
+        return a.localeCompare(b);
+      });
+      const bestRole = roles[0];
+      const winner = bestRole ? readings[bestRole] : undefined;
+      const text = winner?.actual_reading ?? (winner && "rejected" in winner ? String(winner.rejected) : "");
+      if (text) {
+        const wdrName = SPEC_FIELD_TO_WDR_NAME[field] ?? field;
+        lines.push(`${wdrName}: ${text}`);
+      }
+    }
+  }
+  return lines;
+}
+
 /**
  * What `Comment=` holds before any `[DQ]` lines: the driver's own comment when it has one (an
  * incoming `.wdr` Comment returns unchanged), else its source URL — the manufacturer datasheet,
- * else the product page, else the listing page — else nothing.
+ * else the product page, else the listing page — else nothing; plus any rejected readings
+ * (one line per field, plain text).
  */
 function wdrCommentOf(driver: OpenISDDriver): string {
   const own = driver.comment.value;
-  if (own !== null && own !== "") return own;
-  return (
-    driver.dataSource("manufacturer_datasheet") ??
-    driver.dataSource("manufacturer_product_page") ??
-    driver.dataSource("manufacturer_listing_page") ??
-    ""
-  );
+  const baseComment =
+    own !== null && own !== ""
+      ? own
+      : (driver.dataSource("manufacturer_datasheet") ??
+        driver.dataSource("manufacturer_product_page") ??
+        driver.dataSource("manufacturer_listing_page") ??
+        "");
+  const rejectedLines = rejectedReadingCommentLines(driver);
+  const missingLines = rejectedLines.filter((l) => !baseComment.includes(l));
+  if (missingLines.length === 0) return baseComment;
+  return baseComment ? `${baseComment}\n${missingLines.join("\n")}` : missingLines.join("\n");
 }
 
 export function openIsdDriverToWinIsdDriver(
@@ -549,16 +639,20 @@ export function openIsdDriverToWinIsdDriver(
     ["Xlim", { value: "", state: wdrStateOf(xlim) }],
   ];
 
-  // NO `[DRIVERTYPE ...]` TAG IS EVER WRITTEN HERE: `driver: OpenISDDriver`'s own `section` is
-  // `readonly section = 'woofer' as const` — the only type this function's parameter accepts —
-  // so a tag naming any OTHER type could never be produced (deleted 2026-09-22 rather than
-  // carried as permanently-dead code: proved via the class's own literal field, not argued). The
-  // tag mechanism itself still exists and is still read back (`winISDDriverToOpenISDDeviceJson`
-  // recovers it from `Comment=` when present) — a driver-only `.wdr` has no dedicated field for
-  // the type (bugs/archive/BUG_20260907_driver_type_has_no_wdr_slot_so_every_loaded_driver_becomes_a_woofer.md),
-  // so `Comment=` is where it would ride — but nothing on THIS write side ever has a non-woofer
-  // `OpenISDDriver` to tag.
-  return WinISDDriver.build(header, wdrCells, dqLines);
+  // A field whose value would be a rejected reading is written to .wdr as state N (not available), value 0
+  const rawRecord = driver.toOpenIsdDeviceJson();
+  const rawWoofer = rawRecord.specs.woofer;
+  const finalWdrCells: Array<readonly [string, WdrCell]> = wdrCells.map(([key, cell]) => {
+    const schemaKey = WDR_NAME_TO_SCHEMA_KEY[key];
+    if (schemaKey !== undefined && rawWoofer[schemaKey]?.state === "N") {
+      const naCell: WdrCell = { value: key === "Xlim" ? "" : "0", state: "not-available" };
+      const row: readonly [string, WdrCell] = [key, naCell];
+      return row;
+    }
+    return [key, cell];
+  });
+
+  return WinISDDriver.build(header, finalWdrCells, dqLines);
 }
 
 /** Driver file conversion — `driver.yml` to openisd + `.wdr`, and `.wdr` text back to a driver —

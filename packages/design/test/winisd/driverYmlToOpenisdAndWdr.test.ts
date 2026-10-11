@@ -105,17 +105,40 @@ describe('driverYmlToOpenisdAndWdr', () => {
       assert.equal(at(parse(openisd), 'specs', 'woofer', 'Re_ohm', 'value'), 3.1);
     });
 
-    it('a .wdr text cell "N/A" becomes a not-available entry keeping a Rejected reading', () => {
+    it('loading a .wdr text cell never makes a rejected reading and is never NaN (John, 2026-10-11)', () => {
       const wdr = WinISDDriver.fromWdrIni(
         readFileSync(join(FIXTURES, '..', '..', '..', '..', '..', 'drivers', 'myprobes', 'inconsistencies', 'inconsistency-test-qts-C.wdr'), 'utf8')
           .replace('Fs=38', 'Fs=N/A'));
-      const { record } = winISDDriverToOpenISDDeviceJson(wdr);
-      assert.deepEqual(at(record, 'specs', 'woofer', 'Fs_hz'), {
-        state: 'N',
-        readings: {manual: {actual_reading: 'N/A', rejected: 'no-numeric-value'}},
-      });
-      const again: unknown = JSON.parse(JSON.stringify(record));
-      assert.deepEqual(at(again, 'specs', 'woofer', 'Fs_hz', 'readings', 'manual', 'actual_reading'), 'N/A');
+      const { record, warnings } = winISDDriverToOpenISDDeviceJson(wdr);
+      assert.equal(at(record, 'specs', 'woofer', 'Fs_hz'), undefined, 'text cell is not imported as an entry');
+      assert.ok(warnings.some(w => w.field === 'Fs' && w.message.includes('not a number')), 'warning emitted for unparsable cell');
+    });
+
+    it('writing a driver with a rejected reading writes state N, value 0 to .wdr, and printed text in comment (John, 2026-10-11)', () => {
+      const record: unknown = parse(daytonDriverYml());
+      const woofer = at(record, 'specs', 'woofer');
+      if (!isRecord(woofer)) throw new Error('expected specs.woofer');
+      woofer.Xlim_m = {readings: {manufacturer_datasheet: {actual_reading: 'banana', rejected: 'no-numeric-value'}}};
+      const { wdr, errors } = new WinIsdDriverConverter(engine).driverYmlToOpenisdAndWdr(stringifyYaml(record));
+      assert.ok(wdr !== null, `wdr produced; errors: ${JSON.stringify(errors)}`);
+      const parsedWdr = WinISDDriver.fromWdrIni(wdr);
+      assert.equal(parsedWdr.cell('Xlim').state, 'not-available');
+      const commentLine = wdr.split(/\r?\n/).find(l => l.startsWith('Comment='));
+      assert.ok(commentLine !== undefined && commentLine.includes('Xlim: banana'), `comment contains Xlim: banana, got: ${commentLine}`);
+    });
+
+    it('writing a rejected reading on a numeric field writes value 0, state N, and printed text in comment', () => {
+      const record: unknown = parse(daytonDriverYml());
+      const woofer = at(record, 'specs', 'woofer');
+      if (!isRecord(woofer)) throw new Error('expected specs.woofer');
+      woofer.Hg_m = {readings: {manufacturer_datasheet: {actual_reading: '143c cm²', rejected: 'no-numeric-value'}}};
+      const { wdr } = new WinIsdDriverConverter(engine).driverYmlToOpenisdAndWdr(stringifyYaml(record));
+      assert.ok(wdr !== null);
+      const parsedWdr = WinISDDriver.fromWdrIni(wdr);
+      assert.equal(parsedWdr.cell('Hg').value, '0');
+      assert.equal(parsedWdr.cell('Hg').state, 'not-available');
+      const commentLine = wdr.split(/\r?\n/).find(l => l.startsWith('Comment='));
+      assert.ok(commentLine !== undefined && commentLine.includes('Hg: 143c cm²'), `comment contains Hg: 143c cm², got: ${commentLine}`);
     });
 
     it('a scraper entry with every reading rejected is not available and keeps the text', () => {

@@ -39,11 +39,7 @@ import {dqMarks} from './specEntry.js';
  * derived from the other — both come from one parse of the literal, so a record shows what was
  * printed AND what it meant.
  */
-export interface Reading {
-    readonly actual_reading?: string;
-    readonly read_value: number;
-    readonly read_precision?: number;
-}
+export type Reading = ReadingJson;
 
 // `SpecEntryJson` — one SPEC field, ONE VALUE, ONE FLAG (T11) — is declared further down as
 // `z.infer<typeof specEntryJsonSchema>` (see that schema's own doc comment), not here: the type
@@ -264,7 +260,9 @@ const rejectedUnrecognisedParsedReadingJsonSchema = z.strictObject({
  *
  * The reason decides the variant, and a reason on the wrong variant is refused. A spec reading
  * keeps the text the source printed, even when it is not a number (John, 2026-10-08: "a spec that
- * says N/A or banana should store the read value as that value").
+ * says N/A or banana should store the read value as that value"). A .wdr holds only a flag and a
+ * number (John, 2026-10-11): a rejected reading is written to .wdr as state N, value 0, with the
+ * printed text in the .wdr comment; loading a .wdr never produces a rejected reading (and never NaN).
  *
  * Worked examples:
  * - Sd printed "N/A": RejectedUnparsed `{actual_reading: 'N/A', rejected: 'no-numeric-value'}`.
@@ -342,6 +340,7 @@ const notAvailableEntrySchema = z.strictObject({
     ])).refine(
         r => Object.keys(r).length > 0, 'expected at least one reading'),
     dq_scraper: dqMarks(),
+    dq_calculated: dqMarks(),
 });
 
 /**
@@ -770,9 +769,12 @@ export type OpenISDEnvironmentJson = z.infer<typeof openISDEnvironmentJsonSchema
 /** The three air conditions a project states, each an entry like any spec quantity. */
 export type EnvironmentCondition = 'temperature_K' | 'humidity_pct' | 'pressure_Pa';
 
+const signalEntryJsonSchema = z.discriminatedUnion('state', [enteredEntrySchema, calculatedEntrySchema]);
+export type SignalEntryJson = z.infer<typeof signalEntryJsonSchema>;
+
 /** What drives the system: drive power `power_W` and drive voltage `voltage_V`, each an entry.
  *  An absent `voltage_V` reads as the 1 V default; an absent `power_W` reads as not-available. */
-const openISDSignalJsonSchema = z.strictObject({power_W: specEntryJsonSchema.optional(), voltage_V: specEntryJsonSchema.optional()});
+const openISDSignalJsonSchema = z.strictObject({power_W: signalEntryJsonSchema.optional(), voltage_V: signalEntryJsonSchema.optional()});
 export type OpenISDSignalJson = z.infer<typeof openISDSignalJsonSchema>;
 
 /** WinISD Project tab: Creator/Created/Modified/Description, plus the project's own name. */

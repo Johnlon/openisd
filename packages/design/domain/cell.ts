@@ -112,6 +112,7 @@ export interface Enterable<V> {
 export interface SolverWritable<V> {
   calculated(v: V, precision?: number): void;
   dq(dq: readonly DqIssue[]): void;
+  notAvailable?(): void;
 }
 
 // ───────────────────────────────── Implementations ──────────────────────────────────────────────
@@ -181,7 +182,11 @@ export class DualWriteFieldImpl<T> extends ReadableFieldImpl<T | null>
   /** Never removes an entered value — only the project itself retracts a stated fact; the
    *  solver merely reports that it could not derive one. */
   setNotAvailable(): void {
-    if (!this.entered) this.writes.clear();
+    if (this.writes.notAvailable) {
+      this.writes.notAvailable();
+    } else if (!this.entered) {
+      this.writes.clear();
+    }
   }
 
   setCalculated(value: T, dq?: readonly DqIssue[], precision?: number): void {
@@ -362,6 +367,12 @@ export function entryField(
     clear: () => { liveDq = []; slot.set(undefined); },
     calculated: (v, precision) => { liveDq = []; slot.set({ state: 'C', value: v, precision }); },
     dq: (list) => { liveDq = list; writeEntryDq(slot, list); },
+    notAvailable: () => {
+      liveDq = [];
+      if (slot.value?.state === 'C') {
+        slot.set(undefined);
+      }
+    },
   });
 }
 
@@ -515,5 +526,6 @@ export function pairedField(
     clear: () => ownEntry.clear(),
     calculated: (v: number) => ownEntry.setCalculated(v),
     dq: (list) => ownEntry.setDq([...list]),
+    notAvailable: () => ownEntry.setNotAvailable(),
   });
 }
