@@ -127,7 +127,7 @@ named) or **to build**.
 | worktree born red (based on origin/main behind local main); nested node_modules | `new-worktree.sh` bases on the newer of local and origin main, refuses if diverged, links node_modules once | to build |
 | `lap` refused by Vite | `allowedHosts` in `vite.config.js` | live a4f9b60a |
 
-### S6 — delegated work is proven, recorded and lint-checked before it is delivered (R7) — to build, effort M
+### S6 — delegated work is proven, recorded and lint-checked before it is delivered (R7) — live in part (workspace 6497dc1, 11 Oct 16:00), effort M
 
 - What, in `zoo-run.sh`: marks a result "tests unproven" unless the log shows the brief's test
   command exiting 0; lints the job's diff for banned patterns (sleep/polling loops, `!` assertions,
@@ -137,6 +137,11 @@ named) or **to build**.
   brief (default 45 min: commits WIP, stops, alerts the briefer); logs every reroute (agy at its cap
   moved T035 r3 to opencode unseen); runtime folders (`zoo/state/*`) gitignored and refused by
   `git add`.
+- Live (tools, workspace 6497dc1): `zoo-run.sh` refuses a brief or task marked `label: fixes` or
+  `critical: true`; a result is "tests unproven" when the log does not show the brief's TEST command
+  ran; a 45-min timebox commits WIP and alerts in ASK.md at the limit; 45 checks pass in
+  `test_zoo_run.sh`. Not live: refusing while an F is open. `test_zoo_lease.sh` fails 4–5 checks under
+  load, as before the change.
 - Live already: summary to `<job>.summary.md`, never over the report (39f976d); `land.sh` runs
   `done_test` itself.
 - Where: `_agent_files/bin/zoo-run.sh`, its tests.
@@ -174,11 +179,11 @@ work). S6's timebox and S7's token log make the cost visible per task; a token b
 | Order | Task | Effort | Unblocks |
 |---|---|---|---|
 | 0 | **S0 gates.py: a stale worktree never stops another session; its removal is never gated** — **done, 9dfe6d1** | S | every session, every time a worktree goes stale |
-| 1 | S1 unit half + dependants in the landing gate | S | every F of the R1 kind |
+| 1 | S1 unit half + dependants in the landing gate — **done, 23e50856 on t046-sdlc-enforcement, not yet on main** | S | every F of the R1 kind |
 | 2 | S3 watchdog timer + tmux alerts + one-session-per-name | M | every stall and undelivered result |
-| 3 | S2 post-land coalesce with kill | S | lanes held by dead runs |
+| 3 | S2 post-land coalesce with kill — **done, d4f1d555 on t046-sdlc-enforcement, not yet on main** | S | lanes held by dead runs |
 | 4 | S4 `integrate.sh` with branch tests and corpus check | M | merge data loss |
-| 5 | S6 `zoo-run.sh` proof, lint, rounds, timebox, refusals | M | wasted delegation rounds |
+| 5 | S6 `zoo-run.sh` proof, lint, rounds, timebox, refusals — **refusals, proof, timebox live, 6497dc1**; lint, rounds, open-F refusal to do | M | wasted delegation rounds |
 | 6 | S7 counter, queue, event log | S | id clashes, order churn, measurement |
 | 7 | S5 remaining rows: config sandbox; main-folder gate; `new-worktree.sh` based on local main | S each | per-session stops; John typing `rm` |
 | 8 | S8 green tag deploy | S | needs John's ruling |
