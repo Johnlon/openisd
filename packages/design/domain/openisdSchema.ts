@@ -371,6 +371,10 @@ export const specEntryJsonSchema =
     z.discriminatedUnion('state', [enteredEntrySchema, calculatedEntrySchema, notAvailableEntrySchema]);
 
 export type SpecEntryJson = z.infer<typeof specEntryJsonSchema>;
+/** The Entered and Calculated variants alone: a value that is never not-available, so it fits a spec
+ *  entry and a signal entry alike. */
+export type EnteredEntryJson = z.infer<typeof enteredEntrySchema>;
+export type CalculatedEntryJson = z.infer<typeof calculatedEntrySchema>;
 
 // ── THE THREE FIELD ENVELOPES ─────────────────────────────────────────────────────────────────
 //

@@ -6,7 +6,7 @@
  * an entry, how an entry's value is read back, and what a caller reads when the slot is absent.
  */
 import {z} from 'zod';
-import type {SpecEntryJson} from './openisdSchema.js';
+import type {CalculatedEntryJson, EnteredEntryJson} from './openisdSchema.js';
 
 /** DQ marks. A function, not a shared object: a module-scoped literal would be state, and each
  *  schema gets its own. Exported so `winIsdDriverConverter.ts`'s `scraperEntrySchema` (D9/D11)
@@ -29,13 +29,13 @@ export interface DqMark {
 
 /** A hand-entered value as a `SpecEntryJson` (T11 — no provenance for a value nothing was read
  *  from: no `origin`, no `readings`, just the number and the 'E' flag). */
-export function enteredEntry(value: number): SpecEntryJson {
+export function enteredEntry(value: number): EnteredEntryJson {
     return {state: 'E', value};
 }
 
 /** A solver-derived value as a `SpecEntryJson` (T11 — the 'C' flag; no `origin`/`readings`,
  *  nothing was read). */
-export function calculatedEntry(value: number): SpecEntryJson {
+export function calculatedEntry(value: number): CalculatedEntryJson {
     return {state: 'C', value};
 }
 

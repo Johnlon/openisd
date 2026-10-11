@@ -32,4 +32,9 @@ files:
   - packages/design/test/winisd/wdr-vccon-numvc-import.test.ts
   - bugs/**
   - tasks/T017.yml
+  - packages/design/domain/specEntry.ts
+  - packages/design/domain/driver/openIsdDriverSpec.ts
+  - packages/design/domain/project/projectSignal.ts
+  - packages/design/domain/project/projectResolve.ts
+  - packages/design/test/domain/openisd-device-json-specs.test.ts
 needs: [T016]

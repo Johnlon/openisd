@@ -69,9 +69,11 @@ describe('openISDDeviceJsonSchema.specs — a driver OR a radiator, never both, 
     }
   });
 
+  // A reading is itself a sum (Usable | Rejected…), so a malformed reading is named at the reading
+  // (`readings.datasheet`), not at one member's field: no variant owns the finding.
   it('a bad reading inside a section is named by its own path — the sum does not swallow member findings', () => {
     const problems = problemsOf({woofer: {Fs_hz: {state: 'E', value: 30, origin: 'datasheet', readings: {datasheet: {read_value: 'thirty'}}}}});
-    assert.ok(problems.some(p => p.startsWith('specs.woofer.Fs_hz.readings.datasheet.read_value')),
+    assert.ok(problems.some(p => p.startsWith('specs.woofer.Fs_hz.readings.datasheet')),
       `the member's issue path was lost: ${problems.join(' | ')}`);
   });
 

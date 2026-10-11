@@ -192,7 +192,7 @@ function settleSignal(signal: SimpleField<OpenISDProjectJson['signal']>, Re_ohm:
     const {power_W, voltage_V} = signal.value;
     if (Re_ohm === null) {
         if (power_W !== undefined) {
-            signal.set({...signal.value, power_W: undefined, voltage_V: voltage_V && voltage_V.state !== 'N' ? enteredEntry(voltage_V.value) : voltage_V});
+            signal.set({...signal.value, power_W: undefined, voltage_V: voltage_V && enteredEntry(voltage_V.value)});
         }
         return;
     }
