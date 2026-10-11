@@ -8,7 +8,6 @@ interface Props {
 
 const props = defineProps<Props>();
 
-const showDialog = computed(() => props.state.current.value !== null);
 const currentRequest = computed(() => props.state.current.value?.request);
 
 function handleKeydown(e: KeyboardEvent): void {
@@ -25,7 +24,7 @@ onUnmounted(() => {
   window.removeEventListener('keydown', handleKeydown);
 });
 
-watch(() => props.state.current, (current) => {
+watch(() => props.state.current.value, (current) => {
   if (current) {
     nextTick(() => {
       const confirmBtn = document.querySelector<HTMLButtonElement>('.confirm-dialog-confirm');
@@ -36,7 +35,7 @@ watch(() => props.state.current, (current) => {
 </script>
 
 <template>
-  <div v-if="showDialog" class="confirm-overlay" @click.self="props.state.answer(false)">
+  <div v-if="currentRequest" class="confirm-overlay" @click.self="props.state.answer(false)">
     <div class="confirm-modal" role="alertdialog" aria-labelledby="confirm-title" aria-modal="true">
       <h2 id="confirm-title">{{ currentRequest.title }}</h2>
       <p>{{ currentRequest.message }}</p>

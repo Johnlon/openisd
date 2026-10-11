@@ -27,9 +27,10 @@ export function createConfirmPort(): { port: ConfirmPort; state: ConfirmDialogSt
   let processing = false;
 
   function processQueue(): void {
-    if (processing || queue.length === 0) return;
+    if (processing) return;
+    const next = queue.shift();
+    if (next === undefined) return;
     processing = true;
-    const next = queue.shift()!;
     current.value = next;
   }
 
