@@ -4,18 +4,20 @@ John, 11 Oct 2026: "I prefer tools to agents, and automatically scripted timers 
 direct into the face of agents rather than prose that suggests doing that"; "maximise throughput
 and still accommodate discovery, and if facts change then change the work".
 
-The failure register is [SDLC.md](SDLC.md). This file is the system that replaces agent memory
-and agent judgement with scripts. Nothing below asks an agent to remember anything.
+The root causes, the ranked solutions (S1–S8) and the evidence are in [SDLC.md](SDLC.md). This
+file is the system those solutions add up to once they are all live. Nothing below asks an agent to
+remember anything. Verified against the transcripts on 11 Oct 2026 (maryu's report); numbers below
+corrected from `zoo/DELEGATION_LOG.md` and `zoo/ASK.md`.
 
 ## Numbers, 8–11 Oct 2026
 
 | Measure | Value |
 |---|---|
-| Delegated jobs | 37, 672 min of CLI time, 5 not done |
-| Rounds per job | up to 4; never recorded |
-| Landings blocked by gate or queue faults | ~8 h on 11 Oct alone |
-| Full post-land runs overlapping | up to 4, on a 10-core 15 GB box |
-| Open F files at the freeze | 9 |
+| Delegated jobs (DELEGATION_LOG) | 40 lines, 25 real jobs, 1 failed; 12 results never delivered (ASK.md) |
+| Rounds per job | up to 4 (T032: 164 min); never recorded as rounds |
+| Landings blocked | ~11 h on 11 Oct (F7–F9 from one fault); T038 alone ~8 h |
+| Full post-land runs overlapping | up to 4 at once; each then took 2 h 16 m to 3 h 43 m |
+| Open F files at the freeze | 3 (F7, F8, F9); 9 opened in 4 days |
 
 ## One principle
 
@@ -25,14 +27,18 @@ behaviour.
 
 ## The six systems
 
-| System | Replaces | Script |
-|---|---|---|
-| 1. Ticket state machine | agents' chat about what is going on | `task.sh` |
-| 2. Work queue and dispatch | the leader remembering the order | `queue.sh`, `dispatch` timer |
-| 3. Resource scheduler | 4 separate queues that fought | `admit` (one) |
-| 4. Watchdog | agents checking in | `watchdog` timer |
-| 5. Event log and STATUS | reports written by hand | `events.log`, `status.sh` |
-| 6. Discovery and replan | "if facts change" left to memory | `finding.sh`, `assumptions:` |
+| System | Replaces | Script | SDLC.md solution |
+|---|---|---|---|
+| 1. Ticket state machine | agents' chat about what is going on | `task.sh` | S7 |
+| 2. Work queue and dispatch | the leader remembering the order | `queue.sh`, `dispatch` timer | S7 |
+| 3. Resource scheduler | 4 separate queues that fought | `admit` (one) | S2 |
+| 4. Watchdog | agents checking in | `watchdog` timer | S3 |
+| 5. Event log and STATUS | reports written by hand | `events.log`, `status.sh` | S7 |
+| 6. Discovery and replan | "if facts change" left to memory | `finding.sh`, `assumptions:` | — (after S1–S7) |
+
+The gates themselves (unit half at landing S1, `integrate.sh` S4, `zoo-run.sh` proof S6, the
+environment self-checks S5) are in SDLC.md; they come before systems 1, 2, 5 and 6 because they
+stop the costliest failures (R1, R5) on their own.
 
 ### 1. Ticket state machine — `task.sh`
 
@@ -153,19 +159,13 @@ queue order. Everything else is refused, killed or typed into their window by a 
 
 ## Build order (each item: test first, scratch-repo proof, then switched on)
 
-| # | Item | Unblocks |
-|---|---|---|
-| 1 | watchdog with tmux alerts, heartbeat hook, `agents-into-tmux.sh` | every stall |
-| 2 | one `admit` with the five resources; light commands exempt | every queue fault |
-| 3 | `task.sh` state machine + single id counter + L1 refusal of hand edits | id clashes, drift |
-| 4 | `queue.sh` + `dispatch` timer + `land.sh` head-only | order churn, idle workers |
-| 5 | `events.log` + `status.sh` + budgets | measurement, token burn |
-| 6 | `finding.sh` + `replan` | discovery |
-| 7 | GitHub: deploy only from `green/<sha>` tag (John's decision) | broken prod |
+The order is the "Ready to brief now" table in [SDLC.md](SDLC.md): S1 unit half at landing, S3
+watchdog, S2 coalesce kill, S4 `integrate.sh`, S6 `zoo-run.sh` proof, S7 counter/queue/log, S5
+leftovers, S8 green-tag deploy. System 6 (findings and replan) comes after all of them. Every item
+is `infra`: built by a Claude session, never a free model.
 
 ## Decisions for John
 
-1. Deploy openisd.app only from a green tag.
-2. Budgets: default 45 min and 2 rounds per delegated job; 4 h per task before `blocked`.
-3. Heartbeat and release times above (30/60 min; 45/90 min).
-4. Who builds 1–3 (they are `infra`; a Claude session, never a free model).
+Listed once, at the end of [SDLC.md](SDLC.md). This file adds the timing numbers to confirm:
+heartbeat silent 30 min alerts, 60 min releases the task; a `working` task with no commit for
+45 min alerts, 90 min blocks; 4 h per task before `blocked`.
