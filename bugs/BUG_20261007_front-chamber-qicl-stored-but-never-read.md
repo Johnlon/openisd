@@ -14,7 +14,7 @@ Checked 2026-10-07: `projectSweep.ts` and `winIsdProjectConverter.ts` read and w
 ## Fix
 A front chamber (bandpass4, bandpass6, ABC) stores Ql, Qa and Qp only: its schema is the plain vented chamber, and
 the types are split into `VentedChamber` (front) and `CoupledVentedChamber` (rear, with the box's one Qicl). An
-`.owpr` from before, with a front Qicl, loads: `retiredFrontQicl.ts` drops the key before validation in both
+`.owpr` from before, with a front Qicl, loads: `movedChamberQicl.ts` moves the value to the box `Qiclfr` and drops the key before validation in both
 readers, with no number changed and nothing reported. The .wpr `Qiclfr` still maps to and from the rear chamber.
 
 ## Verification

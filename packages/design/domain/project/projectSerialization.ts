@@ -1,5 +1,5 @@
 import { openISDProjectSessionJsonSchema } from '../openisdSchema.js';
-import { withoutFrontQicl } from './retiredFrontQicl.js';
+import { withMovedChamberQicl } from './movedChamberQicl.js';
 import type { OpenISDProjectJson, OpenISDProjectSessionJson } from '../openisdSchema.js';
 import { parseRepairing, type Repaired } from '../schemaRepair.js';
 import { retireLossMode } from './retiredLossMode.js';
@@ -30,7 +30,7 @@ export function parseOwprSession(text: string): { session: OpenISDProjectSession
     } catch {
         return {errors: ['not valid JSON']};
     }
-    const result = openISDProjectSessionJsonSchema.safeParse(withoutFrontQicl(parsed));
+    const result = openISDProjectSessionJsonSchema.safeParse(withMovedChamberQicl(parsed));
     if (!result.success) {
         return {errors: result.error.issues.map(issue => issue.path.length === 0
             ? issue.message
@@ -59,7 +59,7 @@ export function parseOwprSessionRepairing(text: string): Repaired<OpenISDProject
     } catch {
         return ['not valid JSON'];
     }
-    const repaired = parseRepairing(openISDProjectSessionJsonSchema, withoutFrontQicl(parsed));
+    const repaired = parseRepairing(openISDProjectSessionJsonSchema, withMovedChamberQicl(parsed));
     if (Array.isArray(repaired)) return repaired;
     const retired = retireLossMode(repaired.value);
     const paired = singleEnteredVentPairs(retired.session);
