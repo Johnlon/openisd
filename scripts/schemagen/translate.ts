@@ -170,8 +170,10 @@ export class ZodTranslator {
         return {kind: 'object', hint: '', fields: this.#fieldsOf(arg, env), checks: []};
     }
 
-    /** The fields of a shape literal; `...name` spreads a const holding another shape literal. */
-    #fieldsOf(shape: Expression, env: Env): PyField[] {
+    /** The fields of a shape literal; `...name` spreads a const holding another shape literal.
+     *  A shape frozen with `as const` (the no-globals gate) is the same literal. */
+    #fieldsOf(given: Expression, env: Env): PyField[] {
+        const shape = Node.isAsExpression(given) ? given.getExpression() : given;
         if (!Node.isObjectLiteralExpression(shape)) throw new Untranslated(shape, 'expected a shape literal');
         const fields: PyField[] = [];
         for (const prop of shape.getProperties()) {
