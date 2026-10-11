@@ -1,0 +1,17 @@
+id: T041
+repo: openisd
+owner: claude
+status: open
+goal: Stored projects from before T036 (list, open session) load, start-up moves their chamber Qicl to the box Qiclfr using the one design function instead of a second copy that dropped the front value, and an entry the build refuses stays byte-identical in storage; real pre-T036 .owpr fixtures guard every future schema change.
+done_test: bash scripts/test.sh packages/persistence/test/stored-pre-t036.test.ts packages/persistence/test/projectRepo.test.ts
+files:
+  - tasks/T041.yml
+  - packages/design/domain/index.ts
+  - packages/persistence/src/repos/projectRepo.ts
+  - packages/persistence/test/stored-pre-t036.test.ts
+  - packages/persistence/test/fixtures/stored-pre-t036/abc.owpr
+  - packages/persistence/test/fixtures/stored-pre-t036/bandpass4.owpr
+  - packages/persistence/test/fixtures/stored-pre-t036/bandpass6.owpr
+  - packages/persistence/test/fixtures/stored-pre-t036/passiveRadiator.owpr
+  - packages/persistence/test/fixtures/stored-pre-t036/sealed.owpr
+  - packages/persistence/test/fixtures/stored-pre-t036/vented.owpr

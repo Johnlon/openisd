@@ -4,7 +4,7 @@
  *  validation and reconstruction are entirely `@openisd/design`'s
  *  (`OpenISDProject.fromOwprText()` — QO116: one whole-record `.safeParse()` at the load
  *  boundary). This file supplies no shape of its own and never holds the project's record. */
-import {OpenISDProject, ProjectSummary, type FieldPath} from '@openisd/design';
+import {OpenISDProject, ProjectSummary, withMovedChamberQicl, type FieldPath} from '@openisd/design';
 import type {Engine} from '@openisd/design/engine';
 import type {FileStorage, SaveResult} from '../storage/fileStorage.js';
 import type {KeyValueStorage} from '../storage/keyValueStorage.js';
@@ -347,30 +347,11 @@ function isRecord(v: unknown): v is Record<string, unknown> {
   return typeof v === 'object' && v !== null && !Array.isArray(v);
 }
 
+/** Whether moving the chamber Qicl to the box Qiclfr changed `root`. */
 function dropRetiredFields(root: unknown): boolean {
-  if (!isRecord(root)) return false;
-  let changed = false;
-  const targets: Record<string, unknown>[] = [];
-  if (isRecord(root.saved)) targets.push(root.saved);
-  if (isRecord(root.edited)) targets.push(root.edited);
-  if (isRecord(root.box)) targets.push(root);
-
-  for (const target of targets) {
-    const box = target.box;
-    if (!isRecord(box)) continue;
-    for (const type of ['bandpass4', 'bandpass6', 'abc']) {
-      const bp = box[type];
-      if (!isRecord(bp)) continue;
-      const front = bp.front;
-      if (!isRecord(front)) continue;
-      const losses = front.losses;
-      if (isRecord(losses) && 'Qicl' in losses) {
-        Reflect.deleteProperty(losses, 'Qicl');
-        changed = true;
-      }
-    }
-  }
-  return changed;
+  const before = JSON.stringify(root);
+  withMovedChamberQicl(root);
+  return JSON.stringify(root) !== before;
 }
 
 function migratePayloadText(text: string): { text: string; changed: boolean } {
