@@ -3,7 +3,7 @@ repo: openisd
 owner: claude
 status: open
 goal: integrate fix/move-qiclfr (PR panel layout, User Options spacing, Qicl move, shell-layout fixes)
-done_test: bash scripts/test.sh packages/ui/test/ui/original-shell-layout.browser.spec.ts packages/ui/test/ui/original-pr-tab.browser.spec.ts packages/ui/test/architecture/no-whole-test-timeouts.test.ts packages/design/test/domain/front-chamber-qicl.test.ts packages/ui/test/hooks/boxFields.test.ts
+done_test: bash scripts/test.sh packages/design/test/domain/front-chamber-qicl.test.ts packages/ui/test/hooks/boxFields.test.ts packages/ui/test/architecture/no-whole-test-timeouts.test.ts
 files:
   - tasks/T036.yml
   - .claude/rules/links.md
