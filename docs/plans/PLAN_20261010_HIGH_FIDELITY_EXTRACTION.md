@@ -85,6 +85,9 @@ All of it in a pair of worktrees, one per repo, kept off main until it works. Th
 2. **Schema** in both repos.
 3. **tools**: one shared extraction writing `driver_spec.json`; per-manufacturer code only locates documents and cells; the shared scope check.
 4. **openisd**: parser and interpretation in `packages/design`; the bridge reads `driver_spec.json` and builds `openisd.json` in the new driver-type structure. openisd T017 (refused-reading types) and T018 (picker) fold in here.
+   - **A reading keeps its datasheet text** (John, 2026-10-11): "N/A", "banana" and "143c cm²" are stored as printed, as a rejected reading with its reason.
+   - **`.wdr` cannot hold a rejected reading** (John, 2026-10-11): a `.wdr` field is a flag and a number only. A rejected reading is written to `.wdr` as N (not available), value 0, and a comment carrying the printed text. Loading a `.wdr` never makes a rejected reading. T017's "a .wdr text cell becomes a rejected reading" is wrong and is replaced by this.
+   - T017's first worker stopped at its usage limit mid-change; another worker finishes it.
 5. **Parity**: both pipelines over every cached input. For every reading, the SI value matches the old pipeline, or the change is listed and explained. The old pipeline stays until this passes.
 6. **Switch**: delete the old record writing and the 17 per-manufacturer `emit.py` files; rename `driver_spec.json` to `driver.json`; rebuild the corpus (John clears it), then the swap.
 
