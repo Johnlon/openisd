@@ -40,17 +40,24 @@ setup_repo() {
     cp "$REPO/scripts/paths.sh" scripts/
     cat > gates/lint.sh <<'EOF'
 #!/usr/bin/env bash
+echo "lint_start" >> "$LANDING_LOG/seq"
 printf '%s\n' "$@" > "$GATE_LOG/lint.args"
 [ -f "$GATE_LOG/lint.fail" ] && exit 1
+echo "lint_end" >> "$LANDING_LOG/seq"
 exit 0
 EOF
     cat > gates/typecheck.sh <<'EOF'
 #!/usr/bin/env bash
-[ -f "$GATE_LOG/typecheck.fail" ] && exit 1; exit 0
+echo "typecheck_start" >> "$LANDING_LOG/seq"
+[ -f "$GATE_LOG/typecheck.fail" ] && exit 1
+echo "typecheck_end" >> "$LANDING_LOG/seq"
+exit 0
 EOF
     cat > gates/attribution.sh <<'EOF'
 #!/usr/bin/env bash
+echo "attribution_start" >> "$LANDING_LOG/seq"
 ! grep -qi '^co-authored-by:.*claude'
+echo "attribution_end" >> "$LANDING_LOG/seq"
 EOF
     chmod +x gates/*.sh
     if [ "$with_suite" = "true" ]; then
@@ -71,7 +78,17 @@ EOF
     if [ "$with_suite" = "true" ]; then
         cat > suite.sh <<'EOF'
 #!/usr/bin/env bash
-pwd > "$SUITE_LOG/cwd.$$"; echo start >> "$SUITE_LOG/seq"; trap 'echo end >> "$SUITE_LOG/seq"' EXIT
+pwd > "$SUITE_LOG/cwd.$$"
+echo start >> "$SUITE_LOG/seq"
+trap 'echo end >> "$SUITE_LOG/seq"' EXIT
+# HOLD mechanism: if $SUITE_LOG/HOLD exists, wait for unhold signal
+if [ -f "$SUITE_LOG/HOLD" ]; then
+    : > "$SUITE_LOG/holding"
+    for _ in $(seq 1 300); do
+        [ -f "$SUITE_LOG/unhold" ] && break
+        sleep 0.1
+    done
+fi
 [ -f FAIL ] && { echo "spec broken.spec.ts failed"; exit 1; }
 date +%s%N >> "$SUITE_LOG/runs"; exit 0
 EOF
@@ -84,6 +101,7 @@ EOF
     for w in w1 w2; do git clone -q origin.git $w; git -C $w config user.email t@t; git -C $w config user.name t; done
     export GATE_LOG="$SCRATCH/gatelog"; rm -rf "$GATE_LOG"; mkdir -p "$GATE_LOG"
     export SUITE_LOG="$SCRATCH/suitelog"; rm -rf "$SUITE_LOG"; mkdir -p "$SUITE_LOG"
+    export LANDING_LOG="$SCRATCH/landinglog"; rm -rf "$LANDING_LOG"; mkdir -p "$LANDING_LOG"
 }
 
 task() {
@@ -107,7 +125,6 @@ EOF
 edit() { echo "$3" >> "$SCRATCH/w/$1/$2"; }
 land() { (cd "$SCRATCH/w/$1" && timeout 120 bash scripts/land.sh "$2" >"$SCRATCH/out.$1" 2>&1); }
 post() { timeout 120 bash scripts/land/post-land/run.sh "$1" > "$SCRATCH/post-out.$2" 2>&1; }
-origin_has() { git -C "$SCRATCH/w/origin.git" log --format=%s main | grep -qF "$1"; }
 origin_head() { git -C "$SCRATCH/w/origin.git" rev-parse main; }
 green() { cat "$OPENISD_RUNTIME_DIR/post-land.lock.green" 2>/dev/null; }
 
@@ -125,8 +142,11 @@ land w2 T2 & p2=$!
 wait $p1; r1=$?
 wait $p2; r2=$?
 
+# Capture origin log once to avoid timing races
+origin_log=$(git -C "$SCRATCH/w/origin.git" log --format=%s main)
+
 # Verify both succeeded
-if [ $r1 = 0 ] && [ $r2 = 0 ] && origin_has "w1 change" && origin_has "w2 change"; then
+if [ $r1 = 0 ] && [ $r2 = 0 ] && echo "$origin_log" | grep -qF "w1 change" && echo "$origin_log" | grep -qF "w2 change"; then
     ok "two concurrent land.sh runs both land"
 else
     fail "concurrent landings (r1=$r1 r2=$r2)"
@@ -160,6 +180,20 @@ else
     fail "non-linear history (merge commit detected)"
 fi
 
+# Verify landing sections do not overlap (stub gate logs show serial execution)
+landing_seq=$(tr '\n' ' ' < "$LANDING_LOG/seq" 2>/dev/null || echo "")
+# Each landing runs: lint, typecheck, attribution x2 (two commits)
+# Check: first landing's last event (2nd attribution_end) before second landing's first event (2nd lint_start)
+first_landing_end_pos=$(echo "$landing_seq" | grep -b -o 'attribution_end' | sed -n '2p' | cut -d: -f1)
+second_landing_start_pos=$(echo "$landing_seq" | grep -b -o 'lint_start' | sed -n '2p' | cut -d: -f1)
+attribution_end_count=$(echo "$landing_seq" | grep -o 'attribution_end' | wc -l)
+lint_start_count=$(echo "$landing_seq" | grep -o 'lint_start' | wc -l)
+if [ "$attribution_end_count" -ge 2 ] && [ "$lint_start_count" -ge 2 ] && [ -n "$first_landing_end_pos" ] && [ -n "$second_landing_start_pos" ] && [ "$first_landing_end_pos" -lt "$second_landing_start_pos" ]; then
+    ok "landing sections serialised, no overlap (seq=$landing_seq)"
+else
+    fail "landing sections overlapped (attribution_end_count=$attribution_end_count lint_start_count=$lint_start_count first_landing_end=$first_landing_end_pos second_landing_start=$second_landing_start_pos seq=$landing_seq)"
+fi
+
 # --- Test 2: two concurrent post-land runs serialize on POST_LAND_LOCK under $OPENISD_RUNTIME_DIR ---
 setup_repo true
 # Create two commits in the seed repo (which has origin remote)
@@ -167,21 +201,31 @@ cd "$SCRATCH/w/seed"
 echo "commit one" >> a.txt; git add a.txt; git commit -qm "commit one"; git push -q origin main; s1=$(git rev-parse HEAD)
 echo "commit two" >> b.txt; git add b.txt; git commit -qm "commit two"; git push -q origin main; s2=$(git rev-parse HEAD)
 
-# Start both post-land runs concurrently from the seed clone
+# Start first post-land run with HOLD to ensure it enters suite and pauses before second starts
+: > "$SUITE_LOG/HOLD"
 post "$s1" a & pp1=$!
+# Wait for first to enter suite and pause (holding file appears), bounded wait checking pid alive
+deadline=$(($(date +%s) + 10))
+while [ ! -f "$SUITE_LOG/holding" ]; do
+    kill -0 "$pp1" 2>/dev/null || { fail "post-land serialised: first run died before suite hold"; break; }
+    [ $(date +%s) -lt "$deadline" ] || { fail "post-land serialised: timed out waiting for first run to hold"; break; }
+    sleep 0.1
+done
+# Start second run
 post "$s2" b & pp2=$!
+# Release the hold
+: > "$SUITE_LOG/unhold"
 wait $pp1; rp1=$?
 wait $pp2; rp2=$?
+rm -f "$SUITE_LOG/HOLD" "$SUITE_LOG/holding" "$SUITE_LOG/unhold"
 
-# With coalesce, either:
-# - s1 gets lock first, sees s2 waiting (newer), supersedes itself -> s2 runs, green=s2
-# - s2 gets lock first, no newer runs -> s2 runs, green=s2
-# - s1 gets lock first, s2 not yet pending -> s1 runs, s2 superseded, green=s1
-# Both outcomes are valid coalesce behavior. Verify: both exit 0, one ran suite, green is s1 or s2.
-if [ $rp1 = 0 ] && [ $rp2 = 0 ] && { [ "$(green)" = "$s1" ] || [ "$(green)" = "$s2" ]; }; then
-    ok "two concurrent post-land runs serialized with coalesce (green=$(green))"
+# Verify both exit 0, seq shows no overlap (start end start end OR start end if coalesced), at least one run executed
+seq=$(tr '\n' ' ' < "$SUITE_LOG/seq" 2>/dev/null || echo "")
+runs_count=$(wc -l < "$SUITE_LOG/runs" 2>/dev/null || echo 0)
+if [ $rp1 = 0 ] && [ $rp2 = 0 ] && { [ "$seq" = "start end start end " ] || [ "$seq" = "start end " ]; } && [ "$runs_count" -ge 1 ]; then
+    ok "two concurrent post-land runs serialised, no overlap (seq=$seq runs=$runs_count green=$(green))"
 else
-    fail "concurrent post-land (rp1=$rp1 rp2=$rp2 green=$(green) s1=$s1 s2=$s2)"
+    fail "concurrent post-land (rp1=$rp1 rp2=$rp2 seq=$seq runs=$runs_count green=$(green) s1=$s1 s2=$s2)"
 fi
 
 # Verify POST_LAND_LOCK exists under $OPENISD_RUNTIME_DIR
