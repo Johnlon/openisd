@@ -38,24 +38,26 @@ transcript was used instead).
 Each is one task. "Proof" is the test that must pass before the row is live. State: **live** (commit
 named) or **to build**.
 
-### S0 — CRITICAL: a gate may refuse one command, never a session (R0) — to build today, effort S
+### S0 — CRITICAL: a gate may refuse one command, never a session (R0) — **live 9dfe6d1** (workspace repo, 11 Oct)
 
-- What, in `gates.py` (`_agent_files/bin/run_gates.py`):
-  1. Checks only the repo the command runs in (cwd). No sibling worktree, no other repo, ever
-     enters a check.
-  2. The venv it checks is the one shared venv at the workspace root (`/home/john/work/winisd/.venv`,
-     43cf2b76). It never looks for `<worktree>/.venv`.
-  3. A failed environment check refuses only commands that need that environment (python,
-     pytest, make); it never refuses Read, Write, SendMessage, `git worktree remove`, `rm -rf`
-     of a worktree with no uncommitted files, or any shell command outside the repo.
-  4. A refusal names one command the agent itself may run to repair, and that command passes
-     the gate. A gate that can only be cleared by John is a bug in the gate.
-  5. `new-worktree.sh` creates nothing the gate will refuse (shared venv, hooks path), and
-     registers the worktree so the watchdog (S3) removes it when its branch is merged or deleted.
-- Proof (gate test, scratch workspace): a stale worktree with no venv; a session in another
-  worktree runs Read, Bash `ls`, SendMessage and `git worktree remove` of the stale one; all
-  pass. A python command in the stale worktree is refused with a repair command that passes.
-- Brief-ready: yes. `infra`, a Claude session. Before anything else in this list.
+- The mechanism found: the two stale worktrees were made before 10 Oct 19:40 and carried the
+  old `winisd_tools/gates.py` that checks its own `.venv`. The runner ran that stale `gates.py`
+  for every tool call that merely mentioned the worktree's name: a SendMessage, a Read, the
+  `rm -rf` meant to delete it. So the sessions that tried to clean up were the ones stopped.
+- What changed, in `_agent_files/bin/run_gates.py`:
+  1. A repo other than the cwd's gates a call only when the call works in it: an Edit, Write or
+     NotebookEdit of a file inside it, or a Bash command that runs inside it (`git -C`, `cd`, a
+     file of it). SendMessage, Read, Grep and every other tool never gate another repo by name.
+  2. A command that removes a repo (`rm -rf`, `git worktree remove|prune`, `git branch -D`) is
+     not work in it and is never gated by it. An agent can always delete a stale worktree.
+  3. The missing-hooksPath check covers only the repos in scope of the call.
+  4. `new-worktree.sh` bases on the newer of local main and origin/main and refuses when they
+     have diverged, so a worktree is not born behind main with an old `gates.py`.
+- Proof: `tests/test_run_gates_stale_worktree.py` (12 cases: a message, a Read, five removal
+  commands pass; edits and `git -C` inside still gated; a stale hooksPath blocks only sessions in
+  it); two new cases in `tests/test_new_worktree.py`; all 54 workspace tests and
+  `test_githooks.sh` green. Live check: a SendMessage naming a stale folder passes the real gate.
+- Still open (S3): the watchdog prunes merged clean worktrees so nobody has to delete them.
 
 ### S1 — the landing gate runs the unit tests (R1) — to build, effort S
 
@@ -118,7 +120,7 @@ named) or **to build**.
 | Fault | Tool | State |
 |---|---|---|
 | fixed `/tmp` names | `scripts/paths.sh`, one runtime root | live a4f9b60a |
-| per-worktree `.venv` demanded; a stale worktree blocks every session | **S0 (critical)** | shared venv live 43cf2b76; gate **to build** |
+| per-worktree `.venv` demanded; a stale worktree blocks every session | **S0 (critical)** | shared venv live 43cf2b76; gate scope live 9dfe6d1 |
 | hooks folder deleted | `run_gates.py` fails on a missing `core.hooksPath`; hooks in `_agent_files/githooks` | live 0fd70dd |
 | a test rewrote the real `core.hooksPath` | tests that touch git config run with `HOME` and `GIT_CONFIG_GLOBAL` in a temp dir; `gates.py` refuses `git config --global` from any test | to build |
 | main folder on another branch; :4000 served the wrong tree | keep-alive as a systemd unit, `cd` into the main folder, fast-forward each minute; `gates.py` refuses edit, commit or `git switch` with cwd = main folder | daemon live; gate to build |
@@ -171,7 +173,7 @@ work). S6's timebox and S7's token log make the cost visible per task; a token b
 
 | Order | Task | Effort | Unblocks |
 |---|---|---|---|
-| 0 | **S0 gates.py: cwd repo only, shared venv, never refuses the repair; CRITICAL, today** | S | every session, every time a worktree goes stale |
+| 0 | **S0 gates.py: a stale worktree never stops another session; its removal is never gated** — **done, 9dfe6d1** | S | every session, every time a worktree goes stale |
 | 1 | S1 unit half + dependants in the landing gate | S | every F of the R1 kind |
 | 2 | S3 watchdog timer + tmux alerts + one-session-per-name | M | every stall and undelivered result |
 | 3 | S2 post-land coalesce with kill | S | lanes held by dead runs |
