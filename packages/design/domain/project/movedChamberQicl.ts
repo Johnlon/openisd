@@ -16,7 +16,7 @@ function isRecord(v: unknown): v is PlainRecord {
     return typeof v === 'object' && v !== null && !Array.isArray(v);
 }
 
-const TWO_CHAMBER_TYPES = ['bandpass4', 'bandpass6', 'abc'];
+const TWO_CHAMBER_TYPES = ['bandpass4', 'bandpass6', 'abc'] as const;
 
 function qiclOf(chamber: unknown): number | undefined {
     if (!isRecord(chamber) || !isRecord(chamber.losses)) return undefined;

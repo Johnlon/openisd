@@ -16,9 +16,9 @@ import {DriverFileFormat} from '../../fileFormat.js';
 // or 'pick' (step 1 of the New Project wizard, both skins). 'pick' hides the summary's
 // Edit and Clone driver buttons, and suppresses the summary's own Cancel/Use footer
 // (the host wizard draws its own Back/Next/Cancel navigation).
-export type DriverLibraryHost = 'manage' | 'pick';
+export type DriverListMode = 'manage' | 'pick';
 
-const props = defineProps<{ showName?: boolean; host: DriverLibraryHost }>();
+const props = defineProps<{ showName?: boolean; host: DriverListMode }>();
 
 const { driverBrowsing, selection } = useApp();
 const { openNewDriver } = selection;

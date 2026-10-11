@@ -57,4 +57,3 @@ export {
 } from './repos/backupRepo.js';
 
 export { type StoreName, type StoredDataFault, createStoredDataFault, isStoredDataFault } from './repos/storedDataFault.js';
-export { buildProjectsArchive, parseProjectsArchive, type ArchiveParseResult } from './repos/projectsArchive.js';

@@ -1,6 +1,6 @@
 
 import type { Engine } from '@openisd/design/engine';
-import { OpenISDProject } from '@openisd/design';
+import { buildProjectsArchive, parseProjectsArchive, type OpenISDProject } from '@openisd/design';
 import {
   type DesignFiles,
   driverToOwdrBytes,
@@ -52,7 +52,7 @@ import {
   type FileStorage,
   projectFilename,
   projectNameFromFilename,
-  type ProjectRepo, buildProjectsArchive, parseProjectsArchive,
+  type ProjectRepo,
   type RestoreResult
 } from '@openisd/persistence';
 import {setShareUrl} from './urlAppState.js';

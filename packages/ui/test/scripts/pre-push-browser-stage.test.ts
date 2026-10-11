@@ -37,6 +37,7 @@ describe('scripts/test.sh full gate', () => {
     mkdirSync(join(dir, 'scripts', 'slow-run'), {recursive: true});
     copyFileSync(join(ROOT, 'scripts', 'test.sh'), join(dir, 'scripts', 'test.sh'));
     copyFileSync(join(ROOT, 'scripts', 'slow-run', 'queue.sh'), join(dir, 'scripts', 'slow-run', 'queue.sh'));
+    copyFileSync(join(ROOT, 'scripts', 'paths.sh'), join(dir, 'scripts', 'paths.sh'));
     writeFileSync(join(dir, 'scripts', 'quiet-test.sh'),
       `#!/usr/bin/env bash\necho "quiet $* tickets=$(ls '${queue}/q' | wc -l)" >> '${events}'\n`);
     writeFileSync(join(dir, 'scripts', 'slow-run', 'rerun.mjs'),
@@ -63,6 +64,7 @@ describe('scripts/test-browser.sh', () => {
       copyFileSync(join(ROOT, 'scripts', name), join(dir, 'scripts', name));
     }
     copyFileSync(join(ROOT, 'scripts', 'slow-run', 'queue.sh'), join(dir, 'scripts', 'slow-run', 'queue.sh'));
+    copyFileSync(join(ROOT, 'scripts', 'paths.sh'), join(dir, 'scripts', 'paths.sh'));
     writeFileSync(join(bin, 'npx'), [
       '#!/usr/bin/env bash',
       'case "$*" in',

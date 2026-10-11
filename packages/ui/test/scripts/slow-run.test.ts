@@ -30,7 +30,7 @@ interface Finished { readonly stdout: string; readonly stderr: string; readonly 
 
 function runSh(script: string, env: Record<string, string>): Promise<Finished> {
   return new Promise(done => {
-    const child = spawn('sh', ['-c', script], { env: { ...process.env, ...env } });
+    const child = spawn('bash', ['-c', script], { env: { ...process.env, ...env } });
     let stdout = '';
     let stderr = '';
     child.stdout.on('data', (b: Buffer) => { stdout += b.toString(); });
@@ -75,7 +75,7 @@ describe('queue.sh — slow runs never overlap', () => {
 
   it('a slow run started under one that holds the queue passes straight through', async () => {
     const dir = tempDir();
-    const inner = `sh -c ". '${QUEUE}'; slow_queue_enter inner; echo inner-ran; slow_queue_leave"`;
+    const inner = `bash -c ". '${QUEUE}'; slow_queue_enter inner; echo inner-ran; slow_queue_leave"`;
     const r = await runSh(`. '${QUEUE}'; slow_queue_enter outer; ${inner}; ls "$SLOW_RUN_DIR/q" | wc -l; slow_queue_leave`,
       { SLOW_RUN_DIR: dir, SLOW_RUN_POLL_S: '0.1' });
     assert.equal(r.code, 0);

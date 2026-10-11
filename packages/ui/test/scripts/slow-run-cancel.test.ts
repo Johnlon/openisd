@@ -21,6 +21,7 @@ const COPIED = [
   'scripts/slow-run/queue.sh',
   'scripts/slow-run/clean-copy.sh',
   'scripts/slow-run/rerun.mjs',
+  'scripts/paths.sh',
 ];
 
 interface Fixture {

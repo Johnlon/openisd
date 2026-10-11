@@ -1,5 +1,5 @@
-import {OpenISDProject} from '@openisd/design';
-import type {Engine} from '@openisd/design/engine';
+import type {Engine} from '../../engine/index.js';
+import {OpenISDProject} from './openISDProject.js';
 
 export interface ProjectArchive {
   version: 1;

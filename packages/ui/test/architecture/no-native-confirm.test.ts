@@ -4,7 +4,7 @@ import {fileURLToPath} from 'node:url';
 import {dirname, join, relative} from 'node:path';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
-const UI_SRC = join(HERE, '..', 'src');
+const UI_SRC = join(HERE, '..', '..', 'src');
 
 function filesUnder(dir: string): string[] {
   const out: string[] = [];
