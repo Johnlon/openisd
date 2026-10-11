@@ -101,6 +101,7 @@ All of it in a pair of worktrees, one per repo, kept off main until it works. Th
    - **No winner means no value** (John, 2026-10-11): when every reading is impossible or rejected, the field gets no value and the comment records every value seen and why each was rejected. T018 carries this.
 5. **Parity**: both pipelines over every cached input. For every reading, the SI value matches the old pipeline, or the change is listed and explained. The old pipeline stays until this passes.
 6. **Switch**: delete the old record writing and the 17 per-manufacturer `emit.py` files; rename `driver_spec.json` to `driver.json`; rebuild the corpus (John clears it), then the swap.
+7. **Triage** (section 4a): the AI review step runs after the rebuild and after every later extraction run; its reader and rule faults feed the next round of work.
 
 ## 6. Tests and credit
 
