@@ -1,7 +1,7 @@
 id: T046
 repo: openisd
 owner: lots
-status: open
+status: blocked
 goal: docs/SDLC.md lists every process failure of 10-11 Oct 2026 with the tool that prevents it, its proof and its owner (John, 11 Oct 2026).
 done_test: test -s docs/SDLC.md
 files:
@@ -9,3 +9,4 @@ files:
   - docs/DEV_PROCESS.md
   - tasks/T046.yml
   - docs/SDLC_DESIGN.md
+blocked_reason: rebase onto origin/main conflicts in: packages/ui/src/hooks/MobileShell-hooks.ts packages/ui/src/logic/app.ts packages/ui/src/main.ts packages/ui/test/hooks/testAppLogic.ts 
