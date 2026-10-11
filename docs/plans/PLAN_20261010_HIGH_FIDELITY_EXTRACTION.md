@@ -153,16 +153,16 @@ Later work, not part of this plan's work (John, 2026-10-11: "this is a later fea
 
 John, 2026-10-11: "driver_ai.md which is the manual ai review opinion and override mech, if human and ai disagree on a field then human wins BUT ai review must report any such conflict for a decision, outcome of decisions can be recorded in driver_decision.md which is read during ai manual review to explain to ai reviewer why human made a decision".
 
-- **`driver_ai.md`:** the AI reviewer's opinion on the driver (section 4a), and its overrides. Only the AI review step writes it.
-- **Schema:** the AI overrides use the regular file's schema too, with their source given as `ai` (John, 2026-10-11). The file name is settled when this work starts.
+- **`driver_ai.md`:** free text that humans and LLMs both read (John, 2026-10-11): the AI reviewer's opinion on the driver (section 4a) and its reasons. `driver_decision.md` is free text in the same way.
+- **`driver_ai.json`:** the AI's overrides, in the regular file's schema with their source given as `ai` (John, 2026-10-11: "the human and AI files should match the schema for the regular file"). Only the AI review step writes the AI files.
 - **Order of authority, highest first:**
   1. `driver_human.json`;
-  2. `driver_ai.md`;
+  2. `driver_ai.json`;
   3. openisd's logic (interpretation, picker, Fs bands);
   4. the scraper's readings.
 - **Human and AI disagree on a field:** the human value is used, and the AI review reports the conflict as an item needing a decision. It is never settled silently.
 - **`driver_decision.md`:** the outcomes of those decisions and the human's reasons. The AI reviewer reads it on every review of that driver. A conflict then ends in one of two ways:
   - the reasons convince the AI reviewer, it changes its opinion, and the alert goes away;
   - the AI still disagrees and says why, and the human reconsiders and may remove their assertion from `driver_human.json`.
-- **Provenance:** a value from `driver_ai.md` names `ai` as its source, just as a human decision names `human`.
+- **Provenance:** a value from `driver_ai.json` names `ai` as its source, just as a human decision names `human`.
 - None of these files is written by the scraper, and a corpus rebuild keeps all three.
