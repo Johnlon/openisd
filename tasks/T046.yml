@@ -1,7 +1,7 @@
 id: T046
 repo: openisd
 owner: lots
-status: open
+status: claimed
 goal: docs/SDLC.md lists every process failure of 10-11 Oct 2026 with the tool that prevents it, its proof and its owner (John, 11 Oct 2026).
 done_test: test -s docs/SDLC.md
 files:
