@@ -72,19 +72,9 @@ test.describe('Original Vented tab', () => {
       await expect(diameter).toHaveValue(/^5(\.0+)?$/);
       await page.locator('.field', { hasText: 'Shape' }).locator('select').selectOption('slotted');
       const width = page.locator('.ui-field', { hasText: 'Slot width' }).locator('input');
-      const readW = () => page.evaluate(async () => {
-        const m: unknown = await import(/* @vite-ignore */ '/src/logic/appState.ts');
-        const p = (m as {requireFocusedProject: () => {box: {vented: {vent: {width_m: {value: number | null; entered: boolean; provenance: string}}}}}}).requireFocusedProject();
-        const w = p.box.vented.vent.width_m;
-        return {value: w.value, entered: w.entered, prov: w.provenance};
-      });
-      const wBefore = await readW();
-      await width.fill('');
-      const wAfterFill = await readW();
-      const inputAfterFill = await width.inputValue();
-      await width.blur();
-      const wAfterBlur = await readW();
-      console.log('DIAG width', JSON.stringify({wBefore, wAfterFill, inputAfterFill, wAfterBlur, inputAfterBlur: await width.inputValue()}));
+      await fillAndBlur(width, '7');
+      await expect(width).toHaveValue(/7/);
+      await fillAndBlur(width, '');
       await expect(width).not.toHaveValue('');
       await expect(width).not.toHaveValue(/^0(\.0*)?$/);
     });

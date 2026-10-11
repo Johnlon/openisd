@@ -1,0 +1,30 @@
+id: T038
+repo: openisd
+owner: bob
+status: open
+goal: A cleared field settles to John's 2026-10-09 rulings instead of going blank. Port size to a 50 mm round port (or a slot sized from the driver), port width to the driver's Dd, passive radiator count and driver count to 1, Rg to 0.1 ohm, passive radiator added mass to 0 (tuning calculated).
+done_test: bash scripts/test.sh packages/design/test/domain/count-clear.test.ts packages/design/test/domain/project-rg-clear.test.ts packages/design/test/domain/vent-dimension-clear.test.ts packages/design/test/domain/box-passive-radiator.test.ts packages/design/test/domain/box-vent-geometry.test.ts packages/ui/test/logic/cellDataQuality.test.ts
+files:
+  - bugs/BUG_20261009_chart-click-before-first-draw-is-dropped.md
+  - bugs/BUG_20261009_pr-added-mass-can-be-cleared-to-blank.md
+  - docs/OUTSTANDING_APP_WORK.md
+  - packages/design/domain/box/openISDBox.ts
+  - packages/design/domain/box/passiveRadiatorBox.ts
+  - packages/design/domain/box/ventWindow.ts
+  - packages/design/domain/cell.ts
+  - packages/design/domain/project/openISDProject.ts
+  - packages/design/test/domain/box-alignments.test.ts
+  - packages/design/test/domain/box-passive-radiator.test.ts
+  - packages/design/test/domain/box-vent-geometry.test.ts
+  - packages/design/test/domain/count-clear.test.ts
+  - packages/design/test/domain/project-app-settings-changed.test.ts
+  - packages/design/test/domain/project-rg-clear.test.ts
+  - packages/design/test/domain/project-sweep-guards.test.ts
+  - packages/design/test/domain/project-vent-solve.test.ts
+  - packages/design/test/domain/vent-dimension-clear.test.ts
+  - packages/design/test/domain/vented-plausibility-cells.test.ts
+  - packages/ui/src/logic/prGroup.ts
+  - packages/ui/test/logic/cellDataQuality.test.ts
+  - packages/ui/test/ui/mobile-enclosure-tab.browser.spec.ts
+  - packages/ui/test/ui/original-vented-tab.browser.spec.ts
+  - tasks/T038.yml
