@@ -1,6 +1,6 @@
 id: F9
 owner: post-land
-status: open
+status: closed
 sha: a02d6d789598521557d5a918c4a18c243c9607a4
 goal: main is red at a02d6d7895; make the full suite pass again
 commits: |
