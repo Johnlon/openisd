@@ -56,6 +56,23 @@ John, 2026-10-11: "all values in the driver need provenance so we still have man
 - **Triage link:** a triage item marked as needing a human decision (section 4a), such as an Unclassified driver, is resolved by writing a decision here. The next run then applies it and no longer reports that item.
 - **Stale decisions:** a decision that no longer matches its record (the field has gone, or the reading it names has changed) is reported in triage, never silently dropped.
 
+## 2b. The AI review file and the decision log: `driver_ai.md`, `driver_decision.md`
+
+John, 2026-10-11: "driver_ai.md which is the manual ai review opinion and override mech, if human and ai disagree on a field then human wins BUT ai review must report any such conflict for a decision, outcome of decisions can be recorded in driver_decision.md which is read during ai manual review to explain to ai reviewer why human made a decision".
+
+- **`driver_ai.md`:** the AI reviewer's opinion on the driver (section 4a), and its overrides. Only the AI review step writes it.
+- **Order of authority, highest first:**
+  1. `driver_human.json`;
+  2. `driver_ai.md`;
+  3. openisd's logic (interpretation, picker, Fs bands);
+  4. the scraper's readings.
+- **Human and AI disagree on a field:** the human value is used, and the AI review reports the conflict as an item needing a decision. It is never settled silently.
+- **`driver_decision.md`:** the outcomes of those decisions and the human's reasons. The AI reviewer reads it on every review of that driver. A conflict then ends in one of two ways:
+  - the reasons convince the AI reviewer, it changes its opinion, and the alert goes away;
+  - the AI still disagrees and says why, and the human reconsiders and may remove their assertion from `driver_human.json`.
+- **Provenance:** a value from `driver_ai.md` names `ai` as its source, just as a human decision names `human`.
+- None of these files is written by the scraper, and a corpus rebuild keeps all three.
+
 ## 3. Who does what
 
 | step                                              | winisd_tools        | openisd                                                                 |
@@ -69,6 +86,7 @@ John, 2026-10-11: "all values in the driver need provenance so we still have man
 | corroboration, winning reading                    | —                   | yes (exclude impossible, then majority of more than half, then precedence) |
 | `openisd.json` + `.wdr`                           | calls the bridge    | the bridge builds them                                                  |
 | human decisions (`driver_human.json`)            | never writes it     | the bridge applies them last; they override everything (section 2a)    |
+| AI review (`driver_ai.md`, `driver_decision.md`)  | never writes them   | the bridge applies AI overrides below human ones (section 2b)           |
 
 ## 3a. No logic in both languages
 
