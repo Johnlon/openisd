@@ -42,9 +42,13 @@ Per **document**: URL, role, fetch time, title, breadcrumb and categories in ord
 
 Per **record**: brand, model, the record directory name (unchanged for existing records), `added` (first appearance; a harvest fact), every document, every reading, the product's scope log (section 4).
 
-Today the `driver.json` schema is written twice, by hand: Python in winisd_tools `scrapers/scrapers/lib/model_driver.py`, and Zod in openisd `packages/design/domain/openisdSchema.ts`. John, 2026-10-11: "we now have two versions of the driver.json schema - in TS and python which is bad". The single JSON Schema below replaces both, and both hand-written copies are deleted in the change that generates their replacements.
+Schema rules: the schema is written twice by hand, on purpose, and a cross-check holds the two copies together (John, 2026-10-11: "rather than delete … a cross check that finds inconsistencies, having them manually maintained has one small benefit that it records the understanding that the code base has").
 
-Schema rules: ONE source — a JSON Schema file (`driver_spec.schema.json`, kept in openisd `packages/design`). The Python model and the Zod schema are generated from it, never hand-written twice; a test fails if a generated file is stale. Unknown fields are refused; `schema_version` is checked on every read.
+- **The two copies:** Python in winisd_tools (`scrapers/scrapers/lib/model_driver.py`, pydantic) and Zod in openisd (`packages/design/domain/openisdSchema.ts`). Each states its own repo's understanding of the format.
+- **The cross-check:** a parity test exports each copy to JSON Schema (pydantic `model_json_schema()`, Zod 4 `z.toJSONSchema()`), normalises them, and fails on every difference: a field one side lacks, a different type, optional on one side and required on the other, or a different enum member. It names each difference.
+- **Where it runs:** in tools, reading openisd's export from the paired worktree, as `test_driver_type_enum_parity.py` already does for the role enum. It runs on every landing in either repo that touches either schema.
+- **Rules JSON Schema cannot express** (checks that span several fields) are listed beside the test as known extra rules for each side, so a gap is a decision, not an accident.
+- The same holds for the transfer file, `driver_spec.json`, and for `driver_human.json`, which uses the same schema. Unknown fields are refused, and `schema_version` is checked on every read.
 
 ## 2a. The human decision file: `driver_human.json`
 
@@ -54,7 +58,7 @@ John, 2026-10-11: "all values in the driver need provenance so we still have man
 - **What it holds:** decisions on the driver's outcome. Examples: a field's value, a role list, "this reading is right" or "this one is wrong", "not a driver". Each decision gives who made it, when, and why.
 - **Rank:** a decision overrides everything else. That covers the scraper's readings, openisd's interpretation and picker, the Fs role bands and any triage verdict. The bridge applies it last.
 - **Provenance:** every value in `openisd.json` names its source. A value set by a decision names `human` as its source; the existing manual/human origin stays the most reliable source.
-- **Schema:** the same schema as the regular file, `driver_spec.schema.json` (John, 2026-10-11: "the human and AI files should match the schema for the regular file"). A human decision is written as the regular file writes a reading, with its source given as `human`; there is no second schema.
+- **Schema:** the same schema as the regular file (John, 2026-10-11: "the human and AI files should match the schema for the regular file"). A human decision is written as the regular file writes a reading, with its source given as `human`; there is no second schema.
 - **Triage link:** a triage item marked as needing a human decision (section 4a), such as an Unclassified driver, is resolved by writing a decision here. The next run then applies it and no longer reports that item.
 - **Stale decisions:** a decision that no longer matches its record (the field has gone, or the reading it names has changed) is reported in triage, never silently dropped.
 
