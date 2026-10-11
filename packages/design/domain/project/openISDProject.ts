@@ -163,9 +163,10 @@ export class OpenISDProject {
     }
 
     /** How many units of the embedded driver this project's array uses, and how they're wired
-     *  together — array-level facts, not facts about the driver itself (John 2026-09-06). */
-    get nDrivers(): SimpleField<number> {
-        return focus(this.#slot('driverEmbedding'), 'nDrivers');
+     *  together — array-level facts, not facts about the driver itself (John 2026-09-06). A clear
+     *  goes back to one driver (John, 2026-10-09). */
+    get nDrivers(): SimpleField<number> & Clearable {
+        return defaultedField(focus(this.#slot('driverEmbedding'), 'nDrivers'), 1);
     }
 
     get wiring(): SimpleField<'series' | 'parallel'> {

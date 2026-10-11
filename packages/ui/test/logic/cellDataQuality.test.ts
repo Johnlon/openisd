@@ -16,14 +16,15 @@ function createCompleteProject() {
 
 describe('cellDataQuality', () => {
   describe('dqOfCell — a field that is entered or absent, never calculated', () => {
-    it('E while a value is entered, N once cleared; dq passes through', () => {
+    it('N while never entered, E once a value is entered; dq passes through', () => {
       const {project} = createCompleteProject();
       const width = project.box.vented.vent.width_m;
+      // A cleared port width settles to the driver's Dd (John, 2026-10-09), so absent is reached
+      // by never entering it, not by clearing.
+      expect(dqOfCell(width)).toEqual({dq: [], dqState: 'N'});
+
       width.set(0.05);
       expect(dqOfCell(width)).toEqual({dq: [], dqState: 'E'});
-
-      width.clear();
-      expect(dqOfCell(width)).toEqual({dq: [], dqState: 'N'});
     });
   });
 

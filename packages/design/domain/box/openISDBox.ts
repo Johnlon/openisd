@@ -1,6 +1,6 @@
 import {type Engine} from '../../engine/index.js';
 import type { Air, BoxType, DqIssue, VentedAlignment } from '../../engine/index.js';
-import { CalculatedFieldImpl, absentCell, calculatedCell, entryField, focus, nullableField, pairedField, simpleField } from '../cell.js';
+import { CalculatedFieldImpl, absentCell, calculatedCell, defaultedField, entryField, focus, nullableField, pairedField, simpleField } from '../cell.js';
 import type { Clearable, Entered, Precise, Readable, SimpleField, Writable } from '../cell.js';
 import type { SealedLosses } from '../losses.js';
 import { WINISD_BOX_LOSSES } from '../boxDefaults.js';
@@ -166,6 +166,13 @@ export class OpenISDBox implements Box {
         // air-models.md). Every vent/PR window below reads this same closure rather than each
         // computing its own reference-condition fallback.
 
+        // Every port, in any box type, settles a cleared dimension to the starting port rather
+        // than going blank (John, 2026-10-09).
+        const ventStart: VentStart = {
+            geometry: (vent) => startVentGeometry(vent, driver.specs.Dd_m.value),
+            slotWidth_m: () => startSlotWidth(driver.specs.Dd_m.value),
+        };
+
         const sealedLens = focus(lens, 'sealed');
         const sealedVolume = nullableField(sealedLens, 'volume_m3', (v) => engine.issues.requiredPositiveIssue('Box volume', v, 'alignment'));
         const sealedLosses = new SealedLossesWindow(focus(sealedLens, 'losses'));
@@ -202,11 +209,7 @@ export class OpenISDBox implements Box {
         const ventedTuningField = pairedField((entry) => commitVentedPair(entry, undefined), ventedTuningEntry, { siblingEmpty: () => ventedLengthField.value === null, settle: settleVentedPair });
         const ventedLengthField = pairedField((entry) => commitVentedPair(undefined, entry), ventedLengthEntry, { siblingEmpty: () => ventedTuningField.value === null, settle: settleVentedPair });
         // A cleared port dimension settles to the starting port (John, 2026-10-09).
-        const ventedStart: VentStart = {
-            geometry: (vent) => startVentGeometry(vent, driver.specs.Dd_m.value),
-            slotWidth_m: () => startSlotWidth(driver.specs.Dd_m.value),
-        };
-        const ventWindow = new VentWindow(ventedVentLens, engine.vent, air, ventedLengthField, ventedStart);
+        const ventWindow = new VentWindow(ventedVentLens, engine.vent, air, ventedLengthField, ventStart);
         this.vented = {
             // The plausibility mark is computed at READ time, not stored: a mandatory volume field
             // has no `setDq` for a resolve to write through, and the band it is judged against is an
@@ -242,7 +245,7 @@ export class OpenISDBox implements Box {
             });
         };
         const bp4FrontPair = ventTuningPair(commitBp4FrontPair, bp4FrontTuningEntry, bp4FrontLengthEntry);
-        const bp4FrontVent = new VentWindow(bp4FrontVentLens, engine.vent, air, bp4FrontPair.length);
+        const bp4FrontVent = new VentWindow(bp4FrontVentLens, engine.vent, air, bp4FrontPair.length, ventStart);
         this.bandpass4 = {
             chambers: {
                 // rear is SEALED — no port, so no `vents.rear`, and a read-only calculated
@@ -303,8 +306,8 @@ export class OpenISDBox implements Box {
                 front: new VentedChamberWindow(bp6Front, bp6FrontPair.tuning, 'Front chamber volume', engine.issues),
             },
             vents: {
-                rear: new VentWindow(bp6RearVent, engine.vent, air, bp6RearPair.length),
-                front: new VentWindow(bp6FrontVent, engine.vent, air, bp6FrontPair.length),
+                rear: new VentWindow(bp6RearVent, engine.vent, air, bp6RearPair.length, ventStart),
+                front: new VentWindow(bp6FrontVent, engine.vent, air, bp6FrontPair.length, ventStart),
             },
             Qiclfr: focus(bp6, 'Qiclfr'),
         };
@@ -331,9 +334,9 @@ export class OpenISDBox implements Box {
             // connecting port between the chambers — owned by neither, which is why it sits here and
             // not inside a chamber.
             vents: {
-                rear: new VentWindow(abcRearVent, engine.vent, air, abcRearPair.length),
-                front: new VentWindow(abcFrontVent, engine.vent, air, abcFrontPair.length),
-                intra: new VentWindow(focus(abc, 'intraVent'), engine.vent, air),
+                rear: new VentWindow(abcRearVent, engine.vent, air, abcRearPair.length, ventStart),
+                front: new VentWindow(abcFrontVent, engine.vent, air, abcFrontPair.length, ventStart),
+                intra: new VentWindow(focus(abc, 'intraVent'), engine.vent, air, undefined, ventStart),
             },
             Qiclfr: focus(abc, 'Qiclfr'),
         };
@@ -362,7 +365,8 @@ export class OpenISDBox implements Box {
         this.passiveRadiator = {
             volume_m3: prVolume,
             tuning_goal_hz: prTuningField,
-            count: focus(pr, 'count'),
+            // A cleared count goes back to one radiator (John, 2026-10-09).
+            count: defaultedField(focus(pr, 'count'), 1),
             addedMass_kg: prAddedMassField,
             losses: new SealedLossesWindow(focus(pr, 'losses')),
             // The embedded radiator adopts the chosen one — a radiator reading another radiator's
