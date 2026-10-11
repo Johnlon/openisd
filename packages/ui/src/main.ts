@@ -29,7 +29,7 @@ import {DesignFiles} from './logic/fileImportExport.js';
 import {DriverDrafts} from './logic/driverDraft.js';
 import {provideApp} from './logic/app.js';
 import {appContext, engine, installAppSettings, NoFocusedProjectError} from './logic/appState.js';
-import {createDevVersionPort, createAppVersionPort} from './logic/appVersion.js';
+import {createDevVersionPort, createAppVersionPort, type HotUpdateSource} from './logic/appVersion.js';
 import type {LocalTimeParts, ToLocalTime} from '@openisd/design/fields';
 import '@fontsource/inter/400.css';
 import '@fontsource/inter/600.css';
@@ -124,7 +124,8 @@ const releaseSessionStorage: SessionStorageLike = {
 
 // Logger for release watch (avoids direct console in logic)
 const releaseLogger: Logger = {
-  log: (msg: string) => console.error(msg),
+  // eslint-disable-next-line no-console
+  log: (msg: string) => console.info(msg),
 };
 
 // The running build's version is baked in at build time; a dev server has none, which turns the
@@ -154,9 +155,16 @@ const toLocalTime: ToLocalTime = (epochMs: number): LocalTimeParts => {
   };
 };
 
+// Hot update source: on dev server (where import.meta.hot exists), re-fetch version on vite:afterUpdate.
+const hotUpdateSource: HotUpdateSource = {
+  onUpdate: (listener: () => void) => {
+    import.meta.hot?.on('vite:afterUpdate', listener);
+  },
+};
+
 // App version port: in dev mode fetch from /dev-version.json, in production use baked version.
 const devPort = isDev ? createDevVersionPort(import.meta.env.BASE_URL, fetch) : null;
-const appVersion = createAppVersionPort(isDev, typeof bakedVersion === 'string' ? bakedVersion : '', devPort, toLocalTime);
+const appVersion = createAppVersionPort(isDev, typeof bakedVersion === 'string' ? bakedVersion : '', devPort, toLocalTime, hotUpdateSource);
 
 const app = createApp(App)
   .directive('expo-step', vExpoStep)

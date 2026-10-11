@@ -286,12 +286,9 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   function closeDropdown() { openDd.value = null; }
   function onDocClick() { closeDropdown(); }
 
-  // ---- Toolbar version — shared source from appVersion port, formatted by design.
+  // ---- Toolbar version — shared reactive source from appVersion port, formatted by design.
   const { appVersion } = useApp();
-  const version = ref('');
-  onMounted(async () => {
-    version.value = await appVersion.getVersionLabel();
-  });
+  const version = appVersion.label;
 
   // Fire the fixup fill the FIRST time a project is available — at mount when one is already
   // open, or when one arrives LATER on a project-less boot (an auto-restored save, a File →

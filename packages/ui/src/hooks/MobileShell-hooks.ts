@@ -135,11 +135,7 @@ export function useMobileShell(): MobileShellApi {
   const { showEnclosureTab, enclosureNavLabel } =
     createSelectedBox({ focusedProject, projectChanged, isSimulatable: boxTypeIsSimulatable });
 
-  // App version — shared source from appVersion port, formatted by design.
-  const appVersionLabel = ref('');
-  onMounted(async () => {
-    appVersionLabel.value = await appVersion.getVersionLabel();
-  });
+
 
   const fileInput = ref<HTMLInputElement | null>(null);
   function openImportedFile(e: Event): void {
@@ -319,7 +315,7 @@ export function useMobileShell(): MobileShellApi {
     projectOpen, projectTitle, destination, fileInput, openImportedFile, openNewProject, switchToDesktop,
     menuOpen, toggleMenu, closeMenu, exportProjectsArchive: () => designIO.exportProjectsArchive(), openFromDisk, isModified,
     saveProject, saveAllProjects, anyUnsaved, updateBannerVisible, reloadForUpdate, dismissUpdateBanner, revertProject, browseDrivers, optionsOpen, openOptions, about, goToProject,
-    contentEl, canScrollUp, canScrollDown, updateScrollEdges, username, appVersion: appVersionLabel,
+    contentEl, canScrollUp, canScrollDown, updateScrollEdges, username, appVersion: appVersion.label,
     goToAdvanced, pane, closePane, viewportHeightPx, showEnclosureTab, enclosureNavLabel,
     openDialogOpen, storedProjects, storeLabel: projectRepo.storeLabel, openProjectDialog, openStoredProject,
     openProjectRows, selectOpenProject, setOpenProjectTraceVisible, cycleOpenProjectColour, closeOpenProject,

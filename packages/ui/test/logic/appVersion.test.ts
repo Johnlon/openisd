@@ -1,6 +1,32 @@
 import {describe, expect, it, vi} from 'vitest';
-import type {DevVersionPort} from '../../src/logic/appVersion.js';
+import type {DevVersionPort, HotUpdateSource, DevAppVersion} from '../../src/logic/appVersion.js';
 import {parseDevVersion, createPublishedVersion, createDevVersionPort, createAppVersionPort} from '../../src/logic/appVersion.js';
+import type {ToLocalTime} from '@openisd/design/fields';
+
+const testLocalTime: ToLocalTime = (epochMs: number) => {
+  const d = new Date(epochMs);
+  return {
+    monthIndex: d.getMonth(),
+    day: d.getDate(),
+    hour: d.getHours(),
+    minute: d.getMinutes(),
+  };
+};
+
+function createFakeHotUpdateSource(): {
+  source: HotUpdateSource;
+  fire: () => Promise<void>;
+} {
+  const listeners: (() => void)[] = [];
+  return {
+    source: {
+      onUpdate: (listener) => { listeners.push(listener); },
+    },
+    fire: async () => {
+      for (const l of listeners) l();
+    },
+  };
+}
 
 function createFakeDevPort(overrides: Partial<DevVersionPort> = {}): DevVersionPort {
   return {
@@ -54,12 +80,10 @@ describe('AppVersion sum type', () => {
 describe('DevVersionPort', () => {
   it('fetchDevVersion returns parsed version on success', async () => {
     const port = createFakeDevPort({
-      fetchDevVersion: () => Promise.resolve({ sha: '5a3f9c1', hasChanges: false }),
+      fetchDevVersion: () => Promise.resolve({ kind: 'dev', sha: '5a3f9c1', hasChanges: false }),
     });
-    const raw = await port.fetchDevVersion();
-    expect(raw).toEqual({ sha: '5a3f9c1', hasChanges: false });
-    const parsed = parseDevVersion(raw);
-    expect(parsed).toEqual({ kind: 'dev', sha: '5a3f9c1', hasChanges: false });
+    const dev = await port.fetchDevVersion();
+    expect(dev).toEqual({ kind: 'dev', sha: '5a3f9c1', hasChanges: false });
   });
 
   it('fetchDevVersion returns null on failure', async () => {
@@ -68,8 +92,6 @@ describe('DevVersionPort', () => {
     });
     const raw = await port.fetchDevVersion();
     expect(raw).toBeNull();
-    const parsed = parseDevVersion(raw);
-    expect(parsed).toEqual({ kind: 'unknown' });
   });
 
   it('fetchDevVersion handles network error', async () => {
@@ -81,11 +103,11 @@ describe('DevVersionPort', () => {
 });
 
 describe('createDevVersionPort', () => {
-  it('fetches dev version from baseUrl', async () => {
+  it('fetches dev version from baseUrl and parses at boundary', async () => {
     const fetchFn = vi.fn<typeof fetch>(() => Promise.resolve(new Response(JSON.stringify({ sha: 'abc123', hasChanges: true }))));
     const port = createDevVersionPort('/base/', fetchFn);
     const result = await port.fetchDevVersion();
-    expect(result).toEqual({ sha: 'abc123', hasChanges: true });
+    expect(result).toEqual({ kind: 'dev', sha: 'abc123', hasChanges: true });
     expect(fetchFn).toHaveBeenCalledWith('/base/dev-version.json', { cache: 'no-store' });
   });
 
@@ -114,15 +136,15 @@ describe('createDevVersionPort', () => {
 describe('createAppVersionPort', () => {
   it('returns dev version in dev mode', async () => {
     const devPort: DevVersionPort = {
-      fetchDevVersion: () => Promise.resolve({ sha: '5a3f9c1', hasChanges: false }),
+      fetchDevVersion: () => Promise.resolve({ kind: 'dev', sha: '5a3f9c1', hasChanges: false }),
     };
-    const port = createAppVersionPort(true, '', devPort);
+    const port = createAppVersionPort(true, '', devPort, testLocalTime);
     const version = await port.getVersion();
     expect(version).toEqual({ kind: 'dev', sha: '5a3f9c1', hasChanges: false });
   });
 
   it('returns unknown in dev mode when devPort is null', async () => {
-    const port = createAppVersionPort(true, '', null);
+    const port = createAppVersionPort(true, '', null, testLocalTime);
     const version = await port.getVersion();
     expect(version).toEqual({ kind: 'unknown' });
   });
@@ -131,33 +153,33 @@ describe('createAppVersionPort', () => {
     const devPort: DevVersionPort = {
       fetchDevVersion: () => Promise.resolve(null),
     };
-    const port = createAppVersionPort(true, '', devPort);
+    const port = createAppVersionPort(true, '', devPort, testLocalTime);
     const version = await port.getVersion();
     expect(version).toEqual({ kind: 'unknown' });
   });
 
   it('returns published version in production mode', async () => {
-    const port = createAppVersionPort(false, 'v20261010T123456Z', null);
+    const port = createAppVersionPort(false, 'v20261010T123456Z', null, testLocalTime);
     const version = await port.getVersion();
     expect(version).toEqual({ kind: 'published', version: 'v20261010T123456Z' });
   });
 
   it('returns unknown in production mode when baked version is empty', async () => {
-    const port = createAppVersionPort(false, '', null);
+    const port = createAppVersionPort(false, '', null, testLocalTime);
     const version = await port.getVersion();
     expect(version).toEqual({ kind: 'unknown' });
   });
 
   it('returns formatted label in dev mode', async () => {
     const devPort: DevVersionPort = {
-      fetchDevVersion: () => Promise.resolve({ sha: '5a3f9c1', hasChanges: true }),
+      fetchDevVersion: () => Promise.resolve({ kind: 'dev', sha: '5a3f9c1', hasChanges: true }),
     };
-    const port = createAppVersionPort(true, '', devPort);
+    const port = createAppVersionPort(true, '', devPort, testLocalTime);
     expect(await port.getVersionLabel()).toBe('dev 5a3f9c1 + changes');
   });
 
   it('returns formatted label in production mode using supplied toLocalTime', async () => {
-    const fakeUtcZero = (epochMs: number) => {
+    const fakeUtcZero: ToLocalTime = (epochMs: number) => {
       const d = new Date(epochMs);
       return {
         monthIndex: d.getUTCMonth(),
@@ -171,7 +193,60 @@ describe('createAppVersionPort', () => {
   });
 
   it('returns unparseable version verbatim in getVersionLabel', async () => {
-    const port = createAppVersionPort(false, 'custom-version', null);
+    const port = createAppVersionPort(false, 'custom-version', null, testLocalTime);
     expect(await port.getVersionLabel()).toBe('custom-version');
+  });
+
+  it('updates reactive label on hot update in dev mode', async () => {
+    const hotSource = createFakeHotUpdateSource();
+    let currentDev = { kind: 'dev' as const, sha: 'aaa', hasChanges: false };
+    const devPort: DevVersionPort = {
+      fetchDevVersion: vi.fn(() => Promise.resolve(currentDev)),
+    };
+    const port = createAppVersionPort(true, '', devPort, testLocalTime, hotSource.source);
+
+    // Initial fetch produces "dev aaa"
+    await port.getVersionLabel();
+    expect(port.label.value).toBe('dev aaa');
+
+    // Change dev version to sha "bbb" and fire hot update
+    currentDev = { kind: 'dev', sha: 'bbb', hasChanges: false };
+    await hotSource.fire();
+    expect(port.label.value).toBe('dev bbb');
+
+    // Flip hasChanges to true and fire hot update
+    currentDev = { kind: 'dev', sha: 'bbb', hasChanges: true };
+    await hotSource.fire();
+    expect(port.label.value).toBe('dev bbb + changes');
+  });
+
+  it('never refetches in a published build even if hot update fires', async () => {
+    const hotSource = createFakeHotUpdateSource();
+    const devPort: DevVersionPort = {
+      fetchDevVersion: vi.fn((): Promise<DevAppVersion | null> => Promise.resolve({ kind: 'dev', sha: 'ccc', hasChanges: false })),
+    };
+    const port = createAppVersionPort(false, 'v20261009T234100Z', devPort, testLocalTime, hotSource.source);
+    expect(port.label.value).toBe(await port.getVersionLabel());
+    expect(devPort.fetchDevVersion).not.toHaveBeenCalled();
+
+    await hotSource.fire();
+    expect(devPort.fetchDevVersion).not.toHaveBeenCalled();
+  });
+
+  it('keeps previous label on fetch failure during refresh rather than flashing unknown', async () => {
+    const hotSource = createFakeHotUpdateSource();
+    let result: DevAppVersion | null = { kind: 'dev', sha: 'bbb', hasChanges: true };
+    const devPort: DevVersionPort = {
+      fetchDevVersion: vi.fn((): Promise<DevAppVersion | null> => Promise.resolve(result)),
+    };
+    const port = createAppVersionPort(true, '', devPort, testLocalTime, hotSource.source);
+
+    await port.getVersionLabel();
+    expect(port.label.value).toBe('dev bbb + changes');
+
+    // Simulate transient failure during refresh
+    result = null;
+    await hotSource.fire();
+    expect(port.label.value).toBe('dev bbb + changes');
   });
 });

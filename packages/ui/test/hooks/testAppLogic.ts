@@ -34,6 +34,10 @@ import {createAppVersionPort} from '../../src/logic/appVersion.js';
 
 const CATALOGUE_MAX_AGE_MS = 60 * 60 * 1000;
 const unusedFetch: typeof fetch = () => Promise.reject(new Error('fetch not used in this test'));
+const testLocalTime = (epochMs: number) => {
+  const d = new Date(epochMs);
+  return { monthIndex: d.getMonth(), day: d.getDate(), hour: d.getHours(), minute: d.getMinutes() };
+};
 
 export function testAppLogic(overrides: Partial<AppLogic> = {}): AppLogic {
   const engine = createEngine();
@@ -77,7 +81,7 @@ export function testAppLogic(overrides: Partial<AppLogic> = {}): AppLogic {
       getDismissedVersion: () => null,
       recordDismissedVersion: () => {},
     }, { log: () => {} }),
-    appVersion: createAppVersionPort(false, '', null),
+    appVersion: createAppVersionPort(false, '', null, testLocalTime),
   };
   return Object.assign({}, base, overrides);
 }
