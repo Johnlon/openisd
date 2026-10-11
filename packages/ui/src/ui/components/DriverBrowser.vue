@@ -75,7 +75,7 @@ watch(() => presentationState.browseOpen, val => { if (!val) pickDriver(null); }
         <span class="x" @click="close" title="Close the driver library browser">✕</span>
       </h2>
       <div class="body">
-        <DriverLibrary />
+        <DriverLibrary host="manage" />
       </div>
     </div>
   </div>

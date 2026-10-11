@@ -12,9 +12,13 @@ import {DriverFileFormat} from '../../fileFormat.js';
 //
 // `showName`: the overlay puts the summarised driver's name in its own title bar; a host with
 // no title bar asks for it inline above the summary.
-// `hostFooter`: the host (the New Project wizard, both skins) draws the page's own buttons, so the summary shows
-// no Use/Cancel pair of its own.
-const props = defineProps<{ showName?: boolean; hostFooter?: boolean }>();
+// `host`: 'manage' (the driver manager: DriverBrowser overlay and MobileManageDriversTab)
+// or 'pick' (step 1 of the New Project wizard, both skins). 'pick' hides the summary's
+// Edit and Clone driver buttons, and suppresses the summary's own Cancel/Use footer
+// (the host wizard draws its own Back/Next/Cancel navigation).
+export type DriverLibraryHost = 'manage' | 'pick';
+
+const props = defineProps<{ showName?: boolean; host: DriverLibraryHost }>();
 
 const { driverBrowsing, selection } = useApp();
 const { openNewDriver } = selection;
@@ -241,9 +245,9 @@ onMounted(openedLibrary);
             <button class="fav-btn" :class="{ on: isFavorite(driverId(previewDriver)) }"
                     :title="isFavorite(driverId(previewDriver)) ? 'Remove from favourites' : 'Add to favourites'"
                     @click="toggleFavorite(driverId(previewDriver))">{{ isFavorite(driverId(previewDriver)) ? '★' : '☆' }}</button>
-            <button class="clone-btn" @click="cloneDriver(previewDriver)"
+            <button v-if="props.host === 'manage'" class="clone-btn" @click="cloneDriver(previewDriver)"
                     title="Copy this driver into My Drivers as &quot;Copy of …&quot; — an independent driver you can then edit">Clone driver</button>
-            <button class="edit-btn" @click="editOverviewDriver(previewDriver)"
+            <button v-if="props.host === 'manage'" class="edit-btn" @click="editOverviewDriver(previewDriver)"
                     title="Edit this driver's parameters — saving will add or update in My Drivers">Edit</button>
           </div>
           <div class="prev-body">
@@ -291,7 +295,7 @@ onMounted(openedLibrary);
           </div>
           <!-- The primary action sits at the bottom, under the specs it commits (John, 2026-09-24).
                Cancel sits beside it — the pane's two exits belong together (John, 2026-09-24). -->
-          <div v-if="!props.hostFooter" class="prev-footer">
+          <div v-if="props.host === 'manage'" class="prev-footer">
             <button class="cancel-btn" @click="pickDriver(null)"
                     title="Back to the driver list — nothing is changed">Cancel</button>
             <button class="use-btn" @click="chooseDriver(previewDriver)"

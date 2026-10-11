@@ -129,7 +129,7 @@ function handleCreate() {
 
         <!-- Step 1: the driver library itself (Q1). A row summarises; the footer's Next chooses it. -->
         <div v-if="step === 1" class="step-content">
-          <DriverLibrary class="np-library" show-name host-footer />
+          <DriverLibrary class="np-library" show-name host="pick" />
         </div>
 
         <!-- Step 2: Driver count & placement -->

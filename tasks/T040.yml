@@ -1,0 +1,15 @@
+id: T040
+repo: openisd
+owner: lots
+status: open
+goal: The new-project wizard's step 1 shows no Edit and no Clone driver button on either skin; the driver manager keeps both (John, 11 Oct 2026).
+done_test: bash scripts/test.sh packages/ui/test/ui/new-project-step1-driver-buttons.browser.spec.ts
+files:
+  - packages/ui/src/ui/components/DriverLibrary.vue
+  - packages/ui/src/ui/components/DriverBrowser.vue
+  - packages/ui/src/ui/shells/mobile/MobileManageDriversTab.vue
+  - packages/ui/src/ui/shells/mobile/MobileNewProject.vue
+  - packages/ui/src/ui/shells/original/OriginalNewProject.vue
+  - packages/ui/test/ui/**
+  - bugs/BUG_20261011_wizard-step1-edit-clone-buttons.md
+  - tasks/T040.yml

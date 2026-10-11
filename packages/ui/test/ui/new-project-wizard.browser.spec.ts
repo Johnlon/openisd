@@ -104,7 +104,8 @@ test.describe('New Project wizard', () => {
       await expect(footerNext(page)).toBeEnabled();
       await expect(modal.getByRole('button', { name: 'Use', exact: true })).toHaveCount(0);
       await expect(modal.getByRole('button', { name: 'Cancel', exact: true })).toHaveCount(1);
-      await expect(modal.getByRole('button', { name: 'Clone driver' })).toBeVisible();
+      await expect(modal.getByRole('button', { name: 'Clone driver' })).toHaveCount(0);
+      await expect(modal.getByRole('button', { name: 'Edit', exact: true })).toHaveCount(0);
       expect(await background(footerNext(page))).toMatch(GREEN_FILL);
       expect(await background(footer(page).getByRole('button', { name: 'Cancel' }))).not.toMatch(GREEN_FILL);
 
