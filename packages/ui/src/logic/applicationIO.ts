@@ -307,7 +307,7 @@ export function createApplicationIO(deps: { engine: Engine; logging: Logging; fi
           } catch { /* not json */ }
 
           if (isArchive) {
-            const result = parseProjectsArchive(text, deps.engine);
+            const result = parseProjectsArchive(text, projectText => deps.projectRepo.readProjectText(projectText));
             if (result.kind === 'failed') {
               throw new Error(result.reason);
             }

@@ -1,5 +1,4 @@
-import type {Engine} from '../../engine/index.js';
-import {OpenISDProject} from './openISDProject.js';
+import type {OpenISDProject} from './openISDProject.js';
 
 export interface ProjectArchive {
   version: 1;
@@ -31,7 +30,9 @@ export function buildProjectsArchive(projects: readonly OpenISDProject[]): strin
   return JSON.stringify(archive);
 }
 
-export function parseProjectsArchive(bytes: Uint8Array | string, engine: Engine): ArchiveParseResult {
+/** `readProject` reads one project's `.owpr` text the way a single `.owpr` file is read (schema
+ *  upgrades and repairs included), so a project in an archive is treated exactly like one on its own. */
+export function parseProjectsArchive(bytes: Uint8Array | string, readProject: (text: string) => OpenISDProject | string[]): ArchiveParseResult {
   let text = '';
   if (typeof bytes === 'string') {
     text = bytes;
@@ -63,7 +64,7 @@ export function parseProjectsArchive(bytes: Uint8Array | string, engine: Engine)
   
   const projects: OpenISDProject[] = [];
   for (const p of parsed.projects) {
-    const proj = OpenISDProject.fromOwprText(p.text, engine);
+    const proj = readProject(p.text);
     if (Array.isArray(proj)) {
       return { kind: 'failed', reason: `could not parse a project: ${proj[0]}` };
     }

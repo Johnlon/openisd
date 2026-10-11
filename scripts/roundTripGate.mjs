@@ -60,6 +60,10 @@ function isTolerableCalculatedDrift(a, b) {
  */
 export function firstDivergence(a, b, path = '$') {
   if (a === b) return null;
+  // A record written before QT84 holds its one role as a bare string; the reader upgrades it to a
+  // one-role list. That is the one accepted upgrade, not loss: the same role, in the new shape.
+  if (path.endsWith('.driver_type.value') && typeof a === 'string'
+      && Array.isArray(b) && b.length === 1 && b[0] === a) return null;
   if (typeof a !== typeof b) return `${path} (type ${typeof a} vs ${typeof b})`;
   if (a == null || b == null) return `${path} (${JSON.stringify(a)} vs ${JSON.stringify(b)})`;
   if (typeof a !== 'object') return `${path} (${JSON.stringify(a)} vs ${JSON.stringify(b)})`;

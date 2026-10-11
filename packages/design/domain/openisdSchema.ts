@@ -314,9 +314,12 @@ const bookkeepingFieldOf = <T extends z.ZodType>(value: T) => z.strictObject({
 const textField = scrapedFieldOf(z.string());
 
 /** A driver's roles: one or more, each once (`DriverRoles`, winisd_tools QT84). The scraper stores
- *  them in `DriverType` declaration order, so one record has one canonical list. */
+ *  them in `DriverType` declaration order, so one record has one canonical list. A record written
+ *  before QT84 holds one role as a bare string; it reads as a one-role list (repair, never refuse:
+ *  the whole corpus and every stored project still carry the string). */
 const driverRolesField = scrapedFieldOf(
-    z.string().array().min(1).refine(roles => new Set(roles).size === roles.length, {message: 'a role appears twice'}),
+    z.union([z.string().transform(role => [role]), z.string().array()])
+        .pipe(z.string().array().min(1).refine(roles => new Set(roles).size === roles.length, {message: 'a role appears twice'})),
 );
 
 /** Every category the manufacturer publishes the driver under, each with its listing page URL. */

@@ -50,8 +50,10 @@ describe('driver_type roles — schema', () => {
     assert.ok('problems' in OpenISDDeviceJson.fromDriverYmlRecord(withRoles(['woofer', 'woofer'])));
   });
 
-  it('refuses the old single-string form', () => {
-    assert.ok('problems' in OpenISDDeviceJson.fromDriverYmlRecord(withRoles('woofer')));
+  it('reads the old single-string form as a one-role list (the corpus still holds it; repair, never refuse)', () => {
+    const parsed = OpenISDDeviceJson.fromDriverYmlRecord(withRoles('woofer'));
+    assert.ok('json' in parsed, JSON.stringify(parsed));
+    assert.deepEqual(parsed.json.driver_type.value, ['woofer']);
   });
 });
 
