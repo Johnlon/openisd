@@ -5,6 +5,7 @@ status: open
 goal: No script under openisd uses a fixed name directly under /tmp. Every lock, queue and reservation dir is one shared fixed dir under ${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/openisd/, set in ONE sourced file (scripts/paths.sh) that every script reads; scripts that rely on the caller's cwd cd to the repo root. Proven end-to-end in a scratch repo with two concurrent runs.
 done_test: bash scripts/land/test/runtime-paths.test.sh
 files:
+  - scripts/land.sh
   - scripts/paths.sh
   - land.conf
   - scripts/hooks-local/heavy-gate-concurrency.sh
