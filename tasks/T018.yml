@@ -2,7 +2,7 @@ id: T018
 repo: openisd
 owner: bob
 status: open
-goal: The reading picker follows John's rule (2026-08-30, "impossible - exclude / majority - wins / otherwise precedence"); Rejected readings are dropped first, majority means more than half of the surviving readings (2/1/1 falls to precedence), and selectOrigin.ts's doc comment is the one statement of the rule.
+goal: The reading picker follows John's rule (2026-08-30, "impossible - exclude / majority - wins / otherwise precedence"); Rejected readings are dropped first, majority means more than half of the surviving readings (2/1/1 falls to precedence), and selectOrigin.ts's doc comment is the one statement of the rule. When every reading is impossible or rejected, no reading wins: the field gets no value, and the comment records every value seen and why each was rejected (John 2026-10-11, "field gets no value and project comment encodes the values seen and rejected"); the old fall-backs (impossible, then rejected) are removed.
 done_test: bash scripts/test.sh packages/design/test/domain/selectOrigin.test.ts
 files:
   - packages/design/domain/selectOrigin.ts
