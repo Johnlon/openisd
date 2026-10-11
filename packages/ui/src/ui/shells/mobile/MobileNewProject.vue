@@ -124,7 +124,7 @@ function handleCreate() {
 
       <!-- Step 1: driver library -->
       <div v-if="step === 1" class="step-content mob-np-library-wrap">
-        <DriverLibrary class="mob-np-library" show-name host-footer />
+        <DriverLibrary class="mob-np-library" show-name host="pick" />
       </div>
 
       <!-- Step 2: Driver count & placement -->

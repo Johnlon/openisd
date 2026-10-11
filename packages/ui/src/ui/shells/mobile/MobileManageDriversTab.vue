@@ -11,7 +11,7 @@ useMobileManageDriversTab(() => emit('chosen'));
 
 <template>
   <div class="mob-drivers-wrap">
-    <DriverLibrary class="mob-drivers-library" show-name />
+    <DriverLibrary class="mob-drivers-library" show-name host="manage" />
   </div>
 </template>
 
