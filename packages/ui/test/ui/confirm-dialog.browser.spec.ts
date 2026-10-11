@@ -4,7 +4,7 @@ test.describe('In-app confirm dialog', () => {
   test.describe('Original skin', () => {
     test.beforeEach(async ({ page }) => {
       await page.goto('/');
-      await page.waitForSelector('.original-root');
+      await expect(page.locator('.original-root')).toBeVisible();
     });
 
     test('Revert prompt shows in-app dialog with Discard/Keep buttons', async ({ page }) => {
@@ -68,7 +68,7 @@ test.describe('In-app confirm dialog', () => {
         localStorage.setItem('openisd_skinOverride', 'mobile');
       });
       await page.reload();
-      await page.waitForSelector('.mobile-root');
+      await expect(page.locator('.mobile-root')).toBeVisible();
     });
 
     test('Revert prompt shows in-app dialog with Discard/Keep buttons', async ({ page }) => {
@@ -76,7 +76,7 @@ test.describe('In-app confirm dialog', () => {
       await page.locator('.mob-menu-button').click();
       await page.locator('.mob-menu-item', { hasText: 'Open a file' }).click();
       await page.locator('input[type="file"]').setInputFiles('packages/ui/test/fixtures/sample-project.owpr');
-      await page.waitForSelector('.mobile-root');
+      await expect(page.locator('.mobile-root')).toBeVisible();
 
       await page.locator('.mob-menu-button').click();
       await page.locator('.mob-menu-item', { hasText: 'Project details' }).click();

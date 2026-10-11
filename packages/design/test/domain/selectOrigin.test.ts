@@ -12,7 +12,7 @@ describe('selectOrigin — which source wins a field, four tiers', () => {
       distributor_datasheet: {read_value: 40},
     };
     const isPlausible = (_field: string, value: number) => value !== 999999;
-    expect(selectOrigin(readings, 'Fs_hz', isPlausible)).toEqual({kind: 'winner', role: 'distributor_datasheet'});
+    expect(selectOrigin(readings, 'Fs_hz', isPlausible)).toMatchObject({kind: 'winner', role: 'distributor_datasheet'});
   });
 
   it('rejected dropped: a rejected reading never wins over a usable one, whatever its rank', () => {
@@ -20,7 +20,7 @@ describe('selectOrigin — which source wins a field, four tiers', () => {
       manufacturer_datasheet: {actual_reading: 'N/A', rejected: 'no-numeric-value'},
       manual: {read_value: 41},
     };
-    expect(selectOrigin(readings, 'Fs_hz', alwaysPlausible)).toEqual({kind: 'winner', role: 'manual'});
+    expect(selectOrigin(readings, 'Fs_hz', alwaysPlausible)).toMatchObject({kind: 'winner', role: 'manual'});
   });
 
   it('3 readings 2 agree -> majority wins over rank', () => {
@@ -29,7 +29,7 @@ describe('selectOrigin — which source wins a field, four tiers', () => {
       distributor_datasheet: {read_value: 41},
       distributor_product_page: {read_value: 41},
     };
-    expect(selectOrigin(readings, 'Fs_hz', alwaysPlausible)).toEqual({kind: 'winner', role: 'distributor_datasheet'});
+    expect(selectOrigin(readings, 'Fs_hz', alwaysPlausible)).toMatchObject({kind: 'winner', role: 'distributor_datasheet'});
   });
 
   it('2/1/1 -> falls to rank (2 of 4 is not more than half)', () => {
@@ -39,7 +39,7 @@ describe('selectOrigin — which source wins a field, four tiers', () => {
       distributor_product_page: {read_value: 42},
       manual: {read_value: 43},
     };
-    expect(selectOrigin(readings, 'Fs_hz', alwaysPlausible)).toEqual({kind: 'winner', role: 'manufacturer_product_page'});
+    expect(selectOrigin(readings, 'Fs_hz', alwaysPlausible)).toMatchObject({kind: 'winner', role: 'manufacturer_product_page'});
   });
 
   it('4 survivors 2/2 -> rank (neither value has strict majority)', () => {
@@ -49,7 +49,7 @@ describe('selectOrigin — which source wins a field, four tiers', () => {
       distributor_product_page: {read_value: 42},
       manual: {read_value: 42},
     };
-    expect(selectOrigin(readings, 'Fs_hz', alwaysPlausible)).toEqual({kind: 'winner', role: 'manufacturer_product_page'});
+    expect(selectOrigin(readings, 'Fs_hz', alwaysPlausible)).toMatchObject({kind: 'winner', role: 'manufacturer_product_page'});
   });
 
   it('5 survivors 3/1/1 -> majority (3 of 5 is more than half)', () => {
@@ -60,12 +60,12 @@ describe('selectOrigin — which source wins a field, four tiers', () => {
       distributor_listing_page: {read_value: 41},
       manual: {read_value: 42},
     };
-    expect(selectOrigin(readings, 'Fs_hz', alwaysPlausible)).toEqual({kind: 'winner', role: 'distributor_datasheet'});
+    expect(selectOrigin(readings, 'Fs_hz', alwaysPlausible)).toMatchObject({kind: 'winner', role: 'distributor_datasheet'});
   });
 
   it('one survivor -> it wins', () => {
     const readings = {manual: {read_value: 40}};
-    expect(selectOrigin(readings, 'Fs_hz', alwaysPlausible)).toEqual({kind: 'winner', role: 'manual'});
+    expect(selectOrigin(readings, 'Fs_hz', alwaysPlausible)).toMatchObject({kind: 'winner', role: 'manual'});
   });
 
   it('all impossible -> none (old fallbacks deleted)', () => {
@@ -98,7 +98,7 @@ describe('selectOrigin — which source wins a field, four tiers', () => {
       manufacturer_product_page: {read_value: 41},
       manufacturer_datasheet: {read_value: 40},
     };
-    expect(selectOrigin(readings, 'Fs_hz', alwaysPlausible)).toEqual({kind: 'winner', role: 'manufacturer_datasheet'});
+    expect(selectOrigin(readings, 'Fs_hz', alwaysPlausible)).toMatchObject({kind: 'winner', role: 'manufacturer_datasheet'});
   });
 
   it('tie-break: equal rank (both unranked) sorts alphabetically on role name', () => {
@@ -106,6 +106,6 @@ describe('selectOrigin — which source wins a field, four tiers', () => {
       beta_role: {read_value: 41},
       alpha_role: {read_value: 40},
     };
-    expect(selectOrigin(readings, 'Fs_hz', alwaysPlausible)).toEqual({kind: 'winner', role: 'alpha_role'});
+    expect(selectOrigin(readings, 'Fs_hz', alwaysPlausible)).toMatchObject({kind: 'winner', role: 'alpha_role'});
   });
 });

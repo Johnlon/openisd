@@ -858,10 +858,7 @@ export class WinIsdDriverConverter {
         return notAvailable;
       }
       case "winner": {
-        const winner = readings[originResult.role];
-        if (!isUsable(winner)) {
-          throw new Error(`winning reading ${originResult.role} must be usable`);
-        }
+        const winner = originResult.reading;
         const projected: Record<string, unknown> = {
           state: "E",
           value: winner.read_value,

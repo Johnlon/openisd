@@ -21,10 +21,11 @@
  *   selectOrigin returns `{kind: 'none'}`.
  */
 import {isUsable, type Reading} from './corroboration.js';
+import type {UsableReadingJson} from './openisdSchema.js';
 import {sourceRank} from './sourceRank.js';
 
 export type OriginResult =
-  | { readonly kind: 'winner'; readonly role: string }
+  | { readonly kind: 'winner'; readonly role: string; readonly reading: UsableReadingJson }
   | { readonly kind: 'none' };
 
 type RoleReading = readonly [string, Reading];
@@ -45,8 +46,8 @@ export function selectOrigin(
 ): OriginResult {
   const ranked = Object.entries(readings).sort(byRankThenRole);
 
-  const survivors = ranked.filter(
-    ([, r]) => isUsable(r) && isPlausible(field, r.read_value)
+  const survivors = ranked.flatMap(([role, r]): (readonly [string, UsableReadingJson])[] =>
+    isUsable(r) && isPlausible(field, r.read_value) ? [[role, r]] : []
   );
 
   if (survivors.length === 0) {
@@ -54,17 +55,16 @@ export function selectOrigin(
   }
 
   const counts = new Map<number, number>();
-  for (const [, r] of survivors) {
-    if (isUsable(r)) counts.set(r.read_value, (counts.get(r.read_value) ?? 0) + 1);
-  }
+  for (const [, r] of survivors) counts.set(r.read_value, (counts.get(r.read_value) ?? 0) + 1);
 
   const majorityThreshold = survivors.length / 2;
   for (const [val, count] of counts.entries()) {
     if (count > majorityThreshold) {
-      const agreed = survivors.find(([, r]) => isUsable(r) && r.read_value === val);
-      if (agreed) return { kind: 'winner', role: agreed[0] };
+      const agreed = survivors.find(([, r]) => r.read_value === val);
+      if (agreed) return { kind: 'winner', role: agreed[0], reading: agreed[1] };
     }
   }
 
-  return { kind: 'winner', role: survivors[0][0] };
+  const [role, reading] = survivors[0];
+  return { kind: 'winner', role, reading };
 }
