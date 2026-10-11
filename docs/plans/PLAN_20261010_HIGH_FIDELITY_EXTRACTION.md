@@ -52,7 +52,7 @@ John, 2026-10-11: "all values in the driver need provenance so we still have man
 - **What it holds:** decisions on the driver's outcome. Examples: a field's value, a role list, "this reading is right" or "this one is wrong", "not a driver". Each decision gives who made it, when, and why.
 - **Rank:** a decision overrides everything else. That covers the scraper's readings, openisd's interpretation and picker, the Fs role bands and any triage verdict. The bridge applies it last.
 - **Provenance:** every value in `openisd.json` names its source. A value set by a decision names `human` as its source; the existing manual/human origin stays the most reliable source.
-- **Schema:** its own strict, versioned JSON Schema, kept beside `driver_spec.schema.json` under the same rules (one source, generated models, unknown fields refused).
+- **Schema:** the same schema as the regular file, `driver_spec.schema.json` (John, 2026-10-11: "the human and AI files should match the schema for the regular file"). A human decision is written as the regular file writes a reading, with its source given as `human`; there is no second schema.
 - **Triage link:** a triage item marked as needing a human decision (section 4a), such as an Unclassified driver, is resolved by writing a decision here. The next run then applies it and no longer reports that item.
 - **Stale decisions:** a decision that no longer matches its record (the field has gone, or the reading it names has changed) is reported in triage, never silently dropped.
 
@@ -154,6 +154,7 @@ Later work, not part of this plan's work (John, 2026-10-11: "this is a later fea
 John, 2026-10-11: "driver_ai.md which is the manual ai review opinion and override mech, if human and ai disagree on a field then human wins BUT ai review must report any such conflict for a decision, outcome of decisions can be recorded in driver_decision.md which is read during ai manual review to explain to ai reviewer why human made a decision".
 
 - **`driver_ai.md`:** the AI reviewer's opinion on the driver (section 4a), and its overrides. Only the AI review step writes it.
+- **Schema:** the AI overrides use the regular file's schema too, with their source given as `ai` (John, 2026-10-11). The file name is settled when this work starts.
 - **Order of authority, highest first:**
   1. `driver_human.json`;
   2. `driver_ai.md`;
