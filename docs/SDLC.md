@@ -174,6 +174,28 @@ R8 has no gate. The policy already stands (Claude sessions brief, review, land; 
 work). S6's timebox and S7's token log make the cost visible per task; a token budget per task
 (`budget:` in the task file, `blocked` when exceeded) is in SDLC_DESIGN.md and needs John's numbers.
 
+### S9 — unit tests load their unit once, and the runner stops paying npx (John, 11 Oct: "unit tests should take milliseconds") — to build, effort S
+
+- Facts (11 Oct, box at load 20): the full unit run is 2280 s for 373 files, vitest's split import
+  69 %, tests 22 %, transform 8 % (maryu). One 5-test file: 5.5–9.6 s inside vitest, 16.6 s wall
+  through `scripts/test.sh`. `npx vitest --version` 7.9 s; `node_modules/.bin/vitest --version`
+  2.3 s. 438 test-file imports name a barrel (`engine/index.js` 164, `@openisd/design/engine` 115,
+  `domain/index.js` 105, `@openisd/design` 54) and `domain/index.ts` re-exports the engine, so every
+  isolated worker reloads and re-transforms the whole graph per file.
+- Not done: tests importing leaf modules. John's ruling of 27 Aug 2026 (engine has one door, tests
+  are not an exception) and `architecture-engine-boundary.test.ts` forbid it.
+- What, A: `isolate: false` for the `design` and `persistence` projects in `vitest.config.ts`
+  (pure node, no DOM); a worker loads the graph once. With it `unstubGlobals: true` and
+  `restoreMocks: true`: 13 files use `vi.stubGlobal`, two never unstub. Proof: one full unit run
+  green, and its duration against 2280 s.
+- What, B: a script already inside heavy.slice (`unit-changed.sh`, `lint-changed.sh`,
+  `post-land/suite.sh`, `quiet-test.sh`, `test.sh`) calls `node_modules/.bin/<tool>` instead of
+  `npx <tool>`: the funnel has already admitted it, npx adds ~5 s and resolves nothing. 18 call
+  sites. Proof: the land e2e and the one-file timing.
+- Stops: 38 min unit runs; a landing gate that waits 15 min for the unit half; "unit" tests that
+  are integration runs by cost.
+- Owner: fable. After maryu's green push (no sweeps before it).
+
 ## Ready to brief now
 
 | Order | Task | Effort | Unblocks |
@@ -187,6 +209,7 @@ work). S6's timebox and S7's token log make the cost visible per task; a token b
 | 6 | S7 counter, queue, event log | S | id clashes, order churn, measurement |
 | 7 | S5 remaining rows: config sandbox; main-folder gate; `new-worktree.sh` based on local main | S each | per-session stops; John typing `rm` |
 | 8 | S8 green tag deploy | S | needs John's ruling |
+| 9 | S9 unit tests load once, no npx in the funnel | S | 38 min unit runs; slow landing gate |
 
 ## Register — evidence only
 
