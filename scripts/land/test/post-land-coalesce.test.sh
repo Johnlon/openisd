@@ -42,35 +42,41 @@ green() { cat "$SCRATCH/post.lock.green" 2>/dev/null; }
 start() { timeout 120 bash scripts/land/post-land/run.sh "$1" > "$SCRATCH/out.$2" 2>&1; echo $? > "$SCRATCH/rc.$2"; }
 await_line() { timeout 30 tail -n +1 -f "$2" 2> /dev/null | grep -q -m1 -- "$1"; }  # file $2 shows line $1 (bounded)
 
-# 1. run A holds the lock; B and C queue; A ends: B is superseded by C, only A and C ran the suite
+# 1. run A holds the lock on an older commit; B arrives and KILLS it (SDLC S2); C arrives while B
+#    waits, so B is superseded by C. Only C's suite completes; A's was stopped; green = latest.
 setup; a=$(commit_push one HOLD)
 start "$a" a & pa=$!
 await_line holding "$SUITE_LOG/holding" 2> /dev/null || true
 b=$(commit_push two); c=$(commit_push three)
-start "$b" b & pb=$!; await_line "waiting for another post-land run" "$SCRATCH/out.b"
-start "$c" c & pc=$!; await_line "waiting for another post-land run" "$SCRATCH/out.c"
-: > "$SUITE_LOG/unhold"
-wait $pa $pb $pc
+start "$b" b & pb=$!; await_line "killed the run on ${a:0:10}" "$SCRATCH/out.b"
+wait $pa
+start "$c" c & pc=$!
+wait $pb $pc
 ran=$(tr '\n' ' ' < "$SUITE_LOG/ran")
-if [ "$ran" = "$a $c " ] && [ "$(cat "$SCRATCH/rc.b")" = 0 ] && grep -q "superseded by ${c:0:10}" "$SCRATCH/out.b" \
+if [ "$ran" = "$a $c " ] && [ "$(cat "$SCRATCH/rc.a")" = 0 ] && grep -q "superseded by ${b:0:10}; killed" "$SCRATCH/out.a" \
+   && [ "$(cat "$SCRATCH/rc.b")" = 0 ] && grep -q "superseded by ${c:0:10}" "$SCRATCH/out.b" \
    && [ "$(green)" = "$c" ]; then
-    ok "the middle run is superseded by the latest; green = latest"
-else fail "coalesce (ran='$ran' rc.b=$(cat "$SCRATCH/rc.b") green=$(green | cut -c1-8)): $(tr '\n' ' ' < "$SCRATCH/out.b" | cut -c1-160)"; fi
+    ok "a run on an older commit is killed by the next; the waiting middle run is superseded; green = latest"
+else fail "coalesce (ran='$ran' rc.a=$(cat "$SCRATCH/rc.a") rc.b=$(cat "$SCRATCH/rc.b") green=$(green | cut -c1-8)): a: $(tr '\n' ' ' < "$SCRATCH/out.a" | cut -c1-160) b: $(tr '\n' ' ' < "$SCRATCH/out.b" | cut -c1-160)"; fi
 
-# 2. the same, with the latest red: the fixes task names every commit since the last green
-setup; a=$(commit_push one HOLD)
-start "$a" a & pa=$!
-await_line holding "$SUITE_LOG/holding" 2> /dev/null || true
+# 2. the latest is red: the fixes task names every commit since the last green and has an owner and the failing spec
+setup; a=$(commit_push one); start "$a" a
 b=$(commit_push two); c=$(commit_push three FAIL)
-start "$b" b & pb=$!; await_line "waiting for another post-land run" "$SCRATCH/out.b"
-start "$c" c & pc=$!; await_line "waiting for another post-land run" "$SCRATCH/out.c"
-: > "$SUITE_LOG/unhold"
-wait $pa $pb $pc
+start "$c" c
 git -C "$SCRATCH/w/c" pull -q origin main
 f=$(grep -l "sha: $c" "$SCRATCH"/w/c/tasks/fixes/F*.yml 2> /dev/null | head -1)
-if [ -n "$f" ] && grep -q "${b:0:10}" "$f" && grep -q "${c:0:10}" "$f" && [ "$(green)" = "$a" ] && [ "$(cat "$SCRATCH/rc.c")" = 1 ]; then
-    ok "red on the latest: F task lists the skipped commit and the latest; green stays at the last green"
+if [ -n "$f" ] && grep -q "${b:0:10}" "$f" && grep -q "${c:0:10}" "$f" && [ "$(green)" = "$a" ] && [ "$(cat "$SCRATCH/rc.c")" = 1 ] \
+   && grep -q '^owner: t$' "$f" && grep -A2 '^failing:' "$f" | grep -q broken.spec.ts; then
+    ok "red on the latest: F lists every commit since the last green, names the owner and the failing spec"
 else fail "red range (f=$f green=$(green | cut -c1-8) rc.c=$(cat "$SCRATCH/rc.c"))"; fi
+
+# 2b. a second red while that F is open is appended to it: one F per fault, never a second F
+d=$(commit_push four FAIL); start "$d" d
+git -C "$SCRATCH/w/c" pull -q origin main
+nf=$(ls "$SCRATCH"/w/c/tasks/fixes/F*.yml | wc -l)
+if [ "$nf" = 1 ] && grep -q "sha: $d" "$f" && grep -q '^also_red:' "$f" && [ "$(cat "$SCRATCH/rc.d")" = 1 ]; then
+    ok "a red while an F is open is appended to that F"
+else fail "append to open F (files=$nf)"; fi
 
 # 3. a lone run (nothing newer waiting) still runs its own sha
 setup; s=$(commit_push solo)
