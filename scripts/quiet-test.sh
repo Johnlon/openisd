@@ -16,6 +16,12 @@ if [ "$#" -eq 0 ]; then
 fi
 
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
+# Targeted runs and gates take no heavy lane (T044): enter heavy.slice directly so ~/bin/npx
+# skips the lane queue. Only --slow runs (scripts/admit.sh) wait for a turn.
+case "$(cat /proc/self/cgroup 2>/dev/null)" in
+  *heavy.slice*) ;;
+  *) exec bash scripts/heavy.sh bash "${BASH_SOURCE[0]}" "$@" ;;
+esac
 LOG_DIR="${QUIET_LOG_DIR:-build/test-logs}"
 mkdir -p "$LOG_DIR"
 LOG="$LOG_DIR/$(date +%Y%m%d-%H%M%S)-$$.log"

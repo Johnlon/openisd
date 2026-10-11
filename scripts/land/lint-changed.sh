@@ -6,6 +6,12 @@ set -uo pipefail
 
 cd "$(dirname "${BASH_SOURCE[0]}")/../.." || exit 1
 
+# A gate takes no heavy lane (T044): enter heavy.slice directly so ~/bin/npx skips the lane queue.
+case "$(cat /proc/self/cgroup 2>/dev/null)" in
+  *heavy.slice*) ;;
+  *) exec bash scripts/heavy.sh bash "${BASH_SOURCE[0]}" "$@" ;;
+esac
+
 files=()
 for f in "$@"; do
   case "$f" in

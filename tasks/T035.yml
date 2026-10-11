@@ -23,3 +23,5 @@ files:
   - scripts/land/post-land/suite.sh
   - docs/DEV_PROCESS.md
   - tasks/T035.yml
+  - scripts/quiet-test.sh
+  - scripts/land/test/heavy-no-lane.test.sh
