@@ -1,6 +1,8 @@
 # SDLC — every failure made impossible by a tool
 
 John, 11 Oct 2026: "write this up as an SDLC with tooling to enforce it as I have no trust in you,
+
+The system that enforces all of this, tools only: [SDLC_DESIGN.md](SDLC_DESIGN.md).
 review all your failures and make sure every one of them is impossible in future"; "include all
 failure and strong solution using tools that agents cannot ignore or screw up".
 
