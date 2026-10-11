@@ -81,13 +81,11 @@ EOF
 pwd > "$SUITE_LOG/cwd.$$"
 echo start >> "$SUITE_LOG/seq"
 trap 'echo end >> "$SUITE_LOG/seq"' EXIT
-# HOLD mechanism: if $SUITE_LOG/HOLD exists, wait for unhold signal
-if [ -f "$SUITE_LOG/HOLD" ]; then
-    : > "$SUITE_LOG/holding"
-    for _ in $(seq 1 300); do
-        [ -f "$SUITE_LOG/unhold" ] && break
-        sleep 0.1
-    done
+# ENTERED signal: when the test made a fifo, tell it the suite is running, then stay in the suite
+# long enough for a second run to contend for the lock.
+if [ -p "$SUITE_LOG/entered.fifo" ]; then
+    echo up > "$SUITE_LOG/entered.fifo"
+    sleep 3
 fi
 [ -f FAIL ] && { echo "spec broken.spec.ts failed"; exit 1; }
 date +%s%N >> "$SUITE_LOG/runs"; exit 0
@@ -201,23 +199,16 @@ cd "$SCRATCH/w/seed"
 echo "commit one" >> a.txt; git add a.txt; git commit -qm "commit one"; git push -q origin main; s1=$(git rev-parse HEAD)
 echo "commit two" >> b.txt; git add b.txt; git commit -qm "commit two"; git push -q origin main; s2=$(git rev-parse HEAD)
 
-# Start first post-land run with HOLD to ensure it enters suite and pauses before second starts
-: > "$SUITE_LOG/HOLD"
+# Start the first post-land run, wait (blocking, bounded) until its suite signals on the fifo, then
+# start the second so it contends for the lock while the first is inside the suite.
+mkfifo "$SUITE_LOG/entered.fifo"
 post "$s1" a & pp1=$!
-# Wait for first to enter suite and pause (holding file appears), bounded wait checking pid alive
-deadline=$(($(date +%s) + 10))
-while [ ! -f "$SUITE_LOG/holding" ]; do
-    kill -0 "$pp1" 2>/dev/null || { fail "post-land serialised: first run died before suite hold"; break; }
-    [ $(date +%s) -lt "$deadline" ] || { fail "post-land serialised: timed out waiting for first run to hold"; break; }
-    sleep 0.1
-done
-# Start second run
+timeout 10 cat "$SUITE_LOG/entered.fifo" > /dev/null || fail "post-land serialised: first run never entered the suite"
+rm -f "$SUITE_LOG/entered.fifo"
 post "$s2" b & pp2=$!
-# Release the hold
-: > "$SUITE_LOG/unhold"
 wait $pp1; rp1=$?
 wait $pp2; rp2=$?
-rm -f "$SUITE_LOG/HOLD" "$SUITE_LOG/holding" "$SUITE_LOG/unhold"
+rm -f "$SUITE_LOG/entered.fifo"
 
 # Verify both exit 0, seq shows no overlap (start end start end OR start end if coalesced), at least one run executed
 seq=$(tr '\n' ' ' < "$SUITE_LOG/seq" 2>/dev/null || echo "")

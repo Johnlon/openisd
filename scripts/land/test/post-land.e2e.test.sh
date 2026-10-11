@@ -40,7 +40,7 @@ setup() {
 pwd > "$SUITE_LOG/cwd.$$"; echo start >> "$SUITE_LOG/seq"; trap 'echo end >> "$SUITE_LOG/seq"' EXIT
 [ -f FAIL ] && { echo "spec broken.spec.ts failed"; exit 1; }
 if [ -f ONCE ] && [ ! -f "$SUITE_LOG/once.done" ]; then touch "$SUITE_LOG/once.done"; echo "spec flaky.spec.ts failed"; exit 1; fi
-[ -f SLOW ] && sleep 3
+if [ -f SLOW ]; then [ -p "$SUITE_LOG/entered.fifo" ] && echo up > "$SUITE_LOG/entered.fifo"; sleep 3; fi
 date +%s%N >> "$SUITE_LOG/runs"; exit 0
 EOF
     cat > land.conf <<EOF
@@ -75,18 +75,13 @@ if [ $r = 1 ] && [ "$(release)" = "$before" ] && [ ! -f "$SUITE_LOG/runs" ]; the
     ok "flake is red, no rerun"; else fail "flake (r=$r)"; fi
 
 # 4. two post-land runs do not overlap (serialised, no coalesce because first completes before second waits)
-setup; s1=$(commit_push four); s2=$(commit_push five)
-touch SLOW
+setup; s1=$(commit_push four SLOW); s2=$(commit_push five)
+# wait (blocking, bounded) for the first run's suite to signal on the fifo, then start the second
+mkfifo "$SUITE_LOG/entered.fifo"
 post "$s1" a & p1=$!
-# wait for first to enter suite (seq shows "start"), with bounded wait checking pid is alive
-deadline=$(($(date +%s) + 10))
-while ! grep -q '^start$' "$SUITE_LOG/seq" 2>/dev/null; do
-    kill -0 "$p1" 2>/dev/null || { fail "serialised: first run died before suite start"; break; }
-    [ $(date +%s) -lt "$deadline" ] || { fail "serialised: timed out waiting for first run to start suite"; break; }
-    sleep 0.1
-done
+timeout 10 cat "$SUITE_LOG/entered.fifo" > /dev/null || fail "serialised: first run never entered the suite"
+rm -f "$SUITE_LOG/entered.fifo"
 post "$s2" b & p2=$!; wait $p1; wait $p2
-rm -f SLOW
 n=$(ls "$SUITE_LOG"/cwd.* 2>/dev/null | wc -l)
 seq=$(tr '\n' ' ' < "$SUITE_LOG/seq")
 if [ "$n" = 2 ] && [ "$seq" = "start end start end " ] && [ "$(green)" = "$s2" ] && ! grep -q . <(ls "$SCRATCH/copies" 2>/dev/null); then
