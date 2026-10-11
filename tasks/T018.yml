@@ -7,5 +7,12 @@ done_test: bash scripts/test.sh packages/design/test/domain/selectOrigin.test.ts
 files:
   - packages/design/domain/selectOrigin.ts
   - packages/design/test/domain/selectOrigin.test.ts
+  - packages/design/domain/winIsdDriverConverter.ts
+  - packages/design/domain/corroboration.ts
+  - packages/design/domain/sourceRank.ts
+  - packages/design/test/winisd/**
+  - packages/design/test/domain/driver-record.test.ts
+  - packages/design/test/domain/corroboration.test.ts
+  - docs/FIELD_REFERENCE.md
   - tasks/T018.yml
 needs: [T017]
