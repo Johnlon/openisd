@@ -95,8 +95,9 @@ describe('OpenISDProject sweep guards', () => {
 
     it('ventAchievedFb/ventMaxReachableFb answer not-available while the vent geometry is unstated', () => {
       const p = project('vented');
-      // `build()` gave the vent its 50 mm starting diameter; this test is about no geometry at all.
-      p.box.vented.vent.diameter_m.clear();
+      // `build()` gave the vent its 50 mm starting diameter, and a cleared diameter settles back to
+      // it; this test is about no geometry at all, so the vent is a slot with no dimensions.
+      p.box.vented.vent.shape.set('slotted');
 
       expect(p.ventAchievedFb.value).toBeNull();
       expect(p.ventMaxReachableFb.value).toBeNull();

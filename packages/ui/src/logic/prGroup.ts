@@ -27,7 +27,7 @@ export function enterPrField(p: OpenISDProject, field: PrField, value: number): 
   suspendVentSolve(() => p.box.passiveRadiator[field].set(value));
 }
 
-/** Clear a PR-group field — it becomes C if the other determines it, else N. */
+/** Clear a PR-group field — the domain settles the pair: added mass entered 0, tuning calculated. */
 export function clearPrField(p: OpenISDProject, field: PrField): void {
   suspendVentSolve(() => p.box.passiveRadiator[field].clear());
 }

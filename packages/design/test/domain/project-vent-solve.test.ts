@@ -66,9 +66,10 @@ describe('OpenISDProject vent solve', () => {
       p.notifyVentChanged();
       expect(p.box.vented.vent.length_m.calculated).toBe(true);
 
-      // Clear a required input (the vent's size). Clearing the tuning would instead fall back to
-      // the starting alignment (John, 2026-10-01), so the length would still solve.
-      p.box.vented.vent.diameter_m.clear();
+      // Take away a required input (the vent's size): a slot with no dimensions. Clearing the
+      // tuning would instead fall back to the starting alignment (John, 2026-10-01), and clearing
+      // the diameter to the 50 mm starting port (John, 2026-10-09), so the length would still solve.
+      p.box.vented.vent.shape.set('slotted');
       p.notifyVentChanged();
 
       // length_m should transition from C -> N (not-available)

@@ -37,12 +37,13 @@ test.describe('MobileEnclosureTab', () => {
     await expect(mobileFieldRow(page, 'Vent length').locator('input')).toHaveValue(/\d/);
   });
 
-  // bugs/BUG_20261005_no-common-ui-field-component.md: an emptied vent dimension clears, never stores 0.
-  test('an emptied vent diameter stays blank instead of becoming 0', async ({ page }) => {
+  // bugs/BUG_20261005_no-common-ui-field-component.md: an emptied vent dimension clears, never
+  // stores 0. A cleared diameter settles to the 50 mm starting port (John, 2026-10-09).
+  test('an emptied vent diameter settles to the starting port instead of becoming 0', async ({ page }) => {
     await page.locator('.mob-tab', { hasText: 'Vented' }).click();
     const diameter = page.locator('.ui-field', { hasText: 'Vent diameter' }).locator('input');
     await diameter.fill('');
     await diameter.blur();
-    await expect(diameter).toHaveValue('');
+    await expect(diameter).toHaveValue(/^5(\.0+)?$/);
   });
 });

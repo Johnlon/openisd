@@ -324,7 +324,7 @@ describe('OpenISDBox alignments', () => {
       p.box.vented.vent.count.set(2);
       expect(p.box.vented.vent.area_m2.value).toBeCloseTo(Math.PI * 0.05 ** 2, 12);
       expect(p.box.vented.vent.totalArea_m2()).toBeCloseTo(2 * Math.PI * 0.05 ** 2, 12);
-      p.box.vented.vent.diameter_m.clear();
+      p.box.vented.vent.shape.set('slotted');   // a slot with no dimensions stated
       expect(p.box.vented.vent.totalArea_m2()).toBeNull();
     });
 

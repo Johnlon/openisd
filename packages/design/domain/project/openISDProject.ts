@@ -2,8 +2,9 @@ import {type Engine} from '../../engine/index.js';
 import type { Air, AirEnvironment, BoxParamsIssue, ChartId, DriverError, Filter, MaxCurvesResult, MaxCurvesSolveResult, SweepResult, SweepSolveResult } from '../../engine/index.js';
 import { dateStamp, realAppContext } from '../appContext.js';
 import type { AppContext } from '../appContext.js';
-import { focus, simpleField } from '../cell.js';
+import { defaultedField, focus, simpleField } from '../cell.js';
 import type { Calculatable, Calculated, Clearable, Entered, Precise, Readable, SimpleField, Unsolvable, Writable } from '../cell.js';
+import { DEFAULT_SOURCE_RESISTANCE_OHM } from '../../fields/defaults.js';
 import { newUuid } from '../newUuid.js';
 import type { OpenISDProjectJson, OpenISDProjectSessionJson } from '../openisdSchema.js';
 import type { Box } from '../box/box.js';
@@ -162,9 +163,10 @@ export class OpenISDProject {
     }
 
     /** How many units of the embedded driver this project's array uses, and how they're wired
-     *  together — array-level facts, not facts about the driver itself (John 2026-09-06). */
-    get nDrivers(): SimpleField<number> {
-        return focus(this.#slot('driverEmbedding'), 'nDrivers');
+     *  together — array-level facts, not facts about the driver itself (John 2026-09-06). A clear
+     *  goes back to one driver (John, 2026-10-09). */
+    get nDrivers(): SimpleField<number> & Clearable {
+        return defaultedField(focus(this.#slot('driverEmbedding'), 'nDrivers'), 1);
     }
 
     get wiring(): SimpleField<'series' | 'parallel'> {
@@ -176,9 +178,10 @@ export class OpenISDProject {
         return focus(this.#slot('driverEmbedding'), 'vcTempRise_K');
     }
 
-    /** The amplifier's own source/output resistance loading this array. */
-    get Rs_ohm(): SimpleField<number> {
-        return focus(this.#slot('driverEmbedding'), 'Rs_ohm');
+    /** The amplifier's own source/output resistance loading this array. A clear goes back to
+     *  0.1 ohm (John, 2026-10-09). */
+    get Rs_ohm(): SimpleField<number> & Clearable {
+        return defaultedField(focus(this.#slot('driverEmbedding'), 'Rs_ohm'), DEFAULT_SOURCE_RESISTANCE_OHM);
     }
 
     /** Mass this project's array adds to the driver — its own hardware, not a fact about the

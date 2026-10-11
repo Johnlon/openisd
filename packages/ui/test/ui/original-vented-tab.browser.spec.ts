@@ -62,16 +62,21 @@ test.describe('Original Vented tab', () => {
       await expect(width).toHaveValue(/5/);
     });
 
-    // bugs/BUG_20261005_no-common-ui-field-component.md: an emptied box clears the value, never stores 0.
-    test('emptied vent dimensions stay blank instead of becoming 0', async ({ page }) => {
+    // bugs/BUG_20261005_no-common-ui-field-component.md: an emptied box clears the value, never
+    // stores 0. A cleared port dimension settles to the starting port (John, 2026-10-09): the
+    // diameter to the 50 mm round default, the slot width to the driver's Dd.
+    test('emptied vent dimensions settle to the starting port instead of becoming 0', async ({ page }) => {
       await page.locator('.project-nav li', { hasText: 'Vented' }).click();
       const diameter = page.locator('.ui-field', { hasText: 'Vent diameter' }).locator('input');
       await fillAndBlur(diameter, '');
-      await expect(diameter).toHaveValue('');
+      await expect(diameter).toHaveValue(/^5(\.0+)?$/);
       await page.locator('.field', { hasText: 'Shape' }).locator('select').selectOption('slotted');
       const width = page.locator('.ui-field', { hasText: 'Slot width' }).locator('input');
+      await fillAndBlur(width, '7');
+      await expect(width).toHaveValue(/7/);
       await fillAndBlur(width, '');
-      await expect(width).toHaveValue('');
+      await expect(width).not.toHaveValue('');
+      await expect(width).not.toHaveValue(/^0(\.0*)?$/);
     });
   });
 
