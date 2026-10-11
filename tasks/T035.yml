@@ -12,6 +12,7 @@ files:
   - scripts/admit/record.sh
   - scripts/land/test/admit-per-repo.test.sh
   - scripts/land/test/runtime-paths.test.sh
+  - scripts/land/test/runtime-paths-concurrent.e2e.test.sh
   - scripts/restore_matt_from_archive.py
   - scripts/slow-run/queue.sh
   - scripts/test-concurrency.sh

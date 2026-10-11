@@ -21,6 +21,7 @@ setup() {
     git config user.email t@t; git config user.name t
     mkdir -p scripts tasks/fixes; touch tasks/fixes/.keep
     cp -r "$REPO/scripts/land" scripts/
+    cp "$REPO/scripts/paths.sh" scripts/
     cat > suite.sh <<'EOF'
 #!/usr/bin/env bash
 echo "$(git rev-parse HEAD)" >> "$SUITE_LOG/ran"

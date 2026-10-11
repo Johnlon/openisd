@@ -41,6 +41,7 @@ setup() {
     mkdir -p scripts tasks/fixes gates
     cp "$REPO/scripts/land.sh" scripts/
     cp -r "$REPO/scripts/land" scripts/
+    cp "$REPO/scripts/paths.sh" scripts/
     cat > gates/lint.sh <<'EOF'
 #!/usr/bin/env bash
 printf '%s\n' "$@" > "$GATE_LOG/lint.args"

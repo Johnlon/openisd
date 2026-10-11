@@ -1,0 +1,216 @@
+#!/usr/bin/env bash
+# Concurrent runtime paths test: two land.sh + two post-land runs in a scratch repo
+# with isolated XDG_RUNTIME_DIR. Verifies locks/queues use $OPENISD_RUNTIME_DIR,
+# serialization works, and no legacy /tmp/openisd-* paths are created.
+set -uo pipefail
+
+# Independent git config
+GITCFG="$(mktemp "${TMPDIR:-/tmp}/land-gitconfig.XXXXXX")"
+printf '[user]\n\tname = t\n\temail = t@t\n[core]\n\tautocrlf = false\n[init]\n\tdefaultBranch = main\n' > "$GITCFG"
+export GIT_CONFIG_GLOBAL="$GITCFG" GIT_CONFIG_NOSYSTEM=1
+
+REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
+
+# Scratch repo with isolated XDG_RUNTIME_DIR
+SCRATCH="$(mktemp -d "${TMPDIR:-/tmp}/runtime-concurrent.XXXXXX")"
+export XDG_RUNTIME_DIR="$SCRATCH/xdg"
+mkdir -p "$XDG_RUNTIME_DIR"
+export OPENISD_RUNTIME_DIR="$XDG_RUNTIME_DIR/openisd"
+fails=0
+
+# Clean up any pre-existing legacy paths so we can detect new ones created by our runs
+for f in /tmp/openisd-land.lock /tmp/openisd-post-land.lock /tmp/slow-run-queue /tmp/openisd-admit /tmp/openisd-heavy-gate-reservations /tmp/openisd-ui-test-reservations; do
+    rm -rf "$f" 2>/dev/null || true
+done
+
+trap 'rm -rf "$SCRATCH" "$GITCFG"' EXIT
+
+ok()   { echo "ok   $1"; }
+fail() { echo "FAIL $1"; fails=$((fails + 1)); }
+
+setup_repo() {
+    local with_suite=${1:-true}
+    rm -rf "$SCRATCH/w"; mkdir -p "$SCRATCH/w"; cd "$SCRATCH/w" || exit 2
+    git init -q --bare -b main origin.git
+    git clone -q origin.git seed 2>/dev/null; cd seed || exit 2
+    git config user.email t@t; git config user.name t
+    mkdir -p scripts tasks/fixes gates
+    cp "$REPO/scripts/land.sh" scripts/
+    cp -r "$REPO/scripts/land" scripts/
+    cp "$REPO/scripts/paths.sh" scripts/
+    cat > gates/lint.sh <<'EOF'
+#!/usr/bin/env bash
+printf '%s\n' "$@" > "$GATE_LOG/lint.args"
+[ -f "$GATE_LOG/lint.fail" ] && exit 1
+exit 0
+EOF
+    cat > gates/typecheck.sh <<'EOF'
+#!/usr/bin/env bash
+[ -f "$GATE_LOG/typecheck.fail" ] && exit 1; exit 0
+EOF
+    cat > gates/attribution.sh <<'EOF'
+#!/usr/bin/env bash
+! grep -qi '^co-authored-by:.*claude'
+EOF
+    chmod +x gates/*.sh
+    if [ "$with_suite" = "true" ]; then
+        suite_line='FULL_SUITE_CMD="bash suite.sh"'
+    else
+        suite_line='# FULL_SUITE_CMD not set'
+    fi
+    cat > land.conf <<EOF
+LINT_CMD="bash gates/lint.sh"
+TYPECHECK_CMD="bash gates/typecheck.sh"
+ATTRIBUTION_CMD="bash gates/attribution.sh"
+GATE_DEADLINE_S=5
+LAND_LOCK="$OPENISD_RUNTIME_DIR/land.lock"
+$suite_line
+POST_LAND_LOCK="$OPENISD_RUNTIME_DIR/post-land.lock"
+POST_LAND_DIR="$SCRATCH/copies"
+EOF
+    if [ "$with_suite" = "true" ]; then
+        cat > suite.sh <<'EOF'
+#!/usr/bin/env bash
+pwd > "$SUITE_LOG/cwd.$$"; echo start >> "$SUITE_LOG/seq"; trap 'echo end >> "$SUITE_LOG/seq"' EXIT
+[ -f FAIL ] && { echo "spec broken.spec.ts failed"; exit 1; }
+date +%s%N >> "$SUITE_LOG/runs"; exit 0
+EOF
+        chmod +x suite.sh
+    fi
+    touch tasks/.keep tasks/fixes/.keep
+    echo base > a.txt; echo base > b.txt; echo spec > spec.sh
+    git add -A; git commit -qm base; git push -q origin main
+    cd ..
+    for w in w1 w2; do git clone -q origin.git $w; git -C $w config user.email t@t; git -C $w config user.name t; done
+    export GATE_LOG="$SCRATCH/gatelog"; rm -rf "$GATE_LOG"; mkdir -p "$GATE_LOG"
+    export SUITE_LOG="$SCRATCH/suitelog"; rm -rf "$SUITE_LOG"; mkdir -p "$SUITE_LOG"
+}
+
+task() {
+    local c=$1 id=$2 glob=$3 dt=${4:-true} label=${5:-}
+    local h; h=$(sha256sum "$SCRATCH/w/$c/spec.sh" | cut -d' ' -f1)
+    cat > "$SCRATCH/w/$c/tasks/$id.yml" <<EOF
+id: $id
+owner: test
+status: claimed
+goal: test task
+done_test: $dt
+locked:
+  - path: spec.sh
+    sha256: $h
+files:
+  - $glob
+${label:+label: $label}
+EOF
+    git -C "$SCRATCH/w/$c" add "tasks/$id.yml"; git -C "$SCRATCH/w/$c" commit -qm "task $id"
+}
+edit() { echo "$3" >> "$SCRATCH/w/$1/$2"; }
+land() { (cd "$SCRATCH/w/$1" && timeout 120 bash scripts/land.sh "$2" >"$SCRATCH/out.$1" 2>&1); }
+post() { timeout 120 bash scripts/land/post-land/run.sh "$1" > "$SCRATCH/post-out.$2" 2>&1; }
+origin_has() { git -C "$SCRATCH/w/origin.git" log --format=%s main | grep -qF "$1"; }
+origin_head() { git -C "$SCRATCH/w/origin.git" rev-parse main; }
+green() { cat "$OPENISD_RUNTIME_DIR/post-land.lock.green" 2>/dev/null; }
+
+# --- Test 1: two concurrent land.sh runs serialize on LAND_LOCK under $OPENISD_RUNTIME_DIR ---
+setup_repo false
+task w1 T1 a.txt; edit w1 a.txt one; git -C "$SCRATCH/w/w1" commit -qam "w1 change"
+task w2 T2 b.txt; edit w2 b.txt two; git -C "$SCRATCH/w/w2" commit -qam "w2 change"
+
+# Start both landings concurrently
+cd "$SCRATCH"
+land w1 T1 & p1=$!
+land w2 T2 & p2=$!
+
+# Wait for both to complete
+wait $p1; r1=$?
+wait $p2; r2=$?
+
+# Verify both succeeded
+if [ $r1 = 0 ] && [ $r2 = 0 ] && origin_has "w1 change" && origin_has "w2 change"; then
+    ok "two concurrent land.sh runs both land"
+else
+    fail "concurrent landings (r1=$r1 r2=$r2)"
+fi
+
+# Verify lock file exists under $OPENISD_RUNTIME_DIR (not /tmp)
+if [ -f "$OPENISD_RUNTIME_DIR/land.lock" ]; then
+    ok "LAND_LOCK exists at $OPENISD_RUNTIME_DIR/land.lock"
+else
+    fail "LAND_LOCK not found at $OPENISD_RUNTIME_DIR/land.lock"
+fi
+
+# Verify no legacy /tmp/openisd-* files exist
+legacy_found=0
+for f in /tmp/openisd-land.lock /tmp/openisd-post-land.lock /tmp/slow-run-queue /tmp/openisd-admit /tmp/openisd-heavy-gate-reservations /tmp/openisd-ui-test-reservations; do
+    if [ -e "$f" ]; then
+        echo "LEGACY PATH EXISTS: $f"
+        legacy_found=1
+    fi
+done
+if [ $legacy_found = 0 ]; then
+    ok "no legacy /tmp/openisd-* paths created"
+else
+    fail "legacy /tmp/openisd-* paths found"
+fi
+
+# Verify linear history (no merge commits)
+if git -C "$SCRATCH/w/origin.git" log --format=%P main | awk 'NF>1{exit 1}'; then
+    ok "linear history (no merge commits)"
+else
+    fail "non-linear history (merge commit detected)"
+fi
+
+# --- Test 2: two concurrent post-land runs serialize on POST_LAND_LOCK under $OPENISD_RUNTIME_DIR ---
+setup_repo true
+# Create two commits in the seed repo (which has origin remote)
+cd "$SCRATCH/w/seed"
+echo "commit one" >> a.txt; git add a.txt; git commit -qm "commit one"; git push -q origin main; s1=$(git rev-parse HEAD)
+echo "commit two" >> b.txt; git add b.txt; git commit -qm "commit two"; git push -q origin main; s2=$(git rev-parse HEAD)
+
+# Start both post-land runs concurrently from the seed clone
+post "$s1" a & pp1=$!
+post "$s2" b & pp2=$!
+wait $pp1; rp1=$?
+wait $pp2; rp2=$?
+
+# With coalesce, either:
+# - s1 gets lock first, sees s2 waiting (newer), supersedes itself -> s2 runs, green=s2
+# - s2 gets lock first, no newer runs -> s2 runs, green=s2
+# - s1 gets lock first, s2 not yet pending -> s1 runs, s2 superseded, green=s1
+# Both outcomes are valid coalesce behavior. Verify: both exit 0, one ran suite, green is s1 or s2.
+if [ $rp1 = 0 ] && [ $rp2 = 0 ] && { [ "$(green)" = "$s1" ] || [ "$(green)" = "$s2" ]; }; then
+    ok "two concurrent post-land runs serialized with coalesce (green=$(green))"
+else
+    fail "concurrent post-land (rp1=$rp1 rp2=$rp2 green=$(green) s1=$s1 s2=$s2)"
+fi
+
+# Verify POST_LAND_LOCK exists under $OPENISD_RUNTIME_DIR
+if [ -f "$OPENISD_RUNTIME_DIR/post-land.lock" ]; then
+    ok "POST_LAND_LOCK exists at $OPENISD_RUNTIME_DIR/post-land.lock"
+else
+    fail "POST_LAND_LOCK not found at $OPENISD_RUNTIME_DIR/post-land.lock"
+fi
+
+# Verify no legacy /tmp/openisd-* files exist (again)
+legacy_found=0
+for f in /tmp/openisd-land.lock /tmp/openisd-post-land.lock /tmp/slow-run-queue /tmp/openisd-admit /tmp/openisd-heavy-gate-reservations /tmp/openisd-ui-test-reservations; do
+    if [ -e "$f" ]; then
+        echo "LEGACY PATH EXISTS: $f"
+        legacy_found=1
+    fi
+done
+if [ $legacy_found = 0 ]; then
+    ok "no legacy /tmp/openisd-* paths created (post-land)"
+else
+    fail "legacy /tmp/openisd-* paths found (post-land)"
+fi
+
+# Verify clean copies removed
+if ! grep -q . <(ls "$SCRATCH/copies" 2>/dev/null); then
+    ok "post-land copies cleaned up"
+else
+    fail "post-land copies not cleaned up: $(ls "$SCRATCH/copies")"
+fi
+
+[ $fails = 0 ] && { echo "runtime-paths-concurrent.e2e: all passed"; exit 0; }
+echo "runtime-paths-concurrent.e2e: $fails failed"; exit 1

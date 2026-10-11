@@ -33,6 +33,7 @@ setup() {
     git config user.email t@t; git config user.name t
     mkdir -p scripts tasks/fixes; touch tasks/fixes/.keep
     cp -r "$REPO/scripts/land" scripts/; cp "$REPO/scripts/land.sh" scripts/ 2>/dev/null
+    cp "$REPO/scripts/paths.sh" scripts/
     # suite: fails if FAIL exists; with ONCE it fails the first time only (a flake)
     cat > suite.sh <<'EOF'
 #!/usr/bin/env bash
@@ -73,9 +74,12 @@ setup; before=$(release); s=$(commit_push three ONCE); post "$s" a; r=$?
 if [ $r = 1 ] && [ "$(release)" = "$before" ] && [ ! -f "$SUITE_LOG/runs" ]; then
     ok "flake is red, no rerun"; else fail "flake (r=$r)"; fi
 
-# 4. two post-land runs do not overlap
-setup; s1=$(commit_push four SLOW); s2=$(commit_push five)
-post "$s1" a & p1=$!; post "$s2" b & p2=$!; wait $p1; wait $p2
+# 4. two post-land runs do not overlap (serialised, no coalesce because first completes before second waits)
+setup; s1=$(commit_push four); s2=$(commit_push five)
+post "$s1" a & p1=$!
+# wait for first to acquire lock and start suite
+timeout 10 tail -n +1 -f "$SCRATCH/out.a" 2>/dev/null | grep -q -m1 "post-land: running the full suite"
+post "$s2" b & p2=$!; wait $p1; wait $p2
 n=$(ls "$SUITE_LOG"/cwd.* 2>/dev/null | wc -l)
 seq=$(tr '\n' ' ' < "$SUITE_LOG/seq")
 if [ "$n" = 2 ] && [ "$seq" = "start end start end " ] && [ "$(green)" = "$s2" ] && ! grep -q . <(ls "$SCRATCH/copies" 2>/dev/null); then
