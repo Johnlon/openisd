@@ -77,7 +77,7 @@ export { WinisdDifferenceSection, type WinisdDifferenceTone } from './winisdDiff
 /** The sealed-box loss model — a field's closed value set. */
 export { LOSSLESS_Q } from './losslessQ.js';
 
-export { formatCount, formatDate, formatDateTime, formatFixed, formatFixedOrDash } from './format.js';
+export { formatCount, formatDate, formatDateTime, formatFixed, formatFixedOrDash, parseBasicUtc } from './format.js';
 export { ReadoutFormat } from './readoutFormat.js';
 export { parseUnitRotation } from './unitRotation.js';
 export { spinValue, roundSpun, holdStage, HOLD_START_MS, spinStepAttr, shownSpinRule, decimalsSpinRule, type SpinRule, type SpinDirection, type SpinBounds, type SpinSpeed, type HoldStage } from './spinnerStep.js';

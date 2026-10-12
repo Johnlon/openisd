@@ -1,5 +1,6 @@
 import type {ComputedRef, InjectionKey, Ref} from 'vue';
 import {computed, inject, provide, ref, watch} from 'vue';
+import type {VersionsView} from '../logic/versionIndex.js';
 
 /** The persisted flag the splash reads and writes — a member of `presentationState.ui`, named
  *  here so the hook takes the narrow surface it uses rather than the whole presentation
@@ -21,6 +22,11 @@ export interface SplashCatalogue {
   passiveRadiatorCount(): Promise<number>;
 }
 
+/** The hosted builds, for the Versions list. Asked only when the splash is on screen. */
+export interface SplashVersions {
+  view(): Promise<VersionsView>;
+}
+
 export interface SplashModalAPI {
   readonly open: ComputedRef<boolean>;
   /** Bundled drivers, or null until the catalogue answers — and if it never does. A count the
@@ -28,6 +34,8 @@ export interface SplashModalAPI {
   readonly driverCount: Ref<number | null>;
   /** Bundled passive radiators, on the same terms as `driverCount`. */
   readonly passiveRadiatorCount: Ref<number | null>;
+  /** The Versions list; null until the list of hosted builds has been read. */
+  readonly versions: Ref<VersionsView | null>;
   /** Close it and record that it was seen — it stays shut on every later visit. */
   dismiss(): void;
   /** Open it again: the Info menu's "About OpenISD". */
@@ -45,16 +53,19 @@ export const SplashModalKey: InjectionKey<SplashModalAPI> = Symbol('SplashModalA
  * snapshotted at construction would show the splash to every returning visitor for the frame
  * before the restore, and never close on its own.
  */
-export function useSplashModal(state: SplashState, catalogue?: SplashCatalogue): SplashModalAPI {
+export function useSplashModal(state: SplashState, catalogue?: SplashCatalogue, builds?: SplashVersions): SplashModalAPI {
   const forced = ref(false);
   const open = computed(() => forced.value || state.ui.splashSeen !== true);
   const driverCount = ref<number | null>(null);
   const passiveRadiatorCount = ref<number | null>(null);
+  const versions = ref<VersionsView | null>(null);
 
   let asked = false;
   watch(open, isOpen => {
-    if (!isOpen || asked || catalogue === undefined) return;
+    if (!isOpen || asked) return;
     asked = true;
+    if (builds !== undefined) void builds.view().then(v => { versions.value = v; }, () => { /* no list, no section */ });
+    if (catalogue === undefined) return;
     void catalogue.driverCount().then(n => { driverCount.value = n; }, () => { /* no count, no sentence */ });
     void catalogue.passiveRadiatorCount().then(n => { passiveRadiatorCount.value = n; }, () => { /* as above */ });
   }, {immediate: true});
@@ -68,13 +79,13 @@ export function useSplashModal(state: SplashState, catalogue?: SplashCatalogue):
     forced.value = true;
   }
 
-  return {open, driverCount, passiveRadiatorCount, dismiss, show};
+  return {open, driverCount, passiveRadiatorCount, versions, dismiss, show};
 }
 
 /** Build the one splash the app has and hand it to every descendant. Called by the composition
  *  root (`App.vue`); the shell's Info menu and the modal itself both read that one instance. */
-export function provideSplashModal(state: SplashState, catalogue: SplashCatalogue): SplashModalAPI {
-  const api = useSplashModal(state, catalogue);
+export function provideSplashModal(state: SplashState, catalogue: SplashCatalogue, builds: SplashVersions): SplashModalAPI {
+  const api = useSplashModal(state, catalogue, builds);
   provide(SplashModalKey, api);
   return api;
 }

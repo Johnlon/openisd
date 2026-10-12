@@ -122,6 +122,7 @@ npm test           # the full test gate
 | [bugs/](bugs/)                                     | Known open bugs                                                       |
 | [TESTING_STRATEGY.md](TESTING_STRATEGY.md)         | How the app is tested                                                 |
 | [CONTRIBUTING.md](CONTRIBUTING.md)                 | How to contribute                                                     |
+| [RELEASES.md](RELEASES.md) · [RELEASING.md](RELEASING.md) | Every release, and how a release is made                       |
 | [DOCUMENTATION.md](DOCUMENTATION.md)               | Index of every other document                                         |
 
 ## Get involved

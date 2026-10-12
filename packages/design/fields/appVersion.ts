@@ -18,7 +18,7 @@ const MONTH_NAMES = [
   'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
 ] as const;
 
-const VERSION_REGEX = /^v?(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})Z$/;
+const VERSION_REGEX = /^v?(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})?Z$/;
 
 function parseUtcStampToEpochMs(version: string): number | null {
   const match = VERSION_REGEX.exec(version);
@@ -28,7 +28,7 @@ function parseUtcStampToEpochMs(version: string): number | null {
   const day = Number(match[3]);
   const hour = Number(match[4]);
   const minute = Number(match[5]);
-  const second = Number(match[6]);
+  const second = Number(match[6] ?? '00');
   if (month < 1 || month > 12 || day < 1 || day > 31 || hour > 23 || minute > 59 || second > 59) {
     return null;
   }

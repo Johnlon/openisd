@@ -238,7 +238,7 @@ describe('OriginalShell-hooks', () => {
       app.provide(APP_LOGIC, testAppLogic());
       app.provide(FOCUSED_PROJECT, computed(() => project));
       app.provide(SplashModalKey, {
-        open: computed(() => false), driverCount: ref(null), passiveRadiatorCount: ref(null),
+        open: computed(() => false), driverCount: ref(null), passiveRadiatorCount: ref(null), versions: ref(null),
         dismiss: () => undefined, show: () => undefined,
       });
       return app.runWithContext(() => useOriginalShell());

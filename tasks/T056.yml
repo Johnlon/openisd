@@ -29,6 +29,10 @@ done_test: |
   bash scripts/test.sh packages/ui/test/logic/versionIndex.test.ts
 files:
   - tasks/T056.yml
+  - RELEASES.md
+  - RELEASING.md
+  - README.md
+  - DOCUMENTATION.md
   - scripts/version-info.mjs
   - scripts/release.sh
   - scripts/land/test/release.test.sh

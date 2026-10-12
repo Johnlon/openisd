@@ -1,8 +1,11 @@
 name: deploy
 
+# Rebuilds the whole Pages site from the GitHub Releases and deploys it. Never runs on a push to
+# main by itself: build.yml calls it after a snapshot build, release.yml after a release changes.
+# scripts/hosting/assemble-site.sh does the work; this file only checks out, calls it and uploads.
 on:
-  push:
-    branches: [main]
+  workflow_call:
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -11,25 +14,27 @@ permissions:
 
 concurrency:
   group: pages
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
-  build:
+  assemble:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - run: npm install
-      - run: npm run build
+      - run: npm ci
+      - run: bash scripts/hosting/assemble-site.sh build/site
+        env:
+          GH_TOKEN: ${{ github.token }}
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: ./packages/ui/dist
+          path: ./build/site
 
   deploy:
-    needs: build
+    needs: assemble
     runs-on: ubuntu-latest
     environment:
       name: github-pages
