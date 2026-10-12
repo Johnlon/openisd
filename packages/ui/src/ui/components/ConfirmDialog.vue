@@ -10,10 +10,14 @@ const props = defineProps<Props>();
 
 const currentRequest = computed(() => props.state.current.value?.request);
 
+/** Esc or a click outside: counts as Cancel unless the request wants a button press. */
+function dismiss(): void {
+  if (currentRequest.value?.dismissal === 'buttonsOnly') return;
+  props.state.answer(false);
+}
+
 function handleKeydown(e: KeyboardEvent): void {
-  if (e.key === 'Escape') {
-    props.state.answer(false);
-  }
+  if (e.key === 'Escape') dismiss();
 }
 
 onMounted(() => {
@@ -35,7 +39,7 @@ watch(() => props.state.current.value, (current) => {
 </script>
 
 <template>
-  <div v-if="currentRequest" class="confirm-overlay" @click.self="props.state.answer(false)">
+  <div v-if="currentRequest" class="confirm-overlay" @click.self="dismiss()">
     <div class="confirm-modal" role="alertdialog" aria-labelledby="confirm-title" aria-modal="true">
       <h2 id="confirm-title">{{ currentRequest.title }}</h2>
       <p>{{ currentRequest.message }}</p>

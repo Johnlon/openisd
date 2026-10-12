@@ -40,6 +40,23 @@ test('a saved-drivers key that was here at the last start and is gone now is sai
   await expect(page.locator('.confirm-modal')).toHaveCount(0);
 });
 
+test('Esc and a click outside the lost-key notice do not answer it; only a button does', async ({ page }) => {
+  await afterFirstStart(page);
+  await page.evaluate(([logKey, driversKey]: readonly [string, string]) => {
+    localStorage.setItem(logKey, JSON.stringify({entries: [{at: '20261011T100000Z', keys: {[driversKey]: 5120}}]}));
+  }, [LOG_KEY, DRIVERS_KEY] as const);
+  await page.reload();
+
+  const notice = page.locator('.confirm-modal');
+  await expect(notice).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(notice).toBeVisible();
+  await page.locator('.confirm-overlay').click({position: {x: 5, y: 5}});
+  await expect(notice).toBeVisible();
+  await notice.getByRole('button', {name: 'OK'}).click();
+  await expect(notice).toHaveCount(0);
+});
+
 test('Export log hands the user the storage log', async ({ page }) => {
   await afterFirstStart(page);
   await page.evaluate(([logKey, driversKey]: readonly [string, string]) => {

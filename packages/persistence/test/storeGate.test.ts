@@ -97,7 +97,7 @@ describe('a store of an older layout', () => {
     const storage = olderStore();
     ready(createStoreOpening(storage, deps(3)));
 
-    const backup = readEnvelope(storage.get(`${OPENISD_BACKUP_PREFIX}${OLD_BUILD}`) ?? '');
+    const backup = readEnvelope(storage.get(`${OPENISD_BACKUP_PREFIX}${OLD_BUILD}_20260101T010203Z`) ?? '');
     assert.ok(backup.kind === 'ok');
     assert.equal(backup.snapshot.layout, 1);
     assert.equal(backup.snapshot.data[OPENISD_PROJECTS_KEY], 'projects', 'the backup is the store before migration');
@@ -111,7 +111,7 @@ describe('a store of an older layout', () => {
     const storage = createMemoryStorage({[OPENISD_PROJECTS_KEY]: 'projects'});
     ready(createStoreOpening(storage, deps(2)));
     assert.equal(storage.get(OPENISD_PROJECTS_KEY), 'projects+2');
-    assert.ok(storage.get(`${OPENISD_BACKUP_PREFIX}vunknown`) !== null, 'named for an unknown build');
+    assert.ok(storage.get(`${OPENISD_BACKUP_PREFIX}vunknown_20260101T010203Z`) !== null, 'named for an unknown build');
   });
 
   it('a second start is silent: no new backup, no new migration', () => {
@@ -120,8 +120,8 @@ describe('a store of an older layout', () => {
     const after = dump(storage);
     ready(createStoreOpening(storage, deps(3)));
     assert.equal(storage.get(OPENISD_PROJECTS_KEY), 'projects+2+3');
-    assert.deepEqual(backupKeys(storage), [`${OPENISD_BACKUP_PREFIX}${OLD_BUILD}`]);
-    assert.equal(storage.get(`${OPENISD_BACKUP_PREFIX}${OLD_BUILD}`), after[`${OPENISD_BACKUP_PREFIX}${OLD_BUILD}`]);
+    assert.deepEqual(backupKeys(storage), [`${OPENISD_BACKUP_PREFIX}${OLD_BUILD}_20260101T010203Z`]);
+    assert.equal(storage.get(`${OPENISD_BACKUP_PREFIX}${OLD_BUILD}_20260101T010203Z`), after[`${OPENISD_BACKUP_PREFIX}${OLD_BUILD}_20260101T010203Z`]);
   });
 
   it('stops with an export-first answer when the backup does not fit, and changes nothing', () => {
@@ -209,7 +209,7 @@ describe('a store of a newer layout', () => {
     ready(opening);
     assert.equal(storage.get(OPENISD_PROJECTS_KEY), 'old projects+3');
     assert.equal(storage.get(OPENISD_STORAGE_LAYOUT_KEY), '3');
-    const live = readEnvelope(storage.get(`${OPENISD_BACKUP_PREFIX}v20270101T0000Z`) ?? '');
+    const live = readEnvelope(storage.get(`${OPENISD_BACKUP_PREFIX}v20270101T0000Z_20260101T010203Z`) ?? '');
     assert.ok(live.kind === 'ok');
     assert.equal(live.snapshot.layout, 4, 'the live store (layout 4, build v20270101T0000Z) was backed up first');
     assert.equal(live.snapshot.data[OPENISD_PROJECTS_KEY], 'projects from the future');

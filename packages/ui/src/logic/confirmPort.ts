@@ -5,6 +5,8 @@ export interface ConfirmRequest {
   message: string;
   confirmLabel: string;
   cancelLabel: string;
+  /** `buttonsOnly`: Esc and a click outside the dialog do nothing; only a button answers. Default `any`. */
+  dismissal?: 'any' | 'buttonsOnly';
 }
 
 export interface ConfirmPort {

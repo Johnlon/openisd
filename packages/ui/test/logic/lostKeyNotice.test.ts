@@ -41,6 +41,7 @@ describe('announceLostKeys', () => {
     await announceLostKeys([DRIVERS, STATE], {confirm: port, formatTime, exportLog});
     expect(asked).toHaveLength(1);
     expect(asked[0].confirmLabel).toBe('Export log');
+    expect(asked[0].dismissal).toBe('buttonsOnly');
     expect(asked[0].message).toContain('Saved drivers were in this browser');
     expect(asked[0].message).toContain('The autosaved project was in this browser');
     expect(exportLog).toHaveBeenCalledTimes(1);

@@ -17,6 +17,8 @@ import {FIXED_NOW_MS} from './fixtures/repoOn.js';
 import {createQuotaStorage} from './fixtures/quotaStorage.js';
 
 const keyOf = (stamp: string) => `${OPENISD_BACKUP_PREFIX}${stamp}`;
+/** The key a take at FIXED_NOW_MS leaves for a store written by `stamp`. */
+const takenKey = (stamp: string) => `${keyOf(stamp)}_20260101T010203Z`;
 
 /** A stored backup envelope, as an earlier take would have left it. */
 function backupText(layout: number, takenAt: string, stamp: string, data: Record<string, string> = {a: 'b'}): string {
@@ -32,8 +34,8 @@ describe('take', () => {
     });
     const result = createStorageBackup(storage, () => FIXED_NOW_MS).take();
 
-    assert.deepEqual(result, {kind: 'taken', key: keyOf('v20251231T2359Z')});
-    const read = readEnvelope(storage.get(keyOf('v20251231T2359Z')) ?? '');
+    assert.deepEqual(result, {kind: 'taken', key: takenKey('v20251231T2359Z')});
+    const read = readEnvelope(storage.get(takenKey('v20251231T2359Z')) ?? '');
     assert.ok(read.kind === 'ok');
     assert.deepEqual(read.snapshot.data, {[OPENISD_PROJECTS_KEY]: 'projects', [OPENISD_MY_DRIVERS_KEY]: 'drivers'});
     assert.equal(read.snapshot.layout, 1);
@@ -43,7 +45,25 @@ describe('take', () => {
 
   it('a store written before stamps existed is named for an unknown build', () => {
     const storage = createMemoryStorage({[OPENISD_PROJECTS_KEY]: 'projects'});
-    assert.deepEqual(createStorageBackup(storage, () => FIXED_NOW_MS).take(), {kind: 'taken', key: keyOf('vunknown')});
+    assert.deepEqual(createStorageBackup(storage, () => FIXED_NOW_MS).take(), {kind: 'taken', key: takenKey('vunknown')});
+  });
+
+  it('two backups of a store written by one build, taken at different seconds, are both kept', () => {
+    const storage = createMemoryStorage({
+      [OPENISD_PROJECTS_KEY]: 'first', [OPENISD_STORAGE_LAYOUT_KEY]: '1', [OPENISD_STORAGE_BUILD_KEY]: 'v20251231T2359Z',
+    });
+    let now = FIXED_NOW_MS;
+    const backup = createStorageBackup(storage, () => now);
+    backup.take();
+    storage.set(OPENISD_PROJECTS_KEY, 'second');
+    now += 1000;
+    backup.take();
+
+    const held = storage.keys().filter(k => k.startsWith(OPENISD_BACKUP_PREFIX)).sort();
+    assert.deepEqual(held, [takenKey('v20251231T2359Z'), `${keyOf('v20251231T2359Z')}_20260101T010204Z`]);
+    const first = readEnvelope(storage.get(held[0]) ?? '');
+    assert.ok(first.kind === 'ok');
+    assert.equal(first.snapshot.data[OPENISD_PROJECTS_KEY], 'first', 'the earlier backup was not overwritten');
   });
 
   it('a store with no data has nothing to back up, and writes nothing', () => {
@@ -56,7 +76,7 @@ describe('take', () => {
     const storage = createMemoryStorage({[OPENISD_PROJECTS_KEY]: 'p', [keyOf('vold')]: backupText(1, '20250101T000000Z', 'vold')});
     const backup = createStorageBackup(storage, () => FIXED_NOW_MS);
     backup.take();
-    const read = readEnvelope(storage.get(keyOf('vunknown')) ?? '');
+    const read = readEnvelope(storage.get(takenKey('vunknown')) ?? '');
     assert.ok(read.kind === 'ok');
     assert.deepEqual(Object.keys(read.snapshot.data), [OPENISD_PROJECTS_KEY]);
   });
@@ -75,7 +95,7 @@ describe('retention', () => {
     const held = storage.keys().filter(k => k.startsWith(OPENISD_BACKUP_PREFIX));
     assert.equal(held.length, MAX_BACKUPS);
     assert.ok(!held.includes(keyOf('v20250100T0000Z')), 'the oldest went');
-    assert.ok(held.includes(keyOf('vunknown')), 'the new one is held');
+    assert.ok(held.includes(takenKey('vunknown')), 'the new one is held');
   });
 
   it('never drops the newest backup of a layout, however old', () => {
@@ -141,7 +161,7 @@ describe('guard', () => {
     const backup = createStorageBackup(storage, () => FIXED_NOW_MS);
 
     const guarded = backup.guard(() => {
-      const read = readEnvelope(storage.get(keyOf('vunknown')) ?? '');
+      const read = readEnvelope(storage.get(takenKey('vunknown')) ?? '');
       assert.ok(read.kind === 'ok', 'the backup exists by the time the write runs');
       assert.equal(read.snapshot.data[OPENISD_PROJECTS_KEY], 'before');
       storage.set(OPENISD_PROJECTS_KEY, 'after');

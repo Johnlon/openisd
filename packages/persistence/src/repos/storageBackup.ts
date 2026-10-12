@@ -1,5 +1,5 @@
 /** REPO: the ONE whole-store backup. Copies every data key of the store to
- *  `openisd_backup_<build stamp of the app that wrote the store>`, and runs every destructive
+ *  `openisd_backup_<build stamp of the app that wrote the store>_<time taken, to the second>`, and runs every destructive
  *  write behind that copy.
  *
  *  John's ruling (12 Oct 2026, T058): a backup MUST ALWAYS take place. Any write that removes or
@@ -109,7 +109,7 @@ export function createStorageBackup(storage: ListableStorage, now: () => number)
   function take(): BackupResult {
     const snapshot = snapshots.take();
     if (snapshot === null) return {kind: 'nothingToBackUp'};
-    const key = OPENISD_BACKUP_PREFIX + snapshot.build.text;
+    const key = `${OPENISD_BACKUP_PREFIX}${snapshot.build.text}_${snapshot.exportedAt}`;
     if (!place(key, envelopeText(snapshot, false))) return {kind: 'noRoom'};
     trim(key);
     return {kind: 'taken', key};

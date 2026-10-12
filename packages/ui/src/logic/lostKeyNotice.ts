@@ -1,6 +1,6 @@
 /** The notice for a key that was in this browser at the last start and is gone now (T058). It
- *  names what was lost and when it was last seen, and is shown until the user clicks: Export log
- *  hands them the storage log, OK closes it. It is never dismissed on its own. */
+ *  names what was lost and when it was last seen, and is shown until the user clicks one of its buttons: Export log
+ *  hands them the storage log, OK closes it. Esc and a click outside do not answer it. */
 import {lostDataSentence, parseBasicUtc} from '@openisd/design/fields';
 import type {LostKey} from '@openisd/persistence';
 import type {ConfirmPort} from './confirmPort.js';
@@ -27,6 +27,7 @@ export async function announceLostKeys(lostKeys: readonly LostKey[], deps: LostK
     message: lostKeys.map(lost => lostKeyText(lost, deps.formatTime)).join(' '),
     confirmLabel: 'Export log',
     cancelLabel: 'OK',
+    dismissal: 'buttonsOnly',
   });
   if (wantsLog) deps.exportLog();
 }

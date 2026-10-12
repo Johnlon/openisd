@@ -42,7 +42,7 @@ const noFiles: FileStorage = {
   forget: () => { throw new Error('no file is written here'); },
 };
 const OLD_BUILD = 'v20260101T0101Z';
-const BACKUP_KEY = `${OPENISD_BACKUP_PREFIX}${OLD_BUILD}`;
+const BACKUP_KEY = `${OPENISD_BACKUP_PREFIX}${OLD_BUILD}_20260101T010203Z`;
 const ADDRESS = 'http://localhost';
 
 interface DestructivePath {
