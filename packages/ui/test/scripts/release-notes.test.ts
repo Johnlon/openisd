@@ -6,7 +6,7 @@
  */
 import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import {bugSentenceOf, headlineOf, leaks, notesOf, releaseNoteOf, taskKeysOf} from '../../../../scripts/hosting/releaseNotes.mjs';
+import {bugSentenceOf, headlineOf, landedShaOf, leaks, notesOf, releaseNoteOf, taskKeysOf} from '../../../../scripts/hosting/releaseNotes.mjs';
 
 const TASKS: Record<string, string> = {
   T012: 'id: T012\nrelease_note: "Bandpass boxes are available."\ngoal: x\n',
@@ -18,6 +18,7 @@ const TASKS: Record<string, string> = {
   'F5-fix': 'id: F5-fix\nrelease_note: "The loading icon no longer blocks clicks."\n',
 };
 const BUG = '# BUG_x\n\n**Status:** RESOLVED\n\n## Symptom\nClearing a field stores 0. The user never typed it.\n\n## Cause\nx\n';
+const taskKeys = (): string[] => Object.keys(TASKS);
 const readTask = (k: string): string | null => TASKS[k] ?? null;
 const readBug = (p: string): string | null => (p === 'bugs/BUG_x.md' ? BUG : p === 'bugs/BUG_open.md' ? BUG.replace('RESOLVED', 'OPEN') : null);
 
@@ -52,12 +53,12 @@ describe('releaseNoteOf / bugSentenceOf / headlineOf', () => {
 describe('notesOf', () => {
   it('groups New and Fixed, counts internal work, and prints no id or hash', () => {
     const md = notesOf([
-      {subject: '(auto) T012: wizard', files: ['a.ts']},
-      {subject: 'T013: gates', files: []},
-      {subject: 'F5: loading', files: []},
-      {subject: 'tidy docs', files: ['README.md']},
-      {subject: 'Fix clearing', files: ['bugs/BUG_x.md']},
-    ], readTask, readBug);
+      {sha: 'a'.repeat(40), subject: '(auto) T012: wizard', files: ['a.ts']},
+      {sha: 'a'.repeat(40), subject: 'T013: gates', files: []},
+      {sha: 'a'.repeat(40), subject: 'F5: loading', files: []},
+      {sha: 'a'.repeat(40), subject: 'tidy docs', files: ['README.md']},
+      {sha: 'a'.repeat(40), subject: 'Fix clearing', files: ['bugs/BUG_x.md']},
+    ], readTask, readBug, taskKeys);
     assert.equal(md, [
       '## New', '', '- Bandpass boxes are available.', '',
       '## Fixed', '', '- The loading icon no longer blocks clicks.', '- Clearing a field stores 0.', '',
@@ -66,31 +67,42 @@ describe('notesOf', () => {
     assert.equal(leaks(md), false);
   });
 
-  it('maps a commit to a task by the task file it touched', () => {
-    const md = notesOf([{subject: 'dialogs', files: ['tasks/T015.yml']}], readTask, readBug);
-    assert.ok(md.includes('- Dialogs are clearer.'));
+  it('a commit that edits many task files contributes nothing by itself', () => {
+    const md = notesOf([{sha: 'c'.repeat(40), subject: 'task housekeeping', files: Object.keys(TASKS).map(k => `tasks/${k}.yml`)}], readTask, readBug, taskKeys);
+    assert.equal(md, 'Internal change only (1).\n');
+  });
+
+  it('a done task contributes when its landed sha is a commit in the range, and not otherwise', () => {
+    const landed = {...TASKS, T015: 'id: T015\nstatus: done\nlanded: 1234567abc (green)\nrelease_note: "Dialogs are clearer."\n'};
+    const read = (k: string): string | null => landed[k] ?? null;
+    const keys = (): string[] => Object.keys(landed);
+    const inRange = notesOf([{sha: '1234567abcdef0123456789012345678901234567', subject: 'land it', files: []}], read, readBug, keys);
+    assert.ok(inRange.includes('- Dialogs are clearer.'));
+    const outside = notesOf([{sha: '9999999abcdef0123456789012345678901234567', subject: 'other', files: []}], read, readBug, keys);
+    assert.ok(!outside.includes('Dialogs'));
+    assert.equal(landedShaOf('status: claimed\nlanded: 1234567abc'), null);
   });
 
   it('collapses duplicate sentences', () => {
-    const md = notesOf([{subject: 'T012: a', files: []}, {subject: 'T014: b', files: []}], readTask, readBug);
+    const md = notesOf([{sha: 'a'.repeat(40), subject: 'T012: a', files: []}, {sha: 'a'.repeat(40), subject: 'T014: b', files: []}], readTask, readBug, taskKeys);
     assert.equal(md.match(/Bandpass boxes/g)?.length, 1);
   });
 
   it('drops a sentence that holds an id or a hash, and counts that commit as internal', () => {
-    const md = notesOf([{subject: 'T016: x', files: []}], readTask, readBug);
+    const md = notesOf([{sha: 'a'.repeat(40), subject: 'T016: x', files: []}], readTask, readBug, taskKeys);
     assert.ok(!md.includes('T012') && !md.includes('abc1234'));
     assert.equal(md, 'Internal change only (1).\n');
   });
 
   it('treats a task with no note, an unknown task and an open bug as internal', () => {
     const md = notesOf([
-      {subject: 'T017: x', files: []}, {subject: 'T999: y', files: []}, {subject: 'z', files: ['bugs/BUG_open.md']},
-    ], readTask, readBug);
+      {sha: 'a'.repeat(40), subject: 'T017: x', files: []}, {sha: 'a'.repeat(40), subject: 'T999: y', files: []}, {sha: 'a'.repeat(40), subject: 'z', files: ['bugs/BUG_open.md']},
+    ], readTask, readBug, taskKeys);
     assert.equal(md, 'Internal changes only (3).\n');
   });
 
   it('says so when nothing changed', () => {
-    assert.equal(notesOf([], readTask, readBug), 'No changes.\n');
+    assert.equal(notesOf([], readTask, readBug, taskKeys), 'No changes.\n');
   });
 });
 

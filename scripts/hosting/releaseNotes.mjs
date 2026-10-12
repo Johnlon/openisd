@@ -2,21 +2,21 @@
 // Release notes for users: what changed, in plain sentences, from the commits since the last release.
 // No hashes, no task or fix ids, no branch or agent names, nothing internal.
 //
-// A commit maps to a task by the T/F id at the start of its subject ("T012: ...", "(auto) F5: ...",
-// "T055/T056: ...") and by the tasks/*.yml files it touched. The task file's `release_note:` is the
-// sentence (the word `internal` means none). A bug file under bugs/ touched in the range, whose
-// status is RESOLVED, adds the first sentence of its Symptom to Fixed. A commit with no task and no
-// bug counts as an internal change.
+// A task contributes when a commit in the range starts its subject with the task's id ("T012: ...",
+// "(auto) F5: ...", "T055/T056: ...") or when its file says status done and its `landed:` sha is a
+// commit in the range. Touching a task file contributes nothing by itself. The task file's
+// `release_note:` is the sentence (the word `internal` means none). A bug file under bugs/ touched
+// in the range, whose status is RESOLVED, adds the first sentence of its Symptom to Fixed. A commit
+// with no task and no bug counts as an internal change.
 //
 //   node scripts/hosting/releaseNotes.mjs notes <from> <to>   markdown for the commits in from..to
 //                                                             (<from> may be empty: the last 30)
 //   node scripts/hosting/releaseNotes.mjs headline            first note of the markdown on stdin
 import {execFileSync} from 'node:child_process';
-import {existsSync, readFileSync} from 'node:fs';
+import {existsSync, readdirSync, readFileSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 
 const LEADING_IDS = /^(?:\(auto\)\s+)?((?:[TF]\d+[\s,/&]*)+):/;
-const TASK_FILE = /^tasks\/((?:T\d+)|(?:F\d+-fix))\.yml$/;
 const BUG_FILE = /^bugs\/BUG_[^/]+\.md$/;
 // A task id, a quoted question id, or a hash (hex with at least one digit).
 const LEAK = /(?:^|[^A-Za-z0-9])(?:[TFQ][A-Z]?\d{1,4}|(?=[0-9a-f]*\d)[0-9a-f]{7,40})(?:[^A-Za-z0-9]|$)/;
@@ -42,6 +42,12 @@ export function releaseNoteOf(taskText) {
   return raw.replace(/^"(.*)"$/, '$1').replace(/\\"/g, '"');
 }
 
+/** The sha a done task file says it landed at; null unless status is done. */
+export function landedShaOf(taskText) {
+  if (!/^status:[ \t]*done\b/m.test(taskText)) return null;
+  return /^landed:[ \t]*([0-9a-f]{7,40})/m.exec(taskText)?.[1] ?? null;
+}
+
 /** The first sentence of a resolved bug file's Symptom; null when the bug is not resolved or has none. */
 export function bugSentenceOf(bugText) {
   if (!/^\*\*Status:\*\*\s*RESOLVED/mi.test(bugText)) return null;
@@ -53,11 +59,11 @@ export function bugSentenceOf(bugText) {
 }
 
 /**
- * Markdown notes for `commits` ({subject, files}). `readTask(key)` and `readBug(path)` return a
- * file's text or null. Sections are New (T tasks) and Fixed (F tasks and resolved bugs); a line that
+ * Markdown notes for `commits` ({sha, subject, files}). `readTask(key)` and `readBug(path)` return a
+ * file's text or null; `taskKeys()` lists every task file's key. Sections are New (T tasks) and Fixed (F tasks and resolved bugs); a line that
  * would leak an id or a hash is dropped and counted as internal.
  */
-export function notesOf(commits, readTask, readBug) {
+export function notesOf(commits, readTask, readBug, taskKeys) {
   const added = [];
   const fixed = [];
   const seen = new Set();
@@ -69,7 +75,10 @@ export function notesOf(commits, readTask, readBug) {
   };
   for (const c of commits) {
     const keys = new Set(taskKeysOf(c.subject));
-    for (const f of c.files) { const m = TASK_FILE.exec(f); if (m) keys.add(m[1]); }
+    for (const key of taskKeys()) {
+      const landed = landedShaOf(readTask(key) ?? '');
+      if (landed !== null && c.sha.startsWith(landed)) keys.add(key);
+    }
     let covered = false;
     for (const key of keys) {
       const text = readTask(key);
@@ -106,10 +115,11 @@ export function headlineOf(markdown) {
 /** The commits in from..to (no merges), as {subject, files}. */
 export function commitsIn(from, to) {
   const range = from === '' ? ['-n', '30', to] : [`${from}..${to}`];
-  const out = execFileSync('git', ['log', '--no-merges', '--format=%x1e%s', '--name-only', ...range], {encoding: 'utf8', maxBuffer: 64 * 1024 * 1024});
+  const out = execFileSync('git', ['log', '--no-merges', '--format=%x1e%H %s', '--name-only', ...range], {encoding: 'utf8', maxBuffer: 64 * 1024 * 1024});
   return out.split('\x1e').filter(b => b.trim() !== '').map(block => {
-    const [subject, ...rest] = block.split('\n');
-    return {subject: subject.trim(), files: rest.map(l => l.trim()).filter(l => l !== '')};
+    const [head, ...rest] = block.split('\n');
+    const space = head.indexOf(' ');
+    return {sha: head.slice(0, space), subject: head.slice(space + 1).trim(), files: rest.map(l => l.trim()).filter(l => l !== '')};
   });
 }
 
@@ -118,7 +128,8 @@ const readIfThere = path => (existsSync(path) ? readFileSync(path, 'utf8') : nul
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   const [mode, from, to] = process.argv.slice(2);
   if (mode === 'notes' && from !== undefined && to) {
-    process.stdout.write(notesOf(commitsIn(from, to), key => readIfThere(`tasks/${key}.yml`), readIfThere));
+    const keys = () => readdirSync('tasks').filter(f => /^(T\d+|F\d+-fix)\.yml$/.test(f)).map(f => f.slice(0, -4));
+    process.stdout.write(notesOf(commitsIn(from, to), key => readIfThere(`tasks/${key}.yml`), readIfThere, keys));
   } else if (mode === 'headline') {
     process.stdout.write(`${headlineOf(readFileSync(0, 'utf8'))}\n`);
   } else {
