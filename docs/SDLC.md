@@ -205,11 +205,15 @@ work). S6's timebox and S7's token log make the cost visible per task; a token b
 - Left: 5 tests in 2 ui files red only when sharing a worker, because `appState.ts` holds the live
   state at module level. Fix is S10.
 
-### S10 — appState and presentationState are built by the composition root (John, 12 Oct: "one of my rules was no global state"; "ok injected it") — in progress, effort M
+### S10 — appState and presentationState are built by the composition root (John, 12 Oct: "one of my rules was no global state"; "ok injected it") — done 12 Oct, effort M
 
 - Plan: `docs/plans/PLAN_20261012_APPSTATE_INJECTED.md`. Sonnet worker in `openisd-t047`
   (branch `t047-appstate-injected`), fable reviews and lands.
 - Stops: cross-file state leaks in unit runs; 51 files importing one live instance; `hmrSingleton.ts`.
+- Done: `createAppState(deps)` and `createPresentationState()`; main.ts builds both once and `AppLogic`
+  carries them; 79 files; `hmrSingleton.ts` and `traceVisibility.ts` module state gone; every ui test
+  builds a fresh instance (`test/fixtures/appStateFixture.ts`). Merged e9cde288. Full unit run after
+  it: 373 files, 4481 tests, all green, 4.2 min wall at 4 workers.
 
 ## Ready to brief now
 
@@ -225,7 +229,7 @@ work). S6's timebox and S7's token log make the cost visible per task; a token b
 | 7 | S5 remaining rows: config sandbox; main-folder gate; `new-worktree.sh` based on local main | S each | per-session stops; John typing `rm` |
 | 8 | S8 green tag deploy | S | needs John's ruling |
 | 9 | S9 unit tests load once, no npx in the funnel | S, done | 38 min unit runs; slow landing gate |
-| 10 | S10 appState built by the composition root | M | state leaks across unit files; 51 importers of one instance |
+| 10 | S10 appState built by the composition root | M, done | state leaks across unit files; 51 importers of one instance |
 
 ## Register — evidence only
 
