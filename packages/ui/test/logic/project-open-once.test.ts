@@ -8,7 +8,7 @@
  * the file name and content it was opened from. The identity is recorded AT OPEN TIME and never
  * recomputed from a project that may since have been edited.
  */
-import {beforeAll, beforeEach, describe, expect, it, vi} from 'vitest';
+import {beforeEach, describe, expect, it, vi} from 'vitest';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {createLogging} from '../../src/logging/flash.js';
@@ -30,7 +30,8 @@ import {ensureSampleProject, SAMPLE_PROJECT_OWPR} from '../fixtures/sampleProjec
 
 ensureSampleProject();
 
-beforeAll(() => {
+// Per test: the suite unstubs every global after each test (vitest.config.ts unstubGlobals).
+beforeEach(() => {
   vi.stubGlobal('location', { origin: 'https://openisd.test', pathname: '/' });
   vi.stubGlobal('history', { replaceState: () => {} });
   vi.stubGlobal('navigator', { clipboard: { writeText: () => Promise.resolve() } });

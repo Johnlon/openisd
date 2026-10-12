@@ -37,6 +37,10 @@ export default defineConfig({
     // A SKIP IS A FAIL — see scripts/test-reporters/no-skips-vitest.ts.
     // hanging-process names whatever keeps a finished run from exiting.
     reporters: ['default', 'hanging-process', './scripts/test-reporters/no-skips-vitest.ts'],
+    // Files share a worker (isolate: false below), so a stub or mock one file leaves behind would
+    // reach the next. Every test ends with the globals and mocks it found.
+    unstubGlobals: true,
+    restoreMocks: true,
     coverage: {
       provider: 'v8',
       include: [
@@ -64,6 +68,9 @@ export default defineConfig({
           name: 'persistence',
           testTimeout: TEST_TIMEOUT,
           setupFiles: BLOCKED_AT_SETUP,
+          // Pure node, no DOM: one worker loads the engine and domain graph once for every file it
+          // runs, not once per file (import was 69 % of a 38 min run, 11 Oct 2026, SDLC S9).
+          isolate: false,
           root: './packages/persistence',
           environment: 'node',
           include: ['test/**/*.test.{mjs,ts}'],
@@ -74,6 +81,9 @@ export default defineConfig({
           name: 'design',
           testTimeout: TEST_TIMEOUT,
           setupFiles: BLOCKED_AT_SETUP,
+          // Pure node, no DOM: one worker loads the engine and domain graph once for every file it
+          // runs, not once per file (import was 69 % of a 38 min run, 11 Oct 2026, SDLC S9).
+          isolate: false,
           root: './packages/design',
           environment: 'node',
           include: ['test/**/*.test.{mjs,ts}'],
@@ -94,6 +104,8 @@ export default defineConfig({
           name: 'ui',
           testTimeout: TEST_TIMEOUT,
           setupFiles: BLOCKED_AT_SETUP,
+          // Node environment too (no DOM): the same one-load-per-worker as design.
+          isolate: false,
           root: './packages/ui',
           environment: 'node',
           include: ['test/**/*.test.{mjs,ts}'],

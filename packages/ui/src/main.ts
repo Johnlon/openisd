@@ -41,7 +41,10 @@ import '@fontsource/inter/700.css';
 import './style.css';
 
 const overlayElement = document.getElementById('loading-overlay');
-const loadingOverlay = overlayElement
+// The browser suite's build (mode test) shows no loading overlay: its minimum display time would be
+// paid on every spec's page load (John, 12 Oct 2026: "the loading overlay on tests").
+if (import.meta.env.MODE === 'test') overlayElement?.remove();
+const loadingOverlay = overlayElement && import.meta.env.MODE !== 'test'
   ? createLoadingOverlay({
       element: overlayElement,
       visibilityTarget: document,

@@ -3,7 +3,7 @@
  * 2026-08-14). A link that quietly differs from what the sender saw cannot diagnose what the
  * sender saw. `stateToUrl` alone takes a `ViewSnapshot` alongside the project.
  */
-import {afterAll, beforeAll, describe, it, vi} from 'vitest';
+import {beforeEach, describe, it, vi} from 'vitest';
 import assert from 'node:assert/strict';
 import {gunzipSync} from 'node:zlib';
 import {createEngine} from '@openisd/design/engine';
@@ -52,8 +52,8 @@ describe('urlAppState — share link carries the whole state, stripped of nothin
   const drv = sampleDriverRecord();
 
   // stateToUrl reads location.{origin,pathname}; stub it (no jsdom needed) for the URL test.
-  beforeAll(() => vi.stubGlobal('location', { origin: 'https://openisd.test', pathname: '/' }));
-  afterAll(() => vi.unstubAllGlobals());
+  // Per test: the suite unstubs every global after each test (vitest.config.ts unstubGlobals).
+  beforeEach(() => vi.stubGlobal('location', { origin: 'https://openisd.test', pathname: '/' }));
 
   it('every ui field travels — view context, open panels, local preferences and project meta alike', async () => {
     const meta: FixtureMeta = {
