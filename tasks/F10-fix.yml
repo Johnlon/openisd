@@ -1,0 +1,11 @@
+id: F10-fix
+repo: openisd
+owner: fable
+status: claimed
+label: fixes
+goal: Close F10. The post-land suite runs from the repo root (suite.sh cd'd to scripts/ and died on scripts/admit.sh), so the full suite actually runs after a landing.
+done_test: bash scripts/land/test/suite-admit.test.sh
+files:
+  - scripts/land/post-land/suite.sh
+  - tasks/fixes/F10.yml
+  - tasks/F10-fix.yml

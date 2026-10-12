@@ -4,7 +4,9 @@
 # started the run, and its node_modules are hardlinked in (no install, no network).
 set -euo pipefail
 
-cd "$(dirname "${BASH_SOURCE[0]}")/../.." || exit 1
+# This file is scripts/land/post-land/suite.sh: the repo root is three levels up, not two (12 Oct:
+# every post-land suite ran from scripts/ and died on "scripts/admit.sh: No such file", F10).
+cd "$(dirname "${BASH_SOURCE[0]}")/../../.." || exit 1
 
 # The full suite is a heavy job: it runs in the machine's one admission slot (scripts/admit.sh).
 # admit.sh exports ADMIT_TOKEN, so the re-run below does not queue a second time.

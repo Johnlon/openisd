@@ -1,6 +1,6 @@
 id: F10
 owner: Johnlon
-status: open
+status: closed
 sha: b1bc3664e22513dbfa754398bb1e3ad4b96a1c7d
 goal: main is red at b1bc3664e2; make the full suite pass again
 commits: |
