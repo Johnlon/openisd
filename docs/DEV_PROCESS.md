@@ -59,6 +59,17 @@ admit slots, matt restore) are derived from a single runtime root
 `scripts/paths.sh` and sourced by every script. The old `/tmp/openisd-*` paths are no longer used;
 they must never both be live at once.
 
+## Integrating a branch
+
+A branch that did not go through `land.sh` (agy, opencode) reaches main only by
+`bash scripts/integrate.sh <task-id> <branch>`. Under the landing lock it squash-merges the branch
+into a fresh worktree of origin/main, refuses if a test file the branch added or changed is deleted or
+red (`branch-tests`), runs lint, typecheck and the unit half, runs the stored-data corpus and the
+schemagen proof when the merge touches the schema, `projectRepo`, a loader or `driver_type`, then
+pushes and starts post-land. Exit 0 integrated, 1 refused (names the gate), 2 cannot start, 3
+conflict: the paths are in `tasks/<id>.yml` under `blocked:`, the worktree stays for a hand
+resolution (never `--ours`/`--theirs`).
+
 ## Post-land run
 
 `scripts/land/post-land/run.sh <sha>`, one at a time (flock `POST_LAND_LOCK`):

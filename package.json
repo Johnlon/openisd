@@ -10,6 +10,7 @@
   "scripts": {
     "lint:prune": "eslint --prune-suppressions packages/",
     "lint": "eslint --cache --cache-location build/.eslintcache --max-warnings 0 packages/",
+    "schemagen:prove": "tsx scripts/schemagen/main.ts",
     "typecheck": "node scripts/typecheck.mjs",
     "typecheck:persistence": "tsc -p packages/persistence --noEmit",
     "typecheck:design": "tsc -p packages/design --noEmit",
