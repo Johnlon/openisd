@@ -149,10 +149,10 @@ test('a unitless row\'s step buttons line up with a row that has a unit', async 
     function isAppState(m: unknown): m is AppState {
       return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
     }
-    const m: unknown = await import(/* @vite-ignore */ p);
+    const m: unknown = ((h: unknown): unknown => typeof h === 'object' && h !== null ? Reflect.get(h, p) : undefined)(Reflect.get(globalThis, 'openisdTestHooks'));
     if (!isAppState(m)) throw new Error('appState module shape mismatch');
     m.requireFocusedProject().box.boxType.set('box-passive-radiator');
-  }, '/src/logic/appState.ts');
+  }, 'appState');
   await page.locator('.mob-tab', { hasText: 'Passive Radiator' }).click();
   const withUnit = await fieldRow(page, 'Vas').locator('.num-stepper').boundingBox();
   const unitless = await fieldRow(page, 'Qms').locator('.num-stepper').boundingBox();

@@ -168,8 +168,8 @@ test('chart failure lists the missing circuit values returned by the sweep', asy
       return typeof m === 'object' && m !== null
         && 'requireFocusedProject' in m && typeof m.requireFocusedProject === 'function';
     }
-    const modPath = '/src/logic/appState.ts';
-    const mod: unknown = await import(/* @vite-ignore */ modPath);
+    const modPath = 'appState';
+    const mod: unknown = ((h: unknown): unknown => typeof h === 'object' && h !== null ? Reflect.get(h, modPath) : undefined)(Reflect.get(globalThis, 'openisdTestHooks'));
     if (!isAppStateModule(mod)) throw new Error('appState module did not load as expected');
     const project = mod.requireFocusedProject();
     const spec = project.driver.specs;

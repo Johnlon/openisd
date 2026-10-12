@@ -60,9 +60,7 @@ const clearSwInDev = {
 // than two thousand. Dev-server only — a production build serves public/ and nothing else.
 const CATALOGUE_DIR = process.env.OPENISD_DRIVERS_BUNDLE_DIR;
 const CATALOGUE_PATH = /^\/(drivers-index\.json|passive-radiators-index\.json|drivers\/.+\.json)$/;
-const serveCatalogue = {
-  name: 'serve-catalogue',
-  configureServer(server) {
+function useCatalogue(server) {
     if (!CATALOGUE_DIR) return;
     server.middlewares.use((req, res, next) => {
       const url = (req.url ?? '').split('?')[0];
@@ -73,7 +71,12 @@ const serveCatalogue = {
       res.setHeader('Content-Type', 'application/json');
       createReadStream(file).pipe(res);
     });
-  },
+}
+// Dev server and the suite's preview server alike; a deploy build sets no OPENISD_DRIVERS_BUNDLE_DIR.
+const serveCatalogue = {
+  name: 'serve-catalogue',
+  configureServer: useCatalogue,
+  configurePreviewServer: useCatalogue,
 };
 
 // The browser suite's vite serves a fixed tree for one run: it needs no file watcher, and the
@@ -120,7 +123,7 @@ function createServeDevVersion(command) {
   };
 }
 
-export default defineConfig(({ command }) => ({
+export default defineConfig(({ command, mode }) => ({
   root: UI_ROOT,
   base,
   define: { 'import.meta.env.VITE_BUILD_VERSION': JSON.stringify(buildVersion(command)) },
@@ -168,7 +171,9 @@ export default defineConfig(({ command }) => ({
     serveCatalogue,
     ...(command === 'serve' ? [createServeDevVersion(command)] : []),
     vue(),
-    ...(ELECTRON || command === 'serve' ? [] : [VitePWA({
+    // No service worker in the browser suite's build (mode test): a precaching SW would fetch every
+    // asset at registration on every spec's page and cache across a run.
+    ...(ELECTRON || command === 'serve' || mode === 'test' ? [] : [VitePWA({
       registerType: 'autoUpdate',
       base,
       manifest: {

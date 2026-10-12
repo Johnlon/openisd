@@ -256,13 +256,13 @@ export async function focusedBoxVolume(page: Page): Promise<number> {
     function isAppState(m: unknown): m is AppState {
       return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
     }
-    const m: unknown = await import(/* @vite-ignore */ path);
+    const m: unknown = ((h: unknown): unknown => typeof h === 'object' && h !== null ? Reflect.get(h, path) : undefined)(Reflect.get(globalThis, 'openisdTestHooks'));
     if (!isAppState(m)) throw new Error('appState module shape mismatch');
     const box = m.requireFocusedProject().box;
     const v = box.volumeOf(box.boxType.value).value;
     if (v === null) throw new Error('the focused project\'s box volume is blank');
     return v;
-  }, '/src/logic/appState.ts');
+  }, 'appState');
 }
 
 /** Write the focused project's main (box) volume, so its design differs from its saved one. */
@@ -272,11 +272,11 @@ export async function setFocusedBoxVolume(page: Page, volume_m3: number): Promis
     function isAppState(m: unknown): m is AppState {
       return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
     }
-    const m: unknown = await import(/* @vite-ignore */ path);
+    const m: unknown = ((h: unknown): unknown => typeof h === 'object' && h !== null ? Reflect.get(h, path) : undefined)(Reflect.get(globalThis, 'openisdTestHooks'));
     if (!isAppState(m)) throw new Error('appState module shape mismatch');
     const box = m.requireFocusedProject().box;
     box.volumeOf(box.boxType.value).set(v);
-  }, {path: '/src/logic/appState.ts', v: volume_m3});
+  }, {path: 'appState', v: volume_m3});
 }
 
 /** The drive group's committed state (power, voltage, driver Re, series Rs), read live from the
@@ -294,11 +294,11 @@ export async function focusedDriveGroup(page: Page): Promise<DriveGroupState> {
     function isAppState(m: unknown): m is AppState {
       return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
     }
-    const m: unknown = await import(/* @vite-ignore */ path);
+    const m: unknown = ((h: unknown): unknown => typeof h === 'object' && h !== null ? Reflect.get(h, path) : undefined)(Reflect.get(globalThis, 'openisdTestHooks'));
     if (!isAppState(m)) throw new Error('appState module shape mismatch');
     const p = m.requireFocusedProject();
     return { P: p.powerDrive_W.value, V: p.driveVoltage_V.value, Re: p.driver.specs.Re_ohm.value, Rs: p.Rs_ohm.value };
-  }, '/src/logic/appState.ts');
+  }, 'appState');
 }
 
 /** Number of points in the latest computed SPL curve (0 until the first sweep lands). */
@@ -308,10 +308,10 @@ export async function curvesSplLength(page: Page): Promise<number> {
     function isAppState(m: unknown): m is AppState {
       return typeof m === 'object' && m !== null && 'curvesData' in m;
     }
-    const m: unknown = await import(/* @vite-ignore */ path);
+    const m: unknown = ((h: unknown): unknown => typeof h === 'object' && h !== null ? Reflect.get(h, path) : undefined)(Reflect.get(globalThis, 'openisdTestHooks'));
     if (!isAppState(m)) throw new Error('appState module shape mismatch');
     return m.curvesData.value?.spl?.length ?? 0;
-  }, '/src/logic/appState.ts');
+  }, 'appState');
 }
 
 /** The focused project's box type, as the domain holds it. */
@@ -321,10 +321,10 @@ export async function focusedBoxType(page: Page): Promise<string> {
     function isAppState(m: unknown): m is AppState {
       return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
     }
-    const m: unknown = await import(/* @vite-ignore */ path);
+    const m: unknown = ((h: unknown): unknown => typeof h === 'object' && h !== null ? Reflect.get(h, path) : undefined)(Reflect.get(globalThis, 'openisdTestHooks'));
     if (!isAppState(m)) throw new Error('appState module shape mismatch');
     return m.requireFocusedProject().box.boxType.value;
-  }, '/src/logic/appState.ts');
+  }, 'appState');
 }
 
 /** Switch the focused project's box type through the domain, as a file load would. */
@@ -336,10 +336,10 @@ export async function setFocusedBoxType(page: Page, boxType: BoxTypeName): Promi
     function isAppState(m: unknown): m is AppState {
       return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
     }
-    const m: unknown = await import(/* @vite-ignore */ path);
+    const m: unknown = ((h: unknown): unknown => typeof h === 'object' && h !== null ? Reflect.get(h, path) : undefined)(Reflect.get(globalThis, 'openisdTestHooks'));
     if (!isAppState(m)) throw new Error('appState module shape mismatch');
     m.requireFocusedProject().box.boxType.set(value);
-  }, {path: '/src/logic/appState.ts', value: boxType});
+  }, {path: 'appState', value: boxType});
 }
 
 /** Drop the focused project's own temperature, humidity and pressure, as a freshly built project
@@ -350,13 +350,13 @@ export async function clearFocusedEnvironment(page: Page): Promise<void> {
     function isAppState(m: unknown): m is AppState {
       return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
     }
-    const m: unknown = await import(/* @vite-ignore */ path);
+    const m: unknown = ((h: unknown): unknown => typeof h === 'object' && h !== null ? Reflect.get(h, path) : undefined)(Reflect.get(globalThis, 'openisdTestHooks'));
     if (!isAppState(m)) throw new Error('appState module shape mismatch');
     const p = m.requireFocusedProject();
     p.envTempK.clear();
     p.envHumidityPct.clear();
     p.envPressurePa.clear();
-  }, '/src/logic/appState.ts');
+  }, 'appState');
 }
 
 /** Driver parameters a test may set on the focused project's driver; `null` clears the entry so
@@ -371,7 +371,7 @@ export async function setFocusedDriverSpecs(page: Page, entries: DriverSpecEntri
     function isAppState(m: unknown): m is AppState {
       return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
     }
-    const m: unknown = await import(/* @vite-ignore */ path);
+    const m: unknown = ((h: unknown): unknown => typeof h === 'object' && h !== null ? Reflect.get(h, path) : undefined)(Reflect.get(globalThis, 'openisdTestHooks'));
     if (!isAppState(m)) throw new Error('appState module shape mismatch');
     const specs = m.requireFocusedProject().driver.specs;
     for (const key of ['Fs_hz', 'Qes', 'Qms', 'Qts', 'Vas_m3', 'Re_ohm'] as const) {
@@ -379,7 +379,7 @@ export async function setFocusedDriverSpecs(page: Page, entries: DriverSpecEntri
       if (v === undefined) continue;
       if (v === null) specs[key].clear(); else specs[key].set(v);
     }
-  }, {path: '/src/logic/appState.ts', values: entries});
+  }, {path: 'appState', values: entries});
 }
 
 /** Set the focused project's series source resistance Rs (ohm), as the Signal tab does. */
@@ -389,10 +389,10 @@ export async function setFocusedSeriesResistance(page: Page, ohm: number): Promi
     function isAppState(m: unknown): m is AppState {
       return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
     }
-    const m: unknown = await import(/* @vite-ignore */ path);
+    const m: unknown = ((h: unknown): unknown => typeof h === 'object' && h !== null ? Reflect.get(h, path) : undefined)(Reflect.get(globalThis, 'openisdTestHooks'));
     if (!isAppState(m)) throw new Error('appState module shape mismatch');
     m.requireFocusedProject().Rs_ohm.set(v);
-  }, {path: '/src/logic/appState.ts', v: ohm});
+  }, {path: 'appState', v: ohm});
 }
 
 /** Set the leakage Ql and absorption Qa losses of the focused project's `sealed` box, as the Box
@@ -403,13 +403,13 @@ export async function setFocusedSealedLosses(page: Page, losses: {Ql: number; Qa
     function isAppState(m: unknown): m is AppState {
       return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
     }
-    const m: unknown = await import(/* @vite-ignore */ path);
+    const m: unknown = ((h: unknown): unknown => typeof h === 'object' && h !== null ? Reflect.get(h, path) : undefined)(Reflect.get(globalThis, 'openisdTestHooks'));
     if (!isAppState(m)) throw new Error('appState module shape mismatch');
     const [sealed] = m.requireFocusedProject().box.lossGroupsOf('sealed');
     if (!sealed) throw new Error('a sealed box has losses');
     sealed.Ql.set(values.Ql);
     sealed.Qa.set(values.Qa);
-  }, {path: '/src/logic/appState.ts', values: losses});
+  }, {path: 'appState', values: losses});
 }
 
 /** The focused sealed box's resonance Fsc and Qtc as the domain holds them. */
@@ -419,11 +419,11 @@ export async function focusedSealedReadouts(page: Page): Promise<{fsc: number | 
     function isAppState(m: unknown): m is AppState {
       return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
     }
-    const m: unknown = await import(/* @vite-ignore */ path);
+    const m: unknown = ((h: unknown): unknown => typeof h === 'object' && h !== null ? Reflect.get(h, path) : undefined)(Reflect.get(globalThis, 'openisdTestHooks'));
     if (!isAppState(m)) throw new Error('appState module shape mismatch');
     const sealed = m.requireFocusedProject().box.sealed;
     return {fsc: sealed.resonance_hz.value, qtc: sealed.q_tc.value};
-  }, '/src/logic/appState.ts');
+  }, 'appState');
 }
 
 /** The focused vented box's vent length target-unreachable flag and DQ issue count. */
@@ -433,11 +433,11 @@ export async function focusedVentLengthDq(page: Page): Promise<{unreachable: boo
     function isAppState(m: unknown): m is AppState {
       return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
     }
-    const m: unknown = await import(/* @vite-ignore */ path);
+    const m: unknown = ((h: unknown): unknown => typeof h === 'object' && h !== null ? Reflect.get(h, path) : undefined)(Reflect.get(globalThis, 'openisdTestHooks'));
     if (!isAppState(m)) throw new Error('appState module shape mismatch');
     const dq = m.requireFocusedProject().box.vented.vent.length_m.dq;
     return {unreachable: dq.some(issue => issue.kind === 'target-unreachable'), dqCount: dq.length};
-  }, '/src/logic/appState.ts');
+  }, 'appState');
 }
 
 /** Give the focused vented box a real vent (volume, tuning goal, port diameter) through the same
@@ -448,13 +448,13 @@ export async function setFocusedVentedDesign(page: Page, design: {volume_m3: num
     function isAppState(m: unknown): m is AppState {
       return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
     }
-    const m: unknown = await import(/* @vite-ignore */ path);
+    const m: unknown = ((h: unknown): unknown => typeof h === 'object' && h !== null ? Reflect.get(h, path) : undefined)(Reflect.get(globalThis, 'openisdTestHooks'));
     if (!isAppState(m)) throw new Error('appState module shape mismatch');
     const p = m.requireFocusedProject();
     p.box.vented.volume_m3.set(d.volume_m3);
     p.box.vented.tuning_goal_hz.set(d.tuning_hz);
     p.box.vented.vent.diameter_m.set(d.diameter_m);
-  }, {path: '/src/logic/appState.ts', d: design});
+  }, {path: 'appState', d: design});
 }
 
 /** The focused bandpass6 rear chamber's tuning goal (Hz). */
@@ -464,12 +464,12 @@ export async function focusedBandpass6RearTuning(page: Page): Promise<number> {
     function isAppState(m: unknown): m is AppState {
       return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
     }
-    const m: unknown = await import(/* @vite-ignore */ path);
+    const m: unknown = ((h: unknown): unknown => typeof h === 'object' && h !== null ? Reflect.get(h, path) : undefined)(Reflect.get(globalThis, 'openisdTestHooks'));
     if (!isAppState(m)) throw new Error('appState module shape mismatch');
     const value = m.requireFocusedProject().box.bandpass6.chambers.rear.tuning_goal_hz.value;
     if (value === null) throw new Error('tuning_goal_hz has no value');
     return value;
-  }, '/src/logic/appState.ts');
+  }, 'appState');
 }
 
 /** The focused bandpass6 front chamber's tuning goal (Hz) and the vented box's tuning goal (Hz, null when blank). */
@@ -479,11 +479,11 @@ export async function focusedBandpass6Tunings(page: Page): Promise<{front: numbe
     function isAppState(m: unknown): m is AppState {
       return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
     }
-    const m: unknown = await import(/* @vite-ignore */ path);
+    const m: unknown = ((h: unknown): unknown => typeof h === 'object' && h !== null ? Reflect.get(h, path) : undefined)(Reflect.get(globalThis, 'openisdTestHooks'));
     if (!isAppState(m)) throw new Error('appState module shape mismatch');
     const box = m.requireFocusedProject().box;
     return {front: box.bandpass6.chambers.front.tuning_goal_hz.value, vented: box.vented.tuning_goal_hz.value};
-  }, '/src/logic/appState.ts');
+  }, 'appState');
 }
 
 /** The focused bandpass6 or ABC project's vent diameters and lengths (SI, null when blank), by port. */
@@ -499,14 +499,14 @@ export async function focusedPortVents(page: Page): Promise<FocusedPortVents> {
     function isAppState(m: unknown): m is AppState {
       return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
     }
-    const m: unknown = await import(/* @vite-ignore */ path);
+    const m: unknown = ((h: unknown): unknown => typeof h === 'object' && h !== null ? Reflect.get(h, path) : undefined)(Reflect.get(globalThis, 'openisdTestHooks'));
     if (!isAppState(m)) throw new Error('appState module shape mismatch');
     const box = m.requireFocusedProject().box;
     const abc = box.boxType.value === 'abc';
     const vents = abc ? box.abc.vents : box.bandpass6.vents;
     const read = (v: typeof vents.rear) => ({diameter: v.diameter_m.value, length: v.length_m.value});
     return {rear: read(vents.rear), front: read(vents.front), intra: abc ? read(box.abc.vents.intra) : null};
-  }, '/src/logic/appState.ts');
+  }, 'appState');
 }
 
 /** The focused project's passive radiator: its name, count and spec cells (SI units). */
@@ -526,7 +526,7 @@ export async function focusedPassiveRadiatorSpec(page: Page): Promise<FocusedPas
     function isAppState(m: unknown): m is AppState {
       return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
     }
-    const m: unknown = await import(/* @vite-ignore */ path);
+    const m: unknown = ((h: unknown): unknown => typeof h === 'object' && h !== null ? Reflect.get(h, path) : undefined)(Reflect.get(globalThis, 'openisdTestHooks'));
     if (!isAppState(m)) throw new Error('appState module shape mismatch');
     const pr = m.requireFocusedProject().box.passiveRadiator;
     const spec = pr.radiator.spec;
@@ -535,7 +535,7 @@ export async function focusedPassiveRadiatorSpec(page: Page): Promise<FocusedPas
       vas_m3: spec.Vas_m3.value, qms: spec.Qms.value, fs_hz: spec.Fs_hz.value,
       sd_m2: spec.Sd_m2.value, xmax_m: spec.Xmax_m.value,
     };
-  }, '/src/logic/appState.ts');
+  }, 'appState');
 }
 
 /** The focused project's port air-velocity limit (m/s). */
@@ -545,10 +545,10 @@ export async function focusedPortVelocityLimit(page: Page): Promise<number> {
     function isAppState(m: unknown): m is AppState {
       return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
     }
-    const m: unknown = await import(/* @vite-ignore */ path);
+    const m: unknown = ((h: unknown): unknown => typeof h === 'object' && h !== null ? Reflect.get(h, path) : undefined)(Reflect.get(globalThis, 'openisdTestHooks'));
     if (!isAppState(m)) throw new Error('appState module shape mismatch');
     return m.requireFocusedProject().portVelocityLimit_m_per_s.value;
-  }, '/src/logic/appState.ts');
+  }, 'appState');
 }
 
 /** One driver spec value of the focused project's driver (SI units); fails when it has no value. */
@@ -558,12 +558,12 @@ export async function focusedDriverSpec(page: Page, field: 'Fs_hz' | 'Mms_kg'): 
     function isAppState(m: unknown): m is AppState {
       return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
     }
-    const m: unknown = await import(/* @vite-ignore */ path);
+    const m: unknown = ((h: unknown): unknown => typeof h === 'object' && h !== null ? Reflect.get(h, path) : undefined)(Reflect.get(globalThis, 'openisdTestHooks'));
     if (!isAppState(m)) throw new Error('appState module shape mismatch');
     const value = m.requireFocusedProject().driver.specs[f].value;
     if (value === null) throw new Error(`driver.specs.${f} has no value`);
     return value;
-  }, {path: '/src/logic/appState.ts', f: field});
+  }, {path: 'appState', f: field});
 }
 
 /** Open a second, independent project as a copy of the focused one, and focus it — the domain
@@ -574,10 +574,10 @@ export async function duplicateFocusedProject(page: Page, newName: string): Prom
     function isAppState(m: unknown): m is AppState {
       return typeof m === 'object' && m !== null && 'duplicateFocusedProject' in m;
     }
-    const m: unknown = await import(/* @vite-ignore */ path);
+    const m: unknown = ((h: unknown): unknown => typeof h === 'object' && h !== null ? Reflect.get(h, path) : undefined)(Reflect.get(globalThis, 'openisdTestHooks'));
     if (!isAppState(m)) throw new Error('appState module shape mismatch');
     m.duplicateFocusedProject(name);
-  }, {path: '/src/logic/appState.ts', name: newName});
+  }, {path: 'appState', name: newName});
 }
 
 /** The Options environment temperature (K) as the application settings hold it. */
@@ -587,10 +587,10 @@ export async function appEnvDefaultsTempK(page: Page): Promise<number> {
     function isAppState(m: unknown): m is AppState {
       return typeof m === 'object' && m !== null && 'envDefaults' in m;
     }
-    const m: unknown = await import(/* @vite-ignore */ path);
+    const m: unknown = ((h: unknown): unknown => typeof h === 'object' && h !== null ? Reflect.get(h, path) : undefined)(Reflect.get(globalThis, 'openisdTestHooks'));
     if (!isAppState(m)) throw new Error('appState module shape mismatch');
     return m.envDefaults().tempK;
-  }, '/src/logic/appState.ts');
+  }, 'appState');
 }
 
 /** The user name saved by the Options dialog. */
@@ -600,10 +600,10 @@ export async function savedUsername(page: Page): Promise<string | undefined> {
     function isPresentationState(m: unknown): m is PresentationState {
       return typeof m === 'object' && m !== null && 'presentationState' in m;
     }
-    const m: unknown = await import(/* @vite-ignore */ path);
+    const m: unknown = ((h: unknown): unknown => typeof h === 'object' && h !== null ? Reflect.get(h, path) : undefined)(Reflect.get(globalThis, 'openisdTestHooks'));
     if (!isPresentationState(m)) throw new Error('presentationState module shape mismatch');
     return m.presentationState.ui.username;
-  }, '/src/logic/presentationState.ts');
+  }, 'presentationState');
 }
 
 /** The persisted display-unit token for the box volume field (`NumberField.BOX_VB_L`). */
@@ -613,10 +613,10 @@ export async function boxVolumeUnitToken(page: Page): Promise<string | undefined
     function isPresentationState(m: unknown): m is PresentationState {
       return typeof m === 'object' && m !== null && 'presentationState' in m;
     }
-    const m: unknown = await import(/* @vite-ignore */ path);
+    const m: unknown = ((h: unknown): unknown => typeof h === 'object' && h !== null ? Reflect.get(h, path) : undefined)(Reflect.get(globalThis, 'openisdTestHooks'));
     if (!isPresentationState(m)) throw new Error('presentationState module shape mismatch');
     return {...m.presentationState.ui.unitTokens};
-  }, '/src/logic/presentationState.ts');
+  }, 'presentationState');
   return NumberField.BOX_VB_L.unitTokenFor(rotation);
 }
 
@@ -627,10 +627,10 @@ export async function setSweepRange(page: Page, range: {min: number; max: number
     function isPresentationState(m: unknown): m is PresentationState {
       return typeof m === 'object' && m !== null && 'presentationState' in m;
     }
-    const m: unknown = await import(/* @vite-ignore */ path);
+    const m: unknown = ((h: unknown): unknown => typeof h === 'object' && h !== null ? Reflect.get(h, path) : undefined)(Reflect.get(globalThis, 'openisdTestHooks'));
     if (!isPresentationState(m)) throw new Error('presentationState module shape mismatch');
     m.presentationState.sweepRange = r;
-  }, {path: '/src/logic/presentationState.ts', r: range});
+  }, {path: 'presentationState', r: range});
 }
 
 /** Sum of the latest computed SPL curve — changes whenever the swept response changes. */
@@ -640,10 +640,10 @@ export async function curvesSplSum(page: Page): Promise<number> {
     function isAppState(m: unknown): m is AppState {
       return typeof m === 'object' && m !== null && 'curvesData' in m;
     }
-    const m: unknown = await import(/* @vite-ignore */ path);
+    const m: unknown = ((h: unknown): unknown => typeof h === 'object' && h !== null ? Reflect.get(h, path) : undefined)(Reflect.get(globalThis, 'openisdTestHooks'));
     if (!isAppState(m)) throw new Error('appState module shape mismatch');
     return (m.curvesData.value?.spl ?? []).reduce((a, b) => a + b, 0);
-  }, '/src/logic/appState.ts');
+  }, 'appState');
 }
 
 /** Number of filters in the focused project's filter chain. */
@@ -653,10 +653,10 @@ export async function focusedFilterCount(page: Page): Promise<number> {
     function isAppState(m: unknown): m is AppState {
       return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
     }
-    const m: unknown = await import(/* @vite-ignore */ path);
+    const m: unknown = ((h: unknown): unknown => typeof h === 'object' && h !== null ? Reflect.get(h, path) : undefined)(Reflect.get(globalThis, 'openisdTestHooks'));
     if (!isAppState(m)) throw new Error('appState module shape mismatch');
     return m.requireFocusedProject().filters.value.length;
-  }, '/src/logic/appState.ts');
+  }, 'appState');
 }
 
 /** The focused project's drive power (W) — the one stored drive fact; voltage derives from it. */
@@ -666,12 +666,12 @@ export async function focusedPowerDrive_W(page: Page): Promise<number> {
     function isAppState(m: unknown): m is AppState {
       return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
     }
-    const m: unknown = await import(/* @vite-ignore */ path);
+    const m: unknown = ((h: unknown): unknown => typeof h === 'object' && h !== null ? Reflect.get(h, path) : undefined)(Reflect.get(globalThis, 'openisdTestHooks'));
     if (!isAppState(m)) throw new Error('appState module shape mismatch');
     const value = m.requireFocusedProject().powerDrive_W.value;
     if (value === null) throw new Error('powerDrive_W has no value');
     return value;
-  }, '/src/logic/appState.ts');
+  }, 'appState');
 }
 
 /** Whether the focused project has unsaved changes — the flag behind every unsaved marker. */
@@ -681,10 +681,10 @@ export async function focusedIsModified(page: Page): Promise<boolean> {
     function isAppState(m: unknown): m is AppState {
       return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
     }
-    const m: unknown = await import(/* @vite-ignore */ path);
+    const m: unknown = ((h: unknown): unknown => typeof h === 'object' && h !== null ? Reflect.get(h, path) : undefined)(Reflect.get(globalThis, 'openisdTestHooks'));
     if (!isAppState(m)) throw new Error('appState module shape mismatch');
     return m.requireFocusedProject().isModified();
-  }, '/src/logic/appState.ts');
+  }, 'appState');
 }
 
 /** The focused project's name. */
@@ -694,10 +694,10 @@ export async function focusedProjectName(page: Page): Promise<string> {
     function isAppState(m: unknown): m is AppState {
       return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
     }
-    const m: unknown = await import(/* @vite-ignore */ path);
+    const m: unknown = ((h: unknown): unknown => typeof h === 'object' && h !== null ? Reflect.get(h, path) : undefined)(Reflect.get(globalThis, 'openisdTestHooks'));
     if (!isAppState(m)) throw new Error('appState module shape mismatch');
     return m.requireFocusedProject().name.value;
-  }, '/src/logic/appState.ts');
+  }, 'appState');
 }
 
 /** Dirty the focused design: add a highpass filter and move the drive power off its 1 W reference. */
@@ -707,12 +707,12 @@ export async function dirtyFocusedDesign(page: Page): Promise<void> {
     function isAppState(m: unknown): m is AppState {
       return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
     }
-    const m: unknown = await import(/* @vite-ignore */ path);
+    const m: unknown = ((h: unknown): unknown => typeof h === 'object' && h !== null ? Reflect.get(h, path) : undefined)(Reflect.get(globalThis, 'openisdTestHooks'));
     if (!isAppState(m)) throw new Error('appState module shape mismatch');
     const project = m.requireFocusedProject();
     project.filters.set([...project.filters.value, { type: 'highpass', family: 'sos', order: 2, enabled: true, fc: 30, Q: 0.7 }]);
     project.powerDrive_W.set(250);
-  }, '/src/logic/appState.ts');
+  }, 'appState');
 }
 
 /** The focused project serialised as `.owpr` JSON, saved first so the saved layer holds the design. */
@@ -722,13 +722,13 @@ export async function focusedProjectOwpr(page: Page): Promise<unknown> {
     function isAppState(m: unknown): m is AppState {
       return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
     }
-    const m: unknown = await import(/* @vite-ignore */ path);
+    const m: unknown = ((h: unknown): unknown => typeof h === 'object' && h !== null ? Reflect.get(h, path) : undefined)(Reflect.get(globalThis, 'openisdTestHooks'));
     if (!isAppState(m)) throw new Error('appState module shape mismatch');
     const p = m.requireFocusedProject();
     // `saved` is the project baseline (empty) until the wizard's choices are committed.
     p.save();
     return JSON.parse(p.toOwprText());
-  }, '/src/logic/appState.ts');
+  }, 'appState');
 }
 
 /** The focused project's driver added cone mass (kg). */
@@ -738,10 +738,10 @@ export async function focusedAddedMass_kg(page: Page): Promise<number> {
     function isAppState(m: unknown): m is AppState {
       return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
     }
-    const m: unknown = await import(/* @vite-ignore */ path);
+    const m: unknown = ((h: unknown): unknown => typeof h === 'object' && h !== null ? Reflect.get(h, path) : undefined)(Reflect.get(globalThis, 'openisdTestHooks'));
     if (!isAppState(m)) throw new Error('appState module shape mismatch');
     return m.requireFocusedProject().driverAddedMass_kg.value;
-  }, '/src/logic/appState.ts');
+  }, 'appState');
 }
 
 /** Open the Driver Editor the way a user does: Driver tab, Edit, wait for the body. */

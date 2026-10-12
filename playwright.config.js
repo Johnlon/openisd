@@ -170,12 +170,16 @@ export default defineConfig({
     // PORT varies per run (see WORKERS/PORT above) so concurrent runs don't collide on 4100.
     // The suite's vite serves the small test catalogue (six reference devices, cut from the
     // tracked one by scripts/test-bundle.mjs — no corpus needed) and runs no file watcher.
-    command: `bash scripts/kill-http.sh ${PORT} && node scripts/version-info.mjs && node scripts/test-bundle.mjs build/test-bundle && OPENISD_DRIVERS_BUNDLE_DIR=build/test-bundle OPENISD_TEST_SERVER=1 npx vite --port ${PORT}`,
+    // The suite runs against a BUILT app: `vite build --mode test` once, then `vite preview` serves
+    // static files. The dev server compiled every page on demand: under load a page took 50–80 s and
+    // 19 of 23 failures on 11 Oct 2026 were 60 s goto timeouts. Mode `test` is the only build that
+    // installs the fixtures' seam (packages/ui/src/logic/testHooks.ts). One dist per PORT.
+    command: `bash scripts/kill-http.sh ${PORT} && node scripts/version-info.mjs && node scripts/test-bundle.mjs build/test-bundle && node_modules/.bin/vite build --mode test --outDir ../../build/test-dist-${PORT} --emptyOutDir && OPENISD_DRIVERS_BUNDLE_DIR=build/test-bundle node_modules/.bin/vite preview --outDir ../../build/test-dist-${PORT} --port ${PORT} --strictPort`,
     url: `http://localhost:${PORT}`,
     // Never latch onto a server already on this port: it belongs to another run. test-browser.sh frees
     // the reserved port first, so a busy port here is a collision and must fail, not be shared.
     reuseExistingServer: false,
-    timeout: 120000,
+    timeout: 300000,
   },
 
 

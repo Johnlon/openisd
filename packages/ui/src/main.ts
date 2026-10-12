@@ -30,6 +30,9 @@ import {DriverDrafts} from './logic/driverDraft.js';
 import {createConfirmPort} from './logic/confirmPort.js';
 import {provideApp} from './logic/app.js';
 import {appContext, engine, installAppSettings, NoFocusedProjectError} from './logic/appState.js';
+import * as appStateModule from './logic/appState.js';
+import * as presentationStateModule from './logic/presentationState.js';
+import {installTestHooks} from './logic/testHooks.js';
 import {createDevVersionPort, createAppVersionPort, type HotUpdateSource} from './logic/appVersion.js';
 import type {LocalTimeParts, ToLocalTime} from '@openisd/design/fields';
 import '@fontsource/inter/400.css';
@@ -134,6 +137,8 @@ const releaseLogger: Logger = {
 // check off. Narrowed, not cast: the env value is untyped.
 const bakedVersion: unknown = import.meta.env.VITE_BUILD_VERSION;
 const isDev = import.meta.env.DEV;
+// The browser suite's seam into the app; a no-op in every build but `--mode test` (testHooks.ts).
+installTestHooks({appState: appStateModule, presentationState: presentationStateModule}, import.meta.env.MODE);
 const releases = new ReleaseWatch(
   typeof bakedVersion === 'string' ? bakedVersion : '',
   createBrowserReleasePort({
