@@ -41,7 +41,7 @@ Per **reading** (every reading is kept: a list, never one per source):
 Per **document**: URL, role, fetch time, title, breadcrumb and categories in order, description, every table in full (unmapped rows included), and the facts planned but never stored so far: datasheet type words, size text, printed model code.
 
 Per **record**: brand, model, the record directory name (unchanged for existing records), `added` (first appearance; a harvest fact), every document, every reading, the product's scope log (section 4).
-Also per record: `sku`, `series` and `product_image` (URL), as printed on the product page (carried over from the pure-extractor plan, John, 12 Oct 2026: these have value and nothing replaced them). The description sits on each document, not on the record.
+Also per record, as the record schema has them today: `sku`, `series`, `product_image` (URL) and `description` (shown in the driver popup). John, 12 Oct 2026: keep what is used; nothing replaced these. `sku` also decides the record directory (QO34: `<brand-code>/<driver-sku>/`), so dropping it is a separate decision, not taken. Each document carries its own description as well.
 
 Schema rules (John, 2026-10-11: "the reconciliation programme writes the other schema from the master and stops if it cannot get 100 same output"):
 
