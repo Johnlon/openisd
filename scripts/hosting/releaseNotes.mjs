@@ -2,9 +2,10 @@
 // Release notes for users: what changed, in plain sentences, from the commits since the last release.
 // No hashes, no task or fix ids, no branch or agent names, nothing internal.
 //
-// A task contributes when a commit in the range starts its subject with the task's id ("T012: ...",
-// "(auto) F5: ...", "T055/T056: ...") or when its file says status done and its `landed:` sha is a
-// commit in the range. Touching a task file contributes nothing by itself. The task file's
+// A task contributes only when its file says status done (held and claimed never do) and either its
+// `landed:` sha is a commit in the range or a commit in the range starts its subject with the
+// task's id ("T012: ...", "(auto) F5: ...", "T055/T056: ..."). Touching a task file contributes
+// nothing by itself. The task file's
 // `release_note:` is the sentence (the word `internal` means none). A bug file under bugs/ touched
 // in the range, whose status is RESOLVED, adds the first sentence of its Symptom to Fixed. A commit
 // with no task and no bug counts as an internal change.
@@ -42,9 +43,14 @@ export function releaseNoteOf(taskText) {
   return raw.replace(/^"(.*)"$/, '$1').replace(/\\"/g, '"');
 }
 
+/** True when the task file's status is done. */
+export function isDone(taskText) {
+  return /^status:[ \t]*done\b/m.test(taskText);
+}
+
 /** The sha a done task file says it landed at; null unless status is done. */
 export function landedShaOf(taskText) {
-  if (!/^status:[ \t]*done\b/m.test(taskText)) return null;
+  if (!isDone(taskText)) return null;
   return /^landed:[ \t]*([0-9a-f]{7,40})/m.exec(taskText)?.[1] ?? null;
 }
 
@@ -82,7 +88,7 @@ export function notesOf(commits, readTask, readBug, taskKeys) {
     let covered = false;
     for (const key of keys) {
       const text = readTask(key);
-      const note = text === null ? null : releaseNoteOf(text);
+      const note = text === null || !isDone(text) ? null : releaseNoteOf(text);
       if (note !== null && add(key.startsWith('F') ? fixed : added, note)) covered = true;
     }
     for (const f of c.files.filter(x => BUG_FILE.test(x))) {

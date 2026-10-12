@@ -9,13 +9,13 @@ import assert from 'node:assert/strict';
 import {bugSentenceOf, headlineOf, landedShaOf, leaks, notesOf, releaseNoteOf, taskKeysOf} from '../../../../scripts/hosting/releaseNotes.mjs';
 
 const TASKS: Record<string, string> = {
-  T012: 'id: T012\nrelease_note: "Bandpass boxes are available."\ngoal: x\n',
+  T012: 'id: T012\nstatus: done\nrelease_note: "Bandpass boxes are available."\ngoal: x\n',
   T013: 'id: T013\nrelease_note: internal\n',
-  T014: 'id: T014\nrelease_note: "Bandpass boxes are available."\n',
-  T015: 'id: T015\nrelease_note: "Dialogs are clearer."\n',
-  T016: 'id: T016\nrelease_note: "Fixed in T012 by abc1234def."\n',
+  T014: 'id: T014\nstatus: done\nrelease_note: "Bandpass boxes are available."\n',
+  T015: 'id: T015\nstatus: done\nrelease_note: "Dialogs are clearer."\n',
+  T016: 'id: T016\nstatus: done\nrelease_note: "Fixed in T012 by abc1234def."\n',
   T017: 'id: T017\ngoal: no note\n',
-  'F5-fix': 'id: F5-fix\nrelease_note: "The loading icon no longer blocks clicks."\n',
+  'F5-fix': 'id: F5-fix\nstatus: done\nrelease_note: "The loading icon no longer blocks clicks."\n',
 };
 const BUG = '# BUG_x\n\n**Status:** RESOLVED\n\n## Symptom\nClearing a field stores 0. The user never typed it.\n\n## Cause\nx\n';
 const taskKeys = (): string[] => Object.keys(TASKS);
@@ -70,6 +70,13 @@ describe('notesOf', () => {
   it('a commit that edits many task files contributes nothing by itself', () => {
     const md = notesOf([{sha: 'c'.repeat(40), subject: 'task housekeeping', files: Object.keys(TASKS).map(k => `tasks/${k}.yml`)}], readTask, readBug, taskKeys);
     assert.equal(md, 'Internal change only (1).\n');
+  });
+
+  it('a claimed or held task never contributes, even when a commit names it', () => {
+    const held = {T015: 'id: T015\nstatus: held\nrelease_note: "Dialogs are clearer."\n', T012: 'id: T012\nstatus: claimed\nrelease_note: "Bandpass boxes."\n'};
+    const read = (k: string): string | null => (k === 'T015' || k === 'T012' ? held[k] : null);
+    const md = notesOf([{sha: 'a'.repeat(40), subject: 'T015: x', files: []}, {sha: 'b'.repeat(40), subject: 'T012: y', files: []}], read, readBug, () => ['T015', 'T012']);
+    assert.equal(md, 'Internal changes only (2).\n');
   });
 
   it('a done task contributes when its landed sha is a commit in the range, and not otherwise', () => {

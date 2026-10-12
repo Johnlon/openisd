@@ -89,8 +89,8 @@ mkdir -p scripts/hosting; cp "$REPO/scripts/hosting/releaseNotes.mjs" scripts/ho
 printf 'id: F1\nstatus: closed\n' > tasks/fixes/F1.yml
 git remote add origin "$GH_REMOTE"
 git add -A; git commit -q -m "first change"; git push -q origin main
-printf 'id: T001\nrelease_note: "Users can do the second thing."\n' > tasks/T001.yml
-printf 'id: T002\nrelease_note: "Fixed T012 in abc1234def."\n' > tasks/T002.yml
+printf 'id: T001\nstatus: done\nrelease_note: "Users can do the second thing."\n' > tasks/T001.yml
+printf 'id: T002\nstatus: done\nrelease_note: "Fixed T012 in abc1234def."\n' > tasks/T002.yml
 echo more > more.txt; git add more.txt tasks/T001.yml tasks/T002.yml; git commit -q -m "(auto) T001: second change"; git push -q origin main
 HEAD_SHA="$(git rev-parse HEAD)"
 

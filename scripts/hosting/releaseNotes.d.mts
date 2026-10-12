@@ -7,3 +7,4 @@ export function notesOf(commits: readonly Commit[], readTask: (key: string) => s
 export function landedShaOf(taskText: string): string | null;
 export function headlineOf(markdown: string): string;
 export function commitsIn(from: string, to: string): Commit[];
+export function isDone(taskText: string): boolean;
