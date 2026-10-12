@@ -73,7 +73,7 @@ describe('notesOf', () => {
   });
 
   it('a done task contributes when its landed sha is a commit in the range, and not otherwise', () => {
-    const landed = {...TASKS, T015: 'id: T015\nstatus: done\nlanded: 1234567abc (green)\nrelease_note: "Dialogs are clearer."\n'};
+    const landed: Record<string, string> = {...TASKS, T015: 'id: T015\nstatus: done\nlanded: 1234567abc (green)\nrelease_note: "Dialogs are clearer."\n'};
     const read = (k: string): string | null => landed[k] ?? null;
     const keys = (): string[] => Object.keys(landed);
     const inRange = notesOf([{sha: '1234567abcdef0123456789012345678901234567', subject: 'land it', files: []}], read, readBug, keys);
