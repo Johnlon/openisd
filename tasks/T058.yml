@@ -7,7 +7,8 @@ spec: |
   - On every start, before any load, the app writes openisd_storage_log: the ISO 8601 basic time and, per openisd_* key, present or absent and its length. Keep the last 30 entries.
   - A key present in the previous entry and absent now shows a notice on screen: "Saved drivers were in this browser at <date>, they are gone now." with Export log. Never dismissed silently, needs a click.
   - The launch telemetry event carries keysLost: [names] when that happens.
-  - Restore from backup snapshots the store first and keeps keys the file lacks unless the user ticks "replace everything". The replace test in backupRepo.test.ts changes to match.
+  - Ruling (John, 12 Oct 2026): a backup MUST ALWAYS take place. Every write that removes or replaces a stored key, in any path (restore, delete, migrate, repair write-back, reset), first snapshots the whole store as openisd_snapshot_<build stamp>. There is no path without it. One function in persistence does the snapshot, every destructive write goes through it, and a test proves each destructive path produces a snapshot.
+  - Restore keeps keys the file lacks unless the user ticks "replace everything". The replace test in backupRepo.test.ts changes to match.
 done_test: |
   bash scripts/test.sh packages/persistence/test/storageLog.test.ts
   bash scripts/test.sh packages/persistence/test/backupRepo.test.ts
