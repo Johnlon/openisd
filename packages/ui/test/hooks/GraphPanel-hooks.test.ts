@@ -1,5 +1,5 @@
-import {describe, expect, it, vi} from 'vitest';
-import {computed, defineComponent, h} from 'vue';
+import {describe, expect, it, vi, beforeEach} from 'vitest';
+import {computed, defineComponent, h, provide} from 'vue';
 import {renderToString} from 'vue/server-renderer';
 import {createEngine} from '@openisd/design/engine';
 import {OpenISDProject, ProjectBuilder} from '@openisd/design';
@@ -10,9 +10,21 @@ import {
   type GraphPanelProps,
 } from '../../src/hooks/GraphPanel-hooks.js';
 import {DPAL, TAB_META} from '@openisd/design/chart';
-import {addProject, curvesData} from '../../src/logic/appState.js';
-import {presentationState} from '../../src/logic/presentationState.js';
 import {runHook} from './runHook.js';
+import {testAppLogic} from './testAppLogic.js';
+import {APP_LOGIC, type AppLogic} from '../../src/logic/app.js';
+import type {AppState} from '../../src/logic/appState.js';
+import type {PresentationState} from '../../src/logic/presentationState.js';
+
+let logic: AppLogic;
+let appState: AppState;
+let presentationState: PresentationState;
+
+beforeEach(() => {
+  logic = testAppLogic();
+  appState = logic.appState;
+  presentationState = logic.presentation;
+});
 
 function createTestProject(): OpenISDProject {
   const engine = createEngine();
@@ -36,6 +48,7 @@ async function renderHook(props: GraphPanelProps, project = createTestProject())
   });
   const Root = defineComponent({
     setup() {
+      provide(APP_LOGIC, logic);
       provideFocusedProject(computed(() => project));
       return () => h(Child);
     },
@@ -48,8 +61,8 @@ describe('GraphPanel-hooks', () => {
   describe('useGraphPanel', () => {
     it('currentDesign follows the box type when it changes after the first read', () => {
       const project = createTestProject();
-      addProject(project);   // the change tick only fires for a project appState holds
-      const api = runHook(computed(() => project), () => useGraphPanel({chartId: 'SPL'}, createEngine()));
+      appState.addProject(project);   // the change tick only fires for a project appState holds
+      const api = runHook(computed(() => project), () => useGraphPanel({chartId: 'SPL'}, createEngine()), logic);
       expect(api.currentDesign.value.box).toBe('sealed');
       project.box.boxType.set('vented');
       expect(api.currentDesign.value.box).toBe('vented');
@@ -85,8 +98,8 @@ describe('GraphPanel-hooks', () => {
     });
     describe('Auto Y', () => {
       // Waits for the condition, never a fixed sleep: the store's sweep has landed the curves for
-      // the last edit once `curvesData` holds a new value.
-      const curvesLanded = (before: unknown) => vi.waitFor(() => expect(curvesData.value).not.toBe(before), {timeout: 30_000});
+      // the last edit once `appState.curvesData` holds a new value.
+      const curvesLanded = (before: unknown) => vi.waitFor(() => expect(appState.curvesData.value).not.toBe(before), {timeout: 30_000});
 
       it('off freezes the shown Y range as the chart override; a data change keeps it; on clears it', async () => {
         presentationState.yRanges = {};
@@ -96,9 +109,9 @@ describe('GraphPanel-hooks', () => {
         project.driver.specs.Le_H.set(0.34e-3);
         project.driver.specs.Xmax_m.set(0.00925);
         project.driver.specs.Pe_W.set(80);
-        const beforeAdd = curvesData.value;
-        addProject(project);
-        const api = runHook(computed(() => project), () => useGraphPanel({chartId: 'SPL'}, createEngine()));
+        const beforeAdd = appState.curvesData.value;
+        appState.addProject(project);
+        const api = runHook(computed(() => project), () => useGraphPanel({chartId: 'SPL'}, createEngine()), logic);
         await curvesLanded(beforeAdd);
         await vi.waitFor(() => expect(api.viewPlot.value).not.toBeNull(), {timeout: 30_000});
         expect(api.autoY.value).toBe(true);
@@ -109,7 +122,7 @@ describe('GraphPanel-hooks', () => {
         expect(api.autoY.value).toBe(false);
         expect(presentationState.yRanges.SPL).toEqual({min: shown.min, max: shown.max});
 
-        const beforeEdit = curvesData.value;
+        const beforeEdit = appState.curvesData.value;
         project.box.sealed.volume_m3.set(0.002);
         await curvesLanded(beforeEdit);
         expect(presentationState.yRanges.SPL).toEqual({min: shown.min, max: shown.max});
@@ -125,7 +138,7 @@ describe('GraphPanel-hooks', () => {
       it('Reset to auto-scale (the override removed elsewhere) turns Auto Y back on', () => {
         presentationState.yRanges = {SPL: {min: 0, max: 100}};
         const project = createTestProject();
-        const api = runHook(computed(() => project), () => useGraphPanel({chartId: 'SPL'}, createEngine()));
+        const api = runHook(computed(() => project), () => useGraphPanel({chartId: 'SPL'}, createEngine()), logic);
         expect(api.autoY.value).toBe(false);
         delete presentationState.yRanges.SPL;
         expect(api.autoY.value).toBe(true);
@@ -134,7 +147,7 @@ describe('GraphPanel-hooks', () => {
 
     describe('clickCursorAt', () => {
       function hookOn(project: OpenISDProject) {
-        return runHook(computed(() => project), () => useGraphPanel({chartId: 'SPL'}, createEngine()));
+        return runHook(computed(() => project), () => useGraphPanel({chartId: 'SPL'}, createEngine()), logic);
       }
 
       it('a click on an unlocked chart locks the cursor at that frequency', () => {

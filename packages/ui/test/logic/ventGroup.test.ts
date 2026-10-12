@@ -16,13 +16,21 @@ import {beforeEach, describe, it} from 'vitest';
 import assert from 'node:assert/strict';
 import {OpenISDDriver, ProjectBuilder, type OpenISDProject} from '@openisd/design';
 import {createEngine} from '@openisd/design/engine';
-import {newProject, requireFocusedProject} from '../../src/logic/appState.js';
 import {
   notifyVentChanged,
   ventAchievedFb,
   VentMember,
   ventMaxReachableFb,
 } from '../../src/logic/ventGroup.js';
+import {createAppStateFixture} from '../fixtures/appStateFixture.js';
+import type {AppState} from '../../src/logic/appState.js';
+
+let appState: AppState;
+
+beforeEach(() => {
+  const fixture = createAppStateFixture();
+  appState = fixture.appState;
+});
 
 /** The tuning and vent length of the project's ported chamber, the cells the Box and Vents rows bind. */
 const tuning = (p: OpenISDProject) => p.box.ventGroupOf(p.box.boxType.value).tuning_goal_hz;
@@ -94,7 +102,7 @@ function isTargetUnreachable(p: ReturnType<typeof trial>): boolean {
 
 function countNotifications(fn: () => void): number {
   let count = 0;
-  const unsub = requireFocusedProject().subscribe(() => { count++; });
+  const unsub = appState.requireFocusedProject().subscribe(() => { count++; });
   try { fn(); } finally { unsub(); }
   return count;
 }
@@ -272,16 +280,16 @@ describe('ventGroup', () => {
   describe('one user action is one notification, never an extra store-triggered re-solve', () => {
     beforeEach(() => {
       // The app starts with NO project (QO121), so each run opens its own and tunes it to vented.
-      newProject();
-      requireFocusedProject().box.boxType.set('vented');
-      requireFocusedProject().box.vented.volume_m3.set(0.02);
-      requireFocusedProject().box.vented.vent.diameter_m.set(0.05);
-      requireFocusedProject().box.vented.vent.endCorrection_m.set(0.6);
+      appState.newProject();
+      appState.requireFocusedProject().box.boxType.set('vented');
+      appState.requireFocusedProject().box.vented.volume_m3.set(0.02);
+      appState.requireFocusedProject().box.vented.vent.diameter_m.set(0.05);
+      appState.requireFocusedProject().box.vented.vent.endCorrection_m.set(0.6);
       // setEnteredSet is no longer needed; .set() sets origin to entered
     });
 
     it('tuning cell set — value write + provenance write + one solve write, no more', () => {
-      const count = countNotifications(() => tuning(requireFocusedProject()).set(40));
+      const count = countNotifications(() => tuning(appState.requireFocusedProject()).set(40));
       // setBoxTuning_Fb_hz + setEntered('Fb') + notifyVentChanged's own ventL write = 3.
       // Before the fix (trailing solve outside suspension) this counted 4: the store's
       // auto-solve watch, unsuspended by the time the solve's own write landed, ran a second,
@@ -296,8 +304,8 @@ describe('ventGroup', () => {
       // sole entered member and Fb genuinely becomes the CALCULATED one — otherwise nothing is
       // derivable after the clear and the solve step is a real no-op (a different, equally
       // valid scenario, but not one that exercises a solve write).
-      ventLength(requireFocusedProject()).set(0.15);
-      const count = countNotifications(() => tuning(requireFocusedProject()).clear());
+      ventLength(appState.requireFocusedProject()).set(0.15);
+      const count = countNotifications(() => tuning(appState.requireFocusedProject()).clear());
       assert.equal(count, 2,
         `expected 2 notifications (the clear and the domain's own solve write) — got ${count}`);
     });

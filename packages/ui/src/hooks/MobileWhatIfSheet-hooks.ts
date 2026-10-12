@@ -9,8 +9,8 @@
  * keeps the sheet open.
  */
 import {computed, ref} from 'vue';
+import {useApp} from '../logic/app.js';
 import type {ComputedRef, Ref} from 'vue';
-import {projectChanged} from '../logic/appState.js';
 import {useFocusedProject} from '../logic/focusedProjectContext.js';
 import {createWhatIfSession, type WhatIfRow} from './whatIfSession.js';
 import type {WhatIfField} from '@openisd/design/fields';
@@ -55,6 +55,7 @@ export interface MobileWhatIfSheetAPI {
 }
 
 export function useMobileWhatIfSheet({ open, setOpen }: MobileWhatIfSheetDeps): MobileWhatIfSheetAPI {
+  const {projectChanged} = useApp().appState;
   const project = useFocusedProject();
   const session = createWhatIfSession({ project, projectChanged });
 

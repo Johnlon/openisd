@@ -13,9 +13,18 @@ import {createProjectRepo, createSharedMemoryStorage, createViewStateRepo, type 
 import {readFileSync} from 'node:fs';
 import {ensureSampleProject, SAMPLE_PROJECT_OWPR} from '../fixtures/sampleProject.js';
 import {startSessionSync} from '../../src/logic/sessionSync.js';
-import {addProject, openProjects, removeProject, restoreProjects} from '../../src/logic/appState.js';
-import {presentationState} from '../../src/logic/presentationState.js';
-import {isTraceVisible, setTraceVisible} from '../../src/logic/traceVisibility.js';
+import {createAppStateFixture} from '../fixtures/appStateFixture.js';
+import type {AppState} from '../../src/logic/appState.js';
+import type {PresentationState} from '../../src/logic/presentationState.js';
+
+let appState: AppState;
+let presentationState: PresentationState;
+
+beforeEach(() => {
+  const fixture = createAppStateFixture();
+  appState = fixture.appState;
+  presentationState = fixture.presentation;
+});
 
 const engine = createEngine();
 
@@ -34,7 +43,7 @@ function project(name: string): OpenISDProject {
 }
 
 function closeAll(): void {
-  while (openProjects().length > 0) removeProject(0);
+  while (appState.openProjects().length > 0) appState.removeProject(0);
 }
 
 let stop: () => void = () => {};
@@ -46,19 +55,19 @@ describe('startSessionSync', () => {
     const store = createSharedMemoryStorage();
     const otherTab = createProjectRepo(engine, noFiles, store.tab(), 'http://localhost');
     const tab = store.tab();
-    stop = startSessionSync({projectRepo: createProjectRepo(engine, noFiles, tab, 'http://localhost'), viewStateRepo: createViewStateRepo(tab)});
+    stop = startSessionSync({projectRepo: createProjectRepo(engine, noFiles, tab, 'http://localhost'), viewStateRepo: createViewStateRepo(tab), appState});
 
     otherTab.saveOpenProjects([project('111111'), project('222222')], null, new Set());
     await nextTick();
 
-    expect(openProjects().map(p => p.name.value)).toEqual(['111111', '222222']);
+    expect(appState.openProjects().map(p => p.name.value)).toEqual(['111111', '222222']);
   });
 
   it('does not write an adopted session back for the other tabs', async () => {
     const store = createSharedMemoryStorage();
     const otherTab = createProjectRepo(engine, noFiles, store.tab(), 'http://localhost');
     const tab = store.tab();
-    stop = startSessionSync({projectRepo: createProjectRepo(engine, noFiles, tab, 'http://localhost'), viewStateRepo: createViewStateRepo(tab)});
+    stop = startSessionSync({projectRepo: createProjectRepo(engine, noFiles, tab, 'http://localhost'), viewStateRepo: createViewStateRepo(tab), appState});
     let heardByOtherTab = 0;
     otherTab.watchOpenProjects(() => { heardByOtherTab++; });
 
@@ -73,9 +82,9 @@ describe('startSessionSync', () => {
     const store = createSharedMemoryStorage();
     const otherTab = createProjectRepo(engine, noFiles, store.tab(), 'http://localhost');
     const tab = store.tab();
-    stop = startSessionSync({projectRepo: createProjectRepo(engine, noFiles, tab, 'http://localhost'), viewStateRepo: createViewStateRepo(tab)});
+    stop = startSessionSync({projectRepo: createProjectRepo(engine, noFiles, tab, 'http://localhost'), viewStateRepo: createViewStateRepo(tab), appState});
 
-    addProject(project('333333'));
+    appState.addProject(project('333333'));
     await nextTick();
 
     const session = otherTab.loadOpenProjects();
@@ -87,12 +96,12 @@ describe('startSessionSync', () => {
   it('saves a trace hidden in this tab, so a reload restores it hidden', async () => {
     const store = createSharedMemoryStorage();
     const tab = store.tab();
-    stop = startSessionSync({projectRepo: createProjectRepo(engine, noFiles, tab, 'http://localhost'), viewStateRepo: createViewStateRepo(tab)});
-    addProject(project('111111'));
-    addProject(project('222222'));
+    stop = startSessionSync({projectRepo: createProjectRepo(engine, noFiles, tab, 'http://localhost'), viewStateRepo: createViewStateRepo(tab), appState});
+    appState.addProject(project('111111'));
+    appState.addProject(project('222222'));
     await nextTick();
 
-    setTraceVisible(openProjects()[0], false);
+    appState.setTraceVisible(appState.openProjects()[0], false);
     await nextTick();
 
     const session = createProjectRepo(engine, noFiles, store.tab(), 'http://localhost').loadOpenProjects();
@@ -104,20 +113,20 @@ describe('startSessionSync', () => {
     const store = createSharedMemoryStorage();
     const otherTab = createProjectRepo(engine, noFiles, store.tab(), 'http://localhost');
     const tab = store.tab();
-    stop = startSessionSync({projectRepo: createProjectRepo(engine, noFiles, tab, 'http://localhost'), viewStateRepo: createViewStateRepo(tab)});
+    stop = startSessionSync({projectRepo: createProjectRepo(engine, noFiles, tab, 'http://localhost'), viewStateRepo: createViewStateRepo(tab), appState});
     const hidden = project('111111');
 
     otherTab.saveOpenProjects([hidden, project('222222')], null, new Set([hidden]));
     await nextTick();
 
-    expect(openProjects().map(isTraceVisible)).toEqual([false, true]);
+    expect(appState.openProjects().map(p => appState.isTraceVisible(p))).toEqual([false, true]);
   });
 
   it('adopts the view another tab saves', async () => {
     const store = createSharedMemoryStorage();
     const otherTab = createViewStateRepo(store.tab());
     const tab = store.tab();
-    stop = startSessionSync({projectRepo: createProjectRepo(engine, noFiles, tab, 'http://localhost'), viewStateRepo: createViewStateRepo(tab)});
+    stop = startSessionSync({projectRepo: createProjectRepo(engine, noFiles, tab, 'http://localhost'), viewStateRepo: createViewStateRepo(tab), appState});
 
     otherTab.save({ui: {...presentationState.ui, unitTokens: {[NumberField.BOX_FB_HZ.value]: 'kHz'}}});
     await nextTick();
@@ -134,13 +143,13 @@ describe('startSessionSync — a stored session the app wrote', () => {
     const otherTab = store.tab();
     const otherRepo = createProjectRepo(engine, noFiles, otherTab, 'http://localhost', r => { repairs.push(r); });
     const tab = store.tab();
-    stop = startSessionSync({projectRepo: createProjectRepo(engine, noFiles, tab, 'http://localhost', r => { repairs.push(r); }), viewStateRepo: createViewStateRepo(tab)});
+    stop = startSessionSync({projectRepo: createProjectRepo(engine, noFiles, tab, 'http://localhost', r => { repairs.push(r); }), viewStateRepo: createViewStateRepo(tab), appState});
     const sample = OpenISDProject.fromOwprText(readFileSync(SAMPLE_PROJECT_OWPR, 'utf8'), engine);
     if (Array.isArray(sample)) throw new Error(sample.join('; '));
     let heardByOtherTab = 0;
     otherRepo.watchOpenProjects(() => { heardByOtherTab++; });
 
-    addProject(sample);
+    appState.addProject(sample);
     await nextTick();
     await nextTick();
     const session = otherRepo.loadOpenProjects();
@@ -157,11 +166,11 @@ describe('startSessionSync — a project imported in one tab', () => {
     ensureSampleProject();
     const store = createSharedMemoryStorage();
     const tab = store.tab();
-    stop = startSessionSync({projectRepo: createProjectRepo(engine, noFiles, tab, 'http://localhost'), viewStateRepo: createViewStateRepo(tab)});
+    stop = startSessionSync({projectRepo: createProjectRepo(engine, noFiles, tab, 'http://localhost'), viewStateRepo: createViewStateRepo(tab), appState});
     const imported = OpenISDProject.fromOwprText(readFileSync(SAMPLE_PROJECT_OWPR, 'utf8'), engine);
     if (Array.isArray(imported)) throw new Error(imported.join('; '));
     imported.save(); // File → Open commits the loaded design before opening it
-    addProject(imported);
+    appState.addProject(imported);
     await nextTick();
     const written = tab.get('openisd_open_sessions');
 
@@ -170,11 +179,11 @@ describe('startSessionSync — a project imported in one tab', () => {
     if (session === null || Array.isArray(session)) throw new Error('expected a session');
     stop();
     closeAll();
-    restoreProjects(session.projects, session.focusedIndex, session.traceHidden);
+    appState.restoreProjects(session.projects, session.focusedIndex, session.traceHidden);
     session.projects[session.focusedIndex]?.save(); // the boot commits the restored design
     let heard = 0;
     tab.watch('openisd_open_sessions', () => { heard++; });
-    reader.saveOpenProjects(openProjects(), session.projects[session.focusedIndex] ?? null, session.traceHidden);
+    reader.saveOpenProjects(appState.openProjects(), session.projects[session.focusedIndex] ?? null, session.traceHidden);
 
     expect(written).not.toBeNull();
     expect(heard).toBe(0);

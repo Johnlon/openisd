@@ -4,7 +4,6 @@
  * field-wiring factories `OriginalShell-hooks.ts` exports — one implementation of "what does the
  * Enclosure tab do", asked by both shells.
  */
-import {boxTypeIsSimulatable, envDefaults, focusedProject, projectChanged} from '../logic/appState.js';
 import {useFocusedProject} from '../logic/focusedProjectContext.js';
 import {useApp} from '../logic/app.js';
 import {createEnvironmentAir} from './OriginalShell-hooks.js';
@@ -17,6 +16,7 @@ const VENT_COUNT_OPTIONS = NumberField.VENT_COUNT.countOptions();
 const PR_COUNT_OPTIONS = NumberField.PR_NUM.countOptions();
 
 export function useMobileEnclosureTab() {
+  const {boxTypeIsSimulatable, definePassiveRadiator, envDefaults, focusedProject, projectChanged} = useApp().appState;
   const project = useFocusedProject();
   const { engine, myPassiveRadiators, bundledPassiveRadiators } = useApp();
 
@@ -29,7 +29,7 @@ export function useMobileEnclosureTab() {
     createSealedReadouts({ project, selectedBox, projectChanged });
   const { prBrowseOpen, loadPREntry, loadBundledPassiveRadiatorEntry, defineNewPREntry,
     prSaveOpen, prSaveFields, prSaveCanSave, openPRSave, cancelPRSave, confirmPRSave } =
-    createPassiveRadiatorActions({ project, myPassiveRadiators, bundledPassiveRadiators });
+    createPassiveRadiatorActions({ project, myPassiveRadiators, bundledPassiveRadiators, definePassiveRadiator });
 
   return {
     project, selectedBox,

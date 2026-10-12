@@ -4,13 +4,8 @@
  * component (`.claude/rules/ui.md`); every ref/computed/write lives here.
  */
 import {computed, nextTick, onMounted, onUnmounted, ref, watch} from 'vue';
-import {
-  boxTypeIsSimulatable, focusedProject, focusProject, isModified, openProjects, projectChanged,
-  projectDisplayName, projectHasUnsavedChanges, removeProject, resetProjectToGround,
-} from '../logic/appState.js';
-import {isTraceVisible, setTraceVisible, traceVisibilityRevision} from '../logic/traceVisibility.js';
 import type {OpenISDProject} from '@openisd/design';
-import {cycleTraceColor, presentationState, setSkinOverride, traceColor} from '../logic/presentationState.js';
+import {cycleTraceColor, traceColor} from '../logic/presentationState.js';
 import {useApp} from '../logic/app.js';
 import {inputFrom} from '../logic/domEvents.js';
 import {injectSplashModal} from './SplashModal-hooks.js';
@@ -118,6 +113,9 @@ export interface OpenProjectRow {
 }
 
 export function useMobileShell(): MobileShellApi {
+  const { appState, presentation: presentationState } = useApp();
+  const { isTraceVisible, setTraceVisible, traceVisibilityRevision, boxTypeIsSimulatable, focusedProject, focusProject, isModified, openProjects, projectChanged, projectDisplayName, projectHasUnsavedChanges, removeProject, resetProjectToGround } = appState;
+  const { setSkinOverride } = presentationState;
   const { designIO, projectRepo, releases, appVersion, confirmPort } = useApp();
   const { saveProject, saveAllProjects } = designIO;
   const { show: about } = injectSplashModal();
@@ -165,7 +163,7 @@ export function useMobileShell(): MobileShellApi {
     closeMenu();
   }
   function openStoredProject(id: string): void {
-    const result = openStoredProjectFromStore(projectRepo, id);
+    const result = openStoredProjectFromStore(appState, projectRepo, id);
     if (result.kind === 'refused') {
       alert('Could not open the saved project: ' + result.errors.join('; '));
       return;

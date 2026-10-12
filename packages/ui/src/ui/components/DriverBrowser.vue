@@ -1,11 +1,10 @@
 <script setup lang="ts">
 import {ref, watch} from 'vue';
-import {presentationState} from '../../logic/presentationState.js';
 import {useEscToClose} from '../../logic/useEscToClose.js';
 import {useApp} from '../../logic/app.js';
 import DriverLibrary from './DriverLibrary.vue';
 
-const { driverBrowsing } = useApp();
+const { driverBrowsing, presentation: presentationState } = useApp();
 
 // The driver library as an OVERLAY: this file is the window (title bar, close, scrim); the
 // library itself — list, filters, summary, footer — is DriverLibrary.vue, shared with step 1

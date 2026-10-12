@@ -1,11 +1,12 @@
 <script setup lang="ts">
 // The mobile Project tab — name, creator, created/modified dates, description. Thin: all state
 // and domain reads/writes live in useMobileProjectTab() (src/hooks/MobileProjectTab-hooks.ts).
-import {projectChanged} from '../../../logic/appState.js';
+import {useApp} from '../../../logic/app.js';
 import {useFocusedProject} from '../../../logic/focusedProjectContext.js';
 import {useMobileProjectTab} from '../../../hooks/MobileProjectTab-hooks.js';
 
 const project = useFocusedProject();
+const { projectChanged } = useApp().appState;
 const { name, creator, created, modified, description } = useMobileProjectTab({ project, changed: projectChanged });
 </script>
 

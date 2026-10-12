@@ -11,14 +11,13 @@
  * went further under QO168: a documented exception in
  * `architecture-project-has-three-fields.test.ts`, never serialized anywhere.
  *
- * Same singleton-survives-HMR shape as `appState.ts`'s own `state` — a Vite hot-reload re-runs
- * this module's top-level code, and a fresh `reactive()` on every reload would orphan every
- * other module's already-captured reference to the old one.
+ * This module holds types and pure helpers only. The one live instance is built by
+ * `createPresentationState()`, called once by the composition root (`main.ts`) and reached by
+ * components through `useApp().presentation`.
  */
 import {reactive} from 'vue';
 import type {YRange} from '../types.js';
 import type {ChartId} from '@openisd/design/engine';
-import {getOrInit, hmrSlots} from './hmrSingleton.js';
 import type {OpenISDProject} from '@openisd/design';
 
 /** The palette `assignTraceColor`/`cycleTraceColor` draw from — one project's own
@@ -82,10 +81,19 @@ export interface PresentationState {
    *  session on a different, wider screen. */
   narrowViewport: boolean;
   ui: UiState;
+  /** Reset every field's display unit back to its own default (undoes all unit toggling app-wide
+   *  — cm/L/g/Hz/K/Pa etc., whatever each field's `base` prop is), in one action. Does not touch
+   *  the design itself — this only affects how values are DISPLAYED, never the stored (SI) design. */
+  resetUnitTokens(): void;
+  /** Set (or, with `null`, clear) the manual skin override. `null` deletes the key rather than
+   *  storing a literal `null`, so a cleared override round-trips through `viewStateRepo` as
+   *  "absent" — the same state a visitor who never touched the toggle is in. */
+  setSkinOverride(skin: 'original' | 'mobile' | null): void;
 }
 
-function buildPresentationState(): PresentationState {
-  const s: PresentationState = {
+/** A fresh presentation state. Built once per app by the composition root, once per test. */
+export function createPresentationState(): PresentationState {
+  const s: PresentationState = reactive({
     newProjectOpen: false,
     browseOpen: false,
     editDriver: false,
@@ -96,24 +104,16 @@ function buildPresentationState(): PresentationState {
     ui: {
       unitTokens: {},
     },
-  };
+    resetUnitTokens(): void {
+      s.ui.unitTokens = {};
+    },
+    setSkinOverride(skin: 'original' | 'mobile' | null): void {
+      if (skin === null) delete s.ui.skinOverride;
+      else s.ui.skinOverride = skin;
+    },
+  });
   return s;
 }
-
-/** This module's hot-reload-surviving singletons, one typed member each (`hmrSingleton.ts`). */
-interface PresentationSingletons {
-  state: PresentationState;
-}
-declare global {
-  var __openisd_presentationState: Partial<PresentationSingletons> | undefined;
-}
-const slots = hmrSlots<PresentationSingletons>(
-  () => globalThis.__openisd_presentationState,
-  s => { globalThis.__openisd_presentationState = s; },
-);
-
-export const presentationState: PresentationState =
-  getOrInit(slots, 'state', () => reactive(buildPresentationState()));
 
 /** The project's own trace/legend colour, saved in its project file (`OpenISDProject.traceColor`),
  *  or the palette's first entry if `assignTraceColor` has never run for it (defensive default
@@ -136,23 +136,4 @@ export function assignTraceColor(project: OpenISDProject, open: readonly OpenISD
 export function cycleTraceColor(project: OpenISDProject): void {
   const idx = TRACE_PALETTE.indexOf(traceColor(project));
   project.traceColor.set(TRACE_PALETTE[(idx + 1) % TRACE_PALETTE.length]);
-}
-
-// ---- Per-field display units ------------------------------------------------------
-// The design store stays SI; `unitTokens` only chooses how a field is shown/entered. It is keyed
-// by the field itself: `NumberField.unitTokenFor(unitTokens)` reads it, `withNextUnit` rotates it.
-/** Reset every field's display unit back to its own default (undoes all unit toggling app-wide
- *  — cm/L/g/Hz/K/Pa etc., whatever each field's `base` prop is), in one action. Does not touch
- *  the design itself — this only affects how values are DISPLAYED, never the stored (SI) design. */
-export function resetUnitTokens(): void {
-  presentationState.ui.unitTokens = {};
-}
-
-// ---- Skin choice (manual, persisted half — see `narrowViewport` above for the automatic half) ----
-/** Set (or, with `null`, clear) the manual skin override. `null` deletes the key rather than
- *  storing a literal `null`, so a cleared override round-trips through `viewStateRepo` as
- *  "absent" — the same state a visitor who never touched the toggle is in. */
-export function setSkinOverride(skin: 'original' | 'mobile' | null): void {
-  if (skin === null) delete presentationState.ui.skinOverride;
-  else presentationState.ui.skinOverride = skin;
 }

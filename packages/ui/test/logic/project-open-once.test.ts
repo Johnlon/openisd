@@ -24,9 +24,20 @@ import {
   OPENISD_PROJECTS_KEY,
   type ProjectRepo,
 } from '@openisd/persistence';
-import {engine, focusedProject, newProject, openProjects, removeProject, requireFocusedProject} from '../../src/logic/appState.js';
 import {openStoredProject} from '../../src/logic/storedProjectOpen.js';
 import {ensureSampleProject, SAMPLE_PROJECT_OWPR} from '../fixtures/sampleProject.js';
+import {createAppStateFixture} from '../fixtures/appStateFixture.js';
+import type {AppState} from '../../src/logic/appState.js';
+import type {PresentationState} from '../../src/logic/presentationState.js';
+
+let appState: AppState;
+let presentationState: PresentationState;
+
+beforeEach(() => {
+  const fixture = createAppStateFixture();
+  appState = fixture.appState;
+  presentationState = fixture.presentation;
+});
 
 ensureSampleProject();
 
@@ -50,20 +61,21 @@ beforeEach(() => {
 });
 
 beforeEach(() => {
-  while (openProjects().length > 0) removeProject(openProjects().length - 1);
+  while (appState.openProjects().length > 0) appState.removeProject(appState.openProjects().length - 1);
 });
 
 function ioOver(storage = createMemoryStorage()): { io: DesignIO; repo: ProjectRepo } {
-  const repo = createProjectRepo(engine, createFileStorage(), storage, 'http://localhost');
+  const repo = createProjectRepo(appState.engine, createFileStorage(), storage, 'http://localhost');
   const fakeConfirmPort: ConfirmPort = { ask: async () => true };
-  const io = createApplicationIO({ engine, 
+  const io = createApplicationIO({ engine: appState.engine, 
     logging: createLogging(),
     fileStorage: createFileStorage(),
     fileOpen: createFileOpen(),
     projectRepo: repo,
-    files: new DesignFiles(engine, repo),
+    files: new DesignFiles(appState.engine, repo),
     backup: createBackupRepo(createMemoryStorage()),
     confirmPort: fakeConfirmPort,
+    appState, presentation: presentationState,
   });
   return { io, repo };
 }
@@ -83,13 +95,13 @@ describe('a project that is already open is opened once', () => {
 
     io.importFile(new File([content], FILE_NAME));
     await settle();
-    expect(openProjects().length).toBe(1);
-    const first = requireFocusedProject();
+    expect(appState.openProjects().length).toBe(1);
+    const first = appState.requireFocusedProject();
 
     io.importFile(new File([content], FILE_NAME));
     await settle();
-    expect(openProjects().length).toBe(1);
-    expect(focusedProject()).toBe(first);
+    expect(appState.openProjects().length).toBe(1);
+    expect(appState.focusedProject()).toBe(first);
   });
 
   it('Save after reopening the same file writes the one project in place', async () => {
@@ -103,7 +115,7 @@ describe('a project that is already open is opened once', () => {
 
     io.importFile(new File([content], FILE_NAME));
     await settle();
-    requireFocusedProject().name.set('Renamed once');
+    appState.requireFocusedProject().name.set('Renamed once');
     await io.saveProject();
 
     const stored = repo.listStoredProjects();
@@ -114,23 +126,23 @@ describe('a project that is already open is opened once', () => {
   it('a stored project opened twice leaves one tab, and it stays focused', async () => {
     const { repo } = ioOver();
 
-    newProject();
-    requireFocusedProject().name.set('Stored once');
-    repo.saveToStorage(requireFocusedProject());
+    appState.newProject();
+    appState.requireFocusedProject().name.set('Stored once');
+    repo.saveToStorage(appState.requireFocusedProject());
     const id = repo.listStoredProjects()[0]?.id;
     assert.ok(id !== undefined, 'the seeded project must be stored');
-    while (openProjects().length > 0) removeProject(openProjects().length - 1);
+    while (appState.openProjects().length > 0) appState.removeProject(appState.openProjects().length - 1);
 
-    const first = openStoredProject(repo, id);
+    const first = openStoredProject(appState, repo, id);
     if (first.kind !== 'opened') throw new Error('the seeded project must open');
-    expect(openProjects().length).toBe(1);
-    expect(focusedProject()).toBe(first.project);
+    expect(appState.openProjects().length).toBe(1);
+    expect(appState.focusedProject()).toBe(first.project);
 
-    const second = openStoredProject(repo, id);
+    const second = openStoredProject(appState, repo, id);
     if (second.kind !== 'opened') throw new Error('the reopened project must open');
-    expect(openProjects().length).toBe(1);
+    expect(appState.openProjects().length).toBe(1);
     expect(second.project).toBe(first.project);
-    expect(focusedProject()).toBe(first.project);
+    expect(appState.focusedProject()).toBe(first.project);
   });
 });
 

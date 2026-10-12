@@ -20,6 +20,8 @@ import type {FaultLog} from '../diagnostics/faultLog.js';
 import type {Engine} from '@openisd/design/engine';
 import type {ReleaseWatch} from './releaseWatch.js';
 import type {AppVersionPort} from './appVersion.js';
+import type {AppState} from './appState.js';
+import type {PresentationState} from './presentationState.js';
 
 /**
  * What the presentation layer is given.
@@ -57,6 +59,10 @@ export interface AppLogic {
   releases: ReleaseWatch;
   appVersion: AppVersionPort;
   confirmPort: { port: ConfirmPort; state: ConfirmDialogState };
+  /** The open projects, focused project's curves and issues, application settings. */
+  appState: AppState;
+  /** Which dialogs are open, chart zoom, unit and colour preferences. */
+  presentation: PresentationState;
 }
 
 export const APP_LOGIC: InjectionKey<AppLogic> = Symbol('openisd.app');

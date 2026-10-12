@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import {computed, onBeforeUnmount, ref, useAttrs, watch} from 'vue';
-import {presentationState} from '../../logic/presentationState.js';
+import {useApp} from '../../logic/app.js';
 import {decimalsSpinRule, formatFixed, HOLD_START_MS, holdStage, roundSpun, shownSpinRule, spinStepAttr, spinValue, type HoldStage, type NumberField, type SpinDirection, type SpinRule, type SpinSpeed} from '@openisd/design/fields';
 import type {ProvenanceLetter} from '@openisd/design';
 import {inputFrom} from '../../logic/domEvents.js';
 import {dqReason} from '../../logic/cellDataQuality.js';
 import {entryRefusal, type EntryBounds} from '../../logic/entryRefusal.js';
+const presentationState = useApp().presentation;
 
 // The DQ note makes this a fragment root, so attrs (id, class, …) are not auto-inherited —
 // bind them to the INPUT explicitly (never the ⚠ note).

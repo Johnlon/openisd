@@ -4,8 +4,7 @@
  * that opens and closes them. Mobile only renders this destination once a project is open.
  */
 import {computed, ref} from 'vue';
-import {focusedProject, projectChanged} from '../logic/appState.js';
-import {presentationState, traceColor} from '../logic/presentationState.js';
+import {traceColor} from '../logic/presentationState.js';
 import {useFocusedProject} from '../logic/focusedProjectContext.js';
 import {useApp} from '../logic/app.js';
 import {useCompareOverlays} from './compareOverlays.js';
@@ -16,10 +15,12 @@ import {selectedOption} from '../logic/domEvents.js';
 import type {ChartId} from '@openisd/design/engine';
 
 export function useMobileChartView() {
+  const {appState, presentation: presentationState} = useApp();
+  const {focusedProject, projectChanged} = appState;
   const project = useFocusedProject();
   const { engine } = useApp();
   const selection = new ChartSelection(focusedProject, projectChanged, engine.box);
-  const overlays = useCompareOverlays(engine.simulation, project);
+  const overlays = useCompareOverlays(engine.simulation, project, appState, presentationState);
   const { openCharts, chartItems, chartLabel } = selection;
 
   /** Whether the chart checklist is showing. */

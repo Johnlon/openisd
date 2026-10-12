@@ -1,6 +1,6 @@
 import {OpenISDDriver} from '@openisd/design';
-import {requireFocusedProject} from './appState.js';
-import {presentationState} from './presentationState.js';
+import type {AppState} from './appState.js';
+import type {PresentationState} from './presentationState.js';
 import type {DesignFiles} from './fileImportExport.js';
 import type {DriverFileFormat} from '../fileFormat.js';
 
@@ -113,7 +113,15 @@ export interface DriverSelection {
   closeEditor(): void;
 }
 
-export function createDriverSelection(): DriverSelection {
+/** What the selection service writes to: the focused project and the dialog flags. */
+export interface DriverSelectionDeps {
+  appState: AppState;
+  presentation: PresentationState;
+}
+
+export function createDriverSelection(deps: DriverSelectionDeps): DriverSelection {
+  const { requireFocusedProject } = deps.appState;
+  const presentationState = deps.presentation;
   let subject: EditorSubject = { kind: 'project' };
   let editSeed: OpenISDDriver | null = null;
 

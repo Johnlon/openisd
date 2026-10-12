@@ -10,8 +10,9 @@
 // registry's own `unit`/`unitGroup` (BUG_20260928, "NumInput's group/base props are a fourth
 // table"). A field with a `fixed` display renders its symbol, unrotatable.
 import {computed} from 'vue';
-import {presentationState} from '../../logic/presentationState.js';
+import {useApp} from '../../logic/app.js';
 import type {NumberField} from '@openisd/design/fields';
+const presentationState = useApp().presentation;
 
 const props = defineProps<{
   /** The field this toggle rotates the display unit of. */

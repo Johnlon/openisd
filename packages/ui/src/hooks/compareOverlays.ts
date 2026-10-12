@@ -10,14 +10,20 @@
 import {computed, type ComputedRef} from 'vue';
 import type {OpenISDProject} from '@openisd/design';
 import type {SimulationEngine} from '@openisd/design/engine';
-import {boxTypeIsSimulatable, openProjects, projectChanged, projectDisplayName} from '../logic/appState.js';
-import {presentationState, traceColor} from '../logic/presentationState.js';
+import type {AppState} from '../logic/appState.js';
+import type {PresentationState} from '../logic/presentationState.js';
+import {traceColor} from '../logic/presentationState.js';
 import {SweepCache} from '../logic/sweepCache.js';
 import {SweepComputer} from '../logic/sweepRequest.js';
-import {isTraceVisible, traceVisibilityRevision} from '../logic/traceVisibility.js';
 import type {Design, PlotParams} from '@openisd/design/chart';
 
-export function useCompareOverlays(simulation: SimulationEngine, focusedProject: ComputedRef<OpenISDProject>): ComputedRef<Design[]> {
+export function useCompareOverlays(
+  simulation: SimulationEngine,
+  focusedProject: ComputedRef<OpenISDProject>,
+  appState: AppState,
+  presentationState: PresentationState,
+): ComputedRef<Design[]> {
+  const {isTraceVisible, traceVisibilityRevision, boxTypeIsSimulatable, openProjects, projectChanged, projectDisplayName} = appState;
   const sweeps = new SweepCache(new SweepComputer(simulation));
   return computed<Design[]>(() => {
     void projectChanged.value;

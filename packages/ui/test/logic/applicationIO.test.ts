@@ -1,4 +1,4 @@
-import {beforeAll, describe, expect, it, vi} from 'vitest';
+import {beforeAll, describe, expect, it, vi, beforeEach} from 'vitest';
 import {ref} from 'vue';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
@@ -8,10 +8,21 @@ import {createLogging, type Logging} from '../../src/logging/flash.js';
 import {createApplicationIO, type DesignIO} from '../../src/logic/applicationIO.js';
 import {DesignFiles} from '../../src/logic/fileImportExport.js';
 import {createBackupRepo, createFileOpen, createFileStorage, createMemoryStorage, type FileOpen, type FilePick, createProjectRepo, type FileStorage} from '@openisd/persistence';
-import {newProject, openProjects, requireFocusedProject} from '../../src/logic/appState.js';
 import {createEngine} from '@openisd/design/engine';
 import {ensureSampleProject, SAMPLE_PROJECT_OWPR} from '../fixtures/sampleProject.js';
 import type {ConfirmPort} from '../../src/logic/confirmPort.js';
+import {createAppStateFixture} from '../fixtures/appStateFixture.js';
+import type {AppState} from '../../src/logic/appState.js';
+import type {PresentationState} from '../../src/logic/presentationState.js';
+
+let appState: AppState;
+let presentationState: PresentationState;
+
+beforeEach(() => {
+  const fixture = createAppStateFixture();
+  appState = fixture.appState;
+  presentationState = fixture.presentation;
+});
 
 // SAMPLE_PROJECT_OWPR is read directly (not through readSampleProject()) below, so the
 // generated fixture has to exist before that read runs — ensured here, once, the same way
@@ -93,15 +104,15 @@ describe('.wpr import syncs state.project from the file, and export round-trips 
       const engine = createEngine();
       const repo = createProjectRepo(engine, createFileStorage(), createMemoryStorage(), 'http://localhost');
       const logging = createLogging();
-      const io = createApplicationIO({ engine,  logging, fileStorage: createFileStorage(), fileOpen: createFileOpen(), projectRepo: repo, files: new DesignFiles(engine, repo), backup, confirmPort: fakeConfirmPort });
+      const io = createApplicationIO({ engine,  logging, fileStorage: createFileStorage(), fileOpen: createFileOpen(), projectRepo: repo, files: new DesignFiles(engine, repo), backup, confirmPort: fakeConfirmPort, appState, presentation: presentationState });
 
       // A DIFFERENT project is open before the import — these exact values must all be gone
       // after. The app starts with NO project (QO121), so this opens the one it then dirties.
-      newProject();
-      requireFocusedProject().name.set('stale-name-999999');
-      requireFocusedProject().description.set('stale-description-999999');
-      requireFocusedProject().creator.set('stale-creator-999999');
-      requireFocusedProject().created.set('stale-created-999999');
+      appState.newProject();
+      appState.requireFocusedProject().name.set('stale-name-999999');
+      appState.requireFocusedProject().description.set('stale-description-999999');
+      appState.requireFocusedProject().creator.set('stale-creator-999999');
+      appState.requireFocusedProject().created.set('stale-created-999999');
 
       const fakeFile = new File([new TextEncoder().encode(wprText)], 'imported-design.wpr');
       io.importFile(fakeFile);
@@ -111,10 +122,10 @@ describe('.wpr import syncs state.project from the file, and export round-trips 
       assert.deepEqual(alerts, [], 'the import must succeed');
       // `projectNameFromFilename` strips only OpenISD's own extensions (.owpr/.json) — a
       // foreign `.wpr` keeps its extension in the derived name.
-      assert.equal(requireFocusedProject().name.value, 'imported-design.wpr', 'name comes from the FILE NAME');
-      assert.equal(requireFocusedProject().description.value, 'probe-description-123456');
-      assert.equal(requireFocusedProject().creator.value, 'winisd_research overnight harness');
-      assert.equal(requireFocusedProject().created.value, '20260813');
+      assert.equal(appState.requireFocusedProject().name.value, 'imported-design.wpr', 'name comes from the FILE NAME');
+      assert.equal(appState.requireFocusedProject().description.value, 'probe-description-123456');
+      assert.equal(appState.requireFocusedProject().creator.value, 'winisd_research overnight harness');
+      assert.equal(appState.requireFocusedProject().created.value, '20260813');
 
       io.exportWpr();
       assert.equal(downloadedBodies.length, 1, 'exportWpr must produce exactly one download');
@@ -129,9 +140,9 @@ describe('.wpr import syncs state.project from the file, and export round-trips 
       assert.match(exported, /^Vr=0\.02$/m);
 
       // A filter above WinISD's order 10 is exported as order 10, and the export says so.
-      requireFocusedProject().filters.set(
+      appState.requireFocusedProject().filters.set(
         [{type: 'lowpass', enabled: true, family: 'butterworth', order: 15, fc: 50, Q: 0.707}]);
-      requireFocusedProject().save();
+      appState.requireFocusedProject().save();
       io.exportWpr();
       const clamped = downloadedBodies[1];
       if (clamped === undefined || typeof clamped === 'string') throw new Error('second export must download bytes');
@@ -165,7 +176,7 @@ describe('.wpr import syncs state.project from the file, and export round-trips 
       const engine = createEngine();
       const repo = createProjectRepo(engine, createFileStorage(), createMemoryStorage(), 'http://localhost');
       const logging = createLogging();
-      const io = createApplicationIO({ engine,  logging, fileStorage: createFileStorage(), fileOpen: createFileOpen(), projectRepo: repo, files: new DesignFiles(engine, repo), backup, confirmPort: fakeConfirmPort });
+      const io = createApplicationIO({ engine,  logging, fileStorage: createFileStorage(), fileOpen: createFileOpen(), projectRepo: repo, files: new DesignFiles(engine, repo), backup, confirmPort: fakeConfirmPort, appState, presentation: presentationState });
 
       // Not a project at all — every required top-level member is missing — so there is nothing a
       // field-level repair can keep (a project with bad fields loads repaired instead; John,
@@ -201,10 +212,10 @@ describe('.wpr import syncs state.project from the file, and export round-trips 
     };
     const engine = createEngine();
     const repo = createProjectRepo(engine, fileStorage, storage, 'http://localhost');
-    const io = createApplicationIO({ engine,  logging: createLogging(), fileStorage, fileOpen: createFileOpen(), projectRepo: repo, files: new DesignFiles(engine, repo), backup, confirmPort: fakeConfirmPort });
+    const io = createApplicationIO({ engine,  logging: createLogging(), fileStorage, fileOpen: createFileOpen(), projectRepo: repo, files: new DesignFiles(engine, repo), backup, confirmPort: fakeConfirmPort, appState, presentation: presentationState });
 
-    newProject();
-    requireFocusedProject().name.set('Saved from toolbar');
+    appState.newProject();
+    appState.requireFocusedProject().name.set('Saved from toolbar');
     const saved = await io.saveProject();
 
     assert.equal(saved, true);
@@ -223,19 +234,19 @@ describe('.wpr import syncs state.project from the file, and export round-trips 
     };
     const engine = createEngine();
     const repo = createProjectRepo(engine, fileStorage, storage, 'http://localhost');
-    const io = createApplicationIO({ engine,  logging: createLogging(), fileStorage, fileOpen: createFileOpen(), projectRepo: repo, files: new DesignFiles(engine, repo), backup, confirmPort: fakeConfirmPort });
+    const io = createApplicationIO({ engine,  logging: createLogging(), fileStorage, fileOpen: createFileOpen(), projectRepo: repo, files: new DesignFiles(engine, repo), backup, confirmPort: fakeConfirmPort, appState, presentation: presentationState });
 
-    newProject();
-    requireFocusedProject().name.set('First of two');
-    newProject();
-    requireFocusedProject().name.set('Second of two');
-    const dirtyBefore = openProjects().filter(p => p.isModified()).length;
+    appState.newProject();
+    appState.requireFocusedProject().name.set('First of two');
+    appState.newProject();
+    appState.requireFocusedProject().name.set('Second of two');
+    const dirtyBefore = appState.openProjects().filter(p => p.isModified()).length;
     const saved = await io.saveAllProjects();
 
     assert.equal(saved, dirtyBefore);
     const storedNames = repo.listStoredProjects().map(l => l.name);
     assert.ok(storedNames.includes('First of two') && storedNames.includes('Second of two'), `both were stored: ${storedNames.join(', ')}`);
-    assert.ok(openProjects().every(p => !p.isModified()), 'every open project is clean after Save all');
+    assert.ok(appState.openProjects().every(p => !p.isModified()), 'every open project is clean after Save all');
   });
 });
 
@@ -246,7 +257,7 @@ describe('openFromDisk — one named filter, fallback to the file input', () => 
     const fileOpen: FileOpen = { pickFile: async (filter) => { filters.push(filter); return pick; } };
     const engine = createEngine();
     const repo = createProjectRepo(engine, createFileStorage(), createMemoryStorage(), 'http://localhost');
-    return createApplicationIO({ engine,  logging: createLogging(), fileStorage: createFileStorage(), fileOpen, projectRepo: repo, files: new DesignFiles(engine, repo), backup, confirmPort: fakeConfirmPort });
+    return createApplicationIO({ engine,  logging: createLogging(), fileStorage: createFileStorage(), fileOpen, projectRepo: repo, files: new DesignFiles(engine, repo), backup, confirmPort: fakeConfirmPort, appState, presentation: presentationState });
   }
 
   it('asks the dialog for all four formats under one filter, and imports the picked file', async () => {
@@ -276,7 +287,7 @@ describe('openFromDisk — one named filter, fallback to the file input', () => 
       },
     }]);
     assert.equal(fallback.mock.calls.length, 0);
-    assert.equal(requireFocusedProject().name.value, 'picked-design');
+    assert.equal(appState.requireFocusedProject().name.value, 'picked-design');
     vi.unstubAllGlobals();
     vi.stubGlobal('location', { origin: 'https://openisd.test', pathname: '/' });
     vi.stubGlobal('history', { replaceState: () => {} });
@@ -345,7 +356,7 @@ describe('every import and export says what it did', () => {
     const logging: Logging = { message: ref(''), flash: vi.fn() };
     const engine = createEngine();
     const repo = createProjectRepo(engine, fileStorage, createMemoryStorage(), 'http://localhost');
-    const io = createApplicationIO({ engine,  logging, fileStorage, fileOpen: createFileOpen(), projectRepo: repo, files: new DesignFiles(engine, repo), backup, confirmPort: fakeConfirmPort });
+    const io = createApplicationIO({ engine,  logging, fileStorage, fileOpen: createFileOpen(), projectRepo: repo, files: new DesignFiles(engine, repo), backup, confirmPort: fakeConfirmPort, appState, presentation: presentationState });
     return { io, flash: logging.flash };
   }
 
@@ -356,8 +367,8 @@ describe('every import and export says what it did', () => {
   async function importGolden(io: DesignIO): Promise<void> {
     io.importFile(new File([readFileSync(GOLDEN_SEALED)], 'MyBox.wpr'));
     await settle();
-    requireFocusedProject().driver.brand.set('Tang Band');
-    requireFocusedProject().driver.model.set('W5-1138SMF');
+    appState.requireFocusedProject().driver.brand.set('Tang Band');
+    appState.requireFocusedProject().driver.model.set('W5-1138SMF');
   }
 
   it('project import, .wpr export, .wdr and .owdr export, and a driver import each flash', async () => {
@@ -391,9 +402,9 @@ describe('every import and export says what it did', () => {
     try {
       const { io, flash } = ioWith(createFileStorage());
       await importGolden(io);
-      requireFocusedProject().filters.set(
+      appState.requireFocusedProject().filters.set(
         [{type: 'lowpass', enabled: true, family: 'butterworth', order: 15, fc: 50, Q: 0.707}]);
-      requireFocusedProject().save();
+      appState.requireFocusedProject().save();
       io.exportWpr();
       expect(flash).toHaveBeenLastCalledWith(expect.stringMatching(/^Project exported as Tang_Band_W5-1138SMF\.wpr: .*lowpass order 15 written as order 10/));
     } finally { restoreGlobals(); }
@@ -411,8 +422,8 @@ describe('every import and export says what it did', () => {
   });
 
   it('Save As names the file written, or says the download is unconfirmed', async () => {
-    newProject();
-    requireFocusedProject().name.set('MyBox');
+    appState.newProject();
+    appState.requireFocusedProject().name.set('MyBox');
     const written = ioWith(fakeFileStorage({ name: 'MyBox.owpr', cancelled: false, written: true }));
     await written.io.saveProjectAs();
     expect(written.flash).toHaveBeenCalledWith('Project saved as MyBox.owpr');

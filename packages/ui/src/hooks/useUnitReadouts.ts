@@ -1,9 +1,10 @@
 // Picks the unit tokens the user has rotated to (presentationState.ui.unitTokens) and hands them
 // to the design readout formats, so a number and its unit label both follow the rotation.
 import type {NumberField, ReadoutFormat} from '@openisd/design/fields';
-import {presentationState} from '../logic/presentationState.js';
+import {useApp} from '../logic/app.js';
 
 export function useUnitReadouts() {
+  const presentationState = useApp().presentation;
   const tokens = (): Record<string, string> => presentationState.ui.unitTokens ?? {};
   return {
     /** A ReadoutFormat value in the rotated unit, with its label; `absent` when `v` is missing. */

@@ -5,15 +5,9 @@ import { type OpenISDDriver, type OpenISDProject, OpenISDPassiveRadiatorStandalo
 import type { BundledPassiveRadiatorRepo, MyPassiveRadiatorRepo } from '@openisd/persistence';
 import type { BoxType, EbpSuitability, SealedEngine, VentedAlignment, VentedEngine, Wiring } from '@openisd/design/engine';
 import {ARRAY_WIRING_OPTIONS, DEFAULT_NEW_PROJECT_VENTED_QL, DEFAULT_SOURCE_RESISTANCE_OHM, DEFAULT_VENTED_ALIGNMENT, NumberField, SEALED_ALIGNMENT_OPTIONS, VENTED_ALIGNMENT_OPTIONS, type SelectorOption} from '@openisd/design/fields';
-import {
-  IMPLEMENTED_BOX_TYPES,
-  createProject as createProjectInStore,
-  isModified,
-  newProjectBoxTypeOptions,
-  newProjectDriver,
-} from '../logic/appState.js';
 import {DUAL_CHAMBER} from './boxFields.js';
 import {useApp} from '../logic/app.js';
+import type {AppState} from '../logic/appState.js';
 import { selectedOption } from '../logic/domEvents.js';
 
 /** The two engine areas the wizard consults; the app facade's by default, substitutes in a test. */
@@ -53,6 +47,8 @@ export interface OriginalNewProjectDeps {
   areas?: OriginalNewProjectEngineAreas;
   passiveRadiators?: NewProjectPassiveRadiatorRepos;
   initialDriver?: OpenISDDriver | null;
+  /** The app state the wizard creates its project in; the app facade's by default. */
+  appState?: AppState;
 }
 
 export interface OriginalNewProjectAPI {
@@ -174,6 +170,7 @@ const STEP_LABELS = Object.freeze([
 ]);
 
 export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProjectAPI {
+  const { IMPLEMENTED_BOX_TYPES, createProject: createProjectInStore, isModified, newProjectBoxTypeOptions, newProjectDriver } = deps?.appState ?? useApp().appState;
   const eng: OriginalNewProjectEngineAreas = deps?.areas ?? useApp().engine;
   const prRepos: NewProjectPassiveRadiatorRepos = deps?.passiveRadiators
     ?? { saved: useApp().myPassiveRadiators, bundled: useApp().bundledPassiveRadiators };

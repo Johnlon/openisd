@@ -12,9 +12,18 @@ import {createEngine} from '@openisd/design/engine';
 import {OpenISDProject, ProjectBuilder} from '@openisd/design';
 import type {OpenProjectSession, ProjectRepo, ViewSnapshot} from '@openisd/persistence';
 import {bootApplication, type BootDeps} from '../../src/logic/boot.js';
-import {focusedProject, openProjects, removeProject} from '../../src/logic/appState.js';
-import {presentationState} from '../../src/logic/presentationState.js';
-import {isTraceVisible} from '../../src/logic/traceVisibility.js';
+import {createAppStateFixture} from '../fixtures/appStateFixture.js';
+import type {AppState} from '../../src/logic/appState.js';
+import type {PresentationState} from '../../src/logic/presentationState.js';
+
+let appState: AppState;
+let presentationState: PresentationState;
+
+beforeEach(() => {
+  const fixture = createAppStateFixture();
+  appState = fixture.appState;
+  presentationState = fixture.presentation;
+});
 
 const engine = createEngine();
 
@@ -47,12 +56,13 @@ function recording(overrides: {
     viewStateRepo: {load: () => { log.push('view'); return overrides.view ? overrides.view() : null; }},
     logging: {flash: (m: string) => { log.push('flash: ' + m); }},
     editProjectDriver: () => { log.push('open-editor'); },
+    appState, presentation: presentationState,
   };
   return {log, deps};
 }
 
 beforeEach(() => {
-  while (openProjects().length > 0) removeProject(openProjects().length - 1);
+  while (appState.openProjects().length > 0) appState.removeProject(appState.openProjects().length - 1);
   presentationState.editDriver = false;
   presentationState.editDriverInfo = false;
   presentationState.ui.originalWhatIfOpen = false;
@@ -70,15 +80,15 @@ describe('bootApplication', () => {
     const {log, deps} = recording({hash: () => ({project: project('shared'), view: {ui: {}}})});
     await bootApplication(deps);
     expect(log).toEqual(['hash']);
-    expect(focusedProject()?.name.value).toBe('shared');
+    expect(appState.focusedProject()?.name.value).toBe('shared');
   });
 
   it('restores the session projects', async () => {
     const session = {projects: [project('one'), project('two')], focusedIndex: 1, refused: [], traceHidden: new Set<OpenISDProject>()};
     const {deps} = recording({session: () => session});
     await bootApplication(deps);
-    expect(openProjects()).toHaveLength(2);
-    expect(focusedProject()?.name.value).toBe('two');
+    expect(appState.openProjects()).toHaveLength(2);
+    expect(appState.focusedProject()?.name.value).toBe('two');
   });
 
   // bugs/BUG_20261005_project-selection-lost-on-reload.md
@@ -87,7 +97,7 @@ describe('bootApplication', () => {
     const session = {projects: [hidden, project('two')], focusedIndex: 1, refused: [], traceHidden: new Set([hidden])};
     const {deps} = recording({session: () => session});
     await bootApplication(deps);
-    expect(openProjects().map(isTraceVisible)).toEqual([false, true]);
+    expect(appState.openProjects().map(p => appState.isTraceVisible(p))).toEqual([false, true]);
   });
 
   it('keeps a restored session project\'s unsaved edits unsaved, so Revert still works', async () => {
@@ -97,9 +107,9 @@ describe('bootApplication', () => {
     expect(edited.isModified()).toBe(true);
     const {deps} = recording({session: () => ({projects: [edited], focusedIndex: 0, refused: [], traceHidden: new Set<OpenISDProject>()})});
     await bootApplication(deps);
-    expect(focusedProject()?.isModified()).toBe(true);
-    expect(await focusedProject()?.cancel(async () => true)).toBe(true);
-    expect(focusedProject()?.name.value).toBe(savedName);
+    expect(appState.focusedProject()?.isModified()).toBe(true);
+    expect(await appState.focusedProject()?.cancel(async () => true)).toBe(true);
+    expect(appState.focusedProject()?.name.value).toBe(savedName);
   });
 
   it('quarantines a record that held an entry it could not read, and says so', async () => {
@@ -108,7 +118,7 @@ describe('bootApplication', () => {
     await bootApplication(deps);
     expect(log).toContain('quarantine');
     expect(log.some(l => l.startsWith('flash:'))).toBe(true);
-    expect(openProjects()).toHaveLength(1);
+    expect(appState.openProjects()).toHaveLength(1);
   });
 
   it('reopens a panel the stored view left open, once a project is there to open it on', async () => {
@@ -124,7 +134,7 @@ describe('bootApplication', () => {
     const {log, deps} = recording({session: () => ({projects: [], focusedIndex: 0, refused: [], traceHidden: new Set<OpenISDProject>()})});
     await bootApplication(deps);
     expect(log).not.toContain('legacy');
-    expect(openProjects()).toHaveLength(0);
+    expect(appState.openProjects()).toHaveLength(0);
   });
 
   it('opens no panel when the boot ended with no project', async () => {

@@ -10,8 +10,9 @@
 // calculated value is shown, is what NumInput already is for the ENTERED side of the same fields
 // — this is its read-only twin, not a second implementation.
 import {computed} from 'vue';
-import {presentationState} from '../../logic/presentationState.js';
+import {useApp} from '../../logic/app.js';
 import {formatFixed, type NumberField} from '@openisd/design/fields';
+const presentationState = useApp().presentation;
 
 const props = withDefaults(defineProps<{
   /** The value in SI — same convention as NumInput's modelValue. */

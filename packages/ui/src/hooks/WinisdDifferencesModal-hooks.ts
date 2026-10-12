@@ -2,9 +2,9 @@ import type {ComputedRef, InjectionKey, ShallowRef} from 'vue';
 import {computed, inject, provide, shallowRef} from 'vue';
 import type {CompatSwitchGroup, WinisdDeviation} from '@openisd/design/fields';
 import {WinisdDifference, WinisdDifferenceSection} from '@openisd/design/fields';
-import {differenceCuesShown as appDifferenceCuesShown} from '../logic/appState.js';
+import {useApp} from '../logic/app.js';
 
-/** The app setting this hook reads — `appState`'s by default, a substitute in a test. */
+/** The app setting this hook reads — `appState`'s, or a substitute in a test. */
 export interface WinisdDifferencesModalDeps {
   /** Options → General "Show WinISD difference markers (≠W)". Reactive. */
   differenceCuesShown(): boolean;
@@ -36,7 +36,7 @@ export const WinisdDifferencesModalKey: InjectionKey<WinisdDifferencesModalAPI> 
  * class instances with private fields, which a deep reactive proxy cannot read.
  */
 export function useWinisdDifferencesModal(
-  deps: WinisdDifferencesModalDeps = {differenceCuesShown: appDifferenceCuesShown},
+  deps: WinisdDifferencesModalDeps,
 ): WinisdDifferencesModalAPI {
   const open = shallowRef(false);
   const target = shallowRef<WinisdDifferencesTarget | null>(null);
@@ -61,7 +61,7 @@ export function useWinisdDifferencesModal(
 /** Build the app's one help page and hand it to every descendant. Called by `App.vue`; the menus,
  *  the group headings, the ≠W cues and the page itself read that one instance. */
 export function provideWinisdDifferencesModal(): WinisdDifferencesModalAPI {
-  const api = useWinisdDifferencesModal();
+  const api = useWinisdDifferencesModal(useApp().appState);
   provide(WinisdDifferencesModalKey, api);
   return api;
 }

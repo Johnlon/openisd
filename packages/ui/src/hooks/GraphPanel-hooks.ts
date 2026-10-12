@@ -1,8 +1,7 @@
 import type {InjectionKey, Ref} from 'vue';
+import {useApp} from '../logic/app.js';
 import {computed, ref, watch} from 'vue';
-import {allIssues, curvesData, driverName, maxData, openProjects, syncedP} from '../logic/appState.js';
 import {useFocusedProject} from '../logic/focusedProjectContext.js';
-import {presentationState} from '../logic/presentationState.js';
 import {
   buildPlotData, type ChartEngineAreas, type Design, DPAL, FrequencyAxis, type PlotData, rangeStatsOf, type RangeStats,
   type SnapDirection, type SnapExtremum, snapFrequency, TAB_META,
@@ -53,6 +52,8 @@ export const GraphPanelKey: InjectionKey<GraphPanelAPI> = Symbol('GraphPanelAPI'
 /** `chartEngine`: the simulation and environment areas the curves read — the app facade's
  *  engine, handed in by the component rather than reached for here. */
 export function useGraphPanel(props: GraphPanelProps, chartEngine: ChartEngineAreas): GraphPanelAPI {
+  const {appState, presentation: presentationState} = useApp();
+  const {allIssues, curvesData, driverName, maxData, openProjects, syncedP} = appState;
   const project = useFocusedProject();
   const overlayDesigns = computed(() => props.overlays ?? []);
 

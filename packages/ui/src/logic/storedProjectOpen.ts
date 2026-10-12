@@ -10,14 +10,15 @@
  */
 import type {OpenISDProject} from '@openisd/design';
 import type {ProjectRepo} from '@openisd/persistence';
-import {openProjectByIdentity, openProjectOnce, type StoredProjectIdentity} from './appState.js';
+import type {AppState, StoredProjectIdentity} from './appState.js';
 
 /** What opening a stored project did: the focused project, or the store's refusal to read it. */
 export type StoredOpenResult =
   | { readonly kind: 'opened'; readonly project: OpenISDProject }
   | { readonly kind: 'refused'; readonly errors: readonly string[] };
 
-export function openStoredProject(repo: ProjectRepo, id: string): StoredOpenResult {
+export function openStoredProject(appState: AppState, repo: ProjectRepo, id: string): StoredOpenResult {
+  const {openProjectByIdentity, openProjectOnce} = appState;
   const identity: StoredProjectIdentity = {kind: 'stored', id};
   const existing = openProjectByIdentity(identity);
   if (existing) return {kind: 'opened', project: openProjectOnce(existing, identity)};

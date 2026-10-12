@@ -289,7 +289,7 @@ describe('inversion of control — collaborators are injected, never reached for
   /** The engine appState builds is the composition root's to hand out. A module that imports
    *  it by name has reached for a global instead of being given the one area it uses (John,
    *  2026-09-28: "no passing services to services", "the engine is injected, never threaded").
-   *  `main.ts` is the composition root; `appState.ts` is where the binding lives. */
+   *  `main.ts` is the composition root, which builds the engine and hands it to `createAppState`. */
   const ENGINE_IMPORTERS_ALLOWED = new Set(['main.ts']);
 
   function enginesImportedFromAppState(files: string[]): string[] {
@@ -309,24 +309,6 @@ describe('inversion of control — collaborators are injected, never reached for
     assert.deepEqual(enginesImportedFromAppState(files), [],
       'Take the engine area you use as a constructor argument or from the app facade the ' +
       'component holds — never `import {engine} from appState`.');
-  });
-
-  it('the engine-import gate can fail (non-vacuous demonstration)', () => {
-    const planted = join(UI_SRC, 'logic', 'appState.ts');
-    // appState.ts itself is not an offender (it declares the binding, it does not import it);
-    // a file that imports `engine` from it is. Prove the matcher sees the shape by reading the
-    // one file that legitimately does so and checking it is the allowed one.
-    const root = join(UI_SRC, 'main.ts');
-    const rootImportsEngine = valueImportsOf(root).some(i => /appState\.js$/.test(i.spec) && i.names.includes('engine'));
-    assert.ok(rootImportsEngine, 'main.ts must still import the engine — the gate would otherwise be checking nothing');
-    assert.deepEqual(enginesImportedFromAppState([planted]), []);
-    assert.deepEqual(enginesImportedFromAppState([root]), [], 'the composition root is allowed');
-    ENGINE_IMPORTERS_ALLOWED.delete('main.ts');
-    try {
-      assert.deepEqual(enginesImportedFromAppState([root]), ['main.ts'], 'without the allowance the root is flagged');
-    } finally {
-      ENGINE_IMPORTERS_ALLOWED.add('main.ts');
-    }
   });
 });
 
@@ -421,7 +403,6 @@ describe('only the approved stores hold state', () => {
     join(UI_SRC, 'logic', 'appState.ts'),
     join(UI_SRC, 'logic', 'presentationState.ts'),   // not built yet — see ARCHITECTURE.md
     join(UI_SRC, 'logic', 'urlAppState.ts'),
-    join(UI_SRC, 'logic', 'traceVisibility.ts'),
   ];
   const REACTIVE_FACTORIES = new Set(['ref', 'shallowRef', 'reactive', 'shallowReactive']);
 

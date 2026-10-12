@@ -1,12 +1,22 @@
-import {describe, expect, it, vi} from 'vitest';
-import {computed, defineComponent, h} from 'vue';
+import {describe, expect, it, vi, beforeEach} from 'vitest';
+import {computed, defineComponent, h, provide} from 'vue';
 import {renderToString} from 'vue/server-renderer';
 import {createEngine} from '@openisd/design/engine';
 import {ProjectBuilder} from '@openisd/design';
-import {addProject} from '../../src/logic/appState.js';
 import {runHook} from './runHook.js';
 import {provideFocusedProject} from '../../src/logic/focusedProjectContext.js';
 import {useAdvancedOptions, type AdvancedOptionsAPI} from '../../src/hooks/AdvancedOptions-hooks.js';
+import {testAppLogic} from './testAppLogic.js';
+import {APP_LOGIC, type AppLogic} from '../../src/logic/app.js';
+import type {AppState} from '../../src/logic/appState.js';
+
+let logic: AppLogic;
+let appState: AppState;
+
+beforeEach(() => {
+  logic = testAppLogic();
+  appState = logic.appState;
+});
 
 function createProject(boxType: 'sealed' | 'vented' | 'bandpass4' = 'sealed') {
   const engine = createEngine();
@@ -25,6 +35,7 @@ async function renderHook(project = createProject()): Promise<AdvancedOptionsAPI
   });
   const Root = defineComponent({
     setup() {
+      provide(APP_LOGIC, logic);
       provideFocusedProject(computed(() => project));
       return () => h(Child);
     },
@@ -47,8 +58,8 @@ describe('AdvancedOptions-hooks', () => {
 
   it('hasVent follows the box type when it changes after the first read', () => {
     const project = createProject('sealed');
-    addProject(project);   // the change tick only fires for a project appState holds
-    const api = runHook(computed(() => project), useAdvancedOptions);
+    appState.addProject(project);   // the change tick only fires for a project appState holds
+    const api = runHook(computed(() => project), useAdvancedOptions, logic);
     expect(api.hasVent.value).toBe(false);
     project.box.boxType.set('vented');
     expect(api.hasVent.value).toBe(true);

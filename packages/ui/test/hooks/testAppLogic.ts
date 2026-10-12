@@ -4,7 +4,6 @@
  * the composition root's facade without a cast. `overrides` replaces whichever piece the test
  * actually exercises.
  */
-import {createEngine} from '@openisd/design/engine';
 import {
   createBackupRepo,
   createBundledDriverRepo,
@@ -28,7 +27,7 @@ import {createApplicationIO} from '../../src/logic/applicationIO.js';
 import {DesignFiles} from '../../src/logic/fileImportExport.js';
 import {DriverDrafts} from '../../src/logic/driverDraft.js';
 import {createConfirmPort, type ConfirmPort} from '../../src/logic/confirmPort.js';
-import {appContext} from '../../src/logic/appState.js';
+import {createAppStateFixture} from '../fixtures/appStateFixture.js';
 import type {AppLogic} from '../../src/logic/app.js';
 import {ReleaseWatch} from '../../src/logic/releaseWatch.js';
 import {createAppVersionPort} from '../../src/logic/appVersion.js';
@@ -46,7 +45,8 @@ const fakeConfirmPort: ConfirmPort = {
 };
 
 export function testAppLogic(overrides: Partial<AppLogic> = {}): AppLogic {
-  const engine = createEngine();
+  const { appState, presentation } = createAppStateFixture();
+  const engine = appState.engine;
   const logging = createLogging();
   const storage = createMemoryStorage();
   const faultLog = createFaultLog(() => undefined, () => ({
@@ -63,18 +63,18 @@ export function testAppLogic(overrides: Partial<AppLogic> = {}): AppLogic {
   });
   const fileStorage = createFileStorage();
   const driverFileStorage = createFileStorage();
-  const selection = createDriverSelection();
+  const selection = createDriverSelection({ appState, presentation });
   const projectRepo = createProjectRepo(engine, fileStorage, storage, 'http://localhost');
   const designFiles = new DesignFiles(engine, projectRepo);
-  const driverDrafts = new DriverDrafts(engine, appContext);
+  const driverDrafts = new DriverDrafts(engine, appState.appContext);
   const confirmPort = createConfirmPort();
   const driverBrowsing = createDriverBrowsingState({
     driverRepo, myDriverRepo, prefs, logging, selection, files: designFiles,
-    confirmReset: fakeConfirmPort,
+    confirmReset: fakeConfirmPort, appState, presentation,
   });
   const viewStateRepo = createViewStateRepo(storage);
   const backup = createBackupRepo(storage);
-  const designIO = createApplicationIO({ engine,  logging, fileStorage, fileOpen: createFileOpen(), projectRepo, files: designFiles, backup, confirmPort: fakeConfirmPort });
+  const designIO = createApplicationIO({ engine,  logging, fileStorage, fileOpen: createFileOpen(), projectRepo, files: designFiles, backup, confirmPort: fakeConfirmPort, appState, presentation });
 
   const base: AppLogic = {
     engine, logging, driverBrowsing, selection, designIO, designFiles, driverDrafts,
@@ -89,7 +89,7 @@ export function testAppLogic(overrides: Partial<AppLogic> = {}): AppLogic {
       recordDismissedVersion: () => {},
     }, { log: () => {} }),
     appVersion: createAppVersionPort(false, '', null, testLocalTime),
-    confirmPort,
+    confirmPort, appState, presentation,
   };
   return Object.assign({}, base, overrides);
 }

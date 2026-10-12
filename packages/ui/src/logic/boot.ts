@@ -13,8 +13,8 @@
  * rather than by a guard at each site.
  */
 import type {OpenProjectSession, ProjectRepo, ViewSnapshot} from '@openisd/persistence';
-import {applyLoadedProject, applyState, applyViewSnapshot, focusedProject, markProjectSaved, restoreProjects} from './appState.js';
-import {presentationState} from './presentationState.js';
+import type {AppState} from './appState.js';
+import type {PresentationState} from './presentationState.js';
 
 /** The doors the boot reads through, and the one action it takes on the UI's behalf. */
 export interface BootDeps {
@@ -24,6 +24,8 @@ export interface BootDeps {
   /** Opens the Driver Editor on the focused project — the shell's own action, injected so the
    *  boot does not reach into the selection service itself. */
   readonly editProjectDriver: () => void;
+  readonly appState: AppState;
+  readonly presentation: PresentationState;
 }
 
 /** A share link carries the WHOLE session, project and view together (human ruling
@@ -35,7 +37,7 @@ async function restoreFromShareLink(deps: BootDeps): Promise<boolean> {
     return false;
   }
   if (!fromUrl) return false;
-  applyState(fromUrl);
+  deps.appState.applyState(fromUrl);
   return true;
 }
 
@@ -65,7 +67,7 @@ function restoreSession(deps: BootDeps): SessionRestore {
   }
   // Every entry refused: the record could not say what was open, so it says nothing.
   if (session.projects.length === 0) return session.refused.length > 0 ? 'none' : 'empty';
-  restoreProjects(session.projects, session.focusedIndex, session.traceHidden);
+  deps.appState.restoreProjects(session.projects, session.focusedIndex, session.traceHidden);
   return 'restored';
 }
 
@@ -77,21 +79,22 @@ function restoreLegacyProject(deps: BootDeps): void {
     deps.logging.flash('Could not restore the saved project: ' + stored.join('; '));
     return;
   }
-  if (stored) applyLoadedProject(stored);
+  if (stored) deps.appState.applyLoadedProject(stored);
 }
 
 /** Unit tokens, chart colours, open-panel flags — everything the view remembers. */
 function restoreView(deps: BootDeps): void {
   const view = deps.viewStateRepo.load();
-  if (view) applyViewSnapshot(view);
+  if (view) deps.appState.applyViewSnapshot(view);
 }
 
 /** Panels the stored view left open. Both read the focused project, so this phase does nothing
  *  without one — the view outlives the project it was stored with. */
 function restorePanels(deps: BootDeps): void {
-  if (focusedProject() === null) return;
-  if (presentationState.ui.originalWhatIfOpen === true) presentationState.editDriver = true;
-  if (presentationState.ui.originalEditorOpen === true && !presentationState.editDriverInfo) deps.editProjectDriver();
+  if (deps.appState.focusedProject() === null) return;
+  const presentation = deps.presentation;
+  if (presentation.ui.originalWhatIfOpen === true) presentation.editDriver = true;
+  if (presentation.ui.originalEditorOpen === true && !presentation.editDriverInfo) deps.editProjectDriver();
 }
 
 /**
@@ -101,7 +104,7 @@ function restorePanels(deps: BootDeps): void {
  */
 export async function bootApplication(deps: BootDeps): Promise<void> {
   if (await restoreFromShareLink(deps)) {
-    markProjectSaved();
+    deps.appState.markProjectSaved();
     return;
   }
   const session = restoreSession(deps);
@@ -110,5 +113,5 @@ export async function bootApplication(deps: BootDeps): Promise<void> {
   restorePanels(deps);
   // A restored session carries each project's own saved and edited layers, so its unsaved edits
   // stay unsaved. Only the single legacy project has no such layers: it is the ground state.
-  if (session !== 'restored') markProjectSaved();
+  if (session !== 'restored') deps.appState.markProjectSaved();
 }

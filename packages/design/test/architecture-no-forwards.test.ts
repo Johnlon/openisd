@@ -62,10 +62,6 @@ const FORWARDS_BASELINE: ReadonlySet<string> = new Set([
   "packages/design/domain/project/openISDProject.ts#OpenISDProject.setEnvTempK",
   "packages/design/domain/project/projectListeners.ts#ProjectListeners.add",
   "packages/design/domain/project/projectListeners.ts#ProjectListeners.delete",
-  "packages/ui/src/logic/appState.ts#currentProject",
-  "packages/ui/src/logic/appState.ts#envDefaults",
-  "packages/ui/src/logic/appState.ts#markProjectSaved",
-  "packages/ui/src/logic/appState.ts#ventedLimits",
 ]);
 
 /** The parameter names, in order, or `null` if any parameter is not a plain named one — a

@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import {computed, onMounted, onUnmounted, ref, watch} from 'vue';
-import {projectChanged} from '../../logic/appState.js';
 import {useFocusedProject} from '../../logic/focusedProjectContext.js';
-import {presentationState} from '../../logic/presentationState.js';
 import type {Design, FrequencyAxis, FrequencyDragMode, LevelAxis, LevelDragMode, SnapDirection, SnapExtremum} from '@openisd/design/chart';
 import type {Geo} from '../../types.js';
 import type {ChartId} from '@openisd/design/engine';
@@ -21,7 +19,8 @@ import {inputChecked} from '../../logic/domEvents.js';
 const props = defineProps<{ chartId: ChartId; bare?: boolean; primaryColor?: string; overlays?: Design[]; hideAutoY?: boolean }>();
 
 const project = useFocusedProject();
-const graph = useGraphPanel(props, useApp().engine);
+const { appState: { projectChanged }, presentation: presentationState, engine } = useApp();
+const graph = useGraphPanel(props, engine);
 
 const canvasEl = ref<HTMLCanvasElement | null>(null);
 const readEl   = ref<HTMLElement | null>(null);
