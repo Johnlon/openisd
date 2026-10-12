@@ -2,30 +2,32 @@ id: T055
 repo: openisd
 owner: fable
 status: held
-goal: Numbered releases. openisd.app serves the latest release, not main HEAD. Every release stays hosted and linkable. Storage is version stamped, snapshotted on upgrade, old versions keep working.
+goal: Numbered releases. openisd.app serves the latest release, not main HEAD. Every release stays hosted and linkable. Storage is stamped with the build that wrote it, snapshotted on upgrade, old builds keep working.
 spec: |
+  Version
+  - The app version is the build stamp from scripts/version-info.mjs, minute resolution: v20260101T0102Z (seconds dropped). Already shown in the toolbar; also sent in the telemetry launch event.
   Release
-  - packages/ui/package.json version is the app version, semver, first 0.1.0. Shown in About footer and the telemetry launch event.
-  - scripts/release.sh X.Y.Z: refuses unless on a landed green main commit; bumps version, commits "Release X.Y.Z", annotated tag vX.Y.Z, pushes commit and tag.
-  - .github/workflows/release.yml on tag push: build, zip dist as openisd-X.Y.Z.zip, GitHub Release with zip and generated notes.
-  - deploy.yml no longer deploys on push to main. The release workflow deploys Pages: fetch current gh-pages tree, write new build to root (latest) and to v/X.Y.Z/, keep all older v/ dirs, write v/index.json (version, date, tag, release URL per version), deploy.
+  - scripts/release.sh: refuses unless on a landed green main commit; tags HEAD with the build stamp (annotated tag vYYYYMMDDThhmmZ), pushes the tag. No version bump commit.
+  - .github/workflows/release.yml on tag push: build with that stamp, zip dist as openisd-<stamp>.zip, GitHub Release with zip and generated notes.
+  - deploy.yml no longer deploys on push to main. The release workflow deploys Pages: fetch current gh-pages tree, write new build to root (latest) and to v/<stamp>/, keep all older v/ dirs, write v/index.json (stamp, date, tag, release URL per build), deploy.
   - main HEAD published to next/ by a separate workflow on push to main.
   Versions list in app
-  - App fetches /v/index.json at start (no store, no schema). About shows Versions: current highlighted, each row links to /v/X.Y.Z/ and its GitHub release. Fetch failure shows current only.
-  - Old version shows "latest is X" when index lists a newer one.
+  - App fetches /v/index.json at start (no store, no schema). About shows Versions: current highlighted, date shown as "1 Jan 2026, 01:02", each row links to /v/<stamp>/ and its GitHub release. Fetch failure shows current only.
+  - Old build shows "latest is <date>" when index lists a newer one.
   Storage
-  - Key openisd_storage_version = app version that last wrote the store. Every store write stamps it.
-  - Newer app than stamp: copy every openisd_* key to openisd_snapshot_<oldversion> before migrating, then migrate and stamp. Snapshot write failure stops the upgrade with an export-first message (repair rule, reset only after export).
+  - Key openisd_storage_version = build stamp of the app that last wrote the store. Every store write stamps it.
+  - Newer app than stamp: copy every openisd_* key to openisd_snapshot_<oldstamp> before migrating, then migrate and stamp. Snapshot write failure stops the upgrade with an export-first message (repair rule, reset only after export).
   - Keep the last 10 snapshots, oldest dropped.
   - Older app than stamp: does not load the live store. Offers restore of its own snapshot into the live store, or read-only on the snapshot. Never silent loss.
   Options menu
-  - New page Storage history: one row per snapshot (version, date, project count, size) with Export to file, Restore (confirm, snapshots live store first), Delete.
+  - New page Storage history: one row per snapshot (build date, project count, size) with Export to file, Restore (confirm, snapshots live store first), Delete, plus Snapshot now.
 done_test: |
   bash scripts/test.sh packages/persistence/test/storageSnapshot.test.ts
   bash scripts/test.sh packages/ui/test/logic/versionIndex.test.ts
   bash scripts/land/test/release.test.sh
 files:
   - tasks/T055.yml
+  - scripts/version-info.mjs
   - scripts/release.sh
   - scripts/land/test/release.test.sh
   - .github/workflows/release.yml
