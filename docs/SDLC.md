@@ -115,7 +115,7 @@ named) or **to build**.
   freeze with no gates (11 Oct 11:40: four branches merged, one 4-file conflict, one typecheck
   error fixed by hand on main).
 - Proof: e2e: an integration that drops a branch test is refused; a breaking schema change is refused.
-- Built: `scripts/integrate.sh <T-id> <branch>`; `scripts/land/test/integrate.e2e.test.sh` proves all six cases. The corpus is `packages/persistence/test/corpus/storedCorpus.test.ts` (stored fixtures, bundled drivers, sample projects) plus `npm run schemagen:prove`. A branch that deletes a test file is refused too, not only one that fails.
+- Built: `scripts/integrate.sh <T-id> <branch>`; `scripts/land/test/integrate.e2e.test.sh` proves all six cases. The corpus is `packages/persistence/test/corpus/storedCorpus.test.ts` and four `bundledDrivers.shard*` specs (stored fixtures, bundled drivers, sample projects) plus `npm run schemagen:prove`. A branch that deletes a test file is refused too, not only one that fails.
 
 ### S5 — environment is self-checking (R6) — mostly live, effort S each
 

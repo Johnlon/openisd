@@ -8,7 +8,7 @@ files:
   - tasks/T048.yml
   - scripts/integrate.sh
   - scripts/land/test/integrate.e2e.test.sh
-  - packages/persistence/test/corpus/storedCorpus.test.ts
+  - packages/persistence/test/corpus/*
   - package.json
   - docs/SDLC.md
   - docs/DEV_PROCESS.md

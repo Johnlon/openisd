@@ -176,7 +176,7 @@ GATE_DEADLINE_S="${UNIT_DEADLINE_S:-$GATE_DEADLINE_S}" gate unit /dev/null "$UNI
 if git diff --name-only origin/main HEAD | grep -Eq '(openisdSchema|projectRepo)\.ts$|^packages/[^/]+/src/.*[Ll]oader[^/]*\.ts$' \
    || git diff -U0 origin/main HEAD | grep -q 'driver_type'; then
   echo "integrate: schema, loader or driver_type touched; running the stored-data corpus"
-  gate corpus /dev/null "${INTEGRATE_CORPUS_CMD:-bash scripts/test.sh packages/persistence/test/corpus/storedCorpus.test.ts}"
+  GATE_DEADLINE_S="${UNIT_DEADLINE_S:-$GATE_DEADLINE_S}" gate corpus /dev/null "${INTEGRATE_CORPUS_CMD:-bash scripts/test.sh packages/persistence/test/corpus/storedCorpus.test.ts packages/persistence/test/corpus/bundledDrivers.shard0.test.ts packages/persistence/test/corpus/bundledDrivers.shard1.test.ts packages/persistence/test/corpus/bundledDrivers.shard2.test.ts packages/persistence/test/corpus/bundledDrivers.shard3.test.ts}"
   GATE_DEADLINE_S="${UNIT_DEADLINE_S:-$GATE_DEADLINE_S}" gate schemagen /dev/null "${INTEGRATE_PROOF_CMD:-npm run schemagen:prove}"
   # The proof rewrites the generated module: a difference from the merged one means the branch did not regenerate it.
   [ -z "$(git status --porcelain)" ] || { git status --porcelain > "$WORK/dirty.out"; GATE_OUT="$WORK/dirty.out"; refuse schemagen "the proof changed the tree; regenerate scripts/schemagen/out in the branch"; }
